@@ -1646,6 +1646,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors_bct[] = {
 /***************
  * Blade Sensors
  ***************/
+#define SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR 12
 
 struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
         /* CPU 1 thermal sensor */
@@ -2740,7 +2741,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
         {
 		.index = 12,
                 .sensor = {
-                        .Num = 12,
+                        .Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR,
                         .Type = SAHPI_OPERATIONAL,
                         .Category = SAHPI_EC_AVAILABILITY,
 			.EnableCtrl = SAHPI_FALSE,
@@ -2911,7 +2912,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 		.ipmi = {
 			.index = 1,
 			.sensor = {
-				.Num = 1,
+				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 1,
 				.Type = SAHPI_TEMPERATURE,
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
@@ -2967,31 +2968,15 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				.deassert_mask = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
 				.event_array = {
 					{
-						.event = "0421C481", /* EN_CUTOFF_HI_OVER_TEMP_CPU1 */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_TRUE,
-						.event_res_failure_unexpected = SAHPI_TRUE,
-						.event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
-						.recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
-					},
-					{
-						.event = "FF21DC81", /* EN_CUTOFF_HI_TEMP_CPU1 */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_TRUE,
-						.event_res_failure_unexpected = SAHPI_TRUE,
-						.event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
-						.recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
-					},
-					{
-						.event = "0421D501", /* EN_PFA_HI_OVER_TEMP_CPU1 */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_FALSE,
-						.event_res_failure_unexpected = SAHPI_FALSE,
-						.event_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
-						.recovery_state = SAHPI_ES_UNSPECIFIED,
-					},
-					{
 						.event = "0421C401", /* EN_PROC_HOT_CPU1 */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_TRUE,
+						.event_res_failure_unexpected = SAHPI_TRUE,
+						.event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
+						.recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
+					},
+					{
+						.event = "0421C481", /* EN_CUTOFF_HI_OVER_TEMP_CPU1 */
 						.event_assertion = SAHPI_TRUE,
 						.event_res_failure = SAHPI_TRUE,
 						.event_res_failure_unexpected = SAHPI_TRUE,
@@ -3006,6 +2991,14 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 						.event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
 						.recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
 					},
+					{
+						.event = "0421D501", /* EN_PFA_HI_OVER_TEMP_CPU1 */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
 					{},
 				},
 				.reading2event = {},
@@ -3019,7 +3012,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 		.ipmi = {
 			.index = 2,
 			.sensor = {
-				.Num = 2,
+				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 2,
 				.Type = SAHPI_TEMPERATURE,
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
@@ -3075,31 +3068,15 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				.deassert_mask = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
 				.event_array = {
 					{
-						.event = "0421C482", /* EN_CUTOFF_HI_OVER_TEMP_CPU2 */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_TRUE,
-						.event_res_failure_unexpected = SAHPI_TRUE,
-						.event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
-						.recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
-					},
-					{
-						.event = "FF21DC82", /* EN_CUTOFF_HI_TEMP_CPU2 */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_TRUE,
-						.event_res_failure_unexpected = SAHPI_TRUE,
-						.event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
-						.recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
-					},
-					{
-						.event = "0421D502", /* EN_PFA_HI_OVER_TEMP_CPU2 */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_FALSE,
-						.event_res_failure_unexpected = SAHPI_FALSE,
-						.event_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
-						.recovery_state = SAHPI_ES_UNSPECIFIED,
-					},
-					{
 						.event = "0421C402", /* EN_PROC_HOT_CPU2 */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_TRUE,
+						.event_res_failure_unexpected = SAHPI_TRUE,
+						.event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
+						.recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
+					},
+					{
+						.event = "0421C482", /* EN_CUTOFF_HI_OVER_TEMP_CPU2 */
 						.event_assertion = SAHPI_TRUE,
 						.event_res_failure = SAHPI_TRUE,
 						.event_res_failure_unexpected = SAHPI_TRUE,
@@ -3114,6 +3091,14 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 						.event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
 						.recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
 					},
+					{
+						.event = "0421D502", /* EN_PFA_HI_OVER_TEMP_CPU2 */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
 					{},
 				},
 				.reading2event = {},
@@ -3127,7 +3112,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 		.ipmi = {
 			.index = 3,
 			.sensor = {
-				.Num = 3,
+				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 3,
 				.Type = SAHPI_TEMPERATURE,
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
@@ -3183,31 +3168,15 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				.deassert_mask = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
 				.event_array = {
 					{
-						.event = "0421C483", /* EN_CUTOFF_HI_OVER_TEMP_CPU3 */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_TRUE,
-						.event_res_failure_unexpected = SAHPI_TRUE,
-						.event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
-						.recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
-					},
-					{
-						.event = "FF21DC83", /* EN_CUTOFF_HI_TEMP_CPU3 */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_TRUE,
-						.event_res_failure_unexpected = SAHPI_TRUE,
-						.event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
-						.recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
-					},
-					{
-						.event = "0421D503", /* EN_PFA_HI_OVER_TEMP_CPU3 */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_FALSE,
-						.event_res_failure_unexpected = SAHPI_FALSE,
-						.event_state = SAHPI_ES_UPPER_MAJOR  | SAHPI_ES_UPPER_MINOR,
-						.recovery_state = SAHPI_ES_UNSPECIFIED,
-					},
-					{
 						.event = "0421C403", /* EN_PROC_HOT_CPU3 */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_TRUE,
+						.event_res_failure_unexpected = SAHPI_TRUE,
+						.event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
+						.recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
+					},
+					{
+						.event = "0421C483", /* EN_CUTOFF_HI_OVER_TEMP_CPU3 */
 						.event_assertion = SAHPI_TRUE,
 						.event_res_failure = SAHPI_TRUE,
 						.event_res_failure_unexpected = SAHPI_TRUE,
@@ -3222,6 +3191,14 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 						.event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
 						.recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
 					},
+					{
+						.event = "0421D503", /* EN_PFA_HI_OVER_TEMP_CPU3 */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_UPPER_MAJOR  | SAHPI_ES_UPPER_MINOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
 					{},
 				},
 				.reading2event = {},
@@ -3235,7 +3212,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 		.ipmi = {
 			.index = 4,
 			.sensor = {
-				.Num = 4,
+				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 4,
 				.Type = SAHPI_TEMPERATURE,
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
@@ -3291,31 +3268,15 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				.deassert_mask = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
 				.event_array = {
 					{
-						.event = "0421C484", /* EN_CUTOFF_HI_OVER_TEMP_CPU4 */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_TRUE,
-						.event_res_failure_unexpected = SAHPI_TRUE,
-						.event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
-						.recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
-					},
-					{
-						.event = "FF21DC84", /* EN_CUTOFF_HI_TEMP_CPU4 */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_TRUE,
-						.event_res_failure_unexpected = SAHPI_TRUE,
-						.event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
-						.recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
-					},
-					{
-						.event = "0421D504", /* EN_PFA_HI_OVER_TEMP_CPU4 */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_FALSE,
-						.event_res_failure_unexpected = SAHPI_FALSE,
-						.event_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
-						.recovery_state = SAHPI_ES_UNSPECIFIED,
-					},
-					{
 						.event = "0421C404", /* EN_PROC_HOT_CPU4 */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_TRUE,
+						.event_res_failure_unexpected = SAHPI_TRUE,
+						.event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
+						.recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
+					},
+					{
+						.event = "0421C484", /* EN_CUTOFF_HI_OVER_TEMP_CPU4 */
 						.event_assertion = SAHPI_TRUE,
 						.event_res_failure = SAHPI_TRUE,
 						.event_res_failure_unexpected = SAHPI_TRUE,
@@ -3330,6 +3291,14 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 						.event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
 						.recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
 					},
+					{
+						.event = "0421D504", /* EN_PFA_HI_OVER_TEMP_CPU4 */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
 					{},
 				},
 				.reading2event = {},
@@ -3343,7 +3312,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 		.ipmi = {
 			.index = 5,
 			.sensor = {
-				.Num = 5,
+				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 5,
 				.Type = SAHPI_VOLTAGE,
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
@@ -3454,7 +3423,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 		.ipmi = {
 			.index = 6,
 			.sensor = {
-				.Num = 6,
+				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 6,
 				.Type = SAHPI_VOLTAGE,
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
@@ -3549,7 +3518,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 		.ipmi = {
 			.index = 7,
 			.sensor = {
-				.Num = 7,
+				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 7,
 				.Type = SAHPI_VOLTAGE,
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
@@ -3660,7 +3629,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 		.ipmi = {
 			.index = 8,
 			.sensor = {
-				.Num = 8,
+				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 8,
 				.Type = SAHPI_VOLTAGE,
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
@@ -3755,7 +3724,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 		.ipmi = {
 			.index = 9,
 			.sensor = {
-				.Num = 9,
+				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 9,
 				.Type = SAHPI_VOLTAGE,
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
@@ -3866,7 +3835,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 		.ipmi = {
 			.index = 10,
 			.sensor = {
-				.Num = 10,
+				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 10,
 				.Type = SAHPI_VOLTAGE,
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
@@ -3977,7 +3946,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 		.ipmi = {
 			.index = 11,
 			.sensor = {
-				.Num = 11,
+				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 11,
 				.Type = SAHPI_VOLTAGE,
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
@@ -4072,7 +4041,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 		.ipmi = {
 			.index = 12,
 			.sensor = {
-				.Num = 12,
+				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 12,
 				.Type = SAHPI_VOLTAGE,
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
@@ -4183,7 +4152,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 		.ipmi = {
 			.index = 13,
 			.sensor = {
-				.Num = 13,
+				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 13,
 				.Type = SAHPI_VOLTAGE,
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
@@ -4278,7 +4247,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 		.ipmi = {
 			.index = 14,
 			.sensor = {
-				.Num = 14,
+				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 14,
 				.Type = SAHPI_VOLTAGE,
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
@@ -4389,7 +4358,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 		.ipmi = {
 			.index = 15,
 			.sensor = {
-				.Num = 15,
+				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 15,
 				.Type = SAHPI_VOLTAGE,
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
@@ -4484,7 +4453,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 		.ipmi = {
 			.index = 16,
 			.sensor = {
-				.Num = 16,
+				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 16,
 				.Type = SAHPI_VOLTAGE,
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
@@ -4595,7 +4564,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 		.ipmi = {
 			.index = 17,
 			.sensor = {
-				.Num = 17,
+				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 17,
 				.Type = SAHPI_VOLTAGE,
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
@@ -4706,7 +4675,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 		.ipmi = {
 			.index = 18,
 			.sensor = {
-				.Num = 18,
+				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 18,
 				.Type = SAHPI_VOLTAGE,
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
@@ -4801,7 +4770,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 		.ipmi = {
 			.index = 19,
 			.sensor = {
-				.Num = 19,
+				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 19,
 				.Type = SAHPI_VOLTAGE,
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
@@ -4873,7 +4842,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 		.ipmi = {
 			.index = 20,
 			.sensor = {
-				.Num = 20,
+				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 20,
 				.Type = SAHPI_VOLTAGE,
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
@@ -4945,7 +4914,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 		.ipmi = {
 			.index = 21,
 			.sensor = {
-				.Num = 21,
+				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 21,
 				.Type = SAHPI_VOLTAGE,
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
@@ -5075,8 +5044,6 @@ struct snmp_bc_sensor snmp_bc_blade_addin_sensors[] = {
                                 .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.10.x",
                                 .threshold_oids = {
-					/* FIXME:: Get Not Readable if expansion card; else
-					 Get No temperature if not for BCT.*/
 					.UpCritical  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.18.x",
 					.UpMajor = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.19.x",
                                 },
