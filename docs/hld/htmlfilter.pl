@@ -6,7 +6,7 @@
 my @files = @ARGV;
 
 foreach my $file (@files) {
-	#system("tidy -c -m $file 2>/dev/null");
+	system("tidy -c -m $file 2>/dev/null");
 }
 
 foreach my $file (@files) {
