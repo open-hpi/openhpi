@@ -165,42 +165,52 @@ SaErrorT snmp_get2(struct snmp_session *ss,
          * Process the response.
          */
         if (status == STAT_SUCCESS && response->errstat == SNMP_ERR_NOERROR) {
+
                 vars = response->variables;
+
                 value->type = vars->type;
+
                 if (vars->next_variable != NULL) {
+
                         value->type = ASN_NULL;
-                }/* If there are more values, set return type to null. */
-                else if ( (vars->type == ASN_INTEGER) || 
-			  (vars->type == ASN_COUNTER) || 
-			  (vars->type == ASN_UNSIGNED) ) {
-                        value->integer = *(vars->val.integer);
+
+		/* If there are more values, set return type to null. */
+                } else if ( (vars->type == ASN_INTEGER) || 
+			    (vars->type == ASN_COUNTER) || 
+			    (vars->type == ASN_UNSIGNED) ) {
+
+			value->integer = *(vars->val.integer);
+
                 } else {
+
                         value->str_len = vars->val_len;
+
                         if (value->str_len >= MAX_ASN_STR_LEN)
                                 value->str_len = MAX_ASN_STR_LEN;
+
                         else value->string[value->str_len] = '\0';
                         
                         memcpy(value->string, vars->val.string, value->str_len);
                        
                 }
+
 		/* display data */
-		dbg("*** snmp_get2 ******************************************");
-			if (CHECK_END(vars->type)) { 
-				fprint_variable(stderr, 
-						vars->name, 
-						vars->name_length, 
-						vars);
-				/* print_variable(vars->name, vars->name_length, vars); */
-			}  else {
-
-				dbg("snmp_get2(): No idea.Unknown Type: %X", vars->type);
-				fprint_variable(stderr, 
-						vars->name, 
-						vars->name_length, 
-						vars);
-			}
-		dbg("********************************************************");
-
+#ifdef DEBUG
+		if (CHECK_END(vars->type)) { 
+			fprintf(stderr, "*** snmp_get2 ******************************************\n");
+			fprint_variable(stderr, 
+					vars->name, 
+					vars->name_length, 
+					vars);
+			fprintf(stderr, "********************************************************\n");
+		}  else {
+			dbg("snmp_get2(): No idea.Unknown Type: %X", vars->type);
+			fprint_variable(stderr, 
+					vars->name, 
+					vars->name_length, 
+					vars);
+		}		
+#endif
         } else {
 		int i;
                 value->type = (u_char)0x00; /* Set return type to 0 in case of error. */
@@ -289,18 +299,17 @@ SaErrorT snmp_set2(struct snmp_session *ss,
          	*/
         	if (status == STAT_SUCCESS && response->errstat == SNMP_ERR_NOERROR) {
 			/* display data */
-			dbg("*** snmp_set2 ******************************************");
+#ifdef DEBUG
+			fprintf(stderr, "*** snmp_set2 ******************************************\n");
 				if (CHECK_END(response->variables->type)) {
 					fprint_variable(stderr, 
 							response->variables->name,
 							response->variables->name_length,
-							response->variables);
-					/* print_variable(response->variables->name,
-						       response->variables->name_length,
-						       response->variables); */  
+							response->variables);  
 				}  else 
-					dbg("snmp_set2(): No idea.");
-			dbg("********************************************************");
+					fprintf(stderr, "snmp_set2(): No idea.\n");
+			fprintf(stderr, "********************************************************\n");
+#endif
                 	rtncode = 0;
                 
         	} else {
@@ -375,20 +384,23 @@ SaErrorT net_snmp_failure(struct snmp_client_hnd *custom_handle, int snmp_status
 
 void display_vars( struct snmp_pdu *response) 
 {	
+#ifdef DEBUG
+
 	int c = 0;
 	struct variable_list *vars;
 
-	dbg("********************************************************");
+	fprintf(stderr, "********************************************************\n");
 	for(vars = response->variables; vars; vars = vars->next_variable) {
 		c++;
-		dbg("\n**** oid count %d ******", c);
+		fprintf(stderr, "**** oid count %d ******\n", c);
 		if (CHECK_END(vars->type)) { 
 			fprint_variable(stderr, vars->name, vars->name_length, vars);
 			/* print_variable(vars->name, vars->name_length, vars);   */
 		}  else 
 			dbg("display_vars(): No idea.");
 	}
-	dbg("********************************************************");
+	fprintf(stderr, "********************************************************\n");
+#endif
 }
 
 int build_state_value (char *str,
