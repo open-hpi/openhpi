@@ -70,6 +70,8 @@ void ohoi_inventory_event(enum ipmi_update_e    op,
                           void                  *cb_data)
 {
        struct oh_handler_state  *handler = cb_data;
+	   //struct ohoi_handler *ipmi_handler = handler->data;
+
        ipmi_entity_id_t         entity_id;
        SaHpiRptEntryT           *rpt_entry;
 
@@ -84,10 +86,13 @@ void ohoi_inventory_event(enum ipmi_update_e    op,
        }
 
        if (op == IPMI_ADDED) {
+			   dbg("FRU added");
                rpt_entry->ResourceCapabilities |= SAHPI_CAPABILITY_INVENTORY_DATA;
 
                add_inventory_event(entity, handler, 
                                rpt_entry->ResourceEntity,
                                rpt_entry->ResourceId);
+
        }
+			   
 }

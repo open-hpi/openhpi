@@ -63,7 +63,7 @@ static void get_mc_entity_event(ipmi_mc_t	*mc,
 	sel_support = ipmi_mc_sel_device_support(mc);
 	if (sel_support == 1) {
 		dbg("MC supports SEL");
-		entry->ResourceCapabilities = SAHPI_CAPABILITY_SEL;
+		entry->ResourceCapabilities = SAHPI_CAPABILITY_SEL | SAHPI_CAPABILITY_RESOURCE;
 	}
 	else {
 		entry->ResourceCapabilities = SAHPI_CAPABILITY_RESOURCE;

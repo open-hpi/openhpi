@@ -93,9 +93,16 @@ static void get_entity_event(ipmi_entity_t	*entity,
 	entry->ResourceId = oh_uid_from_entity_path(&entry->ResourceEntity);
 
 	entry->ResourceCapabilities = SAHPI_CAPABILITY_RESOURCE;
+	
 	if (ipmi_entity_hot_swappable(entity)) {
-		entry->ResourceCapabilities |= SAHPI_CAPABILITY_MANAGED_HOTSWAP;
+			entry->ResourceCapabilities |= SAHPI_CAPABILITY_MANAGED_HOTSWAP
+					| SAHPI_CAPABILITY_FRU;
 	}
+
+	if(ipmi_entity_get_is_fru(entity)) {
+			entry->ResourceCapabilities |= SAHPI_CAPABILITY_FRU | SAHPI_CAPABILITY_INVENTORY_DATA;
+	}
+				
 	entry->ResourceSeverity = SAHPI_OK;
 	entry->DomainId = 0;
 	entry->ResourceTag.DataType = SAHPI_TL_TYPE_ASCII6;
@@ -111,67 +118,67 @@ static void get_entity_event(ipmi_entity_t	*entity,
 static void add_entity_event(ipmi_entity_t	        *entity,
 			     struct oh_handler_state    *handler)
 {
-         struct ohoi_resource_info *ohoi_res_info;
-         struct oh_event	*e;
-         int 		rv;
+		struct ohoi_resource_info *ohoi_res_info;
+		SaHpiRptEntryT	entry;
+		int 		rv;
 
-		 dbg("adding ipmi entity: %s", ipmi_entity_get_entity_id_string(entity));
+		dbg("adding ipmi entity: %s", ipmi_entity_get_entity_id_string(entity));
 
-		 struct ohoi_handler *ipmi_handler = handler->data;
+		struct ohoi_handler *ipmi_handler = handler->data;
 
-		 ohoi_res_info = g_malloc0(sizeof(*ohoi_res_info));
+		ohoi_res_info = g_malloc0(sizeof(*ohoi_res_info));
 
-		 if (!ohoi_res_info) {
-				 dbg("Out of memory");
-				 return;
-		 }
-		 e = g_malloc0(sizeof(*e));
+		if (!ohoi_res_info) {
+				dbg("Out of memory");
+				return;
+		}
 
-		 if (!e) {
-				 free(ohoi_res_info);
-				 dbg("Out of space");   
-				 return;
-		 }
+		ohoi_res_info->type       = OHOI_RESOURCE_ENTITY; 
+		ohoi_res_info->u.entity_id= ipmi_entity_convert_to_id(entity);
 
-        ohoi_res_info->type       = OHOI_RESOURCE_ENTITY; 
-        ohoi_res_info->u.entity_id= ipmi_entity_convert_to_id(entity);
-        
-	memset(e, 0, sizeof(*e));
-	e->type = OH_ET_RESOURCE;			
-	get_entity_event(entity, &(e->u.res_event.entry), ipmi_handler);	
+		get_entity_event(entity, &entry, ipmi_handler);	
 
-	handler->eventq = g_slist_append(handler->eventq, e);
+		/* bug #957513 keeping for histirical reasons until it's verified */
+		//handler->eventq = g_slist_append(handler->eventq, e);
 
-	/* sensors */
-	oh_add_resource(handler->rptcache, &(e->u.res_event.entry), ohoi_res_info, 1);
-	rv= ipmi_entity_set_sensor_update_handler(entity, ohoi_sensor_event,
-						  handler);
-	if (rv) {
-		dbg("ipmi_entity_set_sensor_update_handler: %#x", rv);
-		return;
-	}
-	
-	/* controls */
-	rv = ipmi_entity_set_control_update_handler(entity, ohoi_control_event,	handler);
-	if (rv) {
-		dbg("ipmi_entity_set_control_update_handler: %#x", rv);
-		return;
-	}
+		oh_add_resource(handler->rptcache, &entry, ohoi_res_info, 1);
 
-        /* inventory (a.k.a FRU) */
-        rv = ipmi_entity_set_fru_update_handler(entity, ohoi_inventory_event, handler);
+		/* sensors */
 
-        if (rv) {
+		rv= ipmi_entity_set_sensor_update_handler(entity, ohoi_sensor_event,
+						handler);
+
+		if (rv) {
+				dbg("ipmi_entity_set_sensor_update_handler: %#x", rv);
+				return;
+		}
+
+		/* controls */
+		
+		rv = ipmi_entity_set_control_update_handler(entity, ohoi_control_event,
+							handler);
+
+		if (rv) {
+				dbg("ipmi_entity_set_control_update_handler: %#x", rv);
+				return;
+		}
+
+		/* inventory (a.k.a FRU) */
+
+		rv = ipmi_entity_set_fru_update_handler(entity, ohoi_inventory_event, handler);
+
+		if (rv) {
                 dbg("ipmi_entity_set_fru_update_handler: %#x", rv);
                 return;
         }
-        
-	/* entity presence overall */
-	rv = ipmi_entity_set_presence_handler(entity, entity_presence, &e->u.res_event.entry.ResourceId);
-	if (rv) {
-		dbg("ipmi_entity_set_presence_handler: %#x", rv);
-		return;
-	}
+
+		/* entity presence overall */
+
+		rv = ipmi_entity_set_presence_handler(entity, entity_presence, &entry.ResourceId);
+		if (rv) {
+				dbg("ipmi_entity_set_presence_handler: %#x", rv);
+				return;
+		}
 
 }
 
@@ -180,37 +187,32 @@ void ohoi_entity_event(enum ipmi_update_e       op,
                        ipmi_entity_t            *entity,
                        void                     *cb_data)
 {
-	struct oh_handler_state *handler = cb_data;
+		struct oh_handler_state *handler = cb_data;
 
-	if (op == IPMI_ADDED) {
-					
-			add_entity_event(entity, handler);
+		if (op == IPMI_ADDED) {
+				add_entity_event(entity, handler);
 
 				dbg("Entity added: %d.%d", 
 								ipmi_entity_get_entity_id(entity), 
 								ipmi_entity_get_entity_instance(entity));
-			ipmi_entity_add_hot_swap_handler(entity, ohoi_hot_swap_cb, cb_data);
-			
-        } else if (op == IPMI_DELETED) {
 
+				ipmi_entity_add_hot_swap_handler(entity, ohoi_hot_swap_cb, cb_data);
+		
+		} else if (op == IPMI_DELETED) {
 				/* we need to remove_entity */
 
 				dbg("Entity deleted: %d.%d", 
 								ipmi_entity_get_entity_id(entity), 
 								ipmi_entity_get_entity_instance(entity));
-				
-        } else if (op == IPMI_CHANGED) {
-				
+		
+		} else if (op == IPMI_CHANGED) {
 				add_entity_event(entity, handler);
 
 				dbg("Entity changed: %d.%d",
 								ipmi_entity_get_entity_id(entity), 
 								ipmi_entity_get_entity_instance(entity));
-		
 		} else {
-				
-                dbg("Entity: Unknow change?!");
-        }
+				dbg("Entity: Unknow change?!");
+		}
 
 }
-
