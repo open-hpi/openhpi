@@ -15,7 +15,7 @@
 
 #include <SaHpi.h>
 #include <openhpi.h>
-#include <snmp_util.h>
+#include <snmp_utils.h>
 #include <sim_resources.h>
 
 int snmp_get(struct snmp_session *ss, const char *objid, struct snmp_value *value) 
