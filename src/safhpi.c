@@ -298,6 +298,8 @@ SaErrorT SAHPI_API saHpiResourceSeveritySet(
         struct oh_handler *h = NULL;
         struct oh_domain *d = NULL;
 
+        OH_CHECK_INIT_STATE(SessionId);
+
         if (ResourceId == SAHPI_UNSPECIFIED_RESOURCE_ID) {
                 dbg("Invalid resource id, SAHPI_UNSPECIFIED_RESOURCE_ID passed.");
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -306,7 +308,6 @@ SaErrorT SAHPI_API saHpiResourceSeveritySet(
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-        OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
 
         OH_GET_DOMAIN(did, d); /* Lock domain */
