@@ -17,8 +17,8 @@
 
 #include <glib.h>
 #include <time.h>
-
 #include <snmp_bc_plugin.h>
+#include <sim_init.h>
 
 oh_el *bc_selcache = NULL;
 
@@ -309,7 +309,8 @@ SaErrorT snmp_bc_check_selcache(struct oh_handler_state *handle,
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
-	if (g_list_length(handle->elcache->elentries) == 0) {
+	if ((g_list_length(handle->elcache->elentries) == 0) && 
+	     !(is_simulator())) {
 		/* err = snmp_bc_build_selcache(handle, id); */
 		trace("elcache sync called before discovery?\n");
 	} else {
@@ -783,9 +784,10 @@ SaErrorT snmp_bc_clear_sel(void *hnd, SaHpiResourceIdT id)
 	if (err) {
 		dbg("SNMP set failed. Error=%s.", oh_lookup_error(err));
 		return(err);
-	} else 
+	} else if (!is_simulator()) { 
 		/* Pick up the newly created entry, Log Clear message */
 		err = snmp_bc_build_selcache(handle, 1);
+	}
 		
 	return(SA_OK);
 }
