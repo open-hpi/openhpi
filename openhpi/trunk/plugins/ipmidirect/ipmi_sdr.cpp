@@ -99,7 +99,7 @@ Bit( unsigned char v, int bit )
 void 
 cIpmiSdr::DumpFullSensor( cIpmiLog &dump ) const
 {
-  char str[80];
+  char str[256];
 
   dump.Entry( "SlaveAddress" ) << m_data[5] << ";\n";    
   dump.Entry( "Channel" ) << (int)(m_data[6] >> 4) << ";\n";

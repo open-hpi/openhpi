@@ -47,17 +47,7 @@ cIpmiMc::cIpmiMc( cIpmiDomain *domain, const cIpmiAddr &addr )
     m_sdr_repository_support( false ), m_sensor_device_support( false ),
     m_major_fw_revision( 0 ), m_minor_fw_revision( 0 ),
     m_major_version( 0 ), m_minor_version( 0 ),
-    m_manufacturer_id( 0 ), m_product_id( 0 ),
-    m_real_device_id( 0 ), m_real_device_revision( 0 ),
-    m_real_provides_device_sdrs( false ), m_real_device_available( false ),
-    m_real_chassis_support( false ), m_real_bridge_support( false ),
-    m_real_ipmb_event_generator_support( false ),
-    m_real_ipmb_event_receiver_support( false ),
-    m_real_fru_inventory_support( false ), m_real_sel_device_support( false ),
-    m_real_sdr_repository_support( false ), m_real_sensor_device_support( false ),
-    m_real_major_fw_revision( 0 ), m_real_minor_fw_revision( 0 ),
-    m_real_major_version( 0 ), m_real_minor_version( 0 ),
-    m_real_manufacturer_id( 0 ), m_real_product_id( 0 )
+    m_manufacturer_id( 0 ), m_product_id( 0 )
 {
   stdlog << "adding MC: " << addr.m_channel << " " << addr.m_slave_addr << "\n";
 
@@ -69,10 +59,6 @@ cIpmiMc::cIpmiMc( cIpmiDomain *domain, const cIpmiAddr &addr )
   m_aux_fw_revision[1] = 0;
   m_aux_fw_revision[2] = 0;
   m_aux_fw_revision[3] = 0;
-  m_real_aux_fw_revision[0] = 0;
-  m_real_aux_fw_revision[1] = 0;
-  m_real_aux_fw_revision[2] = 0;
-  m_real_aux_fw_revision[3] = 0;
 
   m_sdrs = new cIpmiSdrs( this, 0, true );
   assert( m_sdrs );
@@ -247,73 +233,73 @@ cIpmiMc::DeviceDataCompares( const cIpmiMsg &rsp ) const
   if ( rsp.m_data_len < 12 )
        return false;
 
-  if ( m_real_device_id != rsp_data[1] )
+  if ( m_device_id != rsp_data[1] )
        return false;
 
-  if ( m_real_device_revision != (rsp_data[2] & 0xf) )
+  if ( m_device_revision != (rsp_data[2] & 0xf) )
        return false;
     
-  if ( m_real_provides_device_sdrs != ((rsp_data[2] & 0x80) == 0x80) )
+  if ( m_provides_device_sdrs != ((rsp_data[2] & 0x80) == 0x80) )
        return false;
 
-  if ( m_real_device_available != ((rsp_data[3] & 0x80) == 0x80) )
+  if ( m_device_available != ((rsp_data[3] & 0x80) == 0x80) )
        return false;
 
-  if ( m_real_major_fw_revision != (rsp_data[3] & 0x7f) )
+  if ( m_major_fw_revision != (rsp_data[3] & 0x7f) )
        return false;
 
-  if ( m_real_minor_fw_revision != (rsp_data[4]) )
+  if ( m_minor_fw_revision != (rsp_data[4]) )
        return false;
 
-  if ( m_real_major_version != (rsp_data[5] & 0xf) )
+  if ( m_major_version != (rsp_data[5] & 0xf) )
        return false;
 
-  if ( m_real_minor_version != ((rsp_data[5] >> 4) & 0xf) )
+  if ( m_minor_version != ((rsp_data[5] >> 4) & 0xf) )
        return false;
 
-  if ( m_real_chassis_support != ((rsp_data[6] & 0x80) == 0x80) )
+  if ( m_chassis_support != ((rsp_data[6] & 0x80) == 0x80) )
        return false;
 
-  if ( m_real_bridge_support != ((rsp_data[6] & 0x40) == 0x40) )
+  if ( m_bridge_support != ((rsp_data[6] & 0x40) == 0x40) )
        return false;
 
-  if ( m_real_ipmb_event_generator_support != ((rsp_data[6] & 0x20)==0x20) )
+  if ( m_ipmb_event_generator_support != ((rsp_data[6] & 0x20)==0x20) )
        return false;
 
-  if ( m_real_ipmb_event_receiver_support != ((rsp_data[6] & 0x10) == 0x10) )
+  if ( m_ipmb_event_receiver_support != ((rsp_data[6] & 0x10) == 0x10) )
        return false;
 
-  if ( m_real_fru_inventory_support != ((rsp_data[6] & 0x08) == 0x08) )
+  if ( m_fru_inventory_support != ((rsp_data[6] & 0x08) == 0x08) )
        return false;
 
-  if ( m_real_sel_device_support != ((rsp_data[6] & 0x04) == 0x04) )
+  if ( m_sel_device_support != ((rsp_data[6] & 0x04) == 0x04) )
        return false;
 
-  if ( m_real_sdr_repository_support != ((rsp_data[6] & 0x02) == 0x02) )
+  if ( m_sdr_repository_support != ((rsp_data[6] & 0x02) == 0x02) )
        return false;
 
-  if ( m_real_sensor_device_support != ((rsp_data[6] & 0x01) == 0x01) )
+  if ( m_sensor_device_support != ((rsp_data[6] & 0x01) == 0x01) )
        return false;
 
-  if ( m_real_manufacturer_id != (unsigned int)(   (rsp_data[7]
+  if ( m_manufacturer_id != (unsigned int)(   (rsp_data[7]
 						 | (rsp_data[8] << 8)
 						 | (rsp_data[9] << 16))) )
        return false;
 
-  if ( m_real_product_id != (rsp_data[10] | (rsp_data[11] << 8)) )
+  if ( m_product_id != (rsp_data[10] | (rsp_data[11] << 8)) )
        return false;
 
   if ( rsp.m_data_len < 16 )
      {
        // no aux revision, it should be all zeros.
-       if (    ( m_real_aux_fw_revision[0] != 0 )
-            || ( m_real_aux_fw_revision[1] != 0 )
-            || ( m_real_aux_fw_revision[2] != 0 )
-            || ( m_real_aux_fw_revision[3] != 0 ) )
+       if (    ( m_aux_fw_revision[0] != 0 )
+            || ( m_aux_fw_revision[1] != 0 )
+            || ( m_aux_fw_revision[2] != 0 )
+            || ( m_aux_fw_revision[3] != 0 ) )
             return false;
      }
   else 
-       if ( memcmp( m_real_aux_fw_revision, rsp_data + 12, 4 ) != 0 )
+       if ( memcmp( m_aux_fw_revision, rsp_data + 12, 4 ) != 0 )
             return false;
 
   // Everything's the same.
@@ -358,28 +344,6 @@ cIpmiMc::GetDeviceIdDataFromRsp( const cIpmiMsg &rsp )
        memset( m_aux_fw_revision, 0, 4 );
   else
        memcpy( m_aux_fw_revision, rsp_data + 12, 4 );
-
-  // Copy these to the version we use for comparison.
-  m_real_device_id                    = m_device_id;
-  m_real_device_revision              = m_device_revision;
-  m_real_provides_device_sdrs         = m_provides_device_sdrs;
-  m_real_device_available             = m_device_available;
-  m_real_chassis_support              = m_chassis_support;
-  m_real_bridge_support               = m_bridge_support;
-  m_real_ipmb_event_generator_support = m_ipmb_event_generator_support;
-  m_real_ipmb_event_receiver_support  = m_ipmb_event_receiver_support;
-  m_real_fru_inventory_support        = m_fru_inventory_support;
-  m_real_sel_device_support           = m_sel_device_support;
-  m_real_sdr_repository_support       = m_sdr_repository_support;
-  m_real_sensor_device_support        = m_sensor_device_support;
-  m_real_major_fw_revision            = m_major_fw_revision;
-  m_real_minor_fw_revision            = m_minor_fw_revision;
-  m_real_major_version                = m_major_version;
-  m_real_minor_version                = m_minor_version;
-  m_real_manufacturer_id              = m_manufacturer_id;
-  m_real_product_id                   = m_product_id;
-  memcpy( m_real_aux_fw_revision, m_aux_fw_revision,
-          sizeof(m_real_aux_fw_revision ) );
 
   return 0;
 }

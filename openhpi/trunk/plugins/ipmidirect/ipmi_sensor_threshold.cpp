@@ -75,7 +75,7 @@ AddOrStr( char *str, const char *s )
   if ( *str )
        strcat( str, " | " );
 
-  strcpy( str, s );
+  strcat( str, s );
 }
 
 

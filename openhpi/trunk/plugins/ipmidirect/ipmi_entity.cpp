@@ -195,6 +195,31 @@ IpmiEntityIdToString( tIpmiEntityId val )
 }
 
 
+cIpmiEntityPath::cIpmiEntityPath()
+{
+  memset( &m_entity_path, 0, sizeof( SaHpiEntityPathT ) );
+}
+
+
+cIpmiEntityPath::cIpmiEntityPath( const SaHpiEntityPathT &entity_path )
+{
+  m_entity_path = entity_path;
+}
+
+
+cIpmiLog &
+operator<<( cIpmiLog &log, const cIpmiEntityPath &epath )
+{
+  char str[1024] = "{Invalid}";
+
+  entitypath2string( &epath.m_entity_path, str, 1024 );
+
+  log << str;
+
+  return log;
+}
+
+
 bool
 cIpmiEntity::Add( cIpmiRdr *rdr )
 {
