@@ -105,13 +105,13 @@ void display_help(void)
         printf("   -p port       This overrides the default listening port (4743) of\n");
         printf("                 the daemon. This option is optional.\n");
         printf("   -f pidfile    This overrides the default name/location for the daemon.\n");
-        printf("                 pid file. This option is optional.\n\n");
+        printf("                 pid file. This option is optional.\n");
         printf("   -s seconds    This overrides the default socket read timeout of 30\n");
-        printf("                 minutes. This option is optional.\n\n");
+        printf("                 minutes. This option is optional.\n");
         printf("   -t threads    This sets the maximum number of connection threads.\n");
-        printf("                 The default is umlimited. This option is optional.\n\n");
+        printf("                 The default is umlimited. This option is optional.\n");
         printf("   -nondaemon    This forces the code to run as a foreground process\n");
-        printf("                 and NOT as a daemon. The default is to run as\n\n");
+        printf("                 and NOT as a daemon. The default is to run as\n");
         printf("                 a daemon. This option is optional.\n\n");
         printf("A typical invocation might be\n\n");
         printf("   ./openhpid -c /etc/openhpi/openhpi.conf\n\n");
