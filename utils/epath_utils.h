@@ -19,6 +19,7 @@
 #define EPATH_UTILS_H
 
 #include <glib.h>
+#include <SaHpi.h>
 
 /* Max number of digits an enitity instance has */
 #define MAX_INSTANCE_DIGITS 6

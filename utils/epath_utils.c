@@ -47,7 +47,6 @@
 #include <string.h>
 #include <assert.h>
 
-#include <SaHpi.h>
 #include <oh_error.h>
 #include <epath_utils.h>
 
