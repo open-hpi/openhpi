@@ -270,10 +270,11 @@ int session_push_event(struct oh_session*, struct oh_event*);
 /* del/copy/free event from the head of event_list */
 int session_pop_event(struct oh_session*, struct oh_event*);
 
-/* global_domain_list is just a list right now */
-int domain_exists(SaHpiDomainIdT);
-int domain_add(SaHpiDomainIdT);
-int domain_del(SaHpiDomainIdT);
+int is_in_domain_list(SaHpiDomainIdT domain_id);
+/* this is used to pre-alllocated domainal id in config */
+int add_domain(SaHpiDomainIdT domain_id);
+/* this is used to allocate dynamical domain id for handler */
+SaHpiDomainIdT new_domain(void);
 
 struct oh_resource *get_res_by_oid(struct oh_resource_id oid);
 struct oh_resource *get_resource(SaHpiResourceIdT rid);
