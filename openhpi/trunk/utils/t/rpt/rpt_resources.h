@@ -14,6 +14,11 @@
  *
  */
 
+#ifndef RPT_RESOURCES_H
+#define RPT_RESOURCES_H
+
+#include <SaHpi.h>
+
  SaHpiRptEntryT rptentries[] = {
         {
                 .EntryId = 1,
@@ -54,7 +59,7 @@
 		                        SAHPI_CAPABILITY_SENSOR,
                 .ResourceSeverity = SAHPI_MAJOR,
                 .ResourceTag = {
-                        .DataType = SAHPI_TL_TYPE_LANGUAGE,
+                        .DataType = SAHPI_TL_TYPE_TEXT,
                         .Language = SAHPI_LANG_ENGLISH,
                         .DataLength = 26,
                         .Data = "This is data for blade 14."
@@ -99,7 +104,7 @@
 		                        SAHPI_CAPABILITY_SENSOR,
                 .ResourceSeverity = SAHPI_MAJOR,
                 .ResourceTag = {
-                        .DataType = SAHPI_TL_TYPE_LANGUAGE,
+                        .DataType = SAHPI_TL_TYPE_TEXT,
                         .Language = SAHPI_LANG_ENGLISH,
                         .DataLength = 26,
                         .Data = "This is data for blade 13."
@@ -144,7 +149,7 @@
 		                        SAHPI_CAPABILITY_SENSOR,
                 .ResourceSeverity = SAHPI_MAJOR,
                 .ResourceTag = {
-                        .DataType = SAHPI_TL_TYPE_LANGUAGE,
+                        .DataType = SAHPI_TL_TYPE_TEXT,
                         .Language = SAHPI_LANG_ENGLISH,
                         .DataLength = 26,
                         .Data = "This is data for blade 12."
@@ -189,7 +194,7 @@
 		                        SAHPI_CAPABILITY_SENSOR,
                 .ResourceSeverity = SAHPI_MAJOR,
                 .ResourceTag = {
-                        .DataType = SAHPI_TL_TYPE_LANGUAGE,
+                        .DataType = SAHPI_TL_TYPE_TEXT,
                         .Language = SAHPI_LANG_ENGLISH,
                         .DataLength = 26,
                         .Data = "This is data for blade 11."
@@ -234,7 +239,7 @@
 		                        SAHPI_CAPABILITY_SENSOR,
                 .ResourceSeverity = SAHPI_MAJOR,
                 .ResourceTag = {
-                        .DataType = SAHPI_TL_TYPE_LANGUAGE,
+                        .DataType = SAHPI_TL_TYPE_TEXT,
                         .Language = SAHPI_LANG_ENGLISH,
                         .DataLength = 26,
                         .Data = "This is data for blade 10."
@@ -279,7 +284,7 @@
 		                        SAHPI_CAPABILITY_SENSOR,
                 .ResourceSeverity = SAHPI_MAJOR,
                 .ResourceTag = {
-                        .DataType = SAHPI_TL_TYPE_LANGUAGE,
+                        .DataType = SAHPI_TL_TYPE_TEXT,
                         .Language = SAHPI_LANG_ENGLISH,
                         .DataLength = 25,
                         .Data = "This is data for blade 9."
@@ -322,7 +327,7 @@
 		                        SAHPI_CAPABILITY_RESOURCE,
                 .ResourceSeverity = SAHPI_MAJOR,
                 .ResourceTag = {
-                        .DataType = SAHPI_TL_TYPE_LANGUAGE,
+                        .DataType = SAHPI_TL_TYPE_TEXT,
                         .Language = SAHPI_LANG_ENGLISH,
                         .DataLength = 39,
                         .Data = "This is data for the management module."
@@ -365,7 +370,7 @@
 			                SAHPI_CAPABILITY_RESOURCE,
                 .ResourceSeverity = SAHPI_MAJOR,
                 .ResourceTag = {
-                        .DataType = SAHPI_TL_TYPE_LANGUAGE,
+                        .DataType = SAHPI_TL_TYPE_TEXT,
                         .Language = SAHPI_LANG_ENGLISH,
                         .DataLength = 35,
                         .Data = "This is data for the switch module."
@@ -408,7 +413,7 @@
 			                SAHPI_CAPABILITY_RESOURCE,
                 .ResourceSeverity = SAHPI_MAJOR,
                 .ResourceTag = {
-                        .DataType = SAHPI_TL_TYPE_LANGUAGE,
+                        .DataType = SAHPI_TL_TYPE_TEXT,
                         .Language = SAHPI_LANG_ENGLISH,
                         .DataLength = 34,
                         .Data = "This is data for the power module."
@@ -441,11 +446,11 @@
 			                SAHPI_CAPABILITY_INVENTORY_DATA |
                                         SAHPI_CAPABILITY_RDR |
 			                SAHPI_CAPABILITY_RESOURCE |
-			                SAHPI_CAPABILITY_SEL |
+			                SAHPI_CAPABILITY_EVENT_LOG |
 			                SAHPI_CAPABILITY_SENSOR,
                 .ResourceSeverity = SAHPI_CRITICAL,
                 .ResourceTag = {
-                        .DataType = SAHPI_TL_TYPE_LANGUAGE,
+                        .DataType = SAHPI_TL_TYPE_TEXT,
                         .Language = SAHPI_LANG_ENGLISH,
                         .DataLength = 25,
                         .Data = "This is data for chassis."
@@ -483,9 +488,9 @@ SaHpiRdrT rdrs[] = {
                                 .Num = 1,
                                 .Type = SAHPI_PLATFORM_VIOLATION,
                                 .Category = SAHPI_EC_SEVERITY,
-                                .EventCtrl = SAHPI_SEC_ENTIRE_SENSOR,
+                                .EventCtrl = SAHPI_SEC_PER_EVENT,
                                 .Events = SAHPI_ES_OK | SAHPI_ES_CRITICAL,
-                                .Ignore = SAHPI_FALSE,
+                                .EnableCtrl = SAHPI_FALSE,
                                 .DataFormat = {
                                         .ReadingFormats = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
                                         .IsNumeric = SAHPI_TRUE,
@@ -525,7 +530,7 @@ SaHpiRdrT rdrs[] = {
                         }
                 },
                 .IdString = {
-                        .DataType = SAHPI_TL_TYPE_LANGUAGE,
+                        .DataType = SAHPI_TL_TYPE_TEXT,
                         .Language = SAHPI_LANG_ENGLISH,
                         .DataLength = 22,
                         .Data = "Sensor 1 for Blade 14."
@@ -556,9 +561,9 @@ SaHpiRdrT rdrs[] = {
                                 .Num = 2,
                                 .Type = SAHPI_PLATFORM_VIOLATION,
                                 .Category = SAHPI_EC_SEVERITY,
-                                .EventCtrl = SAHPI_SEC_ENTIRE_SENSOR,
+                                .EventCtrl = SAHPI_SEC_PER_EVENT,
                                 .Events = SAHPI_ES_OK | SAHPI_ES_CRITICAL,
-                                .Ignore = SAHPI_FALSE,
+                                .EnableCtrl = SAHPI_FALSE,
                                 .DataFormat = {
                                         .ReadingFormats = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
                                         .IsNumeric = SAHPI_TRUE,
@@ -598,7 +603,7 @@ SaHpiRdrT rdrs[] = {
                         }
                 },
                 .IdString = {
-                        .DataType = SAHPI_TL_TYPE_LANGUAGE,
+                        .DataType = SAHPI_TL_TYPE_TEXT,
                         .Language = SAHPI_LANG_ENGLISH,
                         .DataLength = 22,
                         .Data = "Sensor 2 for Blade 14."
@@ -629,9 +634,9 @@ SaHpiRdrT rdrs[] = {
                                 .Num = 3,
                                 .Type = SAHPI_PLATFORM_VIOLATION,
                                 .Category = SAHPI_EC_SEVERITY,
-                                .EventCtrl = SAHPI_SEC_ENTIRE_SENSOR,
+                                .EventCtrl = SAHPI_SEC_PER_EVENT,
                                 .Events = SAHPI_ES_OK | SAHPI_ES_CRITICAL,
-                                .Ignore = SAHPI_FALSE,
+                                .EnableCtrl = SAHPI_FALSE,
                                 .DataFormat = {
                                         .ReadingFormats = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
                                         .IsNumeric = SAHPI_TRUE,
@@ -671,7 +676,7 @@ SaHpiRdrT rdrs[] = {
                         }
                 },
                 .IdString = {
-                        .DataType = SAHPI_TL_TYPE_LANGUAGE,
+                        .DataType = SAHPI_TL_TYPE_TEXT,
                         .Language = SAHPI_LANG_ENGLISH,
                         .DataLength = 22,
                         .Data = "Sensor 3 for Blade 14."
@@ -702,9 +707,9 @@ SaHpiRdrT rdrs[] = {
                                 .Num = 4,
                                 .Type = SAHPI_PLATFORM_VIOLATION,
                                 .Category = SAHPI_EC_SEVERITY,
-                                .EventCtrl = SAHPI_SEC_ENTIRE_SENSOR,
+                                .EventCtrl = SAHPI_SEC_PER_EVENT,
                                 .Events = SAHPI_ES_OK | SAHPI_ES_CRITICAL,
-                                .Ignore = SAHPI_FALSE,
+                                .EnableCtrl = SAHPI_FALSE,
                                 .DataFormat = {
                                         .ReadingFormats = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
                                         .IsNumeric = SAHPI_TRUE,
@@ -744,7 +749,7 @@ SaHpiRdrT rdrs[] = {
                         }
                 },
                 .IdString = {
-                        .DataType = SAHPI_TL_TYPE_LANGUAGE,
+                        .DataType = SAHPI_TL_TYPE_TEXT,
                         .Language = SAHPI_LANG_ENGLISH,
                         .DataLength = 22,
                         .Data = "Sensor 4 for Blade 14."
@@ -775,9 +780,9 @@ SaHpiRdrT rdrs[] = {
                                 .Num = 5,
                                 .Type = SAHPI_PLATFORM_VIOLATION,
                                 .Category = SAHPI_EC_SEVERITY,
-                                .EventCtrl = SAHPI_SEC_ENTIRE_SENSOR,
+                                .EventCtrl = SAHPI_SEC_PER_EVENT,
                                 .Events = SAHPI_ES_OK | SAHPI_ES_CRITICAL,
-                                .Ignore = SAHPI_FALSE,
+                                .EnableCtrl = SAHPI_FALSE,
                                 .DataFormat = {
                                         .ReadingFormats = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
                                         .IsNumeric = SAHPI_TRUE,
@@ -817,7 +822,7 @@ SaHpiRdrT rdrs[] = {
                         }
                 },
                 .IdString = {
-                        .DataType = SAHPI_TL_TYPE_LANGUAGE,
+                        .DataType = SAHPI_TL_TYPE_TEXT,
                         .Language = SAHPI_LANG_ENGLISH,
                         .DataLength = 22,
                         .Data = "Sensor 5 for Blade 14."
@@ -840,9 +845,9 @@ SaHpiRdrT rdrs[] = {
                                 .Num = 1,
                                 .Type = SAHPI_PLATFORM_VIOLATION,
                                 .Category = SAHPI_EC_SEVERITY,
-                                .EventCtrl = SAHPI_SEC_ENTIRE_SENSOR,
+                                .EventCtrl = SAHPI_SEC_PER_EVENT,
                                 .Events = SAHPI_ES_OK | SAHPI_ES_CRITICAL,
-                                .Ignore = SAHPI_FALSE,
+                                .EnableCtrl = SAHPI_FALSE,
                                 .DataFormat = {
                                         .ReadingFormats = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
                                         .IsNumeric = SAHPI_TRUE,
@@ -882,7 +887,7 @@ SaHpiRdrT rdrs[] = {
                         }
                 },
                 .IdString = {
-                        .DataType = SAHPI_TL_TYPE_LANGUAGE,
+                        .DataType = SAHPI_TL_TYPE_TEXT,
                         .Language = SAHPI_LANG_ENGLISH,
                         .DataLength = 21,
                         .Data = "Sensor 1 for Chassis."
@@ -905,9 +910,9 @@ SaHpiRdrT rdrs[] = {
                                 .Num = 2,
                                 .Type = SAHPI_PLATFORM_VIOLATION,
                                 .Category = SAHPI_EC_SEVERITY,
-                                .EventCtrl = SAHPI_SEC_ENTIRE_SENSOR,
+                                .EventCtrl = SAHPI_SEC_PER_EVENT,
                                 .Events = SAHPI_ES_OK | SAHPI_ES_CRITICAL,
-                                .Ignore = SAHPI_FALSE,
+                                .EnableCtrl = SAHPI_FALSE,
                                 .DataFormat = {
                                         .ReadingFormats = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
                                         .IsNumeric = SAHPI_TRUE,
@@ -947,7 +952,7 @@ SaHpiRdrT rdrs[] = {
                         }
                 },
                 .IdString = {
-                        .DataType = SAHPI_TL_TYPE_LANGUAGE,
+                        .DataType = SAHPI_TL_TYPE_TEXT,
                         .Language = SAHPI_LANG_ENGLISH,
                         .DataLength = 22,
                         .Data = "Sensor 2 for Chassis."
@@ -955,3 +960,6 @@ SaHpiRdrT rdrs[] = {
         },
         {}        
 };
+
+#endif /* RPT_RESOURCES_H  */
+
