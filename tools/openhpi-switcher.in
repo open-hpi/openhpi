@@ -110,7 +110,7 @@ sub setdefault {
     if(-d "$OHPREFIX/$type" and
        -e "$OHPREFIX/$type/$BASELIB") {
         opendir(DIR,"$dir") or die "Couldn't open $OHPREFIX/$type";
-        !system("ldconfig -n $dir") or die "Couldn't run ldconfig on $dir";
+        !system("/sbin/ldconfig -n $dir") or die "Couldn't run ldconfig on $dir";
         while(my $lib = readdir(DIR)) {
             if($lib =~ /libopenhpi/) {
                 my $link = "$INSTALLPREFIX/$lib";
