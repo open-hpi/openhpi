@@ -855,7 +855,7 @@ cIpmiConLan::ReadResponse( int &seq, cIpmiAddr &addr, cIpmiMsg &msg )
 
   // Make sure the source IP matches what we expect the other end to
   // be.
-  ipaddr = (struct sockaddr_in *)&ipaddrd;
+  ipaddr = (struct sockaddr_in *)(void *)&ipaddrd;
 
   if (    (ipaddr->sin_port != m_ip_addr.sin_port)
        || (ipaddr->sin_addr.s_addr != m_ip_addr.sin_addr.s_addr) )

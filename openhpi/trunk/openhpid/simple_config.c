@@ -54,11 +54,11 @@ ConfigRead( const char *filename, cConfigEntry *entries, void *data )
        switch( e->m_type )
 	  {
 	    case eConfigTypeBool:
-		 *(int *)(dp + e->m_offset) = e->m_default.m_bool;
+		 *(int *)(void *)(dp + e->m_offset) = e->m_default.m_bool;
 		 break;
  
 	    case eConfigTypeInt:
-		 *(int *)(dp + e->m_offset) = e->m_default.m_int;
+		 *(int *)(void *)(dp + e->m_offset) = e->m_default.m_int;
 		 break;
 
 	    case eConfigTypeString:
@@ -166,9 +166,9 @@ ConfigRead( const char *filename, cConfigEntry *entries, void *data )
 	  {
 	    case eConfigTypeBool:
 		 if ( !strcasecmp( p, "false" ) )
-		      *(int *)(dp + e->m_offset) = 0;
+		      *(int *)(void *)(dp + e->m_offset) = 0;
 		 else if ( !strcasecmp( p, "true" ) )
-		      *(int *)(dp + e->m_offset) = 1;
+		      *(int *)(void *)(dp + e->m_offset) = 1;
 		 else
 		    {
 		      fprintf( stderr, "%s.%d: expecting 'true' or 'false' !\n",
@@ -182,7 +182,7 @@ ConfigRead( const char *filename, cConfigEntry *entries, void *data )
 	    case eConfigTypeInt:
 		 {
 		   char *q;
-		   *(int *)(dp + e->m_offset) = strtol( p, &q, 0 );
+		   *(int *)(void *)(dp + e->m_offset) = strtol( p, &q, 0 );
 
 		   q = Whitespace( q );
 

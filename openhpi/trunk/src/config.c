@@ -462,7 +462,7 @@ static void scanner_msg_handler (GScanner *scanner, gchar *message, gboolean is_
 int oh_load_config (char *filename) 
 {
         int oh_conf_file, i;
-        GScanner* oh_scanner;
+        GScanner *oh_scanner;
         int done = 0;
         int num_tokens = sizeof(oh_conf_tokens) / sizeof(oh_conf_tokens[0]);
 
@@ -487,8 +487,8 @@ int oh_load_config (char *filename)
         g_scanner_input_file(oh_scanner, oh_conf_file);
         
         for (i = 0; i < num_tokens; i++) {
-                g_scanner_add_symbol (oh_scanner, oh_conf_tokens[i].name, 
-                                      GINT_TO_POINTER (oh_conf_tokens[i].token));
+                g_scanner_scope_add_symbol (oh_scanner, 0, oh_conf_tokens[i].name, 
+                                     (void *)((unsigned long)oh_conf_tokens[i].token));
         }
 
         while(!done) {

@@ -366,8 +366,8 @@ cIpmiInventoryRecordChassis::HpiRead( int record_id, SaHpiInventDataRecordT *r )
 
   if ( m_chassis_part_number.DataLength() )
      {
-       cd.GeneralData.PartNumber = (SaHpiTextBufferT *)data;
-       *(SaHpiTextBufferT *)data = (SaHpiTextBufferT)m_chassis_part_number;
+       cd.GeneralData.PartNumber = (SaHpiTextBufferT *)(void *)data;
+       *(SaHpiTextBufferT *)(void *)data = (SaHpiTextBufferT)m_chassis_part_number;
        data += sizeof( SaHpiTextBufferT );
 
        r->DataLength += sizeof( SaHpiTextBufferT );
@@ -375,8 +375,8 @@ cIpmiInventoryRecordChassis::HpiRead( int record_id, SaHpiInventDataRecordT *r )
 
   if ( m_chassis_serial_number.DataLength() )
      {
-       cd.GeneralData.SerialNumber = (SaHpiTextBufferT *)data;
-       *(SaHpiTextBufferT *)data = (SaHpiTextBufferT)m_chassis_serial_number;
+       cd.GeneralData.SerialNumber = (SaHpiTextBufferT *)(void *)data;
+       *(SaHpiTextBufferT *)(void *)data = (SaHpiTextBufferT)m_chassis_serial_number;
        data += sizeof( SaHpiTextBufferT );
 
        r->DataLength += sizeof( SaHpiTextBufferT );
@@ -384,8 +384,8 @@ cIpmiInventoryRecordChassis::HpiRead( int record_id, SaHpiInventDataRecordT *r )
 
   for( int i = 0; i < Num(); i++ )
      {
-       cd.GeneralData.CustomField[i] = (SaHpiTextBufferT *)data;
-       *(SaHpiTextBufferT *)data = (SaHpiTextBufferT)*operator[]( i );
+       cd.GeneralData.CustomField[i] = (SaHpiTextBufferT *)(void *)data;
+       *(SaHpiTextBufferT *)(void *)data = (SaHpiTextBufferT)*operator[]( i );
 
        data += sizeof( SaHpiTextBufferT );
      }
@@ -627,8 +627,8 @@ cIpmiInventoryRecordBoard::HpiRead( int record_id, SaHpiInventDataRecordT *r ) c
 
   if ( m_board_manufacturer.DataLength() )
      {
-       gd.Manufacturer = (SaHpiTextBufferT *)data;
-       *(SaHpiTextBufferT *)data = (SaHpiTextBufferT)m_board_manufacturer;
+       gd.Manufacturer = (SaHpiTextBufferT *)(void *)data;
+       *(SaHpiTextBufferT *)(void *)data = (SaHpiTextBufferT)m_board_manufacturer;
        data += sizeof( SaHpiTextBufferT );
 
        r->DataLength += sizeof( SaHpiTextBufferT );
@@ -636,8 +636,8 @@ cIpmiInventoryRecordBoard::HpiRead( int record_id, SaHpiInventDataRecordT *r ) c
 
   if ( m_board_product_name.DataLength() )
      {
-       gd.ProductName = (SaHpiTextBufferT *)data;
-       *(SaHpiTextBufferT *)data = (SaHpiTextBufferT)m_board_product_name;
+       gd.ProductName = (SaHpiTextBufferT *)(void *)data;
+       *(SaHpiTextBufferT *)(void *)data = (SaHpiTextBufferT)m_board_product_name;
        data += sizeof( SaHpiTextBufferT );
 
        r->DataLength += sizeof( SaHpiTextBufferT );
@@ -645,8 +645,8 @@ cIpmiInventoryRecordBoard::HpiRead( int record_id, SaHpiInventDataRecordT *r ) c
 
   if ( m_board_serial_number.DataLength() )
      {
-       gd.SerialNumber = (SaHpiTextBufferT *)data;
-       *(SaHpiTextBufferT *)data = (SaHpiTextBufferT)m_board_serial_number;
+       gd.SerialNumber = (SaHpiTextBufferT *)(void *)data;
+       *(SaHpiTextBufferT *)(void *)data = (SaHpiTextBufferT)m_board_serial_number;
        data += sizeof( SaHpiTextBufferT );
 
        r->DataLength += sizeof( SaHpiTextBufferT );
@@ -654,8 +654,8 @@ cIpmiInventoryRecordBoard::HpiRead( int record_id, SaHpiInventDataRecordT *r ) c
 
   if ( m_board_part_number.DataLength() )
      {
-       gd.PartNumber = (SaHpiTextBufferT *)data;
-       *(SaHpiTextBufferT *)data = (SaHpiTextBufferT)m_board_part_number;
+       gd.PartNumber = (SaHpiTextBufferT *)(void *)data;
+       *(SaHpiTextBufferT *)(void *)data = (SaHpiTextBufferT)m_board_part_number;
        data += sizeof( SaHpiTextBufferT );
 
        r->DataLength += sizeof( SaHpiTextBufferT );
@@ -663,8 +663,8 @@ cIpmiInventoryRecordBoard::HpiRead( int record_id, SaHpiInventDataRecordT *r ) c
 
   if ( m_fru_file_id.DataLength() )
      {
-       gd.FileId = (SaHpiTextBufferT *)data;
-       *(SaHpiTextBufferT *)data = (SaHpiTextBufferT)m_fru_file_id;
+       gd.FileId = (SaHpiTextBufferT *)(void *)data;
+       *(SaHpiTextBufferT *)(void *)data = (SaHpiTextBufferT)m_fru_file_id;
        data += sizeof( SaHpiTextBufferT );
 
        r->DataLength += sizeof( SaHpiTextBufferT );
@@ -672,8 +672,8 @@ cIpmiInventoryRecordBoard::HpiRead( int record_id, SaHpiInventDataRecordT *r ) c
 
   for( int i = 0; i < Num(); i++ )
      {
-       gd.CustomField[i] = (SaHpiTextBufferT *)data;
-       *(SaHpiTextBufferT *)data = (SaHpiTextBufferT)*operator[]( i );
+       gd.CustomField[i] = (SaHpiTextBufferT *)(void *)data;
+       *(SaHpiTextBufferT *)(void *)data = (SaHpiTextBufferT)*operator[]( i );
 
        data += sizeof( SaHpiTextBufferT );
      }
@@ -926,8 +926,8 @@ cIpmiInventoryRecordProduct::HpiRead( int record_id, SaHpiInventDataRecordT *r )
 
   if ( m_manufacturer_name.DataLength() )
      {
-       gd.Manufacturer = (SaHpiTextBufferT *)data;
-       *(SaHpiTextBufferT *)data = (SaHpiTextBufferT)m_manufacturer_name;
+       gd.Manufacturer = (SaHpiTextBufferT *)(void *)data;
+       *(SaHpiTextBufferT *)(void *)data = (SaHpiTextBufferT)m_manufacturer_name;
        data += sizeof( SaHpiTextBufferT );
 
        r->DataLength += sizeof( SaHpiTextBufferT );
@@ -935,8 +935,8 @@ cIpmiInventoryRecordProduct::HpiRead( int record_id, SaHpiInventDataRecordT *r )
 
   if ( m_product_name.DataLength() )
      {
-       gd.ProductName = (SaHpiTextBufferT *)data;
-       *(SaHpiTextBufferT *)data = (SaHpiTextBufferT)m_product_name;
+       gd.ProductName = (SaHpiTextBufferT *)(void *)data;
+       *(SaHpiTextBufferT *)(void *)data = (SaHpiTextBufferT)m_product_name;
        data += sizeof( SaHpiTextBufferT );
 
        r->DataLength += sizeof( SaHpiTextBufferT );
@@ -944,8 +944,8 @@ cIpmiInventoryRecordProduct::HpiRead( int record_id, SaHpiInventDataRecordT *r )
 
   if ( m_product_part.DataLength() )
      {
-       gd.PartNumber = (SaHpiTextBufferT *)data;
-       *(SaHpiTextBufferT *)data = (SaHpiTextBufferT)m_product_part;
+       gd.PartNumber = (SaHpiTextBufferT *)(void *)data;
+       *(SaHpiTextBufferT *)(void *)data = (SaHpiTextBufferT)m_product_part;
        data += sizeof( SaHpiTextBufferT );
 
        r->DataLength += sizeof( SaHpiTextBufferT );
@@ -953,8 +953,8 @@ cIpmiInventoryRecordProduct::HpiRead( int record_id, SaHpiInventDataRecordT *r )
 
   if ( m_product_version.DataLength() )
      {
-       gd.ProductVersion = (SaHpiTextBufferT *)data;
-       *(SaHpiTextBufferT *)data = (SaHpiTextBufferT)m_product_version;
+       gd.ProductVersion = (SaHpiTextBufferT *)(void *)data;
+       *(SaHpiTextBufferT *)(void *)data = (SaHpiTextBufferT)m_product_version;
        data += sizeof( SaHpiTextBufferT );
 
        r->DataLength += sizeof( SaHpiTextBufferT );
@@ -962,8 +962,8 @@ cIpmiInventoryRecordProduct::HpiRead( int record_id, SaHpiInventDataRecordT *r )
 
   if ( m_product_serial_number.DataLength() )
      {
-       gd.SerialNumber = (SaHpiTextBufferT *)data;
-       *(SaHpiTextBufferT *)data = (SaHpiTextBufferT)m_product_serial_number;
+       gd.SerialNumber = (SaHpiTextBufferT *)(void *)data;
+       *(SaHpiTextBufferT *)(void *)data = (SaHpiTextBufferT)m_product_serial_number;
        data += sizeof( SaHpiTextBufferT );
 
        r->DataLength += sizeof( SaHpiTextBufferT );
@@ -971,8 +971,8 @@ cIpmiInventoryRecordProduct::HpiRead( int record_id, SaHpiInventDataRecordT *r )
 
   if ( m_asset_tag.DataLength() )
      {
-       gd.AssetTag = (SaHpiTextBufferT *)data;
-       *(SaHpiTextBufferT *)data = (SaHpiTextBufferT)m_asset_tag;
+       gd.AssetTag = (SaHpiTextBufferT *)(void *)data;
+       *(SaHpiTextBufferT *)(void *)data = (SaHpiTextBufferT)m_asset_tag;
        data += sizeof( SaHpiTextBufferT );
 
        r->DataLength += sizeof( SaHpiTextBufferT );
@@ -980,8 +980,8 @@ cIpmiInventoryRecordProduct::HpiRead( int record_id, SaHpiInventDataRecordT *r )
 
   if ( m_fru_file_id.DataLength() )
      {
-       gd.FileId = (SaHpiTextBufferT *)data;
-       *(SaHpiTextBufferT *)data = (SaHpiTextBufferT)m_fru_file_id;
+       gd.FileId = (SaHpiTextBufferT *)(void *)data;
+       *(SaHpiTextBufferT *)(void *)data = (SaHpiTextBufferT)m_fru_file_id;
        data += sizeof( SaHpiTextBufferT );
 
        r->DataLength += sizeof( SaHpiTextBufferT );
@@ -989,8 +989,8 @@ cIpmiInventoryRecordProduct::HpiRead( int record_id, SaHpiInventDataRecordT *r )
 
   for( int i = 0; i < Num(); i++ )
      {
-       gd.CustomField[i] = (SaHpiTextBufferT *)data;
-       *(SaHpiTextBufferT *)data = (SaHpiTextBufferT)*operator[]( i );
+       gd.CustomField[i] = (SaHpiTextBufferT *)(void *)data;
+       *(SaHpiTextBufferT *)(void *)data = (SaHpiTextBufferT)*operator[]( i );
 
        data += sizeof( SaHpiTextBufferT );
      }
@@ -1745,8 +1745,8 @@ cIpmiInventoryParser::HpiRead( SaHpiInventoryDataT &data ) const
 
        for( int j = 0; j < nr; j++ )
 	  {
-	    data.DataRecords[pos++] = (SaHpiInventDataRecordT *)d;
-	    m_records[i]->HpiRead( j, (SaHpiInventDataRecordT *)d );
+	    data.DataRecords[pos++] = (SaHpiInventDataRecordT *)(void *)d;
+	    m_records[i]->HpiRead( j, (SaHpiInventDataRecordT *)(void *)d );
 	    d += m_records[i]->HpiSize( j );
 	  }
      }

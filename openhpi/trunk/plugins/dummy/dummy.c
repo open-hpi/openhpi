@@ -1568,7 +1568,8 @@ static int dummy_get_inventory_info(void *hnd, SaHpiResourceIdT id,
 		memcpy(data, inventory, sizeof(*inventory));
 
 		for (i=0,pos=0; inventory->DataRecords[i]!=NULL; i++) {
-			data->DataRecords[i] = (SaHpiInventDataRecordT *)&inventory->data[pos];
+			/* FIXME:: very dirty hack to make code compile on IA64 */
+			data->DataRecords[i] = (SaHpiInventDataRecordT *)(void *)&inventory->data[pos];
 			pos+=inventory->DataRecords[i]->DataLength+8;
 		}
 
@@ -1609,7 +1610,8 @@ static int dummy_set_inventory_info(void *hnd, SaHpiResourceIdT id,
 		inventory->Validity = data->Validity;
 	
 		for (i=0, pos=0; data->DataRecords[i] != NULL; i++) {
-			inventory->DataRecords[i] = (SaHpiInventDataRecordT *)&inventory->data[pos];
+			/* FIXME:: very dirty hack to make code compile on IA64 */
+			inventory->DataRecords[i] = (SaHpiInventDataRecordT *)(void *)&inventory->data[pos];
 			memcpy(inventory->DataRecords[i], data->DataRecords[i], data->DataRecords[i]->DataLength+8);
 			pos+=data->DataRecords[i]->DataLength+8;
 		}

@@ -1489,7 +1489,7 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 		   buffer = new unsigned char [buffer_size];
 
 	      ret = saHpiEntityInventoryDataRead( session_id, resource_id, eir_id,
-						  buffer_size, (SaHpiInventoryDataT *)buffer,
+						  buffer_size, (SaHpiInventoryDataT *)(void *)buffer,
 						  &actual_size );
 
 	      DbgFunc( "saHpintityInventoryDataRead( %x, %x, %x, %d ) = %d\n",
@@ -1532,7 +1532,7 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 				    &session_id, &resource_id, &eir_id, buffer );
 
 	      ret = saHpiEntityInventoryDataWrite( session_id, resource_id, eir_id,
-						   (SaHpiInventoryDataT *)buffer );
+						   (SaHpiInventoryDataT *)(void *)buffer );
 
 	      DbgFunc( "saHpintityInventoryDataWrite( %x, %x, %x ) = %d\n",
                        session_id, resource_id, eir_id, ret );
