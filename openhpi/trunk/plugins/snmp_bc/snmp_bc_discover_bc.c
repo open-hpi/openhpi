@@ -1107,7 +1107,7 @@ static SaErrorT snmp_bc_discover_ipmi_sensors(struct oh_handler_state *handle,
 	for (i=0; sensor_array[i].ipmi.index != 0; i++) {
 		mib_info = (struct SensorMibInfo *)g_hash_table_lookup(ipmi_sensor_hash, sensor_array[i].ipmi_tag);
 		if (mib_info) {
-			struct oh_event *e = NULL;
+			struct oh_event *e;
 			struct SensorInfo *sinfo;
 
 			e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
@@ -1157,8 +1157,6 @@ static SaErrorT snmp_bc_discover_ipmi_sensors(struct oh_handler_state *handle,
 							       sensor_array[i].ipmi.sensor.Num,
 							       &(sensor_array[i].ipmi));
 			}
-
-			g_free(e);
 		}
 	}
 
