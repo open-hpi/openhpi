@@ -95,7 +95,10 @@ void ohoi_setup_done(ipmi_domain_t *domain, void *user_data);
 void ohoi_close_connection(ipmi_domain_t *domain, void *user_data);
 
 /* implemented in ipmi_sensor.c	*/
-int ohoi_get_sensor_data(ipmi_sensor_id_t sensor_id, SaHpiSensorReadingT *data, void *cb_data);
+int ohoi_get_sensor_reading(ipmi_sensor_id_t sensor_id, 
+			    SaHpiSensorReadingT * reading,
+			    SaHpiEventStateT * ev_state,
+			    void *cb_data);
 
 int ohoi_get_sensor_thresholds(ipmi_sensor_id_t sensor_id,
 			       SaHpiSensorThresholdsT *thres,

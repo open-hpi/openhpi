@@ -637,7 +637,7 @@ SaErrorT ohoi_get_rdr_data(const struct oh_handler_state *handler,
 }
 
 /**
- * ipmi_get_sensor_data: get sensor reading, type, category and other info.
+ * ipmi_get_sensor_reading: get sensor reading, type, category and other info.
  * @hnd: pointer to handler instance
  * @id: ResourceId -- parent of this sensor
  * @num: sensor number
@@ -647,10 +647,11 @@ SaErrorT ohoi_get_rdr_data(const struct oh_handler_state *handler,
  *
  * Return value: 0 for success or negative for error
  **/
-static int ipmi_get_sensor_data(void 			*hnd, 
-				SaHpiResourceIdT	id,
-				SaHpiSensorNumT		num,
-				SaHpiSensorReadingT	*data)
+static int ipmi_get_sensor_reading(void   *hnd, 
+				   SaHpiResourceIdT  id,
+				   SaHpiSensorNumT  num,
+				   SaHpiSensorReadingT *reading,
+				   SaHpiEventStateT  *ev_state)
 {
 	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
 	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
@@ -665,21 +666,12 @@ static int ipmi_get_sensor_data(void 			*hnd,
 		dbg("no rdr");
 		return SA_ERR_HPI_NOT_PRESENT;
 	}
-	/* Fix Me */
-	/* No Ignore field in HPI B 1.1 */
-# if 0
-	if ( rdr->RdrTypeUnion.SensorRec.Ignore == SAHPI_TRUE){
-		dbg("sensor is not present");
-		return SA_ERR_HPI_NOT_PRESENT;
-	}
-#endif 
 
 	rv = ohoi_get_rdr_data(handler, id, SAHPI_SENSOR_RDR, num, (void *)&sensor);
 	if (rv!=SA_OK)
 		return rv;
 
-	memset(data, 0, sizeof(*data));
-	return ohoi_get_sensor_data(*sensor, data, ipmi_handler);
+	return ohoi_get_sensor_reading(*sensor, reading, ev_state, ipmi_handler);
 }
 
 /**
@@ -894,7 +886,7 @@ static struct oh_abi_v2 oh_ipmi_plugin = {
 	.clear_el                       = ipmi_clear_el, 
 
 	/* Sensor support */
-	.get_sensor_data		= ipmi_get_sensor_data,
+	.get_sensor_reading		= ipmi_get_sensor_reading,
 	.get_sensor_thresholds		= ipmi_get_sensor_thresholds,
 	.set_sensor_thresholds		= ipmi_set_sensor_thresholds,
 	.get_sensor_enable		= ipmi_get_sensor_enable,
