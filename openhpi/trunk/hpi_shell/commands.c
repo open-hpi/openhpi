@@ -828,7 +828,7 @@ static int sen_block(int argc, char *argv[])
 		if (i != 1) return SA_OK;
 		rdrnum = (SaHpiInstrumentIdT)res;
 	} else {
-		rdrnum = (SaHpiInstrumentIdT)atoi(argv[3]);
+		rdrnum = (SaHpiInstrumentIdT)atoi(argv[2]);
 	};
 	rv = saHpiRdrGetByInstrumentId(Domain->sessionId, rptid, type, rdrnum, &rdr_entry);
 	if (rv != SA_OK) {
