@@ -28,6 +28,7 @@
 #include <snmp_rsa_sel.h>
 #include <snmp_rsa_sensor.h>
 #include <snmp_rsa_session.h>
+#include <snmp_rsa_hotswap.h>
 // #include <snmp_rsa_watchdog.h>
 
 #include <snmp_rsa.h>
@@ -495,25 +496,16 @@ struct oh_abi_v2 oh_snmp_rsa_plugin = {
         .set_watchdog_info		= NULL,
 //      .reset_watchdog			= snmp_rsa_reset_watchdog,
         .reset_watchdog			= NULL,
-//      .get_hotswap_state		= snmp_rsa_get_hotswap_state,
-        .get_hotswap_state		= NULL,
-//      .set_hotswap_state		= snmp_rsa_set_hotswap_state,
-        .set_hotswap_state		= NULL,
-//      .request_hotswap_action		= snmp_rsa_request_hotswap_action,
-        .request_hotswap_action		= NULL,
-//      .get_power_state		= snmp_rsa_get_power_state,
-        .get_power_state		= NULL,
-//      .set_power_state		= snmp_rsa_set_power_state,
-        .set_power_state		= NULL,
-//      .get_indicator_state		= snmp_rsa_get_indicator_state,
-        .get_indicator_state		= NULL,
-//      .set_indicator_state		= snmp_rsa_set_indicator_state,
-        .set_indicator_state		= NULL,
+        .get_hotswap_state		= snmp_rsa_get_hotswap_state,
+        .set_hotswap_state		= snmp_rsa_set_hotswap_state,
+        .request_hotswap_action		= snmp_rsa_request_hotswap_action,
+        .get_power_state		= snmp_rsa_get_power_state,
+        .set_power_state		= snmp_rsa_set_power_state,
+        .get_indicator_state		= snmp_rsa_get_indicator_state,
+        .set_indicator_state		= snmp_rsa_set_indicator_state,
         .control_parm			= snmp_rsa_control_parm,
-//      .get_reset_state		= snmp_rsa_get_reset_state,
-        .get_reset_state		= NULL,
-//      .set_reset_state		= snmp_rsa_set_reset_state
-        .set_reset_state		= NULL
+        .get_reset_state		= snmp_rsa_get_reset_state,
+        .set_reset_state		= snmp_rsa_set_reset_state
 };
 
 int get_interface(void **pp, const uuid_t uuid)
