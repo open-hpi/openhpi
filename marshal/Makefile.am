@@ -23,9 +23,9 @@ INCLUDES 		= -I $(top_srcdir)/include
 LIBS			=
 
 # marshal and connection used by the daemon and client library
-noinst_LIBRARIES        = libmarshal.a
+lib_LTLIBRARIES = libopenhpimarshal.la
 
-libmarshal_a_SOURCES    = \
+libopenhpimarshal_la_SOURCES    = \
 	connection.h \
 	connection.c \
 	marshal_hpi.h \
@@ -34,6 +34,8 @@ libmarshal_a_SOURCES    = \
 	marshal_hpi_types.c \
 	marshal.h \
         marshal.c
+
+libopenhpimarshal_la_LDFLAGS= -version-info @HPI_LIB_VERSION@
 
 clean:
 	rm -f *~ core core.*
