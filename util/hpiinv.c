@@ -211,14 +211,14 @@ prtboardinfo(void)
 	fixstr((SaHpiTextBufferT *)strptr);
 	printf( "\tBoard Asset Tag     : %s\n", outbuff);
 
-	if (dataptr->CustomField[0] != 0)
-	{
-		if (dataptr->CustomField[0]->DataLength != 0)
-			strncpy ((char *)outbuff, (char *)dataptr->CustomField[0]->Data,
-							dataptr->CustomField[0]->DataLength);
-		outbuff[dataptr->CustomField[0]->DataLength] = 0;
-		printf( "\tBoard OEM Field     : %s\n", outbuff);
-	}
+	for (j = 0; j < 10 && dataptr->CustomField[j] ; j++)
+		if (dataptr->CustomField[j] != NULL
+                    && dataptr->CustomField[0]->DataLength != 0) {
+                        strncpy ((char *)outbuff, (char *)dataptr->CustomField[j]->Data,
+							dataptr->CustomField[j]->DataLength);
+                        outbuff[dataptr->CustomField[j]->DataLength] = 0;
+                        printf( "\tBoard OEM Field     : %s\n", outbuff);
+                }
 }
 
 int
