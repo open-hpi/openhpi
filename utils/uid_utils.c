@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2003
+ * (C) Copyright IBM Corp. 2003,2004
  * Copyright (c) 2003 by Intel Corp.
  *
  * This program is distributed in the hope that it will be useful,
@@ -12,12 +12,12 @@
  *
  * Authors:
  *      David Judkovics <djudkovi@us.ibm.com>
+ *      Renier Morales <renierm@users.sf.net>
  */
  
 #include <stdio.h>
 #include <stdlib.h>
 #include <glib.h>
-//#include <uuid.h>
 #include <fcntl.h>
 #include <string.h>
 #include <unistd.h>
@@ -69,7 +69,6 @@ guint oh_entity_path_hash(gconstpointer key)
                 p++;                          
         }
 
-/*      return(h); */
 	/* don't change the 1009, its magic */
     	return( h % 1009 );
 
@@ -137,7 +136,7 @@ SaErrorT oh_uid_initialize(void)
  * of -1 is returned.  Before returning this call updates the
  * uid map file saved on disk.  
  * 
- * Returns: positive unsigned int, failure is -1.
+ * Returns: positive unsigned int, failure is 0.
  **/
 guint oh_uid_from_entity_path(SaHpiEntityPathT *ep) 
 {
@@ -148,8 +147,6 @@ guint oh_uid_from_entity_path(SaHpiEntityPathT *ep)
 
         char *uid_map_file;
         int file;
-//        int map_len;
-//        int rval;
 
         /* check for presense of EP and */
         /* previously assigned uid      */
@@ -163,7 +160,7 @@ guint oh_uid_from_entity_path(SaHpiEntityPathT *ep)
         ep_xref = (EP_XREF *)g_malloc0(sizeof(EP_XREF));
         if(!ep_xref) { 
                 dbg("malloc fialed");
-                return(-1);
+                return 0;
         }
 
         memset(ep_xref, 0, sizeof(EP_XREF));
@@ -197,7 +194,7 @@ guint oh_uid_from_entity_path(SaHpiEntityPathT *ep)
 
         close(file);
 
-        return(ep_xref->resource_id);
+        return ep_xref->resource_id;
 }               
 
 /**
@@ -213,7 +210,7 @@ guint oh_uid_from_entity_path(SaHpiEntityPathT *ep)
  * 
  * Returns: success 0, failure -1.
  **/
-guint oh_uid_remove(guint uid)
+gint oh_uid_remove(guint uid)
 {               
         EP_XREF *ep_xref;
         gpointer key;
@@ -224,7 +221,7 @@ guint oh_uid_remove(guint uid)
         ep_xref = (EP_XREF *)g_hash_table_lookup (resource_id_hash_table, key);
         if(!ep_xref) {
                 dbg("error freeing resource_id_hash_table");
-                return(-1);
+                return -1;
         }
 
         /* check netry exist in resource_id_hash_table */ 
@@ -232,7 +229,7 @@ guint oh_uid_remove(guint uid)
         ep_xref = (EP_XREF *)g_hash_table_lookup (ep_hash_table, key);
         if(!ep_xref) {
                 dbg("error freeing resource_id_hash_table");
-                return(-1);
+                return -1;
         }
 
         g_hash_table_remove(resource_id_hash_table, &ep_xref->resource_id);
@@ -242,8 +239,7 @@ guint oh_uid_remove(guint uid)
 
         rval = oh_uid_map_to_file();
 
-        return(rval);
-
+        return rval;
 }
 
 /**
@@ -252,7 +248,7 @@ guint oh_uid_remove(guint uid)
  *
  * Fetches resourceID/uid based on entity path in @ep.
  *  
- * Returns: success returns resourceID/uid, failure is -1.
+ * Returns: success returns resourceID/uid, failure is 0.
  **/
 guint oh_uid_lookup(SaHpiEntityPathT *ep)
 {
@@ -263,7 +259,7 @@ guint oh_uid_lookup(SaHpiEntityPathT *ep)
         ep_xref = (EP_XREF *)g_hash_table_lookup (ep_hash_table, key);
         if(!ep_xref) {
                 dbg("error looking up EP to get uid");
-                return(-1);
+                return 0;
         }
 
         return(ep_xref->resource_id);
@@ -278,7 +274,7 @@ guint oh_uid_lookup(SaHpiEntityPathT *ep)
  *
  * Returns: success 0, failed -1.
  **/
-guint oh_entity_path_lookup(guint *id, SaHpiEntityPathT *ep)
+gint oh_entity_path_lookup(guint *id, SaHpiEntityPathT *ep)
 {
 
         EP_XREF *ep_xref;
@@ -288,12 +284,12 @@ guint oh_entity_path_lookup(guint *id, SaHpiEntityPathT *ep)
         ep_xref = (EP_XREF *)g_hash_table_lookup (resource_id_hash_table, key);
         if(!ep_xref) {
                 dbg("error looking up EP to get uid");
-                return(-1);
+                return -1 ;
         }
 
         memcpy(ep, &ep_xref->entity_path, sizeof(SaHpiEntityPathT));
 
-        return(0);
+        return 0;
 
 } 
 
@@ -306,11 +302,9 @@ guint oh_entity_path_lookup(guint *id, SaHpiEntityPathT *ep)
  *  
  * Return value: success 0, failed -1.
  */
-guint oh_uid_map_to_file(void)
+gint oh_uid_map_to_file(void)
 {
         char *uid_map_file;
-//        int map_len;
-//        int i;
         int file;
 
         uid_map_file = (char *)getenv("OPENHPI_UID_MAP");
@@ -336,7 +330,7 @@ guint oh_uid_map_to_file(void)
                 return -1;
         }
         
-        return(0);
+        return 0;
 }
 
 
@@ -363,7 +357,7 @@ void write_ep_xref(gpointer key, gpointer value, gpointer file)
  * 
  * Return value: success 0, error -1.
  */
-static int uid_map_from_file(void)
+static gint uid_map_from_file(void)
 {
         char *uid_map_file;
         int file;
@@ -383,38 +377,38 @@ static int uid_map_from_file(void)
 			     S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH );
                  if(file < 0) {
                          dbg("Could not initialize uid map file, %s", uid_map_file );
-                                         return(-1);
+                                         return -1;
                  }
                  /* write initial uid value */
                  if( write(file,(void *)&resource_id, sizeof(resource_id)) < 0 ) {
                          dbg("failed to write uid, on uid map file initialization");
                          close(file);
-                         return(-1);
+                         return -1;
                  }
                  if(close(file) != 0) {
                          dbg("Couldn't close file '%s'.during uid map file initialization", uid_map_file);
-                         return(-1);
+                         return -1;
                  }
                  /* return from successful initialization, from newly created uid map file */
-                 return(0);
+                 return 0;
          }
 
          /* read uid/resouce_id highest count from uid map file */
          if (read(file,&resource_id, sizeof(resource_id)) != sizeof(resource_id)) {
                  dbg("error setting uid from existing uid map file");
-                 return(-1);
+                 return -1;
          }
 
          rval = build_uid_map_data(file);
          close(file);
 
          if (rval < 0) 
-                return(-1);
+                return -1;
         
          /* return from successful initialization from existing uid map file */
-         return(0);
-
+         return 0;
 }
+
 /*
  * build_uid_map_data: used by uid_map_from_file(),  recursively 
  * reads map file and builds two hash tables, and EP_XREF data
@@ -424,7 +418,7 @@ static int uid_map_from_file(void)
  *
  * Return value: success 0, error -1.
  */
-static int build_uid_map_data(int file)
+static gint build_uid_map_data(int file)
 {
         int rval;
         EP_XREF *ep_xref;
@@ -439,7 +433,7 @@ static int build_uid_map_data(int file)
                 /* copy read record from ep_xref1 to malloc'd ep_xref */
                 ep_xref = (EP_XREF *)g_malloc0(sizeof(EP_XREF));
                 if (!ep_xref) 
-                        return(-1);
+                        return -1;
                 memcpy(ep_xref, &ep_xref1, sizeof(EP_XREF));
  
                 value = (gpointer)ep_xref;
@@ -459,7 +453,8 @@ static int build_uid_map_data(int file)
         /* if (rval != EOF), rval of 0 seems to be EOF */
         if ( (rval > 0)  && (rval < sizeof(EP_XREF)) ) {
                 dbg("error building ep xref from map file");
-                return(-1);
+                return -1;
         }
-        return(0);
+        return 0;
 }
+
