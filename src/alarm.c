@@ -351,3 +351,54 @@ SaErrorT oh_detect_sensor_enable_alarm(SaHpiDomainIdT did,
         return SA_OK;
 }
 
+/**
+ * oh_detect_sensor_mask_alarm
+ * @did
+ * @rid
+ * @num
+ * @action
+ * @deassert_mask
+ *
+ *
+ * Return value:
+ **/
+SaErrorT oh_detect_sensor_mask_alarm(SaHpiDomainIdT did,
+                                     SaHpiResourceIdT rid,
+                                     SaHpiSensorNumT num,
+                                     SaHpiSensorEventMaskActionT action,
+                                     SaHpiEventStateT deassert_mask)
+{
+        struct oh_domain *d = NULL;
+        GList *alarms = NULL;
+                
+        if (!did || !rid) return SA_ERR_HPI_INVALID_PARAMS;
+        
+        if (action == SAHPI_SENS_ADD_EVENTS_TO_MASKS)
+                return SA_OK;
+        
+        if (action != SAHPI_SENS_REMOVE_EVENTS_FROM_MASKS)
+                return SA_ERR_HPI_INVALID_PARAMS;
+        
+        d = oh_get_domain(did);
+        if (!d) {
+                dbg("Domain not found! Can't process alarm trigger.");
+                return SA_ERR_HPI_INVALID_DOMAIN;
+        }        
+        
+        /* Find matching sensor alarms and compare alarm's state with
+           the deassert mask. If deassert for that state is being disabled,
+           then remove the alarm.
+        */
+        for (alarms = d->dat.list; alarms; alarms = alarms->next) {
+                SaHpiAlarmT *alarm = alarms->data;
+                if (alarm &&
+                    alarm->AlarmCond.Type == SAHPI_STATUS_COND_TYPE_SENSOR &&
+                    alarm->AlarmCond.ResourceId == rid &&
+                    alarm->AlarmCond.SensorNum == num &&
+                    (alarm->AlarmCond.EventState & deassert_mask)) {                        
+                        oh_delete_alarm_and_continue();
+                }
+        }
+        
+        return SA_OK;
+}
