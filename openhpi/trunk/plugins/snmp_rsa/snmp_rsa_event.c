@@ -24,9 +24,7 @@
 
 #include <openhpi.h>
 #include <oh_plugin.h>
-#include <rpt_utils.h>
-#include <uid_utils.h>
-#include <epath_utils.h>
+#include <oh_utils.h>
 #include <rsa_resources.h>
 #include <rsa_str2event.h>
 #include <rsa_errorlog.h>
