@@ -20,6 +20,7 @@
 #include <oh_config.h>
 #include <oh_error.h>
 #include <oh_utils.h>
+#include <config.h>
 #include <string.h>
 
 #define OH_FIRST_DOMAIN 1
@@ -46,6 +47,7 @@ SaHpiDomainIdT oh_create_domain(SaHpiDomainCapabilitiesT capabilities,
         struct oh_domain *domain = NULL;
         static SaHpiDomainIdT id = OH_FIRST_DOMAIN; /* domain ids will start at 1 */
         struct oh_global_param param = { .type = OPENHPI_DEL_SIZE_LIMIT };
+        char del_filepath[SAHPI_MAX_TEXT_BUFFER_LENGTH*2];
 
         domain = g_new0(struct oh_domain,1);
         if (!domain) return 0;
@@ -78,6 +80,10 @@ SaHpiDomainIdT oh_create_domain(SaHpiDomainCapabilitiesT capabilities,
         }
         g_static_rec_mutex_lock(&(oh_domains.lock)); /* Locked domain table */
         domain->id = id++;
+        snprintf(del_filepath,
+                 SAHPI_MAX_TEXT_BUFFER_LENGTH*2,
+                 "%s/del.%u", VARPATH, domain->id);
+        oh_el_map_from_file(domain->del, del_filepath);
         g_hash_table_insert(oh_domains.table, &(domain->id), domain);
         g_static_rec_mutex_unlock(&(oh_domains.lock));  /* Unlocked domain table */
 

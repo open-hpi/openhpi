@@ -613,6 +613,7 @@ SaErrorT SAHPI_API saHpiEventLogEntryAdd (
         struct oh_handler *h;
         struct oh_domain *d;
         SaHpiDomainIdT did;
+        char del_filepath[SAHPI_MAX_TEXT_BUFFER_LENGTH*2];
 
         OH_CHECK_INIT_STATE(SessionId);
 
@@ -641,6 +642,10 @@ SaErrorT SAHPI_API saHpiEventLogEntryAdd (
         /* test for special domain case */
         if (ResourceId == SAHPI_UNSPECIFIED_RESOURCE_ID) {
                 rv = oh_el_append(d->del, EvtEntry, NULL, NULL);
+                snprintf(del_filepath,
+                         SAHPI_MAX_TEXT_BUFFER_LENGTH*2,
+                         "%s/del.%u", VARPATH, did);
+                oh_el_map_to_file(d->del, del_filepath);
                 oh_release_domain(d); /* Unlock domain */
                 return rv;
         }
