@@ -73,7 +73,13 @@ do { \
 		fprintf(stream, " "); \
 } while(0)
  
- 
+#define check_err(err) \
+do { \
+	if (err < 0) \
+		return(SA_ERR_HPI_INVALID_PARAMS); \
+} while(0)
+
+  
 #define oh_print_textbuffer(buf_ptr)  oh_fprint_textbuffer(stdout, buf_ptr)
 SaErrorT oh_fprint_textbuffer(FILE *stream, const SaHpiTextBufferT *buffer);
 
