@@ -533,7 +533,7 @@ SaErrorT SAHPI_API saHpiResourceSeveritySet(
 
         if (!set_res_sev) {
                 data_access_unlock();
-                return SA_ERR_HPI_UNSUPPORTED_API;
+                return SA_ERR_HPI_INVALID_CMD;
         }
 
         if (set_res_sev(h->hnd, ResourceId, Severity) < 0) {
@@ -575,7 +575,7 @@ SaErrorT SAHPI_API saHpiResourceTagSet(
 
         if (!set_res_tag) {
                  data_access_unlock();
-                return SA_ERR_HPI_UNSUPPORTED_API;
+                return SA_ERR_HPI_INVALID_CMD;
         }
 
         rv = set_res_tag(h->hnd, ResourceId, ResourceTag);
@@ -682,7 +682,7 @@ SaErrorT SAHPI_API saHpiEventLogInfoGet (
 
         if (!get_func) {
                 data_access_unlock();
-                return SA_ERR_HPI_UNSUPPORTED_API;
+                return SA_ERR_HPI_INVALID_CMD;
         }
 
         rv = get_func(h->hnd, ResourceId, Info);
@@ -760,7 +760,7 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
         if (!get_sel_entry) {
                 dbg("This api is not supported");
                 data_access_unlock();
-                return SA_ERR_HPI_UNSUPPORTED_API;
+                return SA_ERR_HPI_INVALID_CMD;
         }
 
         rv = get_sel_entry(h->hnd, ResourceId, EntryId, PrevEntryId,
@@ -845,7 +845,7 @@ SaErrorT SAHPI_API saHpiEventLogEntryAdd (
 
         if (!add_sel_entry) {
                 data_access_unlock();
-                return SA_ERR_HPI_UNSUPPORTED_API;
+                return SA_ERR_HPI_INVALID_CMD;
         }
 
         rv = add_sel_entry(h->hnd, ResourceId, EvtEntry);
@@ -903,7 +903,7 @@ SaErrorT SAHPI_API saHpiEventLogClear (
         clear_sel = h->abi->clear_sel;
         if (!clear_sel) {
                       data_access_unlock();
-                return SA_ERR_HPI_UNSUPPORTED_API;
+                return SA_ERR_HPI_INVALID_CMD;
         }
 
         rv = clear_sel(h->hnd, ResourceId);
@@ -981,7 +981,7 @@ SaErrorT SAHPI_API saHpiEventLogTimeSet (
 
         if (!set_sel_time) {
                 data_access_unlock();
-                return SA_ERR_HPI_UNSUPPORTED_API;
+                return SA_ERR_HPI_INVALID_CMD;
         }
 
         rv = set_sel_time(h->hnd, ResourceId, Time);
@@ -1405,7 +1405,7 @@ SaErrorT SAHPI_API saHpiSensorReadingGet (
 
         if (!get_func) {
                 data_access_unlock();
-                return SA_ERR_HPI_UNSUPPORTED_API;
+                return SA_ERR_HPI_INVALID_CMD;
         }
 
         rv = get_func(h->hnd, ResourceId, SensorNum, Reading);
@@ -1459,7 +1459,7 @@ SaErrorT SAHPI_API saHpiSensorThresholdsSet (
 
         if (!set_func) {
                 data_access_unlock();
-                return SA_ERR_HPI_UNSUPPORTED_API;
+                return SA_ERR_HPI_INVALID_CMD;
         }
 
         rv = set_func(h->hnd, ResourceId, SensorNum, SensorThresholds);
@@ -1500,7 +1500,7 @@ SaErrorT SAHPI_API saHpiSensorThresholdsGet (
 
         if (!get_func) {
                 data_access_unlock();
-                return SA_ERR_HPI_UNSUPPORTED_API;
+                return SA_ERR_HPI_INVALID_CMD;
         }
 
         rv = get_func(h->hnd, ResourceId, SensorNum, SensorThresholds);
@@ -1597,7 +1597,7 @@ SaErrorT SAHPI_API saHpiSensorEventEnableGet (
 
         if (!get_sensor_event_enables) {
                 data_access_unlock();
-                return SA_ERR_HPI_UNSUPPORTED_API;
+                return SA_ERR_HPI_INVALID_CMD;
         }
 
         rv = get_sensor_event_enables(h->hnd, ResourceId, SensorNum, SensorEventsEnabled);
@@ -1639,7 +1639,7 @@ SaErrorT SAHPI_API saHpiSensorEventEnableSet (
 
         if (!set_sensor_event_enables) {
                 data_access_unlock();
-                return SA_ERR_HPI_UNSUPPORTED_API;
+                return SA_ERR_HPI_INVALID_CMD;
         }
 
         rv = set_sensor_event_enables(h->hnd, ResourceId, SensorNum, SensorEventsEnabled);
@@ -1750,7 +1750,7 @@ SaErrorT SAHPI_API saHpiControlGet (
         get_func = h->abi->get_control_state;
         if (!get_func) {
                 data_access_unlock();
-                return SA_ERR_HPI_UNSUPPORTED_API;
+                return SA_ERR_HPI_INVALID_CMD;
         }
 
         rv = get_func(h->hnd, ResourceId, CtrlNum, CtrlMode, CtrlState);
@@ -1791,7 +1791,7 @@ SaErrorT SAHPI_API saHpiControlSet (
         set_func = h->abi->set_control_state;
         if (!set_func) {
                 data_access_unlock();
-                return SA_ERR_HPI_UNSUPPORTED_API;
+                return SA_ERR_HPI_INVALID_CMD;
         }
 
         rv = set_func(h->hnd, ResourceId, CtrlNum, CtrlMode, CtrlState);
@@ -1842,7 +1842,7 @@ SaErrorT SAHPI_API saHpiEntityInventoryDataRead (
         get_func = h->abi->get_inventory_info;
         if (!get_func || !get_size) {
                 data_access_unlock();
-                return SA_ERR_HPI_UNSUPPORTED_API;
+                return SA_ERR_HPI_INVALID_CMD;
          }
 
 	if (ActualSize == NULL) {
@@ -1904,7 +1904,7 @@ SaErrorT SAHPI_API saHpiEntityInventoryDataWrite (
         set_func = h->abi->set_inventory_info;
         if (!set_func) {
                 data_access_unlock();
-                return SA_ERR_HPI_UNSUPPORTED_API;
+                return SA_ERR_HPI_INVALID_CMD;
         }
 
         rv = set_func(h->hnd, ResourceId, EirId, InventData);
@@ -2017,7 +2017,7 @@ SaErrorT SAHPI_API saHpiWatchdogTimerGet (
         SaHpiRptEntryT *res;
         struct oh_handler *h;
 
-              data_access_lock();
+        data_access_lock();
 
         OH_STATE_READY_CHECK;
         OH_SESSION_SETUP(SessionId, s);
@@ -2035,7 +2035,7 @@ SaErrorT SAHPI_API saHpiWatchdogTimerGet (
         get_func = h->abi->get_watchdog_info;
         if (!get_func) {
                 data_access_unlock();
-                return SA_ERR_HPI_UNSUPPORTED_API;
+                return SA_ERR_HPI_INVALID_CMD;
         }
 
         rv = get_func(h->hnd, ResourceId, WatchdogNum, Watchdog);
@@ -2075,7 +2075,7 @@ SaErrorT SAHPI_API saHpiWatchdogTimerSet (
         set_func = h->abi->set_watchdog_info;
         if (!set_func) {
                 data_access_unlock();
-                return SA_ERR_HPI_UNSUPPORTED_API;
+                return SA_ERR_HPI_INVALID_CMD;
         }
 
         rv = set_func(h->hnd, ResourceId, WatchdogNum, Watchdog);
@@ -2096,12 +2096,12 @@ SaErrorT SAHPI_API saHpiWatchdogTimerReset (
         SaHpiRptEntryT *res;
         struct oh_handler *h;
 
-              data_access_lock();
+        data_access_lock();
         OH_STATE_READY_CHECK;
         OH_SESSION_SETUP(SessionId, s);
         OH_RPT_GET(SessionId, rpt);
         OH_RESOURCE_GET(rpt, ResourceId, res);
-
+        
         if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_WATCHDOG)) {
                 dbg("Resource %d doesn't have watchdog",ResourceId);
                 data_access_unlock();
@@ -2113,7 +2113,7 @@ SaErrorT SAHPI_API saHpiWatchdogTimerReset (
         reset_func = h->abi->reset_watchdog;
         if (!reset_func) {
                 data_access_unlock();
-                return SA_ERR_HPI_UNSUPPORTED_API;
+                return SA_ERR_HPI_INVALID_CMD;
         }
 
         rv = reset_func(h->hnd, ResourceId, WatchdogNum);
@@ -2287,7 +2287,7 @@ SaErrorT SAHPI_API saHpiResourceActiveSet (
         set_hotswap_state = h->abi->set_hotswap_state;
         if (!set_hotswap_state) {
                 data_access_unlock();
-                return SA_ERR_HPI_UNSUPPORTED_API;
+                return SA_ERR_HPI_INVALID_CMD;
         }
 
         /* this was done in the old code, so we do it here */
@@ -2342,7 +2342,7 @@ SaErrorT SAHPI_API saHpiResourceInactiveSet (
         set_hotswap_state = h->abi->set_hotswap_state;
         if (!set_hotswap_state) {
                 data_access_unlock();
-                return SA_ERR_HPI_UNSUPPORTED_API;
+                return SA_ERR_HPI_INVALID_CMD;
         }
 
         rd->controlled = 0;
@@ -2482,7 +2482,7 @@ SaErrorT SAHPI_API saHpiHotSwapStateGet (
         get_hotswap_state = h->abi->get_hotswap_state;
         if (!get_hotswap_state) {
                 data_access_unlock();
-                return SA_ERR_HPI_UNSUPPORTED_API;
+                return SA_ERR_HPI_INVALID_CMD;
         }
 
         rv = get_hotswap_state(h->hnd, ResourceId, State);
@@ -2521,7 +2521,7 @@ SaErrorT SAHPI_API saHpiHotSwapActionRequest (
         request_hotswap_action = h->abi->request_hotswap_action;
         if (!request_hotswap_action) {
                 data_access_unlock();
-                return SA_ERR_HPI_UNSUPPORTED_API;
+                return SA_ERR_HPI_INVALID_CMD;
         }
 
         rv = request_hotswap_action(h->hnd, ResourceId, Action);
@@ -2561,7 +2561,7 @@ SaErrorT SAHPI_API saHpiHotSwapIndicatorStateGet (
         get_indicator_state = h->abi->get_indicator_state;
         if (!get_indicator_state) {
                 data_access_unlock();
-                return SA_ERR_HPI_UNSUPPORTED_API;
+                return SA_ERR_HPI_INVALID_CMD;
         }
 
         rv = get_indicator_state(h->hnd, ResourceId, State);
@@ -2599,7 +2599,7 @@ SaErrorT SAHPI_API saHpiHotSwapIndicatorStateSet (
         set_indicator_state = h->abi->set_indicator_state;
         if (!set_indicator_state) {
                 data_access_unlock();
-                return SA_ERR_HPI_UNSUPPORTED_API;
+                return SA_ERR_HPI_INVALID_CMD;
         }
 
         rv = set_indicator_state(h->hnd, ResourceId, State);
@@ -2642,7 +2642,7 @@ SaErrorT SAHPI_API saHpiParmControl (
         control_parm = h->abi->control_parm;
         if (!control_parm) {
                 data_access_unlock();
-                return SA_ERR_HPI_UNSUPPORTED_API;
+                return SA_ERR_HPI_INVALID_CMD;
         }
 
         rv = control_parm(h->hnd, ResourceId, Action);
@@ -2768,7 +2768,7 @@ SaErrorT SAHPI_API saHpiResourcePowerStateGet (
         get_power_state = h->abi->get_power_state;
         if (!get_power_state) {
                 data_access_unlock();
-                return SA_ERR_HPI_UNSUPPORTED_API;
+                return SA_ERR_HPI_INVALID_CMD;
         }
 
         rv = get_power_state(h->hnd, ResourceId, State);
@@ -2806,7 +2806,7 @@ SaErrorT SAHPI_API saHpiResourcePowerStateSet (
         set_power_state = h->abi->set_power_state;
         if (!set_power_state) {
                 data_access_unlock();
-                return SA_ERR_HPI_UNSUPPORTED_API;
+                return SA_ERR_HPI_INVALID_CMD;
         }
 
         rv = set_power_state(h->hnd, ResourceId, State);
