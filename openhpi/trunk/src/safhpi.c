@@ -593,7 +593,7 @@ SaErrorT SAHPI_API saHpiSensorReadingGet (
 	struct oh_resource *res;
 	struct oh_rdr *rdr;
 
-	int (*get_func) (void *, struct oh_rdr_id *, SaHpiSensorReadingT *);
+	int (*get_func) (void *, struct oh_rdr_id, SaHpiSensorReadingT *);
 
 	OH_GET_RESOURCE;
 
@@ -607,7 +607,7 @@ SaErrorT SAHPI_API saHpiSensorReadingGet (
 	if (!get_func)
 		return SA_ERR_HPI_UNSUPPORTED_API;
 
-	if (get_func(res->handler->hnd, &rdr->oid, Reading))
+	if (get_func(res->handler->hnd, rdr->oid, Reading))
 		return SA_ERR_HPI_UNKNOWN;
 
 	return SA_OK;
@@ -648,7 +648,7 @@ SaErrorT SAHPI_API saHpiSensorThresholdsSet (
 	struct oh_resource *res;
 	struct oh_rdr *rdr;
 
-	int (*set_func) (void *, struct oh_rdr_id *,const SaHpiSensorThresholdsT *);
+	int (*set_func) (void *, struct oh_rdr_id,const SaHpiSensorThresholdsT *);
 
 	OH_GET_RESOURCE;
 
@@ -662,7 +662,7 @@ SaErrorT SAHPI_API saHpiSensorThresholdsSet (
 	if (!set_func)
 		return SA_ERR_HPI_UNSUPPORTED_API;
 
-	if (set_func(res->handler->hnd, &rdr->oid, SensorThresholds))
+	if (set_func(res->handler->hnd, rdr->oid, SensorThresholds))
 		return SA_ERR_HPI_UNKNOWN;
 
 	return SA_OK;
@@ -677,7 +677,7 @@ SaErrorT SAHPI_API saHpiSensorThresholdsGet (
 	struct oh_resource *res;
 	struct oh_rdr *rdr;
 
-	int (*get_func) (void *, struct oh_rdr_id *,SaHpiSensorThresholdsT *);
+	int (*get_func) (void *, struct oh_rdr_id,SaHpiSensorThresholdsT *);
 
 	OH_GET_RESOURCE;
 
@@ -691,7 +691,7 @@ SaErrorT SAHPI_API saHpiSensorThresholdsGet (
 	if (!get_func)
 		return SA_ERR_HPI_UNSUPPORTED_API;
 
-	if (get_func(res->handler->hnd, &rdr->oid, SensorThresholds))
+	if (get_func(res->handler->hnd, rdr->oid, SensorThresholds))
 		return SA_ERR_HPI_UNKNOWN;
 
 	return SA_OK;
@@ -737,7 +737,7 @@ SaErrorT SAHPI_API saHpiSensorEventEnablesGet (
 {
 	struct oh_resource *res;
 	struct oh_rdr *rdr;
-	int (*get_sensor_event_enables)(void *hnd, struct oh_rdr_id *id,
+	int (*get_sensor_event_enables)(void *hnd, struct oh_rdr_id id,
 					SaHpiSensorEvtEnablesT *enables);
 	
 	OH_GET_RESOURCE;
@@ -751,7 +751,7 @@ SaErrorT SAHPI_API saHpiSensorEventEnablesGet (
 	
 	if (!get_sensor_event_enables)
 		return SA_ERR_HPI_UNSUPPORTED_API;
-	if (get_sensor_event_enables(res->handler->hnd, &rdr->oid, Enables))
+	if (get_sensor_event_enables(res->handler->hnd, rdr->oid, Enables))
 		return SA_ERR_HPI_UNKNOWN;
 	return SA_OK;
 }
@@ -764,7 +764,7 @@ SaErrorT SAHPI_API saHpiSensorEventEnablesSet (
 {
 	struct oh_resource *res;
 	struct oh_rdr *rdr;
-	int (*set_sensor_event_enables)(void *hnd, struct oh_rdr_id *id,
+	int (*set_sensor_event_enables)(void *hnd, struct oh_rdr_id id,
 					SaHpiSensorEvtEnablesT *enables);
 	
 	OH_GET_RESOURCE;
@@ -778,7 +778,7 @@ SaErrorT SAHPI_API saHpiSensorEventEnablesSet (
 	
 	if (!set_sensor_event_enables)
 		return SA_ERR_HPI_UNSUPPORTED_API;
-	if (set_sensor_event_enables(res->handler->hnd, &rdr->oid, Enables))
+	if (set_sensor_event_enables(res->handler->hnd, rdr->oid, Enables))
 		return SA_ERR_HPI_UNKNOWN;
 	return SA_OK;
 }
@@ -818,7 +818,7 @@ SaErrorT SAHPI_API saHpiControlStateGet (
 	struct oh_resource *res;
 	struct oh_rdr *rdr;
 
-	int (*get_func)(void *, struct oh_rdr_id *,SaHpiCtrlStateT *);
+	int (*get_func)(void *, struct oh_rdr_id,SaHpiCtrlStateT *);
 
 	OH_GET_RESOURCE;
 
@@ -830,7 +830,7 @@ SaErrorT SAHPI_API saHpiControlStateGet (
 	if (!get_func)		
 		return SA_ERR_HPI_UNSUPPORTED_API;
 
-	if (get_func(res->handler->hnd, &rdr->oid, CtrlState))
+	if (get_func(res->handler->hnd, rdr->oid, CtrlState))
 		return SA_ERR_HPI_UNKNOWN;
 
 	return SA_OK;
@@ -845,7 +845,7 @@ SaErrorT SAHPI_API saHpiControlStateSet (
 	struct oh_resource *res;
 	struct oh_rdr *rdr;
 
-	int (*set_func)(void *, struct oh_rdr_id *,SaHpiCtrlStateT *);
+	int (*set_func)(void *, struct oh_rdr_id,SaHpiCtrlStateT *);
 
 	OH_GET_RESOURCE;
 
@@ -857,7 +857,7 @@ SaErrorT SAHPI_API saHpiControlStateSet (
 	if (!set_func)		
 		return SA_ERR_HPI_UNSUPPORTED_API;
 
-	if (set_func(res->handler->hnd, &rdr->oid, CtrlState))
+	if (set_func(res->handler->hnd, rdr->oid, CtrlState))
 		return SA_ERR_HPI_UNKNOWN;
 
 	return SA_OK;
@@ -892,7 +892,7 @@ SaErrorT SAHPI_API saHpiWatchdogTimerGet (
 	struct oh_resource *res;
 	struct oh_rdr *rdr;
 
-	int (*get_func)(void *, struct oh_rdr_id *,SaHpiWatchdogT *);
+	int (*get_func)(void *, struct oh_rdr_id,SaHpiWatchdogT *);
 
 	OH_GET_RESOURCE;
 
@@ -904,7 +904,7 @@ SaErrorT SAHPI_API saHpiWatchdogTimerGet (
 	if (!get_func)		
 		return SA_ERR_HPI_UNSUPPORTED_API;
 
-	if (get_func(res->handler->hnd, &rdr->oid, Watchdog))
+	if (get_func(res->handler->hnd, rdr->oid, Watchdog))
 		return SA_ERR_HPI_UNKNOWN;
 
 	return SA_OK;
@@ -919,7 +919,7 @@ SaErrorT SAHPI_API saHpiWatchdogTimerSet (
 	struct oh_resource *res;
 	struct oh_rdr *rdr;
 
-	int (*set_func)(void *, struct oh_rdr_id *,SaHpiWatchdogT *);
+	int (*set_func)(void *, struct oh_rdr_id,SaHpiWatchdogT *);
 
 	OH_GET_RESOURCE;
 
@@ -931,7 +931,7 @@ SaErrorT SAHPI_API saHpiWatchdogTimerSet (
 	if (!set_func)		
 		return SA_ERR_HPI_UNSUPPORTED_API;
 
-	if (set_func(res->handler->hnd, &rdr->oid, Watchdog))
+	if (set_func(res->handler->hnd, rdr->oid, Watchdog))
 		return SA_ERR_HPI_UNKNOWN;
 
 	return SA_OK;
@@ -945,7 +945,7 @@ SaErrorT SAHPI_API saHpiWatchdogTimerReset (
 	struct oh_resource *res;
 	struct oh_rdr *rdr;
 
-	int (*reset_func)(void *, struct oh_rdr_id *);
+	int (*reset_func)(void *, struct oh_rdr_id);
 
 	OH_GET_RESOURCE;
 
@@ -957,7 +957,7 @@ SaErrorT SAHPI_API saHpiWatchdogTimerReset (
 	if (!reset_func)		
 		return SA_ERR_HPI_UNSUPPORTED_API;
 
-	if (reset_func(res->handler->hnd, &rdr->oid))
+	if (reset_func(res->handler->hnd, rdr->oid))
 		return SA_ERR_HPI_UNKNOWN;
 
 	return SA_OK;
