@@ -370,6 +370,15 @@ static void ShowSel( SaHpiSelEntryT  *sel, SaHpiRdrT *rdr,
         printf("%s\n",outbuf);
 }
 
+static void saftime2str(SaHpiTimeT time, char * str, size_t size) 
+{
+        struct tm t;
+        time_t tt;
+        tt = time / 1000000000;
+        localtime_r(&tt, &t);
+        strftime(str, size, "%b %d, %Y - %H:%M:%S", &t);
+}
+
 int main(int argc, char **argv)
 {
         char c;
@@ -447,11 +456,13 @@ int main(int argc, char **argv)
                         rv = saHpiEventLogInfoGet(sessionid,resourceid,&info);
                         if (fdebug) printf("saHpiEventLogInfoGet %s\n",decode_error(rv));
                         if (rv == SA_OK) {
+                                char date[30];
                                 printf("EventLog entries=%d, size=%d, enabled=%d\n",
                                        info.Entries,info.Size,info.Enabled);
-                                printf("UpdateTime = %lx, CurrentTime = %lx\n",
-                                       (unsigned long)info.UpdateTimestamp, 
-                                       (unsigned long)info.CurrentTime);
+                                saftime2str(info.UpdateTimestamp,date,30);
+                                printf("UpdateTime = %s,", date);
+                                saftime2str(info.CurrentTime,date,30);
+                                printf("CurrentTime = %s\n", date);
                         }
                         
                         entryid = SAHPI_OLDEST_ENTRY;
