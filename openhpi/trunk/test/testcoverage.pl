@@ -44,7 +44,7 @@ my %files = (
             );
 
 # we must ensure that we have coverage created
-system("make -ks check");
+system("make -ks clean check");
 
 foreach my $fullfile (sort keys %files) {
     chdir($start);
