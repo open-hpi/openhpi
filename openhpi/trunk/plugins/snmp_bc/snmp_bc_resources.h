@@ -85,6 +85,8 @@ typedef enum {
         BC_RPT_ENTRY_POWER_MODULE
 } BCRptEntryT;
 
+#define BCT_RPT_ENTRY_CHASSIS 0
+
 /* OID definitions for discovering resources.*/
 #define SNMP_BC_BLADE_VECTOR        ".1.3.6.1.4.1.2.3.51.2.2.5.2.49.0"
 #define SNMP_BC_BLADE_ADDIN_VECTOR  ".1.3.6.1.4.1.2.3.51.2.22.1.5.1.1.14.x"
@@ -138,6 +140,7 @@ struct snmp_rpt {
 };
 
 extern struct snmp_rpt snmp_rpt_array[];
+extern struct snmp_rpt snmp_rpt_array_bct[];
 
 /******************************************************************************
  *                      Sensor Definitions
@@ -165,16 +168,11 @@ struct SnmpSensorWritableThresholdOids {
         const char *UpCritical;
         const char *PosThdHysteresis;
         const char *NegThdHysteresis;
-        const char *TotalPosThdHysteresis;
-        const char *TotalNegThdHysteresis;
-	int sig_digits;
-	const char *Tag;
 };
 
 struct SensorMibInfo {
         unsigned int not_avail_indicator_num; /* 0 for none, n>0 otherwise */
-        int write_only; /* Write-only SNMP command; 0 no; 1 yes  */
-        int convert_snmpstr; /* -1 no conversion; else use SaHpiSensorReadingTypeT values */
+        SaHpiBoolT write_only; /* TRUE - Write-only SNMP command */
         const char *oid;
         struct SnmpSensorThresholdOids threshold_oids;
 	struct SnmpSensorWritableThresholdOids threshold_write_oids;
@@ -249,7 +247,6 @@ struct snmp_bc_control {
 
 extern struct snmp_bc_control snmp_bc_chassis_controls[];
 extern struct snmp_bc_control snmp_bc_blade_controls[];
-extern struct snmp_bc_control snmp_bci_blade_controls[];
 extern struct snmp_bc_control snmp_bct_blade_controls[];
 extern struct snmp_bc_control snmp_bc_blade_addin_controls[];
 extern struct snmp_bc_control snmp_bc_mgmnt_controls[];

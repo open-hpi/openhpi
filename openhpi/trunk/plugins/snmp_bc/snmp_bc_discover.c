@@ -511,12 +511,12 @@ SaErrorT snmp_bc_create_resourcetag(SaHpiTextBufferT *buffer, const char *str, S
 SaHpiBoolT rdr_exists(struct snmp_session *ss,
 		      const char *oid,
 		      unsigned int na,
-		      int write_only)
+		      SaHpiBoolT write_only)
 {
         SaErrorT err;
 	struct snmp_value get_value;
 
-	if (write_only) { return(SAHPI_FALSE); }; /* Can't check it if its non-readable */
+	if (write_only == SAHPI_TRUE) { return(SAHPI_FALSE); }; /* Can't check it if its non-readable */
 
         err = snmp_get(ss, oid, &get_value);
         if (err || (get_value.type == ASN_INTEGER && na && na == get_value.integer) ||

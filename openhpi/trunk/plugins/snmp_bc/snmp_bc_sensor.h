@@ -82,7 +82,4 @@ SaErrorT snmp_bc_set_threshold_reading(void *hnd,
 				       SaHpiSensorNumT sid,
 				       const char *raw_oid,
 				       const SaHpiSensorReadingT *reading);
-
-SaErrorT snmp_bc_addzeros(SaHpiTextBufferT *buffer, int max_sig_digits);
-
 #endif

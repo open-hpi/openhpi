@@ -43,5 +43,5 @@ SaErrorT snmp_bc_create_resourcetag(SaHpiTextBufferT *buffer,
 SaHpiBoolT rdr_exists(struct snmp_session *ss,
 		      const char *oid,
 		      unsigned int na,
-		      int write_only);
+		      SaHpiBoolT write_only);
 #endif
