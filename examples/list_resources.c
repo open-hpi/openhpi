@@ -491,6 +491,10 @@ void display_textbuffer(SaHpiTextBufferT string)
                 for (i = 0; i < string.DataLength; i++)
                         printf("%c", string.Data[i]);
                 break;
+        case SAHPI_TL_TYPE_LANGUAGE:
+                for (i = 0; i < string.DataLength; i++)
+                        printf("%c", string.Data[i]);
+                break;
         default:
                 printf("Invalid string data type=%d", string.DataType);
         }
