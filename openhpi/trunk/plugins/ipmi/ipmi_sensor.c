@@ -576,6 +576,8 @@ static void enables_read(ipmi_sensor_t		*sensor,
 		return;
 	}
 	
+	p->sensor_enables->SensorStatus = 0;
+
 	rv = ipmi_event_state_get_events_enabled(state);
 	if (rv)
 		p->sensor_enables->SensorStatus |= SAHPI_SENSTAT_EVENTS_ENABLED;
@@ -664,7 +666,14 @@ static void set_sensor_event_enables(ipmi_sensor_t      *sensor,
 	}	
         
 	if (ipmi_sensor_get_event_support(sensor) != IPMI_EVENT_SUPPORT_NONE) {
-		info.status = enables_data->sensor_enables->SensorStatus;
+		ipmi_event_state_init(&info);
+		if (enables_data->sensor_enables->SensorStatus & SAHPI_SENSTAT_EVENTS_ENABLED)
+			ipmi_event_state_set_events_enabled(&info, 1);
+		if (enables_data->sensor_enables->SensorStatus & SAHPI_SENSTAT_SCAN_ENABLED)
+			ipmi_event_state_set_scanning_enabled(&info, 1);
+		if (enables_data->sensor_enables->SensorStatus & SAHPI_SENSTAT_BUSY)
+			ipmi_event_state_set_busy(&info, 1);
+#if 0	
 
                 if ( enables_data->sensor_enables->AssertEvents == 0xffff ) {
                         /* enable all assertion events */
@@ -702,6 +711,19 @@ static void set_sensor_event_enables(ipmi_sensor_t      *sensor,
                         }
                 } else
                         info.__deassertion_events = enables_data->sensor_enables->DeassertEvents;
+
+
+#endif
+		for (i = 0; i < 32; i++) {
+			if (enables_data->sensor_enables->AssertEvents & 1<<i ) 
+				ipmi_discrete_event_set(&info, i, IPMI_ASSERTION);
+			else 
+				ipmi_discrete_event_clear(&info, i, IPMI_ASSERTION);
+			if (enables_data->sensor_enables->DeassertEvents & 1<<i ) 
+				ipmi_discrete_event_set(&info, i, IPMI_DEASSERTION);
+			else
+				ipmi_discrete_event_clear(&info, i, IPMI_DEASSERTION);
+		}
 
 		rv = ipmi_sensor_events_enable_set(sensor, &info, set_data,
 						   &enables_data->done);

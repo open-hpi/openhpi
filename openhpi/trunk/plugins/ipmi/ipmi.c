@@ -713,17 +713,16 @@ static int ipmi_get_sensor_event_enables(void			*hnd,
 					 SaHpiSensorNumT	num,
 					 SaHpiSensorEvtEnablesT	*enables)
 {
-		struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
-		struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
-
-        SaErrorT         rv;
-		ipmi_sensor_id_t *sensor;
-        
-        rv = ohoi_get_rdr_data(hnd, id, SAHPI_SENSOR_RDR, num, (void *)&sensor);
-        if (rv!=SA_OK)
-				return rv;
-
-		return ohoi_get_sensor_event_enables(*sensor, enables, ipmi_handler);
+	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
+	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
+	
+	SaErrorT         rv;
+	ipmi_sensor_id_t *sensor;
+	
+	rv = ohoi_get_rdr_data(hnd, id, SAHPI_SENSOR_RDR, num, (void *)&sensor);
+	if (rv!=SA_OK)
+		return rv;
+	return ohoi_get_sensor_event_enables(*sensor, enables, ipmi_handler);
 }
 
 static int ipmi_set_sensor_event_enables(void 			  *hnd,
@@ -732,12 +731,16 @@ static int ipmi_set_sensor_event_enables(void 			  *hnd,
 				     const SaHpiSensorEvtEnablesT *enables)
 {
 	
-	//ipmi_sensor_t	*sensor = id.ptr;
-	//int		rv;
-	//
-	//rv = ohoi_set_sensor_event_enable(sensor, enables);
-	//return rv < 0 ? rv : 0;	
-	return(-1);
+	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
+	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
+	
+	SaErrorT         rv;
+	ipmi_sensor_id_t *sensor;
+	rv = ohoi_get_rdr_data(hnd, id, SAHPI_SENSOR_RDR, num,
+		(void *)&sensor);
+	if (rv!=SA_OK)
+		return rv;
+	return ohoi_set_sensor_event_enables(*sensor, enables, ipmi_handler);
 }
 
 static struct oh_abi_v2 oh_ipmi_plugin = {
