@@ -29,6 +29,7 @@ int main(int argc, char **argv)
 	SaErrorT          err;
 	SaErrorT expected_err;
 	SaHpiRptEntryT rptentry;				
+	SaHpiRdrT      rdr;
 	SaHpiResourceIdT  id;
         SaHpiSessionIdT sessionid;
 	 
@@ -56,6 +57,34 @@ int main(int argc, char **argv)
 	}
 
 	id = rptentry.ResourceId;
+        /**************************
+         * Test: find a sensor with desired property
+         **************************/
+	SaHpiEntryIdT entryid = SAHPI_FIRST_ENTRY;
+	SaHpiEntryIdT nextentryid;
+	SaHpiBoolT foundSensor = SAHPI_FALSE;			
+	do {
+		err = saHpiRdrGet(sessionid,id,entryid,&nextentryid, &rdr);
+		if (err == SA_OK)
+		{
+			if ((rdr.RdrType == SAHPI_SENSOR_RDR) &&
+				(rdr.RdrTypeUnion.SensorRec.EventCtrl == SAHPI_SEC_PER_EVENT))
+			{
+				foundSensor = SAHPI_TRUE;
+				break;
+														
+			}
+			entryid = nextentryid;
+		}
+	} while ((err == SA_OK) && (entryid != SAHPI_LAST_ENTRY)) ;
+
+	if (!foundSensor) {
+		dbg("Did not find desired resource for test\n");
+		return(SA_OK);
+	} else {
+		sid = rdr.RdrTypeUnion.SensorRec.Num; 
+	}	
+
 	/************************** 
 	 * Test : Invalid data
 	 **************************/
