@@ -953,7 +953,7 @@ SaErrorT SAHPI_API saHpiSensorReadingGet (
         OH_SESSION_SETUP(SessionId, s);
         OH_RPT_GET(s, rpt);
         OH_HANDLER_GET(rpt, ResourceId, h);
-        OH_RESOURCE_GET(rpt, ReourceId, res);
+        OH_RESOURCE_GET(rpt, ResourceId, res);
 
         if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)) {
                 dbg("Resource %d doesn't have sensors",ResourceId);
