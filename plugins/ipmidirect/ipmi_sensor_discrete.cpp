@@ -94,6 +94,8 @@ cIpmiSensorDiscrete::GetData( SaHpiSensorReadingT &data )
   if ( rv != SA_OK )
        return rv;
 
+  memset( &data, 0, sizeof( SaHpiSensorReadingT ) );
+
   data.ValuesPresent = SAHPI_SRF_EVENT_STATE;
   data.EventStatus.SensorStatus = 0;
 

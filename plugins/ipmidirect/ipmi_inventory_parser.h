@@ -271,7 +271,7 @@ enum tIpmiPointToPointChannelType
 {
   eIpmiPointToPointChannelTypeSinglePortFabric  = 0x08,
   eIpmiPointToPointChannelTypeDoublePortFabric  = 0x09,
-  eIpmiPointToPointChannelTypeFullChannleFabric = 0x0a,
+  eIpmiPointToPointChannelTypeFullChannelFabric = 0x0a,
   eIpmiPointToPointChannelTypeBase              = 0x0b,
   eIpmiPointToPointChannelTypeUpdateChannel     = 0x0c,
 };

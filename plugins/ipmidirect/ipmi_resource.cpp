@@ -29,7 +29,7 @@ cIpmiResource::cIpmiResource( cIpmiMc *mc, unsigned int fru_id )
   : m_mc( mc ), m_fru_id( fru_id ),
     m_hotswap_sensor( 0 ),
     m_fru_state( eIpmiFruStateNotInstalled ),
-    m_oem( 0 )
+    m_oem( 0 ), m_current_control_id( 0 )
 {
   for( int i = 0; i < 256; i++ )
        m_sensor_num[i] = -1;
@@ -142,7 +142,9 @@ cIpmiResource::Destroy()
 bool
 cIpmiResource::Add( cIpmiRdr *rdr )
 {
-  stdlog << "adding rdr: " << rdr->EntityPath() << " " << rdr->Num() << " " << rdr->IdString() << "\n";
+  stdlog << "adding rdr: " << rdr->EntityPath();
+  stdlog << " " << rdr->Num();
+  stdlog << " " << rdr->IdString() << "\n";
 
   // set entity
   rdr->Resource() = this;
