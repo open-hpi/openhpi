@@ -53,6 +53,7 @@ libopenhpiutils_la_SOURCES = \
 			   uid_utils.c \
 			   ecode_utils.c \
 			   print_utils.c \
+			   print_structs.c \
 			   printevent_utils.c \
 			   sensor_utils.c 
 
