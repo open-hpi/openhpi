@@ -1,0 +1,32 @@
+06/20/03 hpiutil 1.0.0 ARCress - initial release, includes:
+    hpisensor
+    hpisel
+    hpifru
+    hpireset
+    hpiwdt
+    hpialarmpanel
+    SpiLibd
+    libSpi*.so 
+06/26/03 hpiutil 1.0.1 ARCress
+    Library code:  disabled RestoreDefault functions, 
+                   fixed Entity path root truncation,
+                   tweaked EventTranslation for event data
+    hpisel:    changed event data logic
+    hpisensor: added -t for thresholds
+    hpireset:  cut out functions not supported in HPI 1.0    
+06/27/03 hpiutil 1.0.2 ARCress
+    hpiutil.spec:  check for ipmidrvr rpm, since no /dev/imb until reboot
+    Build MV CGE 2.1 rpm (gcc 2)
+    README: change test suite contact, added Test Notes
+    env.hpi:    increased log level to 5 for errors only
+    hpiinit.sh: increased log level to 5 for errors only
+07/08/03 hpiutil 1.0.3 ARCress
+    README: added list of APIs
+07/22/03 hpiutil 1.0.4 ARCress
+    Makefile: added changes for OpenHPI
+    INSTALL: created build/install instructions
+    env.openhpi: created
+    hpisel.c:    added BUGGY section for OpenHPI Discover workaround
+    hpisensor.c: added BUGGY section for OpenHPI Discover workaround
+07/22/03 hpiutil 1.0.4-2 ARCress
+    trimmed out anything not needed for OpenHPI to include in CVS.

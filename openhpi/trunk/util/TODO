@@ -1,0 +1,9 @@
+HPIUTIL TODO
+
+- If the SEL is totally empty (not even a 'cleared' message), the SpiLibd
+  will not start because the GetSelEntry returns 0xcb.  
+  The lib probably needs to set eventid to zero and proceed in this case.
+
+- Further testing with OpenHPI using its ipmi plugin as that project 
+  progresses.
+

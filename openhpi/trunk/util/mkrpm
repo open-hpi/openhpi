@@ -1,0 +1,40 @@
+# mkrpm
+#    Make the rpm for hpiutil (for use with OpenHPI)
+#
+ROOT=`pwd`
+RTARG=rpm
+RSPEC=hpiutil.spec
+RTO=$ROOT/$RTARG/usr/bin
+STO=$ROOT/$RTARG/usr/share/hpiutil
+VER=`grep "^%define Version" $RSPEC |cut -f3 -d' '`
+archv=i386
+
+# Make the matching hpiutil binaries
+cd $ROOT
+. env.openhpi
+make clean
+make
+echo "Copying files for rpm, OS=$OS ..."
+mkdir -p $RTO
+mkdir -p $STO
+cp -uf $ROOT/hpialarmpanel $RTO
+cp -uf $ROOT/hpisensor  $RTO
+cp -uf $ROOT/hpisel     $RTO
+cp -uf $ROOT/hpifru     $RTO
+cp -uf $ROOT/hpiwdt     $RTO
+cp -uf $ROOT/hpireset   $RTO
+cp -uf $ROOT/hpievent       $STO
+cp -uf $ROOT/README         $STO
+cp -uf $ROOT/COPYING        $STO
+cp -uf $ROOT/env.openhpi    $STO
+
+echo "Making hpiutil rpm ..."
+rm -f $ROOT/$RTARG/$archv/hpiutil*.rpm
+echo "%_rpmdir  ${ROOT}/${RTARG}" > $HOME/.rpmmacros
+rpmbuild -bb --buildroot ${ROOT}/${RTARG} $RSPEC
+rm -f $HOME/.rpmmacros
+
+# save the rpm
+cp $ROOT/$RTARG/$archv/hpiutil-$VER-2.$archv.rpm $ROOT/hpiutil-$VER-2.$archv.rpm 
+# remove the directory
+rm -rf $ROOT/$RTARG
