@@ -23,27 +23,6 @@
 /* +1, this requires -1 when data is received		   */			     
 #define SNMP_ENUM_ADJUST(x) x - 1
 
-#if 0
-void sc_free_pdu(struct snmp_pdu **p);
-
-SaErrorT snmp_get2(struct snmp_session *ss, 
-		   oid *objid, 
-		   size_t objid_len,
-		   struct snmp_value *value);
-
-SaErrorT snmp_set2(struct snmp_session *ss, 
-	           oid *objid,
-	           size_t objid_len,
-                   struct snmp_value *value);
-
-int snmp_getn_bulk( struct snmp_session *ss, 
-		    oid *bulk_objid, 
-		    size_t bulk_objid_len,
-		    struct snmp_pdu *bulk_pdu, 
-		    struct snmp_pdu **bulk_response,
-		    int num_repetitions );
-#endif
-
 void build_res_oid(oid *d, oid *s, int s_len, oid *indices, int num_indices); 
 
 SaErrorT net_snmp_failure(struct snmp_client_hnd *custom_handle, 
