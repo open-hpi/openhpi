@@ -476,6 +476,8 @@
 
 #define MAX_ASN_STR_LEN 300
 
+#define SA_SNMP_ERR_BASE -10000
+
 #define CHECK_END(a) ((a != SNMP_ENDOFMIBVIEW) &&  \
                   (a != SNMP_NOSUCHOBJECT) &&  \
                   (a != SNMP_NOSUCHINSTANCE))? 1:0 
