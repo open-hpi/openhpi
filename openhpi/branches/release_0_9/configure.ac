@@ -5,7 +5,7 @@ dnl   various hacks by Sean Dague <http://dague.net/sean> 4/23/03
 
 AC_PREREQ(2.57)
 AC_INIT(openhpi.spec.in)
-AM_INIT_AUTOMAKE(openhpi, 0.7.1)
+AM_INIT_AUTOMAKE(openhpi, 0.9.0)
 
 AM_CONFIG_HEADER(config.h)
 AH_TOP([#ifndef OPENHPI_CONFIG_H
@@ -18,7 +18,7 @@ AC_PROG_CC
 AC_LIBTOOL_DLOPEN
 AM_PROG_LIBTOOL
 
-HPI_LIB_VERSION=3:0:3
+HPI_LIB_VERSION=9:0:9
 HPI_PKG=openhpi
 HPI_UTIL_PKG=openhpiutils
 HPI_CLIENT_PKG=openhpiclient
