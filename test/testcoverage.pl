@@ -30,12 +30,17 @@ my %files = (
              "src/rpt_utils.c" => "t/rpt",
              "src/epath_utils.c" => "t/epath",
              # now for the blade center stuff
-             "src/plugins/snmp_bc/t/snmp_bc_sensor.c" => ".",
-             "src/plugins/snmp_bc/t/snmp_bc_utils.c" => ".",
-             "src/plugins/snmp_bc/t/snmp_bc_watchdog.c" => ".",
-             "src/plugins/snmp_bc/t/snmp_bc_hotswap.c" => ".",
-             "src/plugins/snmp_bc/t/snmp_bc_discover.c" => ".",
-             
+             "src/plugins/snmp_bc/bc_resources.c" => "t",
+             "src/plugins/snmp_bc/bc_str2event.c" => "t",
+             "src/plugins/snmp_bc/snmp_bc.c" => "t",
+             "src/plugins/snmp_bc/snmp_bc_control.c" => "t",
+             "src/plugins/snmp_bc/snmp_bc_discover.c" => "t",
+             "src/plugins/snmp_bc/snmp_bc_hotswap.c" => "t",
+             "src/plugins/snmp_bc/snmp_bc_sel.c" => "t",
+             "src/plugins/snmp_bc/snmp_bc_sensor.c" => "t",
+             "src/plugins/snmp_bc/snmp_bc_session.c" => "t",
+             "src/plugins/snmp_bc/snmp_bc_utils.c" => "t",
+             "src/plugins/snmp_bc/snmp_bc_watchdog.c" => "t",
             );
 
 # we must ensure that we have coverage created
