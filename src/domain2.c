@@ -16,12 +16,13 @@
 
 #include <oh_domain.h>
 #include <oh_session.h>
+#include <oh_error.h>
 #include <el_utils.h>
 #include <string.h>
 
 struct oh_domain_table oh_domains = {        
         .table = NULL,
-        .lock = NULL
+        .lock = G_STATIC_REC_MUTEX_INIT,
 };
 
 /**
@@ -56,19 +57,20 @@ SaHpiDomainIdT oh_create_domain(SaHpiDomainCapabilitiesT capabilities,
         domain->sessions = g_array_sized_new(FALSE, TRUE,
                                              sizeof(SaHpiSessionIdT),
                                              OH_SESSION_PREALLOC);
-        domain->lock = g_mutex_new();
-        if (!domain->del || !domain->sessions || !domain->lock) {
+
+        g_static_rec_mutex_init(&(domain->lock));
+
+        if (!domain->del || !domain->sessions) {
                 g_free(domain->del);
                 g_array_free(domain->sessions, TRUE);
-                g_mutex_free(domain->lock);
+                g_static_rec_mutex_free(&(domain->lock));
                 g_free(domain);
-                g_mutex_unlock(oh_domains.lock);
                 return 0;
         }
-        g_mutex_lock(oh_domains.lock); /* Locked domain table */
+        g_static_rec_mutex_lock(&(oh_domains.lock)); /* Locked domain table */
         domain->id = id++;
         g_hash_table_insert(oh_domains.table, &(domain->id), domain);
-        g_mutex_unlock(oh_domains.lock);  /* Unlocked domain table */
+        g_static_rec_mutex_unlock(&(oh_domains.lock));  /* Unlocked domain table */
 
         return domain->id;
 }
@@ -87,22 +89,23 @@ SaErrorT oh_destroy_domain(SaHpiDomainIdT did)
 
         if (did < 1) return SA_ERR_HPI_INVALID_PARAMS;
 
-        g_mutex_lock(oh_domains.lock); /* Locked domain table */
+        g_static_rec_mutex_lock(&(oh_domains.lock)); /* Locked domain table */
         domain = g_hash_table_lookup(oh_domains.table, &did);
         if (!domain) {
-                g_mutex_unlock(oh_domains.lock);
+                g_static_rec_mutex_unlock(&(oh_domains.lock));
                 return SA_ERR_HPI_NOT_PRESENT;
         }
 
-        g_mutex_lock(domain->lock);
+        g_static_rec_mutex_lock(&(domain->lock));
+        g_hash_table_remove(oh_domains.table, &(domain->id));
+        g_static_rec_mutex_unlock(&(oh_domains.lock)); /* Unlocked domain table */
+
         oh_flush_rpt(&(domain->rpt));
         oh_el_close(domain->del);
         g_array_free(domain->sessions, TRUE);
-
-        g_hash_table_remove(oh_domains.table, &(domain->id));
-        g_mutex_unlock(oh_domains.lock); /* Unlocked domain table */
-
-        g_mutex_free(domain->lock);
+        g_static_rec_mutex_unlock(&(domain->lock));
+        g_static_rec_mutex_free(&(oh_domains.lock)); /* Unlocked domain table */
+        
         g_free(domain);
 
         return SA_OK;
@@ -121,16 +124,21 @@ struct oh_domain *oh_get_domain(SaHpiDomainIdT did)
         struct oh_domain *domain = NULL;
 
         if (did < 1) return NULL;
+        
+        /* unspecified domain id always gives us id 1 */
+        if (did == SAHPI_UNSPECIFIED_DOMAIN_ID) {
+                did = 1;
+        }
 
-        g_mutex_lock(oh_domains.lock); /* Locked domain table */
+        g_static_rec_mutex_lock(&(oh_domains.lock)); /* Locked domain table */
         domain = g_hash_table_lookup(oh_domains.table, &did);
         if (!domain) {
-                g_mutex_unlock(oh_domains.lock);
+                g_static_rec_mutex_unlock(&(oh_domains.lock));
                 return NULL;
         }
 
-        g_mutex_lock(domain->lock);
-        g_mutex_unlock(oh_domains.lock); /* Unlocked domain table */
+        g_static_rec_mutex_lock(&(domain->lock));
+        g_static_rec_mutex_unlock(&(oh_domains.lock)); /* Unlocked domain table */
 
         return domain;
 }
@@ -151,14 +159,16 @@ static void collect_domain_ids(gpointer key, gpointer value, gpointer user_data)
  **/
 GArray *oh_list_domains()
 {
+        dbg("Entering list_domains");
         GArray *domain_ids = NULL;
 
         domain_ids = g_array_new(FALSE, TRUE, sizeof(SaHpiDomainIdT));
         if (!domain_ids) return NULL;
-
-        g_mutex_lock(oh_domains.lock);
+        dbg("setup domain ids");
+        g_static_rec_mutex_lock(&(oh_domains.lock));
         g_hash_table_foreach(oh_domains.table, collect_domain_ids, domain_ids);
-        g_mutex_unlock(oh_domains.lock);
+        dbg("Looping through table");
+        g_static_rec_mutex_unlock(&(oh_domains.lock));
 
         return domain_ids;
 }
@@ -175,7 +185,7 @@ SaErrorT oh_release_domain(struct oh_domain *domain)
 {
         if (!domain) return SA_ERR_HPI_INVALID_PARAMS;
 
-        g_mutex_unlock(domain->lock);
+        g_static_rec_mutex_unlock(&(domain->lock));
 
         return SA_OK;
 }

@@ -31,7 +31,7 @@
  */
 struct oh_domain_table {
         GHashTable *table;
-        GMutex *lock;
+        GStaticRecMutex lock;
 };
 
 extern struct oh_domain_table oh_domains;
@@ -63,7 +63,7 @@ struct oh_domain {
         /* List of session ids */
         GArray *sessions;
 
-        GMutex *lock;
+        GStaticRecMutex lock;
 };
 
 SaHpiDomainIdT oh_create_domain(SaHpiDomainCapabilitiesT capabilities,

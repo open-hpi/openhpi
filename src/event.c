@@ -36,6 +36,7 @@ GAsyncQueue *oh_process_q;
 
 int oh_event_init()
 {
+        dbg("Attempting to init event");
         if(!g_thread_supported()) {
                 dbg("Initializing thread support");
                 g_thread_init(NULL);
@@ -108,9 +109,10 @@ static SaErrorT oh_add_event_to_del(SaHpiDomainIdT did, struct oh_hpi_event *e)
 static int process_hpi_event(RPTable *rpt, struct oh_event *full_event)
 {
         SaHpiRptEntryT *res;
-        GSList *i;
+        int i;
+        GArray *sessions = NULL;
+        SaHpiSessionIdT sid;
         SaHpiRdrT *rdr;
-        struct oh_session_event se;
         struct oh_hpi_event *e = NULL;
 
         e = &(full_event->u.hpi_event);
@@ -124,44 +126,25 @@ static int process_hpi_event(RPTable *rpt, struct oh_event *full_event)
         if (res->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP
             && e->event.EventType == SAHPI_ET_HOTSWAP) {
                 hotswap_push_event(e);
+                dbg("Pushed hotswap event");
         }
-
-        oh_add_event_to_del(SAHPI_UNSPECIFIED_DOMAIN_ID, e);
-
-
-        /* create a session event */
-        memset(&se, 0, sizeof(struct oh_session_event ));
-
-        oh_copy_event(&se.event, &e->event);
-
-        /* copy rpt entry */
-        memcpy(&se.rpt_entry, res, sizeof(SaHpiRptEntryT));
-
-        /* find the rdr */
-        if ((rdr = oh_get_rdr_by_id(rpt, e->parent, e->id)) != NULL) {
-                memcpy(&se.rdr, rdr, sizeof(SaHpiRdrT));
-        } else {
-                se.rdr.RdrType = SAHPI_NO_RECORD;
-        }
+        
+        // dbg("About to add to EL");
+        // oh_add_event_to_del(SAHPI_UNSPECIFIED_DOMAIN_ID, e);
+        // dbg("Added event to EL");
 
         /*
          * TODO: Here is where we need the SESSION MULTIPLEXING code
          */
+        
+        /* yes, we need to figure out the real domain at some point */
+        dbg("About to get session list");
+        sessions = oh_list_sessions(1);
 
-        g_slist_for_each(i, global_session_list) {
-                struct oh_session *s = i->data;
-                /* yes, we need to add real domain support later here */
-                if (s->did == SAHPI_UNSPECIFIED_DOMAIN_ID &&
-                    (s->state == OH_SUBSCRIBED ||
-                     (s->state == OH_UNSUBSCRIBED &&
-                      (e->event.Severity == SAHPI_MINOR ||
-                       e->event.Severity == SAHPI_MAJOR || e->event.Severity == SAHPI_CRITICAL)))) {
-                        /*
-                          Push event if session is subscribed, or, if session
-                          is unsubscribed, the event is an active alarm.
-                        */
-                        session_push_event(s, &se);
-                }
+        for(i = 0; i < sessions->len; i++) {
+                sid = g_array_index(sessions, SaHpiSessionIdT, i);
+                /* add subscribe code here */
+                oh_queue_session_event(sid, full_event);
         }
 
         return 0;

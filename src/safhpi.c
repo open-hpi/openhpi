@@ -44,41 +44,25 @@ SaErrorT SAHPI_API saHpiSessionOpen(
                 SAHPI_OUT SaHpiSessionIdT *SessionId,
                 SAHPI_IN void *SecurityParams)
 {
-        struct oh_session *s;
-        int rv;
-        SaHpiUint8T oh_ready_state;
+        SaHpiSessionIdT sid;
 
-        oh_ready_state = oh_get_ready_state();
-        
-        if(oh_ready_state == OH_NOT_READY) {
+        if(oh_initialized() != SA_OK) {
                 oh_initialize();
         }
 
+        /* Security Params required to be NULL by the spec at this point */
         if (SecurityParams != NULL) {
                 dbg("SecurityParams must be NULL");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-        OH_STATE_READY_CHECK;
-        
-        data_access_lock();
-
-        if(!is_in_domain_list(DomainId)) {
+        sid = oh_create_session(DomainId);
+        if(!sid) {
                 dbg("domain does not exist!");
-                data_access_unlock();
-
                 return SA_ERR_HPI_INVALID_DOMAIN;
         }
 
-        rv = session_add(DomainId, &s);
-        if(rv < 0) {
-                dbg("Out of space");
-                data_access_unlock();
-                return SA_ERR_HPI_OUT_OF_SPACE;
-        }
-
-        *SessionId = s->id;
-        data_access_unlock();
+        *SessionId = sid;
 
         return SA_OK;
 }
@@ -86,20 +70,12 @@ SaErrorT SAHPI_API saHpiSessionOpen(
 
 SaErrorT SAHPI_API saHpiSessionClose(SAHPI_IN SaHpiSessionIdT SessionId)
 {
-        struct oh_session *s;
-
-        OH_STATE_READY_CHECK;
-        data_access_lock();
-
-        s = session_get(SessionId);
-        if (!s) {
-                dbg("Invalid session");
-                data_access_unlock();
+        if(oh_initialized() != SA_OK) {
+                dbg("Session %d not initalized", SessionId);
                 return SA_ERR_HPI_INVALID_SESSION;
         }
 
-        session_del(s);
-        data_access_unlock();
+        oh_destroy_session(SessionId);
 
         return SA_OK;
 }
@@ -107,18 +83,22 @@ SaErrorT SAHPI_API saHpiSessionClose(SAHPI_IN SaHpiSessionIdT SessionId)
 
 SaErrorT SAHPI_API saHpiDiscover(SAHPI_IN SaHpiSessionIdT SessionId)
 {
-        struct oh_session *s;
+        SaHpiDomainIdT did;
+        struct oh_domain *d = NULL;
         GSList *i;
-        RPTable *rpt;
         int rv = -1;
 
-        OH_STATE_READY_CHECK;
+        if(oh_initialized() != SA_OK) {
+                dbg("Session %d not initalized", SessionId);
+                return SA_ERR_HPI_INVALID_SESSION;
+        }
+        
+        if(!(did = oh_get_session_domain(SessionId))) {
+                dbg("No domain for session id %d",SessionId);
+                return SA_ERR_HPI_INVALID_SESSION;
+        }
 
-        data_access_lock();
-
-        OH_SESSION_SETUP(SessionId, s);
-        OH_RPT_GET(SessionId, rpt);
-
+        /* this needs to not look on the handlers directly, let's encapsulate later */
         g_slist_for_each(i, global_handler_list) {
                 struct oh_handler *h = i->data;
                 if (!(h->abi->discover_resources(h->hnd)))
@@ -131,9 +111,18 @@ SaErrorT SAHPI_API saHpiDiscover(SAHPI_IN SaHpiSessionIdT SessionId)
                 return SA_ERR_HPI_UNKNOWN;
         }
 
-        data_access_unlock();
+        /* note, after this we have the domain lock */
+        if(!(d = oh_get_domain(did))) {
+                dbg("Domain %d doesn't exist", did);
+                return SA_ERR_HPI_INVALID_DOMAIN;
+        }
 
-        rv = get_events(rpt);
+        /* this rpt access must be buried deeper later */
+        rv = get_events(&(d->rpt));
+
+        /* give back the lock */
+        oh_release_domain(d);
+
         if (rv < 0) {
                 dbg("Error attempting to process resources");
                 return SA_ERR_HPI_UNKNOWN;
@@ -149,7 +138,7 @@ SaErrorT SAHPI_API saHpiDiscover(SAHPI_IN SaHpiSessionIdT SessionId)
   Renier is working on
 */
 
-SaErrorT SAHPI_API saHpiRptInfoGet(
+SaErrorT SAHPI_API saHpiDomainInfoGet(
                 SAHPI_IN SaHpiSessionIdT SessionId,
                 SAHPI_OUT SaHpiRptInfoT *RptInfo)
 {
