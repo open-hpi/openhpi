@@ -29,6 +29,15 @@ dnl Check fo libraries
 have_uuid=no
 have_openipmi=no
 
+AC_CHECK_LIB([glib], [g_slist_alloc], 
+    [GLIBFLAGS=`glib-config --cflags`],[
+    echo "************************************************************"
+    echo "* glib not found!"
+    echo "* this is require for openhpi internals"
+    echo "************************************************************"
+    exit 1
+    ])
+
 AC_CHECK_LIB([ltdl], [lt_dlopen], [], [
     echo "************************************************************"
     echo "* libltdl not found!"
@@ -156,7 +165,7 @@ CC_WARNINGS="-Wall -Wmissing-prototypes \
 	-Wcast-qual -Wcast-align \
 	-Werror"
 
-CFLAGS="$CFLAGS $CC_WARNINGS"
+CFLAGS="$CFLAGS $GLIBFLAGS $CC_WARNINGS"
 
 AC_CONFIG_FILES([openhpi.spec
         Makefile

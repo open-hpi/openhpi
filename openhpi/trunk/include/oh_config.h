@@ -16,6 +16,9 @@
 #ifndef __OH_CONFIG_H
 #define __OH_CONFIG_H
 
+#include <glib-1.2/glib.h>
+#include <SaHpi.h>
+
 /*
  * Eventually this will contain the definitions for parsing the config file
  *
@@ -27,5 +30,18 @@
  * search path for plugins
  */
 #define OH_PLUGIN_PATH "/usr/lib/openhpi:/usr/local/lib/openhpi:/usr/local/lib"
+
+struct oh_handler_config {
+        char *plugin;
+        char *name;
+        char *address;
+};
+
+struct oh_domain_config {
+        char *domain_name;
+        GSList *plugins;
+};
+
+int load_domain_config(struct oh_domain_config**, SaHpiDomainIdT);
 
 #endif/*__OH_CONFIG_H*/

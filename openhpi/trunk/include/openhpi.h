@@ -128,8 +128,8 @@ struct oh_rdr *insert_rdr(struct oh_resource *res, struct oh_rdr_id oid);
 
 int init_plugin(void);
 int uninit_plugin(void);
-int load_plugin(struct oh_domain *d, const char *plugin_name, 
-		const char *name, const char *addr);
+int load_plugin(struct oh_domain *d, char *plugin_name, 
+		char *name, char *addr);
 
 #define dbg(format, ...)                                      \
         do {							                      \
