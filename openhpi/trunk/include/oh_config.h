@@ -32,8 +32,6 @@
  */
 #define OH_PLUGIN_PATH "/usr/lib/openhpi:/usr/local/lib/openhpi:/usr/local/lib"
 
-#define OH_DEFAULT_CONF "/etc/openhpi/openhpi.conf"
-
 #ifdef __cplusplus
 extern "C" {
 #endif 
