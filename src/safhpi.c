@@ -149,8 +149,12 @@ SaErrorT SAHPI_API saHpiInitialize(SAHPI_OUT SaHpiVersionT *HpiImplVersion)
                 dbg("Can not init dummy");
                 return SA_ERR_HPI_NOT_PRESENT;
         }
+	else {
+		printf("loaded dummy plugin\n");
+	}
+	
 #endif
-#if 1
+#if 0
         if (load_plugin(d, "libwatchdog", 
                         (const char*) NULL, 
                         (const char*) NULL) < 0 ) {
@@ -561,13 +565,36 @@ SaErrorT SAHPI_API saHpiRdrGet (
 	return SA_OK;
 }
 
+/* Sensor data functions */
+
 SaErrorT SAHPI_API saHpiSensorReadingGet (
 		SAHPI_IN SaHpiSessionIdT SessionId,
 		SAHPI_IN SaHpiResourceIdT ResourceId,
 		SAHPI_IN SaHpiSensorNumT SensorNum,
 		SAHPI_OUT SaHpiSensorReadingT *Reading)
 {
-	return SA_ERR_HPI_UNSUPPORTED_API;
+	printf("saHpiSensorReadingGet() called\n");
+
+	struct oh_resource *res;
+	struct oh_zone *zone;
+	struct oh_rdr *rdr;
+
+	int (*get_func) (void *, struct oh_rdr_id *, SaHpiSensorReadingT *);
+
+	OH_GET_RESOURCE;
+	OH_GET_ZONE;
+
+	rdr = get_rdr(res, SAHPI_SENSOR_RDR, SensorNum);
+
+	if (!rdr)
+		return SA_ERR_HPI_INVALID_PARAMS;
+
+	get_func = zone->abi->get_sensor_data;
+
+	if (!get_func)
+		return SA_ERR_HPI_UNSUPPORTED_API;
+
+	return SA_OK;
 }
 
 SaErrorT SAHPI_API saHpiSensorReadingConvert (
@@ -598,6 +625,10 @@ SaErrorT SAHPI_API saHpiSensorThresholdsSet (
 	return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
+	/* Function: SaHpiSensorTypeGet */
+	/* Core SAF_HPI function */
+	/* Not mapped to plugin */
+	/* Data in RDR */
 SaErrorT SAHPI_API saHpiSensorTypeGet (
 		SAHPI_IN SaHpiSessionIdT SessionId,
 		SAHPI_IN SaHpiResourceIdT ResourceId,
@@ -605,7 +636,25 @@ SaErrorT SAHPI_API saHpiSensorTypeGet (
 		SAHPI_OUT SaHpiSensorTypeT *Type,
 		SAHPI_OUT SaHpiEventCategoryT *Category)
 {
-	return SA_ERR_HPI_UNSUPPORTED_API;
+	struct oh_resource *res;
+	struct oh_rdr *rdr;
+
+	OH_GET_RESOURCE;
+
+	rdr = get_rdr(res, SAHPI_SENSOR_RDR, SensorNum);
+	
+	if (!rdr)
+		return SA_ERR_HPI_INVALID_PARAMS;
+
+	if (!memcpy(Type, &rdr->rdr.RdrTypeUnion.SensorRec.Type,
+			sizeof(SaHpiSensorTypeT)))
+		return SA_ERR_HPI_ERROR;
+
+	if (!memcpy(Category, &rdr->rdr.RdrTypeUnion.SensorRec.Category,
+			sizeof(SaHpiEventCategoryT)))
+		return SA_ERR_HPI_ERROR;
+	
+	return SA_OK;
 }
 
 SaErrorT SAHPI_API saHpiSensorEventEnablesGet (
@@ -625,6 +674,10 @@ SaErrorT SAHPI_API saHpiSensorEventEnablesSet (
 {
 	return SA_ERR_HPI_UNSUPPORTED_API;
 }
+
+/* End Sensor functions */
+
+/* Control data functions */
 
 SaErrorT SAHPI_API saHpiControlTypeGet (
 		SAHPI_IN SaHpiSessionIdT SessionId,
