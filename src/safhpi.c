@@ -1251,15 +1251,7 @@ SaErrorT SAHPI_API saHpiRdrGet (
                 rdr_cur = oh_get_rdr_by_id(rpt, ResourceId, EntryId);
         }
 
-        if(rdr_cur == NULL && EntryId == SAHPI_FIRST_ENTRY) {
-        /* If no rdr, return empty inventory record (spec p.21) */
-                memset(Rdr,0,sizeof(SaHpiRdrT));
-                Rdr->RdrType = SAHPI_INVENTORY_RDR;
-                Rdr->Entity = res->ResourceEntity;
-                *NextEntryId = SAHPI_LAST_ENTRY;
-                data_access_unlock();
-                return SA_OK;
-        } else if (rdr_cur == NULL) {
+        if (rdr_cur == NULL) {
                 dbg("Requested RDR, Resource[%d]->RDR[%d], is not present",
                     ResourceId, EntryId);
                 data_access_unlock();
