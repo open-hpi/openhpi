@@ -19,6 +19,17 @@
 
 #include <SaHpi.h>
 
+#define OH_ALL_READY (SaHpiUint8T)0xFF
+#define OH_NOT_READY (SaHpiUint8T)0x00
+
+#define OH_PLUGINS_READY (SaHpiUint8T)0x01
+#define OH_HANDLERS_READY (SaHpiUint8T)0x02
+#define OH_CONFIGS_READY (SaHpiUint8T)0x04
+#define OH_PROCESS_Q_READY (SaHpiUint8T)0x08
+#define OH_DOMAINS_READY (SaHpiUint8T)0x10
+#define OH_SESSIONS_READY (SaHpiUint8T)0x20
+#define OH_UID_READY (SaHpiUint8T)0x40
+
 /**********************************************************************
  *
  *  Finalize and Initialize were dropped in HPI B.  We keep
@@ -29,6 +40,7 @@
  *********************************************************************/
 
 SaErrorT oh_initialize(void);
-SaErrorT oh_finalize(void);
+/*SaErrorT oh_finalize(void);*/
+SaHpiUint8T oh_get_ready_state(void);
 
 #endif /* OH_INIT_H */

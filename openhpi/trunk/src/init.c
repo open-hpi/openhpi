@@ -14,12 +14,53 @@
  *
  */
 
+#include <stdlib.h>
+#include <string.h>
+#include <glib.h>
 #include <oh_init.h>
-#include <openhpi.h>
+#include <oh_lock.h>
+#include <oh_error.h>
+#include <oh_config.h>
+#include <oh_domain.h>
+#include <oh_session.h>
 #include <uid_utils.h>
-#include <sahpimacros.h>
+#include <oh_event.h>
 
-oh_init_state oh_hpi_state = OH_STAT_UNINIT;
+/**
+ * oh_get_ready_state
+ *
+ *
+ * Returns:
+ **/
+SaHpiUint8T oh_get_ready_state()
+{
+        SaHpiUint8T ready_state = 0xFF;
+
+        if (!global_plugin_list)
+                ready_state = ready_state & ~OH_PLUGINS_READY;
+
+        if (!global_handler_list)
+                ready_state = ready_state & ~OH_HANDLERS_READY;
+
+        if (!global_handler_configs)
+                ready_state = ready_state & ~OH_CONFIGS_READY;
+
+        if (!oh_process_q)
+                ready_state = ready_state & ~OH_PROCESS_Q_READY;
+
+        if (!domains.lock || !domains.table)
+                ready_state = ready_state & ~OH_DOMAINS_READY;
+
+        if (!sessions.lock || !sessions.table)
+                ready_state = ready_state & ~OH_SESSIONS_READY;
+
+        /* FIXME: No real way of checking for a UID ready state. */        
+
+        if (ready_state != OH_ALL_READY)
+                ready_state = ready_state & 0x7F;
+
+        return ready_state;        
+}
 
 /**
  * oh_initialize
@@ -36,41 +77,19 @@ SaErrorT oh_initialize()
 
         int rval;
 
+        SaHpiDomainCapabilitiesT capabilities = 0x00000000;
+        SaHpiTextBufferT tag;
+
         data_access_lock();
 
-        if (OH_STAT_UNINIT != oh_hpi_state) {
+        /* Check ready state */
+        if (oh_get_ready_state() != OH_NOT_READY) {
                 dbg("Cannot initialize twice");
                 data_access_unlock();
                 return SA_ERR_HPI_DUPLICATE;
         }
 
-        /* initialize mutex used for data locking */
-        /* in the future may want to add seperate */
-        /* mutexes, one for each hash list        */
-
-        /* set up our global domain */
-        if (add_domain(SAHPI_UNSPECIFIED_DOMAIN_ID)) {
-                data_access_unlock();
-                return SA_ERR_HPI_ERROR;
-        }
-
-        /* setup our global rpt_table */
-        default_rpt = g_malloc0(sizeof(RPTable));
-        if(!default_rpt) {
-                dbg("Couldn't allocate RPT for Default Domain");
-                data_access_unlock();
-                return SA_ERR_HPI_ERROR;
-        }
-        default_rpt->rpt_info.UpdateTimestamp = SAHPI_TIME_UNSPECIFIED;
-
-        /* initialize uid_utils, and load uid map file if present */
-        rval = oh_uid_initialize();
-        if( (rval != SA_OK) && (rval != SA_ERR_HPI_ERROR) ) {
-                dbg("uid_intialization failed");
-                data_access_unlock();
-                return(rval);
-        }
-
+        /* Set openhpi configuration file location */
         openhpi_conf = getenv("OPENHPI_CONF");
 
         if (openhpi_conf == NULL) {
@@ -84,6 +103,7 @@ SaErrorT oh_initialize()
                 return SA_ERR_HPI_NOT_PRESENT;
         }
 
+        /* Initialize plugins */
         for(i = 0; i < g_slist_length(global_plugin_list); i++) {
                 tmpp = (struct oh_plugin_config *) g_slist_nth_data(
                         global_plugin_list, i);
@@ -95,6 +115,7 @@ SaErrorT oh_initialize()
                 }
         }
 
+        /* Initialize handlers */
         for(i = 0; i < g_slist_length(global_handler_configs); i++) {
                 tmph = (GHashTable *) g_slist_nth_data(
                         global_handler_configs, i);
@@ -112,24 +133,50 @@ SaErrorT oh_initialize()
                 }
         }
 
-        oh_hpi_state = OH_STAT_READY;
-
-        /* check if we have at least one handler */
+        /* Check if we have at least one handler */
         if ( global_handler_list == 0 ) {
                 /* there is no handler => this can not work */
                 dbg("no handler found. please check %s!", openhpi_conf);
 
-                data_access_unlock();
-                oh_finalize();
+                data_access_unlock();                
 
                 return SA_ERR_HPI_NOT_PRESENT;
-        }
+        }        
+
+        /* Initialize event process queue */
+        oh_event_init();
+
+        /* Initialize domain table */
+        domains.lock = g_mutex_new();
+        domains.table = g_hash_table_new(g_int_hash, g_int_equal);
+
+        /* Create first domain */
+        tag.DataType = SAHPI_TL_TYPE_TEXT;
+        tag.Language = SAHPI_LANG_ENGLISH;
+        strcpy(tag.Data, "First Domain");
+        if (!oh_create_domain(capabilities, SAHPI_FALSE, &tag)) {
+                dbg("Could not create first domain!");
+                return SA_ERR_HPI_ERROR;
+        }        
+
+        /* Initialize session table */
+        sessions.lock = g_mutex_new();
+        sessions.table = g_hash_table_new(g_int_hash, g_int_equal);
+        
+        /* Initialize uid_utils */
+        rval = oh_uid_initialize();
+        if( (rval != SA_OK) && (rval != SA_ERR_HPI_ERROR) ) {
+                dbg("uid_intialization failed");
+                data_access_unlock();
+                return(rval);
+        }        
 
         data_access_unlock();
 
         return SA_OK;
 }
 
+#if 0
 /**
  * oh_finalize
  *
@@ -189,4 +236,4 @@ SaErrorT oh_finalize()
 
         return SA_OK;
 }
-
+#endif

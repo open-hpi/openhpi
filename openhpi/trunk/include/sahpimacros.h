@@ -27,19 +27,12 @@
  *  more readable.
  *
  ***********************************************************/
-typedef enum {
-        OH_STAT_UNINIT,
-        OH_STAT_READY,
-} oh_init_state;
-
-extern oh_init_state oh_hpi_state;
-
 #define OH_STATE_READY_CHECK                                      \
         do {                                                      \
-                if (OH_STAT_READY != oh_hpi_state) {              \
+                if (oh_get_ready_state() != OH_ALL_READY) {         \
                         dbg("Uninitialized HPI");                 \
                         data_access_unlock();                     \
-                        return SA_ERR_HPI_ERROR;          \
+                        return SA_ERR_HPI_ERROR;                  \
                 }                                                 \
         } while(0)
 

@@ -272,11 +272,11 @@ SaErrorT oh_dequeue_session_event(SaHpiSessionIdT sid,
        if (timeout == SAHPI_TIMEOUT_IMMEDIATE) {
                devent = g_async_queue_try_pop(eventq);
        } else if (timeout == SAHPI_TIMEOUT_BLOCK) {
-               devent = g_async_queue_pop(eventq); /* Need to time this. */
+               devent = g_async_queue_pop(eventq); /* FIXME: Need to time this. */
        } else {
                gtimeval.tv_sec = timeout / 1000000000;
                gtimeval.tv_usec = timeout % 1000000000 / 1000;
-               devent = g_async_queue_timed_pop(eventq, &gtimeval);
+               devent = g_async_queue_timed_pop(eventq, &gtimeval); /* FIXME: Put final time. */
        }
        g_async_queue_unref(eventq);
 
