@@ -15,6 +15,7 @@
  *
  *     10/13/2004 kouzmich  changed -t option for infinite wait
  *			    added -d option for call saHpiDiscover after saHpiSubscribe
+ *     11/17/2004 kouzmich  linux style and checking timeout error
  */
 
 #include <stdio.h>
@@ -29,7 +30,7 @@
 
 #define HPI_NSEC_PER_SEC 1000000000LL
 
-char progver[] = "0.1";
+char progver[] = "0.2";
 int fdebug = 0;
 
 static void Usage(char **argv)
@@ -43,48 +44,43 @@ static void Usage(char **argv)
 
 int main(int argc, char **argv)
 {
-        int c, wait = 0;
+	int c, test_fail = 0, wait = 0;
 	char *timeout_str= (char *)NULL;
 	int do_discover_after_subscribe = 0;
-        SaErrorT rv;
+	SaErrorT rv;
+	SaHpiSessionIdT sessionid;
+	SaHpiDomainInfoT domainInfo;
+	SaHpiRptEntryT rptentry;
+	SaHpiEntryIdT rptentryid;
+	SaHpiEntryIdT nextrptentryid;
+	SaHpiResourceIdT resourceid;
+	SaHpiEventLogInfoT info;
+	SaHpiRdrT rdr;
+	SaHpiTimeoutT timeout; 
+	SaHpiEventT event;
 
-        /*SaHpiVersionT hpiVer;*/
-        SaHpiSessionIdT sessionid;
-        
-        /* Domain */
-        SaHpiDomainInfoT domainInfo;
+	memset(&rptentry, 0, sizeof(rptentry));
 
-        /*SaHpiRptInfoT rptinfo;*/
-        SaHpiRptEntryT rptentry;
-        SaHpiEntryIdT rptentryid;
-        SaHpiEntryIdT nextrptentryid;
-        SaHpiResourceIdT resourceid;
-        SaHpiEventLogInfoT info;
-        SaHpiRdrT rdr;
-        SaHpiTimeoutT timeout; 
-        SaHpiEventT event;
+	printf("%s: version %s\n", argv[0], progver); 
 
-        memset(&rptentry, 0, sizeof(rptentry));
-        
-        printf("%s: version %s\n",argv[0],progver); 
-
-        while ( (c = getopt( argc, argv,"t:xd?")) != EOF ) {
-                switch(c) {
-                        case 't':
-                                timeout_str = optarg;
-                                break;
-                        case 'd': 
-                                do_discover_after_subscribe = 1; 
-                                break;
-                        case 'x': 
-                                fdebug = 1; 
-                                break;
-                        default:
+	while ( (c = getopt( argc, argv,"t:xd?")) != EOF ) {
+		switch(c) {
+			case 't':
+				timeout_str = optarg;
+				break;
+			case 'd': 
+				do_discover_after_subscribe = 1; 
+				break;
+			case 'x': 
+				fdebug = 1; 
+				break;
+			default:
 				Usage(argv);
 				exit(1);
-                }
-        }
-        if (timeout_str != (char *)NULL) {
+		}
+	}
+
+	if (timeout_str != (char *)NULL) {
 		if ((strcmp(timeout_str, "SAHPI_TIMEOUT_BLOCK") == 0) ||
 		    (strcmp(timeout_str, "BLOCK") == 0)) {
 			timeout = SAHPI_TIMEOUT_BLOCK;
@@ -92,117 +88,120 @@ int main(int argc, char **argv)
 			wait = atoi(timeout_str);
                 	timeout = (SaHpiTimeoutT)(wait * HPI_NSEC_PER_SEC);
 		}
-        } else
-                timeout = (SaHpiTimeoutT) SAHPI_TIMEOUT_IMMEDIATE;
+	} else
+		timeout = (SaHpiTimeoutT) SAHPI_TIMEOUT_IMMEDIATE;
 
-        printf("************** timeout:[%lld] ****************\n", timeout);    
-        rv = saHpiDiscover(sessionid);
-        rv = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID,&sessionid,NULL);
-        if (rv != SA_OK) {
-                if (rv == SA_ERR_HPI_ERROR) 
-                        printf("saHpiSessionOpen: error %d, SpiLibd not running\n",rv);
-                else
-                        printf("saHpiSessionOpen: %s\n", oh_lookup_error(rv));
-                exit(-1);
-        }
+	printf("************** timeout:[%lld] ****************\n", timeout);    
+
+	rv = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID, &sessionid, NULL);
+	if (rv != SA_OK) {
+		if (rv == SA_ERR_HPI_ERROR) 
+			printf("saHpiSessionOpen: error %d, SpiLibd not running\n", rv);
+		else
+			printf("saHpiSessionOpen: %s\n", oh_lookup_error(rv));
+		exit(-1);
+	}
  
-        printf( "Subscribe to events\n");
+	if (fdebug) printf("saHpiDiscover\n");
+	rv = saHpiDiscover(sessionid);
+	if (rv != SA_OK) {
+		printf("saHpiDiscover: %s\n", oh_lookup_error(rv));
+		exit(-1);
+	}
+	
+        if (fdebug) printf( "Subscribe to events\n");
         rv = saHpiSubscribe( sessionid );
-        if (rv != SA_OK) return rv;
-
-	if (do_discover_after_subscribe) {
-        	rv = saHpiDiscover(sessionid);
-	        if (fdebug) printf("saHpiDiscover %s\n", oh_lookup_error(rv));
+	if (rv != SA_OK) {
+		printf("saHpiSubscribe: %s\n", oh_lookup_error(rv));
+		exit(-1);
 	}
 
-        rv = saHpiDomainInfoGet(sessionid, &domainInfo);
+	if (do_discover_after_subscribe) {
+		if (fdebug) printf("saHpiDiscover after saHpiSubscribe\n");
+		rv = saHpiDiscover(sessionid);
+		if (rv != SA_OK) {
+			printf("saHpiDiscover after saHpiSubscribe: %s\n", oh_lookup_error(rv));
+			exit(-1);
+		}
+	}
 
-        if (fdebug) printf("saHpiDomainInfoGet %s\n", oh_lookup_error(rv));
-        printf("DomainInfo: UpdateCount = %d, UpdateTime = %lx\n",
-               domainInfo.RptUpdateCount, (unsigned long)domainInfo.RptUpdateTimestamp);
-        
-        /* walk the RPT list */
-        rptentryid = SAHPI_FIRST_ENTRY;
-        while ((rv == SA_OK) && (rptentryid != SAHPI_LAST_ENTRY))
-        {       
-                printf("**********************************************\n");
+	rv = saHpiDomainInfoGet(sessionid, &domainInfo);
 
-                rv = saHpiRptEntryGet(sessionid, rptentryid, &nextrptentryid, &rptentry);
+	if (fdebug) printf("saHpiDomainInfoGet %s\n", oh_lookup_error(rv));
+	printf("DomainInfo: UpdateCount = %d, UpdateTime = %lx\n",
+		domainInfo.RptUpdateCount, (unsigned long)domainInfo.RptUpdateTimestamp);
 
-                if (fdebug) 
-                        printf("saHpiRptEntryGet %s\n", oh_lookup_error(rv));
+	/* walk the RPT list */
+	rptentryid = SAHPI_FIRST_ENTRY;
+	while ((rv == SA_OK) && (rptentryid != SAHPI_LAST_ENTRY)) {       
+		printf("**********************************************\n");
 
-                if (rv == SA_OK) {
+		rv = saHpiRptEntryGet(sessionid, rptentryid, &nextrptentryid, &rptentry);
+		if (fdebug) printf("saHpiRptEntryGet %s\n", oh_lookup_error(rv));
 
-                        resourceid = rptentry.ResourceId;
+		if (rv == SA_OK) {
+			resourceid = rptentry.ResourceId;
+			if (fdebug)
+				printf("RPT %x capabilities = %x\n", resourceid,
+					rptentry.ResourceCapabilities);
 
-                        if (fdebug) 
-                                printf("RPT %x capabilities = %x\n", 
-                                       resourceid,
-                                       rptentry.ResourceCapabilities);
-
-                        if ( (rptentry.ResourceCapabilities & SAHPI_CAPABILITY_EVENT_LOG)) {
-                                /* Using EventLogInfo to build up event queue - for now */
-                                rv = saHpiEventLogInfoGet(sessionid,resourceid,&info);
-				
-                                if (fdebug) 
-                                        printf("saHpiEventLogInfoGet %s\n", oh_lookup_error(rv));
-					
+			if ( (rptentry.ResourceCapabilities & SAHPI_CAPABILITY_EVENT_LOG)) {
+				/* Using EventLogInfo to build up event queue - for now */
+				rv = saHpiEventLogInfoGet(sessionid, resourceid, &info);
+				if (fdebug) 
+					printf("saHpiEventLogInfoGet %s\n", oh_lookup_error(rv));
 				if (rv == SA_OK) 
 					oh_print_eventloginfo(&info, 4);
-                        } else {
-                                if (fdebug) 
-                                        printf("RPT doesn't have SEL\n");
-                        }
+			} else {
+				if (fdebug) 
+					printf("RPT doesn't have SEL\n");
+			}
 
-                        rptentry.ResourceTag.Data[rptentry.ResourceTag.DataLength] = 0; 
+			rptentry.ResourceTag.Data[rptentry.ResourceTag.DataLength] = 0; 
+			printf("rptentry[%d] tag: %s\n", resourceid, rptentry.ResourceTag.Data);
 
-                        printf("rptentry[%d] tag: %s\n", resourceid,rptentry.ResourceTag.Data);
+			rptentryid = nextrptentryid;
+		}
+		printf("**********************************************\n");
+	}
 
-                        rptentryid = nextrptentryid;
-
-                }
-
-                printf("**********************************************\n");
-        }
-        
-        printf( "Go and get the event\n");
-	//int count = 0;
-        //while (count < 10) {
+	printf( "Go and get the event\n");
 	while (1) {
-
 		rdr.RdrType = SAHPI_NO_RECORD;
 
 		rv = saHpiEventGet( sessionid, timeout, &event, &rdr, &rptentry, NULL);
-                if (rv != SA_OK) { 
-                        if (rv != SA_ERR_HPI_TIMEOUT) {
-                                printf( "Error during EventGet : %s - Test FAILED\n",
-					oh_lookup_error(rv));
-                                break;
-                        } else {
+		if (rv != SA_OK) {
+			if (rv != SA_ERR_HPI_TIMEOUT) {
+				printf("ERROR during EventGet : %s\n", oh_lookup_error(rv));
+				test_fail = 1;
+			} else {
 				if (timeout == SAHPI_TIMEOUT_BLOCK) {
-					printf("Timeout while infinite wait - Test FAILED\n");
-				} else {
-                                	printf( "\n\n****** Time, %d seconds, expired waiting for"
-					        " event.\n", wait);
+					printf("ERROR: Timeout while infinite wait\n");
+					test_fail = 1;
+				} else if (timeout != SAHPI_TIMEOUT_IMMEDIATE) {
+					printf("ERROR: Time, %d seconds, expired waiting"
+						" for event\n", wait);
+					test_fail = 1;
 				}
-                                break;
-                        }
-                } else {
-			oh_print_event(&event, 4);			
-                }
-		//count++;
-        }
+			}
+			break;
+		} else {
+			oh_print_event(&event, 4);
+		}
+	}
 
-        /* Unsubscribe to future events */
-        printf( "Unsubscribe\n");
-        rv = saHpiUnsubscribe( sessionid );
+	if (test_fail == 0)
+		printf("	Test PASS.\n");
+	else
+		printf("	Test FAILED.\n");
 
-        rv = saHpiSessionClose(sessionid);
+	/* Unsubscribe to future events */
+	if (fdebug) printf( "Unsubscribe\n");
+	rv = saHpiUnsubscribe( sessionid );
 
-        printf("HPIGETEVENT END\n");
+	rv = saHpiSessionClose(sessionid);
         
-        exit(0);
+	return(0);
 }
  
 /* end hpigetevents.c */
