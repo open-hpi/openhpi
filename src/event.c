@@ -36,12 +36,12 @@ GThread *oh_event_thread = NULL;
 GError *oh_event_thread_error = NULL;
 GMutex *oh_thread_mutex = NULL;
 
-gboolean oh_run_threaded() 
+gboolean oh_run_threaded()
 {
         return oh_is_threaded;
 }
 
-static gpointer oh_event_thread_loop(gpointer data) 
+static gpointer oh_event_thread_loop(gpointer data)
 {
         GTimeVal time;
 
@@ -55,9 +55,9 @@ static gpointer oh_event_thread_loop(gpointer data)
                 dbg("Going to sleep");
 
                 if (g_cond_timed_wait(oh_thread_wait, oh_thread_mutex, &time))
-			dbg("SIGNALED: Got signal from plugin");
-		else
-			dbg("TIMEDOUT: Woke up, am looping again");
+                        dbg("SIGNALED: Got signal from plugin");
+                else
+                        dbg("TIMEDOUT: Woke up, am looping again");
         }
         g_thread_exit(0);
         return 0;
@@ -79,7 +79,7 @@ int oh_event_init()
         }
         trace("Setting up event processing queue");
         oh_process_q = g_async_queue_new();
-        if(getenv("OPENHPI_THREADED") && 
+        if(getenv("OPENHPI_THREADED") &&
            (strcmp(getenv("OPENHPI_THREADED"), "YES") ==0 )) {
                 oh_is_threaded = TRUE;
                 oh_thread_wait = g_cond_new();
@@ -116,7 +116,7 @@ static SaErrorT harvest_events_for_handler(struct oh_handler *h)
         do {
                 error = h->abi->get_event(h->hnd, &event);
                 if(error < 1) {
-                        trace("Handler is out of Events");                        
+                        trace("Handler is out of Events");
                 } else {
                         trace("Found event for handler %p", h);
                         e2 = oh_dup_oh_event(&event);
@@ -133,7 +133,7 @@ SaErrorT oh_harvest_events()
         SaErrorT error = SA_ERR_HPI_ERROR;
         unsigned int hid = 0, next_hid;
         struct oh_handler *h = NULL;
-        
+
         data_access_lock();
         oh_lookup_next_handler_id(hid, &next_hid);
         while (next_hid) {
@@ -145,7 +145,7 @@ SaErrorT oh_harvest_events()
                 oh_lookup_next_handler_id(hid, &next_hid);
         }
         data_access_unlock();
-        
+
         return error;
 }
 
@@ -154,14 +154,12 @@ static SaErrorT oh_add_event_to_del(SaHpiDomainIdT did, struct oh_hpi_event *e)
         SaHpiSeverityT log_severity = SAHPI_MINOR;
         SaHpiTextBufferT buffer;
         struct oh_domain *d;
-        SaErrorT rv = SA_OK;     
-	char *openhpi_log_sev = NULL;
-        
-	/* FIXME: this needs to be locked at boot time */
-	openhpi_log_sev = (char *)g_hash_table_lookup(global_params, "OPENHPI_LOG_SEV");
-	if (openhpi_log_sev) {
-		strncpy(buffer.Data, openhpi_log_sev, SAHPI_MAX_TEXT_BUFFER_LENGTH);
-                oh_encode_severity(&buffer, &log_severity);                
+        SaErrorT rv = SA_OK;
+
+        if (!oh_lookup_global_param("OPENHPI_LOG_SEV",
+                                    buffer.Data,
+                                    SAHPI_MAX_TEXT_BUFFER_LENGTH)) {
+                oh_encode_severity(&buffer, &log_severity);
         }
 
         if (e->event.Severity <= log_severity) { /* less is more */
@@ -186,7 +184,7 @@ static int process_hpi_event(struct oh_event *full_event)
         struct oh_hpi_event *e = NULL;
 
         /* We take the domain lock for the whole function here */
-        
+
         d = oh_get_domain(full_event->did);
         if(!d) {
                 dbg("Domain %d doesn't exist", full_event->did);
@@ -200,7 +198,7 @@ static int process_hpi_event(struct oh_event *full_event)
                 hotswap_push_event(&hs_eq, full_event);
                 trace("Pushed hotswap event");
         }
-        
+
         /* FIXME: Add event to DEL */
         trace("About to add to EL");
         oh_add_event_to_del(d->id, e);
@@ -209,7 +207,7 @@ static int process_hpi_event(struct oh_event *full_event)
         /*
          * TODO: Here is where we need the SESSION MULTIPLEXING code
          */
-        
+
         /* FIXME: yes, we need to figure out the real domain at some point */
         trace("About to get session list");
         sessions = oh_list_sessions(oh_get_default_domain_id());
@@ -219,7 +217,7 @@ static int process_hpi_event(struct oh_event *full_event)
         for(i = 0; i < sessions->len; i++) {
                 SaHpiBoolT is_subscribed = SAHPI_FALSE;
                 sid = g_array_index(sessions, SaHpiSessionIdT, i);
-                
+
                 oh_get_session_subscription(sid, &is_subscribed);
                 if(is_subscribed) {
                         oh_queue_session_event(sid, full_event);
@@ -227,10 +225,10 @@ static int process_hpi_event(struct oh_event *full_event)
         }
         g_array_free(sessions, TRUE);
         trace("process_hpi_event, done multiplex event => sessions");
-        
+
         oh_release_domain(d);
         trace("process_hpi_event, done oh_release_domain");
-        
+
         return 0;
 }
 
@@ -240,28 +238,28 @@ static int process_resource_event(struct oh_event *e)
         RPTable *rpt = NULL;
         struct oh_domain *d = NULL;
         struct oh_event hpie;
-        
+
         d = oh_get_domain(e->did);
         if(!d) {
                 dbg("Domain %d doesn't exist", e->did);
                 return -1;
         }
         rpt = &(d->rpt);
-        
+
         memset(&hpie, 0, sizeof(hpie));
         if (e->type == OH_ET_RESOURCE_DEL) {
                 rv = oh_remove_resource(rpt,e->u.res_event.entry.ResourceId);
                 trace("Resource %d in Domain %d has been REMOVED.",
                       e->u.res_event.entry.ResourceId,
                       e->did);
-                
+
                 hpie.did = e->did;
                 hpie.u.hpi_event.event.Severity = e->u.res_event.entry.ResourceSeverity;
                 hpie.u.hpi_event.event.Source = e->u.res_event.entry.ResourceId;
                 hpie.u.hpi_event.event.EventType = SAHPI_ET_RESOURCE;
-                hpie.u.hpi_event.event.EventDataUnion.ResourceEvent.ResourceEventType = 
+                hpie.u.hpi_event.event.EventDataUnion.ResourceEvent.ResourceEventType =
                         SAHPI_RESE_RESOURCE_FAILURE;
-                
+
         } else {
                 struct oh_resource_data *rd = g_malloc0(sizeof(struct oh_resource_data));
 
@@ -278,16 +276,16 @@ static int process_resource_event(struct oh_event *e)
                 trace("Resource %d in Domain %d has been ADDED.",
                       e->u.res_event.entry.ResourceId,
                       e->did);
-                
+
                 hpie.did = e->did;
                 hpie.u.hpi_event.event.Severity = e->u.res_event.entry.ResourceSeverity;
                 hpie.u.hpi_event.event.Source = e->u.res_event.entry.ResourceId;
                 hpie.u.hpi_event.event.EventType = SAHPI_ET_RESOURCE;
-                hpie.u.hpi_event.event.EventDataUnion.ResourceEvent.ResourceEventType = 
+                hpie.u.hpi_event.event.EventDataUnion.ResourceEvent.ResourceEventType =
                         SAHPI_RESE_RESOURCE_ADDED;
         }
         oh_release_domain(d);
-        
+
         if (rv == SA_OK) {
                 rv = process_hpi_event(&hpie);
         }
@@ -306,82 +304,82 @@ static int process_rdr_event(struct oh_event *e)
 
         d = oh_get_domain(e->did);
 
-	/* get the RPT for this domain */
+        /* get the RPT for this domain */
         if(!d) {
                 dbg("Domain %d doesn't exist", e->did);
                 return -1;
         }
         rpt = &(d->rpt);
-			     
-        if (e->type == OH_ET_RDR_DEL) {	 /* DELETE event */
+
+        if (e->type == OH_ET_RDR_DEL) {  /* DELETE event */
 
                 if (!(rv = oh_remove_rdr(rpt, rid, e->u.rdr_event.rdr.RecordId)) ) {
-			dbg("SUCCESS: RDR %x in Resource %d in Domain %d has been REMOVED.",
-			    e->u.rdr_event.rdr.RecordId, rid, e->did);
-		} else {
-			dbg("FAILED: RDR %x in Resource %d in Domain %d has NOT been REMOVED.",
-			    e->u.rdr_event.rdr.RecordId, rid, e->did);
-		}
+                        dbg("SUCCESS: RDR %x in Resource %d in Domain %d has been REMOVED.",
+                            e->u.rdr_event.rdr.RecordId, rid, e->did);
+                } else {
+                        dbg("FAILED: RDR %x in Resource %d in Domain %d has NOT been REMOVED.",
+                            e->u.rdr_event.rdr.RecordId, rid, e->did);
+                }
 
-		/* build event for event queue */
+                /* build event for event queue */
 
         } else { /* ADD event */
 
                 if(!(rv = oh_add_rdr(rpt, rid, &(e->u.rdr_event.rdr), NULL, 0))) {
-			dbg("SUCCES: RDR %x in Resource %d in Domain %d has been ADDED.",
-			    e->u.rdr_event.rdr.RecordId, rid, e->did);
-		} else {
-			dbg("FAILED: RDR %x in Resource %d in Domain %d has NOT been ADDED.",
-			    e->u.rdr_event.rdr.RecordId, rid, e->did);
-		}
+                        dbg("SUCCES: RDR %x in Resource %d in Domain %d has been ADDED.",
+                            e->u.rdr_event.rdr.RecordId, rid, e->did);
+                } else {
+                        dbg("FAILED: RDR %x in Resource %d in Domain %d has NOT been ADDED.",
+                            e->u.rdr_event.rdr.RecordId, rid, e->did);
+                }
 
-		/* build event for event queue */
+                /* build event for event queue */
                 hpie.did = e->did;
 
                 //hpie.u.hpi_event.event.Severity = e->u.rdr_event.rdr.RdrType;
                 hpie.u.hpi_event.event.Source = e->u.rdr_event.parent;
                 hpie.u.hpi_event.event.EventType = e->u.rdr_event.rdr.RdrType;
-		hpie.u.hpi_event.rdr = e->u.rdr_event.rdr;
-//                hpie.u.hpi_event.event.EventDataUnion.ResourceEvent.ResourceEventType = 
+                hpie.u.hpi_event.rdr = e->u.rdr_event.rdr;
+//                hpie.u.hpi_event.event.EventDataUnion.ResourceEvent.ResourceEventType =
 //                        SAHPI_RESE_RESOURCE_ADDED;
 /*
-		switch (e->u.rdr_event.rdr.RdrType) {
-		case SAHPI_NO_RECORD:
-			dbg("SAHPI_NO_RECORD: process_rdr_event");
-			break;
-		case SAHPI_CTRL_RDR:.
-			break;
-		case SAHPI_SENSOR_RDR;
-			break;
-		case SAHPI_INVENTORY_RDR;
-			hpie.u.hpi_event
-			break;
-		case SAHPI_WATCHDOG_RDR;
-			break;
-		case SAHPI_ANNUNCIATOR_RDR;
-			break;
-		default:
-			dbg("ERROR: process_rdr_event, unknown SaHpiRdrTypeT Type");
-			break;
-		}
+                switch (e->u.rdr_event.rdr.RdrType) {
+                case SAHPI_NO_RECORD:
+                        dbg("SAHPI_NO_RECORD: process_rdr_event");
+                        break;
+                case SAHPI_CTRL_RDR:.
+                        break;
+                case SAHPI_SENSOR_RDR;
+                        break;
+                case SAHPI_INVENTORY_RDR;
+                        hpie.u.hpi_event
+                        break;
+                case SAHPI_WATCHDOG_RDR;
+                        break;
+                case SAHPI_ANNUNCIATOR_RDR;
+                        break;
+                default:
+                        dbg("ERROR: process_rdr_event, unknown SaHpiRdrTypeT Type");
+                        break;
+                }
 */
         }
 
         oh_release_domain(d);
 
-	if (rv == SA_OK) {
+        if (rv == SA_OK) {
                 rv = process_hpi_event(&hpie);
-		dbg("process_rdr_event,   done process_hpi_event");
+                dbg("process_rdr_event,   done process_hpi_event");
         }
 
         return rv;
 
-/*	need this after different type rdr events are processed above FIXME:DJ
-	otherwise rdr events are never palced on eventq
+/*      need this after different type rdr events are processed above FIXME:DJ
+        otherwise rdr events are never palced on eventq
         if(rv == SA_OK) {
                 rv = process_hpi_event(&hpie);
         }
-*/        
+*/
 }
 
 SaErrorT oh_process_events()
@@ -390,9 +388,9 @@ SaErrorT oh_process_events()
 
         while((e = g_async_queue_try_pop(oh_process_q)) != NULL) {
 
-                /* FIXME: add real check if handler is allowed to push event 
+                /* FIXME: add real check if handler is allowed to push event
                    to the domain id in the event */
-                if(e->did != oh_get_default_domain_id()) {                        
+                if(e->did != oh_get_default_domain_id()) {
                         dbg("Domain Id %d not valid for event", e->did);
                         g_free(e);
                         return SA_ERR_HPI_INVALID_DATA;
@@ -429,20 +427,20 @@ SaErrorT oh_process_events()
 
 SaErrorT oh_get_events()
 {
-	SaErrorT rv = SA_OK;
-        
-	dbg("About to harvest events in the loop");
+        SaErrorT rv = SA_OK;
+
+        dbg("About to harvest events in the loop");
         rv = oh_harvest_events();
         if(rv != SA_OK) {
-		dbg("Error on harvest of events.");
+                dbg("Error on harvest of events.");
         }
 
         rv = oh_process_events();
         if(rv != SA_OK) {
-		dbg("Error on processing of events, aborting");
+                dbg("Error on processing of events, aborting");
         }
 
-	process_hotswap_policy();
+        process_hotswap_policy();
 
         return rv;
 }
