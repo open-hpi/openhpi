@@ -69,21 +69,21 @@ public:
   virtual SaErrorT IfGetEvent( oh_event *event, const timeval &timeout );
   virtual SaErrorT IfDiscoverResources();
 
-  virtual SaErrorT IfSetResourceSeverity( cIpmiEntity *ent, SaHpiSeverityT sev );
+  virtual SaErrorT IfSetResourceSeverity( cIpmiResource *res, SaHpiSeverityT sev );
 
   // hot swap
-  virtual SaErrorT IfGetHotswapState( cIpmiEntity *ent, SaHpiHsStateT &state );
-  virtual SaErrorT IfSetHotswapState( cIpmiEntity *ent, SaHpiHsStateT state );
-  virtual SaErrorT IfRequestHotswapAction( cIpmiEntity *ent, SaHpiHsActionT act );
+  virtual SaErrorT IfGetHotswapState( cIpmiResource *res, SaHpiHsStateT &state );
+  virtual SaErrorT IfSetHotswapState( cIpmiResource *res, SaHpiHsStateT state );
+  virtual SaErrorT IfRequestHotswapAction( cIpmiResource *res, SaHpiHsActionT act );
 
-  virtual SaErrorT IfGetPowerState    ( cIpmiEntity *ent, SaHpiHsPowerStateT &state );
-  virtual SaErrorT IfSetPowerState    ( cIpmiEntity *ent, SaHpiHsPowerStateT state );
-  virtual SaErrorT IfGetIndicatorState( cIpmiEntity *ent, SaHpiHsIndicatorStateT &state );
-  virtual SaErrorT IfSetIndicatorState( cIpmiEntity *ent, SaHpiHsIndicatorStateT state );
-  virtual SaErrorT IfGetResetState    ( cIpmiEntity *ent, SaHpiResetActionT &state );
-  virtual SaErrorT IfSetResetState    ( cIpmiEntity *ent, SaHpiResetActionT state );
+  virtual SaErrorT IfGetPowerState    ( cIpmiResource *res, SaHpiHsPowerStateT &state );
+  virtual SaErrorT IfSetPowerState    ( cIpmiResource *res, SaHpiHsPowerStateT state );
+  virtual SaErrorT IfGetIndicatorState( cIpmiResource *res, SaHpiHsIndicatorStateT &state );
+  virtual SaErrorT IfSetIndicatorState( cIpmiResource *res, SaHpiHsIndicatorStateT state );
+  virtual SaErrorT IfGetResetState    ( cIpmiResource *res, SaHpiResetActionT &state );
+  virtual SaErrorT IfSetResetState    ( cIpmiResource *res, SaHpiResetActionT state );
 
-  virtual SaErrorT IfControlParm( cIpmiEntity *ent, SaHpiParmActionT act );
+  virtual SaErrorT IfControlParm( cIpmiResource *res, SaHpiParmActionT act );
 
   // lock for the hpi event queue
   cThreadLock m_event_lock;

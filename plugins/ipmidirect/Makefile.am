@@ -70,6 +70,8 @@ libipmidirect_la_SOURCES= \
 		ipmi_event.cpp \
 		ipmi_fru.h \
 		ipmi_fru.cpp \
+		ipmi_fru_info.h \
+		ipmi_fru_info.cpp \
 		ipmi_log.h \
 		ipmi_log.cpp \
 		ipmi_mc.h \
@@ -82,6 +84,8 @@ libipmidirect_la_SOURCES= \
 		ipmi_msg.cpp \
 		ipmi_rdr.h \
 		ipmi_rdr.cpp \
+		ipmi_resource.h \
+		ipmi_resource.cpp \
 		ipmi_sdr.h \
 		ipmi_sdr.cpp \
 		ipmi_sel.h \

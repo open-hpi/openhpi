@@ -33,8 +33,7 @@ cIpmiDomain::cIpmiDomain()
     m_si_mc( 0 ), m_mcs( 0 ),
     m_initial_discover( 0 ),
     m_mc_poll_interval( dIpmiMcPollInterval ),
-    m_sel_rescan_interval( dIpmiSelQueryInterval ),
-    m_entities( 0 )
+    m_sel_rescan_interval( dIpmiSelQueryInterval )
 {
   cIpmiMcVendorFactory::InitFactory();
 
@@ -324,7 +323,7 @@ cIpmiDomain::Cleanup()
      {
        cIpmiSensor *sensor = (cIpmiSensor *)m_sensors_in_main_sdr->data;
        m_sensors_in_main_sdr = g_list_remove( m_sensors_in_main_sdr, sensor );
-       sensor->Entity()->Rem( sensor );
+       sensor->Resource()->Rem( sensor );
        delete sensor;
      }
 
@@ -369,14 +368,6 @@ cIpmiDomain::Cleanup()
      {
        delete m_main_sdrs;
        m_main_sdrs = 0;
-     }
-
-  while( m_entities )
-     {
-       cIpmiEntity *ent = (cIpmiEntity *)m_entities->data;
-
-       m_entities = g_list_remove( m_entities, ent );
-       delete ent;
      }
 }
 
@@ -678,49 +669,18 @@ cIpmiDomain::HandleEvent( cIpmiEvent *event )
 }
 
 
-cIpmiEntity *
-cIpmiDomain::FindEntity( tIpmiDeviceNum device_num,
-                         tIpmiEntityId entity_id, 
-                         unsigned int entity_instance )
+cIpmiResource *
+cIpmiDomain::VerifyResource( cIpmiResource *res )
 {
-  GList *list = m_entities;
+  GList *list = m_mcs;
 
   while( list )
      {
-       cIpmiEntity *ent = (cIpmiEntity *)list->data;
+       cIpmiMc *mc = (cIpmiMc *)list->data;
 
-       if (    ( ent->DeviceNum().channel == device_num.channel )
-	    && ( ent->DeviceNum().address == device_num.address )
-	    && ( ent->EntityId()          == entity_id )
-            && ( ent->EntityInstance()    == entity_instance ) )
-            return ent;
-
-       list  = g_list_next( list );
+       if ( mc->FindResource( res ) )
+	    return res;
      }
-
-  return 0;
-}
-
-
-void
-cIpmiDomain::AddEntity( cIpmiEntity *ent )
-{
-  m_entities = g_list_append( m_entities, ent );
-}
-
-
-void
-cIpmiDomain::RemEntity( cIpmiEntity *ent )
-{
-  m_entities = g_list_remove( m_entities, ent );
-}
-
-
-cIpmiEntity *
-cIpmiDomain::VerifyEntity( cIpmiEntity *ent )
-{
-  if ( g_list_find( m_entities, ent ) )
-       return ent;
 
   return 0;
 }
@@ -742,11 +702,11 @@ cIpmiDomain::VerifyMc( cIpmiMc *mc )
 cIpmiSensor *
 cIpmiDomain::VerifySensor( cIpmiSensor *s )
 {
-  for( GList *list = m_entities; list; list = g_list_next( list ) )
+  for( GList *list = m_mcs; list; list = g_list_next( list ) )
      {
-       cIpmiEntity *ent = (cIpmiEntity *)list->data;
+       cIpmiMc *mc = (cIpmiMc *)list->data;
 
-       if ( ent->Find( s ) )
+       if ( mc->Find( s ) )
             return s;
      }
 
@@ -757,11 +717,11 @@ cIpmiDomain::VerifySensor( cIpmiSensor *s )
 cIpmiControl *
 cIpmiDomain::VerifyControl( cIpmiControl *c )
 {
-  for( GList *list = m_entities; list; list = g_list_next( list ) )
+  for( GList *list = m_mcs; list; list = g_list_next( list ) )
      {
-       cIpmiEntity *ent = (cIpmiEntity *)list->data;
+       cIpmiMc *mc = (cIpmiMc *)list->data;
 
-       if ( ent->Find( c ) )
+       if ( mc->Find( c ) )
             return c;
      }
 
@@ -772,11 +732,11 @@ cIpmiDomain::VerifyControl( cIpmiControl *c )
 cIpmiFru *
 cIpmiDomain::VerifyFru( cIpmiFru *f )
 {
-  for( GList *list = m_entities; list; list = g_list_next( list ) )
+  for( GList *list = m_mcs; list; list = g_list_next( list ) )
      {
-       cIpmiEntity *ent = (cIpmiEntity *)list->data;
+       cIpmiMc *mc = (cIpmiMc *)list->data;
 
-       if ( ent->Find( f ) )
+       if ( mc->Find( f ) )
             return f;
      }
 

@@ -862,10 +862,10 @@ cIpmiSensorThreshold::GetDefaultThresholds( SaHpiSensorThresholdsT &thres )
 SaErrorT
 cIpmiSensorThreshold::GetThresholds( SaHpiSensorThresholdsT &thres )
 {
-  cIpmiEntity *ent = Entity();
+  cIpmiResource *res = Resource();
 
-  stdlog << ent->EntityId() << "." << ent->EntityInstance() << " sensor "
-         << m_num << " (" << IdString() << ") get thresholds.\n";
+  stdlog << "read thresholds for sensor " << EntityPath() << " num " 
+         << m_num << " " << IdString() << ".\n";
 
   if ( m_threshold_access == eIpmiThresholdAccessSupportFixed )
        // Thresholds are fixed, pull them from the SDR.
@@ -877,11 +877,11 @@ cIpmiSensorThreshold::GetThresholds( SaHpiSensorThresholdsT &thres )
   msg.m_data_len = 1;
   msg.m_data[0]  = m_num;
 
-  int rv = m_mc->SendCommand( msg, rsp, m_lun );
+  int rv = res->SendCommand( msg, rsp, m_lun );
 
   if ( rv )
      {
-       stdlog << "Error getting thresholds: " << rv << " !\n";
+       stdlog << "error getting thresholds: " << rv << " !\n";
 
        return SA_ERR_HPI_INVALID_DATA;
      }
@@ -918,10 +918,10 @@ cIpmiSensorThreshold::GetThresholds( SaHpiSensorThresholdsT &thres )
 SaErrorT
 cIpmiSensorThreshold::GetHysteresis( SaHpiSensorThresholdsT &thres )
 {
-  cIpmiEntity *ent = Entity();
+  cIpmiResource *res = Resource();
 
-  stdlog << ent->EntityId() << "." << ent->EntityInstance() << " sensor " << m_num 
-         << " (" << IdString() << ") get hysteresis.\n";
+  stdlog << "read hysteresis for sensor " << EntityPath() << " num " << m_num 
+         << " " << IdString() << ".\n";
 
   if (    m_hysteresis_support != eIpmiHysteresisSupportReadable
        && m_hysteresis_support != eIpmiHysteresisSupportSettable)
@@ -934,7 +934,7 @@ cIpmiSensorThreshold::GetHysteresis( SaHpiSensorThresholdsT &thres )
   msg.m_data[0]  = m_num;
   msg.m_data[1]  = 0xff;
 
-  int rv = m_mc->SendCommand( msg, rsp, m_lun );
+  int rv = res->SendCommand( msg, rsp, m_lun );
 
   if ( rv )
      {
@@ -1206,7 +1206,7 @@ cIpmiSensorThreshold::GetEventEnables( SaHpiSensorEvtEnablesT &enables )
 
        if ( (amask & b1) || (amask & b2) )
             enables.AssertEvents |= (1 << i);
-       
+
        if ( (dmask & b1) || (dmask & b2) )
             enables.DeassertEvents |= (1 << i);
      }

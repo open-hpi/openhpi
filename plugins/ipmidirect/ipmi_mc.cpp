@@ -47,12 +47,13 @@ cIpmiMc::cIpmiMc( cIpmiDomain *domain, const cIpmiAddr &addr )
     m_sdr_repository_support( false ), m_sensor_device_support( false ),
     m_major_fw_revision( 0 ), m_minor_fw_revision( 0 ),
     m_major_version( 0 ), m_minor_version( 0 ),
-    m_manufacturer_id( 0 ), m_product_id( 0 )
+    m_manufacturer_id( 0 ), m_product_id( 0 ),
+    m_resources( 0 )
 {
   stdlog << "adding MC: " << addr.m_channel << " " << addr.m_slave_addr << "\n";
 
-  // use default as long the manufactorer
-  // and product id not known
+  // use default as long as the manufactorer
+  // and product id is unknown
   m_vendor = cIpmiMcVendorFactory::GetFactory()->Default();
 
   m_aux_fw_revision[0] = 0;
@@ -84,6 +85,74 @@ cIpmiMc::~cIpmiMc()
        delete m_sel;
        m_sel = 0;
      }
+
+  assert( m_resources == 0 );
+}
+
+
+cIpmiResource *
+cIpmiMc::FindResource( cIpmiResource *res )
+{
+  GList *list = m_resources;
+
+  while( list )
+     {
+       cIpmiResource *r = (cIpmiResource *)list->data;
+
+       if ( r == res )
+	    return res;
+
+       list = g_list_next( list );
+     }
+
+  return 0;
+}
+
+
+cIpmiResource *
+cIpmiMc::FindResource( unsigned int fru_id )
+{
+  GList *list = m_resources;
+
+  while( list )
+     {
+       cIpmiResource *res = (cIpmiResource *)list->data;
+
+       if ( res->FruId() == fru_id )
+	    return res;
+
+       list = g_list_next( list );
+     }
+
+  return 0;
+}
+
+
+void
+cIpmiMc::AddResource( cIpmiResource *res )
+{
+  if ( FindResource( res ) )
+     {
+       assert( 0 );
+       return;
+     }
+
+  m_resources = g_list_append( m_resources, res );
+}
+
+
+void
+cIpmiMc::RemResource( cIpmiResource *res )
+{
+  cIpmiResource *r = FindResource( res->FruId() );
+  
+  if ( r == 0 || r != res )
+     {
+       assert( 0 );
+       return;
+     }
+
+  m_resources = g_list_remove( m_resources, res );
 }
 
 
@@ -92,12 +161,14 @@ cIpmiMc::Cleanup()
 {
   assert( m_domain );
 
+  m_vendor->CleanupMc( this );
+
   // First the device SDR sensors, since they can be there for any MC.
   while( m_sensors_in_my_sdr )
      {
        cIpmiSensor *sensor = (cIpmiSensor *)m_sensors_in_my_sdr->data;
        m_sensors_in_my_sdr = g_list_remove( m_sensors_in_my_sdr, sensor );
-       sensor->Entity()->Rem( sensor );
+       sensor->Resource()->Rem( sensor );
        delete sensor;
      }
 
@@ -105,14 +176,18 @@ cIpmiMc::Cleanup()
   while( m_rdrs )
      {
        cIpmiRdr *rdr = (cIpmiRdr *)m_rdrs->data;
-       rdr->Entity()->Rem( rdr );
+       rdr->Resource()->Rem( rdr );
+     }
+
+  while( m_resources )
+     {
+       cIpmiResource *res = (cIpmiResource *)m_resources->data;
+       res->Destroy();
      }
 
   m_active = false;
 
   stdlog << "removing MC: " << m_addr.m_channel << " " << m_addr.m_slave_addr << "\n";
-
-  m_vendor->CleanupMc( this );
 
   return true;
 }

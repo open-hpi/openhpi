@@ -60,6 +60,7 @@
 #endif
 
 class cIpmiDomain;
+class cIpmiMcThread;
 
 
 class cIpmiMc : public cIpmiRdrContainer
@@ -119,8 +120,16 @@ protected:
 
   int SendSetEventRcvr( unsigned int addr );
 
+  GList *m_resources;
+
 public:
-  cIpmiMc( cIpmiDomain *ipmi, const cIpmiAddr &addr );
+  void AddResource( cIpmiResource *res );
+  void RemResource( cIpmiResource *res );
+  cIpmiResource *FindResource( unsigned int fru_id );
+  cIpmiResource *FindResource( cIpmiResource *res );
+
+public:
+  cIpmiMc( cIpmiDomain *domain, const cIpmiAddr &addr );
   ~cIpmiMc();
 
   cIpmiDomain *Domain() const { return m_domain; }
@@ -189,7 +198,6 @@ public:
   }
 
   cIpmiMcVendor *GetVendor()  { return m_vendor; }
-
 protected:
   bool DumpFrus( cIpmiLog &dump, const char *name ) const;
   bool DumpControls( cIpmiLog &dump, const char *name ) const;

@@ -42,8 +42,6 @@ enum tIpmiFruState
 const char *IpmiFruStateToString( tIpmiFruState state );
 
 
-class cIpmiEntity;
-
 enum tIpmiChassisType
 {
   eIpmiChassisTypeOther = 1

@@ -22,6 +22,10 @@
 #include "ipmi_sensor_discrete.h"
 #endif
 
+#ifndef dIpmiFru_h
+#include "ipmi_fru.h"
+#endif
+
 
 class cIpmiSensorHotswap : public cIpmiSensorDiscrete
 {

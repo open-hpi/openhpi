@@ -19,6 +19,7 @@
 
 #include "ipmi_utils.h"
 #include "ipmi.h"
+#include "ipmi_sensor_hotswap.h"
 
 
 static const char *hotswap_states[] =
@@ -45,10 +46,10 @@ HotswapStateToString( SaHpiHsStateT state )
 
 
 SaErrorT
-cIpmi::IfGetHotswapState( cIpmiEntity *ent, SaHpiHsStateT &state )
+cIpmi::IfGetHotswapState( cIpmiResource *res, SaHpiHsStateT &state )
 {
   // get hotswap sensor
-  cIpmiSensorHotswap *hs = ent->GetHotswapSensor();
+  cIpmiSensorHotswap *hs = res->GetHotswapSensor();
 
   if ( !hs )
        return SA_ERR_HPI_INVALID_PARAMS;
@@ -65,7 +66,7 @@ cIpmi::IfGetHotswapState( cIpmiEntity *ent, SaHpiHsStateT &state )
 //    => M5 -> M6
 
 SaErrorT
-cIpmi::IfSetHotswapState( cIpmiEntity *ent, SaHpiHsStateT state )
+cIpmi::IfSetHotswapState( cIpmiResource *res, SaHpiHsStateT state )
 {
   if ( !m_is_atca )
      {
@@ -74,7 +75,7 @@ cIpmi::IfSetHotswapState( cIpmiEntity *ent, SaHpiHsStateT state )
      }
 
   // get hotswap sensor
-  cIpmiSensorHotswap *hs = ent->GetHotswapSensor();
+  cIpmiSensorHotswap *hs = res->GetHotswapSensor();
 
   if ( !hs )
        return SA_ERR_HPI_INVALID_PARAMS;
@@ -86,21 +87,15 @@ cIpmi::IfSetHotswapState( cIpmiEntity *ent, SaHpiHsStateT state )
   if ( rv != SA_OK )
        return rv;
 
-  cIpmiAddr addr;
-  addr.m_type       = eIpmiAddrTypeIpmb;
-  addr.m_channel    = ent->Channel();
-  addr.m_slave_addr = ent->AccessAddress();
-  addr.m_lun        = 0; //ent->lun;
-
   cIpmiMsg msg( eIpmiNetfnPicmg, eIpmiCmdSetFruActivation );
   msg.m_data_len = 3;
   msg.m_data[0]  = dIpmiPigMgId;
-  msg.m_data[1]  = ent->FruId();
+  msg.m_data[1]  = res->FruId();
 
   switch( state )
      {
        case SAHPI_HS_STATE_ACTIVE_HEALTHY:
-            if (    current == SAHPI_HS_STATE_INSERTION_PENDING 
+            if (    current == SAHPI_HS_STATE_INSERTION_PENDING
                  || current == SAHPI_HS_STATE_EXTRACTION_PENDING )
                  msg.m_data[2] = dIpmiActivateFru;
             else
@@ -132,7 +127,7 @@ cIpmi::IfSetHotswapState( cIpmiEntity *ent, SaHpiHsStateT state )
 
   cIpmiMsg rsp;
 
-  int r = SendCommand( addr, msg, rsp );
+  int r = res->SendCommand( msg, rsp );
 
   if ( r )
      {
@@ -158,7 +153,7 @@ cIpmi::IfSetHotswapState( cIpmiEntity *ent, SaHpiHsStateT state )
 // act == SAHPI_HS_STATE_ACTIVE_HEALTHY => M4->M5
 
 SaErrorT
-cIpmi::IfRequestHotswapAction( cIpmiEntity *ent,
+cIpmi::IfRequestHotswapAction( cIpmiResource *res,
                                SaHpiHsActionT act )
 {
   if ( !m_is_atca )
@@ -168,7 +163,7 @@ cIpmi::IfRequestHotswapAction( cIpmiEntity *ent,
      }
 
   // get hotswap sensor
-  cIpmiSensorHotswap *hs = ent->GetHotswapSensor();
+  cIpmiSensorHotswap *hs = res->GetHotswapSensor();
 
   if ( !hs )
        return SA_ERR_HPI_INVALID_PARAMS;
@@ -179,17 +174,10 @@ cIpmi::IfRequestHotswapAction( cIpmiEntity *ent,
   if ( rv != SA_OK )
        return rv;
 
-  cIpmiAddr addr;
-
-  addr.m_type       = eIpmiAddrTypeIpmb;
-  addr.m_channel    = ent->Channel();
-  addr.m_slave_addr = ent->AccessAddress();
-  addr.m_lun        = 0; //ent->lun;
-
   cIpmiMsg msg( eIpmiNetfnPicmg, eIpmiCmdSetFruActivationPolicy );
   msg.m_data_len = 4;
   msg.m_data[0]  = dIpmiPigMgId;
-  msg.m_data[1]  = ent->FruId();
+  msg.m_data[1]  = res->FruId();
 
   if ( act == SAHPI_HS_ACTION_INSERTION )
      {
@@ -219,7 +207,7 @@ cIpmi::IfRequestHotswapAction( cIpmiEntity *ent,
 
   cIpmiMsg  rsp;
 
-  int r = SendCommand( addr, msg, rsp );
+  int r = res->SendCommand( msg, rsp );
 
   if ( r )
      {
@@ -241,21 +229,18 @@ cIpmi::IfRequestHotswapAction( cIpmiEntity *ent,
 
 
 SaErrorT
-cIpmi::IfGetPowerState( cIpmiEntity *ent, SaHpiHsPowerStateT &state )
+cIpmi::IfGetPowerState( cIpmiResource *res, SaHpiHsPowerStateT &state )
 {
-  cIpmiAddr addr( eIpmiAddrTypeIpmb, ent->Channel(), 
-                  0, ent->AccessAddress() );
-
   // get power level
   cIpmiMsg msg( eIpmiNetfnPicmg, eIpmiCmdGetPowerLevel );
   cIpmiMsg rsp;
 
   msg.m_data[0] = dIpmiPigMgId;
-  msg.m_data[1] = ent->FruId();
+  msg.m_data[1] = res->FruId();
   msg.m_data[2] = 0x01; // desired steady power
   msg.m_data_len = 3;
 
-  int rv = SendCommand( addr, msg, rsp );
+  int rv = res->SendCommand( msg, rsp );
 
   if ( rv )
      {
@@ -276,7 +261,7 @@ cIpmi::IfGetPowerState( cIpmiEntity *ent, SaHpiHsPowerStateT &state )
   // get current power level
   msg.m_data[2]  = 0; // steady state power
 
-  rv = SendCommand( addr, msg, rsp );
+  rv = res->SendCommand( msg, rsp );
 
   if ( rv )
      {
@@ -305,16 +290,14 @@ cIpmi::IfGetPowerState( cIpmiEntity *ent, SaHpiHsPowerStateT &state )
 
 
 SaErrorT
-cIpmi::IfSetPowerState( cIpmiEntity *ent, SaHpiHsPowerStateT state )
+cIpmi::IfSetPowerState( cIpmiResource *res, SaHpiHsPowerStateT state )
 {
   int rv;
   unsigned int power_level = 0;
 
-  cIpmiAddr addr( eIpmiAddrTypeIpmb, ent->Channel(), 
-                  0, ent->AccessAddress() );
   cIpmiMsg msg( eIpmiNetfnPicmg, eIpmiCmdGetPowerLevel );
   msg.m_data[0] = dIpmiPigMgId;
-  msg.m_data[1] = ent->FruId();
+  msg.m_data[1] = res->FruId();
   cIpmiMsg rsp;
 
   if ( state == SAHPI_HS_POWER_CYCLE )
@@ -326,7 +309,7 @@ cIpmi::IfSetPowerState( cIpmiEntity *ent, SaHpiHsPowerStateT state )
        msg.m_data[3] = 0x01; // copy desierd level to present level
        msg.m_data_len = 4;
 
-       rv = SendCommand( addr, msg, rsp );
+       rv = res->SendCommand( msg, rsp );
 
        if ( rv )
           {
@@ -354,7 +337,7 @@ cIpmi::IfSetPowerState( cIpmiEntity *ent, SaHpiHsPowerStateT state )
        msg.m_data[2] = 0x01; // desired steady power
        msg.m_data_len = 3;
 
-       rv = SendCommand( addr, msg, rsp );
+       rv = res->SendCommand( msg, rsp );
 
        if ( rv )
           {
@@ -382,7 +365,7 @@ cIpmi::IfSetPowerState( cIpmiEntity *ent, SaHpiHsPowerStateT state )
   msg.m_data[3] = 0x01; // copy desierd level to present level
   msg.m_data_len = 4;
 
-  rv = SendCommand( addr, msg, rsp );
+  rv = res->SendCommand( msg, rsp );
 
   if ( rv )
      {
@@ -403,25 +386,19 @@ cIpmi::IfSetPowerState( cIpmiEntity *ent, SaHpiHsPowerStateT state )
 
 
 SaErrorT
-cIpmi::IfGetIndicatorState( cIpmiEntity *ent, SaHpiHsIndicatorStateT &state )
+cIpmi::IfGetIndicatorState( cIpmiResource *res, SaHpiHsIndicatorStateT &state )
 {
   cIpmiMsg  msg;
   cIpmiMsg  rsp;
-  cIpmiAddr addr;
-
-  addr.m_type       = eIpmiAddrTypeIpmb;
-  addr.m_channel    = ent->Channel();
-  addr.m_slave_addr = ent->AccessAddress();
-  addr.m_lun        = 0; //ent->lun;
 
   msg.m_netfn    = eIpmiNetfnPicmg;
   msg.m_cmd      = eIpmiCmdGetFruLedState;
   msg.m_data_len = 3;
   msg.m_data[0]  = dIpmiPigMgId;
-  msg.m_data[1]  = ent->FruId();
+  msg.m_data[1]  = res->FruId();
   msg.m_data[2]  = 0; // blue led;
 
-  int rv = SendCommand( addr, msg, rsp );
+  int rv = res->SendCommand( msg, rsp );
 
   if ( rv )
      {
@@ -441,7 +418,7 @@ cIpmi::IfGetIndicatorState( cIpmiEntity *ent, SaHpiHsIndicatorStateT &state )
 
   // lamp test
   if ( rsp.m_data[2] & 4 )
-     {     
+     {
        if ( rsp.m_data_len < 10 )
           {
             stdlog << "IfGetIndicatorState: IPMI error (lamp test) message to short: "
@@ -449,7 +426,7 @@ cIpmi::IfGetIndicatorState( cIpmiEntity *ent, SaHpiHsIndicatorStateT &state )
 
             return SA_ERR_HPI_DATA_LEN_INVALID;
           }
-       
+
        state = SAHPI_HS_INDICATOR_ON;
        return SA_OK;
      }
@@ -484,29 +461,20 @@ cIpmi::IfGetIndicatorState( cIpmiEntity *ent, SaHpiHsIndicatorStateT &state )
 
 
 SaErrorT
-cIpmi::IfSetIndicatorState( cIpmiEntity *ent, SaHpiHsIndicatorStateT state )
+cIpmi::IfSetIndicatorState( cIpmiResource *res, SaHpiHsIndicatorStateT state )
 {
-  cIpmiMsg  msg;
-  cIpmiMsg  rsp;
-  cIpmiAddr addr;
-
-  addr.m_type       = eIpmiAddrTypeIpmb;
-  addr.m_channel    = ent->Channel();
-  addr.m_slave_addr = ent->AccessAddress();
-  addr.m_lun        = 0; //ent->lun;
-
-  msg.m_netfn    = eIpmiNetfnPicmg;
-  msg.m_cmd      = eIpmiCmdSetFruLedState;
+  cIpmiMsg  msg( eIpmiNetfnPicmg, eIpmiCmdSetFruLedState );
   msg.m_data_len = 6;
   msg.m_data[0]  = dIpmiPigMgId;
-  msg.m_data[1]  = ent->FruId();
+  msg.m_data[1]  = res->FruId();
   msg.m_data[2]  = 0; // blue led;
 
   msg.m_data[3]  = (state == SAHPI_HS_INDICATOR_ON) ? 0xff : 0;
   msg.m_data[4]  = 0;
   msg.m_data[5]  = 1; // blue
 
-  int rv = SendCommand( addr, msg, rsp );
+  cIpmiMsg  rsp;
+  int rv = res->SendCommand( msg, rsp );
 
   if ( rv )
      {
@@ -530,7 +498,7 @@ cIpmi::IfSetIndicatorState( cIpmiEntity *ent, SaHpiHsIndicatorStateT state )
 
 
 SaErrorT
-cIpmi::IfGetResetState( cIpmiEntity * /*ent*/, SaHpiResetActionT &state )
+cIpmi::IfGetResetState( cIpmiResource * /*res*/, SaHpiResetActionT &state )
 {
   state = SAHPI_RESET_DEASSERT;
 
@@ -539,7 +507,7 @@ cIpmi::IfGetResetState( cIpmiEntity * /*ent*/, SaHpiResetActionT &state )
 
 
 SaErrorT
-cIpmi::IfSetResetState( cIpmiEntity *ent, SaHpiResetActionT state )
+cIpmi::IfSetResetState( cIpmiResource *res, SaHpiResetActionT state )
 {
   unsigned char reset_state;
 
@@ -558,23 +526,14 @@ cIpmi::IfSetResetState( cIpmiEntity *ent, SaHpiResetActionT state )
             return SA_ERR_HPI_INVALID_CMD;
      }
 
-  cIpmiMsg  cmd_msg;
-  cIpmiMsg  rsp;
-  cIpmiAddr addr;
+  cIpmiMsg msg( eIpmiNetfnPicmg, eIpmiCmdFruControl );
+  msg.m_data[0]  = dIpmiPigMgId;
+  msg.m_data[1]  = res->FruId();
+  msg.m_data[2]  = state;
+  msg.m_data_len = 3;
 
-  addr.m_type       = eIpmiAddrTypeIpmb;
-  addr.m_channel    = ent->Channel();
-  addr.m_slave_addr = ent->AccessAddress();
-  addr.m_lun        = ent->Lun();
-
-  cmd_msg.m_netfn    = eIpmiNetfnPicmg;
-  cmd_msg.m_cmd      = eIpmiCmdFruControl;
-  cmd_msg.m_data[0]  = dIpmiPigMgId;
-  cmd_msg.m_data[1]  = ent->FruId();
-  cmd_msg.m_data[2]  = state;
-  cmd_msg.m_data_len = 3;
-
-  int rv = SendCommand( addr, cmd_msg, rsp );
+  cIpmiMsg rsp;
+  int rv = res->SendCommand( msg, rsp );
 
   if ( rv )
      {
