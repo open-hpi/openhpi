@@ -31,6 +31,8 @@
 
 #include <netinet/in.h>
 
+#if 0
+
 typedef struct state_category_string_ 
 {
     SaHpiEventCategoryT category;
@@ -108,6 +110,8 @@ static state_category_string state_string[] = {
 #define STATESTRING_MAX_LENGTH 1000
 #define STATESTRING_MAX_ENTRIES 63
 
+#endif
+
 typedef struct sensor_range_flags_
 {
 	SaHpiSensorRangeFlagsT flag;
@@ -171,7 +175,7 @@ void display_vars( struct snmp_pdu *response)
 	fprintf(stderr, "********************************************************\n");
 #endif
 }
-
+#if 0
 int build_state_value (char *str,
 		       size_t len,
 		       SaHpiEventStateT *state) 
@@ -183,9 +187,16 @@ int build_state_value (char *str,
   char *tok = NULL;
   int i = 0;
 
-  s = (char *)g_malloc0 (len);
-  if (s == NULL)
+  if (len == 0) {
+	  dbg("Nothing to do, len 0, returning");
+	  return(SA_OK);
+  }
+
+  s = (char *) g_malloc0 (len);
+  if (s == NULL){
+    dbg("build_state_value: Memory Fault, s");
     return SA_ERR_HPI_ERROR;
+  } 
 
   delim = (char *) g_malloc0 ( STATESTRING_VALUE_DELIMITER_LENGTH );
   if (delim == NULL) {
@@ -217,6 +228,8 @@ int build_state_value (char *str,
   g_free (delim);
   return rc;
 }
+
+#endif
 
 int build_flag_value (char *str,
 		      size_t len,
@@ -264,5 +277,7 @@ int build_flag_value (char *str,
 
   return rc;
 }
+
+
 
 

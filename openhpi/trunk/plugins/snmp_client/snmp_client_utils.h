@@ -30,14 +30,14 @@ SaErrorT net_snmp_failure(struct snmp_client_hnd *custom_handle,
 			  struct snmp_pdu *response);
 
 void display_vars( struct snmp_pdu *response);
-
+#if 0
 int build_state_value (char *str,
 		       size_t len,
 		       SaHpiEventStateT *state);
+#endif
 
 int build_flag_value (char *str,
 		      size_t len,
 		      SaHpiSensorRangeFlagsT *flags);
-
 
 #endif /* _SNMP_CLIENT_UTILS_ */
