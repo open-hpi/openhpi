@@ -18,6 +18,7 @@
 #include <string.h>
 #include <sys/time.h>
 #include <rpt_utils.h>
+#include <epath_utils.h>
 #include <oh_error.h>
 
 
@@ -93,23 +94,6 @@ static SaHpiUint8T get_rdr_type_num(SaHpiRdrT *rdr)
         }
 
         return num;
-}
-
-static int check_ep(SaHpiEntityPathT ep)
-{
-        int check = 0; 
-	int i;
-
-        for (i = 0; i < SAHPI_MAX_ENTITY_PATH; i++) {
-                if (ep.Entry[i].EntityInstance == 0) {                        
-                        if (ep.Entry[i].EntityType != SAHPI_ENT_ROOT) {
-                                check = -1;
-                                break;
-                        } else break;
-                }
-        }
-
-        return check;
 }
 
 static void update_rptable(RPTable *table) {
@@ -292,7 +276,7 @@ int oh_add_resource(RPTable *table, SaHpiRptEntryT *entry, void *data, int ownda
         } else if (entry->ResourceId == SAHPI_DOMAIN_CONTROLLER_ID) {
                 dbg("Failed to add. RPT entry has an invalid/reserved id assigned. (SAHPI_DOMAIN_CONTROLLER_ID)");
                 return -4;
-        } else if (check_ep(entry->ResourceEntity)) {
+        } else if (validate_ep(&(entry->ResourceEntity))) {
                 dbg("Failed to add RPT entry. Entity path does not contain root element.");
                 return -5;                
         }

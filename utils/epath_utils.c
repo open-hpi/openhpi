@@ -496,9 +496,9 @@ static int entitytype2index(unsigned int i)
                 return ESHORTNAMES_SECOND_JUMP;
         else if (i == (unsigned int)SAHPI_ENT_OEM_SYSINT_SPECIFIC)
                 return ESHORTNAMES_THIRD_JUMP;
-        else if (i >= (unsigned int)SAHPI_ENT_ROOT && i - (unsigned int)SAHPI_ENT_ROOT
-                   < eshort_num_names - ESHORTNAMES_LAST_JUMP )
-                return i - (unsigned int)SAHPI_ENT_ROOT + ESHORTNAMES_LAST_JUMP;
+        else if (i >= (unsigned int)SAHPI_ENT_ROOT &&
+                 i-(unsigned int)SAHPI_ENT_ROOT < eshort_num_names-ESHORTNAMES_LAST_JUMP)
+                return i-(unsigned int)SAHPI_ENT_ROOT+ESHORTNAMES_LAST_JUMP;
 
         return -1;
 }
@@ -570,4 +570,30 @@ int ep_cmp(const SaHpiEntityPathT *ep1, const SaHpiEntityPathT *ep2)
         }
         
         return 0;
+}
+
+/**
+ * validate_ep
+ * @ep: Pointer to an SaHpiEntityPathT structure.
+ *
+ * This will check the entity path to make sure it does not contain
+ * any invalid entity types in it up to the root element if it has it.
+ *
+ * Returns: 0 if entity path is valid, -1 otherwise.
+ **/
+int validate_ep(const SaHpiEntityPathT *ep)
+{
+        int check = 0;
+	int i;
+
+        for (i = 0; i < SAHPI_MAX_ENTITY_PATH; i++) {
+                if (ep->Entry[i].EntityInstance == 0) {
+                        if (ep->Entry[i].EntityType != SAHPI_ENT_ROOT) {
+                                check = -1;
+                                break;
+                        } else break;
+                }
+        }
+
+        return check;
 }
