@@ -301,8 +301,9 @@ int oh_add_resource(RPTable *table, SaHpiRptEntryT *entry, void *data, int ownda
         } else if (entry->ResourceId == 0) {
                 dbg("Failed to add. RPT entry needs a resource id before being added");
                 return -3;                
-        } else if (entry->ResourceId == RPT_ENTRY_BEGIN) {
-                dbg("Failed to add. RPT entry has an invalid/reserved id assigned (RPT_ENTRY_BEGIN).");
+        } else if (entry->ResourceId == RPT_ENTRY_BEGIN ||
+                   entry->ResourceId == SAHPI_DOMAIN_CONTROLLER_ID) {
+                dbg("Failed to add. RPT entry has an invalid/reserved id assigned. (RPT_ENTRY_BEGIN or SAHPI_DOMAIN_CONTROLLER_ID)");
                 return -4;
         } else if (check_ep(entry->ResourceEntity)) {
                 dbg("Failed to add RPT entry. Entity path does not contain root element.");
