@@ -44,6 +44,31 @@ struct ohoi_sel_entry {
 /* global reference count of instances */
 static int ipmi_refcount = 0;
 
+/**
+ * ipmi_setup_done: handler for ipmi_init_domain()
+ **/
+static void ipmi_setup_done(ipmi_domain_t *domain,
+		   int           err,
+		   unsigned int  conn_num,
+		   unsigned int  port_num,
+		   int           still_connected,
+		   void          *cb_data)
+{
+	struct ohoi_handler *ipmi_handler = cb_data;
+	if (err) {
+		dbg("IPMI connection to con.port %d.%d is down"
+		   "  due to error 0x%x\n", conn_num, port_num, err);
+	} else {
+		dbg("IPMI connection to con.port %d.%d is up\n",
+			conn_num, port_num);
+	}	
+	if (!still_connected) {
+		dbg("All IPMI connections down\n");
+	}
+	ipmi_handler->connected = (err == 0);
+	return;
+}
+
 /* ABI Interface functions */
 
 
@@ -212,13 +237,20 @@ static void *ipmi_open(GHashTable *handler_config)
 
 	ipmi_handler->connected = 0;
 
-	rv = ipmi_init_domain(&ipmi_handler->con, 1, NULL, NULL, 
-			      NULL, &ipmi_handler->domain_id);
+	rv = ipmi_init_domain(&ipmi_handler->con, 1, ipmi_setup_done, 
+			      ipmi_handler, NULL, &ipmi_handler->domain_id);
 	if (rv) {
 		fprintf(stderr, "ipmi_init_domain: %s\n", strerror(rv));
 		return NULL;
 	}
 
+/* OpenIPMI does not enter to ipmi_setup_done
+	dbg("ipmi_handler->connected = %x\n", ipmi_handler->connected);
+	if (!ipmi_handler->connected) {
+		fprintf(stderr, "IPMI connection is down\n");
+		return NULL;
+	}
+*/
         rv = ipmi_domain_pointer_cb(ipmi_handler->domain_id, ohoi_setup_done, handler);
         if (rv) {
 		fprintf(stderr, "ipmi_domain_pointer_cb: %s\n", strerror(rv));
@@ -338,7 +370,7 @@ static int ipmi_discover_resources(void *hnd)
 		rv = sel_select(ipmi_handler->ohoi_sel, NULL, 0 , NULL, NULL);
 		if (rv < 0) {
 			dbg("error on waiting for discovery");
-			return -1;
+			return SA_ERR_HPI_ERROR;
 		};
 		if ((rv == 1) || (SDR_done != ipmi_handler->SDRs_read_done)
 			|| (scan_done != ipmi_handler->bus_scan_done)
@@ -352,7 +384,10 @@ static int ipmi_discover_resources(void *hnd)
 			time(&tm1);
 			if ((tm1 - tm) > 60) {
 				dbg("timeout on waiting for discovery");
-				return -1;
+				if (!ipmi_handler->connected) {
+					fprintf(stderr, "IPMI connection is down\n");
+				}
+				return SA_ERR_HPI_NO_RESPONSE;
 			}
 		}
 	}
@@ -680,6 +715,7 @@ static int ipmi_get_el_entry(void *hnd, SaHpiResourceIdT id,
 				myrdr = ohoi_get_rdr_by_data(handler->rptcache,
 			              myrpt->ResourceId, SAHPI_SENSOR_RDR,
 				      &sid);
+				e->u.hpi_event.event.Source = myrpt->ResourceId;
 				e->u.hpi_event.event.EventDataUnion.
 					SensorEvent.SensorNum =
 					       myrdr->RdrTypeUnion.SensorRec.Num;
@@ -754,6 +790,7 @@ static SaErrorT ipmi_clear_el(void *hnd, SaHpiResourceIdT id)
 		struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
 
 		int rv;
+		int i;
 
         ohoi_res_info = oh_get_resource_data(handler->rptcache, id);
         if (ohoi_res_info->type != OHOI_RESOURCE_MC) {
@@ -781,7 +818,14 @@ static SaErrorT ipmi_clear_el(void *hnd, SaHpiResourceIdT id)
 
 	return SA_OK;
 */
-	return ohoi_loop(&ipmi_handler->sel_clear_done, ipmi_handler);	
+	for (i =0; i < 6; i++) {
+		/* long wait - 1 min */
+		rv = ohoi_loop(&ipmi_handler->sel_clear_done, ipmi_handler);
+		if (rv == SA_OK) {
+			break;
+		}
+	}
+	return rv;	
 }
 
 SaErrorT ohoi_get_rdr_data(const struct oh_handler_state *handler,
