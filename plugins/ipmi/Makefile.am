@@ -40,6 +40,7 @@ AM_CFLAGS		= -g @CFLAGS@
 pkglib_LTLIBRARIES	= libipmi.la
 
 libipmi_la_SOURCES	= ipmi.c 		\
+			  ipmi_close.c		\
 			  ipmi_event.c 		\
 			  ipmi_entity_event.c	\
 			  ipmi_mc_event.c	\

@@ -51,6 +51,8 @@ struct ohoi_handler {
     int SELs_read_done;
 	int mc_count;			/* to keep track of num of mcs to wait on sdrs */
 	int sel_clear_done;		/* we need to wait for mc_sel_reread for clear to succeed */
+//	int FRU_done;			/* we have to track FRUs */
+	int ipmi_instance;
 
 	ipmi_domain_id_t domain_id;
 
@@ -85,6 +87,8 @@ struct ohoi_resource_info {
 
 /* implemented in ipmi_event.c */
 void ohoi_setup_done(ipmi_domain_t *domain, void *user_data);
+/* implemented in ipmi_close.c */
+void ohoi_close_connection(ipmi_domain_t *domain, void *user_data);
 
 /* implemented in ipmi_sensor.c	*/
 int ohoi_get_sensor_data(ipmi_sensor_id_t sensor_id, SaHpiSensorReadingT *data, void *cb_data);

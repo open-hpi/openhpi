@@ -28,7 +28,9 @@ struct ohoi_sel_entry {
         unsigned int    recid;
 };
 
-int ipmi_refcount = 0;
+/* global reference count on instances */
+static int ipmi_refcount = 0;
+
 /* ABI Interface functions */
 
 
@@ -76,6 +78,7 @@ static void *ipmi_open(GHashTable *handler_config)
 	ipmi_handler->SDRs_read_done = 0;			/* Domain (main) SDR flag, 1 when done */
     ipmi_handler->SELs_read_done = 0;			/* SEL flag, 1 when done */
 	ipmi_handler->mc_count = 0;					/* MC level SDRs, 0 when done */
+	//ipmi_handler->FRU_done = 0;					/* MC level SDRs, 0 when done */
 
 	ipmi_handler->entity_root = g_hash_table_lookup(handler_config, "entity_root");
 	
@@ -196,16 +199,13 @@ static void *ipmi_open(GHashTable *handler_config)
                         return NULL;
         }
 
-	if (ipmi_refcount) {
-			ipmi_refcount++;
-			dbg("ipmi instance: %d", ipmi_refcount);
-	} else {
-			ipmi_refcount = 0;
-			ipmi_refcount++;
-			dbg("ipmi first instance: %d", ipmi_refcount);
-	}
+		/* increment global count and assign each instance a number */
+		ipmi_refcount++;
+		ipmi_handler->ipmi_instance = ipmi_refcount;
 
-	return handler;
+		dbg("ipmi instance #%d initialized", ipmi_handler->ipmi_instance);
+
+		return handler;
 }
 
 
@@ -222,17 +222,13 @@ static void ipmi_close(void *hnd)
 	struct oh_handler_state *handler = (struct oh_handler_state *) hnd;
 	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
 
-	if (ipmi_refcount > 1) {
-			dbg("one instance of ipmi_plugin done, decrementing");
-			ipmi_refcount--;
-			dbg("remaining instances: %d", ipmi_refcount);
-	} else {
-			dbg("ipmi connection...closing");
+	ipmi_domain_pointer_cb(ipmi_handler->domain_id, ohoi_close_connection, handler);
+
+	ipmi_refcount--;
+	dbg("ipmi instances remaining: %d", ipmi_refcount);
+
+	if (ipmi_refcount == 0)
 			ipmi_shutdown();
-	}
-	
-	g_free(ipmi_handler);
-	g_free(handler);
 }
 
 /**
