@@ -35,13 +35,14 @@
 #include <printevent_utils.h>
 
 #define ERROR_LOG_MSG_OID ".1.3.6.1.4.1.2.3.51.2.3.4.2.1.2.1"
-#define CHASSIS_RID 1
 
 int main(int argc, char **argv)
 {
         SaErrorT err;
 	SaHpiRdrT rdr;
+	SaHpiEntryIdT rptid, next_rptid;
 	SaHpiRptEntryT rpt;
+	SaHpiResourceIdT chassis_rid=0;
 	SaHpiSelEntryT logentry;
 	SaHpiSelEntryIdT prev_logid, next_logid;
         SaHpiSessionIdT sessionid;
@@ -68,6 +69,30 @@ int main(int argc, char **argv)
 	  return -1;
         }
 
+	/* Find first SEL capable Resource - assume its the chassis */
+	rptid = SAHPI_FIRST_ENTRY;
+	while ((err == SA_OK) && (rptid != SAHPI_LAST_ENTRY))
+	{
+		err = saHpiRptEntryGet(sessionid, rptid, &next_rptid, &rpt);
+		if (err != SA_OK) {
+			printf("Error! saHpiRptEntryGet: err=%d\n", err);
+			return -1;
+		}
+		
+		if ((rpt.ResourceCapabilities & SAHPI_CAPABILITY_SEL)) {
+			chassis_rid = rpt.ResourceId;
+			break;
+		}
+		else {
+			rptid = next_rptid;
+			continue;
+		}
+	}
+	if (chassis_rid == 0) {
+		printf("Error! saHpiRptEntryGet couldn't find SEL RID\n");
+		return -1;
+	}
+
 	/* If test OID not already in sim hash table; create it */
 	if (!g_hash_table_lookup_extended(sim_hash, 
 					  ERROR_LOG_MSG_OID,
@@ -87,11 +112,15 @@ int main(int argc, char **argv)
 		}
 	}
 
-	err = saHpiEventLogClear(sessionid, SAHPI_DOMAIN_CONTROLLER_ID);
+	printf("Calling Clear\n");
+
+	err = saHpiEventLogClear(sessionid, chassis_rid);
 	if (err != SA_OK) {
 		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
 		return -1;
         }
+
+	printf("Calling EntryGet\n");
 
 	/************************************************************
 	 * TestCase - Mapped Chassis Event (EN_CUTOFF_HI_FAULT_3_35V)
@@ -102,7 +131,7 @@ int main(int argc, char **argv)
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
-        err = saHpiEventLogEntryGet(sessionid, SAHPI_DOMAIN_CONTROLLER_ID, SAHPI_NEWEST_ENTRY,
+        err = saHpiEventLogEntryGet(sessionid, chassis_rid, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
 	if (err != SA_OK) {
 		printf("Error! saHpiEventLogEntryGet: line=%d; err=%d\n", __LINE__, err);
@@ -110,7 +139,7 @@ int main(int argc, char **argv)
         }
 	
 	/* Check expected values */
-	if (!((logentry.Event.Source == CHASSIS_RID) &&
+	if (!((logentry.Event.Source == chassis_rid) &&
 	      (logentry.Event.EventType == SAHPI_ET_SENSOR) &&
 	      (logentry.Event.Severity == SAHPI_CRITICAL) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.SensorType == SAHPI_VOLTAGE) &&
@@ -126,7 +155,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	err = saHpiEventLogClear(sessionid, SAHPI_DOMAIN_CONTROLLER_ID);
+	err = saHpiEventLogClear(sessionid, chassis_rid);
 	if (err != SA_OK) {
 		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
 		return -1;
@@ -141,7 +170,7 @@ int main(int argc, char **argv)
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
-        err = saHpiEventLogEntryGet(sessionid, SAHPI_DOMAIN_CONTROLLER_ID, SAHPI_NEWEST_ENTRY,
+        err = saHpiEventLogEntryGet(sessionid, chassis_rid, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
 	if (err != SA_OK) {
 		printf("Error! saHpiEventLogEntryGet: line=%d; err=%d\n", __LINE__, err);
@@ -149,7 +178,7 @@ int main(int argc, char **argv)
         }
 	
 	/* Check expected values */
-	if (!((logentry.Event.Source == CHASSIS_RID) &&
+	if (!((logentry.Event.Source == chassis_rid) &&
 	      (logentry.Event.EventType == SAHPI_ET_SENSOR) &&
 	      (logentry.Event.Severity == SAHPI_CRITICAL) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.SensorType == SAHPI_VOLTAGE) &&
@@ -167,7 +196,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	err = saHpiEventLogClear(sessionid, SAHPI_DOMAIN_CONTROLLER_ID);
+	err = saHpiEventLogClear(sessionid, chassis_rid);
 	if (err != SA_OK) {
 		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
 		return -1;
@@ -182,7 +211,7 @@ int main(int argc, char **argv)
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
-        err = saHpiEventLogEntryGet(sessionid, SAHPI_DOMAIN_CONTROLLER_ID, SAHPI_NEWEST_ENTRY,
+        err = saHpiEventLogEntryGet(sessionid, chassis_rid, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
 	if (err != SA_OK) {
 		printf("Error! saHpiEventLogEntryGet: line=%d; err=%d\n", __LINE__, err);
@@ -190,7 +219,7 @@ int main(int argc, char **argv)
         }
 	
 	/* Check expected values */
-	if (!((logentry.Event.Source == CHASSIS_RID) &&
+	if (!((logentry.Event.Source == chassis_rid) &&
 	      (logentry.Event.EventType == SAHPI_ET_SENSOR) &&
 	      (logentry.Event.Severity == SAHPI_MAJOR) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.SensorType == SAHPI_VOLTAGE) &&
@@ -208,7 +237,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	err = saHpiEventLogClear(sessionid, SAHPI_DOMAIN_CONTROLLER_ID);
+	err = saHpiEventLogClear(sessionid, chassis_rid);
 	if (err != SA_OK) {
 		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
 		return -1;
@@ -223,7 +252,7 @@ int main(int argc, char **argv)
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
-        err = saHpiEventLogEntryGet(sessionid, SAHPI_DOMAIN_CONTROLLER_ID, SAHPI_NEWEST_ENTRY,
+        err = saHpiEventLogEntryGet(sessionid, chassis_rid, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
 	if (err != SA_OK) {
 		printf("Error! saHpiEventLogEntryGet: line=%d; err=%d\n", __LINE__, err);
@@ -231,7 +260,7 @@ int main(int argc, char **argv)
         }
 	
 	/* Check expected values */
-	if (!((!(logentry.Event.Source == CHASSIS_RID)) &&
+	if (!((!(logentry.Event.Source == chassis_rid)) &&
 	      (logentry.Event.EventType == SAHPI_ET_SENSOR) &&
 	      (logentry.Event.Severity == SAHPI_MAJOR) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.SensorType == SAHPI_VOLTAGE) &&
@@ -247,7 +276,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	err = saHpiEventLogClear(sessionid, SAHPI_DOMAIN_CONTROLLER_ID);
+	err = saHpiEventLogClear(sessionid, chassis_rid);
 	if (err != SA_OK) {
 		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
 		return -1;
@@ -261,7 +290,7 @@ int main(int argc, char **argv)
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
-        err = saHpiEventLogEntryGet(sessionid, SAHPI_DOMAIN_CONTROLLER_ID, SAHPI_NEWEST_ENTRY,
+        err = saHpiEventLogEntryGet(sessionid, chassis_rid, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
 	if (err != SA_OK) {
 		printf("Error! saHpiEventLogEntryGet: line=%d; err=%d\n", __LINE__, err);
@@ -269,7 +298,7 @@ int main(int argc, char **argv)
         }
 	
 	/* Check expected values */
-	if (!((!(logentry.Event.Source == CHASSIS_RID)) &&
+	if (!((!(logentry.Event.Source == chassis_rid)) &&
 	      (logentry.Event.EventType == SAHPI_ET_OEM) &&
 	      (logentry.Event.Severity == SAHPI_INFORMATIONAL))) {
 		printf("Error! TestCase - Non-mapped Event (Severity=INFO)\n");
@@ -277,7 +306,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	err = saHpiEventLogClear(sessionid, SAHPI_DOMAIN_CONTROLLER_ID);
+	err = saHpiEventLogClear(sessionid, chassis_rid);
 	if (err != SA_OK) {
 		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
 		return -1;
@@ -292,7 +321,7 @@ int main(int argc, char **argv)
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
-        err = saHpiEventLogEntryGet(sessionid, SAHPI_DOMAIN_CONTROLLER_ID, SAHPI_NEWEST_ENTRY,
+        err = saHpiEventLogEntryGet(sessionid, chassis_rid, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
 	if (err != SA_OK) {
 		printf("Error! saHpiEventLogEntryGet: line=%d; err=%d\n", __LINE__, err);
@@ -300,7 +329,7 @@ int main(int argc, char **argv)
         }
 	
 	/* Check expected values */
-	if (!((!(logentry.Event.Source == CHASSIS_RID)) &&
+	if (!((!(logentry.Event.Source == chassis_rid)) &&
 	      (logentry.Event.EventType == SAHPI_ET_OEM) &&
 	      (logentry.Event.Severity == SAHPI_MINOR))) {
 		printf("Error! TestCase - Non-mapped Login Event (Severity=WARN)\n");
@@ -308,7 +337,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	err = saHpiEventLogClear(sessionid, SAHPI_DOMAIN_CONTROLLER_ID);
+	err = saHpiEventLogClear(sessionid, chassis_rid);
 	if (err != SA_OK) {
 		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
 		return -1;
@@ -322,7 +351,7 @@ int main(int argc, char **argv)
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
-        err = saHpiEventLogEntryGet(sessionid, SAHPI_DOMAIN_CONTROLLER_ID, SAHPI_NEWEST_ENTRY,
+        err = saHpiEventLogEntryGet(sessionid, chassis_rid, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
 	if (err != SA_OK) {
 		printf("Error! saHpiEventLogEntryGet: line=%d; err=%d\n", __LINE__, err);
@@ -330,7 +359,7 @@ int main(int argc, char **argv)
         }
 	
 	/* Check expected values */
-	if (!((!(logentry.Event.Source == CHASSIS_RID)) &&
+	if (!((!(logentry.Event.Source == chassis_rid)) &&
 	      (logentry.Event.EventType == SAHPI_ET_SENSOR) &&
 	      (logentry.Event.Severity == SAHPI_MAJOR) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.SensorType == SAHPI_TEMPERATURE) &&
@@ -346,7 +375,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	err = saHpiEventLogClear(sessionid, SAHPI_DOMAIN_CONTROLLER_ID);
+	err = saHpiEventLogClear(sessionid, chassis_rid);
 	if (err != SA_OK) {
 		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
 		return -1;
@@ -360,7 +389,7 @@ int main(int argc, char **argv)
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
-        err = saHpiEventLogEntryGet(sessionid, SAHPI_DOMAIN_CONTROLLER_ID, SAHPI_NEWEST_ENTRY,
+        err = saHpiEventLogEntryGet(sessionid, chassis_rid, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
 	if (err != SA_OK) {
 		printf("Error! saHpiEventLogEntryGet: line=%d; err=%d\n", __LINE__, err);
@@ -368,7 +397,7 @@ int main(int argc, char **argv)
         }
 	
 	/* Check expected values */
-	if (!((!(logentry.Event.Source == CHASSIS_RID)) &&
+	if (!((!(logentry.Event.Source == chassis_rid)) &&
 	      (logentry.Event.EventType == SAHPI_ET_HOTSWAP) &&
 	      (logentry.Event.Severity == SAHPI_INFORMATIONAL) &&
 	      (logentry.Event.EventDataUnion.HotSwapEvent.HotSwapState == SAHPI_HS_STATE_ACTIVE_HEALTHY) && 
@@ -378,7 +407,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	err = saHpiEventLogClear(sessionid, SAHPI_DOMAIN_CONTROLLER_ID);
+	err = saHpiEventLogClear(sessionid, chassis_rid);
 	if (err != SA_OK) {
 		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
 		return -1;
@@ -393,7 +422,7 @@ int main(int argc, char **argv)
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
-        err = saHpiEventLogEntryGet(sessionid, SAHPI_DOMAIN_CONTROLLER_ID, SAHPI_NEWEST_ENTRY,
+        err = saHpiEventLogEntryGet(sessionid, chassis_rid, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
 	if (err != SA_OK) {
 		printf("Error! saHpiEventLogEntryGet: line=%d; err=%d\n", __LINE__, err);
@@ -401,7 +430,7 @@ int main(int argc, char **argv)
         }
 	
 	/* Check expected values */
-	if (!((!(logentry.Event.Source == CHASSIS_RID)) &&
+	if (!((!(logentry.Event.Source == chassis_rid)) &&
 	      (logentry.Event.EventType == SAHPI_ET_HOTSWAP) &&
 	      (logentry.Event.Severity == SAHPI_INFORMATIONAL) &&
 	      (logentry.Event.EventDataUnion.HotSwapEvent.HotSwapState == SAHPI_HS_STATE_NOT_PRESENT) && 
@@ -411,7 +440,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	err = saHpiEventLogClear(sessionid, SAHPI_DOMAIN_CONTROLLER_ID);
+	err = saHpiEventLogClear(sessionid, chassis_rid);
 	if (err != SA_OK) {
 		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
 		return -1;
@@ -426,7 +455,7 @@ int main(int argc, char **argv)
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
-        err = saHpiEventLogEntryGet(sessionid, SAHPI_DOMAIN_CONTROLLER_ID, SAHPI_NEWEST_ENTRY,
+        err = saHpiEventLogEntryGet(sessionid, chassis_rid, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
 	if (err != SA_OK) {
 		printf("Error! saHpiEventLogEntryGet: line=%d; err=%d\n", __LINE__, err);
@@ -434,7 +463,7 @@ int main(int argc, char **argv)
         }
 	
 	/* Check expected values */
-	if (!((!(logentry.Event.Source == CHASSIS_RID)) &&
+	if (!((!(logentry.Event.Source == chassis_rid)) &&
 	      (logentry.Event.EventType == SAHPI_ET_HOTSWAP) &&
 	      (logentry.Event.Severity == SAHPI_INFORMATIONAL) &&
 	      (logentry.Event.EventDataUnion.HotSwapEvent.HotSwapState == SAHPI_HS_STATE_ACTIVE_HEALTHY) &&
@@ -444,7 +473,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	err = saHpiEventLogClear(sessionid, SAHPI_DOMAIN_CONTROLLER_ID);
+	err = saHpiEventLogClear(sessionid, chassis_rid);
 	if (err != SA_OK) {
 		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
 		return -1;
@@ -462,7 +491,7 @@ int main(int argc, char **argv)
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
-        err = saHpiEventLogEntryGet(sessionid, SAHPI_DOMAIN_CONTROLLER_ID, SAHPI_NEWEST_ENTRY,
+        err = saHpiEventLogEntryGet(sessionid, chassis_rid, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
 	if (err != SA_OK) {
 		printf("Error! saHpiEventLogEntryGet: line=%d; err=%d\n", __LINE__, err);
@@ -470,7 +499,7 @@ int main(int argc, char **argv)
         }
 	
 	/* Check expected values */
-	if (!(((logentry.Event.Source == CHASSIS_RID)) &&
+	if (!(((logentry.Event.Source == chassis_rid)) &&
 	      (logentry.Event.EventType == SAHPI_ET_OEM) &&
 	      (logentry.Event.Severity == SAHPI_INFORMATIONAL))) {
 		printf("Error! TestCase - Bogus threshold strings\n");
@@ -478,7 +507,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	err = saHpiEventLogClear(sessionid, SAHPI_DOMAIN_CONTROLLER_ID);
+	err = saHpiEventLogClear(sessionid, chassis_rid);
 	if (err != SA_OK) {
 		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
 		return -1;
@@ -493,7 +522,7 @@ int main(int argc, char **argv)
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
-        err = saHpiEventLogEntryGet(sessionid, SAHPI_DOMAIN_CONTROLLER_ID, SAHPI_NEWEST_ENTRY,
+        err = saHpiEventLogEntryGet(sessionid, chassis_rid, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
 	if (err != SA_OK) {
 		printf("Error! saHpiEventLogEntryGet: line=%d; err=%d\n", __LINE__, err);
@@ -501,7 +530,7 @@ int main(int argc, char **argv)
         }
 
 	/* Check expected values */
-	if (!(((logentry.Event.Source == CHASSIS_RID)) &&
+	if (!(((logentry.Event.Source == chassis_rid)) &&
 	      (logentry.Event.EventType == SAHPI_ET_OEM) &&
 	      (logentry.Event.Severity == SAHPI_INFORMATIONAL))) {
 		printf("Error! TestCase - Recovery string not first character of text string\n");
@@ -509,7 +538,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	err = saHpiEventLogClear(sessionid, SAHPI_DOMAIN_CONTROLLER_ID);
+	err = saHpiEventLogClear(sessionid, chassis_rid);
 	if (err != SA_OK) {
 		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
 		return -1;
@@ -524,7 +553,7 @@ int main(int argc, char **argv)
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
-        err = saHpiEventLogEntryGet(sessionid, SAHPI_DOMAIN_CONTROLLER_ID, SAHPI_NEWEST_ENTRY,
+        err = saHpiEventLogEntryGet(sessionid, chassis_rid, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
 	if (err != SA_OK) {
 		printf("Error! saHpiEventLogEntryGet: line=%d; err=%d\n", __LINE__, err);
@@ -532,7 +561,7 @@ int main(int argc, char **argv)
         }
 
 	/* Check expected values */
-	if (!(((logentry.Event.Source == CHASSIS_RID)) &&
+	if (!(((logentry.Event.Source == chassis_rid)) &&
 	      (logentry.Event.EventType == SAHPI_ET_OEM) &&
 	      (logentry.Event.Severity == SAHPI_INFORMATIONAL))) {
 		printf("Error! TestCase - In string table but not mapped\n");
@@ -540,7 +569,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	err = saHpiEventLogClear(sessionid, SAHPI_DOMAIN_CONTROLLER_ID);
+	err = saHpiEventLogClear(sessionid, chassis_rid);
 	if (err != SA_OK) {
 		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
 		return -1;
