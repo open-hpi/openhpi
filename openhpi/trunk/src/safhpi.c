@@ -49,7 +49,12 @@ SaErrorT SAHPI_API saHpiSessionOpen(
         if(oh_initialized() != SA_OK) {
                 oh_initialize();
         }
-
+        
+        if (SessionId == NULL) {
+                dbg("Invalid Session Id pointer");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+        
         /* Security Params required to be NULL by the spec at this point */
         if (SecurityParams != NULL) {
                 dbg("SecurityParams must be NULL");
@@ -830,7 +835,7 @@ SaErrorT SAHPI_API saHpiUnsubscribe (
         error = oh_get_session_subscription(SessionId, &session_state);
         if (error) return error;
 
-        if (session_state != OH_SUBSCRIBED) {
+        if (session_state == OH_UNSUBSCRIBED) {
                 dbg("Cannot unsubscribe if session is not subscribed.");
                 return SA_ERR_HPI_INVALID_REQUEST;
         }
