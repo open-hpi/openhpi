@@ -25,20 +25,19 @@
 void process_hotswap_policy(void)
 {
 	SaHpiTimeT cur, est;
-	struct oh_event e;
+	struct oh_hpi_event e;
 	struct oh_resource *res;
         int (*set_hotswap_state)(void *hnd, struct oh_resource_id id,
 			                        SaHpiHsStateT state);	
 	
 	while(hotswap_pop_event(&e)>0) {
 	
-		if (e.type != OH_ET_HPI
-				|| e.u.hpi_event.event.EventType != SAHPI_ET_HOTSWAP) {
+		if (e.event.EventType != SAHPI_ET_HOTSWAP) {
 			dbg("Non-hotswap event!");
 			return;
 		}
 	
-		res = get_res_by_oid(e.u.hpi_event.parent);
+		res = get_res_by_oid(e.parent);
 		if (!(res->entry.ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
 			dbg("Non-hotswapable resource?!");
 			return;
@@ -56,15 +55,15 @@ void process_hotswap_policy(void)
 
 		gettimeofday1(&cur);
 	
-		if (e.u.hpi_event.event.EventDataUnion.HotSwapEvent.HotSwapState 
+		if (e.event.EventDataUnion.HotSwapEvent.HotSwapState 
 				== SAHPI_HS_STATE_INSERTION_PENDING) {
-			est = e.u.hpi_event.event.Timestamp + get_hotswap_auto_insert_timeout();
+			est = e.event.Timestamp + get_hotswap_auto_insert_timeout();
 			if (cur>=est) {
 				set_hotswap_state(res->handler->hnd, res->oid, SAHPI_HS_STATE_ACTIVE_HEALTHY);
 			}
-		} else if (e.u.hpi_event.event.EventDataUnion.HotSwapEvent.HotSwapState
+		} else if (e.event.EventDataUnion.HotSwapEvent.HotSwapState
 				== SAHPI_HS_STATE_EXTRACTION_PENDING) {
-			est = e.u.hpi_event.event.Timestamp + res->auto_extract_timeout;
+			est = e.event.Timestamp + res->auto_extract_timeout;
 			if (cur>=est) {
 				set_hotswap_state(res->handler->hnd, res->oid, SAHPI_HS_STATE_INACTIVE);
 			}
@@ -81,7 +80,7 @@ static GSList *hs_eq=NULL;
  * needn't care about ref counter of the event.
 */
 
-int hotswap_push_event(struct oh_event *e)
+int hotswap_push_event(struct oh_hpi_event *e)
 {
 	struct oh_event *e1;
 
@@ -103,7 +102,7 @@ int hotswap_push_event(struct oh_event *e)
  * here doesn't jive with the rest of the exit codes
  */
 
-int hotswap_pop_event(struct oh_event *e) 
+int hotswap_pop_event(struct oh_hpi_event *e) 
 {
         GSList *head;
         

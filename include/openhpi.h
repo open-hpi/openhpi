@@ -313,7 +313,7 @@ struct oh_session *session_get(SaHpiSessionIdT);
 int session_add(SaHpiDomainIdT, struct oh_session**);
 int session_del(struct oh_session*);
 /* malloc/copy/add event into the tail of event_list */
-int session_push_event(struct oh_session*, struct oh_event*);
+int session_push_event(struct oh_session*, struct oh_hpi_event*);
 /* del/copy/free event from the head of event_list */
 int session_pop_event(struct oh_session*, struct oh_event*);
 /*query if the session has events*/
@@ -368,8 +368,8 @@ int get_events(void);
 
 /* howswap */
 void process_hotswap_policy(void);
-int hotswap_push_event(struct oh_event *e);
-int hotswap_pop_event(struct oh_event *e); 
+int hotswap_push_event(struct oh_hpi_event *e);
+int hotswap_pop_event(struct oh_hpi_event *e); 
 int hotswap_has_event(void);
 SaHpiTimeoutT get_hotswap_auto_insert_timeout(void);
 void set_hotswap_auto_insert_timeout(SaHpiTimeoutT);

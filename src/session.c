@@ -75,7 +75,7 @@ int session_del(struct oh_session *session)
  * needn't care about ref counter of the event.
 */
 
-int session_push_event(struct oh_session *s, struct oh_event *e)
+int session_push_event(struct oh_session *s, struct oh_hpi_event *e)
 {
 	struct oh_event *e1;
 
