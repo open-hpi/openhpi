@@ -191,7 +191,7 @@ extern oid sa_hpi_ctrl_RDR[];
 #define SA_HPI_SEN_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH \
         SA_HPI_SEN_ENTRY_TABLE_VARIABLE_OID_LENGTH + NUM_SEN_INDICES
 	
-/* saHpiSensorReadingMaxTable */
+/* saHpiSensorReading<>Table */
 #define SA_HPI_SEN_READING_MAX_ENTRY_OID_LEN                        HPI_MIB_OID_LEN + 4
 #define SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_OID_LENGTH      HPI_MIB_OID_LEN + 5
 
