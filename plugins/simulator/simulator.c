@@ -29,6 +29,7 @@
 
 #include "sim_util.h"
 #include "sim_parser.h"
+#include "sim_event.h"
 
 #define info(f, ...) printf(__FILE__": " f "\n", ## __VA_ARGS__)
 #define error(f, ...) perror("ERROR: " f, ## __VA_ARGS__)
@@ -80,7 +81,8 @@ static void sim_close(void *hnd)
 {
 	struct oh_handler_state *inst = hnd;
 	
-	g_free(inst->rptcache);		            
+	g_free(inst->rptcache);
+        fhs_event_finish((struct fe_handler *)inst->data);          
 	g_free(inst);
 	return;
 }
@@ -88,13 +90,20 @@ static void sim_close(void *hnd)
 
 static int sim_get_event(void *hnd, struct oh_event *event, struct timeval *timeout)
 {
-  
-        return -1;
+        struct oh_handler_state *inst = hnd;
+        return sim_util_remove_event(inst->eventq, event);  
 }
 
 static int sim_discover_resources(void *hnd)
 {
-	return -1;
+        struct oh_handler_state *inst = hnd;
+
+        if (inst->data == NULL) {
+                inst->data = fhs_event_init(inst); 
+        }
+        if (inst->data == NULL) 
+                return -1;
+        return 0;
 }
 
 static int sim_set_resource_severity(void *hnd, SaHpiResourceIdT id, 
