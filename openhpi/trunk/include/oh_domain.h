@@ -69,9 +69,11 @@ struct oh_domain {
 
         /* List of session ids */
         GArray *sessions;
-
+        
+        /* Synchronization - used internally by domain interfaces below. */
         GStaticRecMutex lock;
         int refcount;
+        GStaticRecMutex refcount_lock;        
 };
 
 SaHpiDomainIdT oh_create_domain(SaHpiDomainCapabilitiesT capabilities,
