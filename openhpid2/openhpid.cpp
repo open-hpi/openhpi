@@ -96,7 +96,9 @@ void display_help(void)
         printf("Help for openhpid:\n\n");
         printf("   openhpid -c conf_file [-v] [-p port] [-f pidfile]\n\n");
         printf("   -c conf_file  conf_file is the path/name of the configuration file.\n");
-        printf("                 This option is required.\n");
+        printf("                 This option is required unless the environment\n");
+        printf("                 variable OPENHPI_CONF has been set to a valid\n");
+        printf("                 configuration file.\n");
         printf("   -verbose      This option causes the daemon to display verbose\n");
         printf("                 messages. This option is optional.\n");
         printf("   -p port       This overrides the default listening port (4743) of\n");
@@ -131,7 +133,8 @@ int main (int argc, char *argv[])
 
         /* get the command line options */
         while (1) {
-                c = getopt_long(argc, argv, "c:p:f:v:s:t", long_options, &option_index);
+                c = getopt_long(argc, argv, "c:p:f:v:s:t:n", long_options,
+                                &option_index);
                 /* detect when done scanning options */
                 if (c == -1) {
                         break;
