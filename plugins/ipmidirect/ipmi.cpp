@@ -1082,7 +1082,7 @@ cIpmi::AllocConnection( GHashTable *handler_config )
           }
 
        memcpy( &lan_addr, ent->h_addr_list[0], ent->h_length );
-       unsigned int a = *(unsigned int *)ent->h_addr_list[0];
+       unsigned int a = *(unsigned int *)(void *)ent->h_addr_list[0];
 
        stdlog << "Using host at "
               << (int)(a & 0xff) << "."

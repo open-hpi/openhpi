@@ -703,7 +703,7 @@ RemoteClientGetInventorySize( void *hnd, SaHpiResourceIdT id,
        return SA_ERR_HPI_INVALID_RESOURCE;
 
   SaErrorT rv = RemoteClientEntityInventoryDataRead( &config->m_config, config->m_session_id,
-						     rid, num, 128*1024, (SaHpiInventoryDataT *)data, size );
+						     rid, num, 128*1024, (SaHpiInventoryDataT *)(void *)data, size );
 
   return rv;
 }
