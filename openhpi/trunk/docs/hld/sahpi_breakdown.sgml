@@ -52,19 +52,93 @@
           </para>
         </listitem>
       </itemizedlist>
+      <para>
+        From here on in the term Resource will be synonymous with an
+        object of SaHpiRptEntryT type.
+      </para>
     </sect2>
     <sect2>
       <title>Resource Capabilities</title>
       <para>
-        Every RPT entry has one field dedicated to capabilities of the
+        Every Resource has one field dedicated to capabilities of the
         resource.  This field is a 32bit vector, each bit
         corresponding to a capability.  They include:
       </para>
-      
+      <itemizedlist mark='opencircle'>
+        <listitem>
+          <para><emphasis>SAHPI_CAPABILITY_DOMAIN</emphasis> - the
+            resource is a domain.
+          </para>
+        </listitem>
+        <listitem>
+          <para><emphasis>SAHPI_CAPABILITY_SEL</emphasis> - the
+            resource has a system event log associated with it.
+          </para>
+        </listitem>
+        <listitem>
+          <para><emphasis>SAHPI_CAPABILITY_RDR</emphasis> - the
+            resource has a rdr entries associated with it.  This is
+            mandatory with HPI 1.0.
+          </para>
+        </listitem>
+        <listitem>
+          <para><emphasis>SAHPI_CAPABILITY_FRU</emphasis> - the
+            resource is a field replacable unit.
+          </para>
+        </listitem>
+      </itemizedlist>
+      <para>
+        There are many more capabilities as well.  For a full list,
+        see page 103 of the HPI 1.0 Specification.
+      </para>
     </sect2>
+    <sect2>
+      <title>Entity Path</title>
+      <para>
+        Resources are the logic representation of physical things.
+        They may be a rack, a chassis, or a cpu.  Internal to HPI all
+        resources are identified by a ResourceId.  However, the
+        enumeration of this value is very implementation specific, so
+        may not always be the best way to refer to resources.
+      </para>
+      <para>
+        All resources in HPI have an entity path.  This is a 16
+        element array of SaHpiEntityT structures.  The structure
+        defines an entity type, and an instance number.  For instance:
+        <literal>SAHPI_ENT_DISK_BAY 0</literal>.  The entity paths
+        provide the real world physical topology of the resources.  So
+        it could be well understood that the resource with
+        ResourceId=37 was a CPU contained in the chassis which is
+        ResourceId=21.
+      </para>
+      <para>
+        HPI entity paths go from least significant to most
+        significant (i.e. the element to the right in the array is the
+        container for the element on its left).
+      </para>
+      <para>
+        <emphasis>OpenHPI Note:</emphasis> for the purposes of
+        portibility OpenHPI has created a canonical string
+        representation of the entity path.  It involves removing the
+        SAHPI_ENT_ prefix from the types, and creating tuples for the
+        entity types.  Order of significance is inverted to make
+        entity paths look more like Unix directory structure. It is
+        also assumed that {ROOT,0} exists implicitly before all of
+        these entries.  Examples look as follows:
+      </para>
+      <itemizedlist mark='opencircle'>
+        <listitem>
+          <para>{SYSTEM_CHASSIS,2}{PROCESSOR_BOARD,0}</para>
+        </listitem>
+        <listitem>
+          <para>{COMPACTPCI_CHASSIS,1}{IO_BLADE,12}</para>
+        </listitem>
+      </itemizedlist>
+   </sect2>
     <sect2>
       <title>Resource Data Records</title>
       <para>
+        
       </para>
     </sect2>
   </sect1>
