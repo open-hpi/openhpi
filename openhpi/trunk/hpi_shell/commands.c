@@ -388,7 +388,7 @@ static void
 fixstr(SaHpiTextBufferT *strptr)
 { 
 	size_t datalen;
-	show_short_event
+
        	memset(outbuff,0,256);        
 	if (!strptr) return;
 
@@ -648,14 +648,6 @@ static int list_sensor(int argc, char *argv[])
 	return SA_OK;
 }
 
-static int show_sensor1(int argc, char *argv[])
-{
-	if (argc < 3)
-		return HPI_SHELL_PARM_ERROR;
-	return show_sensor(Domain->sessionId, (SaHpiResourceIdT)atoi(argv[1]),
-				(SaHpiSensorNumT)atoi(argv[2]), ui_print);
-}
-
 static int get_thres(int argc, char *argv[])
 {
         if (argc < 3)
@@ -804,7 +796,7 @@ static int sen_block(int argc, char *argv[])
 	SaHpiBoolT			val;
 	SaHpiEventStateT		assert, deassert;
 	SaHpiSensorEventMaskActionT	act;
-	int				res, i;
+	int				res, i, first = 1;
 	char				buf[256], *str;
 	char				rep[10];
 
@@ -836,24 +828,24 @@ static int sen_block(int argc, char *argv[])
 			rptid, type, rdrnum);
 		return(rv);
 	};
+	show_sensor(Domain->sessionId, rptid, rdrnum, ui_print);
 	for (;;) {
 		clear_input();
-		printf("Available commands are: evtget, evtenb, evtdis, maskget\n"
-			"                       maskadd, maskrm, q, quit\n");
+		if (first) {
+			printf("Available commands are:\n  "
+				"   evtenb,   evtdis,   maskadd,   maskrm,\n  "
+				"   show,     help,     q,        quit\n");
+			first = 0;
+		};
 		i = get_int_param("command? ==> ", &res, buf, 9);
 		if (i != 0) break;
 		if ((strcmp(buf, "q") == 0) || (strcmp(buf, "quit") == 0)) break;
-		if (strcmp(buf, "evtget") == 0) {
-			rv = saHpiSensorEventEnableGet(Domain->sessionId, rptid, rdrnum,
-				&val);
-			if (rv != SA_OK) {
-				printf("saHpiSensorEventEnableGet: error: %s\n",
-					oh_lookup_error(rv));
-				continue;
-			};
-			if (val) strcpy(buf, "Enable");
-			else strcpy(buf, "disable");
-			printf("Sensor:(%d/%d) event %s\n", rptid, rdrnum, buf);
+		if (strcmp(buf, "show") == 0) {
+			show_sensor(Domain->sessionId, rptid, rdrnum, ui_print);
+			continue;
+		};
+		if (strcmp(buf, "help") == 0) {
+			first = 1;
 			continue;
 		};
 		if ((strcmp(buf, "evtenb") == 0) || (strcmp(buf, "evtdis") == 0)) {
@@ -876,18 +868,6 @@ static int sen_block(int argc, char *argv[])
 			if (val) strcpy(buf, "Enable");
 			else strcpy(buf, "disable");
 			printf("Sensor:(%d/%d) event %s\n", rptid, rdrnum, buf);
-			continue;
-		};
-		if (strcmp(buf, "maskget") == 0) {
-			rv = saHpiSensorEventMasksGet(Domain->sessionId, rptid, rdrnum,
-				&assert, &deassert);
-			if (rv != SA_OK) {
-				printf("saHpiSensorEventMasksGet: error: %s\n",
-					oh_lookup_error(rv));
-				continue;
-			};
-			printf("Sensor:(%d/%d) masks: assert = 0x%4.4x   "
-				"deassert = 0x%4.4x\n", rptid, rdrnum, assert, deassert);
 			continue;
 		};
 		if ((strcmp(buf, "maskadd") == 0) || (strcmp(buf, "maskrm") == 0)) {
@@ -934,6 +914,7 @@ static int sen_block(int argc, char *argv[])
 			continue;
 		};
 		printf("Invalid command\n");
+		first = 1;
 	};
 	return SA_OK;
 }
@@ -1091,8 +1072,6 @@ const char showinvhelp[] = "showinv: show inventory data of a resource\n"  \
 const char showrpthelp[] = "showrpt: show resource information\n"
 			"Usage: showrpt [<resource id>]\n"
 			"   or  rpt [<resource id>]";
-const char showsorhelp[] = "showsensor: show sensor information\n"         \
-			"Usage: showsensor <resource id> <sensor id>";
 
 struct command commands[] = {
     { "clearevtlog",	clear_evtlog,		clearevtloghelp },
@@ -1117,7 +1096,6 @@ struct command commands[] = {
     { "showinv",	show_inv,		showinvhelp },
     { "showrdr",	show_rdr,		showrdrhelp },
     { "showrpt",	show_rpt,		showrpthelp },
-    { "showsensor",	show_sensor1,		showsorhelp },
     { "?",		help,			helphelp },
     { NULL,		NULL,			NULL }
 };
