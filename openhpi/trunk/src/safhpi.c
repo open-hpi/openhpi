@@ -2004,6 +2004,7 @@ SaErrorT SAHPI_API saHpiControlSet (
         SaErrorT (*set_func)(void *, SaHpiResourceIdT, SaHpiCtrlNumT, SaHpiCtrlModeT, SaHpiCtrlStateT *);
 
         SaHpiRptEntryT *res;
+        SaHpiRdrT *rdr;
         struct oh_handler *h;
         SaHpiDomainIdT did;
         struct oh_domain *d = NULL;
@@ -2031,6 +2032,16 @@ SaErrorT SAHPI_API saHpiControlSet (
         }
 
         OH_HANDLER_GET(d, ResourceId, h);
+        rdr = oh_get_rdr_by_type(&(d->rpt), ResourceId, SAHPI_CTRL_RDR, CtrlNum);
+        if (!rdr) {
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+        if (rdr->RdrTypeUnion.CtrlRec.DefaultMode.ReadOnly &&
+                  (rdr->RdrTypeUnion.CtrlRec.DefaultMode.Mode != CtrlMode)) {
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_READ_ONLY;
+        }
         oh_release_domain(d); /* Unlock domain */
 
         set_func = h->abi->set_control_state;
