@@ -1,4 +1,4 @@
-/*      -*- linux-c -*-
+ /*      -*- linux-c -*-
  *
  * Copyright (c) 2003 by Intel Corp.
  * (C) Copyright IBM Corp. 2003, 2005
@@ -178,7 +178,6 @@ SaErrorT oh_harvest_events()
                 h = oh_lookup_handler(hid);
                 if(!h) {
                         dbg("No such handler %d", hid);
-                        data_access_unlock();
                         break;
                 }
 		/*
