@@ -1958,7 +1958,7 @@ static struct oh_abi_v2 oh_dummy_plugin = {
         .set_indicator_state    = dummy_set_indicator_state,
         .control_parm           = dummy_control_parm,
         .get_reset_state        = dummy_get_reset_state,
-        .set_reset_state        = dummy_set_reset_state
+        .set_reset_state        = dummy_set_reset_state,
 };
 
 int dummy_get_interface(void **pp, const uuid_t uuid);
@@ -2048,6 +2048,9 @@ printf("event burp!\n");
                 }
 
                 g_static_rec_mutex_unlock (inst->handler_lock);
+
+		oh_cond_signal();
+		dbg("dummy thread, signaled");
 
                 nanosleep(&req, &rem);
 
