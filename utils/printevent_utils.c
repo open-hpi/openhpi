@@ -16,11 +16,7 @@
  *	renierm 04/28/04	Add checks for null pointers
  */
 
-#include <printevent_utils.h>
-
-
-static char *decode_enum(struct code2string *code_array, int NUM_MAX, int code);
-static void saftime2str(SaHpiTimeT time, char * str, size_t size);
+#include <oh_utils.h>
 
 
 /**
@@ -490,36 +486,6 @@ static void showHotswapEvent(SaHpiEventT *thisEvent)
 #endif
  
 /**
- * decode_enum: Look up an enum in the specified table,
- *		 and return the pointer to the desciptive string  
- * @code_array: Pointer to a code2string array 
- * @NUM_MAX   : Maximum entries in the above array
- * @code      : Enum to look up
- * 
- * Return value: Pointer to a string
- * Exported: yes
- **/
-static char *decode_enum(struct code2string *code_array, int NUM_MAX, int code)
-{
-        int i;
-        char *str = NULL;
-
-	if (code_array) {
-        	for (i = 0; i < NUM_MAX; i++) {
-                	if (code == code_array[i].val) {
-				str = code_array[i].str; break;
-			}
-        	}
-	}
-
-        if (str == NULL) {
-                str = code_unknown;
-        }
-	
-        return(str);
-}
-
-/**
  * print_event: Parse, convert and print information of an event record
  * @thisEvent: Pointer to the event record to be processed
  * 
@@ -571,33 +537,10 @@ void print_event(SaHpiEventT *thisEvent)
 
 #endif
 
-/**
- * saftime2str: Convert sahpi time to calendar date/time string        
- * @time : sahpi time to be converted                     
- * @str  : location to store the converted string
- * @size : max size of the converted string
- * 
- * Return value: none
- * Exported: yes
- **/
-static void saftime2str(SaHpiTimeT time, char * str, size_t size)
-{
-	struct tm t;
-	time_t tt;
-	
-	if (!str) return;
-	
-	tt = time / 1000000000;
-	localtime_r(&tt, &t);
-	strftime(str, size, "%b %d, %Y - %H:%M:%S", &t);
-}
-
 void ShowSel( SaHpiEventLogEntryT  *sel, SaHpiRdrT *rdr,
                      SaHpiRptEntryT *rptentry )
 {
         unsigned char evtype;
-        char timestr[256];
-        time_t tt1;
         int ec, eci;
         int es, esi;
         char *srctag;
@@ -607,25 +550,18 @@ void ShowSel( SaHpiEventLogEntryT  *sel, SaHpiRdrT *rdr,
         unsigned char *pd;
         int ix, i, styp;
         int outlen;
-        char outbuf[132];
+        char outbuf[255];
         char mystr[26];
         unsigned char data1, data2, data3;
+	SaHpiTextBufferT text;
 
         if (!sel || !rdr || !rptentry) return;
 	
 	/*format & print the EventLog entry*/
 
-        if (sel->Event.Timestamp > SAHPI_TIME_MAX_RELATIVE) { /*absolute time*/
-                tt1 = sel->Event.Timestamp / 1000000000;
-                strftime(timestr,sizeof(timestr),"%F %T", localtime(&tt1));
-        } else if (sel->Event.Timestamp > SAHPI_TIME_UNSPECIFIED) { /*invalid time*/
-                strcpy(timestr,"invalid time     ");
-        } else {   /*relative time*/
-                tt1 = sel->Event.Timestamp / 1000000000;
-                sprintf(timestr,"rel(%lx)", (unsigned long)tt1);
-
-        }
-        if (rptentry->ResourceId == sel->Event.Source)
+	oh_decode_time(sel->Event.Timestamp, &text);
+        
+	if (rptentry->ResourceId == sel->Event.Source)
                 srctag = rptentry->ResourceTag.Data;
         else
                 srctag = "unspec ";  /* SAHPI_UNSPECIFIED_RESOURCE_ID */
@@ -640,9 +576,15 @@ void ShowSel( SaHpiEventLogEntryT  *sel, SaHpiRdrT *rdr,
                 rdr->IdString.Data[rdr->IdString.DataLength] = 0;
                 rdrtag = &rdr->IdString.Data[0];
         }
-        sprintf(outbuf,"%i %s %s ", sel->EntryId,
-                timestr, evtypes[evtype] );
-        outlen = strlen(outbuf);
+	
+	/* yes, there are BIG MASSIVE security issues with
+	 * the following code.  They were there before, and
+	 * we need more cleanup to really get rid of them */
+        sprintf(outbuf,"%i ", sel->EntryId);
+	strncat(outbuf, (char *) text.Data, text.DataLength);
+	strcat(outbuf, (const char *) oh_lookup_eventtype(evtype));
+        
+	outlen = strlen(outbuf);
         pstr = "";
 
         /*
@@ -739,8 +681,12 @@ void ShowSel( SaHpiEventLogEntryT  *sel, SaHpiRdrT *rdr,
                         /* sld: I'm going to printf directly, as the output buffer isn't
                            big enough for what I want to do */
                         printf("Oem Event:\n");
-                        saftime2str(sel->Timestamp, timestr, 40);
-                        printf("\tTimestamp: %s\n", timestr);
+			
+			oh_decode_time(sel->Timestamp, &text);
+                        printf("\tTimestamp: ");
+			oh_print_textbuffer(&text);
+			printf("\n");
+			
                         printf("\tSeverity: %d\n", sel->Event.Severity);
                         printf("\tMId:%d, Data: %s\n",
                                sel->Event.EventDataUnion.OemEvent.MId,
