@@ -144,7 +144,7 @@ void set_Subscribe(Domain_t *domain, int as)
 		dmn = (Domain_t *)ptr;
 		if (dmn->session_opened) {
 			if (as) saHpiSubscribe(dmn->sessionId);
-			else saHpiUnsubscribe(domain->sessionId);
+			else saHpiUnsubscribe(dmn->sessionId);
 		}
 	}
 }
