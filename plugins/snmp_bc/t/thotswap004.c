@@ -55,29 +55,15 @@ int main(int argc, char **argv)
 	/************************** 
 	 * Test :
 	 **************************/
-	expected_err = SA_OK;                   
-	err = snmp_bc_get_reset_state((void *)h->hnd, id, &act);   
-	checkstatus(&err, &expected_err, &testfail);
-
-	/************************** 
-	 * Test :
-	 **************************/
 	expected_err = SA_ERR_HPI_INVALID_PARAMS;      
-	err = snmp_bc_get_reset_state(NULL, id, &act);   
-	checkstatus(&err, &expected_err, &testfail);
-
-	/************************** 
-	 * Test :
-	 * expected_err = SA_ERR_HPI_INVALID_PARAMS;      
-	 **************************/
-	err = snmp_bc_get_reset_state((void *)h->hnd, id, NULL);   
+	err = snmp_bc_set_reset_state(NULL, id, act);   
 	checkstatus(&err, &expected_err, &testfail);
 
 	/************************** 
 	 * Test :
 	 **************************/
 	expected_err = SA_ERR_HPI_INVALID_RESOURCE;      
-	err = snmp_bc_get_reset_state((void *)h->hnd, 5000, &act);   
+	err = snmp_bc_set_reset_state((void *)h->hnd, 5000, act);   
 	checkstatus(&err, &expected_err, &testfail);
 	
 	/************************** 
@@ -90,7 +76,7 @@ int main(int argc, char **argv)
 		s->mib.OidReset = NULL;
 
 	expected_err = SA_ERR_HPI_INVALID_CMD;      
-	err = snmp_bc_get_reset_state((void *)h->hnd, id, &act);   
+	err = snmp_bc_set_reset_state((void *)h->hnd, id, act);   
 	checkstatus(&err, &expected_err, &testfail);
 
 	/**************************&*
