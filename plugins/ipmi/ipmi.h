@@ -83,8 +83,7 @@ struct ohoi_resource_info {
 
 
 /* implemented in ipmi_event.c */
-void ohoi_setup_done(ipmi_domain_t *domain, int err, unsigned int  conn_num,
-		unsigned int  port_num, int still_connected, void *user_data);
+void ohoi_setup_done(ipmi_domain_t *domain, void *user_data);
 
 /* implemented in ipmi_sensor.c	*/
 int ohoi_get_sensor_data(ipmi_sensor_id_t sensor_id, SaHpiSensorReadingT *data, void *cb_data);
