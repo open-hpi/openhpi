@@ -242,7 +242,7 @@ static void process_global_param(const char *name, char *value)
                 g_static_rec_mutex_unlock(&global_params.lock);
         } else if (!strcmp("OPENHPI_LOG_ON_SEV", name)) {
                 SaHpiTextBufferT buffer;
-                strncpy((char *)buffer.Data, value, OH_MAX_TEXT_BUFFER_LENGTH);
+                strncpy((char *)buffer.Data, value, SAHPI_MAX_TEXT_BUFFER_LENGTH);
                 g_static_rec_mutex_lock(&global_params.lock);
                 oh_encode_severity(&buffer, &global_params.log_on_sev);
                 g_static_rec_mutex_unlock(&global_params.lock);
