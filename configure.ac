@@ -5,8 +5,9 @@ dnl   various hacks by Sean Dague <http://dague.net/sean> 4/23/03
 
 
 AC_PREREQ(2.57)
-AC_INIT(openhpi.spec.in)
-AM_INIT_AUTOMAKE(openhpi, 1.9.0)
+AC_INIT(openhpi, 1.9.0)
+AC_CONFIG_SRCDIR(openhpi.spec.in)
+AM_INIT_AUTOMAKE
 
 AM_CONFIG_HEADER(config.h)
 AH_TOP([#ifndef __OPENHPI_CONFIG_H
@@ -20,9 +21,9 @@ AC_LIBTOOL_DLOPEN
 AM_PROG_LIBTOOL
 
 HPI_LIB_VERSION=10:0:9
-HPI_PKG=openhpi
-HPI_UTIL_PKG=openhpiutils
-HPI_CLIENT_PKG=openhpiclient
+HPI_PKG=$PACKAGE_NAME
+HPI_UTIL_PKG=${PACKAGE_NAME}utils
+HPI_CLIENT_PKG=${PACKAGE_NAME}client
 AC_SUBST(HPI_CLIENT_PKG)
 AC_SUBST(HPI_UTIL_PKG)
 AC_SUBST(HPI_PKG)
@@ -396,7 +397,7 @@ dnl
 dnl defines CONFPATH, OH_DEFAULT_CONF and OH_CLIENT_DEFAULT_CONF
 dnl
 
-CONFPATH=${CONFPATH:=/etc/openhpi}
+CONFPATH=${CONFPATH:=/etc/${PACKAGE_NAME}}
 
 AC_ARG_WITH(confpath,
    [[  --with-confpath=PATH    use directory PATH to store openhpi configuration file [default=/etc/openhpi]]],
@@ -408,15 +409,15 @@ AC_SUBST(CONFPATH)
 dnl create the #define in config.h
 AC_DEFINE_UNQUOTED(CONFPATH, "$CONFPATH",
                    [openhpi specific config path])
-AC_DEFINE_UNQUOTED(OH_DEFAULT_CONF,"$CONFPATH/openhpi.conf",
+AC_DEFINE_UNQUOTED(OH_DEFAULT_CONF,"$CONFPATH/${PACKAGE_NAME}.conf",
                    [default configfile])
-AC_DEFINE_UNQUOTED(OH_CLIENT_DEFAULT_CONF,"$CONFPATH/openhpiclient.conf",
+AC_DEFINE_UNQUOTED(OH_CLIENT_DEFAULT_CONF,"$CONFPATH/${HPI_CLIENT_PKG}.conf",
                    [default client configfile])
 
 
 dnl defines OH_DEFAULT_UID_MAP and VARPATH
 dnl set VARPATH only if unset or null.
-VARPATH=${VARPATH:=/var/lib/openhpi}
+VARPATH=${VARPATH:=/var/lib/${PACKAGE_NAME}}
 
 AC_ARG_WITH(varpath,
     [[  --with-varpath=PATH     use directory PATH to store openhpi specific data [default=/var/lib/openhpi]]],
@@ -461,10 +462,10 @@ base_includedir="${includedir}"
 AC_SUBST(base_includedir)
 
 dnl OH_PLUGIN_PATH - Directory where plugin libraries live.
-dnl default is "$libdir/openhpi:$libdir"
-PLUGINPATH=${PLUGINPATH:=${libdir}/openhpi:${libdir}}
+dnl default is "$libdir/openhpir"
+PLUGINPATH=${PLUGINPATH:=${libdir}/${PACKAGE_NAME}}
 AC_ARG_WITH(pluginpath,
-	        [[  --with-pluginpath=PATH     use directory PATH to locate plugin libraries [default=$libdir/openhpi:$libdir]]],
+	        [[  --with-pluginpath=PATH     use directory PATH to locate plugin libraries [default=LIBDIR/openhpi]]],
 		    [PLUGINPATH=$withval])
 dnl create #define OH_PLUGIN_PATH in config.h
 AC_DEFINE_UNQUOTED(OH_PLUGIN_PATH,"$PLUGINPATH",[openhpi plugin path])
