@@ -425,7 +425,7 @@ SaErrorT SAHPI_API saHpiResourceIdGet(
         rptentry = oh_get_resource_by_ep(&(d->rpt), &ep_param.u.on_ep);
         if (!rptentry) {
                 oh_release_domain(d); /* Unlock domain */
-                return SA_ERR_HPI_NOT_PRESENT;
+                return SA_ERR_HPI_UNKNOWN;
         }
 
         *ResourceId = rptentry->ResourceId;
