@@ -3943,20 +3943,12 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ResourcePowerStateSet)
 
 SaErrorT oHpiPluginLoad(char *name)
 {
-        SaHpiTextBufferT buf;
+        oHpiTextBufferT buf;
         void *request;
 	char reply[dMaxMessageLength];
         SaErrorT err;
 	char cmd[] = "oHpiPluginLoad";
 
-        if (strlen(name) + 1 > SAHPI_MAX_TEXT_BUFFER_LENGTH) {
-                return SA_ERR_HPI_INVALID_PARAMS;
-        }
-
-        // the following is bogus and not used by the deamon
-        buf.DataType = SAHPI_TL_TYPE_TEXT;
-        buf.Language = SAHPI_LANG_ENGLISH;
-        // the real data
         buf.DataLength = strlen(name);
         strcpy((char *)buf.Data, name);
 
@@ -3987,19 +3979,12 @@ SaErrorT oHpiPluginLoad(char *name)
 
 SaErrorT oHpiPluginUnload(char *name)
 {
-        SaHpiTextBufferT buf;
+        oHpiTextBufferT buf;
         void *request;
 	char reply[dMaxMessageLength];
         SaErrorT err;
 	char cmd[] = "oHpiPluginUnload";
 
-        if (strlen(name) + 1 > SAHPI_MAX_TEXT_BUFFER_LENGTH) {
-                return SA_ERR_HPI_INVALID_PARAMS;
-        }
-
-        // the following is bogus and not used by the deamon
-        buf.DataType = SAHPI_TL_TYPE_TEXT;
-        buf.Language = SAHPI_LANG_ENGLISH;
         // the real data
         buf.DataLength = strlen(name);
         strcpy((char *)buf.Data, name);
@@ -4031,20 +4016,12 @@ SaErrorT oHpiPluginUnload(char *name)
 
 SaErrorT oHpiPluginInfo(char *name, oHpiPluginInfoT *info)
 {
-        SaHpiTextBufferT buf;
+        oHpiTextBufferT buf;
         void *request;
 	char reply[dMaxMessageLength];
         SaErrorT err;
 	char cmd[] = "oHpiPluginInfo";
 
-        if (strlen(name) + 1 > SAHPI_MAX_TEXT_BUFFER_LENGTH) {
-                return SA_ERR_HPI_INVALID_PARAMS;
-        }
-
-        // the following is bogus and not used by the deamon
-        buf.DataType = SAHPI_TL_TYPE_TEXT;
-        buf.Language = SAHPI_LANG_ENGLISH;
-        // the real data
         buf.DataLength = strlen(name);
         strcpy((char *)buf.Data, name);
 
@@ -4075,23 +4052,16 @@ SaErrorT oHpiPluginInfo(char *name, oHpiPluginInfoT *info)
 
 SaErrorT oHpiPluginGetNext(char *name, char *next_name, int size)
 {
-        SaHpiTextBufferT buf, retbuf;
+        oHpiTextBufferT buf, retbuf;
         void *request;
 	char reply[dMaxMessageLength];
         SaErrorT err;
 	char cmd[] = "oHpiPluginUnload";
 
-        // The following code assumes that SAHPI_MAX_TEXT_BUFFER_LENGTH is
-        // always > MAX_PLUGIN_NAME_LENGTH
-
-        if (strlen(name) + 1 > SAHPI_MAX_TEXT_BUFFER_LENGTH) {
+        if (strlen(name) + 1 > OH_GLOBAL_STR_MAX_LENGTH) {
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-        // the following is bogus and not used by the deamon
-        buf.DataType = SAHPI_TL_TYPE_TEXT;
-        buf.Language = SAHPI_LANG_ENGLISH;
-        // the real data
         buf.DataLength = strlen(name);
         strcpy((char *)buf.Data, name);
 
@@ -4370,23 +4340,14 @@ static SaErrorT oHpiHandlerCreateInit(void)
 
 static void oHpiHandlerCreateAddTEntry(gpointer key, gpointer value, gpointer data)
 {
-        SaHpiTextBufferT newkey, newvalue;
+        oHpiTextBufferT newkey, newvalue;
         void *request;
 	char reply[dMaxMessageLength];
         SaErrorT err = 0;
 	char cmd[] = "oHpiHandlerCreateInit";
 
-        // the following is bogus and not used by the deamon
-        newkey.DataType = SAHPI_TL_TYPE_TEXT;
-        newkey.Language = SAHPI_LANG_ENGLISH;
-        // the real data
         newkey.DataLength = strlen((char *)key);
         strcpy((char *)newkey.Data, (char *)key);
-
-        // the following is bogus and not used by the deamon
-        newvalue.DataType = SAHPI_TL_TYPE_TEXT;
-        newvalue.Language = SAHPI_LANG_ENGLISH;
-        // the real data
         newvalue.DataLength = strlen((char *)value);
         strcpy((char *)newvalue.Data, (char *)value);
 
