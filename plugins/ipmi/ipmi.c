@@ -323,6 +323,22 @@ static int ipmi_discover_resources(void *hnd)
 	return 0;
 }
 
+static SaErrorT ipmi_set_resource_tag(void *hnd, SaHpiResourceIdT id, SaHpiTextBufferT *tag)
+{
+	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
+	SaHpiRptEntryT *rpt_entry;
+	
+	rpt_entry = oh_get_resource_by_id(handler->rptcache, id);
+	if (rpt_entry) {
+		dbg("No rpt");
+		return  SA_ERR_HPI_NOT_PRESENT;
+	}
+
+	memcpy(&rpt_entry->ResourceTag, tag, sizeof(tag));
+	return 0;
+}
+
+
 /**
  * ipmi_get_sel_info: get ipmi SEL info
  * @hnd: pointer to handler
@@ -813,7 +829,7 @@ static struct oh_abi_v2 oh_ipmi_plugin = {
 		.close				= ipmi_close,
 		.get_event			= ipmi_get_event,
 		.discover_resources		= ipmi_discover_resources,
-
+		.set_resource_tag		= ipmi_set_resource_tag,
 		/* SEL support */
 		.get_sel_info                   = ipmi_get_sel_info,
 		.set_sel_time                   = ipmi_set_sel_time,

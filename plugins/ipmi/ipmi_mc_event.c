@@ -85,11 +85,14 @@ static void get_mc_entity_event(ipmi_mc_t	*mc,
 static void mc_add(ipmi_mc_t                    *mc,
                    struct oh_handler_state      *handler)
 {
+	
         struct ohoi_resource_info *ohoi_res_info;
         struct oh_event *e;
-
-		struct ohoi_handler *ipmi_handler = handler->data;
+	struct ohoi_handler *ipmi_handler = handler->data;
         
+	SaHpiRptEntryT *entry, *old_entry;
+
+	
         ohoi_res_info = g_malloc0(sizeof(*ohoi_res_info));
         if (!ohoi_res_info) {
                 dbg("Out of space");
@@ -110,8 +113,15 @@ static void mc_add(ipmi_mc_t                    *mc,
 	get_mc_entity_event(mc, &(e->u.res_event.entry), ipmi_handler);
 
 	/* add to rptcache */
-	oh_add_resource(handler->rptcache, &(e->u.res_event.entry), ohoi_res_info, 1);
 
+	entry = &(e->u.res_event.entry);
+	
+	old_entry = oh_get_resource_by_id(handler->rptcache, entry->ResourceId);
+	if(old_entry) {
+		 memcpy(&entry->ResourceTag, &old_entry->ResourceTag, 
+				 sizeof(entry->ResourceTag));
+	}			
+	oh_add_resource(handler->rptcache, entry, ohoi_res_info, 1);
 }
 
 static
