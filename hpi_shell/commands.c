@@ -12,18 +12,40 @@
  * Authors:
  *     Hu Yin     <hu.yin@intel.com>
  *     Racing Guo <racing.guo@intel.com>
+ * Changes:
+ *	11.30.2004 - Kouzmich: porting to HPI-B
  *
  *
  */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include <SaHpi.h>
-#include <epath_utils.h>
+#include <oh_utils.h>
 #include "hpi_cmd.h"
 #include "resource.h"
-#include "printevent_utils.h"
 
+void time2str(SaHpiTimeT time, char * str, size_t size)
+{
+	struct tm t;
+	time_t tt;
+	
+	if (!str) return;
+
+        if (time > SAHPI_TIME_MAX_RELATIVE) { /*absolute time*/
+                tt = time / 1000000000;
+                strftime(str, size, "%F %T", localtime(&tt));
+        } else if (time ==  SAHPI_TIME_UNSPECIFIED) { 
+                strcpy(str,"SAHPI_TIME_UNSPECIFIED     ");
+        } else if (time > SAHPI_TIME_UNSPECIFIED) { /*invalid time*/
+                strcpy(str,"invalid time     ");
+        } else {   /*relative time*/
+		tt = time / 1000000000;
+		localtime_r(&tt, &t);
+		strftime(str, size, "%b %d, %Y - %H:%M:%S", &t);
+	}
+}
 
 static int help(int argc, char *argv[])
 {
@@ -114,8 +136,7 @@ static int sa_list_sensor(void)
                                 rv = saHpiRdrGet(sessionid,resourceid,
                                                  entryid,&nextentryid, &rdr);
                                 if (rv == SA_OK) {
-                                        if (rdr.RdrType == SAHPI_SENSOR_RDR &&
-                                                rdr.RdrTypeUnion.SensorRec.Ignore != TRUE) {
+                                        if (rdr.RdrType == SAHPI_SENSOR_RDR) {
 						printf("Resource Id: %d, Sensor Id: %d\n",
 							resourceid, rdr.RdrTypeUnion.SensorRec.Num);
                                         } 
@@ -136,22 +157,55 @@ static int sa_sen_evt_get(
 	SaHpiResourceIdT resourceid,
 	SaHpiSensorNumT sensornum )
 {
-	SaErrorT rv;
-	SaHpiSensorEvtEnablesT enables;
+	SaErrorT		rv;
+	SaHpiEventStateT	assert;
+	SaHpiEventStateT	deassert;
+	SaHpiBoolT		status;
 
-	rv = saHpiSensorEventEnablesGet(
-			sessionid, resourceid, sensornum, &enables);
+	rv = saHpiSensorEventEnableGet(
+			sessionid, resourceid, sensornum, &status);
 	if (rv != SA_OK) {
-		printf("saHpiSensorEventEnablesGet error %d\n",rv); 
+		printf("saHpiSensorEventEnableGet error %d\n",rv); 
 		return -1; 
 	}
 
-	printf("Sensor Event Enables: \n");
-	printf("  Sensor Status: %x\n", enables.SensorStatus);
-	printf("  Assert Events: %x\n", enables.AssertEvents);
-	printf("  Deassert Events: %x\n", enables.DeassertEvents);
+	rv = saHpiSensorEventMasksGet(
+			sessionid, resourceid, sensornum, &assert, &deassert);
+	if (rv != SA_OK) {
+		printf("saHpiSensorEventMasksGet error %d\n",rv); 
+		return -1; 
+	}
+
+	printf("Sensor Event Masks: \n");
+	printf("  Sensor Status: %x\n", status);
+	printf("  Assert Events: %x\n", assert);
+	printf("  Deassert Events: %x\n", deassert);
 
         return SA_OK;
+}
+
+static void print_thres_value(SaHpiSensorReadingT *item, char *mes)
+{
+	char *val;
+
+	if (item->IsSupported != SAHPI_TRUE)
+		return;
+	switch (item->Type) {
+		case SAHPI_SENSOR_READING_TYPE_INT64:
+			printf("%s %lld\n", mes, item->Value.SensorInt64);
+			return;
+		case SAHPI_SENSOR_READING_TYPE_UINT64:
+			printf("%s %llu\n", mes, item->Value.SensorUint64);
+			return;
+		case SAHPI_SENSOR_READING_TYPE_FLOAT64:
+			printf("%s %10.3f\n", mes, item->Value.SensorFloat64);
+			return;
+		case SAHPI_SENSOR_READING_TYPE_BUFFER:
+			val = item->Value.SensorBuffer;
+			if (val != NULL)
+				printf("%s %s\n", mes, val);
+			return;
+	}
 }
 
 static int sa_get_thres(
@@ -164,121 +218,38 @@ static int sa_get_thres(
 	rv = saHpiSensorThresholdsGet(sessionid, resourceid,
 					sensornum, &senstbuff);
 	printf("Supported Thresholds:\n");
-	if (senstbuff.LowCritical.ValuesPresent & SAHPI_SRF_INTERPRETED)
-		printf("  Lower Critical Threshold(lc): %5.2f\n",
-			senstbuff.LowCritical.Interpreted.Value.SensorFloat32);
-	if (senstbuff.LowMajor.ValuesPresent & SAHPI_SRF_INTERPRETED)
-		printf("  Lower Major Threshold(la): %5.2f\n",
-			senstbuff.LowMajor.Interpreted.Value.SensorFloat32);
-	if (senstbuff.LowMinor.ValuesPresent & SAHPI_SRF_INTERPRETED)
-		printf("  Lower Minor Threshold(li): %5.2f\n",
-			senstbuff.LowMinor.Interpreted.Value.SensorFloat32);
-
-	if (senstbuff.UpCritical.ValuesPresent & SAHPI_SRF_INTERPRETED)
-		printf("  Upper Critical Threshold(uc): %5.2f\n",
-			senstbuff.UpCritical.Interpreted.Value.SensorFloat32);
-	if (senstbuff.UpMajor.ValuesPresent & SAHPI_SRF_INTERPRETED)
-		printf("  Upper Major Threshold(ua): %5.2f\n",
-			senstbuff.UpMajor.Interpreted.Value.SensorFloat32);
-	if (senstbuff.UpMinor.ValuesPresent & SAHPI_SRF_INTERPRETED)
-		printf("  Upper Minor Threshold(ui): %5.2f\n",
-			senstbuff.UpMinor.Interpreted.Value.SensorFloat32);
-
-	if (senstbuff.PosThdHysteresis.ValuesPresent & SAHPI_SRF_RAW)
-		printf("  Positive Threshold Hysteresis in RAW\n");
-	if (senstbuff.PosThdHysteresis.ValuesPresent & SAHPI_SRF_INTERPRETED)
-		printf("  Positive Threshold Hysteresis(ph): %5.2f\n",
-			senstbuff.PosThdHysteresis.Interpreted.Value.SensorFloat32);
-	if (senstbuff.NegThdHysteresis.ValuesPresent & SAHPI_SRF_RAW)
-		printf("  Negative Threshold Hysteresis in RAW\n");
-	if (senstbuff.NegThdHysteresis.ValuesPresent & SAHPI_SRF_INTERPRETED)
-		printf("  Negative Threshold Hysteresis(nh): %5.2f\n",
-			senstbuff.NegThdHysteresis.Interpreted.Value.SensorFloat32);
-
-        return SA_OK;
+	print_thres_value(&(senstbuff.LowCritical), "  Lower Critical Threshold(lc):");
+	print_thres_value(&(senstbuff.LowMajor), "  Lower Major Threshold(la):");
+	print_thres_value(&(senstbuff.LowMinor), "  Lower Minor Threshold(li):");
+	print_thres_value(&(senstbuff.UpCritical), "  Upper Critical Threshold(uc):");
+	print_thres_value(&(senstbuff.UpMajor), "  Upper Major Threshold(ua):");
+	print_thres_value(&(senstbuff.UpMinor), "  Upper Minor Threshold(ui):");
+	print_thres_value(&(senstbuff.PosThdHysteresis),
+		"  Positive Threshold Hysteresis(ph):");
+	print_thres_value(&(senstbuff.NegThdHysteresis),
+		"  Negative Threshold Hysteresis(nh):");
+	return SA_OK;
 }
 
 static int sa_show_sensor(
         SaHpiResourceIdT resourceid,
         SaHpiSensorNumT sensornum )
 {
-        SaHpiSensorReadingT reading;
-        SaHpiSensorReadingT conv_reading;
+        SaHpiSensorReadingT	reading;
+	SaHpiEventStateT	status;
         SaErrorT rv;
 
-        rv = saHpiSensorReadingGet(sessionid,resourceid, sensornum, &reading);
+        rv = saHpiSensorReadingGet(sessionid, resourceid, sensornum,
+		&reading, &status);
         if (rv != SA_OK)  {
                 printf("ReadingGet ret=%d\n", rv);
                 return rv;
         }
 
-        if ((reading.ValuesPresent & SAHPI_SRF_INTERPRETED) == 0) {
-                if ((reading.ValuesPresent & SAHPI_SRF_RAW) == 0) {
-                        /* no raw or interpreted, so just show event status */
-                        /* This is a Compact Sensor */
-                        if (reading.ValuesPresent & SAHPI_SRF_EVENT_STATE)
-                                printf(" = %x %x\n", reading.EventStatus.SensorStatus,
-                                       reading.EventStatus.EventStatus);
-                        else printf(" = event-only sensor\n");
-                        return SA_OK;
-                } else {
-                        /* have raw, but not interpreted, so try convert. */
-                        rv = saHpiSensorReadingConvert(sessionid, resourceid, sensornum,
-                                                       &reading, &conv_reading);
-                        if (rv != SA_OK) {
-                                printf("raw=%x conv_ret=%d\n", reading.Raw, rv);
-                                /* printf("conv_rv=%s\n", decode_error(rv)); */
-                                return rv;
-                        }
-                        else {
-                                reading.Interpreted.Type = conv_reading.Interpreted.Type;
-                                if (reading.Interpreted.Type == SAHPI_SENSOR_INTERPRETED_TYPE_BUFFER)
-                                {
-                                        memcpy(reading.Interpreted.Value.SensorBuffer,
-                                               conv_reading.Interpreted.Value.SensorBuffer,
-                                               4); /* SAHPI_SENSOR_BUFFER_LENGTH); */
-                                        /* IPMI 1.5 only returns 4 bytes */
-                                } else
-                                        reading.Interpreted.Value.SensorUint32 =
-                                                conv_reading.Interpreted.Value.SensorUint32;
-                        }
-                }
-        }
-        switch(reading.Interpreted.Type)
-        {
-        case SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32:
-                printf("Value: %5.2f \n",
-                       reading.Interpreted.Value.SensorFloat32);
-                break;
-        case SAHPI_SENSOR_INTERPRETED_TYPE_UINT32:
-                printf("Value: %d \n",
-                       reading.Interpreted.Value.SensorUint32);
-                break;
-        case SAHPI_SENSOR_INTERPRETED_TYPE_BUFFER:
-                printf("Value: %02x %02x %02x %02x\n",
-                       reading.Interpreted.Value.SensorBuffer[0],
-                       reading.Interpreted.Value.SensorBuffer[1],
-                       reading.Interpreted.Value.SensorBuffer[2],
-                       reading.Interpreted.Value.SensorBuffer[3]);
-                break;
-        default:
-                printf("Value: %x (itype=%x)\n",
-                       reading.Interpreted.Value.SensorUint32,
-                       reading.Interpreted.Type);
-        }
-
-#if 0
-	printf("Sensor Status: ");
-        if (reading.EventStatus.SensorStatus & SAHPI_SENSTAT_EVENTS_ENABLED) {
-                printf("Event Enabled.\n");
-	} else if (reading.EventStatus.SensorStatus & SAHPI_SENSTAT_SCAN_ENABLED) {
-                printf("Scan Enabled.\n");
-	} else if (reading.EventStatus.SensorStatus & SAHPI_SENSTAT_BUSY) {
-                printf("Busy.\n");
-	} else {
-                printf("Unknown.\n");
-	}
-#endif
+        if (reading.IsSupported) {
+		printf(" : status = %x", status);
+		print_thres_value(&reading, "  Value =");
+	};
 
 	sa_sen_evt_get(resourceid, sensornum);
 	sa_get_thres(resourceid, sensornum);
@@ -291,31 +262,48 @@ static int sa_sen_evt_set(
 	SaHpiSensorNumT sensornum )
 {
 	SaErrorT rv;
-	SaHpiSensorEvtEnablesT enables;
+	SaHpiSensorEventMaskActionT	enables;
+	SaHpiEventStateT		assert;
+	SaHpiEventStateT		deassert;
+	SaHpiBoolT			status;
 
-	enables.AssertEvents = 0x0400;
-	enables.DeassertEvents = 0x0400;
-	rv = saHpiSensorEventEnablesSet(
-			sessionid, resourceid, sensornum, &enables);
+	assert = 0x0400;
+	deassert = 0x0400;
+	enables = SAHPI_SENS_ADD_EVENTS_TO_MASKS;
+	rv = saHpiSensorEventMasksSet(
+			sessionid, resourceid, sensornum, enables, assert, deassert);
 	if (rv != SA_OK) {
-		printf("saHpiSensorEventEnablesSet error %d\n",rv); 
+		printf("saHpiSensorEventMasksSet error %d\n",rv); 
 		return -1; 
 	}
 	printf("Sensor Event Enables Successfully\n");
 
-	rv = saHpiSensorEventEnablesGet(
-			sessionid, resourceid, sensornum, &enables);
+	rv = saHpiSensorEventEnableGet(
+			sessionid, resourceid, sensornum, &status);
 	if (rv != SA_OK) {
-		printf("saHpiSensorEventEnablesGet error %d\n",rv); 
+		printf("saHpiSensorEventEnableGet error %d\n",rv); 
+		return -1; 
+	}
+	rv = saHpiSensorEventMasksGet(
+			sessionid, resourceid, sensornum, &assert, &deassert);
+	if (rv != SA_OK) {
+		printf("saHpiSensorEventMasksGet error %d\n",rv); 
 		return -1; 
 	}
 
-	printf("Sensor Event Enables: \n");
-	printf("  Sensor Status: %x\n", enables.SensorStatus);
-	printf("  Assert Events: %x\n", enables.AssertEvents);
-	printf("  Deassert Events: %x\n", enables.DeassertEvents);
+	printf("Sensor Event Masks: \n");
+	printf("  Sensor Status: %x\n", status);
+	printf("  Assert Events: %x\n", assert);
+	printf("  Deassert Events: %x\n", deassert);
 
 	return SA_OK;
+}
+
+static void Set_thres_value(SaHpiSensorReadingT *item, double value)
+{
+	item->IsSupported = 1;
+	item->Type = SAHPI_SENSOR_READING_TYPE_FLOAT64;
+	item->Value.SensorFloat64 = value;
 }
 
 static int sa_set_thres(int argc, char *argv[])
@@ -340,37 +328,29 @@ static int sa_set_thres(int argc, char *argv[])
 	 	}
 		printf("%s", argv[i]);
 		if (!strcmp(argv[i],"lc")) {
-			stbuff.LowCritical.ValuesPresent = SAHPI_SRF_INTERPRETED;
-			stbuff.LowCritical.Interpreted.Value.SensorFloat32 =
-				(SaHpiFloat32T)atof(argv[i+1]);
+			Set_thres_value(&(stbuff.LowCritical),
+				(SaHpiFloat64T)atof(argv[i+1]));
 		} else if (!strcmp(argv[i],"la")) {
-			stbuff.LowMajor.ValuesPresent = SAHPI_SRF_INTERPRETED;
-			stbuff.LowMajor.Interpreted.Value.SensorFloat32 =
-				(SaHpiFloat32T)atof(argv[i+1]);
+			Set_thres_value(&(stbuff.LowMajor),
+				(SaHpiFloat64T)atof(argv[i+1]));
 		} else if (!strcmp(argv[i],"li")) {
-			stbuff.LowMinor.ValuesPresent = SAHPI_SRF_INTERPRETED;
-			stbuff.LowMinor.Interpreted.Value.SensorFloat32 =
-				(SaHpiFloat32T)atof(argv[i+1]);
+			Set_thres_value(&(stbuff.LowMinor),
+				(SaHpiFloat64T)atof(argv[i+1]));
 		} else if (!strcmp(argv[i],"uc")) {
-			stbuff.UpCritical.ValuesPresent = SAHPI_SRF_INTERPRETED;
-			stbuff.UpCritical.Interpreted.Value.SensorFloat32 =
-				(SaHpiFloat32T)atof(argv[i+1]);
+			Set_thres_value(&(stbuff.UpCritical),
+				(SaHpiFloat64T)atof(argv[i+1]));
 		} else if (!strcmp(argv[i],"ua")) {
-			stbuff.UpMajor.ValuesPresent = SAHPI_SRF_INTERPRETED;
-			stbuff.UpMajor.Interpreted.Value.SensorFloat32 =
-				(SaHpiFloat32T)atof(argv[i+1]);
+			Set_thres_value(&(stbuff.UpMajor),
+				(SaHpiFloat64T)atof(argv[i+1]));
 		} else if (!strcmp(argv[i],"ui")) {
-			stbuff.UpMinor.ValuesPresent = SAHPI_SRF_INTERPRETED;
-			stbuff.UpMinor.Interpreted.Value.SensorFloat32 =
-				(SaHpiFloat32T)atof(argv[i+1]);
+			Set_thres_value(&(stbuff.UpMinor),
+				(SaHpiFloat64T)atof(argv[i+1]));
 		} else if (!strcmp(argv[i],"ph")) {
-			stbuff.PosThdHysteresis.ValuesPresent = SAHPI_SRF_INTERPRETED;
-			stbuff.PosThdHysteresis.Interpreted.Value.SensorFloat32 =
-				(SaHpiFloat32T)atof(argv[i+1]);
+			Set_thres_value(&(stbuff.PosThdHysteresis),
+				(SaHpiFloat64T)atof(argv[i+1]));
 		} else if (!strcmp(argv[i],"nh")) {
-			stbuff.NegThdHysteresis.ValuesPresent = SAHPI_SRF_INTERPRETED;
-			stbuff.NegThdHysteresis.Interpreted.Value.SensorFloat32 =
-				(SaHpiFloat32T)atof(argv[i+1]);
+			Set_thres_value(&(stbuff.NegThdHysteresis),
+				(SaHpiFloat64T)atof(argv[i+1]));
 		} else {
 			return HPI_SHELL_PARM_ERROR;
 		}
@@ -405,11 +385,8 @@ static int sa_hotswap_stat(SaHpiResourceIdT resourceid)
 	case SAHPI_HS_STATE_INSERTION_PENDING:
 		printf("  Insertion Pending.\n");
 		break;
-	case SAHPI_HS_STATE_ACTIVE_HEALTHY:
-		printf("  Active and Healthy.\n");
-		break;
-	case SAHPI_HS_STATE_ACTIVE_UNHEALTHY:
-		printf("  Active but Unhealthy.\n");
+	case SAHPI_HS_STATE_ACTIVE:
+		printf("  Active.\n");
 		break;
 	case SAHPI_HS_STATE_EXTRACTION_PENDING:
 		printf("  Extraction Pending.\n");
@@ -428,15 +405,15 @@ static int sa_power(int argc, char *argv[])
 {
 	SaErrorT rv;
 	SaHpiResourceIdT resourceid;
-	SaHpiHsPowerStateT state;
+	SaHpiPowerStateT state;
 
         resourceid = (SaHpiResourceIdT)atoi(argv[1]);
 
 	if (argc == 2) goto L1;
 	else if (!strcmp(argv[2], "on")) {
-		state = SAHPI_HS_POWER_ON;
+		state = SAHPI_POWER_ON;
 	} else if (!strcmp(argv[2], "off")) {
-		state = SAHPI_HS_POWER_OFF;
+		state = SAHPI_POWER_OFF;
 	} else {
 	 	return HPI_SHELL_PARM_ERROR;
 	}
@@ -453,9 +430,9 @@ L1:
                 printf("saHpiResourcePowerStateGet error %d\n",rv);
 		return -1;
 	}
-	if (state == SAHPI_HS_POWER_ON) {
+	if (state == SAHPI_POWER_ON) {
                 printf("Resource %d is power on now.\n",resourceid);
-	} else if (state == SAHPI_HS_POWER_OFF) {
+	} else if (state == SAHPI_POWER_OFF) {
                 printf("Resource %d is power off now.\n",resourceid);
 	}
 
@@ -512,7 +489,7 @@ static int sa_set_tag(int argc, char *argv[])
 
         resourceid = (SaHpiResourceIdT)atoi(argv[1]);
 	resourcetag.DataLength = strlen(argv[2]);
-	resourcetag.DataType = SAHPI_TL_TYPE_LANGUAGE;
+	resourcetag.DataType = SAHPI_TL_TYPE_TEXT;
 	resourcetag.Language = SAHPI_LANG_ENGLISH;
 
 	if (resourcetag.DataLength == 0)
@@ -547,14 +524,14 @@ static int sa_clear_evtlog(SaHpiResourceIdT resourceid)
 static int sa_show_evtlog(SaHpiResourceIdT resourceid)
 {
 	SaErrorT rv = SA_OK;
-	SaHpiSelInfoT info;
+	SaHpiEventLogInfoT info;
 	SaHpiRptEntryT rptentry;
 	SaHpiEntryIdT rptentryid;
 	SaHpiEntryIdT nextrptentryid;
-	SaHpiSelEntryIdT entryid;
-	SaHpiSelEntryIdT nextentryid;
-	SaHpiSelEntryIdT preventryid;
-	SaHpiSelEntryT  sel;
+	SaHpiEventLogEntryIdT entryid;
+	SaHpiEventLogEntryIdT nextentryid;
+	SaHpiEventLogEntryIdT preventryid;
+	SaHpiEventLogEntryT  sel;
 	SaHpiRdrT rdr;
 	char date[30];
 
@@ -562,7 +539,7 @@ static int sa_show_evtlog(SaHpiResourceIdT resourceid)
 	while ((rv == SA_OK) && (rptentryid != SAHPI_LAST_ENTRY))
 	{
 		rv = saHpiRptEntryGet(sessionid,rptentryid,&nextrptentryid,&rptentry);
-		if (!(rptentry.ResourceCapabilities & SAHPI_CAPABILITY_SEL)) {
+		if (!(rptentry.ResourceCapabilities & SAHPI_CAPABILITY_EVENT_LOG)) {
 			rptentryid = nextrptentryid;
 			continue;  /* no SEL here, try next RPT */
 		}
@@ -583,12 +560,11 @@ static int sa_show_evtlog(SaHpiResourceIdT resourceid)
 	}
 	printf("EventLog entries=%d, size=%d, enabled=%d\n",
 		info.Entries,info.Size,info.Enabled);
-	saftime2str(info.UpdateTimestamp,date,30);
+	time2str(info.UpdateTimestamp,date,30);
 	printf("UpdateTime = %s, ", date);
-	saftime2str(info.CurrentTime,date,30);
+	time2str(info.CurrentTime,date,30);
 	printf("CurrentTime = %s\n", date);
 	printf("Overflow = %d\n", info.OverflowFlag);
-	printf("DeleteEntrySupported = %d\n", info.DeleteEntrySupported);
 
 	if (info.Entries != 0){
 		entryid = SAHPI_OLDEST_ENTRY;
@@ -602,7 +578,7 @@ static int sa_show_evtlog(SaHpiResourceIdT resourceid)
 				return -1;
 			}
 
-			ShowSel(&sel, &rdr, &rptentry);
+			printf("ShowSel(&sel, &rdr, &rptentry);\n");
 			preventryid = entryid;
 			entryid = nextentryid;
 		}
@@ -624,9 +600,6 @@ char *chasstypes[NCT] = {
 };
 int i;
 char outbuff[256];
-SaHpiInventoryDataT *inv;
-SaHpiInventChassisTypeT chasstype;
-SaHpiInventGeneralDataT *dataptr;
 SaHpiTextBufferT *strptr;
 
 static void
@@ -648,6 +621,8 @@ fixstr(SaHpiTextBufferT *strptr)
 static void
 prtchassinfo(void)
 {
+	printf("prtchassinfo: not implemented\n");
+#ifdef MY   // my
 	int k;
 
 	chasstype = (SaHpiInventChassisTypeT)inv->DataRecords[i]->RecordData.ChassisInfo.Type;
@@ -696,11 +671,14 @@ prtchassinfo(void)
 		outbuff[dataptr->CustomField[0]->DataLength] = 0;
 		printf( "\tChassis OEM Field   : %s\n", outbuff);
 	}
+#endif
 }
 
 static void
 prtprodtinfo(void)
 {
+	printf("prtprodinfo: not implemented\n");
+#ifdef MY   // my
 	int j;
 	dataptr = (SaHpiInventGeneralDataT *)&inv->DataRecords[i]->RecordData.ProductInfo;
 	strptr=dataptr->Manufacturer;
@@ -753,11 +731,14 @@ prtprodtinfo(void)
 		} else /* NULL pointer */
 			break;
 	}/*end for*/
+#endif
 }
 
 static void
 prtboardinfo(void)
 {
+	printf("prtboardinfo: not implemented\n");
+#ifdef MY   // my
 	int j;
 
 	dataptr = (SaHpiInventGeneralDataT *)&inv->DataRecords[i]->RecordData.BoardInfo;
@@ -801,74 +782,77 @@ prtboardinfo(void)
                         printf( "\tBoard OEM Field     : %s\n", outbuff);
                 }
         }
+#endif
 }
 
 static int sa_show_inv(SaHpiResourceIdT resourceid)
 {
-	SaErrorT rv = SA_OK;
-	SaHpiSelEntryIdT entryid;
-	SaHpiSelEntryIdT nextentryid;
-	SaHpiRdrT rdr;
-	SaHpiEirIdT eirid;
-	SaHpiUint32T actualsize;
-	int prodrecindx = 0;
+	SaErrorT		rv = SA_OK, rva, rvf;
+	SaHpiEntryIdT		rdrentryid;
+	SaHpiEntryIdT		nextrdrentryid;
+	SaHpiRdrT		rdr;
+	SaHpiIdrIdT		idrid;
+	SaHpiIdrInfoT		idrInfo;
+	SaHpiEntryIdT		areaId;
+	SaHpiEntryIdT		nextareaId;
+	SaHpiIdrAreaTypeT	areaType;
+	int			numAreas;
+	SaHpiEntryIdT		fieldId;
+	SaHpiEntryIdT		nextFieldId;
+	SaHpiIdrFieldTypeT	fieldType;
+	SaHpiIdrFieldT		thisField;
+	SaHpiIdrAreaHeaderT	areaHeader;
 
-	entryid = SAHPI_FIRST_ENTRY;
-	while (entryid != SAHPI_LAST_ENTRY) {
-		rv = saHpiRdrGet(sessionid,resourceid, entryid,&nextentryid, &rdr);
+	rdrentryid = SAHPI_FIRST_ENTRY;
+	while (rdrentryid != SAHPI_LAST_ENTRY) {
+		rv = saHpiRdrGet(sessionid, resourceid, rdrentryid, &nextrdrentryid, &rdr);
 		if (rv != SA_OK) {
 			printf("saHpiRdrGet error %d\n",rv);
 			return -1;
 		}
 
-		if (rdr.RdrType == SAHPI_INVENTORY_RDR) {
-			unsigned int invsize = 0;
-			eirid = rdr.RdrTypeUnion.InventoryRec.EirId;
-			rdr.IdString.Data[rdr.IdString.DataLength] = 0;
-			rv = saHpiEntityInventoryDataRead(sessionid,resourceid,
-							eirid, 0, NULL, &actualsize);
-			invsize = actualsize;
-			inv = (SaHpiInventoryDataT *)malloc(invsize);
-			memset(inv, 0, invsize);
-			rv = saHpiEntityInventoryDataRead(sessionid,resourceid,
-							eirid, invsize, inv, &actualsize);
-			if (rv != SA_OK) {
-				printf("saHpiEntityInventoryDataRead error %d\n",rv);
-				free(inv);
-				return -1;
-			}
-			if (inv->Validity == SAHPI_INVENT_DATA_VALID) {
-				for (i=0; inv->DataRecords[i]!=NULL; i++) {
-					switch (inv->DataRecords[i]->RecordType)
-					{
-					case SAHPI_INVENT_RECTYPE_INTERNAL_USE:
-						printf("Internal Use\n");
-						break;
-					case SAHPI_INVENT_RECTYPE_PRODUCT_INFO:
-						prodrecindx = 0;
-						prtprodtinfo();
-						break;
-					case SAHPI_INVENT_RECTYPE_CHASSIS_INFO:
-						prtchassinfo();
-						break;
-					case SAHPI_INVENT_RECTYPE_BOARD_INFO:
-						prtboardinfo();
-						break;
-					case SAHPI_INVENT_RECTYPE_OEM:
-						printf("OEM Record\n");
-						break;
-					default:
-						printf("Invalid Invent Rec Type = %x\n", 
-								inv->DataRecords[i]->RecordType);
-						break;
-					}
-				}
-			}
-			free(inv);
+		if (rdr.RdrType != SAHPI_INVENTORY_RDR) {
+			rdrentryid = nextrdrentryid;
+			continue;
+		};
+		
+		idrid = rdr.RdrTypeUnion.InventoryRec.IdrId;
+		rv = saHpiIdrInfoGet(sessionid, resourceid, idrid, &idrInfo);
+		if (rv != SA_OK) {
+			printf("saHpiIdrInfoGet error %d\n",rv);
+			return -1;
 		}
-		entryid = nextentryid;
-	}
+		
+		numAreas = idrInfo.NumAreas;
+		areaType = SAHPI_IDR_AREATYPE_UNSPECIFIED;
+		areaId = SAHPI_FIRST_ENTRY; 
+		while (areaId != SAHPI_LAST_ENTRY) {
+			rva = saHpiIdrAreaHeaderGet(sessionid, resourceid, idrInfo.IdrId,
+				areaType, areaId, &nextareaId, &areaHeader);
+			if (rva != SA_OK) {
+				printf("saHpiIdrAreaHeaderGet error %d\n",rva);
+				break;
+			}
+			oh_print_idrareaheader(&areaHeader, 2);
 
+			fieldType = SAHPI_IDR_FIELDTYPE_UNSPECIFIED;
+			fieldId = SAHPI_FIRST_ENTRY;
+			while (fieldId != SAHPI_LAST_ENTRY) {
+				rvf = saHpiIdrFieldGet(sessionid, resourceid,
+						idrInfo.IdrId, areaHeader.AreaId, 
+						fieldType, fieldId, &nextFieldId,
+						&thisField);
+				if (rvf != SA_OK) {
+					printf("saHpiIdrFieldGet error %d\n",rvf);
+					break;
+				}
+				oh_print_idrfield(&thisField, 4);
+				fieldId = nextFieldId;
+			}
+			areaId = nextareaId;
+		}
+		rdrentryid = nextrdrentryid;
+	}
 	return SA_OK;
 }
 
@@ -984,6 +968,15 @@ static int show_evtlog(int argc, char *argv[])
 
 static int show_inv(int argc, char *argv[])
 {
+	int	aaa = 0;
+	char	*S;
+	
+	if (aaa == 1) {
+		fixstr((SaHpiTextBufferT *)S);
+		prtchassinfo();
+		prtprodtinfo();
+		prtboardinfo();
+	};
 	if (argc < 2)
 		return HPI_SHELL_PARM_ERROR;
 			

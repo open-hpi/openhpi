@@ -11,6 +11,8 @@
  *
  * Authors:
  *     Racing Guo <racing.guo@intel.com>
+ * Changes:
+ *	11.30.2004 - Kouzmich: porting to HPI-B
  *
  *
  */
