@@ -132,6 +132,7 @@ SaErrorT oh_destroy_domain(SaHpiDomainIdT did)
 struct oh_domain *oh_get_domain(SaHpiDomainIdT did)
 {
         struct oh_domain *domain = NULL;
+	int res_lock;
 
         if (did < 1) return NULL;
         
@@ -140,15 +141,19 @@ struct oh_domain *oh_get_domain(SaHpiDomainIdT did)
                 did = 1;
         }
 
-        g_static_rec_mutex_lock(&(oh_domains.lock)); /* Locked domain table */
-        domain = g_hash_table_lookup(oh_domains.table, &did);
-        if (!domain) {
-                g_static_rec_mutex_unlock(&(oh_domains.lock));
-                return NULL;
-        }
+	g_static_rec_mutex_lock(&(oh_domains.lock)); /* Locked domain table */
+       	domain = g_hash_table_lookup(oh_domains.table, &did);
+       	if (!domain) {
+               	g_static_rec_mutex_unlock(&(oh_domains.lock));
+               	return NULL;
+	}
 
-        g_static_rec_mutex_lock(&(domain->lock));
-        g_static_rec_mutex_unlock(&(oh_domains.lock)); /* Unlocked domain table */
+	res_lock = g_static_rec_mutex_trylock(&(domain->lock));
+	/* Unlocked domain table */
+	g_static_rec_mutex_unlock(&(oh_domains.lock));
+	/* I see it is no correct but it works now */
+	if (res_lock == 0)
+		g_static_rec_mutex_lock(&(domain->lock));
 
         return domain;
 }
