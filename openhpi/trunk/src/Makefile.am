@@ -38,7 +38,7 @@ EXTRA_DIST              = plugin_static.c.in
 
 INCLUDES		= -I$(top_srcdir)/include -I$(top_srcdir)/utils
 
-AM_CFLAGS		= @CFLAGS@
+AM_CFLAGS		= @CFLAGS@ -save-temps
 
 lib_LTLIBRARIES		= libopenhpi.la
 
