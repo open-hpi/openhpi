@@ -18,15 +18,16 @@
 #include <sahpimacros.h>
 #include <tsetup.h>
 
+#define SAHPI_LANG_NONSENSE (SaHpiLanguageT)0xFFFFFFFF
+
 int main(int argc, char **argv) 
 {
 
 	/* ************************
 	 * Local variables
 	 * ***********************/	 
-#define SAHPI_LANG_NONSENSE (SaHpiLanguageT)0xFFFFFFFF
-
 	int testfail = 0;
+	int passed = 0, failed =0;
 	SaHpiResourceIdT  id;
 	SaErrorT          err;
 	SaErrorT expected_err;
@@ -68,7 +69,8 @@ int main(int argc, char **argv)
 		printf("Error! snmp_bc_set_resource_tag returned err=%s, expected=%s\n",
 				 oh_lookup_error(err), oh_lookup_error(expected_err));
 		testfail = -1;
-	}	
+		failed++;
+	} else passed++;
 	
 	/************************** 
 	 * Test 2: Invalid ResourceId
@@ -83,7 +85,8 @@ int main(int argc, char **argv)
 		printf("Error! snmp_bc_set_resource_tag returned err=%s, expected=%s\n",
 				 oh_lookup_error(err), oh_lookup_error(expected_err));
 		testfail = -1;
-	}	
+		failed++;
+	} else passed++;
 	
 	/************************** 
 	 * Test 3: Valid case
@@ -98,11 +101,13 @@ int main(int argc, char **argv)
 		printf("Error! snmp_bc_set_resource_tag returned err=%s, expected=%s\n",
 				 oh_lookup_error(err), oh_lookup_error(expected_err));
 		testfail = -1;
-	}	
+		failed++;
+	} else passed++;
 
 	/***************************
 	 * Cleanup after all tests
 	 ***************************/
+	 printf("tset_resource_tag: %d passed, %d failed\n", passed, failed);
 	 err = tcleanup(&sessionid);
 	 return testfail;
 

@@ -25,6 +25,7 @@ int main(int argc, char **argv)
 	 * Local variables
 	 * ***********************/	 
 	int testfail = 0;
+	int passed = 0, failed = 0;
 	SaHpiResourceIdT  id;
 	SaHpiParmActionT  act;
 	SaErrorT          err;
@@ -68,7 +69,8 @@ int main(int argc, char **argv)
 		printf("Error! snmp_bc_control_parm returned err=%s, expected=%s\n",
 				 oh_lookup_error(err), oh_lookup_error(expected_err));
 		testfail = -1;
-	}	
+		failed++;
+	}else passed++;
 	
 	/************************** 
 	 * Test 2: Invalid ResourceId
@@ -83,7 +85,8 @@ int main(int argc, char **argv)
 		printf("Error! snmp_bc_control_parm returned err=%s, expected=%s\n",
 				 oh_lookup_error(err), oh_lookup_error(expected_err));
 		testfail = -1;
-	}	
+		failed++;
+	} else passed++;
 
 	id = rptentry.ResourceId;
 	struct oh_handler_state *handle = (struct oh_handler_state *)h->hnd;		
@@ -104,7 +107,8 @@ int main(int argc, char **argv)
 		printf("Error! snmp_bc_control_parm returned err=%s, expected=%s\n",
 				 oh_lookup_error(err), oh_lookup_error(expected_err));
 		testfail = -1;
-	}	
+		failed++;
+	} else passed++;
 
 	/************************** 
 	 * Test 4: 
@@ -122,11 +126,13 @@ int main(int argc, char **argv)
 		printf("Error! snmp_bc_control_parm returned err=%s, expected=%s\n",
 				 oh_lookup_error(err), oh_lookup_error(expected_err));
 		testfail = -1;
-	}	
+		failed++;
+	} else passed++;
 	
 	/***************************
 	 * Cleanup after all tests
 	 ***************************/
+	 printf("tcontrol_parms: %d passed, %d failed\n", passed, failed);
 	 err = tcleanup(&sessionid);
 	 return testfail;
 
