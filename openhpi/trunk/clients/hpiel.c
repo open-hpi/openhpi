@@ -154,7 +154,7 @@ int main(int argc, char **argv)
 			if (rv == SA_OK) {
 				printf("EventLogInfo for %s, ResourceId %d\n",
 						rptentry.ResourceTag.Data, resourceid);
-				oh_print_evenloginfo(&info, 4);
+				oh_print_eventloginfo(&info, 4);
 			} else 
 				printf("saHpiEventLogInfoGet %s\n", oh_lookup_error(rv));
 				    

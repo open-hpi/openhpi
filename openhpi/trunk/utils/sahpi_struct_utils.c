@@ -1745,7 +1745,7 @@ static SaErrorT oh_build_annrec(oh_big_textbuffer *textbuff,const SaHpiAnnunciat
  * SA_OK - normal operation.
  * SA_ERR_HPI_INVALID_PARAMS - any of the in pointers is NULL
  **/
-SaErrorT oh_fprint_evenloginfo(FILE *stream, const SaHpiEventLogInfoT *thiselinfo, int offsets)
+SaErrorT oh_fprint_eventloginfo(FILE *stream, const SaHpiEventLogInfoT *thiselinfo, int offsets)
 {	
 	int err;
 	oh_big_textbuffer mybuf;
