@@ -807,7 +807,7 @@ int main(int argc, char **argv)
 		/* oh_print_sensorrec: Bad parameter testcase */
 		expected_err = SA_ERR_HPI_INVALID_PARAMS;
 
-		err = oh_print_sensorrec(0);
+		err = oh_print_sensorrec(0, 0);
 		if (err != expected_err) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d; Expected error=%d\n", err, expected_err);
@@ -815,7 +815,7 @@ int main(int argc, char **argv)
 		}
 
 		/* oh_print_sensorrec: Default sensor testcase */
-		err = oh_print_sensorrec(&default_sensor);
+		err = oh_print_sensorrec(&default_sensor, 0);
 		if (err != SA_OK) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
@@ -823,7 +823,7 @@ int main(int argc, char **argv)
 		}
 
 		/* oh_print_sensorrec: Normal sensor testcase */
-		err = oh_print_sensorrec(&sensor);
+		err = oh_print_sensorrec(&sensor, 0);
 		if (err != SA_OK) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
@@ -845,15 +845,16 @@ int main(int argc, char **argv)
 		/* oh_print_textbuffer: Bad parameter testcase */
 		expected_err = SA_ERR_HPI_INVALID_PARAMS;
 
-		err = oh_print_textbuffer(0);
+		err = oh_print_textbuffer(0, 0);
 		if (err != expected_err) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d; Expected error=%d\n", err, expected_err);
 			return -1;
 		}
-
+		
 		/* oh_print_textbuffer: Default textbuffer testcase */
-		err = oh_print_textbuffer(&default_textbuffer);
+		printf("Default TextBuffer\n");
+		err = oh_print_textbuffer(&default_textbuffer, 1);
 		if (err != SA_OK) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
@@ -861,7 +862,69 @@ int main(int argc, char **argv)
 		}
 
 		/* oh_print_textbuffer: Normal textbuffer testcase */
-		err = oh_print_textbuffer(&textbuffer);
+		printf("Normal TextBuffer\n");
+		err = oh_print_textbuffer(&textbuffer, 1);
+		if (err != SA_OK) {
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%d\n", err);
+			return -1;
+		}
+	}
+
+	/************************** 
+	 * oh_print_event testcases
+         **************************/	
+	{
+		SaHpiEventT sensor_event, default_event;
+		
+		sensor_event.Source = 1;
+		sensor_event.EventType = SAHPI_ET_SENSOR;
+		sensor_event.Severity = SAHPI_CRITICAL;
+		sensor_event.EventDataUnion.SensorEvent.SensorNum = 2;
+		sensor_event.EventDataUnion.SensorEvent.SensorType = SAHPI_VOLTAGE;
+		sensor_event.EventDataUnion.SensorEvent.EventCategory = SAHPI_EC_THRESHOLD;
+		sensor_event.EventDataUnion.SensorEvent.Assertion = SAHPI_TRUE;
+		sensor_event.EventDataUnion.SensorEvent.EventState = SAHPI_ES_LOWER_MINOR;
+		sensor_event.EventDataUnion.SensorEvent.OptionalDataPresent = sensor_event.EventDataUnion.SensorEvent.OptionalDataPresent
+			| SAHPI_SOD_TRIGGER_READING
+			| SAHPI_SOD_TRIGGER_THRESHOLD
+			| SAHPI_SOD_PREVIOUS_STATE
+			| SAHPI_SOD_CURRENT_STATE
+			| SAHPI_SOD_OEM
+			| SAHPI_SOD_SENSOR_SPECIFIC;
+		sensor_event.EventDataUnion.SensorEvent.TriggerReading.IsSupported = SAHPI_TRUE;
+		sensor_event.EventDataUnion.SensorEvent.TriggerReading.Type = SAHPI_SENSOR_READING_TYPE_INT64;
+		sensor_event.EventDataUnion.SensorEvent.TriggerReading.Value.SensorInt64 = 100;
+		sensor_event.EventDataUnion.SensorEvent.TriggerThreshold.IsSupported = SAHPI_TRUE;
+		sensor_event.EventDataUnion.SensorEvent.TriggerThreshold.Type = SAHPI_SENSOR_READING_TYPE_INT64;
+		sensor_event.EventDataUnion.SensorEvent.TriggerThreshold.Value.SensorInt64 = 101;
+		sensor_event.EventDataUnion.SensorEvent.PreviousState = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR;
+		sensor_event.EventDataUnion.SensorEvent.CurrentState = SAHPI_ES_LOWER_MINOR;
+		sensor_event.EventDataUnion.SensorEvent.Oem = 32;
+		sensor_event.EventDataUnion.SensorEvent.SensorSpecific = 33;
+
+		/* oh_print_event: Bad parameter testcase */
+		expected_err = SA_ERR_HPI_INVALID_PARAMS;
+
+		err = oh_print_event(0, 0);
+		if (err != expected_err) {
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%d; Expected error=%d\n", err, expected_err);
+			return -1;
+		}
+		
+		/* oh_print_event: Default event testcase */
+		printf("Default Event\n");
+		err = oh_print_event(&default_event, 1);
+		if (err != SA_OK) {
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%d\n", err);
+			return -1;
+		}
+
+		/* oh_print_event: Normal sensor event testcase */
+		printf("Normal Sensor Event\n");
+		err = oh_print_event(&sensor_event, 1);
 		if (err != SA_OK) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
