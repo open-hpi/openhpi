@@ -11,13 +11,13 @@
  *
  * Authors:
  *     Renier Morales <renierm@users.sf.net>
+ *
  */
 
-#include <glib.h>
-#include <string.h>
-
 #include <SaHpi.h>
-#include <oh_utils.h>
+#include <string.h>
+#include <glib.h>
+#include <rpt_utils.h>
 #include <rpt_resources.h>
 
 /**
@@ -31,29 +31,26 @@
 int main(int argc, char **argv)
 {
         RPTable *rptable = (RPTable *)g_malloc0(sizeof(RPTable));
-        oh_init_rpt(rptable);
         SaHpiEntryIdT record_id;
         SaHpiRdrT *tmprdr = NULL;
         guint i = 0;
         
         for (i = 0; rptentries[i].ResourceId != 0; i++) {
-                if (oh_add_resource(rptable, rptentries + i, NULL, 0))                        
-                        return 1;
+                if (oh_add_resource(rptable, rptentries + i, NULL, 0))
+                        return 1;                
         }
 
-        if (oh_add_rdr(rptable, SAHPI_FIRST_ENTRY, rdrs, NULL,0)) {
+        if (oh_add_rdr(rptable, SAHPI_FIRST_ENTRY, rdrs, NULL,0))
                 return 1;
-        }
-        
+
         record_id =
                 get_rdr_uid(rdrs[0].RdrType, rdrs[0].RdrTypeUnion.SensorRec.Num);
-        rdrs[0].RecordId = record_id;        
-                        
+        rdrs[0].RecordId = record_id;
+                
         tmprdr = oh_get_rdr_by_id(rptable, SAHPI_FIRST_ENTRY, record_id);
         if (!tmprdr ||
-            memcmp(rdrs, tmprdr, sizeof(SaHpiRdrT))) {
+            memcmp(rdrs, tmprdr, sizeof(SaHpiRdrT)))
                 return 1;
-        }
 
         return 0;
 }

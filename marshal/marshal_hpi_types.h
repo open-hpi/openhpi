@@ -12,7 +12,6 @@
  *
  * Authors:
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
- *     W. David Ashley <dashley@us.ibm.com.com>
  */
 
 #ifndef dMarshalHpiTypes_h
@@ -45,7 +44,6 @@ extern "C" {
 #define SaHpiInt16Type   Int16Type
 #define SaHpiInt32Type   Int32Type
 #define SaHpiInt64Type   Int64Type
-#define SaHpiUint64Type  Uint64Type
 #define SaHpiFloat32Type Float32Type
 #define SaHpiFloat64Type Float64Type
 
@@ -57,8 +55,7 @@ extern "C" {
 #define SaHpiDomainIdType   SaHpiUint32Type
 #define SaHpiSessionIdType  SaHpiUint32Type
 #define SaHpiResourceIdType SaHpiUint32Type
-#define SaHpiHsCapabilitiesType  SaHpiUint32Type
-#define SaHpiEntryIdType    SaHpiUint32Type			  
+#define SaHpiEntryIdType    SaHpiUint32Type
 #define SaHpiTimeType       SaHpiInt64Type
 #define SaHpiTimeoutType    SaHpiInt64Type
 
@@ -66,11 +63,10 @@ extern "C" {
 #define SaHpiTextTypeType   SaHpiUint32Type
 #define SaHpiLanguageType   SaHpiUint32Type
 extern cMarshalType SaHpiTextBufferType;
-#define SaHpiInstrumentIdType   SaHpiUint32Type
 
 // entity
 #define SaHpiEntityTypeType SaHpiUint32Type
-#define SaHpiEntityLocationType SaHpiUint32Type
+#define SaHpiEntityInstanceType SaHpiUint32Type
 extern cMarshalType SaHpiEntityType;
 extern cMarshalType SaHpiEntityPathType;
 
@@ -79,49 +75,58 @@ extern cMarshalType SaHpiEntityPathType;
 #define SaHpiEventStateType SaHpiUint16Type
 
 // sensors
-#define SaHpiSensorNumType SaHpiUint32Type
+#define SaHpiSensorNumType SaHpiUint8Type
 #define SaHpiSensorTypeType SaHpiUint32Type
+#define SaHpiSensorInterpretedTypeType SaHpiUint32Type
+extern cMarshalType SaHpiSensorInterpretedType;
 
-// sensor reading type
+// sensor status
+#define SaHpiSensorStatusType SaHpiUint8Type
+extern cMarshalType SaHpiSensorEvtStatusType;
+extern cMarshalType SaHpiSensorEvtEnablesType;
+
+// sensor reading
 #define SaHpiSensorReadingFormatsType SaHpiUint8Type
 extern cMarshalType SaHpiSensorReadingType;
 
-// sensor thresholds
 extern cMarshalType SaHpiSensorThresholdsType;
+
+// sensor rdr
+#define SaHpiSensorLinearizationType SaHpiUint32Type
+extern cMarshalType SaHpiSensorFactorsType;
 
 #define SaHpiSensorRangeFlagsType SaHpiUint8Type
 extern cMarshalType SaHpiSensorRangeType;  
 
-// sensor rdr sensor units
 #define SaHpiSensorUnitsType SaHpiUint32Type
 #define SaHpiSensorModUnitUseType SaHpiUint32Type
-#define SaHpiReadingTypeType SaHpiUint32Type
+#define SaHpiSensorSignFormatType SaHpiUint32Type
 extern cMarshalType SaHpiSensorDataFormatType;
 
-// sensor rdr threshold support
+// threshold support
 #define SaHpiSensorThdMaskType SaHpiUint8Type
+#define SaHpiSensorThdCapType SaHpiUint8Type
 extern cMarshalType SaHpiSensorThdDefnType;
 
-// sensor rdr event control
+// event control
 #define SaHpiSensorEventCtrlType SaHpiUint32Type
 
-// sensor rdr record
+// record
 extern cMarshalType SaHpiSensorRecType;
 
 // controls
-#define SaHpiCtrlNumType SaHpiUint32Type
+#define SaHpiCtrlNumType SaHpiUint8Type
 #define SaHpiCtrlTypeType SaHpiUint32Type
 #define SaHpiCtrlStateDigitalType SaHpiUint32Type
 #define SaHpiCtrlStateDiscreteType SaHpiUint32Type
 #define SaHpiCtrlStateAnalogType SaHpiInt32Type
 extern cMarshalType SaHpiCtrlStateStreamType;
 
-// control text controls
 #define SaHpiTxtLineNumType SaHpiUint8Type
 extern cMarshalType SaHpiCtrlStateTextType;
 extern cMarshalType SaHpiCtrlStateOemType;
 extern cMarshalType SaHpiCtrlStateType;
-
+  
 // control resource data records
 #define SaHpiCtrlOutputTypeType SaHpiUint32Type
 extern cMarshalType SaHpiCtrlRecDigitalType;
@@ -130,72 +135,50 @@ extern cMarshalType SaHpiCtrlRecAnalogType;
 extern cMarshalType SaHpiCtrlRecStreamType;
 extern cMarshalType SaHpiCtrlRecTextType;
 extern cMarshalType SaHpiCtrlRecOemType;
-#define SaHpiCtrlModeType SaHpiInt32Type
-extern cMarshalType SaHpiCtrlDefaultModeType;
 extern cMarshalType SaHpiCtrlRecType;
 
-// entity inventory data
-#define SaHpiIdrIdType SaHpiUint32Type
-#define SaHpiIdrAreaTypeType SaHpiUint8Type
-#define SaHpiIdrFieldTypeType SaHpiUint32Type
-extern cMarshalType SaHpiIdrFieldType;
-extern cMarshalType SaHpiIdrAreaHeaderType;
-extern cMarshalType SaHpiIdrInfoType;
+// inventory data
+#define SaHpiEirIdType SaHpiUint8Type
+#define SaHpiInventDataValidityType SaHpiUint32Type
+#define SaHpiInventDataRecordTypeType SaHpiUint32Type
+#define SaHpiInventChassisTypeType SaHpiUint32Type
+extern cMarshalType SaHpiInventoryDataType;
 
-// inventory data resource records
+// inventory resource data records
 extern cMarshalType SaHpiInventoryRecType;
 
 // watchdogs
-#define SaHpiWatchdogNumType SaHpiUint32Type
+#define SaHpiWatchdogNumType SaHpiUint8Type
 #define SaHpiWatchdogActionType SaHpiUint32Type
-#define SaHpiWatchdogActionEventType SaHpiUint8Type
-#define SaHpiWatchdogPretimerInterruptType SaHpiUint8Type
-#define SaHpiWatchdogTimerUseType SaHpiUint8Type
+#define SaHpiWatchdogActionEventType SaHpiUint32Type
+#define SaHpiWatchdogPretimerInterruptType SaHpiUint32Type
+#define SaHpiWatchdogTimerUseType SaHpiUint32Type
 #define SaHpiWatchdogExpFlagsType SaHpiUint8Type
 extern cMarshalType SaHpiWatchdogType;
 
 // watchdog resource data records
 extern cMarshalType SaHpiWatchdogRecType;
   
-// Annunciators
-#define SaHpiAnnunciatorNumType SaHpiUint32Type 
-extern cMarshalType SaHpiNameType;
-extern cMarshalType SaHpiConditionType;
-extern cMarshalType SaHpiAnnouncementType;
-#define SaHpiAnnunciatorModeType SaHpiUint32Type 
-
-// annunciator resource data records
-extern cMarshalType SaHpiAnnunciatorRecType;
-
-
 // resource data record
 #define SaHpiRdrTypeType SaHpiUint32Type
 extern cMarshalType SaHpiRdrType;
 
 // hot swap
+#define SaHpiHsPowerStateType SaHpiUint32Type
 #define SaHpiHsIndicatorStateType SaHpiUint32Type
 #define SaHpiHsActionType SaHpiUint32Type
 #define SaHpiHsStateType SaHpiUint32Type
 
-// events part 2
-#define SaHpiSeverityType SaHpiUint8Type
-#define SaHpiResourceEventTypeType SaHpiUint32Type
-extern cMarshalType SaHpiResourceEventType;
-#define SaHpiDomainEventTypeType SaHpiUint32Type
-extern cMarshalType SaHpiDomainEventType;
+// events
+#define SaHpiSeverityType SaHpiUint32Type
 #define SaHpiSensorOptionalDataType SaHpiUint8Type
 extern cMarshalType SaHpiSensorEventType;
-#define SaHpiSensorEnableOptDataType SaHpiUint8Type
-extern cMarshalType SaHpiSensorEnableChangeEventType;
 extern cMarshalType SaHpiHotSwapEventType;
 extern cMarshalType SaHpiWatchdogEventType;
-#define SaHpiSwEventTypeType SaHpiUint32Type
-extern cMarshalType SaHpiSwEventType;
 extern cMarshalType SaHpiOemEventType;
 extern cMarshalType SaHpiUserEventType;
 #define SaHpiEventTypeType SaHpiUint32Type
 extern cMarshalType SaHpiEventType;
-#define SaHpiEvtQueueStatusType SaHpiUint16Type
 
 // param control
 #define SaHpiParmActionType SaHpiUint32Type
@@ -203,33 +186,23 @@ extern cMarshalType SaHpiEventType;
 // reset
 #define SaHpiResetActionType SaHpiUint32Type
 
-// power
-#define SaHpiPowerStateType SaHpiUint32Type
-
 // resource presence table
+extern cMarshalType SaHpiRptInfoType;
+
+// resource info type defs
 extern cMarshalType SaHpiResourceInfoType;
 
 // resource capabilities
 #define SaHpiCapabilitiesType SaHpiUint32Type
 
-// resource hot swap capabilities
-#define SaHpiHsCapabilitiesType SaHpiUint32Type
-
 // rpt entry
 extern cMarshalType SaHpiRptEntryType;
 
-// domains
-#define SaHpiDomainCapabilitiesType SaHpiUint32Type
-extern cMarshalType SaHpiDomainInfoType;
-extern cMarshalType SaHpiDrtEntryType;
-#define SaHpiAlarmIdType SaHpiUint32Type
-extern cMarshalType SaHpiAlarmType;
-
 // system event log
 #define SaHpiSelOverflowActionType SaHpiUint32Type
-extern cMarshalType SaHpiEventLogInfoType;
-#define SaHpiEventLogEntryIdType SaHpiUint32Type
-extern cMarshalType SaHpiEventLogEntryType;
+extern cMarshalType SaHpiSelInfoType;
+#define SaHpiSelEntryIdType SaHpiUint32Type
+extern cMarshalType SaHpiSelEntryType;
 
 
 #ifdef __cplusplus

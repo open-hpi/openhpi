@@ -11,13 +11,13 @@
  *
  * Authors:
  *     Renier Morales <renierm@users.sf.net>
+ *
  */
 
-#include <glib.h>
-#include <string.h>
-
 #include <SaHpi.h>
-#include <oh_utils.h>
+#include <string.h>
+#include <glib.h>
+#include <rpt_utils.h>
 #include <rpt_resources.h>
 
 /**
@@ -30,7 +30,6 @@
 int main(int argc, char **argv)
 {
         RPTable *rptable = (RPTable *)g_malloc0(sizeof(RPTable));
-        oh_init_rpt(rptable);
 
         if (oh_add_resource(rptable, rptentries, NULL, 0))
                 return 1;

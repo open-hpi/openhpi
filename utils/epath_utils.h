@@ -15,24 +15,17 @@
  *      Chris Chia <cchia@users.sf.net>
  */
 
-#ifndef __EPATH_UTILS_H
-#define __EPATH_UTILS_H
-
-#ifndef __OH_UTILS_H
-#warning *** Include oh_utils.h instead of individual utility header files ***
-#endif
+#ifndef EPATH_UTILS_H
+#define EPATH_UTILS_H
 
 #include <glib.h>
 #include <SaHpi.h>
 
-/* Character for blanking out normalized strings based on entity path */
-#define OH_DERIVE_BLANK_CHAR 'x'
-#define OH_DERIVE_BLANK_STR "x"
-
 /* Max number of digits an enitity instance has */
-#define OH_MAX_LOCATION_DIGITS 6
+#define MAX_INSTANCE_DIGITS 6
 
 /* Defines to manipulate eshort_names, which is a mirrors SaHpiEntityTypeT */
+#define ESHORTNAMES_ARRAY_SIZE 61
 #define ELEMENTS_IN_SaHpiEntityT 2
 #define EPATHSTRING_START_DELIMITER "{"
 #define EPATHSTRING_START_DELIMITER_CHAR '{'
@@ -61,13 +54,11 @@ int ep_concat(SaHpiEntityPathT *dest, const SaHpiEntityPathT *append);
 
 int validate_ep(const SaHpiEntityPathT *ep);
 
-int set_ep_instance(SaHpiEntityPathT *ep, SaHpiEntityTypeT et, SaHpiEntityLocationT ei);
+int set_ep_instance(SaHpiEntityPathT *ep, SaHpiEntityTypeT et, SaHpiEntityInstanceT ei);
 
 int ep_cmp(const SaHpiEntityPathT *ep1, const SaHpiEntityPathT *ep2);
 
 int print_ep(const SaHpiEntityPathT *ep);
-
-gchar * oh_derive_string(SaHpiEntityPathT *ep, const gchar *str);
 
 #ifdef __cplusplus
 }

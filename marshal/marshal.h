@@ -12,7 +12,6 @@
  *
  * Authors:
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
- *     W. David Ashley <dashley@us.ibm.com.com>
  */
 
 #ifndef dMarshal_h

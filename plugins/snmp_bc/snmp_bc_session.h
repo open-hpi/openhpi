@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2003, 2004
+ * (C) Copyright IBM Corp. 2003
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -9,17 +9,22 @@
  * the Copying file included with the OpenHPI distribution for
  * full licensing terms.
  *
- * Author(s):
+ * Authors:
  *      Renier Morales <renierm@users.sf.net>
- *      Steve Sherman <stevees@us.ibm.com>
+ *
  */
 
-#ifndef __SNMP_BC_SESSION_H
-#define __SNMP_BC_SESSION_H
+#ifndef SNMP_BC_SESSION_H
+#define SNMP_BC_SESSION_H
+
+#include <SaHpi.h>
+#include <openhpi.h>
+#include <snmp_util.h>
 
 /**
- * This handle is unique per instance of this plugin. SNMP session data is 
- * stored in the handle along with config file data.
+ * This handle will be unique per instance of
+ * this plugin. SNMP session data is stored
+ * in the handle along with config file data.
  **/
 
 void *snmp_bc_open(GHashTable *handler_config);

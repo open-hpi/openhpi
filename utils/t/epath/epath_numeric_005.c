@@ -18,17 +18,18 @@
 #include <string.h>
 
 #include <SaHpi.h>
-#include <oh_utils.h>
+#include <openhpi.h>
+#include <epath_utils.h>
 
 int main (int argc, char **argv) {
-        SaHpiEntityPathT  ep;
-        const int MAX_STRING_SIZE = 512;
-        gchar test_string[MAX_STRING_SIZE];
-        gchar returned_string[MAX_STRING_SIZE];
-        int   err;
+	SaHpiEntityPathT  ep;
+	const int MAX_STRING_SIZE = 512;
+	gchar test_string[MAX_STRING_SIZE];
+	gchar returned_string[MAX_STRING_SIZE];
+	int   err;
 
-        snprintf( test_string, MAX_STRING_SIZE, "{%d,13}", SAHPI_ENT_ROOT_VALUE*2);
-        
+        sprintf( test_string, "{%d,13}", SAHPI_ENT_SUBBOARD_CARRIER_BLADE + 1 );
+
 	err = string2entitypath(test_string, &ep);
 	if (err)
 		return 1;

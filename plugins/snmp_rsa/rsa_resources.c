@@ -43,7 +43,7 @@ struct snmp_rpt snmp_rsa_rpt_array[] = {
                                 .Entry[0] =
                                 {
                                         .EntityType = SAHPI_ENT_ROOT,
-                                        .EntityLocation = 0
+                                        .EntityInstance = 0
                                 }
                         },
                         .ResourceCapabilities = SAHPI_CAPABILITY_CONTROL |
@@ -76,11 +76,11 @@ struct snmp_rpt snmp_rsa_rpt_array[] = {
                                 .Entry[0] = 
 				{
                                         .EntityType = SAHPI_ENT_PROCESSOR,
-                                        .EntityLocation = RSA_HPI_INSTANCE_BASE
+                                        .EntityInstance = RSA_HPI_INSTANCE_BASE
                                 },
                                 {
                                         .EntityType = SAHPI_ENT_ROOT,
-                                        .EntityLocation = 0
+                                        .EntityInstance = 0
                                 }
 			},
                         .ResourceCapabilities = SAHPI_CAPABILITY_INVENTORY_DATA |
@@ -111,11 +111,11 @@ struct snmp_rpt snmp_rsa_rpt_array[] = {
                                 .Entry[0] = 
 				{
                                         .EntityType = SAHPI_ENT_DISK_BAY,
-                                        .EntityLocation = RSA_HPI_INSTANCE_BASE
+                                        .EntityInstance = RSA_HPI_INSTANCE_BASE
                                 },
                                 {
                                         .EntityType = SAHPI_ENT_ROOT,
-                                        .EntityLocation = 0
+                                        .EntityInstance = 0
                                 }
 			},
                         .ResourceCapabilities = SAHPI_CAPABILITY_INVENTORY_DATA |
@@ -146,11 +146,11 @@ struct snmp_rpt snmp_rsa_rpt_array[] = {
                                 .Entry[0] =
                                 {
 				        .EntityType = SAHPI_ENT_FAN,
-			                .EntityLocation = RSA_HPI_INSTANCE_BASE
+			                .EntityInstance = RSA_HPI_INSTANCE_BASE
 				},
                                 {
                                         .EntityType = SAHPI_ENT_ROOT,
-                                        .EntityLocation = 0
+                                        .EntityInstance = 0
                                 }
 			},
                         .ResourceCapabilities = SAHPI_CAPABILITY_EVT_DEASSERTS |

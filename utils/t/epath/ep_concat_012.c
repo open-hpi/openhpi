@@ -11,13 +11,13 @@
  *
  * Authors:
  *     Chris Chia <cchia@users.sf.net>
+ *
  */
 
 #include <string.h>
 #include <stdio.h>
-
 #include <SaHpi.h>
-#include <oh_utils.h>
+#include <epath_utils.h>
 
 /**
  * ep_concat test12.
@@ -39,7 +39,7 @@ int main(int argc, char **argv)
                                  {SAHPI_ENT_SUBRACK,10},
                                  {SAHPI_ENT_COMPACTPCI_CHASSIS,11},
                                  {SAHPI_ENT_ADVANCEDTCA_CHASSIS,12},
-                                 {SAHPI_ENT_PHYSICAL_SLOT,13},
+                                 {SAHPI_ENT_SYSTEM_SLOT,13},
                                  {SAHPI_ENT_SBC_BLADE,14},
                                  {SAHPI_ENT_IO_BLADE,15},
                                  {SAHPI_ENT_ROOT,0}}};
@@ -56,7 +56,7 @@ int main(int argc, char **argv)
                                  {SAHPI_ENT_SUBRACK,10},
                                  {SAHPI_ENT_COMPACTPCI_CHASSIS,11},
                                  {SAHPI_ENT_ADVANCEDTCA_CHASSIS,12},
-                                 {SAHPI_ENT_PHYSICAL_SLOT,13},
+                                 {SAHPI_ENT_SYSTEM_SLOT,13},
                                  {SAHPI_ENT_SBC_BLADE,14},
                                  {SAHPI_ENT_IO_BLADE,15},
                                  {SAHPI_ENT_ROOT,0}}};

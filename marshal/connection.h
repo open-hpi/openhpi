@@ -1,5 +1,5 @@
 /*
- * socket and message handling 
+ * socket and message  handling 
  *
  * Copyright (c) 2004 by FORCE Computers.
  *
@@ -23,171 +23,89 @@ extern "C" {
 #endif
 
 
-#include <netdb.h> 
-
-// common errors codes
-typedef enum
-{
-  eConnectionOk,
-  eConnectionNew,
-  eConnectionDuplicate,
-  eConnectionError,
-} tConnectionError;
-
 // current version
 #define dMhVersion 1
 
-#define dMhGetVersion(flags) (((flags)>>4) & 0x7)
-
-// message flags
 #define dMhEndianBit 1
 
-#define dMhRequest   0
-#define dMhReply     2
-
-#define dMhSingle    0
-#define dMhFirst     1
-#define dMhMiddle    2
-#define dMhLast      3
-
-#define dMhGetPackageType(flags) (((flags) >> 2) & 3)
 
 // cMessageHeader::m_type
 typedef enum
 {
   eMhPing    = 1,
-  eMhReset   = 2, // reset seq
-  eMhMsg     = 3,
-  eMhLast    = 4
+  eMhPong    = 2,
+  eMhRequest = 3,
+  eMhReply   = 4,
+  eMhClose   = 5, // connection close
+  eMhError   = 6, // error
 } tMessageType;
 
-int IsMessageType( tMessageType type );
-
-
-// max message length including header
-#define dMaxMessageLength 0xffff
 
 typedef struct
 {
+  unsigned char m_version;
   unsigned char m_type;
-  unsigned char m_flags; // bit 0-3 flags, bit 4-7 version
+  unsigned char m_flags;
   unsigned char m_seq;
-  unsigned char m_seq_in; // != 0 for eMhReply to assign the request
   unsigned int  m_id;
   int           m_len;
 } cMessageHeader;
 
 
-#define IsReplyMsg(header) ((header)->m_flags & dMhReply)
-#define IsRequestMsg(header) (!((header)->m_flags & dMhReply))
-
-
 void MessageHeaderInit( cMessageHeader *header, tMessageType type,
-                        unsigned char flags, unsigned char seq_in,
-                        unsigned int id, unsigned int len );
-
-// sequence number handling
-typedef struct
-{
-  unsigned char  m_inbound_seq_num;
-  unsigned char  m_outbound_seq_num;
-  unsigned int   m_recv_msg_map;
-} cConnectionSeq;
+		   unsigned char seq, unsigned int id,
+		   unsigned int len );
 
 
-void             ConnectionSeqInit ( cConnectionSeq *cs );
-unsigned char    ConnectionSeqGet  ( cConnectionSeq *cs ); // get next seq
-tConnectionError ConnectionSeqCheck( cConnectionSeq *cs, unsigned char seq );
-
-
-// write message
-int ConnectionWriteMsg( int fd, struct sockaddr_in *addr, cMessageHeader *header, 
-                        const void *msg );
-
-// read message
-int ConnectionReadMsg( int fd, struct sockaddr_in *rd_addr, cMessageHeader *header,
-                       void *response );
-
-
-// re-send of messages
-struct sConnectionResendMsg;
-typedef struct sConnectionResendMsg cConnectionResendMsg;
-
-struct sConnectionResendMsg
-{
-  cMessageHeader m_msg;
-  unsigned char *m_data;
-};
-
+#define dDefaultTimeout 500000
 
 typedef struct
 {
-  cConnectionSeq        m_seq;
-  cConnectionResendMsg  m_msg[256];
-  struct sockaddr_in    m_ip_addr;
-  unsigned int          m_send_count; // number of messages send
-  unsigned int          m_received_count; // number of messages received
-} cConnectionResend;
-
-
-void             ConnectionResendInit     ( cConnectionResend *rs,
-                                           const struct sockaddr_in ip_addr );
-void             ConnectionResendCleanup  ( cConnectionResend *rs );
-int              ConnectionResendWriteMsg ( cConnectionResend *rs, int fd,
-                                            cMessageHeader *header, const void *msg );
-tConnectionError ConnectionResendHandleMsg( cConnectionResend *rs, int fd,
-                                            cMessageHeader *header, const void *response );
-
-
-// client
-
-typedef struct
-{
-  cConnectionResend m_resend;
-  int               m_fd;
+  int           m_fd;
+  unsigned int  m_timeout;
+  unsigned char m_seq;
 } cClientConnection;
 
 
-cClientConnection *ClientOpen    ( const char *host, int host_port );
-void               ClientClose   ( cClientConnection *c );
-int                ClientWriteMsg( cClientConnection *c,
-                                   cMessageHeader *header,
-                                   const void *request );
-tConnectionError   ClientReadMsg ( cClientConnection *c,
-                                   cMessageHeader *header,
-                                   void *response );
+cClientConnection *ClientConnectionOpen( const char *host, int host_port );
+void               ClientConnectionClose( cClientConnection *c );
 
-
-// server
-struct sServerConnection;
-typedef struct sServerConnection cServerConnection;
+int ClientConnectionWriteMsg( cClientConnection *c,
+			      cMessageHeader *header, const void *request,
+			      cMessageHeader *h, void **response );
 
 typedef struct
 {
-  int                m_fd;
-  cServerConnection *m_first;
-} cServerSocket;
+  int m_fd;
+  int m_num_connections;
+} cServerConnectionMain;
 
 
-struct sServerConnection
+typedef struct
 {
-  cServerConnection *m_next;
-  cServerSocket     *m_socket;
-  cConnectionResend  m_resend;
-  void              *m_user_data;
-};
+  cServerConnectionMain *m_main;
+  int                    m_fd;
+} cServerConnection;
 
 
-cServerSocket   *ServerOpen         ( int port );
-void             ServerClose        ( cServerSocket *s );
-void             ServerConnectionRem( cServerConnection *c );
-int              ServerWriteMsg     ( cServerConnection *c,
-                                      cMessageHeader *header,
-                                      const void *request );
-tConnectionError ServerReadMsg      ( cServerSocket *c,
-                                      cServerConnection **con,
-                                      cMessageHeader *header,
-                                      void *response );
+cServerConnectionMain *ServerConnectionMainOpen  ( int port );
+void                   ServerConnectionMainClose ( cServerConnectionMain *c );
+cServerConnection     *ServerConnectionMainAccept( cServerConnectionMain *c );
+void                   ServerConnectionClose     ( cServerConnection *c );
+
+
+int ConnectionRead ( int fd, void *data, unsigned int len );
+int ConnectionWrite( int fd, const void *data, unsigned int len );
+int ConnectionWait ( int fd, unsigned int timeout_ms );
+
+int ConnectionReadHeader( int fd, cMessageHeader *header );
+int ConnectionWriteHeader( int fd, cMessageHeader *header );
+
+int ConnectionReadMsg( int fd, cMessageHeader *header, 
+                       void **response,
+                       unsigned int timeout_ms );
+int ConnectionWriteMsg( int fd, cMessageHeader *header, 
+                        const void *msg );
 
 
 #ifdef __cplusplus

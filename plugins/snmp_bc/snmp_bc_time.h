@@ -1,6 +1,7 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2003, 2004
+ *
+ * (C) Copyright IBM Corp. 2003
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -9,12 +10,16 @@
  * the Copying file included with the OpenHPI distribution for
  * full licensing terms.
  *
- * Author(s):
- *      Peter Phan  <pdphan@users.sf.net>
+ *
+ * Authors:
+ *      peter d phan   <pdphan@users.sf.net>
+ *      
+ * Logs:
+ *	 Duplicate enums from IBM Blade Center
  */
 
-#ifndef __SNMP_BC_TIME_H
-#define __SNMP_BC_TIME_H
+#ifndef SNMP_BC_TIME_H
+#define SNMP_BC_TIME_H
 
 /*                                                                 
  * Set timezone constants
@@ -91,12 +96,11 @@ typedef struct tag_DST_ENTRY {
  * Function Prototyping
  */
  
-
+int set_bc_dst(struct oh_handler_state *, struct tm *);
 gboolean is_dst_in_effect(struct tm *, gchar **);
 gboolean is_leap_year(guchar );
 guchar   get_day_of_month(guchar, guchar, guchar, guchar);
-SaErrorT snmp_bc_set_dst(struct oh_handler_state *, struct tm *);
-SaErrorT snmp_bc_set_sp_time(struct snmp_session *, struct tm *);
-SaErrorT snmp_bc_get_sp_time(struct oh_handler_state *, struct tm *);
+int set_bc_sp_time(struct snmp_session *, struct tm *);
+int get_bc_sp_time(struct oh_handler_state *, struct tm *);
 
 #endif

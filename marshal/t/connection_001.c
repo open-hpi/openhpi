@@ -13,6 +13,7 @@
  */
 
 #include "connection.h"
+#include "marshal.h"
 #include <unistd.h>
 #include <string.h>
 
@@ -20,120 +21,62 @@
 #define dTestPort 4718
 
 
-static int
-cmp_header( cMessageHeader *h1, cMessageHeader *h2 )
-{
-  if ( h1->m_type != h2->m_type )
-       return 1;
-
-  if ( h1->m_flags != h2->m_flags )
-       return 1;
-
-  if ( h1->m_seq != h2->m_seq )
-       return 1;
-
-  if ( h1->m_seq_in != h2->m_seq_in )
-       return 1;
-
-  if ( h1-> m_id != h2-> m_id )
-       return 1;
-
-  if ( h1->m_len != h2->m_len )
-       return 1;
-
-  return 0;
-}
-
-
 int
 main( int argc, char *argv[] )
 {
   int rt = 1;
 
-  cServerSocket *mc = ServerOpen( dTestPort );
+  cServerConnectionMain *mc = ServerConnectionMainOpen( dTestPort );
 
   if ( mc == 0 )
        goto fail1;
 
-  cClientConnection *cc = ClientOpen( "localhost", dTestPort );
+  cClientConnection *cc = ClientConnectionOpen( "localhost", dTestPort );
 
   if ( cc == 0 )
        goto fail2;
 
-  cServerConnection *sc = 0;
+  int rv = ConnectionWait( mc->m_fd, 1000 );
 
-  // send messages
-  int i;
+  if ( rv )
+       goto fail2;
 
-  for( i = 0; i < 1000; i++ )
-     {
-       cMessageHeader request;
-       MessageHeaderInit( &request, eMhMsg, dMhRequest, 0, i, 0 );
+  cServerConnection *sc = ServerConnectionMainAccept( mc );
 
-       if ( ClientWriteMsg( cc, &request, 0 ) )
-            goto fail3;
+  if ( sc == 0 )
+       goto fail3;
 
-       // read message
-       cMessageHeader req;
-       unsigned char  req_data[256];
-       tConnectionError mr = ServerReadMsg( mc, &sc, &req, req_data );
+  cMessageHeader h;
+  MessageHeaderInit( &h, eMhRequest, 47, 1234, 98 );
+  rv = ConnectionWriteHeader( cc->m_fd, &h );
 
-       if ( i == 0 )
-          {
-            if ( mr != eConnectionNew )
-                 goto fail3;
-          }
-       else if ( mr != eConnectionOk )
-            goto fail3;
+  if ( rv )
+       goto fail4;
 
-       if ( cmp_header( &request, &req ) )
-            goto fail3;
+  cMessageHeader header;
+  rv = ConnectionReadHeader( sc->m_fd, &header );
 
-       // send reply
-       cMessageHeader reply;
-       MessageHeaderInit( &reply, eMhMsg, dMhReply, request.m_seq, i, 0 );
+  if ( rv )
+       goto fail4;
 
-       if ( ServerWriteMsg( sc, &reply, 0 ) )
-            goto fail3;
-
-       // read reply
-       cMessageHeader rep;
-       unsigned char  rep_data[256];
-       mr = ClientReadMsg( cc, &rep, rep_data );
-
-       if ( mr != eConnectionOk )
-            goto fail3;
-
-       if ( cmp_header( &reply, &rep ) )
-            goto fail3;
-
-       // send the same request again
-       if ( ConnectionWriteMsg( cc->m_fd, &cc->m_resend.m_ip_addr, &request, 0 ) )
-            goto fail3;
-
-       // read response
-       mr = ServerReadMsg( mc, &sc, &req, req_data );
-
-       if ( mr != eConnectionDuplicate )
-            goto fail3;
-
-       // read the duplicated response
-       mr = ClientReadMsg( cc, &rep, rep_data );
-
-       if ( mr != eConnectionDuplicate )
-            goto fail3;
-
-       if ( cmp_header( &reply, &rep ) )
-            goto fail3;
-     }
+  if (    header.m_version != dMhVersion
+       || header.m_type    != eMhRequest
+       || header.m_flags   != MarshalByteOrder()
+       || header.m_seq     != 47
+       || header.m_id      != 1234
+       || header.m_len     != 98 )
+       goto fail4;
 
   rt = 0;
 
+fail4:
+  ServerConnectionClose( sc );
+
 fail3:
-  ClientClose( cc );
+  ClientConnectionClose( cc );
 
 fail2:
-  ServerClose( mc );
+  ServerConnectionMainClose( mc );
 
 fail1:
   return rt;

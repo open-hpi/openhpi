@@ -11,49 +11,40 @@
  *
  * Author(s):
  *      Renier Morales <renierm@users.sf.net>
- *      Steve Sherman <stevees@us.ibm.com>
  */
 
-#ifndef __SNMP_BC_H
-#define __SNMP_BC_H
+#ifndef SNMP_BC_H
+#define SNMP_BC_H
 
-#define SNMP_BC_MAX_SNMP_RETRY_ATTEMPTED  5
+#define MAX_RETRY_ATTEMPTED  5
 
-/* This handle is unique per instance of this plugin. 
- * SNMP session data is stored in the handle along with config file data. */
+/**
+ * This handle will be unique per instance of this plugin. 
+ * SNMP session data is stored in the handle along with config file data.
+ **/
+
 struct snmp_bc_hnd {
         struct snmp_session session;
         struct snmp_session *ss; 	/* SNMP Session pointer */
-	GHashTable *event2hpi_hash_ptr; /* Global "Event Number to HPI Event" hash table */
-	int   platform;
-	char  handler_timezone[10];
-        int   handler_retries;          /* Number of retries attempted on SNMP target (client) */
-	RPTable *tmpcache;
-	GSList *tmpqueue;
+	GHashTable *event2hpi_hash_ptr; /* Global BC Event Number to HPI Event Hash Table */
+	char    bc_type[4];
+	char handler_timezone[10];
+        int     handler_retries;        /* number of retries attempted on snmp target (client) */
 };
 
+/**
+ * 
+ *
+ **/
 SaErrorT snmp_bc_snmp_get(struct snmp_bc_hnd *custom_handle,
+                          struct snmp_session *ss,
                           const char *objid,
                           struct snmp_value *value);
 
 SaErrorT snmp_bc_snmp_set(struct snmp_bc_hnd *custom_handle,
+                          struct snmp_session *ss,
                           char *objid,
                           struct snmp_value value);
-			  
-SaErrorT snmp_bc_get_event(void *hnd,
-			   struct oh_event *event);
-			   
-SaErrorT snmp_bc_set_resource_tag(void *hnd,
-				  SaHpiResourceIdT rid,
-				  SaHpiTextBufferT *tag);
-				  
-SaErrorT snmp_bc_set_resource_severity(void *hnd,
-					SaHpiResourceIdT rid,
-					SaHpiSeverityT sev);
-					
-SaErrorT snmp_bc_control_parm(void *hnd,
-				SaHpiResourceIdT rid,
-				SaHpiParmActionT act);
 
-			  
+
 #endif

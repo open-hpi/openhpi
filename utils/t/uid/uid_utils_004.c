@@ -11,12 +11,13 @@
  *
  * Authors:
  *     Renier Morales <renierm@users.sf.net>
+ *
  */
 
-#include <glib.h>
-
 #include <SaHpi.h>
-#include <oh_utils.h>
+#include <glib.h>
+#include <uid_utils.h>
+#include <epath_utils.h>
 
 /**
  * main: Get 10 new unique ids. Remove two. Look up removed ids by ep.
@@ -36,7 +37,7 @@ int main(int argc, char **argv)
 	ep_init(&ep);
 
         for (i = 0; i < 10; i++) {
-                ep.Entry[0].EntityLocation = i;
+                ep.Entry[0].EntityInstance = i;
                 id[i] = oh_uid_from_entity_path(&ep);
         }
 
@@ -46,11 +47,11 @@ int main(int argc, char **argv)
         if (oh_uid_remove(id[4]))
                 return 1;
 
-        ep.Entry[0].EntityLocation = 9;
+        ep.Entry[0].EntityInstance = 9;
         if (oh_uid_lookup(&ep))
                 return 1;
 
-        ep.Entry[0].EntityLocation = 4;
+        ep.Entry[0].EntityInstance = 4;
         if (oh_uid_lookup(&ep))
                 return 1;
 

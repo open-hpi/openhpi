@@ -22,9 +22,8 @@
 #include <time.h>
 #include <getopt.h>
 #include <stdarg.h>
-
-#include <SaHpi.h>
-#include <oh_utils.h>
+#include "SaHpi.h"
+#include <ecode_utils.h>
 
 
 static int
@@ -105,7 +104,7 @@ main( int argc, char *argv[] )
 
   if ( rv != SA_OK )
      {
-       fprintf( stderr, "saHpiInitialize: %s\n", oh_lookup_error( rv ) );
+       fprintf( stderr, "saHpiInitialize: %s\n",decode_error( rv ) );
        return 1;
      }
 
@@ -114,7 +113,7 @@ main( int argc, char *argv[] )
 
   if ( rv != SA_OK )
      {
-       printf( "saHpiSessionOpen: %s\n", oh_lookup_error( rv ) );
+       printf( "saHpiSessionOpen: %s\n", decode_error( rv ) );
        return 1;
      }
 
@@ -124,7 +123,7 @@ main( int argc, char *argv[] )
 
   if ( rv != SA_OK )
      {
-       printf( "saHpiResourcesDiscover: %s\n", oh_lookup_error( rv ) );
+       printf( "saHpiResourcesDiscover: %s\n", decode_error( rv ) );
        return 1;
      }
 
@@ -132,7 +131,7 @@ main( int argc, char *argv[] )
 
   if ( rv != SA_OK )
      {
-       printf( "saHpiSubscribe: %s\n", oh_lookup_error( rv ) );
+       printf( "saHpiSubscribe: %s\n", decode_error( rv ) );
        return 1;
      }
 
@@ -160,23 +159,23 @@ main( int argc, char *argv[] )
        if ( rv == SA_ERR_HPI_TIMEOUT )
 	    Log( "saHpiEventGet: timeout" );
        else if ( rv != SA_OK )
-	    Log( "saHpiEventGet: %s", oh_lookup_error( rv ) );
+	    Log( "saHpiEventGet: %s", decode_error( rv ) );
        else
 	    Log( "saHpiEventGet: read event" );
      }
 
   rv = saHpiUnsubscribe( sessionid );
-       printf( "saHpiUnsubscribe: %s\n", oh_lookup_error( rv ) );
+       printf( "saHpiUnsubscribe: %s\n", decode_error( rv ) );
 
   rv = saHpiSessionClose( sessionid );
 
   if ( rv != SA_OK )
-       printf( "saHpiSessionClose: %s\n", oh_lookup_error( rv ) );
+       printf( "saHpiSessionClose: %s\n", decode_error( rv ) );
 
   rv = saHpiFinalize();
 
   if ( rv != SA_OK )
-       printf( "saHpiFinalize: %s\n", oh_lookup_error( rv ) );
+       printf( "saHpiFinalize: %s\n", decode_error( rv ) );
 
   return 0;
 }

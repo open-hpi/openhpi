@@ -13,7 +13,6 @@
  *     Andy Cress <arcress@users.sourceforge.net>
  * Changes:
  * 03/15/04 Andy Cress - v1.0 added strings for use & actions in show_wdt
- * 10/13/04  kouzmich  - porting to HPI B
  */
 
 /* This tool reads and enables the watchdog timer via HPI.
@@ -68,8 +67,9 @@ main(int argc, char **argv)
 {
   int c;
   SaErrorT rv;
+  SaHpiVersionT hpiVer;
   SaHpiSessionIdT sessionid;
-  SaHpiDomainInfoT domainInfo;
+  SaHpiRptInfoT rptinfo;
   SaHpiRptEntryT rptentry;
   SaHpiEntryIdT rptentryid;
   SaHpiEntryIdT nextrptentryid;
@@ -109,7 +109,12 @@ main(int argc, char **argv)
      }
   if (t == 0) t = 120;
 
-  rv = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID, &sessionid, NULL);
+  rv = saHpiInitialize(&hpiVer);
+  if (rv != SA_OK) {
+	printf("saHpiInitialize error %d\n",rv);
+	exit(-1);
+	}
+  rv = saHpiSessionOpen(SAHPI_DEFAULT_DOMAIN_ID,&sessionid,NULL);
   if (rv != SA_OK) {
         if (rv == SA_ERR_HPI_ERROR)
            printf("saHpiSessionOpen: error %d, SpiLibd not running\n",rv);
@@ -118,12 +123,12 @@ main(int argc, char **argv)
 	exit(-1);
 	}
  
-  rv = saHpiDiscover(sessionid);
-  if (fdebug) printf("saHpiDiscover rv = %d\n",rv);
-  rv = saHpiDomainInfoGet(sessionid, &domainInfo);
-  if (fdebug) printf("saHpiDomainInfoGet rv = %d\n",rv);
+  rv = saHpiResourcesDiscover(sessionid);
+  if (fdebug) printf("saHpiResourcesDiscover rv = %d\n",rv);
+  rv = saHpiRptInfoGet(sessionid,&rptinfo);
+  if (fdebug) printf("saHpiRptInfoGet rv = %d\n",rv);
   printf("RptInfo: UpdateCount = %x, UpdateTime = %lx\n",
-         domainInfo.RptUpdateCount, (unsigned long)domainInfo.RptUpdateTimestamp);
+         rptinfo.UpdateCount, (unsigned long)rptinfo.UpdateTimestamp);
  
   /* walk the RPT list */
   rptentryid = SAHPI_FIRST_ENTRY;
@@ -137,8 +142,12 @@ main(int argc, char **argv)
 	rptentry.ResourceTag.Data[rptentry.ResourceTag.DataLength] = 0;
 	printf("rptentry[%d] resourceid=%d tag: %s\n",
 		rptentryid, resourceid, rptentry.ResourceTag.Data);
-
-	wdnum = SAHPI_DEFAULT_WATCHDOG_NUM;
+	/*
+	 * The definition for SAHPI_DEFAULT_WATCHDOG_NUM is broken,
+	 * so we are assigning wdnum to 0x00 which is what SaHpi.h
+	 * attempted to set the default as.
+	 */
+	wdnum = (SaHpiWatchdogNumT)0x00;
 
 	rv = saHpiWatchdogTimerGet(sessionid,resourceid,wdnum,&wdt);
 	if (fdebug) 
@@ -149,9 +158,9 @@ main(int argc, char **argv)
 	   printf("Disabling watchdog timer ...\n");
 	   /* clear FRB2, timeout back to 120 sec */
 	   /* TODO: add setting wdt values here */
-	   wdt.TimerUse = SAHPI_WTU_NONE;    /* 1=FRB2 2=POST 3=OSLoad 4=SMS_OS 5=OEM */
-	   wdt.TimerAction = SAHPI_WAE_NO_ACTION; /* 0=none 1=reset 2=powerdown 3=powercycle */
-	   wdt.PretimerInterrupt = SAHPI_WPI_NONE; /* 0=none 1=SMI 2=NMI 3=message */
+	   wdt.TimerUse = 1;    /* 1=FRB2 2=POST 3=OSLoad 4=SMS_OS 5=OEM */
+	   wdt.TimerAction = 0; /* 0=none 1=reset 2=powerdown 3=powercycle */
+	   wdt.PretimerInterrupt = 0; /* 0=none 1=SMI 2=NMI 3=message */
 	   wdt.PreTimeoutInterval = 60000; /*msec*/
 	   wdt.InitialCount = 120000; /*msec*/
 	   wdt.PresentCount = 120000; /*msec*/
@@ -163,9 +172,10 @@ main(int argc, char **argv)
 	   printf("Enabling watchdog timer ...\n");
 	   /* hard reset action, no pretimeout, clear SMS/OS when done */
 	   /* use t for timeout */
-	   wdt.TimerUse = SAHPI_WTU_SMS_OS;    /* 1=FRB2 2=POST 3=OSLoad 4=SMS_OS 5=OEM */
-	   wdt.TimerAction = SAHPI_WAE_RESET; /* 0=none 1=reset 2=powerdown 3=powercycle */
-	   wdt.PretimerInterrupt = SAHPI_WPI_NMI; /* 0=none 1=SMI 2=NMI 3=message */
+	   /* TODO: add setting wdt values here */
+	   wdt.TimerUse = 4;    /* 1=FRB2 2=POST 3=OSLoad 4=SMS_OS 5=OEM */
+	   wdt.TimerAction = 1; /* 0=none 1=reset 2=powerdown 3=powercycle */
+	   wdt.PretimerInterrupt = 2; /* 0=none 1=SMI 2=NMI 3=message */
 	   wdt.PreTimeoutInterval = (t / 2) * 1000; /*msec*/
 	   wdt.InitialCount = t * 1000; /*msec*/
 	   wdt.PresentCount = t * 1000; /*msec*/
@@ -184,7 +194,9 @@ main(int argc, char **argv)
   }  /*end while loop*/
  
   rv = saHpiSessionClose(sessionid);
+  rv = saHpiFinalize();
 
+  exit(0);
   return(0);
 }
  

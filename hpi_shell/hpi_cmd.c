@@ -456,7 +456,7 @@ restart:
    printf("Command> ");
 
    rv = pthread_create(&discover_thread, NULL, sahpi_discover_thread,
-		      (void *)sessionid);
+		      (void *)(unsigned long)sessionid);
 
    if (rv)
      printf("Error creating event thread\n");
@@ -522,13 +522,15 @@ restart:
    exit(0);
 }
 
-void *sahpi_discover_thread(void *sessionid)
+void *sahpi_discover_thread(void *_sessionid)
 {
 	int rv;
 	struct timeval to;
 
+	SaHpiSessionIdT sessionid = (unsigned long)_sessionid;
+
 	while (thread == 1) {
-		rv = saHpiResourcesDiscover((SaHpiSessionIdT) sessionid);
+		rv = saHpiResourcesDiscover(sessionid);
 		if (rv != SA_OK)
 			printf("discovery failed\n");
 

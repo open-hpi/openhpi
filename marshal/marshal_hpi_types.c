@@ -12,7 +12,6 @@
  *
  * Authors:
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
- *     W. David Ashley <dashley@us.ibm.com.com>
  */
 
 #include "marshal_hpi_types.h"
@@ -24,6 +23,7 @@
 
 // text buffer
 static cMarshalType SaHpiTextBufferDataArray = dVarArray( SaHpiUint8Type, 2 );
+
 
 static cMarshalType SaHpiTextBufferElements[] =
 {
@@ -41,7 +41,7 @@ cMarshalType SaHpiTextBufferType = dStruct( SaHpiTextBufferT, SaHpiTextBufferEle
 static cMarshalType SaHpiEntityElements[] =
 {
   dStructElement( SaHpiEntityT, EntityType, SaHpiEntityTypeType ),
-  dStructElement( SaHpiEntityT, EntityLocation, SaHpiEntityLocationType ),
+  dStructElement( SaHpiEntityT, EntityInstance, SaHpiEntityInstanceType ),
   dStructElementEnd()
 };
 
@@ -49,7 +49,6 @@ cMarshalType SaHpiEntityType = dStruct( SaHpiEntityT, SaHpiEntityElements );
 
 // entity path
 static cMarshalType SaHpiEntityPathEntryArray = dArray( SaHpiEntityType, SAHPI_MAX_ENTITY_PATH );
-
 
 static cMarshalType SaHpiEntityPathElements[] =
 {
@@ -62,33 +61,67 @@ cMarshalType SaHpiEntityPathType = dStruct( SaHpiEntityPathT, SaHpiEntityPathEle
 
 // sensors
 static cMarshalType SaHpiSensorInterpretedUnionBufferArray = dArray( SaHpiUint8Type, SAHPI_SENSOR_BUFFER_LENGTH );
-
-static cMarshalType SaHpiSensorReadingUnionElements[] =
+static cMarshalType SaHpiSensorInterpretedUnionElements[] =
 {
-  dUnionElement( SAHPI_SENSOR_READING_TYPE_INT64,   SaHpiInt64Type ),
-  dUnionElement( SAHPI_SENSOR_READING_TYPE_UINT64,  SaHpiUint64Type ),
-  dUnionElement( SAHPI_SENSOR_READING_TYPE_FLOAT64, SaHpiFloat64Type ),
-  dUnionElement( SAHPI_SENSOR_READING_TYPE_BUFFER , SaHpiSensorInterpretedUnionBufferArray ),
+  dUnionElement( SAHPI_SENSOR_INTERPRETED_TYPE_UINT8  , SaHpiUint8Type ),
+  dUnionElement( SAHPI_SENSOR_INTERPRETED_TYPE_UINT16 , SaHpiUint16Type ),
+  dUnionElement( SAHPI_SENSOR_INTERPRETED_TYPE_UINT32 , SaHpiUint32Type ),
+  dUnionElement( SAHPI_SENSOR_INTERPRETED_TYPE_INT8   , SaHpiInt8Type ),
+  dUnionElement( SAHPI_SENSOR_INTERPRETED_TYPE_INT16  , SaHpiInt16Type ),
+  dUnionElement( SAHPI_SENSOR_INTERPRETED_TYPE_INT32  , SaHpiInt32Type ),
+  dUnionElement( SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32, SaHpiFloat32Type ),
+  dUnionElement( SAHPI_SENSOR_INTERPRETED_TYPE_BUFFER , SaHpiSensorInterpretedUnionBufferArray ),
   dUnionElementEnd()
 };
 
-static cMarshalType SaHpiSensorReadingUnionType = dUnion( 0, 
-							  SaHpiSensorReadingUnionT, 
-                                                          SaHpiSensorReadingUnionElements );
+static cMarshalType SaHpiSensorInterpretedUnionType = dUnion( 0, SaHpiSensorInterpretedUnionT, 
+                                                              SaHpiSensorInterpretedUnionElements );
 
-// sensor reading
-static cMarshalType SaHpiSensorReadingTElements[] =
+static cMarshalType SaHpiSensorInterpretedElements[] =
 {
-  dStructElement( SaHpiSensorReadingT, IsSupported, SaHpiBoolType ),
-  dStructElement( SaHpiSensorReadingT, Type, SaHpiSensorReadingUnionType ),
-  dStructElement( SaHpiSensorReadingT, Value, SaHpiSensorReadingUnionType ),
+  dStructElement( SaHpiSensorInterpretedT, Type, SaHpiSensorInterpretedTypeType ),
+  dStructElement( SaHpiSensorInterpretedT, Value, SaHpiSensorInterpretedUnionType ),
   dStructElementEnd()
 };
 
-cMarshalType SaHpiSensorReadingType = dStruct( SaHpiSensorReadingT, SaHpiSensorReadingTElements );
+cMarshalType SaHpiSensorInterpretedType = dStruct( SaHpiSensorInterpretedT, SaHpiSensorInterpretedElements );
 
 
-// sensor threshold values
+// sensor status
+static cMarshalType SaHpiSensorEvtStatusElements[] =
+{
+  dStructElement( SaHpiSensorEvtStatusT, SensorStatus, SaHpiSensorStatusType ),
+  dStructElement( SaHpiSensorEvtStatusT, EventStatus, SaHpiEventStateType ),
+  dStructElementEnd()
+};
+
+
+cMarshalType SaHpiSensorEvtStatusType = dStruct( SaHpiSensorEvtStatusT, SaHpiSensorEvtStatusElements );
+
+
+static cMarshalType SaHpiSensorEvtEnablesElements[] =
+{
+  dStructElement( SaHpiSensorEvtEnablesT, SensorStatus, SaHpiSensorStatusType ),
+  dStructElement( SaHpiSensorEvtEnablesT, AssertEvents, SaHpiEventStateType ),
+  dStructElement( SaHpiSensorEvtEnablesT, DeassertEvents, SaHpiEventStateType ),
+  dStructElementEnd()
+};
+
+cMarshalType SaHpiSensorEvtEnablesType = dStruct( SaHpiSensorEvtEnablesT, SaHpiSensorEvtEnablesElements );
+
+
+// sensor reading
+static cMarshalType SaHpiSensorReadingElements[] =
+{
+  dStructElement( SaHpiSensorReadingT, ValuesPresent, SaHpiSensorReadingFormatsType ),
+  dStructElement( SaHpiSensorReadingT, Raw, SaHpiUint32Type ),
+  dStructElement( SaHpiSensorReadingT, Interpreted, SaHpiSensorInterpretedType ),
+  dStructElement( SaHpiSensorReadingT, EventStatus, SaHpiSensorEvtStatusType ),
+  dStructElementEnd()
+};
+
+cMarshalType SaHpiSensorReadingType = dStruct( SaHpiSensorReadingT, SaHpiSensorReadingElements );
+
 
 static cMarshalType SaHpiSensorThresholdsElements[] =
 {
@@ -106,7 +139,21 @@ static cMarshalType SaHpiSensorThresholdsElements[] =
 cMarshalType SaHpiSensorThresholdsType = dStruct( SaHpiSensorThresholdsT, SaHpiSensorThresholdsElements );
 
 
-// sensor range
+static cMarshalType SaHpiSensorFactorsElements[] =
+{
+  dStructElement( SaHpiSensorFactorsT, M_Factor       , SaHpiInt16Type  ),
+  dStructElement( SaHpiSensorFactorsT, B_Factor       , SaHpiInt16Type  ),
+  dStructElement( SaHpiSensorFactorsT, AccuracyFactor , SaHpiUint16Type ),
+  dStructElement( SaHpiSensorFactorsT, ToleranceFactor, SaHpiUint8Type  ),
+  dStructElement( SaHpiSensorFactorsT, ExpA           , SaHpiUint8Type  ),
+  dStructElement( SaHpiSensorFactorsT, ExpR           , SaHpiInt8Type   ),
+  dStructElement( SaHpiSensorFactorsT, ExpB           , SaHpiInt8Type   ),
+  dStructElement( SaHpiSensorFactorsT, Linearization  , SaHpiSensorLinearizationType ),
+  dStructElementEnd()
+};
+
+cMarshalType SaHpiSensorFactorsType = dStruct( SaHpiSensorFactorsT, SaHpiSensorFactorsElements );
+
 
 static cMarshalType SaHpiSensorRangeElements[] =
 {
@@ -123,51 +170,45 @@ static cMarshalType SaHpiSensorRangeElements[] =
 cMarshalType SaHpiSensorRangeType = dStruct( SaHpiSensorRangeT, SaHpiSensorRangeElements );
 
 
-// sensor units
-
 static cMarshalType SaHpiSensorDataFormatElements[] =
 {
-	dStructElement( SaHpiSensorDataFormatT, IsSupported, SaHpiBoolType ),
-
-	dStructElement( SaHpiSensorDataFormatT, ReadingType, SaHpiReadingTypeType ),
-
-   	dStructElement( SaHpiSensorDataFormatT, BaseUnits, SaHpiSensorUnitsType ),
-	dStructElement( SaHpiSensorDataFormatT, ModifierUnits, SaHpiSensorUnitsType ),
-	dStructElement( SaHpiSensorDataFormatT, ModifierUse, SaHpiSensorModUnitUseType ),
-	dStructElement( SaHpiSensorDataFormatT, Percentage, SaHpiBoolType ),
-        dStructElement( SaHpiSensorDataFormatT, Range, SaHpiSensorRangeType ),
-        dStructElement( SaHpiSensorDataFormatT, AccuracyFactor,SaHpiFloat64Type ),
-
-	dStructElementEnd()
+  dStructElement( SaHpiSensorDataFormatT, ReadingFormats, SaHpiSensorReadingFormatsType ),
+  dStructElement( SaHpiSensorDataFormatT, IsNumeric, SaHpiBoolType ),
+  dStructElement( SaHpiSensorDataFormatT, SignFormat, SaHpiSensorSignFormatType ),
+  dStructElement( SaHpiSensorDataFormatT, BaseUnits, SaHpiSensorUnitsType ),
+  dStructElement( SaHpiSensorDataFormatT, ModifierUnits, SaHpiSensorUnitsType ),
+  dStructElement( SaHpiSensorDataFormatT, ModifierUse, SaHpiSensorModUnitUseType ),
+  dStructElement( SaHpiSensorDataFormatT, FactorsStatic, SaHpiBoolType ),
+  dStructElement( SaHpiSensorDataFormatT, Factors, SaHpiSensorFactorsType ),
+  dStructElement( SaHpiSensorDataFormatT, Percentage, SaHpiBoolType ),
+  dStructElement( SaHpiSensorDataFormatT, Range, SaHpiSensorRangeType ),
+  dStructElementEnd()
 };
 
 cMarshalType SaHpiSensorDataFormatType = dStruct( SaHpiSensorDataFormatT, SaHpiSensorDataFormatElements );
 
 
-// threshold support
-
 static cMarshalType SaHpiSensorThdDefnElements[] =
 {
-  dStructElement( SaHpiSensorThdDefnT, IsAccessible, SaHpiBoolType ),
+  dStructElement( SaHpiSensorThdDefnT, IsThreshold, SaHpiBoolType ),
+  dStructElement( SaHpiSensorThdDefnT, TholdCapabilities, SaHpiSensorThdCapType ),
   dStructElement( SaHpiSensorThdDefnT, ReadThold, SaHpiSensorThdMaskType ),
   dStructElement( SaHpiSensorThdDefnT, WriteThold, SaHpiSensorThdMaskType ),
-  dStructElement( SaHpiSensorThdDefnT, Nonlinear, SaHpiBoolType ),
+  dStructElement( SaHpiSensorThdDefnT, FixedThold, SaHpiSensorThdMaskType ),
   dStructElementEnd()
 };
 
 cMarshalType SaHpiSensorThdDefnType = dStruct( SaHpiSensorThdDefnT, SaHpiSensorThdDefnElements );
 
 
-// sensor record
-
 static cMarshalType SaHpiSensorRecElements[] =
 {
   dStructElement( SaHpiSensorRecT, Num, SaHpiSensorNumType ),
   dStructElement( SaHpiSensorRecT, Type, SaHpiSensorTypeType ),
   dStructElement( SaHpiSensorRecT, Category, SaHpiEventCategoryType ),
-  dStructElement( SaHpiSensorRecT, EnableCtrl,SaHpiBoolType ),
   dStructElement( SaHpiSensorRecT, EventCtrl, SaHpiSensorEventCtrlType ),
   dStructElement( SaHpiSensorRecT, Events, SaHpiEventStateType ),
+  dStructElement( SaHpiSensorRecT, Ignore, SaHpiBoolType ),
   dStructElement( SaHpiSensorRecT, DataFormat, SaHpiSensorDataFormatType ),
   dStructElement( SaHpiSensorRecT, ThresholdDefn, SaHpiSensorThdDefnType ),
   dStructElement( SaHpiSensorRecT, Oem, SaHpiUint32Type ),
@@ -177,10 +218,7 @@ static cMarshalType SaHpiSensorRecElements[] =
 cMarshalType SaHpiSensorRecType = dStruct( SaHpiSensorRecT, SaHpiSensorRecElements );
 
 
-// stream control state
-
 static cMarshalType SaHpiCtrlStateStreamArray = dArray( SaHpiUint8Type, SAHPI_CTRL_MAX_STREAM_LENGTH );
-
 
 static cMarshalType SaHpiCtrlStateStreamElements[] =
 {
@@ -190,10 +228,9 @@ static cMarshalType SaHpiCtrlStateStreamElements[] =
   dStructElementEnd()
 };
 
+
 cMarshalType SaHpiCtrlStateStreamType = dStruct( SaHpiCtrlStateStreamT, SaHpiCtrlStateStreamElements );
 
-
-// text control state
 
 static cMarshalType SaHpiCtrlStateTextElements[] = 
 {
@@ -204,8 +241,6 @@ static cMarshalType SaHpiCtrlStateTextElements[] =
 
 cMarshalType SaHpiCtrlStateTextType = dStruct( SaHpiCtrlStateTextT, SaHpiCtrlStateTextElements );
 
-
-// OEM control state
 
 static cMarshalType SaHpiCtrlStateOemBodyArray = dArray( SaHpiUint8Type, SAHPI_CTRL_MAX_OEM_BODY_LENGTH );
 
@@ -232,7 +267,7 @@ static cMarshalType SaHpiCtrlStateUnionElements[] =
 };
 
 
-static cMarshalType SaHpiCtrlStateUnionType = dUnion( 0, SaHpiCtrlStateUnionT, SaHpiCtrlStateUnionElements );
+cMarshalType SaHpiCtrlStateUnionType = dUnion( 0, SaHpiCtrlStateUnionT, SaHpiCtrlStateUnionElements );
 
 static cMarshalType SaHpiCtrlStateElements[] =
 {
@@ -243,8 +278,6 @@ static cMarshalType SaHpiCtrlStateElements[] =
 
 cMarshalType SaHpiCtrlStateType = dStruct( SaHpiCtrlStateT, SaHpiCtrlStateElements );
 
-
-// control rdr record types
 
 static cMarshalType SaHpiCtrlRecDigitalElements[] =
 {
@@ -312,130 +345,543 @@ cMarshalType SaHpiCtrlRecOemType = dStruct( SaHpiCtrlRecOemT, SaHpiCtrlRecOemEle
 
 static cMarshalType SaHpiCtrlRecUnionElements[] =
 {
-	dUnionElement( SAHPI_CTRL_TYPE_DIGITAL, SaHpiCtrlRecDigitalType ),
-	dUnionElement( SAHPI_CTRL_TYPE_DISCRETE, SaHpiCtrlRecDiscreteType ),
-	dUnionElement( SAHPI_CTRL_TYPE_ANALOG, SaHpiCtrlRecAnalogType ),
-	dUnionElement( SAHPI_CTRL_TYPE_STREAM, SaHpiCtrlRecStreamType ),
-	dUnionElement( SAHPI_CTRL_TYPE_TEXT, SaHpiCtrlRecTextType ),
-	dUnionElement( SAHPI_CTRL_TYPE_OEM, SaHpiCtrlRecOemType ),
-	dUnionElementEnd()
+  dUnionElement( SAHPI_CTRL_TYPE_DIGITAL, SaHpiCtrlRecDigitalType ),
+  dUnionElement( SAHPI_CTRL_TYPE_DISCRETE, SaHpiCtrlRecDiscreteType ),
+  dUnionElement( SAHPI_CTRL_TYPE_ANALOG, SaHpiCtrlRecAnalogType ),
+  dUnionElement( SAHPI_CTRL_TYPE_STREAM, SaHpiCtrlRecStreamType ),
+  dUnionElement( SAHPI_CTRL_TYPE_TEXT, SaHpiCtrlRecTextType ),
+  dUnionElement( SAHPI_CTRL_TYPE_OEM, SaHpiCtrlRecOemType ),
+  dUnionElementEnd()
 };
 
 static cMarshalType SaHpiCtrlRecUnionType = dUnion( 3, SaHpiCtrlRecUnionT, SaHpiCtrlRecUnionElements );
 
-
-// control rdr mode
-
-static cMarshalType SaHpiCtrlDefaultModeElements[] =
-{
-	dStructElement( SaHpiCtrlDefaultModeT, Mode, SaHpiCtrlModeType ),
-	dStructElement( SaHpiCtrlDefaultModeT, ReadOnly, SaHpiBoolType),
-	dStructElementEnd()
-};
-
-cMarshalType SaHpiCtrlDefaultModeType = dStruct( SaHpiCtrlDefaultModeT, SaHpiCtrlDefaultModeElements );
-
-
 static cMarshalType SaHpiCtrlRecElements[] =
 {
-	dStructElement( SaHpiCtrlRecT, Num, SaHpiCtrlNumType ),
-
-	dStructElement( SaHpiCtrlRecT, OutputType, SaHpiCtrlOutputTypeType ),
-	dStructElement( SaHpiCtrlRecT, Type, SaHpiCtrlTypeType ),
-	dStructElement( SaHpiCtrlRecT, TypeUnion, SaHpiCtrlRecUnionType ),
-	dStructElement( SaHpiCtrlRecT, DefaultMode, SaHpiCtrlDefaultModeType ),
-
-	dStructElement( SaHpiCtrlRecT, WriteOnly, SaHpiBoolType ),
-
-	dStructElement( SaHpiCtrlRecT, Oem, SaHpiUint32Type),
-	dStructElementEnd()
+  dStructElement( SaHpiCtrlRecT, Num, SaHpiCtrlNumType ),
+  dStructElement( SaHpiCtrlRecT, Ignore, SaHpiBoolType ),
+  dStructElement( SaHpiCtrlRecT, OutputType, SaHpiCtrlOutputTypeType ),
+  dStructElement( SaHpiCtrlRecT, Type, SaHpiCtrlTypeType ),
+  dStructElement( SaHpiCtrlRecT, TypeUnion, SaHpiCtrlRecUnionType ),
+  dStructElement( SaHpiCtrlRecT, Oem, SaHpiUint32Type),
+  dStructElementEnd()
 };
 
 cMarshalType SaHpiCtrlRecType = dStruct( SaHpiCtrlRecT, SaHpiCtrlRecElements );
 
 
-// entity inventory data
-
-static cMarshalType SaHpiAreaTypeUnionElements[] = 
+// inventory data
+static int
+SaHpiInventInternalUseDataMarshaller( SaHpiUint32T len, 
+				      const SaHpiInventInternalUseDataT *iu,
+				      unsigned char *b )
 {
-  dUnionElement( SAHPI_IDR_AREATYPE_INTERNAL_USE, SaHpiUint8Type ),
-  dUnionElement( SAHPI_IDR_AREATYPE_CHASSIS_INFO, SaHpiUint8Type ),
-  dUnionElement( SAHPI_IDR_AREATYPE_BOARD_INFO, SaHpiUint8Type ),
-  dUnionElement( SAHPI_IDR_AREATYPE_PRODUCT_INFO, SaHpiUint8Type ),
-  dUnionElement( SAHPI_IDR_AREATYPE_OEM, SaHpiUint8Type ),
-  dUnionElement( SAHPI_IDR_AREATYPE_UNSPECIFIED, SaHpiUint8Type ),
-  dUnionElementEnd()
-};
+  memcpy( b, iu->Data, len );
 
-static cMarshalType SaHpiIdrAreaTypeType = dUnion( 0, SaHpiIdrAreaTypeT, SaHpiAreaTypeUnionElements );
+  return len;
+}
 
-static cMarshalType SaHpiIdrFieldTypeUnionElements[] = 
+
+static int
+SaHpiInventGeneralDataMarshaller( const SaHpiInventGeneralDataT *gd,
+				  unsigned char *b )
 {
-  dUnionElement( SAHPI_IDR_FIELDTYPE_CHASSIS_TYPE, SaHpiUint8Type ),
-  dUnionElement( SAHPI_IDR_FIELDTYPE_MFG_DATETIME, SaHpiUint8Type ),
-  dUnionElement( SAHPI_IDR_FIELDTYPE_MANUFACTURER, SaHpiUint8Type ),
-  dUnionElement( SAHPI_IDR_FIELDTYPE_PRODUCT_NAME, SaHpiUint8Type ),
-  dUnionElement( SAHPI_IDR_FIELDTYPE_PRODUCT_VERSION, SaHpiUint8Type ),
-  dUnionElement( SAHPI_IDR_FIELDTYPE_SERIAL_NUMBER, SaHpiUint8Type ),
-  dUnionElement( SAHPI_IDR_FIELDTYPE_PART_NUMBER, SaHpiUint8Type ),
-  dUnionElement( SAHPI_IDR_FIELDTYPE_FILE_ID, SaHpiUint8Type ),
-  dUnionElement( SAHPI_IDR_FIELDTYPE_ASSET_TAG, SaHpiUint8Type ),
-  dUnionElement( SAHPI_IDR_FIELDTYPE_CUSTOM, SaHpiUint8Type ),
-  dUnionElement( SAHPI_IDR_FIELDTYPE_UNSPECIFIED, SaHpiUint8Type ),
-  dUnionElementEnd()
-};
+  int size = 0;
+  int s;
 
-static cMarshalType SaHpiIdrFieldTypeType = dUnion( 0, SaHpiIdrFieldTypeT, SaHpiIdrFieldTypeUnionElements );
+  s = Marshal( &SaHpiTimeType, &gd->MfgDateTime, b );
 
-static cMarshalType SaHpiIdrFieldTElements[] =
+  if ( s < 0 )
+       return -1;
+
+  size += s;
+  b    += s;
+
+  // placeholder for number of entries
+  tUint32 *num = (void *)b;
+  b += sizeof( tUint32 );
+  size += sizeof( tUint32 );
+
+  SaHpiTextBufferT * const *tbp = &gd->Manufacturer;
+  int i;
+
+  tUint8 found     = 1;
+  tUint8 not_found = 0;
+
+  int n = 0;
+
+  for( i = 0; ;i++, tbp++ )
+     {
+       const SaHpiTextBufferT *tb = *tbp;
+
+       s = Marshal( &Uint8Type, tb ? &found : &not_found, b );
+
+       if ( s < 0 )
+	    return -1;
+
+       size += s;
+       b    += s;
+
+       if ( tb == 0 )
+	  {
+	    if ( i > 7 )
+		 break;
+
+	    n++;
+
+	    continue;
+	  }
+
+       n++;
+
+       s = Marshal( &SaHpiTextBufferType, tb, b );
+
+       if ( s < 0 )
+	    return -1;
+
+       size += s;
+       b    += s;
+     }
+
+  // fill in the placeholder for the number of entries
+  if ( Marshal( &Uint32Type, &n, num ) < 0 )
+       return -1;
+
+  return size;
+}
+
+
+static int
+SaHpiInventChassisInfoMarshaller( SaHpiUint32T len, 
+				  const SaHpiInventChassisDataT *iu,
+				  unsigned char *b )
 {
-  dStructElement( SaHpiIdrFieldT, AreaId, SaHpiEntryIdType ),
-  dStructElement( SaHpiIdrFieldT, FieldId, SaHpiEntryIdType ),
-  dStructElement( SaHpiIdrFieldT, Type, SaHpiIdrFieldTypeType ),
-  dStructElement( SaHpiIdrFieldT, ReadOnly, SaHpiBoolType ),
-  dStructElement( SaHpiIdrFieldT, Field, SaHpiTextBufferType ),
-  dStructElementEnd()
-};
+  int size = Marshal( &SaHpiInventChassisTypeType, &iu->Type, b );
 
-cMarshalType SaHpiIdrFieldType = dStruct( SaHpiIdrFieldT, SaHpiIdrFieldTElements );
+  if ( size < 0 )
+       return -1;
 
-static cMarshalType SaHpiIdrAreaHeaderTElements[] =
+  b += size;
+
+  int s = SaHpiInventGeneralDataMarshaller( &iu->GeneralData, b );
+
+  if ( s < 0 )
+       return -1;
+
+  return size + s;
+}
+
+
+static int
+SaHpiInventOemMarshaller( SaHpiUint32T len, 
+			  const SaHpiInventOemDataT *od,
+			  unsigned char *b )
 {
-  dStructElement( SaHpiIdrAreaHeaderT, AreaId, SaHpiEntryIdType ),
-  dStructElement( SaHpiIdrAreaHeaderT, Type, SaHpiIdrAreaTypeType ),
-  dStructElement( SaHpiIdrAreaHeaderT, ReadOnly, SaHpiBoolType ),
-  dStructElement( SaHpiIdrAreaHeaderT, NumFields, SaHpiUint32Type ),
-  dStructElementEnd()
-};
+  int size = Marshal( &SaHpiManufacturerIdType, &od->MId, b );
 
-cMarshalType SaHpiIdrAreaHeaderType = dStruct( SaHpiIdrAreaHeaderT, SaHpiIdrAreaHeaderTElements );
+  if ( size < 0 )
+       return -1;
 
-static cMarshalType SaHpiIdrInfoTElements[] =
+  b += size;
+
+  int s = len - sizeof( SaHpiManufacturerIdT );
+  memcpy( b, od->Data, s );
+
+  size += s;
+
+  return size;
+}
+
+
+static int
+SaHpiInventDataRecordMarshaller( const SaHpiInventDataRecordT *r,
+				 unsigned char *b )
 {
-  dStructElement( SaHpiIdrInfoT, IdrId, SaHpiIdrIdType ),
-  dStructElement( SaHpiIdrInfoT, UpdateCount, SaHpiUint32Type ),
-  dStructElement( SaHpiIdrInfoT, ReadOnly, SaHpiBoolType ),
-  dStructElement( SaHpiIdrInfoT, NumAreas, SaHpiUint32Type ),
-  dStructElementEnd()
-};
+  int size = 0;
+  int s;
 
-cMarshalType SaHpiIdrInfoType = dStruct( SaHpiIdrInfoT, SaHpiIdrInfoTElements );
+  s = Marshal( &SaHpiInventDataRecordTypeType, &r->RecordType, b );
+
+  if ( s < 0 )
+       return -1;
+
+  size += s;
+  b    += s;
+
+  tUint32 *len = (void *)b;
+  size += sizeof( tUint32 );
+  b += sizeof( tUint32 );
+
+  int l;
+
+  switch( r->RecordType )
+     {
+       case SAHPI_INVENT_RECTYPE_INTERNAL_USE:
+	    l = SaHpiInventInternalUseDataMarshaller( r->DataLength, 
+						      &r->RecordData.InternalUse,
+						      b );
+	    break;
+
+       case SAHPI_INVENT_RECTYPE_CHASSIS_INFO:
+	    l = SaHpiInventChassisInfoMarshaller( r->DataLength, 
+						  &r->RecordData.ChassisInfo,
+						  b );
+	    break;
+
+       case SAHPI_INVENT_RECTYPE_BOARD_INFO:
+	    l = SaHpiInventGeneralDataMarshaller( &r->RecordData.BoardInfo,
+						  b );
+	    break;
+
+       case SAHPI_INVENT_RECTYPE_PRODUCT_INFO:
+	    l = SaHpiInventGeneralDataMarshaller( &r->RecordData.ProductInfo,
+						  b );
+
+	    break;
+
+       case SAHPI_INVENT_RECTYPE_OEM:
+	    l = SaHpiInventOemMarshaller( r->DataLength, 
+					  &r->RecordData.OemData,
+					  b );
+
+	    break;
+
+       default:
+	    assert( 0 );
+	    return -1;
+     }
+
+  if ( l < 0 )
+       return -1;
+
+  if ( Marshal( &Uint32Type, &l, len ) < 0 )
+       return -1;
+
+  size += l;
+
+  return size;
+}
+
+
+static int
+SaHpiInventoryDataMarshaller( const cMarshalType *type, const void *data,
+			      void *buffer, void *user_data )
+{
+  const SaHpiInventoryDataT *id = (const SaHpiInventoryDataT *)data;
+  unsigned char *b = buffer;
+  int size = 0;
+  int s;
+  tUint32 i;
+
+  s = Marshal( &SaHpiInventDataValidityType, &id->Validity, b );
+
+  if ( s < 0 )
+       return -1;
+
+  size += s;
+  b    += s;
+
+  tUint32 num = 0;
+  for( i = 0; id->DataRecords[i]; i++ )
+       num++;
+
+  s = Marshal( &Uint32Type, &num, b );
+
+  if ( s < 0 )
+       return -1;
+
+  size += s;
+  b    += s;
+
+  for( i = 0; id->DataRecords[i]; i++ )
+     {
+       s = SaHpiInventDataRecordMarshaller( id->DataRecords[i], b );
+
+       if ( s < 0 )
+	    return -1;
+
+       b    += s;
+       size += s;
+     }
+
+  return size;
+}
+
+
+static int
+SaHpiInventInternalUseDataDemarshaller( int byte_order, SaHpiUint32T *len,
+ 					SaHpiInventInternalUseDataT *iu,
+					const unsigned char *b, tUint32 *data_size )
+{
+  memcpy( iu->Data, b, *len );
+  *data_size += *len;
+
+  return *len;
+}
+
+
+static int
+SaHpiInventGeneralDataDemarshaller( int byte_order, SaHpiUint32T *len,
+ 				    SaHpiInventGeneralDataT *gd,
+				    const unsigned char *b,
+				    tUint32 *data_size )
+{
+  int size = 0;
+  int s;
+
+  s = Demarshal( byte_order, &SaHpiTimeType, &gd->MfgDateTime, b );
+
+  if ( s < 0 )
+       return -1;
+
+  size += s;
+  b    += s;
+
+  // get the number of entries
+  tUint32 num;
+  s = Demarshal( byte_order, &Uint32Type, &num, b );
+
+  if ( s < 0 )
+       return -1;
+
+  size += s;
+  b += s;
+
+  int offset = sizeof( SaHpiInventGeneralDataT ) + (num-8) * sizeof( SaHpiTextBufferT * );
+  *data_size += offset;
+  unsigned char *data = (unsigned char *)gd + offset;
+
+  int i;
+  tUint8 found;
+
+  SaHpiTextBufferT **tbp = &gd->Manufacturer;
+
+  for( i = 0; i < num + 1; i++, tbp++ )
+     {
+       s = Demarshal( byte_order, &Uint8Type, &found, b );
+
+       if ( s < 0 )
+	    return -1;
+
+       size += s;
+       b    += s;
+
+       if ( !found )
+	  {
+	    *tbp = 0;
+	    continue;
+	  }
+
+       s = Demarshal( byte_order, &SaHpiTextBufferType, data, b );
+
+       if ( s < 0 )
+	    return -1;
+
+       size += s;
+       b    += s;
+
+       *tbp = (void *)data;
+
+       data += sizeof( SaHpiTextBufferT );
+       *data_size += sizeof( SaHpiTextBufferT );
+     }
+
+  return size;
+}
+
+
+static int
+SaHpiInventChassisInfoDemarshaller( int byte_order, SaHpiUint32T *len, 
+ 				    SaHpiInventChassisDataT *iu,
+				    const unsigned char *b, tUint32 *data_size )
+{
+  int size = Demarshal( byte_order, &SaHpiInventChassisTypeType, &iu->Type, b );
+
+  if ( size < 0 )
+       return -1;
+
+  b += size;
+
+  *data_size += sizeof( SaHpiInventChassisDataT ) - sizeof( SaHpiInventGeneralDataT );
+
+  int s = SaHpiInventGeneralDataDemarshaller( byte_order, len, &iu->GeneralData, b,
+					      data_size );
+
+  if ( s < 0 )
+       return -1;
+
+  return size + s;
+}
+
+
+static int
+SaHpiInventOemDemarshaller( int byte_order, SaHpiUint32T *len, 
+ 			    SaHpiInventOemDataT *od,
+	 		    const unsigned char *b,
+			    tUint32 *data_size )
+{
+  int size = Demarshal( byte_order, &SaHpiManufacturerIdType, &od->MId, b );
+
+  if ( size < 0 )
+       return -1;
+
+  b += size;
+
+  int s = *len - sizeof( SaHpiManufacturerIdT );
+  memcpy( od->Data, b, s );
+
+  size += s;
+
+  *data_size += *len - sizeof( SaHpiManufacturerIdT );
+
+  return size;
+}
+
+
+static int
+SaHpiInventDataRecordDemarshaller( int byte_order, 
+				   SaHpiInventDataRecordT *r,
+				   const unsigned char *b,
+				   tUint32 *data_size )
+{
+  int size = 0;
+  int s;
+
+  s = Demarshal( byte_order, &SaHpiInventDataRecordTypeType,
+		 &r->RecordType, b );
+
+  if ( s < 0 )
+       return -1;
+
+  size += s;
+  b    += s;
+
+  tUint32 record_len;
+  s = Demarshal( byte_order, &Uint32Type, &record_len, b );
+
+  if ( s < 0 )
+       return -1;
+
+  size += s;
+  b    += s;
+
+  r->DataLength = record_len;
+
+  *data_size = sizeof( SaHpiInventDataRecordT ) - sizeof( SaHpiInventDataUnionT );
+
+  switch( r->RecordType )
+     {
+       case SAHPI_INVENT_RECTYPE_INTERNAL_USE:
+	    s = SaHpiInventInternalUseDataDemarshaller( byte_order, &r->DataLength,
+		 					&r->RecordData.InternalUse,
+							b, data_size );
+	    break;
+
+       case SAHPI_INVENT_RECTYPE_CHASSIS_INFO:
+	    s = SaHpiInventChassisInfoDemarshaller( byte_order, &r->DataLength, 
+						    &r->RecordData.ChassisInfo,
+						    b, data_size );
+  	    break;
+
+       case SAHPI_INVENT_RECTYPE_BOARD_INFO:
+	    s = SaHpiInventGeneralDataDemarshaller( byte_order, &r->DataLength,
+						    &r->RecordData.BoardInfo,
+						    b, data_size );
+	    break;
+
+       case SAHPI_INVENT_RECTYPE_PRODUCT_INFO:
+	    s = SaHpiInventGeneralDataDemarshaller( byte_order, &r->DataLength,
+		 				    &r->RecordData.ProductInfo,
+						    b, data_size );
+
+	    break;
+
+       case SAHPI_INVENT_RECTYPE_OEM:
+	    s = SaHpiInventOemDemarshaller( byte_order, &r->DataLength, 
+					    &r->RecordData.OemData,
+					    b, data_size );
+
+	    break;
+
+       default:
+	    assert( 0 );
+	    break;
+     }
+
+  if ( s < 0 )
+       return -1;
+
+  size += s;
+
+  return size;
+}
+
+
+static int 
+SaHpiInventoryDataDemarshaller( int byte_order, const cMarshalType *type, void *data,
+				const void *buffer, void *user_data )
+{
+  SaHpiInventoryDataT *id = (SaHpiInventoryDataT *)data;
+  const unsigned char *b = buffer;
+  int size = 0;
+  int s;
+
+  s = Demarshal( byte_order, &SaHpiInventDataValidityType, &id->Validity, b );
+
+  if ( s < 0 )
+    return -1;
+
+  size += s;
+  b    += s;
+
+  tUint32 num;
+  s = Demarshal( byte_order, &Uint32Type, &num, b );
+
+  if ( s < 0 )
+       return -1;
+
+  size += s;
+  b    += s;
+
+  unsigned char *data_ptr = (unsigned char *)&id->DataRecords;
+  data_ptr += ( num + 1 ) * sizeof( SaHpiInventDataRecordT * );
+
+  tUint32 i;
+  for( i = 0; i < num; i++ )
+     {
+       tUint32 data_size;
+
+       id->DataRecords[i] = (void *)data_ptr;
+       s = SaHpiInventDataRecordDemarshaller( byte_order, id->DataRecords[i], b, &data_size );
+
+       if ( s < 0 )
+	    return -1;
+
+       b    += s;
+       size += s;
+
+       data_ptr += data_size;
+     }
+
+  id->DataRecords[num] = 0;
+
+  return size;
+}
+
+
+cMarshalType SaHpiInventoryDataType = dUserDefined( SaHpiInventoryDataMarshaller, SaHpiInventoryDataDemarshaller, 0 );
 
 
 // inventory resource data records
-
 static cMarshalType SaHpiInventoryRecElements[] =
 {
-  dStructElement( SaHpiInventoryRecT, IdrId, SaHpiUint32Type ),
-  dStructElement( SaHpiInventoryRecT, Persistent, SaHpiBoolType ),
+  dStructElement( SaHpiInventoryRecT, EirId, SaHpiEirIdType ),
   dStructElement( SaHpiInventoryRecT, Oem, SaHpiUint32Type ),
   dStructElementEnd()
 };
 
 cMarshalType SaHpiInventoryRecType = dStruct( SaHpiInventoryRecT, SaHpiInventoryRecElements );
 
-
-// watchdogs
 
 static cMarshalType SaHpiWatchdogElements[] =
 {
@@ -455,7 +901,6 @@ cMarshalType SaHpiWatchdogType = dStruct( SaHpiWatchdogT, SaHpiWatchdogElements 
 
 
 // watchdog resource data records
-
 static cMarshalType SaHpiWatchdogRecElements[] =
 {
   dStructElement( SaHpiWatchdogRecT, WatchdogNum, SaHpiWatchdogNumType ),
@@ -466,161 +911,29 @@ static cMarshalType SaHpiWatchdogRecElements[] =
 cMarshalType SaHpiWatchdogRecType = dStruct( SaHpiWatchdogRecT, SaHpiWatchdogRecElements );
 
 
-// annunciators
-
-static cMarshalType SaHpiNameDataArray = dVarArray( SaHpiUint8Type, SA_HPI_MAX_NAME_LENGTH );
-
-static cMarshalType SaHpiNameElements[] =
-{
-  dStructElement( SaHpiNameT, Length, SaHpiUint16Type ),
-  dStructElement( SaHpiNameT, Value, SaHpiNameDataArray ),
-  dStructElementEnd()
-};
-
-cMarshalType SaHpiNameType = dStruct( SaHpiNameT, SaHpiNameElements );
-
-
-static cMarshalType SaHpiStatusCondTypeUnionElements[] = 
-{
-  dUnionElement( SAHPI_STATUS_COND_TYPE_SENSOR, SaHpiUint32Type ),
-  dUnionElement( SAHPI_STATUS_COND_TYPE_RESOURCE, SaHpiUint32Type ),
-  dUnionElement( SAHPI_STATUS_COND_TYPE_OEM, SaHpiUint32Type ),
-  dUnionElement( SAHPI_STATUS_COND_TYPE_USER, SaHpiUint32Type ),
-  dUnionElementEnd()
-};
-
-static cMarshalType SaHpiStatusCondTypeType = dUnion( 0, SaHpiConditionT, SaHpiStatusCondTypeUnionElements );
-
-static cMarshalType SaHpiConditionTypeElements[] =
-{
-  dStructElement( SaHpiConditionT, Type, SaHpiStatusCondTypeType ),
-  dStructElement( SaHpiConditionT, Entity, SaHpiEntityPathType ),
-  dStructElement( SaHpiConditionT, DomainId, SaHpiDomainIdType ),
-  dStructElement( SaHpiConditionT, ResourceId, SaHpiResourceIdType ),
-  dStructElement( SaHpiConditionT, SensorNum, SaHpiSensorNumType ),
-  dStructElement( SaHpiConditionT, EventState, SaHpiEventStateType ),
-  dStructElement( SaHpiConditionT, Name, SaHpiNameType ),
-  dStructElement( SaHpiConditionT, Mid, SaHpiManufacturerIdType ),
-  dStructElement( SaHpiConditionT, Data, SaHpiTextBufferType ),
-  dStructElementEnd()
-};
-
-cMarshalType SaHpiConditionType = dStruct( SaHpiConditionT, SaHpiConditionTypeElements );
-
-
-static cMarshalType SaHpiAnnouncementTypeElements[] =
-{
-  dStructElement( SaHpiAnnouncementT, EntryId, SaHpiEntryIdType ),
-  dStructElement( SaHpiAnnouncementT, Timestamp, SaHpiTimeType ),
-  dStructElement( SaHpiAnnouncementT, AddedByUser, SaHpiBoolType ),
-  dStructElement( SaHpiAnnouncementT, Severity, SaHpiSeverityType ),
-  dStructElement( SaHpiAnnouncementT, Acknowledged, SaHpiBoolType ),
-  dStructElement( SaHpiAnnouncementT, StatusCond, SaHpiConditionType ),
-  dStructElementEnd()
-};
-
-cMarshalType SaHpiAnnouncementType = dStruct( SaHpiAnnouncementT, SaHpiAnnouncementTypeElements );
-
-
-// annunciators rdr
-
-static cMarshalType SaHpiAnnunciatorTypeUnionElements[] = 
-{
-  dUnionElement( SAHPI_ANNUNCIATOR_TYPE_LED, SaHpiUint32Type ),
-  dUnionElement( SAHPI_ANNUNCIATOR_TYPE_DRY_CONTACT_CLOSURE, SaHpiUint32Type ),
-  dUnionElement( SAHPI_ANNUNCIATOR_TYPE_AUDIBLE, SaHpiUint32Type ),
-  dUnionElement( SAHPI_ANNUNCIATOR_TYPE_LCD_DISPLAY, SaHpiUint32Type ),
-  dUnionElement( SAHPI_ANNUNCIATOR_TYPE_MESSAGE, SaHpiUint32Type ),
-  dUnionElement( SAHPI_ANNUNCIATOR_TYPE_COMPOSITE, SaHpiUint32Type ),
-  dUnionElement( SAHPI_ANNUNCIATOR_TYPE_OEM, SaHpiUint32Type ),
-  dUnionElementEnd()
-};
-
-static cMarshalType SaHpiAnnunciatorTypeType = dUnion( 0, SaHpiAnnunciatorTypeT, SaHpiAnnunciatorTypeUnionElements );
-
-static cMarshalType SaHpiAnnunciatorRecElements[] =
-{
-	dStructElement( SaHpiAnnunciatorRecT, AnnunciatorNum, SaHpiAnnunciatorNumType ),
-	dStructElement( SaHpiAnnunciatorRecT, AnnunciatorType, SaHpiAnnunciatorTypeType ),
-	dStructElement( SaHpiAnnunciatorRecT, ModeReadOnly, SaHpiBoolType ),
-	dStructElement( SaHpiAnnunciatorRecT, MaxConditions, SaHpiUint32Type ),
-	dStructElement( SaHpiAnnunciatorRecT, Oem, SaHpiUint32Type ),
-	dStructElementEnd()
-};
-
-cMarshalType SaHpiAnnunciatorRecType = dStruct( SaHpiAnnunciatorRecT, SaHpiAnnunciatorRecElements );
-
-
-// rdr
-
 static cMarshalType SaHpiRdrTypeUnionElements[] =
 {
-	dUnionElement( SAHPI_NO_RECORD, VoidType ),
-	dUnionElement( SAHPI_CTRL_RDR, SaHpiCtrlRecType ),
-	dUnionElement( SAHPI_SENSOR_RDR, SaHpiSensorRecType ),
-	dUnionElement( SAHPI_INVENTORY_RDR, VoidType ),/* TODO this void type is just a place holder */
-	dUnionElement( SAHPI_WATCHDOG_RDR, SaHpiWatchdogRecType ),
-	dUnionElement( SAHPI_ANNUNCIATOR_RDR, SaHpiAnnunciatorRecType ),
-	dUnionElementEnd()
+  dUnionElement( SAHPI_NO_RECORD, VoidType ),
+  dUnionElement( SAHPI_CTRL_RDR, SaHpiCtrlRecType ),
+  dUnionElement( SAHPI_SENSOR_RDR, SaHpiSensorRecType ),
+  dUnionElement( SAHPI_INVENTORY_RDR, SaHpiInventoryRecType ),
+  dUnionElement( SAHPI_WATCHDOG_RDR, SaHpiWatchdogRecType ),
+  dUnionElementEnd()
 };
 
 static cMarshalType SaHpiRdrTypeUnionType = dUnion( 1, SaHpiRdrTypeUnionT, SaHpiRdrTypeUnionElements );
 
-
 static cMarshalType SaHpiRdrElements[] =
 {
-	dStructElement( SaHpiRdrT, RecordId, SaHpiEntryIdType ),
-	dStructElement( SaHpiRdrT, RdrType, SaHpiRdrTypeType ),
-	dStructElement( SaHpiRdrT, Entity, SaHpiEntityPathType ),
-
-	dStructElement( SaHpiRdrT, IsFru, SaHpiBoolType ),
-
-	dStructElement( SaHpiRdrT, RdrTypeUnion, SaHpiRdrTypeUnionType ),
-	dStructElement( SaHpiRdrT, IdString, SaHpiTextBufferType ),
-	dStructElementEnd()
+  dStructElement( SaHpiRdrT, RecordId, SaHpiEntryIdType ),
+  dStructElement( SaHpiRdrT, RdrType, SaHpiRdrTypeType ),
+  dStructElement( SaHpiRdrT, Entity, SaHpiEntityPathType ),
+  dStructElement( SaHpiRdrT, RdrTypeUnion, SaHpiRdrTypeUnionType ),
+  dStructElement( SaHpiRdrT, IdString, SaHpiTextBufferType ),
+  dStructElementEnd()
 };
 
 cMarshalType SaHpiRdrType = dStruct( SaHpiRdrT, SaHpiRdrElements );
-
-
-// events part 2
-
-static cMarshalType SaHpiResourceEventTypeUnionElements[] = 
-{
-  dUnionElement( SAHPI_RESE_RESOURCE_FAILURE, SaHpiUint32Type ),
-  dUnionElement( SAHPI_RESE_RESOURCE_RESTORED, SaHpiUint32Type ),
-  dUnionElement( SAHPI_RESE_RESOURCE_ADDED, SaHpiUint32Type ),
-  dUnionElementEnd()
-};
-
-static cMarshalType SaHpiResourceEventTypeUnion = dUnion( 0, SaHpiResourceEventT, SaHpiResourceEventTypeUnionElements );
-
-static cMarshalType SaHpiResourceEventTypeElements[] =
-{
-  dStructElement( SaHpiResourceEventT, ResourceEventType, SaHpiResourceEventTypeUnion ),
-  dStructElementEnd()
-};
-
-cMarshalType SaHpiResourceEventType = dStruct( SaHpiResourceEventTypeT, SaHpiResourceEventTypeElements );
-
-
-static cMarshalType SaHpiDomainEventTypeUnionElements[] = 
-{
-  dUnionElement( SAHPI_DOMAIN_REF_ADDED, SaHpiUint32Type ),
-  dUnionElement( SAHPI_DOMAIN_REF_REMOVED, SaHpiUint32Type ),
-  dUnionElementEnd()
-};
-
-static cMarshalType SaHpiDomainEventTypeUnion = dUnion( 0, SaHpiDomainEventTypeT, SaHpiDomainEventTypeUnionElements );
-
-static cMarshalType SaHpiDomainEventTypeElements[] =
-{
-  dStructElement( SaHpiDomainEventT, Type, SaHpiDomainEventTypeUnion ),
-  dStructElement( SaHpiDomainEventT, DomainId, SaHpiDomainIdType ),
-  dStructElementEnd()
-};
-
-cMarshalType SaHpiDomainEventType = dStruct( SaHpiDomainEventT, SaHpiDomainEventTypeElements );
 
 
 static cMarshalType SaHpiSensorEventElements[] =
@@ -634,30 +947,12 @@ static cMarshalType SaHpiSensorEventElements[] =
   dStructElement( SaHpiSensorEventT, TriggerReading, SaHpiSensorReadingType ),
   dStructElement( SaHpiSensorEventT, TriggerThreshold, SaHpiSensorReadingType ),
   dStructElement( SaHpiSensorEventT, PreviousState, SaHpiEventStateType ),
-  dStructElement( SaHpiSensorEventT, CurrentState, SaHpiEventStateType ),
   dStructElement( SaHpiSensorEventT, Oem, SaHpiUint32Type ),
   dStructElement( SaHpiSensorEventT, SensorSpecific, SaHpiUint32Type ),
   dStructElementEnd()
 };
 
 cMarshalType SaHpiSensorEventType = dStruct( SaHpiSensorEventT, SaHpiSensorEventElements );
-
-
-static cMarshalType SaHpiSensorEnableChangeEventTElements[] =
-{
-  dStructElement( SaHpiSensorEnableChangeEventT, SensorNum, SaHpiSensorNumType ),
-  dStructElement( SaHpiSensorEnableChangeEventT, SensorType, SaHpiSensorTypeType ),
-  dStructElement( SaHpiSensorEnableChangeEventT, EventCategory, SaHpiEventCategoryType ),
-  dStructElement( SaHpiSensorEnableChangeEventT, SensorEnable, SaHpiBoolType ),
-  dStructElement( SaHpiSensorEnableChangeEventT, SensorEventEnable, SaHpiBoolType ),
-  dStructElement( SaHpiSensorEnableChangeEventT, AssertEventMask, SaHpiEventStateType ),
-  dStructElement( SaHpiSensorEnableChangeEventT, DeassertEventMask, SaHpiEventStateType ),
-  dStructElement( SaHpiSensorEnableChangeEventT, OptionalDataPresent, SaHpiSensorEnableOptDataType ),
-  dStructElement( SaHpiSensorEnableChangeEventT, CurrentState, SaHpiEventStateType ),
-  dStructElementEnd()
-};
-
-cMarshalType SaHpiSensorEnableChangeEventType = dStruct( SaHpiSensorEnableChangeEventT, SaHpiSensorEnableChangeEventTElements );
 
 
 static cMarshalType SaHpiHotSwapEventElements[] =
@@ -681,38 +976,24 @@ static cMarshalType SaHpiWatchdogEventElements[] =
 
 cMarshalType SaHpiWatchdogEventType = dStruct( SaHpiWatchdogEventT, SaHpiWatchdogEventElements );
 
-static cMarshalType SaHpiSwEventTypeUnionElements[] = 
-{                
-  dUnionElement( SAHPI_HPIE_AUDIT, SaHpiUint32Type ),
-  dUnionElement( SAHPI_HPIE_STARTUP, SaHpiUint32Type ),
-  dUnionElement( SAHPI_HPIE_OTHER, SaHpiUint32Type ),
-  dUnionElementEnd()
-};
 
-static cMarshalType SaHpiSwEventTypeUnion = dUnion( 0, SaHpiHpiSwEventT, SaHpiSwEventTypeUnionElements );
+static cMarshalType SaHpiOemEventOemEventDataArray = dArray( SaHpiUint8Type, SAHPI_OEM_EVENT_DATA_SIZE );
 
-static cMarshalType SaHpiHpiSwEventTypeElements[] =
-{
-  dStructElement( SaHpiHpiSwEventT, MId, SaHpiManufacturerIdType ),
-  dStructElement( SaHpiHpiSwEventT, Type, SaHpiSwEventTypeUnion ),
-  dStructElement( SaHpiHpiSwEventT, EventData, SaHpiTextBufferType ),
-  dStructElementEnd()
-};
-
-cMarshalType SaHpiHpiSwEventType = dStruct( SaHpiHpiSwEventT, SaHpiHpiSwEventTypeElements );
-
-static cMarshalType SaHpiOemEventTypeElements[] =
+static cMarshalType SaHpiOemEventElements[] =
 {
   dStructElement( SaHpiOemEventT, MId, SaHpiManufacturerIdType ),
-  dStructElement( SaHpiOemEventT, OemEventData, SaHpiTextBufferType ),
+  dStructElement( SaHpiOemEventT, OemEventData, SaHpiOemEventOemEventDataArray ),
   dStructElementEnd()
 };
 
-cMarshalType SaHpiOemEventType = dStruct( SaHpiOemEventT, SaHpiOemEventTypeElements );
+cMarshalType SaHpiOemEventType = dStruct( SaHpiOemEventT, SaHpiOemEventElements );
+
+
+static cMarshalType SaHpiUserEventUserEventDataArray = dArray( SaHpiUint8Type, SAHPI_USER_EVENT_DATA_SIZE );
 
 static cMarshalType SaHpiUserEventElements[] =
 {
-  dStructElement( SaHpiUserEventT, UserEventData, SaHpiTextBufferType ),
+  dStructElement( SaHpiUserEventT, UserEventData, SaHpiUserEventUserEventDataArray ),
   dStructElementEnd()
 };
 
@@ -721,13 +1002,9 @@ cMarshalType SaHpiUserEventType = dStruct( SaHpiUserEventT, SaHpiUserEventElemen
 
 static cMarshalType SaHpiEventUnionElements[] =
 {
-  dUnionElement( SAHPI_ET_RESOURCE, SaHpiResourceEventType ),
-  dUnionElement( SAHPI_ET_DOMAIN, SaHpiDomainEventType ),
   dUnionElement( SAHPI_ET_SENSOR, SaHpiSensorEventType ),
-  dUnionElement( SAHPI_ET_SENSOR_ENABLE_CHANGE, SaHpiSensorEnableChangeEventType ),
   dUnionElement( SAHPI_ET_HOTSWAP, SaHpiHotSwapEventType ),
   dUnionElement( SAHPI_ET_WATCHDOG, SaHpiWatchdogEventType ),
-  dUnionElement( SAHPI_ET_HPI_SW, SaHpiHpiSwEventType ),
   dUnionElement( SAHPI_ET_OEM, SaHpiOemEventType ),
   dUnionElement( SAHPI_ET_USER, SaHpiUserEventType ),
   dUnionElementEnd()
@@ -749,22 +1026,27 @@ cMarshalType SaHpiEventType = dStruct( SaHpiEventT, SaHpiEventElements );
 
 
 // resource presence table
+static cMarshalType SaHpiRptInfoElements[] =
+{
+  dStructElement( SaHpiRptInfoT, UpdateCount, SaHpiUint32Type ),
+  dStructElement( SaHpiRptInfoT, UpdateTimestamp, SaHpiTimeType ),
+  dStructElementEnd()
+};
 
+cMarshalType SaHpiRptInfoType = dStruct( SaHpiRptInfoT, SaHpiRptInfoElements );
 
-static cMarshalType GuidDataArray = dVarArray( SaHpiUint8Type, 16 );
 
 static cMarshalType SaHpiResourceInfoElements[] =
 {
-	dStructElement( SaHpiResourceInfoT, ResourceRev, SaHpiUint8Type ),
-	dStructElement( SaHpiResourceInfoT, SpecificVer, SaHpiUint8Type ),
-	dStructElement( SaHpiResourceInfoT, DeviceSupport, SaHpiUint8Type ),
-	dStructElement( SaHpiResourceInfoT, ManufacturerId, SaHpiManufacturerIdType ),
-	dStructElement( SaHpiResourceInfoT, ProductId, SaHpiUint16Type ),
-	dStructElement( SaHpiResourceInfoT, FirmwareMajorRev, SaHpiUint8Type ),
-	dStructElement( SaHpiResourceInfoT, FirmwareMinorRev, SaHpiUint8Type ),
-	dStructElement( SaHpiResourceInfoT, AuxFirmwareRev, SaHpiUint8Type ),
-	dStructElement( SaHpiResourceInfoT, Guid, GuidDataArray ),
-	dStructElementEnd()
+  dStructElement( SaHpiResourceInfoT, ResourceRev, SaHpiUint8Type ),
+  dStructElement( SaHpiResourceInfoT, SpecificVer, SaHpiUint8Type ),
+  dStructElement( SaHpiResourceInfoT, DeviceSupport, SaHpiUint8Type ),
+  dStructElement( SaHpiResourceInfoT, ManufacturerId, SaHpiManufacturerIdType ),
+  dStructElement( SaHpiResourceInfoT, ProductId, SaHpiUint16Type ),
+  dStructElement( SaHpiResourceInfoT, FirmwareMajorRev, SaHpiUint8Type ),
+  dStructElement( SaHpiResourceInfoT, FirmwareMinorRev, SaHpiUint8Type ),
+  dStructElement( SaHpiResourceInfoT, AuxFirmwareRev, SaHpiUint8Type ),
+  dStructElementEnd()
 };
 
 cMarshalType SaHpiResourceInfoType = dStruct( SaHpiResourceInfoT, SaHpiResourceInfoElements );
@@ -772,97 +1054,42 @@ cMarshalType SaHpiResourceInfoType = dStruct( SaHpiResourceInfoT, SaHpiResourceI
 
 static cMarshalType SaHpiRptEntryElements[] =
 {
-	dStructElement( SaHpiRptEntryT, EntryId, SaHpiEntryIdType ),
-	dStructElement( SaHpiRptEntryT, ResourceId, SaHpiResourceIdType ),
-	dStructElement( SaHpiRptEntryT, ResourceInfo, SaHpiResourceInfoType ),	
-	dStructElement( SaHpiRptEntryT, ResourceEntity, SaHpiEntityPathType ),
-	dStructElement( SaHpiRptEntryT, ResourceCapabilities,SaHpiCapabilitiesType ),
-
-	dStructElement( SaHpiRptEntryT, HotSwapCapabilities, SaHpiHsCapabilitiesType ),
-
-	dStructElement( SaHpiRptEntryT, ResourceSeverity, SaHpiSeverityType ), 
-	dStructElement( SaHpiRptEntryT, ResourceFailed, SaHpiBoolType ),
-	dStructElement( SaHpiRptEntryT, ResourceTag, SaHpiTextBufferType ),	
-	dStructElementEnd()
+  dStructElement( SaHpiRptEntryT, EntryId, SaHpiEntryIdType ),
+  dStructElement( SaHpiRptEntryT, ResourceId, SaHpiResourceIdType ),
+  dStructElement( SaHpiRptEntryT, ResourceInfo, SaHpiResourceInfoType ),
+  dStructElement( SaHpiRptEntryT, ResourceEntity, SaHpiEntityPathType ),
+  dStructElement( SaHpiRptEntryT, ResourceCapabilities, SaHpiCapabilitiesType ),
+  dStructElement( SaHpiRptEntryT, ResourceSeverity, SaHpiSeverityType ),
+  dStructElement( SaHpiRptEntryT, DomainId, SaHpiDomainIdType ),
+  dStructElement( SaHpiRptEntryT, ResourceTag, SaHpiTextBufferType ),
+  dStructElementEnd()
 };
 
 cMarshalType SaHpiRptEntryType = dStruct( SaHpiRptEntryT, SaHpiRptEntryElements );
 
 
-// domains
-
-static cMarshalType SaHpiDomainInfoTElements[] =
+static cMarshalType SaHpiSelInfoTElements[] =
 {
-	dStructElement( SaHpiDomainInfoT, DomainId, SaHpiDomainIdType ),
-	dStructElement( SaHpiDomainInfoT, DomainCapabilities, SaHpiDomainCapabilitiesType ),
-	dStructElement( SaHpiDomainInfoT, IsPeer, SaHpiBoolType ),
-	dStructElement( SaHpiDomainInfoT, DomainTag, SaHpiTextBufferType ),
-	dStructElement( SaHpiDomainInfoT, DrtUpdateCount, SaHpiUint32Type ),
-	dStructElement( SaHpiDomainInfoT, DrtUpdateTimestamp, SaHpiTimeType ),
-	dStructElement( SaHpiDomainInfoT, RptUpdateCount, SaHpiUint32Type ),
-	dStructElement( SaHpiDomainInfoT, RptUpdateTimestamp, SaHpiTimeType ),
-	dStructElement( SaHpiDomainInfoT, DatUpdateCount, SaHpiUint32Type ),
-	dStructElement( SaHpiDomainInfoT, DatUpdateTimestamp, SaHpiTimeType ),
-	dStructElement( SaHpiDomainInfoT, ActiveAlarms, SaHpiUint32Type ),
-	dStructElement( SaHpiDomainInfoT, CriticalAlarms, SaHpiUint32Type ),
-	dStructElement( SaHpiDomainInfoT, MajorAlarms, SaHpiUint32Type ),
-	dStructElement( SaHpiDomainInfoT, MinorAlarms, SaHpiUint32Type ),
-	dStructElement( SaHpiDomainInfoT, DatUserAlarmLimit, SaHpiUint32Type ),
-	dStructElement( SaHpiDomainInfoT, DatOverflow, SaHpiBoolType ),
-	dStructElement( SaHpiDomainInfoT, Guid, GuidDataArray ),
-	dStructElementEnd()
-};
-
-cMarshalType SaHpiDomainInfoType = dStruct( SaHpiDomainInfoT, SaHpiDomainInfoTElements );
-
-static cMarshalType SaHpiDrtEntryTElements[] =
-{
-	dStructElement( SaHpiDrtEntryT, EntryId, SaHpiEntryIdType ),
-	dStructElement( SaHpiDrtEntryT, DomainId, SaHpiDomainIdType ),
-	dStructElement( SaHpiDrtEntryT, IsPeer, SaHpiBoolType ),
-	dStructElementEnd()
-};
-
-cMarshalType SaHpiDrtEntryType = dStruct( SaHpiDrtEntryT, SaHpiDrtEntryTElements );
-
-static cMarshalType SaHpiAlarmTElements[] =
-{
-	dStructElement( SaHpiAlarmT, AlarmId, SaHpiAlarmIdType ),
-	dStructElement( SaHpiAlarmT, Timestamp, SaHpiTimeType ),
-	dStructElement( SaHpiAlarmT, Severity, SaHpiSeverityType ),
-	dStructElement( SaHpiAlarmT, Acknowledged, SaHpiConditionType ),
-	dStructElementEnd()
-};
-
-cMarshalType SaHpiAlarmType = dStruct( SaHpiAlarmT, SaHpiAlarmTElements );
-
-
-// event log
-
-static cMarshalType SaHpiEventLogInfoTElements[] =
-{
-	dStructElement( SaHpiEventLogInfoT, Entries, SaHpiUint32Type ),
-	dStructElement( SaHpiEventLogInfoT, Size, SaHpiUint32Type ),
-	dStructElement( SaHpiEventLogInfoT, UserEventMaxSize, SaHpiUint32Type ),
-	dStructElement( SaHpiEventLogInfoT, UpdateTimestamp, SaHpiTimeType ),
-	dStructElement( SaHpiEventLogInfoT, CurrentTime, SaHpiTimeType ),
-	dStructElement( SaHpiEventLogInfoT, Enabled, SaHpiBoolType ),
-	dStructElement( SaHpiEventLogInfoT, OverflowFlag, SaHpiBoolType ),
-	dStructElement( SaHpiEventLogInfoT, OverflowResetable, SaHpiBoolType ),
-	dStructElement( SaHpiEventLogInfoT, OverflowAction, SaHpiSelOverflowActionType ),
-	dStructElementEnd()
-};
-
-cMarshalType SaHpiEventLogInfoType = dStruct( SaHpiEventLogInfoT, SaHpiEventLogInfoTElements );
-
-
-static cMarshalType SaHpiEventLogEntryElements[] =
-{
-  dStructElement( SaHpiEventLogEntryT, EntryId, SaHpiEventLogEntryIdType ),
-  dStructElement( SaHpiEventLogEntryT, Timestamp, SaHpiTimeType ),
-  dStructElement( SaHpiEventLogEntryT, Event, SaHpiEventType ),
+  dStructElement( SaHpiSelInfoT, Entries, SaHpiUint32Type ),
+  dStructElement( SaHpiSelInfoT, Size, SaHpiUint32Type ),
+  dStructElement( SaHpiSelInfoT, UpdateTimestamp, SaHpiTimeType ),
+  dStructElement( SaHpiSelInfoT, CurrentTime, SaHpiTimeType ),
+  dStructElement( SaHpiSelInfoT, Enabled, SaHpiBoolType ),
+  dStructElement( SaHpiSelInfoT, OverflowFlag, SaHpiBoolType ),
+  dStructElement( SaHpiSelInfoT, OverflowAction, SaHpiSelOverflowActionType ),
+  dStructElement( SaHpiSelInfoT, DeleteEntrySupported, SaHpiBoolType ),
   dStructElementEnd()
 };
 
-cMarshalType SaHpiEventLogEntryType = dStruct( SaHpiEventLogEntryT, SaHpiEventLogEntryElements );
+cMarshalType SaHpiSelInfoType = dStruct( SaHpiSelInfoT, SaHpiSelInfoTElements );
 
+
+static cMarshalType SaHpiSelEntryElements[] =
+{
+  dStructElement( SaHpiSelEntryT, EntryId, SaHpiSelEntryIdType ),
+  dStructElement( SaHpiSelEntryT, Timestamp, SaHpiTimeType ),
+  dStructElement( SaHpiSelEntryT, Event, SaHpiEventType ),
+  dStructElementEnd()
+};
+
+cMarshalType SaHpiSelEntryType = dStruct( SaHpiSelEntryT, SaHpiSelEntryElements );

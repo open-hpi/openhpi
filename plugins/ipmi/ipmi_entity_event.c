@@ -14,10 +14,10 @@
  */
 
 #include "ipmi.h"
-#include <oh_utils.h>
+#include <epath_utils.h>
+#include <uid_utils.h>
 #include <string.h>
-#if 0
-/* need to update some information here */
+
 static void entity_update_rpt(RPTable *table, SaHpiResourceIdT rid, int present)
 {
 	SaHpiRdrT  *rdr;
@@ -25,11 +25,17 @@ static void entity_update_rpt(RPTable *table, SaHpiResourceIdT rid, int present)
 	rdr = oh_get_rdr_next(table, rid, SAHPI_FIRST_ENTRY);
 	while (rdr) {
 		if(rdr->RdrType == SAHPI_SENSOR_RDR) {
+			if (present) {
+				dbg("present");
+				rdr->RdrTypeUnion.SensorRec.Ignore = SAHPI_FALSE;
+			}else {
+				dbg("not present");
+				rdr->RdrTypeUnion.SensorRec.Ignore = SAHPI_TRUE;
+			}
 		}
 		rdr = oh_get_rdr_next(table, rid, rdr->RecordId);
 	}
 }
-#endif
 
 static void entity_presence(ipmi_entity_t	*entity,
 			    int			present,
@@ -51,9 +57,51 @@ static void entity_presence(ipmi_entity_t	*entity,
 	}
 	rid = rpt->ResourceId;
 	dbg("%s %s",ipmi_entity_get_entity_id_string(entity), present?"present":"not present");
-#if 0
 	entity_update_rpt(handler->rptcache, rid, present);
-#endif
+#if 0
+/*
+	The following code is masked by Racing. The reasons are listed as:
+
+	1. The hotswap event is not populated to HPI
+	2. The param 3 is changed to handler
+           in ipmi_entity_set_presence_handler(entity, entity_presence, handler);
+	3. The orignal param (&entry.ResourceID) is a bug. Because entity_presence 
+	is callback function and entry.ResourceID is local variable, it may cause
+	segment fault
+*/
+	struct oh_event	*e;
+	SaHpiResourceIdT *rid = cb_data;
+
+	e = malloc(sizeof(*e));
+	if (!e) {
+		dbg("Out of space");
+		return;
+	}
+
+	memset(e, 0, sizeof(*e));
+	e->type = OH_ET_HPI;
+	e->u.hpi_event.parent = *rid;
+	e->u.hpi_event.id = 0;
+
+	e->u.hpi_event.event.Source = 0;
+	/* Do not find EventType in IPMI */
+	e->u.hpi_event.event.EventType = SAHPI_ET_HOTSWAP;
+
+	/* FIXIT! */
+	if (event)
+		e->u.hpi_event.event.Timestamp 
+                        = ipmi_get_uint32(ipmi_event_get_data_ptr(event));
+
+	/* Do not find the severity of hotswap event */
+	e->u.hpi_event.event.Severity = SAHPI_MAJOR;
+
+	if (present)
+		e->u.hpi_event.event.EventDataUnion.HotSwapEvent.HotSwapState
+			= SAHPI_HS_STATE_ACTIVE_HEALTHY;
+	else
+		e->u.hpi_event.event.EventDataUnion.HotSwapEvent.HotSwapState
+			= SAHPI_HS_STATE_NOT_PRESENT;
+#endif	
 }
 
 static void get_entity_event(ipmi_entity_t	*entity,
@@ -74,10 +122,15 @@ static void get_entity_event(ipmi_entity_t	*entity,
 	entry->ResourceInfo.AuxFirmwareRev = 0;
 	entry->ResourceEntity.Entry[0].EntityType 
                 = ipmi_entity_get_entity_id(entity);
-	entry->ResourceEntity.Entry[0].EntityLocation 
+	entry->ResourceEntity.Entry[0].EntityInstance 
                 = ipmi_entity_get_entity_instance(entity);
+	/* AdvancedTCA fixe-up */
+	if (ipmi_entity_get_entity_instance(entity) >= 96)
+			entry->ResourceEntity.Entry[0].EntityInstance -= 96;
+	
 	entry->ResourceEntity.Entry[1].EntityType = SAHPI_ENT_ROOT;
-	entry->ResourceEntity.Entry[1].EntityLocation = 0;
+	//entry->ResourceEntity.Entry[1].EntityInstance = 0;
+	entry->ResourceEntity.Entry[1].EntityInstance = ipmi_entity_get_slave_address(entity);
 	
 	/* let's append entity_root from config */
 
@@ -100,6 +153,7 @@ static void get_entity_event(ipmi_entity_t	*entity,
 	}
 				
 	entry->ResourceSeverity = SAHPI_OK;
+	entry->DomainId = 0;
 	entry->ResourceTag.DataType = SAHPI_TL_TYPE_ASCII6;
 	
 	entry->ResourceTag.Language = SAHPI_LANG_ENGLISH;
@@ -110,14 +164,14 @@ static void get_entity_event(ipmi_entity_t	*entity,
 			char *str;
 			str = ipmi_entity_get_entity_id_string(entity);
 			memcpy(entry->ResourceTag.Data, str, strlen(str) + 1);
-	}
+	} 
 }
 
 static void add_entity_event(ipmi_entity_t	        *entity,
 			     struct oh_handler_state    *handler)
 {
 		struct ohoi_resource_info *ohoi_res_info;
-		SaHpiRptEntryT	entry;
+		SaHpiRptEntryT	entry /*, *old_entry */;
 		int 		rv;
 
 		dbg("adding ipmi entity: %s", ipmi_entity_get_entity_id_string(entity));
@@ -186,10 +240,8 @@ void ohoi_entity_event(enum ipmi_update_e       op,
                        void                     *cb_data)
 {
 		struct oh_handler_state *handler = cb_data;
-		struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
-		
-		ipmi_handler->connected = 1;
-		
+		int rv;
+
 		if (op == IPMI_ADDED) {
 				add_entity_event(entity, handler);
 
@@ -213,7 +265,16 @@ void ohoi_entity_event(enum ipmi_update_e       op,
 								ipmi_entity_get_entity_id(entity), 
 								ipmi_entity_get_entity_instance(entity));
 		} else {
-				dbg("Entity: Unknow change?!");
+				dbg("Entity: Unknown change?!");
 		}
+
+		/* inventory (a.k.a FRU) */
+
+		rv = ipmi_entity_set_fru_update_handler(entity, ohoi_inventory_event, handler);
+
+		if (rv) {
+                dbg("ipmi_entity_set_fru_update_handler: %#x", rv);
+                return;
+        }
 
 }

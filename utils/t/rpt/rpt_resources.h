@@ -14,11 +14,6 @@
  *
  */
 
-#ifndef RPT_RESOURCES_H
-#define RPT_RESOURCES_H
-
-#include <SaHpi.h>
-
  SaHpiRptEntryT rptentries[] = {
         {
                 .EntryId = 1,
@@ -36,19 +31,19 @@
                 .ResourceEntity = {
                         .Entry[0] = {
                                 .EntityType = SAHPI_ENT_SBC_BLADE,
-                                .EntityLocation = 14
+                                .EntityInstance = 14
                         },
                         {
                                 .EntityType = SAHPI_ENT_SUB_CHASSIS,
-			        .EntityLocation = 1
+			        .EntityInstance = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
-                                .EntityLocation = 1
+                                .EntityInstance = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_ROOT,
-                                .EntityLocation = 0
+                                .EntityInstance = 0
                         }
                 },
                 .ResourceCapabilities = SAHPI_CAPABILITY_CONTROL |
@@ -59,7 +54,7 @@
 		                        SAHPI_CAPABILITY_SENSOR,
                 .ResourceSeverity = SAHPI_MAJOR,
                 .ResourceTag = {
-                        .DataType = SAHPI_TL_TYPE_TEXT,
+                        .DataType = SAHPI_TL_TYPE_LANGUAGE,
                         .Language = SAHPI_LANG_ENGLISH,
                         .DataLength = 26,
                         .Data = "This is data for blade 14."
@@ -81,19 +76,19 @@
                 .ResourceEntity = {
                         .Entry[0] = {
                                 .EntityType = SAHPI_ENT_SBC_BLADE,
-                                .EntityLocation = 13
+                                .EntityInstance = 13
                         },
                         {
                                 .EntityType = SAHPI_ENT_SUB_CHASSIS,
-			        .EntityLocation = 1
+			        .EntityInstance = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
-                                .EntityLocation = 1
+                                .EntityInstance = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_ROOT,
-                                .EntityLocation = 0
+                                .EntityInstance = 0
                         }
                 },
                 .ResourceCapabilities = SAHPI_CAPABILITY_CONTROL |
@@ -104,7 +99,7 @@
 		                        SAHPI_CAPABILITY_SENSOR,
                 .ResourceSeverity = SAHPI_MAJOR,
                 .ResourceTag = {
-                        .DataType = SAHPI_TL_TYPE_TEXT,
+                        .DataType = SAHPI_TL_TYPE_LANGUAGE,
                         .Language = SAHPI_LANG_ENGLISH,
                         .DataLength = 26,
                         .Data = "This is data for blade 13."
@@ -126,19 +121,19 @@
                 .ResourceEntity = {
                         .Entry[0] = {
                                 .EntityType = SAHPI_ENT_SBC_BLADE,
-                                .EntityLocation = 12
+                                .EntityInstance = 12
                         },
                         {
                                 .EntityType = SAHPI_ENT_SUB_CHASSIS,
-			        .EntityLocation = 1
+			        .EntityInstance = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
-                                .EntityLocation = 1
+                                .EntityInstance = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_ROOT,
-                                .EntityLocation = 0
+                                .EntityInstance = 0
                         }
                 },
                 .ResourceCapabilities = SAHPI_CAPABILITY_CONTROL |
@@ -149,7 +144,7 @@
 		                        SAHPI_CAPABILITY_SENSOR,
                 .ResourceSeverity = SAHPI_MAJOR,
                 .ResourceTag = {
-                        .DataType = SAHPI_TL_TYPE_TEXT,
+                        .DataType = SAHPI_TL_TYPE_LANGUAGE,
                         .Language = SAHPI_LANG_ENGLISH,
                         .DataLength = 26,
                         .Data = "This is data for blade 12."
@@ -171,19 +166,19 @@
                 .ResourceEntity = {
                         .Entry[0] = {
                                 .EntityType = SAHPI_ENT_SBC_BLADE,
-                                .EntityLocation = 11
+                                .EntityInstance = 11
                         },
                         {
                                 .EntityType = SAHPI_ENT_SUB_CHASSIS,
-			        .EntityLocation = 2
+			        .EntityInstance = 2
                         },
                         {
                                 .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
-                                .EntityLocation = 1
+                                .EntityInstance = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_ROOT,
-                                .EntityLocation = 0
+                                .EntityInstance = 0
                         }
                 },
                 .ResourceCapabilities = SAHPI_CAPABILITY_CONTROL |
@@ -194,7 +189,7 @@
 		                        SAHPI_CAPABILITY_SENSOR,
                 .ResourceSeverity = SAHPI_MAJOR,
                 .ResourceTag = {
-                        .DataType = SAHPI_TL_TYPE_TEXT,
+                        .DataType = SAHPI_TL_TYPE_LANGUAGE,
                         .Language = SAHPI_LANG_ENGLISH,
                         .DataLength = 26,
                         .Data = "This is data for blade 11."
@@ -216,19 +211,19 @@
                 .ResourceEntity = {
                         .Entry[0] = {
                                 .EntityType = SAHPI_ENT_SBC_BLADE,
-                                .EntityLocation = 10
+                                .EntityInstance = 10
                         },
                         {
                                 .EntityType = SAHPI_ENT_SUB_CHASSIS,
-			        .EntityLocation = 2
+			        .EntityInstance = 2
                         },
                         {
                                 .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
-                                .EntityLocation = 1
+                                .EntityInstance = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_ROOT,
-                                .EntityLocation = 0
+                                .EntityInstance = 0
                         }
                 },
                 .ResourceCapabilities = SAHPI_CAPABILITY_CONTROL |
@@ -239,7 +234,7 @@
 		                        SAHPI_CAPABILITY_SENSOR,
                 .ResourceSeverity = SAHPI_MAJOR,
                 .ResourceTag = {
-                        .DataType = SAHPI_TL_TYPE_TEXT,
+                        .DataType = SAHPI_TL_TYPE_LANGUAGE,
                         .Language = SAHPI_LANG_ENGLISH,
                         .DataLength = 26,
                         .Data = "This is data for blade 10."
@@ -261,19 +256,19 @@
                 .ResourceEntity = {
                         .Entry[0] = {
                                 .EntityType = SAHPI_ENT_SBC_BLADE,
-                                .EntityLocation = 9
+                                .EntityInstance = 9
                         },
                         {
                                 .EntityType = SAHPI_ENT_SUB_CHASSIS,
-			        .EntityLocation = 2
+			        .EntityInstance = 2
                         },
                         {
                                 .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
-                                .EntityLocation = 1
+                                .EntityInstance = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_ROOT,
-                                .EntityLocation = 0
+                                .EntityInstance = 0
                         }
                 },
                 .ResourceCapabilities = SAHPI_CAPABILITY_CONTROL |
@@ -284,7 +279,7 @@
 		                        SAHPI_CAPABILITY_SENSOR,
                 .ResourceSeverity = SAHPI_MAJOR,
                 .ResourceTag = {
-                        .DataType = SAHPI_TL_TYPE_TEXT,
+                        .DataType = SAHPI_TL_TYPE_LANGUAGE,
                         .Language = SAHPI_LANG_ENGLISH,
                         .DataLength = 25,
                         .Data = "This is data for blade 9."
@@ -306,19 +301,19 @@
                 .ResourceEntity = {
                         .Entry[0] = {
                                 .EntityType = SAHPI_ENT_SYS_MGMNT_MODULE,
-                                .EntityLocation = 1
+                                .EntityInstance = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_SUB_CHASSIS,
-			        .EntityLocation = 1
+			        .EntityInstance = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
-                                .EntityLocation = 1
+                                .EntityInstance = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_ROOT,
-                                .EntityLocation = 0
+                                .EntityInstance = 0
                         }
                 },
                 .ResourceCapabilities = SAHPI_CAPABILITY_FRU |
@@ -327,7 +322,7 @@
 		                        SAHPI_CAPABILITY_RESOURCE,
                 .ResourceSeverity = SAHPI_MAJOR,
                 .ResourceTag = {
-                        .DataType = SAHPI_TL_TYPE_TEXT,
+                        .DataType = SAHPI_TL_TYPE_LANGUAGE,
                         .Language = SAHPI_LANG_ENGLISH,
                         .DataLength = 39,
                         .Data = "This is data for the management module."
@@ -349,19 +344,19 @@
                 .ResourceEntity = {
                         .Entry[0] = {
                                 .EntityType = SAHPI_ENT_INTERCONNECT,
-                                .EntityLocation = 1
+                                .EntityInstance = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_SUB_CHASSIS,
-			        .EntityLocation = 1
+			        .EntityInstance = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
-                                .EntityLocation = 1
+                                .EntityInstance = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_ROOT,
-                                .EntityLocation = 0
+                                .EntityInstance = 0
                         }
                 },
                 .ResourceCapabilities = SAHPI_CAPABILITY_FRU |
@@ -370,7 +365,7 @@
 			                SAHPI_CAPABILITY_RESOURCE,
                 .ResourceSeverity = SAHPI_MAJOR,
                 .ResourceTag = {
-                        .DataType = SAHPI_TL_TYPE_TEXT,
+                        .DataType = SAHPI_TL_TYPE_LANGUAGE,
                         .Language = SAHPI_LANG_ENGLISH,
                         .DataLength = 35,
                         .Data = "This is data for the switch module."
@@ -392,19 +387,19 @@
                 .ResourceEntity = {
                         .Entry[0] = {
                                 .EntityType = SAHPI_ENT_POWER_SUPPLY,
-                                .EntityLocation = 3
+                                .EntityInstance = 3
                         },
                         {
                                 .EntityType = SAHPI_ENT_SUB_CHASSIS,
-			        .EntityLocation = 2
+			        .EntityInstance = 2
                         },
                         {
                                 .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
-                                .EntityLocation = 1
+                                .EntityInstance = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_ROOT,
-                                .EntityLocation = 0
+                                .EntityInstance = 0
                         }
                 },
                 .ResourceCapabilities = SAHPI_CAPABILITY_FRU |
@@ -413,7 +408,7 @@
 			                SAHPI_CAPABILITY_RESOURCE,
                 .ResourceSeverity = SAHPI_MAJOR,
                 .ResourceTag = {
-                        .DataType = SAHPI_TL_TYPE_TEXT,
+                        .DataType = SAHPI_TL_TYPE_LANGUAGE,
                         .Language = SAHPI_LANG_ENGLISH,
                         .DataLength = 34,
                         .Data = "This is data for the power module."
@@ -435,22 +430,22 @@
                 .ResourceEntity = {
                         .Entry[0] = {
                                 .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
-                                .EntityLocation = 1
+                                .EntityInstance = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_ROOT,
-                                .EntityLocation = 0
+                                .EntityInstance = 0
                         }
                 },
                 .ResourceCapabilities = SAHPI_CAPABILITY_CONTROL |
 			                SAHPI_CAPABILITY_INVENTORY_DATA |
                                         SAHPI_CAPABILITY_RDR |
 			                SAHPI_CAPABILITY_RESOURCE |
-			                SAHPI_CAPABILITY_EVENT_LOG |
+			                SAHPI_CAPABILITY_SEL |
 			                SAHPI_CAPABILITY_SENSOR,
                 .ResourceSeverity = SAHPI_CRITICAL,
                 .ResourceTag = {
-                        .DataType = SAHPI_TL_TYPE_TEXT,
+                        .DataType = SAHPI_TL_TYPE_LANGUAGE,
                         .Language = SAHPI_LANG_ENGLISH,
                         .DataLength = 25,
                         .Data = "This is data for chassis."
@@ -468,19 +463,19 @@ SaHpiRdrT rdrs[] = {
                 .Entity = {
                         .Entry[0] = {
                                 .EntityType = SAHPI_ENT_SBC_BLADE,
-                                .EntityLocation = 14
+                                .EntityInstance = 14
                         },
                         {
                                 .EntityType = SAHPI_ENT_SUB_CHASSIS,
-			        .EntityLocation = 1
+			        .EntityInstance = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
-                                .EntityLocation = 1
+                                .EntityInstance = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_ROOT,
-                                .EntityLocation = 0
+                                .EntityInstance = 0
                         }
                 },
                 .RdrTypeUnion = {
@@ -488,33 +483,49 @@ SaHpiRdrT rdrs[] = {
                                 .Num = 1,
                                 .Type = SAHPI_PLATFORM_VIOLATION,
                                 .Category = SAHPI_EC_SEVERITY,
-                                .EventCtrl = SAHPI_SEC_PER_EVENT,
+                                .EventCtrl = SAHPI_SEC_ENTIRE_SENSOR,
                                 .Events = SAHPI_ES_OK | SAHPI_ES_CRITICAL,
-                                .EnableCtrl = SAHPI_FALSE,
+                                .Ignore = SAHPI_FALSE,
                                 .DataFormat = {
+                                        .ReadingFormats = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
+                                        .IsNumeric = SAHPI_TRUE,
+                                        .SignFormat = SAHPI_SDF_UNSIGNED,
                                         .BaseUnits = SAHPI_SU_UNSPECIFIED,
                                         .ModifierUnits = SAHPI_SU_UNSPECIFIED,
                                         .ModifierUse = SAHPI_SMUU_NONE,
+                                        .FactorsStatic = SAHPI_TRUE,
+                                        .Factors = {
+                                                .Linearization = SAHPI_SL_LINEAR,
+                                        },
                                         .Percentage = SAHPI_FALSE,
                                         .Range = {
                                                 .Flags = SAHPI_SRF_MIN | SAHPI_SRF_MAX,
                                                 .Max = {
-                                                        .IsSupported = SAHPI_TRUE,
-                                                        .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
-                                                        .Value.SensorFloat64 = 1.0
+                                                        .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
+                                                        .Raw = 1,
+                                                        .EventStatus = {
+                                                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
+                                                                .EventStatus = SAHPI_ES_CRITICAL
+                                                        }
                                                 },
                                                 .Min = {
-                                                        .IsSupported = SAHPI_TRUE,
-                                                        .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
-                                                        .Value.SensorFloat64 = 0.0
+                                                        .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
+                                                        .Raw = 0,
+                                                        .EventStatus = {
+                                                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
+                                                                .EventStatus = SAHPI_ES_OK
+                                                        }
                                                 }
                                         }
+                                },
+                                .ThresholdDefn = {
+                                        .IsThreshold = SAHPI_FALSE
                                 },
                                 .Oem = 1
                         }
                 },
                 .IdString = {
-                        .DataType = SAHPI_TL_TYPE_TEXT,
+                        .DataType = SAHPI_TL_TYPE_LANGUAGE,
                         .Language = SAHPI_LANG_ENGLISH,
                         .DataLength = 22,
                         .Data = "Sensor 1 for Blade 14."
@@ -525,19 +536,19 @@ SaHpiRdrT rdrs[] = {
                 .Entity = {
                         .Entry[0] = {
                                 .EntityType = SAHPI_ENT_SBC_BLADE,
-                                .EntityLocation = 14
+                                .EntityInstance = 14
                         },
                         {
                                 .EntityType = SAHPI_ENT_SUB_CHASSIS,
-			        .EntityLocation = 1
+			        .EntityInstance = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
-                                .EntityLocation = 1
+                                .EntityInstance = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_ROOT,
-                                .EntityLocation = 0
+                                .EntityInstance = 0
                         }
                 },
                 .RdrTypeUnion = {
@@ -545,33 +556,49 @@ SaHpiRdrT rdrs[] = {
                                 .Num = 2,
                                 .Type = SAHPI_PLATFORM_VIOLATION,
                                 .Category = SAHPI_EC_SEVERITY,
-                                .EventCtrl = SAHPI_SEC_PER_EVENT,
+                                .EventCtrl = SAHPI_SEC_ENTIRE_SENSOR,
                                 .Events = SAHPI_ES_OK | SAHPI_ES_CRITICAL,
-                                .EnableCtrl = SAHPI_FALSE,
+                                .Ignore = SAHPI_FALSE,
                                 .DataFormat = {
+                                        .ReadingFormats = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
+                                        .IsNumeric = SAHPI_TRUE,
+                                        .SignFormat = SAHPI_SDF_UNSIGNED,
                                         .BaseUnits = SAHPI_SU_UNSPECIFIED,
                                         .ModifierUnits = SAHPI_SU_UNSPECIFIED,
                                         .ModifierUse = SAHPI_SMUU_NONE,
+                                        .FactorsStatic = SAHPI_TRUE,
+                                        .Factors = {
+                                                .Linearization = SAHPI_SL_LINEAR,
+                                        },
                                         .Percentage = SAHPI_FALSE,
                                         .Range = {
                                                 .Flags = SAHPI_SRF_MIN | SAHPI_SRF_MAX,
                                                 .Max = {
-                                                        .IsSupported = SAHPI_TRUE,
-                                                        .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
-                                                        .Value.SensorFloat64 = 1.0
+                                                        .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
+                                                        .Raw = 1,
+                                                        .EventStatus = {
+                                                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
+                                                                .EventStatus = SAHPI_ES_CRITICAL
+                                                        }
                                                 },
                                                 .Min = {
-                                                        .IsSupported = SAHPI_TRUE,
-                                                        .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
-                                                        .Value.SensorFloat64 = 0.0
+                                                        .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
+                                                        .Raw = 0,
+                                                        .EventStatus = {
+                                                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
+                                                                .EventStatus = SAHPI_ES_OK
+                                                        }
                                                 }
                                         }
+                                },
+                                .ThresholdDefn = {
+                                        .IsThreshold = SAHPI_FALSE
                                 },
                                 .Oem = 2
                         }
                 },
                 .IdString = {
-                        .DataType = SAHPI_TL_TYPE_TEXT,
+                        .DataType = SAHPI_TL_TYPE_LANGUAGE,
                         .Language = SAHPI_LANG_ENGLISH,
                         .DataLength = 22,
                         .Data = "Sensor 2 for Blade 14."
@@ -582,19 +609,19 @@ SaHpiRdrT rdrs[] = {
                 .Entity = {
                         .Entry[0] = {
                                 .EntityType = SAHPI_ENT_SBC_BLADE,
-                                .EntityLocation = 14
+                                .EntityInstance = 14
                         },
                         {
                                 .EntityType = SAHPI_ENT_SUB_CHASSIS,
-			        .EntityLocation = 1
+			        .EntityInstance = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
-                                .EntityLocation = 1
+                                .EntityInstance = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_ROOT,
-                                .EntityLocation = 0
+                                .EntityInstance = 0
                         }
                 },
                 .RdrTypeUnion = {
@@ -602,33 +629,49 @@ SaHpiRdrT rdrs[] = {
                                 .Num = 3,
                                 .Type = SAHPI_PLATFORM_VIOLATION,
                                 .Category = SAHPI_EC_SEVERITY,
-                                .EventCtrl = SAHPI_SEC_PER_EVENT,
+                                .EventCtrl = SAHPI_SEC_ENTIRE_SENSOR,
                                 .Events = SAHPI_ES_OK | SAHPI_ES_CRITICAL,
-                                .EnableCtrl = SAHPI_FALSE,
+                                .Ignore = SAHPI_FALSE,
                                 .DataFormat = {
+                                        .ReadingFormats = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
+                                        .IsNumeric = SAHPI_TRUE,
+                                        .SignFormat = SAHPI_SDF_UNSIGNED,
                                         .BaseUnits = SAHPI_SU_UNSPECIFIED,
                                         .ModifierUnits = SAHPI_SU_UNSPECIFIED,
                                         .ModifierUse = SAHPI_SMUU_NONE,
+                                        .FactorsStatic = SAHPI_TRUE,
+                                        .Factors = {
+                                                .Linearization = SAHPI_SL_LINEAR,
+                                        },
                                         .Percentage = SAHPI_FALSE,
                                         .Range = {
                                                 .Flags = SAHPI_SRF_MIN | SAHPI_SRF_MAX,
                                                 .Max = {
-                                                        .IsSupported = SAHPI_TRUE,
-                                                        .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
-                                                        .Value.SensorFloat64 = 1.0
+                                                        .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
+                                                        .Raw = 1,
+                                                        .EventStatus = {
+                                                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
+                                                                .EventStatus = SAHPI_ES_CRITICAL
+                                                        }
                                                 },
                                                 .Min = {
-                                                        .IsSupported = SAHPI_TRUE,
-                                                        .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
-                                                        .Value.SensorFloat64 = 0.0
+                                                        .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
+                                                        .Raw = 0,
+                                                        .EventStatus = {
+                                                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
+                                                                .EventStatus = SAHPI_ES_OK
+                                                        }
                                                 }
                                         }
+                                },
+                                .ThresholdDefn = {
+                                        .IsThreshold = SAHPI_FALSE
                                 },
                                 .Oem = 3
                         }
                 },
                 .IdString = {
-                        .DataType = SAHPI_TL_TYPE_TEXT,
+                        .DataType = SAHPI_TL_TYPE_LANGUAGE,
                         .Language = SAHPI_LANG_ENGLISH,
                         .DataLength = 22,
                         .Data = "Sensor 3 for Blade 14."
@@ -639,19 +682,19 @@ SaHpiRdrT rdrs[] = {
                 .Entity = {
                         .Entry[0] = {
                                 .EntityType = SAHPI_ENT_SBC_BLADE,
-                                .EntityLocation = 14
+                                .EntityInstance = 14
                         },
                         {
                                 .EntityType = SAHPI_ENT_SUB_CHASSIS,
-			        .EntityLocation = 1
+			        .EntityInstance = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
-                                .EntityLocation = 1
+                                .EntityInstance = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_ROOT,
-                                .EntityLocation = 0
+                                .EntityInstance = 0
                         }
                 },
                 .RdrTypeUnion = {
@@ -659,33 +702,49 @@ SaHpiRdrT rdrs[] = {
                                 .Num = 4,
                                 .Type = SAHPI_PLATFORM_VIOLATION,
                                 .Category = SAHPI_EC_SEVERITY,
-                                .EventCtrl = SAHPI_SEC_PER_EVENT,
+                                .EventCtrl = SAHPI_SEC_ENTIRE_SENSOR,
                                 .Events = SAHPI_ES_OK | SAHPI_ES_CRITICAL,
-                                .EnableCtrl = SAHPI_FALSE,
+                                .Ignore = SAHPI_FALSE,
                                 .DataFormat = {
+                                        .ReadingFormats = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
+                                        .IsNumeric = SAHPI_TRUE,
+                                        .SignFormat = SAHPI_SDF_UNSIGNED,
                                         .BaseUnits = SAHPI_SU_UNSPECIFIED,
                                         .ModifierUnits = SAHPI_SU_UNSPECIFIED,
                                         .ModifierUse = SAHPI_SMUU_NONE,
+                                        .FactorsStatic = SAHPI_TRUE,
+                                        .Factors = {
+                                                .Linearization = SAHPI_SL_LINEAR,
+                                        },
                                         .Percentage = SAHPI_FALSE,
                                         .Range = {
                                                 .Flags = SAHPI_SRF_MIN | SAHPI_SRF_MAX,
                                                 .Max = {
-                                                        .IsSupported = SAHPI_TRUE,
-                                                        .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
-                                                        .Value.SensorFloat64 = 1.0
+                                                        .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
+                                                        .Raw = 1,
+                                                        .EventStatus = {
+                                                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
+                                                                .EventStatus = SAHPI_ES_CRITICAL
+                                                        }
                                                 },
                                                 .Min = {
-                                                        .IsSupported = SAHPI_TRUE,
-                                                        .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
-                                                        .Value.SensorFloat64 = 0.0
+                                                        .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
+                                                        .Raw = 0,
+                                                        .EventStatus = {
+                                                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
+                                                                .EventStatus = SAHPI_ES_OK
+                                                        }
                                                 }
                                         }
+                                },
+                                .ThresholdDefn = {
+                                        .IsThreshold = SAHPI_FALSE
                                 },
                                 .Oem = 4
                         }
                 },
                 .IdString = {
-                        .DataType = SAHPI_TL_TYPE_TEXT,
+                        .DataType = SAHPI_TL_TYPE_LANGUAGE,
                         .Language = SAHPI_LANG_ENGLISH,
                         .DataLength = 22,
                         .Data = "Sensor 4 for Blade 14."
@@ -696,19 +755,19 @@ SaHpiRdrT rdrs[] = {
                 .Entity = {
                         .Entry[0] = {
                                 .EntityType = SAHPI_ENT_SBC_BLADE,
-                                .EntityLocation = 14
+                                .EntityInstance = 14
                         },
                         {
                                 .EntityType = SAHPI_ENT_SUB_CHASSIS,
-			        .EntityLocation = 1
+			        .EntityInstance = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
-                                .EntityLocation = 1
+                                .EntityInstance = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_ROOT,
-                                .EntityLocation = 0
+                                .EntityInstance = 0
                         }
                 },
                 .RdrTypeUnion = {
@@ -716,33 +775,49 @@ SaHpiRdrT rdrs[] = {
                                 .Num = 5,
                                 .Type = SAHPI_PLATFORM_VIOLATION,
                                 .Category = SAHPI_EC_SEVERITY,
-                                .EventCtrl = SAHPI_SEC_PER_EVENT,
+                                .EventCtrl = SAHPI_SEC_ENTIRE_SENSOR,
                                 .Events = SAHPI_ES_OK | SAHPI_ES_CRITICAL,
-                                .EnableCtrl = SAHPI_FALSE,
+                                .Ignore = SAHPI_FALSE,
                                 .DataFormat = {
+                                        .ReadingFormats = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
+                                        .IsNumeric = SAHPI_TRUE,
+                                        .SignFormat = SAHPI_SDF_UNSIGNED,
                                         .BaseUnits = SAHPI_SU_UNSPECIFIED,
                                         .ModifierUnits = SAHPI_SU_UNSPECIFIED,
                                         .ModifierUse = SAHPI_SMUU_NONE,
+                                        .FactorsStatic = SAHPI_TRUE,
+                                        .Factors = {
+                                                .Linearization = SAHPI_SL_LINEAR,
+                                        },
                                         .Percentage = SAHPI_FALSE,
                                         .Range = {
                                                 .Flags = SAHPI_SRF_MIN | SAHPI_SRF_MAX,
                                                 .Max = {
-                                                        .IsSupported = SAHPI_TRUE,
-                                                        .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
-                                                        .Value.SensorFloat64 = 1.0
+                                                        .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
+                                                        .Raw = 1,
+                                                        .EventStatus = {
+                                                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
+                                                                .EventStatus = SAHPI_ES_CRITICAL
+                                                        }
                                                 },
                                                 .Min = {
-                                                        .IsSupported = SAHPI_TRUE,
-                                                        .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
-                                                        .Value.SensorFloat64 = 0.0
+                                                        .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
+                                                        .Raw = 0,
+                                                        .EventStatus = {
+                                                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
+                                                                .EventStatus = SAHPI_ES_OK
+                                                        }
                                                 }
                                         }
+                                },
+                                .ThresholdDefn = {
+                                        .IsThreshold = SAHPI_FALSE
                                 },
                                 .Oem = 5
                         }
                 },
                 .IdString = {
-                        .DataType = SAHPI_TL_TYPE_TEXT,
+                        .DataType = SAHPI_TL_TYPE_LANGUAGE,
                         .Language = SAHPI_LANG_ENGLISH,
                         .DataLength = 22,
                         .Data = "Sensor 5 for Blade 14."
@@ -753,11 +828,11 @@ SaHpiRdrT rdrs[] = {
                 .Entity = {
                         .Entry[0] = {
                                 .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
-                                .EntityLocation = 1
+                                .EntityInstance = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_ROOT,
-                                .EntityLocation = 0
+                                .EntityInstance = 0
                         }
                 },
                 .RdrTypeUnion = {
@@ -765,33 +840,49 @@ SaHpiRdrT rdrs[] = {
                                 .Num = 1,
                                 .Type = SAHPI_PLATFORM_VIOLATION,
                                 .Category = SAHPI_EC_SEVERITY,
-                                .EventCtrl = SAHPI_SEC_PER_EVENT,
+                                .EventCtrl = SAHPI_SEC_ENTIRE_SENSOR,
                                 .Events = SAHPI_ES_OK | SAHPI_ES_CRITICAL,
-                                .EnableCtrl = SAHPI_FALSE,
+                                .Ignore = SAHPI_FALSE,
                                 .DataFormat = {
+                                        .ReadingFormats = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
+                                        .IsNumeric = SAHPI_TRUE,
+                                        .SignFormat = SAHPI_SDF_UNSIGNED,
                                         .BaseUnits = SAHPI_SU_UNSPECIFIED,
                                         .ModifierUnits = SAHPI_SU_UNSPECIFIED,
                                         .ModifierUse = SAHPI_SMUU_NONE,
+                                        .FactorsStatic = SAHPI_TRUE,
+                                        .Factors = {
+                                                .Linearization = SAHPI_SL_LINEAR,
+                                        },
                                         .Percentage = SAHPI_FALSE,
                                         .Range = {
                                                 .Flags = SAHPI_SRF_MIN | SAHPI_SRF_MAX,
                                                 .Max = {
-                                                        .IsSupported = SAHPI_TRUE,
-                                                        .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
-                                                        .Value.SensorFloat64 = 1.0
+                                                        .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
+                                                        .Raw = 1,
+                                                        .EventStatus = {
+                                                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
+                                                                .EventStatus = SAHPI_ES_CRITICAL
+                                                        }
                                                 },
                                                 .Min = {
-                                                        .IsSupported = SAHPI_TRUE,
-                                                        .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
-                                                        .Value.SensorFloat64 = 0.0
+                                                        .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
+                                                        .Raw = 0,
+                                                        .EventStatus = {
+                                                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
+                                                                .EventStatus = SAHPI_ES_OK
+                                                        }
                                                 }
                                         }
+                                },
+                                .ThresholdDefn = {
+                                        .IsThreshold = SAHPI_FALSE
                                 },
                                 .Oem = 6
                         }
                 },
                 .IdString = {
-                        .DataType = SAHPI_TL_TYPE_TEXT,
+                        .DataType = SAHPI_TL_TYPE_LANGUAGE,
                         .Language = SAHPI_LANG_ENGLISH,
                         .DataLength = 21,
                         .Data = "Sensor 1 for Chassis."
@@ -802,11 +893,11 @@ SaHpiRdrT rdrs[] = {
                 .Entity = {
                         .Entry[0] = {
                                 .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
-                                .EntityLocation = 1
+                                .EntityInstance = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_ROOT,
-                                .EntityLocation = 0
+                                .EntityInstance = 0
                         }
                 },
                 .RdrTypeUnion = {
@@ -814,33 +905,49 @@ SaHpiRdrT rdrs[] = {
                                 .Num = 2,
                                 .Type = SAHPI_PLATFORM_VIOLATION,
                                 .Category = SAHPI_EC_SEVERITY,
-                                .EventCtrl = SAHPI_SEC_PER_EVENT,
+                                .EventCtrl = SAHPI_SEC_ENTIRE_SENSOR,
                                 .Events = SAHPI_ES_OK | SAHPI_ES_CRITICAL,
-                                .EnableCtrl = SAHPI_FALSE,
-                                .DataFormat = {                                        
+                                .Ignore = SAHPI_FALSE,
+                                .DataFormat = {
+                                        .ReadingFormats = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
+                                        .IsNumeric = SAHPI_TRUE,
+                                        .SignFormat = SAHPI_SDF_UNSIGNED,
                                         .BaseUnits = SAHPI_SU_UNSPECIFIED,
                                         .ModifierUnits = SAHPI_SU_UNSPECIFIED,
                                         .ModifierUse = SAHPI_SMUU_NONE,
+                                        .FactorsStatic = SAHPI_TRUE,
+                                        .Factors = {
+                                                .Linearization = SAHPI_SL_LINEAR,
+                                        },
                                         .Percentage = SAHPI_FALSE,
                                         .Range = {
                                                 .Flags = SAHPI_SRF_MIN | SAHPI_SRF_MAX,
                                                 .Max = {
-                                                        .IsSupported = SAHPI_TRUE,
-                                                        .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
-                                                        .Value.SensorFloat64 = 1.0
+                                                        .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
+                                                        .Raw = 1,
+                                                        .EventStatus = {
+                                                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
+                                                                .EventStatus = SAHPI_ES_CRITICAL
+                                                        }
                                                 },
                                                 .Min = {
-                                                        .IsSupported = SAHPI_TRUE,
-                                                        .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
-                                                        .Value.SensorFloat64 = 0.0
+                                                        .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
+                                                        .Raw = 0,
+                                                        .EventStatus = {
+                                                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
+                                                                .EventStatus = SAHPI_ES_OK
+                                                        }
                                                 }
                                         }
+                                },
+                                .ThresholdDefn = {
+                                        .IsThreshold = SAHPI_FALSE
                                 },
                                 .Oem = 7
                         }
                 },
                 .IdString = {
-                        .DataType = SAHPI_TL_TYPE_TEXT,
+                        .DataType = SAHPI_TL_TYPE_LANGUAGE,
                         .Language = SAHPI_LANG_ENGLISH,
                         .DataLength = 22,
                         .Data = "Sensor 2 for Chassis."
@@ -848,6 +955,3 @@ SaHpiRdrT rdrs[] = {
         },
         {}        
 };
-
-#endif /* RPT_RESOURCES_H  */
-

@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2003, 2004
+ * (C) Copyright IBM Corp. 2003
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -10,17 +10,16 @@
  * full licensing terms.
  *
  * Author(s):
- *      Chris Chia <cchia@users.sf.net>
+ *      Chris Chia <chia@austin.ibm.com>
  */
 
-#ifndef __SNMP_BC_UTILS_H
-#define __SNMP_BC_UTILS_H
+#ifndef SNMP_BC_UTILS_H
+#define SNMP_BC_UTILS_H
 
-#define  UUID_SUBSTRINGS_CNT1  8
-#define  UUID_SUBSTRINGS_CNT2  5
+gchar * snmp_derive_objid(SaHpiEntityPathT ep, const gchar *oid);
 
-SaErrorT snmp_bc_get_guid(struct snmp_bc_hnd *custom_handle,
-                          const char *oid,
-                          SaHpiGuidT *guid);
+int get_interpreted_value(gchar *string, 
+			  SaHpiSensorInterpretedTypeT type, 
+			  SaHpiSensorInterpretedUnionT *value); 
 
-#endif
+#endif /* SNMP_BC_UTILS_H */

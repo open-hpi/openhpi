@@ -20,7 +20,8 @@
 #include <SaHpi.h>
 
 #include <snmp_util.h>
-#include <oh_utils.h>
+#include <uid_utils.h>
+#include <epath_utils.h>
 
 #include <openhpi.h>
 #include <rsa_resources.h>

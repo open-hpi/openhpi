@@ -4,28 +4,6 @@ Hardware Platform Interface specification.
 The header file was obtained from www.saforum.org/specification/download.
 
 ---------------------------------------------------------
-NOTE: This is a Developement Release!
----------------------------------------------------------
-This is a development release on the road to OpenHPI 2.0, which will
-provide support for the SAF HPI B.01.01 release.  As this is a
-development release, not all functionality is expected to work.  Use
-at your own risk.
-
-The following components are thought to be working at this time:
-* OpenHPI base library
-* OpenHPI utility library
-* Dummy Plugin
-* SNMP Blade Center Plugin (partial)
-    - discovery works
-    - inventory works
-    - sensor readings work, sensor states tbd
-* IPMI Plugin (partial)
-* HPI Clients
-    - hpiel, hpigetevent, and hpisensors work
-
-Feedback, as always, is welcome and encouraged.
-
----------------------------------------------------------
 PREREQUISITES
 ---------------------------------------------------------
 The following software is required to build openhpi
@@ -34,7 +12,7 @@ autoconf >= 2.57
 automake >= 1.5
 gcc      >= 3.2.0
 uuid.h      (may be found in e2fsprogs-devel or uuid-dev)
-GLIB-2.0	
+GLIB-1.2	(note we may be switching to 2.0 in the next release)
 
 The follow libraries are needed to build certain plugins
 
@@ -56,19 +34,17 @@ snmp_client plugin
 ---------------------------------------------------------
 BUILD / INSTALLATION
 ---------------------------------------------------------
+First time to extract the code:
+run ./BigBuild
 
-FOR RELEASED TARBALLS
+This will generate all files needed to compile.
 
-Use standard UNIX mechanisms:
-./configure && make && make install
+Note: by default all plugins that can be built, will be built.
 
-Note: by default all plugins that *can* be built, will be built, all
-other plugins will be silently disabled.
-
-If you wish to disable a plugin, any flags you pass to configure
+If you wish to disable a plugin, any flags you pass to BigBuild 
 will be passed to the configure program.
 
-i.e. ./configure --disable-dummy will disable the dummy plugin
+i.e. ./BigBuild --disable-dummy will disable the dummy plugin
 
 then make (or make rpm)
 and then (as root or with proper system install permissions)
@@ -81,15 +57,6 @@ NOTE: the configuration file is only installed by the RPM installation.
 	If you run "make install" manually, you will need to:
 		cp examples/openhpi.conf.example /etc/openhpi/openhpi.conf
 	and modify it for your needs.
-
-FOR CVS EXTRACTS
-
-First time to extract the code:
-run ./bootstrap *first*
-
-This will generate all files needed to compile.
-
-You can then use the instructions provided for RELEASED TARBALLS
 
 ---------------------------------------------------------
 CLEANUP
@@ -111,7 +78,6 @@ dummy - dummy plugin for use in testing
 ipmi - OpenIPMI based plugin
 ipmidirect - IPMI plugin that talks to device driver directly
 snmp_bc - IBM Blade Center plugin (uses snmp)
-snmp_rsa - IBM RSA1 plugin (uses snmp)
 watchdog - Linux watchdog device interface
 sysfs - Linux sysfs plugin (LM sensors and I2C devices exported in 
         sysfs requires kernel 2.6 or >= 2.5.72)

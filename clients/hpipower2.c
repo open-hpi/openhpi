@@ -12,9 +12,6 @@
  * Authors:
  *     Andy Cress       <arcress@users.sourceforge.net>
  *     Louis Zhuang     <louis.zhuang@linux.intel.com>
- * Changes:
- *     10/14/2004  kouzmich   porting to HPI B
- *     10/27/2004  Tariq Shureih <tariq.shureih@intel.com>
  */
 
 #include <stdio.h>
@@ -24,143 +21,110 @@
 
 #define  uchar  unsigned char
 char *progver  = "1.0";
+char fdebug = 0;
 
-void state2str(SaHpiPowerStateT state);
-
-static void usage(char *pname)
+static void Usage(char *pname)
 {
-	printf("Usage: %s -pdc\n", pname);
-        printf(" where: -u  powers Up the system\n");
-        printf("        -d  powers Down the system\n");
-	printf("        -c  powers Cycles the system\n");
+                printf("Usage: %s [-r -d -x]\n", pname);
+                printf(" where -r  hard Resets the system\n");
+                printf("       -d  powers Down the system\n");
+#ifdef MAYBELATER
+/*++++ not implemented in HPI 1.0 ++++
+                printf("       -c  power Cycles the system\n");
+                printf("       -n  sends NMI to the system\n");
+                printf("       -o  soft-shutdown OS\n");
+                printf("       -s  reboots to Service Partition\n");
+ ++++*/
+#endif
+                printf("       -x  show eXtra debug messages\n");
 }
 
 int
 main(int argc, char **argv)
 {
-	int c;
-	int is_state = 0;
-	int is_power = 0;
-	SaErrorT rv;
-	SaHpiSessionIdT sessionid;
-	SaHpiDomainInfoT domainInfo;
-	SaHpiRptEntryT rptentry;
-	SaHpiEntryIdT rptentryid;
-	SaHpiEntryIdT nextrptentryid;
-	SaHpiResourceIdT resourceid;
-	SaHpiPowerStateT in_state = 0;
-	SaHpiPowerStateT current_state;
-
-	printf("%s ver %s\n", argv[0],progver);
-
-	while ( (c = getopt( argc, argv,"udcx?")) != EOF )
-		switch(c) {
-			case 'u':	/* power up */
-				in_state = SAHPI_POWER_ON;
-				is_state = 1;
-				break;
-
-			case 'd':	/* power down */
-				in_state = SAHPI_POWER_OFF;
-				is_state = 1;
-				break;
-			case 'c':	/* power cycle */
-				in_state = SAHPI_POWER_CYCLE;
-				is_state = 1;
-				break;
-			default:
-				usage(argv[0]);
-				exit(1);
-		}
-	if ( ! is_state) {
-		usage(argv[0]);
-		exit(1);
-	};
-
-	rv = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID, &sessionid, NULL);
-	if (rv != SA_OK) {
-		if (rv == SA_ERR_HPI_ERROR)
-			printf("saHpiSessionOpen: error %d, SpiLibd not running\n",rv);
-		else
-			printf("saHpiSessionOpen error %d\n",rv);
-			exit(-1);
-	}
-	
-  	rv = saHpiDiscover(sessionid);
-	if (rv != SA_OK)
-	      printf("saHpiDiscover rv = %d\n",rv);
-
-	rv = saHpiDomainInfoGet(sessionid, &domainInfo);
-	if (rv != SA_OK)
-		printf("saHpiDomainInfoGet rv = %d\n",rv);
-
-	/* walk the RPT list */
-	rptentryid = SAHPI_FIRST_ENTRY;
-	while ((rv == SA_OK) && (rptentryid != SAHPI_LAST_ENTRY)) {
-		
-		SaErrorT rv1;
-		
-		rv = saHpiRptEntryGet(sessionid,rptentryid,&nextrptentryid,&rptentry);
-		if (rv != SA_OK) {
-		       printf("RptEntryGet: rv = %d\n",rv);
-		       break;
-		};
-		/* walk the RDR list for this RPT entry */
-		resourceid = rptentry.ResourceId;
-		rptentry.ResourceTag.Data[rptentry.ResourceTag.DataLength] = 0;
-		printf("rptentry[%d] resourceid=%d tag: %s\n",
-				rptentryid,resourceid, (char *)rptentry.ResourceTag.Data);
-
-		if (rptentry.ResourceCapabilities & SAHPI_CAPABILITY_POWER) {
-			is_power = 1;
-
-			/* read the current power state */
-			rv1 = saHpiResourcePowerStateGet(sessionid, resourceid,
-							&current_state);
-			if (rv1 != SA_OK) {
-				printf("saHpiResourcePowerStateGet: error = %d\n", rv1);
-				rptentryid = nextrptentryid;
-				continue;
-			} 
-				printf("Current power state:");
-			state2str(current_state);
-
-			/* set new power state */
-			printf("Setting power state to:");
-			state2str(in_state);
-				rv1 = saHpiResourcePowerStateSet(sessionid, resourceid, in_state);
-			if (rv1 != SA_OK)
-			       printf("PowerStateSet status = %d\n",rv1);
-				/* check new state again */
-			rv1 = saHpiResourcePowerStateGet(sessionid, resourceid,
-							&current_state);
-			if (rv1 != SA_OK)
-				printf("saHpiResourcePowerStateGet: error = %d\n", rv1);
-			else {
-				printf("New power state:");
-				state2str(current_state);
-			}	
-		};
-		rptentryid = nextrptentryid;
-	}
-
-	 rv = saHpiSessionClose(sessionid);
-
-	 if (is_power == 0)
-		 printf("No resources with Power capability found\n");
-
-	 return(0);
-}
-
-void state2str(SaHpiPowerStateT state)
-{
-	if (state == SAHPI_POWER_ON)
-		printf("\tSAHPI_POWER_ON\n");
-	if (state == SAHPI_POWER_OFF)
-		printf("\tSAHPI_POWER_OFF\n");
-	if (state != SAHPI_POWER_ON && state != SAHPI_POWER_OFF)
-		printf("\tInvalid Power State\n");
-}
-	
+  int c;
+  SaErrorT rv;
+  SaHpiVersionT hpiVer;
+  SaHpiSessionIdT sessionid;
+  SaHpiRptInfoT rptinfo;
+  SaHpiRptEntryT rptentry;
+  SaHpiEntryIdT rptentryid;
+  SaHpiEntryIdT nextrptentryid;
+  SaHpiEntryIdT entryid;
+  SaHpiResourceIdT resourceid;
+  uchar breset;
+  uchar bopt;
+  uchar fshutdown = 0;
  
-/* end hpipower2.c */
+  printf("%s ver %s\n", argv[0],progver);
+  breset = 3; /* hard reset as default */
+  bopt = 0;    /* Boot Options default */
+  while ( (c = getopt( argc, argv,"rdx?")) != EOF )
+     switch(c) {
+          case 'd': breset = 0;     break;  /* power down */
+          case 'r': breset = 3;     break;  /* hard reset */
+          case 'x': fdebug = 1;     break;  /* debug messages */
+#ifdef MAYBELATER
+          case 'c': breset = 2;     break;  /* power cycle */
+          case 'o': fshutdown = 1;  break;  /* shutdown OS */
+          case 'n': breset = 4;     break;  /* interrupt (NMI) */
+          case 's': bopt   = 1;     break;  /* hard reset to svc part */
+#endif
+          default:
+		Usage(argv[0]);
+                exit(1);
+  }
+  if (fshutdown) breset = 5;     /* soft shutdown option */
+
+  rv = saHpiInitialize(&hpiVer);
+  if (rv != SA_OK) {
+	printf("saHpiInitialize error %d\n",rv);
+	exit(-1);
+	}
+  rv = saHpiSessionOpen(SAHPI_DEFAULT_DOMAIN_ID,&sessionid,NULL);
+  if (rv != SA_OK) {
+        if (rv == SA_ERR_HPI_ERROR)
+           printf("saHpiSessionOpen: error %d, SpiLibd not running\n",rv);
+        else
+	   printf("saHpiSessionOpen error %d\n",rv);
+	exit(-1);
+	}
+ 
+  rv = saHpiResourcesDiscover(sessionid);
+  if (fdebug) printf("saHpiResourcesDiscover rv = %d\n",rv);
+  rv = saHpiRptInfoGet(sessionid,&rptinfo);
+  if (fdebug) printf("saHpiRptInfoGet rv = %d\n",rv);
+  printf("RptInfo: UpdateCount = %x, UpdateTime = %lx\n",
+         rptinfo.UpdateCount, (unsigned long)rptinfo.UpdateTimestamp);
+
+  /* walk the RPT list */
+  rptentryid = SAHPI_FIRST_ENTRY;
+  while ((rv == SA_OK) && (rptentryid != SAHPI_LAST_ENTRY))
+  {
+     SaErrorT rv1;
+     rv = saHpiRptEntryGet(sessionid,rptentryid,&nextrptentryid,&rptentry);
+     if (rv != SA_OK) printf("RptEntryGet: rv = %d\n",rv);
+     if (rv == SA_OK) {
+	/* walk the RDR list for this RPT entry */
+	entryid = SAHPI_FIRST_ENTRY;
+	resourceid = rptentry.ResourceId;
+	rptentry.ResourceTag.Data[rptentry.ResourceTag.DataLength] = 0;
+	printf("rptentry[%d] resourceid=%d tag: %s\n",
+		entryid,resourceid, rptentry.ResourceTag.Data);
+        
+	rv1 = saHpiResourcePowerStateSet(sessionid, 
+	     	resourceid, SAHPI_HS_POWER_OFF);
+        printf("PowerStateSet status = %d\n",rv1);
+        
+	rptentryid = nextrptentryid;
+     }
+  }
+ 
+  rv = saHpiSessionClose(sessionid);
+  rv = saHpiFinalize();
+
+  exit(0);
+  return(0);
+}
+ 
+/* end hpireset.c */

@@ -11,13 +11,14 @@
  *
  * Authors:
  *     Renier Morales <renierm@users.sf.net>
+ *
  */
-#include <glib.h>
 #include <stdio.h>
 #include <sys/time.h>
 
 #include <SaHpi.h>
-#include <oh_utils.h>
+#include <glib.h>
+#include <rpt_utils.h>
 #include <rpt_resources.h>
 
 /**
@@ -29,14 +30,13 @@
 int main(int argc, char **argv)
 {
         RPTable *rptable = (RPTable *)g_malloc0(sizeof(RPTable));
-        oh_init_rpt(rptable);
         guint i = 0;
         struct timeval start, end;
         SaHpiRptEntryT *tmpentry = NULL;
 
         for (i = 1; i <= 10000; i++) {
                 rptentries[0].ResourceId = i;
-                rptentries[0].ResourceEntity.Entry[0].EntityLocation = i;
+                rptentries[0].ResourceEntity.Entry[0].EntityInstance = i;
                 oh_add_resource(rptable, rptentries, NULL, 0);
         }
 

@@ -20,7 +20,8 @@
 #include <snmp_util.h>
 #include <snmp_rsa_session.h>
 #include <snmp_rsa.h>
-#include <oh_utils.h>
+#include <rpt_utils.h>
+#include <sel_utils.h>
 #include <rsa_resources.h>
 #include <string.h>
 #include <rsa_str2event.h>
@@ -213,7 +214,7 @@ void *snmp_rsa_open(GHashTable *handler_config)
 	}
 		
 
-	if (is_simulator) {
+	if (is_simulator()) {
 		sim_banner();
 	}
 

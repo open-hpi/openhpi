@@ -11,13 +11,13 @@
  *
  * Authors:
  *     Chris Chia <cchia@users.sf.net>
+ *
  */
 
 #include <string.h>
 #include <stdio.h>
-
 #include <SaHpi.h>
-#include <oh_utils.h>
+#include <epath_utils.h>
 
 /**
  * set_ep_instance test.
@@ -30,7 +30,7 @@ int main(int argc, char **argv)
 {
         SaHpiEntityPathT ep;
         SaHpiEntityTypeT     w = SAHPI_ENT_SBC_BLADE;
-        SaHpiEntityLocationT x = 56873;
+        SaHpiEntityInstanceT x = 56873;
         unsigned int    y = 77002;
         unsigned int    z = 3;
         unsigned int    i = 0;
@@ -39,22 +39,22 @@ int main(int argc, char **argv)
         if (mydebug) printf(" test12\n");
         for ( i=0; i<z; i++ ) {
                 ep.Entry[i].EntityType = w;
-                ep.Entry[i].EntityLocation = y;
+                ep.Entry[i].EntityInstance = y;
         }
         ep.Entry[z].EntityType = SAHPI_ENT_FAN;
-        ep.Entry[z].EntityLocation = z;
+        ep.Entry[z].EntityInstance = z;
         for ( i=z+1; i<SAHPI_MAX_ENTITY_PATH; i++ ) {
                 ep.Entry[i].EntityType = w;
-                ep.Entry[i].EntityLocation = y;
+                ep.Entry[i].EntityInstance = y;
         }
 
         if(set_ep_instance(&ep, SAHPI_ENT_FAN, x)) {
                 if (mydebug) printf("set_ep_inst test12 checkpoint 1 failed\n");
                 return 1;
         }
-        if ( ep.Entry[z].EntityLocation != x ) {
+        if ( ep.Entry[z].EntityInstance != x ) {
                 if (mydebug) printf("set_ep_inst test12 failed, entInst %d != %d\n",
-                                   ep.Entry[z].EntityLocation, x);
+                                   ep.Entry[z].EntityInstance, x);
                 return 1;
         }
         if (ep.Entry[z].EntityType != SAHPI_ENT_FAN) {
@@ -64,14 +64,14 @@ int main(int argc, char **argv)
         }
         for ( i=0; i<z; i++ ) {
                 if((ep.Entry[i].EntityType != w) ||
-                   (ep.Entry[i].EntityLocation != y)) {
+                   (ep.Entry[i].EntityInstance != y)) {
                         if (mydebug) printf("set_ep_inst test12 failed at element %d\n", i);
                 return 1;
                 }
         }
         for ( i=z+1; i<SAHPI_MAX_ENTITY_PATH; i++ ) {
                 if((ep.Entry[i].EntityType != w) ||
-                   (ep.Entry[i].EntityLocation != y)) {
+                   (ep.Entry[i].EntityInstance != y)) {
                         if (mydebug) printf("set_ep_inst test12 failed at element %d\n", i);
                 return 1;
                 }

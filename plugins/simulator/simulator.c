@@ -25,7 +25,8 @@
 
 #include <SaHpi.h>
 #include <openhpi.h>
-#include <oh_utils.h>
+#include <epath_utils.h>
+#include <uid_utils.h>
 
 #include "sim_util.h"
 #include "sim_parser.h"
@@ -133,7 +134,7 @@ static int sim_get_self_id(void *hnd, SaHpiResourceIdT id)
 }
 
 
-static int sim_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiEventLogInfoT *info)
+static int sim_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiSelInfoT *info)
 {
 	return -1;
 }
@@ -143,22 +144,22 @@ static int sim_set_sel_time(void *hnd, SaHpiResourceIdT id, SaHpiTimeT time)
 	return -1;
 }
 
-static int sim_add_sel_entry(void *hnd, SaHpiResourceIdT id, const SaHpiEventLogEntryT *Event)
+static int sim_add_sel_entry(void *hnd, SaHpiResourceIdT id, const SaHpiSelEntryT *Event)
 {
 	return -1;
 }
 
-static int sim_del_sel_entry(void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT sid)
+static int sim_del_sel_entry(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT sid)
 {
 	return -1;
 }
 
 static int sim_get_sel_entry(void *hnd, 
 			       SaHpiResourceIdT id, 
-			       SaHpiEventLogEntryIdT current,
-			       SaHpiEventLogEntryIdT *prev, 
-			       SaHpiEventLogEntryIdT *next, 
-			       SaHpiEventLogEntryT *entry)
+			       SaHpiSelEntryIdT current,
+			       SaHpiSelEntryIdT *prev, 
+			       SaHpiSelEntryIdT *next, 
+			       SaHpiSelEntryT *entry)
 {       
 	return -1;
 }

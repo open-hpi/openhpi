@@ -39,28 +39,27 @@ sub make_html_head {
     return <<END;
 <html>
 <head><title>GCOV execution analyis for $title</title>
-<link rel="stylesheet" href="/openhpi.css" type="text/css">
+<!--#include virtual="/openhpi.css" -->
 </head>
 <body>
-<div id="banner"><div><h1>The OpenHPI Project</h1><small>Open Hardware Platform Interface</small></div></div>
 <table>
 <tr>
 <!--#include virtual="/sidebar.html" -->
-<td id="maincolumn"><div class="mainsegment">
-<h3>GCOV Execution Analysis for $title</h3>
-<div>
+<td valign="top">
+<h1>GCOV Execution Analysis for $title</h1>
+<p>
 The left column is the number of times the code was executed
 during the unit test suites.
-<p>
-<table class="report">
-<tr><th>Exec</th><th>&nbsp;</th><th>Code</th><th>Line #</th></tr>
+</p>
+<table>
+<tr><th>Exec</th><th>&nbsp;</th><th>Code</th></tr>
 END
 }
 
 sub make_html_tail {
     return <<END;
-</table></div>
-</div></td></tr></table>
+</table>
+</td></tr></table>
 </body>
 </html>
 END
@@ -82,7 +81,6 @@ sub set_status {
 sub make_html_body {
     my $lines = shift;
     my $html;
-    my $linecount = 1;
     foreach my $line (@$lines) {
         my $status = set_status($line->{exec});
         my $exec = ($status eq "na") ? " " : $line->{exec} + 0;
@@ -91,8 +89,7 @@ sub make_html_body {
 	$data =~ s{<(\S+)\@(.*?)\.(net|com)>}{< address removed >}ig; 
 	$data = encode_entities($data);
 
-        $html .= "<tr class='$status'><td align='right'><a name='line$linecount'>$exec</a></td><td>&nbsp;</td><td><pre class='report'>$data</pre></td><td align='right' class='linecount'>$linecount</td></tr>\n";
-        $linecount++;
+        $html .= "<tr class='$status'><td align='right'>$exec</td><td>&nbsp;</td><td><pre>$data</pre></td></tr>\n";
     }
     return $html;
 }

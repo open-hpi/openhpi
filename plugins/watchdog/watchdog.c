@@ -48,9 +48,9 @@
 #include <glib.h>
 
 #include <SaHpi.h>
-#include <oh_handler.h>
-#include <oh_utils.h>
-#include <oh_error.h>
+#include <openhpi.h>
+#include <uid_utils.h>
+#include <epath_utils.h>
 
 /* These two IOCTL's were not added to watchdog.h in older kernels */
 #define WDIOC_SETTIMEOUT        _IOWR(WATCHDOG_IOCTL_BASE, 6, int)
@@ -174,7 +174,8 @@ static void watchdog_close(void *hnd)
  *
  * Return value: 0 if times out, > 0 is event is returned.
  **/
-static int watchdog_get_event(void *hnd, struct oh_event *event)
+static int watchdog_get_event(void *hnd, struct oh_event *event, 
+			      struct timeval *timeout)
 {
 	struct oh_handler_state *tmp = (struct oh_handler_state *) hnd;
 	GSList *i;
@@ -295,7 +296,7 @@ static int watchdog_discover_resources(void *hnd)
 		e->type = OH_ET_RESOURCE;
 		/* Note:  .res_event.entry.ResourceInfo currently unassigned */
 		e->u.res_event.entry.ResourceEntity.Entry[0].EntityType = SAHPI_ENT_SYSTEM_BOARD;
-		e->u.res_event.entry.ResourceEntity.Entry[0].EntityLocation = 0;
+		e->u.res_event.entry.ResourceEntity.Entry[0].EntityInstance = 0;
 		ep_concat( &(e->u.res_event.entry.ResourceEntity), &g_epbase);
 		puid = oh_uid_from_entity_path(&(e->u.res_event.entry.ResourceEntity));
 		e->u.res_event.entry.ResourceId = puid;
@@ -334,7 +335,7 @@ static int watchdog_discover_resources(void *hnd)
 			SAHPI_DEFAULT_WATCHDOG_NUM; /* set to default b/c only wdt */
 		e->u.rdr_event.rdr.RdrTypeUnion.WatchdogRec.Oem = 0; /* n/a */
 		e->u.rdr_event.rdr.Entity.Entry[0].EntityType = SAHPI_ENT_SYSTEM_BOARD;
-		e->u.rdr_event.rdr.Entity.Entry[0].EntityLocation = 0;
+		e->u.rdr_event.rdr.Entity.Entry[0].EntityInstance = 0;
 		ep_concat( &(e->u.rdr_event.rdr.Entity), &g_epbase);
 		e->u.rdr_event.rdr.IdString.DataType = SAHPI_TL_TYPE_ASCII6;
 		e->u.rdr_event.rdr.IdString.Language = SAHPI_LANG_ENGLISH;

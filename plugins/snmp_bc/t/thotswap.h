@@ -33,15 +33,15 @@ struct snmp_rpt test_rpt = {
 			.Entry[0] = 
 			{
 				.EntityType = SAHPI_ENT_SBC_BLADE,
-				.EntityLocation = 1,
+				.EntityInstance = 1,
 			},
 			{
 				.EntityType = SAHPI_ENT_SUB_CHASSIS,
-				.EntityLocation = 1,
+				.EntityInstance = 1,
 			},
 			{
 				.EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
-				.EntityLocation = 1,
+				.EntityInstance = 1,
 			},			
 		},
 		.ResourceCapabilities = SAHPI_CAPABILITY_CONTROL |
@@ -52,7 +52,7 @@ struct snmp_rpt test_rpt = {
 		                        SAHPI_CAPABILITY_SENSOR,
 		.ResourceSeverity = SAHPI_CRITICAL,
 	},
-	.res_info = {
+	.bc_res_info = {
 		.mib = {
 			.OidHealth = ".1.3.6.1.4.1.2.3.51.2.2.7.1.0",
 			.HealthyValue = 255,

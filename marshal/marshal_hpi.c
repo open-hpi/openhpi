@@ -12,23 +12,9 @@
  *
  * Authors:
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
- *     W. David Ashley <dashley@us.ibm.com.com>
  */
 
 #include "marshal_hpi.h"
-
-
-static const cMarshalType *saHpiVersionGetIn[] =
-{
-  0
-};
-
-
-static const cMarshalType *saHpiVersionGetOut[] =
-{
-  &SaHpiVersionType, // result (SaHpiVersionT)
-  0
-};
 
 
 static const cMarshalType *saHpiSessionOpenIn[] =
@@ -60,63 +46,31 @@ static const cMarshalType *saHpiSessionCloseOut[] =
 };
 
 
-static const cMarshalType *saHpiDiscoverIn[] =
+static const cMarshalType *saHpiResourcesDiscoverIn[] =
 {
   &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
   0
 };
 
 
-static const cMarshalType *saHpiDiscoverOut[] =
+static const cMarshalType *saHpiResourcesDiscoverOut[] =
 {
   &SaErrorType, // result (SaErrorT)
   0
 };
 
 
-static const cMarshalType *saHpiDomainInfoGetIn[] =
+static const cMarshalType *saHpiRptInfoGetIn[] =
 {
   &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
   0
 };
 
 
-static const cMarshalType *saHpiDomainInfoGetOut[] =
+static const cMarshalType *saHpiRptInfoGetOut[] =
 {
   &SaErrorType, // result (SaErrorT)
-  &SaHpiDomainInfoType,
-  0
-};
-
-
-static const cMarshalType *saHpiDrtEntryGetIn[] =
-{
-  &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
-  &SaHpiEntryIdType, // entry id (SaHpiEntryIdT)
-  0
-};
-
-
-static const cMarshalType *saHpiDrtEntryGetOut[] =
-{
-  &SaErrorType, // result (SaErrorT)
-  &SaHpiEntryIdType,
-  &SaHpiDrtEntryType,
-  0
-};
-
-
-static const cMarshalType *saHpiDomainTagSetIn[] =
-{
-  &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
-  &SaHpiTextBufferType, // domain tag (SaHpiTextBufferT)
-  0
-};
-
-
-static const cMarshalType *saHpiDomainTagSetOut[] =
-{
-  &SaErrorType, // result (SaErrorT)
+  &SaHpiRptInfoType,
   0
 };
 
@@ -196,6 +150,20 @@ static const cMarshalType *saHpiResourceIdGetOut[] =
 };
 
 
+static const cMarshalType *saHpiEntitySchemaGetIn[] =
+{
+  &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
+  0
+};
+
+static const cMarshalType *saHpiEntitySchemaGetOut[] =
+{
+  &SaErrorType, // result (SaErrorT)
+  &SaHpiUint32Type,
+  0
+};
+
+
 static const cMarshalType *saHpiEventLogInfoGetIn[] =
 {
   &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
@@ -206,7 +174,7 @@ static const cMarshalType *saHpiEventLogInfoGetIn[] =
 static const cMarshalType *saHpiEventLogInfoGetOut[] =
 {
   &SaErrorType, // result (SaErrorT)
-  &SaHpiEventLogInfoType,
+  &SaHpiSelInfoType,
   0
 };
 
@@ -215,16 +183,16 @@ static const cMarshalType *saHpiEventLogEntryGetIn[] =
 {
   &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
   &SaHpiResourceIdType,
-  &SaHpiEventLogEntryIdType,
+  &SaHpiSelEntryIdType,
   0
 };
 
 static const cMarshalType *saHpiEventLogEntryGetOut[] =
 {
   &SaErrorType, // result (SaErrorT)
-  &SaHpiEventLogEntryIdType,
-  &SaHpiEventLogEntryIdType,
-  &SaHpiEventLogEntryType,
+  &SaHpiSelEntryIdType,
+  &SaHpiSelEntryIdType,
+  &SaHpiSelEntryType,
   &SaHpiRdrType,
   &SaHpiRptEntryType,
   0
@@ -235,11 +203,26 @@ static const cMarshalType *saHpiEventLogEntryAddIn[] =
 {
   &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
   &SaHpiResourceIdType,
-  &SaHpiEventType,
+  &SaHpiSelEntryType,
   0
 };
 
 static const cMarshalType *saHpiEventLogEntryAddOut[] =
+{
+  &SaErrorType, // result (SaErrorT)
+  0
+};
+
+
+static const cMarshalType *saHpiEventLogEntryDeleteIn[] =
+{
+  &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
+  &SaHpiResourceIdType,
+  &SaHpiSelEntryIdType,
+  0
+};
+
+static const cMarshalType *saHpiEventLogEntryDeleteOut[] =
 {
   &SaErrorType, // result (SaErrorT)
   0
@@ -320,23 +303,10 @@ static const cMarshalType *saHpiEventLogStateSetOut[] =
 };
 
 
-static const cMarshalType *saHpiEventLogOverflowResetIn[] =
-{
-  &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
-  &SaHpiResourceIdType,
-  0
-};
-
-static const cMarshalType *saHpiEventLogOverflowResetOut[] =
-{
-  &SaErrorType, // result (SaErrorT)
-  0
-};
-
-
 static const cMarshalType *saHpiSubscribeIn[] =
 {
   &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
+  &SaHpiBoolType,
   0
 };
 
@@ -373,97 +343,6 @@ static const cMarshalType *saHpiEventGetOut[] =
   &SaHpiEventType,
   &SaHpiRdrType,
   &SaHpiRptEntryType,
-  &SaHpiEvtQueueStatusType,
-  0
-};
-
-
-static const cMarshalType *saHpiEventAddIn[] =
-{
-  &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
-  &SaHpiEventType,
-  0
-};
-
-static const cMarshalType *saHpiEventAddOut[] =
-{
-  &SaErrorType, // result (SaErrorT)
-  0
-};
-
-
-static const cMarshalType *saHpiAlarmGetNextIn[] =
-{
-  &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
-  &SaHpiSeverityType,
-  &SaHpiBoolType,
-  0
-};
-
-static const cMarshalType *saHpiAlarmGetNextOut[] =
-{
-  &SaErrorType, // result (SaErrorT)
-  &SaHpiAlarmType,
-  0
-};
-
-
-static const cMarshalType *saHpiAlarmGetIn[] =
-{
-  &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
-  &SaHpiAlarmIdType,
-  &SaHpiBoolType,
-  0
-};
-
-static const cMarshalType *saHpiAlarmGetOut[] =
-{
-  &SaErrorType, // result (SaErrorT)
-  &SaHpiAlarmType,
-  0
-};
-
-
-static const cMarshalType *saHpiAlarmAcknowledgedIn[] =
-{
-  &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
-  &SaHpiAlarmIdType,
-  &SaHpiSeverityType,
-  0
-};
-
-static const cMarshalType *saHpiAlarmAcknowledgedOut[] =
-{
-  &SaErrorType, // result (SaErrorT)
-  0
-};
-
-
-static const cMarshalType *saHpiAlarmAddIn[] =
-{
-  &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
-  0
-};
-
-static const cMarshalType *saHpiAlarmAddOut[] =
-{
-  &SaErrorType, // result (SaErrorT)
-  &SaHpiAlarmType,
-  0
-};
-
-
-static const cMarshalType *saHpiAlarmDeleteIn[] =
-{
-  &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
-  &SaHpiAlarmIdType,
-  &SaHpiSeverityType,
-  0
-};
-
-static const cMarshalType *saHpiAlarmDeleteOut[] =
-{
-  &SaErrorType, // result (SaErrorT)
   0
 };
 
@@ -485,23 +364,6 @@ static const cMarshalType *saHpiRdrGetOut[] =
 };
 
 
-static const cMarshalType *saHpiRdrGetByInstrumentIdIn[] =
-{
-  &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
-  &SaHpiResourceIdType,
-  &SaHpiRdrTypeType,
-  &SaHpiInstrumentIdType,
-  0
-};
-
-static const cMarshalType *saHpiRdrGetByInstrumentIdOut[] =
-{
-  &SaErrorType, // result (SaErrorT)
-  &SaHpiRdrType,
-  0
-};
-
-
 static const cMarshalType *saHpiSensorReadingGetIn[] =
 {
   &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
@@ -514,7 +376,23 @@ static const cMarshalType *saHpiSensorReadingGetOut[] =
 {
   &SaErrorType, // result (SaErrorT)
   &SaHpiSensorReadingType,
-  &SaHpiEventStateType,
+  0
+};
+
+
+static const cMarshalType *saHpiSensorReadingConvertIn[] =
+{
+  &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
+  &SaHpiResourceIdType,
+  &SaHpiSensorNumType,
+  &SaHpiSensorReadingType,
+  0
+};
+
+static const cMarshalType *saHpiSensorReadingConvertOut[] =
+{
+  &SaErrorType, // result (SaErrorT)
+  &SaHpiSensorReadingType,
   0
 };
 
@@ -568,7 +446,7 @@ static const cMarshalType *saHpiSensorTypeGetOut[] =
 };
 
 
-static const cMarshalType *saHpiSensorEnableGetIn[] =
+static const cMarshalType *saHpiSensorEventEnablesGetIn[] =
 {
   &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
   &SaHpiResourceIdType,
@@ -576,91 +454,24 @@ static const cMarshalType *saHpiSensorEnableGetIn[] =
   0
 };
 
-static const cMarshalType *saHpiSensorEnableGetOut[] =
+static const cMarshalType *saHpiSensorEventEnablesGetOut[] =
 {
   &SaErrorType, // result (SaErrorT)
-  &SaHpiBoolType,
+  &SaHpiSensorEvtEnablesType,
   0
 };
 
 
-static const cMarshalType *saHpiSensorEnableSetIn[] =
+static const cMarshalType *saHpiSensorEventEnablesSetIn[] =
 {
   &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
   &SaHpiResourceIdType,
   &SaHpiSensorNumType,
-  &SaHpiBoolType,
+  &SaHpiSensorEvtEnablesType,
   0
 };
 
-static const cMarshalType *saHpiSensorEnableSetOut[] =
-{
-  &SaErrorType, // result (SaErrorT)
-  0
-};
-
-
-static const cMarshalType *saHpiSensorEventEnableGetIn[] =
-{
-  &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
-  &SaHpiResourceIdType,
-  &SaHpiSensorNumType,
-  0
-};
-
-static const cMarshalType *saHpiSensorEventEnableGetOut[] =
-{
-  &SaErrorType, // result (SaErrorT)
-  &SaHpiBoolType,
-  0
-};
-
-
-static const cMarshalType *saHpiSensorEventEnableSetIn[] =
-{
-  &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
-  &SaHpiResourceIdType,
-  &SaHpiSensorNumType,
-  &SaHpiBoolType,
-  0
-};
-
-static const cMarshalType *saHpiSensorEventEnableSetOut[] =
-{
-  &SaErrorType, // result (SaErrorT)
-  0
-};
-
-
-static const cMarshalType *saHpiSensorEventMaskGetIn[] =
-{
-  &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
-  &SaHpiResourceIdType,
-  &SaHpiSensorNumType,
-  0
-};
-
-static const cMarshalType *saHpiSensorEventMaskGetOut[] =
-{
-  &SaErrorType, // result (SaErrorT)
-  &SaHpiEventStateType,
-  &SaHpiEventStateType,
-  0
-};
-
-
-static const cMarshalType *saHpiSensorEventMaskSetIn[] =
-{
-  &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
-  &SaHpiResourceIdType,
-  &SaHpiSensorNumType,
-  &SaHpiUint32Type,
-  &SaHpiEventStateType,
-  &SaHpiEventStateType,
-  0
-};
-
-static const cMarshalType *saHpiSensorEventMaskSetOut[] =
+static const cMarshalType *saHpiSensorEventEnablesSetOut[] =
 {
   &SaErrorType, // result (SaErrorT)
   0
@@ -683,7 +494,7 @@ static const cMarshalType *saHpiControlTypeGetOut[] =
 };
 
 
-static const cMarshalType *saHpiControlGetIn[] =
+static const cMarshalType *saHpiControlStateGetIn[] =
 {
   &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
   &SaHpiResourceIdType,
@@ -691,165 +502,60 @@ static const cMarshalType *saHpiControlGetIn[] =
   0
 };
 
-static const cMarshalType *saHpiControlGetOut[] =
+static const cMarshalType *saHpiControlStateGetOut[] =
 {
   &SaErrorType, // result (SaErrorT)
-  &SaHpiCtrlModeType,
   &SaHpiCtrlStateType,
   0
 };
 
 
-static const cMarshalType *saHpiControlSetIn[] =
+static const cMarshalType *saHpiControlStateSetIn[] =
 {
   &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
   &SaHpiResourceIdType,
   &SaHpiCtrlNumType,
-  &SaHpiCtrlModeType,
   &SaHpiCtrlStateType,
   0
 };
 
-static const cMarshalType *saHpiControlSetOut[] =
+static const cMarshalType *saHpiControlStateSetOut[] =
 {
   &SaErrorType, // result (SaErrorT)
   0
 };
 
 
-static const cMarshalType *saHpiIdrInfoGetIn[] =
+static const cMarshalType *saHpiEntityInventoryDataReadIn[] =
 {
   &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
   &SaHpiResourceIdType,
-  &SaHpiIdrIdType,
+  &SaHpiEirIdType,
+  &SaHpiUint32Type,
   0
 };
 
-static const cMarshalType *saHpiIdrInfoGetOut[] =
+static const cMarshalType *saHpiEntityInventoryDataReadOut[] =
 {
   &SaErrorType,            // result (SaErrorT)
-  &SaHpiIdrInfoType,
+  &SaHpiUint32Type,        // actual size
+  &SaHpiInventoryDataType, // inventory data
   0
 };
 
 
-static const cMarshalType *saHpiIdrAreaHeaderGetIn[] =
+static const cMarshalType *saHpiEntityInventoryDataWriteIn[] =
 {
   &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
   &SaHpiResourceIdType,
-  &SaHpiIdrIdType,
-  &SaHpiIdrAreaTypeType,
-  &SaHpiEntryIdType,
+  &SaHpiEirIdType,
+  &SaHpiInventoryDataType,
   0
 };
 
-static const cMarshalType *saHpiIdrAreaHeaderGetOut[] =
+static const cMarshalType *saHpiEntityInventoryDataWriteOut[] =
 {
-  &SaErrorType,            // result (SaErrorT)
-  &SaHpiEntryIdType,
-  &SaHpiIdrAreaHeaderType,
-  0
-};
-
-
-static const cMarshalType *saHpiIdrAreaAddIn[] =
-{
-  &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
-  &SaHpiResourceIdType,
-  &SaHpiIdrIdType,
-  &SaHpiIdrAreaTypeType,
-  0
-};
-
-static const cMarshalType *saHpiIdrAreaAddOut[] =
-{
-  &SaErrorType,            // result (SaErrorT)
-  &SaHpiEntryIdType,
-  0
-};
-
-
-static const cMarshalType *saHpiIdrAreaDeleteIn[] =
-{
-  &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
-  &SaHpiResourceIdType,
-  &SaHpiIdrIdType,
-  &SaHpiEntryIdType,
-  0
-};
-
-static const cMarshalType *saHpiIdrAreaDeleteOut[] =
-{
-  &SaErrorType,            // result (SaErrorT)
-  0
-};
-
-
-static const cMarshalType *saHpiIdrFieldGetIn[] =
-{
-  &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
-  &SaHpiResourceIdType,
-  &SaHpiIdrIdType,
-  &SaHpiEntryIdType,
-  &SaHpiIdrFieldTypeType,
-  &SaHpiIdrFieldType,
-  0
-};
-
-static const cMarshalType *saHpiIdrFieldGetOut[] =
-{
-  &SaErrorType,            // result (SaErrorT)
-  &SaHpiEntryIdType,
-  &SaHpiIdrFieldType,
-  0
-};
-
-
-static const cMarshalType *saHpiIdrFieldAddIn[] =
-{
-  &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
-  &SaHpiResourceIdType,
-  &SaHpiIdrIdType,
-  0
-};
-
-static const cMarshalType *saHpiIdrFieldAddOut[] =
-{
-  &SaErrorType,            // result (SaErrorT)
-  &SaHpiIdrFieldType,
-  0
-};
-
-
-static const cMarshalType *saHpiIdrFieldSetIn[] =
-{
-  &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
-  &SaHpiResourceIdType,
-  &SaHpiIdrIdType,
-  &SaHpiIdrFieldType,
-  0
-};
-
-static const cMarshalType *saHpiIdrFieldSetOut[] =
-{
-  &SaErrorType,            // result (SaErrorT)
-  0
-};
-
-
-static const cMarshalType *saHpiIdrFieldDeleteIn[] =
-{
-  &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
-  &SaHpiResourceIdType,
-  &SaHpiIdrIdType,
-  &SaHpiEntryIdType,
-  &SaHpiEntryIdType,
-  0
-};
-
-static const cMarshalType *saHpiIdrFieldDeleteOut[] =
-{
-  &SaErrorType,            // result (SaErrorT)
+  &SaErrorType, // result (SaErrorT)
   0
 };
 
@@ -901,131 +607,14 @@ static const cMarshalType *saHpiWatchdogTimerResetOut[] =
 };
 
 
-static const cMarshalType *saHpiAnnunciatorGetNextIn[] =
-{
-  &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
-  &SaHpiResourceIdType,
-  &SaHpiAnnunciatorNumType,
-  &SaHpiSeverityType,
-  &SaHpiBoolType,
-  0
-};
-
-static const cMarshalType *saHpiAnnunciatorGetNextOut[] =
-{
-  &SaErrorType, // result (SaErrorT)
-  &SaHpiAnnouncementType,
-  0
-};
-
-
-static const cMarshalType *saHpiAnnunciatorGetIn[] =
-{
-  &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
-  &SaHpiResourceIdType,
-  &SaHpiAnnunciatorNumType,
-  &SaHpiEntryIdType,
-  0
-};
-
-static const cMarshalType *saHpiAnnunciatorGetOut[] =
-{
-  &SaErrorType, // result (SaErrorT)
-  &SaHpiAnnouncementType,
-  0
-};
-
-
-static const cMarshalType *saHpiAnnunciatorAcknowledgeIn[] =
-{
-  &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
-  &SaHpiResourceIdType,
-  &SaHpiAnnunciatorNumType,
-  &SaHpiEntryIdType,
-  &SaHpiSeverityType,
-  0
-};
-
-static const cMarshalType *saHpiAnnunciatorAcknowledgeOut[] =
-{
-  &SaErrorType, // result (SaErrorT)
-  0
-};
-
-
-static const cMarshalType *saHpiAnnunciatorAddIn[] =
-{
-  &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
-  &SaHpiResourceIdType,
-  &SaHpiAnnunciatorNumType,
-  0
-};
-
-static const cMarshalType *saHpiAnnunciatorAddOut[] =
-{
-  &SaErrorType, // result (SaErrorT)
-  &SaHpiAnnouncementType,
-  0
-};
-
-
-static const cMarshalType *saHpiAnnunciatorDeleteIn[] =
-{
-  &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
-  &SaHpiResourceIdType,
-  &SaHpiAnnunciatorNumType,
-  &SaHpiEntryIdType,
-  &SaHpiSeverityType,
-  0
-};
-
-static const cMarshalType *saHpiAnnunciatorDeleteOut[] =
-{
-  &SaErrorType, // result (SaErrorT)
-  0
-};
-
-
-static const cMarshalType *saHpiAnnunciatorModeGetIn[] =
-{
-  &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
-  &SaHpiResourceIdType,
-  &SaHpiAnnunciatorNumType,
-  0
-};
-
-static const cMarshalType *saHpiAnnunciatorModeGetOut[] =
-{
-  &SaErrorType, // result (SaErrorT)
-  &SaHpiAnnunciatorModeType,
-  0
-};
-
-
-static const cMarshalType *saHpiAnnunciatorModeSetIn[] =
-{
-  &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
-  &SaHpiResourceIdType,
-  &SaHpiAnnunciatorNumType,
-  &SaHpiAnnunciatorModeType,
-  0
-};
-
-static const cMarshalType *saHpiAnnunciatorModeSetOut[] =
-{
-  &SaErrorType, // result (SaErrorT)
-  0
-};
-
-
-static const cMarshalType *saHpiHotSwapPolicyCancelIn[] =
+static const cMarshalType *saHpiHotSwapControlRequestIn[] =
 {
   &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
   &SaHpiResourceIdType,
   0
 };
 
-static const cMarshalType *saHpiHotSwapPolicyCancelOut[] =
+static const cMarshalType *saHpiHotSwapControlRequestOut[] =
 {
   &SaErrorType, // result (SaErrorT)
   0
@@ -1148,10 +737,41 @@ static const cMarshalType *saHpiHotSwapActionRequestOut[] =
 };
 
 
+static const cMarshalType *saHpiResourcePowerStateGetIn[] =
+{
+  &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
+  &SaHpiResourceIdType,
+  0
+};
+
+static const cMarshalType *saHpiResourcePowerStateGetOut[] =
+{
+  &SaErrorType, // result (SaErrorT)
+  &SaHpiHsPowerStateType,
+  0
+};
+
+
+static const cMarshalType *saHpiResourcePowerStateSetIn[] =
+{
+  &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
+  &SaHpiResourceIdType,
+  &SaHpiHsPowerStateType,
+  0
+};
+
+static const cMarshalType *saHpiResourcePowerStateSetOut[] =
+{
+  &SaErrorType, // result (SaErrorT)
+  0
+};
+
+
 static const cMarshalType *saHpiHotSwapIndicatorStateGetIn[] =
 {
   &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
   &SaHpiResourceIdType,
+
   0
 };
 
@@ -1223,102 +843,47 @@ static const cMarshalType *saHpiResourceResetStateSetOut[] =
 };
 
 
-static const cMarshalType *saHpiResourcePowerStateGetIn[] =
-{
-  &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
-  &SaHpiResourceIdType,
-  0
-};
-
-static const cMarshalType *saHpiResourcePowerStateGetOut[] =
-{
-  &SaErrorType, // result (SaErrorT)
-  &SaHpiPowerStateType,
-  0
-};
-
-
-static const cMarshalType *saHpiResourcePowerStateSetIn[] =
-{
-  &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
-  &SaHpiResourceIdType,
-  &SaHpiPowerStateType,
-  0
-};
-
-static const cMarshalType *saHpiResourcePowerStateSetOut[] =
-{
-  &SaErrorType, // result (SaErrorT)
-  0
-};
-
-
 static cHpiMarshal hpi_marshal[] = 
 {
-  dHpiMarshalEntry( saHpiVersionGet ),
   dHpiMarshalEntry( saHpiSessionOpen ),
   dHpiMarshalEntry( saHpiSessionClose ),
-  dHpiMarshalEntry( saHpiDiscover ),
-  dHpiMarshalEntry( saHpiDomainInfoGet ),
-  dHpiMarshalEntry( saHpiDrtEntryGet ),
-  dHpiMarshalEntry( saHpiDomainTagSet ),
+  dHpiMarshalEntry( saHpiResourcesDiscover ),
+  dHpiMarshalEntry( saHpiRptInfoGet ),
   dHpiMarshalEntry( saHpiRptEntryGet ),
   dHpiMarshalEntry( saHpiRptEntryGetByResourceId ),
   dHpiMarshalEntry( saHpiResourceSeveritySet ),
   dHpiMarshalEntry( saHpiResourceTagSet ),
   dHpiMarshalEntry( saHpiResourceIdGet ),
+  dHpiMarshalEntry( saHpiEntitySchemaGet ),
   dHpiMarshalEntry( saHpiEventLogInfoGet ),
   dHpiMarshalEntry( saHpiEventLogEntryGet ),
   dHpiMarshalEntry( saHpiEventLogEntryAdd ),
+  dHpiMarshalEntry( saHpiEventLogEntryDelete ),
   dHpiMarshalEntry( saHpiEventLogClear ),
   dHpiMarshalEntry( saHpiEventLogTimeGet ),
   dHpiMarshalEntry( saHpiEventLogTimeSet ),
   dHpiMarshalEntry( saHpiEventLogStateGet ),
   dHpiMarshalEntry( saHpiEventLogStateSet ),
-  dHpiMarshalEntry( saHpiEventLogOverflowReset ),
   dHpiMarshalEntry( saHpiSubscribe ),
   dHpiMarshalEntry( saHpiUnsubscribe ),
   dHpiMarshalEntry( saHpiEventGet ),
-  dHpiMarshalEntry( saHpiEventAdd ),
-  dHpiMarshalEntry( saHpiAlarmGetNext ),
-  dHpiMarshalEntry( saHpiAlarmGet ),
-  dHpiMarshalEntry( saHpiAlarmAcknowledged ),
-  dHpiMarshalEntry( saHpiAlarmAdd ),
-  dHpiMarshalEntry( saHpiAlarmDelete ),
   dHpiMarshalEntry( saHpiRdrGet ),
-  dHpiMarshalEntry( saHpiRdrGetByInstrumentId ),
   dHpiMarshalEntry( saHpiSensorReadingGet ),
+  dHpiMarshalEntry( saHpiSensorReadingConvert ),
   dHpiMarshalEntry( saHpiSensorThresholdsGet ),
   dHpiMarshalEntry( saHpiSensorThresholdsSet ),
   dHpiMarshalEntry( saHpiSensorTypeGet ),
-  dHpiMarshalEntry( saHpiSensorEnableGet ),
-  dHpiMarshalEntry( saHpiSensorEnableSet ),
-  dHpiMarshalEntry( saHpiSensorEventEnableGet ),
-  dHpiMarshalEntry( saHpiSensorEventEnableSet ),
-  dHpiMarshalEntry( saHpiSensorEventMaskGet ),
-  dHpiMarshalEntry( saHpiSensorEventMaskSet ),
+  dHpiMarshalEntry( saHpiSensorEventEnablesGet ),
+  dHpiMarshalEntry( saHpiSensorEventEnablesSet ),
   dHpiMarshalEntry( saHpiControlTypeGet ),
-  dHpiMarshalEntry( saHpiControlGet ),
-  dHpiMarshalEntry( saHpiControlSet ),
-  dHpiMarshalEntry( saHpiIdrInfoGet ),
-  dHpiMarshalEntry( saHpiIdrAreaHeaderGet ),
-  dHpiMarshalEntry( saHpiIdrAreaAdd ),
-  dHpiMarshalEntry( saHpiIdrAreaDelete ),
-  dHpiMarshalEntry( saHpiIdrFieldGet ),
-  dHpiMarshalEntry( saHpiIdrFieldAdd ),
-  dHpiMarshalEntry( saHpiIdrFieldSet ),
-  dHpiMarshalEntry( saHpiIdrFieldDelete ),
+  dHpiMarshalEntry( saHpiControlStateGet ),
+  dHpiMarshalEntry( saHpiControlStateSet ),
+  dHpiMarshalEntry( saHpiEntityInventoryDataRead ),
+  dHpiMarshalEntry( saHpiEntityInventoryDataWrite ),
   dHpiMarshalEntry( saHpiWatchdogTimerGet ),
   dHpiMarshalEntry( saHpiWatchdogTimerSet ),
   dHpiMarshalEntry( saHpiWatchdogTimerReset ),
-  dHpiMarshalEntry( saHpiAnnunciatorGetNext ),
-  dHpiMarshalEntry( saHpiAnnunciatorGet ),
-  dHpiMarshalEntry( saHpiAnnunciatorAcknowledge ),
-  dHpiMarshalEntry( saHpiAnnunciatorAdd ),
-  dHpiMarshalEntry( saHpiAnnunciatorDelete ),
-  dHpiMarshalEntry( saHpiAnnunciatorModeGet ),
-  dHpiMarshalEntry( saHpiAnnunciatorModeSet ),
-  dHpiMarshalEntry( saHpiHotSwapPolicyCancel ),
+  dHpiMarshalEntry( saHpiHotSwapControlRequest ),
   dHpiMarshalEntry( saHpiResourceActiveSet ),
   dHpiMarshalEntry( saHpiResourceInactiveSet ),
   dHpiMarshalEntry( saHpiAutoInsertTimeoutGet ),
@@ -1327,13 +892,13 @@ static cHpiMarshal hpi_marshal[] =
   dHpiMarshalEntry( saHpiAutoExtractTimeoutSet ),
   dHpiMarshalEntry( saHpiHotSwapStateGet ),
   dHpiMarshalEntry( saHpiHotSwapActionRequest ),
+  dHpiMarshalEntry( saHpiResourcePowerStateGet ),
+  dHpiMarshalEntry( saHpiResourcePowerStateSet ),
   dHpiMarshalEntry( saHpiHotSwapIndicatorStateGet ),
   dHpiMarshalEntry( saHpiHotSwapIndicatorStateSet ),
   dHpiMarshalEntry( saHpiParmControl ),
   dHpiMarshalEntry( saHpiResourceResetStateGet ),
-  dHpiMarshalEntry( saHpiResourceResetStateSet ),
-  dHpiMarshalEntry( saHpiResourcePowerStateGet ),
-  dHpiMarshalEntry( saHpiResourcePowerStateSet ),
+  dHpiMarshalEntry( saHpiResourceResetStateSet )
 };
 
 

@@ -106,12 +106,12 @@ public:
     return m_entity_path;
   }
 
-  void SetEntry( int idx, SaHpiEntityTypeT type, SaHpiEntityLocationT instance );
+  void SetEntry( int idx, SaHpiEntityTypeT type, SaHpiEntityInstanceT instance );
   SaHpiEntityTypeT GetEntryType( int idx );
   void SetEntryType( int idx, SaHpiEntityTypeT type );
 
-  SaHpiEntityLocationT GetEntryInstance( int idx );
-  void SetEntryInstance( int idx, SaHpiEntityLocationT instance );
+  SaHpiEntityInstanceT GetEntryInstance( int idx );
+  void SetEntryInstance( int idx, SaHpiEntityInstanceT instance );
 
   cIpmiEntityPath &operator+=( const cIpmiEntityPath &epath );
   bool operator==( const cIpmiEntityPath &epath ) const;

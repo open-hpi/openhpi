@@ -10,59 +10,59 @@
  * full licensing terms.
  *
  * Author(s):
- *      Steve Sherman <stevees@us.ibm.com>
+ *      Steve Sherman  <stevees@us.ibm.com>
  */
 
 #include <glib.h>
 #include <stdio.h>
 #include <string.h>
+#include <snmp_bc_session.h>
+#include <snmp_bc.h>
 
-#include <snmp_bc_plugin.h>
-
-#include <oh_handler.h>
-#include <sim_init.h>
+#include <bc_resources.h>
 #include <sim_resources.h>
 
 GHashTable * sim_hash;
-void * snmp_bc_sim_handler;
+
+int is_simulator(void);
+int sim_banner(struct snmp_bc_hnd *);
+int sim_init(void);
+int sim_close(void);
 
 static void free_hash_data(gpointer key, gpointer value, gpointer user_data);
 
-SaHpiBoolT is_simulator(void) 
+int is_simulator(void) 
 {
-  return(SAHPI_TRUE);
+  return 1;
 }
 
-SaErrorT sim_banner(struct snmp_bc_hnd *custom_handle)
+int sim_banner(struct snmp_bc_hnd *custom_handle)
 {
 
 	printf("************************************\n");
 	printf("****** BladeCenter Simulator  ******\n");
 
-	if (custom_handle->platform == SNMP_BC_PLATFORM_BC) {
+	if (!strcmp(custom_handle->bc_type, SNMP_BC_PLATFORM_BC)) {
 		printf("****** BladeCenter Integrated ******\n");
 	}
-	if (custom_handle->platform == SNMP_BC_PLATFORM_BCT) {
-		printf("********** BladeCenter T ***********\n");
-	}
-	
-	if (custom_handle->platform == SNMP_BC_PLATFORM_RSA) {
-		printf("*************** RSA ****************\n");
+	if (!strcmp(custom_handle->bc_type, SNMP_BC_PLATFORM_BCT)) {
+		printf("****** BladeCenter Telco      ******\n");
 	}
 
 	printf("************************************\n");
 
-  return(SA_OK);
+  return 0;
+
 }
 
-SaErrorT sim_init() 
+int sim_init() 
 {
 	int i;
 
 	sim_hash = g_hash_table_new(g_str_hash, g_str_equal);
 	if (sim_hash == NULL) {
-		dbg("Cannot allocate simulation hash table");
-		return(SA_ERR_HPI_INTERNAL_ERROR);
+		dbg("Cannot allocate simulation hash table\n");
+		return -1;
 	}
 
 	for (i=0; sim_resource_array[i].oid != NULL; i++) {
@@ -73,17 +73,17 @@ SaErrorT sim_init()
     
 		key = g_strdup(sim_resource_array[i].oid);
 		if (!key) {
-			dbg("Cannot allocate memory for key for oid=%s",
-			      sim_resource_array[i].oid);
+			dbg("Cannot allocate memory for key for oid=%s\n",
+			    sim_resource_array[i].oid);
 			sim_close();
-			return(SA_ERR_HPI_INTERNAL_ERROR);
+			return -1;
 		}
 		mibinfo = g_malloc0(sizeof(SnmpMibInfoT));
 		if (!mibinfo) {
 			dbg("Cannot allocate memory for hash value for oid=%s", 
-			      sim_resource_array[i].oid);
+			    sim_resource_array[i].oid);
 			sim_close();
-			return(SA_ERR_HPI_INTERNAL_ERROR);
+			return -1;
 		}
 
 		key_exists = g_hash_table_lookup(sim_hash, key); 
@@ -98,25 +98,25 @@ SaErrorT sim_init()
 				strcpy(mibinfo->value.string, sim_resource_array[i].mib.value.string);
 				break;
 			default:
-				dbg("Unknown SNMP type=%d for oid=%s", mibinfo->type, key);
-				return(SA_ERR_HPI_INTERNAL_ERROR);
+				dbg("Unknown SNMP type=%d for oid=%s\n", mibinfo->type, key);
+				return -1;
 			}
 			g_hash_table_insert(sim_hash, key, mibinfo);
 		}
 		else {
-			dbg("Oid %s is defined twice", sim_resource_array[i].oid);
+			dbg("WARNING: Oid %s is defined twice\n", sim_resource_array[i].oid);
 		}
 	}
 
-	return(SA_OK);
+	return 0;
 }
 
-SaErrorT sim_close()
+int sim_close()
 {
         g_hash_table_foreach(sim_hash, free_hash_data, NULL);
 	g_hash_table_destroy(sim_hash);
 
-	return(SA_OK);
+	return 0;
 }
 
 static void free_hash_data(gpointer key, gpointer value, gpointer user_data)
@@ -124,3 +124,4 @@ static void free_hash_data(gpointer key, gpointer value, gpointer user_data)
         g_free(key);
         g_free(value);
 }
+

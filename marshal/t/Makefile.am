@@ -12,36 +12,33 @@
 #    Thomas Kanngieser <thomas.kanngieser@fci.com>
 #
 
-MARSHAL_SRCDIR = $(top_srcdir)/marshal
-
 REMOTE_SOURCES		= connection.c marshal.c
 MARSHAL_SOURCES         = marshal_hpi_types.c
 
 MOSTLYCLEANFILES 	= $(REMOTE_SOURCES) $(MARSHAL_SOURCES) $(shell ls *.bb*) $(shell ls *.da) $(shell ls *.gcov)
 MAINTAINERCLEANFILES 	= Makefile.in *~
 
-INCLUDES		= -I $(MARSHAL_SRCDIR) -I $(top_srcdir)/include
+INCLUDES		= -I $(srcdir)/.. -I $(top_srcdir)/include
 
 AM_CFLAGS		= @CFLAGS@ -ftest-coverage -fprofile-arcs
+
 
 #noinst_PROGRAMS = float_format
 #float_format_SOURCES = float_format.c
 
 CLEANFILES=float32.bin float64.bin *~
 
-
 $(REMOTE_SOURCES):
 	if test ! -f $@ -a ! -L $@; then \
-		ln -s $(MARSHAL_SRCDIR)/$@; \
+		ln -s ../$@; \
 	fi
 
 $(MARSHAL_SOURCES):
 	if test ! -f $@ -a ! -L $@; then \
-		ln -s $(MARSHAL_SRCDIR)/$@; \
+		ln -s ../$@; \
 	fi
 
 TESTS = \
-	connection_seq_000 \
 	connection_000 \
 	connection_001 \
 	marshal_000 \
@@ -80,7 +77,6 @@ TESTS = \
 check_PROGRAMS = $(TESTS)
 
 connection_000_SOURCES = connection_000.c $(REMOTE_SOURCES)
-connection_seq_000_SOURCES = connection_seq_000.c $(REMOTE_SOURCES)
 connection_001_SOURCES = connection_001.c $(REMOTE_SOURCES)
 
 marshal_000_SOURCES = marshal_000.c $(REMOTE_SOURCES)

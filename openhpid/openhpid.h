@@ -19,7 +19,6 @@
 
 
 #include <poll.h>
-#include <stdlib.h>
 
 
 #ifndef dMarshalHpi_h
@@ -30,14 +29,10 @@
 #include "connection.h"
 #endif
 
-#ifndef dArray_h
-#include "array.h"
-#endif
+#include <glib.h>
 
-
-// check the connection in 10s interval
-#define dPingTimeout 10000000000LL // saHpiTimeT
-#define dMaxLostPings 10
+// check the connection in 2 minute interval
+#define dPingTimeout 120000000000LL // saHpiTimeT
 
 
 class cConnection;
@@ -48,7 +43,7 @@ class cSession
   SaHpiSessionIdT m_session_id;
   bool            m_event_get; // saHpiEventGet is currently running
   SaHpiTimeT      m_timeout;
-  unsigned int    m_event_get_seq;
+  unsigned int    m_seq;
 
 public:
   cSession( cConnection *con, SaHpiSessionIdT sid )
@@ -56,18 +51,19 @@ public:
   {
   }
 
-  cConnection *Connection() const { return m_connection; }
-  SaHpiSessionIdT SessionId() const { return m_session_id; }
-  bool IsEventGet()  const      { return m_event_get; }
+  cConnection *Connection() { return m_connection; }
+  SaHpiSessionIdT SessionId() { return m_session_id; }
+  bool IsEventGet()        { return m_event_get; }
   void EventGet( bool v = true ) { m_event_get = v; }
   SaHpiTimeT &Timeout() { return m_timeout; }
-  unsigned int &EventGetSeq() { return m_event_get_seq; }
+  unsigned int &Seq() { return m_seq; }
 };
 
 
-class cConnection : public cArray<cSession>
+class cConnection
 {
   cServerConnection *m_con;
+  GList             *m_sessions; // sessions running over this connection
   SaHpiTimeT         m_ping_timer;
   int                m_outstanding_pings;
 
@@ -75,19 +71,14 @@ public:
   cConnection( cServerConnection *con );
   ~cConnection();
 
-  void Reinit();
-
   cSession *FindSession( SaHpiSessionIdT sid );
   bool AddSession( SaHpiSessionIdT sid );
   bool RemSession( SaHpiSessionIdT sid );
+  GList *Sessions() { return m_sessions; }
+  int Fd() { return m_con->m_fd; }
 
   SaHpiTimeT &PingTimer() { return m_ping_timer; }
   int        &OutstandingPings() { return m_outstanding_pings; }
-
-  int WriteMsg( cMessageHeader &header, void *data );
-
-  void           GetIp( char *str );
-  unsigned short GetPort();
 };
 
 
@@ -99,7 +90,7 @@ public:
 #define dDebugPing      16
 
 
-class cOpenHpiDaemon : public cArray<cConnection>
+class cOpenHpiDaemon
 {
 public:
   cOpenHpiDaemon();
@@ -108,24 +99,24 @@ public:
   const char *m_progname;
   bool        m_daemon;
   int         m_debug;
-  char        m_config[PATH_MAX];
+  const char *m_config;
   bool        m_interactive;
 
   // connection
   int         m_daemon_port;
 
-  cServerSocket *m_server_socket;
-  pollfd        *m_pollfd;
+  cServerConnectionMain *m_main_socket;
+
+  cConnection **m_connections; // list of all connections
+  int           m_num_connections;
+  pollfd       *m_pollfd;
 
   void NewConnection( cServerConnection *c );
-  void CloseConnection( cConnection *con );
+  void CloseConnection( int id );
 
   bool HandleInteractive();
-  bool HandleData( cConnection *c, const cMessageHeader &header, const void *data );
-  bool HandlePong( cConnection *c, const cMessageHeader &header );
-  bool HandlePing( cConnection *c, const cMessageHeader &header );
-  bool HandleOpen( cConnection *c, const cMessageHeader &header );
-  bool HandleClose( cConnection *c, const cMessageHeader &header );
+  bool HandleData( cConnection *c );
+  void HandlePong( cConnection *c, const cMessageHeader &header );
 
   enum tResult
   {

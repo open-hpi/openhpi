@@ -16,24 +16,33 @@
 #ifndef __SNMP_BC_EVENT_H
 #define __SNMP_BC_EVENT_H
 
-SaErrorT event2hpi_hash_init(struct oh_handler_state *handle);
+#define MAX_THRESHOLD_VALUE_STRINGSIZE 10
 
-SaErrorT event2hpi_hash_free(struct oh_handler_state *handle);
+typedef struct {
+	SaHpiResourceIdT       rid;
+	BCRptEntryT            rpt;
+	struct snmp_bc_sensor  *sensor_array_ptr;
+	SaHpiEntityPathT       ep;
+} LogSource2ResourceT;
 
-SaErrorT snmp_bc_discover_res_events(struct oh_handler_state *handle,
-				     SaHpiEntityPathT *ep,
-				     const struct ResourceInfo *resinfo);
+int event2hpi_hash_init(struct oh_handler_state *handle);
+int event2hpi_hash_free(struct oh_handler_state *handle);
 
-SaErrorT snmp_bc_discover_sensor_events(struct oh_handler_state *handle,
-					SaHpiEntityPathT *ep,
-					SaHpiSensorNumT sid,
-					const struct snmp_bc_sensor *sinfo);
+int find_res_events(struct oh_handler_state *handle,
+		    SaHpiEntityPathT *ep, 
+		    const struct BC_ResourceInfo *bc_res_info);
 
-SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
-			   gchar *logstr,
-			   SaHpiEventT *event,
-			   int isdst);
+int find_sensor_events(struct oh_handler_state *handle,
+		       SaHpiEntityPathT *ep, 
+		       SaHpiSensorNumT sid, 
+		       const struct snmp_bc_sensor *rpt_sensor);
 
-SaErrorT snmp_bc_add_to_eventq(struct oh_handler_state *handle,
-			       SaHpiEventT *thisEvent);
+int log2event(void *hnd, 
+	      gchar *logstr, 
+	      SaHpiEventT *event, 
+	      int isdst, 
+	      int *event_enabled_ptr);
+
+int snmp_bc_add_to_eventq(void *hnd, SaHpiEventT *thisEvent);
+
 #endif

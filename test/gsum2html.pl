@@ -41,23 +41,21 @@ sub make_html_head {
     return <<END;
 <html>
 <head><title>GCOV Report for $title</title>
-<link rel="stylesheet" href="/openhpi.css" type="text/css">
+<!--#include virtual="/openhpi.css" -->
 </head>
 <body>
-<div id="banner"><div><h1>The OpenHPI Project</h1><small>Open Hardware Platform Interface</small></div></div>
 <table>
 <tr>
 <!--#include virtual="/sidebar.html" -->
-<td id="maincolumn"><div class="mainsegment">
-<h3>GCOV Summary for $title</h3>
-<div>
+<td valign="top">
+<h1>GCOV Summary for $title</h1>
 END
 }
 
 sub make_html_tail {
     return <<END;
-</table></div>
-</div></td></tr></table>
+</table>
+</td></tr></table>
 </body>
 </html>
 END
@@ -84,10 +82,10 @@ sub make_html_body {
             $line =~ s/.*`([^']+).*/$1/;
             # close the last table
             $html .= "</table>\n";
-            $html .= "<h4 class='function'>$line</h4>\n<table class='report'>\n";
+            $html .= "<h2 class='function'>$line</h2>\n<table class='report'>\n";
         } elsif($line =~ /^File/) {
             $line =~ s/.*`([^']+).*/$1/;
-            $html .= "<h4 class='file'>$line</h4>\n<table class='report'>\n"
+            $html .= "<h2 class='file'>$line</h2>\n<table class='report'>\n"
         } elsif ($line =~ /^No/) {
             $html .= "<tr class='na'><td>$line</td></tr>\n";
         } elsif ($line =~ /(\d+\.\d{2})%/) {

@@ -11,12 +11,13 @@
  *
  * Authors:
  *     Renier Morales <renierm@users.sf.net>
+ *
  */
 
-#include <glib.h>
-
 #include <SaHpi.h>
-#include <oh_utils.h>
+#include <glib.h>
+#include <uid_utils.h>
+#include <epath_utils.h>
 
 /**
  * main: Get 10 new unique ids. Use ids to lookup original entity paths.
@@ -36,12 +37,12 @@ int main(int argc, char **argv)
 	ep_init(&ep);
 
         for (i = 0; i < 10; i++) {
-                ep.Entry[0].EntityLocation = i;
+                ep.Entry[0].EntityInstance = i;
                 id[i] = oh_uid_from_entity_path(&ep);
         }
 	
         for (i = 0; i < 10; i++) {
-                ep.Entry[0].EntityLocation = i;
+                ep.Entry[0].EntityInstance = i;
                 if (oh_entity_path_lookup(id+i, &rep))
                         return 1;
 

@@ -13,20 +13,17 @@
  *      Steve Sherman <stevees@us.ibm.com>
  */
 
-#ifndef __SNMP_BC_CONTROL_H
-#define __SNMP_BC_CONTROL_H
+#ifndef SNMP_BC_CONTROL_H
+#define SNMP_BC_CONTROL_H
 
 SaErrorT snmp_bc_get_control_state(void *hnd,
-				   SaHpiResourceIdT rid,
-				   SaHpiCtrlNumT cid,
-				   SaHpiCtrlModeT *mode,
+				   SaHpiResourceIdT id,
+				   SaHpiCtrlNumT num,
 				   SaHpiCtrlStateT *state);
 
 SaErrorT snmp_bc_set_control_state(void *hnd,
-				   SaHpiResourceIdT rid,
-				   SaHpiCtrlNumT cid,
-				   SaHpiCtrlModeT mode,
+				   SaHpiResourceIdT id,
+				   SaHpiCtrlNumT num,
 				   SaHpiCtrlStateT *state);
 
-#endif
-
+#endif /* SNMP_BC_CONTROL_H */

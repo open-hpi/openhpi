@@ -26,11 +26,6 @@
 #include <stdio.h>
 
 
-static void CleanupClient( cOpenHpiClientConf *c );
-static SaErrorT SendMsg( cOpenHpiClientConf *c, cMessageHeader *request_header,
-                         void *request, cMessageHeader *reply_header,
-                         void **reply, int retries );
-
 static void *ReaderThread( void *param );
 static void  Reader( cOpenHpiClientConf *c );
 static void  ReadResponse( cOpenHpiClientConf *c );
@@ -41,14 +36,14 @@ static pthread_mutex_t lock_tmpl = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 #ifdef dOpenHpiClientWithConfig
 static cOpenHpiClientConf config_data = 
 {
+  .m_num_sessions      = 0,
   .m_client_connection = 0,
   .m_initialize        = 0,
 
   .m_lock              = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP,
   .m_queue             = 0,
   .m_num_outstanding   = 0,
-  .m_session           = 0,
-  .m_num_sessions      = 0
+  .m_current_seq       = 0
 };
 
 static cOpenHpiClientConf *config = &config_data;
@@ -81,18 +76,11 @@ static cConfigEntry config_table[] =
     .m_default.m_int = dDefaultMaxOutstanding
   },
   {
-    // retries
-    .m_name = "retries",
-    .m_type = eConfigTypeInt,
-    .m_offset = dConfigOffset( cOpenHpiClientConf, m_retries ),
-    .m_default.m_int = dDefaultMessageRetries
-  },
-  {
     // timeout in ms
     .m_name = "timeout",
     .m_type = eConfigTypeInt,
     .m_offset = dConfigOffset( cOpenHpiClientConf, m_timeout ),
-    .m_default.m_int = dDefaultMessageTimeout
+    .m_default.m_int = dDefaultMessageTimeout // 30s
   },
   {
     .m_type = eConfigTypeUnknown
@@ -106,19 +94,19 @@ InitClient( cOpenHpiClientConf *c )
 {
   assert( c->m_client_connection == 0 );
 
+  c->m_num_sessions = 0;
   c->m_client_connection = 0;
-  c->m_lock              = lock_tmpl;
-  c->m_queue             = 0;
+  c->m_lock = lock_tmpl;
+  c->m_queue = 0;
 
   int i;
   for( i = 0; i < 256; i++ )
        c->m_outstanding[i] = 0;
 
-  c->m_num_outstanding   = 0;
-  c->m_thread_state      = eOpenHpiClientThreadStateSuspend;
-  c->m_thread_exit       = 0;
-  c->m_session           = 0;
-  c->m_num_sessions      = 0;
+  c->m_num_outstanding = 0;
+  c->m_current_seq = 0;
+  c->m_thread_state = eOpenHpiClientThreadStateSuspend;
+  c->m_thread_exit = 0;
 
 #ifdef dOpenHpiClientWithConfig
   char *openhpi_client_conf = getenv( "OPENHPICLIENT_CONF" );
@@ -129,7 +117,7 @@ InitClient( cOpenHpiClientConf *c )
   ConfigRead( openhpi_client_conf, config_table, c );
 #endif
 
-  c->m_client_connection = ClientOpen( c->m_server, c->m_port );
+  c->m_client_connection = ClientConnectionOpen( c->m_server, c->m_port );
 
   if ( !c->m_client_connection )
        return 0;
@@ -145,22 +133,6 @@ InitClient( cOpenHpiClientConf *c )
        // wait 100 ms
        usleep( 10000 );
 
-  // send reset message
-  cMessageHeader header;
-  MessageHeaderInit( &header, eMhReset, dMhRequest, 0, 0, 0 );
-  cMessageHeader rh;
-  void *data;
-
-  SaErrorT r = SendMsg( c, &header, 0, &rh, &data, c->m_retries );
-
-  if ( r != SA_OK )
-     {
-       //LogUtilsError( eLfRemote, "cannot send startup message to daemon !\n" );
-       CleanupClient( c );
-
-       return 0;
-     }
-
   return 1;
 }
 
@@ -173,28 +145,15 @@ CleanupClient( cOpenHpiClientConf *c )
   while( c->m_thread_state == eOpenHpiClientThreadStateRun )
        usleep( 100000 );
 
-  // send a close
-  cMessageHeader header;
-  MessageHeaderInit( &header, eMhMsg, dMhRequest, 0, eFClose, 0 );
-  ClientWriteMsg( c->m_client_connection, &header, 0 );
-
   assert( c->m_client_connection );
-  ClientClose( c->m_client_connection );
+  ClientConnectionClose( c->m_client_connection );
   c->m_client_connection = 0;
 
   assert( c->m_num_outstanding == 0 );
-
-  if ( c->m_session )
-     {
-       free( c->m_session );
-       c->m_session = 0;
-     }
- 
-  c->m_num_sessions = 0;
 }
 
 
-static void
+static void 
 Lock( cOpenHpiClientConf *c )
 {
   pthread_mutex_lock( &c->m_lock );
@@ -208,83 +167,32 @@ Unlock( cOpenHpiClientConf *c )
 }
 
 
-static int 
-FindSessionId( cOpenHpiClientConf *c, SaHpiSessionIdT sid )
-{
-  int i;
-
-  for( i = 0; i < c->m_num_sessions; i++ )
-       if ( c->m_session[i] == sid )
-            return i;
-  
-  return -1;
-}
-
-
-static void
-AddSessionId( cOpenHpiClientConf *c, SaHpiSessionIdT sid )
-{
-  SaHpiSessionIdT *array = (SaHpiSessionIdT *)malloc( sizeof( SaHpiSessionIdT ) * ( c->m_num_sessions + 1 ) );
-
-  if ( c->m_session )
-     {
-       memcpy( array, c->m_session, sizeof( SaHpiSessionIdT ) * c->m_num_sessions );
-       free( c->m_session );
-     }
-
-  c->m_session = array;
-  c->m_session[c->m_num_sessions] = sid;
-  c->m_num_sessions += 1;
-}
-
-
 static int
-RemSessionId( cOpenHpiClientConf *c, SaHpiSessionIdT sid )
-{
-  int idx = FindSessionId( c, sid );
-
-  if ( idx < 0 )
-       return -1;
-
-  if ( c->m_num_sessions == 1 )
-     {
-       free( c->m_session );
-       c->m_session = 0;
-       c->m_num_sessions -= 1;
-
-       return 0;
-     }
-
-  int s = sizeof( SaHpiSessionIdT ) * c->m_num_sessions;
-
-  SaHpiSessionIdT *array = (SaHpiSessionIdT *)malloc( s - sizeof( SaHpiSessionIdT ) );
-
-  if ( idx > 0 )
-       memcpy( array, c->m_session, s );
-
-  if ( idx != c->m_num_sessions - 1 )
-       memcpy( array + s, c->m_session + s + sizeof( SaHpiSessionIdT ),
-               sizeof( SaHpiSessionIdT ) * ( c->m_num_sessions - idx - 1 ) );
-
-  free( c->m_session );
-  c->m_session = array;
-
-  c->m_num_sessions -= 1;
-
-  return 0;
-}
-
-
-static void
 AddOutstanding( cOpenHpiClientConf *c, cOpenHpiClientRequest *r )
 {
   assert( c->m_num_outstanding < c->m_max_outstanding );
 
-  int seq = r->m_request_header->m_seq;
+  // find next free seq
+  while( 1 )
+     {
+       if ( c->m_outstanding[c->m_current_seq] == 0 )
+            break;
 
-  assert( c->m_outstanding[seq] == 0 );
-  c->m_outstanding[seq] = r;
+       c->m_current_seq += 1;
+       c->m_current_seq %= 256;
+     }
+
+  r->m_seq = c->m_current_seq;
+  r->m_request_header->m_seq = c->m_current_seq;
+
+  assert( c->m_outstanding[c->m_current_seq] == 0 );
+  c->m_outstanding[c->m_current_seq] = r;
   c->m_num_outstanding += 1;
+
+  c->m_current_seq += 1;
+  c->m_current_seq %= 256;
+
+  return r->m_seq;
 }
 
 
@@ -311,46 +219,8 @@ HandleMsgError( cOpenHpiClientConf *c, cOpenHpiClientRequest *r, SaErrorT err )
 {
   r->m_error = err;
   pthread_mutex_lock( r->m_lock );
-  r->m_cond_var = 1;
   pthread_cond_signal( r->m_cond );
   pthread_mutex_unlock( r->m_lock );
-}
-
-
-static void
-SetMsgTimeout( cOpenHpiClientConf *c, cOpenHpiClientRequest *r )
-{
-  // message timeout
-  gettimeofday( &r->m_timeout, 0 );
-
-  r->m_timeout.tv_sec += c->m_timeout / 1000;
-  r->m_timeout.tv_usec += (c->m_timeout % 1000) * 1000;
-
-  while( r->m_timeout.tv_usec > 1000000 )
-     {
-       r->m_timeout.tv_sec += 1;
-       r->m_timeout.tv_usec -= 1000000;
-     }
-}
-
-
-static SaErrorT
-ResendMsg( cOpenHpiClientConf *c, cOpenHpiClientRequest *r )
-{
-  //  LogUtilsError( eLfRemote, "resend msg.\n" );
-
-  r->m_retries_left -= 1;
-
-  int rv = ConnectionWriteMsg( c->m_client_connection->m_fd,
-                               &c->m_client_connection->m_resend.m_ip_addr,
-                               r->m_request_header, r->m_request );
-
-  if ( rv )
-       return SA_ERR_HPI_BUSY;
-
-  SetMsgTimeout( c, r );
-
-  return SA_OK;
 }
 
 
@@ -358,16 +228,39 @@ static SaErrorT
 SendCmd( cOpenHpiClientConf *c, cOpenHpiClientRequest *r )
 {
   assert( c->m_num_outstanding < c->m_max_outstanding );
-  r->m_retries_left -= 1;
 
-  int rv = ClientWriteMsg( c->m_client_connection, r->m_request_header, r->m_request );
+  int seq = AddOutstanding( c, r );
+
+  // message timeout
+  gettimeofday( &r->m_timeout, 0 );
+
+  // add timeout
+  if ( r->m_request_header->m_id == eFsaHpiEventGet )
+     {
+       // TODO: set timeout to timeout of saHpiEventGet
+       r->m_timeout.tv_sec += 1000000;
+     }
+  else
+     {
+       r->m_timeout.tv_sec += c->m_timeout / 1000;
+       r->m_timeout.tv_usec += (c->m_timeout % 1000) * 1000;
+
+       while( r->m_timeout.tv_usec > 1000000 )
+	  {
+	    r->m_timeout.tv_sec += 1;
+	    r->m_timeout.tv_usec -= 1000000;
+	  }
+     }
+
+  // send message
+  int rv = ConnectionWriteMsg( c->m_client_connection->m_fd, r->m_request_header,
+			       r->m_request );
 
   if ( rv )
+     {
+       RemOutstanding( c, seq );
        return SA_ERR_HPI_BUSY;
-
-  AddOutstanding( c, r );
-
-  SetMsgTimeout( c, r );
+     }
 
   return SA_OK;
 }
@@ -391,7 +284,7 @@ SendCmds( cOpenHpiClientConf *c )
 
 static SaErrorT
 SendMsg( cOpenHpiClientConf *c, cMessageHeader *request_header,
-	 void *request, cMessageHeader *reply_header, void **reply, int retries )
+	 void *request, cMessageHeader *reply_header, void **reply )
 {
   *reply = 0;
 
@@ -409,10 +302,8 @@ SendMsg( cOpenHpiClientConf *c, cMessageHeader *request_header,
   r->m_request        = request;
   r->m_reply_header   = reply_header;
   r->m_reply          = reply;
-  r->m_retries_left   = retries;
   r->m_lock           = &lock;
   r->m_cond           = &cond;
-  r->m_cond_var       = 0;
   r->m_error          = SA_ERR_HPI_TIMEOUT;
 
   assert( c->m_thread_state == eOpenHpiClientThreadStateRun );
@@ -447,12 +338,7 @@ SendMsg( cOpenHpiClientConf *c, cMessageHeader *request_header,
   Unlock( c );
 
   // wait for response
-  do
-     {
-       pthread_cond_wait( &cond, &lock );
-     }
-  while( r->m_cond_var == 0 );
-
+  pthread_cond_wait( &cond, &lock );
   pthread_mutex_unlock( &lock );
 
   rv = r->m_error;
@@ -526,16 +412,10 @@ Reader( cOpenHpiClientConf *c )
 		      && r->m_timeout.tv_usec > now.tv_usec ) )
                  continue;
 
-            if ( r->m_retries_left > 0 )
-               {
-                 if ( ResendMsg( c, r ) == SA_OK )
-                      continue;
-               }
-
             // timeout expired
-            RemOutstanding( c, r->m_request_header->m_seq );
+            RemOutstanding( c, r->m_seq );
 
-            HandleMsgError( c, r, SA_ERR_HPI_NO_RESPONSE );
+            HandleMsgError( c, r, SA_ERR_HPI_TIMEOUT );
           }
 
        // send new comands
@@ -547,44 +427,12 @@ Reader( cOpenHpiClientConf *c )
 
 
 static void
-HandlePing( cOpenHpiClientConf *c, cMessageHeader *request_header )
+HandlePing(cOpenHpiClientConf *c, cMessageHeader *request_header )
 {
-  // send ping back
+  // send pong
   cMessageHeader header;
-  MessageHeaderInit( &header, (tMessageType)request_header->m_type, dMhReply, 
-                     request_header->m_seq, request_header->m_id, 0 );
-
-  ClientWriteMsg( c->m_client_connection, &header, 0 );
-}
-
-
-static void
-HandleReset( cOpenHpiClientConf *c, cMessageHeader *request_header )
-{
-  // send reset back
-  cMessageHeader header;
-  MessageHeaderInit( &header, (tMessageType)request_header->m_type, dMhReply, 
-                     request_header->m_seq, request_header->m_id, 0 );
-
-  ClientWriteMsg( c->m_client_connection, &header, 0 );
-
-  Lock( c );
-
-  int i;
-
-  for( i = 0; i < 256; i++ )
-     {
-       cOpenHpiClientRequest *r = c->m_outstanding[i];
-
-       if ( r == 0 )
-            continue;
-
-       RemOutstanding( c, i );
-
-       HandleMsgError( c, r, SA_ERR_HPI_NO_RESPONSE );
-     }
-
-  Unlock( c );
+  MessageHeaderInit( &header, eMhPong, request_header->m_seq, request_header->m_id, 0 );
+  ConnectionWriteHeader( c->m_client_connection->m_fd, &header );
 }
 
 
@@ -592,82 +440,47 @@ static void
 ReadResponse( cOpenHpiClientConf *c )
 {
   cMessageHeader header;
-  unsigned char reply[dMaxMessageLength];
+  void *reply = 0;
 
-  tConnectionError rv = ClientReadMsg( c->m_client_connection, &header, reply );
+  int rv = ConnectionReadMsg( c->m_client_connection->m_fd, &header, &reply, 0 );
 
-  if ( rv != eConnectionOk )
+  if ( rv )
      {
        // error
        return;
      }
 
-  if ( header.m_len > dMaxMessageLength )
+  if ( header.m_type == eMhPing )
      {
-       assert( 0 );
-       return;
-     }
+       HandlePing( c, &header );
 
-  if ( IsRequestMsg( &header ) )
-     {
-       if ( header.m_type == eMhPing )
-          {
-            HandlePing( c, &header );
-            return;
-          }
-
-       if ( header.m_type == eMhReset )
-          {
-            HandleReset( c, &header );
-            return;
-          }
-
-       // ignore other request messages
-       assert( 0 );
+       if ( reply )
+	    free( reply );
 
        return;
      }
 
   Lock( c );
 
-  if ( c->m_outstanding[header.m_seq_in] == 0 )
+  if ( c->m_outstanding[header.m_seq] == 0 )
      {
        // reply without response
-       //assert( 0 );
        Unlock( c );
 
        return;
      }
 
-  cOpenHpiClientRequest *r = c->m_outstanding[header.m_seq_in];
-  assert( r->m_request_header->m_seq == header.m_seq_in );
+  cOpenHpiClientRequest *r = c->m_outstanding[header.m_seq];
+  assert( r->m_seq == header.m_seq );
 
-  if ( r->m_request_header->m_id != header.m_id )
-     {
-       // wrong id
-       //assert( 0 );
-
-       Unlock( c );
-       return;
-     }
-
-  RemOutstanding( c, header.m_seq_in );
+  RemOutstanding( c, header.m_seq );
 
   // reply
-  unsigned char *rep = 0;
-
-  if ( header.m_len )
-     {
-       rep = (unsigned char *)malloc( header.m_len );
-       memcpy( rep, reply, header.m_len );
-     }
-
   *r->m_reply_header = header;
-  *r->m_reply        = rep;
+  *r->m_reply        = reply;
   r->m_error         = SA_OK;
 
   pthread_mutex_lock( r->m_lock );
-  r->m_cond_var = 1;
   pthread_cond_signal( r->m_cond );
   pthread_mutex_unlock( r->m_lock );
 
@@ -679,10 +492,10 @@ ReadResponse( cOpenHpiClientConf *c )
   do                                            \
      {                                          \
        if ( !config->m_initialize )             \
-            return SA_ERR_HPI_INTERNAL_ERROR;   \
+             return SA_ERR_HPI_UNINITIALIZED;   \
                                                 \
        if ( !config->m_client_connection )      \
-            return SA_ERR_HPI_INVALID_SESSION;  \
+	    return SA_ERR_HPI_INVALID_SESSION;  \
      }                                          \
   while( 0 )
 
@@ -697,7 +510,7 @@ ReadResponse( cOpenHpiClientConf *c )
   cHpiMarshal *hm = hm = HpiMarshalFind( id ); \
   assert( hm );          \
                          \
-  MessageHeaderInit( &request_header, eMhMsg, dMhRequest, 0, id, hm->m_request_len ); \
+  MessageHeaderInit( &request_header, eMhRequest, 0, id, hm->m_request_len ); \
                          \
   request = malloc( hm->m_request_len )
 
@@ -706,13 +519,12 @@ ReadResponse( cOpenHpiClientConf *c )
   do                 \
      {               \
        SaErrorT r = SendMsg( config, &request_header, \
-                             request, &reply_header, &reply, \
-                             config->m_retries );            \
+                             request, &reply_header, &reply ); \
                      \
        free( request ); \
                      \
        if ( r )      \
-	    return r; \
+	    return SA_ERR_HPI_INITIALIZING; \
      }               \
   while( 0 )
 
@@ -726,12 +538,41 @@ ReadResponse( cOpenHpiClientConf *c )
 
 
 SaErrorT SAHPI_API dOpenHpiClientFunction(
+Initialize)dOpenHpiClientParam( SAHPI_OUT SaHpiVersionT *HpiImplVersion )
+{
+  if ( HpiImplVersion == 0 )
+       return SA_ERR_HPI_INVALID_PARAMS;
+
+  if ( config->m_initialize )
+       return SA_ERR_HPI_DUPLICATE;
+
+  config->m_initialize = 1;
+
+  *HpiImplVersion = SAHPI_INTERFACE_VERSION;
+
+  return SA_OK;
+}
+
+
+SaErrorT SAHPI_API dOpenHpiClientFunction(
+Finalize)dOpenHpiClientParam()
+{
+  if ( config->m_num_sessions )
+       return SA_ERR_HPI_BUSY;
+
+  config->m_initialize = 0;
+
+  return SA_OK;
+}
+
+
+SaErrorT SAHPI_API dOpenHpiClientFunction(
 SessionOpen)dOpenHpiClientParam( SAHPI_IN  SaHpiDomainIdT   DomainId,
 				 SAHPI_OUT SaHpiSessionIdT *SessionId,
 				 SAHPI_IN  void            *SecurityParams )
 {
   if ( config->m_initialize == 0 )
-       config->m_initialize = 1;
+       return SA_ERR_HPI_UNINITIALIZED;
 
   if ( SessionId == 0 || SecurityParams != 0 )
        return SA_ERR_HPI_INVALID_PARAMS;
@@ -739,8 +580,10 @@ SessionOpen)dOpenHpiClientParam( SAHPI_IN  SaHpiDomainIdT   DomainId,
   if ( config->m_num_sessions == 0 )
      {
        if ( !InitClient( config ) )
-	    return SA_ERR_HPI_NO_RESPONSE;
+	    return SA_ERR_HPI_INITIALIZING;
      }
+
+  config->m_num_sessions++;
 
   PreMarshal( eFsaHpiSessionOpen );
 
@@ -752,10 +595,18 @@ SessionOpen)dOpenHpiClientParam( SAHPI_IN  SaHpiDomainIdT   DomainId,
 
   PostMarshal();
 
-  if ( err == SA_OK )
-       AddSessionId( config, *SessionId );
-  else if ( config->m_num_sessions == 0 )
-       CleanupClient( config );
+  if ( err != SA_OK )
+     {
+       config->m_num_sessions--;
+
+       assert( config->m_num_sessions >= 0 );
+
+       if ( config->m_num_sessions < 0 )
+	    config->m_num_sessions = 0;
+  
+       if ( config->m_num_sessions == 0 )
+	    CleanupClient( config );
+     }
 
   return err;
 }
@@ -766,38 +617,38 @@ SessionClose)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT SessionId )
 {
   CheckSession();
 
-  if ( RemSessionId( config, SessionId ) < 0 )
-       return SA_ERR_HPI_INVALID_PARAMS;
-
   PreMarshal( eFsaHpiSessionClose );
   request_header.m_len = HpiMarshalRequest1( hm, request, &SessionId );
 
-  SaErrorT r = SendMsg( config, &request_header,
-                        request, &reply_header, &reply,
-                        config->m_retries );
-
-  free( request );
-
-  if ( config->m_num_sessions == 0 )
-       CleanupClient( config );
-
-  if ( r )
-       return r;
+  Send();
 
   int mr = HpiDemarshalReply0( reply_header.m_flags & dMhEndianBit, hm, reply, &err );
 
   PostMarshal();
+
+  if ( err == SA_OK )
+     {
+       config->m_num_sessions--;
+
+       assert( config->m_num_sessions >= 0 );
+
+       if ( config->m_num_sessions < 0 )
+	    config->m_num_sessions = 0;
+
+       if ( config->m_num_sessions == 0 )
+	    CleanupClient( config );
+     }
 
   return err;
 }
 
 
 SaErrorT SAHPI_API dOpenHpiClientFunction(
-Discover)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT SessionId )
+ResourcesDiscover)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT SessionId )
 {
   CheckSession();
 
-  PreMarshal( eFsaHpiDiscover );
+  PreMarshal( eFsaHpiResourcesDiscover );
   request_header.m_len = HpiMarshalRequest1( hm, request, &SessionId );
 
   Send();
@@ -934,13 +785,7 @@ ResourceIdGet)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT    SessionId,
        return SA_ERR_HPI_INVALID_PARAMS;
 
   CheckSession();
-  
-  if ( FindSessionId( config, SessionId ) == -1 )
-       return SA_ERR_HPI_INVALID_SESSION;
-  
-  //return GetLocalResourceId();
-  
-         /*
+
   PreMarshal( eFsaHpiResourceIdGet );
 
   request_header.m_len = HpiMarshalRequest1( hm, request, &SessionId );
@@ -950,9 +795,8 @@ ResourceIdGet)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT    SessionId,
   int mr = HpiDemarshalReply1( reply_header.m_flags & dMhEndianBit, hm, reply, &err, ResourceId );
 
   PostMarshal();
-         */
-         
-  return SA_ERR_HPI_INVALID_PARAMS;
+
+  return err;
 }
 
 
@@ -982,7 +826,7 @@ EntitySchemaGet)dOpenHpiClientParam( SAHPI_IN  SaHpiSessionIdT SessionId,
 SaErrorT SAHPI_API dOpenHpiClientFunction(
 EventLogInfoGet)dOpenHpiClientParam( SAHPI_IN  SaHpiSessionIdT  SessionId,
 				     SAHPI_IN  SaHpiResourceIdT ResourceId,
-				     SAHPI_OUT SaHpiEventLogInfoT    *Info )
+				     SAHPI_OUT SaHpiSelInfoT    *Info )
 {
   if ( Info == 0 )
        return SA_ERR_HPI_INVALID_PARAMS;
@@ -1006,10 +850,10 @@ EventLogInfoGet)dOpenHpiClientParam( SAHPI_IN  SaHpiSessionIdT  SessionId,
 SaErrorT SAHPI_API dOpenHpiClientFunction(
 EventLogEntryGet)dOpenHpiClientParam( SAHPI_IN    SaHpiSessionIdT   SessionId,
 				      SAHPI_IN    SaHpiResourceIdT  ResourceId,
-				      SAHPI_IN    SaHpiEventLogEntryIdT  EntryId,
-				      SAHPI_OUT   SaHpiEventLogEntryIdT *PrevEntryId,
-				      SAHPI_OUT   SaHpiEventLogEntryIdT *NextEntryId,
-				      SAHPI_OUT   SaHpiEventLogEntryT   *EventLogEntry,
+				      SAHPI_IN    SaHpiSelEntryIdT  EntryId,
+				      SAHPI_OUT   SaHpiSelEntryIdT *PrevEntryId,
+				      SAHPI_OUT   SaHpiSelEntryIdT *NextEntryId,
+				      SAHPI_OUT   SaHpiSelEntryT   *EventLogEntry,
 				      SAHPI_INOUT SaHpiRdrT        *Rdr,
 				      SAHPI_INOUT SaHpiRptEntryT   *RptEntry )
 {
@@ -1050,7 +894,7 @@ EventLogEntryGet)dOpenHpiClientParam( SAHPI_IN    SaHpiSessionIdT   SessionId,
 SaErrorT SAHPI_API dOpenHpiClientFunction(
 EventLogEntryAdd)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT  SessionId,
 				      SAHPI_IN SaHpiResourceIdT ResourceId,
-				      SAHPI_IN SaHpiEventLogEntryT  *EvtEntry )
+				      SAHPI_IN SaHpiSelEntryT  *EvtEntry )
 {
   if ( EvtEntry == 0 )
        return SA_ERR_HPI_INVALID_PARAMS;
@@ -1074,7 +918,7 @@ EventLogEntryAdd)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT  SessionId,
 SaErrorT SAHPI_API dOpenHpiClientFunction(
 EventLogEntryDelete)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT  SessionId,
 					 SAHPI_IN SaHpiResourceIdT ResourceId,
-					 SAHPI_IN SaHpiEventLogEntryIdT EntryId )
+					 SAHPI_IN SaHpiSelEntryIdT EntryId )
 {
   CheckSession();
 
@@ -1256,38 +1100,8 @@ EventGet)dOpenHpiClientParam( SAHPI_IN    SaHpiSessionIdT SessionId,
   PreMarshal( eFsaHpiEventGet );
 
   request_header.m_len = HpiMarshalRequest2( hm, request, &SessionId, &Timeout );
-
-  int retries = config->m_retries;
-
-  if ( Timeout == SAHPI_TIMEOUT_IMMEDIATE )
-       retries = config->m_retries;
-  else if ( Timeout == SAHPI_TIMEOUT_BLOCK )
-       retries = 0x8fffffff;
-  else
-     {
-       SaHpiTimeoutT t = Timeout / (SaHpiTimeoutT)config->m_timeout;
-       t /= (SaHpiTimeoutT)1000000;
-       t += (SaHpiTimeoutT)config->m_retries;
-
-       if ( t > (SaHpiTimeoutT)0x8fffffff )
-            retries = 0x8fffffff;
-       else
-            retries = (int)t;
-     }
-
-  //LogUtilsError( eLfRemote, "EventGet: retries %d, timeout %d, use %d retries\n",
-  //               config->m_retries, config->m_timeout, retries );
-
-  SaErrorT r = SendMsg( config, &request_header,
-                        request, &reply_header, &reply,
-                        retries );
-
-  free( request );
-
-  //LogUtilsError( eLfRemote, "EventGet: return: %d\n", r );
-
-  if ( r )
-       return r;
+  
+  Send();
 
   SaHpiRdrT      rdr;
   SaHpiRptEntryT rpt_entry;
@@ -1299,7 +1113,7 @@ EventGet)dOpenHpiClientParam( SAHPI_IN    SaHpiSessionIdT SessionId,
        RptEntry = &rpt_entry;
 
   int mr = HpiDemarshalReply3( reply_header.m_flags & dMhEndianBit, hm, reply, &err,
-			       Event, Rdr, RptEntry );
+			       Event, &Rdr, &RptEntry );
 
   PostMarshal();
 
@@ -1508,11 +1322,12 @@ SensorEventEnablesSet)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT         Sess
 
   PreMarshal( eFsaHpiSensorEventEnablesSet );
 
-  request_header.m_len = HpiMarshalRequest4( hm, request, &SessionId, &ResourceId, &SensorNum, Enables );
+  request_header.m_len = HpiMarshalRequest3( hm, request, &SessionId, &ResourceId, &SensorNum );
   
   Send();
 
-  int mr = HpiDemarshalReply0( reply_header.m_flags & dMhEndianBit, hm, reply, &err );
+  int mr = HpiDemarshalReply1( reply_header.m_flags & dMhEndianBit, hm, reply, &err,
+			       Enables );
 
   PostMarshal();
 

@@ -75,15 +75,10 @@ static void *ipmi_open(GHashTable *handler_config)
 	handler->config = handler_config;
 
 	/* Discovery routine depends on these flags */
-	ipmi_handler->SDRs_read_done = 0;
-	/* Domain (main) SDR flag, 1 when done */
-	ipmi_handler->SELs_read_done = 0;
-	/* SEL flag, 1 when done */
-	ipmi_handler->mc_count = 0;
-	/* MC level SDRs, 0 when done */
-
-	//ipmi_handler->FRU_done = 0;
-	/* MC level SDRs, 0 when done */
+	ipmi_handler->SDRs_read_done = 0;			/* Domain (main) SDR flag, 1 when done */
+    ipmi_handler->SELs_read_done = 0;			/* SEL flag, 1 when done */
+	ipmi_handler->mc_count = 0;					/* MC level SDRs, 0 when done */
+	ipmi_handler->FRU_done = 0;					/* MC level SDRs, 0 when done */
 
 	ipmi_handler->entity_root = g_hash_table_lookup(handler_config, "entity_root");
 	
@@ -94,124 +89,120 @@ static void *ipmi_open(GHashTable *handler_config)
 	} else
 		dbg("name: %s, addr: %s, entity_root: %s", name, addr, ipmi_handler->entity_root);
 
-	/* OS handler allocated first. */
-	ipmi_handler->os_hnd = ipmi_posix_get_os_handler();
+    /* OS handler allocated first. */
+    ipmi_handler->os_hnd = ipmi_posix_get_os_handler();
 	sel_alloc_selector(ipmi_handler->os_hnd, &ipmi_handler->ohoi_sel);
-	ipmi_posix_os_handler_set_sel(ipmi_handler->os_hnd, ipmi_handler->ohoi_sel);
+    ipmi_posix_os_handler_set_sel(ipmi_handler->os_hnd, ipmi_handler->ohoi_sel);
 	ipmi_init(ipmi_handler->os_hnd);
 	
 	if (strcmp(name, "smi") == 0) {
-		int tmp = strtol(addr, (char **)NULL, 10);
+			int tmp = strtol(addr, (char **)NULL, 10);
 
-		rv = ipmi_smi_setup_con(tmp,ipmi_handler->os_hnd,
-					ipmi_handler->ohoi_sel,&ipmi_handler->con);
-		if (rv) {
-			dbg("Cannot setup connection");
-			return NULL;
-		}
+			rv = ipmi_smi_setup_con(tmp,ipmi_handler->os_hnd,ipmi_handler->ohoi_sel,&ipmi_handler->con);
+			if (rv) {
+					dbg("Cannot setup connection");
+					return NULL;
+			}
 	} else if (strcmp(name, "lan") == 0) {
-		static struct in_addr lan_addr;
-		static int lan_port;
-		static int auth;
-		static int priv;
+			static struct in_addr lan_addr;
+			static int lan_port;
+			static int auth;
+			static int priv;
 			
-		char *tok;
-		char user[32], passwd[32];
+			char *tok;
+			char user[32], passwd[32];
 
-		/* Address */
-		tok = g_hash_table_lookup(handler_config, "addr");
-		dbg("IPMI LAN Address: %s", tok);
-		struct hostent *ent = gethostbyname(tok);
-		if (!ent) {
-			dbg("Unable to resolve IPMI LAN address");
-			return NULL;
-		}
+			/* Address */
+			tok = g_hash_table_lookup(handler_config, "addr");
+			dbg("IPMI LAN Address: %s", tok);
+			struct hostent *ent = gethostbyname(tok);
+			if (!ent) {
+					dbg("Unable to resolve IPMI LAN address");
+					return NULL;
+			}
 			
-		memcpy(&lan_addr, ent->h_addr_list[0], ent->h_length);
+			memcpy(&lan_addr, ent->h_addr_list[0], ent->h_length);
 			
-		/* Port */
-		tok = g_hash_table_lookup(handler_config, "port");
-		lan_port = atoi(tok);
-		dbg("IPMI LAN Port: %i", lan_port);
+			/* Port */
+			tok = g_hash_table_lookup(handler_config, "port");
+			lan_port = atoi(tok);
+			dbg("IPMI LAN Port: %i", lan_port);
 
-		/* Authentication type */
-		tok = g_hash_table_lookup(handler_config, "auth_type");
-		if (strcmp(tok, "none") == 0) {
-			auth = IPMI_AUTHTYPE_NONE;
-		} else if (strcmp(tok, "straight") == 0) {
-			auth = IPMI_AUTHTYPE_STRAIGHT;
-		} else if (strcmp(tok, "md2") == 0) {
-			auth = IPMI_AUTHTYPE_MD2;
-		} else if (strcmp(tok, "md5") == 0) {
-			auth = IPMI_AUTHTYPE_MD5;
-		} else {
-			dbg("Invalid IPMI LAN authenication method: %s", tok);
-			return NULL;
-		}
+			/* Authentication type */
+			tok = g_hash_table_lookup(handler_config, "auth_type");
+			if (strcmp(tok, "none") == 0) {
+					auth = IPMI_AUTHTYPE_NONE;
+			} else if (strcmp(tok, "straight") == 0) {
+					auth = IPMI_AUTHTYPE_STRAIGHT;
+			} else if (strcmp(tok, "md2") == 0) {
+					auth = IPMI_AUTHTYPE_MD2;
+			} else if (strcmp(tok, "md5") == 0) {
+					auth = IPMI_AUTHTYPE_MD5;
+			} else {
+					dbg("Invalid IPMI LAN authenication method: %s", tok);
+					return NULL;
+			}
 
-		dbg("IPMI LAN Authority: %s(%i)", tok, auth);
+			dbg("IPMI LAN Authority: %s(%i)", tok, auth);
 
-		/* Priviledge */
-		tok = g_hash_table_lookup(handler_config, "auth_level");
-		if (strcmp(tok, "callback") == 0) {
-			priv = IPMI_PRIVILEGE_CALLBACK;
-		} else if (strcmp(tok, "user") == 0) {
-			priv = IPMI_PRIVILEGE_USER;
-		} else if (strcmp(tok, "operator") == 0) {
-			priv = IPMI_PRIVILEGE_OPERATOR;
-		} else if (strcmp(tok, "admin") == 0) {
-			priv = IPMI_PRIVILEGE_ADMIN;
-		} else if (strcmp(tok, "oem") == 0) {
-			priv = IPMI_PRIVILEGE_OEM;
-		} else {
-			dbg("Invalid IPMI LAN authenication method: %s", tok);
-			return NULL;
-		}
+			/* Priviledge */
+			tok = g_hash_table_lookup(handler_config, "auth_level");
+			if (strcmp(tok, "callback") == 0) {
+					priv = IPMI_PRIVILEGE_CALLBACK;
+			} else if (strcmp(tok, "user") == 0) {
+					priv = IPMI_PRIVILEGE_USER;
+			} else if (strcmp(tok, "operator") == 0) {
+					priv = IPMI_PRIVILEGE_OPERATOR;
+			} else if (strcmp(tok, "admin") == 0) {
+					priv = IPMI_PRIVILEGE_ADMIN;
+			} else if (strcmp(tok, "oem") == 0) {
+					priv = IPMI_PRIVILEGE_OEM;
+			} else {
+					dbg("Invalid IPMI LAN authenication method: %s", tok);
+					return NULL;
+			}
 			
-		dbg("IPMI LAN Priviledge: %s(%i)", tok, priv);
+			dbg("IPMI LAN Priviledge: %s(%i)", tok, priv);
 
-		/* User Name */
-		tok = g_hash_table_lookup(handler_config, "username"); 
-		strncpy(user, tok, 32);
-		dbg("IPMI LAN User: %s", user);
+			/* User Name */
+			tok = g_hash_table_lookup(handler_config, "username"); 
+			strncpy(user, tok, 32);
+			dbg("IPMI LAN User: %s", user);
 
-		/* Password */
-		tok = g_hash_table_lookup(handler_config, "password");  
-		strncpy(passwd, tok, 32);
-		dbg("IPMI LAN Password: %s", passwd);
+			/* Password */
+			tok = g_hash_table_lookup(handler_config, "password");  
+			strncpy(passwd, tok, 32);
+			dbg("IPMI LAN Password: %s", passwd);
 
-		free(tok);
+			free(tok);
 
-		rv = ipmi_lan_setup_con(&lan_addr, &lan_port, 1,
-					auth, priv,
-					user, strlen(user),
-					passwd, strlen(passwd),
-					ipmi_handler->os_hnd, ipmi_handler->ohoi_sel,
-					&ipmi_handler->con);
+			rv = ipmi_lan_setup_con(&lan_addr, &lan_port, 1,
+							auth, priv,
+							user, strlen(user),
+							passwd, strlen(passwd),
+							ipmi_handler->os_hnd, ipmi_handler->ohoi_sel,
+							&ipmi_handler->con);
 	} else {
-		dbg("Unsupported IPMI connection method: %s",name);
-		return NULL;
+			dbg("Unsupported IPMI connection method: %s",name);
+			return NULL;
 	}
-
-	ipmi_handler->connected = 0;
-
-	rv = ipmi_init_domain(&ipmi_handler->con, 1, NULL, NULL, 
-			      NULL, &ipmi_handler->domain_id);
+	
+	rv = ipmi_init_domain(&ipmi_handler->con, 1, NULL, NULL, NULL, &ipmi_handler->domain_id);
 	if (rv) {
-		fprintf(stderr, "ipmi_init_domain: %s\n", strerror(rv));
-		return NULL;
+			fprintf(stderr, "ipmi_init_domain: %s\n", strerror(rv));
+			return NULL;
 	}
 
         rv = ipmi_domain_pointer_cb(ipmi_handler->domain_id, ohoi_setup_done, handler);
         if (rv) {
-		fprintf(stderr, "ipmi_domain_pointer_cb: %s\n", strerror(rv));
-		return NULL;
+                        fprintf(stderr, "ipmi_domain_pointer_cb: %s\n", strerror(rv));
+                        return NULL;
         }
 
-	/* increment global count of plug-in instances */
-	ipmi_refcount++;
+		/* increment global count of plug-in instances */
+		ipmi_refcount++;
 
-	return handler;
+		return handler;
 }
 
 
@@ -225,34 +216,24 @@ static void *ipmi_open(GHashTable *handler_config)
  **/
 static void ipmi_close(void *hnd)
 {
-
 	struct oh_handler_state *handler = (struct oh_handler_state *) hnd;
 	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
 
-
-	if (ipmi_handler->connected) {
-		dbg("close connection");
-		ohoi_close_connection(ipmi_handler->domain_id, ipmi_handler);
-	}
-	
-	ipmi_refcount--;	
 	dbg("ipmi_refcount :%d", ipmi_refcount);
-	
-	if(ipmi_refcount == 0) {
-		/* last connection and in case other instances didn't
-		   close correctly we clean up all connections */
-		dbg("Last connection :%d closing", ipmi_refcount);
-		ipmi_shutdown();
+	if(ipmi_refcount > 1) {
+			ipmi_domain_pointer_cb(ipmi_handler->domain_id, ohoi_close_connection, handler);
+			
+			ipmi_refcount--;
+			dbg("ipmi instances remaining: %d", ipmi_refcount);
+	} else {
+			/* last connection and in case other instances didn't
+			   close correctly we clean up all connections */
+			dbg("Last connection :%d closing", ipmi_refcount);
+			ipmi_domain_pointer_cb(ipmi_handler->domain_id, ohoi_close_connection, handler);
+			ipmi_shutdown();
+			g_free(ipmi_handler);
+			g_free(handler);
 	}
-	
-	oh_flush_rpt(handler->rptcache);
-	g_free(handler->rptcache);
-	
-	g_slist_foreach(handler->eventq, (GFunc)g_free, NULL);
-	g_slist_free(handler->eventq);
-	
-	g_free(ipmi_handler);
-	g_free(handler);
 }
 
 /**
@@ -265,100 +246,23 @@ static void ipmi_close(void *hnd)
  *
  * Return value: 1 or 0
  **/
-static int ipmi_get_event(void *hnd, struct oh_event *event)
+static int ipmi_get_event(void *hnd, struct oh_event *event, 
+			  struct timeval *timeout)
 {
-	struct oh_handler_state *handler = hnd;
-	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
+		struct oh_handler_state *handler = hnd;
+		struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
 
-	struct timeval to = {0, 0};
+		struct timeval to = {0, 0};
 
-	sel_select(ipmi_handler->ohoi_sel, NULL, 0, NULL, &to);
+		sel_select(ipmi_handler->ohoi_sel, NULL, 0, NULL, &to);
 
-	if(g_slist_length(handler->eventq)>0) {
-		memcpy(event, handler->eventq->data, sizeof(*event));
-		event->did = SAHPI_UNSPECIFIED_DOMAIN_ID;
-		free(handler->eventq->data);
-		handler->eventq = g_slist_remove_link(handler->eventq, handler->eventq);
-		return 1;
-	} else
-	
-	return 0;
-}
-
-/*
- * add_alarm_rdr
- */
-static void add_alarm_rdr(
-                char			*name,
-                int			num,
-		SaHpiResourceIdT   	rptid,
-                SaHpiEntityPathT        parent_ent,
-		ipmi_control_id_t   	*control_id,
-		struct oh_handler_state *handler)
-{
-	SaHpiRdrT               rdr_temp;
-	SaHpiRdrT               *rdr;
- 
-	rdr = &rdr_temp;
-        rdr->RecordId = 0;
-        rdr->RdrType = SAHPI_CTRL_RDR;
-        rdr->Entity = parent_ent;
- 
-        rdr->IdString.DataType = SAHPI_TL_TYPE_ASCII6;
-        rdr->IdString.Language = SAHPI_LANG_ENGLISH;
-        rdr->IdString.DataLength = strlen(name);
-        memcpy(rdr->IdString.Data, name, strlen(name));
-
-        rdr->RdrTypeUnion.CtrlRec.Num   = num;
-        rdr->RdrTypeUnion.CtrlRec.Type         = SAHPI_CTRL_TYPE_DIGITAL;
-        rdr->RdrTypeUnion.CtrlRec.OutputType   = SAHPI_CTRL_LED; 
-        rdr->RdrTypeUnion.CtrlRec.Oem          = OEM_ALARM_BASE + num;
-
-        oh_add_rdr(handler->rptcache, rptid, rdr, control_id, 1);
-}
-
-/*
- * add_alarm_rdrs
- */
-static int add_alarm_rdrs(
-		struct oh_handler_state *handler,
-		SaHpiRptEntryT *rpt)
-{
-	SaHpiResourceIdT   	rid;
-        SaHpiEntityPathT        ent;
-        ipmi_control_id_t       control_id;
-	static ipmi_control_id_t   alarm_control_id;  /*save this */
-	static int alarms_done = 0;
-        struct ohoi_resource_info *res_info;
-	int rv;
-
-	if (alarms_done) return 0;  /* only do alarms the first time */
-	rid = rpt->ResourceId;
-	ent = rpt->ResourceEntity;
-
-        res_info = oh_get_resource_data(handler->rptcache, rid);
-	/* this is an RPT so the type is 0, entity_id */
-	if (res_info->ctrl_count == 0) {
-		dbg("add_alarm_rdrs: no alarm controls");
-		return 0;
-	}
-	rv = ipmi_control_find_id( res_info->u.entity_id.domain_id,
-		res_info->u.entity_id.entity_id,
-		res_info->u.entity_id.entity_instance,
-		res_info->u.entity_id.channel,
-		res_info->u.entity_id.address,
-		"", &control_id);
-	alarm_control_id = control_id;  /* must be static */
-
-	rpt->ResourceCapabilities |=  SAHPI_CAPABILITY_RDR;
-	rpt->ResourceCapabilities |=  SAHPI_CAPABILITY_CONTROL;
-
-	add_alarm_rdr("Power Alarm LED",0,   rid,ent,&alarm_control_id,handler);
-	add_alarm_rdr("Critical Alarm LED",1,rid,ent,&alarm_control_id,handler);
-	add_alarm_rdr("Major Alarm LED",2,   rid,ent,&alarm_control_id,handler);
-	add_alarm_rdr("Minor Alarm LED",3,   rid,ent,&alarm_control_id,handler);
-	alarms_done = 1;
-	return 0;
+		if(g_slist_length(handler->eventq)>0) {
+				memcpy(event, handler->eventq->data, sizeof(*event));
+				free(handler->eventq->data);
+				handler->eventq = g_slist_remove_link(handler->eventq, handler->eventq);
+				return 1;
+		} else
+				return 0;
 }
 
 /**
@@ -381,7 +285,7 @@ static int ipmi_discover_resources(void *hnd)
 	SaHpiRptEntryT *rpt_entry;
 	SaHpiRdrT	*rdr_entry;
 
-	dbg("ipmi discover_resources");
+	int discovered = 0;
 	
 	while (0 == ipmi_handler->SDRs_read_done || 0 == ipmi_handler->bus_scan_done
 				   	|| 0 != ipmi_handler->mc_count) {
@@ -392,26 +296,25 @@ static int ipmi_discover_resources(void *hnd)
 		}
 	}
 
-	dbg("ipmi discover_resources, MC count: %d", ipmi_handler->mc_count);
+rediscover:
         rpt_entry = oh_get_resource_next(handler->rptcache, SAHPI_FIRST_ENTRY);
         while (rpt_entry) {
-		if  (rpt_entry->ResourceEntity.Entry[0].EntityType == SAHPI_ENT_FRONT_PANEL_BOARD) {
-                        rv = add_alarm_rdrs(handler,rpt_entry);
-                }
+				discovered++;
                 event = g_malloc0(sizeof(*event));
                 memset(event, 0, sizeof(*event));
                 event->type = OH_ET_RESOURCE;
-                memcpy(&event->u.res_event.entry, rpt_entry, sizeof(SaHpiRptEntryT));
-                handler->eventq = g_slist_append(handler->eventq, event);
+                
+				
+				memcpy(&event->u.res_event.entry, rpt_entry, sizeof(SaHpiRptEntryT));
+				handler->eventq = g_slist_append(handler->eventq, event);
 
-                dbg("Now adding rdr for resource: %d", event->u.res_event.entry.ResourceId);
+
                 rdr_entry = oh_get_rdr_next(handler->rptcache,rpt_entry->ResourceId, SAHPI_FIRST_ENTRY);
                 
                 while (rdr_entry) {
                         event = g_malloc0(sizeof(*event));
                         memset(event, 0, sizeof(*event));
                         event->type = OH_ET_RDR;
-			event->u.rdr_event.parent = rpt_entry->ResourceId;
                         memcpy(&event->u.rdr_event.rdr, rdr_entry, sizeof(SaHpiRdrT));
                         handler->eventq = g_slist_append(handler->eventq, event);
                         
@@ -421,11 +324,67 @@ static int ipmi_discover_resources(void *hnd)
                 rpt_entry = oh_get_resource_next(handler->rptcache, rpt_entry->ResourceId);
         }
 
+		if (ipmi_handler->FRU_done == 0) {
+				dbg("FRUs are not done yet\n");
+				sel_select(ipmi_handler->ohoi_sel, NULL, 0, NULL, NULL);
+				goto rediscover;
+		}
+
+
+
 	return 0;
 }
 
+static
+void ohoi_set_resource_tag(ipmi_entity_t *entity, void *cb_data)
+{
+		SaHpiTextBufferT *tag = cb_data;
+		ipmi_entity_set_entity_id_string(entity, (char *)tag);
+		dbg("New resource Tag set");
+}
+		
+		
+
+static SaErrorT ipmi_set_resource_tag(void *hnd, SaHpiResourceIdT id, SaHpiTextBufferT *tag)
+{
+	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
+	SaHpiRptEntryT *rpt_entry;
+	struct ohoi_resource_info *res_info;
+	int rv;
+
+	res_info = oh_get_resource_data(handler->rptcache, id);
+	if (!res_info)
+			dbg("No private resource info for resource %d", id);
+	
+	rpt_entry = oh_get_resource_by_id(handler->rptcache, id);
+	if (!rpt_entry) {
+		dbg("No rpt for resource %d?", id);
+		return  SA_ERR_HPI_NOT_PRESENT;
+	}
+
+	/* do it in openIPMI's memory first for subsequest updates */
+
+	/* but first check if it's an entity or an MC */
+	if (res_info->type == OHOI_RESOURCE_MC) {
+			dbg("Setting custom tag for Management Controllers is not supported");
+			return SA_ERR_HPI_INVALID;
+	} else {
+			/* can only be an Entity in the ohoi_resource_info struct */
+			dbg("Setting new Tag: %s for resource: %d", (char *) tag->Data, id);
+			rv = ipmi_entity_pointer_cb(res_info->u.entity_id, ohoi_set_resource_tag, tag->Data);
+			if (rv)
+					dbg("Error retrieving entity pointer for resource %d", rpt_entry->ResourceId);
+	}
+	
+	/* change it in our memory as well */
+	memcpy(&rpt_entry->ResourceTag.Data, tag->Data, strlen(tag->Data) + 1);
+	oh_add_resource(handler->rptcache, rpt_entry, res_info, 1);
+	return 0;
+}
+
+
 /**
- * ipmi_get_el_info: get ipmi SEL info
+ * ipmi_get_sel_info: get ipmi SEL info
  * @hnd: pointer to handler
  * @id: resource id
  * @info: output -- pointer to info structure passed from infra.
@@ -436,31 +395,30 @@ static int ipmi_discover_resources(void *hnd)
  *
  * Return value: 0
  **/
-static SaErrorT ipmi_get_el_info(void               *hnd,
+static SaErrorT ipmi_get_sel_info(void               *hnd,
                              SaHpiResourceIdT   id,
-                             SaHpiEventLogInfoT      *info)
+                             SaHpiSelInfoT      *info)
 {
         unsigned int count;
         unsigned int size;
-	int rv;
-	char del_support;
+		int rv;
 
         struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
-	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
+		struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
 
         const struct ohoi_resource_info *ohoi_res_info;
 
-	dbg("starting wait for sel retrieval");
+		dbg("starting wait for sel retrieval");
 
-	while (0 == ipmi_handler->SELs_read_done) {
-		rv = sel_select(ipmi_handler->ohoi_sel, NULL, 0 , NULL, NULL);
-		if (rv<0) {
-			dbg("error on waiting for SEL");
-			return -1;
+		while (0 == ipmi_handler->SELs_read_done) {
+				rv = sel_select(ipmi_handler->ohoi_sel, NULL, 0 , NULL, NULL);
+				if (rv<0) {
+						dbg("error on waiting for SEL");
+						return -1;
+				}
 		}
-	}
 
-	dbg("done retrieving sel");
+		dbg("done retrieving sel");
         ohoi_res_info = oh_get_resource_data(handler->rptcache, id);
         if (ohoi_res_info->type != OHOI_RESOURCE_MC) {
                 dbg("BUG: try to get sel in unsupported resource");
@@ -469,26 +427,26 @@ static SaErrorT ipmi_get_el_info(void               *hnd,
 	
         ohoi_get_sel_count(ohoi_res_info->u.mc_id, &count);
 	
-	if (count == 0)
-		info->Entries = 0;
-	else
-		info->Entries = count;
-	dbg("sel count: %d", count);
+		if (count == 0)
+				info->Entries = 0;
+		else
+				info->Entries = count;
+		dbg("sel count: %d", count);
 
-	ohoi_get_sel_size(ohoi_res_info->u.mc_id, &size);
+		ohoi_get_sel_size(ohoi_res_info->u.mc_id, &size);
         info->Size              = size / 16;
         ohoi_get_sel_updatetime(ohoi_res_info->u.mc_id, &info->UpdateTimestamp);
         ohoi_get_sel_time(ohoi_res_info->u.mc_id, &info->CurrentTime, ipmi_handler);
         info->Enabled           = 1; /* FIXME: how to disable SEL in OpenIPMI */
         ohoi_get_sel_overflow(ohoi_res_info->u.mc_id, &info->OverflowFlag);
-        info->OverflowAction    = SAHPI_EL_OVERFLOW_DROP;
-        ohoi_get_sel_support_del(ohoi_res_info->u.mc_id, &del_support);
+        info->OverflowAction    = SAHPI_SEL_OVERFLOW_DROP;
+        ohoi_get_sel_support_del(ohoi_res_info->u.mc_id, &info->DeleteEntrySupported);
         
         return 0;
 }
 
 /**
- * ipmi_set_el_time: set ipmi event log time
+ * ipmi_set_sel_time: set ipmi event log time
  * @hnd: pointer to handler
  * @id: resource id of resource holding sel
  * @time: pointer to time structure
@@ -498,17 +456,17 @@ static SaErrorT ipmi_get_el_info(void               *hnd,
  *
  * Return value: 0 for success, -1 for error
  **/
-static int ipmi_set_el_time(void               *hnd,
+static int ipmi_set_sel_time(void               *hnd,
                              SaHpiResourceIdT   id,
                              SaHpiTimeT    time)
 {
-	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
-	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
+		struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
+		struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
 
-	struct ohoi_resource_info *ohoi_res_info;
+		struct ohoi_resource_info *ohoi_res_info;
         struct timeval tv;
         
-	dbg("sel_set_time called");
+		dbg("sel_set_time called");
 
         ohoi_res_info = oh_get_resource_data(handler->rptcache, id);
         if (ohoi_res_info->type != OHOI_RESOURCE_MC) {
@@ -545,7 +503,7 @@ static int ipmi_set_sel_state(void      *hnd,
  * ipmi_add_sel_entry: add an entry to system sel from user
  * @hnd: pointer to handler
  * @id: resource id with SEL capability
- * @Event: SaHpiEventLogEntryT pointer to event to be added
+ * @Event: SaHpiSelEntryT pointer to event to be added
  *
  *
  *
@@ -553,7 +511,7 @@ static int ipmi_set_sel_state(void      *hnd,
  **/
 static int ipmi_add_sel_entry(void      *hnd, 
                 SaHpiResourceIdT   id, 
-                const SaHpiEventLogEntryT    *Event)
+                const SaHpiSelEntryT    *Event)
 {
         //ipmi_mc_t *mc = id.ptr; 
         ipmi_msg_t msg;
@@ -578,7 +536,7 @@ static int ipmi_add_sel_entry(void      *hnd,
 
 static int ipmi_del_sel_entry(void      *hnd,
         		        SaHpiResourceIdT id,
-				SaHpiEventLogEntryIdT sid)
+				SaHpiSelEntryIdT sid)
 {
         //struct ohoi_sel_entry *entry = id.ptr;
         //ipmi_event_t event;
@@ -589,13 +547,13 @@ static int ipmi_del_sel_entry(void      *hnd,
 #endif
 
 /**
- * ipmi_get_el_entry: get IPMI SEL entry
+ * ipmi_get_sel_entry: get IPMI SEL entry
  * @hnd: pointer to handler instance
  * @id: resourde id with SEL capability
  * @current: SaHpiEntryIdT of entry to retrieve
  * @prev: previous entry in log relative to current
  * @next: next entry in log
- * @entry: [out]SaHpiEventLogEntryT entry requested
+ * @entry: [out]SaHpiSelEntryT entry requested
  *
  * This function will get event(s) from SEL capable IPMI device
  * one at a time by the record id starting with HPI's
@@ -603,18 +561,15 @@ static int ipmi_del_sel_entry(void      *hnd,
  *
  * Return value: 0 for success -1 for failure
  **/
-static int ipmi_get_el_entry(void *hnd, SaHpiResourceIdT id,
-				SaHpiEventLogEntryIdT current,
-				SaHpiEventLogEntryIdT *prev,
-				SaHpiEventLogEntryIdT *next,
-				SaHpiEventLogEntryT *entry,
-				SaHpiRdrT  *rdr,
-				SaHpiRptEntryT  *rptentry)
+static int ipmi_get_sel_entry(void *hnd, SaHpiResourceIdT id,
+				SaHpiSelEntryIdT current,
+				SaHpiSelEntryIdT *prev,
+				SaHpiSelEntryIdT *next,
+				SaHpiSelEntryT *entry)
 {
         struct ohoi_resource_info *ohoi_res_info;
-	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
+		struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
         ipmi_event_t *event;
-	SaHpiRptEntryT *rpt;
 
         ohoi_res_info = oh_get_resource_data(handler->rptcache, id);
         if (ohoi_res_info->type != OHOI_RESOURCE_MC) {
@@ -622,82 +577,68 @@ static int ipmi_get_el_entry(void *hnd, SaHpiResourceIdT id,
                 return SA_ERR_HPI_INVALID_CMD;
         }
 
-	rpt = oh_get_resource_by_id(handler->rptcache, id);
-	if (!rpt) {
-		dbg("no rpt:%d",(int) id);
-		return SA_ERR_HPI_INVALID_CMD;
-	}
-	
-	if (rdr)
-		rdr->RdrType = SAHPI_NO_RECORD;
-	if (rptentry) {
-		rptentry->ResourceCapabilities = 0;
-		rptentry->ResourceId = SAHPI_UNSPECIFIED_RESOURCE_ID;
-	}
-	
-	switch (current) {
-		case SAHPI_OLDEST_ENTRY:
-			ohoi_get_sel_first_entry(ohoi_res_info->u.mc_id, &event);
-			if (!event)
-				return SA_ERR_HPI_NOT_PRESENT;
+		switch (current) {
+				case SAHPI_OLDEST_ENTRY:
+						ohoi_get_sel_first_entry(ohoi_res_info->u.mc_id, &event);
 
-			ohoi_get_sel_next_recid(ohoi_res_info->u.mc_id, event, next);
+						ohoi_get_sel_next_recid(ohoi_res_info->u.mc_id, event, next);
 
-			*prev = SAHPI_NO_MORE_ENTRIES;
+						*prev = SAHPI_NO_MORE_ENTRIES;
 
-			break;
+						break;
 
-		case SAHPI_NEWEST_ENTRY:
+				case SAHPI_NEWEST_ENTRY:
 
-			ohoi_get_sel_last_entry(ohoi_res_info->u.mc_id, &event);
-			if (!event)
-				return SA_ERR_HPI_NOT_PRESENT;
+						ohoi_get_sel_last_entry(ohoi_res_info->u.mc_id, &event);
 
-			*next = SAHPI_NO_MORE_ENTRIES;
+						*next = SAHPI_NO_MORE_ENTRIES;
 
-			ohoi_get_sel_prev_recid(ohoi_res_info->u.mc_id, event, prev);
+						ohoi_get_sel_prev_recid(ohoi_res_info->u.mc_id, event, prev);
 
-			break;
+						break;
 
-		case SAHPI_NO_MORE_ENTRIES:
-			dbg("SEL is empty!");
-			if (!event)
-				return SA_ERR_HPI_NOT_PRESENT;
+				case SAHPI_NO_MORE_ENTRIES:
+						dbg("SEL is empty!");
 
-		default:                		
-			/* get the entry requested by id */
-			ohoi_get_sel_by_recid(ohoi_res_info->u.mc_id, *next, &event);
-			if (!event)
-				return SA_ERR_HPI_NOT_PRESENT;
-			ohoi_get_sel_next_recid(ohoi_res_info->u.mc_id, event, next);
+						goto out;
 
-			ohoi_get_sel_prev_recid(ohoi_res_info->u.mc_id, event, prev);
+				default:                		
+						/* get the entry requested by id */
+						ohoi_get_sel_by_recid(ohoi_res_info->u.mc_id, *next, &event);
+						ohoi_get_sel_next_recid(ohoi_res_info->u.mc_id, event, next);
 
-			break; 
+						ohoi_get_sel_prev_recid(ohoi_res_info->u.mc_id, event, prev);
 
-	}
-	if (!event)
-		return SA_ERR_HPI_NOT_PRESENT;
+						break; 
 
-	entry->Event.Source = SAHPI_UNSPECIFIED_RESOURCE_ID;
+		}
+
         entry->Event.EventType = SAHPI_ET_USER;
 
-	/* get the event time */
-	entry->Event.Timestamp = ipmi_event_get_timestamp(event);
-	
-	/* get record id */
-	entry->EntryId = ipmi_event_get_record_id(event);
-        entry->Event.EventDataUnion.UserEvent.UserEventData.DataType = SAHPI_TL_TYPE_BINARY;
-        entry->Event.EventDataUnion.UserEvent.UserEventData.Language = SAHPI_LANG_UNDEF;
-        entry->Event.EventDataUnion.UserEvent.UserEventData.DataLength = ipmi_event_get_data_len(event);
-        memcpy(entry->Event.EventDataUnion.UserEvent.UserEventData.Data,
+		/* get the event time */
+		SaHpiTimeT event_timestamp;
+		event_timestamp = ipmi_event_get_timestamp(event);
+		memcpy (&entry->Event.Timestamp, &event_timestamp, sizeof(event_timestamp));
+
+		/* get record id */
+		 SaHpiSelEntryIdT event_record_id;
+
+		 event_record_id = ipmi_event_get_record_id(event);
+		 event_record_id = event_record_id;
+
+		 memcpy(&entry->EntryId, &event_record_id, sizeof(event_record_id));
+		
+        memcpy(&entry->Event.EventDataUnion.UserEvent.UserEventData[3],
                ipmi_event_get_data_ptr(event), 
                ipmi_event_get_data_len(event));	
+
+
+out:
 		
 	return 0;		
 }
 
-static SaErrorT ipmi_clear_el(void *hnd, SaHpiResourceIdT id)
+static SaErrorT ipmi_clear_sel(void *hnd, SaHpiResourceIdT id)
 {
 		struct ohoi_resource_info *ohoi_res_info;
 		struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
@@ -711,24 +652,22 @@ static SaErrorT ipmi_clear_el(void *hnd, SaHpiResourceIdT id)
                 return SA_ERR_HPI_INVALID_CMD;
         }
 
-	ipmi_handler->sel_clear_done = 0;
+		ipmi_handler->sel_clear_done = 0;
 
         rv = ohoi_clear_sel(ohoi_res_info->u.mc_id, ipmi_handler);
 
-	if (rv != SA_OK) {
-		dbg("Error in attempting to clear sel");
-		return rv;
-	}
+		if (rv != SA_OK)
+				dbg("Error in attempting to clear sel");
 
-	while (0 == ipmi_handler->sel_clear_done) {
-		rv = sel_select(ipmi_handler->ohoi_sel, NULL, 0 , NULL, NULL);
-		if (rv<0) {
-			dbg("error on waiting for SEL");
-			return -1;
+		while (0 == ipmi_handler->sel_clear_done) {
+				rv = sel_select(ipmi_handler->ohoi_sel, NULL, 0 , NULL, NULL);
+				if (rv<0) {
+						dbg("error on waiting for SEL");
+						return -1;
+				}
 		}
-	}
 
-	return SA_OK;
+		return SA_OK;
 }
 
 SaErrorT ohoi_get_rdr_data(const struct oh_handler_state *handler,
@@ -753,36 +692,8 @@ SaErrorT ohoi_get_rdr_data(const struct oh_handler_state *handler,
         return SA_OK;
 }
 
-#define SENSOR_CHECK(handler, sensor_info, id, num)                           \
-do {                                                                          \
-	SaErrorT         rv;                                                  \
-	SaHpiRdrT *rdr;                                                       \
-	                                                                      \
-	rdr = oh_get_rdr_by_type(handler->rptcache, id,                       \
-				 SAHPI_SENSOR_RDR, num);                      \
-	if (!rdr) {                                                           \
-		dbg("no rdr");                                                \
-		return SA_ERR_HPI_NOT_PRESENT;                                \
-	}                                                                     \
-	                                                                      \
-	rv = ohoi_get_rdr_data(handler, id, SAHPI_SENSOR_RDR, num,            \
-						(void *)&sensor_info);        \
-	if (rv != SA_OK)                                                      \
-		return rv;                                                    \
-                                                                              \
-	if (!sensor_info)                                                     \
-		return SA_ERR_HPI_NOT_PRESENT;	                              \
-                                                                              \
-} while (0)
-
-#define CHECK_SENSOR_ENABLE(sensor_info)                                      \
-do {                                                                          \
-	if (sensor_info->enable == SAHPI_FALSE)                               \
-		return SA_ERR_HPI_INVALID_REQUEST;                            \
-} while (0)
-
 /**
- * ipmi_get_sensor_reading: get sensor reading, type, category and other info.
+ * ipmi_get_sensor_data: get sensor reading, type, category and other info.
  * @hnd: pointer to handler instance
  * @id: ResourceId -- parent of this sensor
  * @num: sensor number
@@ -792,34 +703,35 @@ do {                                                                          \
  *
  * Return value: 0 for success or negative for error
  **/
-static int ipmi_get_sensor_reading(void   *hnd, 
-				   SaHpiResourceIdT  id,
-				   SaHpiSensorNumT  num,
-				   SaHpiSensorReadingT *reading,
-				   SaHpiEventStateT  *ev_state)
+static int ipmi_get_sensor_data(void 			*hnd, 
+				SaHpiResourceIdT	id,
+				SaHpiSensorNumT		num,
+				SaHpiSensorReadingT	*data)
 {
-	SaErrorT         rv;
 	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
 	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
-	struct ohoi_sensor_info *sensor_info;
 
-	SaHpiSensorReadingT tmp_reading;
-	SaHpiEventStateT  tmp_state;
+	SaErrorT         rv;
+	ipmi_sensor_id_t *sensor;
 
-	SENSOR_CHECK(handler, sensor_info, id, num);
-	CHECK_SENSOR_ENABLE(sensor_info);
-	
-	rv = ohoi_get_sensor_reading(sensor_info->sensor_id, &tmp_reading,
-				     &tmp_state, ipmi_handler);
-	if (rv)
-		return rv;
+        SaHpiRdrT *rdr;
 
-	if (reading)
-		*reading = tmp_reading;
-	if (ev_state)
-		*ev_state = tmp_state;
+        rdr = oh_get_rdr_by_type(handler->rptcache, id, SAHPI_SENSOR_RDR, num);
+        if (!rdr) {
+                dbg("no rdr");
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+        if ( rdr->RdrTypeUnion.SensorRec.Ignore == SAHPI_TRUE){
+                dbg("sensor is not present");
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
 
-	return SA_OK;
+        rv = ohoi_get_rdr_data(handler, id, SAHPI_SENSOR_RDR, num, (void *)&sensor);
+        if (rv!=SA_OK)
+                return rv;
+
+	memset(data, 0, sizeof(*data));
+	return ohoi_get_sensor_data(*sensor, data, ipmi_handler);
 }
 
 /**
@@ -840,16 +752,28 @@ static int ipmi_get_sensor_thresholds(void			*hnd,
 {
 	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
 	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
-	struct ohoi_sensor_info *sensor_info;
 
-	SENSOR_CHECK(handler, sensor_info, id, num);
-	CHECK_SENSOR_ENABLE(sensor_info);
+	SaErrorT         rv;
+	ipmi_sensor_id_t *sensor;
 	
-	if (!thres)
-		return SA_ERR_HPI_INVALID_PARAMS;
+	SaHpiRdrT *rdr;
 
+	rdr = oh_get_rdr_by_type(handler->rptcache, id, SAHPI_SENSOR_RDR, num);
+	if (!rdr) {
+		dbg("no rdr");
+		return SA_ERR_HPI_NOT_PRESENT;
+	}
+	if ( rdr->RdrTypeUnion.SensorRec.Ignore == SAHPI_TRUE){
+		dbg("sensor is not present");
+		return SA_ERR_HPI_NOT_PRESENT;
+	}
+
+	rv = ohoi_get_rdr_data(hnd, id, SAHPI_SENSOR_RDR, num, (void *)&sensor);
+	if (rv!=SA_OK)
+		return rv;
 	memset(thres, 0, sizeof(*thres));
-	return ohoi_get_sensor_thresholds(sensor_info->sensor_id, thres, ipmi_handler);
+		
+	return ohoi_get_sensor_thresholds(*sensor, thres, ipmi_handler);
 }
 
 static int ipmi_set_sensor_thresholds(void				*hnd,
@@ -859,241 +783,148 @@ static int ipmi_set_sensor_thresholds(void				*hnd,
 {
 	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
 	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
-	struct ohoi_sensor_info *sensor_info;
 
-	SENSOR_CHECK(handler, sensor_info, id, num);
-	CHECK_SENSOR_ENABLE(sensor_info);
-	
-	if (!thres)
-		return SA_ERR_HPI_INVALID_PARAMS;
-	
-	return ohoi_set_sensor_thresholds(sensor_info->sensor_id, thres, ipmi_handler);	
-}
-
-static int ipmi_get_sensor_enable(void *hnd, SaHpiResourceIdT id,
-				  SaHpiSensorNumT num,
-				  SaHpiBoolT *enable)
-{
-	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
-	struct ohoi_sensor_info *sensor_info;
-
-	SENSOR_CHECK(handler, sensor_info, id, num);
-	
-	if (!enable)
-		return SA_ERR_HPI_INVALID_PARAMS;
-
-	*enable = sensor_info->enable;
-	return SA_OK;
-}
-
-
-static int ipmi_set_sensor_enable(void *hnd, SaHpiResourceIdT id,
-				  SaHpiSensorNumT num,
-				  SaHpiBoolT enable)
-{
-	
-	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
-	struct ohoi_sensor_info *sensor_info;
-
-	SENSOR_CHECK(handler, sensor_info, id, num);
-	sensor_info->enable = enable;
-	return SA_OK;	
-}
-
-static int ipmi_get_sensor_event_enable(void *hnd, SaHpiResourceIdT id,
-					 SaHpiSensorNumT num,
-					 SaHpiBoolT *enable)
-
-{
 	SaErrorT         rv;
+	ipmi_sensor_id_t *sensor;
+
+	SaHpiRdrT *rdr;
+
+	rdr = oh_get_rdr_by_type(handler->rptcache, id, SAHPI_SENSOR_RDR, num);
+	if (!rdr) {
+		dbg("no rdr");
+		return SA_ERR_HPI_NOT_PRESENT;
+	}
+	if ( rdr->RdrTypeUnion.SensorRec.Ignore == SAHPI_TRUE){
+		dbg("sensor is not present");
+		return SA_ERR_HPI_NOT_PRESENT;
+	}
+
+	rv = ohoi_get_rdr_data(hnd, id, SAHPI_SENSOR_RDR, num, (void *)&sensor);
+		
+	if (rv!=SA_OK)
+		return rv;
+	return ohoi_set_sensor_thresholds(*sensor, thres, ipmi_handler);	
+}
+
+static int ipmi_get_sensor_event_enables(void			*hnd, 
+					 SaHpiResourceIdT	id,
+					 SaHpiSensorNumT	num,
+					 SaHpiSensorEvtEnablesT	*enables)
+{
 	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
 	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
-	struct ohoi_sensor_info *sensor_info;
-	SaHpiBoolT t_enable;
-	SaHpiEventStateT t_assert;
-	SaHpiEventStateT t_deassert;
-
-	SENSOR_CHECK(handler, sensor_info, id, num);
-	
-	if (!enable)
-		return SA_ERR_HPI_INVALID_PARAMS;
-
-	rv = ohoi_get_sensor_event_enable_masks(sensor_info->sensor_id,
-						&t_enable, &t_assert,
-						&t_deassert, ipmi_handler);
-	if (rv)
-		return rv;
-
-	sensor_info->enable = t_enable;
-	sensor_info->assert = t_assert;
-	sensor_info->deassert = t_deassert;
-	
-	*enable = t_enable;
-	return SA_OK;
-}
-
-static int ipmi_set_sensor_event_enable(void *hnd,
-					 SaHpiResourceIdT id,
-					 SaHpiSensorNumT num,
-					 const SaHpiBoolT enable)
-{
 	
 	SaErrorT         rv;
-	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
-	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
-	struct ohoi_sensor_info *sensor_info;
-
-	SENSOR_CHECK(handler, sensor_info, id, num);
+	ipmi_sensor_id_t *sensor;
 	
-	rv = ohoi_set_sensor_event_enable_masks(sensor_info->sensor_id,
-						enable, sensor_info->assert,
-						sensor_info->deassert, ipmi_handler);
-	if (rv)
+	SaHpiRdrT *rdr;
+
+	rdr = oh_get_rdr_by_type(handler->rptcache, id, SAHPI_SENSOR_RDR, num);
+	if (!rdr) {
+		dbg("no rdr");
+		return SA_ERR_HPI_NOT_PRESENT;
+	}
+	if ( rdr->RdrTypeUnion.SensorRec.Ignore == SAHPI_TRUE){
+		dbg("sensor is not present");
+		return SA_ERR_HPI_NOT_PRESENT;
+	}
+
+	rv = ohoi_get_rdr_data(hnd, id, SAHPI_SENSOR_RDR, num, (void *)&sensor);
+	if (rv!=SA_OK)
 		return rv;
-
-	sensor_info->enable = enable;
-	return SA_OK;
-
+	return ohoi_get_sensor_event_enables(*sensor, enables, ipmi_handler);
 }
-static int ipmi_get_sensor_event_masks(void *hnd, SaHpiResourceIdT id,
-				       SaHpiSensorNumT  num,
-				       SaHpiEventStateT *assert,
-				       SaHpiEventStateT *deassert)
+
+static int ipmi_set_sensor_event_enables(void 			  *hnd,
+			      		SaHpiResourceIdT  id,
+					SaHpiSensorNumT	num,
+				     const SaHpiSensorEvtEnablesT *enables)
 {
 	
-	SaErrorT         rv;
 	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
 	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
-	struct ohoi_sensor_info *sensor_info;
-	SaHpiBoolT t_enable;
-	SaHpiEventStateT t_assert;
-	SaHpiEventStateT t_deassert;
-
-	SENSOR_CHECK(handler, sensor_info, id, num);
 	
-	if (!assert || !deassert)
-		return SA_ERR_HPI_INVALID_PARAMS;
-
-	rv = ohoi_get_sensor_event_enable_masks(sensor_info->sensor_id,
-						&t_enable, &t_assert,
-						&t_deassert, ipmi_handler);
-	if (rv)
-		return rv;
-
-	sensor_info->enable = t_enable;
-	sensor_info->assert = t_assert;
-	sensor_info->deassert = t_deassert;
-
-	*assert = t_assert;
-	*deassert = t_deassert;
-
-	return SA_OK;
-}
-
-static int ipmi_set_sensor_event_masks(void *hnd, SaHpiResourceIdT id,
-   			  	       SaHpiSensorNumT num,
-				       SaHpiSensorEventMaskActionT act,
-			 	       SaHpiEventStateT  assert,
-				       SaHpiEventStateT  deassert)
-{
 	SaErrorT         rv;
-	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
-	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
-	struct ohoi_sensor_info *sensor_info;
-	SaHpiEventStateT t_assert;
-	SaHpiEventStateT t_deassert;
+	ipmi_sensor_id_t *sensor;
+
+	SaHpiRdrT *rdr;
+
+	rdr = oh_get_rdr_by_type(handler->rptcache, id, SAHPI_SENSOR_RDR, num);
+	if (!rdr) {
+		dbg("no rdr");
+		return SA_ERR_HPI_NOT_PRESENT;
+	}
+	if ( rdr->RdrTypeUnion.SensorRec.Ignore == SAHPI_TRUE){
+		dbg("sensor is not present");
+		return SA_ERR_HPI_NOT_PRESENT;
+	}
 	
-	SENSOR_CHECK(handler, sensor_info, id, num);
-	
-	if (act == SAHPI_SENS_ADD_EVENTS_TO_MASKS) {
-		t_assert = assert | sensor_info->assert;
-		t_deassert = deassert | sensor_info->deassert;
-	} else if (act == SAHPI_SENS_REMOVE_EVENTS_FROM_MASKS) {
-		t_assert = (assert ^ 0xffff) & sensor_info->assert;
-		t_deassert = (deassert ^ 0xffff) & sensor_info->deassert;
-	} else 
-		return SA_ERR_HPI_INVALID_PARAMS;	
-	
-	rv = ohoi_set_sensor_event_enable_masks(sensor_info->sensor_id,
-						sensor_info->enable, t_assert,
-						t_deassert, ipmi_handler);
-	if (rv)
+	rv = ohoi_get_rdr_data(hnd, id, SAHPI_SENSOR_RDR, num,
+		(void *)&sensor);
+	if (rv!=SA_OK)
 		return rv;
-
-	sensor_info->assert = t_assert;
-	sensor_info->deassert = t_deassert;
-
-	return SA_OK;
+	return ohoi_set_sensor_event_enables(*sensor, enables, ipmi_handler);
 }
-
 
 static struct oh_abi_v2 oh_ipmi_plugin = {
-		
-	/* basic ABI functions */
-	.open	 			= ipmi_open,
-	.close				= ipmi_close,
-	.get_event			= ipmi_get_event,
-	.discover_resources		= ipmi_discover_resources,
+  	/* basic ABI functions */
 
-	/* SEL support */
-	.get_el_info                    = ipmi_get_el_info,
-	.set_el_time                    = ipmi_set_el_time,
-	//.add_sel_entry                  = ipmi_add_sel_entry,
-	//.del_sel_entry                  = ipmi_del_sel_entry,
-	.get_el_entry                   = ipmi_get_el_entry,
-	.clear_el                       = ipmi_clear_el, 
+  .open	 			= ipmi_open,
+  .close			= ipmi_close,
+  .get_event			= ipmi_get_event,
+  .discover_resources		= ipmi_discover_resources,
+  .set_resource_tag		= ipmi_set_resource_tag,
 
-	/* Sensor support */
-	.get_sensor_reading		= ipmi_get_sensor_reading,
-	.get_sensor_thresholds		= ipmi_get_sensor_thresholds,
-	.set_sensor_thresholds		= ipmi_set_sensor_thresholds,
-	.get_sensor_enable		= ipmi_get_sensor_enable,
-	.set_sensor_enable		= ipmi_set_sensor_enable,
-	.get_sensor_event_enables       = ipmi_get_sensor_event_enable,
-	.set_sensor_event_enables       = ipmi_set_sensor_event_enable,
-	.get_sensor_event_masks		= ipmi_get_sensor_event_masks,
-	.set_sensor_event_masks		= ipmi_set_sensor_event_masks,
-	
-	/* Inventory support */
-	.get_idr_info			= ohoi_get_idr_info,
-	.get_idr_area_header		= ohoi_get_idr_area_header,
-	.add_idr_area			= ohoi_add_idr_area,
-	.del_idr_area			= ohoi_del_idr_area,
-	.get_idr_field			= ohoi_get_idr_field,
-	.add_idr_field			= ohoi_add_idr_field,
-	.set_idr_field			= ohoi_set_idr_field,
-	.del_idr_field			= ohoi_del_idr_field,
- 
-	/* hotswap support */
-	.get_hotswap_state              = ohoi_get_hotswap_state,
-	.set_hotswap_state              = ohoi_set_hotswap_state,
-	.request_hotswap_action         = ohoi_request_hotswap_action,
-	.get_indicator_state            = ohoi_get_indicator_state,
-	.set_indicator_state            = ohoi_set_indicator_state,
-        
-	/* power support */
-	.get_power_state                = ohoi_get_power_state,
-	.set_power_state                = ohoi_set_power_state,
-	
-	/* reset support */
-	.get_reset_state                = NULL,
-	.set_reset_state                = ohoi_set_reset_state,
+  /* SEL support */
+  .get_sel_info                 = ipmi_get_sel_info,
+  .set_sel_time                 = ipmi_set_sel_time,
+  //.add_sel_entry              = ipmi_add_sel_entry,
+  //.del_sel_entry              = ipmi_del_sel_entry,
+  .get_sel_entry                = ipmi_get_sel_entry,
+  .clear_sel                    = ipmi_clear_sel, 
 
-        /* control support */
-	.set_control_state = ohoi_set_control_state,
-	.get_control_state = ohoi_get_control_state,
+  /* Sensor support */
+  .get_sensor_data		= ipmi_get_sensor_data,
+  .get_sensor_thresholds	= ipmi_get_sensor_thresholds,
+  .set_sensor_thresholds	= ipmi_set_sensor_thresholds,
+  .get_sensor_event_enables     = ipmi_get_sensor_event_enables,
+  .set_sensor_event_enables     = ipmi_set_sensor_event_enables,
+
+  /* Inventory support */
+  .get_inventory_size           = ohoi_get_inventory_size,
+  .get_inventory_info           = ohoi_get_inventory_info,
+  .set_inventory_info           = NULL,
+      
+  /* hotswap support */
+  .get_hotswap_state            = ohoi_get_hotswap_state,
+  .set_hotswap_state            = ohoi_set_hotswap_state,
+  .request_hotswap_action       = ohoi_request_hotswap_action,
+  .get_indicator_state          = ohoi_get_indicator_state,
+  .set_indicator_state          = ohoi_set_indicator_state,
+
+  /* power support */
+  .get_power_state              = NULL,
+  .set_power_state              = ohoi_set_power_state,
+
+  /* reset support */
+  .get_reset_state              = NULL,
+  .set_reset_state              = ohoi_set_reset_state,
+
+  /* control support */
+  .set_control_state		= ohoi_set_control_state,
+  .get_control_state		= ohoi_get_control_state,
 };
 
 int ipmi_get_interface(void **pp, const uuid_t uuid);
 int ipmi_get_interface(void **pp, const uuid_t uuid)
 {
-	if (uuid_compare(uuid, UUID_OH_ABI_V2)==0) {
-		*pp = &oh_ipmi_plugin;
-		return 0;
-	}
+  if (uuid_compare(uuid, UUID_OH_ABI_V2)==0) {
+    *pp = &oh_ipmi_plugin;
+    return 0;
+  }
 
-	*pp = NULL;
-	return -1;
+  *pp = NULL;
+  return -1;
 }
 
 int get_interface(void **pp, const uuid_t uuid) __attribute__ ((weak, alias("ipmi_get_interface")));

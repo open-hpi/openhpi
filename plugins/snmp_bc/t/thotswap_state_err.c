@@ -15,7 +15,16 @@
 
 /* This file drives the error paths in snmp_bc_get_hotswap_state */
 
-#include <snmp_bc_plugin.h>
+#include <glib.h>
+#include <SaHpi.h>
+
+#include <oh_plugin.h>
+#include <rpt_utils.h>
+#include <snmp_util.h>
+#include <snmp_bc.h>
+#include <bc_resources.h>
+#include <snmp_bc_utils.h>
+#include <snmp_bc_hotswap.h>
 
 #include <tstubs_res.h>
 #include <tstubs_snmp.h>
@@ -75,7 +84,7 @@ int main(int argc, char **argv)
 	/********************************
 	 * No Hot Swap State OID TestCase
          ********************************/
-	test_rpt.res_info.mib.OidHealth = '\0';
+	test_rpt.bc_res_info.mib.OidHealth = '\0';
 
 	err = snmp_bc_get_hotswap_state((void *)&hnd, id, &state);
 	if (err != SA_ERR_HPI_INVALID_CMD) {
@@ -84,7 +93,7 @@ int main(int argc, char **argv)
 		return -1; 
 	}
 
-	test_rpt.res_info.mib.OidHealth = ".1.3.6.1.4.1.2.3.51.2.2.7.1.0";
+	test_rpt.bc_res_info.mib.OidHealth = ".1.3.6.1.4.1.2.3.51.2.2.7.1.0";
 
 	/********************* 
 	 * SNMP Error TestCase

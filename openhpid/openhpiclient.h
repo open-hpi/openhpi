@@ -26,14 +26,11 @@
 #include <pthread.h>
 
 
-// retries
-#define dDefaultMessageRetries 120
+// 30s timeout for messages
+#define dDefaultMessageTimeout 30000
 
-// timeout for one retry
-#define dDefaultMessageTimeout 250
-
-// outstanding messages before block
-#define dDefaultMaxOutstanding 12
+// 20 outstanding messages before block
+#define dDefaultMaxOutstanding 20
 
 struct sOpenHpiClientRequest;
 typedef struct sOpenHpiClientRequest cOpenHpiClientRequest;
@@ -42,6 +39,7 @@ typedef struct sOpenHpiClientRequest cOpenHpiClientRequest;
 struct sOpenHpiClientRequest
 {
   cOpenHpiClientRequest *m_next;
+  unsigned char   m_seq;
   SaErrorT        m_error;
 
   cMessageHeader *m_request_header;
@@ -50,12 +48,10 @@ struct sOpenHpiClientRequest
   cMessageHeader *m_reply_header;
   void          **m_reply;
 
-  int             m_retries_left;
   struct timeval  m_timeout;
 
   pthread_mutex_t *m_lock;
   pthread_cond_t  *m_cond;
-  int              m_cond_var;
 };
 
 
@@ -76,9 +72,9 @@ typedef struct
 
   // maximum outstanding requests
   int                    m_max_outstanding; // must be <= 256
-  unsigned int           m_retries;
-  unsigned int           m_timeout;
+  unsigned               m_timeout;
 
+  int                    m_num_sessions;
   cClientConnection     *m_client_connection;
   int                    m_initialize;
 
@@ -87,12 +83,12 @@ typedef struct
   cOpenHpiClientRequest *m_outstanding[256];
   int                    m_num_outstanding;
 
+  int                    m_current_seq;
+
   pthread_t              m_thread;
   tOpenHpiClientThreadState m_thread_state;
   int                    m_thread_exit;
 
-  SaHpiSessionIdT       *m_session;
-  int                    m_num_sessions;
 } cOpenHpiClientConf;
 
 
@@ -130,21 +126,21 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EntitySchemaGet)dOpenHpiClientParam( S
 							    SAHPI_OUT SaHpiUint32T        *SchemaId );
 SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogInfoGet)dOpenHpiClientParam( SAHPI_IN  SaHpiSessionIdT  SessionId,
 							    SAHPI_IN  SaHpiResourceIdT ResourceId,
-							    SAHPI_OUT SaHpiEventLogInfoT    *Info );
+							    SAHPI_OUT SaHpiSelInfoT    *Info );
 SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogEntryGet)dOpenHpiClientParam( SAHPI_IN    SaHpiSessionIdT     SessionId,
 							     SAHPI_IN    SaHpiResourceIdT    ResourceId,
-							     SAHPI_IN    SaHpiEventLogEntryIdT    EntryId,
-							     SAHPI_OUT   SaHpiEventLogEntryIdT    *PrevEntryId,
-							     SAHPI_OUT   SaHpiEventLogEntryIdT    *NextEntryId,
-							     SAHPI_OUT   SaHpiEventLogEntryT      *EventLogEntry,
+							     SAHPI_IN    SaHpiSelEntryIdT    EntryId,
+							     SAHPI_OUT   SaHpiSelEntryIdT    *PrevEntryId,
+							     SAHPI_OUT   SaHpiSelEntryIdT    *NextEntryId,
+							     SAHPI_OUT   SaHpiSelEntryT      *EventLogEntry,
 							     SAHPI_INOUT SaHpiRdrT           *Rdr,
 							     SAHPI_INOUT SaHpiRptEntryT      *RptEntry );
 SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogEntryAdd)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT      SessionId,
 							     SAHPI_IN SaHpiResourceIdT     ResourceId,
-							     SAHPI_IN SaHpiEventLogEntryT       *EvtEntry );
+							     SAHPI_IN SaHpiSelEntryT       *EvtEntry );
 SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogEntryDelete)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT      SessionId,
 								SAHPI_IN SaHpiResourceIdT     ResourceId,
-								SAHPI_IN SaHpiEventLogEntryIdT     EntryId );
+								SAHPI_IN SaHpiSelEntryIdT     EntryId );
 SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogClear)dOpenHpiClientParam( SAHPI_IN  SaHpiSessionIdT   SessionId,
 							  SAHPI_IN  SaHpiResourceIdT  ResourceId );
 SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogTimeGet)dOpenHpiClientParam( SAHPI_IN  SaHpiSessionIdT  SessionId,
