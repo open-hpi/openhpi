@@ -16,65 +16,63 @@
  */
 
 #include <stdlib.h>
-#include <stdio.h>
 #include <assert.h>
 #include <endian.h>
 #include <byteswap.h>
 #include "marshal.h"
-#include "marshal_hpi_types.h"
 
 
-cMarshalType VoidType =
+cMarshalType Marshal_VoidType =
 {
   .m_type = eMtVoid
 };
 
-cMarshalType Uint8Type =
+cMarshalType Marshal_Uint8Type =
 {
   .m_type = eMtUint8
 };
 
-cMarshalType Uint16Type =
+cMarshalType Marshal_Uint16Type =
 {
   .m_type = eMtUint16
 };
 
-cMarshalType Uint32Type =
+cMarshalType Marshal_Uint32Type =
 {
   .m_type = eMtUint32
 };
 
-cMarshalType Uint64Type =
+cMarshalType Marshal_Uint64Type =
 {
   .m_type = eMtUint64
 };
 
-cMarshalType Int8Type =
+cMarshalType Marshal_Int8Type =
 {
   .m_type = eMtInt8
 };
 
-cMarshalType Int16Type =
+cMarshalType Marshal_Int16Type =
 {
   .m_type = eMtInt16
 };
 
-cMarshalType Int32Type =
+cMarshalType Marshal_Int32Type =
 {
   .m_type = eMtInt32
 };
 
-cMarshalType Int64Type =
+cMarshalType Marshal_Int64Type =
 {
   .m_type = eMtInt64
 };
 
-cMarshalType Float32Type =
+cMarshalType Marshal_Float32Type =
 {
   .m_type = eMtFloat32
 };
 
-cMarshalType Float64Type =
+cMarshalType Marshal_Float64Type =
 {
   .m_type = eMtFloat64
 };
@@ -183,9 +181,7 @@ MarshalSize( const cMarshalType *type )
 	      for( i = 0; type->m_u.m_struct.m_elements[i].m_type == eMtStructElement; i++ )
 		 {
 		   cMarshalType *elem = &type->m_u.m_struct.m_elements[i];
-                   printf("Struct element %d offset = %d\n", i, elem->m_u.m_struct_element.m_offset);
-                   printf("Struct element address = %p\n",elem->m_u.m_struct_element.m_type);
-                   printf("Address of Uint32Type = %p\n", &Uint32Type);
+
 		   int s = MarshalSize( elem->m_u.m_struct_element.m_type );
 
 		   if ( s < 0 )

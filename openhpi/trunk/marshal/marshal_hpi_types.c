@@ -367,7 +367,7 @@ static cMarshalType SaHpiAreaTypeUnionElements[] =
   dUnionElementEnd()
 };
 
-static cMarshalType SaHpiIdrAreaTypeType = dUnion( 0, SaHpiIdrAreaTypeT, SaHpiAreaTypeUnionElements );
+static cMarshalType SaHpiIdrAreaTypeUnion = dUnion( 0, SaHpiIdrAreaTypeT, SaHpiAreaTypeUnionElements );
 
 static cMarshalType SaHpiIdrFieldTypeUnionElements[] = 
 {
@@ -385,24 +385,24 @@ static cMarshalType SaHpiIdrFieldTypeUnionElements[] =
   dUnionElementEnd()
 };
 
-static cMarshalType SaHpiIdrFieldTypeType = dUnion( 0, SaHpiIdrFieldTypeT, SaHpiIdrFieldTypeUnionElements );
+static cMarshalType SaHpiIdrFieldTypeUnion = dUnion( 0, SaHpiIdrFieldTypeT, SaHpiIdrFieldTypeUnionElements );
 
 static cMarshalType SaHpiIdrFieldTElements[] =
 {
   dStructElement( SaHpiIdrFieldT, AreaId, SaHpiEntryIdType ),
   dStructElement( SaHpiIdrFieldT, FieldId, SaHpiEntryIdType ),
-  dStructElement( SaHpiIdrFieldT, Type, SaHpiIdrFieldTypeType ),
+  dStructElement( SaHpiIdrFieldT, Type, SaHpiIdrFieldTypeUnion ),
   dStructElement( SaHpiIdrFieldT, ReadOnly, SaHpiBoolType ),
   dStructElement( SaHpiIdrFieldT, Field, SaHpiTextBufferType ),
   dStructElementEnd()
 };
 
-cMarshalType SaHpiIdrFieldType = dStruct( SaHpiIdrFieldT, SaHpiIdrFieldTElements );
+cMarshalType SaHpiIdrFieldTypeType = dStruct( SaHpiIdrFieldT, SaHpiIdrFieldTElements );
 
 static cMarshalType SaHpiIdrAreaHeaderTElements[] =
 {
   dStructElement( SaHpiIdrAreaHeaderT, AreaId, SaHpiEntryIdType ),
-  dStructElement( SaHpiIdrAreaHeaderT, Type, SaHpiIdrAreaTypeType ),
+  dStructElement( SaHpiIdrAreaHeaderT, Type, SaHpiIdrAreaTypeUnion ),
   dStructElement( SaHpiIdrAreaHeaderT, ReadOnly, SaHpiBoolType ),
   dStructElement( SaHpiIdrAreaHeaderT, NumFields, SaHpiUint32Type ),
   dStructElementEnd()
@@ -555,10 +555,10 @@ cMarshalType SaHpiAnnunciatorRecType = dStruct( SaHpiAnnunciatorRecT, SaHpiAnnun
 
 static cMarshalType SaHpiRdrTypeUnionElements[] =
 {
-	dUnionElement( SAHPI_NO_RECORD, VoidType ),
+	dUnionElement( SAHPI_NO_RECORD, Marshal_VoidType ),
 	dUnionElement( SAHPI_CTRL_RDR, SaHpiCtrlRecType ),
 	dUnionElement( SAHPI_SENSOR_RDR, SaHpiSensorRecType ),
-	dUnionElement( SAHPI_INVENTORY_RDR, VoidType ),/* TODO this void type is just a place holder */
+	dUnionElement( SAHPI_INVENTORY_RDR, Marshal_VoidType ),/* TODO this void type is just a place holder */
 	dUnionElement( SAHPI_WATCHDOG_RDR, SaHpiWatchdogRecType ),
 	dUnionElement( SAHPI_ANNUNCIATOR_RDR, SaHpiAnnunciatorRecType ),
 	dUnionElementEnd()
