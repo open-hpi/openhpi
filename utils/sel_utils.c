@@ -123,8 +123,9 @@ SaErrorT oh_sel_append(oh_sel *sel, SaHpiSelEntryT *entry)
 /* prepend a new entry to the SEL */
 SaErrorT oh_sel_prepend(oh_sel *sel, SaHpiSelEntryT *entry)
 {
-        SaHpiSelEntryT * myentry;
+        SaHpiSelEntryT * myentry, * tmpentry;
         time_t tt1;
+        GList *sellist;
 
         /* check for valid sel params and state */
         if (sel == NULL || entry == NULL) {
@@ -146,8 +147,18 @@ SaErrorT oh_sel_prepend(oh_sel *sel, SaHpiSelEntryT *entry)
                 return SA_ERR_HPI_OUT_OF_SPACE;
         }
 
+        /* since we are adding entries in reverse order we have to renumber
+         * existing entries
+         */
+        sellist = g_list_first(sel->selentries);
+        while (sellist != NULL) {
+                tmpentry = (SaHpiSelEntryT *) sellist->data;
+                tmpentry->EntryId++;
+                sellist = g_list_next(sellist);
+        }
+
         /* prepend the new entry */
-        entry->EntryId = sel->nextId;
+        entry->EntryId = 1;
         sel->nextId++;
         if (sel->gentimestamp) {
                 time(&tt1);
