@@ -27,8 +27,8 @@ do{                                                                  \
 		dbg("Resource %d No rptentry", rid);                 \
 		return SA_ERR_HPI_INVALID_PARAMS;                    \
 	}                                                            \
-	if (rpt_entry->ResourceCapabilities &                        \
-	    SAHPI_CAPABILITY_INVENTORY_DATA) {                       \
+	if (!(rpt_entry->ResourceCapabilities &                      \
+	    SAHPI_CAPABILITY_INVENTORY_DATA)) {                      \
 		dbg("Resource %d no inventory capability", rid);     \
 		return SA_ERR_HPI_INVALID_PARAMS;                    \
 	}                                                            \
@@ -37,11 +37,7 @@ do{                                                                  \
 		return SA_ERR_HPI_INVALID_PARAMS;                    \
 	}                                                            \
 }while(0)
-#undef OHOI_CHECK_RPT_CAP_IDR
-#define OHOI_CHECK_RPT_CAP_IDR() \
-do { SaHpiRptEntryT           *rpt_entry;                \
-	rpt_entry = oh_get_resource_by_id(handler->rptcache, rid); \
-}while(0)
+
 struct ohoi_field_data {
 	SaHpiIdrFieldTypeT fieldtype;
 	int (*get_len)(ipmi_entity_t *, unsigned int*);
