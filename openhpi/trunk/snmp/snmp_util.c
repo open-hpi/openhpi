@@ -117,7 +117,6 @@ int snmp_set(
         pdu = snmp_pdu_create(SNMP_MSG_SET);
         read_objid(objid, anOID, &anOID_len);
 
-
         rtncode = 0; /* Default - All is OK */
 
         switch (value.type)
@@ -142,7 +141,8 @@ int snmp_set(
 		/*
 		 * Set the data to send out
 		 */
-                snmp_add_var(pdu, anOID, anOID_len, datatype, dataptr);
+		snmp_pdu_add_variable(pdu, anOID, anOID_len, value.type, dataptr, value.str_len);
+                /* snmp_add_var(pdu, anOID, anOID_len, datatype, dataptr);*/
         	/*
          	* Send the Request out.
          	*/
