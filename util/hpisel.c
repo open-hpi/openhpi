@@ -216,6 +216,8 @@ char *decode_error(SaErrorT code)
    return(str);
 }
 
+
+static
 void ShowSel( SaHpiSelEntryT  *sel, SaHpiRdrT *rdr, 
 		SaHpiRptEntryT *rptentry )
 {
@@ -226,7 +228,7 @@ void ShowSel( SaHpiSelEntryT  *sel, SaHpiRdrT *rdr,
   int es, esi; 
   char *srctag;
   char *rdrtag;
-  char *pstr;
+  const char *pstr;
   char estag[8];
   unsigned char *pd;
   int ix, i, styp; 
@@ -239,7 +241,7 @@ void ShowSel( SaHpiSelEntryT  *sel, SaHpiRdrT *rdr,
 
   if (sel->Event.Timestamp > SAHPI_TIME_MAX_RELATIVE) { /*absolute time*/
      tt1 = sel->Event.Timestamp / 1000000000;
-     strftime(timestr,sizeof(timestr),"%x %H:%M:%S", localtime(&tt1));
+     strftime(timestr,sizeof(timestr),"%F %T", localtime(&tt1));
   } else if (sel->Event.Timestamp > SAHPI_TIME_UNSPECIFIED) { /*invalid time*/
      strcpy(timestr,"invalid time     ");
   } else {   /*relative time*/
@@ -337,7 +339,7 @@ void ShowSel( SaHpiSelEntryT  *sel, SaHpiRdrT *rdr,
 	} /*end for*/
 	if (i >= NSDESC) {
 	   if (styp >= NUMST) styp = 0;
-	   pstr = (char *)sensor_types[styp];
+	   pstr = sensor_types[styp];
 	}
         sprintf(&outbuf[outlen], "%s, %s %02x %02x %02x [%02x %02x %02x]",
 		pstr, gen_desc[ix].str,
@@ -352,7 +354,7 @@ void ShowSel( SaHpiSelEntryT  *sel, SaHpiRdrT *rdr,
 		if (fdebug) printf("sensor type %d >= max %d\n",styp,NUMST);
 		styp = 0; 
 	}
-	pstr = (char *)sensor_types[styp];
+	pstr = sensor_types[styp];
         sprintf(&outbuf[outlen], "%s, %x %x, %02x %02x %02x [%02x %02x %02x/%02x]",
 			pstr, pd[0], pd[7], pd[10], pd[11], pd[12], 
 				pd[13], pd[14], pd[15], data3);
