@@ -23,8 +23,18 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
-#include <SaHpi.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
 
+#include <SaHpi.h>
+	
+#ifdef __cplusplus 
+}
+#endif
+		
+
+	
 #ifndef TRUE
 #define TRUE 1
 #endif
