@@ -113,7 +113,7 @@ SaErrorT snmp_bc_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiEventLogInfoT
 			     /* in bc EventLog varies, depending on       */
 			     /* what events have been logged so far and   */
 			     /* the information each logged event contains*/    	
-                .Size = 512, /* This is clearly a guess but looks about right 
+                .Size = BC_EL_MAX_SIZE, /* This is clearly a guess but looks about right 
                               * from the 75% full errors we have seen.    */
 		.UserEventMaxSize = SAHPI_MAX_TEXT_BUFFER_LENGTH,
                 .Enabled = SAHPI_TRUE,
@@ -255,7 +255,17 @@ SaErrorT snmp_bc_build_selcache(struct oh_handler_state *handle, SaHpiResourceId
 	if (current) {
 		do {
 			err = snmp_bc_sel_read_add(handle, id, current);
-			/* FIXME:: What do we do on error - break or just record ???*/
+			if ( (err == SA_ERR_HPI_OUT_OF_SPACE) || (err == SA_ERR_HPI_INVALID_PARAMS)) {
+				/* either of these 2 errors prevent us from doing anything meaningful */
+				/* tell user about them                                               */
+				return(err);
+			} else if (err != SA_OK) {
+				/* other errors (mainly HPI_INTERNAL_ERROR or HPI_BUSY) means */
+				/* only this record has problem. record error then go to next */
+				dbg("Error, %s, encountered with EventLog entry %d\n", 
+						oh_lookup_error(err), current);
+			}
+			
 			current--;
 		} while(current > 0);
 	}
@@ -396,14 +406,28 @@ SaErrorT snmp_bc_selcache_sync(struct oh_handler_state *handle,
 		if (cacheupdate) {
 			do {
 				err = snmp_bc_sel_read_add (handle, id, current);
-				/* FIXME:: What if err ??? */
+				if ( (err == SA_ERR_HPI_OUT_OF_SPACE) || (err == SA_ERR_HPI_INVALID_PARAMS)) {
+					/* either of these 2 errors prevent us from doing anything meaningful */
+					/* tell user about them                                               */
+					return(err);
+				} else if (err != SA_OK) {
+					/* other errors (mainly HPI_INTERNAL_ERROR or HPI_BUSY) means */
+					/* only this record has problem. record error then go to next */
+					dbg("Error, %s, encountered with EventLog entry %d\n", 
+									oh_lookup_error(err), current);
+				}
 				current--;
 			} while(current > 0);
 		} else {
 			err = oh_el_clear(handle->elcache);
-			/* FIXME:: What if err ??? */
+			if (err != SA_OK)
+				dbg("Invalid elcache pointer or mode, err %s\n", oh_lookup_error(err));
 			err =snmp_bc_build_selcache(handle, id);
-			/* FIXME:: What if err ??? */
+			if ( (err == SA_ERR_HPI_OUT_OF_SPACE) || (err == SA_ERR_HPI_INVALID_PARAMS)) {
+				/* either of these 2 errors prevent us from doing anything meaningful */
+				/* tell user about them                                               */
+				return(err);
+			}
 		}
 	} else {
 		trace("EL Sync: there are no new entry indicated.\n");
@@ -524,10 +548,8 @@ SaErrorT snmp_bc_sel_read_add (struct oh_handler_state *handle,
 		 
 	isdst = sel_entry.time.tm_isdst;
 	snmp_bc_log2event(handle, get_value.string, &tmpevent, isdst);
-		
-/* FIXME:: Nice to have an event to rdr pointer function - this same code appears in snmp_bc_event.c */
-/* in rpt_utils.c ??? */		
-/* FIXME:: Add B.1.1. types */		
+	
+	/* See feature  1077241 */
 	switch (tmpevent.EventType) {
 		case SAHPI_ET_OEM:
 		case SAHPI_ET_HOTSWAP:
