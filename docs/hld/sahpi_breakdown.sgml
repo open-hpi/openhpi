@@ -1,5 +1,5 @@
 <!-- ...................................................................... -->
-<!-- $Id$ ................................................. -->
+<!-- $Id$ ......................................... -->
 <!-- 
         This material may be distributed only subject to the terms and 
         conditions set forth in the Open Publication License, v1.0 or later 
@@ -13,6 +13,13 @@
 -->
 
 <chapter>
-  <title>System Dependencies and File Structures</title>
-  <para>(TBD)</para>
+  <title>SA HPI Breakdown</title>
+  <para>The following chapter is designed as a primer on the SA HPI
+specification.  It is meant to represent the OpenHPI teams
+interpretation and explaination of various portions of the spec as we
+see it, and to help new users and developers come up to speed quickly
+in understanding the specification.  This chapter should always be
+considered a work in progress, and any questions or comments on it
+should be sent to the openhpi-devel@lists.sf.net mailing list.
+</para>
 </chapter>
