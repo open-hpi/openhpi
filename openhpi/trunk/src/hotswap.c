@@ -31,8 +31,6 @@ void process_hotswap_policy(struct oh_handler *handler)
         SaHpiTimeT cur, est;	   
         struct oh_hpi_event e;
         
-        SaHpiRptEntryT *entry;
-        
         int (*get_hotswap_state)(void *hnd, SaHpiResourceIdT rid,
                                  SaHpiHsStateT *state);
         
