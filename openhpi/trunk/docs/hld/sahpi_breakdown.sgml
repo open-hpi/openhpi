@@ -23,31 +23,61 @@
     should be sent to the openhpi-devel@lists.sf.net mailing list.
   </para>
   <sect1>
-    <title>10,000 foot view - Resources</title>
-    <para>
-      HPI provides a platform management interface which is entirely
-      based on resources.  The crux of the entire HPI model is the
-      Resource Presence Table (RPT).  Everything which can exist
-      physically is represented in the RPT.  Every domain (we'll
-      address domains later) contains one, and only one RPT.
-    </para>
-    <para>
-      The RPT is a concept in HPI, though it isn't actually a data
-      structure.  It is expected that implementers will create the
-      proper data structure to encapsulate it.  What is specified is 2
-      types of information:
-    </para>
-    <itemizedlist mark='opencircle'>
-      <listitem>
-        <para>SaHpiRptInfoT</para>
-      </listitem>
-      
-    </itemizedlist>
+    <title>10,000 foot view</title>
+    <sect2>
+      <title>Resources</title>
+      <para>
+        HPI provides a platform management interface which is entirely
+        based on resources.  The crux of the entire HPI model is the
+        Resource Presence Table (RPT).  Everything which can exist
+        physically is represented in the RPT.  Every domain (we'll
+        address domains later) contains one, and only one RPT.
+      </para>
+      <para>
+        The RPT is a concept in HPI, though it isn't actually a data
+        structure.  It is expected that implementers will create the
+        proper data structure to encapsulate it.  What is specified is 2
+        types of information:
+      </para>
+      <itemizedlist mark='opencircle'>
+        <listitem>
+          <para><emphasis>SaHpiRptInfoT</emphasis> - a meta data structure that
+            contains the update time and incremental counter for the RPT.
+          </para>
+        </listitem>
+        <listitem>
+          <para><emphasis>SaHpiRptEntryT</emphasis> - The actually Resource
+            Presence Table entries. It is expected that there will be
+            many of them.
+          </para>
+        </listitem>
+      </itemizedlist>
+    </sect2>
+    <sect2>
+      <title>Resource Capabilities</title>
+      <para>
+      </para>
+    </sect2>
+    <sect2>
+      <title>Resource Data Records</title>
+      <para>
+      </para>
+    </sect2>
   </sect1>
   <sect1>
     <title>SA HPI Data Structures</title>
-    <para>
-      
-    </para>
+    <sect2>
+      <title>RPT Data Structures</title>
+      <para>
+        The following is an unrolling of SA HPI Data Structures
+        surrounding the RPT.  For sake of sanity, it is unrolled only
+        as far as the high level RDR types.  Those are broken down later.
+      </para>
+      <mediaobject>
+        <imageobject>
+          <imagedata fileref="images/saf_hpi_rpt.png">
+        </imageobject>
+      </mediaobject>
+    </sect2>
   </sect1>
 </chapter>
