@@ -126,7 +126,7 @@ protected:
     p->m_max_side_id = max_id;
     p->m_mc_type     = mc_type;
   }
-  
+
   // The main set of SDRs on a BMC.
   cIpmiSdrs    *m_main_sdrs;
 
@@ -164,6 +164,9 @@ protected:
   // of thread to handle mc
   unsigned int m_mc_to_check[256];
 
+  // slot id for ATCA
+  int m_mc_slot[256];
+
   // possible mc types like board, power unit, fan
   // (dIpmiMcTypeBitXXX ipmi_discover.cpp)
   unsigned int m_mc_type[256];
@@ -179,7 +182,7 @@ public:
          assert( 0 );
          return 0;
        }
-    
+
     return m_mc_type[slave_addr];
   }
 
@@ -189,12 +192,14 @@ public:
 public:
   void AddMcToScan( unsigned int addr,
                     unsigned int properties,
-                    unsigned mc_type )
+                    unsigned mc_type,
+                    int slot )
   {
     assert( addr < 256 );
 
     m_mc_to_check[addr] = properties;
-    m_mc_type[addr] |= mc_type;
+    m_mc_type[addr]    |= mc_type;
+    m_mc_slot[addr]     = slot;
   }
 
   // time between mc poll in ms
@@ -280,6 +285,8 @@ public:
   virtual oh_handler_state *GetHandler() = 0;
 
   virtual SaHpiRptEntryT *FindResource( SaHpiResourceIdT id ) = 0;
+
+  void Dump( cIpmiLog &dump );
 };
 
 

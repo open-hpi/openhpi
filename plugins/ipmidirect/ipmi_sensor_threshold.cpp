@@ -33,10 +33,10 @@
 
 static const char *hysteresis_support_types[] =
 {
-    "none",
-    "readable",
-    "settable",
-    "fixed",
+    "None",
+    "Readable",
+    "Settable",
+    "Fixed",
 };
 
 
@@ -44,7 +44,7 @@ const char *
 IpmiHysteresisSupportToString( tIpmiHysteresisSupport val )
 {
   if ( val > eIpmiHysteresisSupportFixed )
-       return "invalid";
+       return "Invalid";
  
   return hysteresis_support_types[val];
 }
@@ -52,10 +52,10 @@ IpmiHysteresisSupportToString( tIpmiHysteresisSupport val )
 
 static const char *threshold_access_support_types[] =
 {
-    "none",
-    "readable",
-    "settable",
-    "fixed",
+    "None",
+    "Readable",
+    "Settable",
+    "Fixed",
 };
 
 
@@ -63,9 +63,19 @@ const char *
 IpmiThresholdAccessSupportToString( tIpmiThresholdAccessSuport val )
 {
   if ( val > eIpmiThresholdAccessSupportFixed )
-       return "invalid";
+       return "Invalid";
 
   return threshold_access_support_types[val];
+}
+
+
+static void
+AddOrStr( char *str, const char *s )
+{
+  if ( *str )
+       strcat( str, " | " );
+
+  strcpy( str, s );
 }
 
 
@@ -75,34 +85,34 @@ IpmiThresholdEventMaskToString( unsigned short em, char *str )
   *str = 0;
 
   if ( em & dIpmiEventLowerNonCriticalLow )
-       strcat( str, " lower-non-critical-low" );
+       AddOrStr( str, "dIpmiEventLowerNonCriticalLow" );
 
   if ( em & dIpmiEventLowerNonCriticalHigh )
-       strcat( str, " lower-non-critical-high" );
+       AddOrStr( str, "dIpmiEventLowerNonCriticalHigh" );
 
   if ( em & dIpmiEventLowerCriticalLow )
-       strcat( str, " lower-critical-low" );
+       AddOrStr( str, "dIpmiEventLowerCriticalLow" );
 
   if ( em & dIpmiEventLowerCriticalHigh )
-       strcat( str, " lower-critical-high" );
+       AddOrStr( str, "dIpmiEventLowerCriticalHigh" );
 
   if ( em & dIpmiEventLowerNonRecoverableLow )
-       strcat( str, " lower-non-recoverable-low" );
+       AddOrStr( str, "dIpmiEventLowerNonRecoverableLow" );
 
   if ( em & dIpmiEventLowerNonRecoverableHigh )
-       strcat( str, " lower-non-recoverable-high" );
+       AddOrStr( str, "dIpmiEventLowerNonRecoverableHigh" );
 
   if ( em & dIpmiEventUpperNonCriticalLow )
-       strcat( str, " upper-non-critical-low" );
+       AddOrStr( str, "dIpmiEventUpperNonCriticalLow" );
 
   if ( em & dIpmiEventUpperCriticalHigh )
-       strcat( str, " upper-critical-high" );
+       AddOrStr( str, "dIpmiEventUpperCriticalHigh" );
 
   if ( em & dIpmiEventUpperNonRecoverableLow )
-       strcat( str, " upper-non-recoverable-low" );
+       AddOrStr( str, "dIpmiEventUpperNonRecoverableLow" );
 
   if ( em & dIpmiEventUpperNonRecoverableHigh )
-       strcat( str, " upper-non-recoverable-high" );
+       AddOrStr( str, "dIpmiEventUpperNonRecoverableHigh" );
 }
 
 
@@ -110,11 +120,11 @@ static const char *rate_unit[] =
 {
   "None",
   "Us"
-  "ms"
-  "s",
-  "minute",
-  "hour",
-  "day"
+  "Ms"
+  "Second",
+  "Minute",
+  "Hour",
+  "Day"
 };
 
 #define dNumRateUnit (sizeof(rate_unit)/sizeof(char *))
@@ -129,99 +139,118 @@ IpmiRateUnitToString( tIpmiRateUnit val )
 }
 
 
+const char *modifier_unit_map[] =
+{
+  "None",
+  "BasicDivModifier",
+  "BasicMulModifier"
+};
+
+#define dNumModifierUnit (sizeof(modifier_unit_map)/sizeof(char *))
+
+const char *
+IpmiModifierUnitToString( tIpmiModifierUnit unit )
+{
+  if ( unit > (int)dNumModifierUnit )
+       return "Invalid";
+
+  return modifier_unit_map[unit];
+}
+
+
 static const char *unit_types[] =
 {
-  "unspecified",
+  "Unspecified",
   "C",
   "F",
   "K",
-  "volts",
-  "amps",
-  "watts",
-  "joules",
-  "coulombs",
+  "Volts",
+  "Amps",
+  "Watts",
+  "Joules",
+  "Coulombs",
   "VA",
-  "nits",
-  "lumens",
-  "lux",
-  "candela",
-  "kpa",
-  "PSI",
-  "newtons",
-  "CFM",
-  "RPM",
-  "HZ",
-  "useconds",
-  "mseconds",
-  "seconds",
-  "minute",
-  "hour",
-  "day",
-  "week",
-  "mil",
-  "inches",
-  "feet",
-  "cubic inchs",
-  "cubic feet",
-  "millimeters",
-  "centimeters",
-  "meters",
-  "cubic centimeters"
+  "Nits",
+  "Lumens",
+  "Lux",
+  "Candela",
+  "Kpa",
+  "Psi",
+  "Newtons",
+  "Cfm",
+  "Rpm",
+  "Hz",
+  "Useconds",
+  "Mseconds",
+  "Seconds",
+  "Minute",
+  "Hour",
+  "Day",
+  "Week",
+  "Mil",
+  "Inches",
+  "Feet",
+  "CubicInchs",
+  "CubicFeet",
+  "Millimeters",
+  "Centimeters",
+  "Meters",
+  "CubicCentimeters"
   "cubic meters",
-  "liters",
-  "fluid ounces",
-  "radians",
-  "seradians",
-  "revolutions",
-  "cycles",
-  "gravities",
-  "ounces",
-  "pounds",
-  "foot pounds",
-  "ounce inches",
-  "gauss",
-  "gilberts",
-  "henries",
-  "mhenries",
-  "farads",
-  "ufarads",
-  "ohms",
-  "siemens",
-  "moles",
-  "becquerels",
-  "PPM",
-  "unspecified",
-  "decibels",
-  "DbA",
-  "DbC",
-  "grays",
-  "sieverts",
-  "color temp deg K",
-  "bits",
-  "kbits",
-  "mbits",
-  "gbits",
-  "bytes",
-  "kbytes",
-  "mbytes",
-  "gbytes",
-  "words",
-  "dwords",
-  "qwords",
-  "lines",
-  "hits",
-  "misses",
-  "retries",
-  "resets",
-  "overruns",
-  "underruns",
-  "collisions",
-  "packets",
-  "messages",
-  "characters",
-  "errors",
-  "correctable_errors",
-  "uncorrectable_errors"
+  "Liters",
+  "FluidOunces",
+  "Radians",
+  "Seradians",
+  "Revolutions",
+  "Cycles",
+  "Gravities",
+  "Ounces",
+  "Pounds",
+  "FootPounds",
+  "OunceInches",
+  "Gauss",
+  "Gilberts",
+  "Henries",
+  "Mhenries",
+  "Farads",
+  "Ufarads",
+  "Ohms",
+  "Siemens",
+  "Moles",
+  "Becquerels",
+  "Ppm",
+  "Unspecified",
+  "Decibels",
+  "Dba",
+  "Dbc",
+  "Grays",
+  "Sieverts",
+  "ColorTempDegK",
+  "Bits",
+  "Kbits",
+  "Mbits",
+  "Gbits",
+  "Bytes",
+  "Kbytes",
+  "Mbytes",
+  "Gbytes",
+  "Words",
+  "Dwords",
+  "Qwords",
+  "Lines",
+  "Hits",
+  "Misses",
+  "Retries",
+  "Resets",
+  "Overruns",
+  "Underruns",
+  "Collisions",
+  "Packets",
+  "Messages",
+  "Characters",
+  "Errors",
+  "CorrectableErrors",
+  "UncorrectableErrors"
 };
 
 #define dNumUnitTypes (sizeof(unit_types)/sizeof(char *))
@@ -555,7 +584,7 @@ cIpmiSensorThreshold::CreateEvent( cIpmiEvent *event, SaHpiEventT &h )
             break;
 
        default:
-            IpmiLog( "Invalid threshold giving");
+            stdlog << "Invalid threshold giving !\n";
             se.EventState = SAHPI_ES_UNSPECIFIED;
      }
 
@@ -589,10 +618,10 @@ void
 cIpmiSensorThreshold::Log()
 {
   cIpmiSensor::Log();
-  
-  IpmiLog( "\tthreshold_access %s, hysteresis_support %s\n",
-           IpmiThresholdAccessSupportToString( m_threshold_access ),
-           IpmiHysteresisSupportToString( m_hysteresis_support ) );
+
+  stdlog << "\tthreshold_access " << IpmiThresholdAccessSupportToString( m_threshold_access )
+         << ", hysteresis_support " << IpmiHysteresisSupportToString( m_hysteresis_support )
+         << " !\n";
 }
 
 
@@ -835,9 +864,8 @@ cIpmiSensorThreshold::GetThresholds( SaHpiSensorThresholdsT &thres )
 {
   cIpmiEntity *ent = GetEntity();
 
-  IpmiLog( "%d.%d sensor %d (%s) get thresholds.\n",
-           ent->EntityId(), ent->EntityInstance(),
-           m_num, m_id );
+  stdlog << ent->EntityId() << "." << ent->EntityInstance() << " sensor "
+         << m_num << " (" << m_id << ") get thresholds.\n";
 
   if ( m_threshold_access == eIpmiThresholdAccessSupportFixed )
        // Thresholds are fixed, pull them from the SDR.
@@ -853,14 +881,14 @@ cIpmiSensorThreshold::GetThresholds( SaHpiSensorThresholdsT &thres )
 
   if ( rv )
      {
-       IpmiLog( "Error getting thresholds: %x !\n", rv );
+       stdlog << "Error getting thresholds: " << rv << " !\n";
 
        return SA_ERR_HPI_INVALID_DATA;
      }
 
   if ( rsp.m_data[0] )
      {
-       IpmiLog( "IPMI error getting thresholds: %x !\n", rsp.m_data[0] );
+       stdlog << "IPMI error getting thresholds: " << rsp.m_data[0] << " !\n";
 
        return SA_ERR_HPI_INVALID_DATA;
     }
@@ -892,9 +920,8 @@ cIpmiSensorThreshold::GetHysteresis( SaHpiSensorThresholdsT &thres )
 {
   cIpmiEntity *ent = GetEntity();
 
-  IpmiLog( "%d.%d sensor %d (%s) get hysteresis.\n",
-           ent->EntityId(), ent->EntityInstance(),
-           m_num, m_id );
+  stdlog << ent->EntityId() << "." << ent->EntityInstance() << " sensor " << m_num 
+         << " (" << m_id << ") get hysteresis.\n";
 
   if (    m_hysteresis_support != eIpmiHysteresisSupportReadable
        && m_hysteresis_support != eIpmiHysteresisSupportSettable)
@@ -911,15 +938,14 @@ cIpmiSensorThreshold::GetHysteresis( SaHpiSensorThresholdsT &thres )
 
   if ( rv )
      {
-       IpmiLog( "Error sending hysteresis get command: %x !\n", rv );
+       stdlog << "Error sending hysteresis get command: " << rv << " !\n";
 
        return SA_ERR_HPI_INVALID_CMD;
      }
 
   if ( rsp.m_data[0] || rsp.m_data_len < 3 )
      {
-       IpmiLog( "IPMI error getting hysteresis: %x !\n",
-                rsp.m_data[0] );
+       stdlog << "IPMI error getting hysteresis: " << rsp.m_data[0] << "!\n";
 
        return SA_ERR_HPI_INVALID_CMD;
     }
@@ -938,7 +964,7 @@ cIpmiSensorThreshold::GetThresholdsAndHysteresis( SaHpiSensorThresholdsT &thres 
 
   if ( Ignore() )
      {
-       IpmiLog( "sensor is ignored !\n");
+       stdlog << "sensor is ignored !\n";
        return SA_ERR_HPI_NOT_PRESENT;
      }
 
@@ -947,7 +973,7 @@ cIpmiSensorThreshold::GetThresholdsAndHysteresis( SaHpiSensorThresholdsT &thres 
   bool found = false;
 
   if ( ThresholdAccess() == eIpmiThresholdAccessSupportNone )
-       IpmiLog( "sensor doesn't support threshold read !\n" );
+       stdlog << "sensor doesn't support threshold read !\n";
   else
      {
        rv = GetThresholds( thres );
@@ -969,7 +995,7 @@ cIpmiSensorThreshold::GetThresholdsAndHysteresis( SaHpiSensorThresholdsT &thres 
        found = true;
      }
   else
-       IpmiLog( "sensor doesn't support hysteresis read !\n");
+       stdlog << "sensor doesn't support hysteresis read !\n";
 
   if ( !found )
        return SA_ERR_HPI_INVALID_CMD;
@@ -1060,14 +1086,13 @@ cIpmiSensorThreshold::SetThresholds( const SaHpiSensorThresholdsT &thres )
 
   if ( r )
      {
-       IpmiLog( "Error sending thresholds set command: %x !\n", r );
+       stdlog << "Error sending thresholds set command: " << r << " !\n";
        return SA_ERR_HPI_INVALID_CMD;
      }
 
   if ( rsp.m_data[0] )
      {
-       IpmiLog( "IPMI error setting thresholds: %x !\n",
-                rsp.m_data[0] );
+       stdlog << "IPMI error setting thresholds: " << rsp.m_data[0] << " !\n";
        return SA_ERR_HPI_INVALID_CMD;
     }
 
@@ -1112,14 +1137,14 @@ cIpmiSensorThreshold::SetHysteresis( const SaHpiSensorThresholdsT &thres )
 
   if ( r )
      {
-       IpmiLog( "Error sending hysteresis set command: %x !\n", r );
+       stdlog << "Error sending hysteresis set command: " << r << " !\n";
 
        return SA_ERR_HPI_INVALID_CMD;
      }
 
   if ( rsp.m_data[0] )
      {
-       IpmiLog( "IPMI error setting hysteresis: %x !\n", rsp.m_data[0] );
+       stdlog << "IPMI error setting hysteresis: " << rsp.m_data[0] << " !\n";
        return SA_ERR_HPI_INVALID_CMD;
      }
 
@@ -1134,7 +1159,7 @@ cIpmiSensorThreshold::SetThresholdsAndHysteresis( const SaHpiSensorThresholdsT &
 
   if ( Ignore() )
      {
-       IpmiLog( "sensor is ignored !\n");
+       stdlog << "sensor is ignored !\n";
        return SA_ERR_HPI_NOT_PRESENT;
      }
 
@@ -1146,7 +1171,7 @@ cIpmiSensorThreshold::SetThresholdsAndHysteresis( const SaHpiSensorThresholdsT &
             return rv;
      }
   else
-       IpmiLog( "sensor doesn't support threshold set !\n" );
+       stdlog << "sensor doesn't support threshold set !\n";
 
   if ( HysteresisSupport() == eIpmiHysteresisSupportSettable )
      { 
@@ -1156,7 +1181,7 @@ cIpmiSensorThreshold::SetThresholdsAndHysteresis( const SaHpiSensorThresholdsT &
             return rv;
      }
   else
-       IpmiLog( "sensor doesn't support hysteresis set !\n");
+       stdlog << "sensor doesn't support hysteresis set !\n";
 
   return SA_OK;
 }
@@ -1208,8 +1233,9 @@ cIpmiSensorThreshold::SetEventEnables( const SaHpiSensorEvtEnablesT &enables )
             if ( (m_assertion_event_mask & b) == 0 )
                {
                  // this event is not allowed
-                 IpmiLog( "SetEventEnables: assertion event %s not allowed !\n",
-                          IpmiThresToString( (tIpmiThresh)i ) );
+                 stdlog << "SetEventEnables: assertion event "
+                        << IpmiThresToString( (tIpmiThresh)i )
+                        << " not allowed !\n";
 
                  return SA_ERR_HPI_INVALID_CMD; 
                }
@@ -1222,8 +1248,9 @@ cIpmiSensorThreshold::SetEventEnables( const SaHpiSensorEvtEnablesT &enables )
             if ( (m_deassertion_event_mask & b) == 0 )
                {
                  // this event is not allowed
-                 IpmiLog( "SetEventEnables: deassertion event %s not allowed !\n",
-                          IpmiThresToString( (tIpmiThresh)i ) );
+                 stdlog << "SetEventEnables: deassertion event " 
+                        << IpmiThresToString( (tIpmiThresh)i )
+                        << " not allowed !\n";
 
                  return SA_ERR_HPI_INVALID_CMD; 
                }

@@ -505,7 +505,7 @@ cIpmiTextBuffer::Binary2Ascii( char *buffer, unsigned int len )
        l = len - 1;
 
   memcpy( buffer, m_data, l );
-  buffer[len-1] = 0;
+  buffer[l] = 0;
 
   return len;
 }
@@ -641,6 +641,5 @@ cIpmiTextBuffer::GetAscii( char *buffer, unsigned int len )
             return -1;
      }
 
-  // not reached
   return -1;
 }

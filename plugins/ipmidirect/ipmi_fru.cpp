@@ -125,16 +125,19 @@ cIpmiFruItem::Log()
               m_u.m_text_buffer.GetAscii( str, 256 );
               str[255] = 0;
 
-              IpmiLog( "\t%s\t\t%s\n", m_name, str );
+              stdlog << "\t" << m_name << "\t\t" << str << "\n";
             }
             break;
 
        case eIpmiFruItemTypeInt:
-            IpmiLog( "\t%s\t\t%d 0x%x\n", m_name, m_u.m_int, m_u.m_int );
+            stdlog << "\t" << m_name << "\t\t" << m_u.m_int << " ";
+            stdlog.Hex( true );
+            stdlog << m_u.m_int << "\n";
+            stdlog.Hex( false );
             break;
 
        default:
-            IpmiLog( "\t%s\t\tunknown\n", m_name );
+            stdlog << "\t" << m_name << "\t\tunknown\n";
             break;
      }
 }
@@ -286,14 +289,14 @@ cIpmiFru::GetFruInventoryAreaInfo( unsigned int &size,
 
   if ( rv )
      {
-       IpmiLog( "cannot GetFruInventoryAreaInfo: %d !\n", rv );
+       stdlog << "cannot GetFruInventoryAreaInfo: " << rv << " !\n";
        return rv;
      }
 
   if ( rsp.m_data[0] != eIpmiCcOk )
      {
-       IpmiLog( "cannot GetFruInventoryAreaInfo: %s !\n",
-                IpmiCompletionCodeToString( (tIpmiCompletionCode)rsp.m_data[0] ) );
+       stdlog << "cannot GetFruInventoryAreaInfo: "
+              << IpmiCompletionCodeToString( (tIpmiCompletionCode)rsp.m_data[0] ) << " !\n";
 
        return EINVAL;
      }
@@ -322,14 +325,14 @@ cIpmiFru::ReadFruData( unsigned short offset, unsigned int num, unsigned int &n,
 
   if ( rv )
      {
-       IpmiLog( "cannot ReadFruData: %d !\n", rv );
+       stdlog << "cannot ReadFruData: " << rv << " !\n";
        return rv;
      }
 
   if ( rsp.m_data[0] != eIpmiCcOk )
      {
-       IpmiLog( "cannot ReadFruData: %s !\n",
-                IpmiCompletionCodeToString( (tIpmiCompletionCode)rsp.m_data[0] ) );
+       stdlog << "cannot ReadFruData: "
+              << IpmiCompletionCodeToString( (tIpmiCompletionCode)rsp.m_data[0] ) << " !\n";
 
        return EINVAL;
      }
@@ -338,7 +341,7 @@ cIpmiFru::ReadFruData( unsigned short offset, unsigned int num, unsigned int &n,
 
   if ( n < 1 )
      {
-       IpmiLog( "ReadFruData: read 0 bytes !\n" );
+       stdlog << "ReadFruData: read 0 bytes !\n";
 
        return EINVAL;
      }
@@ -409,20 +412,19 @@ checksum( unsigned char *data, int size )
 int
 cIpmiFru::CreateInventory( unsigned char *data )
 {
-  IpmiLog( "MC 0x%02x FRU Inventory %d:\n",
-           m_entity->AccessAddress(), m_fru_device_id );
+  stdlog << "MC " << m_entity->AccessAddress() << " FRU Inventory " << m_fru_device_id << "\n";
 
   if ( m_size < 8 )
      {
-       IpmiLog( "FRU data too short (%d < 8) !\n", m_size );
+       stdlog << "FRU data too short (" << m_size << " < 8) !\n";
        return EINVAL;
      }
 
   if ( checksum( data, 8 ) )
      {
-       IpmiLog( "wrong FRU header checksum !\n" );
-       IpmiLogHex( data, 8 );
-       IpmiLog( "\n" );
+       stdlog << "wrong FRU header checksum !\n";
+       stdlog.Hex( data, 8 );
+       stdlog << "\n";
 
        return EINVAL;
      }
@@ -436,7 +438,7 @@ cIpmiFru::CreateInventory( unsigned char *data )
        offset = data[5] * 8;
        len = pos - offset;
 
-       IpmiLog( "MultiRecord: offset %d, len %d\n", offset, len );
+       stdlog << "MultiRecord: offset " << offset << ", len " << len << "\n";
 
        CreateMultiRecord( data + offset, len );
        pos -= len;
@@ -447,7 +449,7 @@ cIpmiFru::CreateInventory( unsigned char *data )
        offset = data[4] * 8;
        len = pos - offset;
 
-       IpmiLog( "Product: offset %d, len %d\n", offset, len );
+       stdlog << "Product: offset " << offset << ", len " << len << "\n";
 
        CreateProduct( data + offset, len );
 
@@ -459,7 +461,7 @@ cIpmiFru::CreateInventory( unsigned char *data )
        offset = data[3] * 8;
        len = pos - offset;
 
-       IpmiLog( "Board: offset %d, len %d\n", offset, len );
+       stdlog << "Board: offset " << offset << ", len " << len << "\n";
 
        CreateBoard( data + offset, len );
        pos -= len;
@@ -470,7 +472,7 @@ cIpmiFru::CreateInventory( unsigned char *data )
        offset = data[2] * 8;
        len = pos - offset;
 
-       IpmiLog( "Chassis: offset %d, len %d\n", offset, len );
+       stdlog << "Chassis: offset " << offset << ", len " << len << "\n";
 
        CreateChassis( data + offset, len );
        pos -= len;
@@ -481,7 +483,7 @@ cIpmiFru::CreateInventory( unsigned char *data )
        offset = data[1] * 8;
        len = pos - offset;
 
-       IpmiLog( "Internal: offset %d, len %d\n", offset, len );
+       stdlog << "Internal: offset " << offset << ", len " << len << "\n";
 
        CreateInternalUse( data + offset, len );
        pos -= len;
@@ -676,7 +678,7 @@ IpmiFruHandleSdr( cIpmiDomain *domain, cIpmiMc * /*mc*/, cIpmiSdrs *sdrs )
                  if ( (sdr->m_data[7] & 8) == 0 )
                       continue;
 
-                 IpmiLog( "found old IPMI 1.0 MC device locator record.\n" );
+                 stdlog << "found old IPMI 1.0 MC device locator record.\n";
                }
             else
                {

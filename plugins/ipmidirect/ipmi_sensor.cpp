@@ -38,48 +38,48 @@
 
 static const char *sensor_types[] =
 {
-  "unspecified",
-  "temperature",
-  "voltage",
-  "current",
-  "fan",
-  "physical_security",
-  "platform_security",
-  "processor",
-  "power_supply",
-  "power_unit",
-  "cooling_device",
-  "other_units_based_sensor",
-  "memory",
-  "drive_slot",
-  "power_memory_resize",
-  "system_firmware_progress",
-  "event_logging_disabled",
-  "watchdog_1",
-  "system_event",
-  "critical_interrupt",
-  "button",
-  "module_board",
-  "microcontroller_coprocessor",
-  "add_in_card",
-  "chassis",
-  "chip_set",
-  "other_fru",
-  "cable_interconnect",
-  "terminator",
-  "system_boot_initiated",
-  "boot_error",
-  "os_boot",
-  "os_critical_stop",
-  "slot_connector",
-  "system_acpi_power_state",
-  "watchdog_2",
-  "platform_alert",
-  "entity_presense",
-  "monitor_asic_ic",
-  "lan",
-  "management_subsystem_health",
-  "battery",
+  "Unspecified",
+  "Temperature",
+  "Voltage",
+  "Current",
+  "Fan",
+  "PhysicalSecurity",
+  "PlatformSecurity",
+  "Processor",
+  "PowerSupply",
+  "PowerUnit",
+  "CoolingDevice",
+  "OtherUnitsBasedSensor",
+  "Memory",
+  "DriveSlot",
+  "PowerMemoryResize",
+  "SystemFirmwareProgress",
+  "EventLoggingDisabled",
+  "Watchdog1",
+  "SystemEvent",
+  "CriticalInterrupt",
+  "Button",
+  "ModuleBoard",
+  "MicrocontrollerCoprocessor",
+  "AddInCard",
+  "Chassis",
+  "ChipSet",
+  "OtherFru",
+  "CableInterconnect",
+  "Terminator",
+  "SystemBootInitiated",
+  "BootError",
+  "OsBoot",
+  "OsCriticalStop",
+  "SlotConnector",
+  "SystemAcpiPowerState",
+  "Watchdog2",
+  "PlatformAlert",
+  "EntityPresense",
+  "MonitorAsicIc",
+  "Lan",
+  "ManagementSubsystemHealth",
+  "Battery"
 };
 
 
@@ -89,9 +89,9 @@ IpmiSensorTypeToString( tIpmiSensorType val )
   if ( val > eIpmiSensorTypeBattery )
      {
        if ( val == eIpmiSensorTypeAtcaHotSwap )
-            return "atca_hotswap";
+            return "AtcaHotswap";
 
-       return "invalid";
+       return "Invalid";
      }
 
   return sensor_types[val];
@@ -100,10 +100,10 @@ IpmiSensorTypeToString( tIpmiSensorType val )
 
 static const char *event_support_types[] =
 {
-    "per_state",
-    "entire_sensor",
-    "global_disable",
-    "none",
+    "PerState",
+    "EntireSensor",
+    "GlobalDisable",
+    "None",
 };
 
 
@@ -111,7 +111,7 @@ const char *
 IpmiEventSupportToString( tIpmiEventSupport val )
 {
   if ( val > eIpmiEventSupportNone )
-       return "invalid";
+       return "Invalid";
 
   return event_support_types[val];
 }
@@ -119,19 +119,19 @@ IpmiEventSupportToString( tIpmiEventSupport val )
 
 static const char *event_reading_types[] =
 {
-  "unspecified",
-  "threshold",
-  "discrete_usage",
-  "discrete_state",
-  "discrete_predictive_failure",
-  "discrete_limit_exceeded",
-  "discrete_performance_met",
-  "discrete_severity",
-  "discrete_device_presense",
-  "discrete_device_enable",
-  "discrete_availability",
-  "discrete_redundancy",
-  "discrete_acpi_power",
+  "Unspecified",
+  "Threshold",
+  "DiscreteUsage",
+  "DiscreteState",
+  "DiscretePredictiveFailure",
+  "DiscreteLimitExceeded",
+  "DiscretePerformanceMet",
+  "DiscreteSeverity",
+  "DiscreteDevicePresense",
+  "DiscreteDevice_enable",
+  "DiscreteAvailability",
+  "DiscreteRedundancy",
+  "DiscreteAcpiPower",
 };
 
 
@@ -139,10 +139,10 @@ const char *
 IpmiEventReadingTypeToString( tIpmiEventReadingType val )
 {
   if ( val == eIpmiEventReadingTypeSensorSpecific )
-       return "sensor specific";
+       return "SensorSpecific";
   
   if ( val > eIpmiEventReadingTypeDiscreteAcpiPower )
-       return "invalid";
+       return "Invalid";
 
   return event_reading_types[val];
 }
@@ -237,7 +237,7 @@ cIpmiSensor::GetDataFromSdr( cIpmiMc *mc, cIpmiSdr *sdr )
 
   if ( !m_mc )
      {
-       IpmiLog( "cannot create MC for sensor !\n" );
+       stdlog << "cannot create MC for sensor !\n";
 
        return false;
      }
@@ -344,16 +344,6 @@ cIpmiSensor::FinalDestroy()
   sensors->m_sensor_count--;
   sensors->m_sensors_by_idx[m_lun][m_num] = 0;
 
-  /* XXXX remove HPI resource */
-  /*
-  if (sensor->destroy_handler)
-      sensor->destroy_handler(sensor, sensor->destroy_handler_cb_data);
-  */
-
-  // This is were we remove the sensor from the entity, possibly
-  // destroying it.  The opq destruction can call a bunch of
-  // callbacks with the sensor, so we want the entity to exist until
-  // this point in time.
   cIpmiEntity *ent = ents.Find( m_mc, m_entity_id, m_entity_instance );
 
   if ( ent )
@@ -409,6 +399,7 @@ cIpmiSensor::Ignore()
 void 
 cIpmiSensor::Log()
 {
+/*
   cIpmiEntity *ent = GetEntity();
 
   IpmiLog( "sensor: mc = 0x%02x, num 0x%02x, %d.%d (%s), %s\n",
@@ -418,6 +409,7 @@ cIpmiSensor::Log()
 
   IpmiLog( "\tevent_support %s\n",
            IpmiEventSupportToString( m_event_support ) );
+*/
 }
 
 
@@ -434,7 +426,7 @@ cIpmiSensor::CreateRdr( SaHpiRptEntryT &resource, SaHpiRdrT &rdr )
 
        if ( !e )
           {
-            IpmiLog( "Out of space !\n" );
+            stdlog << "out of space !\n";
             return false;
           }
 
@@ -485,23 +477,23 @@ cIpmiSensor::GetSensorReading( cIpmiMsg &rsp )
 
   if ( rv )
      {
-       IpmiLog( "IPMI error getting states: %d, %s!\n",
-                rv, strerror( rv ) );
+       stdlog << "IPMI error getting states: " << rv << ", " 
+              << strerror( rv ) << " \n";
 
        return SA_ERR_HPI_ERROR;
      }
 
   if ( rsp.m_data[0] != 0 )
      {
-       IpmiLog( "IPMI error getting reading: %x !\n", rsp.m_data[0] );
+       stdlog << "IPMI error getting reading: " << rsp.m_data[0] << " !\n";
 
        return SA_ERR_HPI_INVALID_SENSOR_CMD;
      }
 
   if ( rsp.m_data_len < 4 )
      {
-       IpmiLog( "IPMI error getting reading: data to small %d !\n",
-                rsp.m_data_len );
+       stdlog << "IPMI error getting reading: data to small "
+              << rsp.m_data_len << " !\n";
 
        return SA_ERR_HPI_INVALID_DATA_FIELD;
      }
@@ -521,13 +513,13 @@ cIpmiSensor::GetEventEnables( SaHpiSensorEvtEnablesT &enables, cIpmiMsg &rsp )
 
   if ( rv )
      {
-       IpmiLog( "Error sending get event enables command: %x !\n", rv );
+       stdlog << "Error sending get event enables command: " << rv << " !\n";
        return SA_ERR_HPI_INVALID_CMD;
      }
 
   if ( rsp.m_data[0] )
      {
-       IpmiLog( "IPMI error getting sensor enables: %x !\n", rsp.m_data[0] );
+       stdlog << "IPMI error getting sensor enables: " << rsp.m_data[0] << " !\n";
 
        return SA_ERR_HPI_INVALID_CMD;
     }
@@ -568,13 +560,13 @@ cIpmiSensor::SetEventEnables( const SaHpiSensorEvtEnablesT &enables,
 
   if ( r )
      {
-       IpmiLog( "Disable sensor events fail: %x !\n", r );
+       stdlog << "Disable sensor events fail: " << r << " !\n";
        return SA_ERR_HPI_INVALID_CMD;
      }
 
   if ( rsp.m_data[0] )
      {
-       IpmiLog( "IPMI Disable sensor events fail: %x !\n", rsp.m_data[0] );
+       stdlog << "IPMI Disable sensor events fail: " << rsp.m_data[0] << " !\n";
        return SA_ERR_HPI_INVALID_CMD;
      }
 
@@ -615,12 +607,12 @@ cIpmiSensor::HandleEvent( cIpmiEvent *event )
   cIpmiEntity *ent = GetEntity();
   assert( ent );
 
-  IpmiLog( "reading event.\n" );
+  stdlog << "reading event.\n";
 
   oh_event *e = (oh_event *)g_malloc0( sizeof( struct oh_event ) );
   if ( !e )
      {
-       IpmiLog( "Out of space !\n" );
+       stdlog << "Out of space !\n";
        return;
      }
 

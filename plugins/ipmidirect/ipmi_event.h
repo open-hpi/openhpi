@@ -23,6 +23,11 @@
 #define dIpmiEvent_h
 
 
+#ifndef dIpmiLog_h
+#include "ipmi_log.h"
+#endif
+
+
 enum tIpmiEventType
 {
   eIpmiEventData0 = 0,
@@ -44,6 +49,7 @@ enum tIpmiThresh
 };
 
 const char *IpmiThresToString( tIpmiThresh val );
+void IpmiThresholdMaskToString( unsigned int mask, char *str );
 
 
 // The event state is which events are set and cleared for the given
@@ -76,6 +82,8 @@ public:
 
   int Cmp( const cIpmiEvent &event ) const;
   void Log() const;
+
+  void Dump( cIpmiLog &dump, const char *name );
 };
 
 

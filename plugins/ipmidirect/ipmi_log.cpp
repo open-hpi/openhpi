@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2003 by FORCE Computers.
+ * Copyright (c) 2003,2004 by FORCE Computers.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -17,7 +17,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/time.h>
-#include <errno.h>
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -28,37 +27,58 @@
 #include "ipmi_utils.h"
 
 
-static int  log_open = 0;
-static int  log_prop = dIpmiLogPropNone;
-static char log_file[1024];
-static int  log_fd = -1;
+cIpmiLog stdlog;
 
 
-int
-IpmiLogOpen( int lp, const char *filename, int max_log_files )
+cIpmiLog::cIpmiLog()
+  : m_lock_count( 0 ),
+    m_open_count( 0 ),
+    m_hex( false ),
+    m_time( false ),
+    m_recursive( false ),
+    m_std_out( false ),
+    m_std_err( false )
 {
-  time_t t;
-  
-  if ( log_open )
-       return 0;
+}
 
-  log_prop = dIpmiLogPropNone;
 
-  if ( lp & dIpmiLogStdOut )
-       log_prop |= dIpmiLogStdOut;
+cIpmiLog::~cIpmiLog()
+{
+  assert( m_open_count == 0 );
+  assert( m_lock_count == 0 );
+}
 
-  if ( lp & dIpmiLogStdError )
-       log_prop |= dIpmiLogStdError;
 
-  if ( lp & dIpmiLogFile )
+bool
+cIpmiLog::Open( int properties, const char *filename, int max_log_files )
+{
+  m_open_count++;
+
+  if ( m_open_count > 1 )
+       // already open
+       return true;
+
+  assert( m_lock_count == 0 );
+
+  if ( properties & dIpmiLogStdOut )
+       m_std_out = true;
+
+  if ( properties & dIpmiLogStdErr )
+       m_std_err = true;
+
+  char file[1024] = "";
+
+  if ( properties & dIpmiLogLogFile )
      {
        char tf[1024];
-       char file[1024] = "";
        int i;
        struct stat st1, st2;
 
        if ( filename == 0 || *filename == 0 )
-            return EINVAL;
+	  {
+	    fprintf( stderr, "not filename for logfile !\n" );
+            return false;
+	  }
 
         // max numbers of logfiles
        if ( max_log_files < 1 )
@@ -71,7 +91,7 @@ IpmiLogOpen( int lp, const char *filename, int max_log_files )
 
             if ( file[0] == 0 )
                  strcpy( file, tf );
-                
+
             if (    !stat( tf, &st1 )
                  && S_ISREG( st1. st_mode ) )
                {
@@ -86,174 +106,240 @@ IpmiLogOpen( int lp, const char *filename, int max_log_files )
                  break;
                }
           }
-
-       strcpy( log_file, file );
-
-       log_fd = open( log_file, O_WRONLY|O_CREAT|O_TRUNC,
-                      S_IRUSR|S_IWUSR|S_IRWXG|S_IWGRP|S_IRWXO );
-
-       if ( log_fd >= 0 )
-            log_prop |= dIpmiLogFile;
-       else
-            fprintf( stderr, "can not open logfile %s\n", log_file );
      }
 
-  log_open = 1;
+  if ( properties & dIpmiLogFile )
+     {
+       if ( filename == 0 || *filename == 0 )
+	  {
+	    fprintf( stderr, "not filename for logfile !\n" );
+            return false;
+	  }
+  
+       strcpy( file, filename );
+     }
+  
+  if ( file[0] )
+     {
+       m_fd = fopen( file, "w" );
 
-  t = time( 0 );
+       if ( m_fd == 0 )
+	  {
+            fprintf( stderr, "can not open logfile %s\n", file );
+	    return false;
+	  }
+     }
 
-  if ( log_prop & dIpmiLogFile )
-       IpmiLog( "Logfile %s, %s", log_file,
-                ctime( &t ) );
+  m_nl = true;
 
-  return 0;
+  return true;
 }
 
 
 void
-IpmiLogClose()
+cIpmiLog::Close()
 {
-  if ( !log_open )
+  m_open_count--;
+  assert( m_open_count >= 0 );
+
+  if ( m_open_count > 0 )
        return;
 
-  if ( log_fd >= 0 )
+  assert( m_lock_count == 0 );
+  assert( m_nl );
+
+  if ( m_fd )
      {
-       IpmiLog( "closing logfile.\n" );
-       log_fd = -1;
+       fclose( m_fd );
+       m_fd = 0;
      }
 
-  log_file[0] = 0;
-  log_prop = dIpmiLogPropNone;
-  log_open = 0;
+  m_std_out = false;
+  m_std_err = false;
 }
 
 
 void
-IpmiLog( const char *fmt, ... )
+cIpmiLog::Output( const char *str )
 {
-  char buf[10240] = "# ";
-  va_list ap;
+  int l = strlen( str );
 
-  if ( !log_open )
-       return;
+  if ( m_fd )
+       fwrite( str, l, 1, m_fd );
 
-  va_start( ap, fmt );
-  vsnprintf( buf+2, 10237, fmt, ap );
-  va_end( ap );
+  if ( m_std_out )
+       fwrite( str, l, 1, stdout );
 
-  if ( log_fd >= 0 )
-       write( log_fd, buf, strlen( buf ) );
-
-  if ( log_prop & dIpmiLogStdError )
-     {
-       fprintf( stderr, "%s", buf + 2 );
-       fflush( stderr );
-     }
-
-  if ( log_prop & dIpmiLogStdOut )
-     {
-       fprintf( stdout, "%s", buf + 2 );
-       fflush( stdout );
-     }
+  if ( m_std_err )
+       fwrite( str, l, 1, stderr );
 }
 
 
 void
-IpmiLogTime( const char *fmt, ... )
+cIpmiLog::Start()
 {
-  static int new_line = 1;
-  char buf[10240] = "# ";
-  va_list ap;
+  Lock();
 
-  if ( !log_open )
-       return;
-
-  va_start( ap, fmt );
-  vsnprintf( buf+2, 10237, fmt, ap );
-  va_end( ap );
-
-  if ( log_fd >= 0 )
+  if ( m_nl )
      {
-       if ( new_line )
-          {
-            char b[10240];
+       if ( m_time )
+	  {
             struct timeval tv;
-
             gettimeofday( &tv, 0 );
+
+	    char b[dTimeStringSize+5];
             IpmiTimeToString( tv.tv_sec, b );
-            sprintf( b + dTimeStringSize - 1, ".%03ld ", tv.tv_usec / 1000 );
-            strcat( b, buf );
-            write( log_fd, b, strlen( b ) );
-          }
-       else
-            write( log_fd, buf, strlen( buf ) );
+	    sprintf( b + dTimeStringSize - 1, ".%03ld ", tv.tv_usec / 1000 );
 
-       new_line = strchr( buf, '\n' ) ? 1 : 0;
-     }
-
-  if ( log_prop & dIpmiLogStdError )
-     {
-       fprintf( stderr, "%s", buf + 2 );
-       fflush( stderr );
-     }
-
-  if ( log_prop & dIpmiLogStdOut )
-     {
-       fprintf( stdout, "%s", buf + 2 );
-       fflush( stdout );
+	    Output( b );
+	  }
      }
 }
 
 
-void
-IpmiLogData( const char *fmt, ... )
+cIpmiLog &
+cIpmiLog::operator<<( bool b )
 {
-  static int new_line = 1;
-  char buf[10240];
+  Start();
+  
+  Output( b ? "true" : "false" );
+  
+  return *this;
+}
+
+
+cIpmiLog &
+cIpmiLog::operator<<( unsigned char c )
+{
+  Start();
+
+  char b[5];
+  sprintf( b, "0x%02x", c );
+  
+  Output( b );
+  
+  return *this;
+}
+
+
+cIpmiLog &
+cIpmiLog::operator<<( int i )
+{
+  Start();
+
+  char b[20];
+  sprintf( b, "%d", i );
+  Output( b );
+
+  return *this;
+}
+
+
+cIpmiLog &
+cIpmiLog::operator<<( unsigned int i )
+{
+  Start();
+
+  char b[20];
+
+  if ( m_hex )
+       sprintf( b, "0x%08x", i );
+  else
+       sprintf( b, "%u", i );
+
+  Output( b );
+
+  return *this;
+}
+
+
+cIpmiLog &
+cIpmiLog::operator<<( double d )
+{
+  Start();
+  
+  char b[20];
+  sprintf( b, "%f", d );
+  Output( b );
+
+  return *this;  
+}
+
+
+cIpmiLog &
+cIpmiLog::operator<<( const char *str )
+{
+  Log( "%s", str );
+
+  return *this;
+}
+
+
+void
+cIpmiLog::Log( const char *fmt, ... )
+{
+  Start();
+
   va_list ap;
-
-  if ( !log_open )
-       return;
-
   va_start( ap, fmt );
-  vsnprintf( buf, 10237, fmt, ap );
+
+  char b[10240];
+  vsnprintf( b, 10240, fmt, ap );  
+
   va_end( ap );
 
-  if ( log_fd >= 0 )
+  char buf[10230] = "";
+
+  char *p = b;
+  char *q = buf;
+
+  m_nl = false;
+
+  while( *p )
      {
-       if ( new_line )
-          {
-            char b[10240];
-            struct timeval tv;
+       if ( *p == '\n' )
+	  {
+	    m_nl = true;
 
-            gettimeofday( &tv, 0 );
-            IpmiTimeToString( tv.tv_sec, b );
-            sprintf( b + dTimeStringSize - 1, ".%03ld ", tv.tv_usec / 1000 );
-            strcat( b, buf );
-            write( log_fd, b, strlen( b ) );
-          }
-       else
-            write( log_fd, buf, strlen( buf ) );
+	    *q++ = *p++;
 
-       new_line = strchr( buf, '\n' ) ? 1 : 0;
+	    *q = 0;
+
+	    Output( buf );
+	    q = buf;
+
+	    continue;
+	  }
+
+       m_nl = false;
+       *q++ = *p++;
      }
 
-  if ( log_prop & dIpmiLogStdError )
+  if ( q != b )
      {
-       fprintf( stderr, "%s", buf );
-       fflush( stderr );
+       *q = 0;
+       Output( buf );
      }
 
-  if ( log_prop & dIpmiLogStdOut )
+  if ( m_nl )
      {
-       fprintf( stdout, "%s", buf );
-       fflush( stdout );
+       if ( m_fd )
+	    fflush( m_fd );
+
+       if ( m_std_out )
+	    fflush( stdout );
+
+       if ( m_std_err )
+	    fflush( stderr );
+ 
+       while( m_lock_count > 0 )
+	    Unlock();
      }
 }
 
 
 void
-IpmiLogHex( const unsigned char *data, int size )
+cIpmiLog::Hex( const unsigned char *data, int size )
 {
   char str[256];
   char *s = str;
@@ -263,7 +349,7 @@ IpmiLogHex( const unsigned char *data, int size )
      {
        if ( i != 0 && (i % 16) == 0 )
           {
-            IpmiLog( "%s\n", str );
+            Log( "%s\n", str );
             s = str;
           }
 
@@ -271,5 +357,5 @@ IpmiLogHex( const unsigned char *data, int size )
      }
 
   if ( s != str )
-       IpmiLog( "%s\n", str );
+       Log( "%s\n", str );
 }

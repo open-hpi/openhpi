@@ -220,12 +220,12 @@ IpmiOpen( GHashTable *handler_config )
 
        if (    strstr( tmp, "StdError" )
             || strstr( tmp, "stderr" ) )
-            lp |= dIpmiLogStdError;
+            lp |= dIpmiLogStdErr;
 
        if (    strstr( tmp, "File" )
             || strstr( tmp, "file" ) )
           {
-            lp |= dIpmiLogFile;
+            lp |= dIpmiLogLogFile;
 
             if ( logfile == 0 )
                  logfile = dDefaultLogfile;
@@ -237,10 +237,11 @@ IpmiOpen( GHashTable *handler_config )
        lp = dIpmiLogStdOut;
 
        if ( logfile && *logfile )
-            lp |= dIpmiLogFile;
+            lp |= dIpmiLogLogFile;
      }
 
-  IpmiLogOpen( lp, logfile, max_logfiles );
+  stdlog.Open( lp, logfile, max_logfiles );
+  stdlog.Time( true );
 
   // create domain
   cIpmi *ipmi = new cIpmi;
@@ -251,7 +252,7 @@ IpmiOpen( GHashTable *handler_config )
 
   if ( !handler )
      {
-       dbg("Cannot allocate handler");
+       dbg("cannot allocate handler");
 
        delete ipmi;
        return 0;
@@ -307,7 +308,7 @@ IpmiClose( void *hnd )
   g_free( handler );
 
   // close logfile
-  IpmiLogClose();
+  stdlog.Close();
 }
 
 
@@ -993,11 +994,11 @@ cIpmi::AllocConnection( GHashTable *handler_config )
 {
   // default is 5s for IPMI
   unsigned int ipmi_timeout = GetIntNotNull( handler_config, "IpmiConnectionTimeout", 5000 );
-  IpmiLog( "AllocConnection: IPMITimeout %d ms.\n", ipmi_timeout );
+  stdlog << "AllocConnection: IPMITimeout " << ipmi_timeout << " ms.\n";
 
    // default is 1s for ATCA systems
   unsigned int atca_timeout = GetIntNotNull( handler_config, "AtcaConnectionTimeout", 1000 );
-  IpmiLog( "AllocConnection: AtcaTimeout %d ms.\n", atca_timeout );
+  stdlog << "AllocConnection: AtcaTimeout " << atca_timeout << " ms.\n";
 
   // default 8 outstanding messages
   unsigned int max_outstanding = GetIntNotNull( handler_config, "MaxOutstanding", 3 );
@@ -1007,17 +1008,18 @@ cIpmi::AllocConnection( GHashTable *handler_config )
   else if ( max_outstanding > 256 )
        max_outstanding = 256;
 
-  IpmiLog( "AllocConnection: Max Outstanding IPMI messages %d.\n", max_outstanding );
+  stdlog << "AllocConnection: Max Outstanding IPMI messages "
+         << max_outstanding << ".\n";
 
   const char *name = (const char *)g_hash_table_lookup(handler_config, "name");
 
   if ( !name )
      {
-       IpmiLog( "Empty parameter !\n");
+       stdlog << "Empty parameter !\n";
        return 0;
      }
 
-  IpmiLog( "IpmiAllocConnection: connection name = '%s'.\n", name );
+  stdlog << "IpmiAllocConnection: connection name = '" << name << "'.\n";
 
   if ( !strcmp( name, "lan" ) || !strcmp( name, "rmcp" ) )
      {
@@ -1036,30 +1038,32 @@ cIpmi::AllocConnection( GHashTable *handler_config )
 
        if ( !addr )
           {
-            IpmiLog( "TCP/IP address missing in config file !\n" );
+            stdlog << "TCP/IP address missing in config file !\n";
             return 0;
           }
 
-       IpmiLog( "IpmiAllocConnection: addr = '%s'.\n", addr );
+       stdlog << "IpmiAllocConnection: addr = '" << addr << "'.\n";
        ent = gethostbyname( addr );
 
        if ( !ent )
           {
-            IpmiLog( "Unable to resolve IPMI LAN address: %s !\n", addr );
+            stdlog << "Unable to resolve IPMI LAN address: " << addr << " !\n";
             return 0;
           }
 
        memcpy( &lan_addr, ent->h_addr_list[0], ent->h_length );
        unsigned int a = *(unsigned int *)ent->h_addr_list[0];
 
-       IpmiLog( "Using host at %d.%d.%d.%d.\n",
-                a & 0xff, (a >> 8 ) & 0xff, 
-                (a >> 16) & 0xff, (a >> 24) & 0xff );
+       stdlog << "Using host at "
+              << (int)(a & 0xff) << "."
+              << (int)((a >> 8 ) & 0xff) << "." 
+              << (int)((a >> 16) & 0xff) << "."
+              << (int)((a >> 24) & 0xff) << ".\n";
 
        // Port
        lan_port = GetIntNotNull( handler_config, "port", 623 );
 
-       IpmiLog( "IpmiAllocConnection: port = %i.\n", lan_port );
+       stdlog << "IpmiAllocConnection: port = " << lan_port << ".\n";
 
        // Authentication type
        value = (char *)g_hash_table_lookup( handler_config, "auth_type" );
@@ -1075,7 +1079,7 @@ cIpmi::AllocConnection( GHashTable *handler_config )
                  auth = eIpmiAuthTypeMd2;
 #else
 	       {
-		 IpmiLog( "MD2 is not supported. Please install SSL and recompile.\n");
+		 stdlog << "MD2 is not supported. Please install SSL and recompile.\n";
 		 return 0;
 	       }
 #endif
@@ -1084,18 +1088,18 @@ cIpmi::AllocConnection( GHashTable *handler_config )
                  auth = eIpmiAuthTypeMd5;
 #else
 	       {
-		 IpmiLog( "MD5 is not supported. Please install SSL and recompile.\n");
+		 stdlog << "MD5 is not supported. Please install SSL and recompile.\n";
 		 return 0;
 	       }
 #endif
             else
                {
-                 IpmiLog( "Invalid IPMI LAN authenication method '%s' !\n", value );
+                 stdlog << "Invalid IPMI LAN authenication method '" << value << "' !\n";
                  return 0;
                }
           }
 
-       IpmiLog( "IpmiAllocConnection: authority: %s(%i).\n", value, auth );
+       stdlog << "IpmiAllocConnection: authority: " << value << "(" << auth << ").\n";
 
        // Priviledge
        value = (char *)g_hash_table_lookup(handler_config, "auth_level" );
@@ -1112,12 +1116,12 @@ cIpmi::AllocConnection( GHashTable *handler_config )
                  priv = eIpmiPrivilegeAdmin;
             else
                {
-                 IpmiLog( "Invalid authentication method '%s' !\n", value );
+                 stdlog << "Invalid authentication method '" << value << "' !\n";
                  return 0;
                }
           }
 
-       IpmiLog( "IpmiAllocConnection: priviledge = %s(%i).\n", value, priv );
+       stdlog << "IpmiAllocConnection: priviledge = " << value << "(" << priv << ").\n";
 
        // User Name
        value = (char *)g_hash_table_lookup( handler_config, "username" ); 
@@ -1125,7 +1129,7 @@ cIpmi::AllocConnection( GHashTable *handler_config )
        if ( value )
             strncpy( user, value, 32);
 
-       IpmiLog( "IpmiAllocConnection: user = %s.\n", user );
+       stdlog << "IpmiAllocConnection: user = " << user << ".\n";
 
        // Password
        value = (char *)g_hash_table_lookup( handler_config, "password" );
@@ -1133,7 +1137,7 @@ cIpmi::AllocConnection( GHashTable *handler_config )
        if ( value )
             strncpy( passwd, value, 32 );
 
-       IpmiLog( "IpmiAllocConnection: password = %s.\n", user );
+       stdlog << "IpmiAllocConnection: password = " << user << ".\n";
 
        return new cIpmiConLanDomain( this, ipmi_timeout, atca_timeout, max_outstanding, 
                                lan_addr, lan_port, auth, priv,
@@ -1148,7 +1152,7 @@ cIpmi::AllocConnection( GHashTable *handler_config )
        if ( addr )
             if_num = strtol( addr, 0, 10 );
 
-       IpmiLog( "IpmiAllocConnection: interface number = %d.\n", if_num );
+       stdlog << "IpmiAllocConnection: interface number = " << if_num << ".\n";
 
        return new cIpmiConSmiDomain( this, ipmi_timeout, atca_timeout, max_outstanding, if_num );
      }
@@ -1158,14 +1162,14 @@ cIpmi::AllocConnection( GHashTable *handler_config )
        // filename
        char *file = (char *)g_hash_table_lookup( handler_config, "file");
 
-       IpmiLog( "IpmiAllocConnection: file = %s.\n", file ? file : dIpmiConFileDefault );
+       stdlog << "IpmiAllocConnection: file = %s.\n", file ? file : dIpmiConFileDefault );
 
        // if file == 0 => use default file
        return new cIpmiConFile( timeout, atca_timeout, file );
      }
 */
 
-  IpmiLog( "Unknown connection type: %s !\n", name );
+  stdlog << "Unknown connection type: " << name << " !\n";
 
   return 0;
 }
@@ -1251,8 +1255,8 @@ cIpmi::GetParams( GHashTable *handler_config )
             else if ( !strcmp(tok, "poll_dead" ) )
                  properties |= dIpmiMcThreadPollDeadMc;
             else
-                 IpmiLog( "unknown propertiy for MC 0x%02x: %s !\n",
-                          i, tok );
+                 stdlog << "unknown propertiy for MC " << (unsigned char)i
+                        << ": " << tok << " !\n";
 
             tok = strtok_r( 0, " \t\n", &tokptr );
           }
@@ -1265,15 +1269,15 @@ cIpmi::GetParams( GHashTable *handler_config )
        if ( properties & dIpmiMcThreadInitialDiscover )
             strcat( pp, " initial_discover" );
 
-       if ( properties &  dIpmiMcThreadPollAliveMc)
+       if ( properties &  dIpmiMcThreadPollAliveMc )
             strcat( pp, " poll_alive" );
 
-       if ( properties &  dIpmiMcThreadPollDeadMc)
+       if ( properties &  dIpmiMcThreadPollDeadMc )
             strcat( pp, " poll_dead" );
 
-       IpmiLog( "MC 0x%02x properties:%s.\n", i, pp );
+       stdlog << "MC " << (unsigned char)i << " properties: " << pp << ".\n";
 
-       AddMcToScan( i, properties, dIpmiMcTypeBitAll );
+       AddMcToScan( i, properties, dIpmiMcTypeBitAll, 0 );
      }
 
   return true;
@@ -1295,7 +1299,7 @@ cIpmi::IfOpen( GHashTable *handler_config )
 
   if ( !con )
      {
-       IpmiLog( "IPMI cannot alloc connection !\n" );
+       stdlog << "IPMI cannot alloc connection !\n";
        return false;
      }
 
@@ -1309,7 +1313,7 @@ cIpmi::IfOpen( GHashTable *handler_config )
 
   if ( rv == false )
      {
-       IpmiLog( "IPMI open connection fails !\n" );
+       stdlog << "IPMI open connection fails !\n";
 
        delete con;
 
@@ -1393,7 +1397,7 @@ cIpmi::IfSetResourceSeverity( cIpmiEntity *ent, SaHpiSeverityT sev )
 
   if ( !e )
      {
-       IpmiLog( "Out of space !\n" );
+       stdlog << "Out of space !\n";
        return SA_ERR_HPI_OUT_OF_SPACE;
      }
 

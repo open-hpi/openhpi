@@ -27,10 +27,10 @@
 
 static const char *analoge_data_format[] =
 {
-  "unsigned",
-  "1compl",
-  "2compl",
-  "analog"
+  "Unsigned",
+  "1Compl",
+  "2Compl",
+  "Analog"
 };
 
 
@@ -40,24 +40,24 @@ IpmiAnalogeDataFormatToString( tIpmiAnalogeDataFormat fmt )
   if ( (int)fmt <= eIpmiAnalogDataFormatNotAnalog )
        return analoge_data_format[fmt];
 
-  return "invalid";
+  return "Invalid";
 }
 
 
 static const char *linearization_map[] =
 {
-  "linear",
-  "ln",
-  "log10",
-  "log2",
-  "e",
-  "exp10",
-  "exp2",
-  "1overX",
-  "sqr",
-  "cube",
-  "sqrt",
-  "1 over cube"
+  "Linear",
+  "Ln",
+  "Log10",
+  "Log2",
+  "E",
+  "Exp10",
+  "Exp2",
+  "1OverX",
+  "Sqr",
+  "Cube",
+  "Sqrt",
+  "1OverCube"
 };
 
 
@@ -65,12 +65,12 @@ const char *
 IpmiLinearizationToString( tIpmiLinearization val )
 {
   if ( val == eIpmiLinearizationNonlinear )
-       return "non linear";
+       return "NonLinear";
 
   if ( val <= eIpmiLinearization1OverCube )
        return linearization_map[val];
 
-  return "invalid";
+  return "Invalid";
 }
 
 

@@ -156,7 +156,7 @@ cIpmiConLan::OpenLanFd()
        return -1;
      }
 
-  IpmiLog( "using port %d.\n", curr_port );
+  stdlog << "using port " << curr_port << ".\n";
 
   return fd;
 }
@@ -189,7 +189,7 @@ cIpmiConLan::SendPing()
   data[10] = 0x00;
   data[11] = 0x00;
 
-  IpmiLogTime( "sending RMCP ping.\n" );
+  stdlog << "sending RMCP ping.\n";
 
   int rv = sendto( m_fd, data, 12, 0,
                    (struct sockaddr *)&m_ip_addr,
@@ -237,7 +237,7 @@ cIpmiConLan::WaitForPong( unsigned int timeout_ms )
 
        if ( ret == eResponseTypeMessage )
           {
-            IpmiLog( "reading unexpected message while waiting for pong:\n" );
+            stdlog << "reading unexpected message while waiting for pong:\n";
             IpmiLogDataMsg( addr, msg );
           }
      }
@@ -349,7 +349,7 @@ cIpmiConLan::SendMsgAndWaitForResponse( const cIpmiAddr &addr, const cIpmiMsg &m
           }
 
        // resend message
-       IpmiLog( "resending RMCP msg.\n" );
+       stdlog << "resending RMCP msg.\n";
      }
 
   return ETIMEDOUT;
@@ -380,13 +380,13 @@ cIpmiConLan::AuthCap()
   if (    (rsp_msg.m_data[0] != 0 )
        || (rsp_msg.m_data_len < 9 ) )
      {
-       IpmiLog( "auth response = 0x%02x !\n", rsp_msg.m_data[0] );
+       stdlog << "auth response = " << rsp_msg.m_data[0] << " !\n";
        return EINVAL;
      }
 
   if ( !( rsp_msg.m_data[2] & (1 << m_auth ) ) )
      {
-       IpmiLog( "Requested authentication not supported !\n" );
+       stdlog << "Requested authentication not supported !\n";
 
        char str[256] = "";
 
@@ -405,7 +405,7 @@ cIpmiConLan::AuthCap()
        if ( rsp_msg.m_data[2] & ( 1 << eIpmiAuthTypeOem ) )
             strcat( str, " oem" );
 
-       IpmiLog( "supported authentication types:%s.\n", str );
+       stdlog << "supported authentication types: " << str << ".\n";
 
        return EINVAL;
      }
@@ -436,21 +436,21 @@ cIpmiConLan::SetSessionPriv()
 
   if ( rsp_msg.m_data[0] != 0 )
      {
-       IpmiLog( "set session priv: 0x%02x !\n", rsp_msg.m_data[0] );
+       stdlog << "set session priv: " << rsp_msg.m_data[0] << " !\n";
        return EINVAL;
      }
 
   if ( rsp_msg.m_data_len < 2 )
      {
-       IpmiLog( "set session priv: msg to small: %d !\n", rsp_msg.m_data_len );
+       stdlog << "set session priv: msg to small: " << rsp_msg.m_data_len << " !\n";
        return EINVAL;
      }
 
   if ( (unsigned char)m_priv != (rsp_msg.m_data[1] & 0xf))
      {
        // Requested privilege level did not match.
-       IpmiLog( "set session priv: Requested privilege level did not match: %d, %d !\n",
-                m_priv, (rsp_msg.m_data[1] & 0xf ) );
+       stdlog << "set session priv: Requested privilege level did not match: "
+              << m_priv << ", " << (rsp_msg.m_data[1] & 0xf ) << " !\n";
 
        return EINVAL;
      }
@@ -484,13 +484,13 @@ cIpmiConLan::ActiveSession()
 
   if ( rsp_msg.m_data[0] != 0 )
      {
-       IpmiLog( "active session: 0x%02x !\n", rsp_msg.m_data[0] );
+       stdlog << "active session: " << rsp_msg.m_data[0] << " !\n";
        return EINVAL;
      }
 
   if ( rsp_msg.m_data_len < 11 )
      {
-       IpmiLog( "active session: msg to small: %d !\n", rsp_msg.m_data_len );
+       stdlog << "active session: msg to small: " << rsp_msg.m_data_len << " !\n";
        return EINVAL;
      }
 
@@ -500,7 +500,7 @@ cIpmiConLan::ActiveSession()
        && m_working_auth != m_auth )
      {
        // Eh?  It didn't return a valid authtype.
-       IpmiLog( "active session: wrong auth: %d !\n", m_working_auth );
+       stdlog << "active session: wrong auth: " << m_working_auth << " !\n";
        return EINVAL;
      }
 
@@ -538,13 +538,13 @@ cIpmiConLan::Challange()
 
   if ( rsp_msg.m_data[0] != 0 )
      {
-       IpmiLog( "Challange returns: 0x%02x !\n",  rsp_msg.m_data[0] );
+       stdlog << "Challange returns: " << rsp_msg.m_data[0] << " !\n";
        return EINVAL;
      }
 
   if ( rsp_msg.m_data_len < 21 )
      {
-       IpmiLog( "Challange response to small !\n" );
+       stdlog << "Challange response to small !\n";
        return EINVAL;
      }
 
@@ -578,7 +578,7 @@ cIpmiConLan::IfOpen()
 
   if ( m_auth_method == 0 )
      {
-       IpmiLog( "unknown authentication method %d!\n", m_auth );
+       stdlog << "unknown authentication method " << m_auth << " !\n";
        return -1;
      }
 
@@ -639,7 +639,7 @@ cIpmiConLan::CreateSession()
   // reset seq
   m_current_seq = 0;
 
-  IpmiLog( "RMCP session is up.\n" );
+  stdlog << "RMCP session is up.\n";
 
   return 0;
 }
@@ -685,7 +685,7 @@ cIpmiConLan::IfClose()
 void
 cIpmiConLan::Reconnect()
 {
-  IpmiLog( "RMCP reconnection in progress.\n" );
+  stdlog << "RMCP reconnection in progress.\n";
 
   RequeueOutstanding();
   GList *list = m_queue;
@@ -699,7 +699,7 @@ cIpmiConLan::Reconnect()
        if ( WaitForPong( m_timeout ) == false )
             continue;
 
-       IpmiLog( "create new RMCP session.\n" );
+       stdlog << "create new RMCP session.\n";
 
        if ( CreateSession() == 0 )
             break;
@@ -707,7 +707,7 @@ cIpmiConLan::Reconnect()
 
   m_queue = list;
 
-  IpmiLog( "RMCP reconnection done.\n" );
+  stdlog << "RMCP reconnection done.\n";
 }
 
 
@@ -853,7 +853,7 @@ cIpmiConLan::ReadResponse( int &seq, cIpmiAddr &addr, cIpmiMsg &msg )
   if ( len < 0 )
        return eResponseTypeError;
 
-  //IpmiLog( "rmcp msg: " );
+  //stdlog << "rmcp msg: " );
   //IpmiLogHex( data, len );
 
   // Make sure the source IP matches what we expect the other end to
@@ -863,7 +863,7 @@ cIpmiConLan::ReadResponse( int &seq, cIpmiAddr &addr, cIpmiMsg &msg )
   if (    (ipaddr->sin_port != m_ip_addr.sin_port)
        || (ipaddr->sin_addr.s_addr != m_ip_addr.sin_addr.s_addr) )
      {
-       IpmiLog( "Dropped message due to invalid IP !\n");
+       stdlog << "Dropped message due to invalid IP !\n";
        return eResponseTypeError;
      }
 
@@ -872,7 +872,7 @@ cIpmiConLan::ReadResponse( int &seq, cIpmiAddr &addr, cIpmiMsg &msg )
   if ( len < 21 )
      { 
        // Minimum size of an IPMI msg.
-       IpmiLog( "Dropped message because too small(1)\n" );
+       stdlog << "Dropped message because too small(1)\n";
        return eResponseTypeError;
      }
 
@@ -880,7 +880,7 @@ cIpmiConLan::ReadResponse( int &seq, cIpmiAddr &addr, cIpmiMsg &msg )
   if (    data[0] != 6
        || data[2] != 0xff )
      {
-       IpmiLog( "Dropped message not valid IPMI/RMCP !\n");
+       stdlog << "Dropped message not valid IPMI/RMCP !\n";
        return eResponseTypeError;
      }
 
@@ -890,21 +890,21 @@ cIpmiConLan::ReadResponse( int &seq, cIpmiAddr &addr, cIpmiMsg &msg )
 
        if ( asf_iana != dAsfIana || data[8] != 0x40 )
           {
-            IpmiLog( "Dropped message not valid RMCP pong message %04x, %04x, %02x !\n",
-                     asf_iana, dAsfIana, data[8] );
+            stdlog.Log( "Dropped message not valid RMCP pong message %04x, %04x, %02x !\n",
+                        asf_iana, dAsfIana, data[8] );
             return eResponseTypeError;
           }
 
        m_ping_count--;
 
-       IpmiLogTime( "reading RMCP pong.\n" );
+       stdlog << "reading RMCP pong.\n";
 
        return eResponseTypePong;
      }
 
   if ( data[3] != 0x07 )
      {
-       IpmiLog( "Dropped message not valid IPMI/RMCP\n");
+       stdlog << "Dropped message not valid IPMI/RMCP\n";
        return eResponseTypeError;
      }
   
@@ -914,7 +914,7 @@ cIpmiConLan::ReadResponse( int &seq, cIpmiAddr &addr, cIpmiMsg &msg )
        if ( len < data[13] + 14 ) 
 	  {
 	    // Not enough data was supplied, reject the message.
-	    IpmiLog( "Dropped message because too small(2)\n");
+	    stdlog << "Dropped message because too small(2)\n";
 	    return eResponseTypeError;
 	  }
 
@@ -925,7 +925,7 @@ cIpmiConLan::ReadResponse( int &seq, cIpmiAddr &addr, cIpmiMsg &msg )
        if ( len < 37 )
 	  { 
 	    // Minimum size of an authenticated IPMI msg.
-	    IpmiLog( "Dropped message because too small(3)\n");
+	    stdlog << "Dropped message because too small(3)\n";
 	    return eResponseTypeError;
 	  }
 
@@ -933,7 +933,7 @@ cIpmiConLan::ReadResponse( int &seq, cIpmiAddr &addr, cIpmiMsg &msg )
        if ( len < data[29] + 30 )
 	  {
 	    // Not enough data was supplied, reject the message.
-	    IpmiLog( "Dropped message because too small(4)\n");
+	    stdlog << "Dropped message because too small(4)\n";
 	    return eResponseTypeError;
 	  }
 
@@ -943,7 +943,7 @@ cIpmiConLan::ReadResponse( int &seq, cIpmiAddr &addr, cIpmiMsg &msg )
   // Drop if the authtypes are incompatible.
   if ( m_working_auth != data[4] )
      {
-       IpmiLog( "Dropped message not valid authtype\n");
+       stdlog << "Dropped message not valid authtype\n";
        return eResponseTypeError;
      }
 
@@ -951,8 +951,8 @@ cIpmiConLan::ReadResponse( int &seq, cIpmiAddr &addr, cIpmiMsg &msg )
   sess_id = IpmiGetUint32( data+9 );
   if ( sess_id != m_session_id )
      {
-       IpmiLog( "Dropped message not valid session id 0x%x != 0x%x\n",
-		sess_id, m_session_id );
+       stdlog << "Dropped message not valid session id "
+              << sess_id << " != " << m_session_id << " !\n";
        return eResponseTypeError;
      }
 
@@ -966,7 +966,7 @@ cIpmiConLan::ReadResponse( int &seq, cIpmiAddr &addr, cIpmiMsg &msg )
 
        if ( rv )
           {
-            IpmiLog( "Dropped message auth fail !\n");
+            stdlog << "Dropped message auth fail !\n";
             return eResponseTypeError;
           }
 
@@ -990,7 +990,7 @@ cIpmiConLan::ReadResponse( int &seq, cIpmiAddr &addr, cIpmiMsg &msg )
        uint8_t bit = 1 << (m_inbound_seq_num - seq);
        if ( m_recv_msg_map & bit )
 	  {
-	    IpmiLog( "Dropped message duplicate\n" );
+	    stdlog << "Dropped message duplicate\n";
 	    return eResponseTypeError;
 	  }
 
@@ -1000,7 +1000,7 @@ cIpmiConLan::ReadResponse( int &seq, cIpmiAddr &addr, cIpmiMsg &msg )
      {
        // It's outside the current sequence number range, discard
        // the packet.
-       IpmiLog( "Dropped message out of seq range\n");
+       stdlog << "Dropped message out of seq range\n";
        return eResponseTypeError;
      }
 
@@ -1016,7 +1016,7 @@ cIpmiConLan::ReadResponse( int &seq, cIpmiAddr &addr, cIpmiMsg &msg )
        if ( tmsg[6] != 0 )
 	  {
 	    // An error getting the events, just ignore it.
-	    IpmiLog( "Dropped message err getting event\n");
+	    stdlog << "Dropped message err getting event\n";
 	    return eResponseTypeError;
 	  }
 
@@ -1037,7 +1037,7 @@ cIpmiConLan::ReadResponse( int &seq, cIpmiAddr &addr, cIpmiMsg &msg )
 
   if ( m_outstanding[seq] == 0 )
      {
-       IpmiLog( "Dropped message seq not in use: %02x\n", seq );
+       stdlog << "Dropped message seq not in use: " << (unsigned char)seq << " !\n";
        return eResponseTypeError;
      }
 
@@ -1132,21 +1132,19 @@ cIpmiConLan::ReadResponse( int &seq, cIpmiAddr &addr, cIpmiMsg &msg )
   if ( (tIpmiNetfn)(m_outstanding[seq]->m_msg.m_netfn | 1) != msg.m_netfn
        || m_outstanding[seq]->m_msg.m_cmd != msg.m_cmd )
      {
-       IpmiLog( "Message mismatch seq 0x%02x:\n", seq );
-       IpmiLogData( "read " );       
+       stdlog << "Message mismatch seq " << (unsigned char)seq << ":\n" << "read ";
        IpmiLogDataMsg( addr, msg );
-       IpmiLogData( "\n" );
+       stdlog << "\n";
 
-       IpmiLogData( "expt " );
+       stdlog << "expt ";
        IpmiLogDataMsg( m_outstanding[seq]->m_send_addr,
                        m_outstanding[seq]->m_msg );
-       IpmiLogData( "\n" );
+       stdlog << "\n";
 
-       IpmiLogHex( data, len );
+       stdlog.Hex( data, len );
 
-       IpmiLog( "len %d, m_num_outstanding %d, m_queue %s\n", 
-                len, m_num_outstanding,
-                m_queue ? "full" : "empty" );
+       stdlog << "len " << len << ", m_num_outstanding " << m_num_outstanding << ", m_queue " 
+              << (m_queue ? "full" : "empty") << "\n";
 
        assert( 0 );
        return eResponseTypeError;
@@ -1174,7 +1172,7 @@ cIpmiConLan::IfReadResponse()
             break;
 
        case eResponseTypePong:
-            IpmiLogTime( "connection seems to be ok.\n" );
+            stdlog << "connection seems to be ok.\n";
             HandleCheckConnection( true );
             break;
 
@@ -1195,7 +1193,7 @@ cIpmiConLan::IfReadResponse()
 bool
 cIpmiConLan::IfCheckConnection( cTime &timeout )
 {
-  IpmiLogTime( "check connection.\n" );
+  stdlog << "check connection.\n";
   SendPing();
 
   timeout = cTime::Now();
@@ -1208,7 +1206,7 @@ cIpmiConLan::IfCheckConnection( cTime &timeout )
 void
 cIpmiConLan::IfCheckConnectionTimeout()
 {
-  IpmiLogTime( "connection timeout !\n" );
+  stdlog << "connection timeout !\n";
   m_queue_lock.Lock();
 
   Reconnect();

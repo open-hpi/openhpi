@@ -133,7 +133,7 @@ cIpmiCon::HandleMsgError( cIpmiRequest *r, int err )
   if ( r->m_retries_left > 0 )
      {
        m_log_lock.Lock();
-       IpmiLogTime( "timeout: resending message.\n" );
+       stdlog << "timeout: resending message.\n";
        m_log_lock.Unlock();
 
        m_queue = g_list_append( m_queue, r );
@@ -163,9 +163,9 @@ cIpmiCon::HandleMsgError( cIpmiRequest *r, int err )
   m_log_lock.Lock();
 
   if ( err == ETIMEDOUT )
-       IpmiLogData( "tim %02x\n", r->m_seq );
+       stdlog << ">tim " << (unsigned char)r->m_seq << "\n";
   else
-       IpmiLogData( "err %02x  %d\n", r->m_seq, err );
+       stdlog << ">err " << (unsigned char)r->m_seq << " " << err << "\n";
 
   m_log_lock.Unlock();
 
@@ -188,9 +188,9 @@ cIpmiCon::SendCmd( cIpmiRequest *request )
 
   m_log_lock.Lock();
 
-  IpmiLogData( "cmd %02x  ", seq );
+  stdlog <<  ">cmd " << (unsigned char)seq << "  ";
   IpmiLogDataMsg( request->m_addr, request->m_msg );
-  IpmiLogData( "\n" );
+  stdlog << "\n";
 
   m_log_lock.Unlock();
 
@@ -235,7 +235,7 @@ cIpmiCon::SendCmds()
 void *
 cIpmiCon::Run()
 {
-  IpmiLog( "starting reader thread.\n" );
+  stdlog << "starting reader thread.\n";
 
   // create pollfd
   struct pollfd pfd;
@@ -280,7 +280,8 @@ cIpmiCon::Run()
             if ( errno != EINTR )
                {
                  // error
-                 fprintf( stderr, "poll returns %d, %d, %s !\n", rv, errno, strerror( errno ) );
+                 stdlog << "poll returns " << rv << ", " << errno << ", " 
+                        << strerror( errno ) << " !\n";
                  assert( 0 );
                  abort();
                }
@@ -301,10 +302,11 @@ cIpmiCon::Run()
             if ( r->m_timeout > now )
                  continue;
 
-            IpmiLogTime( "IPMI msg timeout: addr %02x cmd = %s, seq = %02x, timeout %d %d, now %d %d\n",
-                         r->m_addr.m_slave_addr, IpmiCmdToString( r->m_msg.m_netfn, r->m_msg.m_cmd ),
-                         r->m_seq, r->m_timeout.m_time.tv_sec, r->m_timeout.m_time.tv_usec,
-                         now.m_time.tv_sec, now.m_time.tv_usec );
+            stdlog << "IPMI msg timeout: addr " << r->m_addr.m_slave_addr << " "
+                   << IpmiCmdToString( r->m_msg.m_netfn, r->m_msg.m_cmd )
+                   << ", seq " << (unsigned char)r->m_seq
+                   << ", timeout " << (int)r->m_timeout.m_time.tv_sec << " " << (int)r->m_timeout.m_time.tv_usec 
+                   << ", now " << (int)now.m_time.tv_sec << " " << (int)now.m_time.tv_usec << "!\n";
 
             // timeout expired
             RemOutstanding( r->m_seq );
@@ -318,7 +320,7 @@ cIpmiCon::Run()
        m_queue_lock.Unlock();
      }
 
-  IpmiLog( "stop reader thread.\n" );
+  stdlog << "stop reader thread.\n";
 
   return 0;
 }
@@ -488,7 +490,7 @@ cIpmiCon::Cmd( const cIpmiAddr &addr, const cIpmiMsg &msg,
      }
   else
      {
-       IpmiLog( "send queue full.\n" );
+       stdlog << "send queue full.\n";
        m_queue = g_list_append( m_queue, r );       
      }
 
@@ -533,10 +535,10 @@ cIpmiCon::HandleResponse( int seq, const cIpmiAddr &addr, const cIpmiMsg &msg )
      {
        m_log_lock.Lock();
 
-       IpmiLog( "reading response without request:\n" );
-       IpmiLogData( "# %02x  ", seq );
+       stdlog << "reading response without request:\n";
+       stdlog << "# " << (unsigned char)seq << "  ";
        IpmiLogDataMsg( addr, msg );
-       IpmiLogData( "\n" );
+       stdlog << "\n";
 
        m_log_lock.Unlock();
 
@@ -550,9 +552,9 @@ cIpmiCon::HandleResponse( int seq, const cIpmiAddr &addr, const cIpmiMsg &msg )
 
   m_log_lock.Lock();
 
-  IpmiLogData( "rsp %02x  ", r->m_seq );
+  stdlog << "<rsp " << (unsigned char)r->m_seq << "  ";
   IpmiLogDataMsg( addr, msg );
-  IpmiLogData( "\n" );
+  stdlog << "\n";
 
   m_log_lock.Unlock();
 
@@ -583,9 +585,9 @@ cIpmiCon::HandleEvent( const cIpmiAddr &addr, const cIpmiMsg &msg )
 
   m_log_lock.Lock();
 
-  IpmiLogData( "evt " );
+  stdlog << ">evt ";
   IpmiLogDataMsg( addr, msg );
-  IpmiLogData( "\n" );
+  stdlog << "\n";
 
   m_log_lock.Unlock();
 
@@ -626,5 +628,5 @@ IpmiLogDataMsg( const cIpmiAddr &addr, const cIpmiMsg &msg )
   for( int i = 0; i < msg.m_data_len; i++ )
        s += sprintf( s, " %02x", *p++ );
 
-  IpmiLogData( str );
+  stdlog << str;
 }

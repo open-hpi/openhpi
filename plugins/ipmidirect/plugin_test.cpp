@@ -278,7 +278,7 @@ main( int argc, char *argv[] )
        printf( "cannot get interface !\n" );
        return 10;
      }
-	  
+
   params = AllocParams( config );
 
   hdl = abi->open( params );
@@ -288,6 +288,22 @@ main( int argc, char *argv[] )
        printf( "cannot open plugin !\n" );
        return 10;
      }
+
+  abi->discover_resources( hdl );
+
+  // create a dump file
+  oh_handler_state *handler = (oh_handler_state *)hdl;
+  cIpmi *ipmi = (cIpmi *)handler->data;
+
+  cIpmiLog dump;
+
+  if ( dump.Open( dIpmiLogFile, "Config.sim", 0 ) )
+     {
+       ipmi->Dump( dump );
+       dump.Close();
+     }
+  else
+       fprintf( stderr, "cannot open Config.sim for writing !\n" );
 
   printf( "ready.\n" );
   TestInterface( abi, hdl );

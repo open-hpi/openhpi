@@ -34,6 +34,27 @@
 #include "ipmi_sensor_threshold.h"
 
 
+static const char *repository_sdr_update_map[] =
+{
+  "Unspecified",
+  "NonModal",
+  "Modal",
+  "Both"
+};
+
+static int repository_sdr_update_num =   sizeof( repository_sdr_update_map )
+                                       / sizeof( char * );
+
+const char *
+IpmiRepositorySdrUpdateToString( tIpmiRepositorySdrUpdate val )
+{
+  if ( (int)val >= repository_sdr_update_num )
+       return "Invalid";
+  
+  return repository_sdr_update_map[val];
+}
+
+
 struct cIpmiSdrTypeToName
 {
   tIpmiSdrType m_type;
@@ -43,16 +64,16 @@ struct cIpmiSdrTypeToName
 
 static cIpmiSdrTypeToName type_to_name[] =
 {
-  { eSdrTypeFullSensorRecord                     , "full sensor" },
-  { eSdrTypeCompactSensorRecord                  , "compact sensor" },
-  { eSdrTypeEntityAssociationRecord              , "entity association" },
-  { eSdrTypeDeviceRelativeEntityAssociationRecord, "device-relative entity association" },
-  { eSdrTypeGenericDeviceLocatorRecord           , "generic device locator" },
-  { eSdrTypeFruDeviceLocatorRecord               , "FRU device locator" },
-  { eSdrTypeMcDeviceLocatorRecord                , "MC device locator" },
-  { eSdrTypeMcConfirmationRecord                 , "MC confirmation" },
-  { eSdrTypeBmcMessageChannelInfoRecord          , "BMC message channel info" },
-  { eSdrTypeOemRecord                            , "OEM" },
+  { eSdrTypeFullSensorRecord                     , "FullSensor" },
+  { eSdrTypeCompactSensorRecord                  , "CompactSensor" },
+  { eSdrTypeEntityAssociationRecord              , "EntityAssociation" },
+  { eSdrTypeDeviceRelativeEntityAssociationRecord, "DeviceRelativeEntityAssociation" },
+  { eSdrTypeGenericDeviceLocatorRecord           , "GenericDeviceLocator" },
+  { eSdrTypeFruDeviceLocatorRecord               , "FruDeviceLocator" },
+  { eSdrTypeMcDeviceLocatorRecord                , "McDeviceLocator" },
+  { eSdrTypeMcConfirmationRecord                 , "McConfirmation" },
+  { eSdrTypeBmcMessageChannelInfoRecord          , "BmcMessageChannelInfo" },
+  { eSdrTypeOemRecord                            , "Oem" },
   { eSdrTypeUnknown, 0 }
 };
 
@@ -64,7 +85,7 @@ IpmiSdrTypeToName( tIpmiSdrType type )
        if ( t->m_type == type )
             return t->m_name;
 
-  return "invalid";
+  return "Invalid";
 }
 
 
@@ -99,18 +120,258 @@ cIpmiSdr::Name( char *name, int size )
 }
 
 
+static bool
+Bitt( unsigned char v, int bit )
+{
+  return v & (1<<bit);
+}
 
 
+void 
+cIpmiSdr::DumpFullSensor( cIpmiLog &dump )
+{
+  char str[80];
+
+  sprintf( str, "0x%02x", m_data[5] );
+  dump << "\tSlaveAddress               = " << str << ";\n";    
+  dump << "\tChannel                    = " << (m_data[6] >> 4)  << ";\n";
+  dump << "\tLun                        = " << (m_data[6] & 0x3) << ";\n";
+  dump << "\tSensorNum                  = " << m_data[7] << ";\n";
+ 
+  tIpmiEntityId id = (tIpmiEntityId)m_data[8];
+
+  if ( !strcmp( IpmiEntityIdToString( id ), "Invalid" ) )
+       sprintf( str, "0x%02x", id );
+  else
+       sprintf( str, "dIpmiEntityId%s", IpmiEntityIdToString( id ) );
+
+  dump << "\tEntityId                   = " << str << ";\n";
+  dump << "\tEntityInstance             = " << m_data[9] << ";\n";
+
+  dump << "\tInitScanning               = " << Bitt( m_data[10], 6 ) << ";\n";
+  dump << "\tInitEvents                 = " << Bitt( m_data[10], 5 ) << ";\n";
+  dump << "\tInitThresholds             = " << Bitt( m_data[10], 4 ) << ";\n";
+  dump << "\tInitHysteresis             = " << Bitt( m_data[10], 3 ) << ";\n";
+  dump << "\tInitSensorType             = " << Bitt( m_data[10], 2 ) << ";\n";
+  dump << "\tSensorInitPuEvents         = " << Bitt( m_data[10], 1 ) << ";\n";
+  dump << "\tSensorInitPuScanning       = " << Bitt( m_data[10], 0 ) << ";\n";
+  dump << "\tIgnoreIfNoEntity           = " << Bitt( m_data[11], 7 ) << ";\n";
+  dump << "\tSupportsAutoRearm          = " << Bitt( m_data[11], 6 ) << ";\n";
+  
+  tIpmiHysteresisSupport hs = (tIpmiHysteresisSupport)((m_data[11] >> 4) & 3);
+  dump << "\tHysteresisSupport          = dIpmiHysteresisSupport" 
+       << IpmiHysteresisSupportToString( hs ) << ";\n";
+
+  tIpmiThresholdAccessSuport ts = (tIpmiThresholdAccessSuport)((m_data[11] >> 2) & 3);
+  dump << "\tThresholdAccess            = dIpmiThresholdAccessSupport" 
+       << IpmiThresholdAccessSupportToString( ts ) << ";\n";
+
+  tIpmiEventSupport es = (tIpmiEventSupport)(m_data[11] & 3);
+  dump << "\tEventSupport               = dIpmiEventSupport"
+       << IpmiEventSupportToString( es ) <<  ";\n";
+
+  tIpmiSensorType sensor_type = (tIpmiSensorType)m_data[12];
+
+  if ( !strcmp( IpmiSensorTypeToString( sensor_type ), "Invalid" ) )
+       sprintf( str, "0x%02x", sensor_type );
+  else
+       sprintf( str, "dIpmiSensorType%s", IpmiSensorTypeToString( sensor_type ) );
+
+  dump << "\tSensorType                 = " << str << ";\n";
+
+  tIpmiEventReadingType reading_type = (tIpmiEventReadingType)m_data[13];
+
+  if ( !strcmp( IpmiEventReadingTypeToString( reading_type ), "Invalid" ) )
+       sprintf( str, "0x%02x", reading_type );
+  else
+       sprintf( str, "dIpmiEventReadingType%s", IpmiEventReadingTypeToString( reading_type ) );
+
+  dump << "\tEventReadingType           = " << str << ";\n";
+
+  if ( reading_type == eIpmiEventReadingTypeThreshold )
+     {
+       // assertion
+       unsigned short em = IpmiGetUint16( m_data + 14 );
+       IpmiThresholdEventMaskToString( em, str );
+
+       if ( str[0] == 0 )
+            strcat( str, "0" );
+
+       dump << "\tAssertionEventMask         = " << str << ";\n";
+       
+       sprintf( str, "0x%02", em >> 12 );
+       dump << "\tLowerThresholdReadingMask  = " << str << ";\n";
+
+       // deassertion
+       em = IpmiGetUint16( m_data + 16 );
+       IpmiThresholdEventMaskToString( em, str );
+
+       if ( str[0] == 0 )
+            strcat( str, "0" );
+       
+       dump << "\tDeassertionEventMask       = " << str << ";\n";
+       
+       sprintf( str, "0x%02", em >> 12 );
+       dump << "\tUpperThresholdReadingMask  = " << str << ";\n";
+
+       // settable threshold
+       em = IpmiGetUint16( m_data + 18 );
+
+       IpmiThresholdMaskToString( em >> 8, str );
+
+       if ( str[0] == 0 )
+            strcat( str, "0" );
+
+       dump << "\tSettableThresholdsMask     = " << str <<  ";\n";
+
+       IpmiThresholdMaskToString( em & 0xff, str );
+
+       if ( str[0] == 0 )
+            strcat( str, "0" );
+
+       dump << "\tReadableThresholdsMask     = " << str << ";\n";
+
+       tIpmiRateUnit ru = (tIpmiRateUnit)((m_data[20] >> 3) & 7);
+       dump << "\tRateUnit                   = dIpmRateUnit" << IpmiRateUnitToString( ru ) << ";\n";
+
+       tIpmiModifierUnit mu = (tIpmiModifierUnit)( (m_data[20] >> 1) & 3);
+       dump << "\tModifierUnit               = dIpmiModifierUnit"
+            << IpmiModifierUnitToString( mu ) << ";\n";
+       dump << "\tPercentage                 = " << ((m_data[20] & 1) == 1) << ";\n";
+
+       dump << "\tBaseUnit                   = dIpmiSensorUnit"
+            << IpmiUnitTypeToString( (tIpmiUnitType)m_data[21] ) << ";\n";
+       dump << "\tModifierUnit2              = dIpmiSensorUnit"
+            << IpmiUnitTypeToString( (tIpmiUnitType)m_data[22] ) << ";\n";
+
+       cIpmiSensorFactors sf;
+       sf.GetDataFromSdr( this );
+
+       dump << "\tAnalogDataFormat           = dIpmiAnalogDataFormat"
+            << IpmiAnalogeDataFormatToString( sf.AnalogDataFormat() ) << ";\n";
+
+       dump << "\tLinearization              = dIpmiLinearization"
+            << IpmiLinearizationToString( sf.Linearization() ) << ";\n";
+
+       dump << "\tM                          = " << sf.M() << ";\n";
+       dump << "\tTolerance                  = " << sf.Tolerance() << ";\n";
+       dump << "\tB                          = " << sf.B() << ";\n";
+       dump << "\tAccuracy                   = " << sf.Accuracy() << ";\n";
+       dump << "\tAccuracyExp                = " << sf.AccuracyExp() << ";\n";
+       dump << "\tRExp                       = " << sf.RExp() << ";\n";
+       dump << "\tBExp                       = " << sf.BExp() << ";\n";
+
+       bool v = m_data[30] & 1;
+       dump << "\tNominalReadingSpecified    = " << v << ";\n";
+
+       if ( v )
+            dump << "\tNominalReading             = " << m_data[31] << ";\n";
+
+       v = m_data[30] & 2;
+       dump << "\tNormalMaxSpecified         = " << v << ";\n";
+
+       if ( v )
+            dump << "\tNormalMax                  = " << m_data[32] << ";\n";
+
+       v = m_data[30] & 4;
+       dump << "\tNormalMinSpecified         = " << v << ";\n";
+
+       if ( v )
+            dump << "\tNormalMin                  = " << m_data[33] << ";\n";
+
+       dump << "\tSensorMax                  = " << m_data[34] << ";\n";
+       dump << "\tSensorMin                  = " << m_data[35] << ";\n";
+       
+       dump << "\tUpperNonRecoverableThreshold = " << m_data[36] << ";\n";
+       dump << "\tUpperCriticalThreshold     = " << m_data[37] << ";\n";
+       dump << "\tUpperNonCriticalThreshold  = " << m_data[38] << ";\n";
+
+       dump << "\tLowerNonRecoverableThreshold = " << m_data[39] << ";\n";
+       dump << "\tLowerCriticalThreshold     = " << m_data[40] << ";\n";
+       dump << "\tLowerNonCriticalThreshold  = " << m_data[41] << ";\n";
+       
+       dump << "\tPositiveGoingThresholdHysteresis = " << m_data[42] << ";\n";
+       dump << "\tNegativeGoingThresholdHysteresis = " << m_data[43] << ";\n";
+     }
+  else
+     {
+       // assertion
+       unsigned short em = IpmiGetUint16( m_data + 14 );
+       dump.Hex( true );
+       dump << "\tAssertionEventMask         = " << em << ";\n";
+
+       // deassertion
+       em = IpmiGetUint16( m_data + 16 );
+       dump << "\tDeassertionEventMask       = " << em << ";\n";
+
+       // event mask
+       em = IpmiGetUint16( m_data + 18 );
+       dump << "\tDiscreteReadingMask        = " << em << ";\n";
+
+       dump.Hex( false );
+     }
+
+  dump << "\tOem                        = " << m_data[46] << ";\n";
+
+  cIpmiTextBuffer tb;
+  tb.Set( m_data + 47 );
+  tb.GetAscii( str, 80 );
+  dump << "\tId                         = \"" << str << "\";\n";
+}
+
+
+void
+cIpmiSdr::DumpFruDeviceLocator( cIpmiLog &dump )
+{
+}
+
+
+void 
+cIpmiSdr::DumpMcDeviceLocator( cIpmiLog &dump )
+{
+}
+
+
+void
+cIpmiSdr::Dump( cIpmiLog &dump, const char *name )
+{
+  dump << IpmiSdrTypeToName( m_type ) << "Record " << name << "\n";
+  dump << "{\n";
+  dump << "\tRecordId                   = " << m_record_id << ";\n";
+  dump << "\tVersion                    = " << m_major_version << ", "
+                                            << m_minor_version << ";\n";
+  switch( m_type )
+     {
+       case eSdrTypeFullSensorRecord:
+            DumpFullSensor( dump );
+            break;
+            
+       case eSdrTypeFruDeviceLocatorRecord:
+            DumpFruDeviceLocator( dump );
+            break;
+
+       case eSdrTypeMcDeviceLocatorRecord:
+            DumpMcDeviceLocator( dump );
+
+       default:
+            break;
+     }
+  
+  dump << "}\n\n\n";
+}
+
+/*
 static const char *
 Bit( unsigned char byte, int bit )
 {
   return ((byte >> bit) & 1) ? "yes" : "no";
 }
-
+*/
 
 void
 cIpmiSdr::Log()
 {
+/*
   IpmiLog( "SDR: recordid %d, version %d.%d, type 0x%02x (%s)\n",
            m_record_id, m_major_version, m_minor_version,
            m_type, IpmiSdrTypeToName( m_type ) );
@@ -209,6 +470,7 @@ cIpmiSdr::Log()
             assert( 0 );
             break;
      }
+*/
 }
 
 
@@ -308,7 +570,7 @@ cIpmiSdrs::ReadRecord( unsigned short record_id,
 
        if ( rv )
           {
-            IpmiLog( "initial_sdr_fetch: Couldn't send GetSdr or GetDeviveSdr fetch: %x !\n", rv );
+            stdlog << "initial_sdr_fetch: Couldn't send GetSdr or GetDeviveSdr fetch: " << rv << " !\n";
             err = eReadError;
 
             return 0;
@@ -318,7 +580,7 @@ cIpmiSdrs::ReadRecord( unsigned short record_id,
           {
             // Data changed during fetch, retry.  Only do this so many
             // times before giving up.
-            IpmiLog( "SRD reservation lost.\n" );
+            stdlog << "SRD reservation lost.\n";
 
             err = eReadReservationLost;
 
@@ -327,7 +589,7 @@ cIpmiSdrs::ReadRecord( unsigned short record_id,
 
        if ( rsp.m_data[0] == eIpmiCcInvalidReservation )
           {
-            IpmiLog( "SRD reservation lost.\n" );
+            stdlog << "SRD reservation lost.\n";
 
             err = eReadReservationLost;
             return 0;
@@ -339,7 +601,7 @@ cIpmiSdrs::ReadRecord( unsigned short record_id,
           {
             // We got an error fetching the first SDR, so the repository is
             // probably empty.  Just go on.
-            IpmiLog( "SRD reservation lost.\n" );
+            stdlog << "SRD reservation lost.\n";
 
             err = eReadEndOfSdr;
             return 0;
@@ -347,8 +609,8 @@ cIpmiSdrs::ReadRecord( unsigned short record_id,
  
        if ( rsp.m_data[0] != eIpmiCcOk )
           {
-            IpmiLog( "SDR fetch error getting sdr 0x%x: %x",
-                     record_id, rsp.m_data[0] );
+            stdlog << "SDR fetch error getting sdr " << record_id << ": "
+                   << rsp.m_data[0] << " !\n";
 
             err = eReadError;
             return 0;
@@ -356,8 +618,8 @@ cIpmiSdrs::ReadRecord( unsigned short record_id,
 
        if ( rsp.m_data_len != read_len + 3 )
           {
-            IpmiLog( "Got an invalid amount of SDR data: %d, expected %d \n",
-		 rsp.m_data_len, read_len + 3 );
+            stdlog << "Got an invalid amount of SDR data: " << rsp.m_data_len 
+                   << ", expected " << read_len + 3 << " !\n";
 
             err = eReadError;
             return 0;
@@ -402,8 +664,8 @@ cIpmiSdrs::Reserve()
   int rv;
 
   assert( m_supports_reserve_sdr );
-  
-  /* Now get the reservation. */
+
+  // Now get the reservation.
   if ( m_device_sdr )
      {
        msg.m_netfn = eIpmiNetfnSensorEvent;
@@ -420,7 +682,7 @@ cIpmiSdrs::Reserve()
 
   if ( rv )
      {
-       IpmiLog( "Couldn't send SDR reservation: %x !\n", rv );
+       stdlog << "Couldn't send SDR reservation: " << rv << " !\n";
        return EINVAL;
      }
 
@@ -439,16 +701,14 @@ cIpmiSdrs::Reserve()
             return 0;
 	}
 
-       IpmiLog( "Error getting SDR fetch reservation: %x\n",
-                rsp.m_data[0] );
+       stdlog << "Error getting SDR fetch reservation: " << rsp.m_data[0] << " !\n";
 
        return EINVAL;
      }
 
   if ( rsp.m_data_len < 3 )
      {
-       IpmiLog( "SDR Reservation data not long enough: %d bytes!\n",
-                rsp.m_data_len );
+       stdlog << "SDR Reservation data not long enough: " << rsp.m_data_len << " bytes!\n";
        return EINVAL;
      }
 
@@ -485,8 +745,8 @@ cIpmiSdrs::GetInfo( unsigned short &working_num_sdrs )
 
   if ( rv )
      {
-       IpmiLog( "IpmiSdrsFetch: GetDeviceSdrInfoCmd or GetSdrRepositoryInfoCmd %d, %s !\n", 
-                rv, strerror( rv ) );
+       stdlog << "IpmiSdrsFetch: GetDeviceSdrInfoCmd or GetSdrRepositoryInfoCmd "
+              << rv << ", " << strerror( rv ) << " !\n";
 
        m_sdr_changed = true;
        IpmiSdrDestroyRecords( m_sdrs, m_num_sdrs );
@@ -496,15 +756,15 @@ cIpmiSdrs::GetInfo( unsigned short &working_num_sdrs )
 
   if ( rsp.m_data[0] != 0 )
      {
-  	if ( m_device_sdr )
+  	if ( m_device_sdr == false )
            {
-             /* The device doesn't support the get device SDR info
-                command, so just assume some defaults. */
+             // The device doesn't support the get device SDR info
+             // command, so just assume some defaults.
              working_num_sdrs     = 0xfffe;
              m_dynamic_population = false;
 
-             /* Assume it uses reservations, if the reservation returns
-               an error, then say that it doesn't. */
+             // Assume it uses reservations, if the reservation returns
+             // an error, then say that it doesn't.
              m_supports_reserve_sdr = true;
 
              m_lun_has_sensors[0] = true;
@@ -517,7 +777,7 @@ cIpmiSdrs::GetInfo( unsigned short &working_num_sdrs )
            }
         else
            {
-             IpmiLog( "IPMI Error getting SDR info: %x !\n", rsp.m_data[0]);
+             stdlog << "IPMI Error getting SDR info: " << rsp.m_data[0] << " !\n";
 
              m_sdr_changed = true;
              IpmiSdrDestroyRecords( m_sdrs, m_num_sdrs );
@@ -527,9 +787,11 @@ cIpmiSdrs::GetInfo( unsigned short &working_num_sdrs )
      }
   else if ( m_device_sdr )
      {
+       // device SDR
+
        if ( rsp.m_data_len < 3 ) 
           {
-	    IpmiLog( "SDR info is not long enough !\n");
+	    stdlog << "SDR info is not long enough !\n";
 
             m_sdr_changed = true;
             IpmiSdrDestroyRecords( m_sdrs, m_num_sdrs );
@@ -553,7 +815,7 @@ cIpmiSdrs::GetInfo( unsigned short &working_num_sdrs )
           {
 	    if ( rsp.m_data_len < 7 )
                {
-                 IpmiLog( "SDR info is not long enough !\n");
+                 stdlog << "SDR info is not long enough !\n";
 
                  m_sdr_changed = 1;
                  IpmiSdrDestroyRecords( m_sdrs, m_num_sdrs );
@@ -570,9 +832,11 @@ cIpmiSdrs::GetInfo( unsigned short &working_num_sdrs )
      }
   else
      {
+       // repository SDR
+
        if ( rsp.m_data_len < 15 )
           {
-	    IpmiLog( "SDR info is not long enough\n" );
+	    stdlog << "SDR info is not long enough\n";
 
             m_sdr_changed = true;
             IpmiSdrDestroyRecords( m_sdrs, m_num_sdrs );
@@ -582,14 +846,14 @@ cIpmiSdrs::GetInfo( unsigned short &working_num_sdrs )
 
        /* Pull pertinant info from the response. */
        m_major_version = rsp.m_data[1] & 0xf;
-       m_major_version = (rsp.m_data[1] >> 4) & 0xf;
+       m_minor_version = (rsp.m_data[1] >> 4) & 0xf;
        working_num_sdrs = IpmiGetUint16( rsp.m_data + 2 );
 
-       m_overflow = (rsp.m_data[14] & 0x80) == 0x80;
-       m_update_mode = (tIpmiRepositorySdrUpdate)((rsp.m_data[14] >> 5) & 0x3);
-       m_supports_delete_sdr = (rsp.m_data[14] & 0x08) == 0x08;
+       m_overflow                 = (rsp.m_data[14] & 0x80) == 0x80;
+       m_update_mode              = (tIpmiRepositorySdrUpdate)((rsp.m_data[14] >> 5) & 0x3);
+       m_supports_delete_sdr      = (rsp.m_data[14] & 0x08) == 0x08;
        m_supports_partial_add_sdr = (rsp.m_data[14] & 0x04) == 0x04;
-       m_supports_reserve_sdr = (rsp.m_data[14] & 0x02) == 0x02;
+       m_supports_reserve_sdr     = (rsp.m_data[14] & 0x02) == 0x02;
        m_supports_get_sdr_repository_allocation
          = (rsp.m_data[14] & 0x01) == 0x01;
 
@@ -661,7 +925,7 @@ cIpmiSdrs::Fetch()
 
        if ( retry_count++ == dMaxSdrFetchRetries )
           {
-            IpmiLog( "To many retries trying to fetch SDRs\n");
+            stdlog << "To many retries trying to fetch SDRs\n";
             IpmiSdrDestroyRecords( records, num );
 
             return EBUSY;
@@ -752,4 +1016,61 @@ cIpmiSdrs::Fetch()
   delete [] records;
 
   return 0;
+}
+
+
+void
+cIpmiSdrs::Dump( cIpmiLog &dump, const char *name )
+{
+  unsigned int i;
+  char str[80];
+
+  for( i = 0; i < m_num_sdrs; i++ )
+     {
+       sprintf( str, "Sdr%02x_%d", m_mc->GetAddress(), i );
+       m_sdrs[i]->Dump( dump, str );
+     }
+
+  dump << "Sdr \"" << name << "\"\n";
+  dump << "{\n";
+
+  if ( m_device_sdr )
+     {
+       dump << "\tDynamicPopulation          = " << m_dynamic_population << ";\n";
+       dump << "\tLunHasSensors              = "
+            << m_lun_has_sensors[0] << ", "
+            << m_lun_has_sensors[1] << ", "
+            << m_lun_has_sensors[2] << ", "
+            << m_lun_has_sensors[3] << ";\n";
+     }
+  else
+     {
+       dump << "\tVersion                    = " << m_major_version << ", "
+                                                 << m_minor_version << ";\n";
+       dump << "\tOverflow                   = " << m_overflow << ";\n";
+       dump << "\tUpdateMode                 = " << "dMainSdrUpdate"
+            << IpmiRepositorySdrUpdateToString( m_update_mode ) << ";\n";
+       dump << "\tSupportsDeleteSdr          = " << m_supports_delete_sdr << ";\n";
+       dump << "\tSupportsPartialAddSdr      = " << m_supports_partial_add_sdr << ";\n";
+       dump << "\tSupportsReserveSdr         = " << m_supports_reserve_sdr << ";\n";
+       dump << "\tSupportsGetSdrRepositoryAllocation = " << m_supports_get_sdr_repository_allocation << ";\n";
+     }
+
+  if ( m_num_sdrs )
+     {
+       dump << "\tSdr                        = ";
+       
+       for( i = 0; i < m_num_sdrs; i++ )
+          {
+            if ( i != 0 )
+                 dump << ", ";
+
+            sprintf( str, "Sdr%02x_%d", m_mc->GetAddress(), i );
+            dump << str;
+          }
+
+       dump << ";\n";
+     }
+
+  dump << "}\n\n\n";
 }

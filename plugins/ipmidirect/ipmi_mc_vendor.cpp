@@ -483,10 +483,8 @@ cIpmiMcVendor::CreateSensors( cIpmiMc *mc, cIpmiSdrs *sdrs )
                {
                  // It's from the same SDR repository, log an error
                  // and continue to delete the first one.
-                 IpmiLog( "Sensor 0x%x is the same as sensor 0x%x in the"
-                          " repository",
-                          osensor->SourceIdx(),
-                          nsensor->SourceIdx());
+                 stdlog << "Sensor " << osensor->SourceIdx() << " is the same as sensor "
+                        << nsensor->SourceIdx() << " in the repository !\n";
                }
 
             // Delete the sensor from the source array it came
@@ -585,7 +583,7 @@ cIpmiMcVendor::CreateControlsAtca( cIpmiMc *mc, cIpmiSdrs *sdrs,
 
   if ( mcdlr == 0 )
      {
-       IpmiLog( "cannot find MC device locator record for ATCA MC !\n" );
+       stdlog << "cannot find MC device locator record for ATCA MC !\n";
        return true;
      }
 
@@ -628,9 +626,9 @@ cIpmiMcVendor::CreateControlAtcaFan( cIpmiMc *mc, cIpmiSdrs *sdrs,
   if (    rv 
        || rsp.m_data_len < 6
        || rsp.m_data[0] != eIpmiCcOk
-          || rsp.m_data[1] != dIpmiPigMgId )
+       || rsp.m_data[1] != dIpmiPigMgId )
      {
-       IpmiLog( "cannot send get fan speed properties !\n" );
+       stdlog << "cannot send get fan speed properties !\n";
        return true;
      }
 

@@ -254,14 +254,14 @@ cIpmiConSmi::IfOpen()
   rv = ioctl( fd, IPMICTL_SET_TIMING_PARMS_CMD, &parms );
 
   if ( rv == -1 )
-       IpmiLog( "Warning: Could not set timing parms !\n" );
+       stdlog << "Warning: Could not set timing parms !\n";
 
   // we want async events
   int val = 1;
   rv = ioctl( fd, IPMICTL_SET_GETS_EVENTS_CMD, &val );
 
   if ( rv == -1 )
-       IpmiLog( "Warning: Could not set gets events !\n" );
+       stdlog << "Warning: Could not set gets events !\n";
 
   return fd;
 }
@@ -406,8 +406,8 @@ cIpmiConSmi::IfReadResponse()
 
        case IPMI_CMD_RECV_TYPE:
             // incomming command
-            IpmiLog( "SMI: incomming ipmi command %s.\n",
-                     IpmiCmdToString( rsp.m_netfn, rsp.m_cmd ) );
+            stdlog << "SMI: incomming ipmi command " 
+                   << IpmiCmdToString( rsp.m_netfn, rsp.m_cmd ) << ".\n";
 
 	    break;
 

@@ -42,6 +42,7 @@ cIpmiDomain::cIpmiDomain()
      {
        m_mc_to_check[i] = 0;
        m_mc_type[i]     = 0;
+       m_mc_slot[i]     = 0;
        m_mc_thread[i]   = 0;
        m_atca_site_property[i].m_property = 0;
        m_atca_site_property[i].m_max_side_id = 0;
@@ -49,7 +50,8 @@ cIpmiDomain::cIpmiDomain()
      }
 
   // scan at least at 0x20
-  AddMcToScan( 0x20, dIpmiMcThreadInitialDiscover|dIpmiMcThreadPollAliveMc, 0 );
+  AddMcToScan( 0x20, dIpmiMcThreadInitialDiscover|dIpmiMcThreadPollAliveMc,
+               0, 0 );
 
   // default site type properties
   unsigned int prop =   dIpmiMcThreadInitialDiscover
@@ -101,7 +103,7 @@ cIpmiDomain::Init( cIpmiCon *con )
 
   if ( m_entities == 0 )
      {
-       IpmiLog( "cannot create entity into !\n" );
+       stdlog << "cannot create entity into !\n";
        return false;
      }
 
@@ -111,11 +113,11 @@ cIpmiDomain::Init( cIpmiCon *con )
 
   if ( m_si_mc == 0 )
      {
-       IpmiLog( "cannot create system interface !\n" );
+       stdlog << "cannot create system interface !\n";
        return false;
      }
 
-  m_main_sdrs = new cIpmiSdrs( m_si_mc, 0, 0 );
+  m_main_sdrs = new cIpmiSdrs( m_si_mc, 0, false );
   assert( m_main_sdrs );
 
   // send get device id
@@ -126,7 +128,7 @@ cIpmiDomain::Init( cIpmiCon *con )
 
   if ( rv )
      {
-       IpmiLog( "cannot send IPMI get device id %d, %s !\n", rv, strerror( rv ) );
+       stdlog << "cannot send IPMI get device id " << rv << ", " << strerror( rv ) << " !\n";
        return false;
      }
 
@@ -134,7 +136,7 @@ cIpmiDomain::Init( cIpmiCon *con )
        || rsp.m_data_len < 12 )
      {
        // At least the get device id has to work.
-       IpmiLog( "get device id fails 0x%02x !\n", rsp.m_data[0] );
+       stdlog << "get device id fails " << rsp.m_data[0] << " !\n";
 
        return false;
      }
@@ -148,8 +150,8 @@ cIpmiDomain::Init( cIpmiCon *con )
   if ( m_major_version < 1 )
      {
        // We only support 1.0 and greater.
-       IpmiLog( "ipmi version %d.%d not supported !\n",
-                m_major_version, m_minor_version );
+       stdlog << "ipmi version " << m_major_version << "." 
+              << m_minor_version << " not supported !\n";
 
        return false;
      }
@@ -166,7 +168,7 @@ cIpmiDomain::Init( cIpmiCon *con )
 
   if ( mv->Init( m_si_mc, rsp ) == false )
      {
-       IpmiLog( "cannot initialize system interface !\n" );
+       stdlog << "cannot initialize system interface !\n";
 
        return false;
      }
@@ -187,17 +189,19 @@ cIpmiDomain::Init( cIpmiCon *con )
      {
        int num = rsp.m_data[1];
 
-       IpmiLog( "reading bt capabilities: max outstanding %d, input %d, output %d, retries %d.\n",
-                num, rsp.m_data[2], rsp.m_data[3], rsp.m_data[5] );
+       stdlog << "reading bt capabilities: max outstanding " << num 
+              << ", input " << (int)rsp.m_data[2]
+              << ", output " << (int)rsp.m_data[3]
+              << ", retries " << (int)rsp.m_data[5] << ".\n";
 
-       // check 
+       // check
        if ( num < 1 )
             num = 1;
 
        if ( num > 32 )
             num = 32;
 
-       IpmiLog( "max number of outstanding = %d.\n", num );
+       stdlog << "max number of outstanding = " << num << ".\n";
        m_con->SetMaxOutstanding( num );
      }
 
@@ -206,14 +210,14 @@ cIpmiDomain::Init( cIpmiCon *con )
 
   if ( m_sdr_repository_support )
      {
-       IpmiLog( "reading repository SDR.\n" );
+       stdlog << "reading repository SDR.\n";
 
        rv = m_main_sdrs->Fetch();
 
        if ( rv )
             // Just report an error, it shouldn't be a big deal if this
             // fails.
-            IpmiLog( "Could not get main SDRs, error 0x%02x.\n", rv );
+            stdlog << "Could not get main SDRs, error " << rv << " !\n";
        else if ( !m_is_atca )
           {
             // for each mc device locator record in main repository
@@ -233,7 +237,9 @@ cIpmiDomain::Init( cIpmiCon *con )
 
                  AddMcToScan( addr,   dIpmiMcThreadInitialDiscover
                                     | dIpmiMcThreadPollDeadMc
-                                    | dIpmiMcThreadPollAliveMc, m_mc_type[addr] );
+                                    | dIpmiMcThreadPollAliveMc,
+                              m_mc_type[addr],
+                              m_mc_slot[addr] );
                }
           }
      }
@@ -255,7 +261,8 @@ cIpmiDomain::Init( cIpmiCon *con )
        if ( m_mc_to_check[i] == 0 )
             continue;
 
-       m_mc_thread[i] = new cIpmiMcThread( this, i, m_mc_to_check[i], m_mc_type[i] );
+       m_mc_thread[i] = new cIpmiMcThread( this, i, m_mc_to_check[i],
+                                           m_mc_type[i], m_mc_slot[i] );
 
        // Count MC thread with initial discover.
        // This counter is used in cIpmi::IfDiscoverResources
@@ -420,13 +427,13 @@ cIpmiDomain::CheckAtca()
 
   assert( m_si_mc );
 
-  IpmiLog( "checking for ATCA system.\n" );
+  stdlog << "checking for ATCA system.\n";
 
   rv = m_si_mc->SendCommand( msg, rsp );
 
   if ( rv || rsp.m_data[0] || rsp.m_data[1] != dIpmiPigMgId )
      {
-       IpmiLog( "not an ATCA system.\n" );
+       stdlog << "not an ATCA system.\n";
 
        return rv;
      }
@@ -434,13 +441,12 @@ cIpmiDomain::CheckAtca()
   unsigned char minor = (rsp.m_data[2] >> 4) & 0x0f;
   unsigned char major = rsp.m_data[2] & 0x0f;
 
-  IpmiLog( "found a PigMg system version %d.%d.\n",
-           major, minor );
+  stdlog << "found a PigMg system version " << major << "." << minor << ".\n";
 
   if ( major != 2 || minor != 0 )
        return 0;
 
-  IpmiLog( "found an ATCA system.\n" );
+  stdlog << "found an ATCA system.\n";
 
   // use atca timeout
   m_con->m_timeout = m_con->m_default_atca_timeout;
@@ -477,9 +483,9 @@ cIpmiDomain::CheckAtca()
             continue;
 
        if ( i < map_num )
-            IpmiLog( "checking for %s.\n", map[i] );
+            stdlog << "checking for " << map[i] << ".\n";
        else
-            IpmiLog( "checking for %x.\n", i );
+            stdlog << "checking for " << (unsigned char)i << ".\n";
 
        for( int j = 0; j < m_atca_site_property[i].m_max_side_id; j++ )
           {
@@ -490,7 +496,7 @@ cIpmiDomain::CheckAtca()
 
             if ( rv )
                {
-                 IpmiLog( "cannot send get address info: %d\n", rv );
+                 stdlog << "cannot send get address info: " << rv << " !\n";
                  break;
                }
 
@@ -498,12 +504,14 @@ cIpmiDomain::CheckAtca()
                  break;
 
             if ( i < map_num )
-                 IpmiLog( "\tfound %s at 0x%02x.\n", map[i], rsp.m_data[3] );
+                 stdlog << "\tfound " << map[i] << " at " << rsp.m_data[3] << ".\n";
             else
-                 IpmiLog( "\tfound %x at 0x%02x.\n", i, rsp.m_data[3] );
+                 stdlog << "\tfound " << (unsigned char)i << " at " <<  rsp.m_data[3] << ".\n";
 
             // add slot for initial scan
-            AddMcToScan( rsp.m_data[3], m_atca_site_property[i].m_property, m_atca_site_property[i].m_mc_type );
+            AddMcToScan( rsp.m_data[3], m_atca_site_property[i].m_property,
+                         m_atca_site_property[i].m_mc_type,
+                         j + 1 );
           }
      }
 
@@ -630,7 +638,7 @@ cIpmiDomain::HandleAsyncEvent( const cIpmiAddr &addr, const cIpmiMsg &msg )
 
   if ( !mc )
      {
-       IpmiLog( "cannot find mc for event !\n" );
+       stdlog << "cannot find mc for event !\n";
        return;
      }
 
@@ -664,7 +672,8 @@ cIpmiDomain::HandleEvent( cIpmiEvent *event )
                                              dIpmiMcThreadInitialDiscover
                                            | hotswap ? (   dIpmiMcThreadPollAliveMc
                                                          | dIpmiMcThreadCreateM0) : 0,
-                                           dIpmiMcTypeBitAll );
+                                           dIpmiMcTypeBitAll,
+                                           m_mc_slot[a] );
 
        m_mc_thread[a]->Start();
      }
@@ -711,4 +720,115 @@ cIpmiFru *
 cIpmiDomain::VerifyFru( cIpmiFru *f )
 {
   return m_entities->VerifyFru( f );
+}
+
+
+void 
+cIpmiDomain::Dump( cIpmiLog &dump )
+{
+  dump << "#include \"Mc.sim\"\n";
+  dump << "#include \"Entity.sim\"\n";
+  dump << "#include \"Sensor.sim\"\n";
+  dump << "#include \"Sdr.sim\"\n";
+  dump << "#include \"Sel.sim\"\n";
+  dump << "#include \"Fru.sim\"\n\n\n";
+
+  // main sdr
+  if ( m_main_sdrs )
+     {
+       dump << "// repository SDR\n";
+       m_main_sdrs->Dump( dump, "MainSdr1" );
+     }
+
+  // dump all MCs
+  for( int i = 0; i < 256; i++ )
+     {
+       if ( m_mc_thread[i] == 0 || m_mc_thread[i]->Mc() == 0 )
+	    continue;
+
+       cIpmiMc *mc = m_mc_thread[i]->Mc();
+       char str[80];
+       sprintf( str, "Mc%02x", i );
+       mc->Dump( dump, str );
+     }
+
+  // sim
+  dump << "Sim \"Dump\"\n";
+  dump << "{\n";
+
+  // address info
+  dump << "\t// address info\n";
+
+  for( int i = 0; i < 256; i++ )
+     {
+       if ( m_mc_thread[i] == 0 )
+	    continue;
+
+       if ( i == 0x20 )
+	    dump << "\tShMc\t\t= 0, 0x20;\n";
+       else
+	  {
+            if ( m_mc_thread[i]->Type() == 0 )
+                 continue;
+
+	    if ( m_mc_thread[i]->Type() & dIpmiMcTypeBitBoard )
+		 dump << "\tAtcaBoard\t\t= ";
+	    if ( m_mc_thread[i]->Type() & dIpmiMcTypeBitPower )
+		 dump << "\tPowerUnit\t\t= ";
+	    if ( m_mc_thread[i]->Type() & dIpmiMcTypeBitFan )
+		 dump << "\tFanTry\t\t= ";
+	    else
+               {
+		 assert( 0 );
+                 continue;
+               }
+
+	    dump << m_mc_thread[i]->Slot() << ", ";
+
+            char str[80];
+            sprintf( str, "0x%02x;\n", i );
+            dump << str;
+	  }
+     }
+
+  dump << "\n";
+
+  if ( m_main_sdrs )
+       dump << "\tMainSdr\t\t= MainSdr1\n";
+
+  for( int i = 0; i < 256; i++ )
+     {
+       if (    m_mc_thread[i] == 0 
+            || m_mc_thread[i]->Mc() == 0 )
+	    continue;
+
+       char str[80];
+       sprintf( str, "Mc%02x", i );
+
+       if ( i == 0x20 )
+          {
+            dump << "\tMc\t\t= " << str << ", ";
+	    dump << "ShMc";
+          }
+       else
+	  {
+            if ( m_mc_thread[i]->Type() == 0 )
+                 continue;
+
+            dump << "\tMc\t\t= " << str << ", ";
+
+	    if ( m_mc_thread[i]->Type() & dIpmiMcTypeBitBoard )
+		 dump << "AtcaBoard";
+	    if ( m_mc_thread[i]->Type() & dIpmiMcTypeBitPower )
+		 dump << "PowerUnit";
+	    if ( m_mc_thread[i]->Type() & dIpmiMcTypeBitFan )
+		 dump << "FanTry";
+	    else
+		 assert( 0 );
+          }
+
+       dump << ", " << m_mc_thread[i]->Slot() << ";\n";
+     }
+
+  dump << "}\n";
 }

@@ -78,9 +78,8 @@ cIpmi::IfEntityAdd( cIpmiEntity *ent )
   struct oh_event *e;
   cIpmiMc         *mc;
 
-  IpmiLog( "adding entity: %d.%d (%s).\n",
-           ent->EntityId(), ent->EntityInstance(),
-           ent->EntityIdString() );
+  stdlog << "adding entity: " << ent->EntityId() << "." << ent->EntityInstance()
+	 << " (" << ent->EntityIdString() << ").\n";
 
   cIpmiAddr addr( eIpmiAddrTypeIpmb, ent->Channel(), 
                   ent->Lun(), ent->AccessAddress() );
@@ -99,7 +98,7 @@ cIpmi::IfEntityAdd( cIpmiEntity *ent )
 
   if ( !e )
      {
-       IpmiLog( "Out of space !\n" );
+       stdlog << "Out of space !\n";
        return;
      }
 
@@ -125,9 +124,8 @@ cIpmi::IfEntityAdd( cIpmiEntity *ent )
 void
 cIpmi::IfEntityRem( cIpmiEntity *ent )
 {
-  IpmiLog( "removing entity: %d.%d (%s).\n",
-           ent->EntityId(), ent->EntityInstance(),
-           ent->EntityIdString() );
+  stdlog << "removing entity: " << ent->EntityId() << "." << ent->EntityInstance() 
+	 << " (" << ent->EntityIdString() << ").\n";
 
   // remove resource from local cache
   int rv = oh_remove_resource( ent->Domain()->GetHandler()->rptcache, ent->m_resource_id );
@@ -137,7 +135,7 @@ cIpmi::IfEntityRem( cIpmiEntity *ent )
 
   if ( !e )
      {
-       IpmiLog( "Out of space !\n");
+       stdlog << "Out of space !\n";
        return;
      }
 

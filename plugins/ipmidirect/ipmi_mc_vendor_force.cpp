@@ -35,7 +35,7 @@ cIpmiMcVendorForceShMc::~cIpmiMcVendorForceShMc()
 bool
 cIpmiMcVendorForceShMc::Init( cIpmiMc *mc, const cIpmiMsg &devid )
 {
-  IpmiLog( "Force ShMc found.\n" );
+  stdlog << "Force ShMc found.\n";
 
   // because we are talking to a ShMC and not the ShM,
   // we need to do some setup:
@@ -45,7 +45,7 @@ cIpmiMcVendorForceShMc::Init( cIpmiMc *mc, const cIpmiMsg &devid )
   if ( mc->Addr().IsType( eIpmiAddrTypeSystemInterface ) )
      {
        // we want to go into BMC mode
-       IpmiLog( "switch to ShMc mode.\n" );
+       stdlog << "switch to ShMc mode.\n";
 
        cIpmiMsg msg( (tIpmiNetfn)0x30, (tIpmiCmd)0x03 );
        msg.m_data[0] = 0;
@@ -57,13 +57,13 @@ cIpmiMcVendorForceShMc::Init( cIpmiMc *mc, const cIpmiMsg &devid )
 
        if ( rv )
           {
-            IpmiLog( "cannot send set BMC mode: %d\n", rv );
+            stdlog << "cannot send set BMC mode: " << rv << " !\n";
             return false;
           }
 
        if ( rsp.m_data_len <= 0 || rsp.m_data[0] != eIpmiCcOk )
           {
-            IpmiLog( "cannot go into BMC mode: %02x\n", rsp.m_data[0] );
+            stdlog << "cannot go into BMC mode: " << rsp.m_data[0] << " !\n";
             return false;
           }
      }
@@ -71,7 +71,7 @@ cIpmiMcVendorForceShMc::Init( cIpmiMc *mc, const cIpmiMsg &devid )
   // check if there is a repository SDR
   if ( devid.m_data[6] & 2 )
      {
-       IpmiLog( "clear repository SDR.\n" );
+       stdlog << "clear repository SDR.\n";
 
        // clear repository SDR
 
@@ -84,14 +84,13 @@ cIpmiMcVendorForceShMc::Init( cIpmiMc *mc, const cIpmiMsg &devid )
 
        if ( rv )
           {
-            IpmiLog( "cannot send reserve reposotory SDR: %d\n", rv );
+            stdlog << "cannot send reserve reposotory SDR: " << rv << " !\n";
             return false;
           }
 
        if ( rsp.m_data_len != 3 || rsp.m_data[0] != eIpmiCcOk )
           {
-            IpmiLog( "cannot reserve repository SDR: %02x\n",
-                     rsp.m_data[0] );
+            stdlog << "cannot reserve repository SDR: " << rsp.m_data[0] << " !\n";
 
             return false;
           }
@@ -118,14 +117,13 @@ cIpmiMcVendorForceShMc::Init( cIpmiMc *mc, const cIpmiMsg &devid )
 
             if ( rv )
                {
-                 IpmiLog( "cannot send clear SDR reposotory: %d\n", rv );
+                 stdlog << "cannot send clear SDR reposotory: " << rv << " !\n";
                  return false;
                }
 
             if ( rsp.m_data_len != 2 || rsp.m_data[0] != eIpmiCcOk )
                {
-                 IpmiLog( "cannot reserve repository SDR: %02x\n",
-                          rsp.m_data[0] );
+                 stdlog << "cannot reserve repository SDR: " << rsp.m_data[0] << " !\n";
 
                  return false;
                }
@@ -137,7 +135,7 @@ cIpmiMcVendorForceShMc::Init( cIpmiMc *mc, const cIpmiMsg &devid )
   // this is for debugging only
   if ( devid.m_data[6] & 4 )
      {
-       IpmiLog( "clear SEL.\n" );
+       stdlog << "clear SEL.\n";
 
        // get a reservation
        cIpmiMsg msg( eIpmiNetfnStorage, eIpmiCmdReserveSel );
@@ -148,14 +146,13 @@ cIpmiMcVendorForceShMc::Init( cIpmiMc *mc, const cIpmiMsg &devid )
 
        if ( rv )
           {
-            IpmiLog( "cannot send reserve SEL: %d\n", rv );
+            stdlog << "cannot send reserve SEL: " << rv << " !\n";
             return false;
           }
 
        if ( rsp.m_data_len != 3 || rsp.m_data[0] != eIpmiCcOk )
           {
-            IpmiLog( "cannot reserve SEL: %02x\n",
-                     rsp.m_data[0] );
+            stdlog << "cannot reserve SEL: " << rsp.m_data[0] << " !\n";
        
             return false;
           }
@@ -182,14 +179,13 @@ cIpmiMcVendorForceShMc::Init( cIpmiMc *mc, const cIpmiMsg &devid )
 
             if ( rv )
                {
-                 IpmiLog( "cannot send clear SDR reposotory: %d\n", rv );
+                 stdlog << "cannot send clear SDR reposotory: " << rv << " !\n";
                  return false;
                }
 
             if ( rsp.m_data_len != 2 || rsp.m_data[0] != eIpmiCcOk )
                {
-                 IpmiLog( "cannot reserve repository SDR: %02x\n",
-                          rsp.m_data[0] );
+                 stdlog << "cannot reserve repository SDR: " << rsp.m_data[0] << " !\n";
 
                  return false;
                }

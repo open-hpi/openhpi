@@ -77,7 +77,7 @@ protected:
 
   // current fru state
   tIpmiFruState  m_fru_state;
-  
+
   cIpmiDomain   *m_domain;
 
   cIpmiSdrs     *m_sdrs;
@@ -226,10 +226,9 @@ public:
     m_vendor = mv;
   }
 
-  cIpmiMcVendor *GetVendor()
-  {
-    return m_vendor;
-  }
+  cIpmiMcVendor *GetVendor()  { return m_vendor; }
+
+  void Dump( cIpmiLog &dump, const char *name );
 };
 
 

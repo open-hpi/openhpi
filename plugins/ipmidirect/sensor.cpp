@@ -23,8 +23,9 @@
 void
 cIpmi::IfSensorAdd( cIpmiEntity *ent, cIpmiSensor *sensor )
 {
-  IpmiLog( "adding sensor " );
+  stdlog << "adding sensor ";
   sensor->Log();
+  stdlog << "\n";
 
   dbg( "adding sensor %d.%d (%s) %02x: %s",
        ent->EntityId(), ent->EntityInstance(),
@@ -46,7 +47,7 @@ cIpmi::IfSensorAdd( cIpmiEntity *ent, cIpmiSensor *sensor )
 
   if ( !e )
      {
-       IpmiLog( "Out of space !\n" );   
+       stdlog << "out of space !\n";
        return;
      }
 
@@ -77,9 +78,9 @@ cIpmi::IfSensorAdd( cIpmiEntity *ent, cIpmiSensor *sensor )
 void
 cIpmi::IfSensorRem( cIpmiEntity *ent, cIpmiSensor *sensor )
 {
-  IpmiLog( "removing sensor %d.%d (%s): %s\n",
-           ent->EntityId(), ent->EntityInstance(),
-           ent->EntityIdString(), sensor->Id() );
+  stdlog << "removing sensor " << ent->EntityId() << "." 
+         << ent->EntityInstance() << " (" << ent->EntityIdString()
+         << "): " << sensor->Id() << "\n";
 
   // find resource
   SaHpiRptEntryT *resource = ent->Domain()->FindResource( ent->m_resource_id );
