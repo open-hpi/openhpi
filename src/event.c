@@ -56,7 +56,7 @@ static void process_internal_event(struct oh_handler *h, struct oh_event *e)
 	case OH_ET_RESOURCE:
 		res = insert_resource(h, e->u.res_event.id);
 		memcpy(&res->entry, &e->u.res_event.entry, sizeof(res->entry));
-		res->entry.ResourceId = global_rpt_counter++;
+		res->entry.ResourceId = global_rpt_counter;
 		
 		/*Assume all resources blongs to DEFAULT_DOMAIN*/
 		res->domain_list = g_slist_append(res->domain_list, 
