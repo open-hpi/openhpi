@@ -48,7 +48,7 @@ AUTOMAKE_OPTIONS	= foreign
 
 MAINTAINERCLEANFILES 	= Makefile.in aclocal.m4 configure 
 
-SUBDIRS			= include lib test
+SUBDIRS			= include lib test docs
 
 DISTCHECK_CONFIGURE_FLAGS = --with-initdir=prefix
 

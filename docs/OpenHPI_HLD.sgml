@@ -301,7 +301,7 @@ and other FRU's all connected together via a common IPMI management bus
       </listitem>
       </itemizedlist>
       <para>
-      <imagedata fileref="../physical_view.png" />
+      <imagedata fileref="physical_view.png" />
       </para>
       <para>
 As mentioned before, the full rack of computers is tightly coupled together 
@@ -311,13 +311,13 @@ separate computer systems into a single tree as described in the HPI specificati
 our scenario is configured to see the following HPI view: 
       </para>
       <para>
-      <imagedata fileref="../domain_view.png" />
+      <imagedata fileref="domain_view.png" />
       </para>
       <para>
 One possible high level design for enabling such a remotely pluggable capabilities could be done like: 
       </para>
       <para>
-      <imagedata fileref="../implementation_view.png" />
+      <imagedata fileref="implementation_view.png" />
       </para>
       <para>
 In the above diagram, the software components that understands specific hardware 
