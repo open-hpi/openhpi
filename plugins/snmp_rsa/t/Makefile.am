@@ -37,7 +37,8 @@ INCLUDES                = -I$(top_srcdir)/include \
 
 AM_CFLAGS		= -g @NOCFLAGS@ @SNMPFLAGS@ -ftest-coverage -fprofile-arcs
 
-EXTRA_DIST		= sim_resources.h
+EXTRA_DIST		= sim_resources.h \
+			  openhpi.conf
 
 noinst_LTLIBRARIES	= libsnmp_rsa.la
 
@@ -59,7 +60,7 @@ libsnmp_rsa.la: $(libsnmp_rsa_la_OBJECTS) $(libsnmp_rsa_la_DEPENDENCIES)
 	$(LINK) -rpath $(pkglibdir) $(libsnmp_rsa_la_LDFLAGS) $(libsnmp_rsa_la_OBJECTS) $(libsnmp_rsa_la_LIBADD) $(LIBS)
 
 # Setup environment variables for TESTS programs
-TESTS_ENVIRONMENT = OPENHPI_CONF=$(shell pwd)/openhpi.conf
+TESTS_ENVIRONMENT = OPENHPI_CONF=$(srcdir)/openhpi.conf
 TESTS_ENVIRONMENT += LD_LIBRARY_PATH=$(shell pwd)/../../../src/.libs:$(shell pwd)/../../../utils/.libs
 TESTS_ENVIRONMENT += OPENHPI_UID_MAP=$(shell pwd)/uid_map
 TESTS_ENVIRONMENT += OPENHPI_PATH=$(shell pwd)
