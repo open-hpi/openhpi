@@ -969,9 +969,9 @@ static void *dummy_open(GHashTable *handler_config)
 	
 	/* spawn a thread */
 	if ( !(thread_handle = g_thread_create (event_thread,
-					 i,		/* oh_handler_state */
-					 FALSE,
-					 error)) ) {
+						i,	/* oh_handler_state */
+						FALSE,
+						error)) ) {
 	     printf("g_thread_create failed\n");
 	     return NULL;
 	}
@@ -1988,54 +1988,21 @@ int get_interface(void **pp, const uuid_t uuid) __attribute__ ((weak, alias("dum
 /*******************************************************************/
 /*******************************************************************/
 /*******************************************************************/
+#ifdef DUMMY_THREADED
+gpointer event_thread(gpointer data)
+{
+	
+	int i = 0;
 
-#if 0
+	for (i=0; i< 100; i++) {
+		sleep(5);
+		printf("event burp!\n");
+	}
+	
+	g_thread_exit(0);
 
 
-
-/* The event is used to fill event list */
-static struct oh_event user_event[] = {
-/*
-        {
-        .type = OH_ET_HPI,
-        .u = {
-                .hpi_event = {
-                        .parent = {
-                                .ptr  = &dummy_resources[0][1],
-                        },
-                        .id = {
-                                .ptr = NULL,
-                        },
-                        .event = {
-                                .Source = 0,
-                                .EventType = SAHPI_ET_USER,
-                                .Timestamp = 0,
-                                .Severity = SAHPI_CRITICAL,
-                        },
-                },
-        },
-        },
-        {
-        .type = OH_ET_HPI,
-        .u = {
-                .hpi_event = {
-                        .parent = {
-                                .ptr  = &dummy_resources[1][1],
-                        },
-                        .id = {
-                                .ptr = NULL,
-                        },
-                        .event = {
-                                .Source = 0,
-                                .EventType = SAHPI_ET_USER,
-                                .Timestamp = 0,
-                                .Severity = SAHPI_CRITICAL,
-                        },
-                },
-        },
-        },
-*/
-};
-
+	return 0 ;
+}
 #endif
 
