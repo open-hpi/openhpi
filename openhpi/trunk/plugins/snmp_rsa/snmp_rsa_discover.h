@@ -20,6 +20,7 @@
 struct oh_event * snmp_rsa_discover_chassis(SaHpiEntityPathT *ep);
 struct oh_event * snmp_rsa_discover_cpu(SaHpiEntityPathT *ep, int num);
 struct oh_event * snmp_rsa_discover_dasd(SaHpiEntityPathT *ep, int num);
+struct oh_event * snmp_rsa_discover_fan(SaHpiEntityPathT *ep, int num);
 
 /* RDR discovery prototypes */
 struct oh_event * snmp_rsa_discover_controls(struct snmp_session *ss,

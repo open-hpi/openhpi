@@ -201,7 +201,235 @@ struct snmp_rsa_sensor snmp_rsa_chassis_sensors[] = {
 				.not_avail_indicator_num = 0,
 				.write_only = 0,
 				.convert_snmpstr = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-                                .oid = ".1.3.6.1.4.1.2.3.51.1.2.1.5.1.0",
+                                .oid = ".1.3.6.1.4.1.2.3.51.1.2.1.1.1.0",
+				/* FIXME:: SNMP is supposed to add thresholds soon */
+				.threshold_oids = {
+					.InterpretedThresholds = {
+						.OidUpMinor      = ".1.3.6.1.4.1.2.3.51.1.2.20.1.1.1.1.6.1",
+						.OidUpCrit       = ".1.3.6.1.4.1.2.3.51.1.2.20.1.1.1.1.4.1",
+					},
+				},
+			},
+			.event_array = {
+				{},
+			},
+		},
+                .comment = "Planar ambient temperature in degrees centigrade(C)."
+        },
+
+        /* ASM thermal sensor on planar */
+        {
+                .sensor = {
+                        .Num = 2,
+                        .Type = SAHPI_TEMPERATURE,
+                        .Category = SAHPI_EC_THRESHOLD,
+                        .EventCtrl = SAHPI_SEC_GLOBAL_DISABLE,
+                        /* FIXME:: Change when SNMP adds thresholds */
+                        .Events = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_CRIT,
+                        .Ignore = SAHPI_FALSE,
+                        .DataFormat = {
+                                .ReadingFormats = SAHPI_SRF_INTERPRETED,
+                                .IsNumeric = SAHPI_TRUE,
+                                .SignFormat = SAHPI_SDF_UNSIGNED,
+                                .BaseUnits = SAHPI_SU_DEGREES_C,
+                                .ModifierUnits = SAHPI_SU_UNSPECIFIED,
+                                .ModifierUse = SAHPI_SMUU_NONE,
+                                .FactorsStatic = SAHPI_TRUE,
+                                .Factors = {
+                                        .Linearization = SAHPI_SL_LINEAR,
+                                },
+                                .Percentage = SAHPI_FALSE,
+                                .Range = {
+					.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
+					.Max = {
+						.ValuesPresent = SAHPI_SRF_INTERPRETED,
+						.Interpreted = {
+							.Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+							.Value = {
+								.SensorFloat32 = 125,
+							}	
+						},
+					},
+					.Min = {
+						.ValuesPresent = SAHPI_SRF_INTERPRETED,
+						.Interpreted = {
+							.Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+							.Value = {
+								.SensorFloat32 = 0,
+							}	
+						},
+					},
+				},
+                        },
+                        .ThresholdDefn = {
+                                 /* FIXME:: SNMP is supposed to add thresholds soon */
+                                .IsThreshold = SAHPI_FALSE,
+				.TholdCapabilities = SAHPI_STC_INTERPRETED,
+                                 /* FIXME:: SNMP is supposed to add thresholds soon */
+				.ReadThold = SAHPI_STM_UP_MINOR | SAHPI_STM_UP_CRIT,
+				.FixedThold = SAHPI_STM_UP_MINOR | SAHPI_STM_UP_CRIT,
+                        },
+                        .Oem = 0
+                },
+		.rsa_sensor_info = {
+			.cur_state = SAHPI_ES_UNSPECIFIED,
+			.mib = {
+				.not_avail_indicator_num = 0,
+				.write_only = 0,
+				.convert_snmpstr = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+                                .oid = ".1.3.6.1.4.1.2.3.51.1.2.1.2.1.0",
+				/* FIXME:: SNMP is supposed to add thresholds soon */
+				.threshold_oids = {
+					.InterpretedThresholds = {
+						.OidUpMinor      = ".1.3.6.1.4.1.2.3.51.1.2.20.1.1.1.1.6.2",
+						.OidUpCrit       = ".1.3.6.1.4.1.2.3.51.1.2.20.1.1.1.1.4.2",
+					},
+				},
+			},
+			.event_array = {
+				{},
+			},
+		},
+                .comment = "ASM ambient temperature in degrees centigrade(C)."
+        },
+
+        /* CPU area thermal sensor on planar */
+        {
+                .sensor = {
+                        .Num = 3,
+                        .Type = SAHPI_TEMPERATURE,
+                        .Category = SAHPI_EC_THRESHOLD,
+                        .EventCtrl = SAHPI_SEC_GLOBAL_DISABLE,
+                        /* FIXME:: Change when SNMP adds thresholds */
+                        .Events = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_CRIT,
+                        .Ignore = SAHPI_FALSE,
+                        .DataFormat = {
+                                .ReadingFormats = SAHPI_SRF_INTERPRETED,
+                                .IsNumeric = SAHPI_TRUE,
+                                .SignFormat = SAHPI_SDF_UNSIGNED,
+                                .BaseUnits = SAHPI_SU_DEGREES_C,
+                                .ModifierUnits = SAHPI_SU_UNSPECIFIED,
+                                .ModifierUse = SAHPI_SMUU_NONE,
+                                .FactorsStatic = SAHPI_TRUE,
+                                .Factors = {
+                                        .Linearization = SAHPI_SL_LINEAR,
+                                },
+                                .Percentage = SAHPI_FALSE,
+                                .Range = {
+					.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
+					.Max = {
+						.ValuesPresent = SAHPI_SRF_INTERPRETED,
+						.Interpreted = {
+							.Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+							.Value = {
+								.SensorFloat32 = 125,
+							}	
+						},
+					},
+					.Min = {
+						.ValuesPresent = SAHPI_SRF_INTERPRETED,
+						.Interpreted = {
+							.Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+							.Value = {
+								.SensorFloat32 = 0,
+							}	
+						},
+					},
+				},
+                        },
+                        .ThresholdDefn = {
+                                 /* FIXME:: SNMP is supposed to add thresholds soon */
+                                .IsThreshold = SAHPI_FALSE,
+				.TholdCapabilities = SAHPI_STC_INTERPRETED,
+                                 /* FIXME:: SNMP is supposed to add thresholds soon */
+				.ReadThold = SAHPI_STM_UP_MINOR | SAHPI_STM_UP_CRIT,
+				.FixedThold = SAHPI_STM_UP_MINOR | SAHPI_STM_UP_CRIT,
+                        },
+                        .Oem = 0
+                },
+		.rsa_sensor_info = {
+			.cur_state = SAHPI_ES_UNSPECIFIED,
+			.mib = {
+				.not_avail_indicator_num = 0,
+				.write_only = 0,
+				.convert_snmpstr = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+                                .oid = ".1.3.6.1.4.1.2.3.51.1.2.1.3.1.0",
+				/* FIXME:: SNMP is supposed to add thresholds soon */
+				.threshold_oids = {
+					.InterpretedThresholds = {
+						.OidUpMinor      = ".1.3.6.1.4.1.2.3.51.1.2.20.1.1.1.1.3.6",
+						.OidUpCrit       = ".1.3.6.1.4.1.2.3.51.1.2.20.1.1.1.1.3.4",
+					},
+				},
+			},
+			.event_array = {
+				{},
+			},
+		},
+                .comment = "CPU ambient area temperature in degrees centigrade(C)."
+        },
+
+        /* I/O thermal sensor on planar */
+        {
+                .sensor = {
+                        .Num = 4,
+                        .Type = SAHPI_TEMPERATURE,
+                        .Category = SAHPI_EC_THRESHOLD,
+                        .EventCtrl = SAHPI_SEC_GLOBAL_DISABLE,
+                        /* FIXME:: Change when SNMP adds thresholds */
+                        .Events = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_CRIT,
+                        .Ignore = SAHPI_FALSE,
+                        .DataFormat = {
+                                .ReadingFormats = SAHPI_SRF_INTERPRETED,
+                                .IsNumeric = SAHPI_TRUE,
+                                .SignFormat = SAHPI_SDF_UNSIGNED,
+                                .BaseUnits = SAHPI_SU_DEGREES_C,
+                                .ModifierUnits = SAHPI_SU_UNSPECIFIED,
+                                .ModifierUse = SAHPI_SMUU_NONE,
+                                .FactorsStatic = SAHPI_TRUE,
+                                .Factors = {
+                                        .Linearization = SAHPI_SL_LINEAR,
+                                },
+                                .Percentage = SAHPI_FALSE,
+                                .Range = {
+					.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
+					.Max = {
+						.ValuesPresent = SAHPI_SRF_INTERPRETED,
+						.Interpreted = {
+							.Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+							.Value = {
+								.SensorFloat32 = 125,
+							}	
+						},
+					},
+					.Min = {
+						.ValuesPresent = SAHPI_SRF_INTERPRETED,
+						.Interpreted = {
+							.Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+							.Value = {
+								.SensorFloat32 = 0,
+							}	
+						},
+					},
+				},
+                        },
+                        .ThresholdDefn = {
+                                 /* FIXME:: SNMP is supposed to add thresholds soon */
+                                .IsThreshold = SAHPI_FALSE,
+				.TholdCapabilities = SAHPI_STC_INTERPRETED,
+                                 /* FIXME:: SNMP is supposed to add thresholds soon */
+				.ReadThold = SAHPI_STM_UP_MINOR | SAHPI_STM_UP_CRIT,
+				.FixedThold = SAHPI_STM_UP_MINOR | SAHPI_STM_UP_CRIT,
+                        },
+                        .Oem = 0
+                },
+		.rsa_sensor_info = {
+			.cur_state = SAHPI_ES_UNSPECIFIED,
+			.mib = {
+				.not_avail_indicator_num = 0,
+				.write_only = 0,
+				.convert_snmpstr = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+                                .oid = ".1.3.6.1.4.1.2.3.51.1.2.1.4.1.0",
 				/* FIXME:: SNMP is supposed to add thresholds soon */
 				.threshold_oids = {
 					.InterpretedThresholds = {
@@ -215,6 +443,158 @@ struct snmp_rsa_sensor snmp_rsa_chassis_sensors[] = {
 			},
 		},
                 .comment = "System ambient air temperature in degrees centigrade(C)."
+        },
+
+        /* Main system thermal sensor on planar */
+        {
+                .sensor = {
+                        .Num = 1,
+                        .Type = SAHPI_TEMPERATURE,
+                        .Category = SAHPI_EC_THRESHOLD,
+                        .EventCtrl = SAHPI_SEC_GLOBAL_DISABLE,
+                        /* FIXME:: Change when SNMP adds thresholds */
+                        .Events = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_CRIT,
+                        .Ignore = SAHPI_FALSE,
+                        .DataFormat = {
+                                .ReadingFormats = SAHPI_SRF_INTERPRETED,
+                                .IsNumeric = SAHPI_TRUE,
+                                .SignFormat = SAHPI_SDF_UNSIGNED,
+                                .BaseUnits = SAHPI_SU_DEGREES_C,
+                                .ModifierUnits = SAHPI_SU_UNSPECIFIED,
+                                .ModifierUse = SAHPI_SMUU_NONE,
+                                .FactorsStatic = SAHPI_TRUE,
+                                .Factors = {
+                                        .Linearization = SAHPI_SL_LINEAR,
+                                },
+                                .Percentage = SAHPI_FALSE,
+                                .Range = {
+					.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
+					.Max = {
+						.ValuesPresent = SAHPI_SRF_INTERPRETED,
+						.Interpreted = {
+							.Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+							.Value = {
+								.SensorFloat32 = 125,
+							}	
+						},
+					},
+					.Min = {
+						.ValuesPresent = SAHPI_SRF_INTERPRETED,
+						.Interpreted = {
+							.Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+							.Value = {
+								.SensorFloat32 = 0,
+							}	
+						},
+					},
+				},
+                        },
+                        .ThresholdDefn = {
+                                 /* FIXME:: SNMP is supposed to add thresholds soon */
+                                .IsThreshold = SAHPI_FALSE,
+				.TholdCapabilities = SAHPI_STC_INTERPRETED,
+                                 /* FIXME:: SNMP is supposed to add thresholds soon */
+				.ReadThold = SAHPI_STM_UP_MINOR | SAHPI_STM_UP_CRIT,
+				.FixedThold = SAHPI_STM_UP_MINOR | SAHPI_STM_UP_CRIT,
+                        },
+                        .Oem = 0
+                },
+		.rsa_sensor_info = {
+			.cur_state = SAHPI_ES_UNSPECIFIED,
+			.mib = {
+				.not_avail_indicator_num = 0,
+				.write_only = 0,
+				.convert_snmpstr = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+                                .oid = ".1.3.6.1.4.1.2.3.51.1.2.1.5.1.0",
+				/* FIXME:: SNMP is supposed to add thresholds soon */
+				.threshold_oids = {
+					.InterpretedThresholds = {
+						.OidUpMinor      = ".1.3.6.1.4.1.2.3.51.1.2.20.1.1.1.1.5.6",
+						.OidUpCrit       = ".1.3.6.1.4.1.2.3.51.1.2.20.1.1.1.1.5.4",
+					},
+				},
+			},
+			.event_array = {
+				{},
+			},
+		},
+                .comment = "System ambient air temperature in degrees centigrade(C)."
+        },
+
+        /* Memory thermal sensor on planar */
+        {
+                .sensor = {
+                        .Num = 6,
+                        .Type = SAHPI_TEMPERATURE,
+                        .Category = SAHPI_EC_THRESHOLD,
+                        .EventCtrl = SAHPI_SEC_GLOBAL_DISABLE,
+                        /* FIXME:: Change when SNMP adds thresholds */
+                        .Events = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_CRIT,
+                        .Ignore = SAHPI_FALSE,
+                        .DataFormat = {
+                                .ReadingFormats = SAHPI_SRF_INTERPRETED,
+                                .IsNumeric = SAHPI_TRUE,
+                                .SignFormat = SAHPI_SDF_UNSIGNED,
+                                .BaseUnits = SAHPI_SU_DEGREES_C,
+                                .ModifierUnits = SAHPI_SU_UNSPECIFIED,
+                                .ModifierUse = SAHPI_SMUU_NONE,
+                                .FactorsStatic = SAHPI_TRUE,
+                                .Factors = {
+                                        .Linearization = SAHPI_SL_LINEAR,
+                                },
+                                .Percentage = SAHPI_FALSE,
+                                .Range = {
+					.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
+					.Max = {
+						.ValuesPresent = SAHPI_SRF_INTERPRETED,
+						.Interpreted = {
+							.Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+							.Value = {
+								.SensorFloat32 = 125,
+							}	
+						},
+					},
+					.Min = {
+						.ValuesPresent = SAHPI_SRF_INTERPRETED,
+						.Interpreted = {
+							.Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+							.Value = {
+								.SensorFloat32 = 0,
+							}	
+						},
+					},
+				},
+                        },
+                        .ThresholdDefn = {
+                                 /* FIXME:: SNMP is supposed to add thresholds soon */
+                                .IsThreshold = SAHPI_FALSE,
+				.TholdCapabilities = SAHPI_STC_INTERPRETED,
+                                 /* FIXME:: SNMP is supposed to add thresholds soon */
+				.ReadThold = SAHPI_STM_UP_MINOR | SAHPI_STM_UP_CRIT,
+				.FixedThold = SAHPI_STM_UP_MINOR | SAHPI_STM_UP_CRIT,
+                        },
+                        .Oem = 0
+                },
+		.rsa_sensor_info = {
+			.cur_state = SAHPI_ES_UNSPECIFIED,
+			.mib = {
+				.not_avail_indicator_num = 0,
+				.write_only = 0,
+				.convert_snmpstr = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+                                .oid = ".1.3.6.1.4.1.2.3.51.1.2.1.6.1.0",
+				/* FIXME:: SNMP is supposed to add thresholds soon */
+				.threshold_oids = {
+					.InterpretedThresholds = {
+						.OidUpMinor      = ".1.3.6.1.4.1.2.3.51.1.2.20.1.1.1.1.6.6",
+						.OidUpCrit       = ".1.3.6.1.4.1.2.3.51.1.2.20.1.1.1.1.6.4",
+					},
+				},
+			},
+			.event_array = {
+				{},
+			},
+		},
+                .comment = "I/O ambient air temperature in degrees centigrade(C)."
         },
 
         {} /* Terminate array with a null element */
@@ -1133,6 +1513,519 @@ struct snmp_rsa_sensor snmp_rsa_dasd_thermal_sensors[] = {
 			},
 		},
                 .comment = "DASD 4 area temperature in degrees centigrade(C)."
+        },
+
+        {} /* Terminate array with a null element */
+};
+
+/***************
+ * Fan Sensors
+ ***************/
+
+struct snmp_rsa_sensor snmp_rsa_fan_sensors[] = {
+
+	/* Fan 1 speed */
+        {
+                .sensor = {
+                        .Num = 1,
+                        .Type = SAHPI_FAN,
+                        .Category = SAHPI_EC_UNSPECIFIED,
+                        .EventCtrl = SAHPI_SEC_GLOBAL_DISABLE,
+                        .Events = SAHPI_ES_UNSPECIFIED,
+                        .Ignore = SAHPI_FALSE,
+                        .DataFormat = {
+                                .ReadingFormats = SAHPI_SRF_INTERPRETED,
+                                .IsNumeric = SAHPI_TRUE,
+                                .SignFormat = SAHPI_SDF_UNSIGNED,
+                                .BaseUnits = SAHPI_SU_RPM,
+                                .ModifierUnits = SAHPI_SU_UNSPECIFIED,
+                                .ModifierUse = SAHPI_SMUU_NONE,
+                                .FactorsStatic = SAHPI_TRUE,
+                                .Factors = {
+                                        .Linearization = SAHPI_SL_LINEAR,
+                                },
+                                .Percentage = SAHPI_TRUE,
+				.Range = {
+					.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
+					.Max = {
+						.ValuesPresent = SAHPI_SRF_INTERPRETED,
+						.Interpreted = {
+							.Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+							.Value = {
+								.SensorFloat32 = 100,
+							}	
+						},
+					},
+					.Min = {
+						.ValuesPresent = SAHPI_SRF_INTERPRETED,
+						.Interpreted = {
+							.Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+							.Value = {
+								.SensorFloat32 = 0,
+							}	
+						},
+					},
+				},
+                        },
+                         .ThresholdDefn = {
+                                .IsThreshold = SAHPI_FALSE
+                        },
+                        .Oem = 0
+                },
+		.rsa_sensor_info = {
+			.cur_state = SAHPI_ES_UNSPECIFIED,
+			.mib = {
+				.not_avail_indicator_num = 0,
+				.write_only = 0,
+				.convert_snmpstr = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+				.oid = ".1.3.6.1.4.1.2.3.51.1.2.3.1.0",
+			},
+			.event_array = {
+				{},
+			},
+		},
+                .comment = "Fan 1 speed expressed in percent(%) of maximum RPM."
+        },
+
+	/* Fan 2 speed */
+        {
+                .sensor = {
+                        .Num = 2,
+                        .Type = SAHPI_FAN,
+                        .Category = SAHPI_EC_UNSPECIFIED,
+                        .EventCtrl = SAHPI_SEC_GLOBAL_DISABLE,
+                        .Events = SAHPI_ES_UNSPECIFIED,
+                        .Ignore = SAHPI_FALSE,
+                        .DataFormat = {
+                                .ReadingFormats = SAHPI_SRF_INTERPRETED,
+                                .IsNumeric = SAHPI_TRUE,
+                                .SignFormat = SAHPI_SDF_UNSIGNED,
+                                .BaseUnits = SAHPI_SU_RPM,
+                                .ModifierUnits = SAHPI_SU_UNSPECIFIED,
+                                .ModifierUse = SAHPI_SMUU_NONE,
+                                .FactorsStatic = SAHPI_TRUE,
+                                .Factors = {
+                                        .Linearization = SAHPI_SL_LINEAR,
+                                },
+                                .Percentage = SAHPI_TRUE,
+				.Range = {
+					.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
+					.Max = {
+						.ValuesPresent = SAHPI_SRF_INTERPRETED,
+						.Interpreted = {
+							.Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+							.Value = {
+								.SensorFloat32 = 100,
+							}	
+						},
+					},
+					.Min = {
+						.ValuesPresent = SAHPI_SRF_INTERPRETED,
+						.Interpreted = {
+							.Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+							.Value = {
+								.SensorFloat32 = 0,
+							}	
+						},
+					},
+				},
+                        },
+                         .ThresholdDefn = {
+                                .IsThreshold = SAHPI_FALSE
+                        },
+                        .Oem = 0
+                },
+		.rsa_sensor_info = {
+			.cur_state = SAHPI_ES_UNSPECIFIED,
+			.mib = {
+				.not_avail_indicator_num = 0,
+				.write_only = 0,
+				.convert_snmpstr = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+				.oid = ".1.3.6.1.4.1.2.3.51.1.2.3.2.0",
+			},
+			.event_array = {
+				{},
+			},
+		},
+                .comment = "Fan 2 speed expressed in percent(%) of maximum RPM."
+        },
+
+	/* Fan 3 speed */
+        {
+                .sensor = {
+                        .Num = 3,
+                        .Type = SAHPI_FAN,
+                        .Category = SAHPI_EC_UNSPECIFIED,
+                        .EventCtrl = SAHPI_SEC_GLOBAL_DISABLE,
+                        .Events = SAHPI_ES_UNSPECIFIED,
+                        .Ignore = SAHPI_FALSE,
+                        .DataFormat = {
+                                .ReadingFormats = SAHPI_SRF_INTERPRETED,
+                                .IsNumeric = SAHPI_TRUE,
+                                .SignFormat = SAHPI_SDF_UNSIGNED,
+                                .BaseUnits = SAHPI_SU_RPM,
+                                .ModifierUnits = SAHPI_SU_UNSPECIFIED,
+                                .ModifierUse = SAHPI_SMUU_NONE,
+                                .FactorsStatic = SAHPI_TRUE,
+                                .Factors = {
+                                        .Linearization = SAHPI_SL_LINEAR,
+                                },
+                                .Percentage = SAHPI_TRUE,
+				.Range = {
+					.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
+					.Max = {
+						.ValuesPresent = SAHPI_SRF_INTERPRETED,
+						.Interpreted = {
+							.Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+							.Value = {
+								.SensorFloat32 = 100,
+							}	
+						},
+					},
+					.Min = {
+						.ValuesPresent = SAHPI_SRF_INTERPRETED,
+						.Interpreted = {
+							.Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+							.Value = {
+								.SensorFloat32 = 0,
+							}	
+						},
+					},
+				},
+                        },
+                         .ThresholdDefn = {
+                                .IsThreshold = SAHPI_FALSE
+                        },
+                        .Oem = 0
+                },
+		.rsa_sensor_info = {
+			.cur_state = SAHPI_ES_UNSPECIFIED,
+			.mib = {
+				.not_avail_indicator_num = 0,
+				.write_only = 0,
+				.convert_snmpstr = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+				.oid = ".1.3.6.1.4.1.2.3.51.1.2.3.3.0",
+			},
+			.event_array = {
+				{},
+			},
+		},
+                .comment = "Fan 3 speed expressed in percent(%) of maximum RPM."
+        },
+
+	/* Fan 4 speed */
+        {
+                .sensor = {
+                        .Num = 4,
+                        .Type = SAHPI_FAN,
+                        .Category = SAHPI_EC_UNSPECIFIED,
+                        .EventCtrl = SAHPI_SEC_GLOBAL_DISABLE,
+                        .Events = SAHPI_ES_UNSPECIFIED,
+                        .Ignore = SAHPI_FALSE,
+                        .DataFormat = {
+                                .ReadingFormats = SAHPI_SRF_INTERPRETED,
+                                .IsNumeric = SAHPI_TRUE,
+                                .SignFormat = SAHPI_SDF_UNSIGNED,
+                                .BaseUnits = SAHPI_SU_RPM,
+                                .ModifierUnits = SAHPI_SU_UNSPECIFIED,
+                                .ModifierUse = SAHPI_SMUU_NONE,
+                                .FactorsStatic = SAHPI_TRUE,
+                                .Factors = {
+                                        .Linearization = SAHPI_SL_LINEAR,
+                                },
+                                .Percentage = SAHPI_TRUE,
+				.Range = {
+					.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
+					.Max = {
+						.ValuesPresent = SAHPI_SRF_INTERPRETED,
+						.Interpreted = {
+							.Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+							.Value = {
+								.SensorFloat32 = 100,
+							}	
+						},
+					},
+					.Min = {
+						.ValuesPresent = SAHPI_SRF_INTERPRETED,
+						.Interpreted = {
+							.Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+							.Value = {
+								.SensorFloat32 = 0,
+							}	
+						},
+					},
+				},
+                        },
+                         .ThresholdDefn = {
+                                .IsThreshold = SAHPI_FALSE
+                        },
+                        .Oem = 0
+                },
+		.rsa_sensor_info = {
+			.cur_state = SAHPI_ES_UNSPECIFIED,
+			.mib = {
+				.not_avail_indicator_num = 0,
+				.write_only = 0,
+				.convert_snmpstr = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+				.oid = ".1.3.6.1.4.1.2.3.51.1.2.3.4.0",
+			},
+			.event_array = {
+				{},
+			},
+		},
+                .comment = "Fan 4 speed expressed in percent(%) of maximum RPM."
+        },
+
+	/* Fan 5 speed */
+        {
+                .sensor = {
+                        .Num = 5,
+                        .Type = SAHPI_FAN,
+                        .Category = SAHPI_EC_UNSPECIFIED,
+                        .EventCtrl = SAHPI_SEC_GLOBAL_DISABLE,
+                        .Events = SAHPI_ES_UNSPECIFIED,
+                        .Ignore = SAHPI_FALSE,
+                        .DataFormat = {
+                                .ReadingFormats = SAHPI_SRF_INTERPRETED,
+                                .IsNumeric = SAHPI_TRUE,
+                                .SignFormat = SAHPI_SDF_UNSIGNED,
+                                .BaseUnits = SAHPI_SU_RPM,
+                                .ModifierUnits = SAHPI_SU_UNSPECIFIED,
+                                .ModifierUse = SAHPI_SMUU_NONE,
+                                .FactorsStatic = SAHPI_TRUE,
+                                .Factors = {
+                                        .Linearization = SAHPI_SL_LINEAR,
+                                },
+                                .Percentage = SAHPI_TRUE,
+				.Range = {
+					.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
+					.Max = {
+						.ValuesPresent = SAHPI_SRF_INTERPRETED,
+						.Interpreted = {
+							.Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+							.Value = {
+								.SensorFloat32 = 100,
+							}	
+						},
+					},
+					.Min = {
+						.ValuesPresent = SAHPI_SRF_INTERPRETED,
+						.Interpreted = {
+							.Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+							.Value = {
+								.SensorFloat32 = 0,
+							}	
+						},
+					},
+				},
+                        },
+                         .ThresholdDefn = {
+                                .IsThreshold = SAHPI_FALSE
+                        },
+                        .Oem = 0
+                },
+		.rsa_sensor_info = {
+			.cur_state = SAHPI_ES_UNSPECIFIED,
+			.mib = {
+				.not_avail_indicator_num = 0,
+				.write_only = 0,
+				.convert_snmpstr = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+				.oid = ".1.3.6.1.4.1.2.3.51.1.2.3.5.0",
+			},
+			.event_array = {
+				{},
+			},
+		},
+                .comment = "Fan 5 speed expressed in percent(%) of maximum RPM."
+        },
+
+	/* Fan 6 speed */
+        {
+                .sensor = {
+                        .Num = 6,
+                        .Type = SAHPI_FAN,
+                        .Category = SAHPI_EC_UNSPECIFIED,
+                        .EventCtrl = SAHPI_SEC_GLOBAL_DISABLE,
+                        .Events = SAHPI_ES_UNSPECIFIED,
+                        .Ignore = SAHPI_FALSE,
+                        .DataFormat = {
+                                .ReadingFormats = SAHPI_SRF_INTERPRETED,
+                                .IsNumeric = SAHPI_TRUE,
+                                .SignFormat = SAHPI_SDF_UNSIGNED,
+                                .BaseUnits = SAHPI_SU_RPM,
+                                .ModifierUnits = SAHPI_SU_UNSPECIFIED,
+                                .ModifierUse = SAHPI_SMUU_NONE,
+                                .FactorsStatic = SAHPI_TRUE,
+                                .Factors = {
+                                        .Linearization = SAHPI_SL_LINEAR,
+                                },
+                                .Percentage = SAHPI_TRUE,
+				.Range = {
+					.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
+					.Max = {
+						.ValuesPresent = SAHPI_SRF_INTERPRETED,
+						.Interpreted = {
+							.Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+							.Value = {
+								.SensorFloat32 = 100,
+							}	
+						},
+					},
+					.Min = {
+						.ValuesPresent = SAHPI_SRF_INTERPRETED,
+						.Interpreted = {
+							.Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+							.Value = {
+								.SensorFloat32 = 0,
+							}	
+						},
+					},
+				},
+                        },
+                         .ThresholdDefn = {
+                                .IsThreshold = SAHPI_FALSE
+                        },
+                        .Oem = 0
+                },
+		.rsa_sensor_info = {
+			.cur_state = SAHPI_ES_UNSPECIFIED,
+			.mib = {
+				.not_avail_indicator_num = 0,
+				.write_only = 0,
+				.convert_snmpstr = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+				.oid = ".1.3.6.1.4.1.2.3.51.1.2.3.6.0",
+			},
+			.event_array = {
+				{},
+			},
+		},
+                .comment = "Fan 6 speed expressed in percent(%) of maximum RPM."
+        },
+
+	/* Fan 7 speed */
+        {
+                .sensor = {
+                        .Num = 7,
+                        .Type = SAHPI_FAN,
+                        .Category = SAHPI_EC_UNSPECIFIED,
+                        .EventCtrl = SAHPI_SEC_GLOBAL_DISABLE,
+                        .Events = SAHPI_ES_UNSPECIFIED,
+                        .Ignore = SAHPI_FALSE,
+                        .DataFormat = {
+                                .ReadingFormats = SAHPI_SRF_INTERPRETED,
+                                .IsNumeric = SAHPI_TRUE,
+                                .SignFormat = SAHPI_SDF_UNSIGNED,
+                                .BaseUnits = SAHPI_SU_RPM,
+                                .ModifierUnits = SAHPI_SU_UNSPECIFIED,
+                                .ModifierUse = SAHPI_SMUU_NONE,
+                                .FactorsStatic = SAHPI_TRUE,
+                                .Factors = {
+                                        .Linearization = SAHPI_SL_LINEAR,
+                                },
+                                .Percentage = SAHPI_TRUE,
+				.Range = {
+					.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
+					.Max = {
+						.ValuesPresent = SAHPI_SRF_INTERPRETED,
+						.Interpreted = {
+							.Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+							.Value = {
+								.SensorFloat32 = 100,
+							}	
+						},
+					},
+					.Min = {
+						.ValuesPresent = SAHPI_SRF_INTERPRETED,
+						.Interpreted = {
+							.Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+							.Value = {
+								.SensorFloat32 = 0,
+							}	
+						},
+					},
+				},
+                        },
+                         .ThresholdDefn = {
+                                .IsThreshold = SAHPI_FALSE
+                        },
+                        .Oem = 0
+                },
+		.rsa_sensor_info = {
+			.cur_state = SAHPI_ES_UNSPECIFIED,
+			.mib = {
+				.not_avail_indicator_num = 0,
+				.write_only = 0,
+				.convert_snmpstr = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+				.oid = ".1.3.6.1.4.1.2.3.51.1.2.3.7.0",
+			},
+			.event_array = {
+				{},
+			},
+		},
+                .comment = "Fan 7 speed expressed in percent(%) of maximum RPM."
+        },
+
+	/* Fan 8 speed */
+        {
+                .sensor = {
+                        .Num = 8,
+                        .Type = SAHPI_FAN,
+                        .Category = SAHPI_EC_UNSPECIFIED,
+                        .EventCtrl = SAHPI_SEC_GLOBAL_DISABLE,
+                        .Events = SAHPI_ES_UNSPECIFIED,
+                        .Ignore = SAHPI_FALSE,
+                        .DataFormat = {
+                                .ReadingFormats = SAHPI_SRF_INTERPRETED,
+                                .IsNumeric = SAHPI_TRUE,
+                                .SignFormat = SAHPI_SDF_UNSIGNED,
+                                .BaseUnits = SAHPI_SU_RPM,
+                                .ModifierUnits = SAHPI_SU_UNSPECIFIED,
+                                .ModifierUse = SAHPI_SMUU_NONE,
+                                .FactorsStatic = SAHPI_TRUE,
+                                .Factors = {
+                                        .Linearization = SAHPI_SL_LINEAR,
+                                },
+                                .Percentage = SAHPI_TRUE,
+				.Range = {
+					.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
+					.Max = {
+						.ValuesPresent = SAHPI_SRF_INTERPRETED,
+						.Interpreted = {
+							.Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+							.Value = {
+								.SensorFloat32 = 100,
+							}	
+						},
+					},
+					.Min = {
+						.ValuesPresent = SAHPI_SRF_INTERPRETED,
+						.Interpreted = {
+							.Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+							.Value = {
+								.SensorFloat32 = 0,
+							}	
+						},
+					},
+				},
+                        },
+                         .ThresholdDefn = {
+                                .IsThreshold = SAHPI_FALSE
+                        },
+                        .Oem = 0
+                },
+		.rsa_sensor_info = {
+			.cur_state = SAHPI_ES_UNSPECIFIED,
+			.mib = {
+				.not_avail_indicator_num = 0,
+				.write_only = 0,
+				.convert_snmpstr = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+				.oid = ".1.3.6.1.4.1.2.3.51.1.2.3.8.0",
+			},
+			.event_array = {
+				{},
+			},
+		},
+                .comment = "Fan 8 speed expressed in percent(%) of maximum RPM."
         },
 
         {} /* Terminate array with a null element */

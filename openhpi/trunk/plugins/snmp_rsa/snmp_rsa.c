@@ -217,6 +217,41 @@ static int snmp_rsa_discover_resources(void *hnd)
                 }
         }
 
+        /* discover all fans */
+        for (i = 0; i < RSA_MAX_FAN; i++) {
+                /* see if the fan exists by querying the  sensor */
+                if((snmp_get(custom_handle->ss,
+                             snmp_rsa_fan_sensors[i].rsa_sensor_info.mib.oid,
+                             &get_value) != 0) ||
+                   (get_value.type != ASN_OCTET_STR) ||
+                   (strcmp(get_value.string, "Not Readable!") == 0)) {
+                        /* If we get here the fan is not installed */
+                        dbg("Fan %d not found.\n", i+RSA_HPI_INSTANCE_BASE);
+                        continue;
+                }
+
+                e = snmp_rsa_discover_fan(&entity_root, i);
+                if(e != NULL) {
+                        struct ResourceMibInfo *res_mib =
+                                g_memdup(&(snmp_rpt_array[RSA_RPT_ENTRY_FAN].rsa_res_info.mib),
+                                         sizeof(struct snmp_rpt));
+                        oh_add_resource(tmpcache,&(e->u.res_event.entry),res_mib,0);
+                        tmpqueue = g_slist_append(tmpqueue, e);
+                        SaHpiResourceIdT rid = e->u.res_event.entry.ResourceId;
+                        SaHpiEntityPathT parent_ep = e->u.res_event.entry.ResourceEntity;
+                        /* add the fan sensor */
+                        e = snmp_rsa_discover_sensors(custom_handle->ss,
+                                                      parent_ep,
+                                                      &snmp_rsa_fan_sensors[i]);
+                        if(e != NULL) {
+                                struct RSA_SensorInfo *rsa_data = g_memdup(&(snmp_rsa_fan_sensors[i].rsa_sensor_info),
+                                                                           sizeof(struct RSA_SensorInfo));
+                                oh_add_rdr(tmpcache,rid,&(e->u.rdr_event.rdr), rsa_data, 0);
+                                tmpqueue = g_slist_append(tmpqueue, e);
+                        }
+                }
+        }
+
         /*
         Rediscovery: Get difference between current rptcache and tmpcache. Delete
         obsolete items from rptcache and add new items in.        
