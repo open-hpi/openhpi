@@ -280,6 +280,8 @@ static int sa_power(int argc, char *argv[])
 		state = SAHPI_POWER_ON;
 	} else if (!strcmp(argv[2], "off")) {
 		state = SAHPI_POWER_OFF;
+	} else if (!strcmp(argv[2], "cycle")) {
+		state = SAHPI_POWER_CYCLE;
 	} else {
 	 	return HPI_SHELL_PARM_ERROR;
 	}
@@ -1060,8 +1062,8 @@ const char lreshelp[] = "lsres: list resources\n"                          \
 			"Usage: lsres ";
 const char lsorhelp[] = "lsensor: list sensors\n"                          \
 			"Usage: lsensor ";
-const char powerhelp[] = "power: power the resource on(off)\n"             \
-			"Usage: power <resource id> [on|off]";
+const char powerhelp[] = "power: power the resource on, off or cycle\n"
+			"Usage: power <resource id> [on|off|cycle]";
 const char quithelp[] = "quit: close session and quit console\n"           \
 			"Usage: quit ";
 const char resethelp[] = "reset: perform specified reset on the entity\n"  \
