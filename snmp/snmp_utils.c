@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2003,2004
+ * (C) Copyright IBM Corp. 2003, 2004
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -19,7 +19,7 @@
 #include <string.h>
 
 #include <oh_error.h>
-#include <snmp_util.h>
+#include <snmp_utils.h>
 
 /**
  * snmp_get

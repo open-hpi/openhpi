@@ -18,7 +18,7 @@
 #include <string.h>
 
 #include <SaHpi.h>
-#include <snmp_util.h>
+#include <snmp_utils.h>
 
 /**
  * Tests SNMP OID derive function - success case

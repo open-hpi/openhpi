@@ -18,7 +18,7 @@
 
 #include <SaHpi.h>
 #include <oh_error.h>
-#include <snmp_util.h>
+#include <snmp_utils.h>
 
 /***********************************************************
  * NOTE!
