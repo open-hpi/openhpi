@@ -773,7 +773,8 @@ cIpmiConLan::IfSendCmd( cIpmiRequest *r )
        tmsg[pos++] = 0x81; // Remote console IPMI Software ID
        tmsg[pos++] = r->m_seq << 2;
        tmsg[pos++] = eIpmiCmdSendMsg;
-       tmsg[pos++] = r->m_send_addr.m_channel & 0xf;
+       tmsg[pos++] =   r->m_send_addr.m_channel & 0xf
+                     | (1 << 6); // Turn on tracking
 
        if ( r->m_send_addr.m_type == eIpmiAddrTypeIpmbBroadcast )
 	    tmsg[pos++] = 0; // Do a broadcast.
@@ -783,8 +784,8 @@ cIpmiConLan::IfSendCmd( cIpmiRequest *r )
        tmsg[pos++] = (r->m_msg.m_netfn << 2) | r->m_send_addr.m_lun;
        tmsg[pos++] = Checksum( tmsg + msgstart, 2 );
        msgstart = pos;
-       tmsg[pos++] = 0x81;
-       tmsg[pos++] = r->m_seq << 2;
+       tmsg[pos++] = 0x20;
+       tmsg[pos++] = (r->m_seq << 2) | 2; // Add 2 as the SMS Lun
        tmsg[pos++] = r->m_msg.m_cmd;
        memcpy( tmsg + pos, r->m_msg.m_data, r->m_msg.m_data_len );
        pos += r->m_msg.m_data_len;

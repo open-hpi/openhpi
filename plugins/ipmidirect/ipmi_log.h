@@ -59,7 +59,7 @@ public:
   cIpmiLog();
   virtual ~cIpmiLog();
 
-  bool Open( int properties, const char *filename, int max_log_files );
+  bool Open( int properties, const char *filename = "", int max_log_files = 1 );
   void Close();
 
   void Lock()
