@@ -118,7 +118,7 @@ SaErrorT oh_sel_clear(oh_sel *sel)
 
 
 /* get an SEL entry */
-SaErrorT oh_sel_get(oh_sel *sel, SaHpiEntryIdT entryid, SaHpiSelEntryIdT *prev,
+SaErrorT oh_sel_get(oh_sel *sel, SaHpiSelEntryIdT entryid, SaHpiSelEntryIdT *prev,
                     SaHpiSelEntryIdT *next, SaHpiSelEntryT **entry)
 {
         SaHpiSelEntryT * myentry;
@@ -188,7 +188,6 @@ SaErrorT oh_sel_map_to_file(oh_sel *sel, char *filename)
 SaErrorT oh_sel_map_from_file(oh_sel *sel, char *filename)
 {
         int file;
-        GList * sellist;
         SaHpiSelEntryT entry;
         SaErrorT retc;
 
