@@ -338,6 +338,8 @@ void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
 			printf("\tSensor num: %i\n\tType: %s\n", sensor_num, get_sensor_type(sensor_type)); 
 			printf("\tCategory: %s\n", get_sensor_category(category)); 
 
+			memset(&reading, 0, sizeof(SaHpiSensorReadingT));
+
 			err = saHpiSensorReadingGet(session_id, resource_id, sensor_num, &reading);
 			if (err != SA_OK) {
 				printf("Error=%d reading sensor data {sensor, %d}\n", err, sensor_num);
@@ -402,8 +404,6 @@ void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
 		
 		if (rdr.RdrType == SAHPI_CTRL_RDR)
 		{    
-
-
 			ctrl_num = rdr.RdrTypeUnion.CtrlRec.Num;
 			err = saHpiControlTypeGet(session_id, resource_id, ctrl_num, &ctrl_type);
 			if (err != SA_OK) {
@@ -754,8 +754,12 @@ void printreading (SaHpiSensorReadingT reading)
 	
 	if (reading.ValuesPresent & SAHPI_SRF_INTERPRETED)
 		printf("\t\t\tValues Present: Interpreted\n");
+
 	printf("\t\t\t\tInterpreted value: %s\n", interpreted2str(reading.Interpreted));
 
 	if (reading.ValuesPresent & SAHPI_SRF_EVENT_STATE)
 		printf("\t\t\tValues Present: Event State\n");
 }
+
+
+
