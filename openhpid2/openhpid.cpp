@@ -83,6 +83,27 @@ static struct option long_options[] = {
 
 
 /*--------------------------------------------------------------------*/
+/* Function: display_help                                             */
+/*--------------------------------------------------------------------*/
+
+void display_help(void)
+{
+        printf("Help for openhpid:\n\n");
+        printf("   openhpid -c conf_file [-v] [-p port] [-f pidfile]\n\n");
+        printf("   -c conf_file  conf_file is the path/name of the configuration file.\n");
+        printf("                 This option is required.\n");
+        printf("   -v            This option causes the daemon to display verbose\n");
+        printf("                 messages. This option is optional.\n");
+        printf("   -p port       This overrides the default listening port (4743)of.\n");
+        printf("                 the daemon. This option is optional.\n");
+        printf("   -f pidfile    This overrides the default name/location for the daemon.\n");
+        printf("                 pid file. This option is optional.\n\n");
+        printf("A typical invocation might be\n\n");
+        printf("   ./openhpid -c /etc/openhpi/openhpi.conf\n\n");
+}
+
+
+/*--------------------------------------------------------------------*/
 /* Function: main                                                     */
 /*--------------------------------------------------------------------*/
 
@@ -119,6 +140,9 @@ int main (int argc, char *argv[])
                         pid_file = (char *)malloc(strlen(optarg) + 1);
                         strcpy(pid_file, optarg);
                         break;
+                case '?':
+                        display_help();
+                        exit(0);
                 default:
                         exit(-1);
                 }
@@ -141,16 +165,6 @@ int main (int argc, char *argv[])
                 pid = atoi(pid_buf);
                 if (pid && (pid == getpid() || kill(pid, 0) < 0)) {
                         unlink(pid_file);
-                        pfile = open(pid_file, O_WRONLY | O_CREAT, 0640);
-                        if (pfile == -1) {
-                                // there is already a server running
-                                printf("Error: Cannot open PID file .\n");
-                                printf("       Aborting execution.\n");
-                                exit(1);
-                        }
-                        snprintf(pid_buf, sizeof(pid_buf), "%d\n", (int)getpid());
-                        write(pfile, pid_buf, strlen(pid_buf));
-                        close(pfile);
                 } else {
                         // there is already a server running
                         printf("Error: There is already a server running .\n");
@@ -158,6 +172,18 @@ int main (int argc, char *argv[])
                         exit(1);
                 }
         }
+
+        // write the pid file
+        pfile = open(pid_file, O_WRONLY | O_CREAT, 0640);
+        if (pfile == -1) {
+                // there is already a server running
+                printf("Error: Cannot open PID file .\n");
+                printf("       Aborting execution.\n");
+                exit(1);
+        }
+        snprintf(pid_buf, sizeof(pid_buf), "%d\n", (int)getpid());
+        write(pfile, pid_buf, strlen(pid_buf));
+        close(pfile);
 
         // see if we have a valid configuration file
         char *cfgfile = getenv("OPENHPI_CONF");
