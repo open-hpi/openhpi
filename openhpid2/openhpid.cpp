@@ -106,7 +106,6 @@ int main (int argc, char *argv[])
 		if (stop_server) {
 			break;
 		}
-		printf("Waiting on connection.\n");
 		if (servinst->Accept()) {
 			printf("Error accepting server socket.\n");
 			break;
@@ -186,7 +185,8 @@ static void service_thread(gpointer data, gpointer user_data)
                 buf = thrdinst->ReadMsg();
                 if (buf == NULL) {
                         printf("Error reading socket.\n");
-                        return;
+                        delete thrdinst; // cleanup thread instance data
+                        return; // do NOT use g_thread_exit here!
                 }
                 else {
                         switch( thrdinst->reqheader.m_type ) {
