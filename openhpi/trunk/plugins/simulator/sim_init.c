@@ -80,9 +80,10 @@ SaErrorT sim_discover(void *hnd)
 	rpt_entry = oh_get_resource_next(inst->rptcache, SAHPI_FIRST_ENTRY);
 
 	while (rpt_entry) {
-		/*dbg("here resource event id %d", rpt_entry->ResourceId);*/
+		dbg("here resource event id %d", rpt_entry->ResourceId);
 		memset(&event, 0, sizeof(event));
 		event.type = OH_ET_RESOURCE;
+		event.did = oh_get_default_domain_id();
 		memcpy(&event.u.res_event.entry, rpt_entry, sizeof(SaHpiRptEntryT));
 		g_async_queue_push(inst->eventq_async, eventdup(&event));
 
@@ -121,7 +122,8 @@ void sim_close(void *hnd)
 SaErrorT build_rptcache(RPTable *rptcache) 
 {
 	int i;
-	for(i=0; i<sizeof(SaHpiRptEntryT)/sizeof(dummy_rpt_array); i++){
+	for(i=0; i<sizeof(dummy_rpt_array)/sizeof(SaHpiRptEntryT); i++){
+		dbg("Adding resource number %d",i);
 		oh_add_resource(rptcache, &dummy_rpt_array[i].rpt, NULL, FREE_RPT_DATA);
 		i++;
         }
