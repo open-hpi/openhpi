@@ -160,8 +160,7 @@ static int get_handler_event(struct oh_handler *h, RPTable *rpt)
 {
         struct oh_event event;
         struct timeval to = {0, 0};
-        int rv;   
-
+        int rv;                
         rv = h->abi->get_event(h->hnd, &event, &to);
         if(rv < 0) {
                 dbg("No event found");
@@ -193,7 +192,7 @@ static int get_handler_event(struct oh_handler *h, RPTable *rpt)
         
         data_access_unlock();
 
-        return 1;
+        return 0;
 }
 
 /**
@@ -211,14 +210,14 @@ int get_events(void)
 {
         RPTable *rpt = default_rpt;
         GSList *i;
-        int has_event;
+        int done = 0;
         
         data_access_lock();
 
         g_slist_for_each(i, global_handler_list) {
                 do {
-                        has_event = get_handler_event(i->data, rpt);
-                } while (has_event > 0);
+                        done = get_handler_event(i->data, rpt);
+                } while (!done);
         }
         
         process_hotswap_policy();
