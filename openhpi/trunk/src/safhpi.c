@@ -891,15 +891,21 @@ SaErrorT SAHPI_API saHpiEventGet (
         if (error) return error;
 
         /* Return event, resource and rdr */
-        memcpy(Event, &(e.u.hpi_event.event), sizeof(*Event));
-        *EventQueueStatus = 0x0000;
-
-        if (RptEntry)
-             memcpy(RptEntry, &(e.u.hpi_event.res), sizeof(*RptEntry));
-
-        if (Rdr)
-             memcpy(Rdr, &(e.u.hpi_event.rdr), sizeof(*Rdr));
-
+        *Event = e.u.hpi_event.event;
+        
+        /* EventQueueStatus may be NULL if you don't care */
+        if(EventQueueStatus) {
+                *EventQueueStatus = 0x0000;
+        }
+        
+        if (RptEntry && e.u.hpi_event.res.ResourceId != 0) {
+                *RptEntry = e.u.hpi_event.res;
+        }
+        
+        if (Rdr && e.u.hpi_event.rdr.RecordId != 0) {
+                *Rdr = e.u.hpi_event.rdr;
+        }
+        
         return SA_OK;
 }
 
