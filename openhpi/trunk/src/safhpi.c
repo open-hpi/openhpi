@@ -882,10 +882,15 @@ SaErrorT SAHPI_API saHpiEventGet (
         if (session_state != OH_SUBSCRIBED) {
                 return SA_ERR_HPI_INVALID_REQUEST;
         }
-
-        error = get_events();        
-
-        if (error < 0) return SA_ERR_HPI_UNKNOWN;
+	
+	if ( !oh_run_threaded() ) {
+		error = get_events();       
+		if (error < 0) return SA_ERR_HPI_UNKNOWN;
+		if (Timeout != SAHPI_TIMEOUT_IMMEDIATE) {
+			Timeout = SAHPI_TIMEOUT_IMMEDIATE;
+			dbg("Warning: Non-Threaded Mode using Immediate Timeout");
+		}
+	}
 
         error = oh_dequeue_session_event(SessionId, Timeout, &e);
         if (error) return error;
