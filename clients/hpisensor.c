@@ -20,6 +20,7 @@
 #include <string.h>
 #include <SaHpi.h>
 #include <ecode_utils.h>
+#include <epath_utils.h>
 
 char progver[] = "1.0";
 int fdebug = 0;
@@ -193,13 +194,22 @@ int main(int argc, char **argv)
         SaHpiEntryIdT nextentryid;
         SaHpiResourceIdT resourceid;
         SaHpiRdrT rdr;
+        SaHpiEntityPathT ep_target;
+        char *ep_string = NULL;
+                
         
         printf("%s: version %s\n",argv[0],progver); 
         
-        while ( (c = getopt( argc, argv,"tx?")) != EOF )
+        while ( (c = getopt( argc, argv,"te:x?")) != EOF )
                 switch(c) {
                 case 't': fshowthr = 1; break;
                 case 'x': fdebug = 1; break;
+                case 'e':
+                        if (optarg) {
+                                ep_string = (char *)strdup(optarg);
+                        }
+                        string2entitypath(ep_string,&ep_target);
+                        break;
                 default:
                         printf("Usage %s [-t -x]\n",argv[0]);
                         printf("where -t = show Thresholds also\n");
@@ -243,20 +253,26 @@ int main(int argc, char **argv)
                 }
         }  /*end openhpi bug workaround*/
 #endif
-        
         /* walk the RPT list */
         rptentryid = SAHPI_FIRST_ENTRY;
         while ((rv == SA_OK) && (rptentryid != SAHPI_LAST_ENTRY))
         {
                 rv = saHpiRptEntryGet(sessionid,rptentryid,&nextrptentryid,&rptentry);
                 if (fdebug) printf("saHpiRptEntryGet %s\n",decode_error(rv));
+
+                if (rv == SA_OK && ep_string && ep_cmp(&ep_target,&(rptentry.ResourceEntity))) {
+                        rptentryid = nextrptentryid;
+                        continue;                        
+                }
+                
                 if (rv == SA_OK) {
                         /* walk the RDR list for this RPT entry */
                         entryid = SAHPI_FIRST_ENTRY;
                         resourceid = rptentry.ResourceId;
                         rptentry.ResourceTag.Data[rptentry.ResourceTag.DataLength] = 0; 
-                        printf("rptentry[%d] resourceid=%d tag: %s\n",
-                               rptentryid,resourceid,rptentry.ResourceTag.Data);
+                        printf("RPTEntry[%d] tag: %s\n",
+                               resourceid,rptentry.ResourceTag.Data);
+			print_ep(&rptentry.ResourceEntity);
                         while ((rv == SA_OK) && (entryid != SAHPI_LAST_ENTRY))
                         {
                                 rv = saHpiRdrGet(sessionid,resourceid,
@@ -265,9 +281,9 @@ int main(int argc, char **argv)
                                 if (rv == SA_OK) {
                                         char *eol;
                                         rdr.IdString.Data[rdr.IdString.DataLength] = 0;
-                                        if (rdr.RdrType == SAHPI_SENSOR_RDR) eol = "    \t";
+                                        if (rdr.RdrType == SAHPI_SENSOR_RDR) eol = "";
                                         else eol = "\n";
-                                        printf("RDR[%02d]: %s %s %s",rdr.RecordId,
+                                        printf("    RDR[%6d]: %s %s %s",rdr.RecordId,
                                                rtypes[rdr.RdrType],rdr.IdString.Data,eol);
                                         if (rdr.RdrType == SAHPI_SENSOR_RDR) {
                                                 ShowSensor(sessionid,resourceid,
