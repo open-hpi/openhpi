@@ -18,6 +18,11 @@
 
 #include <printevent_utils.h>
 
+
+static char *decode_enum(struct code2string *code_array, int NUM_MAX, int code);
+static void saftime2str(SaHpiTimeT time, char * str, size_t size);
+
+
 /**
  *
  *
@@ -370,6 +375,7 @@ static void printInterpretedSensor(SaHpiSensorInterpretedT *interpreted_value)
 
 #endif
 
+#if 0
 /**
  * showOemEvent: Parse and printf information of an OEM event
  * @thisEvent: Pointer to a SaHpiEventT structure 
@@ -385,6 +391,7 @@ static void showOemEvent(SaHpiEventT *thisEvent)
 	printf("OEM Event Data: \n\t%s\n", thisEvent->EventDataUnion.OemEvent.OemEventData.Data);
 	return;
 }
+
 
 /**
  * showWatchdogEvent: Parse and printf information of a Watchdog event
@@ -418,7 +425,6 @@ static void showWatchdogEvent(SaHpiEventT *thisEvent)
  * Return value: none 
  * Exported: 	no
  **/
-#if 0
 static void showSensorEvent(SaHpiEventT *thisEvent)
 {
 	char *str = NULL;
@@ -458,8 +464,6 @@ static void showSensorEvent(SaHpiEventT *thisEvent)
 	return;
 }
 
-#endif
-
 /**
  * showHotswapEvent: Parse and printf information of a Hotswap event
  * @thisEvent: Pointer to a SaHpiEventT structure 
@@ -483,6 +487,7 @@ static void showHotswapEvent(SaHpiEventT *thisEvent)
 	printf("PreviousHotSwapState %s\n", str);
 	return;
 }
+#endif
  
 /**
  * decode_enum: Look up an enum in the specified table,
@@ -494,7 +499,7 @@ static void showHotswapEvent(SaHpiEventT *thisEvent)
  * Return value: Pointer to a string
  * Exported: yes
  **/
-char *decode_enum(struct code2string *code_array, int NUM_MAX, int code)
+static char *decode_enum(struct code2string *code_array, int NUM_MAX, int code)
 {
         int i;
         char *str = NULL;
@@ -575,7 +580,7 @@ void print_event(SaHpiEventT *thisEvent)
  * Return value: none
  * Exported: yes
  **/
-void saftime2str(SaHpiTimeT time, char * str, size_t size)
+static void saftime2str(SaHpiTimeT time, char * str, size_t size)
 {
 	struct tm t;
 	time_t tt;

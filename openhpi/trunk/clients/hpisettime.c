@@ -9,8 +9,7 @@
  *			  Change clock for event log on IBM Blade Center E.
  *     03/10/2004 pdphan  Remove reference to IBM Blade Center.
  */
-/*M*
-
+/*
 Redistribution and use in source and binary forms, with or without 
 modification, are permitted provided that the following conditions are met:
 
@@ -33,29 +32,21 @@ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
 ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *M*/
+*/
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <getopt.h>
 #include <string.h>
 #include <time.h>
-#include "SaHpi.h"
-#include "ecode_utils.h"
+
+#include <SaHpi.h>
+#include <oh_utils.h>
 
 char progver[] = "1.0";
 int fdebug = 0;
 int findate = 0;
 int fintime = 0;
-
-static void saftime2str(SaHpiTimeT time, char * str, size_t size)
-{
-	struct tm t;
-	time_t tt; 
-	tt = time / 1000000000;
-	localtime_r(&tt, &t);
-	strftime(str, size, "%b %d, %Y - %H:%M:%S", &t);
-}
 
 static void usage(char **argv)
 {
@@ -72,7 +63,6 @@ int main(int argc, char **argv)
 	int c;
 	char i_newdate[20];
 	char i_newtime[20];
-	char timestr[40];
 	struct tm  new_tm_time;
 	SaErrorT rv;
 	SaHpiVersionT hpiVer;
@@ -86,6 +76,7 @@ int main(int argc, char **argv)
 	SaHpiTimeT oldtime;
 	SaHpiTimeT newtime;
 	SaHpiTimeT readbacktime;
+	SaHpiTextBufferT buffer;
         
 	printf("%s: version %s\n",argv[0],progver); 
         
@@ -140,7 +131,7 @@ int main(int argc, char **argv)
 	if (fdebug) printf("New date and time in SaHpiTimeT %lli\n", (long long int)newtime);
 	rv = saHpiInitialize(&hpiVer);
 	if (rv != SA_OK) {
-		printf("saHpiInitialize: %s\n",decode_error(rv));
+		printf("saHpiInitialize: %s\n", oh_lookup_error(rv));
 		exit(-1);
 	}
 
@@ -149,14 +140,14 @@ int main(int argc, char **argv)
 		if (rv == SA_ERR_HPI_ERROR) 
 			printf("saHpiSessionOpen: error %d, SpiLibd not running\n",rv);
 		else
-			printf("saHpiSessionOpen: %s\n",decode_error(rv));
+			printf("saHpiSessionOpen: %s\n", oh_lookup_error(rv));
 		exit(-1);
 	}
  
 	rv = saHpiResourcesDiscover(sessionid);
-	if (fdebug) printf("saHpiResourcesDiscover %s\n",decode_error(rv));
+	if (fdebug) printf("saHpiResourcesDiscover %s\n", oh_lookup_error(rv));
 	rv = saHpiRptInfoGet(sessionid,&rptinfo);
-	if (fdebug) printf("saHpiRptInfoGet %s\n",decode_error(rv));
+	if (fdebug) printf("saHpiRptInfoGet %s\n", oh_lookup_error(rv));
 	printf("RptInfo: UpdateCount = %d, UpdateTime = %lx\n",
 		rptinfo.UpdateCount, (unsigned long)rptinfo.UpdateTimestamp);
         
@@ -165,23 +156,23 @@ int main(int argc, char **argv)
 	while ((rv == SA_OK) && (rptentryid != SAHPI_LAST_ENTRY))
 	{
                 rv = saHpiRptEntryGet(sessionid,rptentryid,&nextrptentryid,&rptentry);
-                if (fdebug) printf("saHpiRptEntryGet %s\n",decode_error(rv));
+                if (fdebug) printf("saHpiRptEntryGet %s\n", oh_lookup_error(rv));
                 if ((rv == SA_OK) && (rptentry.ResourceCapabilities & SAHPI_CAPABILITY_SEL)) {
                         resourceid = rptentry.ResourceId;
                         if (fdebug) printf("RPT %x capabilities = %x\n", resourceid,
                                            rptentry.ResourceCapabilities);
 			rv = saHpiEventLogTimeGet(sessionid, resourceid, &oldtime);
-			saftime2str(oldtime, timestr, sizeof(timestr));
-			printf ("\nCurrent event log time on HPI target: %s\n", timestr);
+			oh_decode_time(oldtime, &buffer);
+			printf ("\nCurrent event log time on HPI target: %s\n", buffer.Data);
 			printf ("Setting new event log time on HPI target ...\n");
 		 	rv = saHpiEventLogTimeSet(sessionid, resourceid, newtime);
 			if (rv != SA_OK) 
 			{
-                		printf("saHpiEventLogTimeSet %s\n",decode_error(rv));
+                		printf("saHpiEventLogTimeSet %s\n", oh_lookup_error(rv));
 			}
 			rv = saHpiEventLogTimeGet(sessionid, resourceid, &readbacktime);
-			saftime2str(readbacktime, timestr, sizeof(timestr));
-			printf ("Read-Back-Check event log time: %s\n", timestr);
+			oh_decode_time(readbacktime, &buffer);
+			printf ("Read-Back-Check event log time: %s\n", buffer.Data);
 
                 }
                 entryid = SAHPI_OLDEST_ENTRY;

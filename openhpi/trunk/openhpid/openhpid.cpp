@@ -14,10 +14,9 @@
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
  */
 
-#include "openhpid.h"
-#include "openhpi.h"
-#include "ecode_utils.h"
-#include "printevent_utils.h"
+#include <openhpid.h>
+#include <openhpi.h>
+#include <oh_utils.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -330,7 +329,7 @@ cOpenHpiDaemon::Initialize()
   if ( rv != SA_OK )
      {
        fprintf( stderr, "cannot initialize openhpi: %s !\n",
-		decode_error( rv ) );
+		oh_lookup_error( rv ) );
        return false;
      }
 
@@ -340,7 +339,7 @@ cOpenHpiDaemon::Initialize()
   if ( rv != SA_OK )
      {
        fprintf( stderr, "cannot create session: %s !\n", 
-		decode_error( rv ) );
+		oh_lookup_error( rv ) );
 
        saHpiFinalize();
        return false;
@@ -352,7 +351,7 @@ cOpenHpiDaemon::Initialize()
   if ( rv != SA_OK )
      {
        fprintf( stderr, "cannot subscribe: %s !\n", 
-		decode_error( rv ) );
+		oh_lookup_error( rv ) );
 
        saHpiSessionClose( m_session );
        saHpiFinalize();
@@ -579,7 +578,7 @@ cOpenHpiDaemon::Idle()
   else if ( ret == SA_ERR_HPI_TIMEOUT )
        DbgEvent( "idle: saHpiEventGet timeout.\n", ret );
   else
-       DbgEvent( "idle: saHpiEventGet %s.\n", decode_error( ret ) );
+       DbgEvent( "idle: saHpiEventGet %s.\n", oh_lookup_error( ret ) );
 
   SaHpiTimeT now;
   gettimeofday1( &now );

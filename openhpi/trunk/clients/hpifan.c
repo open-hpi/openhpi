@@ -19,9 +19,9 @@
 #include <string.h>
 #include <unistd.h>
 #include <getopt.h>
-#include "SaHpi.h"
-#include <epath_utils.h>
-#include <ecode_utils.h>
+
+#include <SaHpi.h>
+#include <oh_utils.h>
 
 static int fan_speed = -1;
 
@@ -79,7 +79,7 @@ get_fan_speed( SaHpiSessionIdT session_id,
         SaErrorT rv = saHpiControlStateGet( session_id, resource_id, ctrl_num, &state );
 
         if ( rv != SA_OK ) {
-                fprintf( stderr, "cannot get fan state: %s!\n", decode_error( rv ) );
+                fprintf( stderr, "cannot get fan state: %s!\n", oh_lookup_error( rv ) );
                 return rv;
         }
 
@@ -108,7 +108,7 @@ set_fan_speed( SaHpiSessionIdT session_id,
         rv = saHpiControlStateSet( session_id, resource_id, ctrl_num, &state );
 
         if ( rv != SA_OK ) {
-                fprintf( stderr, "cannot set fan state: %s!\n", decode_error( rv ) );
+                fprintf( stderr, "cannot set fan state: %s!\n", oh_lookup_error( rv ) );
                 return rv;
         }
 
@@ -188,7 +188,7 @@ discover_domain( SaHpiSessionIdT session_id )
                 rv = saHpiRptEntryGet( session_id, current, &next, &entry );
 
                 if ( rv != SA_OK ) {
-                        printf( "saHpiRptEntryGet: %s\n", decode_error( rv ) );
+                        printf( "saHpiRptEntryGet: %s\n", oh_lookup_error( rv ) );
                         return 1;
                 }
 
@@ -210,7 +210,7 @@ discover_domain( SaHpiSessionIdT session_id )
                                           &next_rdr, &rdr );
            
                         if ( rv != SA_OK ) {
-                                printf( "saHpiRdrGet: %s\n", decode_error( rv ) );
+                                printf( "saHpiRdrGet: %s\n", oh_lookup_error( rv ) );
                                 return 1;
                         }
 
@@ -273,7 +273,7 @@ main( int argc, char *argv[] )
         rv = saHpiInitialize( &hpiVer );
 
         if ( rv != SA_OK ) {
-                fprintf( stderr, "saHpiInitialize: %s\n",decode_error( rv ) );
+                fprintf( stderr, "saHpiInitialize: %s\n",oh_lookup_error( rv ) );
                 return 1;
         }
 
@@ -281,14 +281,14 @@ main( int argc, char *argv[] )
         rv = saHpiSessionOpen( SAHPI_DEFAULT_DOMAIN_ID, &sessionid, 0 );
 
         if ( rv != SA_OK ) {
-                printf( "saHpiSessionOpen: %s\n", decode_error( rv ) );
+                printf( "saHpiSessionOpen: %s\n", oh_lookup_error( rv ) );
                 return 1;
         }
 
         rv = saHpiResourcesDiscover( sessionid );
 
         if ( rv != SA_OK ) {
-                printf( "saHpiResourcesDiscover: %s\n", decode_error( rv ) );
+                printf( "saHpiResourcesDiscover: %s\n", oh_lookup_error( rv ) );
                 return 1;
         }
 
@@ -297,12 +297,12 @@ main( int argc, char *argv[] )
         rv = saHpiSessionClose( sessionid );
 
         if ( rv != SA_OK )
-                printf( "saHpiSessionClose: %s\n", decode_error( rv ) );
+                printf( "saHpiSessionClose: %s\n", oh_lookup_error( rv ) );
 
         rv = saHpiFinalize();
 
         if ( rv != SA_OK )
-                printf( "saHpiFinalize: %s\n", decode_error( rv ) );
+                printf( "saHpiFinalize: %s\n", oh_lookup_error( rv ) );
 
         return  rc;
 }

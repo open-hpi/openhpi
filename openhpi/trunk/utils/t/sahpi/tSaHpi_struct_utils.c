@@ -95,7 +95,7 @@ int main(int argc, char **argv)
 		/* oh_sensorreading: NULL buffer testcase */
 		expected_err = SA_ERR_HPI_INVALID_PARAMS;
 		
-		err = oh_decode_sensorreading(&reading_default, &format_default, 0);
+		err = oh_decode_sensorreading(reading_default, format_default, 0);
 		if (err != expected_err) {
 			printf("Error! oh_sensorreading: NULL buffer testcase failed\n");
 			printf("Received error=%d\n", err);
@@ -108,7 +108,7 @@ int main(int argc, char **argv)
 		format_test = format_default;
 		format_test.IsSupported = SAHPI_FALSE;
 		
-		err = oh_decode_sensorreading(&reading_test, &format_test, &buffer);
+		err = oh_decode_sensorreading(reading_test, format_test, &buffer);
 		if (err != expected_err) {
 			printf("Error! oh_sensorreading: IsSupported == FALSE testcase failed\n");
 			printf("Received error=%d\n", err);
@@ -122,7 +122,7 @@ int main(int argc, char **argv)
 		format_test.ModifierUnits = SAHPI_SU_WEEK;
 		format_test.ModifierUse = BAD_TYPE;
 		
-		err = oh_decode_sensorreading(&reading_test, &format_test, &buffer);
+		err = oh_decode_sensorreading(reading_test, format_test, &buffer);
 		if (err != expected_err) {
 			printf("Error! oh_sensorreading: Bad SaHpiSensorModifierUseT testcase failed\n");
 			printf("Received error=%d\n", err);
@@ -136,7 +136,7 @@ int main(int argc, char **argv)
 		format_test = format_default;
 		format_test.ReadingType = BAD_TYPE;
 		
-		err = oh_decode_sensorreading(&reading_test, &format_test, &buffer);
+		err = oh_decode_sensorreading(reading_test, format_test, &buffer);
 		if (err != expected_err) {
 			printf("Error! oh_sensorreading: Bad SaHpiSensorReadingT testcase failed\n");
 			printf("Received error=%d\n", err);
@@ -149,7 +149,7 @@ int main(int argc, char **argv)
 		format_test = format_default;
 		format_test.ReadingType = format_default.ReadingType + 1;
 		
-		err = oh_decode_sensorreading(&reading_test, &format_test, &buffer);
+		err = oh_decode_sensorreading(reading_test, format_test, &buffer);
 		if (err != expected_err) {
 			printf("Error! oh_sensorreading: Reading Types not equal testcase failed\n");
 			printf("Received error=%d\n", err);
@@ -161,7 +161,7 @@ int main(int argc, char **argv)
 		reading_test = reading_default;
 		format_test = format_default;
 		
-		err = oh_decode_sensorreading(&reading_test, &format_test, &buffer);
+		err = oh_decode_sensorreading(reading_test, format_test, &buffer);
 		if (err != SA_OK) {
 			printf("Error! oh_sensorreading: SAHPI_SENSOR_READING_TYPE_INT64 testcase failed\n");
 			printf("Received error=%d\n", err);
@@ -181,7 +181,7 @@ int main(int argc, char **argv)
 		format_test.ModifierUnits = SAHPI_SU_WEEK;
 		format_test.ModifierUse = SAHPI_SMUU_BASIC_OVER_MODIFIER;
 		
-		err = oh_decode_sensorreading(&reading_test, &format_test, &buffer);
+		err = oh_decode_sensorreading(reading_test, format_test, &buffer);
 		if (err != SA_OK) {
 			printf("Error! oh_sensorreading: testcase SAHPI_SMUU_BASIC_OVER_MODIFIER failed\n");
 			printf("Received error=%d\n", err);
@@ -201,7 +201,7 @@ int main(int argc, char **argv)
 		format_test.ModifierUnits = SAHPI_SU_WEEK;
 		format_test.ModifierUse = SAHPI_SMUU_BASIC_TIMES_MODIFIER;
 		
-		err = oh_decode_sensorreading(&reading_test, &format_test, &buffer);
+		err = oh_decode_sensorreading(reading_test, format_test, &buffer);
 		if (err != SA_OK) {
 			printf("Error! oh_sensorreading: testcase SAHPI_SMUU_BASIC_TIMES_MODIFIER failed\n");
 			printf("Received error=%d\n", err);
@@ -222,7 +222,7 @@ int main(int argc, char **argv)
 		format_test.ModifierUnits = SAHPI_SU_WEEK;
 		format_test.ModifierUse = SAHPI_SMUU_BASIC_TIMES_MODIFIER;
 		
-		err = oh_decode_sensorreading(&reading_test, &format_test, &buffer);
+		err = oh_decode_sensorreading(reading_test, format_test, &buffer);
 		if (err != SA_OK) {
 			printf("Error! oh_sensorreading: testcase Percentage failed\n");
 			printf("Received error=%d\n", err);
@@ -243,7 +243,7 @@ int main(int argc, char **argv)
 		format_test = format_default;
 		format_test.ReadingType = SAHPI_SENSOR_READING_TYPE_UINT64;
 		
-		err = oh_decode_sensorreading(&reading_test, &format_test, &buffer);
+		err = oh_decode_sensorreading(reading_test, format_test, &buffer);
 		if (err != SA_OK) {
 			printf("Error! oh_sensorreading: SAHPI_SENSOR_READING_TYPE_UINT64 testcase failed\n");
 			printf("Received error=%d\n", err);
@@ -264,7 +264,7 @@ int main(int argc, char **argv)
 		format_test = format_default;
 		format_test.ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64;
 		
-		err = oh_decode_sensorreading(&reading_test, &format_test, &buffer);
+		err = oh_decode_sensorreading(reading_test, format_test, &buffer);
 		if (err != SA_OK) {
 			printf("Error! oh_sensorreading: SAHPI_SENSOR_READING_TYPE_FLOAT64 testcase failed\n");
 			printf("Received error=%d\n", err);
@@ -285,7 +285,7 @@ int main(int argc, char **argv)
 		format_test = format_default;
 		format_test.ReadingType = SAHPI_SENSOR_READING_TYPE_BUFFER;
 		
-		err = oh_decode_sensorreading(&reading_test, &format_test, &buffer);
+		err = oh_decode_sensorreading(reading_test, format_test, &buffer);
 		if (err != SA_OK) {
 			printf("Error! oh_sensorreading: SAHPI_SENSOR_READING_TYPE_BUFFER testcase failed\n");
 			printf("Received error=%d\n", err);

@@ -22,7 +22,9 @@
 #include <string.h>
 #include <unistd.h>
 #include <getopt.h>
+
 #include <SaHpi.h>
+#include <oh_utils.h>
 
 
 int fdebug = 0;
@@ -155,7 +157,7 @@ void DoEvent(
 					&reading, &conv_reading);
         if (rv != SA_OK) {
 		printf("raw=%x conv_ret=%d\n", reading.Raw, rv);
-	     /* printf("conv_rv=%s\n", decode_error(rv)); */
+	     /* printf("conv_rv=%s\n", oh_lookup_error(rv)); */
 		return;
         } else {
 	   reading.Interpreted.Type = conv_reading.Interpreted.Type;

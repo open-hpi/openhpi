@@ -40,12 +40,8 @@ extern "C" {
 /* 
  * Export function prototypes
 */
-void print_event(SaHpiEventT *thisEvent);
 void ShowSel( SaHpiEventLogEntryT  *sel, SaHpiRdrT *rdr,
                      		SaHpiRptEntryT *rptentry );
-char *decode_enum(struct code2string *code_array, int NUM_MAX, int code);
-void saftime2str(SaHpiTimeT time, char * str, size_t size);
-
 #ifdef __cplusplus
 }
 #endif
