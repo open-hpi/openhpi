@@ -81,6 +81,33 @@ int main(int argc, char **argv)
                         return -1;
                 }
 	}
+	
+	{
+		SaHpiTimeT time = SAHPI_TIME_UNSPECIFIED;
+		err = oh_decode_time(time, &buffer);
+		if (err != SA_OK) {
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%d\n", err);
+                        return -1;
+                }
+		
+		if (strncmp(buffer.Data, "SAHPI_TIME_UNSPECIFIED", (sizeof("SAHPI_TIME_UNSPECIFIED")-1)) != 0) {
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Not receiving expected string SAHPI_TIME_UNSPECIFIED\n");
+			return -1;
+		}
+
+	}
+	
+	{
+		SaHpiTimeT time = SAHPI_TIME_MAX_RELATIVE - 1;
+		err = oh_decode_time(time, &buffer);
+		if (err != SA_OK) {
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%d\n", err);
+                        return -1;
+                }
+	}
 
 	return(0);
 }
