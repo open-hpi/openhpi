@@ -41,7 +41,9 @@ sub make_html_head {
     return <<END;
 <html>
 <head><title>GCOV Report for $title</title>
+<style>
 <!--#include virtual="/openhpi.css" -->
+</style>
 </head>
 <body>
 <table>

@@ -26,9 +26,16 @@ my $report = "";
 
 # this needs to be made more generic over time
 my %files = (
+             "src/oHpi.c" => "t/ohpi",
              "utils/epath_utils.c" => "t/epath",
-             "utils/sel_utils.c" => "t/sel",
+             "utils/sel_utils.c" => "t/el",
              "utils/rpt_utils.c" => "t/rpt",
+             "utils/uid_utils.c" => "t/uid",
+             "utils/sahpi_enum_utils.c" => "t/sahpi",
+             "utils/sahpi_event_encode.c" => "t/sahpi",
+             "utils/sahpi_event_utils.c" => "t/sahpi",
+             "utils/sahpi_struct_utils.c" => "t/sahpi",
+             "utils/sahpi_time_utils.c" => "t/sahpi",
              # now for the blade center stuff
              "plugins/snmp_bc/snmp_bc.c" => "t",
              "plugins/snmp_bc/snmp_bc_control.c" => "t",
@@ -42,7 +49,6 @@ my %files = (
 	     "plugins/snmp_bc/snmp_bc_time.c" => "t",
              "plugins/snmp_bc/snmp_bc_utils.c" => "t",
              "plugins/snmp_bc/snmp_bc_watchdog.c" => "t",
-
              "plugins/snmp_bc/t/bc_str2event.c" => ".libs",
              "plugins/snmp_bc/t/snmp_bc.c" => ".libs",
              "plugins/snmp_bc/t/snmp_bc_control.c" => ".libs",

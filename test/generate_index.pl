@@ -35,7 +35,9 @@ sub make_html_head {
     return <<END;
 <html>
 <head><title>Test Coverage Analysis</title>
+<style>
 <!--#include virtual="/openhpi.css" -->
+</style>
 </head>
 <body>
 <table>
