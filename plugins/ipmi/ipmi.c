@@ -19,9 +19,10 @@
 #include "ipmi.h"
 #include <netdb.h>
 
-extern os_handler_t     ipmi_ui_cb_handlers;
-
+static os_handler_t *os_hnd;
 static ipmi_con_t *con;
+
+selector_t *ohoi_sel;
 
 /**
  * This is data structure reference by rsel_id.ptr
@@ -85,13 +86,16 @@ static void *ipmi_open(GHashTable *handler_config)
 	ipmi_handler->SDRs_read_done = 0;
         ipmi_handler->SELs_read_done = 0;
 	
-	sel_alloc_selector(&ui_sel);
-	ipmi_init(&ipmi_ui_cb_handlers);
+        /* OS handler allocated first. */
+        os_hnd = ipmi_posix_get_os_handler();
+	sel_alloc_selector(os_hnd, &ohoi_sel);
+        ipmi_posix_os_handler_set_sel(os_hnd, ohoi_sel);
+	ipmi_init(os_hnd);
 	
 	if (strcmp(name, "smi") == 0) {
 		int tmp = strtol(addr, (char **)NULL, 10);
 		
-		rv = ipmi_smi_setup_con(tmp,&ipmi_ui_cb_handlers,ui_sel,&con);
+		rv = ipmi_smi_setup_con(tmp,os_hnd,ohoi_sel,&con);
 		if (rv) {
 			dbg("Cannot setup connection");
 			return NULL;
@@ -168,7 +172,7 @@ static void *ipmi_open(GHashTable *handler_config)
 					auth, priv,
 					user, strlen(user),
 					passwd, strlen(passwd),
-					&ipmi_ui_cb_handlers, ui_sel,
+					os_hnd, ohoi_sel,
 					&con);
 	} else {
 		dbg("Unsupported IPMI connection method: %s",name);
@@ -253,7 +257,7 @@ static int ipmi_discover_resources(void *hnd)
 	dbg("ipmi discover_resources");
 	
 	while (0 == ipmi_handler->SDRs_read_done || 0 == ipmi_handler->SELs_read_done) {
-		rv = sel_select(ui_sel, NULL, 0 , NULL, NULL);
+		rv = sel_select(ohoi_sel, NULL, 0 , NULL, NULL);
 		if (rv<0) {
 			dbg("error on waiting for discovery");
 			return -1;
@@ -449,7 +453,7 @@ static int ipmi_get_sel_entry(void *hnd, SaHpiResourceIdT id,
 {
         struct ohoi_resource_id *ohoi_res_id;
 	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
-        ipmi_event_t event;
+        ipmi_event_t *event;
 
         ohoi_res_id = oh_get_resource_data(handler->rptcache, id);
         if (ohoi_res_id->type != OHOI_RESOURCE_MC) {
@@ -462,7 +466,7 @@ static int ipmi_get_sel_entry(void *hnd, SaHpiResourceIdT id,
         case SAHPI_OLDEST_ENTRY:
 		ohoi_get_sel_first_entry(ohoi_res_id->u.mc_id, &event);
                 
-		ohoi_get_sel_next_recid(ohoi_res_id->u.mc_id, &event, next);
+		ohoi_get_sel_next_recid(ohoi_res_id->u.mc_id, event, next);
 		
                 *prev = SAHPI_NO_MORE_ENTRIES;
                 break;
@@ -472,22 +476,22 @@ static int ipmi_get_sel_entry(void *hnd, SaHpiResourceIdT id,
 
                 *next = SAHPI_NO_MORE_ENTRIES;
 
-                ohoi_get_sel_prev_recid(ohoi_res_id->u.mc_id, &event, prev);
+                ohoi_get_sel_prev_recid(ohoi_res_id->u.mc_id, event, prev);
                 break;
                 
         default:                		
 		/* get the entry requested by id */
 		ohoi_get_sel_by_recid(ohoi_res_id->u.mc_id, *next, &event);
 
-		ohoi_get_sel_next_recid(ohoi_res_id->u.mc_id, &event, next);
+		ohoi_get_sel_next_recid(ohoi_res_id->u.mc_id, event, next);
 
-                ohoi_get_sel_prev_recid(ohoi_res_id->u.mc_id, &event, prev);
+                ohoi_get_sel_prev_recid(ohoi_res_id->u.mc_id, event, prev);
                 break; 
 	}
         entry->Event.EventType = SAHPI_ET_USER;
         memcpy(&entry->Event.EventDataUnion.UserEvent.UserEventData[3],
-               event.data, 
-               sizeof(event.data));	
+               ipmi_event_get_data_ptr(event), 
+               ipmi_event_get_data_len(event));	
 
 	return 0;		
 }

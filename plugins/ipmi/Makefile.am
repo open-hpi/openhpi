@@ -54,5 +54,5 @@ libipmi_la_SOURCES	= ipmi.c 		\
 			  sync.c 		\
 			  ipmi.h
 			  
-libipmi_la_LIBADD	= -luuid -lncurses -lOpenIPMI -lOpenIPMIui
+libipmi_la_LIBADD	= -luuid -lncurses -lOpenIPMI -lOpenIPMIposix
 libipmi_la_LDFLAGS	= -version-info @HPI_LIB_VERSION@

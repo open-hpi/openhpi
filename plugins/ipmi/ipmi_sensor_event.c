@@ -37,26 +37,33 @@ static void set_discrete_sensor_misc_event(ipmi_event_t		*event,
 					   SaHpiSensorEventT	*e)
 {
 	enum ohoi_event_type  type;
+        unsigned char *data;
+ 
+        data = ipmi_event_get_data_ptr(event);
 	
-	type = event->data[10] >> 6;
+	type = data[10] >> 6;
 	if (type == EVENT_DATA_2) 
-		e->Oem = (SaHpiUint32T)event->data[11]; 
+		e->Oem = data[11]; 
 	else if (type == EVENT_DATA_3)
-		e->SensorSpecific = (SaHpiUint32T)event->data[11]; 
+		e->SensorSpecific = data[11]; 
 
-	type = (event->data[10] & 0x30) >> 4;
+	type = (data[10] & 0x30) >> 4;
 	if (type == EVENT_DATA_2)
-		e->Oem = (SaHpiUint32T)event->data[12];
+		e->Oem = data[12];
 	else if (type == EVENT_DATA_3)
-		e->SensorSpecific = (SaHpiUint32T)event->data[12];
+		e->SensorSpecific = data[12];
 }
 
 static void 
 set_discrete_sensor_event_state(ipmi_event_t		*event,
 				  SaHpiEventStateT	*state)
 {
-	enum ohoi_discrete_e e = event->data[10] & 0x7;
-
+	enum ohoi_discrete_e e;
+        unsigned char *data;
+ 
+        data = ipmi_event_get_data_ptr(event);
+	
+        e = data[10] & 0x7;
 	switch (e) {
 		case IPMI_TRANS_IDLE:
 			*state = SAHPI_ES_IDLE;
@@ -84,6 +91,9 @@ static void sensor_discrete_event(ipmi_sensor_t		*sensor,
         struct oh_handler_state *handler;
 	ipmi_entity_id_t        entity_id;
         SaHpiRptEntryT          *rpt_entry;
+        unsigned char           *data;
+ 
+        data = ipmi_event_get_data_ptr(event);
 
         handler    = cb_data;
         entity_id  = ipmi_entity_convert_to_id(ipmi_sensor_get_entity(sensor));
@@ -107,17 +117,17 @@ static void sensor_discrete_event(ipmi_sensor_t		*sensor,
 	e->u.hpi_event.event.Source = 0;
 	/* Do not find EventType in IPMI */
 	e->u.hpi_event.event.EventType = SAHPI_ET_SENSOR;
-	e->u.hpi_event.event.Timestamp = (SaHpiTimeT)ipmi_get_uint32(event->data);
+	e->u.hpi_event.event.Timestamp 
+                = (SaHpiTimeT)ipmi_get_uint32(data) * 1000000000;
 
 	e->u.hpi_event.event.Severity = (SaHpiSeverityT)severity;
 
 	e->u.hpi_event.event.EventDataUnion.SensorEvent.SensorNum = 0;
-	e->u.hpi_event.event.EventDataUnion.SensorEvent.SensorType = 
-		(SaHpiSensorTypeT)event->data[7];
-	e->u.hpi_event.event.EventDataUnion.SensorEvent.EventCategory =
-		(SaHpiEventCategoryT)event->data[9] & 0x7f;
-	e->u.hpi_event.event.EventDataUnion.SensorEvent.Assertion = 
-		(SaHpiBoolT)!(dir);
+	e->u.hpi_event.event.EventDataUnion.SensorEvent.SensorType = data[7];
+	e->u.hpi_event.event.EventDataUnion.SensorEvent.EventCategory 
+                = data[9] & 0x7f;
+	e->u.hpi_event.event.EventDataUnion.SensorEvent.Assertion 
+                = !(dir);
 	
 	set_discrete_sensor_event_state(event, &e->u.hpi_event.event.EventDataUnion.SensorEvent.EventState);
 	e->u.hpi_event.event.EventDataUnion.SensorEvent.PreviousState 
@@ -182,26 +192,29 @@ static void set_thresholds_sensor_misc_event(ipmi_event_t	*event,
 					      SaHpiSensorEventT	*e)
 {
 	unsigned int type;
+        unsigned char *data;
+ 
+        data = ipmi_event_get_data_ptr(event);
 	
-	type = event->data[10] >> 6;
+	type = data[10] >> 6;
 	if (type == EVENT_DATA_1) {
 		e->TriggerReading.ValuesPresent = SAHPI_SRF_RAW;
-		e->TriggerReading.Raw = (SaHpiUint32T)event->data[11];
+		e->TriggerReading.Raw = data[11];
 	}
 	else if (type == EVENT_DATA_2) 
-		e->Oem = (SaHpiUint32T)event->data[11]; 
+		e->Oem = data[11]; 
 	else if (type == EVENT_DATA_3)
-		e->SensorSpecific = (SaHpiUint32T)event->data[11]; 
+		e->SensorSpecific = data[11]; 
 
-	type = (event->data[10] & 0x30) >> 4;
+	type = (data[10] & 0x30) >> 4;
 	if (type == EVENT_DATA_1) {
 		e->TriggerThreshold.ValuesPresent = SAHPI_SRF_RAW;
-		e->TriggerThreshold.Raw = (SaHpiUint32T)event->data[12];
+		e->TriggerThreshold.Raw = data[12];
 	}
 	else if (type == EVENT_DATA_2)
-		e->Oem = (SaHpiUint32T)event->data[12];
+		e->Oem = data[12];
 	else if (type == EVENT_DATA_3)
-		e->SensorSpecific = (SaHpiUint32T)event->data[12];
+		e->SensorSpecific = data[12];
 }
 
 static void sensor_threshold_event(ipmi_sensor_t		*sensor,
@@ -219,6 +232,9 @@ static void sensor_threshold_event(ipmi_sensor_t		*sensor,
 	ipmi_entity_id_t	entity_id;
 	SaHpiSeverityT		severity;
         SaHpiRptEntryT          *rpt_entry;
+        unsigned char           *data;
+ 
+        data = ipmi_event_get_data_ptr(event);
 
       
         handler    = cb_data;
@@ -238,14 +254,14 @@ static void sensor_threshold_event(ipmi_sensor_t		*sensor,
 	e->u.hpi_event.event.Source = 0;
 	/* Do not find EventType in IPMI */
 	e->u.hpi_event.event.EventType = SAHPI_ET_SENSOR;
-	e->u.hpi_event.event.Timestamp = (SaHpiTimeT)
-		ipmi_get_uint32(event->data);
+	e->u.hpi_event.event.Timestamp 
+                = (SaHpiTimeT)ipmi_get_uint32(data) * 1000000000;
 
 	e->u.hpi_event.event.EventDataUnion.SensorEvent.SensorNum = 0;
-	e->u.hpi_event.event.EventDataUnion.SensorEvent.SensorType = 
-		(SaHpiSensorTypeT)event->data[7];
-	e->u.hpi_event.event.EventDataUnion.SensorEvent.EventCategory =
-		(SaHpiEventCategoryT)event->data[9] & 0x7f;
+	e->u.hpi_event.event.EventDataUnion.SensorEvent.SensorType 
+                = data[7];
+	e->u.hpi_event.event.EventDataUnion.SensorEvent.EventCategory 
+                = data[9] & 0x7f;
 	
 	set_thresholed_sensor_event_state(threshold, dir, high_low,
 			&e->u.hpi_event.event.EventDataUnion.SensorEvent,
