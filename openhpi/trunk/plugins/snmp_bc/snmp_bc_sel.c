@@ -112,7 +112,7 @@ int snmp_bc_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiSelInfoT *info)
         snmp_get(custom_handle->ss,oid,&first_value);
         
         if(first_value.type == ASN_OCTET_STR) {
-                if(snmp_bc_parse_sel_entry(custom_handle->ss,first_value.string, &sel_entry) < 0) {
+                if(snmp_bc_parse_sel_entry(handle,first_value.string, &sel_entry) < 0) {
                         dbg("Couldn't get first date");
                 } else {
                         sel.UpdateTimestamp = 
@@ -120,7 +120,7 @@ int snmp_bc_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiSelInfoT *info)
                 }
         }
         
-        if(get_bc_sp_time(custom_handle->ss,&curtime) == 0) {
+        if(get_bc_sp_time(handle,&curtime) == 0) {
                 sel.CurrentTime = 
                         (SaHpiTimeT) mktime(&curtime) * 1000000000;
         }
@@ -264,7 +264,7 @@ int snmp_bc_selcache_sync(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT entry
 			return SA_OK;
 		}
 		
-		if(snmp_bc_parse_sel_entry(custom_handle->ss,get_value.string, &sel_entry) < 0) {
+		if(snmp_bc_parse_sel_entry(handle,get_value.string, &sel_entry) < 0) {
 			dbg("Couldn't parse SEL Entry");
        			return -1;
 		}
@@ -277,7 +277,7 @@ int snmp_bc_selcache_sync(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT entry
                			sprintf(oid, "%s.%d", BC_SEL_ENTRY_OID, current);
                			rv = snmp_get(custom_handle->ss,oid,&get_value);
 				if (rv == 0) {
-               				if(snmp_bc_parse_sel_entry(custom_handle->ss,get_value.string, &sel_entry) < 0) {
+               				if(snmp_bc_parse_sel_entry(handle,get_value.string, &sel_entry) < 0) {
                					dbg("Couldn't parse SEL Entry");
                        				return -1;
 					}
@@ -388,6 +388,7 @@ int snmp_bc_sel_read_add (void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT curre
         struct oh_handler_state *handle = hnd;
         struct snmp_bc_hnd *custom_handle = handle->data;
         SaHpiSelEntryT tmpentry;
+	bc_sel_entry sel_entry;
         char oid[50];
         SaErrorT rv;
 	int isdst = 0;
@@ -398,6 +399,8 @@ int snmp_bc_sel_read_add (void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT curre
 	if(get_value.type == ASN_OCTET_STR) {
 		int event_enabled;
 
+		snmp_bc_parse_sel_entry(handle,get_value.string, &sel_entry);
+		isdst = sel_entry.time.tm_isdst;
                 log2event(hnd, get_value.string, &tmpentry.Event, isdst, &event_enabled);
                 tmpentry.EntryId = current;
                 tmpentry.Timestamp = tmpentry.Event.Timestamp;
@@ -425,15 +428,16 @@ int snmp_bc_sel_read_add (void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT curre
  * 
  * Return value: 0 for success, -1 for format error, -2 for premature data termination
  **/
-int snmp_bc_parse_sel_entry(struct snmp_session *ss, char * text, bc_sel_entry * sel) 
+int snmp_bc_parse_sel_entry(struct oh_handler_state *handle, char * text, bc_sel_entry * sel) 
 {
         bc_sel_entry ent;
         char level[8];
         char * start = text;
-        
+
         /* Severity first */
         if(sscanf(start,"Severity:%7s",level)) {
                 if(strcmp(level,"INFO") == 0) {
+
                         ent.sev = SAHPI_INFORMATIONAL;
                 } else if(strcmp(level,"WARN") == 0) {
                         ent.sev = SAHPI_MINOR;
@@ -469,7 +473,7 @@ int snmp_bc_parse_sel_entry(struct snmp_session *ss, char * text, bc_sel_entry *
         if(sscanf(start,"Date:%2d/%2d/%2d  Time:%2d:%2d:%2d",
                   &ent.time.tm_mon, &ent.time.tm_mday, &ent.time.tm_year, 
                   &ent.time.tm_hour, &ent.time.tm_min, &ent.time.tm_sec)) {
-		set_bc_dst(ss, &ent.time);
+		set_bc_dst(handle, &ent.time);
                 ent.time.tm_mon--;
                 ent.time.tm_year += 100;
         } else {

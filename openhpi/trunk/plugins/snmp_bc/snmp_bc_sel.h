@@ -33,7 +33,7 @@ typedef struct {
 /* 
  * Function Prototyping
  */
-int snmp_bc_parse_sel_entry(struct snmp_session *,char * text, bc_sel_entry * sel);
+int snmp_bc_parse_sel_entry(struct oh_handler_state *,char * text, bc_sel_entry * sel);
 int snmp_bc_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiSelInfoT *info);
 int snmp_bc_get_sel_entry(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT current,
                           SaHpiSelEntryIdT *prev, SaHpiSelEntryIdT *next,
