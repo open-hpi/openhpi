@@ -25,10 +25,13 @@ mkdir $outdir, 0755;
 foreach my $dir (@dirs) {
     opendir(DIR,"../$dir");
     while(my $file = readdir(DIR)) {
+        my $safename = $dir;
+        $safename =~ s{/}{_}g;
+        $safename .= "_";
         if($file =~ /\.gcov$/) {
-            system("./gcov2html.pl ../$dir/$file > $outdir/$file.html");
+            system("./gcov2html.pl ../$dir/$file > $outdir/$safename$file.html");
         } elsif ($file =~ /\.summary$/) {
-            system("./gsum2html.pl ../$dir/$file > $outdir/$file.html");
+            system("./gsum2html.pl ../$dir/$file > $outdir/$safename$file.html");
         }
     }
     closedir(DIR);
