@@ -185,7 +185,7 @@ cIpmiMc::HandleNew()
             return EINVAL;
 
        if ( m_sel_device_support )
-            IpmiSelHandleSdr( m_domain, this, m_sdrs );
+            m_vendor->CreateSel( this, m_sdrs );
 
        if ( m_vendor->CreateFrus( this, m_sdrs ) == false )
             return EINVAL;

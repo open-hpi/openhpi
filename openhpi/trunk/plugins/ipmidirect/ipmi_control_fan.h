@@ -26,6 +26,7 @@
 
 class cIpmiControlFan : public cIpmiControl
 {
+protected:
   unsigned int m_minimum_speed_level;
   unsigned int m_maximum_speed_level;
   unsigned int m_default_speed_level;

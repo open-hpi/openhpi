@@ -71,16 +71,6 @@ public:
 
   virtual SaErrorT IfSetResourceSeverity( cIpmiEntity *ent, SaHpiSeverityT sev );
 
-  virtual SaErrorT IfGetSelInfo( cIpmiSel *sel, SaHpiSelInfoT &info );
-  virtual SaErrorT IfGetSelTime( cIpmiSel *sel, SaHpiTimeT &time );
-  virtual SaErrorT IfSetSelTime( cIpmiSel *sel, SaHpiTimeT time );
-  virtual SaErrorT IfAddSelEntry( cIpmiSel *sel, const SaHpiSelEntryT &Event );
-  virtual SaErrorT IfDelSelEntry( cIpmiSel *sel, SaHpiSelEntryIdT sid );
-  virtual SaErrorT IfGetSelEntry( cIpmiSel *sel, SaHpiSelEntryIdT current,
-                                  SaHpiSelEntryIdT &prev, SaHpiSelEntryIdT &next,
-                                  SaHpiSelEntryT &entry );
-  virtual SaErrorT IfClearSel( cIpmiSel *sel );
-
   // hot swap
   virtual SaErrorT IfGetHotswapState( cIpmiEntity *ent, SaHpiHsStateT &state );
   virtual SaErrorT IfSetHotswapState( cIpmiEntity *ent, SaHpiHsStateT state );
@@ -95,7 +85,8 @@ public:
 
   virtual SaErrorT IfControlParm( cIpmiEntity *ent, SaHpiParmActionT act );
 
-  virtual void IfSelAdd( cIpmiEntity *ent, cIpmiSel *sel );
+  // lock for the hpi event queue
+  cThreadLock m_event_lock;
 
   virtual void AddHpiEvent( oh_event *event );
   virtual GSList *GetHpiEventList() { return m_handler->eventq; }

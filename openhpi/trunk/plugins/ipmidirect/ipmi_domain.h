@@ -148,9 +148,15 @@ protected:
   // global lock for reading/writing:
   //   mcs, entities, sensors, frus, sels
   cThreadLockRw m_lock;
+
   GList        *m_mcs; // list of all MCs
 
 public:
+  void ReadLock()    { m_lock.ReadLock(); }
+  void ReadUnlock()  { m_lock.ReadUnlock(); }
+  void WriteLock()   { m_lock.WriteLock(); }
+  void WriteUnlock() { m_lock.WriteUnlock(); }
+
   // lock m_initial_discover
   cThreadLock m_initial_discover_lock;
 
@@ -249,7 +255,7 @@ public:
 
   // called with a list of events to handle from cIpmiMcThread
   void HandleEvents( GList *list );
-  
+
   // handle a single event
   void HandleEvent( cIpmiEvent *event );
 
@@ -264,9 +270,6 @@ public:
 
   // called in cIpmiEntity::AddSensor to set the initial hotswap state
   void IfHotswapSetInitialState( cIpmiEntity *ent, cIpmiSensorHotswap *sensor );
-
-  // called from IPMI framwork to create SEL
-  virtual void IfSelAdd( cIpmiEntity *ent, cIpmiSel *sel ) = 0;
 
   virtual const char *EntityRoot() = 0;
   virtual oh_handler_state *GetHandler() = 0;

@@ -554,7 +554,7 @@ IpmiGetSelInfo( void *hnd,
   if ( !ent || ent->Sel() == 0 )
        return SA_ERR_HPI_NOT_PRESENT;
 
-  SaErrorT rv = ipmi->IfGetSelInfo( ent->Sel(), *info );
+  SaErrorT rv = ent->Sel()->GetSelInfo( *info );
 
   ipmi->IfLeave();
 
@@ -571,7 +571,7 @@ IpmiSetSelTime( void *hnd, SaHpiResourceIdT id, SaHpiTimeT t )
   if ( !ent || ent->Sel() == 0 )
        return SA_ERR_HPI_NOT_PRESENT;
 
-  SaErrorT rv = ipmi->IfSetSelTime( ent->Sel(), t );
+  SaErrorT rv = ent->Sel()->SetSelTime( t );
 
   ipmi->IfLeave();
 
@@ -589,7 +589,7 @@ IpmiAddSelEntry( void *hnd, SaHpiResourceIdT id,
   if ( !ent || ent->Sel() == 0 )
        return SA_ERR_HPI_NOT_PRESENT;
 
-  SaErrorT rv = ipmi->IfAddSelEntry( ent->Sel(), *Event );
+  SaErrorT rv = ent->Sel()->AddSelEntry( *Event );
 
   ipmi->IfLeave();
 
@@ -607,7 +607,7 @@ IpmiDelSelEntry( void *hnd, SaHpiResourceIdT id,
   if ( !ent || ent->Sel() == 0 )
        return SA_ERR_HPI_NOT_PRESENT;
 
-  SaErrorT rv = ipmi->IfDelSelEntry( ent->Sel(), sid );
+  SaErrorT rv = ent->Sel()->DeleteSelEntry( sid );
 
   ipmi->IfLeave();
 
@@ -627,7 +627,7 @@ IpmiGetSelEntry( void *hnd, SaHpiResourceIdT id,
   if ( !ent || ent->Sel() == 0 )
        return SA_ERR_HPI_NOT_PRESENT;
 
-  SaErrorT rv = ipmi->IfGetSelEntry( ent->Sel(), current, *prev, *next, *entry );
+  SaErrorT rv = ent->Sel()->GetSelEntry( current, *prev, *next, *entry );
 
   ipmi->IfLeave();
 
@@ -644,8 +644,8 @@ IpmiClearSel( void *hnd, SaHpiResourceIdT id )
   if ( !ent || ent->Sel() == 0 )
        return SA_ERR_HPI_NOT_PRESENT;
 
-  SaErrorT rv = ipmi->IfClearSel( ent->Sel() );
-
+  SaErrorT rv = ent->Sel()->ClearSel();
+  
   ipmi->IfLeave();
 
   return rv;
@@ -1177,8 +1177,12 @@ cIpmi::AllocConnection( GHashTable *handler_config )
 void
 cIpmi::AddHpiEvent( oh_event *event )
 {
+  m_event_lock.Lock();
+
   assert( m_handler );
   m_handler->eventq = g_slist_append( m_handler->eventq, event );
+
+  m_event_lock.Unlock();
 }
 
 
@@ -1208,12 +1212,14 @@ cIpmi::FindResource( SaHpiResourceIdT rid )
 void
 cIpmi::IfEnter()
 {
+  m_lock.ReadLock();
 }
 
 
 void
 cIpmi::IfLeave()
 {
+  m_lock.ReadUnlock();
 }
 
 
@@ -1345,16 +1351,21 @@ cIpmi::IfClose()
 int
 cIpmi::IfGetEvent( oh_event *event, const timeval & /*timeout*/ )
 {
+  int rv = 0;
+
+  m_event_lock.Lock();
+
   if ( g_slist_length( m_handler->eventq ) > 0 )
      {
        memcpy( event, m_handler->eventq->data, sizeof( oh_event ) );
-       free( m_handler->eventq->data );
+       g_free( m_handler->eventq->data );
        m_handler->eventq = g_slist_remove_link( m_handler->eventq, m_handler->eventq );
-       return 1;
+       rv = 1;
      }
 
-  // no events
-  return 0;
+  m_event_lock.Unlock();
+
+  return rv;
 }
 
 
@@ -1396,7 +1407,7 @@ cIpmi::IfSetResourceSeverity( cIpmiEntity *ent, SaHpiSeverityT sev )
 
   if ( !e )
      {
-       stdlog << "Out of space !\n";
+       stdlog << "out of space !\n";
        return SA_ERR_HPI_OUT_OF_SPACE;
      }
 

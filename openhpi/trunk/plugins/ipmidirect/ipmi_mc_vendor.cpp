@@ -660,3 +660,91 @@ cIpmiMcVendor::CreateFru( cIpmiMc *mc, cIpmiSdr *sdr )
 
   return true;
 }
+
+
+bool
+cIpmiMcVendor::CreateSel( cIpmiMc *mc, cIpmiSdrs *sdrs )
+{
+  cIpmiSel *sel = mc->Sel();
+  cIpmiSdr *sdr = 0;
+  unsigned char slave_addr = 0;
+  unsigned char channel = 0;
+
+  for( unsigned int i = 0; i < sdrs->NumSdrs(); i++ )
+     {
+       cIpmiSdr *s = sdrs->Sdr( i );
+
+       if ( s->m_type != eSdrTypeMcDeviceLocatorRecord )
+            continue;
+
+       slave_addr = s->m_data[5];
+       channel    = s->m_data[6] & 0xf;
+
+       cIpmiAddr addr( eIpmiAddrTypeIpmb, channel, 0, slave_addr );
+
+       if ( addr != mc->Addr() )
+            continue;
+
+       sdr = s;
+       break;
+     }
+
+  if ( sdr == 0 )
+       return true;
+
+  tIpmiEntityId id      = (tIpmiEntityId)sdr->m_data[12];
+  unsigned int instance = sdr->m_data[13];
+
+  cIpmiMc     *m   = mc->Domain()->FindOrCreateMcBySlaveAddr( slave_addr );
+  cIpmiEntity *ent = mc->Domain()->Entities().Add( m, 0, id, instance );
+
+  // check this
+  if ( ent->Sel() != 0 )
+     {
+       stdlog << "ups: only one SEL per entity allowd !\n";
+       return true;
+     }
+  
+  assert( ent->Sel() == 0 );
+  ent->Sel() = sel;
+
+  assert( sel->Entity() == 0 );
+  sel->Entity() = ent;
+
+  // create hpi sel
+  stdlog << "adding SEL\n";
+
+  dbg( "adding SEL %d.%d (%s)",
+       ent->EntityId(), ent->EntityInstance(),
+       IpmiEntityIdToString( ent->EntityId() ) );
+
+   // find resource
+  SaHpiRptEntryT *resource = ent->Domain()->FindResource( ent->m_resource_id );
+
+  if ( !resource )
+     {
+       assert( 0 );
+       return true;
+     }
+
+  assert( (resource->ResourceCapabilities & SAHPI_CAPABILITY_SEL ) == 0 );
+
+  // update resource
+  resource->ResourceCapabilities |= SAHPI_CAPABILITY_SEL;
+
+  struct oh_event *e = (struct oh_event *)g_malloc0( sizeof( struct oh_event ) );
+
+  if ( !e )
+     {
+       stdlog << "out of space !\n";
+       return true;
+     }
+
+  memset( e, 0, sizeof( struct oh_event ) );
+  e->type               = oh_event::OH_ET_RESOURCE;
+  e->u.res_event.entry = *resource;
+
+  ent->Domain()->AddHpiEvent( e );
+
+  return true;
+}
