@@ -22,6 +22,8 @@
 #include <SaHpi.h>
 #include <openhpi.h>
 
+GSList *global_session_list=NULL;
+
 static SaHpiSessionIdT scounter = 0;
 
 struct oh_session *session_get(SaHpiSessionIdT sid)
@@ -112,39 +114,3 @@ int session_pop_event(struct oh_session *s, struct oh_event *e)
 	return 1;
 }
 
-/*
- * Leaving session_get_events for Louis or Rusty to convert
- */
-
-#if 0
-int session_get_events(struct oh_session *s)
-{
-	struct oh_domain 	*d 	= s->domain_id;
-	struct oh_event	 	event;
-	int 		 	rv;
-	int			has_event;
-	do {
-		has_event = 0 ;
-		struct list_head *i;
-
-		list_for_each(i, &d->zone_list) { 
-			struct timeval to = {0, 0};
-			struct oh_zone *z 
-				= list_container(i, struct oh_zone, node); 
-			rv = z->abi->get_event(z->hnd, &event, &to);
-			if (rv>0) {
-				if (event.type == OH_ET_HPI) {
-					/* add the event to session event list */
-					session_push_event(s, &event);
-				} else {
-					domain_process_event(z, &event);
-				}
-				has_event = 1;
-			} else if (rv <0)
-				return -1;
-		}
-	} while (has_event);
-
-	return 0;
-}
-#endif

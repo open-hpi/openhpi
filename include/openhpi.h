@@ -114,7 +114,7 @@
  *  saHpiSessionOpen() to determine if the requested domain exist
  *  without doing a full search of the RPT. 
  */
-GSList *global_domain_list = NULL;
+extern GSList *global_domain_list;
 
 #if 0
 /*
@@ -128,14 +128,14 @@ GSList *global_plugin_list = NULL;
  *  Global listing of handlers (oh_handler).  This list is populated
  *  by the first call the saHpiSessionOpen().
  */
-GSList *global_handler_list = NULL;
+extern GSList *global_handler_list;
 
 /*
  *  Global listing of all active sessions (oh_session).  This list is 
  *  populated and depopulated by calls to saHpiSessionOpen() and
  *  saHpiSessionClose()
  */
-GSList *global_session_list = NULL;
+extern GSList *global_session_list;
 
 /*
  *  Global RPT Table (implemented as a linked list).
@@ -146,10 +146,10 @@ GSList *global_session_list = NULL;
  * 
  *  This list is populated by calls to saHpiDiscoverResources()
  */
-GSList *global_rpt = NULL;
-unsigned int global_rpt_counter; /*FIXME: I use the couter for two purposes. 
+extern GSList *global_rpt;
+extern unsigned int global_rpt_counter; /*FIXME: I use the couter for two purposes. 
 				   1) RptInfo counter 2) ResourceId allocation */
-struct timeval global_rpt_timestamp;
+extern struct timeval global_rpt_timestamp;
 
 /*
  * Representation of an HPI session
@@ -260,7 +260,6 @@ struct oh_rdr {
 struct oh_session *session_get(SaHpiSessionIdT);
 int session_add(SaHpiDomainIdT, struct oh_session**);
 int session_del(struct oh_session*);
-int session_get_events(struct oh_session*);
 /* malloc/copy/add event into the tail of event_list */
 int session_push_event(struct oh_session*, struct oh_event*);
 /* del/copy/free event from the head of event_list */
@@ -280,6 +279,7 @@ int domain_del(SaHpiDomainIdT);
 struct oh_resource *get_res_by_oid(struct oh_resource_id oid);
 struct oh_resource *get_resource(SaHpiResourceIdT rid);
 struct oh_resource *insert_resource(struct oh_handler *h, struct oh_resource_id oid);
+int resource_is_in_domain(struct oh_resource *res, SaHpiDomainIdT sid);
 
 struct oh_rdr *insert_rdr(struct oh_resource *res, struct oh_rdr_id oid);
 
@@ -291,6 +291,9 @@ int load_plugin(const char *plugin_name);
 /* here are the handler calls we need */
 struct oh_handler *new_handler(char *plugin_name, char *name, char *addr);
 int free_handler(struct oh_handler*);
+
+/* event handler*/
+int get_events(struct oh_session*);
 
 #define dbg(format, ...)                                      \
         do {							                      \
