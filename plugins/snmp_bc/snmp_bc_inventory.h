@@ -20,7 +20,8 @@
 #ifndef SNMP_BC_INVENTORY_H
 #define SNMP_BC_INVENTORY_H
 
-#define SIZE_OF_WORKING_SPACE 1024
+#include <snmp_bc.h>
+
 #define NOS_BC_INVENTORY_FIELDS 10
 
 /************************************************************************/
@@ -28,12 +29,12 @@
 /************************************************************************/
 struct  bc_idr_area {
         SaHpiIdrAreaHeaderT  idrareas;
-        SaHpiIdrFieldT  *fieldptr[NOS_BC_INVENTORY_FIELDS];
+        SaHpiIdrFieldT  field[NOS_BC_INVENTORY_FIELDS];
 };
 
 struct bc_inventory_record {
         SaHpiIdrInfoT   idrinfo;
-        struct bc_idr_area *areaptr[2];
+        struct bc_idr_area area[2];
 };
 
 /* 
@@ -124,7 +125,7 @@ SaErrorT snmp_bc_get_idr_field( void *hnd,
 SaErrorT snmp_bc_add_idr_field( void *hnd,
 		SaHpiResourceIdT         ResourceId,
 		SaHpiIdrIdT              IdrId,
-		SaHpiIdrFieldT        *Field);
+		SaHpiIdrFieldT        	*Field);
 
 /**
  * snmp_bc_set_idr_field:
@@ -156,6 +157,6 @@ SaErrorT snmp_bc_del_idr_field( void *hnd,
 SaErrorT snmp_bc_build_idr( void *hnd,
                SaHpiResourceIdT         ResourceId,
                SaHpiIdrIdT              IdrId,
-               void *                   i_record);
+               struct bc_inventory_record 	*i_record);
 	
 #endif

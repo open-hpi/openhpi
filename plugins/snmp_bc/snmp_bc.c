@@ -44,7 +44,6 @@ struct oh_abi_v2 oh_snmp_bc_plugin = {
 #if 0
         .set_control_state		= snmp_bc_set_control_state,
 #endif	
-#if 0
 	.get_idr_info			= snmp_bc_get_idr_info,
 	.get_idr_area_header		= snmp_bc_get_idr_area_header,
 	.add_idr_area			= snmp_bc_add_idr_area,
@@ -53,7 +52,6 @@ struct oh_abi_v2 oh_snmp_bc_plugin = {
 	.add_idr_field			= snmp_bc_add_idr_field,
 	.set_idr_field			= snmp_bc_set_idr_field,
 	.del_idr_field			= snmp_bc_del_idr_field,
-#endif
         .reset_watchdog			= snmp_bc_reset_watchdog,
         .get_hotswap_state		= snmp_bc_get_hotswap_state,
         .set_hotswap_state		= snmp_bc_set_hotswap_state,
