@@ -12,7 +12,7 @@ SaErrorT oHpiPluginLoad(char *name):
                 
 SaErrorT oHpiPluginUnload(char *name):
         (001) Load 'libdummy' and unload it.
-        (002) Load 'libdummy', unload it, and load it again.
+        (002) Load 'libdummy', unload it, and load it again. Don't open a session.
         (003) Load 'libdummy', create and destroy handler on it, and
            unload plugin.
         
@@ -21,7 +21,7 @@ SaErrorT oHpiPluginInfo(char *name, oHpiPluginInfoT *info):
               value (1) , and unload the plugins.
         (005) Load 'libdummy', create two handlers, get plugin info and
               compare with known value (3), destroy handlers, get info again
-              and compare with known value (1), unload plugin.
+              and compare with known value (1), unload plugin. Don't open a session.
           
 SaErrorT oHpiPluginGetNext(char *name, char *next_name, int size):
         (006) Load 'libdummy', load 'libwatchdog', iterate through the names
@@ -49,7 +49,7 @@ SaErrorT oHpiGlobalParamGet(char *name, char *value, int size):
               that was set through config file comparing with known value.
 
 SaErrorT oHpiGlobalParamSet(const char *name, char *value):
-        (036) Set a paramter, get it, and compare values.
+        (036) Set a paramter, get it, and compare values. Don't open a session.
 
 **Negative Tests** (expect a bad return code)
 

@@ -73,7 +73,7 @@ SaErrorT oh_initialize()
         }
 
         rval = oh_load_config(openhpi_conf, &config);
-	/* Don't error out if there is no conf file  */
+	/* Don't error out if there is no conf file */
 	if (rval < 0 && rval != -4) {
                 dbg("Can not load config");
                 data_access_unlock();
@@ -88,8 +88,7 @@ SaErrorT oh_initialize()
                 return(rval);
         }
         trace("Initialized UID");
-
-        oh_init_ltdl(); /* Must initialize ltdl before loading plugins */
+        
         /* Initialize plugins */
         for (node = config.plugin_names; node; node = node->next) {
                 char *plugin_name = (char *)node->data;
@@ -101,8 +100,7 @@ SaErrorT oh_initialize()
                 }
         }
 
-        /* Initialize handlers */
-        oh_init_handler_table();
+        /* Initialize handlers */        
         for (node = config.handler_configs; node; node = node->next) {
                 GHashTable *handler_config = (GHashTable *)node->data;
                 if(oh_load_handler(handler_config) > 0) {
@@ -125,7 +123,8 @@ SaErrorT oh_initialize()
 	oh_lookup_next_handler(0, &u);
         if (!u) {
                 /* there is no handler => this can not work */
-                dbg("No handlers loaded after initialization. Check %s!", openhpi_conf);
+                dbg("No handlers loaded after initialization.");
+                dbg("Check configuration file %s", openhpi_conf);
                 /*data_access_unlock();*/
                 /*return SA_ERR_HPI_NOT_PRESENT;*/
         }

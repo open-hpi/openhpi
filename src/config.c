@@ -370,6 +370,15 @@ static void scanner_msg_handler (GScanner *scanner, gchar *message, gboolean is_
       scanner->line, is_error ? "error: " : "", message );
 }
 
+static int init_global_params_table(void)
+{
+        if (!global_params)
+                global_params = g_hash_table_new_full(g_str_hash, g_str_equal,
+                                                      g_free, g_free);
+
+        return (global_params) ? 0 : -1;
+}
+
 /* Read in globals from environment and replace in table for globals */
 static void read_globals_from_env(void)
 {
@@ -412,9 +421,7 @@ int oh_load_config (char *filename, struct oh_parsed_config *config)
                 return -2;
         }
 
-        global_params = g_hash_table_new_full(g_str_hash, g_str_equal,
-                                              g_free, g_free);
-        if (!global_params) {
+        if (init_global_params_table()) {
                 dbg("Could not allocate for global_params hash table.");
                 return -3;
         }
@@ -515,10 +522,15 @@ int oh_lookup_global_param(char *param, char *value, int size)
         }
 
         data_access_lock();
+        if (!global_params) {
+                data_access_unlock();
+                return -1;
+        }
+        
         v = (char *)g_hash_table_lookup(global_params, param);
         if (v) {
                 strncpy(value, v, size);
-        }
+        }        
         data_access_unlock();
 
         return (v) ? 0 : -1;
@@ -539,6 +551,11 @@ int oh_set_global_param(const char *param, char *value)
         }
 
         data_access_lock();
+        if (init_global_params_table()) {
+                data_access_unlock();
+                dbg("Could not allocate for global_params hash table.");
+                return -3;
+        }
         g_hash_table_replace(global_params, g_strdup(param), g_strdup(value));
         data_access_unlock();
 

@@ -46,7 +46,7 @@ struct oh_handler {
 };
 
 /* Initialization and closing of ltdl structures. */
-int oh_init_ltdl(void);
+/*int oh_init_ltdl(void);*/
 int oh_exit_ltdl(void);
 
 /* Plugin and handler prototypes. */
@@ -58,7 +58,6 @@ int oh_lookup_next_plugin(char *plugin_name,
 int oh_load_plugin(char *plugin_name);
 int oh_unload_plugin(char *plugin_name);
 
-void oh_init_handler_table(void);
 struct oh_handler *oh_lookup_handler(unsigned int hid);
 int oh_lookup_next_handler(unsigned int hid, unsigned int *next_hid);
 unsigned int oh_load_handler(GHashTable *handler_config);
