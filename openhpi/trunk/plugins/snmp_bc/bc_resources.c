@@ -700,8 +700,8 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
 				.oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.8.0",
 				.threshold_oids = {
 					.InterpretedThresholds = {
-						.OidLowMajor     = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.6",
-						.OidUpMajor      = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.6",
+						.OidLowMajor = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.6",
+						.OidUpMajor  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.6",
 					},
 				},
 			},
@@ -2453,8 +2453,8 @@ struct snmp_bc_sensor snmp_bc_blade_addin_sensors[] = {
 				.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.10.x",
 				.threshold_oids = {
 					.InterpretedThresholds = {
-						.OidUpCrit       = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.18.x",
-						.OidUpMinor      = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.19.x",
+						.OidUpCrit  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.18.x",
+						.OidUpMajor = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.19.x",
 					},
 				},
 			},
