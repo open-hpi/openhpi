@@ -626,7 +626,7 @@ static void get_sensor_event_enable_masks(ipmi_sensor_t *sensor,
 	
         enable_data = cb_data;
 
-	 enable_data->done = 1;       
+//	 enable_data->done = 1;       
 	if (ignore_sensor(sensor)) {
 		dbg("sensor is ignored");
 		enable_data->rvalue = SA_ERR_HPI_NOT_PRESENT;
@@ -648,6 +648,7 @@ static void get_sensor_event_enable_masks(ipmi_sensor_t *sensor,
 		enable_data->deassert = 0;
 		enable_data->enable = SAHPI_FALSE;
 		enable_data->rvalue = SA_OK;
+		enable_data->done = 1;       
         }
 }
 
