@@ -3947,6 +3947,266 @@ struct snmp_bc_data sim_resource_array[] = {
                         },
                 },
         },
+        {
+                /* Blade IPMI Temperature Capability  - Blade 1 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.11.1",
+                .mib = {
+                        .type = ASN_INTEGER,
+                        .value = {
+                                .integer = 1,
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Temperature Capability  - Blade 2 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.11.2",
+                .mib = {
+                        .type = ASN_INTEGER,
+                        .value = {
+                                .integer = 0,
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Temperature Capability  - Blade 3 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.11.3",
+                .mib = {
+                        .type = ASN_INTEGER,
+                        .value = {
+                                .integer = 1,
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Temperature Capability  - Blade 4 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.11.4",
+                .mib = {
+                        .type = ASN_INTEGER,
+                        .value = {
+                                .integer = 0,
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Temperature Capability  - Blade 5 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.11.5",
+                .mib = {
+                        .type = ASN_INTEGER,
+                        .value = {
+                                .integer = 0,
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Temperature Capability  - Blade 6 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.11.6",
+                .mib = {
+                        .type = ASN_INTEGER,
+                        .value = {
+                                .integer = 0,
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Temperature Capability  - Blade 7 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.11.7",
+                .mib = {
+                        .type = ASN_INTEGER,
+                        .value = {
+                                .integer = 0,
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Temperature Capability  - Blade 8 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.11.8",
+                .mib = {
+                        .type = ASN_INTEGER,
+                        .value = {
+                                .integer = 0,
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Temperature Capability  - Blade 9 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.11.9",
+                .mib = {
+                        .type = ASN_INTEGER,
+                        .value = {
+                                .integer = 0,
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Temperature Capability  - Blade 10 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.11.10",
+                .mib = {
+                        .type = ASN_INTEGER,
+                        .value = {
+                                .integer = 0,
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Temperature Capability  - Blade 11 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.11.11",
+                .mib = {
+                        .type = ASN_INTEGER,
+                        .value = {
+                                .integer = 0,
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Temperature Capability  - Blade 12 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.11.12",
+                .mib = {
+                        .type = ASN_INTEGER,
+                        .value = {
+                                .integer = 0,
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Temperature Capability  - Blade 13 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.11.13",
+                .mib = {
+                        .type = ASN_INTEGER,
+                        .value = {
+                                .integer = 0,
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Temperature Capability  - Blade 14 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.11.14",
+                .mib = {
+                        .type = ASN_INTEGER,
+                        .value = {
+                                .integer = 0,
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Temperature Sensor 1 - Blade 1 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.12.1",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "CPU1 TEMP = +37.00 Centigrade",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Temperature Sensor 1 - Blade 3 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.12.3",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "Not Readable!",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Temperature Sensor 2 - Blade 1 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.13.1",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "Not Readable!",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Temperature Sensor 2 - Blade 3 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.13.3",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "Not Readable!",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Temperature Sensor 3 - Blade 1 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.14.1",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = " CPU2 TEMP = +90.00 Centigrade ",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Temperature Sensor 3 - Blade 3 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.14.3",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "(No temperature)",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Temperature Sensor 4 - Blade 1 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.15.1",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "GARBAGE",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Temperature Sensor 4 - Blade 3 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.15.3",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "GARBAGE",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Temperature Sensor 5 - Blade 1 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.16.1",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "(No temperature)",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Temperature Sensor 5 - Blade 3 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.16.3",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "(No temperature)",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Temperature Sensor 6 - Blade 1 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.17.1",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "(No temperature)",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Temperature Sensor 6 - Blade 3 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.17.3",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "(No temperature)",
+                        },
+                },
+        },
 	{
                 /* Blade DASD1 Up Critical temperature - Blade 1 */
                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.18.1",
@@ -4224,6 +4484,46 @@ struct snmp_bc_data sim_resource_array[] = {
                         .type = ASN_OCTET_STR,
                         .value = {
                                 .string = "  85.00 Centigrade",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Temperature Sensor 1 Up Critical - Blade 1 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.22.1",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "  +95.00 Centigrade",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Temperature Sensor 1 Up Major - Blade 1 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.23.1",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "  +85.00 Centigrade",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Temperature Sensor 3 Up Critical - Blade 1 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.28.1",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "  +95.00 Centigrade",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Temperature Sensor 3 Up Major - Blade 1 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.29.1",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "  +85.00 Centigrade",
                         },
                 },
         },
@@ -5908,6 +6208,46 @@ struct snmp_bc_data sim_resource_array[] = {
                 },
         },
         {
+                /* Blade IPMI Voltage Sensor 1 Up Major - Blade 3 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.23.3",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "+ 2.95 Volts",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Sensor 1 Low Major - Blade 3 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.23.3",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "+ 2.00 Volts",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Sensor 25 Up Major - Blade 3 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.71.3",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "+ 3.95 Volts",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Sensor 25 Low Major - Blade 3 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.72.3",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "+ 2.5 Volts",
+                        },
+                },
+        },
+        {
                 /* Blade 1.5 Volts - Blade 1 */
                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.11.1",
                 .mib = {
@@ -6884,6 +7224,646 @@ struct snmp_bc_data sim_resource_array[] = {
                         .type = ASN_OCTET_STR,
                         .value = {
                                 .string = "+ 1.49 Volts",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Capability - Blade 1 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.14.1",
+                .mib = {
+                        .type = ASN_INTEGER,
+                        .value = {
+                                .integer = 0,
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Capability - Blade 2 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.14.2",
+                .mib = {
+                        .type = ASN_INTEGER,
+                        .value = {
+                                .integer = 0,
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Capability - Blade 3 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.14.3",
+                .mib = {
+                        .type = ASN_INTEGER,
+                        .value = {
+                                .integer = 1,
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Capability - Blade 4 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.14.4",
+                .mib = {
+                        .type = ASN_INTEGER,
+                        .value = {
+                                .integer = 0,
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Capability - Blade 5 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.14.5",
+                .mib = {
+                        .type = ASN_INTEGER,
+                        .value = {
+                                .integer = 0,
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Capability - Blade 6 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.14.6",
+                .mib = {
+                        .type = ASN_INTEGER,
+                        .value = {
+                                .integer = 0,
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Capability - Blade 7 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.14.7",
+                .mib = {
+                        .type = ASN_INTEGER,
+                        .value = {
+                                .integer = 0,
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Capability - Blade 8 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.14.8",
+                .mib = {
+                        .type = ASN_INTEGER,
+                        .value = {
+                                .integer = 0,
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Capability - Blade 9 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.14.9",
+                .mib = {
+                        .type = ASN_INTEGER,
+                        .value = {
+                                .integer = 0,
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Capability - Blade 10 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.14.10",
+                .mib = {
+                        .type = ASN_INTEGER,
+                        .value = {
+                                .integer = 0,
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Capability - Blade 11 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.14.11",
+                .mib = {
+                        .type = ASN_INTEGER,
+                        .value = {
+                                .integer = 0,
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Capability - Blade 12 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.14.12",
+                .mib = {
+                        .type = ASN_INTEGER,
+                        .value = {
+                                .integer = 0,
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Capability - Blade 13 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.14.13",
+                .mib = {
+                        .type = ASN_INTEGER,
+                        .value = {
+                                .integer = 0,
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Capability - Blade 14 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.14.14",
+                .mib = {
+                        .type = ASN_INTEGER,
+                        .value = {
+                                .integer = 0,
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Sensor 1 - Blade 1 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.15.1",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "(No voltage)",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Sensor 2 - Blade 1 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.16.1",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "(No voltage)",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Sensor 3 - Blade 1 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.17.1",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "(No voltage)",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Sensor 4 - Blade 1 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.18.1",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "(No voltage)",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Sensor 5 - Blade 1 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.19.1",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "(No voltage)",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Sensor 6 - Blade 1 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.20.1",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "(No voltage)",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Sensor 7 - Blade 1 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.21.1",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "(No voltage)",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Sensor 8 - Blade 1 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.22.1",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "(No voltage)",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Sensor 9 - Blade 1 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.23.1",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "(No voltage)",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Sensor 10 - Blade 1 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.24.1",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "(No voltage)",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Sensor 11 - Blade 1 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.25.1",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "(No voltage)",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Sensor 12 - Blade 1 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.26.1",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "(No voltage)",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Sensor 13 - Blade 1 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.27.1",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "(No voltage)",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Sensor 14 - Blade 1 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.28.1",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "(No voltage)",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Sensor 15 - Blade 1 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.29.1",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "(No voltage)",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Sensor 16 - Blade 1 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.30.1",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "(No voltage)",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Sensor 17 - Blade 1 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.31.1",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "(No voltage)",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Sensor 18 - Blade 1 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.32.1",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "(No voltage)",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Sensor 19 - Blade 1 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.33.1",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "(No voltage)",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Sensor 20 - Blade 1 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.34.1",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "(No voltage)",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Sensor 21 - Blade 1 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.35.1",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "(No voltage)",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Sensor 22 - Blade 1 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.36.1",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "(No voltage)",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Sensor 23 - Blade 1 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.37.1",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "(No voltage)",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Sensor 24 - Blade 1 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.38.1",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "(No voltage)",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Sensor 25 - Blade 1 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.39.1",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "(No voltage)",
+                        },
+                },
+        },
+	{
+                /* Blade IPMI Voltage Sensor 1 - Blade 3 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.15.3",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "2.5V Sense = +2.50 Volts",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Sensor 2 - Blade 3 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.16.3",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "(No voltage)",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Sensor 3 - Blade 3 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.17.3",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "(No voltage)",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Sensor 4 - Blade 3 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.18.3",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "(No voltage)",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Sensor 5 - Blade 3 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.19.3",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "(No voltage)",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Sensor 6 - Blade 3 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.20.3",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "(No voltage)",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Sensor 7 - Blade 3 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.21.3",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "(No voltage)",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Sensor 8 - Blade 3 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.22.3",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "(No voltage)",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Sensor 9 - Blade 3 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.23.3",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "(No voltage)",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Sensor 10 - Blade 3 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.24.3",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "(No voltage)",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Sensor 11 - Blade 3 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.25.3",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "(No voltage)",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Sensor 12 - Blade 3 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.26.3",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "(No voltage)",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Sensor 13 - Blade 3 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.27.3",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "(No voltage)",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Sensor 14 - Blade 3 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.28.3",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "(No voltage)",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Sensor 15 - Blade 3 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.29.3",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "(No voltage)",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Sensor 16 - Blade 3 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.30.3",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "(No voltage)",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Sensor 17 - Blade 3 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.31.3",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "(No voltage)",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Sensor 18 - Blade 3 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.32.3",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "(No voltage)",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Sensor 19 - Blade 3 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.33.3",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "(No voltage)",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Sensor 20 - Blade 3 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.34.3",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "(No voltage)",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Sensor 21 - Blade 3 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.35.3",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "(No voltage)",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Sensor 22 - Blade 3 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.36.3",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "(No voltage)",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Sensor 23 - Blade 3 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.37.3",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "(No voltage)",
+                        },
+                },
+        },
+        {
+                /* Blade IPMI Voltage Sensor 24 - Blade 3 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.38.3",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "(No voltage)",
+                        },
+                },
+        },
+	{
+                /* Blade IPMI Voltage Sensor 25 - Blade 3 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.39.3",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "3.3VSB Sense = + 3.33 Volts",
                         },
                 },
         },

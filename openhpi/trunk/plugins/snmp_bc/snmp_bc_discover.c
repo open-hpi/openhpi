@@ -212,7 +212,7 @@ SaErrorT snmp_bc_discover_resources(void *hnd)
  * Return values:
  * Adds sensor RDRs to internal Infra-structure queues - normal case
  * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory
-  **/
+ **/
 SaErrorT snmp_bc_discover_sensors(struct oh_handler_state *handle,
 				  struct snmp_bc_sensor *sensor_array,
 				  struct oh_event *res_oh_event)

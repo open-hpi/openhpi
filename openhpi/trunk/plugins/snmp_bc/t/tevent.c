@@ -547,7 +547,7 @@ int main(int argc, char **argv)
 	/*************************************************************
 	 * TestCase - Expansion Card Event (EN_PFA_HI_OVER_TEMP_DASD1)
 	 *************************************************************/
-	logstr = "Severity:INFO  Source:BLADE_07  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:BSE Option over recommended temperature. Read value 87 Threshold value 75";
+	logstr = "Severity:INFO  Source:BLADE_07  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:BEM Option over recommended temperature. Read value 87 Threshold value 75";
 	memset(&logentry, 0 , sizeof(SaHpiEventLogEntryT));
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
