@@ -43,6 +43,7 @@ static const int entry_id_offset = 1000;
                 }                                               \
         }while(0)                                               
 
+/*
 static inline struct oh_rdr * get_rdr(
         struct oh_resource *res, 
         SaHpiRdrTypeT type, 
@@ -94,6 +95,7 @@ static inline struct oh_rdr * get_rdr(
         
         return NULL;
 }
+*/
 
 SaErrorT SAHPI_API saHpiInitialize(SAHPI_OUT SaHpiVersionT *HpiImplVersion)
 {
@@ -103,6 +105,7 @@ SaErrorT SAHPI_API saHpiInitialize(SAHPI_OUT SaHpiVersionT *HpiImplVersion)
         unsigned int i;
         char *openhpi_conf;
         
+        *HpiImplVersion = SAHPI_INTERFACE_VERSION;
         /* initialize mutex used for data locking */
         /* in the future may want to add seperate */
         /* mutexes, one for each hash list        */
