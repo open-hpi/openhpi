@@ -77,8 +77,17 @@ int session_add(SaHpiDomainIdT did,
 
 int session_del(struct oh_session *session)
 {
-        /*FIXME: should be more cleanup */
-        
+        /* cleanup session events */
+        while(session->eventq) {
+                struct oh_hpi_event *e = (struct oh_hpi_event *)session->eventq->data;
+                session->eventq = g_slist_remove(session->eventq, e);
+                free(e);
+        }
+
+        /* remove session from global_session_list */
+        global_session_list = g_slist_remove(global_session_list, session);
+        free(session);
+
         return 0;
 }
 
