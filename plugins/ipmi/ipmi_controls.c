@@ -15,6 +15,7 @@
  */
 
 #include "ipmi.h"
+int power_flag;
 
 #if 0
 static void get_control_state(ipmi_control_t	*control,
@@ -193,28 +194,39 @@ SaErrorT ohoi_set_control_state(void *hnd, SaHpiResourceIdT id,
 	return SA_OK;
 }
 
+static void reset_done (ipmi_control_t *ipmi_control,
+			int err,
+			void *cb_data)
+{
+	int *reset_flag = cb_data;
+	*reset_flag = 1;
+}
+
 static void set_reset_state(ipmi_control_t *control,
                             void           *cb_data)
 {
         int val=1;
 
         /* Just cold reset the entity*/
-        ipmi_control_set_val(control, &val, NULL, NULL);
+        ipmi_control_set_val(control, &val, reset_done, cb_data);
 }
 
 SaErrorT ohoi_set_reset_state(void *hnd, SaHpiResourceIdT id, 
 		              SaHpiResetActionT act)
 {
+	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
+	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
+	
         struct ohoi_resource_info *ohoi_res_info;
-	struct oh_handler_state *handler;
-        int rv;
+        
+	int rv;
+	int reset_flag = 0;	/* reset_flag = 1 means reset is done */
         
         if (act != SAHPI_COLD_RESET) {
                 dbg("Only support cold reset");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-        handler     = (struct oh_handler_state *)hnd;
         ohoi_res_info = oh_get_resource_data(handler->rptcache, id);
         if (ohoi_res_info->type != OHOI_RESOURCE_ENTITY) {
                 dbg("Not support reset in MC");
@@ -222,37 +234,44 @@ SaErrorT ohoi_set_reset_state(void *hnd, SaHpiResourceIdT id,
         }
 
         rv = ipmi_control_pointer_cb(ohoi_res_info->reset_ctrl, 
-                                     set_reset_state, NULL);
+                                     set_reset_state, &reset_flag);
         if (rv) {
                 dbg("Not support reset in the entity");
                 return SA_ERR_HPI_INVALID_CMD;
         }
+
+	/* wait until reset_done is called to exit this function */
+	ohoi_loop(&reset_flag, ipmi_handler);
         
         return SA_OK;
+}
+
+static void power_done (ipmi_control_t *ipmi_control,
+                        int err,
+                        void *cb_data)
+{
+        int *power_flag = cb_data;
+        *power_flag = 1;
 }
 
 static void set_power_state(ipmi_control_t *control,
                             void           *cb_data)
 {
-        int val=0;
+        int *val = cb_data;
+        int power_flag;
 
         /* Just cold reset the entity*/
-        ipmi_control_set_val(control, &val, NULL, NULL);
+        ipmi_control_set_val(control, val, power_done, &power_flag);
 }
 
 SaErrorT ohoi_set_power_state(void *hnd, SaHpiResourceIdT id, 
 		              SaHpiPowerStateT state)
 {
         struct ohoi_resource_info *ohoi_res_info;
-	struct oh_handler_state *handler;
+	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
+	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
         int rv;
         
-        if (state != SAHPI_POWER_OFF) {
-                dbg("Only support power off");
-                return SA_ERR_HPI_INVALID_PARAMS;
-        }
-
-        handler     = (struct oh_handler_state *)hnd;
         ohoi_res_info = oh_get_resource_data(handler->rptcache, id);
         if (ohoi_res_info->type != OHOI_RESOURCE_ENTITY) {
                 dbg("Not support power in MC");
@@ -260,11 +279,13 @@ SaErrorT ohoi_set_power_state(void *hnd, SaHpiResourceIdT id,
         }
 
         rv = ipmi_control_pointer_cb(ohoi_res_info->power_ctrl, 
-                                     set_power_state, NULL);
+                                     set_power_state, &state);
         if (rv) {
                 dbg("Not support power in the entity");
                 return SA_ERR_HPI_INVALID_CMD;
         }
+
+        ohoi_loop(&power_flag, ipmi_handler);
         
         return SA_OK;
 }
