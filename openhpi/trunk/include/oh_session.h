@@ -27,12 +27,12 @@
  *  saHpiSessionClose(). The table has been encapsulated to have a lock
  *  alongside of it.
  */
-struct sessions {
+struct oh_sessions {
         GHashTable *table;
         GMutex *lock;                
 };
 
-extern struct sessions sessions;
+extern struct oh_sessions sessions;
 
 /*
  * Representation of an HPI session
