@@ -14,6 +14,7 @@
  */
  
 #include <stdlib.h>
+#include <stdio.h>
 #include <SaHpi.h>
 #include <oHpi.h>
 
@@ -28,12 +29,20 @@ int main(int argc, char **argv)
         
         setenv("OPENHPI_CONF","./noconfig", 1);
         
-        if (saHpiSessionOpen(1, &sid, NULL))
+        if (saHpiSessionOpen(1, &sid, NULL)) {
+		printf("Failed to open a session.");
                 return -1;
+	}
                     
-        if (oHpiPluginLoad("libdummy"))
-                return -1;
+        if (oHpiPluginLoad("libdummy")) {
+		printf("Failed to load dummy pluin.");
+	        return -1;
+	}
                 
-        
-        return oHpiPluginUnload("libdummy");
+        if (oHpiPluginUnload("libdummy")) {
+		printf("Failed to unload dummy plugin.");
+		return -1;
+	}
+
+	return 0;
 }

@@ -57,7 +57,7 @@ libopenhpi_la_SOURCES   = \
                            init.c \
                            safhpi.c \
                            session.c \
-                           oHpi.c
+                           ohpi.c
 
 libopenhpi_la_LIBADD    = @STATIC_PLUGIN_LIBS@ @STATIC_PLUGIN_EXTRA_LIBS@ $(top_builddir)/utils/libopenhpiutils.la
 libopenhpi_la_LDFLAGS   = -L$(top_builddir)/utils -version-info @HPI_LIB_VERSION@ -export-symbols $(top_srcdir)/src/hpi.sym
