@@ -22,11 +22,11 @@
 
 #include <SaHpi.h>
 #include <openhpi.h>
-#include <sel_utils.h>
+#include <el_utils.h>
 
 
 /* declare Rptable object */
-RPTable *default_rpt = NULL; 
+RPTable *default_rpt = NULL;
 
 
 /*
@@ -34,14 +34,14 @@ RPTable *default_rpt = NULL;
  *  The intent is that this list is maintained as new RPT entries
  *  are added and removed from the global RPT table, and used by
  *  saHpiSessionOpen() to determine if the requested domain exist
- *  without doing a full search of the RPT. 
+ *  without doing a full search of the RPT.
  */
 static GSList *global_domain_list = NULL;
 
-int is_in_domain_list(SaHpiDomainIdT did) 
+int is_in_domain_list(SaHpiDomainIdT did)
 {
         GSList *i;
-        
+
         data_access_lock();
 
         g_slist_for_each(i, global_domain_list) {
@@ -53,14 +53,14 @@ int is_in_domain_list(SaHpiDomainIdT did)
         }
 
         data_access_unlock();
-        
+
         return 0;
 }
 
 struct oh_domain *get_domain_by_id(SaHpiDomainIdT did)
 {
         GSList *i;
-        
+
         data_access_lock();
 
         g_slist_for_each(i, global_domain_list) {
@@ -79,28 +79,28 @@ struct oh_domain *get_domain_by_id(SaHpiDomainIdT did)
 int add_domain(SaHpiDomainIdT did)
 {
         struct oh_domain *d;
-        
+
         if(is_in_domain_list(did) > 0) {
                 dbg("Domain %d exists already, something is fishy", did);
                 return -1;
         }
-        
+
         data_access_lock();
-        
+
         d = malloc(sizeof(*d));
         if (!d) {
                 dbg("Out of memory");
                 data_access_unlock();
                 return -1;
         }
-        
+
         d->id = did;
-        d->del = oh_sel_create(OH_SEL_MAX_SIZE);
- 
+        d->del = oh_el_create(OH_EL_MAX_SIZE);
+
         global_domain_list = g_slist_append(global_domain_list, d);
 
         data_access_unlock();
-        
+
         return 0;
 }
 
@@ -114,7 +114,7 @@ void oh_cleanup_domain(void)
                 global_domain_list = g_slist_remove(global_domain_list, d);
 
                 if (d->del)
-                        oh_sel_close(d->del);
+                        oh_el_close(d->del);
 
                 free(d);
         }

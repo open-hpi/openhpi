@@ -365,7 +365,7 @@ SaErrorT SAHPI_API saHpiResourceSeveritySet(
         }
 
         if (set_res_sev(h->hnd, ResourceId, Severity) < 0) {
-                dbg("SEL add entry failed");
+                dbg("EL add entry failed");
                 data_access_unlock();
                 return SA_ERR_HPI_UNKNOWN;
         }
@@ -423,7 +423,7 @@ SaErrorT SAHPI_API saHpiResourceTagSet(
 
          data_access_unlock();
 
-        /* to get RSEL entry into infrastructure */
+        /* to get REL entry into infrastructure */
         get_events(rpt);
         return rv;
 }
@@ -488,7 +488,7 @@ SaErrorT SAHPI_API saHpiEventLogInfoGet (
         /* test for special domain case */
         if (ResourceId == SAHPI_UNSPECIFIED_DOMAIN_ID) {
                 d = get_domain_by_id(SAHPI_UNSPECIFIED_DOMAIN_ID);
-                rv = oh_sel_info(d->del, Info);
+                rv = oh_el_info(d->del, Info);
                 data_access_unlock();
 
                 return rv;
@@ -499,14 +499,14 @@ SaErrorT SAHPI_API saHpiEventLogInfoGet (
         OH_RESOURCE_GET(rpt, ResourceId, res);
 
         if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_EVENT_LOG)) {
-                dbg("Resource %d does not have SEL", ResourceId);
+                dbg("Resource %d does not have EL", ResourceId);
                 data_access_unlock();
                 return SA_ERR_HPI_CAPABILITY;
         }
 
         OH_HANDLER_GET(rpt, ResourceId, h);
 
-        get_func = h->abi->get_sel_info;
+        get_func = h->abi->get_el_info;
 
         if (!get_func) {
                 data_access_unlock();
@@ -515,7 +515,7 @@ SaErrorT SAHPI_API saHpiEventLogInfoGet (
 
         rv = get_func(h->hnd, ResourceId, Info);
         if (rv != SA_OK) {
-                dbg("SEL info get failed");
+                dbg("EL info get failed");
         }
 
         data_access_unlock();
@@ -533,14 +533,14 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
                 SAHPI_INOUT SaHpiRptEntryT *RptEntry)
 {
         SaErrorT rv;
-        SaErrorT (*get_sel_entry)(void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT current,
+        SaErrorT (*get_el_entry)(void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT current,
                                   SaHpiEventLogEntryIdT *prev, SaHpiEventLogEntryIdT *next, SaHpiEventLogEntryT *entry);
         struct oh_session *s;
         RPTable *rpt;
         SaHpiRptEntryT *res;
         struct oh_handler *h;
         struct oh_domain *d;
-        SaHpiEventLogEntryT *selentry;
+        SaHpiEventLogEntryT *elentry;
         SaErrorT retc;
 
         /* Test pointer parameters for invalid pointers */
@@ -557,14 +557,14 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
         /* test for special domain case */
         if (ResourceId == SAHPI_UNSPECIFIED_DOMAIN_ID) {
                 d = get_domain_by_id(SAHPI_UNSPECIFIED_DOMAIN_ID);
-                retc = oh_sel_get(d->del, EntryId, PrevEntryId, NextEntryId,
-                                  &selentry);
+                retc = oh_el_get(d->del, EntryId, PrevEntryId, NextEntryId,
+                                  &elentry);
                 if (retc != SA_OK) {
                         data_access_unlock();
                         return retc;
                 }
 
-                memcpy(EventLogEntry, selentry, sizeof(SaHpiEventLogEntryT));
+                memcpy(EventLogEntry, elentry, sizeof(SaHpiEventLogEntryT));
                 data_access_unlock();
                 return SA_OK;
         }
@@ -576,26 +576,26 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
         OH_RESOURCE_GET(rpt, ResourceId, res);
 
         if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_EVENT_LOG)) {
-                dbg("Resource %d does not have SEL", ResourceId);
+                dbg("Resource %d does not have EL", ResourceId);
                 data_access_unlock();
                 return SA_ERR_HPI_CAPABILITY;
         }
 
         OH_HANDLER_GET(rpt, ResourceId, h);
 
-        get_sel_entry = h->abi->get_sel_entry;
+        get_el_entry = h->abi->get_el_entry;
 
-        if (!get_sel_entry) {
+        if (!get_el_entry) {
                 dbg("This api is not supported");
                 data_access_unlock();
                 return SA_ERR_HPI_INVALID_CMD;
         }
 
-        rv = get_sel_entry(h->hnd, ResourceId, EntryId, PrevEntryId,
+        rv = get_el_entry(h->hnd, ResourceId, EntryId, PrevEntryId,
                            NextEntryId, EventLogEntry);
 
         if(rv != SA_OK) {
-                dbg("SEL entry get failed");
+                dbg("EL entry get failed");
         }
 
         if (RptEntry) *RptEntry = *res;
@@ -633,7 +633,7 @@ SaErrorT SAHPI_API saHpiEventLogEntryAdd (
                 SAHPI_IN SaHpiEventT *EvtEntry)
 {
         SaErrorT rv;
-        SaErrorT (*add_sel_entry)(void *hnd, SaHpiResourceIdT id,
+        SaErrorT (*add_el_entry)(void *hnd, SaHpiResourceIdT id,
                                   const SaHpiEventT *Event);
         struct oh_session *s;
         RPTable *rpt;
@@ -652,7 +652,7 @@ SaErrorT SAHPI_API saHpiEventLogEntryAdd (
         /* test for special domain case */
         if (ResourceId == SAHPI_UNSPECIFIED_DOMAIN_ID) {
                 d = get_domain_by_id(SAHPI_UNSPECIFIED_DOMAIN_ID);
-                rv = oh_sel_add(d->del, EvtEntry);
+                rv = oh_el_add(d->del, EvtEntry);
                 data_access_unlock();
                 return rv;
         }
@@ -662,28 +662,28 @@ SaErrorT SAHPI_API saHpiEventLogEntryAdd (
         OH_RESOURCE_GET(rpt, ResourceId, res);
 
         if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_EVENT_LOG)) {
-                dbg("Resource %d does not have SEL", ResourceId);
+                dbg("Resource %d does not have EL", ResourceId);
                 data_access_unlock();
                 return SA_ERR_HPI_CAPABILITY;
         }
 
         OH_HANDLER_GET(rpt, ResourceId, h);
 
-        add_sel_entry = h->abi->add_sel_entry;
+        add_el_entry = h->abi->add_el_entry;
 
-        if (!add_sel_entry) {
+        if (!add_el_entry) {
                 data_access_unlock();
                 return SA_ERR_HPI_INVALID_CMD;
         }
 
-        rv = add_sel_entry(h->hnd, ResourceId, EvtEntry);
+        rv = add_el_entry(h->hnd, ResourceId, EvtEntry);
         if(rv != SA_OK) {
-                dbg("SEL add entry failed");
+                dbg("EL add entry failed");
         }
 
         data_access_unlock();
 
-        /* to get RSEL entry into infrastructure */
+        /* to get REL entry into infrastructure */
         rv = get_events(rpt);
         if(rv != SA_OK) {
                 dbg("Event loop failed");
@@ -697,7 +697,7 @@ SaErrorT SAHPI_API saHpiEventLogClear (
                 SAHPI_IN SaHpiResourceIdT ResourceId)
 {
         SaErrorT rv;
-        SaErrorT (*clear_sel)(void *hnd, SaHpiResourceIdT id);
+        SaErrorT (*clear_el)(void *hnd, SaHpiResourceIdT id);
         struct oh_session *s;
         RPTable *rpt;
         SaHpiRptEntryT *res;
@@ -711,7 +711,7 @@ SaErrorT SAHPI_API saHpiEventLogClear (
         /* test for special domain case */
         if (ResourceId == SAHPI_UNSPECIFIED_DOMAIN_ID) {
                 d = get_domain_by_id(SAHPI_UNSPECIFIED_DOMAIN_ID);
-                rv = oh_sel_clear(d->del);
+                rv = oh_el_clear(d->del);
                       data_access_unlock();
                 return rv;
         }
@@ -721,22 +721,22 @@ SaErrorT SAHPI_API saHpiEventLogClear (
         OH_RESOURCE_GET(rpt, ResourceId, res);
 
         if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_EVENT_LOG)) {
-                dbg("Resource %d does not have SEL", ResourceId);
+                dbg("Resource %d does not have EL", ResourceId);
                       data_access_unlock();
                 return SA_ERR_HPI_CAPABILITY;
         }
 
         OH_HANDLER_GET(rpt, ResourceId, h);
 
-        clear_sel = h->abi->clear_sel;
-        if (!clear_sel) {
+        clear_el = h->abi->clear_el;
+        if (!clear_el) {
                       data_access_unlock();
                 return SA_ERR_HPI_INVALID_CMD;
         }
 
-        rv = clear_sel(h->hnd, ResourceId);
+        rv = clear_el(h->hnd, ResourceId);
         if(rv != SA_OK) {
-                dbg("SEL delete entry failed");
+                dbg("EL delete entry failed");
         }
 
               data_access_unlock();
@@ -775,7 +775,7 @@ SaErrorT SAHPI_API saHpiEventLogTimeSet (
                 SAHPI_IN SaHpiTimeT Time)
 {
         SaErrorT rv;
-        SaErrorT (*set_sel_time)(void *hnd, SaHpiResourceIdT id, SaHpiTimeT time);
+        SaErrorT (*set_el_time)(void *hnd, SaHpiResourceIdT id, SaHpiTimeT time);
         struct oh_session *s;
         RPTable *rpt;
         SaHpiRptEntryT *res;
@@ -788,7 +788,7 @@ SaErrorT SAHPI_API saHpiEventLogTimeSet (
         /* test for special domain case */
         if (ResourceId == SAHPI_UNSPECIFIED_DOMAIN_ID) {
                 d = get_domain_by_id(SAHPI_UNSPECIFIED_DOMAIN_ID);
-                rv = oh_sel_timeset(d->del, Time);
+                rv = oh_el_timeset(d->del, Time);
                       data_access_unlock();
                 return rv;
         }
@@ -798,23 +798,23 @@ SaErrorT SAHPI_API saHpiEventLogTimeSet (
         OH_RESOURCE_GET(rpt, ResourceId, res);
 
         if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_EVENT_LOG)) {
-                dbg("Resource %d does not have SEL", ResourceId);
+                dbg("Resource %d does not have EL", ResourceId);
                       data_access_unlock();
                 return SA_ERR_HPI_CAPABILITY;
         }
 
         OH_HANDLER_GET(rpt, ResourceId, h);
 
-        set_sel_time = h->abi->set_sel_time;
+        set_el_time = h->abi->set_el_time;
 
-        if (!set_sel_time) {
+        if (!set_el_time) {
                 data_access_unlock();
                 return SA_ERR_HPI_INVALID_CMD;
         }
 
-        rv = set_sel_time(h->hnd, ResourceId, Time);
+        rv = set_el_time(h->hnd, ResourceId, Time);
         if(rv != SA_OK) {
-                dbg("Set SEL time failed");
+                dbg("Set EL time failed");
         }
 
               data_access_unlock();
@@ -868,7 +868,7 @@ SaErrorT SAHPI_API saHpiEventLogStateSet (
 
         data_access_unlock();
 
-        /* this request is not valid on an RSEL */
+        /* this request is not valid on an REL */
         return SA_ERR_HPI_INVALID_REQUEST;
 }
 
