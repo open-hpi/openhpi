@@ -17,7 +17,8 @@ MARSHAL_SRCDIR = $(top_srcdir)/marshal
 REMOTE_SOURCES		= connection.c marshal.c
 MARSHAL_SOURCES         = marshal_hpi_types.c
 
-MOSTLYCLEANFILES 	= $(REMOTE_SOURCES) $(MARSHAL_SOURCES) $(shell ls *.bb*) $(shell ls *.da) $(shell ls *.gcov)
+MOSTLYCLEANFILES 	= $(REMOTE_SOURCES) $(MARSHAL_SOURCES) @TEST_CLEAN@
+
 MAINTAINERCLEANFILES 	= Makefile.in *~
 
 INCLUDES		= -I $(MARSHAL_SRCDIR) @OPENHPI_INCLUDES@
