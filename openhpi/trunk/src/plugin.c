@@ -57,7 +57,7 @@ int init_plugin()
  * Load plugin by name.  This needs to be done before the plugin is used
  */
 
-int load_plugin(char *plugin_name)
+int load_plugin(const char *plugin_name)
 {
         lt_dlhandle h;
         int (*get_interface) (struct oh_abi_v1 ** pp, const uuid_t uuid);

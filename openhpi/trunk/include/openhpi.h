@@ -146,7 +146,10 @@ GSList *global_session_list = NULL;
  * 
  *  This list is populated by calls to saHpiDiscoverResources()
  */
-GSList *global_rpt_table = NULL;
+GSList *global_rpt = NULL;
+unsigned int global_rpt_counter; /*FIXME: I use the couter for two purposes. 
+				   1) RptInfo counter 2) ResourceId allocation */
+struct timeval global_rpt_timestamp;
 
 /*
  * Representation of an HPI session
@@ -187,6 +190,11 @@ struct oh_handler {
           between different instances
         */
         void *hnd;
+
+	/*
+	  This is the list of resources which the handler reports
+	 */
+	GSList *resource_list;
 	
 };
 
@@ -268,17 +276,17 @@ int domain_del(SaHpiDomainIdT);
 //                                struct oh_abi_v1 *abi, void *hnd);
 //void domain_process_event(struct oh_zone *d, struct oh_event *e);
 
-/*
-struct oh_resource *get_res_by_oid(struct oh_domain *d, struct oh_resource_id oid);
-struct oh_resource *get_resource(struct oh_domain *d, SaHpiResourceIdT rid);
-struct oh_resource *insert_resource(struct oh_zone *z, struct oh_resource_id oid);
-*/
+
+struct oh_resource *get_res_by_oid(struct oh_resource_id oid);
+struct oh_resource *get_resource(SaHpiResourceIdT rid);
+struct oh_resource *insert_resource(struct oh_handler *h, struct oh_resource_id oid);
+
 struct oh_rdr *insert_rdr(struct oh_resource *res, struct oh_rdr_id oid);
 
 /* plugin load must be seperate from new_handler call*/
 int init_plugin(void);
 int uninit_plugin(void);
-int load_plugin(char *plugin_name);
+int load_plugin(const char *plugin_name);
 
 /* here are the handler calls we need */
 struct oh_handler *new_handler(char *plugin_name, char *name, char *addr);
