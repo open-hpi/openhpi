@@ -333,6 +333,7 @@ int oh_remove_resource(RPTable *table, SaHpiResourceIdT rid)
                         oh_remove_rdr(table, rid, RDR_BEGIN);
                 }
                 /* then remove the resource itself. */
+                g_free(rptentry->data);
                 table->rptable = g_slist_remove(table->rptable, (gpointer)rptentry);
                 g_free((gpointer)rptentry);
         }
@@ -585,7 +586,8 @@ int oh_remove_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT rdrid)
                 dbg("Failed to remove RDR. Could not be found.");
                 return -3;
         } else {
-                rptentry->rdrtable = g_slist_remove(rptentry->rdrtable, (gpointer)rdrecord);
+                g_free(rdrecord->data);
+                rptentry->rdrtable = g_slist_remove(rptentry->rdrtable, (gpointer)rdrecord);                
                 g_free((gpointer)rdrecord);                
         }
 
