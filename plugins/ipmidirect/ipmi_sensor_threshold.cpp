@@ -1010,11 +1010,19 @@ cIpmiSensorThreshold::ConvertThreshold( const SaHpiSensorReadingT &r,
                                         unsigned char &data,
                                         unsigned char &mask )
 {
+  if ( r.ValuesPresent & SAHPI_SRF_RAW )
+     {
+       data = (unsigned char)r.Raw;
+       mask |= (1 << event);
+       return SA_OK;
+     }
+
+  // Otherwise convert the interpreted data
   SaErrorT rv = ConvertFromInterpreted( r, data );
 
   if ( rv != SA_OK )
        return rv;
-  
+
   if ( r.ValuesPresent & SAHPI_SRF_INTERPRETED )
        mask |= (1 << event);
 
@@ -1033,37 +1041,37 @@ cIpmiSensorThreshold::SetThresholds( const SaHpiSensorThresholdsT &thres )
   SaErrorT rv;
 
   rv = ConvertThreshold( thres.LowMinor, eIpmiLowerNonCritical,
-                         msg.m_data[2], msg.m_data[0] );
+                         msg.m_data[2], msg.m_data[1] );
 
   if ( rv != SA_OK )
        return rv;
   
   rv = ConvertThreshold( thres.LowMajor, eIpmiLowerCritical,
-                         msg.m_data[3], msg.m_data[0] );
+                         msg.m_data[3], msg.m_data[1] );
 
   if ( rv != SA_OK )
        return rv;
   
   rv = ConvertThreshold( thres.LowCritical, eIpmiLowerNonRecoverable,
-                         msg.m_data[4], msg.m_data[0] );
+                         msg.m_data[4], msg.m_data[1] );
 
   if ( rv != SA_OK )
        return rv;
   
   rv = ConvertThreshold( thres.UpMinor, eIpmiUpperNonCritical,
-                         msg.m_data[5], msg.m_data[0] );
+                         msg.m_data[5], msg.m_data[1] );
 
   if ( rv != SA_OK )
        return rv;
   
   rv = ConvertThreshold( thres.UpMajor, eIpmiUpperCritical,
-                         msg.m_data[6], msg.m_data[0] );
+                         msg.m_data[6], msg.m_data[1] );
 
   if ( rv != SA_OK )
        return rv;
   
   rv = ConvertThreshold( thres.UpCritical, eIpmiUpperNonRecoverable,
-                         msg.m_data[7], msg.m_data[0] );
+                         msg.m_data[7], msg.m_data[1] );
 
   if ( rv != SA_OK )
        return rv;
