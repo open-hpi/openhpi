@@ -151,14 +151,17 @@ AC_ARG_ENABLE([ipmi],
         if test "x$have_openipmi" = "xyes"; then
             PLUGINS="$PLUGINS ipmi"
         else
-            echo "************************************************************"
-            echo "* OpenIPMI not found!"
-            echo "* Can't build IPMI support without OpenIPMI!"
-            echo "* please download and install the latest version of the software"
-            echo "* from http://openipmi.sf.net"
-            echo "************************************************************"
-            exit 1
+            OH_CHECK_FAIL(OpenIPMI,libOpenIPMI-devel,http://openipmi.sf.net,
+                         Can not build IPMI support without OpenIPMI)
         fi
+#            echo "************************************************************"
+#            echo "* OpenIPMI not found!"
+#            echo "* Can't build IPMI support without OpenIPMI!"
+#            echo "* please download and install the latest version of the software"
+#            echo "* from http://openipmi.sf.net"
+#            echo "************************************************************"
+#            exit 1
+#        fi
     fi])
 
 AC_ARG_ENABLE([sysfs],
