@@ -253,7 +253,7 @@ int oh_add_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiRdrT rdr, void *data)
 
         if (!rptentry) return -1; /* Resource was not fount in table */
 
-        /* Check if resource exists */
+        /* Check if record exists */
         if (rdr.RecordId == 0) {
                 rdrecord = NULL;
                 /* Assign record id. */
@@ -366,19 +366,21 @@ SaHpiRdrT *oh_get_rdr_by_type(RPTable *table, SaHpiResourceIdT rid,
                               SaHpiRdrTypeT type, SaHpiUint8T num)
 {
         RPTEntry *rptentry;
-        RDRecord *rdrecord;
-        SaHpiEntryIdT rdrid;
-        
+        RDRecord *rdrecord = NULL;
+        GSList *node;
+                        
         rptentry = get_rptentry_by_rid(table, rid);
         if (!rptentry) return NULL; /* No resource found by that id */
 
         /* Get rdrid from type/num combination */
-        rdrid = get_rdr_uid(type, num);
-        
-        rdrecord = get_rdrecord_by_id(rptentry->rdrtable, rdrid);
-        if (!rdrecord) return NULL; /* No rdr found by that id */
+        for (node = rptentry->rdrtable; node != NULL; node = node->next) {
+                rdrecord = (RDRecord *)node->data;
+                if (rdrecord->rdr.RdrType == type && get_rdr_type_num(rdrecord->rdr) == num)
+                        break;
+                else rdrecord = NULL;
+        }        
 
-        return &(rdrecord->rdr);
+        return (rdrecord) ? &(rdrecord->rdr) : NULL;
 }
 
 /**
