@@ -264,7 +264,7 @@ struct oh_dsel {
 };
 
 /*
- *  Global listing of plugins (oh_plugin).  This list is populated
+ *  Global listing of plugins (oh_plugin_config).  This list is populated
  *  by the configuration subsystem, and used by the plugin loader.
  */
 extern GSList *global_plugin_list;
@@ -322,9 +322,11 @@ int resource_is_in_domain(struct oh_resource *res, SaHpiDomainIdT sid);
 
 /* plugin load must be seperate from new_handler call*/
 int init_plugin(void);
-int uninit_plugin(void);
+void uninit_plugin(void);
 int load_plugin(struct oh_plugin_config *);
+void unload_plugin(struct oh_plugin_config *config);        
 int load_handler(GHashTable *handler_config);
+void unload_handler( struct oh_handler *handler );
 
 /* here are the handler calls we need */
 struct oh_handler *new_handler(GHashTable *handler_config);

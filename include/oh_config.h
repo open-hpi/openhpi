@@ -42,6 +42,7 @@ extern "C" {
    having explicit path to the plugin, but I'm not sure this is a good plan */
 struct oh_plugin_config {
         char *name;
+        void *dl_handle; /* handle returned by lt_dlopenext or 0 for static plugins */
         int refcount;
         struct oh_abi_v2 *abi;
 };
@@ -53,6 +54,7 @@ struct oh_plugin_config {
 };*/
 
 int oh_load_config(char *);
+void oh_unload_config(void);
 
 int plugin_refcount (char *);
 
