@@ -32,11 +32,15 @@
  **/
 SaErrorT snmp_bc_discover_resources(void *hnd)
 {
+
+	if (!hnd) 
+		return(SA_ERR_HPI_INVALID_PARAMS);
+		
+        struct oh_handler_state *handle = (struct oh_handler_state *)hnd;		
+        struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
         char *root_tuple;
 	SaErrorT err = SA_OK;
         SaHpiEntityPathT ep_root;
-        struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
-        struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 
 	/* Find root Entity Path */
 	root_tuple = (char *)g_hash_table_lookup(handle->config, "entity_root");
@@ -47,7 +51,7 @@ SaErrorT snmp_bc_discover_resources(void *hnd)
         err = string2entitypath(root_tuple, &ep_root);
         if (err) {
                 dbg("Cannot convert entity path to string. Error=%s.", oh_lookup_error(err));
-                return(err);
+                return(SA_ERR_HPI_INTERNAL_ERROR);
         }
 
 	/* Allocate space for temporary RPT cache */
