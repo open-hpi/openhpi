@@ -82,3 +82,12 @@ saHpiResourceResetStateSet
 saHpiResourcePowerStateGet
 saHpiResourcePowerStateSet
 data_access_block_times
+oh_get_default_domain_id
+oHpiPluginLoad
+oHpiPluginUnload
+oHpiPluginInfo
+oHpiPluginGetNext
+oHpiHandlerCreate
+oHpiHandlerDestroy
+oHpiHandlerInfo
+oHpiHandlerGetNext
