@@ -64,4 +64,25 @@ SaErrorT snmp_bc_set_sensor_event_masks(void *hnd,
 					SaHpiSensorEventMaskActionT act,
 					const SaHpiEventStateT AssertEventMask,
 					const SaHpiEventStateT DeassertEventMask);
+
+SaErrorT snmp_bc_get_sensor_eventstate(void *hnd,
+				       SaHpiResourceIdT rid,
+				       SaHpiSensorNumT sid,
+				       SaHpiSensorReadingT *reading,
+				       SaHpiEventStateT *state);
+
+SaErrorT snmp_bc_get_sensor_oid_reading(void *hnd,
+					SaHpiResourceIdT rid,
+					SaHpiSensorNumT sid,
+					const char *raw_oid,
+					SaHpiSensorReadingT *reading);
+
+SaErrorT snmp_bc_set_threshold_reading(void *hnd,
+				       SaHpiResourceIdT rid,
+				       SaHpiSensorNumT sid,
+				       const char *raw_oid,
+				       const SaHpiSensorReadingT *reading);
+
+SaErrorT snmp_bc_addzeros(SaHpiTextBufferT *buffer, int max_sig_digits);
+
 #endif
