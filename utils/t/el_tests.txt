@@ -1,97 +1,68 @@
 Unit tests we should have for el_utils
 
 The possitive tests:
-Start with no EL
-   - create a new EL via oh_el_create (001)
-      - examine struct
-   - add 1 event (002)
-      - examine total number of entries in struct
-      - fetch by entityid, compare
-   - add 5 events (003)
-      - examine total number of entries in struct
-      - fetch by entityid, compare
-   - save EL to file (004)
-      - examine total number of entries in struct
-      - examine file
-
-Start with existing EL
-   - create a EL and read entries from file
-      - fetch by entityid, compare
-   - add 5 events to EL
-      - examine total number of entries in struct
-      - fetch by id, compare
-      - fetch all entries, compare
-   - modify timestamp offset
-      - add a new event, examine timestamp
-   - clear the EL
-      - examine struct
+   - Create a new EL via oh_el_create (001)
+      - examine EL struct
+   - Create a new EL, add 1 entry (002)
+      - examine total number of entries in struct. Should be 1.
+      - Compare entry in EL with entry used for adding to EL.
+   - Create a new EL, add 5 entries (003)
+      - examine total number of entries in struct. Should be 5.
+      - Compare entries in EL with entries used for adding to EL.
+   - Create a new EL, add 5 entries. Save EL to file (004)
+      - Restore saved EL to another new EL struct.
+      - Compare number of entries between the two logs.
+   - Create a new EL, add 10 entries. Save EL to file (005)
+      - Restore saved EL to another new EL struct.
+      - Compare entries between the two logs.
+   - Create a new EL, add 5 entries. Save EL to file (006)
+      - Restore saved EL to another new EL struct.
+      - Add 5 entries to first and second EL.
+      - Check number of entries (Should be 10)
+      - Compare entries with original ones.
+   - Create a new El with a modified timestamp offset (007)
+      - add 1 new entry, examine timestamp.
+   - Create a new EL, add 5 entries. Clear the EL (008)
+      - Examine EL to make sure that there are no entries.
 
 
 The negative tests:
-   oh_el_create
-      - oh_el* == NULL
    oh_el_close
-      - SaHpiErrorT != SA_OK
-   oh_el_add
-      - SaHpiErrorT != SA_OK
-      - entry->EntityId valid
-      - entry->Timestamp valid
-      - el->nextId incremented by 1
-   oh_el_delete
-      - SaHpiErrorT == SA_OK
+      -  el == NULL
+   oh_el_append
+      - el == NULL
+      - event == NULL
+      - el->enabled == SAHPI_FALSE &&
+        event->EventType == SAHPI_ET_USER
+   oh_el_prepend
+      - el == NULL
+      - event == NULL
+      - el->enabled == SAHPI_FALSE
    oh_el_clear
-      - SaHpiErrorT != SA_OK
+      -  el == NULL
       - oh_el->elentries != NULL
    oh_el_get
-      - SaHpiErrorT != SA_OK
-      - entry != NULL
-      - entry->EntryId == entryid
-      - prev is valid
-      - next is valid
+      - el == NULL
+      - entry == NULL
+      - prev == NULL
+      - next == NULL
+      - empty EL
+   oh_el_info
+      - el == NULL
+      - info == NULL
+   oh_el_overflowreset
+      - el == NULL
    oh_el_map_to_file
-      - SaHpiErrorT != SA_OK
-      - contents of file valid
+      - el == NULL
+      - filename == NULL
    oh_el_map_from_file
-      - SaHpiErrorT != SA_OK
-      - el->elentries != NULL
-      - number of entries correct
--------------------------------------------------------
-Scenarios for system tests
-
-Case 1. snmp log is non-empty, non-full
-        a. Validate cache build
-        b. Validate cache/snmp log sync
-        c. Add snmp log entries.
-                Validate cache sync only fetches new entries.
-
-Case 2. Change log time - later than current
-                Add snmp log entries
-                Validate cache sync only fetches new entries.
-
-Case 3. Change log time - earlier than current
-                Add snmp log entries
-                Validate cache sync only fetches new entries.
-
-Case 4. snmp log is full/cache contains maximum configured
-        a. Validate cache build
-        b. Validate cache/snmp log sync
-        c. Add snmp log entries.
-                Validate cache sync only fetches new entries.
-                Validate auto-dropoff
-
-Case 5. snmp log becomes empty/ cache is not empty
-        a. Sync cache and snmp log
-        b. Clear snmp log using wed interface
-        c. Verify cache resync
-
-Case 6. snmp log is not empty/ cache is empty
-        a. Sync cache and snmp log
-        b. Clear cache copy with application
-        c. Verify cache resync
-
-Case 7. snmp log is completely over-written
-        a. Set cache MAX_ENTRIES to small number. Sync cache and snmp log
-        b. Clear snmp log using web interface
-        c. Generate entries in snmp log.
-        d. Verify that cache got rebuilt with all new entries.
+      - el == NULL
+      - el->enabled == SAHPI_FALSE
+      - filename == NULL
+      - filename does not exist
+   oh_el_timeset
+      - el == NULL
+      - timestamp == SAHPI_TIME_UNSPECIFIED
+   oh_el_setgentimestampflag
+      - el == NULL
 
