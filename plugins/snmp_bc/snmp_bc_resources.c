@@ -596,106 +596,10 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                 },
                 .comment = "Ambient temperature sensor"
         },
-        /* Thermal sensor on Management Module */
-        {
-                .sensor = {
-                        .Num = 2,
-                        .Type = SAHPI_TEMPERATURE,
-                        .Category = SAHPI_EC_THRESHOLD,
-			.EnableCtrl = SAHPI_FALSE,
-			.EventCtrl = SAHPI_SEC_READ_ONLY,
-                        .Events = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                        .DataFormat = {
-				.IsSupported = SAHPI_TRUE,
-				.ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
-				.BaseUnits = SAHPI_SU_DEGREES_C,
-				.ModifierUnits = SAHPI_SU_UNSPECIFIED,
-				.ModifierUse = SAHPI_SMUU_NONE,
-				.Percentage = SAHPI_FALSE,
-                                .Range = {
-                                        .Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
-                                        .Max = {
-						.IsSupported = SAHPI_TRUE,
-                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
-						.Value = {
-							.SensorFloat64 = 125,
-						},
-					},
-                                        .Min = {
-						.IsSupported = SAHPI_TRUE,
-                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
-						.Value = {
-							.SensorFloat64 = 0,
-						},
-                                        },
-                                },
-                        },
-                        .ThresholdDefn = {
-				.IsAccessible = SAHPI_FALSE,
-                                .ReadThold = 0,
-				.WriteThold = 0,
-                        },
-                        .Oem = 0,
-                },
-                .sensor_info = {
-                        .mib = {
-                                .not_avail_indicator_num = 0,
-                                .write_only = SAHPI_FALSE,
-                                .oid = ".1.3.6.1.4.1.2.3.51.2.2.1.1.2.0",
-                        },
-                        .sensor_enabled = SAHPI_TRUE,
-			.cur_state = SAHPI_ES_UNSPECIFIED,
-                        .events_enabled = SAHPI_TRUE,
-                        .assert_mask   = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                        .deassert_mask = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-			.event_array = {
-                                {
-                                        .event = "0001C500", /* EN_CUTOFF_HI_OVER_TEMP_SP_CARD */
- 					.event_assertion = SAHPI_TRUE,
-					.event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
-                                        .recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
-                                },
-                                {
-                                        .event = "0001D400", /* EN_PFA_HI_OVER_TEMP_SP_CARD */
-					.event_assertion = SAHPI_TRUE,
-                                        .event_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
-                                        .recovery_state = SAHPI_ES_UNSPECIFIED,
-                                },
-                                {},
-                        },
-			/* Default HDW thresholds: Warning=60; Warning Reset=55 */
-                        .reading2event = {
-				{
-					.num = 1,
-                                        .rangemap = {
-						.Min = {
-							.Value = {
-								.SensorFloat64 = 60.0,
-							},
-						},
-					},
-					.state = SAHPI_ES_UNSPECIFIED,
-                                },
-				{
-					.num = 2,
-                                        .rangemap = {
-						.Max = {
-							.Value = {
-								.SensorFloat64 = 60.0,
-							},
-						},
-					},
-					.state = SAHPI_ES_UPPER_MAJOR,
-                                },
-				{},
-			},
-                },
-                .comment = "Management module temperature sensor"
-        },
         /* 1.8V voltage sensor on Management Module */
         {
                 .sensor = {
-                        .Num = 3,
+                        .Num = 2,
                         .Type = SAHPI_VOLTAGE,
                         .Category = SAHPI_EC_THRESHOLD,
 			.EnableCtrl = SAHPI_FALSE,
@@ -797,7 +701,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
         /* 2.5V voltage sensor on Management Module */
         {
                 .sensor = {
-                        .Num = 4,
+                        .Num = 3,
                         .Type = SAHPI_VOLTAGE,
                         .Category = SAHPI_EC_THRESHOLD,
 			.EnableCtrl = SAHPI_FALSE,
@@ -900,7 +804,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
         /* 3.3V voltage sensor on Management Module */
 	{
                 .sensor = {
-                        .Num = 5,
+                        .Num = 4,
                         .Type = SAHPI_VOLTAGE,
                         .Category = SAHPI_EC_THRESHOLD,
 			.EnableCtrl = SAHPI_FALSE,
@@ -1003,7 +907,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
         /* 5V voltage sensor on Management Module */
         {
                 .sensor = {
-                        .Num = 6,
+                        .Num = 5,
                         .Type = SAHPI_VOLTAGE,
                         .Category = SAHPI_EC_THRESHOLD,
 			.EnableCtrl = SAHPI_FALSE,
@@ -1106,7 +1010,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
         /* -5V voltage sensor on Management Module */
         {
                 .sensor = {
-                        .Num = 7,
+                        .Num = 6,
                         .Type = SAHPI_VOLTAGE,
                         .Category = SAHPI_EC_THRESHOLD,
 			.EnableCtrl = SAHPI_FALSE,
@@ -1209,7 +1113,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
         /* 12V voltage sensor on Management Module */
         {
                 .sensor = {
-                        .Num = 8,
+                        .Num = 7,
                         .Type = SAHPI_VOLTAGE,
                         .Category = SAHPI_EC_THRESHOLD,
 			.EnableCtrl = SAHPI_FALSE,
@@ -1312,7 +1216,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
         /* Management module redundancy sensor - event-only */
         {
                 .sensor = {
-                        .Num = 9,
+                        .Num = 8,
                         .Type = SAHPI_PLATFORM_ALERT,
                         .Category = SAHPI_EC_REDUNDANCY,
 			.EnableCtrl = SAHPI_FALSE,
@@ -1348,7 +1252,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
         /* Switch module redundancy sensor - event-only */
         {
                 .sensor = {
-                        .Num = 10,
+                        .Num = 9,
                         .Type = SAHPI_PLATFORM_ALERT,
                         .Category = SAHPI_EC_REDUNDANCY,
 			.EnableCtrl = SAHPI_FALSE,
@@ -1384,7 +1288,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
         /* Power module redundancy sensor - event-only */
         {
                 .sensor = {
-                        .Num = 11,
+                        .Num = 10,
                         .Type = SAHPI_PLATFORM_ALERT,
                         .Category = SAHPI_EC_REDUNDANCY,
 			.EnableCtrl = SAHPI_FALSE,
