@@ -150,6 +150,8 @@ static void *ipmi_open(GHashTable *handler_config)
 					priv = IPMI_PRIVILEGE_OPERATOR;
 			} else if (strcmp(tok, "admin") == 0) {
 					priv = IPMI_PRIVILEGE_ADMIN;
+			} else if (strcmp(tok, "oem") == 0) {
+					priv = IPMI_PRIVILEGE_OEM;
 			} else {
 					dbg("Invalid IPMI LAN authenication method: %s", tok);
 					return NULL;
