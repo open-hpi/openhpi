@@ -28,7 +28,7 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #  
- 
+
 MAINTAINERCLEANFILES 	= Makefile.in
 
 INCLUDES		= @OPENHPI_INCLUDES@ 
@@ -37,6 +37,6 @@ AM_CFLAGS		= -g @CFLAGS@
 
 pkglib_LTLIBRARIES	= libsimulator.la
 
-libsimulator_la_SOURCES	= simulator.c sim_parser.h sim_parser.c sim_event.h sim_event.c sim_util.h sim_util.c sim_sensor.h sim_sensor.c
-libsimulator_la_LIBADD	= -luuid -lfam
+libsimulator_la_SOURCES	= sim_init.c sim_init.h
+libsimulator_la_LIBADD	= -luuid 
 libsimulator_la_LDFLAGS	= -version-info @HPI_LIB_VERSION@
