@@ -239,6 +239,11 @@ struct oh_resource {
 	  is domain id which is conatined by this
 	 */
 	SaHpiDomainIdT domain_id;
+	
+	/*
+	  this is counter for rdr
+	 */
+	SaHpiSensorNumT	 sensor_counter; 
 };
 
 struct oh_rdr {

@@ -101,8 +101,10 @@ int oh_load_config (struct oh_config *config)
 					);
 	}
 #else
-	/* This is just a quick hacking before real config function */
+	/* This is just a quick hacking before real config functio
+	 * Currently, it assume all handlers are in default domain */	
 	init_plugin();
+	domain_add(SAHPI_DEFAULT_DOMAIN_ID);	
 	for (i=0; name[i]!=NULL; i++) {
 		struct oh_handler *h 
 			= new_handler(name[i], NULL, NULL);

@@ -28,7 +28,58 @@ static void process_session_event(struct oh_event *e)
 
 static void process_internal_event(struct oh_handler *h, struct oh_event *e)
 {
-	dbg("Not implemented!");
+	struct oh_resource *res;
+	struct oh_rdr *rdr;
+
+	switch (e->type) {
+	case OH_ET_RESOURCE:
+		res = insert_resource(h, e->u.res_event.id);
+		memcpy(&res->entry, &e->u.res_event.entry, sizeof(res->entry));
+		res->entry.ResourceId = global_rpt_counter++;
+		
+		/*Assume all resources blongs to DEFAULT_DOMAIN*/
+		res->domain_list = g_slist_append(res->domain_list, 
+				GUINT_TO_POINTER(SAHPI_DEFAULT_DOMAIN_ID));
+		/* resource with domain cap needs openhpi to call abi->open_domain
+		 * to extend the domain into global domain table.
+		 */
+		if (res->entry.ResourceCapabilities & SAHPI_CAPABILITY_DOMAIN) {
+#if 0
+			struct oh_domain *nd;
+			struct oh_zone *nz;
+			void *hnd;
+			nd 	= domain_add();
+			hnd	= z->abi->open_domain(z->hnd, &e->u.res_event.id);
+			nz	= domain_add_zone(nd, z->abi, hnd);
+			res->entry.DomainId = nd->did;
+			dbg("Find a new domain!");
+#else
+			dbg("FIXME: can not process domain capability now");
+#endif
+		}
+		break;
+
+	case OH_ET_RDR:
+		res = get_res_by_oid(e->u.rdr_event.parent);
+		if (!res) {
+			dbg("Cannot find corresponding resource");
+			break;
+		}
+		rdr = insert_rdr(res, e->u.rdr_event.id);
+		memcpy(&rdr->rdr, &e->u.rdr_event.rdr, sizeof(rdr->rdr));
+		switch (rdr->rdr.RdrType) {
+		case SAHPI_SENSOR_RDR: 
+			rdr->rdr.RdrTypeUnion.SensorRec.Num = res->sensor_counter++;
+			break;
+		default:
+			dbg("FIXME: Cannot process such RDR type ");
+			break;
+		}
+		break;
+	default:
+		dbg("Error! Should not touch here!");
+		break;
+	}
 }
 
 int get_events(struct oh_session *s)

@@ -53,6 +53,7 @@ int init_plugin()
         return -1;
 }
 
+#if 0
 /*
  * Load plugin by name.  This needs to be done before the plugin is used
  */
@@ -99,6 +100,7 @@ int load_plugin(const char *plugin_name)
         lt_dlclose(h);
         return -1;
 }
+#endif
 
 int uninit_plugin(void)
 {

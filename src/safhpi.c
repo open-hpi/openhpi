@@ -199,14 +199,6 @@ SaErrorT SAHPI_API saHpiSessionOpen(
 		return SA_ERR_HPI_OUT_OF_SPACE;
         }
         
-        /* Domain is added after the session to ensure the session worked 
-           first */
-        rv = domain_add(DomainId);
-        if(rv < 0) {
-                dbg("Couldn't add DomainId %d", DomainId);
-                return SA_ERR_HPI_INVALID_DOMAIN;
-        }
-        
 /*
         for(i = 0; i < g_slist_length(dconf->plugins); i++) {
                 temp = (struct oh_handler_config *) g_slist_nth_data(dconf->plugins, i);
