@@ -733,7 +733,7 @@ SaErrorT snmp_bc_get_sensor_oid_reading(void *hnd,
 	}
 
 	/* Normalize and read sensor's raw SNMP OID */
-	oid = snmp_derive_objid(&(rdr->Entity), raw_oid);
+	oid = oh_derive_string(&(rdr->Entity), raw_oid);
 	if (oid == NULL) {
 		dbg("NULL SNMP OID returned for %s", raw_oid);
 		return(SA_ERR_HPI_INTERNAL_ERROR);
@@ -829,7 +829,7 @@ SaErrorT snmp_bc_set_threshold_reading(void *hnd,
 	strncpy(set_value.string, buffer.Data, buffer.DataLength);
 
 	/* Normalize and read sensor's raw SNMP OID */
-	oid = snmp_derive_objid(&(rdr->Entity), raw_oid);
+	oid = oh_derive_string(&(rdr->Entity), raw_oid);
 	if (oid == NULL) {
 		dbg("NULL SNMP OID returned for %s", raw_oid);
 		return(SA_ERR_HPI_INTERNAL_ERROR);

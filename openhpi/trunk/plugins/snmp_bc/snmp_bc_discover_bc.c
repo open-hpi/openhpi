@@ -166,7 +166,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 				set_ep_instance(&ep, SAHPI_ENT_ADD_IN_CARD, i + SNMP_BC_HPI_LOCATION_BASE);
 				set_ep_instance(&ep, SAHPI_ENT_SBC_BLADE, i + SNMP_BC_HPI_LOCATION_BASE);
 
-				oid = snmp_derive_objid(&ep, SNMP_BC_BLADE_ADDIN_VECTOR);
+				oid = oh_derive_string(&ep, SNMP_BC_BLADE_ADDIN_VECTOR);
 				if (oid == NULL) {
 					dbg("Cannot derive %s.", SNMP_BC_BLADE_ADDIN_VECTOR);
 					return(SA_ERR_HPI_INTERNAL_ERROR);
