@@ -317,11 +317,10 @@ void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
 	SaHpiCtrlStateT 	state;
 	SaHpiCtrlTypeT  	ctrl_type;
 
-        char                    inbuff[10240];
         SaHpiEirIdT             l_eirid;
-        SaHpiUint32T            l_buffersize = sizeof(inbuff);
-        SaHpiUint32T            l_actualsize;
         SaHpiInventoryDataT*    l_inventdata;
+	const SaHpiUint32T	l_inventsize = 16384;
+        SaHpiUint32T            l_actualsize;
 
 
         printf("RDR Info:\n");
@@ -477,9 +476,9 @@ void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
                 {
                         l_eirid = rdr.RdrTypeUnion.InventoryRec.EirId;
 
-                        l_inventdata = (SaHpiInventoryDataT *)&inbuff[0];
+                        l_inventdata = (SaHpiInventoryDataT *)g_malloc(l_inventsize);
                         err = saHpiEntityInventoryDataRead(session_id, resource_id,
-                                                            l_eirid, l_buffersize,
+                                                            l_eirid, l_inventsize,
                                                             l_inventdata, &l_actualsize);
 
 			if (err != SA_OK) {
@@ -487,7 +486,7 @@ void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
 				continue;
 			} else if (l_inventdata->Validity ==  SAHPI_INVENT_DATA_VALID) {
                         	printf("\tFound Inventory RDR with EirId: %x\n", l_eirid);
-				printf("\tRDR l_buffersize = %d, actualsize = %d\n", l_buffersize, l_actualsize);
+				printf("\tRDR l_inventsize = %d, actualsize = %d\n", l_inventsize, l_actualsize);
 				switch (l_inventdata->DataRecords[0]->RecordType)
 				{
 					case SAHPI_INVENT_RECTYPE_INTERNAL_USE:
@@ -512,6 +511,8 @@ void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
 				} 
 
 			}
+
+                        g_free(l_inventdata);
                 }
 
                 printf("\tEntity: \n");
