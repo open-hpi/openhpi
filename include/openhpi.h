@@ -60,12 +60,6 @@ struct oh_resource_data
 
 #define oh_session_event oh_hpi_event
 
-#define g_slist_for_each(pos, head) \
-        for (pos = head; pos != NULL; pos = g_slist_next(pos))
-
-#define g_slist_for_each_safe(pos, pos1, head) \
-        for (pos = head, pos1 = g_slist_next(pos); pos; pos = pos1, pos1 = g_slist_next(pos1))
-
 #ifdef __cplusplus
 }
 #endif
