@@ -237,7 +237,10 @@ int log2event(void *hnd, gchar *logstr, SaHpiEventT *event, int isdst, int *even
 		dbg("Cannot translate BladeCenter Source string=%s to RID\n", log_entry.source);
 		return -1;
 	}
-	
+
+	/* Assume event is enabled; unless we find out differently below */
+	*event_enabled = 1;
+
 	/* Fill-in HPI event time */
 	working.Timestamp = (SaHpiTimeT)mktime(&log_entry.time) * 1000000000;
 
@@ -510,8 +513,6 @@ static int parse_threshold_str(gchar *str, gchar *root_str, gchar *read_value_st
  **********************************/
 static int set_previous_event_state(void *hnd, SaHpiEventT *event, int recovery_event, int *event_enabled) 
 {
-	*event_enabled = 1;
-
 	switch (event->EventType) {
 	case SAHPI_ET_SENSOR:
 	{
