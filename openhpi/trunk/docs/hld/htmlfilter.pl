@@ -15,7 +15,8 @@ foreach my $file (@files) {
     my $contents = <IN>;
     close(IN);
 
-    my $css = '<!--#include virtual="/openhpi.css" -->';
+    my $css = '<link rel="stylesheet" href="/openhpi.css" type="text/css">';
+    my $banner = '<div id="banner"><div><h1>The OpenHPI Project</h1><small>Open Hardware Platform Interface</small></div></div>\n<table><tr>';
     my $sidebar = '<!--#include virtual="/sidebar.html" -->';
     my $end = '</td></tr></table>';
     # we want to do only one of these
@@ -25,8 +26,8 @@ foreach my $file (@files) {
         # not tidy output
     }
     
-    $contents =~ s{(<body.*?>\s*).*?(<div)}{$1<table>\n<tr>\n$sidebar\n<td valign="top">\n$2}is;
-    $contents =~ s{(</td></tr></table>\s*)*(</body>)}{</td></tr></table></body>}is;
+    $contents =~ s{(<body.*?>\s*).*?(<div)}{$1$banner\n$sidebar\n<td id="maincolumn"><div class="mainsegment">\n$2}is;
+    $contents =~ s{(</td></tr></table>\s*)*(</body>)}{</div></td></tr></table></body>}is;
 
     open(OUT,">$file");
     print OUT $contents;
