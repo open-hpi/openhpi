@@ -406,7 +406,7 @@ int data_access_block_times(void);
 #ifdef DEBUG
 #define dbg(format, ...)                                      \
         do {                                                                          \
-                fprintf(stderr, "%s:%d: ", __FILE__, __LINE__);   \
+                fprintf(stderr, "%s:%d:%s: ", __FILE__, __LINE__, __func__);   \
                 fprintf(stderr, format "\n", ## __VA_ARGS__); \
         } while(0)
 #else
