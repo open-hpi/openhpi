@@ -390,10 +390,11 @@ SaErrorT oh_process_events()
 
                 /* FIXME: add real check if handler is allowed to push event
                    to the domain id in the event */
-                if(e->did != oh_get_default_domain_id()) {
+                if((e->did != oh_get_default_domain_id()) &&
+		   (e->did != SAHPI_UNSPECIFIED_DOMAIN_ID)) {
                         dbg("Domain Id %d not valid for event", e->did);
                         g_free(e);
-                        return SA_ERR_HPI_INVALID_DATA;
+                        continue;
                 }
 
                 switch(e->type) {
