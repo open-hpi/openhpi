@@ -52,8 +52,6 @@ SaErrorT oh_initialize()
         SaHpiDomainCapabilitiesT capabilities = 0x00000000;
         SaHpiTextBufferT tag;
 
-        /* Initialize event process queue */
-        oh_event_init();
 
         data_access_lock();
 
@@ -63,6 +61,9 @@ SaErrorT oh_initialize()
                 data_access_unlock();
                 return SA_ERR_HPI_DUPLICATE;
         }
+
+        /* Initialize event process queue */
+        oh_event_init();
 
         /* Set openhpi configuration file location */
         openhpi_conf = getenv("OPENHPI_CONF");
