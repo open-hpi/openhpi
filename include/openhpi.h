@@ -34,6 +34,7 @@
 #include <rpt_utils.h>
 #include <sel_utils.h>
 #include <oh_lock.h>
+#include <oh_session.h>
 
 /*
  * Common OpenHPI implementation specific definitions 
@@ -148,36 +149,6 @@ struct oh_domain {
 };
 
 /*
- * Representation of an HPI session
- */
-struct oh_session {
-        /*
-          Session ID as returned by saHpiSessionOpen()
-        */
-        SaHpiSessionIdT session_id;
-        
-        /*
-          A session is always associated with exactly one domain
-        */
-        SaHpiDomainIdT domain_id;
-         
-        enum {
-                OH_EVENT_UNSUBSCRIBE=0,
-                OH_EVENT_SUBSCRIBE,
-        } event_state;
-
-        /*
-          Even if multiple sessions are opened for the same domain,
-          each session could receive different events depending on what
-          events the caller signs up for.
-          
-          This is the session specific event queue
-          (sld: changed to GSList, as GQueue isn't in glib-1.2)
-        */
-        GSList *eventq;
-};
-
-/*
  *  Representation of a plugin instance
  */
 struct oh_handler {
@@ -246,13 +217,6 @@ extern GSList *global_handler_configs;
 extern GSList *global_handler_list;
 
 /*
- *  Global listing of all active sessions (oh_session).  This list is 
- *  populated and depopulated by calls to saHpiSessionOpen() and
- *  saHpiSessionClose()
- */
-extern GSList *global_session_list;
-
-/*
  *  Global RPT Table (implemented as a linked list).
  *
  *  This list contains all resources (wrapped as oh_resource structures),
@@ -261,8 +225,14 @@ extern GSList *global_session_list;
  * 
  *  This list is populated by calls to saHpiDiscoverResources()
  */
-
 extern RPTable *default_rpt;
+
+/*
+ *  Global listing of all active sessions (oh_session).  This list is
+ *  populated and depopulated by calls to saHpiSessionOpen() and
+ *  saHpiSessionClose()
+ */
+extern GSList *global_session_list;
 
 struct oh_session *session_get(SaHpiSessionIdT);
 int session_add(SaHpiDomainIdT, struct oh_session**);
