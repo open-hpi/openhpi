@@ -34,7 +34,7 @@ typedef struct {
 
 typedef struct {
        SaHpiRdrT rdr;
-       void *data /* private data for the owner of the rpt entry. */
+       void *data; /* private data for the owner of the rpt entry. */
 } RDRecord;
 
 /* Resource */

@@ -14,6 +14,8 @@
  *
  */
 
+#include <stdlib.h>
+#include <string.h>
 #include <rpt_utils.h>
 
 static inline RPTEntry *get_rptentry_by_rid( RPTable *table, SaHpiResourceIdT rid)
@@ -48,7 +50,7 @@ static inline SaHpiUint32T get_rdr_uid(SaHpiRdrTypeT type, SaHpiUint32T num)
 {
         SaHpiUint32T uid;
 
-        uid = ((SaHpiUint32T)rdr.RdrType) << 16;
+        uid = ((SaHpiUint32T)type) << 16;
         uid = uid + (SaHpiUint32T)num;
 
         return uid;
@@ -191,6 +193,7 @@ SaHpiRptEntryT *oh_get_resource_by_ep(RPTable *table, SaHpiEntityPathT *ep)
         for (node = table->rptable; node != NULL; node = node->next) {
                 rptentry = (RPTEntry *) node->data;
                 if (!memcmp(&(rptentry->rpt_entry.ResourceEntity), ep, sizeof(SaHpiEntityPathT)))
+                        break;
                 else rptentry = NULL;
         }
 
