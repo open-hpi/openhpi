@@ -41,7 +41,7 @@
 #include <openhpi.h>
 
 
-#define SENSOR_DATA_WAIT	5
+#define IPMI_DATA_WAIT	5
 
 extern selector_t       *ohoi_sel;
 

@@ -133,10 +133,10 @@ struct oh_event {
 };
 
 struct oh_handler_state {
-        RPTable *rptcache;
-	oh_sel  *selcache;
-        GSList *eventq;
-        GHashTable *config;
+		RPTable *rptcache;
+		oh_sel  *selcache;
+		GSList *eventq;
+		GHashTable *config;
         void *data;
 };
 
