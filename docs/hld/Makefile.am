@@ -39,16 +39,32 @@ openhpi_docs_DATA	= \
 
 
 
-SGML_FILES		= OpenHPI_HLD.sgml \
-                          legal.dtd \
+SGML_FILES              = legal.dtd \
                           authors.dtd \
-                          revisions.dtd
+                          revisions.dtd \
+                          alternatives.sgml \
+                          internel_components.sgml \
+                          appendix.sgml \
+                          internel_data_structure.sgml \
+                          assumptions_and_deps.sgml \
+                          internel_methods.sgml \
+                          bookinfo.sgml \
+                          introduction.sgml \
+                          design_decomposition.sgml \
+                          methods_and_notations.sgml \
+                          design_strategies.sgml \
+                          OpenHPI_HLD.sgml \
+                          externel_apis.sgml \
+                          system_deps.sgml \
+                          externel_data_structure.sgml
+
 
 EXTRA_DIST		= implementation_view.png \
                           physical_view.png       \
                           domain_view.png	  \
                           hld_diagram.gif	  \
 			  OpenHPI_HLD.sgml
+
 
 all:
 
@@ -59,3 +75,4 @@ OpenHPI_HLD/book1.html: $(SGML_FILES)
 
 clean:
 	rm -fR OpenHPI_HLD
+	rm -f *~

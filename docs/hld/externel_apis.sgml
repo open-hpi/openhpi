@@ -1,0 +1,87 @@
+<!-- ...................................................................... -->
+<!-- File external_apis.dtd ............................................... -->
+<!-- 
+        This material may be distributed only subject to the terms and 
+        conditions set forth in the Open Publication License, v1.0 or later 
+        (the latest version is currently available at 
+        http://www.opencontent.org/openpub/).  Distribution of substantively 
+        modified version of this document is prohibited without the explicit 
+        permission of the copyright holder.
+
+        Other company, product, or service names may be trademarks or service 
+        marks of others.
+-->
+
+  <chapter>
+    <title>External APIs</title>
+    <para>(TBD)</para>
+    <sect1>
+      <title>Hardware Abstraction Interface (HAI)</title>
+      <para>(TBD)</para>
+    </sect1>
+    <sect1>
+      <title>Plugin Mechanism</title>
+      <para>An OpenHPI plugin shall implement HAI. A plugin shall 
+export <emphasis>get_interface</emphasis>, symbols by a dynamic linking mechanism which the infrastructure supports. 
+The symbol should refer to a function, which shall return a proper pointer to an interface by
+a unique interface ID (UUID). The interface is a structure containing a bundle of function 
+pointers. The plugin may implement one or more versions of interface according to different UUIDs. 
+Each UUID identifies a specific version the HAI. A newer OpenHPI implementation shall recognize 
+older plugins and provide backwards compatibility. 
+      </para>
+      <example>
+      <title>Sample Code For Using a Plugin in Linux</title>
+      <programlisting role="C">
+typedef (*get_interface_t) (void **ppinterface, UUID uuid);
+
+static get_interface_t get_interface;
+struct hpi_hai_v1 *hai;
+int err;
+...
+
+h = dlopen("myplugin.so");
+if (!h) {
+	...
+}
+
+get_interface = (get_interface_t)dlsym(h, "get_interface");
+if (!get_interface) {
+	...
+}
+
+err = get_interface(<literal role="entity">&amp;</literal>hai, HPI_HARDWARE_ABSTRACT_V1);
+if (err) {
+	...
+}
+...
+
+err->func1();
+...
+      </programlisting>
+      </example>
+
+      <example>
+      <title>Sample Plugin Code in Linux</title>
+      <programlisting role="C">
+static my_func1() 
+{
+...
+}
+...
+static struct hpi_hai_v1 self_hai = {
+       .func1 = my_func1,
+...
+}
+
+int get_interface(void **ppinterface, UUID uuid) 
+{
+       struct hpi_hai_v1 **pphai = (struct hpi_hai_v1 **)ppinterface;
+       if (uuid != HPI_HARDWARE_ABSTRACT_V1)
+              return -1;
+       *pphai = <literal role="entity">&amp;</literal>self_hai;
+       return 0;
+}
+      </programlisting>
+      </example>
+    </sect1>
+  </chapter>
