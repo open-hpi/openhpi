@@ -32,7 +32,8 @@
 
 MAINTAINERCLEANFILES    = Makefile.in
 
-SAHPIFILES = sahpi_enum_utils.c sahpi_enum_utils.h 
+SAHPIFILES = sahpi_enum_utils.c sahpi_enum_utils.h \
+			sahpi_event_encode.c sahpi_event_encode.h
 
 EXTRA_DIST		= \
 					el_utils.h \
