@@ -58,7 +58,7 @@ static void add_control_event_control_rec(ipmi_control_t	*control,
         rec->OutputType = _control_type_from_ipmi_to_hpi(control_type);
         rec->Type       = SAHPI_CTRL_TYPE_OEM; 
 		
-	rec->Ignore     = (SaHpiBoolT)ipmi_control_get_ignore_if_no_entity(control);
+	//rec->Ignore     = (SaHpiBoolT)ipmi_control_get_ignore_if_no_entity(control);
 
 	//add_control_event_data_format(control, rec);
 

@@ -25,6 +25,7 @@ static void entity_update_rpt(RPTable *table, SaHpiResourceIdT rid, int present)
 	rdr = oh_get_rdr_next(table, rid, SAHPI_FIRST_ENTRY);
 	while (rdr) {
 		if(rdr->RdrType == SAHPI_SENSOR_RDR) {
+#if 0
 			if (present) {
 				dbg("present");
 				rdr->RdrTypeUnion.SensorRec.Ignore = SAHPI_FALSE;
@@ -32,6 +33,7 @@ static void entity_update_rpt(RPTable *table, SaHpiResourceIdT rid, int present)
 				dbg("not present");
 				rdr->RdrTypeUnion.SensorRec.Ignore = SAHPI_TRUE;
 			}
+#endif
 		}
 		rdr = oh_get_rdr_next(table, rid, rdr->RecordId);
 	}
@@ -148,7 +150,9 @@ static void get_entity_event(ipmi_entity_t	*entity,
 	}
 				
 	entry->ResourceSeverity = SAHPI_OK;
+#if 0
 	entry->DomainId = 0;
+#endif
 	entry->ResourceTag.DataType = SAHPI_TL_TYPE_ASCII6;
 	
 	entry->ResourceTag.Language = SAHPI_LANG_ENGLISH;

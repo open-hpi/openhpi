@@ -18,7 +18,7 @@
 #include <uid_utils.h>
 #include <string.h>
 
-
+#if 0
 enum ohoi_event_type {
 	EVENT_DATA_0 = 0,
 	EVENT_DATA_1,
@@ -515,10 +515,12 @@ static void add_sensor_event_sensor_rec(ipmi_sensor_t	*sensor,
 	rec->Events = 0xffff;
 
 	ent = ipmi_sensor_get_entity(sensor);
+#if 0
 	if (ipmi_entity_is_present(ent)) 
 		rec->Ignore = SAHPI_FALSE;
 	else
 		rec->Ignore = SAHPI_TRUE;
+#endif
 
 	add_sensor_event_data_format(sensor, rec);
 
@@ -664,4 +666,4 @@ void ohoi_sensor_event(enum ipmi_update_e op,
 	}
 }
 
-
+#endif

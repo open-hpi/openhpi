@@ -36,15 +36,17 @@ SaHpiHsStateT _ipmi_to_hpi_state_conv(enum ipmi_hot_swap_states ipmi_state)
                         state = SAHPI_HS_STATE_INSERTION_PENDING;
                         break;
                 case IPMI_HOT_SWAP_ACTIVE:
-                        state = SAHPI_HS_STATE_ACTIVE_HEALTHY;
+                        state = SAHPI_HS_STATE_ACTIVE;
                         break;
                 case IPMI_HOT_SWAP_DEACTIVATION_REQUESTED:
                 case IPMI_HOT_SWAP_DEACTIVATION_IN_PROGRESS:
                         state = SAHPI_HS_STATE_EXTRACTION_PENDING;
                         break;
+#if 0
                 case IPMI_HOT_SWAP_OUT_OF_CON:
                         state = SAHPI_HS_STATE_ACTIVE_UNHEALTHY;
                         break;
+#endif
                 default:
                         dbg("Unknown state: %d", ipmi_state);
         }        
@@ -65,14 +67,11 @@ enum ipmi_hot_swap_states _hpi_to_ipmi_state_conv(SaHpiHsStateT hpi_state)
                 case SAHPI_HS_STATE_INSERTION_PENDING: 
                         state = IPMI_HOT_SWAP_ACTIVATION_IN_PROGRESS;
                         break;
-                case SAHPI_HS_STATE_ACTIVE_HEALTHY:
+                case SAHPI_HS_STATE_ACTIVE:
                         state = IPMI_HOT_SWAP_ACTIVE;
                         break;
                 case SAHPI_HS_STATE_EXTRACTION_PENDING:
                         state = IPMI_HOT_SWAP_DEACTIVATION_IN_PROGRESS;
-                        break;
-                case SAHPI_HS_STATE_ACTIVE_UNHEALTHY:
-                        state = IPMI_HOT_SWAP_OUT_OF_CON;
                         break;
                 default:
                         dbg("Unknown state: %d", hpi_state);
@@ -198,7 +197,7 @@ SaErrorT ohoi_set_hotswap_state(void *hnd, SaHpiResourceIdT id,
                          break;
                 default:
                          dbg("Unable set hotswap state: %d", state);
-                         return SA_ERR_HPI_INVALID;
+                         return SA_ERR_HPI_INVALID_CMD;
         }
                 
         return ohoi_loop(&done, ipmi_handler);

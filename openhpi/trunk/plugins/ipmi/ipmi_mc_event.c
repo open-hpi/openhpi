@@ -63,14 +63,20 @@ static void get_mc_entity_event(ipmi_mc_t	*mc,
 	sel_support = ipmi_mc_sel_device_support(mc);
 	if (sel_support == 1) {
 		dbg("MC supports SEL");
+#if 0
 		entry->ResourceCapabilities = SAHPI_CAPABILITY_SEL | SAHPI_CAPABILITY_RESOURCE;
+#else
+		entry->ResourceCapabilities = SAHPI_CAPABILITY_RESOURCE;
+#endif
 	}
 	else {
 		entry->ResourceCapabilities = SAHPI_CAPABILITY_RESOURCE;
 		dbg("MC does not support SEL");
 	}
 	entry->ResourceSeverity = SAHPI_OK;
+#if 0
 	entry->DomainId = 0;
+#endif
 	entry->ResourceTag.DataType = SAHPI_TL_TYPE_ASCII6;
 	entry->ResourceTag.Language = SAHPI_LANG_ENGLISH;
 	entry->ResourceTag.DataLength = strlen(mc_name); 
