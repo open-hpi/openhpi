@@ -619,7 +619,7 @@ static struct dummy_sensor {
 	/*This is temp sensor on system board*/
 		.reading = {
 			.ValuesPresent = SAHPI_SRF_RAW,
-			.Raw = 0x01,
+			.Raw = 0x55,
 		},
 		.thresholds = {
 			.LowCritical = {
@@ -647,7 +647,7 @@ static struct dummy_sensor {
 	/*This is temp sensor on system board*/
 		.reading = {
 			.ValuesPresent = SAHPI_SRF_RAW | SAHPI_SRF_INTERPRETED,
-			.Raw = 0x01,
+			.Raw = 0xaa,
 			.Interpreted = {
 				.Type = SAHPI_SENSOR_INTERPRETED_TYPE_BUFFER,
 				.Value = { 
@@ -687,7 +687,7 @@ static struct dummy_sensor {
 	/*This is temp sensor on system board*/
 		.reading = {
 			.ValuesPresent = SAHPI_SRF_RAW,
-			.Raw = 0x01,
+			.Raw = 0xff,
 		},
 		.thresholds = {
 			.LowCritical = {
@@ -722,7 +722,7 @@ static struct dummy_sensor {
 	/*This is temp sensor on system board*/
 		.reading = {
 			.ValuesPresent = SAHPI_SRF_RAW,
-			.Raw = 0x01,
+			.Raw = 0xcc,
 		},
 		.thresholds = {
 			.LowCritical = {
