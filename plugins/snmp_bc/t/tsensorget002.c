@@ -41,11 +41,11 @@ int main(int argc, char **argv)
         };
 
 	/************************** 
-	 * Test 2: snmp_bc_get_sensor_reading
+	 * Test NULL cache 
 	 **************************/
 	expected_err = SA_ERR_HPI_INVALID_PARAMS;
 	err = snmp_bc_get_sensor_reading(&dd_hnd, id, sid, &reading, &state);
-	checkstatus(&err, &expected_err, &testfail);
+	checkstatus(err, expected_err, testfail);
 
 	/***************************
 	 * Cleanup after all tests

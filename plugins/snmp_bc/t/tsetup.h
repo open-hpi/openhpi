@@ -20,13 +20,22 @@
 SaErrorT tsetup (SaHpiSessionIdT *sessionid_ptr);
 
 SaErrorT tfind_resource(SaHpiSessionIdT *sessionid_ptr,
-			SaHpiCapabilitiesT search_rdr_type,		
-			struct oh_handler *h,
-			SaHpiRptEntryT *rptentry);
+                        SaHpiCapabilitiesT search_rdr_type,
+                        SaHpiEntryIdT i_rptentryid,
+                        SaHpiRptEntryT *rptentry, 
+			SaHpiBoolT samecap);
 			
 SaErrorT tcleanup(SaHpiSessionIdT *sessionid_ptr);
 
-void 
-checkstatus(SaErrorT *err, SaErrorT *expected_err, int *testfail);
+ 
+#define checkstatus(err, expected_err, testfail) 				\
+{										\
+    if (err != expected_err) {							\
+	printf("Error! Test fails: returned err=%s, expected=%s, Line=%d\n",	\
+	oh_lookup_error(err), oh_lookup_error(expected_err), __LINE__);	\
+	testfail = -1;								\
+    }										\
+}
+
 
 #endif

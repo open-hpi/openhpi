@@ -17,7 +17,6 @@
 #include <snmp_bc_plugin.h>
 #include <sim_init.h>
 #include <tsetup.h>
-extern void * snmp_bc_sim_handler;
 
 SaErrorT tsetup (SaHpiSessionIdT *sessionid_ptr)
 {
@@ -45,11 +44,15 @@ SaErrorT tsetup (SaHpiSessionIdT *sessionid_ptr)
 
 SaErrorT tfind_resource(SaHpiSessionIdT *sessionid_ptr,
                         SaHpiCapabilitiesT search_rdr_type,
-                        struct oh_handler *h,
-                        SaHpiRptEntryT *rptentry)
+                        SaHpiEntryIdT i_rptentryid,
+                        SaHpiRptEntryT *rptentry, 
+			SaHpiBoolT samecap)
 {
-        RPTable *rpt;
-        SaHpiRptEntryT *l_rptentry;
+
+	SaErrorT rvRptGet;
+        SaHpiRptEntryT l_rptentry;
+        SaHpiEntryIdT  rptentryid;
+        SaHpiEntryIdT  nextrptentryid;
         
         if (!sessionid_ptr) {
                 printf("  Error! Invalid test setup. Line=%d\n", __LINE__);
@@ -59,14 +62,14 @@ SaErrorT tfind_resource(SaHpiSessionIdT *sessionid_ptr,
         SaHpiCapabilitiesT cap_mask =	(SAHPI_CAPABILITY_RESOURCE 	  |
                                          SAHPI_CAPABILITY_AGGREGATE_STATUS |
                                          SAHPI_CAPABILITY_CONFIGURATION	  |
-                                         SAHPI_CAPABILITY_MANAGED_HOTSWAP  |
+                                         SAHPI_CAPABILITY_MANAGED_HOTSWAP |
                                          SAHPI_CAPABILITY_WATCHDOG	  |
                                          SAHPI_CAPABILITY_CONTROL	  |
                                          SAHPI_CAPABILITY_FRU		  |
                                          SAHPI_CAPABILITY_ANNUNCIATOR	  |
                                          SAHPI_CAPABILITY_POWER		  |
                                          SAHPI_CAPABILITY_RESET		  |
-                                         SAHPI_CAPABILITY_INVENTORY_DATA	  |
+                                         SAHPI_CAPABILITY_INVENTORY_DATA  |
                                          SAHPI_CAPABILITY_EVENT_LOG	  |
                                          SAHPI_CAPABILITY_RDR		  |
                                          SAHPI_CAPABILITY_SENSOR); 
@@ -75,35 +78,38 @@ SaErrorT tfind_resource(SaHpiSessionIdT *sessionid_ptr,
                 printf("  Error! Invalid resource type. Line=%d\n", __LINE__);
                 return(SA_ERR_HPI_INVALID_PARAMS);	
         }
-        
-        h = snmp_bc_sim_handler;
 	
-        SaHpiEntryIdT entryid = SAHPI_FIRST_ENTRY;
-        
         /* ************************	 	 
          * Find a resource 
          * ***********************/
-        struct oh_handler_state *hnd = h->hnd;
-        rpt = hnd->rptcache;
-        
-        do {
-                l_rptentry = oh_get_resource_next(rpt, entryid);
-                if (l_rptentry) {
-			if (l_rptentry->ResourceCapabilities & search_rdr_type) break;
-			else entryid = l_rptentry->EntryId;
-		} 
-			
-	} while (l_rptentry != NULL);
+	/* walk the RPT list */
+	rptentryid = SAHPI_FIRST_ENTRY;
+	do {
+		rvRptGet = saHpiRptEntryGet(*sessionid_ptr,rptentryid,&nextrptentryid,&l_rptentry);
+		if (rvRptGet != SA_OK) printf("RptEntryGet error %s\n",oh_lookup_error(rvRptGet));
 
-	if (!l_rptentry) {
-		printf("  Error! Can not find resource for this test.\n");	
-		printf("  Error! Testcase setup failed. Line=%d\n", __LINE__);
-		return(SA_ERR_HPI_ENTITY_NOT_PRESENT);
-	} else {		
-                memcpy(rptentry,l_rptentry, sizeof(SaHpiRptEntryT));	
-		return(SA_OK);		
-	}
-
+		if ( (rvRptGet == SA_OK) && (rptentryid > i_rptentryid)) {
+		 
+		 	if (samecap) {
+				if ( (l_rptentry.ResourceCapabilities & SAHPI_CAPABILITY_RDR) && 
+                    	     		(l_rptentry.ResourceCapabilities & search_rdr_type)) 
+				{
+                			memcpy(rptentry,&l_rptentry, sizeof(SaHpiRptEntryT));	
+			     		break;
+				}
+			} else {
+				if ( (l_rptentry.ResourceCapabilities & SAHPI_CAPABILITY_RDR) && 
+                    	     		   !(l_rptentry.ResourceCapabilities & search_rdr_type))
+				{
+                			memcpy(rptentry,&l_rptentry, sizeof(SaHpiRptEntryT));	
+			     		break;
+				}			
+			} 
+		}
+		rptentryid = nextrptentryid;
+	} while ((rvRptGet == SA_OK) && (rptentryid != SAHPI_LAST_ENTRY));
+		        
+	return(rvRptGet);
 }
 
 
@@ -123,15 +129,14 @@ SaErrorT tcleanup(SaHpiSessionIdT *sessionid_ptr)
  *
  *
  *
- */
-void 
-checkstatus(SaErrorT *err, SaErrorT *expected_err, int *testfail)
-{
-	if (*err != *expected_err) {
-		printf("Error! Test fails: returned err=%s, expected=%s\n",
-		oh_lookup_error(*err), oh_lookup_error(*expected_err));
-		*testfail = -1;
-	}
 
+ 
+#define checkstatus(err, expected_err, testfail) 				\
+{										\
+    if (err != expected_err) {							\
+	printf("Error! Test fails: returned err=%s, expected=%s, Line=%d\n",	\
+	oh_lookup_error(*err), oh_lookup_error(*expected_err), __LINE__);	\
+	testfail = -1;								\
+    }										\
 }
-
+*/

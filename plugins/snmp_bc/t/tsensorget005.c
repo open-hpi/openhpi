@@ -30,7 +30,7 @@ int main(int argc, char **argv)
 
 	SaHpiResourceIdT  id;
         SaHpiSessionIdT sessionid;
-	 
+        SaHpiRptEntryT rptentry;	 
 	SaHpiSensorNumT sid = 0;
 	SaHpiEventStateT state;
 	SaHpiSensorReadingT reading;
@@ -38,17 +38,13 @@ int main(int argc, char **argv)
 	/* *************************************	 	 
 	 * Find a resource with Sensor type rdr
 	 * ************************************* */
-        struct oh_handler l_handler;
-	struct oh_handler *h= &l_handler;
-        SaHpiRptEntryT rptentry;
-	
 	err = tsetup(&sessionid);
 	if (err != SA_OK) {
 		printf("Error! bc_sensor, can not setup test environment\n");
 		return -1;
 
 	}
-	err = tfind_resource(&sessionid, (SaHpiCapabilitiesT) SAHPI_CAPABILITY_SENSOR, h, &rptentry);
+	err = tfind_resource(&sessionid, SAHPI_CAPABILITY_SENSOR,SAHPI_FIRST_ENTRY, &rptentry, SAHPI_TRUE);
 	if (err != SA_OK) {
 		printf("Error! bc_sensor, can not setup test environment\n");
 		err = tcleanup(&sessionid);
@@ -58,14 +54,13 @@ int main(int argc, char **argv)
 
 	id = rptentry.ResourceId;
 	/************************** 
-	 * Test 5: Invalid sensor id
+	 * Test: Invalid sensor id
 	 **************************/
 	sid = 5000;	
 	expected_err = SA_ERR_HPI_NOT_PRESENT;
-	err = snmp_bc_get_sensor_reading((void *)h->hnd, id, sid, &reading, &state);
-	checkstatus(&err, &expected_err, &testfail);
+	err = saHpiSensorReadingGet(sessionid, id, sid, &reading, &state);
+	checkstatus(err, expected_err, testfail);
 
-	
 	/***************************
 	 * Cleanup after all tests
 	 ***************************/

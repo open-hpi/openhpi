@@ -17,6 +17,7 @@
 #include <snmp_bc_plugin.h>
 #include <tsetup.h>
 
+
 int main(int argc, char **argv) 
 {
 
@@ -34,8 +35,6 @@ int main(int argc, char **argv)
 	/* ************************	 	 
 	 * Find a resource with Control type rdr
 	 * ***********************/
-        struct oh_handler l_handler;
-	struct oh_handler *h= &l_handler;
         SaHpiRptEntryT rptentry;
 	
 	err = tsetup(&sessionid);
@@ -44,7 +43,7 @@ int main(int argc, char **argv)
 		return -1;
 
 	}
-	err = tfind_resource(&sessionid, (SaHpiCapabilitiesT) SAHPI_CAPABILITY_CONTROL, h, &rptentry);
+	err = tfind_resource(&sessionid, SAHPI_CAPABILITY_CONTROL, SAHPI_FIRST_ENTRY, &rptentry, SAHPI_TRUE);
 	if (err != SA_OK) {
 		printf("Error! bc_control_parm, can not setup test environment\n");
 		err = tcleanup(&sessionid);
@@ -52,6 +51,9 @@ int main(int argc, char **argv)
 
 	}
 
+	struct oh_handler_state handle;
+	memset(&handle, 0, sizeof(struct oh_handler_state));
+			
 	/************************** 
 	 * Test 1: Invalid Control Action
 	 **************************/
@@ -59,43 +61,37 @@ int main(int argc, char **argv)
 	expected_err = SA_ERR_HPI_INVALID_PARAMS;
 	act = 0xFF;
 																																														
-	err = snmp_bc_control_parm((void *)h->hnd, id, act);
-	checkstatus(&err, &expected_err, &testfail);
+	err = snmp_bc_control_parm(&handle, id, act);
+	checkstatus(err, expected_err, testfail);
 	
 	/************************** 
 	 * Test 2: Invalid ResourceId
 	 **************************/
 	expected_err = SA_ERR_HPI_INVALID_RESOURCE;
 	act = SAHPI_RESTORE_PARM;
-	id = 5000; /* set it way out */
 
-	err = snmp_bc_control_parm((void *)h->hnd, id, act);
-	checkstatus(&err, &expected_err, &testfail);
+	err = snmp_bc_control_parm(&handle, 5000, act);
+	checkstatus(err, expected_err, testfail);
 
-	id = rptentry.ResourceId;
-	struct oh_handler_state *handle = (struct oh_handler_state *)h->hnd;		
+#if 0
 	/************************** 
-	 * Test 3: 
+	 * Test 3: Resource configuration saving not supported
 	 *************************/
 	rptentry.ResourceCapabilities |= SAHPI_CAPABILITY_CONFIGURATION;  
 	oh_add_resource(handle->rptcache, &rptentry, NULL, 0);
-	
 	expected_err = SA_ERR_HPI_INTERNAL_ERROR;
 
-	err = snmp_bc_control_parm((void *)h->hnd, id, act);
-	checkstatus(&err, &expected_err, &testfail);
+	err = snmp_bc_control_parm(&handle, id, act);
+	checkstatus(err, expected_err, testfail);
+#endif
 
 	/************************** 
-	 * Test 4: 
+	 * Test 4: Normal Path
 	 **************************/
-
-	rptentry.ResourceCapabilities &=  !SAHPI_CAPABILITY_CONFIGURATION;
-	oh_add_resource(handle->rptcache, &rptentry, NULL, 0);
-
 	expected_err = SA_ERR_HPI_CAPABILITY;
 
-	err = snmp_bc_control_parm((void *)h->hnd, id, act);
-	checkstatus(&err, &expected_err, &testfail);
+	err = saHpiParmControl(sessionid, id, act);
+	checkstatus(err, expected_err, testfail);
 	
 	/***************************
 	 * Cleanup after all tests

@@ -24,7 +24,6 @@
 #include <sim_resources.h>
 
 GHashTable * sim_hash;
-void * snmp_bc_sim_handler;
 
 static void free_hash_data(gpointer key, gpointer value, gpointer user_data);
 
