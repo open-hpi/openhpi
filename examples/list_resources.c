@@ -312,10 +312,12 @@ void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
 	SaHpiCtrlStateT 	state;
 	SaHpiCtrlTypeT  	ctrl_type;
 
+        char                    inbuff[1024];
         SaHpiEirIdT             l_eirid;
-        SaHpiInventoryDataT     *l_inventdata = NULL;
+        SaHpiUint32T            l_buffersize = sizeof(inbuff);
         SaHpiUint32T            l_actualsize;
-        SaHpiUint32T            l_buffersize = 0;
+        SaHpiInventoryDataT*    l_inventdata;
+
 
         printf("RDR Info:\n");
         next_rdr = SAHPI_FIRST_ENTRY;
@@ -470,6 +472,7 @@ void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
                 {
                         l_eirid = rdr.RdrTypeUnion.InventoryRec.EirId;
 
+                        l_inventdata = (SaHpiInventoryDataT *)&inbuff[0];
                         err = saHpiEntityInventoryDataRead(session_id, resource_id,
                                                             l_eirid, l_buffersize,
                                                             l_inventdata, &l_actualsize);
@@ -479,22 +482,30 @@ void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
 				continue;
 			} else if (l_inventdata->Validity ==  SAHPI_INVENT_DATA_VALID) {
                         	printf("\tFound Inventory RDR with EirId: %x\n", l_eirid);
-                        	printf("\tManufacturer: \t%s\n",
-                                	l_inventdata->DataRecords[0]->RecordData.ProductInfo.Manufacturer->Data);
-                        	printf("\tProductName: \t%s\n",
-                                	l_inventdata->DataRecords[0]->RecordData.ProductInfo.ProductName->Data);
-                        	printf("\tProductVersion: \t%s\n",
-                               		l_inventdata->DataRecords[0]->RecordData.ProductInfo.ProductVersion->Data);
-                        	printf("\tModelNumber: \t%s\n",
-                                	l_inventdata->DataRecords[0]->RecordData.ProductInfo.ModelNumber->Data);
-                        	printf("\tSerialNumber: \t%s\n",
-                                	l_inventdata->DataRecords[0]->RecordData.ProductInfo.SerialNumber->Data);
-                        	printf("\tPartNumber: \t%s\n",
-                                	l_inventdata->DataRecords[0]->RecordData.ProductInfo.PartNumber->Data);
-                        	printf("\tFileId: \t%s\n",
-                                	l_inventdata->DataRecords[0]->RecordData.ProductInfo.FileId->Data);
-                        	printf("\tAssetTag: \t%s\n",
-                                	l_inventdata->DataRecords[0]->RecordData.ProductInfo.AssetTag->Data);
+				printf("\tRDR l_buffersize = %d, actualsize = %d\n", l_buffersize, l_actualsize);
+				switch (l_inventdata->DataRecords[0]->RecordType)
+				{
+					case SAHPI_INVENT_RECTYPE_INTERNAL_USE:
+						printf( "Internal Use\n");
+						break;
+					case SAHPI_INVENT_RECTYPE_PRODUCT_INFO:
+						printf( "Product Info\n");
+						break;
+					case SAHPI_INVENT_RECTYPE_CHASSIS_INFO:
+						printf( "Chassis Info\n");
+						break;
+					case SAHPI_INVENT_RECTYPE_BOARD_INFO:
+						printf( "Board Info\n");
+						break;
+					case SAHPI_INVENT_RECTYPE_OEM:
+						printf( "OEM Record\n");
+						break;
+					default:
+						printf(" Invalid Invent Rec Type =%x\n",
+								l_inventdata->DataRecords[0]->RecordType);
+						break;
+				} 
+
 			}
                 }
 
