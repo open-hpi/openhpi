@@ -139,6 +139,9 @@ SaErrorT oh_sel_get(oh_sel *sel, SaHpiSelEntryIdT entryid, SaHpiSelEntryIdT *pre
         if (sel == NULL || prev == NULL || next == NULL || entry == NULL) {
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
+        if (g_list_length(sel->selentries) == 0) {
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
 
         /* get the first and last entry ids for possible translation */
         sellist = g_list_last(sel->selentries);
