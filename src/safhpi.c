@@ -1059,11 +1059,11 @@ SaErrorT SAHPI_API saHpiEventGet (
                 *EventQueueStatus = 0x0000;
         }
 
-        if (RptEntry && e.u.hpi_event.res.ResourceId != 0) {
+        if (RptEntry) {
                 *RptEntry = e.u.hpi_event.res;
         }
 
-        if (Rdr && e.u.hpi_event.rdr.RecordId != 0) {
+        if (Rdr) {
                 *Rdr = e.u.hpi_event.rdr;
         }
 
