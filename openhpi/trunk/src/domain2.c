@@ -19,7 +19,10 @@
 #include <el_utils.h>
 #include <string.h>
 
-struct domains domains = {NULL, NULL};
+struct domains domains = {        
+        .table = NULL,
+        .lock = NULL
+};
 
 /**
  * oh_create_domain
@@ -35,19 +38,16 @@ SaHpiDomainIdT oh_create_domain(SaHpiDomainCapabilitiesT capabilities,
                                 SaHpiBoolT isPeer,
                                 SaHpiTextBufferT *tag)
 {
-        static guint id = 0;
         struct oh_domain *domain = NULL;
-
-        if (!tag) return 0;
-
+        static SaHpiDomainIdT id = 1; /* domain ids will start at 1 */
+        
         domain = g_new0(struct oh_domain,1);
         if (!domain) return 0;
-
-        g_mutex_lock(domains.lock); /* Locked domain table */
-        domain->id = ++id; /* domain ids will start at 1 */
+        
         domain->info.DomainCapabilities = capabilities;
         domain->info.IsPeer = isPeer;
-        memcpy(&(domain->info.DomainTag),tag,sizeof(SaHpiTextBufferT));
+        if (tag)
+                memcpy(&(domain->info.DomainTag),tag,sizeof(SaHpiTextBufferT));
         domain->del = oh_el_create(OH_EL_MAX_SIZE);
         domain->sessions = g_array_sized_new(FALSE, TRUE,
                                              sizeof(SaHpiSessionIdT),
@@ -61,6 +61,8 @@ SaHpiDomainIdT oh_create_domain(SaHpiDomainCapabilitiesT capabilities,
                 g_mutex_unlock(domains.lock);
                 return 0;
         }
+        g_mutex_lock(domains.lock); /* Locked domain table */
+        domain->id = id++;
         g_hash_table_insert(domains.table, &(domain->id), domain);
         g_mutex_unlock(domains.lock);  /* Unlocked domain table */
 
@@ -159,20 +161,15 @@ GArray *oh_list_domains()
 
 /**
  * oh_release_domain
- * @did:
+ * @domain:
  *
  *
  *
  * Returns:
  **/
-SaErrorT oh_release_domain(SaHpiDomainIdT did)
+SaErrorT oh_release_domain(struct oh_domain *domain)
 {
-        struct oh_domain *domain = NULL;
-
-        if (did < 1) return SA_ERR_HPI_INVALID_PARAMS;
-
-        domain = g_hash_table_lookup(domains.table, &did);
-        if (!domain) return SA_ERR_HPI_NOT_PRESENT;
+        if (!domain) return SA_ERR_HPI_INVALID_PARAMS;
 
         g_mutex_unlock(domain->lock);
 
