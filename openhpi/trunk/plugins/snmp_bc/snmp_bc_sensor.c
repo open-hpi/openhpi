@@ -432,22 +432,18 @@ SaErrorT snmp_bc_set_sensor_event_enables(void *hnd,
 	if (rdr->RdrTypeUnion.SensorRec.EventCtrl == SAHPI_SEC_NO_EVENTS) {
 		return SA_ERR_HPI_INVALID_CMD;
 	}
+
 	if ((enables->SensorStatus & SAHPI_SENSTAT_SCAN_ENABLED) ||
 	    (enables->SensorStatus & SAHPI_SENSTAT_BUSY)) {
 		return SA_ERR_HPI_INVALID_CMD;
 	}
 
 	/* 
-	 * Ignore the assertion/deassert event states in enables, since BC does not
-         * support enabling/disabling individual events - just the entire sensor
+	 * BC currently does not support enabling/disabling individual events - 
+         * just the entire sensor
          */
 
-	if (!(enables->SensorStatus & SAHPI_SENSTAT_EVENTS_ENABLED)) {
-		/* turn off events in RDR's data */
-		((struct BC_SensorInfo *)bc_data)->sensor_evt_enablement.SensorStatus =
-			((struct BC_SensorInfo *)bc_data)->sensor_evt_enablement.SensorStatus
-			& ~SAHPI_SENSTAT_EVENTS_ENABLED;
-	}
+	((struct BC_SensorInfo *)bc_data)->sensor_evt_enablement = *enables;
 
         return SA_OK;
 }
