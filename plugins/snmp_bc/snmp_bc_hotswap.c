@@ -89,6 +89,11 @@ SaErrorT snmp_bc_get_reset_state(void *hnd, SaHpiResourceIdT id,
 	}
 
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
+	SaHpiRptEntryT *res = oh_get_resource_by_id(handle->rptcache, id);
+	if(res == NULL) {
+		return SA_ERR_HPI_INVALID_RESOURCE;
+	}
+
         struct ResourceInfo *s =
                 (struct ResourceInfo *)oh_get_resource_data(handle->rptcache, id);
 	if(s == NULL) {
