@@ -59,10 +59,31 @@ int main(int argc, char **argv)
 	/************************** 
 	 * Test 
 	 **************************/
-	
 	expected_err = SA_OK;                   
 	err = snmp_bc_get_sel_entry((void *)h->hnd, id, current, &previd, &nextid, &entry, &rdr, &rptentry);
 	checkstatus(&err, &expected_err, &testfail);
+
+	/************************** 
+	 * Test 
+	 * expected_err = SA_OK;                   
+	 **************************/
+	err = snmp_bc_get_sel_entry((void *)h->hnd, id, current, &previd, &nextid, &entry, NULL, &rptentry);
+	checkstatus(&err, &expected_err, &testfail);
+
+	/************************** 
+	 * Test 
+	 * expected_err = SA_OK;                   
+	 **************************/
+	err = snmp_bc_get_sel_entry((void *)h->hnd, id, current, &previd, &nextid, &entry, &rdr, NULL);
+	checkstatus(&err, &expected_err, &testfail);
+
+	/************************** 
+	 * Test 
+	 * expected_err = SA_OK;                   
+	 **************************/
+	err = snmp_bc_get_sel_entry((void *)h->hnd, id, current, &previd, &nextid, &entry, NULL, NULL); 
+	checkstatus(&err, &expected_err, &testfail);
+
 
 	/***************************
 	 * Cleanup after all tests
