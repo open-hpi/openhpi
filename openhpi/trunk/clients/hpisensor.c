@@ -27,7 +27,7 @@
 char progver[] = "1.0";
 int fdebug = 0;
 int fshowthr = 0;
-char *rtypes[5] = {"None    ", "Control ", "Sensor  ", "Invent  ", "Watchdog"};
+int fshowrange = 0;
 
 static void ShowSensor(SaHpiSessionIdT sessionid,
                        SaHpiResourceIdT resourceid,
@@ -35,6 +35,7 @@ static void ShowSensor(SaHpiSessionIdT sessionid,
 {
         SaHpiSensorNumT sensornum;
         SaHpiSensorReadingT reading;
+        SaHpiSensorThresholdsT thresh;
         SaHpiEventStateT events;
         SaHpiTextBufferT text;
         SaErrorT rv;
@@ -58,7 +59,8 @@ static void ShowSensor(SaHpiSessionIdT sessionid,
                 printf(" FAILED %s\n", SaErrorT2str(rv));
         }
                 
-        if (fshowthr) {
+        if (fshowrange) { // show ranges
+                printf("\t    Ranges::\n");
                 if ( sensorrec->DataFormat.Range.Flags & SAHPI_SRF_NOMINAL ) {
                         if((rv = oh_sensor_reading2str(sensorrec->DataFormat.Range.Nominal, 
                                                        sensorrec->DataFormat, &text)) == SA_OK) {
@@ -100,6 +102,79 @@ static void ShowSensor(SaHpiSessionIdT sessionid,
                         }
                 }
         }
+        if(fshowthr) { // show thresholds
+                rv = saHpiSensorThresholdsGet(sessionid,resourceid, sensornum, &thresh);
+                 if (rv != SA_OK)  {
+                         printf("\nThresholdsGet ret=%s\n", SaErrorT2str(rv));
+                         return;
+                 }
+                 printf( "\t    Thresholds::\n" );
+
+                 if (thresh.LowCritical.IsSupported) {
+                         if((rv = oh_sensor_reading2str(thresh.LowCritical, 
+                                                        sensorrec->DataFormat, &text)) == SA_OK) {
+                                printf( "\t\tLow Critical Threshold: %s\n", text.Data);
+                         } else {
+                                 printf( "\t\tLow Critical Threshold: FAILED %s\n", SaErrorT2str(rv));
+                         }
+                 }
+                 if (thresh.LowMajor.IsSupported) {
+                         if((rv = oh_sensor_reading2str(thresh.LowMajor, 
+                                                        sensorrec->DataFormat, &text)) == SA_OK) {
+                                printf( "\t\tLow Major Threshold: %s\n", text.Data);
+                         } else {
+                                 printf( "\t\tLow Major Threshold: FAILED %s\n", SaErrorT2str(rv));
+                         }
+                 }
+                 if (thresh.LowMinor.IsSupported) {
+                         if((rv = oh_sensor_reading2str(thresh.LowMinor, 
+                                                        sensorrec->DataFormat, &text)) == SA_OK) {
+                                printf( "\t\tLow Minor Threshold: %s\n", text.Data);
+                         } else {
+                                 printf( "\t\tLow Minor Threshold: FAILED %s\n", SaErrorT2str(rv));
+                         }
+                 }
+                 if (thresh.UpCritical.IsSupported) {
+                         if((rv = oh_sensor_reading2str(thresh.UpCritical, 
+                                                        sensorrec->DataFormat, &text)) == SA_OK) {
+                                printf( "\t\tUp Critical Threshold: %s\n", text.Data);
+                         } else {
+                                 printf( "\t\tUp Critical Threshold: FAILED %s\n", SaErrorT2str(rv));
+                         }
+                 }
+                 if (thresh.UpMajor.IsSupported) {
+                         if((rv = oh_sensor_reading2str(thresh.UpMajor, 
+                                                        sensorrec->DataFormat, &text)) == SA_OK) {
+                                printf( "\t\tUp Major Threshold: %s\n", text.Data);
+                         } else {
+                                 printf( "\t\tUp Major Threshold: FAILED %s\n", SaErrorT2str(rv));
+                         }
+                 }
+                 if (thresh.UpMinor.IsSupported) {
+                         if((rv = oh_sensor_reading2str(thresh.UpMinor, 
+                                                        sensorrec->DataFormat, &text)) == SA_OK) {
+                                printf( "\t\tUp Minor Threshold: %s\n", text.Data);
+                         } else {
+                                 printf( "\t\tUp Minor Threshold: FAILED %s\n", SaErrorT2str(rv));
+                         }
+                 }
+                 if (thresh.PosThdHysteresis.IsSupported) {
+                         if((rv = oh_sensor_reading2str(thresh.PosThdHysteresis, 
+                                                        sensorrec->DataFormat, &text)) == SA_OK) {
+                                printf( "\t\tPos Threshold Hysteresis: %s\n", text.Data);
+                         } else {
+                                 printf( "\t\tPos Threshold Hysteresis: FAILED %s\n", SaErrorT2str(rv));
+                         }
+                 }
+                 if (thresh.NegThdHysteresis.IsSupported) {
+                         if((rv = oh_sensor_reading2str(thresh.NegThdHysteresis, 
+                                                        sensorrec->DataFormat, &text)) == SA_OK) {
+                                printf( "\t\tNeg Threshold Hysteresis: %s\n", text.Data);
+                         } else {
+                                 printf( "\t\tNeg Threshold Hysteresis: FAILED %s\n", SaErrorT2str(rv));
+                         }
+                 }
+        }
         return;
 }
 
@@ -122,9 +197,10 @@ int main(int argc, char **argv)
         
         printf("%s: version %s\n",argv[0],progver); 
         
-        while ( (c = getopt( argc, argv,"te:x?")) != EOF )
+        while ( (c = getopt( argc, argv,"rte:x?")) != EOF )
                 switch(c) {
                 case 't': fshowthr = 1; break;
+                case 'r': fshowrange = 1; break;
                 case 'x': fdebug = 1; break;
                 case 'e':
                         if (optarg) {
@@ -133,28 +209,27 @@ int main(int argc, char **argv)
                         string2entitypath(ep_string,&ep_target);
                         break;
                 default:
-                        printf("Usage %s [-t -x]\n",argv[0]);
+                        printf("Usage %s [-t -r -x -e]\n",argv[0]);
                         printf("where -t = show Thresholds also\n");
+                        printf("      -r = show Range values also\n");
+                        printf("      -e entity path = limit to a single entity\n");
                         printf("      -x = show eXtra debug messages\n");
                         exit(1);
                 }
 
         rv = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID,&sessionid,NULL);
         if (rv != SA_OK) {
-                if (rv == SA_ERR_HPI_ERROR) 
-                        printf("saHpiSessionOpen: error %d, daemon not running\n",rv);
-                else
-                        printf("saHpiSessionOpen: %s\n",decode_error(rv));
+                printf("saHpiSessionOpen: %s",SaErrorT2str(rv));
                 exit(-1);
         }
         
         rv = saHpiDiscover(sessionid);
-        if (fdebug) printf("saHpiResourcesDiscover %s\n",decode_error(rv));
-
+        if (fdebug) printf("saHpiResourcesDiscover %s\n",SaErrorT2str(rv));
+        
         /*
         rv = saHpiRptInfoGet(sessionid,&rptinfo);
 
-        if (fdebug) printf("saHpiRptInfoGet %s\n",decode_error(rv));
+        if (fdebug) printf("saHpiRptInfoGet %s\n",SaErrorT2str(rv));
         printf("RptInfo: UpdateCount = %d, UpdateTime = %lx\n",
                rptinfo.UpdateCount, (unsigned long)rptinfo.UpdateTimestamp);
         */
@@ -164,7 +239,7 @@ int main(int argc, char **argv)
         while ((rv == SA_OK) && (rptentryid != SAHPI_LAST_ENTRY))
         {
                 rv = saHpiRptEntryGet(sessionid,rptentryid,&nextrptentryid,&rptentry);
-                if (fdebug) printf("saHpiRptEntryGet %s\n",decode_error(rv));
+                if (fdebug) printf("saHpiRptEntryGet %s\n",SaErrorT2str(rv));
                                                 
                 if (rv == SA_OK) {
                         /* Walk the RDR list for this RPT entry */
@@ -180,7 +255,7 @@ int main(int argc, char **argv)
                         rptentry.ResourceTag.Data[rptentry.ResourceTag.DataLength] = 0; 
                         printf("RPTEntry[%d] tag: %s\n",
                                resourceid,rptentry.ResourceTag.Data);
-			print_ep(&rptentry.ResourceEntity);
+                        print_ep(&rptentry.ResourceEntity);
                         while ((rv == SA_OK) && (entryid != SAHPI_LAST_ENTRY))
                         {
                                 rv = saHpiRdrGet(sessionid,resourceid,
@@ -194,14 +269,18 @@ int main(int argc, char **argv)
                                         } else {
                                                 eol = "\n";
                                         }
-                                        printf("    RDR[%6d]: %s %s %s",rdr.RecordId,
-                                               rtypes[rdr.RdrType],rdr.IdString.Data,eol);
+                                        printf("    RDR[%6d]: %s %s %s",
+                                               rdr.RecordId,
+                                               SaHpiRdrTypeT2str(rdr.RdrType),
+                                               rdr.IdString.Data,
+                                               eol);
+                                        
                                         if (rdr.RdrType == SAHPI_SENSOR_RDR) {
                                                 if(rdr.RdrTypeUnion.SensorRec.DataFormat.IsSupported) {
                                                         ShowSensor(sessionid,resourceid,
                                                                    &rdr.RdrTypeUnion.SensorRec);
                                                 } else {
-                                                        printf("Sensor ignored probably due to Resource not present\n");
+                                                        printf("Sensor reading isn't supported\n");
                                                 }
                                         }
 
