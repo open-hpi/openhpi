@@ -17,7 +17,6 @@
 prog="openhpid"
 
 start() {
-        export `openhpi-switcher --env=standard` || return 1
 	echo -n $"Starting $prog: "
 	daemon openhpid
 	RETVAL=$?

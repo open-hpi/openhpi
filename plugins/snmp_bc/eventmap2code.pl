@@ -298,16 +298,15 @@ sub print_h_file_header {
 
 #define HPIDUP_STRING  "_HPIDUP"
 
-#define NO_OVR  0x00000000  /* No overrides */
-#define OVR_SEV 0x00000001  /* Override Error Log's severity */
-#define OVR_RID 0x00000010  /* Override Error Log's source */
-#define OVR_EXP 0x00000100  /* Override Error Log's source for expansion cards */
-#define OVR_MM  0x00001000  /* Override Error Log's source for active MM */
+#define NO_OVR  0x0000  /* No overrides */
+#define OVR_SEV 0x0001  /* Override Error Log's severity */
+#define OVR_RID 0x0010  /* Override Error Log's source */
+#define OVR_EXP 0x0100  /* Override Error Log's source for expansion cards */
 
 typedef struct {
         gchar *event;
 	SaHpiSeverityT event_sev;
-	unsigned int   event_ovr;
+	unsigned short event_ovr;
         short          event_dup;
 } ErrLog2EventInfoT;
 

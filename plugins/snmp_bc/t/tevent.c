@@ -13,13 +13,13 @@
  *     Steve Sherman <stevees@us.ibm.com>
  */
 
-/************************************************************************
+/**********************************************************************
  * Notes:
  *
  * All these test cases depend on values defined in errlog2event_hash and
  * sensor and resource definitions in snmp_bc_resources.c. These are real 
  * hardware events and sensors, which hopefully won't change much.
- ************************************************************************/
+ **********************************************************************/
 
 #include <glib.h>
 #include <stdio.h>
@@ -31,7 +31,7 @@
 
 #define SNMP_BC_ERROR_LOG_MSG_OID     ".1.3.6.1.4.1.2.3.51.2.3.4.2.1.2.1"
 #define SNMP_BC_ERROR_LOG_MSG_OID_RSA ".1.3.6.1.4.1.2.3.51.1.3.4.2.1.2.1"
-#define SNMP_BC_MM_VOLT_3_3_OID       ".1.3.6.1.4.1.2.3.51.2.2.2.1.2.0"
+#define SNMP_BC_CHASSIS_VOLT_3_3_OID  ".1.3.6.1.4.1.2.3.51.2.2.2.1.2.0"
 #define SNMP_BC_CHASSIS_TEMP_OID      ".1.3.6.1.4.1.2.3.51.2.2.1.5.1.0"
 
 int main(int argc, char **argv)
@@ -40,7 +40,7 @@ int main(int argc, char **argv)
 	SaHpiRdrT rdr;
 	SaHpiEntryIdT rptid, next_rptid;
 	SaHpiRptEntryT rpt;
-	SaHpiResourceIdT rid_eventlog=0;
+	SaHpiResourceIdT chassis_rid=0;
 	SaHpiEventLogEntryT logentry;
 	SaHpiEventLogEntryIdT prev_logid, next_logid;
         SaHpiSessionIdT sessionid;
@@ -62,7 +62,7 @@ int main(int argc, char **argv)
 	  return -1;
         }
 
-	/* Find first Event Log capable resource - assume its MM */
+	/* Find first Event Log capable resource - assume its the chassis */
 	rptid = SAHPI_FIRST_ENTRY;
 	while ((err == SA_OK) && (rptid != SAHPI_LAST_ENTRY))
 	{
@@ -74,7 +74,7 @@ int main(int argc, char **argv)
 		}
 		
 		if ((rpt.ResourceCapabilities & SAHPI_CAPABILITY_EVENT_LOG)) {
-			rid_eventlog = rpt.ResourceId;
+			chassis_rid = rpt.ResourceId;
 			break;
 		}
 		else {
@@ -82,7 +82,7 @@ int main(int argc, char **argv)
 			continue;
 		}
 	}
-	if (rid_eventlog == 0) {
+	if (chassis_rid == 0) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		printf("  Cannot find Chassis RID\n");
 		return -1;
@@ -119,22 +119,22 @@ int main(int argc, char **argv)
 		}
 	}
 
-	err = saHpiEventLogClear(sessionid, rid_eventlog);
+	err = saHpiEventLogClear(sessionid, chassis_rid);
 	if (err) {
 		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
 		return -1;
         }
 
-	/***************************************************************
-	 * TestCase - Mapped MM Voltage Event (EN_CUTOFF_HI_FAULT_3_35V)
+	/************************************************************
+	 * TestCase - Mapped Chassis Event (EN_CUTOFF_HI_FAULT_3_35V)
          * Event recovered in next testcase
-	 ***************************************************************/
+	 ************************************************************/
 	logstr = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:System shutoff due to +3.3v over voltage. Read value 3.5. Threshold value 3.4";
 	memset(&logentry, 0 , sizeof(SaHpiEventLogEntryT));
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
-        err = saHpiEventLogEntryGet(sessionid, rid_eventlog, SAHPI_NEWEST_ENTRY,
+        err = saHpiEventLogEntryGet(sessionid, chassis_rid, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
 	if (err) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
@@ -143,7 +143,7 @@ int main(int argc, char **argv)
         }
 	
 	/* Check expected values */
-	if (!((logentry.Event.Source == rid_eventlog) &&
+	if (!((logentry.Event.Source == chassis_rid) &&
 	      (logentry.Event.EventType == SAHPI_ET_SENSOR) &&
 	      (logentry.Event.Severity == SAHPI_CRITICAL) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.SensorType == SAHPI_VOLTAGE) &&
@@ -160,23 +160,23 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	err = saHpiEventLogClear(sessionid, rid_eventlog);
+	err = saHpiEventLogClear(sessionid, chassis_rid);
 	if (err) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		printf("  Received error=%s\n", oh_lookup_error(err));
 		return -1;
         }
 
-	/*****************************************************************
-	 * TestCase - MM Voltage Recovery Event (EN_CUTOFF_HI_FAULT_3_35V)
+	/**************************************************************
+	 * TestCase - Chassis Recovery Event (EN_CUTOFF_HI_FAULT_3_35V)
          * Recover event in previous testcase.
-	 *****************************************************************/
+	 **************************************************************/
 	logstr = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:Recovery System shutoff due to +3.3v over voltage. Read value 3.5 Threshold value 3.4";
 	memset(&logentry, 0 , sizeof(SaHpiEventLogEntryT));
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
-        err = saHpiEventLogEntryGet(sessionid, rid_eventlog, SAHPI_NEWEST_ENTRY,
+        err = saHpiEventLogEntryGet(sessionid, chassis_rid, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
 	if (err) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
@@ -185,7 +185,7 @@ int main(int argc, char **argv)
         }
 	
 	/* Check expected values */
-	if (!((logentry.Event.Source == rid_eventlog) &&
+	if (!((logentry.Event.Source == chassis_rid) &&
 	      (logentry.Event.EventType == SAHPI_ET_SENSOR) &&
 	      (logentry.Event.Severity == SAHPI_CRITICAL) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.SensorType == SAHPI_VOLTAGE) &&
@@ -202,25 +202,25 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	err = saHpiEventLogClear(sessionid, rid_eventlog);
+	err = saHpiEventLogClear(sessionid, chassis_rid);
 	if (err) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		printf("  Received error=%s\n", oh_lookup_error(err));
 		return -1;
         }
 
-	/********************************************************
-	 * TestCase - MM Voltage Event (EN_CUTOFF_HI_FAULT_3_35V)
-         * Change current sensor reading to a LOWER MAJOR value. 
-         * Previous state depends upon previous testcase.
-	 ********************************************************/
+	/******************************************************
+	 * TestCase - Chassis Event (EN_CUTOFF_HI_FAULT_3_35V)
+         * Change sensor reading to LOWER MAJOR. Previous state 
+         * depends upon previous testcase.
+	 ******************************************************/
 	logstr = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:System shutoff due to +3.3v over voltage. Read value 3.5 Threshold value 3.4";
 	memset(&logentry, 0 , sizeof(SaHpiEventLogEntryT));
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
 	/* Change sensor's simulator value */
-	hash_set_value = (SnmpMibInfoT *)g_hash_table_lookup(sim_hash, SNMP_BC_MM_VOLT_3_3_OID);
+	hash_set_value = (SnmpMibInfoT *)g_hash_table_lookup(sim_hash, SNMP_BC_CHASSIS_VOLT_3_3_OID);
 	if (hash_set_value == NULL) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		printf("  Received Null hash value\n");
@@ -228,7 +228,7 @@ int main(int argc, char **argv)
 	}
 	strcpy(hash_set_value->value.string, "2.9 Volts");
 
-        err = saHpiEventLogEntryGet(sessionid, rid_eventlog, SAHPI_NEWEST_ENTRY,
+        err = saHpiEventLogEntryGet(sessionid, chassis_rid, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
 	if (err) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
@@ -237,7 +237,7 @@ int main(int argc, char **argv)
         }
 	
 	/* Check expected values */
-	if (!((logentry.Event.Source == rid_eventlog) &&
+	if (!((logentry.Event.Source == chassis_rid) &&
 	      (logentry.Event.EventType == SAHPI_ET_SENSOR) &&
 	      (logentry.Event.Severity == SAHPI_CRITICAL) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.SensorType == SAHPI_VOLTAGE) &&
@@ -256,7 +256,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	err = saHpiEventLogClear(sessionid, rid_eventlog);
+	err = saHpiEventLogClear(sessionid, chassis_rid);
 	if (err) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		printf("  Received error=%s\n", oh_lookup_error(err));
@@ -264,7 +264,7 @@ int main(int argc, char **argv)
         }
 
 	/* Set sensor's simulator value back to default */ 
-	hash_set_value = (SnmpMibInfoT *)g_hash_table_lookup(sim_hash, SNMP_BC_MM_VOLT_3_3_OID);
+	hash_set_value = (SnmpMibInfoT *)g_hash_table_lookup(sim_hash, SNMP_BC_CHASSIS_VOLT_3_3_OID);
 	if (hash_set_value == NULL) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		printf("  Received Null hash value\n");
@@ -272,18 +272,18 @@ int main(int argc, char **argv)
 	}
 	strcpy(hash_set_value->value.string, "3.3 Volts");
 
-	/********************************************************
-	 * TestCase - MM Voltage Event (EN_CUTOFF_HI_FAULT_3_35V)
-         * Change sensor reading to a UPPER MAJOR value. 
-         * Previous state depends upon previous testcase.
-	 ********************************************************/
+	/******************************************************
+	 * TestCase - Chassis Event (EN_CUTOFF_HI_FAULT_3_35V)
+         * Change sensor reading to UPPER MAJOR. Previous state  
+         * depends upon previous testcase.
+	 ******************************************************/
 	logstr = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:System shutoff due to +3.3v over voltage. Read value 3.5 Threshold value 3.4";
 	memset(&logentry, 0 , sizeof(SaHpiEventLogEntryT));
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
 	/* Change sensor's simulator value */ 
-	hash_set_value = (SnmpMibInfoT *)g_hash_table_lookup(sim_hash, SNMP_BC_MM_VOLT_3_3_OID);
+	hash_set_value = (SnmpMibInfoT *)g_hash_table_lookup(sim_hash, SNMP_BC_CHASSIS_VOLT_3_3_OID);
 	if (hash_set_value == NULL) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		printf("  Received Null hash value\n");
@@ -291,7 +291,7 @@ int main(int argc, char **argv)
 	}
 	strcpy(hash_set_value->value.string, "3.5 Volts");
 
-        err = saHpiEventLogEntryGet(sessionid, rid_eventlog, SAHPI_NEWEST_ENTRY,
+        err = saHpiEventLogEntryGet(sessionid, chassis_rid, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
 	if (err) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
@@ -300,7 +300,7 @@ int main(int argc, char **argv)
         }
 	
 	/* Check expected values */
-	if (!((logentry.Event.Source == rid_eventlog) &&
+	if (!((logentry.Event.Source == chassis_rid) &&
 	      (logentry.Event.EventType == SAHPI_ET_SENSOR) &&
 	      (logentry.Event.Severity == SAHPI_CRITICAL) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.SensorType == SAHPI_VOLTAGE) &&
@@ -321,7 +321,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	err = saHpiEventLogClear(sessionid, rid_eventlog);
+	err = saHpiEventLogClear(sessionid, chassis_rid);
 	if (err) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		printf("  Received error=%s\n", oh_lookup_error(err));
@@ -329,7 +329,7 @@ int main(int argc, char **argv)
         }
 
 	/* Set sensor's simulator value back to default */ 
-	hash_set_value = (SnmpMibInfoT *)g_hash_table_lookup(sim_hash, SNMP_BC_MM_VOLT_3_3_OID);
+	hash_set_value = (SnmpMibInfoT *)g_hash_table_lookup(sim_hash, SNMP_BC_CHASSIS_VOLT_3_3_OID);
 	if (hash_set_value == NULL) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		printf("  Received Null hash value\n");
@@ -337,16 +337,16 @@ int main(int argc, char **argv)
 	}
 	strcpy(hash_set_value->value.string, "3.3 Volts");
 
-	/***************************************************************
-	 * TestCase - MM Voltage Duplicate Event (EN_PFA_HI_FAULT_3_35V)
+	/************************************************************
+	 * TestCase - Chassis Duplicate Event (EN_PFA_HI_FAULT_3_35V)
          * Previous state check depends on previous testcase!
-	 ***************************************************************/
+	 ************************************************************/
 	logstr = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:System over recommended voltage on +3.3v. Read value 3.5 Threshold value 3.4";
 	memset(&logentry, 0 , sizeof(SaHpiEventLogEntryT));
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
-        err = saHpiEventLogEntryGet(sessionid, rid_eventlog, SAHPI_NEWEST_ENTRY,
+        err = saHpiEventLogEntryGet(sessionid, chassis_rid, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
 	if (err) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
@@ -355,7 +355,7 @@ int main(int argc, char **argv)
         }
 	
 	/* Check expected values */
-	if (!((logentry.Event.Source == rid_eventlog) &&
+	if (!((logentry.Event.Source == chassis_rid) &&
 	      (logentry.Event.EventType == SAHPI_ET_SENSOR) &&
 	      (logentry.Event.Severity == SAHPI_MAJOR) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.SensorType == SAHPI_VOLTAGE) &&
@@ -374,7 +374,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	err = saHpiEventLogClear(sessionid, rid_eventlog);
+	err = saHpiEventLogClear(sessionid, chassis_rid);
 	if (err) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		printf("  Received error=%s\n", oh_lookup_error(err));
@@ -390,7 +390,7 @@ int main(int argc, char **argv)
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
-        err = saHpiEventLogEntryGet(sessionid, rid_eventlog, SAHPI_NEWEST_ENTRY,
+        err = saHpiEventLogEntryGet(sessionid, chassis_rid, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
 	if (err) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
@@ -399,7 +399,7 @@ int main(int argc, char **argv)
         }
 	
 	/* Check expected values */
-	if (!((!(logentry.Event.Source == rid_eventlog)) &&
+	if (!((!(logentry.Event.Source == chassis_rid)) &&
 	      (logentry.Event.EventType == SAHPI_ET_SENSOR) &&
 	      (logentry.Event.Severity == SAHPI_MAJOR) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.SensorType == SAHPI_VOLTAGE) &&
@@ -416,7 +416,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	err = saHpiEventLogClear(sessionid, rid_eventlog);
+	err = saHpiEventLogClear(sessionid, chassis_rid);
 	if (err) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		printf("  Received error=%s\n", oh_lookup_error(err));
@@ -441,7 +441,7 @@ int main(int argc, char **argv)
 	}
 	strcpy(hash_set_value->value.string, "60 Centigrade");
 
-        err = saHpiEventLogEntryGet(sessionid, rid_eventlog, SAHPI_NEWEST_ENTRY,
+        err = saHpiEventLogEntryGet(sessionid, chassis_rid, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
 	if (err) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
@@ -450,7 +450,7 @@ int main(int argc, char **argv)
         }
 	
 	/* Check expected values */
-	if (!(!(logentry.Event.Source == rid_eventlog) &&
+	if (!((logentry.Event.Source == chassis_rid) &&
 	      (logentry.Event.EventType == SAHPI_ET_SENSOR) &&
 	      (logentry.Event.Severity == SAHPI_MAJOR) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.SensorType == SAHPI_TEMPERATURE) &&
@@ -465,7 +465,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	err = saHpiEventLogClear(sessionid, rid_eventlog);
+	err = saHpiEventLogClear(sessionid, chassis_rid);
 	if (err) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		printf("  Received error=%s\n", oh_lookup_error(err));
@@ -490,7 +490,7 @@ int main(int argc, char **argv)
 	}
 	strcpy(hash_set_value->value.string, "61 Centigrade");
 
-        err = saHpiEventLogEntryGet(sessionid, rid_eventlog, SAHPI_NEWEST_ENTRY,
+        err = saHpiEventLogEntryGet(sessionid, chassis_rid, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
 	if (err) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
@@ -499,7 +499,7 @@ int main(int argc, char **argv)
         }
 	
 	/* Check expected values */
-	if (!(!(logentry.Event.Source == rid_eventlog) &&
+	if (!((logentry.Event.Source == chassis_rid) &&
 	      (logentry.Event.EventType == SAHPI_ET_SENSOR) &&
 	      (logentry.Event.Severity == SAHPI_MAJOR) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.SensorType == SAHPI_TEMPERATURE) &&
@@ -516,7 +516,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	err = saHpiEventLogClear(sessionid, rid_eventlog);
+	err = saHpiEventLogClear(sessionid, chassis_rid);
 	if (err) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		printf("  Received error=%s\n", oh_lookup_error(err));
@@ -531,7 +531,7 @@ int main(int argc, char **argv)
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
-        err = saHpiEventLogEntryGet(sessionid, rid_eventlog, SAHPI_NEWEST_ENTRY,
+        err = saHpiEventLogEntryGet(sessionid, chassis_rid, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
 	if (err) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
@@ -540,7 +540,7 @@ int main(int argc, char **argv)
         }
 	
 	/* Check expected values */
-	if (!((!(logentry.Event.Source == rid_eventlog)) &&
+	if (!((!(logentry.Event.Source == chassis_rid)) &&
 	      (logentry.Event.EventType == SAHPI_ET_OEM) &&
 	      (logentry.Event.Severity == SAHPI_INFORMATIONAL))) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
@@ -548,7 +548,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	err = saHpiEventLogClear(sessionid, rid_eventlog);
+	err = saHpiEventLogClear(sessionid, chassis_rid);
 	if (err) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		printf("  Received error=%s\n", oh_lookup_error(err));
@@ -563,7 +563,7 @@ int main(int argc, char **argv)
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
-        err = saHpiEventLogEntryGet(sessionid, rid_eventlog, SAHPI_NEWEST_ENTRY,
+        err = saHpiEventLogEntryGet(sessionid, chassis_rid, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
 	if (err) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
@@ -572,7 +572,7 @@ int main(int argc, char **argv)
         }
 	
 	/* Check expected values */
-	if (!((!(logentry.Event.Source == rid_eventlog)) &&
+	if (!((!(logentry.Event.Source == chassis_rid)) &&
 	      (logentry.Event.EventType == SAHPI_ET_SENSOR) &&
 	      (logentry.Event.Severity == SAHPI_MAJOR) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.SensorType == SAHPI_TEMPERATURE) &&
@@ -589,13 +589,14 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	err = saHpiEventLogClear(sessionid, rid_eventlog);
+	err = saHpiEventLogClear(sessionid, chassis_rid);
 	if (err) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		printf("  Received error=%s\n", oh_lookup_error(err));
 		return -1;
         }
 
+	/* Better to test a mapped login event - BC doesn't seem to have one defined yet */
 	/*************************************************************
 	 * TestCase - Non-mapped Login Event (Severity=WARN)
 	 *************************************************************/
@@ -604,7 +605,7 @@ int main(int argc, char **argv)
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
-        err = saHpiEventLogEntryGet(sessionid, rid_eventlog, SAHPI_NEWEST_ENTRY,
+        err = saHpiEventLogEntryGet(sessionid, chassis_rid, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
 	if (err) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
@@ -613,7 +614,7 @@ int main(int argc, char **argv)
         }
 	
 	/* Check expected values */
-	if (!((!(logentry.Event.Source == rid_eventlog)) &&
+	if (!((!(logentry.Event.Source == chassis_rid)) &&
 	      (logentry.Event.EventType == SAHPI_ET_OEM) &&
 	      (logentry.Event.Severity == SAHPI_MINOR))) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
@@ -621,7 +622,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	err = saHpiEventLogClear(sessionid, rid_eventlog);
+	err = saHpiEventLogClear(sessionid, chassis_rid);
 	if (err) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		printf("  Received error=%s\n", oh_lookup_error(err));
@@ -637,7 +638,7 @@ int main(int argc, char **argv)
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
-        err = saHpiEventLogEntryGet(sessionid, rid_eventlog, SAHPI_NEWEST_ENTRY,
+        err = saHpiEventLogEntryGet(sessionid, chassis_rid, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
 	if (err) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
@@ -646,7 +647,7 @@ int main(int argc, char **argv)
         }
 	
 	/* Check expected values */
-	if (!((!(logentry.Event.Source == rid_eventlog)) &&
+	if (!((!(logentry.Event.Source == chassis_rid)) &&
 	      (logentry.Event.EventType == SAHPI_ET_SENSOR) &&
 	      (logentry.Event.Severity == SAHPI_CRITICAL) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.SensorType == SAHPI_TEMPERATURE) &&
@@ -659,7 +660,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	err = saHpiEventLogClear(sessionid, rid_eventlog);
+	err = saHpiEventLogClear(sessionid, chassis_rid);
 	if (err) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		printf("  Received error=%s\n", oh_lookup_error(err));
@@ -675,7 +676,7 @@ int main(int argc, char **argv)
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
-        err = saHpiEventLogEntryGet(sessionid, rid_eventlog, SAHPI_NEWEST_ENTRY,
+        err = saHpiEventLogEntryGet(sessionid, chassis_rid, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
 	if (err) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
@@ -684,7 +685,7 @@ int main(int argc, char **argv)
         }
 	
 	/* Check expected values */
-	if (!((!(logentry.Event.Source == rid_eventlog)) &&
+	if (!((!(logentry.Event.Source == chassis_rid)) &&
 	      (logentry.Event.EventType == SAHPI_ET_SENSOR) &&
 	      (logentry.Event.Severity == SAHPI_CRITICAL) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.SensorType == SAHPI_TEMPERATURE) &&
@@ -697,7 +698,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	err = saHpiEventLogClear(sessionid, rid_eventlog);
+	err = saHpiEventLogClear(sessionid, chassis_rid);
 	if (err) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		printf("  Received error=%s\n", oh_lookup_error(err));
@@ -712,7 +713,7 @@ int main(int argc, char **argv)
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
-        err = saHpiEventLogEntryGet(sessionid, rid_eventlog, SAHPI_NEWEST_ENTRY,
+        err = saHpiEventLogEntryGet(sessionid, chassis_rid, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
 	if (err) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
@@ -721,7 +722,7 @@ int main(int argc, char **argv)
         }
 	
 	/* Check expected values */
-	if (!((!(logentry.Event.Source == rid_eventlog)) &&
+	if (!((!(logentry.Event.Source == chassis_rid)) &&
 	      (logentry.Event.EventType == SAHPI_ET_HOTSWAP) &&
 	      (logentry.Event.Severity == SAHPI_INFORMATIONAL) &&
 	      (logentry.Event.EventDataUnion.HotSwapEvent.HotSwapState == SAHPI_HS_STATE_ACTIVE) && 
@@ -731,7 +732,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	err = saHpiEventLogClear(sessionid, rid_eventlog);
+	err = saHpiEventLogClear(sessionid, chassis_rid);
 	if (err) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		printf("  Received error=%s\n", oh_lookup_error(err));
@@ -748,7 +749,7 @@ int main(int argc, char **argv)
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
-        err = saHpiEventLogEntryGet(sessionid, rid_eventlog, SAHPI_NEWEST_ENTRY,
+        err = saHpiEventLogEntryGet(sessionid, chassis_rid, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
 	if (err) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
@@ -757,7 +758,7 @@ int main(int argc, char **argv)
         }
 	
 	/* Check expected values */
-	if (!((!(logentry.Event.Source == rid_eventlog)) &&
+	if (!((!(logentry.Event.Source == chassis_rid)) &&
 	      (logentry.Event.EventType == SAHPI_ET_HOTSWAP) &&
 	      (logentry.Event.Severity == SAHPI_MAJOR) &&
 	      (logentry.Event.EventDataUnion.HotSwapEvent.HotSwapState == SAHPI_HS_STATE_NOT_PRESENT) && 
@@ -767,7 +768,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	err = saHpiEventLogClear(sessionid, rid_eventlog);
+	err = saHpiEventLogClear(sessionid, chassis_rid);
 	if (err) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		printf("  Received error=%s\n", oh_lookup_error(err));
@@ -783,7 +784,7 @@ int main(int argc, char **argv)
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
-        err = saHpiEventLogEntryGet(sessionid, rid_eventlog, SAHPI_NEWEST_ENTRY,
+        err = saHpiEventLogEntryGet(sessionid, chassis_rid, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
 	if (err) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
@@ -792,7 +793,7 @@ int main(int argc, char **argv)
         }
 	
 	/* Check expected values */
-	if (!((!(logentry.Event.Source == rid_eventlog)) &&
+	if (!((!(logentry.Event.Source == chassis_rid)) &&
 	      (logentry.Event.EventType == SAHPI_ET_HOTSWAP) &&
 	      (logentry.Event.Severity == SAHPI_INFORMATIONAL) &&
 	      (logentry.Event.EventDataUnion.HotSwapEvent.HotSwapState == SAHPI_HS_STATE_ACTIVE) &&
@@ -802,7 +803,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	err = saHpiEventLogClear(sessionid, rid_eventlog);
+	err = saHpiEventLogClear(sessionid, chassis_rid);
 	if (err) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		printf("  Received error=%s\n", oh_lookup_error(err));
@@ -834,7 +835,7 @@ int main(int argc, char **argv)
 		}
 	}
 
-	err = saHpiEventLogClear(sessionid, rid_eventlog);
+	err = saHpiEventLogClear(sessionid, chassis_rid);
 	if (err) {
 		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
 		return -1;
@@ -848,7 +849,7 @@ int main(int argc, char **argv)
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
-        err = saHpiEventLogEntryGet(sessionid, rid_eventlog, SAHPI_NEWEST_ENTRY,
+        err = saHpiEventLogEntryGet(sessionid, chassis_rid, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
 	if (err) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
@@ -857,7 +858,7 @@ int main(int argc, char **argv)
         }
 	
 	/* Check expected values */
-	if (!((logentry.Event.Source == rid_eventlog) &&
+	if (!((logentry.Event.Source == chassis_rid) &&
 	      (logentry.Event.EventType == SAHPI_ET_SENSOR) &&
 	      (logentry.Event.Severity == SAHPI_CRITICAL) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.SensorType == SAHPI_VOLTAGE) &&
@@ -874,7 +875,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	err = saHpiEventLogClear(sessionid, rid_eventlog);
+	err = saHpiEventLogClear(sessionid, chassis_rid);
 	if (err) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		printf("  Received error=%s\n", oh_lookup_error(err));
@@ -894,7 +895,7 @@ int main(int argc, char **argv)
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
-        err = saHpiEventLogEntryGet(sessionid, rid_eventlog, SAHPI_NEWEST_ENTRY,
+        err = saHpiEventLogEntryGet(sessionid, chassis_rid, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
 	if (err) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
@@ -903,7 +904,7 @@ int main(int argc, char **argv)
         }
 	
 	/* Check expected values */
-	if (!((!(logentry.Event.Source == rid_eventlog)) &&
+	if (!(((logentry.Event.Source == chassis_rid)) &&
 	      (logentry.Event.EventType == SAHPI_ET_OEM) &&
 	      (logentry.Event.Severity == SAHPI_INFORMATIONAL))) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
@@ -911,7 +912,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	err = saHpiEventLogClear(sessionid, rid_eventlog);
+	err = saHpiEventLogClear(sessionid, chassis_rid);
 	if (err) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		printf("  Received error=%s\n", oh_lookup_error(err));
@@ -927,7 +928,7 @@ int main(int argc, char **argv)
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
-        err = saHpiEventLogEntryGet(sessionid, rid_eventlog, SAHPI_NEWEST_ENTRY,
+        err = saHpiEventLogEntryGet(sessionid, chassis_rid, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
 	if (err) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
@@ -936,7 +937,7 @@ int main(int argc, char **argv)
         }
 
 	/* Check expected values */
-	if (!((!(logentry.Event.Source == rid_eventlog)) &&
+	if (!(((logentry.Event.Source == chassis_rid)) &&
 	      (logentry.Event.EventType == SAHPI_ET_OEM) &&
 	      (logentry.Event.Severity == SAHPI_INFORMATIONAL))) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
@@ -944,7 +945,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	err = saHpiEventLogClear(sessionid, rid_eventlog);
+	err = saHpiEventLogClear(sessionid, chassis_rid);
 	if (err) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		printf("  Received error=%s\n", oh_lookup_error(err));
@@ -960,7 +961,7 @@ int main(int argc, char **argv)
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
-        err = saHpiEventLogEntryGet(sessionid, rid_eventlog, SAHPI_NEWEST_ENTRY,
+        err = saHpiEventLogEntryGet(sessionid, chassis_rid, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
 	if (err) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
@@ -969,7 +970,7 @@ int main(int argc, char **argv)
         }
 
 	/* Check expected values */
-	if (!((!(logentry.Event.Source == rid_eventlog)) &&
+	if (!(((logentry.Event.Source == chassis_rid)) &&
 	      (logentry.Event.EventType == SAHPI_ET_OEM) &&
 	      (logentry.Event.Severity == SAHPI_INFORMATIONAL))) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
@@ -977,7 +978,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	err = saHpiEventLogClear(sessionid, rid_eventlog);
+	err = saHpiEventLogClear(sessionid, chassis_rid);
 	if (err) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		printf("  Received error=%s\n", oh_lookup_error(err));

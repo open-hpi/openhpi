@@ -5,7 +5,7 @@ dnl   various hacks by Sean Dague <http://dague.net/sean> 4/23/03
 
 
 AC_PREREQ(2.57)
-AC_INIT(openhpi, 2.1.1)
+AC_INIT(openhpi, 2.1.0)
 AC_CONFIG_SRCDIR(openhpi.spec.in)
 AM_INIT_AUTOMAKE
 
@@ -19,7 +19,7 @@ AC_LIBTOOL_DLOPEN
 AC_PROG_LIBTOOL
 AC_PROG_LN_S
 
-HPI_LIB_VERSION=3:1:1
+HPI_LIB_VERSION=3:0:1
 HPI_PKG=$PACKAGE_NAME
 HPI_UTIL_PKG=${PACKAGE_NAME}utils
 HPI_CLIENT_PKG=${PACKAGE_NAME}client
@@ -346,17 +346,17 @@ if test "x$IPMIDIRECT" = "xipmidirect"; then
         fi
 fi
 
-#AC_ARG_ENABLE([remote_client],
-#    [  --enable-remote_client     build remote client plugin [default=yes]],
-#    [if test "x$enableval" = "xyes"; then
-#            AC_SUBST(REMOTE_CLIENT,remote_client)
-#	    NEED_MARSHAL="yes"
-#     elif test "x$enableval" = "xstatic"; then
-#            AC_SUBST(REMOTE_CLIENT,remote_client)
-#            STATIC_PLUGIN_LIST="$STATIC_PLUGIN_LIST remote_client"
-#            STATIC_PLUGIN_EXTRA_LIBS="$STATIC_PLUGIN_EXTRA_LIBS \$(top_builddir)/marshal/libopenhpimarshal.la -luuid"
-#            NEED_MARSHAL="yes"
-#     fi])
+AC_ARG_ENABLE([remote_client],
+    [  --enable-remote_client     build remote client plugin [default=yes]],
+    [if test "x$enableval" = "xyes"; then
+            AC_SUBST(REMOTE_CLIENT,remote_client)
+	    NEED_MARSHAL="yes"
+     elif test "x$enableval" = "xstatic"; then
+            AC_SUBST(REMOTE_CLIENT,remote_client)
+            STATIC_PLUGIN_LIST="$STATIC_PLUGIN_LIST remote_client"
+            STATIC_PLUGIN_EXTRA_LIBS="$STATIC_PLUGIN_EXTRA_LIBS \$(top_builddir)/marshal/libopenhpimarshal.la -luuid"
+            NEED_MARSHAL="yes"
+     fi])
 
 dnl    [AC_SUBST(REMOTE_CLIENT,remote_client)
 dnl     NEED_MARSHAL="yes"])
@@ -591,6 +591,7 @@ AC_CONFIG_FILES([openhpi.spec
         plugins/sysfs/Makefile
         plugins/ipmidirect/Makefile
         plugins/ipmidirect/t/Makefile
+        plugins/remote_client/Makefile
         plugins/simulator/Makefile
 	scripts/Makefile
         snmp/Makefile
@@ -598,7 +599,6 @@ AC_CONFIG_FILES([openhpi.spec
         src/plugin_static.c
         src/t/Makefile
         src/t/ohpi/Makefile
-        src/t/ohpic/Makefile
         test/Makefile
         docs/Makefile
         docs/hld/Makefile
