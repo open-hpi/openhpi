@@ -156,13 +156,31 @@ SaErrorT SAHPI_API saHpiDomainInfoGet (
         return SA_OK;
 }
 
+/***********************************************************
+ *
+ *  For OpenHPI 2.0 this is always going to return
+ *  NOT_PRESENT unless it is called invalidly.  True
+ *  DRT support won't be there until 2.2.
+ *
+ **********************************************************/
+
 SaErrorT SAHPI_API saHpiDrtEntryGet (
         SAHPI_IN  SaHpiSessionIdT     SessionId,
         SAHPI_IN  SaHpiEntryIdT       EntryId,
         SAHPI_OUT SaHpiEntryIdT       *NextEntryId,
         SAHPI_OUT SaHpiDrtEntryT      *DrtEntry)
 {
-        return SA_ERR_HPI_UNSUPPORTED_API;
+        SaHpiDomainIdT did;
+        OH_CHECK_INIT_STATE(SessionId);
+        OH_GET_DID(SessionId, did);
+        
+        if((DrtEntry == NULL) || 
+           (NextEntryId == NULL) || 
+           (EntryId == SAHPI_LAST_ENTRY)) {
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        return SA_ERR_HPI_NOT_PRESENT;
 }
 
 SaErrorT SAHPI_API saHpiDomainTagSet (
