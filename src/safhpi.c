@@ -98,6 +98,8 @@ SaErrorT SAHPI_API saHpiInitialize(SAHPI_OUT SaHpiVersionT *HpiImplVersion)
       
         unsigned int i;
         char *openhpi_conf;
+
+	int rval;
         
         *HpiImplVersion = SAHPI_INTERFACE_VERSION;
         /* initialize mutex used for data locking */
@@ -113,9 +115,10 @@ SaErrorT SAHPI_API saHpiInitialize(SAHPI_OUT SaHpiVersionT *HpiImplVersion)
         }
 
 	/* initialize uid_utils, and load uid map file if present */
-	if( oh_uid_initialize() ) {
+	rval = oh_uid_initialize();
+	if( (rval != SA_OK) && (rval != SA_ERR_HPI_ERROR) ) {
 		dbg("uid_intialization failed");
-		return(SA_ERR_HPI_ERROR);
+		return(rval);
 	}
 
         if (OH_STAT_UNINIT != oh_hpi_state) {
