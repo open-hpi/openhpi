@@ -689,9 +689,7 @@ SaErrorT snmp_bc_set_sensor_thresholds(void *hnd,
 	merge_threshold(PosThdHysteresis);
 	merge_threshold(NegThdHysteresis);
 	
-	err = oh_valid_thresholds(&working,
-				  &(rdr->RdrTypeUnion.SensorRec.DataFormat),
-				  rdr->RdrTypeUnion.SensorRec.ThresholdDefn.WriteThold);
+	err = oh_valid_thresholds(&working, rdr);
 	if (err) return(err);
 	
 	/************************ 
