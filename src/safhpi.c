@@ -525,12 +525,14 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
         
         get_sel_entry = h->abi->get_sel_entry;
         
-        if (!get_sel_entry) 
+        if (!get_sel_entry) {
+                dbg("This api is not supported");
                 return SA_ERR_HPI_UNSUPPORTED_API;
+        }
         
         if (get_sel_entry(h->hnd, ResourceId, EntryId, PrevEntryId,
                           NextEntryId, EventLogEntry) < 0) {
-                dbg("SEL info get failed");
+                dbg("SEL entry get failed");
                 return SA_ERR_HPI_UNKNOWN;
         }
         
