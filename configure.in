@@ -1,0 +1,59 @@
+dnl
+dnl autoconf and automake for openhpi
+dnl 	initial file by Andrea Brugger <andrea.l.brugger@intel.com> 1/03
+dnl
+
+AC_INIT
+AM_INIT_AUTOMAKE(openhpi, 0.1)
+
+dnl AM_CONFIG_HEADER(./config.h)
+
+AC_PROG_CC
+AM_PROG_LIBTOOL
+
+HPI_PKG=openhpi
+AC_SUBST(HPI_PKG)
+AC_SUBST(ac_configure_args)
+AC_PATH_PROGS(RPM, rpm)
+
+dnl 
+dnl This code was borrowed from linux-ha configure.in file
+dnl and is used for creating the proper substitutions
+dnl in the spec file. Without it, the spec file will
+dnl have ${exec_prefix}, etc. instead of the actual
+dnl directory.
+dnl
+dnl
+
+prefix=`eval echo "$prefix"`
+
+case $prefix in
+  NONE) prefix=/usr/local;;
+esac
+var() {
+  case $1 in
+    *'${'*)     res=`eval echo "$1"`;;
+    *)          res="$1";;
+  esac
+  case "$res" in
+    ""|NONE)    echo "$2";;
+    *)          echo "$res";;
+  esac
+}
+
+exec_prefix=`var "$exec_prefix" "$prefix"`
+bindir=`var "$bindir" "$exec_prefix/bin"`
+sbindir=`var "$sbindir" "$exec_prefix/sbin"`
+libdir=`var "$libdir" "$exec_prefix/lib"`
+includedir=`var "$includedir" "$exec_prefix/include"`
+base_includedir="${includedir}"
+AC_SUBST(base_includedir)
+
+AC_OUTPUT(openhpi.spec 		\
+Makefile 			\
+include/Makefile		\
+lib/Makefile			\
+test/Makefile			\
+)
+
+
