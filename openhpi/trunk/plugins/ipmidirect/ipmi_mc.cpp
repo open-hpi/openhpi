@@ -449,7 +449,7 @@ cIpmiMc::GetDeviceIdDataFromRsp( const cIpmiMsg &rsp )
   m_provides_device_sdrs         = (rsp_data[2] & 0x80) == 0x80;
   m_device_available             = (rsp_data[3] & 0x80) == 0x80;
   m_major_fw_revision            = rsp_data[3] & 0x7f;
-  m_minor_fw_revision            = rsp_data[4];
+  m_minor_fw_revision            = (rsp_data[4] & 0x0f) + 10 * ((rsp_data[4] >> 4) & 0x0f);
   m_major_version                = rsp_data[5] & 0xf;
   m_minor_version                = (rsp_data[5] >> 4) & 0xf;
   m_device_support               = rsp_data[6];

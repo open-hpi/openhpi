@@ -81,6 +81,19 @@ cIpmiSensorDiscrete::CreateRdr( SaHpiRptEntryT &resource,
   rec.DataFormat.IsSupported     = SAHPI_FALSE;
   rec.ThresholdDefn.IsAccessible = SAHPI_FALSE;
 
+  switch (SensorType())
+  {
+  // Don't want anybody to mess with these sensors
+  case eIpmiSensorTypeAtcaHotSwap:
+  case eIpmiSensorTypeAtcaIpmb:
+  case eIpmiSensorTypeAtcaAmcHotSwap:
+      rec.EventCtrl  = SAHPI_SEC_READ_ONLY;
+      rec.EnableCtrl = SAHPI_FALSE;
+      break;
+  default:
+      break;
+  }
+
   return true;
 }
 
