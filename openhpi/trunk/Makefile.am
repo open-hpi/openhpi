@@ -67,3 +67,10 @@ clean: am_config_clean
 	$(MAKE) -C examples clean
 am_config_clean:
 	rm -fr $(PACKAGE)-*.tar.gz
+define all-sources
+	(find . \( -name SCCS -o -name BitKeeper -o -name .svn -o -name CVS \) -prune -o \
+	-name *.[chS] -print )
+endef
+
+tags:
+	$(all-sources) | xargs ctags		

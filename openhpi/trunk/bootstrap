@@ -1,4 +1,4 @@
-#! /bin/sh
+#! /bin/sh -x
 
 #
 # Copyright (c) 2003, Intel Corporation
