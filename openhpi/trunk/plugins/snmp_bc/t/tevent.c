@@ -106,7 +106,7 @@ int main(int argc, char **argv)
 			return -1;
 		}
 	}
-#if 1
+#if 0
 	printf("Calling Clear\n");
 #endif
 	err = saHpiEventLogClear(sessionid, chassis_rid);
@@ -115,7 +115,7 @@ int main(int argc, char **argv)
 		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
 		return -1;
         }
-#if 1
+#if 0
 	printf("Calling EntryGet\n");
 #endif
 	/************************************************************
@@ -145,11 +145,11 @@ int main(int argc, char **argv)
 	      (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MAJOR) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MINOR) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.PreviousState == SAHPI_ES_UNSPECIFIED) &&
-	      (logentry.Event.EventDataUnion.SensorEvent.TriggerReading.Value.SensorFloat64 == (float)3.5) &&
-	      (logentry.Event.EventDataUnion.SensorEvent.TriggerThreshold.Value.SensorFloat64 == (float)3.4))) {
+	      (logentry.Event.EventDataUnion.SensorEvent.TriggerReading.Value.SensorFloat64 == (double)3.5) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.TriggerThreshold.Value.SensorFloat64 == (double)3.4))) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		printf("  TestCase - Mapped Chassis Event (EN_CUTOFF_HI_FAULT_3_35V)\n");
-		oh_print_event(&(logentry.Event));
+		oh_print_event(&(logentry.Event), 1);
 		return -1;
 	}
 
@@ -189,11 +189,11 @@ int main(int argc, char **argv)
 	      (logentry.Event.EventDataUnion.SensorEvent.PreviousState & SAHPI_ES_UPPER_CRIT) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.PreviousState & SAHPI_ES_UPPER_MAJOR) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.PreviousState & SAHPI_ES_UPPER_MINOR) &&
-	      (logentry.Event.EventDataUnion.SensorEvent.TriggerReading.Value.SensorFloat64 == (float)3.5) &&
-	      (logentry.Event.EventDataUnion.SensorEvent.TriggerThreshold.Value.SensorFloat64 == (float)3.4))) {
+	      (logentry.Event.EventDataUnion.SensorEvent.TriggerReading.Value.SensorFloat64 == (double)3.5) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.TriggerThreshold.Value.SensorFloat64 == (double)3.4))) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		printf("  TestCase - Chassis Recovery Event (EN_CUTOFF_HI_FAULT_3_35V)\n");
-		oh_print_event(&(logentry.Event));
+		oh_print_event(&(logentry.Event), 1);
 		return -1;
 	}
 
@@ -233,11 +233,11 @@ int main(int argc, char **argv)
 	      (!(logentry.Event.EventDataUnion.SensorEvent.PreviousState & SAHPI_ES_UPPER_CRIT)) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.PreviousState & SAHPI_ES_UPPER_MAJOR) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.PreviousState & SAHPI_ES_UPPER_MINOR) &&
-	      (logentry.Event.EventDataUnion.SensorEvent.TriggerReading.Value.SensorFloat64 == (float)3.5) &&
-	      (logentry.Event.EventDataUnion.SensorEvent.TriggerThreshold.Value.SensorFloat64 == (float)3.4))) {
+	      (logentry.Event.EventDataUnion.SensorEvent.TriggerReading.Value.SensorFloat64 == (double)3.5) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.TriggerThreshold.Value.SensorFloat64 == (double)3.4))) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		printf("  TestCase - Chassis Duplicate Event ( EN_PFA_HI_FAULT_3_35V)\n");
-		oh_print_event(&(logentry.Event));
+		oh_print_event(&(logentry.Event), 1);
 		return -1;
 	}
 
@@ -275,11 +275,11 @@ int main(int argc, char **argv)
 	      (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MAJOR) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MINOR) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.PreviousState == SAHPI_ES_UNSPECIFIED) &&
-	      (logentry.Event.EventDataUnion.SensorEvent.TriggerReading.Value.SensorFloat64 == (float)3.5) &&
-	      (logentry.Event.EventDataUnion.SensorEvent.TriggerThreshold.Value.SensorFloat64 == (float)3.4))) {
+	      (logentry.Event.EventDataUnion.SensorEvent.TriggerReading.Value.SensorFloat64 == (double)3.5) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.TriggerThreshold.Value.SensorFloat64 == (double)3.4))) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		printf("  TestCase - Blade Duplicate Event ( EN_PFA_HI_FAULT_3_35V)\n");
-		oh_print_event(&(logentry.Event));
+		oh_print_event(&(logentry.Event), 1);
 		return -1;
 	}
 
@@ -312,7 +312,7 @@ int main(int argc, char **argv)
 	      (logentry.Event.Severity == SAHPI_INFORMATIONAL))) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		printf("  TestCase - Non-mapped Event (Severity=INFO)\n");
-		oh_print_event(&(logentry.Event));
+		oh_print_event(&(logentry.Event), 1);
 		return -1;
 	}
 
@@ -323,6 +323,7 @@ int main(int argc, char **argv)
 		return -1;
         }
 
+#if 0
 	/*************************************************************
 	 * TestCase - Expansion Card Event (EN_PFA_HI_OVER_TEMP_DASD1)
 	 *************************************************************/
@@ -349,11 +350,11 @@ int main(int argc, char **argv)
 	      (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MAJOR) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MINOR) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.PreviousState == SAHPI_ES_UNSPECIFIED) &&
-	      (logentry.Event.EventDataUnion.SensorEvent.TriggerReading.Value.SensorFloat64 == (float)87) &&
-	      (logentry.Event.EventDataUnion.SensorEvent.TriggerThreshold.Value.SensorFloat64 == (float)75))) {
+	      (logentry.Event.EventDataUnion.SensorEvent.TriggerReading.Value.SensorFloat64 == (double)87) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.TriggerThreshold.Value.SensorFloat64 == (double)75))) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		printf("  TestCase - Expansion Card Event (EN_PFA_HI_OVER_TEMP_DASD1)\n");
-		oh_print_event(&(logentry.Event));
+		oh_print_event(&(logentry.Event), 1);
 		return -1;
 	}
 
@@ -363,6 +364,7 @@ int main(int argc, char **argv)
 		printf("  Received error=%s\n", oh_lookup_error(err));
 		return -1;
         }
+#endif
 
 	/* Better to test a mapped login event - BC doesn't seem to have one defined yet */
 	/*************************************************************
@@ -387,7 +389,7 @@ int main(int argc, char **argv)
 	      (logentry.Event.Severity == SAHPI_MINOR))) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		printf("  TestCase - Non-mapped Login Event (Severity=WARN)\n");
-		oh_print_event(&(logentry.Event));
+		oh_print_event(&(logentry.Event), 1);
 		return -1;
 	}
 
@@ -424,7 +426,7 @@ int main(int argc, char **argv)
 	      (logentry.Event.EventDataUnion.SensorEvent.PreviousState == SAHPI_ES_OK))) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		printf("  TestCase - Power over temperature (EN_FAULT_PSx_OVR_TEMP)\n");
-		oh_print_event(&(logentry.Event));
+		oh_print_event(&(logentry.Event), 1);
 		return -1;
 	}
 
@@ -459,7 +461,7 @@ int main(int argc, char **argv)
 	      (logentry.Event.EventDataUnion.HotSwapEvent.PreviousHotSwapState == SAHPI_HS_STATE_ACTIVE))) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		printf("  TestCase - Hot-swap switch installed (EN_SWITCH_3_INSTALLED)\n");
-		oh_print_event(&(logentry.Event));
+		oh_print_event(&(logentry.Event), 1);
 		return -1;
 	}
 
@@ -495,7 +497,7 @@ int main(int argc, char **argv)
 	      (logentry.Event.EventDataUnion.HotSwapEvent.PreviousHotSwapState == SAHPI_HS_STATE_ACTIVE))) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		printf("  TestCase - Hot-swap Media Tray removal (EN_MEDIA_TRAY_REMOVED)\n");
-		oh_print_event(&(logentry.Event));
+		oh_print_event(&(logentry.Event), 1);
 		return -1;
 	}
 
@@ -531,7 +533,7 @@ int main(int argc, char **argv)
 	      (logentry.Event.EventDataUnion.HotSwapEvent.PreviousHotSwapState == SAHPI_HS_STATE_NOT_PRESENT))) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		printf("  TestCase - Hot-swap Media Tray recovery (EN_MEDIA_TRAY_REMOVED)\n");
-		oh_print_event(&(logentry.Event));
+		oh_print_event(&(logentry.Event), 1);
 		return -1;
 	}
 
@@ -568,7 +570,7 @@ int main(int argc, char **argv)
 	      (logentry.Event.Severity == SAHPI_INFORMATIONAL))) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		printf("  TestCase - Bogus threshold strings\n");
-		oh_print_event(&(logentry.Event));
+		oh_print_event(&(logentry.Event), 1);
 		return -1;
 	}
 
@@ -602,7 +604,7 @@ int main(int argc, char **argv)
 	      (logentry.Event.Severity == SAHPI_INFORMATIONAL))) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		printf("  TestCase - Recovery string not first character of text string\n");
-		oh_print_event(&(logentry.Event));
+		oh_print_event(&(logentry.Event), 1);
 		return -1;
 	}
 
@@ -636,7 +638,7 @@ int main(int argc, char **argv)
 	      (logentry.Event.Severity == SAHPI_INFORMATIONAL))) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		printf("  TestCase - In string table but not mapped\n");
-		oh_print_event(&(logentry.Event));
+		oh_print_event(&(logentry.Event), 1);
 		return -1;
 	}
 

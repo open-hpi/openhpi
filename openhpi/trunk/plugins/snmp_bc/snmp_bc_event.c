@@ -345,8 +345,7 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 	event_time = (SaHpiTimeT)mktime(&log_entry.time) * 1000000000;
 	event_severity = log_entry.sev; 
 
-
-	/* FIXME:: Do tmp and only set if no errors ?? */
+	/* FIXME:: Do tmp and only set if no errors - really this is a boolean ?? */
 	/* Assume event is enabled; unless we find out differently */
 	*event_enabled_ptr = 1;
 
@@ -393,14 +392,12 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 			strcpy(search_str, root_str);
 		}
 	}
-#if 0
+#if 1
 	trace("Search string=%s.", search_str);
 #endif
 	/* See if adjusted root string is in the XML to event hash table */
-        /* FIXME Fix for RSA */
 	strhash_data = (Xml2EventInfoT *)g_hash_table_lookup(bc_xml2event_hash, search_str);
 	if (strhash_data) {
-
 		/* Handle strings that have multiple event numbers */
 		int dupovrovr = 0;
 		if (strhash_data->event_dup) {
@@ -426,16 +423,16 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 		}
 
 		/* Look to see if event is mapped to an HPI entity */
-		event_ptr = (SaHpiEventT *)g_hash_table_lookup(custom_handle->event2hpi_hash_ptr, strhash_data->event);
+		event_ptr = (SaHpiEventT *)g_hash_table_lookup(custom_handle->event2hpi_hash_ptr, 
+							       strhash_data->event);
 		if (event_ptr) {
-
                         /* Set static event data defined during resource discovery */
 			working = *event_ptr;
-
 			/* Find RID */
 			if (strhash_data->event_ovr & OVR_EXP) {
 				/* If OVR_EXP, find RID of expansion card */
-				err = snmp_bc_logsrc2rid(handle, log_entry.source, &resinfo, strhash_data->event_ovr);
+				err = snmp_bc_logsrc2rid(handle, log_entry.source, &resinfo, 
+							 strhash_data->event_ovr);
 				if (err) {
 					dbg("Cannot translate %s to RID. Error=%s.", 
 					    log_entry.source, oh_lookup_error(err));
@@ -457,12 +454,13 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 
 			/* Handle sensor events */
 			if (working.EventType == SAHPI_ET_SENSOR) {
-
 				if (is_recovery_event) {
 					/* FIXME:: we should read sensors on recovery events to get current
 					 * state. Currently recovery state is hardcoded in bc_resources.c
-					 * hardcoded recovery states should be removed.
-					 */
+					 * hardcoded recovery states should be removed. Set Optional bits
+					 * for current state */
+					/* FIXME: Assertion is not right - we shouldn't set here 
+                                           Originally thought this meant sensor in a fail state */
 					working.EventDataUnion.SensorEvent.Assertion = SAHPI_FALSE;
 				}
 
@@ -483,7 +481,6 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 				if (is_threshold_event) {
 					/* FIXME:: Do we need to check mib.convert_snmpstr >= 0 */
 					/* FIXME:: Need to check IsSupported??? */
-					/* FIXME:: Need to set optional Sensor Data bits */
 					if (oh_encode_sensorreading(&thresh_read_value,
 								    working.EventDataUnion.SensorEvent.TriggerReading.Type,
 								    &working.EventDataUnion.SensorEvent.TriggerReading)) {
@@ -491,6 +488,8 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 						    thresh_read_value.Data, log_entry.text);
 						return(SA_ERR_HPI_INTERNAL_ERROR);
 					}
+					working.EventDataUnion.SensorEvent.OptionalDataPresent =
+						working.EventDataUnion.SensorEvent.OptionalDataPresent | SAHPI_SOD_TRIGGER_READING;
 					
 					if (oh_encode_sensorreading(&thresh_trigger_value,
 								    working.EventDataUnion.SensorEvent.TriggerThreshold.Type,
@@ -498,7 +497,9 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 						dbg("Cannot convert trigger threshold=%s for text=%s.",
 						    thresh_trigger_value.Data, log_entry.text);
 						return(SA_ERR_HPI_INTERNAL_ERROR);
-					}		
+					}
+					working.EventDataUnion.SensorEvent.OptionalDataPresent =
+						working.EventDataUnion.SensorEvent.OptionalDataPresent | SAHPI_SOD_TRIGGER_THRESHOLD;
 				}
 			}
 
@@ -706,7 +707,6 @@ static SaErrorT snmp_bc_set_previous_event_state(struct oh_handler_state *handle
 			return(SA_OK);
 		}
 #endif
-
 		/********************************
 		 * Set Current and Previous State 
 		 ********************************/
@@ -777,9 +777,12 @@ static SaErrorT snmp_bc_set_previous_event_state(struct oh_handler_state *handle
 		break;
 	}
 	default:
-		dbg("Unrecognized Event Type=%s.", oh_lookup_eventtype(event->EventType));
+		dbg("Unrecognized Event Type=%d.", event->EventType);
 		return(SA_ERR_HPI_INTERNAL_ERROR);
 	}
+
+	event->EventDataUnion.SensorEvent.OptionalDataPresent = 
+		event->EventDataUnion.SensorEvent.OptionalDataPresent | SAHPI_SOD_PREVIOUS_STATE;
 	
 	return(SA_OK);
 }

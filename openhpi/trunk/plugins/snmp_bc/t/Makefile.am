@@ -74,12 +74,14 @@ $(XMLDATA): $(XMLDATA_BC) $(XMLDATA_RSA) $(top_srcdir)/scripts/text2cstr.pl
 	$(top_srcdir)/scripts/text2cstr.pl -s rsa_eventxml $(XMLDATA_RSA) > rsa_xmlevents.c
 
 # Setup environment variables for TESTS programs
-#TESTS_ENVIRONMENT  = OPENHPI_CONF=$(shell pwd)/openhpi.conf
-#TESTS_ENVIRONMENT += LD_LIBRARY_PATH=$(shell pwd)/../../../src/.libs:$(shell pwd)/../../../utils/.libs
-#TESTS_ENVIRONMENT += OPENHPI_UID_MAP=$(shell pwd)/uid_map
-#TESTS_ENVIRONMENT += OPENHPI_PATH=$(shell pwd)
+TESTS_ENVIRONMENT  = OPENHPI_CONF=$(shell pwd)/openhpi.conf
+#TESTS_ENVIRONMENT += OPENHPI_DEBUG=YES
+#TESTS_ENVIRONMENT += OPENHPI_DEBUG_TRACE=YES
+TESTS_ENVIRONMENT += LD_LIBRARY_PATH=$(shell pwd)/../../../src/.libs:$(shell pwd)/../../../utils/.libs
+TESTS_ENVIRONMENT += OPENHPI_UID_MAP=$(shell pwd)/uid_map
+TESTS_ENVIRONMENT += OPENHPI_PATH=$(shell pwd)
 
-#TESTS = tevent \
+TESTS = tevent
 #	thotswap_state \
 #	thotswap_state_err \
 #	thotswap_reset \
@@ -97,13 +99,13 @@ $(XMLDATA): $(XMLDATA_BC) $(XMLDATA_RSA) $(top_srcdir)/scripts/text2cstr.pl
 # Need to put expected test failures in BOTH TESTS and XFAIL_TESTS
 # XFAIL_TESTS = thotswap_reset
 
-#check_PROGRAMS = $(TESTS)
+check_PROGRAMS = $(TESTS)
 
 # Unit test using normal IF calls and simulation library
-#tevent_SOURCES = tevent.c
-#tevent_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
-#		 $(top_builddir)/src/libopenhpi.la \
-#		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la
+tevent_SOURCES = tevent.c
+tevent_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+		 $(top_builddir)/src/libopenhpi.la \
+		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la
 
 # Unit tests with IF and snmp calls stubbed out
 #testxml_SOURCES = testxml.c
