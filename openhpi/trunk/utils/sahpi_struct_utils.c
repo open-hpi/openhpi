@@ -772,21 +772,36 @@ SaErrorT oh_fprint_idrfield(FILE *stream, const SaHpiIdrFieldT *thisfield, int s
 {
 	int err;
 	SaErrorT rv = SA_OK;
-	
+
+	if (!stream || !thisfield) 
+		return(SA_ERR_HPI_INVALID_PARAMS);
+			
 	put_spacing(space);
 	err = fprintf(stream, "Field Id:\t%d\n", thisfield->FieldId);
+	check_err(err);
+	
 	put_spacing(space);
         err = fprintf(stream, "Field Type:\t%s\n", oh_lookup_idrfieldtype(thisfield->Type));
+	check_err(err);
+	
 	put_spacing(space);
         err = fprintf(stream, "ReadOnly:\t%d\n", thisfield->ReadOnly); 
+	check_err(err);
+	
 	put_spacing(space);
         err = fprintf(stream, "DataType:\t%s\n", oh_lookup_texttype(thisfield->Field.DataType));
+	check_err(err);
+	
 	put_spacing(space);
         err = fprintf(stream, "Language:\t%s\n", oh_lookup_language(thisfield->Field.Language));;
+	check_err(err);
+	
 	put_spacing(space);
+	err = fprintf(stream, "Content:\t");
 	rv =  oh_fprint_textbuffer(stream, &thisfield->Field);
 	err = fprintf(stream, "\n");
-		
+	check_err(err);
+			
 	return(rv);
 }
 
@@ -805,17 +820,28 @@ SaErrorT oh_fprint_idrfield(FILE *stream, const SaHpiIdrFieldT *thisfield, int s
 SaErrorT oh_fprint_idrareaheader(FILE *stream, const SaHpiIdrAreaHeaderT *areaheader, int space)
 {
 	int err;
-	SaErrorT rv = SA_OK;
+
+	if (!stream || !areaheader) 
+		return(SA_ERR_HPI_INVALID_PARAMS);
+			
 	
 	put_spacing(space);
         err = fprintf(stream, "AreaId:\t%d\n", areaheader->AreaId);
+	check_err(err);
+			
 	put_spacing(space);
         err = fprintf(stream, "AreaType:\t%s\n", oh_lookup_idrareatype(areaheader->Type));
+	check_err(err);
+			
 	put_spacing(space);
         err = fprintf(stream, "ReadOnly:\t%d\n", areaheader->ReadOnly);
+	check_err(err);
+
 	put_spacing(space);
-        err = fprintf(stream, "NumFields:\t%d\n", areaheader->NumFields);	
-	return(rv);
+        err = fprintf(stream, "NumFields:\t%d\n",areaheader->NumFields);	
+	check_err(err);
+			
+	return(SA_OK);
 }
 
 /**
@@ -833,18 +859,27 @@ SaErrorT oh_fprint_idrareaheader(FILE *stream, const SaHpiIdrAreaHeaderT *areahe
 SaErrorT oh_fprint_idrinfo(FILE *stream, const SaHpiIdrInfoT *idrinfo, int space)
 {
 	int err;
-	SaErrorT rv = SA_OK;
 	
+	if (!stream || !idrinfo) 
+		return(SA_ERR_HPI_INVALID_PARAMS);
+			
 	put_spacing(space);
         err = fprintf(stream, "IdrId:\t%d\n", idrinfo->IdrId);
+	check_err(err);
+			
 	put_spacing(space);
         err = fprintf(stream, "UpdateCount:\t%d\n", idrinfo->UpdateCount);
+	check_err(err);
+			
 	put_spacing(space);
-        err = fprintf(stream, "ReadOnly:\t%d\n", idrinfo->ReadOnly);
+        err = fprintf(stream, "ReadOnly:\t%d\n",idrinfo->ReadOnly);
+	check_err(err);
+			
 	put_spacing(space);
         err = fprintf(stream, "NumAreas:\t%d\n", idrinfo->NumAreas);
-
-	return(rv);
+	check_err(err);
+			
+	return(SA_OK);
 }
 
 #if 0
