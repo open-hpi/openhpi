@@ -1435,19 +1435,13 @@ static SaErrorT ipmi_set_res_tag (void 			*hnd,
 
 	/* do it in openIPMI's memory first for subsequest updates */
 
-	/* but first check if it's an entity or an MC */
-	if (res_info->type == OHOI_RESOURCE_MC) {
-			dbg("Setting custom tag for Management Controllers is not supported."
-				" Change it only in memory");
-	} else {
-			/* can only be an Entity in the ohoi_resource_info struct */
-			dbg("Setting new Tag: %s for resource: %d", (char *) tag->Data, id);
-			rv = ipmi_entity_pointer_cb(res_info->u.entity_id, ohoi_set_resource_tag,
-				       			tag->Data);
-			if (rv)
-				dbg("Error retrieving entity pointer for resource %d",
-					       rpt_entry->ResourceId);
-	}
+	/* can only be an Entity in the ohoi_resource_info struct */
+	dbg("Setting new Tag: %s for resource: %d", (char *) tag->Data, id);
+	rv = ipmi_entity_pointer_cb(res_info->u.entity_id, ohoi_set_resource_tag,
+				    tag->Data);
+	if (rv)
+		dbg("Error retrieving entity pointer for resource %d",
+		       rpt_entry->ResourceId);
 
 	rpt_entry->ResourceTag.DataType = tag->DataType;
 	rpt_entry->ResourceTag.Language = tag->Language;
