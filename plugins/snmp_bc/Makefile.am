@@ -64,10 +64,8 @@ libsnmp_bc_la_SOURCES	= \
                                 snmp_bc_xml2event.c \
 				snmp_bc_sensor.c \
 				snmp_bc_watchdog.c \
+				snmp_bc_hotswap.c  \
 				stubs.c
-
-# FIXME:: Add these when ported over
-#				snmp_bc_hotswap.c 
 
 libsnmp_bc_la_LIBADD	= -luuid @SNMPLIBS@ $(SNMPUTILBDIR)/libopenhpi_snmp.la
 libsnmp_bc_la_LDFLAGS	= -avoid-version

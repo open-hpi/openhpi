@@ -16,8 +16,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <glib.h>
-#include "SaHpi.h"
 #include <getopt.h>
+#include <SaHpi.h> 
+#include <oh_utils.h>
 
 
 
@@ -41,7 +42,6 @@ typedef struct COMPUTER_DATA_
 
 //Prototypes
 void UsageMessage(char *ProgramName);
-void AppHpiPrintError(SaErrorT Error, char *ProgramName);
 
 /*+**************************************
 *  main
@@ -67,7 +67,7 @@ int main(int argc, char **argv)
 {
         SaHpiInt32T         ComputerNumber;  //0..n-1
         SaHpiInt32T         SelectedSystem;  //0..n-1
-        SaHpiHsPowerStateT  Action;         
+        SaHpiPowerStateT    Action;         
         COMPUTER_DATA       *ComputerPtr;
         SaHpiBoolT          BladeSelected;
         SaHpiBoolT          MultipleBlades;
@@ -82,7 +82,7 @@ int main(int argc, char **argv)
         SaHpiEntryIdT       RptEntry, RptNextEntry;
         SaHpiRptEntryT      Report;
         SaHpiInt32T         Index, EntityElement;
-        SaHpiHsPowerStateT  PowerState;
+        SaHpiPowerStateT  PowerState;
         char                PowerStateString[3][7]={"off\0","on\0","cycled\0"};
         SaHpiVersionT       HpiVersion;
 
@@ -102,6 +102,7 @@ int main(int argc, char **argv)
         DebugPrints    = FALSE;
         RptEntry       = SAHPI_FIRST_ENTRY;
 
+        HpiVersion = saHpiVersionGet();
         /* Parse out option instructions */
         while (1)
         {
@@ -113,15 +114,15 @@ int main(int argc, char **argv)
                 switch (option)
                 {
                 case 'd':   
-                        Action = SAHPI_HS_POWER_OFF;
+                        Action = SAHPI_POWER_OFF;
                         ActionSelected = TRUE;
                 break;
                 case 'p':   
-                        Action = SAHPI_HS_POWER_ON;
+                        Action = SAHPI_POWER_ON;
                         ActionSelected = TRUE;
                         break;
                 case 'r':   
-                        Action = SAHPI_HS_POWER_CYCLE;
+                        Action = SAHPI_POWER_CYCLE;
                         ActionSelected = TRUE;
                         break;
                 case 'u':   
@@ -170,23 +171,22 @@ int main(int argc, char **argv)
         Computer->data = (gpointer)ComputerPtr;
 
         /* Initialize HPI domain and session */
-        HPI_POWER_DEBUG_PRINT("2.0 Initalizing HPI\n");
-        Status = saHpiInitialize(&HpiVersion);
-        if (Status == SA_OK)
-        {
-                HPI_POWER_DEBUG_PRINT("2.1 Initalizing HPI Session\n");
-                Status = saHpiSessionOpen(SAHPI_DEFAULT_DOMAIN_ID,
-                                          &SessionId,
-                                          NULL);
-        }
+	HPI_POWER_DEBUG_PRINT("2.1 Initalizing HPI Session\n");
+	Status = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID,
+                                  &SessionId,
+                                  NULL);
+       
         if (Status == SA_OK)
         {
                 /* Find all of the individual systems */
                 // regenerate the Resource Presence Table(RPT)
                 HPI_POWER_DEBUG_PRINT("2.2 Hpi Discovery\n");
-                Status = saHpiResourcesDiscover(SessionId);
-        }
-
+                Status = saHpiDiscover(SessionId);
+        } else {
+		printf("2.1 Initalizing HPI Session FAILED, code %s\n", oh_lookup_error(Status));
+		return -1;
+	}
+	
         HPI_POWER_DEBUG_PRINT("3.0 Walking through all of the Report Tables\n");
         while ((Status == SA_OK) && (RptEntry != SAHPI_LAST_ENTRY))
         {
@@ -212,7 +212,7 @@ int main(int argc, char **argv)
                         ComputerPtr->Instance = 
                                 Report.ResourceEntity.Entry[EntityElement].EntityLocation;
                         // find a Name string for this blade
-                        sprintf(ComputerPtr->NameStr,
+                        snprintf(ComputerPtr->NameStr, sizeof(ComputerPtr->NameStr),
                                 "%s %d",
                                 (char*)Report.ResourceTag.Data,
                                 (int) ComputerPtr->Instance);
@@ -283,13 +283,13 @@ int main(int argc, char **argv)
                 switch (Index)
                 {
                 case 0:    
-                        Action = SAHPI_HS_POWER_OFF;
+                        Action = SAHPI_POWER_OFF;
                         break;
                 case 1:     
-                        Action = SAHPI_HS_POWER_ON;
+                        Action = SAHPI_POWER_ON;
                         break;
                 case 2:     
-                        Action = SAHPI_HS_POWER_CYCLE;
+                        Action = SAHPI_POWER_CYCLE;
                         break;
                 default:    
                         Action = 255;  //Out of Range for "Status"
@@ -304,7 +304,7 @@ int main(int argc, char **argv)
                 // obtain the information for this computer
                 ComputerPtr = g_slist_nth_data(ComputerListHead, SelectedSystem);
 
-                if (Action <= SAHPI_HS_POWER_CYCLE)
+                if (Action <= SAHPI_POWER_CYCLE)
                 {
                         HPI_POWER_DEBUG_PRINT("5.1 Setting a New Power State\n\r");
                         // Set the new power status for this computer
@@ -343,7 +343,7 @@ int main(int argc, char **argv)
         HPI_POWER_DEBUG_PRINT("6.0 Clean up");
         /* clean up */
         Clean_Up_Status = saHpiSessionClose(SessionId);
-        Clean_Up_Status = saHpiFinalize();
+
         //Free all of the Allocations for the Computer data
         Computer = ComputerListHead;
         while (Computer != NULL)
@@ -359,98 +359,12 @@ int main(int argc, char **argv)
         if (Status != SA_OK)
         {
                 HPI_POWER_DEBUG_PRINT("7.0 Reporting Bad Status");
-                AppHpiPrintError(Status, PrgName);
+                printf("Program %s returns with Error = %s\n", PrgName, oh_lookup_error(Status));
         }
 
         return(Status);
 }
 
-void AppHpiPrintError(SaErrorT Error,char *ProgramName)
-{
-        printf("\n%s Generated an Error: ",ProgramName);
-        switch (Error)
-        {
-        case SA_ERR_HPI_ERROR:              
-                printf("Unspecified Error Occurred \n\r");
-                break;
-        case SA_ERR_HPI_UNSUPPORTED_API:    
-                printf("HPI does not support one of the calls \n\r");
-                break;
-        case SA_ERR_HPI_BUSY:               
-                printf("Target Device is Busy \n\r");
-                break;
-        case SA_ERR_HPI_INVALID:            
-                printf("Request is Fundamentaly Invalid \n\r");
-                break;
-        case SA_ERR_HPI_INVALID_CMD:        
-                printf("Object does not support this command\n\r");
-                break;
-        case SA_ERR_HPI_TIMEOUT:            
-                printf("Requested operation Timed-out\n\r");
-                break;
-        case SA_ERR_HPI_OUT_OF_SPACE:       
-                printf("Command Failed due to lack of Resources\n\r");
-                break;
-        case SA_ERR_HPI_DATA_TRUNCATED:     
-                printf("Unsuffient Data Buffer Size\n\r");
-                break;
-        case SA_ERR_HPI_DATA_LEN_INVALID:        
-                printf("Specified Length is Invalid \n\r");
-                break;
-        case SA_ERR_HPI_DATA_EX_LIMITS:     
-                printf("Supplied Data Exceeds Limits\n\r");
-                break;
-        case SA_ERR_HPI_INVALID_PARAMS:     
-                printf("One or more of the Parameters are invalid\n\r");
-                break;
-        case SA_ERR_HPI_NOT_PRESENT:        
-                printf("Object was not Present \n\r");
-                break;
-        case SA_ERR_HPI_INVALID_DATA_FIELD: 
-                printf("Invalid Data Field \n\r");
-                break;
-        case SA_ERR_HPI_INVALID_SENSOR_CMD: 
-                printf("Invalid Sensor Command\n\r");
-                break;
-        case SA_ERR_HPI_NO_RESPONSE:        
-                printf("There was no Response from Target\n\r");
-                break;
-        case SA_ERR_HPI_DUPLICATE:          
-                printf("Duplicate Request\n\r");
-                break;
-        case SA_ERR_HPI_UPDATING:           
-                printf("Target object is in updating mode\n\r");
-                break;
-        case SA_ERR_HPI_INITIALIZING:       
-                printf("Target object is initializing\n\r");
-                break;
-        case SA_ERR_HPI_INVALID_SESSION:    
-                printf("Invalid Session ID supplied\n\r");
-                break;
-        case SA_ERR_HPI_INVALID_DOMAIN:     
-                printf("Invalid Domain ID supplied\n\r");
-                break;
-        case SA_ERR_HPI_INVALID_RESOURCE:   
-                printf("Invalid Resource ID supplied\n\r");
-                break;
-        case SA_ERR_HPI_INVALID_REQUEST:    
-                printf("Request is invalid in the current context\n\r");
-                break;
-        case SA_ERR_HPI_ENTITY_NOT_PRESENT: 
-                printf("Managed Object is no longer Present \n\r");
-                break;
-        case SA_ERR_HPI_UNINITIALIZED:      
-                printf("HPI has not yet been initialized \n\r");
-                break;
-        case SA_ERR_HPI_UNKNOWN:            
-                printf("HPI does not understand command\n\r");
-                break;
-        default:                            
-                printf("Error Code not handled\n\r");
-                break;
-        }
-        return;
-}
 
 void UsageMessage(char *ProgramName)
 {
