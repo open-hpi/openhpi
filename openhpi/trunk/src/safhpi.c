@@ -1072,13 +1072,11 @@ SaErrorT SAHPI_API saHpiEventAdd (
         SAHPI_IN SaHpiEventT     *EvtEntry)
 {
         SaHpiDomainIdT did;
-        struct oh_event e;
-        GArray *session_list = NULL;
-        SaErrorT error;
-        unsigned int i;
+        struct oh_event e;        
+        SaErrorT error = SA_OK;
 
         error = oh_valid_addevent(EvtEntry);
-        if (error) return(error);
+        if (error) return error;
 
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
@@ -1088,12 +1086,12 @@ SaErrorT SAHPI_API saHpiEventAdd (
         e.type = OH_ET_HPI;
         e.u.hpi_event.event = *EvtEntry;
 
-        session_list = oh_list_sessions(did);
-        for (i = 0; i < session_list->len; i++) {
-                error = oh_queue_session_event(SessionId, &e);
-                if (error) break;
+        g_async_queue_push(oh_process_q, g_memdup(&e, sizeof(struct oh_event)));
+        
+        if (!oh_run_threaded()) {
+                /* Push events manually through event loop if not using threads */
+                oh_get_events();                
         }
-        g_array_free(session_list, TRUE);
 
         return error;
 }
