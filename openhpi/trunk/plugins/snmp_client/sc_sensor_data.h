@@ -86,6 +86,12 @@ SaErrorT populate_thld_neg_hysteresis(struct snmp_client_hnd *custom_handle,
 				 int num_sen_rdrs, 
 				 SaHpiUint8T thd_num);
 
+oid **get_thold_table_oids(int index);
+
+SaErrorT get_sensor_threshold_data(struct snmp_client_hnd *custom_handle,
+				   oid **oid_ptr, 
+				   oid *indices, 
+				   SaHpiSensorReadingT *reading);
 
 
 	     

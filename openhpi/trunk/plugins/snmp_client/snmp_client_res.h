@@ -181,6 +181,24 @@ extern oid sa_hpi_ctrl_RDR[];
 /**************************************/
 /*      saHpiSensor                   */
 /**************************************/
+#define SAHPI_SENSOR_READING_THD_LOW_CRITICAL_TABLE   0
+#define SAHPI_SENSOR_READING_THD_LOW_MAJORL_TABLE     1
+#define SAHPI_SENSOR_READING_THD_LOW_MINORL_TABLE     2
+#define SAHPI_SENSOR_READING_THD_UP_CRITICAL_TABLE    3
+#define SAHPI_SENSOR_READING_THD_UP_MAJOR_TABLE       4
+#define SAHPI_SENSOR_READING_THD_UP_MINOR_TABLE       5
+#define SAHPI_SENSOR_READING_THD_POS_HYSTERESIS_TABLE 6 
+#define SAHPI_SENSOR_READING_THD_NEG_HYSTERESIS_TABLE 7
+
+#define THOLD_IS_READABLE       0
+#define THOLD_WRITEABLE       	1
+#define THOLD_FIXED       	2
+#define THOLD_VALUES_PRESENT   	3
+#define THOLD_RAW       	4
+#define THOLD_INTREPRETED     	5
+
+#define NUM_THRESHOLD_TABLES 8
+
 #define NUM_SEN_INDICES 3
 
 #define SA_HPI_SEN_COUNT_OID_LEN                        HPI_MIB_OID_LEN + 3 
