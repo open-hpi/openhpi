@@ -289,7 +289,7 @@ SaErrorT ohoi_set_power_state(void *hnd, SaHpiResourceIdT id,
 						    set_power_state_on, &power_info);
 			if (rv) {
 				dbg("set_power_state_on failed");
-				return SA_ERR_HPI_INVALID_CMD;
+				return SA_ERR_HPI_INTERNAL_ERROR;
 			}
 			break;
 		case SAHPI_POWER_OFF:
@@ -297,9 +297,13 @@ SaErrorT ohoi_set_power_state(void *hnd, SaHpiResourceIdT id,
                                                     set_power_state_off, &power_info);
 	                if (rv) {
         	            dbg("set_power_state_off failed");
-                	    return SA_ERR_HPI_INVALID_CMD;
+                	    return SA_ERR_HPI_INTERNAL_ERROR;
                 	}
 			break;
+		case SAHPI_POWER_CYCLE:
+			dbg("Hardware does not support Power_Cycle");
+			return SA_ERR_HPI_INVALID_PARAMS;
+
 		default:
 			dbg("Invalid power state requested");
 			return SA_ERR_HPI_INVALID_PARAMS;
