@@ -30,6 +30,12 @@ static RPTEntry *get_rptentry_by_rid(RPTable *table, SaHpiResourceIdT rid)
         RPTEntry *rptentry = NULL;
         GSList *node;
 
+        if (!(table)) {
+                dbg("ERROR: Cannot work on a null table pointer.");
+                return NULL;
+        }
+        if (!(table->rptable)) return NULL;
+        
         if (rid == RPT_ENTRY_BEGIN) {
                 rptentry = (RPTEntry *) (table->rptable->data);
         } else {
@@ -48,6 +54,8 @@ static RDRecord *get_rdrecord_by_id(GSList *records, SaHpiEntryIdT id)
         RDRecord *rdrecord = NULL;
         GSList *node;
 
+        if (!records) return NULL;
+        
         if (id == RDR_BEGIN) {
                 rdrecord = (RDRecord *) records->data;
         } else {
@@ -229,7 +237,7 @@ int oh_add_resource(RPTable *table, SaHpiRptEntryT *entry, void *data)
 int oh_remove_resource(RPTable *table, SaHpiResourceIdT rid)
 {
         RPTEntry *rptentry;
-        
+
         rptentry = get_rptentry_by_rid(table, rid);
 
         if (!rptentry) {
@@ -304,6 +312,10 @@ SaHpiRptEntryT *oh_get_resource_by_ep(RPTable *table, SaHpiEntityPathT *ep)
         RPTEntry *rptentry = NULL;
         GSList *node;
 
+        if (!(table)) {
+                dbg("ERROR: Cannot work on a null table pointer.");
+                return NULL;
+        }
         for (node = table->rptable; node != NULL; node = node->next) {
                 rptentry = (RPTEntry *) node->data;
                 if (!memcmp(&(rptentry->rpt_entry.ResourceEntity), ep, sizeof(SaHpiEntityPathT)))
@@ -330,6 +342,12 @@ SaHpiRptEntryT *oh_get_resource_next(RPTable *table, SaHpiResourceIdT rid_prev)
         RPTEntry *rptentry = NULL;
         GSList *node;
 
+        if (!(table)) {
+                dbg("ERROR: Cannot work on a null table pointer.");
+                return NULL;
+        }
+        if (!(table->rptable)) return NULL;
+        
         if (rid_prev == RPT_ENTRY_BEGIN) {
                 rptentry = (RPTEntry *) (table->rptable->data);
         } else {
@@ -566,6 +584,7 @@ SaHpiRdrT *oh_get_rdr_next(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT r
 
         rptentry = get_rptentry_by_rid(table, rid);
         if (!rptentry) return NULL; /* No resource found by that id */
+        if (!(rptentry->rdrtable)) return NULL;
 
         if (rdrid_prev == RDR_BEGIN) {
                 rdrecord = (RDRecord *)(rptentry->rdrtable->data);
@@ -582,6 +601,7 @@ SaHpiRdrT *oh_get_rdr_next(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT r
 
         return (rdrecord) ? &(rdrecord->rdr) : NULL;
 }
+
 /************************************************************************************
  *
  *  Managed Hotswap State Functions
