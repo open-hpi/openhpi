@@ -126,7 +126,7 @@ SaErrorT snmp_bc_get_control_state(void *hnd, SaHpiResourceIdT id,
 		return SA_ERR_HPI_INVALID_CMD;
         default:
 		dbg("%s has invalid control state=%d\n", s->mib.oid,working.Type);
-                return SA_ERR_HPI_INVALID_CMD;
+                return -1;
         }
 
 	memcpy(state,&working,sizeof(SaHpiCtrlStateT));
