@@ -655,14 +655,15 @@ static void add_sensor_event_rdr(ipmi_sensor_t		*sensor,
 							SAHPI_SEC_PER_EVENT;
 			break;
 		case IPMI_EVENT_SUPPORT_ENTIRE_SENSOR:
-                case IPMI_EVENT_SUPPORT_GLOBAL_ENABLE:
-                        rdr->RdrTypeUnion.SensorRec.EventCtrl =
+			rdr->RdrTypeUnion.SensorRec.EventCtrl =
 						SAHPI_SEC_READ_ONLY_MASKS;
-                        break;
-                case IPMI_EVENT_SUPPORT_NONE:
+			break;
+
+                case IPMI_EVENT_SUPPORT_GLOBAL_ENABLE:
+		case IPMI_EVENT_SUPPORT_NONE:
                         rdr->RdrTypeUnion.SensorRec.EventCtrl =
 						SAHPI_SEC_READ_ONLY;
-                        break;
+			break;
 	}
 	
 	memcpy(rdr->IdString.Data,name, strlen(name) + 1);

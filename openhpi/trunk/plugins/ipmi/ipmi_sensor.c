@@ -368,8 +368,7 @@ int ohoi_get_sensor_thresholds(ipmi_sensor_id_t sensor_id,
 
 static void set_data(ipmi_sensor_t *sensor, int err, void *cb_data)
 {
-	int *done = cb_data;
-	
+	int *done = cb_data;	
 	if (err)
 		dbg("Something wrong in setting thresholds");
 	*done = 1;
@@ -580,7 +579,6 @@ int ohoi_set_sensor_enable(ipmi_sensor_id_t sensor_id,
 			   void *cb_data)
 {
 	SaErrorT rv;
-
         rv = ipmi_sensor_pointer_cb(sensor_id,
 				    set_sensor_enable,
 		  		    &enable);
@@ -626,7 +624,6 @@ static void get_sensor_event_enable_masks(ipmi_sensor_t *sensor,
 	
         enable_data = cb_data;
 
-//	 enable_data->done = 1;       
 	if (ignore_sensor(sensor)) {
 		dbg("sensor is ignored");
 		enable_data->rvalue = SA_ERR_HPI_NOT_PRESENT;
@@ -667,15 +664,12 @@ static void set_sensor_event_enable_masks(ipmi_sensor_t      *sensor,
 		enable_data->rvalue = SA_ERR_HPI_NOT_PRESENT;
 		return;
 	}
-
 	ipmi_event_state_init(&info);
 	if (enable_data->enable == SAHPI_TRUE)
 		ipmi_event_state_set_events_enabled(&info, 1);
 	else 
 		ipmi_event_state_set_events_enabled(&info, 0);
-
-	if ((ipmi_sensor_get_event_support(sensor) == IPMI_EVENT_SUPPORT_PER_STATE)||
-	    (ipmi_sensor_get_event_support(sensor) == IPMI_EVENT_SUPPORT_ENTIRE_SENSOR)) {
+	if (ipmi_sensor_get_event_support(sensor) == IPMI_EVENT_SUPPORT_PER_STATE) {
 		int i;
 
 		for (i = 0; i < 32 ; i++) {
@@ -690,7 +684,7 @@ static void set_sensor_event_enable_masks(ipmi_sensor_t      *sensor,
 				ipmi_discrete_event_clear(&info, i, IPMI_DEASSERTION);
 		}
 	}
-
+	
 	rv = ipmi_sensor_events_enable_set(sensor, &info, set_data,
 					   &enable_data->done);
 	if (rv) {
@@ -752,17 +746,14 @@ int ohoi_set_sensor_event_enable_masks(ipmi_sensor_id_t sensor_id,
 	enable_data.enable = enable;
 	enable_data.assert = assert;
 	enable_data.deassert = deassert;
-
         rv = ipmi_sensor_pointer_cb(sensor_id,
 				    set_sensor_event_enable_masks,
 		  		    &enable_data);
 	if (rv) {
 		dbg("Unable to convert sensor_id to pointer");
                 return SA_ERR_HPI_INVALID_CMD;
-        }
-        
-        rv = ohoi_loop(&enable_data.done, ipmi_handler);
-
+        }       
+        rv = ohoi_loop(&enable_data.done, ipmi_handler);      
 	if (rv)
 		return rv;
 	
