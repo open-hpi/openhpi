@@ -40,7 +40,7 @@ char *usedesc[NUSE] = {"reserved", "BIOS FRB2", "BIOS/POST",
 char *actions[NACT] = {"No action", "Hard Reset", "Power down",
 		    "Power cycle", "Reserved" };
 
-void
+static void
 show_wdt(SaHpiWatchdogNumT  wdnum, SaHpiWatchdogT *wdt)
 {
   int icount, pcount;
