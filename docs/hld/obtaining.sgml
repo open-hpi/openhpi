@@ -65,9 +65,8 @@
 	</para>
 	<para>
 	Edit the <literal>/etc/openhpi.conf</literal> file to enable and configure
-	the plug-in you intend to use.  See the OpenHpi Manual secion<ulink
-	url="http://openhpi.sourceforge.net/manual/c309.html">
-	OpenHpie Plug-in Usage</ulink> for more info.
+	the plug-in you intend to use.  See the OpenHpi Manual secion<link linkend="plugin_usage">
+	OpenHpi Plug-in Usage</link> for more info.
 	</para>
     </sect1>
 </chapter>
