@@ -13,7 +13,8 @@
  *     Bill Barkley
  *     Andy Cress <arcress@users.sourceforge.net>
  * Changes:
- * 02/19/04 ARCress - generalized BMC tag parsing, created IsBmcTag()
+ * 02/19/04 ARCress - generalized BMC tag parsing, created IsTagBmc()
+ * 05/05/04 ARCress - added OpenHPI Mgt Ctlr tag to IsTagBmc() 
  */
 
 #include <stdio.h>
@@ -25,9 +26,10 @@
 
 #define NCT 25
 
-char progver[] = "1.0";
+char progver[] = "1.1";
 char progname[] = "hpifru";
-char bmctag[] = "Basbrd Mgmt Ctlr";  /* see also IsBmcTag() */
+char bmctag[]  = "Basbrd Mgmt Ctlr";       /* see also IsTagBmc() */
+char bmctag2[] = "Management Controller";  /* see also IsTagBmc() */
 char *chasstypes[NCT] = {
 	"Not Defined", "Other", "Unknown", "Desktop", "Low Profile Desktop",
 	"Pizza Box", "Mini Tower", "Tower", "Portable", "Laptop",
@@ -85,7 +87,9 @@ static int
 IsTagBmc(char *dstr, int dlen)
 {
    int ret = 0;
-   if (strncmp(dstr, bmctag, dlen) == 0)  /* Sahalee */
+   if (findmatch(dstr,dlen,bmctag2,sizeof(bmctag2),1) >= 0)
+        ret = 1;    /* BMC tag for OpenHPI with ipmi plugin */
+   else if (strncmp(dstr, bmctag, dlen) == 0)  /* Sahalee */
 	ret = 1;
    else if (findmatch(dstr,dlen,"BMC",3,1) >= 0) /* mBMC or other */
 	ret = 1;
@@ -274,7 +278,7 @@ main(int argc, char **argv)
   SaHpiRdrT rdr;
   SaHpiEirIdT eirid;
 
-  printf("%s ver %s\n",argv[0],progver);
+  printf("%s ver %s\n",progname,progver);
 
   while ( (c = getopt( argc, argv,"a:xz?")) != EOF )
   switch(c) {
@@ -330,8 +334,8 @@ main(int argc, char **argv)
       entryid = SAHPI_FIRST_ENTRY;
       rptentry.ResourceTag.Data[rptentry.ResourceTag.DataLength] = 0;
       resourceid = rptentry.ResourceId;
-      if (fdebug) printf("rptentry[%d] resourceid=%d\n", entryid,resourceid);
       printf("Resource Tag: %s\n", rptentry.ResourceTag.Data);
+      if (fdebug) printf("rptentry[%d] resourceid=%d\n", rptentryid,resourceid);
       while ((rv == SA_OK) && (entryid != SAHPI_LAST_ENTRY))
       {
         rv = saHpiRdrGet(sessionid,resourceid, entryid,&nextentryid, &rdr);

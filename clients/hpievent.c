@@ -433,9 +433,9 @@ main(int argc, char **argv)
       rptentry.ResourceTag.Data[rptentry.ResourceTag.DataLength] = 0;
       resourceid = rptentry.ResourceId;
       
-      if (fdebug) printf("rptentry[%d] resourceid=%d\n", entryid,resourceid);
-
+      if (fdebug) printf("rptentry[%d] resourceid=%d\n", rptentryid,resourceid);
       printf("Resource Tag: %s\n", rptentry.ResourceTag.Data);
+
       while ((rv == SA_OK) && (entryid != SAHPI_LAST_ENTRY))
       {
         rv = saHpiRdrGet(sessionid,resourceid, entryid,&nextentryid, &rdr);
@@ -474,8 +474,9 @@ main(int argc, char **argv)
 		firstpass = 0;
 	}
       }  /*while rdr loop */
+      if (entryid != SAHPI_LAST_ENTRY) break;  /*found one, done*/
       rptentryid = nextrptentryid;
-    }
+    } /*endif getrpt ok*/
   }  /*while rpt loop*/
   rv = saHpiSessionClose(sessionid);
   rv = saHpiFinalize();

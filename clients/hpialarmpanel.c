@@ -154,7 +154,7 @@ main(int argc, char **argv)
 	resourceid = rptentry.ResourceId;
 	rptentry.ResourceTag.Data[rptentry.ResourceTag.DataLength] = 0;
 	printf("rptentry[%d] resourceid=%d tag: %s\n",
-		entryid,resourceid, rptentry.ResourceTag.Data);
+		rptentryid,resourceid, rptentry.ResourceTag.Data);
 	while ((rv == SA_OK) && (entryid != SAHPI_LAST_ENTRY))
 	{
 		rv = saHpiRdrGet(sessionid,resourceid,
