@@ -19,6 +19,7 @@ REMOTE_SIM_SOURCES 	= 	bc_resources.c \
 				snmp_bc_inventory.c \
 	     			snmp_bc_sel.c \
 				snmp_bc_sensor.c \
+				snmp_bc_session.c \
 				snmp_bc_time.c \
 				snmp_bc_utils.c \
 				snmp_bc_watchdog.c
@@ -44,12 +45,12 @@ $(REMOTE_SIM_SOURCES):
 		ln -s ../$@; \
 	fi
 
-libsnmp_bc_la_SOURCES	= 	sim_resources.c \
+libsnmp_bc_la_SOURCES	= 	sim_init.c \
+				sim_resources.c \
 				snmp_util.c \
-				snmp_bc_session.c \
 				$(REMOTE_SIM_SOURCES)
 
-libsnmp_bc_la_LIBADD	= -luuid 
+libsnmp_bc_la_LIBADD	= -luuid @SNMPLIBS@
 
 libsnmp_bc_la_LDFLAGS	= -module -avoid-version
 
@@ -58,6 +59,7 @@ libsnmp_bc.la: $(libsnmp_bc_la_OBJECTS) $(libsnmp_bc_la_DEPENDENCIES)
 
 
 # Need to put expected test failures in BOTH TESTS and XFAIL_TESTS
+TESTS_ENVIRONMENT = "OPENHPI_PATH=$(shell pwd)"
 TESTS = thotswap_state \
 	thotswap_state_err \
 	thotswap_reset \
@@ -72,6 +74,10 @@ TESTS = thotswap_state \
 	tsensor \
 	tutils_conv \
 	tutils_oid
+
+echo:
+	@echo "TESTS_ENVIRONMENT = $(TESTS_ENVIRONMENT)"
+	@echo "OPENHPI_PATH = $(OPENHPI_PATH)"
 
 # XFAIL_TESTS = thotswap_reset
 
