@@ -96,7 +96,7 @@ gboolean oh_entity_path_equal(gconstpointer a, gconstpointer b)
  * 
  * Return value: success 0, failed -1.
  **/
-guint oh_uid_initialize(void) 
+SaErrorT oh_uid_initialize(void) 
 {
         static int initialized = FALSE;
 
@@ -114,11 +114,11 @@ guint oh_uid_initialize(void)
 
                 /* initialize uid map */
                 rval = uid_map_from_file();
-
-                return(rval);
         }
+	else
+		rval = SA_ERR_HPI_ERROR;
 
-        return(-1);
+        return(rval);
 
 }
 
