@@ -207,52 +207,52 @@ static void get_entity_event(ipmi_entity_t	*entity,
 static void add_entity_event(ipmi_entity_t	        *entity,
 			     struct oh_handler_state    *handler)
 {
-		struct ohoi_resource_info *ohoi_res_info;
-		SaHpiRptEntryT	entry;
-		int rv;
+      	struct ohoi_resource_info *ohoi_res_info;
+	SaHpiRptEntryT	entry;
+	int rv;
 
-		dbg("adding ipmi entity: %s", ipmi_entity_get_entity_id_string(entity));
+	dbg("adding ipmi entity: %s", ipmi_entity_get_entity_id_string(entity));
 
-		struct ohoi_handler *ipmi_handler = handler->data;
+	struct ohoi_handler *ipmi_handler = handler->data;
 
-		ohoi_res_info = g_malloc0(sizeof(*ohoi_res_info));
+	ohoi_res_info = g_malloc0(sizeof(*ohoi_res_info));
 
-		if (!ohoi_res_info) {
-				dbg("Out of memory");
-				return;
-		}
+	if (!ohoi_res_info) {
+	      	dbg("Out of memory");
+		return;
+	}
 
-		ohoi_res_info->type       = OHOI_RESOURCE_ENTITY; 
-		ohoi_res_info->u.entity_id= ipmi_entity_convert_to_id(entity);
-//		entity_rpt_set_updated(ohoi_res_info, handler->data);
+	ohoi_res_info->type       = OHOI_RESOURCE_ENTITY; 
+	ohoi_res_info->u.entity_id= ipmi_entity_convert_to_id(entity);
+//	entity_rpt_set_updated(ohoi_res_info, handler->data);
 
-		get_entity_event(entity, &entry, ipmi_handler);	
-		rv = oh_add_resource(handler->rptcache, &entry, ohoi_res_info, 1);
-		if (rv) {
-			dbg("oh_add_resource failed for %d = %s\n", entry.ResourceId, oh_lookup_error(rv));
-		}
+	get_entity_event(entity, &entry, ipmi_handler);	
+	rv = oh_add_resource(handler->rptcache, &entry, ohoi_res_info, 1);
+	if (rv) {
+	      	dbg("oh_add_resource failed for %d = %s\n", entry.ResourceId, oh_lookup_error(rv));
+	}
 }
 
 void ohoi_remove_entity(struct oh_handler_state *handler,
 			SaHpiResourceIdT res_id)
 {
-	  	struct oh_event *e;
-		struct ohoi_resource_info *res_info;
+      	struct oh_event *e;
+	struct ohoi_resource_info *res_info;
 
-		res_info = oh_get_resource_data(handler->rptcache, res_id);
+	res_info = oh_get_resource_data(handler->rptcache, res_id);
 
-  		dbg("Entity (%d) removed", res_id);
+  	dbg("Entity (%d) removed", res_id);
 
-		/* Now put an event for the resource to DEL */
-		e = g_malloc0(sizeof(*e));
-		memset(e, 0, sizeof(*e));
+	/* Now put an event for the resource to DEL */
+	e = g_malloc0(sizeof(*e));
+	memset(e, 0, sizeof(*e));
 
-		e->did = oh_get_default_domain_id();
-		e->type = OH_ET_RESOURCE_DEL;
-		e->u.res_event.entry.ResourceId = res_id;
+	e->did = oh_get_default_domain_id();
+	e->type = OH_ET_RESOURCE_DEL;
+	e->u.res_event.entry.ResourceId = res_id;
 
-		handler->eventq = g_slist_append(handler->eventq, e);
-		entity_rpt_set_updated(res_info, handler->data);
+	handler->eventq = g_slist_append(handler->eventq, e);
+	entity_rpt_set_updated(res_info, handler->data);
 }
 
 void ohoi_entity_event(enum ipmi_update_e       op,
