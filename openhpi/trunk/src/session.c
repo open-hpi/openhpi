@@ -22,8 +22,6 @@
 #include <SaHpi.h>
 #include <openhpi.h>
 
-#define get_session_entry(n) (struct oh_session*) g_slist_nth_data(global_session_list, n);
-
 struct oh_session *session_get(SaHpiSessionIdT sid)
 {
         struct oh_session *temp = NULL;
@@ -36,76 +34,75 @@ struct oh_session *session_get(SaHpiSessionIdT sid)
                         return temp;
                 }
         }
-        
         return NULL;
 }
 
-int session_add(struct oh_domain *domain,
+int session_add(SaHpiDomainIdT did, 
                 struct oh_session **session)
 {
-	struct oh_session *s;
-	
-	s = malloc(sizeof(*s));
-	if (!s) {
-		dbg("Cannot get memory!");
-		return -1;
-	}
-	memset(s, 0, sizeof(*s));
-		
-	s->sid 	  = scounter++;
-	s->domain = domain;
-
-	list_add(&s->node, &slist);
-	list_add(&s->dnode, &domain->session_list);
-
-	list_init(&s->event_list);
-
-	*session =s;
+        struct oh_session *s;
+        
+        s = malloc(sizeof(*s));
+        if (!s) {
+                dbg("Cannot get memory!");
+                return -1;
+        }
+        memset(s, 0, sizeof(*s));
+        
+        // (sd: session id should be set more intellegently, no?
+        s->session_id = scounter++;
+        s->domain_id = domain;
+        s->eventq = NULL;
+        
+        global_session_list = g_slist_append(global_session_list, (gpointer *) s);
+        
+	*session = s;
 	return 0;
 }
 
 int session_del(struct oh_session *session)
 {
 	/*FIXME: should be more cleanup */
-	list_del(&session->node);
-	list_del(&session->dnode);
-	free(session);
+        
 	return 0;
 }
 
-struct session_event {
-	struct list_head node; /* link-node in the session's event list */
-	struct oh_event event;
-};
-
 int session_push_event(struct oh_session *s, struct oh_event *e)
 {
-	struct session_event *se;
+        struct session_event *se;
+        
+        se = malloc(sizeof(*se));
+        if (se) {
+                dbg("Cannot alloc memory");
+                return -1;
+        };
 	
-	se = malloc(sizeof(*se));
-	if (se) {
-		dbg("Cannot alloc memory");
-		return -1;
-	};
-	
-	memcpy(&se->event, e, sizeof(*e));
-	list_add_tail(&se->node, &s->event_list);
-	return 0;
+        memcpy(&se->event, e, sizeof(*e));
+        list_add_tail(&se->node, &s->event_list);
+        return 0;
 }
 
 int session_pop_event(struct oh_session *s, struct oh_event *e) 
 {
-	struct session_event *se;
-	
-	if (list_empty(&s->event_list)) {
-		return 0;
+        struct oh_event *temp;
+        GSList *tail;
+        
+        if (g_slist_length(s->eventq) == 0) {
+                return 0;
 	}
-	
-	se = list_container(s->event_list.next, struct session_event, node);
-	list_del(&se->node);
-
-	memcpy(e, &se->event, sizeof(*e));
-	free(se);
+        
+        tail = g_slist_last(s->eventq);
+        if(tail == NULL) {
+                dbg("Tail is NULL, your list is corrupt");
+                return 0;
+        }
+        
+        s->eventq = g_slist_remove_link(s->eventq, tail);
+        
+        temp = (struct oh_event *) g_slist_nth_data(tail, 0);
+        
+	memcpy(e, &s->eventq, sizeof(*e));
+	free(temp);
 	return 1;
 }
 

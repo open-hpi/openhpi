@@ -1,6 +1,19 @@
-/* BSD License
- * Copyright (C) by Intel Crop.
- * Author: Louis Zhuang <louis.zhuang@linux.intel.com>
+/*      -*- linux-c -*-
+ *
+ * Copyright (c) 2003 by Intel Corp.
+ * Copyright (c) 2003 by International Business Machines
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
+ * file and program are licensed under a BSD style license.  See
+ * the Copying file included with the OpenHPI distribution for
+ * full licensing terms.
+ *
+ * Authors:
+ *     Louis Zhuang <louis.zhuang@linux.intel.com>
+ *     Sean Dague <sean@dague.net>
+ *     Rusty Lynch
  */
 
 #include <string.h>
@@ -17,8 +30,8 @@ static enum {
 static const int entry_id_offset = 1000;
 
 #define OH_STATE_READY_CHECK 					\
-	do {							\
-		if (OH_STAT_READY!=oh_hpi_state) {		\
+        do {							\
+	            if (OH_STAT_READY!=oh_hpi_state) {		\
 			dbg("Uninitialized HPI");		\
 			return SA_ERR_HPI_UNINITIALIZED;	\
 		}						\
@@ -122,48 +135,18 @@ static inline struct oh_rdr * get_rdr(
 
 SaErrorT SAHPI_API saHpiInitialize(SAHPI_OUT SaHpiVersionT *HpiImplVersion)
 {
-        if (OH_STAT_UNINIT!=oh_hpi_state) {
+        if (OH_STAT_UNINIT != oh_hpi_state) {
                 dbg("Cannot initialize twice");
                 return SA_ERR_HPI_DUPLICATE;
         }
         
-        init_session();
-        init_domain();
-	
         if (init_plugin()<0) {
                 dbg("Can not load/init plugin");
                 return SA_ERR_HPI_NOT_PRESENT;
         }
-
-/*	
-	d = domain_add();
-	if (!d) {
-		dbg("Can not create DEFAULT DOMAIN");
-		return SA_ERR_HPI_NOT_PRESENT;
-	}
-#if 1	
-        if (load_plugin(d, "libdummy", 
-                        (const char*) NULL, 
-                        (const char*) NULL) < 0 ) {
-                dbg("Can not init dummy");
-                return SA_ERR_HPI_NOT_PRESENT;
-        }
-	else {
-		printf("loaded dummy plugin\n");
-	}
-	
-#endif
-#if 0
-        if (load_plugin(d, "libwatchdog", 
-                        (const char*) NULL, 
-                        (const char*) NULL) < 0 ) {
-                dbg("Can not init dummy");
-                return SA_ERR_HPI_NOT_PRESENT;
-        }
-#endif
-*/
-        oh_hpi_state= OH_STAT_READY;
-	return SA_OK;
+        
+        oh_hpi_state = OH_STAT_READY;
+        return SA_OK;
 }
 
 SaErrorT SAHPI_API saHpiFinalize(void)
@@ -177,11 +160,12 @@ SaErrorT SAHPI_API saHpiFinalize(void)
                 dbg("No DEFAULT DOMAIN");
                 return SA_ERR_HPI_UNKNOWN;
 	}
+        
+        /*
+          we should be doing handler shutdown here.
 
-	uninit_domain();
-	uninit_session();
-
-	oh_hpi_state = OH_STAT_FINAL;
+        */
+        oh_hpi_state = OH_STAT_FINAL;
 	return SA_OK;
 }
 
@@ -195,20 +179,42 @@ SaErrorT SAHPI_API saHpiSessionOpen(
         int rv, i;
         struct oh_domain_config *dconf;
         struct oh_handler_config *temp;
-
+        
         OH_STATE_READY_CHECK;
-	
-        dconf = (struct oh_domain_config *) calloc(1, sizeof(struct oh_domain_config));
+
+        if(DomainId == SAHPI_DEFAULT_DOMAIN_ID) {
+                rv = load_handlers();
+                if(rv != 0) {
+                        dbg("Couldn't load handlers");
+                        return SA_ERR_HPI_NOT_PRESENT;
+                }
+        } else {
+                if(!domain_exists(SAHPI_DEFAULT_DOMAIN_ID)) {
+                        dbg("Default domain not open!");
+                        dbg("No other domains may be openned before it");
+                        return SA_ERR_HPI_INVALID_DOMAIN;
+                }
+        }
+/*        
+        dconf = (struct oh_config *) calloc(1, sizeof(struct oh_config));
         load_domain_config(&dconf, DomainId);
-
-        d = domain_add();
-        if (!d) {
-                dbg("Can not create DEFAULT DOMAIN");
-                return SA_ERR_HPI_NOT_PRESENT;
-	}
-
-        dbg("num plugins %d", g_slist_length(dconf->plugins));
-
+*/
+        
+        rv = session_add(DomainId, &s);
+        if(rv < 0) {
+  		dbg("Out of space");
+		return SA_ERR_HPI_OUT_OF_SPACE;
+        }
+        
+        /* Domain is added after the session to ensure the session worked 
+           first */
+        rv = domain_add(DomainId);
+        if(rv < 0) {
+                dbg("Couldn't add DomainId %d", DomainId);
+                return SA_ERR_HPI_INVALID_DOMAIN;
+        }
+        
+/*
         for(i = 0; i < g_slist_length(dconf->plugins); i++) {
                 temp = (struct oh_handler_config *) g_slist_nth_data(dconf->plugins, i);
                 dbg("Trying to load plugin %s", temp->plugin);
@@ -218,13 +224,9 @@ SaErrorT SAHPI_API saHpiSessionOpen(
         }
 
         free_domain_config(dconf);
+*/
 
-	rv = session_add(d, &s);
-	if (rv<0) {
-		dbg("Out of space");
-		return SA_ERR_HPI_OUT_OF_SPACE;
-	}	
-	*SessionId = s->sid;
+        *SessionId = s->sid;
 	
 	return SA_OK;
 }
@@ -232,18 +234,18 @@ SaErrorT SAHPI_API saHpiSessionOpen(
 
 SaErrorT SAHPI_API saHpiSessionClose(SAHPI_IN SaHpiSessionIdT SessionId)
 {
-	struct oh_session *s;
-	
-	OH_STATE_READY_CHECK;
-	
-	s = session_get(SessionId);
-	if (!s) {
-		dbg("Invalid session");
-		return SA_ERR_HPI_INVALID_SESSION;
+        struct oh_session *s;
+        
+        OH_STATE_READY_CHECK;
+        
+        s = session_get(SessionId);
+        if (!s) {
+                dbg("Invalid session");
+                return SA_ERR_HPI_INVALID_SESSION;
 	}
-
-	session_del(s);	
-	return SA_OK;
+        
+        session_del(s);	
+        return SA_OK;
 }
 
 
