@@ -1207,6 +1207,7 @@ SaErrorT SAHPI_API saHpiSensorReadingConvert (
                 SAHPI_IN SaHpiSensorReadingT *ReadingInput,
                 SAHPI_OUT SaHpiSensorReadingT *ConvertedReading)
 {
+        struct oh_session *s;
         RPTable *rpt;
         SaHpiRdrT *rdr;
         SaHpiSensorRecT *sensor;
