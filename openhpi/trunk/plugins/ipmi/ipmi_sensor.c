@@ -17,7 +17,6 @@
 
 #include "ipmi.h"
 
-#if 0
 /* 
  * Use for getting sensor data functions
  */
@@ -35,6 +34,7 @@ struct ohoi_sensor_thresholds {
         int                     hyster_done;
 };
 
+#if 0
 /*
  * Use for enabling/disabling sensor
  */
@@ -42,6 +42,7 @@ struct ohoi_sensor_enables {
 	SaHpiSensorEvtEnablesT	*sensor_enables;
 	int			done;	
 };
+#endif
 
 static int ignore_sensor(ipmi_sensor_t *sensor)
 {
@@ -58,6 +59,7 @@ static int ignore_sensor(ipmi_sensor_t *sensor)
         return 1;
 }
 
+#if 0
 static void sensor_read_states(ipmi_sensor_t *sensor,
                                int           err,
                                ipmi_states_t *states,
@@ -83,6 +85,7 @@ static void sensor_read_states(ipmi_sensor_t *sensor,
 	
 	p->done = 1;
 }
+#endif
 
 static void sensor_read(ipmi_sensor_t			*sensor,
 			int 				err,
@@ -99,7 +102,7 @@ static void sensor_read(ipmi_sensor_t			*sensor,
 		p->done = 1;
 		return;
 	}	
-	
+#if 0
 	if (value_present == IPMI_BOTH_VALUES_PRESENT) {
 		p->sensor_reading->ValuesPresent = SAHPI_SRF_RAW |
 						   SAHPI_SRF_INTERPRETED;
@@ -115,6 +118,11 @@ static void sensor_read(ipmi_sensor_t			*sensor,
 	}
 	else
 		p->sensor_reading->ValuesPresent = 0;
+#else
+	p->sensor_reading->IsSupported = SAHPI_TRUE;
+	p->sensor_reading->Type = SAHPI_SENSOR_READING_TYPE_FLOAT64;
+	p->sensor_reading->Value.SensorFloat64 = val;
+#endif 
 	
 	p->done = 1;
 }
@@ -140,12 +148,14 @@ static void get_sensor_data(ipmi_sensor_t *sensor, void *cb_data)
 			return;
 		}
         } else {
+#if 0
                 rv = ipmi_states_get(sensor, sensor_read_states, reading_data);
 		if (rv) {
 			dbg("Unable to get sensor reading states: %s\n",
                             strerror( rv ) );
 			return;
                 }
+#endif
         }
 
 }
@@ -168,7 +178,11 @@ int ohoi_get_sensor_data(ipmi_sensor_id_t sensor_id,
                         &reading_data);
         if (rv) {
                 dbg("Unable to convert sensor_id to pointer");
-                return SA_ERR_HPI_INVALID;
+#if 0
+		return SA_ERR_HPI_INVALID;
+#else
+                return SA_ERR_HPI_INVALID_CMD;
+#endif
         }
         
         return ohoi_loop(&reading_data.done, ipmi_handler);
@@ -183,10 +197,18 @@ static void thres_get(ipmi_sensor_t		*sensor,
 	
 	ipmi_sensor_threshold_readable(sensor, event, &val);
 	if (val) {
+#if 0
 		thres->ValuesPresent = SAHPI_SRF_INTERPRETED;
 		thres->Interpreted.Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32;
 		thres->Interpreted.Value.SensorFloat32 = (SaHpiFloat32T)
 			th->vals[event].val;
+
+#else
+		thres->IsSupported = SAHPI_TRUE;
+		thres->Type = SAHPI_SENSOR_READING_TYPE_FLOAT64;
+		thres->Value.SensorFloat64 = th->vals[event].val;
+
+#endif
 	}
 }
 
@@ -225,8 +247,11 @@ static SaErrorT get_thresholds(ipmi_sensor_t				*sensor,
 	rv = ipmi_thresholds_get(sensor, thresholds_read, thres_data);
 	if (rv) 
 		dbg("Unable to get sensor thresholds: 0x%x\n", rv);
-
+#if 0
 	return (rv? SA_ERR_HPI_INVALID : SA_OK);
+#else
+	return (rv? SA_ERR_HPI_INVALID_CMD : SA_OK);
+#endif
 }
 
 static void hysteresis_read(ipmi_sensor_t	*sensor,
@@ -242,13 +267,22 @@ static void hysteresis_read(ipmi_sensor_t	*sensor,
 		p->hyster_done = 1;
 		return;		
 	}
-	
+#if 0
 	p->sensor_thres->PosThdHysteresis.ValuesPresent =
 		SAHPI_SRF_RAW;	
 	p->sensor_thres->PosThdHysteresis.Raw = positive_hysteresis;
 	p->sensor_thres->NegThdHysteresis.ValuesPresent =
 		SAHPI_SRF_RAW;
 	p->sensor_thres->PosThdHysteresis.Raw = negative_hysteresis;
+#else
+	p->sensor_thres->PosThdHysteresis.IsSupported = SAHPI_TRUE;
+	p->sensor_thres->PosThdHysteresis.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64;
+	p->sensor_thres->PosThdHysteresis.Value.SensorFloat64 = positive_hysteresis;
+
+	p->sensor_thres->NegThdHysteresis.IsSupported = SAHPI_TRUE;
+        p->sensor_thres->NegThdHysteresis.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64;
+        p->sensor_thres->NegThdHysteresis.Value.SensorFloat64 = negative_hysteresis;
+#endif
 	p->hyster_done = 1;
 }
 
@@ -261,7 +295,12 @@ static SaErrorT get_hysteresis(ipmi_sensor_t			*sensor,
         if (rv)
                 dbg("Unable to get sensor hysteresis: 0x%x\n", rv);
         
+#if 0
 	return (rv? SA_ERR_HPI_INVALID : SA_OK);
+#else
+	return (rv? SA_ERR_HPI_INVALID_CMD : SA_OK);
+
+#endif
 }
 
 static void get_sensor_thresholds(ipmi_sensor_t *sensor, 
@@ -291,9 +330,14 @@ static void get_sensor_thresholds(ipmi_sensor_t *sensor,
 					
 		rv = ipmi_sensor_get_hysteresis_support(sensor);
 		if (rv == IPMI_HYSTERESIS_SUPPORT_NONE) {
+#if 0
 			/* I'm zeroing them so we return but invalid data FIXME? */
 			thres_data->sensor_thres->PosThdHysteresis.ValuesPresent = 0;
 			thres_data->sensor_thres->NegThdHysteresis.ValuesPresent = 0;
+#else
+			thres_data->sensor_thres->PosThdHysteresis.IsSupported = SAHPI_FALSE;
+			thres_data->sensor_thres->NegThdHysteresis.IsSupported = SAHPI_FALSE;
+#endif
                         thres_data->hyster_done = 1; /* read no more */
 			return;
 		} else {
@@ -337,7 +381,11 @@ int ohoi_get_sensor_thresholds(ipmi_sensor_id_t sensor_id, SaHpiSensorThresholds
                                           &thres_data);
         if (rv) {
                 dbg("Unable to convert sensor id into pointer");
+#if 0
                 return SA_ERR_HPI_INVALID;
+#else
+		return SA_ERR_HPI_INVALID_CMD;
+#endif
         }
 
         return ohoi_loop_until(is_get_sensor_thresholds_done, 
@@ -358,14 +406,16 @@ static int thres_cpy(ipmi_sensor_t			*sensor,
 		      unsigned int			event,
 		      ipmi_thresholds_t			*info) 
 {
+#if 0
 	double	tmp;
+#endif
 	int	val;
-	int	rv;
 
 	ipmi_sensor_threshold_settable(sensor, event, &val);
 	if (!val)
 	       return 0;
 	
+#if 0
 	if (reading.ValuesPresent & SAHPI_SRF_RAW) {
 		rv = ipmi_sensor_convert_from_raw(sensor, reading.Raw, &tmp);
 		if (rv < 0) {
@@ -386,7 +436,20 @@ static int thres_cpy(ipmi_sensor_t			*sensor,
 			return -1;
 		}
 	}
-
+#else
+	info->vals[event].status = 1;
+	switch (reading.Type) {
+		/*Fix Me* case...*/
+		case  SAHPI_SENSOR_READING_TYPE_INT64:
+		case  SAHPI_SENSOR_READING_TYPE_UINT64:
+		case  SAHPI_SENSOR_READING_TYPE_BUFFER:
+			break;
+		case SAHPI_SENSOR_READING_TYPE_FLOAT64:
+        		info->vals[event].val = 
+				reading.Value.SensorFloat64;
+			break;
+	}
+#endif
 	return 0;
 }
 
@@ -450,43 +513,42 @@ static int set_hysteresis(ipmi_sensor_t	                *sensor,
 			  struct ohoi_sensor_thresholds	*thres_data)
 {
 	int			rv;	
-	double			tmp;
-	unsigned int		pos, neg;
+	unsigned int		pos = 0, neg = 0;
 	SaHpiSensorReadingT	pos_reading 
                 = thres_data->sensor_thres->PosThdHysteresis;
 	SaHpiSensorReadingT	neg_reading 
                 = thres_data->sensor_thres->NegThdHysteresis;	
 	
-	if (pos_reading.ValuesPresent & SAHPI_SRF_RAW)
-		pos = pos_reading.Raw;
-	else if (pos_reading.ValuesPresent & SAHPI_SRF_INTERPRETED) {
-		if (pos_reading.Interpreted.Type !=
-		    SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32) {
-			tmp = pos_reading.Interpreted.Value.SensorFloat32;
-			ipmi_sensor_convert_to_raw(sensor, ROUND_NORMAL, 
-						   tmp, &pos);	
-		}
-		else {
-			dbg("Invalid input thresholds");
-			return -1;
-		}
-	}
+        switch (pos_reading.Type) {
+                case SAHPI_SENSOR_READING_TYPE_INT64:
+                        pos = pos_reading.Value.SensorInt64;
+                        break;
+                case SAHPI_SENSOR_READING_TYPE_UINT64:
+                        pos = pos_reading.Value.SensorUint64;
+                        break;
+                case SAHPI_SENSOR_READING_TYPE_FLOAT64:
+                        pos = pos_reading.Value.SensorFloat64;
+                        break;
+                case SAHPI_SENSOR_READING_TYPE_BUFFER:
+                        dbg("ipmi sensor doesn't support this type of reading");
+                        return -1;   
+        }
 	
-	if (neg_reading.ValuesPresent & SAHPI_SRF_RAW) 
-		neg = neg_reading.Raw;
-	else if (neg_reading.ValuesPresent & SAHPI_SRF_INTERPRETED) {
-		if (neg_reading.Interpreted.Type !=
-		    SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32) {
-			tmp = neg_reading.Interpreted.Value.SensorFloat32;
-			ipmi_sensor_convert_to_raw(sensor, ROUND_NORMAL,
-						   tmp, &neg);
-		}
-		else {
-			dbg("Invalid input thresholds");
-			return -1;
-		}
-	}
-	
+        switch (neg_reading.Type) {
+                case SAHPI_SENSOR_READING_TYPE_INT64:
+                        neg = neg_reading.Value.SensorInt64;
+                        break;
+                case SAHPI_SENSOR_READING_TYPE_UINT64:
+                        neg = neg_reading.Value.SensorUint64;
+                        break;
+                case SAHPI_SENSOR_READING_TYPE_FLOAT64:
+                        neg = neg_reading.Value.SensorFloat64;
+                        break;
+                case SAHPI_SENSOR_READING_TYPE_BUFFER:
+                        dbg("ipmi sensor doesn't support this type of reading");
+                        return -1;
+        }
+
 	rv = ipmi_sensor_set_hysteresis(sensor, pos, neg, set_data, 
                                         &thres_data->hyster_done);
 	if (rv) {
@@ -556,12 +618,14 @@ int ohoi_set_sensor_thresholds(ipmi_sensor_id_t		        sensor_id,
 		
         if (rv) {
 				dbg("Unable to convert sensor_id to pointer");
-                return SA_ERR_HPI_INVALID;
+                return SA_ERR_HPI_INVALID_CMD;
         }
 
         return ohoi_loop_until(is_get_sensor_thresholds_done, 
                                &thres_data, 5, ipmi_handler);
 }
+
+#if 0
 
 static void enables_read(ipmi_sensor_t		*sensor,
 			 int 			err,
@@ -766,5 +830,4 @@ int ohoi_set_sensor_event_enables(ipmi_sensor_id_t		sensor_id,
         
         return ohoi_loop(&enables_data.done, ipmi_handler);
 }
-
 #endif

@@ -18,7 +18,6 @@
 #include <uid_utils.h>
 #include <string.h>
 
-#if 0
 enum ohoi_event_type {
 	EVENT_DATA_0 = 0,
 	EVENT_DATA_1,
@@ -201,8 +200,9 @@ static void set_thresholds_sensor_misc_event(ipmi_event_t	*event,
 	
 	type = data[10] >> 6;
 	if (type == EVENT_DATA_1) {
-		e->TriggerReading.ValuesPresent = SAHPI_SRF_RAW;
-		e->TriggerReading.Raw = data[11];
+		e->TriggerReading.IsSupported = SAHPI_TRUE;
+		e->TriggerReading.Type = SAHPI_SENSOR_READING_TYPE_UINT64;
+		e->TriggerReading.Value.SensorUint64 = data[11];
 	}
 	else if (type == EVENT_DATA_2) 
 		e->Oem = data[11]; 
@@ -211,8 +211,9 @@ static void set_thresholds_sensor_misc_event(ipmi_event_t	*event,
 
 	type = (data[10] & 0x30) >> 4;
 	if (type == EVENT_DATA_1) {
-		e->TriggerThreshold.ValuesPresent = SAHPI_SRF_RAW;
-		e->TriggerThreshold.Raw = data[12];
+		e->TriggerReading.IsSupported = SAHPI_TRUE;
+                e->TriggerReading.Type = SAHPI_SENSOR_READING_TYPE_UINT64;
+                e->TriggerReading.Value.SensorUint64 = data[12];
 	}
 	else if (type == EVENT_DATA_2)
 		e->Oem = data[12];
@@ -300,21 +301,22 @@ static void add_sensor_event_thresholds(ipmi_sensor_t	*sensor,
 	unsigned int		access;
 
 	if (rec->Category != SAHPI_EC_THRESHOLD) {
-		rec->ThresholdDefn.IsThreshold = SAHPI_FALSE;
+		rec->ThresholdDefn.IsAccessible = SAHPI_FALSE;
 		return;
 	}
 	
 	access = ipmi_sensor_get_threshold_access(sensor);
 	if (access == IPMI_THRESHOLD_ACCESS_SUPPORT_NONE) {
-		rec->ThresholdDefn.IsThreshold = SAHPI_FALSE;
+		rec->ThresholdDefn.IsAccessible = SAHPI_FALSE;
 		return;
 	}
 
 	if (access >= IPMI_THRESHOLD_ACCESS_SUPPORT_READABLE) {
-		rec->ThresholdDefn.IsThreshold = SAHPI_TRUE;
+		rec->ThresholdDefn.IsAccessible = SAHPI_TRUE;
+#if 0
 		rec->ThresholdDefn.TholdCapabilities = SAHPI_SRF_RAW |
 						       SAHPI_SRF_INTERPRETED;
-		
+#endif		
 		temp = 0;
 		ipmi_sensor_threshold_readable(sensor,
 				IPMI_LOWER_NON_CRITICAL, &val);
@@ -398,17 +400,22 @@ static void add_sensor_event_thresholds(ipmi_sensor_t	*sensor,
 			
 		rec->ThresholdDefn.WriteThold = temp;
 	}
-	
+/* Fix Me */	
+#if 0
 	temp = 0;
 	val = ipmi_sensor_get_hysteresis_support(sensor);
 	if (val == IPMI_HYSTERESIS_SUPPORT_FIXED)
 		temp |= SAHPI_STM_UP_HYSTERESIS | SAHPI_STM_LOW_HYSTERESIS;
 	rec->ThresholdDefn.FixedThold = temp;
+#endif
 }
 
 static void add_sensor_event_data_format(ipmi_sensor_t		*sensor,
 					 SaHpiSensorRecT	*rec)
 {
+
+/*Fix Me*/
+#if 0
 	SaHpiSensorRangeFlagsT temp = 0;
 	
 	/* Depends on IPMI */
@@ -481,6 +488,7 @@ static void add_sensor_event_data_format(ipmi_sensor_t		*sensor,
 		temp |= SAHPI_SRF_NORMAL_MIN;
 	}	
 	rec->DataFormat.Range.Flags = temp;
+#endif
 }
 
 static SaHpiEventCategoryT ohoi_sensor_get_event_reading_type(ipmi_sensor_t   *sensor)
@@ -563,6 +571,8 @@ static void add_sensor_event_rdr(ipmi_sensor_t		*sensor,
 		case IPMI_EVENT_SUPPORT_PER_STATE:
 			rdr->RdrTypeUnion.SensorRec.EventCtrl = SAHPI_SEC_PER_EVENT;
 			break;
+/*Fix Me*/
+#if 0
 		case IPMI_EVENT_SUPPORT_ENTIRE_SENSOR:
 		 	rdr->RdrTypeUnion.SensorRec.EventCtrl = SAHPI_SEC_ENTIRE_SENSOR;
 			break;
@@ -572,6 +582,15 @@ static void add_sensor_event_rdr(ipmi_sensor_t		*sensor,
 		case IPMI_EVENT_SUPPORT_NONE:
 			rdr->RdrTypeUnion.SensorRec.EventCtrl = SAHPI_SEC_NO_EVENTS;
 			break;
+#else
+		case IPMI_EVENT_SUPPORT_ENTIRE_SENSOR:
+                case IPMI_EVENT_SUPPORT_GLOBAL_ENABLE:
+                        rdr->RdrTypeUnion.SensorRec.EventCtrl = SAHPI_SEC_READ_ONLY_MASKS;
+                        break;
+                case IPMI_EVENT_SUPPORT_NONE:
+                        rdr->RdrTypeUnion.SensorRec.EventCtrl = SAHPI_SEC_READ_ONLY;
+                        break;
+#endif
 	}
 	
 	memcpy(rdr->IdString.Data,name, strlen(name) + 1);
@@ -666,4 +685,3 @@ void ohoi_sensor_event(enum ipmi_update_e op,
 	}
 }
 
-#endif
