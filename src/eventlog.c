@@ -101,17 +101,18 @@ int dsel_get_state(SaHpiDomainIdT domain_id)
 	return (d->sel_state==OH_SEL_ENABLED) ? 1 : 0;
 }
 
-void dsel_set_state(SaHpiDomainIdT domain_id, int enable)
+int dsel_set_state(SaHpiDomainIdT domain_id, int enable)
 {
 	struct oh_domain *d;
 	
 	d = get_domain_by_id(domain_id);
 	if (!d) {
 		dbg("Invalid domain");
-		return;
+		return -1;
 	}
 	
 	d->sel_state = enable ? OH_SEL_ENABLED : OH_SEL_DISABLED;
+	return 0;
 }
 
 SaHpiTimeT dsel_get_time(SaHpiDomainIdT domain_id)
@@ -127,28 +128,29 @@ void dsel_set_time(SaHpiDomainIdT domain_id, SaHpiTimeT time)
 	return; 
 }
 
-void dsel_add(SaHpiDomainIdT domain_id, SaHpiSelEntryT *entry)
+int dsel_add(SaHpiDomainIdT domain_id, SaHpiSelEntryT *entry)
 {
 	struct oh_domain *d;
 	
 	d = get_domain_by_id(domain_id);
 	if (!d) {
 		dbg("Invalid domain");
-		return;
+		return -1;
 	}
 
 	d->sel_counter++;
 	sel_add(&d->sel_list, entry, d->sel_counter);
+	return 0;
 }
 
-void dsel_add2(struct oh_domain *d, struct oh_hpi_event *e)
+int dsel_add2(struct oh_domain *d, struct oh_hpi_event *e)
 {
 	struct oh_sel *sel;
 	
 	sel = malloc(sizeof(*sel));
 	if (!sel) {
 		dbg("Out of memory");
-		return;
+		return -1;
 	}
 	memset(sel, 0, sizeof(*sel));
 
@@ -160,76 +162,90 @@ void dsel_add2(struct oh_domain *d, struct oh_hpi_event *e)
 	memcpy(&sel->entry.Event, &e->event, sizeof(sel->entry.Event));
 	
 	d->sel_list = g_slist_append(d->sel_list, sel);
+	return 0;
 }
 
-void dsel_del(SaHpiDomainIdT domain_id, SaHpiSelEntryIdT id)
+int dsel_del(SaHpiDomainIdT domain_id, SaHpiSelEntryIdT id)
 {
 	struct oh_domain *d;
 	
 	d = get_domain_by_id(domain_id);
 	if (!d) {
 		dbg("Invalid domain");
-		return;
+		return -1;
 	}
 
 	sel_del(&d->sel_list, id);
+	return 0;
 }
 
-void dsel_clr(SaHpiDomainIdT domain_id) 
+int dsel_clr(SaHpiDomainIdT domain_id) 
 {
 	struct oh_domain *d;
 	
 	d = get_domain_by_id(domain_id);
 	if (!d) {
 		dbg("Invalid domain");
-		return;
+		return -1;
 	}
 
 	sel_clr(&d->sel_list);
+	return 0;
 }
 
-void rsel_add(SaHpiResourceIdT res_id, SaHpiSelEntryT *entry)
+int rsel_add(SaHpiResourceIdT res_id, SaHpiSelEntryT *entry)
 {
 	struct oh_resource *res;
 	
 	res = get_resource(res_id);
 	if (!res) {
 		dbg("Invalid resource id");
-		return;
+		return -1;
 	}
 
 	res->sel_counter++;
 	sel_add(&res->sel_list, entry, res->sel_counter);
-	res->handler->abi->add_sel_entry(res->handler->hnd, res->oid, entry);
+	if (!res->handler->abi->add_sel_entry) {
+		dbg("No such function");
+		return -1;
+	}
+	if (res->handler->abi->add_sel_entry(res->handler->hnd, res->oid, entry)<0) {
+		dbg("Error when calling");
+		return -1;
+	}
+	
+	return 0;
 }
 
-void rsel_add2(struct oh_resource *res, struct oh_rsel_event *e)
+int rsel_add2(struct oh_resource *res, struct oh_rsel_event *e)
 {
 	struct oh_rsel *rsel;
 	
 	rsel = malloc(sizeof(*rsel));
 	if (!rsel) {
 		dbg("Out of memory");
-		return;
+		return -1;
 	}
 	memset(rsel, 0, sizeof(*rsel));
 
 	*rsel = e->rsel;
 	
 	res->sel_list = g_slist_append(res->sel_list, rsel);
+	return 0;
 }
 
-void rsel_del(SaHpiResourceIdT res_id, SaHpiSelEntryIdT id)
+int rsel_del(SaHpiResourceIdT res_id, SaHpiSelEntryIdT id)
 {
 	struct oh_resource *res;
 	
 	res = get_resource(res_id);
 	if (!res) {
 		dbg("Invalid resource id");
-		return;
+		return -1;
 	}
 
 	sel_del(&res->sel_list, id);
+	return 0;
 }
 
 void rsel_clr(SaHpiResourceIdT res_id) 

@@ -607,12 +607,16 @@ SaErrorT SAHPI_API saHpiEventLogEntryAdd (
 	}	
 	
 	if (ResourceId==SAHPI_DOMAIN_CONTROLLER_ID) {
-		dsel_add(s->domain_id, EvtEntry);
-		return SA_OK;
+		if (dsel_add(s->domain_id, EvtEntry)<0)
+			return SA_ERR_HPI_UNKNOWN;
+		else 
+			return SA_OK;
 	}
 	
-	rsel_add(ResourceId, EvtEntry);
-	return SA_OK;
+	if (rsel_add(ResourceId, EvtEntry)<0)
+		return SA_ERR_HPI_UNKNOWN;
+	else 
+		return SA_OK;
 }
 
 SaErrorT SAHPI_API saHpiEventLogEntryDelete (
@@ -631,12 +635,16 @@ SaErrorT SAHPI_API saHpiEventLogEntryDelete (
 	}	
 	
 	if (ResourceId==SAHPI_DOMAIN_CONTROLLER_ID) {
-		dsel_del(s->domain_id, EntryId);
-		return SA_OK;
+		if (dsel_del(s->domain_id, EntryId)<0)
+			return SA_ERR_HPI_UNKNOWN;
+		else
+			return SA_OK;
 	}
 
-	rsel_del(ResourceId, EntryId);
-	return SA_OK;
+	if (rsel_del(ResourceId, EntryId)<0)
+		return SA_ERR_HPI_UNKNOWN;
+	else
+		return SA_OK;
 }
 
 SaErrorT SAHPI_API saHpiEventLogClear (
@@ -654,8 +662,10 @@ SaErrorT SAHPI_API saHpiEventLogClear (
 	}	
 	
 	if (ResourceId==SAHPI_DOMAIN_CONTROLLER_ID) {
-		dsel_clr(s->domain_id);
-		return SA_OK;
+		if (dsel_clr(s->domain_id)<0)
+			return SA_ERR_HPI_UNKNOWN;
+		else
+			return SA_OK;
 	}
 
 	rsel_clr(ResourceId);
@@ -782,8 +792,10 @@ SaErrorT SAHPI_API saHpiEventLogStateSet (
 	}	
 	
 	if (ResourceId==SAHPI_DOMAIN_CONTROLLER_ID) {
-		dsel_set_state(s->domain_id, Enable);
-		return SA_OK;
+		if (dsel_set_state(s->domain_id, Enable)<0)
+			return SA_ERR_HPI_UNKNOWN;
+		else
+			return SA_OK;
 	}
 
 	res = get_resource(ResourceId);
