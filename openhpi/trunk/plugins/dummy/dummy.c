@@ -1053,7 +1053,6 @@ static int dummy_get_event(void *hnd, struct oh_event *event)
 
         struct oh_event *e = NULL;
         struct oh_event *qse = NULL;
-	qse = NULL;
 
         SaHpiRptEntryT *rpt_entry = NULL;
 
@@ -1095,7 +1094,7 @@ static int dummy_get_event(void *hnd, struct oh_event *event)
         } else if (count == 1) {
                 trace("list is empty, when count is even gen new event");
                 count++;
-                return(-1);
+                return(0);
         }
 
 //        g_static_rec_mutex_lock (inst->handler_lock);
