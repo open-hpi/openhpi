@@ -18,5 +18,9 @@ for i in `find . -name '*~'`; do
     rm $i
 done
 
+for i in `find . -name '.#*'`; do
+    rm $i
+done
+
 rm -fR docs/hld/OpenHPI_HLD/
 rm -fR docs/test_specification/test_specification
