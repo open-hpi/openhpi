@@ -37,31 +37,9 @@ MAINTAINERCLEANFILES 	= Makefile.in
 
 openhpi_docsdir		= $(datadir)/openhpi/docs/hld
 
-openhpi_docs_DATA	= \
-				OpenHPI_HLD/book1.html 
+openhpi_docs_DATA	= OpenHPI_HLD/book1.html 
 
-
-
-SGML_FILES              = legal.dtd \
-				authors.dtd \
-				revisions.dtd \
-				alternatives.sgml \
-				internel_components.sgml \
-				appendix.sgml \
-				internel_data_structure.sgml \
-				assumptions_and_deps.sgml \
-				internel_methods.sgml \
-				bookinfo.sgml \
-				introduction.sgml \
-				design_decomposition.sgml \
-				methods_and_notations.sgml \
-				design_strategies.sgml \
-				OpenHPI_HLD.sgml \
-				externel_apis.sgml \
-				system_deps.sgml \
-				externel_data_structure.sgml \
-				sahpi_breakdown.sgml
-
+SGML_FILES              = $(shell ls *.dtd) $(shell ls *.sgml) 
 
 EXTRA_DIST		= $(DIAGRAMS) OpenHPI_HLD.sgml
 

@@ -30,20 +30,11 @@
 <!ENTITY % revisions PUBLIC "-//OASIS//DTD DocBook V4.1//EN" "revisions.dtd">
 %revisions;
 
-<!ENTITY bookinfo SYSTEM "bookinfo.sgml">
-<!ENTITY introduction SYSTEM "introduction.sgml">
-<!ENTITY methods_and_notations SYSTEM "methods_and_notations.sgml">
-<!ENTITY assumptions_and_deps SYSTEM "assumptions_and_deps.sgml">
-<!ENTITY design_decomposition SYSTEM "design_decomposition.sgml">
-<!ENTITY sahpi_breakdown SYSTEM "sahpi_breakdown.sgml">
-<!ENTITY internel_components SYSTEM "internel_components.sgml">
-<!ENTITY internel_data_structure SYSTEM "internel_data_structure.sgml">
-<!ENTITY internel_methods SYSTEM "internel_methods.sgml">
-<!ENTITY system_deps SYSTEM "system_deps.sgml">
-<!ENTITY externel_data_structure SYSTEM "externel_data_structure.sgml">
-<!ENTITY externel_apis SYSTEM "externel_apis.sgml">
-<!ENTITY design_strategies SYSTEM "design_strategies.sgml">
-<!ENTITY alternatives SYSTEM "alternatives.sgml">
+<!ENTITY chapter1 SYSTEM "bookinfo.sgml">
+<!ENTITY chapter2 SYSTEM "introduction.sgml">
+<!ENTITY chapter3 SYSTEM "sahpi_breakdown.sgml">
+<!ENTITY chapter4 SYSTEM "openhpi_highlevel.sgml">
+<!ENTITY chapter5 SYSTEM "openhpi_structure.sgml">
 <!ENTITY appendix SYSTEM "appendix.sgml">
 ]>
 
@@ -53,22 +44,11 @@
 -->
 
 <book>
-        &bookinfo;
-
-        <!-- Chapters -->
-        &introduction;
-        <!-- &methods_and_notations; -->
-        <!-- &assumptions_and_deps; -->
-        &sahpi_breakdown;
-        &design_decomposition;
-        <!-- &internel_components; -->
-        <!-- &internel_data_structure; -->
-        <!-- &internel_methods; -->
-        <!-- &system_deps; -->
-        <!-- &externel_data_structure; -->
-        <!-- &externel_apis; -->
-        <!-- &design_strategies; -->
-        <!-- &alternatives; -->
+        &chapter1;
+        &chapter2;
+        &chapter3;
+        &chapter4;
+        &chapter5;
 
         &appendix;
 </book>
