@@ -240,13 +240,32 @@ char* sim_util_get_rdr_dir(struct oh_handler_state *inst,
         return str;
 }
 
-int sim_util_insert_event(GSList *eventq, struct oh_event *event)
+static pthread_mutex_t util_mutext = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
+int sim_util_insert_event(GSList **eventq, struct oh_event *event)
 {
-        return -1;
+        pthread_mutex_lock(&util_mutext);
+
+        printf("insert event type:%d\n", event->type);
+        *eventq = g_slist_append(*eventq, event);
+        pthread_mutex_unlock(&util_mutext);
+        return 0;
 }
-int sim_util_remove_event(GSList *eventq, struct oh_event *event)
+int sim_util_remove_event(GSList **eventq, struct oh_event *event)
 {
-        return -1;
+        int retval = 1;
+        gpointer data;
+
+        pthread_mutex_lock(&util_mutext);
+        data = g_slist_nth_data(*eventq, 0);
+        if (data == NULL)
+                retval = 0;
+        else {
+                memcpy(event, data, sizeof(*event));
+                *eventq = g_slist_remove(*eventq, data);
+                printf("remove event type:%d\n", event->type);
+        }
+        pthread_mutex_unlock(&util_mutext);
+        return retval;
 }
 
 #ifdef UNIT_TEST

@@ -85,7 +85,7 @@ static int fhs_event_add_resource(struct fe_handler *feh, char *res, FAMEvent *f
         sim_parser_get_rpt(path, &event->u.res_event.entry);
         event->u.res_event.entry.ResourceId = oh_uid_from_entity_path(
                                      &event->u.res_event.entry.ResourceEntity);
-        sim_util_insert_event(feh->ohh->eventq, event);
+        sim_util_insert_event(&feh->ohh->eventq, event);
 #endif
 
         feh->ids = sim_util_add_res_id(feh->ids, fe->filename,
@@ -103,7 +103,7 @@ static int fhs_event_add_resource(struct fe_handler *feh, char *res, FAMEvent *f
                 sim_parser_get_rdr(path, &event->u.rdr_event.rdr);
                 event->u.res_event.entry.ResourceId = oh_uid_from_entity_path(
                                      &event->u.res_event.entry.ResourceEntity);
-                sim_util_insert_event(feh->ohh->eventq, event);
+                sim_util_insert_event(&feh->ohh->eventq, event);
                 printf("add rdr:%s\n", pd->d_name);
 #endif
                 sprintf(path, "%s/%s/%s/sensor", root_path, res, pd->d_name); 
@@ -130,7 +130,7 @@ static void fhs_event_remove_resource(struct fe_handler *feh, FAMEvent *fe)
         event->type = OH_ET_RESOURCE_DEL;
         id = sim_util_get_res_id_by_reqnum(feh->ids, fe->fr.reqnum);
         event->u.res_del_event.resource_id = id->res_id;
-        sim_util_insert_event(feh->ohh->eventq, event);
+        sim_util_insert_event(&feh->ohh->eventq, event);
 #endif
         index = 0;
         rdr_id = sim_util_get_rdr_id(feh->ids, fe->filename, index);

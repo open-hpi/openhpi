@@ -18,6 +18,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/time.h>
+#include <unistd.h>
 #include <uuid/uuid.h>
 #include <glib.h>
 
@@ -74,7 +75,16 @@ static void *sim_open(GHashTable *handler_config)
 
 	/* initialize hashtable pointer */
 	i->rptcache = (RPTable *)g_malloc0(sizeof(RPTable)); 
-	return( (void *)i );
+        
+        i->data = fhs_event_init(i);
+/*     
+        wait for fhs to insert event
+        I will use another approach to wait for fhs to insert 
+        event
+*/
+	sleep(1);
+
+        return( (void *)i );
 }
 
 static void sim_close(void *hnd)
@@ -92,18 +102,11 @@ static void sim_close(void *hnd)
 static int sim_get_event(void *hnd, struct oh_event *event, struct timeval *timeout)
 {
         struct oh_handler_state *inst = hnd;
-        return sim_util_remove_event(inst->eventq, event);  
+        return sim_util_remove_event(&inst->eventq, event);  
 }
 
 static int sim_discover_resources(void *hnd)
 {
-        struct oh_handler_state *inst = hnd;
-
-        if (inst->data == NULL) {
-                inst->data = fhs_event_init(inst); 
-        }
-        if (inst->data == NULL) 
-                return -1;
         return 0;
 }
 
