@@ -257,9 +257,6 @@ AC_ARG_ENABLE([ipmi],
     fi],
     [if test "x$have_openipmi" = "xyes"; then
             AC_SUBST(IPMI,ipmi)
-        else
-            OH_CHECK_FAIL(OpenIPMI,libOpenIPMI-devel,http://openipmi.sf.net,
-                         Can not build IPMI support without OpenIPMI >= 1.2.7)
      fi
     ])
 
