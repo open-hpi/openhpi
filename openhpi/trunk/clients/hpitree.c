@@ -88,7 +88,8 @@ int f_inv     = 0;
 int f_ctrl    = 0;
 int f_rdr     = 0;
 int f_wdog    = 0;
-int f_ann    = 0;
+int f_ann     = 0;
+int f_overview = 0;
 /* 
  * Main                
  */
@@ -104,15 +105,16 @@ main(int argc, char **argv)
 	int c;
 	    
 	printf("\n\n%s ver %s\n",argv[0],progver);
-	while ( (c = getopt( argc, argv,"adrsiwcn:x?")) != EOF ) {
+	while ( (c = getopt( argc, argv,"adrsoiwcn:x?")) != EOF ) {
 		switch(c) {
 			case 'a': f_listall = 1; break;
 			case 'c': f_ctrl    = 1; break;
-			case 'd': f_rdr    = 1; break;
+			case 'd': f_rdr     = 1; break;
 			case 'i': f_inv     = 1; break;
 			case 'r': f_rpt     = 1; break;
 			case 's': f_sensor  = 1; break; 
-			case 'w': f_wdog  = 1; break; 
+			case 'w': f_wdog    = 1; break;
+			case 'o': f_overview = 1; break; 			 
 			case 'n':
 				if (optarg)
 					resourceid = atoi(optarg);
@@ -127,6 +129,7 @@ main(int argc, char **argv)
 				printf("\t           -c     Display only controls\n");
 				printf("\t           -d     Display rdr records\n");
 				printf("\t           -i     Display only inventories\n");
+				printf("\t           -o     Display system overview: rpt & rdr headers\n");				
 				printf("\t           -r     Display only rpts\n");
 				printf("\t           -s     Display only sensors\n");
 				printf("\t           -w     Display only watchdog\n");				
@@ -229,7 +232,7 @@ SaErrorT list_resources(SaHpiSessionIdT sessionid,SaHpiResourceIdT resourceid)
 
 				if (rvRdrGet == SA_OK)
 				{
-					if (f_listall || f_rdr)
+					if (f_listall || f_rdr || f_overview)
 							list_rdr(sessionid, &rptentry, &rdr, l_resourceid);
 					if (f_listall || f_inv)
 							list_inv(sessionid, &rptentry, &rdr, l_resourceid); 
@@ -268,6 +271,9 @@ SaErrorT list_rpt(SaHpiRptEntryT *rptptr,SaHpiResourceIdT resourceid)
 		/* Always print resource header */
 		entitypath2string(&rptptr->ResourceEntity, working.Data, SAHPI_MAX_TEXT_BUFFER_LENGTH);
 		printf("\n+%s\n",working.Data);
+		
+		if (!f_listall && !f_rpt) 
+		printf(" Desc: %s, ResourceId %d\n\n",rptptr->ResourceTag.Data, rptptr->ResourceId);
 
 
 		/* Print details when asked */
@@ -306,9 +312,6 @@ SaErrorT list_inv(SaHpiSessionIdT sessionid,
 			printf("saHpiIdrInfoGet: ResourceId %d IdrId %d, error %s\n",
 					l_resourceid, idrid, oh_lookup_error(rvInvent));
 		} else {
-			snprintf(working.Data, SAHPI_MAX_TEXT_BUFFER_LENGTH,
-						"    Idr for ResourceId: %d\n", l_resourceid);
-			oh_print_text(&working);
 			oh_print_idrinfo(&idrInfo, 4);
 			walkInventory(sessionid, l_resourceid, &idrInfo);
 		}
@@ -417,10 +420,8 @@ SaErrorT list_sens(SaHpiSessionIdT sessionid,
 	oh_init_textbuffer(&working);																		
 
 	if (rdrptr->RdrType == SAHPI_SENSOR_RDR) {							
-		snprintf(working.Data, SAHPI_MAX_TEXT_BUFFER_LENGTH,
-				"    Sensor for ResourceId: %d", l_resourceid);
-		rv = oh_print_text(&working);
 		rv = oh_print_sensorrec(&rdrptr->RdrTypeUnion.SensorRec, 4);	
+		
 	} 
 
 	return(rv);
@@ -439,11 +440,14 @@ SaErrorT list_rdr(SaHpiSessionIdT sessionid,
 	SaHpiTextBufferT working;		
 	oh_init_textbuffer(&working);																		
 
-	snprintf(working.Data, SAHPI_MAX_TEXT_BUFFER_LENGTH,
-				"\n|---Rdr for %s, ResourceId: %d\n",
-					rptptr->ResourceTag.Data,l_resourceid);
-	rv = oh_print_text(&working);	
-	rv = oh_print_rdr(rdrptr, 4);
+	if (!f_overview) {
+		rv = oh_print_rdr(rdrptr, 4);
+	} else {
+		snprintf(working.Data, SAHPI_MAX_TEXT_BUFFER_LENGTH,
+			"    Found %s, RecordId %d",
+			oh_lookup_rdrtype(rdrptr->RdrType), rdrptr->RecordId);
+		rv = oh_print_text(&working);
+	}
 	return(rv);
 }
 
@@ -461,9 +465,6 @@ SaErrorT list_ctrl(SaHpiSessionIdT sessionid,
 	oh_init_textbuffer(&working);																		
 																
 	if (rdrptr->RdrType == SAHPI_CTRL_RDR){
-		snprintf(working.Data, SAHPI_MAX_TEXT_BUFFER_LENGTH,
-					"    Control for ResourceId: %d\n", l_resourceid);
-		rv = oh_print_text(&working);
 		rv = oh_print_ctrlrec(&rdrptr->RdrTypeUnion.CtrlRec, 4);
 		
 		rv = getcontrolstate(sessionid, l_resourceid,
@@ -507,9 +508,6 @@ SaErrorT list_wdog(SaHpiSessionIdT sessionid,
 	oh_init_textbuffer(&working);																		
 																
 	if (rdrptr->RdrType == SAHPI_WATCHDOG_RDR) {
-		snprintf(working.Data, SAHPI_MAX_TEXT_BUFFER_LENGTH,
-					"    Watchdog for ResourceId: %d\n", l_resourceid);
-		rv = oh_print_text(&working);
 		rv = oh_print_watchdogrec(&rdrptr->RdrTypeUnion.WatchdogRec, 4);
 	} 
 	return(rv);
