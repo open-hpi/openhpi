@@ -16,6 +16,8 @@
 #ifndef OH_ERROR_H
 #define OH_ERROR_H
 
+#include <stdio.h>
+
 /* Only print debug info when --enable-debug */
 #ifdef DEBUG
 #define dbg(format, ...) \
