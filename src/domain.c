@@ -70,8 +70,8 @@ int domain_del(struct oh_domain *domain)
 
 int domain_process_event(struct oh_domain *d, struct oh_event *e)
 {
-	switch (e->type) {
-	case OH_ET_ENTITY:
+	switch (e->oid.type) {
+	case OH_ID_ENTITY:
 		if (e->u.entity.category!=SAHPI_EC_PRESENCE) {
 			dbg("Unexcepted event category");
 			return -1;

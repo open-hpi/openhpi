@@ -10,19 +10,19 @@
 #include <SaHpi.h>
 #include <openhpi.h>
 
-static int init_res(struct oh_resource *res, enum oh_item type)
+static int init_res(struct oh_resource *res, enum oh_id_type type)
 {
 	list_init(&res->node);
-	res->type = type;	
+	res->oid.type = type;	
 	
 	switch (type) {
-		case OH_DOMAIN:
+		case OH_ID_DOMAIN:
 			res->u.domain = NULL;
 			break;
-		case OH_SEL:
+		case OH_ID_SEL:
 			res->u.sel = NULL;
 			break;
-		case OH_ENTITY:
+		case OH_ID_ENTITY:
 			list_init(&res->u.rdr_list);
 			break;
 		default:
@@ -45,7 +45,7 @@ struct oh_resource *get_res(struct oh_domain *domain, SaHpiResourceIdT rid)
 	return NULL;
 }
 
-static int add_res(struct oh_domain *d, struct oh_resource **res, enum oh_item type)
+static int add_res(struct oh_domain *d, struct oh_resource **res, enum oh_id_type type)
 {
 	struct oh_resource *r;
 	
@@ -83,7 +83,7 @@ static struct oh_resource *get_res_by_oid(struct oh_domain *d, struct oh_id *oid
 	list_for_each(tmp, &d->res_list) {
 		struct oh_resource *r;
 		r = list_container(tmp, struct oh_resource, node);
-		if (memcmp(&r->oid, oid, sizeof(oid))==0)
+		if (memcmp(&r->oid, oid, sizeof(*oid))==0)
 			return r;
 	}
 	return NULL;
@@ -97,7 +97,7 @@ static struct oh_resource *get_res_by_oid2(struct oh_domain *d, struct oh_id *oi
 	if (!r) {
 		int rv;
 		dbg("New entity, add it");
-		rv = add_res(d, &r, OH_ENTITY);
+		rv = add_res(d, &r, oid->type);
 		if (rv<0) {
 			return NULL;
 		}

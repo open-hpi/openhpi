@@ -6,16 +6,6 @@
 #include <sys/time.h>
 #include <SaHpi.h>
 
-enum oh_event_type {
-	OH_ET_SENSOR,
-	OH_ET_HOTSWAP,
-	OH_ET_WATCHDOG,
-	OH_ET_OEM,
-	OH_ET_USER,
-	OH_ET_ENTITY,
-	OH_ET_EVENT_LOG
-};
-
 enum oh_id_type {
 	OH_ID_EVENT_LOG,
 	OH_ID_WATCHDOG,
@@ -23,6 +13,8 @@ enum oh_id_type {
 	OH_ID_ENTITY,
 	OH_ID_SENSOR,
 	OH_ID_CONTROL,
+	OH_ID_SEL,
+	OH_ID_DOMAIN
 };
 
 /* 
@@ -32,6 +24,7 @@ enum oh_id_type {
  * it can map id back to solid data
  */
 struct oh_id {
+	enum oh_id_type type;
 	void *ptr;
 };
 	
@@ -47,7 +40,9 @@ struct oh_sel_event {
 };
 
 struct oh_event {
-	enum oh_event_type		type;
+	struct oh_id			oid;
+	struct timeval			timestamp;
+	SaHpiSeverityT			severity;
 	union {
 		SaHpiSensorEventT   sensor;
 		SaHpiHotSwapEventT  hotswap;
@@ -56,11 +51,7 @@ struct oh_event {
 		SaHpiUserEventT     user;
 		struct oh_entity_event entity;
 		struct oh_sel_event sel;
-	} u;
-			    
-	struct timeval			timestamp;
-	SaHpiSeverityT			severity;
-	struct oh_id			oid;
+	} u;		    
 };
 
 /* UUID is ee778a5f-32cf-453b-a650-518814dc956c */

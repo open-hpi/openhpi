@@ -12,15 +12,6 @@
 #include <hash.h>
 
 #include <oh_plugin.h>
-enum oh_item {
-	OH_SEL,
-	OH_ENTITY,
-	OH_DOMAIN,
-	OH_SENSOR,
-	OH_CONTROL,
-	OH_INVENTORY,
-	OH_WATCHDOG,
-};
 
 struct oh_session {
 	struct list_head node;	/* link-node in session table */
@@ -52,7 +43,6 @@ struct oh_resource {
 	struct list_head node;
 	SaHpiResourceIdT rid;
 	struct oh_id	 oid;
-	enum oh_item 	 type;
 	union {
 		/* valid when OH_DOMAIN */
 		struct oh_domain *domain;
@@ -67,7 +57,7 @@ struct oh_resource {
 
 struct oh_rdr {
 	struct list_head node;
-	enum oh_item type;
+	struct oh_id	 oid;
 	union {
 		/* valid when OH_SENSOR */
 		struct oh_sensor	*sensor;

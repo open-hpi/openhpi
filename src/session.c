@@ -123,9 +123,9 @@ int session_get_events(struct oh_session *s)
 		
 		domain_process_event(d, &event);
 		
-		switch (event.type) {
-		case OH_ET_ENTITY:
-		case OH_ET_EVENT_LOG:
+		switch (event.oid.type) {
+		case OH_ID_ENTITY:
+		case OH_ID_EVENT_LOG:
 			/* Two types of events will not put upper layer */
 			break;
 		/* FIXME: much more... sensors/controls*/
