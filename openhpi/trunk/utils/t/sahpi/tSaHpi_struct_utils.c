@@ -15,684 +15,499 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
 #include <SaHpi.h>
 #include <SaHpi_struct_utils.h>
 
 #define UNDEFINED_MANUFACTURER  -1
-#define BAD_CAT -1
-#define BAD_EVENT 0xFFFF
+#define BAD_TYPE -1
 
 int main(int argc, char **argv) 
 {
 	const char *expected_str;
 	const char *str;
-	char       buffer[512];
-	int        buffer_size = 512;
 	SaErrorT   expected_err, err;
+	SaHpiTextBufferT buffer, bad_buffer;
 
-	/************************** 
-	 * SaHpiTimeT2str testcases
-         **************************/
-	{
-		/* SaHpiTimeT2str: test initial time testcase */
-		/* Can't look for a specific expected string, since it depends on locale */
-		err = SaHpiTimeT2str(0, buffer, buffer_size);
-
-		if (err != 0) {
-                        printf("tSaHpi_struct_utils Error! SaHpiTimeT2str: test initial time testcase failed. Error=%d\n", err);
-                        return -1;
-                }
-
-		/* SaHpiTimeT2str: Null buffer testcase */
-		expected_err = SA_ERR_HPI_INVALID_PARAMS;
-		
-		err = SaHpiTimeT2str(0, 0, buffer_size);
-		
-                if (expected_err != err) {
-                        printf("tSaHpi_struct_utils Error! SaHpiTimeT2str: Null buffer testcase failed. Error=%d\n", err);
-                        return -1;
-                }
-
-		/* SaHpiTimeT2str: buffer too small testcase */
-		expected_err = SA_ERR_HPI_OUT_OF_SPACE;
-		
-		err = SaHpiTimeT2str(0, buffer, 0);
-		
-                if (expected_err != err) {
-                        printf("tSaHpi_struct_utils Error! SaHpiTimeT2str: buffer too small testcase failed. Error=%d\n", err);
-                        return -1;
-                }
-	}
-	
 	/************************************ 
-	 * SaHpiManufacturerIdT2str testcases
+	 * oh_lookup_manufacturerid testcases
          ************************************/
+
 	{
-		SaHpiManufacturerIdT mid;
-		
-        	/* SaHpiManufacturerIdT2str: SAHPI_MANUFACTURER_ID_UNSPECIFIED testcase */
-		expected_str = "SAHPI_MANUFACTURER_ID_UNSPECIFIED";
+		/* oh_lookup_manufacturerid: SAHPI_MANUFACTURER_ID_UNSPECIFIED testcase */
+		SaHpiManufacturerIdT mid;	
+
+		expected_str = "UNSPECIFIED Manufacturer";
 		mid = SAHPI_MANUFACTURER_ID_UNSPECIFIED;
 
-		str = SaHpiManufacturerIdT2str(mid); 
+		str = oh_lookup_manufacturerid(mid); 
 		
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_struct_utils Error! SaHpiManufacturerIdT2str: SAHPI_MANUFACTURER_ID_UNSPECIFIED testcase failed. %s= received string\n", str);
+                        printf("Error! oh_lookup_manufacturerid: SAHPI_MANUFACTURER_ID_UNSPECIFIED testcase failed\n");
+			printf("Received string=%s\n", str);
                         return -1;
                 }
-
-                /* SaHpiManufacturerIdT2str: IBM testcase */
+		
+		/* oh_lookup_manufacturerid: IBM testcase */
 		expected_str = "IBM";
 		mid = 2;
 
-		str = SaHpiManufacturerIdT2str(mid); 
+		str = oh_lookup_manufacturerid(mid); 
 		
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_struct_utils Error! SaHpiManufacturerIdT2str: IBM testcase failed. %s= received string\n", str);
+                        printf("Error! oh_lookup_manufacturerid: IBM testcase failed\n");
+			printf("Received string=%s\n", str);
                         return -1;
                 }
-
-                /* SaHpiManufacturerIdT2str: Undefined manufacturer testcase */
-		expected_str = "Undefined Manufacturer";
+		
+		/* oh_lookup_manufacturerid: Undefined manufacturer testcase */
+		expected_str = "Unknown Manufacturer";
 		mid = UNDEFINED_MANUFACTURER;
 
-		str = SaHpiManufacturerIdT2str(mid);
+		str = oh_lookup_manufacturerid(mid);
 		
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_struct_utils Error! SaHpiManufacturerIdT2str: Undefined manufacturer testcase failed. %s= received string\n", str);
+                        printf("Error! oh_lookup_manufacturerid: Undefined manufacturer testcase failed\n");
+			printf("Received string=%s\n", str);
                         return -1;
                 }
 	}
 
-	/*************************************************************** 
-	 * SaHpiEventStateT2str and valid_SaHpiEventStateT4Cat testcases
-         ***************************************************************/
+	/**************************** 
+	 * oh_sensorreading testcases
+         ****************************/
 	{
-		SaHpiEventStateT  event_state;
+		SaHpiSensorDataFormatT format_default, format_test;
+		SaHpiSensorReadingT reading_default, reading_test;
+		
+		reading_default.IsSupported = SAHPI_TRUE;
+		reading_default.Type = SAHPI_SENSOR_READING_TYPE_INT64;
+		reading_default.Value.SensorInt64 = 20;
+		
+		format_default.IsSupported = SAHPI_TRUE;
+		format_default.ReadingType = SAHPI_SENSOR_READING_TYPE_INT64;
+		format_default.BaseUnits = SAHPI_SU_VOLTS;
+		format_default.ModifierUnits = SAHPI_SU_UNSPECIFIED;
+		format_default.ModifierUse = SAHPI_SMUU_NONE;
+		format_default.Percentage = SAHPI_FALSE;
 
-		/* SaHpiEventStateT2str: Bad event category testcase */
+		/* oh_sensorreading: NULL buffer testcase */
+		expected_err = SA_ERR_HPI_INVALID_PARAMS;
+		
+		err = oh_decode_sensorreading(&reading_default, &format_default, 0);
+		if (err != expected_err) {
+			printf("Error! oh_sensorreading: NULL buffer testcase failed\n");
+			printf("Received error=%d\n", err);
+			return -1;
+		}
+		
+		/* oh_sensorreading: IsSupported == FALSE testcase */
+		expected_err = SA_ERR_HPI_INVALID_CMD;
+		reading_test = reading_default;
+		format_test = format_default;
+		format_test.IsSupported = SAHPI_FALSE;
+		
+		err = oh_decode_sensorreading(&reading_test, &format_test, &buffer);
+		if (err != expected_err) {
+			printf("Error! oh_sensorreading: IsSupported == FALSE testcase failed\n");
+			printf("Received error=%d\n", err);
+			return -1;
+		}
+
+		/* oh_sensorreading: Bad SaHpiSensorModifierUseT testcase */
+		expected_err = SA_ERR_HPI_INVALID_PARAMS;
+		reading_test = reading_default;
+		format_test = format_default;
+		format_test.ModifierUnits = SAHPI_SU_WEEK;
+		format_test.ModifierUse = BAD_TYPE;
+		
+		err = oh_decode_sensorreading(&reading_test, &format_test, &buffer);
+		if (err != expected_err) {
+			printf("Error! oh_sensorreading: Bad SaHpiSensorModifierUseT testcase failed\n");
+			printf("Received error=%d\n", err);
+			return -1;
+		}
+
+		/* oh_sensorreading: Bad SaHpiSensorReadingT testcase */
+		expected_err = SA_ERR_HPI_INVALID_PARAMS;
+		reading_test = reading_default;
+		reading_test.Type = BAD_TYPE;
+		format_test = format_default;
+		format_test.ReadingType = BAD_TYPE;
+		
+		err = oh_decode_sensorreading(&reading_test, &format_test, &buffer);
+		if (err != expected_err) {
+			printf("Error! oh_sensorreading: Bad SaHpiSensorReadingT testcase failed\n");
+			printf("Received error=%d\n", err);
+			return -1;
+		}
+		
+		/* oh_sensorreading: Reading Types not equal testcase */
 		expected_err = SA_ERR_HPI_INVALID_DATA;
+		reading_test = reading_default;
+		format_test = format_default;
+		format_test.ReadingType = format_default.ReadingType + 1;
+		
+		err = oh_decode_sensorreading(&reading_test, &format_test, &buffer);
+		if (err != expected_err) {
+			printf("Error! oh_sensorreading: Reading Types not equal testcase failed\n");
+			printf("Received error=%d\n", err);
+			return -1;
+		}
+
+		/* oh_sensorreading: SAHPI_SENSOR_READING_TYPE_INT64 testcase */
+		expected_str = "20 VOLTS";
+		reading_test = reading_default;
+		format_test = format_default;
+		
+		err = oh_decode_sensorreading(&reading_test, &format_test, &buffer);
+		if (err != SA_OK) {
+			printf("Error! oh_sensorreading: SAHPI_SENSOR_READING_TYPE_INT64 testcase failed\n");
+			printf("Received error=%d\n", err);
+			return -1;
+		}
+		
+                if (strcmp(expected_str, buffer.Data)) {
+                        printf("Error! Testcase SAHPI_SENSOR_READING_TYPE_INT64 failed\n");
+			printf("Received string=%s\n", buffer.Data);
+                        return -1;             
+                }
+		
+		/* oh_sensorreading: SAHPI_SMUU_BASIC_OVER_MODIFIER testcase */
+		expected_str = "20 VOLTS / WEEK";
+		reading_test = reading_default;
+		format_test = format_default;
+		format_test.ModifierUnits = SAHPI_SU_WEEK;
+		format_test.ModifierUse = SAHPI_SMUU_BASIC_OVER_MODIFIER;
+		
+		err = oh_decode_sensorreading(&reading_test, &format_test, &buffer);
+		if (err != SA_OK) {
+			printf("Error! oh_sensorreading: testcase SAHPI_SMUU_BASIC_OVER_MODIFIER failed\n");
+			printf("Received error=%d\n", err);
+			return -1;
+		}
+		
+                if (strcmp(expected_str, buffer.Data)) {
+                        printf("Error! Testcase SAHPI_SMUU_BASIC_OVER_MODIFIER failed\n");
+			printf("Received string=%s\n", buffer.Data);
+                        return -1;             
+                }
+
+		/* oh_sensorreading: SAHPI_SMUU_BASIC_TIMES_MODIFIER testcase */
+		expected_str = "20 VOLTS * WEEK";
+		reading_test = reading_default;
+		format_test = format_default;
+		format_test.ModifierUnits = SAHPI_SU_WEEK;
+		format_test.ModifierUse = SAHPI_SMUU_BASIC_TIMES_MODIFIER;
+		
+		err = oh_decode_sensorreading(&reading_test, &format_test, &buffer);
+		if (err != SA_OK) {
+			printf("Error! oh_sensorreading: testcase SAHPI_SMUU_BASIC_TIMES_MODIFIER failed\n");
+			printf("Received error=%d\n", err);
+			return -1;
+		}
+		
+                if (strcmp(expected_str, buffer.Data)) {
+                        printf("Error! Testcase SAHPI_SMUU_BASIC_TIMES_MODIFIER failed\n");
+			printf("Received string=%s\n", buffer.Data);
+                        return -1;             
+                }
+
+		/* oh_sensorreading: Percentage testcase */
+		expected_str = "20%";
+		reading_test = reading_default;
+		format_test = format_default;
+		format_test.Percentage = SAHPI_TRUE;
+		format_test.ModifierUnits = SAHPI_SU_WEEK;
+		format_test.ModifierUse = SAHPI_SMUU_BASIC_TIMES_MODIFIER;
+		
+		err = oh_decode_sensorreading(&reading_test, &format_test, &buffer);
+		if (err != SA_OK) {
+			printf("Error! oh_sensorreading: testcase Percentage failed\n");
+			printf("Received error=%d\n", err);
+			return -1;
+		}
+		
+                if (strcmp(expected_str, buffer.Data)) {
+                        printf("Error! Testcase Percentage failed\n");
+			printf("Received string=%s\n", buffer.Data);
+                        return -1;             
+                }
+
+		/* oh_sensorreading: SAHPI_SENSOR_READING_TYPE_UINT64 testcase */
+		expected_str = "20 VOLTS";
+		reading_test = reading_default;
+		reading_test.Type = SAHPI_SENSOR_READING_TYPE_UINT64;
+		reading_test.Value.SensorUint64 = 20;
+		format_test = format_default;
+		format_test.ReadingType = SAHPI_SENSOR_READING_TYPE_UINT64;
+		
+		err = oh_decode_sensorreading(&reading_test, &format_test, &buffer);
+		if (err != SA_OK) {
+			printf("Error! oh_sensorreading: SAHPI_SENSOR_READING_TYPE_UINT64 testcase failed\n");
+			printf("Received error=%d\n", err);
+			return -1;
+		}
+		
+                if (strcmp(expected_str, buffer.Data)) {
+                        printf("Error! Testcase SAHPI_SENSOR_READING_TYPE_UINT64 failed\n");
+			printf("Received string=%s\n", buffer.Data);
+                        return -1;             
+                }
+
+		/* oh_sensorreading: SAHPI_SENSOR_READING_TYPE_FLOAT64 testcase */
+		expected_str = "2.020000e+01 VOLTS";
+		reading_test = reading_default;
+		reading_test.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64;
+		reading_test.Value.SensorFloat64 = 20.2;
+		format_test = format_default;
+		format_test.ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64;
+		
+		err = oh_decode_sensorreading(&reading_test, &format_test, &buffer);
+		if (err != SA_OK) {
+			printf("Error! oh_sensorreading: SAHPI_SENSOR_READING_TYPE_FLOAT64 testcase failed\n");
+			printf("Received error=%d\n", err);
+			return -1;
+		}
+		
+                if (strcmp(expected_str, buffer.Data)) {
+                        printf("Error! Testcase SAHPI_SENSOR_READING_TYPE_FLOAT64 failed\n");
+			printf("Received string=%s\n", buffer.Data);
+                        return -1;             
+                }
+
+		/* oh_sensorreading: SAHPI_SENSOR_READING_TYPE_BUFFER testcase */
+		expected_str = "22222222222222222222222222222222 VOLTS";
+		reading_test = reading_default;
+		reading_test.Type = SAHPI_SENSOR_READING_TYPE_BUFFER;
+		memset(reading_test.Value.SensorBuffer, 0x32, SAHPI_SENSOR_BUFFER_LENGTH);
+		format_test = format_default;
+		format_test.ReadingType = SAHPI_SENSOR_READING_TYPE_BUFFER;
+		
+		err = oh_decode_sensorreading(&reading_test, &format_test, &buffer);
+		if (err != SA_OK) {
+			printf("Error! oh_sensorreading: SAHPI_SENSOR_READING_TYPE_BUFFER testcase failed\n");
+			printf("Received error=%d\n", err);
+			return -1;
+		}
+		
+                if (strcmp(expected_str, buffer.Data)) {
+                        printf("Error! Testcase SAHPI_SENSOR_READING_TYPE_BUFFER failed\n");
+			printf("Received string=%s\n", buffer.Data);
+                        return -1;             
+                }
+	}
+
+	/***************************** 
+	 * oh_xxx_textbuffer testcases
+         *****************************/
+	{
+
+		char str[4] = "1234";
+
+		/* oh_init_textbuffer: NULL buffer testcase */
+		expected_err = SA_ERR_HPI_INVALID_PARAMS;
+		
+		err = oh_init_textbuffer(0);
+		if (err != expected_err) {
+			printf("Error! oh_init_buffer: NULL buffer testcase failed\n");
+			printf("Received error=%d\n", err);
+			return -1;
+		}
+		
+		/* oh_append_textbuffer: NULL buffer testcase */
+		expected_err = SA_ERR_HPI_INVALID_PARAMS;
+
+		err = oh_append_textbuffer(0, str, strlen(str));
+		if (err != expected_err) {
+			printf("Error! oh_append_buffer: NULL buffer testcase failed\n");
+			printf("Received error=%d\n", err);
+			return -1;
+		}
+
+		/* oh_append_textbuffer: NULL str testcase */
+		expected_err = SA_ERR_HPI_INVALID_PARAMS;
+
+		err = oh_append_textbuffer(&buffer, 0, strlen(str));
+		if (err != expected_err) {
+			printf("Error! oh_append_buffer: NULL str testcase failed\n");
+			printf("Received error=%d\n", err);
+			return -1;
+		}
+
+		/* oh_append_textbuffer: Zero size testcase */
+		expected_err = SA_OK;
+		memset(buffer.Data, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);
+		strncpy(buffer.Data, str, strlen(str));
+		expected_str = str;
+
+		err = oh_append_textbuffer(&buffer, str, 0);
+		if (err != SA_OK) {
+			printf("Error! oh_append_buffer: Zero size testcase failed\n");
+			printf("Received error=%d\n", err);
+			return -1;
+		}
+
+                if (strcmp(expected_str, buffer.Data)) {
+                        printf("Error! Testcase oh_append_texbuffer: Zero size failed\n");
+			printf("Received string=%s\n", buffer.Data);
+                        return -1;             
+                }
+
+
+		/* oh_append_textbuffer: Out of space testcase */
+		{ 
+			char bigstr[SAHPI_MAX_TEXT_BUFFER_LENGTH +1];
 			
-		err = SaHpiEventStateT2str(SAHPI_ES_UNSPECIFIED, BAD_CAT, buffer, buffer_size);
-
-                if (expected_err != err) {
-                        printf("tSaHpi_struct_utils Error! SaHpiEventStateT2str: Bad event category testcase failed. Error=%d\n", err);
-                        return -1;
-                }
-
-		/* SaHpiEventStateT2str: Bad event for SAHPI_EC_UNSPECIFIED testcase */
-		expected_err = SA_ERR_HPI_INVALID_DATA;
+			expected_err = SA_ERR_HPI_OUT_OF_SPACE;
+			memset(bigstr, 0x32, SAHPI_MAX_TEXT_BUFFER_LENGTH +1);
 			
-		err = SaHpiEventStateT2str(BAD_EVENT, SAHPI_EC_UNSPECIFIED, buffer, buffer_size);
+			err = oh_append_textbuffer(&buffer, bigstr, strlen(bigstr));
+			if (err != SA_ERR_HPI_OUT_OF_SPACE) {
+				printf("Error! oh_append_buffer:Out of space testcase failed\n");
+				printf("Received error=%d\n", err);
+				return -1;
+			}
+		}
 
-                if (expected_err != err) {
-                        printf("tSaHpi_struct_utils Error! SaHpiEventStateT2str: Bad event for SAHPI_EC_UNSPECIFIED testcase failed. Error=%d\n", err);
-                        return -1;
-                }
+		/* oh_copy_textbuffer: NULL buffer testcase */
+		expected_err = SA_ERR_HPI_INVALID_PARAMS;
 
-		/* SaHpiEventStateT2str: Bad event for SAHPI_EC_THRESHOLD testcase */
+		err = oh_copy_textbuffer(0, 0);
+		if (err != expected_err) {
+			printf("Error! oh_copy_buffer: NULL buffer testcase failed\n");
+			printf("Received error=%d\n", err);
+			return -1;
+		}
+	}
+
+	/*********************************************************** 
+	 * oh_fprint_textbuffer/oh_fprint_big_textbuffer testcases
+         ***********************************************************/
+	{
+		str = "OK - Printing Line 1\nOK - Printing Line 2";
+		oh_big_textbuffer big_buffer, big_bad_buffer;
+
+		/* Don't need this if expose the oh_xxx_big_textbuffer routines */
+		big_buffer.DataType = SAHPI_TL_TYPE_TEXT;
+		big_buffer.Language = SAHPI_LANG_ENGLISH;
+		memset(big_buffer.Data, 0x32, SAHPI_MAX_TEXT_BUFFER_LENGTH + 2);
+		big_buffer.Data[SAHPI_MAX_TEXT_BUFFER_LENGTH + 2] = 0x00;
+		big_buffer.Data[SAHPI_MAX_TEXT_BUFFER_LENGTH + 1] = 0x33;
+		big_bad_buffer = big_buffer;
+
+		err = oh_init_textbuffer(&buffer);
+		if (err != SA_OK) {
+			printf("Error! oh_fprint_textbuffer: oh_init_textbuffer failed\n");
+			printf("Received error=%d\n", err);
+			return -1;
+		}
+		err = oh_append_textbuffer(&buffer, str, strlen(str));	
+		if (err != SA_OK) {
+			printf("Error! oh_fprint_textbuffer: oh_append_textbuffer failed\n");
+			printf("Received error=%d\n", err);
+			return -1;
+		}
+
+		/* oh_fprint_textbuffer: oh_printf_textbuffer MACRO testcase */
+		err = oh_print_textbuffer(&buffer);
+		if (err != SA_OK) {
+			printf("Error! oh_fprint_textbuffer: oh_print_textbuffer testcase failed\n");
+			printf("Received error=%d\n", err);
+			return -1;
+		}
+
+		err = oh_print_big_textbuffer(&big_buffer);
+		if (err != SA_OK) {
+			printf("Error! oh_fprint_textbuffer: oh_print_big_textbuffer testcase failed\n");
+			printf("Received error=%d\n", err);
+			return -1;
+		}
+
+                /* Bad data type testcase */
 		expected_err = SA_ERR_HPI_INVALID_DATA;
-			
-		err = SaHpiEventStateT2str(BAD_EVENT, SAHPI_EC_THRESHOLD, buffer, buffer_size);
-
-                if (expected_err != err) {
-                        printf("tSaHpi_struct_utils Error! SaHpiEventStateT2str: Bad event for SAHPI_EC_THRESHOLD testcase failed. Error=%d\n", err);
-                        return -1;
-                }
-
-		/* SaHpiEventStateT2str: Bad event for SAHPI_EC_USAGE testcase */
-		expected_err = SA_ERR_HPI_INVALID_DATA;
-			
-		err = SaHpiEventStateT2str(BAD_EVENT, SAHPI_EC_USAGE, buffer, buffer_size);
-
-                if (expected_err != err) {
-                        printf("tSaHpi_struct_utils Error! SaHpiEventStateT2str: Bad event for SAHPI_EC_USAGE testcase failed. Error=%d\n", err);
-                        return -1;
-                }
-
-
-		/* SaHpiEventStateT2str: Bad event for SAHPI_EC_STATE testcase */
-		expected_err = SA_ERR_HPI_INVALID_DATA;
-			
-		err = SaHpiEventStateT2str(BAD_EVENT, SAHPI_EC_STATE, buffer, buffer_size);
-
-                if (expected_err != err) {
-                        printf("tSaHpi_struct_utils Error! SaHpiEventStateT2str: Bad event for SAHPI_EC_STATE testcase failed. Error=%d\n", err);
-                        return -1;
-                }
-
-
-		/* SaHpiEventStateT2str: Bad event for SAHPI_EC_PRED_FAIL testcase */
-		expected_err = SA_ERR_HPI_INVALID_DATA;
-			
-		err = SaHpiEventStateT2str(BAD_EVENT, SAHPI_EC_PRED_FAIL, buffer, buffer_size);
-
-                if (expected_err != err) {
-                        printf("tSaHpi_struct_utils Error! SaHpiEventStateT2str: Bad event for SAHPI_EC_PRED_FAIL testcase failed. Error=%d\n", err);
-                        return -1;
-                }
-
-		/* SaHpiEventStateT2str: Bad event for SAHPI_EC_LIMIT testcase */
-		expected_err = SA_ERR_HPI_INVALID_DATA;
-			
-		err = SaHpiEventStateT2str(BAD_EVENT, SAHPI_EC_LIMIT, buffer, buffer_size);
-
-                if (expected_err != err) {
-                        printf("tSaHpi_struct_utils Error! SaHpiEventStateT2str: Bad event for SAHPI_EC_LIMIT testcase failed. Error=%d\n", err);
-                        return -1;
-                }
-
-
-		/* SaHpiEventStateT2str: Bad event for SAHPI_EC_PERFORMANCE testcase */
-		expected_err = SA_ERR_HPI_INVALID_DATA;
-			
-		err = SaHpiEventStateT2str(BAD_EVENT, SAHPI_EC_PERFORMANCE, buffer, buffer_size);
-
-                if (expected_err != err) {
-                        printf("tSaHpi_struct_utils Error! SaHpiEventStateT2str: Bad event for SAHPI_EC_PERFORMANCE testcase failed. Error=%d\n", err);
-                        return -1;
-                }
-
-
-		/* SaHpiEventStateT2str: Bad event for SAHPI_EC_SEVERITY testcase */
-		expected_err = SA_ERR_HPI_INVALID_DATA;
-			
-		err = SaHpiEventStateT2str(BAD_EVENT, SAHPI_EC_SEVERITY, buffer, buffer_size);
-
-                if (expected_err != err) {
-                        printf("tSaHpi_struct_utils Error! SaHpiEventStateT2str: Bad event for SAHPI_EC_SEVERITY testcase failed. Error=%d\n", err);
-                        return -1;
-                }
-
-		/* SaHpiEventStateT2str: Bad event for SAHPI_EC_PRESENCE testcase */
-		expected_err = SA_ERR_HPI_INVALID_DATA;
-			
-		err = SaHpiEventStateT2str(BAD_EVENT, SAHPI_EC_PRESENCE, buffer, buffer_size);
-
-                if (expected_err != err) {
-                        printf("tSaHpi_struct_utils Error! SaHpiEventStateT2str: Bad event for SAHPI_EC_PRESENCE testcase failed. Error=%d\n", err);
-                        return -1;
-                }
-
-		/* SaHpiEventStateT2str: Bad event for SAHPI_EC_ENABLE testcase */
-		expected_err = SA_ERR_HPI_INVALID_DATA;
-			
-		err = SaHpiEventStateT2str(BAD_EVENT, SAHPI_EC_ENABLE, buffer, buffer_size);
-
-                if (expected_err != err) {
-                        printf("tSaHpi_struct_utils Error! SaHpiEventStateT2str: Bad event for SAHPI_EC_ENABLE testcase failed. Error=%d\n", err);
-                        return -1;
-                }
-		/* SaHpiEventStateT2str: Bad event for SAHPI_EC_AVAILABILITY testcase */
-		expected_err = SA_ERR_HPI_INVALID_DATA;
-			
-		err = SaHpiEventStateT2str(BAD_EVENT, SAHPI_EC_AVAILABILITY, buffer, buffer_size);
-
-                if (expected_err != err) {
-                        printf("tSaHpi_struct_utils Error! SaHpiEventStateT2str: Bad event for SAHPI_EC_AVAILABILITY testcase failed. Error=%d\n", err);
-                        return -1;
-                }
-
-		/* SaHpiEventStateT2str: Bad event for SAHPI_EC_REDUNDANCY testcase */
-		expected_err = SA_ERR_HPI_INVALID_DATA;
-			
-		err = SaHpiEventStateT2str(BAD_EVENT, SAHPI_EC_REDUNDANCY, buffer, buffer_size);
-
-                if (expected_err != err) {
-                        printf("tSaHpi_struct_utils Error! SaHpiEventStateT2str: Bad event for SAHPI_EC_REDUNDANCY testcase failed. Error=%d\n", err);
-                        return -1;
-                }
-
-		/* SaHpiEventStateT2str: Bad event for SAHPI_EC_GENERIC testcase */
-		/* Covers SAHPI_EC_SENSOR_SPECIFIC case as well */
-		expected_err = SA_ERR_HPI_INVALID_DATA;
-			
-		err = SaHpiEventStateT2str(BAD_EVENT, SAHPI_EC_GENERIC, buffer, buffer_size);
-
-                if (expected_err != err) {
-                        printf("tSaHpi_struct_utils Error! SaHpiEventStateT2str: Bad event for SAHPI_EC_GENERIC testcase failed. Error=%d\n", err);
-                        return -1;
-                }
-
-                /* SaHpiEventStateT2str: SAHPI_ES_UNSPECIFIED testcase */
-		expected_str = "SAHPI_ES_UNSPECIFIED ";
-		memset(buffer, 0, buffer_size);
-
-		err = SaHpiEventStateT2str(SAHPI_ES_UNSPECIFIED, SAHPI_EC_THRESHOLD, buffer, buffer_size);
-
-                if (strcmp(expected_str, buffer)) {
-                        printf("tSaHpi_struct_utils Error! SaHpiEventStateT2str: SAHPI_ES_UNSPECIFIED testcase failed. %s= received string\n", buffer);
-                        return -1;
-                }
-
-                /* SaHpiEventStateT2str: SAHPI_ES_UNSPECIFIED; SAHPI_EC_UNSPECIFIED testcase */
-		expected_str = "SAHPI_ES_UNSPECIFIED ";
-		memset(buffer, 0, buffer_size);
-
-		err = SaHpiEventStateT2str(SAHPI_ES_UNSPECIFIED, SAHPI_EC_UNSPECIFIED, buffer, buffer_size);
-
-                if (strcmp(expected_str, buffer)) {
-                        printf("tSaHpi_struct_utils Error! SaHpiEventStateT2str: SAHPI_ES_UNSPECIFIED; SAHPI_EC_UNSPECIFIED testcase failed. %s= received string\n", buffer);
-                        return -1;
-                }
-
-                /* SaHpiEventStateT2str: SAHPI_EC_THRESHOLD Max events testcase */
-		expected_str = "SAHPI_ES_LOWER_CRIT SAHPI_ES_LOWER_MAJOR SAHPI_ES_LOWER_MINOR SAHPI_ES_UPPER_CRIT SAHPI_ES_UPPER_MAJOR SAHPI_ES_UPPER_MINOR ";
-		memset(buffer, 0, buffer_size);
-		event_state = 0;
-		event_state = SAHPI_ES_LOWER_MINOR | 
-			      SAHPI_ES_LOWER_MAJOR | 
-			      SAHPI_ES_LOWER_CRIT |
-                              SAHPI_ES_UPPER_MINOR | 
-                              SAHPI_ES_UPPER_MAJOR |
-                              SAHPI_ES_UPPER_CRIT; 
-		
-		err = SaHpiEventStateT2str(event_state, SAHPI_EC_THRESHOLD, buffer, buffer_size);
-
-                if (strcmp(expected_str, buffer)) {
-                        printf("tSaHpi_struct_utils Error! SaHpiEventStateT2str: SAHPI_EC_THRESHOLD Max events testcase failed. %s= received string\n", buffer);
-                        return -1;
-                }
-
-                /* SaHpiEventStateT2str: SAHPI_EC_THRESHOLD Completeness (lower crit; no lower major) testcase */
-		expected_err = SA_ERR_HPI_INVALID_DATA;
-		event_state = 0;
-		event_state = SAHPI_ES_LOWER_MINOR | 
-			      SAHPI_ES_LOWER_CRIT;
-		
-		err = SaHpiEventStateT2str(event_state, SAHPI_EC_THRESHOLD, buffer, buffer_size);
-
-                if (expected_err != err) { 
-                        printf("tSaHpi_struct_utils Error! SaHpiEventStateT2str: SAHPI_EC_THRESHOLD Completeness (lower crit no lower major) testcase failed. Error=%d\n", err);
-                        return -1;
-                }
-
-                /* SaHpiEventStateT2str: SAHPI_EC_THRESHOLD Completeness (lower major; no lower minor) testcase */
-		expected_err = SA_ERR_HPI_INVALID_DATA;
-		event_state = 0;
-		event_state = SAHPI_ES_LOWER_MAJOR;
-		
-		err = SaHpiEventStateT2str(event_state, SAHPI_EC_THRESHOLD, buffer, buffer_size);
-
-                if (expected_err != err) { 
-                        printf("tSaHpi_struct_utils Error! SaHpiEventStateT2str: SAHPI_EC_THRESHOLD Completeness (lower major no lower minor) testcase failed. Error=%d\n", err);
-                        return -1;
-                }
-
-                /* SaHpiEventStateT2str: SAHPI_EC_THRESHOLD Completeness (upper crit; no upper major) testcase */
-		expected_err = SA_ERR_HPI_INVALID_DATA;
-		event_state = 0;
-		event_state = SAHPI_ES_UPPER_MINOR | 
-			      SAHPI_ES_UPPER_CRIT;
-		
-		err = SaHpiEventStateT2str(event_state, SAHPI_EC_THRESHOLD, buffer, buffer_size);
-
-                if (expected_err != err) { 
-                        printf("tSaHpi_struct_utils Error! SaHpiEventStateT2str: SAHPI_EC_THRESHOLD Completeness (upper crit; no upper major) testcase failed. Error=%d\n", err);
-                        return -1;
-                }
-
-                /* SaHpiEventStateT2str: SAHPI_EC_THRESHOLD Completeness (upper major; no upper minor) testcase */
-		expected_err = SA_ERR_HPI_INVALID_DATA;
-		event_state = 0;
-		event_state = SAHPI_ES_UPPER_MAJOR;
-		
-		err = SaHpiEventStateT2str(event_state, SAHPI_EC_THRESHOLD, buffer, buffer_size);
-
-                if (expected_err != err) { 
-                        printf("tSaHpi_struct_utils Error! SaHpiEventStateT2str: SAHPI_EC_THRESHOLD Completeness (upper major; no upper minor) testcase failed. Error=%d\n", err);
-                        return -1;
-                }
-
-                /* SaHpiEventStateT2str: SAHPI_EC_USAGE Max events testcase */
-		expected_str = "SAHPI_ES_IDLE SAHPI_ES_ACTIVE SAHPI_ES_BUSY ";
-		memset(buffer, 0, buffer_size);
-		event_state = 0;
-		event_state = SAHPI_ES_IDLE | 
-			      SAHPI_ES_ACTIVE | 
-                              SAHPI_ES_BUSY;
-		
-		err = SaHpiEventStateT2str(event_state, SAHPI_EC_USAGE, buffer, buffer_size);
-
-                if (strcmp(expected_str, buffer)) {
-                        printf("tSaHpi_struct_utils Error! SaHpiEventStateT2str: SAHPI_EC_USAGE Max events testcase failed. %s= received string\n", buffer);
-                        return -1;
-                }
-
-                /* SaHpiEventStateT2str: SAHPI_EC_STATE ok DEASSERTED testcase */
-		expected_str = "SAHPI_ES_STATE_DEASSERTED ";
-		memset(buffer, 0, buffer_size);
-		event_state = 0;
-		event_state = SAHPI_ES_STATE_DEASSERTED;
-		
-		err = SaHpiEventStateT2str(event_state, SAHPI_EC_STATE, buffer, buffer_size);
-
-                if (strcmp(expected_str, buffer)) {
-                        printf("tSaHpi_struct_utils Error! SaHpiEventStateT2str: SAHPI_EC_STATE ok DEASSERTED testcase failed. %s= received string\n", buffer);
-                        return -1;
-                }
-
-                /* SaHpiEventStateT2str: SAHPI_EC_STATE ok ASSERTED testcase */
-		expected_str = "SAHPI_ES_STATE_ASSERTED ";
-		memset(buffer, 0, buffer_size);
-		event_state = 0;
-		event_state = SAHPI_ES_STATE_ASSERTED;
-		
-		err = SaHpiEventStateT2str(event_state, SAHPI_EC_STATE, buffer, buffer_size);
-
-                if (strcmp(expected_str, buffer)) {
-                        printf("tSaHpi_struct_utils Error! SaHpiEventStateT2str: SAHPI_EC_STATE ok ASSERTED testcase failed. %s= received string\n", buffer);
-                        return -1;
-                }
-
-                /* SaHpiEventStateT2str: SAHPI_EC_STATE exclusion testcase */
-		expected_err = SA_ERR_HPI_INVALID_DATA;
-		event_state = 0;
-		event_state = SAHPI_ES_STATE_DEASSERTED | SAHPI_ES_STATE_ASSERTED;
-		
-		err = SaHpiEventStateT2str(event_state, SAHPI_EC_STATE, buffer, buffer_size);
-
-                if (expected_err != err) { 
-                        printf("tSaHpi_struct_utils Error! SaHpiEventStateT2str: SAHPI_EC_STATE exclusion testcase failed. Error=%d\n", err);
-                        return -1;
-                }
-
-                /* SaHpiEventStateT2str: SAHPI_EC_PRED_FAIL ok SAHPI_ES_PRED_FAILURE_DEASSERT testcase */
-		expected_str = "SAHPI_ES_PRED_FAILURE_DEASSERT ";
-		memset(buffer, 0, buffer_size);
-		event_state = 0;
-		event_state = SAHPI_ES_PRED_FAILURE_DEASSERT;
-		
-		err = SaHpiEventStateT2str(event_state, SAHPI_EC_PRED_FAIL, buffer, buffer_size);
-
-                if (strcmp(expected_str, buffer)) {
-                        printf("tSaHpi_struct_utils Error! SaHpiEventStateT2str: SAHPI_EC_PRED_FAIL ok SAHPI_ES_PRED_FAILURE_DEASSERT failed. %s= received string\n", buffer);
-                        return -1;
-                }
-
-                /* SaHpiEventStateT2str: SAHPI_EC_PRED_FAIL ok SAHPI_ES_PRED_FAILURE_ASSERT testcase */
-		expected_str = "SAHPI_ES_PRED_FAILURE_ASSERT ";
-		memset(buffer, 0, buffer_size);
-		event_state = 0;
-		event_state = SAHPI_ES_PRED_FAILURE_ASSERT;
-		
-		err = SaHpiEventStateT2str(event_state, SAHPI_EC_PRED_FAIL, buffer, buffer_size);
-
-                if (strcmp(expected_str, buffer)) {
-                        printf("tSaHpi_struct_utils Error! SaHpiEventStateT2str: SAHPI_EC_PRED_FAIL ok SAHPI_ES_PRED_FAILURE_ASSERT failed. %s= received string\n", buffer);
-                        return -1;
-                }
-
-                /* SaHpiEventStateT2str: SAHPI_EC_PRED_FAIL exclusion testcase */
-		expected_err = SA_ERR_HPI_INVALID_DATA;
-		event_state = 0;
-		event_state = SAHPI_ES_PRED_FAILURE_DEASSERT | SAHPI_ES_PRED_FAILURE_ASSERT;
-		
-		err = SaHpiEventStateT2str(event_state, SAHPI_EC_PRED_FAIL, buffer, buffer_size);
-
-                if (expected_err != err) { 
-                        printf("tSaHpi_struct_utils Error! SaHpiEventStateT2str: SAHPI_EC_PRED_FAIL exclusion testcase failed. Error=%d\n", err);
-                        return -1;
-                }
-
-                /* SaHpiEventStateT2str: SAHPI_EC_LIMIT ok SAHPI_ES_LIMIT_NOT_EXCEEDED testcase */
-		expected_str = "SAHPI_ES_LIMIT_NOT_EXCEEDED ";
-		memset(buffer, 0, buffer_size);
-		event_state = 0;
-		event_state = SAHPI_ES_LIMIT_NOT_EXCEEDED;
-		
-		err = SaHpiEventStateT2str(event_state, SAHPI_EC_LIMIT, buffer, buffer_size);
-
-                if (strcmp(expected_str, buffer)) {
-                        printf("tSaHpi_struct_utils Error! SaHpiEventStateT2str: SAHPI_EC_LIMIT ok SAHPI_ES_LIMIT_NOT_EXCEEDED failed. %s= received string\n", buffer);
-                        return -1;
-                }
-
-                /* SaHpiEventStateT2str: SAHPI_EC_LIMIT ok SAHPI_ES_LIMIT_EXCEEDED testcase */
-		expected_str = "SAHPI_ES_LIMIT_EXCEEDED ";
-		memset(buffer, 0, buffer_size);
-		event_state = 0;
-		event_state = SAHPI_ES_LIMIT_EXCEEDED;
-		
-		err = SaHpiEventStateT2str(event_state, SAHPI_EC_LIMIT, buffer, buffer_size);
-
-                if (strcmp(expected_str, buffer)) {
-                        printf("tSaHpi_struct_utils Error! SaHpiEventStateT2str: SAHPI_EC_LIMIT ok SAHPI_ES_LIMIT_EXCEEDED failed. %s= received string\n", buffer);
-                        return -1;
-                }
-
-                /* SaHpiEventStateT2str: SAHPI_EC_LIMIT exclusion testcase */
-		expected_err = SA_ERR_HPI_INVALID_DATA;
-		event_state = 0;
-		event_state = SAHPI_ES_LIMIT_NOT_EXCEEDED | SAHPI_ES_LIMIT_EXCEEDED;
-		
-		err = SaHpiEventStateT2str(event_state, SAHPI_EC_LIMIT, buffer, buffer_size);
-
-                if (expected_err != err) { 
-                        printf("tSaHpi_struct_utils Error! SaHpiEventStateT2str: SAHPI_EC_LIMIT exclusion testcase failed. Error=%d\n", err);
-                        return -1;
-                }
-
-                /* SaHpiEventStateT2str: SAHPI_EC_PERFORMANCE ok SAHPI_ES_PERFORMANCE_MET testcase */
-		expected_str = "SAHPI_ES_PERFORMANCE_MET ";
-		memset(buffer, 0, buffer_size);
-		event_state = 0;
-		event_state = SAHPI_ES_PERFORMANCE_MET;
-		
-		err = SaHpiEventStateT2str(event_state, SAHPI_EC_PERFORMANCE, buffer, buffer_size);
-
-                if (strcmp(expected_str, buffer)) {
-                        printf("tSaHpi_struct_utils Error! SaHpiEventStateT2str: SAHPI_EC_PERFORMANCE ok SAHPI_ES_PERFORMANCE_MET failed. %s= received string\n", buffer);
-                        return -1;
-                }
-
-                /* SaHpiEventStateT2str: SAHPI_EC_PERFORMANCE ok SAHPI_ES_PERFORMANCE_LAGS testcase */
-		expected_str = "SAHPI_ES_PERFORMANCE_LAGS ";
-		memset(buffer, 0, buffer_size);
-		event_state = 0;
-		event_state = SAHPI_ES_PERFORMANCE_LAGS;
-		
-		err = SaHpiEventStateT2str(event_state, SAHPI_EC_PERFORMANCE, buffer, buffer_size);
-
-                if (strcmp(expected_str, buffer)) {
-                        printf("tSaHpi_struct_utils Error! SaHpiEventStateT2str: SAHPI_EC_PERFORMANCE ok SAHPI_ES_PERFORMANCE_LAGS failed. %s= received string\n", buffer);
-                        return -1;
-                }
-
-                /* SaHpiEventStateT2str: SAHPI_EC_PERFORMANCE exclusion testcase */
-		expected_err = SA_ERR_HPI_INVALID_DATA;
-		event_state = 0;
-		event_state = SAHPI_ES_PERFORMANCE_MET | SAHPI_ES_PERFORMANCE_LAGS;
-		
-		err = SaHpiEventStateT2str(event_state, SAHPI_EC_PERFORMANCE, buffer, buffer_size);
-
-                if (expected_err != err) { 
-                        printf("tSaHpi_struct_utils Error! SaHpiEventStateT2str: SAHPI_EC_PERFORMANCE exclusion testcase failed. Error=%d\n", err);
-                        return -1;
-                }
-
-                /* SaHpiEventStateT2str: SAHPI_EC_PRESENCE ok SAHPI_ES_ABSENT testcase */
-		expected_str = "SAHPI_ES_ABSENT ";
-		memset(buffer, 0, buffer_size);
-		event_state = 0;
-		event_state = SAHPI_ES_ABSENT;
-		
-		err = SaHpiEventStateT2str(event_state, SAHPI_EC_PRESENCE, buffer, buffer_size);
-
-                if (strcmp(expected_str, buffer)) {
-                        printf("tSaHpi_struct_utils Error! SaHpiEventStateT2str: SAHPI_EC_PRESENCE ok SAHPI_ES_ABSENT failed. %s= received string\n", buffer);
-                        return -1;
-                }
-
-                /* SaHpiEventStateT2str: SAHPI_EC_PRESENCE ok SAHPI_ES_PRESENT testcase */
-		expected_str = "SAHPI_ES_PRESENT ";
-		memset(buffer, 0, buffer_size);
-		event_state = 0;
-		event_state = SAHPI_ES_PRESENT;
-		
-		err = SaHpiEventStateT2str(event_state, SAHPI_EC_PRESENCE, buffer, buffer_size);
-
-                if (strcmp(expected_str, buffer)) {
-                        printf("tSaHpi_struct_utils Error! SaHpiEventStateT2str: SAHPI_EC_PRESENCE ok SAHPI_ES_PRESENT failed. %s= received string\n", buffer);
-                        return -1;
-                }
-
-                /* SaHpiEventStateT2str: SAHPI_EC_PRESENCE exclusion testcase */
-		expected_err = SA_ERR_HPI_INVALID_DATA;
-		event_state = 0;
-		event_state = SAHPI_ES_ABSENT | SAHPI_ES_PRESENT;
-		
-		err = SaHpiEventStateT2str(event_state, SAHPI_EC_PRESENCE, buffer, buffer_size);
-
-                if (expected_err != err) { 
-                        printf("tSaHpi_struct_utils Error! SaHpiEventStateT2str: SAHPI_EC_PRESENCE exclusion testcase failed. Error=%d\n", err);
-                        return -1;
-                }
-
-                /* SaHpiEventStateT2str: SAHPI_EC_ENABLE ok SAHPI_ES_DISABLED testcase */
-		expected_str = "SAHPI_ES_DISABLED ";
-		memset(buffer, 0, buffer_size);
-		event_state = 0;
-		event_state = SAHPI_ES_DISABLED;
-		
-		err = SaHpiEventStateT2str(event_state, SAHPI_EC_ENABLE, buffer, buffer_size);
-
-                if (strcmp(expected_str, buffer)) {
-                        printf("tSaHpi_struct_utils Error! SaHpiEventStateT2str: SAHPI_EC_ENABLE ok SAHPI_ES_DISABLED failed. %s= received string\n", buffer);
-                        return -1;
-                }
-
-                /* SaHpiEventStateT2str: SAHPI_EC_ENABLE ok SAHPI_ES_ENABLED testcase */
-		expected_str = "SAHPI_ES_ENABLED ";
-		memset(buffer, 0, buffer_size);
-		event_state = 0;
-		event_state = SAHPI_ES_ENABLED;
-		
-		err = SaHpiEventStateT2str(event_state, SAHPI_EC_ENABLE, buffer, buffer_size);
-
-                if (strcmp(expected_str, buffer)) {
-                        printf("tSaHpi_struct_utils Error! SaHpiEventStateT2str: SAHPI_EC_ENABLE ok SAHPI_ES_ENABLED failed. %s= received string\n", buffer);
-                        return -1;
-                }
-
-                /* SaHpiEventStateT2str: SAHPI_EC_ENABLE exclusion testcase */
-		expected_err = SA_ERR_HPI_INVALID_DATA;
-		event_state = 0;
-		event_state = SAHPI_ES_DISABLED | SAHPI_ES_ENABLED;
-		
-		err = SaHpiEventStateT2str(event_state, SAHPI_EC_ENABLE, buffer, buffer_size);
-
-                if (expected_err != err) { 
-                        printf("tSaHpi_struct_utils Error! SaHpiEventStateT2str: SAHPI_EC_ENABLE exclusion testcase failed. Error=%d\n", err);
-                        return -1;
-                }
-
-                /* SaHpiEventStateT2str: SAHPI_EC_SEVERITY Max events testcase */
-		expected_str = "SAHPI_ES_OK SAHPI_ES_MINOR_FROM_OK SAHPI_ES_MAJOR_FROM_LESS SAHPI_ES_CRITICAL_FROM_LESS SAHPI_ES_MINOR_FROM_MORE SAHPI_ES_MAJOR_FROM_CRITICAL SAHPI_ES_CRITICAL SAHPI_ES_MONITOR SAHPI_ES_INFORMATIONAL ";
-		memset(buffer, 0, buffer_size);
-		event_state = 0;
-		event_state = SAHPI_ES_OK |
-			      SAHPI_ES_MINOR_FROM_OK |
-                              SAHPI_ES_MAJOR_FROM_LESS |
-                              SAHPI_ES_CRITICAL_FROM_LESS |
-                              SAHPI_ES_MINOR_FROM_MORE |
-                              SAHPI_ES_MAJOR_FROM_CRITICAL |
-                              SAHPI_ES_CRITICAL |
-                              SAHPI_ES_MONITOR |
-                              SAHPI_ES_INFORMATIONAL;
-		
-		err = SaHpiEventStateT2str(event_state, SAHPI_EC_SEVERITY, buffer, buffer_size);
-
-                if (strcmp(expected_str, buffer)) {
-                        printf("tSaHpi_struct_utils Error! SaHpiEventStateT2str: SAHPI_EC_SEVERITY Max events testcase failed. %s= received string\n", buffer);
-                        return -1;
-                }
-
-                /* SaHpiEventStateT2str: SAHPI_EC_AVAILABILITY Max events testcase */
-		expected_str = "SAHPI_ES_RUNNING SAHPI_ES_TEST SAHPI_ES_POWER_OFF SAHPI_ES_ON_LINE SAHPI_ES_OFF_LINE SAHPI_ES_OFF_DUTY SAHPI_ES_DEGRADED SAHPI_ES_POWER_SAVE SAHPI_ES_INSTALL_ERROR ";
-		memset(buffer, 0, buffer_size);
-		event_state = 0;
-		event_state = SAHPI_ES_RUNNING |
-			      SAHPI_ES_TEST |
-			      SAHPI_ES_POWER_OFF |
-			      SAHPI_ES_ON_LINE |
-			      SAHPI_ES_OFF_LINE |
-			      SAHPI_ES_OFF_DUTY |
-			      SAHPI_ES_DEGRADED |
-			      SAHPI_ES_POWER_SAVE |
-			      SAHPI_ES_INSTALL_ERROR;
-		
-		err = SaHpiEventStateT2str(event_state, SAHPI_EC_AVAILABILITY, buffer, buffer_size);
-
-                if (strcmp(expected_str, buffer)) {
-                        printf("tSaHpi_struct_utils Error! SaHpiEventStateT2str: SAHPI_EC_AVAILABILITY Max events testcase failed. %s= received string\n", buffer);
-                        return -1;
-                }
-
-                /* SaHpiEventStateT2str: SAHPI_EC_REDUNDANCY Max events testcase */
-		expected_str = "SAHPI_ES_FULLY_REDUNDANT SAHPI_ES_REDUNDANCY_LOST SAHPI_ES_REDUNDANCY_DEGRADED SAHPI_ES_REDUNDANCY_LOST_SUFFICIENT_RESOURCES SAHPI_ES_NON_REDUNDANT_SUFFICIENT_RESOURCES SAHPI_ES_NON_REDUNDANT_INSUFFICIENT_RESOURCES SAHPI_ES_REDUNDANCY_DEGRADED_FROM_FULL SAHPI_ES_REDUNDANCY_DEGRADED_FROM_NON ";
-		memset(buffer, 0, buffer_size);
-		event_state = 0;
-		event_state = SAHPI_ES_FULLY_REDUNDANT |
-		              SAHPI_ES_REDUNDANCY_LOST |
-			      SAHPI_ES_REDUNDANCY_DEGRADED |
-		  	      SAHPI_ES_REDUNDANCY_LOST_SUFFICIENT_RESOURCES |
-			      SAHPI_ES_NON_REDUNDANT_SUFFICIENT_RESOURCES |
-			      SAHPI_ES_NON_REDUNDANT_INSUFFICIENT_RESOURCES |
-			      SAHPI_ES_REDUNDANCY_DEGRADED_FROM_FULL |
-			      SAHPI_ES_REDUNDANCY_DEGRADED_FROM_NON;
-		
-		err = SaHpiEventStateT2str(event_state, SAHPI_EC_REDUNDANCY, buffer, buffer_size);
-
-                if (strcmp(expected_str, buffer)) {
-                        printf("tSaHpi_struct_utils Error! SaHpiEventStateT2str: SAHPI_EC_REDUNDANCY Max events testcase failed. %s= received string\n", buffer);
-                        return -1;
-                }
-
-		/* Works for SAHPI_EC_SENSOR_SPECIFIC as well */
-                /* SaHpiEventStateT2str: SAHPI_EC_GENERIC Max events testcase */
-		expected_str = "SAHPI_ES_STATE_00 SAHPI_ES_STATE_01 SAHPI_ES_STATE_02 SAHPI_ES_STATE_03 SAHPI_ES_STATE_04 SAHPI_ES_STATE_05 SAHPI_ES_STATE_06 SAHPI_ES_STATE_07 SAHPI_ES_STATE_08 SAHPI_ES_STATE_09 SAHPI_ES_STATE_10 SAHPI_ES_STATE_11 SAHPI_ES_STATE_12 SAHPI_ES_STATE_13 SAHPI_ES_STATE_14 ";
-		memset(buffer, 0, buffer_size);
-		event_state = 0;
-		event_state = SAHPI_ES_STATE_00 |
-			      SAHPI_ES_STATE_01 |
-			      SAHPI_ES_STATE_02 |
-			      SAHPI_ES_STATE_03 |
-			      SAHPI_ES_STATE_04 |
-			      SAHPI_ES_STATE_05 |
-			      SAHPI_ES_STATE_06 |
-			      SAHPI_ES_STATE_07 |
-			      SAHPI_ES_STATE_08 |
-			      SAHPI_ES_STATE_09 |
-			      SAHPI_ES_STATE_10 |
-			      SAHPI_ES_STATE_11 |
-			      SAHPI_ES_STATE_12 |
-			      SAHPI_ES_STATE_13 |
-			      SAHPI_ES_STATE_14;
-		
-		err = SaHpiEventStateT2str(event_state, SAHPI_EC_GENERIC, buffer, buffer_size);
-
-                if (strcmp(expected_str, buffer)) {
-                        printf("tSaHpi_struct_utils Error! SaHpiEventStateT2str: SAHPI_EC_GENERIC Max events testcase failed. %s= received string\n", buffer);
-                        return -1;
-                }
-
-                /* SaHpiEventStateT2str: SaHpiEventStateT2str buffer too small testcase */
-		expected_err = SA_ERR_HPI_OUT_OF_SPACE;
-		event_state = 0;
-		event_state = SAHPI_ES_PRESENT;
-		memset(buffer, 0, 512);
-		buffer_size = 0;
-
-		err = SaHpiEventStateT2str(event_state, SAHPI_EC_PRESENCE, buffer, buffer_size);
-
-                if (expected_err != err) { 
-                        printf("tSaHpi_struct_utils Error! SaHpiEventStateT2str: SaHpiEventStateT2str buffer too small testcase failed. Error=%d\n", err);
-                        return -1;
-                }
+		err = oh_copy_textbuffer(&bad_buffer, &buffer);
+		if (err != SA_OK) {
+			printf("Error! oh_fprint_textbuffer: oh_copy_textbuffer failed\n");
+			printf("Received error=%d\n", err);
+			return -1;
+		}
+
+		bad_buffer.DataType = BAD_TYPE;
+		err = oh_print_textbuffer(&bad_buffer);
+		if (err != expected_err) {
+			printf("Error! oh_fprint_textbuffer: Bad data type testcase failed\n");
+			printf("Received error=%d\n", err);
+			return -1;
+		}
+
+		big_bad_buffer.DataType = BAD_TYPE;
+		err = oh_print_big_textbuffer(&big_bad_buffer);
+		if (err != expected_err) {
+			printf("Error! oh_fprint_textbuffer: Bad data type (big buffer) testcase failed\n");
+			printf("Received error=%d\n", err);
+			return -1;
+		}
+
+#if 0
+		/* FIXME :: ??? Is there a way to force a bad FILE ID, without blowing up??? */
+		/* Bad file handler testcase */
+		expected_err = SA_ERR_HPI_INVALID_PARAMS;
+
+		err = oh_fprint_textbuffer(0, &buffer);
+		if (err != expected_err) {
+			printf("Error! oh_fprint_textbuffer: Bad file handler testcase failed\n");
+			printf("Received error=%d\n", err);
+			return -1;
+		}
+
+		err = oh_fprint_big_textbuffer(0, &big_buffer);
+		if (err != expected_err) {
+			printf("Error! oh_fprint_textbuffer: Bad file handler (big buffer) testcase failed\n");
+			printf("Received error=%d\n", err);
+			return -1;
+		}
+#endif
+		/* Normal write to file testcase */
+
+		{
+			FILE *fp, *big_fp;
+			const char *name = "tmp";
+			const char *big_name = "tmpbig";
+			const char *mode = "a";
+
+			fp = fopen(name, mode);
+			if (fp == NULL) {
+				printf("Error! oh_fprint_textbuffer: fopen failed\n");
+				return -1;
+			}
+			err = oh_fprint_textbuffer(fp, &buffer);
+			if (err != SA_OK) {
+				printf("Error! oh_fprint_textbuffer: Normal write to file testcase failed\n");
+				printf("Received error=%d\n", err);
+				return -1;
+			}
+
+			big_fp = fopen(big_name, mode);
+			if (big_fp == NULL) {
+				printf("Error! oh_fprint_textbuffer: fopen (big buffer) failed\n");
+				return -1;
+			}
+			err = oh_fprint_big_textbuffer(big_fp, &big_buffer);
+			if (err != SA_OK) {
+				printf("Error! oh_fprint_textbuffer:  Normal write to file (big buffer) testcase failed\n");
+				printf("Received error=%d\n", err);
+				return -1;
+			}
+
+			fclose(fp);
+			fclose(big_fp);
+
+			unlink(name);
+			unlink(big_name);
+		}
 	}
 
 	return(0);
-
 }
