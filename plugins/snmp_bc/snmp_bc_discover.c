@@ -256,6 +256,7 @@ SaErrorT snmp_bc_discover_sensors(struct oh_handler_state *handle,
 		if (valid_sensor) {
 			e->type = OH_ET_RDR;
 			e->did = oh_get_default_domain_id();
+			e->u.rdr_event.parent = res_oh_event->u.res_event.entry.ResourceId;
 			e->u.rdr_event.rdr.RdrType = SAHPI_SENSOR_RDR;
 			e->u.rdr_event.rdr.Entity = res_oh_event->u.res_event.entry.ResourceEntity;
 			e->u.rdr_event.rdr.RdrTypeUnion.SensorRec = sensor_array[i].sensor;
@@ -419,6 +420,7 @@ SaErrorT snmp_bc_discover_inventories(struct oh_handler_state *handle,
 		if (valid_idr) {
 			e->type = OH_ET_RDR;
 			e->did = oh_get_default_domain_id();
+			e->u.rdr_event.parent = res_oh_event->u.res_event.entry.ResourceId;
 			e->u.rdr_event.rdr.RdrType = SAHPI_INVENTORY_RDR;
 			e->u.rdr_event.rdr.Entity = res_oh_event->u.res_event.entry.ResourceEntity;
 			e->u.rdr_event.rdr.RdrTypeUnion.InventoryRec = inventory_array[i].inventory;
