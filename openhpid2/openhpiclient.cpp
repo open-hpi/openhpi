@@ -2394,7 +2394,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ControlSet)
              State->StateUnion.Stream.StreamLength > SAHPI_CTRL_MAX_STREAM_LENGTH))
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (State && oh_lookup_ctrltype(State->Type) == NULL) {
-                return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_DATA;
         }
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
