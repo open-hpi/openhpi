@@ -56,7 +56,7 @@ DIST_SUBDIRS = src docs examples util
 DISTCHECK_CONFIGURE_FLAGS = --with-initdir=prefix
 
 ALLSOURCES = $(shell \
-	find . \( -name SCCS -o -name BitKeeper -o -name .svn -o -name CVS \) -prune -o \
+	find @abs_top_srcdir@ \( -name SCCS -o -name BitKeeper -o -name .svn -o -name CVS \) -prune -o \
 	-name '*.[chS]' -print )
 
 includedir=$(base_includedir)/openhpi
