@@ -221,7 +221,7 @@ static int get_handler_event(struct oh_handler *h, RPTable *rpt)
                 return -1;
         }
         
-        data_access_unlock();
+        //data_access_unlock();
 
         return 1;
 }
