@@ -19,6 +19,8 @@
 #include <string.h>
 #include <hpi_ui.h>
 
+#define SHOW_BUF_SZ	1024
+
 extern int find_rpt(Domain_t *Domain, SaHpiResourceIdT rptId);
 
 SaErrorT sensor_list(SaHpiSessionIdT sessionid, hpi_ui_print_cb_t proc)
@@ -49,11 +51,11 @@ SaErrorT show_sensor_status(SaHpiSessionIdT sessionid, SaHpiResourceIdT resource
 	SaHpiEventStateT	assert;
 	SaHpiEventStateT	deassert;
 	SaHpiBoolT		status;
-	char			buf[1024];
+	char			buf[SHOW_BUF_SZ];
 
 	rv = saHpiSensorEventEnableGet(sessionid, resourceid, sensornum, &status);
 	if (rv != SA_OK) {
-		snprintf(buf, 1024, "ERROR: saHpiSensorEventEnableGet error = %s\n",
+		snprintf(buf, SHOW_BUF_SZ, "ERROR: saHpiSensorEventEnableGet error = %s\n",
 			oh_lookup_error(rv));
 		proc(buf);
 		return -1; 
@@ -62,13 +64,13 @@ SaErrorT show_sensor_status(SaHpiSessionIdT sessionid, SaHpiResourceIdT resource
 	rv = saHpiSensorEventMasksGet(
 			sessionid, resourceid, sensornum, &assert, &deassert);
 	if (rv != SA_OK) {
-		snprintf(buf, 1024, "ERROR: saHpiSensorEventMasksGet error %s\n",
+		snprintf(buf, SHOW_BUF_SZ, "ERROR: saHpiSensorEventMasksGet error %s\n",
 			oh_lookup_error(rv));
 		proc(buf);
 		return -1; 
 	}
 
-	snprintf(buf, 1024, "Sensor Event Masks: \nSensor Event Status: %x\n"
+	snprintf(buf, SHOW_BUF_SZ, "Sensor Event Masks: \nSensor Event Status: %x\n"
 		"Assert Events: %x\nDeassert Events: %x\n", status, assert, deassert);
 	proc(buf);
         return SA_OK;
@@ -77,24 +79,27 @@ SaErrorT show_sensor_status(SaHpiSessionIdT sessionid, SaHpiResourceIdT resource
 int print_thres_value(SaHpiSensorReadingT *item, char *mes, hpi_ui_print_cb_t proc)
 {
 	char	*val;
-	char	buf[1024];
+	char	buf[SHOW_BUF_SZ];
 
 	if (item->IsSupported != SAHPI_TRUE)
 		return(0);
 	switch (item->Type) {
 		case SAHPI_SENSOR_READING_TYPE_INT64:
-			snprintf(buf, 1024, "%s %lld\n", mes, item->Value.SensorInt64);
+			snprintf(buf, SHOW_BUF_SZ, "%s %lld\n", mes,
+				item->Value.SensorInt64);
 			break;
 		case SAHPI_SENSOR_READING_TYPE_UINT64:
-			snprintf(buf, 1024, "%s %llu\n", mes, item->Value.SensorUint64);
+			snprintf(buf, SHOW_BUF_SZ, "%s %llu\n", mes,
+				item->Value.SensorUint64);
 			break;
 		case SAHPI_SENSOR_READING_TYPE_FLOAT64:
-			snprintf(buf, 1024, "%s %10.3f\n", mes, item->Value.SensorFloat64);
+			snprintf(buf, SHOW_BUF_SZ, "%s %10.3f\n", mes,
+				item->Value.SensorFloat64);
 			break;
 		case SAHPI_SENSOR_READING_TYPE_BUFFER:
 			val = (char *)(item->Value.SensorBuffer);
 			if (val != NULL) {
-				snprintf(buf, 1024, "%s %s\n", mes, val);
+				snprintf(buf, SHOW_BUF_SZ, "%s %s\n", mes, val);
 				break;
 			}
 			return(0);
@@ -107,12 +112,12 @@ int show_threshold(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 {
 	SaErrorT		rv;
 	SaHpiSensorThresholdsT	senstbuff;
-	char			buf[1024];
+	char			buf[SHOW_BUF_SZ];
 	int			res;
 
 	rv = saHpiSensorThresholdsGet(sessionid, resourceid, sensornum, &senstbuff);
 	if (rv != SA_OK) {
-		snprintf(buf, 1024, "ERROR: saHpiSensorThresholdsGet error = %s\n",
+		snprintf(buf, SHOW_BUF_SZ, "ERROR: saHpiSensorThresholdsGet error = %s\n",
 			oh_lookup_error(rv));
 		proc(buf);
 		return -1; 
@@ -145,19 +150,19 @@ SaErrorT show_sensor(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
         SaHpiSensorReadingT	reading;
 	SaHpiEventStateT	status;
         SaErrorT		rv;
-	char			buf[1024];
+	char			buf[SHOW_BUF_SZ];
 
         rv = saHpiSensorReadingGet(sessionid, resourceid, sensornum,
 		&reading, &status);
         if (rv != SA_OK)  {
-		snprintf(buf, 1024, "ERROR: saHpiSensorReadingGet error = %s\n",
+		snprintf(buf, SHOW_BUF_SZ, "ERROR: saHpiSensorReadingGet error = %s\n",
 			oh_lookup_error(rv));
 		proc(buf);
 		return rv;
         }
 
         if (reading.IsSupported) {
-		snprintf(buf, 1024, " : Sensor status = %x", status);
+		snprintf(buf, SHOW_BUF_SZ, " : Sensor status = %x", status);
 		proc(buf);
 		print_thres_value(&reading, "  Reading Value =", proc);
 	};
@@ -181,14 +186,14 @@ SaErrorT show_event_log(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 	SaHpiEventLogEntryIdT	preventryid;
 	SaHpiEventLogEntryT	sel;
 	SaHpiRdrT		rdr;
-	char			buf[1024];
+	char			buf[SHOW_BUF_SZ];
 	char			date[30], date1[30];
 
 	rptentryid = SAHPI_FIRST_ENTRY;
 	while (rptentryid != SAHPI_LAST_ENTRY) {
 		rv = saHpiRptEntryGet(sessionid, rptentryid, &nextrptentryid, &rptentry);
 		if (rv != SA_OK) {
-			snprintf(buf, 1024, "ERROR: saHpiRptEntryGet error = %s\n",
+			snprintf(buf, SHOW_BUF_SZ, "ERROR: saHpiRptEntryGet error = %s\n",
 				oh_lookup_error(rv));
 			proc(buf);
 			return rv;
@@ -204,24 +209,25 @@ SaErrorT show_event_log(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 		rptentryid = nextrptentryid;
 	}
 	if (rptentryid == SAHPI_LAST_ENTRY) {
-		snprintf(buf, 1024, "ERROR: no resource for resourceId = %d\n", resourceid);
+		snprintf(buf, SHOW_BUF_SZ, "ERROR: no resource for resourceId = %d\n",
+			resourceid);
 		proc(buf);
 		return rv;
 	}
 
 	rv = saHpiEventLogInfoGet(sessionid, resourceid, &info);
 	if (rv != SA_OK) {
-		snprintf(buf, 1024, "ERROR: saHpiEventLogInfoGet error = %s\n",
+		snprintf(buf, SHOW_BUF_SZ, "ERROR: saHpiEventLogInfoGet error = %s\n",
 			oh_lookup_error(rv));
 		proc(buf);
 		return -1;
 	}
-	snprintf(buf, 1024, "EventLog: entries = %d, size = %d, enabled = %d\n",
+	snprintf(buf, SHOW_BUF_SZ, "EventLog: entries = %d, size = %d, enabled = %d\n",
 		info.Entries, info.Size, info.Enabled);
 	proc(buf);
 	time2str(info.UpdateTimestamp, date, 30);
 	time2str(info.CurrentTime, date1, 30);
-	snprintf(buf, 1024, "UpdateTime = %s  CurrentTime = %s  Overflow = %d\n",
+	snprintf(buf, SHOW_BUF_SZ, "UpdateTime = %s  CurrentTime = %s  Overflow = %d\n",
 		date, date1, info.OverflowFlag);
 	proc(buf);
 
@@ -233,7 +239,8 @@ SaErrorT show_event_log(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 					entryid, &preventryid, &nextentryid,
 					&sel, &rdr, NULL);
 			if (rv != SA_OK) {
-				snprintf(buf, 1024, "ERROR: saHpiEventLogEntryGet error = %s\n",
+				snprintf(buf, SHOW_BUF_SZ,
+					"ERROR: saHpiEventLogEntryGet error = %s\n",
 					oh_lookup_error(rv));
 				proc(buf);
 				return -1;
@@ -247,8 +254,7 @@ SaErrorT show_event_log(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 			entryid = nextentryid;
 		}
 	} else {
-		snprintf(buf, 1024, "SEL is empty\n");
-		proc(buf);
+		proc("SEL is empty\n");
 	};
 	return SA_OK;
 }
@@ -260,7 +266,7 @@ SaErrorT show_sensor_list(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid
 	SaHpiEntryIdT	entryid;
 	SaHpiEntryIdT	nextentryid;
 	SaHpiRdrT	rdr;
-	char		buf[1024];
+	char		buf[SHOW_BUF_SZ];
 	int		len;
 
 	entryid = SAHPI_FIRST_ENTRY;
@@ -288,12 +294,10 @@ SaErrorT show_sensor_list(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid
 
 SaErrorT show_rdr_list(Domain_t *domain, SaHpiResourceIdT rptid, hpi_ui_print_cb_t proc)
 {
-	SaErrorT		rv = SA_OK;
 	Rdr_t			*rdr;
-	int			i, len, ind = 0;
+	int			i, len;
 	Rpt_t			*rpt_entry;
-	char			buf[1024];
-	oh_big_textbuffer	tmpbuf;
+	char			buf[SHOW_BUF_SZ];
 	SaHpiRdrTypeT		type;
 	char			ar[256];
 	SaHpiSensorRecT		*sensor;
@@ -305,7 +309,7 @@ SaErrorT show_rdr_list(Domain_t *domain, SaHpiResourceIdT rptid, hpi_ui_print_cb
 	rpt_entry = domain->rpts + i;
 	for (i = 0, rdr = rpt_entry->rdrs; i < rpt_entry->n_rdrs; i++, rdr++) {
 		type = rdr->RdrType;
-		snprintf(buf, 1024, "ID=%d Type=%s NUM=", rdr->RecordId,
+		snprintf(buf, SHOW_BUF_SZ, "(%d):%s NUM=", rdr->RecordId,
 			oh_lookup_rdrtype(type));
 		switch (type) {
 			case SAHPI_SENSOR_RDR:
@@ -322,12 +326,6 @@ SaErrorT show_rdr_list(Domain_t *domain, SaHpiResourceIdT rptid, hpi_ui_print_cb
 			strcat(buf, " Tag=");
 			strcat(buf, rdr->Rdr->IdString.Data);
 		};
-		ind = strlen(buf);
-		oh_init_bigtext(&tmpbuf);
-		rv = oh_decode_entitypath(&(rdr->Rdr->Entity), &tmpbuf);
-		if (rv == SA_OK) {
-			snprintf(buf + ind, 1024 - ind, "  EPath: %s", tmpbuf.Data);
-		};
 		strcat(buf, "\n");
 		if (proc(buf) != 0)
 			return(-1);
@@ -339,9 +337,8 @@ SaErrorT show_rpt_list(Domain_t *domain, hpi_ui_print_cb_t proc)
 {
 	Rpt_t			*rpt_entry;
 	int			i, ind = 0, len;
-	char			buf[1024];
+	char			buf[SHOW_BUF_SZ];
 	SaErrorT		rv;
-	oh_big_textbuffer	tmpbuf;
 	SaHpiCapabilitiesT	cap;
 	SaHpiHsCapabilitiesT	hscap;
 	SaHpiHsStateT		state;
@@ -349,15 +346,15 @@ SaErrorT show_rpt_list(Domain_t *domain, hpi_ui_print_cb_t proc)
 	check_resources(domain);
 	rpt_entry = domain->rpts;
 	for (i = 0; i < domain->n_rpts; i++, rpt_entry++) {
-		snprintf(buf, 1024, "Id: %3.3d", rpt_entry->Rpt->ResourceId);
+		snprintf(buf, SHOW_BUF_SZ, "(%3.3d):", rpt_entry->Rpt->ResourceId);
 		ind = strlen(buf);
 		len = rpt_entry->Rpt->ResourceTag.DataLength;
 		if (len > 0) {
 			rpt_entry->Rpt->ResourceTag.Data[len] = 0;
-			strcat(buf, " Tag=");
 			strcat(buf, rpt_entry->Rpt->ResourceTag.Data);
+			strcat(buf, ":");
 		};
-		strcat(buf, "  Cflags={");
+		strcat(buf, "{");
 		cap = rpt_entry->Rpt->ResourceCapabilities;
 		if (cap & SAHPI_CAPABILITY_SENSOR) strcat(buf, "S|");
 		if (cap & SAHPI_CAPABILITY_RDR) strcat(buf, "RDR|");
@@ -396,12 +393,6 @@ SaErrorT show_rpt_list(Domain_t *domain, hpi_ui_print_cb_t proc)
 			};
 			strcat(buf, "}");
 		};
-		ind = strlen(buf);
-		oh_init_bigtext(&tmpbuf);
-		rv = oh_decode_entitypath(&(rpt_entry->Rpt->ResourceEntity), &tmpbuf);
-		if (rv == SA_OK) {
-			snprintf(buf + ind, 1024 - ind, "  EPath: %s", tmpbuf.Data);
-		};
 		strcat(buf, "\n");
 		if (proc(buf) != 0)
 			return(-1);
@@ -413,13 +404,13 @@ static int show_attrs(Attributes_t *Attrs, int del, hpi_ui_print_cb_t proc)
 {
 	int		i, type, len;
 	char		A[256], *name;
-	char		buf[1024];
+	char		buf[SHOW_BUF_SZ];
 	union_type_t	val;
 	SaErrorT	rv;
 
-	memset(buf, ' ', 1024);
+	memset(buf, ' ', SHOW_BUF_SZ);
 	del <<= 1;
-	len = 1024 - del;
+	len = SHOW_BUF_SZ - del;
 	for (i = 0; i < Attrs->n_attrs; i++) {
 		name = get_attr_name(Attrs, i);
 		if (name == (char *)NULL)
@@ -446,72 +437,59 @@ static int show_attrs(Attributes_t *Attrs, int del, hpi_ui_print_cb_t proc)
 SaErrorT show_Rpt(Rpt_t *Rpt, hpi_ui_print_cb_t proc)
 {
 	int			i = 0, type;
-	Attributes_t		*Attrs;
+	Attributes_t		*attrs;
 	union_type_t		val;
-	char			buf[1024];
-	char			A[256], *name;
+	char			buf[SHOW_BUF_SZ];
+	char			tmp[256], *name;
 	SaHpiTextBufferT	tbuf;
 	SaErrorT		rv;
 
-	Attrs = &(Rpt->Attrutes);
-	for (i = 0; i < Attrs->n_attrs; i++) {
-		name = get_attr_name(Attrs, i);
+	attrs = &(Rpt->Attrutes);
+	for (i = 0; i < attrs->n_attrs; i++) {
+		name = get_attr_name(attrs, i);
 		if (name == (char *)NULL)
 			break;
-		type = get_attr_type(Attrs, i);
-		if (type == STRUCT_TYPE) {
-			snprintf(buf, 1024, "%s:\n", name);
-			if (proc(buf) != 0)
-				return(-1);
-			rv = get_value(Attrs, i, &val);
-			if (rv != SA_OK) continue;
-			if (show_attrs((Attributes_t *)(val.a), 1, proc) != 0)
-				return(-1);
-			continue;
-		};
-		if (type == LOOKUP_TYPE) {
-			rv = get_value(Attrs, i, &val);
-			if (rv != SA_OK)
+		type = get_attr_type(attrs, i);
+		rv = get_value(attrs, i, &val);
+		if (rv != SA_OK) continue;
+		switch (type) {
+			case STRUCT_TYPE:
+				snprintf(buf, SHOW_BUF_SZ, "%s:\n", name);
+				if (proc(buf) != 0) return(-1);
+				if (show_attrs((Attributes_t *)(val.a), 1, proc) != 0)
+					return(-1);
 				continue;
-			strncpy(A, Attrs->Attrs[i].proc(Attrs->Attrs[i].lunum, val.i), 256);
-			snprintf(buf, 1024, "%s: %s\n", name, A);
-			if (proc(buf) != 0)
-				return(-1);
-			continue;
-		};
-		if (strcmp(name, "ResourceEntity") == 0) {
-			oh_big_textbuffer tmpbuf;
+			case LOOKUP_TYPE:
+				strncpy(tmp, attrs->Attrs[i].proc(attrs->Attrs[i].lunum,
+					val.i), 256);
+				break;
+			default:
+				if (strcmp(name, "ResourceEntity") == 0) {
+					oh_big_textbuffer tmpbuf;
 
-			rv = get_value(Attrs, i, &val);
-			if (rv != SA_OK)
-				continue;
-			oh_init_bigtext(&tmpbuf);
-			rv = oh_decode_entitypath((SaHpiEntityPathT *)(val.a), &tmpbuf);
-			if (rv != SA_OK)
-				continue;
-			strncpy(A, tmpbuf.Data, 256);
-		} else if (strcmp(name, "Capabilities") == 0) {
-			rv = get_value(Attrs, i, &val);
-			if (rv != SA_OK)
-				continue;
-			rv = oh_decode_capabilities(val.i, &tbuf);
-			if (rv != SA_OK)
-				continue;
-			strncpy(A, tbuf.Data, 256);
-		} else if (strcmp(name, "HotSwapCapabilities") == 0) {
-			rv = get_value(Attrs, i, &val);
-			if (rv != SA_OK)
-				continue;
-			rv = oh_decode_hscapabilities(val.i, &tbuf);
-			if (rv != SA_OK)
-				continue;
-			strncpy(A, tbuf.Data, 256);
-		} else {
-			rv = get_value_as_string(Attrs, i, A, 256);
-			if (rv != SA_OK)
-				continue;
+					oh_init_bigtext(&tmpbuf);
+					rv = oh_decode_entitypath(
+						(SaHpiEntityPathT *)(val.a), &tmpbuf);
+					if (rv != SA_OK) continue;
+					strncpy(tmp, tmpbuf.Data, 256);
+					break;
+				};
+				if (strcmp(name, "Capabilities") == 0) {
+					rv = oh_decode_capabilities(val.i, &tbuf);
+					if (rv != SA_OK) continue;
+					strncpy(tmp, tbuf.Data, 256);
+					break;
+				};
+				if (strcmp(name, "HotSwapCapabilities") == 0) {
+					rv = oh_decode_hscapabilities(val.i, &tbuf);
+					if (rv != SA_OK) continue;
+					strncpy(tmp, tbuf.Data, 256);
+					break;
+				};
+				rv = get_value_as_string(attrs, i, tmp, 256);
+				if (rv != SA_OK) continue;
 		};
-		snprintf(buf, 1024, "%s: %s\n", name, A);
+		snprintf(buf, SHOW_BUF_SZ, "%s: %s\n", name, tmp);
 		if (proc(buf) != 0)
 			return(-1);
 	};
@@ -521,50 +499,46 @@ SaErrorT show_Rpt(Rpt_t *Rpt, hpi_ui_print_cb_t proc)
 SaErrorT show_Rdr(Rdr_t *Rdr, hpi_ui_print_cb_t proc)
 {
 	int		i = 0, type;
-	Attributes_t	*Attrs;
-	char		buf[1024];
-	char		A[256], *name;
+	Attributes_t	*attrs;
+	char		buf[SHOW_BUF_SZ];
+	char		tmp[256], *name;
 	SaErrorT	rv;
 	union_type_t	val;
 
-	Attrs = &(Rdr->Attrutes);
-	for (i = 0; i < Attrs->n_attrs; i++) {
-		name = get_attr_name(Attrs, i);
+	attrs = &(Rdr->Attrutes);
+	for (i = 0; i < attrs->n_attrs; i++) {
+		name = get_attr_name(attrs, i);
 		if (name == (char *)NULL)
 			break;
-		type = get_attr_type(Attrs, i);
-		if (type == STRUCT_TYPE) {
-			snprintf(buf, 1024, "%s:\n", name);
-			if (proc(buf) != 0)
-				return(-1);
-			rv = get_value(Attrs, i, &val);
-			if (rv != SA_OK) continue;
-			if (show_attrs((Attributes_t *)(val.a), 1, proc) != 0)
-				return(-1);
-			continue;
-		};
-		if (strcmp(name, "RdrType") == 0) {
-			rv = get_value(Attrs, i, &val);
-			if (rv != SA_OK)
+		type = get_attr_type(attrs, i);
+		rv = get_value(attrs, i, &val);
+		if (rv != SA_OK) continue;
+		switch (type) {
+			case STRUCT_TYPE:
+				snprintf(buf, SHOW_BUF_SZ, "%s:\n", name);
+				if (proc(buf) != 0) return(-1);
+				if (show_attrs((Attributes_t *)(val.a), 1, proc) != 0)
+					return(-1);
 				continue;
-			strncpy(A, oh_lookup_rdrtype(val.i), 256);
-		} else if (strcmp(name, "EntityPath") == 0) {
-			oh_big_textbuffer tmpbuf;
+			case LOOKUP_TYPE:
+				strncpy(tmp, attrs->Attrs[i].proc(attrs->Attrs[i].lunum,
+					val.i), 256);
+				break;
+			default:
+				if (strcmp(name, "EntityPath") == 0) {
+					oh_big_textbuffer tmpbuf;
 
-			rv = get_value(Attrs, i, &val);
-			if (rv != SA_OK)
-				continue;
-			oh_init_bigtext(&tmpbuf);
-			rv = oh_decode_entitypath((SaHpiEntityPathT *)(val.a), &tmpbuf);
-			if (rv != SA_OK)
-				continue;
-			strncpy(A, tmpbuf.Data, 256);
-		} else {
-			rv = get_value_as_string(Attrs, i, A, 256);
-			if (rv != SA_OK)
-				continue;
+					oh_init_bigtext(&tmpbuf);
+					rv = oh_decode_entitypath(
+						(SaHpiEntityPathT *)(val.a), &tmpbuf);
+					if (rv != SA_OK) continue;
+					strncpy(tmp, tmpbuf.Data, 256);
+				} else {
+					rv = get_value_as_string(attrs, i, tmp, 256);
+					if (rv != SA_OK) continue;
+				}
 		};
-		snprintf(buf, 1024, "%s: %s\n", name, A);
+		snprintf(buf, SHOW_BUF_SZ, "%s: %s\n", name, tmp);
 		if (proc(buf) != 0)
 			return(-1);
 	};
@@ -625,14 +599,14 @@ SaErrorT show_dat(Domain_t *domain, hpi_ui_print_cb_t proc)
 {
 	SaHpiAlarmT	alarm;
 	SaErrorT	rv = SA_OK;
-	char		buf[1024];
+	char		buf[SHOW_BUF_SZ];
 	char		time[256];
 
 	alarm.AlarmId = SAHPI_FIRST_ENTRY;
 	while (rv == SA_OK) {
 		rv = saHpiAlarmGetNext(domain->sessionId, SAHPI_ALL_SEVERITIES, FALSE, &alarm);
 		if (rv != SA_OK) break;
-		snprintf(buf, 1024, "ID: %d Time: ", alarm.AlarmId);
+		snprintf(buf, SHOW_BUF_SZ, "ID: %d Time: ", alarm.AlarmId);
 		time2str(alarm.Timestamp, time, 256);
 		strcat(buf, time);
 		strcat(buf, "Sever: ");

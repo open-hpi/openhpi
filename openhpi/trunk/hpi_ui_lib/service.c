@@ -24,6 +24,7 @@
 
 #define LANG_PROC	1
 #define TAGTYPE_PROC	2
+#define RDRTYPE_PROC	3
 
 extern char *lookup_proc(int num, int val);
 
@@ -67,6 +68,8 @@ char *lookup_proc(int num, int val)
 			string = oh_lookup_language(val); break;
 		case TAGTYPE_PROC:
 			string = oh_lookup_texttype(val); break;
+		case RDRTYPE_PROC:
+			string = oh_lookup_rdrtype(val); break;
 	};
 	if (string == (char *)NULL)
 		return("");
@@ -173,14 +176,14 @@ static void make_rpt_attrs(Rpt_t *Rpt)
 
 attr_t	Def_common_rdr[] = {
 	{ "RecordId",		INT_TYPE,	0, { .d = 0}, 0 },	//  0
-	{ "RdrType",		INT_TYPE,	0, { .d = 0}, 0 },	//  1
+	{ "RdrType",		LOOKUP_TYPE,	RDRTYPE_PROC, { .d = 0}, lookup_proc },	//  1
 	{ "EntityPath",		ARRAY_TYPE,	0, { .d = 0}, 0 },	//  2
 	{ "IsFru",		INT_TYPE,	0, { .d = 0}, 0 },	//  3
 	{ "Record",		STRUCT_TYPE,	0, { .d = 0}, 0 },	//  4
 	{ "IdString",		STR_TYPE,	0, { .d = 0}, 0 },	//  5
 	{ "IdStringLength",	INT_TYPE,	0, { .d = 0}, 0 },	//  6
-	{ "IdStringType",	INT_TYPE,	0, { .d = 0}, 0 },	//  7
-	{ "IdStringLang",	INT_TYPE,	0, { .d = 0}, 0 }	//  8
+	{ "IdStringType",	LOOKUP_TYPE,	TAGTYPE_PROC,	{ .d = 0}, lookup_proc },	//  7
+	{ "IdStringLang",	LOOKUP_TYPE,	LANG_PROC,	{ .d = 0}, lookup_proc }	//  8
 };
 
 #define RDR_ATTRS_SENSOR_NUM	9
