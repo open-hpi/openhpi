@@ -20,7 +20,7 @@ MAINTAINERCLEANFILES 	= Makefile.in *~
 AM_CFLAGS		= @CFLAGS@
 INCLUDES 		= -I $(top_srcdir)/include -I $(top_srcdir)/utils -I $(top_srcdir)/marshal
 
-#EXTRA_DIST              = README openhpiclient.conf
+#EXTRA_DIST              = README openhpiclient.conf openhpid.conf
 
 #pkgconfigdir            = $(libdir)/pkgconfig
 #pkgconfig_DATA          =
@@ -33,11 +33,9 @@ openhpid_SOURCES        = \
 
 # this is defined with ./configure --enable-daemon=static
 if OPENHPID_STATIC
-#openhpid_LDADD          = $(top_builddir)/src/libopenhpi.la $(top_builddir)/marshal/libohtcpconnx.la $(top_builddir)/marshal/libopenhpimarshal.la $(top_builddir)/utils/libopenhpiutils.la
 openhpid_LDADD          = $(top_builddir)/src/libopenhpi.la $(top_builddir)/marshal/libohtcpconnx.la
 openhpid_LDFLAGS        = -static
 else
-#openhpid_LDADD          = $(top_builddir)/src/libopenhpi.la $(top_builddir)/marshal/libohtcpconnx.la $(top_builddir)/marshal/libopenhpimarshal.la
 openhpid_LDADD          = $(top_builddir)/src/libopenhpi.la $(top_builddir)/marshal/libohtcpconnx.la
 openhpid_LDFLAGS        =
 endif

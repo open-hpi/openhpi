@@ -29,7 +29,7 @@ int main (int argc, char *argv [])
 {
 
 	SaErrorT 		err;
-	SaHpiSessionIdT 	session_id, session_id1;
+	SaHpiSessionIdT 	session_id;
 
 	err =  saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID, &session_id, NULL);
 	if (err != SA_OK) {
@@ -37,17 +37,6 @@ int main (int argc, char *argv [])
 		return (-1);
 	} else {
 		printf("test_01: SessionOpen \"sid=%d\"\n", session_id);
-	}
-
-	err =  saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID, &session_id1, NULL);
-	if (err != SA_OK) {
-		printf("test_01: SessionOpen failed\n");
-		err =  saHpiSessionClose(session_id);
-		if (err == SA_OK)
-			printf("test_01(%d): SessionClose\n", session_id);
-		return (-1);
-	} else {
-		printf("test_01: SessionOpen \"sid=%d\"\n", session_id1);
 	}
 
 	char c;
@@ -58,9 +47,6 @@ int main (int argc, char *argv [])
 			err =  saHpiSessionClose(session_id);
 			if (err == SA_OK)
 				printf("test_01(%d): SessionClose\n", session_id);
-			err =  saHpiSessionClose(session_id1);
-			if (err == SA_OK)
-				printf("test_01(%d): SessionClose\n", session_id1);
 			return 0;
 		} else {
 			err =  saHpiDiscover(session_id);
@@ -69,25 +55,9 @@ int main (int argc, char *argv [])
 				err = saHpiSessionClose(session_id);
 				if (err == SA_OK)
 					printf("test_01(%d): SessionClose\n", session_id);
-				err = saHpiSessionClose(session_id1);
-				if (err == SA_OK)
-					printf("test_01(%d): SessionClose\n", session_id1);
 				return (-1);
 			} else {
 				printf("test_01(%d): Discover\n", session_id);
-			}
-			err =  saHpiDiscover(session_id1);
-			if (err != SA_OK) {
-				printf("test_01(%d): Discover failed\n", session_id1);
-				err = saHpiSessionClose(session_id);
-				if (err == SA_OK)
-					printf("test_01(%d): SessionClose\n", session_id);
-				err = saHpiSessionClose(session_id1);
-				if (err == SA_OK)
-					printf("test_01(%d): SessionClose\n", session_id1);
-				return (-1);
-			} else {
-				printf("test_01(%d): Discover\n", session_id1);
 			}
 		}
 	}

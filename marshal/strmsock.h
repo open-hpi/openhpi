@@ -60,10 +60,8 @@ extern "C" {
 // cMessageHeader::m_type
 typedef enum
 {
-	eMhPing = 1,
-	eMhOpen,
-	eMhClose,
-	eMhMsg,
+	eMhMsg = 1,
+	eMhError,  // for reply message header only!
 } tMessageType;
 
 typedef struct
@@ -78,30 +76,30 @@ typedef struct
 class strmsock
 {
 	protected:
-	int			s;		 // the client socket handle
-	unsigned long		ulBufSize;	// the read buffer size
-	int			domain;		// the socket domain
-	int			type;		// the socket type
-	int			protocol;		// the socket protocol
-	int			errcode;		// errno contents
-	bool			fOpen;		// open connection indicator
+	int		s;		 // the client socket handle
+	unsigned long	ulBufSize;	// the read buffer size
+	int		domain;		// the socket domain
+	int		type;		// the socket type
+	int		protocol;	// the socket protocol
+	int		errcode;       	// errno contents
+	bool		fOpen;		// open connection indicator
 
 	public:
-        cMessageHeader	header;		// the message header
-	void		*pBuf;		// the read buffer
 	virtual		~strmsock		() { };
 	virtual void	Close			(void);
 	virtual int	GetErrcode		(void);
-	virtual void	SetBufferSize		(unsigned long);
 	virtual void	SetDomain		(int);
 	virtual void	SetProtocol		(int);
 	virtual void	SetType			(int);
-	virtual void	MessageHeaderInit	(tMessageType, unsigned char,
+	virtual void	ReqMessageHeaderInit	(tMessageType, unsigned char,
 		   				 unsigned int, unsigned int);
-	virtual cMessageHeader	*GetHeader	(void);
-	virtual void	ConWriteMsg		(const void *);
-	virtual void	*ConReadMsg		(void);
-//	virtual int	ConHandleMsg		(void);
+	virtual void	RepMessageHeaderInit	(tMessageType, unsigned char,
+		   				 unsigned int, unsigned int);
+	virtual bool	WriteMsg		(const void *request,
+                                                 const void *reply);
+	virtual void	*ReadMsg		(void);
+        cMessageHeader	reqheader;	// request message header
+        cMessageHeader	repheader;	// reply message header
 };
 typedef strmsock *pstrmsock;
 
@@ -114,8 +112,6 @@ class cstrmsock : public strmsock
 	cstrmsock		();
 	~cstrmsock		();
 	bool Open		(const char *, int);
-	void    ClientWriteMsg	(const void *);
-	void    *ClientReadMsg	(void);
 };
 typedef cstrmsock *pcstrmsock;
 
@@ -133,11 +129,9 @@ class sstrmsock : public strmsock
 	sstrmsock		();
 	sstrmsock		(const sstrmsock&);
 	~sstrmsock		();
-	void    CloseSrv		(void);
+	void    CloseSrv       	(void);
 	bool    Create		(int);
 	bool    Accept		(void);
-	void    ServerWriteMsg	(const void *);
-	void    *ServerReadMsg	(void);
 };
 typedef sstrmsock *psstrmsock;
 

@@ -49,10 +49,8 @@ enum tResult
 
 static bool morph2daemon(bool runasdaemon);
 static void service_thread(gpointer data, gpointer user_data);
-static void HandleOpen(psstrmsock thrdinst);
-static void HandlePing(psstrmsock thrdinst);
-static void HandleInvalidRequest(psstrmsock thrdinst, unsigned char et);
-static tResult HandleMsg(psstrmsock thrdinst, const void *buf);
+static void HandleInvalidRequest(psstrmsock thrdinst, void *buf);
+static tResult HandleMsg(psstrmsock thrdinst, void *buf);
 
 }
 
@@ -169,36 +167,35 @@ static void service_thread(gpointer data, gpointer user_data)
 {
 	psstrmsock thrdinst = (psstrmsock) data;
         bool stop = false;
-	const void *buf;
+	void *buf;
         tResult result;
 
 	printf("Servicing connection.\n");
 	while (stop == false) {
-                buf = thrdinst->ServerReadMsg();
-                switch( thrdinst->header.m_type ) {
-                case eMhOpen:
-                        HandleOpen(thrdinst);
-                        break;
-                case eMhClose:
-                        stop = true;
-                        break;
-                case eMhPing:
-                        HandlePing(thrdinst);
-                        break;
-                case eMhMsg:
-                        result = HandleMsg(thrdinst, buf);
-                        // marshal error ?
-                        if (result == eResultError) {
-                                HandleInvalidRequest(thrdinst, eMhMsg);
+                buf = thrdinst->ReadMsg();
+                if (buf == NULL) {
+                        printf("Error reading socket.\n");
+                        return;
+                }
+                else {
+                        switch( thrdinst->reqheader.m_type ) {
+                        case eMhMsg:
+                                printf("Calling HandleMsg.\n");
+                                result = HandleMsg(thrdinst, buf);
+                                // marshal error ?
+                                if (result == eResultError) {
+                                        HandleInvalidRequest(thrdinst, buf);
+                                }
+                                // done ?
+                                if (result == eResultClose) {
+                                        stop = true;
+                                }
+                                break;
+                        default:
+                                HandleInvalidRequest(thrdinst, buf);
+                                break;
                         }
-                        // done ?
-                        if (result == eResultClose) {
-                                stop = true;
-                        }
-                        break;
-                default:
-                        HandleInvalidRequest(thrdinst, eMhMsg);
-                        break;
+                        free(buf); // this was malloced in ServerReadMsg
                 }
 	}
 
@@ -210,42 +207,16 @@ static void service_thread(gpointer data, gpointer user_data)
 
 
 /*--------------------------------------------------------------------*/
-/* Function: HandleOpen                                               */
-/*--------------------------------------------------------------------*/
-
-void HandleOpen(psstrmsock thrdinst) {
-
-  /* create and deliver a pong message */
-  thrdinst->MessageHeaderInit(eMhOpen, 0, dMhReply, 0 );
-  thrdinst->ServerWriteMsg(NULL);
-
-  return;
-}
-
-
-/*--------------------------------------------------------------------*/
-/* Function: HandlePing                                               */
-/*--------------------------------------------------------------------*/
-
-void HandlePing(psstrmsock thrdinst) {
-
-  /* create and deliver a pong message */
-  thrdinst->MessageHeaderInit(eMhPing, 0, dMhReply, 0 );
-  thrdinst->ServerWriteMsg(NULL);
-
-  return;
-}
-
-
-/*--------------------------------------------------------------------*/
 /* Function: HandleInvalidRequest                                     */
 /*--------------------------------------------------------------------*/
 
-void HandleInvalidRequest(psstrmsock thrdinst, unsigned char et) {
+void HandleInvalidRequest(psstrmsock thrdinst, void *data) {
+        char *pReq = (char *)data + sizeof(cMessageHeader);
 
   /* create and deliver a pong message */
-  thrdinst->MessageHeaderInit((tMessageType)et, 0, dMhError, 0 );
-  thrdinst->ServerWriteMsg(NULL);
+  printf("Invalid request.\n");
+  thrdinst->RepMessageHeaderInit(eMhError, 0, thrdinst->reqheader.m_id, 0 );
+  thrdinst->WriteMsg(pReq, NULL);
 
   return;
 }
@@ -255,46 +226,45 @@ void HandleInvalidRequest(psstrmsock thrdinst, unsigned char et) {
 /* Function: HandleMsg                                                */
 /*--------------------------------------------------------------------*/
 
-static tResult HandleMsg(psstrmsock thrdinst, const void *data)
+static tResult HandleMsg(psstrmsock thrdinst, void *data)
 {
-  cHpiMarshal *hm = HpiMarshalFind(thrdinst->header.m_id);
+  cHpiMarshal *hm;
   void *rd;
   SaErrorT ret;
   tResult result = eResultReply;
+  char *pReq = (char *)data + sizeof(cMessageHeader);
 
+  printf("Processing message.\n");
+
+
+  hm = HpiMarshalFind(thrdinst->reqheader.m_id);
   // check for function and data length
-  if ( !hm || hm->m_request_len < thrdinst->header.m_len )
+  if ( !hm || hm->m_request_len < thrdinst->reqheader.m_len )
      {
-       fprintf( stderr, "wrong message length: id %d !\n", thrdinst->header.m_id );
-
+//       fprintf( stderr, "Wrong message length: id %d !\n", thrdinst->reqheader.m_id );
        return eResultError;
      }
 
-//  assert( hm->m_reply_len );
-
   // init reply header
-  thrdinst->MessageHeaderInit((tMessageType) thrdinst->header.m_type, 0, 
-                              dMhReply, hm->m_reply_len );
+  thrdinst->RepMessageHeaderInit((tMessageType) thrdinst->reqheader.m_type, 0, 
+                                 thrdinst->reqheader.m_id, hm->m_reply_len );
 
   // alloc reply buffer
   rd = malloc( hm->m_reply_len );
   memset( rd, 0, hm->m_reply_len );
 
-  switch( thrdinst->header.m_id ) {
+  switch( thrdinst->reqheader.m_id ) {
        case eFsaHpiSessionOpen: {
 	      SaHpiDomainIdT domain_id;
 	      SaHpiSessionIdT session_id = 0;
 
               printf("Processing saHpiSessionOpen.\n");
-	      if ( HpiDemarshalRequest1( thrdinst->header.m_flags & dMhEndianBit, hm, data, (void *)&domain_id ) < 0 )
+	      if ( HpiDemarshalRequest1( thrdinst->repheader.m_flags & dMhEndianBit, hm, pReq, (void *)&domain_id ) < 0 )
 		   return eResultError;
 
 	      ret = saHpiSessionOpen( domain_id, &session_id, 0 );
 
-//	      DbgFunc( "saHpiSessionOpen( %x, %x ) = %d\n",
-//                       domain_id, session_id, ret );
-
-	      thrdinst->header.m_len = HpiMarshalReply1( hm, rd, &ret, &session_id );
+	      thrdinst->repheader.m_len = HpiMarshalReply1( hm, rd, &ret, &session_id );
  
        }
        break;
@@ -303,14 +273,12 @@ static tResult HandleMsg(psstrmsock thrdinst, const void *data)
 	      SaHpiSessionIdT session_id;
 
               printf("Processing saHpiSessionClose.\n");
-	      if ( HpiDemarshalRequest1( thrdinst->header.m_flags & dMhEndianBit, hm, data, &session_id ) < 0 )
+	      if ( HpiDemarshalRequest1( thrdinst->repheader.m_flags & dMhEndianBit, hm, pReq, &session_id ) < 0 )
 		   return eResultError;
 
 	      ret = saHpiSessionClose( session_id );
 
-//	      DbgFunc( "saHpiSessionClose( %x ) = %d\n", session_id, ret );
-
-	      thrdinst->header.m_len = HpiMarshalReply0( hm, rd, &ret );
+	      thrdinst->repheader.m_len = HpiMarshalReply0( hm, rd, &ret );
               result = eResultClose;
 
        }
@@ -320,12 +288,12 @@ static tResult HandleMsg(psstrmsock thrdinst, const void *data)
 	      SaHpiSessionIdT session_id;
 
               printf("Processing saHpiDiscover.\n");
-	      if ( HpiDemarshalRequest1( thrdinst->header.m_flags & dMhEndianBit, hm, data, &session_id ) < 0 )
+	      if ( HpiDemarshalRequest1( thrdinst->repheader.m_flags & dMhEndianBit, hm, pReq, &session_id ) < 0 )
 		   return eResultError;
 
 	      ret = saHpiDiscover( session_id );
 
-	      thrdinst->header.m_len = HpiMarshalReply0( hm, rd, &ret );
+	      thrdinst->repheader.m_len = HpiMarshalReply0( hm, rd, &ret );
 
        }
        break;
@@ -333,6 +301,9 @@ static tResult HandleMsg(psstrmsock thrdinst, const void *data)
        default:
             break;
        }
+
+       // send the reply
+       thrdinst->WriteMsg(pReq, rd);
 
        if (rd != NULL) {
                free(rd);
