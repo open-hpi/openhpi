@@ -26,7 +26,15 @@ struct ohoi_control_info {
 /* struct for getting power state */
 struct ohoi_power_info {
 	int done;
+	SaErrorT err;
 	SaHpiPowerStateT *state;
+};
+
+/* struct for getting reset state */
+struct ohoi_reset_info {
+	int done;
+	SaErrorT err;
+	SaHpiResetActionT *state;
 };
 
 
@@ -216,20 +224,20 @@ SaErrorT ohoi_set_reset_state(void *hnd, SaHpiResourceIdT id,
         
         if (act != SAHPI_COLD_RESET) {
                 dbg("Only support cold reset");
-                return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_CAPABILITY;
         }
 
         ohoi_res_info = oh_get_resource_data(handler->rptcache, id);
         if (ohoi_res_info->type != OHOI_RESOURCE_ENTITY) {
                 dbg("Not support reset in MC");
-                return SA_ERR_HPI_INVALID_CMD;
+                return SA_ERR_HPI_CAPABILITY;
         }
 
         rv = ipmi_control_pointer_cb(ohoi_res_info->reset_ctrl, 
                                      set_reset_state, &reset_flag);
         if (rv) {
                 dbg("Not support reset in the entity");
-                return SA_ERR_HPI_INVALID_CMD;
+                return SA_ERR_HPI_CAPABILITY;
         }
 
 	/* wait until reset_done is called to exit this function */
@@ -324,11 +332,14 @@ static void get_power_control_val (ipmi_control_t *control,
 	if (*val == 0) {
 		dbg("Power Control Value: %d", *val);
 		*info->state = SAHPI_POWER_OFF;
+		info->err = SA_OK;
 	} else if (*val == 1) {
 		dbg("Power Control Value: %d", *val);
 		*info->state = SAHPI_POWER_ON;
+		info->err = SA_OK;
 	} else {
 		dbg("invalid power state");
+		info->err = SA_ERR_HPI_INTERNAL_ERROR;
 	}
 	info->done = 1;
 
@@ -337,12 +348,15 @@ static void get_power_control_val (ipmi_control_t *control,
 static void get_power_state (ipmi_control_t *ipmi_control,
 			     void *cb_data)
 {
+	struct ohoi_power_info *power_state = cb_data;
 	int rv;
 
 	rv = ipmi_control_get_val(ipmi_control, get_power_control_val, cb_data);
 
 	if(rv) {
-		dbg("reading ipmi control value failed");
+		dbg("[power]control_get_val failed");
+		power_state->err = SA_ERR_HPI_INTERNAL_ERROR;
+		power_state->done = 1;
 	}
 	
 
@@ -360,23 +374,96 @@ SaErrorT ohoi_get_power_state (void *hnd,
 	int rv;
 
 	power_state.done = 0;
+	power_state.err = 0;
 	power_state.state = state;
 	
         ohoi_res_info = oh_get_resource_data(handler->rptcache, id);
         if (ohoi_res_info->type != OHOI_RESOURCE_ENTITY) {
-                dbg("Not support power in MC");
-                return SA_ERR_HPI_INVALID_CMD;
+                dbg("MC does not support power!");
+                return SA_ERR_HPI_CAPABILITY;
         }
 
 	rv = ipmi_control_pointer_cb(ohoi_res_info->power_ctrl,
 					get_power_state, &power_state);
 	if (rv) {
 		dbg("get_power_state failed");
-		return SA_ERR_HPI_INVALID_CMD;
+		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 
 	dbg("waiting for OIPMI to return");
 	ohoi_loop(&power_state.done, ipmi_handler);
 				     
-        return SA_OK;
+        return power_state.err;
+}
+
+static void get_reset_control_val (ipmi_control_t *control,
+			     int err,
+			     int *val,
+			     void *cb_data)
+{
+	struct ohoi_reset_info *info = cb_data;
+
+	if (*val == 0) {
+		dbg("Reset Control Value: %d", *val);
+		*info->state = SAHPI_RESET_DEASSERT;
+		info->err = SA_OK;
+	} else if (*val == 1) {
+		dbg("Power Control Value: %d", *val);
+		*info->state = SAHPI_RESET_ASSERT;
+		info->err = SA_OK;
+	} else {
+		dbg("invalid power state");
+		info->err = SA_ERR_HPI_INTERNAL_ERROR;
+	}
+	info->done = 1;
+}
+
+static
+void get_reset_state(ipmi_control_t *control,
+		     void *cb_data)
+{
+	struct ohoi_reset_info *reset_info = cb_data;
+
+	int rv;
+
+	rv = ipmi_control_get_val(control, get_reset_control_val, cb_data);
+	if (rv) {
+		dbg("[reset] control_get_val failed");
+		reset_info->err = SA_ERR_HPI_INTERNAL_ERROR;
+		reset_info->done = 1;
+	}
+}
+		    
+SaErrorT ohoi_get_reset_state(void *hnd,
+			      SaHpiResourceIdT id,
+			      SaHpiResetActionT *act)
+{
+	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
+	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
+        struct ohoi_resource_info *ohoi_res_info;
+        
+	struct ohoi_reset_info reset_state;
+
+	int rv;
+
+	reset_state.done = 0;
+	reset_state.err = 0;
+	reset_state.state = act;
+
+        ohoi_res_info = oh_get_resource_data(handler->rptcache, id);
+        if (ohoi_res_info->type != OHOI_RESOURCE_ENTITY) {
+                dbg("Not support power in MC");
+                return SA_ERR_HPI_CAPABILITY;
+        }
+
+	rv = ipmi_control_pointer_cb(ohoi_res_info->reset_ctrl,
+				     get_reset_state, &reset_state);
+	if(rv) {
+		dbg("[reset_state] controm pointer callback failed");
+		return SA_ERR_HPI_INTERNAL_ERROR;
+	}
+
+	ohoi_loop(&reset_state.done, ipmi_handler);
+
+	return reset_state.err;
 }

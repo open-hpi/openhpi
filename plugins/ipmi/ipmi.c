@@ -1433,17 +1433,17 @@ static struct oh_abi_v2 oh_ipmi_plugin = {
 	.set_power_state                = ohoi_set_power_state,
 	
 	/* reset support */
-	.get_reset_state                = NULL,
+	.get_reset_state                = ohoi_get_reset_state,
 	.set_reset_state                = ohoi_set_reset_state,
 
         /* control support */
-	.set_control_state = ohoi_set_control_state,
-	.get_control_state = ohoi_get_control_state,
+	.set_control_state 		= ohoi_set_control_state,
+	.get_control_state 		= ohoi_get_control_state,
 
 	/* watchdog support */
-	.get_watchdog_info    = ipmi_get_watchdog_info,
-	.set_watchdog_info    = ipmi_set_watchdog_info,
-	.reset_watchdog       = ipmi_reset_watchdog,
+	.get_watchdog_info    		= ipmi_get_watchdog_info,
+	.set_watchdog_info    		= ipmi_set_watchdog_info,
+	.reset_watchdog       		= ipmi_reset_watchdog,
 };
 
 int ipmi_get_interface(void **pp, const uuid_t uuid);
