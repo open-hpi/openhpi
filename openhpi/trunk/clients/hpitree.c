@@ -28,23 +28,46 @@
 #include <SaHpi.h> 
 #include <oh_utils.h>
 
-
 /* 
  * Function prototypes
  */
-SaErrorT list_all(SaHpiSessionIdT sessionid);
-SaErrorT list_rpt(SaHpiSessionIdT sessionid, SaHpiResourceIdT res_id);
-SaErrorT list_rdr(SaHpiSessionIdT sessionid, SaHpiResourceIdT res_id);
-SaErrorT list_inv(SaHpiSessionIdT sessionid, SaHpiResourceIdT res_id);
-SaErrorT list_sens(SaHpiSessionIdT sessionid, SaHpiResourceIdT res_id);
-SaErrorT list_ctrl(SaHpiSessionIdT sessionid, SaHpiResourceIdT res_id);
-SaErrorT list_wdog(SaHpiSessionIdT sessionid, SaHpiResourceIdT res_id);
-SaErrorT list_ann (SaHpiSessionIdT sessionid, SaHpiResourceIdT res_id);
+static SaErrorT list_resources(SaHpiSessionIdT sessionid, SaHpiResourceIdT res_id);
+static SaErrorT list_rpt(SaHpiRptEntryT *rptptr,SaHpiResourceIdT resourceid);
+static SaErrorT list_rdr(SaHpiSessionIdT sessionid,
+			SaHpiRptEntryT *rptptr,	
+			SaHpiRdrT *rdrptr, 
+			SaHpiResourceIdT l_resourceid);
 
+static SaErrorT list_inv(SaHpiSessionIdT sessionid,
+			SaHpiRptEntryT *rptptr,	
+			SaHpiRdrT *rdrptr, 
+			SaHpiResourceIdT l_resourceid);
 
-SaErrorT walkInventory(SaHpiSessionIdT sessionid,
+static SaErrorT list_sens(SaHpiSessionIdT sessionid,
+			SaHpiRptEntryT *rptptr,	
+			SaHpiRdrT *rdrptr, 
+			SaHpiResourceIdT l_resourceid);
+
+static SaErrorT list_ctrl(SaHpiSessionIdT sessionid,
+			SaHpiRptEntryT *rptptr,	
+			SaHpiRdrT *rdrptr, 
+			SaHpiResourceIdT l_resourceid);
+
+static SaErrorT list_wdog(SaHpiSessionIdT sessionid,
+			SaHpiRptEntryT *rptptr,	
+			SaHpiRdrT *rdrptr, 
+			SaHpiResourceIdT l_resourceid);
+
+static SaErrorT list_ann (SaHpiSessionIdT sessionid,
+			SaHpiRptEntryT *rptptr,	
+			SaHpiRdrT *rdrptr, 
+			SaHpiResourceIdT l_resourceid);
+
+static SaErrorT walkInventory(SaHpiSessionIdT sessionid,
 		   SaHpiResourceIdT resourceid,
 		   SaHpiIdrInfoT *idrInfo);
+
+
 
 #define all_resources 255
 
@@ -61,7 +84,7 @@ int f_inv     = 0;
 int f_ctrl    = 0;
 int f_rdr     = 0;
 int f_wdog    = 0;
-
+int f_ann    = 0;
 /* 
  * Main                
  */
@@ -142,108 +165,30 @@ main(int argc, char **argv)
 	}
 
 	printf("Discovery done\n");
-	if(f_listall) 
-		list_all(sessionid);
-	else {	
-		if(f_rpt) list_rpt(sessionid,resourceid);
-		if(f_rdr) list_rdr(sessionid,resourceid);
-		if(f_sensor) list_sens(sessionid,resourceid);
-		if(f_inv) list_inv(sessionid, resourceid); 
-		if(f_ctrl) list_ctrl(sessionid, resourceid);
-		if(f_wdog) list_wdog(sessionid, resourceid);
-	}	
+	list_resources(sessionid, resourceid);
 
 	rv = saHpiSessionClose(sessionid);
 	
 	exit(0);
 }
 
-/*
- *
- */
-SaErrorT list_rpt(SaHpiSessionIdT sessionid,SaHpiResourceIdT resourceid)
-{
-	SaHpiRptEntryT rptentry;
-	SaHpiEntryIdT rptentryid;
-	SaHpiEntryIdT nextrptentryid;
-	SaErrorT rv = SA_OK;
-
-	rptentryid = SAHPI_FIRST_ENTRY;
-	do {
-		
-		if (fdebug) printf("saHpiRptEntryGet\n");
-
-		rv = saHpiRptEntryGet(sessionid, rptentryid, &nextrptentryid,&rptentry);
-		if (rv != SA_OK) {
-			printf("Error getting RPT entry: rv = %s\n", oh_lookup_error(rv));
-			return (rv);
-		} else {
-			if (resourceid == 255) 
-				oh_print_rptentry(&rptentry, 2);
-			else {
-				if (resourceid == rptentry.ResourceId) {
-					oh_print_rptentry(&rptentry, 2);
-					nextrptentryid = SAHPI_LAST_ENTRY;
-				}	 
-			}
-		}
-
-		rptentryid = nextrptentryid;
-	} while ((rv == SA_OK) && (rptentryid != SAHPI_LAST_ENTRY));
-	return(rv);
-}
-
 
 /* 
  *
  */
-SaErrorT list_all(SaHpiSessionIdT sessionid)
-{
-	SaHpiRptEntryT rptentry;
-	SaHpiEntryIdT rptentryid;
-	SaHpiEntryIdT nextrptentryid;
-	SaErrorT rv = SA_OK;
-
-	rptentryid = SAHPI_FIRST_ENTRY;
-	do {
-		
-		if (fdebug) printf("saHpiRptEntryGet\n");
-
-		rv = saHpiRptEntryGet(sessionid, rptentryid, &nextrptentryid,&rptentry);
-		if (rv != SA_OK) {
-			printf("Error getting RPT entry: rv = %s\n", oh_lookup_error(rv));
-			return (rv);
-		} else {
-			oh_print_rptentry(&rptentry, 2);
-			list_rdr(sessionid, rptentry.ResourceId);
-			list_inv(sessionid, rptentry.ResourceId);
-			list_sens(sessionid, rptentry.ResourceId);
-			list_ctrl(sessionid, rptentry.ResourceId);
-			list_wdog(sessionid, rptentry.ResourceId);
-		}
-
-		rptentryid = nextrptentryid;
-	} while ((rv == SA_OK) && (rptentryid != SAHPI_LAST_ENTRY));
-	return(rv);
-}
-
-/* 
- *
- */
-SaErrorT list_inv(SaHpiSessionIdT sessionid,SaHpiResourceIdT resourceid)
+static 
+SaErrorT list_resources(SaHpiSessionIdT sessionid,SaHpiResourceIdT resourceid)
 {
 	SaErrorT rv       = SA_OK,
 	         rvRdrGet = SA_OK,
- 		 rvRptGet = SA_OK, 
- 		 rvInvent = SA_OK;
+ 		 rvRptGet = SA_OK; 
+
 	SaHpiRptEntryT rptentry;
 	SaHpiEntryIdT rptentryid;
 	SaHpiEntryIdT nextrptentryid;
 	SaHpiEntryIdT entryid;
 	SaHpiEntryIdT nextentryid;
 	SaHpiRdrT rdr;
-	SaHpiIdrInfoT	idrInfo;
-	SaHpiIdrIdT	idrid;
 	SaHpiResourceIdT l_resourceid;
 	SaHpiTextBufferT working;
 		
@@ -257,63 +202,115 @@ SaErrorT list_inv(SaHpiSessionIdT sessionid,SaHpiResourceIdT resourceid)
 		rvRptGet = saHpiRptEntryGet(sessionid,rptentryid,&nextrptentryid,&rptentry);
 		if ((rvRptGet != SA_OK) || fdebug) 
 		       	printf("RptEntryGet returns %s\n",oh_lookup_error(rvRptGet));
-			if (rvRptGet == SA_OK 
-                   		&& (rptentry.ResourceCapabilities & SAHPI_CAPABILITY_RDR) 
-				&& ((resourceid == 0xFF) || (resourceid == rptentry.ResourceId)))
-			{
-				l_resourceid = rptentry.ResourceId;
-				if (resourceid != 0xFF) 
-					 nextrptentryid = SAHPI_LAST_ENTRY;
+		
+		rv = list_rpt(&rptentry, resourceid);
+						
+		if (rvRptGet == SA_OK 
+                   	&& (rptentry.ResourceCapabilities & SAHPI_CAPABILITY_RDR) 
+			&& ((resourceid == 0xFF) || (resourceid == rptentry.ResourceId)))
+		{
+			l_resourceid = rptentry.ResourceId;
+			if (resourceid != 0xFF) 
+				 nextrptentryid = SAHPI_LAST_ENTRY;
 
-				/* walk the RDR list for this RPT entry */
-				entryid = SAHPI_FIRST_ENTRY;			
+			/* walk the RDR list for this RPT entry */
+			entryid = SAHPI_FIRST_ENTRY;			
 
-				if (fdebug) printf("rptentry[%d] resourceid=%d\n", entryid,resourceid);
+			if (fdebug) printf("rptentry[%d] resourceid=%d\n", entryid,resourceid);
 
-				do {
-					rvRdrGet = saHpiRdrGet(sessionid,l_resourceid, entryid,&nextentryid, &rdr);
-					if (fdebug) printf("saHpiRdrGet[%d] rv = %s\n",entryid,oh_lookup_error(rvRdrGet));
+			do {
+				rvRdrGet = saHpiRdrGet(sessionid,l_resourceid, entryid,&nextentryid, &rdr);
+				if (fdebug) printf("saHpiRdrGet[%d] rv = %s\n",entryid,oh_lookup_error(rvRdrGet));
 
-					if (rvRdrGet == SA_OK)
-					{
-						if (rdr.RdrType == SAHPI_INVENTORY_RDR)
-						{
-														
-							idrid = rdr.RdrTypeUnion.InventoryRec.IdrId;
-							rvInvent = saHpiIdrInfoGet(
-										sessionid,
-										l_resourceid,
-										idrid,
-										&idrInfo);		
 
-							if (rvInvent !=SA_OK) {
-								printf("saHpiIdrInfoGet: ResourceId %d IdrId %d, error %s\n",
-									l_resourceid, idrid, oh_lookup_error(rvInvent));
-							} else {
-								snprintf(working.Data, SAHPI_MAX_TEXT_BUFFER_LENGTH,
-								 	"\nIdr for %s, ResourceId: %d\n",
-									 rptentry.ResourceTag.Data,l_resourceid);
-								oh_print_text(&working);
-								oh_print_idrinfo(&idrInfo, 4);
-								walkInventory(sessionid, l_resourceid, &idrInfo);
-							}
-													} 
-					}
-					entryid = nextentryid;
-				} while ((rvRdrGet == SA_OK) && (entryid != SAHPI_LAST_ENTRY)) ;
-			}
-			rptentryid = nextrptentryid;
-		} while ((rvRptGet == SA_OK) && (rptentryid != SAHPI_LAST_ENTRY));
+				if (rvRdrGet == SA_OK)
+				{
+					if (f_listall || f_rdr)
+							list_rdr(sessionid, &rptentry, &rdr, l_resourceid);
+					if (f_listall || f_inv)
+							list_inv(sessionid, &rptentry, &rdr, l_resourceid); 
+					if (f_listall || f_sensor)
+							list_sens(sessionid, &rptentry, &rdr, l_resourceid); 
+					if (f_listall || f_ctrl)
+							list_ctrl(sessionid, &rptentry, &rdr, l_resourceid); 
+					if (f_listall || f_wdog)
+							list_wdog(sessionid, &rptentry, &rdr, l_resourceid); 
+					if (f_listall || f_ann)
+							list_ann(sessionid, &rptentry, &rdr, l_resourceid); 
+												
+				}
+				entryid = nextentryid;
+			} while ((rvRdrGet == SA_OK) && (entryid != SAHPI_LAST_ENTRY)) ;
+		}
+		rptentryid = nextrptentryid;
+	} while ((rvRptGet == SA_OK) && (rptentryid != SAHPI_LAST_ENTRY));
 
 	return(rv);
 }
 
+/*
+ *
+ */
+static 
+SaErrorT list_rpt(SaHpiRptEntryT *rptptr,SaHpiResourceIdT resourceid)
+{
+	SaErrorT rv = SA_OK;
+
+	if (resourceid == 255) 
+		oh_print_rptentry(rptptr, 2);
+	else if (resourceid == rptptr->ResourceId) 
+			oh_print_rptentry(rptptr, 2);
+	return(rv);
+}
+
+
+
+/* 
+ *
+ */
+static 
+SaErrorT list_inv(SaHpiSessionIdT sessionid,
+			SaHpiRptEntryT *rptptr,	
+			SaHpiRdrT *rdrptr, 
+			SaHpiResourceIdT l_resourceid)
+{
+ 	SaErrorT  rvInvent = SA_OK;
+	SaHpiIdrInfoT	idrInfo;
+	SaHpiIdrIdT	idrid;
+	SaHpiTextBufferT working;		
+	oh_init_textbuffer(&working);																		
+
+
+	if (rdrptr->RdrType == SAHPI_INVENTORY_RDR) {
+		idrid = rdrptr->RdrTypeUnion.InventoryRec.IdrId;
+		rvInvent = saHpiIdrInfoGet(
+					sessionid,
+					l_resourceid,
+					idrid,
+					&idrInfo);		
+
+		if (rvInvent !=SA_OK) {
+			printf("saHpiIdrInfoGet: ResourceId %d IdrId %d, error %s\n",
+					l_resourceid, idrid, oh_lookup_error(rvInvent));
+		} else {
+			snprintf(working.Data, SAHPI_MAX_TEXT_BUFFER_LENGTH,
+							"\nIdr for %s, ResourceId: %d\n",
+			rptptr->ResourceTag.Data,l_resourceid);
+			oh_print_text(&working);
+			oh_print_idrinfo(&idrInfo, 4);
+			walkInventory(sessionid, l_resourceid, &idrInfo);
+		}
+	}
+	return(rvInvent);
+
+}
 /* 
  * This routine walks the complete inventory idr for this resource.
  * It does not look for a particular IdrAreaType or IdrFieldType.
  * Particular type tests are coverred in respecting routines.
  *
 **/
+static 
 SaErrorT walkInventory(	SaHpiSessionIdT sessionid,
 			SaHpiResourceIdT resourceid,
 			SaHpiIdrInfoT	*idrInfo)
@@ -397,64 +394,23 @@ SaErrorT walkInventory(	SaHpiSessionIdT sessionid,
 /* 
  *
  */
-SaErrorT list_sens(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid)
+static 
+SaErrorT list_sens(SaHpiSessionIdT sessionid,
+			SaHpiRptEntryT *rptptr,	
+			SaHpiRdrT *rdrptr, 
+			SaHpiResourceIdT l_resourceid)
 {
-	SaErrorT rv       = SA_OK,
-	         rvRdrGet = SA_OK,
- 		 rvRptGet = SA_OK;
-
-	SaHpiRptEntryT rptentry;
-	SaHpiEntryIdT rptentryid;
-	SaHpiEntryIdT nextrptentryid;
-	SaHpiEntryIdT entryid;
-	SaHpiEntryIdT nextentryid;
-	SaHpiRdrT rdr;
-	SaHpiResourceIdT l_resourceid;
-	SaHpiTextBufferT working;
-		
+	SaErrorT rv  = SA_OK;
+	SaHpiTextBufferT working;		
 	oh_init_textbuffer(&working);																		
-																
-	/* walk the RPT list */
-	rptentryid = SAHPI_FIRST_ENTRY;
-	do {
-		
-		if (fdebug) printf("saHpiRptEntryGet\n");
-		rvRptGet = saHpiRptEntryGet(sessionid,rptentryid,&nextrptentryid,&rptentry);
-		if ((rvRptGet != SA_OK) || fdebug) 
-		       	printf("RptEntryGet returns %s\n",oh_lookup_error(rvRptGet));
-			if (rvRptGet == SA_OK 
-                   		&& (rptentry.ResourceCapabilities & SAHPI_CAPABILITY_RDR) 
-				&& ((resourceid == 0xFF) || (resourceid == rptentry.ResourceId)))
-			{
-				l_resourceid = rptentry.ResourceId;
-				if (resourceid != 0xFF) 
-					 nextrptentryid = SAHPI_LAST_ENTRY;
 
-				/* walk the RDR list for this RPT entry */
-				entryid = SAHPI_FIRST_ENTRY;			
-
-				if (fdebug) printf("rptentry[%d] resourceid=%d\n", entryid,resourceid);
-
-				do {
-					rvRdrGet = saHpiRdrGet(sessionid,l_resourceid, entryid,&nextentryid, &rdr);
-					if (fdebug) printf("saHpiRdrGet[%d] rv = %s\n",entryid,oh_lookup_error(rvRdrGet));
-
-					if (rvRdrGet == SA_OK)
-					{
-						if (rdr.RdrType == SAHPI_SENSOR_RDR)
-						{							
-							snprintf(working.Data, SAHPI_MAX_TEXT_BUFFER_LENGTH,
-								 	"\nSensor for %s, ResourceId: %d\n",
-										rptentry.ResourceTag.Data,l_resourceid);
-							oh_print_text(&working);
-							oh_print_sensorrec(&rdr.RdrTypeUnion.SensorRec, 4);
-						} 
-					}
-					entryid = nextentryid;
-				} while ((rvRdrGet == SA_OK) && (entryid != SAHPI_LAST_ENTRY)) ;
-			}
-			rptentryid = nextrptentryid;
-		} while ((rvRptGet == SA_OK) && (rptentryid != SAHPI_LAST_ENTRY));
+	if (rdrptr->RdrType == SAHPI_SENSOR_RDR) {							
+		snprintf(working.Data, SAHPI_MAX_TEXT_BUFFER_LENGTH,
+				"\nSensor for %s, ResourceId: %d\n",
+					rptptr->ResourceTag.Data,l_resourceid);
+		rv = oh_print_text(&working);
+		rv = oh_print_sensorrec(&rdrptr->RdrTypeUnion.SensorRec, 4);	
+	} 
 
 	return(rv);
 }
@@ -462,202 +418,81 @@ SaErrorT list_sens(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid)
 /* 
  *
  */
-SaErrorT list_rdr(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid)
+static 
+SaErrorT list_rdr(SaHpiSessionIdT sessionid, 
+			SaHpiRptEntryT *rptptr,	
+			SaHpiRdrT *rdrptr, 
+			SaHpiResourceIdT l_resourceid)
 {
-	SaErrorT rv       = SA_OK,
-	         rvRdrGet = SA_OK,
- 		 rvRptGet = SA_OK;
-
-	SaHpiRptEntryT rptentry;
-	SaHpiEntryIdT rptentryid;
-	SaHpiEntryIdT nextrptentryid;
-	SaHpiEntryIdT entryid;
-	SaHpiEntryIdT nextentryid;
-	SaHpiRdrT rdr;
-	SaHpiResourceIdT l_resourceid;
-	SaHpiTextBufferT working;
-		
+	SaErrorT rv       = SA_OK;
+	SaHpiTextBufferT working;		
 	oh_init_textbuffer(&working);																		
-																
-	/* walk the RPT list */
-	rptentryid = SAHPI_FIRST_ENTRY;
-	do {
-		
-		if (fdebug) printf("saHpiRptEntryGet\n");
-		rvRptGet = saHpiRptEntryGet(sessionid,rptentryid,&nextrptentryid,&rptentry);
-		if ((rvRptGet != SA_OK) || fdebug) 
-		       	printf("RptEntryGet returns %s\n",oh_lookup_error(rvRptGet));
-			if (rvRptGet == SA_OK 
-                   		&& (rptentry.ResourceCapabilities & SAHPI_CAPABILITY_RDR) 
-				&& ((resourceid == 0xFF) || (resourceid == rptentry.ResourceId)))
-			{
-				l_resourceid = rptentry.ResourceId;
-				if (resourceid != 0xFF) 
-					 nextrptentryid = SAHPI_LAST_ENTRY;
 
-				/* walk the RDR list for this RPT entry */
-				entryid = SAHPI_FIRST_ENTRY;			
-
-				if (fdebug) printf("rptentry[%d] resourceid=%d\n", entryid,resourceid);
-
-				do {
-					rvRdrGet = saHpiRdrGet(sessionid,l_resourceid, entryid,&nextentryid, &rdr);
-					if (fdebug) printf("saHpiRdrGet[%d] rv = %s\n",entryid,oh_lookup_error(rvRdrGet));
-
-					if (rvRdrGet == SA_OK)
-					{
-						snprintf(working.Data, SAHPI_MAX_TEXT_BUFFER_LENGTH,
-							 "\nRdr for %s, ResourceId: %d\n",
-							 rptentry.ResourceTag.Data,l_resourceid);
-						oh_print_text(&working);
-
-						oh_print_rdr(&rdr, 4);
-					}
-					entryid = nextentryid;
-				} while ((rvRdrGet == SA_OK) && (entryid != SAHPI_LAST_ENTRY)) ;
-			}
-			rptentryid = nextrptentryid;
-		} while ((rvRptGet == SA_OK) && (rptentryid != SAHPI_LAST_ENTRY));
-
+	snprintf(working.Data, SAHPI_MAX_TEXT_BUFFER_LENGTH,
+				"\nRdr for %s, ResourceId: %d\n",
+					rptptr->ResourceTag.Data,l_resourceid);
+	rv = oh_print_text(&working);	
+	rv = oh_print_rdr(rdrptr, 4);
 	return(rv);
 }
 
 /* 
  *
  */
-SaErrorT list_ctrl(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid)
+static 
+SaErrorT list_ctrl(SaHpiSessionIdT sessionid,
+			SaHpiRptEntryT *rptptr,	
+			SaHpiRdrT *rdrptr, 
+			SaHpiResourceIdT l_resourceid)
 {
-	SaErrorT rv       = SA_OK,
-	         rvRdrGet = SA_OK,
- 		 rvRptGet = SA_OK;
-
-	SaHpiRptEntryT rptentry;
-	SaHpiEntryIdT rptentryid;
-	SaHpiEntryIdT nextrptentryid;
-	SaHpiEntryIdT entryid;
-	SaHpiEntryIdT nextentryid;
-	SaHpiRdrT rdr;
-	SaHpiResourceIdT l_resourceid;
-	SaHpiTextBufferT working;
-		
+	SaErrorT rv       = SA_OK;
+	SaHpiTextBufferT working;		
 	oh_init_textbuffer(&working);																		
 																
-	/* walk the RPT list */
-	rptentryid = SAHPI_FIRST_ENTRY;
-	do {
-		
-		if (fdebug) printf("saHpiRptEntryGet\n");
-		rvRptGet = saHpiRptEntryGet(sessionid,rptentryid,&nextrptentryid,&rptentry);
-		if ((rvRptGet != SA_OK) || fdebug) 
-		       	printf("RptEntryGet returns %s\n",oh_lookup_error(rvRptGet));
-			if (rvRptGet == SA_OK 
-                   		&& (rptentry.ResourceCapabilities & SAHPI_CAPABILITY_RDR) 
-				&& ((resourceid == 0xFF) || (resourceid == rptentry.ResourceId)))
-			{
-				l_resourceid = rptentry.ResourceId;
-				if (resourceid != 0xFF) 
-					 nextrptentryid = SAHPI_LAST_ENTRY;
-
-				/* walk the RDR list for this RPT entry */
-				entryid = SAHPI_FIRST_ENTRY;			
-
-				if (fdebug) printf("rptentry[%d] resourceid=%d\n", entryid,resourceid);
-
-				do {
-					rvRdrGet = saHpiRdrGet(sessionid,l_resourceid, entryid,&nextentryid, &rdr);
-					if (fdebug) printf("saHpiRdrGet[%d] rv = %s\n",entryid,oh_lookup_error(rvRdrGet));
-
-					if (rvRdrGet == SA_OK)
-					{
-						if (rdr.RdrType == SAHPI_CTRL_RDR)
-						{							
-							snprintf(working.Data, SAHPI_MAX_TEXT_BUFFER_LENGTH,
-								 	"\nControl for %s, ResourceId: %d\n",
-										rptentry.ResourceTag.Data,l_resourceid);
-							oh_print_text(&working);
-							oh_print_ctrlrec(&rdr.RdrTypeUnion.CtrlRec, 4);
-						} 
-					}
-					entryid = nextentryid;
-				} while ((rvRdrGet == SA_OK) && (entryid != SAHPI_LAST_ENTRY)) ;
-			}
-			rptentryid = nextrptentryid;
-		} while ((rvRptGet == SA_OK) && (rptentryid != SAHPI_LAST_ENTRY));
-
+	if (rdrptr->RdrType == SAHPI_CTRL_RDR){
+		snprintf(working.Data, SAHPI_MAX_TEXT_BUFFER_LENGTH,
+					"\nControl for %s, ResourceId: %d\n",
+					rptptr->ResourceTag.Data,l_resourceid);
+		rv = oh_print_text(&working);
+		rv = oh_print_ctrlrec(&rdrptr->RdrTypeUnion.CtrlRec, 4);
+	} 
 	return(rv);
 }
 
 /* 
  *
  */
-SaErrorT list_wdog(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid)
+static  
+SaErrorT list_wdog(SaHpiSessionIdT sessionid,
+			SaHpiRptEntryT *rptptr,	
+			SaHpiRdrT *rdrptr, 
+			SaHpiResourceIdT l_resourceid)
 {
-	SaErrorT rv       = SA_OK,
-	         rvRdrGet = SA_OK,
- 		 rvRptGet = SA_OK;
-
-	SaHpiRptEntryT rptentry;
-	SaHpiEntryIdT rptentryid;
-	SaHpiEntryIdT nextrptentryid;
-	SaHpiEntryIdT entryid;
-	SaHpiEntryIdT nextentryid;
-	SaHpiRdrT rdr;
-	SaHpiResourceIdT l_resourceid;
-	SaHpiTextBufferT working;
-		
+	SaErrorT rv       = SA_OK;
+	SaHpiTextBufferT working;		
 	oh_init_textbuffer(&working);																		
 																
-	/* walk the RPT list */
-	rptentryid = SAHPI_FIRST_ENTRY;
-	do {
-		
-		if (fdebug) printf("saHpiRptEntryGet\n");
-		rvRptGet = saHpiRptEntryGet(sessionid,rptentryid,&nextrptentryid,&rptentry);
-		if ((rvRptGet != SA_OK) || fdebug) 
-		       	printf("RptEntryGet returns %s\n",oh_lookup_error(rvRptGet));
-			if (rvRptGet == SA_OK 
-                   		&& (rptentry.ResourceCapabilities & SAHPI_CAPABILITY_RDR) 
-				&& ((resourceid == 0xFF) || (resourceid == rptentry.ResourceId)))
-			{
-				l_resourceid = rptentry.ResourceId;
-				if (resourceid != 0xFF) 
-					 nextrptentryid = SAHPI_LAST_ENTRY;
-
-				/* walk the RDR list for this RPT entry */
-				entryid = SAHPI_FIRST_ENTRY;			
-
-				if (fdebug) printf("rptentry[%d] resourceid=%d\n", entryid,resourceid);
-
-				do {
-					rvRdrGet = saHpiRdrGet(sessionid,l_resourceid, entryid,&nextentryid, &rdr);
-					if (fdebug) printf("saHpiRdrGet[%d] rv = %s\n",entryid,oh_lookup_error(rvRdrGet));
-
-					if (rvRdrGet == SA_OK)
-					{
-						if (rdr.RdrType == SAHPI_WATCHDOG_RDR)
-						{							
-							snprintf(working.Data, SAHPI_MAX_TEXT_BUFFER_LENGTH,
-								 	"\nWatchdog for %s, ResourceId: %d\n",
-										rptentry.ResourceTag.Data,l_resourceid);
-							oh_print_text(&working);
-							oh_print_watchdogrec(&rdr.RdrTypeUnion.WatchdogRec, 4);
-						} 
-					}
-					entryid = nextentryid;
-				} while ((rvRdrGet == SA_OK) && (entryid != SAHPI_LAST_ENTRY)) ;
-			}
-			rptentryid = nextrptentryid;
-		} while ((rvRptGet == SA_OK) && (rptentryid != SAHPI_LAST_ENTRY));
-
+	if (rdrptr->RdrType == SAHPI_WATCHDOG_RDR) {
+		snprintf(working.Data, SAHPI_MAX_TEXT_BUFFER_LENGTH,
+					"\nWatchdog for %s, ResourceId: %d\n",
+					rptptr->ResourceTag.Data,l_resourceid);
+		rv = oh_print_text(&working);
+		rv = oh_print_watchdogrec(&rdrptr->RdrTypeUnion.WatchdogRec, 4);
+	} 
 	return(rv);
 }
 
 /* 
  *
  */
-SaErrorT list_ann (SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid)
+static  
+SaErrorT list_ann (SaHpiSessionIdT sessionid,
+			SaHpiRptEntryT *rptptr,	
+			SaHpiRdrT *rdrptr, 
+			SaHpiResourceIdT l_resourceid)
+
 {
-	printf("\n\t>>>>>>>>>>>>>>>>>> Coming soon.<<<<<<<<<<<<<<<<<<<\n");
+	/* Wave */
 	return(SA_OK);
 }
 
