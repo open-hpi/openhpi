@@ -8,9 +8,9 @@
 
 SaErrorT discover_domain(SaHpiDomainIdT);
 const char * get_error_string(SaErrorT);
-void display_entity_path(SaHpiEntityPathT *);
 void display_entity_capabilities(SaHpiCapabilitiesT);
 const char * severity2str(SaHpiSeverityT);
+const char * type2string(SaHpiEntityTypeT type);
 
 int main(int argc, char *argv[])
 {
@@ -72,6 +72,7 @@ SaErrorT discover_domain(SaHpiDomainIdT domain_id)
 	}
 
 	do {
+		int i;
 		current = next;
 		err = saHpiRptEntryGet(session_id, current, &next, &entry);
 		if (SA_OK != err) {
@@ -86,7 +87,18 @@ SaErrorT discover_domain(SaHpiDomainIdT domain_id)
 		printf("Revision: %c\n", entry.ResourceInfo.ResourceRev);
 		printf("Version: %c\n", entry.ResourceInfo.SpecificVer);
 		printf("Severity: %s\n",severity2str(entry.ResourceSeverity));
-		display_entity_path(&entry.ResourceEntity);
+
+		printf("Entity Path:\n");
+		for ( i=0; i<SAHPI_MAX_ENTITY_PATH; i++ )
+		{
+			SaHpiEntityT tmp = entry.ResourceEntity.Entry[i];
+			if (tmp.EntityType <= SAHPI_ENT_UNSPECIFIED)
+				break;
+
+			printf("\t{%s, %i}\n", type2string(tmp.EntityType),
+			       tmp.EntityInstance);
+		}
+
 		display_entity_capabilities(entry.ResourceCapabilities);
 		printf("\n");
 
@@ -113,11 +125,6 @@ SaErrorT discover_domain(SaHpiDomainIdT domain_id)
 	}
 
 	return SA_OK;
-}
-
-void display_entity_path(SaHpiEntityPathT *path)
-{
-
 }
 
 void display_entity_capabilities(SaHpiCapabilitiesT caps)
@@ -198,6 +205,138 @@ const char * get_error_string(SaErrorT error)
 			return "SA_ERR_HPI_UNINITIALIZED";
 		default:
 			return "(invalid error code)";
+	}
+}
+
+const char * type2string(SaHpiEntityTypeT type)
+{
+	switch(type) {
+	case SAHPI_ENT_UNSPECIFIED:
+		return "SAHPI_ENT_UNSPECIFIED";
+	case SAHPI_ENT_OTHER:
+		return "SAHPI_ENT_OTHER";
+	case SAHPI_ENT_UNKNOWN:
+		return "SAHPI_ENT_UNKNOWN";
+	case SAHPI_ENT_PROCESSOR:
+		return "SAHPI_ENT_PROCESSOR";
+	case SAHPI_ENT_DISK_BAY:
+		return "SAHPI_ENT_DISK_BAY";
+	case SAHPI_ENT_PERIPHERAL_BAY:
+		return "SAHPI_ENT_PERIPHERAL_BAY";
+	case SAHPI_ENT_SYS_MGMNT_MODULE:
+		return "SAHPI_ENT_SYS_MGMNT_MODULE";
+	case SAHPI_ENT_SYSTEM_BOARD:
+		return "SAHPI_ENT_SYSTEM_BOARD";
+	case SAHPI_ENT_MEMORY_MODULE:
+		return "SAHPI_ENT_MEMORY_MODULE";
+	case SAHPI_ENT_PROCESSOR_MODULE:
+		return "SAHPI_ENT_PROCESSOR_MODULE";
+	case SAHPI_ENT_POWER_SUPPLY:
+		return "SAHPI_ENT_POWER_SUPPLY";
+	case SAHPI_ENT_ADD_IN_CARD:
+		return "SAHPI_ENT_ADD_IN_CARD";
+	case SAHPI_ENT_FRONT_PANEL_BOARD:
+		return "SAHPI_ENT_FRONT_PANEL_BOARD";
+	case SAHPI_ENT_BACK_PANEL_BOARD:
+		return "SAHPI_ENT_BACK_PANEL_BOARD";
+	case SAHPI_ENT_POWER_SYSTEM_BOARD:
+		return "SAHPI_ENT_POWER_SYSTEM_BOARD";
+	case SAHPI_ENT_DRIVE_BACKPLANE:
+		return "SAHPI_ENT_DRIVE_BACKPLANE";
+	case SAHPI_ENT_SYS_EXPANSION_BOARD:
+		return "SAHPI_ENT_SYS_EXPANSION_BOARD";
+	case SAHPI_ENT_OTHER_SYSTEM_BOARD:
+		return "SAHPI_ENT_OTHER_SYSTEM_BOARD";
+	case SAHPI_ENT_PROCESSOR_BOARD:
+		return "SAHPI_ENT_PROCESSOR_BOARD";
+	case SAHPI_ENT_POWER_UNIT:
+		return "SAHPI_ENT_POWER_UNIT";
+	case SAHPI_ENT_POWER_MODULE:
+		return "SAHPI_ENT_POWER_MODULE";
+	case SAHPI_ENT_POWER_MGMNT:
+		return "SAHPI_ENT_POWER_MGMNT";
+	case SAHPI_ENT_CHASSIS_BACK_PANEL_BOARD:
+		return "SAHPI_ENT_CHASSIS_BACK_PANEL_BOARD";
+	case SAHPI_ENT_SYSTEM_CHASSIS:
+		return "SAHPI_ENT_SYSTEM_CHASSIS";
+	case SAHPI_ENT_SUB_CHASSIS:
+		return "SAHPI_ENT_SUB_CHASSIS";
+	case SAHPI_ENT_OTHER_CHASSIS_BOARD:
+		return "SAHPI_ENT_OTHER_CHASSIS_BOARD";
+	case SAHPI_ENT_DISK_DRIVE_BAY:
+		return "SAHPI_ENT_DISK_DRIVE_BAY";
+	case SAHPI_ENT_PERIPHERAL_BAY_2:
+		return "SAHPI_ENT_PERIPHERAL_BAY_2";
+	case SAHPI_ENT_DEVICE_BAY:
+		return "SAHPI_ENT_DEVICE_BAY";
+	case SAHPI_ENT_COOLING_DEVICE:
+		return "SAHPI_ENT_COOLING_DEVICE";
+	case SAHPI_ENT_COOLING_UNIT:
+		return "SAHPI_ENT_COOLING_UNIT";
+	case SAHPI_ENT_INTERCONNECT:
+		return "SAHPI_ENT_INTERCONNECT";
+	case SAHPI_ENT_MEMORY_DEVICE:
+		return "SAHPI_ENT_MEMORY_DEVICE";
+	case SAHPI_ENT_SYS_MGMNT_SOFTWARE:
+		return "SAHPI_ENT_SYS_MGMNT_SOFTWARE";
+	case SAHPI_ENT_BIOS:
+		return "SAHPI_ENT_BIOS";
+	case SAHPI_ENT_OPERATING_SYSTEM:
+		return "SAHPI_ENT_OPERATING_SYSTEM";
+	case SAHPI_ENT_SYSTEM_BUS:
+		return "SAHPI_ENT_SYSTEM_BUS";
+	case SAHPI_ENT_GROUP:
+		return "SAHPI_ENT_GROUP";
+	case SAHPI_ENT_REMOTE:
+		return "SAHPI_ENT_REMOTE";
+	case SAHPI_ENT_EXTERNAL_ENVIRONMENT:
+		return "SAHPI_ENT_EXTERNAL_ENVIRONMENT";
+	case SAHPI_ENT_BATTERY:
+		return "SAHPI_ENT_BATTERY";
+	case SAHPI_ENT_CHASSIS_SPECIFIC:
+		return "SAHPI_ENT_CHASSIS_SPECIFIC";
+	case SAHPI_ENT_BOARD_SET_SPECIFIC:
+		return "SAHPI_ENT_BOARD_SET_SPECIFIC";
+	case SAHPI_ENT_OEM_SYSINT_SPECIFIC:
+		return "SAHPI_ENT_OEM_SYSINT_SPECIFIC";
+	case SAHPI_ENT_ROOT:
+		return "SAHPI_ENT_ROOT";
+	case SAHPI_ENT_RACK:
+		return "SAHPI_ENT_RACK";
+	case SAHPI_ENT_SUBRACK:
+		return "SAHPI_ENT_SUBRACK";
+	case SAHPI_ENT_COMPACTPCI_CHASSIS:
+		return "SAHPI_ENT_COMPACTPCI_CHASSIS";
+	case SAHPI_ENT_ADVANCEDTCA_CHASSIS:
+		return "SAHPI_ENT_ADVANCEDTCA_CHASSIS";
+	case SAHPI_ENT_SYSTEM_SLOT:
+		return "SAHPI_ENT_SYSTEM_SLOT";
+	case SAHPI_ENT_SBC_BLADE:
+		return "SAHPI_ENT_SBC_BLADE";
+	case SAHPI_ENT_IO_BLADE:
+		return "SAHPI_ENT_IO_BLADE";
+	case SAHPI_ENT_DISK_BLADE:
+		return "SAHPI_ENT_DISK_BLADE";
+	case SAHPI_ENT_DISK_DRIVE:
+		return "SAHPI_ENT_DISK_DRIVE";
+	case SAHPI_ENT_FAN:
+		return "SAHPI_ENT_FAN";
+	case SAHPI_ENT_POWER_DISTRIBUTION_UNIT:
+		return "SAHPI_ENT_POWER_DISTRIBUTION_UNIT";
+	case SAHPI_ENT_SPEC_PROC_BLADE:
+		return "SAHPI_ENT_SPEC_PROC_BLADE";
+	case SAHPI_ENT_IO_SUBBOARD:
+		return "SAHPI_ENT_IO_SUBBOARD";
+	case SAHPI_ENT_SBC_SUBBOARD:
+		return "SAHPI_ENT_SBC_SUBBOARD";
+	case SAHPI_ENT_ALARM_MANAGER:
+		return "SAHPI_ENT_ALARM_MANAGER";
+	case SAHPI_ENT_ALARM_MANAGER_BLADE:
+		return "SAHPI_ENT_ALARM_MANAGER_BLADE";
+	case SAHPI_ENT_SUBBOARD_CARRIER_BLADE:
+		return "SAHPI_ENT_SUBBOARD_CARRIER_BLADE";
+	default:
+		return "(invalid entity type)";
 	}
 	return "\0";
 }
