@@ -49,6 +49,7 @@ main(int argc, char **argv)
   SaHpiEntryIdT nextrptentryid;
   SaHpiEntryIdT entryid;
   SaHpiResourceIdT resourceid;
+  SaHpiResetActionT action = -1;
   uchar breset;
   uchar bopt;
   uchar fshutdown = 0;
@@ -56,10 +57,15 @@ main(int argc, char **argv)
   printf("%s ver %s\n", argv[0],progver);
   breset = 3; /* hard reset as default */
   bopt = 0;    /* Boot Options default */
-  while ( (c = getopt( argc, argv,"rdconsx?")) != EOF )
+  while ( (c = getopt( argc, argv,"rdwconsx?")) != EOF )
      switch(c) {
           case 'd': breset = 0;     break;  /* power down */
-          case 'r': breset = 3;     break;  /* hard reset */
+          case 'r':
+		breset = 3;
+	      	action = SAHPI_COLD_RESET;
+     		break;  /* hard reset */
+	  case 'w':
+		action = SAHPI_WARM_RESET;
           case 'x': fdebug = 1;     break;  /* debug messages */
           case 'c': breset = 2;     break;  /* power cycle */
           case 'o': fshutdown = 1;  break;  /* shutdown OS */
@@ -101,11 +107,12 @@ main(int argc, char **argv)
 	rptentry.ResourceTag.Data[rptentry.ResourceTag.DataLength] = 0;
 	printf("rptentry[%d] resourceid=%d tag: %s\n",
 		entryid,resourceid, rptentry.ResourceTag.Data);
-        if (rptentry.ResourceCapabilities & SAHPI_CAPABILITY_POWER) {
+        if (rptentry.ResourceCapabilities & SAHPI_CAPABILITY_RESET) {
 		is_reset = 1;
 		rv1 = saHpiResourceResetStateSet(sessionid, 
-	     		resourceid, SAHPI_POWER_OFF);
-        	printf("ResetStateSet status = %d\n",rv1);
+	     		resourceid, action);
+	     		//resourceid, SAHPI_POWER_OFF);
+        	printf("ResetStateSet status = %d...requested %d\n",rv1, action);
 	}
      }
      rptentryid = nextrptentryid;
