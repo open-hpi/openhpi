@@ -40,42 +40,46 @@
                 } \
         } while(0)
 
-#define snmp_bc_lock(bclock)                                            \
-        do {                                                            \
-                if (!g_static_rec_mutex_trylock(&bclock.lock)) {        \
-                        dbg_snmp_lock("Lockcount: %d", bclock.count);        \
-                        dbg_snmp_lock("Going to block for a lock now");      \
-                        g_static_rec_mutex_lock(&bclock.lock);          \
-                        dbg_snmp_lock("Got the lock after blocking");        \
-                        bclock.count++;                                 \
-                } else {                                                \
-                        dbg_snmp_lock("Got the lock because no one had it"); \
-                        bclock.count++;                                 \
-                        dbg_snmp_lock("Lockcount: %d", bclock.count);      \
-                }                                                    \
+#define snmp_bc_lock(bclock)                                                                        \
+        do {                                                                                        \
+                if (!g_static_rec_mutex_trylock(&bclock.lock)) {                                    \
+                        dbg_snmp_lock("Going to block for a lock now. Lockcount %d\n",              \
+						bclock.count);                                      \
+                        g_static_rec_mutex_lock(&bclock.lock);                                      \
+                        bclock.count++;                                                             \
+                        dbg_snmp_lock("Got the lock after blocking, Lockcount %d\n", bclock.count); \
+                } else {                                                                            \
+                        bclock.count++;                                                             \
+                        dbg_snmp_lock("Got the lock because no one had it. Lockcount %d\n",         \
+							 bclock.count);                             \
+                }                                                                                   \
         } while(0)
 
-#define snmp_bc_unlock(bclock)                                          \
-        do {                                                            \
-                bclock.count--;                                         \
-                g_static_rec_mutex_unlock(&bclock.lock);               \
-                dbg_snmp_lock("Released the lock");   \
-        } while(0)
-
-
-#define snmp_bc_lock_handler(custom_handle)                                    	\
-        do {                                                         		\
-                snmp_bc_lock( custom_handle->snmp_bc_hlock );\
-                dbg("%s lock custom_handle %p, lock count %d \n", __FILE__, custom_handle,    \
-		    (custom_handle->snmp_bc_hlock.count)); \
+#define snmp_bc_unlock(bclock)                                                      \
+        do {                                                                        \
+                bclock.count--;                                                     \
+                g_static_rec_mutex_unlock(&bclock.lock);                            \
+                dbg_snmp_lock("Released the lock, lockcount %d\n", bclock.count);   \
         } while(0)
 
 
-#define snmp_bc_unlock_handler(custom_handle)                  	                  \
-        do {               	                    	                          \
-                snmp_bc_unlock( custom_handle->snmp_bc_hlock );\
-                dbg("%s unlock custom_handle %p , lock count %d \n", __FILE__, custom_handle,   \
-		      (custom_handle->snmp_bc_hlock.count)); \
+#define snmp_bc_lock_handler(custom_handle)                                    	      \
+        do {                                                         		      \
+                dbg_snmp_lock("Attempt to lock custom_handle %p, lock count %d \n",   \
+				custom_handle, (custom_handle->snmp_bc_hlock.count)); \
+                snmp_bc_lock( custom_handle->snmp_bc_hlock );			      \
+                dbg_snmp_lock("custom_handle %p got lock, lock count %d \n",          \
+		    		custom_handle, (custom_handle->snmp_bc_hlock.count)); \
+        } while(0)
+
+
+#define snmp_bc_unlock_handler(custom_handle)                  	                       \
+        do {               	                    	                               \
+                dbg_snmp_lock("Attempt to unlock custom_handle %p, lock count %d \n",  \
+				custom_handle, (custom_handle->snmp_bc_hlock.count));  \
+                snmp_bc_unlock( custom_handle->snmp_bc_hlock ); 		       \
+                dbg_snmp_lock("custom_handle %p released lock, lock count %d \n",      \
+		      		 custom_handle, (custom_handle->snmp_bc_hlock.count)); \
         } while(0)
 
 #endif
