@@ -1889,7 +1889,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
        break;
 
        case eFoHpiPluginLoad: {
-              SaHpiTextBufferT buf;
+              oHpiTextBufferT buf;
 
               PVERBOSE1("Processing oHpiPluginLoad.\n");
 
@@ -1905,7 +1905,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
        break;
 
        case eFoHpiPluginUnload: {
-              SaHpiTextBufferT buf;
+              oHpiTextBufferT buf;
 
               PVERBOSE1("Processing oHpiPluginUnload.\n");
 
@@ -1921,7 +1921,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
        break;
 
        case eFoHpiPluginInfo: {
-              SaHpiTextBufferT buf;
+              oHpiTextBufferT buf;
               oHpiPluginInfoT info;
 
               PVERBOSE1("Processing oHpiPluginInfo.\n");
@@ -1938,7 +1938,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
        break;
 
        case eFoHpiPluginGetNext: {
-              SaHpiTextBufferT buf, retbuf;
+              oHpiTextBufferT buf, retbuf;
 
               PVERBOSE1("Processing oHpiPluginGetNext.\n");
 
@@ -1950,10 +1950,6 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               ret = oHpiPluginGetNext( (char *)buf.Data, (char *)retbuf.Data,
                                        SAHPI_MAX_TEXT_BUFFER_LENGTH );
 
-              // the following is bogus and not used by the client
-              retbuf.DataType = SAHPI_TL_TYPE_TEXT;
-              retbuf.Language = SAHPI_LANG_ENGLISH;
-              // the real data
               retbuf.DataLength = strlen((char *)retbuf.Data);
 
               thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &retbuf );
@@ -1988,7 +1984,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
        break;
 
        case eFoHpiHandlerCreateAddTEntry: {
-              SaHpiTextBufferT key, value;
+              oHpiTextBufferT key, value;
               char *newkey, *newvalue;
 
               PVERBOSE1("Processing oHpiHandlerCreateAddTEntry.\n");

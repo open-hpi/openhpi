@@ -65,13 +65,19 @@ typedef union {
         SaHpiBoolT Threaded; /* !0 = YES, 0 = NO */
         char Path[OH_GLOBAL_STR_MAX_LENGTH]; /* Dir path to openhpi plugins */
         char VarPath[OH_GLOBAL_STR_MAX_LENGTH]; /* Dir path for openhpi data */
-        char Conf[SAHPI_MAX_TEXT_BUFFER_LENGTH]; /* File path of openhpi configuration */        
+        char Conf[SAHPI_MAX_TEXT_BUFFER_LENGTH]; /* File path of openhpi configuration */
 } oHpiGlobalParamUnionT;
 
 typedef struct {
         oHpiGlobalParamTypeT Type;
         oHpiGlobalParamUnionT u;
 } oHpiGlobalParamT;
+
+/* Note: This structure is used to marshal names & values for the daemon */
+typedef struct {
+    SaHpiUint16T   DataLength;
+    SaHpiUint8T    Data[OH_GLOBAL_STR_MAX_LENGTH];  /* Data buffer */
+} oHpiTextBufferT;
 
 /* Exported OpenHPI plugin prototypes */
 SaErrorT oHpiPluginLoad(char *name);

@@ -246,6 +246,7 @@ extern cMarshalType oHpiPluginInfoType;
 extern cMarshalType oHpiHandlerInfoType;
 #define oHpiGlobalParamTypeType SaHpiUint32Type
 extern cMarshalType oHpiGlobalParamType;
+extern cMarshalType oHpiTextBufferType;
 
 
 
