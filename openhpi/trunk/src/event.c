@@ -93,11 +93,13 @@ static SaErrorT oh_add_event_to_del(SaHpiDomainIdT did, struct oh_hpi_event *e)
         SaHpiSeverityT log_severity;
         SaHpiTextBufferT buffer;
         struct oh_domain *d;
-        SaErrorT rv = SA_OK;        
+        SaErrorT rv = SA_OK;     
+	char *env_var = NULL;
 
         /* FIXME: this needs to be locked at boot time */
-	if (getenv("OPENHPI_LOG_SEV")) 
-		strncpy(buffer.Data, getenv("OPENHPI_LOG_SEV"), SAHPI_MAX_TEXT_BUFFER_LENGTH);
+	env_var = getenv("OPENHPI_LOG_SEV"); 
+	if (env_var) 
+		strncpy(buffer.Data, env_var, strlen(env_var));
         if (oh_encode_severity(&buffer, &log_severity) != SA_OK) {
                 log_severity = SAHPI_MINOR;
         }
