@@ -1113,23 +1113,67 @@ SaErrorT SAHPI_API saHpiSensorReadingConvert (
                 SAHPI_IN SaHpiSensorReadingT *ReadingInput,
                 SAHPI_OUT SaHpiSensorReadingT *ConvertedReading)
 {
-        if (!SensorNum) {
-                switch (ReadingInput->ValuesPresent) {
+        struct oh_resource *res;
+        struct oh_rdr *rdr;
+        SaHpiSensorRecT *sensor;
+        SaHpiSensorReadingFormatsT format;
 
-                        case SAHPI_SRF_INTERPRETED:
-                                ConvertedReading->ValuesPresent = SAHPI_SRF_RAW;
-                                break;
-                        case SAHPI_SRF_RAW:
-                                ConvertedReading->ValuesPresent = SAHPI_SRF_INTERPRETED;
-                                break;
-                        default:
-                                return SA_ERR_HPI_INVALID_PARAMS;
-                }
-        } else 
+        OH_GET_RESOURCE;
+
+        rdr = get_rdr(res, SAHPI_SENSOR_RDR, SensorNum);
+
+        if (!rdr)
                 return SA_ERR_HPI_NOT_PRESENT;
-        
 
-        return SA_OK;
+        sensor = &rdr->rdr.RdrTypeUnion.SensorRec;
+
+        /* if ReadingInput neither contains a raw nor a intepreted value or
+           if it contains both, return an error */
+        format =   ReadingInput->ValuesPresent
+                 & (SAHPI_SRF_RAW|SAHPI_SRF_INTERPRETED);
+
+        if (format == 0 || format == (SAHPI_SRF_RAW|SAHPI_SRF_INTERPRETED))
+                return SA_ERR_HPI_INVALID_PARAMS;
+
+        /* if the sensor does not supports raw and interpreted values,
+           return an error */
+        format =   sensor->DataFormat.ReadingFormats
+                 & (SAHPI_SRF_RAW|SAHPI_SRF_INTERPRETED);
+
+        if (format != (SAHPI_SRF_RAW|SAHPI_SRF_INTERPRETED))
+                return SA_ERR_HPI_INVALID_DATA;
+
+        /* cannot convert non numeric values */
+        if (!sensor->DataFormat.IsNumeric)
+                return SA_ERR_HPI_INVALID_DATA;
+
+        /* if the conversion factors vary over sensor
+           range, return an error */ 
+        if (!sensor->DataFormat.FactorsStatic)
+                return  SA_ERR_HPI_INVALID_DATA;
+
+        if (ReadingInput->ValuesPresent == SAHPI_SRF_RAW) {
+                ConvertedReading->ValuesPresent = SAHPI_SRF_INTERPRETED;
+                ConvertedReading->Interpreted.Type = 
+                        SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32;
+
+                return sensor_convert_from_raw(sensor,
+                                               ReadingInput->Raw,
+                                               &ConvertedReading->Interpreted
+                                                .Value.SensorFloat32);
+        }
+
+        /* only float is supported */
+        if (   ReadingInput->Interpreted.Type
+            != SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32)
+                return SA_ERR_HPI_INVALID_PARAMS;
+
+        ConvertedReading->ValuesPresent = SAHPI_SRF_RAW;
+
+        return sensor_convert_to_raw(sensor,
+                                     ReadingInput->Interpreted.Value
+                                      .SensorFloat32,
+                                     &ConvertedReading->Raw);
 }
 
 SaErrorT SAHPI_API saHpiSensorThresholdsSet (

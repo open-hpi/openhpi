@@ -387,6 +387,15 @@ SaHpiTimeoutT get_hotswap_auto_insert_timeout(void);
 void set_hotswap_auto_insert_timeout(SaHpiTimeoutT);
 
 
+/* sensor value conversion */
+SaErrorT sensor_convert_from_raw(SaHpiSensorRecT *sensor,
+                                 SaHpiUint32T raw,
+                                 SaHpiFloat32T *value);
+SaErrorT sensor_convert_to_raw(SaHpiSensorRecT *sensor,
+                               SaHpiFloat32T value,
+                               SaHpiUint32T *result);
+
+
 static inline void gettimeofday1(SaHpiTimeT *t)
 {
         struct timeval now;
