@@ -856,3 +856,45 @@ SaErrorT get_value(Attributes_t *Attrs, int num, union_type_t *val)
 	*val = Attrs->Attrs[num].value;
 	return(SA_OK);
 }
+
+SaErrorT find_rdr_by_num(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
+			SaHpiInstrumentIdT num, SaHpiRdrTypeT type, int as,
+			SaHpiRdrT *retrdr)
+//as : 0 - get rdr by num
+//     1 - get first rdr
+{
+	SaHpiRdrT		rdr;
+	SaErrorT		rv;
+	SaHpiEntryIdT		entryid;
+	SaHpiEntryIdT		nextentryid;
+	SaHpiInstrumentIdT	rdrnum;
+
+	entryid = SAHPI_FIRST_ENTRY;
+	while (entryid !=SAHPI_LAST_ENTRY) {
+		rv = saHpiRdrGet(sessionid, resourceid, entryid, &nextentryid, &rdr);
+		if (rv != SA_OK) return(-1);
+		if ((type != SAHPI_NO_RECORD) && (rdr.RdrType != type))
+			continue;
+		switch (rdr.RdrType) {
+			case SAHPI_CTRL_RDR:
+				rdrnum = rdr.RdrTypeUnion.CtrlRec.Num; break;
+			case SAHPI_SENSOR_RDR:
+				rdrnum = rdr.RdrTypeUnion.SensorRec.Num; break;
+			case SAHPI_INVENTORY_RDR:
+				rdrnum = rdr.RdrTypeUnion.InventoryRec.IdrId; break;
+			case SAHPI_WATCHDOG_RDR:
+				rdrnum = rdr.RdrTypeUnion.WatchdogRec.WatchdogNum; break;
+			case SAHPI_ANNUNCIATOR_RDR:
+				rdrnum = rdr.RdrTypeUnion.AnnunciatorRec.AnnunciatorNum;
+				break;
+			default:
+				entryid = nextentryid; continue;
+		};
+		if ((rdrnum == num) || as) {
+			*retrdr = rdr;
+			return(SA_OK);
+		};
+		entryid = nextentryid;
+	};
+	return(-1);
+}

@@ -78,6 +78,9 @@ typedef struct {
 typedef int (*hpi_ui_print_cb_t)(char *buf);
 
 extern Domain_t	*init_resources(SaHpiSessionIdT session);	// create resources tree
+extern SaErrorT	find_rdr_by_num(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
+			SaHpiInstrumentIdT num, SaHpiRdrTypeT type, int as,
+			SaHpiRdrT *retrdr);
 extern void	free_attrs(Attributes_t *At);
 extern SaErrorT	get_rpt_attr(Rpt_t *rpt, char *attr_name, union_type_t *val);
 			// get rpt attribute value
