@@ -108,7 +108,7 @@ SaErrorT snmp_bc_get_guid(struct snmp_bc_hnd *custom_handle,
                         goto CLEANUP;
                 }
                 trace("UUID string %s", UUID);
-                /* convert UUID string to numberic UUID value */
+                /* convert UUID string to numeric UUID value */
                 if ( (status = uuid_parse(UUID, UUID_val)) ) {
                         dbg("Cannot parse UUID string err=%d.", status);
                         status = SA_ERR_HPI_ERROR;
@@ -132,7 +132,7 @@ SaErrorT snmp_bc_get_guid(struct snmp_bc_hnd *custom_handle,
                         goto CLEANUP;
                 }
                 trace("UUID=%s", UUID);
-                /* Convert UUID string to numberic UUID value */
+                /* Convert UUID string to numeric UUID value */
                 if ( (status = uuid_parse(UUID, UUID_val)) ) {
                         dbg("Cannot parse UUID string. err=%d.", status);
                         status = SA_ERR_HPI_ERROR;
