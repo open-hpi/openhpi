@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2004
+ * (C) Copyright IBM Corp. 2004-2005
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -35,7 +35,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SessionClose)
 	dOpenHpiClientParam(SAHPI_IN SaHpiSessionIdT SessionId);
 
 SaErrorT SAHPI_API dOpenHpiClientFunction(Discover)
-	dOpenHpiClientParam (SAHPI_IN SaHpiSessionIdT SessionId); 
+	dOpenHpiClientParam (SAHPI_IN SaHpiSessionIdT SessionId);
 
 #endif
 
