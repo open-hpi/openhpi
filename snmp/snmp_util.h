@@ -17,9 +17,10 @@
 #ifndef SNMP_BC_UTIL_H
 #define SNMP_BC_UTIL_H
 
-#ifndef OH_NETSNMP_51
-#include <net-snmp/net-snmp-config.h>
-#else
+#include <openhpi.h>
+
+#ifdef OH_NETSNMP_51
+
 /* BEGIN net-snmp-config.h (5.1) substitution */
 #define NET_SNMP_CONFIG_H
 
@@ -465,12 +466,13 @@
 #define DMALLOC_FUNC_CHECK
 #endif
 
+#else
+#include <net-snmp/net-snmp-config.h>
+
 #endif /* END net-snmp-config.h (5.1) substitution */
 
 #include <net-snmp/net-snmp-includes.h>
 #include <net-snmp/library/transform_oids.h>
-
-#include <SaHpi.h>
 
 #define MAX_ASN_STR_LEN 300
 
