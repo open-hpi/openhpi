@@ -45,4 +45,8 @@ SaErrorT oHpiHandlerDestroy(oHpiHandlerIdT id);
 SaErrorT oHpiHandlerInfo(oHpiHandlerIdT id, oHpiHandlerInfoT *info);
 SaErrorT oHpiHandlerGetNext(oHpiHandlerIdT id, oHpiHandlerIdT *next_id);
 
+/* Global parameters */
+SaErrorT oHpiGlobalParamGet(char *name, char *value, int size);
+SaErrorT oHpiGlobalParamSet(const char *name, char *value);
+
 #endif /*__OHPI_H*/

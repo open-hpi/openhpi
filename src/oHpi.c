@@ -29,6 +29,14 @@
 
 /* Plugin operations */
 
+/**
+ * oHpiPluginLoad
+ * @name: IN. String. name of plugin to load (e.g. "libdummy")
+ *
+ * Loads plugin into library creating a plugin object.
+ *
+ * Returns: SA_OK on success. Minus SA_OK on error.
+ **/
 SaErrorT oHpiPluginLoad(char *name)
 {
         if (!name) {
@@ -44,6 +52,16 @@ SaErrorT oHpiPluginLoad(char *name)
         return SA_OK;
 }
 
+/**
+ * oHpiPluginUnload
+ * @name: IN. String. name of plugin to unload (e.g. "libdummy")
+ *
+ * Unload plugin from library, destroying the plugin object.
+ * This will return an error if there are any handlers referencing
+ * the plugin (e.g. refcount > 1).
+ *
+ * Returns: SA_OK on success. Minus SA_OK on error.
+ **/
 SaErrorT oHpiPluginUnload(char *name)
 {
         if (!name) {
@@ -59,6 +77,15 @@ SaErrorT oHpiPluginUnload(char *name)
         return SA_OK;
 }
 
+/**
+ * oHpiPluginInfo
+ * @name: IN. String. name of plugin to query (e.g. "libdummy")
+ * @info: IN/OUT. Reference to information structure on the plugin.
+ *
+ * Unload plugin from library, destroying the plugin object.
+ *
+ * Returns: SA_OK on success. Minus SA_OK on error.
+ **/
 SaErrorT oHpiPluginInfo(char *name, oHpiPluginInfoT *info)
 {
         struct oh_plugin *p = NULL;
@@ -84,6 +111,19 @@ SaErrorT oHpiPluginInfo(char *name, oHpiPluginInfoT *info)
         return SA_OK;
 }
 
+/**
+ * oHpiPluginGetNext
+ * @name: IN. String. name of plugin to search for (e.g. "libdummy")
+ * @next_name: IN/OUT. Next plugin after @name will be placed here.
+ * @size: IN. Size in bytes of the @next_name buffer.
+ *
+ * Searches for the specified plugin and returns the next plugin name
+ * after that one in the list. If you pass NULL in @name, you will get
+ * the name of the first plugin in @next_name. Used to iterate through
+ * all loaded plugins.
+ *
+ * Returns: SA_OK on success. Minus SA_OK on error.
+ **/
 SaErrorT oHpiPluginGetNext(char *name, char *next_name, int size)
 {
         if (!next_name) {
@@ -102,6 +142,18 @@ SaErrorT oHpiPluginGetNext(char *name, char *next_name, int size)
 
 /* Handler operations */
 
+/**
+ * oHpiHandlerCreate
+ * @config: IN. Hash table. Holds configuration information used by handler.
+ * @id: IN/OUT. The id of the newly created handler is returned here.
+ *
+ * Creates a new handler (instance of a plugin). Plugin handlers are what
+ * respond to most API calls.
+ * @config needs to have an entry for "plugin" in order to know for which
+ * plugin the handler is being created.
+ *
+ * Returns: SA_OK on success. Minus SA_OK on error.
+ **/
 SaErrorT oHpiHandlerCreate(GHashTable *config,
                            oHpiHandlerIdT *id)
 {
@@ -124,6 +176,14 @@ SaErrorT oHpiHandlerCreate(GHashTable *config,
         return SA_OK;
 }
 
+/**
+ * oHpiHandlerDestroy
+ * @id: IN. The id of the handler to destroy
+ *
+ * Destroys a handler. Calls the plugin's abi close function.
+ *
+ * Returns: SA_OK on success. Minus SA_OK on error.
+ **/
 SaErrorT oHpiHandlerDestroy(oHpiHandlerIdT id)
 {
         if (!id)
@@ -137,6 +197,15 @@ SaErrorT oHpiHandlerDestroy(oHpiHandlerIdT id)
         return SA_OK;
 }
 
+/**
+ * oHpiHandlerInfo
+ * @id: IN. The id of the handler to query
+ * @info: IN/OUT. Pointer to struct for holding handler information
+ *
+ * Queries a handler for the information associated with it.
+ *
+ * Returns: SA_OK on success. Minus SA_OK on error.
+ **/
 SaErrorT oHpiHandlerInfo(oHpiHandlerIdT id, oHpiHandlerInfoT *info)
 {
         struct oh_handler *h = NULL;
@@ -160,6 +229,18 @@ SaErrorT oHpiHandlerInfo(oHpiHandlerIdT id, oHpiHandlerInfoT *info)
 	return SA_OK;
 }
 
+/**
+ * oHpiHandlerGetNext
+ * @id: IN. Id of handler to search for.
+ * @next_id: IN/OUT. The id of the handler next to the handler being searched for
+ * will be returned here.
+ *
+ * Used for iterating through all loaded handlers. If you pass
+ * 0 (SAHPI_FIRST_ENTRY), you will get the id of the first handler returned
+ * in next_id.
+ *
+ * Returns: SA_OK on success. Minus SA_OK on error.
+ **/
 SaErrorT oHpiHandlerGetNext(oHpiHandlerIdT id, oHpiHandlerIdT *next_id)
 {
         if (!next_id) {
@@ -173,4 +254,36 @@ SaErrorT oHpiHandlerGetNext(oHpiHandlerIdT id, oHpiHandlerIdT *next_id)
                 return SA_ERR_HPI_NOT_PRESENT;
 
         return SA_OK;
+}
+
+/* Global parameters */
+
+/**
+ * oHpiGlobalParamGet
+ * @name: IN. Name of global parameter to get.
+ * @value: IN/OUT. Place to put the value for parameter @name.
+ * @size: IN. Size of @value buffer.
+ *
+ * Gets the value of the specified global parameter.
+ *
+ * Returns: SA_OK on success. Minus SA_OK on error.
+ **/
+SaErrorT oHpiGlobalParamGet(char *name, char *value, int size)
+{
+        return -1;
+}
+
+/**
+ * oHpiGlobalParamSet
+ * @name: IN. Name of global parameter to set.
+ * @value: IN. Value to set.
+ *
+ * Sets a global parameter. This will return an error if
+ * an attempt to set is made after any plugins have been loaded.
+ *
+ * Returns: SA_OK on success. Minus SA_OK on error.
+ **/
+SaErrorT oHpiGlobalParamSet(const char *name, char *value)
+{
+        return -1;
 }
