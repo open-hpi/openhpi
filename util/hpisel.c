@@ -1,23 +1,51 @@
-/*      -*- linux-c -*-
+/*
+ * hpisel.c
  *
- * Copyright (c) 2003 by Intel Corp.
+ * Author:  Andy Cress  arcress@users.sourceforge.net
+ * Copyright (c) 2003 Intel Corporation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
- * file and program are licensed under a BSD style license.  See
- * the Copying file included with the OpenHPI distribution for
- * full licensing terms.
- *
- * Authors:
- *     Andy Cress <arcress@users.sourceforge.net>
- */
-
-/* 
+ * 04/28/03 Andy Cress - created
+ * 04/30/03 Andy Cress v0.6 first good run with common use cases
+ * 05/06/03 Andy Cress v0.7 added -c option to clear it
+ * 05/29/03 Andy Cress v0.8 fixed pstr warnings
+ * 06/13/03 Andy Cress v0.9 fixed strcpy bug, 
+ *                          workaround for SensorEvent.data3
+ * 06/19/03 Andy Cress 0.91 added low SEL free space warning
+ * 06/25/03 Andy Cress v1.0 rework event data logic 
+ * 07/23/03 Andy Cress workaround for OpenHPI BUGGY stuff
+ * 11/12/03 Andy Cress v1.1 check for CAPABILITY_SEL
+ * 
  * Note that HPI 1.0 does not return all event data fields, so event
  * types other than 'user' will not have all bytes filled in as they
  * would have from IPMI alone.
  */
+/*M*
+Copyright (c) 2003, Intel Corporation
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without 
+modification, are permitted provided that the following conditions are met:
+
+  a.. Redistributions of source code must retain the above copyright notice, 
+      this list of conditions and the following disclaimer. 
+  b.. Redistributions in binary form must reproduce the above copyright notice,
+      this list of conditions and the following disclaimer in the documentation 
+      and/or other materials provided with the distribution. 
+  c.. Neither the name of Intel Corporation nor the names of its contributors 
+      may be used to endorse or promote products derived from this software 
+      without specific prior written permission. 
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR 
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; 
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON 
+ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *M*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -26,7 +54,7 @@
 #include <time.h>
 #include "SaHpi.h"
 
-char progver[] = "1.0";
+char progver[] = "1.1";
 int fdebug = 0;
 int fclear = 0;
 
@@ -188,7 +216,7 @@ char *decode_error(SaErrorT code)
    return(str);
 }
 
-static void ShowSel( SaHpiSelEntryT  *sel, SaHpiRdrT *rdr, 
+void ShowSel( SaHpiSelEntryT  *sel, SaHpiRdrT *rdr, 
 		SaHpiRptEntryT *rptentry )
 {
   unsigned char evtype;
@@ -211,7 +239,7 @@ static void ShowSel( SaHpiSelEntryT  *sel, SaHpiRdrT *rdr,
 
   if (sel->Event.Timestamp > SAHPI_TIME_MAX_RELATIVE) { /*absolute time*/
      tt1 = sel->Event.Timestamp / 1000000000;
-     strftime(timestr,sizeof(timestr),"%F %X", localtime(&tt1));
+     strftime(timestr,sizeof(timestr),"%x %H:%M:%S", localtime(&tt1));
   } else if (sel->Event.Timestamp > SAHPI_TIME_UNSPECIFIED) { /*invalid time*/
      strcpy(timestr,"invalid time     ");
   } else {   /*relative time*/
@@ -309,7 +337,7 @@ static void ShowSel( SaHpiSelEntryT  *sel, SaHpiRdrT *rdr,
 	} /*end for*/
 	if (i >= NSDESC) {
 	   if (styp >= NUMST) styp = 0;
-	   (const char *)pstr = sensor_types[styp];
+	   pstr = (char *)sensor_types[styp];
 	}
         sprintf(&outbuf[outlen], "%s, %s %02x %02x %02x [%02x %02x %02x]",
 		pstr, gen_desc[ix].str,
@@ -324,7 +352,7 @@ static void ShowSel( SaHpiSelEntryT  *sel, SaHpiRdrT *rdr,
 		if (fdebug) printf("sensor type %d >= max %d\n",styp,NUMST);
 		styp = 0; 
 	}
-	(const char *)pstr = sensor_types[styp];
+	pstr = (char *)sensor_types[styp];
         sprintf(&outbuf[outlen], "%s, %x %x, %02x %02x %02x [%02x %02x %02x/%02x]",
 			pstr, pd[0], pd[7], pd[10], pd[11], pd[12], 
 				pd[13], pd[14], pd[15], data3);
@@ -386,20 +414,7 @@ main(int argc, char **argv)
          rptinfo.UpdateCount, (unsigned long)rptinfo.UpdateTimestamp);
 
 #ifdef BUGGY
-  /* ARC: Bug here in OpenHPI requires re-doing discovery (workaround). */
-  { 
-      int updcnt;
-      int i = 0;
-      updcnt = rptinfo.UpdateCount;
-      while (rptinfo.UpdateCount == updcnt) {
-	   rv = saHpiResourcesDiscover(sessionid);
-	 if (fdebug) printf("saHpiResourcesDiscover %s\n",decode_error(rv));
-	 rv = saHpiRptInfoGet(sessionid,&rptinfo);
-	 if (fdebug) printf("saHpiRptInfoGet %s\n",decode_error(rv));
-	 printf("RptInfo/%d: UpdateCount = %d, UpdateTime = %lx\n",
-	      ++i,rptinfo.UpdateCount, (unsigned long)rptinfo.UpdateTimestamp);
-      }
-  }  /*end openhpi bug workaround*/
+  /* ARC: Bug here in OpenHPI required re-doing discovery as a workaround. */
 #endif
  
   /* walk the RPT list */
@@ -410,6 +425,10 @@ main(int argc, char **argv)
      if (fdebug) printf("saHpiRptEntryGet %s\n",decode_error(rv));
      if (rv == SA_OK) {
 	resourceid = rptentry.ResourceId;
+	if (fdebug) printf("RPT %x capabilities = %x\n", resourceid,
+				rptentry.ResourceCapabilities);
+	if ((rptentry.ResourceCapabilities & SAHPI_CAPABILITY_SEL) == 0) 
+		continue;  /* no SEL here, try next RPT */
 	if (fclear) {
 		rv = saHpiEventLogClear(sessionid,resourceid);
 		if (rv == SA_OK) printf("EventLog successfully cleared\n");
