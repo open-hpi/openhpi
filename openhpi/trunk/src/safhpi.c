@@ -117,7 +117,7 @@ SaErrorT SAHPI_API saHpiInitialize(SAHPI_OUT SaHpiVersionT *HpiImplVersion)
         struct oh_plugin_config *tmpp;
         GHashTable *tmph;
       
-        int i;
+        unsigned int i;
         char *openhpi_conf;
         
         if (OH_STAT_UNINIT != oh_hpi_state) {
@@ -331,7 +331,7 @@ SaErrorT SAHPI_API saHpiRptEntryGet(
                 }                       
         }else {
                 no = EntryId - entry_id_offset;
-                if (no < 0 || no>=g_slist_length(global_rpt)) {
+                if (no < 0 || (unsigned int)no>=g_slist_length(global_rpt)) {
                         dbg("Invalid EntryId");
                         data_access_unlock();
                         return SA_ERR_HPI_INVALID;
@@ -356,7 +356,7 @@ SaErrorT SAHPI_API saHpiRptEntryGet(
                 no++;
         }
         
-        if (no<g_slist_length(global_rpt)) {
+        if (no < 0 || (unsigned int)no<g_slist_length(global_rpt)) {
                 *NextEntryId = no+entry_id_offset;
         } else {
                 *NextEntryId = SAHPI_LAST_ENTRY;
@@ -1038,7 +1038,7 @@ SaErrorT SAHPI_API saHpiRdrGet (
 {
         struct oh_resource *res;
         struct oh_rdr *rdr;     
-        int no;
+        unsigned int no;
         
         data_access_lock();
         
