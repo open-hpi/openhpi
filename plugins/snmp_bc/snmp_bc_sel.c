@@ -484,4 +484,37 @@ int snmp_bc_parse_sel_entry(struct snmp_session *ss, char * text, bc_sel_entry *
         return 0;
 }
 
+/**
+ * snmp_bc_clear_sel:
+ * @hnd: 
+ * @id: 
+ * @info: 
+ * 
+ * Return value: 0 on success, < 0 on error
+ **/
+SaErrorT snmp_bc_clear_sel(void *hnd, SaHpiResourceIdT id) 
+{
+        char oid[50];
+	int retcode;
+	struct snmp_value set_value;
+        struct oh_handler_state *handle = hnd;
+        struct snmp_bc_hnd *custom_handle = handle->data;
+	SaErrorT rv;
+		
+	rv = oh_sel_clear(handle->selcache);
+
+	sprintf(oid, "%s", BC_CLEAR_SEL_OID);
+	set_value.type = ASN_INTEGER;
+	set_value.str_len = 1;
+	set_value.integer = (long) clearEventLogExecute;
+	retcode = snmp_set(custom_handle->ss, oid, set_value);
+	
+	if (retcode != 0)
+		rv = SA_ERR_HPI_ERROR;
+	else 
+		rv = SA_OK;
+		
+	return rv;
+
+}
 /* end of snmp_bc_sel.c */
