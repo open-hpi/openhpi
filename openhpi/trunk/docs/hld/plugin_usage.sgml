@@ -143,12 +143,33 @@ handler libsnmp_bc {
       </para>
       <para>
         Once the firmware is updated, SNMP access must be enabled 
-        using the Management Module web interface.  This is found
-        under the Networking options in the web interface.  There is a
-        field to both set the community string (i.e. password) and up
-        to 3 allowed hosts to connect to the Management Module.
+        using the Management Module web interface. 
+	Details and up-to-date instruction on setting up BladeCenter SNMP agent can be found at IBM's
+        <ulink
+          url="http://www-1.ibm.com/servers/eserver/support/xseries/index.html"
+          >XSeries Support Page</ulink> under Redbooks link, search for BladeCenter.
+	Then look in 
+        <ulink
+          url="http://www.redbooks.ibm.com/redpapers/pdfs/redp3582.pdf"
+          >IBM eServer BladeCenter Systems Management, REDP-3582-00;</ulink> 
+	IBM  BladeCenter Management Module Web GUI.
+      </para>
+      <para>
+	SNMP v1 is supported in both BladeCenter Enterprise and BladeCenter Telco.
+        For SNMP v1, in the web interface, (a) set MM Control - General Settings.
+	(b) Set MM Control - Network Protocols,  there are fields to 
+        enable snmpv1, fields to  set the community string (i.e. password) and up
+        to 3 allowed hosts per community to connect to the Management Module.
         Ensure that the host running OpenHPI is included in the list
         of allowed hosts.
+      </para>
+      <para>
+	SNMP v3 is supported in BladeCenter Telco.  SNMP v3 will be supported in
+	BladeCenter Enterprise future (year end 2004) Management Module firmware.
+        For snmpv3, in the web interface, (a) set MM Control - General Settings.
+	(b) Set MM Control - Login Profiles, select a paticular userid then follow the link
+	at the end of user info page to Configure SNMPv3 User. 
+	(c) Set MM Control - Network Protocols,  there is field to enable snmpv3.
       </para>
     </sect2>
     <sect2>
