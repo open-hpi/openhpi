@@ -56,15 +56,19 @@ static tResult HandleMsg(psstrmsock thrdinst, char *buf);
 
 }
 
-static bool stop_server = FALSE;
 #define CLIENT_TIMEOUT 1800  // 30 minutes
+#define PID_FILE "/var/run/openhpid.pid"
+
+static bool stop_server = FALSE;
 
 /* options set by the command line */
+static char *pid_file = NULL;
 static int verbose_flag = 0;
 static struct option long_options[] = {
-        {"verbose", no_argument,       &verbose_flag, 1},
-        {"config",  required_argument, NULL,          'c'},
-        {"port",    required_argument, NULL,          'p'},
+        {"verbose", no_argument,       NULL, 'v'},
+        {"config",  required_argument, NULL, 'c'},
+        {"port",    required_argument, NULL, 'p'},
+        {"pidfile", required_argument, NULL, 'f'},
         {0, 0, 0, 0}
 };
 
@@ -83,6 +87,8 @@ int main (int argc, char *argv[])
         int port, c, option_index = 0;
         char *portstr;
         char * configfile = NULL;
+        char pid_buf[256];
+        int pfile, len, pid = 0;
 
         /* get the command line options */
         while (1) {
@@ -101,14 +107,45 @@ int main (int argc, char *argv[])
                 case 'p':
                         setenv("OPENHPI_DAEMON_PORT", optarg, 1);
                         break;
+                case 'v':
+                        verbose_flag = 1;
+                        break;
+                case 'f':
+                        pid_file = (char *)malloc(strlen(optarg) + 1);
+                        strcpy(pid_file, optarg);
+                        break;
                 default:
                         exit(-1);
                 }
+        }
+        if (pid_file == NULL) {
+                pid_file = (char *)malloc(strlen(PID_FILE) + 1);
+                strcpy(pid_file, PID_FILE);
         }
         if (optind < argc) {
                 printf("Error: Unknown command line option specified .\n");
                 printf("       Aborting execution.\n");
                 exit(-1);
+        }
+
+        // see if we are already running
+        if ((pfile = open(pid_file, O_RDONLY)) > 0) {
+                len = read(pfile, pid_buf, sizeof(pid_buf) - 1);
+                close(pfile);
+                pid_buf[len] = '\0';
+                pid = atoi(pid_buf);
+                if (pid && (pid == getpid() || kill(pid, 0) < 0)) {
+                        unlink(pid_file);
+                        pfile = open(pid_file, O_WRONLY | O_CREAT, 0640);
+                        snprintf(pid_buf, sizeof(pid_buf), "%d\n", (int)getpid());
+                        write(pfile, pid_buf, strlen(pid_buf));
+                        close(pfile);
+                } else {
+                        // there is already a server running
+                        printf("Error: There is already a server running .\n");
+                        printf("       Aborting execution.\n");
+                        exit(1);
+                }
         }
 
         // see if we have a valid configuration file
@@ -192,6 +229,9 @@ int main (int argc, char *argv[])
 
 static bool morph2daemon(bool runasdaemon)
 {
+        char pid_buf[256];
+        int pfile;
+
 	if (signal(SIGPIPE, SIG_IGN) == SIG_ERR) {
 		return false;
 	}
@@ -218,6 +258,14 @@ static bool morph2daemon(bool runasdaemon)
 			exit(0);
 		}
 
+                // create the pid file (overwrite of old pid file is ok)
+                unlink(pid_file);
+                pfile = open(pid_file, O_WRONLY | O_CREAT, 0640);
+                snprintf(pid_buf, sizeof(pid_buf), "%d\n", (int)getpid());
+                write(pfile, pid_buf, strlen(pid_buf));
+                close(pfile);
+
+                // housekeeping
 		chdir("/");
 		umask(0);
 		for(int i = 0; i < 1024; i++) {
