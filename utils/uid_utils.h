@@ -22,6 +22,9 @@
  */
 #define OH_DEFAULT_UID_MAP "/var/lib/openhpi/uid_map"
 
+#ifdef __cplusplus
+extern "C" {
+#endif 
 
 /* hpi internal apis */
 SaErrorT oh_uid_initialize(void); 
@@ -30,6 +33,9 @@ guint oh_uid_remove(guint uid);
 guint oh_uid_lookup(SaHpiEntityPathT *ep);
 guint oh_entity_path_lookup(guint *id, SaHpiEntityPathT *ep);
 guint oh_uid_map_to_file(void);
+#ifdef __cplusplus
+}
+#endif 
 
 /* uid to entity path cross reference (xref) data structure */ 
 typedef struct {
