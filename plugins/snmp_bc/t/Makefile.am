@@ -87,9 +87,7 @@ check_PROGRAMS = $(TESTS)
 
 # Unit test using normal IF calls and simulation library
 tevent_SOURCES = tevent.c
-tevent_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
-		 $(top_builddir)/src/libopenhpi.la \
-		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la
+tevent_LDADD   = $(top_builddir)/src/libopenhpi.la
 
 # Unit tests with IF and snmp calls stubbed out
 tutils_oid_SOURCES = tutils_oid.c
