@@ -20,6 +20,8 @@
 #include <SaHpi.h>
 #include <glib.h>
 
+#define OH_MAX_EVT_QUEUE_LIMIT 0
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -33,12 +35,12 @@ struct oh_resource_event {
         SaHpiRptEntryT entry;
 };
 
-/* 
+/*
  * The event is used for plugin to report its RDRs in resource.
  */
 struct oh_rdr_event {
         SaHpiResourceIdT parent;
-	SaHpiRdrT rdr;
+        SaHpiRdrT rdr;
 };
 
 /*
@@ -47,20 +49,20 @@ struct oh_rdr_event {
 struct oh_hpi_event {
         /* Resource Associated with event */
         SaHpiRptEntryT res;
-	/* RDR Associated with event */
+        /* RDR Associated with event */
         SaHpiRdrT rdr;
         /* the real event */
         SaHpiEventT event;
 };
 
-/* 
+/*
  * This is the main event structure. It is used for plugin report
  * its discovery about new resource/rdr or what happened on resource
  */
 
 typedef enum {
         OH_ET_NONE = 0, /* if this is set the event is invalid */
-        OH_ET_RESOURCE, 
+        OH_ET_RESOURCE,
         OH_ET_RESOURCE_DEL,
         OH_ET_RDR,
         OH_ET_RDR_DEL,
@@ -69,8 +71,8 @@ typedef enum {
 
 typedef union {
         struct oh_resource_event res_event;
-        struct oh_rdr_event	 rdr_event;
-        struct oh_hpi_event	 hpi_event;
+        struct oh_rdr_event      rdr_event;
+        struct oh_hpi_event      hpi_event;
 } oh_event_union;
 
 struct oh_event {
@@ -93,6 +95,6 @@ SaErrorT oh_process_events(void);
 #ifdef __cplusplus
 }
 #endif
-        
+
 #endif /* __OH_EVENT_H */
 

@@ -246,8 +246,10 @@ SaErrorT oh_queue_session_event(SaHpiSessionIdT sid, struct oh_event *event)
 
        if (param.u.evt_queue_limit != OH_MAX_EVT_QUEUE_LIMIT &&
            g_async_queue_length(session->eventq) >= param.u.evt_queue_limit) {
+               /* Don't proceed with event push if queue is overflowed */
                g_static_rec_mutex_unlock(&oh_sessions.lock);
                g_free(qevent);
+               dbg("Session %d's queue is out of space",session->id);
                return SA_ERR_HPI_OUT_OF_SPACE;
        }
 
