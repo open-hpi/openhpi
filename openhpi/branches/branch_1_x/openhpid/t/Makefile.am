@@ -14,6 +14,8 @@
 
 REMOTE_SOURCES		= simple_config.c
 
+EXTRA_DIST 		= config_000.conf
+
 MOSTLYCLEANFILES 	= $(REMOTE_SOURCES) $(shell ls *.bb*) $(shell ls *.da) $(shell ls *.gcov)
 MAINTAINERCLEANFILES 	= Makefile.in *~
 
@@ -26,6 +28,9 @@ $(REMOTE_SOURCES):
 	if test ! -f $@ -a ! -L $@; then \
 		ln -s ../$@; \
 	fi
+
+# Setup environment variables for TESTS programs
+TESTS_ENVIRONMENT = TEST_CONFIG_FILE=$(srcdir)/config_000.conf
 
 TESTS = \
 	config_000
