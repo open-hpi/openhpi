@@ -21,7 +21,7 @@
 
 struct oh_session_table oh_sessions = {        
         .table = NULL,
-        .lock = NULL
+        .lock = G_STATIC_REC_MUTEX_INIT
 };
 
 static struct oh_event *oh_generate_hpi_event(void)
@@ -80,11 +80,11 @@ SaHpiSessionIdT oh_create_session(SaHpiDomainIdT did)
                 g_free(session);
                 return 0;
         }
-        g_mutex_lock(oh_sessions.lock); /* Locked session table */
+        g_static_rec_mutex_lock(&oh_sessions.lock); /* Locked session table */
         session->id = id++;
         g_hash_table_insert(oh_sessions.table, &(session->id), session);
         g_array_append_val(domain->sessions, session->id);
-        g_mutex_unlock(oh_sessions.lock); /* Unlocked session table */        
+        g_static_rec_mutex_unlock(&oh_sessions.lock); /* Unlocked session table */        
         oh_release_domain(domain);
                 
         return session->id;
@@ -105,15 +105,15 @@ SaHpiDomainIdT oh_get_session_domain(SaHpiSessionIdT sid)
         
         if (sid < 1) return 0;
 
-        g_mutex_lock(oh_sessions.lock); /* Locked session table */
+        g_static_rec_mutex_lock(&oh_sessions.lock); /* Locked session table */
         session = g_hash_table_lookup(oh_sessions.table, &sid);
         if (!session) {
-                g_mutex_unlock(oh_sessions.lock);
+                g_static_rec_mutex_unlock(&oh_sessions.lock);
                 return 0;
         }
         
         did = session->did;
-        g_mutex_unlock(oh_sessions.lock); /* Unlocked session table */
+        g_static_rec_mutex_unlock(&oh_sessions.lock); /* Unlocked session table */
         
 
         return did;
@@ -173,14 +173,14 @@ SaErrorT oh_get_session_state(SaHpiDomainIdT sid, SaHpiBoolT *state)
 
         if (sid < 1 || !state) return SA_ERR_HPI_INVALID_PARAMS;
 
-        g_mutex_lock(oh_sessions.lock); /* Locked session table */
+        g_static_rec_mutex_lock(&oh_sessions.lock); /* Locked session table */
         session = g_hash_table_lookup(oh_sessions.table, &sid);
         if (!session) {
-                g_mutex_unlock(oh_sessions.lock);
+                g_static_rec_mutex_unlock(&oh_sessions.lock);
                 return SA_ERR_HPI_NOT_PRESENT;
         }
         *state = session->state;
-        g_mutex_unlock(oh_sessions.lock); /* Unlocked session table */
+        g_static_rec_mutex_unlock(&oh_sessions.lock); /* Unlocked session table */
 
         return SA_OK;
 }
@@ -200,14 +200,14 @@ SaErrorT oh_set_session_state(SaHpiDomainIdT sid, SaHpiBoolT state)
 
        if (sid < 1) return SA_ERR_HPI_INVALID_PARAMS;
 
-       g_mutex_lock(oh_sessions.lock); /* Locked session table */
+       g_static_rec_mutex_lock(&oh_sessions.lock); /* Locked session table */
        session = g_hash_table_lookup(oh_sessions.table, &sid);
        if (!session) {
-               g_mutex_unlock(oh_sessions.lock);
+               g_static_rec_mutex_unlock(&oh_sessions.lock);
                return SA_ERR_HPI_NOT_PRESENT;
        }
        session->state = state;
-       g_mutex_unlock(oh_sessions.lock); /* Unlocked session table */
+       g_static_rec_mutex_unlock(&oh_sessions.lock); /* Unlocked session table */
 
        return SA_OK;
 }
@@ -229,15 +229,15 @@ SaErrorT oh_queue_session_event(SaHpiSessionIdT sid, struct oh_event *event)
        if (sid < 1 || !event) return SA_ERR_HPI_INVALID_PARAMS;
 
        qevent = g_memdup(event, sizeof(struct oh_event));
-       g_mutex_lock(oh_sessions.lock); /* Locked session table */
+       g_static_rec_mutex_lock(&oh_sessions.lock); /* Locked session table */
        session = g_hash_table_lookup(oh_sessions.table, &sid);
        if (!session) {               
-               g_mutex_unlock(oh_sessions.lock);
+               g_static_rec_mutex_unlock(&oh_sessions.lock);
                g_free(qevent);
                return SA_ERR_HPI_NOT_PRESENT;
        }
        g_async_queue_push(session->eventq2, qevent);
-       g_mutex_unlock(oh_sessions.lock); /* Unlocked session table */
+       g_static_rec_mutex_unlock(&oh_sessions.lock); /* Unlocked session table */
 
        return SA_OK;
 }
@@ -262,15 +262,15 @@ SaErrorT oh_dequeue_session_event(SaHpiSessionIdT sid,
 
        if (sid < 1 || !event) return SA_ERR_HPI_INVALID_PARAMS;
 
-       g_mutex_lock(oh_sessions.lock); /* Locked session table */
+       g_static_rec_mutex_lock(&oh_sessions.lock); /* Locked session table */
        session = g_hash_table_lookup(oh_sessions.table, &sid);
        if (!session) {
-               g_mutex_unlock(oh_sessions.lock);
+               g_static_rec_mutex_unlock(&oh_sessions.lock);
                return SA_ERR_HPI_NOT_PRESENT;
        }
        eventq = session->eventq2;
        g_async_queue_ref(eventq);
-       g_mutex_unlock(oh_sessions.lock);
+       g_static_rec_mutex_unlock(&oh_sessions.lock);
 
        if (timeout == SAHPI_TIMEOUT_IMMEDIATE) {
                devent = g_async_queue_try_pop(eventq);
@@ -310,15 +310,15 @@ SaErrorT oh_destroy_session(SaHpiDomainIdT sid)
 
         if (sid < 1) return SA_ERR_HPI_INVALID_PARAMS;
 
-        g_mutex_lock(oh_sessions.lock); /* Locked session table */
+        g_static_rec_mutex_lock(&oh_sessions.lock); /* Locked session table */
         session = g_hash_table_lookup(oh_sessions.table, &sid);
         if (!session) {
-                g_mutex_unlock(oh_sessions.lock);
+                g_static_rec_mutex_unlock(&oh_sessions.lock);
                 return SA_ERR_HPI_NOT_PRESENT;
         }
 
         g_hash_table_remove(oh_sessions.table, &(session->id));
-        g_mutex_unlock(oh_sessions.lock); /* Unlocked session table */
+        g_static_rec_mutex_unlock(&oh_sessions.lock); /* Unlocked session table */
         did = session->did;
 
         /* Finalize session */

@@ -151,8 +151,7 @@ SaErrorT oh_initialize()
         }        
         dbg("Created first domain");
 
-        /* Initialize session table */
-        oh_sessions.lock = g_mutex_new();
+        /* Initialize session table */        
         oh_sessions.table = g_hash_table_new(g_int_hash, g_int_equal);
         dbg("Initialized session table");
         
