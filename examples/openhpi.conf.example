@@ -4,12 +4,14 @@
 #example:
 #global {
 #        OPENHPI_LOG_SEV = "MAJOR"
+#        OPENHPI_ON_EP = "{SYSTEM_CHASSIS,1}"
 #}
 #Parameters in the global stanza will be converted to
 #environment variables.
-#Here you can set which events will be logged in the domain
+#OPENHPI_LOG_SEV sets which events will be logged in the domain
 #system event log based on severity: CRITICAL, MAJOR, MINOR,
-#INFORMATIONAL,OK, and DEBUG.
+#INFORMATIONAL, OK, and DEBUG.
+#OPENHPI_ON_EP sets the entity path on wich the application is running.
 
 ###Second section, declare plugin to use:
 #example:
