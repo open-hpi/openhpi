@@ -20,8 +20,6 @@
 #ifndef SNMP_BC_INVENTORY_H
 #define SNMP_BC_INVENTORY_H
 
-#include <snmp_bc.h>
-
 #define SIZE_OF_WORKING_SPACE 1024
 #define NOS_BC_INVENTORY_FIELDS 10
 

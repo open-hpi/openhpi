@@ -20,7 +20,7 @@
 #include <SaHpi.h>
 #include <openhpi.h>
 #include <oh_utils.h>
-#include <snmp_util.h>
+#include <snmp_utils.h>
 #include <snmp_client.h>
 #include <snmp_client_res.h>
 #include <snmp_client_utils.h>
