@@ -9,6 +9,7 @@ AM_CFLAGS               = @CFLAGS@
 
 bin_PROGRAMS = \
 	hpigetevents \
+        hpiinv \
 	hpisensor
 
 #bin_PROGRAMS           = hpialarmpanel \
@@ -18,7 +19,6 @@ bin_PROGRAMS = \
 #                          hpireset \
 #                         hpireset2 \
 #                          hpisel \
-#                          hpiinv \
 #                          hpisettime \
 #                          hpiwdt \
 #                          hpipower \
@@ -63,9 +63,9 @@ hpisensor_LDFLAGS       =
 #hpiwdt_LDADD            = $(COMMONLIBS)
 #hpiwdt_LDFLAGS          =
 
-#hpiinv_SOURCES          = hpiinv.c
-#hpiinv_LDADD            = $(COMMONLIBS)
-#hpiinv_LDFLAGS          =
+hpiinv_SOURCES          = hpiinv.c
+hpiinv_LDADD            = $(COMMONLIBS)
+hpiinv_LDFLAGS          =
 
 #hpisettime_SOURCES      = hpisettime.c
 #hpisettime_LDADD        = $(COMMONLIBS)
