@@ -222,9 +222,9 @@ SaErrorT ohoi_set_reset_state(void *hnd, SaHpiResourceIdT id,
 	int rv;
 	int reset_flag = 0;	/* reset_flag = 1 means reset is done */
         
-        if (act != SAHPI_COLD_RESET) {
+        if ((act != SAHPI_COLD_RESET) && (act != SAHPI_WARM_RESET)) {
                 dbg("Only support cold reset");
-                return SA_ERR_HPI_CAPABILITY;
+                return SA_ERR_HPI_INVALID_CMD;
         }
 
         ohoi_res_info = oh_get_resource_data(handler->rptcache, id);
@@ -428,7 +428,7 @@ void get_reset_state(ipmi_control_t *control,
 
 	rv = ipmi_control_get_val(control, get_reset_control_val, cb_data);
 	if (rv) {
-		dbg("[reset] control_get_val failed");
+		dbg("[reset] control_get_val failed. IPMI error = %i", rv);
 		reset_info->err = SA_ERR_HPI_INTERNAL_ERROR;
 		reset_info->done = 1;
 	}
