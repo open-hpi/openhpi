@@ -219,7 +219,8 @@ struct BC_ControlMibInfo {
         unsigned int not_avail_indicator_num; /* 0 for none, n>0 otherwise */
         int write_only; /* Write-only SNMP command; 0 no; 1 yes  */
         const char *oid;
-        int digitalmap[ELEMENTS_IN_SaHpiStateDigitalT];
+        int digitalmap[ELEMENTS_IN_SaHpiStateDigitalT];  /* Readable controls */
+	int digitalwmap[ELEMENTS_IN_SaHpiStateDigitalT]; /* Writable controls */
 };
 
 struct BC_ControlInfo {
