@@ -70,7 +70,10 @@ int main(int argc, char **argv)
 	/************************** 
 	 * Test :
 	 **************************/
-	/* expected_err = SA_OK; Need to investigate why ss == NULL */                   
+	/* expected_err = SA_OK;  */
+        /* Can not test this path */
+	/* Simulator custom_handle->ss = NULL */
+
 	expected_err = SA_ERR_HPI_INVALID_PARAMS;                   
 	err = snmp_bc_set_sp_time(custom_handle->ss, &time);
 	checkstatus(&err, &expected_err, &testfail);
