@@ -24,11 +24,11 @@
 
 int main(int argc, char **argv)
 {
+	printf("HPI Shell version: %d.%d\n", HPI_SHELL_MAJOR, HPI_SHELL_MINOR);
 /*
 	Fix Me: parse option here
 */
 	open_session();
 	cmd_shell();
 	close_session();
-	return 0;
 }
