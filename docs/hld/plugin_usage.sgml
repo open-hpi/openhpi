@@ -30,7 +30,35 @@
       To add a plugin for usage by OpenHPI one has to add at least 2
       stanzas to the <literal>/etc/openhpi/openhpi.conf</literal>
       file.  These are a <literal>plugin</literal> and
-      <literal>handler</literal> stanza.
+      <literal>handler</literal> stanza.  An example configuration
+      file is shown below.
+    </para>
+    <para>
+      <literal><literallayout>
+# Sample /etc/openhpi/openhpi.conf
+# comments start with # character
+
+plugin libdummy
+
+handler libdummy {
+          entity_root = "{ROOT,0}{SYSTEM_CHASSIS,2}"
+}          
+
+plugin libsnmp_bc
+
+handler libsnmp_bc {
+          community = "mypass"
+          host = "10.0.0.1"
+          entity_root = "{ROOT,0}{SYSTEM_CHASSIS,0}"
+}
+
+handler libsnmp_bc {
+          community = "mypass"
+          host = "10.0.0.21"
+          entity_root = "{ROOT,0}{SYSTEM_CHASSIS,1}"
+}
+
+        </literallayout></literal>
     </para>
   </sect1>
   <sect1>
@@ -110,7 +138,19 @@
     <sect2>
       <title>Configuration</title>
       <para>
-        TBD
+        Below is an example configuration stanza:
+      </para>
+      <para>
+        <literal>
+          <literallayout>
+plugin libsnmp_bc
+
+handler libsnmp_bc {
+          community = "myc0m"
+          host = "192.168.64.52"
+}
+          </literallayout>
+        </literal>
       </para>
     </sect2>
   </sect1>
