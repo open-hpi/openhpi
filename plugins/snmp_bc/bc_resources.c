@@ -275,7 +275,8 @@ struct snmp_rpt snmp_rpt_array[] = {
                         },
                         .ResourceCapabilities = SAHPI_CAPABILITY_EVT_DEASSERTS |
                                                 SAHPI_CAPABILITY_RDR |
-                                                SAHPI_CAPABILITY_RESOURCE,
+                                                SAHPI_CAPABILITY_RESOURCE |
+			                        SAHPI_CAPABILITY_SENSOR,
                         .ResourceSeverity = SAHPI_MAJOR,
                 },
                 .bc_res_info = {
