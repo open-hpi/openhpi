@@ -1309,7 +1309,19 @@ SaErrorT SAHPI_API saHpiResourceResetStateGet (
 		SAHPI_IN SaHpiResourceIdT ResourceId,
 		SAHPI_OUT SaHpiResetActionT *ResetAction)
 {
-	return SA_ERR_HPI_UNSUPPORTED_API;
+	struct oh_resource *res;
+	int (*get_func)(void *, struct oh_resource_id, SaHpiResetActionT *);
+	
+	OH_GET_RESOURCE;
+	
+	get_func = res->handler->abi->get_reset_state;
+	if (!get_func) 
+		return SA_ERR_HPI_UNSUPPORTED_API;
+
+	if (get_func(res->handler->hnd, res->oid, ResetAction)<0) 
+		return SA_ERR_HPI_UNKNOWN;
+	
+	return SA_OK;
 }
 
 SaErrorT SAHPI_API saHpiResourceResetStateSet (
@@ -1317,5 +1329,17 @@ SaErrorT SAHPI_API saHpiResourceResetStateSet (
 		SAHPI_IN SaHpiResourceIdT ResourceId,
 		SAHPI_IN SaHpiResetActionT ResetAction)
 {
-	return SA_ERR_HPI_UNSUPPORTED_API;
+	struct oh_resource *res;
+	int (*set_func)(void *, struct oh_resource_id, SaHpiResetActionT);
+	
+	OH_GET_RESOURCE;
+	
+	set_func = res->handler->abi->set_reset_state;
+	if (!set_func) 
+		return SA_ERR_HPI_UNSUPPORTED_API;
+
+	if (set_func(res->handler->hnd, res->oid, ResetAction)<0) 
+		return SA_ERR_HPI_UNKNOWN;
+	
+	return SA_OK;
 }
