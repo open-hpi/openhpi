@@ -561,6 +561,7 @@ AC_CONFIG_FILES([openhpi.spec
         plugins/remote_client/Makefile
         plugins/simulator/Makefile
         snmp/Makefile
+	snmp/t/Makefile
         src/Makefile
         src/plugin_static.c
         test/Makefile
