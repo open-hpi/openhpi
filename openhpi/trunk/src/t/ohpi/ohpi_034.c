@@ -74,8 +74,6 @@ int main(int argc, char **argv)
         if (!oHpiHandlerGetNext(hid1, &next_id))
                 return -1;
                 
-        /* Restore config file env variable */
-        setenv("OPENHPI_CONF",config_file,1);
         
         return 0;
 }

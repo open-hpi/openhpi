@@ -52,8 +52,6 @@ int main(int argc, char **argv)
         if (!oHpiPluginGetNext("libdummy", next_plugin, PLUGIN_NAME_SIZE))
                 return -1;        
 
-        /* Restore config file env variable */
-        setenv("OPENHPI_CONF",config_file,1);                           
         
         return oHpiPluginUnload("libwatchdog");
 }

@@ -34,8 +34,6 @@ int main(int argc, char **argv)
         if (saHpiSessionOpen(1, &sid, NULL))
                 return -1;
                 
-        /* Restore config file env variable */
-        setenv("OPENHPI_CONF",config_file,1);
         
         return oHpiPluginLoad("libdummy");
 }

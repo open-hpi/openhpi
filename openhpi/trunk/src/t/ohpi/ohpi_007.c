@@ -75,8 +75,6 @@ int main(int argc, char **argv)
         if (oHpiHandlerCreate(h2,&hid2) || oHpiHandlerCreate(h3,&hid3))
                 return -1;
                 
-        /* Restore config file env variable */
-        setenv("OPENHPI_CONF",config_file,1);                           
         
         return 0;
 }

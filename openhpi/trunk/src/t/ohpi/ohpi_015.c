@@ -37,8 +37,6 @@ int main(int argc, char **argv)
         if (oHpiPluginLoad("libdummy"))
                 return -1;
                 
-        /* Restore config file env variable */
-        setenv("OPENHPI_CONF",config_file,1);                           
         
         return !oHpiPluginUnload("bogusplugin");
 }
