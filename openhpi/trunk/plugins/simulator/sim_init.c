@@ -61,7 +61,7 @@ void *sim_open(GHashTable *handler_config)
                 return NULL;
         }
        
-       build_rptcache(state->rptcache);
+
 
         return ( (void *) state);
 }
@@ -76,6 +76,14 @@ SaErrorT sim_discover(void *hnd)
 	struct oh_handler_state *inst = (struct oh_handler_state *) hnd;
 	struct oh_event event;
 	SaHpiRptEntryT *rpt_entry;
+	SaHpiEntityPathT root_ep;
+	char *entity_root;
+
+	struct oh_handler_state *oh_hnd = hnd;
+	entity_root=(char *)g_hash_table_lookup(oh_hnd->config,"entity_root");
+	oh_encode_entitypath (entity_root, &root_ep);
+
+       build_rptcache(inst->rptcache, &root_ep);
 
 	rpt_entry = oh_get_resource_next(inst->rptcache, SAHPI_FIRST_ENTRY);
 
@@ -119,19 +127,15 @@ void sim_close(void *hnd)
 }
 
 
-SaErrorT build_rptcache(RPTable *rptcache) 
+SaErrorT build_rptcache(RPTable *rptcache, SaHpiEntityPathT *root_ep) 
 {
 	int i;
 	SaHpiRptEntryT res;
-	SaHpiEntityPathT root_ep;
-//	char *entity_root;
 
-//	entity_root=(char *)g_hash_table_lookup(oh_hnd->config,"entity_root");
-//	oh_encode_entitypath(entity_root,&root_ep);
 	
 	for(i=0; i<sizeof(dummy_rpt_array)/sizeof(SaHpiRptEntryT); i++){
 		memcpy(&res, &dummy_rpt_array[i], sizeof(SaHpiRptEntryT));
-		oh_concat_ep(&res.ResourceEntity, &root_ep);
+		oh_concat_ep(&res.ResourceEntity, root_ep);
 		res.ResourceId = oh_uid_from_entity_path(&res.ResourceEntity);
 		
 		dbg("Adding resource number %d",i);
