@@ -3660,7 +3660,7 @@ struct snmp_bc_control snmp_bc_chassis_controls[] = {
 /****************
  * Blade Controls
  ****************/
-#define LAST_COMMON_BLADE_CONTROL_NUM 2
+#define LAST_COMMON_BLADE_CONTROL_NUM 1
 
 struct snmp_bc_control snmp_bc_blade_controls[] = {
 
@@ -3695,10 +3695,56 @@ struct snmp_bc_control snmp_bc_blade_controls[] = {
                 },
                 .comment = "Blade LED - Information."
         },
+
+        {} /* Terminate array with a null element */
+};
+
+/* BladeCenter code 59x contain a bug, which makes writing to this LED impossible thru
+ * SNMP. LED works fine with BladeCenter Telco. When this bug is fixed on BladeCenter,
+ * this LED can be moved back to the common control arrary and snmp_bci_blade_controls
+ * can be deleted.
+ */
+struct snmp_bc_control snmp_bci_blade_controls[] = {
         /* Blade Identify R/W LED */
         {
                 .control = {
-                        .Num = LAST_COMMON_BLADE_CONTROL_NUM,
+                        .Num = LAST_COMMON_BLADE_CONTROL_NUM + 1,
+                        .Ignore = SAHPI_FALSE,
+                        .OutputType = SAHPI_CTRL_LED,
+                        .Type = SAHPI_CTRL_TYPE_DIGITAL,
+                        .TypeUnion.Digital.Default = SAHPI_CTRL_STATE_OFF,
+                        .Oem = 0
+                },
+                .bc_control_info = {
+                        .mib = {
+                                .not_avail_indicator_num = 0,
+                                .write_only = 0,
+                                .oid = ".1.3.6.1.4.1.2.3.51.2.2.8.2.1.1.11.x",
+				/* Read values */
+                                .digitalmap[0] =  0, /* Off */
+                                .digitalmap[1] =  1, /* On */
+                                .digitalmap[2] = -1, /* Not applicable */
+                                .digitalmap[3] =  2, /* Blinking */
+                                .digitalmap[4] = -1, /* Not applicable */
+				/* Write values */
+                                .digitalwmap[0] = -1, /* Cannot write this value */
+                                .digitalwmap[1] = -1, /* Cannot write this value */
+                                .digitalwmap[2] = -1, /* Not applicable */
+                                .digitalwmap[3] = -1, /* Cannot write this value */
+                                .digitalwmap[4] = -1, /* Not applicable */
+                        },
+                },
+                .comment = "Blade LED - Identify."
+        },
+
+        {} /* Terminate array with a null element */
+};
+
+struct snmp_bc_control snmp_bct_blade_controls[] = {
+        /* Blade Identify R/W LED */
+        {
+                .control = {
+                        .Num = LAST_COMMON_BLADE_CONTROL_NUM + 1,
                         .Ignore = SAHPI_FALSE,
                         .OutputType = SAHPI_CTRL_LED,
                         .Type = SAHPI_CTRL_TYPE_DIGITAL,
@@ -3726,15 +3772,10 @@ struct snmp_bc_control snmp_bc_blade_controls[] = {
                 },
                 .comment = "Blade LED - Identify."
         },
-
-        {} /* Terminate array with a null element */
-};
-
-struct snmp_bc_control snmp_bct_blade_controls[] = {
         /* Blade's number of restarts counter */
         {
                 .control = {
-                        .Num = LAST_COMMON_BLADE_CONTROL_NUM + 1,
+                        .Num = LAST_COMMON_BLADE_CONTROL_NUM + 2,
                         .Ignore = SAHPI_FALSE,
                         .OutputType = SAHPI_CTRL_GENERIC,
                         .Type = SAHPI_CTRL_TYPE_DISCRETE,

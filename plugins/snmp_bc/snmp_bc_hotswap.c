@@ -105,6 +105,7 @@ SaErrorT snmp_bc_set_reset_state(void *hnd, SaHpiResourceIdT id,
 				 SaHpiResetActionT act)
 {
 	gchar *oid;
+	SaErrorT status;
         struct snmp_value set_value;
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
         struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
@@ -138,10 +139,12 @@ SaErrorT snmp_bc_set_reset_state(void *hnd, SaHpiResourceIdT id,
 		set_value.str_len = 1;
 		set_value.integer = 1;
 		
-		if((snmp_set(custom_handle->ss, oid, set_value) != 0)) {
+		status = snmp_bc_snmp_set(custom_handle, custom_handle->ss, oid, set_value);
+		if (status != SA_OK) {
 			dbg("SNMP could not set %s; Type=%d.\n",oid,set_value.type);
 			g_free(oid);
-			return SA_ERR_HPI_NO_RESPONSE;
+			if (status == SA_ERR_HPI_BUSY) return status;
+			else return SA_ERR_HPI_NO_RESPONSE;
 		}
 		g_free(oid);
 		break;
@@ -210,6 +213,8 @@ SaErrorT snmp_bc_set_power_state(void *hnd, SaHpiResourceIdT id,
 {
 	gchar *oid;
 	int rtn_code = SA_OK;
+	SaErrorT status;
+
         struct snmp_value set_value;
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
         struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
@@ -238,17 +243,21 @@ SaErrorT snmp_bc_set_power_state(void *hnd, SaHpiResourceIdT id,
 	switch (state) {
 	case SAHPI_HS_POWER_OFF:
 		set_value.integer = 0;
-		if((snmp_set(custom_handle->ss, oid, set_value) != 0)) {
+		status = snmp_bc_snmp_set(custom_handle, custom_handle->ss, oid, set_value);
+		if (status != SA_OK) {
 			dbg("SNMP could not set %s; Type=%d.\n",s->mib.OidPowerOnOff,set_value.type);
-			rtn_code = SA_ERR_HPI_NO_RESPONSE;
+			if (status == SA_ERR_HPI_BUSY) return status;
+			else return SA_ERR_HPI_NO_RESPONSE;
 		}
 		break;
 		
 	case SAHPI_HS_POWER_ON:
 		set_value.integer = 1;
-		if((snmp_set(custom_handle->ss, oid, set_value) != 0)) {
+		status = snmp_bc_snmp_set(custom_handle, custom_handle->ss, oid, set_value);
+		if (status != SA_OK) {
 			dbg("SNMP could not set %s; Type=%d.\n",s->mib.OidPowerOnOff,set_value.type);
-			rtn_code = SA_ERR_HPI_NO_RESPONSE;
+			if (status == SA_ERR_HPI_BUSY) return status;
+			else return SA_ERR_HPI_NO_RESPONSE;
 		}
 		break;
 		
