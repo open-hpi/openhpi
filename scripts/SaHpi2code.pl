@@ -46,21 +46,47 @@
 # - 1 error occurred
 #########################################################################
 
+#use strict;
 use Getopt::Long;
 
 GetOptions(
-  "debug"   => \$debug,
-  "ifile=s" => \$ifile,
-  "odir=s"  => \$odir,
-  "oname=s" => \$oname,
-  "tdir=s"  => \$tdir,
+  "debug"   => \my $debug,
+  "ifile=s" => \my $ifile,
+  "odir=s"  => \my $odir,
+  "tdir=s"  => \my $tdir,
 );
 
-##########################
-# Set directory/file names
-##########################
+sub normalize_file(*);
+sub parse_category_events(*$);
+sub print_copywrite(*);
+sub print_hfile_header(*$);
+sub print_cfile_header;
+sub print_xfile_header;
+sub print_xhfile_header;
+sub print_testfile_header;
+sub print_xtestfile_header; 
+sub beautify_type_name($);
+sub print_hfile_func($$);
+sub print_cfile_func($);
+sub beautify_enum_name($$);
+sub print_cfile_case($$);
+sub print_cfile_encode_array_header($);
+sub print_cfile_encode_array($$);
+sub print_cfile_encode_func($);
+sub print_testfile_case($$);
+sub print_xtestfile_case($$$);
+sub print_xtestfile_badevent($);
+sub print_cfile_endfunc;
+sub print_testfile_endfunc($);
+sub print_hfile_ending(*);
+sub print_testfile_ending;
+sub print_xtestfile_ending;
 
-$cur_dir = `pwd`;
+######################################
+# Main Code - Set directory/file names
+######################################
+
+my $cur_dir = `pwd`;
 chomp $cur_dir;
 
 if ($ifile eq "") {
@@ -72,102 +98,105 @@ if ($odir eq "") {
 }
 
 #if ($oname eq "") {
-($dir, $base, $ext) = ($ifile =~ m:(.*)/([^/]+)\.([^\./]+)$:);
+my ($dir, $base, $ext) = ($ifile =~ m:(.*)/([^/]+)\.([^\./]+)$:);
 ($base, $ext) = ($ifile =~ m:^([^/]+)\.([^\./]+)$:) unless $base;
 die "cannot find base for file $ifile" unless $base;
-$ocfile = $base . "_enum_utils.c";
-$ohfile = $base . "_enum_utils.h";
-$oxcfile = $base . "_event_utils.c.embed";
-$txbase_name = "t" . "$base" . "_event_embed.c";
+
+$base = lc($base);
+my $ocfile = $base . "_enum_utils.c";
+my $ohfile = $base . "_enum_utils.h";
+my $oxcfile = $base . "_event_encode.c";
+my $oxhfile = $base . "_event_encode.h";
 #}
 #else {
 #    $ocfile = $oname . ".c";
 #    $ohfile = $oname . ".h";
 #}
 
-if ($tdir) {
-    $tbase_name = "t" . "$ocfile";
-#    $txbase_name = "t" . "$oxcfile";
-    $tfile = "$tdir/$tbase_name";
-    $txfile = "$tdir/$txbase_name";
-}
-
-$file_c   = $odir . "/$ocfile";
-$file_h   = $odir . "/$ohfile";
-$file_x   = $odir . "/$oxcfile";
+my $file_c  = $odir . "/$ocfile";
+my $file_h  = $odir . "/$ohfile";
+my $file_x  = $odir . "/$oxcfile";
+my $file_xh = $odir . "/$oxhfile";
 
 unlink $file_c;
 unlink $file_h;
 unlink $file_x;
-if ($tdir) { 
-    unlink $txfile;
-    unlink $tfile;
-}
-
-############
-# Open files
-############
-
+unlink $file_xh;
 open(INPUT_HEADER, $ifile) or die "$0 Error! Cannot open $ifile. $! Stopped";
 open(FILE_C, ">>$file_c") or die "$0 Error! Cannot open file $file_c. $! Stopped";
 open(FILE_H, ">>$file_h") or die "$0 Error! Cannot open file $file_h. $! Stopped";
 open(FILE_X, ">>$file_x") or die "$0 Error! Cannot open file $file_x. $! Stopped";
-if ($tdir) { 
+open(FILE_XH, ">>$file_xh") or die "$0 Error! Cannot open file $file_xh. $! Stopped";
+
+my $tbase_name = "$ocfile";
+my $txbase_name = "$oxcfile";
+$tbase_name =~ s/\.c$/_test\.c/;
+$txbase_name =~ s/\.c$/_test\.c/;
+my $tfile = "$tdir/$tbase_name";
+my $txfile = "$tdir/$txbase_name";
+
+if ($tdir) {
+    unlink $txfile;
+    unlink $tfile;
     open(FILE_TEST, ">>$tfile") or die "$0 Error! Cannot open file $tfile. $! Stopped";
-    open(FILE_XTEST, ">>$txfile") or die "$0 Error! Cannot open file $txfile. $! Stopped";
+    open(XFILE_TEST, ">>$txfile") or die "$0 Error! Cannot open file $txfile. $! Stopped";
 }
 
 #########################
 # Parse input header file
 #########################
 
-$in_enum = 0;
-$line_count = 0;
-$rtn_code = 0;
-$max_events = 0;
-$max_global_events = 0;
+my $rtn_code = 0;
 
-$cat_type = "SaHpiEventCategoryT";
-$err_type = "SaErrorT";
+my $cat_type = "SaHpiEventCategoryT";
+my $err_type = "SaErrorT";
 
-@cat_array = ();
-@err_array = ();
-@enum_array = ();
-@normalized_array = ();
+my @cat_array = ();
+my @err_array = ();
+my @enum_array = ();
+my @normalized_array = ();
 
-%category = ();
-%global_category = ();
+my %category = ();
+my %global_category = ();
 
-if (normalize_file(INPUT_HEADER)) { $rtn_code = 1; goto CLEANUP; }
+if (normalize_file INPUT_HEADER) { $rtn_code = 1; goto CLEANUP; }
 
-print_copywrite(FILE_C);
-print_copywrite(FILE_H);
-print_copywrite(FILE_X);
+print_copywrite FILE_C;
+print_copywrite FILE_H;
+print_copywrite FILE_X;
+print_copywrite FILE_XH;
 if ($tdir) { 
-    print_copywrite(FILE_TEST);
-    print_copywrite(FILE_XTEST);
+    print_copywrite FILE_TEST;
+    print_copywrite XFILE_TEST;
 }
 
+print_hfile_header FILE_H, $ohfile;
+print_hfile_header FILE_XH, $oxhfile;
 print_cfile_header();
-print_hfile_header();
 print_xfile_header();
+print_xhfile_header();
 if ($tdir) { 
     print_testfile_header();
     print_xtestfile_header();
 }
 
-foreach $line (@normalized_array) {
+my $in_enum = 0;
+my $line_count = 0;
+my $max_global_events = 0;
+my $max_events = 0;
+
+foreach my $line (@normalized_array) {
     $_ = $line;
 
     # Handle SaErrorT definitions
-    ($err_code) = /^\s*\#define\s+(\w+)\s*\($err_type\).*$/;
+    my ($err_code) = /^\s*\#define\s+(\w+)\s*\($err_type\).*$/;
     if ($err_code) {
         push(@err_array, $err_code);
 	next;
     }
 
     # Handle SaHpiEventCategoryT definitions
-    ($cat_code) = /^\s*\#define\s+(\w*)\s*\($cat_type\).*$/;
+    my ($cat_code) = /^\s*\#define\s+(\w*)\s*\($cat_type\).*$/;
     if ($cat_code) {
         push(@cat_array, $cat_code);
 	next;
@@ -180,24 +209,35 @@ foreach $line (@normalized_array) {
 	 
     if ($in_enum) {
 	# Check for end of enum definition - Assumming all on one line
-	($enum_end, $enum_type) = /^\s*(\}+)\s*(\w*)\s*\;\s*$/;
+	my ($enum_end, $enum_type) = /^\s*(\}+)\s*(\w*)\s*\;\s*$/;
 	if ( $enum_end ne "" ) {
 	    $in_enum = 0;
 	    $line_count++;
 	    print_cfile_func($enum_type);
-	    foreach $case (@enum_array) {
+	    my $max_enums = 0;
+	    foreach my $case (@enum_array) {
+		$max_enums++;
 		print_cfile_case($enum_type, $case);
 		if ($tdir) { print_testfile_case($enum_type, $case); }
 	    }
 	    print_cfile_endfunc();
+
+	    # Create encoding code
+	    print_cfile_encode_array_header($enum_type);
+	    foreach my $case (@enum_array) {
+		print_cfile_encode_array($enum_type, $case);
+	    }
+	    print FILE_C "};\n\n";
+	    print_cfile_encode_func($enum_type);
+
 	    if ($tdir) { print_testfile_endfunc($enum_type); }
-	    print_hfile_func($enum_type);
+	    print_hfile_func($enum_type, $max_enums);
 	    @enum_array = ();
 	    next;
 	}
 
 	# Find enum definition - sometimes "{" is on the next line
-	($enum_def) = /^\s*\{*\s*(\w+).*$/;
+	my ($enum_def) = /^\s*\{*\s*(\w+).*$/;
 	if ($enum_def) {
 	    push(@enum_array, $enum_def);
 	}		     
@@ -206,38 +246,60 @@ foreach $line (@normalized_array) {
 
 if ($in_enum) { die "$0 Error! Open enum definition. $! Stopped"; }
 if ($#err_array > 0) {
+    my $max_enums = 0;
     $line_count++;
     print_cfile_func($err_type);
-    foreach $case (@err_array) {
+    foreach my $case (@err_array) {
+	$max_enums++;
 	print_cfile_case($err_type, $case);
 	if ($tdir) { print_testfile_case($err_type, $case); }
     }
     print_cfile_endfunc();
+
+    # Create encode function
+    print_cfile_encode_array_header($err_type);
+    foreach my $case (@err_array) {
+	print_cfile_encode_array($err_type, $case);
+    }
+    print FILE_C "};\n\n";
+    print_cfile_encode_func($err_type);
+
     if ($tdir) { print_testfile_endfunc($err_type); }
-    print_hfile_func($err_type);
+    print_hfile_func($err_type, $max_enums);
 }
 
 if ($#cat_array > 0) {
+    my $max_enums = 0;
     $line_count++;
     print_cfile_func($cat_type);
-    foreach $case (@cat_array) {
+    foreach my $case (@cat_array) {
+	$max_enums++;
 	print_cfile_case($cat_type, $case);
 	if ($tdir) { 
 	    print_testfile_case($cat_type, $case); 
 	}
     }
     print_cfile_endfunc();
+
+    # Create encode function
+    print_cfile_encode_array_header($cat_type);
+    foreach my $case (@cat_array) {
+	print_cfile_encode_array($cat_type, $case);
+    }
+    print FILE_C "};\n\n";
+    print_cfile_encode_func($cat_type);
+
     if ($tdir) { print_testfile_endfunc($cat_type); }
-    print_hfile_func($cat_type);
+    print_hfile_func($cat_type, $max_enums);
 }
 
 ####################################
 # Handle event states and categories 
 ####################################
 
-print FILE_X "static oh_categorystate_map state_global_strings[] = {\n";
-foreach $gc (keys %global_category) {
-    foreach $gevt (sort {$global_category{$gc}->{$a}->{value} <=>
+print FILE_X "oh_categorystate_map state_global_strings[] = {\n";
+foreach my $gc (keys %global_category) {
+    foreach my $gevt (sort {$global_category{$gc}->{$a}->{value} <=>
 			     $global_category{$gc}->{$b}->{value}} keys %{$global_category{$gc}}) {
 	$max_global_events++;
 	if ($debug) { print("CAT=$gc; EVENT=$gevt; STR=$global_category{$gc}->{$gevt}->{string}\n"); }
@@ -249,11 +311,13 @@ foreach $gc (keys %global_category) {
     print_xtestfile_badevent("SAHPI_EC_UNSPECIFIED");
 }
 print FILE_X "};\n\n";
-print FILE_X "\#define OH_MAX_STATE_GLOBAL_STRINGS $max_global_events\n\n";
 
-print FILE_X "static oh_categorystate_map state_strings[] = {\n";
-foreach $c (keys %category) {
-    foreach $evt (sort {$category{$c}->{$a}->{value} <=>
+print FILE_XH "\#define OH_MAX_STATE_GLOBAL_STRINGS $max_global_events\n";
+print FILE_XH "oh_categorystate_map state_global_strings[OH_MAX_STATE_GLOBAL_STRINGS];\n\n";
+
+print FILE_X "oh_categorystate_map state_strings[] = {\n";
+foreach my $c (keys %category) {
+    foreach my $evt (sort {$category{$c}->{$a}->{value} <=>
 			    $category{$c}->{$b}->{value}} keys %{$category{$c}}) {
         $max_events++;
 	if ($debug) { print("CAT=$c; EVENT=$evt; STR=$category{$c}->{$evt}->{string}\n"); }
@@ -265,9 +329,13 @@ foreach $c (keys %category) {
     print_xtestfile_badevent($c);
 }
 print FILE_X "};\n\n";
-print FILE_X "\#define OH_MAX_STATE_STRINGS $max_events\n\n";
 
-print_hfile_ending();
+print FILE_XH "\#define OH_MAX_STATE_STRINGS $max_events\n";
+print FILE_XH "oh_categorystate_map state_strings[OH_MAX_STATE_STRINGS];\n\n";
+
+print_hfile_ending FILE_H;
+print_hfile_ending FILE_XH;
+
 if ($tdir) { 
     print_testfile_ending();
     print_xtestfile_ending();
@@ -278,9 +346,10 @@ close INPUT_HEADER;
 close FILE_C;
 close FILE_H;
 close FILE_X;
+close FILE_XH;
 if ($tdir) { 
     close FILE_TEST;
-    close FILE_XTEST;
+    close XFILE_TEST;
 }
 
 if ($line_count == 0) {
@@ -305,10 +374,10 @@ exit ($rtn_code);
 #############
 # Subroutines
 #############
-sub normalize_file {
+sub normalize_file(*) {
     my( $input_handle ) = @_;
-    $in_comments = 0;
-    $in_cat = 0;
+    my $in_comments = 0;
+    my $in_cat = 0;
 
     while ( <$input_handle> ) {
 	chomp;
@@ -322,7 +391,7 @@ sub normalize_file {
 	next if /^\s*\/\/.*$/;         # Skip // lines
 	next if /^\s*\/\*.*\*\/\s*$/;  # Skip /* ... */ lines
 	
-	$line = $_;
+	my $line = $_;
 	($line) =~ s/^(.*?)\s*$/$1/;    # Strip blanks from end of line
 	($line) =~ s/^(.*?)\/\/.*$/$1/; # Strip trailing C++ comments
 
@@ -353,7 +422,7 @@ sub normalize_file {
 
 	# Embedded single line comment after C code
 	if ( ( /^.*\/\*.*$/ ) && ( /^.*\*\/.*$/ ) ) {
-	    ($token1, $comment, $token2) = /^(.*)(\/\*.*\*\/)+(.*)$/;
+	    my ($token1, $comment, $token2) = /^(.*)(\/\*.*\*\/)+(.*)$/;
 	    $line = $token1 . "\n$token2";
 	    if ($debug) { 
 		print "Embedded single line comment\n";
@@ -367,8 +436,8 @@ sub normalize_file {
 
         # Change commas to NLs
 	$line =~ s/,/\n/g;
-	@fields = split/\n/,$line;
-	foreach $field (@fields) {
+	my @fields = split/\n/,$line;
+	foreach my $field (@fields) {
 	    chomp $field;
 	    push(@normalized_array, $field);
 	}
@@ -377,7 +446,7 @@ sub normalize_file {
     return 0;
 }
 
-sub parse_category_events {
+sub parse_category_events(*$) {
     my ($file_handle, $line) = @_;
 
     my $in_global_cat = 0;
@@ -388,13 +457,13 @@ sub parse_category_events {
 	$in_global_cat = 1;
     }
     else {
-	my($cat, $rest_of_line) = /^.*SaHpiEventCategoryT\s*==\s*(\w+)\s+(.*)$/;
+	my ($cat, $rest_of_line) = /^.*SaHpiEventCategoryT\s*==\s*(\w+)\s+(.*)$/;
 	if ($debug) { print("CAT=$cat\n"); }
 	push(@cat_list, $cat);
 	# Handle multiple categories || together
 	while ($rest_of_line =~ /\|\|/) {
 	    $rest_of_line =~ s/^\|\|//; # Strip off beginning || 
-	    ($cat, $rol) = ($rest_of_line =~ /\s*(\w+)\s+(.*)$/);
+	    my ($cat, $rol) = ($rest_of_line =~ /\s*(\w+)\s+(.*)$/);
 	    $rest_of_line = $rol;
 	    if ($debug) { print("CAT=$cat\n"); }
 	    push(@cat_list, $cat);
@@ -404,11 +473,11 @@ sub parse_category_events {
     # Find events - assume blank lines end #define section; but support 
     # line continuation characters
     while (($line = <$file_handle>) !~ /^\s*$/) {
-	($event_state, $event_hex) = ($line =~ /^\s*\#define\s+(\w+)\s+.*?(0x\w+)\s*$/);
+	my ($event_state, $event_hex) = ($line =~ /^\s*\#define\s+(\w+)\s+.*?(0x\w+)\s*$/);
 	if ($event_state eq "") {
 	    ($event_state) = ($line =~ /^\s*\#define\s+(\w+)\s+\\\s*$/);
 	    if ($event_state) {
-		my $line = <$file_handle>;
+		$line = <$file_handle>;
 		($event_hex) = ($line =~ /^\s*.*?(0x\w+)\s*$/);
 		die "Cannot parse continuation event line" unless ($event_hex);
 	    }
@@ -423,7 +492,7 @@ sub parse_category_events {
 		$global_category{"ANY"}->{$event_state}->{string} = $str;
 	    }
 	    else {
-		foreach $cat (@cat_list) {
+		foreach my $cat (@cat_list) {
 		    if ($debug) {
 			print("CAT=$cat; EVENT STATE=$event_state; HEX=$event_hex; STR=$str x\n");
 		    }
@@ -440,7 +509,7 @@ sub parse_category_events {
 ####################################
 # Print h file's static leading text 
 ####################################
-sub print_copywrite {
+sub print_copywrite(*) {
     my ( $file_handle ) = @_;
 
     print $file_handle <<EOF;
@@ -470,18 +539,23 @@ EOF
     return 0;
 }
 
-####################################
-# Print h file's static leading text 
-####################################
-sub print_hfile_header {
+#######################################
+# Print header file static leading text 
+#######################################
+sub print_hfile_header(*$) {
+    my ( $filehandle, $filename ) = @_;
 
-    $hdef_name = $ohfile;
+    my $hdef_name = $filename;
     $hdef_name =~ tr/a-z/A-Z/;
     $hdef_name =~ s/\./_/g;	
 
-    print FILE_H <<EOF;
+    print $filehandle <<EOF;
 #ifndef $hdef_name
 #define $hdef_name
+
+#ifndef OH_UTILS_H
+#warning *** Include oh_utils.h instead of individual utility header files ***
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -501,7 +575,7 @@ sub print_cfile_header {
 #include <stdlib.h>
 
 #include <SaHpi.h>
-#include <$ohfile>
+#include <oh_utils.h>
 
 EOF
     return 0;
@@ -513,6 +587,24 @@ EOF
 sub print_xfile_header {
 
     print FILE_X <<EOF;
+#include <SaHpi.h>
+#include <oh_utils.h>
+
+EOF
+
+    return 0;
+}
+
+##########################################
+# Print xfile header's static leading text 
+##########################################
+sub print_xhfile_header {
+
+    print FILE_XH <<EOF;
+#define OH_ENCODE_DELIMITER " | "
+#define OH_ENCODE_DELIMITER_CHAR "|"
+#define OH_ENCODE_DELIMITER_LENGTH 3
+
 typedef struct {
     SaHpiEventCategoryT category;
     SaHpiEventStateT state;
@@ -533,7 +625,7 @@ sub print_testfile_header {
 #include <string.h>
 
 #include <SaHpi.h>
-#include <$ohfile>
+#include <oh_utils.h>
 
 #define BAD_ENUM_VALUE -1
 
@@ -551,12 +643,12 @@ EOF
 ############################################
 sub print_xtestfile_header {
 
-    print FILE_XTEST <<EOF;
+    print XFILE_TEST <<EOF;
 #include <stdio.h>
 #include <string.h>
 
 #include <SaHpi.h>
-#include <SaHpi_event_utils.h>
+#include <oh_utils.h>
 
 int main(int argc, char **argv) 
 {
@@ -572,29 +664,42 @@ EOF
     return 0;
 }
 
-########################################
-# Beautify function name from SaHpi type
-########################################
-sub beautify_func_name($) {
+##############################
+# Beautify SaHpi typedef names
+##############################
+sub beautify_type_name($) {
     my ($name) = @_;
-    $name =~ s/Sa//;    # Strip off beginning Sa - for SaErrorT
-    $name =~ s/Hpi//;   # Strip off beginning Hpi - for rest of SaHpi types
+    $name =~ s/^Sa//;   # Strip off beginning Sa - for SaErrorT
+    $name =~ s/^Hpi//;  # Strip off beginning Hpi - for rest of SaHpi types
     $name =~ s/T$//;    # Strip off trailing T
     $name = lc($name);  # Lower case name
-    $name = "oh_lookup_" . $name;
-    
     return $name;
 }
 
 ###############################
 # Print h file's func prototype 
 ###############################
-sub print_hfile_func {
-    my( $type ) = @_;
-    my $func_name = beautify_func_name($type);
+sub print_hfile_func($$) {
+    my( $type, $max ) = @_;
     
+    my $pretty_type = beautify_type_name($type);
+    my $lookup_name = "oh_lookup_" . "$pretty_type";
+    my $encode_name = "oh_encode_" . "$pretty_type";
+    my $map_name = "oh_" . "$pretty_type" . "_map";
+    my $upper_pretty_type = uc($pretty_type);
+    my $max_name = "OH_MAX_" . "$upper_pretty_type";
+    my $array_name = "$pretty_type" . "_strings[$max_name]";
+
     print FILE_H <<EOF;
-const char * $func_name($type value);
+#define $max_name $max 
+struct $map_name {
+  $type  entity_type;
+  unsigned char *str;
+} $array_name;
+
+const char * $lookup_name($type value);
+SaErrorT $encode_name(SaHpiTextBufferT *buffer, $type *type);
+
 EOF
 
     return 0;
@@ -603,14 +708,15 @@ EOF
 ###########################
 # Print c file's func start 
 ###########################
-sub print_cfile_func {
-    my( $type ) = @_; 
-    my $func_name = beautify_func_name($type);
-    if ($debug) { print("CFILE func_name=$func_name\n"); }
+sub print_cfile_func($) {
+    my( $type ) = @_;
+
+    my $pretty_type = beautify_type_name($type);
+    my $lookup_name = "oh_lookup_" . "$pretty_type";
  
     print FILE_C <<EOF;
 /**
- * $func_name:
+ * $lookup_name:
  * \@value: enum value of type $type.
  *
  * Converts \@value into a string based on \@value\'s HPI enum definition.
@@ -619,9 +725,9 @@ sub print_cfile_func {
  * string - normal operation.
  * NULL - if \@value not a valid $type.
  **/
-const char * $func_name($type value)
+const char * $lookup_name($type value)
 {
-        switch (value) {	
+        switch (value) {
 EOF
     
     return 0;
@@ -679,10 +785,9 @@ sub beautify_enum_name($$) {
 ###############################
 # Print c file's case statement 
 ###############################
-sub print_cfile_case {
+sub print_cfile_case($$) {
     my( $type, $case ) = @_;
     my $casestr = beautify_enum_name($type, $case);
-#    print("CASE=$case; STR=$casestr\n");
 
     print FILE_C <<EOF;
         case $case:
@@ -692,25 +797,133 @@ EOF
     return 0;
 }
 
+####################################
+# Print c file's encode array header
+####################################
+sub print_cfile_encode_array_header($) {
+    my( $type ) = @_;
+    my $pretty_type = beautify_type_name($type);
+    my $map_name = "oh_" . "$pretty_type" . "_map";
+    my $array_name = "$pretty_type" . "_strings[]";"";
+
+    print FILE_C <<EOF;
+struct $map_name $array_name = {
+EOF
+
+    return 0;
+}
+
+####################################
+# Print c file's encode array member
+####################################
+sub print_cfile_encode_array($$) {
+    my( $type, $case ) = @_;
+
+    my $casestr = beautify_enum_name($type, $case);
+
+    print FILE_C <<EOF;
+       {$case, \"$casestr\"},
+EOF
+
+    return 0;
+}
+
+################################
+# Print c file's encode function
+################################
+sub print_cfile_encode_func($) {
+    my( $type ) = @_;
+    my $pretty_type = beautify_type_name($type);
+    my $encode_name = "oh_encode_" . "$pretty_type";
+    my $lookup_name = "oh_lookup_" . "$pretty_type";
+    my $upper_pretty_type = uc($pretty_type);
+    my $max_name = "OH_MAX_" . "$upper_pretty_type";
+    my $array_member = "$pretty_type" . "_strings[i]";
+
+    print FILE_C <<EOF;
+/**
+ * $encode_name:
+ * \@buffer: Pointer to SaHpiTextBufferT that contains enum\'s string representation.
+ * \@type: Location (of $type) to place encoded result.
+ * 
+ * Converts a \@buffer->Data string, generated by $lookup_name(), back 
+ * into an $type type. 
+ *
+ * Returns:
+ * $type value - normal operation.
+ * SA_ERR_HPI_INVALID_PARAMS - if \@buffer or \@type is NULL or \@buffer->Data empty.
+ * SA_ERR_HPI_INVALID_DATA - if \@buffer->Data is invalid.
+ **/
+SaErrorT $encode_name(SaHpiTextBufferT *buffer, $type *type)
+{
+	int i, found;
+
+	if (!buffer || !type || buffer->Data == NULL || buffer->Data[0] == \'\\0\') {
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+	
+	found = 0;
+	for (i=0; i<$max_name; i++) {
+		if (strcasecmp(buffer->Data, $array_member.str) == 0) {
+			found++;
+			break;
+		}
+	}
+
+	if (found) {
+		*type = $array_member.entity_type;
+	}
+	else {
+		return(SA_ERR_HPI_INVALID_DATA);
+	}
+	
+	return(SA_OK);
+}
+
+EOF
+
+    return 0;
+}
+
 ################################
 # Print testcase file's testcase
 ################################
-sub print_testfile_case {
+sub print_testfile_case($$) {
     my( $type, $case ) = @_;
-    my $func_name = beautify_func_name($type);
+    my $pretty_type = beautify_type_name($type);
+    my $lookup_name = "oh_lookup_" . "$pretty_type";
+    my $encode_name = "oh_encode_" . "$pretty_type";
     my $casestr = beautify_enum_name($type, $case);
 
     print FILE_TEST <<EOF;
         /* $type - $case testcase */
         {
 	        $type value = $case;
+		$type enum_type;
                 expected_str = "$casestr";
+		SaErrorT err;
+		SaHpiTextBufferT buffer;
 
-                str = $func_name(value);
+                str = $lookup_name(value);
                 if (strcmp(expected_str, str)) {
                         printf("Error! Testcase $type - $case failed\\n");
 			printf("Received string=%s\\n", str);
                         return -1;             
+                }
+
+		err = oh_init_textbuffer(&buffer);		
+		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		
+                err = $encode_name(&buffer, &enum_type);
+                if (err != SA_OK) {
+                        printf("Error! Testcase $type - $case encode failed. Error=%d\\n", err);
+                        return -1;
+                }
+    
+                if ($case != enum_type) {
+                        printf("Error! Testcase $type - $case encode failed\\n");
+                        printf("Received type=%x\\n", enum_type);
+                        return -1;
                 }
 	}
 
@@ -722,8 +935,9 @@ EOF
 #################################
 # Print xtestcase file's testcase
 #################################
-sub print_xtestfile_case {
+sub print_xtestfile_case($$$) {
     my( $state, $cat, $str ) = @_;
+    my $valid_cat_test = "";
 
     # Special case categories with same event definitions
     if ($cat eq "SAHPI_EC_GENERIC" || $cat eq "SAHPI_EC_SENSOR_SPECIFIC") {
@@ -751,7 +965,7 @@ sub print_xtestfile_case {
 	$str = "UPPER_MINOR | UPPER_MAJOR";
     }
 
-    print FILE_XTEST <<EOF;
+    print XFILE_TEST <<EOF;
         /* $cat - $state testcase */
         {
                 expected_cat = $cat;
@@ -770,7 +984,7 @@ sub print_xtestfile_case {
                         return -1;             
                 }
     
-                err = oh_encode_eventstate(&buffer, event_state, event_cat);
+                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
                 if (err != SA_OK) {
                         printf("Error! Testcase $cat - $state encode failed. Error=%d\\n", err);
                         return -1;
@@ -791,10 +1005,10 @@ EOF
 ###########################################
 # Print xtestcase file's bad event testcase
 ###########################################
-sub print_xtestfile_badevent {
+sub print_xtestfile_badevent($) {
     my( $cat ) = @_;
 
-    print FILE_XTEST <<EOF;
+    print XFILE_TEST <<EOF;
         /* $cat - Bad event testcase */
         {
 		if (oh_valid_eventstate(BAD_EVENT, $cat)) {
@@ -827,20 +1041,48 @@ EOF
 ####################################
 # Print testcase file's default test
 ####################################
-sub print_testfile_endfunc {
+sub print_testfile_endfunc($) {
     my( $type ) = @_;
-    my $func_name = beautify_func_name($type);
-    
+    my $pretty_type = beautify_type_name($type);
+    my $lookup_name = "oh_lookup_" . "$pretty_type";
+    my $encode_name = "oh_encode_" . "$pretty_type";
+   
     print FILE_TEST <<EOF;
         /* $type - Default testcase */
         {
 	        $type value = BAD_ENUM_VALUE;
                 expected_str = NULL;
 
-                str = $func_name(value);
+                str = $lookup_name(value);
                 if (str != expected_str) {
                         printf("$tbase_name Error! Testcase $type - Default failed\\n");
                         return -1;             
+                }
+
+	}
+    
+	{ 
+                /* $type - NULL buffer testcase */
+	        SaErrorT  err, expected_err;     
+		SaHpiTextBufferT buffer;
+		$type enum_type;
+
+		expected_err = SA_ERR_HPI_INVALID_PARAMS;
+                err = $encode_name(0, &enum_type);
+                if (err != expected_err) {
+                        printf("Error! Testcase $type - NULL buffer failed. Error=%d\\n", err);
+                        return -1;
+                }
+	             	
+                /* $type - Invalid type testcase */
+		err = oh_init_textbuffer(&buffer);		
+		err = oh_append_textbuffer(&buffer, \"INVALID_TYPE\", strlen(\"INVALID_TYPE\"));
+
+		expected_err = SA_ERR_HPI_INVALID_DATA;
+                err = $encode_name(&buffer, &enum_type);
+                if (err != expected_err) {
+                        printf("Error! Testcase $type - Invalid type failed. Error=%d\\n", err);
+                        return -1;
                 }
 	}
 
@@ -852,9 +1094,10 @@ EOF
 #####################################
 # Print h file's static trailing text 
 #####################################
-sub print_hfile_ending {
+sub print_hfile_ending(*) {
+    my ( $filehandler) = @_;
 
-    print FILE_H <<EOF;
+    print $filehandler <<EOF;
 
 #ifdef __cplusplus
 }
@@ -884,7 +1127,7 @@ EOF
 #############################################
 sub print_xtestfile_ending {
 
-    print FILE_XTEST <<EOF;
+    print XFILE_TEST <<EOF;
         return 0;
 }
 EOF
