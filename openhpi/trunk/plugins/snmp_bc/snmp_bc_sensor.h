@@ -16,21 +16,20 @@
 #ifndef __SNMP_BC_SENSOR_H
 #define __SNMP_BC_SENSOR_H
 
-/* FIXME:: ?? Can we pass handle in; instead of hnd - better error checking */
 SaErrorT snmp_bc_get_sensor_reading(void *hnd,
-				    SaHpiResourceIdT id,
-				    SaHpiSensorNumT num,
-				    SaHpiSensorReadingT *data,
+				    SaHpiResourceIdT rid,
+				    SaHpiSensorNumT sid,
+				    SaHpiSensorReadingT *reading,
 				    SaHpiEventStateT *state);
 
 SaErrorT snmp_bc_get_sensor_thresholds(void *hnd,
-				       SaHpiResourceIdT id,
-				       SaHpiSensorNumT num,
+				       SaHpiResourceIdT rid,
+				       SaHpiSensorNumT sid,
 				       SaHpiSensorThresholdsT *thres);
 
 SaErrorT snmp_bc_set_sensor_thresholds(void *hnd,
-				       SaHpiResourceIdT id,
-				       SaHpiSensorNumT num,
+				       SaHpiResourceIdT rid,
+				       SaHpiSensorNumT sid,
 				       const SaHpiSensorThresholdsT *thres);
 
 SaErrorT snmp_bc_get_sensor_enable(void *hnd,
@@ -65,11 +64,4 @@ SaErrorT snmp_bc_set_sensor_event_masks(void *hnd,
 					SaHpiSensorEventMaskActionT act,
 					const SaHpiEventStateT AssertEventMask,
 					const SaHpiEventStateT DeassertEventMask);
-
-/* FIXME:: Could be static */
-SaErrorT snmp_bc_determine_sensor_eventstates(void *hnd,
-					      SaHpiResourceIdT id,
-					      SaHpiSensorNumT num,
-					      SaHpiSensorReadingT *reading,
-					      SaHpiEventStateT *state);
 #endif

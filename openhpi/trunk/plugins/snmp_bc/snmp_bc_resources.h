@@ -144,14 +144,31 @@ extern struct snmp_rpt snmp_rpt_array[];
  ******************************************************************************/
 
 struct SnmpSensorThresholdOids {
-        const char *OidLowMinor;
-        const char *OidLowMajor;
-        const char *OidLowCrit;
-        const char *OidUpMinor;
-        const char *OidUpMajor;
-        const char *OidUpCrit;
-        const char *OidLowHysteresis;
-        const char *OidUpHysteresis;
+        const char *LowMinor;
+        const char *LowMajor;
+        const char *LowCritical;
+        const char *UpMinor;
+        const char *UpMajor;
+        const char *UpCritical;
+        const char *PosThdHysteresis;
+        const char *NegThdHysteresis;
+        const char *TotalPosThdHysteresis;
+        const char *TotalNegThdHysteresis;
+};
+
+struct SnmpSensorWritableThresholdOids {
+        const char *LowMinor;
+        const char *LowMajor;
+        const char *LowCritical;
+        const char *UpMinor;
+        const char *UpMajor;
+        const char *UpCritical;
+        const char *PosThdHysteresis;
+        const char *NegThdHysteresis;
+        const char *TotalPosThdHysteresis;
+        const char *TotalNegThdHysteresis;
+	int sig_digits;
+	const char *Tag;
 };
 
 struct SensorMibInfo {
@@ -160,17 +177,27 @@ struct SensorMibInfo {
         int convert_snmpstr; /* -1 no conversion; else use SaHpiSensorReadingTypeT values */
         const char *oid;
         struct SnmpSensorThresholdOids threshold_oids;
+	struct SnmpSensorWritableThresholdOids threshold_write_oids;
 };
 
 #define SNMP_BC_MAX_EVENTS_PER_SENSOR 15
+#define SNMP_BC_MAX_READING_MAPS_PER_SENSOR 3
+
+/* Includes an ending NULL entry */
 #define SNMP_BC_MAX_SENSOR_EVENT_ARRAY_SIZE  (SNMP_BC_MAX_EVENTS_PER_SENSOR + 1)
-                                             /* Includes an ending NULL entry */
+#define SNMP_BC_MAX_SENSOR_READING_MAP_ARRAY_SIZE (SNMP_BC_MAX_READING_MAPS_PER_SENSOR + 1)
 
 struct sensor_event_map {
         char *event;
 	SaHpiBoolT event_assertion;
         SaHpiEventStateT event_state;
         SaHpiEventStateT recovery_state;
+};
+
+struct sensor_reading_map {
+	int num;
+	SaHpiSensorRangeT rangemap;
+	SaHpiEventStateT state;
 };
 
 struct SensorInfo {
@@ -181,6 +208,7 @@ struct SensorInfo {
         SaHpiEventStateT assert_mask;
 	SaHpiEventStateT deassert_mask;
         struct sensor_event_map event_array[SNMP_BC_MAX_SENSOR_EVENT_ARRAY_SIZE];
+	struct sensor_reading_map reading2event[SNMP_BC_MAX_SENSOR_READING_MAP_ARRAY_SIZE];
 };
 
 struct snmp_bc_sensor {

@@ -489,11 +489,9 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                                 },
                         },
                         .ThresholdDefn = {
-				.IsAccessible = SAHPI_FALSE,
+				.IsAccessible = SAHPI_FALSE, /* events only */
                                 .ReadThold = 0,
 				.WriteThold = 0,
-				.Nonlinear = SAHPI_FALSE,
-                                /* Default HDW thresholds: Warning=60; Warning Reset=55 */
                         },
                         .Oem = 0,
                 },
@@ -524,6 +522,32 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                                 },
                                 {},
                         },
+			/* Default HDW thresholds: Warning=60; Warning Reset=55 */
+                        .reading2event = {
+				{
+					.num = 1,
+                                        .rangemap = {
+						.Min = {
+							.Value = {
+								.SensorFloat64 = 60.0,
+							},
+						},
+					},
+					.state = SAHPI_ES_UNSPECIFIED,
+                                },
+				{
+					.num = 2,
+                                        .rangemap = {
+						.Max = {
+							.Value = {
+								.SensorFloat64 = 60.0,
+							},
+						},
+					},
+					.state = SAHPI_ES_UPPER_MAJOR,
+                                },
+				{},
+			},
                 },
                 .comment = "Ambient temperature sensor"
         },
@@ -562,11 +586,9 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                                 },
                         },
                         .ThresholdDefn = {
-				.IsAccessible = SAHPI_FALSE,
+				.IsAccessible = SAHPI_FALSE, /* Event only */
                                 .ReadThold = 0,
 				.WriteThold = 0,
-				.Nonlinear = SAHPI_FALSE,
-                                /* Default HDW thresholds: Warning=60; Warning Reset=55 */
                         },
                         .Oem = 0,
                 },
@@ -597,6 +619,32 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                                 },
                                 {},
                         },
+			/* Default HDW thresholds: Warning=60; Warning Reset=55 */
+                        .reading2event = {
+				{
+					.num = 1,
+                                        .rangemap = {
+						.Min = {
+							.Value = {
+								.SensorFloat64 = 60.0,
+							},
+						},
+					},
+					.state = SAHPI_ES_UNSPECIFIED,
+                                },
+				{
+					.num = 2,
+                                        .rangemap = {
+						.Max = {
+							.Value = {
+								.SensorFloat64 = 60.0,
+							},
+						},
+					},
+					.state = SAHPI_ES_UPPER_MAJOR,
+                                },
+				{},
+			},
                 },
                 .comment = "Management module temperature sensor"
         },
@@ -647,8 +695,6 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                                 .ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR |
                                              SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
 				.WriteThold = 0,
-				.Nonlinear = SAHPI_FALSE,
-                                /* Default HDW thresholds: Warning 1.62<>1.89; Warning Reset 1.86<>1.74 */
                          },
                         .Oem = 0,
                 },
@@ -658,12 +704,14 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                                 .write_only = 0,
                                 .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.8.0",
+				/* Default HDW thresholds: Warning 1.62<>1.89; Warning Reset 1.86<>1.74 */
                                 .threshold_oids = {
-					.OidLowMajor = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.6",
-					.OidUpMajor  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.6",
-					.OidUpHysteresis  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.7.6",
-					.OidLowHysteresis = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.11.6",
+					.LowMajor = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.6",
+					.UpMajor  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.6",
+					.TotalPosThdHysteresis  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.7.6",
+					.TotalNegThdHysteresis = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.11.6",
                                 },
+				.threshold_write_oids = {},
                         },
                         .sensor_enabled = SAHPI_TRUE,
                         .cur_state = SAHPI_ES_UNSPECIFIED,
@@ -699,6 +747,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                                 },
                                 {},
                         },
+			.reading2event = {},
                 },
                 .comment = "Chassis 1.8 volt sensor"
         },
@@ -749,7 +798,6 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                                 .ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR |
 				             SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
                                 .WriteThold = 0,
-				.Nonlinear = SAHPI_FALSE,
                                 /* Default HDW thresholds:
                                    Warning 2.25<>2.63; Warning Reset 2.58<>2.42 */
                         },
@@ -762,11 +810,12 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                                 .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.6.0",
                                 .threshold_oids = {
-					.OidLowMajor = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.5",
-					.OidUpMajor  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.5",
-					.OidUpHysteresis  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.7.5",
-					.OidLowHysteresis = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.11.5",
+					.LowMajor = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.5",
+					.UpMajor  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.5",
+					.TotalPosThdHysteresis  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.7.5",
+					.TotalNegThdHysteresis = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.11.5",
                                 },
+				.threshold_write_oids = {},
                         },
                         .sensor_enabled = SAHPI_TRUE,
                         .cur_state = SAHPI_ES_UNSPECIFIED,
@@ -802,6 +851,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                                 },
                                 {},
                         },
+			.reading2event = {},
                 },
                 .comment = "Chassis 2.5 volt sensor"
         },
@@ -852,7 +902,6 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                                 .ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR |
 				             SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
                                 .WriteThold = 0,
-				.Nonlinear = SAHPI_FALSE,
                                 /* Default HDW thresholds:
                                    Warning 3.00<>3.47; Warning Reset 3.40<>3.20 */
                         },
@@ -865,11 +914,12 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                                 .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.2.0",
                                 .threshold_oids = {
-					.OidLowMajor = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.2",
-					.OidUpMajor  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.2",
-					.OidUpHysteresis  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.7.2",
-					.OidLowHysteresis = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.11.2",
+					.LowMajor = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.2",
+					.UpMajor  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.2",
+					.TotalPosThdHysteresis  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.7.2",
+					.TotalNegThdHysteresis = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.11.2",
                                 },
+				.threshold_write_oids = {},
                         },
                         .sensor_enabled = SAHPI_TRUE,
                         .cur_state = SAHPI_ES_UNSPECIFIED,
@@ -905,6 +955,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                                 },
                                 {},
                         },
+			.reading2event = {},
                 },
 		.comment = "Chassis 3.3 volt sensor"
 	},
@@ -967,11 +1018,12 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                                 .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.1.0",
                                 .threshold_oids = {
-					.OidLowMajor = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.1",
-					.OidUpMajor  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.1",
-					.OidUpHysteresis  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.7.1",
-					.OidLowHysteresis = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.11.1",
+					.LowMajor = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.1",
+					.UpMajor  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.1",
+					.TotalPosThdHysteresis  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.7.1",
+					.TotalNegThdHysteresis = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.11.1",
                                 },
+				.threshold_write_oids = {},
                         },
                         .sensor_enabled = SAHPI_TRUE,
                         .cur_state = SAHPI_ES_UNSPECIFIED,
@@ -1007,6 +1059,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                                 },
                                 {},
                         },
+			.reading2event = {},
                 },
                 .comment = "Chassis 5 volt sensor"
         },
@@ -1057,7 +1110,6 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                                 .ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR |
                                              SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
                                 .WriteThold = 0,
-				.Nonlinear = SAHPI_FALSE,
                                 /* Default HDW thresholds:
                                    Warning -5.50<>-4.75; Warning Reset -4.85<>-5.15 */
                          },
@@ -1070,11 +1122,12 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                                 .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.5.0",
                                 .threshold_oids = {
-					.OidLowMajor = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.4",
-					.OidUpMajor  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.4",
-					.OidUpHysteresis  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.7.4",
-					.OidLowHysteresis = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.11.4",
+					.LowMajor = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.4",
+					.UpMajor  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.4",
+					.TotalPosThdHysteresis  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.7.4",
+					.TotalNegThdHysteresis = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.11.4",
                                 },
+				.threshold_write_oids = {},
                         },
                         .sensor_enabled = SAHPI_TRUE,
                         .cur_state = SAHPI_ES_UNSPECIFIED,
@@ -1110,6 +1163,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                                 },
                                 {},
                         },
+			.reading2event = {},
                 },
                 .comment = "Chassis -5 volt sensor"
         },
@@ -1160,7 +1214,6 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                                 .ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR |
                                              SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
                                 .WriteThold = 0,
-				.Nonlinear = SAHPI_FALSE,
                                 /* Default HDW thresholds:
                                    Warning 10.80<>12.60; Warning Reset 12.34<>11.64 */
                         },
@@ -1173,11 +1226,12 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                                 .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.3.0",
                                 .threshold_oids = {
-					.OidLowMajor = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.3",
-					.OidUpMajor  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.3",
-					.OidUpHysteresis  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.7.3",
-					.OidLowHysteresis = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.11.3",
+					.LowMajor = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.3",
+					.UpMajor  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.3",
+					.TotalPosThdHysteresis  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.7.3",
+					.TotalNegThdHysteresis = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.11.3",
                                 },
+				.threshold_write_oids = {},
                         },
                         .sensor_enabled = SAHPI_TRUE,
                         .cur_state = SAHPI_ES_UNSPECIFIED,
@@ -1213,10 +1267,12 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                                 },
                                 {},
                         },
+			.reading2event = {},
                 },
                 .comment = "Chassis 12 volt sensor"
         },
-        /* Management module redundancy sensor */
+        /* Management module redundancy sensor - event-only */
+	/* FIXME:: NOT defined for BCT */
         {
                 .sensor = {
                         .Num = 9,
@@ -1248,12 +1304,14 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                                 },
                                 {},
                         },
+			.reading2event = {},
                 },
                 .comment = "Chassis management module redundancy sensor"
         },
-        /* Switch module redundancy sensor */
+        /* Switch module redundancy sensor - event-only */
         {
                 .sensor = {
+			/* FIXME:: NOT defined for BCT */
                         .Num = 10,
                         .Type = SAHPI_PLATFORM_ALERT,
                         .Category = SAHPI_EC_REDUNDANCY,
@@ -1283,12 +1341,14 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                                 },
                                 {},
                         },
-                },
+ 			.reading2event = {},
+               },
                 .comment = "Chassis switch module redundancy sensor"
         },
-        /* Power module redundancy sensor */
+        /* Power module redundancy sensor - event-only */
         {
                 .sensor = {
+			/* FIXME:: NOT defined for BCT */
                         .Num = 11,
                         .Type = SAHPI_PLATFORM_ALERT,
                         .Category = SAHPI_EC_REDUNDANCY,
@@ -1318,7 +1378,8 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                                 },
                                 {},
                         },
-                },
+ 			.reading2event = {},
+               },
                 .comment = "Chassis power module redundancy sensor"
         },
 
@@ -1368,7 +1429,6 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 .IsAccessible = SAHPI_TRUE,
                                 .ReadThold  = SAHPI_STM_UP_MAJOR | SAHPI_STM_UP_CRIT,
                                 .WriteThold = 0,
-				.Nonlinear = SAHPI_FALSE,
                         },
                         .Oem = 0,
                 },
@@ -1379,9 +1439,10 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.6.x",
                                 .threshold_oids = {
-					.OidUpCrit   = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.6.x",
-					.OidUpMajor  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.7.x",
+					.UpCritical = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.6.x",
+					.UpMajor    = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.7.x",
                                 },
+				.threshold_write_oids = {},
                         },
                         .sensor_enabled = SAHPI_TRUE,
                         .cur_state = SAHPI_ES_UNSPECIFIED,
@@ -1415,7 +1476,8 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 },
                                 {},
                         },
-                },
+ 			.reading2event = {},
+                 },
                 .comment = "Blade CPU 1 temperature sensor"
         },
         /* CPU 2 thermal sensor */
@@ -1456,7 +1518,6 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
 				.IsAccessible = SAHPI_TRUE,
                                 .ReadThold  = SAHPI_STM_UP_MAJOR | SAHPI_STM_UP_CRIT,
                                 .WriteThold = 0,
-				.Nonlinear = SAHPI_FALSE,
                         },
                         .Oem = 0,
                 },
@@ -1467,9 +1528,10 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.7.x",
                                 .threshold_oids = {
-					.OidUpCrit  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.9.x",
-					.OidUpMajor = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.10.x",
+					.UpCritical = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.9.x",
+					.UpMajor    = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.10.x",
                                 },
+				.threshold_write_oids = {},
                         },
                         .sensor_enabled = SAHPI_TRUE,
                         .cur_state = SAHPI_ES_UNSPECIFIED,
@@ -1506,6 +1568,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 },
                                 {},
                         },
+  			.reading2event = {},
                 },
                 .comment = "Blade CPU 2 temperature sensor"
         },
@@ -1547,7 +1610,6 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
 				.IsAccessible = SAHPI_TRUE,
                                 .ReadThold  = SAHPI_STM_UP_MAJOR | SAHPI_STM_UP_CRIT,
                                 .WriteThold = 0,
-				.Nonlinear = SAHPI_FALSE,
                         },
                         .Oem = 0,
                 },
@@ -1558,9 +1620,10 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.8.x",
                                 .threshold_oids = {
-					.OidUpCrit  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.12.x",
-					.OidUpMajor = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.13.x",
+					.UpCritical = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.12.x",
+					.UpMajor    = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.13.x",
                                 },
+				.threshold_write_oids = {},
                         },
                         .sensor_enabled = SAHPI_TRUE,
                         .cur_state = SAHPI_ES_UNSPECIFIED,
@@ -1594,7 +1657,8 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 },
                                 {},
                         },
-                },
+ 			.reading2event = {},
+                 },
                 .comment = "Blade CPU 3 temperature sensor"
         },
         /* CPU 4 thermal sensor */
@@ -1635,7 +1699,6 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
 				.IsAccessible = SAHPI_TRUE,
                                 .ReadThold  = SAHPI_STM_UP_MAJOR | SAHPI_STM_UP_CRIT,
                                 .WriteThold = 0,
-				.Nonlinear = SAHPI_FALSE,
                         },
                         .Oem = 0,
                 },
@@ -1646,9 +1709,10 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.9.x",
                                 .threshold_oids = {
-					.OidUpCrit  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.15.x",
-					.OidUpMajor = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.16.x",
+					.UpCritical = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.15.x",
+					.UpMajor    = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.16.x",
                                 },
+				.threshold_write_oids = {},
                         },
                         .sensor_enabled = SAHPI_TRUE,
                         .cur_state = SAHPI_ES_UNSPECIFIED,
@@ -1682,6 +1746,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 },
                                 {},
                         },
+  			.reading2event = {},
                 },
                 .comment = "Blade CPU 4 temperature sensor"
         },
@@ -1731,7 +1796,6 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
 				.IsAccessible = SAHPI_TRUE,
                                 .ReadThold  = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
                                 .WriteThold = 0,
-				.Nonlinear = SAHPI_FALSE,
                                 /* Default HDW thresholds: Warning 1.10<>1.4 */
                         },
                         .Oem = 0,
@@ -1743,9 +1807,10 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.12.x",
                                 .threshold_oids = {
-					.OidUpMajor  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.18.x",
-					.OidLowMajor = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.19.x",
+					.UpMajor  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.18.x",
+					.LowMajor = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.19.x",
                                 },
+				.threshold_write_oids = {},
                         },
                         .sensor_enabled = SAHPI_TRUE,
                         .cur_state = SAHPI_ES_UNSPECIFIED,
@@ -1769,6 +1834,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 },
                                 {},
                         },
+  			.reading2event = {},
                 },
                 .comment = "Blade 1.25 volt sensor"
         },
@@ -1818,7 +1884,6 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
 				.IsAccessible = SAHPI_TRUE,
                                 .ReadThold  = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
                                 .WriteThold = 0,
-				.Nonlinear = SAHPI_FALSE,
                                 /* Default HDW thresholds: Warning 1.32<>1.68 */
                         },
                         .Oem = 0,
@@ -1830,9 +1895,10 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.11.x",
                                 .threshold_oids = {
-					.OidUpMajor  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.16.x",
-					.OidLowMajor = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.17.x",
-                                }
+					.UpMajor  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.16.x",
+					.LowMajor = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.17.x",
+                                },
+				.threshold_write_oids = {},
                         },
                         .sensor_enabled = SAHPI_TRUE,
                         .cur_state = SAHPI_ES_UNSPECIFIED,
@@ -1868,7 +1934,8 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 },
                                 {},
                         },
-                },
+ 			.reading2event = {},
+                 },
                 .comment = "Blade 1.5 volt sensor"
         },
         /* Blade's 2.5V voltage sensor */
@@ -1917,7 +1984,6 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
 				.IsAccessible = SAHPI_TRUE,
                                 .ReadThold  = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
                                 .WriteThold = 0,
-				.Nonlinear = SAHPI_FALSE,
                                 /* Default HDW thresholds: Warning 2.25<>2.75 */
                         },
                         .Oem = 0,
@@ -1929,9 +1995,10 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.10.x",
                                 .threshold_oids = {
-					.OidUpMajor  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.14.x",
-					.OidLowMajor = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.15.x",
+					.UpMajor  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.14.x",
+					.LowMajor = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.15.x",
                                 },
+				.threshold_write_oids = {},
                         },
                         .sensor_enabled = SAHPI_TRUE,
                         .cur_state = SAHPI_ES_UNSPECIFIED,
@@ -1967,6 +2034,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 },
                                 {},
                         },
+  			.reading2event = {},
                 },
                 .comment = "Blade 2.5 volt sensor"
         },
@@ -2016,7 +2084,6 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
 				.IsAccessible = SAHPI_TRUE,
                                 .ReadThold  = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
                                 .WriteThold = 0,
-				.Nonlinear = SAHPI_FALSE,
                                 /* Default HDW thresholds: Warning 2.97<>3.63 */
                         },
                         .Oem = 0,
@@ -2028,9 +2095,10 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.7.x",
                                 .threshold_oids = {
-					.OidUpMajor  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.8.x",
-					.OidLowMajor = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.9.x",
+					.UpMajor  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.8.x",
+					.LowMajor = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.9.x",
                                 },
+				.threshold_write_oids = {},
                         },
                         .sensor_enabled = SAHPI_TRUE,
                         .cur_state = SAHPI_ES_UNSPECIFIED,
@@ -2066,6 +2134,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 },
                                 {},
                         },
+  			.reading2event = {},
                 },
                 .comment = "Blade 3.3 volt sensor"
         },
@@ -2115,7 +2184,6 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
 				.IsAccessible = SAHPI_TRUE,
                                 .ReadThold  = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
                                 .WriteThold = 0,
-				.Nonlinear = SAHPI_FALSE,
                                 /* Default HDW thresholds: Warning 4.40<>5.50 */
                         },
                         .Oem = 0,
@@ -2127,9 +2195,10 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.6.x",
                                 .threshold_oids = {
-					.OidUpMajor  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.6.x",
-					.OidLowMajor = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.7.x",
+					.UpMajor  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.6.x",
+					.LowMajor = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.7.x",
                                 },
+				.threshold_write_oids = {},
                         },
                         .sensor_enabled = SAHPI_TRUE,
                         .cur_state = SAHPI_ES_UNSPECIFIED,
@@ -2165,6 +2234,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 },
                                 {},
                         },
+  			.reading2event = {},
                 },
                 .comment = "Blade 5 volt sensor"
         },
@@ -2214,7 +2284,6 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
 				.IsAccessible = SAHPI_TRUE,
                                 .ReadThold  = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
                                 .WriteThold = 0,
-				.Nonlinear = SAHPI_FALSE,
                                 /* Default HDW thresholds: Warning 10.8<>13.2 */
                         },
                         .Oem = 0,
@@ -2226,9 +2295,10 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.8.x",
                                 .threshold_oids = {
-					.OidUpMajor  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.10.x",
-					.OidLowMajor = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.11.x",
+					.UpMajor  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.10.x",
+					.LowMajor = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.11.x",
                                 },
+				.threshold_write_oids = {},
                         },
                         .sensor_enabled = SAHPI_TRUE,
                         .cur_state = SAHPI_ES_UNSPECIFIED,
@@ -2264,6 +2334,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 },
                                 {},
                         },
+  			.reading2event = {},
                 },
                 .comment = "Blade 12 volt sensor"
         },
@@ -2305,7 +2376,6 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
 				.IsAccessible = SAHPI_FALSE,
                                 .ReadThold  = 0,
 				.WriteThold = 0,
-				.Nonlinear = SAHPI_FALSE,
                         },
                         .Oem = 0,
                 },
@@ -2330,10 +2400,11 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 },
                                 {},
                         },
-                },
+   			.reading2event = {},
+               },
                 .comment = "Blade VRM 1 volt sensor"
         },
-        /* Blade's global operational sensor */
+        /* Blade's global operational sensor - event only */
         {
                 .sensor = {
                         .Num = 12,
@@ -2432,7 +2503,8 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 },
                                 {},
                         },
-                },
+   			.reading2event = {},
+               },
                 .comment = "Blade global operational sensor"
         },
 	
@@ -2482,7 +2554,6 @@ struct snmp_bc_sensor snmp_bc_blade_addin_sensors[] = {
 				.IsAccessible = SAHPI_TRUE,
                                 .ReadThold  = SAHPI_STM_UP_MAJOR | SAHPI_STM_UP_CRIT,
                                 .WriteThold = 0,
-				.Nonlinear = SAHPI_FALSE,
                         },
                         .Oem = 0,
                 },
@@ -2493,9 +2564,12 @@ struct snmp_bc_sensor snmp_bc_blade_addin_sensors[] = {
                                 .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.10.x",
                                 .threshold_oids = {
-					.OidUpCrit  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.18.x",
-					.OidUpMajor = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.19.x",
+					/* FIXME:: Get Not Readable if expansion card; else
+					 Get No temperature if not for BCT.*/
+					.UpCritical  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.18.x",
+					.UpMajor = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.19.x",
                                 },
+				.threshold_write_oids = {},
                         },
                         .sensor_enabled = SAHPI_TRUE,
                         .cur_state = SAHPI_ES_UNSPECIFIED,
@@ -2517,9 +2591,11 @@ struct snmp_bc_sensor snmp_bc_blade_addin_sensors[] = {
                                 },
                                 {},
                         },
+  			.reading2event = {},
                 },
                 .comment = "Blade expansion card (DASD1) thermal sensor"
         },
+/* Blade expansion card voltage sensor - event only */
         {
                 .sensor = {
                         .Num = 2,
@@ -2617,7 +2693,8 @@ struct snmp_bc_sensor snmp_bc_blade_addin_sensors[] = {
                                 },
                                 {},
                         },
-                },
+  			.reading2event = {},
+                 },
                 .comment = "Blade expansion card voltage sensor"
         },
 
@@ -2638,7 +2715,7 @@ struct snmp_bc_sensor snmp_bc_mgmnt_sensors[] = {
  ********************/
 
 struct snmp_bc_sensor snmp_bc_mediatray_sensors[] = {
-        /* Media Tray's global operational sensor */
+        /* Media Tray's global operational sensor - event only */
         {
                 .sensor = {
                         .Num = 1,
@@ -2670,6 +2747,7 @@ struct snmp_bc_sensor snmp_bc_mediatray_sensors[] = {
                                 },
                                 {},
                         },
+   			.reading2event = {},
                 },
                 .comment = "Media Tray global operational sensor"
         },
@@ -2742,10 +2820,11 @@ struct snmp_bc_sensor snmp_bc_fan_sensors[] = {
                                 },
                                 {},
                         },
+   			.reading2event = {},
                 },
                 .comment = "Blower fan speed - percent of maximum RPM"
         },
-        /* Blower's global operational sensor */
+        /* Blower's global operational sensor - event-only */
         {
                 .sensor = {
                         .Num = 2,
@@ -2783,6 +2862,7 @@ struct snmp_bc_sensor snmp_bc_fan_sensors[] = {
                                 },
                                 {},
                         },
+   			.reading2event = {},
                 },
                 .comment = "Blower global operational sensor"
         },
@@ -2795,7 +2875,7 @@ struct snmp_bc_sensor snmp_bc_fan_sensors[] = {
  ***************/
 
 struct snmp_bc_sensor snmp_bc_power_sensors[] = {
-        /* Power's over temperature sensor */
+        /* Power's over temperature sensor - event-only */
         {
                 .sensor = {
                         .Num = 1,
@@ -2833,10 +2913,11 @@ struct snmp_bc_sensor snmp_bc_power_sensors[] = {
                                 },
                                 {},
                         },
+   			.reading2event = {},
                 },
                 .comment = "Power over temperature sensor"
         },
-        /* Power's global operational sensor */
+        /* Power's global operational sensor - event-only */
         {
                 .sensor = {
                         .Num = 2,
@@ -2904,6 +2985,7 @@ struct snmp_bc_sensor snmp_bc_power_sensors[] = {
                                 },
                                 {},
                         },
+   			.reading2event = {},
                 },
                 .comment = "Power global operational sensor"
         },
@@ -2915,7 +2997,7 @@ struct snmp_bc_sensor snmp_bc_power_sensors[] = {
  ****************/
 
 struct snmp_bc_sensor snmp_bc_switch_sensors[] = {
-        /* Switch's over temperature sensor */
+        /* Switch's over temperature sensor - event-only */
         {
                 .sensor = {
                         .Num = 1,
@@ -2953,10 +3035,11 @@ struct snmp_bc_sensor snmp_bc_switch_sensors[] = {
                                 },
                                 {},
                         },
+   			.reading2event = {},
                 },
                 .comment = "Switch over temperature sensor"
         },
-        /* Switch's global operational sensor */
+        /* Switch's global operational sensor - event only */
         {
                 .sensor = {
                         .Num = 2,
@@ -3006,6 +3089,7 @@ struct snmp_bc_sensor snmp_bc_switch_sensors[] = {
                                 },
                                 {},
                         },
+   			.reading2event = {},
                 },
                 .comment = "Switch global operational sensor"
         },
@@ -3664,7 +3748,7 @@ struct snmp_bc_inventory snmp_bc_power_inventories[] = {
                                 {},
                         },
                 },
-                 .comment = "Front Panel LED - Temperature"
+                .comment = "Front Panel LED - Temperature"
         },
         /* Blade Error LED */
         {
