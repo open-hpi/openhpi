@@ -1096,8 +1096,9 @@ SaErrorT SAHPI_API saHpiAlarmGetNext (
                     Alarm->Timestamp != a->Timestamp) {
                         error = SA_ERR_HPI_INVALID_DATA;
                 } else {
-                        error = SA_OK;
+                        error = SA_OK;                
                 }
+                memcpy(Alarm, a, sizeof(SaHpiAlarmT));
         }
                 
         oh_release_domain(d);
@@ -1147,7 +1148,7 @@ SaErrorT SAHPI_API saHpiAlarmAcknowledge(
         
         OH_CHECK_INIT_STATE(SessionId);
         
-        if (AlarmId == SAHPI_ENTRY_UNSPECIFIED &&
+        if (AlarmId == SAHPI_ENTRY_UNSPECIFIED ||
             !oh_lookup_severity(Severity))
                 return SA_ERR_HPI_INVALID_PARAMS;
         
@@ -1190,8 +1191,8 @@ SaErrorT SAHPI_API saHpiAlarmAdd(
                         
         OH_CHECK_INIT_STATE(SessionId);
         
-        if (!Alarm &&
-            !oh_lookup_severity(Alarm->Severity) &&
+        if (!Alarm ||
+            !oh_lookup_severity(Alarm->Severity) ||
             Alarm->AlarmCond.Type != SAHPI_STATUS_COND_TYPE_USER)
                 return SA_ERR_HPI_INVALID_PARAMS;
         
@@ -1218,7 +1219,7 @@ SaErrorT SAHPI_API saHpiAlarmDelete(
         
         OH_CHECK_INIT_STATE(SessionId);
         
-        if (AlarmId == SAHPI_ENTRY_UNSPECIFIED &&
+        if (AlarmId == SAHPI_ENTRY_UNSPECIFIED ||
             !oh_lookup_severity(Severity))
                 return SA_ERR_HPI_INVALID_PARAMS;
         

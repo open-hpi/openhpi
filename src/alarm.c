@@ -83,13 +83,19 @@ SaHpiAlarmT *oh_add_alarm(struct oh_domain *d, SaHpiAlarmT *alarm)
         }
                 
         a = g_new0(SaHpiAlarmT, 1);
-        if (alarm)
+        if (alarm) /* Copy contents of optional alarm reference */
                 memcpy(a, alarm, sizeof(SaHpiAlarmT));
         a->AlarmId = ++(d->dat.next_id);
         gettimeofday(&tv1, NULL);
         a->Timestamp = (SaHpiTimeT) tv1.tv_sec * 1000000000 + tv1.tv_usec * 1000;
         a->AlarmCond.DomainId = d->id;
         d->dat.list = g_slist_append(d->dat.list, a);
+        
+        /* Set alarm id and timestamp info in alarm reference */
+        if (alarm) {
+                alarm->AlarmId = a->AlarmId;
+                alarm->Timestamp = a->Timestamp;
+        }
         
         return a;
 }
