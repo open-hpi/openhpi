@@ -188,7 +188,7 @@ cIpmiSensor::GetDataFromSdr( cIpmiMc *mc, cIpmiSdr *sdr )
   m_use_count = 1;
   m_destroyed = false;
 
-  cIpmiAddr addr( eIpmiAddrTypeIpmb, 0, 0, sdr->m_data[5] );
+  // cIpmiAddr addr( eIpmiAddrTypeIpmb, 0, 0, sdr->m_data[5] );
 
   //m_mc = mc->Domain()->FindOrCreateMcBySlaveAddr( sdr->m_data[5] );
   m_mc = mc; // mc->Domain()->FindMcByAddr( addr );
