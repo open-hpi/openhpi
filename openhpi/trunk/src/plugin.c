@@ -17,8 +17,6 @@
  *     David Judkovics <djudkovi@us.ibm.com> 
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <ltdl.h>
 

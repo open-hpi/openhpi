@@ -23,22 +23,21 @@
 
 #include <sys/time.h>
 #include <SaHpi.h>
+#include <oh_event.h>
 #include <rpt_utils.h>
 #include <sel_utils.h>
-#include <oh_event.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif 
 
 struct oh_handler_state {
-		RPTable *rptcache;
-		oh_sel  *selcache;
-		GSList *eventq;
-		GHashTable *config;
+	RPTable *rptcache;
+	oh_sel  *selcache;
+	GSList *eventq;
+	GHashTable *config;
         void *data;
 };
-
 
 /* Current abi is version 2. Version 1 is out-of-date and nobody
  * should use it

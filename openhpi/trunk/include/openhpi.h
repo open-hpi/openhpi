@@ -14,26 +14,20 @@
  *     Louis Zhuang <louis.zhuang@linux.intel.com>
  *     Sean Dague <http://dague.net/sean>
  *     Rusty Lynch
+ *     Renier Morales <renierm@users.sf.net>
  */
 
 #ifndef __OPENHPI_H
 #define __OPENHPI_H
 
-#include <config.h>
-#include <oh_lock.h>
-
-#ifdef HAVE_THREAD_SAFE
-#include <pthread.h>
-#endif
-#include <stdio.h>
+#include <SaHpi.h>
 #include <glib.h>
-
 #include <oh_plugin.h>
 #include <oh_config.h>
-#include <oh_error.h>
 #include <rpt_utils.h>
-#include <sel_utils.h>
+
 #include <oh_lock.h>
+#include <oh_error.h>
 #include <oh_domain.h>
 #include <oh_session.h>
 
@@ -221,47 +215,14 @@ int session_pop_event(struct oh_session*, struct oh_session_event*);
 /*query if the session has events*/
 int session_has_event(struct oh_session *s);
 
-
 struct oh_domain *get_domain_by_id(SaHpiDomainIdT did);
 int is_in_domain_list(SaHpiDomainIdT domain_id);
 int add_domain(SaHpiDomainIdT domain_id);
 void oh_cleanup_domain(void);
 
-
-struct oh_resource *get_resource(SaHpiResourceIdT rid);
-int resource_is_in_domain(struct oh_resource *res, SaHpiDomainIdT sid);
-
-/* plugin load must be seperate from new_handler call*/
-int init_plugin(void);
-void uninit_plugin(void);
-int load_plugin(struct oh_plugin_config *);
-void unload_plugin(struct oh_plugin_config *config);        
-int load_handler(GHashTable *handler_config);
-void unload_handler( struct oh_handler *handler );
-
-/* here are the handler calls we need */
-struct oh_handler *new_handler(GHashTable *handler_config);
-int free_handler(struct oh_handler*);
-
-/* system event log */
-#define OH_DEFAULT_DOMAIN_ID SAHPI_UNSPECIFIED_DOMAIN_ID
-
-int dsel_get_info(SaHpiDomainIdT domain_id, SaHpiEventLogInfoT *info);
-int dsel_get_state(SaHpiDomainIdT domain_id);
-int dsel_set_state(SaHpiDomainIdT domain_id, int enable);
-SaHpiTimeT dsel_get_time(SaHpiDomainIdT domain_id);
-void dsel_set_time(SaHpiDomainIdT domain_id, SaHpiTimeT time);
-int dsel_add(SaHpiDomainIdT domain_id, SaHpiEventLogEntryT *entry);
-int dsel_add2(struct oh_domain *d, struct oh_hpi_event *e);
-int dsel_del(SaHpiDomainIdT domain_id, SaHpiEventLogEntryIdT id);
-int dsel_clr(SaHpiDomainIdT domain_id);
-int rsel_add(SaHpiResourceIdT res_id, SaHpiEventLogEntryT *entry);
-/*int rsel_add2(struct oh_resource *d, struct oh_rsel_event *e);*/
-int rsel_del(SaHpiResourceIdT res_id, SaHpiEventLogEntryIdT id);
-int rsel_clr(SaHpiResourceIdT res_id); 
-
-
-/* howswap */
+/* howswap - ***This all needs to be cleaned up,
+ * all the way down to src/hotswap.c*** -- RM 7/16
+ */
 void process_hotswap_policy(struct oh_handler *h);
 int hotswap_push_event(struct oh_hpi_event *e);
 int hotswap_pop_event(struct oh_hpi_event *e); 
@@ -270,7 +231,6 @@ SaHpiTimeoutT get_hotswap_auto_insert_timeout(void);
 void set_hotswap_auto_insert_timeout(SaHpiTimeoutT);
 SaHpiTimeoutT get_default_hotswap_auto_extract_timeout(void);
 void set_default_hotswap_auto_extract_timeout(SaHpiTimeoutT to);
-
 
 static __inline__
  void gettimeofday1(SaHpiTimeT *t)

@@ -21,8 +21,6 @@
 
 #include <openhpi.h>
 #include <oh_config.h>
-#include <stdlib.h>
-#include <stdio.h>
 #include <glib.h>
 #include <string.h>
 #include <fcntl.h>

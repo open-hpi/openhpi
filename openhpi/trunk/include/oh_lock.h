@@ -18,8 +18,6 @@
 #define OH_LOCK_H
 
 #include <config.h>
-#include <errno.h>
-#include <unistd.h>
 
 extern int oh_will_block;
 
@@ -38,7 +36,7 @@ int data_access_block_times(void);
 #ifdef HAVE_THREAD_SAFE
 /* multi-threading support, use Posix mutex for data access */
 /* initialize mutex used for data locking */
-#include <glib/gthread.h>
+#include <glib.h>
 extern GStaticRecMutex oh_main_lock;
 
 #define data_access_lock_init()

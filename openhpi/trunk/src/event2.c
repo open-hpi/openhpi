@@ -127,7 +127,7 @@ static int process_hpi_event(RPTable *rpt, struct oh_event *full_event)
                 hotswap_push_event(e);
         }
   
-        oh_add_event_to_dsel(OH_DEFAULT_DOMAIN_ID, e);
+        oh_add_event_to_dsel(SAHPI_UNSPECIFIED_DOMAIN_ID, e);
 
         
         /* create a session event */
