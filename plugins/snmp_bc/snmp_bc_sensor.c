@@ -1070,6 +1070,11 @@ SaErrorT snmp_bc_get_sensor_event_masks(void *hnd,
 	struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
 	struct SensorInfo *sinfo;
 
+	if (!hnd ) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+
 	if (!AssertEventMask || !DeassertEventMask) {
 		dbg("Invalid parameter");
 		return(SA_ERR_HPI_INVALID_PARAMS);
@@ -1127,6 +1132,11 @@ SaErrorT snmp_bc_set_sensor_event_masks(void *hnd,
 {
 	struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
 
+	if (!hnd ) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+
 	if (oh_lookup_sensoreventmaskaction(act) == NULL) {
 		return(SA_ERR_HPI_INVALID_DATA);
 	}
@@ -1140,10 +1150,7 @@ SaErrorT snmp_bc_set_sensor_event_masks(void *hnd,
         SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, rid, SAHPI_SENSOR_RDR, sid);
 	if (rdr == NULL) return(SA_ERR_HPI_NOT_PRESENT);
 	if (rdr->RdrTypeUnion.SensorRec.EventCtrl == SAHPI_SEC_PER_EVENT) {
-#if 1
 		dbg("BladeCenter/RSA do not support snmp_bc_set_sensor_event_masks");
-		return(SA_ERR_HPI_INTERNAL_ERROR);
-#else /* Not tested */			
                 /* Probably need to drive an OID, if hardware supported it */
 		struct SensorInfo *sinfo;
 		sinfo = (struct SensorInfo *)oh_get_rdr_data(handle->rptcache, rid, rdr->RecordId);
@@ -1156,9 +1163,11 @@ SaErrorT snmp_bc_set_sensor_event_masks(void *hnd,
 		SaHpiEventStateT orig_deassert_mask = sinfo->deassert_mask;
 
 		/* Check for invalid data in user masks */
-		if (AssertEventMask & ~(rdr->RdrTypeUnion.SensorRec.Events)) return(SA_ERR_HPI_INVALID_DATA);
+		if ( (AssertEventMask != SAHPI_ALL_EVENT_STATES) &&
+		     (AssertEventMask & ~(rdr->RdrTypeUnion.SensorRec.Events)) ) return(SA_ERR_HPI_INVALID_DATA);
 		if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_EVT_DEASSERTS)) {
-			if  (DeassertEventMask & ~(rdr->RdrTypeUnion.SensorRec.Events)) {
+			if  ( (DeassertEventMask != SAHPI_ALL_EVENT_STATES) &&
+				(DeassertEventMask & ~(rdr->RdrTypeUnion.SensorRec.Events)) ) {
 				return(SA_ERR_HPI_INVALID_DATA);
 			}
 		}
@@ -1207,7 +1216,6 @@ SaErrorT snmp_bc_set_sensor_event_masks(void *hnd,
 				/* FIXME:: Add SAHPI_ET_SENSOR_ENABLE_CHANGE event on IF event Q */
 			}
 		}
-#endif
 	}
 	else {
 		return(SA_ERR_HPI_READ_ONLY);
