@@ -63,4 +63,4 @@ libipmi_la_SOURCES	= ipmi.c 		\
 			  ipmi.h
 			  
 libipmi_la_LIBADD	= -luuid -lncurses -lOpenIPMI -lOpenIPMIposix @OPENIPMI_LIBS@
-libipmi_la_LDFLAGS	= -version-info @HPI_LIB_VERSION@ -export-symbols ipmi.sym
+libipmi_la_LDFLAGS	= -version-info @HPI_LIB_VERSION@ -export-symbols $(srcdir)/ipmi.sym
