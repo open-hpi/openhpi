@@ -433,6 +433,22 @@ SaErrorT SAHPI_API saHpiEventLogTimeGet (
 		SAHPI_IN SaHpiResourceIdT ResourceId,
 		SAHPI_OUT SaHpiTimeT *Time)
 {
+        struct oh_session *s;
+        
+        OH_STATE_READY_CHECK;
+        
+        s = session_get(SessionId);
+        if (!s) {
+                dbg("Invalid session");
+                return SA_ERR_HPI_INVALID_SESSION;
+	}	
+	
+	if (ResourceId==SAHPI_DOMAIN_CONTROLLER_ID) {
+		*Time = dsel_get_time(s->domain_id);
+		return SA_OK;
+	}
+
+	dbg("FIXME: system event log doesn't support");
 	return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
@@ -441,6 +457,22 @@ SaErrorT SAHPI_API saHpiEventLogTimeSet (
 		SAHPI_IN SaHpiResourceIdT ResourceId,
 		SAHPI_IN SaHpiTimeT Time)
 {
+        struct oh_session *s;
+        
+        OH_STATE_READY_CHECK;
+        
+        s = session_get(SessionId);
+        if (!s) {
+                dbg("Invalid session");
+                return SA_ERR_HPI_INVALID_SESSION;
+	}	
+	
+	if (ResourceId==SAHPI_DOMAIN_CONTROLLER_ID) {
+		dsel_set_time(s->domain_id, Time);
+		return SA_OK;
+	}
+
+	dbg("FIXME: system event log doesn't support");
 	return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
@@ -449,6 +481,22 @@ SaErrorT SAHPI_API saHpiEventLogStateGet (
 		SAHPI_IN SaHpiResourceIdT ResourceId,
 		SAHPI_OUT SaHpiBoolT *Enable)
 {
+        struct oh_session *s;
+        
+        OH_STATE_READY_CHECK;
+        
+        s = session_get(SessionId);
+        if (!s) {
+                dbg("Invalid session");
+                return SA_ERR_HPI_INVALID_SESSION;
+	}	
+	
+	if (ResourceId==SAHPI_DOMAIN_CONTROLLER_ID) {
+		*Enable = dsel_get_state(s->domain_id);
+		return SA_OK;
+	}
+
+	dbg("FIXME: system event log doesn't support");
 	return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
@@ -457,6 +505,22 @@ SaErrorT SAHPI_API saHpiEventLogStateSet (
 		SAHPI_IN SaHpiResourceIdT ResourceId,
 		SAHPI_IN SaHpiBoolT Enable)
 {
+        struct oh_session *s;
+        
+        OH_STATE_READY_CHECK;
+        
+        s = session_get(SessionId);
+        if (!s) {
+                dbg("Invalid session");
+                return SA_ERR_HPI_INVALID_SESSION;
+	}	
+	
+	if (ResourceId==SAHPI_DOMAIN_CONTROLLER_ID) {
+		dsel_set_state(s->domain_id, Enable);
+		return SA_OK;
+	}
+
+	dbg("FIXME: system event log doesn't support");
 	return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
