@@ -77,7 +77,7 @@
                         oh_release_domain(d); \
                         return SA_ERR_HPI_INVALID_PARAMS; \
                 } \
-                h = (struct oh_handler *)g_hash_table_lookup(handler_table, &(rd->hid)); \
+                h = oh_lookup_handler(rd->hid); \
         } while (0)
 
 /*

@@ -57,10 +57,7 @@ void process_hotswap_policy()
 			continue;
 		}
 
-		data_access_lock();
-		handler = g_hash_table_lookup(handler_table, &e.hid);
-		data_access_unlock();
-
+		handler = oh_lookup_handler(e.hid);
 		if (!handler) {
 			dbg("handler is NULL\n");
 			oh_release_domain(domain);

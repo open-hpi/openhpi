@@ -460,7 +460,7 @@ int oh_load_config (char *filename, struct oh_parsed_config *config)
         return 0;
 }
 
-void oh_unload_config()
+void oh_clean_config()
 {
         /* Free list of plugin names read from configuration file. */
         g_slist_free(plugin_names);
@@ -469,6 +469,7 @@ void oh_unload_config()
         g_slist_free(handler_configs);
 }
 
-
-
-
+void oh_unload_config()
+{
+        g_hash_table_destroy(global_params);
+}
