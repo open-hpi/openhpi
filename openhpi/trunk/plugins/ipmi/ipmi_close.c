@@ -17,24 +17,40 @@
 
 static void close_done(void *cb_data)
 {
-		struct oh_handler_state *handler = (struct oh_handler_state *)cb_data;
-		struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
-		
-		dbg("IPMI connection closed");
-		
-		g_free(ipmi_handler);
-		g_free(handler);
+	int *flag = cb_data;
+	dbg("close_done");
+	*flag = 1;
 }
-		
 
-void ohoi_close_connection(ipmi_domain_t *domain, void *user_data)
+static void close_connection(ipmi_domain_t *domain, void *user_data)
 {
-		struct oh_handler_state *handler = (struct oh_handler_state *)user_data;
+	int rv, *flag = user_data;
 
-		int rv;
+	dbg("close flag:%d", *flag);
 
-		rv = ipmi_close_connection(domain, close_done, handler);
-		if (rv)
-				dbg("ipmi_close_connection failed!");
+	
+	rv = ipmi_close_connection(domain, close_done, user_data);
+	if (rv) {
+		dbg("ipmi_close_connection failed!");
+		*flag = 1;
+	}
+}
 
+void ohoi_close_connection(ipmi_domain_id_t domain_id, void *user_data)
+{
+	int rv, close_flag = 0;
+	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)user_data;
+
+	dbg("ohoi_close_connection");
+
+	rv = ipmi_domain_pointer_cb(domain_id, close_connection, &close_flag);
+	
+	if (rv) {
+		dbg("ipmi_domain_pointer_cb failed!");
+		return;
+	}
+
+	while (close_flag != 1) {
+		sel_select(ipmi_handler->ohoi_sel, NULL, 0, NULL, NULL);
+	}
 }

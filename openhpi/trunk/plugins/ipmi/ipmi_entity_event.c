@@ -238,7 +238,10 @@ void ohoi_entity_event(enum ipmi_update_e       op,
                        void                     *cb_data)
 {
 		struct oh_handler_state *handler = cb_data;
-
+		struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
+		
+		ipmi_handler->connected = 1;
+		
 		if (op == IPMI_ADDED) {
 				add_entity_event(entity, handler);
 

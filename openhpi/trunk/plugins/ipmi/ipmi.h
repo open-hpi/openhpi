@@ -65,6 +65,7 @@ struct ohoi_handler {
 	selector_t *ohoi_sel;
 
 	char *entity_root;
+	int connected;
 };
 
 struct ohoi_resource_info {
@@ -98,7 +99,7 @@ struct ohoi_sensor_info {
 /* implemented in ipmi_event.c */
 void ohoi_setup_done(ipmi_domain_t *domain, void *user_data);
 /* implemented in ipmi_close.c */
-void ohoi_close_connection(ipmi_domain_t *domain, void *user_data);
+void ohoi_close_connection(ipmi_domain_id_t domain_id, void *user_data);
 
 /* implemented in ipmi_sensor.c	*/
 int ohoi_get_sensor_reading(ipmi_sensor_id_t sensor_id, 
