@@ -36,7 +36,7 @@ SaErrorT oh_copy_textbuffer(SaHpiTextBufferT *dest, const SaHpiTextBufferT *from
 SaErrorT oh_fprint_text(FILE *stream, const SaHpiTextBufferT *buffer);
 
 /* Same as SaHpiTextBufferT, only more Data */
-#define OH_MAX_TEXT_BUFFER_LENGTH 2048
+#define OH_MAX_TEXT_BUFFER_LENGTH 1024
 typedef struct {   
 	SaHpiTextTypeT  DataType;
 	SaHpiLanguageT  Language;
