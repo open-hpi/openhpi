@@ -331,7 +331,7 @@ struct snmp_bc_data sim_resource_array[] = {
                  *
                  * Blade 1 Number of reboots - bootCountPowerOnTimeBoots
                  */
-                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.10.1.1.1.3",
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.10.1.1.3.1",
                 .mib = {
                         .type = ASN_INTEGER,
                         .value = {
@@ -344,7 +344,7 @@ struct snmp_bc_data sim_resource_array[] = {
                  *
                  * Blade 2 Number of reboots - bootCountPowerOnTimeBoots
                  */
-                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.10.1.1.2.3",
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.10.1.1.3.2",
                 .mib = {
                         .type = ASN_INTEGER,
                         .value = {
@@ -370,7 +370,7 @@ struct snmp_bc_data sim_resource_array[] = {
                  *
                  * Blade 4 Number of reboots - bootCountPowerOnTimeBoots
                  */
-                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.10.1.1.4.3",
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.10.1.1.3.4",
                 .mib = {
                         .type = ASN_INTEGER,
                         .value = {
@@ -383,7 +383,7 @@ struct snmp_bc_data sim_resource_array[] = {
                  *
                  * Blade 5 Number of reboots - bootCountPowerOnTimeBoots
                  */
-                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.10.1.1.5.3",
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.10.1.1.3.5",
                 .mib = {
                         .type = ASN_INTEGER,
                         .value = {
@@ -396,7 +396,7 @@ struct snmp_bc_data sim_resource_array[] = {
                  *
                  * Blade 6 Number of reboots - bootCountPowerOnTimeBoots
                  */
-                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.10.1.1.6.3",
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.10.1.1.3.6",
                 .mib = {
                         .type = ASN_INTEGER,
                         .value = {
@@ -409,7 +409,7 @@ struct snmp_bc_data sim_resource_array[] = {
                  *
                  * Blade 7 Number of reboots - bootCountPowerOnTimeBoots
                  */
-                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.10.1.1.7.3",
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.10.1.1.3.7",
                 .mib = {
                         .type = ASN_INTEGER,
                         .value = {
@@ -422,7 +422,7 @@ struct snmp_bc_data sim_resource_array[] = {
                  *
                  * Blade 8 Number of reboots - bootCountPowerOnTimeBoots
                  */
-                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.10.1.1.8.3",
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.10.1.1.3.8",
                 .mib = {
                         .type = ASN_INTEGER,
                         .value = {
@@ -435,7 +435,7 @@ struct snmp_bc_data sim_resource_array[] = {
                  *
                  * Blade 9 Number of reboots - bootCountPowerOnTimeBoots
                  */
-                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.10.1.1.9.3",
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.10.1.1.3.9",
                 .mib = {
                         .type = ASN_INTEGER,
                         .value = {
@@ -448,7 +448,7 @@ struct snmp_bc_data sim_resource_array[] = {
                  *
                  * Blade 10 Number of reboots - bootCountPowerOnTimeBoots
                  */
-                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.10.1.1.10.3",
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.10.1.1.3.10",
                 .mib = {
                         .type = ASN_INTEGER,
                         .value = {
@@ -461,7 +461,7 @@ struct snmp_bc_data sim_resource_array[] = {
                  *
                  * Blade 11 Number of reboots - bootCountPowerOnTimeBoots
                  */
-                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.10.1.1.11.3",
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.10.1.1.3.11",
                 .mib = {
                         .type = ASN_INTEGER,
                         .value = {
@@ -474,7 +474,7 @@ struct snmp_bc_data sim_resource_array[] = {
                  *
                  * Blade 12 Number of reboots - bootCountPowerOnTimeBoots
                  */
-                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.10.1.1.12.3",
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.10.1.1.3.12",
                 .mib = {
                         .type = ASN_INTEGER,
                         .value = {
@@ -487,7 +487,7 @@ struct snmp_bc_data sim_resource_array[] = {
                  *
                  * Blade 13 Number of reboots - bootCountPowerOnTimeBoots
                  */
-                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.10.1.1.13.3",
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.10.1.1.3.13",
                 .mib = {
                         .type = ASN_INTEGER,
                         .value = {
@@ -500,7 +500,7 @@ struct snmp_bc_data sim_resource_array[] = {
                  *
                  * Blade 14 Number of reboots - bootCountPowerOnTimeBoots
                  */
-                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.10.1.1.14.3",
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.10.1.1.3.14",
                 .mib = {
                         .type = ASN_INTEGER,
                         .value = {
