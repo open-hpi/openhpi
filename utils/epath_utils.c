@@ -13,6 +13,7 @@
  *      Steve Sherman <stevees@us.ibm.com>
  *      Renier Morales <renierm@users.sf.net>
  *      Thomas Kanngieser <thomas.kanngieser@fci.com>
+ *      Chris Chia <cchia@users.sf.net.com>
  */
 
 /******************************************************************************
@@ -32,8 +33,8 @@
  * ep_concat         - Concatenates two SaHpiEntityPathT together.
  *
  * NOTES:
- *   - Don't have a good way to identify last real value in SaHpiEntityPath
- *     array, since UNSPECIFIED = 0 and Instance = 0 is a valid path
+ *   - SAHPI_ENT_ROOT is used to identify end element of an entity path
+ *     fully populated entity path may not have a SAHPI_ENT_ROOT.
  *   - Duplicate names in SaHPIEntityTypeT enumeration aren't handled
  *     Names below won't be preserved across conversion calls:
  *       - IPMI_GROUP              - IPMI_GROUP + 0x90
@@ -430,6 +431,9 @@ int set_epath_instance(SaHpiEntityPathT *ep, SaHpiEntityTypeT et, SaHpiEntityIns
                         retval = 0;
                         break;
                 }
+                else if(ep->Entry[i].EntityType == SAHPI_ENT_ROOT) {
+                        break;
+                }
         }
         return retval;
 }
@@ -504,6 +508,10 @@ int prt_ep(SaHpiEntityPathT *ep)
         gchar epstr[512];
 	int len;
 
+        if (!ep) {
+		dbg("Error: null pointer \n");
+                return -1;
+        }
 	len = entitypath2string(ep, epstr, sizeof(epstr));
 
 	if (len < 0) {
