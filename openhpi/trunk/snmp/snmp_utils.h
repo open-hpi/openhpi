@@ -38,6 +38,9 @@
 #define NETSNMP_INLINE
 #define RETSIGTYPE void
 #define NET_SNMP_CONFIG_H
+#ifdef __ssize_t_defined
+#define HAVE_SSIZE_T 1
+#endif
 /**************************************/
 #include <net-snmp/net-snmp-includes.h>
 #include <net-snmp/library/transform_oids.h>
