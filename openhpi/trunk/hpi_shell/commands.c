@@ -28,6 +28,8 @@
 #define READ_BUF_SIZE	1024
 
 #define SEN_AV_COM 	"   Available commands:\n" \
+			"	disable  - set sensor disable\n" \
+			"	enable   - set sensor enable\n" \
 			"	evtenb   - set event enable\n" \
 			"	evtdis   - set event disable\n" \
 			"	maskadd  - mask add\n" \
@@ -242,7 +244,8 @@ static int sa_power(int argc, char *argv[])
 			printf("saHpiResourcePowerStateSet error %s\n",
 				oh_lookup_error(rv));
 			return -1;
-		}
+		};
+		return SA_OK;
 	}
 
         rv = saHpiResourcePowerStateGet(Domain->sessionId, resourceid, &state);
@@ -1116,6 +1119,26 @@ static int sen_block(int argc, char *argv[])
 			set_sensor_threshold(rptid, rdrnum);
 			continue;
 		};
+		if ((strcmp(buf, "enable") == 0) || (strcmp(buf, "disable") == 0)) {
+			if (strcmp(buf, "enable") == 0) val = 1;
+			else val = 0;
+			rv = saHpiSensorEnableSet(Domain->sessionId, rptid, rdrnum, val);
+			if (rv != SA_OK) {
+				printf("saHpiSensorEnableSet: error: %s\n",
+					oh_lookup_error(rv));
+				continue;
+			};
+			rv = saHpiSensorEnableGet(Domain->sessionId, rptid, rdrnum, &val);
+			if (rv != SA_OK) {
+				printf("saHpiSensorEnableGet: error: %s\n",
+					oh_lookup_error(rv));
+				continue;
+			};
+			if (val) strcpy(buf, "Enable");
+			else strcpy(buf, "Disable");
+			printf("Sensor:(%d/%d) %s\n", rptid, rdrnum, buf);
+			continue;
+		};
 		if ((strcmp(buf, "evtenb") == 0) || (strcmp(buf, "evtdis") == 0)) {
 			if (strcmp(buf, "evtenb") == 0) val = 1;
 			else val = 0;
@@ -1134,7 +1157,7 @@ static int sen_block(int argc, char *argv[])
 				continue;
 			};
 			if (val) strcpy(buf, "Enable");
-			else strcpy(buf, "disable");
+			else strcpy(buf, "Disable");
 			printf("Sensor:(%d/%d) event %s\n", rptid, rdrnum, buf);
 			continue;
 		};
