@@ -19,11 +19,11 @@
 #include <string.h>
 extern "C" {
 #include "SaHpi.h"
+}
 #include <openhpi.h>
 #include <epath_utils.h>
 #include <uid_utils.h>
 #include "marshal_hpi.h"
-}
 #include "client_config.h"
 #include "openhpiclient.h"
 
@@ -57,7 +57,8 @@ public:
   SaHpiUint32T       m_update_count;
   
   cRemoteClientConfig( const char *server, 
-		       int port, int debug,
+		       int port, int debug, int max_outstanding,
+		       unsigned int ti,
 		       const SaHpiEntityPathT &ep )
     : m_resource_map( 0 ), m_entity_root( ep ),
       m_update_count( 0 )
@@ -66,6 +67,8 @@ public:
     strcpy( m_config.m_server, server );
     m_config.m_port  = port;
     m_config.m_debug = debug;
+    m_config.m_max_outstanding = max_outstanding; // must be <= 256
+    m_config.m_timeout = ti;
   }
 
   ~cRemoteClientConfig()
@@ -228,8 +231,31 @@ RemoteClientOpen( GHashTable *handler_config )
   if ( debug_str )
        debug = atoi( debug_str );
 
+  int max_outstanding = dDefaultMaxOutstanding;
+  
+  char *mo = (char *)g_hash_table_lookup( handler_config, "max_outstanding" );
+ 
+  if ( mo )
+     {
+       max_outstanding = atoi( mo );
+
+       if ( max_outstanding < 1 )
+	    max_outstanding = 1;
+       
+       if ( max_outstanding > 250 )
+	    max_outstanding = 250;
+     }
+
+  unsigned int ti = dDefaultMessageTimeout;
+
+  char *t = (char *)g_hash_table_lookup( handler_config, "timeout" );
+  
+  if ( t )
+       ti = atoi( t );
+
   cRemoteClientConfig *config = new cRemoteClientConfig( server,
 							 port, debug,
+							 max_outstanding, ti,
 							 entity_root );
 
   if ( !config )
@@ -332,13 +358,14 @@ RemoteClientGetEvent( void *hnd, struct oh_event *e,
 
   if ( rv !=  SA_OK )
      {
+       if ( rv != SA_ERR_HPI_TIMEOUT )
        dbg( "SaHpiGetEvent: %d", rv );
+
        return 0;
      }
 
   if ( config->MapRemoteIdToId( ev.Source, ev.Source ) == false )
      {
-
        dbg( "cannot find remote resource id %d", ev.Source );
        return 0;
      }
