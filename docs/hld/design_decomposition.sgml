@@ -16,39 +16,38 @@
   <title>Current Design</title>
   <sect1>
     <title>Guiding Principles</title>
-  </sect1>
-  <para>
-    There are a few guiding principals behind 
-    the design and implementation of the OpenHPI project. To succeed, 
-    the project must be: 
-  </para>
-  <itemizedlist mark='opencircle'>
-    <listitem>
-      <para>
-        <emphasis>Simple</emphasis> - the easier the code is to
-        follow, the easier it is to find and fix bugs.
-      </para>
-    </listitem>
-    <listitem>
-      <para>
-        <emphasis>Reliable</emphasis> - OpenHPI will be used in very
-        dynamic environments, and will need to be as robust as
-        possible.  To this end, the reliance on well known, well
-        debugged external libraries is perfered to writing our own
-        implementations of the same functions.
-      </para>
-    </listitem>
-    <listitem>
-      <para>
-        <emphasis>Efficient</emphasis> - this is both in terms of
-        performance as well as code re-use.         
-        For performance, the reasons are obvious; you don't want your management layers 
-        to bring down the performance of your system. In regard to code re-use--the more 
-        that pieces of code can be re-used the faster that others can develop hardware 
-        specific components to sit within the OpenHPI domain. 
-      </para>
-    </listitem>
-  </itemizedlist>
+    <para>
+      There are a few guiding principals behind 
+      the design and implementation of the OpenHPI project. To succeed, 
+      the project must be: 
+    </para>
+    <itemizedlist mark='opencircle'>
+      <listitem>
+        <para>
+          <emphasis>Simple</emphasis> - the easier the code is to
+          follow, the easier it is to find and fix bugs.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          <emphasis>Reliable</emphasis> - OpenHPI will be used in very
+          dynamic environments, and will need to be as robust as
+          possible.  To this end, the reliance on well known, well
+          debugged external libraries is perfered to writing our own
+          implementations of the same functions.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          <emphasis>Efficient</emphasis> - this is both in terms of
+          performance as well as code re-use.         
+          For performance, the reasons are obvious; you don't want your management layers 
+          to bring down the performance of your system. In regard to code re-use--the more 
+          that pieces of code can be re-used the faster that others can develop hardware 
+          specific components to sit within the OpenHPI domain. 
+        </para>
+      </listitem>
+    </itemizedlist>
   </sect1>
   <sect1>
     <title>Implementation</title>
