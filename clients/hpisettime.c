@@ -216,7 +216,7 @@ int main(int argc, char **argv)
 	{
                 rv = saHpiRptEntryGet(sessionid,rptentryid,&nextrptentryid,&rptentry);
                 if (fdebug) printf("saHpiRptEntryGet %s\n",decode_error(rv));
-                if (rv == SA_OK) {
+                if (rv == SA_OK && rptentry.ResourceCapabilities == SAHPI_CAPABILITY_SEL) {
                         resourceid = rptentry.ResourceId;
                         if (fdebug) printf("RPT %x capabilities = %x\n", resourceid,
                                            rptentry.ResourceCapabilities);
@@ -234,7 +234,7 @@ int main(int argc, char **argv)
 			printf ("Read-Back-Check event log time: %s\n", timestr);
 
 			/* Restrict the test to ony one clock, for now */
-                       break; 
+                       //break; 
                 }
                 entryid = SAHPI_OLDEST_ENTRY;
                 rptentryid = nextrptentryid;
