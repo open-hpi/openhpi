@@ -166,7 +166,7 @@ static void add_entity_event(ipmi_entity_t	        *entity,
 			     struct oh_handler_state    *handler)
 {
 		struct ohoi_resource_info *ohoi_res_info;
-		SaHpiRptEntryT	entry;
+		SaHpiRptEntryT	entry, *old_entry;
 		int 		rv;
 
 		dbg("adding ipmi entity: %s", ipmi_entity_get_entity_id_string(entity));
@@ -188,6 +188,12 @@ static void add_entity_event(ipmi_entity_t	        *entity,
 		/* bug #957513 keeping for histirical reasons until it's verified */
 		//handler->eventq = g_slist_append(handler->eventq, e);
 
+		old_entry = oh_get_resource_by_id(handler->rptcache, entry.ResourceId);
+		if(old_entry) {
+			memcpy(&entry.ResourceTag, &old_entry->ResourceTag,
+					sizeof(entry.ResourceTag));
+		}
+		
 		oh_add_resource(handler->rptcache, &entry, ohoi_res_info, 1);
 
 		/* sensors */
