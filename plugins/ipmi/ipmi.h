@@ -213,4 +213,41 @@ SaErrorT ohoi_set_reset_state(void *hnd, SaHpiResourceIdT id,
                      (x).seq);                  \
         } while(0)
 
+
+/* dump rpttable to make debug easy 
+   if you don't like it, feel free to delete it.
+   IMO, it is a good idea to place dump_rpttable in rpt_utils.c
+
+*/
+
+static inline void  dump_rpttable(RPTable *table)
+{
+       SaHpiRptEntryT *rpt;
+       rpt = oh_get_resource_next(table, SAHPI_FIRST_ENTRY);
+
+       printf("\n");
+       while (rpt) {
+               SaHpiRdrT  *rdr;
+
+               printf("Resource Id:%d\n", rpt->ResourceId);
+               rdr = oh_get_rdr_next(table, rpt->ResourceId, SAHPI_FIRST_ENTRY);
+               while (rdr) {
+                       unsigned char *data;
+                       int i;
+                       data = oh_get_rdr_data(table, rpt->ResourceId, rdr->RecordId);
+                       printf("(Rdr id:%d type:%d) data pointer:%u\n", 
+                               rdr->RecordId,
+                               rdr->RdrType,
+                               (unsigned int)data);
+                       if (data)
+                               for (i = 0; i < 30; i++)
+                                       printf("%u ", data[i]);
+                       printf("\n");
+                       rdr = oh_get_rdr_next(table, rpt->ResourceId, rdr->RecordId);
+               }
+               printf("\n");
+               rpt = oh_get_resource_next(table, rpt->ResourceId);
+      }
+}
+
 #endif
