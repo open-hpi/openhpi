@@ -52,6 +52,7 @@
         &introduction;
         &methods_and_notations;
         &assumptions_and_deps;
+        &sahpi_breakdown;
         &design_decomposition;
         &internel_components;
         &internel_data_structure;

@@ -66,7 +66,7 @@ and other FRU's all connected together via a common IPMI management bus
       <para>
 <mediaobject>
   <imageobject>
-      <imagedata fileref="physical_view.png">
+      <imagedata fileref="images/physical_view.png">
   </imageobject>
 </mediaobject>
       </para>
@@ -80,7 +80,7 @@ our scenario is configured to see the following HPI view:
       <para>
 <mediaobject>
   <imageobject>
-      <imagedata fileref="domain_view.png">
+      <imagedata fileref="images/domain_view.png">
   </imageobject>
 </mediaobject>
       </para>
@@ -90,7 +90,7 @@ One possible high level design for enabling such a remotely pluggable capabiliti
       <para>
 <mediaobject>
   <imageobject>
-      <imagedata fileref="implementation_view.png">
+      <imagedata fileref="images/implementation_view.png">
   </imageobject>
 </mediaobject>
       </para>
