@@ -3169,6 +3169,7 @@ SaErrorT SAHPI_API saHpiResourceActiveSet (
         SaHpiRptEntryT *res;
         struct oh_handler *h;
         SaHpiDomainIdT did;
+        SaHpiHsStateT from;
         struct oh_domain *d = NULL;
         struct oh_resource_data *rd;
 
@@ -3180,6 +3181,20 @@ SaErrorT SAHPI_API saHpiResourceActiveSet (
         if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
                 oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_CAPABILITY;
+        }
+
+        rv = saHpiHotSwapStateGet(SessionId, ResourceId, &from);
+        if(rv != SA_OK) {
+                dbg("Failed to determine current HS state of Resource %d", ResourceId);
+                oh_release_domain(d); /* Unlock domain */
+                return rv;
+        }
+        if(!oh_allowed_hotswap_transition(from, SAHPI_HS_STATE_ACTIVE)) {
+                dbg("Not allowed to transition %s -> %s",
+                    oh_lookup_hsstate(from),
+                    oh_lookup_hsstate(SAHPI_HS_STATE_ACTIVE));
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_INVALID_REQUEST;
         }
 
         rd = oh_get_resource_data(&(d->rpt), ResourceId);
@@ -3221,6 +3236,7 @@ SaErrorT SAHPI_API saHpiResourceInactiveSet (
         SaHpiRptEntryT *res;
         struct oh_handler *h;
         SaHpiDomainIdT did;
+        SaHpiHsStateT from;
         struct oh_domain *d = NULL;
         struct oh_resource_data *rd;
 
@@ -3234,6 +3250,20 @@ SaErrorT SAHPI_API saHpiResourceInactiveSet (
                 return SA_ERR_HPI_CAPABILITY;
         }
 
+        rv = saHpiHotSwapStateGet(SessionId, ResourceId, &from);
+        if(rv != SA_OK) {
+                dbg("Failed to determine current HS state of Resource %d", ResourceId);
+                oh_release_domain(d); /* Unlock domain */
+                return rv;
+        }
+        if(!oh_allowed_hotswap_transition(from, SAHPI_HS_STATE_INACTIVE)) {
+                dbg("Not allowed to transition %s -> %s",
+                    oh_lookup_hsstate(from),
+                    oh_lookup_hsstate(SAHPI_HS_STATE_INACTIVE));
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_INVALID_REQUEST;
+        }
+
         rd = oh_get_resource_data(&(d->rpt), ResourceId);
         if (!rd) {
                 dbg("Can't find resource data for Resource %d in Domain %d",ResourceId,did);
@@ -3245,7 +3275,7 @@ SaErrorT SAHPI_API saHpiResourceInactiveSet (
                 oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_INVALID_CMD;
         }
-
+        
         rd->controlled = 0;
 
         OH_HANDLER_GET(d, ResourceId, h);
@@ -3697,7 +3727,7 @@ SaErrorT SAHPI_API saHpiResourcePowerStateGet (
         SaHpiDomainIdT did;
         struct oh_domain *d = NULL;
 
-        if (!State) {
+        if (State == NULL) {
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
