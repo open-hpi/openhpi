@@ -466,6 +466,8 @@ SaErrorT SAHPI_API saHpiEventLogInfoGet (
         return SA_OK;
 }
 
+#if 0
+
 SaErrorT SAHPI_API saHpiEventLogEntryGet (
                 SAHPI_IN SaHpiSessionIdT SessionId,
                 SAHPI_IN SaHpiResourceIdT ResourceId,
