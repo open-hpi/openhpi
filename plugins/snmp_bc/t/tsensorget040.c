@@ -34,9 +34,9 @@ int main(int argc, char **argv)
 	SaHpiSensorNumT sid = 0;
 	SaHpiEventStateT assertMask;
 	SaHpiEventStateT deassertMask;
-	/* *************************************	 	 
-	 * Find a resource with Sensor type rdr
-	 * ************************************* */		
+	/* ***************************************	 	 
+	 * Find a resource with No Sensor type rdr
+	 * ***************************************/		
 	err = tsetup(&sessionid);
 	if (err != SA_OK) {
 		printf("Error! Can not open session for test environment\n");

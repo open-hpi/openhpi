@@ -62,6 +62,10 @@ EN_CUTOFF_HI_OVER_TEMP_AMBIENT|0x0001C480|BCT,BC,RSA|SAHPI_CRITICAL|OVR_SEV|"Sys
 EN_PFA_HI_OVER_TEMP_AMBIENT|0x0001D500|BCT,BC,RSA|SAHPI_MAJOR|OVR_SEV|"System over recommended ambient temperature."
 EN_CUTOFF_HI_OVER_TEMP_SP_CARD|0x0001C500|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"Shutoff due to high Management Module temperature."
 EN_PFA_HI_OVER_TEMP_SP_CARD|0x0001D400|BCT,BC|SAHPI_MAJOR|OVR_SEV|"Management Module is over recommended temperature."
+EN_CUTOFF_LO_OVER_TEMP_AMBIENT|0x0001C800|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to under ambient temperature."
+EN_MAJOR_LO_OVER_TEMP_AMBIENT|0x0011C900|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System under recommended ambient temperature."
+EN_CUTOFF_LO_OVER_TEMP_SP_CARD|0x0011C881|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to under Management Module temperature."
+EN_MAJOR_LO_OVER_TEMP_SP_CARD|0x0011C901|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System under recommended Management Module temperature."
 
 # 1.8V voltage sensor on Management Module
 # Changed warnings to SAHPI_MAJOR 
@@ -108,6 +112,19 @@ EN_SWITCH_NON_REDUNDANT|0x0EA16000|BCT,BC|SAHPI_MINOR|OVR_SEV|"Chassis Running N
 
 # Power redundancy sensor - No real physical sensor; event-only sensor
 EN_NR_PWR_SUPPLY|0x08080001|BCT,BC,RSA|SAHPI_MINOR|OVR_SEV|"Insufficient chassis power to support redundancy"
+
+# Power domain 1 redundancy sensor - No real physical sensor; event-only sensor 
+EN_PWR_DOMAIN_1_OVER_SUBSCRIP_NONREC|0x08008401|BCT,BC|SAHPI_MINOR|OVR_SEV|"A power failure in domain 1 can result in an immediate shutdown."
+
+# Power domain 2 redundancy sensor - No real physical sensor; event-only sensor
+EN_PWR_DOMAIN_2_OVER_SUBSCRIP_NONREC|0x08008402|BCT,BC|SAHPI_MINOR|OVR_SEV|"A power failure in domain 2 can result in an immediate shutdown."
+
+# Chassis filter sensor - event only
+EN_FAULT_CRT_FILTER|0x6F100000|BCT|SAHPI_CRITICAL|OVR_SEV|"Telco Filter is in CRITICAL condition. Replace filter needed."
+EN_FAULT_MJR_FILTER|0x6F200000|BCT|SAHPI_MAJOR|OVR_SEV|"Telco Filter is in BAD condition."
+EN_FAULT_MNR_FILTER|0x6F300000|BCT|SAHPI_MINOR|OVR_SEV|"Telco Filter is in WARNING condition."
+EN_FAULT_CRT_AMBIENT|0x6F400000|BCT|SAHPI_CRITICAL|OVR_SEV|"Telco Ambient Temperature is outside the supported range (4-40)."
+EN_FAULT_MNR_FILTER_SERVICE|0x6F500000|BCT|SAHPI_MINOR|OVR_SEV|"Telco Filter: Routine Service Check is required."
 
 ################
 # Blade Resource
@@ -201,8 +218,8 @@ EN_1_5VS_WARNING_HI|0x0A041C02|BCT,BC|SAHPI_MAJOR|OVR_SEV|"Standby +1.5V over re
 EN_1_5VS_WARNING_LOW|0x0A040C02|BCT,BC|SAHPI_MAJOR|OVR_SEV|"Standby +1.5V under recommended voltage."
 
 # Blade's 1.8V voltage sensor
-EN_IO_1_8V_WARNING_HI|0x0A07BC00|ALL|SAHPI_CRITICAL|OVR_SEV|"IO Board +1.8V over recommended voltage."
-EN_IO_1_8V_WARNING_LOW|0x0A07AC00|ALL|SAHPI_CRITICAL|OVR_SEV|"IO Board +1.8V under recommended voltage."
+EN_IO_1_8V_WARNING_HI|0x0A07BC00|BCT,BC,RSA|SAHPI_CRITICAL|OVR_SEV|"IO Board +1.8V over recommended voltage."
+EN_IO_1_8V_WARNING_LOW|0x0A07AC00|BCT,BC,RSA|SAHPI_CRITICAL|OVR_SEV|"IO Board +1.8V under recommended voltage."
 EN_MAJOR_HI_FAULT_1_8V|0x0807A500|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System is over recommended voltage for 1.8V CPU"
 EN_MAJOR_LO_FAULT_1_8V|0x0807A900|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System is under recommended voltage for 1.8V CPU"
 
@@ -253,6 +270,36 @@ EN_12VS_WARNING_LOW|0x0A036C02|BCT,BC|SAHPI_MAJOR|OVR_SEV|"Standby +12V under re
 EN_CUTOFF_HI_FAULT_VRM1|0x04400481|BCT,BC,RSA|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to VRM 1 over voltage."
 
 # Map to generic blade operational sensor
+EN_BLADE_1_NO_PWR_VPD|0x0E00E001|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"Can not read power-on VPD for blade 1."
+EN_BLADE_2_NO_PWR_VPD|0x0E00E002|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"Can not read power-on VPD for blade 2."
+EN_BLADE_3_NO_PWR_VPD|0x0E00E003|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"Can not read power-on VPD for blade 3."
+EN_BLADE_4_NO_PWR_VPD|0x0E00E004|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"Can not read power-on VPD for blade 4."
+EN_BLADE_5_NO_PWR_VPD|0x0E00E005|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"Can not read power-on VPD for blade 5."
+EN_BLADE_6_NO_PWR_VPD|0x0E00E006|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"Can not read power-on VPD for blade 6."
+EN_BLADE_7_NO_PWR_VPD|0x0E00E007|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"Can not read power-on VPD for blade 7."
+EN_BLADE_8_NO_PWR_VPD|0x0E00E008|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"Can not read power-on VPD for blade 8."
+EN_BLADE_9_NO_PWR_VPD|0x0E00E009|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"Can not read power-on VPD for blade 9."
+EN_BLADE_A_NO_PWR_VPD|0x0E00E00A|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"Can not read power-on VPD for blade 10."
+EN_BLADE_B_NO_PWR_VPD|0x0E00E00B|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"Can not read power-on VPD for blade 11."
+EN_BLADE_C_NO_PWR_VPD|0x0E00E00C|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"Can not read power-on VPD for blade 12."
+EN_BLADE_D_NO_PWR_VPD|0x0E00E00D|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"Can not read power-on VPD for blade 13."
+EN_BLADE_E_NO_PWR_VPD|0x0E00E00E|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"Can not read power-on VPD for blade 14."
+
+EN_BLADE_1_NO_MGT_VPD|0x0E010001|BCT,BC|SAHPI_MAJOR|OVR_SEV|"Can not read VPD for blade 1 management."
+EN_BLADE_2_NO_MGT_VPD|0x0E010002|BCT,BC|SAHPI_MAJOR|OVR_SEV|"Can not read VPD for blade 2 management."
+EN_BLADE_3_NO_MGT_VPD|0x0E010003|BCT,BC|SAHPI_MAJOR|OVR_SEV|"Can not read VPD for blade 3 management."
+EN_BLADE_4_NO_MGT_VPD|0x0E010004|BCT,BC|SAHPI_MAJOR|OVR_SEV|"Can not read VPD for blade 4 management."
+EN_BLADE_5_NO_MGT_VPD|0x0E010005|BCT,BC|SAHPI_MAJOR|OVR_SEV|"Can not read VPD for blade 5 management."
+EN_BLADE_6_NO_MGT_VPD|0x0E010006|BCT,BC|SAHPI_MAJOR|OVR_SEV|"Can not read VPD for blade 6 management."
+EN_BLADE_7_NO_MGT_VPD|0x0E010007|BCT,BC|SAHPI_MAJOR|OVR_SEV|"Can not read VPD for blade 7 management."
+EN_BLADE_8_NO_MGT_VPD|0x0E010008|BCT,BC|SAHPI_MAJOR|OVR_SEV|"Can not read VPD for blade 8 management."
+EN_BLADE_9_NO_MGT_VPD|0x0E010009|BCT,BC|SAHPI_MAJOR|OVR_SEV|"Can not read VPD for blade 9 management."
+EN_BLADE_A_NO_MGT_VPD|0x0E01000A|BCT,BC|SAHPI_MAJOR|OVR_SEV|"Can not read VPD for blade 10 management."
+EN_BLADE_B_NO_MGT_VPD|0x0E01000B|BCT,BC|SAHPI_MAJOR|OVR_SEV|"Can not read VPD for blade 11 management."
+EN_BLADE_C_NO_MGT_VPD|0x0E01000C|BCT,BC|SAHPI_MAJOR|OVR_SEV|"Can not read VPD for blade 12 management."
+EN_BLADE_D_NO_MGT_VPD|0x0E01000D|BCT,BC|SAHPI_MAJOR|OVR_SEV|"Can not read VPD for blade 13 management."
+EN_BLADE_E_NO_MGT_VPD|0x0E01000E|BCT,BC|SAHPI_MAJOR|OVR_SEV|"Can not read VPD for blade 14 management."
+
 EN_BLADE_1_COMM_FAIL|0x0E008001|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"SP Communications Failure on Blade 1."
 EN_BLADE_2_COMM_FAIL|0x0E008002|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"SP Communications Failure on Blade 2."
 EN_BLADE_3_COMM_FAIL|0x0E008003|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"SP Communications Failure on Blade 3."
@@ -267,6 +314,36 @@ EN_BLADE_B_COMM_FAIL|0x0E00800B|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"SP Commun
 EN_BLADE_C_COMM_FAIL|0x0E00800C|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"SP Communications Failure on Blade 12."
 EN_BLADE_D_COMM_FAIL|0x0E00800D|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"SP Communications Failure on Blade 13."
 EN_BLADE_E_COMM_FAIL|0x0E00800E|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"SP Communications Failure on Blade 14."
+
+EN_BLADE_1_INSUFFICIENT_PWR|0x0E00A001|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"Blade 1 is not allowed to power on because of insufficient power."
+EN_BLADE_2_INSUFFICIENT_PWR|0x0E00A002|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"Blade 2 is not allowed to power on because of insufficient power."
+EN_BLADE_3_INSUFFICIENT_PWR|0x0E00A003|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"Blade 3 is not allowed to power on because of insufficient power."
+EN_BLADE_4_INSUFFICIENT_PWR|0x0E00A004|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"Blade 4 is not allowed to power on because of insufficient power."
+EN_BLADE_5_INSUFFICIENT_PWR|0x0E00A005|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"Blade 5 is not allowed to power on because of insufficient power."
+EN_BLADE_6_INSUFFICIENT_PWR|0x0E00A006|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"Blade 6 is not allowed to power on because of insufficient power."
+EN_BLADE_7_INSUFFICIENT_PWR|0x0E00A007|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"Blade 7 is not allowed to power on because of insufficient power."
+EN_BLADE_8_INSUFFICIENT_PWR|0x0E00A008|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"Blade 8 is not allowed to power on because of insufficient power."
+EN_BLADE_9_INSUFFICIENT_PWR|0x0E00A009|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"Blade 9 is not allowed to power on because of insufficient power."
+EN_BLADE_10_INSUFFICIENT_PWR|0x0E00A00A|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"Blade 10 is not allowed to power on because of insufficient power."
+EN_BLADE_11_INSUFFICIENT_PWR|0x0E00A00B|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"Blade 11 is not allowed to power on because of insufficient power."
+EN_BLADE_12_INSUFFICIENT_PWR|0x0E00A00C|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"Blade 12 is not allowed to power on because of insufficient power."
+EN_BLADE_13_INSUFFICIENT_PWR|0x0E00A00D|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"Blade 13 is not allowed to power on because of insufficient power."
+EN_BLADE_14_INSUFFICIENT_PWR|0x0E00A00E|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"Blade 14 is not allowed to power on because of insufficient power."
+
+EN_BLADE_1_THROTTLED|0x0E00C001|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV|"Blade 1 is throttled."
+EN_BLADE_2_THROTTLED|0x0E00C002|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV|"Blade 2 is throttled."
+EN_BLADE_3_THROTTLED|0x0E00C003|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV|"Blade 3 is throttled."
+EN_BLADE_4_THROTTLED|0x0E00C004|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV|"Blade 4 is throttled."
+EN_BLADE_5_THROTTLED|0x0E00C005|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV|"Blade 5 is throttled."
+EN_BLADE_6_THROTTLED|0x0E00C006|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV|"Blade 6 is throttled."
+EN_BLADE_7_THROTTLED|0x0E00C007|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV|"Blade 7 is throttled."
+EN_BLADE_8_THROTTLED|0x0E00C008|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV|"Blade 8 is throttled."
+EN_BLADE_9_THROTTLED|0x0E00C009|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV|"Blade 9 is throttled."
+EN_BLADE_10_THROTTLED|0x0E00C00A|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV|"Blade 10 is throttled."
+EN_BLADE_11_THROTTLED|0x0E00C00B|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV|"Blade 11 is throttled."
+EN_BLADE_12_THROTTLED|0x0E00C00C|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV|"Blade 12 is throttled."
+EN_BLADE_13_THROTTLED|0x0E00C00D|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV|"Blade 13 is throttled."
+EN_BLADE_14_THROTTLED|0x0E00C00E|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV|"Blade 14 is throttled."
 
 EN_BLADE_1_CFG_FAIL|0x0E006001|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"Blade Server 1 is incompatible with I/O module configuration."
 EN_BLADE_2_CFG_FAIL|0x0E006002|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"Blade Server 2 is incompatible with I/O module configuration."
@@ -365,7 +442,8 @@ EN_MM_2_REMOVED|0x00284002|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Managemen
 ###########################
 # Management Module Sensors
 ###########################
-# None
+
+EN_MM_NETWORK_LOSS|0x00222000|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"Management Module network uplink loss."
 
 #################
 # Switch Resource
@@ -426,6 +504,11 @@ EN_OVER_TEMP_WARN_SWITCH_4|0x0EA1D404|BCT,BC|SAHPI_MAJOR|OVR_SEV|"I/O module 4 T
 EN_OVER_TEMP_WARN_SWITCH_4|0x0EA1D404|BCT,BC|SAHPI_MAJOR|OVR_SEV|"I/O module 4 Temperature Warning Multiple I/O module failures"
 
 # Map to generic operational sensor; event-only sensor
+EN_SWITCH_1_INSUFFICIENT_PWR|0x0E00B001|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"Switch 1 is not allowed to power on because of insufficient power."
+EN_SWITCH_2_INSUFFICIENT_PWR|0x0E00B002|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"Switch 2 is not allowed to power on because of insufficient power."
+EN_SWITCH_3_INSUFFICIENT_PWR|0x0E00B003|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"Switch 3 is not allowed to power on because of insufficient power."
+EN_SWITCH_4_INSUFFICIENT_PWR|0x0E00B004|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"Switch 4 is not allowed to power on because of insufficient power."
+
 EN_SWITCH_1_CFG_ERROR|0x0EA0C001|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"I/O module 1 is incompatible with Blade Server configuration."
 EN_SWITCH_1_CFG_ERROR|0x0EA0C001|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"I/O module 1 is incompatible with Blade Server configuration. Multiple I/O module failures"
 EN_SWITCH_2_CFG_ERROR|0x0EA0C002|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"I/O module 2 is incompatible with Blade Server configuration."
@@ -510,6 +593,10 @@ EN_FAULT_PS1_REMOVED|0x0821E001|BCT,BC,RSA|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Power
 EN_FAULT_PS2_REMOVED|0x0821E002|BCT,BC,RSA|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Power Supply 2 Removed."
 EN_FAULT_PS3_REMOVED|0x0821E003|BCT,BC,RSA|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Power Supply 3 Removed."
 EN_FAULT_PS4_REMOVED|0x0821E004|BCT,BC,RSA|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Power Supply 4 Removed."
+EN_FAULT_PS1_REMOVED_INFO|0x0821F001|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Power Supply 1 Removed."
+EN_FAULT_PS2_REMOVED_INFO|0x0821F002|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Power Supply 2 Removed."
+EN_FAULT_PS3_REMOVED_INFO|0x0821F003|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Power Supply 3 Removed."
+EN_FAULT_PS4_REMOVED_INFO|0x0821F004|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Power Supply 4 Removed."
 
 ###############
 # Power Sensors

@@ -27,7 +27,7 @@
  *                        Resource Definitions
  **************************************************************************/
 
-/* Unfortunately, BCT has different OID for System Health */
+/* BCT has different OID for System Health */
 struct snmp_rpt snmp_bc_rpt_array_bct[] = {
         /* Chassis */
         {
@@ -132,7 +132,8 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                                                 SAHPI_CAPABILITY_INVENTORY_DATA |
                                                 SAHPI_CAPABILITY_RDR |
 			                        SAHPI_CAPABILITY_RESET |
-                                                SAHPI_CAPABILITY_RESOURCE,
+                                                SAHPI_CAPABILITY_RESOURCE |
+			                        SAHPI_CAPABILITY_SENSOR,
                         .ResourceSeverity = SAHPI_MAJOR,
 			.ResourceFailed = SAHPI_FALSE,
                 },
@@ -500,7 +501,14 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                                         .recovery_state = SAHPI_HS_STATE_NOT_PRESENT,
                                 },
                                 {
-                                        .event = "0821E00x", /* EN_PSx_REMOVED */
+                                        .event = "0821E00x", /* EN_FAULT_PSx_REMOVED */
+					.event_res_failure = SAHPI_TRUE,
+					.event_res_failure_unexpected = SAHPI_TRUE,
+                                        .event_state = SAHPI_HS_STATE_NOT_PRESENT,
+                                        .recovery_state = SAHPI_HS_STATE_ACTIVE,
+                                },
+				{
+                                        .event = "0821F00x", /* EN_FAULT_PSx_REMOVED_INFO */
 					.event_res_failure = SAHPI_TRUE,
 					.event_res_failure_unexpected = SAHPI_TRUE,
                                         .event_state = SAHPI_HS_STATE_NOT_PRESENT,
@@ -533,7 +541,8 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                         .Category = SAHPI_EC_THRESHOLD,
 			.EnableCtrl = SAHPI_FALSE,
                         .EventCtrl = SAHPI_SEC_READ_ONLY,
-                        .Events = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+                        .Events = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT |
+			          SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT,
                         .DataFormat = {
                                 .IsSupported = SAHPI_TRUE,
                                 .ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
@@ -575,8 +584,10 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                         .cur_state = SAHPI_ES_UNSPECIFIED,
                         .sensor_enabled = SAHPI_TRUE,
                         .events_enabled = SAHPI_TRUE,
-                        .assert_mask   = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                        .deassert_mask = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+                        .assert_mask   = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT |
+			                 SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT,
+                        .deassert_mask = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT |
+			                 SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT,
                         .event_array = {
                                 {
                                         .event = "0001C480", /* EN_CUTOFF_HI_OVER_TEMP_AMBIENT */
@@ -610,6 +621,39 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
 					.event_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
                                         .recovery_state = SAHPI_ES_UNSPECIFIED,
                                 },
+                                {
+                                        .event = "0001C800", /* EN_CUTOFF_LO_OVER_TEMP_AMBIENT */
+					.event_assertion = SAHPI_TRUE,
+					.event_res_failure = SAHPI_TRUE,
+					.event_res_failure_unexpected = SAHPI_TRUE,
+                                        .event_state = SAHPI_ES_LOWER_CRIT | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_MINOR,
+                                        .recovery_state = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_MINOR,
+                                },
+                                {
+                                        .event = "0011C900", /* EN_MAJOR_LO_OVER_TEMP_AMBIENT */
+ 					.event_assertion = SAHPI_TRUE,
+					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+					.event_state = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_MINOR,
+                                        .recovery_state = SAHPI_ES_UNSPECIFIED,
+                                },
+				{
+                                        .event = "0011C881", /* EN_CUTOFF_LO_OVER_TEMP_SP_CARD */
+					.event_assertion = SAHPI_TRUE,
+					.event_res_failure = SAHPI_TRUE,
+					.event_res_failure_unexpected = SAHPI_TRUE,
+                                        .event_state = SAHPI_ES_LOWER_CRIT | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_MINOR,
+                                        .recovery_state = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_MINOR,
+                                },
+                                {
+                                        .event = "0011C901", /* EN_MAJOR_LO_OVER_TEMP_SP_CARD */
+ 					.event_assertion = SAHPI_TRUE,
+					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+					.event_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
+                                        .recovery_state = SAHPI_ES_UNSPECIFIED,
+                                },
+
                                 {},
                         },
 			/* Default HDW thresholds: Warning=60; Warning Reset=55 */
@@ -1443,8 +1487,166 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                },
                 .comment = "Chassis power module redundancy sensor"
         },
+        /* Power domain 1 redundancy sensor - event-only */
+        {
+		.index = 11,
+                .sensor = {
+                        .Num = 11,
+                        .Type = SAHPI_PLATFORM_ALERT,
+                        .Category = SAHPI_EC_REDUNDANCY,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
+                        .Events = SAHPI_ES_REDUNDANCY_LOST | SAHPI_ES_FULLY_REDUNDANT,
+                        .DataFormat = {
+                                .IsSupported = SAHPI_FALSE,
+                        },
+                        .ThresholdDefn = {
+                                .IsAccessible = SAHPI_FALSE,
+                        },
+                        .Oem = 0,
+                },
+                .sensor_info = {
+                        .cur_state = SAHPI_ES_UNSPECIFIED,
+                        .sensor_enabled = SAHPI_TRUE,
+                        .events_enabled = SAHPI_TRUE,
+			.assert_mask   = SAHPI_ES_REDUNDANCY_LOST,
+			.deassert_mask = SAHPI_ES_REDUNDANCY_LOST,
+                        .event_array = {
+                                {
+                                        .event = "08008401", /* EN_PWR_DOMAIN_1_OVER_SUBSCRIP_NONREC */
+ 					.event_assertion = SAHPI_TRUE,
+ 					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+					.event_state = SAHPI_ES_REDUNDANCY_LOST,
+                                        .recovery_state = SAHPI_ES_FULLY_REDUNDANT,
+                                },
+                                {},
+                        },
+ 			.reading2event = {},
+               },
+                .comment = "Chassis power domain 1 redundancy sensor"
+        },
+        /* Power domain 2 redundancy sensor - event-only */
+        {
+		.index = 12,
+                .sensor = {
+                        .Num = 12,
+                        .Type = SAHPI_PLATFORM_ALERT,
+                        .Category = SAHPI_EC_REDUNDANCY,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
+                        .Events = SAHPI_ES_REDUNDANCY_LOST | SAHPI_ES_FULLY_REDUNDANT,
+                        .DataFormat = {
+                                .IsSupported = SAHPI_FALSE,
+                        },
+                        .ThresholdDefn = {
+                                .IsAccessible = SAHPI_FALSE,
+                        },
+                        .Oem = 0,
+                },
+                .sensor_info = {
+                        .cur_state = SAHPI_ES_UNSPECIFIED,
+                        .sensor_enabled = SAHPI_TRUE,
+                        .events_enabled = SAHPI_TRUE,
+			.assert_mask   = SAHPI_ES_REDUNDANCY_LOST,
+			.deassert_mask = SAHPI_ES_REDUNDANCY_LOST,
+                        .event_array = {
+                                {
+                                        .event = "08008402", /* EN_PWR_DOMAIN_2_OVER_SUBSCRIP_NONREC */
+ 					.event_assertion = SAHPI_TRUE,
+ 					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+					.event_state = SAHPI_ES_REDUNDANCY_LOST,
+                                        .recovery_state = SAHPI_ES_FULLY_REDUNDANT,
+                                },
+                                {},
+                        },
+ 			.reading2event = {},
+               },
+                .comment = "Chassis power domain 2 redundancy sensor"
+        },
 
         {} /* Terminate array with a null element */
+};
+
+#define SNMP_BC_MAX_COMMON_CHASSIS_SENSORS 12
+
+struct snmp_bc_sensor snmp_bc_chassis_sensors_bct[] = {
+        /* Chassis filter sensor - event only */
+        {
+		.index = SNMP_BC_MAX_COMMON_CHASSIS_SENSORS + 1,
+                .sensor = {
+                        .Num = SNMP_BC_MAX_COMMON_CHASSIS_SENSORS + 1,
+                        .Type = SAHPI_ENT_COOLING_DEVICE,
+                        .Category = SAHPI_EC_SEVERITY,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
+                        .Events = SAHPI_ES_OK | SAHPI_ES_MINOR_FROM_OK | 
+			          SAHPI_ES_MAJOR_FROM_LESS | SAHPI_ES_CRITICAL,
+                        .DataFormat = {
+                                .IsSupported = SAHPI_FALSE,
+                        },
+                        .ThresholdDefn = {
+                                .IsAccessible = SAHPI_FALSE,
+                        },
+                        .Oem = 0,
+                },
+                .sensor_info = {
+                        .cur_state = SAHPI_ES_OK,
+                        .sensor_enabled = SAHPI_TRUE,
+                        .events_enabled = SAHPI_TRUE,
+			.assert_mask   = SAHPI_ES_OK | SAHPI_ES_MINOR_FROM_OK | 
+			                 SAHPI_ES_MAJOR_FROM_LESS | SAHPI_ES_CRITICAL,
+			.deassert_mask = SAHPI_ES_OK | SAHPI_ES_MINOR_FROM_OK | 
+			                 SAHPI_ES_MAJOR_FROM_LESS | SAHPI_ES_CRITICAL,
+                        .event_array = {
+                                {
+                                        .event = "6F100000", /* EN_FAULT_CRT_FILTER */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_CRITICAL,
+                                        .recovery_state = SAHPI_ES_MAJOR_FROM_LESS,
+                                },
+                                {
+                                        .event = "6F200000", /* EN_FAULT_MJR_FILTER */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_MAJOR_FROM_LESS,
+                                        .recovery_state = SAHPI_ES_MINOR_FROM_OK,
+                                },
+                                {
+                                        .event = "6F300000", /* EN_FAULT_MNR_FILTER */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_MINOR_FROM_OK,
+                                        .recovery_state = SAHPI_ES_OK,
+                                },
+                                {
+                                        .event = "6F400000", /* EN_FAULT_CRT_AMBIENT */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_CRITICAL,
+                                        .recovery_state = SAHPI_ES_MAJOR_FROM_LESS,
+                                },
+                                {
+                                        .event = "6F500000", /* EN_FAULT_MNR_FILTER_SERVICE */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_MINOR_FROM_OK,
+                                        .recovery_state = SAHPI_ES_OK,
+                                },
+                        },
+   			.reading2event = {},
+               },
+                .comment = "Chassis filter sensor"
+        },
+
+       {} /* Terminate array with a null element */
 };
 
 /***************
@@ -2602,6 +2804,22 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
 			.deassert_mask = SAHPI_ES_DEGRADED | SAHPI_ES_OFF_LINE | SAHPI_ES_INSTALL_ERROR,
                         .event_array = {
                                 {
+                                        .event = "0E00E00x", /* EN_BLADE_x_NO_PWR_VPD */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "0E01000x", /* EN_BLADE_x_NO_MGT_VPD */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
                                         .event = "0E00800x", /* EN_BLADE_x_COMM_FAIL */
  					.event_assertion = SAHPI_TRUE,
       					.event_res_failure = SAHPI_FALSE,
@@ -2615,6 +2833,22 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
       					.event_res_failure = SAHPI_TRUE,
 					.event_res_failure_unexpected = SAHPI_TRUE,
                                         .event_state = SAHPI_ES_INSTALL_ERROR,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "0E00A00x", /* EN_BLADE_x_INSUFFICIENT_PWR */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_TRUE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "0E00C00x", /* EN_BLADE_x_THROTTLED */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_TRUE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_DEGRADED,
                                         .recovery_state = SAHPI_ES_RUNNING,
                                 },
                                 {
@@ -5157,6 +5391,45 @@ struct snmp_bc_sensor snmp_bc_blade_addin_sensors[] = {
  ***************************/
 
 struct snmp_bc_sensor snmp_bc_mgmnt_sensors[] = {
+	/* Managment module network link availablity sensor - event only */
+        {
+		.index = 1,
+                .sensor = {
+                        .Num = 1,
+                        .Type = SAHPI_CABLE_INTERCONNECT,
+                        .Category = SAHPI_EC_AVAILABILITY,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
+			.Events = SAHPI_ES_RUNNING | SAHPI_ES_OFF_LINE,
+                        .DataFormat = {
+                                .IsSupported = SAHPI_FALSE,
+                        },
+                        .ThresholdDefn = {
+                                .IsAccessible = SAHPI_FALSE,
+                        },
+                        .Oem = 0,
+                },
+                .sensor_info = {
+                        .cur_state = SAHPI_ES_UNSPECIFIED,
+                        .sensor_enabled = SAHPI_TRUE,
+                        .events_enabled = SAHPI_TRUE,
+			.assert_mask   = SAHPI_ES_OFF_LINE,
+			.deassert_mask = SAHPI_ES_OFF_LINE,
+                        .event_array = {
+                                {
+                                        .event = "000217000", /* EN_MM_NETWORK_LOSS */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_TRUE,
+					.event_res_failure_unexpected = SAHPI_TRUE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {},
+                        },
+   			.reading2event = {},
+                },
+                .comment = "Managment module network link availablity sensor"
+        },
 
         {} /* Terminate array with a null element */
 };
@@ -5534,7 +5807,8 @@ struct snmp_bc_sensor snmp_bc_switch_sensors[] = {
                         .Category = SAHPI_EC_AVAILABILITY,
 			.EnableCtrl = SAHPI_FALSE,
                         .EventCtrl = SAHPI_SEC_READ_ONLY,
-                        .Events = SAHPI_ES_RUNNING | SAHPI_ES_DEGRADED | SAHPI_ES_INSTALL_ERROR,
+                        .Events = SAHPI_ES_RUNNING | SAHPI_ES_OFF_LINE | 
+			          SAHPI_ES_DEGRADED | SAHPI_ES_INSTALL_ERROR,
                         .DataFormat = {
                                 .IsSupported = SAHPI_FALSE,
                         },
@@ -5551,6 +5825,14 @@ struct snmp_bc_sensor snmp_bc_switch_sensors[] = {
 			.deassert_mask = SAHPI_ES_DEGRADED | SAHPI_ES_INSTALL_ERROR,
                         .event_array = {
                                 {
+                                        .event = "0E00B00x", /* EN_SWITCH_x_INSUFFICIENT_PWR */
+   					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_TRUE,
+					.event_res_failure_unexpected = SAHPI_TRUE,
+					.event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                 {
                                         .event = "0EA0C00x", /* EN_SWITCH_x_CFG_ERROR */
    					.event_assertion = SAHPI_TRUE,
        					.event_res_failure = SAHPI_TRUE,
