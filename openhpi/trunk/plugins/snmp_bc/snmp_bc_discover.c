@@ -190,7 +190,12 @@ SaErrorT snmp_bc_discover_resources(void *hnd)
         g_slist_free(rdr_new);
 
 	/* Build cache copy of SEL. RID == 1 (2nd parm) is a dummy id */
-	err1 = snmp_bc_check_selcache(handle, 1, SAHPI_NEWEST_ENTRY);
+	if (g_list_length(handle->elcache->elentries) != 0) {
+		trace("Discovery called and elcache is not empty. Re-discovery?\n");
+		err1 = oh_el_clear(handle->elcache);
+	}
+	err1 = snmp_bc_build_selcache(handle, 1);
+	/*err1 = snmp_bc_check_selcache(handle, 1, SAHPI_NEWEST_ENTRY); */
 	if (err1) {
 		/* --------------------------------------------------------------- */
 		/* If an error is encounterred during building of snmp_bc elcache, */

@@ -302,7 +302,7 @@ SaErrorT snmp_bc_check_selcache(struct oh_handler_state *handle,
 				SaHpiResourceIdT id,
 				SaHpiEventLogEntryIdT entryId)
 {
-	SaErrorT err;
+	SaErrorT err = SA_OK;
 
 	if (!handle) {
 		dbg("Invalid parameter.");
@@ -310,7 +310,8 @@ SaErrorT snmp_bc_check_selcache(struct oh_handler_state *handle,
 	}
 
 	if (g_list_length(handle->elcache->elentries) == 0) {
-		err = snmp_bc_build_selcache(handle, id);
+		/* err = snmp_bc_build_selcache(handle, id); */
+		trace("elcache sync called before discovery?\n");
 	} else {
 		err = snmp_bc_selcache_sync(handle, id, entryId);
 	}
@@ -782,7 +783,9 @@ SaErrorT snmp_bc_clear_sel(void *hnd, SaHpiResourceIdT id)
 	if (err) {
 		dbg("SNMP set failed. Error=%s.", oh_lookup_error(err));
 		return(err);
-	}
+	} else 
+		/* Pick up the newly created entry, Log Clear message */
+		err = snmp_bc_build_selcache(handle, 1);
 		
 	return(SA_OK);
 }
