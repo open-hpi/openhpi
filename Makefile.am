@@ -61,7 +61,7 @@ ALL_SOURCES = $(shell \
 
 includedir=$(base_includedir)/openhpi
 
-include_HEADERS	= $(shell find include -name *.h)
+include_HEADERS	= $(shell find include -name '*.h')
 
 rpm: dist
 	$(RPM) $(RPMFLAGS) $(TARFILE) </dev/null;
