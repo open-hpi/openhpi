@@ -84,32 +84,31 @@ static SaHpiUint8T get_rdr_type_num(SaHpiRdrT *rdr)
         switch (rdr->RdrType) {
                 case SAHPI_CTRL_RDR:
                         num = rdr->RdrTypeUnion.CtrlRec.Num;
-			dbg("num = rdr->RdrTypeUnion.CtrlRec.Num;");
-			dbg("num%d",num);
+			/*dbg("num = rdr->RdrTypeUnion.CtrlRec.Num;");*/
+			/*dbg("num%d",num);*/
 			break;
                 case SAHPI_SENSOR_RDR:
                         num = rdr->RdrTypeUnion.SensorRec.Num;
-			dbg("num = rdr->RdrTypeUnion.SensorRec.Num;");
-			dbg("num%d",num);
+			/*dbg("num = rdr->RdrTypeUnion.SensorRec.Num;");*/
+			/*dbg("num%d",num);*/
 
 			break;
                 case SAHPI_INVENTORY_RDR:
                         num = rdr->RdrTypeUnion.InventoryRec.EirId;
-			dbg("num = rdr->RdrTypeUnion.InventoryRec.EirId;");
-			dbg("num%d",num);
+			/*dbg("num = rdr->RdrTypeUnion.InventoryRec.EirId;");*/
+			/*dbg("num%d",num);*/
 
 			break;
                 case SAHPI_WATCHDOG_RDR:
                         num = rdr->RdrTypeUnion.WatchdogRec.WatchdogNum;
-			dbg("num = rdr->RdrTypeUnion.WatchdogRec.WatchdogNum;");
-			dbg("num%d",num);
+			/*dbg("num = rdr->RdrTypeUnion.WatchdogRec.WatchdogNum;");*/
+			/*dbg("num%d",num);*/
 
 			break;
 		default:
-		dbg("default");
-		dbg("num%d",num);
-
                         num = 0;
+                        /*dbg("default");*/
+                        /*dbg("num%d",num);*/
         }
 
         return num;
