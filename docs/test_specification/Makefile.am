@@ -30,6 +30,30 @@
 #  
  
 
-MAINTAINERCLEANFILES 	= Makefile.in 
+MAINTAINERCLEANFILES 	= Makefile.in  
 
-SUBDIRS			= hld test_specification
+openhpi_docsdir		= $(datadir)/openhpi/docs/test_specification
+
+openhpi_docs_DATA	= \
+				test_specification/book1.html 
+
+
+
+SGML_FILES              = legal.dtd \
+                          authors.dtd \
+                          revisions.dtd \
+                          environment.sgml \
+                          introduction.sgml \
+                          test_specification.sgml \
+                          features.sgml \
+                          strategies.sgml
+
+all:
+
+test_specification/book1.html: $(SGML_FILES)
+	-db2html test_specification.sgml
+
+clean:
+	rm -fR test_specification
+	rm -fR test_specification.junk
+	rm -f *~

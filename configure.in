@@ -76,15 +76,16 @@ CC_WARNINGS="-Wall -Wmissing-prototypes \
 CFLAGS="$CFLAGS $CC_WARNINGS"
 
 
-AC_OUTPUT(openhpi.spec 		   \
-	Makefile 	 	   \
-	src/Makefile		   \
-	src/plugins/Makefile       \
-	src/plugins/ipmi/Makefile  \
-	src/plugins/dummy/Makefile \
-	docs/Makefile		   \
-	docs/hld/Makefile	   \
-	examples/Makefile          \
+AC_OUTPUT(openhpi.spec 		         \
+	Makefile 	 	         \
+	src/Makefile		         \
+	src/plugins/Makefile             \
+	src/plugins/ipmi/Makefile        \
+	src/plugins/dummy/Makefile       \
+	docs/Makefile		         \
+	docs/hld/Makefile	         \
+        docs/test_specification/Makefile \
+	examples/Makefile                \
 )
 
 
