@@ -1323,6 +1323,7 @@ SaErrorT SAHPI_API saHpiRdrGetByInstrumentId (
         SaHpiRptEntryT *res = NULL;
         SaHpiRdrT *rdr_cur;
         SaHpiDomainIdT did;
+        SaHpiCapabilitiesT cap;
         struct oh_domain *d = NULL;
 
         /* Test pointer parameters for invalid pointers */
@@ -1337,12 +1338,57 @@ SaErrorT SAHPI_API saHpiRdrGetByInstrumentId (
         OH_GET_DOMAIN(did, d); /* Lock domain */
 
         OH_RESOURCE_GET(d, ResourceId, res);
+        cap = res->ResourceCapabilities;
 
-        if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_RDR)) {
+        if(!(cap & SAHPI_CAPABILITY_RDR)) {
                 dbg("No RDRs for Resource %d in Domain %d",ResourceId,did);
                 oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_CAPABILITY;
         }
+
+        /* ensure that the resource has something of that type */
+        switch(RdrType) {
+        case SAHPI_CTRL_RDR:
+                if(!(cap & SAHPI_CAPABILITY_CONTROL)) {
+                        dbg("No Controls for Resource %d in Domain %d",ResourceId,did);
+                        oh_release_domain(d); /* Unlock domain */
+                        return SA_ERR_HPI_CAPABILITY;
+                }
+                break;
+        case SAHPI_SENSOR_RDR:
+                if(!(cap & SAHPI_CAPABILITY_SENSOR)) {
+                        dbg("No Sensors for Resource %d in Domain %d",ResourceId,did);
+                        oh_release_domain(d); /* Unlock domain */
+                        return SA_ERR_HPI_CAPABILITY;
+                }
+                break;
+        case SAHPI_INVENTORY_RDR:
+                if(!(cap & SAHPI_CAPABILITY_INVENTORY_DATA)) {
+                        dbg("No IDRs for Resource %d in Domain %d",ResourceId,did);
+                        oh_release_domain(d); /* Unlock domain */
+                        return SA_ERR_HPI_CAPABILITY;
+                }
+                break;
+        case SAHPI_WATCHDOG_RDR:
+                if(!(cap & SAHPI_CAPABILITY_WATCHDOG)) {
+                        dbg("No Watchdogs for Resource %d in Domain %d",ResourceId,did);
+                        oh_release_domain(d); /* Unlock domain */
+                        return SA_ERR_HPI_CAPABILITY;
+                }
+                break;
+        case SAHPI_ANNUNCIATOR_RDR:
+                if(!(cap & SAHPI_CAPABILITY_ANNUNCIATOR)) {
+                        dbg("No Annunciators for Resource %d in Domain %d",ResourceId,did);
+                        oh_release_domain(d); /* Unlock domain */
+                        return SA_ERR_HPI_CAPABILITY;
+                }
+                break;
+        default:
+                dbg("Not a valid Rdr Type %d", RdrType);
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+        /* now that we have a pretty good notion that all is well, try the lookup */
 
         rdr_cur = oh_get_rdr_by_type(&(d->rpt), ResourceId, RdrType, InstrumentId);
 
