@@ -41,7 +41,8 @@
 ## the location of openhpi plugin libraries. The default is defined when the
 ## library is configured.
 ## OPENHPI_VARPATH is a directory to which certain openhpi data will be saved to.
-## At this point, only the DEL is saved to this directory.
+## At this point, only the DEL is saved to this directory. The default is set at
+## compile time through the ./configure options.
 
 ## Second section, declare plugin to use. For example:
 ## plugin plugin-name
