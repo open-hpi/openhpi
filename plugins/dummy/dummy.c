@@ -1305,11 +1305,6 @@ static int dummy_discover_resources(void *hnd)
         return 0;
 }
 
-static int dummy_get_self_id(void *hnd, SaHpiResourceIdT id)
-{
-	return -1;
-}
-
 static int sel_enabled;
 
 static int dummy_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiEventLogInfoT *info)
@@ -1967,7 +1962,6 @@ static struct oh_abi_v2 oh_dummy_plugin = {
 	.close				= dummy_close,
 	.get_event			= dummy_get_event,
 	.discover_resources     	= dummy_discover_resources,
-	.get_self_id			= dummy_get_self_id,
 	.get_sel_info			= dummy_get_sel_info,
 	.set_sel_time			= dummy_set_sel_time,
 	.add_sel_entry			= dummy_add_sel_entry,	
