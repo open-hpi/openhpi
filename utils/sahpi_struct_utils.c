@@ -843,7 +843,7 @@ static SaErrorT oh_build_resourceinfo(oh_big_textbuffer *buffer, const SaHpiReso
 	}
 	if (ResourceInfo->FirmwareMinorRev) {
 		oh_append_offset(&working, offsets);
-		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Firmware Major Revision: %d\n",
+		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Firmware Minor Revision: %d\n",
 			 ResourceInfo->FirmwareMinorRev);
 		oh_append_bigtext(&working, str);
 		found++;
