@@ -126,9 +126,9 @@ SaErrorT SAHPI_API saHpiInitialize(SAHPI_OUT SaHpiVersionT *HpiImplVersion)
          
         data_access_lock();
 
-
         if (OH_STAT_UNINIT != oh_hpi_state) {
                 dbg("Cannot initialize twice");
+                data_access_unlock();
                 return SA_ERR_HPI_DUPLICATE;
         }
         
