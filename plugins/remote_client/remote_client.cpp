@@ -30,8 +30,6 @@ extern "C" {
 
 static void RemoteClientClose( void *hnd );
 static SaErrorT RemoteClientDiscoverResources( void *hnd );
-//static SaErrorT RemoteClientGetEvent( void *hnd, struct oh_event *e, 
-//				      struct timeval *timeout )
 
 
 class cRrdMap
@@ -83,15 +81,6 @@ public:
 
   void AppendEntityRoot( SaHpiEntityPathT &ep )
   {
-    // remove root
-    for( int i = 0; SAHPI_MAX_ENTITY_PATH; i++ )
-	 if ( ep.Entry[i].EntityType == SAHPI_ENT_ROOT )
-	    {
-	      ep.Entry[i].EntityType     = SAHPI_ENT_UNSPECIFIED;
-	      ep.Entry[i].EntityInstance = 0;
-	      break;
-	    }
-
     ep_concat( &ep, &m_entity_root );
   }
 
@@ -704,19 +693,41 @@ RemoteClientSetControlState( void *hnd, SaHpiResourceIdT id,
 
 static SaErrorT
 RemoteClientGetInventorySize( void *hnd, SaHpiResourceIdT id,
-                      SaHpiEirIdT num,
-                      SaHpiUint32T *size )
+			      SaHpiEirIdT num,
+			      SaHpiUint32T *size )
 {
-  return SA_ERR_HPI_UNSUPPORTED_API;
+  struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
+  cRemoteClientConfig     *config = (cRemoteClientConfig *)handler->data;
+  SaHpiResourceIdT         rid;
+  unsigned char            data[128*1024];
+
+  if ( config->MapIdToRemoteId( id, rid ) == false )
+       return SA_ERR_HPI_INVALID_RESOURCE;
+
+  SaErrorT rv = RemoteClientEntityInventoryDataRead( &config->m_config, config->m_session_id,
+						     rid, num, 128*1024, (SaHpiInventoryDataT *)data, size );
+
+  return rv;
 }
 
 
 static SaErrorT
 RemoteClientGetInventoryInfo( void *hnd, SaHpiResourceIdT id,
-                      SaHpiEirIdT num,
-                      SaHpiInventoryDataT *data )
+			      SaHpiEirIdT num,
+			      SaHpiInventoryDataT *data )
 {
-  return SA_ERR_HPI_UNSUPPORTED_API;
+  struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
+  cRemoteClientConfig     *config = (cRemoteClientConfig *)handler->data;
+  SaHpiResourceIdT         rid;
+  SaHpiUint32T             actual_size;
+
+  if ( config->MapIdToRemoteId( id, rid ) == false )
+       return SA_ERR_HPI_INVALID_RESOURCE;
+
+  SaErrorT rv = RemoteClientEntityInventoryDataRead( &config->m_config, config->m_session_id,
+						     rid, num, 128*1024, data, &actual_size );
+
+  return rv;
 }
 
 
