@@ -32,6 +32,8 @@ have_uuid=no
 have_openipmi=no
 have_sysfs=no
 
+LIBS="$LIBS -lpthread"
+
 AC_CHECK_PROG([found_pkg_config],[pkg-config],[yes])
 
 if test "x$found_pkg_config" != "xyes"; then
@@ -207,6 +209,7 @@ CC_WARNINGS="-Wall -Wmissing-prototypes \
 	-Wcast-qual -Wcast-align \
 	-Werror"
 
+CFLAGS="$CFLAGS -D_GNU_SOURCE -D_REENTRANT -fexceptions"
 CFLAGS="$CFLAGS $GLIBFLAGS $CC_WARNINGS"
 
 LIBS="$LIBS $GLIBLIBS"
