@@ -18,8 +18,6 @@
 #include <snmp_util.h>
 #include <string.h>
 
-#include <openhpi.h>
-
 /**
  * snmp_get
  * @ss: a handle to the snmp session needed to make an
