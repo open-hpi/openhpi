@@ -18,15 +18,24 @@
 #define __OH_LOCK_H
 
 #include <config.h>
-#include <oh_config.h>
+//#include <oh_config.h>
 
 extern int oh_will_block;
 
 int data_access_block_times(void);
 
+/*
 #define dbg_lock(format, ...) \
         do { \
                 if (oh_get_global_bool(OPENHPI_DEBUG_LOCK)) { \
+                        fprintf(stderr, "        LOCK: %s:%d:%s: ", __FILE__, __LINE__, __func__); \
+                        fprintf(stderr, format "\n", ## __VA_ARGS__); \
+                } \
+        } while(0)
+*/
+#define dbg_lock(format, ...) \
+        do { \
+                if (getenv("OPENHPI_DEBUG_LOCK") && !strcmp("YES",getenv("OPENHPI_DEBUG_LOCK"))) { \
                         fprintf(stderr, "        LOCK: %s:%d:%s: ", __FILE__, __LINE__, __func__); \
                         fprintf(stderr, format "\n", ## __VA_ARGS__); \
                 } \

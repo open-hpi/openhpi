@@ -35,9 +35,9 @@ typedef struct {
 typedef enum {
         OHPI_ON_EP = 1,
         OHPI_LOG_ON_SEV,
-        OHPI_DEBUG,
-        OHPI_DEBUG_TRACE,
-        OHPI_DEBUG_LOCK,
+        //OHPI_DEBUG,
+        //OHPI_DEBUG_TRACE,
+        //OHPI_DEBUG_LOCK,
         OHPI_THREADED,
         OHPI_PATH,
         OHPI_CONF
@@ -46,9 +46,9 @@ typedef enum {
 typedef union {
         SaHpiEntityPathT OnEP;
         SaHpiSeverityT LogOnSev;
-        unsigned char Debug; /* 1 = YES, 0 = NO */
-        unsigned char DebugTrace; /* !0 = YES, 0 = NO */
-        unsigned char DebugLock; /* !0 = YES, 0 = NO */
+        //unsigned char Debug; /* 1 = YES, 0 = NO */
+        //unsigned char DebugTrace; /* !0 = YES, 0 = NO */
+        //unsigned char DebugLock; /* !0 = YES, 0 = NO */
         unsigned char Threaded; /* !0 = YES, 0 = NO */
         char Path[SAHPI_MAX_TEXT_BUFFER_LENGTH];
         char Conf[SAHPI_MAX_TEXT_BUFFER_LENGTH];

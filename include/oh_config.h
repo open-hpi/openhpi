@@ -32,9 +32,9 @@ struct oh_parsed_config {
 typedef enum {
         OPENHPI_ON_EP = 1,
         OPENHPI_LOG_ON_SEV,
-        OPENHPI_DEBUG,
-        OPENHPI_DEBUG_TRACE,
-        OPENHPI_DEBUG_LOCK,
+        //OPENHPI_DEBUG,
+        //OPENHPI_DEBUG_TRACE,
+        //OPENHPI_DEBUG_LOCK,
         OPENHPI_THREADED,
         OPENHPI_PATH,
         OPENHPI_CONF
@@ -43,9 +43,9 @@ typedef enum {
 typedef union {
         SaHpiEntityPathT on_ep;
         SaHpiSeverityT log_on_sev;
-        unsigned char dbg; /* 1 = YES, 0 = NO */
-        unsigned char dbg_trace; /* !0 = YES, 0 = NO */
-        unsigned char dbg_lock; /* !0 = YES, 0 = NO */
+        //unsigned char dbg; /* 1 = YES, 0 = NO */
+        //unsigned char dbg_trace; /* !0 = YES, 0 = NO */
+        //unsigned char dbg_lock; /* !0 = YES, 0 = NO */
         unsigned char threaded; /* !0 = YES, 0 = NO */
         char path[SAHPI_MAX_TEXT_BUFFER_LENGTH];
         char conf[SAHPI_MAX_TEXT_BUFFER_LENGTH];
@@ -63,7 +63,7 @@ void oh_clean_config(void);
 /* For handling global parameters */
 int oh_get_global_param(struct oh_global_param *param);
 int oh_set_global_param(struct oh_global_param *param);
-unsigned char oh_get_global_bool(oh_global_param_type type);
+//unsigned char oh_get_global_bool(oh_global_param_type type);
 
 #ifdef __cplusplus
 }

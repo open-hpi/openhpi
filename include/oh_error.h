@@ -20,7 +20,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <oh_config.h>
+//#include <oh_config.h>
 
 /* this is put here intentionally as there are too many instances
  * of unqualified sprintf calls in plugin code. Use snprintf instead
@@ -32,9 +32,18 @@
 extern "C" {
 #endif
 
+/*
 #define dbg(format, ...) \
         do { \
                 if (oh_get_global_bool(OPENHPI_DEBUG)) { \
+                        fprintf(stderr, " %s:%d:%s: ", __FILE__, __LINE__, __func__); \
+                        fprintf(stderr, format "\n", ## __VA_ARGS__); \
+                } \
+        } while(0)
+*/
+#define dbg(format, ...) \
+        do { \
+                if (getenv("OPENHPI_DEBUG") && !strcmp("YES",getenv("OPENHPI_DEBUG"))) { \
                         fprintf(stderr, " %s:%d:%s: ", __FILE__, __LINE__, __func__); \
                         fprintf(stderr, format "\n", ## __VA_ARGS__); \
                 } \
@@ -47,9 +56,18 @@ extern "C" {
                 fprintf(stderr, "\t" format "\n", ## __VA_ARGS__); \
         } while(0)
 
+/*
 #define trace(format, ...) \
         do { \
                 if (oh_get_global_bool(OPENHPI_DEBUG_TRACE)) { \
+                        fprintf(stderr, " %s:%d:%s: ", __FILE__, __LINE__, __func__); \
+                        fprintf(stderr, format "\n", ## __VA_ARGS__); \
+                } \
+        } while(0)
+*/
+#define trace(format, ...) \
+        do { \
+                if (getenv("OPENHPI_DEBUG_TRACE") && !strcmp("YES",getenv("OPENHPI_DEBUG_TRACE"))) { \
                         fprintf(stderr, " %s:%d:%s: ", __FILE__, __LINE__, __func__); \
                         fprintf(stderr, format "\n", ## __VA_ARGS__); \
                 } \

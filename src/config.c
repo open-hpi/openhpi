@@ -33,9 +33,9 @@
 static const char *known_globals[] = {
         "OPENHPI_ON_EP",
         "OPENHPI_LOG_ON_SEV",
-        "OPENHPI_DEBUG",
-        "OPENHPI_DEBUG_TRACE",
-        "OPENHPI_DEBUG_LOCK",
+        //"OPENHPI_DEBUG",
+        //"OPENHPI_DEBUG_TRACE",
+        //"OPENHPI_DEBUG_LOCK",
         "OPENHPI_THREADED",
         "OPENHPI_PATH",
         "OPENHPI_CONF",
@@ -45,9 +45,9 @@ static const char *known_globals[] = {
 static struct {
         SaHpiEntityPathT on_ep;
         SaHpiSeverityT log_on_sev;
-        unsigned char dbg;
-        unsigned char dbg_trace;
-        unsigned char dbg_lock;
+        //unsigned char dbg;
+        //unsigned char dbg_trace;
+        //unsigned char dbg_lock;
         unsigned char threaded;        
         char path[SAHPI_MAX_TEXT_BUFFER_LENGTH];
         char conf[SAHPI_MAX_TEXT_BUFFER_LENGTH];
@@ -56,9 +56,9 @@ static struct {
 } global_params = {
         .on_ep = { .Entry[0] = { .EntityType = SAHPI_ENT_ROOT, .EntityLocation = 0 } },
         .log_on_sev = SAHPI_MINOR,
-        .dbg = 0,
-        .dbg_trace = 0,
-        .dbg_lock = 0,
+        //.dbg = 0,
+        //.dbg_trace = 0,
+        //.dbg_lock = 0,
         .threaded = 0,        
         .path = OH_PLUGIN_PATH,
         .conf = OH_DEFAULT_CONF,
@@ -228,24 +228,24 @@ static void process_global_param(const char *name, char *value)
                 g_static_rec_mutex_lock(&global_params.lock);
                 oh_encode_severity(&buffer, &global_params.log_on_sev);
                 g_static_rec_mutex_unlock(&global_params.lock);
-        } else if (!strcmp("OPENHPI_DEBUG", name)) {
-                if (!strcmp("YES", value)) {
-                        global_params.dbg = 1;
-                } else {
-                        global_params.dbg = 0;
-                }                        
-        } else if (!strcmp("OPENHPI_DEBUG_TRACE", name)) {
-                if (!strcmp("YES", value)) {
-                        global_params.dbg_trace = 1;
-                } else {
-                        global_params.dbg_trace = 0;
-                }
-        } else if (!strcmp("OPENHPI_DEBUG_LOCK", name)) {
-                if (!strcmp("YES", value)) {
-                        global_params.dbg_lock = 1;
-                } else {
-                        global_params.dbg_lock = 0;
-                }
+        //} else if (!strcmp("OPENHPI_DEBUG", name)) {
+        //        if (!strcmp("YES", value)) {
+        //                global_params.dbg = 1;
+        //       } else {
+        //                global_params.dbg = 0;
+        //        }                        
+        //} else if (!strcmp("OPENHPI_DEBUG_TRACE", name)) {
+        //        if (!strcmp("YES", value)) {
+        //               global_params.dbg_trace = 1;
+        //        } else {
+        //                global_params.dbg_trace = 0;
+        //        }
+        //} else if (!strcmp("OPENHPI_DEBUG_LOCK", name)) {
+        //        if (!strcmp("YES", value)) {
+        //               global_params.dbg_lock = 1;
+        //        } else {
+        //                global_params.dbg_lock = 0;
+        //        }
         } else if (!strcmp("OPENHPI_THREADED", name)) {
                 g_static_rec_mutex_lock(&global_params.lock);
                 if (!strcmp("YES", value)) {
@@ -625,15 +625,15 @@ int oh_get_global_param(struct oh_global_param *param)
                         param->u.log_on_sev = global_params.log_on_sev;
                         g_static_rec_mutex_unlock(&global_params.lock);
                         break;
-                case OPENHPI_DEBUG:                        
-                        param->u.dbg = global_params.dbg;
-                        break;
-                case OPENHPI_DEBUG_TRACE:
-                        param->u.dbg_trace = global_params.dbg_trace;
-                        break;
-                case OPENHPI_DEBUG_LOCK:
-                        param->u.dbg_lock = global_params.dbg_lock;
-                        break;
+                //case OPENHPI_DEBUG:                        
+                //        param->u.dbg = global_params.dbg;
+                //        break;
+                //case OPENHPI_DEBUG_TRACE:
+                //        param->u.dbg_trace = global_params.dbg_trace;
+                //        break;
+                //case OPENHPI_DEBUG_LOCK:
+                //        param->u.dbg_lock = global_params.dbg_lock;
+                //        break;
                 case OPENHPI_THREADED:                        
                         param->u.threaded = global_params.threaded;
                         break;
@@ -685,15 +685,15 @@ int oh_set_global_param(struct oh_global_param *param)
                         global_params.log_on_sev = param->u.log_on_sev;
                         g_static_rec_mutex_unlock(&global_params.lock);
                         break;
-                case OPENHPI_DEBUG:                        
-                        global_params.dbg = param->u.dbg;
-                        break;
-                case OPENHPI_DEBUG_TRACE:
-                        global_params.dbg_trace = param->u.dbg_trace;
-                        break;
-                case OPENHPI_DEBUG_LOCK:
-                        global_params.dbg_lock = param->u.dbg_lock;
-                        break;
+                //case OPENHPI_DEBUG:                        
+                //        global_params.dbg = param->u.dbg;
+                //        break;
+                //case OPENHPI_DEBUG_TRACE:
+                //        global_params.dbg_trace = param->u.dbg_trace;
+                //        break;
+                //case OPENHPI_DEBUG_LOCK:
+                //        global_params.dbg_lock = param->u.dbg_lock;
+                //        break;
                 case OPENHPI_THREADED:
                         global_params.threaded = param->u.threaded;
                         break;
@@ -721,26 +721,26 @@ int oh_set_global_param(struct oh_global_param *param)
         return 0;
 }
 
-unsigned char oh_get_global_bool(oh_global_param_type type)
-{
-        if (!type) {
-                dbg("ERROR. Invalid parameters");
-                return 0;
-        }
-        
-        read_globals_from_env(0);
-                
-        switch (type) {
-                case OPENHPI_DEBUG:                        
-                        return global_params.dbg;
-                case OPENHPI_DEBUG_TRACE:
-                        return global_params.dbg_trace;
-                case OPENHPI_DEBUG_LOCK:
-                        return global_params.dbg_lock;
-                case OPENHPI_THREADED:                        
-                        return global_params.threaded;
-                default:
-                        dbg("ERROR. Invalid global parameter type %d!", type);
-                        return 0;
-        }
-}
+//unsigned char oh_get_global_bool(oh_global_param_type type)
+//{
+//        if (!type) {
+//                dbg("ERROR. Invalid parameters");
+//                return 0;
+//        }
+//        
+//        read_globals_from_env(0);
+//                
+//        switch (type) {
+//                case OPENHPI_DEBUG:                        
+//                        return global_params.dbg;
+//                case OPENHPI_DEBUG_TRACE:
+//                        return global_params.dbg_trace;
+//                case OPENHPI_DEBUG_LOCK:
+//                        return global_params.dbg_lock;
+//                case OPENHPI_THREADED:                        
+//                        return global_params.threaded;
+//                default:
+//                        dbg("ERROR. Invalid global parameter type %d!", type);
+//                        return 0;
+//        }
+//}
