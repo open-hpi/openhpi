@@ -201,94 +201,143 @@ static int snmp_client_get_sensor_data(void *hnd, SaHpiResourceIdT id,
                                        SaHpiSensorNumT num,
                                        SaHpiSensorReadingT *data)
 {
+	SaErrorT status = SA_OK;
+	struct snmp_value get_value;
 
-dbg("TODO: snmp_client_get_sensor_data()");
-#if 0
-        gchar *oid;
-	SaHpiSensorReadingT working;
-        struct snmp_value get_value;
-        struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
-        struct snmp_client_hnd *custom_handle = (struct snmp_client_hnd *)handle->data;
-        SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, id, SAHPI_SENSOR_RDR, num);
-        struct BC_SensorInfo *s =
-                (struct BC_SensorInfo *)oh_get_rdr_data(handle->rptcache, id, rdr->RecordId);
+	struct rdr_data *remote_rdr_data;
         
-	memset(&working, 0, sizeof(SaHpiSensorReadingT));
+	oid anOID[MAX_OID_LEN];
+	oid indices[NUM_CTRL_INDICES];
 
-        /* Extract index from rdr id and get the snmp of the sensor */
-        oid = snmp_derive_objid(rdr->Entity, s->mib.oid);
-	if(oid == NULL) {
-		dbg("NULL SNMP OID returned for %s\n",s->mib.oid);
-		return -1;
+        struct oh_handler_state *handle = 
+		(struct oh_handler_state *)hnd;
+
+        struct snmp_client_hnd *custom_handle = 
+		(struct snmp_client_hnd *)handle->data;
+
+        SaHpiRdrT *rdr = 
+		oh_get_rdr_by_type(handle->rptcache, id, SAHPI_CTRL_RDR, num);
+
+        remote_rdr_data =
+                (struct rdr_data *)oh_get_rdr_data(handle->rptcache, id, rdr->RecordId);
+
+	/* INDEX   { saHpiDomainID, saHpiResourceID, saHpiSensorIndex }	*/
+	indices[0] = (oid)remote_rdr_data->index.remote_domain;
+	indices[1] = (oid)remote_rdr_data->index.remote_resource_id;
+	indices[2] = (oid)num;
+
+	/* VALUES_PRESENT */
+	build_res_oid(anOID, 
+		      sa_hpi_sensor_reading_current_values_present, 
+		      SA_HPI_SEN_ENTRY_TABLE_VARIABLE_OID_LENGTH, 
+                      indices, 
+                      NUM_SEN_INDICES);
+	
+	status  = snmp_get2(custom_handle->ss,
+			    anOID, 
+			    SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
+			    &get_value);
+	if( (status == SA_OK) && (get_value.type == ASN_INTEGER) )
+		data->ValuesPresent = 
+			(SaHpiSensorReadingFormatsT)SNMP_ENUM_ADJUST(get_value.integer);
+	else
+		printf("snmp_client_get_sensor_data: error getting VALUES_PRESENT \n"); 
+
+	/* RAW_READING */
+	if ((rdr->RdrTypeUnion.SensorRec.DataFormat.ReadingFormats & SAHPI_SRF_RAW)
+	    && (data->ValuesPresent & SAHPI_SRF_RAW) && (status == SA_OK) ) {
+		
+		build_res_oid(anOID, 
+			      sa_hpi_sensor_reading_current_raw, 
+			      SA_HPI_SEN_ENTRY_TABLE_VARIABLE_OID_LENGTH, 
+			      indices, 
+			      NUM_SEN_INDICES);
+	
+		status  = snmp_get2(custom_handle->ss,
+				    anOID, 
+				    SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
+				    &get_value);
+
+		if( (status == SA_OK) && (get_value.type == ASN_UNSIGNED) ) {
+			data->Raw = (SaHpiUint32T)get_value.integer;
+		} else {
+			printf("snmp_client_get_sensor_data: error getting");
+			printf("RAW_READING \n");
+		}
+
+	} else { 
+		printf("snmp_client_get_sensor_data: rdr vs. current values");
+		printf("present RAW Flags DO NOT match\n"); 
 	}
 
-        /* Read the sensor value */
-        if(net_snmp_get(custom_handle->ss, oid, &get_value) != 0){
-                dbg("SNMP could not read sensor %s. Type = %d",oid,get_value.type);
-		g_free(oid);
-                return SA_ERR_HPI_NO_RESPONSE;
-        }
-        g_free(oid);
+	/* INTERPRETED_READING */
+	if( (rdr->RdrTypeUnion.SensorRec.DataFormat.ReadingFormats & SAHPI_SRF_INTERPRETED)
+	    && (data->ValuesPresent & SAHPI_SRF_INTERPRETED) 
+	    && (status == SA_OK) ) {
+		build_res_oid(anOID, 
+			      sa_hpi_sensor_reading_current_intrepreted, 
+			      SA_HPI_SEN_ENTRY_TABLE_VARIABLE_OID_LENGTH, 
+			      indices, 
+			      NUM_SEN_INDICES);
+	
+		status  = snmp_get2(custom_handle->ss,
+				    anOID, 
+				    SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
+				    &get_value);
+		if( (status == SA_OK) && (get_value.type == ASN_UNSIGNED) )
+			memcpy(&data->Interpreted, get_value.string, get_value.str_len);
+		else {
+			printf("snmp_client_get_sensor_data: error getting");
+			printf("RAW READING \n");
+		}
 
-        /* Based on the sensor description, construct a reading to send up */
-        /* format the value into the reading for each type of reading format */
-        working.ValuesPresent = rdr->RdrTypeUnion.SensorRec.DataFormat.ReadingFormats;
-        if(working.ValuesPresent & SAHPI_SRF_RAW) {
-                if(get_value.type != ASN_INTEGER) {
-                        dbg("Sensor value type mismatches reading format.");
-                        return -1;
-                } else {
-                        working.Raw = (SaHpiUint32T)get_value.integer;
-                }
-        }
+	} else { 
+		printf("snmp_client_get_sensor_data: rdr vs. current values");
+		printf("present RAW Flags DO NOT match\n"); 
+	}
 
-        if(working.ValuesPresent & SAHPI_SRF_INTERPRETED) {
-                if(get_value.type == ASN_INTEGER) {
-                        working.Interpreted.Type = SAHPI_SENSOR_INTERPRETED_TYPE_INT32;
-                        working.Interpreted.Value.SensorInt32 = get_value.integer;
-                } else {
-			SaHpiSensorInterpretedUnionT value;
-			
-		       	working.Interpreted.Type = rdr->RdrTypeUnion.SensorRec.DataFormat.Range.Max.Interpreted.Type;
-			if(rdr->RdrTypeUnion.SensorRec.DataFormat.Range.Max.Interpreted.Type == SAHPI_SENSOR_INTERPRETED_TYPE_BUFFER) {
-				strncpy(working.Interpreted.Value.SensorBuffer,
-					get_value.string,
-                                                SAHPI_SENSOR_BUFFER_LENGTH);
-			} else {
-				if(s->mib.convert_snmpstr >= 0) {
-					if(get_interpreted_value(get_value.string,s->mib.convert_snmpstr,&value)) {
-						dbg("Error: get_interpreted_value for %s, (%s)\n",s->mib.oid,get_value.string);
-						return -1;
-					}
-					working.Interpreted.Value = value;
-				} else {
-					dbg("Sensor %s SNMP string value needs to be converted\n", s->mib.oid);
-					return -1;
-				}
-			}
-                }
-        }
+	/* SENSOR_STATUS */
+	if (status == SA_OK) {
+	
+		build_res_oid(anOID, 
+			      sa_hpi_sensor_reading_current_status, 
+			      SA_HPI_SEN_ENTRY_TABLE_VARIABLE_OID_LENGTH, 
+			      indices, 
+			      NUM_SEN_INDICES);
+	
+		status = snmp_get2(custom_handle->ss,
+				   anOID, 
+				   SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
+				   &get_value);
+		if ( (status == SA_OK) && (get_value.type == ASN_INTEGER) )
+			data->EventStatus.SensorStatus = 
+				(SaHpiSensorStatusT)SNMP_ENUM_ADJUST(get_value.integer);
+			else
+				printf("snmp_client_get_sensor_data: error getting SENSOR_STATUS \n");
+	}
 
-        /** FIXME: Need to map events */
-        if(working.ValuesPresent & SAHPI_SRF_EVENT_STATE) { 
-                if(get_value.type == ASN_OCTET_STR) {
-                        dbg("Do not know how to format strings as events yet.");
-                } else {
-                        SaHpiUint32T shifting = 1;
-                        shifting = shifting << get_value.integer;
-                        if(rdr->RdrTypeUnion.SensorRec.Events & shifting) {
-                                working.EventStatus.SensorStatus = SAHPI_SENSTAT_SCAN_ENABLED |
-                                                                 SAHPI_SENSTAT_EVENTS_ENABLED;
-                                working.EventStatus.EventStatus = shifting;
-                        }
-                }
-        }
+	/* SENSOR_EVENT_STATUS */
+	if (status == SA_OK) {
 
-	memcpy(data,&working,sizeof(SaHpiSensorReadingT));
-        
-        return SA_OK;
-#endif
-return(-1);
+		build_res_oid(anOID, 
+			      sa_hpi_sensor_reading_current_evt_status, 
+			      SA_HPI_SEN_ENTRY_TABLE_VARIABLE_OID_LENGTH, 
+			      indices, 
+			      NUM_SEN_INDICES);
+	
+		status = snmp_get2(custom_handle->ss,
+				   anOID, 
+				   SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
+				   &get_value);
+		if ( (status == SA_OK) && (get_value.type == ASN_OCTET_STR) ) 
+			build_state_value(get_value.string,
+					  get_value.str_len,
+					  &data->EventStatus.EventStatus);
+		else
+			printf("snmp_client_get_sensor_data: error getting SENSOR_EVENT_STATUS \n");
+	}
+
+	return(status);
 }
 
 #define get_raw_thresholds(thdmask, thdoid, thdname) \
