@@ -27,7 +27,7 @@
  **/
 int main(int argc, char **argv)
 {
-        SaHpiEntityPathT ep1 = {{{0}}};
+        SaHpiEntityPathT ep1 = {{{SAHPI_ENT_ROOT,0}}};
         SaHpiEntityPathT ep2 = {{{SAHPI_ENT_GROUP,101},
                                  {SAHPI_ENT_REMOTE,102},
                                  {SAHPI_ENT_EXTERNAL_ENVIRONMENT,103},
@@ -35,9 +35,9 @@ int main(int argc, char **argv)
                                  {SAHPI_ENT_CHASSIS_SPECIFIC,105},
                                  {SAHPI_ENT_BOARD_SET_SPECIFIC,106},
                                  {SAHPI_ENT_OEM_SYSINT_SPECIFIC,107},
-                                 {SAHPI_ENT_ROOT,108},
+                                 {SAHPI_ENT_FAN,108},
                                  {SAHPI_ENT_RACK,109},
-                                 {0}}};
+                                 {SAHPI_ENT_ROOT,0}}};
         SaHpiEntityPathT ep3 = {{{SAHPI_ENT_GROUP,101},
                                  {SAHPI_ENT_REMOTE,102},
                                  {SAHPI_ENT_EXTERNAL_ENVIRONMENT,103},
@@ -45,9 +45,9 @@ int main(int argc, char **argv)
                                  {SAHPI_ENT_CHASSIS_SPECIFIC,105},
                                  {SAHPI_ENT_BOARD_SET_SPECIFIC,106},
                                  {SAHPI_ENT_OEM_SYSINT_SPECIFIC,107},
-                                 {SAHPI_ENT_ROOT,108},
+                                 {SAHPI_ENT_FAN,108},
                                  {SAHPI_ENT_RACK,109},
-                                 {0}}};
+                                 {SAHPI_ENT_ROOT,0}}};
         int mydebug = 0;
 
         if (ep_concat(&ep1, &ep2)) {

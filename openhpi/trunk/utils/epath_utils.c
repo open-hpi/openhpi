@@ -392,13 +392,17 @@ int ep_concat(SaHpiEntityPathT *dest, const SaHpiEntityPathT *append)
         if(!append) return 0;
 
         for(i = 0; i < SAHPI_MAX_ENTITY_PATH; i++) {
-                if(dest->Entry[i].EntityType == 0) {
+                if(dest->Entry[i].EntityType == SAHPI_ENT_ROOT) {
                         break;
                 }
         }
 
         for (j = 0; i < SAHPI_MAX_ENTITY_PATH; i++) {
-                if(append->Entry[j].EntityType == 0) break;
+                if(append->Entry[j].EntityType == SAHPI_ENT_ROOT) {
+                        dest->Entry[i].EntityInstance = append->Entry[j].EntityInstance;
+                        dest->Entry[i].EntityType = append->Entry[j].EntityType;
+                        break;
+                }
                 dest->Entry[i].EntityInstance = append->Entry[j].EntityInstance;
                 dest->Entry[i].EntityType = append->Entry[j].EntityType;
                 j++;
@@ -533,11 +537,11 @@ int ep_cmp(SaHpiEntityPathT *ep1, SaHpiEntityPathT *ep2)
                 return 1;
         }
         for ( i=0; i<SAHPI_MAX_ENTITY_PATH; i++ ) {
-                if (ep1->Entry[i].EntityType == 0 )  break;
+                if (ep1->Entry[i].EntityType == SAHPI_ENT_ROOT) break;
         }
         if (mydebug) printf ("ep1 has %d elements    ", i);
         for ( j=0; j<SAHPI_MAX_ENTITY_PATH; j++ ) {
-                if (ep2->Entry[j].EntityType == 0 )  break;
+                if (ep2->Entry[j].EntityType == SAHPI_ENT_ROOT) break;
         }
         if (mydebug) printf ("ep2 has %d elements\n", j);
         if ( i != j ) {

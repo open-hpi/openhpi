@@ -30,18 +30,18 @@ int main(int argc, char **argv)
         SaHpiEntityPathT ep1 = {{{SAHPI_ENT_PERIPHERAL_BAY,55},
                                  {SAHPI_ENT_SYS_MGMNT_MODULE,66},
                                  {SAHPI_ENT_SYSTEM_BOARD,77},
-                                 {0}}};
+                                 {SAHPI_ENT_ROOT,0}}};
         SaHpiEntityPathT ep2 = {{{SAHPI_ENT_MEMORY_MODULE,88},
                                  {SAHPI_ENT_PROCESSOR_MODULE,99},
                                  {SAHPI_ENT_POWER_SUPPLY,101},
-                                 {0}}};
+                                 {SAHPI_ENT_ROOT,0}}};
         SaHpiEntityPathT ep3 = {{{SAHPI_ENT_PERIPHERAL_BAY,55},
                                  {SAHPI_ENT_SYS_MGMNT_MODULE,66},
                                  {SAHPI_ENT_SYSTEM_BOARD,77},
                                  {SAHPI_ENT_MEMORY_MODULE,88},
                                  {SAHPI_ENT_PROCESSOR_MODULE,99},
                                  {SAHPI_ENT_POWER_SUPPLY,101},
-                                 {0}}};
+                                 {SAHPI_ENT_ROOT,0}}};
         int mydebug = 0;
 
         if (ep_concat(&ep1, &ep2)) {

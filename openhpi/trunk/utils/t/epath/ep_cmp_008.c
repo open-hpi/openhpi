@@ -27,12 +27,12 @@
  **/
 int main(int argc, char **argv)
 {
-        SaHpiEntityPathT ep1 = {{{0}}};
+        SaHpiEntityPathT ep1 = {{{SAHPI_ENT_ROOT, 0}}};
         SaHpiEntityPathT ep2 = {{{SAHPI_ENT_FAN,4},
                                  {SAHPI_ENT_SBC_BLADE,3},
                                  {SAHPI_ENT_RACK,2},
                                  {SAHPI_ENT_ROOT,1},
-                                 {0}}};
+                                 {SAHPI_ENT_ROOT, 0}}};
         int mydebug = 0;
 
         if (ep_cmp(&ep1, &ep2) == 0) {

@@ -27,7 +27,7 @@
  **/
 int main(int argc, char **argv)
 {
-        SaHpiEntityPathT ep1 = {{{0}}};
+        SaHpiEntityPathT ep1 = {{{SAHPI_ENT_ROOT,0}}};
         SaHpiEntityPathT ep2;
         SaHpiEntityPathT ep3;
         int i;

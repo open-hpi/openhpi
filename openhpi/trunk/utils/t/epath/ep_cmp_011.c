@@ -35,7 +35,7 @@ int main(int argc, char **argv)
                                  {SAHPI_ENT_SYS_EXPANSION_BOARD,56},
                                  {SAHPI_ENT_OTHER_SYSTEM_BOARD,57},
                                  {SAHPI_ENT_PROCESSOR_BOARD,58},
-                                 {0}}};
+                                 {SAHPI_ENT_ROOT,0}}};
         SaHpiEntityPathT ep2 = {{{SAHPI_ENT_ADD_IN_CARD,51},
                                  {SAHPI_ENT_FRONT_PANEL_BOARD,52},
                                  {SAHPI_ENT_BACK_PANEL_BOARD,53},
@@ -44,7 +44,7 @@ int main(int argc, char **argv)
                                  {SAHPI_ENT_SYS_EXPANSION_BOARD,56},
                                  {SAHPI_ENT_POWER_MODULE,57},
                                  {SAHPI_ENT_PROCESSOR_BOARD,58},
-                                 {0}}};
+                                 {SAHPI_ENT_ROOT,0}}};
         int mydebug = 0;
 
         if (ep_cmp(&ep1, &ep2) == 0) {

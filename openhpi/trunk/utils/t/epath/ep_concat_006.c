@@ -31,12 +31,12 @@ int main(int argc, char **argv)
                                  {SAHPI_ENT_FRONT_PANEL_BOARD,122},
                                  {SAHPI_ENT_BACK_PANEL_BOARD,133},
                                  {SAHPI_ENT_POWER_SYSTEM_BOARD,144},
-                                 {0}}};
+                                 {SAHPI_ENT_ROOT,0}}};
         SaHpiEntityPathT ep2 = {{{SAHPI_ENT_DRIVE_BACKPLANE,155},
                                  {SAHPI_ENT_SYS_EXPANSION_BOARD,166},
                                  {SAHPI_ENT_OTHER_SYSTEM_BOARD,177},
                                  {SAHPI_ENT_PROCESSOR_BOARD,188},
-                                 {0}}};
+                                 {SAHPI_ENT_ROOT,0}}};
         SaHpiEntityPathT ep3 = {{{SAHPI_ENT_ADD_IN_CARD,111},
                                  {SAHPI_ENT_FRONT_PANEL_BOARD,122},
                                  {SAHPI_ENT_BACK_PANEL_BOARD,133},
@@ -45,7 +45,7 @@ int main(int argc, char **argv)
                                  {SAHPI_ENT_SYS_EXPANSION_BOARD,166},
                                  {SAHPI_ENT_OTHER_SYSTEM_BOARD,177},
                                  {SAHPI_ENT_PROCESSOR_BOARD,188},
-                                 {0}}};
+                                 {SAHPI_ENT_ROOT,0}}};
         int mydebug = 0;
 
         if (ep_concat(&ep1, &ep2)) {

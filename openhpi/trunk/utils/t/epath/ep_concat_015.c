@@ -33,15 +33,15 @@ int main(int argc, char **argv)
                                  {SAHPI_ENT_EXTERNAL_ENVIRONMENT,3},
                                  {SAHPI_ENT_BATTERY,4},
                                  {SAHPI_ENT_CHASSIS_SPECIFIC,5},
-                                 {0,0},
-                                 {SAHPI_ENT_ROOT,11},
+                                 {SAHPI_ENT_ROOT,0},
+                                 {SAHPI_ENT_FAN,11},
                                  {SAHPI_ENT_RACK,12}}};
         SaHpiEntityPathT ep2 = {{{SAHPI_ENT_GROUP,101},
                                  {SAHPI_ENT_REMOTE,102},
                                  {SAHPI_ENT_EXTERNAL_ENVIRONMENT,103},
                                  {SAHPI_ENT_BATTERY,104},
                                  {SAHPI_ENT_CHASSIS_SPECIFIC,105},
-                                 {0}}};
+                                 {SAHPI_ENT_ROOT,0}}};
         SaHpiEntityPathT ep3 = {{{SAHPI_ENT_GROUP,1},
                                  {SAHPI_ENT_REMOTE,2},
                                  {SAHPI_ENT_EXTERNAL_ENVIRONMENT,3},
@@ -52,7 +52,7 @@ int main(int argc, char **argv)
                                  {SAHPI_ENT_EXTERNAL_ENVIRONMENT,103},
                                  {SAHPI_ENT_BATTERY,104},
                                  {SAHPI_ENT_CHASSIS_SPECIFIC,105},
-                                 {0}}};
+                                 {SAHPI_ENT_ROOT,0}}};
         int mydebug = 0;
 
         if (ep_concat(&ep1, &ep2)) {
