@@ -59,12 +59,15 @@ then
   rm -rf $RPM_BUILD_ROOT
 fi
 make DESTDIR=$RPM_BUILD_ROOT install
+mkdir -p $RPM_BUILD_ROOT/etc/openhpi
+cp examples/openhpi.conf.example $RPM_BUILD_ROOT/etc/openhpi/openhpi.conf.example
 
 ###################################################
 %files
 ###################################################
 %defattr(-,root,root)
 @libdir@/
+/etc
 
 ###################################################
 %files dev
