@@ -17,10 +17,6 @@
 #ifndef OH_UTILS_H
 #define OH_UTILS_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <epath_utils.h>
 #include <uid_utils.h>
 #include <rpt_utils.h>
@@ -28,9 +24,5 @@ extern "C" {
 #include <ecode_utils.h>
 #include <printevent_utils.h>
 #include <sensor_utils.h>
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif
