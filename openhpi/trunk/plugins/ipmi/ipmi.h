@@ -38,7 +38,9 @@
 #include <OpenIPMI/ipmi_posix.h>
 
 #include <SaHpi.h>
+#include <oh_utils.h>
 #include <openhpi.h>
+
 
 
 #define IPMI_DATA_WAIT	5

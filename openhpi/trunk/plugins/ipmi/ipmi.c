@@ -324,7 +324,7 @@ static int ipmi_discover_resources(void *hnd)
 }
 
 /**
- * ipmi_get_sel_info: get ipmi SEL info
+ * ipmi_get_el_info: get ipmi SEL info
  * @hnd: pointer to handler
  * @id: resource id
  * @info: output -- pointer to info structure passed from infra.
@@ -335,7 +335,7 @@ static int ipmi_discover_resources(void *hnd)
  *
  * Return value: 0
  **/
-static SaErrorT ipmi_get_sel_info(void               *hnd,
+static SaErrorT ipmi_get_el_info(void               *hnd,
                              SaHpiResourceIdT   id,
                              SaHpiEventLogInfoT      *info)
 {
@@ -387,7 +387,7 @@ static SaErrorT ipmi_get_sel_info(void               *hnd,
 }
 
 /**
- * ipmi_set_sel_time: set ipmi event log time
+ * ipmi_set_el_time: set ipmi event log time
  * @hnd: pointer to handler
  * @id: resource id of resource holding sel
  * @time: pointer to time structure
@@ -397,7 +397,7 @@ static SaErrorT ipmi_get_sel_info(void               *hnd,
  *
  * Return value: 0 for success, -1 for error
  **/
-static int ipmi_set_sel_time(void               *hnd,
+static int ipmi_set_el_time(void               *hnd,
                              SaHpiResourceIdT   id,
                              SaHpiTimeT    time)
 {
@@ -488,7 +488,7 @@ static int ipmi_del_sel_entry(void      *hnd,
 #endif
 
 /**
- * ipmi_get_sel_entry: get IPMI SEL entry
+ * ipmi_get_el_entry: get IPMI SEL entry
  * @hnd: pointer to handler instance
  * @id: resourde id with SEL capability
  * @current: SaHpiEntryIdT of entry to retrieve
@@ -502,7 +502,7 @@ static int ipmi_del_sel_entry(void      *hnd,
  *
  * Return value: 0 for success -1 for failure
  **/
-static int ipmi_get_sel_entry(void *hnd, SaHpiResourceIdT id,
+static int ipmi_get_el_entry(void *hnd, SaHpiResourceIdT id,
 				SaHpiEventLogEntryIdT current,
 				SaHpiEventLogEntryIdT *prev,
 				SaHpiEventLogEntryIdT *next,
@@ -581,7 +581,7 @@ out:
 	return 0;		
 }
 
-static SaErrorT ipmi_clear_sel(void *hnd, SaHpiResourceIdT id)
+static SaErrorT ipmi_clear_el(void *hnd, SaHpiResourceIdT id)
 {
 		struct ohoi_resource_info *ohoi_res_info;
 		struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
@@ -833,12 +833,12 @@ static struct oh_abi_v2 oh_ipmi_plugin = {
 		.discover_resources		= ipmi_discover_resources,
 
 		/* SEL support */
-		.get_sel_info                   = ipmi_get_sel_info,
-		.set_sel_time                   = ipmi_set_sel_time,
+		.get_el_info                    = ipmi_get_el_info,
+		.set_el_time                    = ipmi_set_el_time,
 		//.add_sel_entry                  = ipmi_add_sel_entry,
 		//.del_sel_entry                  = ipmi_del_sel_entry,
-		.get_sel_entry                  = ipmi_get_sel_entry,
-		.clear_sel                      = ipmi_clear_sel, 
+		.get_el_entry                   = ipmi_get_el_entry,
+		.clear_el                       = ipmi_clear_el, 
 
 		/* Sensor support */
 		.get_sensor_data		= ipmi_get_sensor_data,
