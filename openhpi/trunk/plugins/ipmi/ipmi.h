@@ -137,6 +137,7 @@ struct ohoi_inventory_info {
 	unsigned int pi_fld_msk;
 	unsigned int pi_custom_num;
 	unsigned int oem_fields_num;
+	GMutex *mutex;
 };
 
 SaHpiTextTypeT convert_to_hpi_data_type(enum ipmi_str_type_e type);

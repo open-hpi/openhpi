@@ -20,8 +20,7 @@
 
 static void add_inventory_event_rdr(
                 SaHpiRdrT		*rdr,
-                SaHpiEntityPathT	parent_ep,
-                SaHpiResourceIdT	res_id)
+                SaHpiEntityPathT	parent_ep)
 {
         char name[] = "FRU Inventory data";
         
@@ -67,6 +66,7 @@ static void init_inventory_info(struct ohoi_resource_info *res_info,
                 return;
         }
         memset(i_info, 0, sizeof(*i_info));
+	i_info->mutex = g_mutex_new();
 	if (ipmi_fru_area_get_length(
 			fru, IPMI_FRU_FTR_INTERNAL_USE_AREA, &len) == 0) {
 		i_info->iu = 255;
@@ -202,14 +202,15 @@ static void add_inventory_event(struct ohoi_resource_info *res_info,
                 return;
         }
         memset(e, 0, sizeof(*e));
-	rpt_entry->ResourceCapabilities |= SAHPI_CAPABILITY_INVENTORY_DATA;
         e->type = OH_ET_RDR;
 
-        add_inventory_event_rdr(&e->u.rdr_event.rdr, parent_ep, rid);
+        add_inventory_event_rdr(&e->u.rdr_event.rdr, parent_ep);
 
         rid = oh_uid_lookup(&e->u.rdr_event.rdr.Entity);
         
-        oh_add_rdr(handler->rptcache, rid, &e->u.rdr_event.rdr, NULL, 0);
+        if (!oh_add_rdr(handler->rptcache, rid, &e->u.rdr_event.rdr, NULL, 0)) {
+		rpt_entry->ResourceCapabilities |= SAHPI_CAPABILITY_INVENTORY_DATA;
+	}
 }
 
 /* Per IPMI spec., one FRU per entity */
