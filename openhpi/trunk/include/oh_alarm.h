@@ -18,22 +18,41 @@
 #define __OH_ALARM_H
 
 #include <SaHpi.h>
+#include <oh_domain.h>
 #include <oh_event.h>
 
-struct oh_dat {
-        SaHpiAlarmIdT next_id;
-        GList *list;        
-};
+/* Alarm Handling */
+SaHpiAlarmT *oh_add_alarm(struct oh_domain *d, SaHpiAlarmT *alarm);
+SaHpiAlarmT *oh_get_alarm(struct oh_domain *d,
+                          SaHpiAlarmIdT *aid,
+                          SaHpiSeverityT *severity,
+                          SaHpiStatusCondTypeT *type,
+                          SaHpiResourceIdT *rid,
+                          SaHpiManufacturerIdT *mid,
+                          SaHpiSensorNumT *num,
+                          SaHpiEventStateT *state,
+                          SaHpiBoolT unacknowledged,                          
+                          int get_next);
+SaErrorT oh_remove_alarm(struct oh_domain *d,
+                         SaHpiSeverityT *severity,
+                         SaHpiStatusCondTypeT *type,
+                         SaHpiResourceIdT *rid,
+                         SaHpiManufacturerIdT *mid,
+                         SaHpiSensorNumT *num,
+                         SaHpiEventStateT *state,
+                         SaHpiEventStateT *deassert_mask,
+                         int multi);                           
 
-SaErrorT oh_detect_event_alarm(SaHpiDomainIdT did, struct oh_event *e);
-SaErrorT oh_detect_res_sev_alarm(SaHpiDomainIdT did,
+/* Alarm Triggers */
+SaErrorT oh_detect_event_alarm(struct oh_domain *d, struct oh_event *e);
+SaErrorT oh_detect_res_sev_alarm(struct oh_domain *d,
                                  SaHpiRptEntryT *res,
                                  SaHpiSeverityT sev);
-SaErrorT oh_detect_sensor_enable_alarm(SaHpiDomainIdT did,
+SaErrorT oh_detect_sensor_enable_alarm(struct oh_domain *d,
                                        SaHpiResourceIdT rid,
                                        SaHpiSensorNumT num,
                                        SaHpiBoolT enable);
-SaErrorT oh_detect_sensor_mask_alarm(SaHpiDomainIdT did,
+SaErrorT oh_detect_sensor_mask_alarm(struct oh_domain *d,
                                      SaHpiResourceIdT rid,
                                      SaHpiSensorNumT num,
                                      SaHpiSensorEventMaskActionT action,

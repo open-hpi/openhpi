@@ -18,202 +18,289 @@
 #include <sys/time.h>
 #include <oh_alarm.h>
 #include <oh_error.h>
-#include <oh_domain.h>
 #include <oh_utils.h>
 
-#define oh_delete_alarm_and_continue() \
-        do { \
-                GList *node = alarms->prev; \
-                g_free(alarms->data); \
-                d->dat.list = g_list_delete_link(d->dat.list, alarms); \
-                if (node) alarms = node; \
-                else { alarms = d->dat.list; continue; } \
-        } while(0)
-        
-#define oh_create_alarm() \
-        do { \
-                struct timeval tv1; \
-                a = g_new0(SaHpiAlarmT, 1); \
-                a->AlarmId = ++(d->dat.next_id); \
-                gettimeofday(&tv1, NULL); \
-                a->Timestamp = (SaHpiTimeT) tv1.tv_sec * 1000000000 + tv1.tv_usec * 1000; \
-                a->AlarmCond.DomainId = SAHPI_UNSPECIFIED_DOMAIN_ID; \
-        } while(0)
 
-
-static void oh_detect_oem_event_alarm(SaHpiDomainIdT did, SaHpiEventT *event)
+static GList *__get_alarm_node(struct oh_domain *d,
+                               SaHpiAlarmIdT *aid,
+                               SaHpiSeverityT *severity,
+                               SaHpiStatusCondTypeT *type,
+                               SaHpiResourceIdT *rid,
+                               SaHpiManufacturerIdT *mid,
+                               SaHpiSensorNumT *num,
+                               SaHpiEventStateT *state,
+                               SaHpiBoolT unacknowledged,                          
+                               int get_next)
 {
-        struct oh_domain *d = NULL;        
         GList *alarms = NULL;
+        
+        if (!d) return NULL;
+                
+        if (aid) {
+                if (*aid == SAHPI_FIRST_ENTRY)
+                        get_next = 1;
+                else if (*aid == SAHPI_LAST_ENTRY) {
+                        /* Just return the last node.
+                           Other search options don't apply. */                        
+                        return g_list_last(d->dat.list);
+                }
+        }
+        
+        
+        for (alarms = d->dat.list; alarms; alarms = alarms->next) {
+                SaHpiAlarmT *alarm = alarms->data;
+                if (alarm &&
+                    (aid ? (get_next ? alarm->AlarmId > *aid : alarm->AlarmId == *aid) : 1) &&
+                    (severity ? (*severity != SAHPI_ALL_SEVERITIES ? alarm->Severity == *severity : 1) : 1) &&
+                    (type ? alarm->AlarmCond.Type == *type : 1) &&
+                    (rid ? alarm->AlarmCond.ResourceId == *rid: 1) &&
+                    (mid ? alarm->AlarmCond.Mid == *mid : 1) &&
+                    (num ? alarm->AlarmCond.SensorNum == *num : 1) &&
+                    (state ? alarm->AlarmCond.EventState == *state : 1) &&
+                    (unacknowledged ? !alarm->Acknowledged : 1)) {
+                        return alarms;
+                }
+        }
+        
+        return NULL;
+}
+        
+/**
+ * oh_add_alarm
+ * @d:
+ * @alarm:
+ *
+ * Return value:
+ **/
+SaHpiAlarmT *oh_add_alarm(struct oh_domain *d, SaHpiAlarmT *alarm)
+{
+        struct timeval tv1;
         SaHpiAlarmT *a = NULL;
         
-        d = oh_get_domain(did);
         if (!d) {
-                dbg("Domain not found! Can't process alarm trigger.");
-                return;
+                dbg("NULL domain pointer passed.");
+                return NULL;
         }
+                
+        a = g_new0(SaHpiAlarmT, 1);
+        if (alarm)
+                memcpy(a, alarm, sizeof(SaHpiAlarmT));
+        a->AlarmId = ++(d->dat.next_id);
+        gettimeofday(&tv1, NULL);
+        a->Timestamp = (SaHpiTimeT) tv1.tv_sec * 1000000000 + tv1.tv_usec * 1000;
+        a->AlarmCond.DomainId = d->id;
+        d->dat.list = g_list_append(d->dat.list, a);
+        
+        return a;
+}
+
+/**
+ * oh_get_alarm
+ * @d:
+ * @aid:
+ * @severity:
+ * @type:
+ * @rid:
+ * @mid:
+ * @num:
+ * @state:
+ * @unacknowledged:
+ * @get_next:
+ *
+ * Return value:
+ **/ 
+SaHpiAlarmT *oh_get_alarm(struct oh_domain *d,
+                          SaHpiAlarmIdT *aid,
+                          SaHpiSeverityT *severity,
+                          SaHpiStatusCondTypeT *type,
+                          SaHpiResourceIdT *rid,
+                          SaHpiManufacturerIdT *mid,
+                          SaHpiSensorNumT *num,
+                          SaHpiEventStateT *state,
+                          SaHpiBoolT unacknowledged,                          
+                          int get_next)
+{
+        GList *alarm_node = NULL;
+        
+        if (!d) return NULL;
+        
+        alarm_node = __get_alarm_node(d, aid, severity, type, rid, mid, num,
+                                      state, 0, get_next);
+        if (!alarm_node) return NULL;
+        
+        return alarm_node->data;
+}
+
+/**
+ * oh_remove_alarm
+ * @d:
+ * @severity:
+ * @type:
+ * @rid:
+ * @mid:
+ * @num:
+ * @state: 
+ * @deassert_mask:
+ * @multi:
+ *
+ * Return value:
+ **/
+SaErrorT oh_remove_alarm(struct oh_domain *d,
+                         SaHpiSeverityT *severity,
+                         SaHpiStatusCondTypeT *type,
+                         SaHpiResourceIdT *rid,
+                         SaHpiManufacturerIdT *mid,
+                         SaHpiSensorNumT *num,
+                         SaHpiEventStateT *state,
+                         SaHpiEventStateT *deassert_mask,
+                         int multi)
+{
+        GList *alarm_node = NULL;
+        SaHpiAlarmT *alarm = NULL;
+        
+        if (!d) return SA_ERR_HPI_INVALID_PARAMS;
+        
+        do {        
+                alarm_node = __get_alarm_node(d, NULL, severity, type, rid, mid,
+                                              num, state, 0, 0);
+                if (alarm_node) alarm = alarm_node->data;
+                else break;
+                
+                if (alarm &&
+                    (deassert_mask ? *deassert_mask & alarm->AlarmCond.EventState : 1)) {
+                        d->dat.list = g_list_delete_link(d->dat.list, alarm_node);
+                        g_free(alarm);
+                }
+                
+                alarm_node = NULL;
+                alarm = NULL;
+        } while (multi);
+        
+        return SA_OK;
+}
+
+static void oh_detect_oem_event_alarm(struct oh_domain *d, SaHpiEventT *event)
+{
+        SaHpiAlarmT *a = NULL;
+        SaHpiStatusCondTypeT type = SAHPI_STATUS_COND_TYPE_OEM;
+        
+        if (!d || !event) return;
         
         /* Search for possible oem alarm, if severity is "non-alarming" */
         if (event->Severity > SAHPI_MINOR) {
-                for (alarms = d->dat.list; alarms; alarms = alarms->next) {
-                        SaHpiAlarmT *alarm = alarms->data;
-                        if (alarm &&
-                            alarm->AlarmCond.Type == SAHPI_STATUS_COND_TYPE_OEM &&
-                            alarm->AlarmCond.ResourceId == event->Source &&
-                            alarm->AlarmCond.Mid == event->EventDataUnion.OemEvent.MId) {
-                                /* Found. Remove alarm */
-                                oh_delete_alarm_and_continue();
-                        }
-                }
-                oh_release_domain(d);
+                oh_remove_alarm(d, NULL, &type, &event->Source,
+                                &event->EventDataUnion.OemEvent.MId,
+                                NULL, NULL, NULL, 1);
                 return;
         }
         
         /* Severity is "alarming". Add/Create OEM alarm */
-        oh_create_alarm();
+        a = oh_add_alarm(d, NULL);
+        if (!a) goto done;
         a->Severity = event->Severity;
         a->AlarmCond.Type = SAHPI_STATUS_COND_TYPE_OEM;
-        oh_entity_path_lookup(&event->Source, &a->AlarmCond.Entity);        
+        oh_entity_path_lookup(&event->Source, &a->AlarmCond.Entity);
         a->AlarmCond.ResourceId = event->Source;
         a->AlarmCond.Mid = event->EventDataUnion.OemEvent.MId;
         memcpy(&a->AlarmCond.Data,
                &event->EventDataUnion.OemEvent.OemEventData,
                sizeof(SaHpiTextBufferT));
-        d->dat.list = g_list_append(d->dat.list, a);
-        
-        oh_release_domain(d);
+done:        
         return;
 }
 
-static void oh_detect_resource_event_alarm(SaHpiDomainIdT did, SaHpiEventT *event)
+static void oh_detect_resource_event_alarm(struct oh_domain *d, SaHpiEventT *event)
 {
-        struct oh_domain *d = NULL;        
-        GList *alarms = NULL;
+        SaHpiStatusCondTypeT type = SAHPI_STATUS_COND_TYPE_RESOURCE;
         SaHpiAlarmT *a = NULL;
         
-        d = oh_get_domain(did);
-        if (!d) {
-                dbg("Domain not found! Can't process alarm trigger.");
-                return;
-        }
+        if (!d || !event) return;
         
         /* Search for possible resource alarm, if event is not a resource failure */
-        if (event->EventDataUnion.ResourceEvent.ResourceEventType != SAHPI_RESE_RESOURCE_FAILURE) {
-                for (alarms = d->dat.list; alarms; alarms = alarms->next) {
-                        SaHpiAlarmT *alarm = alarms->data;
-                        if (alarm &&
-                            alarm->AlarmCond.Type == SAHPI_STATUS_COND_TYPE_RESOURCE &&
-                            alarm->AlarmCond.ResourceId == event->Source) {
-                                /* Found. Remove alarm */
-                                oh_delete_alarm_and_continue();
-                        }
-                }
-                oh_release_domain(d);
+        if (event->EventDataUnion.ResourceEvent.ResourceEventType != SAHPI_RESE_RESOURCE_FAILURE) {                
+                oh_remove_alarm(d, NULL, &type, &event->Source, NULL,
+                                NULL, NULL, NULL, 1);
                 return;
         }
         
         /* Failed resource. Add/Create resource alarm if severity is "alarming" */
         if (event->Severity <= SAHPI_MINOR) {
-                oh_create_alarm();
+                a = oh_add_alarm(d, NULL);
+                if (!a) goto done;
                 a->Severity = event->Severity;
                 a->AlarmCond.Type = SAHPI_STATUS_COND_TYPE_RESOURCE;
                 oh_entity_path_lookup(&event->Source, &a->AlarmCond.Entity);                
                 a->AlarmCond.ResourceId = event->Source;
-                d->dat.list = g_list_append(d->dat.list, a);
         }
-        
-        oh_release_domain(d);
+done:
         return;
 }
 
-static void oh_detect_sensor_event_alarm(SaHpiDomainIdT did, SaHpiEventT *event)
+static void oh_detect_sensor_event_alarm(struct oh_domain *d, SaHpiEventT *event)
 {
-        struct oh_domain *d = NULL;
-        GList *alarms = NULL;
+        SaHpiStatusCondTypeT type = SAHPI_STATUS_COND_TYPE_SENSOR;
         SaHpiAlarmT *a = NULL;
         
-        d = oh_get_domain(did);
-        if (!d) {
-                dbg("Domain not found! Can't process alarm trigger.");
-                return;
-        }
+        if (!d || !event) return;
         
         if (!event->EventDataUnion.SensorEvent.Assertion) {
                 /* Check for possible sensor alarm removals,
-                   since sensor is not asserted. */
-                for (alarms = d->dat.list; alarms; alarms = alarms->next) {
-                        SaHpiAlarmT *alarm = alarms->data;
-                        if (alarm &&
-                            alarm->AlarmCond.Type == SAHPI_STATUS_COND_TYPE_SENSOR &&
-                            alarm->AlarmCond.ResourceId == event->Source &&
-                            alarm->AlarmCond.SensorNum == event->EventDataUnion.SensorEvent.SensorNum &&
-                            alarm->AlarmCond.EventState == event->EventDataUnion.SensorEvent.EventState) {
-                                /* Found. Remove alarm */
-                                oh_delete_alarm_and_continue();
-                        }
-                }
+                   since sensor is not asserted. */                
+                oh_remove_alarm(d, NULL, &type, &event->Source, NULL,
+                                &event->EventDataUnion.SensorEvent.SensorNum,
+                                &event->EventDataUnion.SensorEvent.EventState,
+                                NULL, 1);
         } else if (event->Severity <= SAHPI_MINOR &&
                    event->EventDataUnion.SensorEvent.Assertion) {
                 /* Add sensor alarm to dat, since event is severe
                    enough and is asserted. */
-                oh_create_alarm();
+                a = oh_add_alarm(d, NULL);
+                if (!a) goto done;
                 a->Severity = event->Severity;
                 a->AlarmCond.Type = SAHPI_STATUS_COND_TYPE_SENSOR;
                 oh_entity_path_lookup(&event->Source, &a->AlarmCond.Entity);                
                 a->AlarmCond.ResourceId = event->Source;
                 a->AlarmCond.SensorNum = event->EventDataUnion.SensorEvent.SensorNum;
                 a->AlarmCond.EventState = event->EventDataUnion.SensorEvent.EventState;
-                d->dat.list = g_list_append(d->dat.list, a);
         }
-        
-        oh_release_domain(d);
+done:        
         return;
 }
 
-static void oh_remove_resource_alarms(SaHpiDomainIdT did, SaHpiResourceIdT rid, int all)
+static void oh_remove_resource_alarms(struct oh_domain *d, SaHpiResourceIdT rid, int all)
 {
-        struct oh_domain *d = NULL;
-        GList *alarms = NULL;
+        SaHpiStatusCondTypeT type = SAHPI_STATUS_COND_TYPE_RESOURCE;
         
-        d = oh_get_domain(did);
-        if (!d) {
-                dbg("Domain not found! Can't process alarm trigger.");
-                return;
+        if (!d || !rid) return;
+        
+        oh_remove_alarm(d, NULL, &type, &rid, NULL,
+                        NULL, NULL, NULL, 1);
+        if (all) {
+                type = SAHPI_STATUS_COND_TYPE_OEM;
+                oh_remove_alarm(d, NULL, &type, &rid, NULL,
+                                NULL, NULL, NULL, 1);
+                type = SAHPI_STATUS_COND_TYPE_SENSOR;
+                oh_remove_alarm(d, NULL, &type, &rid, NULL,
+                                NULL, NULL, NULL, 1);
         }
         
-        for (alarms = d->dat.list; alarms; alarms = alarms->next) {
-                SaHpiAlarmT *alarm = alarms->data;
-                if (alarm &&                    
-                    (all ?
-                        alarm->AlarmCond.Type != SAHPI_STATUS_COND_TYPE_USER :
-                        alarm->AlarmCond.Type == SAHPI_STATUS_COND_TYPE_RESOURCE) &&
-                    alarm->AlarmCond.ResourceId == rid) {
-                        /* Found. Remove alarm */
-                        oh_delete_alarm_and_continue();
-                }
-        }
-        
-        oh_release_domain(d);
         return;
 }
 
-static void oh_detect_hpi_alarm(SaHpiDomainIdT did, SaHpiEventT *event)
+static void oh_detect_hpi_alarm(struct oh_domain *d, SaHpiEventT *event)
 {        
-        if (!event) {
-                dbg("Invalid Parameters - NULL event passed.");
-                return;
-        }
+        if (!d || !event) return;
         
         switch (event->EventType) {
                 case SAHPI_ET_OEM:
-                        oh_detect_oem_event_alarm(did, event);
+                        oh_detect_oem_event_alarm(d, event);
                         break;                        
                 case SAHPI_ET_RESOURCE:
-                        oh_detect_resource_event_alarm(did, event);
+                        oh_detect_resource_event_alarm(d, event);
                         break;
                 case SAHPI_ET_SENSOR_ENABLE_CHANGE:
                 case SAHPI_ET_SENSOR:
-                        oh_detect_sensor_event_alarm(did, event);
+                        oh_detect_sensor_event_alarm(d, event);
                         break;
                 default:;
         }
@@ -221,65 +308,52 @@ static void oh_detect_hpi_alarm(SaHpiDomainIdT did, SaHpiEventT *event)
         return;
 }
 
-static void oh_detect_resource_alarm(SaHpiDomainIdT did, SaHpiRptEntryT *res)
-{
-        struct oh_domain *d = NULL;        
-        GList *alarms = NULL;
+static void oh_detect_resource_alarm(struct oh_domain *d, SaHpiRptEntryT *res)
+{        
         SaHpiAlarmT *a = NULL;
+        SaHpiStatusCondTypeT type = SAHPI_STATUS_COND_TYPE_SENSOR;
         
-        d = oh_get_domain(did);
-        if (!d) {
-                dbg("Domain not found! Can't process alarm trigger.");
-                return;
-        }
+        if (!d || !res) return;
         
         /* Check possible alarms for removal, if resource is not failed. */
         if (!res->ResourceFailed || res->ResourceSeverity > SAHPI_MINOR) {
-                for (alarms = d->dat.list; alarms; alarms = alarms->next) {
-                        SaHpiAlarmT *alarm = alarms->data;
-                        if (alarm &&
-                            alarm->AlarmCond.Type == SAHPI_STATUS_COND_TYPE_RESOURCE &&
-                            alarm->AlarmCond.ResourceId == res->ResourceId) {
-                                /* Found. Remove alarm */
-                                oh_delete_alarm_and_continue();
-                        }
-                }
+                oh_remove_alarm(d, NULL, &type, &res->ResourceId, NULL,
+                                NULL, NULL, NULL, 1);
         } else if (res->ResourceSeverity <= SAHPI_MINOR && res->ResourceFailed) {
                 /* Otherwise, if sev is "alarming" and resource failed, create alarm. */
-                oh_create_alarm();
+                a = oh_add_alarm(d, NULL);
+                if (!a) goto done;
                 a->Severity = res->ResourceSeverity;
                 a->AlarmCond.Type = SAHPI_STATUS_COND_TYPE_RESOURCE;
                 oh_entity_path_lookup(&res->ResourceId, &a->AlarmCond.Entity);
                 a->AlarmCond.ResourceId = res->ResourceId;
                 a->AlarmCond.Mid = res->ResourceInfo.ManufacturerId;
                 memcpy(&a->AlarmCond.Data, &res->ResourceTag, sizeof(SaHpiTextBufferT));
-                d->dat.list = g_list_append(d->dat.list, a);
         }
-        
-        oh_release_domain(d);
+done:        
         return;
 }
 
 /**
  * oh_detect_event_alarm
- * @did:
+ * @d:
  * @e:
  *
  * Return value:
  **/
-SaErrorT oh_detect_event_alarm(SaHpiDomainIdT did, struct oh_event *e)
+SaErrorT oh_detect_event_alarm(struct oh_domain *d, struct oh_event *e)
 {
-        if (!did || !e) return SA_ERR_HPI_INVALID_PARAMS;
+        if (!d || !e) return SA_ERR_HPI_INVALID_PARAMS;
         
         switch (e->type) {                
                 case OH_ET_HPI:
-                        oh_detect_hpi_alarm(did, &e->u.hpi_event.event);
+                        oh_detect_hpi_alarm(d, &e->u.hpi_event.event);
                         break;
                 case OH_ET_RESOURCE:
-                        oh_detect_resource_alarm(did, &e->u.res_event.entry);
+                        oh_detect_resource_alarm(d, &e->u.res_event.entry);
                         break;
                 case OH_ET_RESOURCE_DEL:
-                        oh_remove_resource_alarms(did, e->u.res_event.entry.ResourceId, 1);
+                        oh_remove_resource_alarms(d, e->u.res_event.entry.ResourceId, 1);
                         break;
                 default:;
         }
@@ -289,20 +363,20 @@ SaErrorT oh_detect_event_alarm(SaHpiDomainIdT did, struct oh_event *e)
 
 /**
  * oh_detect_res_sev_alarm
- * @did:
+ * @d:
  * @res:
- * @sev:
+ * @new_sev:
  *
  * Return value:
  **/
-SaErrorT oh_detect_res_sev_alarm(SaHpiDomainIdT did,
+SaErrorT oh_detect_res_sev_alarm(struct oh_domain *d,
                                  SaHpiRptEntryT *res,
                                  SaHpiSeverityT new_sev)
 {
-        if (!did || !res) return SA_ERR_HPI_INVALID_PARAMS;
+        if (!d || !res) return SA_ERR_HPI_INVALID_PARAMS;
         
         if (res->ResourceSeverity <= SAHPI_MINOR && new_sev > SAHPI_MINOR)
-                oh_remove_resource_alarms(did, res->ResourceId, 0);
+                oh_remove_resource_alarms(d, res->ResourceId, 0);
         
         return SA_OK;
 }
@@ -310,50 +384,36 @@ SaErrorT oh_detect_res_sev_alarm(SaHpiDomainIdT did,
 
 /**
  * oh_detect_sensor_alarm
- * @did:
- * @rdr:
+ * @d:
+ * @rid:
+ * @num:
  * @enable:
  *
  * Return value:
  **/
-SaErrorT oh_detect_sensor_enable_alarm(SaHpiDomainIdT did,
+SaErrorT oh_detect_sensor_enable_alarm(struct oh_domain *d,
                                        SaHpiResourceIdT rid,
                                        SaHpiSensorNumT num,
                                        SaHpiBoolT enable)
 {
-        struct oh_domain *d = NULL;
-        GList *alarms = NULL;
+        SaHpiStatusCondTypeT type = SAHPI_STATUS_COND_TYPE_SENSOR;
+        SaErrorT error = SA_OK;
         
-        if (!did || !rid) return SA_ERR_HPI_INVALID_PARAMS;
+        if (!d || !rid) return SA_ERR_HPI_INVALID_PARAMS;
         
         /* Only need to scan alarm table if enable is false */
         if (enable) return SA_OK;
         
-        d = oh_get_domain(did);
-        if (!d) {
-                dbg("Domain not found! Can't process alarm trigger.");
-                return SA_ERR_HPI_INVALID_DOMAIN;
-        }
+        /* Enable is false, so scan alarm table and remove any matching sensor alarms */       
+        error = oh_remove_alarm(d, NULL, &type, &rid, NULL,
+                                &num, NULL, NULL, 1);
         
-        /* Enable is false, so scan alarm table and remove any matching sensor alarms */
-        for (alarms = d->dat.list; alarms; alarms = alarms->next) {
-                SaHpiAlarmT *alarm = alarms->data;
-                if (alarm &&
-                    alarm->AlarmCond.Type == SAHPI_STATUS_COND_TYPE_SENSOR &&
-                    alarm->AlarmCond.ResourceId == rid &&
-                    alarm->AlarmCond.SensorNum == num) {
-                        /* Found. Remove alarm. */
-                        oh_delete_alarm_and_continue();
-                }
-        }
-        
-        oh_release_domain(d);
-        return SA_OK;
+        return error;
 }
 
 /**
  * oh_detect_sensor_mask_alarm
- * @did
+ * @d
  * @rid
  * @num
  * @action
@@ -362,43 +422,29 @@ SaErrorT oh_detect_sensor_enable_alarm(SaHpiDomainIdT did,
  *
  * Return value:
  **/
-SaErrorT oh_detect_sensor_mask_alarm(SaHpiDomainIdT did,
+SaErrorT oh_detect_sensor_mask_alarm(struct oh_domain *d,
                                      SaHpiResourceIdT rid,
                                      SaHpiSensorNumT num,
                                      SaHpiSensorEventMaskActionT action,
                                      SaHpiEventStateT deassert_mask)
 {
-        struct oh_domain *d = NULL;
-        GList *alarms = NULL;
+        SaHpiStatusCondTypeT type = SAHPI_STATUS_COND_TYPE_SENSOR;
+        SaErrorT error = SA_OK;
                 
-        if (!did || !rid) return SA_ERR_HPI_INVALID_PARAMS;
+        if (!d || !rid) return SA_ERR_HPI_INVALID_PARAMS;
         
         if (action == SAHPI_SENS_ADD_EVENTS_TO_MASKS)
                 return SA_OK;
         
         if (action != SAHPI_SENS_REMOVE_EVENTS_FROM_MASKS)
-                return SA_ERR_HPI_INVALID_PARAMS;
-        
-        d = oh_get_domain(did);
-        if (!d) {
-                dbg("Domain not found! Can't process alarm trigger.");
-                return SA_ERR_HPI_INVALID_DOMAIN;
-        }        
+                return SA_ERR_HPI_INVALID_PARAMS;        
         
         /* Find matching sensor alarms and compare alarm's state with
            the deassert mask. If deassert for that state is being disabled
            on the sensor, then remove the alarm.
-        */
-        for (alarms = d->dat.list; alarms; alarms = alarms->next) {
-                SaHpiAlarmT *alarm = alarms->data;
-                if (alarm &&
-                    alarm->AlarmCond.Type == SAHPI_STATUS_COND_TYPE_SENSOR &&
-                    alarm->AlarmCond.ResourceId == rid &&
-                    alarm->AlarmCond.SensorNum == num &&
-                    (alarm->AlarmCond.EventState & deassert_mask)) {                        
-                        oh_delete_alarm_and_continue();
-                }
-        }
+        */        
+        error = oh_remove_alarm(d, NULL, &type, &rid, NULL,
+                                &num, NULL, &deassert_mask, 1);
         
-        return SA_OK;
+        return error;
 }
