@@ -100,12 +100,19 @@ SaErrorT SAHPI_API saHpiInitialize(SAHPI_OUT SaHpiVersionT *HpiImplVersion)
         char *openhpi_conf;
 
 	int rval;
-        
+
+        data_access_lock();
+
+        if (OH_STAT_UNINIT != oh_hpi_state) {
+                dbg("Cannot initialize twice");
+                data_access_unlock();
+                return SA_ERR_HPI_DUPLICATE;
+        }
+
         *HpiImplVersion = SAHPI_INTERFACE_VERSION;
         /* initialize mutex used for data locking */
         /* in the future may want to add seperate */
         /* mutexes, one for each hash list        */
-        data_access_lock();
         
         /* set up our global domain */
         if (add_domain(OH_DEFAULT_DOMAIN_ID)) {
@@ -125,12 +132,6 @@ SaErrorT SAHPI_API saHpiInitialize(SAHPI_OUT SaHpiVersionT *HpiImplVersion)
 		dbg("uid_intialization failed");
 		return(rval);
 	}
-
-        if (OH_STAT_UNINIT != oh_hpi_state) {
-                dbg("Cannot initialize twice");
-                data_access_unlock();
-                return SA_ERR_HPI_DUPLICATE;
-        }
         
         openhpi_conf = getenv("OPENHPI_CONF");
         
