@@ -73,9 +73,6 @@ gpointer event_thread(gpointer data);
 #define NO_ID 0	 /* Arbitrarily define IdrId == 0 as end-of-inventory */
 	   	 /* instead of using a counter of some kind           */
 
-/* static int remove_resource(struct oh_handler_state *inst); */
-
-
 /* dummy resource status */
 static struct {
         SaHpiPowerStateT        power;
@@ -885,13 +882,12 @@ static void *dummy_open(GHashTable *handler_config)
                 dbg("entity_root is needed and not present");
                 return(NULL);
         }
-
-        i = g_malloc(sizeof(*i));
+					   
+        i = g_malloc0(sizeof(*i));
         if (!i) {
                 dbg("out of memory");
                 return( (struct oh_handler_state *)NULL );
         }
-        memset(i, 0, sizeof(*i));
 
         /* save the handler config has table it holds   */
         /* the openhpi.conf file config info            */
@@ -906,21 +902,32 @@ static void *dummy_open(GHashTable *handler_config)
         hotswap_event[0].u.hpi_event.res = dummy_resources[1];
         hotswap_event[1].u.hpi_event.res = dummy_resources[1];
 
+	/* make sure the glib threading subsystem is initialized */
+        if (!g_thread_supported ()) {
+                g_thread_init (NULL);
+                printf("thread not initialized\n");
+		g_free(i);
+		return NULL;
+	}
+
+	/* initialize mutex */
+	i->handler_lock = g_malloc0(sizeof(GStaticRecMutex));
+        if (!i->handler_lock) {
+                dbg("GStaticRecMutex: out of memory");
+                return NULL;
+        }
+        g_static_rec_mutex_init (i->handler_lock);
+
 #ifdef DUMMY_THREADED
 
 	/* add to oh_handler_state */
 	GThread *thread_handle;
 	GError **e = NULL;
 
-	/* make sure the glib threading subsystem is initialized */
-        if (!g_thread_supported ()) {
-                g_thread_init (NULL);
-                printf("thread not initialized\n");
-	}
-
 	/* create event queue for async events*/
 	if ( !(i->eventq_async = g_async_queue_new()) ) {
 		printf("g_async_queue_new failed\n");
+		g_free(i);
 		return NULL;
 	}
 	
@@ -930,11 +937,12 @@ static void *dummy_open(GHashTable *handler_config)
 						FALSE,
 						e)) ) {
 	     printf("g_thread_create failed\n");
+	     g_free(i);
 	     return NULL;
 	}
 #endif
-
-        return( (void *)i );
+        
+	return( (void *)i );
 }
 
 static void dummy_close(void *hnd)
@@ -1028,8 +1036,8 @@ static int dummy_get_event(void *hnd, struct oh_event *event, struct timeval *ti
 
         SaHpiRptEntryT *rpt_entry = NULL;
 
-        static unsigned int count = 0;
         static unsigned int toggle = 0;
+        static unsigned int count = 0;
 
         if (g_slist_length(inst->eventq)>0) {
                 trace("List has an event, send it up");
@@ -1056,14 +1064,14 @@ static int dummy_get_event(void *hnd, struct oh_event *event, struct timeval *ti
                 return(1);
 
         } else if (count == 1) {
-                trace("Count is 1, not sure what that means");
+                trace("list is empty, when count is even gen new event");
                 count++;
                 return(-1);
-        } else {
-                trace("We fell through");
         }
 
-        toggle++;
+	g_static_rec_mutex_lock (inst->handler_lock);
+        
+	toggle++;
         if( (toggle%3) == 0 ) {
                 /* once initial reporting of events toggle between      */
                 /* removing and adding resource, removes resource 3     */
@@ -1084,6 +1092,8 @@ static int dummy_get_event(void *hnd, struct oh_event *event, struct timeval *ti
                         }
                 }
         }
+
+	g_static_rec_mutex_unlock (inst->handler_lock);
 
         return(-1);
 
@@ -1151,12 +1161,12 @@ static int dummy_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiEventLogInfoT
         info->OverflowFlag              = 0;
         info->OverflowAction            = SAHPI_EL_OVERFLOW_DROP;
 
-        return 0;
+        return SA_OK;
 }
 
 static int dummy_set_sel_time(void *hnd, SaHpiResourceIdT id, SaHpiTimeT time)
 {
-        return 0;
+        return SA_OK;
 }
 
 static int dummy_add_sel_entry(void *hnd, SaHpiResourceIdT id, const SaHpiEventT *Event)
@@ -1973,19 +1983,74 @@ int get_interface(void **pp, const uuid_t uuid) __attribute__ ((weak, alias("dum
 #ifdef DUMMY_THREADED
 gpointer event_thread(gpointer data)
 {
-	
-	int i = 0;
+	struct timespec req, rem;
+	memset(&req, 0, sizeof(req));
+	req.tv_nsec = 750000000;
 
-	for (i=0; i < 100; i++) {
-//	for (;;) {
-//      	sleep(5);
-		printf("event burp!\n");
+
+	struct oh_handler_state *inst = (struct oh_handler_state *)data;
+
+        struct oh_event *e;
+
+	sleep(1);
+
+	int c=0;
+	for (;;) {
+		c++;
+printf("address of data [%u]\n", (int)data);
+printf("address of inst [%u]\n", (int)inst);
+printf("address of mutex [%u]\n", (int)inst->handler_lock);
+printf("loop count [%d]\n", c);
+printf("event burp!\n");
+
+		/* allocate memory for event */
+		e = g_malloc0(sizeof(*e));
+		if (!e) {
+			dbg("Out of memory!");
+			return NULL;
+		}
+
+		/* build event */
+		static unsigned int toggle = 0;
+		struct oh_event *event;
+		/* once initial reporting of events toggle between      */
+		/* removing and adding resource, removes resource 3     */
+		/* since it has no rdr's to add back later              */
+		event = g_malloc0(sizeof(*event));
+		if (!event) {
+			printf("event: memory alloc failure\n");
+			return 0;
+		}
+
+		g_static_rec_mutex_lock (inst->handler_lock);
+		
+		if ( (toggle%2) == 0 ) {
+			toggle++;
+			printf("\n**** EVEN ****, remove the resource\n");
+			if ( (e = remove_resource(inst)) ) {
+				memcpy(event, e, sizeof(*event));
+				g_async_queue_push(inst->eventq_async, event);
+			}
+		} else {
+			toggle++;
+			printf("\n**** ODD ****, add the resource\n");
+			if ( (e = add_resource(inst)) ) {
+				memcpy(event, e, sizeof(*event));
+				g_async_queue_push(inst->eventq_async, event);
+			}
+		}
+
+		g_static_rec_mutex_unlock (inst->handler_lock);
+
+		nanosleep(&req, &rem);
+
 	}
 	
 	g_thread_exit(0);
 
-
+	printf("THREAD END\n");	
 	return 0 ;
 }
 #endif
+
 
