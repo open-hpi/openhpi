@@ -24,129 +24,105 @@
 #include "sim_util.h"
 
 
-GSList *sim_util_add_res_id(GSList *ids,
-                            char *file,
-                            SaHpiResourceIdT res_id,
-                            SaHpiEntityPathT *epath)
+#define trace(x, ...) printf(x,  __VA_ARGS__)
+
+static pthread_mutex_t util_mutext = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
+
+int sim_util_rptable_init(RPTable *table)
 {
-        struct sim_res_id * tmp;
-
-        tmp = g_malloc0(sizeof(*tmp));
-        if (tmp == NULL)
-                goto out; 
-
-        tmp->file = g_strdup(file);
-        if (tmp->file == NULL)
-                goto out1;
-
-        tmp->res_id = res_id;
-        tmp->epath = *epath;
-
-        return g_slist_append(ids, tmp);
-out1:    
-        g_free(tmp);
-out:
-        return ids;
+        return 0;
 }
 
-struct sim_res_id *sim_util_get_res_id_by_reqnum(GSList *ids, int reqnum)
+int sim_util_add_resource(RPTable *table,  SaHpiRptEntryT *rpt, char *file)
 {
-        for ( ; ids; ids = g_slist_next(ids)) {    
-                struct sim_res_id *res_id;
-                GSList *list;
+        int retval;
 
-                res_id = (struct sim_res_id *)ids->data;
-                if (res_id == NULL) continue;
-                for (list = res_id->rdr_list; list; list = g_slist_next(list)) {
-                        struct sim_rdr_id *rdr_id;
-                        rdr_id = (struct sim_rdr_id *)list->data;
-                        if (rdr_id->reqnum == reqnum) 
-                                return res_id;  
-                }
-        }
-        return NULL;
+        pthread_mutex_lock(&util_mutext);
+        retval = oh_add_resource(table, rpt, g_strdup(file), 1);
+        pthread_mutex_unlock(&util_mutext);
+
+        return retval;
 }
 
-GSList* sim_util_free_res_id(GSList* ids, char *file)
+int sim_util_remove_resource(RPTable *table, SaHpiResourceIdT rid,
+                             FAMConnection *fc)
 {
-        GSList *res_list;
 
-        for ( res_list = ids; res_list; res_list = g_slist_next(res_list)) {
-                struct sim_res_id *res_id;
-
-                res_id = (struct sim_res_id *)res_list->data;
-                if (res_id == NULL) continue;
-                if (!strcmp(res_id->file, file)) {
-                        GSList *list;
-
-                        for (list = res_id->rdr_list; list; list = g_slist_next(list)) {
-                            g_free(list->data);
+        sim_rdr_id_t *sid;
+        SaHpiEntryIdT eid;
+        SaHpiRdrT *rdr;
+      
+        pthread_mutex_lock(&util_mutext);
+      
+        eid = SAHPI_FIRST_ENTRY;
+        rdr = oh_get_rdr_next(table, rid, eid);
+        for ( ; rdr; eid = rdr->RecordId, oh_get_rdr_next(table, rid, eid)) {
+                sid = oh_get_rdr_data(table, rid, eid);
+                if (sid && fc){
+                        if (fc) {
+                                FAMRequest fr;
+                                fr.reqnum = sid->reqnum;
+                                FAMCancelMonitor(fc, &fr);
                         }
-                        g_slist_free(res_id->rdr_list);
-                        g_free(res_id->file);
-                        g_free(res_id);
-                        return g_slist_remove(ids, res_id);
+                        g_free(sid);
                 }
         }
-        return ids;
+
+        oh_remove_resource(table, rid);
+
+        pthread_mutex_unlock(&util_mutext);
+
+        return 0;
 }
 
-GSList* sim_util_free_all_res_id(GSList *ids)
+int sim_util_add_rdr(RPTable *table, SaHpiResourceIdT rid, 
+                     SaHpiRdrT *rdr, sim_rdr_id_t *sid)
 {
-         GSList *res_list; 
-         for ( res_list = ids; res_list; res_list = g_slist_next(res_list)) {
-                struct sim_res_id *res_id;
-                GSList *list;
+        int retval;
 
-                res_id = (struct sim_res_id *)res_list->data;
-                if (res_id == NULL) continue;
-                for (list = res_id->rdr_list; list; list = g_slist_next(list)) {
-                     g_free(list->data);
+        pthread_mutex_lock(&util_mutext);
+        retval = oh_add_rdr(table, rid, rdr, sid, 0);
+        pthread_mutex_unlock(&util_mutext);
+
+        return retval;
+}
+
+sim_rdr_id_t *sim_util_get_rdr_id(RPTable *table, int reqnum)
+{ 
+        sim_rdr_id_t *sid, *ret_id = NULL;
+        SaHpiRptEntryT *rpt;
+        SaHpiRdrT   *rdr;
+        SaHpiResourceIdT rid;
+        SaHpiEntryIdT eid;
+
+        pthread_mutex_lock(&util_mutext);
+        rid = SAHPI_FIRST_ENTRY;
+        rpt = oh_get_resource_next(table, rid);
+
+        for ( ; rpt; rid = rpt->ResourceId, 
+                     rpt = oh_get_resource_next(table, rid)) {
+                
+                eid = SAHPI_FIRST_ENTRY;
+                rdr = oh_get_rdr_next(table, rid, eid);
+                
+                for ( ; rdr; eid = rdr->RecordId,
+                             rdr = oh_get_rdr_next(table, rid, eid)) {
+                        sid = oh_get_rdr_data(table, rid, eid);
+                        if (sid) {
+                                if (sid->reqnum == reqnum) {
+                                      sid->eid = eid;
+                                      ret_id = sid;
+                                      goto out;
+                                }
+                        }
                 }
-                g_slist_free(res_id->rdr_list);
-                g_free(res_id->file);
-                g_free(res_id);
         }
-        g_slist_free(ids);
-        return NULL;
+out:
+        pthread_mutex_unlock(&util_mutext);
+        return ret_id;
 }
 
-void sim_util_add_rdr_id(GSList *ids,
-                         char *file,
-                         int reqnum,
-                         SaHpiEntryIdT  rid)
-{
-         for ( ; ids; ids = g_slist_next(ids)) {
-                struct sim_res_id *res_id;
-
-                res_id = (struct sim_res_id *)ids->data;
-                if (res_id == NULL) continue;
-                if (!strcmp(res_id->file, file)) {
-                     struct sim_rdr_id * rdr_id;
-
-                     rdr_id = g_malloc(sizeof(*rdr_id));
-                     if (rdr_id == NULL) return;
-                     rdr_id->reqnum = reqnum;
-                     rdr_id->rdr_id = rid;
-                     res_id->rdr_list = g_slist_append(res_id->rdr_list, rdr_id);
-                }
-        }  
-}
-struct sim_rdr_id *sim_util_get_rdr_id(GSList *ids,
-                                       char *file,
-                                       int index)
-{
-         for ( ; ids; ids = g_slist_next(ids)) {
-                struct sim_res_id *res_id;
-               
-                res_id = (struct sim_res_id *)ids->data;
-                if (res_id == NULL) continue;
-                if (!strcmp(res_id->file, file))
-                     return g_slist_nth_data(res_id->rdr_list, index);
-        }
-        return NULL;
-}
-
+#if 0
 int sim_util_get_rdr_by_sensornum(RPTable *table,
                                   SaHpiResourceIdT res_id,
                                   SaHpiSensorNumT num,
@@ -161,12 +137,15 @@ int sim_util_get_rdr_by_sensornum(RPTable *table,
         *eid = rdr->RecordId;
         return 0;
 }
+#endif
 
 int sim_util_get_res_id(RPTable *table, char *filename, SaHpiResourceIdT *rid)
 {
         SaHpiRptEntryT *entry;
         SaHpiResourceIdT  id;
+        int retval = -1;
 
+        pthread_mutex_lock(&util_mutext);
         for (id = SAHPI_FIRST_ENTRY, entry = oh_get_resource_next(table, id);
              entry; entry = oh_get_resource_next(table, entry->ResourceId)) {
                 char* data;
@@ -174,81 +153,237 @@ int sim_util_get_res_id(RPTable *table, char *filename, SaHpiResourceIdT *rid)
                 if (data == NULL) continue;
                 if (!strcmp(data, filename)) {
                         *rid = entry->ResourceId;
-                        return 0;
+                        retval = 0;
+                        goto out;
                 }
         }
+out:
+        pthread_mutex_unlock(&util_mutext);
         return -1;
 }
 
-char *sim_util_get_sensor_dir(struct oh_handler_state *inst, 
-                              SaHpiResourceIdT id,
-                              SaHpiSensorNumT num)
+char *sim_util_get_rpt_file(struct oh_handler_state *inst,
+                            SaHpiResourceIdT rid)
 {
-        int retval;
-        GHashTable *handler_config;
-        char *str1, *str2, *str3, *str;
-        int len1, len2, len3;
-        SaHpiEntryIdT entry_id;
+        char *str1, *str2, *str = NULL;
+     
+        pthread_mutex_lock(&util_mutext);
 
+        str1 = g_hash_table_lookup(inst->config, "root_path");
+        str2 = (char*) oh_get_resource_data(inst->rptcache, rid);
 
-        handler_config = inst->config;
-        str1 = g_hash_table_lookup(handler_config, "root_path");
-        if (str1 == NULL)
-        return NULL;
-        len1 = strlen(str1);
+        if (!str1 || !str2)
+                goto out;
 
-        str2 = (char*) oh_get_resource_data(inst->rptcache, id);
-        if (str2 == NULL) return NULL;
-        len2 = strlen(str2);
+        str = g_malloc0(strlen(str1) + strlen(str2) + 10);
+        if (!str)
+                goto out;
 
-        retval = sim_util_get_rdr_by_sensornum(inst->rptcache, id,
-                                               num, &entry_id);
-        if (retval)
-                return NULL;
-
-        str3 = oh_get_rdr_data(inst->rptcache, id, entry_id);
-        if (str3 == NULL) {
-            g_free(str2);
-            return NULL;
-        }
-        len3 = strlen(str3);
-
-        str = (char *)g_malloc0(len1 + len2 + len3+ 20);
-        if (str == NULL) {
-             g_free(str2);
-             g_free(str3);
-             return NULL;
-        }
-
-        sprintf(str, "%s/%s/%s/sensor", str1, str2, str3);
+        sprintf(str, "%s/%s/rpt", str1, str2);
+        trace("%s/%s/rpt\n", str1, str2);
+out:
+        pthread_mutex_unlock(&util_mutext);
         return str;
 }
 
-char* sim_util_get_rdr_dir(struct oh_handler_state *inst,
-                           SaHpiResourceIdT res_id, 
-                           SaHpiEntryIdT rd_id)
-{   
-        GHashTable *handler_config;
-        char *str1, *str2, *str;
-        int len1, len2;
+#define SIM_UTIL_GET_SENSOR_FILE(fun_name, str_x)                  \
+char * fun_name(struct oh_handler_state *inst,                     \
+                SaHpiResourceIdT rid,                              \
+                SaHpiSensorNumT num)                               \
+{                                                                  \
+        char *str1, *str2, *str = NULL;                            \
+        SaHpiEntryIdT eid;                                         \
+        sim_rdr_id_t *sid;                                         \
+                                                                   \
+        pthread_mutex_lock(&util_mutext);                          \
+                                                                   \
+        eid = get_rdr_uid(SAHPI_SENSOR_RDR, num);                \
+        sid = oh_get_rdr_data(inst->rptcache, rid, eid);           \
+                                                                   \
+        str1 = g_hash_table_lookup(inst->config, "root_path");     \
+        str2 = (char*) oh_get_resource_data(inst->rptcache, rid);  \
+                                                                   \
+        if (!str1 || !str2 || !sid)                                \
+                goto out;                                          \
+                                                                   \
+        str = (char *)g_malloc0(strlen(str1) + strlen(str2) + 30); \
+        if (!str)                                                  \
+                goto out;                                          \
+                                                                   \
+        sprintf(str, str_x, str1, str2, sid->index);               \
+        trace(str_x"\n", str1, str2, sid->index);                \
+                                                                   \
+out:                                                               \
+        pthread_mutex_unlock(&util_mutext);                        \
+        return str;                                                \
+}
+SIM_UTIL_GET_SENSOR_FILE(sim_util_get_sensor_reading_file,
+                         "%s/%s/%x/sensor/reading")
+SIM_UTIL_GET_SENSOR_FILE(sim_util_get_sensor_thres_file,
+                         "%s/%s/%x/sensor/thres")
+SIM_UTIL_GET_SENSOR_FILE(sim_util_get_sensor_enables_file,
+                         "%s/%s/%x/sensor/enables")
+
+#if 0
+
+fun_name(sim_util_get_sensor_reading_file)
+
+
+
+
+char *sim_util_get_sensor_reading_file(struct oh_handler_state *inst, 
+                                       SaHpiResourceIdT rid,
+                                       SaHpiSensorNumT num)
+{
+        char *str1, *str2, *str = NULL;
+        SaHpiEntryIdT eid;
+        sim_util_id_t *sid;
+
+        pthread_mutex_lock(&util_mutext);
+
+        eid = get_ddrdr_uid(SAHPI_SENSOR_RDR, num);
+        sid = oh_get_rdr_data(inst->rptcache, rid, eid);
         
-        handler_config = inst->config;
-        str1 = g_hash_table_lookup(handler_config, "root_path");
-        if (str1 == NULL)
-        return NULL;
-        len1 = strlen(str1);
+        str1 = g_hash_table_lookup(inst->config, "root_path");
+        str2 = (char*) oh_get_resource_data(inst->rptcache, rid);
+        
+        if (!str1 || !str2 || !sid)
+                goto out;
 
-        str2 = (char*) oh_get_resource_data(inst->rptcache, res_id);
-        if (str2 == NULL) return NULL;
-        len2 = strlen(str2);
+        str = (char *)g_malloc0(strlen(str1) + strlen(str2) + 30);
+        if (!str)
+                goto out;
 
-        str = (char *)g_malloc0(len1 + len2 + 20);
-        if (str == NULL)
-                return NULL;
+        sprintf(str, "%s/%s/%x/sensor/reading", str1, str2, sid->index);
+        trace("%s/%s/%x/sensor/reading", str1, str2, sid->index);
 
-        sprintf(str, "%s/%s/%x", str1, str2, rd_id);
+out:
+        pthread_mutex_unlock(&util_mutext);
         return str;
 }
+
+char *sim_util_get_sensor_thres_file(struct oh_handler_state *inst,
+                                     SaHpiResourceIdT rid,
+                                     SaHpiSensorNumT num)
+{   
+
+        char *str1, *str2, *str = NULL;
+        SaHpiEntryIdT eid;
+        sim_util_id_t *sid;
+
+        pthread_mutex_lock(&util_mutext);
+
+        eid = get_ddrdr_uid(SAHPI_SENSOR_RDR, num);
+        sid = oh_get_rdr_data(inst->rptcache, rid, eid);
+
+        str1 = g_hash_table_lookup(inst->config, "root_path");
+        str2 = (char*) oh_get_resource_data(inst->rptcache, rid);
+
+        if (!str1 || !str2 || !sid)
+                goto out;
+
+        str = (char *)g_malloc0(strlen(str1) + strlen(str2) + 30);
+        if (!str)
+                goto out;
+
+        sprintf(str, "%s/%s/%x/sensor/thres", str1, str2, sid->index);
+        trace("%s/%s/%x/sensor/thres", str1, str2, sid->index);
+
+out:
+        pthread_mutex_unlock(&util_mutext);
+        return str;
+
+
+
+
+
+
+
+
+
+
+        char *str1, *str2, *str = NULL;
+        SaHpiEntryIdT eid;
+
+
+        pthread_mutex_lock(&util_mutext);
+
+        str1 = g_hash_table_lookup(inst->config, "root_path");
+        str2 = (char*) oh_get_resource_data(inst->rptcache, rid);
+
+        if (!str1 || !str2)
+                goto out;
+
+        str = (char *)g_malloc0(strlen(str1) + strlen(str2) + 30);
+        if (!str)
+                goto out;
+
+        eid = get_rdr_uid(SAHPI_SENSOR_RDR, num);
+        sprintf(str, "%s/%s/%x/sensor/thres", str1, str2, eid);
+        trace("%s/%s/%x/sensor/thres\n", str1, str2, eid);
+out:
+        pthread_mutex_unlock(&util_mutext);
+        return str;
+}
+
+char *sim_util_get_sensor_enables_file(struct oh_handler_state *inst,
+                                       SaHpiResourceIdT rid,
+                                       SaHpiSensorNumT num)
+{
+        char *str1, *str2, *str = NULL;
+        SaHpiEntryIdT eid;
+
+
+        pthread_mutex_lock(&util_mutext);
+        str1 = g_hash_table_lookup(inst->config, "root_path");
+        str2 = (char*) oh_get_resource_data(inst->rptcache, rid);
+
+        if (!str1 || !str2)
+                goto out;
+
+        str = (char *)g_malloc0(strlen(str1) + strlen(str2) + 30);
+        if (!str)
+                goto out;
+
+        eid = get_rdr_uid(SAHPI_SENSOR_RDR, num);
+        sprintf(str, "%s/%s/%x/sensor/enables", str1, str2, eid);
+        trace("%s/%s/%x/sensor/enables\n", str1, str2, eid);
+out:        
+        pthread_mutex_unlock(&util_mutext);
+        return str;
+}
+#endif
+#if 0
+
+
+
+
+
+
+
+
+char* sim_util_get_sensor_thres(struct oh_handler_state *inst,
+                           SaHpiResourceIdT res_id,
+                           SaHpiEntryIdT rd_id)
+{
+        char *str1, *str2, *str;
+        SaHpiEntryIdT eid;
+
+        str1 = g_hash_table_lookup(inst->config, "root_path");
+        str2 = (char*) oh_get_resource_data(inst->rptcache, rid);
+
+        if (!str1 || !str2)
+                return NULL;
+
+        str = (char *)g_malloc0(strlen(str1) + strlen(str2) + 30);
+        if (!str)
+                return NULL;
+
+        eid = get_rdr_uid(SAHPI_SENSOR_RDR, num);
+        sprintf(str, "%s/%s/%x/sensor/thres", str1, eid);
+        return str;
+}
+
 
 char *sim_util_get_res_dir(struct oh_handler_state *inst, SaHpiResourceIdT res_id)
 {
@@ -274,15 +409,14 @@ char *sim_util_get_res_dir(struct oh_handler_state *inst, SaHpiResourceIdT res_i
         return str;
 }
 
+#endif
 
 
 
-static pthread_mutex_t util_mutext = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 int sim_util_insert_event(GSList **eventq, struct oh_event *event)
 {
         pthread_mutex_lock(&util_mutext);
 
-        printf("insert event type:%d\n", event->type);
         *eventq = g_slist_append(*eventq, event);
         pthread_mutex_unlock(&util_mutext);
         return 0;
@@ -299,7 +433,6 @@ int sim_util_remove_event(GSList **eventq, struct oh_event *event)
         else {
                 memcpy(event, data, sizeof(*event));
                 *eventq = g_slist_remove(*eventq, data);
-                printf("remove event type:%d\n", event->type);
         }
         pthread_mutex_unlock(&util_mutext);
         return retval;

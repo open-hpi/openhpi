@@ -19,7 +19,6 @@
 struct fe_handler{
         volatile int closing;
         struct oh_handler_state *ohh;
-        GSList * ids;
         pthread_t tid;
 };
 
