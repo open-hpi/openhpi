@@ -42,21 +42,6 @@ struct ohoi_sensor_enables {
 	int			done;	
 };
 
-static int is_ignored_sensor(ipmi_sensor_t *sensor)
-{
-        ipmi_entity_t *ent;
-
-        ent = ipmi_sensor_get_entity(sensor);
-
-        if (ent && ipmi_entity_is_present(ent))
-                return 0;
-        
-        if ( !ipmi_sensor_get_ignore_if_no_entity(sensor) )
-                return 0;
-
-        return 1;
-}
-
 static void sensor_read_states(ipmi_sensor_t *sensor,
                                int           err,
                                ipmi_states_t *states,
