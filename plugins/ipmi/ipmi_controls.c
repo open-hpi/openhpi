@@ -30,6 +30,8 @@ static void get_control_state(ipmi_control_t	*control,
 }
 #endif
 
+static unsigned char oem_alarm_state = 0xff;
+
 struct ohoi_control_info {
         int done;
         SaHpiCtrlStateT *state;
@@ -71,10 +73,13 @@ SaErrorT ohoi_get_control_state(void *hnd, SaHpiResourceIdT id,
         struct ohoi_control_info info;
 	SaErrorT         rv;
 	ipmi_control_id_t *ctrl;
+	SaHpiRdrT * rdr;
+	SaHpiUint8T val, mask, idx, i;
 
+	rdr = oh_get_rdr_by_type(handler->rptcache, id, SAHPI_CTRL_RDR, num);
+	if (!rdr) return SA_ERR_HPI_INVALID_RESOURCE;
         rv = ohoi_get_rdr_data(hnd, id, SAHPI_CTRL_RDR, num, (void *)&ctrl);
-        if (rv!=SA_OK)
-                return rv;
+        if (rv!=SA_OK) return rv;
 
 	memset(state, 0, sizeof(*state));
 	
@@ -88,7 +93,25 @@ SaErrorT ohoi_get_control_state(void *hnd, SaHpiResourceIdT id,
 		return SA_ERR_HPI_ERROR;
 	}
 
-        return ohoi_loop(&info.done, ipmi_handler);
+	rv = ohoi_loop(&info.done, ipmi_handler);
+	val = info.state->StateUnion.Oem.Body[0];
+
+	if ((rdr->RdrTypeUnion.CtrlRec.Type == SAHPI_CTRL_TYPE_DIGITAL) &&
+	    (rdr->RdrTypeUnion.CtrlRec.OutputType == SAHPI_CTRL_LED) &&
+	    (rdr->RdrTypeUnion.CtrlRec.Oem >= OEM_ALARM_BASE)) {
+		oem_alarm_state = val;
+		/* This is a front panel alarm LED. */
+		state->Type = SAHPI_CTRL_TYPE_DIGITAL;	
+		mask = 0x01;
+		idx = rdr->RdrTypeUnion.CtrlRec.Oem - OEM_ALARM_BASE;
+		/* bits 0 - 3 = Pwr, Crit, Maj, Min */
+		for (i = 0; i < idx; i++) mask = mask << 1;
+		if ((val & mask) == 0) 
+		  state->StateUnion.Digital = SAHPI_CTRL_STATE_ON;
+		else 
+		  state->StateUnion.Digital = SAHPI_CTRL_STATE_OFF;
+	} 
+	return(rv);
 }
 
 static void __set_control_state(ipmi_control_t *control,
@@ -126,18 +149,39 @@ SaErrorT ohoi_set_control_state(void *hnd, SaHpiResourceIdT id,
         struct ohoi_control_info info;
 	SaErrorT         rv;
 	ipmi_control_id_t *ctrl;
+	SaHpiRdrT * rdr;
+	SaHpiUint8T val, mask, idx, i;
 
+	rdr = oh_get_rdr_by_type(handler->rptcache, id, SAHPI_CTRL_RDR, num);
+	if (!rdr) return SA_ERR_HPI_INVALID_RESOURCE;
         rv = ohoi_get_rdr_data(hnd, id, SAHPI_CTRL_RDR, num, (void *)&ctrl);
-        if (rv!=SA_OK)
-                return rv;
+        if (rv!=SA_OK) return rv;
 	
+	if ((rdr->RdrTypeUnion.CtrlRec.Type == SAHPI_CTRL_TYPE_DIGITAL) &&
+            (rdr->RdrTypeUnion.CtrlRec.OutputType == SAHPI_CTRL_LED) &&
+            (rdr->RdrTypeUnion.CtrlRec.Oem >= OEM_ALARM_BASE)) {
+                /* This is a front panel alarm LED. */
+                val = oem_alarm_state;
+                val |= 0xf0;  /* h.o. nibble always write 1 */
+                mask = 0x01;
+                idx = rdr->RdrTypeUnion.CtrlRec.Oem - OEM_ALARM_BASE;
+                /* bits 0 - 3 = Pwr, Crit, Maj, Min */
+                for (i = 0; i < idx; i++) mask = mask << 1;
+                if (state->StateUnion.Digital == SAHPI_CTRL_STATE_ON)
+                        val &= (0xff - mask);  /*turn it on */
+                else   /* turn it off */
+                        val |= mask;
+                state->Type = SAHPI_CTRL_TYPE_OEM;
+                state->StateUnion.Oem.BodyLength = 1;
+                state->StateUnion.Oem.Body[0] = val;
+        }
         info.done  = 0;
         info.state = state;
         if (info.state->Type != SAHPI_CTRL_TYPE_OEM) {
                 dbg("IPMI only support OEM control");
                 return SA_ERR_HPI_INVALID_CMD;
         }
-        
+       
         rv = ipmi_control_pointer_cb(*ctrl, _set_control_state, &info);
 	if (rv) {
 		dbg("Unable to retrieve control state");

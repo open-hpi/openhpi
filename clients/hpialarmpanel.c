@@ -1,19 +1,45 @@
-/*      -*- linux-c -*-
+/*
+ * hpialarmpanel.c
  *
- * Copyright (c) 2003 by Intel Corp.
+ * Author:  Andy Cress  andrew.r.cress@intel.com
+ * Copyright (c) 2003 Intel Corporation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
- * file and program are licensed under a BSD style license.  See
- * the Copying file included with the OpenHPI distribution for
- * full licensing terms.
- *
- * Authors:
- *     Andy Cress <arcress@users.sourceforge.net>
- * Changes:
- * 02/23/04 Andy Cress - v1.1 add checking/setting disk LEDs 
+ * 04/15/03 Andy Cress - created
+ * 04/17/03 Andy Cress - mods for resourceid, first good run
+ * 04/23/03 Andy Cress - first run with good ControlStateGet   
+ * 04/24/03 Andy Cress - v0.5 with good ControlStateSet
+ * 04/29/03 Andy Cress - v0.6 changed control.oem values
+ * 06/06/03 Andy Cress - v1.0 check for Analog States
+ * 02/23/04 Andy Cress - v1.1 add checking/setting disk LEDs
+ * 10/13/04 Andy Cress - v1.2 add ifdefs for HPI_A & HPI_B, added -d/raw
  */
+/*M*
+Copyright (c) 2003, Intel Corporation
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without 
+modification, are permitted provided that the following conditions are met:
+
+  a.. Redistributions of source code must retain the above copyright notice, 
+      this list of conditions and the following disclaimer. 
+  b.. Redistributions in binary form must reproduce the above copyright notice,
+      this list of conditions and the following disclaimer in the documentation 
+      and/or other materials provided with the distribution. 
+  c.. Neither the name of Intel Corporation nor the names of its contributors 
+      may be used to endorse or promote products derived from this software 
+      without specific prior written permission. 
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR 
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; 
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON 
+ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *M*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -23,7 +49,7 @@
 #define  uchar  unsigned char
 #define  SAHPI_OEM_ALARM_LED 0x10 
 #define  SAHPI_OEM_DISK_LED  0x20 
-char *progver  = "1.1";
+char *progver  = "1.2";
 char fdebug = 0;
 char *states[3] = {"off", "ON ", "unknown" };
 uchar fsetid = 0;
@@ -47,6 +73,10 @@ main(int argc, char **argv)
   int c;
   SaErrorT rv;
   SaHpiSessionIdT sessionid;
+#ifdef HPI_A
+  SaHpiVersionT hpiVer;
+  SaHpiRptInfoT rptinfo;
+#endif
   SaHpiRptEntryT rptentry;
   SaHpiEntryIdT rptentryid;
   SaHpiEntryIdT nextrptentryid;
@@ -92,9 +122,9 @@ main(int argc, char **argv)
 	case 'i': fid = atoi(optarg);     /* set chassis id on/off */
 		  fsetid = 1;
                   break;
-	case 'd': raw_val = atoi(optarg);     /* set chassis id on/off */
+	case 'd': raw_val = atoi(optarg);  /* set raw alarm byte  */
                   break;
-	case 'o': fsetid=0; fid=0; 	  /* set all alarms off */
+	case 'o': fsetid=1; fid=0; 	  /* set all alarms off */
 		  for (j = 0; j < NLEDS; j++) { 
 			leds[j].fset = 1; 
 			leds[j].val = 0; 
@@ -117,23 +147,42 @@ main(int argc, char **argv)
                 printf("       -a0  sets Disk A fault off\n");
                 printf("       -b1  sets Disk B fault on\n");
                 printf("       -b0  sets Disk B fault off\n");
-                printf("       -d[byte]  sets raw value\n");
+                printf("       -d[byte] sets raw Alarm byte\n");
                 printf("       -o   sets all Alarms off\n");
                 printf("       -x   show eXtra debug messages\n");
 		exit(1);
      }
 
-  rv = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID, &sessionid,NULL);
+#ifdef HPI_A
+  rv = saHpiInitialize(&hpiVer);
+  if (rv != SA_OK) {
+	printf("saHpiInitialize error %d\n",rv);
+	exit(-1);
+	}
+  if (fdebug) printf("Initialize complete, rv = %d\n",rv);
+  rv = saHpiSessionOpen(SAHPI_DEFAULT_DOMAIN_ID,&sessionid,NULL);
   if (rv != SA_OK) {
         if (rv == SA_ERR_HPI_ERROR)
-           printf("saHpiSessionOpen: error %d, SpiLibd not running\n",rv);
+           printf("saHpiSessionOpen: error %d, HPI daemon not running\n",rv);
         else
 	   printf("saHpiSessionOpen error %d\n",rv);
 	exit(-1);
 	}
- 
+  rv = saHpiResourcesDiscover(sessionid);
+  if (fdebug) printf("saHpiResourcesDiscover complete, rv = %d\n",rv);
+  rv = saHpiRptInfoGet(sessionid,&rptinfo);
+  if (fdebug) printf("saHpiRptInfoGet rv = %d\n",rv);
+  printf("RptInfo: UpdateCount = %x, UpdateTime = %lx\n",
+         rptinfo.UpdateCount, (unsigned long)rptinfo.UpdateTimestamp);
+#else   /* HPI B.01.01 */
+  rv = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID,&sessionid,NULL);
+  if (rv != SA_OK) {
+	printf("saHpiSessionOpen error %d\n",rv);
+	exit(-1);
+	}
   rv = saHpiDiscover(sessionid);
-  if (fdebug) printf("saHpiResourcesDiscover rv = %d\n",rv);
+  if (fdebug) printf("saHpiDiscover complete, rv = %d\n",rv);
+#endif
  
   /* walk the RPT list */
   rptentryid = SAHPI_FIRST_ENTRY;
@@ -142,12 +191,18 @@ main(int argc, char **argv)
      rv = saHpiRptEntryGet(sessionid,rptentryid,&nextrptentryid,&rptentry);
      if (rv != SA_OK) printf("RptEntryGet: rv = %d\n",rv);
      if (rv == SA_OK) {
-	/* walk the RDR list for this RPT entry */
+	/* Walk the RDR list for this RPT entry */
 	entryid = SAHPI_FIRST_ENTRY;
 	resourceid = rptentry.ResourceId;
-	rptentry.ResourceTag.Data[rptentry.ResourceTag.DataLength] = 0;
-	printf("rptentry[%d] resourceid=%d tag: %s\n",
-		rptentryid,resourceid, rptentry.ResourceTag.Data);
+	/* 
+	 * Don't stringify here, since OpenHPI returns a valid string, but
+	 * a DataLength of zero here (for processor, bios).
+	 * rptentry.ResourceTag.Data[rptentry.ResourceTag.DataLength] = 0;
+	 */
+	//if (fdebug) 
+	   printf("rptentry[%d] resourceid=%d tlen=%d tag: %s\n",
+		entryid, resourceid, rptentry.ResourceTag.DataLength, 
+		rptentry.ResourceTag.Data);
 	while ((rv == SA_OK) && (entryid != SAHPI_LAST_ENTRY))
 	{
 		rv = saHpiRdrGet(sessionid,resourceid,
@@ -165,9 +220,15 @@ main(int argc, char **argv)
 			rv = saHpiControlTypeGet(sessionid,resourceid,
 					ctlnum,&ctltype);
   			if (fdebug) printf("saHpiControlTypeGet[%d] rv = %d, type = %d\n",ctlnum,rv,ctltype);
-			rv = saHpiControlGet(sessionid,resourceid,ctlnum,NULL,&ctlstate);
+#ifdef HPI_A
+			rv = saHpiControlStateGet(sessionid,resourceid,
+					ctlnum,&ctlstate);
+#else
+			rv = saHpiControlGet(sessionid, resourceid, ctlnum,
+					NULL, &ctlstate);
+#endif
   			if (fdebug) 
-			   printf("saHpiControlGet[%d] rv = %d v = %x\n",
+			   printf("saHpiControlStateGet[%d] rv = %d v = %x\n",
 				ctlnum,rv,ctlstate.StateUnion.Digital);
 			printf("RDR[%d]: ctltype=%d:%d oem=%02x %s  \t",
 				rdr.RecordId, 
@@ -191,9 +252,15 @@ main(int argc, char **argv)
 				printf("Setting ID led to %d sec\n", fid);
 				ctlstate.Type = SAHPI_CTRL_TYPE_ANALOG;
 				ctlstate.StateUnion.Analog = fid;
-				rv = saHpiControlSet(sessionid,resourceid, 
-					ctlnum, SAHPI_CTRL_MODE_MANUAL, &ctlstate);
-				printf("saHpiControlSet[%d] rv = %d\n",ctlnum,rv);
+#ifdef HPI_A
+				rv = saHpiControlStateSet(sessionid,
+					   resourceid, ctlnum,&ctlstate);
+#else
+				rv = saHpiControlSet(sessionid, resourceid,
+						ctlnum, SAHPI_CTRL_MODE_MANUAL,
+						&ctlstate);
+#endif
+				printf("saHpiControlStateSet[%d] rv = %d\n",ctlnum,rv);
 			    }
 			} else 
 			if (rdr.RdrTypeUnion.CtrlRec.Type == SAHPI_CTRL_TYPE_DIGITAL &&
@@ -207,10 +274,16 @@ main(int argc, char **argv)
 					ctlstate.StateUnion.Digital = SAHPI_CTRL_STATE_OFF;
 				   else 
 					ctlstate.StateUnion.Digital = SAHPI_CTRL_STATE_ON;
-				   rv = saHpiControlSet(sessionid, resourceid, ctlnum,
-							SAHPI_CTRL_MODE_MANUAL, &ctlstate);
+#ifdef HPI_A
+				   rv = saHpiControlStateSet(sessionid,
+						resourceid, ctlnum,&ctlstate);
+#else
+				   rv = saHpiControlSet(sessionid, resourceid,
+						ctlnum, SAHPI_CTRL_MODE_MANUAL,
+						&ctlstate);
+#endif
   				   /* if (fdebug)  */
-					printf("saHpiControlSet[%d] rv = %d\n",ctlnum,rv);
+					printf("saHpiControlStateSet[%d] rv = %d\n",ctlnum,rv);
 				}
 			}
 			else if (rdr.RdrTypeUnion.CtrlRec.Type == SAHPI_CTRL_TYPE_DIGITAL &&
@@ -224,23 +297,34 @@ main(int argc, char **argv)
 					ctlstate.StateUnion.Digital = SAHPI_CTRL_STATE_OFF;
 				   else 
 					ctlstate.StateUnion.Digital = SAHPI_CTRL_STATE_ON;
-				   rv = saHpiControlSet(sessionid, resourceid, ctlnum,
-							SAHPI_CTRL_MODE_MANUAL,&ctlstate);
-				   printf("saHpiControlSet[%d] rv = %d\n",ctlnum,rv);
+#ifdef HPI_A
+				   rv = saHpiControlStateSet(sessionid,
+						resourceid, ctlnum,&ctlstate);
+#else
+				   rv = saHpiControlSet(sessionid, resourceid,
+						ctlnum, SAHPI_CTRL_MODE_MANUAL,
+						&ctlstate);
+#endif
+				   printf("saHpiControlStateSet[%d] rv = %d\n",ctlnum,rv);
 				}
 			}
-                        else if (rdr.RdrTypeUnion.CtrlRec.Type == SAHPI_CTRL_TYPE_OEM
-                                 && rdr.RdrTypeUnion.CtrlRec.OutputType == SAHPI_CTRL_FRONT_PANEL_LOCKOUT) {               
-                                /* This is a raw control for alarm panel*/
+#ifndef HPI_A
+                        else if (rdr.RdrTypeUnion.CtrlRec.Type == SAHPI_CTRL_TYPE_OEM &&
+                                 rdr.RdrTypeUnion.CtrlRec.OutputType == SAHPI_CTRL_FRONT_PANEL_LOCKOUT) {
+				/* This is a raw control for alarm panel, 
+				 * but HPI never populates an RDR for this. */
+                                printf("Found raw alarm control\n");
+                                if (raw_val != 0) {
                                 ctlstate.Type       = SAHPI_CTRL_TYPE_OEM;
                                 ctlstate.StateUnion.Oem.BodyLength = 1;
                                 ctlstate.StateUnion.Oem.Body[0]    = raw_val;
-                                printf("Set raw value to alarm control...\n");
+                                printf("Set raw alarm control to %x\n",raw_val);
                                 rv = saHpiControlSet(sessionid, resourceid, ctlnum,
-						     SAHPI_CTRL_MODE_MANUAL, &ctlstate);
-                                printf("saHpiControlSet[%d] rv = %d\n",ctlnum,rv);
+                                                     SAHPI_CTRL_MODE_MANUAL, &ctlstate);
+                                printf("saHpiControlSet[%d] raw, rv = %d\n",ctlnum,rv);
+				}
                         }
-                        
+#endif
 			rv = SA_OK;  /* ignore errors & continue */
 		    }
 		    j++;
@@ -252,7 +336,11 @@ main(int argc, char **argv)
   }
  
   rv = saHpiSessionClose(sessionid);
+#ifdef HPI_A
+  rv = saHpiFinalize();
+#endif
 
+  exit(0);
   return(0);
 }
  
