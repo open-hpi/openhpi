@@ -20,8 +20,7 @@
 #include <snmp_util.h>
 #include <snmp_rsa_session.h>
 #include <snmp_rsa.h>
-#include <rpt_utils.h>
-#include <sel_utils.h>
+#include <oh_utils.h>
 #include <rsa_resources.h>
 #include <string.h>
 #include <rsa_str2event.h>
