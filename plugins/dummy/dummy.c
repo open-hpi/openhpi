@@ -1,4 +1,20 @@
 /*      -*- linux-c -*- 
+ *
+ * (C) Copyright IBM Corp. 2003, 2004
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
+ * file and program are licensed under a BSD style license.  See
+ * the Copying file included with the OpenHPI distribution for
+ * full licensing terms.
+ *
+ * Author(s):
+ *      Renier Morales <renierm@users.sf.net>
+ *      David Judkovics 
+ *      Sean Dague
+ *  
+ *      Others (please add yourself here)
  */
 
 #include <stdio.h>
@@ -212,7 +228,7 @@ static SaHpiRdrT dummy_rdrs[] = {
                                          .ModifierUnits = SAHPI_SU_UNSPECIFIED,
                                          .ModifierUse = SAHPI_SMUU_NONE,
                                          .Percentage = SAHPI_FALSE,
-                                         .ReadingType = SAHPI_SENSOR_READING_TYPE_INT64,
+                                         .ReadingType = SAHPI_SENSOR_READING_TYPE_BUFFER,
                                          .Range = {
                                                   .Flags = SAHPI_SRF_MIN | 
                                                   SAHPI_SRF_MAX | 
@@ -618,9 +634,9 @@ static struct dummy_sensor {
 	/*This is temp sensor on system board*/
             .reading = {
                     .IsSupported = SAHPI_TRUE,
-                    .Type = SAHPI_SENSOR_READING_TYPE_INT64,
+                    .Type = SAHPI_SENSOR_READING_TYPE_BUFFER,
                     .Value = {
-                             .SensorInt64 = 55
+                             .SensorBuffer = "12 pence",
                      },
             },
             .thresholds = {
