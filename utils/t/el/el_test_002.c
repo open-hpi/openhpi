@@ -21,7 +21,7 @@
 
 #include <SaHpi.h>
 #include <openhpi.h>
-#include <el_utils.h>
+#include <oh_utils.h>
 
 
 #include "el_test.h"
