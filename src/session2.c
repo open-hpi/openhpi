@@ -17,7 +17,7 @@
 #include <oh_session.h>
 #include <string.h>
 
-session_table = NULL;
+GHashTable *session_table = NULL;
 
 struct session_net {
         SaHpiDomainIdT did;

@@ -52,7 +52,8 @@ libopenhpi_la_SOURCES   = \
                            plugin.c \
                            plugin_static.c \
                            safhpi.c \
-                           session.c
+                           session.c \
+                           session2.c
 
 
 libopenhpi_la_LIBADD    = @STATIC_PLUGIN_LIBS@ @STATIC_PLUGIN_EXTRA_LIBS@ $(top_builddir)/utils/libopenhpiutils.la
