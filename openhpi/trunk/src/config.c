@@ -426,6 +426,7 @@ int oh_load_config (char *filename, struct oh_parsed_config *config)
         if(oh_conf_file < 0) {
                 dbg("Configuration file '%s' could not be opened", filename);
                 g_scanner_destroy(oh_scanner);
+                read_globals_from_env();
                 return -4;
         }
 
