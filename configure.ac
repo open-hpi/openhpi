@@ -385,9 +385,18 @@ CXX_WARNINGS="-Wall -Wmissing-prototypes \
         -Wredundant-decls"
 
 CFLAGS="$CFLAGS $GLIB_CFLAGS $CC_WARNINGS"
-NOCFLAGS=`echo $CFLAGS | perl -p -e 's/-O\S*//g'`
 CXXFLAGS="$CXXFLAGS $GLIB_CFLAGS $CXX_WARNINGS"
 
+# we have to do this late, becase this changes CFLAGS
+AC_ARG_ENABLE([testcover],
+    [  --enable-testcover     build with test coverage support [default=no]],
+    [if test "x$enableval" = "xyes"; then
+            CFLAGS=`echo $CFLAGS | perl -p -e 's/-O\S*//g'`
+            CFLAGS="$CFLAGS -ftest-coverage -fprofile-arcs"
+    fi]
+    )
+
+NOCFLAGS=`echo $CFLAGS | perl -p -e 's/-O\S*//g'`
 AC_SUBST(NOCFLAGS)
 
 if test "x$THREAD_SAFE" = "xyes" ; then
