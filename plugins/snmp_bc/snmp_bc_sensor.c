@@ -46,6 +46,10 @@ SaErrorT snmp_bc_get_sensor_data(void *hnd,
 		return -1;
 	}       
 
+	if (rdr->RdrTypeUnion.SensorRec.Ignore == SAHPI_TRUE) {
+		return SA_ERR_HPI_INVALID_CMD;
+	}
+
 	memset(&working, 0, sizeof(SaHpiSensorReadingT));
 
 	/* Extract index from rdr id and get the snmp of the sensor */
@@ -243,24 +247,26 @@ SaErrorT snmp_bc_get_sensor_thresholds(void *hnd,
 		return -1;
 	}
 
+	if (rdr->RdrTypeUnion.SensorRec.Ignore == SAHPI_TRUE) {
+		return SA_ERR_HPI_INVALID_CMD;
+	}
+
         memset(&working, 0, sizeof(SaHpiSensorThresholdsT));
 
 	if(rdr->RdrTypeUnion.SensorRec.ThresholdDefn.IsThreshold == SAHPI_TRUE) {
 		found_raw = found_interpreted = 0;
 		if(rdr->RdrTypeUnion.SensorRec.ThresholdDefn.TholdCapabilities & SAHPI_STC_RAW) {
-
 			get_raw_thresholds(SAHPI_STM_LOW_MINOR, OidLowMinor, LowMinor);
 			get_raw_thresholds(SAHPI_STM_LOW_MAJOR, OidLowMajor, LowMajor);
 			get_raw_thresholds(SAHPI_STM_LOW_CRIT, OidLowCrit, LowCritical);
 			get_raw_thresholds(SAHPI_STM_UP_MINOR, OidUpMinor, UpMinor);
 			get_raw_thresholds(SAHPI_STM_UP_MAJOR, OidUpMajor, UpMajor);
 			get_raw_thresholds(SAHPI_STM_UP_CRIT, OidUpCrit, UpCritical);
-
-			/* FIXME:: Add PosThdHysteresis and NegThdHysteresis */			 	
+			/* Ignore any PosThdHysteresis and NegThdHysteresis for RAW 
+			   (going away in 1.1) */			 	
 		}
 
 		if(rdr->RdrTypeUnion.SensorRec.ThresholdDefn.TholdCapabilities & SAHPI_STC_INTERPRETED) {
-
 			get_interpreted_thresholds(SAHPI_STM_LOW_MINOR, OidLowMinor, LowMinor);
 			get_interpreted_thresholds(SAHPI_STM_LOW_MAJOR, OidLowMajor, LowMajor);
 			get_interpreted_thresholds(SAHPI_STM_LOW_CRIT, OidLowCrit, LowCritical);
@@ -272,7 +278,7 @@ SaErrorT snmp_bc_get_sensor_thresholds(void *hnd,
 		}
 
 		if (found_raw || found_interpreted) {
-			memcpy(thres,&working,sizeof(SaHpiSensorThresholdsT));
+			memcpy(thres, &working, sizeof(SaHpiSensorThresholdsT));
 			return SA_OK;
 		} else {
 			dbg("No threshold values found\n");
@@ -289,7 +295,8 @@ SaErrorT snmp_bc_set_sensor_thresholds(void *hnd,
 				       SaHpiSensorNumT num,
 				       const SaHpiSensorThresholdsT *thres)
 {
-	/* Writable thresholds not supported */
+	/* BC does not support writable thresholds
+	   Check Ignore bit and make sure thresholds are writable if this is added */
         return SA_ERR_HPI_INVALID_CMD;
 }
 
@@ -310,6 +317,10 @@ SaErrorT snmp_bc_get_sensor_event_enables(void *hnd,
 	if (bc_data == NULL) {
 		dbg("Sensor Data Pointer is NULL; RID=%x; SID=%d", id, num); 
 		return -1;
+	}
+
+	if (rdr->RdrTypeUnion.SensorRec.Ignore == SAHPI_TRUE) {
+		return SA_ERR_HPI_INVALID_CMD;
 	}
 
 	if (rdr->RdrTypeUnion.SensorRec.EventCtrl == SAHPI_SEC_NO_EVENTS) {
@@ -340,6 +351,10 @@ SaErrorT snmp_bc_set_sensor_event_enables(void *hnd,
 		return -1;
 	}
 		
+	if (rdr->RdrTypeUnion.SensorRec.Ignore == SAHPI_TRUE) {
+		return SA_ERR_HPI_INVALID_CMD;
+	}
+
 	if (rdr->RdrTypeUnion.SensorRec.EventCtrl == SAHPI_SEC_NO_EVENTS) {
 		return SA_ERR_HPI_INVALID_CMD;
 	}
