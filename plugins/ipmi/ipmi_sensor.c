@@ -17,6 +17,7 @@
 
 #include "ipmi.h"
 
+#if 0
 /* 
  * Use for getting sensor data functions
  */
@@ -765,3 +766,5 @@ int ohoi_set_sensor_event_enables(ipmi_sensor_id_t		sensor_id,
         
         return ohoi_loop(&enables_data.done, ipmi_handler);
 }
+
+#endif

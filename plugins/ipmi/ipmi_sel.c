@@ -263,7 +263,11 @@ SaErrorT ohoi_clear_sel(ipmi_mcid_t mc_id, void *cb_data)
         rv = ipmi_mc_pointer_cb(mc_id, clear_sel, ipmi_handler);
         if (rv) {
                 dbg("Unable to convert mcid to pointer: %d", rv);
+#if 0
                 return SA_ERR_HPI_INVALID;
+#else
+		return SA_ERR_HPI_INVALID_CMD;
+#endif
         }
         
         return SA_OK;

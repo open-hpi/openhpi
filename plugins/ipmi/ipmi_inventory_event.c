@@ -18,7 +18,7 @@
 #include <uid_utils.h>
 #include <string.h>
 
-
+#if 0
 static void add_inventory_event_rdr(
                 SaHpiRdrT		*rdr,
                 SaHpiEntityPathT	parent_ep,
@@ -96,3 +96,4 @@ void ohoi_inventory_event(enum ipmi_update_e    op,
        }
 			   
 }
+#endif

@@ -97,12 +97,14 @@ int ohoi_get_sensor_thresholds(ipmi_sensor_id_t sensor_id,
 int ohoi_set_sensor_thresholds(ipmi_sensor_id_t                 sensor_id, 
                                const SaHpiSensorThresholdsT     *thres,
 							   void *cb_data);
+#if 0
 int ohoi_get_sensor_event_enables(ipmi_sensor_id_t              sensor_id,
 			          SaHpiSensorEvtEnablesT        *enables,
 					  void *cb_data);
 int ohoi_set_sensor_event_enables(ipmi_sensor_id_t              sensor_id,
 			          const SaHpiSensorEvtEnablesT  *enables,
 					  void *cb_data);
+#endif
 
 void ohoi_get_sel_time(ipmi_mcid_t mc_id, SaHpiTimeT *time, void *cb_data);
 void ohoi_set_sel_time(ipmi_mcid_t mc_id, const struct timeval *time, void *cb_data);
@@ -183,6 +185,7 @@ SaErrorT ohoi_get_rdr_data(const struct oh_handler_state *handler,
 /*
  * ABI stub functions
  */ 
+#if 0
 SaErrorT ohoi_get_inventory_size(void *hnd, SaHpiResourceIdT id,
                           SaHpiEirIdT num, /* yes, they don't call it a
                                             * num, but it still is one
@@ -192,7 +195,7 @@ SaErrorT ohoi_get_inventory_size(void *hnd, SaHpiResourceIdT id,
 SaErrorT ohoi_get_inventory_info(void *hnd, SaHpiResourceIdT id,
                           SaHpiEirIdT num,
                           SaHpiInventoryDataT *data);
-
+#endif
 
 int ohoi_hot_swap_cb(ipmi_entity_t  *ent,
                      enum ipmi_hot_swap_states last_state,
@@ -216,7 +219,7 @@ SaErrorT ohoi_set_indicator_state(void *hnd, SaHpiResourceIdT id,
 				  SaHpiHsIndicatorStateT state);
 
 SaErrorT ohoi_set_power_state(void *hnd, SaHpiResourceIdT id, 
-                              SaHpiHsPowerStateT state);
+                              SaHpiPowerStateT state);
 	
 SaErrorT ohoi_set_reset_state(void *hnd, SaHpiResourceIdT id, 
 		              SaHpiResetActionT act);

@@ -342,6 +342,7 @@ static SaErrorT ipmi_get_sel_info(void               *hnd,
         unsigned int count;
         unsigned int size;
 		int rv;
+	char del_support;
 
         struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
 		struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
@@ -379,8 +380,8 @@ static SaErrorT ipmi_get_sel_info(void               *hnd,
         ohoi_get_sel_time(ohoi_res_info->u.mc_id, &info->CurrentTime, ipmi_handler);
         info->Enabled           = 1; /* FIXME: how to disable SEL in OpenIPMI */
         ohoi_get_sel_overflow(ohoi_res_info->u.mc_id, &info->OverflowFlag);
-        info->OverflowAction    = SAHPI_SEL_OVERFLOW_DROP;
-        ohoi_get_sel_support_del(ohoi_res_info->u.mc_id, &info->DeleteEntrySupported);
+        info->OverflowAction    = SAHPI_EL_OVERFLOW_DROP;
+        ohoi_get_sel_support_del(ohoi_res_info->u.mc_id, &del_support);
         
         return 0;
 }
@@ -567,10 +568,18 @@ static int ipmi_get_sel_entry(void *hnd, SaHpiResourceIdT id,
 		 event_record_id = event_record_id;
 
 		 memcpy(&entry->EntryId, &event_record_id, sizeof(event_record_id));
-		
+/* Fix Me */
+/* UserEvent structure is changed as:
+typedef struct {
+    SaHpiTextBufferT     UserEventData;
+} SaHpiUserEventT;
+*/
+
+#if 0
         memcpy(&entry->Event.EventDataUnion.UserEvent.UserEventData[3],
                ipmi_event_get_data_ptr(event), 
                ipmi_event_get_data_len(event));	
+#endif
 
 
 out:
@@ -661,10 +670,14 @@ if (!rdr) {
 dbg("no rdr");
 return SA_ERR_HPI_NOT_PRESENT;
 }
+/* Fix Me */
+/* No Ignore field in HPI B 1.1 */
+# if 0
 if ( rdr->RdrTypeUnion.SensorRec.Ignore == SAHPI_TRUE){
 dbg("sensor is not present");
 return SA_ERR_HPI_NOT_PRESENT;
 }
+#endif 
 
 rv = ohoi_get_rdr_data(handler, id, SAHPI_SENSOR_RDR, num, (void *)&sensor);
 if (rv!=SA_OK)
@@ -703,10 +716,12 @@ static int ipmi_get_sensor_thresholds(void			*hnd,
 		dbg("no rdr");
 		return SA_ERR_HPI_NOT_PRESENT;
 	}
+#if 0
 	if ( rdr->RdrTypeUnion.SensorRec.Ignore == SAHPI_TRUE){
 		dbg("sensor is not present");
 		return SA_ERR_HPI_NOT_PRESENT;
 	}
+#endif
 
 	rv = ohoi_get_rdr_data(hnd, id, SAHPI_SENSOR_RDR, num, (void *)&sensor);
 	if (rv!=SA_OK)
@@ -734,10 +749,12 @@ static int ipmi_set_sensor_thresholds(void				*hnd,
 		dbg("no rdr");
 		return SA_ERR_HPI_NOT_PRESENT;
 	}
+#if 0
 	if ( rdr->RdrTypeUnion.SensorRec.Ignore == SAHPI_TRUE){
 		dbg("sensor is not present");
 		return SA_ERR_HPI_NOT_PRESENT;
 	}
+#endif
 
 	rv = ohoi_get_rdr_data(hnd, id, SAHPI_SENSOR_RDR, num, (void *)&sensor);
 		
@@ -745,6 +762,8 @@ static int ipmi_set_sensor_thresholds(void				*hnd,
 		return rv;
 	return ohoi_set_sensor_thresholds(*sensor, thres, ipmi_handler);	
 }
+
+#if 0
 
 static int ipmi_get_sensor_event_enables(void			*hnd, 
 					 SaHpiResourceIdT	id,
@@ -764,10 +783,12 @@ static int ipmi_get_sensor_event_enables(void			*hnd,
 		dbg("no rdr");
 		return SA_ERR_HPI_NOT_PRESENT;
 	}
+#if 0
 	if ( rdr->RdrTypeUnion.SensorRec.Ignore == SAHPI_TRUE){
 		dbg("sensor is not present");
 		return SA_ERR_HPI_NOT_PRESENT;
 	}
+#endif
 
 	rv = ohoi_get_rdr_data(hnd, id, SAHPI_SENSOR_RDR, num, (void *)&sensor);
 	if (rv!=SA_OK)
@@ -794,10 +815,12 @@ static int ipmi_set_sensor_event_enables(void 			  *hnd,
 		dbg("no rdr");
 		return SA_ERR_HPI_NOT_PRESENT;
 	}
+#if 0
 	if ( rdr->RdrTypeUnion.SensorRec.Ignore == SAHPI_TRUE){
 		dbg("sensor is not present");
 		return SA_ERR_HPI_NOT_PRESENT;
 	}
+#endif
 	
 	rv = ohoi_get_rdr_data(hnd, id, SAHPI_SENSOR_RDR, num,
 		(void *)&sensor);
@@ -805,6 +828,7 @@ static int ipmi_set_sensor_event_enables(void 			  *hnd,
 		return rv;
 	return ohoi_set_sensor_event_enables(*sensor, enables, ipmi_handler);
 }
+#endif
 
 static struct oh_abi_v2 oh_ipmi_plugin = {
 		
@@ -826,13 +850,13 @@ static struct oh_abi_v2 oh_ipmi_plugin = {
 		.get_sensor_data		= ipmi_get_sensor_data,
 		.get_sensor_thresholds		= ipmi_get_sensor_thresholds,
 		.set_sensor_thresholds		= ipmi_set_sensor_thresholds,
-		.get_sensor_event_enables       = ipmi_get_sensor_event_enables,
-		.set_sensor_event_enables       = ipmi_set_sensor_event_enables,
+		//.get_sensor_event_enables       = ipmi_get_sensor_event_enables,
+		//.set_sensor_event_enables       = ipmi_set_sensor_event_enables,
 		
 		/* Inventory support */
-		.get_inventory_size             = ohoi_get_inventory_size,
-		.get_inventory_info             = ohoi_get_inventory_info,
-		.set_inventory_info             = NULL,
+		//.get_inventory_size             = ohoi_get_inventory_size,
+		//.get_inventory_info             = ohoi_get_inventory_info,
+		//.set_inventory_info             = NULL,
         
         /* hotswap support */
 		.get_hotswap_state              = ohoi_get_hotswap_state,
