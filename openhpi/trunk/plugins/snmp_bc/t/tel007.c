@@ -30,59 +30,57 @@ int main(int argc, char **argv)
 					
 	SaHpiResourceIdT  id = 0;
         SaHpiSessionIdT sessionid;
-	SaHpiEventLogEntryIdT current = 0;
 	SaHpiEventLogEntryIdT previd;
 	SaHpiEventLogEntryIdT nextid;
 	SaHpiEventLogEntryT   entry;
 	SaHpiRdrT             rdr;
 	SaHpiRptEntryT        rptentry;
-        /* *************************************                 
-	 * Find a resource with Sensor type rdr
-	 * * ************************************* */
-	struct oh_handler l_handler;
-	struct oh_handler *h= &l_handler;
-
+	
+	/* *************************************	 	 
+	 * Find a resource with EventLog type rdr
+	 * ************************************* */
 	err = tsetup(&sessionid);
 	if (err != SA_OK) {
-		printf("Error! can not setup test environment\n");
+		printf("Error! Can not open session for test environment\n");
+		printf("       File=%s, Line=%d\n", __FILE__, __LINE__);
 		return -1;
 	}
-
-	err = tfind_resource(&sessionid, SAHPI_CAPABILITY_EVENT_LOG, h, &rptentry);
+	err = tfind_resource(&sessionid, SAHPI_CAPABILITY_EVENT_LOG, SAHPI_FIRST_ENTRY, &rptentry, SAHPI_TRUE);
 	if (err != SA_OK) {
-		printf("Error! can not setup test environment\n");
+		printf("Can not find a control resource for test environment\n");
+		printf("       File=%s, Line=%d\n", __FILE__, __LINE__);
 		err = tcleanup(&sessionid);
-		return -1;
+		return SA_OK;
 	}
-
+	
 	id = rptentry.ResourceId;
 	/************************** 
 	 * Test 
 	 **************************/
 	expected_err = SA_OK;                   
-	err = snmp_bc_get_sel_entry((void *)h->hnd, id, current, &previd, &nextid, &entry, &rdr, &rptentry);
-	checkstatus(&err, &expected_err, &testfail);
+	err = saHpiEventLogEntryGet(sessionid, id, SAHPI_NEWEST_ENTRY, &previd, &nextid, &entry, &rdr, &rptentry);
+	checkstatus(err, expected_err, testfail);
 
 	/************************** 
-	 * Test 
+	 * Test: NULL rdr
 	 * expected_err = SA_OK;                   
 	 **************************/
-	err = snmp_bc_get_sel_entry((void *)h->hnd, id, current, &previd, &nextid, &entry, NULL, &rptentry);
-	checkstatus(&err, &expected_err, &testfail);
+	err = saHpiEventLogEntryGet(sessionid, id, SAHPI_OLDEST_ENTRY, &previd, &nextid, &entry, NULL, &rptentry);
+	checkstatus(err, expected_err, testfail);
 
 	/************************** 
-	 * Test 
+	 * Test: NULL rpt 
 	 * expected_err = SA_OK;                   
 	 **************************/
-	err = snmp_bc_get_sel_entry((void *)h->hnd, id, current, &previd, &nextid, &entry, &rdr, NULL);
-	checkstatus(&err, &expected_err, &testfail);
+	err = saHpiEventLogEntryGet(sessionid, id, SAHPI_NEWEST_ENTRY, &previd, &nextid, &entry, &rdr, NULL);
+	checkstatus(err, expected_err, testfail);
 
 	/************************** 
-	 * Test 
+	 * Test: NULL rpt and rdr 
 	 * expected_err = SA_OK;                   
 	 **************************/
-	err = snmp_bc_get_sel_entry((void *)h->hnd, id, current, &previd, &nextid, &entry, NULL, NULL); 
-	checkstatus(&err, &expected_err, &testfail);
+	err = saHpiEventLogEntryGet(sessionid, id, SAHPI_OLDEST_ENTRY, &previd, &nextid, &entry, NULL, NULL); 
+	checkstatus(err, expected_err, testfail);
 
 
 	/***************************

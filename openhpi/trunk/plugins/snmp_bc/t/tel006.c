@@ -36,35 +36,16 @@ int main(int argc, char **argv)
 	SaHpiEventLogEntryT   entry;
 	SaHpiRdrT             rdr;
 	SaHpiRptEntryT        rptentry;
-        /* *************************************                 
-	 * Find a resource with Sensor type rdr
-	 * * ************************************* */
-	struct oh_handler l_handler;
-	struct oh_handler *h= &l_handler;
-
-	err = tsetup(&sessionid);
-	if (err != SA_OK) {
-		printf("Error! can not setup test environment\n");
-		return -1;
-	}
-
-	err = tfind_resource(&sessionid, SAHPI_CAPABILITY_EVENT_LOG, h, &rptentry);
-	if (err != SA_OK) {
-		printf("Error! can not setup test environment\n");
-		err = tcleanup(&sessionid);
-		return -1;
-	}
-
-	id = rptentry.ResourceId;
+	
 	/************************** 
-	 * Test 
+	 * Test: NULL EventLog cache 
 	 **************************/
-	struct oh_handler_state *handle = (struct oh_handler_state *)h->hnd;
-	handle->elcache = NULL;
+	struct oh_handler_state handle;
+	handle.elcache = NULL;
 	
 	expected_err = SA_ERR_HPI_INTERNAL_ERROR;                   
-	err = snmp_bc_get_sel_entry((void *)h->hnd, id, current, &previd, &nextid, &entry, &rdr, &rptentry);
-	checkstatus(&err, &expected_err, &testfail);
+	err = snmp_bc_get_sel_entry(&handle, id, current, &previd, &nextid, &entry, &rdr, &rptentry);
+	checkstatus(err, expected_err, testfail);
 
 	/***************************
 	 * Cleanup after all tests
