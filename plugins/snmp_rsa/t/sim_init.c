@@ -27,6 +27,8 @@ int sim_banner(void);
 int sim_init(void);
 int sim_close(void);
 
+GHashTable * sim_hash;
+
 static void free_hash_data(gpointer key, gpointer value, gpointer user_data);
 
 int is_simulator(void) 

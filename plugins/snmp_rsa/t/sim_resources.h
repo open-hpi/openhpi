@@ -32,7 +32,7 @@ struct snmp_rsa_data {
 	SnmpMibInfoT mib;
 };
 
-GHashTable * sim_hash;
+extern GHashTable * sim_hash;
 
 extern struct snmp_rsa_data sim_resource_array[];
 
