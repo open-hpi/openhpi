@@ -22,8 +22,8 @@
 #include "ipmi_sensor_discrete.h"
 #endif
 
-#ifndef dIpmiFru_h
-#include "ipmi_fru.h"
+#ifndef dIpmiUtils_h
+#include "ipmi_utils.h"
 #endif
 
 

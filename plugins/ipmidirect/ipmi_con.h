@@ -148,12 +148,6 @@ protected:
   // close connection
   virtual void IfClose();
 
-/*
-  // alloc/free requests
-  virtual cIpmiRequest *IfAllocRequest( const cIpmiAddr &addr, const cIpmiMsg &msg );
-  virtual void          IfDestroyRequest( cIpmiRequest *r );
-*/
-
   // convertion from addr to send addr
   virtual void IfAddrToSendAddr( const cIpmiAddr &addr, cIpmiAddr &send_addr );
 

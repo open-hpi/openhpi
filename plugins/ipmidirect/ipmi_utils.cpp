@@ -25,6 +25,29 @@
 #include "ipmi_utils.h"
 
 
+static const char *fru_state[] =
+{
+  "not installed",
+  "inactive",
+  "activation request",
+  "activation in progress",
+  "active",
+  "deactivation request",
+  "deactivation in progress",
+  "communication lost"
+};
+
+
+const char *
+IpmiFruStateToString( tIpmiFruState val )
+{
+  if ( val > eIpmiFruStateCommunicationLost )
+       return "invalid";
+
+  return fru_state[val];
+}
+
+
 unsigned int
 IpmiGetUint32( const unsigned char *data )
 {

@@ -388,12 +388,7 @@ cIpmiMcThread::HandleEvents()
 
        if ( event )
           {
-            cIpmiSensor *sensor = 0;
-
-            if ( m_mc )
-                 sensor = m_mc->FindSensor( (event->m_data[5] & 0x3), event->m_data[8] );
-
-            HandleEvent( sensor, event );
+            HandleEvent( event );
             delete event;
           }
      }
@@ -403,9 +398,11 @@ cIpmiMcThread::HandleEvents()
 
 
 void
-cIpmiMcThread::HandleEvent( cIpmiSensor *sensor,
-                            cIpmiEvent *event )
+cIpmiMcThread::HandleEvent( cIpmiEvent *event )
 {
+  // can handle only events for that mc thread
+  assert( event->m_data[4] == m_addr );
+
   stdlog << "event: ";
   event->Dump( stdlog, "event" );
 
@@ -418,40 +415,6 @@ cIpmiMcThread::HandleEvent( cIpmiSensor *sensor,
   if ( (event->m_data[4] & 0x01) != 0 )
      {
        stdlog << "remove event: system software event.\n";
-       return;
-     }
-
-  // BUG: this is totaty wrong !!!
-  cIpmiMc     *mc = 0;
-  cIpmiAddr    addr;
-
-  addr.m_type = eIpmiAddrTypeIpmb;
-
-  if ( event->m_data[6] == 0x03 )
-       addr.m_channel = 0;
-  else
-       addr.m_channel = event->m_data[5] >> 4;
-
-  addr.m_slave_addr = event->m_data[4];
-  addr.m_lun = 0;
-
-  mc = m_domain->FindMcByAddr( addr );
-
-  if ( mc )
-       sensor = mc->FindSensor( (event->m_data[5] & 0x3), event->m_data[8] );
-
-  // hotswap event
-  if ( event->m_data[7] == eIpmiSensorTypeAtcaHotSwap )
-     {
-       cIpmiSensorHotswap *hs = dynamic_cast<cIpmiSensorHotswap *>( sensor );
-       
-       if ( !hs )
-          {
-            stdlog << "Not a hotswap sensor !\n";
-            return;
-          }
-
-       HandleHotswapEvent( hs, event );
        return;
      }
 
@@ -479,22 +442,38 @@ cIpmiMcThread::HandleEvent( cIpmiSensor *sensor,
             AddMcTask( &cIpmiMcThread::PollAddr, m_domain->m_mc_poll_interval,
                        m_mc );
           }
-
-       // find sensor again
-       if ( m_mc )
-            sensor = m_mc->FindSensor( (event->m_data[5] & 0x3),
-                                       event->m_data[8] );
      }
 
-  // sensor event
-  if ( sensor )
+  if ( m_mc == 0 )
      {
-       sensor->HandleEvent( event );
+       stdlog << "hotswap event without a MC !\n";
        return;
      }
 
-  // unknown event
-  stdlog << "unknown event.\n";
+  cIpmiSensor *sensor = m_mc->FindSensor( (event->m_data[5] & 0x3), event->m_data[8] );
+
+  if ( sensor == 0 )
+     {
+       stdlog << "sensor of event not found !\n";
+       return;
+     }
+
+  // hotswap event
+  if ( event->m_data[7] == eIpmiSensorTypeAtcaHotSwap )
+     {
+       cIpmiSensorHotswap *hs = dynamic_cast<cIpmiSensorHotswap *>( sensor );
+
+       if ( !hs )
+          {
+            stdlog << "Not a hotswap sensor !\n";
+            return;
+          }
+
+       HandleHotswapEvent( hs, event );
+       return;
+     }
+
+  sensor->HandleEvent( event );
 }
 
 
@@ -515,30 +494,6 @@ cIpmiMcThread::HandleHotswapEvent( cIpmiSensorHotswap *sensor,
 
   stdlog << "hot swap event M" << (int)prev_state << " -> M" 
          << (int)current_state << ".\n";
-
-  // check for mc
-  if ( !m_mc )
-     {
-       stdlog << "scan for MC " << (event->m_data[5] >> 4) << " " << event->m_data[4] << ".\n";
-
-       if (    m_mc && m_mc->IsActive()
-            && m_mc->GetChannel() == (unsigned int)(event->m_data[5] >> 4)
-            && m_mc->GetAddress() == (unsigned int)event->m_data[4] )
-            stdlog << "MC exists and is active !\n";
-       else
-          {
-            assert( m_sel == 0 );
-
-            Discover();
-
-            // find sensor
-            if ( m_mc )
-               {
-                 cIpmiSensor *s = m_mc->FindSensor( (event->m_data[5] & 0x3), event->m_data[8] );
-                 sensor = dynamic_cast<cIpmiSensorHotswap *>( s );
-               }
-          }
-     }
 
   if ( current_state == eIpmiFruStateActivationInProgress )
      {

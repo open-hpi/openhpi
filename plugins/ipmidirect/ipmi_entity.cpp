@@ -194,11 +194,18 @@ cIpmiEntityPath::operator!=( const cIpmiEntityPath &epath ) const
 
 
 bool
-cIpmiEntityPath::AppendRoot()
+cIpmiEntityPath::AppendRoot( int idx )
 {
-  int rv = append_root( &m_entity_path );
+  if ( idx < 0 || idx >= SAHPI_MAX_ENTITY_PATH )
+     {
+       assert( 0 );
+       return false;
+     }
 
-  return rv ? false : true;
+  m_entity_path.Entry[idx].EntityType     = SAHPI_ENT_ROOT;
+  m_entity_path.Entry[idx].EntityInstance = 0;
+
+  return true;
 }
 
 

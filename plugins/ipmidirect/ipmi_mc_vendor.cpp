@@ -269,7 +269,35 @@ cIpmiMcVendor::FindOrCreateResource( cIpmiDomain *domain, cIpmiMc *mc,
 {
   assert( mc );
 
-  cIpmiResource *res = mc->FindResource( fru_id );
+  SaHpiEntityTypeT     type;
+  SaHpiEntityInstanceT instance;
+
+  if ( sdr )
+     {
+       if (    sdr->m_type == eSdrTypeMcDeviceLocatorRecord 
+	    || sdr->m_type == eSdrTypeFruDeviceLocatorRecord )
+	  {
+	    type     = (SaHpiEntityTypeT)sdr->m_data[12];
+	    instance = (SaHpiEntityInstanceT)sdr->m_data[13];
+	  }
+       else if ( sdr->m_type == eSdrTypeFullSensorRecord )
+	  {
+	    type     = (SaHpiEntityTypeT)sdr->m_data[8];
+	    instance = (SaHpiEntityInstanceT)sdr->m_data[9];	    
+	  }
+       else
+	    assert( 0 );
+     }
+  else
+     {
+       type = SAHPI_ENT_UNKNOWN;
+       instance = GetUniqueInstance();
+     }
+
+  cIpmiEntityPath ep = CreateEntityPath( domain, mc->GetAddress(), fru_id,
+					 type, instance, sdrs );
+
+  cIpmiResource *res = mc->FindResource( ep );
 
   if ( res )
        return res;
@@ -286,13 +314,24 @@ cIpmiMcVendor::CreateResource( cIpmiDomain *domain, cIpmiMc *mc,
   cIpmiResource *res = new cIpmiResource( mc, fru_id );
   assert( res );
 
-  SaHpiEntityTypeT type;
+  SaHpiEntityTypeT     type;
   SaHpiEntityInstanceT instance;
 
   if ( sdr )
      {
-       type     = (SaHpiEntityTypeT)sdr->m_data[12];
-       instance = (SaHpiEntityInstanceT)sdr->m_data[13];
+       if (    sdr->m_type == eSdrTypeMcDeviceLocatorRecord 
+	    || sdr->m_type == eSdrTypeFruDeviceLocatorRecord )
+	  {
+	    type     = (SaHpiEntityTypeT)sdr->m_data[12];
+	    instance = (SaHpiEntityInstanceT)sdr->m_data[13];
+	  }
+       else if ( sdr->m_type == eSdrTypeFullSensorRecord )
+	  {
+	    type     = (SaHpiEntityTypeT)sdr->m_data[8];
+	    instance = (SaHpiEntityInstanceT)sdr->m_data[9];	    
+	  }
+       else
+	    assert( 0 );
      }
   else
      {
@@ -367,20 +406,22 @@ cIpmiMcVendor::CreateEntityPath( cIpmiDomain *domain, unsigned int mc_addr, unsi
 
   cIpmiEntityPath bottom;
 
+  // clear bit 7
+  instance &= 0x7f;
+
   if ( instance < 0x60 )
      {
-       if ( fi )
+       //       if ( fi )
             // if there is fru info => slot id already in the entity path
-            instance = 0;
+       //     instance = 0;
      }
   else if ( instance <= 0x7f )
        instance -= 0x60;
 
-  instance += dEntityInstanceDummy;
+  //instance += dEntityInstanceDummy;
 
   bottom.SetEntry( 0, type, instance );
-
-  bottom.AppendRoot();
+  bottom.AppendRoot( 1 );
 
   cIpmiEntityPath top = domain->EntityRoot();
 
@@ -390,7 +431,6 @@ cIpmiMcVendor::CreateEntityPath( cIpmiDomain *domain, unsigned int mc_addr, unsi
   // fru info not found => use default entity path
   cIpmiEntityPath ep = bottom;
   ep += top;
-  ep.AppendRoot();
 
   return ep;
 }
@@ -452,12 +492,17 @@ cIpmiMcVendor::CreateSensors( cIpmiDomain *domain, cIpmiMc *source_mc, cIpmiSdrs
             continue;
           }
 
-       cIpmiSdr *mcdlr = sdrs->FindSdr( sensor->Mc() );
+       cIpmiSdr *sdr = sensor->GetSdr();
+       
+       if ( sdr == 0 )
+	  {
+	    sdr = sdrs->FindSdr( sensor->Mc() );
+	    assert( sdr );
+	  }
 
-       // create resource
-       cIpmiResource *res = FindOrCreateResource( domain, sensor->Mc(), 0, mcdlr, sdrs );
-
+       cIpmiResource *res = FindOrCreateResource( domain, sensor->Mc(), 0, sdr, sdrs );
        assert( res );
+
        new_sensors = g_list_append( new_sensors, sensor );
        sensor->HandleNew( domain );
        res->Add( sensor );
@@ -488,116 +533,18 @@ cIpmiMcVendor::GetSensorsFromSdrs( cIpmiDomain *domain, cIpmiMc *source_mc,
   // create a list of full sensor records
   for( unsigned int i = 0; i < sdrs->NumSdrs(); i++ )
      {
-       GList *records = 0;
-
        cIpmiSdr *sdr = sdrs->Sdr( i );
 
-       if ( sdr->m_type == eSdrTypeFullSensorRecord )
-          {
-            cIpmiSdr *s = new cIpmiSdr;
-            *s = *sdr;
-            records = g_list_append( records, s );
-          }
-       else if ( sdr->m_type == eSdrTypeCompactSensorRecord )
-          {
-            GList *r = ConvertToFullSensorRecords( domain, source_mc, sdr );
+       if ( sdr->m_type != eSdrTypeFullSensorRecord )
+	    continue;
 
-            if ( r )
-                 records = g_list_concat( records, r );
-          }
+       GList *l = CreateSensorFromFullSensorRecord( domain, source_mc, sdr, sdrs );
 
-       // create sensors for each full sensor record
-       while( records )
-          {
-            cIpmiSdr *s = (cIpmiSdr *)records->data;
-
-            GList *l = CreateSensorFromFullSensorRecord( domain, source_mc, s, sdrs );
-
-            if ( l )
-                 sensors = g_list_concat( sensors, l );
-
-            records = g_list_remove( records, s );
-            delete s;
-          }
+       if ( l )
+	    sensors = g_list_concat( sensors, l );
      }
 
   return sensors;
-}
-
-
-GList *
-cIpmiMcVendor::ConvertToFullSensorRecords( cIpmiDomain *domain, cIpmiMc * /*_source_mc*/, cIpmiSdr *sdr )
-{
-  int n = 1;
-
-  if ( sdr->m_data[23] & 0x0f )
-       n = sdr->m_data[23] & 0x0f;
-
-  GList *list = 0;
-
-  for( int i = 0; i < n; i++ )
-     {
-       cIpmiSdr *s = new cIpmiSdr;
-       *s = *sdr;
-
-       memset( s->m_data + 23, 0, dMaxSdrData - 23 );
-
-       // sensor num
-       s->m_data[7] = sdr->m_data[7] + i;
-
-       // entity instance
-       if ( sdr->m_data[24] & 0x80 )
-            s->m_data[9] = sdr->m_data[9] + i;
-
-       // positive-going threshold hysteresis value
-       s->m_data[42] = sdr->m_data[25];
-       // negativ-going threshold hysteresis value
-       s->m_data[43] = sdr->m_data[26];
-
-       // oem
-       s->m_data[46] = sdr->m_data[30];
-
-       // id
-       int len = sdr->m_data[31] & 0x3f;
-       int val = (sdr->m_data[24] & 0x7f) + i;
-
-       memcpy( s->m_data + 47, sdr->m_data + 31, len + 1 );
-
-       int base  = 0;
-       int start = 0;
-
-       if ( sdr->m_data[23] & 0x30 == 0 )
-          {
-            // numeric
-            base  = 10;
-            start = '0';
-          }
-       else if ( sdr->m_data[23] & 0x30 == 0x10 )
-          {
-            // alpha
-            base  = 26;
-            start = 'A';
-          }
-
-       if ( base )
-          {
-            // add id string postfix
-            if ( val / base > 0 )
-               {
-                 s->m_data[48+len] = (val / base) + start;
-                 len++;
-               }
-
-            s->m_data[48+len] = (val % base) + start;
-            len++;
-            s->m_data[48+len] = 0;
-            s->m_data[47] = (sdr->m_data[31] & 0xc0) | len;
-          }
-
-       list = g_list_append( list, s );
-     }
-
-  return list;
 }
 
 
@@ -619,6 +566,14 @@ cIpmiMcVendor::CreateSensorFromFullSensorRecord( cIpmiDomain *domain, cIpmiMc *s
             list = CreateSensorThreshold( domain, source_mc, sdr, sdrs );
        else
             list = CreateSensorDefault( domain, source_mc, sdr, sdrs );
+     }
+
+  for( GList *l = list; l; l = g_list_next( l ) )
+     {
+       cIpmiSensor *s = (cIpmiSensor *)l->data;
+       
+       if ( s->GetSdr() == 0 )
+	    s->SetSdr( sdr );
      }
 
   return list;
@@ -701,7 +656,7 @@ cIpmiMcVendor::CreateSensorDefault( cIpmiDomain *domain, cIpmiMc *source_mc,
 }
 
 
-void 
+void
 cIpmiMcVendor::CreateSensorEntityPath( cIpmiDomain *domain, cIpmiSensor *s, 
                                        cIpmiMc *source_mc,
                                        cIpmiSdr *sdr, cIpmiSdrs *sdrs )
@@ -905,26 +860,26 @@ cIpmiMcVendor::CreateFru( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdr *sdr, cIpmi
   cIpmiResource *res = FindOrCreateResource( domain, m, 0 /*fru_id*/, sdr, sdrs );
   assert( res );
 
-  cIpmiFru *fru = (cIpmiFru *)res->Find( m, SAHPI_INVENTORY_RDR, fru_id );
+  cIpmiInventory *inv = (cIpmiInventory *)res->Find( m, SAHPI_INVENTORY_RDR, fru_id );
   bool need_add = false;
 
-  if ( fru == 0 )
+  if ( inv == 0 )
      {
-       fru = new cIpmiFru( m, fru_id );
+       inv = new cIpmiInventory( m, fru_id );
 
-       fru->IdString().SetIpmi( sdr->m_data + 15 );
-       fru->Oem() = sdr->m_data[14];
+       inv->IdString().SetIpmi( sdr->m_data + 15 );
+       inv->Oem() = sdr->m_data[14];
 
-       fru->Resource() = res;
+       inv->Resource() = res;
        need_add = true;
      }
 
-  SaErrorT rv = fru->Fetch();
+  SaErrorT rv = inv->Fetch();
 
   if ( rv != SA_OK )
      {
        if ( need_add )
-            delete fru;
+            delete inv;
 
        return false;
      }
@@ -932,15 +887,13 @@ cIpmiMcVendor::CreateFru( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdr *sdr, cIpmi
   SaHpiEntityTypeT     type     = (SaHpiEntityTypeT)sdr->m_data[12];
   SaHpiEntityInstanceT instance = (SaHpiEntityInstanceT)sdr->m_data[13];
 
-  fru->EntityPath() = CreateEntityPath( domain, m->GetAddress(), 0,
+  inv->EntityPath() = CreateEntityPath( domain, m->GetAddress(), 0,
 					type, instance, sdrs );
-
-  fru->CalcSize();
 
   if ( !need_add )
        return true;
 
-  res->Add( fru );
+  res->Add( inv );
 
   return true;
 }

@@ -308,7 +308,7 @@ main( int argc, char *argv[] )
        fprintf( stderr, "cannot open Config.sim for writing !\n" );
 
   printf( "ready.\n" );
-  TestInterface( abi, hdl );
+  //  TestInterface( abi, hdl );
 
   abi->close( hdl );
   DestryParams( params );

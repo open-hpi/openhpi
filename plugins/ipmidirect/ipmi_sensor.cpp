@@ -169,7 +169,8 @@ cIpmiSensor::cIpmiSensor( cIpmiMc *mc )
     m_event_reading_type_string( 0 ),
     m_rate_unit_string( 0 ),
     m_base_unit_string( 0 ),
-    m_modifier_unit_string( 0 )
+    m_modifier_unit_string( 0 ),
+    m_sdr( 0 )
 {
 }
 
@@ -338,7 +339,7 @@ cIpmiSensor::CreateRdr( SaHpiRptEntryT &resource, SaHpiRdrT &rdr )
   rec.Type      = (SaHpiSensorTypeT)SensorType();
   rec.Category  = (SaHpiEventCategoryT)EventReadingType();
   rec.EventCtrl = (SaHpiSensorEventCtrlT)EventSupport();
-  rec.Ignore    = (SaHpiBoolT)IgnoreIfNoEntity();
+  rec.Ignore    = SAHPI_FALSE; //(SaHpiBoolT)IgnoreIfNoEntity();
   rec.Oem       = GetOem();
 
   return true;

@@ -39,9 +39,6 @@ cIpmiDomain::cIpmiDomain()
 
   for( int i = 0; i < 256; i++ )
      {
-       //m_mc_to_check[i] = 0;
-       //m_mc_type[i]     = 0;
-       //m_mc_slot[i]     = 0;
        m_mc_thread[i]   = 0;
        m_atca_site_property[i].m_property    = 0;
        m_atca_site_property[i].m_max_side_id = 0;
@@ -49,7 +46,7 @@ cIpmiDomain::cIpmiDomain()
      }
 
   // scan at least at 0x20 (ShMc entity is 0xf0)
-  NewFruInfo( 0x20, 0, (SaHpiEntityTypeT)0xf0, 256,
+  NewFruInfo( 0x20, 0, (SaHpiEntityTypeT)0xf0, 0,
               eIpmiAtcaSiteTypeDedicatedShMc, dIpmiMcThreadInitialDiscover|dIpmiMcThreadPollAliveMc );
 
   // default site type properties
@@ -739,15 +736,15 @@ cIpmiDomain::VerifyControl( cIpmiControl *c )
 }
 
 
-cIpmiFru *
-cIpmiDomain::VerifyFru( cIpmiFru *f )
+cIpmiInventory *
+cIpmiDomain::VerifyInventory( cIpmiInventory *i )
 {
   for( GList *list = m_mcs; list; list = g_list_next( list ) )
      {
        cIpmiMc *mc = (cIpmiMc *)list->data;
 
-       if ( mc->Find( f ) )
-            return f;
+       if ( mc->Find( i ) )
+            return i;
      }
 
   return 0;

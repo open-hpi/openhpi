@@ -115,7 +115,7 @@ protected:
 
   void HandleEvents();
 
-  void HandleEvent( cIpmiSensor *sensor, cIpmiEvent *event );
+  void HandleEvent( cIpmiEvent *event );
   void HandleHotswapEvent( cIpmiSensorHotswap *sensor, cIpmiEvent *event );
 
 public:

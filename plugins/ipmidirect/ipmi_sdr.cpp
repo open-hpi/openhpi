@@ -836,10 +836,9 @@ cIpmiSdrs::ReadRecords( cIpmiSdr **&records, unsigned short &working_num_sdrs,
        while( 1 )
           {
             tReadRecord err;
-            cIpmiSdr *sdr;
             unsigned short record_id = next_record_id;
 
-            sdr = ReadRecord( record_id, next_record_id, err, lun );
+            cIpmiSdr *sdr = ReadRecord( record_id, next_record_id, err, lun );
 
             if ( sdr == 0 )
                {
@@ -855,20 +854,37 @@ cIpmiSdrs::ReadRecords( cIpmiSdr **&records, unsigned short &working_num_sdrs,
                  break;
                }
 
-            sdr->Dump( stdlog, "sdr" );
+	    GList *list = 0;
 
-            if ( num >= working_num_sdrs )
-               {
-                 // resize records
-                 cIpmiSdr **rec = new cIpmiSdr*[ working_num_sdrs + 10 ];
-                 memcpy( rec, records, sizeof( cIpmiSdr * ) * working_num_sdrs );
+	    if ( sdr->m_type == eSdrTypeCompactSensorRecord )
+	       {
+		 // convert compact sensor record to full sensor records
+		 list = CreateFullSensorRecords( sdr );
+		 delete sdr;
+	       }
+	    else
+		 list = g_list_append( 0, sdr );
 
-                 delete [] records;
-                 records = rec;
-                 working_num_sdrs += 10;
-               }
+	    while( list )
+	       {
+		 sdr = (cIpmiSdr *)list->data;
+		 list = g_list_remove( list, sdr );
 
-            records[num++] = sdr;
+		 sdr->Dump( stdlog, "sdr" );
+
+		 if ( num >= working_num_sdrs )
+		    {
+		      // resize records
+		      cIpmiSdr **rec = new cIpmiSdr*[ working_num_sdrs + 10 ];
+		      memcpy( rec, records, sizeof( cIpmiSdr * ) * working_num_sdrs );
+
+		      delete [] records;
+		      records = rec;
+		      working_num_sdrs += 10;
+		    }
+
+		 records[num++] = sdr;
+	       }
 
             if ( next_record_id == 0xffff )
                {
@@ -881,6 +897,83 @@ cIpmiSdrs::ReadRecords( cIpmiSdr **&records, unsigned short &working_num_sdrs,
      }
 
   return SA_OK;
+}
+
+
+GList *
+cIpmiSdrs::CreateFullSensorRecords( cIpmiSdr *sdr )
+{
+  int n = 1;
+
+  if ( sdr->m_data[23] & 0x0f )
+       n = sdr->m_data[23] & 0x0f;
+
+  GList *list = 0;
+
+  for( int i = 0; i < n; i++ )
+     {
+       cIpmiSdr *s = new cIpmiSdr;
+       *s = *sdr;
+       s->m_type = eSdrTypeFullSensorRecord;
+
+       memset( s->m_data + 23, 0, dMaxSdrData - 23 );
+
+       // sensor num
+       s->m_data[7] = sdr->m_data[7] + i;
+
+       // entity instance
+       if ( sdr->m_data[24] & 0x80 )
+            s->m_data[9] = sdr->m_data[9] + i;
+
+       // positive-going threshold hysteresis value
+       s->m_data[42] = sdr->m_data[25];
+       // negativ-going threshold hysteresis value
+       s->m_data[43] = sdr->m_data[26];
+
+       // oem
+       s->m_data[46] = sdr->m_data[30];
+
+       // id
+       int len = sdr->m_data[31] & 0x3f;
+       int val = (sdr->m_data[24] & 0x7f) + i;
+
+       memcpy( s->m_data + 47, sdr->m_data + 31, len + 1 );
+
+       int base  = 0;
+       int start = 0;
+
+       if ( sdr->m_data[23] & 0x30 == 0 )
+          {
+            // numeric
+            base  = 10;
+            start = '0';
+          }
+       else if ( sdr->m_data[23] & 0x30 == 0x10 )
+          {
+            // alpha
+            base  = 26;
+            start = 'A';
+          }
+
+       if ( base )
+          {
+            // add id string postfix
+            if ( val / base > 0 )
+               {
+                 s->m_data[48+len] = (val / base) + start;
+                 len++;
+               }
+
+            s->m_data[48+len] = (val % base) + start;
+            len++;
+            s->m_data[48+len] = 0;
+            s->m_data[47] = (sdr->m_data[31] & 0xc0) | len;
+          }
+
+       list = g_list_append( list, s );
+     }
+
+  return list;
 }
 
 

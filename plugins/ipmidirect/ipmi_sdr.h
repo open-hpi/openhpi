@@ -1,7 +1,7 @@
 /*
  * ipmi_sdr.h
  *
- * Copyright (c) 2003 by FORCE Computers
+ * Copyright (c) 2003,2004 by FORCE Computers
  *
  * Note that this file is based on parts of OpenIPMI
  * written by Corey Minyard <minyard@mvista.com>
@@ -29,6 +29,8 @@
 extern "C" {
 #include "SaHpi.h"
 }
+
+#include "glib.h"
 
 #ifndef dIpmiLog_h
 #include "ipmi_log.h"
@@ -144,6 +146,8 @@ private:
   cIpmiSdr *ReadRecord( unsigned short record_id,
                         unsigned short &next_record_id,
                         tReadRecord &err, unsigned int lun );
+  GList *CreateFullSensorRecords( cIpmiSdr *sdr );
+
   SaErrorT Reserve();
   int GetInfo( unsigned short &working_num_sdrs );
 

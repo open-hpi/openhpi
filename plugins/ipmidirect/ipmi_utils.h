@@ -26,6 +26,21 @@
 #include <sys/time.h>
 
 
+enum tIpmiFruState
+{
+  eIpmiFruStateNotInstalled           = 0,
+  eIpmiFruStateInactive               = 1,
+  eIpmiFruStateActivationRequest      = 2,
+  eIpmiFruStateActivationInProgress   = 3,
+  eIpmiFruStateActive                 = 4,
+  eIpmiFruStateDeactivationRequest    = 5,
+  eIpmiFruStateDeactivationInProgress = 6,
+  eIpmiFruStateCommunicationLost      = 7
+};
+
+const char *IpmiFruStateToString( tIpmiFruState state );
+
+
 unsigned int IpmiGetUint16( const unsigned char *data );
 void         IpmiSetUint16( unsigned char *data, int val );
 

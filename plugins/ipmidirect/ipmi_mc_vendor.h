@@ -90,8 +90,6 @@ public:
 protected:
   virtual GList *GetSensorsFromSdrs( cIpmiDomain *domain, cIpmiMc *source_mc,
                                      cIpmiSdrs *sdrs );
-  virtual GList *ConvertToFullSensorRecords( cIpmiDomain *domain, cIpmiMc *source_mc,
-                                             cIpmiSdr *sdr );
   virtual GList *CreateSensorFromFullSensorRecord( cIpmiDomain *domain, cIpmiMc *source_mc,
                                                    cIpmiSdr *sdr, cIpmiSdrs *sdrs );
 

@@ -171,7 +171,7 @@ cThread::Wait( void *&rv )
        return false;
 
   rv = rr;
-  
+
   return true;
 }
 

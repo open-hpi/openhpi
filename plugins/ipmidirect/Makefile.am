@@ -41,6 +41,7 @@ AM_CFLAGS               = @CFLAGS@
 pkglib_LTLIBRARIES      = libipmidirect.la
 
 libipmidirect_la_SOURCES= \
+		array.h \
 		hotswap.cpp \
 		ipmi.h \
 		ipmi.cpp \
@@ -68,10 +69,12 @@ libipmidirect_la_SOURCES= \
 		ipmi_entity.cpp \
 		ipmi_event.h \
 		ipmi_event.cpp \
-		ipmi_fru.h \
-		ipmi_fru.cpp \
 		ipmi_fru_info.h \
 		ipmi_fru_info.cpp \
+		ipmi_inventory.h \
+		ipmi_inventory.cpp \
+		ipmi_inventory_parser.h \
+		ipmi_inventory_parser.cpp \
 		ipmi_log.h \
 		ipmi_log.cpp \
 		ipmi_mc.h \

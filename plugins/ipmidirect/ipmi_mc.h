@@ -55,8 +55,8 @@
 #include "ipmi_mc_vendor.h"
 #endif
 
-#ifndef dIpmiFru_h
-#include "ipmi_fru.h"
+#ifndef dIpmiInventory_h
+#include "ipmi_inventory.h"
 #endif
 
 class cIpmiDomain;
@@ -125,7 +125,8 @@ protected:
 public:
   void AddResource( cIpmiResource *res );
   void RemResource( cIpmiResource *res );
-  cIpmiResource *FindResource( unsigned int fru_id );
+  //cIpmiResource *FindResource( unsigned int fru_id );
+  cIpmiResource *FindResource( const cIpmiEntityPath &ep );
   cIpmiResource *FindResource( cIpmiResource *res );
 
 public:

@@ -28,7 +28,7 @@
 
 #include "ipmi_domain.h"
 #include "ipmi_mc.h"
-#include "ipmi_fru.h"
+#include "ipmi_inventory.h"
 #include "ipmi_sensor.h"
 #include "ipmi_utils.h"
 
@@ -110,7 +110,7 @@ cIpmiMc::FindResource( cIpmiResource *res )
 
 
 cIpmiResource *
-cIpmiMc::FindResource( unsigned int fru_id )
+cIpmiMc::FindResource( const cIpmiEntityPath &ep )
 {
   GList *list = m_resources;
 
@@ -118,7 +118,7 @@ cIpmiMc::FindResource( unsigned int fru_id )
      {
        cIpmiResource *res = (cIpmiResource *)list->data;
 
-       if ( res->FruId() == fru_id )
+       if ( res->EntityPath() == ep )
 	    return res;
 
        list = g_list_next( list );
@@ -144,7 +144,7 @@ cIpmiMc::AddResource( cIpmiResource *res )
 void
 cIpmiMc::RemResource( cIpmiResource *res )
 {
-  cIpmiResource *r = FindResource( res->FruId() );
+  cIpmiResource *r = FindResource( res->EntityPath() );
   
   if ( r == 0 || r != res )
      {
@@ -607,32 +607,32 @@ cIpmiMc::DumpFrus( cIpmiLog &dump, const char *name ) const
   GList *list;
 
   // create a list of frus
-  GList *frus = 0;
+  GList *invs = 0;
 
   for( list = m_rdrs; list; list = g_list_next( list ) )
      {
        cIpmiRdr *rdr = (cIpmiRdr *)list->data;
-            
-       cIpmiFru *fru = dynamic_cast<cIpmiFru *>( rdr );
 
-       if ( fru )
-            frus = g_list_append( frus, fru );
+       cIpmiInventory *inv = dynamic_cast<cIpmiInventory *>( rdr );
+
+       if ( inv )
+            invs = g_list_append( invs, inv );
      }
 
-  if ( frus == 0 )
+  if ( invs == 0 )
        return false;
 
   char fru_device_name[80];
   sprintf( fru_device_name, "FruDevice%02x_", GetAddress() );
 
   // dump frus
-  for( list = frus; list; list = g_list_next( list ) )
+  for( list = invs; list; list = g_list_next( list ) )
      {
-       cIpmiFru *fru = (cIpmiFru *)frus->data;
+       cIpmiInventory *inv = (cIpmiInventory *)invs->data;
 
        char str[80];
-       sprintf( str, "%s%d", fru_device_name, fru->Num() );
-       fru->Dump( dump, str );
+       sprintf( str, "%s%d", fru_device_name, inv->Num() );
+       inv->Dump( dump, str );
      }
 
   // dump fru device
@@ -641,17 +641,17 @@ cIpmiMc::DumpFrus( cIpmiLog &dump, const char *name ) const
 
   bool first = true;
 
-  while( frus )
+  while( invs )
      {
-       cIpmiFru *fru = (cIpmiFru *)frus->data;
-       frus = g_list_remove( frus, fru );
+       cIpmiInventory *inv = (cIpmiInventory *)invs->data;
+       invs = g_list_remove( invs, inv );
 
        if ( first )
             first = false;
        else
             dump << ", ";
 
-       dump << fru_device_name << fru->Num();
+       dump << fru_device_name << inv->Num();
      }
 
   dump << ";\n";
