@@ -654,7 +654,7 @@ static int set_tag(int argc, char *argv[])
 		resid = (SaHpiResourceIdT)atoi(argv[1]);
 	};
 	printf("New tag: ");
-	fgets(buf, READ_BUF_SIZE, stdin);
+	fgets(buf, SAHPI_MAX_TEXT_BUFFER_LENGTH, stdin);
 	for (res = 0; res < SAHPI_MAX_TEXT_BUFFER_LENGTH; res++)
 		if (buf[res] == '\n') buf[res] = 0;
 	str = buf;
@@ -1210,10 +1210,15 @@ static int show_rdr(int argc, char *argv[])
 	} else {
 		rdrnum = (SaHpiInstrumentIdT)atoi(argv[3]);
 	};
-	rv = saHpiRdrGetByInstrumentId(Domain->sessionId, rptid, type, rdrnum, &rdr_entry);
+	if (type == SAHPI_NO_RECORD)
+		rv = find_rdr_by_num(Domain->sessionId, rptid, rdrnum, type, 0,
+			&rdr_entry);
+	else
+		rv = saHpiRdrGetByInstrumentId(Domain->sessionId, rptid, type, rdrnum,
+			&rdr_entry);
 	if (rv != SA_OK) {
-		printf("ERROR!!! Can not get rdr: ResourceId=%d RdrType=%d RdrNum=%d\n",
-			rptid, type, rdrnum);
+		printf("ERROR!!! Get rdr: ResourceId=%d RdrType=%d RdrNum=%d: %s\n",
+			rptid, type, rdrnum, oh_lookup_error(rv));
 		return(rv);
 	};
 	make_attrs_rdr(&tmp_rdr, &rdr_entry);
