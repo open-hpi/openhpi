@@ -18,7 +18,7 @@
  *      Renier Morales <renierm@users.sf.net>
  */
 
-#include <oh_plugin.h>
+#include <glib.h>
 
 /* max number of digits an enitity instance has */
 #define MAX_INSTANCE_DIGITS 6
@@ -36,7 +36,7 @@ int entitypath2string(const SaHpiEntityPathT *epathptr,
 
 int ep_concat(SaHpiEntityPathT *dest, const SaHpiEntityPathT *append);
 
-int set_epath_instance(struct oh_event *e, SaHpiEntityTypeT et, SaHpiEntityInstanceT ei);
+int set_epath_instance(SaHpiEntityPathT *ep, SaHpiEntityTypeT et, SaHpiEntityInstanceT ei);
 
 int append_root(SaHpiEntityPathT *ep);
 
