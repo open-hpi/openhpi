@@ -18,7 +18,7 @@
  *************************************************************************/
 
 #include <glib.h>
-#include <snmp_util.h>
+#include <snmp_utils.h>
 #include <sim_resources.h>
 
 struct snmp_bc_data sim_resource_array[] = {

@@ -13,16 +13,7 @@
  *     Steve Sherman <stevees@us.ibm.com>
  */
 
-#include <glib.h>
-#include <SaHpi.h>
-
-#include <oh_plugin.h>
-#include <oh_utils.h>
-#include <snmp_util.h>
-#include <snmp_bc.h>
-#include <bc_resources.h>
-#include <snmp_bc_utils.h>
-#include <snmp_bc_hotswap.h>
+#include <snmp_bc_plugin.h>
 
 #include <tstubs_res.h>
 #include <tstubs_snmp.h>
