@@ -21,16 +21,16 @@ list_resources_threaded_LDADD   = $(COMMONLIBS)
 list_resources_threaded_LDFLAGS = 
 
 install-data-local: $(top_srcdir)/examples/openhpi.conf.example
-	$(mkinstalldirs) $(DESTDIR)/etc/$(PACKAGE)
-	if test ! -e  $(DESTDIR)/etc/$(PACKAGE)/openhpi.conf; then \
-		$(INSTALL_DATA) $(top_srcdir)/examples/openhpi.conf.example $(DESTDIR)/etc/$(PACKAGE)/openhpi.conf; \
+	$(mkinstalldirs) $(DESTDIR)$(CONFPATH)
+	if test ! -e  $(DESTDIR)$(CONFPATH)/openhpi.conf; then \
+		$(INSTALL_DATA) $(top_srcdir)/examples/openhpi.conf.example $(DESTDIR)$(CONFPATH)/openhpi.conf; \
 	fi
 
 uninstall-local:
-	if cmp $(top_srcdir)/examples/openhpi.conf.example $(DESTDIR)/etc/$(PACKAGE)/openhpi.conf; then \
+	if cmp $(top_srcdir)/examples/openhpi.conf.example $(DESTDIR)$(CONFPATH)/openhpi.conf; then \
 		: \
 	else \
-		rm -f $(DESTDIR)/etc/$(PACKAGE)/openhpi.conf; \
+		rm -f $(DESTDIR)$(CONFPATH)/openhpi.conf; \
 	fi
 
 # comment out for now, we do install in rpm
