@@ -537,7 +537,7 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
         }
         
         /* TODO: pull RDR and RPTEntry from EventLogEntry for return */
-        return SAHPI_OK;
+        return SA_OK;
 }
 
 SaErrorT SAHPI_API saHpiEventLogEntryAdd (
