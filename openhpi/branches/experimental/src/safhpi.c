@@ -466,6 +466,17 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
         RPTable *rpt = default_rpt;
         SaHpiRptEntryT *res;
         struct oh_handler *h;
+        SaHpiSelInfoT info;
+        SaErrorT rv;
+
+        rv = saHpiEventLogInfoGet(SessionId, ResourceId, &info);
+        if(rv < 0) 
+                return rv;
+        
+        if(!info.DeleteEntrySupported) {
+                dbg("Detele entry is not supported for this event log");
+                return SA_ERR_HPI_INVALID_REQUEST;
+        }
 
         OH_STATE_READY_CHECK;
         OH_SESSION_SETUP(SessionId,s);
@@ -608,33 +619,13 @@ SaErrorT SAHPI_API saHpiEventLogTimeGet (
                 SAHPI_IN SaHpiResourceIdT ResourceId,
                 SAHPI_OUT SaHpiTimeT *Time)
 {
-        int (*get_func) (void *, SaHpiResourceIdT, SaHpiSelInfoT *);
-        
-        struct oh_session *s;
-        RPTable *rpt = default_rpt;
-        SaHpiRptEntryT *res;
-        struct oh_handler *h;
         SaHpiSelInfoT info;        
+        SaErrorT rv;
 
-        OH_STATE_READY_CHECK;
-        OH_SESSION_SETUP(SessionId,s);
-        OH_RESOURCE_GET(rpt, ResourceId, res);
-        
-        if(!(res->ResourceCapabilities && SAHPI_CAPABILITY_SEL)) {
-                dbg("Resource %d does not have SEL", ResourceId);
-                return SA_ERR_HPI_INVALID_CMD;
-        }
+        rv = saHpiEventLogInfoGet(SessionId, ResourceId, &info);
 
-        OH_HANDLER_GET(rpt, ResourceId, h);
-
-        get_func = h->abi->get_sel_info;
-
-        if (!get_func)
-                return SA_ERR_HPI_UNSUPPORTED_API;
-        
-        if (get_func(h->hnd, ResourceId, &info) < 0) {
-                dbg("SEL info get failed");
-                return SA_ERR_HPI_UNKNOWN;
+        if(rv < 0) {
+                return rv;
         }
 
         *Time = info.CurrentTime;
@@ -642,42 +633,43 @@ SaErrorT SAHPI_API saHpiEventLogTimeGet (
         return SA_OK;
 }
 
-#if 0
 SaErrorT SAHPI_API saHpiEventLogTimeSet (
                 SAHPI_IN SaHpiSessionIdT SessionId,
                 SAHPI_IN SaHpiResourceIdT ResourceId,
                 SAHPI_IN SaHpiTimeT Time)
 {
+        int (*set_sel_time)(void *hnd, SaHpiResourceIdT id, SaHpiTimeT time);
+
         struct oh_session *s;
-        struct oh_resource *res;
-        struct timeval time;
+        RPTable *rpt = default_rpt;
+        SaHpiRptEntryT *res;
+        struct oh_handler *h;
         
         OH_STATE_READY_CHECK;
-        
-        s = session_get(SessionId);
-        if (!s) {
-                dbg("Invalid session");
-                return SA_ERR_HPI_INVALID_SESSION;
-        }       
-        
-        if (ResourceId==SAHPI_DOMAIN_CONTROLLER_ID) {
-                dsel_set_time(s->domain_id, Time);
-                return SA_OK;
+        OH_SESSION_SETUP(SessionId,s);
+        OH_RESOURCE_GET(rpt, ResourceId, res);  
+
+        if(!(res->ResourceCapabilities && SAHPI_CAPABILITY_SEL)) {
+                dbg("Resource %d does not have SEL", ResourceId);
+                return SA_ERR_HPI_INVALID_CMD;
         }
 
-        res = get_resource(ResourceId);
-        if (!res) {
-                dbg("Invalid resource");
-                return SA_ERR_HPI_INVALID_RESOURCE;
-        }                                               
+        OH_HANDLER_GET(rpt, ResourceId, h);
+
+        set_sel_time = h->abi->set_sel_time;
+
+        if (!set_sel_time)
+                return SA_ERR_HPI_UNSUPPORTED_API;
         
-        time.tv_sec  = Time / 1000000000;
-        time.tv_usec = Time % 1000000000 * 1000;
-        if (res->handler->abi->set_sel_time(res->handler->hnd, res->oid, &time)<0)
+        if (set_sel_time(h->hnd, ResourceId, Time) < 0) {
+                dbg("Set SEL time failed");
                 return SA_ERR_HPI_UNKNOWN;
+        }
+        
         return SA_OK;
 }
 
+#if 0
 SaErrorT SAHPI_API saHpiEventLogStateGet (
                 SAHPI_IN SaHpiSessionIdT SessionId,
                 SAHPI_IN SaHpiResourceIdT ResourceId,

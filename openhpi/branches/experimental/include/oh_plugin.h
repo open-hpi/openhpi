@@ -230,7 +230,7 @@ struct oh_abi_v1 {
 	/**
 	 * set time to RSEL
 	 */
-	int (*set_sel_time)(void *hnd, SaHpiResourceIdT id, SaHpiTimeT *time);
+	int (*set_sel_time)(void *hnd, SaHpiResourceIdT id, SaHpiTimeT time);
 
 	/**
 	 * add entry to RSEL
