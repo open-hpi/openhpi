@@ -34,6 +34,10 @@
 
 #define OH_DEFAULT_CONF "/etc/openhpi/openhpi.conf"
 
+#ifdef __cplusplus
+extern "C" {
+#endif 
+
 /* oh_plugin_config, currently with only one item.  There are thoughts of
    having explicit path to the plugin, but I'm not sure this is a good plan */
 struct oh_plugin_config {
@@ -53,5 +57,9 @@ int oh_load_config(char *);
 int plugin_refcount (char *);
 
 struct oh_plugin_config * plugin_config (char *);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif/*__OH_CONFIG_H*/

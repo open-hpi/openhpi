@@ -114,6 +114,10 @@
  *
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif 
+
 enum oh_sel_state {
         OH_SEL_ENABLED=0,
         OH_SEL_DISABLED,
@@ -419,4 +423,9 @@ int data_access_block_times(void);
 
 #define g_slist_for_each_safe(pos, pos1, head) \
         for (pos = head, pos1 = g_slist_next(pos); pos; pos = pos1, pos1 = g_slist_next(pos1))
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif/*__OPENHPI_H*/
