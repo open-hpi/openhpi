@@ -316,11 +316,39 @@ SaErrorT oh_detect_res_sev_alarm(SaHpiDomainIdT did,
  *
  * Return value:
  **/
-SaErrorT oh_detect_sensor_alarm(SaHpiDomainIdT did,
-                                SaHpiRdrT *rdr,
-                                SaHpiBoolT enable)
+SaErrorT oh_detect_sensor_enable_alarm(SaHpiDomainIdT did,
+                                       SaHpiResourceIdT rid,
+                                       SaHpiSensorNumT num,
+                                       SaHpiBoolT enable)
 {
-        return SA_ERR_HPI_UNSUPPORTED_API;
+        struct oh_domain *d = NULL;
+        GList *alarms = NULL;
+        
+        if (!did || !rid) return SA_ERR_HPI_INVALID_PARAMS;
+        
+        /* Only need to scan alarm table if enable is false */
+        if (enable) return SA_OK;
+        
+        d = oh_get_domain(did);
+        if (!d) {
+                dbg("Domain not found! Can't process alarm trigger.");
+                return SA_ERR_HPI_INVALID_DOMAIN;
+        }
+        
+        /* Enable is false, so scan alarm table and remove any matching sensor alarms */
+        for (alarms = d->dat.list; alarms; alarms = alarms->next) {
+                SaHpiAlarmT *alarm = alarms->data;
+                if (alarm &&
+                    alarm->AlarmCond.Type == SAHPI_STATUS_COND_TYPE_SENSOR &&
+                    alarm->AlarmCond.ResourceId == rid &&
+                    alarm->AlarmCond.SensorNum == num) {
+                        /* Found. Remove alarm. */
+                        oh_delete_alarm_and_continue();
+                }
+        }
+        
+        oh_release_domain(d);
+        return SA_OK;
 }
 
 /**

@@ -1012,7 +1012,39 @@ SaErrorT SAHPI_API saHpiAlarmGetNext (
                 SAHPI_IN SaHpiBoolT      UnacknowledgedOnly,
                 SAHPI_INOUT SaHpiAlarmT  *Alarm)
 {
-        return SA_ERR_HPI_UNSUPPORTED_API;
+        SaHpiDomainIdT did = 0;
+        struct oh_domain *d = NULL;
+        GList *alarms = NULL;
+        SaErrorT error = SA_ERR_HPI_NOT_PRESENT;
+        
+        OH_CHECK_INIT_STATE(SessionId);        
+        
+        if (!oh_lookup_severity(Severity) || !Alarm) {
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+        
+        OH_GET_DID(SessionId, did);
+        OH_GET_DOMAIN(did, d); /* Lock domain */
+        
+        for (alarms = d->dat.list; alarms; alarms = alarms->next) {
+                SaHpiAlarmT *alarm = alarms->data;
+                if (alarm &&
+                    (Severity == SAHPI_ALL_SEVERITIES ? 1 : Severity == alarm->Severity) &&
+                    (UnacknowledgedOnly ? !alarm->Acknowledged : 1) &&
+                    alarm->AlarmCond.Type == SAHPI_STATUS_COND_TYPE_USER &&
+                    (Alarm->AlarmId == SAHPI_FIRST_ENTRY ? 1 : Alarm->AlarmId < alarm->AlarmId)) {                        
+                        if (Alarm->AlarmId != SAHPI_FIRST_ENTRY &&
+                            Alarm->Timestamp != alarm->Timestamp) {
+                                error = SA_ERR_HPI_INVALID_DATA;
+                        } else {
+                                error = SA_OK;
+                        }
+                        memcpy(Alarm, alarm, sizeof(SaHpiAlarmT));
+                }
+        }
+        
+        oh_release_domain(d);
+        return error;
 }
 
 SaErrorT SAHPI_API saHpiAlarmGet(
