@@ -59,11 +59,12 @@ main(int argc, char **argv)
   SaHpiCtrlTypeT  ctltype;
   SaHpiCtrlNumT   ctlnum;
   SaHpiCtrlStateT ctlstate;
+  int raw_val = 0;
   int j;
   uchar b = 0;
 
   printf("%s ver %s\n", argv[0],progver);
-  while ( (c = getopt( argc, argv,"rxa:b:c:m:n:p:i:o?")) != EOF )
+  while ( (c = getopt( argc, argv,"rxa:b:c:m:n:p:i:d:o?")) != EOF )
      switch(c) {
           
 	case 'c': b = atoi(optarg);      /* set crit alarm value */
@@ -93,6 +94,8 @@ main(int argc, char **argv)
 	case 'i': fid = atoi(optarg);     /* set chassis id on/off */
 		  fsetid = 1;
                   break;
+	case 'd': raw_val = atoi(optarg);     /* set chassis id on/off */
+                  break;
 	case 'o': fsetid=0; fid=0; 	  /* set all alarms off */
 		  for (j = 0; j < NLEDS; j++) { 
 			leds[j].fset = 1; 
@@ -116,6 +119,7 @@ main(int argc, char **argv)
                 printf("       -a0  sets Disk A fault off\n");
                 printf("       -b1  sets Disk B fault on\n");
                 printf("       -b0  sets Disk B fault off\n");
+                printf("       -d[byte]  sets raw value\n");
                 printf("       -o   sets all Alarms off\n");
                 printf("       -x   show eXtra debug messages\n");
 		exit(1);
@@ -237,6 +241,20 @@ main(int argc, char **argv)
 				   printf("saHpiControlStateSet[%d] rv = %d\n",ctlnum,rv);
 				}
 			}
+                        else if (rdr.RdrTypeUnion.CtrlRec.Type == SAHPI_CTRL_TYPE_OEM
+                                 && rdr.RdrTypeUnion.CtrlRec.OutputType == SAHPI_CTRL_FRONT_PANEL_LOCKOUT) {               
+                                /* This is a raw control for alarm panel*/
+                                ctlstate.Type       = SAHPI_CTRL_TYPE_OEM;
+                                ctlstate.StateUnion.Oem.BodyLength = 1;
+                                ctlstate.StateUnion.Oem.Body[0]    = raw_val;
+                                printf("Set raw value to alarm control...\n");
+                                rv = saHpiControlStateSet(sessionid,
+                                                          resourceid, ctlnum,&ctlstate);
+                                printf("saHpiControlStateSet[%d] rv = %d\n",ctlnum,rv);
+                                   
+                                
+                        }
+                        
 			rv = SA_OK;  /* ignore errors & continue */
 		    }
 		    j++;
