@@ -208,7 +208,7 @@ SaErrorT snmp_bc_get_sel_entry(void *hnd,
                                 trace("NULL rdrptr with SaHpiEventLogEntryGet()\n");
 
                         if (rptentry)
-                                memcpy(rptentry, &tmpentryptr->res, sizeof(SaHpiRptEntryT));
+                                memcpy(rptentry, &(tmpentryptr->res), sizeof(SaHpiRptEntryT));
                         else
                                 trace("NULL rptptr with SaHpiEventLogEntryGet()\n");	
 		}
@@ -468,7 +468,7 @@ SaErrorT snmp_bc_sel_read_add (struct oh_handler_state *handle,
 	SaErrorT err;
         SaHpiEventT tmpevent;
 	SaHpiEntryIdT rdrid=0;
-	SaHpiRdrT *rdr_ptr=NULL; 
+	SaHpiRdrT rdr, *rdr_ptr=NULL; 
 
         struct snmp_value get_value;
         struct snmp_bc_hnd *custom_handle = handle->data;
@@ -500,13 +500,14 @@ SaErrorT snmp_bc_sel_read_add (struct oh_handler_state *handle,
 		case SAHPI_ET_OEM:
 		case SAHPI_ET_HOTSWAP:
 		case SAHPI_ET_USER:
-			/* FIXME:: Why do this - just set rdr_ptr = NULL ??? */
-			/* rdr storage is temporary */
-			#if 0
-			rdr.RecordId = 0; /* There is no RDR associated to OEM event */
-                                          /* Set RDR ID to invalid value of 0        */
-			#endif
-			rdr_ptr = NULL;
+                        memset(&rdr, 0, sizeof(SaHpiRdrT));
+                                        /* There is no RDR associated to OEM event */
+                        rdr.RdrType = SAHPI_NO_RECORD;
+                                          /* Set RDR Type to SAHPI_NO_RECORD, spec B-01.01 */
+                                          /* It is redundant because SAHPI_NO_RECORD == 0  */
+                                          /* This code is here for clarity.                */
+                        rdr_ptr = &rdr;
+
 			break;		  
 		case SAHPI_ET_SENSOR:
 			rdrid = get_rdr_uid(SAHPI_SENSOR_RDR,
@@ -526,6 +527,9 @@ SaErrorT snmp_bc_sel_read_add (struct oh_handler_state *handle,
 
 	/* Since oh_el_append() does a copy of RES and RDR into it own data struct, */ 
 	/* just pass the pointers to it.                                            */
+	id = tmpevent.Source;
+	if (NULL == oh_get_resource_by_id(handle->rptcache, id))
+					dbg("NULL RPT for rid %d\n", id);
 	err = oh_el_append(handle->elcache, &tmpevent,
 			rdr_ptr, oh_get_resource_by_id(handle->rptcache, id));
 	
