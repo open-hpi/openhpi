@@ -27,6 +27,16 @@
 
 #define READ_BUF_SIZE	1024
 
+#define SEN_AV_COM 	"   Available commands:\n" \
+			"	evtenb   - set event enable\n" \
+			"	evtdis   - set event disable\n" \
+			"	maskadd  - mask add\n" \
+			"	maskrm   - mask remove\n" \
+			"	setthres - set threshold\n" \
+			"	show     - show sensor status\n" \
+			"	help	 - command list\n" \
+			"	q | quit - exit"
+
 static char	input_buffer[READ_BUF_SIZE];	// command line buffer
 static char	*input_buf_ptr = input_buffer;	// current pointer in input_buffer
 
@@ -46,7 +56,6 @@ static int get_int_param(char *mes, int *val, char *string, int len)
 {
 	int	res, skip = 0;
 
-	memset(string,  0, len);
 	while (isblank(*input_buf_ptr)) input_buf_ptr++;
 	if (strlen(input_buf_ptr) == 0) {
 		printf("%s", mes);
@@ -63,6 +72,7 @@ static int get_int_param(char *mes, int *val, char *string, int len)
 		else res = -1;
 	} else {
 		if (string == (char *)NULL) return(-1);
+		memset(string,  0, len);
 		strncpy(string, input_buf_ptr, len);
 		while (! isblank(*string) && (*string != 0)) string++;
 		*string = 0;
@@ -144,65 +154,6 @@ static void Set_thres_value(SaHpiSensorReadingT *item, double value)
 	item->IsSupported = 1;
 	item->Type = SAHPI_SENSOR_READING_TYPE_FLOAT64;
 	item->Value.SensorFloat64 = value;
-}
-
-static int sa_set_thres(int argc, char *argv[])
-{
-	SaHpiResourceIdT resourceid;
-	SaHpiSensorNumT sensornum; 
-	SaErrorT rv;
-	SaHpiSensorThresholdsT stbuff;
-	int i;
-
-	resourceid = (SaHpiResourceIdT)atoi(argv[1]);
-	sensornum = (SaHpiResourceIdT)atoi(argv[2]);
-
-	rv = saHpiSensorThresholdsGet(Domain->sessionId, resourceid,
-					sensornum, &stbuff);
-	if (rv != SA_OK) 
-		printf("saHpiSensorThresholdsGet error %d\n",rv);
-
-	for (i=3; i<argc; i+=2) {
-		if (!argv[i+1]) {
-	 		return HPI_SHELL_PARM_ERROR;
-	 	}
-		printf("%s", argv[i]);
-		if (!strcmp(argv[i],"lc")) {
-			Set_thres_value(&(stbuff.LowCritical),
-				(SaHpiFloat64T)atof(argv[i+1]));
-		} else if (!strcmp(argv[i],"la")) {
-			Set_thres_value(&(stbuff.LowMajor),
-				(SaHpiFloat64T)atof(argv[i+1]));
-		} else if (!strcmp(argv[i],"li")) {
-			Set_thres_value(&(stbuff.LowMinor),
-				(SaHpiFloat64T)atof(argv[i+1]));
-		} else if (!strcmp(argv[i],"uc")) {
-			Set_thres_value(&(stbuff.UpCritical),
-				(SaHpiFloat64T)atof(argv[i+1]));
-		} else if (!strcmp(argv[i],"ua")) {
-			Set_thres_value(&(stbuff.UpMajor),
-				(SaHpiFloat64T)atof(argv[i+1]));
-		} else if (!strcmp(argv[i],"ui")) {
-			Set_thres_value(&(stbuff.UpMinor),
-				(SaHpiFloat64T)atof(argv[i+1]));
-		} else if (!strcmp(argv[i],"ph")) {
-			Set_thres_value(&(stbuff.PosThdHysteresis),
-				(SaHpiFloat64T)atof(argv[i+1]));
-		} else if (!strcmp(argv[i],"nh")) {
-			Set_thres_value(&(stbuff.NegThdHysteresis),
-				(SaHpiFloat64T)atof(argv[i+1]));
-		} else {
-			return HPI_SHELL_PARM_ERROR;
-		}
-	}
-
-	rv = saHpiSensorThresholdsSet(Domain->sessionId, resourceid, sensornum, &stbuff);
-	if (rv != SA_OK) 
-		printf("saHpiSensorThresholdsSet error %d\n",rv);
-	else
-		printf("Sensor Threshold Value Set Succeed.\n");
-
-	return SA_OK;
 }
 
 static int sa_show_hs_ind(SaHpiResourceIdT resourceid)
@@ -648,21 +599,6 @@ static int list_sensor(int argc, char *argv[])
 	return SA_OK;
 }
 
-static int get_thres(int argc, char *argv[])
-{
-        if (argc < 3)
-                return HPI_SHELL_PARM_ERROR;
-	return show_threshold(Domain->sessionId, (SaHpiResourceIdT)atoi(argv[1]),
-			(SaHpiSensorNumT)atoi(argv[2]), ui_print);
-}
-
-static int set_thres(int argc, char *argv[])
-{
-        if (argc < 3)
-                return HPI_SHELL_PARM_ERROR;
-        return sa_set_thres(argc, argv);
-}
-
 static int show_hs_ind(int argc, char *argv[])
 {
 	if (argc < 2)
@@ -779,11 +715,174 @@ static int clear_evtlog(int argc, char *argv[])
 
 static int show_evtlog(int argc, char *argv[])
 {
-	if (argc < 2)
-		return HPI_SHELL_PARM_ERROR;
+	SaHpiResourceIdT	rptid = 0;
+	int			i, res;
+
+	if (argc < 2) {
+		show_rpt_list(Domain, SHOW_ALL_RPT, rptid, ui_print);
+		i = get_int_param("RPT ID ==> ", &res, NULL, 0);
+		if (i != 1) return SA_OK;
+		rptid = (SaHpiResourceIdT)res;
+	} else {
+		rptid = (SaHpiResourceIdT)atoi(argv[1]);
+	};
 			
-	return show_event_log(Domain->sessionId, (SaHpiResourceIdT)atoi(argv[1]),
-		show_event_short, ui_print);
+	return show_event_log(Domain->sessionId, rptid, show_event_short, ui_print);
+}
+
+static char *get_thres_value(SaHpiSensorReadingT *item, char *buf, int len)
+{
+	char	*val;
+
+	if (item->IsSupported != SAHPI_TRUE)
+		return("");
+	switch (item->Type) {
+		case SAHPI_SENSOR_READING_TYPE_INT64:
+			snprintf(buf, len, "%lld", item->Value.SensorInt64);
+			break;
+		case SAHPI_SENSOR_READING_TYPE_UINT64:
+			snprintf(buf, len, "%llu", item->Value.SensorUint64);
+			break;
+		case SAHPI_SENSOR_READING_TYPE_FLOAT64:
+			snprintf(buf, len, "%10.3f", item->Value.SensorFloat64);
+			break;
+		case SAHPI_SENSOR_READING_TYPE_BUFFER:
+			val = (char *)(item->Value.SensorBuffer);
+			if (val != NULL) {
+				snprintf(buf, len, "%s", val);
+				break;
+			}
+			return("");
+	};
+	return(buf);
+}
+
+
+static int set_sensor_threshold(SaHpiResourceIdT rptid, SaHpiSensorNumT num)
+{
+	SaErrorT		rv;
+	SaHpiSensorTypeT	type;
+	SaHpiEventCategoryT	categ;
+	SaHpiSensorThresholdsT	senstbuff;
+	float			f;
+	int			res, modify = 0;
+	char			tmp[256];
+
+	rv = saHpiSensorTypeGet(Domain->sessionId, rptid, num, &type, &categ);
+	if (rv != SA_OK) {
+		printf("ERROR: saHpiSensorTypeGet error = %s\n", oh_lookup_error(rv));
+		return -1; 
+	};
+	if (categ != SAHPI_EC_THRESHOLD)
+		return(-1);
+	rv = saHpiSensorThresholdsGet(Domain->sessionId, rptid, num, &senstbuff);
+	if (rv != SA_OK) {
+		printf("ERROR: saHpiSensorThresholdsGet error = %s\n",
+			oh_lookup_error(rv));
+		return -1; 
+	};
+
+	if (senstbuff.LowCritical.IsSupported) {
+		printf("lc(%s) ==> ", get_thres_value(&(senstbuff.LowCritical), tmp, 256));
+		fgets(tmp, 256, stdin);
+		res = sscanf(tmp, "%f", &f);
+		if (res == 1) {
+			modify = 1;
+			Set_thres_value(&(senstbuff.LowCritical), f);
+		}
+	};
+	if (senstbuff.LowMajor.IsSupported) {
+		printf("la(%s) ==> ", get_thres_value(&(senstbuff.LowMajor), tmp, 256));
+		fgets(tmp, 256, stdin);
+		res = sscanf(tmp, "%f", &f);
+		if (res == 1) {
+			modify = 1;
+			Set_thres_value(&(senstbuff.LowMajor), f);
+		}
+	};
+	if (senstbuff.LowMinor.IsSupported) {
+		printf("li(%s) ==> ", get_thres_value(&(senstbuff.LowMinor), tmp, 256));
+		fgets(tmp, 256, stdin);
+		res = sscanf(tmp, "%f", &f);
+		if (res == 1) {
+			modify = 1;
+			Set_thres_value(&(senstbuff.LowMinor), f);
+		}
+	};
+	if (senstbuff.UpCritical.IsSupported) {
+		printf("uc(%s) ==> ", get_thres_value(&(senstbuff.UpCritical), tmp, 256));
+		fgets(tmp, 256, stdin);
+		res = sscanf(tmp, "%f", &f);
+		if (res == 1) {
+			modify = 1;
+			Set_thres_value(&(senstbuff.UpCritical), f);
+		}
+	};
+	if (senstbuff.UpMajor.IsSupported) {
+		printf("ua(%s) ==> ", get_thres_value(&(senstbuff.UpMajor), tmp, 256));
+		fgets(tmp, 256, stdin);
+		res = sscanf(tmp, "%f", &f);
+		if (res == 1) {
+			modify = 1;
+			Set_thres_value(&(senstbuff.UpMajor), f);
+		}
+	};
+	if (senstbuff.UpMinor.IsSupported) {
+		printf("ui(%s) ==> ", get_thres_value(&(senstbuff.UpMinor), tmp, 256));
+		fgets(tmp, 256, stdin);
+		res = sscanf(tmp, "%f", &f);
+		if (res == 1) {
+			modify = 1;
+			Set_thres_value(&(senstbuff.UpMinor), f);
+		}
+	};
+	if (senstbuff.PosThdHysteresis.IsSupported) {
+		printf("ph(%s) ==> ", get_thres_value(&(senstbuff.PosThdHysteresis),
+			tmp, 256));
+		fgets(tmp, 256, stdin);
+		res = sscanf(tmp, "%f", &f);
+		if (res == 1) {
+			modify = 1;
+			Set_thres_value(&(senstbuff.PosThdHysteresis), f);
+		}
+	};
+	if (senstbuff.NegThdHysteresis.IsSupported) {
+		printf("nh(%s) ==> ", get_thres_value(&(senstbuff.NegThdHysteresis),
+			tmp, 256));
+		fgets(tmp, 256, stdin);
+		res = sscanf(tmp, "%f", &f);
+		if (res == 1) {
+			modify = 1;
+			Set_thres_value(&(senstbuff.NegThdHysteresis), f);
+		}
+	};
+
+	if (modify == 0) return(SA_OK);
+		
+	print_thres_value(&(senstbuff.LowCritical), "Lower Critical Threshold(lc):",
+		ui_print);
+	print_thres_value(&(senstbuff.LowMajor), "Lower Major Threshold(la):", ui_print);
+	print_thres_value(&(senstbuff.LowMinor), "Lower Minor Threshold(li):", ui_print);
+	print_thres_value(&(senstbuff.UpCritical), "Upper Critical Threshold(uc):",
+		ui_print);
+	print_thres_value(&(senstbuff.UpMajor), "Upper Major Threshold(ua):", ui_print);
+	print_thres_value(&(senstbuff.UpMinor), "Upper Minor Threshold(ui):", ui_print);
+	print_thres_value(&(senstbuff.PosThdHysteresis),
+		"Positive Threshold Hysteresis(ph):", ui_print);
+	print_thres_value(&(senstbuff.NegThdHysteresis),
+		"Negative Threshold Hysteresis(nh):", ui_print);
+	printf("Set new threshold (yes|no) : ");
+	fgets(tmp, 256, stdin);
+	if (strncmp(tmp, "yes", 3) != 0) {
+		printf("No action.\n");
+		return(SA_OK);
+	};
+	rv = saHpiSensorThresholdsSet(Domain->sessionId, rptid, num, &senstbuff);
+	if (rv != SA_OK) 
+		printf("saHpiSensorThresholdsSet error %s\n", oh_lookup_error(rv));
+	else
+		printf("Sensor Threshold Value Set Succeed.\n");
+	return(rv);
 }
 
 static int sen_block(int argc, char *argv[])
@@ -803,11 +902,7 @@ static int sen_block(int argc, char *argv[])
 	clear_input();
 	if (argc < 2) {
 		show_rpt_list(Domain, SHOW_ALL_RPT, rptid, ui_print);
-		i = get_int_param("RPT (ID | all) ==> ", &res, buf, 9);
-		if ((i == 0) && (strncmp(buf, "all", 3) == 0)) {
-			show_rpt_list(Domain, SHOW_ALL_RDR, rptid, ui_print);
-			return(SA_OK);
-		};
+		i = get_int_param("RPT ID ==> ", &res, buf, 9);
 		if (i != 1) return SA_OK;
 		rptid = (SaHpiResourceIdT)res;
 	} else {
@@ -832,13 +927,11 @@ static int sen_block(int argc, char *argv[])
 	for (;;) {
 		clear_input();
 		if (first) {
-			printf("Available commands are:\n  "
-				"   evtenb,   evtdis,   maskadd,   maskrm,\n  "
-				"   show,     help,     q,        quit\n");
+			printf("%s\n", SEN_AV_COM);
 			first = 0;
 		};
 		i = get_int_param("command? ==> ", &res, buf, 9);
-		if (i != 0) break;
+		if (i != 0) continue;
 		if ((strcmp(buf, "q") == 0) || (strcmp(buf, "quit") == 0)) break;
 		if (strcmp(buf, "show") == 0) {
 			show_sensor(Domain->sessionId, rptid, rdrnum, ui_print);
@@ -846,6 +939,10 @@ static int sen_block(int argc, char *argv[])
 		};
 		if (strcmp(buf, "help") == 0) {
 			first = 1;
+			continue;
+		};
+		if (strcmp(buf, "setthres") == 0) {
+			set_sensor_threshold(rptid, rdrnum);
 			continue;
 		};
 		if ((strcmp(buf, "evtenb") == 0) || (strcmp(buf, "evtdis") == 0)) {
@@ -921,16 +1018,27 @@ static int sen_block(int argc, char *argv[])
 
 static int show_inv(int argc, char *argv[])
 {
+	SaHpiResourceIdT	resid = 0;
+	int			i, res;
+
 #ifdef MY   // my
 	fixstr((SaHpiTextBufferT *)S);
 	prtchassinfo();
 	prtprodtinfo();
 	prtboardinfo();
 #endif
-	if (argc < 2)
-		return HPI_SHELL_PARM_ERROR;
+
+	clear_input();
+	if (argc < 2) {
+		show_rpt_list(Domain, SHOW_ALL_RPT, resid, ui_print);
+		i = get_int_param("RPT ID ==> ", &res, (char *)NULL, 0);
+		if (i == 1) resid = (SaHpiResourceIdT)res;
+		else return SA_OK;
+	} else {
+		resid = (SaHpiResourceIdT)atoi(argv[1]);
+	};
 			
-	return sa_show_inv((SaHpiResourceIdT)atoi(argv[1]));
+	return sa_show_inv(resid);
 }
 
 static int show_rpt(int argc, char *argv[])
@@ -1032,43 +1140,37 @@ const char dscvhelp[] = "dscv: discovery resources\n"                      \
 			"Usage: dscv ";
 const char eventhelp[] = "event: enable or disable event display on screen\n" \
 			"Usage: event [enable|disable|short|full] ";
-const char getthreshelp[] = "getthreshold: get sensor threshold values\n"  \
-			"Usage: getthreshold <resource id> <sensor id>";
-const char helphelp[] = "help: help information for OpenHPI commands\n"    \
+const char helphelp[] = "help: help information for OpenHPI commands\n"
 			"Usage: help [optional commands]";
 const char hsindhelp[] = "hotswap_ind: show hot swap indicator state\n"
 			"Usage: hotswap_ind <resource id>";
-const char hsstathelp[] = "hotswapstat: retrieve hot swap state of a resource\n" \
-			"Usage: hotswapstat <resource id> ";
-const char lreshelp[] = "lsres: list resources\n"                          \
-			"Usage: lsres ";
-const char lsorhelp[] = "lsensor: list sensors\n"                          \
-			"Usage: lsensor ";
+const char hsstathelp[] = "hotswapstat: retrieve hot swap state of a resource\n"
+			"Usage: hotswapstat <resource id>";
+const char lreshelp[] = "lsres: list resources\n"
+			"Usage: lsres";
+const char lsorhelp[] = "lsensor: list sensors\n"
+			"Usage: lsensor";
 const char powerhelp[] = "power: power the resource on, off or cycle\n"
 			"Usage: power <resource id> [on|off|cycle]";
-const char quithelp[] = "quit: close session and quit console\n"           \
-			"Usage: quit ";
+const char quithelp[] = "quit: close session and quit console\n"
+			"Usage: quit";
 const char resethelp[] = "reset: perform specified reset on the entity\n"  \
 			"Usage: reset <resource id> [cold|warm|assert]";
-const char senhelp[] = "sen: sensor block commands\n"        \
-			"Usage: sen [<sensorId> [<command>]]"
-			"	sensorId:: <resourceId> <num>";
-const char setthreshelp[] = "setthreshold: set sensor threshold values\n"  \
-			"Usage: setthreshold <resource id> <sensor id>\n"  \
-			"                    [lc val] [la val] [li val]\n" \
-			"                    [uc val] [ua val] [ui val]\n" \
-			"                    [ph val] [nh val]";
-const char settaghelp[] = "settag: set tag for a particular resource \n"   \
-			"Usage: settag <resource id> <tag string(quoted if multi word)> ";
+const char senhelp[] =	"sen: sensor command block\n"
+			"Usage: sen [<sensorId>]\n"
+			"	sensorId:: <resourceId> <num>\n"
+			SEN_AV_COM;
+const char settaghelp[] = "settag: set tag for a particular resource\n"
+			"Usage: settag [<resource id>]";
+const char showevtloghelp[] = "showevtlog: show system event logs\n"
+			"Usage: showevtlog [<resource id>]";
+const char showinvhelp[] = "showinv: show inventory data of a resource\n"
+			"Usage: showinv [<resource id>]";
 const char showrdrhelp[] = "showrdr: show resource data record\n"
 			"Usage: showrdr [<resource id> [type [<rdr num>]]]\n"
 			"   or  rdr [<resource id> [type [<rdr num>]]]\n"
 			"	type =	c - control rdr, s - sensor, i - inventory rdr\n"
 			"		w - watchdog, a - annunciator, all - all rdr";
-const char showevtloghelp[] = "showevtlog: show system event logs\n"       \
-			"Usage: showevtlog <resource id>";
-const char showinvhelp[] = "showinv: show inventory data of a resource\n"  \
-			"Usage: showinv <resource id>";
 const char showrpthelp[] = "showrpt: show resource information\n"
 			"Usage: showrpt [<resource id>]\n"
 			"   or  rpt [<resource id>]";
@@ -1078,7 +1180,6 @@ struct command commands[] = {
     { "dat",		dat_list,		dathelp },
     { "dscv",		discovery,		dscvhelp },
     { "event",		event,			eventhelp },
-    { "gethreshold",	get_thres,		getthreshelp },
     { "help",		help,			helphelp },
     { "hotswap_ind",	show_hs_ind,		hsindhelp },
     { "hotswapstat",	hotswap_stat,		hsstathelp },
@@ -1090,7 +1191,6 @@ struct command commands[] = {
     { "reset",		reset,			resethelp },
     { "rpt",		show_rpt,		showrpthelp },
     { "sen",		sen_block,		senhelp },
-    { "sethreshold",	set_thres,		setthreshelp },
     { "settag",		set_tag,		settaghelp },
     { "showevtlog",	show_evtlog,		showevtloghelp },
     { "showinv",	show_inv,		showinvhelp },
