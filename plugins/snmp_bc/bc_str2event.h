@@ -18,7 +18,7 @@
 #ifndef __BC_STR2EVENT_H
 #define __BC_STR2EVENT_H
 
-#define HPIDUP_STRING  "HPIDUP"
+#define HPIDUP_STRING  "_HPIDUP"
 
 #define NO_OVR  0x0000
 #define OVR_SEV 0x0001

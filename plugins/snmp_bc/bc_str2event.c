@@ -330,23 +330,10 @@ int str2event_hash_init() {
 		str2event_hash_free();
 		return -1;
 	}
-	strinfo->event = "08031480"; /* EN_PFA_HI_FAULT_2_5V */
+	strinfo->event = "FF031480"; /* EN_PFA_HI_FAULT_2_5V */
 	strinfo->event_sev = SAHPI_MAJOR;
 	strinfo->event_ovr = OVR_SEV;
 	strinfo->event_dup = 1;
-	g_hash_table_insert(str2event_hash, key, strinfo);
-
-	key = "System over recommended voltage on +2.5v.HPIDUP1";
-	strinfo = g_malloc0(sizeof(Str2EventInfoT));
-	if (!strinfo) {
-		dbg("Cannot allocate memory for hash value - %s", key);
-		str2event_hash_free();
-		return -1;
-	}
-	strinfo->event = "08031480"; /* EN_PFA_HI_FAULT_2_5V */
-	strinfo->event_sev = SAHPI_MAJOR;
-	strinfo->event_ovr = OVR_SEV;
-	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
 	key = "Blade Server 9 was removed.";
@@ -395,20 +382,20 @@ int str2event_hash_init() {
 		str2event_hash_free();
 		return -1;
 	}
-	strinfo->event = "08031880"; /* EN_PFA_LO_FAULT_2_5V */
+	strinfo->event = "FF031880"; /* EN_PFA_LO_FAULT_2_5V */
 	strinfo->event_sev = SAHPI_MAJOR;
 	strinfo->event_ovr = OVR_SEV;
 	strinfo->event_dup = 1;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
-	key = "System under recommended voltage on +2.5v.HPIDUP1";
+	key = "System under recommended voltage for +12v._HPIDUP1";
 	strinfo = g_malloc0(sizeof(Str2EventInfoT));
 	if (!strinfo) {
 		dbg("Cannot allocate memory for hash value - %s", key);
 		str2event_hash_free();
 		return -1;
 	}
-	strinfo->event = "08031880"; /* EN_PFA_LO_FAULT_2_5V */
+	strinfo->event = "06037800"; /* EN_PFA_LO_FAULT_12V_PLANAR */
 	strinfo->event_sev = SAHPI_MAJOR;
 	strinfo->event_ovr = OVR_SEV;
 	strinfo->event_dup = 0;
@@ -499,23 +486,10 @@ int str2event_hash_init() {
 		str2event_hash_free();
 		return -1;
 	}
-	strinfo->event = "06037800"; /* EN_PFA_LO_FAULT_12V_PLANAR */
+	strinfo->event = "FF037800"; /* EN_PFA_LO_FAULT_12V_PLANAR */
 	strinfo->event_sev = SAHPI_MAJOR;
 	strinfo->event_ovr = OVR_SEV;
 	strinfo->event_dup = 1;
-	g_hash_table_insert(str2event_hash, key, strinfo);
-
-	key = "System under recommended voltage for +12v.HPIDUP1";
-	strinfo = g_malloc0(sizeof(Str2EventInfoT));
-	if (!strinfo) {
-		dbg("Cannot allocate memory for hash value - %s", key);
-		str2event_hash_free();
-		return -1;
-	}
-	strinfo->event = "06037800"; /* EN_PFA_LO_FAULT_12V_PLANAR */
-	strinfo->event_sev = SAHPI_MAJOR;
-	strinfo->event_ovr = OVR_SEV;
-	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
 	key = "Chassis Running Nonredundant I/O Modules";
@@ -590,23 +564,10 @@ int str2event_hash_init() {
 		str2event_hash_free();
 		return -1;
 	}
-	strinfo->event = "08033880"; /* EN_PFA_LO_FAULT_3_35V */
+	strinfo->event = "FF033880"; /* EN_PFA_LO_FAULT_3_35V */
 	strinfo->event_sev = SAHPI_MAJOR;
 	strinfo->event_ovr = OVR_SEV;
 	strinfo->event_dup = 1;
-	g_hash_table_insert(str2event_hash, key, strinfo);
-
-	key = "System under recommended voltage on +3.3v.HPIDUP1";
-	strinfo = g_malloc0(sizeof(Str2EventInfoT));
-	if (!strinfo) {
-		dbg("Cannot allocate memory for hash value - %s", key);
-		str2event_hash_free();
-		return -1;
-	}
-	strinfo->event = "08033880"; /* EN_PFA_LO_FAULT_3_35V */
-	strinfo->event_sev = SAHPI_MAJOR;
-	strinfo->event_ovr = OVR_SEV;
-	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
 	key = "Blower 4 Failure Multiple blower failures";
@@ -817,6 +778,19 @@ int str2event_hash_init() {
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
+	key = "System under recommended voltage on +2.5v._HPIDUP1";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "08031880"; /* EN_PFA_LO_FAULT_2_5V */
+	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
 	key = "System shutoff due to +5v over voltage.";
 	strinfo = g_malloc0(sizeof(Str2EventInfoT));
 	if (!strinfo) {
@@ -826,6 +800,19 @@ int str2event_hash_init() {
 	}
 	strinfo->event = "06034480"; /* EN_CUTOFF_HI_FAULT_PLANAR_5V */
 	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "System over recommended voltage on +3.3v._HPIDUP1";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "08033480"; /* EN_PFA_HI_FAULT_3_35V */
+	strinfo->event_sev = SAHPI_MAJOR;
 	strinfo->event_ovr = OVR_SEV;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
@@ -902,23 +889,10 @@ int str2event_hash_init() {
 		str2event_hash_free();
 		return -1;
 	}
-	strinfo->event = "06037500"; /* EN_PFA_HI_FAULT_12V_PLANAR */
+	strinfo->event = "FF037500"; /* EN_PFA_HI_FAULT_12V_PLANAR */
 	strinfo->event_sev = SAHPI_MAJOR;
 	strinfo->event_ovr = OVR_SEV;
 	strinfo->event_dup = 1;
-	g_hash_table_insert(str2event_hash, key, strinfo);
-
-	key = "System over recommended voltage for +12v.HPIDUP1";
-	strinfo = g_malloc0(sizeof(Str2EventInfoT));
-	if (!strinfo) {
-		dbg("Cannot allocate memory for hash value - %s", key);
-		str2event_hash_free();
-		return -1;
-	}
-	strinfo->event = "06037500"; /* EN_PFA_HI_FAULT_12V_PLANAR */
-	strinfo->event_sev = SAHPI_MAJOR;
-	strinfo->event_ovr = OVR_SEV;
-	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
 	key = "I/O module 1 was removed.";
@@ -956,6 +930,19 @@ int str2event_hash_init() {
 	}
 	strinfo->event = "0EA02001"; /* EN_SWITCH_1_INSTALLED */
 	strinfo->event_sev = SAHPI_INFORMATIONAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "System under recommended voltage on +3.3v._HPIDUP1";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "08033880"; /* EN_PFA_LO_FAULT_3_35V */
+	strinfo->event_sev = SAHPI_MAJOR;
 	strinfo->event_ovr = OVR_SEV;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
@@ -1513,23 +1500,10 @@ int str2event_hash_init() {
 		str2event_hash_free();
 		return -1;
 	}
-	strinfo->event = "08033480"; /* EN_PFA_HI_FAULT_3_35V */
+	strinfo->event = "FF033480"; /* EN_PFA_HI_FAULT_3_35V */
 	strinfo->event_sev = SAHPI_MAJOR;
 	strinfo->event_ovr = OVR_SEV;
 	strinfo->event_dup = 1;
-	g_hash_table_insert(str2event_hash, key, strinfo);
-
-	key = "System over recommended voltage on +3.3v.HPIDUP1";
-	strinfo = g_malloc0(sizeof(Str2EventInfoT));
-	if (!strinfo) {
-		dbg("Cannot allocate memory for hash value - %s", key);
-		str2event_hash_free();
-		return -1;
-	}
-	strinfo->event = "08033480"; /* EN_PFA_HI_FAULT_3_35V */
-	strinfo->event_sev = SAHPI_MAJOR;
-	strinfo->event_ovr = OVR_SEV;
-	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
 	key = "System under recommended 5V Fault.";
@@ -1857,6 +1831,19 @@ int str2event_hash_init() {
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
+	key = "System over recommended voltage on +2.5v._HPIDUP1";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "08031480"; /* EN_PFA_HI_FAULT_2_5V */
+	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
 	key = "I/O module 1 was instructed to power off.";
 	strinfo = g_malloc0(sizeof(Str2EventInfoT));
 	if (!strinfo) {
@@ -1944,6 +1931,19 @@ int str2event_hash_init() {
 	}
 	strinfo->event = "08216004"; /* EN_PS4_INSTALLED */
 	strinfo->event_sev = SAHPI_INFORMATIONAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "System over recommended voltage for +12v._HPIDUP1";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "06037500"; /* EN_PFA_HI_FAULT_12V_PLANAR */
+	strinfo->event_sev = SAHPI_MAJOR;
 	strinfo->event_ovr = OVR_SEV;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);

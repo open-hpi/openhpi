@@ -21,6 +21,13 @@
 /* Global BC Event Number to HPI Event Hash Table */
 GHashTable * event2hpi_hash;
 
+typedef struct {
+	SaHpiResourceIdT       rid;
+	BCRptEntryT            rpt;
+	struct snmp_bc_sensor  *sensor_array_ptr;
+	SaHpiEntityPathT       ep;
+} LogSource2ResourceT;
+
 int event2hpi_hash_init(void);
 int event2hpi_hash_free(void);
 
@@ -28,7 +35,7 @@ int find_res_events(SaHpiEntityPathT *ep, const struct BC_ResourceInfo *bc_res_i
 int find_sensor_events(SaHpiEntityPathT *ep, SaHpiSensorNumT sid, const struct snmp_bc_sensor *rpt_sensor);
 
 int log2event(void *hnd, gchar *logstr, SaHpiEventT *event, int isdst);
-int bcsrc2rid(void *hnd, gchar *src, SaHpiResourceIdT *rid);
+int bcsrc2rid(void *hnd, gchar *src, LogSource2ResourceT *resinfo);
 
 int snmp_bc_add_to_eventq(void *hnd, SaHpiEventT *thisEvent);
 #endif
