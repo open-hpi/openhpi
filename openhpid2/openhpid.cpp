@@ -248,7 +248,8 @@ int main (int argc, char *argv[])
         }
 
         // become a daemon
-	if (!morph2daemon(FALSE)) {	// this is an error condition
+//	if (!morph2daemon(FALSE)) {	// this is an error condition
+        if (!morph2daemon(TRUE)) {	// this is an error condition
 		exit(8);
 	}
 
