@@ -29,12 +29,12 @@ int main(int argc, char **argv)
 	SaErrorT expected_err;
 					
 	SaHpiResourceIdT  id = 0;
-        SaHpiSessionIdT sessionid;
+        SaHpiSessionIdT   sessionid;
 	SaHpiIdrIdT       idrId = 0;
 	SaHpiEntryIdT     areaId = 0;
 	SaHpiEntryIdT     fieldId = 0;
-	SaHpiIdrFieldT    field; 
-	memset (&field, 0, sizeof(SaHpiIdrFieldT));	
+	SaHpiEntryIdT     nextfieldId;
+	SaHpiIdrFieldT    field;
         /* *************************************                 
 	 * Find a resource with Sensor type rdr
 	 * * ************************************* */
@@ -59,36 +59,28 @@ int main(int argc, char **argv)
 	/************************** 
 	 * Test :
 	 **************************/
-	expected_err = SA_ERR_HPI_READ_ONLY;                   
-	err = snmp_bc_add_idr_area((void *)h->hnd, id, idrId, SAHPI_IDR_AREATYPE_UNSPECIFIED, &areaId);
+	expected_err = SA_ERR_HPI_INVALID_PARAMS;                   
+	err = snmp_bc_get_idr_field(NULL , id, idrId, areaId,
+				    SAHPI_IDR_FIELDTYPE_UNSPECIFIED,
+			    	    fieldId, &nextfieldId, &field);
 	checkstatus(&err, &expected_err, &testfail);
 
 	/************************** 
 	 * Test :
-	 * expected_err = SA_ERR_HPI_READ_ONLY;                   
+	 * expected_err = SA_ERR_HPI_INVALID_PARAMS;                   
 	 **************************/
-	err = snmp_bc_add_idr_field((void *)h->hnd, id, idrId, &field);
+	err = snmp_bc_get_idr_field((void *)h->hnd , id, idrId, areaId,
+				    SAHPI_IDR_FIELDTYPE_UNSPECIFIED,
+			    	    fieldId, NULL, &field);
 	checkstatus(&err, &expected_err, &testfail);
 
 	/************************** 
 	 * Test :
-	 * expected_err = SA_ERR_HPI_READ_ONLY;                   
+	 * expected_err = SA_ERR_HPI_INVALID_PARAMS;                   
 	 **************************/
-	err = snmp_bc_del_idr_area((void *)h->hnd, id, idrId, areaId);
-	checkstatus(&err, &expected_err, &testfail);
-
-	/************************** 
-	 * Test :
-	 * expected_err = SA_ERR_HPI_READ_ONLY;                   
-	 **************************/
-	err = snmp_bc_del_idr_field((void *)h->hnd, id, idrId, areaId, fieldId);
-	checkstatus(&err, &expected_err, &testfail);
-
-	/************************** 
-	 * Test :
-	 * expected_err = SA_ERR_HPI_READ_ONLY;                   
-	 **************************/
-	err = snmp_bc_set_idr_field((void *)h->hnd, id, idrId, &field); 
+	err = snmp_bc_get_idr_field((void *)h->hnd, id, idrId, areaId,
+				    SAHPI_IDR_FIELDTYPE_UNSPECIFIED,
+			    	    fieldId, &nextfieldId, NULL);
 	checkstatus(&err, &expected_err, &testfail);
 
 	/**************************&*

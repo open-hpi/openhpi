@@ -29,18 +29,16 @@ int main(int argc, char **argv)
 	SaErrorT expected_err;
 					
 	SaHpiResourceIdT  id = 0;
-        SaHpiSessionIdT sessionid;
+        SaHpiSessionIdT   sessionid;
 	SaHpiIdrIdT       idrId = 0;
-	SaHpiEntryIdT     areaId = 0;
-	SaHpiEntryIdT     fieldId = 0;
-	SaHpiIdrFieldT    field; 
-	memset (&field, 0, sizeof(SaHpiIdrFieldT));	
+	SaHpiIdrInfoT	  info;
         /* *************************************                 
 	 * Find a resource with Sensor type rdr
 	 * * ************************************* */
 	struct oh_handler l_handler;
 	struct oh_handler *h= &l_handler;
 	SaHpiRptEntryT rptentry;
+	SaHpiRdrT	*rdrptr;
 
 	err = tsetup(&sessionid);
 	if (err != SA_OK) {
@@ -55,40 +53,29 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
+        struct oh_handler_state *handle = (struct oh_handler_state *)h->hnd;
 	id = rptentry.ResourceId;
+	idrId  = 0;
+	do {
+		idrId++;
+		rdrptr = oh_get_rdr_by_type(handle->rptcache, id, SAHPI_INVENTORY_RDR, idrId);
+		if (rdrptr != NULL) break;
+	} while ((rdrptr == NULL) && (idrId < 128));
+
+       if (rdrptr == NULL) testfail = -1;
+				
 	/************************** 
 	 * Test :
 	 **************************/
-	expected_err = SA_ERR_HPI_READ_ONLY;                   
-	err = snmp_bc_add_idr_area((void *)h->hnd, id, idrId, SAHPI_IDR_AREATYPE_UNSPECIFIED, &areaId);
+	expected_err = SA_ERR_HPI_NOT_PRESENT;                   
+	err = snmp_bc_get_idr_info(handle, id, 5000, &info);
 	checkstatus(&err, &expected_err, &testfail);
 
 	/************************** 
 	 * Test :
-	 * expected_err = SA_ERR_HPI_READ_ONLY;                   
 	 **************************/
-	err = snmp_bc_add_idr_field((void *)h->hnd, id, idrId, &field);
-	checkstatus(&err, &expected_err, &testfail);
-
-	/************************** 
-	 * Test :
-	 * expected_err = SA_ERR_HPI_READ_ONLY;                   
-	 **************************/
-	err = snmp_bc_del_idr_area((void *)h->hnd, id, idrId, areaId);
-	checkstatus(&err, &expected_err, &testfail);
-
-	/************************** 
-	 * Test :
-	 * expected_err = SA_ERR_HPI_READ_ONLY;                   
-	 **************************/
-	err = snmp_bc_del_idr_field((void *)h->hnd, id, idrId, areaId, fieldId);
-	checkstatus(&err, &expected_err, &testfail);
-
-	/************************** 
-	 * Test :
-	 * expected_err = SA_ERR_HPI_READ_ONLY;                   
-	 **************************/
-	err = snmp_bc_set_idr_field((void *)h->hnd, id, idrId, &field); 
+	expected_err = SA_OK;                   
+	err = snmp_bc_get_idr_info((void *)h->hnd, id, idrId, &info);
 	checkstatus(&err, &expected_err, &testfail);
 
 	/**************************&*
