@@ -33,10 +33,15 @@
 #include <snmp_client_utils.h>
 #include <sc_sensor_data.h>
 
+#define DEMO_USE_SNMP_VERSION_3
+//#undef  DEMO_USE_SNMP_VERSION_3
 /**
  * snmp_client_open: open snmp blade center plugin
  * @handler_config: hash table passed by infrastructure
  **/
+ 
+//char our_v3_passphrase[] = "openhpiv3";
+char our_v3_passphrase[] = "my_password";
 
 static void *snmp_client_open(GHashTable *handler_config)
 {
@@ -67,19 +72,67 @@ static void *snmp_client_open(GHashTable *handler_config)
 
         /* Initialize RPT cache */
         handle->rptcache = (RPTable *)g_malloc0(sizeof(RPTable));
-        
+
         /* Initialize snmp library */
         init_snmp("oh_snmp_client");
-        
+
         snmp_sess_init(&(custom_handle->session)); /* Setting up all defaults for now. */
         custom_handle->session.peername = (char *)g_hash_table_lookup(handle->config, "host");
 
-        /* set the SNMP version number */
-        custom_handle->session.version = SNMP_VERSION_2c;
 
-        /* set the SNMPv1 community name used for authentication */
-        custom_handle->session.community = (char *)g_hash_table_lookup(handle->config, "community");
-        custom_handle->session.community_len = strlen(custom_handle->session.community);
+#ifdef DEMO_USE_SNMP_VERSION_3
+
+    /* Use SNMPv3 to talk to the experimental server */
+
+    /* set the SNMP version number */
+    custom_handle->session.version = SNMP_VERSION_3;
+        
+    /* set the SNMPv3 user name */
+//    custom_handle->session.securityName = strdup("MD5User");
+//    custom_handle->session.securityName = strdup("openhpi");
+    custom_handle->session.securityName = strdup("myuser");
+    custom_handle->session.securityNameLen = strlen(custom_handle->session.securityName);
+
+    /* set the security level to authenticated, AND not encrypted */
+    custom_handle->session.securityLevel = SNMP_SEC_LEVEL_AUTHNOPRIV;
+//    custom_handle->session.securityLevel = SNMP_SEC_LEVEL_AUTHPRIV;
+
+    /* set the authentication method to MD5 */
+    custom_handle->session.securityAuthProto = usmHMACMD5AuthProtocol;
+    custom_handle->session.securityAuthProtoLen = sizeof(usmHMACMD5AuthProtocol)/sizeof(oid);
+    custom_handle->session.securityAuthKeyLen = USM_AUTH_KU_LEN;
+
+    /* set the encryption method to DES */
+    custom_handle->session.securityPrivProto = usmDESPrivProtocol;
+    custom_handle->session.securityPrivProtoLen = sizeof(usmDESPrivProtocol)/sizeof(oid);
+    custom_handle->session.securityPrivKeyLen = USM_PRIV_KU_LEN;
+
+    /* set the authentication key to a MD5 hashed version of our
+       passphrase "The UCD Demo Password" (which must be at least 8
+       characters long) */
+    if (generate_Ku(custom_handle->session.securityAuthProto,
+                    custom_handle->session.securityAuthProtoLen,
+                    (u_char *) our_v3_passphrase, 
+		    strlen(our_v3_passphrase),
+                    custom_handle->session.securityAuthKey,
+                    &custom_handle->session.securityAuthKeyLen) != SNMPERR_SUCCESS) {
+        snmp_perror("ack");
+        snmp_log(LOG_ERR,
+                 "Error generating Ku from authentication pass phrase. \n");
+        dbg("Error generating Ku from authentication pass phrase.");
+    }
+    
+#else /* we'll use the insecure (but simplier) SNMPv2c */
+
+    /* set the SNMP version number */
+    custom_handle->session.version = SNMP_VERSION_2c;
+
+    /* set the SNMPv1 community name used for authentication */
+    custom_handle->session.community = (char *)g_hash_table_lookup(handle->config, "community");
+    custom_handle->session.community_len = strlen(custom_handle->session.community);
+
+
+#endif /* SNMPv2c */
 
         /* windows32 specific net-snmp initialization (is a noop on unix) */
         SOCK_STARTUP;
