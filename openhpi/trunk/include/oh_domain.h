@@ -20,7 +20,6 @@
 #include <SaHpi.h>
 #include <glib.h>
 #include <oh_utils.h>
-#include <oh_alarm.h>
 
 /* Number of pre-alloced session slots for a domain. */
 #define OH_SESSION_PREALLOC 5
@@ -32,6 +31,11 @@
 struct oh_domain_table {
         GHashTable *table;
         GStaticRecMutex lock;
+};
+
+struct oh_dat { /* Domain Alarm Table */
+        SaHpiAlarmIdT next_id;
+        GList *list;        
 };
 
 extern struct oh_domain_table oh_domains;
@@ -67,6 +71,7 @@ struct oh_domain {
         GArray *sessions;
 
         GStaticRecMutex lock;
+        int refcount;
 };
 
 SaHpiDomainIdT oh_create_domain(SaHpiDomainCapabilitiesT capabilities,
