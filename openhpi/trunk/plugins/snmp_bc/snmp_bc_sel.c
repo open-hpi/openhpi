@@ -108,10 +108,12 @@ SaErrorT snmp_bc_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiEventLogInfoT
         struct tm curtime;
         sel_entry sel_entry;
 
-	if (!hnd || !info) {
-		dbg("Invalid parameter.");
-		return(SA_ERR_HPI_INVALID_PARAMS);
+        if (!hnd || !info) {
+                dbg("Invalid parameter.");
+                return(SA_ERR_HPI_INVALID_PARAMS);
 	}
+    
+        g_static_rec_mutex_lock(&handle->handler_lock);
 
         struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
         /* Build local copy of EventLogInfo  */
@@ -139,30 +141,37 @@ SaErrorT snmp_bc_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiEventLogInfoT
 	}
 
         err = snmp_bc_snmp_get(custom_handle, oid, &first_value, SAHPI_TRUE);
-	if (err == SA_OK) {
-        	if (first_value.type == ASN_OCTET_STR) {
-			err = snmp_bc_parse_sel_entry(handle, first_value.string, &sel_entry);
-                	if (err) {
-                        	dbg("Cannot get first date");
+        if (err == SA_OK) {
+                if (first_value.type == ASN_OCTET_STR) {
+                        err = snmp_bc_parse_sel_entry(handle, first_value.string, &sel_entry);
+                        if (err) {
+                                dbg("Cannot get first date");
+                                g_static_rec_mutex_unlock(&handle->handler_lock);
+
 				return(err);
                 	} else {
                         	sel.UpdateTimestamp = (SaHpiTimeT) mktime(&sel_entry.time) * 1000000000;
                 	}
         	}
-        } else
-		return(err);
+        } else {
+                g_static_rec_mutex_unlock(&handle->handler_lock);
+                return(err);
+        }
 	
 	
 	err = snmp_bc_get_sp_time(handle, &curtime); 
         if ( err == SA_OK) {
                 sel.CurrentTime = (SaHpiTimeT) mktime(&curtime) * 1000000000;
-        } else 
-		return(err);
+        } else {
+                g_static_rec_mutex_unlock(&handle->handler_lock);
+                return(err);
+        }
 
 
         sel.Entries = snmp_bc_get_sel_size(handle, id);
 	sel.OverflowFlag = handle->elcache->overflow;
         *info = sel;
+        g_static_rec_mutex_unlock(&handle->handler_lock);
         return(SA_OK);
 }
 
@@ -197,45 +206,51 @@ SaErrorT snmp_bc_get_sel_entry(void *hnd,
 
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
 
-	if (!hnd || !prev || !next || !entry) {
-		dbg("Invalid parameter.");
-		return(SA_ERR_HPI_INVALID_PARAMS);
-	}
-
-
-	if (handle->elcache != NULL) {
-		/* Force a cache sync before servicing the request */
-		err = snmp_bc_check_selcache(handle, id, current);
-		if (err) {
-			dbg("Event Log cache sync failed %s\n", oh_lookup_error(err));
-		/* --------------------------------------------------------------- */
-		/* If an error is encounterred during building of snmp_bc elcache, */
-		/* only log the error.  Do not do any recovery because log entries */
-		/* are still kept in bc mm.  We'll pick them up during synch.      */
-		/* --------------------------------------------------------------- */
-		}
-	
-		err = oh_el_get(handle->elcache, current, prev, next, &tmpentryptr);
-		if (err) {
-			dbg("Getting Event Log entry=%d from cache failed. Error=%s.", 
-			    current, oh_lookup_error(err));
-			return(err);
-		} else {
-			memcpy(entry, &(tmpentryptr->event), sizeof(SaHpiEventLogEntryT));
+        if (!hnd || !prev || !next || !entry) {
+                dbg("Invalid parameter.");
+                return(SA_ERR_HPI_INVALID_PARAMS);
+        }
+        
+        g_static_rec_mutex_lock(&handle->handler_lock);
+        
+        if (handle->elcache != NULL) {
+                /* Force a cache sync before servicing the request */
+                err = snmp_bc_check_selcache(handle, id, current);
+                if (err) {
+                        dbg("Event Log cache sync failed %s\n", oh_lookup_error(err));
+                        /* --------------------------------------------------------------- */
+                        /* If an error is encounterred during building of snmp_bc elcache, */
+                        /* only log the error.  Do not do any recovery because log entries */
+                        /* are still kept in bc mm.  We'll pick them up during synch.      */
+                        /* --------------------------------------------------------------- */
+                }
+                
+                err = oh_el_get(handle->elcache, current, prev, next, &tmpentryptr);
+                if (err) {
+                        dbg("Getting Event Log entry=%d from cache failed. Error=%s.", 
+                            current, oh_lookup_error(err));
+                        g_static_rec_mutex_unlock(&handle->handler_lock);
+                        
+                        return(err);
+                } else {
+                        memcpy(entry, &(tmpentryptr->event), sizeof(SaHpiEventLogEntryT));
                         if (rdr)
                                 memcpy(rdr, &tmpentryptr->rdr, sizeof(SaHpiRdrT));
                         else
                                 trace("NULL rdrptr with SaHpiEventLogEntryGet()\n");
-
+                        
                         if (rptentry)
                                 memcpy(rptentry, &(tmpentryptr->res), sizeof(SaHpiRptEntryT));
                         else
                                 trace("NULL rptptr with SaHpiEventLogEntryGet()\n");	
-		}
-	} else {
-		dbg("Missing handle->elcache");
+                }
+        } else {
+                dbg("Missing handle->elcache");
+                g_static_rec_mutex_unlock(&handle->handler_lock);
+                        
 		return(SA_ERR_HPI_INTERNAL_ERROR);
 	}
+        g_static_rec_mutex_unlock(&handle->handler_lock);
 		
         return(SA_OK);
 }
