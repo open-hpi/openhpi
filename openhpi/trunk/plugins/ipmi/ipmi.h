@@ -52,7 +52,7 @@ extern selector_t       *ohoi_sel;
 struct ohoi_handler {
 	int SDRs_read_done;
 	int bus_scan_done;
-    int SELs_read_done;
+    	int SELs_read_done;
 	int mc_count;			/* to keep track of num of mcs to wait on sdrs */
 	int sel_clear_done;		/* we need to wait for mc_sel_reread for clear to succeed */
 //	int FRU_done;			/* we have to track FRUs */

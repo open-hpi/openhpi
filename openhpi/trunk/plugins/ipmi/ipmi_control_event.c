@@ -166,8 +166,8 @@ void ohoi_control_event(enum ipmi_update_e op,
 	if (op == IPMI_ADDED) {
                 int ctrl_type;
                 
-		/* skip Chassis with for now since all we have in hardware
-		   is power and reset */
+		/* attach power and reset to chassis entity since
+		   IPMI provides them as such */
 		dbg("resource: %s", rpt_entry->ResourceTag.Data);
                 ctrl_type = ipmi_control_get_type(control);
                 switch (ctrl_type) {
@@ -175,11 +175,15 @@ void ohoi_control_event(enum ipmi_update_e op,
                                 dbg("Attach reset control into entity");
                                 ohoi_res_info->reset_ctrl
                                         = ipmi_control_convert_to_id(control);
+                                rpt_entry->ResourceCapabilities |=
+                                    SAHPI_CAPABILITY_RESET;
                                 break;
                         case IPMI_CONTROL_POWER:
                                 dbg("Attach power control into entity");
                                 ohoi_res_info->power_ctrl
                                         = ipmi_control_convert_to_id(control);
+                                rpt_entry->ResourceCapabilities |=
+                                    SAHPI_CAPABILITY_POWER;
                                 break;
 
                         default:
@@ -190,19 +194,6 @@ void ohoi_control_event(enum ipmi_update_e op,
                                                   rpt_entry->ResourceId);
                 }
                                 
-#if 0                        
-		if((strcmp(rpt_entry->ResourceTag.Data,"system_chassis")) == 0) {
-			dbg("controls on chassis are probably power/reset...skipping");
-			return;
-		} else {
-			rpt_entry->ResourceCapabilities |= SAHPI_CAPABILITY_CONTROL; 
-				 
-			add_control_event(ent, control, handler, 
-        	                         rpt_entry->ResourceEntity, 
-                	                 rpt_entry->ResourceId);
-		}
-#endif		
-
 	}
 }
 	
