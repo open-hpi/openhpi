@@ -36,6 +36,7 @@
 #include <printevent_utils.h>
 
 #define ERROR_LOG_MSG_OID ".1.3.6.1.4.1.2.3.51.1.3.4.2.1.2.1"
+/* note: if you add or remove resources this RID may need to change */
 #define CHASSIS_RID 1
 
 int main(int argc, char **argv)
@@ -97,8 +98,8 @@ int main(int argc, char **argv)
 	/************************************************************
 	 * TestCase - Mapped Chassis Event (EN_CUTOFF_HI_FAULT_3_35V)
 	 ************************************************************/
-	logstr = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:System shutoff due to Continuous 3.3V over max allowed.";
-	memset(&logentry, 0 , sizeof(SaHpiEventLogEntryT));
+	logstr = "Severity:INFO  Source:SERVPROC  Name:WMN08032480  Date:10/11/03  Time:09:09:46  Text:System shutoff due to +3.3v over voltage.";
+	memset(&logentry, 0 , sizeof(SaHpiSelEntryT));
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
@@ -116,11 +117,9 @@ int main(int argc, char **argv)
 	      (logentry.Event.EventDataUnion.SensorEvent.SensorType == SAHPI_VOLTAGE) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.Assertion == SAHPI_TRUE) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_CRIT) &&
-	      (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MAJOR) &&
-	      (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MINOR) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.PreviousState == SAHPI_ES_UNSPECIFIED) &&
-	      (logentry.Event.EventDataUnion.SensorEvent.TriggerReading.Interpreted.Value.SensorFloat32 == (float)3.5) &&
-	      (logentry.Event.EventDataUnion.SensorEvent.TriggerThreshold.Interpreted.Value.SensorFloat32 == (float)3.4))) {
+	      (logentry.Event.EventDataUnion.SensorEvent.TriggerReading.Interpreted.Value.SensorFloat32 == (float)0) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.TriggerThreshold.Interpreted.Value.SensorFloat32 == (float)0) )) {
 		printf("Error! TestCase - Mapped Chassis Event (EN_CUTOFF_HI_FAULT_3_35V)\n");
 		print_event(&(logentry.Event));
 		return -1;
