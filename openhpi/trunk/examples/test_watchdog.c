@@ -11,12 +11,14 @@
  *     Unknown (initial author of list_resources.c)
  *     Julie Fleischer <julie.n.fleischer@intel.com>
  */
+
 #include <stdlib.h>
 #include <stdio.h>
-#include <SaHpi.h>
 #include <unistd.h>
 #include <string.h>
-#include <epath_utils.h>
+
+#include <SaHpi.h>
+#include <oh_utils.h>
 
 /* debug macros */
 #define warn(str) fprintf(stderr,"%s: " str "\n", __FUNCTION__)

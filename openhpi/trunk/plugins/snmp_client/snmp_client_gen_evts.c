@@ -12,23 +12,15 @@
  *
  * Authors:
  *      David Judkovics <djudkovi@us.ibm.com>
- *
  */
-#include <SaHpi.h>
-#include <openhpi.h>
-
 
 #include <SaHpi.h>
 #include <openhpi.h>
-#include <epath_utils.h>
-#include <rpt_utils.h>
-#include <uid_utils.h>
+
+#include <oh_utils.h>
 #include <snmp_util.h>
-
-
 #include <snmp_client.h>
 #include <snmp_client_res.h>
-
 
 static SaErrorT remote_rdr_data_free(SaHpiRdrT *rdr, gpointer data);
 static SaErrorT remote_res_data_free(SaHpiRptEntryT *rdr, gpointer data);
