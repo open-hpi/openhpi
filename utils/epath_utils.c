@@ -357,14 +357,18 @@ SaErrorT oh_concat_ep(SaHpiEntityPathT *dest, const SaHpiEntityPathT *append)
  **/
 SaHpiBoolT oh_valid_ep(const SaHpiEntityPathT *ep)
 {
-        char *typestr;
 	int i;
 
         for (i=0; i<SAHPI_MAX_ENTITY_PATH; i++) {
 		if (ep->Entry[i].EntityType == SAHPI_ENT_ROOT) break;
+/* FIXME:: Add explicit check for types with HPI resolves its conflicts with IPMI types */
+/* Right now we're allowing users to specify any numeric type */
+#if 0
+		char *typestr;
 
 		typestr = oh_lookup_entitytype(ep->Entry[i].EntityType);
 		if (typestr == NULL) return(SAHPI_FALSE);
+#endif
         }
 
         return(SAHPI_TRUE);
