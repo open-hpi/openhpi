@@ -72,9 +72,11 @@ SaErrorT snmp_bc_discover_resources(void *hnd)
 		goto CLEANUP;
 	}
 
+#if 0
 	/* FIXME:: RSA doesn't have??? */
 	/* Build cache copy of SEL */
 	snmp_bc_check_selcache(hnd, 1, SAHPI_NEWEST_ENTRY);
+#endif
 
 	/**********************************************************************
 	 * Rediscovery:
@@ -87,16 +89,17 @@ SaErrorT snmp_bc_discover_resources(void *hnd)
        	rpt_diff(handle->rptcache, custom_handle->tmpcache, &res_new, &rdr_new, &res_gone, &rdr_gone);
 	info("%d resources have gone away.", g_slist_length(res_gone));
 	info("%d resources are new or have changed", g_slist_length(res_new));
-#if 0
+
         for (node = rdr_gone; node != NULL; node = node->next) {
                 SaHpiRdrT *rdr = (SaHpiRdrT *)node->data;
                 SaHpiRptEntryT *res = oh_get_resource_by_ep(handle->rptcache, &(rdr->Entity));
                 /* Create remove RDR event and add to event queue */
                 struct oh_event *e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
                 if (e) {
+			e->did = 1;
                         e->type = OH_ET_RDR_DEL;
-                        e->u.rdr_del_event.record_id = rdr->RecordId;
-                        e->u.rdr_del_event.parent_entity = rdr->Entity;
+                        e->u.rdr_event.parent = res->ResourceId;			
+			memcpy(&(e->u.rdr_event.rdr), rdr, sizeof(SaHpiRdrT));
                         handle->eventq = g_slist_append(handle->eventq, e);
                 } 
 		else { error("Out of memory."); }
@@ -105,16 +108,17 @@ SaErrorT snmp_bc_discover_resources(void *hnd)
                         oh_remove_rdr(handle->rptcache, res->ResourceId, rdr->RecordId);
                 else { error("No valid resource or rdr at hand. Could not remove rdr."); }
         }
-#endif
+
         g_slist_free(rdr_gone);
-#if 0
+
         for (node = res_gone; node != NULL; node = node->next) {
                 SaHpiRptEntryT *res = (SaHpiRptEntryT *)node->data;
 		/* Create remove resource event and add to event queue */
 		struct oh_event *e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
                 if (e) {
+			e->did = 1;
                         e->type = OH_ET_RESOURCE_DEL;
-                        e->u.res_del_event.resource_id = res->ResourceId;
+                        e->u.res_event.entry.ResourceId = res->ResourceId;
                         handle->eventq = g_slist_append(handle->eventq, e);
                 } else { error("Out of memory."); }
 		/* Remove resource from plugin's RPT cache */
@@ -122,7 +126,6 @@ SaErrorT snmp_bc_discover_resources(void *hnd)
                         oh_remove_resource(handle->rptcache, res->ResourceId);
                 else dbg("No valid resource at hand. Could not remove resource.");
         }
-#endif
 
         g_slist_free(res_gone);
 
@@ -253,8 +256,7 @@ SaErrorT snmp_bc_discover_sensors(struct oh_handler_state *handle,
 			e->u.rdr_event.rdr.RdrTypeUnion.SensorRec = sensor_array[i].sensor;
 
 			oh_init_textbuffer(&(e->u.rdr_event.rdr.IdString));
-			oh_append_textbuffer(&(e->u.rdr_event.rdr.IdString), sensor_array[i].comment,
-					     strlen(sensor_array[i].comment)); 
+			oh_append_textbuffer(&(e->u.rdr_event.rdr.IdString), sensor_array[i].comment);
 			
 			sensor_info_ptr = g_memdup(&(sensor_array[i].bc_sensor_info), sizeof(struct BC_SensorInfo));
 			err = oh_add_rdr(custom_handle->tmpcache,
@@ -328,8 +330,7 @@ SaErrorT snmp_bc_discover_controls(struct oh_handler_state *handle,
 			e->u.rdr_event.rdr.RdrTypeUnion.CtrlRec = control_array[i].control;
 
 			oh_init_textbuffer(&(e->u.rdr_event.rdr.IdString));
-			oh_append_textbuffer(&(e->u.rdr_event.rdr.IdString), control_array[i].comment,
-					     strlen(control_array[i].comment)); 
+			oh_append_textbuffer(&(e->u.rdr_event.rdr.IdString), control_array[i].comment);
 			
 			control_info_ptr = g_memdup(&(control_array[i].bc_control_info), sizeof(struct BC_ControlInfo));
 			err = oh_add_rdr(custom_handle->tmpcache,
@@ -401,8 +402,7 @@ SaErrorT snmp_bc_discover_inventories(struct oh_handler_state *handle,
 			e->u.rdr_event.rdr.RdrTypeUnion.InventoryRec = inventory_array[i].inventory;
 
 			oh_init_textbuffer(&(e->u.rdr_event.rdr.IdString));
-			oh_append_textbuffer(&(e->u.rdr_event.rdr.IdString), inventory_array[i].comment,
-					     strlen(inventory_array[i].comment)); 
+			oh_append_textbuffer(&(e->u.rdr_event.rdr.IdString), inventory_array[i].comment);
 			
 			inventory_info_ptr = g_memdup(&(inventory_array[i].bc_inventory_info), sizeof(struct BC_InventoryInfo));
 			err = oh_add_rdr(custom_handle->tmpcache,
@@ -445,9 +445,11 @@ SaErrorT snmp_bc_create_resourcetag(SaHpiTextBufferT *buffer, const char *str, S
 	SaErrorT err = SA_OK;
 	SaHpiTextBufferT working;
 
-	if (!buffer ||
-	    loc < SNMP_BC_HPI_LOCATION_BASE ||
-	    loc > (pow(10, OH_MAX_LOCATION_DIGITS) - 1)) {
+	if (!buffer || loc < SNMP_BC_HPI_LOCATION_BASE) {
+#if 0
+	    /* What library is this in ??? */
+	    || loc > (pow(10, OH_MAX_LOCATION_DIGITS) - 1)) {
+#endif
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
@@ -461,8 +463,8 @@ SaErrorT snmp_bc_create_resourcetag(SaHpiTextBufferT *buffer, const char *str, S
 	}
 	snprintf(locstr, OH_MAX_LOCATION_DIGITS + 1, " %d", loc);
 
-	if (str) { oh_append_textbuffer(&working, str, strlen(str)); }
-	err = oh_append_textbuffer(&working, locstr, strlen(locstr));
+	if (str) { oh_append_textbuffer(&working, str); }
+	err = oh_append_textbuffer(&working, locstr);
 	if (!err) {
 		err = oh_copy_textbuffer(buffer, &working);
 	}

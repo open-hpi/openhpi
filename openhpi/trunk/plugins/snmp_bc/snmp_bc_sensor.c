@@ -96,7 +96,7 @@ SaErrorT snmp_bc_get_sensor_data(void *hnd,
 						SaHpiTextBufferT buffer;
 						
 						oh_init_textbuffer(&buffer);
-						oh_append_textbuffer(&buffer, get_value.string, strlen(get_value.string));
+						oh_append_textbuffer(&buffer, get_value.string);
 						
 						if (oh_encode_sensorreading(&buffer, s->mib.convert_snmpstr, &value)) {
 							dbg("Error: oh_encode_sensorreading for %s, (%s)\n",s->mib.oid, buffer.Data;

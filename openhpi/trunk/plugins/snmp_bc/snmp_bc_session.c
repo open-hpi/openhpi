@@ -62,13 +62,16 @@ void *snmp_bc_open(GHashTable *handler_config)
 
         /* Initialize RPT cache */
         handle->rptcache = (RPTable *)g_malloc0(sizeof(RPTable));
-	/* FIXME:: Add new oh_init_rpt ?? */
+        oh_init_rpt(handle->rptcache);
 	 
+#if 0
         /* Initialize event log cache */
 	/* FIXME:: RSA has 512 here */
         handle->elcache = oh_el_create(OH_EL_MAX_SIZE);
 	handle->elcache->gentimestamp = FALSE;
+#endif
 
+#if 0
 	/* Initialize "String to Event" mapping hash table */
 	if (str2event_use_count == 0) {
 		if (str2event_hash_init()) {
@@ -77,13 +80,16 @@ void *snmp_bc_open(GHashTable *handler_config)
 		}
 	}
 	str2event_use_count++;
+#endif
 	
+#if 0
 	/* Initialize "Event Number to HPI Event" mapping hash table */
 	if (event2hpi_hash_init(handle)) {
 		error("Cannot initialize event2hpi hash table.");
 		return NULL;
 	}
-       
+#endif     
+  
 	/* Initialize simulator tables */
 	if (is_simulator()) {
 		custom_handle->ss = NULL;
@@ -270,6 +276,7 @@ void snmp_bc_close(void *hnd)
 		SOCK_CLEANUP;
 	}
 
+#if 0
 	/* Cleanup event2hpi hash table */
 	event2hpi_hash_free(handle);
 
@@ -278,4 +285,5 @@ void snmp_bc_close(void *hnd)
 	if (str2event_use_count == 0) {
 		str2event_hash_free();
 	}
+#endif
 }
