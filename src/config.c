@@ -1,6 +1,7 @@
 /*      -*- linux-c -*-
  *
  * Copyright (c) 2003 by International Business Machines.
+ * Copyright (c) 2003 by Intel Corp.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -11,6 +12,7 @@
  *
  * Authors:
  *     Sean Dague <sean@dague.net>
+ *     Louis Zhuang <louis.zhuang@linux.intel.com>
  */
 
 #include <openhpi.h>
@@ -20,70 +22,9 @@
 #include <string.h>
 #include <glib.h>
 
-GSList *global_handler_list;
-
-struct oh_handler_config *new_handler_config(char *, char *, char *);
-struct oh_plugin_config *new_plugin_config(char *);
-
-/*
-  load_config will actually get out to a config file soon enough based
-  on DomainId mapping.  For now this just defines the interface.
-*/
-
-int oh_load_config (struct oh_config *config) 
-{
-        char p1[] = "libdummy";
-        char p2[] = "libwatchdog";
-        
-        config->plugins = NULL;
-        config->handlers = NULL;
-        
-        config->plugins = g_slist_append(
-                config->plugins, 
-                (gpointer *) new_plugin_config(p1)
-                );
-        config->plugins = g_slist_append(
-                config->plugins, 
-                (gpointer *) new_plugin_config(p2)
-                );
-        
-        config->handlers = g_slist_append(
-                config->handlers, 
-                (gpointer *) new_handler_config(p1, NULL, NULL)
-                );
-        config->handlers = g_slist_append(
-                config->handlers, 
-                (gpointer *) new_handler_config(p2, NULL, NULL)
-                );
-        return 0;
-}
-
-void oh_free_config(struct oh_config *dconf) 
-{
-        int i;
-        struct oh_handler_config *temp;
-        struct oh_plugin_config *temp2;
-
-        for(i = 0; i < g_slist_length(dconf->plugins); i++) {
-                temp2 = (struct oh_plugin_config *) g_slist_nth_data(
-                        dconf->plugins, i);
-                free(temp2->name);
-        }
-        for(i = 0; i < g_slist_length(dconf->handlers); i++) {
-                temp = (struct oh_handler_config *) g_slist_nth_data(
-                        dconf->handlers, i);
-                free(temp->plugin);
-                free(temp->name);
-                free(temp->address);
-        }
-        g_slist_free(dconf->handlers);
-        g_slist_free(dconf->plugins);
-        
-        free(dconf);
-        return;
-}
-
-struct oh_plugin_config *new_plugin_config (char *plugin) 
+GSList *global_handler_list=NULL;
+#if  0
+static struct oh_plugin_config *new_plugin_config(const char *plugin) 
 {
         struct oh_plugin_config *pc;
 
@@ -102,7 +43,7 @@ struct oh_plugin_config *new_plugin_config (char *plugin)
 }
 
 
-struct oh_handler_config *new_handler_config (char *plugin, char *name, char *address) 
+static struct oh_handler_config *new_handler_config(const char *plugin, char *name, char *address) 
 {
         struct oh_handler_config *hc;
         
@@ -126,3 +67,72 @@ struct oh_handler_config *new_handler_config (char *plugin, char *name, char *ad
         }
         return hc;
 }
+#endif
+
+/*
+  load_config will actually get out to a config file soon enough based
+  on DomainId mapping.  For now this just defines the interface.
+*/
+
+int oh_load_config (struct oh_config *config) 
+{
+        const char *name[] = {
+		"libdummy",
+		NULL,
+	};
+	int i;
+#if 0        
+	config->plugins = NULL;
+        config->handlers = NULL;
+        
+        for (i=0; name[i]!=NULL; i++) {
+		config->plugins 
+			= g_slist_append(
+					config->plugins, 
+					(gpointer *) new_plugin_config(name[i])
+					);
+	}
+	
+        for (i=0; name[i]!=NULL; i++) {
+		config->handlers 
+			= g_slist_append(
+					config->handlers, 
+					(gpointer *) new_handler_config(name[i], NULL, NULL)
+					);
+	}
+#else
+	/* This is just a quick hacking before real config function */
+	init_plugin();
+	for (i=0; name[i]!=NULL; i++) {
+		struct oh_handler *h 
+			= new_handler(name[i], NULL, NULL);
+		global_handler_list = g_slist_append(global_handler_list, h);
+	}
+#endif
+        return 0;
+}
+
+void oh_free_config(struct oh_config *config) 
+{
+        int i;
+        struct oh_handler_config *temp;
+        struct oh_plugin_config *temp2;
+
+        for(i = 0; i < g_slist_length(config->plugins); i++) {
+                temp2 = (struct oh_plugin_config *) g_slist_nth_data(
+                        config->plugins, i);
+                free(temp2->name);
+        }
+        for(i = 0; i < g_slist_length(config->handlers); i++) {
+                temp = (struct oh_handler_config *) g_slist_nth_data(
+                        config->handlers, i);
+                free(temp->plugin);
+                free(temp->name);
+                free(temp->address);
+        }
+        g_slist_free(config->handlers);
+        g_slist_free(config->plugins);
+        
+        return;
+}
+

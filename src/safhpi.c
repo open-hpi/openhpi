@@ -28,6 +28,7 @@ static enum {
 	OH_STAT_FINAL
 } oh_hpi_state = OH_STAT_UNINIT;
 static const int entry_id_offset = 1000;
+static struct oh_config config;
 
 #define OH_STATE_READY_CHECK 					\
         do {							\
@@ -137,13 +138,13 @@ SaErrorT SAHPI_API saHpiInitialize(SAHPI_OUT SaHpiVersionT *HpiImplVersion)
                 dbg("Cannot initialize twice");
                 return SA_ERR_HPI_DUPLICATE;
         }
-        
-        if (init_plugin()<0) {
-                dbg("Can not load/init plugin");
+       	
+	if (oh_load_config(&config)<0) {
+		dbg("Can not load config");
                 return SA_ERR_HPI_NOT_PRESENT;
-        }
+	}
         
-        oh_hpi_state = OH_STAT_READY;
+	oh_hpi_state = OH_STAT_READY;
         return SA_OK;
 }
 

@@ -289,7 +289,7 @@ int uninit_plugin(void);
 int load_plugin(const char *plugin_name);
 
 /* here are the handler calls we need */
-struct oh_handler *new_handler(char *plugin_name, char *name, char *addr);
+struct oh_handler *new_handler(const char *plugin_name, const char *name, const char *addr);
 int free_handler(struct oh_handler*);
 
 /* event handler*/
