@@ -17,6 +17,8 @@ AM_PROG_LIBTOOL
 
 HPI_LIB_VERSION=3:0:3
 HPI_PKG=openhpi
+HPI_UTIL_PKG=openhpiutils
+AC_SUBST(HPI_UTIL_PKG)
 AC_SUBST(HPI_PKG)
 AC_SUBST(HPI_LIB_VERSION)
 AC_SUBST(ac_configure_args)
@@ -521,6 +523,7 @@ AC_CONFIG_FILES([openhpi.spec
         openhpi.pc
         rt-env.sh
         Makefile
+        utils/openhpiutils.pc
         utils/Makefile
         utils/t/Makefile
 	utils/t/epath/Makefile

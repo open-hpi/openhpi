@@ -40,6 +40,10 @@ SUBDIRS			= t
 DIST_SUBDIRS		= t
 
 AM_CFLAGS		= @CFLAGS@
+
+pkgconfigdir            = $(libdir)/pkgconfig
+pkgconfig_DATA          = openhpiutils.pc
+
 lib_LTLIBRARIES		= libopenhpiutils.la
 
 libopenhpiutils_la_SOURCES = \

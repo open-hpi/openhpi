@@ -64,7 +64,13 @@ includedir=$(base_includedir)/openhpi
 # these are the only headers that users should have any access to
 include_HEADERS	= $(top_srcdir)/include/SaHpi.h \
                   $(top_srcdir)/utils/epath_utils.h \
-                  $(top_srcdir)/utils/uid_utils.h
+                  $(top_srcdir)/utils/uid_utils.h \
+                  $(top_srcdir)/utils/rpt_utils.h \
+                  $(top_srcdir)/utils/sel_utils.h \
+                  $(top_srcdir)/utils/ecode_utils.h \
+                  $(top_srcdir)/utils/printevent_utils.h \
+                  $(top_srcdir)/utils/sensor_utils.h \
+                  $(top_srcdir)/utils/oh_utils.h
 
 install-data-local: openhpi.pc
 	$(mkinstalldirs) $(DESTDIR)$(libdir)/pkgconfig
