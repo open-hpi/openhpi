@@ -360,7 +360,36 @@ SaErrorT SAHPI_API saHpiEventLogInfoGet (
 		SAHPI_IN SaHpiResourceIdT ResourceId,
 		SAHPI_OUT SaHpiSelInfoT *Info)
 {
+        struct oh_session *s;
+        
+        OH_STATE_READY_CHECK;
+        
+        s = session_get(SessionId);
+        if (!s) {
+                dbg("Invalid session");
+                return SA_ERR_HPI_INVALID_SESSION;
+	}	
+	
+	if (ResourceId==SAHPI_DOMAIN_CONTROLLER_ID) {
+		if(dsel_get_info(s->domain_id, Info)<0)
+			return SA_ERR_HPI_UNKNOWN;
+		return SA_OK;
+	}
+
+#if 0	
+	res = get_resource(ResourceId);
+	if (!res) {
+		dbg("Invalid resource");
+		return SA_ERR_HPI_INVALID_RESOURCE;
+	}						
+	
+	if (res->handler->abi->get_sel_info(res->handler->hnd, res->oid, Info)<0)
+		return SA_ERR_HPI_UNKNOWN;
+	return SA_OK;
+#else
+	dbg("FIXME: system event log doesn't support");
 	return SA_ERR_HPI_UNSUPPORTED_API;
+#endif
 }
 
 SaErrorT SAHPI_API saHpiEventLogEntryGet (

@@ -36,8 +36,8 @@ int is_in_domain_list(SaHpiDomainIdT did)
         GSList *i;
         
         g_slist_for_each(i, global_domain_list) {
-		SaHpiDomainIdT id = GPOINTER_TO_UINT(i->data);
-                if(id == did) {
+		struct oh_domain *d = i->data;
+                if(d->domain_id == did) {
                         return 1;
                 }
         }
@@ -49,17 +49,26 @@ int is_in_domain_list(SaHpiDomainIdT did)
 
 int add_domain(SaHpiDomainIdT did)
 {
+	struct oh_domain *d;
+	
 	if (did>MAX_GLOBAL_DOMAIN) {
-		dbg("Could not add so large domain, it is kept for dymanic domain");
+		dbg("Could not add so large domain, the region is kept for dymanic domain");
 		return -1;
 	}
         if(is_in_domain_list(did) > 0) {
                 dbg("Domain %d exists already, something is fishy", did);
                 return -1;
         }
+	
+	d = malloc(sizeof(*d));
+	if (!d) {
+		dbg("Out of memory");
+		return -1;
+	}
+	
+	d->domain_id = did;
         global_domain_list 
-		= g_slist_append(global_domain_list, 
-				GUINT_TO_POINTER(did));
+		= g_slist_append(global_domain_list, d);
         
         return 0;
 }
@@ -67,13 +76,22 @@ int add_domain(SaHpiDomainIdT did)
 SaHpiDomainIdT new_domain() 
 {
 	static SaHpiDomainIdT dcounter = MIN_DYNAMIC_DOMAIN;
+	
+	struct oh_domain *d;
         
 	if(is_in_domain_list(dcounter) > 0) {
                 dbg("Domain %d exists already, something is fishy", dcounter);
                 return -1;
         }
+	
+	d = malloc(sizeof(*d));
+	if (!d) {
+		dbg("Out of memory");
+		return -1;
+	}
+	
+	d->domain_id = dcounter;
 	global_domain_list
-		= g_slist_append(global_domain_list,
-				GUINT_TO_POINTER(dcounter));
+		= g_slist_append(global_domain_list, d);
 	return dcounter++;
 }
