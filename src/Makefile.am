@@ -61,6 +61,7 @@ libopenhpi_la_SOURCES	= \
  
 libopenhpi_la_LIBADD    = @STATIC_PLUGIN_LIBS@ @STATIC_PLUGIN_EXTRA_LIBS@ -lltdl
 libopenhpi_la_LDFLAGS	= -version-info @HPI_LIB_VERSION@
+libopenhpi_la_DEPENDENCIES = @STATIC_PLUGIN_LIBS@
 
 # create directory /var/lib/openhpi
 install-data-hook:
