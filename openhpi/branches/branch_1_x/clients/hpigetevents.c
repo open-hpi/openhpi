@@ -133,7 +133,7 @@ int main(int argc, char **argv)
 	  			break;
 			}
 		} else {
-			print_event(&event);
+			print_event(sessionid, &event);
 		}
      	}
 

@@ -514,7 +514,7 @@ char *decode_enum(struct code2string *code_array, int NUM_MAX, int code)
  * Return value: none
  * Exported: yes
  **/
-void print_event(SaHpiEventT *thisEvent)
+void print_event(SaHpiSessionIdT session_id, SaHpiEventT *thisEvent)
 {
 
         char *str = NULL;
