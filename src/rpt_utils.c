@@ -422,7 +422,7 @@ SaHpiRptEntryT *oh_get_resource_next(RPTable *table, SaHpiResourceIdT rid_prev)
  * 0 - Successful addition of RDR.
  * -2 - Failure. RPT entry for that rid was not found.
  * -3 - Failure. RDR entity path is different from parent RPT entry.
- * -4 - Failure. RDR type number has not been assigned.
+ * -4* - Failure. RDR type number has not been assigned. *COMMENTED OUT
  * -5 - Failure. Could not allocate enough memory to position the new RDR in the RDR
  * repository.
  **/ 
@@ -452,10 +452,11 @@ int oh_add_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiRdrT *rdr, void *data)
                 return -3;
         }
 
-        if (!(type_num = get_rdr_type_num(rdr))) {
+        /*if (!(type_num = get_rdr_type_num(rdr))) {
                 dbg("Failed to add RDR. Type's id number (num) has not been assigned.");
                 return -4;
-        }
+        }*/
+        type_num = get_rdr_type_num(rdr);
 
         /* Form correct RecordId. */
         rdr->RecordId = get_rdr_uid(rdr->RdrType, type_num);
