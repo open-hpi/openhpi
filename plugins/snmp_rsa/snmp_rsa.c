@@ -25,7 +25,7 @@
 #include <rsa_resources.h>
 // #include <snmp_rsa_control.h>
 #include <snmp_rsa_discover.h>
-// #include <snmp_rsa_sel.h>
+#include <snmp_rsa_sel.h>
 #include <snmp_rsa_sensor.h>
 #include <snmp_rsa_session.h>
 // #include <snmp_rsa_watchdog.h>
@@ -474,16 +474,11 @@ struct oh_abi_v2 oh_snmp_rsa_plugin = {
         .set_resource_tag               = snmp_rsa_set_resource_tag,
         .set_resource_severity          = snmp_rsa_set_resource_severity,
         .get_self_id			= snmp_rsa_get_self_id,
-//      .get_sel_info			= snmp_rsa_get_sel_info,
-        .get_sel_info			= NULL,
-//      .set_sel_time			= snmp_rsa_set_sel_time,
-        .set_sel_time			= NULL,
-//      .add_sel_entry			= snmp_rsa_add_sel_entry,
-        .add_sel_entry			= NULL,
-//      .del_sel_entry			= snmp_rsa_del_sel_entry,
-        .del_sel_entry			= NULL,
-//      .get_sel_entry			= snmp_rsa_get_sel_entry,
-        .get_sel_entry			= NULL,
+        .get_sel_info			= snmp_rsa_get_sel_info,
+        .set_sel_time			= snmp_rsa_set_sel_time,
+        .add_sel_entry			= snmp_rsa_add_sel_entry,
+        .del_sel_entry			= snmp_rsa_del_sel_entry,
+        .get_sel_entry			= snmp_rsa_get_sel_entry,
         .get_sensor_data		= snmp_rsa_get_sensor_data,
         .get_sensor_thresholds		= snmp_rsa_get_sensor_thresholds,
         .set_sensor_thresholds		= snmp_rsa_set_sensor_thresholds,

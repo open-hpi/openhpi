@@ -62,7 +62,8 @@ void *snmp_rsa_open(GHashTable *handler_config)
         handle->rptcache = (RPTable *)g_malloc0(sizeof(RPTable));
  
         /* Initialize SEL cache */
-        handle->selcache =  oh_sel_create(OH_SEL_MAX_SIZE);
+        /* note that 512 entries is just an informed guess */
+        handle->selcache =  oh_sel_create(512);
 
 	/* Initialize String-to-Event hash table */
 //	if (str2event_hash_init()) {
