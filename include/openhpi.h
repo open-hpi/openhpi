@@ -29,6 +29,7 @@
 
 #include <oh_plugin.h>
 #include <oh_config.h>
+#include <oh_error.h>
 #include <rpt_utils.h>
 #include <sel_utils.h>
 
@@ -402,17 +403,6 @@ static __inline__
 void data_access_lock(void);
 void data_access_unlock(void);
 int data_access_block_times(void); 
-
-/* Only print debug info when --enable-debug */
-#ifdef DEBUG
-#define dbg(format, ...)                                      \
-        do {                                                                          \
-                fprintf(stderr, "%s:%d:%s: ", __FILE__, __LINE__, __func__);   \
-                fprintf(stderr, format "\n", ## __VA_ARGS__); \
-        } while(0)
-#else
-#define dbg(format, ...)
-#endif
 
 #define g_slist_for_each(pos, head) \
         for (pos = head; pos != NULL; pos = g_slist_next(pos))

@@ -24,7 +24,7 @@
 #include "sim_util.h"
 
 
-#define trace(x, ...) printf(x,  __VA_ARGS__)
+/*#define trace(x, ...) printf(x,  __VA_ARGS__)*/
 
 static pthread_mutex_t util_mutext = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 

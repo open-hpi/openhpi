@@ -20,9 +20,10 @@
 #include <fcntl.h>
 #include <string.h>
 #include <unistd.h>
+#include <time.h>
 
 #include <SaHpi.h>
-#include <openhpi.h>
+#include <oh_error.h>
 #include <sel_utils.h>
 
 

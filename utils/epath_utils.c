@@ -48,7 +48,7 @@
 #include <assert.h>
 
 #include <SaHpi.h>
-#include <openhpi.h>
+#include <oh_error.h>
 #include <epath_utils.h>
 
 static unsigned int index2entitytype(unsigned int i);

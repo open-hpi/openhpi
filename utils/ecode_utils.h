@@ -20,7 +20,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "SaHpi.h"
+#include <SaHpi.h>
 
 #define NECODES  27
 

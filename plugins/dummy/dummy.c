@@ -11,12 +11,9 @@
 #include <openhpi.h>
 #include <epath_utils.h>
 #include <uid_utils.h>
+#include <oh_error.h>
 
-#define info(f, ...) printf(__FILE__": " f "\n", ## __VA_ARGS__)
-#define error(f, ...) perror("ERROR: " f, ## __VA_ARGS__)
-#define trace(f, ...) printf(__FILE__":%s(" f ")\n", __FUNCTION__, ## __VA_ARGS__)
 #define ELEMENT_NUM(x) (sizeof(x)/sizeof(x[0]))
-
 
 #define NUM_RESOURCES 	3
 #define NUM_RDRS	8

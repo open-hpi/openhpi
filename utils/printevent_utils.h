@@ -25,7 +25,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <time.h>
-#include "SaHpi.h"
+#include <SaHpi.h>
 
 struct code2string {
 	int val;

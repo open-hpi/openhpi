@@ -29,8 +29,8 @@
 #include "sim_sensor.h"
 #include "sim_event.h"
 
-#define trace(x,...) printf(x, __VA_ARGS__)
-#define error(x,...) printf(x, __VA_ARGS__)
+/*#define trace(x,...) printf(x, __VA_ARGS__)*/
+/*#define error(x,...) printf(x, __VA_ARGS__)*/
 static  void * REQ_RES = (void *)0;
 static  void * REQ_RDR = (void *)1;
 

@@ -18,7 +18,7 @@
 #include <stdio.h>
 #include <glib.h>
 
-#include <openhpi.h>
+#include <oh_error.h>
 #include <sensor_utils.h>
 
  
