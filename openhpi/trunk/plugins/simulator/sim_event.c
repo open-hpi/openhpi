@@ -180,8 +180,25 @@ static void* fhs_event_process(void *data)
         FAMOpen(&fc);
         FAMMonitorDirectory(&fc, root_path, &fr, (void*)req_res);
 
-        while(!feh->closing) {   
-                FAMNextEvent(&fc, &fe);
+        while(!feh->closing) { 
+/*
+        The old code is:
+               FAMNextEvent(&fc, &fe);
+        The new code is
+                if (1 == FAMPending(&fc)) {
+                        FAMNextEvent(&fc, &fe);
+                }else  continue;
+
+        In the old code, if this thread is processing FAMNextEvent and 
+        then feh->closing is set by another thread, this thread is still
+        hung up. so the synchronized call is changed as asychronized call
+        (polling call) though I don't like this mode.
+ 
+*/  
+                if (1 == FAMPending(&fc)) {
+                        FAMNextEvent(&fc, &fe);
+                }else  continue; 
+
                 if ((fe.userdata == (void *)req_res) &&
                     ((fe.code == FAMCreated) || (fe.code == FAMExists))) {
                         if (!IS_DIR(fe.filename))
