@@ -13,6 +13,7 @@
  *	David Judkovics <djudkovi@us.ibm.com>
  *
  */
+#include <SaHpi.h>
  
  /*
  * Structure used by build_state_string routine.
@@ -25,7 +26,20 @@ typedef struct state_category_string_
     SaHpiEventStateT state;
     unsigned char *str;
 } state_category_string;
-#endif
+#endif	
+
+#define SENSOR_READING_UNSIGNED_INT "%u"
+#define SENSOR_READING_SIGNED_INT "%d"
+#define SENSOR_READING_UNSIGNED_INT_LEN 2
+#define SENSOR_READING_SIGNED_INT_LEN 2
+
+
+#define SENSOR_READING_FLOAT "%f"
+#define SENSOR_READING_FLOAT_LEN 2
+
+#define SENSOR_READING_MAX_LEN 256
+
+
 /*
  * Construct a string value from a category and state 
  * parameter.
