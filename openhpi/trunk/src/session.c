@@ -136,16 +136,3 @@ int session_get_events(struct oh_session *s)
 
 	return 0;
 }
-
-int session_discover_resources(struct oh_session *s)
-{
-	struct oh_domain *d = s->domain;
-	struct list_head *i;
-	
-	list_for_each(i, &d->zone_list) {
-		struct oh_zone *z
-			= list_container(i, struct oh_zone, node);
-		z->abi->discover_resources(z->hnd);
-	}
-	return session_get_events(s);
-}

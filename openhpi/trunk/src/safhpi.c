@@ -229,6 +229,8 @@ SaErrorT SAHPI_API saHpiSessionClose(SAHPI_IN SaHpiSessionIdT SessionId)
 SaErrorT SAHPI_API saHpiResourcesDiscover(SAHPI_IN SaHpiSessionIdT SessionId)
 {
 	struct oh_session *s;
+	struct oh_domain *d;
+	struct list_head *i;
 	int rv =0;
 	
 	OH_STATE_READY_CHECK;
@@ -239,7 +241,15 @@ SaErrorT SAHPI_API saHpiResourcesDiscover(SAHPI_IN SaHpiSessionIdT SessionId)
 		return SA_ERR_HPI_INVALID_SESSION;
 	}
 	
-	rv = session_discover_resources(s);
+	d = s->domain;
+	
+	list_for_each(i, &d->zone_list) {
+		struct oh_zone *z
+			= list_container(i, struct oh_zone, node);
+		z->abi->discover_resources(z->hnd);
+	}
+
+	rv = session_get_events(s);
 	if (rv<0) {
 		dbg("Error attempting to discover resources");
 		return SA_ERR_HPI_UNKNOWN;
