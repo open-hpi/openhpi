@@ -254,7 +254,7 @@ printf( "Set new thresholds\n");
    rv = saHpiSensorThresholdsSet(
 	sessionid, resourceid, sensornum, &senstbuff2);
    if (rv != SA_OK) {
-	printf( "saHpiSensorThresholdsSet error %d\n",rv); return; }
+	printf( "saHpiSensorThresholdsSet error %d\n",rv); goto out; }
 
 /* Go wait on event to occur */
 printf( "Go and get the event\n");
@@ -264,21 +264,21 @@ printf( "Go and get the event\n");
      if (rv != SA_OK) { 
 	if (rv != SA_ERR_HPI_TIMEOUT) {
 	  printf( "Error during EventGet - Test FAILED\n");
-	  return;
+	  goto out;
         } else {
 	  printf( "Time expired during EventGet - Test FAILED\n");
             /* Reset to the original thresholds */
             printf( "Reset thresholds\n");
                rv = saHpiSensorThresholdsSet(
                     sessionid, resourceid, sensornum, &senstbuff1);
-               if (rv != SA_OK) return;
+               if (rv != SA_OK) goto out;
 
             /* Re-read threshold values */
                rv = saHpiSensorThresholdsGet(
                     sessionid, resourceid, sensornum, &senstbuff2);
-               if (rv != SA_OK) return;
+               if (rv != SA_OK) goto out;
 
-	  return;
+	  goto out;
 	}
      }
 /* Decode the event information */
@@ -298,13 +298,13 @@ printf( "Reset thresholds\n");
    rv = saHpiSensorThresholdsSet(
 	sessionid, resourceid, sensornum, &senstbuff1);
    if (rv != SA_OK) {
-	printf( "saHpiSensorThresholdsSet error %d\n",rv); return; }
+	printf( "saHpiSensorThresholdsSet error %d\n",rv); goto out; }
 
 /* Re-read threshold values */
    rv = saHpiSensorThresholdsGet(
 	sessionid, resourceid, sensornum, &senstbuff2);
    if (rv != SA_OK) {
-	printf( "saHpiSensorThresholdsGet error %d\n",rv); return; }
+	printf( "saHpiSensorThresholdsGet error %d\n",rv); goto out; }
 
 /* Display reset thresholds */ 
    if (rv == SA_OK) {
@@ -312,7 +312,8 @@ printf( "Reset thresholds\n");
      ShowThresh( &senstbuff2 );
    }
 /* Unsubscribe to future events */
-printf( "Unsubscribe\n");
+out:
+   printf( "Unsubscribe\n");
    rv = saHpiUnsubscribe( sessionid );
 
    return;
