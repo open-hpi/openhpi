@@ -34,6 +34,7 @@ hpi_cmd_SOURCES      = ${HS_SOURCES}
 hpi_cmd_LDADD        = $(COMMONLIBS)
 hpi_cmd_LDFLAGS      = 
 	
+if OPENHPID_DINAMIC
 noinst_LTLIBRARIES	= libopenhpiclient.la
 
 libopenhpiclient_la_SOURCES = $(REMOTE_LIB_SOURCES)
@@ -45,6 +46,7 @@ $(REMOTE_LIB_SOURCES):
 	if test ! -f $@ -a ! -L $@; then \
 		ln -s ../openhpid2/$@; \
 	fi
+endif
 
 clean-local:
 	rm -f *~ *.o
