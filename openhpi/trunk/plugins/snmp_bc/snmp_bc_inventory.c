@@ -81,7 +81,7 @@ SaErrorT snmp_bc_get_idr_area_header( void *hnd,
 
 	SaErrorT rv = SA_OK;
 	void *i_record;
-	struct bc_inventory_record * thisInvnetoryRecordPtr;
+	struct bc_inventory_record * thisInventoryRecordPtr;
 	
 	i_record = (void *)g_malloc0(SIZE_OF_WORKING_SPACE *  sizeof(guint));
  	if (!i_record) {
@@ -94,8 +94,8 @@ SaErrorT snmp_bc_get_idr_area_header( void *hnd,
 		
 	if (rv == SA_OK) {
 		thisInventoryRecordPtr = (struct bc_inventory_record *) i_record;
-		if (thisInventoryRecordPtr->areaptr[0]->idrarea.AreaId == AreaId) {
-			memcpy(Header, &(thisInventoryRecordPtr->areaptr[0]->idrarea), sizeof(SaHpiIdrAreaHeaderT));
+		if (thisInventoryRecordPtr->areaptr[0]->idrareas.AreaId == AreaId) {
+			memcpy(Header, &(thisInventoryRecordPtr->areaptr[0]->idrareas), sizeof(SaHpiIdrAreaHeaderT));
 			*NextAreaId = SAHPI_LAST_ENTRY;
 		} else {
 			rv = SA_ERR_HPI_NOT_PRESENT;
@@ -178,12 +178,12 @@ SaErrorT snmp_bc_get_idr_field( void *hnd,
 		
 	if (rv == SA_OK) {
 		thisInventoryRecordPtr = (struct bc_inventory_record *) i_record;
-		if (thisInventoryRecordPtr->areaptr[0]->idrarea.AreaId == AreaId) {
+		if (thisInventoryRecordPtr->areaptr[0]->idrareas.AreaId == AreaId) {
 		
 			/* Search for fieldId here */
-			for (i=0; i < thisInventoryRecordPtr->areaptr[0]->idrarea.; i++) {
-				if ((thisInventoryRecordPtr->areaptr[0]->fieldptr[i] == FieldId) && 
-					(thisInventoryRecordPtr->areaptr[0]->fieldptr[i] == FieldType)){
+			for (i=0; i < thisInventoryRecordPtr->areaptr[0]->idrareas.NumFields; i++) {
+				if ((thisInventoryRecordPtr->areaptr[0]->fieldptr[i]->FieldId == FieldId) && 
+					(thisInventoryRecordPtr->areaptr[0]->fieldptr[i]->Type == FieldType)){
 					break;
 				}
 			}
@@ -287,6 +287,7 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 {
 	SaErrorT rv = SA_OK;
 	struct oh_handler_state *handle = (struct oh_handler_state *) hnd;
+	struct snmp_bc_hnd *custom_handle = handle->data;
 	SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, ResourceId, SAHPI_INVENTORY_RDR, IdrId);
 	
 	gchar        *oid = NULL;
@@ -298,7 +299,6 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 	struct bc_idr_area *       inventoryAreaPtr;
 	SaHpiIdrFieldT *           inventoryFieldPtr;
 
-	SaHpiIdrAreaTypeT	thisAreaType;
 	SaHpiIdrFieldT		thisField;
 	
 	
@@ -314,18 +314,18 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 		thisInventoryRecord.idrinfo.NumAreas = 1; /* pdp - expand to 2 for chassis HW & Firmware */
 		
 		thisInventoryArea.idrareas.AreaId = 1;
-		thisInventoryArea.idrareas.Type = s->mib.inventory_type;
+		thisInventoryArea.idrareas.Type = s->mib.area_type;
 		thisInventoryArea.idrareas.ReadOnly = SAHPI_TRUE;
-		thisInventoryArea.idrareas.Numfields = 0; /* Increment it as we find field */
+		thisInventoryArea.idrareas.NumFields = 0; /* Increment it as we find field */
 		
-		inventoryAreaPtr = i_record + sizeof(struct bc_inventory_record);
+		inventoryAreaPtr = (struct bc_idr_area *)i_record + sizeof(struct bc_inventory_record);
 		thisInventoryRecord.areaptr[0] = inventoryAreaPtr;
-		memcpy(struct bc_inventory_record *)i_record, &thisInventoryRecord, sizeof(struct bc_inventory_record));
-		memcpy(struct bc_idr_area *)inventoryAreaPtr, &thisInventoryRecord, sizeof(struct bc_idr_area));
-		inventoryFieldPtr = inventoryAreaPtr + sizeof(struct bc_idr_area);
+		memcpy((struct bc_inventory_record *)i_record, &thisInventoryRecord, sizeof(struct bc_inventory_record));
+		memcpy((struct bc_idr_area *)inventoryAreaPtr, &thisInventoryRecord, sizeof(struct bc_idr_area));
+		inventoryFieldPtr = (SaHpiIdrFieldT *) (inventoryAreaPtr + sizeof(struct bc_idr_area));
 		
 				
-		thisField.AreaId = thisAreaHeader.AreaId;
+		thisField.AreaId = thisInventoryArea.idrareas.AreaId;
 		thisField.ReadOnly = SAHPI_TRUE;
 		thisField.Field.Language = SAHPI_LANG_ENGLISH; /*  SaHpiLanguageT */
 
@@ -361,8 +361,8 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 		
 		if (thisField.Field.DataLength != 0) {
 			memcpy(inventoryFieldPtr, &thisField, sizeof(SaHpiIdrFieldT));
-			inventoryAreaPtr->fieldptr[inventoryAreaPtr->idrareas.Numfields] = inventoryFieldPtr;
-			inventoryAreaPtr->idrareas.Numfields++;
+			inventoryAreaPtr->fieldptr[inventoryAreaPtr->idrareas.NumFields] = inventoryFieldPtr;
+			inventoryAreaPtr->idrareas.NumFields++;
 			inventoryFieldPtr+= sizeof(SaHpiIdrFieldT);
 		}
 		
@@ -378,7 +378,7 @@ SaErrorT snmp_bc_build_idr( void *hnd,
                         	dbg("NULL SNMP OID returned for MfgDateTime\n");
 				thisField.Field.DataLength = sizeof(SaHpiTimeT); /* SaHpiUint8T  */	
 				thisField.Field.DataType = SAHPI_TL_TYPE_BINARY; /* SaHpiTextTypeT */
-                		(SaHpiTimeT) thisField.Field.Data =  (SaHpiTimeT) SAHPI_TIME_UNSPECIFIED;
+                		/* (SaHpiTimeT) thisField.Field.Data =  (SaHpiTimeT) SAHPI_TIME_UNSPECIFIED; */
                 	} else {
                         	rv = snmp_bc_snmp_get(custom_handle, custom_handle->ss, oid, &get_value);
                         	if((rv != SA_OK) |
@@ -388,7 +388,7 @@ SaErrorT snmp_bc_build_idr( void *hnd,
                                 	g_free(oid);
                                 	return rv;
                         	} else if((rv == SA_OK) && (get_value.type == ASN_OCTET_STR )) {
-					thisField.Filed.DataLength = get_value.str_len;
+					thisField.Field.DataLength = get_value.str_len;
 					thisField.Field.DataType = SAHPI_TL_TYPE_TEXT;
 					memcpy(thisField.Field.Data, get_value.string, get_value.str_len); 
                         	} else {
@@ -399,13 +399,13 @@ SaErrorT snmp_bc_build_idr( void *hnd,
         	} else {
 			thisField.Field.DataLength = sizeof(SaHpiTimeT); /* SaHpiUint8T  */	
 			thisField.Field.DataType = SAHPI_TL_TYPE_BINARY; /* SaHpiTextTypeT */
-                	(SaHpiTimeT) thisField.Field.Data =  (SaHpiTimeT) SAHPI_TIME_UNSPECIFIED;
+                	/*(SaHpiTimeT) thisField.Field.Data =  SAHPI_TIME_UNSPECIFIED;*/
         	}
 		
 		if (thisField.Field.DataLength != 0) {
 			memcpy(inventoryFieldPtr, &thisField, sizeof(SaHpiIdrFieldT));
-			inventoryAreaPtr->fieldptr[inventoryAreaPtr->idrareas.Numfields] = inventoryFieldPtr;
-			inventoryAreaPtr->idrareas.Numfields++;
+			inventoryAreaPtr->fieldptr[inventoryAreaPtr->idrareas.NumFields] = inventoryFieldPtr;
+			inventoryAreaPtr->idrareas.NumFields++;
 			inventoryFieldPtr+= sizeof(SaHpiIdrFieldT);
 		}
 		
@@ -441,8 +441,8 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 		
 		if (thisField.Field.DataLength != 0) {
 			memcpy(inventoryFieldPtr, &thisField, sizeof(SaHpiIdrFieldT));
-			inventoryAreaPtr->fieldptr[inventoryAreaPtr->idrareas.Numfields] = inventoryFieldPtr;
-			inventoryAreaPtr->idrareas.Numfields++;
+			inventoryAreaPtr->fieldptr[inventoryAreaPtr->idrareas.NumFields] = inventoryFieldPtr;
+			inventoryAreaPtr->idrareas.NumFields++;
 			inventoryFieldPtr+= sizeof(SaHpiIdrFieldT);
 		}
 		
@@ -478,8 +478,8 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 		
 		if (thisField.Field.DataLength != 0) {
 			memcpy(inventoryFieldPtr, &thisField, sizeof(SaHpiIdrFieldT));
-			inventoryAreaPtr->fieldptr[inventoryAreaPtr->idrareas.Numfields] = inventoryFieldPtr;
-			inventoryAreaPtr->idrareas.Numfields++;
+			inventoryAreaPtr->fieldptr[inventoryAreaPtr->idrareas.NumFields] = inventoryFieldPtr;
+			inventoryAreaPtr->idrareas.NumFields++;
 			inventoryFieldPtr+= sizeof(SaHpiIdrFieldT);
 		}
 						
@@ -515,8 +515,8 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 		
 		if (thisField.Field.DataLength != 0) {
 			memcpy(inventoryFieldPtr, &thisField, sizeof(SaHpiIdrFieldT));
-			inventoryAreaPtr->fieldptr[inventoryAreaPtr->idrareas.Numfields] = inventoryFieldPtr;
-			inventoryAreaPtr->idrareas.Numfields++;
+			inventoryAreaPtr->fieldptr[inventoryAreaPtr->idrareas.NumFields] = inventoryFieldPtr;
+			inventoryAreaPtr->idrareas.NumFields++;
 			inventoryFieldPtr+= sizeof(SaHpiIdrFieldT);
 		}
 
@@ -552,8 +552,8 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 		
 		if (thisField.Field.DataLength != 0) {
 			memcpy(inventoryFieldPtr, &thisField, sizeof(SaHpiIdrFieldT));
-			inventoryAreaPtr->fieldptr[inventoryAreaPtr->idrareas.Numfields] = inventoryFieldPtr;
-			inventoryAreaPtr->idrareas.Numfields++;
+			inventoryAreaPtr->fieldptr[inventoryAreaPtr->idrareas.NumFields] = inventoryFieldPtr;
+			inventoryAreaPtr->idrareas.NumFields++;
 			inventoryFieldPtr+= sizeof(SaHpiIdrFieldT);
 		}
 
@@ -589,8 +589,8 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 		
 		if (thisField.Field.DataLength != 0) {
 			memcpy(inventoryFieldPtr, &thisField, sizeof(SaHpiIdrFieldT));
-			inventoryAreaPtr->fieldptr[inventoryAreaPtr->idrareas.Numfields] = inventoryFieldPtr;
-			inventoryAreaPtr->idrareas.Numfields++;
+			inventoryAreaPtr->fieldptr[inventoryAreaPtr->idrareas.NumFields] = inventoryFieldPtr;
+			inventoryAreaPtr->idrareas.NumFields++;
 			inventoryFieldPtr+= sizeof(SaHpiIdrFieldT);
 		}
 
@@ -626,8 +626,8 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 		
 		if (thisField.Field.DataLength != 0) {
 			memcpy(inventoryFieldPtr, &thisField, sizeof(SaHpiIdrFieldT));
-			inventoryAreaPtr->fieldptr[inventoryAreaPtr->idrareas.Numfields] = inventoryFieldPtr;
-			inventoryAreaPtr->idrareas.Numfields++;
+			inventoryAreaPtr->fieldptr[inventoryAreaPtr->idrareas.NumFields] = inventoryFieldPtr;
+			inventoryAreaPtr->idrareas.NumFields++;
 			inventoryFieldPtr+= sizeof(SaHpiIdrFieldT);
 		}
 
@@ -663,7 +663,7 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 		
 		if (thisField.Field.DataLength != 0) {
 			memcpy(inventoryFieldPtr, &thisField, sizeof(SaHpiIdrFieldT));
-			inventoryAreaPtr->fieldptr[inventoryAreaPtr->idrareas.Numfields] = inventoryFieldPtr;
+			inventoryAreaPtr->fieldptr[inventoryAreaPtr->idrareas.NumFields] = inventoryFieldPtr;
 		}
 
 	} else {
