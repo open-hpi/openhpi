@@ -791,7 +791,7 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
             (EventLogEntry != NULL) &&
             (EventLogEntry->Event.Source)) {
                 
-                OH_RESOURCE_GET(rpt, EventLogEntry->Event.Source, res);
+                res = oh_get_resource_by_id(rpt, EventLogEntry->Event.Source);
                 if(res != NULL) {
                         *RptEntry = *res;
                 }
