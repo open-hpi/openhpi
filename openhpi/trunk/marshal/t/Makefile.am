@@ -23,9 +23,8 @@ INCLUDES		= -I.. -I $(top_srcdir)/include
 AM_CFLAGS		= @CFLAGS@ -ftest-coverage -fprofile-arcs
 
 
-noinst_PROGRAMS = float_format
-
-float_format_SOURCES = float_format.c
+#noinst_PROGRAMS = float_format
+#float_format_SOURCES = float_format.c
 
 CLEANFILES=float32.bin float64.bin *~
 
