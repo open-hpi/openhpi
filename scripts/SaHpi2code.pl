@@ -46,7 +46,7 @@
 # - 1 error occurred
 #########################################################################
 
-#use strict;
+use strict;
 use Getopt::Long;
 
 GetOptions(
@@ -161,17 +161,17 @@ my %global_category = ();
 
 if (normalize_file INPUT_HEADER) { $rtn_code = 1; goto CLEANUP; }
 
-print_copywrite FILE_C;
-print_copywrite FILE_H;
-print_copywrite FILE_X;
-print_copywrite FILE_XH;
+print_copywrite *FILE_C;
+print_copywrite *FILE_H;
+print_copywrite *FILE_X;
+print_copywrite *FILE_XH;
 if ($tdir) { 
-    print_copywrite FILE_TEST;
-    print_copywrite XFILE_TEST;
+    print_copywrite *FILE_TEST;
+    print_copywrite *XFILE_TEST;
 }
 
-print_hfile_header FILE_H, $ohfile;
-print_hfile_header FILE_XH, $oxhfile;
+print_hfile_header *FILE_H, $ohfile;
+print_hfile_header *FILE_XH, $oxhfile;
 print_cfile_header();
 print_xfile_header();
 print_xhfile_header();
@@ -333,8 +333,8 @@ print FILE_X "};\n\n";
 print FILE_XH "\#define OH_MAX_STATE_STRINGS $max_events\n";
 print FILE_XH "oh_categorystate_map state_strings[OH_MAX_STATE_STRINGS];\n\n";
 
-print_hfile_ending FILE_H;
-print_hfile_ending FILE_XH;
+print_hfile_ending *FILE_H;
+print_hfile_ending *FILE_XH;
 
 if ($tdir) { 
     print_testfile_ending();
