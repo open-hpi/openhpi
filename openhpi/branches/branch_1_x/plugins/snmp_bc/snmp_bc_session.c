@@ -102,8 +102,12 @@ void *snmp_bc_open(GHashTable *handler_config)
 		snmp_sess_init(&(custom_handle->session)); /* Setting up all defaults for now. */
 		/* Set snmp agent's hostname */
 		custom_handle->session.peername = hostname;
-		custom_handle->session.retries  = 3;	/* set retries to 3.   */ 
-							/* From testing with mm snmpv3 agent */
+							/* From testing with mm snmpv3 agent, */
+		custom_handle->session.retries  = 3;	/* set retries to 3.                  */ 
+							/* Number of uS until first timeout,  */
+							/* then exponential backoff.          */
+							/* Set timeout value to 2 secs.       */			
+		custom_handle->session.timeout  = 2000000; 
 
 		/* Get config parameters */
 		version = (char *)g_hash_table_lookup(handle->config, "version");
