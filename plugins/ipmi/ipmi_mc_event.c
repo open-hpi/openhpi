@@ -25,7 +25,6 @@ static void get_mc_entity_event(ipmi_mc_t	*mc,
 	uint8_t	vals[4];
 	SaHpiEntityPathT mc_ep;
 	char mc_name[128];
-	int sel_support;
         
 	memset(&mc_ep, 0, sizeof(SaHpiEntityPathT));
 	dbg("entity_root: %s", entity_root);
@@ -56,8 +55,7 @@ static void get_mc_entity_event(ipmi_mc_t	*mc,
 	/*we get MC number on IPMB for unique identifier */
 	entry->ResourceEntity.Entry[0].EntityInstance = ipmi_mc_get_address(mc);
 	dbg ("MC Instance: %d", entry->ResourceEntity.Entry[0].EntityInstance);
-	sel_support = ipmi_mc_sel_device_support(mc);
-	if (sel_support == 1) {
+	if (ipmi_mc_sel_device_support(mc)) {
 		dbg("MC supports SEL");
 		entry->ResourceCapabilities = SAHPI_CAPABILITY_SEL;
 	}
