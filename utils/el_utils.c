@@ -72,7 +72,7 @@ SaErrorT oh_el_append(oh_el *el, SaHpiEventT *event, SaHpiRdrT *rdr,
         if (el == NULL || event == NULL) {
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
-        if (el->enabled == FALSE) {
+        if ((el->enabled == FALSE) && (event->EventType != SAHPI_ET_USER)) {
                 return SA_ERR_HPI_INVALID_REQUEST;
         }
 
