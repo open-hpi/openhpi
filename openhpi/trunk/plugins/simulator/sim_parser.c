@@ -868,6 +868,7 @@ static int node2entitypath(GSList *node, SaHpiEntityPathT *path)
     int retval = 0;
     int i, len;
 
+    memset(path, 0, sizeof(*path));
     len = g_slist_length(node)/2;
 
     if (len > SAHPI_MAX_ENTITY_PATH)
