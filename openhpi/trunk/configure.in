@@ -32,8 +32,6 @@ have_uuid=no
 have_openipmi=no
 have_sysfs=no
 
-LIBS="$LIBS -lpthread"
-
 AC_CHECK_PROG([found_pkg_config],[pkg-config],[yes])
 
 if test "x$found_pkg_config" != "xyes"; then
@@ -65,6 +63,17 @@ AC_CHECK_LIB([uuid], [uuid_generate], [have_uuid=yes], [
     ])
 
 dnl Extra goodies enablement stanzas
+
+AC_ARG_ENABLE([thread],
+    [  --enable-thread       make implementation thread-safe [default=yes]],
+    [if test "x$enableval" = "xyes"; then
+	THREAD_SAFE="yes"
+    fi],
+    [THREAD_SAFE="yes"])
+
+if test "x$THREAD_SAFE" = "xyes"; then
+        AC_DEFINE([HAVE_THREAD_SAFE], [1], [Define to 1 if you want thread-safe implementation])
+fi
 
 AC_ARG_ENABLE([examples],
     [  --enable-examples       build HPI examples [default=yes]],
@@ -208,11 +217,17 @@ CC_WARNINGS="-Wall -Wmissing-prototypes \
 	-Wpointer-arith \
 	-Wcast-qual -Wcast-align \
 	-Werror"
-
-CFLAGS="$CFLAGS -D_GNU_SOURCE -D_REENTRANT -fexceptions"
 CFLAGS="$CFLAGS $GLIBFLAGS $CC_WARNINGS"
+if test "x$THREAD_SAFE" = "xyes" ; then
+        CFLAGS="$CFLAGS -D_GNU_SOURCE -D_REENTRANT -fexceptions"
+fi
 
 LIBS="$LIBS $GLIBLIBS"
+if test "x$THREAD_SAFE" = "xyes" ; then
+        LIBS="$LIBS -lpthread"
+fi
+
+
 AC_CONFIG_FILES([openhpi.spec
         Makefile
         src/Makefile

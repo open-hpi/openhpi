@@ -19,10 +19,13 @@
 #ifndef __OPENHPI_H
 #define __OPENHPI_H
 
+#include <config.h>
+
+#ifdef HAVE_THREAD_SAFE
+#include <pthread.h>
+#endif
 #include <stdio.h>
 #include <glib.h>
-
-#include <pthread.h>
 
 #include <oh_plugin.h>
 #include <oh_config.h>
@@ -390,6 +393,14 @@ static inline void gettimeofday1(SaHpiTimeT *t)
         gettimeofday(&now, NULL);
         *t = (SaHpiTimeT) now.tv_sec * 1000000000 + now.tv_usec*1000;   
 }
+
+#ifdef HAVE_THREAD_SAFE
+void data_access_lock(void);
+void data_access_unlock(void);
+#else
+static inline void data_access_lock(void) {};
+static inline void data_access_unlock(void) {};
+#endif
 
 #define dbg(format, ...)                                      \
         do {                                                                          \

@@ -22,21 +22,17 @@
 #include <SaHpi.h>
 #include <openhpi.h>
 
-/* multi-threading support, use Posix mutex for data access */
-/* initialize mutex used for data locking */
-extern pthread_mutex_t data_access_mutex; 
-
 static inline int __dsel_add(GSList **sel_list, 
                 const SaHpiSelEntryT *entry, int counter)
 {
         struct oh_dsel *dsel;
         
-        pthread_mutex_lock(&data_access_mutex);
+        data_access_lock();
 
         dsel = malloc(sizeof(*dsel));
         if (!dsel) {
                 dbg("Out of memory");
-                pthread_mutex_unlock(&data_access_mutex);
+                data_access_unlock();
                 return -1;
         }
         memset(dsel, 0, sizeof(*dsel));
@@ -45,7 +41,7 @@ static inline int __dsel_add(GSList **sel_list,
         dsel->entry.EntryId = counter;
         *sel_list = g_slist_append(*sel_list, dsel);
 
-        pthread_mutex_unlock(&data_access_mutex);
+        data_access_unlock();
 
         return 0;
 }
@@ -54,7 +50,7 @@ static inline void __dsel_clr(GSList **sel_list)
 {
         GSList *i, *i2;
 
-        pthread_mutex_lock(&data_access_mutex);
+        data_access_lock();
 
         g_slist_for_each_safe(i, i2, *sel_list) {
                 struct oh_sel *sel;
@@ -63,7 +59,7 @@ static inline void __dsel_clr(GSList **sel_list)
                 free(sel);                      
         }
 
-        pthread_mutex_unlock(&data_access_mutex);
+        data_access_unlock();
 
 }
 
@@ -71,7 +67,7 @@ static inline void __rsel_clr(struct oh_resource *res, GSList **sel_list)
 {
         GSList *i, *i2;
 
-        pthread_mutex_lock(&data_access_mutex);
+        data_access_lock();
 
         g_slist_for_each_safe(i, i2, *sel_list) {
                 struct oh_rsel *rsel;
@@ -81,7 +77,7 @@ static inline void __rsel_clr(struct oh_resource *res, GSList **sel_list)
                 free(rsel);                     
         }
         
-        pthread_mutex_unlock(&data_access_mutex);
+        data_access_unlock();
 
 }
 
@@ -89,12 +85,12 @@ int dsel_get_info(SaHpiDomainIdT domain_id, SaHpiSelInfoT *info)
 {
         struct oh_domain *d;
         
-        pthread_mutex_lock(&data_access_mutex);
+        data_access_lock();
         
         d = get_domain_by_id(domain_id);
         if (!d) {
                 dbg("Invalid domain");
-                pthread_mutex_unlock(&data_access_mutex);
+                data_access_unlock();
                 return -1;
         }
         
@@ -107,7 +103,7 @@ int dsel_get_info(SaHpiDomainIdT domain_id, SaHpiSelInfoT *info)
         info->OverflowAction            = SAHPI_SEL_OVERFLOW_DROP;
         info->DeleteEntrySupported      = 1;
 
-        pthread_mutex_unlock(&data_access_mutex);
+        data_access_unlock();
 
         return 0;
 }
@@ -171,13 +167,13 @@ int dsel_add2(struct oh_domain *d, struct oh_hpi_event *e)
 {
         struct oh_dsel *dsel;
         
-        pthread_mutex_lock(&data_access_mutex);
+        data_access_lock();
 
 //      dbg("DSEL from plugin!");
         dsel = malloc(sizeof(*dsel));
         if (!dsel) {
                 dbg("Out of memory");
-                pthread_mutex_unlock(&data_access_mutex);
+                data_access_unlock();
                 return -1;
         }
         memset(dsel, 0, sizeof(*dsel));
@@ -191,7 +187,7 @@ int dsel_add2(struct oh_domain *d, struct oh_hpi_event *e)
         
         d->sel_list = g_slist_append(d->sel_list, dsel);
 
-        pthread_mutex_unlock(&data_access_mutex);
+        data_access_unlock();
 
         return 0;
 }
@@ -201,12 +197,12 @@ int dsel_del(SaHpiDomainIdT domain_id, SaHpiSelEntryIdT id)
         struct oh_domain *d;
         GSList *i;
 
-        pthread_mutex_lock(&data_access_mutex);
+        data_access_lock();
 
         d = get_domain_by_id(domain_id);
         if (!d) {
                 dbg("Invalid domain");
-                pthread_mutex_unlock(&data_access_mutex);
+                data_access_unlock();
                 return -1;
         }
 
@@ -222,11 +218,11 @@ int dsel_del(SaHpiDomainIdT domain_id, SaHpiSelEntryIdT id)
         
         if (!i) {
                 dbg("No such entry");
-                pthread_mutex_unlock(&data_access_mutex);
+                data_access_unlock();
                 return -1;
         }
 
-        pthread_mutex_unlock(&data_access_mutex);
+        data_access_unlock();
         
         return 0;
 }
@@ -277,12 +273,12 @@ int rsel_add2(struct oh_resource *res, struct oh_rsel_event *e)
 {
         struct oh_rsel *rsel;
 
-        pthread_mutex_lock(&data_access_mutex);
+        data_access_lock();
         
         rsel = malloc(sizeof(*rsel));
         if (!rsel) {
                 dbg("Out of memory");
-                pthread_mutex_unlock(&data_access_mutex);
+                data_access_unlock();
                 return -1;
         }
         memset(rsel, 0, sizeof(*rsel));
@@ -291,7 +287,7 @@ int rsel_add2(struct oh_resource *res, struct oh_rsel_event *e)
         rsel->entry_id = res->sel_counter++;    
         res->sel_list = g_slist_append(res->sel_list, rsel);
 
-        pthread_mutex_unlock(&data_access_mutex);
+        data_access_unlock();
 
         return 0;
 }
@@ -301,12 +297,12 @@ int rsel_del(SaHpiResourceIdT res_id, SaHpiSelEntryIdT id)
         struct oh_resource *res;
         GSList *i;
         
-        pthread_mutex_lock(&data_access_mutex);
+        data_access_lock();
 
         res = get_resource(res_id);
         if (!res) {
                 dbg("Invalid resource id");
-                pthread_mutex_unlock(&data_access_mutex);
+                data_access_unlock();
                 return -1;
         }
 
@@ -325,11 +321,11 @@ int rsel_del(SaHpiResourceIdT res_id, SaHpiSelEntryIdT id)
         
         if (!i) {
                 dbg("No such entry");
-                pthread_mutex_unlock(&data_access_mutex);
+                data_access_unlock();
                 return -1;
         }
         
-        pthread_mutex_unlock(&data_access_mutex);
+        data_access_unlock();
 
         return 0;
 }

@@ -23,10 +23,6 @@
 #include <SaHpi.h>
 #include <openhpi.h>
 
-/* multi-threading support, use Posix mutex for data access */
-/* initialize mutex used for data locking */
-extern pthread_mutex_t data_access_mutex; 
-
 GSList *global_session_list=NULL;
 
 static SaHpiSessionIdT scounter = 0;
@@ -35,17 +31,17 @@ struct oh_session *session_get(SaHpiSessionIdT sid)
 {
         GSList *i;
         
-        pthread_mutex_lock(&data_access_mutex);
+        data_access_lock();
 
         g_slist_for_each(i, global_session_list) {
                 struct oh_session *s = i->data;
                 if(s->session_id == sid) {
-                        pthread_mutex_unlock(&data_access_mutex);
+                        data_access_unlock();
                         return s;
                 }
         }
 
-        pthread_mutex_unlock(&data_access_mutex);
+        data_access_unlock();
         
         return NULL;
 }
@@ -55,12 +51,12 @@ int session_add(SaHpiDomainIdT did,
 {
         struct oh_session *s;
         
-        pthread_mutex_lock(&data_access_mutex);
+        data_access_lock();
         
         s = malloc(sizeof(*s));
         if (!s) {
                 dbg("Cannot get memory!");
-                pthread_mutex_unlock(&data_access_mutex);
+                data_access_unlock();
                 return -1;
         }
         memset(s, 0, sizeof(*s));
@@ -74,7 +70,7 @@ int session_add(SaHpiDomainIdT did,
         
         *session = s;
         
-        pthread_mutex_unlock(&data_access_mutex);
+        data_access_unlock();
         
         return 0;
 }
@@ -96,19 +92,19 @@ int session_push_event(struct oh_session *s, struct oh_hpi_event *e)
 {
         struct oh_event *e1;
 
-        pthread_mutex_lock(&data_access_mutex);
+        data_access_lock();
         
         e1 = malloc(sizeof(*e1));
         if (!e1) {
                 dbg("Out of memory!");
-                pthread_mutex_unlock(&data_access_mutex);
+                data_access_unlock();
                 return -1;
         }
         memcpy(e1, e, sizeof(*e));
 
         s->eventq = g_slist_append(s->eventq, (gpointer *) e1);
 
-        pthread_mutex_unlock(&data_access_mutex);
+        data_access_unlock();
         
         return 0;
 }
@@ -124,10 +120,10 @@ int session_pop_event(struct oh_session *s, struct oh_hpi_event *e)
 {
         GSList *head;
         
-        pthread_mutex_lock(&data_access_mutex);
+        data_access_lock();
         
         if (g_slist_length(s->eventq) == 0) {
-                pthread_mutex_unlock(&data_access_mutex);
+                data_access_unlock();
                 return 0;
         }
        
@@ -139,7 +135,7 @@ int session_pop_event(struct oh_session *s, struct oh_hpi_event *e)
         free(head->data);
         g_slist_free_1(head);
         
-        pthread_mutex_unlock(&data_access_mutex);
+        data_access_unlock();
 
         return 1;
 }

@@ -22,21 +22,17 @@
 #include <SaHpi.h>
 #include <openhpi.h>
 
-/* multi-threading support, use Posix mutex for data access */
-/* initialize mutex used for data locking */
-extern pthread_mutex_t data_access_mutex; 
-
 static void process_session_event(struct oh_hpi_event *e)
 {
         struct oh_resource *res;
         GSList *i;
 
-        pthread_mutex_lock(&data_access_mutex);
+        data_access_lock();
 
         res = get_res_by_oid(e->parent);
         if (!res) {
                 dbg("No the resource");
-                pthread_mutex_unlock(&data_access_mutex);
+                data_access_unlock();
                 return;
         }
 
@@ -66,14 +62,14 @@ static void process_session_event(struct oh_hpi_event *e)
                 }
         }
 
-        pthread_mutex_unlock(&data_access_mutex);
+        data_access_unlock();
 }
 
 static void process_resource_event(struct oh_handler *h, struct oh_resource_event *e) 
 {
         struct oh_resource *res;
 
-        pthread_mutex_lock(&data_access_mutex);
+        data_access_lock();
 
         res = insert_resource(h, e->id);
         memcpy(&res->entry, &e->entry, sizeof(res->entry));
@@ -91,7 +87,7 @@ static void process_resource_event(struct oh_handler *h, struct oh_resource_even
         res->domain_list = g_slist_append(res->domain_list, 
                         GUINT_TO_POINTER(SAHPI_DEFAULT_DOMAIN_ID));
 
-        pthread_mutex_unlock(&data_access_mutex);
+        data_access_unlock();
 
 }
 
@@ -100,24 +96,24 @@ static void process_domain_event(struct oh_handler *h, struct oh_domain_event *e
         struct oh_resource *res;
         struct oh_domain *domain;
 
-        pthread_mutex_lock(&data_access_mutex);
+        data_access_lock();
 
         res = get_res_by_oid(e->res_id);
         domain = get_domain_by_oid(e->domain_id);
         
         if (!res) {
                 dbg("Cannot find corresponding resource");
-                pthread_mutex_unlock(&data_access_mutex);
+                data_access_unlock();
                 return;
         }               
         if (!domain) {
                 dbg("Cannot find corresponding domain");
-                pthread_mutex_unlock(&data_access_mutex);
+                data_access_unlock();
                 return;
         }               
         res->domain_list = g_slist_append(res->domain_list, GUINT_TO_POINTER(domain->domain_id));
         
-        pthread_mutex_unlock(&data_access_mutex);
+        data_access_unlock();
 
 }
 
@@ -174,7 +170,7 @@ static int get_event(void)
 
         has_event = 0;
 
-        pthread_mutex_lock(&data_access_mutex);
+        data_access_lock();
 
         g_slist_for_each(i, global_handler_list) {
                 struct timeval to = {0, 0};
@@ -211,7 +207,7 @@ static int get_event(void)
                 }
         }
 
-        pthread_mutex_unlock(&data_access_mutex);
+        data_access_unlock();
 
         return has_event;
 }
@@ -220,7 +216,7 @@ int get_events(void)
 {
         int has_event;
 
-        pthread_mutex_lock(&data_access_mutex);
+        data_access_lock();
 
         do {
                 has_event = get_event();
@@ -228,7 +224,7 @@ int get_events(void)
 
         process_hotswap_policy();
 
-        pthread_mutex_unlock(&data_access_mutex);
+        data_access_unlock();
 
         return 0;
 }

@@ -33,11 +33,6 @@ static enum {
 } oh_hpi_state = OH_STAT_UNINIT;
 static const int entry_id_offset = 1000;
 
-/* multi-threading support, use Posix mutex for data access */
-/* initialize mutex used for data locking */
-pthread_mutex_t data_access_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
-
-
 #define OH_STATE_READY_CHECK                                    \
         do {                                                    \
                     if (OH_STAT_READY!=oh_hpi_state) {          \
@@ -72,7 +67,7 @@ static inline struct oh_rdr * get_rdr(
 {
         GSList *i;
 
-        pthread_mutex_lock(&data_access_mutex);
+        data_access_lock();
         
         g_slist_for_each(i, res->rdr_list) {
                 struct oh_rdr *rdr;
@@ -84,25 +79,25 @@ static inline struct oh_rdr * get_rdr(
                 switch (type) {
                 case SAHPI_CTRL_RDR:
                         if (rdr->rdr.RdrTypeUnion.CtrlRec.Num == num) {
-                                pthread_mutex_unlock(&data_access_mutex);
+                                data_access_unlock();
                                 return rdr;
                         }
                         break;
                 case SAHPI_SENSOR_RDR:
                         if (rdr->rdr.RdrTypeUnion.SensorRec.Num == num) {
-                                pthread_mutex_unlock(&data_access_mutex);
+                                data_access_unlock();
                                 return rdr;
                         }
                         break;
                 case SAHPI_INVENTORY_RDR:
                         if (rdr->rdr.RdrTypeUnion.InventoryRec.EirId == num) {
-                                pthread_mutex_unlock(&data_access_mutex);
+                                data_access_unlock();
                                 return rdr;
                         }
                         break;
                 case SAHPI_WATCHDOG_RDR:
                         if (rdr->rdr.RdrTypeUnion.WatchdogRec.WatchdogNum == num) {
-                                pthread_mutex_unlock(&data_access_mutex);
+                                data_access_unlock();
                                 return rdr;
                         }
                         break;
@@ -112,7 +107,7 @@ static inline struct oh_rdr * get_rdr(
                 }
         }
 
-        pthread_mutex_unlock(&data_access_mutex);
+        data_access_unlock();
         
         return NULL;
 }
@@ -134,7 +129,7 @@ SaErrorT SAHPI_API saHpiInitialize(SAHPI_OUT SaHpiVersionT *HpiImplVersion)
         /* in the future may want to add seperate */
         /* mutexes, one for each hash list        */
          
-        pthread_mutex_lock(&data_access_mutex);
+        data_access_lock();
 
         openhpi_conf = getenv("OPENHPI_CONF");
         
@@ -144,7 +139,7 @@ SaErrorT SAHPI_API saHpiInitialize(SAHPI_OUT SaHpiVersionT *HpiImplVersion)
         
         if (oh_load_config(openhpi_conf) < 0) {
                 dbg("Can not load config");
-                pthread_mutex_unlock(&data_access_mutex);
+                data_access_unlock();
                 return SA_ERR_HPI_NOT_PRESENT;
         }
         
@@ -178,7 +173,7 @@ SaErrorT SAHPI_API saHpiInitialize(SAHPI_OUT SaHpiVersionT *HpiImplVersion)
         
         oh_hpi_state = OH_STAT_READY;
 
-        pthread_mutex_unlock(&data_access_mutex);
+        data_access_unlock();
 
         return SA_OK;
 }
@@ -193,7 +188,7 @@ SaErrorT SAHPI_API saHpiFinalize(void)
         oh_hpi_state = OH_STAT_UNINIT;
 
         /* free glib static mutex */
-        pthread_mutex_unlock(&data_access_mutex);
+        data_access_unlock();
 
         return SA_OK;
 }
@@ -248,14 +243,14 @@ SaErrorT SAHPI_API saHpiResourcesDiscover(SAHPI_IN SaHpiSessionIdT SessionId)
         GSList *i;
         int rv =0;
 
-        pthread_mutex_lock(&data_access_mutex);
+        data_access_lock();
         
         OH_STATE_READY_CHECK;
 
         s = session_get(SessionId);
         if (!s) {
                 dbg("Invalid session");
-                pthread_mutex_unlock(&data_access_mutex);
+                data_access_unlock();
                 return SA_ERR_HPI_INVALID_SESSION;
         }
         
@@ -265,18 +260,18 @@ SaErrorT SAHPI_API saHpiResourcesDiscover(SAHPI_IN SaHpiSessionIdT SessionId)
         }
         if (rv) {
                 dbg("Error attempting to discover resource");  
-                pthread_mutex_unlock(&data_access_mutex);
+                data_access_unlock();
                 return SA_ERR_HPI_UNKNOWN;
         }
         
         rv = get_events();
         if (rv<0) {
                 dbg("Error attempting to process resources");
-                pthread_mutex_unlock(&data_access_mutex);
+                data_access_unlock();
                 return SA_ERR_HPI_UNKNOWN;
         }
 
-        pthread_mutex_unlock(&data_access_mutex);
+        data_access_unlock();
         
         return SA_OK;
 }
@@ -313,12 +308,12 @@ SaErrorT SAHPI_API saHpiRptEntryGet(
         
         OH_STATE_READY_CHECK;
 
-        pthread_mutex_lock(&data_access_mutex);
+        data_access_lock();
 
         s = session_get(SessionId);
         if (!s) {
                 dbg("Invalid session");
-                pthread_mutex_unlock(&data_access_mutex);
+                data_access_unlock();
                 return SA_ERR_HPI_INVALID_SESSION;
         }
         
@@ -331,21 +326,21 @@ SaErrorT SAHPI_API saHpiRptEntryGet(
                 }
                 if (!i) {
                         dbg("Invalid EntryId");
-                        pthread_mutex_unlock(&data_access_mutex);
+                        data_access_unlock();
                         return SA_ERR_HPI_INVALID;
                 }                       
         }else {
                 no = EntryId - entry_id_offset;
                 if (no < 0 || no>=g_slist_length(global_rpt)) {
                         dbg("Invalid EntryId");
-                        pthread_mutex_unlock(&data_access_mutex);
+                        data_access_unlock();
                         return SA_ERR_HPI_INVALID;
                 }
         
                 i = g_slist_nth(global_rpt, no);
                 if (!resource_is_in_domain(i->data, s->domain_id)) {
                         dbg("Invalid EntryId");
-                        pthread_mutex_unlock(&data_access_mutex);
+                        data_access_unlock();
                         return SA_ERR_HPI_INVALID;
                 }
         }
@@ -367,7 +362,7 @@ SaErrorT SAHPI_API saHpiRptEntryGet(
                 *NextEntryId = SAHPI_LAST_ENTRY;
         }
         
-        pthread_mutex_unlock(&data_access_mutex);
+        data_access_unlock();
         
         return SA_OK;
 }
@@ -483,10 +478,10 @@ static SaErrorT process_sel_entry(
         GSList *pi, *i, *ni;
         SaHpiSelEntryT entry;
 
-        pthread_mutex_lock(&data_access_mutex);
+        data_access_lock();
 
         if (sel_list==NULL) {
-                pthread_mutex_unlock(&data_access_mutex);
+                data_access_unlock();
                 return SA_ERR_HPI_INVALID;
         } else if (EntryId==SAHPI_OLDEST_ENTRY) {
                 pi = NULL;
@@ -505,7 +500,7 @@ static SaErrorT process_sel_entry(
         }
         
         if (!i) {
-                pthread_mutex_unlock(&data_access_mutex);
+                data_access_unlock();
                 return SA_ERR_HPI_INVALID;
         }
         
@@ -543,7 +538,7 @@ static SaErrorT process_sel_entry(
         } else
                 *NextEntryId = SAHPI_NO_MORE_ENTRIES;
 
-        pthread_mutex_unlock(&data_access_mutex);
+        data_access_unlock();
         
         return SA_OK;
 }
@@ -1045,7 +1040,7 @@ SaErrorT SAHPI_API saHpiRdrGet (
         struct oh_rdr *rdr;     
         int no;
         
-        pthread_mutex_lock(&data_access_mutex);
+        data_access_lock();
         
         OH_GET_RESOURCE;
 
@@ -1060,7 +1055,7 @@ SaErrorT SAHPI_API saHpiRdrGet (
         
         if (no>=g_slist_length(res->rdr_list)) {
                 dbg("Invalid EntryId");
-                pthread_mutex_unlock(&data_access_mutex);
+                data_access_unlock();
                 return SA_ERR_HPI_INVALID;
         }
 
@@ -1075,7 +1070,7 @@ SaErrorT SAHPI_API saHpiRdrGet (
                 *NextEntryId = SAHPI_LAST_ENTRY;
         }
         
-        pthread_mutex_unlock(&data_access_mutex);
+        data_access_unlock();
         
         return SA_OK;
 }

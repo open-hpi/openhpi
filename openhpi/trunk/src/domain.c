@@ -23,9 +23,6 @@
 #include <SaHpi.h>
 #include <openhpi.h>
 
-/* multi-threading support, use Posix mutex for data access */
-/* initialize mutex used for data locking */
-extern pthread_mutex_t data_access_mutex; 
 /*
  *  Global list of all available domain id's (SaHpiDomainIdT).
  *  The intent is that this list is maintained as new RPT entries
@@ -39,17 +36,17 @@ int is_in_domain_list(SaHpiDomainIdT did)
 {
         GSList *i;
         
-        pthread_mutex_lock(&data_access_mutex);
+        data_access_lock();
 
         g_slist_for_each(i, global_domain_list) {
                 struct oh_domain *d = i->data;
                 if(d->domain_id == did) {
-                        pthread_mutex_unlock(&data_access_mutex);
+                        data_access_unlock();
                         return 1;
                 }
         }
 
-        pthread_mutex_unlock(&data_access_mutex);
+        data_access_unlock();
         
         return 0;
 }
@@ -58,17 +55,17 @@ struct oh_domain *get_domain_by_id(SaHpiDomainIdT did)
 {
         GSList *i;
         
-        pthread_mutex_lock(&data_access_mutex);
+        data_access_lock();
 
         g_slist_for_each(i, global_domain_list) {
                 struct oh_domain *d = i->data;
                 if(d->domain_id == did) {
-                        pthread_mutex_unlock(&data_access_mutex);
+                        data_access_unlock();
                         return d;
                 }
         }
 
-        pthread_mutex_unlock(&data_access_mutex);
+        data_access_unlock();
 
         return NULL;
 }
@@ -77,17 +74,17 @@ struct oh_domain *get_domain_by_oid(struct oh_domain_id oid)
 {
         GSList *i;
         
-        pthread_mutex_lock(&data_access_mutex);
+        data_access_lock();
 
         g_slist_for_each(i, global_domain_list) {
                 struct oh_domain *d = i->data;
                 if(memcmp(&oid, &d->domain_oid, sizeof(oid)) == 0) {
-                        pthread_mutex_unlock(&data_access_mutex);
+                        data_access_unlock();
                         return d;
                 }
         }
 
-        pthread_mutex_unlock(&data_access_mutex);
+        data_access_unlock();
 
         return NULL;
 }
@@ -108,7 +105,7 @@ int add_domain(SaHpiDomainIdT did)
                 return -1;
         }
         
-        pthread_mutex_lock(&data_access_mutex);
+        data_access_lock();
         
         d = malloc(sizeof(*d));
         if (!d) {
@@ -120,7 +117,7 @@ int add_domain(SaHpiDomainIdT did)
  
         global_domain_list = g_slist_append(global_domain_list, d);
 
-        pthread_mutex_unlock(&data_access_mutex);
+        data_access_unlock();
         
         return 0;
 }
@@ -131,10 +128,10 @@ SaHpiDomainIdT new_domain(struct oh_domain_id domain_oid)
         
         struct oh_domain *d;        
 
-        pthread_mutex_lock(&data_access_mutex);  
+        data_access_lock();  
 
         if(is_in_domain_list(dcounter) > 0) {
-                pthread_mutex_unlock(&data_access_mutex);
+                data_access_unlock();
                 dbg("Domain %d exists already, something is fishy", dcounter);
                 return -1;
         }   
@@ -142,7 +139,7 @@ SaHpiDomainIdT new_domain(struct oh_domain_id domain_oid)
         d = malloc(sizeof(*d));
         if (!d) {
                 dbg("Out of memory");
-                pthread_mutex_unlock(&data_access_mutex);
+                data_access_unlock();
                 return -1;
         }
         memset(d, 0, sizeof(*d));
@@ -151,7 +148,7 @@ SaHpiDomainIdT new_domain(struct oh_domain_id domain_oid)
         d->domain_oid = domain_oid;
         global_domain_list = g_slist_append(global_domain_list, d);
 
-        pthread_mutex_unlock(&data_access_mutex);
+        data_access_unlock();
 
         return dcounter++;
 }

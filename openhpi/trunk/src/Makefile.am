@@ -41,8 +41,8 @@ AM_CFLAGS		= @CFLAGS@
 
 lib_LTLIBRARIES		= libopenhpi.la
 
-libopenhpi_la_SOURCES	= resource.c domain.c session.c plugin.c event.c config.c hotswap.c eventlog.c safhpi.c
-libopenhpi_la_LIBADD    = -lltdl -lpthread
+libopenhpi_la_SOURCES	= resource.c domain.c session.c plugin.c event.c config.c hotswap.c eventlog.c safhpi.c lock.c
+libopenhpi_la_LIBADD    = -lltdl
 libopenhpi_la_LDFLAGS	= -version-info 0:0:0
 
 

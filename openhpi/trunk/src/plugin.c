@@ -26,10 +26,6 @@
 #include <openhpi.h>
 #include <oh_config.h>
 
-/* multi-threading support, use Posix mutex for data access */
-/* initialize mutex used for data locking */
-extern pthread_mutex_t data_access_mutex; 
-
 /*******************************************************************************
  * init_plugin - does all the initialization needed for the ltdl process to
  * work.  It takes no arguments, and returns 0 on success, < 0 on error
@@ -110,12 +106,12 @@ int load_handler (GHashTable *handler_config)
 {
         struct oh_handler *handler;
 
-        pthread_mutex_lock(&data_access_mutex);
+        data_access_lock();
 
         handler = new_handler(handler_config);
 
         if(handler == NULL) {
-                pthread_mutex_unlock(&data_access_mutex);
+                data_access_unlock();
                 return -1;
         }
         
@@ -124,7 +120,7 @@ int load_handler (GHashTable *handler_config)
                 (gpointer) handler
                 );
         
-        pthread_mutex_unlock(&data_access_mutex);
+        data_access_unlock();
         
         return 0;
 }
