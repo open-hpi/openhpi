@@ -343,6 +343,7 @@ static int ipmi_set_sel_time(void               *hnd,
                              SaHpiResourceIdT   id,
                              SaHpiTimeT    time)
 {
+	dbg("sel_set_time called");
         struct ohoi_resource_id *ohoi_res_id;
 	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
         struct timeval tv;
