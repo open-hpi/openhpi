@@ -1577,17 +1577,28 @@ SaErrorT SAHPI_API saHpiWatchdogTimerReset (
                 SAHPI_IN SaHpiWatchdogNumT WatchdogNum)
 {
         int (*reset_func)(void *, SaHpiResourceIdT, SaHpiWatchdogNumT);
-
+        
+        struct oh_session *s;
         RPTable *rpt = default_rpt;
+        SaHpiRptEntryT *res;
         struct oh_handler *h;
+        
+        OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId, s);        
+        OH_RESOURCE_GET(rpt, ResourceId, res);
 
+        if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_WATCHDOG)) {
+                dbg("Resource %d doesn't have watchdog",ResourceId);
+                return SA_ERR_HPI_INVALID_REQUEST;
+        }
+        
         OH_HANDLER_GET(rpt, ResourceId, h);
 
         reset_func = h->abi->reset_watchdog;
         if (!reset_func)                
                 return SA_ERR_HPI_UNSUPPORTED_API;
 
-        if (reset_func(h->hnd, ResourceId, WatchdogNum))
+        if (reset_func(h->hnd, ResourceId, WatchdogNum) != SA_OK)
                 return SA_ERR_HPI_UNKNOWN;
 
         return SA_OK;
@@ -1825,7 +1836,7 @@ SaErrorT SAHPI_API saHpiHotSwapStateGet (
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
         
-        if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP))
+        if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_FRU))
                 return SA_ERR_HPI_INVALID;
         
         get_hotswap_state = h->abi->get_hotswap_state;
