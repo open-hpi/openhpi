@@ -32,6 +32,8 @@
 
 MAINTAINERCLEANFILES    = Makefile.in
 
+SAHPIFILES = sahpi_enum_utils.c sahpi_enum_utils.h 
+
 MOSTLYCLEANFILES        = @TEST_CLEAN@
 
 INCLUDES                = -I$(top_srcdir)/include
@@ -60,5 +62,5 @@ libopenhpiutils_la_SOURCES = \
 
 libopenhpiutils_la_LDFLAGS = -version-info @HPI_LIB_VERSION@
 
-sahpi_enum_utils.c: $(top_srcdir)/include/SaHpi.h $(top_srcdir)/scripts/SaHpi2code.pl
-	$(top_srcdir)/scripts/SaHpi2code.pl -ifile $(top_srcdir)/include/SaHpi.h
+$(SAHPIFILES): $(top_srcdir)/include/SaHpi.h $(top_srcdir)/scripts/SaHpi2code.pl
+	$(top_srcdir)/scripts/SaHpi2code.pl -ifile $(top_srcdir)/include/SaHpi.h -tdir $(srcdir)/t/sahpi
