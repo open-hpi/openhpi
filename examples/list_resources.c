@@ -75,8 +75,13 @@ SaErrorT discover_domain(SaHpiDomainIdT domain_id)
 		current = next;
 		err = saHpiRptEntryGet(session_id, current, &next, &entry);
 		if (SA_OK != err) {
-			error("saHpiRptEntryGet", err);
-			return err;
+			if (current != SAHPI_FIRST_ENTRY) {
+				error("saHpiRptEntryGet", err);
+				return err;
+			} else {
+				warn("Empty RPT\n");
+				return SA_OK;
+			}
 		}
 
 		printf("%s\n", (char *)entry.ResourceTag.Data);
