@@ -69,7 +69,7 @@ typedef enum {
 
 /* OID definitions for System Event Log */
 #define SNMP_RSA_TIME_DST ".1.3.6.1.4.1.2.3.51.1.4.4.2.0"
-#define RSA_DATETIME_OID ".1.3.6.1.4.1.2.3.51.2.4.4.1.0"
+#define RSA_DATETIME_OID ".1.3.6.1.4.1.2.3.51.1.4.4.1.0"
 
 /*************************************************************************
  *                   Resource Definitions
