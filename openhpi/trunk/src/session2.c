@@ -257,7 +257,7 @@ SaErrorT oh_dequeue_session_event(SaHpiSessionIdT sid,
 {
        struct oh_session *session = NULL;
        struct oh_event *devent = NULL;
-       GTimeVal gtimeval;
+       GTimeVal gfinaltime;
        GAsyncQueue *eventq = NULL;
 
        if (sid < 1 || !event) return SA_ERR_HPI_INVALID_PARAMS;
@@ -276,10 +276,10 @@ SaErrorT oh_dequeue_session_event(SaHpiSessionIdT sid,
                devent = g_async_queue_try_pop(eventq);
        } else if (timeout == SAHPI_TIMEOUT_BLOCK) {
                devent = g_async_queue_pop(eventq); /* FIXME: Need to time this. */
-       } else {
-               gtimeval.tv_sec = timeout / 1000000000;
-               gtimeval.tv_usec = timeout % 1000000000 / 1000;
-               devent = g_async_queue_timed_pop(eventq, &gtimeval); /* FIXME: Put final time. */
+       } else {               
+               g_get_current_time(&gfinaltime);
+               g_time_val_add(&gfinaltime, (glong) (timeout / 1000));
+               devent = g_async_queue_timed_pop(eventq, &gfinaltime);
        }
        g_async_queue_unref(eventq);
 
