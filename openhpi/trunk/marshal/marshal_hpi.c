@@ -16,6 +16,7 @@
  */
 
 #include "marshal_hpi.h"
+#include <stdio.h>
 
 
 static const cMarshalType *saHpiVersionGetIn[] =
@@ -418,7 +419,6 @@ static const cMarshalType *saHpiAlarmGetIn[] =
 {
   &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
   &SaHpiAlarmIdType,
-  &SaHpiBoolType,
   0
 };
 
@@ -1366,8 +1366,8 @@ HpiMarshalFind( int id )
 
        for( i = 0; i < hpi_marshal_num; i++ )
 	  {
+//          printf("Entry %d\n", i);
 	    hpi_marshal[i].m_request_len = MarshalSizeArray( hpi_marshal[i].m_request );
-
 	    hpi_marshal[i].m_reply_len   = MarshalSizeArray( hpi_marshal[i].m_reply );
 	  }
 

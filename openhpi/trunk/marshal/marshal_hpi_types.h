@@ -84,18 +84,17 @@ extern cMarshalType SaHpiEntityPathType;
 #define SaHpiSensorTypeType SaHpiUint32Type
 
 // sensor reading type
+#define SaHpiSensorReadingTypeType SaHpiUint32Type
 extern cMarshalType SaHpiSensorReadingType;
 
 // sensor thresholds
 extern cMarshalType SaHpiSensorThresholdsType;
-
 #define SaHpiSensorRangeFlagsType SaHpiUint8Type
 extern cMarshalType SaHpiSensorRangeType;  
 
 // sensor rdr sensor units
 #define SaHpiSensorUnitsType SaHpiUint32Type
 #define SaHpiSensorModUnitUseType SaHpiUint32Type
-#define SaHpiReadingTypeType SaHpiUint32Type
 extern cMarshalType SaHpiSensorDataFormatType;
 
 // sensor rdr threshold support
@@ -136,7 +135,8 @@ extern cMarshalType SaHpiCtrlRecType;
 
 // entity inventory data
 #define SaHpiIdrIdType SaHpiUint32Type
-#define SaHpiIdrAreaTypeType SaHpiUint8Type
+#define SaHpiIdrAreaTypeType SaHpiUint32Type
+#define SaHpiIdrFieldTypeType SaHpiUint32Type
 extern cMarshalType SaHpiIdrFieldTypeType;
 extern cMarshalType SaHpiIdrAreaHeaderType;
 extern cMarshalType SaHpiIdrInfoType;
@@ -147,9 +147,9 @@ extern cMarshalType SaHpiInventoryRecType;
 // watchdogs
 #define SaHpiWatchdogNumType SaHpiUint32Type
 #define SaHpiWatchdogActionType SaHpiUint32Type
-#define SaHpiWatchdogActionEventType SaHpiUint8Type
-#define SaHpiWatchdogPretimerInterruptType SaHpiUint8Type
-#define SaHpiWatchdogTimerUseType SaHpiUint8Type
+#define SaHpiWatchdogActionEventType SaHpiUint32Type
+#define SaHpiWatchdogPretimerInterruptType SaHpiUint32Type
+#define SaHpiWatchdogTimerUseType SaHpiUint32Type
 #define SaHpiWatchdogExpFlagsType SaHpiUint8Type
 extern cMarshalType SaHpiWatchdogType;
 
@@ -171,7 +171,6 @@ extern cMarshalType SaHpiAnnunciatorRecType;
 
 // resource data record
 #define SaHpiRdrTypeType SaHpiUint32Type
-#define SaHpiRdrTypeUnionType SaHpiUint32Type
 extern cMarshalType SaHpiRdrType;
 
 // hot swap
@@ -180,7 +179,7 @@ extern cMarshalType SaHpiRdrType;
 #define SaHpiHsStateType SaHpiUint32Type
 
 // events part 2
-#define SaHpiSeverityType SaHpiUint8Type
+#define SaHpiSeverityType SaHpiUint32Type
 #define SaHpiResourceEventTypeType SaHpiUint32Type
 extern cMarshalType SaHpiResourceEventType;
 #define SaHpiDomainEventTypeType SaHpiUint32Type
@@ -197,7 +196,7 @@ extern cMarshalType SaHpiOemEventType;
 extern cMarshalType SaHpiUserEventType;
 #define SaHpiEventTypeType SaHpiUint32Type
 extern cMarshalType SaHpiEventType;
-#define SaHpiEvtQueueStatusType SaHpiUint16Type
+#define SaHpiEvtQueueStatusType SaHpiUint32Type
 
 // param control
 #define SaHpiParmActionType SaHpiUint32Type
