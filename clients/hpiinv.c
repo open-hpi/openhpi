@@ -1,6 +1,7 @@
 /*      -*- linux-c -*-
  *
  * Copyright (c) 2003 by Intel Corp.
+ * (C) Copyright IBM Corp. 2004
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -11,7 +12,8 @@
  *
  * Authors:
  *     Andy Cress <arcress@users.sourceforge.net>
- *     Peter D. Phan <pdphanusers.sourceforge.net>
+ *     Peter D. Phan <pdphan@users.sourceforge.net>
+ *     Renier Morales <renierm@users.sf.net>
  *
  * Log: 
  *     Copied from hpifru.c and modified for general use
@@ -46,7 +48,6 @@ char progname[] = "hpi_invent";
 char *asset_tag;
 char outbuff[256];
 SaHpiInventoryDataT *inv;
-const SaHpiUint32T   invsize = 16384;
 SaHpiInventChassisTypeT chasstype;
 SaHpiInventGeneralDataT *dataptr;
 SaHpiTextBufferT *strptr;
@@ -54,16 +55,17 @@ SaHpiTextBufferT *strptr;
 static void
 fixstr(SaHpiTextBufferT *strptr)
 { 
-        if ( strptr == 0 )
-        {
-                outbuff[0] = 0;
-                return;
-        }
-        
 	size_t datalen;
-	if ((datalen=strptr->DataLength) != 0)
+	
+       	memset(outbuff,0,256);        
+	if (!strptr) return;
+
+ 	datalen = strptr->DataLength;
+	if (datalen > 0) {
 		strncpy ((char *)outbuff, (char *)strptr->Data, datalen);
-	outbuff[datalen] = 0;
+		outbuff[datalen] = 0;
+	}
+
 }
 
 static void
@@ -210,14 +212,14 @@ prtboardinfo(void)
 	fixstr((SaHpiTextBufferT *)strptr);
 	printf( "\tBoard Asset Tag     : %s\n", outbuff);
 
-	for (j = 0; j < 10 && dataptr->CustomField[j] ; j++)
-		if (dataptr->CustomField[j] != NULL
-                    && dataptr->CustomField[0]->DataLength != 0) {
+	for (j = 0; j < 10 && dataptr->CustomField[j] ; j++) {
+		if (dataptr->CustomField[j]->DataLength != 0) {
                         strncpy ((char *)outbuff, (char *)dataptr->CustomField[j]->Data,
 							dataptr->CustomField[j]->DataLength);
                         outbuff[dataptr->CustomField[j]->DataLength] = 0;
                         printf( "\tBoard OEM Field     : %s\n", outbuff);
                 }
+        }
 }
 
 int
@@ -241,6 +243,8 @@ main(int argc, char **argv)
 	SaHpiRdrT rdr;
 	SaHpiEirIdT eirid;
 
+	int inv_discovered = 0;
+		
 	printf("%s ver %s\n",argv[0],progver);
 
 	while ( (c = getopt( argc, argv,"a:xz?")) != EOF ) {
@@ -267,8 +271,7 @@ main(int argc, char **argv)
 				exit(1);
 		}
 	}
-
-	inv = (SaHpiInventoryDataT *)malloc(invsize);
+	
 	rv = saHpiInitialize(&hpiVer);
 	if (rv != SA_OK) {
 		printf("saHpiInitialize error %d\n",rv);
@@ -280,13 +283,14 @@ main(int argc, char **argv)
 		printf("saHpiSessionOpen error %d\n",rv);
 		exit(-1);
 	}
- 
+
 	rv = saHpiResourcesDiscover(sessionid);
 	if (fxdebug) printf("saHpiResourcesDiscover rv = %d\n",rv);
 
+restart: 
 	rv = saHpiRptInfoGet(sessionid,&rptinfo);
 	if (fxdebug) printf("saHpiRptInfoGet rv = %d\n",rv);
-	if (fdebug) printf("RptInfo: UpdateCount = %d, UpdateTime = %lx\n",
+	printf("RptInfo: UpdateCount = %d, UpdateTime = %lx\n",
 			rptinfo.UpdateCount, (unsigned long)rptinfo.UpdateTimestamp);
  
 	/* walk the RPT list */
@@ -301,8 +305,7 @@ main(int argc, char **argv)
                     && (rptentry.ResourceCapabilities & SAHPI_CAPABILITY_INVENTORY_DATA))
 		{
 			/* walk the RDR list for this RPT entry */
-			entryid = SAHPI_FIRST_ENTRY;
-			rptentry.ResourceTag.Data[rptentry.ResourceTag.DataLength] = 0;
+			entryid = SAHPI_FIRST_ENTRY;			
 			resourceid = rptentry.ResourceId;
 
 			if (fdebug) printf("rptentry[%d] resourceid=%d\n", entryid,resourceid);
@@ -313,10 +316,13 @@ main(int argc, char **argv)
 			{
 				rv = saHpiRdrGet(sessionid,resourceid, entryid,&nextentryid, &rdr);
 				if (fxdebug) printf("saHpiRdrGet[%d] rv = %d\n",entryid,rv);
-				if (rvxx == SA_OK)
+				if (rv == SA_OK)
 				{
 					if (rdr.RdrType == SAHPI_INVENTORY_RDR)
-					{ 
+					{
+                                                unsigned int invsize = 0;
+                                                
+                                                inv_discovered = 1;
 						/*type 3 includes inventory records*/
 						eirid = rdr.RdrTypeUnion.InventoryRec.EirId;
 						rdr.IdString.Data[rdr.IdString.DataLength] = 0;	    
@@ -324,10 +330,16 @@ main(int argc, char **argv)
 						if (fdebug) printf( "RDR[%d]: type=%d num=%d %s\n",
 								rdr.RecordId,
 								rdr.RdrType, eirid, rdr.IdString.Data);
+                                                actualsize = 0;                
+                                                rv = saHpiEntityInventoryDataRead(sessionid, resourceid,
+                                                                                  eirid, 0, NULL, &actualsize);
+                                                invsize = actualsize;                                                
+                                                if (fdebug) printf("BufferSize=%d\n", invsize);
 
-						if (fdebug) printf("BufferSize=%d\n", invsize);
-						rv = saHpiEntityInventoryDataRead( sessionid, resourceid,
-									eirid, invsize, inv, &actualsize);
+                                                inv = (SaHpiInventoryDataT *)malloc(invsize);
+                                                memset(inv,0,invsize);
+						rv = saHpiEntityInventoryDataRead(sessionid, resourceid,
+									eirid, invsize, inv, &actualsize);                                                
 
 						if (fxdebug) printf(
 							"saHpiEntityInventoryDataRead[%d] rv = %d\n", eirid, rv);
@@ -372,6 +384,7 @@ main(int argc, char **argv)
                                                                 }
                                                         }
 						} else { printf(" InventoryDataRead returns HPI Error: rv=%d\n", rv); }
+                                                free(inv);
 					} 
 				} /* Inventory Data Records - Type 3 */
 				entryid = nextentryid;
@@ -379,9 +392,25 @@ main(int argc, char **argv)
 		}
 		rptentryid = nextrptentryid;
 	}
+        
+
+	/* 
+	   because INVENTORY RDR will be added after some time, 
+	   we need to monitor RptInfo here 
+	 */
+						/* Try again */
+	if (!inv_discovered) {
+			rv = saHpiResourcesDiscover(sessionid);
+			if (fxdebug) {
+					printf("saHpiResourcesDiscover rv = %d\n",rv);
+			}
+			goto restart;
+	} 
+
 	rv = saHpiSessionClose(sessionid);
-	rv = saHpiFinalize();
-        free(inv);
+	rv = saHpiFinalize();	
+	
 	exit(0);
 }
+
  /* end hpi_invent.c */
