@@ -56,15 +56,20 @@ CleanupClient(void);
 static bool
 InitClient(void)
 {
-	const char		*host;
+	const char		*host, *portstr;
 	int			port;
 
-#ifdef dClientWithConfig
-
-#else
-	host = "localhost";
-	port =  55566;
-#endif
+        host = getenv("OPENHPI_DAEMON_HOST");
+        if (host == NULL) {
+                host = "localhost";
+        }
+        portstr = getenv("OPENHPI_DAEMON_HOST");
+        if (portstr == NULL) {
+                port =  4743;
+        }
+        else {
+                port =  atoi(portstr);
+        }
 
 	pinst = new cstrmsock;
 	if (pinst->Open(host, port)) {
