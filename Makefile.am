@@ -40,7 +40,7 @@ RPMDIR			=$(HOME)/rpms
 RPMSRC	=$(DESTDIR)$(RPMDIR)/SRPMS/$(PACKAGE)-$(VERSION)-$(RPMREL).src.rpm
 RPM386	=$(DESTDIR)$(RPMDIR)/RPMS/i386/$(PACKAGE)-$(VERSION)-$(RPMREL).i386.rpm
 
-EXTRA_DIST		= openhpi.spec docs include
+EXTRA_DIST		= openhpi.spec docs include util examples/openhpi.conf.example
 
 AUTOMAKE_OPTIONS	= foreign
 
@@ -65,6 +65,8 @@ documentation:
 
 hpi_examples: all
 	$(MAKE) -C examples
+hpi_utils: al
+	$(MAKE) -c utils
 
 clean: am_config_clean
 	$(MAKE) -C examples clean
