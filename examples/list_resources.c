@@ -430,32 +430,32 @@ void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
 
 			switch (state.Type) {
 				case SAHPI_CTRL_TYPE_DIGITAL:
-					printf("Control Digital State=%s\n", 
+					printf("\t\tControl Digital State: %s\n", 
 					       ctrldigital2str(state.StateUnion.Digital));
 					break;
 				case SAHPI_CTRL_TYPE_DISCRETE:
-					printf("Control Discrete State=%x\n", state.StateUnion.Discrete);
+					printf("\t\tControl Discrete State: %x\n", state.StateUnion.Discrete);
 					break;
 				case SAHPI_CTRL_TYPE_ANALOG:
-					printf("Control Analog State=%x\n", state.StateUnion.Analog);
+					printf("\t\tControl Analog State: %x\n", state.StateUnion.Analog);
 					break;
 				case SAHPI_CTRL_TYPE_STREAM:
-					printf("Control Stream Repeat=%d\n", state.StateUnion.Stream.Repeat);
-					printf("Control Stream Data=");
+					printf("\t\tControl Stream Repeat: %d\n", state.StateUnion.Stream.Repeat);
+					printf("\t\tControl Stream Data: ");
 					display_oembuffer(state.StateUnion.Stream.StreamLength, state.StateUnion.Stream.Stream);
 					break;
 				case SAHPI_CTRL_TYPE_TEXT:
-					printf("Control Text Line Num=%c\n", state.StateUnion.Text.Line);
+					printf("\t\tControl Text Line Num: %c\n", state.StateUnion.Text.Line);
 					display_textbuffer(state.StateUnion.Text.Text);
 					break;
 				case SAHPI_CTRL_TYPE_OEM:
-					printf("Control OEM Manufacturer=%d\n", state.StateUnion.Oem.MId);
-					printf("Control OEM Data=");
+					printf("\t\tControl OEM Manufacturer: %d\n", state.StateUnion.Oem.MId);
+					printf("\t\tControl OEM Data: ");
 					display_oembuffer((SaHpiUint32T)state.StateUnion.Oem.BodyLength, 
 						  state.StateUnion.Oem.Body);
 					break;
 				default:
-					printf("Invalid control type=%d from saHpiControlStateGet\n", 
+					printf("\t\tInvalid control type (%d) from saHpiControlStateGet\n", 
 					       state.Type);
 			}
                 }
