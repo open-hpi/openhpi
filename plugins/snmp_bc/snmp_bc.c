@@ -597,6 +597,7 @@ struct oh_abi_v2 oh_snmp_bc_plugin = {
         .add_sel_entry			= snmp_bc_add_sel_entry,
         .del_sel_entry			= snmp_bc_del_sel_entry,
         .get_sel_entry			= snmp_bc_get_sel_entry,
+	.clear_sel			= snmp_bc_clear_sel,
         .get_sensor_data		= snmp_bc_get_sensor_data,
         .get_sensor_thresholds		= snmp_bc_get_sensor_thresholds,
         .set_sensor_thresholds		= snmp_bc_set_sensor_thresholds,
