@@ -25,6 +25,8 @@
 #include <hpi_ui.h>
 #include "hpi_cmd.h"
 
+//SaErrorT oh_process_config_file(char *conf_file_name);
+
 #define READ_BUF_SIZE	1024
 
 #define SEN_AV_COM 	"   Available commands:\n" \
@@ -40,7 +42,18 @@
 			"	q | quit - exit"
 
 #define CTRL_AV_COM 	"   Available commands:\n" \
-			"	show     - show control status\n" \
+			"	setstate - set control state\n" \
+			"	show     - show control info\n" \
+			"	help	 - command list\n" \
+			"	q | quit - exit"
+
+#define INV_AV_COM 	"   Available commands:\n" \
+			"	addarea  - add inventory area\n" \
+			"	delarea  - delete inventory area\n" \
+			"	addfield - add inventory field\n" \
+			"	setfield - set inventory field\n" \
+			"	delfield - delete inventory field\n" \
+			"	show     - show inventory info\n" \
 			"	help	 - command list\n" \
 			"	q | quit - exit"
 
@@ -129,6 +142,25 @@ int help(int argc, char *argv[])
 	return 0;
 };
 
+static int add_config(int argc, char *argv[])
+{
+	SaErrorT rv = SA_OK;
+
+	if (argc != 2) {
+		printf("no config file\n");
+		return -1;
+	}
+//	rv = oh_process_config_file(argv[1]);
+//	if (rv == SA_ERR_HPI_BUSY) {
+//		printf("Hold on. Another configuration changing is"
+//		" processing\n");
+//	}
+//	if (rv == SA_ERR_HPI_NOT_PRESENT) {
+//		printf("Hold on. Initialization is processing\n");
+//	}
+	return rv;
+}
+  
 static int sa_event(int argc, char *argv[])
 {
 	if (argc == 1) {
@@ -151,7 +183,8 @@ static int sa_event(int argc, char *argv[])
 		} else {
 			return HPI_SHELL_PARM_ERROR;
 		}
-	}
+	};
+	set_Subscribe((Domain_t *)NULL, prt_flag);
 
 	return SA_OK;
 }
@@ -184,31 +217,6 @@ static void Set_thres_value(SaHpiSensorReadingT *item, double value)
 	item->Value.SensorFloat64 = value;
 }
 
-static int sa_show_hs_ind(SaHpiResourceIdT resourceid)
-{
-	SaErrorT rv;
-	SaHpiHsIndicatorStateT state;
-
-	rv = saHpiHotSwapIndicatorStateGet(Domain->sessionId, resourceid, &state);
-	if (rv != SA_OK) { 
-		printf("saHpiHotSwapStateGet error %s\n", oh_lookup_error(rv));
-		return -1;
-	}
-
-	printf("Current HS Indicator for resource %d is:", resourceid);
-	switch(state) {
-		case SAHPI_HS_INDICATOR_OFF:
-			printf(" OFF.\n");
-			break;
-		case SAHPI_HS_INDICATOR_ON:
-			printf(" ON.\n");
-			break;
-		default:
-			printf(" Unknown.\n");
-	}
-	return SA_OK;
-}
-	
 static int sa_hotswap_stat(SaHpiResourceIdT resourceid)
 {
 	SaErrorT rv;
@@ -349,199 +357,6 @@ static int sa_clear_evtlog(SaHpiResourceIdT resourceid)
 	return SA_OK;
 }
 
-
-#ifdef MY   // my
-
-/* functions for sa_show_inv */
-#define NCT 25
-char *chasstypes[NCT] = {
-	"Not Defined", "Other", "Unknown", "Desktop", "Low Profile Desktop",
-	"Pizza Box", "Mini Tower", "Tower", "Portable", "Laptop",
-	"Notebook", "Handheld", "Docking Station", "All in One", "Subnotebook",
-	"Space Saving", "Lunch Box", "Main Server", "Expansion", "SubChassis",
-	"Buss Expansion Chassis", "Peripheral Chassis", "RAID Chassis", 
-	"Rack-Mount Chassis", "New"
-};
-int i;
-char outbuff[256];
-SaHpiTextBufferT *strptr;
-
-static void
-fixstr(SaHpiTextBufferT *strptr)
-{ 
-	size_t datalen;
-
-       	memset(outbuff,0,256);        
-	if (!strptr) return;
-
- 	datalen = strptr->DataLength;
-	if (datalen > 0) {
-		strncpy ((char *)outbuff, (char *)strptr->Data, datalen);
-		outbuff[datalen] = 0;
-	}
-
-}
-
-
-static void
-prtchassinfo(void)
-{
-	int k;
-
-	chasstype = (SaHpiInventChassisTypeT)inv->DataRecords[i]->RecordData.ChassisInfo.Type;
-	for (k=0; k<NCT; k++) {
-		if ((unsigned int)k == chasstype)
-			printf( "\tChassis Type        : %s\n", chasstypes[k]);
-	}	  
-
-	dataptr = (SaHpiInventGeneralDataT *)&inv->DataRecords[i]->RecordData.ChassisInfo.GeneralData;
-	strptr=dataptr->Manufacturer;
-	fixstr((SaHpiTextBufferT *)strptr);
-	printf( "\tChassis Manufacturer: %s\n", outbuff);
-
-	strptr=dataptr->ProductName;
-	fixstr((SaHpiTextBufferT *)strptr);
-	printf( "\tChassis Name        : %s\n", outbuff);
-
-	strptr=dataptr->ProductVersion;
-	fixstr((SaHpiTextBufferT *)strptr);
-	printf( "\tChassis Version     : %s\n", outbuff);
-
-	strptr=dataptr->ModelNumber;
-	fixstr((SaHpiTextBufferT *)strptr);
-	printf( "\tChassis Model Number: %s\n", outbuff);
-
-	strptr=dataptr->SerialNumber;
-	fixstr((SaHpiTextBufferT *)strptr);
-	printf( "\tChassis Serial #    : %s\n", outbuff);
-
-	strptr=dataptr->PartNumber;
-	fixstr((SaHpiTextBufferT *)strptr);
-	printf( "\tChassis Part Number : %s\n", outbuff);
-
-	strptr=dataptr->FileId;
-	fixstr((SaHpiTextBufferT *)strptr);
-	printf( "\tChassis FRU File ID : %s\n", outbuff);
-
-	strptr=dataptr->AssetTag;
-	fixstr((SaHpiTextBufferT *)strptr);
-	printf( "\tChassis Asset Tag   : %s\n", outbuff);
-	if (dataptr->CustomField[0] != 0)
-	{
-		if (dataptr->CustomField[0]->DataLength != 0)
-		strncpy ((char *)outbuff, (char *)dataptr->CustomField[0]->Data,
-						dataptr->CustomField[0]->DataLength);
-		outbuff[dataptr->CustomField[0]->DataLength] = 0;
-		printf( "\tChassis OEM Field   : %s\n", outbuff);
-	}
-}
-
-static void
-prtprodtinfo(void)
-{
-	int j;
-	dataptr = (SaHpiInventGeneralDataT *)&inv->DataRecords[i]->RecordData.ProductInfo;
-	strptr=dataptr->Manufacturer;
-	fixstr((SaHpiTextBufferT *)strptr);
-	printf( "\tProduct Manufacturer: %s\n", outbuff);
-
-	strptr=dataptr->ProductName;
-	fixstr((SaHpiTextBufferT *)strptr);
-	printf( "\tProduct Name        : %s\n", outbuff);
-
-	strptr=dataptr->ProductVersion;
-	fixstr((SaHpiTextBufferT *)strptr);
-	printf( "\tProduct Version     : %s\n", outbuff);
-
-	strptr=dataptr->ModelNumber;
-	fixstr((SaHpiTextBufferT *)strptr);
-	printf( "\tProduct Model Number: %s\n", outbuff);
-
-	strptr=dataptr->SerialNumber;
-	fixstr((SaHpiTextBufferT *)strptr);
-	printf( "\tProduct Serial #    : %s\n", outbuff);
-
-	strptr=dataptr->PartNumber;
-	fixstr((SaHpiTextBufferT *)strptr);
-	printf( "\tProduct Part Number : %s\n", outbuff);
-
-	strptr=dataptr->FileId;
-	fixstr((SaHpiTextBufferT *)strptr);
-	printf( "\tProduct FRU File ID : %s\n", outbuff);
-
-	strptr=dataptr->AssetTag;
-	fixstr((SaHpiTextBufferT *)strptr);
-	printf( "\tProduct Asset Tag   : %s\n", outbuff);
-
-	for (j = 0; j < 10; j++) {
-		int ii;
-		if (dataptr->CustomField[j] != NULL) {
-			if ((dataptr->CustomField[j]->DataType == 0) &&
-				(dataptr->CustomField[j]->DataLength == 16)) { /*binary GUID*/
-				printf( "IPMI SystemGUID     : ");
-				for (ii=0; ii< dataptr->CustomField[j]->DataLength; ii++)
-					printf("%02x", dataptr->CustomField[j]->Data[ii]);
-				printf("\n");
-			} else {  /* other text field */
-				dataptr->CustomField[j]->Data[
-				dataptr->CustomField[j]->DataLength] = 0;
-				printf( "\tProduct OEM Field   : %s\n",
-				dataptr->CustomField[j]->Data);
-			}
-		} else /* NULL pointer */
-			break;
-	}/*end for*/
-}
-
-static void
-prtboardinfo(void)
-{
-	int j;
-
-	dataptr = (SaHpiInventGeneralDataT *)&inv->DataRecords[i]->RecordData.BoardInfo;
-	strptr=dataptr->Manufacturer;
-	fixstr((SaHpiTextBufferT *)strptr);
-	printf( "\tBoard Manufacturer  : %s\n", outbuff);
-
-	strptr=dataptr->ProductName;
-	fixstr((SaHpiTextBufferT *)strptr);
-	printf( "\tBoard Product Name  : %s\n", outbuff);
-
-	strptr=dataptr->ModelNumber;
-	fixstr((SaHpiTextBufferT *)strptr);
-	printf( "\tBoard Model Number  : %s\n", outbuff);
-
-	strptr=dataptr->PartNumber;
-	fixstr((SaHpiTextBufferT *)strptr);
-	printf( "\tBoard Part Number   : %s\n", outbuff);
-
-	strptr=dataptr->ProductVersion;
-	fixstr((SaHpiTextBufferT *)strptr);
-	printf( "\tBoard Version       : %s\n", outbuff);
-
-	strptr=dataptr->SerialNumber;
-	fixstr((SaHpiTextBufferT *)strptr);
-	printf( "\tBoard Serial #      : %s\n", outbuff);
-
-	strptr=dataptr->FileId;
-	fixstr((SaHpiTextBufferT *)strptr);
-	printf( "\tBoard FRU File ID   : %s\n", outbuff);
-
-	strptr=dataptr->AssetTag;
-	fixstr((SaHpiTextBufferT *)strptr);
-	printf( "\tBoard Asset Tag     : %s\n", outbuff);
-
-	for (j = 0; j < 10 && dataptr->CustomField[j] ; j++) {
-		if (dataptr->CustomField[j]->DataLength != 0) {
-                        strncpy ((char *)outbuff, (char *)dataptr->CustomField[j]->Data,
-							dataptr->CustomField[j]->DataLength);
-                        outbuff[dataptr->CustomField[j]->DataLength] = 0;
-                        printf( "\tBoard OEM Field     : %s\n", outbuff);
-                }
-        }
-}
-#endif
-
 static int sa_show_inv(SaHpiResourceIdT resourceid)
 {
 	SaErrorT		rv = SA_OK, rva, rvf;
@@ -632,10 +447,48 @@ static int list_sensor(int argc, char *argv[])
 
 static int show_hs_ind(int argc, char *argv[])
 {
+	SaErrorT		rv;
+	SaHpiHsIndicatorStateT	state = 0;
+	SaHpiResourceIdT	rid;
+	int			do_set = 0;
+
 	if (argc < 2)
 		return HPI_SHELL_PARM_ERROR;
 
-	return sa_show_hs_ind((SaHpiResourceIdT)atoi(argv[1]));
+	rid = (SaHpiResourceIdT)atoi(argv[1]);
+	if (argc > 2) {
+		do_set = 1;
+		if (strcmp(argv[2], "on") == 0) state = SAHPI_HS_INDICATOR_ON;
+		else if (strcmp(argv[2], "off") == 0) state = SAHPI_HS_INDICATOR_OFF;
+		else return HPI_SHELL_PARM_ERROR;
+	};
+	if (do_set) {
+		rv = saHpiHotSwapIndicatorStateSet(Domain->sessionId, rid, state);
+		if (rv != SA_OK) { 
+			printf("saHpiHotSwapIndicatorStateSet error %s\n", oh_lookup_error(rv));
+			return -1;
+		};
+		return(SA_OK);
+	};
+
+	rv = saHpiHotSwapIndicatorStateGet(Domain->sessionId, rid, &state);
+	if (rv != SA_OK) { 
+		printf("saHpiHotSwapIndicatorStateGet error %s\n", oh_lookup_error(rv));
+		return -1;
+	}
+
+	printf("Current HS Indicator for resource %d is:", rid);
+	switch(state) {
+		case SAHPI_HS_INDICATOR_OFF:
+			printf(" OFF.\n");
+			break;
+		case SAHPI_HS_INDICATOR_ON:
+			printf(" ON.\n");
+			break;
+		default:
+			printf(" Unknown.\n");
+	}
+	return SA_OK;
 }
 
 static int hotswap_stat(int argc, char *argv[])
@@ -865,6 +718,68 @@ static int evtlog_time(int argc, char *argv[])
 
 	oh_decode_time(logtime, &buffer);
 	printf ("Current event log time: %s\n", buffer.Data);
+	return SA_OK;
+}
+
+static int evtlog_state(int argc, char *argv[])
+{
+	SaHpiResourceIdT	rptid = 0;
+	SaErrorT		rv;
+	SaHpiBoolT		state = SAHPI_TRUE;
+	int			i = 1;
+	int			do_set = 0;
+	char			*str;
+
+	rptid = SAHPI_UNSPECIFIED_RESOURCE_ID;
+	if (argc >= 2) {
+		if (isdigit(argv[i][0])) {
+			rptid = (SaHpiResourceIdT)atoi(argv[i]);
+			i++;
+		}
+	};
+
+	if (argc >= (i + 1)) {
+		do_set = 1;
+		if (strcmp(argv[i], "enable") == 0) state = SAHPI_TRUE;
+		else if (strcmp(argv[i], "disable") == 0) state = SAHPI_FALSE;
+		else return(HPI_SHELL_PARM_ERROR);
+	};
+	if (do_set) {
+		rv = saHpiEventLogStateSet(Domain->sessionId, rptid, state);
+		if (rv != SA_OK) {
+			printf("saHpiEventLogStateSet %s\n", oh_lookup_error(rv));
+			return(rv);
+		};
+		return(SA_OK);
+	};
+	rv = saHpiEventLogStateGet(Domain->sessionId, rptid, &state);
+	if (rv != SA_OK) {
+		printf("saHpiEventLogStateGet %s\n", oh_lookup_error(rv));
+		return(rv);
+	};
+	if (state == SAHPI_TRUE) str = "Enable";
+	else str = "Disable";
+	printf("Event Log State: %s\n", str);
+	return SA_OK;
+}
+
+static int evtlog_reset(int argc, char *argv[])
+{
+	SaHpiResourceIdT	rptid = 0;
+	SaErrorT		rv;
+
+	rptid = SAHPI_UNSPECIFIED_RESOURCE_ID;
+	if (argc >= 2) {
+		if (isdigit(argv[1][0])) {
+			rptid = (SaHpiResourceIdT)atoi(argv[1]);
+		} else return(HPI_SHELL_PARM_ERROR);
+	};
+
+	rv = saHpiEventLogOverflowReset(Domain->sessionId, rptid);
+	if (rv != SA_OK) {
+		printf("saHpiEventLogOverflowReset %s\n", oh_lookup_error(rv));
+		return(rv);
+	};
 	return SA_OK;
 }
 
@@ -1268,6 +1183,51 @@ static int sen_block(int argc, char *argv[])
 	return SA_OK;
 }
 
+static int set_control_state(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
+	SaHpiCtrlNumT num)
+{
+        SaErrorT		rv;
+	SaHpiRdrT		rdr;
+	SaHpiCtrlRecT		*ctrl;
+	SaHpiCtrlTypeT		type;
+	SaHpiCtrlRecDigitalT	*digit;
+	SaHpiCtrlStateDigitalT	state_val = 0;
+	SaHpiCtrlStateT		state;
+	char			buf[256];
+
+	rv = saHpiRdrGetByInstrumentId(sessionid, resourceid, SAHPI_CTRL_RDR, num, &rdr);
+	if (rv != SA_OK) {
+		printf("saHpiRdrGetByInstrumentId: error: %s\n", oh_lookup_error(rv));
+		return(rv);
+	};
+	ctrl = &(rdr.RdrTypeUnion.CtrlRec);
+	type = ctrl->Type;
+	switch (type) {
+		case SAHPI_CTRL_TYPE_DIGITAL:
+			digit = &(ctrl->TypeUnion.Digital);
+			printf("New state (on|off|pulseon|pulseoff): ");
+			fgets(buf, 256, stdin);
+			if (strncmp(buf, "on", 2) == 0) state_val = SAHPI_CTRL_STATE_ON;
+			if (strncmp(buf, "off", 3) == 0) state_val = SAHPI_CTRL_STATE_OFF;
+			if (strncmp(buf, "pulseon", 7) == 0)
+				state_val = SAHPI_CTRL_STATE_PULSE_ON;
+			if (strncmp(buf, "pulseoff", 8) == 0)
+				state_val = SAHPI_CTRL_STATE_PULSE_OFF;
+			state.StateUnion.Digital = state_val;
+			state.Type = type;
+			rv = saHpiControlSet(sessionid, resourceid, num,
+				SAHPI_CTRL_MODE_MANUAL, &state);
+			if (rv != SA_OK) {
+				printf("saHpiControlSet: error: %s\n",
+					oh_lookup_error(rv));
+				return(rv);
+			};
+			break;
+		default: strcpy(buf, "Unknown control type\n");
+	};
+	return(SA_OK);
+}
+
 static int ctrl_block(int argc, char *argv[])
 {
 	SaHpiRdrT			rdr_entry;
@@ -1324,8 +1284,323 @@ static int ctrl_block(int argc, char *argv[])
 			first = 1;
 			continue;
 		};
+		if (strcmp(buf, "setstate") == 0) {
+			set_control_state(Domain->sessionId, rptid, rdrnum);
+			continue;
+		};
 		if (strcmp(buf, "show") == 0) {
 			show_control(Domain->sessionId, rptid, rdrnum, ui_print);
+			continue;
+		};
+		printf("Invalid command\n");
+		first = 1;
+	};
+	return SA_OK;
+}
+
+typedef struct {
+	char			*name;
+	SaHpiIdrAreaTypeT	val;
+} Area_type_t;
+
+static Area_type_t Area_types[] = {
+	{ "inter",	SAHPI_IDR_AREATYPE_INTERNAL_USE },
+	{ "chass",	SAHPI_IDR_AREATYPE_CHASSIS_INFO },
+	{ "board",	SAHPI_IDR_AREATYPE_BOARD_INFO },
+	{ "prod",	SAHPI_IDR_AREATYPE_PRODUCT_INFO },
+	{ "oem",	SAHPI_IDR_AREATYPE_OEM },
+	{ NULL,		SAHPI_IDR_AREATYPE_UNSPECIFIED } };
+
+static int add_inventory_area(SaHpiSessionIdT sessionId, SaHpiResourceIdT rptid, SaHpiIdrIdT rdrnum)
+{
+	SaHpiEntryIdT	entry;
+	SaErrorT	rv;
+	char		buf[10];
+	int		res, i;
+
+	i = get_int_param("Area type (inter,chass,board,prod,oem): ", &res, buf, 9);
+	if (i != 0) return(-1);
+	for (i = 0; Area_types[i].name != (char *)NULL; i++)
+		if (strcmp(Area_types[i].name, buf) == 0) break;
+	if (Area_types[i].name == (char *)NULL) {
+		printf("Error!!! Unknown Area type: %s\n", buf);
+		return(-1);
+	};
+	rv = saHpiIdrAreaAdd(sessionId, rptid, rdrnum, Area_types[i].val, &entry);
+	if (rv != SA_OK) {
+		printf("ERROR!!! saHpiIdrAreaAdd: %s\n", oh_lookup_error(rv));
+		return(rv);
+	};
+	return(SA_OK);
+}
+
+typedef struct {
+	char			*name;
+	SaHpiIdrFieldTypeT	val;
+} Field_type_t;
+
+static Field_type_t Field_types[] = {
+	{ "chass",	SAHPI_IDR_FIELDTYPE_CHASSIS_TYPE },
+	{ "time",	SAHPI_IDR_FIELDTYPE_MFG_DATETIME },
+	{ "manuf",	SAHPI_IDR_FIELDTYPE_MANUFACTURER },
+	{ "prodname",	SAHPI_IDR_FIELDTYPE_PRODUCT_NAME },
+	{ "prodver",	SAHPI_IDR_FIELDTYPE_PRODUCT_VERSION },
+	{ "snum",	SAHPI_IDR_FIELDTYPE_SERIAL_NUMBER },
+	{ "pnum",	SAHPI_IDR_FIELDTYPE_PART_NUMBER },
+	{ "file",	SAHPI_IDR_FIELDTYPE_FILE_ID },
+	{ "tag",	SAHPI_IDR_FIELDTYPE_ASSET_TAG },
+	{ "custom",	SAHPI_IDR_FIELDTYPE_CUSTOM },
+	{ NULL,		SAHPI_IDR_FIELDTYPE_UNSPECIFIED } };
+
+static int add_inventory_field(SaHpiSessionIdT sessionId, SaHpiResourceIdT rptid, SaHpiIdrIdT rdrnum)
+{
+	SaErrorT	rv;
+	SaHpiIdrFieldT	field;
+	char		buf[256], *str;
+	int		res, i;
+
+	i = get_int_param("Area Id: ", &res, buf, 9);
+	if (i != 1) {
+		printf("Error!!! Invalid Area Id\n");
+		return(-1);
+	};
+	field.AreaId = res;
+
+	i = get_int_param("Field type (chass,time,manuf,prodname,prodver,snum,pnum,file,tag,custom): ",
+		&res, buf, 9);
+	if (i != 0) {
+		printf("Error!!! Invalid Field type: %s\n", buf);
+		return(-1);
+	};
+	for (i = 0; Field_types[i].name != (char *)NULL; i++)
+		if (strcmp(Field_types[i].name, buf) == 0) break;
+	if (Field_types[i].name == (char *)NULL) {
+		printf("Error!!! Unknown Field type: %s\n", buf);
+		return(-1);
+	};
+	field.Type = Field_types[i].val;
+	field.ReadOnly = SAHPI_FALSE;
+	printf("Field value: ");
+	memset(buf, 0, 256);
+	fgets(buf, 255, stdin);
+	i = strlen(buf);
+	if (i < 2) *buf = 0;
+	else buf[i - 1] = 0;
+	str = buf;
+	while (*str == ' ') str++;
+	i = strlen(buf);
+	field.Field.DataType = SAHPI_TL_TYPE_TEXT;
+	field.Field.Language = SAHPI_LANG_ENGLISH;
+	field.Field.DataLength = i;
+	if (i > 0)
+		strcpy(field.Field.Data, buf);
+	rv = saHpiIdrFieldAdd(sessionId, rptid, rdrnum, &field);
+	if (rv != SA_OK) {
+		printf("ERROR!!! saHpiIdrFieldAdd: %s\n", oh_lookup_error(rv));
+		return(rv);
+	};
+	return(SA_OK);
+}
+
+static int set_inventory_field(SaHpiSessionIdT sessionId, SaHpiResourceIdT rptid, SaHpiIdrIdT rdrnum)
+{
+	SaErrorT	rv;
+	SaHpiIdrFieldT	field, res_field;
+	SaHpiEntryIdT	fentryid, nextfentryid;
+	char		buf[256], *str;
+	int		res, i;
+
+	i = get_int_param("Area Id: ", &res, buf, 9);
+	if (i != 1) {
+		printf("Error!!! Invalid Area Id\n");
+		return(-1);
+	};
+	field.AreaId = res;
+
+	i = get_int_param("Field Id: ", &res, buf, 9);
+	if (i != 1) {
+		printf("Error!!! Invalid Field Id\n");
+		return(-1);
+	};
+	field.FieldId = res;
+
+	fentryid = SAHPI_FIRST_ENTRY;
+	while (fentryid != SAHPI_LAST_ENTRY) {
+		rv = saHpiIdrFieldGet(sessionId, rptid, rdrnum, field.AreaId,
+			SAHPI_IDR_FIELDTYPE_UNSPECIFIED, fentryid,
+			&nextfentryid, &res_field);
+		if (rv != SA_OK) {
+			printf("No Field for AreaId: %d  FieldId: %d\n", field.AreaId, field.FieldId);
+			return(-1);
+		};
+		if (res_field.FieldId == field.FieldId) break;
+		fentryid = nextfentryid;
+	};
+	if (res_field.FieldId != field.FieldId) {
+		printf("No Field for AreaId: %d  FieldId: %d\n", field.AreaId, field.FieldId);
+		return(-1);
+	};
+	field = res_field;
+	i = get_int_param("Field type (chass,time,manuf,prodname,prodver,snum,pnum,file,tag,custom): ",
+		&res, buf, 9);
+	if (i == 0) {
+		for (i = 0; Field_types[i].name != (char *)NULL; i++)
+			if (strcmp(Field_types[i].name, buf) == 0) break;
+		if (Field_types[i].name == (char *)NULL) {
+			printf("Error!!! Unknown Field type: %s\n", buf);
+			return(-1);
+		};
+		field.Type = Field_types[i].val;
+	};
+	printf("Field value: ");
+	memset(buf, 0, 256);
+	fgets(buf, 255, stdin);
+	i = strlen(buf);
+	if (i < 2) *buf = 0;
+	else buf[i - 1] = 0;
+	str = buf;
+	while (*str == ' ') str++;
+	i = strlen(buf);
+	if (i > 0) {
+		field.Field.DataType = SAHPI_TL_TYPE_TEXT;
+		field.Field.Language = SAHPI_LANG_ENGLISH;
+		field.Field.DataLength = i;
+		strcpy(field.Field.Data, buf);
+	};
+	rv = saHpiIdrFieldSet(sessionId, rptid, rdrnum, &field);
+	if (rv != SA_OK) {
+		printf("ERROR!!! saHpiIdrFieldSet: %s\n", oh_lookup_error(rv));
+		return(rv);
+	};
+	return(SA_OK);
+}
+
+static int del_inventory_field(SaHpiSessionIdT sessionId, SaHpiResourceIdT rptid, SaHpiIdrIdT rdrnum)
+{
+	SaErrorT	rv;
+	SaHpiEntryIdT	areaId, fieldId;
+	char		buf[256];
+	int		res, i;
+
+	i = get_int_param("Area Id: ", &res, buf, 9);
+	if (i != 1) {
+		printf("Error!!! Invalid Area Id\n");
+		return(-1);
+	};
+	areaId = res;
+
+	i = get_int_param("Field Id: ", &res, buf, 9);
+	if (i != 1) {
+		printf("Error!!! Invalid Field Id\n");
+		return(-1);
+	};
+	fieldId = res;
+
+	rv = saHpiIdrFieldDelete(sessionId, rptid, rdrnum, areaId, fieldId);
+	if (rv != SA_OK) {
+		printf("ERROR!!! saHpiIdrFieldDelete: %s\n", oh_lookup_error(rv));
+		return(rv);
+	};
+	return(SA_OK);
+}
+
+static int delete_inventory_area(SaHpiSessionIdT sessionId, SaHpiResourceIdT rptid, SaHpiIdrIdT rdrnum)
+{
+	SaErrorT	rv;
+	char		buf[10];
+	int		res, i;
+
+	i = get_int_param("Area Id: ", &res, buf, 9);
+	if (i != 1) {
+		printf("Error!!! Invalid Area Id\n");
+		return(-1);
+	};
+	rv = saHpiIdrAreaDelete(sessionId, rptid, rdrnum, res);
+	if (rv != SA_OK) {
+		printf("ERROR!!! saHpiIdrAreaDelete: %s\n", oh_lookup_error(rv));
+		return(rv);
+	};
+	return(SA_OK);
+}
+
+static int inv_block(int argc, char *argv[])
+{
+	SaHpiRdrT			rdr_entry;
+	SaHpiResourceIdT		rptid = 0;
+	SaHpiInstrumentIdT		rdrnum;
+	SaHpiRdrTypeT			type;
+	SaErrorT			rv;
+	int				res, i, first = 1;
+	char				buf[256];
+
+	clear_input();
+	if (argc < 2) {
+		i = show_rpt_list(Domain, SHOW_ALL_RPT, rptid, ui_print);
+		if (i == 0) {
+			printf("NO rpt!\n");
+			return(SA_OK);
+		};
+		i = get_int_param("RPT ID ==> ", &res, buf, 9);
+		if (i != 1) return SA_OK;
+		rptid = (SaHpiResourceIdT)res;
+	} else {
+		rptid = (SaHpiResourceIdT)atoi(argv[1]);
+	};
+	type = SAHPI_INVENTORY_RDR;
+	if (argc < 3) {
+		i = show_rdr_list(Domain, rptid, type, ui_print);
+		if (i == 0) {
+			printf("No rdr for rpt: %d\n", rptid);
+			return(SA_OK);
+		};
+		i = get_int_param("RDR NUM ==> ", &res, buf, 9);
+		if (i != 1) return SA_OK;
+		rdrnum = (SaHpiInstrumentIdT)res;
+	} else {
+		rdrnum = (SaHpiInstrumentIdT)atoi(argv[2]);
+	};
+	rv = saHpiRdrGetByInstrumentId(Domain->sessionId, rptid, type, rdrnum, &rdr_entry);
+	if (rv != SA_OK) {
+		printf("ERROR!!! Can not get rdr: ResourceId=%d RdrType=%d RdrNum=%d\n",
+			rptid, type, rdrnum);
+		return(rv);
+	};
+	show_inventory(Domain->sessionId, rptid, rdrnum, ui_print);
+	for (;;) {
+		clear_input();
+		if (first) {
+			printf("%s\n", INV_AV_COM);
+			first = 0;
+		};
+		i = get_int_param("command? ==> ", &res, buf, 9);
+		if (i != 0) continue;
+		if ((strcmp(buf, "q") == 0) || (strcmp(buf, "quit") == 0)) break;
+		if (strcmp(buf, "help") == 0) {
+			first = 1;
+			continue;
+		};
+		if (strcmp(buf, "show") == 0) {
+			show_inventory(Domain->sessionId, rptid, rdrnum, ui_print);
+			continue;
+		};
+		if (strcmp(buf, "addarea") == 0) {
+			add_inventory_area(Domain->sessionId, rptid, rdrnum);
+			continue;
+		};
+		if (strcmp(buf, "delarea") == 0) {
+			delete_inventory_area(Domain->sessionId, rptid, rdrnum);
+			continue;
+		};
+		if (strcmp(buf, "addfield") == 0) {
+			add_inventory_field(Domain->sessionId, rptid, rdrnum);
+			continue;
+		};
+		if (strcmp(buf, "setfield") == 0) {
+			set_inventory_field(Domain->sessionId, rptid, rdrnum);
+			continue;
+		};
+		if (strcmp(buf, "delfield") == 0) {
+			del_inventory_field(Domain->sessionId, rptid, rdrnum);
 			continue;
 		};
 		printf("Invalid command\n");
@@ -1338,13 +1613,6 @@ static int show_inv(int argc, char *argv[])
 {
 	SaHpiResourceIdT	resid = 0;
 	int			i, res;
-
-#ifdef MY   // my
-	fixstr((SaHpiTextBufferT *)S);
-	prtchassinfo();
-	prtprodtinfo();
-	prtboardinfo();
-#endif
 
 	clear_input();
 	if (argc < 2) {
@@ -1477,8 +1745,122 @@ static int quit(int argc, char *argv[])
         exit(0);
 }
 
+static int domain_info(int argc, char *argv[])
+{
+	SaHpiDomainInfoT	info;
+	SaHpiTextBufferT	*buf;
+	SaErrorT		rv;
+	char			date[30];
+
+	rv = saHpiDomainInfoGet(Domain->sessionId, &info);
+	if (rv != SA_OK) {
+		printf("ERROR!!! saHpiDomainInfoGet: %s\n", oh_lookup_error(rv));
+		return(rv);
+	};
+	printf("Domain: %d   Capabil: 0x%x   IsPeer: %d   Guid: %s\n",
+		info.DomainId, info.DomainCapabilities,
+		info.IsPeer, info.Guid);
+	buf = &(info.DomainTag);
+	if (buf->DataLength > 0)
+		printf("    Tag: %s\n", buf->Data);
+	time2str(info.DrtUpdateTimestamp, date, 30);
+	printf("    DRT update count: %d   DRT Timestamp : %s\n", info.DrtUpdateCount, date);
+	time2str(info.RptUpdateTimestamp, date, 30);
+	printf("    RPT update count: %d   RPT Timestamp : %s\n", info.RptUpdateCount, date);
+	time2str(info.DatUpdateTimestamp, date, 30);
+	printf("    DAT update count: %d   DAT Timestamp : %s\n", info.DatUpdateCount, date);
+	printf("        ActiveAlarms: %d   CriticalAlarms: %d   Major: %d   Minor: %d   Limit: %d\n",
+		info.ActiveAlarms, info.CriticalAlarms, info.MajorAlarms, info.MinorAlarms,
+		info.DatUserAlarmLimit);
+	printf("        DatOverflow : %d\n", info.DatOverflow);
+	return(SA_OK);
+}
+
+static int domain_proc(int argc, char *argv[])
+{
+	SaHpiDomainInfoT	info;
+	SaHpiTextBufferT	*buf;
+	SaHpiEntryIdT		entryid, nextentryid;
+	SaHpiDrtEntryT		drtentry;
+	SaErrorT		rv;
+	SaHpiDomainIdT		id;
+	SaHpiSessionIdT		sessionId;
+	int			i, n, first;
+	gpointer		ptr;
+	Domain_t		*domain = (Domain_t *)NULL;
+	Domain_t		*new_domain;
+
+	if (argc < 2) {
+		printf("Domain list:\n");
+		printf("    ID: %d   SessionId: %d", Domain->domainId, Domain->sessionId);
+		rv = saHpiDomainInfoGet(Domain->sessionId, &info);
+		if (rv == SA_OK) {
+			buf = &(info.DomainTag);
+			if (buf->DataLength > 0)
+				printf("    Tag: %s", buf->Data);
+		};
+		printf("\n");
+		entryid = SAHPI_FIRST_ENTRY;
+		first = 1;
+		while (entryid != SAHPI_LAST_ENTRY) {
+			rv = saHpiDrtEntryGet(Domain->sessionId, entryid, &nextentryid, &drtentry);
+			if (rv != SA_OK) break;
+			if (first) {
+				first = 0;
+				printf("        Domain Reference Table:\n");
+			};
+			printf("            ID: %d", drtentry.DomainId);
+			entryid = nextentryid;
+			rv = saHpiSessionOpen(drtentry.DomainId,
+						&sessionId, NULL);
+			if (rv != SA_OK) {
+				printf("\n");
+				continue;
+			};
+			rv = saHpiDomainInfoGet(sessionId, &info);
+			if (rv == SA_OK) {
+				buf = &(info.DomainTag);
+				if (buf->DataLength > 0)
+					printf("    Tag: %s", buf->Data);
+			};
+			saHpiSessionClose(sessionId);
+			printf("\n");
+		}
+		return(SA_OK);
+	};
+
+	if (isdigit(argv[1][0]))
+		id = (int)atoi(argv[1]);
+	else
+		return HPI_SHELL_PARM_ERROR;
+	n = g_slist_length(domainlist);
+	for (i = 0; i < n; i++) {
+		ptr = g_slist_nth_data(domainlist, i);
+		if (ptr == (gpointer)NULL) break;
+		domain = (Domain_t *)ptr;
+		if (domain->domainId == id) break;
+	};
+	if (i >= n) {
+		new_domain = (Domain_t *)malloc(sizeof(Domain_t));
+		memset(new_domain, 0, sizeof(Domain_t));
+		new_domain->domainId = id;
+		if (add_domain(new_domain) < 0) {
+			free(new_domain);
+			printf("Can not open domain: %d\n", id);
+			return HPI_SHELL_PARM_ERROR;
+		};
+		domain = new_domain;
+	};
+	Domain = domain;
+	set_Subscribe(Domain, prt_flag);
+	add_domain(Domain);
+	return(SA_OK);
+}
+
 /* command table */
-const char clearevtloghelp[] = "clearevtlog: clear system event logs\n"    \
+const char addcfghelp[] = "addcfg: add plugins, domains, handlers from"
+			" config file\nUsage: addcfg <config file>\n";
+const char clearevtloghelp[] = "clearevtlog: clear system event logs\n"
 			"Usage: clearevtlog [<resource id>]";
 const char ctrlhelp[] =	"ctrl: control command block\n"
 			"Usage: ctrl [<ctrlId>]\n"
@@ -1487,11 +1869,19 @@ const char ctrlhelp[] =	"ctrl: control command block\n"
 const char dathelp[] = "dat: domain alarm table list\n"
 			"Usage: dat";
 const char debughelp[] = "debug: set or unset OPENHPI_DEBUG environment\n"
-			"Usage: debug [ on | off]";
-const char dscvhelp[] = "dscv: discovery resources\n"                      \
+			"Usage: debug [ on | off ]";
+const char domainhelp[] = "domain: show domain list and set current domain\n"
+			"Usage: domain [<domain id>]";
+const char domaininfohelp[] = "domaininfo: show current domain info\n"
+			"Usage: domaininfo";
+const char dscvhelp[] = "dscv: discovery resources\n"
 			"Usage: dscv ";
-const char eventhelp[] = "event: enable or disable event display on screen\n" \
+const char eventhelp[] = "event: enable or disable event display on screen\n"
 			"Usage: event [enable|disable|short|full] ";
+const char evtlogresethelp[] = "evtlogreset: reset the OverflowFlag in the event log\n"
+			"Usage: evtlogreset [<resource id>]";
+const char evtlogstatehelp[] = "evtlogstate: show and set the event log state\n"
+			"Usage: evtlogstate [<resource id>] [enable|disable]";
 const char evtlogtimehelp[] = "evtlogtime: show the event log's clock\n"
 			"Usage: evtlogtime [<resource id>]";
 const char helphelp[] = "help: help information for OpenHPI commands\n"
@@ -1500,6 +1890,10 @@ const char hsindhelp[] = "hotswap_ind: show hot swap indicator state\n"
 			"Usage: hotswap_ind <resource id>";
 const char hsstathelp[] = "hotswapstat: retrieve hot swap state of a resource\n"
 			"Usage: hotswapstat <resource id>";
+const char invhelp[] =	"inv: inventory command block\n"
+			"Usage: inv [<InvId>]\n"
+			"	InvId:: <resourceId> <IdrId>\n"
+			INV_AV_COM;
 const char lreshelp[] = "lsres: list resources\n"
 			"Usage: lsres";
 const char lsorhelp[] = "lsensor: list sensors\n"
@@ -1508,7 +1902,7 @@ const char powerhelp[] = "power: power the resource on, off or cycle\n"
 			"Usage: power <resource id> [on|off|cycle]";
 const char quithelp[] = "quit: close session and quit console\n"
 			"Usage: quit";
-const char resethelp[] = "reset: perform specified reset on the entity\n"  \
+const char resethelp[] = "reset: perform specified reset on the entity\n"
 			"Usage: reset <resource id> [cold|warm|assert|deassert]";
 const char senhelp[] =	"sen: sensor command block\n"
 			"Usage: sen [<sensorId>]\n"
@@ -1534,16 +1928,22 @@ const char showrpthelp[] = "showrpt: show resource information\n"
 			"   or  rpt [<resource id>]";
 
 struct command commands[] = {
+    { "addcfg",		add_config,		addcfghelp},
     { "clearevtlog",	clear_evtlog,		clearevtloghelp },
     { "ctrl",		ctrl_block,		ctrlhelp },
     { "dat",		dat_list,		dathelp },
     { "debug",		debugset,		debughelp },
+    { "domain",		domain_proc,		domainhelp },
+    { "domaininfo",	domain_info,		domaininfohelp },
     { "dscv",		discovery,		dscvhelp },
     { "event",		event,			eventhelp },
     { "evtlogtime",	evtlog_time,		evtlogtimehelp },
+    { "evtlogreset",	evtlog_reset,		evtlogresethelp },
+    { "evtlogstate",	evtlog_state,		evtlogstatehelp },
     { "help",		help,			helphelp },
     { "hotswap_ind",	show_hs_ind,		hsindhelp },
     { "hotswapstat",	hotswap_stat,		hsstathelp },
+    { "inv",		inv_block,		invhelp },
     { "lsres",		listres,		lreshelp },
     { "lsensor",	list_sensor,		lsorhelp },
     { "power",		power,			powerhelp },

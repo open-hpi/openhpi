@@ -44,6 +44,7 @@ int main(int argc, char **argv)
 	if ((val == (char *)NULL) || (strcmp(val, "YES") != 0)) {
 		printf("Please, set OPENHPI_THREADED environment!\n");
 	};
+	domainlist = (GSList *)NULL;
 	if (open_session(eflag) == -1)
 		return(1);
 	cmd_shell();
