@@ -336,7 +336,7 @@ int main(int argc, char **argv)
 		}
 
 		/* oh_decode_sensorreading: SAHPI_SENSOR_READING_TYPE_FLOAT64 testcase */
-		expected_str = "2.020000e+01 Volts";
+		expected_str = "20.200 Volts";
 		reading_test = reading_default;
 		reading_test.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64;
 		reading_test.Value.SensorFloat64 = 20.2;
