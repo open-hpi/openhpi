@@ -34,6 +34,7 @@
 #define CTRLMODE_PROC	10
 #define CTRLOUTPUT_PROC	11
 #define CTRLDIGIT_PROC	12
+#define SEVERITY_PROC	13
 
 //	function numbers for decode_proc
 
@@ -60,7 +61,7 @@ attr_t	Def_rpt[] = {
 	{ "ResourceEntity",	DECODE_TYPE,	EPATH_PROC, { .d = 0} },	//  3
 	{ "Capabilities",	DECODE1_TYPE,	CAPAB_PROC, { .d = 0} },	//  4
 	{ "HotSwapCapabilities",DECODE1_TYPE,	HSCAPAB_PROC, { .d = 0} },	//  5
-	{ "ResourceSeverity",	INT_TYPE,	0, { .d = 0} },	//  6
+	{ "ResourceSeverity",	LOOKUP_TYPE,	SEVERITY_PROC, { .d = 0} },	//  6
 	{ "ResourceFailed",	INT_TYPE,	0, { .d = 0} },	//  7
 	{ "Tag",		STR_TYPE,	0, { .d = 0} },	//  8
 	{ "TagLength",		INT_TYPE,	0, { .d = 0} },	//  9
@@ -111,6 +112,8 @@ char *lookup_proc(int num, int val)
 			string = oh_lookup_ctrloutputtype(val); break;
 		case CTRLDIGIT_PROC:
 			string = oh_lookup_ctrlstatedigital(val); break;
+		case SEVERITY_PROC:
+			string = oh_lookup_severity(val); break;
 	};
 	if (string == (char *)NULL)
 		return("");
