@@ -27,7 +27,6 @@ static enum {
 	OH_STAT_READY,
 } oh_hpi_state = OH_STAT_UNINIT;
 static const int entry_id_offset = 1000;
-static struct oh_config config;
 
 #define OH_STATE_READY_CHECK 					\
         do {							\
@@ -98,15 +97,45 @@ static inline struct oh_rdr * get_rdr(
 
 SaErrorT SAHPI_API saHpiInitialize(SAHPI_OUT SaHpiVersionT *HpiImplVersion)
 {
+        struct oh_plugin_config *tmpp;
+        struct oh_handler_config *tmph;
+      
+        int i;
+        
         if (OH_STAT_UNINIT != oh_hpi_state) {
                 dbg("Cannot initialize twice");
                 return SA_ERR_HPI_DUPLICATE;
         }
        	
-	if (oh_load_config(&config)<0) {
-		dbg("Can not load config");
+        if (oh_load_config(OH_DEFAULT_CONF)<0) {
+                dbg("Can not load config");
                 return SA_ERR_HPI_NOT_PRESENT;
-	}
+        }
+        
+        for(i = 0; i < g_slist_length(global_plugin_list); i++) {
+                tmpp = (struct oh_plugin_config *) g_slist_nth_data(
+                        global_plugin_list, i);
+                if(load_plugin(tmpp) == 0) {
+                        dbg("Loaded plugin %s", tmpp->name);
+                        tmpp->refcount++;
+                } else {
+                        dbg("Couldn't load plugin %s", tmpp->name);
+                }
+        }
+        
+        for(i = 0; i < g_slist_length(global_handler_configs); i++) {
+                tmph = (struct oh_handler_config *) g_slist_nth_data(
+                        global_handler_configs, i);
+                if(plugin_refcount(tmph->plugin) > 0) {
+                        if(load_handler(tmph->plugin, tmph->name, tmph->addr) == 0) {
+                                dbg("Loaded handler for plugin %s", tmph->plugin);
+                        } else {
+                                dbg("Couldn't load handler for plugin %s", tmph->plugin);
+                        }
+                } else {
+                        dbg("load handler for unknown plugin %s", tmph->plugin);
+                }
+        }
         
 	oh_hpi_state = OH_STAT_READY;
         return SA_OK;
@@ -132,10 +161,10 @@ SaErrorT SAHPI_API saHpiSessionOpen(
         int rv;
         
         OH_STATE_READY_CHECK;
-	
-	if(!is_in_domain_list(DomainId)) {
-		dbg("domain does not exist!");
-		return SA_ERR_HPI_INVALID_DOMAIN;
+        
+        if(!is_in_domain_list(DomainId)) {
+                dbg("domain does not exist!");
+                return SA_ERR_HPI_INVALID_DOMAIN;
 	}
         
         rv = session_add(DomainId, &s);

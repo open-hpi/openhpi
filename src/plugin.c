@@ -24,10 +24,10 @@
 #include <openhpi.h>
 #include <oh_config.h>
 
-/*
- * This initializes the plugin loader.  Don't load anything
- * right now though.
- */
+/*******************************************************************************
+ * init_plugin - does all the initialization needed for the ltdl process to
+ * work.  It takes no arguments, and returns 0 on success, < 0 on error
+ *******************************************************************************/
 
 int init_plugin()
 {
@@ -53,21 +53,20 @@ int init_plugin()
         return -1;
 }
 
-#if 0
-/*
- * Load plugin by name.  This needs to be done before the plugin is used
- */
+/*******************************************************************************
+ * load_plugin - loads a plugin by name
+ *
+ *******************************************************************************/
 
-int load_plugin(const char *plugin_name)
+int load_plugin(struct oh_plugin_config *config)
 {
         lt_dlhandle h;
         int (*get_interface) (struct oh_abi_v1 ** pp, const uuid_t uuid);
-        struct oh_abi_v1 *abi;
         int err;
-        
-        h = lt_dlopenext(plugin_name);
+
+        h = lt_dlopenext(config->name);
         if (h == NULL) {
-                dbg("Can not find %s plugin", plugin_name);
+                dbg("Can not find %s plugin", config->name);
                 goto err1;
         }
 
@@ -77,30 +76,17 @@ int load_plugin(const char *plugin_name)
                 goto err1;
         }
         
-        err = get_interface(&abi, UUID_OH_ABI_V1);
-        if (err < 0 || !abi || !abi->open) {
+        err = get_interface(&config->abi, UUID_OH_ABI_V1);
+        if (err < 0 || !config->abi || !config->abi->open) {
                 dbg("Can not get ABI V1");
                 goto err1;
         }
-
-#if 0
-        /* this should be done elsewhere.  if 0 it for now to make it
-           easier to migrate */
-        hnd = abi->open(name, addr);
-        if (!hnd) {
-                dbg("Bootstrap plugin can not work");
-                goto err1;
-        }
-        
-        domain_add_zone(d, abi, hnd);
-#endif
         
         return 0;
  err1:
         lt_dlclose(h);
         return -1;
 }
-#endif
 
 int uninit_plugin(void)
 {
@@ -114,56 +100,74 @@ int uninit_plugin(void)
 	return 0;
 }
 
+int load_handler (char *plugin_name, char *name, char *addr) 
+{
+        struct oh_handler *handler;
+        
+        handler = new_handler(
+                g_strdup(plugin_name),
+                g_strdup(name),
+                g_strdup(addr)
+                );
+                
+        if(handler == NULL) {
+                return -1;
+        }
+        
+        global_handler_list = g_slist_append(
+                global_handler_list,
+                (gpointer *) handler
+                );
+        
+        return 0;
+}
+
 /*
  * Load plugin by name and make a instance.
  * FIXME: the plugins with multi-instances should reuse 'lt_dlhandler'
  */
 
-struct oh_handler *new_handler(const char *plugin_name, const char *name, const char *addr)
+struct oh_handler *new_handler(char *plugin_name, char *name, char *addr)
 {
-        lt_dlhandle h;
-        int (*get_interface) (struct oh_abi_v1 ** pp, const uuid_t uuid);
+        struct oh_plugin_config *p_config;
         struct oh_handler *handler;
-        int err;
         
         handler = malloc(sizeof(*handler));
-	if (!handler) {
-		dbg("Out of Memory!");
-		goto err;
-	}
-	memset(handler, '\0', sizeof(*handler));
-
-        h = lt_dlopenext(plugin_name);
-        if (h == NULL) {
-                dbg("Can not find %s plugin", plugin_name);
-                goto err1;
-        } else {
-                dbg("Loaded %s plugin", plugin_name);
+        if (!handler) {
+                dbg("Out of Memory!");
+                goto err;
+        }
+        memset(handler, '\0', sizeof(*handler));
+        
+        if(plugin_refcount(plugin_name) < 1) {
+                dbg("Attempt to create handler for unknown plugin %s", plugin_name);
+                goto err;
         }
 
-        get_interface = lt_dlsym(h, "get_interface");
-        if (!get_interface) {
-                dbg("Can not get 'get_interface' symbol, is it a plugin?!");
-                goto err1;
+        p_config = plugin_config(plugin_name);
+        if(p_config == NULL) {
+                dbg("No such plugin config");
+                goto err;
         }
         
+        handler->abi = p_config->abi;
+#if 0        
         err = get_interface(&handler->abi, UUID_OH_ABI_V1);
         if (err < 0 || !handler->abi || !handler->abi->open) {
                 dbg("Can not get ABI V1");
-                goto err1;
+                goto err;
         }
+#endif
 
         /* this should be done elsewhere.  if 0 it for now to make it
            easier to migrate */
         handler->hnd = handler->abi->open(name, addr);
         if (!handler->hnd) {
                 dbg("The plugin can not work");
-                goto err1;
+                goto err;
         }
         
         return handler;
-err1:
-        lt_dlclose(h);
 err:
  	free(handler);
         return NULL;
