@@ -60,7 +60,8 @@ SaErrorT oh_decode_sensorreading(SaHpiSensorReadingT reading,
 SaErrorT oh_encode_sensorreading(SaHpiTextBufferT *buffer,
 				 SaHpiSensorReadingTypeT type,
 				 SaHpiSensorReadingT *reading);
-
+SaErrorT oh_decode_capability (SaHpiCapabilitiesT ResourceCapabilities,
+		               SaHpiTextBufferT *buffer);
 #if 0
 SaErrorT oh_decode_ctrlstate(SaHpiCtrlStateT control_state,
 			     SaHpiTextBufferT *buffer);
@@ -90,6 +91,8 @@ SaErrorT oh_fprint_idrinfo(FILE *stream, const SaHpiIdrInfoT *idrInfo, int space
 #define oh_print_idrareaheader(areaHeader, space) oh_fprint_idrareaheader(stdout, areaHeader, space)
 SaErrorT oh_fprint_idrareaheader(FILE *stream, const SaHpiIdrAreaHeaderT *areaHeader, int space);
 
+#define oh_print_rptentry(rptEntry, space) oh_fprint_rptentry(stdout, rptEntry, space)
+SaErrorT oh_fprint_rptentry(FILE *stream, const SaHpiRptEntryT *rptEntry, int space);
   
 /* FIXME:: */
 #if 0
