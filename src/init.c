@@ -126,9 +126,8 @@ SaErrorT oh_initialize()
         trace("Initialized domain table");
 
         /* Create first domain */
-        tag.DataType = SAHPI_TL_TYPE_TEXT;
-        tag.Language = SAHPI_LANG_ENGLISH;
-        strcpy((char *)tag.Data, "First Domain");
+        oh_init_textbuffer(&tag);
+        oh_append_textbuffer(&tag,"First Domain");
         if (!oh_create_domain(capabilities, SAHPI_FALSE, &tag)) {
                 data_access_unlock();
                 dbg("Could not create first domain!");
