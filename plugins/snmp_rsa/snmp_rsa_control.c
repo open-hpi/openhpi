@@ -46,6 +46,10 @@ SaErrorT snmp_rsa_get_control_state(void *hnd, SaHpiResourceIdT id,
 		return -1;
 	}	
 
+	if (rdr->RdrTypeUnion.CtrlRec.Ignore == SAHPI_TRUE) {
+		return SA_ERR_HPI_INVALID_CMD;
+	}
+
 	memset(&working, 0, sizeof(SaHpiCtrlStateT));
 	working.Type = rdr->RdrTypeUnion.CtrlRec.Type;
 	
@@ -141,6 +145,10 @@ SaErrorT snmp_rsa_set_control_state(void *hnd, SaHpiResourceIdT id,
                 (struct RSA_ControlInfo *)oh_get_rdr_data(handle->rptcache, id, rdr->RecordId);
 	if(s == NULL) {
 		return -1;
+	}
+
+	if (rdr->RdrTypeUnion.CtrlRec.Ignore == SAHPI_TRUE) {
+		return SA_ERR_HPI_INVALID_CMD;
 	}
 
 	if(state->Type != rdr->RdrTypeUnion.CtrlRec.Type) {
