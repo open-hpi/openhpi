@@ -735,7 +735,25 @@ SaErrorT SAHPI_API saHpiSensorEventEnablesGet (
 		SAHPI_IN SaHpiSensorNumT SensorNum,
 		SAHPI_OUT SaHpiSensorEvtEnablesT *Enables)
 {
-	return SA_ERR_HPI_UNSUPPORTED_API;
+	struct oh_resource *res;
+	struct oh_rdr *rdr;
+	int (*get_sensor_event_enables)(void *hnd, struct oh_rdr_id *id,
+					SaHpiSensorEvtEnablesT *enables);
+	
+	OH_GET_RESOURCE;
+
+	rdr = get_rdr(res, SAHPI_SENSOR_RDR, SensorNum);
+	
+	if (!rdr)
+		return SA_ERR_HPI_INVALID_PARAMS;
+
+	get_sensor_event_enables = res->handler->abi->get_sensor_event_enables;
+	
+	if (!get_sensor_event_enables)
+		return SA_ERR_HPI_UNSUPPORTED_API;
+	if (get_sensor_event_enables(res->handler->hnd, &rdr->oid, Enables))
+		return SA_ERR_HPI_UNKNOWN;
+	return SA_OK;
 }
 
 SaErrorT SAHPI_API saHpiSensorEventEnablesSet (
@@ -744,7 +762,25 @@ SaErrorT SAHPI_API saHpiSensorEventEnablesSet (
 		SAHPI_IN SaHpiSensorNumT SensorNum,
 		SAHPI_IN SaHpiSensorEvtEnablesT *Enables)
 {
-	return SA_ERR_HPI_UNSUPPORTED_API;
+	struct oh_resource *res;
+	struct oh_rdr *rdr;
+	int (*set_sensor_event_enables)(void *hnd, struct oh_rdr_id *id,
+					SaHpiSensorEvtEnablesT *enables);
+	
+	OH_GET_RESOURCE;
+
+	rdr = get_rdr(res, SAHPI_SENSOR_RDR, SensorNum);
+	
+	if (!rdr)
+		return SA_ERR_HPI_INVALID_PARAMS;
+
+	set_sensor_event_enables = res->handler->abi->get_sensor_event_enables;
+	
+	if (!set_sensor_event_enables)
+		return SA_ERR_HPI_UNSUPPORTED_API;
+	if (set_sensor_event_enables(res->handler->hnd, &rdr->oid, Enables))
+		return SA_ERR_HPI_UNKNOWN;
+	return SA_OK;
 }
 
 /* End Sensor functions */
