@@ -16,6 +16,7 @@ REMOTE_SOURCES		= connection.c marshal.c
 MARSHAL_SOURCES         = marshal_hpi_types.c
 
 MOSTLYCLEANFILES 	= $(REMOTE_SOURCES) $(shell ls *.bb*) $(shell ls *.da) $(shell ls *.gcov)
+MAINTAINERCLEANFILES 	= Makefile.in *~
 
 INCLUDES		= -I.. -I $(top_srcdir)/include
 
