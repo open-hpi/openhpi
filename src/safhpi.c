@@ -1058,10 +1058,12 @@ SaErrorT SAHPI_API saHpiAlarmGetNext (
         GList *alarms = NULL;
         SaErrorT error = SA_ERR_HPI_NOT_PRESENT;
         
-        OH_CHECK_INIT_STATE(SessionId);        
+        OH_CHECK_INIT_STATE(SessionId);
         
         if (!oh_lookup_severity(Severity) || !Alarm) {
                 return SA_ERR_HPI_INVALID_PARAMS;
+        } else if (Alarm->AlarmId == SAHPI_LAST_ENTRY) {
+                return error;
         }
         
         OH_GET_DID(SessionId, did);
@@ -1072,15 +1074,20 @@ SaErrorT SAHPI_API saHpiAlarmGetNext (
                 if (alarm &&
                     (Severity == SAHPI_ALL_SEVERITIES ? 1 : Severity == alarm->Severity) &&
                     (UnacknowledgedOnly ? !alarm->Acknowledged : 1) &&
-                    alarm->AlarmCond.Type == SAHPI_STATUS_COND_TYPE_USER &&
-                    (Alarm->AlarmId == SAHPI_FIRST_ENTRY ? 1 : Alarm->AlarmId < alarm->AlarmId)) {                        
-                        if (Alarm->AlarmId != SAHPI_FIRST_ENTRY &&
-                            Alarm->Timestamp != alarm->Timestamp) {
-                                error = SA_ERR_HPI_INVALID_DATA;
-                        } else {
-                                error = SA_OK;
+                    (Alarm->AlarmId == SAHPI_FIRST_ENTRY ? 1 : Alarm->AlarmId < alarm->AlarmId)) {
+                        if (alarms->next) { /* Found previous alarm; now return next alarm */
+                                SaHpiAlarmT *next_alarm = alarms->next->data;
+                                if (next_alarm) {
+                                        memcpy(Alarm, next_alarm, sizeof(SaHpiAlarmT));
+                                        if (Alarm->AlarmId != SAHPI_FIRST_ENTRY &&
+                                            Alarm->Timestamp != alarm->Timestamp) {
+                                                error = SA_ERR_HPI_INVALID_DATA;
+                                        } else {
+                                                error = SA_OK;
+                                        }
+                                }
                         }
-                        memcpy(Alarm, alarm, sizeof(SaHpiAlarmT));
+                        break;
                 }
         }
         
@@ -1093,7 +1100,43 @@ SaErrorT SAHPI_API saHpiAlarmGet(
                 SAHPI_IN SaHpiAlarmIdT   AlarmId,
                 SAHPI_OUT SaHpiAlarmT    *Alarm)
 {
-        return SA_ERR_HPI_UNSUPPORTED_API;
+        SaHpiDomainIdT did = 0;
+        struct oh_domain *d = NULL;
+        GList *alarms = NULL;
+        SaErrorT error = SA_ERR_HPI_NOT_PRESENT;
+        
+        OH_CHECK_INIT_STATE(SessionId);
+        
+        if (!Alarm) return SA_ERR_HPI_INVALID_PARAMS;
+        
+        OH_GET_DID(SessionId, did);
+        OH_GET_DOMAIN(did, d); /* Lock domain */
+        
+        if (AlarmId == SAHPI_FIRST_ENTRY) {
+                alarms = g_list_first(d->dat.list);
+                if (alarms && alarms->data) {
+                        memcpy(Alarm, alarms->data, sizeof(SaHpiAlarmT));
+                        error = SA_OK;
+                }
+        } else if (AlarmId == SAHPI_LAST_ENTRY) {
+                alarms = g_list_last(d->dat.list);
+                if (alarms && alarms->data) {
+                        memcpy(Alarm, alarms->data, sizeof(SaHpiAlarmT));
+                        error = SA_OK;
+                }
+        } else {
+                for (alarms = d->dat.list; alarms; alarms = alarms->next) {
+                        SaHpiAlarmT *alarm = alarms->data;
+                        if (alarm && alarm->AlarmId == AlarmId) {
+                                memcpy(Alarm, alarm, sizeof(SaHpiAlarmT));
+                                error = SA_OK;
+                                break;
+                        }
+                }
+        }
+        
+        oh_release_domain(d);
+        return error;
 }
 
 SaErrorT SAHPI_API saHpiAlarmAcknowledge(
@@ -1101,14 +1144,73 @@ SaErrorT SAHPI_API saHpiAlarmAcknowledge(
                 SAHPI_IN SaHpiAlarmIdT   AlarmId,
                 SAHPI_IN SaHpiSeverityT  Severity)
 {
-        return SA_ERR_HPI_UNSUPPORTED_API;
+        SaHpiDomainIdT did = 0;
+        struct oh_domain *d = NULL;
+        GList *alarms = NULL;
+        SaErrorT error = SA_ERR_HPI_NOT_PRESENT;
+        
+        OH_CHECK_INIT_STATE(SessionId);
+        
+        if (AlarmId == SAHPI_ENTRY_UNSPECIFIED &&
+            !oh_lookup_severity(Severity))
+                return SA_ERR_HPI_INVALID_PARAMS;
+        
+        OH_GET_DID(SessionId, did);
+        OH_GET_DOMAIN(did, d); /* Lock domain */
+        
+        if (AlarmId != SAHPI_ENTRY_UNSPECIFIED) { /* Acknowledge specific alarm */
+                for (alarms = d->dat.list; alarms; alarms = alarms->next) {
+                        SaHpiAlarmT *alarm = alarms->data;
+                        if (alarm && alarm->AlarmId == AlarmId) {
+                                alarm->Acknowledged = SAHPI_TRUE;
+                                error = SA_OK;
+                                break;
+                        }
+                }
+        } else { /* Acknowledge group of alarms, by severity */
+                for (alarms = d->dat.list; alarms; alarms = alarms->next) {
+                        SaHpiAlarmT *alarm = alarms->data;
+                        if (alarm && 
+                            (Severity == SAHPI_ALL_SEVERITIES ? 1 : alarm->Severity == Severity)) {
+                                alarm->Acknowledged = SAHPI_TRUE;
+                        }
+                }
+                error = SA_OK;
+        }
+        
+        oh_release_domain(d);
+        return error;
 }
 
 SaErrorT SAHPI_API saHpiAlarmAdd(
                 SAHPI_IN SaHpiSessionIdT SessionId,
                 SAHPI_INOUT SaHpiAlarmT  *Alarm)
 {
-        return SA_ERR_HPI_UNSUPPORTED_API;
+        SaHpiDomainIdT did = 0;
+        struct oh_domain *d = NULL;
+        SaHpiAlarmT *a = NULL;
+        struct timeval tv1;
+                        
+        OH_CHECK_INIT_STATE(SessionId);
+        
+        if (!Alarm &&
+            !oh_lookup_severity(Alarm->Severity) &&
+            Alarm->AlarmCond.Type != SAHPI_STATUS_COND_TYPE_USER)
+                return SA_ERR_HPI_INVALID_PARAMS;
+        
+        OH_GET_DID(SessionId, did);
+        OH_GET_DOMAIN(did, d); /* Lock domain */
+        
+        /* Add new alarm */
+        a = g_new0(SaHpiAlarmT, 1);
+        memcpy(a, Alarm, sizeof(SaHpiAlarmT));
+        a->AlarmId = ++(d->dat.next_id);
+        gettimeofday(&tv1, NULL);
+        a->Timestamp = (SaHpiTimeT) tv1.tv_sec * 1000000000 + tv1.tv_usec * 1000;
+        d->dat.list = g_list_append(d->dat.list, a);
+        
+        oh_release_domain(d);
+        return SA_OK;
 }
 
 SaErrorT SAHPI_API saHpiAlarmDelete(
@@ -1116,7 +1218,55 @@ SaErrorT SAHPI_API saHpiAlarmDelete(
                 SAHPI_IN SaHpiAlarmIdT   AlarmId,
                 SAHPI_IN SaHpiSeverityT  Severity)
 {
-        return SA_ERR_HPI_UNSUPPORTED_API;
+        SaHpiDomainIdT did = 0;
+        struct oh_domain *d = NULL;
+        GList *alarms = NULL;
+        SaErrorT error = SA_ERR_HPI_NOT_PRESENT;
+        
+        OH_CHECK_INIT_STATE(SessionId);
+        
+        if (AlarmId == SAHPI_ENTRY_UNSPECIFIED &&
+            !oh_lookup_severity(Severity))
+                return SA_ERR_HPI_INVALID_PARAMS;
+        
+        OH_GET_DID(SessionId, did);
+        OH_GET_DOMAIN(did, d); /* Lock domain */
+        
+        if (AlarmId != SAHPI_ENTRY_UNSPECIFIED) { /* Look for specific alarm */
+                for (alarms = d->dat.list; alarms; alarms = alarms->next) {
+                        SaHpiAlarmT *alarm = alarms->data;
+                        if (alarm && AlarmId == alarm->AlarmId) {
+                                /* Delete alarm if user type and break */
+                                if (alarm->AlarmCond.Type != SAHPI_STATUS_COND_TYPE_USER) {
+                                        error = SA_ERR_HPI_READ_ONLY;
+                                        break;
+                                } else {
+                                        g_free(alarm);
+                                        d->dat.list = g_list_delete_link(d->dat.list, alarms);
+                                        error = SA_OK;
+                                }
+                                break;
+                        }
+                }
+        } else { /* Delete group of alarms by severity */
+                for (alarms = d->dat.list; alarms; alarms = alarms->next) {
+                        SaHpiAlarmT *alarm = alarms->data;
+                        if (alarm &&
+                            alarm->AlarmCond.Type == SAHPI_STATUS_COND_TYPE_USER &&
+                            (Severity == SAHPI_ALL_SEVERITIES ? 1 : alarm->Severity == Severity)) {
+                                /* Delete alarm and continue */
+                                GList *node = alarms->prev;
+                                g_free(alarms->data);
+                                d->dat.list = g_list_delete_link(d->dat.list, alarms);
+                                if (node) alarms = node;
+                                else { alarms = d->dat.list; continue; }
+                        }
+                }
+                error = SA_OK;
+        }
+        
+        oh_release_domain(d);
+        return error;
 }
 
 /*********************************************************************

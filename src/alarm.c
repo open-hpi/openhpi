@@ -351,17 +351,3 @@ SaErrorT oh_detect_sensor_enable_alarm(SaHpiDomainIdT did,
         return SA_OK;
 }
 
-/**
- * oh_detect_sensor_mask_alarm
- * @did:
- * @rdr:
- * @state:
- *
- * Return value:
- **/
-SaErrorT oh_detect_sensor_mask_alarm(SaHpiDomainIdT did,
-                                     SaHpiRdrT *rdr,
-                                     SaHpiEventStateT state)
-{
-        return SA_ERR_HPI_UNSUPPORTED_API;
-}

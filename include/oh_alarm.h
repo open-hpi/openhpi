@@ -33,9 +33,6 @@ SaErrorT oh_detect_sensor_enable_alarm(SaHpiDomainIdT did,
                                        SaHpiResourceIdT rid,
                                        SaHpiSensorNumT num,
                                        SaHpiBoolT enable);
-SaErrorT oh_detect_sensor_mask_alarm(SaHpiDomainIdT did,
-                                     SaHpiRdrT *rdr,
-                                     SaHpiEventStateT state);
 
 #endif /* __OH_ALARM_H */
 
