@@ -117,7 +117,7 @@ static inline void update_rptable(RPTable *table, guint modifier) {
 
         if (modifier == RPT_INCREMENT) {
                 table->rpt_info.UpdateCount = table->rpt_info.UpdateCount + 1;
-        } else {
+        } else if (modifier == RPT_DECREMENT) {
                 table->rpt_info.UpdateCount = table->rpt_info.UpdateCount - 1;
         }
 }
@@ -366,6 +366,8 @@ int oh_add_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiRdrT rdr, void *data)
         /* Else, modify existing rdrecord */        
         rdrecord->rdr = rdr;
         rdrecord->data = data;
+
+        update_rptable(table, RPT_KEEP_COUNT);
         
         return 0;
 }
@@ -404,6 +406,8 @@ int oh_remove_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT rdrid)
         }
         else rptentry->rdrtable = g_slist_remove(rptentry->rdrtable, (gpointer)rdrecord);
 
+        update_rptable(table, RPT_KEEP_COUNT);
+        
         return 0;
 }
 
