@@ -31,14 +31,18 @@ dnl Check fo libraries
 have_uuid=no
 have_openipmi=no
 
-AC_CHECK_LIB([glib], [g_slist_alloc], 
-    [GLIBFLAGS=`glib-config --cflags`],[
-    echo "************************************************************"
-    echo "* glib not found!"
-    echo "* this is require for openhpi internals"
-    echo "* please ensure glib-devel package is installed"
-    echo "************************************************************"
-    exit 1
+AC_CHECK_LIB([glib-2.0], [g_slist_alloc], 
+    [
+     GLIBFLAGS=`pkg-config --cflags glib-2.0`
+     GLIBLIBS=`pkg-config --libs glib-2.0`
+    ],
+    [
+     echo "************************************************************"
+     echo "* glib2 not found!"
+     echo "* this is require for openhpi internals"
+     echo "* please ensure glib2-devel package is installed"
+     echo "************************************************************"
+     exit 1
     ])
 
 AC_CHECK_LIB([ltdl], [lt_dlopen], [], [
@@ -170,6 +174,7 @@ CC_WARNINGS="-Wall -Wmissing-prototypes \
 
 CFLAGS="$CFLAGS $GLIBFLAGS $CC_WARNINGS"
 
+LIBS="$LIBS $GLIBLIBS"
 AC_CONFIG_FILES([openhpi.spec
         Makefile
         src/Makefile

@@ -18,7 +18,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <glib-1.2/glib.h>
+#include <glib.h>
 
 struct oh_handler_config *new_handler_config(char *, char *, char *);
 
@@ -32,6 +32,9 @@ int load_domain_config (struct oh_domain_config **config, SaHpiDomainIdT DomainI
         char dn[] = "default_domain";
         char p1[] = "libdummy";
         char p2[] = "libwatchdog";
+	
+	if (DomainId != DEFAULT_DOMAIN_ID)
+		return -1;
 
         (*config)->domain_name = calloc(1,sizeof(dn));
         strcpy((*config)->domain_name,dn);
