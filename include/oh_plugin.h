@@ -130,12 +130,7 @@ struct oh_abi_v2 {
 	/**
 	 * add entry to RSEL
 	 */
-	SaErrorT (*add_sel_entry)(void *hnd, SaHpiResourceIdT id, const SaHpiEventLogEntryT *Event);
-
-	/**
-	 * del entry in RSEL
-	 */
-        SaErrorT (*del_sel_entry)(void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT sid);
+	SaErrorT (*add_sel_entry)(void *hnd, SaHpiResourceIdT id, const SaHpiEventT *Event);
 
 	/**
 	 * get entry in RSEL
