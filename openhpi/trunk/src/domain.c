@@ -83,7 +83,12 @@ int domain_process_event(struct oh_domain *d, struct oh_event *e)
 		 * to extend the domain into global domain table.
 		 */
 		if (res->entry.ResourceCapabilities & SAHPI_CAPABILITY_DOMAIN) {
-			dbg("FIXME: we do not handle domain now");
+			struct oh_domain *nd;
+			nd 	= domain_add();
+			nd->abi = d->abi;
+			nd->hnd = d->abi->open_domain(d->hnd, &e->u.res_event.id);
+			res->entry.DomainId = nd->did;
+			dbg("Find a new domain!");
 		}
 
 		break;
