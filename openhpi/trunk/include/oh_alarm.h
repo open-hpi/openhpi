@@ -29,9 +29,10 @@ SaErrorT oh_detect_event_alarm(SaHpiDomainIdT did, struct oh_event *e);
 SaErrorT oh_detect_res_sev_alarm(SaHpiDomainIdT did,
                                  SaHpiRptEntryT *res,
                                  SaHpiSeverityT sev);
-SaErrorT oh_detect_sensor_alarm(SaHpiDomainIdT did,
-                                SaHpiRdrT *rdr,
-                                SaHpiBoolT enable);
+SaErrorT oh_detect_sensor_enable_alarm(SaHpiDomainIdT did,
+                                       SaHpiResourceIdT rid,
+                                       SaHpiSensorNumT num,
+                                       SaHpiBoolT enable);
 SaErrorT oh_detect_sensor_mask_alarm(SaHpiDomainIdT did,
                                      SaHpiRdrT *rdr,
                                      SaHpiEventStateT state);
