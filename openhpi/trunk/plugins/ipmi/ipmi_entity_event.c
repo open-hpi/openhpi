@@ -106,24 +106,24 @@ static void get_entity_event(ipmi_entity_t	*entity,
 static void add_entity_event(ipmi_entity_t	        *entity,
 			     struct oh_handler_state    *handler)
 {
-		struct ohoi_resource_id *ohoi_res_id;
-		struct oh_event	*e;
-		int 		rv;
+         struct ohoi_resource_info *ohoi_res_info;
+         struct oh_event	*e;
+         int 		rv;
         
-        ohoi_res_id = g_malloc0(sizeof(*ohoi_res_id));
-        if (!ohoi_res_id) {
+        ohoi_res_info = g_malloc0(sizeof(*ohoi_res_info));
+        if (!ohoi_res_info) {
                 dbg("Out of memory");
                 return;
         }	
 	e = g_malloc0(sizeof(*e));
 	if (!e) {
-                free(ohoi_res_id);
+                free(ohoi_res_info);
 		dbg("Out of space");   
 		return;
 	}
 
-        ohoi_res_id->type       = OHOI_RESOURCE_ENTITY; 
-        ohoi_res_id->u.entity_id= ipmi_entity_convert_to_id(entity);
+        ohoi_res_info->type       = OHOI_RESOURCE_ENTITY; 
+        ohoi_res_info->u.entity_id= ipmi_entity_convert_to_id(entity);
         
 	memset(e, 0, sizeof(*e));
 	e->type = OH_ET_RESOURCE;			
@@ -132,7 +132,7 @@ static void add_entity_event(ipmi_entity_t	        *entity,
 	handler->eventq = g_slist_append(handler->eventq, e);
 
 	/* sensors */
-	oh_add_resource(handler->rptcache, &(e->u.res_event.entry), ohoi_res_id, 1);
+	oh_add_resource(handler->rptcache, &(e->u.res_event.entry), ohoi_res_info, 1);
 	rv= ipmi_entity_set_sensor_update_handler(entity, ohoi_sensor_event,
 						  handler);
 	if (rv) {

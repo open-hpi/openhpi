@@ -319,7 +319,7 @@ static SaErrorT ipmi_get_sel_info(void               *hnd,
         struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
 		struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
 
-        const struct ohoi_resource_id *ohoi_res_id;
+        const struct ohoi_resource_info *ohoi_res_info;
 
 		dbg("starting wait for sel retrieval");
 
@@ -332,22 +332,22 @@ static SaErrorT ipmi_get_sel_info(void               *hnd,
 		}
 
 		dbg("done retrieving sel");
-        ohoi_res_id = oh_get_resource_data(handler->rptcache, id);
-        if (ohoi_res_id->type != OHOI_RESOURCE_MC) {
+        ohoi_res_info = oh_get_resource_data(handler->rptcache, id);
+        if (ohoi_res_info->type != OHOI_RESOURCE_MC) {
                 dbg("BUG: try to get sel in unsupported resource");
                 return SA_ERR_HPI_INVALID_CMD;
         }
 	
-        ohoi_get_sel_count(ohoi_res_id->u.mc_id, &count);
+        ohoi_get_sel_count(ohoi_res_info->u.mc_id, &count);
 	
         info->Entries           = count;
         info->Size              = -1; /* FIXME: how to get total size in OpenIPMI? */
-        ohoi_get_sel_updatetime(ohoi_res_id->u.mc_id, &info->UpdateTimestamp);
-        ohoi_get_sel_time(ohoi_res_id->u.mc_id, &info->CurrentTime, ipmi_handler);
+        ohoi_get_sel_updatetime(ohoi_res_info->u.mc_id, &info->UpdateTimestamp);
+        ohoi_get_sel_time(ohoi_res_info->u.mc_id, &info->CurrentTime, ipmi_handler);
         info->Enabled           = 1; /* FIXME: how to disable SEL in OpenIPMI */
-        ohoi_get_sel_overflow(ohoi_res_id->u.mc_id, &info->OverflowFlag);
+        ohoi_get_sel_overflow(ohoi_res_info->u.mc_id, &info->OverflowFlag);
         info->OverflowAction    = SAHPI_SEL_OVERFLOW_DROP;
-        ohoi_get_sel_support_del(ohoi_res_id->u.mc_id, &info->DeleteEntrySupported);
+        ohoi_get_sel_support_del(ohoi_res_info->u.mc_id, &info->DeleteEntrySupported);
         
         return 0;
 }
@@ -370,20 +370,20 @@ static int ipmi_set_sel_time(void               *hnd,
 		struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
 		struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
 
-		struct ohoi_resource_id *ohoi_res_id;
+		struct ohoi_resource_info *ohoi_res_info;
         struct timeval tv;
         
 		dbg("sel_set_time called");
 
-        ohoi_res_id = oh_get_resource_data(handler->rptcache, id);
-        if (ohoi_res_id->type != OHOI_RESOURCE_MC) {
+        ohoi_res_info = oh_get_resource_data(handler->rptcache, id);
+        if (ohoi_res_info->type != OHOI_RESOURCE_MC) {
                 dbg("BUG: try to get sel in unsupported resource");
                 return SA_ERR_HPI_INVALID_CMD;
         }
         
         tv.tv_sec = time/1000000000;
         tv.tv_usec= (time%1000000000)/1000;
-        ohoi_set_sel_time(ohoi_res_id->u.mc_id, &tv, ipmi_handler);
+        ohoi_set_sel_time(ohoi_res_info->u.mc_id, &tv, ipmi_handler);
         return 0;
 }
 
@@ -475,12 +475,12 @@ static int ipmi_get_sel_entry(void *hnd, SaHpiResourceIdT id,
 	       			SaHpiSelEntryT *entry)
 {
 		
-        struct ohoi_resource_id *ohoi_res_id;
+        struct ohoi_resource_info *ohoi_res_info;
 		struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
         ipmi_event_t *event;
 
-        ohoi_res_id = oh_get_resource_data(handler->rptcache, id);
-        if (ohoi_res_id->type != OHOI_RESOURCE_MC) {
+        ohoi_res_info = oh_get_resource_data(handler->rptcache, id);
+        if (ohoi_res_info->type != OHOI_RESOURCE_MC) {
                 dbg("BUG: try to get sel in unsupported resource");
                 return SA_ERR_HPI_INVALID_CMD;
         }
@@ -488,28 +488,28 @@ static int ipmi_get_sel_entry(void *hnd, SaHpiResourceIdT id,
 
 	switch (current) {
         case SAHPI_OLDEST_ENTRY:
-		ohoi_get_sel_first_entry(ohoi_res_id->u.mc_id, &event);
+		ohoi_get_sel_first_entry(ohoi_res_info->u.mc_id, &event);
                 
-		ohoi_get_sel_next_recid(ohoi_res_id->u.mc_id, event, next);
+		ohoi_get_sel_next_recid(ohoi_res_info->u.mc_id, event, next);
 		
                 *prev = SAHPI_NO_MORE_ENTRIES;
                 break;
 		
         case SAHPI_NEWEST_ENTRY:
-                ohoi_get_sel_last_entry(ohoi_res_id->u.mc_id, &event);
+                ohoi_get_sel_last_entry(ohoi_res_info->u.mc_id, &event);
 
                 *next = SAHPI_NO_MORE_ENTRIES;
 
-                ohoi_get_sel_prev_recid(ohoi_res_id->u.mc_id, event, prev);
+                ohoi_get_sel_prev_recid(ohoi_res_info->u.mc_id, event, prev);
                 break;
                 
         default:                		
 		/* get the entry requested by id */
-		ohoi_get_sel_by_recid(ohoi_res_id->u.mc_id, *next, &event);
+		ohoi_get_sel_by_recid(ohoi_res_info->u.mc_id, *next, &event);
 
-		ohoi_get_sel_next_recid(ohoi_res_id->u.mc_id, event, next);
+		ohoi_get_sel_next_recid(ohoi_res_info->u.mc_id, event, next);
 
-                ohoi_get_sel_prev_recid(ohoi_res_id->u.mc_id, event, prev);
+                ohoi_get_sel_prev_recid(ohoi_res_info->u.mc_id, event, prev);
                 break; 
 	}
         entry->Event.EventType = SAHPI_ET_USER;
@@ -522,16 +522,16 @@ static int ipmi_get_sel_entry(void *hnd, SaHpiResourceIdT id,
 
 static SaErrorT ipmi_clear_sel(void *hnd, SaHpiResourceIdT id)
 {
-        struct ohoi_resource_id *ohoi_res_id;
+        struct ohoi_resource_info *ohoi_res_info;
 	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
 
-        ohoi_res_id = oh_get_resource_data(handler->rptcache, id);
-        if (ohoi_res_id->type != OHOI_RESOURCE_MC) {
+        ohoi_res_info = oh_get_resource_data(handler->rptcache, id);
+        if (ohoi_res_info->type != OHOI_RESOURCE_MC) {
                 dbg("BUG: try to get sel in unsupported resource");
                 return SA_ERR_HPI_INVALID_CMD;
         }
 
-        return ohoi_clear_sel(ohoi_res_id->u.mc_id);
+        return ohoi_clear_sel(ohoi_res_info->u.mc_id);
 }
 
 static SaErrorT get_rdr_data(const struct oh_handler_state *handler,

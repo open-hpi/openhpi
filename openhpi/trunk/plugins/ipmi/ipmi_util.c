@@ -44,19 +44,21 @@ static inline int mc_id_is_equal(const ipmi_mcid_t id1,
                 && (id1.seq == id2.seq));
 }
 
-static inline int ohoi_resource_id_is_equal(
-                const struct ohoi_resource_id id1,
-                const struct ohoi_resource_id id2)
+static inline int ohoi_resource_info_is_equal(
+                const struct ohoi_resource_info info1,
+                const struct ohoi_resource_info info2)
 {
-        if (id1.type != id2.type)
+     /* We don't compare rdr_count */
+
+        if (info1.type != info2.type)
                 return 0;
-        switch (id1.type) {
+        switch (info1.type) {
                 case OHOI_RESOURCE_ENTITY:
-                        return (entity_id_is_equal(id1.u.entity_id, 
-                                                   id2.u.entity_id));
+                        return (entity_id_is_equal(info1.u.entity_id, 
+                                                   info2.u.entity_id));
                 case OHOI_RESOURCE_MC:
-                        return (mc_id_is_equal(id1.u.mc_id,
-                                               id2.u.mc_id));
+                        return (mc_id_is_equal(info1.u.mc_id,
+                                               info2.u.mc_id));
                 default:
                         dbg("UNKNOWN OHOI RESOURCE TYPE!");
                         return 0;
@@ -67,17 +69,17 @@ static inline int ohoi_resource_id_is_equal(
 SaHpiRptEntryT *ohoi_get_resource_by_entityid(RPTable                *table,
                                               const ipmi_entity_id_t *entity_id)
 {
-        struct ohoi_resource_id res_id1;
+        struct ohoi_resource_info res_info1;
         SaHpiRptEntryT *rpt_entry;
         
-        res_id1.type            = OHOI_RESOURCE_ENTITY;
-        res_id1.u.entity_id     = *entity_id;
+        res_info1.type            = OHOI_RESOURCE_ENTITY;
+        res_info1.u.entity_id     = *entity_id;
         
         rpt_entry = oh_get_resource_next(table, SAHPI_FIRST_ENTRY);
         while (rpt_entry) {
-                struct ohoi_resource_id *ohoi_res_id;
-                ohoi_res_id = oh_get_resource_data(table, rpt_entry->ResourceId);
-                if (ohoi_resource_id_is_equal(res_id1, *ohoi_res_id)) {
+                struct ohoi_resource_info *ohoi_res_info;
+                ohoi_res_info = oh_get_resource_data(table, rpt_entry->ResourceId);
+                if (ohoi_resource_info_is_equal(res_info1, *ohoi_res_info)) {
                         return rpt_entry;
 		}
                 rpt_entry = oh_get_resource_next(table, 

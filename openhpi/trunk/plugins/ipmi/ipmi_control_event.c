@@ -139,13 +139,13 @@ void ohoi_control_event(enum ipmi_update_e op,
 	
 	ipmi_entity_id_t	entity_id;	
 	SaHpiRptEntryT		*rpt_entry;
-        struct ohoi_resource_id *ohoi_res_id;
+        struct ohoi_resource_info *ohoi_res_info;
         
 	entity_id = ipmi_entity_convert_to_id(ent);
 	rpt_entry = ohoi_get_resource_by_entityid(
 			handler->rptcache,
 			&entity_id);   
-        ohoi_res_id = oh_get_resource_data(handler->rptcache, 
+        ohoi_res_info = oh_get_resource_data(handler->rptcache, 
                                            rpt_entry->ResourceId);
 	
         if (!rpt_entry) {
@@ -163,12 +163,12 @@ void ohoi_control_event(enum ipmi_update_e op,
                 switch (ctrl_type) {
                         case IPMI_CONTROL_ONE_SHOT_RESET:
                                 dbg("Attach reset control into entity");
-                                ohoi_res_id->reset_ctrl
+                                ohoi_res_info->reset_ctrl
                                         = ipmi_control_convert_to_id(control);
                                 break;
                         case IPMI_CONTROL_POWER:
                                 dbg("Attach power control into entity");
-                                ohoi_res_id->power_ctrl
+                                ohoi_res_info->power_ctrl
                                         = ipmi_control_convert_to_id(control);
                                 break;
 

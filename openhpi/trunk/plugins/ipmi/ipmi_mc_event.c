@@ -83,16 +83,16 @@ static void get_mc_entity_event(ipmi_mc_t	*mc,
 static void mc_add(ipmi_mc_t                    *mc,
                    struct oh_handler_state      *handler)
 {
-        struct ohoi_resource_id *ohoi_res_id;
+        struct ohoi_resource_info *ohoi_res_info;
         struct oh_event *e;
         
-        ohoi_res_id = g_malloc0(sizeof(*ohoi_res_id));
-        if (!ohoi_res_id) {
+        ohoi_res_info = g_malloc0(sizeof(*ohoi_res_info));
+        if (!ohoi_res_info) {
                 dbg("Out of space");
                 return;
         }
-        ohoi_res_id->type       = OHOI_RESOURCE_MC;
-        ohoi_res_id->u.mc_id    = ipmi_mc_convert_to_id(mc);
+        ohoi_res_info->type       = OHOI_RESOURCE_MC;
+        ohoi_res_info->u.mc_id    = ipmi_mc_convert_to_id(mc);
                 
 	e = malloc(sizeof(*e));
 	if (!e) {
@@ -106,7 +106,7 @@ static void mc_add(ipmi_mc_t                    *mc,
 	get_mc_entity_event(mc, &(e->u.res_event.entry));
 
 	/* add to rptcache */
-	oh_add_resource(handler->rptcache, &(e->u.res_event.entry), ohoi_res_id, 1);
+	oh_add_resource(handler->rptcache, &(e->u.res_event.entry), ohoi_res_info, 1);
 
 }
 

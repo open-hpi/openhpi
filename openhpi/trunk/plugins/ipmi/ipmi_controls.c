@@ -56,7 +56,7 @@ static void set_reset_state(ipmi_control_t *control,
 SaErrorT ohoi_set_reset_state(void *hnd, SaHpiResourceIdT id, 
 		              SaHpiResetActionT act)
 {
-        struct ohoi_resource_id *ohoi_res_id;
+        struct ohoi_resource_info *ohoi_res_info;
 	struct oh_handler_state *handler;
         int rv;
         
@@ -66,13 +66,13 @@ SaErrorT ohoi_set_reset_state(void *hnd, SaHpiResourceIdT id,
         }
 
         handler     = (struct oh_handler_state *)hnd;
-        ohoi_res_id = oh_get_resource_data(handler->rptcache, id);
-        if (ohoi_res_id->type != OHOI_RESOURCE_ENTITY) {
+        ohoi_res_info = oh_get_resource_data(handler->rptcache, id);
+        if (ohoi_res_info->type != OHOI_RESOURCE_ENTITY) {
                 dbg("Not support reset in MC");
                 return SA_ERR_HPI_INVALID_CMD;
         }
 
-        rv = ipmi_control_pointer_cb(ohoi_res_id->reset_ctrl, 
+        rv = ipmi_control_pointer_cb(ohoi_res_info->reset_ctrl, 
                                      set_reset_state, NULL);
         if (rv) {
                 dbg("Not support reset in the entity");
@@ -94,7 +94,7 @@ static void set_power_state(ipmi_control_t *control,
 SaErrorT ohoi_set_power_state(void *hnd, SaHpiResourceIdT id, 
 		              SaHpiHsPowerStateT state)
 {
-        struct ohoi_resource_id *ohoi_res_id;
+        struct ohoi_resource_info *ohoi_res_info;
 	struct oh_handler_state *handler;
         int rv;
         
@@ -104,13 +104,13 @@ SaErrorT ohoi_set_power_state(void *hnd, SaHpiResourceIdT id,
         }
 
         handler     = (struct oh_handler_state *)hnd;
-        ohoi_res_id = oh_get_resource_data(handler->rptcache, id);
-        if (ohoi_res_id->type != OHOI_RESOURCE_ENTITY) {
+        ohoi_res_info = oh_get_resource_data(handler->rptcache, id);
+        if (ohoi_res_info->type != OHOI_RESOURCE_ENTITY) {
                 dbg("Not support power in MC");
                 return SA_ERR_HPI_INVALID_CMD;
         }
 
-        rv = ipmi_control_pointer_cb(ohoi_res_id->power_ctrl, 
+        rv = ipmi_control_pointer_cb(ohoi_res_info->power_ctrl, 
                                      set_power_state, NULL);
         if (rv) {
                 dbg("Not support power in the entity");
