@@ -335,7 +335,7 @@ SaErrorT SAHPI_API saHpiRptEntryGet(
                 return SA_ERR_HPI_INVALID;
         }
         
-        memcpy(RptEntry, req_entry, sizeof(RptEntry));
+        memcpy(RptEntry, req_entry, sizeof(*RptEntry));
 
         next_entry = oh_get_resource_next(rpt, req_entry->EntryId);
         
