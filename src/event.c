@@ -218,10 +218,10 @@ int get_events(void)
                 do {
                         got_event = get_handler_event(i->data, rpt);
                 } while (got_event > 0);
+
+		process_hotswap_policy(i->data);
         }
         
-        process_hotswap_policy();
-
         data_access_unlock();
 
         return 0;
