@@ -94,10 +94,11 @@ static void mc_add(ipmi_mc_t                    *mc,
                 dbg("Out of space");
                 return;
         }
-		ohoi_res_info->presence	  = 1;	/* always present if active thus here */
-        ohoi_res_info->type       = OHOI_RESOURCE_MC;
+        ohoi_res_info->type      = OHOI_RESOURCE_MC;
         ohoi_res_info->u.mc_id    = ipmi_mc_convert_to_id(mc);
-		ohoi_res_info->updated	  = 1;
+	dbg("Set updated for resource %p . MC", mc);
+	/* always present if active thus here */
+	entity_rpt_set_presence(ohoi_res_info, ipmi_handler, 1);
                 
 	e = malloc(sizeof(*e));
 	if (!e) {

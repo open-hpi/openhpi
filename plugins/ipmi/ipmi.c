@@ -82,6 +82,7 @@ static void *ipmi_open(GHashTable *handler_config)
 		dbg("Cannot allocate handler or private ipmi");
 		return NULL;
 	}	
+	g_static_rec_mutex_init(&(ipmi_handler->ohoih_lock));;	
 	handler->data = ipmi_handler;
 
 	handler->rptcache = (RPTable *)g_malloc0(sizeof(RPTable));
@@ -374,21 +375,25 @@ int ipmi_discover_resources(void *hnd)
 			}
 	}
 	dbg("Discovery::MC count: %d", ipmi_handler->mc_count);
-	
-        rpt_entry = oh_get_resource_next(handler->rptcache, SAHPI_FIRST_ENTRY);
-	
-        while (rpt_entry) {
+
+	g_static_rec_mutex_lock(&ipmi_handler->ohoih_lock);	
+	rpt_entry = oh_get_resource_next(handler->rptcache, SAHPI_FIRST_ENTRY);	
+	while (rpt_entry) {
 		res_info = oh_get_resource_data(handler->rptcache, rpt_entry->ResourceId);
 
-		dbg("res: %d presence: %d", rpt_entry->ResourceId, res_info->presence);
-		if (res_info->presence == 1 && res_info->updated) {
-		      	event = g_malloc0(sizeof(*event));
-			memset(event, 0, sizeof(*event));
-			event->type = OH_ET_RESOURCE;
-	
-			memcpy(&event->u.res_event.entry, rpt_entry, sizeof(SaHpiRptEntryT));
-			handler->eventq = g_slist_append(handler->eventq, event);
-	
+		dbg("res: %d presence: %d; updated:%d",
+			rpt_entry->ResourceId, res_info->presence, res_info->updated);
+		if (res_info->updated == 0) {
+			rpt_entry = oh_get_resource_next(handler->rptcache, rpt_entry->ResourceId);
+			continue;
+		}
+		event = g_malloc0(sizeof(*event));
+		memset(event, 0, sizeof(*event));
+		event->type = res_info->presence ? OH_ET_RESOURCE : OH_ET_RESOURCE_DEL;
+		memcpy(&event->u.res_event.entry, rpt_entry, sizeof(SaHpiRptEntryT));
+		handler->eventq = g_slist_append(handler->eventq, event);
+		if (res_info->presence == 1) {
+			/* Add all RDRs of this RPTe */	
 			rdr_entry = oh_get_rdr_next(handler->rptcache,
 						    	rpt_entry->ResourceId,
 							SAHPI_FIRST_ENTRY);
@@ -405,14 +410,11 @@ int ipmi_discover_resources(void *hnd)
 		    							rpt_entry->ResourceId,
 		    							rdr_entry->RecordId);
 			}
-				
-			rpt_entry = oh_get_resource_next(handler->rptcache, rpt_entry->ResourceId);
-		}else {
-		  	dbg("Resource %d not present, skipping", rpt_entry->ResourceId);
-			rpt_entry = oh_get_resource_next(handler->rptcache, rpt_entry->ResourceId);
 		}
 		res_info->updated = 0;
+		rpt_entry = oh_get_resource_next(handler->rptcache, rpt_entry->ResourceId);
 	}
+	g_static_rec_mutex_unlock(&ipmi_handler->ohoih_lock);	
 	return 0;
 }
 
@@ -1435,8 +1437,8 @@ static SaErrorT ipmi_set_res_tag (void 			*hnd,
 
 	/* but first check if it's an entity or an MC */
 	if (res_info->type == OHOI_RESOURCE_MC) {
-			dbg("Setting custom tag for Management Controllers is not supported");
-			return SA_ERR_HPI_INVALID_CMD;
+			dbg("Setting custom tag for Management Controllers is not supported."
+				" Change it only in memory");
 	} else {
 			/* can only be an Entity in the ohoi_resource_info struct */
 			dbg("Setting new Tag: %s for resource: %d", (char *) tag->Data, id);
