@@ -42,7 +42,6 @@ AC_CHECK_HEADERS([fcntl.h stdlib.h string.h sys/time.h unistd.h])
 
 dnl Checks for library functions.
 AC_FUNC_ERROR_AT_LINE
-AC_FUNC_MALLOC
 AC_FUNC_VPRINTF
 AC_CHECK_FUNCS([gettimeofday memset])
 
