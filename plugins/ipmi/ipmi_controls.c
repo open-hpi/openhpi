@@ -194,56 +194,112 @@ SaErrorT ohoi_set_control_state(void *hnd, SaHpiResourceIdT id,
 	return SA_OK;
 }
 
-static void reset_done (ipmi_control_t *ipmi_control,
+static void reset_resource_done (ipmi_control_t *ipmi_control,
 			int err,
 			void *cb_data)
 {
-	int *reset_flag = cb_data;
-	*reset_flag = 1;
+	struct ohoi_reset_info *info = cb_data;
+	info->done = 1;
+	info->err = err;
 }
 
-static void set_reset_state(ipmi_control_t *control,
+static void set_resource_reset_state(ipmi_control_t *control,
                             void           *cb_data)
 {
-        int val=1;
+        struct ohoi_reset_info *info = cb_data;
+	int val = 1;
+	int rv;
 
         /* Just cold reset the entity*/
-        ipmi_control_set_val(control, &val, reset_done, cb_data);
+        rv = ipmi_control_set_val(control, &val, reset_resource_done, cb_data);
+	if (rv) {
+		dbg("ipmi_control_set_val returned err = %d", rv);
+		info->err = SA_ERR_HPI_INTERNAL_ERROR;
+		info->done = 1;
+	}
 }
+
+
+static void reset_mc_done (ipmi_mc_t *mc,
+			int err,
+			void *cb_data)
+{
+	struct ohoi_reset_info *info = cb_data;
+	info->done = 1;
+	if (err) {
+		dbg("reset_mc_done err = %d", err);
+		info->err = SA_ERR_HPI_INTERNAL_ERROR;
+	}
+}
+
+static void set_mc_reset_state(ipmi_mc_t *mc,
+                            void           *cb_data)
+{
+        struct ohoi_reset_info *info = cb_data;
+	int rv;
+	int act;
+
+	if (*info->state == SAHPI_COLD_RESET) {
+		act = IPMI_MC_RESET_COLD;
+	} else if (*info->state == SAHPI_WARM_RESET) {
+		act = IPMI_MC_RESET_WARM;
+	} else {
+		info->err = SA_ERR_HPI_INVALID_CMD;
+		info->done = 1;
+		return;
+	}		
+        rv = ipmi_mc_reset(mc, act, reset_mc_done, cb_data);
+	if (rv) {
+		dbg("ipmi_mc_reset returned err = %d", rv);
+		info->err = SA_ERR_HPI_INTERNAL_ERROR;
+		info->done = 1;
+	}
+}
+
+
 
 SaErrorT ohoi_set_reset_state(void *hnd, SaHpiResourceIdT id, 
 		              SaHpiResetActionT act)
 {
 	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
 	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
-	
+	struct ohoi_reset_info info;	
         struct ohoi_resource_info *ohoi_res_info;
         
 	int rv;
-	int reset_flag = 0;	/* reset_flag = 1 means reset is done */
         
-        if ((act != SAHPI_COLD_RESET) && (act != SAHPI_WARM_RESET)) {
-                dbg("Only support cold reset");
-                return SA_ERR_HPI_INVALID_CMD;
-        }
+	info.done = 0;
+	info.err = 0;
+	info.state = &act;
+	if ((act != SAHPI_COLD_RESET) && (act == SAHPI_WARM_RESET)) {
+		dbg("Only support cold and warm reset");
+		return SA_ERR_HPI_INVALID_CMD;
+	}
 
         ohoi_res_info = oh_get_resource_data(handler->rptcache, id);
-        if (ohoi_res_info->type != OHOI_RESOURCE_ENTITY) {
-                dbg("Not support reset in MC");
-                return SA_ERR_HPI_CAPABILITY;
-        }
+        if (ohoi_res_info->type == OHOI_RESOURCE_ENTITY) {
+                rv = ipmi_control_pointer_cb(ohoi_res_info->reset_ctrl, 
+                                     set_resource_reset_state, &info);
+	} else {
+		//return SA_ERR_HPI_CAPABILITY;
+		rv = ipmi_mc_pointer_cb(ohoi_res_info->u.mc_id, 
+			set_mc_reset_state, &info);
+	}
 
-        rv = ipmi_control_pointer_cb(ohoi_res_info->reset_ctrl, 
-                                     set_reset_state, &reset_flag);
         if (rv) {
-                dbg("Not support reset in the entity");
+                dbg("Not support reset in the entity or mc");
                 return SA_ERR_HPI_CAPABILITY;
         }
 
 	/* wait until reset_done is called to exit this function */
-	ohoi_loop(&reset_flag, ipmi_handler);
-        
-        return SA_OK;
+	rv = ohoi_loop(&info.done, ipmi_handler);
+	if ((rv == SA_OK) && (info.err == 0)) {
+		return SA_OK;
+	} else if (info.err) {
+		return info.err;
+	} else {
+		return rv;
+	}
 }
 
 static void power_done (ipmi_control_t *ipmi_control,
