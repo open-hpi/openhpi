@@ -949,20 +949,28 @@ SaErrorT SAHPI_API saHpiEventGet (
 
 		memcpy(Event, &e.event, sizeof(*Event));
 
-		res = get_res_by_oid(e.parent);
-		if (res) {
-			memcpy(RptEntry, &res->entry, sizeof(*RptEntry));
-			
-			rdr = get_rdr_by_oid(res, e.id);
-			if (rdr) {
-				memcpy(Rdr, &rdr->rdr, sizeof(*Rdr));
-			} else {
-				dbg("Event without resource");
-			}
-		}else {
-			dbg("Event without resource");
-		}
+                if (Rdr)
+                        Rdr->RdrType = SAHPI_NO_RECORD;
 
+                if (RptEntry)
+                        RptEntry->ResourceCapabilities = 0;
+
+                res = get_res_by_oid(e.parent);
+
+                if (res) {
+			if (Rdr) {
+                                rdr = get_rdr_by_oid(res, e.id);
+
+				if (rdr)
+                                        memcpy(Rdr, &rdr->rdr, sizeof(*Rdr));
+                                else
+                                        dbg("Event without resource");
+                        }
+
+                        if (RptEntry)
+                                memcpy(RptEntry, &res->entry, sizeof(*RptEntry));
+                } else
+                        dbg("Event without resource");
 	}
 	
 	return value;
