@@ -56,7 +56,10 @@ int sim_util_remove_resource(RPTable *table, SaHpiResourceIdT rid,
       
         eid = SAHPI_FIRST_ENTRY;
         rdr = oh_get_rdr_next(table, rid, eid);
-        for ( ; rdr; eid = rdr->RecordId, rdr = oh_get_rdr_next(table, rid, eid)) {
+
+        while (rdr) {
+                eid = rdr->RecordId;
+
                 sid = oh_get_rdr_data(table, rid, eid);
                 if (sid){
                         if (fc) {
@@ -66,6 +69,8 @@ int sim_util_remove_resource(RPTable *table, SaHpiResourceIdT rid,
                         }
                         g_free(sid);
                 }
+
+                rdr = oh_get_rdr_next(table, rid, eid);
         }
 
         oh_remove_resource(table, rid);
@@ -99,14 +104,14 @@ sim_rdr_id_t *sim_util_get_rdr_id(RPTable *table, int reqnum)
         rid = SAHPI_FIRST_ENTRY;
         rpt = oh_get_resource_next(table, rid);
 
-        for ( ; rpt; rid = rpt->ResourceId, 
-                     rpt = oh_get_resource_next(table, rid)) {
+        while (rpt) {
                 
+                rid = rpt->ResourceId;
                 eid = SAHPI_FIRST_ENTRY;
                 rdr = oh_get_rdr_next(table, rid, eid);
                 
-                for ( ; rdr; eid = rdr->RecordId,
-                             rdr = oh_get_rdr_next(table, rid, eid)) {
+                while (rdr) {
+                        eid = rdr->RecordId;
                         sid = oh_get_rdr_data(table, rid, eid);
                         if (sid) {
                                 if (sid->reqnum == reqnum) {
@@ -115,7 +120,10 @@ sim_rdr_id_t *sim_util_get_rdr_id(RPTable *table, int reqnum)
                                       goto out;
                                 }
                         }
+                        rdr = oh_get_rdr_next(table, rid, eid);
                 }
+
+                rpt = oh_get_resource_next(table, rid);
         }
 out:
         pthread_mutex_unlock(&util_mutext);
@@ -163,7 +171,6 @@ char *sim_util_get_rpt_file(struct oh_handler_state *inst,
                 goto out;
 
         sprintf(str, "%s/%s/rpt", str1, str2);
-        trace("%s/%s/rpt\n", str1, str2);
 out:
         pthread_mutex_unlock(&util_mutext);
         return str;
@@ -194,7 +201,6 @@ char * fun_name(struct oh_handler_state *inst,                     \
                 goto out;                                          \
                                                                    \
         sprintf(str, str_x, str1, str2, sid->index);               \
-        trace(str_x"\n", str1, str2, sid->index);                  \
                                                                    \
 out:                                                               \
         pthread_mutex_unlock(&util_mutext);                        \
@@ -206,7 +212,8 @@ SIM_UTIL_GET_SENSOR_FILE(sim_util_get_sensor_thres_file,
                          "%s/%s/%x/sensor/thres")
 SIM_UTIL_GET_SENSOR_FILE(sim_util_get_sensor_enables_file,
                          "%s/%s/%x/sensor/enables")
-
+SIM_UTIL_GET_SENSOR_FILE(sim_util_get_rdr_file,
+                         "%s/%s/%x/rdr")
 
 int sim_util_insert_event(GSList **eventq, struct oh_event *event)
 {
