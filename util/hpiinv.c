@@ -296,7 +296,9 @@ main(int argc, char **argv)
 	{
 		rv = saHpiRptEntryGet(sessionid,rptentryid,&nextrptentryid,&rptentry);
 		if (rvx != SA_OK) printf("RptEntryGet: rv = %d\n",rv);
-		if (rvx == SA_OK)
+		if (rvx == SA_OK 
+                    && (rptentry.ResourceCapabilities & SAHPI_CAPABILITY_RDR)
+                    && (rptentry.ResourceCapabilities & SAHPI_CAPABILITY_INVENTORY_DATA))
 		{
 			/* walk the RDR list for this RPT entry */
 			entryid = SAHPI_FIRST_ENTRY;
