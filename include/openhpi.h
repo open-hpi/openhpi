@@ -51,7 +51,6 @@ struct oh_resource {
 		/* valid when OH_ENTITY */
 		struct list_head rdr_list;
 	} u;
-	SaHpiRptEntryT rpt_entry;
 	int present:1;
 };
 

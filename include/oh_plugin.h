@@ -86,7 +86,12 @@ struct oh_abi_v1 {
 	 * immediately.
 	 */
 	int (*get_event)(void *hnd, struct oh_event *event, struct timeval *timeout);
-
+	
+	/**
+	 * get the entity info
+	 */
+	int (*get_res_info)(void *hnd, struct oh_id *id, SaHpiRptEntryT *res);
+	
 	/**
 	 * get the id which the caller is running
 	 */

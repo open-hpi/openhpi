@@ -45,7 +45,7 @@ struct oh_resource *get_res(struct oh_domain *domain, SaHpiResourceIdT rid)
 	return NULL;
 }
 
-static int add_res(struct oh_domain *d, struct oh_resource **res, enum oh_id_type type)
+static int add_res(struct oh_domain *d, struct oh_resource **res, struct oh_id *oid)
 {
 	struct oh_resource *r;
 	
@@ -55,9 +55,10 @@ static int add_res(struct oh_domain *d, struct oh_resource **res, enum oh_id_typ
 		return -1;
 	}
 	memset(r, 0, sizeof(*r));
-	init_res(r, type);
+	init_res(r, oid->type);
 	
 	r->rid = d->res_counter++;
+	memcpy(&r->oid, oid, sizeof(*oid));
 
 	d->update_counter++;
 	gettimeofday(&d->update_time, NULL);
@@ -97,7 +98,7 @@ static struct oh_resource *get_res_by_oid2(struct oh_domain *d, struct oh_id *oi
 	if (!r) {
 		int rv;
 		dbg("New entity, add it");
-		rv = add_res(d, &r, oid->type);
+		rv = add_res(d, &r, oid);
 		if (rv<0) {
 			return NULL;
 		}
