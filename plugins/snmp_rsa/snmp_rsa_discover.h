@@ -23,15 +23,15 @@ struct oh_event * snmp_rsa_discover_dasd(SaHpiEntityPathT *ep, int num);
 
 /* RDR discovery prototypes */
 struct oh_event * snmp_rsa_discover_controls(struct snmp_session *ss,
-					    SaHpiEntityPathT parent_ep,
-					    const struct snmp_rsa_control *control);
+				             SaHpiEntityPathT parent_ep,
+				             const struct snmp_rsa_control *control);
 
 struct oh_event * snmp_rsa_discover_sensors(struct snmp_session *ss,
-                                           SaHpiEntityPathT parent_ep,
-                                           const struct snmp_rsa_sensor *sensor);
+                                            SaHpiEntityPathT parent_ep,
+                                            const struct snmp_rsa_sensor *sensor);
 
 struct oh_event * snmp_rsa_discover_inventories(struct snmp_session *ss,
-                                           SaHpiEntityPathT parent_ep,
-                                           const struct snmp_rsa_inventory *inventory);
+                                                SaHpiEntityPathT parent_ep,
+                                                const struct snmp_rsa_inventory *inventory);
 
 #endif /* SNMP_RSA_DISCOVER_H */
