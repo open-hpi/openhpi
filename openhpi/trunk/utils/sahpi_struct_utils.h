@@ -58,11 +58,30 @@ SaErrorT oh_decode_sensorreading(SaHpiSensorReadingT reading,
 /************************** 
  * Print structure routines
  **************************/
+
+#define put_spacing(space) \
+do { \
+        int j; \
+	for(j=0; j < space; j++) \
+		fprintf(stream, " "); \
+} while(0)
+ 
+ 
 #define oh_print_textbuffer(buffer)  oh_fprint_textbuffer(stdout, buffer)
 SaErrorT oh_fprint_textbuffer(FILE *stream, const SaHpiTextBufferT *buffer);
 
 #define oh_print_big_textbuffer(big_buffer)  oh_fprint_big_textbuffer(stdout, big_buffer)
 SaErrorT oh_fprint_big_textbuffer(FILE *stream, const oh_big_textbuffer *big_buffer);
+
+#define oh_print_idrfield(thisfield, space) oh_fprint_idrfield(stdout, thisfield, space)
+SaErrorT oh_fprint_idrfield(FILE *stream, const SaHpiIdrFieldT *thisfield,int space);
+
+#define oh_print_idrinfo(idrInfo, space) oh_fprint_idrinfo(stdout, idrInfo, space)
+SaErrorT oh_fprint_idrinfo(FILE *stream, const SaHpiIdrInfoT *idrInfo,int space);
+
+#define oh_print_idrareaheader(areaHeader, space) oh_fprint_idrareaheader(stdout, areaHeader,space)
+SaErrorT oh_fprint_idrareaheader(FILE *stream, const SaHpiIdrAreaHeaderT *areaHeader,int space);
+
 
 #if 0
 SaHpiBoolT oh_valid_textbuffer(SaHpiTextBufferT *buffer);

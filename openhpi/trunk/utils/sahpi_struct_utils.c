@@ -402,6 +402,101 @@ static inline SaErrorT oh_append_big_textbuffer(oh_big_textbuffer *big_buffer, c
         return(SA_OK);
 }
 
+
+/**
+ * oh_fprint_idrfield:
+ * @stream: File handle.
+ * @buffer: Pointer to SaHpiIdrFieldT to be printed.
+ * @space:  Number of blank space to skip (from column 1) before printing
+ * 
+ * Prints the member data contained in SaHpiIdrFieldT struct to a file.
+ * The MACRO oh_print_idrfield(), uses this function to print to STDOUT. 
+ *
+ * Returns:
+ * SA_OK - normal operation.
+ * SA_ERR_HPI_INVALID_DATA - @buffer->DataType not SAHPI_TL_TYPE_TEXT.
+ **/
+SaErrorT oh_fprint_idrfield(FILE *stream, const SaHpiIdrFieldT *thisfield,int space)
+{
+	int err;
+	SaErrorT rv = SA_OK;
+	
+	put_spacing(space);
+	err = fprintf(stream, "Field Id:\t%d\n", thisfield->FieldId);
+	put_spacing(space);
+        err = fprintf(stream, "Field Type:\t%s\n", oh_lookup_idrfieldtype(thisfield->Type));
+	put_spacing(space);
+        err = fprintf(stream, "ReadOnly:\t%d\n", thisfield->ReadOnly); 
+	put_spacing(space);
+        err = fprintf(stream, "DataType:\t%s\n", oh_lookup_texttype(thisfield->Field.DataType));
+	put_spacing(space);
+        err = fprintf(stream, "Language:\t%s\n", oh_lookup_language(thisfield->Field.Language));;
+	put_spacing(space);
+	rv =  oh_fprint_textbuffer(stream, &thisfield->Field);
+	err = fprintf(stream, "\n");
+		
+	return(rv);
+}
+
+/**
+ * oh_fprint_idrareaheader:
+ * @stream: File handle.
+ * @buffer: Pointer to SaHpiIdrAreaHeaderT to be printed.
+ * @space:  Number of blank space to skip (from column 1) before printing
+ * 
+ * Prints the member data contained in SaHpiIdrAreaHeaderT struct to a file.
+ * The MACRO oh_print_idrareaheader(), uses this function to print to STDOUT. 
+ *
+ * Returns:       
+ * SA_OK - normal operation.
+ * SA_ERR_HPI_INVALID_DATA - @buffer->DataType not SAHPI_TL_TYPE_TEXT.
+ **/
+SaErrorT oh_fprint_idrareaheader(FILE *stream, const SaHpiIdrAreaHeaderT *areaheader,int space)
+{
+	int err;
+	SaErrorT rv = SA_OK;
+	
+	put_spacing(space);
+        err = fprintf(stream, "AreaId:\t%d\n", areaheader->AreaId);
+	put_spacing(space);
+        err = fprintf(stream, "AreaType:\t%s\n", oh_lookup_idrareatype(areaheader->Type));
+	put_spacing(space);
+        err = fprintf(stream, "ReadOnly:\t%d\n",  areaheader->ReadOnly);
+	put_spacing(space);
+        err = fprintf(stream, "NumFields:\t%d\n",areaheader->NumFields);	
+	return(rv);
+}
+
+/**
+ * oh_fprint_idrinfo:
+ * @stream: File handle.
+ * @buffer: Pointer to SaHpiIdrInfoT to be printed.
+ * @space:  Number of blank space to skip (from column 1) before printing
+ * 
+ * Prints the member data contained in SaHpiIdrInfoT struct to a file.
+ * The MACRO oh_print_idrinfo(), uses this function to print to STDOUT. 
+ *
+ * Returns:       
+ * SA_OK - normal operation.
+ * SA_ERR_HPI_INVALID_DATA - @buffer->DataType not SAHPI_TL_TYPE_TEXT.
+ **/
+SaErrorT oh_fprint_idrinfo(FILE *stream, const SaHpiIdrInfoT *idrinfo,int space)
+{
+	int err;
+	SaErrorT rv = SA_OK;
+	
+	put_spacing(space);
+        err = fprintf(stream, "IdrId:\t%d\n", idrinfo->IdrId);
+	put_spacing(space);
+        err = fprintf(stream, "UpdateCount:\t%d\n", idrinfo->UpdateCount);
+	put_spacing(space);
+        err = fprintf(stream, "ReadOnly:\t%d\n",idrinfo->ReadOnly);
+	put_spacing(space);
+        err = fprintf(stream, "NumAreas:\t%d\n", idrinfo->NumAreas);
+
+	return(rv);
+}
+
 #if 0
 SaHpiBoolT valid_SaHpiTextBufferT(SaHpiTextBufferT text_buffer) {
 
