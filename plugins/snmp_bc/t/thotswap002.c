@@ -30,7 +30,7 @@ int main(int argc, char **argv)
 					
 	SaHpiResourceIdT  id = 0;
         SaHpiSessionIdT sessionid;
-	SaHpiHsIndicatorStateT state = 0;
+	SaHpiHsStateT state = 0;
         /* *************************************                 
 	 * Find a resource 
 	 * * ************************************* */
