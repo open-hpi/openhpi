@@ -1051,7 +1051,7 @@ static struct oh_event *add_resource(struct oh_handler_state *inst)
 }
 
 
-static int dummy_get_event(void *hnd, struct oh_event *event, struct timeval *timeout)
+static int dummy_get_event(void *hnd, struct oh_event *event)
 {
         struct oh_handler_state *inst = hnd;
 

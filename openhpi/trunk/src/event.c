@@ -101,12 +101,11 @@ static SaErrorT harvest_events_for_handler(struct oh_handler *h)
 {
         struct oh_event event;
         struct oh_event *e2;
-        struct timeval to = {0, 0};
 
         SaErrorT error = SA_OK;
 
         do {
-                error = h->abi->get_event(h->hnd, &event, &to);
+                error = h->abi->get_event(h->hnd, &event);
                 if(error < 1) {
                         trace("Handler is out of Events");                        
                 } else {
