@@ -585,7 +585,8 @@ static void add_sensor_event(ipmi_entity_t	*ent,
 
 	sensor_info->sensor_id  = ipmi_sensor_convert_to_id(sensor);
 	sensor_info->valid = 0;
-        
+        sensor_info->enable = SAHPI_TRUE;
+	
 	e = malloc(sizeof(*e));
 	if (!e) {
                 free(sensor_info);

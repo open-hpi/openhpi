@@ -748,13 +748,11 @@ static int ipmi_get_sensor_thresholds(void			*hnd,
 		return SA_ERR_HPI_NOT_PRESENT;	
 
 	if (sensor_info->enable == SAHPI_FALSE)
-		return SA_ERR_HPI_INVALID_REQUEST
-			;
+		return SA_ERR_HPI_INVALID_REQUEST;
+	
 	if (!thres)
 		return SA_ERR_HPI_INVALID_PARAMS;
-	memset(thres, 0, sizeof(*thres));
-	
-		
+	memset(thres, 0, sizeof(*thres));	
 	return ohoi_get_sensor_thresholds(sensor_info->sensor_id, thres, ipmi_handler);
 }
 
@@ -789,9 +787,10 @@ static int ipmi_set_sensor_thresholds(void				*hnd,
 		return rv;
 	if (!sensor_info)
 		return SA_ERR_HPI_NOT_PRESENT;
+	
 	if (sensor_info->enable == SAHPI_FALSE)
 		return SA_ERR_HPI_INVALID_REQUEST;
-
+	
 	if (!thres)
 		return SA_ERR_HPI_INVALID_PARAMS;
 	
