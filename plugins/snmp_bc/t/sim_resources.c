@@ -129,7 +129,7 @@ struct snmp_bc_data sim_resource_array[] = {
                 .mib = {
                         .type = ASN_OCTET_STR,
                         .value = {
-                                .string = "11111111111111",
+                                .string = "10101010101010",
                         },
                 },
         },
@@ -7883,142 +7883,142 @@ struct snmp_bc_data sim_resource_array[] = {
         },
 	/* Used to determine if expansion card attached to blade */
         {
-                /* Blade Add-on Manufacturer VPD - Blade Add-on 1 */
-                .oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.21.1",
+                /* BladeServerExpansion - Blade Add-on 1 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.1.1.14.1",
                 .mib = {
-                        .type = ASN_OCTET_STR,
+                        .type = ASN_INTEGER,
                         .value = {
-                                .string = "SLRM",
+                                .integer = 1,
                         },
                 },
         },
         {
-                /* Blade Add-on Manufacturer VPD - Blade Add-on 2 */
-                .oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.21.2",
+                /* BladeServerExpansion - Blade Add-on 2 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.1.1.14.2",
                 .mib = {
-                        .type = ASN_OCTET_STR,
+                        .type = ASN_INTEGER,
                         .value = {
-                                .string = "SLRM",
+                                .integer = 0,
                         },
                 },
         },
         {
-                /* Blade Add-on Manufacturer VPD - Blade Add-on 3 */
-                .oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.21.3",
+                /* BladeServerExpansion - Blade Add-on 3 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.1.1.14.3",
                 .mib = {
-                        .type = ASN_OCTET_STR,
+                        .type = ASN_INTEGER,
                         .value = {
-                                .string = "SLRM",
+                                .integer = 1,
                         },
                 },
         },
         {
-                /* Blade Add-on Manufacturer VPD - Blade Add-on 4 */
-                .oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.21.4",
+                /* BladeServerExpansion - Blade Add-on 4 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.1.1.14.4",
                 .mib = {
-                        .type = ASN_OCTET_STR,
+                        .type = ASN_INTEGER,
                         .value = {
-                                .string = "SLRM",
+                                .integer = 0,
                         },
                 },
         },
         {
-                /* Blade Add-on Manufacturer VPD - Blade Add-on 5 */
-                .oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.21.5",
+                /* BladeServerExpansion - Blade Add-on 5 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.1.1.14.5",
                 .mib = {
-                        .type = ASN_OCTET_STR,
+                        .type = ASN_INTEGER,
                         .value = {
-                                .string = "SLRM",
+                                .integer = 1,
                         },
                 },
         },
         {
-                /* Blade Add-on Manufacturer VPD - Blade Add-on 6 */
-                .oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.21.6",
+                /* BladeServerExpansion - Blade Add-on 6 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.1.1.14.6",
                 .mib = {
-                        .type = ASN_OCTET_STR,
+                        .type = ASN_INTEGER,
                         .value = {
-                                .string = "SLRM",
+                                .integer = 0,
                         },
                 },
         },
         {
-                /* Blade Add-on Manufacturer VPD - Blade Add-on 7 */
-                .oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.21.7",
+                /* BladeServerExpansion - Blade Add-on 7 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.1.1.14.7",
                 .mib = {
-                        .type = ASN_OCTET_STR,
+                        .type = ASN_INTEGER,
                         .value = {
-                                .string = "SLRM",
+                                .integer = 1,
                         },
                 },
         },
         {
-                /* Blade Add-on Manufacturer VPD - Blade Add-on 8 */
-                .oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.21.8",
+                /* BladeServerExpansion - Blade Add-on 8 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.1.1.14.8",
                 .mib = {
-                        .type = ASN_OCTET_STR,
+                        .type = ASN_INTEGER,
                         .value = {
-                                .string = "SLRM",
+                                .integer = 0,
                         },
                 },
         },
         {
-                /* Blade Add-on Manufacturer VPD - Blade Add-on 9 */
-                .oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.21.9",
+                /* BladeServerExpansion - Blade Add-on 9 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.1.1.14.9",
                 .mib = {
-                        .type = ASN_OCTET_STR,
+                        .type = ASN_INTEGER,
                         .value = {
-                                .string = "SLRM",
+                                .integer = 1,
                         },
                 },
         },
         {
-                /* Blade Add-on Manufacturer VPD - Blade Add-on 10 */
-                .oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.21.10",
+                /* BladeServerExpansion - Blade Add-on 10 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.1.1.14.10",
                 .mib = {
-                        .type = ASN_OCTET_STR,
+                        .type = ASN_INTEGER,
                         .value = {
-                                .string = "SLRM",
+                                .integer = 0,
                         },
                 },
         },
         {
-                /* Blade Add-on Manufacturer VPD - Blade Add-on 11 */
-                .oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.21.11",
+                /* BladeServerExpansion - Blade Add-on 11 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.1.1.14.11",
                 .mib = {
-                        .type = ASN_OCTET_STR,
+                        .type = ASN_INTEGER,
                         .value = {
-                                .string = "SLRM",
+                                .integer = 1,
                         },
                 },
         },
         {
-                /* Blade Add-on Manufacturer VPD - Blade Add-on 12 */
-                .oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.21.12",
+                /* BladeServerExpansion - Blade Add-on 12 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.1.1.14.12",
                 .mib = {
-                        .type = ASN_OCTET_STR,
+                        .type = ASN_INTEGER,
                         .value = {
-                                .string = "SLRM",
+                                .integer = 0,
                         },
                 },
         },
         {
-                /* Blade Add-on Manufacturer VPD - Blade Add-on 13 */
-                .oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.21.13",
+                /* BladeServerExpansion - Blade Add-on 13 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.1.1.14.13",
                 .mib = {
-                        .type = ASN_OCTET_STR,
+                        .type = ASN_INTEGER,
                         .value = {
-                                .string = "SLRM",
+                                .integer = 1,
                         },
                 },
         },
         {
-                /* Blade Add-on Manufacturer VPD - Blade Add-on 14 */
-                .oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.21.14",
+                /* BladeServerExpansion - Blade Add-on 14 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.1.1.14.14",
                 .mib = {
-                        .type = ASN_OCTET_STR,
+                        .type = ASN_INTEGER,
                         .value = {
-                                .string = "SLRM",
+                                .integer = 0,
                         },
                 },
         },

@@ -228,11 +228,12 @@ struct oh_event * snmp_bc_discover_blade_addin(struct oh_handler_state *handle,
 	gchar *oid = NULL; 
 	gchar *oidtmp = NULL;
 	gchar **oidparts = NULL;
-	int len;
+	int len, err;
         struct oh_event working;
         struct oh_event *e = NULL;
 	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 	struct snmp_session *ss = custom_handle->ss;
+	struct snmp_value get_value;
 
         memset(&working, 0, sizeof(struct oh_event));
 
@@ -259,7 +260,9 @@ struct oh_event * snmp_bc_discover_blade_addin(struct oh_handler_state *handle,
 			goto CLEANUP;
 		}
 		
-		if (rdr_exists(ss, oid, 0, 0)) {
+		err = snmp_get(ss, oid, &get_value);
+		if (!(err || get_value.integer == 0)) {
+ 			
 			working.type = OH_ET_RESOURCE;
 			working.u.res_event.entry = snmp_rpt_array[BC_RPT_ENTRY_BLADE_ADDIN_CARD].rpt;
 
