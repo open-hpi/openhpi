@@ -17,6 +17,12 @@ Group: Utilities
 Summary: Development files for HPI
 Group: Utilities
 
+%package examples
+Summary: HPI example applications
+Group: Utilities
+Requires: openhpi
+Requires: openhpi-dev
+
 %description 
 This package contains an implementation of Service Availability Forum's 
 HPI specification.
@@ -25,6 +31,9 @@ HPI specification.
 Contains additional files need for a developer to create applications
 and/or middleware that depends uses the Service Availability Forum's
 HPI specification
+
+%description examples
+This package contains simple example applications that utilize OpenHPI
 
 ###################################################
 %prep
@@ -39,6 +48,7 @@ HPI specification
 ###################################################
 ./configure @ac_configure_args@
 make
+make hpi_examples
 
 ###################################################
 %install
@@ -62,6 +72,14 @@ make DESTDIR=$RPM_BUILD_ROOT install
 %defattr(-,root,root)
 %dir @includedir@/openhpi
 @includedir@/openhpi
+
+###################################################
+%files examples
+###################################################
+%defattr(-,root,root)
+%dir @bindir@
+@bindir@/
+
 
 ###################################################
 %clean
