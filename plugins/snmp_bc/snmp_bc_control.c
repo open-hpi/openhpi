@@ -22,7 +22,6 @@
 
 #include <bc_resources.h>
 #include <snmp_bc.h>
-#include <snmp_bc_utils.h>
 #include <snmp_bc_control.h>
 
 SaErrorT snmp_bc_get_control_state(void *hnd, 

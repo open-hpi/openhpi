@@ -21,7 +21,6 @@
 #include <openhpi.h>
 #include <snmp_util.h>
 #include <bc_resources.h>
-#include <snmp_bc_utils.h>
 #include <snmp_bc.h>
 #include <snmp_bc_discover.h>
 #include <snmp_bc_inventory.h>
