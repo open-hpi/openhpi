@@ -12,6 +12,8 @@
  * Author(s):
  *      Sean Dague <sdague@users.sf.net>
  *      Steve Sherman <stevees@us.ibm.com>
+ * Contributors:
+ *      Racing Guo <racing.guo@intel.com>
  */
 
 #include <glib.h>
@@ -1107,9 +1109,15 @@ SaErrorT oh_fprint_idrfield(FILE *stream, const SaHpiIdrFieldT *thisfield, int o
 	oh_append_bigtext(&mybuf, str);
 						
 	oh_append_offset(&mybuf, offsets);
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH,"Content: %s\n",
-		 thisfield->Field.Data);
-	oh_append_bigtext(&mybuf, str);
+	oh_append_bigtext(&mybuf, "Content: ");
+	if (thisfield->Field.DataLength == 0)
+		oh_append_bigtext(&mybuf, "NULL\n");
+	else {
+		if (thisfield->Field.DataType == SAHPI_TL_TYPE_BINARY)
+			oh_append_data(&mybuf, thisfield->Field.Data, thisfield->Field.DataLength);
+		else
+			oh_append_bigtext(&mybuf, thisfield->Field.Data);
+	}
 							
 	err = oh_fprint_bigtext(stream, &mybuf);
 
