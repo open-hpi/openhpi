@@ -27,7 +27,9 @@ my $start = cwd();
 # set up env
 my $plugroot = "$start/plugins";
 $ENV{OPENHPI_CONF} = "$start/examples/openhpi.conf";
-$ENV{LD_LIBRARY_PATH} .= "$start/src/.libs";
+$ENV{OPENHPI_UID_MAP} = "$start/uid_map";
+$ENV{LD_LIBRARY_PATH} .= "$start/src/.libs:$start/utils/.libs";
+$ENV{LIBRARY_PATH} .= "$start/src/.libs:$start/utils/.libs";
 $ENV{OPENHPI_PATH} .= "$plugroot/dummy:$plugroot/ipmi:$plugroot/ipmidirect:$plugroot/watchdog:$plugroot/sysfs:$plugroot/text_remote:$plugroot/snmp_bc";
 
 

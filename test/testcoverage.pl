@@ -26,9 +26,9 @@ my $report = "";
 
 # this needs to be made more generic over time
 my %files = (
-             "src/oHpi.c" => "t/ohpi",
+             "src/oHpi.c" => ".libs",
+             "utils/el_utils.c" => "t/el",
              "utils/epath_utils.c" => "t/epath",
-             "utils/sel_utils.c" => "t/el",
              "utils/rpt_utils.c" => "t/rpt",
              "utils/uid_utils.c" => "t/uid",
              "utils/sahpi_enum_utils.c" => "t/sahpi",
@@ -49,6 +49,7 @@ my %files = (
 	     "plugins/snmp_bc/snmp_bc_time.c" => "t",
              "plugins/snmp_bc/snmp_bc_utils.c" => "t",
              "plugins/snmp_bc/snmp_bc_watchdog.c" => "t",
+
              "plugins/snmp_bc/t/bc_str2event.c" => ".libs",
              "plugins/snmp_bc/t/snmp_bc.c" => ".libs",
              "plugins/snmp_bc/t/snmp_bc_control.c" => ".libs",
