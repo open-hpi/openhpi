@@ -116,6 +116,7 @@ do { \
 			        g_free(oid); \
 			        return SA_ERR_HPI_NO_RESPONSE; \
 		        } \
+			dbg("thdmask %x\n", thdmask); \
                         found_interpreted = found_interpreted | thdmask; \
 		        /* Means we always need to define this field in bc_resources.h */ \
 		        working.thdname.Type = rdr->RdrTypeUnion.SensorRec.DataFormat.Range.Max.Type; \
@@ -131,7 +132,7 @@ do { \
                                         g_free(oid); \
 				        return SA_ERR_HPI_INTERNAL_ERROR; \
 			        } \
-			        working.thdname.Value = value.Value; \
+			        working.thdname = value; \
 		        } else { \
 			        dbg("%s threshold is string but no conversion defined\n",oid); \
                                 g_free(oid); \
@@ -161,7 +162,7 @@ do { \
          working.thdname.Value.SensorFloat64 = working.thdname.Value.SensorFloat64 - \
                                                            working.thdmatch.Value.SensorFloat64; \
          if (working.thdname.Value.SensorFloat64 < 0) { \
-                dbg("Negitive Hysteresis delta is less than 0"); \
+                dbg("Negative Hysteresis delta is less than 0"); \
          	working.thdname.IsSupported = SAHPI_FALSE; \
          } \
 } while(0)
@@ -229,7 +230,7 @@ SaErrorT snmp_bc_get_sensor_thresholds(void *hnd,
 			}
 		}
 		else {
-			dbg("Positive Hysteresis is defined but not any positive thresholds");
+			trace("Positive Hysteresis is defined but not any positive thresholds");
 			working.PosThdHysteresis.IsSupported = SAHPI_FALSE;
 		}    
 			
@@ -253,7 +254,7 @@ SaErrorT snmp_bc_get_sensor_thresholds(void *hnd,
 			}
 		}
 		else {
-			dbg("Negitive Hysteresis is defined but not any negitive thresholds");
+			trace("Negative Hysteresis is defined but not any negitive thresholds");
 			working.NegThdHysteresis.IsSupported = SAHPI_FALSE;
 		}    
 			    
@@ -266,7 +267,7 @@ SaErrorT snmp_bc_get_sensor_thresholds(void *hnd,
 			return SA_ERR_HPI_INTERNAL_ERROR;
 		}
        } else {
-		dbg("Thresholds requested, but sensor does not support them.\n");
+		trace("Thresholds requested, but sensor does not support them.\n");
 		return SA_ERR_HPI_INVALID_CMD;
        }        
 }
