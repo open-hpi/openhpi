@@ -150,6 +150,13 @@ if test "x$THREAD_SAFE" = "xyes"; then
 fi
 AC_SUBST(LIST_RESOURCES_THREADED)
 
+AC_ARG_ENABLE([daemon],
+    [  --enable-daemon         build HPI daemon and client library [default=yes]],
+    [if test "x$enableval" = "xyes"; then
+        ENABLED_DIRS="$ENABLED_DIRS openhpid"
+    fi],
+    [ENABLED_DIRS="$ENABLED_DIRS openhpid"])
+
 AC_ARG_ENABLE([examples],
     [  --enable-examples       build HPI examples [default=yes]],
     [if test "x$enableval" = "xyes"; then
@@ -499,6 +506,8 @@ AC_CONFIG_FILES([openhpi.spec
         test/Makefile
         docs/Makefile
         docs/hld/Makefile
+	openhpid/Makefile
+	openhpid/t/Makefile
         examples/Makefile
 	clients/Makefile])
 
