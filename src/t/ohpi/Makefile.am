@@ -24,6 +24,7 @@ TESTS_ENVIRONMENT += OPENHPI_CONF=$(top_srcdir)/src/t/ohpi/openhpi.conf
 
 TESTS = ohpi_000 \
         ohpi_001 \
+        ohpi_002 \
         ohpi_003 \
         ohpi_004 \
         ohpi_005 \
@@ -70,8 +71,8 @@ ohpi_000_LDADD   = $(TDEPLIB)
 ohpi_001_SOURCES = ohpi_001.c
 ohpi_001_LDADD   = $(TDEPLIB)
 
-#ohpi_002_SOURCES = ohpi_002.c
-#ohpi_002_LDADD   = $(TDEPLIB)
+ohpi_002_SOURCES = ohpi_002.c
+ohpi_002_LDADD   = $(TDEPLIB)
 
 ohpi_003_SOURCES = ohpi_003.c
 ohpi_003_LDADD   = $(TDEPLIB)
