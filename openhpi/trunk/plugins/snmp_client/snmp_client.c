@@ -427,7 +427,7 @@ static int snmp_client_get_sensor_thresholds(void *hnd,
 						  oid_ptr, 
 						  indices, 
         					  &thres->LowCritical);
-#if 1
+
 		/* SAHPI_SENSOR_READING_THD_LOW_MAJORL_TABLE readings */ 
 		oid_ptr = get_thold_table_oids(
 			SAHPI_SENSOR_READING_THD_LOW_MAJORL_TABLE);
@@ -483,7 +483,6 @@ static int snmp_client_get_sensor_thresholds(void *hnd,
 						  oid_ptr, 
 						  indices, 
 						  &thres->NegThdHysteresis);
-#endif
 	}
 
 	return(status);
@@ -491,23 +490,127 @@ static int snmp_client_get_sensor_thresholds(void *hnd,
 
 
 static int snmp_client_set_sensor_thresholds(void *hnd, SaHpiResourceIdT id,
-                                         SaHpiSensorNumT num,
-                                         const SaHpiSensorThresholdsT *thres)
+					     SaHpiSensorNumT num,
+					     const SaHpiSensorThresholdsT *thres)
 {
-	/* Writable thresholds not supported */
-        return SA_ERR_HPI_INVALID_CMD;
+	/* pointer to MIB OID's for given Sensor table */
+	oid **oid_ptr;
+
+	SaErrorT status = SA_OK;
+
+	SaHpiRdrT *rdr = NULL;
+
+	struct rdr_data *remote_rdr_data = NULL;
+        
+	oid indices[NUM_SEN_INDICES];
+
+        struct oh_handler_state *handle = 
+		(struct oh_handler_state *)hnd;
+
+        struct snmp_client_hnd *custom_handle = 
+		(struct snmp_client_hnd *)handle->data;
+
+        if(!(rdr = 
+		oh_get_rdr_by_type(handle->rptcache, id, SAHPI_SENSOR_RDR, num)) ) {
+		printf("ERROR finding rdr in sreadingsnmp_client_get_sensor_data()\n");
+		return(SA_ERR_HPI_ERROR);
+	}
+
+        if (!(remote_rdr_data =
+                (struct rdr_data *)oh_get_rdr_data(handle->rptcache, id, rdr->RecordId))) {
+		printf(" ERROR finding rdr_data in snmp_client_get_sensor_data()\n");
+		return(SA_ERR_HPI_ERROR);
+	}
+
+	/* INDEX   { saHpiDomainID, saHpiResourceID, saHpiSensorIndex }	*/
+	indices[0] = (oid)remote_rdr_data->index.remote_domain;
+	indices[1] = (oid)remote_rdr_data->index.remote_resource_id;
+	indices[2] = (oid)num;
+
+	/* Check Thresholds Supprorted */
+	if (rdr->RdrTypeUnion.SensorRec.ThresholdDefn.IsThreshold
+	    == SAHPI_TRUE) {
+		
+		/* SAHPI_SENSOR_READING_THD_LOW_CRITICAL_TABLE set */ 
+		oid_ptr = get_thold_table_oids(
+			SAHPI_SENSOR_READING_THD_LOW_CRITICAL_TABLE);
+		status = set_sensor_threshold_data(custom_handle, 
+						  oid_ptr, 
+						  indices, 
+        					  &thres->LowCritical);
+
+		/* SAHPI_SENSOR_READING_THD_LOW_MAJORL_TABLE set */ 
+		oid_ptr = get_thold_table_oids(
+			SAHPI_SENSOR_READING_THD_LOW_MAJORL_TABLE);
+		status = set_sensor_threshold_data(custom_handle, 
+						  oid_ptr, 
+						  indices, 
+						  &thres->LowMajor);
+
+		/* SAHPI_SENSOR_READING_THD_LOW_MINORL_TABLE set */ 
+		oid_ptr = get_thold_table_oids(
+			SAHPI_SENSOR_READING_THD_LOW_MINORL_TABLE);
+		status = set_sensor_threshold_data(custom_handle, 
+						  oid_ptr, 
+						  indices, 
+						  &thres->LowMinor);
+
+		/* SAHPI_SENSOR_READING_THD_UP_CRITICAL_TABLE set */ 
+		oid_ptr = get_thold_table_oids(
+			SAHPI_SENSOR_READING_THD_UP_CRITICAL_TABLE);
+		status = set_sensor_threshold_data(custom_handle, 
+						  oid_ptr, 
+						  indices, 
+						  &thres->UpCritical);
+
+		/* SAHPI_SENSOR_READING_THD_UP_MAJOR_TABLE set */ 
+		oid_ptr = get_thold_table_oids(
+			SAHPI_SENSOR_READING_THD_UP_MAJOR_TABLE);
+		status = set_sensor_threshold_data(custom_handle, 
+						  oid_ptr, 
+						  indices, 
+						  &thres->UpMajor);
+
+		/* SAHPI_SENSOR_READING_THD_UP_MINOR_TABLE set */ 
+		oid_ptr = get_thold_table_oids(
+			SAHPI_SENSOR_READING_THD_UP_MINOR_TABLE);
+		status = set_sensor_threshold_data(custom_handle, 
+						  oid_ptr, 
+						  indices, 
+						  &thres->UpMinor);
+
+		/* SAHPI_SENSOR_READING_THD_POS_HYSTERESIS_TABLE set */ 
+		oid_ptr = get_thold_table_oids(
+			SAHPI_SENSOR_READING_THD_POS_HYSTERESIS_TABLE);
+		status = set_sensor_threshold_data(custom_handle, 
+						  oid_ptr, 
+						  indices, 
+						  &thres->PosThdHysteresis);
+
+		/* SAHPI_SENSOR_READING_THD_NEG_HYSTERESIS_TABLE set */ 
+		oid_ptr = get_thold_table_oids(
+			SAHPI_SENSOR_READING_THD_NEG_HYSTERESIS_TABLE);
+		status = set_sensor_threshold_data(custom_handle, 
+						  oid_ptr, 
+						  indices, 
+						  &thres->NegThdHysteresis);
+
+
+	}
+      
+        return status;
 }
 
 static int snmp_client_get_sensor_event_enables(void *hnd, SaHpiResourceIdT id,
-                                            SaHpiSensorNumT num,
-                                            SaHpiSensorEvtEnablesT *enables)
+						SaHpiSensorNumT num,
+						SaHpiSensorEvtEnablesT *enables)
 {
         return -1;
 }
 
 static int snmp_client_set_sensor_event_enables(void *hnd, SaHpiResourceIdT id,
-                                            SaHpiSensorNumT num,
-                                            const SaHpiSensorEvtEnablesT *enables)
+						SaHpiSensorNumT num,
+						const SaHpiSensorEvtEnablesT *enables)
 {
         return -1;
 }
