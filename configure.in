@@ -77,14 +77,14 @@ CFLAGS="$CFLAGS $CC_WARNINGS"
 
 
 AC_OUTPUT(openhpi.spec 		\
-Makefile 			\
-include/Makefile		\
+	Makefile 		\
+	include/Makefile	\
 	include/utils/Makefile	\
-lib/Makefile			\
+	lib/Makefile		\
 	lib/utils/Makefile	\
-docs/Makefile			\
+	docs/Makefile		\
 	docs/hld/Makefile	\
-test/Makefile			\
+	test/Makefile		\
 )
 
 
