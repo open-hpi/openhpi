@@ -45,7 +45,7 @@
 #include <linux/types.h>
 #include <linux/ioctl.h>
 #include <linux/watchdog.h>
-#include <glib-1.2/glib.h>
+#include <glib.h>
 
 #include <SaHpi.h>
 #include <openhpi.h>
