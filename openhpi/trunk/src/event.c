@@ -111,8 +111,10 @@ int oh_event_init()
         trace("Setting up event processing queue");
         oh_process_q = g_async_queue_new();
         if(oh_process_q) {
+                trace("Set up processing queue");
                 return 1;
         } else {
+                dbg("Failed to allocate processing queue");
                 return 0;
         }
 }
