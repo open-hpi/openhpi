@@ -62,8 +62,19 @@ SaErrorT oh_sel_close(oh_sel *sel)
 }
 
 
-/* add a new entry to the SEL */
+/* add a new entry to the SEL 
+ *
+ * This API will be removed in a later version.
+ * You should use oh_sel_append instead.
+ */
 SaErrorT oh_sel_add(oh_sel *sel, SaHpiSelEntryT *entry)
+{
+        return oh_sel_append(sel, entry);
+}
+
+
+/* append a new entry to the SEL */
+SaErrorT oh_sel_append(oh_sel *sel, SaHpiSelEntryT *entry)
 {
         SaHpiSelEntryT * myentry;
         time_t tt1;
@@ -93,7 +104,7 @@ SaErrorT oh_sel_add(oh_sel *sel, SaHpiSelEntryT *entry)
                 g_free(tempdata);
         }
 
-        /* add the new entry */
+        /* appenc the new entry */
         entry->EntryId = sel->nextId;
         sel->nextId++;
         if (sel->gentimestamp) {
@@ -105,6 +116,48 @@ SaErrorT oh_sel_add(oh_sel *sel, SaHpiSelEntryT *entry)
         entry->Timestamp = sel->lastUpdate;
         memcpy(myentry, entry, sizeof(SaHpiSelEntryT));
         sel->selentries = g_list_append(sel->selentries, myentry);
+        return SA_OK;
+}
+
+
+/* prepend a new entry to the SEL */
+SaErrorT oh_sel_prepend(oh_sel *sel, SaHpiSelEntryT *entry)
+{
+        SaHpiSelEntryT * myentry;
+        time_t tt1;
+
+        /* check for valid sel params and state */
+        if (sel == NULL || entry == NULL) {
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+        if (sel->enabled == FALSE) {
+                return SA_ERR_HPI_INVALID_REQUEST;
+        }
+
+        /* see if sel is full */
+        if (sel->maxsize != OH_SEL_MAX_SIZE && g_list_length(sel->selentries) == sel->maxsize) {
+                return SA_ERR_HPI_OUT_OF_SPACE;
+        }
+
+        /* alloc the new entry */
+        myentry = (SaHpiSelEntryT *) g_malloc0(sizeof(SaHpiSelEntryT));
+        if (myentry == NULL) {
+                sel->overflow = TRUE;
+                return SA_ERR_HPI_OUT_OF_SPACE;
+        }
+
+        /* prepend the new entry */
+        entry->EntryId = sel->nextId;
+        sel->nextId++;
+        if (sel->gentimestamp) {
+                time(&tt1);
+                sel->lastUpdate = (SaHpiTimeT) (tt1 * 1000000000) + sel->offset;
+        } else {
+                sel->lastUpdate = entry->Timestamp;
+        }
+        entry->Timestamp = sel->lastUpdate;
+        memcpy(myentry, entry, sizeof(SaHpiSelEntryT));
+        sel->selentries = g_list_prepend(sel->selentries, myentry);
         return SA_OK;
 }
 

@@ -42,7 +42,9 @@ typedef struct {
 /* General SEL utility calls */
 oh_sel *oh_sel_create(SaHpiUint32T size);
 SaErrorT oh_sel_close(oh_sel *sel);
-SaErrorT oh_sel_add(oh_sel *sel, SaHpiSelEntryT *entry);
+SaErrorT oh_sel_add(oh_sel *sel, SaHpiSelEntryT *entry); /* to be removed in the future */
+SaErrorT oh_sel_append(oh_sel *sel, SaHpiSelEntryT *entry);
+SaErrorT oh_sel_prepend(oh_sel *sel, SaHpiSelEntryT *entry);
 SaErrorT oh_sel_delete(oh_sel *sel, SaHpiEntryIdT *entryid);
 SaErrorT oh_sel_clear(oh_sel *sel);
 SaErrorT oh_sel_get(oh_sel *sel, SaHpiSelEntryIdT entryid, SaHpiSelEntryIdT *prev,
