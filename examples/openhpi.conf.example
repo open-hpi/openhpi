@@ -47,8 +47,10 @@ handler	libdummy {
 #}
 
 #Section for snmp_bc plugin:
+#The root entry can be omitted in 'entity_root',
+#but not the chassis entry.
 #handler libsnmp_bc {
 #        host = "bc.ibm.com"
 #        community = "community"
-#        entity_root = "{ROOT,0}{SYSTEM_CHASSIS,0}"
+#        entity_root = "{SYSTEM_CHASSIS,0}"
 #}

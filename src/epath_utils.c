@@ -140,7 +140,7 @@ int string2entitypath(const gchar *epathstr, SaHpiEntityPathT *epathptr)
 
 	SaHpiEntityT  *entityptr = NULL;
 
-	if (epathstr == NULL) { 
+	if (epathstr == NULL) {
 		dbg("Input entity path string is NULL"); return(-1);
 	}
 
@@ -149,7 +149,8 @@ int string2entitypath(const gchar *epathstr, SaHpiEntityPathT *epathptr)
 	epathdefs = g_strsplit(g_strstrip(gstr), EPATHSTRING_END_DELIMITER, -1);
 	if (*epathdefs == NULL) { 
 		dbg("Stripped entity path string is NULL"); 
-		rtncode = -1; goto CLEANUP; }
+		rtncode = -1; goto CLEANUP;
+        }
 
 	/* Split out entity type and instance strings; 
 	   Convert to HPI structure types */
