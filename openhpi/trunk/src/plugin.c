@@ -31,72 +31,73 @@
 
 int init_plugin()
 {
-	int err;
-
-	err = lt_dlinit();
-	if (err != 0) {
-		dbg("Can not init ltdl");
-		goto err1;
-	}
-
-	err = lt_dlsetsearchpath(OH_PLUGIN_PATH);
-	if (err != 0) {
-		dbg("Can not set lt_dl search path");
-		goto err2;
-	}
-
-	return 0;
-    
+        int err;
+        
+        err = lt_dlinit();
+        if (err != 0) {
+                dbg("Can not init ltdl");
+                goto err1;
+        }
+        
+        err = lt_dlsetsearchpath(OH_PLUGIN_PATH);
+        if (err != 0) {
+                dbg("Can not set lt_dl search path");
+                goto err2;
+        }
+        
+        return 0;
+        
  err2:
-	lt_dlexit();
+        lt_dlexit();
  err1:
-	return -1;
+        return -1;
 }
 
 /*
  * Load plugin by name.  This needs to be done before the plugin is used
  */
 
-int load_plugin(struct oh_domain *d, char *plugin_name,
-		char *name, char *addr)
+int load_plugin(char *plugin_name)
 {
         lt_dlhandle h;
         int (*get_interface) (struct oh_abi_v1 ** pp, const uuid_t uuid);
         struct oh_abi_v1 *abi;
-        void *hnd;
         int err;
-
+        
         h = lt_dlopenext(plugin_name);
         if (!h) {
                 dbg("Can not find %s plugin", plugin_name);
                 goto err1;
-	}
+        }
 
-	get_interface = lt_dlsym(h, "get_interface");
-	if (!get_interface) {
-		dbg("Can not get 'get_interface' symbol, is it a plugin?!");
-		goto err1;
-	}
+        get_interface = lt_dlsym(h, "get_interface");
+        if (!get_interface) {
+                dbg("Can not get 'get_interface' symbol, is it a plugin?!");
+                goto err1;
+        }
+        
+        err = get_interface(&abi, UUID_OH_ABI_V1);
+        if (err < 0 || !abi || !abi->open) {
+                dbg("Can not get ABI V1");
+                goto err1;
+        }
 
-	err = get_interface(&abi, UUID_OH_ABI_V1);
-	if (err < 0 || !abi || !abi->open) {
-		dbg("Can not get ABI V1");
-		goto err1;
-	}
-
-	/* bootstrap plugin must work without parameter */
-	hnd = abi->open(name, addr);
-	if (!hnd) {
-		dbg("Bootstrap plugin can not work");
-		goto err1;
-	}
-
-	domain_add_zone(d, abi, hnd);
-
-	return 0;
+#if 0
+        /* this should be done elsewhere.  if 0 it for now to make it
+           easier to migrate */
+        hnd = abi->open(name, addr);
+        if (!hnd) {
+                dbg("Bootstrap plugin can not work");
+                goto err1;
+        }
+        
+        domain_add_zone(d, abi, hnd);
+#endif
+        
+        return 0;
  err1:
-	lt_dlclose(h);
-	return -1;
+        lt_dlclose(h);
+        return -1;
 }
 
 int uninit_plugin(void)
