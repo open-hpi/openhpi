@@ -139,6 +139,8 @@ SaErrorT snmp_bc_set_control_state(void *hnd, SaHpiResourceIdT id,
 {
         gchar *oid;
 	int value;
+	SaErrorT status;
+
         struct snmp_value set_value;
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
         struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
@@ -168,19 +170,19 @@ SaErrorT snmp_bc_set_control_state(void *hnd, SaHpiResourceIdT id,
 		/* More icky dependencies on SaHpiStateDigitalT enum */
 		switch (state->StateUnion.Digital) {
 		case SAHPI_CTRL_STATE_OFF:
-			value = s->mib.digitalmap[SAHPI_CTRL_STATE_OFF];
+			value = s->mib.digitalwmap[SAHPI_CTRL_STATE_OFF];
 			break;
 		case SAHPI_CTRL_STATE_ON:
-			value = s->mib.digitalmap[SAHPI_CTRL_STATE_ON];
+			value = s->mib.digitalwmap[SAHPI_CTRL_STATE_ON];
 			break;	
 		case SAHPI_CTRL_STATE_PULSE_OFF:
-			value = s->mib.digitalmap[SAHPI_CTRL_STATE_PULSE_OFF];
+			value = s->mib.digitalwmap[SAHPI_CTRL_STATE_PULSE_OFF];
 			break;
 		case SAHPI_CTRL_STATE_PULSE_ON:
-			value = s->mib.digitalmap[SAHPI_CTRL_STATE_PULSE_ON];
+			value = s->mib.digitalwmap[SAHPI_CTRL_STATE_PULSE_ON];
 			break;
 		case SAHPI_CTRL_STATE_AUTO:
-			value = s->mib.digitalmap[ELEMENTS_IN_SaHpiStateDigitalT - 1];
+			value = s->mib.digitalwmap[ELEMENTS_IN_SaHpiStateDigitalT - 1];
 			break;
 		default:
 			dbg("Spec Change: MAX_SaHpiStateDigitalT incorrect?\n");
@@ -202,10 +204,12 @@ SaErrorT snmp_bc_set_control_state(void *hnd, SaHpiResourceIdT id,
 		set_value.str_len = 1;
 		set_value.integer = value;
 
-		if((snmp_set(custom_handle->ss, oid, set_value) != 0)) {
-			dbg("SNMP could not set %s; Type=%d.\n",s->mib.oid,set_value.type);
+		status = snmp_bc_snmp_set(custom_handle, custom_handle->ss, oid, set_value);
+		if (status != SA_OK) {
+			dbg("SNMP could not set %s; Value=%d.\n", oid, value);
 			g_free(oid);
-			return SA_ERR_HPI_NO_RESPONSE;
+			if (status == SA_ERR_HPI_BUSY) return status;
+			else return SA_ERR_HPI_NO_RESPONSE;
 		}
 		g_free(oid);
 		break;
@@ -221,10 +225,12 @@ SaErrorT snmp_bc_set_control_state(void *hnd, SaHpiResourceIdT id,
 		set_value.str_len = 1;
 		set_value.integer = state->StateUnion.Discrete;
 
-		if((snmp_set(custom_handle->ss, oid, set_value) != 0)) {
-			dbg("SNMP could not set %s; Type=%d.\n",s->mib.oid,set_value.type);
+		status = snmp_bc_snmp_set(custom_handle, custom_handle->ss, oid, set_value);
+		if (status != SA_OK) {
+			dbg("SNMP could not set %s; Value=%d.\n", oid, (int)set_value.integer);
 			g_free(oid);
-			return SA_ERR_HPI_NO_RESPONSE;
+			if (status == SA_ERR_HPI_BUSY) return status;
+			else return SA_ERR_HPI_NO_RESPONSE;
 		}
 		g_free(oid);
 		break;

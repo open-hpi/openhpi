@@ -219,7 +219,8 @@ struct BC_ControlMibInfo {
         unsigned int not_avail_indicator_num; /* 0 for none, n>0 otherwise */
         int write_only; /* Write-only SNMP command; 0 no; 1 yes  */
         const char *oid;
-        int digitalmap[ELEMENTS_IN_SaHpiStateDigitalT];
+        int digitalmap[ELEMENTS_IN_SaHpiStateDigitalT];  /* Readable controls */
+	int digitalwmap[ELEMENTS_IN_SaHpiStateDigitalT]; /* Writable controls */
 };
 
 struct BC_ControlInfo {
@@ -234,6 +235,7 @@ struct snmp_bc_control {
 
 extern struct snmp_bc_control snmp_bc_chassis_controls[];
 extern struct snmp_bc_control snmp_bc_blade_controls[];
+extern struct snmp_bc_control snmp_bci_blade_controls[];
 extern struct snmp_bc_control snmp_bct_blade_controls[];
 extern struct snmp_bc_control snmp_bc_blade_addin_controls[];
 extern struct snmp_bc_control snmp_bc_mgmnt_controls[];
