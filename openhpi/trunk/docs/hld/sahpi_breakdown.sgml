@@ -15,11 +15,23 @@
 <chapter>
   <title>SA HPI Breakdown</title>
   <para>The following chapter is designed as a primer on the SA HPI
-specification.  It is meant to represent the OpenHPI teams
-interpretation and explaination of various portions of the spec as we
-see it, and to help new users and developers come up to speed quickly
-in understanding the specification.  This chapter should always be
-considered a work in progress, and any questions or comments on it
-should be sent to the openhpi-devel@lists.sf.net mailing list.
-</para>
+    specification.  It is meant to represent the OpenHPI teams
+    interpretation and explaination of various portions of the spec as we
+    see it, and to help new users and developers come up to speed quickly
+    in understanding the specification.  This chapter should always be
+    considered a work in progress, and any questions or comments on it
+    should be sent to the openhpi-devel@lists.sf.net mailing list.
+  </para>
+  <sect1>
+    <title>10,000 foot view</title>
+    <para>
+      
+    </para>
+  </sect1>
+  <sect1>
+    <title>SA HPI Data Structures</title>
+    <para>
+      
+    </para>
+  </sect1>
 </chapter>
