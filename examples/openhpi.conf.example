@@ -87,8 +87,8 @@ handler	libdummy {
 #        name = "lan"       # RMCP
 #        addr = "localhost" # ipaddress
 #        port = "623"      # RMCP port
-#        auth_type = "none" # MD2, MD3, straight are not supported
-#	 auth_level = "admin"
+#        auth_type = "none" # none, md2, md5 or straight
+#	 auth_level = "admin" # none, callback, user, operator or admin
 #	 username = "arthur"
 #        password = "pieman"
 #        logflags = ""      # logging off
