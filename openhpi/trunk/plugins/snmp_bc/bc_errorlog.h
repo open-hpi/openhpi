@@ -18,7 +18,7 @@
 #ifndef __BC_ERRORLOG_H
 #define __BC_ERRORLOG_H
 
-#define LOG_LOGIN_STRING "LOGIN ID:"
+#define LOG_LOGIN_STRING "Login ID:"
 #define EVT_RECOVERY "Recovery "
 #define LOG_THRESHOLD_VALUE_STRING " Threshold value "
 #define EVT_EN_LOG_FULL "System error log full"

@@ -13,9 +13,21 @@
  *     Steve Sherman <stevees@us.ibm.com>
  */
 
+/**********************************************************************
+ * NOTES: 
+ * All these test cases depend on values defined in bc_str2event.c and
+ * sensor and resource defintions in bc_resources.c.
+ * These are real BladeCenter events and sensors, which hopefully 
+ * won't change much.
+ * 
+ * We assume the Chassis resource ID = 1.
+ ***********************************************************************/
+
 #include <glib.h>
 #include <stdio.h>
 #include <string.h>
+#include <float.h>
+
 #include <SaHpi.h>
 
 #include <snmp_util.h>
@@ -23,6 +35,7 @@
 #include <printevent_utils.h>
 
 #define ERROR_LOG_MSG_OID ".1.3.6.1.4.1.2.3.51.2.3.4.2.1.2.1"
+#define CHASSIS_RID 1
 
 int main(int argc, char **argv)
 {
@@ -81,33 +94,10 @@ int main(int argc, char **argv)
         }
 
 	/************************************************************
-	 * TestCase - Mapped Chassis Event - EN_CUTOFF_HI_FAULT_3_35V
+	 * TestCase - Mapped Chassis Event (EN_CUTOFF_HI_FAULT_3_35V)
+         * Event recovered in next testcase
 	 ************************************************************/
-	logstr = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:System shutoff due to +3.3v over voltage.";
-	memset(&logentry, 0 , sizeof(SaHpiSelEntryT));
-	strcpy(hash_value->value.string, logstr);
-	g_hash_table_insert(sim_hash, hash_key, hash_value);
-
-        err = saHpiEventLogEntryGet(sessionid, SAHPI_DEFAULT_DOMAIN_ID, SAHPI_NEWEST_ENTRY,
-				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
-	if (err != SA_OK) {
-		printf("Error! saHpiEventLogEntryGet: line=%d; err=%d\n", __LINE__, err);
-		return -1;
-        }
-
-	print_event(&(logentry.Event));
-	/* Check severity; RID=1; Non-OEM */
-
-	err = saHpiEventLogClear(sessionid, SAHPI_DEFAULT_DOMAIN_ID);
-	if (err != SA_OK) {
-		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
-		return -1;
-        }
-
-	/***************************************************************
-	 * TestCase - Mapped Blade Threshold Event - EN_IO_5V_WARNING_HI
-         ***************************************************************/
-	logstr = "Severity:WARN  Source:BLADE_10  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:IO Board +5V over recommended voltage. Read value 5.7 Threshold value 5.50";
+	logstr = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:System shutoff due to +3.3v over voltage. Read value 3.5 Threshold value 3.4";
 	memset(&logentry, 0 , sizeof(SaHpiSelEntryT));
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
@@ -119,8 +109,22 @@ int main(int argc, char **argv)
 		return -1;
         }
 	
-	/* Check severity; RID!=1; threshold values; non-oem */
-	print_event(&(logentry.Event));
+	/* Check expected values */
+	if (!((logentry.Event.Source == CHASSIS_RID) &&
+	      (logentry.Event.EventType == SAHPI_ET_SENSOR) &&
+	      (logentry.Event.Severity == SAHPI_CRITICAL) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.SensorType == SAHPI_VOLTAGE) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.Assertion == SAHPI_TRUE) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_CRIT) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MAJOR) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MINOR) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.PreviousState == SAHPI_ES_UNSPECIFIED) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.TriggerReading.Interpreted.Value.SensorFloat32 == (float)3.5) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.TriggerThreshold.Interpreted.Value.SensorFloat32 == (float)3.4))) {
+		printf("Error! TestCase - Mapped Chassis Event (EN_CUTOFF_HI_FAULT_3_35V)\n");
+		print_event(&(logentry.Event));
+		return -1;
+	}
 
 	err = saHpiEventLogClear(sessionid, SAHPI_DEFAULT_DOMAIN_ID);
 	if (err != SA_OK) {
@@ -128,185 +132,423 @@ int main(int argc, char **argv)
 		return -1;
         }
 
-	/************************************************************************
-	 * TestCase - Recovery Mapped Blade Threshold Event - EN_IO_5V_WARNING_HI
-	 * Depends on previous test case
-         ************************************************************************/
-        
+	/*************************************************************
+	 * TestCase - Chassis Recovery Event (EN_CUTOFF_HI_FAULT_3_35V)
+         * Recover event in previous testcase
+	 *************************************************************/
+	logstr = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:Recovery System shutoff due to +3.3v over voltage. Read value 3.5 Threshold value 3.4";
+	memset(&logentry, 0 , sizeof(SaHpiSelEntryT));
+	strcpy(hash_value->value.string, logstr);
+	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
+        err = saHpiEventLogEntryGet(sessionid, SAHPI_DEFAULT_DOMAIN_ID, SAHPI_NEWEST_ENTRY,
+				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
+	if (err != SA_OK) {
+		printf("Error! saHpiEventLogEntryGet: line=%d; err=%d\n", __LINE__, err);
+		return -1;
+        }
+	
+	/* Check expected values */
+	if (!((logentry.Event.Source == CHASSIS_RID) &&
+	      (logentry.Event.EventType == SAHPI_ET_SENSOR) &&
+	      (logentry.Event.Severity == SAHPI_CRITICAL) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.SensorType == SAHPI_VOLTAGE) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.Assertion == SAHPI_FALSE) &&
+	      (!(logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_CRIT)) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MAJOR) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MINOR) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.PreviousState & SAHPI_ES_UPPER_CRIT) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.PreviousState & SAHPI_ES_UPPER_MAJOR) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.PreviousState & SAHPI_ES_UPPER_MINOR) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.TriggerReading.Interpreted.Value.SensorFloat32 == (float)3.5) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.TriggerThreshold.Interpreted.Value.SensorFloat32 == (float)3.4))) {
+		printf("Error! TestCase - Chassis Recovery Event (EN_CUTOFF_HI_FAULT_3_35V)\n");
+		print_event(&(logentry.Event));
+		return -1;
+	}
 
+	err = saHpiEventLogClear(sessionid, SAHPI_DEFAULT_DOMAIN_ID);
+	if (err != SA_OK) {
+		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
+		return -1;
+        }
 
-	/* Mapped switch event */
-	/* Dup event */
-	/* Hot-swap */
-	/* Check previous state for sensors & hotswap */
-	/* severity 1,2,3 override */
-	/* log string */
-        /* Recovery event */
-	/* Login event */
-	/* Non-mapped event */
-	/* In string table not mapped - need to create a bogus test event we put in bc_str2event.c 
-	   and BC_STRING.MAP */
+	/*************************************************************
+	 * TestCase - Chassis Duplicate Event ( EN_PFA_HI_FAULT_3_35V)
+         * Previous state check depends on previous testcase!
+	 *************************************************************/
+	logstr = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:System over recommended voltage on +3.3v. Read value 3.5 Threshold value 3.4";
+	memset(&logentry, 0 , sizeof(SaHpiSelEntryT));
+	strcpy(hash_value->value.string, logstr);
+	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
-#if 0
-	logentry.Event.Source =
-	logentry.Event.EventType =
-	logentry.Event.Severity =
-	logentry.Event.EventDataUnion.SensorEvent.EventCategory =
-	logentry.Event.EventDataUnion.SensorEvent.Assertion =
-	logentry.Event.EventDataUnion.SensorEvent.EventState =
-	logentry.Event.EventDataUnion.SensorEvent.TriggerReading.Interpreted =
-	logentry.Event.EventDataUnion.SensorEvent.TriggerReading.EventStatus =
-	logentry.Event.EventDataUnion.SensorEvent.TriggerThreshold.Interpreted =
-	logentry.Event.EventDataUnion.SensorEvent.PreviousState =
+        err = saHpiEventLogEntryGet(sessionid, SAHPI_DEFAULT_DOMAIN_ID, SAHPI_NEWEST_ENTRY,
+				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
+	if (err != SA_OK) {
+		printf("Error! saHpiEventLogEntryGet: line=%d; err=%d\n", __LINE__, err);
+		return -1;
+        }
+	
+	/* Check expected values */
+	if (!((logentry.Event.Source == CHASSIS_RID) &&
+	      (logentry.Event.EventType == SAHPI_ET_SENSOR) &&
+	      (logentry.Event.Severity == SAHPI_MAJOR) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.SensorType == SAHPI_VOLTAGE) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.Assertion == SAHPI_TRUE) &&
+	      (!(logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_CRIT)) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MAJOR) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MINOR) &&
+	      (!(logentry.Event.EventDataUnion.SensorEvent.PreviousState & SAHPI_ES_UPPER_CRIT)) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.PreviousState & SAHPI_ES_UPPER_MAJOR) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.PreviousState & SAHPI_ES_UPPER_MINOR) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.TriggerReading.Interpreted.Value.SensorFloat32 == (float)3.5) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.TriggerThreshold.Interpreted.Value.SensorFloat32 == (float)3.4))) {
+		printf("Error! TestCase - Chassis Duplicate Event ( EN_PFA_HI_FAULT_3_35V)\n");
+		print_event(&(logentry.Event));
+		return -1;
+	}
 
-	logentry.Event.EventDataUnion.HotSwapEvent.HotSwapState = 
-	logentry.Event.EventDataUnion.HotSwapEvent.PreviousHotSwapState = 
-		
-		/* Mapped Event */
-		printf("\nMapped Event\n");
-		logstr = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:System over recommended voltage on +3.3V Supply.";
-		printf ("Test string = %s\n", logstr);
-		if (log2event((void *)GLOBAL_HANDLE, logstr, &event, 0, &event_enabled)) {
-			printf ("log2event returned err for - mapped case\n");
-		}
- 	{
-		SaHpiEventT event;
+	err = saHpiEventLogClear(sessionid, SAHPI_DEFAULT_DOMAIN_ID);
+	if (err != SA_OK) {
+		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
+		return -1;
+        }
 
-		/* bcsrc2rid tests */
-		logstr = "Severity:INFO  Source:BLADE_02  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:BLADE_02 test string. Very long string yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyThisareattheend";
+	/*************************************************************
+	 * TestCase - Blade Duplicate Event ( EN_PFA_HI_FAULT_3_35V)
+         * Same as previous testcase only for the blade not chassis
+	 *************************************************************/
+	logstr = "Severity:INFO  Source:BLADE_10  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:System over recommended voltage on +3.3v. Read value 3.5 Threshold value 3.4";
+	memset(&logentry, 0 , sizeof(SaHpiSelEntryT));
+	strcpy(hash_value->value.string, logstr);
+	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
-		printf ("Test string = %s\n", logstr);
-		if (log2event((void *)GLOBAL_HANDLE, logstr, &event, 0, &event_enabled)) {
-			printf ("log2event returned err for - Not in string table case\n");
-		}
+        err = saHpiEventLogEntryGet(sessionid, SAHPI_DEFAULT_DOMAIN_ID, SAHPI_NEWEST_ENTRY,
+				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
+	if (err != SA_OK) {
+		printf("Error! saHpiEventLogEntryGet: line=%d; err=%d\n", __LINE__, err);
+		return -1;
+        }
+	
+	/* Check expected values */
+	if (!((!(logentry.Event.Source == CHASSIS_RID)) &&
+	      (logentry.Event.EventType == SAHPI_ET_SENSOR) &&
+	      (logentry.Event.Severity == SAHPI_MAJOR) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.SensorType == SAHPI_VOLTAGE) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.Assertion == SAHPI_TRUE) &&
+	      (!(logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_CRIT)) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MAJOR) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MINOR) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.PreviousState == SAHPI_ES_UNSPECIFIED) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.TriggerReading.Interpreted.Value.SensorFloat32 == (float)3.5) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.TriggerThreshold.Interpreted.Value.SensorFloat32 == (float)3.4))) {
+		printf("Error! TestCase - Blade Duplicate Event ( EN_PFA_HI_FAULT_3_35V)\n");
+		print_event(&(logentry.Event));
+		return -1;
+	}
 
-		logstr = "Severity:INFO  Source:BLADE_14  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:BLADE_14 test string.";
-		printf ("Test string = %s\n", logstr);
-		if (log2event((void *)GLOBAL_HANDLE, logstr, &event, 0, &event_enabled)) {
-			printf ("log2event returned err for - Not in string table case\n");
-		}
+	err = saHpiEventLogClear(sessionid, SAHPI_DEFAULT_DOMAIN_ID);
+	if (err != SA_OK) {
+		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
+		return -1;
+        }
 
-		logstr = "Severity:INFO  Source:SWITCH_3  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:SWITCH_3 test string.";
-		printf ("Test string = %s\n", logstr);
-		if (log2event((void *)GLOBAL_HANDLE, logstr, &event, 0, &event_enabled)) {
-			printf ("log2event returned err for - Not in string table case\n");
-		}
+	/*************************************************************
+	 * TestCase - Non-mapped Event (Severity=INFO)
+	 *************************************************************/
+	logstr = "Severity:INFO  Source:BLADE_01  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:Bogus message not in string to event table";
+	memset(&logentry, 0 , sizeof(SaHpiSelEntryT));
+	strcpy(hash_value->value.string, logstr);
+	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
-		logstr = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:SERVPROC test string.";
-		printf ("Test string = %s\n", logstr);
-		if (log2event((void *)GLOBAL_HANDLE, logstr, &event, 0, &event_enabled)) {
-			printf ("log2event returned err for - Not in string table case\n");
-		}
+        err = saHpiEventLogEntryGet(sessionid, SAHPI_DEFAULT_DOMAIN_ID, SAHPI_NEWEST_ENTRY,
+				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
+	if (err != SA_OK) {
+		printf("Error! saHpiEventLogEntryGet: line=%d; err=%d\n", __LINE__, err);
+		return -1;
+        }
+	
+	/* Check expected values */
+	if (!((!(logentry.Event.Source == CHASSIS_RID)) &&
+	      (logentry.Event.EventType == SAHPI_ET_OEM) &&
+	      (logentry.Event.Severity == SAHPI_INFORMATIONAL))) {
+		printf("Error! TestCase - Non-mapped Event (Severity=INFO)\n");
+		print_event(&(logentry.Event));
+		return -1;
+	}
 
-		/* Mapped Recovery Event */
-		printf("\nMapped Recovery Event\n");
-		logstr = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:Recovery System over recommended voltage on +3.3V Supply.";
-		printf ("Test string = %s\n", logstr);
-		if (log2event((void *)GLOBAL_HANDLE, logstr, &event, 0, &event_enabled)) {
-			printf ("log2event returned err for - mapped case\n");
-		}
-		/* Recovery but Recovery string not first char */
-		printf("\nMapped Recovery but Recovery string not first char\n");
-		logstr = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text: Recovery System over recommended voltage on +3.3V Supply.";
-		printf ("Test string = %s\n", logstr);
-		if (log2event((void *)GLOBAL_HANDLE, logstr, &event, 0, &event_enabled)) {
-			printf ("log2event returned err for - mapped case\n");
-		}
+	err = saHpiEventLogClear(sessionid, SAHPI_DEFAULT_DOMAIN_ID);
+	if (err != SA_OK) {
+		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
+		return -1;
+        }
 
-		/* Login message */
-		printf("\nLogin message\n");
-		logstr = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:Login test string for the login value LOGIN ID:'me'";
-		printf ("Test string = %s\n", logstr);
-		if (log2event((void *)GLOBAL_HANDLE, logstr, &event, 0, &event_enabled)) {
-			printf ("log2event returned err for - Not in string table case\n");
-		}
+	/* Better to test a mapped login event - don't have one yet */
+	/*************************************************************
+	 * TestCase - Non-mapped Login Event (Severity=WARN)
+	 *************************************************************/
+	logstr = "Severity:WARN  Source:SWITCH_4  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:Bogus login message Login ID:\'\'myid\' @ someaddress\'";
+	memset(&logentry, 0 , sizeof(SaHpiSelEntryT));
+	strcpy(hash_value->value.string, logstr);
+	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
-		/* In string table but not mapped */
-		printf("\nIn string table but not mapped\n");
-		logstr = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:Power Supply 1 3.3V Fault";
-		printf ("Test string = %s\n", logstr);
-		if (log2event((void *)GLOBAL_HANDLE, logstr, &event, 0, &event_enabled)) {
-			printf ("log2event returned err for - Not in string table but not mapped case\n");
-		}
+        err = saHpiEventLogEntryGet(sessionid, SAHPI_DEFAULT_DOMAIN_ID, SAHPI_NEWEST_ENTRY,
+				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
+	if (err != SA_OK) {
+		printf("Error! saHpiEventLogEntryGet: line=%d; err=%d\n", __LINE__, err);
+		return -1;
+        }
+	
+	/* Check expected values */
+	if (!((!(logentry.Event.Source == CHASSIS_RID)) &&
+	      (logentry.Event.EventType == SAHPI_ET_OEM) &&
+	      (logentry.Event.Severity == SAHPI_MINOR))) {
+		printf("Error! TestCase - Non-mapped Login Event (Severity=WARN)\n");
+		print_event(&(logentry.Event));
+		return -1;
+	}
 
+	err = saHpiEventLogClear(sessionid, SAHPI_DEFAULT_DOMAIN_ID);
+	if (err != SA_OK) {
+		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
+		return -1;
+        }
 
-		
-		/* Unmapped Threshold Event */
-		printf("\nUnMapped Threshold Event\n");
-		logstr = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:Power Supply 1 3.3V Fault Read value 51.3 Threshold value 50.2";
-		printf ("Test string = %s\n", logstr);
-		if (log2event((void *)GLOBAL_HANDLE, logstr, &event, 1, &event_enabled)) {
-			printf ("log2event returned err for - Unmapped Threshold case\n");
-		}
+	/************************************************************
+	 * TestCase - Daughter Card Event (EN_PFA_HI_OVER_TEMP_DASD1)
+	 ************************************************************/
+	logstr = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:BSE Option over recommended temperature.";
+	memset(&logentry, 0 , sizeof(SaHpiSelEntryT));
+	strcpy(hash_value->value.string, logstr);
+	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
-		/* Mapped Hot-swap Event */
-		printf("\nMapped Hot-swap Event (under V)\n");
-		logstr = "Severity:INFO  Source:BLADE_09  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:Blade Server 9 was removed.";
-		printf ("Test string = %s\n", logstr);
-		if (log2event((void *)GLOBAL_HANDLE, logstr, &event, 1, &event_enabled)) {
-			printf ("log2event returned err for - Unmapped Threshold case\n");
-		}
-		
-		/* Mapped Blade Event */
-		printf("\nMapped Blade Event (under V)\n");
-		logstr = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:System shutoff due to VRM 1 over voltage.";
-		if (log2event((void *)GLOBAL_HANDLE, logstr, &event, 1, &event_enabled)) {
-			printf ("log2event returned err for - Unmapped Threshold case\n");
-		}
+        err = saHpiEventLogEntryGet(sessionid, SAHPI_DEFAULT_DOMAIN_ID, SAHPI_NEWEST_ENTRY,
+				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
+	if (err != SA_OK) {
+		printf("Error! saHpiEventLogEntryGet: line=%d; err=%d\n", __LINE__, err);
+		return -1;
+        }
+	
+	/* Check expected values */
+	if (!((!(logentry.Event.Source == CHASSIS_RID)) &&
+	      (logentry.Event.EventType == SAHPI_ET_SENSOR) &&
+	      (logentry.Event.Severity == SAHPI_MAJOR) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.SensorType == SAHPI_TEMPERATURE) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.Assertion == SAHPI_TRUE) &&
+	      (!(logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_CRIT)) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MAJOR) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MINOR) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.PreviousState == SAHPI_ES_UNSPECIFIED) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.TriggerReading.Interpreted.Value.SensorFloat32 == (float)0) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.TriggerThreshold.Interpreted.Value.SensorFloat32 == (float)0))) {
+		printf("Error! TestCase - Daughter Card Event (EN_PFA_HI_OVER_TEMP_DASD1)\n");
+		print_event(&(logentry.Event));
+		return -1;
+	}
 
-		/* Dup - find in blade sensor */
-		printf("\nDuplicate - EN_PFA_HI_FAULT_2_5V|0x08031480 find in blade sensor\n");
-		logstr = "Severity:INFO  Source:BLADE_02  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:System over recommended voltage on +2.5v.";
-		printf ("Test string = %s\n", logstr);
-		if (log2event((void *)GLOBAL_HANDLE, logstr, &event, 1, &event_enabled)) {
-			printf ("log2event returned err for -  Dup - find in blade sensor\n");
-		}
+	err = saHpiEventLogClear(sessionid, SAHPI_DEFAULT_DOMAIN_ID);
+	if (err != SA_OK) {
+		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
+		return -1;
+        }
 
-		/* Dup - find in chassis sensor */
-		printf("\nDuplicate - EN_PFA_HI_FAULT_2_5V|0xFF031480  find in chassis sensor\n");
-		logstr = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:System over recommended voltage on +2.5v.";
-		printf ("Test string = %s\n", logstr);
-		if (log2event((void *)GLOBAL_HANDLE, logstr, &event, 1, &event_enabled)) {
-			printf ("log2event returned err for -  Dup - find in blade sensor\n");
-		}
-		
-		/* Dup - No event found for resource  */ /* tmp remove from bc_resources.c */
-		printf("\nDuplicate - EN_PFA_HI_FAULT_3_35V|0xFF033480 No event found for resource\n");
-		logstr = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:System over recommended voltage on +3.3v.";
-		printf ("Test string = %s\n", logstr);
-		if (log2event((void *)GLOBAL_HANDLE, logstr, &event, 1, &event_enabled)) {
-			printf ("log2event returned err for -  Dup - find in blade sensor\n");
-		}
+	/*************************************************************
+	 * TestCase - Hot-swap switch installed (EN_SWITCH_3_INSTALLED) 
+	 *************************************************************/
+	logstr = "Severity:INFO  Source:SWITCH_3  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:I/O module 3 was installed.";
+	memset(&logentry, 0 , sizeof(SaHpiSelEntryT));
+	strcpy(hash_value->value.string, logstr);
+	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
-		printf("DONE WITH TEST\n");
+        err = saHpiEventLogEntryGet(sessionid, SAHPI_DEFAULT_DOMAIN_ID, SAHPI_NEWEST_ENTRY,
+				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
+	if (err != SA_OK) {
+		printf("Error! saHpiEventLogEntryGet: line=%d; err=%d\n", __LINE__, err);
+		return -1;
+        }
+	
+	/* Check expected values */
+	if (!((!(logentry.Event.Source == CHASSIS_RID)) &&
+	      (logentry.Event.EventType == SAHPI_ET_HOTSWAP) &&
+	      (logentry.Event.Severity == SAHPI_INFORMATIONAL) &&
+	      (logentry.Event.EventDataUnion.HotSwapEvent.HotSwapState == SAHPI_HS_STATE_ACTIVE_HEALTHY) && 
+	      (logentry.Event.EventDataUnion.HotSwapEvent.PreviousHotSwapState == SAHPI_HS_STATE_ACTIVE_HEALTHY))) {
+		printf("Error! TestCase - Hot-swap switch installed (EN_SWITCH_3_INSTALLED)\n");
+		print_event(&(logentry.Event));
+		return -1;
+	}
 
-blade
-EN_PFA_HI_FAULT_2_5V|0x08031480|ALL|SAHPI_MAJOR|OVR_SEV|"System over recommended voltage on +2.5v."
-EN_PFA_LO_FAULT_2_5V|0x08031880|ALL|SAHPI_MAJOR|OVR_SEV|"System under recommended voltage on +2.5v."
-EN_PFA_HI_FAULT_3_35V|0x08033480|ALL|SAHPI_MAJOR|OVR_SEV|"System over recommended voltage on +3.3v."
-EN_PFA_LO_FAULT_3_35V|0x08033880|ALL|SAHPI_MAJOR|OVR_SEV|"System under recommended voltage on +3.3v."
-EN_PFA_HI_FAULT_12V_PLANAR|0x06037500|ALL|SAHPI_MAJOR|OVR_SEV|"System over recommended voltage for +12v."
-EN_PFA_LO_FAULT_12V_PLANAR|0x06037800|ALL|SAHPI_MAJOR|OVR_SEV|"System under recommended voltage for +12v."
+	err = saHpiEventLogClear(sessionid, SAHPI_DEFAULT_DOMAIN_ID);
+	if (err != SA_OK) {
+		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
+		return -1;
+        }
 
-chassis 
-EN_PFA_HI_FAULT_2_5V|0xFF031480|ALL|SAHPI_MAJOR|OVR_SEV|"System over recommended voltage on +2.5v."
-EN_PFA_LO_FAULT_2_5V|0xFF031880|ALL|SAHPI_MAJOR|OVR_SEV|"System under recommended voltage on +2.5v."
-EN_PFA_HI_FAULT_3_35V|0xFF033480|ALL|SAHPI_MAJOR|OVR_SEV|"System over recommended voltage on +3.3v."
-EN_PFA_LO_FAULT_3_35V|0xFF033880|ALL|SAHPI_MAJOR|OVR_SEV|"System under recommended voltage on +3.3v."
-EN_PFA_HI_FAULT_12V_PLANAR|0xFF037500|ALL|SAHPI_MAJOR|OVR_SEV|"System over recommended voltage for +12v."
-EN_PFA_LO_FAULT_12V_PLANAR|0xFF037800|ALL|SAHPI_MAJOR|OVR_SEV|"System under recommended voltage for +12v."
+	/****************************************************************
+	 * TestCase - Hot-swap Media Tray removal (EN_MEDIA_TRAY_REMOVED)
+         * This event is recovered in the next testcase
+	 ****************************************************************/
+	logstr = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:The media tray was removed.";
+	memset(&logentry, 0 , sizeof(SaHpiSelEntryT));
+	strcpy(hash_value->value.string, logstr);
+	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
-		/* Dup - with RID override */
-		printf("\nDup - with RID override\n");
-		logstr = "Severity:INFO  Source:BLADE_09  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:System over recommended voltage on +2.5v.";
-		printf ("Test string = %s\n", logstr);
-		if (log2event((void *)GLOBAL_HANDLE, logstr, &event, 1)) {
-			printf ("log2event returned err for - Unmapped Threshold case\n");
-		}
+        err = saHpiEventLogEntryGet(sessionid, SAHPI_DEFAULT_DOMAIN_ID, SAHPI_NEWEST_ENTRY,
+				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
+	if (err != SA_OK) {
+		printf("Error! saHpiEventLogEntryGet: line=%d; err=%d\n", __LINE__, err);
+		return -1;
+        }
+	
+	/* Check expected values */
+	if (!((!(logentry.Event.Source == CHASSIS_RID)) &&
+	      (logentry.Event.EventType == SAHPI_ET_HOTSWAP) &&
+	      (logentry.Event.Severity == SAHPI_INFORMATIONAL) &&
+	      (logentry.Event.EventDataUnion.HotSwapEvent.HotSwapState == SAHPI_HS_STATE_NOT_PRESENT) && 
+	      (logentry.Event.EventDataUnion.HotSwapEvent.PreviousHotSwapState == SAHPI_HS_STATE_ACTIVE_HEALTHY))) {
+		printf("Error! TestCase - Hot-swap Media Tray removal (EN_MEDIA_TRAY_REMOVED)\n");
+		print_event(&(logentry.Event));
+		return -1;
+	}
 
+	err = saHpiEventLogClear(sessionid, SAHPI_DEFAULT_DOMAIN_ID);
+	if (err != SA_OK) {
+		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
+		return -1;
+        }
 
-#endif
+	/****************************************************************
+	 * TestCase - Hot-swap Media Tray recovery (EN_MEDIA_TRAY_REMOVED)
+         * Recovery of previous event
+	 ****************************************************************/
+	logstr = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:Recovery The media tray was removed.";
+	memset(&logentry, 0 , sizeof(SaHpiSelEntryT));
+	strcpy(hash_value->value.string, logstr);
+	g_hash_table_insert(sim_hash, hash_key, hash_value);
+
+        err = saHpiEventLogEntryGet(sessionid, SAHPI_DEFAULT_DOMAIN_ID, SAHPI_NEWEST_ENTRY,
+				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
+	if (err != SA_OK) {
+		printf("Error! saHpiEventLogEntryGet: line=%d; err=%d\n", __LINE__, err);
+		return -1;
+        }
+	
+	/* Check expected values */
+	if (!((!(logentry.Event.Source == CHASSIS_RID)) &&
+	      (logentry.Event.EventType == SAHPI_ET_HOTSWAP) &&
+	      (logentry.Event.Severity == SAHPI_INFORMATIONAL) &&
+	      (logentry.Event.EventDataUnion.HotSwapEvent.HotSwapState == SAHPI_HS_STATE_ACTIVE_HEALTHY) &&
+	      (logentry.Event.EventDataUnion.HotSwapEvent.PreviousHotSwapState == SAHPI_HS_STATE_NOT_PRESENT))) {
+		printf("Error! TestCase - Hot-swap Media Tray recovery (EN_MEDIA_TRAY_REMOVED)\n");
+		print_event(&(logentry.Event));
+		return -1;
+	}
+
+	err = saHpiEventLogClear(sessionid, SAHPI_DEFAULT_DOMAIN_ID);
+	if (err != SA_OK) {
+		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
+		return -1;
+        }
+
+	/************************************
+	 * Drive some error paths in the code
+         ************************************/ 
+
+	/******************************************************************
+	 * TestCase - Bogus threshold strings
+ 	 ******************************************************************/
+	logstr = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:System shutoff due to +3.3v over voltage. Bogus Read value 3.5 Bogus Threshold value 3.4";
+	memset(&logentry, 0 , sizeof(SaHpiSelEntryT));
+	strcpy(hash_value->value.string, logstr);
+	g_hash_table_insert(sim_hash, hash_key, hash_value);
+
+        err = saHpiEventLogEntryGet(sessionid, SAHPI_DEFAULT_DOMAIN_ID, SAHPI_NEWEST_ENTRY,
+				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
+	if (err != SA_OK) {
+		printf("Error! saHpiEventLogEntryGet: line=%d; err=%d\n", __LINE__, err);
+		return -1;
+        }
+	
+	/* Check expected values */
+	if (!(((logentry.Event.Source == CHASSIS_RID)) &&
+	      (logentry.Event.EventType == SAHPI_ET_OEM) &&
+	      (logentry.Event.Severity == SAHPI_INFORMATIONAL))) {
+		printf("Error! TestCase - Bogus threshold strings\n");
+		print_event(&(logentry.Event));
+		return -1;
+	}
+
+	err = saHpiEventLogClear(sessionid, SAHPI_DEFAULT_DOMAIN_ID);
+	if (err != SA_OK) {
+		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
+		return -1;
+        }
+
+	/******************************************************************
+	 * TestCase - Recovery string not first character of text string
+         * (blank is first character). Should not treat as a recovery event
+	 ******************************************************************/
+	logstr = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text: Recovery System shutoff due to +3.3v over voltage. Read value 3.5 Threshold value 3.4";
+	memset(&logentry, 0 , sizeof(SaHpiSelEntryT));
+	strcpy(hash_value->value.string, logstr);
+	g_hash_table_insert(sim_hash, hash_key, hash_value);
+
+        err = saHpiEventLogEntryGet(sessionid, SAHPI_DEFAULT_DOMAIN_ID, SAHPI_NEWEST_ENTRY,
+				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
+	if (err != SA_OK) {
+		printf("Error! saHpiEventLogEntryGet: line=%d; err=%d\n", __LINE__, err);
+		return -1;
+        }
+
+	/* Check expected values */
+	if (!(((logentry.Event.Source == CHASSIS_RID)) &&
+	      (logentry.Event.EventType == SAHPI_ET_OEM) &&
+	      (logentry.Event.Severity == SAHPI_INFORMATIONAL))) {
+		printf("Error! TestCase - Recovery string not first character of text string\n");
+		print_event(&(logentry.Event));
+		return -1;
+	}
+
+	err = saHpiEventLogClear(sessionid, SAHPI_DEFAULT_DOMAIN_ID);
+	if (err != SA_OK) {
+		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
+		return -1;
+        }
+
+	/******************************************************************
+	 * TestCase - In string table but not mapped
+         * Uses special defined Test event in bc_str2event.c
+	 ******************************************************************/
+	logstr = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:Bogus Test Event.";
+	memset(&logentry, 0 , sizeof(SaHpiSelEntryT));
+	strcpy(hash_value->value.string, logstr);
+	g_hash_table_insert(sim_hash, hash_key, hash_value);
+
+        err = saHpiEventLogEntryGet(sessionid, SAHPI_DEFAULT_DOMAIN_ID, SAHPI_NEWEST_ENTRY,
+				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
+	if (err != SA_OK) {
+		printf("Error! saHpiEventLogEntryGet: line=%d; err=%d\n", __LINE__, err);
+		return -1;
+        }
+
+	/* Check expected values */
+	if (!(((logentry.Event.Source == CHASSIS_RID)) &&
+	      (logentry.Event.EventType == SAHPI_ET_OEM) &&
+	      (logentry.Event.Severity == SAHPI_INFORMATIONAL))) {
+		printf("Error! TestCase - In string table but not mapped\n");
+		print_event(&(logentry.Event));
+		return -1;
+	}
+
+	err = saHpiEventLogClear(sessionid, SAHPI_DEFAULT_DOMAIN_ID);
+	if (err != SA_OK) {
+		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
+		return -1;
+        }
+	
+	/****************** 
+	 * End of testcases 
+         ******************/
 
         err = saHpiSessionClose(sessionid);
         if (err != SA_OK) {
