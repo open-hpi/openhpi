@@ -474,7 +474,8 @@ void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
                                 tmp.EntityInstance);
                 }
                 printf("\tIdString: ");
-                       display_id_string(rdr.IdString);
+                display_id_string(rdr.IdString);
+                printf("\n"); /* Produce blank line between rdrs. */
         }while(next_rdr != SAHPI_LAST_ENTRY);
 }
 
