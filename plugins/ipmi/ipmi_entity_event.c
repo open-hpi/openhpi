@@ -196,7 +196,7 @@ static void get_entity_event(ipmi_entity_t	*entity,
 				dbg("entity_id_string is invlaid, bad SDR..stick to entity_id");
 			} else {
 			  	/* Let's identify the entity-instance in the ResourceTag */
-				  str2 = (char *)calloc(strlen(str) + 1, sizeof(char));
+				  str2 = (char *)calloc(strlen(str) + 3, sizeof(char));
 				  snprintf(str2, strlen(str) + 3, "%s-%d",str,
 					   	ipmi_entity_get_entity_instance(entity));
 				  memcpy(entry->ResourceTag.Data, str2, strlen(str2) + 1);
