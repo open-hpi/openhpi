@@ -122,36 +122,36 @@ ohoi_mc_event(enum ipmi_update_e op,
 
         switch (op) {
                 case IPMI_ADDED:
-			if(!ipmi_mc_is_active(mc)) {
-				dbg("MC added but inactive...we ignore (%d %x)\n",
-						ipmi_mc_get_address(mc),
-						ipmi_mc_get_channel(mc));
-				break;
-			} else {
-				mc_add(mc, handler);
-				dbg("MC added and is active: (%d %x)\n", 
-						ipmi_mc_get_address(mc), 
-						ipmi_mc_get_channel(mc));
-				break;
-			}
-                case IPMI_DELETED:
-                        dbg("MC deleted: (%d %x)\n",
-                            ipmi_mc_get_address(mc), 
-                            ipmi_mc_get_channel(mc));
-                        break;
-                case IPMI_CHANGED:
-			if(!ipmi_mc_is_active(mc)) {
-				dbg("MC changed and is inactive: (%d %x)\n",
-					ipmi_mc_get_address(mc), 
-		                        ipmi_mc_get_channel(mc));
-				/* we need to remove it from RPT */
-			} else {
-				mc_add(mc, handler);
-				dbg("MC changed and is active: (%d %x)\n",
-						ipmi_mc_get_address(mc),
-						ipmi_mc_get_channel(mc));
-			}
-                        break;
-        }
+						if(!ipmi_mc_is_active(mc)) {
+								dbg("MC added but inactive...we ignore (%d %x)\n",
+												ipmi_mc_get_address(mc),
+												ipmi_mc_get_channel(mc));
+								break;
+						} else {
+								mc_add(mc, handler);
+								dbg("MC added and is active: (%d %x)\n", 
+												ipmi_mc_get_address(mc), 
+												ipmi_mc_get_channel(mc));
+								break;
+						}
+					case IPMI_DELETED:
+						dbg("MC deleted: (%d %x)\n",
+										ipmi_mc_get_address(mc), 
+										ipmi_mc_get_channel(mc));
+						break;
+					case IPMI_CHANGED:
+						if(!ipmi_mc_is_active(mc)) {
+								dbg("MC changed and is inactive: (%d %x)\n",
+												ipmi_mc_get_address(mc), 
+												ipmi_mc_get_channel(mc));
+								/* we need to remove it from RPT */
+						} else {
+								mc_add(mc, handler);
+								dbg("MC changed and is active: (%d %x)\n",
+												ipmi_mc_get_address(mc),
+												ipmi_mc_get_channel(mc));
+						}
+						break;
+		}
 }
 
