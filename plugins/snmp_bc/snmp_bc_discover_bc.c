@@ -1137,11 +1137,6 @@ static SaErrorT snmp_bc_discover_ipmi_sensors(struct oh_handler_state *handle,
 
 			sinfo->mib = *mib_info;
 			
-			trace("Adding RDR for IPMI sensor=%s; Num=%d; OID=%s",
-			      e->u.rdr_event.rdr.IdString.Data,
-			      e->u.rdr_event.rdr.RdrTypeUnion.SensorRec.Num,
-			      sinfo->mib.oid);
-
 			err = oh_add_rdr(custom_handle->tmpcache,
 					 res_oh_event->u.res_event.entry.ResourceId,
 					 &(e->u.rdr_event.rdr),
