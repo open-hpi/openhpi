@@ -167,15 +167,23 @@ AC_SUBST(LIST_RESOURCES_THREADED)
 dnl Enable the marshal directory only when needed by 
 dnl the deamon or remote_client plugin
 NEED_MARSHAL=
+openhpid_static="no"
 
 AC_ARG_ENABLE([daemon],
     [  --enable-daemon         build HPI daemon and client library [default=yes]],
     [if test "x$enableval" = "xyes"; then
         ENABLED_DIRS="$ENABLED_DIRS openhpid"
 	NEED_MARSHAL="yes"
+     elif test "x$enableval" = "xstatic"; then
+        ENABLED_DIRS="$ENABLED_DIRS openhpid"
+	NEED_MARSHAL="yes"
+        openhpid_static="yes"
     fi],
     [ENABLED_DIRS="$ENABLED_DIRS openhpid"
      NEED_MARSHAL="yes"])
+
+AM_CONDITIONAL(OPENHPID_STATIC, test x$openhpid_static = xyes)
+
 
 AC_ARG_ENABLE([examples],
     [  --enable-examples       build HPI examples [default=yes]],
