@@ -16,8 +16,10 @@
  *      David Judkovics <djudkovi@us.ibm.com>
  */
 
-/* default location of uid map file */
-#define OH_DEFAULT_UID_MAP "/var/lib/openhpi/uid_map"
+/* default location of uid map file is defined in config.h.
+ * use configure --with-varpath=/usr/var/lib/openhpi
+ * to change the path.
+ */
 
 /* hpi internal apis */
 SaErrorT oh_uid_initialize(void); 
