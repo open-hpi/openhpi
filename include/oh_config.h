@@ -61,7 +61,7 @@ typedef union {
         SaHpiBoolT threaded; /* !0 = YES, 0 = NO */
         char path[OH_MAX_TEXT_BUFFER_LENGTH];
         char varpath[OH_MAX_TEXT_BUFFER_LENGTH];
-        char conf[SAHPI_MAX_TEXT_BUFFER_LENGTH];
+        char conf[OH_MAX_TEXT_BUFFER_LENGTH];
 } oh_global_param_union;
 
 struct oh_global_param {

@@ -3827,7 +3827,7 @@ SaErrorT oHpiPluginGetNext(char *name, char *next_name, int size)
         SaErrorT err;
 	char cmd[] = "oHpiPluginUnload";
 
-        if (strlen(name) + 1 > OH_GLOBAL_STR_MAX_LENGTH) {
+        if (strlen(name) + 1 > OH_MAX_TEXT_BUFFER_LENGTH) {
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 

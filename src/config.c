@@ -62,7 +62,7 @@ static struct {
         SaHpiBoolT threaded;
         char path[OH_MAX_TEXT_BUFFER_LENGTH];
         char varpath[OH_MAX_TEXT_BUFFER_LENGTH];
-        char conf[SAHPI_MAX_TEXT_BUFFER_LENGTH];
+        char conf[OH_MAX_TEXT_BUFFER_LENGTH];
         unsigned char read_env;
         GStaticRecMutex lock;
 } global_params = { /* Defaults for global params are set here */
@@ -242,7 +242,7 @@ static void process_global_param(const char *name, char *value)
                 g_static_rec_mutex_unlock(&global_params.lock);
         } else if (!strcmp("OPENHPI_LOG_ON_SEV", name)) {
                 SaHpiTextBufferT buffer;
-                strncpy((char *)buffer.Data, value, SAHPI_MAX_TEXT_BUFFER_LENGTH);
+                strncpy((char *)buffer.Data, value, OH_MAX_TEXT_BUFFER_LENGTH);
                 g_static_rec_mutex_lock(&global_params.lock);
                 oh_encode_severity(&buffer, &global_params.log_on_sev);
                 g_static_rec_mutex_unlock(&global_params.lock);
@@ -298,8 +298,8 @@ static void process_global_param(const char *name, char *value)
                 g_static_rec_mutex_unlock(&global_params.lock);        
         } else if (!strcmp("OPENHPI_CONF", name)) {
                 g_static_rec_mutex_lock(&global_params.lock);
-                memset(global_params.conf, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);
-                strncpy(global_params.conf, value, SAHPI_MAX_TEXT_BUFFER_LENGTH-1);
+                memset(global_params.conf, 0, OH_MAX_TEXT_BUFFER_LENGTH);
+                strncpy(global_params.conf, value, OH_MAX_TEXT_BUFFER_LENGTH-1);
                 g_static_rec_mutex_unlock(&global_params.lock);
         } else {
                 dbg("ERROR. Invalid global parameter %s in config file", name);
@@ -707,7 +707,7 @@ int oh_get_global_param(struct oh_global_param *param)
                         g_static_rec_mutex_lock(&global_params.lock);
                         strncpy(param->u.conf,
                                 global_params.conf,
-                                SAHPI_MAX_TEXT_BUFFER_LENGTH);
+                                OH_MAX_TEXT_BUFFER_LENGTH);
                         g_static_rec_mutex_unlock(&global_params.lock);
                         break;
                 default:
@@ -787,10 +787,10 @@ int oh_set_global_param(struct oh_global_param *param)
                         break;
                 case OPENHPI_CONF:
                         g_static_rec_mutex_lock(&global_params.lock);
-                        memset(global_params.conf, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);
+                        memset(global_params.conf, 0, OH_MAX_TEXT_BUFFER_LENGTH);
                         strncpy(global_params.conf,
                                 param->u.conf,
-                                SAHPI_MAX_TEXT_BUFFER_LENGTH-1);
+                                OH_MAX_TEXT_BUFFER_LENGTH-1);
                         g_static_rec_mutex_unlock(&global_params.lock);
                         break;
                 default:
