@@ -170,7 +170,6 @@ TESTS = \
 	tsensorset024
 #	tdiscover002
 #	tsnmp_bc_get_guid
-#	testxml
 
 # Need to put expected test failures in BOTH TESTS and XFAIL_TESTS
 # XFAIL_TESTS = thotswap_reset
@@ -614,7 +613,3 @@ tcontrol003_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
 #tsnmp_bc_get_guid_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
 #		 $(top_builddir)/src/libopenhpi.la \
 #		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
- 
-# Unit tests with IF and snmp calls stubbed out
-#testxml_SOURCES = testxml.c
-#testxml_LDADD   = com_xml2event.c
