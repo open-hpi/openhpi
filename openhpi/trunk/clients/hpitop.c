@@ -70,7 +70,8 @@ static SaErrorT show_wdog(SaHpiSessionIdT sessionid,
 			SaHpiResourceIdT l_resourceid);
 
 void same_system(oh_big_textbuffer *bigbuf);
-			
+void show_trailer(char *system);
+						
 #define all_resources 255
 #define EPATHSTRING_END_DELIMITER "}"
 #define rpt_startblock "    |\n    +--- "
@@ -105,14 +106,14 @@ main(int argc, char **argv)
 	int c;
 	    
 	printf("\n\n%s ver %s\n",argv[0],progver);
-	while ( (c = getopt( argc, argv,"rsicywn:x?")) != EOF ) {
+	while ( (c = getopt( argc, argv,"rsicawn:x?")) != EOF ) {
 		switch(c) {
 			case 'r': f_rpt     = 1; break;
 			case 's': f_sensor = 1; break;
 			case 'i': f_inv = 1; break;
 			case 'c': f_ctrl = 1; break;
 			case 'w': f_wdog = 1; break;
-			case 'y': f_ann = 1; break;
+			case 'a': f_ann = 1; break;
 			case 'n':
 				if (optarg)
 					resourceid = atoi(optarg);
@@ -123,13 +124,12 @@ main(int argc, char **argv)
 			default:
 				printf("\n\tUsage: %s [-option]\n\n", progname);
 				printf("\t      (No Option) Display system topology: rpt & rdr headers\n");	
-				printf("\t           -n     Select particular resource id to display\n");
-				printf("\n");
 				printf("\t           -r     Display only rpts\n");
 				printf("\t           -s     Display only sensors\n");
-				printf("\t           -i     Display only inventories\n");
 				printf("\t           -c     Display only controls\n");
-				printf("\t           -w     Display only watchdog\n");				
+				printf("\t           -w     Display only watchdogs\n");
+				printf("\t           -i     Display only inventories\n");
+				printf("\t           -a     Display only annunciators\n");												
 				printf("\t           -x     Display debug messages\n");
 				printf("\n\n\n\n");
 				exit(1);
@@ -239,7 +239,9 @@ SaErrorT list_resources(SaHpiSessionIdT sessionid,SaHpiResourceIdT resourceid)
 		}
 		rptentryid = nextrptentryid;
 	} while ((rvRptGet == SA_OK) && (rptentryid != SAHPI_LAST_ENTRY));
-
+	
+	show_trailer(previous_system);
+	
 	return(rv);
 }
 
@@ -252,6 +254,8 @@ void same_system(oh_big_textbuffer *bigbuf)
 
 	int size = strcspn(bigbuf->Data, EPATHSTRING_END_DELIMITER);
 	if ( strncmp(bigbuf->Data, previous_system, size) != 0) {
+		if (previous_system[0] == '{') show_trailer(previous_system);
+		memset (previous_system, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH); 
 		strncpy (previous_system, bigbuf->Data, size+1);
 		previous_system[size+2] = '\0';
 		printf("\n\n\n%s\n", previous_system);
@@ -259,6 +263,15 @@ void same_system(oh_big_textbuffer *bigbuf)
 
 }
 
+
+/*
+ *
+ */
+void show_trailer(char *system)
+{
+	printf("    |\nEnd of %s\n\n", system);
+
+}
 /*
  *
  */
