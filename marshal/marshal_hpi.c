@@ -1313,11 +1313,119 @@ static const cMarshalType *oHpiPluginGetNextIn[] =
   0
 };
 
-
 static const cMarshalType *oHpiPluginGetNextOut[] =
 {
   &SaErrorType, // result (SaErrorT)
   &SaHpiTextBufferType, // next plugin name (SaHpiTextBufferT)
+  0
+};
+
+
+static const cMarshalType *oHpiHandlerCreateInitIn[] =
+{
+  &SaErrorType, // dummy entry
+  0
+};
+
+static const cMarshalType *oHpiHandlerCreateInitOut[] =
+{
+  &SaErrorType, // result (SaErrorT)
+  0
+};
+
+
+static const cMarshalType *oHpiHandlerCreateAddTEntryIn[] =
+{
+  &SaHpiTextBufferType, // namd (SaHpiTextBufferT)
+  &SaHpiTextBufferType, // value (SaHpiTextBufferT)
+  0
+};
+
+static const cMarshalType *oHpiHandlerCreateAddTEntryOut[] =
+{
+  &SaErrorType, // result (SaErrorT)
+  0
+};
+
+
+static const cMarshalType *oHpiHandlerCreateIn[] =
+{
+  &SaErrorType, // dummy entry
+  0
+};
+
+static const cMarshalType *oHpiHandlerCreateOut[] =
+{
+  &SaErrorType, // result (SaErrorT)
+  &oHpiHandlerIdType, // handler id
+  0
+};
+
+
+static const cMarshalType *oHpiHandlerDestroyIn[] =
+{
+  &oHpiHandlerIdType, // handler id
+  0
+};
+
+static const cMarshalType *oHpiHandlerDestroyOut[] =
+{
+  &SaErrorType, // result (SaErrorT)
+  0
+};
+
+
+static const cMarshalType *oHpiHandlerInfoIn[] =
+{
+  &oHpiHandlerIdType, // handler id
+  0
+};
+
+static const cMarshalType *oHpiHandlerInfoOut[] =
+{
+  &SaErrorType, // result (SaErrorT)
+  &oHpiHandlerInfoType, // handler info
+  0
+};
+
+
+static const cMarshalType *oHpiHandlerGetNextIn[] =
+{
+  &oHpiHandlerIdType, // handler id
+  0
+};
+
+static const cMarshalType *oHpiHandlerGetNextOut[] =
+{
+  &SaErrorType, // result (SaErrorT)
+  &oHpiHandlerIdType, // handler id
+  0
+};
+
+
+static const cMarshalType *oHpiGlobalParamGetIn[] =
+{
+  &oHpiGlobalParamType, // global param
+  0
+};
+
+static const cMarshalType *oHpiGlobalParamGetOut[] =
+{
+  &SaErrorType, // result (SaErrorT)
+  &oHpiGlobalParamType, // global param
+  0
+};
+
+
+static const cMarshalType *oHpiGlobalParamSetIn[] =
+{
+  &oHpiGlobalParamType, // global param
+  0
+};
+
+static const cMarshalType *oHpiGlobalParamSetOut[] =
+{
+  &SaErrorType, // result (SaErrorT)
   0
 };
 
@@ -1407,6 +1515,14 @@ static cHpiMarshal hpi_marshal[] =
   dHpiMarshalEntry( oHpiPluginUnload ),
   dHpiMarshalEntry( oHpiPluginInfo ),
   dHpiMarshalEntry( oHpiPluginGetNext ),
+  dHpiMarshalEntry( oHpiHandlerCreateInit ),
+  dHpiMarshalEntry( oHpiHandlerCreateAddTEntry ),
+  dHpiMarshalEntry( oHpiHandlerCreate ),
+  dHpiMarshalEntry( oHpiHandlerDestroy ),
+  dHpiMarshalEntry( oHpiHandlerInfo ),
+  dHpiMarshalEntry( oHpiHandlerGetNext ),
+  dHpiMarshalEntry( oHpiGlobalParamGet ),
+  dHpiMarshalEntry( oHpiGlobalParamSet ),
 };
 
 

@@ -118,6 +118,14 @@ typedef enum
   eFoHpiPluginUnload,
   eFoHpiPluginInfo,
   eFoHpiPluginGetNext,
+  eFoHpiHandlerCreateInit,
+  eFoHpiHandlerCreateAddTEntry,
+  eFoHpiHandlerCreate,
+  eFoHpiHandlerDestroy,
+  eFoHpiHandlerInfo,
+  eFoHpiHandlerGetNext,
+  eFoHpiGlobalParamGet,
+  eFoHpiGlobalParamSet,
 } tHpiFucntionId;
 
 

@@ -58,6 +58,22 @@
 		return SA_ERR_HPI_NO_RESPONSE; \
 	}
 
+#define SendRecvNoReturn(cmd) \
+	if (pinst->WriteMsg(request)) { \
+		cdebug_err(cmd, "WriteMsg failed\n"); \
+		if(request) \
+			free(request); \
+		CleanupClient(); \
+		return; \
+	} \
+	if (pinst->ReadMsg(reply)) { \
+		cdebug_err(cmd, "Read failed\n"); \
+		if(request) \
+			free(request); \
+		CleanupClient(); \
+		return; \
+	}
+
 
 // note: doing it this way means the client is NOT thread safe!
 static pcstrmsock pinst = NULL;
@@ -310,6 +326,9 @@ static const char * oh_lookup_texttype(SaHpiTextTypeT value)
                 return NULL;
         }
 }
+
+static SaErrorT oHpiHandlerCreateInit(void);
+static void oHpiHandlerCreateAddTEntry(gpointer key, gpointer value, gpointer data);
 
 
 /*----------------------------------------------------------------------------*/
@@ -4031,7 +4050,44 @@ SaErrorT oHpiPluginGetNext(char *name, char *next_name, int size)
 SaErrorT oHpiHandlerCreate(GHashTable *config,
                            oHpiHandlerIdT *id)
 {
-        return SA_ERR_HPI_UNSUPPORTED_API;
+        SaErrorT err;
+        void *request;
+	char reply[dMaxMessageLength];
+	char cmd[] = "oHpiHandlerCreate";
+
+        // initialize the daemon GHashTable
+        err = oHpiHandlerCreateInit();
+        if (err) {
+                return err;
+        }
+
+        // NOTE!!!!!!!!!!!!!!!!!!!!!!!!
+        // The string lengths of each key and value in the hash table MUST
+        // BE LESS THAN SAHPI_MAX_TEXT_BUFFER_LENGTH - 1. They are not checked
+        // here!
+
+        // add each hash table entry to the daemon hash table
+        g_hash_table_foreach(config, oHpiHandlerCreateAddTEntry, NULL);
+
+        // now create the handler
+        cHpiMarshal *hm = hm = HpiMarshalFind(eFoHpiHandlerCreate);
+        pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiHandlerCreate, hm->m_request_len);
+        request = malloc(hm->m_request_len);
+
+        pinst->header.m_len = HpiMarshalRequest1(hm, request, &err);
+
+	SendRecv(cmd);
+
+        int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, id);
+
+        if (request)
+                free(request);
+        if (pinst->header.m_type == eMhError)
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (mr < 0)
+                return SA_ERR_HPI_INVALID_PARAMS;
+
+        return err;
 }
 
 
@@ -4041,7 +4097,29 @@ SaErrorT oHpiHandlerCreate(GHashTable *config,
 
 SaErrorT oHpiHandlerDestroy(oHpiHandlerIdT id)
 {
-        return SA_ERR_HPI_UNSUPPORTED_API;
+        void *request;
+	char reply[dMaxMessageLength];
+        SaErrorT err;
+	char cmd[] = "oHpiHandlerDestroy";
+
+        cHpiMarshal *hm = hm = HpiMarshalFind(eFoHpiHandlerDestroy);
+        pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiHandlerDestroy, hm->m_request_len);
+        request = malloc(hm->m_request_len);
+
+        pinst->header.m_len = HpiMarshalRequest1(hm, request, &id);
+
+	SendRecv(cmd);
+
+        int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
+
+        if (request)
+                free(request);
+        if (pinst->header.m_type == eMhError)
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (mr < 0)
+                return SA_ERR_HPI_INVALID_PARAMS;
+
+	return err;
 }
 
 
@@ -4051,7 +4129,29 @@ SaErrorT oHpiHandlerDestroy(oHpiHandlerIdT id)
 
 SaErrorT oHpiHandlerInfo(oHpiHandlerIdT id, oHpiHandlerInfoT *info)
 {
-        return SA_ERR_HPI_UNSUPPORTED_API;
+        void *request;
+	char reply[dMaxMessageLength];
+        SaErrorT err;
+	char cmd[] = "oHpiHandlerInfo";
+
+        cHpiMarshal *hm = hm = HpiMarshalFind(eFoHpiHandlerInfo);
+        pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiHandlerInfo, hm->m_request_len);
+        request = malloc(hm->m_request_len);
+
+        pinst->header.m_len = HpiMarshalRequest1(hm, request, &id);
+
+	SendRecv(cmd);
+
+        int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, &info);
+
+        if (request)
+                free(request);
+        if (pinst->header.m_type == eMhError)
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (mr < 0)
+                return SA_ERR_HPI_INVALID_PARAMS;
+
+	return err;
 }
 
 
@@ -4061,7 +4161,29 @@ SaErrorT oHpiHandlerInfo(oHpiHandlerIdT id, oHpiHandlerInfoT *info)
 
 SaErrorT oHpiHandlerGetNext(oHpiHandlerIdT id, oHpiHandlerIdT *next_id)
 {
-        return SA_ERR_HPI_UNSUPPORTED_API;
+        void *request;
+	char reply[dMaxMessageLength];
+        SaErrorT err;
+	char cmd[] = "oHpiHandlerGetNext";
+
+        cHpiMarshal *hm = hm = HpiMarshalFind(eFoHpiHandlerGetNext);
+        pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiHandlerGetNext, hm->m_request_len);
+        request = malloc(hm->m_request_len);
+
+        pinst->header.m_len = HpiMarshalRequest1(hm, request, &id);
+
+	SendRecv(cmd);
+
+        int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, next_id);
+
+        if (request)
+                free(request);
+        if (pinst->header.m_type == eMhError)
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (mr < 0)
+                return SA_ERR_HPI_INVALID_PARAMS;
+
+	return err;
 }
 
 
@@ -4071,7 +4193,29 @@ SaErrorT oHpiHandlerGetNext(oHpiHandlerIdT id, oHpiHandlerIdT *next_id)
 
 SaErrorT oHpiGlobalParamGet(oHpiGlobalParamT *param)
 {
-        return SA_ERR_HPI_UNSUPPORTED_API;
+        void *request;
+	char reply[dMaxMessageLength];
+        SaErrorT err;
+	char cmd[] = "oHpiGlobalParamGet";
+
+        cHpiMarshal *hm = hm = HpiMarshalFind(eFoHpiGlobalParamGet);
+        pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiGlobalParamGet, hm->m_request_len);
+        request = malloc(hm->m_request_len);
+
+        pinst->header.m_len = HpiMarshalRequest1(hm, request, param);
+
+	SendRecv(cmd);
+
+        int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, param);
+
+        if (request)
+                free(request);
+        if (pinst->header.m_type == eMhError)
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (mr < 0)
+                return SA_ERR_HPI_INVALID_PARAMS;
+
+	return err;
 }
 
 
@@ -4081,5 +4225,103 @@ SaErrorT oHpiGlobalParamGet(oHpiGlobalParamT *param)
 
 SaErrorT oHpiGlobalParamSet(oHpiGlobalParamT *param)
 {
-        return SA_ERR_HPI_UNSUPPORTED_API;
+        void *request;
+	char reply[dMaxMessageLength];
+        SaErrorT err;
+	char cmd[] = "oHpiGlobalParamSet";
+
+        cHpiMarshal *hm = hm = HpiMarshalFind(eFoHpiGlobalParamSet);
+        pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiGlobalParamSet, hm->m_request_len);
+        request = malloc(hm->m_request_len);
+
+        pinst->header.m_len = HpiMarshalRequest1(hm, request, param);
+
+	SendRecv(cmd);
+
+        int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, param);
+
+        if (request)
+                free(request);
+        if (pinst->header.m_type == eMhError)
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (mr < 0)
+                return SA_ERR_HPI_INVALID_PARAMS;
+
+	return err;
 }
+
+
+/*----------------------------------------------------------------------------*/
+/* oHpiHandlerCreateInit                                                      */
+/*----------------------------------------------------------------------------*/
+
+static SaErrorT oHpiHandlerCreateInit(void)
+{
+        void *request;
+	char reply[dMaxMessageLength];
+        SaErrorT err = 0;
+	char cmd[] = "oHpiHandlerCreateInit";
+
+        cHpiMarshal *hm = hm = HpiMarshalFind(eFoHpiHandlerCreateInit);
+        pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiHandlerCreateInit, hm->m_request_len);
+        request = malloc(hm->m_request_len);
+
+        pinst->header.m_len = HpiMarshalRequest1(hm, request, &err);
+
+	SendRecv(cmd);
+
+        int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
+
+        if (request)
+                free(request);
+        if (pinst->header.m_type == eMhError)
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (mr < 0)
+                return SA_ERR_HPI_INVALID_PARAMS;
+
+	return err;
+}
+
+
+/*----------------------------------------------------------------------------*/
+/* oHpiHandlerCreateAddTEntry                                                 */
+/*----------------------------------------------------------------------------*/
+
+static void oHpiHandlerCreateAddTEntry(gpointer key, gpointer value, gpointer data)
+{
+        SaHpiTextBufferT newkey, newvalue;
+        void *request;
+	char reply[dMaxMessageLength];
+        SaErrorT err = 0;
+	char cmd[] = "oHpiHandlerCreateInit";
+
+        // the following is bogus and not used by the deamon
+        newkey.DataType = SAHPI_TL_TYPE_TEXT;
+        newkey.Language = SAHPI_LANG_ENGLISH;
+        // the real data
+        newkey.DataLength = strlen((char *)key);
+        strcpy((char *)newkey.Data, (char *)key);
+
+        // the following is bogus and not used by the deamon
+        newvalue.DataType = SAHPI_TL_TYPE_TEXT;
+        newvalue.Language = SAHPI_LANG_ENGLISH;
+        // the real data
+        newvalue.DataLength = strlen((char *)value);
+        strcpy((char *)newvalue.Data, (char *)value);
+
+        cHpiMarshal *hm = hm = HpiMarshalFind(eFoHpiHandlerCreateAddTEntry);
+        pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiHandlerCreateAddTEntry, hm->m_request_len);
+        request = malloc(hm->m_request_len);
+
+        pinst->header.m_len = HpiMarshalRequest2(hm, request, &newkey, &newvalue);
+
+	SendRecvNoReturn(cmd);
+
+        HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
+
+        if (request)
+                free(request);
+
+	return;
+}
+
