@@ -92,14 +92,14 @@ SaErrorT SAHPI_API saHpiDiscover(
         OH_GET_DID(SessionId, did);
 
         data_access_lock();
-        oh_lookup_next_handler_id(hid, &next_hid);
+        oh_lookup_next_handler(hid, &next_hid);
         while (next_hid) {
                 hid = next_hid;
                 h = oh_lookup_handler(hid);
                 if (h->abi->discover_resources(h->hnd) == SA_OK && rv)
                         rv = SA_OK;
 
-                oh_lookup_next_handler_id(hid, &next_hid);
+                oh_lookup_next_handler(hid, &next_hid);
         }
         data_access_unlock();
 
