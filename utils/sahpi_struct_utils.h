@@ -106,8 +106,8 @@ SaErrorT oh_fprint_ctrlrec(FILE *stream, const SaHpiCtrlRecT *control, int offse
 #define oh_print_watchdogrec(watchdog_ptr, offsets) oh_fprint_watchdogrec(stdout, watchdog_ptr, offsets)
 SaErrorT oh_fprint_watchdogrec(FILE *stream, const SaHpiWatchdogRecT *watchdog, int offsets);
 
-#define oh_print_evenloginfo(elinfo_ptr, offsets) oh_fprint_evenloginfo(stdout, elinfo_ptr, offsets)
-SaErrorT oh_fprint_evenloginfo(FILE *stream, const SaHpiEventLogInfoT *thiselinfo, int offsets);
+#define oh_print_eventloginfo(elinfo_ptr, offsets) oh_fprint_eventloginfo(stdout, elinfo_ptr, offsets)
+SaErrorT oh_fprint_eventloginfo(FILE *stream, const SaHpiEventLogInfoT *thiselinfo, int offsets);
 
 #define oh_print_eventlogentry(eventlog_ptr, offsets) oh_fprint_eventlogentry(stdout, eventlog_ptr, offsets)
 SaErrorT oh_fprint_eventlogentry(FILE *stream, const SaHpiEventLogEntryT *thiseventlog, int offsets);
