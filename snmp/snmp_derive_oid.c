@@ -71,7 +71,7 @@ gchar * snmp_derive_objid(SaHpiEntityPathT ep, const gchar *oid)
         /* trace("Number of elements in entity path: %d", num_epe); */
 
         if (num_epe == 0) {
-                error("Entity Path is null.");
+                dbg("Entity Path is null.");
                 return NULL;
         }
         if ((oid_strlen = strlen(oid)) == 0) return NULL; /* Oid is zero length. */
@@ -82,21 +82,21 @@ gchar * snmp_derive_objid(SaHpiEntityPathT ep, const gchar *oid)
         }
         /* trace("Number of blanks in oid: %d, %s", num_blanks, oid); */
         if (num_blanks > num_epe) {
-                error("Number of replacments=%d > entity path elements=%d\n", num_blanks, num_epe);
+                dbg("Number of replacments=%d > entity path elements=%d\n", num_blanks, num_epe);
                 return NULL;
         }
 
         fragments = g_strsplit(oid, OID_BLANK_STR, -1);
-        if (!fragments) {error("Could not split OID"); goto CLEANUP;}
+        if (!fragments) {dbg("Could not split OID"); goto CLEANUP;}
         oid_nodes = g_malloc0((num_blanks+1)*sizeof(gchar **));
-        if (!oid_nodes) {error("Out of memory."); goto CLEANUP;}
+        if (!oid_nodes) {dbg("Out of memory."); goto CLEANUP;}
         total_num_digits = 0;
         for (i = 0; i < num_blanks; i++) {
                 work_instance_num = ep.Entry[num_blanks-1-i].EntityLocation;
                 for (num_digits = 1;
                      (work_instance_num = work_instance_num/10) > 0; num_digits++);
                 oid_nodes[i] = g_malloc0((num_digits+1)*sizeof(gchar));
-                if (!oid_nodes[i]) {error("Out of memory."); goto CLEANUP;}
+                if (!oid_nodes[i]) {dbg("Out of memory."); goto CLEANUP;}
                 snprintf(oid_nodes[i], (num_digits+1)*sizeof(gchar), "%d", 
 			 ep.Entry[num_blanks-1-i].EntityLocation);
                 /* trace("Instance number: %s", oid_nodes[i]); */
@@ -104,7 +104,7 @@ gchar * snmp_derive_objid(SaHpiEntityPathT ep, const gchar *oid)
         }
 
         new_oid = g_malloc0((oid_strlen-num_blanks+total_num_digits+1)*sizeof(gchar));
-        if (!new_oid) {error("Out of memory."); goto CLEANUP;}
+        if (!new_oid) {dbg("Out of memory."); goto CLEANUP;}
         oid_walker = new_oid;
         for (i = 0; fragments[i]; i++) {
                 oid_walker = strcpy(oid_walker, fragments[i]);
