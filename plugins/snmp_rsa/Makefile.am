@@ -26,6 +26,7 @@ EXTRA_DIST		=	rsa_resources.h \
 	     			rsa_str2event.h \
 	     			rsa_errorlog.h \
 	     			snmp_rsa.h \
+	     			snmp_rsa_control.h \
 	     			snmp_rsa_discover.h \
 	     			snmp_rsa_event.h \
 	     			snmp_rsa_sel.h \
@@ -36,6 +37,7 @@ EXTRA_DIST		=	rsa_resources.h \
 libsnmp_rsa_la_SOURCES	=	rsa_resources.c \
 	     			rsa_str2event.c \
 	     			snmp_rsa.c \
+	     			snmp_rsa_control.c \
 	     			snmp_rsa_discover.c \
 	     			snmp_rsa_event.c \
 	     			snmp_rsa_sel.c \
