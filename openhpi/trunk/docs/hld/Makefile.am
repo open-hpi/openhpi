@@ -31,7 +31,7 @@
 DIAGRAMS = $(shell ls images/*png images/*gif) 
 
 SERVER = shell1.sourceforge.net
-HLDDIR = /home/groups/o/op/openhpi/htdocs/hld2
+HLDDIR = /home/groups/o/op/openhpi/htdocs/manual
 
 MAINTAINERCLEANFILES 	= Makefile.in  
 
