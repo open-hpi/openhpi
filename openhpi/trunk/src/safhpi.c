@@ -518,11 +518,6 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
         if(rv < 0) 
                 return rv;
         
-        if(!info.DeleteEntrySupported) {
-                dbg("Detele entry is not supported for this event log");
-                return SA_ERR_HPI_INVALID_REQUEST;
-        }
-
         OH_STATE_READY_CHECK;
         OH_SESSION_SETUP(SessionId,s);
         OH_RESOURCE_GET(rpt, ResourceId, res);
