@@ -14,11 +14,11 @@
 
 SUBDIRS			= t
 DIST_SUBDIRS 		= t
-
+EXTRA_DIST              = connection.h
 MAINTAINERCLEANFILES 	= Makefile.in *~
 
 AM_CFLAGS		= @CFLAGS@
-INCLUDES 		= -I $(top_srcdir)/include
+INCLUDES 		= -I $(top_srcdir)/include -I $(srcdir)
 # just to clear LIBS
 LIBS			=
 

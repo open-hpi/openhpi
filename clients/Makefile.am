@@ -5,26 +5,23 @@ INCLUDES 		= -I$(top_srcdir)/include -I$(top_srcdir)/utils
 
 COMMONLIBS		= $(top_builddir)/src/libopenhpi.la @STATIC_PLUGIN_LIBS@ @STATIC_PLUGIN_EXTRA_LIBS@
 
-AM_CFLAGS 		= @CFLAGS@
+AM_CFLAGS 		= @CFLAGS@ -D_REENTRANT
 
-bin_PROGRAMS    = hpisensor \
-	hpigetevents
-
-#bin_PROGRAMS		= hpialarmpanel \
-#                          hpithres \
-#                          hpifan \
-#	                  hpifru \
-#                          hpireset \
-#			  hpireset2 \
-#                          hpisensor \
-#                          hpisel \
-#                          hpiinv \
-#                          hpisettime \
-#                          hpiwdt \
-#			  hpigetevents \
-#                          hpipower \
-#			  hpipower2 \
-#			  hpievent
+bin_PROGRAMS		= hpialarmpanel \
+                          hpithres \
+                          hpifan \
+	                  hpifru \
+                          hpireset \
+			  hpireset2 \
+                          hpisensor \
+                          hpisel \
+                          hpiinv \
+                          hpisettime \
+                          hpiwdt \
+			  hpigetevents \
+                          hpipower \
+			  hpipower2 \
+			  hpievent
 
 include_HEADERS		= 
 
@@ -87,7 +84,7 @@ hpipower2_LDFLAGS      =
 hpievent_SOURCES      = hpievent.c
 hpievent_LDADD        = $(COMMONLIBS)
 hpievent_LDFLAGS      =
-
+	
 clean-local:
 	rm -f *~ *.o
 

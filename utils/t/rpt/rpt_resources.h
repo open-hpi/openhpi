@@ -31,19 +31,19 @@
                 .ResourceEntity = {
                         .Entry[0] = {
                                 .EntityType = SAHPI_ENT_SBC_BLADE,
-                                .EntityLocation = 14
+                                .EntityInstance = 14
                         },
                         {
                                 .EntityType = SAHPI_ENT_SUB_CHASSIS,
-			        .EntityLocation = 1
+			        .EntityInstance = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
-                                .EntityLocation = 1
+                                .EntityInstance = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_ROOT,
-                                .EntityLocation = 0
+                                .EntityInstance = 0
                         }
                 },
                 .ResourceCapabilities = SAHPI_CAPABILITY_CONTROL |
@@ -76,19 +76,19 @@
                 .ResourceEntity = {
                         .Entry[0] = {
                                 .EntityType = SAHPI_ENT_SBC_BLADE,
-                                .EntityLocation = 13
+                                .EntityInstance = 13
                         },
                         {
                                 .EntityType = SAHPI_ENT_SUB_CHASSIS,
-			        .EntityLocation = 1
+			        .EntityInstance = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
-                                .EntityLocation = 1
+                                .EntityInstance = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_ROOT,
-                                .EntityLocation = 0
+                                .EntityInstance = 0
                         }
                 },
                 .ResourceCapabilities = SAHPI_CAPABILITY_CONTROL |
@@ -121,19 +121,19 @@
                 .ResourceEntity = {
                         .Entry[0] = {
                                 .EntityType = SAHPI_ENT_SBC_BLADE,
-                                .EntityLocation = 12
+                                .EntityInstance = 12
                         },
                         {
                                 .EntityType = SAHPI_ENT_SUB_CHASSIS,
-			        .EntityLocation = 1
+			        .EntityInstance = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
-                                .EntityLocation = 1
+                                .EntityInstance = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_ROOT,
-                                .EntityLocation = 0
+                                .EntityInstance = 0
                         }
                 },
                 .ResourceCapabilities = SAHPI_CAPABILITY_CONTROL |
@@ -166,19 +166,19 @@
                 .ResourceEntity = {
                         .Entry[0] = {
                                 .EntityType = SAHPI_ENT_SBC_BLADE,
-                                .EntityLocation = 11
+                                .EntityInstance = 11
                         },
                         {
                                 .EntityType = SAHPI_ENT_SUB_CHASSIS,
-			        .EntityLocation = 2
+			        .EntityInstance = 2
                         },
                         {
                                 .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
-                                .EntityLocation = 1
+                                .EntityInstance = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_ROOT,
-                                .EntityLocation = 0
+                                .EntityInstance = 0
                         }
                 },
                 .ResourceCapabilities = SAHPI_CAPABILITY_CONTROL |
@@ -211,19 +211,19 @@
                 .ResourceEntity = {
                         .Entry[0] = {
                                 .EntityType = SAHPI_ENT_SBC_BLADE,
-                                .EntityLocation = 10
+                                .EntityInstance = 10
                         },
                         {
                                 .EntityType = SAHPI_ENT_SUB_CHASSIS,
-			        .EntityLocation = 2
+			        .EntityInstance = 2
                         },
                         {
                                 .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
-                                .EntityLocation = 1
+                                .EntityInstance = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_ROOT,
-                                .EntityLocation = 0
+                                .EntityInstance = 0
                         }
                 },
                 .ResourceCapabilities = SAHPI_CAPABILITY_CONTROL |
@@ -256,19 +256,19 @@
                 .ResourceEntity = {
                         .Entry[0] = {
                                 .EntityType = SAHPI_ENT_SBC_BLADE,
-                                .EntityLocation = 9
+                                .EntityInstance = 9
                         },
                         {
                                 .EntityType = SAHPI_ENT_SUB_CHASSIS,
-			        .EntityLocation = 2
+			        .EntityInstance = 2
                         },
                         {
                                 .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
-                                .EntityLocation = 1
+                                .EntityInstance = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_ROOT,
-                                .EntityLocation = 0
+                                .EntityInstance = 0
                         }
                 },
                 .ResourceCapabilities = SAHPI_CAPABILITY_CONTROL |
@@ -301,19 +301,19 @@
                 .ResourceEntity = {
                         .Entry[0] = {
                                 .EntityType = SAHPI_ENT_SYS_MGMNT_MODULE,
-                                .EntityLocation = 1
+                                .EntityInstance = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_SUB_CHASSIS,
-			        .EntityLocation = 1
+			        .EntityInstance = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
-                                .EntityLocation = 1
+                                .EntityInstance = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_ROOT,
-                                .EntityLocation = 0
+                                .EntityInstance = 0
                         }
                 },
                 .ResourceCapabilities = SAHPI_CAPABILITY_FRU |
@@ -344,19 +344,19 @@
                 .ResourceEntity = {
                         .Entry[0] = {
                                 .EntityType = SAHPI_ENT_INTERCONNECT,
-                                .EntityLocation = 1
+                                .EntityInstance = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_SUB_CHASSIS,
-			        .EntityLocation = 1
+			        .EntityInstance = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
-                                .EntityLocation = 1
+                                .EntityInstance = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_ROOT,
-                                .EntityLocation = 0
+                                .EntityInstance = 0
                         }
                 },
                 .ResourceCapabilities = SAHPI_CAPABILITY_FRU |
@@ -387,19 +387,19 @@
                 .ResourceEntity = {
                         .Entry[0] = {
                                 .EntityType = SAHPI_ENT_POWER_SUPPLY,
-                                .EntityLocation = 3
+                                .EntityInstance = 3
                         },
                         {
                                 .EntityType = SAHPI_ENT_SUB_CHASSIS,
-			        .EntityLocation = 2
+			        .EntityInstance = 2
                         },
                         {
                                 .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
-                                .EntityLocation = 1
+                                .EntityInstance = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_ROOT,
-                                .EntityLocation = 0
+                                .EntityInstance = 0
                         }
                 },
                 .ResourceCapabilities = SAHPI_CAPABILITY_FRU |
@@ -430,11 +430,11 @@
                 .ResourceEntity = {
                         .Entry[0] = {
                                 .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
-                                .EntityLocation = 1
+                                .EntityInstance = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_ROOT,
-                                .EntityLocation = 0
+                                .EntityInstance = 0
                         }
                 },
                 .ResourceCapabilities = SAHPI_CAPABILITY_CONTROL |
@@ -463,19 +463,19 @@ SaHpiRdrT rdrs[] = {
                 .Entity = {
                         .Entry[0] = {
                                 .EntityType = SAHPI_ENT_SBC_BLADE,
-                                .EntityLocation = 14
+                                .EntityInstance = 14
                         },
                         {
                                 .EntityType = SAHPI_ENT_SUB_CHASSIS,
-			        .EntityLocation = 1
+			        .EntityInstance = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
-                                .EntityLocation = 1
+                                .EntityInstance = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_ROOT,
-                                .EntityLocation = 0
+                                .EntityInstance = 0
                         }
                 },
                 .RdrTypeUnion = {
@@ -536,19 +536,19 @@ SaHpiRdrT rdrs[] = {
                 .Entity = {
                         .Entry[0] = {
                                 .EntityType = SAHPI_ENT_SBC_BLADE,
-                                .EntityLocation = 14
+                                .EntityInstance = 14
                         },
                         {
                                 .EntityType = SAHPI_ENT_SUB_CHASSIS,
-			        .EntityLocation = 1
+			        .EntityInstance = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
-                                .EntityLocation = 1
+                                .EntityInstance = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_ROOT,
-                                .EntityLocation = 0
+                                .EntityInstance = 0
                         }
                 },
                 .RdrTypeUnion = {
@@ -609,19 +609,19 @@ SaHpiRdrT rdrs[] = {
                 .Entity = {
                         .Entry[0] = {
                                 .EntityType = SAHPI_ENT_SBC_BLADE,
-                                .EntityLocation = 14
+                                .EntityInstance = 14
                         },
                         {
                                 .EntityType = SAHPI_ENT_SUB_CHASSIS,
-			        .EntityLocation = 1
+			        .EntityInstance = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
-                                .EntityLocation = 1
+                                .EntityInstance = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_ROOT,
-                                .EntityLocation = 0
+                                .EntityInstance = 0
                         }
                 },
                 .RdrTypeUnion = {
@@ -682,19 +682,19 @@ SaHpiRdrT rdrs[] = {
                 .Entity = {
                         .Entry[0] = {
                                 .EntityType = SAHPI_ENT_SBC_BLADE,
-                                .EntityLocation = 14
+                                .EntityInstance = 14
                         },
                         {
                                 .EntityType = SAHPI_ENT_SUB_CHASSIS,
-			        .EntityLocation = 1
+			        .EntityInstance = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
-                                .EntityLocation = 1
+                                .EntityInstance = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_ROOT,
-                                .EntityLocation = 0
+                                .EntityInstance = 0
                         }
                 },
                 .RdrTypeUnion = {
@@ -755,19 +755,19 @@ SaHpiRdrT rdrs[] = {
                 .Entity = {
                         .Entry[0] = {
                                 .EntityType = SAHPI_ENT_SBC_BLADE,
-                                .EntityLocation = 14
+                                .EntityInstance = 14
                         },
                         {
                                 .EntityType = SAHPI_ENT_SUB_CHASSIS,
-			        .EntityLocation = 1
+			        .EntityInstance = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
-                                .EntityLocation = 1
+                                .EntityInstance = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_ROOT,
-                                .EntityLocation = 0
+                                .EntityInstance = 0
                         }
                 },
                 .RdrTypeUnion = {
@@ -828,11 +828,11 @@ SaHpiRdrT rdrs[] = {
                 .Entity = {
                         .Entry[0] = {
                                 .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
-                                .EntityLocation = 1
+                                .EntityInstance = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_ROOT,
-                                .EntityLocation = 0
+                                .EntityInstance = 0
                         }
                 },
                 .RdrTypeUnion = {
@@ -893,11 +893,11 @@ SaHpiRdrT rdrs[] = {
                 .Entity = {
                         .Entry[0] = {
                                 .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
-                                .EntityLocation = 1
+                                .EntityInstance = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_ROOT,
-                                .EntityLocation = 0
+                                .EntityInstance = 0
                         }
                 },
                 .RdrTypeUnion = {

@@ -25,11 +25,122 @@
 #include <SaHpi.h>
 #include <rpt_utils.h>
 #include <sel_utils.h>
-#include <oh_event.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif 
+
+/*
+ * struct oh_sel_id is filled by plugin.
+ * Open HPI use it to identy different resource SEL by the id.
+ */
+struct oh_sel_id {
+	void *ptr;
+};
+
+
+/*
+ * The event is used for plugin to report its resources
+ * (Domain, SEL and RDR etc.).
+ */
+struct oh_resource_event {
+	/* XXX: upper layer will fill some fields which does not 
+	 * owned by plugins (such as domain Id)
+	 */
+	SaHpiRptEntryT		entry;
+};
+
+/*
+ *
+ */
+struct oh_resource_del_event {
+        SaHpiResourceIdT resource_id;        
+};
+
+/*
+ * The event is used for plugin to report that a given resource
+ * is a member of a specific domain.
+ */
+/*struct oh_domain_event {
+	struct oh_resource_id	res_id;
+	struct oh_domain_id	domain_id;
+};*/
+
+/* 
+ * The event is used for plugin to report its RDRs in resource.
+ */
+struct oh_rdr_event {
+	SaHpiRdrT		rdr;
+};
+
+/*
+ * This event is used for requesting an rdr deletion.
+ */
+struct oh_rdr_del_event {
+        SaHpiEntityPathT parent_entity; /* Identifies the resource parent */
+        SaHpiEntryIdT record_id; /* Identifies the rdr to be deleted */
+};
+
+/*
+ * The event is used for plugin to notify HPI events
+ */
+struct oh_hpi_event {
+	/*This is resource id which the event belongs to */
+        SaHpiResourceIdT parent;
+        /* struct oh_resource_id	parent; */
+	/*This is rdr id which the event relates*/
+        SaHpiEntryIdT id;
+	
+	/* XXX: upper layer will fill some fields which does not
+	 * owned by plugins (ResourceId etc.). */
+	SaHpiEventT		event;
+};
+
+/*
+ * The session event contains rpt entry and rdr.
+ * The same as oh_hpi_event but with full data.
+ */
+struct oh_session_event {
+	SaHpiEventT		event;
+        SaHpiRdrT               rdr;
+        SaHpiRptEntryT          rpt_entry;
+};
+
+/* The structure is used to storage RSEL entry*/
+struct oh_rsel {
+	/* this is the entry's id */
+	struct oh_sel_id	oid;
+	
+	SaHpiEntryIdT		entry_id;
+};
+
+/*
+ * The event is used for plugin to notify SEL events
+ */
+/*struct oh_rsel_event {
+	struct oh_rsel rsel;
+};*/
+
+/* 
+ * This is the main event structure. It is used for plugin report
+ * its discovery about new resource/rdr or what happend on resource
+ */
+struct oh_event {
+	enum {
+		OH_ET_RESOURCE,
+		OH_ET_RESOURCE_DEL,
+		OH_ET_RDR,
+                OH_ET_RDR_DEL,
+		OH_ET_HPI
+	}type;
+	union {
+		struct oh_resource_event res_event;
+                struct oh_resource_del_event res_del_event;
+		struct oh_rdr_event	 rdr_event;
+                struct oh_rdr_del_event  rdr_del_event;
+		struct oh_hpi_event	 hpi_event;
+	} u;		    
+};
 
 struct oh_handler_state {
 		RPTable *rptcache;
@@ -120,7 +231,7 @@ struct oh_abi_v2 {
 	/**
 	 * get info from RSEL
 	 */
-	SaErrorT (*get_sel_info)(void *hnd, SaHpiResourceIdT id, SaHpiEventLogInfoT *info);
+	SaErrorT (*get_sel_info)(void *hnd, SaHpiResourceIdT id, SaHpiSelInfoT *info);
 
 	/**
 	 * set time to RSEL
@@ -130,22 +241,22 @@ struct oh_abi_v2 {
 	/**
 	 * add entry to RSEL
 	 */
-	SaErrorT (*add_sel_entry)(void *hnd, SaHpiResourceIdT id, const SaHpiEventLogEntryT *Event);
+	SaErrorT (*add_sel_entry)(void *hnd, SaHpiResourceIdT id, const SaHpiSelEntryT *Event);
 
 	/**
 	 * del entry in RSEL
 	 */
-        SaErrorT (*del_sel_entry)(void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT sid);
+        SaErrorT (*del_sel_entry)(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT sid);
 
 	/**
 	 * get entry in RSEL
          * 
          * although it looks like we need Resource and RDR passed back up, we don't
-         * because EventLogEntryT has that info stored in it.  We'll just unwind 
+         * because SelEntryT has that info stored in it.  We'll just unwind 
          * that in infrastructure.
 	 */
-        SaErrorT (*get_sel_entry)(void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT current,
-                             SaHpiEventLogEntryIdT *prev, SaHpiEventLogEntryIdT *next, SaHpiEventLogEntryT *entry);
+        SaErrorT (*get_sel_entry)(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT current,
+                             SaHpiSelEntryIdT *prev, SaHpiSelEntryIdT *next, SaHpiSelEntryT *entry);
         
         /**
          * clear SEL 
@@ -179,40 +290,34 @@ struct oh_abi_v2 {
 	 */
 	SaErrorT (*get_sensor_event_enables)(void *hnd, SaHpiResourceIdT id,
                                         SaHpiSensorNumT num,
-                                        SaHpiBoolT *enables);
+                                        SaHpiSensorEvtEnablesT *enables);
 
 	/**
 	 * set sensor event enables
 	 */
 	SaErrorT (*set_sensor_event_enables)(void *hnd, SaHpiResourceIdT id,
                                     SaHpiSensorNumT num,
-                                    const SaHpiBoolT enables);
+                                    const SaHpiSensorEvtEnablesT *enables);
 
-        /* SLD - 6/8/2004 we might want to change the names of these calls
-           as control calls also get mode now */
-        
-        /**
+	/**
 	 * get control state
 	 */
 	SaErrorT (*get_control_state)(void *hnd, SaHpiResourceIdT id,
-                                  SaHpiCtrlNumT num,
-                                  SaHpiCtrlModeT *mode,
-                                  SaHpiCtrlStateT *state);
+                                 SaHpiCtrlNumT num,
+                                 SaHpiCtrlStateT *state);
 	
 	/**
 	 * set control state
 	 */
 	SaErrorT (*set_control_state)(void *hnd, SaHpiResourceIdT id,
-                                  SaHpiCtrlNumT num,
-                                  SaHpiCtrlModeT mode,
-                                  SaHpiCtrlStateT *state);
-
-#if 0
+                                 SaHpiCtrlNumT num,
+                                 SaHpiCtrlStateT *state);
+	
 	/**
 	 * get inventory size
 	 */
         SaErrorT (*get_inventory_size)(void *hnd, SaHpiResourceIdT id,
-                                  SaHpiIdrIdT num, /* yes, they don't call it a
+                                  SaHpiEirIdT num, /* yes, they don't call it a
                                                     * num, but it still is one
                                                     */
                                   SaHpiUint32T *size);
@@ -221,16 +326,16 @@ struct oh_abi_v2 {
 	 * get inventory state
 	 */
         SaErrorT (*get_inventory_info)(void *hnd, SaHpiResourceIdT id,
-                                  SaHpiIdrIdT num,
+                                  SaHpiEirIdT num,
                                   SaHpiInventoryDataT *data);
 
 	/**
 	 * set inventory state
 	 */
         SaErrorT (*set_inventory_info)(void *hnd, SaHpiResourceIdT id,
-                                  SaHpiIdrIdT num,
+                                  SaHpiEirIdT num,
                                   const SaHpiInventoryDataT *data);
-#endif
+
 	/**
 	 * get watchdog timer info
 	 */
@@ -273,13 +378,13 @@ struct oh_abi_v2 {
 	 * get power state
 	 */
 	SaErrorT (*get_power_state)(void *hnd, SaHpiResourceIdT id, 
-			       SaHpiPowerStateT *state);
+			       SaHpiHsPowerStateT *state);
 
 	/**
 	 * set power state
 	 */
 	SaErrorT (*set_power_state)(void *hnd, SaHpiResourceIdT id, 
-			       SaHpiPowerStateT state);
+			       SaHpiHsPowerStateT state);
 	
 	/**
 	 * get indicator state

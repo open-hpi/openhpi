@@ -23,7 +23,7 @@
 #endif
 
 
-//#define dEntityLocationDummy 1
+//#define dEntityInstanceDummy 1
 
 enum tIpmiAtcaSiteType
 {

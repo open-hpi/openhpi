@@ -20,7 +20,6 @@
 #define __OPENHPI_H
 
 #include <config.h>
-#include <oh_lock.h>
 
 #ifdef HAVE_THREAD_SAFE
 #include <pthread.h>
@@ -33,9 +32,6 @@
 #include <oh_error.h>
 #include <rpt_utils.h>
 #include <sel_utils.h>
-#include <oh_lock.h>
-#include <oh_domain.h>
-#include <oh_session.h>
 
 /*
  * Common OpenHPI implementation specific definitions 
@@ -125,6 +121,49 @@ extern "C" {
 #endif 
 
 /*
+ * Representation of an domain
+ */
+struct oh_domain {
+        /* This id is used to app layer
+         * to identy domain
+         */
+        SaHpiDomainIdT domain_id;
+        
+        /* System Event Log */
+        oh_sel *sel;
+};
+
+/*
+ * Representation of an HPI session
+ */
+struct oh_session {
+        /*
+          Session ID as returned by saHpiSessionOpen()
+        */
+        SaHpiSessionIdT session_id;
+        
+        /*
+          A session is always associated with exactly one domain
+        */
+        SaHpiDomainIdT domain_id;
+         
+        enum {
+                OH_EVENT_UNSUBSCRIBE=0,
+                OH_EVENT_SUBSCRIBE,
+        } event_state;
+
+        /*
+          Even if multiple sessions are opened for the same domain,
+          each session could receive different events depending on what
+          events the caller signs up for.
+          
+          This is the session specific event queue
+          (sld: changed to GSList, as GQueue isn't in glib-1.2)
+        */
+        GSList *eventq;
+};
+
+/*
  *  Representation of a plugin instance
  */
 struct oh_handler {
@@ -173,6 +212,75 @@ struct oh_resource_data
         SaHpiTimeoutT      auto_extract_timeout;
 };
 
+
+/*
+ * Representation of an HPI resource
+ */
+struct oh_resource {
+        /*
+          RPT entry visible by the HPI caller
+        */
+        SaHpiRptEntryT          entry;
+     
+        /*
+         * The two fields are valid when resource is 
+         * CAPABILITY_HOTSWAP
+         */
+        int controlled;
+        SaHpiTimeoutT auto_extract_timeout;
+        
+        /*
+         * The two fields are valid when resource is 
+         * CAPABILITY_SYSTEM_EVENT_LOG
+         */
+        int sel_counter;
+        GSList *sel_list;
+
+        /*
+           The handler of the resource
+        */
+        struct oh_handler *handler;
+        
+        /*
+          This is the list of domain ids which contain the handler
+         */
+        GSList *domain_list;
+
+        /*
+          When the SAHPI_CAPABILITY_RDR flag is set in the
+          ResourceCapabilities member of the RPT entry, this 
+          contains the list of associated RDR entries
+        */
+        GSList *rdr_list;
+
+        /*
+          When the SAHPI_CAPABILITY_DOMAIN flag is set in the
+          ResourceCapabilities member of the RPT entry, this
+          is domain id which is conatined by this
+         */
+        SaHpiDomainIdT domain_id;
+        
+        /*
+          this is counter for rdr
+         */
+        SaHpiSensorNumT         sensor_counter;
+        SaHpiCtrlNumT           ctrl_counter;
+        SaHpiWatchdogNumT       watchdog_counter;
+        SaHpiEirIdT             inventory_counter;
+
+};
+
+struct oh_rdr {
+        /*
+          RDR entry visible by the HPI caller
+        */
+        SaHpiRdrT        rdr;
+};
+
+struct oh_dsel {
+        SaHpiSelEntryT entry;
+};
+
 /*
  *  Global listing of plugins (oh_plugin_config).  This list is populated
  *  by the configuration subsystem, and used by the plugin loader.
@@ -193,6 +301,13 @@ extern GSList *global_handler_configs;
 extern GSList *global_handler_list;
 
 /*
+ *  Global listing of all active sessions (oh_session).  This list is 
+ *  populated and depopulated by calls to saHpiSessionOpen() and
+ *  saHpiSessionClose()
+ */
+extern GSList *global_session_list;
+
+/*
  *  Global RPT Table (implemented as a linked list).
  *
  *  This list contains all resources (wrapped as oh_resource structures),
@@ -201,19 +316,12 @@ extern GSList *global_handler_list;
  * 
  *  This list is populated by calls to saHpiDiscoverResources()
  */
-extern RPTable *default_rpt;
 
-/*
- *  Global listing of all active sessions (oh_session).  This list is
- *  populated and depopulated by calls to saHpiSessionOpen() and
- *  saHpiSessionClose()
- */
-extern GSList *global_session_list;
+extern RPTable *default_rpt;
 
 struct oh_session *session_get(SaHpiSessionIdT);
 int session_add(SaHpiDomainIdT, struct oh_session**);
 int session_del(struct oh_session*);
-int session_count(void);
 /* malloc/copy/add event into the tail of event_list */
 int session_push_event(struct oh_session*, struct oh_session_event*);
 /* del/copy/free event from the head of event_list */
@@ -244,21 +352,24 @@ struct oh_handler *new_handler(GHashTable *handler_config);
 int free_handler(struct oh_handler*);
 
 /* system event log */
-#define OH_DEFAULT_DOMAIN_ID SAHPI_UNSPECIFIED_DOMAIN_ID
-
-int dsel_get_info(SaHpiDomainIdT domain_id, SaHpiEventLogInfoT *info);
+#define OH_DEFAULT_DOMAIN_ID 0
+int dsel_get_info(SaHpiDomainIdT domain_id, SaHpiSelInfoT *info);
 int dsel_get_state(SaHpiDomainIdT domain_id);
 int dsel_set_state(SaHpiDomainIdT domain_id, int enable);
 SaHpiTimeT dsel_get_time(SaHpiDomainIdT domain_id);
 void dsel_set_time(SaHpiDomainIdT domain_id, SaHpiTimeT time);
-int dsel_add(SaHpiDomainIdT domain_id, SaHpiEventLogEntryT *entry);
+int dsel_add(SaHpiDomainIdT domain_id, SaHpiSelEntryT *entry);
 int dsel_add2(struct oh_domain *d, struct oh_hpi_event *e);
-int dsel_del(SaHpiDomainIdT domain_id, SaHpiEventLogEntryIdT id);
+int dsel_del(SaHpiDomainIdT domain_id, SaHpiSelEntryIdT id);
 int dsel_clr(SaHpiDomainIdT domain_id);
-int rsel_add(SaHpiResourceIdT res_id, SaHpiEventLogEntryT *entry);
+int rsel_add(SaHpiResourceIdT res_id, SaHpiSelEntryT *entry);
 /*int rsel_add2(struct oh_resource *d, struct oh_rsel_event *e);*/
-int rsel_del(SaHpiResourceIdT res_id, SaHpiEventLogEntryIdT id);
+int rsel_del(SaHpiResourceIdT res_id, SaHpiSelEntryIdT id);
 int rsel_clr(SaHpiResourceIdT res_id); 
+
+
+/* event handler */
+int get_events(void);
 
 
 /* howswap */
@@ -272,6 +383,15 @@ SaHpiTimeoutT get_default_hotswap_auto_extract_timeout(void);
 void set_default_hotswap_auto_extract_timeout(SaHpiTimeoutT to);
 
 
+/* sensor value conversion */
+SaErrorT sensor_convert_from_raw(SaHpiSensorRecT *sensor,
+                                 SaHpiUint32T raw,
+                                 SaHpiFloat32T *value);
+SaErrorT sensor_convert_to_raw(SaHpiSensorRecT *sensor,
+                               SaHpiFloat32T value,
+                               SaHpiUint32T *result);
+
+
 static __inline__
  void gettimeofday1(SaHpiTimeT *t)
 {
@@ -279,6 +399,10 @@ static __inline__
         gettimeofday(&now, NULL);
         *t = (SaHpiTimeT) now.tv_sec * 1000000000 + now.tv_usec*1000;   
 }
+
+void data_access_lock(void);
+void data_access_unlock(void);
+int data_access_block_times(void); 
 
 #define g_slist_for_each(pos, head) \
         for (pos = head; pos != NULL; pos = g_slist_next(pos))

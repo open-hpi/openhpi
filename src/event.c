@@ -57,10 +57,12 @@ static int process_session_event(struct oh_handler *h, RPTable *rpt, struct oh_h
         */        
         log_severity = get_log_severity(getenv("OPENHPI_LOG_SEV"));        
         if (e->event.Severity <= log_severity) {
-                struct oh_domain *d;                
+                struct oh_domain *d;
+                SaHpiSelEntryT selentry;
                 /* yes, we need to add real domain support later here */
                 d = get_domain_by_id(OH_DEFAULT_DOMAIN_ID);
-                oh_sel_add(d->sel, &(e->event));
+                selentry.Event = e->event;
+                oh_sel_add(d->sel, &selentry);                
         }
 
         /* create a session event */
@@ -83,7 +85,7 @@ static int process_session_event(struct oh_handler *h, RPTable *rpt, struct oh_h
         g_slist_for_each(i, global_session_list) {
                 struct oh_session *s = i->data;
                 /* yes, we need to add real domain support later here */
-                if (s->domain_id == SAHPI_UNSPECIFIED_DOMAIN_ID &&
+                if (s->domain_id == SAHPI_DEFAULT_DOMAIN_ID &&
 		    (s->event_state == OH_EVENT_SUBSCRIBE ||
 		     (s->event_state == OH_EVENT_UNSUBSCRIBE &&
 		      (e->event.Severity == SAHPI_MINOR ||
@@ -277,18 +279,23 @@ int get_events(void)
 }
 
 static unsigned int get_log_severity(char *severity) {
-        if (!severity) return SAHPI_INFORMATIONAL;
-        else if (!strcmp("CRITICAL", severity)) {
-                return SAHPI_CRITICAL;
-        } else if (!strcmp("MAJOR",severity)) {
-                return SAHPI_MAJOR;
-        } else if (!strcmp("MINOR",severity)) {
-                return SAHPI_MINOR;
-        } else if (!strcmp("OK",severity)) {
-                return SAHPI_OK;        
-        } else if (!strcmp("DEBUG",severity)) {
-                return SAHPI_DEBUG;
-        } else {
-                return SAHPI_INFORMATIONAL;
-        }
+	unsigned int sev = SAHPI_MINOR;
+
+	if (!severity) {
+	       	return sev;
+	} else if (!strcmp("CRITICAL", severity)) {
+                sev = SAHPI_CRITICAL;
+        } else if (!strcmp("MAJOR", severity)) {
+                sev = SAHPI_MAJOR;
+        } else if (!strcmp("MINOR", severity)) {
+                sev = SAHPI_MINOR;
+        } else if (!strcmp("OK", severity)) {
+                sev = SAHPI_OK;        
+        } else if (!strcmp("DEBUG", severity)) {
+                sev = SAHPI_DEBUG;
+        } else if (!strcmp("INFORMATIONAL", severity)) {
+		sev = SAHPI_INFORMATIONAL;
+	}
+
+	return sev;
 }

@@ -10,6 +10,8 @@
 
 REMOTE_SOURCES		= rpt_utils.c epath_utils.c
 
+EXTRA_DIST		= rpt_resources.h
+
 MOSTLYCLEANFILES 	= $(REMOTE_SOURCES) @TEST_CLEAN@
 
 INCLUDES		= -I$(top_srcdir)/include -I$(top_srcdir)/utils

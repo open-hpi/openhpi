@@ -126,21 +126,21 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EntitySchemaGet)dOpenHpiClientParam( S
 							    SAHPI_OUT SaHpiUint32T        *SchemaId );
 SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogInfoGet)dOpenHpiClientParam( SAHPI_IN  SaHpiSessionIdT  SessionId,
 							    SAHPI_IN  SaHpiResourceIdT ResourceId,
-							    SAHPI_OUT SaHpiEventLogInfoT    *Info );
+							    SAHPI_OUT SaHpiSelInfoT    *Info );
 SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogEntryGet)dOpenHpiClientParam( SAHPI_IN    SaHpiSessionIdT     SessionId,
 							     SAHPI_IN    SaHpiResourceIdT    ResourceId,
-							     SAHPI_IN    SaHpiEventLogEntryIdT    EntryId,
-							     SAHPI_OUT   SaHpiEventLogEntryIdT    *PrevEntryId,
-							     SAHPI_OUT   SaHpiEventLogEntryIdT    *NextEntryId,
-							     SAHPI_OUT   SaHpiEventLogEntryT      *EventLogEntry,
+							     SAHPI_IN    SaHpiSelEntryIdT    EntryId,
+							     SAHPI_OUT   SaHpiSelEntryIdT    *PrevEntryId,
+							     SAHPI_OUT   SaHpiSelEntryIdT    *NextEntryId,
+							     SAHPI_OUT   SaHpiSelEntryT      *EventLogEntry,
 							     SAHPI_INOUT SaHpiRdrT           *Rdr,
 							     SAHPI_INOUT SaHpiRptEntryT      *RptEntry );
 SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogEntryAdd)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT      SessionId,
 							     SAHPI_IN SaHpiResourceIdT     ResourceId,
-							     SAHPI_IN SaHpiEventLogEntryT       *EvtEntry );
+							     SAHPI_IN SaHpiSelEntryT       *EvtEntry );
 SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogEntryDelete)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT      SessionId,
 								SAHPI_IN SaHpiResourceIdT     ResourceId,
-								SAHPI_IN SaHpiEventLogEntryIdT     EntryId );
+								SAHPI_IN SaHpiSelEntryIdT     EntryId );
 SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogClear)dOpenHpiClientParam( SAHPI_IN  SaHpiSessionIdT   SessionId,
 							  SAHPI_IN  SaHpiResourceIdT  ResourceId );
 SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogTimeGet)dOpenHpiClientParam( SAHPI_IN  SaHpiSessionIdT  SessionId,

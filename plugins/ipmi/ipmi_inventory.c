@@ -18,7 +18,6 @@
 #include <uid_utils.h>
 #include <string.h>
 
-#if 0
 #define OHOI_FULFILL_BUFFER(hpi_name, ipmi_name, part_name)     \
         do {                                                    \
                 int rv;                                         \
@@ -342,4 +341,4 @@ SaErrorT ohoi_get_inventory_info(void *hnd, SaHpiResourceIdT id,
 
         return get_inventory_info(ohoi_res_info->u.entity_id, data);;
 }
-#endif
+

@@ -32,6 +32,10 @@ struct snmp_bc_hnd {
         int     handler_retries;        /* number of retries attempted on snmp target (client) */
 };
 
+/**
+ * 
+ *
+ **/
 SaErrorT snmp_bc_snmp_get(struct snmp_bc_hnd *custom_handle,
                           struct snmp_session *ss,
                           const char *objid,

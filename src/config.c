@@ -231,6 +231,8 @@ struct oh_plugin_config * plugin_config (char *name)
         GSList *node;
         struct oh_plugin_config *return_config = NULL;
 
+        data_access_lock();
+
         g_slist_for_each(node, global_plugin_list) {
                 struct oh_plugin_config *pconf = node->data;
                 if(strcmp(pconf->name, name) == 0) {
@@ -238,6 +240,8 @@ struct oh_plugin_config * plugin_config (char *name)
                         break;
                 }
         }
+        
+        data_access_unlock();
         
         return return_config;
 }

@@ -13,26 +13,38 @@
  * Authors:
  *     Louis Zhuang <louis.zhuang@linux.intel.com>
  */
-#include <oh_lock.h>
+#include <config.h>
+#include <errno.h>
+#include <unistd.h>
+#include <openhpi.h>  
 
-int oh_will_block = 0;
-
+		 
 #ifdef HAVE_THREAD_SAFE
 /* multi-threading support, use Posix mutex for data access */
 /* initialize mutex used for data locking */
-#include <glib/gthread.h>
+static pthread_mutex_t data_access_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 
-GStaticRecMutex oh_main_lock = G_STATIC_REC_MUTEX_INIT;
+static int will_block = 0;
 
-int data_access_block_times(void)
+void data_access_lock(void) 
 {
-        return(oh_will_block);
+	if (pthread_mutex_trylock(&data_access_mutex) == EBUSY) {
+		pthread_mutex_lock(&data_access_mutex);	
+	        will_block++;
+	}
 }
 
-#else
+void data_access_unlock(void)
+{
+        pthread_mutex_unlock(&data_access_mutex);    
+}
 
-GStaticRecMutex oh_main_lock = NULL;
-
+int data_access_block_times(void) 
+{
+        return(will_block);
+}
+#else 
+void data_access_lock(void) {}
+void data_access_unlock(void){} 
 int data_access_block_times(void){ return(0);}
-
 #endif/*HAVE_THREAD_SAFE*/
