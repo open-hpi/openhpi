@@ -51,13 +51,14 @@ libopenhpiutils_la_SOURCES = \
 			epath_utils.c \
 			rpt_utils.c \
 			printevent_utils.c \
-			SaHpi_enum_utils.c \
-			SaHpi_event_utils.c \
-			SaHpi_struct_utils.c \
-			SaHpi_time_utils.c \
+			sahpi_enum_utils.c \
+			sahpi_event_encode.c \
+			sahpi_event_utils.c \
+			sahpi_struct_utils.c \
+			sahpi_time_utils.c \
 			uid_utils.c
 
 libopenhpiutils_la_LDFLAGS = -version-info @HPI_LIB_VERSION@
 
-SaHpi_enum_utils.c: $(top_srcdir)/include/SaHpi.h $(top_srcdir)/scripts/SaHpi2code.pl
+sahpi_enum_utils.c: $(top_srcdir)/include/SaHpi.h $(top_srcdir)/scripts/SaHpi2code.pl
 	$(top_srcdir)/scripts/SaHpi2code.pl -ifile $(top_srcdir)/include/SaHpi.h
