@@ -10,7 +10,7 @@
  * full licensing terms.
  *
  * Author(s):
- *	Peter D Phan <pdphan@us.ibm.com>
+ *      Peter D Phan <pdphan@us.ibm.com>
  *      Steve Sherman <stevees@us.ibm.com>    
  */
 
@@ -32,55 +32,55 @@ int ftimer = 0;
 
 int main(int argc, char **argv)
 {
-	int c, wait = 0;
-	SaErrorT rv;
+        int c, wait = 0;
+        SaErrorT rv;
 
-	/*SaHpiVersionT hpiVer;*/
-	SaHpiSessionIdT sessionid;
-	
-	/* Domain */
-	SaHpiDomainInfoT domainInfo;
-
-	/*SaHpiRptInfoT rptinfo;*/
-	SaHpiRptEntryT rptentry;
-	SaHpiEntryIdT rptentryid;
-	SaHpiEntryIdT nextrptentryid;
-	SaHpiResourceIdT resourceid;
-	SaHpiEventLogInfoT info;
-	SaHpiRdrT rdr;
-	SaHpiTimeoutT timeout; 
-	SaHpiEventT event;
-
-	memset(&rptentry, 0, sizeof(rptentry));
+        /*SaHpiVersionT hpiVer;*/
+        SaHpiSessionIdT sessionid;
         
-	printf("%s: version %s\n",argv[0],progver); 
+        /* Domain */
+        SaHpiDomainInfoT domainInfo;
+
+        /*SaHpiRptInfoT rptinfo;*/
+        SaHpiRptEntryT rptentry;
+        SaHpiEntryIdT rptentryid;
+        SaHpiEntryIdT nextrptentryid;
+        SaHpiResourceIdT resourceid;
+        SaHpiEventLogInfoT info;
+        SaHpiRdrT rdr;
+        SaHpiTimeoutT timeout; 
+        SaHpiEventT event;
+
+        memset(&rptentry, 0, sizeof(rptentry));
+        
+        printf("%s: version %s\n",argv[0],progver); 
 
         while ( (c = getopt( argc, argv,"t:x?")) != EOF ) {
                 switch(c) {
-			case 't':
-				ftimer = 1;
-				wait = atoi(optarg);
-				printf("-t:wait\n");
-				break;
-			case 'x': 
-				fdebug = 1; 
-				printf("fdebug\n");
-				break;
-			default:
-				printf("Usage %s [-tx]\n",argv[0]);
-				printf("      -t <value>:wait <value> seconds for event\n");
-				printf("      -x	:displays eXtra debug messages\n");
-				exit(1);
-		}
-	}
-	if (ftimer) 
-		timeout = (SaHpiTimeoutT)(wait * HPI_NSEC_PER_SEC);  
-	else
-		timeout = (SaHpiTimeoutT) SAHPI_TIMEOUT_IMMEDIATE;
+                        case 't':
+                                ftimer = 1;
+                                wait = atoi(optarg);
+                                printf("-t:wait\n");
+                                break;
+                        case 'x': 
+                                fdebug = 1; 
+                                printf("fdebug\n");
+                                break;
+                        default:
+                                printf("Usage %s [-tx]\n",argv[0]);
+                                printf("      -t <value>:wait <value> seconds for event\n");
+                                printf("      -x        :displays eXtra debug messages\n");
+                                exit(1);
+                }
+        }
+        if (ftimer) 
+                timeout = (SaHpiTimeoutT)(wait * HPI_NSEC_PER_SEC);  
+        else
+                timeout = (SaHpiTimeoutT) SAHPI_TIMEOUT_IMMEDIATE;
 
-	printf("************** timeout:[%lld] ****************\n", timeout);	
+        printf("************** timeout:[%lld] ****************\n", timeout);    
 
-	rv = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID,&sessionid,NULL);
+        rv = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID,&sessionid,NULL);
         if (rv != SA_OK) {
                 if (rv == SA_ERR_HPI_ERROR) 
                         printf("saHpiSessionOpen: error %d, SpiLibd not running\n",rv);
@@ -89,9 +89,9 @@ int main(int argc, char **argv)
                 exit(-1);
         }
  
-	printf( "Subscribe to events\n");
-	rv = saHpiSubscribe( sessionid );
-	if (rv != SA_OK) return rv;
+        printf( "Subscribe to events\n");
+        rv = saHpiSubscribe( sessionid );
+        if (rv != SA_OK) return rv;
 
         rv = saHpiDiscover(sessionid);
         if (fdebug) printf("saHpiResourcesDiscover %s\n", oh_lookup_error(rv));
@@ -100,38 +100,38 @@ int main(int argc, char **argv)
 
         if (fdebug) printf("saHpiRptInfoGet %s\n", oh_lookup_error(rv));
         printf("DomainInfo: UpdateCount = %d, UpdateTime = %lx\n",
-	       domainInfo.RptUpdateCount, (unsigned long)domainInfo.RptUpdateTimestamp);
+               domainInfo.RptUpdateCount, (unsigned long)domainInfo.RptUpdateTimestamp);
         
         /* walk the RPT list */
         rptentryid = SAHPI_FIRST_ENTRY;
         while ((rv == SA_OK) && (rptentryid != SAHPI_LAST_ENTRY))
-        {	
-		printf("**********************************************\n");
+        {       
+                printf("**********************************************\n");
 
                 rv = saHpiRptEntryGet(sessionid,rptentryid,&nextrptentryid,&rptentry);
 
                 if (fdebug) 
-			printf("saHpiRptEntryGet %s\n", oh_lookup_error(rv));
+                        printf("saHpiRptEntryGet %s\n", oh_lookup_error(rv));
 
                 if (rv == SA_OK) {
 
                         resourceid = rptentry.ResourceId;
 
                         if (fdebug) 
-				printf("RPT %x capabilities = %x\n", 
-				       resourceid,
+                                printf("RPT %x capabilities = %x\n", 
+                                       resourceid,
                                        rptentry.ResourceCapabilities);
 
                         if ( (rptentry.ResourceCapabilities & SAHPI_CAPABILITY_EVENT_LOG)) {
-				/* Using EventLogInfo to build up event queue - for now */
-				rv = saHpiEventLogInfoGet(sessionid,resourceid,&info);
+                                /* Using EventLogInfo to build up event queue - for now */
+                                rv = saHpiEventLogInfoGet(sessionid,resourceid,&info);
 
-				if (fdebug) 
-					printf("saHpiEventLogInfoGet %s\n", oh_lookup_error(rv));
-			} else {
-				if (fdebug) 
-					printf("RPT doesn't have SEL\n");
-			}
+                                if (fdebug) 
+                                        printf("saHpiEventLogInfoGet %s\n", oh_lookup_error(rv));
+                        } else {
+                                if (fdebug) 
+                                        printf("RPT doesn't have SEL\n");
+                        }
 
                         rptentry.ResourceTag.Data[rptentry.ResourceTag.DataLength] = 0; 
 
@@ -141,21 +141,21 @@ int main(int argc, char **argv)
 
                 }
 
-		printf("**********************************************\n");
+                printf("**********************************************\n");
         }
         
-	printf( "Go and get the event\n");
-	while (1) {
+        printf( "Go and get the event\n");
+        while (1) {
             rv = saHpiEventGet( sessionid, timeout, &event, &rdr, &rptentry, NULL);
-     		if (rv != SA_OK) { 
-			if (rv != SA_ERR_HPI_TIMEOUT) {
-	  			printf( "Error during EventGet - Test FAILED\n");
-	  			break;
-        		} else {
-	  			printf( "\n\n****** Time, %d seconds, expired waiting for event.\n", wait);
-	  			break;
-			}
-		} else {
+                if (rv != SA_OK) { 
+                        if (rv != SA_ERR_HPI_TIMEOUT) {
+                                printf( "Error during EventGet - Test FAILED\n");
+                                break;
+                        } else {
+                                printf( "\n\n****** Time, %d seconds, expired waiting for event.\n", wait);
+                                break;
+                        }
+                } else {
 #if 0
                         printf("Received Event of Type: %s\n", 
                                oh_lookup_eventtype(event.EventType));
@@ -166,16 +166,16 @@ int main(int argc, char **argv)
                                         );
                         }
 #endif
-		}
-     	}
+                }
+        }
 
-	/* Unsubscribe to future events */
-	printf( "Unsubscribe\n");
-	rv = saHpiUnsubscribe( sessionid );
+        /* Unsubscribe to future events */
+        printf( "Unsubscribe\n");
+        rv = saHpiUnsubscribe( sessionid );
 
-	rv = saHpiSessionClose(sessionid);
+        rv = saHpiSessionClose(sessionid);
 
-	printf("HPIGETEVENT END\n");
+        printf("HPIGETEVENT END\n");
         
         exit(0);
 }
