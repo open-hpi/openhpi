@@ -153,6 +153,24 @@ SaErrorT oh_sel_get(oh_sel *sel, SaHpiSelEntryIdT entryid, SaHpiSelEntryIdT *pre
 }
 
 
+/* get SEL info */
+SaErrorT oh_sel_info(oh_sel *sel, SaHpiSelInfoT *info)
+{
+        time_t tt1;
+
+        info->Entries = sel->nextId;
+        info->Size = -1; /* unlimited */
+        info->UpdateTimestamp = sel->lastUpdate;
+        time(&tt1);
+        info->CurrentTime = (SaHpiTimeT) (tt1 * 1000000000) + sel->offset;
+        info->Enabled = sel->enabled;
+        info->OverflowFlag = sel->overflow;
+        info->OverflowAction = SAHPI_SEL_OVERFLOW_DROP;
+        info->DeleteEntrySupported = sel->deletesupported;
+        return SA_OK;
+}
+
+
 /* write a SEL entry list to a file */
 SaErrorT oh_sel_map_to_file(oh_sel *sel, char *filename)
 {
@@ -226,7 +244,8 @@ SaErrorT oh_sel_map_from_file(oh_sel *sel, char *filename)
 /* set the SEL timestamp offset */
 SaErrorT oh_sel_timeset(oh_sel *sel, SaHpiTimeT timestamp)
 {
-        if (sel == NULL || timestamp > SAHPI_TIME_MAX_RELATIVE) {
+        if (sel == NULL || timestamp > SAHPI_TIME_MAX_RELATIVE ||
+            timestamp == SAHPI_TIME_UNSPECIFIED) {
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
