@@ -53,12 +53,11 @@ static int process_session_event(struct oh_handler *h, RPTable *rpt, struct oh_h
            If there is no "log_severity" configured for the handler, then
            the default bar will be SAHPI_INFORMATIONAL.
         */        
-        log_severity = get_log_severity(getenv("OPENHPI_LOG_SEV"));
-        printf("SEV NUM = %d, LOG SEV = %s",log_severity,getenv("OPENHPI_LOG_SEV"));
+        log_severity = get_log_severity(getenv("OPENHPI_LOG_SEV"));        
         if (e->event.Severity <= log_severity) {
                 struct oh_domain *d;
                 SaHpiSelEntryT selentry;
-
+                /* yes, we need to add real domain support later here */
                 d = get_domain_by_id(OH_DEFAULT_DOMAIN_ID);
                 selentry.Event = e->event;
                 oh_sel_add(d->sel, &selentry);                
