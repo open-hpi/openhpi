@@ -22,6 +22,14 @@
 #define RPT_ENTRY_BEGIN 0
 #define RDR_BEGIN 0
 
+extern GSList *managed_hs_resources;
+/* a simple typedef to store a state flag with a resource
+   as a bundle */
+typedef struct {
+        SaHpiResourceIdT rid;
+        guint32 state;
+} ResourceState;
+
 typedef struct {
         SaHpiRptInfoT rpt_info;
         /* The structure to hold this is subject to change. */
@@ -60,5 +68,9 @@ SaHpiRdrT *oh_get_rdr_by_id(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT 
 SaHpiRdrT *oh_get_rdr_by_type(RPTable *table, SaHpiResourceIdT rid,
                               SaHpiRdrTypeT type, SaHpiUint8T num);
 SaHpiRdrT *oh_get_rdr_next(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT rdrid_prev);
+
+/* Other state information about managed resources */
+guint32 oh_is_resource_managed(SaHpiResourceIdT rid);
+int oh_set_resource_managed(SaHpiResourceIdT rid, guint32 i);
 
 #endif

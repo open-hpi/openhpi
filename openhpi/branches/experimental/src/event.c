@@ -141,8 +141,10 @@ static void process_rsel_event(struct oh_handler *h, struct oh_rsel_event *e)
                 dbg("Cannot find corresponding resource");
                 return;
         }
-        
-        rsel_add2(res, e);
+        /*
+          TODO: address the rsel work later
+          rsel_add2(res, e);
+        */
 }
 
 /**

@@ -78,9 +78,9 @@ define all-sources
 	-name '*.[chS]' -print )
 endef
 
-tags:
+tags:   $(all-sources)
 	$(all-sources) | xargs ctags		
-TAGS:
+TAGS:   $(all-sources)
 	$(all-sources) | xargs etags
-cscope:
+cscope: $(all-sources)
 	$(all-sources) > cscope.files && cscope -b

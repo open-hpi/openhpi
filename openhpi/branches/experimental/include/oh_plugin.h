@@ -1,6 +1,7 @@
 /*      -*- linux-c -*-
  *
  * Copyright (c) 2003 by Intel Corp.
+ * (C) Copright IBM Corp 2003
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -11,6 +12,7 @@
  *
  * Authors:
  *     Louis Zhuang <louis.zhuang@linux.intel.com>
+ *     Sean Dague <http://dague.net/sean>
  */
 
 #ifndef __OH_PLUGIN_H

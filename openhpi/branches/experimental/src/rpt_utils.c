@@ -22,6 +22,9 @@
 /* declare Rptable object */		     
 RPTable default_rpt; 
 
+/* declare hotswap state list */
+GSList *managed_hs_resources;
+
 static inline RPTEntry *get_rptentry_by_rid( RPTable *table, SaHpiResourceIdT rid)
 {
         RPTEntry *rptentry = NULL;
@@ -476,4 +479,41 @@ SaHpiRdrT *oh_get_rdr_next(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT r
         }        
 
         return (rdrecord) ? &(rdrecord->rdr) : NULL;
+}
+/************************************************************************************
+ *
+ *  Managed Hotswap State Functions
+ *
+ *  Note: these might be better off in other files
+ *
+ ************************************************************************************/
+
+guint32 oh_is_resource_managed(SaHpiResourceIdT rid) {
+        ResourceState *r;
+        GSList *i;
+        g_slist_for_each(i,managed_hs_resources) {
+                r = i->data;
+                if(r->rid == rid) {
+                        return r->state;
+                }
+        }
+        return 0;
+}
+
+int oh_set_resource_managed(SaHpiResourceIdT rid, guint32 state) {
+        ResourceState *r;
+        ResourceState *rnew;
+        GSList *i;
+        g_slist_for_each(i,managed_hs_resources) {
+                r = i->data;
+                if(r->rid == rid) {
+                        r->state = state;
+                        return 0;
+                }
+        }
+        rnew = calloc(1,sizeof(ResourceState));
+        rnew->rid = rid;
+        rnew->state = state;
+        managed_hs_resources = g_slist_append(managed_hs_resources,rnew);
+        return 0;
 }
