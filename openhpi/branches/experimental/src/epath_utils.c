@@ -191,7 +191,7 @@ int string2entitypath(const gchar *epathstr, SaHpiEntityPathT *epathptr)
 
 		/* Save entity path definitions; reverse order */
 		if (num_valid_entities < SAHPI_MAX_ENTITY_PATH) {
-			entityptr = (SaHpiEntityT *)g_malloc(sizeof(*entityptr));
+			entityptr = (SaHpiEntityT *)g_malloc0(sizeof(*entityptr));
 			if (entityptr == NULL) { 
 				dbg("Out of memory"); 
 				rtncode = -1; goto CLEANUP;
