@@ -91,9 +91,9 @@ sub make_html_body {
             my $status = "bad";
             if($per >= 100) {
                 $status = "great";
-            } elsif($per >= 80) {
+            } elsif($per > 80) {
                 $status = "good";
-            } elsif($per >= 50) {
+            } elsif($per > 50) {
                 $status = "ok";
             }
             $html .= "<tr class='$status'><td>$line</td></tr>\n";
