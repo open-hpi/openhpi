@@ -1,7 +1,7 @@
 /*      -*- linux-c -*-
  *
  * Copyright (c) 2003 by Intel Corp.
- * (C) Copyright IBM Corp. 2003
+ * (C) Copyright IBM Corp. 2003-2004
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -13,7 +13,6 @@
  * Authors:
  *     Louis Zhuang <louis.zhuang@linux.intel.com>
  *     Sean Dague <http://dague.net/sean>
- * Contributors:
  *     David Judkovics <djudkovi@us.ibm.com>
  *     Renier Morales <renierm@users.sourceforge.net>
  */
@@ -27,6 +26,19 @@
 #include <oh_error.h>
 #include <oh_lock.h>
 #include <config.h>
+
+/*
+ * List of plugins (oh_plugin_config). This list is populated
+ * by the plugin loader.
+ */
+GSList *plugin_list = NULL;
+
+/*
+ * Table of handlers (oh_handler). This list is populated
+ * by the first call the saHpiSessionOpen().
+ */
+GHashTable *handler_table = NULL;
+
 
 extern GCond *oh_thread_wait;
 
@@ -83,39 +95,94 @@ void oh_exit_ltdl()
                 dbg("Could not exit ltdl!");
 }
 
-/*******************************************************************************
- * load_plugin - loads a plugin by name
- *
- *******************************************************************************/
+static struct oh_plugin *get_plugin(char *plugin_name)
+{
+        GSList *node = NULL;
+        struct oh_plugin *plugin = NULL;
+
+        if (!plugin_name) {
+                dbg("Error getting plugin. Invalid parameter.");
+                return NULL;
+        }
+
+        for (node = plugin_list; node != NULL; node = node->next) {
+                struct oh_plugin *p = node->data;
+                if(strcmp(p->name, plugin_name) == 0) {
+                        plugin = p;
+                        break;
+                }
+        }
+                
+        return plugin;
+}
+
+/*
+static int get_plugin_refcount(char *plugin_name)
+{
+        struct oh_plugin *plugin = NULL;
+
+        if (!plugin_name) {
+                dbg("Error getting plugin refcount. Invalid parameter.");
+                return -1;
+        }
+
+        plugin = get_plugin(plugin_name);
+
+        if(!plugin) {
+                return 0;
+        }
+
+        return plugin->refcount;
+}
+*/
 
 /* list of static plugins. defined in plugin_static.c.in */
 extern struct oh_static_plugin static_plugins[];
 
-int load_plugin(struct oh_plugin_config *config)
+/*
+ * Load plugin by name and make a instance.
+ * FIXME: the plugins with multi-instances should reuse 'lt_dlhandler'
+ */
+int oh_load_plugin(char *plugin_name)
 {
+        struct oh_plugin *plugin = NULL;
         int (*get_interface) (struct oh_abi_v2 ** pp, const uuid_t uuid);
         int err;
-        struct oh_static_plugin *p = static_plugins;
+        struct oh_static_plugin *p = static_plugins;        
 
-        if (!config) {
-                dbg("ERROR loading plugin. NULL plugin configuration passed.");
+        if (!plugin_name) {
+                dbg("Error. NULL plugin name passed.");
                 return -1;
         }
 
+        if (get_plugin(plugin_name)) {
+                dbg("Warning. Plugin %s already loaded. Not loading twice.",
+                    plugin_name);
+                return -1;
+        }
+
+        plugin = (struct oh_plugin *)g_malloc0(sizeof(struct oh_plugin));
+        if (!plugin) {
+                dbg("Out of memory.");
+                return -1;
+        }
+        plugin->name = plugin_name;
+        plugin->refcount = 1;
+
         /* first take search plugin in the array of static plugin */
         while( p->name ) {
-                if ( !strcmp( config->name, p->name ) ) {
+                if (!strcmp(plugin->name, p->name)) {
+                        plugin->dl_handle = 0;
+                        err = (*p->get_interface)((void **)&plugin->abi, UUID_OH_ABI_V2);
 
-                        config->dl_handle = 0;
-
-                        err = (*p->get_interface)( (void **)&config->abi, UUID_OH_ABI_V2);
-
-                        if (err < 0 || !config->abi || !config->abi->open) {
+                        if (err < 0 || !plugin->abi || !plugin->abi->open) {
                                 dbg("Can not get ABI V1");
                                 goto err1;
                         }
 
                         trace( "found static plugin %s", p->name );
+                                                
+                        plugin_list = g_slist_append(plugin_list, plugin);
 
                         return 0;
                 }
@@ -123,91 +190,84 @@ int load_plugin(struct oh_plugin_config *config)
                 p++;
         }
 
-        config->dl_handle = lt_dlopenext(config->name);
-        if (config->dl_handle == NULL) {
-                dbg("Can not open %s plugin: %s", config->name, lt_dlerror());
+        plugin->dl_handle = lt_dlopenext(plugin->name);
+        if (plugin->dl_handle == NULL) {
+                dbg("Can not open %s plugin: %s", plugin->name, lt_dlerror());
                 goto err1;
         }
 
-        get_interface = lt_dlsym(config->dl_handle, "get_interface");
+        get_interface = lt_dlsym(plugin->dl_handle, "get_interface");
         if (!get_interface) {
                 dbg("Can not get 'get_interface' symbol, is it a plugin?!");
                 goto err1;
         }
 
-        err = get_interface(&config->abi, UUID_OH_ABI_V2);
-        if (err < 0 || !config->abi || !config->abi->open) {
+        err = get_interface(&plugin->abi, UUID_OH_ABI_V2);
+        if (err < 0 || !plugin->abi || !plugin->abi->open) {
                 dbg("Can not get ABI V1");
                 goto err1;
         }
+        plugin_list = g_slist_append(plugin_list, plugin);
 
         return 0;
+        
  err1:
-        if (config->dl_handle) {
-                lt_dlclose(config->dl_handle);
-                config->dl_handle = 0;
+        if (plugin->dl_handle) {
+                lt_dlclose(plugin->dl_handle);
+                plugin->dl_handle = 0;
         }
+        g_free(plugin);
 
         return -1;
 }
 
 
-void unload_plugin(struct oh_plugin_config *config)
+void oh_unload_plugin(struct oh_plugin *plugin)
 {
-        if (!config) {
-                dbg("ERROR unloading plugin. Invalid plugin configuration passed.");
+        if (!plugin) {
+                dbg("ERROR unloading plugin. NULL parameter passed.");
                 return;
         }
 
-        if (config->dl_handle)
+        if (plugin->dl_handle)
         {
-                lt_dlclose(config->dl_handle);
-                config->dl_handle = 0;
+                lt_dlclose(plugin->dl_handle);
+                plugin->dl_handle = 0;
         }
 
-        global_plugin_list = g_slist_remove(global_plugin_list, config);
+        plugin_list = g_slist_remove(plugin_list, plugin);
 
-        if (config->name)
-                free(config->name);
+        if (plugin->name)
+                g_free(plugin->name);
 
-        free(config);
+        g_free(plugin);
 }
-
-/*
- * Load plugin by name and make a instance.
- * FIXME: the plugins with multi-instances should reuse 'lt_dlhandler'
- */
 
 static struct oh_handler *new_handler(GHashTable *handler_config)
 {
-        struct oh_plugin_config *p_config;
-        struct oh_handler *handler;
+        struct oh_plugin *plugin = NULL;
+        struct oh_handler *handler = NULL;
         static unsigned int handler_id = 1;
 
         if (!handler_config) {
-                dbg("ERROR creating new handler");
+                dbg("ERROR creating new handler. Invalid parameter.");
                 return NULL;
         }
 
-        handler = g_malloc0(sizeof(struct oh_handler));
+        handler = (struct oh_handler *)g_malloc0(sizeof(struct oh_handler));
         if (!handler) {
                 dbg("Out of Memory!");
                 return NULL;
         }
 
-        if(plugin_refcount((char *)g_hash_table_lookup(handler_config, "plugin")) < 1) {
+        plugin = get_plugin((char *)g_hash_table_lookup(handler_config, "plugin"));
+        if(!plugin || plugin->refcount < 1) {
                 dbg("Attempt to create handler for unknown plugin %s",
                         (char *)g_hash_table_lookup(handler_config, "plugin"));
                 goto err;
         }
 
-        p_config = plugin_config((char *)g_hash_table_lookup(handler_config, "plugin"));
-        if(p_config == NULL) {
-                dbg("No such plugin config");
-                goto err;
-        }
-
-        handler->abi = p_config->abi;
+        handler->abi = plugin->abi;
         handler->config = handler_config;
 
         /* FIXME: this should be done elsewhere.  if 0 it for now to make it
@@ -218,6 +278,7 @@ static struct oh_handler *new_handler(GHashTable *handler_config)
                 goto err;
         }
         handler->id = handler_id++;
+        plugin->refcount++;
 
         return handler;
 err:
@@ -225,7 +286,7 @@ err:
         return NULL;
 }
 
-int load_handler (GHashTable *handler_config)
+int oh_load_handler (GHashTable *handler_config)
 {
         struct oh_handler *handler;
 
@@ -243,7 +304,7 @@ int load_handler (GHashTable *handler_config)
                 return -1;
         }
 
-        g_hash_table_insert(global_handler_table,
+        g_hash_table_insert(handler_table,
                             &(handler->id),
                             handler);
 
@@ -252,7 +313,7 @@ int load_handler (GHashTable *handler_config)
         return 0;
 }
 
-void unload_handler(struct oh_handler *handler)
+void oh_unload_handler(struct oh_handler *handler)
 {
         if (!handler) {
                 dbg("ERROR unloading handler. Invalid handler passed.");
@@ -262,7 +323,9 @@ void unload_handler(struct oh_handler *handler)
         if (handler->abi && handler->abi->close)
                 handler->abi->close(handler->hnd);
 
-        g_hash_table_remove(global_handler_table, &(handler->id));
+        data_access_lock();
+        g_hash_table_remove(handler_table, &(handler->id));
+        data_access_unlock();
 
-        free(handler);
+        g_free(handler);
 }

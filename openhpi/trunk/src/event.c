@@ -142,7 +142,7 @@ SaErrorT oh_harvest_events()
         SaErrorT error = SA_ERR_HPI_ERROR;
         
         data_access_lock();
-        g_hash_table_foreach(global_handler_table, harvest_events, &error);
+        g_hash_table_foreach(handler_table, harvest_events, &error);
         data_access_unlock();
         
         return error;
@@ -157,7 +157,7 @@ static SaErrorT oh_add_event_to_del(SaHpiDomainIdT did, struct oh_hpi_event *e)
 	char *openhpi_log_sev = NULL;
         
 	/* FIXME: this needs to be locked at boot time */
-	openhpi_log_sev = getenv("OPENHPI_LOG_SEV"); 
+	openhpi_log_sev = (char *)g_hash_table_lookup(global_params, "OPENHPI_LOG_SEV");
 	if (openhpi_log_sev) {
 		strncpy(buffer.Data, openhpi_log_sev, SAHPI_MAX_TEXT_BUFFER_LENGTH);
                 oh_encode_severity(&buffer, &log_severity);                
