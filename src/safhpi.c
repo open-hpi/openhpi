@@ -1558,6 +1558,13 @@ SaErrorT SAHPI_API saHpiSensorThresholdsSet (
                 oh_release_domain(d);
                 return SA_ERR_HPI_NOT_PRESENT;
         }
+        
+        rv = oh_valid_thresholds(SensorThresholds, rdr);
+        if (rv != SA_OK) { /* Invalid sensor threshold */
+                dbg("Invalid sensor threshold.");
+                oh_release_domain(d);
+                return rv;
+        }
 
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
