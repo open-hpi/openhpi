@@ -87,7 +87,13 @@ struct ohoi_resource_info {
         ipmi_control_id_t power_ctrl;
 };
 
-
+struct ohoi_sensor_info {
+	ipmi_sensor_id_t sensor_id;
+	int valid;
+	SaHpiBoolT enable;
+	SaHpiEventStateT  assert;
+	SaHpiEventStateT  deassert;
+};
 
 /* implemented in ipmi_event.c */
 void ohoi_setup_done(ipmi_domain_t *domain, void *user_data);
