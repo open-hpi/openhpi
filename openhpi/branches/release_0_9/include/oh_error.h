@@ -18,20 +18,28 @@
 
 #include <stdio.h>
 
-/* Only print debug info when --enable-debug */
-#ifdef DEBUG
-#define dbg(format, ...) \
-        do { \
-                fprintf(stderr, "%s:%d:%s: ", __FILE__, __LINE__, __func__); \
-                fprintf(stderr, format "\n", ## __VA_ARGS__); \
-        } while(0)
-#else
-#define dbg(format, ...)
+#ifdef __cplusplus
+extern "C" {
 #endif
+        
+void set_debug_level(int level);
+int  get_debug_level(void);
+
+#define dbg(format, ...)                                                                \
+        do {                                                                            \
+                if (get_debug_level() >= 1024) {                                        \
+                        fprintf(stderr, "%s:%d:%s: ", __FILE__, __LINE__, __func__);    \
+                        fprintf(stderr, format "\n", ## __VA_ARGS__);                   \
+                }                                                                       \
+        } while(0)
 
 #define info(f, ...) printf(__FILE__": " f "\n", ## __VA_ARGS__)
 #define error(f, ...) fprintf(stderr, "ERROR: " f "\n", ## __VA_ARGS__)
 #define trace(f, ...) printf(__FILE__":%s(" f ")\n", __FUNCTION__, ## __VA_ARGS__)
- 
+
+#ifdef __cplusplus
+}
+#endif
+        
 #endif /* OH_ERROR_H */
 

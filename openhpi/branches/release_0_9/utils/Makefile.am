@@ -53,6 +53,7 @@ libopenhpiutils_la_SOURCES = \
 			   uid_utils.c \
 			   ecode_utils.c \
 			   printevent_utils.c \
-			   sensor_utils.c
+			   sensor_utils.c \
+			   debug.c
 
 libopenhpiutils_la_LDFLAGS = -version-info @HPI_LIB_VERSION@
