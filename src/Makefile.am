@@ -31,7 +31,7 @@
  
 
 
-MAINTAINERCLEANFILES 	= Makefile.in plugin_static.c
+MAINTAINERCLEANFILES 	= Makefile.in plugin_static.c @TEST_CLEAN@
 EXTRA_DIST              = plugin_static.c.in
 
 INCLUDES		= -I$(top_srcdir)/include
