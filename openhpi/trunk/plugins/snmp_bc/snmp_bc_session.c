@@ -236,7 +236,7 @@ void *snmp_bc_open(GHashTable *handler_config)
 		}
 	}
 
-	if (is_simulator) {
+	if (is_simulator()) {
 		sim_banner(custom_handle);
 	}
 	
