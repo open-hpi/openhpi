@@ -28,6 +28,8 @@
 
 #include "strmsock.h"
 #include "openhpi.h"
+#include "marshal_hpi.h"
+#include "SaHpi.h"
 
 
 /*--------------------------------------------------------------------*/
@@ -37,11 +39,19 @@
 extern "C"
 {
 
+enum tResult
+{
+   eResultOk,
+   eResultError,
+   eResultReply
+};
+
 static bool morph2daemon(bool runasdaemon);
 static void service_thread(gpointer data, gpointer user_data);
 static void HandleOpen(psstrmsock thrdinst);
 static void HandlePing(psstrmsock thrdinst);
 static void HandleInvalidRequest(psstrmsock thrdinst, unsigned char et);
+static tResult HandleMsg(psstrmsock thrdinst);
 
 }
 
@@ -153,11 +163,13 @@ static void service_thread(gpointer data, gpointer user_data)
 {
 	psstrmsock thrdinst = (psstrmsock) data;
         bool stop = false;
-	char *buf;
+	const void *buf;
+//        void *rd = NULL;
+//        int rv = 0;
 
 	printf("Servicing connection.\n");
 	while (stop == false) {
-                buf = (char *)thrdinst->ServerReadMsg();
+                buf = thrdinst->ServerReadMsg();
                 switch( thrdinst->header.m_type ) {
                 case eMhOpen:
                         HandleOpen(thrdinst);
@@ -169,7 +181,22 @@ static void service_thread(gpointer data, gpointer user_data)
                         HandlePing(thrdinst);
                         break;
                 case eMhMsg:
-                        // this is where we will process openhpi functions
+                        HandleMsg(thrdinst);
+                        // marshal error ?
+//                        if ( rh.m_len < 0 )
+//                             rv = 1;
+//                        if ( r == eResultReply )
+//                           {
+//                             assert( rh.m_len >= 0 && rh.m_len <= dMaxMessageLength );
+//                             rv = c->WriteMsg( rh, rd );
+//                           }
+//                        else if ( r == eResultError )
+//                             rv = 1;
+//
+//                        if ( rd )
+//                             free( rd );
+//
+//                        return !rv;
                         break;
                 default:
                         HandleInvalidRequest(thrdinst, thrdinst->header.m_type);
@@ -223,4 +250,100 @@ void HandleInvalidRequest(psstrmsock thrdinst, unsigned char et) {
 
   return;
 }
+
+
+/*--------------------------------------------------------------------*/
+/* Function: HandleMsg                                                */
+/*--------------------------------------------------------------------*/
+
+static tResult HandleMsg(psstrmsock thrdinst)
+{
+  cHpiMarshal *hm = HpiMarshalFind( thrdinst->header.m_id );
+  void *rd;
+  SaErrorT ret;
+
+  // check for function and data length
+  if ( !hm || hm->m_request_len < thrdinst->header.m_len )
+     {
+       fprintf( stderr, "wrong message length: id %d !\n", thrdinst->header.m_id );
+
+       return eResultError;
+     }
+
+//  assert( hm->m_reply_len );
+
+  // init reply header
+  thrdinst->MessageHeaderInit((tMessageType) thrdinst->header.m_type, 0, 
+                              dMhReply, hm->m_reply_len );
+
+  // alloc reply buffer
+  rd = malloc( hm->m_reply_len );
+  memset( rd, 0, hm->m_reply_len );
+
+  switch( thrdinst->header.m_id ) {
+       case eFsaHpiSessionOpen: {
+	      SaHpiDomainIdT domain_id;
+	      SaHpiSessionIdT session_id = 0;
+
+	      if ( HpiDemarshalRequest1( thrdinst->header.m_flags & dMhEndianBit, hm, thrdinst->pBuf, (void *)&domain_id ) < 0 )
+		   return eResultError;
+
+	      ret = saHpiSessionOpen( domain_id, &session_id, 0 );
+
+//	      DbgFunc( "saHpiSessionOpen( %x, %x ) = %d\n",
+//                       domain_id, session_id, ret );
+
+//     if ( ret == SA_OK )
+//   c->AddSession( session_id );
+
+	      thrdinst->header.m_len = HpiMarshalReply1( hm, rd, &ret, &session_id );
+ 
+       }
+       break;
+
+       case eFsaHpiSessionClose: {
+	      SaHpiSessionIdT session_id;
+
+	      if ( HpiDemarshalRequest1( thrdinst->header.m_flags & dMhEndianBit, hm, thrdinst->pBuf, &session_id ) < 0 )
+		   return eResultError;
+
+	      ret = saHpiSessionClose( session_id );
+
+//	      DbgFunc( "saHpiSessionClose( %x ) = %d\n", session_id, ret );
+
+//     if ( ret == SA_OK )
+//   c->RemSession( session_id );
+
+	      thrdinst->header.m_len = HpiMarshalReply0( hm, rd, &ret );
+
+       }
+       break;
+
+       case eFsaHpiDiscover: {
+	      SaHpiSessionIdT session_id;
+
+	      if ( HpiDemarshalRequest1( thrdinst->header.m_flags & dMhEndianBit, hm, thrdinst->pBuf, &session_id ) < 0 )
+		   return eResultError;
+
+	      ret = saHpiDiscover( session_id );
+
+//	      DbgFunc( "saHpiResourcesDiscover( %x ) = %d\n", session_id, ret );
+
+	      thrdinst->header.m_len = HpiMarshalReply0( hm, rd, &ret );
+
+       }
+       break;
+
+       default:
+//            assert( 0 );
+            break;
+       }
+
+//assert( rh.m_len <= hm->m_reply_len );
+
+return eResultReply;
+}
+
+
+
 

@@ -70,7 +70,6 @@ class strmsock
 	protected:
 	int			s;		 // the client socket handle
 	unsigned long		ulBufSize;	// the read buffer size
-	void			*pBuf;		// the read buffer
 	int			domain;		// the socket domain
 	int			type;		// the socket type
 	int			protocol;		// the socket protocol
@@ -79,6 +78,7 @@ class strmsock
 
 	public:
         cMessageHeader	header;		// the message header
+	void		*pBuf;		// the read buffer
 	virtual		~strmsock		() { };
 	virtual void	Close			(void);
 	virtual int	GetErrcode		(void);
