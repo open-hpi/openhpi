@@ -9,9 +9,12 @@
 # the Copying file included with the OpenHPI distribution for
 # full licensing terms.
 
+# Generated files - need to keep in sync with parent's directory's Makefile.am
+XMLDATA = bc_xmlevents.c rsa_xmlevents.c
+XMLDATA_BC = $(top_srcdir)/plugins/snmp_bc/BC_STRING.XML
+XMLDATA_RSA = $(top_srcdir)/plugins/snmp_bc/RSA_STRING.XML
+
 REMOTE_SIM_SOURCES   = \
-			bc_xmlevents.c \
-			rsa_xmlevents.c \
 			com_xml2event.c \
 			bc_resources.c \
 			snmp_bc.c \
@@ -31,6 +34,7 @@ REMOTE_SIM_SOURCES   = \
 #			  snmp_bc_watchdog.c
 
 MOSTLYCLEANFILES 	= @TEST_CLEAN@ \
+			  $(XMLDATA) \
 			  $(REMOTE_SIM_SOURCES) \
 			  uid_map
 
@@ -52,16 +56,22 @@ $(REMOTE_SIM_SOURCES):
 		ln -s ../$@; \
 	fi
 
-libsnmp_bc_la_SOURCES	= sim_init.c \
+libsnmp_bc_la_SOURCES	= $(XMLDATA) \
+			  $(REMOTE_SIM_SOURCES) \
+			  sim_init.c \
 			  sim_resources.c \
-			  snmp_utils.c \
-			  $(REMOTE_SIM_SOURCES)
+			  snmp_utils.c
 
 libsnmp_bc_la_LIBADD	= $(top_srcdir)/snmp/snmp_derive_oid.o -luuid @SNMPLIBS@
 libsnmp_bc_la_LDFLAGS	= -module -avoid-version
 
 libsnmp_bc.la: $(libsnmp_bc_la_OBJECTS) $(libsnmp_bc_la_DEPENDENCIES)
 	$(LINK) -rpath $(pkglibdir) $(libsnmp_bc_la_LDFLAGS) $(libsnmp_bc_la_OBJECTS) $(libsnmp_bc_la_LIBADD) $(LIBS)
+
+# Keep in sync with parent directory's Makefile.am
+$(XMLDATA): $(XMLDATA_BC) $(XMLDATA_RSA) $(top_srcdir)/scripts/text2cstr.pl
+	$(top_srcdir)/scripts/text2cstr.pl -s bc_eventxml $(XMLDATA_BC) > bc_xmlevents.c
+	$(top_srcdir)/scripts/text2cstr.pl -s rsa_eventxml $(XMLDATA_RSA) > rsa_xmlevents.c
 
 # Setup environment variables for TESTS programs
 #TESTS_ENVIRONMENT  = OPENHPI_CONF=$(shell pwd)/openhpi.conf
