@@ -155,7 +155,8 @@ TESTS = tevent \
 	tinv007       \
 	thotswap001   \
 	thotswap002   \
-	thotswap003
+	thotswap003   \
+	thotswap004
 #	thotswap_state_err \
 #	thotswap_reset \
 #	thotswap_reset_err \
@@ -585,6 +586,12 @@ thotswap002_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
 # 
 thotswap003_SOURCES = thotswap003.c
 thotswap003_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+		 $(top_builddir)/src/libopenhpi.la \
+		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
+
+# 
+thotswap004_SOURCES = thotswap004.c
+thotswap004_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
 		 $(top_builddir)/src/libopenhpi.la \
 		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
 
