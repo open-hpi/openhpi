@@ -20,10 +20,9 @@
 #include <openhpi.h>
 #include <snmp_utils.h>
 
-#include <bc_errorlog.h>
-#include <bc_resources.h>
-// #include <bc_str2event.h>
-#include <com_xml2event.h>
+#include <snmp_bc_errorlog.h>
+#include <snmp_bc_resources.h>
+#include <snmp_bc_xml2event.h>
 #include <snmp_bc.h>
 #include <snmp_bc_control.h>
 #include <snmp_bc_discover.h>

@@ -8,13 +8,13 @@
 # the Copying file included with the OpenHPI distribution for
 # full licensing terms.
 
-MAINTAINERCLEANFILES 	= Makefile.in
+MAINTAINERCLEANFILES	= Makefile.in
 
 # Note same rule and files are generated in the t sub-directory - Make sure
 # you change the t/Makefile.am, if you change these
-XMLDATA = bc_xmlevents.c rsa_xmlevents.c
+GENERATED_CODE = event_array.c event_array_rsa.c
 
-MOSTLYCLEANFILES = @TEST_CLEAN@ $(XMLDATA)
+MOSTLYCLEANFILES = @TEST_CLEAN@ $(GENERATED_CODE)
 
 SNMPUTILSDIR    = $(top_srcdir)/$(SNMPDIR)
 SNMPUTILBDIR    = $(top_builddir)/$(SNMPDIR)
@@ -27,29 +27,24 @@ AM_CFLAGS		= @CFLAGS@ @SNMPFLAGS@
 
 pkglib_LTLIBRARIES	= libsnmp_bc.la
 
-EXTRA_DIST		=	bc_errorlog.h \
-				bc_resources.h \
-				snmp_bc.h \
-				com_xml2event.h \
+EXTRA_DIST		=	snmp_bc.h \
 				snmp_bc_control.h \
-				snmp_bc_event.h \
 	     			snmp_bc_discover.h \
+				snmp_bc_errorlog.h \
+				snmp_bc_event.h \
 				snmp_bc_hotswap.h \
+				snmp_bc_inventory.h \
+				snmp_bc_resources.h \
 	     			snmp_bc_sel.h \
-				snmp_bc_time.h \
 				snmp_bc_sensor.h \
 				snmp_bc_session.h \
-				snmp_bc_inventory.h \
-				snmp_bc_watchdog.h
+				snmp_bc_time.h \
+				snmp_bc_watchdog.h \
+				snmp_bc_xml2event.h
 
-#				bc_str2event.h
-
-# Generated files (e.g.bc_xmlevents.c rsa_xmlevents.c) must be listed first
+# Generated files must be listed first
 libsnmp_bc_la_SOURCES	= \
-				bc_xmlevents.c \
-                                rsa_xmlevents.c \
-                                com_xml2event.c \
-                                bc_resources.c \
+				$(GENERATED_CODE) \
 				sim_init.c \
 				snmp_bc.c \
 	     			snmp_bc_discover.c \
@@ -57,11 +52,14 @@ libsnmp_bc_la_SOURCES	= \
 				snmp_bc_discover_rsa.c \
 				snmp_bc_event.c \
 				snmp_bc_inventory.c \
+                                snmp_bc_resources.c \
 	     			snmp_bc_sel.c \
 				snmp_bc_session.c \
 	     			snmp_bc_time.c \
+                                snmp_bc_xml2event.c \
 				stubs.c
 
+# FIXME:: Add these when ported over
 #				snmp_bc_control.c \
 #				snmp_bc_hotswap.c \
 #				snmp_bc_sensor.c \
@@ -72,7 +70,10 @@ libsnmp_bc_la_LDFLAGS	= -avoid-version
 
 # Note same rule and files are generated in the t sub-directory - Make sure
 # you change the t/Makefile.am, if you change these
-$(XMLDATA): RSA_STRING.XML BC_STRING.XML $(top_srcdir)/scripts/text2cstr.pl
-	$(top_srcdir)/scripts/text2cstr.pl -s bc_eventxml BC_STRING.XML > bc_xmlevents.c
-	$(top_srcdir)/scripts/text2cstr.pl -s rsa_eventxml RSA_STRING.XML > rsa_xmlevents.c
+XMLDATA_BC = $(top_srcdir)/plugins/snmp_bc/event.xml
+XMLDATA_RSA = $(top_srcdir)/plugins/snmp_bc/event_rsa.xml
+
+$(GENERATED_CODE): $(XMLDATA_BC) $(XMLDATA_RSA) $(top_srcdir)/scripts/text2cstr.pl
+	$(top_srcdir)/scripts/text2cstr.pl -s bc_eventxml snmp_bc_events.xml > event_array.c
+	$(top_srcdir)/scripts/text2cstr.pl -s rsa_eventxm_ snmp_bc_events_rsa.xml > event_array_rsa.c
 
