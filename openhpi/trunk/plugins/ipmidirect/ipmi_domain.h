@@ -146,7 +146,7 @@ public:
   void ReadUnlock()  { /*m_lock.ReadUnlock();*/ }
   void WriteLock()   { /*m_lock.WriteLock();*/ }
   void WriteUnlock() { /*m_lock.WriteUnlock();*/ }
-  bool CheckLock()   { return true; /*m_lock.CheckLock();*/ }
+  bool CheckLock()   { return true; /* m_lock.CheckLock(); */ }
 
   // lock m_initial_discover
   cThreadLock m_initial_discover_lock;
