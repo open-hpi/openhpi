@@ -184,8 +184,10 @@ MarshalSize( const cMarshalType *type )
 
 		   int s = MarshalSize( elem->m_u.m_struct_element.m_type );
 
-		   if ( s < 0 )
-			return -1;
+		   if ( s < 0 ) {
+                           assert( 0 );
+                           return -1;
+                   }
 		   
 		   size += s;
 		 }
@@ -206,8 +208,10 @@ MarshalSize( const cMarshalType *type )
 
                    int s = MarshalSize( elem->m_u.m_union_element.m_type );
 
-		   if ( s < 0 )
-			return -1;
+		   if ( s < 0 ) {
+                           assert( 0 );
+                           return -1;
+                   }
 
                    if ( max < s )
                         max = s;
@@ -226,6 +230,7 @@ MarshalSize( const cMarshalType *type )
      }
 
   // not reached
+  assert( 0 );
   return -1;
 }
 
@@ -240,8 +245,10 @@ MarshalSizeArray( const cMarshalType **types )
      {
        int s = MarshalSize( types[i] );
 
-       if ( s < 0 )
-	    return -1;
+       if ( s < 0 ) {
+               assert( 0 );
+               return -1;
+       }
        
        size += s;
      }
@@ -316,7 +323,6 @@ MarshalSimpleTypes( tMarshalType type, const void *data,
      }
 
   assert( 0 );
-
   return -1;
 }
 
@@ -423,8 +429,10 @@ Marshal( const cMarshalType *type, const void *d, void *b )
                  {
                    int s = Marshal( type->m_u.m_array.m_type, data, buffer );
 
-		   if ( s < 0 )
-			return -1;
+		   if ( s < 0 ) {
+                           assert( 0 );
+                           return -1;
+                   }
 
                    data   += s;
                    buffer += s;
@@ -457,8 +465,10 @@ Marshal( const cMarshalType *type, const void *d, void *b )
 			   {
 			     s = Marshal( mod, data + struct_element->m_u.m_struct_element.m_offset, buffer );
 
-			     if ( s < 0 )
-				  return -1;
+			     if ( s < 0 ) {
+                                     assert( 0 );
+                                     return -1;
+                             }
 			   }
 			else
 			     return -1;
@@ -483,8 +493,10 @@ Marshal( const cMarshalType *type, const void *d, void *b )
                              int si = Marshal( st_type->m_u.m_var_array.m_type,
 					       dd, bb );
 
-			     if ( si < 0 )
-				  return -1;
+			     if ( si < 0 ) {
+                                     assert( 0 );
+                                     return -1;
+                             }
 
                              bb += si;
                              dd += si;
@@ -496,8 +508,10 @@ Marshal( const cMarshalType *type, const void *d, void *b )
                         s = Marshal( st_type, data + struct_element->m_u.m_struct_element.m_offset,
                                      buffer );
 
-			if ( s < 0 )
-			     return -1;
+                        if ( s < 0 ) {
+                                assert( 0 );
+                                return -1;
+                        }
 		      }
 
 		   buffer += s;
@@ -536,8 +550,10 @@ MarshalArray( const cMarshalType **types,
      {
        int s = Marshal( types[i], data[i], buffer );
 
-       if ( s < 0 )
-	    return -1;
+       if ( s < 0 ) {
+               assert( 0 );
+               return -1;
+       }
 
        size   += s;
        buffer += s;
@@ -653,7 +669,6 @@ DemarshalSimpleTypes( int byte_order, tMarshalType type,
      }
 
   assert( 0 );
-
   return -1;
 }
 
@@ -680,8 +695,10 @@ Demarshal( int byte_order, const cMarshalType *type,
                    int s = Demarshal( byte_order, type->m_u.m_array.m_type,
 				      data, buffer );
 
-		   if ( s < 0 )
-			return -1;
+		   if ( s < 0 ) {
+                           assert( 0 );
+                           return -1;
+                   }
 
                    data   += s;
                    buffer += s;
@@ -713,11 +730,15 @@ Demarshal( int byte_order, const cMarshalType *type,
 			   {
 			     s = Demarshal( byte_order, mod, data + struct_element->m_u.m_struct_element.m_offset, buffer );
 
-			     if ( s < 0 )
-				  return -1;
+			     if ( s < 0 ) {
+                                     assert( 0 );
+                                     return -1;
+                             }
 			   }
-			else
-			     return -1;
+                        else {
+                                assert( 0 );
+                                return -1;
+                        }
 		      }
 		   else if ( st_type->m_type == eMtVarArray )
 		      {
@@ -739,8 +760,10 @@ Demarshal( int byte_order, const cMarshalType *type,
                              int si = Demarshal( byte_order, st_type->m_u.m_var_array.m_type,
 						 dd, bb );
 
-			     if ( si < 0 )
-				  return -1;
+			     if ( si < 0 ) {
+                                     assert( 0 );
+                                     return -1;
+                             }
 
                              bb += si;
                              dd += si;
@@ -779,8 +802,10 @@ Demarshal( int byte_order, const cMarshalType *type,
 	    size = type->m_u.m_user_defined.m_demarshal( byte_order, type, d, b,
 							 type->m_u.m_user_defined. m_user_data );
 
-	    if ( size < 0 )
-		 return -1;
+	    if ( size < 0 ) {
+                    assert( 0 );
+                    return -1;
+            }
 
 	    break;
 
@@ -805,8 +830,10 @@ DemarshalArray( int byte_order, const cMarshalType **types,
      {
        int s = Demarshal( byte_order, types[i], data[i], buffer );
 
-       if ( s < 0 )
-	    return -1;
+       if ( s < 0 ) {
+               assert( 0 );
+               return -1;
+       }
 
        size   += s;
        buffer += s;

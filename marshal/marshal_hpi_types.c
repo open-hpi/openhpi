@@ -128,16 +128,13 @@ cMarshalType SaHpiSensorRangeType = dStruct( SaHpiSensorRangeT, SaHpiSensorRange
 static cMarshalType SaHpiSensorDataFormatElements[] =
 {
 	dStructElement( SaHpiSensorDataFormatT, IsSupported, SaHpiBoolType ),
-
 	dStructElement( SaHpiSensorDataFormatT, ReadingType, SaHpiReadingTypeType ),
-
    	dStructElement( SaHpiSensorDataFormatT, BaseUnits, SaHpiSensorUnitsType ),
 	dStructElement( SaHpiSensorDataFormatT, ModifierUnits, SaHpiSensorUnitsType ),
 	dStructElement( SaHpiSensorDataFormatT, ModifierUse, SaHpiSensorModUnitUseType ),
 	dStructElement( SaHpiSensorDataFormatT, Percentage, SaHpiBoolType ),
         dStructElement( SaHpiSensorDataFormatT, Range, SaHpiSensorRangeType ),
         dStructElement( SaHpiSensorDataFormatT, AccuracyFactor,SaHpiFloat64Type ),
-
 	dStructElementEnd()
 };
 
@@ -344,9 +341,7 @@ static cMarshalType SaHpiCtrlRecElements[] =
 	dStructElement( SaHpiCtrlRecT, Type, SaHpiCtrlTypeType ),
 	dStructElement( SaHpiCtrlRecT, TypeUnion, SaHpiCtrlRecUnionType ),
 	dStructElement( SaHpiCtrlRecT, DefaultMode, SaHpiCtrlDefaultModeType ),
-
 	dStructElement( SaHpiCtrlRecT, WriteOnly, SaHpiBoolType ),
-
 	dStructElement( SaHpiCtrlRecT, Oem, SaHpiUint32Type),
 	dStructElementEnd()
 };
@@ -468,7 +463,7 @@ cMarshalType SaHpiWatchdogRecType = dStruct( SaHpiWatchdogRecT, SaHpiWatchdogRec
 
 // annunciators
 
-static cMarshalType SaHpiNameDataArray = dVarArray( SaHpiUint8Type, SA_HPI_MAX_NAME_LENGTH );
+static cMarshalType SaHpiNameDataArray = dVarArray( SaHpiUint8Type, 0 );
 
 static cMarshalType SaHpiNameElements[] =
 {
@@ -572,9 +567,7 @@ static cMarshalType SaHpiRdrElements[] =
 	dStructElement( SaHpiRdrT, RecordId, SaHpiEntryIdType ),
 	dStructElement( SaHpiRdrT, RdrType, SaHpiRdrTypeType ),
 	dStructElement( SaHpiRdrT, Entity, SaHpiEntityPathType ),
-
 	dStructElement( SaHpiRdrT, IsFru, SaHpiBoolType ),
-
 	dStructElement( SaHpiRdrT, RdrTypeUnion, SaHpiRdrTypeUnionType ),
 	dStructElement( SaHpiRdrT, IdString, SaHpiTextBufferType ),
 	dStructElementEnd()
@@ -777,9 +770,7 @@ static cMarshalType SaHpiRptEntryElements[] =
 	dStructElement( SaHpiRptEntryT, ResourceInfo, SaHpiResourceInfoType ),	
 	dStructElement( SaHpiRptEntryT, ResourceEntity, SaHpiEntityPathType ),
 	dStructElement( SaHpiRptEntryT, ResourceCapabilities,SaHpiCapabilitiesType ),
-
 	dStructElement( SaHpiRptEntryT, HotSwapCapabilities, SaHpiHsCapabilitiesType ),
-
 	dStructElement( SaHpiRptEntryT, ResourceSeverity, SaHpiSeverityType ), 
 	dStructElement( SaHpiRptEntryT, ResourceFailed, SaHpiBoolType ),
 	dStructElement( SaHpiRptEntryT, ResourceTag, SaHpiTextBufferType ),	
