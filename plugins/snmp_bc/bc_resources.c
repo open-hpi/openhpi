@@ -458,7 +458,8 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                                 .ModifierUse = SAHPI_SMUU_NONE,
                                 .FactorsStatic = SAHPI_TRUE,
                                 .Factors = {
-                                        .Linearization = SAHPI_SL_LINEAR,
+					.M_Factor = 1,
+                                        .Linearization = SAHPI_SL_NONLINEAR,
                                 },
                                 .Percentage = SAHPI_FALSE,
                                 .Range = {
@@ -523,7 +524,8 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                                 .ModifierUse = SAHPI_SMUU_NONE,
                                 .FactorsStatic = SAHPI_TRUE,
                                 .Factors = {
-                                        .Linearization = SAHPI_SL_LINEAR,
+					.M_Factor = 1,
+                                        .Linearization = SAHPI_SL_NONLINEAR,
                                 },
                                 .Percentage = SAHPI_FALSE,
                                 .Range = {
@@ -1570,7 +1572,8 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 .ModifierUse = SAHPI_SMUU_NONE,
                                 .FactorsStatic = SAHPI_TRUE,
                                 .Factors = {
-                                        .Linearization = SAHPI_SL_LINEAR,
+					.M_Factor = 1,
+                                        .Linearization = SAHPI_SL_NONLINEAR,
                                 },
                                 .Percentage = SAHPI_FALSE,
                                 .Range = {
@@ -1635,7 +1638,8 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 .ModifierUse = SAHPI_SMUU_NONE,
                                 .FactorsStatic = SAHPI_TRUE,
                                 .Factors = {
-                                        .Linearization = SAHPI_SL_LINEAR,
+					.M_Factor = 1,
+                                        .Linearization = SAHPI_SL_NONLINEAR,
                                 },
                                 .Percentage = SAHPI_FALSE,
                                 .Range = {
@@ -1708,7 +1712,8 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 .ModifierUse = SAHPI_SMUU_NONE,
                                 .FactorsStatic = SAHPI_TRUE,
                                 .Factors = {
-                                        .Linearization = SAHPI_SL_LINEAR,
+					.M_Factor = 1,
+                                        .Linearization = SAHPI_SL_NONLINEAR,
                                 },
                                 .Percentage = SAHPI_FALSE,
                                 .Range = {
