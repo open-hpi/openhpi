@@ -20,7 +20,6 @@
 
 #include <oh_error.h>
 #include <sensor_utils.h>
-
  
 static state_category_string state_string[] = {
   {SAHPI_EC_UNSPECIFIED, SAHPI_ES_UNSPECIFIED, "UNSPECIFIED"},
@@ -108,7 +107,9 @@ char *format[] = {
 int
 build_state_string (SaHpiEventCategoryT category,
 		    SaHpiEventStateT state,
-		    unsigned char *str, size_t * len, size_t max_len)
+		    unsigned char *str, 
+		    size_t * len, 
+		    size_t max_len)
 {
 
   char *temp;
@@ -186,6 +187,11 @@ build_state_value (unsigned char *str, size_t len, SaHpiEventStateT * state)
   char *delim = NULL;
   char *tok = NULL;
   int i = 0;
+
+  if (len == 0) {
+	  dbg("Nothing to do, len 0, returning");
+	  return(SA_OK);
+  }
 
   s = (char *) g_malloc0 (len);
   if (s == NULL){
