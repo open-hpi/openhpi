@@ -1,0 +1,139 @@
+/*      -*- linux-c -*-
+ *
+ * $Id$
+ *
+ * Copyright (c) IBM Corp 2004
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
+ * file and program are licensed under a BSD style license.  See
+ * the Copying file included with the OpenHPI distribution for
+ * full licensing terms.
+ *
+ * Authors:
+ *      Sean Dague <sdague@users.sf.net>
+ *
+ */
+
+#include <stdlib.h>
+#include <string.h>
+#include <SaHpi.h>
+#include <oh_error.h>
+#include <oh_utils.h>
+#include <print_utils.h>
+#include <print_structs.h>
+
+static inline SaErrorT setup_text_buffer(SaHpiTextBufferT *buff) 
+{
+        memset(buff, 0, sizeof(*buff));            
+        buff->DataType = SAHPI_TL_TYPE_TEXT;
+        buff->Language = SAHPI_LANG_ENGLISH;
+        buff->DataLength = 0;
+        return SA_OK;
+}
+
+static SaErrorT oh_text_buffer_append(SaHpiTextBufferT *text, char * from, size_t size)
+{
+        SaHpiUint8T *p;
+        if((size + text->DataLength) >= SAHPI_MAX_TEXT_BUFFER_LENGTH) {
+                dbg("Can't add %d to %d size text! We would overrun the buffer!", size, text->DataLength);
+                return SA_ERR_HPI_OUT_OF_SPACE;
+        }
+        
+        dbg("Appending text %s, %u to buff of %u", from, size,  text->DataLength);
+        
+        /* we can't trust NULLs to be right, so use a targetted strncpy instead */
+        p = text->Data;
+        dbg("P = %p, D = %u", p, text->DataLength);
+        p += text->DataLength;
+        dbg("P = %p, D = %u", p, text->DataLength);
+        strncpy(p, from, size);
+        text->DataLength += size;
+        dbg("P = %p, D = %u", p, text->DataLength);
+        
+        // fprint_text_buffer(stderr, text);
+        return SA_OK;
+}
+
+void fprint_text_buffer(FILE *stream, const SaHpiTextBufferT *text)
+{
+        if(text->DataType == SAHPI_TL_TYPE_TEXT) {
+                fprintf(stream, "%s\n", text->Data);
+        }
+}
+
+SaErrorT oh_sensor_reading2str (SaHpiSensorReadingT reading, 
+                                SaHpiSensorDataFormatT format, 
+                                SaHpiTextBufferT *text)
+{
+        SaHpiTextBufferT temp;
+        char buff[SAHPI_MAX_TEXT_BUFFER_LENGTH];
+        int buffsize = 0;
+
+        setup_text_buffer(&temp);        
+        if(!reading.IsSupported || !format.IsSupported) {
+                dbg("Can't stringify unsupported numeric reading");
+                return SA_ERR_HPI_INVALID_CMD;
+        }
+        
+        if(reading.Type != format.ReadingType) {
+                dbg("Format definition is different from sensor reading type");
+                return SA_ERR_HPI_INVALID_DATA;
+        }
+        
+        switch(reading.Type) {
+        case SAHPI_SENSOR_READING_TYPE_BUFFER:
+                oh_text_buffer_append(&temp, reading.Value.SensorBuffer, 
+                                      SAHPI_SENSOR_BUFFER_LENGTH);
+                break;
+        case SAHPI_SENSOR_READING_TYPE_INT64:
+                reset_buff(buff);
+                buffsize = sprintf(buff, "%lld", reading.Value.SensorInt64);
+                oh_text_buffer_append(&temp, buff, buffsize);
+                break;
+        case SAHPI_SENSOR_READING_TYPE_UINT64: 
+                reset_buff(buff);
+                buffsize = sprintf(buff, "%llu", reading.Value.SensorUint64);
+                oh_text_buffer_append(&temp, buff, buffsize);
+                break;
+       case SAHPI_SENSOR_READING_TYPE_FLOAT64:
+                reset_buff(buff);
+                buffsize = sprintf(buff, "%le", reading.Value.SensorFloat64);
+                oh_text_buffer_append(&temp, buff, buffsize);
+                break;
+        }
+
+        
+        if(format.Percentage) {
+                oh_text_buffer_append(&temp, "%", 1);
+        }
+
+        /* now we add the units */
+        
+        if(format.BaseUnits != SAHPI_SU_UNSPECIFIED) {
+                oh_text_buffer_append(&temp, " ", 1);
+                reset_buff(buff);
+                buffsize = sprintf(buff,"%s",SaHpiSensorUnitsT2str(format.BaseUnits));
+                oh_text_buffer_append(&temp, buff, buffsize);
+        }
+
+        /* add modifier units if appropriate */
+        if(format.ModifierUse != SAHPI_SMUU_NONE) {
+                if(format.ModifierUse == SAHPI_SMUU_BASIC_OVER_MODIFIER) {
+                        oh_text_buffer_append(&temp, " / ", 3);
+                } else {
+                        oh_text_buffer_append(&temp, " * ", 3);
+                }
+
+                reset_buff(buff);
+                buffsize = sprintf(buff,"%s",SaHpiSensorUnitsT2str(format.ModifierUnits));
+                oh_text_buffer_append(&temp, buff, buffsize);
+        }
+        
+        memcpy(text, &temp, sizeof(temp));
+        
+        return SA_OK;
+}
+
+/* end of file         */
