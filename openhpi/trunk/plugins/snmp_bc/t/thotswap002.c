@@ -68,6 +68,13 @@ int main(int argc, char **argv)
 
 	/************************** 
 	 * Test :
+	 * expected_err = SA_ERR_HPI_INVALID_PARAMS;      
+	 **************************/
+	err = snmp_bc_get_hotswap_state((void *)h->hnd, id, NULL);
+	checkstatus(&err, &expected_err, &testfail);
+
+	/************************** 
+	 * Test :
 	 **************************/
 	struct oh_handler_state *handle = (struct oh_handler_state *)h->hnd;
 	expected_err = SA_OK;      
