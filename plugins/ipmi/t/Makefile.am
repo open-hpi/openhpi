@@ -37,7 +37,8 @@ AM_CFLAGS               = -g
 #noinst_PROGRAMS         = set_thres
 
 ipmi_thres_test_SOURCES	= ipmi_thres_test.c	
-ipmi_thres_test_LDADD	= -luuid -lopenhpiutils -lopenhpi
+ipmi_thres_test_LDADD	= -luuid $(top_builddir)/utils/libopenhpiutils.la \
+				$(top_builddir)/src/libopenhpi.la 
 
 #set_thres_SOURCES       = set_thres.c
 #set_thres_LDADD        = $(top_builddir)/src/libopenhpi.la
