@@ -235,10 +235,12 @@ static inline void  dump_rpttable(RPTable *table)
                        unsigned char *data;
                        int i;
                        data = oh_get_rdr_data(table, rpt->ResourceId, rdr->RecordId);
-                       printf("(Rdr id:%d type:%d) data pointer:%u\n", 
-                               rdr->RecordId,
-                               rdr->RdrType,
-                               (unsigned)(void *)data);
+			/*FIXME:: causes issue on IA64 */
+			/* commenting out for now until fixed */
+                       //printf("(Rdr id:%d type:%d) data pointer:%u\n", 
+                               //rdr->RecordId,
+                               //rdr->RdrType,
+                               //(unsigned)(void *)data);
                        if (data)
                                for (i = 0; i < 30; i++)
                                        printf("%u ", data[i]);

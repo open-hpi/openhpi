@@ -151,7 +151,7 @@ AC_DEFUN(OH_CHECK_OPENIPMI,
 				   OPENIPMI_VERSION_RELEASE);" >> $OH_OI_SRC
 	echo "return 0;}" >> $OH_OI_SRC
 
-	gcc -o $OH_OI_FILE $OH_OI_SRC >& /dev/null
+	gcc -o $OH_OI_FILE $CFLAGS $CPPFLAGS $LDFLAGS $OH_OI_SRC >& /dev/null
 
 	if test -f "ipmi_ver"; then
 		OPENIPMI_VERSION=`./ipmi_ver | \
