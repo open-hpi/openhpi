@@ -40,18 +40,6 @@ struct oh_domain_id {
 	void *ptr;
 };
 
-/* 
- * struct oh_resource_id is filled by plugin.
- * Open HPI uses it to identy different resource by the id.
- * Open HPI never assume any detail in 'ptr' field so plugin 
- * can store any data pointer in ptr member so that it can map 
- * id back to solid data
- */
-struct oh_resource_id {
-	void *ptr;
-};
-
-
 /*
  * struct oh_rdr_id is filled by plugin.
  * Open HPI use it to identy different rdr by the id.
@@ -74,8 +62,6 @@ struct oh_sel_id {
  * (Domain, SEL and RDR etc.).
  */
 struct oh_resource_event {
-	struct oh_resource_id id;
-	
 	/* Report domain which belongs to the resource
 	 * Valid if the resource is CAPABILITY_DOMAIN 
 	 */
@@ -107,8 +93,6 @@ struct oh_resource_del_event {
  * The event is used for plugin to report its RDRs in resource.
  */
 struct oh_rdr_event {
-	/*This resource id which the rdr belongs to */
-	struct oh_resource_id	parent;
 	/*This is rdr id the RDR relate*/
 	struct oh_rdr_id	id;
 	
@@ -140,14 +124,8 @@ struct oh_hpi_event {
 
 /* The structure is used to storage RSEL entry*/
 struct oh_rsel {
-	/* this is SEL's id */
-	struct oh_resource_id	parent;
-
 	/* this is the entry's id */
 	struct oh_sel_id	oid;
-	
-	/* This is resource id which the entry relates */
-	struct oh_resource_id	res_id;
 	
 	/* This is rdr id which the entry relates */
 	struct oh_rdr_id	rdr_id;
