@@ -21,8 +21,60 @@
 #include <SaHpi.h>
 #include <openhpi.h>
 
-static GSList *hs_eq=NULL;
 
+void process_hotswap_policy(void)
+{
+	SaHpiTimeT cur, est;
+	struct oh_event e;
+	struct oh_resource *res;
+        int (*set_hotswap_state)(void *hnd, struct oh_resource_id id,
+			                        SaHpiHsStateT state);	
+	
+	while(hotswap_pop_event(&e)>0) {
+	
+		if (e.type != OH_ET_HPI
+				|| e.u.hpi_event.event.EventType != SAHPI_ET_HOTSWAP) {
+			dbg("Non-hotswap event!");
+			return;
+		}
+	
+		res = get_res_by_oid(e.u.hpi_event.parent);
+		if (!(res->entry.ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
+			dbg("Non-hotswapable resource?!");
+			return;
+		}
+		if (res->controlled) {
+			dbg("Controlled resource?!");
+			return;
+		}
+
+		set_hotswap_state = res->handler->abi->set_hotswap_state;
+		if (!set_hotswap_state) {
+			dbg("Unsupport hotswap maintainance?!");
+			return;
+		}
+
+		gettimeofday1(&cur);
+	
+		if (e.u.hpi_event.event.EventDataUnion.HotSwapEvent.HotSwapState 
+				== SAHPI_HS_STATE_INSERTION_PENDING) {
+			est = e.u.hpi_event.event.Timestamp + get_hotswap_auto_insert_timeout();
+			if (cur>=est) {
+				set_hotswap_state(res->handler->hnd, res->oid, SAHPI_HS_STATE_ACTIVE_HEALTHY);
+			}
+		} else if (e.u.hpi_event.event.EventDataUnion.HotSwapEvent.HotSwapState
+				== SAHPI_HS_STATE_EXTRACTION_PENDING) {
+			est = e.u.hpi_event.event.Timestamp + res->auto_extract_timeout;
+			if (cur>=est) {
+				set_hotswap_state(res->handler->hnd, res->oid, SAHPI_HS_STATE_INACTIVE);
+			}
+		} else {
+			dbg();
+		}
+	}
+}
+
+static GSList *hs_eq=NULL;
 /*
  * session_push_event pushs and event into a session.
  * We store a copy of event so that caller of the function
@@ -77,3 +129,16 @@ int hotswap_has_event()
 {
 	return (hs_eq == NULL) ? 0 : 1;
 }
+
+static SaHpiTimeoutT hotswap_auto_insert_timeout;
+
+SaHpiTimeoutT get_hotswap_auto_insert_timeout(void)
+{
+	return hotswap_auto_insert_timeout;
+}
+
+void set_hotswap_auto_insert_timeout(SaHpiTimeoutT to)
+{
+	hotswap_auto_insert_timeout = to;
+}
+
