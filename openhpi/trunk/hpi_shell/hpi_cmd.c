@@ -27,6 +27,7 @@
 int main(int argc, char **argv)
 {
 	int	c, eflag = 0;
+	char	*val;
 
 	while ( (c = getopt( argc, argv,"e?")) != EOF )
 		switch(c)  {
@@ -38,6 +39,11 @@ int main(int argc, char **argv)
 				printf("   -e - show short events, discover after subscribe\n");
 				return(1);
 		}
+
+	val = getenv("OPENHPI_THREADED");
+	if ((val == (char *)NULL) || (strcmp(val, "YES") != 0)) {
+		printf("Please, set OPENHPI_THREADED environment!\n");
+	};
 	if (open_session(eflag) == -1)
 		return(1);
 	cmd_shell();

@@ -275,6 +275,8 @@ static int sa_reset(int argc, char *argv[])
 		state = SAHPI_WARM_RESET;
 	} else if (!strcmp(argv[2], "assert")) {
 		state = SAHPI_RESET_ASSERT;
+	} else if (!strcmp(argv[2], "deassert")) {
+		state = SAHPI_RESET_DEASSERT;
 	} else {
 	 	return HPI_SHELL_PARM_ERROR;
 	}
@@ -707,27 +709,123 @@ static int listres(int argc, char *argv[])
 
 static int clear_evtlog(int argc, char *argv[])
 {
+	SaHpiResourceIdT	rid;
+
 	if (argc < 2)
-		return HPI_SHELL_PARM_ERROR;
+		rid = SAHPI_UNSPECIFIED_RESOURCE_ID;
+	else
+		rid = (SaHpiResourceIdT)atoi(argv[1]);
 			
-	return sa_clear_evtlog((SaHpiResourceIdT)atoi(argv[1]));
+	return sa_clear_evtlog(rid);
 }
 
 static int show_evtlog(int argc, char *argv[])
 {
 	SaHpiResourceIdT	rptid = 0;
-	int			i, res;
 
 	if (argc < 2) {
-		show_rpt_list(Domain, SHOW_ALL_RPT, rptid, ui_print);
-		i = get_int_param("RPT ID ==> ", &res, NULL, 0);
-		if (i != 1) return SA_OK;
-		rptid = (SaHpiResourceIdT)res;
+		rptid = SAHPI_UNSPECIFIED_RESOURCE_ID;
 	} else {
 		rptid = (SaHpiResourceIdT)atoi(argv[1]);
 	};
 			
 	return show_event_log(Domain->sessionId, rptid, show_event_short, ui_print);
+}
+
+static int evtlog_time(int argc, char *argv[])
+{
+	SaHpiResourceIdT	rptid = 0;
+	SaErrorT		rv;
+	SaHpiTimeT		logtime;
+	SaHpiTextBufferT	buffer;
+
+	if (argc < 2) {
+		rptid = SAHPI_UNSPECIFIED_RESOURCE_ID;
+	} else {
+		rptid = (SaHpiResourceIdT)atoi(argv[1]);
+	};
+			
+	rv = saHpiEventLogTimeGet(Domain->sessionId, rptid, &logtime);
+	if (rv != SA_OK) 
+	{
+		printf("saHpiEventLogTimeGet %s\n", oh_lookup_error(rv));
+		return (rv);
+	}
+
+	oh_decode_time(logtime, &buffer);
+	printf ("Current event log time: %s\n", buffer.Data);
+	return SA_OK;
+}
+
+static int settime_evtlog(int argc, char *argv[])
+{
+	SaHpiResourceIdT	rptid = 0;
+	SaErrorT		rv;
+	SaHpiTimeT		newtime;
+	struct tm		new_tm_time;
+	char			buf[READ_BUF_SIZE];
+	int			day_array[] =
+					{31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+
+	if (argc < 2) {
+		rptid = SAHPI_UNSPECIFIED_RESOURCE_ID;
+		printf("Set date and time for Domain Event Log!\n");
+	} else {
+		rptid = (SaHpiResourceIdT)atoi(argv[1]);
+		printf("Set date and time for Resource %d!\n", rptid);
+	};
+	memset(&new_tm_time, 0, sizeof(struct tm));
+	printf("format: MM:DD:YYYY:hh:mm:ss ==> ");
+	fgets(buf, READ_BUF_SIZE, stdin);
+	sscanf(buf, "%d:%d:%d:%d:%d:%d", &new_tm_time.tm_mon, &new_tm_time.tm_mday,
+		&new_tm_time.tm_year, &new_tm_time.tm_hour, &new_tm_time.tm_min,
+		&new_tm_time.tm_sec);
+	if ((new_tm_time.tm_mon < 1) || (new_tm_time.tm_mon > 12)) {
+		printf("Month out of range: (%d)\n", new_tm_time.tm_mon);
+		return(-1);
+	};
+	new_tm_time.tm_mon--;
+	if (new_tm_time.tm_year < 1900) {
+		printf("Year out of range: (%d)\n", new_tm_time.tm_year);
+		return(-1);
+	};
+	if (new_tm_time.tm_mon == 1) {
+	/* if the given year is a leap year */
+		if ((((new_tm_time.tm_year % 4) == 0)
+			&& ((new_tm_time.tm_year % 100) != 0))
+			|| ((new_tm_time.tm_year % 400) == 0))
+			day_array[1] = 29;
+	};
+
+	if ((new_tm_time.tm_mday < 1) ||
+		(new_tm_time.tm_mday > day_array[new_tm_time.tm_mon])) {
+		printf("Day out of range: (%d)\n", new_tm_time.tm_mday);
+		return(-1);
+	};
+
+	new_tm_time.tm_year -= 1900;
+	
+	if ((new_tm_time.tm_hour < 0) || (new_tm_time.tm_hour > 24)) {
+		printf("Hours out of range: (%d)\n", new_tm_time.tm_hour);
+		return(-1);
+	};
+	if ((new_tm_time.tm_min < 0) || (new_tm_time.tm_min > 60)) {
+		printf("Minutes out of range: (%d)\n", new_tm_time.tm_min);
+		return(-1);
+	};
+	if ((new_tm_time.tm_sec < 0) || (new_tm_time.tm_sec > 60)) {
+		printf("Seconds out of range: (%d)\n", new_tm_time.tm_sec);
+		return(-1);
+	};
+
+	newtime = (SaHpiTimeT) mktime(&new_tm_time) * 1000000000;
+ 	rv = saHpiEventLogTimeSet(Domain->sessionId, rptid, newtime);
+	if (rv != SA_OK) 
+	{
+		printf("saHpiEventLogTimeSet %s\n", oh_lookup_error(rv));
+	}
+
+	return (rv);
 }
 
 static char *get_thres_value(SaHpiSensorReadingT *item, char *buf, int len)
@@ -1133,13 +1231,15 @@ static int quit(int argc, char *argv[])
 
 /* command table */
 const char clearevtloghelp[] = "clearevtlog: clear system event logs\n"    \
-			"Usage: clearevtlog <resource id>";
+			"Usage: clearevtlog [<resource id>]";
 const char dathelp[] = "dat: domain alarm table list\n"
 			"Usage: dat";
 const char dscvhelp[] = "dscv: discovery resources\n"                      \
 			"Usage: dscv ";
 const char eventhelp[] = "event: enable or disable event display on screen\n" \
 			"Usage: event [enable|disable|short|full] ";
+const char evtlogtimehelp[] = "evtlogtime: show the event log's clock\n"
+			"Usage: evtlogtime [<resource id>]";
 const char helphelp[] = "help: help information for OpenHPI commands\n"
 			"Usage: help [optional commands]";
 const char hsindhelp[] = "hotswap_ind: show hot swap indicator state\n"
@@ -1155,13 +1255,15 @@ const char powerhelp[] = "power: power the resource on, off or cycle\n"
 const char quithelp[] = "quit: close session and quit console\n"
 			"Usage: quit";
 const char resethelp[] = "reset: perform specified reset on the entity\n"  \
-			"Usage: reset <resource id> [cold|warm|assert]";
+			"Usage: reset <resource id> [cold|warm|assert|deassert]";
 const char senhelp[] =	"sen: sensor command block\n"
 			"Usage: sen [<sensorId>]\n"
 			"	sensorId:: <resourceId> <num>\n"
 			SEN_AV_COM;
 const char settaghelp[] = "settag: set tag for a particular resource\n"
 			"Usage: settag [<resource id>]";
+const char settimeevtloghelp[] = "settimeevtlog: sets the event log's clock\n"
+			"Usage: settimeevtlog [<resource id>]";
 const char showevtloghelp[] = "showevtlog: show system event logs\n"
 			"Usage: showevtlog [<resource id>]";
 const char showinvhelp[] = "showinv: show inventory data of a resource\n"
@@ -1180,6 +1282,7 @@ struct command commands[] = {
     { "dat",		dat_list,		dathelp },
     { "dscv",		discovery,		dscvhelp },
     { "event",		event,			eventhelp },
+    { "evtlogtime",	evtlog_time,		evtlogtimehelp },
     { "help",		help,			helphelp },
     { "hotswap_ind",	show_hs_ind,		hsindhelp },
     { "hotswapstat",	hotswap_stat,		hsstathelp },
@@ -1192,6 +1295,7 @@ struct command commands[] = {
     { "rpt",		show_rpt,		showrpthelp },
     { "sen",		sen_block,		senhelp },
     { "settag",		set_tag,		settaghelp },
+    { "settimeevtlog",	settime_evtlog,		settimeevtloghelp },
     { "showevtlog",	show_evtlog,		showevtloghelp },
     { "showinv",	show_inv,		showinvhelp },
     { "showrdr",	show_rdr,		showrdrhelp },
