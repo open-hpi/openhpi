@@ -957,38 +957,44 @@ static SaErrorT oh_build_threshold_mask(oh_big_textbuffer *buffer,
  **/
 SaErrorT oh_fprint_idrfield(FILE *stream, const SaHpiIdrFieldT *thisfield, int space)
 {
-	int err;
 	SaErrorT rv = SA_OK;
+	char str[SAHPI_MAX_TEXT_BUFFER_LENGTH];
+	oh_big_textbuffer mybuf;
 
 	if (!stream || !thisfield) 
 		return(SA_ERR_HPI_INVALID_PARAMS);
-			
-	put_spacing(space);
-	err = fprintf(stream, "Field Id:\t%d\n", thisfield->FieldId);
-	check_err(err);
-	
-	put_spacing(space);
-        err = fprintf(stream, "Field Type:\t%s\n", oh_lookup_idrfieldtype(thisfield->Type));
-	check_err(err);
-	
-	put_spacing(space);
-        err = fprintf(stream, "ReadOnly:\t%d\n", thisfield->ReadOnly); 
-	check_err(err);
-	
-	put_spacing(space);
-        err = fprintf(stream, "DataType:\t%s\n", oh_lookup_texttype(thisfield->Field.DataType));
-	check_err(err);
-	
-	put_spacing(space);
-        err = fprintf(stream, "Language:\t%s\n", oh_lookup_language(thisfield->Field.Language));;
-	check_err(err);
-	
-	put_spacing(space);
-	err = fprintf(stream, "Content:\t");
-	rv =  oh_fprint_text(stream, &thisfield->Field);
-	err = fprintf(stream, "\n");
-	check_err(err);
-			
+					
+	oh_init_bigtext(&mybuf);
+	oh_append_offset(&mybuf, space);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Field Id:\t%d\n",thisfield->FieldId);
+	oh_append_bigtext(&mybuf, str, strlen(str));
+						
+	oh_append_offset(&mybuf, space);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Field Type:\t%s\n",
+						oh_lookup_idrfieldtype(thisfield->Type));
+	oh_append_bigtext(&mybuf, str, strlen(str));
+						
+	oh_append_offset(&mybuf, space);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "ReadOnly:\t%s\n",
+				(thisfield->ReadOnly == SAHPI_TRUE) ? "TRUE" : "FALSE");
+	oh_append_bigtext(&mybuf, str, strlen(str));
+						
+	oh_append_offset(&mybuf, space);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "DataType:\t%s\n",
+					oh_lookup_texttype(thisfield->Field.DataType));
+	oh_append_bigtext(&mybuf, str, strlen(str));
+						
+	oh_append_offset(&mybuf, space);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Language:\t%s\n",
+					oh_lookup_language(thisfield->Field.Language));
+	oh_append_bigtext(&mybuf, str, strlen(str));
+						
+	oh_append_offset(&mybuf, space);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH,"Content:\t%s\n",
+						thisfield->Field.Data);
+	oh_append_bigtext(&mybuf, str, strlen(str));
+							
+	rv = oh_fprint_bigtext(stream, &mybuf); 		
 	return(rv);
 }
 
@@ -1006,29 +1012,35 @@ SaErrorT oh_fprint_idrfield(FILE *stream, const SaHpiIdrFieldT *thisfield, int s
  **/
 SaErrorT oh_fprint_idrareaheader(FILE *stream, const SaHpiIdrAreaHeaderT *areaheader, int space)
 {
-	int err;
+	SaErrorT rv = SA_OK;
+	char str[SAHPI_MAX_TEXT_BUFFER_LENGTH];
+	oh_big_textbuffer mybuf;
 
 	if (!stream || !areaheader) 
 		return(SA_ERR_HPI_INVALID_PARAMS);
 			
 	
-	put_spacing(space);
-        err = fprintf(stream, "AreaId:\t%d\n", areaheader->AreaId);
-	check_err(err);
-			
-	put_spacing(space);
-        err = fprintf(stream, "AreaType:\t%s\n", oh_lookup_idrareatype(areaheader->Type));
-	check_err(err);
-			
-	put_spacing(space);
-        err = fprintf(stream, "ReadOnly:\t%d\n", areaheader->ReadOnly);
-	check_err(err);
+	oh_init_bigtext(&mybuf);
+	oh_append_offset(&mybuf, space);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "AreaId:  \t%d\n", areaheader->AreaId);
+	oh_append_bigtext(&mybuf, str, strlen(str));
 
-	put_spacing(space);
-        err = fprintf(stream, "NumFields:\t%d\n",areaheader->NumFields);	
-	check_err(err);
-			
-	return(SA_OK);
+	oh_append_offset(&mybuf, space);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "AreaType:\t%s\n",
+						oh_lookup_idrareatype(areaheader->Type));
+	oh_append_bigtext(&mybuf, str, strlen(str));
+
+	oh_append_offset(&mybuf, space);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "ReadOnly:\t%s\n",
+				(areaheader->ReadOnly == SAHPI_TRUE) ? "TRUE" : "FALSE" );
+	oh_append_bigtext(&mybuf, str, strlen(str));
+
+	oh_append_offset(&mybuf, space);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "NumFields:\t%d\n",areaheader->NumFields);
+	oh_append_bigtext(&mybuf, str, strlen(str));
+
+	rv = oh_fprint_bigtext(stream, &mybuf); 					
+	return(rv);
 }
 
 /**
@@ -1045,28 +1057,33 @@ SaErrorT oh_fprint_idrareaheader(FILE *stream, const SaHpiIdrAreaHeaderT *areahe
  **/
 SaErrorT oh_fprint_idrinfo(FILE *stream, const SaHpiIdrInfoT *idrinfo, int space)
 {
-	int err;
+	SaErrorT rv = SA_OK;
+	char str[SAHPI_MAX_TEXT_BUFFER_LENGTH];
+	oh_big_textbuffer mybuf;
 	
 	if (!stream || !idrinfo) 
 		return(SA_ERR_HPI_INVALID_PARAMS);
 			
-	put_spacing(space);
-        err = fprintf(stream, "IdrId:\t%d\n", idrinfo->IdrId);
-	check_err(err);
-			
-	put_spacing(space);
-        err = fprintf(stream, "UpdateCount:\t%d\n", idrinfo->UpdateCount);
-	check_err(err);
-			
-	put_spacing(space);
-        err = fprintf(stream, "ReadOnly:\t%d\n",idrinfo->ReadOnly);
-	check_err(err);
-			
-	put_spacing(space);
-        err = fprintf(stream, "NumAreas:\t%d\n", idrinfo->NumAreas);
-	check_err(err);
-			
-	return(SA_OK);
+	oh_init_bigtext(&mybuf);
+	oh_append_offset(&mybuf, space);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "IdrId:   \t%d\n", idrinfo->IdrId);
+	oh_append_bigtext(&mybuf, str, strlen(str));
+
+	oh_append_offset(&mybuf, space);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "UpdateCount:\t%d\n", idrinfo->UpdateCount);
+	oh_append_bigtext(&mybuf, str, strlen(str));
+
+	oh_append_offset(&mybuf, space);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "ReadOnly:\t%s\n",
+				(idrinfo->ReadOnly == SAHPI_TRUE) ? "TRUE" : "FALSE" );
+	oh_append_bigtext(&mybuf, str, strlen(str));
+
+	oh_append_offset(&mybuf, space);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "NumAreas:\t%d\n", idrinfo->NumAreas);
+	oh_append_bigtext(&mybuf, str, strlen(str));
+
+	rv = oh_fprint_bigtext(stream, &mybuf); 					
+	return(rv);
 }
 
 SaErrorT oh_fprint_textbuffer(FILE *stream, const SaHpiTextBufferT *textbuffer) {
