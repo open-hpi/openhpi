@@ -2069,6 +2069,7 @@ SaErrorT SAHPI_API saHpiIdrInfoGet(
 {
 
         SaHpiRptEntryT *res;
+        SaHpiRdrT *rdr;
         SaErrorT rv = SA_OK;    /* Default to SA_OK */
         SaHpiDomainIdT did;
         struct oh_domain *d = NULL;
@@ -2094,6 +2095,11 @@ SaErrorT SAHPI_API saHpiIdrInfoGet(
         }
 
         OH_HANDLER_GET(d, ResourceId, h);
+        rdr = oh_get_rdr_by_type(&(d->rpt), ResourceId, SAHPI_INVENTORY_RDR, IdrId);
+        if (!rdr) {
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
         oh_release_domain(d); /* Unlock domain */
 
         set_func = h->abi->get_idr_info;
@@ -2120,6 +2126,7 @@ SaErrorT SAHPI_API saHpiIdrAreaHeaderGet(
 {
 
         SaHpiRptEntryT *res;
+        SaHpiRdrT *rdr;
         SaErrorT rv = SA_OK;    /* Default to SA_OK */
         SaHpiDomainIdT did;
         struct oh_domain *d = NULL;
@@ -2152,6 +2159,11 @@ SaErrorT SAHPI_API saHpiIdrAreaHeaderGet(
         }
 
         OH_HANDLER_GET(d, ResourceId, h);
+        rdr = oh_get_rdr_by_type(&(d->rpt), ResourceId, SAHPI_INVENTORY_RDR, IdrId);
+        if (!rdr) {
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
         oh_release_domain(d); /* Unlock domain */
 
         set_func = h->abi->get_idr_area_header;
@@ -2176,6 +2188,7 @@ SaErrorT SAHPI_API saHpiIdrAreaAdd(
         SAHPI_OUT SaHpiEntryIdT     *AreaId)
 {
         SaHpiRptEntryT *res;
+        SaHpiRdrT *rdr;
         SaErrorT rv = SA_OK;    /* Default to SA_OK */
         SaHpiDomainIdT did;
         struct oh_domain *d = NULL;
@@ -2206,6 +2219,11 @@ SaErrorT SAHPI_API saHpiIdrAreaAdd(
         }
 
         OH_HANDLER_GET(d, ResourceId, h);
+        rdr = oh_get_rdr_by_type(&(d->rpt), ResourceId, SAHPI_INVENTORY_RDR, IdrId);
+        if (!rdr) {
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
         oh_release_domain(d); /* Unlock domain */
 
         set_func = h->abi->add_idr_area;
@@ -2228,6 +2246,7 @@ SaErrorT SAHPI_API saHpiIdrAreaDelete(
         SAHPI_IN SaHpiEntryIdT    AreaId)
 {
         SaHpiRptEntryT *res;
+        SaHpiRdrT *rdr;
         SaErrorT rv = SA_OK;    /* Default to SA_OK */
         SaHpiDomainIdT did;
         struct oh_domain *d = NULL;
@@ -2253,6 +2272,11 @@ SaErrorT SAHPI_API saHpiIdrAreaDelete(
         }
 
         OH_HANDLER_GET(d, ResourceId, h);
+        rdr = oh_get_rdr_by_type(&(d->rpt), ResourceId, SAHPI_INVENTORY_RDR, IdrId);
+        if (!rdr) {
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
         oh_release_domain(d); /* Unlock domain */
 
         set_func = h->abi->del_idr_area;
@@ -2279,6 +2303,7 @@ SaErrorT SAHPI_API saHpiIdrFieldGet(
         SAHPI_OUT SaHpiIdrFieldT     *Field)
 {
         SaHpiRptEntryT *res;
+        SaHpiRdrT *rdr;
         SaErrorT rv = SA_OK;    /* Default to SA_OK */
         SaHpiDomainIdT did;
         struct oh_domain *d = NULL;
@@ -2311,6 +2336,11 @@ SaErrorT SAHPI_API saHpiIdrFieldGet(
         }
 
         OH_HANDLER_GET(d, ResourceId, h);
+        rdr = oh_get_rdr_by_type(&(d->rpt), ResourceId, SAHPI_INVENTORY_RDR, IdrId);
+        if (!rdr) {
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
         oh_release_domain(d); /* Unlock domain */
 
         set_func = h->abi->get_idr_field;
@@ -2335,6 +2365,7 @@ SaErrorT SAHPI_API saHpiIdrFieldAdd(
         SAHPI_INOUT SaHpiIdrFieldT   *Field)
 {
         SaHpiRptEntryT *res;
+        SaHpiRdrT *rdr;
         SaErrorT rv = SA_OK;    /* Default to SA_OK */
         SaHpiDomainIdT did;
         struct oh_domain *d = NULL;
@@ -2363,6 +2394,11 @@ SaErrorT SAHPI_API saHpiIdrFieldAdd(
         }
 
         OH_HANDLER_GET(d, ResourceId, h);
+        rdr = oh_get_rdr_by_type(&(d->rpt), ResourceId, SAHPI_INVENTORY_RDR, IdrId);
+        if (!rdr) {
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
         oh_release_domain(d); /* Unlock domain */
 
         set_func = h->abi->add_idr_field;
@@ -2385,6 +2421,7 @@ SaErrorT SAHPI_API saHpiIdrFieldSet(
         SAHPI_IN SaHpiIdrFieldT   *Field)
 {
         SaHpiRptEntryT *res;
+        SaHpiRdrT *rdr;
         SaErrorT rv = SA_OK;    /* Default to SA_OK */
         SaHpiDomainIdT did;
         struct oh_domain *d = NULL;
@@ -2413,6 +2450,11 @@ SaErrorT SAHPI_API saHpiIdrFieldSet(
         }
 
         OH_HANDLER_GET(d, ResourceId, h);
+        rdr = oh_get_rdr_by_type(&(d->rpt), ResourceId, SAHPI_INVENTORY_RDR, IdrId);
+        if (!rdr) {
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
         oh_release_domain(d); /* Unlock domain */
 
         set_func = h->abi->set_idr_field;
@@ -2436,6 +2478,7 @@ SaErrorT SAHPI_API saHpiIdrFieldDelete(
         SAHPI_IN SaHpiEntryIdT    FieldId)
 {
         SaHpiRptEntryT *res;
+        SaHpiRdrT *rdr;
         SaErrorT rv = SA_OK;    /* Default to SA_OK */
         SaHpiDomainIdT did;
         struct oh_handler *h;
@@ -2461,6 +2504,11 @@ SaErrorT SAHPI_API saHpiIdrFieldDelete(
         }
 
         OH_HANDLER_GET(d, ResourceId, h);
+        rdr = oh_get_rdr_by_type(&(d->rpt), ResourceId, SAHPI_INVENTORY_RDR, IdrId);
+        if (!rdr) {
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
         oh_release_domain(d); /* Unlock domain */
 
         set_func = h->abi->del_idr_field;
