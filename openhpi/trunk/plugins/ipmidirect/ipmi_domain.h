@@ -32,8 +32,7 @@ extern "C" {
 }
 
 #include <openhpi.h>
-#include <epath_utils.h>
-#include <uid_utils.h>
+#include <oh_utils.h>
 
 
 #ifndef dIpmiCon_h

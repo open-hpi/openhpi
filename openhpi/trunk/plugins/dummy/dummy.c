@@ -25,9 +25,7 @@
 
 #include <SaHpi.h>
 #include <openhpi.h>
-#include <epath_utils.h>
-#include <uid_utils.h>
-#include <oh_error.h>
+#include <oh_utils.h>
 
 #define ELEMENT_NUM(x) (sizeof(x)/sizeof(x[0]))
 
