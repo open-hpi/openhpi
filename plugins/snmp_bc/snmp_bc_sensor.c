@@ -57,11 +57,10 @@ SaErrorT snmp_bc_get_sensor_reading(void *hnd,
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
-
 	g_static_rec_mutex_lock(&handle->handler_lock);
 	/* Check if resource exists and has sensor capabilities */
 	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
-        if (!rpt) {
+        if (!rpt) {	
 		g_static_rec_mutex_unlock(&handle->handler_lock);
 		return(SA_ERR_HPI_INVALID_RESOURCE);
 	}
@@ -102,8 +101,8 @@ SaErrorT snmp_bc_get_sensor_reading(void *hnd,
 	if (rdr->RdrTypeUnion.SensorRec.DataFormat.IsSupported == SAHPI_TRUE) {
 		err = snmp_bc_get_sensor_oid_reading(hnd, rid, sid, sinfo->mib.oid, &working_reading);
 		if (err) {
-			g_static_rec_mutex_unlock(&handle->handler_lock);
 			dbg("Cannot determine sensor's reading. Error=%s", oh_lookup_error(err));
+			g_static_rec_mutex_unlock(&handle->handler_lock);
 			return(err);
 		}
 	}
@@ -118,8 +117,8 @@ SaErrorT snmp_bc_get_sensor_reading(void *hnd,
 	 ******************************************************************/
 	err = snmp_bc_get_sensor_eventstate(hnd, rid, sid, &working_reading, &working_state);
 	if (err) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
 		dbg("Cannot determine sensor's event state. Error=%s", oh_lookup_error(err));
+		g_static_rec_mutex_unlock(&handle->handler_lock);		
 		return(err);
 	}
 
@@ -319,7 +318,10 @@ do { \
 		SaErrorT err = snmp_bc_get_sensor_oid_reading(hnd, rid, sid, \
 							      sinfo->mib.threshold_oids.thdname, \
 							      &(working.thdname)); \
-		if (err) return(err); \
+		if (err) { \
+			g_static_rec_mutex_unlock(&handle->handler_lock); \
+			return(err); \
+		} \
 		if (working.thdname.Type == SAHPI_SENSOR_READING_TYPE_BUFFER) { \
 			dbg("Sensor type SAHPI_SENSOR_READING_TYPE_BUFFER cannot have thresholds. Sensor=%s", \
 			    rdr->IdString.Data); \
@@ -363,7 +365,6 @@ SaErrorT snmp_bc_get_sensor_thresholds(void *hnd,
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
-
 	g_static_rec_mutex_lock(&handle->handler_lock);
 	/* Check if resource exists and has sensor capabilities */
 	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
@@ -706,7 +707,6 @@ SaErrorT snmp_bc_set_sensor_thresholds(void *hnd,
 		dbg("Invalid parameter");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
-
 	g_static_rec_mutex_lock(&handle->handler_lock);
 	/* Check if resource exists and has sensor capabilities */
 	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
@@ -1310,7 +1310,10 @@ SaErrorT snmp_bc_set_sensor_event_masks(void *hnd,
 
 		/* Check for invalid data in user masks */
 		if ( (AssertEventMask != SAHPI_ALL_EVENT_STATES) &&
-		     (AssertEventMask & ~(rdr->RdrTypeUnion.SensorRec.Events)) ) return(SA_ERR_HPI_INVALID_DATA);
+		     (AssertEventMask & ~(rdr->RdrTypeUnion.SensorRec.Events)) ) { 
+			g_static_rec_mutex_unlock(&handle->handler_lock);
+			return(SA_ERR_HPI_INVALID_DATA);
+		}
 		if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_EVT_DEASSERTS)) {
 			if  ( (DeassertEventMask != SAHPI_ALL_EVENT_STATES) &&
 				(DeassertEventMask & ~(rdr->RdrTypeUnion.SensorRec.Events)) ) {
