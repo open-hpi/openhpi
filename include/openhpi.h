@@ -283,7 +283,8 @@ struct oh_handler *new_handler(GHashTable *handler_config);
 int free_handler(struct oh_handler*);
 
 /* system event log */
-#define OH_DEFAULT_DOMAIN_ID 0
+#define OH_DEFAULT_DOMAIN_ID SAHPI_UNSPECIFIED_DOMAIN_ID
+
 int dsel_get_info(SaHpiDomainIdT domain_id, SaHpiEventLogInfoT *info);
 int dsel_get_state(SaHpiDomainIdT domain_id);
 int dsel_set_state(SaHpiDomainIdT domain_id, int enable);

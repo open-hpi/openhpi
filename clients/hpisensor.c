@@ -52,132 +52,98 @@ static void ShowSensor(
 {
         SaHpiSensorNumT sensornum;
         SaHpiSensorReadingT reading;
-        SaHpiSensorReadingT conv_reading;
+        SaHpiEventStateT events;
         SaHpiSensorThresholdsT senstbuff; 
         SaErrorT rv;
         char *unit;
         int i;
         
         sensornum = sensorrec->Num;
-        rv = saHpiSensorReadingGet(sessionid,resourceid, sensornum, &reading);
+        rv = saHpiSensorReadingGet(sessionid,resourceid, sensornum, &reading, &events);
         if (rv != SA_OK)  {
                 printf("ReadingGet ret=%d\n", rv);
                 return;
         }
-
-
         
-        if ((reading.ValuesPresent & SAHPI_SRF_INTERPRETED) == 0) { 
-                if ((reading.ValuesPresent & SAHPI_SRF_RAW) == 0) {
-                        /* no raw or interpreted, so just show event status */
-                        /* This is a Compact Sensor */
-                        if (reading.ValuesPresent & SAHPI_SRF_EVENT_STATE) 
-                                printf(" = %x %x\n", reading.EventStatus.SensorStatus,
-                                       reading.EventStatus.EventStatus);
-                        else printf(" = event-only sensor\n");
-                        return;
-                } else {
-                        /* have raw, but not interpreted, so try convert. */
-                        rv = saHpiSensorReadingConvert(sessionid, resourceid, sensornum,
-                                                       &reading, &conv_reading);
-                        if (rv != SA_OK) {
-                                printf("raw=%x conv_ret=%d\n", reading.Raw, rv);
-                                /* printf("conv_rv=%s\n", decode_error(rv)); */
-                                return;
-                        }
-                        else {
-                                if (fdebug) printf("conv ok: raw=%x conv=%x\n", reading.Raw,
-                                                   conv_reading.Interpreted.Value.SensorUint32);
-                                reading.Interpreted.Type = conv_reading.Interpreted.Type;
-                                if (reading.Interpreted.Type == SAHPI_SENSOR_INTERPRETED_TYPE_BUFFER)
-                                {
-                                        memcpy(reading.Interpreted.Value.SensorBuffer,
-                                               conv_reading.Interpreted.Value.SensorBuffer,
-                                               4); /* SAHPI_SENSOR_BUFFER_LENGTH); */
-                                        /* IPMI 1.5 only returns 4 bytes */
-                                } else 
-                                        reading.Interpreted.Value.SensorUint32 = 
-                                                conv_reading.Interpreted.Value.SensorUint32;
-                        }
+        if (reading.IsSupported) {
+                /* Also show units of interpreted reading */
+                i = sensorrec->DataFormat.BaseUnits;
+                if (i >= NSU) i = 0;
+                unit = units[i];
+                
+                switch(reading.Type)
+                {
+                case SAHPI_SENSOR_READING_TYPE_FLOAT64:
+                        printf(" = %8.2f %s\n", 
+                               reading.Value.SensorFloat64,unit);
+                        break;
+                case SAHPI_SENSOR_READING_TYPE_INT64:
+                        printf(" = %lld %s\n", 
+                               reading.Value.SensorInt64, unit);
+                        break;
+                case SAHPI_SENSOR_READING_TYPE_BUFFER:
+                        printf(" = %s\n",
+                               reading.Value.SensorBuffer);
+                        break;
+                default: 
+                        printf(" = %lld (itype=%d)\n", 
+                               reading.Value.SensorUint64, 
+                               reading.Type);
                 }
-        }
-        /* Also show units of interpreted reading */
-        i = sensorrec->DataFormat.BaseUnits;
-        if (i >= NSU) i = 0;
-        unit = units[i];
-        switch(reading.Interpreted.Type)
-        {
-        case SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32:
-                printf(" = %5.2f %s\n", 
-                       reading.Interpreted.Value.SensorFloat32,unit);
-                break;
-        case SAHPI_SENSOR_INTERPRETED_TYPE_UINT32:
-                printf(" = %d %s\n", 
-                       reading.Interpreted.Value.SensorUint32, unit);
-                break;
-        case SAHPI_SENSOR_INTERPRETED_TYPE_BUFFER:
-                printf(" = %02x %02x %02x %02x\n", 
-                       reading.Interpreted.Value.SensorBuffer[0],
-                       reading.Interpreted.Value.SensorBuffer[1],
-                       reading.Interpreted.Value.SensorBuffer[2],
-                       reading.Interpreted.Value.SensorBuffer[3]);
-                break;
-        default: 
-                printf(" = %x (itype=%x)\n", 
-                       reading.Interpreted.Value.SensorUint32, 
-                       reading.Interpreted.Type);
-        }
-        
-        if (fshowthr) {
-#ifdef SHOWMAX
-                if ( sensorrec->DataFormat.Range.Flags & SAHPI_SRF_MAX )
-                        printf( "    Max of Range: %5.2f\n",
-                                sensorrec->DataFormat.Range.Max.Interpreted.Value.SensorFloat32);
-                if ( sensorrec->DataFormat.Range.Flags & SAHPI_SRF_MIN )
-                        printf( "    Min of Range: %5.2f\n",
-                                sensorrec->DataFormat.Range.Min.Interpreted.Value.SensorFloat32);
-#endif
-                /* Show thresholds, if any */
-                if ((!sensorrec->Ignore) && (sensorrec->ThresholdDefn.IsThreshold)) {
-                        rv = saHpiSensorThresholdsGet(sessionid, resourceid, 
-                                                      sensornum, &senstbuff);
-                        printf( "\t\t\t");
-                        if ( sensorrec->ThresholdDefn.ReadThold & SAHPI_STM_LOW_MINOR ) {
-                                printf( "LoMin %5.2f ",
-                                        senstbuff.LowMinor.Interpreted.Value.SensorFloat32);
-                        } 
-                        if ( sensorrec->ThresholdDefn.ReadThold & SAHPI_STM_LOW_MAJOR ) {
-                                printf( "LoMaj %5.2f ",
-                                        senstbuff.LowMajor.Interpreted.Value.SensorFloat32);
-                        } 
-                        if ( sensorrec->ThresholdDefn.ReadThold & SAHPI_STM_LOW_CRIT ) {
-                                printf( "LoCri %5.2f ",
-                                        senstbuff.LowCritical.Interpreted.Value.SensorFloat32);
-                        } 
-                        if ( sensorrec->ThresholdDefn.ReadThold & SAHPI_STM_UP_MINOR ) {
-                                printf( "HiMin %5.2f ",
-                                        senstbuff.UpMinor.Interpreted.Value.SensorFloat32);
-                        } 
-                        if ( sensorrec->ThresholdDefn.ReadThold & SAHPI_STM_UP_MAJOR ) {
-                                printf( "HiMaj %5.2f ",
-                                        senstbuff.UpMajor.Interpreted.Value.SensorFloat32);
-                        } 
-                        if ( sensorrec->ThresholdDefn.ReadThold & SAHPI_STM_UP_CRIT ) {
-                                printf( "HiCri %5.2f ",
-                                        senstbuff.UpCritical.Interpreted.Value.SensorFloat32);
-                        } 
-#ifdef SHOWMAX
-                        if ( sensorrec->ThresholdDefn.ReadThold & SAHPI_STM_UP_HYSTERESIS ) {
-                                printf( "Hi Hys %5.2f ",
-                                        senstbuff.PosThdHysteresis.Interpreted.Value.SensorFloat32);
-                        } 
-                        if ( sensorrec->ThresholdDefn.ReadThold & SAHPI_STM_LOW_HYSTERESIS ) {
-                                printf( "Lo Hys %5.2f ",
-                                        senstbuff.NegThdHysteresis.Interpreted.Value.SensorFloat32);
-                        } 
-#endif
-                        printf( "\n");
+     
+                /* all the code below is completely invalid.  It assumes uint32 in all 
+                   kinds of cases that are invalid entirely.  This can be fixed later */
+#if 0
+                if (fshowthr) {
+                        /* ok, this code needs major rework, why was this ever hardcoded
+                           to certain types? */
+                        if ( sensorrec->DataFormat.Range.Flags & SAHPI_SRF_MAX )
+                                printf( "    Max of Range: %5.2f\n",
+                                        sensorrec->DataFormat.Range.Max.Value.SensorFloat64);
+                        if ( sensorrec->DataFormat.Range.Flags & SAHPI_SRF_MIN )
+                                printf( "    Min of Range: %5.2f\n",
+                                        sensorrec->DataFormat.Range.Min.Value.SensorFloat64);
+                        /* Show thresholds, if any */
+                        if ((!sensorrec->Ignore) && (sensorrec->ThresholdDefn.IsThreshold)) {
+                                rv = saHpiSensorThresholdsGet(sessionid, resourceid, 
+                                                              sensornum, &senstbuff);
+                                printf( "\t\t\t");
+                                if ( sensorrec->ThresholdDefn.ReadThold & SAHPI_STM_LOW_MINOR ) {
+                                        printf( "LoMin %5.2f ",
+                                                senstbuff.LowMinor.Interpreted.Value.SensorFloat32);
+                                } 
+                                if ( sensorrec->ThresholdDefn.ReadThold & SAHPI_STM_LOW_MAJOR ) {
+                                        printf( "LoMaj %5.2f ",
+                                                senstbuff.LowMajor.Interpreted.Value.SensorFloat32);
+                                } 
+                                if ( sensorrec->ThresholdDefn.ReadThold & SAHPI_STM_LOW_CRIT ) {
+                                        printf( "LoCri %5.2f ",
+                                                senstbuff.LowCritical.Interpreted.Value.SensorFloat32);
+                                } 
+                                if ( sensorrec->ThresholdDefn.ReadThold & SAHPI_STM_UP_MINOR ) {
+                                        printf( "HiMin %5.2f ",
+                                                senstbuff.UpMinor.Interpreted.Value.SensorFloat32);
+                                } 
+                                if ( sensorrec->ThresholdDefn.ReadThold & SAHPI_STM_UP_MAJOR ) {
+                                        printf( "HiMaj %5.2f ",
+                                                senstbuff.UpMajor.Interpreted.Value.SensorFloat32);
+                                } 
+                                if ( sensorrec->ThresholdDefn.ReadThold & SAHPI_STM_UP_CRIT ) {
+                                        printf( "HiCri %5.2f ",
+                                                senstbuff.UpCritical.Interpreted.Value.SensorFloat32);
+                                } 
+                                if ( sensorrec->ThresholdDefn.ReadThold & SAHPI_STM_UP_HYSTERESIS ) {
+                                        printf( "Hi Hys %5.2f ",
+                                                senstbuff.PosThdHysteresis.Interpreted.Value.SensorFloat32);
+                                } 
+                                if ( sensorrec->ThresholdDefn.ReadThold & SAHPI_STM_LOW_HYSTERESIS ) {
+                                        printf( "Lo Hys %5.2f ",
+                                                senstbuff.NegThdHysteresis.Interpreted.Value.SensorFloat32);
+                                } 
+                                printf( "\n");
+                        }
                 } /* endif valid threshold */
+#endif
         } /* endif showthr */
         return;
 }  /*end ShowSensor*/
@@ -186,9 +152,8 @@ int main(int argc, char **argv)
 {
         int c;
         SaErrorT rv;
-        SaHpiVersionT hpiVer;
+        // SaHpiVersionT hpiVer;
         SaHpiSessionIdT sessionid;
-        SaHpiRptInfoT rptinfo;
         SaHpiRptEntryT rptentry;
         SaHpiEntryIdT rptentryid;
         SaHpiEntryIdT nextrptentryid;
@@ -218,12 +183,8 @@ int main(int argc, char **argv)
                         printf("      -x = show eXtra debug messages\n");
                         exit(1);
                 }
-        rv = saHpiInitialize(&hpiVer);
-        if (rv != SA_OK) {
-                printf("saHpiInitialize: %s\n",decode_error(rv));
-                exit(-1);
-        }
-        rv = saHpiSessionOpen(SAHPI_DEFAULT_DOMAIN_ID,&sessionid,NULL);
+
+        rv = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID,&sessionid,NULL);
         if (rv != SA_OK) {
                 if (rv == SA_ERR_HPI_ERROR) 
                         printf("saHpiSessionOpen: error %d, daemon not running\n",rv);
@@ -232,29 +193,17 @@ int main(int argc, char **argv)
                 exit(-1);
         }
         
-        rv = saHpiResourcesDiscover(sessionid);
+        rv = saHpiDiscover(sessionid);
         if (fdebug) printf("saHpiResourcesDiscover %s\n",decode_error(rv));
+
+        /*
         rv = saHpiRptInfoGet(sessionid,&rptinfo);
+
         if (fdebug) printf("saHpiRptInfoGet %s\n",decode_error(rv));
         printf("RptInfo: UpdateCount = %d, UpdateTime = %lx\n",
                rptinfo.UpdateCount, (unsigned long)rptinfo.UpdateTimestamp);
+        */
         
-#ifdef BUGGY
-        /* ARC: Bug here in OpenHPI requires re-doing discovery (workaround). */
-        { 
-                int updcnt;
-                int i = 0;
-                updcnt = rptinfo.UpdateCount;
-                while (rptinfo.UpdateCount == updcnt) {
-                        rv = saHpiResourcesDiscover(sessionid);
-                        if (fdebug) printf("saHpiResourcesDiscover %s\n",decode_error(rv));
-                        rv = saHpiRptInfoGet(sessionid,&rptinfo);
-                        if (fdebug) printf("saHpiRptInfoGet %s\n",decode_error(rv));
-                        printf("RptInfo/%d: UpdateCount = %d, UpdateTime = %lx\n",
-                               ++i,rptinfo.UpdateCount, (unsigned long)rptinfo.UpdateTimestamp);
-                }
-        }  /*end openhpi bug workaround*/
-#endif
         /* walk the RPT list */
         rptentryid = SAHPI_FIRST_ENTRY;
         while ((rv == SA_OK) && (rptentryid != SAHPI_LAST_ENTRY))
@@ -289,8 +238,7 @@ int main(int argc, char **argv)
                                         else eol = "\n";
                                         printf("    RDR[%6d]: %s %s %s",rdr.RecordId,
                                                rtypes[rdr.RdrType],rdr.IdString.Data,eol);
-                                        if (rdr.RdrType == SAHPI_SENSOR_RDR &&
-						rdr.RdrTypeUnion.SensorRec.Ignore != TRUE) {
+                                        if (rdr.RdrType == SAHPI_SENSOR_RDR) {
                                                 ShowSensor(sessionid,resourceid,
                                                            &rdr.RdrTypeUnion.SensorRec);
                                         } else {
@@ -308,7 +256,6 @@ int main(int argc, char **argv)
         }
         
         rv = saHpiSessionClose(sessionid);
-        rv = saHpiFinalize();
         
         exit(0);
         return(0);

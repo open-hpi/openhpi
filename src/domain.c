@@ -76,17 +76,10 @@ struct oh_domain *get_domain_by_id(SaHpiDomainIdT did)
         return NULL;
 }
 
-#define MAX_GLOBAL_DOMAIN 10000
-#define MIN_DYNAMIC_DOMAIN (MAX_GLOBAL_DOMAIN+1)
-
 int add_domain(SaHpiDomainIdT did)
 {
         struct oh_domain *d;
         
-        if (did>MAX_GLOBAL_DOMAIN) {
-                dbg("Could not add so large domain, the region is kept for dymanic domain");
-                return -1;
-        }
         if(is_in_domain_list(did) > 0) {
                 dbg("Domain %d exists already, something is fishy", did);
                 return -1;
