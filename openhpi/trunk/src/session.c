@@ -99,25 +99,18 @@ int session_push_event(struct oh_session *s, struct oh_event *e)
 
 int session_pop_event(struct oh_session *s, struct oh_event *e) 
 {
-        struct oh_event *temp;
-        GSList *tail;
+        GSList *head;
         
         if (g_slist_length(s->eventq) == 0) {
                 return 0;
 	}
+       
+	head = s->eventq;
+        s->eventq = g_slist_remove_link(s->eventq, head);
         
-        tail = g_slist_last(s->eventq);
-        if(tail == NULL) {
-                dbg("Tail is NULL, your list is corrupt");
-                return 0;
-        }
-        
-        s->eventq = g_slist_remove_link(s->eventq, tail);
-        
-        temp = (struct oh_event *) g_slist_nth_data(tail, 0);
-        
-	memcpy(e, &s->eventq, sizeof(*e));
-	free(temp);
+	memcpy(e, head->data, sizeof(*e));
+	g_slist_free_1(head);
+	
 	return 1;
 }
 
