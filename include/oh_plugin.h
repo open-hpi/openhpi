@@ -163,12 +163,6 @@ struct oh_abi_v1 {
 	int (*set_sel_state)(void *hnd, struct oh_resource_id *id, int enabled);
 	
 	/**
-	 * get sensor info
-	 */
-	int (*get_sensor_info)(void *hnd, struct oh_rdr_id *id, 
-			       SaHpiSensorDataFormatT *format);
-
-	/**
 	 * get sensor data
 	 */
 	int (*get_sensor_data)(void *hnd, struct oh_rdr_id *id, 
