@@ -1,4 +1,7 @@
 /** 
+ *
+ * Copyright (c) 2003 Intel Corporation
+ *
  * TODO: license
  */
 

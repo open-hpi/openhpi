@@ -15,4 +15,5 @@ include_HEADERS	= hpi_controls.h hpi_ctrlrdr.h hpi_eid.h \
 		  hpi_sensors.h hpi_status.h hpi_types.h \
  		  hpi_watchdog.h hpi_watchdogrdr.h
 
+SUBDIRS		= utils
 

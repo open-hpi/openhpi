@@ -52,7 +52,9 @@ AC_SUBST(base_includedir)
 AC_OUTPUT(openhpi.spec 		\
 Makefile 			\
 include/Makefile		\
+	include/utils/Makefile	\
 lib/Makefile			\
+	lib/utils/Makefile	\
 test/Makefile			\
 )
 
