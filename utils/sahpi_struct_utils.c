@@ -287,15 +287,6 @@ SaErrorT oh_encode_sensorreading(SaHpiTextBufferT *buffer,
 		return(SA_OK);
         }
 
-	if ((strncmp(buffer->Data,"(No temperature)", sizeof("(No temperature)")) == 0) ||
-	    (strncmp(buffer->Data,"Not Readable!", sizeof("Not Readable!")) == 0))					 
-	{
-		reading->IsSupported = SAHPI_TRUE;
-		reading->Type = SAHPI_SENSOR_READING_TYPE_BUFFER;
-		strncpy(reading->Value.SensorBuffer, buffer->Data, SAHPI_SENSOR_BUFFER_LENGTH);
-		return(SA_OK);	
-	}
-	
 	memset(numstr, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);
         memset(&working, 0, sizeof(SaHpiSensorReadingT));
 	working.IsSupported = SAHPI_TRUE;
@@ -346,17 +337,14 @@ SaErrorT oh_encode_sensorreading(SaHpiTextBufferT *buffer,
 		}
 	}
 	
-	if (found_number || in_number) {
+	if (found_number || in_number) { /* in_number means string ended in a digit character */
 		for (j=i-1; j<buffer->DataLength; j++) {
 			if (buffer->Data[j] == '%') {
 				is_percent = 1;
 				break;
 			}
 		}
-	}
-	else {
-		dbg("No number in string");
-		return(SA_ERR_HPI_INVALID_DATA);
+		found_number = 1;
 	}
 
 	if ((is_percent || found_float) && type != SAHPI_SENSOR_READING_TYPE_FLOAT64) {
@@ -367,53 +355,71 @@ SaErrorT oh_encode_sensorreading(SaHpiTextBufferT *buffer,
 	/* Convert string to number */
         switch (type) {
         case SAHPI_SENSOR_READING_TYPE_INT64:
-                errno = 0;
-                num_int64 = strtoll(numstr, &endptr, 10);
-                if (errno) {
-                        dbg("strtoll failed, errno=%d", errno);
-                        return(SA_ERR_HPI_INVALID_DATA);
-                }
-                if (*endptr != '\0') {
-                        dbg("strtoll failed: End Pointer=%s", endptr);
-                        return(SA_ERR_HPI_INVALID_DATA);
-                }
+		if (found_number) {
+			errno = 0;
+			num_int64 = strtoll(numstr, &endptr, 10);
+
+			printf("NUMBER=%lld\n", num_int64);
+
+			if (errno) {
+				dbg("strtoll failed, errno=%d", errno);
+				return(SA_ERR_HPI_INVALID_DATA);
+			}
+			if (*endptr != '\0') {
+				dbg("strtoll failed: End Pointer=%s", endptr);
+				return(SA_ERR_HPI_INVALID_DATA);
+			}
+		}
+		else { /* No number in string */
+			num_int64 = 0;
+		}
 
                 working.Value.SensorInt64 = num_int64;
                 break;
 
         case SAHPI_SENSOR_READING_TYPE_UINT64:
-                errno = 0;
-                num_uint64 = strtoull(numstr, &endptr, 10);
-                if (errno) {
-                        dbg("strtoull failed, errno=%d", errno);
-			return(SA_ERR_HPI_INVALID_DATA);
-                }
-                if (*endptr != '\0') {
-                        dbg("strtoull failed: End Pointer=%s", endptr);
-                        return(SA_ERR_HPI_INVALID_DATA);
-                }
+		if (found_number) {
+			errno = 0;
+			num_uint64 = strtoull(numstr, &endptr, 10);
+			if (errno) {
+				dbg("strtoull failed, errno=%d", errno);
+				return(SA_ERR_HPI_INVALID_DATA);
+			}
+			if (*endptr != '\0') {
+				dbg("strtoull failed: End Pointer=%s", endptr);
+				return(SA_ERR_HPI_INVALID_DATA);
+			}
+		}
+		else { /* No number in string */
+			num_uint64 = 0;
+		}
 
                 working.Value.SensorUint64 = num_uint64;
                 break;
 
         case SAHPI_SENSOR_READING_TYPE_FLOAT64:
-		errno = 0;
-                num_float64 = strtold(numstr, &endptr);
-                if (errno) {
-                        dbg("strtold failed, errno=%d", errno);
-			return(SA_ERR_HPI_INVALID_DATA);
-                }
-                if (*endptr != '\0') {
-                        dbg("strtold failed: End Pointer=%s", endptr);
-                        return(SA_ERR_HPI_INVALID_DATA);
-                }
-
-                if (is_percent) {
-                        working.Value.SensorFloat64 = num_float64/100.0;
-                }
-                else {
-			working.Value.SensorFloat64 = num_float64;
-                }
+		if (found_number) {		
+			errno = 0;
+			num_float64 = strtold(numstr, &endptr);
+			if (errno) {
+				dbg("strtold failed, errno=%d", errno);
+				return(SA_ERR_HPI_INVALID_DATA);
+			}
+			if (*endptr != '\0') {
+				dbg("strtold failed: End Pointer=%s", endptr);
+				return(SA_ERR_HPI_INVALID_DATA);
+			}
+			
+			if (is_percent) {
+				working.Value.SensorFloat64 = num_float64/100.0;
+			}
+			else {
+				working.Value.SensorFloat64 = num_float64;
+			}
+		}
+		else { /* No number in string */
+			num_float64 = 0;
+		}
                 break;
 
         default: /* Should never get here */

@@ -453,13 +453,17 @@ int main(int argc, char **argv)
 
 		/* oh_encode_sensorreading: No digits testcase */
 		str = "There are no numbers in this string";
-		expected_err = SA_ERR_HPI_INVALID_DATA;
 		oh_init_textbuffer(&buffer);
 		oh_append_textbuffer(&buffer, str);
 		err = oh_encode_sensorreading(&buffer, SAHPI_SENSOR_READING_TYPE_INT64, &reading);
-		if (err != expected_err) {
+		if (err) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
-			printf("  Received error=%d; Expected error=%d\n", err, expected_err);
+			printf("  Received error=%d\n", err);
+			return -1;
+		}
+		if (reading.Value.SensorInt64 != 0) {
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Expected Zero value; Received=%lld\n", reading.Value.SensorInt64);
 			return -1;
 		}
 
