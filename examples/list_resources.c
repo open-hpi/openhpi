@@ -71,6 +71,12 @@ int main(int arc, const char *argv[])
                 warn("an error was encountered, results may be incomplete");
         }
 
+		printf("Check RPT again in case something updated\n");
+        err = discover_domain(SAHPI_DEFAULT_DOMAIN_ID, session_id, entry);
+        if (SA_OK != err) {
+                warn("an error was encountered, results may be incomplete");
+        }
+
         saHpiSessionClose(session_id);
 
         err = saHpiFinalize();

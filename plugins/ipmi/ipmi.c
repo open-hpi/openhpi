@@ -28,7 +28,7 @@ struct ohoi_sel_entry {
         unsigned int    recid;
 };
 
-/* global reference count on instances */
+/* global reference count of instances */
 static int ipmi_refcount = 0;
 
 /* ABI Interface functions */
@@ -199,11 +199,8 @@ static void *ipmi_open(GHashTable *handler_config)
                         return NULL;
         }
 
-		/* increment global count and assign each instance a number */
+		/* increment global count of plug-in instances */
 		ipmi_refcount++;
-		ipmi_handler->ipmi_instance = ipmi_refcount;
-
-		dbg("ipmi instance #%d initialized", ipmi_handler->ipmi_instance);
 
 		return handler;
 }
@@ -222,13 +219,20 @@ static void ipmi_close(void *hnd)
 	struct oh_handler_state *handler = (struct oh_handler_state *) hnd;
 	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
 
-	ipmi_domain_pointer_cb(ipmi_handler->domain_id, ohoi_close_connection, handler);
-
-	ipmi_refcount--;
-	dbg("ipmi instances remaining: %d", ipmi_refcount);
-
-	if (ipmi_refcount == 0)
+	dbg("ipmi_refcount :%d", ipmi_refcount);
+	if(ipmi_refcount > 1) {
+			ipmi_domain_pointer_cb(ipmi_handler->domain_id, ohoi_close_connection, handler);
+			
+			ipmi_refcount--;
+			dbg("ipmi instances remaining: %d", ipmi_refcount);
+	} else {
+			/* last connection and in case other instances didn't
+			   close correctly we clean up all connections */
+			dbg("Last connection :%d closing", ipmi_refcount);
 			ipmi_shutdown();
+			g_free(ipmi_handler);
+			g_free(handler);
+	}
 }
 
 /**
