@@ -572,20 +572,23 @@ static void add_sensor_event(ipmi_entity_t	*ent,
 			     SaHpiEntityPathT	parent_ep,
 			     SaHpiResourceIdT	rid)
 {
-        ipmi_sensor_id_t        *sensor_id; 
+	struct ohoi_sensor_info *sensor_info;
 	struct oh_event         *e;
         struct ohoi_resource_info *info;
 
-        sensor_id = malloc(sizeof(*sensor_id));
-        if (!sensor_id) {
-                dbg("Out of memory");
-                return;
-        }
-        *sensor_id = ipmi_sensor_convert_to_id(sensor);
+	sensor_info = malloc(sizeof(*sensor_info));
+
+	if (!sensor_info) {
+		dbg("Out of memory for sensor info");
+		return;
+	}
+
+	sensor_info->sensor_id  = ipmi_sensor_convert_to_id(sensor);
+	sensor_info->valid = 0;
         
 	e = malloc(sizeof(*e));
 	if (!e) {
-                free(sensor_id);
+                free(sensor_info);
 		dbg("Out of space");   
 		return;
 	}
@@ -605,7 +608,7 @@ static void add_sensor_event(ipmi_entity_t	*ent,
 
 	rid = oh_uid_lookup(&e->u.rdr_event.rdr.Entity);
 
-	oh_add_rdr(handler->rptcache, rid, &e->u.rdr_event.rdr, sensor_id, 1);
+	oh_add_rdr(handler->rptcache, rid, &e->u.rdr_event.rdr, sensor_info, 1);
 }
 
 void ohoi_sensor_event(enum ipmi_update_e op,
