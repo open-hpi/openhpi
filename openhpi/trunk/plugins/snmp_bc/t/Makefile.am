@@ -10,7 +10,8 @@
 # full licensing terms.
 
 # Generated files - need to keep in sync with parent's directory's Makefile.am
-GENERATED_CODE = event_array.c event_array_rsa.c
+GENERATED_CODE = event_array.c 
+# event_array_rsa.c
 
 REMOTE_SIM_SOURCES   = \
 			snmp_bc.c \
@@ -68,11 +69,14 @@ libsnmp_bc.la: $(libsnmp_bc_la_OBJECTS) $(libsnmp_bc_la_DEPENDENCIES)
 
 # Keep in sync with parent directory's Makefile.am
 XMLDATA_BC = $(top_srcdir)/plugins/snmp_bc/event.xml
-XMLDATA_RSA = $(top_srcdir)/plugins/snmp_bc/event_rsa.xml
+
+#XMLDATA_RSA = $(top_srcdir)/plugins/snmp_bc/event_rsa.xml
 
 $(GENERATED_CODE): $(XMLDATA_BC) $(XMLDATA_RSA) $(top_srcdir)/scripts/text2cstr.pl
 	$(top_srcdir)/scripts/text2cstr.pl -s bc_eventxml $(XMLDATA_BC) > event_array.c
-	$(top_srcdir)/scripts/text2cstr.pl -s rsa_eventxml $(XMLDATA_RSA) > event_array_rsa.c
+
+
+#	$(top_srcdir)/scripts/text2cstr.pl -s rsa_eventxml $(XMLDATA_RSA) > event_array_rsa.c
 
 # Setup environment variables for TESTS programs
 TESTS_ENVIRONMENT  = OPENHPI_CONF=$(srcdir)/openhpi.conf

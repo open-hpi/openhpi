@@ -12,7 +12,8 @@ MAINTAINERCLEANFILES	= Makefile.in
 
 # Note same rule and files are generated in the t sub-directory - Make sure
 # you change the t/Makefile.am, if you change these
-GENERATED_CODE = event_array.c event_array_rsa.c
+GENERATED_CODE = event_array.c 
+#event_array_rsa.c
 
 MOSTLYCLEANFILES = @TEST_CLEAN@ $(GENERATED_CODE)
 
@@ -73,9 +74,11 @@ libsnmp_bc_la_LDFLAGS	= -avoid-version
 # Note same rule and files are generated in the t sub-directory - Make sure
 # you change the t/Makefile.am, if you change these
 XMLDATA_BC = $(top_srcdir)/plugins/snmp_bc/event.xml
-XMLDATA_RSA = $(top_srcdir)/plugins/snmp_bc/event_rsa.xml
+#XMLDATA_RSA = $(top_srcdir)/plugins/snmp_bc/event_rsa.xml
 
 $(GENERATED_CODE): $(XMLDATA_BC) $(XMLDATA_RSA) $(top_srcdir)/scripts/text2cstr.pl
 	$(top_srcdir)/scripts/text2cstr.pl -s bc_eventxml $(XMLDATA_BC) > event_array.c
-	$(top_srcdir)/scripts/text2cstr.pl -s rsa_eventxml $(XMLDATA_RSA) > event_array_rsa.c
+
+
+#	$(top_srcdir)/scripts/text2cstr.pl -s rsa_eventxml $(XMLDATA_RSA) > event_array_rsa.c
 
