@@ -45,6 +45,7 @@ int main(int argc, char **argv)
         SaHpiSessionIdT sessionid;
 	char *hash_key, *logstr;
 	SnmpMibInfoT *hash_value;
+	SnmpMibInfoT *hash_set_value;
 
         err = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID, &sessionid, NULL);
         if (err) {
@@ -106,18 +107,13 @@ int main(int argc, char **argv)
 			return -1;
 		}
 	}
-#if 0
-	printf("Calling Clear\n");
-#endif
+
 	err = saHpiEventLogClear(sessionid, chassis_rid);
 	if (err) {
-		
 		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
 		return -1;
         }
-#if 0
-	printf("Calling EntryGet\n");
-#endif
+
 	/************************************************************
 	 * TestCase - Mapped Chassis Event (EN_CUTOFF_HI_FAULT_3_35V)
          * Event recovered in next testcase
@@ -212,13 +208,14 @@ int main(int argc, char **argv)
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
-	/* Change sensor's simulator value */ 
-	{
-		SnmpMibInfoT hash_set_value;
-		hash_set_value.type = ASN_OCTET_STR;
-		strcpy(hash_set_value.value.string, "2.9 Volts");
-		g_hash_table_insert(sim_hash, SNMP_BC_CHASSIS_VOLT_3_3_OID, &hash_set_value);
+	/* Change sensor's simulator value */
+	hash_set_value = (SnmpMibInfoT *)g_hash_table_lookup(sim_hash, SNMP_BC_CHASSIS_VOLT_3_3_OID);
+	if (hash_set_value == NULL) {
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received Null hash value\n");
+		return -1;
 	}
+	strcpy(hash_set_value->value.string, "2.9 Volts");
 
         err = saHpiEventLogEntryGet(sessionid, chassis_rid, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
@@ -255,31 +252,33 @@ int main(int argc, char **argv)
 		return -1;
         }
 
-	/* Set sensor's simulator value back to default*/ 
-	{
-		SnmpMibInfoT hash_set_value;
-		hash_set_value.type = ASN_OCTET_STR;
-		strcpy(hash_set_value.value.string, "3.3 Volts");
-		g_hash_table_insert(sim_hash, SNMP_BC_CHASSIS_VOLT_3_3_OID, &hash_set_value);
+	/* Set sensor's simulator value back to default */ 
+	hash_set_value = (SnmpMibInfoT *)g_hash_table_lookup(sim_hash, SNMP_BC_CHASSIS_VOLT_3_3_OID);
+	if (hash_set_value == NULL) {
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received Null hash value\n");
+		return -1;
 	}
+	strcpy(hash_set_value->value.string, "3.3 Volts");
 
-	/**************************************************************
+	/******************************************************
 	 * TestCase - Chassis Event (EN_CUTOFF_HI_FAULT_3_35V)
          * Change sensor reading to UPPER MAJOR. Previous state  
          * depends upon previous testcase.
-	 **************************************************************/
+	 ******************************************************/
 	logstr = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:System shutoff due to +3.3v over voltage. Read value 3.5 Threshold value 3.4";
 	memset(&logentry, 0 , sizeof(SaHpiEventLogEntryT));
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
 	/* Change sensor's simulator value */ 
-	{
-		SnmpMibInfoT hash_set_value;
-		hash_set_value.type = ASN_OCTET_STR;
-		strcpy(hash_set_value.value.string, "3.5 Volts");
-		g_hash_table_insert(sim_hash, SNMP_BC_CHASSIS_VOLT_3_3_OID, &hash_set_value);
+	hash_set_value = (SnmpMibInfoT *)g_hash_table_lookup(sim_hash, SNMP_BC_CHASSIS_VOLT_3_3_OID);
+	if (hash_set_value == NULL) {
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received Null hash value\n");
+		return -1;
 	}
+	strcpy(hash_set_value->value.string, "3.5 Volts");
 
         err = saHpiEventLogEntryGet(sessionid, chassis_rid, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
@@ -318,18 +317,19 @@ int main(int argc, char **argv)
 		return -1;
         }
 
-	/* Set sensor's simulator value back to default*/ 
-	{
-		SnmpMibInfoT hash_set_value;
-		hash_set_value.type = ASN_OCTET_STR;
-		strcpy(hash_set_value.value.string, "3.3 Volts");
-		g_hash_table_insert(sim_hash, SNMP_BC_CHASSIS_VOLT_3_3_OID, &hash_set_value);
+	/* Set sensor's simulator value back to default */ 
+	hash_set_value = (SnmpMibInfoT *)g_hash_table_lookup(sim_hash, SNMP_BC_CHASSIS_VOLT_3_3_OID);
+	if (hash_set_value == NULL) {
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received Null hash value\n");
+		return -1;
 	}
+	strcpy(hash_set_value->value.string, "3.3 Volts");
 
-	/*************************************************************
+	/************************************************************
 	 * TestCase - Chassis Duplicate Event (EN_PFA_HI_FAULT_3_35V)
          * Previous state check depends on previous testcase!
-	 *************************************************************/
+	 ************************************************************/
 	logstr = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:System over recommended voltage on +3.3v. Read value 3.5 Threshold value 3.4";
 	memset(&logentry, 0 , sizeof(SaHpiEventLogEntryT));
 	strcpy(hash_value->value.string, logstr);
@@ -370,10 +370,10 @@ int main(int argc, char **argv)
 		return -1;
         }
 
-	/*************************************************************
-	 * TestCase - Blade Duplicate Event ( EN_PFA_HI_FAULT_3_35V)
+	/**********************************************************
+	 * TestCase - Blade Duplicate Event (EN_PFA_HI_FAULT_3_35V)
          * Same as previous testcase only for the blade not chassis
-	 *************************************************************/
+	 **********************************************************/
 	logstr = "Severity:INFO  Source:BLADE_11  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:System over recommended voltage on +3.3v. Read value 3.5 Threshold value 3.4";
 	memset(&logentry, 0 , sizeof(SaHpiEventLogEntryT));
 	strcpy(hash_value->value.string, logstr);
@@ -422,12 +422,13 @@ int main(int argc, char **argv)
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
 	/* Change sensor's simulator value */ 
-	{
-		SnmpMibInfoT hash_set_value;
-		hash_set_value.type = ASN_OCTET_STR;
-		strcpy(hash_set_value.value.string, "60 Centigrade");
-		g_hash_table_insert(sim_hash, SNMP_BC_CHASSIS_TEMP_OID, &hash_set_value);
+	hash_set_value = (SnmpMibInfoT *)g_hash_table_lookup(sim_hash, SNMP_BC_CHASSIS_TEMP_OID);
+	if (hash_set_value == NULL) {
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received Null hash value\n");
+		return -1;
 	}
+	strcpy(hash_set_value->value.string, "60 Centigrade");
 
         err = saHpiEventLogEntryGet(sessionid, chassis_rid, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
@@ -470,12 +471,13 @@ int main(int argc, char **argv)
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
 	/* Change sensor's simulator value */ 
-	{
-		SnmpMibInfoT hash_set_value;
-		hash_set_value.type = ASN_OCTET_STR;
-		strcpy(hash_set_value.value.string, "61 Centigrade");
-		g_hash_table_insert(sim_hash, SNMP_BC_CHASSIS_TEMP_OID, &hash_set_value);
+	hash_set_value = (SnmpMibInfoT *)g_hash_table_lookup(sim_hash, SNMP_BC_CHASSIS_TEMP_OID);
+	if (hash_set_value == NULL) {
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received Null hash value\n");
+		return -1;
 	}
+	strcpy(hash_set_value->value.string, "61 Centigrade");
 
         err = saHpiEventLogEntryGet(sessionid, chassis_rid, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
