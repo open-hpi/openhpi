@@ -437,7 +437,6 @@ struct oh_abi_v2 {
 
 };
 
-
 /*The function is used for plugin loader to get interface*/
 int get_interface(void **pp, const uuid_t uuid) __attribute__ ((weak));
 
@@ -453,5 +452,14 @@ struct oh_static_plugin
 #ifdef __cplusplus
 }
 #endif
+
+/* Macors for use in handlers to walk a single linked list such as
+ * eventq
+ */
+#define g_slist_for_each(pos, head) \
+        for (pos = head; pos != NULL; pos = g_slist_next(pos))
+
+#define g_slist_for_each_safe(pos, pos1, head) \
+        for (pos = head, pos1 = g_slist_next(pos); pos; pos = pos1, pos1 = g_slist_next(pos1))
 
 #endif/*__OH_HANDLER_H*/
