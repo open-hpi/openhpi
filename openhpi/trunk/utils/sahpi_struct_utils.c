@@ -28,6 +28,7 @@
 
 static inline SaErrorT oh_append_data(oh_big_textbuffer *big_buffer, const SaHpiUint8T *from, SaHpiUint8T len);
 
+static SaErrorT oh_build_resourceinfo(oh_big_textbuffer *buffer, const SaHpiResourceInfoT *ResourceInfo, int offsets);
 static SaErrorT oh_build_sensorrec(oh_big_textbuffer *buffer, const SaHpiSensorRecT *sensor, int offsets);
 static SaErrorT oh_build_sensordataformat(oh_big_textbuffer *buffer, const SaHpiSensorDataFormatT *format, int offsets);
 static SaErrorT oh_build_sensorthddefn(oh_big_textbuffer *buffer, const SaHpiSensorThdDefnT *tdef, int offsets);
@@ -759,6 +760,106 @@ SaErrorT oh_fprint_sensorrec(FILE *stream, const SaHpiSensorRecT *sensor, int of
 	return(SA_OK);
 }
 
+static SaErrorT oh_build_resourceinfo(oh_big_textbuffer *buffer, const SaHpiResourceInfoT *ResourceInfo, int offsets)
+{
+	char str[SAHPI_MAX_TEXT_BUFFER_LENGTH];
+	int found;
+	oh_big_textbuffer working;
+	SaHpiTextBufferT tmpbuffer;
+	SaErrorT err;
+
+	if (!buffer || !ResourceInfo) {
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+
+	oh_append_offset(buffer, offsets);
+	oh_append_bigtext(buffer, "Resource Information: ");
+
+	/* Initial temp buffer - assumming we find something to print */ 
+	err = oh_init_bigtext(&working);
+	if (err) { return(err); }
+	err = oh_append_bigtext(&working, "\n");
+	if (err) { return(err); }
+
+	offsets++;
+	found = 0;
+	if (ResourceInfo->ResourceRev) {
+		oh_append_offset(&working, offsets);
+		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Resource Revision: %d\n", ResourceInfo->ResourceRev);
+		oh_append_bigtext(&working, str);
+		found++;
+	}
+	if (ResourceInfo->SpecificVer) {
+		oh_append_offset(&working, offsets);
+		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Specific Version: %d\n", ResourceInfo->SpecificVer);
+		oh_append_bigtext(&working, str);
+		found++;
+	}
+	if (ResourceInfo->DeviceSupport) {
+		oh_append_offset(&working, offsets);
+		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Device Support: %x\n", ResourceInfo->DeviceSupport);
+		oh_append_bigtext(&working, str);
+		found++;
+	}
+	if (ResourceInfo->ManufacturerId) {
+		oh_append_offset(&working, offsets);
+		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Manufacturer ID: ");
+		oh_append_bigtext(&working, str);
+		oh_decode_manufacturerid(ResourceInfo->ManufacturerId, &tmpbuffer);
+		oh_append_bigtext(&working, (char *)tmpbuffer.Data);
+		oh_append_bigtext(&working, "\n");
+		found++;
+	}
+	if (ResourceInfo->ProductId) {
+		oh_append_offset(&working, offsets);
+		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Product ID: %d\n", ResourceInfo->ProductId);
+		oh_append_bigtext(&working, str);
+		found++;
+	}
+	if (ResourceInfo->FirmwareMajorRev) {
+		oh_append_offset(&working, offsets);
+		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Firmware Major Revision: %d\n",
+			 ResourceInfo->FirmwareMajorRev);
+		oh_append_bigtext(&working, str);
+		found++;
+	}
+	if (ResourceInfo->FirmwareMinorRev) {
+		oh_append_offset(&working, offsets);
+		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Firmware Major Revision: %d\n",
+			 ResourceInfo->FirmwareMinorRev);
+		oh_append_bigtext(&working, str);
+		found++;
+	}
+	if (ResourceInfo->AuxFirmwareRev) {
+		oh_append_offset(&working, offsets);
+		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Aux Firmware Revision: %d\n",
+			 ResourceInfo->AuxFirmwareRev);
+		oh_append_bigtext(&working, str);
+		found++;
+	}
+	{
+		SaHpiGuidT empty_guid;
+		memset(empty_guid, 0, sizeof(SaHpiGuidT));
+
+ 		if (memcmp(empty_guid, ResourceInfo->Guid, sizeof(SaHpiGuidT))) {
+			oh_append_offset(&working, offsets);
+			snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "GUID: %s\n",
+				 ResourceInfo->Guid);
+			oh_append_bigtext(&working, str);
+			found++;
+		}
+	}
+
+	if (!found) {
+		oh_init_bigtext(&working);
+		oh_append_bigtext(&working, "None\n");
+	}
+
+ 	oh_append_bigtext(buffer, (char *)working.Data);
+
+	return(SA_OK);
+}
+
 static SaErrorT oh_build_sensorrec(oh_big_textbuffer *buffer, const SaHpiSensorRecT *sensor, int offsets)
 {
 	char str[SAHPI_MAX_TEXT_BUFFER_LENGTH];
@@ -1255,6 +1356,7 @@ static SaErrorT oh_build_textbuffer(oh_big_textbuffer *buffer, const SaHpiTextBu
 	return(SA_OK);
 }
 
+
 /**
  * oh_decode_capabilities:
  * @ResourceCapabilities: enum value of type SaHpiCapabilitiesT.
@@ -1458,6 +1560,9 @@ SaErrorT oh_fprint_rptentry(FILE *stream, const SaHpiRptEntryT *rptentry, int of
 	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "ResourceId: %d\n", rptentry->ResourceId);
 	oh_append_bigtext(&mybuf, str);
 
+	err = oh_build_resourceinfo(&mybuf, &(rptentry->ResourceInfo), offsets);
+	if (err) { return(err); }
+
 	oh_append_offset(&mybuf, offsets);
 	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Entity Path: ");
 	oh_append_bigtext(&mybuf, str);
@@ -1484,6 +1589,11 @@ SaErrorT oh_fprint_rptentry(FILE *stream, const SaHpiRptEntryT *rptentry, int of
 	oh_decode_hscapabilities(rptentry->HotSwapCapabilities, &tmpbuffer);
 	oh_append_bigtext(&mybuf, (char *)tmpbuffer.Data);
 	oh_append_bigtext(&mybuf, "\n");
+
+	oh_append_offset(&mybuf, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Resource Severity: %s\n",
+		 oh_lookup_severity(rptentry->ResourceSeverity));
+	oh_append_bigtext(&mybuf, str);
 
 	oh_append_offset(&mybuf, offsets);
 	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "ResourceFailed: %s\n",
