@@ -45,6 +45,7 @@ libsnmp_bc_la_SOURCES	=	bc_resources.c \
 				snmp_bc_discover_bc.c \
 				snmp_bc_discover_rsa.c \
 				snmp_bc_session.c \
+	     			snmp_bc_time.c \
 				stubs.c
 
 #				bc_str2event.c \
@@ -52,7 +53,6 @@ libsnmp_bc_la_SOURCES	=	bc_resources.c \
 #				snmp_bc_event.c \
 #				snmp_bc_hotswap.c \
 #	     			snmp_bc_sel.c \
-#	     			snmp_bc_time.c \
 #				snmp_bc_sensor.c \
 #				snmp_bc_inventory.c \
 #				snmp_bc_watchdog.c
