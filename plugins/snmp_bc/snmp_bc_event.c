@@ -155,7 +155,7 @@ SaErrorT snmp_bc_discover_res_events(struct oh_handler_state *handle,
 			   dynamic data so the hash can use this field for recovery data */
 			hpievent->EventDataUnion.HotSwapEvent.PreviousHotSwapState = 
 				res_info_ptr->event_array[i].recovery_state;
-#if 1
+#if 0
 			trace("Discovered resource event=%s.", normalized_str);
 #endif
 			g_hash_table_insert(custom_handle->event2hpi_hash_ptr, normalized_str, hpievent);
@@ -262,7 +262,7 @@ SaErrorT snmp_bc_discover_sensor_events(struct oh_handler_state *handle,
 				hpievent->EventDataUnion.SensorEvent.TriggerReading.IsSupported = SAHPI_FALSE;	
 				hpievent->EventDataUnion.SensorEvent.TriggerThreshold.IsSupported = SAHPI_FALSE;
 			}
-#if 1
+#if 0
 			trace("Discovered sensor event=%s.", normalized_str);
 #endif
 			g_hash_table_insert(custom_handle->event2hpi_hash_ptr, normalized_str, hpievent);
@@ -295,7 +295,7 @@ SaErrorT snmp_bc_discover_sensor_events(struct oh_handler_state *handle,
  *
  * Return values:
  * SA_OK - normal case.
- * SA_ERR_HPI_INVALID_PARAMS - @handler, @logstr, @event, @event_enabled_ptr NULL.
+ * SA_ERR_HPI_INVALID_PARAMS - @handle, @logstr, @event, @event_enabled_ptr NULL.
  **/
 SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 			   gchar *logstr,
@@ -393,7 +393,7 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 			strcpy(search_str, root_str);
 		}
 	}
-#if 1
+#if 0
 	trace("Search string=%s.", search_str);
 #endif
 	/* See if adjusted root string is in the XML to event hash table */
@@ -699,7 +699,6 @@ static SaErrorT snmp_bc_set_previous_event_state(struct oh_handler_state *handle
 
 #if 0
 		/* FIXME:: Port to B.1.1. event enablement schemes */
-
 		/* Check to see if events are disabled for this sensor */
 		if (!((struct BC_SensorInfo *)bc_data)->sensor_evt_enablement.SensorStatus &
 		    SAHPI_SENSTAT_EVENTS_ENABLED) {
@@ -961,47 +960,57 @@ static SaErrorT snmp_bc_logsrc2rid(struct oh_handler_state *handle,
 	return(SA_OK);
 }
 
-#if 0
-/* FIXME:: Add event to new Infra-structure */
-
-/*******************************************
- * Add event to Infrastructure's event queue
- *******************************************/
+ /**
+ * snmp_bc_add_to_eventq
+ * @handle: Pointer to handler's data.
+ * @thisEvent: Location to store event.
+ *
+ * Add event to Infrastructure's event queue.
+ *
+ * Return values:
+ * SA_OK - normal case.
+ * SA_ERR_HPI_INVALID_PARAMS - @handle or @thisEvent is NULL.
+ **/
 SaErrorT snmp_bc_add_to_eventq(struct oh_handler_state *handle, SaHpiEventT *thisEvent)
 {
+	SaHpiEntryIdT rdrid=0;
         struct oh_event working;
         struct oh_event *e = NULL;
  
         memset(&working, 0, sizeof(struct oh_event));
 
-	/* FIXME:: Add other event types */
+	working.did = oh_get_default_domain_id();
+	working.type = OH_ET_HPI;
+        working.u.hpi_event.res = *(oh_get_resource_by_id(handle->rptcache, thisEvent->Source));
+        memcpy(&working.u.hpi_event.event, thisEvent, sizeof(SaHpiEventT));
 
-	/* Setting RDR ID to event struct */	
+	/* FIXME:: Merged with same type of code in snmp_bc_sel.c 
+           to create common function???? */
+	/* FIXME:: Add other B.1.1 event types */
+	/* Setting RDR ID to event struct */
 	switch (thisEvent->EventType) {
 	case SAHPI_ET_OEM:
 	case SAHPI_ET_HOTSWAP:
 	case SAHPI_ET_USER:
-		working.u.hpi_event.id = 0; /* There is no RDR associated to OEM event */
-		break;			    /* Set RDR ID to invalid value of 0        */
+		/* FIXME:: this case a bit differ than snmp_bc_sel.c - have function 
+		   just return NULL. If need to set RecordId = 0, let caller do this */
+		working.u.hpi_event.rdr.RecordId = 0; /* There is no RDR associated to OEM event */
+		break;			              /* Set RDR ID to invalid value of 0        */
 	case SAHPI_ET_SENSOR:
-		working.u.hpi_event.id = 
-			get_rdr_uid(SAHPI_SENSOR_RDR,
-				    thisEvent->EventDataUnion.SensorEvent.SensorNum);
+		rdrid = get_rdr_uid(SAHPI_SENSOR_RDR,
+				    thisEvent->EventDataUnion.SensorEvent.SensorNum); 
+		working.u.hpi_event.rdr = *(oh_get_rdr_by_id(handle->rptcache, thisEvent->Source, rdrid));
 		break;
 	case SAHPI_ET_WATCHDOG:
-		working.u.hpi_event.id = 
-			get_rdr_uid(SAHPI_WATCHDOG_RDR,
+		rdrid = get_rdr_uid(SAHPI_WATCHDOG_RDR,
 				    thisEvent->EventDataUnion.WatchdogEvent.WatchdogNum);
-		break;			
+		working.u.hpi_event.rdr = *(oh_get_rdr_by_id(handle->rptcache, thisEvent->Source, rdrid));
+		break;
 	default:
-		dbg("Unrecognized Event Type=%s.", oh_lookup_eventtype(thisEvent->EventType));
+		dbg("Unrecognized Event Type=%d.", thisEvent->EventType);
 		return(SA_ERR_HPI_INTERNAL_ERROR);
 		break;
 	} 
-	
-        working.type = OH_ET_HPI;
-        working.u.hpi_event.parent = thisEvent->Source;       
-        memcpy(&working.u.hpi_event.event, thisEvent, sizeof(SaHpiEventT));
 
         /* Insert entry to eventq for processing */
         e = g_malloc0(sizeof(struct oh_event));
@@ -1014,4 +1023,3 @@ SaErrorT snmp_bc_add_to_eventq(struct oh_handler_state *handle, SaHpiEventT *thi
 
         return(SA_OK);
 }
-#endif

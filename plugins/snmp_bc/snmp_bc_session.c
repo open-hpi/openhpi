@@ -17,8 +17,6 @@
 #include <snmp_bc_plugin.h>
 #include <sim_init.h>
 
-extern unsigned int str2event_use_count;
-
 /**
  * snmp_bc_open:
  * @handler_config: Pointer to hash table (passed by infrastructure)
@@ -62,24 +60,20 @@ void *snmp_bc_open(GHashTable *handler_config)
         handle->rptcache = (RPTable *)g_malloc0(sizeof(RPTable));
         oh_init_rpt(handle->rptcache);
 	 
-#if 0
         /* Initialize event log cache */
 	/* FIXME:: RSA has 512 here */
         handle->elcache = oh_el_create(OH_EL_MAX_SIZE);
 	handle->elcache->gentimestamp = FALSE;
-#endif
 
-#if 0
 	/* Initialize "String to Event" mapping hash table */
 	/* FIXME:: Add RSA initialization here */
-	if (bc_xml2event_use_count == 0) {
-		if (bc_xml2event_hash_init(&bc_xml2event_hash, bc_eventxml)) {
+	if (bc_xml2event_hash_use_count == 0) {
+		if (xml2event_hash_init(&bc_xml2event_hash, bc_eventxml)) {
 			dbg("Out of memory.");
 			return NULL;
 		}
 	}
-	bc_xml2event_use_count++;
-#endif
+	bc_xml2event_hash_use_count++;
 	
 	/* Initialize "Event Number to HPI Event" mapping hash table */
 	if (event2hpi_hash_init(handle)) {
@@ -276,12 +270,10 @@ void snmp_bc_close(void *hnd)
 	/* Cleanup event2hpi hash table */
 	event2hpi_hash_free(handle);
 
-#if 0
 	/* Cleanup str2event hash table */
 	/* FIXME:: Add RSA free here */
-	bc_xml2event_use_count--;
-	if (bc_xml2event_use_count == 0) {
+	bc_xml2event_hash_use_count--;
+	if (bc_xml2event_hash_use_count == 0) {
 		xml2event_hash_free(&bc_xml2event_hash);
 	}
-#endif
 }

@@ -16,10 +16,10 @@
 
 #include <snmp_bc_plugin.h>
 
-static int snmp_bc_get_event(void *hnd, struct oh_event *event);
-static int snmp_bc_set_resource_tag(void *hnd, SaHpiResourceIdT id, SaHpiTextBufferT *tag);
-static int snmp_bc_set_resource_severity(void *hnd, SaHpiResourceIdT id, SaHpiSeverityT sev);
-static int snmp_bc_control_parm(void *hnd, SaHpiResourceIdT id, SaHpiParmActionT act);
+static SaErrorT snmp_bc_get_event(void *hnd, struct oh_event *event);
+static SaErrorT snmp_bc_set_resource_tag(void *hnd, SaHpiResourceIdT id, SaHpiTextBufferT *tag);
+static SaErrorT snmp_bc_set_resource_severity(void *hnd, SaHpiResourceIdT id, SaHpiSeverityT sev);
+static SaErrorT snmp_bc_control_parm(void *hnd, SaHpiResourceIdT id, SaHpiParmActionT act);
 
 struct oh_abi_v2 oh_snmp_bc_plugin = {
         .open				= snmp_bc_open,
@@ -65,15 +65,15 @@ struct oh_abi_v2 oh_snmp_bc_plugin = {
         .set_reset_state		= snmp_bc_set_reset_state
 };
 
-int get_interface(void **pp, const uuid_t uuid)
+SaErrorT get_interface(void **pp, const uuid_t uuid)
 {
-        if(uuid_compare(uuid, UUID_OH_ABI_V2)==0) {
+        if (uuid_compare(uuid, UUID_OH_ABI_V2) == 0) {
                 *pp = &oh_snmp_bc_plugin;
-                return 0;
+                return(SA_OK);
         }
 
         *pp = NULL;
-        return -1;
+        return(SA_ERR_HPI_INTERNAL_ERROR);
 }
 
 /**
@@ -82,23 +82,22 @@ int get_interface(void **pp, const uuid_t uuid)
  * @event: 
  * @timeout: 
  *
- * Return value: 
+ * Return values:
  **/
 
-static int snmp_bc_get_event(void *hnd, struct oh_event *event)
+static SaErrorT snmp_bc_get_event(void *hnd, struct oh_event *event)
 {
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
 
-#if 0        
-	snmp_bc_check_selcache(hnd, 1, SAHPI_NEWEST_ENTRY);
-#endif
-        if(g_slist_length(handle->eventq)>0) {
+	snmp_bc_check_selcache(handle, 1, SAHPI_NEWEST_ENTRY);
+
+        if (g_slist_length(handle->eventq) > 0) {
                 memcpy(event, handle->eventq->data, sizeof(*event));
                 free(handle->eventq->data);
                 handle->eventq = g_slist_remove_link(handle->eventq, handle->eventq);
-                return 1;
+                return 1; /* FIXME:: dbg message; what should error return be?? */
         } else {
-                return 0;
+                return(SA_OK);
 	}
 }
 
@@ -130,18 +129,18 @@ static int snmp_bc_set_resource_tag(void *hnd, SaHpiResourceIdT id, SaHpiTextBuf
 
         handle->eventq = g_slist_append(handle->eventq, e);
         
-        return SA_OK;
+        return(SA_OK);
 }
 
-static int snmp_bc_set_resource_severity(void *hnd, SaHpiResourceIdT id, SaHpiSeverityT sev)
+static SaErrorT snmp_bc_set_resource_severity(void *hnd, SaHpiResourceIdT id, SaHpiSeverityT sev)
 {
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
         SaHpiRptEntryT *resource = oh_get_resource_by_id(handle->rptcache, id);
         struct oh_event *e = NULL;
 
         if (!resource) {
-                dbg("Error. Cannot set resource severity in plugin. No resource found by that id.");
-                return SA_ERR_HPI_NOT_PRESENT;
+                dbg("No RID.");
+                return(SA_ERR_HPI_NOT_PRESENT);
         }
 
         resource->ResourceSeverity = sev;
@@ -155,20 +154,20 @@ static int snmp_bc_set_resource_severity(void *hnd, SaHpiResourceIdT id, SaHpiSe
         
         handle->eventq = g_slist_append(handle->eventq, e);
 
-        return SA_OK;
+        return(SA_OK);
 }
 
-static int snmp_bc_control_parm(void *hnd, SaHpiResourceIdT id, SaHpiParmActionT act)
+static SaErrorT snmp_bc_control_parm(void *hnd, SaHpiResourceIdT id, SaHpiParmActionT act)
 {
 	struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
 	SaHpiRptEntryT *res = oh_get_resource_by_id(handle->rptcache, id);
 	
 	if (res->ResourceCapabilities & SAHPI_CAPABILITY_CONFIGURATION) {
-		dbg("ERROR: BladeCenter does not yet support Resource Configuration saving");
-		return -1;
+		dbg("Resource configuration saving not supported.");
+		return(SA_ERR_HPI_INTERNAL_ERROR);
 	}
 	else {
-		return SA_ERR_HPI_INVALID_CMD;
+		return(SA_ERR_HPI_INVALID_CMD);
 	}
 }
 
@@ -177,7 +176,6 @@ SaErrorT snmp_bc_snmp_get(struct snmp_bc_hnd *custom_handle,
                           const char *objid,
                           struct snmp_value *value)
 {
-
         SaErrorT status;
 
         status = snmp_get(ss, objid, value);
@@ -222,5 +220,4 @@ SaErrorT snmp_bc_snmp_set(struct snmp_bc_hnd *custom_handle,
         }
 
         return status;
-
 }

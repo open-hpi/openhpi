@@ -8,9 +8,12 @@
 # file and program are licensed under a BSD style license.  See
 # the Copying file included with the OpenHPI distribution for
 # full licensing terms.
- 
-REMOTE_SIM_SOURCES   = 	bc_resources.c \
+
+REMOTE_SIM_SOURCES   = \
+			bc_xmlevents.c \
+			rsa_xmlevents.c \
 			com_xml2event.c \
+			bc_resources.c \
 			snmp_bc.c \
 	     		snmp_bc_discover.c \
 			snmp_bc_discover_bc.c \
@@ -22,7 +25,6 @@ REMOTE_SIM_SOURCES   = 	bc_resources.c \
 	 		snmp_bc_time.c \
 			stubs.c
 
-#			  bc_str2event.c \
 #			  snmp_bc_control.c \
 #			  snmp_bc_hotswap.c \
 #			  snmp_bc_sensor.c \

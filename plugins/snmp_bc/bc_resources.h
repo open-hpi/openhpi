@@ -52,7 +52,7 @@
 #ifndef __BC_RESOURCES_H
 #define __BC_RESOURCES_H
 
-/* FIXME: Add RSA #defines to this file and change description above */
+/* FIXME:: Add RSA #defines to this file and change/enhance description above */
 
 /* Start HPI location numbers from 1 */
 #define SNMP_BC_HPI_LOCATION_BASE 1
@@ -60,14 +60,18 @@
 /* IBM Manufacturing Number */
 #define IBM_MANUFACTURING_ID 2
 
+/* Maximum OID string length */
+#define SNMP_BC_MAX_OID_LENGTH 50
+
 /* OIDs to determine platform types */
 #define SNMP_BC_PLATFORM_OID_BCT  ".1.3.6.1.4.1.2.3.51.2.2.9.1.0" /* BCT System Health */
 #define SNMP_BC_PLATFORM_OID_RSA  ".1.3.6.1.4.1.2.3.51.1.4.4.2.0" /* RSA DST */
 
 /* Run-time variables to distinguish platform types */
-#define SNMP_BC_PLATFORM_BCT   1
-#define SNMP_BC_PLATFORM_BC    2
-#define SNMP_BC_PLATFORM_RSA   3
+#define SNMP_BC_PLATFORM_BCT   0x0001
+#define SNMP_BC_PLATFORM_BC    0x0002
+#define SNMP_BC_PLATFORM_RSA   0x0004
+#define SNMP_BC_PLATFORM_ALL   0xFFFF
 
 /* Resource indexes to snmp_rpt array in bc_resources.c */
 typedef enum {
@@ -94,10 +98,10 @@ typedef enum {
 #define SNMP_BC_DST_RSA             ".1.3.6.1.4.1.2.3.51.1.4.4.2.0"
 
 /* OID definitions for System Event Log */
-#define BC_DATETIME_OID ".1.3.6.1.4.1.2.3.51.2.4.4.1.0"
-#define BC_SEL_INDEX_OID ".1.3.6.1.4.1.2.3.51.2.3.4.2.1.1"
-#define BC_SEL_ENTRY_OID ".1.3.6.1.4.1.2.3.51.2.3.4.2.1.2"
-#define BC_CLEAR_SEL_OID ".1.3.6.1.4.1.2.3.51.2.3.4.3.0"
+#define SNMP_BC_DATETIME_OID ".1.3.6.1.4.1.2.3.51.2.4.4.1.0"
+#define SNMP_BC_SEL_INDEX_OID ".1.3.6.1.4.1.2.3.51.2.3.4.2.1.1"
+#define SNMP_BC_SEL_ENTRY_OID ".1.3.6.1.4.1.2.3.51.2.3.4.2.1.2"
+#define SNMP_BC_CLEAR_SEL_OID ".1.3.6.1.4.1.2.3.51.2.3.4.3.0"
 
 /*************************************************************************
  *                   Resource Definitions

@@ -254,6 +254,10 @@ gboolean is_dst_in_effect(struct tm *time, gchar **zone_token) {
 
 	return(rc);
 }
+
+/* FIXME:: These routines should return a SaErrorT; check error codes return 
+   SA_ERR_HPI_INTERNAL_ERROR not -1; Use dbg consistantly.
+*/
 int set_bc_dst(struct oh_handler_state *handle, struct tm *time) {
 
 	gchar **zone_token;
@@ -290,7 +294,7 @@ int get_bc_sp_time(struct oh_handler_state *handle, struct tm *time)
         struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 	struct snmp_session *ss = custom_handle->ss;
         
-	snmp_get(ss,BC_DATETIME_OID,&get_value);
+	snmp_get(ss, SNMP_BC_DATETIME_OID, &get_value);
         if(get_value.type == ASN_OCTET_STR) {
                 if(sscanf(get_value.string,"%2d/%2d/%4d,%2d:%2d:%2d",
                           &tmptime.tm_mon, &tmptime.tm_mday, &tmptime.tm_year, 
@@ -320,7 +324,7 @@ int set_bc_sp_time(struct snmp_session *ss, struct tm *time) {
         strftime(set_value.string, sizeof(set_value.string), "%m/%d/%Y,%H:%M:%S", time);
 	set_value.str_len = 19;
 	
-        if (snmp_set(ss,BC_DATETIME_OID,set_value) == 0)
+        if (snmp_set(ss, SNMP_BC_DATETIME_OID,set_value) == 0)
         {
                 returncode = 0;
         } else {
