@@ -187,7 +187,7 @@ void oh_flush_rpt(RPTable *table)
  * If an RPT entry with the same resource id exists int the RPT, it will be
  * overlayed with the new RPT entry. Also, this function will assign the
  * resource id as its entry id since it is expected to be unique for the table.
- * Note - If the RPT entry has a resource id of RPT_ENTRY_BEGIN(0),
+ * Note - If the RPT entry has a resource id of RPT_ENTRY_BEGIN(0xffffffff),
  * the first RPT entry in the table will be overlayed.
  * @table: Pointer to the RPT to which the RPT entry will be added.
  * @entry: The RPT entry (resource) to be added to the RPT.
@@ -195,7 +195,8 @@ void oh_flush_rpt(RPTable *table)
  *
  * Return value:
  * 0 - successful addition to the RPT.
- * -2 - entry does not have an id assigned.
+ * -1 - entry does not have an id assigned.
+ * -2 - entry has an invalid/reserved id assinged.
  * -3 - entity path does not contain root element.
  * -4 - failure and not enough memory could be allocated. 
  * for a new position in the RPT.
@@ -203,18 +204,20 @@ void oh_flush_rpt(RPTable *table)
 int oh_add_resource(RPTable *table, SaHpiRptEntryT *entry, void *data)
 {
         RPTEntry *rptentry;
+        guint update_flag = RPT_KEEP_COUNT;
 
-        /* Check to see if the entry is in the RPTable already */
         if (entry->ResourceId == 0) {
                 dbg("Failed to add. RPT entry needs a resource id before being added");
-                return -2;                
-        }
-
-        if (check_ep(entry->ResourceEntity)) {
+                return -1;                
+        } else if (entry->ResourceId == RPT_ENTRY_BEGIN) {
+                dbg("Failed to add. RPT entry has an invalid/reserved id assigned (RPT_ENTRY_BEGIN).");
+                return -2;
+        } else if (check_ep(entry->ResourceEntity)) {
                 dbg("Failed to add RPT entry. Entity path does not contain root element.");
                 return -3;                
         }
-        
+
+        /* Check to see if the entry is in the RPTable already */
         rptentry = get_rptentry_by_rid(table, entry->ResourceId);        
         /* If not, create new RPTEntry */
         if (!rptentry) {
@@ -224,21 +227,22 @@ int oh_add_resource(RPTable *table, SaHpiRptEntryT *entry, void *data)
                         return -4;
                 }
                 /* Put new RPTEntry in RPTable */
-                table->rptable = g_slist_append(table->rptable, (gpointer)rptentry);                
+                table->rptable = g_slist_append(table->rptable, (gpointer)rptentry);
+                update_flag = RPT_INCREMENT;
         }
         /* Else, modify existing RPTEntry */
         rptentry->data = data;
         rptentry->rpt_entry = *entry;
         rptentry->rpt_entry.EntryId = entry->ResourceId;
 
-        update_rptable(table, RPT_INCREMENT);
+        update_rptable(table, update_flag);
                        
         return 0; 
 }
 
 /**
  * oh_remove_resource: Remove a resource from the RPT. If the rid is
- * RPT_ENTRY_BEGIN (0), the first RPT entry in the table will be removed.
+ * RPT_ENTRY_BEGIN (0xffffffff), the first RPT entry in the table will be removed.
  * @table: Pointer to the RPT from which an RPT entry will be removed.
  * @rid: Resource id of the RPT entry to be removed.
  *
@@ -272,7 +276,7 @@ int oh_remove_resource(RPTable *table, SaHpiResourceIdT rid)
 
 /**
  * oh_get_resource_data: Get the private data for a RPT entry.  If the rid is
- * RPT_ENTRY_BEGIN (0), the first RPT entry's data in the table will be returned.
+ * RPT_ENTRY_BEGIN (0xffffffff), the first RPT entry's data in the table will be returned.
  * @table: Pointer to the RPT for looking up the RPT entry's private data.
  * @rid: Resource id of the RPT entry that holds the private data.
  *
@@ -296,7 +300,7 @@ void *oh_get_resource_data(RPTable *table, SaHpiResourceIdT rid)
 
 /**
  * oh_get_resource_by_id: Get a RPT entry from the RPT by using the resource id.
- * If rid is RPT_ENTRY_BEGIN (0), the first RPT entry in the table will be returned.
+ * If rid is RPT_ENTRY_BEGIN (0xffffffff), the first RPT entry in the table will be returned.
  * @table: Pointer to the RPT for looking up the RPT entry.
  * @rid: Resource id of the RPT entry to be looked up.
  *
@@ -353,7 +357,7 @@ SaHpiRptEntryT *oh_get_resource_by_ep(RPTable *table, SaHpiEntityPathT *ep)
 
 /**
  * oh_get_resource_next: Get the RPT entry next to the specified RPT entry
- * from the RPT. If rid_prev is RPT_ENTRY_BEGIN (0), the first RPT entry
+ * from the RPT. If rid_prev is RPT_ENTRY_BEGIN (0xffffffff), the first RPT entry
  * in the table will be returned.
  * @table: Pointer to the RPT for looking up the RPT entry.
  * @rid_prev: Resource id of the RPT entry previous to the one being looked up.
@@ -416,7 +420,7 @@ SaHpiRptEntryT *oh_get_resource_next(RPTable *table, SaHpiResourceIdT rid_prev)
  * @data: Pointer to private data belonging to the RDR that is being added.
  *
  * All rdr interface funtions, except oh_add_rdr will act in the context of
- * the first RPT entry in the table, if rid is RPT_ENTRY_BEGIN (0).
+ * the first RPT entry in the table, if rid is RPT_ENTRY_BEGIN (0xffffffff).
  *
  * Return value:
  * 0 - Successful addition of RDR.
@@ -483,14 +487,14 @@ int oh_add_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiRdrT *rdr, void *data)
 
 /**
  * oh_remove_rdr: Remove an RDR from a RPT entry's RDR repository.
- * If rdrid is RDR_BEGIN (0), the first RDR in the repository will be removed.
+ * If rdrid is RDR_BEGIN (0xffffffff), the first RDR in the repository will be removed.
  * @table: Pointer to RPT table containig the RPT entry from which the RDR will
  * be removed.
  * @rid: Id of the RPT entry from which the RDR will be removed.
  * @rdrid: Record id of the RDR to remove.
  *
  * All rdr interface funtions, except oh_add_rdr will act in the context of
- * the first RPT entry in the table, if rid is RPT_ENTRY_BEGIN (0).
+ * the first RPT entry in the table, if rid is RPT_ENTRY_BEGIN (0xffffffff).
  *
  * Return value:
  * 0 - Successful removal of RDR.
@@ -524,14 +528,14 @@ int oh_remove_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT rdrid)
 
 /**
  * oh_get_rdr_data: Get the private data associated to an RDR.
- * If rdrid is RDR_BEGIN (0), the first RDR's data in the repository will be returned.
+ * If rdrid is RDR_BEGIN (0xffffffff), the first RDR's data in the repository will be returned.
  * @table: Pointer to RPT table containig the RPT entry from which the RDR's data
  * will be read.
  * @rid: Id of the RPT entry from which the RDR's data will be read.
  * @rdrid: Record id of the RDR to read data from.
  *
  * All rdr interface funtions, except oh_add_rdr will act in the context of
- * the first RPT entry in the table, if rid is RPT_ENTRY_BEGIN (0).
+ * the first RPT entry in the table, if rid is RPT_ENTRY_BEGIN (0xffffffff).
  *
  * Return value:
  * A void pointer to the RDR data, or NULL if no data for that RDR was found.
@@ -558,14 +562,14 @@ void *oh_get_rdr_data(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT rdrid)
 
 /**
  * oh_get_rdr_by_id: Get a reference to an RDR by its record id.
- * If rdrid is RDR_BEGIN (0), the first RDR in the repository will be returned.
+ * If rdrid is RDR_BEGIN (0xffffffff), the first RDR in the repository will be returned.
  * @table: Pointer to RPT table containig the RPT entry tha has the RDR
  * being looked up.
  * @rid: Id of the RPT entry containing the RDR being looked up.
  * @rdrid: Record id of the RDR being looked up.
  *
  * All rdr interface funtions, except oh_add_rdr will act in the context of
- * the first RPT entry in the table, if rid is RPT_ENTRY_BEGIN (0).
+ * the first RPT entry in the table, if rid is RPT_ENTRY_BEGIN (0xffffffff).
  *
  * Return value:
  * Reference to the RDR looked up or NULL if no RDR was found.
@@ -599,7 +603,7 @@ SaHpiRdrT *oh_get_rdr_by_id(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT 
  * @num: RDR id within the RDR type for the specified RPT entry.
  *
  * All rdr interface funtions, except oh_add_rdr will act in the context of
- * the first RPT entry in the table, if rid is RPT_ENTRY_BEGIN (0).
+ * the first RPT entry in the table, if rid is RPT_ENTRY_BEGIN (0xffffffff).
  *
  * Return value:
  * Reference to the RDR looked up or NULL if no RDR was found.
@@ -630,18 +634,18 @@ SaHpiRdrT *oh_get_rdr_by_type(RPTable *table, SaHpiResourceIdT rid,
 
 /**
  * oh_get_rdr_next: Get the RDR next to the specified RDR in the specified
- * RPT entry's repository. If rdrid_prev is RDR_BEGIN (0), the first RDR
+ * RPT entry's repository. If rdrid_prev is RDR_BEGIN (0xffffffff), the first RDR
  * in the repository will be returned.
  * @table: Pointer to the RPT containing the RPT entry to look up the RDR in.
  * @rid_prev: Record id of the RDR previous to the one being looked up, relative
  * to the specified RPT entry.
  *
  * All rdr interface funtions, except oh_add_rdr will act in the context of
- * the first RPT entry in the table, if rid is RPT_ENTRY_BEGIN (0).
+ * the first RPT entry in the table, if rid is RPT_ENTRY_BEGIN (0xffffffff).
  *
  * Return value:
  * Pointer to the RDR found or NULL if the previous RDR by that
- * id was not found. If the rdrid_prev was 0 (RDR_BEGIN), the first RDR in the list
+ * id was not found. If the rdrid_prev was RDR_BEGIN, the first RDR in the list
  * will be returned.
  **/
 SaHpiRdrT *oh_get_rdr_next(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT rdrid_prev)
