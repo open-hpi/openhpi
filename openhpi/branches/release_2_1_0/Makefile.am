@@ -83,7 +83,7 @@ install-data-local: openhpi.pc
 	$(INSTALL_DATA) openhpi.pc $(DESTDIR)$(libdir)/pkgconfig
 	$(mkinstalldirs) $(DESTDIR)$(VARPATH)
 	chmod 777 $(DESTDIR)$(VARPATH)
-	if [ -z "$(DESTDIR)" ] ; then \
+	if [ -z "$(DESTDIR)" && `which openhpi-switcher` ] ; then \
 		openhpi-switcher --show || openhpi-switcher --set=standard; \
 	fi
 
