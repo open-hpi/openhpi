@@ -23,6 +23,20 @@
 
 struct snmp_bc_data sim_resource_array[] = {
         {
+                /* TIMEOUT
+		 * This OID is used to force a SNMP Access timeout condition.
+		 * It is used to test Device Busy/Device Not Respond  
+		 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.4.4.1.7777",
+                .mib = {
+                        .type = ASN_INTEGER,
+                        .value = {
+                                .integer = SNMP_FORCE_TIMEOUT,
+                        },
+                },
+        },
+
+        {
                 /* DATETIME */
                 .oid = ".1.3.6.1.4.1.2.3.51.2.4.4.1.0",
                 .mib = {
