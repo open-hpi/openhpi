@@ -147,7 +147,7 @@ struct snmp_rpt snmp_rpt_array[] = {
                         .mib = {
                                 .OidHealth = '\0',
                                 .HealthyValue = 0,
-                                .OidReset = ".1.3.6.1.4.1.2.3.51.2.22.3.1.1.1.8.x",
+                                .OidReset = ".1.3.6.1.4.1.2.3.51.2.22.3.1.7.1.8.x",
                                 .OidPowerState = ".1.3.6.1.4.1.2.3.51.2.22.3.1.1.1.7.x",
                                 .OidPowerOnOff = ".1.3.6.1.4.1.2.3.51.2.22.3.1.1.1.7.x",
                         },

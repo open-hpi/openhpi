@@ -205,7 +205,7 @@ struct snmp_bc_data sim_resource_array[] = {
          },
         {
                 /* Switch Reset - Switch 1 */
-                .oid = ".1.3.6.1.4.1.2.3.51.2.22.3.1.1.1.8.1", /* write-only */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.3.1.7.1.8.1", /* write-only */
                 .mib = {
                         .type = ASN_INTEGER,
                         .value = {
@@ -215,7 +215,7 @@ struct snmp_bc_data sim_resource_array[] = {
         },
         {
                 /* Switch Reset - Switch 2 */
-                .oid = ".1.3.6.1.4.1.2.3.51.2.22.3.1.1.1.8.2", /* write-only */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.3.1.7.1.8.2", /* write-only */
                 .mib = {
                         .type = ASN_INTEGER,
                         .value = {
@@ -225,7 +225,7 @@ struct snmp_bc_data sim_resource_array[] = {
         },
         {
                 /* Switch Reset - Switch 3 */
-                .oid = ".1.3.6.1.4.1.2.3.51.2.22.3.1.1.1.8.3", /* write-only */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.3.1.7.1.8.3", /* write-only */
                 .mib = {
                         .type = ASN_INTEGER,
                         .value = {
@@ -235,7 +235,7 @@ struct snmp_bc_data sim_resource_array[] = {
         },
         {
                 /* Switch Reset - Switch 4 */
-                .oid = ".1.3.6.1.4.1.2.3.51.2.22.3.1.1.1.8.4", /* write-only */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.3.1.7.1.8.4", /* write-only */
                 .mib = {
                         .type = ASN_INTEGER,
                         .value = {
