@@ -30,10 +30,10 @@
 #include <float.h>
 
 #include <SaHpi.h>
+#include <oh_utils.h>
 
 #include <snmp_util.h>
 #include <sim_resources.h>
-#include <printevent_utils.h>
 
 #define ERROR_LOG_MSG_OID ".1.3.6.1.4.1.2.3.51.1.3.4.2.1.2.1"
 /* note: if you add or remove resources this RID may need to change */
