@@ -15,17 +15,12 @@
  *      Steve Sherman <stevees@us.ibm.com>
  */
 
-#include <glib.h>
 #include <string.h>
 
-#include <SaHpi.h>
 #include <openhpi.h>
 #include <snmp_util.h>
 #include <oh_utils.h>
-#include <bc_resources.h>
-#include <snmp_bc.h>
-#include <snmp_bc_event.h>
-#include <snmp_bc_discover.h>
+#include <snmp_bc_plugin.h>
 
 static inline struct oh_event *eventdup(const struct oh_event *event) 
 {
@@ -80,11 +75,13 @@ struct oh_event * snmp_bc_discover_chassis(struct oh_handler_state *handle, char
 
         memset(&working, 0, sizeof(struct oh_event));
          
+/* FIXME:: Add working.did for Domain ID */
+
         if (blade_vector != NULL) {
                 working.type = OH_ET_RESOURCE;
                 working.u.res_event.entry = snmp_rpt_array[BC_RPT_ENTRY_CHASSIS].rpt;
 
-		working.u.res_event.entry.ResourceTag.DataType = SAHPI_TL_TYPE_LANGUAGE;
+		working.u.res_event.entry.ResourceTag.DataType = SAHPI_TL_TYPE_TEXT;
 		working.u.res_event.entry.ResourceTag.Language = SAHPI_LANG_ENGLISH;
 
 		/* Find instance for entity root - defined in config */
@@ -96,11 +93,11 @@ struct oh_event * snmp_bc_discover_chassis(struct oh_handler_state *handle, char
                 snprintf(instance_str, MAX_INSTANCE_DIGITS + 1, "%d", ep->Entry[0].EntityLocation);
 
 		/* Find BladeCenter type */
-		if (!strcmp(custom_handle->bc_type, SNMP_BC_PLATFORM_BC)) {
+		if (custom_handle->platform == SNMP_BC_PLATFORM_BC) {
 			strcpy(typename, " Integrated Chassis ");
 		}
 		else {
-			if (!strcmp(custom_handle->bc_type, SNMP_BC_PLATFORM_BCT)) {
+			if (custom_handle->platform == SNMP_BC_PLATFORM_BCT) {
 				strcpy(typename, " Telco Chassis ");
 			}
 			else {
@@ -146,7 +143,7 @@ struct oh_event * snmp_bc_discover_mgmnt(struct oh_handler_state *handle, char *
                 working.type = OH_ET_RESOURCE;
                 working.u.res_event.entry = snmp_rpt_array[BC_RPT_ENTRY_MGMNT_MODULE].rpt;
 
-		working.u.res_event.entry.ResourceTag.DataType = SAHPI_TL_TYPE_LANGUAGE;
+		working.u.res_event.entry.ResourceTag.DataType = SAHPI_TL_TYPE_TEXT;
 		working.u.res_event.entry.ResourceTag.Language = SAHPI_LANG_ENGLISH;
 		
 		instance_str = (gchar *)g_malloc0(MAX_INSTANCE_DIGITS + 1);
@@ -198,7 +195,7 @@ struct oh_event * snmp_bc_discover_mediatray(struct oh_handler_state *handle, lo
                 working.type = OH_ET_RESOURCE;
                 working.u.res_event.entry = snmp_rpt_array[BC_RPT_ENTRY_MEDIA_TRAY].rpt;
 
-		working.u.res_event.entry.ResourceTag.DataType = SAHPI_TL_TYPE_LANGUAGE;
+		working.u.res_event.entry.ResourceTag.DataType = SAHPI_TL_TYPE_TEXT;
 		working.u.res_event.entry.ResourceTag.Language = SAHPI_LANG_ENGLISH;
 
 		instance_str = (gchar *)g_malloc0(MAX_INSTANCE_DIGITS + 1);
@@ -251,7 +248,7 @@ struct oh_event * snmp_bc_discover_blade(struct oh_handler_state *handle, char *
                 working.type = OH_ET_RESOURCE;
                 working.u.res_event.entry = snmp_rpt_array[BC_RPT_ENTRY_BLADE].rpt;
 
-		working.u.res_event.entry.ResourceTag.DataType = SAHPI_TL_TYPE_LANGUAGE;
+		working.u.res_event.entry.ResourceTag.DataType = SAHPI_TL_TYPE_TEXT;
 		working.u.res_event.entry.ResourceTag.Language = SAHPI_LANG_ENGLISH;
 
 		instance_str = (gchar *)g_malloc0(MAX_INSTANCE_DIGITS + 1);
@@ -324,7 +321,7 @@ struct oh_event * snmp_bc_discover_blade_addin(struct oh_handler_state *handle,
 			dbg("More than one expansion character in OID string\n");
 			goto CLEANUP;
 		}
-		sprintf(bladenum_str, "%d", bladenum+BC_HPI_INSTANCE_BASE);
+		snprintf(bladenum_str, 2, "%d", bladenum+BC_HPI_INSTANCE_BASE);
 		oid = g_strconcat(oidparts[0], bladenum_str, NULL);
                 if (!oid) {
 			dbg("Could not concatenate blade add-in oid"); 
@@ -337,7 +334,7 @@ struct oh_event * snmp_bc_discover_blade_addin(struct oh_handler_state *handle,
 			working.type = OH_ET_RESOURCE;
 			working.u.res_event.entry = snmp_rpt_array[BC_RPT_ENTRY_BLADE_ADDIN_CARD].rpt;
 
-			working.u.res_event.entry.ResourceTag.DataType = SAHPI_TL_TYPE_LANGUAGE;
+			working.u.res_event.entry.ResourceTag.DataType = SAHPI_TL_TYPE_TEXT;
 			working.u.res_event.entry.ResourceTag.Language = SAHPI_LANG_ENGLISH;
 
 			instance_str = (gchar *)g_malloc0(MAX_INSTANCE_DIGITS + 1);
@@ -403,7 +400,7 @@ struct oh_event * snmp_bc_discover_fan(struct oh_handler_state *handle,char *fan
                 working.type = OH_ET_RESOURCE;
                 working.u.res_event.entry = snmp_rpt_array[BC_RPT_ENTRY_BLOWER_MODULE].rpt;
 
-		working.u.res_event.entry.ResourceTag.DataType = SAHPI_TL_TYPE_LANGUAGE;
+		working.u.res_event.entry.ResourceTag.DataType = SAHPI_TL_TYPE_TEXT;
 		working.u.res_event.entry.ResourceTag.Language = SAHPI_LANG_ENGLISH;
 
 		instance_str = (gchar *)g_malloc0(MAX_INSTANCE_DIGITS + 1);
@@ -455,7 +452,7 @@ struct oh_event * snmp_bc_discover_power(struct oh_handler_state *handle,char *p
                 working.type = OH_ET_RESOURCE;
                 working.u.res_event.entry = snmp_rpt_array[BC_RPT_ENTRY_POWER_MODULE].rpt;
 
-		working.u.res_event.entry.ResourceTag.DataType = SAHPI_TL_TYPE_LANGUAGE;
+		working.u.res_event.entry.ResourceTag.DataType = SAHPI_TL_TYPE_TEXT;
 		working.u.res_event.entry.ResourceTag.Language = SAHPI_LANG_ENGLISH;
 
 		instance_str = (gchar *)g_malloc0(MAX_INSTANCE_DIGITS + 1);
@@ -507,7 +504,7 @@ struct oh_event * snmp_bc_discover_switch(struct oh_handler_state *handle,char *
                 working.type = OH_ET_RESOURCE;
                 working.u.res_event.entry = snmp_rpt_array[BC_RPT_ENTRY_SWITCH_MODULE].rpt;
 
-		working.u.res_event.entry.ResourceTag.DataType = SAHPI_TL_TYPE_LANGUAGE;
+		working.u.res_event.entry.ResourceTag.DataType = SAHPI_TL_TYPE_TEXT;
 		working.u.res_event.entry.ResourceTag.Language = SAHPI_LANG_ENGLISH;
 
 		instance_str = (gchar *)g_malloc0(MAX_INSTANCE_DIGITS + 1);
@@ -584,7 +581,7 @@ struct oh_event * snmp_bc_discover_controls(struct oh_handler_state *handle,
 		working.u.rdr_event.rdr.Entity = parent_ep;
 		working.u.rdr_event.rdr.RdrTypeUnion.CtrlRec = control->control;
 
-		working.u.rdr_event.rdr.IdString.DataType = SAHPI_TL_TYPE_LANGUAGE;
+		working.u.rdr_event.rdr.IdString.DataType = SAHPI_TL_TYPE_TEXT;
 		working.u.rdr_event.rdr.IdString.Language = SAHPI_LANG_ENGLISH;
 		len = strlen(control->comment);
 		if (len <= SAHPI_MAX_TEXT_BUFFER_LENGTH) {
@@ -622,14 +619,13 @@ struct oh_event * snmp_bc_discover_sensors(struct oh_handler_state *handle,
 
         memset(&working, 0, sizeof(struct oh_event));
 	
+	/* FIXME:: Need to change all event - only sensors to DataFormat.IsSupported = FALSE */
 	/* Check for Event-only sensor - no OID */
-	if ((sensor->bc_sensor_info.mib.oid == NULL) &&
-	    (sensor->sensor.DataFormat.ReadingFormats & SAHPI_SRF_EVENT_STATE)) {
+	if (sensor->bc_sensor_info.mib.oid == NULL && !(sensor->sensor.DataFormat.IsSupported)) {
 		sensor_event_only = 1;
 	}
 
-	if ((sensor->bc_sensor_info.mib.oid == NULL) &&
-	    !(sensor->sensor.DataFormat.ReadingFormats & SAHPI_SRF_EVENT_STATE)) {
+	if (sensor->bc_sensor_info.mib.oid == NULL && sensor->sensor.DataFormat.IsSupported) {
 	 	dbg("Sensor %s cannot be read and is NOT event-only", sensor->comment);
 		return e;
 	}
@@ -649,7 +645,7 @@ struct oh_event * snmp_bc_discover_sensors(struct oh_handler_state *handle,
 		working.u.rdr_event.rdr.Entity = parent_ep;
 		working.u.rdr_event.rdr.RdrTypeUnion.SensorRec = sensor->sensor;
 
-		working.u.rdr_event.rdr.IdString.DataType = SAHPI_TL_TYPE_LANGUAGE;
+		working.u.rdr_event.rdr.IdString.DataType = SAHPI_TL_TYPE_TEXT;
 		working.u.rdr_event.rdr.IdString.Language = SAHPI_LANG_ENGLISH;
 		len = strlen(sensor->comment);
 		if (len <= SAHPI_MAX_TEXT_BUFFER_LENGTH) {
@@ -702,7 +698,7 @@ struct oh_event * snmp_bc_discover_inventories(struct oh_handler_state *handle,
                 working.u.rdr_event.rdr.Entity = parent_ep;
                 working.u.rdr_event.rdr.RdrTypeUnion.InventoryRec = inventory->inventory;
 
-                working.u.rdr_event.rdr.IdString.DataType = SAHPI_TL_TYPE_LANGUAGE;
+                working.u.rdr_event.rdr.IdString.DataType = SAHPI_TL_TYPE_TEXT;
                 working.u.rdr_event.rdr.IdString.Language = SAHPI_LANG_ENGLISH;
                 len = strlen(inventory->comment);
                 if (len <= SAHPI_MAX_TEXT_BUFFER_LENGTH) {
