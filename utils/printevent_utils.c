@@ -13,6 +13,7 @@
  * 	pdphan	03/22/04	Initial code 
  *				Based on hpiEvent() by Andy Cress of Intel
  *	pdphan	04/06/04	Move Showset() util here
+ *	renierm 04/28/04	Add checks for null pointers
  */
 
 #include <printevent_utils.h>
@@ -322,7 +323,9 @@ struct code2string severity[NUM_SEV] = {
  **/
 static void printInterpretedSensor(SaHpiSensorInterpretedT *interpreted_value)
 {
-        switch (interpreted_value->Type)
+        if (!interpreted_value) return;
+	
+	switch (interpreted_value->Type)
         {
                 case SAHPI_SENSOR_INTERPRETED_TYPE_UINT8:
                         printf("SAHPI_SENSOR_INTERPRETED_TYPE_UINT8: ");
@@ -373,6 +376,8 @@ static void printInterpretedSensor(SaHpiSensorInterpretedT *interpreted_value)
  **/
 static void showOemEvent(SaHpiEventT *thisEvent)
 {
+	if (!thisEvent) return;
+	
 	printf("Manufacturing Id: %i\n", thisEvent->EventDataUnion.OemEvent.MId);
 	printf("OEM Event Data: \n\t%s\n", thisEvent->EventDataUnion.OemEvent.OemEventData);
 	return;
@@ -388,8 +393,11 @@ static void showOemEvent(SaHpiEventT *thisEvent)
 static void showWatchdogEvent(SaHpiEventT *thisEvent)
 {
 	char *str = NULL;
-	SaHpiWatchdogEventT *thisWatchdogEvent = &thisEvent->EventDataUnion.WatchdogEvent;
-
+	SaHpiWatchdogEventT *thisWatchdogEvent;
+	
+	if (!thisEvent) return;
+	thisWatchdogEvent = &thisEvent->EventDataUnion.WatchdogEvent;
+	
 	printf("Watchdog Num %d\n", thisWatchdogEvent->WatchdogNum);
 	str = decode_enum(&watchdogevent[0],  NUM_WD_ACTION, thisWatchdogEvent->WatchdogAction);
 	printf("Watchdog Action %s\n", str);
@@ -409,9 +417,11 @@ static void showWatchdogEvent(SaHpiEventT *thisEvent)
  **/
 static void showSensorEvent(SaHpiEventT *thisEvent)
 {
-
 	char *str = NULL;
-	SaHpiSensorEventT *thisSensorEvent = &thisEvent->EventDataUnion.SensorEvent;
+	SaHpiSensorEventT *thisSensorEvent;
+	
+	if (!thisEvent) return;
+	thisSensorEvent = &thisEvent->EventDataUnion.SensorEvent;
 
 	printf( "Sensor # = %2d\n", thisSensorEvent->SensorNum);
 	str = decode_enum(sensortype, NUM_SENSORTYPE,thisSensorEvent->SensorType);
@@ -454,7 +464,10 @@ static void showHotswapEvent(SaHpiEventT *thisEvent)
 {
 	
 	char *str = NULL;
-	SaHpiHotSwapEventT *thisHotSwapEvent = &thisEvent->EventDataUnion.HotSwapEvent;
+	SaHpiHotSwapEventT *thisHotSwapEvent;
+
+	if (!thisEvent) return;
+	thisHotSwapEvent = &thisEvent->EventDataUnion.HotSwapEvent;
 
 	str = decode_enum(hotswapstate, NUM_HS, thisHotSwapEvent->HotSwapState);
 	printf("HotSwapEventState %s\n", str);
@@ -478,13 +491,19 @@ char *decode_enum(struct code2string *code_array, int NUM_MAX, int code)
 {
         int i;
         char *str = NULL;
-        for (i = 0; i < NUM_MAX; i++) {
-                if (code == code_array[i].val) { str = code_array[i].str; break;}
-        }
+
+	if (code_array) {
+        	for (i = 0; i < NUM_MAX; i++) {
+                	if (code == code_array[i].val) {
+				str = code_array[i].str; break;
+			}
+        	}
+	}
 
         if (str == NULL) {
                 str = code_unknown;
         }
+	
         return(str);
 }
 
@@ -501,7 +520,9 @@ void print_event(SaHpiEventT *thisEvent)
         char *str = NULL;
         char timestr[40];
 
-        printf("\n***** Event\n");
+        if (!thisEvent) return;	
+	
+	printf("\n***** Event\n");
         printf( "Resource ID: %d\n", thisEvent->Source);
         str = decode_enum(eventtype, NUM_EVENTTYPE,thisEvent->EventType);
         printf("Event Type: %s\n", str);
@@ -532,8 +553,7 @@ void print_event(SaHpiEventT *thisEvent)
                         printf("Invalid event type reported.\n");
                         break;
         }
-} /*  */
-
+}
 
 /**
  * saftime2str: Convert sahpi time to calendar date/time string        
@@ -548,6 +568,9 @@ void saftime2str(SaHpiTimeT time, char * str, size_t size)
 {
 	struct tm t;
 	time_t tt;
+	
+	if (!str) return;
+	
 	tt = time / 1000000000;
 	localtime_r(&tt, &t);
 	strftime(str, size, "%b %d, %Y - %H:%M:%S", &t);
@@ -572,7 +595,9 @@ void ShowSel( SaHpiSelEntryT  *sel, SaHpiRdrT *rdr,
         char mystr[26];
         unsigned char data1, data2, data3;
 
-        /*format & print the EventLog entry*/
+        if (!sel || !rdr || !rptentry) return;
+	
+	/*format & print the EventLog entry*/
 
         if (sel->Event.Timestamp > SAHPI_TIME_MAX_RELATIVE) { /*absolute time*/
                 tt1 = sel->Event.Timestamp / 1000000000;
