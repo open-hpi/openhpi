@@ -682,16 +682,20 @@ static int ipmi_get_sensor_reading(void   *hnd,
 
 	SaHpiRdrT *rdr;
 
+	
 	rdr = oh_get_rdr_by_type(handler->rptcache, id, SAHPI_SENSOR_RDR, num);
 	if (!rdr) {
 		dbg("no rdr");
 		return SA_ERR_HPI_NOT_PRESENT;
 	}
-
+	
 	rv = ohoi_get_rdr_data(handler, id, SAHPI_SENSOR_RDR, num, (void *)&sensor_info);
 	if (rv!=SA_OK)
 		return rv;
 
+	if (!reading && !ev_state)
+		return SA_OK;
+	
 	return ohoi_get_sensor_reading(sensor_info->sensor_id, reading, ev_state, ipmi_handler);
 }
 

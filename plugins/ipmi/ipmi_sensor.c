@@ -79,17 +79,20 @@ static void sensor_reading(ipmi_sensor_t		*sensor,
 		return;
 	}
 
-	if (value_present == IPMI_RAW_VALUE_PRESENT) {
-		p->reading->IsSupported = SAHPI_TRUE;
-		p->reading->Type = SAHPI_SENSOR_READING_TYPE_FLOAT64;
-		p->reading->Value.SensorFloat64 = raw_val;
-	}else if(value_present == IPMI_BOTH_VALUES_PRESENT) {
-		p->reading->IsSupported = SAHPI_TRUE;
-		p->reading->Type = SAHPI_SENSOR_READING_TYPE_FLOAT64;
-		p->reading->Value.SensorFloat64 = val;
+	if (p->reading) {
+		if (value_present == IPMI_RAW_VALUE_PRESENT) {
+			p->reading->IsSupported = SAHPI_TRUE;
+			p->reading->Type = SAHPI_SENSOR_READING_TYPE_FLOAT64;
+			p->reading->Value.SensorFloat64 = raw_val;
+		}else if(value_present == IPMI_BOTH_VALUES_PRESENT) {
+			p->reading->IsSupported = SAHPI_TRUE;
+			p->reading->Type = SAHPI_SENSOR_READING_TYPE_FLOAT64;
+			p->reading->Value.SensorFloat64 = val;
+		}
 	}
-
-	*p->ev_state = states->__states;
+	
+	if (p->ev_state)
+		*p->ev_state = states->__states;
 }
 
 static void get_sensor_reading(ipmi_sensor_t *sensor, void *cb_data)
@@ -126,10 +129,11 @@ int ohoi_get_sensor_reading(ipmi_sensor_id_t sensor_id,
 	reading_data.ev_state    = ev_state;
         reading_data.done        = 0;
 
-
-	reading->IsSupported = SAHPI_FALSE;
-	*ev_state = 0x0000;
-
+	if (reading)
+		reading->IsSupported = SAHPI_FALSE;
+	if (ev_state)
+		*ev_state = 0x0000;
+	
         rv = ipmi_sensor_pointer_cb(sensor_id, 
 				    get_sensor_reading,
 				    &reading_data);
