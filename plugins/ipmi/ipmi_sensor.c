@@ -64,7 +64,22 @@ static int ignore_sensor(ipmi_sensor_t *sensor)
 
         return 1;
 }
+static void sensor_read_states(ipmi_sensor_t *sensor,
+			       int	   err,
+			       ipmi_states_t *states,
+			       void *cb_data)
+{
+	struct ohoi_sensor_reading *p = cb_data;
 
+	p->done = 1;
+	if (err) {
+		dbg("sensor reading state error");
+		p->rvalue = SA_ERR_HPI_INTERNAL_ERROR;
+		return;
+	}
+	p->reading.IsSupported = SAHPI_FALSE;
+	p->ev_state = states->__states;
+}
 static void sensor_reading(ipmi_sensor_t		*sensor,
 		  	   int 				err,
 			   enum ipmi_value_present_e	value_present,
@@ -111,13 +126,25 @@ static void get_sensor_reading(ipmi_sensor_t *sensor, void *cb_data)
 		dbg("Sensor is not present, ignored");
 		return;
 	}	
-
-	rv = ipmi_reading_get(sensor, sensor_reading, reading_data);
-	if (rv) {
-		reading_data->done = 1;
-		reading_data->rvalue = SA_ERR_HPI_INTERNAL_ERROR;
-		dbg("Unable to get sensor reading: %s\n", strerror( rv ) );
-		return;
+	
+	if (ipmi_sensor_get_event_reading_type(sensor) ==
+			 IPMI_EVENT_READING_TYPE_THRESHOLD) {
+	
+		rv = ipmi_reading_get(sensor, sensor_reading, reading_data);
+		if (rv) {
+			reading_data->done = 1;
+			reading_data->rvalue = SA_ERR_HPI_INTERNAL_ERROR;
+			dbg("Unable to get sensor reading: %s\n", strerror( rv ) );
+			return;
+		}
+	} else {
+		rv = ipmi_states_get(sensor, sensor_read_states, reading_data);
+		if (rv) {
+			reading_data->done = 1;
+			reading_data->rvalue = SA_ERR_HPI_INTERNAL_ERROR;
+			dbg("Unable to get sensor reading states: %s\n",
+					strerror( rv ) );
+		}
 	}
 }
 
