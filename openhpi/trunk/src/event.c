@@ -316,7 +316,6 @@ static int process_rdr_event(struct oh_event *e)
                         dbg("FAILED: RDR %x in Resource %d in Domain %d has NOT been REMOVED.",
                             e->u.rdr_event.rdr.RecordId, rid, e->did);
                 }
-
         } else if (e->type == OH_ET_RDR) { /* Add/Update RDR */
                 if(!(rv = oh_add_rdr(rpt, rid, &(e->u.rdr_event.rdr), NULL, 0))) {
                         dbg("SUCCES: RDR %x in Resource %d in Domain %d has been ADDED.",

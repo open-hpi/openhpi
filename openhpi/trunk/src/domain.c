@@ -53,6 +53,7 @@ SaHpiDomainIdT oh_create_domain(SaHpiDomainCapabilitiesT capabilities,
 
         if (tag)
                 memcpy(&(domain->tag), tag, sizeof(SaHpiTextBufferT));
+        
         domain->del = oh_el_create(OH_EL_MAX_SIZE);
         domain->sessions = g_array_sized_new(FALSE, TRUE,
                                              sizeof(SaHpiSessionIdT),
@@ -136,9 +137,8 @@ struct oh_domain *oh_get_domain(SaHpiDomainIdT did)
 
         if (did < 1) return NULL;
         
-        /* unspecified domain id always gives us id 1 */
         if (did == SAHPI_UNSPECIFIED_DOMAIN_ID) {
-                did = 1;
+                did = oh_get_default_domain_id();
         }
 
 	g_static_rec_mutex_lock(&(oh_domains.lock)); /* Locked domain table */
