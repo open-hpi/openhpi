@@ -36,7 +36,7 @@ SaErrorT sim_banner(struct snmp_bc_hnd *custom_handle)
 {
 
 	printf("************************************\n");
-	printf("****** BladeCenter Simulator  ******\n");
+	printf("************ Simulator *************\n");
 
 	if (custom_handle->platform == SNMP_BC_PLATFORM_BC) {
 		printf("****** BladeCenter Integrated ******\n");
