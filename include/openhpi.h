@@ -104,6 +104,7 @@ struct oh_rdr *insert_rdr(struct oh_resource *res, struct oh_id *oid);
 
 int init_plugin(void);
 int uninit_plugin(void);
+int load_plugin(const char*, const char*, const char*);
 
 #define dbg(format, ...)                                      \
         do {							                      \

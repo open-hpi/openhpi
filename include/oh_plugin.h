@@ -1,6 +1,8 @@
 #ifndef __OH_PLUGIN_H
 #define __OH_PLUGIN_H
 
+#define OH_PLUGIN_PATH "/usr/lib/openhpi:/usr/local/lib/openhpi"
+
 #include <uuid/uuid.h>
 
 #include <sys/time.h>
