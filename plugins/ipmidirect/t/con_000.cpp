@@ -185,13 +185,13 @@ public:
 int
 main( int /*argc*/, char * /*argv*/[] )
 {
-  IpmiLogOpen( dIpmiLogFile|dIpmiLogStdOut, "log", 1 );
+  stdlog.Open( dIpmiLogFile|dIpmiLogStdOut );
 
   struct hostent *ent = gethostbyname( host );
 
   if ( !ent )
      {
-       IpmiLog( "Unable to resolve IPMI LAN address: %s !\n", host );
+       stdlog << "unable to resolve IPMI LAN address: " << host << " !\n";
        return 1;
      }
 
@@ -221,19 +221,19 @@ main( int /*argc*/, char * /*argv*/[] )
        while( num_threads )
           {
             sleep( 1 );
-            IpmiLog( "### %d\n", num_cmds );
+            stdlog << "### " << num_cmds << "\n";
           }
 
        time_t t = time( 0 ) - t0;
-       
-       IpmiLog( "time: %ds\n", t ); 
+
+       stdlog << "time: " << (int)t << "s\n"; 
      }
 
   delete con;
 
-  IpmiLog( "%d GetDeviceId\n", num_cmds );
+  stdlog << num_cmds << " GetDeviceId\n";
 
-  IpmiLogClose();
+  stdlog.Close();
 
   return rv;
 }
