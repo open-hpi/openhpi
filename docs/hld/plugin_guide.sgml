@@ -91,8 +91,8 @@ int get_interface(void **pp, uuid_t uuid)
 }
     </programlisting>
     </para>
-
-    <sect2>
+</sect1>
+<sect1>
     <title>Naming convention and return codes</title>
     <para>
 
@@ -114,10 +114,9 @@ int get_interface(void **pp, uuid_t uuid)
 	 on different architectures.
     </para>
     </note>
-    </sect2>
-	
+</sect1>
 
-    <sect2>
+   <sect1>
     <title>The <literal>Open</literal> function</title>
     <para>
 	<programlisting>
@@ -144,9 +143,9 @@ static void *my_open(GHashTable *config_file);
 	When done, you would return a pointer to the handler allocated for this plugin
 	instance.
 	</para>
-   </sect2>
+   </sect1>
 
-    <sect2>
+    <sect1>
     <title>The <literal>close</literal> function</title>
     <para>
 	<programlisting>
@@ -160,9 +159,9 @@ static void *my_close(void *hnd);
 	terminate all loose data.
     </para>
 
-   </sect2>
+   </sect1>
 
-    <sect2>
+    <sect1>
     <title>The <literal>discover_resources</literal> function</title>
     <para>
 	<programlisting>
@@ -177,12 +176,68 @@ static void *discover_resources(*hnd);
 
     <para>
 	In most existing plug-ins, the code would retrieve RPT entries from the rptcache
-	and format then into oh_event(s) structures and append them into the eventq.
+	and format them into oh_event(s) structures and append them into the eventq.
 	The infrastructure would retrieve these events from each plug-in defined in the
 	config file and store them in the main RPT table of the infrastructure.
     </para>
+    <sect2>
+    <title>The <literal>oh_handler_state</literal> structure</title>
+    <para>
+	So now is a good time to talk about the <literal>oh_handler_state</literal>
+    </para>
 
-   </sect2>
+    <para>
+	The oh_handler_state structure contains:
+    <programlisting role="c">
+    struct oh_handler_state {
+	RPTable *rptcache;
+	GSList *eventq;
+	GHashTable *config;
+	void *data;
+    };
+    </programlisting>
+    </para>
+    <para>
+	The oh_handler_state happens to be the state structure of a plug-in.
+	Meaning it holds the rptcache, eventq and config data of a plug-in as
+	well as a pointer to private data which the plug-in owner may decide to
+	hold private to the plug-in.
+    </para>
+    <para>
+	Part of the discover_resources function is to invoke routines which talk
+	to the hardware and gather resource information and format them into HPI
+	RPT (entries).  Further, the discover_resources function formats the entries
+	into an openhpi "event" union provided by (look at oh_plugin.h):
+<programlisting role="c">
+struct oh_event {
+        enum {
+                OH_ET_RESOURCE,
+                OH_ET_RESOURCE_DEL,
+                OH_ET_RDR,
+                OH_ET_RDR_DEL,
+                OH_ET_HPI
+        }type;
+        union {
+                struct oh_resource_event res_event;
+                struct oh_resource_del_event res_del_event;
+                struct oh_rdr_event      rdr_event;
+                struct oh_rdr_del_event  rdr_del_event;
+                struct oh_hpi_event      hpi_event;
+        } u;
+};
+</programlisting>
+	and pushes these events into the oh_handler_stats's eventq (GSList) for later
+	retrieval by the get_event() function.
+    </para>
+    </sect2>
+   </sect1>
+
+   <sect1>
+   <title>The <literal>get_event</literal> function</title>
+   <para>
+	The get_event function currently gets called from the openhpi infrastructure 
+	library	to retrieve a plug-in's events.
+   </para>
 </sect1>
 
 </chapter>
