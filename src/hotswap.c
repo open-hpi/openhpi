@@ -24,6 +24,10 @@
 
 #include <SaHpi.h>
 #include <openhpi.h>
+#include <rpt_utils.h>
+#include <printevent_utils.h>
+#include <epath_utils.h>
+
 
 void process_hotswap_policy(struct oh_handler *handler)
 {
@@ -49,7 +53,7 @@ void process_hotswap_policy(struct oh_handler *handler)
                         dbg("Non-hotswap event!");
                         return;
                 }
-        	    
+
 		entry = oh_get_resource_by_id(default_rpt, e.parent);
 
                 /* if the hotswap state goes to inactive,
@@ -77,7 +81,15 @@ void process_hotswap_policy(struct oh_handler *handler)
                 }
 
                 gettimeofday1(&cur);
-        
+
+/*
+                char str[1024] = "invalid";
+                SaHpiRptEntryT *rpte = oh_get_resource_by_id( default_rpt, e.parent );
+                entitypath2string( &rpte->ResourceEntity, str, 1024 );
+                printf( "hotswap event: %s\n", str );
+                print_event( &e.event );
+*/
+
                 if (e.event.EventDataUnion.HotSwapEvent.HotSwapState 
                                 == SAHPI_HS_STATE_INSERTION_PENDING) {
                         est = e.event.Timestamp + get_hotswap_auto_insert_timeout();

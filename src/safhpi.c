@@ -74,6 +74,7 @@ static enum {
                 struct oh_resource_data *rd;                            \
                 if(rpt == NULL) {                                       \
                         dbg("Invalide RPTable");                        \
+                        data_access_unlock();                           \
                         return SA_ERR_HPI_INVALID_SESSION;              \
                 }                                                       \
                 rd = oh_get_resource_data(rpt, rid);                    \
@@ -582,7 +583,8 @@ SaErrorT SAHPI_API saHpiResourceIdGet(
                 return SA_ERR_HPI_UNKNOWN;
         }
 
-        string2entitypath(on_entitypath, &ep);        
+        string2entitypath(on_entitypath, &ep);
+
         rptentry = oh_get_resource_by_ep(rpt, &ep);
         if (!rptentry) {
                 return SA_ERR_HPI_NOT_PRESENT;
@@ -625,26 +627,34 @@ SaErrorT SAHPI_API saHpiEventLogInfoGet (
                 return oh_sel_info(d->sel, Info);
         }
 
+	data_access_lock();
+
         OH_SESSION_SETUP(SessionId,s);
         OH_RPT_GET(SessionId,rpt);
         OH_RESOURCE_GET(rpt, ResourceId, res);
         
         if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_SEL)) {
                 dbg("Resource %d does not have SEL", ResourceId);
+		data_access_unlock();
                 return SA_ERR_HPI_INVALID_CMD;
         }
-        
+
         OH_HANDLER_GET(rpt, ResourceId, h);
 
         get_func = h->abi->get_sel_info;
 
-        if (!get_func)
+        if (!get_func) {
+		data_access_unlock();
                 return SA_ERR_HPI_UNSUPPORTED_API;
-        
+        }
+
         rv = get_func(h->hnd, ResourceId, Info);
         if (rv != SA_OK) {
+		data_access_unlock();
                 dbg("SEL info get failed");
         }
+
+	data_access_unlock();
         return rv;
 }
 
@@ -683,6 +693,8 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
                 return SA_OK;
         }
 
+	data_access_lock();
+
         OH_SESSION_SETUP(SessionId,s);
         
         OH_RPT_GET(SessionId, rpt);
@@ -691,22 +703,25 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
 
         if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_SEL)) {
                 dbg("Resource %d does not have SEL", ResourceId);
+		data_access_unlock();
                 return SA_ERR_HPI_INVALID_CMD;
         }
-        
+
         OH_HANDLER_GET(rpt, ResourceId, h);
         
         get_sel_entry = h->abi->get_sel_entry;
         
         if (!get_sel_entry) {
                 dbg("This api is not supported");
+		data_access_unlock();
                 return SA_ERR_HPI_UNSUPPORTED_API;
         }
-        
+
         rv = get_sel_entry(h->hnd, ResourceId, EntryId, PrevEntryId,
                            NextEntryId, EventLogEntry);
-        
+
         if(rv != SA_OK) {
+		data_access_unlock();
                 dbg("SEL entry get failed");
         }
 
@@ -718,20 +733,24 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
                         case SAHPI_ET_SENSOR:
                                 num = EventLogEntry->Event.EventDataUnion.SensorEvent.SensorNum;
                                 tmprdr = oh_get_rdr_by_type(rpt,ResourceId,SAHPI_SENSOR_RDR,num);
-                                if (tmprdr) memcpy(Rdr,tmprdr,sizeof(SaHpiRdrT));
+                                if (tmprdr)
+					 memcpy(Rdr,tmprdr,sizeof(SaHpiRdrT));
                                 else dbg("saHpiEventLogEntryGet: Could not find rdr.");
                                 break;
                         case SAHPI_ET_WATCHDOG:
                                 num = EventLogEntry->Event.EventDataUnion.WatchdogEvent.WatchdogNum;
                                 tmprdr = oh_get_rdr_by_type(rpt,ResourceId,SAHPI_WATCHDOG_RDR,num);
-                                if (tmprdr) memcpy(Rdr,tmprdr,sizeof(SaHpiRdrT));
+                                if (tmprdr)
+					 memcpy(Rdr,tmprdr,sizeof(SaHpiRdrT));
                                 else dbg("saHpiEventLogEntryGet: Could not find rdr.");
                                 break;
                         default:
                                 ;                                
                 }                
         }
-        
+
+	data_access_unlock();
+
         return rv;
 }
 
@@ -757,12 +776,15 @@ SaErrorT SAHPI_API saHpiEventLogEntryAdd (
                 return oh_sel_add(d->sel, EvtEntry);
         }
 
+	data_access_lock();
+
         OH_SESSION_SETUP(SessionId,s);
         OH_RPT_GET(SessionId, rpt);
         OH_RESOURCE_GET(rpt, ResourceId, res);
         
         if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_SEL)) {
                 dbg("Resource %d does not have SEL", ResourceId);
+		data_access_unlock();
                 return SA_ERR_HPI_INVALID_CMD;
         }
         
@@ -770,19 +792,25 @@ SaErrorT SAHPI_API saHpiEventLogEntryAdd (
         
         add_sel_entry = h->abi->add_sel_entry;
         
-        if (!add_sel_entry)
+        if (!add_sel_entry) {
+		data_access_unlock();
                 return SA_ERR_HPI_UNSUPPORTED_API;
-        
+        }
+
         rv = add_sel_entry(h->hnd, ResourceId, EvtEntry);
         if(rv != SA_OK) {
+		data_access_unlock();
                 dbg("SEL add entry failed");
         }
         
         /* to get RSEL entry into infrastructure */
         rv = get_events();
         if(rv != SA_OK) {
+		data_access_unlock();
                 dbg("Event loop failed");
         }
+
+	data_access_unlock();
         return rv;
 }
 
@@ -988,7 +1016,7 @@ SaErrorT SAHPI_API saHpiSubscribe (
 
         if (s->event_state != OH_EVENT_UNSUBSCRIBE) {
                 dbg("Cannot subscribe if session is not unsubscribed.");
-                return SA_ERR_HPI_INVALID_REQUEST;
+                return SA_ERR_HPI_DUPLICATE;
         }
                 
         if (!ProvideActiveAlarms) {
