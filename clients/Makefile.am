@@ -10,6 +10,7 @@ AM_CFLAGS               = @CFLAGS@
 bin_PROGRAMS = \
 	hpigetevents \
         hpiinv \
+	hpiel \
 	hpisensor \
 	hpitree
 
@@ -19,7 +20,6 @@ bin_PROGRAMS = \
 #                         hpifru \
 #                          hpireset \
 #                         hpireset2 \
-#                          hpisel \
 #                          hpisettime \
 #                          hpiwdt \
 #                          hpipower \
@@ -52,9 +52,9 @@ include_HEADERS         =
 #hpireset2_LDADD         = $(COMMONLIBS)
 #hpireset2_LDFLAGS       =
 
-#hpiel_SOURCES           = hpiel.c
-#hpiel_LDADD             = $(COMMONLIBS)
-#hpiel_LDFLAGS           =
+hpiel_SOURCES           = hpiel.c
+hpiel_LDADD             = $(COMMONLIBS)
+hpiel_LDFLAGS           =
 
 hpisensor_SOURCES       = hpisensor.c
 hpisensor_LDADD         = $(COMMONLIBS)

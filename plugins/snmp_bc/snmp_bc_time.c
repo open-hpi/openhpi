@@ -255,10 +255,7 @@ gboolean is_dst_in_effect(struct tm *time, gchar **zone_token) {
 	return(rc);
 }
 
-/* FIXME:: These routines should return a SaErrorT; check error codes return 
-   SA_ERR_HPI_INTERNAL_ERROR not -1; Use dbg consistantly.
-*/
-int set_bc_dst(struct oh_handler_state *handle, struct tm *time) {
+SaErrorT snmp_bc_set_dst(struct oh_handler_state *handle, struct tm *time) {
 
 	gchar **zone_token;
 	struct snmp_bc_hnd *custom_handle = handle->data;
@@ -283,54 +280,84 @@ int set_bc_dst(struct oh_handler_state *handle, struct tm *time) {
 		}
 	}
 	g_strfreev(zone_token);
-	return 0; 
+	return(SA_OK); 
 }
 
-int get_bc_sp_time(struct oh_handler_state *handle, struct tm *time)
+/**
+ * snmp_bc_get_sp_time:
+ * @handle: Pointer to handler's state.
+ * @time: Pointer to tm struct to store data.
+ *
+ * Returns SaHpiEventLogInfoT information about Event Log.
+ * 
+ * Return values:
+ * SA_OK - normal case.
+ * SA_ERR_HPI_INVALID_PARAMS - Any pointer parameter is NULL.
+ * SA_ERR_HPI_INTERNAL_ERROR - If cannot parse date and time returned from bc
+ **/
+SaErrorT snmp_bc_get_sp_time(struct oh_handler_state *handle, struct tm *time)
 {
         struct snmp_value get_value;
         struct tm tmptime;
-
+	SaErrorT rv = SA_OK;
+	
+	if (!handle || !time)
+		return(SA_ERR_HPI_INVALID_PARAMS);
+		
         struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 	struct snmp_session *ss = custom_handle->ss;
         
-	snmp_get(ss, SNMP_BC_DATETIME_OID, &get_value);
-        if(get_value.type == ASN_OCTET_STR) {
+	rv = snmp_get(ss, SNMP_BC_DATETIME_OID, &get_value);
+        if ( (rv == SA_OK) && (get_value.type == ASN_OCTET_STR) ) {
                 if(sscanf(get_value.string,"%2d/%2d/%4d,%2d:%2d:%2d",
                           &tmptime.tm_mon, &tmptime.tm_mday, &tmptime.tm_year, 
                           &tmptime.tm_hour, &tmptime.tm_min, &tmptime.tm_sec)) {
-			set_bc_dst(handle, &tmptime);
+			snmp_bc_set_dst(handle, &tmptime);
                         tmptime.tm_mon--;
                         tmptime.tm_year -= 1900;
                 } else {
                         dbg("Couldn't parse Date/Time from Blade Center SP");
-                        return -1;
+                        return(SA_ERR_HPI_INTERNAL_ERROR);
                 }
         } else {
                 dbg("Couldn't fetch Blade Center SP Date/Time Entry");
-                return -1;
+		if (rv == SA_OK) rv = SA_ERR_HPI_INTERNAL_ERROR;
+                return(rv);
         }
         *time = tmptime;
-        return 0;
+        return(SA_OK);
 }
 
-int set_bc_sp_time(struct snmp_session *ss, struct tm *time) {
+/**
+ * snmp_bc_set_sp_time:
+ * @ss: Pointer to session info.
+ * @time: Pointer to tm struct to store data.
+ *
+ * 
+ * 
+ * Return values:
+ * SA_OK - normal case.
+ * SA_ERR_HPI_INVALID_PARAMS - Any pointer parameter is NULL.
+ * SA_ERR_HPI_INTERNAL_ERROR - If cannot parse date and time returned from bc
+ * Returncode from snmp_set()
+ **/
+SaErrorT snmp_bc_set_sp_time(struct snmp_session *ss, struct tm *time) {
 
         struct snmp_value set_value;
-        int returncode = 0;
+        SaErrorT returncode = SA_OK;
+
+	if (!ss || !time)
+		return(SA_ERR_HPI_INVALID_PARAMS);
 
         set_value.type = ASN_OCTET_STR;
 	
         strftime(set_value.string, sizeof(set_value.string), "%m/%d/%Y,%H:%M:%S", time);
 	set_value.str_len = 19;
 	
-        if (snmp_set(ss, SNMP_BC_DATETIME_OID,set_value) == 0)
-        {
-                returncode = 0;
-        } else {
+	returncode = snmp_set(ss, SNMP_BC_DATETIME_OID,set_value);
+        if (returncode != SA_OK)
                 dbg("snmp_set is NOT successful\n");
-                returncode = -1;
-        }
-        return returncode;
+
+       return returncode;
 
 }

@@ -1732,6 +1732,140 @@ static SaErrorT oh_build_annrec(oh_big_textbuffer *textbuff,const SaHpiAnnunciat
 	return(err);
 }
 
+/**
+ * oh_fprint_eventloginfo:
+ * @stream: File handle.
+ * @thiselinfo: Pointer to SaHpiEventLogInfoT to be printed.
+ * @offsets: Number of offsets to start printing structure.
+ * 
+ * Prints the member data contained in SaHpiEventLogInfoT struct to a file.
+ * The MACRO oh_print_evenloginfo(), uses this function to print to STDOUT. 
+ *
+ * Returns:
+ * SA_OK - normal operation.
+ * SA_ERR_HPI_INVALID_PARAMS - any of the in pointers is NULL
+ **/
+SaErrorT oh_fprint_evenloginfo(FILE *stream, const SaHpiEventLogInfoT *thiselinfo, int offsets)
+{	
+	int err;
+	oh_big_textbuffer mybuf;
+	char str[SAHPI_MAX_TEXT_BUFFER_LENGTH];
+	SaHpiTextBufferT  minibuf;
+
+	if (!stream || !thiselinfo) {
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+	
+	oh_init_bigtext(&mybuf);
+
+	oh_append_offset(&mybuf, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Entries: %d\n", thiselinfo->Entries);
+	oh_append_bigtext(&mybuf, str);
+
+	oh_append_offset(&mybuf, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Size: %d\n", thiselinfo->Size);
+	oh_append_bigtext(&mybuf, str);
+
+	oh_append_offset(&mybuf, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "UserEventMaxSize: %d\n", thiselinfo->UserEventMaxSize);
+	oh_append_bigtext(&mybuf, str);
+	
+	oh_append_offset(&mybuf, offsets);
+	err = oh_decode_time(thiselinfo->UpdateTimestamp, &minibuf);
+	if (err != SA_OK)
+		memcpy(minibuf.Data, "SAHPI_TIME_UNSPECIFIED", 
+					sizeof("SAHPI_TIME_UNSPECIFIED"));
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "UpdateTimestamp: %s\n", minibuf.Data);
+	oh_append_bigtext(&mybuf, str);	
+	
+	oh_append_offset(&mybuf, offsets);
+	err = oh_decode_time(thiselinfo->CurrentTime, &minibuf);
+	if (err != SA_OK)
+		memcpy(minibuf.Data, "SAHPI_TIME_UNSPECIFIED", 
+					sizeof("SAHPI_TIME_UNSPECIFIED"));
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "CurrentTime: %s\n", minibuf.Data);
+	oh_append_bigtext(&mybuf, str);	
+
+	oh_append_offset(&mybuf, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Enabled: %s\n",
+		 (thiselinfo->Enabled == SAHPI_TRUE) ? "TRUE" : "FALSE" );
+	oh_append_bigtext(&mybuf, str);
+
+	oh_append_offset(&mybuf, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "OverflowFlag: %s\n",
+		 (thiselinfo->OverflowFlag == SAHPI_TRUE) ? "TRUE" : "FALSE" );
+	oh_append_bigtext(&mybuf, str);
+
+	oh_append_offset(&mybuf, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "OverflowResetable: %s\n",
+		 (thiselinfo->OverflowResetable == SAHPI_TRUE) ? "TRUE" : "FALSE" );
+	oh_append_bigtext(&mybuf, str);
+
+	oh_append_offset(&mybuf, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "OverflowAction: %s\n",
+		 oh_lookup_eventlogoverflowaction(thiselinfo->OverflowAction));
+	oh_append_bigtext(&mybuf, str);
+	
+	err = oh_fprint_bigtext(stream, &mybuf);
+	return(err);
+	
+}
+
+
+/**
+ * oh_fprint_eventlogentry:
+ * @stream: File handle.
+ * @thiseventlog: Pointer to SaHpiEventLogEntryT to be printed.
+ * @offsets: Number of offsets to start printing structure.
+ * 
+ * Prints the member data contained in SaHpiEventLogEntryT struct to a file.
+ * The MACRO oh_print_evenlogentry(), uses this function to print to STDOUT. 
+ *
+ * Returns:
+ * SA_OK - normal operation.
+ * SA_ERR_HPI_INVALID_PARAMS - any of the in pointers is NULL
+ **/
+SaErrorT oh_fprint_eventlogentry(FILE *stream, const SaHpiEventLogEntryT *thiseventlog, int offsets)
+{	
+
+	int err;
+	oh_big_textbuffer mybuf, mybufX;
+	char str[SAHPI_MAX_TEXT_BUFFER_LENGTH];
+	SaHpiTextBufferT  minibuf;
+
+	if (!stream || !thiseventlog) {
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+	
+	oh_init_bigtext(&mybuf);
+
+	oh_append_offset(&mybuf, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "EntryId: %d\n", thiseventlog->EntryId);
+	oh_append_bigtext(&mybuf, str);
+
+	oh_append_offset(&mybuf, offsets);
+	err = oh_decode_time(thiseventlog->Timestamp, &minibuf);
+	if (err != SA_OK)
+		memcpy(minibuf.Data, "SAHPI_TIME_UNSPECIFIED", 
+					sizeof("SAHPI_TIME_UNSPECIFIED"));
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Timestamp: %s\n", minibuf.Data);
+	oh_append_bigtext(&mybuf, str);	
+	
+	err = oh_build_event(&mybufX, &thiseventlog->Event, offsets);
+	oh_append_bigtext(&mybuf, mybufX.Data);	
+	
+	err = oh_fprint_bigtext(stream, &mybuf);
+	return(err);
+
+}
+
+/**
+ * oh_fprint_event:
+ *
+ * Returns:
+ * SA_OK - normal operation.
+ * SA_ERR_HPI_INVALID_PARAMS - any of the in pointers is NULL
+ **/
 SaErrorT oh_fprint_event(FILE *stream, const SaHpiEventT *event, int offsets) 
 {
 	int err;
@@ -1752,12 +1886,22 @@ SaErrorT oh_fprint_event(FILE *stream, const SaHpiEventT *event, int offsets)
 	return(SA_OK);
 }
 
+/**
+ * 
+ *
+ * Returns:
+ * SA_OK - normal operation.
+ * SA_ERR_HPI_INVALID_PARAMS - any of the in pointers is NULL
+ **/
 static SaErrorT oh_build_event(oh_big_textbuffer *buffer, const SaHpiEventT *event, int offsets)
 {
 	char str[SAHPI_MAX_TEXT_BUFFER_LENGTH];
 	SaErrorT err;
 	SaHpiTextBufferT tmpbuffer;
 
+	memset( buffer, 0, sizeof( oh_big_textbuffer ) );
+	memset( &tmpbuffer, 0, sizeof( SaHpiTextBufferT ) );
+	
 	/* Event Type */
 	oh_append_offset(buffer, offsets);
 	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Event Type: %s\n", 
@@ -1820,6 +1964,14 @@ static SaErrorT oh_build_event(oh_big_textbuffer *buffer, const SaHpiEventT *eve
 	return(SA_OK);
 }
 
+
+/**
+ * 
+ *
+ * Returns:
+ * SA_OK - normal operation.
+ * SA_ERR_HPI_INVALID_PARAMS - any of the in pointers is NULL
+ **/
 static SaErrorT oh_build_event_resource(oh_big_textbuffer *buffer, const SaHpiEventT *event, int offsets)
 {
 	/* FIXME:: Need to implement */
@@ -1828,6 +1980,14 @@ static SaErrorT oh_build_event_resource(oh_big_textbuffer *buffer, const SaHpiEv
 	return(SA_OK);
 }
 
+
+/**
+ * 
+ *
+ * Returns:
+ * SA_OK - normal operation.
+ * SA_ERR_HPI_INVALID_PARAMS - any of the in pointers is NULL
+ **/
 static SaErrorT oh_build_event_domain(oh_big_textbuffer *buffer, const SaHpiEventT *event, int offsets)
 {
 	/* FIXME:: Need to implement */
@@ -1836,6 +1996,14 @@ static SaErrorT oh_build_event_domain(oh_big_textbuffer *buffer, const SaHpiEven
 	return(SA_OK);
 }
 
+
+/**
+ * 
+ *
+ * Returns:
+ * SA_OK - normal operation.
+ * SA_ERR_HPI_INVALID_PARAMS - any of the in pointers is NULL
+ **/
 static SaErrorT oh_build_event_sensor(oh_big_textbuffer *buffer, const SaHpiEventT *event, int offsets)
 {
 	char str[SAHPI_MAX_TEXT_BUFFER_LENGTH];
@@ -1955,6 +2123,14 @@ static SaErrorT oh_build_event_sensor(oh_big_textbuffer *buffer, const SaHpiEven
 	return(SA_OK);
 }
 
+
+/**
+ * 
+ *
+ * Returns:
+ * SA_OK - normal operation.
+ * SA_ERR_HPI_INVALID_PARAMS - any of the in pointers is NULL
+ **/
 static SaErrorT oh_build_event_sensor_enable_change(oh_big_textbuffer *buffer, const SaHpiEventT *event, int offsets)
 {
 	/* FIXME:: Need to implement */
@@ -1963,6 +2139,14 @@ static SaErrorT oh_build_event_sensor_enable_change(oh_big_textbuffer *buffer, c
 	return(SA_OK);
 }
 
+
+/**
+ * 
+ *
+ * Returns:
+ * SA_OK - normal operation.
+ * SA_ERR_HPI_INVALID_PARAMS - any of the in pointers is NULL
+ **/
 static SaErrorT oh_build_event_hotswap(oh_big_textbuffer *buffer, const SaHpiEventT *event, int offsets)
 {
 	/* FIXME:: Need to implement */
@@ -1971,6 +2155,14 @@ static SaErrorT oh_build_event_hotswap(oh_big_textbuffer *buffer, const SaHpiEve
 	return(SA_OK);
 }
 
+
+/**
+ * 
+ *
+ * Returns:
+ * SA_OK - normal operation.
+ * SA_ERR_HPI_INVALID_PARAMS - any of the in pointers is NULL
+ **/
 static SaErrorT oh_build_event_watchdog(oh_big_textbuffer *buffer, const SaHpiEventT *event, int offsets)
 {
 	/* FIXME:: Need to implement */
@@ -1979,6 +2171,14 @@ static SaErrorT oh_build_event_watchdog(oh_big_textbuffer *buffer, const SaHpiEv
 	return(SA_OK);
 }
 
+
+/**
+ * 
+ *
+ * Returns:
+ * SA_OK - normal operation.
+ * SA_ERR_HPI_INVALID_PARAMS - any of the in pointers is NULL
+ **/
 static SaErrorT oh_build_event_hpi_sw(oh_big_textbuffer *buffer, const SaHpiEventT *event, int offsets)
 {
 	/* FIXME:: Need to implement */
@@ -1987,6 +2187,14 @@ static SaErrorT oh_build_event_hpi_sw(oh_big_textbuffer *buffer, const SaHpiEven
 	return(SA_OK);
 }
 
+
+/**
+ * 
+ *
+ * Returns:
+ * SA_OK - normal operation.
+ * SA_ERR_HPI_INVALID_PARAMS - any of the in pointers is NULL
+ **/
 static SaErrorT oh_build_event_oem(oh_big_textbuffer *buffer, const SaHpiEventT *event, int offsets)
 {
 	/* FIXME:: Need to implement */
@@ -1995,6 +2203,14 @@ static SaErrorT oh_build_event_oem(oh_big_textbuffer *buffer, const SaHpiEventT 
 	return(SA_OK);
 }
 
+
+/**
+ * 
+ *
+ * Returns:
+ * SA_OK - normal operation.
+ * SA_ERR_HPI_INVALID_PARAMS - any of the in pointers is NULL
+ **/
 static SaErrorT oh_build_event_user(oh_big_textbuffer *buffer, const SaHpiEventT *event, int offsets)
 {
 	/* FIXME:: Need to implement */
@@ -2004,6 +2220,14 @@ static SaErrorT oh_build_event_user(oh_big_textbuffer *buffer, const SaHpiEventT
 }
 
 #if 0
+
+/**
+ * 
+ *
+ * Returns:
+ * SA_OK - normal operation.
+ * SA_ERR_HPI_INVALID_PARAMS - any of the in pointers is NULL
+ **/
 SaHpiBoolT oh_valid_textbuffer(SaHpiTextBufferT text_buffer) {
 
 	if (!valid_SaHpiTextTypeT) { return(SAHPI_FALSE); }
