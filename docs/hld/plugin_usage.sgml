@@ -50,12 +50,14 @@ handler libdummy {
 plugin libsnmp_bc
 
 handler libsnmp_bc {
+	  version = "1"
           community = "mypass"
           host = "10.0.0.1"
           entity_root = "{ROOT,0}{SYSTEM_CHASSIS,0}"
 }
 
 handler libsnmp_bc {
+	  version = "1"
           community = "mypass"
           host = "10.0.0.21"
           entity_root = "{ROOT,0}{SYSTEM_CHASSIS,1}"
@@ -161,9 +163,14 @@ handler libsnmp_bc {
 plugin libsnmp_bc
 
 handler libsnmp_bc {
-          community = "myc0m"
-          host = "192.168.64.52"
-	  entity_root = "{ROOT,0}{SYSTEM_CHASSIS,0}"
+        entity_root = "{SYSTEM_CHASSIS,4}" # Required
+        host = "bc.ibm.com" # Required
+        community = "community" # Version 1 Required.
+        version = "1" # Required. SNMP protocol version (1|3)
+        security_name = "snmpv3_user" # Version 3 Required.
+        passphrase = "opensesame" # Version 3. Required for security_level authNoPriv or authPriv.
+        auth_type = "MD5" # Version 3. Passphrase encoding (MD5|SHA)
+        security_level = "noAuthNoPriv" # Version 3 (noAuthNoPriv|authNoPriv|authPriv)
 }
             </programlisting>
       </para>
