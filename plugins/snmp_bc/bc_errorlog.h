@@ -18,10 +18,12 @@
 #ifndef __BC_ERRORLOG_H
 #define __BC_ERRORLOG_H
 
+#define LOG_LOGIN_STRING "LOGIN ID:"
 #define EVT_RECOVERY "Recovery "
 #define LOG_THRESHOLD_VALUE_STRING " Threshold value "
 #define EVT_EN_LOG_FULL "System error log full"
 #define ER_STR_POST_LOG_CLEARED "System log cleared."
 #define LOG_READ_VALUE_STRING " Read value "
+#define LOG_LOGIN_CHAR "'"
 
 #endif

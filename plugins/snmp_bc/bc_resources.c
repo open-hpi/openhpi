@@ -38,8 +38,8 @@ struct snmp_rpt snmp_rpt_array[] = {
 	/* Chassis */
         {
                 .rpt = {
-			.ResourceInfo = {
-                                .ManufacturerId = 2,
+			.ResourceInfo = { 
+                                .ManufacturerId = IBM_MANUFACTURING_ID,
                         },
                         .ResourceEntity = {
                                 .Entry = {}
@@ -83,7 +83,7 @@ struct snmp_rpt snmp_rpt_array[] = {
         {
                 .rpt = {
                         .ResourceInfo = {
-                                .ManufacturerId = 2,
+                                .ManufacturerId = IBM_MANUFACTURING_ID,
                         },
                         .ResourceEntity = {
                                 .Entry[0] = 
@@ -117,7 +117,7 @@ struct snmp_rpt snmp_rpt_array[] = {
         {
                 .rpt = {
                         .ResourceInfo = {
-                                .ManufacturerId = 2,
+                                .ManufacturerId = IBM_MANUFACTURING_ID,
                         },
                         .ResourceEntity = {
                                 .Entry[0] =
@@ -151,7 +151,7 @@ struct snmp_rpt snmp_rpt_array[] = {
         {
                 .rpt = {
                         .ResourceInfo = {
-                                .ManufacturerId = 2,
+                                .ManufacturerId = IBM_MANUFACTURING_ID,
                         },
                         .ResourceEntity = {
                                 .Entry[0] = 
@@ -199,7 +199,7 @@ struct snmp_rpt snmp_rpt_array[] = {
         {
                 .rpt = {
                         .ResourceInfo = {
-                                .ManufacturerId = 2,
+                                .ManufacturerId = IBM_MANUFACTURING_ID,
                         },
                         .ResourceEntity = {
                                 .Entry[0] = 
@@ -240,7 +240,7 @@ struct snmp_rpt snmp_rpt_array[] = {
         {
                 .rpt = {
                         .ResourceInfo = {
-                                .ManufacturerId = 2,
+                                .ManufacturerId = IBM_MANUFACTURING_ID,
                         },
                         .ResourceEntity = {
                                 .Entry[0] =
@@ -273,7 +273,7 @@ struct snmp_rpt snmp_rpt_array[] = {
         {
                 .rpt = {
                         .ResourceInfo = {
-                                .ManufacturerId = 2,
+                                .ManufacturerId = IBM_MANUFACTURING_ID,
                         },
                         .ResourceEntity = {
                                 .Entry[0] =
@@ -307,7 +307,7 @@ struct snmp_rpt snmp_rpt_array[] = {
         {
                 .rpt = {
                         .ResourceInfo = {
-                                .ManufacturerId = 2,
+                                .ManufacturerId = IBM_MANUFACTURING_ID,
                         },
                         .ResourceEntity = {
                                 .Entry[0] =

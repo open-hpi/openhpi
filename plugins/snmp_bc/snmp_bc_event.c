@@ -14,6 +14,7 @@
  */
 
 #include <glib.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -24,6 +25,7 @@
 #include <oh_plugin.h>
 #include <rpt_utils.h>
 #include <uid_utils.h>
+#include <epath_utils.h>
 #include <bc_resources.h>
 #include <bc_str2event.h>
 #include <bc_errorlog.h>
@@ -39,8 +41,9 @@ typedef enum {
 
 static void free_hash_data(gpointer key, gpointer value, gpointer user_data);
 static int  parse_sel_entry(char *text, bc_sel_entry *sel, int isdst);
-static int  map2event(void *hnd, SaHpiEventT *event);
-static int  map2oemevent(SaHpiEventT *event, gchar *oemstr, SaHpiSeverityT sev, OEMReasonCodeT reason);
+static int  parse_threshold_str(gchar *str, gchar *root_str, gchar *read_value_str, gchar *trigger_value_str);
+static int  set_previous_event_state(void *hnd, SaHpiEventT *event);
+static int  map2oem(void *hnd, SaHpiEventT *event, bc_sel_entry *sel_entry, OEMReasonCodeT reason);
 
 int event2hpi_hash_init()
 {
@@ -77,19 +80,6 @@ int find_res_events(SaHpiEntityPathT *ep, const struct BC_ResourceInfo *bc_res_i
 	SaHpiEventT *hpievent;
 	SaHpiResourceIdT rid = oh_uid_from_entity_path(ep);
 	
-#if 0
-	printf("find_res_events RID = %d\n", rid);
-	printf("Entity Path: Entry0=%d:%d Entry1=%d:%d Entry2=%d:%d Entry3=%d:%d\n",
-	       ep->Entry[0].EntityType,
-	       ep->Entry[0].EntityInstance,
-	       ep->Entry[1].EntityType,
-	       ep->Entry[1].EntityInstance,
-	       ep->Entry[2].EntityType,
-	       ep->Entry[2].EntityInstance,
-	       ep->Entry[3].EntityType,
-	       ep->Entry[3].EntityInstance);
-#endif
-
 	for (i=0; bc_res_info->event_array[i].event != NULL && i < max; i++) {
 
 		/* Normalized and convert event string */
@@ -119,6 +109,7 @@ int find_res_events(SaHpiEntityPathT *ep, const struct BC_ResourceInfo *bc_res_i
 
 			/* Set values */
 			hpievent->Source = rid;
+			hpievent->EventType = SAHPI_ET_HOTSWAP;
 			hpievent->EventDataUnion.HotSwapEvent.HotSwapState = 
 				bc_res_info->def_state;
 
@@ -171,6 +162,7 @@ int find_sensor_events(SaHpiEntityPathT *ep, SaHpiSensorNumT sid, const struct s
 
 			/* Set values */
 			hpievent->Source = rid;
+			hpievent->EventType = SAHPI_ET_SENSOR;
 			hpievent->EventDataUnion.SensorEvent.SensorNum = sid;
 			hpievent->EventDataUnion.SensorEvent.SensorType = rpt_sensor->sensor.Type;
 			hpievent->EventDataUnion.SensorEvent.EventCategory = rpt_sensor->sensor.Category;
@@ -207,7 +199,6 @@ int find_sensor_events(SaHpiEntityPathT *ep, SaHpiSensorNumT sid, const struct s
 	return 0;
 }
 
-
 /****************************************************************************
  * log2event maps BC error log entries to HPI events. 
  * isdst ("is DayLight Savings Time") parameter is a performance hack.
@@ -219,34 +210,67 @@ int find_sensor_events(SaHpiEntityPathT *ep, SaHpiSensorNumT sid, const struct s
 
 int log2event(void *hnd, gchar *logstr, SaHpiEventT *event, int isdst)
 {
-	Str2EventInfoT *strhash_data;
+	bc_sel_entry log_entry;
+	gchar *recovery_str, *login_str, search_str[BC_SEL_ENTRY_STRING];
+	gchar thresh_read_value[MAX_THRESHOLD_VALUE_STRINGSIZE]; 
+	gchar thresh_trigger_value[MAX_THRESHOLD_VALUE_STRINGSIZE];
+	int is_recovery_event, is_threshold_event;
 	SaHpiEventT working, *event_ptr;
 	SaHpiSeverityT severity;
-	bc_sel_entry log_entry;
+	Str2EventInfoT *strhash_data;
 
 	memset(&working, 0, sizeof(SaHpiEventT));
-	
+	is_recovery_event = is_threshold_event = 0;
+
+        /* Parse BC error log entry into its various components */
 	if (parse_sel_entry(logstr, &log_entry, isdst)) {
-		dbg("Couldn't parse SEL entry");
+		dbg("Couldn't parse BladeCenter error log entry=%s", logstr);
 		return -1;
 	}
 
-	/* Fill-in HPI time */
+	/* Fill-in HPI event time */
 	working.Timestamp = (SaHpiTimeT)mktime(&log_entry.time) * 1000000000;
 
         /* Set default severity; usually overwritten below with BCT-level severity */
 	severity = log_entry.sev; 
 
-	/* See if string is a recognized BC "alertable" event */
-	strhash_data = 
-		(Str2EventInfoT *)g_hash_table_lookup(str2event_hash, log_entry.text);
+	/* Set event search string; this is sometimes overwritten below 
+	 * since BC dynamically adds strings to canned event messages */
+	strncpy(search_str, log_entry.text, BC_SEL_ENTRY_STRING);
 
+	/************************************************
+	 * Discover Recovery event strings
+	 * Set Assertion to FALSE for sensor events below
+         ************************************************/
+	recovery_str = strstr(search_str, EVT_RECOVERY);
+	if (recovery_str && (recovery_str == search_str)) {
+		is_recovery_event = 1;
+		strcpy(search_str, (log_entry.text + strlen(EVT_RECOVERY)));
+	}
+
+	/* Adjust login event strings - strip username */
+	login_str = strstr(log_entry.text, LOG_LOGIN_STRING);
+	if (login_str) {
+		gchar *id_str = strstr(log_entry.text, LOG_LOGIN_CHAR);
+		if (id_str != NULL) {
+			memset(search_str, 0, BC_SEL_ENTRY_STRING);
+			strncpy(search_str, log_entry.text, (id_str - log_entry.text));
+			search_str[(id_str - log_entry.text)] = '\0';
+		}
+	}
+
+	/* Adjust threshold event strings */
+	if (strstr(log_entry.text, LOG_THRESHOLD_VALUE_STRING)) {
+		is_threshold_event = 1;
+		if (parse_threshold_str(log_entry.text, search_str, thresh_read_value, thresh_trigger_value)) {
+			dbg("Cannot parse threshold event string=%s\n", log_entry.text);
+			strncpy(search_str, log_entry.text, BC_SEL_ENTRY_STRING);	
+		}
+	}
+
+	/* See if adjusted search string is a recognized BC "alertable" event */
+	strhash_data = (Str2EventInfoT *)g_hash_table_lookup(str2event_hash, search_str);
 	if (strhash_data) {
-		printf ("Event Found in String Table: Event=%s; Sev=%d; OVR=%d\n",
-			strhash_data->event,
-			strhash_data->event_sev,
-			strhash_data->event_sev_ovr);
-		
 		/* Check to see if we can use BCT-level severity; OVR means use
 		 *  default parse log severity; NOOVR means use BCT-level 
 		 *  severity from str2event_hash table 
@@ -254,145 +278,130 @@ int log2event(void *hnd, gchar *logstr, SaHpiEventT *event, int isdst)
 		if (strhash_data->event_sev_ovr == NOOVR) {
 			severity = strhash_data->event_sev;
 		}
-
 		/* Look to see if event is mapped to an HPI entity */
 		event_ptr = (SaHpiEventT *)g_hash_table_lookup(event2hpi_hash, strhash_data->event);
 		if (event_ptr) {
 			working = *event_ptr;
-			printf ("Found event No exceptions: Source=%d Type=%d Sev=%d\n",
-				working.Source, working.EventType, severity);
-			if (map2event (hnd, &working)) {
-				dbg("Cannot map dynamic event data");
-				return -1;
-			}
-		}
-		else { /* Map to OEM Event - Log Not Mapped */
-			printf ("In string table but not in event table - Map to OEM event\n");
-			if (map2oemevent(&working, log_entry.text, severity, EVENT_NOT_MAPPED)) {
-				dbg("Cannot map to OEM Event %s", log_entry.text);
-				return -1;
-			}
-		}
-	}
-	else {
-		printf("NOT Found %s in String Hash: Look for exceptions\n", log_entry.text);
-		/* Look for threshold events */
-		if (strstr(log_entry.text, LOG_THRESHOLD_VALUE_STRING)) {
-			gchar  **event_substrs = NULL;
-			gchar  **thresh_substrs = NULL;
 
-			event_substrs = g_strsplit(log_entry.text, LOG_READ_VALUE_STRING, -1);
-			thresh_substrs = g_strsplit(event_substrs[1], LOG_THRESHOLD_VALUE_STRING, -1);
-
-			printf ("Event string = %s AND %s; Thresh parts are %s AND %s\n", 
-				event_substrs[0], event_substrs[1],
-				thresh_substrs[0], thresh_substrs[1]);
-
-			if (thresh_substrs == NULL ||
-			    (thresh_substrs[0] == NULL || thresh_substrs[0][0] == '\0') ||
-			    (thresh_substrs[1] == NULL || thresh_substrs[1][0] == '\0') ||
-			    (thresh_substrs[2] != NULL)) {
-				dbg("Cannot split threshold event %s properly", log_entry.text);
-				g_strfreev(event_substrs);
-				g_strfreev(thresh_substrs);
-				return -1;
-			}
-
-			/* Re-check string table */
-			/* See if root string is a recognized BC "alertable" event */
-			strhash_data = 
-				(Str2EventInfoT *)g_hash_table_lookup(str2event_hash, event_substrs[0]);
-			if (strhash_data) {
-
-				/* Check severity override */
-				if (strhash_data->event_sev_ovr == NOOVR) {
-					severity = strhash_data->event_sev;
+			/* Handle sensor events */
+			if (working.EventType == SAHPI_ET_SENSOR) {
+				if (is_recovery_event) {
+					working.EventDataUnion.SensorEvent.Assertion = SAHPI_FALSE;
 				}
-
-				/* Look to see if event is mapped to an HPI entity */
-				event_ptr = (SaHpiEventT *)g_hash_table_lookup(event2hpi_hash, strhash_data->event);
-				if (event_ptr) {
-
-					working = *event_ptr;
-					printf("Threshold event is mapped: Source=%d Type=%d Sev=%d\n",
-					       working.Source, working.EventType, severity);
-
-					/* Convert strings read and thresholds values into trigger info */
-					if (get_interpreted_value(thresh_substrs[0], 
-								  working.EventDataUnion.SensorEvent.TriggerReading.Interpreted.Type, 
-								  &working.EventDataUnion.SensorEvent.TriggerReading.Interpreted.Value)) {
+				/* Convert threshold strings into event values */
+				if (is_threshold_event) {
+					if (get_interpreted_value(thresh_read_value,
+					    working.EventDataUnion.SensorEvent.TriggerReading.Interpreted.Type,
+					    &working.EventDataUnion.SensorEvent.TriggerReading.Interpreted.Value)) {
 						dbg("Cannot convert trigger reading=%s for text=%s\n",
-						    thresh_substrs[0],
-						    log_entry.text);
-
-						/* g_strfreev(event_substrs); g_strfreev(thresh_substrs); */
+						    thresh_read_value, log_entry.text);
 						return -1;
 					}
-
-					if (get_interpreted_value(thresh_substrs[1], 
-								  working.EventDataUnion.SensorEvent.TriggerThreshold.Interpreted.Type, 
-								  &working.EventDataUnion.SensorEvent.TriggerThreshold.Interpreted.Value)) {
+					if (get_interpreted_value(thresh_trigger_value,
+   					    working.EventDataUnion.SensorEvent.TriggerThreshold.Interpreted.Type,
+					    &working.EventDataUnion.SensorEvent.TriggerThreshold.Interpreted.Value)) {
 						dbg("Cannot convert trigger threshold=%s for text=%s\n",
-						    thresh_substrs[1],
-						    log_entry.text);
-						/* g_strfreev(event_substrs); g_strfreev(thresh_substrs); */
+						    thresh_trigger_value, log_entry.text);
 						return -1;
-					}					
-
-					printf("Trigger Reading=%f; Threadhold=%f\n",
-					       working.EventDataUnion.SensorEvent.TriggerReading.Interpreted.Value.SensorFloat32,
-					       working.EventDataUnion.SensorEvent.TriggerThreshold.Interpreted.Value.SensorFloat32);
-
-					if (map2event (hnd, &working)) {
-						dbg("Cannot map dynamic event data");
-						/* g_strfreev(event_substrs); g_strfreev(thresh_substrs); */
-						return -1;
-					}
+					}		
 				}
-				else { /* Map to OEM Event - Log Not Mapped */
-					printf ("In string table but not in event table - Map to OEM \n");
-					if (map2oemevent(&working, logstr, severity, EVENT_NOT_MAPPED)) {
-						dbg("Cannot map to OEM Event %s", logstr);
-						/* g_strfreev(event_substrs); g_strfreev(thresh_substrs); */
-						return -1;
-					}
+				/* Set current/last state */
+				if (set_previous_event_state(hnd, &working)) {
+					dbg("Cannot set previous state for sensor event = %s\n", log_entry.text);
+					return -1;
 				}
 			}
 
-			g_strfreev(event_substrs); 
-			g_strfreev(thresh_substrs);
-		}  /* End look for threshold extensions */
-
-		/* Look for login events */
-		/* Look for recovery events - Set Assertion to FALSE */
-		/* #define EVT_RECOVERY "Recovery events " */
-
-		else {
-			printf ("Not in string table - Map to OEM \n");
-			if (map2oemevent(&working, log_entry.text, severity, EVENT_NOT_ALERTABLE)) {
+                        /* Handle hot-swap events */
+			else if (working.EventType == SAHPI_ET_HOTSWAP) {
+				if (set_previous_event_state(hnd, &working)) {
+					dbg("Cannot set previous state for hot-swap event = %s\n", log_entry.text);
+					return -1;
+				}
+			}
+			else {
+				dbg("Design Error! BladeCenter doesn't support events of type=%d\n", working.EventType);
+				return -1;
+			}
+		} /* End found mapped event */
+		else { /* Map to OEM Event - Log Not Mapped */
+			if (map2oem(hnd, &working, &log_entry, EVENT_NOT_MAPPED)) {
 				dbg("Cannot map to OEM Event %s", log_entry.text);
 				return -1;
 			}
+		} /* End found "alertable" event string in hash */
+	}
+	else { /* Map to OEM Event - String not recognized as BC "alertable" */
+		if (map2oem(hnd, &working, &log_entry, EVENT_NOT_ALERTABLE)) {
+			dbg("Cannot map to OEM Event %s", log_entry.text);
+			return -1;
 		}
 	}
-/*
-- Need to verify that event states match category (DEBUG only?)
-on sensors defs in bc_resources.h/c
-*/
-	
+
 	working.Severity = severity;
 	memcpy((void *)event, (void *)&working, sizeof(SaHpiEventT));
 	
 	return 0;
 }
 
-/*********************************************************
- * Fill in dynamic event data. 
- * This is info not statically contained in bc_resources.c
- *********************************************************/
-static int map2event(void *hnd, SaHpiEventT *event) 
+/*
+ * This function parses BladeCenter threshold log messages into their various 
+ * sub-strings. Format is root string (in str2event_hash) followed by read threshold 
+ * value string  followed by trigger threshold value string. Unfortunately can't
+ * convert directly to sensor values yet because don't yet know if event mapped or
+ * if it is, what the sensor's threshold data type is.
+ */
+static int parse_threshold_str(gchar *str, gchar *root_str, gchar *read_value_str, gchar *trigger_value_str) 
 {
-	/* Handle Previous State */
+	gchar  **event_substrs = NULL;
+	gchar  **thresh_substrs = NULL;
+	int rtn_code=0;
+
+	if (str == NULL || root_str == NULL || read_value_str == NULL || trigger_value_str == NULL) {
+		dbg("Cannot parse threshold string; Input string(s) NULL\n");
+		return -1;
+	}
+
+	event_substrs = g_strsplit(str, LOG_READ_VALUE_STRING, -1);
+	thresh_substrs = g_strsplit(event_substrs[1], LOG_THRESHOLD_VALUE_STRING, -1);
+
+	if (thresh_substrs == NULL ||
+	    (thresh_substrs[0] == NULL || thresh_substrs[0][0] == '\0') ||
+	    (thresh_substrs[1] == NULL || thresh_substrs[1][0] == '\0') ||
+	    (thresh_substrs[2] != NULL)) {
+		dbg("Cannot split threshold event format %s properly", str);
+		rtn_code = -1;
+		goto CLEANUP;
+	}
+
+	if ((strlen(thresh_substrs[0]) > MAX_THRESHOLD_VALUE_STRINGSIZE) ||
+	    (strlen(thresh_substrs[1]) > MAX_THRESHOLD_VALUE_STRINGSIZE)) {
+		dbg("Threshold value string(s) exceed max size for string=%s\n", str);
+		rtn_code = -1;
+		goto CLEANUP;
+	}
+	
+	strcpy(root_str, event_substrs[0]);
+	strcpy(read_value_str, thresh_substrs[0]);
+	strcpy(trigger_value_str, thresh_substrs[1]);
+
+	if (root_str == NULL || read_value_str == NULL || trigger_value_str == NULL) {
+		dbg("Cannot parse threshold str=%s into non-NULL parts\n", str);
+		rtn_code = -1;
+	}
+
+ CLEANUP:
+	g_strfreev(event_substrs);
+	g_strfreev(thresh_substrs);
+
+	return rtn_code;
+}
+
+/**********************************
+ * Set previous state info in event
+ **********************************/
+static int set_previous_event_state(void *hnd, SaHpiEventT *event) 
+{
 	switch (event->EventType) {
 	case SAHPI_ET_SENSOR:
 	{
@@ -410,7 +419,7 @@ static int map2event(void *hnd, SaHpiEventT *event)
 			event->Source, rdr->RecordId);
 		
 		if (bc_data == NULL) {
-			dbg("Sensor Data Pointer is NULL; RID=%d; SID=%d",
+			dbg("Sensor Data Pointer is NULL; RID=%x; SID=%d",
 			    event->Source, 
 			    event->EventDataUnion.SensorEvent.SensorNum);
 			return -1;
@@ -421,13 +430,6 @@ static int map2event(void *hnd, SaHpiEventT *event)
 
 		((struct BC_SensorInfo *)bc_data)->cur_state = 
 			event->EventDataUnion.SensorEvent.EventState;
-
-		printf("Writing Sensor cur_state\n");
-		printf("Sensor RESOURCE=%d. Sensor=%d; PreviousState=%d, CurrentState=%d\n",
-		       event->Source,
-		       event->EventDataUnion.SensorEvent.SensorNum,
-		       event->EventDataUnion.SensorEvent.PreviousState,
-		       event->EventDataUnion.SensorEvent.EventState);
 		break;
 	}
 	case SAHPI_ET_HOTSWAP:
@@ -437,7 +439,7 @@ static int map2event(void *hnd, SaHpiEventT *event)
 					     event->Source);
 		
 		if (bc_data == NULL) {
-			dbg("HotSwap Data Pointer is NULL; RID=%d\n", event->Source);
+			dbg("HotSwap Data Pointer is NULL; RID=%x\n", event->Source);
 			return -1;
 		}
 		
@@ -445,12 +447,6 @@ static int map2event(void *hnd, SaHpiEventT *event)
 			((struct BC_ResourceInfo *)bc_data)->cur_state;
 		((struct BC_ResourceInfo *)bc_data)->cur_state = 
 			event->EventDataUnion.HotSwapEvent.HotSwapState;
-		
-		printf("Writing HotSwap cur_state\n");
-		printf("HOTSWAP RESOURCE=%d. PreviousState=%d, CurrentState=%d\n",
-		       event->Source,
-		       event->EventDataUnion.HotSwapEvent.PreviousHotSwapState,
-		       event->EventDataUnion.HotSwapEvent.HotSwapState);
 		break;
 	}
 	default:
@@ -461,25 +457,91 @@ static int map2event(void *hnd, SaHpiEventT *event)
 	return 0;
 }
 
-/************************
- * Map event to OEM Event
- ************************/
-static int map2oemevent(SaHpiEventT *event, char *oemstr, SaHpiSeverityT sev, OEMReasonCodeT reason)
+/****************************************************
+ * Translate BladeCenter log message to HPI OEM Event
+ ****************************************************/
+static int map2oem(void *hnd, SaHpiEventT *event, bc_sel_entry *sel_entry,
+		   OEMReasonCodeT reason)
 {
-	
-/* ??? FIXME: What should RID be?
- * For error log processing could pass in rid to log2event but what about
- * events in log2event that aren't mapped? What id to assign these? How do we
- * find this ID?
- */
-	event->Source = 0;
-	event->Severity = sev;
+	/* Set RID for OEM Event */
+	if (bcsrc2rid(hnd, sel_entry->source, &(event->Source))) {
+		dbg("Cannot translate BladeCenter Source string=%s to RID\n", 
+		    sel_entry->source);
+		return -1;
+	}
+
 	event->EventType = SAHPI_ET_OEM;
-	event->EventDataUnion.OemEvent.MId = 2;             /* Should hardcode this number */  
+	event->EventDataUnion.OemEvent.MId = IBM_MANUFACTURING_ID;
 	strncpy(event->EventDataUnion.OemEvent.OemEventData,
-		oemstr, SAHPI_OEM_EVENT_DATA_SIZE - 1);
+		sel_entry->text, SAHPI_OEM_EVENT_DATA_SIZE - 1);
 	event->EventDataUnion.OemEvent.OemEventData
 		[SAHPI_OEM_EVENT_DATA_SIZE - 1] = '\0';
+
+	return 0;
+}
+
+/*****************************************************************
+ * Translate BC error log "Source" text to HPI Resource ID. 
+ * Calculate Entity Path to find RID. Assume Source string format:
+ *
+ *   "BLADE_0x" - map to blade x RID
+ *   "SWITCH_x" - map to switch x RID
+ *
+ * All other Source text strings map to the Chassis's resource ID
+ *****************************************************************/
+int bcsrc2rid(void *hnd, gchar *src, SaHpiResourceIdT *rid)
+{
+	int rpt_index, isblade, ischassis, isswitch;
+	guint instance;
+	gchar **src_parts = NULL, *endptr = NULL;
+	SaHpiEntityPathT ep, ep_root;
+	SaHpiEntityTypeT entity_type;
+
+	struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
+	char *root_tuple = (char *)g_hash_table_lookup(handle->config, "entity_root");
+
+	/* Find top-level chassis entity path */
+	memset(&ep, 0, sizeof(SaHpiEntityPathT));
+        string2entitypath(root_tuple, &ep_root);
+        append_root(&ep_root);
+
+        /* Chassis instance/type in root; other resources override these below */
+	instance = ep_root.Entry[0].EntityInstance;
+	entity_type = ep_root.Entry[0].EntityType;
+
+	/* Break down Source text string to find source's rpt index and instance */
+	src_parts = g_strsplit(src, "_", -1);
+	if (src_parts == NULL) {
+		dbg("Could not split error log's Source text string.");
+		g_strfreev(src_parts);
+		return -1;
+	}
+
+	isblade = isswitch = ischassis = 0;
+	if (!strcmp(src_parts[0], "BLADE")) { isblade = 1; }
+	else {
+		if (!strcmp(src_parts[0], "SWITCH")) { isswitch = 1; }
+	}
+
+	if (isblade || isswitch) {
+		instance = strtol(src_parts[1], &endptr, 10);
+		if (isblade) { rpt_index = BC_RPT_ENTRY_BLADE; }
+		else { rpt_index = BC_RPT_ENTRY_SWITCH_MODULE; }
+		entity_type = snmp_rpt_array[rpt_index].rpt.ResourceEntity.Entry[0].EntityType;
+	}
+	else {
+		ischassis = 1;
+		rpt_index = BC_RPT_ENTRY_CHASSIS;
+	}
+
+	g_strfreev(src_parts);
+
+	/* Find rest of Entity Path and calculate RID */
+	ep = snmp_rpt_array[rpt_index].rpt.ResourceEntity;
+	ep_concat(&ep, &ep_root);
+	set_epath_instance(&ep, entity_type, instance);
+
+	*rid = oh_uid_from_entity_path(&ep);
 
 	return 0;
 }
@@ -505,7 +567,7 @@ static int parse_sel_entry(char *text, bc_sel_entry *sel, int isdst)
                         ent.sev = SAHPI_DEBUG;
                 }
         } else {
-                dbg("Couldn't parse Severity from Blade Center Log Entry");
+                dbg("Couldn't parse Severity from BladeCenter Log Entry");
                 return -1;
         }
                 
@@ -513,7 +575,7 @@ static int parse_sel_entry(char *text, bc_sel_entry *sel, int isdst)
         if(!start) { return -2; }
 
         if(!sscanf(start,"Source:%19s",ent.source)) {
-                dbg("Couldn't parse Source from Blade Center Log Entry");
+                dbg("Couldn't parse Source from BladeCenter Log Entry");
                 return -1;
         }
 
@@ -521,7 +583,7 @@ static int parse_sel_entry(char *text, bc_sel_entry *sel, int isdst)
         if(!start) { return -2; }
 
         if(!sscanf(start,"Name:%19s",ent.sname)) {
-                dbg("Couldn't parse Name from Blade Center Log Entry");
+                dbg("Couldn't parse Name from BladeCenter Log Entry");
                 return -1;
         }
         
@@ -539,7 +601,7 @@ static int parse_sel_entry(char *text, bc_sel_entry *sel, int isdst)
                 ent.time.tm_mon--;
                 ent.time.tm_year += 100;
         } else {
-                dbg("Couldn't parse Date/Time from Blade Center Log Entry");
+                dbg("Couldn't parse Date/Time from BladeCenter Log Entry");
                 return -1;
         }
         
@@ -555,18 +617,9 @@ static int parse_sel_entry(char *text, bc_sel_entry *sel, int isdst)
         return 0;
 }
 
-/**
- * snmp_bc_add_to_eventq
- * @hnd: 
- * @thisEvent: 
- * 
- * Return value:	-1 Error encountered - no Event entry created
- 			0  SA_OK
- **/
 
-int snmp_bc_add_to_eventq(void *hnd, SaHpiEventT *thisEvent  )
+int snmp_bc_add_to_eventq(void *hnd, SaHpiEventT *thisEvent)
 {
-
         struct oh_event working;
         struct oh_event *e = NULL;
         struct oh_handler_state *handle = hnd;
@@ -599,4 +652,3 @@ int snmp_bc_add_to_eventq(void *hnd, SaHpiEventT *thisEvent  )
 
         return 0;
 }
-
