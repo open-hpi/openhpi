@@ -2413,6 +2413,11 @@ SaErrorT SAHPI_API saHpiResourceActiveSet (
                 return SA_ERR_HPI_CAPABILITY;
         }
 
+        if (!(res->HotSwapCapabilities & SAHPI_HS_CAPABILITY_INDICATOR_SUPPORTED)) {
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_CAPABILITY;
+        }
+
         rd = oh_get_resource_data(&(d->rpt), ResourceId);
         if (!rd) {
                 dbg( "Can't find resource data for Resource %d in Domain %d",ResourceId,did);
