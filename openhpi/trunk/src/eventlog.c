@@ -39,30 +39,6 @@ static inline int sel_add(GSList **sel_list,
 	return 0;
 }
 
-static inline int sel_add2(GSList **sel_list,
-		struct oh_event *e, int counter)
-{
-	struct oh_sel *sel;
-	
-	sel = malloc(sizeof(*sel));
-	if (!sel) {
-		dbg("Out of memory");
-		return -1;
-	}
-	memset(sel, 0, sizeof(*sel));
-
-	sel->res_id		= e->u.hpi_event.parent;
-	sel->rdr_id		= e->u.hpi_event.id;
-	sel->entry.EntryId	= counter;
-	gettimeofday1(&sel->entry.Timestamp);
-	
-	memcpy(&sel->entry.Event, &e->u.hpi_event.event, sizeof(sel->entry.Event));
-	
-	*sel_list = g_slist_append(*sel_list, sel);
-
-	return 0;
-}
-
 static inline void sel_del(GSList **sel_list, SaHpiSelEntryIdT id)
 {
 	GSList *i;
@@ -165,10 +141,25 @@ void dsel_add(SaHpiDomainIdT domain_id, SaHpiSelEntryT *entry)
 	sel_add(&d->sel_list, entry, d->sel_counter);
 }
 
-void dsel_add2(struct oh_domain *d, struct oh_event *e)
+void dsel_add2(struct oh_domain *d, struct oh_hpi_event *e)
 {
-	d->sel_counter++;
-	sel_add2(&d->sel_list, e, d->sel_counter);
+	struct oh_sel *sel;
+	
+	sel = malloc(sizeof(*sel));
+	if (!sel) {
+		dbg("Out of memory");
+		return;
+	}
+	memset(sel, 0, sizeof(*sel));
+
+	sel->res_id		= e->parent;
+	sel->rdr_id		= e->id;
+	sel->entry.EntryId	= d->sel_counter++;
+	gettimeofday1(&sel->entry.Timestamp);
+	
+	memcpy(&sel->entry.Event, &e->event, sizeof(sel->entry.Event));
+	
+	d->sel_list = g_slist_append(d->sel_list, sel);
 }
 
 void dsel_del(SaHpiDomainIdT domain_id, SaHpiSelEntryIdT id)
@@ -212,10 +203,25 @@ void rsel_add(SaHpiResourceIdT res_id, SaHpiSelEntryT *entry)
 	res->handler->abi->add_sel_entry(res->handler->hnd, res->oid, entry);
 }
 
-void rsel_add2(struct oh_resource *res, struct oh_event *e)
+void rsel_add2(struct oh_resource *res, struct oh_sel_event *e)
 {
-	res->sel_counter++;
-	sel_add2(&res->sel_list, e, res->sel_counter);
+	struct oh_sel *sel;
+	
+	sel = malloc(sizeof(*sel));
+	if (!sel) {
+		dbg("Out of memory");
+		return;
+	}
+	memset(sel, 0, sizeof(*sel));
+
+	sel->res_id		= e->res_id;
+	sel->rdr_id		= e->rdr_id;
+	sel->entry.EntryId	= res->sel_counter++;
+	
+	memcpy(&sel->entry, &e->entry, sizeof(sel->entry));
+	
+	res->sel_list = g_slist_append(res->sel_list, sel);
+
 }
 
 void rsel_del(SaHpiResourceIdT res_id, SaHpiSelEntryIdT id)
