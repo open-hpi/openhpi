@@ -975,8 +975,6 @@ SaErrorT SAHPI_API saHpiUnsubscribe (
         SaHpiDomainIdT did;
         SaHpiBoolT session_state;
         SaErrorT error;
-        SaErrorT terror = SA_OK;
-        struct oh_event event;
 
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
@@ -996,25 +994,6 @@ SaErrorT SAHPI_API saHpiUnsubscribe (
         if (error) {
                 dbg("Error unsubscribing to SessionId: %d", SessionId);
                 return error;
-        }
-
-        /* Flush session's event queue
-         * we use a temp error variable as the dequeue loop signals an
-         * end via a TIMEOUT error.  If it is anything else, we assign it
-         * to the return value.
-         */
-
-        error = SA_OK;
-
-        while (terror == SA_OK) {
-                terror = oh_dequeue_session_event(SessionId,
-                                                  SAHPI_TIMEOUT_IMMEDIATE,
-                                                  &event);
-        }
-
-        if(terror != SA_ERR_HPI_TIMEOUT) {
-                dbg("Unexpected error occured in clearing the event queues");
-                error = terror;
         }
 
         return error;
