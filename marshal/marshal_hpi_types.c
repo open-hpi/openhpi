@@ -72,7 +72,7 @@ static cMarshalType SaHpiSensorReadingUnionElements[] =
   dUnionElementEnd()
 };
 
-static cMarshalType SaHpiSensorReadingUnionType = dUnion( 0, 
+static cMarshalType SaHpiSensorReadingUnionType = dUnion( 1, 
 							  SaHpiSensorReadingUnionT, 
                                                           SaHpiSensorReadingUnionElements );
 
@@ -80,7 +80,7 @@ static cMarshalType SaHpiSensorReadingUnionType = dUnion( 0,
 static cMarshalType SaHpiSensorReadingTElements[] =
 {
   dStructElement( SaHpiSensorReadingT, IsSupported, SaHpiBoolType ),
-  dStructElement( SaHpiSensorReadingT, Type, SaHpiSensorReadingType ),
+  dStructElement( SaHpiSensorReadingT, Type, SaHpiSensorReadingTypeType ),
   dStructElement( SaHpiSensorReadingT, Value, SaHpiSensorReadingUnionType ),
   dStructElementEnd()
 };
@@ -128,7 +128,7 @@ cMarshalType SaHpiSensorRangeType = dStruct( SaHpiSensorRangeT, SaHpiSensorRange
 static cMarshalType SaHpiSensorDataFormatElements[] =
 {
 	dStructElement( SaHpiSensorDataFormatT, IsSupported, SaHpiBoolType ),
-	dStructElement( SaHpiSensorDataFormatT, ReadingType, SaHpiReadingTypeType ),
+	dStructElement( SaHpiSensorDataFormatT, ReadingType, SaHpiSensorReadingTypeType ),
    	dStructElement( SaHpiSensorDataFormatT, BaseUnits, SaHpiSensorUnitsType ),
 	dStructElement( SaHpiSensorDataFormatT, ModifierUnits, SaHpiSensorUnitsType ),
 	dStructElement( SaHpiSensorDataFormatT, ModifierUse, SaHpiSensorModUnitUseType ),
@@ -318,7 +318,7 @@ static cMarshalType SaHpiCtrlRecUnionElements[] =
 	dUnionElementEnd()
 };
 
-static cMarshalType SaHpiCtrlRecUnionType = dUnion( 3, SaHpiCtrlRecUnionT, SaHpiCtrlRecUnionElements );
+static cMarshalType SaHpiCtrlRecUnionType = dUnion( 2, SaHpiCtrlRecUnionT, SaHpiCtrlRecUnionElements );
 
 
 // control rdr mode
@@ -351,53 +351,22 @@ cMarshalType SaHpiCtrlRecType = dStruct( SaHpiCtrlRecT, SaHpiCtrlRecElements );
 
 // entity inventory data
 
-static cMarshalType SaHpiAreaTypeUnionElements[] = 
-{
-  dUnionElement( SAHPI_IDR_AREATYPE_INTERNAL_USE, SaHpiUint8Type ),
-  dUnionElement( SAHPI_IDR_AREATYPE_CHASSIS_INFO, SaHpiUint8Type ),
-  dUnionElement( SAHPI_IDR_AREATYPE_BOARD_INFO, SaHpiUint8Type ),
-  dUnionElement( SAHPI_IDR_AREATYPE_PRODUCT_INFO, SaHpiUint8Type ),
-  dUnionElement( SAHPI_IDR_AREATYPE_OEM, SaHpiUint8Type ),
-  dUnionElement( SAHPI_IDR_AREATYPE_UNSPECIFIED, SaHpiUint8Type ),
-  dUnionElementEnd()
-};
-
-static cMarshalType SaHpiIdrAreaTypeUnion = dUnion( 0, SaHpiIdrAreaTypeT, SaHpiAreaTypeUnionElements );
-
-static cMarshalType SaHpiIdrFieldTypeUnionElements[] = 
-{
-  dUnionElement( SAHPI_IDR_FIELDTYPE_CHASSIS_TYPE, SaHpiUint8Type ),
-  dUnionElement( SAHPI_IDR_FIELDTYPE_MFG_DATETIME, SaHpiUint8Type ),
-  dUnionElement( SAHPI_IDR_FIELDTYPE_MANUFACTURER, SaHpiUint8Type ),
-  dUnionElement( SAHPI_IDR_FIELDTYPE_PRODUCT_NAME, SaHpiUint8Type ),
-  dUnionElement( SAHPI_IDR_FIELDTYPE_PRODUCT_VERSION, SaHpiUint8Type ),
-  dUnionElement( SAHPI_IDR_FIELDTYPE_SERIAL_NUMBER, SaHpiUint8Type ),
-  dUnionElement( SAHPI_IDR_FIELDTYPE_PART_NUMBER, SaHpiUint8Type ),
-  dUnionElement( SAHPI_IDR_FIELDTYPE_FILE_ID, SaHpiUint8Type ),
-  dUnionElement( SAHPI_IDR_FIELDTYPE_ASSET_TAG, SaHpiUint8Type ),
-  dUnionElement( SAHPI_IDR_FIELDTYPE_CUSTOM, SaHpiUint8Type ),
-  dUnionElement( SAHPI_IDR_FIELDTYPE_UNSPECIFIED, SaHpiUint8Type ),
-  dUnionElementEnd()
-};
-
-static cMarshalType SaHpiIdrFieldTypeUnion = dUnion( 0, SaHpiIdrFieldTypeT, SaHpiIdrFieldTypeUnionElements );
-
 static cMarshalType SaHpiIdrFieldTElements[] =
 {
   dStructElement( SaHpiIdrFieldT, AreaId, SaHpiEntryIdType ),
   dStructElement( SaHpiIdrFieldT, FieldId, SaHpiEntryIdType ),
-  dStructElement( SaHpiIdrFieldT, Type, SaHpiIdrFieldTypeUnion ),
+  dStructElement( SaHpiIdrFieldT, Type, SaHpiIdrFieldTypeType ),
   dStructElement( SaHpiIdrFieldT, ReadOnly, SaHpiBoolType ),
   dStructElement( SaHpiIdrFieldT, Field, SaHpiTextBufferType ),
   dStructElementEnd()
 };
 
-cMarshalType SaHpiIdrFieldTypeType = dStruct( SaHpiIdrFieldT, SaHpiIdrFieldTElements );
+cMarshalType SaHpiIdrFieldType = dStruct( SaHpiIdrFieldT, SaHpiIdrFieldTElements );
 
 static cMarshalType SaHpiIdrAreaHeaderTElements[] =
 {
   dStructElement( SaHpiIdrAreaHeaderT, AreaId, SaHpiEntryIdType ),
-  dStructElement( SaHpiIdrAreaHeaderT, Type, SaHpiIdrAreaTypeUnion ),
+  dStructElement( SaHpiIdrAreaHeaderT, Type, SaHpiIdrAreaTypeType ),
   dStructElement( SaHpiIdrAreaHeaderT, ReadOnly, SaHpiBoolType ),
   dStructElement( SaHpiIdrAreaHeaderT, NumFields, SaHpiUint32Type ),
   dStructElementEnd()
@@ -524,7 +493,18 @@ cMarshalType SaHpiAnnunciatorRecType = dStruct( SaHpiAnnunciatorRecT, SaHpiAnnun
 
 // rdr
 
+static cMarshalType SaHpiRdrTypeUnionTypeElements[] = 
+{
+        dUnionElement( SAHPI_NO_RECORD, SaHpiVoidType ),
+        dUnionElement( SAHPI_CTRL_RDR, SaHpiCtrlRecType ),
+        dUnionElement( SAHPI_SENSOR_RDR, SaHpiSensorRecType ),
+        dUnionElement( SAHPI_INVENTORY_RDR, SaHpiInventoryRecType ),
+        dUnionElement( SAHPI_WATCHDOG_RDR, SaHpiWatchdogRecType ),
+        dUnionElement( SAHPI_ANNUNCIATOR_RDR, SaHpiAnnunciatorRecType ),
+        dUnionElementEnd()
+};
 
+static cMarshalType SaHpiRdrTypeUnionType = dUnion( 1, SaHpiRdrTypeUnionT, SaHpiRdrTypeUnionTypeElements );
 
 static cMarshalType SaHpiRdrElements[] =
 {
@@ -756,7 +736,8 @@ static cMarshalType SaHpiAlarmTElements[] =
 	dStructElement( SaHpiAlarmT, AlarmId, SaHpiAlarmIdType ),
 	dStructElement( SaHpiAlarmT, Timestamp, SaHpiTimeType ),
 	dStructElement( SaHpiAlarmT, Severity, SaHpiSeverityType ),
-	dStructElement( SaHpiAlarmT, Acknowledged, SaHpiConditionType ),
+	dStructElement( SaHpiAlarmT, Acknowledged, SaHpiBoolType ),
+	dStructElement( SaHpiAlarmT, AlarmCond, SaHpiConditionType ),
 	dStructElementEnd()
 };
 

@@ -243,11 +243,6 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
   char *pReq = data + sizeof(cMessageHeader);
 
   hm = HpiMarshalFind(thrdinst->header.m_id);
-  // check for function and data length
-  if ( !hm || hm->m_request_len != thrdinst->header.m_len )
-     {
-       return eResultError;
-     }
 
   // init reply header
   thrdinst->MessageHeaderInit((tMessageType) thrdinst->header.m_type, 0, 
@@ -341,6 +336,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
                                          hm, pReq, &session_id, &entry_id ) < 0 )
                    return eResultError;
 
+              printf("sessionid = %d, entryid = %d\n", session_id, entry_id);
               ret = saHpiDrtEntryGet( session_id, entry_id, &next_entry_id,
                                       &drt_entry );
 
@@ -370,13 +366,12 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
               SaHpiEntryIdT   next_entry_id = 0; // for valgring
               SaHpiRptEntryT  rpt_entry;
 
-              printf("Processing saHpiRptEntryGet.\n,");
+              printf("Processing saHpiRptEntryGet.\n");
 
               if ( HpiDemarshalRequest2( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &entry_id ) < 0 )
                    return eResultError;
 
-              printf("Session = %d, entryid = %d\n", session_id, entry_id);
               ret = saHpiRptEntryGet( session_id, entry_id, &next_entry_id, &rpt_entry );
 
               thrdinst->header.m_len = HpiMarshalReply2( hm, pReq, &ret, &next_entry_id, &rpt_entry );
@@ -858,6 +853,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
                                               resource_id, sensor_num,
                                               &sensor_thresholds);
 
+              printf("Marshaling reply\n");
               thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &sensor_thresholds );
        }
        break;
@@ -1061,7 +1057,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
               if ( HpiDemarshalRequest4( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
                                          &ctrl_num, &ctrl_state ) < 0 )
-                   return eResultError;
+                      return eResultError;
 
               ret = saHpiControlGet( session_id, resource_id, ctrl_num,
                                      &ctrl_mode, &ctrl_state );
@@ -1740,12 +1736,14 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
        break;
 
        default:
+              printf("Function not found\n");
               return eResultError;
        }
 
        // send the reply
        bool wrt_result = thrdinst->WriteMsg(pReq);
        if (wrt_result) {
+               printf("Socket write failed\n");
                return eResultError;
        }
 

@@ -16,6 +16,7 @@
  */
 
 #include <stdlib.h>
+// #include <stdio.h>
 #include <assert.h>
 #include <endian.h>
 #include <byteswap.h>
@@ -458,6 +459,7 @@ Marshal( const cMarshalType *type, const void *d, void *b )
                       {
                         // the mod must be before this entry.
                         // this is a limitation of demarshaling of unions
+//                      printf("offset = %d, i = %d\n", st_type->m_u.m_union.m_offset, i);
                         assert( st_type->m_u.m_union.m_offset < i );
 			const cMarshalType *mod = FindUnionModifierType( type, st_type, data );
 
@@ -470,8 +472,10 @@ Marshal( const cMarshalType *type, const void *d, void *b )
                                      return -1;
                              }
 			   }
-			else
-			     return -1;
+			else {
+                                assert( 0 );
+                                return -1;
+                        }
                       }
                    else if ( st_type->m_type == eMtVarArray )
                       {
@@ -776,8 +780,10 @@ Demarshal( int byte_order, const cMarshalType *type,
 				       data + struct_element->m_u.m_struct_element.m_offset,
 				       buffer );
 
-			if ( s < 0 )
-			     return -1;
+			if ( s < 0 ) {
+                                assert( 0 );
+                                return -1;
+                        }
 		      }
 
 		   buffer += s;
