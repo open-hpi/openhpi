@@ -41,7 +41,8 @@ SaErrorT oh_remove_alarm(struct oh_domain *d,
                          SaHpiSensorNumT *num,
                          SaHpiEventStateT *state,
                          SaHpiEventStateT *deassert_mask,
-                         int multi);                           
+                         int multi);
+SaErrorT oh_close_alarmtable(struct oh_domain *d);
 
 /* Alarm Triggers */
 SaErrorT oh_detect_event_alarm(struct oh_event *e);

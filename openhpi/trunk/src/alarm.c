@@ -179,6 +179,25 @@ SaErrorT oh_remove_alarm(struct oh_domain *d,
         return SA_OK;
 }
 
+/**
+ * oh_close_alarmtable
+ * @d
+ *
+ * Return value:
+ **/
+SaErrorT oh_close_alarmtable(struct oh_domain *d)
+{
+        SaErrorT error = SA_OK;
+        
+        if (!d) return SA_ERR_HPI_INVALID_PARAMS;
+        
+        error = oh_remove_alarm(d, NULL, NULL, NULL, NULL,
+                                NULL, NULL, NULL, 1);
+        d->dat.next_id = 0;
+                
+        return error;
+}
+
 static void oh_detect_oem_event_alarm(struct oh_domain *d, SaHpiEventT *event)
 {
         SaHpiAlarmT *a = NULL;
