@@ -26,25 +26,27 @@ my $report = "";
 
 # this needs to be made more generic over time
 my %files = (
+             "utils/epath_utils.c" => "t/epath",
              "utils/sel_utils.c" => "t/sel",
              "utils/rpt_utils.c" => "t/rpt",
-             "utils/epath_utils.c" => "t/epath",
              # now for the blade center stuff
-             "plugins/snmp_bc/bc_resources.c" => "t",
-             "plugins/snmp_bc/bc_str2event.c" => "t",
              "plugins/snmp_bc/snmp_bc.c" => "t",
              "plugins/snmp_bc/snmp_bc_control.c" => "t",
              "plugins/snmp_bc/snmp_bc_discover.c" => "t",
+	     "plugins/snmp_bc/snmp_bc_event.c" => "t",
              "plugins/snmp_bc/snmp_bc_hotswap.c" => "t",
+	     "plugins/snmp_bc/snmp_bc_inventory.c" => "t",
              "plugins/snmp_bc/snmp_bc_sel.c" => "t",
              "plugins/snmp_bc/snmp_bc_sensor.c" => "t",
              "plugins/snmp_bc/snmp_bc_session.c" => "t",
+	     "plugins/snmp_bc/snmp_bc_time.c" => "t",
              "plugins/snmp_bc/snmp_bc_utils.c" => "t",
              "plugins/snmp_bc/snmp_bc_watchdog.c" => "t",
             );
 
 # we must ensure that we have coverage created
-system("make -ks clean check");
+system("./bootstrap && ./configure --enable-testcover @ARGV && make clean && make && make check");
+#system("make -ks clean check");
 
 foreach my $fullfile (sort keys %files) {
     chdir($start);
@@ -53,7 +55,7 @@ foreach my $fullfile (sort keys %files) {
     chdir($dir);
     print STDERR "Cwd is now" . cwd() . "\n";
     my $cmd = "gcov -blf -o $files{$fullfile} $file";
-    
+
     my $report = "Coverage Report for $fullfile\n\n";
     my $body = "";
     my $header = "";
@@ -77,4 +79,3 @@ foreach my $fullfile (sort keys %files) {
     print OUT $report, $header, $body;
     close(OUT);
 }
-
