@@ -133,7 +133,6 @@ int open_session()
 	rv = saHpiDiscover(sessionid);
 	if (rv != SA_OK) 
 		printf("saHpiDiscover rv = %d\n", rv);
-	sleep(10);
 	delete_progress();
 
 	printf("Initial discovery done\n");	
