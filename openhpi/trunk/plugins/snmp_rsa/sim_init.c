@@ -24,6 +24,11 @@ int is_simulator()
   return 0;
 }
 
+int sim_banner() 
+{
+  return(0);  
+}
+
 int sim_init() 
 {
   return(0);  
