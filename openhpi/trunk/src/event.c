@@ -342,7 +342,7 @@ static int process_rdr_event(struct oh_event *e)
                 }
         } else if (e->type == OH_ET_RDR) { /* Add/Update RDR */
                 if(!(rv = oh_add_rdr(rpt, rid, &(e->u.rdr_event.rdr), NULL, 0))) {
-                        dbg("SUCCES: RDR %x in Resource %d in Domain %d has been ADDED.",
+                        dbg("SUCCESS: RDR %x in Resource %d in Domain %d has been ADDED.",
                             e->u.rdr_event.rdr.RecordId, rid, e->did);
                 } else {
                         dbg("FAILED: RDR %x in Resource %d in Domain %d has NOT been ADDED.",
