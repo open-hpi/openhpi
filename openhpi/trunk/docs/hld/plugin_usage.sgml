@@ -21,7 +21,7 @@
 -->
 
   <chapter>
-  <title>OpenHPI Plugin Usage</title>
+  <title>OpenHPI Plugin Usage<anchor id="plugin_usage"/></title>
   <para>
     This chapter is an overview of the existing plugins for OpenHPI,
     and how one needs to configured them for usage.  It is expected
