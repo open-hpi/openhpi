@@ -30,12 +30,14 @@
 
 #define OH_CHECK_INIT_STATE(sid) \
         do { \
+                SaHpiBoolT state; \
+                SaErrorT init_error; \
                 if (oh_initialized() != SA_OK) { \
                         dbg("Session %d not initalized", sid); \
                         return SA_ERR_HPI_INVALID_SESSION; \
-                } else if (!sid) { \
+                } else if ((init_error = oh_get_session_subscription(sid,&state)) != SA_OK) { \
                         dbg("Session %d is not valid", sid); \
-                        return SA_ERR_HPI_INVALID_PARAMS; \
+                        return init_error; \
                 } \
         } while (0)
 

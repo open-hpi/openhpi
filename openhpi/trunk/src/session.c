@@ -301,7 +301,7 @@ SaErrorT oh_dequeue_session_event(SaHpiSessionIdT sid,
  *
  * Returns:
  **/
-SaErrorT oh_destroy_session(SaHpiDomainIdT sid)
+SaErrorT oh_destroy_session(SaHpiSessionIdT sid)
 {
         struct oh_session *session = NULL;
         struct oh_domain *domain = NULL;

@@ -67,13 +67,13 @@ struct oh_session {
 SaHpiSessionIdT oh_create_session(SaHpiDomainIdT did);
 SaHpiDomainIdT oh_get_session_domain(SaHpiSessionIdT sid);
 GArray *oh_list_sessions(SaHpiDomainIdT did);
-SaErrorT oh_get_session_subscription(SaHpiDomainIdT sid, SaHpiBoolT *state);
-SaErrorT oh_set_session_subscription(SaHpiDomainIdT sid, SaHpiBoolT state);
+SaErrorT oh_get_session_subscription(SaHpiSessionIdT sid, SaHpiBoolT *state);
+SaErrorT oh_set_session_subscription(SaHpiSessionIdT sid, SaHpiBoolT state);
 SaErrorT oh_queue_session_event(SaHpiSessionIdT sid, struct oh_event *event);
 SaErrorT oh_dequeue_session_event(SaHpiSessionIdT sid,
                                   SaHpiTimeoutT timeout,
                                   struct oh_event *event);
-SaErrorT oh_destroy_session(SaHpiDomainIdT sid);
+SaErrorT oh_destroy_session(SaHpiSessionIdT sid);
 
 #endif /* __OH_SESSION_H */
 
