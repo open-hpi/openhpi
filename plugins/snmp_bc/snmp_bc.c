@@ -60,7 +60,14 @@ struct oh_abi_v2 oh_snmp_bc_plugin = {
         .set_indicator_state		= snmp_bc_set_indicator_state,
         .control_parm			= snmp_bc_control_parm,
         .get_reset_state		= snmp_bc_get_reset_state,
-        .set_reset_state		= snmp_bc_set_reset_state
+        .set_reset_state		= snmp_bc_set_reset_state,
+	.get_next_announce              = snmp_bc_get_next_announce,
+	.get_announce                   = snmp_bc_get_announce,
+	.ack_announce                   = snmp_bc_ack_announce,
+	.add_announce                   = snmp_bc_add_announce,
+	.del_announce                   = snmp_bc_del_announce,
+	.get_annunc_mode                = snmp_bc_get_annunc_mode,
+	.set_annunc_mode                = snmp_bc_set_annunc_mode
 };
 
 /**

@@ -24,6 +24,7 @@
 #include <snmp_bc_resources.h>
 #include <el.h>
 #include <el2event.h>
+#include <snmp_bc_annunciator.h>
 #include <snmp_bc_control.h>
 #include <snmp_bc_discover.h>
 #include <snmp_bc_event.h>
