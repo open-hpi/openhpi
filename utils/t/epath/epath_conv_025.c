@@ -33,11 +33,11 @@ int main(int argc, char **argv)
 {
         char new[255];
         SaHpiEntityPathT tmp_ep;
-        char *entity_root = "{COOLING_DEVICE,39}{ALARM_MANAGER_BLADE,15}";
+        char *entity_root = "{COOLING_DEVICE,39}{ALARM_MANAGER,15}";
         
         string2entitypath(entity_root, &tmp_ep);
          
-        if(tmp_ep.Entry[0].EntityType != SAHPI_ENT_ALARM_MANAGER_BLADE)
+        if(tmp_ep.Entry[0].EntityType != SAHPI_ENT_ALARM_MANAGER)
                 return 1;
                 
         if(tmp_ep.Entry[0].EntityLocation != 15)

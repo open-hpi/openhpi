@@ -30,7 +30,7 @@ int main(int argc, char **argv)
                                 {SAHPI_ENT_DEVICE_BAY,7},
                                 {SAHPI_ENT_SYSTEM_BUS,6},
                                 {SAHPI_ENT_SBC_BLADE,5},
-                                {SAHPI_ENT_SYSTEM_SLOT,4},
+                                {SAHPI_ENT_PHYSICAL_SLOT,4},
                                 {SAHPI_ENT_COMPACTPCI_CHASSIS,3},
                                 {SAHPI_ENT_SUBRACK,2},
                                 {SAHPI_ENT_RACK,1},

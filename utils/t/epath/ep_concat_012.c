@@ -39,7 +39,7 @@ int main(int argc, char **argv)
                                  {SAHPI_ENT_SUBRACK,10},
                                  {SAHPI_ENT_COMPACTPCI_CHASSIS,11},
                                  {SAHPI_ENT_ADVANCEDTCA_CHASSIS,12},
-                                 {SAHPI_ENT_SYSTEM_SLOT,13},
+                                 {SAHPI_ENT_PHYSICAL_SLOT,13},
                                  {SAHPI_ENT_SBC_BLADE,14},
                                  {SAHPI_ENT_IO_BLADE,15},
                                  {SAHPI_ENT_ROOT,0}}};
@@ -56,7 +56,7 @@ int main(int argc, char **argv)
                                  {SAHPI_ENT_SUBRACK,10},
                                  {SAHPI_ENT_COMPACTPCI_CHASSIS,11},
                                  {SAHPI_ENT_ADVANCEDTCA_CHASSIS,12},
-                                 {SAHPI_ENT_SYSTEM_SLOT,13},
+                                 {SAHPI_ENT_PHYSICAL_SLOT,13},
                                  {SAHPI_ENT_SBC_BLADE,14},
                                  {SAHPI_ENT_IO_BLADE,15},
                                  {SAHPI_ENT_ROOT,0}}};

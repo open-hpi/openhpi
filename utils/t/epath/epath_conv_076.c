@@ -33,11 +33,11 @@ int main(int argc, char **argv)
 {
         char new[255];
         SaHpiEntityPathT tmp_ep;
-        char *entity_root = "{SYSTEM_BOARD,41}{SYSTEM_SLOT,1}";
+        char *entity_root = "{SYSTEM_BOARD,41}{PHYSICAL_SLOT,1}";
         
         string2entitypath(entity_root, &tmp_ep);
          
-        if(tmp_ep.Entry[0].EntityType != SAHPI_ENT_SYSTEM_SLOT)
+        if(tmp_ep.Entry[0].EntityType != SAHPI_ENT_PHYSICAL_SLOT)
                 return 1;
                 
         if(tmp_ep.Entry[0].EntityLocation != 1)
