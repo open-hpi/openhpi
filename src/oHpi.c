@@ -86,7 +86,7 @@ SaErrorT oHpiPluginInfo(char *name, oHpiPluginInfoT *info)
 
 SaErrorT oHpiPluginGetNext(char *name, char *next_name, int size)
 {
-        if (!name || !next_name) {
+        if (!next_name) {
                 dbg("Invalid parameters.");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
@@ -162,7 +162,7 @@ SaErrorT oHpiHandlerInfo(oHpiHandlerIdT id, oHpiHandlerInfoT *info)
 
 SaErrorT oHpiHandlerGetNext(oHpiHandlerIdT id, oHpiHandlerIdT *next_id)
 {
-        if (!id || !next_id) {
+        if (!next_id) {
                 dbg("Invalid parameters.");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }

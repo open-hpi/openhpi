@@ -18,14 +18,16 @@
 #include <oHpi.h>
 
 /**
- * Load the dummy plugin.
- * Pass on success, otherwise a failure.
+ * Load 'libdummy', get plugin info, compare it with the known
+ * value (1) , and unload the plugins.
+ * Pass on success, otherwise failure.
  **/
  
 int main(int argc, char **argv)
 {
         SaHpiSessionIdT sid = 0;
         char *config_file = NULL;
+        oHpiPluginInfoT pinfo;
         
         /* Save config file env variable and unset it */
         config_file = getenv("OPENHPI_CONF");
@@ -33,9 +35,18 @@ int main(int argc, char **argv)
         
         if (saHpiSessionOpen(1, &sid, NULL))
                 return -1;
+                    
+        if (oHpiPluginLoad("libdummy"))
+                return -1;
+                
+        if (oHpiPluginInfo("libdummy",&pinfo))
+                return -1;
+                
+        if (pinfo.refcount != 1)
+                return -1;                
                 
         /* Restore config file env variable */
-        setenv("OPENHPI_CONF",config_file,1);
+        setenv("OPENHPI_CONF",config_file,1);                           
         
-        return oHpiPluginLoad("libdummy");
+        return oHpiPluginUnload("libdummy");
 }

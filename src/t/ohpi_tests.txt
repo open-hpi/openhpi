@@ -11,36 +11,36 @@ SaErrorT oHpiPluginLoad(char *name):
         (000) Pass 'libdummy' as argument.
                 
 SaErrorT oHpiPluginUnload(char *name):
-        () Load 'libdummy' and unload it.
-        () Load 'libdummy', unload it, and load it again.
-        () Load 'libdummy', create and destroy handler on it, and
+        (001) Load 'libdummy' and unload it.
+        (002) Load 'libdummy', unload it, and load it again.
+        (003) Load 'libdummy', create and destroy handler on it, and
            unload plugin.
         
 SaErrorT oHpiPluginInfo(char *name, oHpiPluginInfoT *info):
-        () Load 'libdummy', get plugin info, compare it with the known
+        (004) Load 'libdummy', get plugin info, compare it with the known
               value (1) , and unload the plugins.
-        () Load 'libdummy', create two handlers, get plugin info and
+        (005) Load 'libdummy', create two handlers, get plugin info and
               compare with known value (3), destroy handlers, get info again
               and compare with known value (1), unload plugin.
           
 SaErrorT oHpiPluginGetNext(char *name, char *next_name, int size):
-        () Load 'libdummy', load 'libsnmp_client', iterate through the names
+        (006) Load 'libdummy', load 'libwatchdog', iterate through the names
               and make sure they match with the expected values.
               Unload the plugins.
               
 SaErrorT oHpiHandlerCreate(GHashTable *config,
                            oHpiHandlerIdT *id):
-        () Load 'libdummy' and create a handler on it.
+        (007) Load 'libdummy' and 'libwatchdog', create two handlers on each.
 
 SaErrorT oHpiHandlerDestroy(oHpiHandlerIdT id):
-        () Load 'libdummy', create handler, destroy handler, unload plugin.
+        (008) Same as previous, but destroy handlers and unload plugin.
 
 SaErrorT oHpiHandlerInfo(oHpiHandlerIdT id, oHpiHandlerInfoT *info):
-        () Load 'libdummy', create handler, get handler info and check for
+        (009) Load 'libdummy', create handler, get handler info and check for
               expected information. Destroy handler, unload plugin.
 
 SaErrorT oHpiHandlerGetNext(oHpiHandlerIdT id, oHpiHandlerIdT *next_id):
-        () Load 'libdummy', create three handlers, iterate through them
+        (010) Load 'libdummy', create three handlers, iterate through them
               making sure they match with the expected values.
               Destroy handlers, unload plugin.
 

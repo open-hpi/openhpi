@@ -18,7 +18,7 @@
 #include <oHpi.h>
 
 /**
- * Load the dummy plugin.
+ * Load the dummy plugin, unload it, and load it again.
  * Pass on success, otherwise a failure.
  **/
  
@@ -33,7 +33,13 @@ int main(int argc, char **argv)
         
         if (saHpiSessionOpen(1, &sid, NULL))
                 return -1;
-                
+                    
+        if (oHpiPluginLoad("libdummy"))
+                return -1;
+        
+        if (oHpiPluginUnload("libdummy"))
+                return -1;
+        
         /* Restore config file env variable */
         setenv("OPENHPI_CONF",config_file,1);
         
