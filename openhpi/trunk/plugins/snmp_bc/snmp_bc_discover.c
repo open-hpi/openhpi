@@ -225,7 +225,7 @@ SaErrorT snmp_bc_discover_sensors(struct oh_handler_state *handle,
 	struct snmp_session *ss = custom_handle->ss;
 	struct SensorInfo *sensor_info_ptr;
 	
-	for (i=0; sensor_array[i].sensor.Num != 0; i++) {
+	for (i=0; sensor_array[i].index != 0; i++) {
 		e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
 		if (e == NULL) {
 			dbg("Out of memory.");

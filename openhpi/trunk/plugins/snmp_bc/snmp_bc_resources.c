@@ -526,6 +526,7 @@ struct snmp_rpt snmp_rpt_array[] = {
 struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
         /* Ambient air thermal sensor on Control Panel/Media Tray */
         {
+		.index = 1,
                 .sensor = {
                         .Num = 1,
                         .Type = SAHPI_TEMPERATURE,
@@ -656,6 +657,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
         },
         /* 1.8V voltage sensor on Management Module */
         {
+		.index = 2,
                 .sensor = {
                         .Num = 2,
                         .Type = SAHPI_VOLTAGE,
@@ -766,6 +768,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
         },
         /* 2.5V voltage sensor on Management Module */
         {
+		.index = 3,
                 .sensor = {
                         .Num = 3,
                         .Type = SAHPI_VOLTAGE,
@@ -877,6 +880,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
         },
         /* 3.3V voltage sensor on Management Module */
 	{
+		.index = 4,
                 .sensor = {
                         .Num = 4,
                         .Type = SAHPI_VOLTAGE,
@@ -988,6 +992,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
 	},
         /* 5V voltage sensor on Management Module */
         {
+		.index = 5,
                 .sensor = {
                         .Num = 5,
                         .Type = SAHPI_VOLTAGE,
@@ -1099,6 +1104,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
         },
         /* -5V voltage sensor on Management Module */
         {
+		.index = 6,
                 .sensor = {
                         .Num = 6,
                         .Type = SAHPI_VOLTAGE,
@@ -1210,6 +1216,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
         },
         /* 12V voltage sensor on Management Module */
         {
+		.index = 7,
                 .sensor = {
                         .Num = 7,
                         .Type = SAHPI_VOLTAGE,
@@ -1321,6 +1328,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
         },
         /* Management module redundancy sensor - event-only */
         {
+		.index = 8,
                 .sensor = {
                         .Num = 8,
                         .Type = SAHPI_PLATFORM_ALERT,
@@ -1359,6 +1367,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
         },
         /* Switch module redundancy sensor - event-only */
         {
+		.index = 9,
                 .sensor = {
                         .Num = 9,
                         .Type = SAHPI_PLATFORM_ALERT,
@@ -1397,6 +1406,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
         },
         /* Power module redundancy sensor - event-only */
         {
+		.index = 10,
                 .sensor = {
                         .Num = 10,
                         .Type = SAHPI_PLATFORM_ALERT,
@@ -1444,6 +1454,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
 struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
         /* CPU 1 thermal sensor */
         {
+		.index = 1,
                 .sensor = {
                         .Num = 1,
                         .Type = SAHPI_TEMPERATURE,
@@ -1540,6 +1551,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
         },
         /* CPU 2 thermal sensor */
         {
+		.index = 2,
                 .sensor = {
                         .Num = 2,
                         .Type = SAHPI_TEMPERATURE,
@@ -1639,6 +1651,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
         },
         /* CPU 3 thermal sensor */
         {
+		.index = 3,
                 .sensor = {
                         .Num = 3,
                         .Type = SAHPI_TEMPERATURE,
@@ -1735,6 +1748,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
         },
         /* CPU 4 thermal sensor */
         {
+		.index = 4,
                 .sensor = {
                         .Num = 4,
                         .Type = SAHPI_TEMPERATURE,
@@ -1831,6 +1845,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
         },
         /* Blade's 1.25V voltage sensor */
         {
+		.index =5,
                 .sensor = {
                         .Num = 5,
                         .Type = SAHPI_VOLTAGE,
@@ -1922,6 +1937,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
         },
         /* Blade's 1.5V voltage sensor */
         {
+		.index = 6,
                 .sensor = {
                         .Num = 6,
                         .Type = SAHPI_VOLTAGE,
@@ -2029,6 +2045,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
         },
         /* Blade's 2.5V voltage sensor */
         {
+		.index = 7,
                 .sensor = {
                         .Num = 7,
                         .Type = SAHPI_VOLTAGE,
@@ -2136,6 +2153,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
         },
         /* Blade's 3.3V voltage sensor */
         {
+		.index = 8,
                 .sensor = {
                         .Num = 8,
                         .Type = SAHPI_VOLTAGE,
@@ -2243,6 +2261,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
         },
         /* Blade's 5V voltage sensor */
         {
+		.index = 9,
                 .sensor = {
                         .Num = 9,
                         .Type = SAHPI_VOLTAGE,
@@ -2350,6 +2369,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
         },
         /* Blade's 12V voltage sensor */
         {
+		.index = 10,
                 .sensor = {
                         .Num = 10,
                         .Type = SAHPI_VOLTAGE,
@@ -2457,6 +2477,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
         },
         /* Blade's VRM 1 voltage sensor */
         {
+		.index = 11,
                 .sensor = {
                         .Num = 11,
                         .Type = SAHPI_VOLTAGE,
@@ -2524,6 +2545,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
         },
         /* Blade's global operational sensor - event only */
         {
+		.index = 12,
                 .sensor = {
                         .Num = 12,
                         .Type = SAHPI_OPERATIONAL,
@@ -2660,6 +2682,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
 struct snmp_bc_sensor snmp_bc_blade_addin_sensors[] = {
         /* Blade's expansion card (DASD1) thermal sensor */
         {
+		.index = 1,
                 .sensor = {
                         .Num = 1,
                         .Type = SAHPI_TEMPERATURE,
@@ -2740,8 +2763,9 @@ struct snmp_bc_sensor snmp_bc_blade_addin_sensors[] = {
                 },
                 .comment = "Blade expansion card (DASD1) thermal sensor"
         },
-/* Blade expansion card voltage sensor - event only */
+        /* Blade expansion card voltage sensor - event only */
         {
+		.index = 2,
                 .sensor = {
                         .Num = 2,
                         .Type = SAHPI_VOLTAGE,
@@ -2886,6 +2910,7 @@ struct snmp_bc_sensor snmp_bc_mgmnt_sensors[] = {
 struct snmp_bc_sensor snmp_bc_mediatray_sensors[] = {
         /* Media Tray's global operational sensor - event only */
         {
+		.index = 1,
                 .sensor = {
                         .Num = 1,
                         .Type = SAHPI_OPERATIONAL,
@@ -2933,6 +2958,7 @@ struct snmp_bc_sensor snmp_bc_mediatray_sensors[] = {
 struct snmp_bc_sensor snmp_bc_fan_sensors[] = {
         /* Blower fan speed */
         {
+		.index = 1,
                 .sensor = {
                         .Num = 1,
                         .Type = SAHPI_FAN,
@@ -2998,6 +3024,7 @@ struct snmp_bc_sensor snmp_bc_fan_sensors[] = {
         },
         /* Blower's global operational sensor - event-only */
         {
+		.index = 2,
                 .sensor = {
                         .Num = 2,
                         .Type = SAHPI_OPERATIONAL,
@@ -3053,6 +3080,7 @@ struct snmp_bc_sensor snmp_bc_fan_sensors[] = {
 struct snmp_bc_sensor snmp_bc_power_sensors[] = {
         /* Power's over temperature sensor - event-only */
         {
+		.index = 1,
                 .sensor = {
                         .Num = 1,
                         .Type = SAHPI_TEMPERATURE,
@@ -3099,6 +3127,7 @@ struct snmp_bc_sensor snmp_bc_power_sensors[] = {
         },
         /* Power's global operational sensor - event-only */
         {
+		.index = 2,
                 .sensor = {
                         .Num = 2,
                         .Type = SAHPI_OPERATIONAL,
@@ -3193,6 +3222,7 @@ struct snmp_bc_sensor snmp_bc_power_sensors[] = {
 struct snmp_bc_sensor snmp_bc_switch_sensors[] = {
         /* Switch's over temperature sensor - event-only */
         {
+		.index = 1,
                 .sensor = {
                         .Num = 1,
                         .Type = SAHPI_TEMPERATURE,
@@ -3239,6 +3269,7 @@ struct snmp_bc_sensor snmp_bc_switch_sensors[] = {
         },
         /* Switch's global operational sensor - event only */
         {
+		.index = 2,
                 .sensor = {
                         .Num = 2,
                         .Type = SAHPI_OPERATIONAL,
