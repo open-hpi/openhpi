@@ -28,14 +28,11 @@
  
 int main(int argc, char **argv)
 {
-        char *config_file = NULL;
         oHpiHandlerIdT hid0, hid1;
         GHashTable *h0 = g_hash_table_new(g_str_hash, g_str_equal),
                    *h1 = g_hash_table_new(g_str_hash, g_str_equal);
         oHpiPluginInfoT pinfo;
         
-        /* Save config file env variable and unset it */
-        config_file = getenv("OPENHPI_CONF");
         setenv("OPENHPI_CONF","./noconfig", 1);
 
         if (oHpiPluginLoad("libdummy"))
