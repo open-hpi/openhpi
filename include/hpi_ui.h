@@ -81,7 +81,7 @@ typedef int (*hpi_ui_print_cb_t)(char *buf);
 
 extern Domain_t	*init_resources(SaHpiSessionIdT session);	// create resources tree
 extern SaErrorT	check_resources(Domain_t *Domain);	// check resources tree
-extern Rdr_t	*get_rdr(Domain_t *Domain, SaHpiResourceIdT rptId, SaHpiSensorNumT num);
+extern Rdr_t	*get_rdr(Domain_t *Domain, SaHpiResourceIdT rptId, SaHpiInstrumentIdT num);
 extern Rpt_t	*get_rpt(Domain_t *Domain, SaHpiResourceIdT rptId);
 			// get resources for RPT rptId
 extern SaErrorT	get_rpt_attr(Rpt_t *rpt, char *attr_name, union_type_t *val);
