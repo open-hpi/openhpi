@@ -1038,7 +1038,23 @@ SaErrorT SAHPI_API saHpiHotSwapStateGet (
 		SAHPI_IN SaHpiResourceIdT ResourceId,
 		SAHPI_OUT SaHpiHsStateT *State)
 {
-	return SA_ERR_HPI_UNSUPPORTED_API;
+	struct oh_resource *res;
+	int (*get_hotswap_state)(void *hnd, struct oh_resource_id id,
+			SaHpiHsStateT *state);
+	
+	OH_GET_RESOURCE;
+	
+	if (!(res->entry.ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP))
+		return SA_ERR_HPI_INVALID;
+	
+	get_hotswap_state = res->handler->abi->get_hotswap_state;
+	if (!get_hotswap_state) 
+		return SA_ERR_HPI_UNSUPPORTED_API;
+
+	if (get_hotswap_state(res->handler->hnd, res->oid, State)<0) 
+		return SA_ERR_HPI_UNKNOWN;
+	
+	return SA_OK;
 }
 
 SaErrorT SAHPI_API saHpiHotSwapActionRequest (
@@ -1096,7 +1112,20 @@ SaErrorT SAHPI_API saHpiHotSwapIndicatorStateGet (
 		SAHPI_IN SaHpiResourceIdT ResourceId,
 		SAHPI_OUT SaHpiHsIndicatorStateT *State)
 {
-	return SA_ERR_HPI_UNSUPPORTED_API;
+	struct oh_resource *res;
+	int (*get_indicator_state)(void *hnd, struct oh_resource_id id,
+			SaHpiHsIndicatorStateT *state);
+	
+	OH_GET_RESOURCE;
+	
+	get_indicator_state = res->handler->abi->get_indicator_state;
+	if (!get_indicator_state) 
+		return SA_ERR_HPI_UNSUPPORTED_API;
+
+	if (get_indicator_state(res->handler->hnd, res->oid, State)<0) 
+		return SA_ERR_HPI_UNKNOWN;
+	
+	return SA_OK;
 }
 
 SaErrorT SAHPI_API saHpiHotSwapIndicatorStateSet (
@@ -1104,7 +1133,20 @@ SaErrorT SAHPI_API saHpiHotSwapIndicatorStateSet (
 		SAHPI_IN SaHpiResourceIdT ResourceId,
 		SAHPI_IN SaHpiHsIndicatorStateT State)
 {
-	return SA_ERR_HPI_UNSUPPORTED_API;
+	struct oh_resource *res;
+	int (*set_indicator_state)(void *hnd, struct oh_resource_id id,
+			SaHpiHsIndicatorStateT state);
+	
+	OH_GET_RESOURCE;
+	
+	set_indicator_state = res->handler->abi->set_indicator_state;
+	if (!set_indicator_state) 
+		return SA_ERR_HPI_UNSUPPORTED_API;
+
+	if (set_indicator_state(res->handler->hnd, res->oid, State)<0) 
+		return SA_ERR_HPI_UNKNOWN;
+	
+	return SA_OK;
 }
 
 SaErrorT SAHPI_API saHpiParmControl (
