@@ -180,7 +180,7 @@ static void* fhs_event_process(void *data)
         FAMOpen(&fc);
         FAMMonitorDirectory(&fc, root_path, &fr, (void*)req_res);
 
-        while(!feh->done) {   
+        while(!feh->closing) {   
                 FAMNextEvent(&fc, &fe);
                 if ((fe.userdata == (void *)req_res) &&
                     ((fe.code == FAMCreated) || (fe.code == FAMExists))) {
@@ -225,7 +225,7 @@ struct fe_handler* fhs_event_init(struct oh_handler_state *hnd)
 
 void fhs_event_finish(struct fe_handler *feh)
 {     
-        feh->done = 1;
+        feh->closing = 1;
         pthread_join(feh->tid, NULL);
         g_free(feh);
 }
