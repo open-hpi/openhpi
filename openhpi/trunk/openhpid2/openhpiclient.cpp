@@ -161,6 +161,8 @@ SaHpiUint64T oHpiVersionGet()
                 /* even if we fail, we know we are the client lib */
                 return 1; 
         }
+        start = version;
+        end = version;
         v += (strtoull(start, &end, 10) << 48);
         end++;
         start = end;
