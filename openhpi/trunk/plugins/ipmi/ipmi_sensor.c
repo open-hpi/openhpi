@@ -625,11 +625,11 @@ static void get_sensor_event_enable_masks(ipmi_sensor_t *sensor,
 	int rv;
 	
         enable_data = cb_data;
-        
+
+	 enable_data->done = 1;       
 	if (ignore_sensor(sensor)) {
 		dbg("sensor is ignored");
-                enable_data->done = 1;
-		enable_data->rvalue = SA_ERR_HPI_INTERNAL_ERROR;
+		enable_data->rvalue = SA_ERR_HPI_NOT_PRESENT;
 		return;
 	}	
 
@@ -639,14 +639,15 @@ static void get_sensor_event_enable_masks(ipmi_sensor_t *sensor,
 					           enable_data);
 		if (rv) {
 			dbg("Unable to sensor event enable: 0x%x\n", rv);
-                	enable_data->done = 1;
 			enable_data->rvalue = SA_ERR_HPI_INTERNAL_ERROR;
 			return;
 		}
 	} else {
                 dbg("Sensor do not support event");
-                enable_data->done = 1;
-		enable_data->rvalue = SA_ERR_HPI_INTERNAL_ERROR;
+		enable_data->assert = 0;
+		enable_data->deassert = 0;
+		enable_data->enable = SAHPI_FALSE;
+		enable_data->rvalue = SA_OK;
         }
 }
 
@@ -662,7 +663,7 @@ static void set_sensor_event_enable_masks(ipmi_sensor_t      *sensor,
 	if (ignore_sensor(sensor)) {
 		dbg("sensor is ignored");
 		enable_data->done = 1;
-		enable_data->rvalue = SA_ERR_HPI_INTERNAL_ERROR;
+		enable_data->rvalue = SA_ERR_HPI_NOT_PRESENT;
 		return;
 	}
 
