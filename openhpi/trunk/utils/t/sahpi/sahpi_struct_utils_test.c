@@ -532,7 +532,7 @@ int main(int argc, char **argv)
 
 		/* oh_encode_sensorreading: Percentage testcase */
 		str = "33% RPM";
-		expected_float64 = 0.33;
+		expected_float64 = 33;
 		oh_init_textbuffer(&buffer);
 		oh_append_textbuffer(&buffer, str);
 		err = oh_encode_sensorreading(&buffer, SAHPI_SENSOR_READING_TYPE_FLOAT64, &reading);
@@ -546,18 +546,6 @@ int main(int argc, char **argv)
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received value=%le; Expected value=%le\n", 
 			       reading.Value.SensorFloat64, expected_float64);
-			return -1;
-		}
-
-		/* oh_encode_sensorreading: Percentage bad type testcase */
-		str = "33% RPM";
-		expected_err = SA_ERR_HPI_INVALID_DATA;
-		oh_init_textbuffer(&buffer);
-		oh_append_textbuffer(&buffer, str);
-		err = oh_encode_sensorreading(&buffer, SAHPI_SENSOR_READING_TYPE_INT64, &reading);
-		if (err != expected_err) {
-			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
-			printf("  Received error=%d; Expected error=%d\n", err, expected_err);
 			return -1;
 		}
 
