@@ -108,11 +108,16 @@ Commands:
 		Help information about passed command. If <command> is omitted, a command
 		list is printed.
 
-	hotswap_ind <resourceId>
-		Show the state of the hot swap indicator for passed resource.
-
-	hotswapstat <resourceId>
-		Show the current state of the hot swap for passed resource.
+	hs <resourceId>
+		Hot swap block commands.
+	    action <type> - set action process. <type> - insert|extract
+	    active - set active state.
+	    gettimeout <type> - show timeout. <type> - insert|extract
+	    inactive - set inactive state.
+	    ind <action> - set and show indicator state. <action> - get|on|off
+	    policycancel - set default policy.
+	    settimeout <type> <value> - set timeout. <type> - insert|extract
+	    state - show hot swap state.
 
 	inv <rptId> <IdrId>
 		Inventory block commands. This block contains show and set commands for

@@ -402,3 +402,204 @@ ret_code_t list_sensor(void)
 	sensor_list(Domain->sessionId, ui_print);
 	return(HPI_SHELL_OK);
 }
+
+ret_code_t hs_block(void)
+{
+	SaHpiResourceIdT	rptid;
+	SaHpiTimeoutT		timeout;
+	SaHpiHsStateT		state;
+	SaHpiHsActionT		action;
+	SaHpiHsIndicatorStateT	ind_state;
+	SaErrorT		rv;
+	char			buf[256];
+	char			*str;
+	ret_code_t		ret;
+	term_def_t		*term;
+	int			res, i, ins, get;
+
+	ret = ask_rpt(&rptid);
+	if (ret != HPI_SHELL_OK) return(ret);
+//	show_rdr_attrs(&rdr_entry);
+	for (;;) {
+		block_type = HS_COM;
+		res = get_new_command("Hot swap block ==> ");
+		if (res == 2) {
+			unget_term();
+			block_type = MAIN_COM;
+			return HPI_SHELL_OK;
+		};
+		term = get_next_term();
+		if (term == NULL) continue;
+		snprintf(buf, 256, "%s", term->term);
+		if ((strcmp(buf, "q") == 0) || (strcmp(buf, "quit") == 0)) break;
+		if (strcmp(buf, "policycancel") == 0) {
+			rv = saHpiHotSwapPolicyCancel(Domain->sessionId, rptid);
+			if (rv != SA_OK) {
+				printf("ERROR!!! saHpiHotSwapPolicyCancel: %s\n",
+					oh_lookup_error(rv));
+			};
+			continue;
+		};
+		if (strcmp(buf, "active") == 0) {
+			rv = saHpiResourceActiveSet(Domain->sessionId, rptid);
+			if (rv != SA_OK) {
+				printf("ERROR!!! saHpiResourceActiveSet: %s\n",
+					oh_lookup_error(rv));
+			};
+			continue;
+		};
+		if (strcmp(buf, "inactive") == 0) {
+			rv = saHpiResourceInactiveSet(Domain->sessionId, rptid);
+			if (rv != SA_OK) {
+				printf("ERROR!!! saHpiResourceInactiveSet: %s\n",
+					oh_lookup_error(rv));
+			};
+			continue;
+		};
+		if ((strcmp(buf, "gettimeout") == 0) || (strcmp(buf, "settimeout") == 0)) {
+			ins = -1;
+			if (strcmp(buf, "gettimeout") == 0) get = 1;
+			else get = 0;
+			res = get_string_param("Timeout type(insert|extract): ",
+				buf, 256);
+			if (res != 0) {
+				printf("Invalid timeout type");
+				continue;
+			};
+			if (strcmp(buf, "insert") == 0) ins = 1;
+			if (strcmp(buf, "extract") == 0) ins = 0;
+			if (ins < 0) {
+				printf("Invalid timeout type: %s\n", buf);
+				continue;
+			};
+			if (get) {
+				if (ins) {
+					rv = saHpiAutoInsertTimeoutGet(Domain->sessionId,
+						&timeout);
+					if (rv != SA_OK) {
+						printf("ERROR!!! saHpiAutoInsertTimeoutGet:"
+							" %s\n", oh_lookup_error(rv));
+					} else
+						printf("Auto-insert timeout: %lld\n",
+							timeout);
+					continue;
+				};
+				rv = saHpiAutoExtractTimeoutGet(Domain->sessionId,
+					rptid, &timeout);
+				if (rv != SA_OK) {
+					printf("ERROR!!! saHpiAutoExtractTimeoutGet: %s\n",
+						oh_lookup_error(rv));
+				} else {
+					printf("Auto-extract timeout: %lld\n", timeout);
+				};
+				continue;
+			};
+			i = get_int_param("Timeout: ", &res);
+			if (i != 1) {
+				printf("Invalid timeout\n");
+				continue;
+			};
+			timeout = res;
+			if (ins) {
+				rv = saHpiAutoInsertTimeoutSet(Domain->sessionId, timeout);
+				if (rv != SA_OK) {
+					printf("ERROR!!! saHpiAutoInsertTimeoutSet: %s\n",
+						oh_lookup_error(rv));
+				};
+				continue;
+			};
+			rv = saHpiAutoExtractTimeoutSet(Domain->sessionId,
+				rptid, timeout);
+			if (rv != SA_OK) {
+				printf("ERROR!!! saHpiAutoExtractTimeoutSet: %s\n",
+					oh_lookup_error(rv));
+			};
+			continue;
+		};
+		if (strcmp(buf, "state") == 0) {
+			rv = saHpiHotSwapStateGet(Domain->sessionId, rptid, &state);
+			if (rv != SA_OK) {
+				printf("ERROR!!! saHpiHotSwapStateGet: %s\n",
+					oh_lookup_error(rv));
+			} else {
+				switch (state) {
+					case SAHPI_HS_STATE_INACTIVE:
+						str = "Inactive"; break;
+					case SAHPI_HS_STATE_INSERTION_PENDING:
+						str = "Ins. Pending"; break;
+					case SAHPI_HS_STATE_ACTIVE:
+						str = "Active"; break;
+					case SAHPI_HS_STATE_EXTRACTION_PENDING:
+						str = "Ext. Pending"; break;
+					case SAHPI_HS_STATE_NOT_PRESENT:
+						str = "Not present"; break;
+					default:
+						str = "Unknown"; break;
+				};
+				printf("Hot Swap State: %s\n", str);
+			};
+			continue;
+		};
+		if (strcmp(buf, "action") == 0) {
+			res = get_string_param("Action type(insert|extract): ",
+				buf, 256);
+			if (res != 0) {
+				printf("Invalid action type");
+				continue;
+			};
+			if (strcmp(buf, "insert") == 0)
+				action = SAHPI_HS_ACTION_INSERTION;
+			else if (strcmp(buf, "extract") == 0)
+				action = SAHPI_HS_ACTION_EXTRACTION;
+			else {
+				printf("Invalid action type: %s\n", buf);
+				continue;
+			};
+			rv = saHpiHotSwapActionRequest(Domain->sessionId, rptid, action);
+			if (rv != SA_OK) {
+				printf("ERROR!!! saHpiHotSwapActionRequest: %s\n",
+					oh_lookup_error(rv));
+			};
+			continue;
+		};
+		if (strcmp(buf, "ind") == 0) {
+			res = get_string_param("Action type(get|on|off): ",
+				buf, 256);
+			if (res != 0) {
+				printf("Invalid action type");
+				continue;
+			};
+			if (strcmp(buf, "get") == 0) {
+				rv = saHpiHotSwapIndicatorStateGet(Domain->sessionId,
+					rptid, &ind_state);
+				if (rv != SA_OK) {
+					printf("ERROR!!! saHpiHotSwapIndicatorStateGet: %s\n",
+						oh_lookup_error(rv));
+				} else {
+					if (ind_state == SAHPI_HS_INDICATOR_OFF)
+						str = "OFF";
+					else str = "ON";
+					printf("Hot Swap Indicator: %s\n", str);
+				};
+				continue;
+			};
+			if (strcmp(buf, "on") == 0)
+				ind_state = SAHPI_HS_INDICATOR_ON;
+			else if (strcmp(buf, "off") == 0)
+				ind_state = SAHPI_HS_INDICATOR_OFF;
+			else {
+				printf("Invalid action type: %s\n", buf);
+				continue;
+			};
+			rv = saHpiHotSwapIndicatorStateSet(Domain->sessionId,
+				rptid, ind_state);
+			if (rv != SA_OK) {
+				printf("ERROR!!! saHpiHotSwapIndicatorStateSet: %s\n",
+					oh_lookup_error(rv));
+			};
+			continue;
+		}
+	};
+	block_type = MAIN_COM;
+	return SA_OK;
+}
