@@ -20,26 +20,20 @@
 #include <epath_utils.h>
 
 /**
- * prt_ep test3
- *          call prt_ep with multi element entity path and expect inspect result
+ * print_ep test0
+ *          call print_ep with NULL pointer entity path and expect the unknown
  * Return value: 0 on success, 1 on failure
  **/
 int main(int argc, char **argv)
 {
-        SaHpiEntityPathT ep = {{{SAHPI_ENT_FAN,4},
-                                {SAHPI_ENT_SBC_BLADE,3},
-                                {SAHPI_ENT_RACK,2},
-                                {SAHPI_ENT_ROOT,1},
-                                {0}}};
         int mydebug = 0;
 
-        if (prt_ep(&ep) == 0) {
-                if (mydebug) printf ("prt_ep test3 printed\n"); 
-                return 0;
+        if (print_ep(NULL) == 0) {
+                if (mydebug) printf ("Null pointer entity path printed\n"); 
         }    
         else {
-                if (mydebug) printf ("prt_ep test3 failed\n");
-                return 1;
+                if (mydebug) printf ("Null pointer entity path can\'t be printed\n");
         }    
 
+        return 0;
 }

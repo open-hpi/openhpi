@@ -20,21 +20,26 @@
 #include <epath_utils.h>
 
 /**
- * prt_ep test2
- *          call prt_ep with single element entity path and expect inspect result
+ * print_ep test5
+ *          call print_ep with full entity path and expect inspect result
  * Return value: 0 on success, 1 on failure
  **/
 int main(int argc, char **argv)
 {
-        SaHpiEntityPathT ep = {{{SAHPI_ENT_ROOT,0},{0}}};
+        SaHpiEntityPathT ep;
+        int i;
         int mydebug = 0;
 
-        if (prt_ep(&ep) == 0) {
-                if (mydebug) printf ("prt_ep test2 printed\n"); 
+        for (i=0; i<SAHPI_MAX_ENTITY_PATH; i++) {
+                ep.Entry[i].EntityType = SAHPI_ENT_SBC_BLADE;
+                ep.Entry[i].EntityInstance = i+10;
+        }
+        if (print_ep(&ep) == 0) {
+                if (mydebug) printf ("print_ep test5 printed\n"); 
                 return 0;
         }    
         else {
-                if (mydebug) printf ("prt_ep test2 failed\n");
+                if (mydebug) printf ("print_ep test5 failed\n");
                 return 1;
         }    
 

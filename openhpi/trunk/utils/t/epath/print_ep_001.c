@@ -20,19 +20,20 @@
 #include <epath_utils.h>
 
 /**
- * prt_ep test0
- *          call prt_ep with NULL pointer entity path and expect the unknown
+ * print_ep test1
+ *          call print_ep with zero element entity path and expect unknown result
  * Return value: 0 on success, 1 on failure
  **/
 int main(int argc, char **argv)
 {
+        SaHpiEntityPathT ep = {{{0}}};
         int mydebug = 0;
 
-        if (prt_ep(NULL) == 0) {
-                if (mydebug) printf ("Null pointer entity path printed\n"); 
+        if (print_ep(&ep) == 0) {
+                if (mydebug) printf ("zero element entity path printed\n"); 
         }    
         else {
-                if (mydebug) printf ("Null pointer entity path can\'t be printed\n");
+                if (mydebug) printf ("zero element ep can\'t be printed\n");
         }    
 
         return 0;
