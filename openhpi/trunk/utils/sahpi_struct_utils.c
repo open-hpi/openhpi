@@ -14,9 +14,12 @@
  *      Steve Sherman <stevees@us.ibm.com>
  */
 
+#include <glib.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
+#include <errno.h>
 
 #include <SaHpi.h>
 #include <oh_utils.h>
@@ -109,7 +112,7 @@ SaErrorT oh_decode_manufacturerid(SaHpiManufacturerIdT value, SaHpiTextBufferT *
  * SA_OK - normal operation.
  * SA_ERR_HPI_INVALID_CMD - @format or @reading have IsSupported == FALSE.
  * SA_ERR_HPI_INVALID_DATA - @format and @reading types don't match.
- * SA_ERR_HPI_INVALID_PARAMS - @buffer, @reading, @format is NULL; Invalid @reading type
+ * SA_ERR_HPI_INVALID_PARAMS - @buffer, @reading, @format is NULL; @reading type != @format type.
  * SA_ERR_HPI_OUT_OF_SPACE - @buffer not big enough to accomodate appended string
  **/
 SaErrorT oh_decode_sensorreading(SaHpiSensorReadingT reading,
@@ -203,6 +206,195 @@ SaErrorT oh_decode_sensorreading(SaHpiSensorReadingT reading,
  	oh_copy_textbuffer(buffer, &working);
 
         return(SA_OK);
+}
+
+/**
+ * oh_encode_sensorreading:
+ * @buffer: Location of SaHpiTextBufferT conatining the string to 
+ *          convert into a SaHpiSensorReadingT.
+ * @type: SaHpiSensorReadingTypeT of converted reading.
+ * @reading: SaHpiSensorReadingT location to store converted string.
+ * 
+ * Converts @buffer->Data string to an HPI SaHpiSensorReadingT structure.
+ * Generally @buffer->Data is created by oh_decode_sensorreading() or has
+ * been built by a plugin, which gets string values for sensor readings (e.g.
+ * through SNMP OID commands). Any non-numeric portion of the string is
+ * discarded. For example, the string "-1.43 Volts" is converted to -1.43
+ * of type @type.
+ * 
+ * If type = SAHPI_SENSOR_READING_TYPE_BUFFER, and @buffer->Data > 
+ * SAHPI_SENSOR_BUFFER_LENGTH, data is truncated to fit into the reading
+ * buffer.
+ *
+ * Notes!
+ * - Numerical strings can contain commas but it is assummed that strings follow
+ *   US format (e.g. "1,000,000" = 1 million; not "1.000.000").
+ * - Decimal points are always preceded by at least one number (e.g. "0.9")
+ * - Numerical percentage strings like "9%" are converted into a float 0.09
+ * - Hex notation is not supported (e.g. "0x23")
+ * - Scientific notation is not supported (e.g. "e+02").
+ *
+ * Returns: 
+ * SA_OK - normal operation.
+ * SA_ERR_HPI_INVALID_PARAMS - @buffer, @buffer->Data, or @reading is NULL;
+ *                             Invalid @type.
+ * SA_ERR_HPI_INVALID_DATA - Converted @buffer->Data too large for @type; cannot
+ *                           convert string into valid number; @type incorrect
+ *                           for resulting number (e.g. percentage not a float).
+ **/
+SaErrorT oh_encode_sensorreading(SaHpiTextBufferT *buffer,
+				 SaHpiSensorReadingTypeT type,
+				 SaHpiSensorReadingT *reading)
+{
+        char  numstr[SAHPI_MAX_TEXT_BUFFER_LENGTH];
+	char *endptr;
+        int   i, j;
+	int   found_sign, found_number, found_float, in_number;
+	int   is_percent = 0;
+        SaHpiFloat64T num_float64 = 0.0;
+        SaHpiInt64T   num_int64 = 0;
+        SaHpiUint64T  num_uint64 = 0;
+	SaHpiSensorReadingT working;
+
+	if (!buffer || !reading ||
+	    buffer->Data == NULL || buffer->Data[0] == '\0' ||
+	    !oh_lookup_sensorreadingtype(type)) {
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+
+        if (type == SAHPI_SENSOR_READING_TYPE_BUFFER) {
+		strncpy(reading->Value.SensorBuffer, buffer->Data, SAHPI_SENSOR_BUFFER_LENGTH);
+		return(SA_OK);
+        }
+
+	memset(numstr, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);
+        memset(&working, 0, sizeof(SaHpiSensorReadingT));
+	working.IsSupported = SAHPI_TRUE;
+	working.Type = type;
+
+	/* Search string and pull out first numeric string.
+         * The strtol type functions below are pretty good at handling
+         * non-numeric junk in string, but they don't handle spaces
+         * after a sign or commas within a number.
+         * So we normalize the string a bit first.
+	 */
+	j = found_sign = in_number = found_number = found_float = 0;
+	for (i=0; i<buffer->DataLength && !found_number; i++) {
+		if (buffer->Data[i] == '+' || buffer->Data[i] == '-') {
+			if (found_sign) { 
+				dbg("Cannot parse multiple sign values");
+				return(SA_ERR_HPI_INVALID_DATA);
+			}
+			found_sign = 1;
+			numstr[j] = buffer->Data[i];
+			j++;
+		}
+		if (isdigit(buffer->Data[i])) {
+			if (!found_number) {
+				in_number = 1;
+				numstr[j] = buffer->Data[i];
+				j++;
+			}
+		}
+		else { /* Strip non-numerics */
+			if (buffer->Data[i] == '.') { /* Unless its a decimal point */
+				if (in_number) {
+					if (found_float) { 
+						dbg("Cannot parse multiple decimal points");
+						return(SA_ERR_HPI_INVALID_DATA);
+					}
+					found_float = 1;
+					numstr[j] = buffer->Data[i];
+					j++;
+				}
+			}
+			else {
+				/* Delete commas but don't end search for more numbers */
+				if (in_number && buffer->Data[i] != ',') { 
+					found_number = 1;
+				}
+			}
+		}
+	}
+	
+	if (found_number || in_number) {
+		for (j=i-1; j<buffer->DataLength; j++) {
+			if (buffer->Data[j] == '%') {
+				is_percent = 1;
+				break;
+			}
+		}
+	}
+	else {
+		dbg("No number in string");
+		return(SA_ERR_HPI_INVALID_DATA);
+	}
+
+	if ((is_percent || found_float) && type != SAHPI_SENSOR_READING_TYPE_FLOAT64) {
+		dbg("Number and type incompatible");
+		return(SA_ERR_HPI_INVALID_DATA);
+	}
+
+	/* Convert string to number */
+        switch (type) {
+        case SAHPI_SENSOR_READING_TYPE_INT64:
+                errno = 0;
+                num_int64 = strtoll(numstr, &endptr, 10);
+                if (errno) {
+                        dbg("strtoll failed, errno=%d", errno);
+                        return(SA_ERR_HPI_INVALID_DATA);
+                }
+                if (*endptr != '\0') {
+                        dbg("strtoll failed: End Pointer=%s", endptr);
+                        return(SA_ERR_HPI_INVALID_DATA);
+                }
+
+                working.Value.SensorInt64 = num_int64;
+                break;
+
+        case SAHPI_SENSOR_READING_TYPE_UINT64:
+                errno = 0;
+                num_uint64 = strtoull(numstr, &endptr, 10);
+                if (errno) {
+                        dbg("strtoull failed, errno=%d", errno);
+			return(SA_ERR_HPI_INVALID_DATA);
+                }
+                if (*endptr != '\0') {
+                        dbg("strtoull failed: End Pointer=%s", endptr);
+                        return(SA_ERR_HPI_INVALID_DATA);
+                }
+
+                working.Value.SensorUint64 = num_uint64;
+                break;
+
+        case SAHPI_SENSOR_READING_TYPE_FLOAT64:
+		errno = 0;
+                num_float64 = strtold(numstr, &endptr);
+                if (errno) {
+                        dbg("strtold failed, errno=%d", errno);
+			return(SA_ERR_HPI_INVALID_DATA);
+                }
+                if (*endptr != '\0') {
+                        dbg("strtold failed: End Pointer=%s", endptr);
+                        return(SA_ERR_HPI_INVALID_DATA);
+                }
+
+                if (is_percent) {
+                        working.Value.SensorFloat64 = num_float64/100.0;
+                }
+                else {
+			working.Value.SensorFloat64 = num_float64;
+                }
+                break;
+
+        default: /* Should never get here */
+                dbg("Invalid type=%d", type);
+		return(SA_ERR_HPI_INTERNAL_ERROR);
+        }
+
+	*reading = working;
+
+	return(SA_OK);
 }
 
 /**
@@ -385,7 +577,7 @@ static inline SaErrorT oh_append_bigtext(oh_big_textbuffer *big_buffer, const ch
 {
         SaHpiUint8T *p;
 
-	if (size == 0 ) {
+	if (size == 0) {
 		return(SA_OK);
 	}
 	if (!big_buffer || !from) {
@@ -430,7 +622,7 @@ static SaErrorT oh_append_offset(oh_big_textbuffer *buffer, int offsets)
  *
  * Returns:
  * SA_OK - normal operation.
- * SA_ERR_HPI_INVALID_PARAMS - \@sensor or \@stream is NULL
+ * SA_ERR_HPI_INVALID_PARAMS - @sensor or @stream is NULL
  **/
 SaErrorT oh_fprint_sensorrec(FILE *stream, const SaHpiSensorRecT *sensor)
 {

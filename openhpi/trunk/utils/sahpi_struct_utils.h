@@ -56,9 +56,13 @@ SaErrorT oh_decode_manufacturerid(SaHpiManufacturerIdT value,
 SaErrorT oh_decode_sensorreading(SaHpiSensorReadingT reading,
                                  SaHpiSensorDataFormatT format,
 				 SaHpiTextBufferT *buffer);
+
+SaErrorT oh_encode_sensorreading(SaHpiTextBufferT *buffer,
+				 SaHpiSensorReadingTypeT type,
+				 SaHpiSensorReadingT *reading);
+
 #if 0
 SaErrorT oh_decode_ctrlstate(SaHpiCtrlStateT control_state,
-			     SaHpiCtrlTypeT control_type,
 			     SaHpiTextBufferT *buffer);
 #endif
 
