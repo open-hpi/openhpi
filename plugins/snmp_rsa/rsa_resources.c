@@ -136,6 +136,43 @@ struct snmp_rpt snmp_rpt_array[] = {
 		},
                 .comment = "DASD"
         },
+        /* Fans */
+        {
+                .rpt = {
+                        .ResourceInfo = {
+                                .ManufacturerId = IBM_MANUFACTURING_ID,
+                        },
+                        .ResourceEntity = {
+                                .Entry[0] =
+                                {
+				        .EntityType = SAHPI_ENT_FAN,
+			                .EntityInstance = RSA_HPI_INSTANCE_BASE
+				},
+                                {
+                                        .EntityType = SAHPI_ENT_ROOT,
+                                        .EntityInstance = 0
+                                }
+			},
+                        .ResourceCapabilities = SAHPI_CAPABILITY_EVT_DEASSERTS |
+			                        SAHPI_CAPABILITY_RESOURCE |
+			                        SAHPI_CAPABILITY_RDR |
+			                        SAHPI_CAPABILITY_SENSOR,
+                        .ResourceSeverity = SAHPI_MAJOR,
+                 },
+		.rsa_res_info = {
+			.mib = {
+				.OidHealth = '\0',
+				.HealthyValue = 0,
+				.OidReset = '\0',
+				.OidPowerState = '\0',
+				.OidPowerOnOff = '\0',
+			},
+			.event_array = {
+				{},
+			},
+		},
+                .comment = "Fan"
+        },
 
         {} /* Terminate array with a null element */
 };
