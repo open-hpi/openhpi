@@ -123,16 +123,11 @@ int ohoi_hot_swap_cb(ipmi_entity_t  *ent,
 	    					SAHPI_HS_STATE_NOT_PRESENT) {
 		dbg("HS_STATE NOT PRESENT");
 	  	handler->eventq = g_slist_append(handler->eventq,e);
-		entity_update_rpt(handler->rptcache, rpt_entry->ResourceId,0);
 		ohoi_remove_entity(handler, rpt_entry->ResourceId);
-		ipmi_discover_resources(handler);
 	}else if (e->u.hpi_event.event.EventDataUnion.HotSwapEvent
-		  		.HotSwapState ==
-					SAHPI_HS_STATE_ACTIVE) {
+		  	.HotSwapState == SAHPI_HS_STATE_ACTIVE) {
 		dbg("HS_STATE ACTIVE");
-	  	entity_update_rpt(handler->rptcache, rpt_entry->ResourceId, 1);
 		handler->eventq = g_slist_append(handler->eventq, e);
-		//ipmi_discover_resources(handler);
 	}else {
 	  	handler->eventq = g_slist_append(handler->eventq, e);
 	}
