@@ -293,4 +293,6 @@ int get_events(struct oh_session*);
                 fprintf(stderr, format "\n", ## __VA_ARGS__); \
         } while(0)
 
+#define g_slist_for_each(pos, head) \
+	for (pos = head; pos != NULL; pos = g_slist_next(pos))
 #endif/*__OPENHPI_H*/

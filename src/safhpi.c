@@ -168,7 +168,7 @@ SaErrorT SAHPI_API saHpiSessionClose(SAHPI_IN SaHpiSessionIdT SessionId)
 SaErrorT SAHPI_API saHpiResourcesDiscover(SAHPI_IN SaHpiSessionIdT SessionId)
 {
 	struct oh_session *s;
-	int i;
+	GSList *i;
 	int rv =0;
 	
 	OH_STATE_READY_CHECK;
@@ -179,9 +179,8 @@ SaErrorT SAHPI_API saHpiResourcesDiscover(SAHPI_IN SaHpiSessionIdT SessionId)
 		return SA_ERR_HPI_INVALID_SESSION;
 	}
 	
-	for (i=0; i< g_slist_length(global_handler_list); i++) {
-		struct oh_handler *h
-			= g_slist_nth_data(global_handler_list, i);
+	g_slist_for_each(i, global_handler_list) {
+		struct oh_handler *h = i->data;
 		rv |= h->abi->discover_resources(h->hnd);
 	}
 	if (rv) {
@@ -215,10 +214,10 @@ SaErrorT SAHPI_API saHpiRptEntryGet(
 		SAHPI_OUT SaHpiEntryIdT *NextEntryId,
 		SAHPI_OUT SaHpiRptEntryT *RptEntry)
 {
-	struct oh_resource *res;
 	struct oh_session *s;
 	
 	int no;
+	GSList *i;
 	
 	OH_STATE_READY_CHECK;
 
@@ -242,18 +241,21 @@ SaErrorT SAHPI_API saHpiRptEntryGet(
 		return SA_ERR_HPI_INVALID;
 	}
 	
-	res = g_slist_nth_data(global_rpt, no);
-	if (!resource_is_in_domain(res, s->domain_id)) {
+	i = g_slist_nth(global_rpt, no);
+	if (!resource_is_in_domain(i->data, s->domain_id)) {
 		dbg("Invalid EntryId");
 		return SA_ERR_HPI_INVALID;
 	}
 			
-	memcpy(RptEntry, &res->entry, sizeof(*RptEntry));
+	memcpy(RptEntry, &((struct oh_resource *)(i->data))->entry, 
+			sizeof(*RptEntry));
 	
-	for (no++; no<g_slist_length(global_rpt); no++) {
-		res = g_slist_nth_data(global_rpt, no);
-		if (resource_is_in_domain(res, s->domain_id)) 
+	i = g_slist_next(i);
+	no++;
+	g_slist_for_each(i, i) {
+		if (resource_is_in_domain(i->data, s->domain_id)) 
 			break;
+		no++;
 	}
 	
 	if (no<g_slist_length(global_rpt)) {
@@ -428,8 +430,7 @@ SaErrorT SAHPI_API saHpiRdrGet (
 		SAHPI_OUT SaHpiRdrT *Rdr)
 {
 	struct oh_resource *res;
-	struct oh_rdr	  *rdr;
-	
+	struct oh_rdr *rdr;	
 	int no;
 	
 	OH_GET_RESOURCE;

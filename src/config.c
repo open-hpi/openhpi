@@ -117,7 +117,7 @@ int oh_load_config (struct oh_config *config)
 #endif
         return 0;
 }
-
+#if 0
 void oh_free_config(struct oh_config *config) 
 {
         int i;
@@ -141,4 +141,4 @@ void oh_free_config(struct oh_config *config)
         
         return;
 }
-
+#endif

@@ -24,21 +24,20 @@
 static void process_session_event(struct oh_event *e)
 {
 	struct oh_resource *res;
-	int i;
+	GSList *i;
 	
 	res = get_res_by_oid(e->u.res_event.id);
 	if (!res) {
 		dbg("No the resource");
 	}
 
-	for (i=0; i<g_slist_length(res->domain_list); i++) {
+	g_slist_for_each(i, res->domain_list) {
 		SaHpiDomainIdT domain_id;
-		int j;
+		GSList *j;
 
-		domain_id = GPOINTER_TO_UINT(g_slist_nth_data(res->domain_list, i));
-		for (j=0; j<g_slist_length(global_session_list); j++) {
-			struct oh_session *session;
-			session = g_slist_nth_data(global_session_list, j);
+		domain_id = GPOINTER_TO_UINT(i->data);
+		g_slist_for_each(j, global_session_list) {
+			struct oh_session *session = j->data;
 			if (domain_id == session->domain_id)
 				session_push_event(session, e);
 		}
@@ -96,13 +95,13 @@ int get_events(struct oh_session *s)
 	do {
 		struct oh_event	event;
 		int rv;
-		int i;
+		GSList *i;
 
 		has_event = 0;
-		for (i=0; i< g_slist_length(global_handler_list); i++) {
+		g_slist_for_each(i, global_handler_list) {
 			struct timeval to = {0, 0};
-			struct oh_handler *h 
-				= g_slist_nth_data(global_handler_list, i); 
+			struct oh_handler *h = i->data; 
+			
 			rv = h->abi->get_event(h->hnd, &event, &to);
 			if (rv>0) {
 				if (event.type == OH_ET_HPI) {
