@@ -40,7 +40,16 @@ TESTS = ohpi_000 \
         ohpi_017 \
         ohpi_018 \
         ohpi_019 \
-        ohpi_020
+        ohpi_020 \
+        ohpi_021 \
+        ohpi_022 \
+        ohpi_023 \
+        ohpi_024 \
+        ohpi_025 \
+        ohpi_026 \
+        ohpi_027 \
+        ohpi_028 \
+        ohpi_029
 
 check_PROGRAMS = $(TESTS)
 
@@ -106,3 +115,30 @@ ohpi_019_LDADD   = $(TDEPLIB)
 
 ohpi_020_SOURCES = ohpi_020.c
 ohpi_020_LDADD   = $(TDEPLIB)
+
+ohpi_021_SOURCES = ohpi_021.c
+ohpi_021_LDADD   = $(TDEPLIB)
+
+ohpi_022_SOURCES = ohpi_022.c
+ohpi_022_LDADD   = $(TDEPLIB)
+
+ohpi_023_SOURCES = ohpi_023.c
+ohpi_023_LDADD   = $(TDEPLIB)
+
+ohpi_024_SOURCES = ohpi_024.c
+ohpi_024_LDADD   = $(TDEPLIB)
+
+ohpi_025_SOURCES = ohpi_025.c
+ohpi_025_LDADD   = $(TDEPLIB)
+
+ohpi_026_SOURCES = ohpi_026.c
+ohpi_026_LDADD   = $(TDEPLIB)
+
+ohpi_027_SOURCES = ohpi_027.c
+ohpi_027_LDADD   = $(TDEPLIB)
+
+ohpi_028_SOURCES = ohpi_028.c
+ohpi_028_LDADD   = $(TDEPLIB)
+
+ohpi_029_SOURCES = ohpi_029.c
+ohpi_029_LDADD   = $(TDEPLIB)

@@ -63,20 +63,20 @@ SaErrorT oHpiPluginInfo(char *name, oHpiPluginInfoT *info):
         (020) Load plugin, unload plugin, and try to get info on it.
         
 SaErrorT oHpiPluginGetNext(char *name, char *next_name, int size):
-        () Pass null as arguments (for each argument, n<0 for size).
-        () Get next bogus plugin
-        () Load two plugins, unload one, and get next the unloaded one.
+        (021) Pass null as arguments (for each argument, n<0 for size).
+        (022) Get next bogus plugin
+        (023) Load two plugins, unload one, and get next the unloaded one.
 
 SaErrorT oHpiHandlerCreate(GHashTable *config,
                            oHpiHandlerIdT *id):
-        () Pass null as arguments (for each argument).
-        () Create handler for plugin that doesn't have a "plugin" key.
-        () Create handler for non-loaded plugin.
+        (024) Pass null as arguments (for each argument).
+        (025) Create handler for plugin that doesn't have a "plugin" key.
+        (026) Create handler for non-loaded plugin.
         
 SaErrorT oHpiHandlerDestroy(oHpiHandlerIdT id):
-        () Pass null as argument.
-        () Destroy bogus handler.
-        () Destroy handler twice.        
+        (027) Pass null as argument.
+        (028) Destroy bogus handler.
+        (029) Destroy handler twice.        
         
 SaErrorT oHpiHandlerInfo(oHpiHandlerIdT id, oHpiHandlerInfoT *info):
         () Pass null as argument.
