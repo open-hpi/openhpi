@@ -17,8 +17,6 @@
 #include &lt;glib.h&gt;
 
 
-#define     <link linkend="RPT-ENTRY-BEGIN-CAPS">RPT_ENTRY_BEGIN</link>
-#define     <link linkend="RDR-BEGIN-CAPS">RDR_BEGIN</link>
 #define     <link linkend="FREE-RPT-DATA-CAPS">FREE_RPT_DATA</link>
 #define     <link linkend="KEEP-RPT-DATA-CAPS">KEEP_RPT_DATA</link>
 void        <link linkend="oh-flush-rpt">oh_flush_rpt</link>                    (RPTable *table);
@@ -85,24 +83,6 @@ and fetch them.
 
 <refsect1>
 <title>Details</title>
-<refsect2>
-<title><anchor id="RPT-ENTRY-BEGIN-CAPS">RPT_ENTRY_BEGIN</title>
-<programlisting>
-#define		RPT_ENTRY_BEGIN 0xffffffff
-</programlisting>
-<para>
-This constant can be used as a Resource Id to refer to the first entry in the
-table with all resource calls except the <link linkend="oh-add-resource">oh_add_resource</link>().
-</para></refsect2>
-<refsect2>
-<title><anchor id="RDR-BEGIN-CAPS">RDR_BEGIN</title>
-<programlisting>
-#define		RDR_BEGIN	0xffffffff
-</programlisting>
-<para>
-This constant can be used as a Record Id to refer to the first record in the
-Resource's RDR repository with all RDR calls except <link linkend="oh-add-rdr">oh_add_rdr</link>().
-</para></refsect2>
 <refsect2>
 <title><anchor id="FREE-RPT-DATA-CAPS">FREE_RPT_DATA</title>
 <programlisting>
@@ -188,8 +168,7 @@ Add a RPT entry to the RPT along with some private data.
 If an RPT entry with the same resource id exists int the RPT, it will be
 overlayed with the new RPT entry. Also, this function will assign the
 resource id as its entry id since it is expected to be unique for the table.
-Note - If the RPT entry has a resource id of <literal>RPT_ENTRY_BEGIN</literal>,
-the first RPT entry in the table will be overlayed.</para>
+</para>
 <para>
 
 </para><variablelist role="params">
@@ -226,7 +205,7 @@ int	oh_remove_resource	(RPTable *table,
 </programlisting>
 <para>
 Remove a resource from the RPT. If the <parameter>rid</parameter> is
-<literal>RPT_ENTRY_BEGIN</literal>, the first RPT entry in the table will be removed.
+<literal>SAHPI_FIRST_ENTRY</literal>, the first RPT entry in the table will be removed.
 The void data will be freed if <parameter>owndata</parameter> was false (<literal>FREE_RPT_DATA</literal>) when adding
 the resource, otherwise if <parameter>owndata</parameter> was true (<literal>KEEP_RPT_DATA</literal>) it will not be freed.</para>
 <para>
@@ -252,7 +231,7 @@ void*	oh_get_resource_data	(RPTable *table,
 </programlisting>
 <para>
 Get the private data for a RPT entry.  If the <parameter>rid</parameter> is
-<literal>RPT_ENTRY_BEGIN</literal>, the first RPT entry's data in the table will be returned.</para>
+<literal>SAHPI_FIRST_ENTRY</literal>, the first RPT entry's data in the table will be returned.</para>
 <para>
 
 </para><variablelist role="params">
@@ -271,7 +250,7 @@ SaHpiRptEntryT*	oh_get_resource_by_id	(RPTable *table,
 </programlisting>
 <para>
 Get a RPT entry from the RPT by using the resource id.
-If <parameter>rid</parameter> is <literal>RPT_ENTRY_BEGIN</literal>, the first RPT entry in the table will be returned.</para>
+If <parameter>rid</parameter> is <literal>SAHPI_FIRST_ENTRY</literal>, the first RPT entry in the table will be returned.</para>
 <para>
 
 </para><variablelist role="params">
@@ -316,7 +295,7 @@ SaHpiRptEntryT* oh_get_resource_next	(RPTable *table,
 </programlisting>
 <para>
 Get the RPT entry next to the specified RPT entry
-from the RPT. If <parameter>rid_prev</parameter> is <literal>RPT_ENTRY_BEGIN</literal>, the first RPT entry
+from the RPT. If <parameter>rid_prev</parameter> is <literal>SAHPI_FIRST_ENTRY</literal>, the first RPT entry
 in the table will be returned.</para>
 <para>
 
@@ -347,7 +326,7 @@ If an RDR is found with the same record id as the one being added, the RDR being
 added will overlay the existing one. Also, a unique record id will be assigned
 to it based on the RDR type and its type's numeric id.
 All rdr interface funtions, except <link linkend="oh-add-rdr">oh_add_rdr</link>() will act in the context of
-the first RPT entry in the table, if <parameter>rid</parameter> is <literal>RPT_ENTRY_BEGIN</literal>.</para>
+the first RPT entry in the table, if <parameter>rid</parameter> is <literal>SAHPI_FIRST_ENTRY</literal>.</para>
 <para>
 
 </para><variablelist role="params">
@@ -387,12 +366,12 @@ int	oh_remove_rdr	(RPTable *table,
 </programlisting>
 <para>
 Remove an RDR from a RPT entry's RDR repository.
-If <parameter>rdrid</parameter> is <literal>RDR_BEGIN</literal>, the first RDR in the repository will be removed.
+If <parameter>rdrid</parameter> is <literal>SAHPI_FIRST_ENTRY</literal>, the first RDR in the repository will be removed.
 If <parameter>owndata</parameter> was set to false (<literal>FREE_RPT_DATA</literal>) on the rdr when it was added,
 the data will be freed, otherwise if it was set to true (<literal>KEEP_RPT_DATA</literal>),
 it will not be freed.
 All rdr interface funtions, except <link linkend="oh-add-rdr">oh_add_rdr</link>() will act in the context of
-the first RPT entry in the table, if <parameter>rid</parameter> is <literal>RPT_ENTRY_BEGIN</literal>.</para>
+the first RPT entry in the table, if <parameter>rid</parameter> is <literal>SAHPI_FIRST_ENTRY</literal>.</para>
 <para>
 
 </para><variablelist role="params">
@@ -421,9 +400,9 @@ void*	oh_get_rdr_data	(RPTable *table,
 			 SaHpiEntryIdT rdrid);</programlisting>
 <para>
 Get the private data associated to an RDR.
-If <parameter>rdrid</parameter> is <literal>RDR_BEGIN</literal>, the first RDR's data in the repository will be returned.
+If <parameter>rdrid</parameter> is <literal>SAHPI_FIRST_ENTRY</literal>, the first RDR's data in the repository will be returned.
 All rdr interface funtions, except <link linkend="oh-add-rdr">oh_add_rdr</link>() will act in the context of
-the first RPT entry in the table, if <parameter>rid</parameter> is <literal>RPT_ENTRY_BEGIN</literal>.</para>
+the first RPT entry in the table, if <parameter>rid</parameter> is <literal>SAHPI_FIRST_ENTRY</literal>.</para>
 <para>
 
 </para><variablelist role="params">
@@ -446,9 +425,9 @@ SaHpiRdrT*	oh_get_rdr_by_id	(RPTable *table,
 					 SaHpiEntryIdT rdrid);</programlisting>
 <para>
 Get a reference to an RDR by its record id.
-If <parameter>rdrid</parameter> is <literal>RDR_BEGIN</literal>, the first RDR in the repository will be returned.
+If <parameter>rdrid</parameter> is <literal>SAHPI_FIRST_ENTRY</literal>, the first RDR in the repository will be returned.
 All rdr interface funtions, except <link linkend="oh-add-rdr">oh_add_rdr</link>() will act in the context of
-the first RPT entry in the table, if <parameter>rid</parameter> is <literal>RPT_ENTRY_BEGIN</literal>.</para>
+the first RPT entry in the table, if <parameter>rid</parameter> is <literal>SAHPI_FIRST_ENTRY</literal>.</para>
 <para>
 
 </para><variablelist role="params">
@@ -477,7 +456,7 @@ SaHpiRdrT*	oh_get_rdr_by_type	(RPTable *table,
 <para>
 Get a reference to an RDR by its type and number.
 All rdr interface funtions, except <link linkend="oh-add-rdr">oh_add_rdr</link>() will act in the context of
-the first RPT entry in the table, if <parameter>rid</parameter> is <literal>RPT_ENTRY_BEGIN</literal>.</para>
+the first RPT entry in the table, if <parameter>rid</parameter> is <literal>SAHPI_FIRST_ENTRY</literal>.</para>
 <para>
 
 </para><variablelist role="params">
@@ -507,10 +486,10 @@ SaHpiRdrT*	oh_get_rdr_next		(RPTable *table,
 </programlisting>
 <para>
 Get the RDR next to the specified RDR in the specified
-RPT entry's repository. If <parameter>rdrid_prev</parameter> is <literal>RDR_BEGIN</literal>, the first RDR
+RPT entry's repository. If <parameter>rdrid_prev</parameter> is <literal>SAHPI_FIRST_ENTRY</literal>, the first RDR
 in the repository will be returned.
 All rdr interface funtions, except <link linkend="oh-add-rdr">oh_add_rdr</link>() will act in the context of
-the first RPT entry in the table, if <parameter>rid</parameter> is <literal>RPT_ENTRY_BEGIN</literal>.</para>
+the first RPT entry in the table, if <parameter>rid</parameter> is <literal>SAHPI_FIRST_ENTRY</literal>.</para>
 <para>
 
 </para><variablelist role="params">
@@ -526,7 +505,7 @@ to the specified RPT entry.
 </simpara></listitem></varlistentry>
 <varlistentry><term><emphasis>Returns</emphasis> :</term><listitem><simpara>
 Pointer to the RDR found or NULL if the previous RDR by that
-id was not found. If the <parameter>rdrid_prev</parameter> was <literal>RDR_BEGIN</literal>, the first RDR in the list
+id was not found. If the <parameter>rdrid_prev</parameter> was <literal>SAHPI_FIRST_ENTRY</literal>, the first RDR in the list
 will be returned.
 </simpara></listitem></varlistentry>
 </variablelist></refsect2>

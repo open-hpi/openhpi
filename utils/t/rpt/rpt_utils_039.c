@@ -23,7 +23,7 @@
 /**
  * main: Adds 10 resources to an rpt table.
  * Fetches the 1st resource through the get_next call
- * using RPT_ENTRY_BEGIN for the Resource Id. Makes sure that the resource
+ * using SAHPI_FIRST_ENTRY for the Resource Id. Makes sure that the resource
  * returned is the 1st resource.
  * Passes the test if the interface returns a valid entry, else it fails.
  *
@@ -40,7 +40,7 @@ int main(int argc, char **argv)
                         return 1;        
         }
 
-        tmpentry = oh_get_resource_next(rptable, RPT_ENTRY_BEGIN);
+        tmpentry = oh_get_resource_next(rptable, SAHPI_FIRST_ENTRY);
         if (!tmpentry)
                 return 1;
 

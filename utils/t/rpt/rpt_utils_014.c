@@ -39,7 +39,7 @@ int main(int argc, char **argv)
         }
 
         for (i = 0; i < 5; i++) {
-                if (oh_add_rdr(rptable, RPT_ENTRY_BEGIN, rdrs + i, NULL,0))
+                if (oh_add_rdr(rptable, SAHPI_FIRST_ENTRY, rdrs + i, NULL,0))
                         return 1;
         }
 

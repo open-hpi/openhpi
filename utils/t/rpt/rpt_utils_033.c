@@ -22,7 +22,7 @@
 
 /**
  * main: Starting with an empty RPTable, adds 10 resources to it.
- * Fetches the first resource back by id using RPT_ENTRY_BEGIN for a Resource Id.
+ * Fetches the first resource back by id using SAHPI_FIRST_ENTRY for a Resource Id.
  * Passes the test if the interface returns the resource, else it fails.
  *
  * Return value: 0 on success, 1 on failure
@@ -38,7 +38,7 @@ int main(int argc, char **argv)
                         return 1;                
         }        
 
-        tmpentry = oh_get_resource_by_id(rptable, RPT_ENTRY_BEGIN);
+        tmpentry = oh_get_resource_by_id(rptable, SAHPI_FIRST_ENTRY);
         if (!tmpentry)
                 return 1;
 

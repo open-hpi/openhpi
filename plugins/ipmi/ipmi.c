@@ -260,7 +260,7 @@ static int ipmi_discover_resources(void *hnd)
 		}
 	}
 
-        rpt_entry = oh_get_resource_next(handler->rptcache, RPT_ENTRY_BEGIN);
+        rpt_entry = oh_get_resource_next(handler->rptcache, SAHPI_FIRST_ENTRY);
         while (rpt_entry) {
                 event = g_malloc0(sizeof(*event));
                 memset(event, 0, sizeof(*event));
@@ -269,7 +269,7 @@ static int ipmi_discover_resources(void *hnd)
                 handler->eventq = g_slist_append(handler->eventq, event);
 
                 dbg("Now adding rdr for resource: %d", event->u.res_event.entry.ResourceId);
-                rdr_entry = oh_get_rdr_next(handler->rptcache,rpt_entry->ResourceId, RDR_BEGIN);
+                rdr_entry = oh_get_rdr_next(handler->rptcache,rpt_entry->ResourceId, SAHPI_FIRST_ENTRY);
                 
                 while (rdr_entry) {
                         event = g_malloc0(sizeof(*event));

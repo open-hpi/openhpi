@@ -40,13 +40,13 @@ int main(int argc, char **argv)
         }
 
         for (i = 0; i < 5; i++) {
-                if (oh_add_rdr(rptable, RPT_ENTRY_BEGIN, rdrs + i, NULL,0))
+                if (oh_add_rdr(rptable, SAHPI_FIRST_ENTRY, rdrs + i, NULL,0))
                         return 1;                
         }
 
-        for (i = 0, tmprdr = oh_get_rdr_by_id(rptable, RPT_ENTRY_BEGIN, RDR_BEGIN);
+        for (i = 0, tmprdr = oh_get_rdr_by_id(rptable, SAHPI_FIRST_ENTRY, SAHPI_FIRST_ENTRY);
              tmprdr;
-             tmprdr = oh_get_rdr_next(rptable, RPT_ENTRY_BEGIN, tmprdr->RecordId)) {
+             tmprdr = oh_get_rdr_next(rptable, SAHPI_FIRST_ENTRY, tmprdr->RecordId)) {
                 if (memcmp(rdrs + (i++), tmprdr, sizeof(SaHpiRdrT)))
                         return 1;                
         }

@@ -1096,7 +1096,7 @@ static struct oh_event *remove_resource(struct oh_handler_state *inst)
 
 	/* get the last resouce in our rptache 	*/
 	/* since we know it has no rdrs		*/
-	rpt_e = oh_get_resource_next(inst->rptcache, RPT_ENTRY_BEGIN);
+	rpt_e = oh_get_resource_next(inst->rptcache, SAHPI_FIRST_ENTRY);
 	while(rpt_e) {
 		rpt_e_pre = rpt_e;
 		rpt_e = oh_get_resource_next(inst->rptcache, rpt_e->ResourceId);
@@ -1128,7 +1128,7 @@ static struct oh_event *add_resource(struct oh_handler_state *inst)
 
 	/* get the last resouce in our rptache 	*/
 	/* since we know it has no rdrs		*/
-	rpt_e = oh_get_resource_next(inst->rptcache, RPT_ENTRY_BEGIN);
+	rpt_e = oh_get_resource_next(inst->rptcache, SAHPI_FIRST_ENTRY);
 	while(rpt_e) {
 		rpt_e_pre = rpt_e;
 		rpt_e = oh_get_resource_next(inst->rptcache, rpt_e->ResourceId);
@@ -1168,7 +1168,7 @@ static int dummy_get_event(void *hnd, struct oh_event *event, struct timeval *ti
 		count++;
 
 		/* just stick this user event on the first resource */
-		rpt_entry = oh_get_resource_next(inst->rptcache, RPT_ENTRY_BEGIN);
+		rpt_entry = oh_get_resource_next(inst->rptcache, SAHPI_FIRST_ENTRY);
 		if (!rpt_entry) {
 			g_free(e);
 			return(-1);
@@ -1225,7 +1225,7 @@ static int dummy_discover_resources(void *hnd)
 
 		/* get the first rpt entry */
 
-		rpt_entry = oh_get_resource_next(inst->rptcache, RPT_ENTRY_BEGIN);
+		rpt_entry = oh_get_resource_next(inst->rptcache, SAHPI_FIRST_ENTRY);
 
 		while (rpt_entry) {
 //dbg("here resource event id %d", rpt_entry->ResourceId);
@@ -1237,7 +1237,7 @@ static int dummy_discover_resources(void *hnd)
 
 			/* get every resource rdr's */
 			rdr_entry = oh_get_rdr_next(inst->rptcache, 
-						    rpt_entry->ResourceId, RDR_BEGIN);
+						    rpt_entry->ResourceId, SAHPI_FIRST_ENTRY);
 			while (rdr_entry) {
 //dbg("here rdr event id %d", rdr_entry->RecordId);
 				memset(&event, 0, sizeof(event));
@@ -1354,7 +1354,7 @@ static int dummy_get_sensor_data(void *hnd, SaHpiResourceIdT id,
 	SaHpiRdrT *rdr;
 	
 	/* get any resource rdr's */
-	rdr = oh_get_rdr_next(inst->rptcache, id, RDR_BEGIN);
+	rdr = oh_get_rdr_next(inst->rptcache, id, SAHPI_FIRST_ENTRY);
 
 	while ( (rdr->RdrTypeUnion.CtrlRec.Num != num) && rdr) {
 		rdr = oh_get_rdr_next(inst->rptcache, id, rdr->RecordId);

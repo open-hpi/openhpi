@@ -39,7 +39,7 @@ int main(int argc, char **argv)
         }
 
         for (i = 0; i < 5; i++) {
-                if (oh_add_rdr(rptable, RPT_ENTRY_BEGIN, rdrs + i, NULL,0))
+                if (oh_add_rdr(rptable, SAHPI_FIRST_ENTRY, rdrs + i, NULL,0))
                         return 1;
         }
 
@@ -49,7 +49,7 @@ int main(int argc, char **argv)
         }
 
         oh_remove_rdr(rptable, rptentries[0].ResourceId, rdrs[1].RecordId);
-        for (tmprdr = oh_get_rdr_by_id(rptable, rptentries[0].ResourceId, RDR_BEGIN);
+        for (tmprdr = oh_get_rdr_by_id(rptable, rptentries[0].ResourceId, SAHPI_FIRST_ENTRY);
              tmprdr;
              tmprdr = oh_get_rdr_next(rptable, rptentries[0].ResourceId, tmprdr->RecordId)) {
                 if (tmprdr->RecordId == rdrs[1].RecordId) return 1;

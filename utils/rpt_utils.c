@@ -19,6 +19,14 @@
 #include <rpt_utils.h>
 #include <openhpi.h>
 
+/* declare Rptable object */		     
+RPTable *default_rpt = NULL; 
+
+
+#if 0
+/* declare hotswap state list */
+ GSList *managed_hs_resources = NULL;
+#endif
 
 static RPTEntry *get_rptentry_by_rid(RPTable *table, SaHpiResourceIdT rid)
 {
@@ -34,7 +42,7 @@ static RPTEntry *get_rptentry_by_rid(RPTable *table, SaHpiResourceIdT rid)
                 return NULL;
         }
         
-        if (rid == RPT_ENTRY_BEGIN) {
+        if (rid == SAHPI_FIRST_ENTRY) {
                 rptentry = (RPTEntry *) (table->rptable->data);
         } else {
                 for (node = table->rptable; node != NULL; node = node->next) {
@@ -57,7 +65,7 @@ static RDRecord *get_rdrecord_by_id(GSList *records, SaHpiEntryIdT id)
                 return NULL;                
         }
         
-        if (id == RDR_BEGIN) {
+        if (id == SAHPI_FIRST_ENTRY) {
                 rdrecord = (RDRecord *) records->data;
         } else {
                 for (node = records; node != NULL; node = node->next) {
@@ -163,8 +171,8 @@ void oh_flush_rpt(RPTable *table)
                 return;
         }
 
-        while ((tmp_entry = oh_get_resource_by_id(table, RPT_ENTRY_BEGIN)) != NULL) {
-                oh_remove_resource(table, RPT_ENTRY_BEGIN);
+        while ((tmp_entry = oh_get_resource_by_id(table, SAHPI_FIRST_ENTRY)) != NULL) {
+                oh_remove_resource(table, SAHPI_FIRST_ENTRY);
         }
 }
 
@@ -193,7 +201,7 @@ void rpt_diff(RPTable *cur_rpt, RPTable *new_rpt,
         SaHpiRptEntryT *res = NULL;
 
         /* Look for absent resources and rdrs */
-        for (res = oh_get_resource_by_id(cur_rpt, RPT_ENTRY_BEGIN);
+        for (res = oh_get_resource_by_id(cur_rpt, SAHPI_FIRST_ENTRY);
              res != NULL;
              res = oh_get_resource_next(cur_rpt, res->ResourceId)) {
                 
@@ -203,7 +211,7 @@ void rpt_diff(RPTable *cur_rpt, RPTable *new_rpt,
                 else {
                         SaHpiRdrT *rdr = NULL;
                         
-                        for (rdr = oh_get_rdr_by_id(cur_rpt, res->ResourceId, RDR_BEGIN);
+                        for (rdr = oh_get_rdr_by_id(cur_rpt, res->ResourceId, SAHPI_FIRST_ENTRY);
                              rdr != NULL;
                              rdr = oh_get_rdr_next(cur_rpt, res->ResourceId, rdr->RecordId)) {
 
@@ -217,7 +225,7 @@ void rpt_diff(RPTable *cur_rpt, RPTable *new_rpt,
         }
 
         /* Look for new resources and rdrs*/
-        for (res = oh_get_resource_by_id(new_rpt, RPT_ENTRY_BEGIN);
+        for (res = oh_get_resource_by_id(new_rpt, SAHPI_FIRST_ENTRY);
              res != NULL;
              res = oh_get_resource_next(new_rpt, res->ResourceId)) {
 
@@ -229,7 +237,7 @@ void rpt_diff(RPTable *cur_rpt, RPTable *new_rpt,
 
                 
                         
-                for (rdr = oh_get_rdr_by_id(new_rpt, res->ResourceId, RDR_BEGIN);
+                for (rdr = oh_get_rdr_by_id(new_rpt, res->ResourceId, SAHPI_FIRST_ENTRY);
                      rdr != NULL;
                      rdr = oh_get_rdr_next(new_rpt, res->ResourceId, rdr->RecordId)) {
 
@@ -261,9 +269,7 @@ void rpt_diff(RPTable *cur_rpt, RPTable *new_rpt,
  * Add a RPT entry to the RPT along with some private data.
  * If an RPT entry with the same resource id exists int the RPT, it will be
  * overlayed with the new RPT entry. Also, this function will assign the
- * resource id as its entry id since it is expected to be unique for the table.
- * Note - If the RPT entry has a resource id of %RPT_ENTRY_BEGIN,
- * the first RPT entry in the table will be overlayed.
+ * resource id as its entry id since it is expected to be unique for the table. 
  * 
  * Returns:
  * 0 - successful addition to the RPT.
@@ -285,12 +291,11 @@ int oh_add_resource(RPTable *table, SaHpiRptEntryT *entry, void *data, int ownda
         } else if (!entry) {
                 dbg("Failed to add. RPT entry is NULL.");
                 return -2;
-        } else if (entry->ResourceId == 0) {
+        } else if (entry->ResourceId == SAHPI_FIRST_ENTRY) {
                 dbg("Failed to add. RPT entry needs a resource id before being added");
                 return -3;                
-        } else if (entry->ResourceId == RPT_ENTRY_BEGIN ||
-                   entry->ResourceId == SAHPI_DOMAIN_CONTROLLER_ID) {
-                dbg("Failed to add. RPT entry has an invalid/reserved id assigned. (RPT_ENTRY_BEGIN or SAHPI_DOMAIN_CONTROLLER_ID)");
+        } else if (entry->ResourceId == SAHPI_DOMAIN_CONTROLLER_ID) {
+                dbg("Failed to add. RPT entry has an invalid/reserved id assigned. (SAHPI_DOMAIN_CONTROLLER_ID)");
                 return -4;
         } else if (check_ep(entry->ResourceEntity)) {
                 dbg("Failed to add RPT entry. Entity path does not contain root element.");
@@ -326,7 +331,7 @@ int oh_add_resource(RPTable *table, SaHpiRptEntryT *entry, void *data, int ownda
  * @rid: Resource id of the RPT entry to be removed.
  *
  * Remove a resource from the RPT. If the @rid is
- * %RPT_ENTRY_BEGIN, the first RPT entry in the table will be removed.
+ * %SAHPI_FIRST_ENTRY, the first RPT entry in the table will be removed.
  * The void data will be freed if @owndata was false (%FREE_RPT_DATA) when adding
  * the resource, otherwise if @owndata was true (%KEEP_RPT_DATA) it will not be freed.
  * 
@@ -351,8 +356,8 @@ int oh_remove_resource(RPTable *table, SaHpiResourceIdT rid)
         } else {
                 SaHpiRdrT *tmp_rdr;
                 /* Remove all RDRs for the resource first */
-                while ((tmp_rdr = oh_get_rdr_by_id(table, rid, RDR_BEGIN)) != NULL) {
-                        oh_remove_rdr(table, rid, RDR_BEGIN);
+                while ((tmp_rdr = oh_get_rdr_by_id(table, rid, SAHPI_FIRST_ENTRY)) != NULL) {
+                        oh_remove_rdr(table, rid, SAHPI_FIRST_ENTRY);
                 }
                 /* then remove the resource itself. */
                 table->rptable = g_slist_remove(table->rptable, (gpointer)rptentry);
@@ -371,7 +376,7 @@ int oh_remove_resource(RPTable *table, SaHpiResourceIdT rid)
  * @rid: Resource id of the RPT entry that holds the private data.
  *
  * Get the private data for a RPT entry.  If the @rid is
- * %RPT_ENTRY_BEGIN, the first RPT entry's data in the table will be returned.
+ * %SAHPI_FIRST_ENTRY, the first RPT entry's data in the table will be returned.
  * 
  * Returns: A void pointer to the private data for the RPT entry requested, or NULL
  * if the RPT entry was not found or the table was a NULL pointer.
@@ -401,7 +406,7 @@ void *oh_get_resource_data(RPTable *table, SaHpiResourceIdT rid)
  * @rid: Resource id of the RPT entry to be looked up.
  *
  * Get a RPT entry from the RPT by using the resource id.
- * If @rid is %RPT_ENTRY_BEGIN, the first RPT entry in the table will be returned.
+ * If @rid is %SAHPI_FIRST_ENTRY, the first RPT entry in the table will be returned.
  * 
  * Returns:
  * Pointer to the RPT entry found or NULL if an RPT entry by that
@@ -467,7 +472,7 @@ SaHpiRptEntryT *oh_get_resource_by_ep(RPTable *table, SaHpiEntityPathT *ep)
  * @rid_prev: Resource id of the RPT entry previous to the one being looked up.
  *
  * Get the RPT entry next to the specified RPT entry
- * from the RPT. If @rid_prev is %RPT_ENTRY_BEGIN, the first RPT entry
+ * from the RPT. If @rid_prev is %SAHPI_FIRST_ENTRY, the first RPT entry
  * in the table will be returned.
  * 
  * Returns:
@@ -484,7 +489,7 @@ SaHpiRptEntryT *oh_get_resource_next(RPTable *table, SaHpiResourceIdT rid_prev)
                 return NULL;
         }
 
-        if (rid_prev == RPT_ENTRY_BEGIN) {
+        if (rid_prev == SAHPI_FIRST_ENTRY) {
                 if (table->rptable) {
                         rptentry = (RPTEntry *)(table->rptable->data);
                 } else {
@@ -532,7 +537,7 @@ SaHpiRptEntryT *oh_get_resource_next(RPTable *table, SaHpiResourceIdT rid_prev)
  * added will overlay the existing one. Also, a unique record id will be assigned
  * to it based on the RDR type and its type's numeric id.
  * All rdr interface funtions, except oh_add_rdr() will act in the context of
- * the first RPT entry in the table, if @rid is %RPT_ENTRY_BEGIN.
+ * the first RPT entry in the table, if @rid is %SAHPI_FIRST_ENTRY.
  *
  * Returns:
  * 0 - Successful addition of RDR.
@@ -601,12 +606,12 @@ int oh_add_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiRdrT *rdr, void *data,
  *
  *
  * Remove an RDR from a RPT entry's RDR repository.
- * If @rdrid is %RDR_BEGIN, the first RDR in the repository will be removed.
+ * If @rdrid is %SAHPI_FIRST_ENTRY, the first RDR in the repository will be removed.
  * If @owndata was set to false (%FREE_RPT_DATA) on the rdr when it was added,
  * the data will be freed, otherwise if it was set to true (%KEEP_RPT_DATA),
  * it will not be freed.
  * All rdr interface funtions, except oh_add_rdr() will act in the context of
- * the first RPT entry in the table, if @rid is %RPT_ENTRY_BEGIN.
+ * the first RPT entry in the table, if @rid is %SAHPI_FIRST_ENTRY.
  *
  * Returns:
  * 0 - Successful removal of RDR.
@@ -652,9 +657,9 @@ int oh_remove_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT rdrid)
  *
  *
  * Get the private data associated to an RDR.
- * If @rdrid is %RDR_BEGIN, the first RDR's data in the repository will be returned.
+ * If @rdrid is %SAHPI_FIRST_ENTRY, the first RDR's data in the repository will be returned.
  * All rdr interface funtions, except oh_add_rdr() will act in the context of
- * the first RPT entry in the table, if @rid is %RPT_ENTRY_BEGIN.
+ * the first RPT entry in the table, if @rid is %SAHPI_FIRST_ENTRY.
  *
  * Returns: A void pointer to the RDR data, or NULL if no data for that RDR was found or
  * the table pointer is NULL.
@@ -692,9 +697,9 @@ void *oh_get_rdr_data(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT rdrid)
  * @rdrid: Record id of the RDR being looked up.
  *
  * Get a reference to an RDR by its record id.
- * If @rdrid is %RDR_BEGIN, the first RDR in the repository will be returned.
+ * If @rdrid is %SAHPI_FIRST_ENTRY, the first RDR in the repository will be returned.
  * All rdr interface funtions, except oh_add_rdr() will act in the context of
- * the first RPT entry in the table, if @rid is %RPT_ENTRY_BEGIN.
+ * the first RPT entry in the table, if @rid is %SAHPI_FIRST_ENTRY.
  *
  * Returns:
  * Reference to the RDR looked up or NULL if no RDR was found.
@@ -734,7 +739,7 @@ SaHpiRdrT *oh_get_rdr_by_id(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT 
  *
  * Get a reference to an RDR by its type and number.
  * All rdr interface funtions, except oh_add_rdr() will act in the context of
- * the first RPT entry in the table, if @rid is %RPT_ENTRY_BEGIN.
+ * the first RPT entry in the table, if @rid is %SAHPI_FIRST_ENTRY.
  *
  * Returns:
  * Reference to the RDR looked up or NULL if no RDR was found.
@@ -776,14 +781,14 @@ SaHpiRdrT *oh_get_rdr_by_type(RPTable *table, SaHpiResourceIdT rid,
  * to the specified RPT entry.
  *
  * Get the RDR next to the specified RDR in the specified
- * RPT entry's repository. If @rdrid_prev is %RDR_BEGIN, the first RDR
+ * RPT entry's repository. If @rdrid_prev is %SAHPI_FIRST_ENTRY, the first RDR
  * in the repository will be returned.
  * All rdr interface funtions, except oh_add_rdr() will act in the context of
- * the first RPT entry in the table, if @rid is %RPT_ENTRY_BEGIN.
+ * the first RPT entry in the table, if @rid is %SAHPI_FIRST_ENTRY.
  *
  * Returns:
  * Pointer to the RDR found or NULL if the previous RDR by that
- * id was not found. If the @rdrid_prev was %RDR_BEGIN, the first RDR in the list
+ * id was not found. If the @rdrid_prev was %SAHPI_FIRST_ENTRY, the first RDR in the list
  * will be returned.
  **/
 SaHpiRdrT *oh_get_rdr_next(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT rdrid_prev)
@@ -803,7 +808,7 @@ SaHpiRdrT *oh_get_rdr_next(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT r
                 return NULL; /* No resource found by that id */                
         }
         
-        if (rdrid_prev == RDR_BEGIN) {
+        if (rdrid_prev == SAHPI_FIRST_ENTRY) {
                 if (rptentry->rdrtable) {
                         rdrecord = (RDRecord *)(rptentry->rdrtable->data);                        
                 } else {
@@ -832,3 +837,44 @@ SaHpiRdrT *oh_get_rdr_next(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT r
 
         return &(rdrecord->rdr);
 }
+
+
+#if 0
+/************************************************************************************
+ *
+ *  Managed Hotswap State Functions
+ *
+ *  Note: these might be better off in other files
+ *
+ ************************************************************************************/
+
+guint32 oh_is_resource_managed(SaHpiResourceIdT rid) {
+        ResourceState *r;
+        GSList *i;
+        g_slist_for_each(i,managed_hs_resources) {
+                r = i->data;
+                if(r->rid == rid) {
+                        return r->state;
+                }
+        }
+        return 0;
+}
+
+int oh_set_resource_managed(SaHpiResourceIdT rid, guint32 state) {
+        ResourceState *r;
+        ResourceState *rnew;
+        GSList *i;
+        g_slist_for_each(i,managed_hs_resources) {
+                r = i->data;
+                if(r->rid == rid) {
+                        r->state = state;
+                        return 0;
+                }
+        }
+        rnew = calloc(1,sizeof(ResourceState));
+        rnew->rid = rid;
+        rnew->state = state;
+        managed_hs_resources = g_slist_append(managed_hs_resources,rnew);
+        return 0;
+}
+#endif

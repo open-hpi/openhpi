@@ -399,7 +399,7 @@ SaErrorT SAHPI_API saHpiRptEntryGet(
         }
         
         if (EntryId == SAHPI_FIRST_ENTRY) {
-                req_entry = oh_get_resource_next(rpt, RPT_ENTRY_BEGIN);
+                req_entry = oh_get_resource_next(rpt, SAHPI_FIRST_ENTRY);
         } else {
                 req_entry = oh_get_resource_by_id(rpt, EntryId);
         }
@@ -1065,7 +1065,7 @@ SaErrorT SAHPI_API saHpiRdrGet (
         data_access_lock();
         
         if(EntryId == SAHPI_FIRST_ENTRY) {
-                rdr_cur = oh_get_rdr_next(rpt, ResourceId, RDR_BEGIN);
+                rdr_cur = oh_get_rdr_next(rpt, ResourceId, SAHPI_FIRST_ENTRY);
         } else {
                 rdr_cur = oh_get_rdr_by_id(rpt, ResourceId, EntryId);
         }

@@ -22,7 +22,7 @@
 
 /**
  * main: Starting with an empty RPTable, adds 2 resources to it with data.
- * Fetches the data back using RPT_ENTRY_BEGIN as the Resource Id.
+ * Fetches the data back using SAHPI_FIRST_ENTRY as the Resource Id.
  * Passes the test if the interface returns the data, else it fails.
  *
  * Return value: 0 on success, 1 on failure
@@ -40,7 +40,7 @@ int main(int argc, char **argv)
         if (oh_add_resource(rptable, rptentries+1, data2, KEEP_RPT_DATA))
                 return 1;
 
-        tmpdata = oh_get_resource_data(rptable, RPT_ENTRY_BEGIN);
+        tmpdata = oh_get_resource_data(rptable, SAHPI_FIRST_ENTRY);
         if (data1 != tmpdata)
                 return 1;
 
