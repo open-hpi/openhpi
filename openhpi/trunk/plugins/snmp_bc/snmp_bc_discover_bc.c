@@ -25,7 +25,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
         struct oh_event *e;
 	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 	struct snmp_value get_value, get_active;
-	struct BC_ResourceInfo *res_info_ptr;
+	struct ResourceInfo *res_info_ptr;
 
         /* Discover Chassis, Blades, Expansion Cards */
 	err = snmp_bc_snmp_get(custom_handle, SNMP_BC_BLADE_VECTOR, &get_value);
@@ -75,8 +75,8 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 	trace("Discovered resource=%s.", e->u.res_event.entry.ResourceTag.Data);
 
 	/* Create platform-specific info space to add to infra-structure */
-	res_info_ptr = g_memdup(&(snmp_rpt_array[BC_RPT_ENTRY_CHASSIS].bc_res_info),
-				sizeof(struct BC_ResourceInfo));
+	res_info_ptr = g_memdup(&(snmp_rpt_array[BC_RPT_ENTRY_CHASSIS].res_info),
+				sizeof(struct ResourceInfo));
 	res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
 
 	/* Add resource to temporary event cache/queue */
@@ -123,8 +123,8 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 			trace("Discovered resource=%s.", e->u.res_event.entry.ResourceTag.Data);
 
 			/* Create platform-specific info space to add to infra-structure */
-			res_info_ptr = g_memdup(&(snmp_rpt_array[BC_RPT_ENTRY_BLADE].bc_res_info),
-						sizeof(struct BC_ResourceInfo));
+			res_info_ptr = g_memdup(&(snmp_rpt_array[BC_RPT_ENTRY_BLADE].res_info),
+						sizeof(struct ResourceInfo));
 			res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
 
 			/* Add resource to temporary event cache/queue */
@@ -192,8 +192,8 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 					trace("Discovered resource=%s.", e->u.res_event.entry.ResourceTag.Data);
 
 					/* Create platform-specific info space to add to infra-structure */
-					res_info_ptr = g_memdup(&(snmp_rpt_array[BC_RPT_ENTRY_BLADE_ADDIN_CARD].bc_res_info),
-								sizeof(struct BC_ResourceInfo));
+					res_info_ptr = g_memdup(&(snmp_rpt_array[BC_RPT_ENTRY_BLADE_ADDIN_CARD].res_info),
+								sizeof(struct ResourceInfo));
 					res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
 
 					/* Add resource to temporary event cache/queue */
@@ -251,8 +251,8 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 			trace("Discovered resource=%s.", e->u.res_event.entry.ResourceTag.Data);
 
 			/* Create platform-specific info space to add to infra-structure */
-			res_info_ptr = g_memdup(&(snmp_rpt_array[BC_RPT_ENTRY_BLOWER_MODULE].bc_res_info),
-						sizeof(struct BC_ResourceInfo));
+			res_info_ptr = g_memdup(&(snmp_rpt_array[BC_RPT_ENTRY_BLOWER_MODULE].res_info),
+						sizeof(struct ResourceInfo));
 			res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
 
 			/* Add resource to temporary event cache/queue */
@@ -308,8 +308,8 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 			trace("Discovered resource=%s.", e->u.res_event.entry.ResourceTag.Data);
 
 			/* Create platform-specific info space to add to infra-structure */
-			res_info_ptr = g_memdup(&(snmp_rpt_array[BC_RPT_ENTRY_POWER_MODULE].bc_res_info),
-						sizeof(struct BC_ResourceInfo));
+			res_info_ptr = g_memdup(&(snmp_rpt_array[BC_RPT_ENTRY_POWER_MODULE].res_info),
+						sizeof(struct ResourceInfo));
 			res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
 
 			/* Add resource to temporary event cache/queue */
@@ -365,8 +365,8 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 			trace("Discovered resource=%s.", e->u.res_event.entry.ResourceTag.Data);
 
 			/* Create platform-specific info space to add to infra-structure */
-			res_info_ptr = g_memdup(&(snmp_rpt_array[BC_RPT_ENTRY_SWITCH_MODULE].bc_res_info),
-						sizeof(struct BC_ResourceInfo));
+			res_info_ptr = g_memdup(&(snmp_rpt_array[BC_RPT_ENTRY_SWITCH_MODULE].res_info),
+						sizeof(struct ResourceInfo));
 			res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
 
 			/* Add resource to temporary event cache/queue */
@@ -421,8 +421,8 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 		trace("Discovered resource=%s.", e->u.res_event.entry.ResourceTag.Data);
 
 		/* Create platform-specific info space to add to infra-structure */
-		res_info_ptr = g_memdup(&(snmp_rpt_array[BC_RPT_ENTRY_MEDIA_TRAY].bc_res_info),
-					sizeof(struct BC_ResourceInfo));
+		res_info_ptr = g_memdup(&(snmp_rpt_array[BC_RPT_ENTRY_MEDIA_TRAY].res_info),
+					sizeof(struct ResourceInfo));
 		res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
 
 		/* Add resource to temporary event cache/queue */
@@ -487,8 +487,8 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 			trace("Discovered resource=%s.", e->u.res_event.entry.ResourceTag.Data);
 
 			/* Create platform-specific info space to add to infra-structure */
-			res_info_ptr = g_memdup(&(snmp_rpt_array[BC_RPT_ENTRY_MGMNT_MODULE].bc_res_info),
-						sizeof(struct BC_ResourceInfo));
+			res_info_ptr = g_memdup(&(snmp_rpt_array[BC_RPT_ENTRY_MGMNT_MODULE].res_info),
+						sizeof(struct ResourceInfo));
 			res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
 
 			/* Add resource to temporary event cache/queue */

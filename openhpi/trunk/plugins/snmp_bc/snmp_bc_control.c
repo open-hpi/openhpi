@@ -33,8 +33,8 @@ SaErrorT snmp_bc_get_control_state(void *hnd,
 	if(rdr == NULL) {
 		return SA_ERR_HPI_NOT_PRESENT;
 	}
-        struct BC_ControlInfo *s =
-                (struct BC_ControlInfo *)oh_get_rdr_data(handle->rptcache, id, rdr->RecordId);
+        struct ControlInfo *s =
+                (struct ControlInfo *)oh_get_rdr_data(handle->rptcache, id, rdr->RecordId);
 	if(s == NULL) {
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}	
@@ -144,8 +144,8 @@ SaErrorT snmp_bc_set_control_state(void *hnd,
 	if(rdr == NULL) {
 		return SA_ERR_HPI_NOT_PRESENT;
 	}
-        struct BC_ControlInfo *s =
-                (struct BC_ControlInfo *)oh_get_rdr_data(handle->rptcache, id, rdr->RecordId);
+        struct ControlInfo *s =
+                (struct ControlInfo *)oh_get_rdr_data(handle->rptcache, id, rdr->RecordId);
 	if(s == NULL) {
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}

@@ -51,7 +51,7 @@ struct snmp_rpt snmp_rpt_array[] = {
                         .ResourceSeverity = SAHPI_CRITICAL,
 			.ResourceFailed = SAHPI_FALSE,
                 },
-                .bc_res_info = {
+                .res_info = {
                         .mib = {
                                 .OidHealth = ".1.3.6.1.4.1.2.3.51.2.2.7.1.0",
                                 .HealthyValue = 255,
@@ -92,7 +92,7 @@ struct snmp_rpt snmp_rpt_array[] = {
                         .ResourceSeverity = SAHPI_MAJOR,
 			.ResourceFailed = SAHPI_FALSE,
                 },
-                .bc_res_info = {
+                .res_info = {
                         .mib = {
                                 .OidHealth = '\0',
                                 .HealthyValue = 0,
@@ -144,7 +144,7 @@ struct snmp_rpt snmp_rpt_array[] = {
                         .ResourceSeverity = SAHPI_MAJOR,
 			.ResourceFailed = SAHPI_FALSE,
                 },
-                .bc_res_info = {
+                .res_info = {
                         .mib = {
                                 .OidHealth = '\0',
                                 .HealthyValue = 0,
@@ -214,7 +214,7 @@ struct snmp_rpt snmp_rpt_array[] = {
                         .ResourceSeverity = SAHPI_MAJOR,
 			.ResourceFailed = SAHPI_FALSE,
                 },
-                .bc_res_info = {
+                .res_info = {
                         .mib = {
                                 .OidHealth = ".1.3.6.1.4.1.2.3.51.2.22.1.5.1.1.5.x",
                                 .HealthyValue = 1,
@@ -287,7 +287,7 @@ struct snmp_rpt snmp_rpt_array[] = {
                         .ResourceSeverity = SAHPI_MAJOR,
 			.ResourceFailed = SAHPI_FALSE,
                 },
-                .bc_res_info = {
+                .res_info = {
                         .mib = {
                                 .OidHealth = '\0',
                                 .HealthyValue = 0,
@@ -326,7 +326,7 @@ struct snmp_rpt snmp_rpt_array[] = {
                         .ResourceSeverity = SAHPI_MAJOR,
 			.ResourceFailed = SAHPI_FALSE,
                 },
-                .bc_res_info = {
+                .res_info = {
                         .mib = {
                                 .OidHealth = '\0',
                                 .HealthyValue = 0,
@@ -376,7 +376,7 @@ struct snmp_rpt snmp_rpt_array[] = {
                         .ResourceSeverity = SAHPI_MAJOR,
 			.ResourceFailed = SAHPI_FALSE,
                  },
-                .bc_res_info = {
+                .res_info = {
                         .mib = {
                                 .OidHealth = '\0',
                                 .HealthyValue = 0,
@@ -416,7 +416,7 @@ struct snmp_rpt snmp_rpt_array[] = {
                         .ResourceSeverity = SAHPI_MAJOR,
 			.ResourceFailed = SAHPI_FALSE,
                  },
-                .bc_res_info = {
+                .res_info = {
                         .mib = {
                                 .OidHealth = '\0',
                                 .HealthyValue = 0,
@@ -460,8 +460,8 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                         .Num = 1,
                         .Type = SAHPI_TEMPERATURE,
                         .Category = SAHPI_EC_THRESHOLD,
-			.EnableCtrl = SAHPI_TRUE,
-                        .EventCtrl = SAHPI_SEC_PER_EVENT,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
                         .Events = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                         .DataFormat = {
                                 .IsSupported = SAHPI_TRUE,
@@ -497,14 +497,16 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                         },
                         .Oem = 0,
                 },
-                .bc_sensor_info = {
+                .sensor_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = 0,
                                 .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.1.5.1.0",
                         },
+                        .sensor_enabled = SAHPI_TRUE,
                         .cur_state = SAHPI_ES_UNSPECIFIED,
+                        .events_enabled = SAHPI_TRUE,
                         .assert_mask   = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                         .deassert_mask = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                         .event_array = {
@@ -531,8 +533,8 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                         .Num = 2,
                         .Type = SAHPI_TEMPERATURE,
                         .Category = SAHPI_EC_THRESHOLD,
-			.EnableCtrl = SAHPI_TRUE,
-			.EventCtrl = SAHPI_SEC_PER_EVENT,
+			.EnableCtrl = SAHPI_FALSE,
+			.EventCtrl = SAHPI_SEC_READ_ONLY,
                         .Events = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                         .DataFormat = {
 				.IsSupported = SAHPI_TRUE,
@@ -568,14 +570,16 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                         },
                         .Oem = 0,
                 },
-                .bc_sensor_info = {
+                .sensor_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = 0,
                                 .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.1.1.2.0",
                         },
+                        .sensor_enabled = SAHPI_TRUE,
 			.cur_state = SAHPI_ES_UNSPECIFIED,
+                        .events_enabled = SAHPI_TRUE,
                         .assert_mask   = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                         .deassert_mask = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
 			.event_array = {
@@ -602,8 +606,8 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                         .Num = 3,
                         .Type = SAHPI_VOLTAGE,
                         .Category = SAHPI_EC_THRESHOLD,
-			.EnableCtrl = SAHPI_TRUE,
-                        .EventCtrl = SAHPI_SEC_PER_EVENT,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
 			.Events = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
                                   SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                         .DataFormat = {
@@ -648,7 +652,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                          },
                         .Oem = 0,
                 },
-                .bc_sensor_info = {
+                .sensor_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = 0,
@@ -663,7 +667,9 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                                         },
                                 },
                         },
+                        .sensor_enabled = SAHPI_TRUE,
                         .cur_state = SAHPI_ES_UNSPECIFIED,
+                        .events_enabled = SAHPI_TRUE,
 			.assert_mask   = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
 			                 SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
 			.deassert_mask = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
@@ -704,8 +710,8 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                         .Num = 4,
                         .Type = SAHPI_VOLTAGE,
                         .Category = SAHPI_EC_THRESHOLD,
-			.EnableCtrl = SAHPI_TRUE,
-                        .EventCtrl = SAHPI_SEC_PER_EVENT,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
                         .Events = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
                                   SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                         .DataFormat = {
@@ -751,7 +757,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                         },
                         .Oem = 0,
                 },
-		.bc_sensor_info = {
+		.sensor_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = 0,
@@ -766,7 +772,9 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                                         },
                                 },
                         },
+                        .sensor_enabled = SAHPI_TRUE,
                         .cur_state = SAHPI_ES_UNSPECIFIED,
+                        .events_enabled = SAHPI_TRUE,
 			.assert_mask   = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
 			                 SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
 			.deassert_mask = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
@@ -807,8 +815,8 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                         .Num = 5,
                         .Type = SAHPI_VOLTAGE,
                         .Category = SAHPI_EC_THRESHOLD,
-			.EnableCtrl = SAHPI_TRUE,
-                        .EventCtrl = SAHPI_SEC_PER_EVENT,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
                         .Events = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
 			          SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                         .DataFormat = {
@@ -854,7 +862,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                         },
                         .Oem = 0,
                 },
-		.bc_sensor_info = {
+		.sensor_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = 0,
@@ -869,7 +877,9 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                                         },
                                 },
                         },
+                        .sensor_enabled = SAHPI_TRUE,
                         .cur_state = SAHPI_ES_UNSPECIFIED,
+                        .events_enabled = SAHPI_TRUE,
 			.assert_mask   = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
                                          SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
 			.deassert_mask = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
@@ -910,8 +920,8 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                         .Num = 6,
                         .Type = SAHPI_VOLTAGE,
                         .Category = SAHPI_EC_THRESHOLD,
-			.EnableCtrl = SAHPI_TRUE,
-                        .EventCtrl = SAHPI_SEC_PER_EVENT,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
                         .Events = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
                                   SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
 			.DataFormat = {
@@ -956,7 +966,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                          },
                         .Oem = 0,
                 },
-                .bc_sensor_info = {
+                .sensor_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = 0,
@@ -971,7 +981,9 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                                         },
                                 },
                         },
+                        .sensor_enabled = SAHPI_TRUE,
                         .cur_state = SAHPI_ES_UNSPECIFIED,
+                        .events_enabled = SAHPI_TRUE,
                         .assert_mask   = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
                                          SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
 			.deassert_mask = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
@@ -1012,8 +1024,8 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                         .Num = 7,
                         .Type = SAHPI_VOLTAGE,
                         .Category = SAHPI_EC_THRESHOLD,
-			.EnableCtrl = SAHPI_TRUE,
-                        .EventCtrl = SAHPI_SEC_PER_EVENT,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
                         .Events = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
                                   SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                         .DataFormat = {
@@ -1059,7 +1071,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                          },
                         .Oem = 0,
                 },
-                .bc_sensor_info = {
+                .sensor_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = 0,
@@ -1074,7 +1086,9 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                                         },
                                 },
                         },
+                        .sensor_enabled = SAHPI_TRUE,
                         .cur_state = SAHPI_ES_UNSPECIFIED,
+                        .events_enabled = SAHPI_TRUE,
 			.assert_mask   = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
                                          SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
 			.deassert_mask = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
@@ -1115,8 +1129,8 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                         .Num = 8,
                         .Type = SAHPI_VOLTAGE,
                         .Category = SAHPI_EC_THRESHOLD,
-			.EnableCtrl = SAHPI_TRUE,
-                        .EventCtrl = SAHPI_SEC_PER_EVENT,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
                         .Events = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
                                   SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                         .DataFormat = {
@@ -1162,7 +1176,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                         },
                         .Oem = 0,
                 },
-                .bc_sensor_info = {
+                .sensor_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = 0,
@@ -1177,7 +1191,9 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                                         },
                                 },
                         },
+                        .sensor_enabled = SAHPI_TRUE,
                         .cur_state = SAHPI_ES_UNSPECIFIED,
+                        .events_enabled = SAHPI_TRUE,
 			.assert_mask   = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
 			                 SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
 			.deassert_mask = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
@@ -1218,8 +1234,8 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                         .Num = 9,
                         .Type = SAHPI_PLATFORM_ALERT,
                         .Category = SAHPI_EC_REDUNDANCY,
-			.EnableCtrl = SAHPI_TRUE,
-                        .EventCtrl = SAHPI_SEC_PER_EVENT,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
                         .Events = SAHPI_ES_REDUNDANCY_LOST | SAHPI_ES_FULLY_REDUNDANT,
                         .DataFormat = {
                                 .IsSupported = SAHPI_FALSE,
@@ -1229,8 +1245,10 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                         },
                         .Oem = 0,
                 },
-                .bc_sensor_info = {
+                .sensor_info = {
+                        .sensor_enabled = SAHPI_TRUE,
                         .cur_state = SAHPI_ES_UNSPECIFIED,
+                        .events_enabled = SAHPI_TRUE,
 			.assert_mask   = SAHPI_ES_REDUNDANCY_LOST,
 			.deassert_mask = SAHPI_ES_REDUNDANCY_LOST,
                         .event_array = {
@@ -1251,8 +1269,8 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                         .Num = 10,
                         .Type = SAHPI_PLATFORM_ALERT,
                         .Category = SAHPI_EC_REDUNDANCY,
-			.EnableCtrl = SAHPI_TRUE,
-                        .EventCtrl = SAHPI_SEC_PER_EVENT,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
                         .Events = SAHPI_ES_REDUNDANCY_LOST | SAHPI_ES_FULLY_REDUNDANT,
                         .DataFormat = {
                                 .IsSupported = SAHPI_FALSE,
@@ -1262,8 +1280,10 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                         },
                         .Oem = 0,
                 },
-                .bc_sensor_info = {
+                .sensor_info = {
+                        .sensor_enabled = SAHPI_TRUE,
                         .cur_state = SAHPI_ES_UNSPECIFIED,
+                        .events_enabled = SAHPI_TRUE,
 			.assert_mask   = SAHPI_ES_REDUNDANCY_LOST,
 			.deassert_mask = SAHPI_ES_REDUNDANCY_LOST,
                         .event_array = {
@@ -1284,8 +1304,8 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                         .Num = 11,
                         .Type = SAHPI_PLATFORM_ALERT,
                         .Category = SAHPI_EC_REDUNDANCY,
-			.EnableCtrl = SAHPI_TRUE,
-                        .EventCtrl = SAHPI_SEC_PER_EVENT,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
                         .Events = SAHPI_ES_REDUNDANCY_LOST | SAHPI_ES_FULLY_REDUNDANT,
                         .DataFormat = {
                                 .IsSupported = SAHPI_FALSE,
@@ -1295,8 +1315,10 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                         },
                         .Oem = 0,
                 },
-                .bc_sensor_info = {
+                .sensor_info = {
+                        .sensor_enabled = SAHPI_TRUE,
                         .cur_state = SAHPI_ES_UNSPECIFIED,
+                        .events_enabled = SAHPI_TRUE,
 			.assert_mask   = SAHPI_ES_REDUNDANCY_LOST,
 			.deassert_mask = SAHPI_ES_REDUNDANCY_LOST,
                         .event_array = {
@@ -1326,8 +1348,8 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         .Num = 1,
                         .Type = SAHPI_TEMPERATURE,
                         .Category = SAHPI_EC_THRESHOLD,
-			.EnableCtrl = SAHPI_TRUE,
-                        .EventCtrl = SAHPI_SEC_PER_EVENT,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
                         .Events = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
 			.DataFormat = {
                                 .IsSupported = SAHPI_TRUE,
@@ -1362,7 +1384,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         },
                         .Oem = 0,
                 },
-                .bc_sensor_info = {
+                .sensor_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = 0,
@@ -1375,7 +1397,9 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                         },
                                 },
                         },
+                        .sensor_enabled = SAHPI_TRUE,
                         .cur_state = SAHPI_ES_UNSPECIFIED,
+                        .events_enabled = SAHPI_TRUE,
 			.assert_mask   = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
 			.deassert_mask = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                         .event_array = {
@@ -1414,8 +1438,8 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         .Num = 2,
                         .Type = SAHPI_TEMPERATURE,
                         .Category = SAHPI_EC_THRESHOLD,
- 			.EnableCtrl = SAHPI_TRUE,
-                        .EventCtrl = SAHPI_SEC_PER_EVENT,
+ 			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
                         .Events = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                         .DataFormat = {
                                 .IsSupported = SAHPI_TRUE,
@@ -1450,7 +1474,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         },
                         .Oem = 0,
                 },
-                .bc_sensor_info = {
+                .sensor_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = 0,
@@ -1463,7 +1487,9 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                         },
                                 },
                         },
+                        .sensor_enabled = SAHPI_TRUE,
                         .cur_state = SAHPI_ES_UNSPECIFIED,
+                        .events_enabled = SAHPI_TRUE,
 			.assert_mask   = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
 			.deassert_mask = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                         .event_array = {
@@ -1505,8 +1531,8 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         .Num = 3,
                         .Type = SAHPI_TEMPERATURE,
                         .Category = SAHPI_EC_THRESHOLD,
-			.EnableCtrl = SAHPI_TRUE,
-                        .EventCtrl = SAHPI_SEC_PER_EVENT,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
                         .Events = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                         .DataFormat = {
                                 .IsSupported = SAHPI_TRUE,
@@ -1541,7 +1567,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         },
                         .Oem = 0,
                 },
-                .bc_sensor_info = {
+                .sensor_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = 0,
@@ -1554,7 +1580,9 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                         },
                                 },
                         },
+                        .sensor_enabled = SAHPI_TRUE,
                         .cur_state = SAHPI_ES_UNSPECIFIED,
+                        .events_enabled = SAHPI_TRUE,
 			.assert_mask   = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
 			.deassert_mask = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                         .event_array = {
@@ -1593,8 +1621,8 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         .Num = 4,
                         .Type = SAHPI_TEMPERATURE,
                         .Category = SAHPI_EC_THRESHOLD,
-			.EnableCtrl = SAHPI_TRUE,
-                        .EventCtrl = SAHPI_SEC_PER_EVENT,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
                         .Events = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                         .DataFormat = {
                                 .IsSupported = SAHPI_TRUE,
@@ -1629,7 +1657,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         },
                         .Oem = 0,
                 },
-                .bc_sensor_info = {
+                .sensor_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = 0,
@@ -1642,7 +1670,9 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                         },
                                 },
                         },
+                        .sensor_enabled = SAHPI_TRUE,
                         .cur_state = SAHPI_ES_UNSPECIFIED,
+                        .events_enabled = SAHPI_TRUE,
 			.assert_mask   = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
 			.deassert_mask = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                         .event_array = {
@@ -1681,8 +1711,8 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         .Num = 5,
                         .Type = SAHPI_VOLTAGE,
                         .Category = SAHPI_EC_THRESHOLD,
-			.EnableCtrl = SAHPI_TRUE,
-                        .EventCtrl = SAHPI_SEC_PER_EVENT,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
                         .Events = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR |
                                   SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR,
                         .DataFormat = {
@@ -1726,7 +1756,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         },
                         .Oem = 0,
                 },
-                .bc_sensor_info = {
+                .sensor_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = 0,
@@ -1739,7 +1769,9 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                         },
                                 },
                         },
+                        .sensor_enabled = SAHPI_TRUE,
                         .cur_state = SAHPI_ES_UNSPECIFIED,
+                        .events_enabled = SAHPI_TRUE,
 			.assert_mask   = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR |
 			                 SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR,
 			.deassert_mask = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR |
@@ -1768,8 +1800,8 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         .Num = 6,
                         .Type = SAHPI_VOLTAGE,
                         .Category = SAHPI_EC_THRESHOLD,
-			.EnableCtrl = SAHPI_TRUE,
-                        .EventCtrl = SAHPI_SEC_PER_EVENT,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
                         .Events = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
                                   SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                         .DataFormat = {
@@ -1813,7 +1845,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         },
                         .Oem = 0,
                 },
-                .bc_sensor_info = {
+                .sensor_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = 0,
@@ -1826,7 +1858,9 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                         },
                                 }
                         },
+                        .sensor_enabled = SAHPI_TRUE,
                         .cur_state = SAHPI_ES_UNSPECIFIED,
+                        .events_enabled = SAHPI_TRUE,
 			.assert_mask   = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
 			                 SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
 			.deassert_mask = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
@@ -1867,8 +1901,8 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         .Num = 7,
                         .Type = SAHPI_VOLTAGE,
                         .Category = SAHPI_EC_THRESHOLD,
-			.EnableCtrl = SAHPI_TRUE,
-                        .EventCtrl = SAHPI_SEC_PER_EVENT,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
                         .Events = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
                                   SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                         .DataFormat = {
@@ -1912,7 +1946,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         },
                         .Oem = 0,
                 },
-                .bc_sensor_info = {
+                .sensor_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = 0,
@@ -1925,7 +1959,9 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                         },
                                 },
                         },
+                        .sensor_enabled = SAHPI_TRUE,
                         .cur_state = SAHPI_ES_UNSPECIFIED,
+                        .events_enabled = SAHPI_TRUE,
 			.assert_mask   = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
                                          SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
 			.deassert_mask = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
@@ -1966,8 +2002,8 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         .Num = 8,
                         .Type = SAHPI_VOLTAGE,
                         .Category = SAHPI_EC_THRESHOLD,
-			.EnableCtrl = SAHPI_TRUE,
-                        .EventCtrl = SAHPI_SEC_PER_EVENT,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
                         .Events = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
                                   SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                         .DataFormat = {
@@ -2011,7 +2047,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         },
                         .Oem = 0,
                 },
-                .bc_sensor_info = {
+                .sensor_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = 0,
@@ -2024,7 +2060,9 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                         },
                                 },
                         },
+                        .sensor_enabled = SAHPI_TRUE,
                         .cur_state = SAHPI_ES_UNSPECIFIED,
+                        .events_enabled = SAHPI_TRUE,
 			.assert_mask   = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
 			                 SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
 			.deassert_mask = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
@@ -2065,8 +2103,8 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         .Num = 9,
                         .Type = SAHPI_VOLTAGE,
                         .Category = SAHPI_EC_THRESHOLD,
-			.EnableCtrl = SAHPI_TRUE,
-                        .EventCtrl = SAHPI_SEC_PER_EVENT,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
                         .Events = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
                                   SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                         .DataFormat = {
@@ -2110,7 +2148,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         },
                         .Oem = 0,
                 },
-                .bc_sensor_info = {
+                .sensor_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = 0,
@@ -2123,7 +2161,9 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                         },
                                 },
                         },
+                        .sensor_enabled = SAHPI_TRUE,
                         .cur_state = SAHPI_ES_UNSPECIFIED,
+                        .events_enabled = SAHPI_TRUE,
 			.assert_mask   = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
                                          SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
 			.deassert_mask = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
@@ -2164,8 +2204,8 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         .Num = 10,
                         .Type = SAHPI_VOLTAGE,
                         .Category = SAHPI_EC_THRESHOLD,
-			.EnableCtrl = SAHPI_TRUE,
-                        .EventCtrl = SAHPI_SEC_PER_EVENT,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
                         .Events = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
                                   SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                         .DataFormat = {
@@ -2209,7 +2249,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         },
                         .Oem = 0,
                 },
-                .bc_sensor_info = {
+                .sensor_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = 0,
@@ -2222,7 +2262,9 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                         },
                                 },
                         },
+                        .sensor_enabled = SAHPI_TRUE,
                         .cur_state = SAHPI_ES_UNSPECIFIED,
+                        .events_enabled = SAHPI_TRUE,
 			.assert_mask   = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
 			                 SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
 			.deassert_mask = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
@@ -2263,8 +2305,8 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         .Num = 11,
                         .Type = SAHPI_VOLTAGE,
                         .Category = SAHPI_EC_THRESHOLD,
-			.EnableCtrl = SAHPI_TRUE,
-                        .EventCtrl = SAHPI_SEC_PER_EVENT,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
                         .Events = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                         .DataFormat = {
                                 .IsSupported = SAHPI_TRUE,
@@ -2299,14 +2341,16 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         },
                         .Oem = 0,
                 },
-                .bc_sensor_info = {
+                .sensor_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = 0,
                                 .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.13.x",
                         },
+                        .sensor_enabled = SAHPI_TRUE,
                         .cur_state = SAHPI_ES_UNSPECIFIED,
+                        .events_enabled = SAHPI_TRUE,
 			.assert_mask   = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
 			.deassert_mask = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                         .event_array = {
@@ -2327,8 +2371,8 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         .Num = 12,
                         .Type = SAHPI_OPERATIONAL,
                         .Category = SAHPI_EC_AVAILABILITY,
-			.EnableCtrl = SAHPI_TRUE,
-                        .EventCtrl = SAHPI_SEC_PER_EVENT,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
                         .Events = SAHPI_ES_RUNNING | SAHPI_ES_OFF_LINE |
                                   SAHPI_ES_DEGRADED | SAHPI_ES_INSTALL_ERROR,
                         .DataFormat = {
@@ -2339,8 +2383,10 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         },
                         .Oem = 0,
                 },
-                .bc_sensor_info = {
+                .sensor_info = {
+                        .sensor_enabled = SAHPI_TRUE,
                         .cur_state = SAHPI_ES_UNSPECIFIED,
+                        .events_enabled = SAHPI_TRUE,
 			.assert_mask   = SAHPI_ES_DEGRADED | SAHPI_ES_OFF_LINE | SAHPI_ES_INSTALL_ERROR,
 			.deassert_mask = SAHPI_ES_DEGRADED | SAHPI_ES_OFF_LINE | SAHPI_ES_INSTALL_ERROR,
                         .event_array = {
@@ -2436,8 +2482,8 @@ struct snmp_bc_sensor snmp_bc_blade_addin_sensors[] = {
                         .Num = 1,
                         .Type = SAHPI_TEMPERATURE,
                         .Category = SAHPI_EC_THRESHOLD,
-			.EnableCtrl = SAHPI_TRUE,
-                        .EventCtrl = SAHPI_SEC_PER_EVENT,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
                         .Events = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                         .DataFormat = {
                                 .IsSupported = SAHPI_TRUE,
@@ -2472,7 +2518,7 @@ struct snmp_bc_sensor snmp_bc_blade_addin_sensors[] = {
                         },
                         .Oem = 0,
                 },
-                .bc_sensor_info = {
+                .sensor_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = 0,
@@ -2485,7 +2531,9 @@ struct snmp_bc_sensor snmp_bc_blade_addin_sensors[] = {
                                         },
                                 },
                         },
+                        .sensor_enabled = SAHPI_TRUE,
                         .cur_state = SAHPI_ES_UNSPECIFIED,
+                        .events_enabled = SAHPI_TRUE,
 			.assert_mask   = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
 			.deassert_mask = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                         .event_array = {
@@ -2511,8 +2559,8 @@ struct snmp_bc_sensor snmp_bc_blade_addin_sensors[] = {
                         .Num = 2,
                         .Type = SAHPI_VOLTAGE,
                         .Category = SAHPI_EC_SEVERITY,
-			.EnableCtrl = SAHPI_TRUE,
-                        .EventCtrl = SAHPI_SEC_PER_EVENT,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
 			.Events = SAHPI_ES_OK | SAHPI_ES_MAJOR_FROM_LESS,
                         .DataFormat = {
                                 .IsSupported = SAHPI_FALSE,
@@ -2522,8 +2570,10 @@ struct snmp_bc_sensor snmp_bc_blade_addin_sensors[] = {
                         },
                         .Oem = 0,
                 },
-                .bc_sensor_info = {
+                .sensor_info = {
+                        .sensor_enabled = SAHPI_TRUE,
                         .cur_state = SAHPI_ES_OK,
+                        .events_enabled = SAHPI_TRUE,
 			.assert_mask   = SAHPI_ES_MAJOR_FROM_LESS,
 			.deassert_mask = SAHPI_ES_MAJOR_FROM_LESS,
                         .event_array = {
@@ -2628,8 +2678,8 @@ struct snmp_bc_sensor snmp_bc_mediatray_sensors[] = {
                         .Num = 1,
                         .Type = SAHPI_OPERATIONAL,
                         .Category = SAHPI_EC_AVAILABILITY,
-			.EnableCtrl = SAHPI_TRUE,
-                        .EventCtrl = SAHPI_SEC_PER_EVENT,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
                         .Events = SAHPI_ES_RUNNING | SAHPI_ES_DEGRADED,
                         .DataFormat = {
                                 .IsSupported = SAHPI_FALSE,
@@ -2639,8 +2689,10 @@ struct snmp_bc_sensor snmp_bc_mediatray_sensors[] = {
                         },
                         .Oem = 0,
                 },
-                .bc_sensor_info = {
+                .sensor_info = {
+                        .sensor_enabled = SAHPI_TRUE,
                         .cur_state = SAHPI_ES_UNSPECIFIED,
+                        .events_enabled = SAHPI_TRUE,
 			.assert_mask   = SAHPI_ES_DEGRADED,
 			.deassert_mask = SAHPI_ES_DEGRADED,
                         .event_array = {
@@ -2670,8 +2722,8 @@ struct snmp_bc_sensor snmp_bc_fan_sensors[] = {
                         .Num = 1,
                         .Type = SAHPI_FAN,
                         .Category = SAHPI_EC_PRED_FAIL,
-			.EnableCtrl = SAHPI_TRUE,
-                        .EventCtrl = SAHPI_SEC_PER_EVENT,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
                         .Events = SAHPI_ES_PRED_FAILURE_ASSERT | SAHPI_ES_PRED_FAILURE_DEASSERT,
                         .DataFormat = {
                                 .IsSupported = SAHPI_TRUE,
@@ -2703,14 +2755,16 @@ struct snmp_bc_sensor snmp_bc_fan_sensors[] = {
                         },
                         .Oem = 0,
                 },
-                .bc_sensor_info = {
+                .sensor_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = 0,
                                 .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.3.x.0",
                         },
+                        .sensor_enabled = SAHPI_TRUE,
                         .cur_state = SAHPI_ES_UNSPECIFIED,
+                        .events_enabled = SAHPI_TRUE,
 			.assert_mask   = SAHPI_ES_PRED_FAILURE_ASSERT,
 			.deassert_mask = SAHPI_ES_PRED_FAILURE_ASSERT,
                         .event_array = {
@@ -2731,8 +2785,8 @@ struct snmp_bc_sensor snmp_bc_fan_sensors[] = {
                         .Num = 2,
                         .Type = SAHPI_OPERATIONAL,
                         .Category = SAHPI_EC_AVAILABILITY,
-			.EnableCtrl = SAHPI_TRUE,
-                        .EventCtrl = SAHPI_SEC_PER_EVENT,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
                         .Events = SAHPI_ES_RUNNING | SAHPI_ES_OFF_LINE,
                         .DataFormat = {
                                 .IsSupported = SAHPI_FALSE,
@@ -2742,8 +2796,10 @@ struct snmp_bc_sensor snmp_bc_fan_sensors[] = {
                         },
                         .Oem = 0,
                 },
-                .bc_sensor_info = {
+                .sensor_info = {
+                        .sensor_enabled = SAHPI_TRUE,
                         .cur_state = SAHPI_ES_UNSPECIFIED,
+                        .events_enabled = SAHPI_TRUE,
 			.assert_mask   = SAHPI_ES_OFF_LINE,
 			.deassert_mask = SAHPI_ES_OFF_LINE,
                         .event_array = {
@@ -2779,8 +2835,8 @@ struct snmp_bc_sensor snmp_bc_power_sensors[] = {
                         .Num = 1,
                         .Type = SAHPI_TEMPERATURE,
                         .Category = SAHPI_EC_SEVERITY,
- 			.EnableCtrl = SAHPI_TRUE,
-                        .EventCtrl = SAHPI_SEC_PER_EVENT,
+ 			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
                         .Events = SAHPI_ES_OK | SAHPI_ES_MAJOR_FROM_LESS | SAHPI_ES_CRITICAL,
                          .DataFormat = {
                                  .IsSupported = SAHPI_FALSE,
@@ -2790,8 +2846,10 @@ struct snmp_bc_sensor snmp_bc_power_sensors[] = {
                         },
                         .Oem = 0,
                 },
-                .bc_sensor_info = {
+                .sensor_info = {
+                        .sensor_enabled = SAHPI_TRUE,
                         .cur_state = SAHPI_ES_OK,
+                        .events_enabled = SAHPI_TRUE,
 			.assert_mask   = SAHPI_ES_MAJOR_FROM_LESS | SAHPI_ES_CRITICAL,
 			.deassert_mask = SAHPI_ES_MAJOR_FROM_LESS | SAHPI_ES_CRITICAL,
                         .event_array = {
@@ -2818,8 +2876,8 @@ struct snmp_bc_sensor snmp_bc_power_sensors[] = {
                         .Num = 2,
                         .Type = SAHPI_OPERATIONAL,
                         .Category = SAHPI_EC_AVAILABILITY,
-			.EnableCtrl = SAHPI_TRUE,
-                        .EventCtrl = SAHPI_SEC_PER_EVENT,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
 			.Events = SAHPI_ES_RUNNING | SAHPI_ES_OFF_LINE,
                         .DataFormat = {
                                 .IsSupported = SAHPI_FALSE,
@@ -2829,8 +2887,10 @@ struct snmp_bc_sensor snmp_bc_power_sensors[] = {
                         },
                         .Oem = 0,
                 },
-                .bc_sensor_info = {
+                .sensor_info = {
+                        .sensor_enabled = SAHPI_TRUE,
                         .cur_state = SAHPI_ES_UNSPECIFIED,
+                        .events_enabled = SAHPI_TRUE,
 			.assert_mask   = SAHPI_ES_OFF_LINE,
 			.deassert_mask = SAHPI_ES_OFF_LINE,
                         .event_array = {
@@ -2895,8 +2955,8 @@ struct snmp_bc_sensor snmp_bc_switch_sensors[] = {
                         .Num = 1,
                         .Type = SAHPI_TEMPERATURE,
                         .Category = SAHPI_EC_SEVERITY,
-			.EnableCtrl = SAHPI_TRUE,
-                        .EventCtrl = SAHPI_SEC_PER_EVENT,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
 			.Events = SAHPI_ES_OK | SAHPI_ES_MAJOR_FROM_LESS | SAHPI_ES_CRITICAL,
 			.DataFormat = {
                                 .IsSupported = SAHPI_FALSE,
@@ -2906,8 +2966,10 @@ struct snmp_bc_sensor snmp_bc_switch_sensors[] = {
                         },
                         .Oem = 0,
                 },
-                .bc_sensor_info = {
+                .sensor_info = {
+                        .sensor_enabled = SAHPI_TRUE,
                         .cur_state = SAHPI_ES_OK,
+                        .events_enabled = SAHPI_TRUE,
 			.assert_mask   = SAHPI_ES_MAJOR_FROM_LESS | SAHPI_ES_CRITICAL,
 			.deassert_mask = SAHPI_ES_MAJOR_FROM_LESS | SAHPI_ES_CRITICAL,
                         .event_array = {
@@ -2934,8 +2996,8 @@ struct snmp_bc_sensor snmp_bc_switch_sensors[] = {
                         .Num = 2,
                         .Type = SAHPI_OPERATIONAL,
                         .Category = SAHPI_EC_AVAILABILITY,
-			.EnableCtrl = SAHPI_TRUE,
-                        .EventCtrl = SAHPI_SEC_PER_EVENT,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
                         .Events = SAHPI_ES_RUNNING | SAHPI_ES_DEGRADED | SAHPI_ES_INSTALL_ERROR,
                         .DataFormat = {
                                 .IsSupported = SAHPI_FALSE,
@@ -2945,8 +3007,10 @@ struct snmp_bc_sensor snmp_bc_switch_sensors[] = {
                         },
                         .Oem = 0,
                 },
-                .bc_sensor_info = {
+                .sensor_info = {
+                        .sensor_enabled = SAHPI_TRUE,
                         .cur_state = SAHPI_ES_UNSPECIFIED,
+                        .events_enabled = SAHPI_TRUE,
 			.assert_mask   = SAHPI_ES_DEGRADED | SAHPI_ES_INSTALL_ERROR,
 			.deassert_mask = SAHPI_ES_DEGRADED | SAHPI_ES_INSTALL_ERROR,
                         .event_array = {
@@ -3008,7 +3072,7 @@ struct snmp_bc_control snmp_bc_chassis_controls[] = {
 			.WriteOnly = SAHPI_FALSE,
                         .Oem = 0,
                 },
-                .bc_control_info = {
+                .control_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = 0,
@@ -3043,7 +3107,7 @@ struct snmp_bc_control snmp_bc_chassis_controls[] = {
 			.WriteOnly = SAHPI_FALSE,
                         .Oem = 0,
                 },
-                .bc_control_info = {
+                .control_info = {
                         .mib = {
                                 .not_avail_indicator_num = 3,
                                 .write_only = 0,
@@ -3087,7 +3151,7 @@ struct snmp_bc_control snmp_bc_blade_controls[] = {
 			.WriteOnly = SAHPI_FALSE,
                         .Oem = 0,
                 },
-                .bc_control_info = {
+                .control_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = 0,
@@ -3132,7 +3196,7 @@ struct snmp_bc_control snmp_bci_blade_controls[] = {
 			.WriteOnly = SAHPI_FALSE,
                         .Oem = 0,
                 },
-                .bc_control_info = {
+                .control_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = 0,
@@ -3170,7 +3234,7 @@ struct snmp_bc_control snmp_bct_blade_controls[] = {
 			.WriteOnly = SAHPI_FALSE,
                        .Oem = 0,
                 },
-                .bc_control_info = {
+                .control_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = 0,
@@ -3203,7 +3267,7 @@ struct snmp_bc_control snmp_bct_blade_controls[] = {
 			.WriteOnly = SAHPI_FALSE,
                         .Oem = 0,
                 },
-                .bc_control_info = {
+                .control_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = 0,
@@ -3284,7 +3348,7 @@ struct snmp_bc_inventory snmp_bc_chassis_inventories[] = {
                         .IdrId = 1,
                         .Oem = 0,
                 },
-                .bc_inventory_info = {
+                .inventory_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = 0,
@@ -3327,7 +3391,7 @@ struct snmp_bc_inventory snmp_bc_mgmnt_inventories[] = {
                         .IdrId = 4,
                         .Oem = 0,
                 },
-                .bc_inventory_info = {
+                .inventory_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = 0,
@@ -3361,7 +3425,7 @@ struct snmp_bc_inventory snmp_bc_switch_inventories[] = {
                         .IdrId = 5,
                         .Oem = 0,
                 },
-                .bc_inventory_info = {
+                .inventory_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = 0,
@@ -3395,7 +3459,7 @@ struct snmp_bc_inventory snmp_bc_blade_inventories[] = {
                         .IdrId = 6,
                         .Oem = 0,
                 },
-                .bc_inventory_info = {
+                .inventory_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = 0,
@@ -3438,7 +3502,7 @@ struct snmp_bc_inventory snmp_bc_mediatray_inventories[] = {
                         .IdrId = 8,
                         .Oem = 0,
                 },
-                .bc_inventory_info = {
+                .inventory_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = 0,
@@ -3472,7 +3536,7 @@ struct snmp_bc_inventory snmp_bc_power_inventories[] = {
                         .IdrId = 9,
                         .Oem = 0,
                 },
-                .bc_inventory_info = {
+                .inventory_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = 0,
@@ -3504,7 +3568,8 @@ struct snmp_bc_inventory snmp_bc_power_inventories[] = {
                         .Num = 1,
                         .Type = SAHPI_PLATFORM_VIOLATION,
                         .Category = SAHPI_EC_SEVERITY,
-                        .EventCtrl = SAHPI_SEC_NO_EVENTS,
+                        .EnableCtrl = SAHPI_FALSE,
+			.EventCtrl = SAHPI_SEC_NO_EVENTS,
                         .Events = SAHPI_ES_OK | SAHPI_ES_CRITICAL,
                         .Ignore = SAHPI_FALSE,
                         .DataFormat = {
@@ -3545,8 +3610,10 @@ struct snmp_bc_inventory snmp_bc_power_inventories[] = {
                         },
                         .Oem = 0
                 },
-                .bc_sensor_info = {
+                .sensor_info = {
+                        .sensor_enabled = SAHPI_TRUE,
                         .cur_state = SAHPI_ES_OK,
+                        .events_enabled = SAHPI_TRUE,
                         .sensor_evt_enablement = {
                                 .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
                                 .assert_mask   = SAHPI_ES_OK | SAHPI_ES_CRITICAL,
@@ -3570,7 +3637,8 @@ struct snmp_bc_inventory snmp_bc_power_inventories[] = {
                         .Num = 2,
                         .Type = SAHPI_TEMPERATURE,
                         .Category = SAHPI_EC_SEVERITY,
-                        .EventCtrl = SAHPI_SEC_NO_EVENTS,
+                        .EnableCtrl = SAHPI_FALSE,
+			.EventCtrl = SAHPI_SEC_NO_EVENTS,
                         .Events = SAHPI_ES_OK | SAHPI_ES_CRITICAL,
                         .Ignore = SAHPI_FALSE,
                         .DataFormat = {
@@ -3611,8 +3679,10 @@ struct snmp_bc_inventory snmp_bc_power_inventories[] = {
                         },
                         .Oem = 0
                 },
-                .bc_sensor_info = {
+                .sensor_info = {
+                        .sensor_enabled = SAHPI_TRUE,
                         .cur_state = SAHPI_ES_OK,
+                        .events_enabled = SAHPI_TRUE,
                         .sensor_evt_enablement = {
                                 .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
                                 .assert_mask   = SAHPI_ES_OK | SAHPI_ES_CRITICAL,
@@ -3636,7 +3706,8 @@ struct snmp_bc_inventory snmp_bc_power_inventories[] = {
                         .Num = 1,
                         .Type = SAHPI_PLATFORM_VIOLATION,
                         .Category = SAHPI_EC_SEVERITY,
-                        .EventCtrl = SAHPI_SEC_NO_EVENTS,
+                        .EnableCtrl = SAHPI_FALSE,
+			.EventCtrl = SAHPI_SEC_NO_EVENTS,
                         .Events = SAHPI_ES_OK | SAHPI_ES_CRITICAL,
                         .Ignore = SAHPI_FALSE,
                         .DataFormat = {
@@ -3677,8 +3748,10 @@ struct snmp_bc_inventory snmp_bc_power_inventories[] = {
                         },
                         .Oem = 0
                 },
-                .bc_sensor_info = {
+                .sensor_info = {
+                        .sensor_enabled = SAHPI_TRUE,
                         .cur_state = SAHPI_ES_OK,
+                        .events_enabled = SAHPI_TRUE,
                         .sensor_evt_enablement = {
                                 .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
                                 .assert_mask   = SAHPI_ES_OK | SAHPI_ES_CRITICAL,
@@ -3702,7 +3775,8 @@ struct snmp_bc_inventory snmp_bc_power_inventories[] = {
                         .Num = 2,
                         .Type = SAHPI_BUTTON,
                         .Category = SAHPI_EC_USAGE,
-                        .EventCtrl = SAHPI_SEC_NO_EVENTS,
+                        .EnableCtrl = SAHPI_FALSE,
+			.EventCtrl = SAHPI_SEC_NO_EVENTS,
                         .Events = SAHPI_ES_UNSPECIFIED | SAHPI_ES_IDLE | SAHPI_ES_ACTIVE | SAHPI_ES_BUSY,
                         .Ignore = SAHPI_FALSE,
                         .DataFormat = {
@@ -3751,8 +3825,10 @@ struct snmp_bc_inventory snmp_bc_power_inventories[] = {
                         },
                         .Oem = 0
                 },
-                .bc_sensor_info = {
+                .sensor_info = {
+                        .sensor_enabled = SAHPI_TRUE,
                         .cur_state = SAHPI_ES_UNSPECIFIED,
+                        .events_enabled = SAHPI_TRUE,
                         .sensor_evt_enablement = {
                                 .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
                                 .assert_mask   = SAHPI_ES_IDLE | SAHPI_ES_ACTIVE | SAHPI_ES_BUSY,
@@ -3776,7 +3852,8 @@ struct snmp_bc_inventory snmp_bc_power_inventories[] = {
                         .Num = 3,
                         .Type = SAHPI_BUTTON,
                         .Category = SAHPI_EC_USAGE,
-                        .EventCtrl = SAHPI_SEC_NO_EVENTS,
+                        .EnableCtrl = SAHPI_FALSE,
+			.EventCtrl = SAHPI_SEC_NO_EVENTS,
                         .Events = SAHPI_ES_UNSPECIFIED | SAHPI_ES_IDLE | SAHPI_ES_ACTIVE | SAHPI_ES_BUSY,
                         .Ignore = SAHPI_FALSE,
                         .DataFormat = {
@@ -3825,8 +3902,10 @@ struct snmp_bc_inventory snmp_bc_power_inventories[] = {
                         },
                         .Oem = 0
                 },
-                .bc_sensor_info = {
+                .sensor_info = {
+                        .sensor_enabled = SAHPI_TRUE,
                         .cur_state = SAHPI_ES_UNSPECIFIED,
+                        .events_enabled = SAHPI_TRUE,
                         .sensor_evt_enablement = {
                                 .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
                                 .assert_mask   = SAHPI_ES_IDLE | SAHPI_ES_ACTIVE | SAHPI_ES_BUSY,

@@ -52,7 +52,7 @@ struct snmp_rpt test_rpt = {
 		                        SAHPI_CAPABILITY_SENSOR,
 		.ResourceSeverity = SAHPI_CRITICAL,
 	},
-	.bc_res_info = {
+	.res_info = {
 		.mib = {
 			.OidHealth = ".1.3.6.1.4.1.2.3.51.2.2.7.1.0",
 			.HealthyValue = 255,

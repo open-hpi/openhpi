@@ -79,7 +79,7 @@ struct snmp_bc_sensor test_sensor = {
 		},
 		.Oem = 0,
 	},
-	.bc_sensor_info = {
+	.sensor_info = {
 		.cur_state = SAHPI_ES_UNSPECIFIED,
 		.mib = {
 			.not_avail_indicator_num = 0,

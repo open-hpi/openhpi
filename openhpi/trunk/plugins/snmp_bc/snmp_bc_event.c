@@ -104,7 +104,7 @@ SaErrorT event2hpi_hash_free(struct oh_handler_state *handle)
  **/
 SaErrorT snmp_bc_discover_res_events(struct oh_handler_state *handle,
 				     SaHpiEntityPathT *ep,
-				     const struct BC_ResourceInfo *res_info_ptr)
+				     const struct ResourceInfo *res_info_ptr)
 {
 	int i;
 	int max = SNMP_BC_MAX_RESOURCE_EVENT_ARRAY_SIZE;
@@ -115,7 +115,7 @@ SaErrorT snmp_bc_discover_res_events(struct oh_handler_state *handle,
 	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 	
 	if (!handle || !ep || !res_info_ptr || !(custom_handle->event2hpi_hash_ptr)) {
-		dbg("Invalid parameters.");
+		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
@@ -201,7 +201,7 @@ SaErrorT snmp_bc_discover_sensor_events(struct oh_handler_state *handle,
 
 	if (!handle || !ep || !rpt_sensor || 
 	    !(custom_handle->event2hpi_hash_ptr) || sid <= 0) {
-		dbg("Invalid parameters.");
+		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
@@ -211,11 +211,11 @@ SaErrorT snmp_bc_discover_sensor_events(struct oh_handler_state *handle,
 		return(SA_ERR_HPI_INTERNAL_ERROR);
 	}
 		
-	for (i=0; rpt_sensor->bc_sensor_info.event_array[i].event != NULL && i < max; i++) {
+	for (i=0; rpt_sensor->sensor_info.event_array[i].event != NULL && i < max; i++) {
 		/* Normalized and convert event string */
-		normalized_str = snmp_derive_objid(*ep, rpt_sensor->bc_sensor_info.event_array[i].event);
+		normalized_str = snmp_derive_objid(*ep, rpt_sensor->sensor_info.event_array[i].event);
 		if (normalized_str == NULL) {
-			dbg("Cannot derive %s.", rpt_sensor->bc_sensor_info.event_array[i].event);
+			dbg("Cannot derive %s.", rpt_sensor->sensor_info.event_array[i].event);
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		}
 
@@ -239,14 +239,14 @@ SaErrorT snmp_bc_discover_sensor_events(struct oh_handler_state *handle,
 			hpievent->EventDataUnion.SensorEvent.SensorType = rpt_sensor->sensor.Type;
 			hpievent->EventDataUnion.SensorEvent.EventCategory = rpt_sensor->sensor.Category;
 			hpievent->EventDataUnion.SensorEvent.Assertion =
-				rpt_sensor->bc_sensor_info.event_array[i].event_assertion;
+				rpt_sensor->sensor_info.event_array[i].event_assertion;
 			hpievent->EventDataUnion.SensorEvent.EventState =
-				rpt_sensor->bc_sensor_info.event_array[i].event_state;
+				rpt_sensor->sensor_info.event_array[i].event_state;
 
 			/* Overload field with recovery state. Event hash doesn't store
 			   dynamic data so the hash can use this field for recovery data */
 			hpievent->EventDataUnion.SensorEvent.PreviousState = 
-				rpt_sensor->bc_sensor_info.event_array[i].recovery_state;
+				rpt_sensor->sensor_info.event_array[i].recovery_state;
 
 			/* Setup static trigger info for threshold sensors - some may be event-only */
 			if (rpt_sensor->sensor.Category == SAHPI_EC_THRESHOLD &&
@@ -318,7 +318,7 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
         struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 
 	if (!handle || !logstr || !event || !event_enabled_ptr) {
-		dbg("Invalid parameters.");
+		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
@@ -559,9 +559,9 @@ static Xml2EventInfoT *snmp_bc_findevent4dupstr(gchar *search_str,
 
 		/* Search sensor array for the duplicate string's event */
 		for (i=0; (resinfo->sensor_array_ptr + i)->sensor.Num != 0; i++) {
-			for (j=0; (resinfo->sensor_array_ptr + i)->bc_sensor_info.event_array[j].event != NULL; j++) {
+			for (j=0; (resinfo->sensor_array_ptr + i)->sensor_info.event_array[j].event != NULL; j++) {
 				normalized_event = snmp_derive_objid(resinfo->ep,
-						   (resinfo->sensor_array_ptr + i)->bc_sensor_info.event_array[j].event);
+						   (resinfo->sensor_array_ptr + i)->sensor_info.event_array[j].event);
 				if (!strcmp(dupstr_hash_data->event, normalized_event)) {
 					g_free(normalized_event);
 					return dupstr_hash_data;
@@ -571,9 +571,9 @@ static Xml2EventInfoT *snmp_bc_findevent4dupstr(gchar *search_str,
 		}
 		
 		/* Search resource array for the duplicate string's event */
-		for (i=0; snmp_rpt_array[resinfo->rpt].bc_res_info.event_array[i].event != NULL; i++) {
+		for (i=0; snmp_rpt_array[resinfo->rpt].res_info.event_array[i].event != NULL; i++) {
 			normalized_event = snmp_derive_objid(resinfo->ep,
-					   snmp_rpt_array[resinfo->rpt].bc_res_info.event_array[i].event);
+					   snmp_rpt_array[resinfo->rpt].res_info.event_array[i].event);
 			if (!strcmp(dupstr_hash_data->event, normalized_event)) {
 				g_free(normalized_event);
 				return dupstr_hash_data;
@@ -634,7 +634,7 @@ static SaErrorT snmp_bc_parse_threshold_str(gchar *str,
 	int rtn_code = SA_OK;
 
 	if (!str || !root_str || !read_value_str || !trigger_value_str) {
-		dbg("Invalid parameters.");
+		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
@@ -701,7 +701,7 @@ static SaErrorT snmp_bc_set_previous_event_state(struct oh_handler_state *handle
 #if 0
 		/* FIXME:: Port to B.1.1. event enablement schemes */
 		/* Check to see if events are disabled for this sensor */
-		if (!((struct BC_SensorInfo *)bc_data)->sensor_evt_enablement.SensorStatus &
+		if (!((struct SensorInfo *)bc_data)->sensor_evt_enablement.SensorStatus &
 		    SAHPI_SENSTAT_EVENTS_ENABLED) {
 			*event_enabled_ptr = 0;
 			return(SA_OK);
@@ -718,11 +718,11 @@ static SaErrorT snmp_bc_set_previous_event_state(struct oh_handler_state *handle
 			   field to hold recovery data */
 			
 			SaHpiEventStateT tmpstate;
-			tmpstate = ((struct BC_SensorInfo *)bc_data)->cur_state;
+			tmpstate = ((struct SensorInfo *)bc_data)->cur_state;
 
 			/* Set both RDR/event's current state; Remember for recovery 
 			   event hash's previous = recovery state */
-			((struct BC_SensorInfo *)bc_data)->cur_state = 
+			((struct SensorInfo *)bc_data)->cur_state = 
 				event->EventDataUnion.SensorEvent.PreviousState; 
 			event->EventDataUnion.SensorEvent.EventState = 
 				event->EventDataUnion.SensorEvent.PreviousState;
@@ -730,8 +730,8 @@ static SaErrorT snmp_bc_set_previous_event_state(struct oh_handler_state *handle
 		}
 		else { /* Normal non-recovery case */
 			event->EventDataUnion.SensorEvent.PreviousState = 
-				((struct BC_SensorInfo *)bc_data)->cur_state;
-			((struct BC_SensorInfo *)bc_data)->cur_state = 
+				((struct SensorInfo *)bc_data)->cur_state;
+			((struct SensorInfo *)bc_data)->cur_state = 
 				event->EventDataUnion.SensorEvent.EventState;
 		}
 
@@ -758,11 +758,11 @@ static SaErrorT snmp_bc_set_previous_event_state(struct oh_handler_state *handle
 			   field to hold recovery data */
 			
 			SaHpiHsStateT tmpstate;
-			tmpstate = ((struct BC_ResourceInfo *)bc_data)->cur_state;
+			tmpstate = ((struct ResourceInfo *)bc_data)->cur_state;
 
 			/* Set both RDR/event's current state; Remember for recovery 
 			   event hash's previous = recovery state */
-			((struct BC_ResourceInfo *)bc_data)->cur_state = 
+			((struct ResourceInfo *)bc_data)->cur_state = 
 				event->EventDataUnion.HotSwapEvent.PreviousHotSwapState;
 			event->EventDataUnion.HotSwapEvent.HotSwapState = 
 				event->EventDataUnion.HotSwapEvent.PreviousHotSwapState;
@@ -770,8 +770,8 @@ static SaErrorT snmp_bc_set_previous_event_state(struct oh_handler_state *handle
 		}
 		else { /* Normal non-recovery case */
 			event->EventDataUnion.HotSwapEvent.PreviousHotSwapState = 
-				((struct BC_ResourceInfo *)bc_data)->cur_state;
-			((struct BC_ResourceInfo *)bc_data)->cur_state = 
+				((struct ResourceInfo *)bc_data)->cur_state;
+			((struct ResourceInfo *)bc_data)->cur_state = 
 				event->EventDataUnion.HotSwapEvent.HotSwapState;
 		}
 		break;
@@ -809,7 +809,7 @@ static SaErrorT snmp_bc_map2oem(SaHpiEventT *event,
            why the event wasn't mapped */
 
 	if (!event || !sel_entry) {
-		dbg("Invalid parameters.");
+		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
@@ -867,7 +867,7 @@ static SaErrorT snmp_bc_logsrc2rid(struct oh_handler_state *handle,
 	struct snmp_bc_sensor *array_ptr;
 
 	if (!handle || !src || !resinfo) {
-		dbg("Invalid parameters.");
+		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 

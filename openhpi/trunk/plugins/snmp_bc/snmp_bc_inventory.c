@@ -385,8 +385,8 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 	
 	if (rdr != NULL) {
 	
-		struct BC_InventoryInfo *s =
-                        (struct BC_InventoryInfo *)oh_get_rdr_data(handle->rptcache, ResourceId, rdr->RecordId);
+		struct InventoryInfo *s =
+                        (struct InventoryInfo *)oh_get_rdr_data(handle->rptcache, ResourceId, rdr->RecordId);
 
 		
 		i_record->idrinfo.IdrId = IdrId;

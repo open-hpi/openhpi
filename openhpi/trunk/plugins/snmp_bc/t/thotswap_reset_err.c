@@ -59,7 +59,7 @@ int main(int argc, char **argv)
 	/******************************** 
 	 *  No Hot Swap ResetOID TestCase
 	 ********************************/
-	test_rpt.bc_res_info.mib.OidReset = '\0';
+	test_rpt.res_info.mib.OidReset = '\0';
 
 	err = snmp_bc_get_reset_state((void *)&hnd, id, &act);
 	if (err != SA_ERR_HPI_INVALID_CMD) {
@@ -68,7 +68,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 	
-	test_rpt.bc_res_info.mib.OidReset = ".1.3.6.1.4.1.2.3.51.2.22.3.1.1.1.8.x";
+	test_rpt.res_info.mib.OidReset = ".1.3.6.1.4.1.2.3.51.2.22.3.1.1.1.8.x";
 
 	return 0;
 }

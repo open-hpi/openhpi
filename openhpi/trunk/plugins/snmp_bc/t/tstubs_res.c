@@ -21,7 +21,7 @@
 void *oh_get_resource_data(RPTable *table, SaHpiResourceIdT rid) 
 {
 	if (ifobj_data_force_error || table == NULL) { return NULL; }
-	else { return((void *)(&(((struct snmp_rpt *)table)->bc_res_info))); }
+	else { return((void *)(&(((struct snmp_rpt *)table)->res_info))); }
 }
 
 SaHpiRptEntryT *oh_get_resource_by_id(RPTable *table, SaHpiResourceIdT rid)
