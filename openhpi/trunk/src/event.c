@@ -128,7 +128,7 @@ static SaErrorT harvest_events_for_handler(struct oh_handler *h)
                 } else if (param.u.evt_queue_limit != OH_MAX_EVT_QUEUE_LIMIT &&
                            g_async_queue_length(oh_process_q) >= param.u.evt_queue_limit) {
                         dbg("Process queue is out of space");
-                        error = SA_ERR_HPI_OUT_OF_SPACE;
+                        return SA_ERR_HPI_OUT_OF_SPACE;
                 } else {
                         trace("Found event for handler %p", h);
                         e2 = oh_dup_oh_event(&event);
@@ -137,7 +137,7 @@ static SaErrorT harvest_events_for_handler(struct oh_handler *h)
                 }
         } while(error > 0);
 
-        return error;
+        return SA_OK;
 }
 
 SaErrorT oh_harvest_events()
@@ -200,7 +200,6 @@ static int process_hpi_event(struct oh_event *full_event)
         SaHpiSessionIdT sid;
         struct oh_domain *d = NULL;
         struct oh_hpi_event *e = NULL;
-
         /* We take the domain lock for the whole function here */
 
         d = oh_get_domain(full_event->did);
@@ -210,6 +209,10 @@ static int process_hpi_event(struct oh_event *full_event)
         }
 
         e = &(full_event->u.hpi_event);
+	if (e->event.EventType == SAHPI_ET_USER) {
+		e->res.ResourceCapabilities = 0;
+		e->rdr.RdrType = SAHPI_NO_RECORD;
+	}
 
         if (e->res.ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP
             && e->event.EventType == SAHPI_ET_HOTSWAP) {
@@ -235,7 +238,6 @@ static int process_hpi_event(struct oh_event *full_event)
         for(i = 0; i < sessions->len; i++) {
                 SaHpiBoolT is_subscribed = SAHPI_FALSE;
                 sid = g_array_index(sessions, SaHpiSessionIdT, i);
-
                 oh_get_session_subscription(sid, &is_subscribed);
                 if(is_subscribed) {
                         oh_queue_session_event(sid, full_event);
