@@ -59,6 +59,8 @@ SaErrorT oh_decode_sensorreading(SaHpiSensorReadingT reading,
  * Print structure routines
  **************************/
 
+#define OH_PRINT_OFFSET "  "  /* Offset string */
+
 #define put_spacing(space) \
 do { \
         int j; \
@@ -67,21 +69,23 @@ do { \
 } while(0)
  
  
-#define oh_print_textbuffer(buffer)  oh_fprint_textbuffer(stdout, buffer)
+#define oh_print_textbuffer(buf_ptr)  oh_fprint_textbuffer(stdout, buf_ptr)
 SaErrorT oh_fprint_textbuffer(FILE *stream, const SaHpiTextBufferT *buffer);
 
-#define oh_print_big_textbuffer(big_buffer)  oh_fprint_big_textbuffer(stdout, big_buffer)
+#define oh_print_big_textbuffer(bigbuf_ptr) oh_fprint_big_textbuffer(stdout, bigbuf_ptr)
 SaErrorT oh_fprint_big_textbuffer(FILE *stream, const oh_big_textbuffer *big_buffer);
 
+#define oh_print_sensorrec(sensor_ptr) oh_fprint_sensorrec(stdout, sensor_ptr)
+SaErrorT oh_fprint_sensorrec(FILE *stream, const SaHpiSensorRecT *sensor);
+
 #define oh_print_idrfield(thisfield, space) oh_fprint_idrfield(stdout, thisfield, space)
-SaErrorT oh_fprint_idrfield(FILE *stream, const SaHpiIdrFieldT *thisfield,int space);
+SaErrorT oh_fprint_idrfield(FILE *stream, const SaHpiIdrFieldT *thisfield, int space);
 
 #define oh_print_idrinfo(idrInfo, space) oh_fprint_idrinfo(stdout, idrInfo, space)
-SaErrorT oh_fprint_idrinfo(FILE *stream, const SaHpiIdrInfoT *idrInfo,int space);
+SaErrorT oh_fprint_idrinfo(FILE *stream, const SaHpiIdrInfoT *idrInfo, int space);
 
-#define oh_print_idrareaheader(areaHeader, space) oh_fprint_idrareaheader(stdout, areaHeader,space)
-SaErrorT oh_fprint_idrareaheader(FILE *stream, const SaHpiIdrAreaHeaderT *areaHeader,int space);
-
+#define oh_print_idrareaheader(areaHeader, space) oh_fprint_idrareaheader(stdout, areaHeader, space)
+SaErrorT oh_fprint_idrareaheader(FILE *stream, const SaHpiIdrAreaHeaderT *areaHeader, int space);
 
 #if 0
 SaHpiBoolT oh_valid_textbuffer(SaHpiTextBufferT *buffer);

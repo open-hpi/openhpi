@@ -25,6 +25,12 @@ static inline SaErrorT oh_init_big_textbuffer(oh_big_textbuffer *big_buffer);
 static inline SaErrorT oh_append_big_textbuffer(oh_big_textbuffer *big_buffer, const char *from, size_t size);
 static inline SaErrorT oh_copy_big_textbuffer(oh_big_textbuffer *dest, const oh_big_textbuffer *from);
 
+static SaErrorT oh_append_offset(oh_big_textbuffer *buffer, int offsets);
+static SaErrorT oh_build_sensorrec(oh_big_textbuffer *buffer, const SaHpiSensorRecT *sensor, int offsets);
+static SaErrorT oh_build_sensordataformat(oh_big_textbuffer *buffer, const SaHpiSensorDataFormatT *format, int offsets);
+static SaErrorT oh_build_sensorthddefn(oh_big_textbuffer *buffer, const SaHpiSensorThdDefnT *tdef, int offsets);
+static SaErrorT oh_build_threshold_mask(oh_big_textbuffer *buffer, const SaHpiSensorThdMaskT tmask, int offsets);
+
 /************************************************************************
  * NOTES!
  * - SA_ERR_HPI_INTERNAL_ERROR is used instead of SA_ERR_HPI_OUT_OF_SPACE 
@@ -87,8 +93,8 @@ SaErrorT oh_decode_manufacturerid(SaHpiManufacturerIdT value, SaHpiTextBufferT *
 		break;
 	}
 
-	oh_copy_textbuffer(buffer, &working);	
-	
+ 	oh_copy_textbuffer(buffer, &working);
+
 	return(SA_OK);
 }
 
@@ -196,7 +202,7 @@ SaErrorT oh_decode_sensorreading(SaHpiSensorReadingT reading,
 		}
 	}
 
-	oh_copy_textbuffer(buffer, &working);
+ 	oh_copy_textbuffer(buffer, &working);
 
         return(SA_OK);
 }
@@ -204,9 +210,9 @@ SaErrorT oh_decode_sensorreading(SaHpiSensorReadingT reading,
 /**
  * oh_fprint_textbuffer:
  * @stream: File handle.
- * @buffer: Pointer to SaHpiTextBuffer to be printed.
+ * @buffer: Pointer to SaHpiTextBufferT to be printed.
  * 
- * Prints the text data contained in SaHpiTextBuffer to a file. Data must
+ * Prints the text data contained in SaHpiTextBufferT to a file. Data must
  * be of type SAHPI_TL_TYPE_TEXT. @buffer->DataLength is ignored.
  * The MACRO oh_print_textbuffer(), uses this function to print to STDOUT. 
  *
@@ -366,6 +372,8 @@ SaErrorT oh_append_textbuffer(SaHpiTextBufferT *buffer, const char *from, size_t
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
         if ((size + buffer->DataLength) >= SAHPI_MAX_TEXT_BUFFER_LENGTH) {
+		dbg("Cannot append to text buffer. Bufsize=%d, size=%d",
+		    buffer->DataLength, size);
                 return(SA_ERR_HPI_OUT_OF_SPACE);
         }
 
@@ -382,14 +390,16 @@ static inline SaErrorT oh_append_big_textbuffer(oh_big_textbuffer *big_buffer, c
 {
         SaHpiUint8T *p;
 
-	/* FIXME:: Add a valid_textbuffer check when routine is available */
 	if (size == 0 ) {
 		return(SA_OK);
 	}
 	if (!big_buffer || !from) {
+		dbg("Invalid parameters");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
         if ((size + big_buffer->DataLength) >= OH_MAX_TEXT_BUFFER_LENGTH) {
+		dbg("Cannot append to buffer. Bufsize=%d, size=%d",
+		    big_buffer->DataLength, size);
                 return(SA_ERR_HPI_INTERNAL_ERROR);
         }
         
@@ -403,10 +413,353 @@ static inline SaErrorT oh_append_big_textbuffer(oh_big_textbuffer *big_buffer, c
 }
 
 
+/* Append an arbitrary number of fixed offset strings to a big text buffer */
+static SaErrorT oh_append_offset(oh_big_textbuffer *buffer, int offsets)
+{
+	int i;
+	
+	for (i=0; i < offsets; i++) {
+		oh_append_big_textbuffer(buffer, OH_PRINT_OFFSET, strlen(OH_PRINT_OFFSET));
+	}
+
+	return(SA_OK);
+}
+
+/**
+ * oh_fprint_sensorrec:
+ * @stream: File handle.
+ * @sensor: Pointer to SaHpiSensorRecT to be printed.
+ * 
+ * Prints a sensor's SaHpiSensorRecT data to a file. 
+ * The MACRO oh_print_sensorrec(), uses this function to print to STDOUT. 
+ *
+ * Returns:
+ * SA_OK - normal operation.
+ * SA_ERR_HPI_INVALID_PARAMS - \@sensor or \@stream is NULL
+ **/
+SaErrorT oh_fprint_sensorrec(FILE *stream, const SaHpiSensorRecT *sensor)
+{
+	int err;
+	oh_big_textbuffer buffer;
+	
+	if (!stream || !sensor) {
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+	
+	oh_init_big_textbuffer(&buffer);
+	err = oh_build_sensorrec(&buffer, sensor, 0);
+	if (err) { return(err); }
+
+	err = oh_fprint_big_textbuffer(stream, &buffer);
+	if (err) { return(err); }
+	
+	return(SA_OK);
+}
+
+static SaErrorT oh_build_sensorrec(oh_big_textbuffer *buffer, const SaHpiSensorRecT *sensor, int offsets)
+{
+	char str[SAHPI_MAX_TEXT_BUFFER_LENGTH];
+	SaErrorT err;
+
+	/* Sensor Num */
+	oh_append_offset(buffer, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Sensor Num: %d\n", sensor->Num);
+	oh_append_big_textbuffer(buffer, str, strlen(str));
+	offsets++;
+
+	/* Sensor Type */
+	oh_append_offset(buffer, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Type: %s\n", 
+		 oh_lookup_sensortype(sensor->Type));
+	oh_append_big_textbuffer(buffer, str, strlen(str));
+
+	/* Sensor Category */
+	oh_append_offset(buffer, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Category: %s\n", 
+		 oh_lookup_eventcategory(sensor->Category));
+	oh_append_big_textbuffer(buffer, str, strlen(str));
+
+	/* Sensor Enable Control */
+	oh_append_offset(buffer, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "EnableCtrl: %s\n",
+		(sensor->EnableCtrl == SAHPI_TRUE) ? "TRUE" : "FALSE");
+	oh_append_big_textbuffer(buffer, str, strlen(str));
+
+	/* Sensor Event Control */
+	oh_append_offset(buffer, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "EventCtrl: %s\n", 
+		 oh_lookup_sensoreventctrl(sensor->EventCtrl));
+	oh_append_big_textbuffer(buffer, str, strlen(str));
+
+	/* Sensor Supported Events */
+	{
+		SaHpiTextBufferT evt_buffer;
+
+		oh_append_offset(buffer, offsets);
+	        oh_append_big_textbuffer(buffer, "Events: ", strlen("Events: "));
+		err = oh_decode_eventstate(sensor->Events, sensor->Category, &evt_buffer);
+		if (err != SA_OK) { return(err); }
+		oh_append_big_textbuffer(buffer, evt_buffer.Data, strlen(evt_buffer.Data));
+		oh_append_big_textbuffer(buffer, "\n", strlen("\n"));
+	}
+	
+	/* Sensor Data Format */
+	err = oh_build_sensordataformat(buffer, &(sensor->DataFormat), offsets);
+	if (err != SA_OK) { return(err); }
+
+	/* Sensor Threshold Definition */
+	err = oh_build_sensorthddefn(buffer, &(sensor->ThresholdDefn), offsets);
+	if (err != SA_OK) { return(err); }
+
+	/* Sensor OEM Data */
+	oh_append_offset(buffer, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "OEM: %x\n", sensor->Oem);
+	oh_append_big_textbuffer(buffer, str, strlen(str));
+
+	/* printf("SENSOR LENGTH = %d\n", strlen(buffer->Data)); */
+	return(SA_OK);
+}
+
+static SaErrorT oh_build_sensordataformat(oh_big_textbuffer *buffer,
+					  const SaHpiSensorDataFormatT *format, 
+					  int offsets)
+{
+	char str[SAHPI_MAX_TEXT_BUFFER_LENGTH];
+	SaErrorT err;
+	SaHpiTextBufferT reading_buffer;
+
+	/* Sensor Data Format Title */
+	oh_append_offset(buffer, offsets);
+	oh_append_big_textbuffer(buffer, "Data Format:\n", strlen("Data Format:\n"));
+	offsets++;
+		
+	/* Sensor Data Format IsSupported */
+	oh_append_offset(buffer, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "IsSupported: %s\n",
+		 (format->IsSupported == SAHPI_TRUE) ? "TRUE" : "FALSE");
+	oh_append_big_textbuffer(buffer, str, strlen(str));
+		
+	if (format->IsSupported) {
+
+		/* Sensor Data Format Reading Type */
+		oh_append_offset(buffer, offsets);
+		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Reading Type: %s\n", 
+			 oh_lookup_sensorreadingtype(format->ReadingType));
+		oh_append_big_textbuffer(buffer, str, strlen(str));
+		
+		if (format->ReadingType != SAHPI_SENSOR_READING_TYPE_BUFFER) {
+
+			/* Sensor Data Format Base Units */
+			oh_append_offset(buffer, offsets);
+			snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Base Unit: %s\n", 
+				 oh_lookup_sensorunits(format->BaseUnits));
+			oh_append_big_textbuffer(buffer, str, strlen(str));
+			
+			/* Sensor Data Format Modifier Units */
+			if (format->ModifierUnits) {
+				oh_append_offset(buffer, offsets);
+				snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Modifier Unit: %s\n", 
+					 oh_lookup_sensorunits(format->ModifierUnits));
+				oh_append_big_textbuffer(buffer, str, strlen(str));
+				/* Sensor Data Format Modifier Use */
+				oh_append_offset(buffer, offsets);
+				snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Modifier Use: %s\n",
+					 oh_lookup_sensormodunituse(format->ModifierUse));
+				oh_append_big_textbuffer(buffer, str, strlen(str));
+			}
+			
+			/* Sensor Data Format Percentage */
+			oh_append_offset(buffer, offsets);
+			snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Percentage: %s\n",
+				 (format->Percentage == SAHPI_TRUE) ? "TRUE" : "FALSE");
+			oh_append_big_textbuffer(buffer, str, strlen(str));
+		
+			/* Sensor Data Format Max Range */
+			if (format->Range.Flags & SAHPI_SRF_MAX && 
+			    format->Range.Max.IsSupported) { 
+				oh_append_offset(buffer, offsets);
+				oh_append_big_textbuffer(buffer, "Range Max: ", strlen("Range Max: "));
+				
+				err = oh_decode_sensorreading(format->Range.Max,
+							      *format,
+							      &reading_buffer);
+				if (err) { return(err); }
+				oh_append_big_textbuffer(buffer, reading_buffer.Data, strlen(reading_buffer.Data));
+				oh_append_big_textbuffer(buffer, "\n", strlen("\n"));
+			}
+
+			/* Sensor Data Format Min Range */
+			if (format->Range.Flags & SAHPI_SRF_MIN && 
+			    format->Range.Min.IsSupported) { 
+				oh_append_offset(buffer, offsets);
+				oh_append_big_textbuffer(buffer, "Range Min: ", strlen("Range Min: "));
+				
+				err = oh_decode_sensorreading(format->Range.Min,
+							      *format,
+							      &reading_buffer);
+				if (err) { return(err); }
+				oh_append_big_textbuffer(buffer, reading_buffer.Data, strlen(reading_buffer.Data));
+				oh_append_big_textbuffer(buffer, "\n", strlen("\n"));
+			}
+
+			/* Sensor Data Format Nominal Range */
+			if (format->Range.Flags & SAHPI_SRF_NOMINAL && 
+			    format->Range.Nominal.IsSupported) { 
+				oh_append_offset(buffer, offsets);
+				oh_append_big_textbuffer(buffer, "Range Nominal: ", strlen("Range Nominal: "));
+				
+				err = oh_decode_sensorreading(format->Range.Nominal,
+							      *format,
+							      &reading_buffer);
+				if (err) { return(err); }
+				oh_append_big_textbuffer(buffer, reading_buffer.Data, strlen(reading_buffer.Data));
+				oh_append_big_textbuffer(buffer, "\n", strlen("\n"));
+			}
+
+			/* Sensor Data Format Normal Max Range */
+			if (format->Range.Flags & SAHPI_SRF_NORMAL_MAX && 
+			    format->Range.NormalMax.IsSupported) { 
+				oh_append_offset(buffer, offsets);
+				oh_append_big_textbuffer(buffer, "Range Normal Max: ", strlen("Range Normal Max: "));
+				
+				err = oh_decode_sensorreading(format->Range.NormalMax,
+							      *format,
+							      &reading_buffer);
+				if (err) { return(err); }
+				oh_append_big_textbuffer(buffer, reading_buffer.Data, strlen(reading_buffer.Data));
+				oh_append_big_textbuffer(buffer, "\n", strlen("\n"));
+			}
+
+			/* Sensor Data Format Normal Min Range */
+			if (format->Range.Flags & SAHPI_SRF_NORMAL_MIN && 
+			    format->Range.NormalMin.IsSupported) { 
+				oh_append_offset(buffer, offsets);
+				oh_append_big_textbuffer(buffer, "Range Normal Min: ", strlen("Range Normal Min: "));
+				
+				err = oh_decode_sensorreading(format->Range.NormalMin,
+							      *format,
+							      &reading_buffer);
+				if (err) { return(err); }
+				oh_append_big_textbuffer(buffer, reading_buffer.Data, strlen(reading_buffer.Data));
+				oh_append_big_textbuffer(buffer, "\n", strlen("\n"));
+			}
+
+			/* Sensor Data Format Accuracy Factor */
+			oh_append_offset(buffer, offsets);
+			snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Accuracy: %le\n", format->AccuracyFactor);	
+			oh_append_big_textbuffer(buffer, str, strlen(str));
+		}
+	}
+	
+	return(SA_OK);
+}
+
+static SaErrorT oh_build_sensorthddefn(oh_big_textbuffer *buffer,
+				       const SaHpiSensorThdDefnT *tdef, 
+				       int offsets)
+{
+	char str[SAHPI_MAX_TEXT_BUFFER_LENGTH];
+	SaErrorT err;
+
+	/* Sensor Threshold Definition Title */
+	oh_append_offset(buffer, offsets);
+	oh_append_big_textbuffer(buffer, "Threshold Definitions:\n", strlen("Threshold Definitions:\n"));
+	offsets++;
+
+	/* Sensor Threshold Definition IsAccessible */
+	oh_append_offset(buffer, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "IsAccessible: %s\n",
+		 (tdef->IsAccessible == SAHPI_TRUE) ? "TRUE" : "FALSE");
+	oh_append_big_textbuffer(buffer, str, strlen(str));
+	
+	if (tdef->IsAccessible) {
+
+		/* Sensor Threshold Read Threshold */
+		if (tdef->ReadThold) {
+			oh_append_offset(buffer, offsets);
+			oh_append_big_textbuffer(buffer, "Readable Threshold(s):\n", 
+						 strlen("Readable Threshold(s):\n"));
+
+			err = oh_build_threshold_mask(buffer, tdef->ReadThold, offsets + 1);
+			if (err != SA_OK) { return(err); }
+		}
+		
+		/* Sensor Threshold Write Threshold */
+		if (tdef->WriteThold) {
+			oh_append_offset(buffer, offsets);
+			oh_append_big_textbuffer(buffer, "Writeable Threshold(s):\n", 
+						 strlen("Writeable Threshold(s):\n"));
+
+			err = oh_build_threshold_mask(buffer, tdef->WriteThold, offsets + 1);
+			if (err != SA_OK) { return(err); }
+		}
+
+		/* Sensor Threshold Nonlinear */
+		oh_append_offset(buffer, offsets);
+		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Nonlinear: %s\n",
+			 (tdef->Nonlinear == SAHPI_TRUE) ? "TRUE" : "FALSE");
+		oh_append_big_textbuffer(buffer, str, strlen(str));
+	}	
+
+	return(SA_OK);
+}
+
+
+static SaErrorT oh_build_threshold_mask(oh_big_textbuffer *buffer,
+					const SaHpiSensorThdMaskT tmask, 
+					int offsets)
+{
+	int i;
+
+	oh_append_offset(buffer, offsets);
+
+	if (tmask & SAHPI_STM_LOW_MINOR) {
+		oh_append_big_textbuffer(buffer, "LOW_MINOR", strlen("LOW_MINOR"));
+		oh_append_big_textbuffer(buffer, OH_ENCODE_DELIMITER, OH_ENCODE_DELIMITER_LENGTH);
+	}
+	if (tmask & SAHPI_STM_LOW_MAJOR) {
+		oh_append_big_textbuffer(buffer, "LOW_MAJOR", strlen("LOW_MAJOR"));
+		oh_append_big_textbuffer(buffer, OH_ENCODE_DELIMITER, OH_ENCODE_DELIMITER_LENGTH);
+	}
+	if (tmask & SAHPI_STM_LOW_CRIT) {
+		oh_append_big_textbuffer(buffer, "LOW_CRIT", strlen("LOW_CRIT"));
+		oh_append_big_textbuffer(buffer, OH_ENCODE_DELIMITER, OH_ENCODE_DELIMITER_LENGTH);
+	}
+	if (tmask & SAHPI_STM_LOW_HYSTERESIS) {
+		oh_append_big_textbuffer(buffer, "LOW_HYSTERESIS", strlen("LOW_HYSTERESIS"));
+		oh_append_big_textbuffer(buffer, OH_ENCODE_DELIMITER, OH_ENCODE_DELIMITER_LENGTH);
+	}
+	if (tmask & SAHPI_STM_UP_MINOR) {
+		oh_append_big_textbuffer(buffer, "UP_MINOR", strlen("UP_MINOR"));
+		oh_append_big_textbuffer(buffer, OH_ENCODE_DELIMITER, OH_ENCODE_DELIMITER_LENGTH);
+	}
+	if (tmask & SAHPI_STM_UP_MAJOR) {
+		oh_append_big_textbuffer(buffer, "UP_MAJOR", strlen("UP_MAJOR"));
+		oh_append_big_textbuffer(buffer, OH_ENCODE_DELIMITER, OH_ENCODE_DELIMITER_LENGTH);
+	}
+	if (tmask & SAHPI_STM_UP_CRIT) {
+		oh_append_big_textbuffer(buffer, "UP_CRIT", strlen("UP_CRIT"));
+		oh_append_big_textbuffer(buffer, OH_ENCODE_DELIMITER, OH_ENCODE_DELIMITER_LENGTH);
+	}
+	if (tmask & SAHPI_STM_UP_HYSTERESIS) {
+		oh_append_big_textbuffer(buffer, "UP_HYSTERESIS", strlen("UP_HYSTERESIS"));
+		oh_append_big_textbuffer(buffer, OH_ENCODE_DELIMITER, OH_ENCODE_DELIMITER_LENGTH);
+	}
+
+	/* Remove last delimiter; add NL */
+	for (i=0; i<OH_ENCODE_DELIMITER_LENGTH + 1; i++) {
+		buffer->Data[buffer->DataLength - i] = 0x00;
+	}
+	buffer->DataLength = buffer->DataLength - (i-1);
+	oh_append_big_textbuffer(buffer, "\n", strlen("\n"));
+
+	return(SA_OK);
+}
+
 /**
  * oh_fprint_idrfield:
  * @stream: File handle.
- * @buffer: Pointer to SaHpiIdrFieldT to be printed.
+ * @thisfield: Pointer to SaHpiIdrFieldT to be printed.
  * @space:  Number of blank space to skip (from column 1) before printing
  * 
  * Prints the member data contained in SaHpiIdrFieldT struct to a file.
@@ -414,9 +767,8 @@ static inline SaErrorT oh_append_big_textbuffer(oh_big_textbuffer *big_buffer, c
  *
  * Returns:
  * SA_OK - normal operation.
- * SA_ERR_HPI_INVALID_DATA - @buffer->DataType not SAHPI_TL_TYPE_TEXT.
  **/
-SaErrorT oh_fprint_idrfield(FILE *stream, const SaHpiIdrFieldT *thisfield,int space)
+SaErrorT oh_fprint_idrfield(FILE *stream, const SaHpiIdrFieldT *thisfield, int space)
 {
 	int err;
 	SaErrorT rv = SA_OK;
@@ -441,7 +793,7 @@ SaErrorT oh_fprint_idrfield(FILE *stream, const SaHpiIdrFieldT *thisfield,int sp
 /**
  * oh_fprint_idrareaheader:
  * @stream: File handle.
- * @buffer: Pointer to SaHpiIdrAreaHeaderT to be printed.
+ * @areaheader: Pointer to SaHpiIdrAreaHeaderT to be printed.
  * @space:  Number of blank space to skip (from column 1) before printing
  * 
  * Prints the member data contained in SaHpiIdrAreaHeaderT struct to a file.
@@ -449,9 +801,8 @@ SaErrorT oh_fprint_idrfield(FILE *stream, const SaHpiIdrFieldT *thisfield,int sp
  *
  * Returns:       
  * SA_OK - normal operation.
- * SA_ERR_HPI_INVALID_DATA - @buffer->DataType not SAHPI_TL_TYPE_TEXT.
  **/
-SaErrorT oh_fprint_idrareaheader(FILE *stream, const SaHpiIdrAreaHeaderT *areaheader,int space)
+SaErrorT oh_fprint_idrareaheader(FILE *stream, const SaHpiIdrAreaHeaderT *areaheader, int space)
 {
 	int err;
 	SaErrorT rv = SA_OK;
@@ -461,16 +812,16 @@ SaErrorT oh_fprint_idrareaheader(FILE *stream, const SaHpiIdrAreaHeaderT *areahe
 	put_spacing(space);
         err = fprintf(stream, "AreaType:\t%s\n", oh_lookup_idrareatype(areaheader->Type));
 	put_spacing(space);
-        err = fprintf(stream, "ReadOnly:\t%d\n",  areaheader->ReadOnly);
+        err = fprintf(stream, "ReadOnly:\t%d\n", areaheader->ReadOnly);
 	put_spacing(space);
-        err = fprintf(stream, "NumFields:\t%d\n",areaheader->NumFields);	
+        err = fprintf(stream, "NumFields:\t%d\n", areaheader->NumFields);	
 	return(rv);
 }
 
 /**
  * oh_fprint_idrinfo:
  * @stream: File handle.
- * @buffer: Pointer to SaHpiIdrInfoT to be printed.
+ * @idrinfo: Pointer to SaHpiIdrInfoT to be printed.
  * @space:  Number of blank space to skip (from column 1) before printing
  * 
  * Prints the member data contained in SaHpiIdrInfoT struct to a file.
@@ -478,9 +829,8 @@ SaErrorT oh_fprint_idrareaheader(FILE *stream, const SaHpiIdrAreaHeaderT *areahe
  *
  * Returns:       
  * SA_OK - normal operation.
- * SA_ERR_HPI_INVALID_DATA - @buffer->DataType not SAHPI_TL_TYPE_TEXT.
  **/
-SaErrorT oh_fprint_idrinfo(FILE *stream, const SaHpiIdrInfoT *idrinfo,int space)
+SaErrorT oh_fprint_idrinfo(FILE *stream, const SaHpiIdrInfoT *idrinfo, int space)
 {
 	int err;
 	SaErrorT rv = SA_OK;
@@ -490,7 +840,7 @@ SaErrorT oh_fprint_idrinfo(FILE *stream, const SaHpiIdrInfoT *idrinfo,int space)
 	put_spacing(space);
         err = fprintf(stream, "UpdateCount:\t%d\n", idrinfo->UpdateCount);
 	put_spacing(space);
-        err = fprintf(stream, "ReadOnly:\t%d\n",idrinfo->ReadOnly);
+        err = fprintf(stream, "ReadOnly:\t%d\n", idrinfo->ReadOnly);
 	put_spacing(space);
         err = fprintf(stream, "NumAreas:\t%d\n", idrinfo->NumAreas);
 
@@ -498,7 +848,7 @@ SaErrorT oh_fprint_idrinfo(FILE *stream, const SaHpiIdrInfoT *idrinfo,int space)
 }
 
 #if 0
-SaHpiBoolT valid_SaHpiTextBufferT(SaHpiTextBufferT text_buffer) {
+SaHpiBoolT oh_valid_textbuffer(SaHpiTextBufferT text_buffer) {
 
 	if (!valid_SaHpiTextTypeT) { return(SAHPI_FALSE); }
 	if (!valid_SaHpiLanguageT) { return(SAHPI_FALSE); }
@@ -533,7 +883,7 @@ SaHpiBoolT valid_SaHpiTextBufferT(SaHpiTextBufferT text_buffer) {
 	return(SAHPI_TRUE);
 }
 
-SaErrorT print_SaHpiTextBufferT(SaHpiTextBufferT text_buffer) {
+SaErrorT oh_print_textbuffer(SaHpiTextBufferT text_buffer) {
 
 	/* Check for valid */
         /* Support arbitrary tab/indents offsets??*/
