@@ -9,20 +9,20 @@
 # the Copying file included with the OpenHPI distribution for
 # full licensing terms.
  
-REMOTE_SIM_SOURCES 	= 	bc_resources.c \
-				bc_str2event.c \
-				snmp_bc.c \
-				snmp_bc_control.c \
-				snmp_bc_event.c \
-	     			snmp_bc_discover.c \
-				snmp_bc_hotswap.c \
-				snmp_bc_inventory.c \
-	     			snmp_bc_sel.c \
-				snmp_bc_sensor.c \
-				snmp_bc_session.c \
-				snmp_bc_time.c \
-				snmp_bc_utils.c \
-				snmp_bc_watchdog.c
+REMOTE_SIM_SOURCES 	= bc_resources.c \
+			  bc_str2event.c \
+			  snmp_bc.c \
+			  snmp_bc_control.c \
+	     		  snmp_bc_discover.c \
+			  snmp_bc_event.c \
+			  snmp_bc_hotswap.c \
+			  snmp_bc_inventory.c \
+	     		  snmp_bc_sel.c \
+			  snmp_bc_sensor.c \
+			  snmp_bc_session.c \
+			  snmp_bc_time.c \
+			  snmp_bc_utils.c \
+			  snmp_bc_watchdog.c
 
 MOSTLYCLEANFILES 	= @TEST_CLEAN@ \
 			  $(REMOTE_SIM_SOURCES) 
@@ -45,10 +45,10 @@ $(REMOTE_SIM_SOURCES):
 		ln -s ../$@; \
 	fi
 
-libsnmp_bc_la_SOURCES	= 	sim_init.c \
-				sim_resources.c \
-				snmp_util.c \
-				$(REMOTE_SIM_SOURCES)
+libsnmp_bc_la_SOURCES	= sim_init.c \
+			  sim_resources.c \
+			  snmp_util.c \
+			  $(REMOTE_SIM_SOURCES)
 
 libsnmp_bc_la_LIBADD	= -luuid @SNMPLIBS@
 
@@ -57,8 +57,8 @@ libsnmp_bc_la_LDFLAGS	= -module -avoid-version
 libsnmp_bc.la: $(libsnmp_bc_la_OBJECTS) $(libsnmp_bc_la_DEPENDENCIES)
 	$(LINK) -rpath $(pkglibdir) $(libsnmp_bc_la_LDFLAGS) $(libsnmp_bc_la_OBJECTS) $(libsnmp_bc_la_LIBADD) $(LIBS)
 
-
 # Need to put expected test failures in BOTH TESTS and XFAIL_TESTS
+TESTS_ENVIRONMENT = OPENHPI_CONF=$(shell pwd)/openhpi.conf
 TESTS = thotswap_state \
 	thotswap_state_err \
 	thotswap_reset \
@@ -77,6 +77,11 @@ TESTS = thotswap_state \
 # XFAIL_TESTS = thotswap_reset
 
 check_PROGRAMS = $(TESTS)
+
+# Prototype for unit test using normal IF calls and static BC simulator
+# Remove this code when get a real example. Add xxx to TESTS above
+#xxx_SOURCES = xxx.c
+#xxx_LDADD   = $(top_builddir)/src/libopenhpi.la $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la
 
 tutils_oid_SOURCES = tutils_oid.c
 tutils_oid_LDADD   = snmp_bc_utils.o
