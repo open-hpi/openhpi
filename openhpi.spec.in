@@ -5,15 +5,15 @@ Release: 1
 Copyright: BSD
 URL: http://openhpi.sourceforge.net
 Group: Utilities
-Vendor: Intel Corporation
-Packager: Andrea Brugger <andrea.l.brugger@intel.com>
+Vendor: OpenHPI Project
+Packager: TariqX
 Source: @HPI_PKG@-@VERSION@.tar.gz
 Buildroot: /var/tmp/@HPI_PKG@-root
 
 Summary: Library that provides SAForum's HPI
 Group: Utilities
 
-%package dev
+%package devel
 Summary: Development files for HPI
 Group: Utilities
 
@@ -21,19 +21,26 @@ Group: Utilities
 Summary: HPI example applications
 Group: Utilities
 Requires: openhpi
-Requires: openhpi-dev
+
+%package clients
+Summary: HPI command line applications
+Group: Utilities
+Requires: openhpi
 
 %description 
 This package contains an implementation of Service Availability Forum's 
 HPI specification.
 
-%description dev
+%description devel
 Contains additional files need for a developer to create applications
 and/or middleware that depends uses the Service Availability Forum's
 HPI specification
 
 %description examples
 This package contains simple example applications that utilize OpenHPI
+
+%description clients
+This package contains hpi command line utilities 
 
 ###################################################
 %prep
@@ -62,6 +69,12 @@ make DESTDIR=$RPM_BUILD_ROOT install
 mkdir -p $RPM_BUILD_ROOT/etc/openhpi
 cp examples/openhpi.conf.example $RPM_BUILD_ROOT/etc/openhpi/openhpi.conf.example
 
+%post
+if [ ! -d /var/lib/openhpi ] ; then
+    mkdir -p /var/lib/openhpi
+fi
+
+
 ###################################################
 %files
 ###################################################
@@ -70,7 +83,7 @@ cp examples/openhpi.conf.example $RPM_BUILD_ROOT/etc/openhpi/openhpi.conf.exampl
 /etc
 
 ###################################################
-%files dev
+%files devel
 ###################################################
 %defattr(-,root,root)
 %dir @includedir@/openhpi
