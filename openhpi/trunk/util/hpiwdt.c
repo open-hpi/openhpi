@@ -1,48 +1,26 @@
-/*
- * hpiwdt.c
+/*      -*- linux-c -*-
  *
- * Author:  Andy Cress  arcress@users.sourceforge.net
- * Copyright (c) 2003 Intel Corporation.
+ * Copyright (c) 2003 by Intel Corp.
  *
- * This tool reads and enables the watchdog timer via IPMI.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
+ * file and program are licensed under a BSD style license.  See
+ * the Copying file included with the OpenHPI distribution for
+ * full licensing terms.
+ *
+ * Authors:
+ *     Andy Cress <arcress@users.sourceforge.net>
+ */
+
+/* This tool reads and enables the watchdog timer via HPI.
  * Note that there are other methods for doing this, and the
  * standard interface is for the driver to expose a /dev/watchdog
  * device interface.
  * WARNING: If you enable the watchdog, make sure you have something
  * set up to keep resetting the timer at regular intervals, or it
  * will reset your system.
- *
- * 05/02/03 Andy Cress - created
- * 06/06/03 Andy Cress - added more logic with beta2 SPI release
- * 06/11/03 Andy Cress - successful test of options to set WDT values.
  */
-/*M*
-Copyright (c) 2003, Intel Corporation
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without 
-modification, are permitted provided that the following conditions are met:
-
-  a.. Redistributions of source code must retain the above copyright notice, 
-      this list of conditions and the following disclaimer. 
-  b.. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation 
-      and/or other materials provided with the distribution. 
-  c.. Neither the name of Intel Corporation nor the names of its contributors 
-      may be used to endorse or promote products derived from this software 
-      without specific prior written permission. 
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR 
-ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; 
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON 
-ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *M*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -53,7 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 char *progver  = "0.8";
 char fdebug = 0;
 
-void
+static void
 show_wdt(SaHpiWatchdogNumT  wdnum, SaHpiWatchdogT *wdt)
 {
   int icount, pcount;
@@ -149,7 +127,13 @@ main(int argc, char **argv)
 	printf("rptentry[%d] resourceid=%d tag: %s\n",
 		rptentryid, resourceid, rptentry.ResourceTag.Data);
 
-	wdnum = SAHPI_DEFAULT_WATCHDOG_NUM; /*(SaHpi.h invalid type) */
+	/*
+	 * The definition for SAHPI_DEFAULT_WATCHDOG_NUM is broken,
+	 * so we are assigning wdnum to 0x00 which is what SaHpi.h
+	 * attempted to set the default as
+	 */
+	wdnum = (SaHpiWatchdogNumT)0x00;
+
 	rv = saHpiWatchdogTimerGet(sessionid,resourceid,wdnum,&wdt);
 	if (fdebug) 
 	   printf("saHpiWatchdogTimerGet rv = %d\n",rv);

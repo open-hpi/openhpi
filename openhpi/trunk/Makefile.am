@@ -49,7 +49,7 @@ MAINTAINERCLEANFILES 	= Makefile.in aclocal.m4 configure config.guess config.sub
 			stamp-h.in $(distdir).tar.gz
 MOSTLYCLEANFILES	= tags
 
-SUBDIRS			= src examples
+SUBDIRS			= src @ENABLED_DIRS@
 
 DISTCHECK_CONFIGURE_FLAGS = --with-initdir=prefix
 
