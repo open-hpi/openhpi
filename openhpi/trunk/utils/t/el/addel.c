@@ -92,10 +92,10 @@ int add_event(oh_el *el, int idx) {
                 return 1;
         }
 
-        if(el->overflow != FALSE) {
-                dbg("ERROR: el->overflow invalid.");
-                return 1;
-        }
+//      if(el->overflow != FALSE) {
+//              dbg("ERROR: el->overflow invalid.");
+//              return 1;
+//      }
 
         if(el->lastUpdate != entry->event.Timestamp) {
                 dbg("ERROR: el->lastUpdate invalid.");
