@@ -34,7 +34,8 @@ EXTRA_DIST		=	rsa_resources.h \
 	     			snmp_rsa_sel.h \
 	     			snmp_rsa_sensor.h \
 	     			snmp_rsa_session.h \
-	     			snmp_rsa_utils.h
+	     			snmp_rsa_utils.h \
+	     			snmp_rsa_watchdog.h
 
 libsnmp_rsa_la_SOURCES	=	rsa_resources.c \
 	     			rsa_str2event.c \
@@ -47,7 +48,8 @@ libsnmp_rsa_la_SOURCES	=	rsa_resources.c \
 	     			snmp_rsa_sel.c \
 	     			snmp_rsa_sensor.c \
 	     			snmp_rsa_session.c \
-	     			snmp_rsa_utils.c
+	     			snmp_rsa_utils.c \
+	     			snmp_rsa_watchdog.c
 
 libsnmp_rsa_la_LIBADD	= @SNMPLIBS@ $(SNMPUTILBDIR)/libopenhpi_snmp.la -luuid 
 libsnmp_rsa_la_LDFLAGS	= -version-info @HPI_LIB_VERSION@

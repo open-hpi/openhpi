@@ -29,7 +29,7 @@
 #include <snmp_rsa_sensor.h>
 #include <snmp_rsa_session.h>
 #include <snmp_rsa_hotswap.h>
-// #include <snmp_rsa_watchdog.h>
+#include <snmp_rsa_watchdog.h>
 
 #include <snmp_rsa.h>
 
@@ -490,12 +490,9 @@ struct oh_abi_v2 oh_snmp_rsa_plugin = {
         .get_inventory_size		= snmp_rsa_get_inventory_size,
         .get_inventory_info		= snmp_rsa_get_inventory_info,
         .set_inventory_info		= snmp_rsa_set_inventory_info,
-//      .get_watchdog_info		= snmp_rsa_get_watchdog_info,
-        .get_watchdog_info		= NULL,
-//      .set_watchdog_info		= snmp_rsa_set_watchdog_info,
-        .set_watchdog_info		= NULL,
-//      .reset_watchdog			= snmp_rsa_reset_watchdog,
-        .reset_watchdog			= NULL,
+        .get_watchdog_info		= snmp_rsa_get_watchdog_info,
+        .set_watchdog_info		= snmp_rsa_set_watchdog_info,
+        .reset_watchdog			= snmp_rsa_reset_watchdog,
         .get_hotswap_state		= snmp_rsa_get_hotswap_state,
         .set_hotswap_state		= snmp_rsa_set_hotswap_state,
         .request_hotswap_action		= snmp_rsa_request_hotswap_action,
