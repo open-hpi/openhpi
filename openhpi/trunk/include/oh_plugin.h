@@ -41,14 +41,6 @@ struct oh_domain_id {
 };
 
 /*
- * struct oh_rdr_id is filled by plugin.
- * Open HPI use it to identy different rdr by the id.
- */
-struct oh_rdr_id {
-	void *ptr;
-};
-
-/*
  * struct oh_sel_id is filled by plugin.
  * Open HPI use it to identy different resource SEL by the id.
  */
@@ -93,9 +85,6 @@ struct oh_resource_del_event {
  * The event is used for plugin to report its RDRs in resource.
  */
 struct oh_rdr_event {
-	/*This is rdr id the RDR relate*/
-	struct oh_rdr_id	id;
-	
 	SaHpiRdrT		rdr;
 };
 
@@ -127,9 +116,6 @@ struct oh_rsel {
 	/* this is the entry's id */
 	struct oh_sel_id	oid;
 	
-	/* This is rdr id which the entry relates */
-	struct oh_rdr_id	rdr_id;
-
 	SaHpiEntryIdT		entry_id;
 };
 
