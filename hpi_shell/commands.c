@@ -495,7 +495,7 @@ static int sa_set_tag(int argc, char *argv[])
 	if (resourcetag.DataLength == 0)
 		return HPI_SHELL_PARM_ERROR;
 	else
-		strcpy((char *)resourcetag.Data, argv[2]);
+		strcpy((char *)(resourcetag.Data), argv[2]);
 
 
 	rv = saHpiResourceTagSet(sessionid,resourceid,&resourcetag);
@@ -588,6 +588,8 @@ static int sa_show_evtlog(SaHpiResourceIdT resourceid)
 	return SA_OK;
 }
 
+#ifdef MY   // my
+
 /* functions for sa_show_inv */
 #define NCT 25
 char *chasstypes[NCT] = {
@@ -618,11 +620,10 @@ fixstr(SaHpiTextBufferT *strptr)
 
 }
 
+
 static void
 prtchassinfo(void)
 {
-	printf("prtchassinfo: not implemented\n");
-#ifdef MY   // my
 	int k;
 
 	chasstype = (SaHpiInventChassisTypeT)inv->DataRecords[i]->RecordData.ChassisInfo.Type;
@@ -671,14 +672,11 @@ prtchassinfo(void)
 		outbuff[dataptr->CustomField[0]->DataLength] = 0;
 		printf( "\tChassis OEM Field   : %s\n", outbuff);
 	}
-#endif
 }
 
 static void
 prtprodtinfo(void)
 {
-	printf("prtprodinfo: not implemented\n");
-#ifdef MY   // my
 	int j;
 	dataptr = (SaHpiInventGeneralDataT *)&inv->DataRecords[i]->RecordData.ProductInfo;
 	strptr=dataptr->Manufacturer;
@@ -731,14 +729,11 @@ prtprodtinfo(void)
 		} else /* NULL pointer */
 			break;
 	}/*end for*/
-#endif
 }
 
 static void
 prtboardinfo(void)
 {
-	printf("prtboardinfo: not implemented\n");
-#ifdef MY   // my
 	int j;
 
 	dataptr = (SaHpiInventGeneralDataT *)&inv->DataRecords[i]->RecordData.BoardInfo;
@@ -782,8 +777,8 @@ prtboardinfo(void)
                         printf( "\tBoard OEM Field     : %s\n", outbuff);
                 }
         }
-#endif
 }
+#endif
 
 static int sa_show_inv(SaHpiResourceIdT resourceid)
 {
@@ -968,15 +963,12 @@ static int show_evtlog(int argc, char *argv[])
 
 static int show_inv(int argc, char *argv[])
 {
-	int	aaa = 0;
-	char	*S;
-	
-	if (aaa == 1) {
-		fixstr((SaHpiTextBufferT *)S);
-		prtchassinfo();
-		prtprodtinfo();
-		prtboardinfo();
-	};
+#ifdef MY   // my
+	fixstr((SaHpiTextBufferT *)S);
+	prtchassinfo();
+	prtprodtinfo();
+	prtboardinfo();
+#endif
 	if (argc < 2)
 		return HPI_SHELL_PARM_ERROR;
 			
