@@ -66,7 +66,7 @@ int add_event(oh_el *el, int idx) {
         event.EventType = SAHPI_ET_USER;
         event.Timestamp = SAHPI_TIME_UNSPECIFIED;
         event.Severity = SAHPI_DEBUG;
-        strcpy((char *) &event.EventDataUnion.UserEvent.UserEventData, data[idx]);
+        strcpy((char *) &event.EventDataUnion.UserEvent.UserEventData.Data, data[idx]);
         retc = oh_el_append(el, &event);
 
         if (retc != SA_OK) {
