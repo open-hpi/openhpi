@@ -39,4 +39,21 @@ SaErrorT snmp_bc_snmp_get(struct snmp_bc_hnd *custom_handle,
 SaErrorT snmp_bc_snmp_set(struct snmp_bc_hnd *custom_handle,
                           char *objid,
                           struct snmp_value value);
+			  
+SaErrorT snmp_bc_get_event(void *hnd,
+			   struct oh_event *event);
+			   
+SaErrorT snmp_bc_set_resource_tag(void *hnd,
+				  SaHpiResourceIdT rid,
+				  SaHpiTextBufferT *tag);
+				  
+SaErrorT snmp_bc_set_resource_severity(void *hnd,
+					SaHpiResourceIdT rid,
+					SaHpiSeverityT sev);
+					
+SaErrorT snmp_bc_control_parm(void *hnd,
+				SaHpiResourceIdT rid,
+				SaHpiParmActionT act);
+
+			  
 #endif

@@ -16,11 +16,6 @@
 
 #include <snmp_bc_plugin.h>
 
-static SaErrorT snmp_bc_get_event(void *hnd, struct oh_event *event);
-static SaErrorT snmp_bc_set_resource_tag(void *hnd, SaHpiResourceIdT rid, SaHpiTextBufferT *tag);
-static SaErrorT snmp_bc_set_resource_severity(void *hnd, SaHpiResourceIdT rid, SaHpiSeverityT sev);
-static SaErrorT snmp_bc_control_parm(void *hnd, SaHpiResourceIdT rid, SaHpiParmActionT act);
-
 struct oh_abi_v2 oh_snmp_bc_plugin = {
         .open				= snmp_bc_open,
         .close				= snmp_bc_close,
@@ -103,7 +98,7 @@ SaErrorT get_interface(void **pp, const uuid_t uuid)
  * SA_OK - no events to be processed.
  * SA_ERR_HPI_INVALID_PARAMS - @event is NULL.
  **/
-static SaErrorT snmp_bc_get_event(void *hnd, struct oh_event *event)
+SaErrorT snmp_bc_get_event(void *hnd, struct oh_event *event)
 {
 	SaErrorT err;
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
@@ -143,7 +138,7 @@ static SaErrorT snmp_bc_get_event(void *hnd, struct oh_event *event)
  * SA_ERR_HPI_INVALID_PARAMS - @tag is NULL or invalid.
  * SA_ERR_HPI_OUT_OF_SPACE - no memory to allocate event.
  **/
-static SaErrorT snmp_bc_set_resource_tag(void *hnd, SaHpiResourceIdT rid, SaHpiTextBufferT *tag)
+SaErrorT snmp_bc_set_resource_tag(void *hnd, SaHpiResourceIdT rid, SaHpiTextBufferT *tag)
 {
 	SaErrorT err;
         SaHpiRptEntryT *rpt;
@@ -194,7 +189,7 @@ static SaErrorT snmp_bc_set_resource_tag(void *hnd, SaHpiResourceIdT rid, SaHpiT
  * SA_ERR_HPI_INVALID_PARAMS - @sev is invalid.
  * SA_ERR_HPI_OUT_OF_SPACE - no memory to allocate event.
  **/
-static SaErrorT snmp_bc_set_resource_severity(void *hnd, SaHpiResourceIdT rid, SaHpiSeverityT sev)
+SaErrorT snmp_bc_set_resource_severity(void *hnd, SaHpiResourceIdT rid, SaHpiSeverityT sev)
 {
         SaHpiRptEntryT *rpt;
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
@@ -239,7 +234,7 @@ static SaErrorT snmp_bc_set_resource_severity(void *hnd, SaHpiResourceIdT rid, S
  * SA_OK - normal case.
  * SA_ERR_HPI_INVALID_PARAMS - @act is invalid.
  **/
-static SaErrorT snmp_bc_control_parm(void *hnd, SaHpiResourceIdT rid, SaHpiParmActionT act)
+SaErrorT snmp_bc_control_parm(void *hnd, SaHpiResourceIdT rid, SaHpiParmActionT act)
 {
 
 	SaHpiRptEntryT *rpt;
