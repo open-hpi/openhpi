@@ -94,8 +94,13 @@ SaErrorT snmp_bc_get_sensor_data(void *hnd,
                                                 SAHPI_SENSOR_BUFFER_LENGTH);
 				} else {
 					if(s->mib.convert_snmpstr >= 0) {
-						if(get_interpreted_value(get_value.string,s->mib.convert_snmpstr,&value)) {
-							dbg("Error: get_interpreted_value for %s, (%s)\n",s->mib.oid,get_value.string);
+						SaHpiTextBufferT buffer;
+						
+						oh_init_textbuffer(&buffer);
+						oh_append_textbuffer(&buffer, get_value.string, strlen(get_value.string));
+						
+						if (oh_encode_sensorreading(&buffer, s->mib.convert_snmpstr, &value)) {
+							dbg("Error: oh_encode_sensorreading for %s, (%s)\n",s->mib.oid, buffer.Data;
 							return -1;
 						}
 						working.Interpreted.Value = value;
@@ -206,8 +211,11 @@ do { \
 		        if(get_value.type == ASN_INTEGER) { \
 			         working.thdname.Interpreted.Value.SensorInt32 = get_value.integer; \
 		        } else if(get_value.type == ASN_OCTET_STR && s->mib.convert_snmpstr >= 0) { \
-			        if(get_interpreted_value(get_value.string,s->mib.convert_snmpstr,&value)) { \
-				        dbg("Error: bad return from get_interpreted_value for %s\n",oid); \
+                                SaHpiTextBufferT buffer; \
+                                oh_init_textbuffer(&buffer); \
+                                oh_append_textbuffer(&buffer, get_value.string); \
+			        if(oh_encode_sensorreading(&buffer, s->mib.convert_snmpstr, &value)) { \
+				        dbg("Error: bad return oh_encode_sensorreading for %s\n",oid); \
                                         g_free(oid); \
 				        return -1; \
 			        } \

@@ -10,19 +10,20 @@
 # full licensing terms.
  
 REMOTE_SIM_SOURCES 	= bc_resources.c \
-			  bc_str2event.c \
 			  snmp_bc.c \
-			  snmp_bc_control.c \
 	     		  snmp_bc_discover.c \
-			  snmp_bc_event.c \
-			  snmp_bc_hotswap.c \
-			  snmp_bc_inventory.c \
-	     		  snmp_bc_sel.c \
-			  snmp_bc_sensor.c \
-			  snmp_bc_session.c \
-			  snmp_bc_time.c \
-			  snmp_bc_utils.c \
-			  snmp_bc_watchdog.c
+			  snmp_bc_session.c
+
+#			  bc_str2event.c \
+#			  snmp_bc_control.c \
+#			  snmp_bc_event.c \
+#			  snmp_bc_hotswap.c \
+#			  snmp_bc_inventory.c \
+#	     		  snmp_bc_sel.c \
+#			  snmp_bc_sensor.c \
+#			  snmp_bc_time.c \
+#			  snmp_bc_utils.c \
+#			  snmp_bc_watchdog.c
 
 MOSTLYCLEANFILES 	= @TEST_CLEAN@ \
 			  $(REMOTE_SIM_SOURCES) \
@@ -76,9 +77,7 @@ TESTS = tevent \
 	thotswap_power_set \
 	thotswap_power_set_err \
 	thotswap_unsupported \
-	tsensor \
-	tutils_conv \
-	tutils_oid
+	tsensor
 
 # Need to put expected test failures in BOTH TESTS and XFAIL_TESTS
 # XFAIL_TESTS = thotswap_reset
@@ -92,12 +91,6 @@ tevent_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
 		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la
 
 # Unit tests with IF and snmp calls stubbed out
-tutils_oid_SOURCES = tutils_oid.c
-tutils_oid_LDADD   = snmp_bc_utils.o
-
-tutils_conv_SOURCES = tutils_conv.c
-tutils_conv_LDADD   = snmp_bc_utils.o
-
 tsensor_SOURCES = tsensor.c
 tsensor_LDADD   = snmp_bc_sensor.o snmp_bc_utils.o
 

@@ -20,18 +20,11 @@
 #include <time.h>
 
 #include <SaHpi.h>
-
 #include <openhpi.h>
 #include <oh_plugin.h>
 #include <oh_utils.h>
-#include <bc_resources.h>
-#include <bc_str2event.h>
-#include <bc_errorlog.h>
 #include <snmp_util.h>
-#include <snmp_bc.h>
-#include <snmp_bc_sel.h>
-#include <snmp_bc_utils.h>
-#include <snmp_bc_event.h>
+#include <snmp_bc_plugin.h>
 
 unsigned int str2event_use_count = 0; /* It is here for initialization */ 
  
@@ -46,8 +39,8 @@ static void free_hash_data(gpointer key,
 
 static int parse_threshold_str(gchar *str, 
 			       gchar *root_str, 
-			       gchar *read_value_str, 
-			       gchar *trigger_value_str);
+			       SaHpiTextBufferT *read_value_str, 
+			       SaHpiTextBufferT *trigger_value_str);
 
 
 static int bcsrc2rid(void *hnd, gchar *src, LogSource2ResourceT *resinfo, unsigned short ovr_flags);
@@ -262,11 +255,14 @@ int find_sensor_events(struct oh_handler_state *handle,SaHpiEntityPathT *ep, SaH
 
 int log2event(void *hnd, gchar *logstr, SaHpiEventT *event, int isdst, int *event_enabled_ptr)
 {
+
+	/* FIXME:: root_str, search_str, BC_SEL_ENTRY_STRING, parse_threshold_str() can be converted
+	   to use SaHpiTextBufferT 
+	*/
+
 	bc_sel_entry log_entry;
 	gchar *recovery_str, *login_str; 
 	gchar root_str[BC_SEL_ENTRY_STRING], search_str[BC_SEL_ENTRY_STRING];
-	gchar thresh_read_value[MAX_THRESHOLD_VALUE_STRINGSIZE]; 
-	gchar thresh_trigger_value[MAX_THRESHOLD_VALUE_STRINGSIZE];
 	int is_recovery_event, is_threshold_event;
 	LogSource2ResourceT resinfo;
 	SaHpiEventT working, *event_ptr;
@@ -277,6 +273,12 @@ int log2event(void *hnd, gchar *logstr, SaHpiEventT *event, int isdst, int *even
 	struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
         struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 	GHashTable *event2hpi_hash = custom_handle->event2hpi_hash_ptr;
+
+	SaHpiTextBufferT thresh_read_value;
+	SaHpiTextBufferT thresh_trigger_value;
+
+	oh_init_textbuffer(&thresh_read_value);
+	oh_init_textbuffer(&thresh_trigger_value);
 
 	memset(&working, 0, sizeof(SaHpiEventT));
 	is_recovery_event = is_threshold_event = 0;
@@ -335,7 +337,7 @@ int log2event(void *hnd, gchar *logstr, SaHpiEventT *event, int isdst, int *even
 	/* Adjust threshold event strings */
 	if (strstr(log_entry.text, LOG_THRESHOLD_VALUE_STRING)) {
 		is_threshold_event = 1;
-		if (parse_threshold_str(search_str, root_str, thresh_read_value, thresh_trigger_value)) {
+		if (parse_threshold_str(search_str, root_str, &thresh_read_value, &thresh_trigger_value)) {
 			dbg("Cannot parse threshold event string=%s\n", search_str);
 		}
 		else {
@@ -426,18 +428,20 @@ int log2event(void *hnd, gchar *logstr, SaHpiEventT *event, int isdst, int *even
 
 				/* Convert threshold strings into event values */
 				if (is_threshold_event) {
-					if (get_interpreted_value(thresh_read_value,
-					    working.EventDataUnion.SensorEvent.TriggerReading.Interpreted.Type,
-					    &working.EventDataUnion.SensorEvent.TriggerReading.Interpreted.Value)) {
+					/* FIXME:: Do we need to check mib.convert_snmpstr >= 0 */
+					if (oh_encode_sensorreading(&thresh_read_value,
+								    working.EventDataUnion.SensorEvent.TriggerReading.Interpreted.Type,
+								    &working.EventDataUnion.SensorEvent.TriggerReading.Interpreted.Value)) {
 						dbg("Cannot convert trigger reading=%s for text=%s\n",
-						    thresh_read_value, log_entry.text);
+						    thresh_read_value.Data, log_entry.text);
 						return -1;
 					}
-					if (get_interpreted_value(thresh_trigger_value,
-   					    working.EventDataUnion.SensorEvent.TriggerThreshold.Interpreted.Type,
-					    &working.EventDataUnion.SensorEvent.TriggerThreshold.Interpreted.Value)) {
+					
+					if (oh_encode_sensorreading(&thresh_trigger_value,
+								    working.EventDataUnion.SensorEvent.TriggerThreshold.Interpreted.Type,
+								    &working.EventDataUnion.SensorEvent.TriggerThreshold.Interpreted.Value)) {
 						dbg("Cannot convert trigger threshold=%s for text=%s\n",
-						    thresh_trigger_value, log_entry.text);
+						    thresh_trigger_value.Data, log_entry.text);
 						return -1;
 					}		
 				}
@@ -545,7 +549,10 @@ static Str2EventInfoT *findevent4dupstr(gchar *search_str, Str2EventInfoT *strha
  * convert directly to sensor values yet because don't yet know if event mapped or
  * if it is, what the sensor's threshold data type is.
  */
-static int parse_threshold_str(gchar *str, gchar *root_str, gchar *read_value_str, gchar *trigger_value_str) 
+static int parse_threshold_str(gchar *str, 
+			       gchar *root_str, 
+			       SaHpiTextBufferT *read_value_str, 
+			       SaHpiTextBufferT *trigger_value_str) 
 {
 	gchar  **event_substrs = NULL;
 	gchar  **thresh_substrs = NULL;
@@ -568,18 +575,20 @@ static int parse_threshold_str(gchar *str, gchar *root_str, gchar *read_value_st
 		goto CLEANUP;
 	}
 
-	if ((strlen(thresh_substrs[0]) > MAX_THRESHOLD_VALUE_STRINGSIZE) ||
-	    (strlen(thresh_substrs[1]) > MAX_THRESHOLD_VALUE_STRINGSIZE)) {
+	if ((strlen(thresh_substrs[0]) > SAHPI_MAX_TEXT_BUFFER_LENGTH) ||
+	    (strlen(thresh_substrs[1]) > SAHPI_MAX_TEXT_BUFFER_LENGTH)) {
 		dbg("Threshold value string(s) exceed max size for string=%s\n", str);
 		rtn_code = -1;
 		goto CLEANUP;
 	}
 	
 	strcpy(root_str, event_substrs[0]);
-	strcpy(read_value_str, thresh_substrs[0]);
-	strcpy(trigger_value_str, thresh_substrs[1]);
+	oh_append_textbuffer(read_value_str, thresh_substrs[0], strlen(thresh_substrs[0]));
+	oh_append_textbuffer(trigger_value_str, thresh_substrs[1], strlen(thresh_substrs[1]));
 
-	if (root_str == NULL || read_value_str == NULL || trigger_value_str == NULL) {
+	/* FIXME:: Check for non-NULL read_value_str->Data and trigger_value_str->Data values?? */
+
+	if (root_str == NULL) {
 		dbg("Cannot parse threshold str=%s into non-NULL parts\n", str);
 		rtn_code = -1;
 	}
