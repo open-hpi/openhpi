@@ -261,14 +261,12 @@ int plugin_refcount (char *name)
 struct oh_plugin_config * plugin_config (char *name) 
 {
         GSList *node;
-        struct oh_plugin_config *temp_config = NULL;
         struct oh_plugin_config *return_config = NULL;
-        
-        node = global_plugin_list;
-        while(g_slist_next(node) != NULL) {
-                temp_config = (struct oh_plugin_config *) node->data;
-                if(strcmp(temp_config->name, name) == 0) {
-                        return_config = (struct oh_plugin_config *) node->data;
+
+        g_slist_for_each(node, global_plugin_list) {
+                struct oh_plugin_config *pconf = node->data;
+                if(strcmp(pconf->name, name) == 0) {
+                        return_config = pconf;
                         break;
                 }
         }
