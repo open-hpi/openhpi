@@ -37,8 +37,10 @@ extern "C" {
 
 /* This is a short term hack to get this running properly.  Will 
   be changed to more robust mechanisms later */
+
 #define OPENHPI_RUN_THREADED
 #undef OPENHPI_RUN_THREADED
+
 #ifdef OPENHPI_RUN_THREADED
 #define oh_run_threaded() 1
 #else
