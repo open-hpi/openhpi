@@ -58,6 +58,7 @@ attr_t	Def_resinfo[] = {
 };
 
 int find_rpt(Domain_t *Domain, SaHpiResourceIdT rptId);
+int find_rdr_by_num(Rpt_t *Rpt, SaHpiInstrumentIdT num);
 
 char *lookup_proc(int num, int val)
 {
@@ -274,6 +275,26 @@ static int find_rdr(Rpt_t *Rpt, SaHpiEntryIdT rdrId)
 
 	for (i = 0; i < Rpt->n_rdrs; i++) {
 		if (Rpt->rdrs[i].RecordId == rdrId)
+			return(i);
+	};
+	return(-1);
+}
+
+int find_rdr_by_num(Rpt_t *Rpt, SaHpiInstrumentIdT num)
+{
+	int		i, res_num;
+	SaHpiRdrTypeT	type;
+
+	for (i = 0; i < Rpt->n_rdrs; i++) {
+		type = Rpt->rdrs[i].RdrType;
+		switch (type) {
+			case SAHPI_SENSOR_RDR:
+				res_num = Rpt->rdrs[i].Rdr->RdrTypeUnion.SensorRec.Num;
+				break;
+			default:
+				res_num = i;
+		};
+		if (res_num == num)
 			return(i);
 	};
 	return(-1);
@@ -604,7 +625,7 @@ SaErrorT get_value(Attributes_t *Attrs, int num, union_type_t *val)
 	return(SA_OK);
 }
 
-Rdr_t *get_rdr(Domain_t *Domain, SaHpiResourceIdT rptId, SaHpiSensorNumT num)
+Rdr_t *get_rdr(Domain_t *Domain, SaHpiResourceIdT rptId, SaHpiInstrumentIdT num)
 {
 	int	i;
 	Rpt_t	*rpt;
@@ -615,7 +636,8 @@ Rdr_t *get_rdr(Domain_t *Domain, SaHpiResourceIdT rptId, SaHpiSensorNumT num)
 	if (i < 0)
 		return((Rdr_t *)NULL);
 	rpt = Domain->rpts + i;
-	if (num >= rpt->n_rdrs)
+	i = find_rdr_by_num(rpt, num);
+	if (i < 0)
 		return((Rdr_t *)NULL);
-	return(rpt->rdrs + num);
+	return(rpt->rdrs + i);
 }
