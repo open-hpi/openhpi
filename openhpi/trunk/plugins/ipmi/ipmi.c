@@ -568,19 +568,13 @@ static int ipmi_get_sel_entry(void *hnd, SaHpiResourceIdT id,
 		 event_record_id = event_record_id;
 
 		 memcpy(&entry->EntryId, &event_record_id, sizeof(event_record_id));
-/* Fix Me */
-/* UserEvent structure is changed as:
-typedef struct {
-    SaHpiTextBufferT     UserEventData;
-} SaHpiUserEventT;
-*/
 
-#if 0
-        memcpy(&entry->Event.EventDataUnion.UserEvent.UserEventData[3],
+        entry->Event.EventDataUnion.UserEvent.UserEventData.DataType = SAHPI_TL_TYPE_BINARY;
+        entry->Event.EventDataUnion.UserEvent.UserEventData.Language = SAHPI_LANG_UNDEF;
+        entry->Event.EventDataUnion.UserEvent.UserEventData.DataLength = ipmi_event_get_data_len(event);
+        memcpy(entry->Event.EventDataUnion.UserEvent.UserEventData.Data,
                ipmi_event_get_data_ptr(event), 
                ipmi_event_get_data_len(event));	
-#endif
-
 
 out:
 		
