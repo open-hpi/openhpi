@@ -1079,5 +1079,5 @@ struct dummy_sensor dummy_voltage_sensors[] = {
                 .comment = "Blade CPU 1 temperature sensor"
         }
 
-}
+};
 

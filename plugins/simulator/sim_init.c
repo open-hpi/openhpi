@@ -16,9 +16,7 @@
  */
 
 #include <sim_init.h>
-#include <sim_sensors.h>
-#include <sim_resources.h>
-#include <math.h>
+//#include <math.h>
 
 void *sim_open(GHashTable *handler_config)
 {
@@ -208,14 +206,14 @@ struct oh_event *eventdup(const struct oh_event *event)
 }
 
 
-#if 0
+
 /*
  * Simulator function table for plugin interface 
  *
  */
 
-//static struct oh_abi_v2 oh_sim_plugin = {
-//        .open                   = sim_open,
+static struct oh_abi_v2 oh_sim_plugin = {
+        .open                   = sim_open,
         .close                  = sim_close,
         .get_event              = sim_get_event,
         .discover_resources     = sim_discover
@@ -235,5 +233,5 @@ int sim_get_interface(void **pp, const uuid_t uuid)
         return -1;
 }
 
-//int get_interface(void **pp, const uuid_t uuid) __attribute__ ((weak, alias("sim_get_interface")));
-#endif
+int get_interface(void **pp, const uuid_t uuid) __attribute__ ((weak, alias("sim_get_interface")));
+
