@@ -203,6 +203,7 @@ SaErrorT snmp_bc_discover_res_events(struct oh_handler_state *handle,
 		}
 		else {
 			/* Event already exists (e.g. same event for multiple blades) */
+			trace("Event already exists=%s.", normalized_str);
 			g_free(normalized_str);
 		}
 	}
@@ -314,6 +315,7 @@ SaErrorT snmp_bc_discover_sensor_events(struct oh_handler_state *handle,
 		}
 		else {
 			/* Event already exists (e.g. same event for multiple blades) */
+			trace("Event already exists=%s.", normalized_str);
 			g_free(normalized_str);
 		}
 	}
