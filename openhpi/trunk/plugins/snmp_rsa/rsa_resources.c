@@ -205,8 +205,8 @@ struct snmp_rsa_sensor snmp_rsa_chassis_sensors[] = {
 				/* FIXME:: SNMP is supposed to add thresholds soon */
 				.threshold_oids = {
 					.InterpretedThresholds = {
-						.OidUpMinor      = "\0",
-						.OidUpCrit       = "\0",
+						.OidUpMinor      = ".1.3.6.1.4.1.2.3.51.1.2.20.1.1.1.1.4.6",
+						.OidUpCrit       = ".1.3.6.1.4.1.2.3.51.1.2.20.1.1.1.1.4.4",
 					},
 				},
 			},
@@ -289,8 +289,8 @@ struct snmp_rsa_sensor snmp_rsa_cpu_thermal_sensors[] = {
 				/* FIXME:: SNMP is supposed to add thresholds soon */
 				.threshold_oids = {
 					.InterpretedThresholds = {
-						.OidUpMinor      = "\0",
-						.OidUpCrit       = "\0",
+						.OidUpMinor      = ".1.3.6.1.4.1.2.3.51.1.2.20.1.5.1.1.6.1",
+						.OidUpCrit       = ".1.3.6.1.4.1.2.3.51.1.2.20.1.5.1.1.4.1",
 					},
 				},
 			},
@@ -364,8 +364,8 @@ struct snmp_rsa_sensor snmp_rsa_cpu_thermal_sensors[] = {
 				/* FIXME:: SNMP is supposed to add thresholds soon */
 				.threshold_oids = {
 					.InterpretedThresholds = {
-						.OidUpMinor      = "\0",
-						.OidUpCrit       = "\0",
+						.OidUpMinor      = ".1.3.6.1.4.1.2.3.51.1.2.20.1.5.1.1.6.2",
+						.OidUpCrit       = ".1.3.6.1.4.1.2.3.51.1.2.20.1.5.1.1.4.2",
 					},
 				},
 			},
@@ -439,8 +439,8 @@ struct snmp_rsa_sensor snmp_rsa_cpu_thermal_sensors[] = {
 				/* FIXME:: SNMP is supposed to add thresholds soon */
 				.threshold_oids = {
 					.InterpretedThresholds = {
-						.OidUpMinor      = "\0",
-						.OidUpCrit       = "\0",
+						.OidUpMinor      = ".1.3.6.1.4.1.2.3.51.1.2.20.1.5.1.1.6.3",
+						.OidUpCrit       = ".1.3.6.1.4.1.2.3.51.1.2.20.1.5.1.1.4.3",
 					},
 				},
 			},
@@ -514,8 +514,8 @@ struct snmp_rsa_sensor snmp_rsa_cpu_thermal_sensors[] = {
 				/* FIXME:: SNMP is supposed to add thresholds soon */
 				.threshold_oids = {
 					.InterpretedThresholds = {
-						.OidUpMinor      = "\0",
-						.OidUpCrit       = "\0",
+						.OidUpMinor      = ".1.3.6.1.4.1.2.3.51.1.2.20.1.5.1.1.6.4",
+						.OidUpCrit       = ".1.3.6.1.4.1.2.3.51.1.2.20.1.5.1.1.4.4",
 					},
 				},
 			},
@@ -589,8 +589,8 @@ struct snmp_rsa_sensor snmp_rsa_cpu_thermal_sensors[] = {
 				/* FIXME:: SNMP is supposed to add thresholds soon */
 				.threshold_oids = {
 					.InterpretedThresholds = {
-						.OidUpMinor      = "\0",
-						.OidUpCrit       = "\0",
+						.OidUpMinor      = ".1.3.6.1.4.1.2.3.51.1.2.20.1.5.1.1.6.5",
+						.OidUpCrit       = ".1.3.6.1.4.1.2.3.51.1.2.20.1.5.1.1.4.5",
 					},
 				},
 			},
@@ -664,8 +664,8 @@ struct snmp_rsa_sensor snmp_rsa_cpu_thermal_sensors[] = {
 				/* FIXME:: SNMP is supposed to add thresholds soon */
 				.threshold_oids = {
 					.InterpretedThresholds = {
-						.OidUpMinor      = "\0",
-						.OidUpCrit       = "\0",
+						.OidUpMinor      = ".1.3.6.1.4.1.2.3.51.1.2.20.1.5.1.1.6.6",
+						.OidUpCrit       = ".1.3.6.1.4.1.2.3.51.1.2.20.1.5.1.1.4.6",
 					},
 				},
 			},
@@ -739,8 +739,8 @@ struct snmp_rsa_sensor snmp_rsa_cpu_thermal_sensors[] = {
 				/* FIXME:: SNMP is supposed to add thresholds soon */
 				.threshold_oids = {
 					.InterpretedThresholds = {
-						.OidUpMinor      = "\0",
-						.OidUpCrit       = "\0",
+						.OidUpMinor      = ".1.3.6.1.4.1.2.3.51.1.2.20.1.5.1.1.6.7",
+						.OidUpCrit       = ".1.3.6.1.4.1.2.3.51.1.2.20.1.5.1.1.4.7",
 					},
 				},
 			},
@@ -814,8 +814,8 @@ struct snmp_rsa_sensor snmp_rsa_cpu_thermal_sensors[] = {
 				/* FIXME:: SNMP is supposed to add thresholds soon */
 				.threshold_oids = {
 					.InterpretedThresholds = {
-						.OidUpMinor      = "\0",
-						.OidUpCrit       = "\0",
+						.OidUpMinor      = ".1.3.6.1.4.1.2.3.51.1.2.20.1.5.1.1.6.8",
+						.OidUpCrit       = ".1.3.6.1.4.1.2.3.51.1.2.20.1.5.1.1.4.8",
 					},
 				},
 			},
@@ -898,8 +898,8 @@ struct snmp_rsa_sensor snmp_rsa_dasd_thermal_sensors[] = {
 				/* FIXME:: SNMP is supposed to add thresholds soon */
 				.threshold_oids = {
 					.InterpretedThresholds = {
-						.OidUpMinor      = "\0",
-						.OidUpCrit       = "\0",
+						.OidUpMinor      = ".1.3.6.1.4.1.2.3.51.1.2.20.1.6.1.1.6.1",
+						.OidUpCrit       = ".1.3.6.1.4.1.2.3.51.1.2.20.1.6.1.1.4.1",
 					},
 				},
 			},
@@ -973,8 +973,8 @@ struct snmp_rsa_sensor snmp_rsa_dasd_thermal_sensors[] = {
 				/* FIXME:: SNMP is supposed to add thresholds soon */
 				.threshold_oids = {
 					.InterpretedThresholds = {
-						.OidUpMinor      = "\0",
-						.OidUpCrit       = "\0",
+						.OidUpMinor      = ".1.3.6.1.4.1.2.3.51.1.2.20.1.6.1.1.6.2",
+						.OidUpCrit       = ".1.3.6.1.4.1.2.3.51.1.2.20.1.6.1.1.4.2",
 					},
 				},
 			},
@@ -1048,8 +1048,8 @@ struct snmp_rsa_sensor snmp_rsa_dasd_thermal_sensors[] = {
 				/* FIXME:: SNMP is supposed to add thresholds soon */
 				.threshold_oids = {
 					.InterpretedThresholds = {
-						.OidUpMinor      = "\0",
-						.OidUpCrit       = "\0",
+						.OidUpMinor      = ".1.3.6.1.4.1.2.3.51.1.2.20.1.6.1.1.6.3",
+						.OidUpCrit       = ".1.3.6.1.4.1.2.3.51.1.2.20.1.6.1.1.4.3",
 					},
 				},
 			},
@@ -1123,8 +1123,8 @@ struct snmp_rsa_sensor snmp_rsa_dasd_thermal_sensors[] = {
 				/* FIXME:: SNMP is supposed to add thresholds soon */
 				.threshold_oids = {
 					.InterpretedThresholds = {
-						.OidUpMinor      = "\0",
-						.OidUpCrit       = "\0",
+						.OidUpMinor      = ".1.3.6.1.4.1.2.3.51.1.2.20.1.6.1.1.6.4",
+						.OidUpCrit       = ".1.3.6.1.4.1.2.3.51.1.2.20.1.6.1.1.4.4",
 					},
 				},
 			},
