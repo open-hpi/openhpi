@@ -13,6 +13,7 @@
  *     Louis Zhuang <louis.zhuang@linux.intel.com>
  *     Kevin Gao <kevin.gao@linux.intel.com>
  *     Rusty Lynch <rusty.lynch@linux.intel.com>
+ *     Racing Guo <racing.guo@intel.com>
  */
 #ifndef _INC_IPMI_H_
 #define _INC_IPMI_H_
@@ -182,6 +183,13 @@ SaErrorT ohoi_get_inventory_size(void *hnd, SaHpiResourceIdT id,
 SaErrorT ohoi_get_inventory_info(void *hnd, SaHpiResourceIdT id,
                           SaHpiEirIdT num,
                           SaHpiInventoryDataT *data);
+
+
+int ohoi_hot_swap_cb(ipmi_entity_t  *ent,
+                     enum ipmi_hot_swap_states last_state,
+		     enum ipmi_hot_swap_states curr_state,
+		     void   *cb_data,
+		     ipmi_event_t  *event);
 
 SaErrorT ohoi_get_hotswap_state(void *hnd, SaHpiResourceIdT id, 
                                 SaHpiHsStateT *state);

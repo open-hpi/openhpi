@@ -180,7 +180,7 @@ void ohoi_entity_event(enum ipmi_update_e       op,
 				dbg("Entity added: %d.%d", 
 								ipmi_entity_get_entity_id(entity), 
 								ipmi_entity_get_entity_instance(entity));
-			
+			ipmi_entity_add_hot_swap_handler(entity, ohoi_hot_swap_cb, cb_data);
 			
         } else if (op == IPMI_DELETED) {
 

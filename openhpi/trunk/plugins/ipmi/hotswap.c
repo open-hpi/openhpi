@@ -11,6 +11,7 @@
  *
  * Authors:
  *     Louis Zhuang <louis.zhuang@linux.intel.com>
+ *     Racing Guo <racing.guo@intel.com>
  */
 
 #include "ipmi.h"
@@ -77,6 +78,50 @@ enum ipmi_hot_swap_states _hpi_to_ipmi_state_conv(SaHpiHsStateT hpi_state)
                         dbg("Unknown state: %d", hpi_state);
         }        
         return state;
+}
+
+int ohoi_hot_swap_cb(ipmi_entity_t  *ent,
+		     enum ipmi_hot_swap_states last_state,
+                     enum ipmi_hot_swap_states curr_state,
+		     void                      *cb_data,
+		     ipmi_event_t              *event)
+{
+	struct oh_handler_state *handler =  (struct oh_handler_state*)cb_data;
+	ipmi_entity_id_t entity_id;
+	SaHpiRptEntryT  *rpt_entry;
+	struct oh_event  *e;
+	
+	entity_id = ipmi_entity_convert_to_id(ent);
+	
+	rpt_entry = ohoi_get_resource_by_entityid(handler->rptcache, &entity_id);
+	
+	if (!rpt_entry) {
+		dbg(" No rpt\n");
+		return IPMI_EVENT_NOT_HANDLED;
+	}
+	e = malloc(sizeof(*e));
+	if (!e) {
+		dbg("Out of space");
+		return IPMI_EVENT_NOT_HANDLED;
+	}
+	
+	memset(e, 0, sizeof(*e));
+	e->type = OH_ET_HPI;
+	e->u.hpi_event.parent = rpt_entry->ResourceId;
+	e->u.hpi_event.event.Source = rpt_entry->ResourceId;
+	e->u.hpi_event.event.EventType = SAHPI_ET_HOTSWAP;
+/* Fix Me in Severity */
+	e->u.hpi_event.event.Severity = SAHPI_MINOR;
+/* Fix Me in TimeStamp*/
+	e->u.hpi_event.event.Timestamp = SAHPI_TIME_UNSPECIFIED;
+	
+	e->u.hpi_event.event.EventDataUnion.HotSwapEvent.HotSwapState
+			= _ipmi_to_hpi_state_conv(curr_state);
+	e->u.hpi_event.event.EventDataUnion.HotSwapEvent.PreviousHotSwapState 
+			= _ipmi_to_hpi_state_conv(last_state);
+	
+	handler->eventq = g_slist_append(handler->eventq, e);
+	return IPMI_EVENT_HANDLED;
 }
 
 static
