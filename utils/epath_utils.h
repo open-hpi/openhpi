@@ -53,9 +53,9 @@ int set_epath_instance(SaHpiEntityPathT *ep, SaHpiEntityTypeT et, SaHpiEntityIns
 
 int append_root(SaHpiEntityPathT *ep);
 
-int prt_ep(SaHpiEntityPathT *ep);
+int prt_ep(const SaHpiEntityPathT *ep);
 
-int ep_cmp(SaHpiEntityPathT *ep1, SaHpiEntityPathT *ep2);
+int ep_cmp(const SaHpiEntityPathT *ep1, const SaHpiEntityPathT *ep2);
 #ifdef __cplusplus
 }
 #endif
