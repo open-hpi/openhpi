@@ -81,5 +81,5 @@ hpipower2_LDADD        = $(COMMONLIBS)
 hpipower2_LDFLAGS      =
 
 clean:
-	rm -f *~
+	rm -f *~ *.o
 
