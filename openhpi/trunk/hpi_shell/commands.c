@@ -28,28 +28,54 @@
 
 #define READ_BUF_SIZE	1024
 
+static char	input_buffer[READ_BUF_SIZE];	// command line buffer
+static char	*input_buf_ptr = input_buffer;	// current pointer in input_buffer
+
 int ui_print(char *Str)
 {
 	printf("%s", Str);
 	return(0);
 }
 
+static void clear_input(void)
+{
+	memset(input_buffer, 0, READ_BUF_SIZE);
+	input_buf_ptr = input_buffer;
+}
+
 static int get_int_param(char *mes, int *val, char *string, int len)
 {
-	char	buf[READ_BUF_SIZE];
-	char	*str;
+	int	res, skip = 0;
 
-	printf("%s", mes);
 	memset(string,  0, len);
-	fgets(buf, READ_BUF_SIZE, stdin);
-	str = buf;
-	while (isblank(*str)) str++;
-	if (*str == 0) return(-1);
-	if (isdigit(*str))
-		return(sscanf(buf, "%d", val));
-	if (string == (char *)NULL) return(-1);
-	strncpy(string, buf, len);
-	return(0);
+	while (isblank(*input_buf_ptr)) input_buf_ptr++;
+	if (strlen(input_buf_ptr) == 0) {
+		printf("%s", mes);
+		fgets(input_buffer, READ_BUF_SIZE, stdin);
+		for (res = 0; res < READ_BUF_SIZE; res++)
+			if (input_buffer[res] == '\n') input_buffer[res] = 0;
+		input_buf_ptr = input_buffer;
+	};
+	while (isblank(*input_buf_ptr)) input_buf_ptr++;
+	if (*input_buf_ptr == 0) return(-1);
+	if (isdigit(*input_buf_ptr)) {
+		res = sscanf(input_buf_ptr, "%d", val);
+		if (res == 1) skip = 1;
+		else res = -1;
+	} else {
+		if (string == (char *)NULL) return(-1);
+		strncpy(string, input_buf_ptr, len);
+		while (! isblank(*string) && (*string != 0)) string++;
+		*string = 0;
+		skip = 1;
+		res = 0;
+	};
+		
+	if (skip) {
+		while (! isblank(*input_buf_ptr) && (*input_buf_ptr != 0))
+			input_buf_ptr++;
+	};
+	return(res);
 }
 
 int help(int argc, char *argv[])
@@ -792,6 +818,169 @@ static int show_evtlog(int argc, char *argv[])
 		show_event_short, ui_print);
 }
 
+static int sen_block(int argc, char *argv[])
+{
+	SaHpiRdrT			rdr_entry;
+	SaHpiResourceIdT		rptid = 0;
+	SaHpiInstrumentIdT		rdrnum;
+	SaHpiRdrTypeT			type;
+	SaErrorT			rv;
+	SaHpiBoolT			val;
+	SaHpiEventStateT		assert, deassert;
+	SaHpiSensorEventMaskActionT	act;
+	int				res, i;
+	char				buf[256], t, *str;
+	char				rep[10];
+
+	clear_input();
+	if (argc < 2) {
+		show_rpt_list(Domain, SHOW_ALL_RPT, rptid, ui_print);
+		i = get_int_param("RPT (ID | all) ==> ", &res, buf, 9);
+		if ((i == 0) && (strncmp(buf, "all", 3) == 0)) {
+			show_rpt_list(Domain, SHOW_ALL_RDR, rptid, ui_print);
+			return(SA_OK);
+		};
+		if (i != 1) return SA_OK;
+		rptid = (SaHpiResourceIdT)res;
+	} else {
+		rptid = (SaHpiResourceIdT)atoi(argv[1]);
+	};
+	if (argc < 3) {
+		i = get_int_param("RDR Type (s|a|c|w|i|all) ==> ", &res, buf, 9);
+		if (i != 0) return HPI_SHELL_PARM_ERROR;
+	} else {
+		memset(buf, 0, 10);
+		strncpy(buf, argv[2], 3);
+	};
+	if (strncmp(buf, "all", 3) == 0) t = 'n';
+	else t = *buf;
+	if (t == 'c') type = SAHPI_CTRL_RDR;
+	else if (t == 's') type = SAHPI_SENSOR_RDR;
+	else if (t == 'i') type = SAHPI_INVENTORY_RDR;
+	else if (t == 'w') type = SAHPI_WATCHDOG_RDR;
+	else if (t == 'a') type = SAHPI_ANNUNCIATOR_RDR;
+	else type = SAHPI_NO_RECORD;
+	if (argc < 4) {
+		show_rdr_list(Domain, rptid, type, ui_print);
+		i = get_int_param("RDR NUM ==> ", &res, buf, 9);
+		if (i != 1) return SA_OK;
+		rdrnum = (SaHpiInstrumentIdT)res;
+	} else {
+		rdrnum = (SaHpiInstrumentIdT)atoi(argv[3]);
+	};
+	rv = saHpiRdrGetByInstrumentId(Domain->sessionId, rptid, type, rdrnum, &rdr_entry);
+	if (rv != SA_OK) {
+		printf("ERROR!!! Can not get rdr: ResourceId=%d RdrType=%d RdrNum=%d\n",
+			rptid, type, rdrnum);
+		return(rv);
+	};
+	for (;;) {
+		clear_input();
+		printf("Available commands are: evtget, evtenb, evtdis, maskget\n"
+			"                       maskadd, maskrm, q, quit\n");
+		i = get_int_param("command? ==> ", &res, buf, 9);
+		if (i != 0) break;
+		if ((strcmp(buf, "q") == 0) || (strcmp(buf, "quit") == 0)) break;
+		if (strcmp(buf, "evtget") == 0) {
+			rv = saHpiSensorEventEnableGet(Domain->sessionId, rptid, rdrnum,
+				&val);
+			if (rv != SA_OK) {
+				printf("saHpiSensorEventEnableGet: error: %s\n",
+					oh_lookup_error(rv));
+				break;
+			};
+			if (val) strcpy(buf, "Enable");
+			else strcpy(buf, "disable");
+			printf("Sensor:(%d/%d) event %s\n", rptid, rdrnum, buf);
+			continue;
+		};
+		if ((strcmp(buf, "evtenb") == 0) || (strcmp(buf, "evtdis") == 0)) {
+			if (strcmp(buf, "evtenb") == 0) val = 1;
+			else val = 0;
+			rv = saHpiSensorEventEnableSet(Domain->sessionId, rptid, rdrnum,
+				val);
+			if (rv != SA_OK) {
+				printf("saHpiSensorEventEnableSet: error: %s\n",
+					oh_lookup_error(rv));
+				break;
+			};
+			rv = saHpiSensorEventEnableGet(Domain->sessionId, rptid, rdrnum,
+				&val);
+			if (rv != SA_OK) {
+				printf("saHpiSensorEventEnableGet: error: %s\n",
+					oh_lookup_error(rv));
+				break;
+			};
+			if (val) strcpy(buf, "Enable");
+			else strcpy(buf, "disable");
+			printf("Sensor:(%d/%d) event %s\n", rptid, rdrnum, buf);
+			continue;
+		};
+		if (strcmp(buf, "maskget") == 0) {
+			rv = saHpiSensorEventMasksGet(Domain->sessionId, rptid, rdrnum,
+				&assert, &deassert);
+			if (rv != SA_OK) {
+				printf("saHpiSensorEventMasksGet: error: %s\n",
+					oh_lookup_error(rv));
+				break;
+			};
+			printf("Sensor:(%d/%d) masks: assert = 0x%4.4x   "
+				"deassert = 0x%4.4x\n", rptid, rdrnum, assert, deassert);
+			continue;
+		};
+		if ((strcmp(buf, "maskadd") == 0) || (strcmp(buf, "maskrm") == 0)) {
+			if (strcmp(buf, "maskadd") == 0) {
+				act = SAHPI_SENS_ADD_EVENTS_TO_MASKS;
+				strcpy(rep, "add");
+			} else {
+				act = SAHPI_SENS_REMOVE_EVENTS_FROM_MASKS;
+				strcpy(rep, "remove");
+			};
+			rv = saHpiSensorEventMasksGet(Domain->sessionId, rptid, rdrnum,
+				&assert, &deassert);
+			if (rv != SA_OK) {
+				printf("saHpiSensorEventMasksGet: error: %s\n",
+					oh_lookup_error(rv));
+				break;
+			};
+			printf("Assert mask = 0x");
+			strcpy(buf, "0x");
+			fgets(buf + 2, 254, stdin);
+			str = buf;
+			if (strlen(str) < 3) continue;
+			assert = strtol(str, (char **)NULL, 16);
+			printf("Deassert mask = 0x");
+			strcpy(buf, "0x");
+			fgets(buf + 2, 254, stdin);
+			str = buf;
+			if (strlen(str) < 3) continue;
+			deassert = strtol(str, (char **)NULL, 16);
+			if (strcmp(buf, "maskadd") == 0) {
+				act = SAHPI_SENS_ADD_EVENTS_TO_MASKS;
+				strcpy(buf, "add");
+			} else {
+				act = SAHPI_SENS_REMOVE_EVENTS_FROM_MASKS;
+				strcpy(buf, "remove");
+			};
+			printf("Sensor:(%d/%d) %s masks: assert = 0x%4.4x   "
+				"deassert = 0x%4.4x  (yes/no)?", rptid, rdrnum, rep,
+				assert, deassert);
+			fgets(buf, 256, stdin);
+			if (strcmp(buf, "yes") != 0) continue;
+			rv = saHpiSensorEventMasksSet(Domain->sessionId, rptid, rdrnum,
+				act, assert, deassert);
+			if (rv != SA_OK) {
+				printf("saHpiSensorEventMasksSet: error: %s\n",
+					oh_lookup_error(rv));
+				break;
+			};
+			continue;
+		};
+		printf("Invalid command\n");
+	};
+	return SA_OK;
+}
+
 static int show_inv(int argc, char *argv[])
 {
 #ifdef MY   // my
@@ -814,6 +1003,7 @@ static int show_rpt(int argc, char *argv[])
 	SaErrorT		rv;
 	SaHpiResourceIdT	resid = 0;
 
+	clear_input();
 	if (argc < 2) {
 		show_rpt_list(Domain, SHOW_ALL_RPT, resid, ui_print);
 		i = get_int_param("RPT ID ==> ", &res, (char *)NULL, 0);
@@ -840,6 +1030,7 @@ static int show_rdr(int argc, char *argv[])
 	int			res, i;
 	char			buf[10], t;
 
+	clear_input();
 	if (argc < 2) {
 		show_rpt_list(Domain, SHOW_ALL_RPT, rptid, ui_print);
 		i = get_int_param("RPT (ID | all) ==> ", &res, buf, 9);
@@ -921,6 +1112,10 @@ const char quithelp[] = "quit: close session and quit console\n"           \
 			"Usage: quit ";
 const char resethelp[] = "reset: perform specified reset on the entity\n"  \
 			"Usage: reset <resource id> [cold|warm|assert]";
+const char senhelp[] = "sen: sensor block commands\n"        \
+			"Usage: sen [<sensorId> [<command>]]"
+			"	command:: evtget"
+			"	sensorId:: <resourceId> <type> <num>";
 const char senevtgethelp[] = "senevtget: get sensor event status\n"        \
 			"Usage: senevtget <resource id> <sensor id>";
 const char senevtsethelp[] = "senevtelb: enable sensor event message\n"    \
@@ -963,6 +1158,7 @@ struct command commands[] = {
     { "rdr",		show_rdr,		showrdrhelp },
     { "reset",		reset,			resethelp },
     { "rpt",		show_rpt,		showrpthelp },
+    { "sen",		sen_block,		senhelp },
     { "senevtget",	sen_evt_get,		senevtgethelp },
     { "senevtelb",	sen_evt_set,		senevtsethelp },
     { "sethreshold",	set_thres,		setthreshelp },
