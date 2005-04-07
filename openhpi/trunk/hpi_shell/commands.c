@@ -394,7 +394,8 @@ static ret_code_t set_sever(void)
 
 	ret = ask_rpt(&resid);
 	if (ret != HPI_SHELL_OK) return(ret);
-	i = get_string_param("New severity (crit, maj, min, inf, ok, debug, all): ",
+	i = get_string_param(
+		"New severity (crit, maj, min, inf, ok, debug, all): ",
 		buf, SEV_BUF_SIZE);
 	if (i != 0) {
 		printf("Invalid sevetity: %s\n", buf);
@@ -411,7 +412,8 @@ static ret_code_t set_sever(void)
 	};
 	rv = saHpiResourceSeveritySet(Domain->sessionId, resid, sev);
 	if (rv != SA_OK) {
-		printf("saHpiResourceSeveritySet error = %s\n", oh_lookup_error(rv));
+		printf("saHpiResourceSeveritySet error = %s\n",
+			oh_lookup_error(rv));
 		return HPI_SHELL_CMD_ERROR;
 	};
 	rv = saHpiRptEntryGetByResourceId(Domain->sessionId, resid, &rpt_entry);
@@ -459,7 +461,8 @@ static ret_code_t show_evtlog(void)
 	else
 		rptid = (SaHpiResourceIdT)atoi(term->term);
 
-	return show_event_log(Domain->sessionId, rptid, show_event_short, ui_print);
+	return show_event_log(Domain->sessionId, rptid,
+		show_event_short, ui_print);
 }
 
 static ret_code_t evtlog_time(void)
@@ -505,14 +508,17 @@ static ret_code_t evtlog_state(void)
 	term = get_next_term();
 	if (term != NULL) {
 		do_set = 1;
-		if (strcmp(term->term, "enable") == 0) state = SAHPI_TRUE;
-		else if (strcmp(term->term, "disable") == 0) state = SAHPI_FALSE;
+		if (strcmp(term->term, "enable") == 0)
+			state = SAHPI_TRUE;
+		else if (strcmp(term->term, "disable") == 0)
+			state = SAHPI_FALSE;
 		else return(HPI_SHELL_PARM_ERROR);
 	};
 	if (do_set) {
 		rv = saHpiEventLogStateSet(Domain->sessionId, rptid, state);
 		if (rv != SA_OK) {
-			printf("saHpiEventLogStateSet %s\n", oh_lookup_error(rv));
+			printf("saHpiEventLogStateSet %s\n",
+				oh_lookup_error(rv));
 			return(HPI_SHELL_CMD_ERROR);
 		};
 		return(HPI_SHELL_OK);
@@ -541,7 +547,8 @@ static ret_code_t evtlog_reset(void)
 
 	rv = saHpiEventLogOverflowReset(Domain->sessionId, rptid);
 	if (rv != SA_OK) {
-		printf("saHpiEventLogOverflowReset %s\n", oh_lookup_error(rv));
+		printf("saHpiEventLogOverflowReset %s\n",
+			oh_lookup_error(rv));
 		return(HPI_SHELL_CMD_ERROR);
 	};
 	return HPI_SHELL_OK;
@@ -576,11 +583,13 @@ static ret_code_t settime_evtlog(void)
 		printf("Set date and time for Resource %d!\n", rptid);
 
 	memset(&new_tm_time, 0, sizeof(struct tm));
-	i = get_string_param("format: MM:DD:YYYY:hh:mm:ss ==> ", buf, READ_BUF_SIZE);
+	i = get_string_param("format: MM:DD:YYYY:hh:mm:ss ==> ",
+		buf, READ_BUF_SIZE);
 	if (i != 0) return(HPI_SHELL_PARM_ERROR);
-	sscanf(buf, "%d:%d:%d:%d:%d:%d", &new_tm_time.tm_mon, &new_tm_time.tm_mday,
-		&new_tm_time.tm_year, &new_tm_time.tm_hour, &new_tm_time.tm_min,
-		&new_tm_time.tm_sec);
+	sscanf(buf, "%d:%d:%d:%d:%d:%d",
+		&new_tm_time.tm_mon, &new_tm_time.tm_mday,
+		&new_tm_time.tm_year, &new_tm_time.tm_hour,
+		&new_tm_time.tm_min, &new_tm_time.tm_sec);
 	if ((new_tm_time.tm_mon < 1) || (new_tm_time.tm_mon > 12)) {
 		printf("Month out of range: (%d)\n", new_tm_time.tm_mon);
 		return(HPI_SHELL_PARM_ERROR);
@@ -692,7 +701,8 @@ static ret_code_t show_rdr(void)
 	term = get_next_term();
 	if (term == NULL) {
 		if (read_file) return(HPI_SHELL_CMD_ERROR);
-		i = get_string_param("RDR Type (s|a|c|w|i|all) ==> ", buf, 9);
+		i = get_string_param("RDR Type (s|a|c|w|i|all) ==> ",
+			buf, 9);
 		if (i != 0) return HPI_SHELL_PARM_ERROR;
 	} else {
 		memset(buf, 0, 10);
@@ -709,13 +719,14 @@ static ret_code_t show_rdr(void)
 	ret = ask_rdr(rptid, type, &rdrnum);
 	if (ret != HPI_SHELL_OK) return(ret);
 	if (type == SAHPI_NO_RECORD)
-		rv = find_rdr_by_num(Domain->sessionId, rptid, rdrnum, type, 0,
-			&rdr_entry);
+		rv = find_rdr_by_num(Domain->sessionId, rptid,
+			rdrnum, type, 0, &rdr_entry);
 	else
-		rv = saHpiRdrGetByInstrumentId(Domain->sessionId, rptid, type, rdrnum,
-			&rdr_entry);
+		rv = saHpiRdrGetByInstrumentId(Domain->sessionId,
+			rptid, type, rdrnum, &rdr_entry);
 	if (rv != SA_OK) {
-		printf("ERROR!!! Get rdr: ResourceId=%d RdrType=%d RdrNum=%d: %s\n",
+		printf("ERROR!!! Get rdr: ResourceId=%d RdrType=%d"
+			"RdrNum=%d: %s\n",
 			rptid, type, rdrnum, oh_lookup_error(rv));
 		return(HPI_SHELL_CMD_ERROR);
 	};
@@ -741,9 +752,11 @@ static ret_code_t wtd_get(void)
 	ret = ask_rdr(rptid, SAHPI_WATCHDOG_RDR, &wtdnum);
 	if (ret != HPI_SHELL_OK) return(ret);
 
-	rv = saHpiWatchdogTimerGet(Domain->sessionId, rptid, wtdnum, &watchdog);
+	rv = saHpiWatchdogTimerGet(Domain->sessionId,
+		rptid, wtdnum, &watchdog);
 	if (rv != SA_OK) {
-		printf("ERROR!!! Get Watchdog: ResourceId=%d WatchdogNum=%d: %s\n",
+		printf("ERROR!!! Get Watchdog: ResourceId=%d "
+			"WatchdogNum=%d: %s\n",
 			rptid, wtdnum, oh_lookup_error(rv));
 		return(HPI_SHELL_CMD_ERROR);
 	};
@@ -754,42 +767,64 @@ static ret_code_t wtd_get(void)
 	else str = "Stopped";
 	printf("  %s\n", str);
 	switch (watchdog.TimerUse) {
-		case SAHPI_WTU_NONE:		str = "NONE"; break;
-		case SAHPI_WTU_BIOS_FRB2:	str = "BIOS_FRB2"; break;
-		case SAHPI_WTU_BIOS_POST:	str = "BIOS_POST"; break;
-		case SAHPI_WTU_OS_LOAD:		str = "OS_LOAD"; break;
-		case SAHPI_WTU_SMS_OS:		str = "SMS_OS"; break;
-		case SAHPI_WTU_OEM:		str = "OEM"; break;
-		case SAHPI_WTU_UNSPECIFIED:	str = "UNSPEC"; break;
+		case SAHPI_WTU_NONE:
+			str = "NONE"; break;
+		case SAHPI_WTU_BIOS_FRB2:
+			str = "BIOS_FRB2"; break;
+		case SAHPI_WTU_BIOS_POST:
+			str = "BIOS_POST"; break;
+		case SAHPI_WTU_OS_LOAD:	
+			str = "OS_LOAD"; break;
+		case SAHPI_WTU_SMS_OS:
+			str = "SMS_OS"; break;
+		case SAHPI_WTU_OEM:
+			str = "OEM"; break;
+		case SAHPI_WTU_UNSPECIFIED:
+			str = "UNSPEC"; break;
 		default: str = "Unknown"; break;
 	};
 	printf("  Timer Use: %s", str);
 	switch (watchdog.TimerAction) {
-		case SAHPI_WAE_NO_ACTION:	str = "NO_ACTION"; break;
-		case SAHPI_WAE_RESET:		str = "RESET"; break;
-		case SAHPI_WAE_POWER_DOWN:	str = "POWER_DOWN"; break;
-		case SAHPI_WAE_POWER_CYCLE:	str = "POWER_CYCLE"; break;
-		case SAHPI_WAE_TIMER_INT:	str = "TIMER_INT"; break;
+		case SAHPI_WAE_NO_ACTION:
+			str = "NO_ACTION"; break;
+		case SAHPI_WAE_RESET:
+			str = "RESET"; break;
+		case SAHPI_WAE_POWER_DOWN:
+			str = "POWER_DOWN"; break;
+		case SAHPI_WAE_POWER_CYCLE:
+			str = "POWER_CYCLE"; break;
+		case SAHPI_WAE_TIMER_INT:
+			str = "TIMER_INT"; break;
 		default: str = "Unknown"; break;
 	};
 	printf("  Action: %s", str);
 	switch (watchdog.PretimerInterrupt) {
-		case SAHPI_WPI_NONE:			str = "NONE"; break;
-		case SAHPI_WPI_SMI:			str = "SMI"; break;
-		case SAHPI_WPI_NMI:			str = "NMI"; break;
-		case SAHPI_WPI_MESSAGE_INTERRUPT:	str = "MESSAGE"; break;
-		case SAHPI_WPI_OEM:			str = "OEM"; break;
+		case SAHPI_WPI_NONE:
+			str = "NONE"; break;
+		case SAHPI_WPI_SMI:
+			str = "SMI"; break;
+		case SAHPI_WPI_NMI:
+			str = "NMI"; break;
+		case SAHPI_WPI_MESSAGE_INTERRUPT:
+			str = "MESSAGE"; break;
+		case SAHPI_WPI_OEM:
+			str = "OEM"; break;
 		default: str = "Unknown"; break;
 	};
 	printf("  Interrupt: %s", str);
 	printf("  TimeOut: %d\n", watchdog.PreTimeoutInterval);
 	tmp[0] = 0;
 	flags = watchdog.TimerUseExpFlags;
-	if (flags & SAHPI_WATCHDOG_EXP_BIOS_FRB2) strcat(tmp, " BIOS_FRB2 |");
-	if (flags & SAHPI_WATCHDOG_EXP_BIOS_POST) strcat(tmp, " BIOS_POST |");
-	if (flags & SAHPI_WATCHDOG_EXP_OS_LOAD) strcat(tmp, " OS_LOAD |");
-	if (flags & SAHPI_WATCHDOG_EXP_SMS_OS) strcat(tmp, " SMS_OS |");
-	if (flags & SAHPI_WATCHDOG_EXP_OEM) strcat(tmp, " OEM |");
+	if (flags & SAHPI_WATCHDOG_EXP_BIOS_FRB2)
+		strcat(tmp, " BIOS_FRB2 |");
+	if (flags & SAHPI_WATCHDOG_EXP_BIOS_POST)
+		strcat(tmp, " BIOS_POST |");
+	if (flags & SAHPI_WATCHDOG_EXP_OS_LOAD)
+		strcat(tmp, " OS_LOAD |");
+	if (flags & SAHPI_WATCHDOG_EXP_SMS_OS)
+		strcat(tmp, " SMS_OS |");
+	if (flags & SAHPI_WATCHDOG_EXP_OEM)
+		strcat(tmp, " OEM |");
 	if (strlen(tmp) > 0) {
 		tmp[strlen(tmp) - 1] = 0;
 		printf("  Flags: {%s}\n", tmp);
@@ -833,34 +868,47 @@ static ret_code_t wtd_set(void)
 	if (tmp[0] == '1') watchdog.Running = SAHPI_TRUE;
 	else watchdog.Running = SAHPI_FALSE;
 
-	i = get_string_param("TimerUse(none|bios_frb2|bios_post|os_load|sms_os|oem): ",
+	i = get_string_param(
+		"TimerUse(none|bios_frb2|bios_post|os_load|sms_os|oem): ",
 		tmp, 255);
 	if (i != 0) {
 		printf("Invalid TimerUse value: %s\n", tmp);
 		return(HPI_SHELL_PARM_ERROR);
 	};
-	if (strcmp(tmp, "none") == 0) watchdog.TimerUse = SAHPI_WTU_NONE;
-	else if (strcmp(tmp, "bios_frb2") == 0) watchdog.TimerUse = SAHPI_WTU_BIOS_FRB2;
-	else if (strcmp(tmp, "bios_post") == 0) watchdog.TimerUse = SAHPI_WTU_BIOS_POST;
-	else if (strcmp(tmp, "os_load") == 0) watchdog.TimerUse = SAHPI_WTU_OS_LOAD;
-	else if (strcmp(tmp, "sms_os") == 0) watchdog.TimerUse = SAHPI_WTU_SMS_OS;
-	else if (strcmp(tmp, "oem") == 0) watchdog.TimerUse = SAHPI_WTU_OEM;
+	if (strcmp(tmp, "none") == 0)
+		watchdog.TimerUse = SAHPI_WTU_NONE;
+	else if (strcmp(tmp, "bios_frb2") == 0)
+		watchdog.TimerUse = SAHPI_WTU_BIOS_FRB2;
+	else if (strcmp(tmp, "bios_post") == 0)
+		watchdog.TimerUse = SAHPI_WTU_BIOS_POST;
+	else if (strcmp(tmp, "os_load") == 0)
+		watchdog.TimerUse = SAHPI_WTU_OS_LOAD;
+	else if (strcmp(tmp, "sms_os") == 0)
+		watchdog.TimerUse = SAHPI_WTU_SMS_OS;
+	else if (strcmp(tmp, "oem") == 0)
+		watchdog.TimerUse = SAHPI_WTU_OEM;
 	else {
 		printf("Invalid TimerUse value: %s\n", tmp);
 		return(HPI_SHELL_PARM_ERROR);
 	};
 
-	i = get_string_param("TimerAction(no|reset|pwr_down|pwr_cycle|int): ",
+	i = get_string_param(
+		"TimerAction(no|reset|pwr_down|pwr_cycle|int): ",
 		tmp, 255);
 	if (i != 0) {
 		printf("Invalid TimerAction value: %s\n", tmp);
 		return(HPI_SHELL_PARM_ERROR);
 	};
-	if (strcmp(tmp, "no") == 0) watchdog.TimerAction = SAHPI_WAE_NO_ACTION;
-	else if (strcmp(tmp, "reset") == 0) watchdog.TimerAction = SAHPI_WAE_RESET;
-	else if (strcmp(tmp, "pwr_down") == 0) watchdog.TimerAction = SAHPI_WAE_POWER_DOWN;
-	else if (strcmp(tmp, "pwr_cycle") == 0) watchdog.TimerAction = SAHPI_WAE_POWER_CYCLE;
-	else if (strcmp(tmp, "int") == 0) watchdog.TimerAction = SAHPI_WAE_TIMER_INT;
+	if (strcmp(tmp, "no") == 0)
+		watchdog.TimerAction = SAHPI_WAE_NO_ACTION;
+	else if (strcmp(tmp, "reset") == 0)
+		watchdog.TimerAction = SAHPI_WAE_RESET;
+	else if (strcmp(tmp, "pwr_down") == 0)
+		watchdog.TimerAction = SAHPI_WAE_POWER_DOWN;
+	else if (strcmp(tmp, "pwr_cycle") == 0)
+		watchdog.TimerAction = SAHPI_WAE_POWER_CYCLE;
+	else if (strcmp(tmp, "int") == 0)
+		watchdog.TimerAction = SAHPI_WAE_TIMER_INT;
 	else {
 		printf("Invalid TimerAction value: %s\n", tmp);
 		return(HPI_SHELL_PARM_ERROR);
@@ -872,11 +920,16 @@ static ret_code_t wtd_set(void)
 		printf("Invalid PretimerInterrupt value: %s\n", tmp);
 		return(HPI_SHELL_PARM_ERROR);
 	};
-	if (strcmp(tmp, "no") == 0) watchdog.PretimerInterrupt = SAHPI_WPI_NONE;
-	else if (strcmp(tmp, "smi") == 0) watchdog.PretimerInterrupt = SAHPI_WPI_SMI;
-	else if (strcmp(tmp, "nmi") == 0) watchdog.PretimerInterrupt = SAHPI_WPI_NMI;
-	else if (strcmp(tmp, "mess") == 0) watchdog.PretimerInterrupt = SAHPI_WPI_MESSAGE_INTERRUPT;
-	else if (strcmp(tmp, "oem") == 0) watchdog.PretimerInterrupt = SAHPI_WPI_OEM;
+	if (strcmp(tmp, "no") == 0)
+		watchdog.PretimerInterrupt = SAHPI_WPI_NONE;
+	else if (strcmp(tmp, "smi") == 0)
+		watchdog.PretimerInterrupt = SAHPI_WPI_SMI;
+	else if (strcmp(tmp, "nmi") == 0)
+		watchdog.PretimerInterrupt = SAHPI_WPI_NMI;
+	else if (strcmp(tmp, "mess") == 0)
+		watchdog.PretimerInterrupt = SAHPI_WPI_MESSAGE_INTERRUPT;
+	else if (strcmp(tmp, "oem") == 0)
+		watchdog.PretimerInterrupt = SAHPI_WPI_OEM;
 	else {
 		printf("Invalid TimerAction value: %s\n", tmp);
 		return(HPI_SHELL_PARM_ERROR);
@@ -1011,7 +1064,8 @@ static ret_code_t domain_info(void)
 
 	rv = saHpiDomainInfoGet(Domain->sessionId, &info);
 	if (rv != SA_OK) {
-		printf("ERROR!!! saHpiDomainInfoGet: %s\n", oh_lookup_error(rv));
+		printf("ERROR!!! saHpiDomainInfoGet: %s\n",
+			oh_lookup_error(rv));
 		return(HPI_SHELL_CMD_ERROR);
 	};
 	printf("Domain: %d   Capabil: 0x%x   IsPeer: %d   Guid: %s\n",
@@ -1058,7 +1112,8 @@ static ret_code_t domain_proc(void)
 			Domain->sessionId);
 		rv = saHpiDomainInfoGet(Domain->sessionId, &info);
 		if (rv == SA_OK) {
-			print_text_buffer_text("    Tag: ",  &(info.DomainTag), NULL, ui_print);
+			print_text_buffer_text("    Tag: ",
+				&(info.DomainTag), NULL, ui_print);
 		};
 		printf("\n");
 		entryid = SAHPI_FIRST_ENTRY;
@@ -1291,7 +1346,7 @@ command_def_t commands[] = {
     { "help",		help_cmd,	helphelp,	UNDEF_COM },
     { "hs",		hs_block,	hsblockhelp,	MAIN_COM },
     { "inv",		inv_block,	invhelp,	MAIN_COM },
-    { "lsres",		listres,	lreshelp,	MAIN_COM },
+    { "lsres",		listres,	lreshelp,	UNDEF_COM },
     { "lsensor",	list_sensor,	lsorhelp,	MAIN_COM },
     { "parmctrl",	parmctrl,	parmctrlhelp,	MAIN_COM },
     { "power",		power,		powerhelp,	MAIN_COM },
