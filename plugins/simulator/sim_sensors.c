@@ -19,54 +19,77 @@
 #include <sim_sensors.h>
 #include <sim_init.h>
 #include <sim_resources.h>
+#include <rpt_utils.h>
 
 SaErrorT sim_discover_sensors(RPTable *rpt)
 {
-         SaHpiRptEntryT res;
+         SaHpiRptEntryT *res;
 
-        /* add to first resource */
-        memcpy(&res, &dummy_rpt_array[1], sizeof(SaHpiRptEntryT));
-        SaHpiResourceIdT rid = oh_uid_from_entity_path(&res.ResourceEntity);
-        new_sensor(rpt, rid, 1); /* add #1 ... */
-        new_sensor(rpt, rid, 5); /* add #5 ... */
 
+	 /* add to first resource */
+	res = oh_get_resource_next(rpt, SAHPI_FIRST_ENTRY);
+	if (!res){
+		dbg("entity_root is needed and not present");
+		return 1;
+	}
+	new_sensor(rpt, res->ResourceId, 1); /* add #1 ... */
+	new_sensor(rpt, res->ResourceId, 5); /* add #5 ... */
+		       
         /* add to second resource */
-        memcpy(&res, &dummy_rpt_array[2], sizeof(SaHpiRptEntryT));
-        SaHpiResourceIdT rid2 = oh_uid_from_entity_path(&res.ResourceEntity);
-        new_sensor(rpt, rid2, 1);
-        new_sensor(rpt, rid2, 2);
-        new_sensor(rpt, rid2, 3);
+	res = oh_get_resource_next(rpt, res->ResourceId);
+	if (!res){
+		dbg("entity_root is needed and not present");
+		return 1;
+	}
+        new_sensor(rpt, res->ResourceId, 1);
+        new_sensor(rpt, res->ResourceId, 2);
+        new_sensor(rpt, res->ResourceId, 3);
 
         /* add to third resource */
-        memcpy(&res, &dummy_rpt_array[3], sizeof(SaHpiRptEntryT));
-        SaHpiResourceIdT rid3 = oh_uid_from_entity_path(&res.ResourceEntity);
-        new_sensor(rpt, rid3, 2); 
-        new_sensor(rpt, rid3, 7);
+	res = oh_get_resource_next(rpt, res->ResourceId);
+	if (!res){
+		dbg("entity_root is needed and not present");
+		return 1;
+	}
+        new_sensor(rpt, res->ResourceId, 2); 
+        new_sensor(rpt, res->ResourceId, 7);
 
         /* add to fourth resource */
-        memcpy(&res, &dummy_rpt_array[4], sizeof(SaHpiRptEntryT));
-        SaHpiResourceIdT rid4 = oh_uid_from_entity_path(&res.ResourceEntity);
-        new_sensor(rpt, rid4, 3); 
-        new_sensor(rpt, rid4, 5);
+	res = oh_get_resource_next(rpt, res->ResourceId);
+	if (!res){
+		dbg("entity_root is needed and not present");
+		return 1;
+	}
+        new_sensor(rpt, res->ResourceId, 3); 
+        new_sensor(rpt, res->ResourceId, 5);
 
         /* add to fifth resource */
-        memcpy(&res, &dummy_rpt_array[5], sizeof(SaHpiRptEntryT));
-        SaHpiResourceIdT rid5 = oh_uid_from_entity_path(&res.ResourceEntity);
-        new_sensor(rpt, rid5, 2); 
+	res = oh_get_resource_next(rpt, res->ResourceId);
+	if (!res){
+		dbg("entity_root is needed and not present");
+		return 1;
+	}
+        new_sensor(rpt, res->ResourceId, 2); 
      
         /* add to sixth resource */
-        memcpy(&res, &dummy_rpt_array[6], sizeof(SaHpiRptEntryT));
-        SaHpiResourceIdT rid6 = oh_uid_from_entity_path(&res.ResourceEntity);
-        new_sensor(rpt, rid6, 1); 
-        new_sensor(rpt, rid6, 9);
-        new_sensor(rpt, rid6, 6);
-        new_sensor(rpt, rid6, 7);
+	res = oh_get_resource_next(rpt, res->ResourceId);
+	if (!res){
+		dbg("entity_root is needed and not present");
+		return 1;
+	}		
+        new_sensor(rpt, res->ResourceId, 1); 
+        new_sensor(rpt, res->ResourceId, 9);
+        new_sensor(rpt, res->ResourceId, 6);
+        new_sensor(rpt, res->ResourceId, 7);
 
         /* add to seventh resource */
-        memcpy(&res, &dummy_rpt_array[7], sizeof(SaHpiRptEntryT));
-        SaHpiResourceIdT rid7 = oh_uid_from_entity_path(&res.ResourceEntity);
-        new_sensor(rpt, rid7, 4); 
-        new_sensor(rpt, rid7, 2);
+	res = oh_get_resource_next(rpt, res->ResourceId);
+	if (!res){
+		dbg("entity_root is needed and not present");
+		return 1;
+	}
+        new_sensor(rpt, res->ResourceId, 4); 
+        new_sensor(rpt, res->ResourceId, 2);
 
 
         return 0; 
@@ -1078,6 +1101,7 @@ struct dummy_sensor dummy_voltage_sensors[] = {
 		},
                 .comment = "Blade CPU 1 temperature sensor"
         }
+
 
 };
 
