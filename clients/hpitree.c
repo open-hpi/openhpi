@@ -273,12 +273,10 @@ SaErrorT list_rpt(SaHpiRptEntryT *rptptr,SaHpiResourceIdT resourceid)
 		(resourceid == rptptr->ResourceId)) {
 
 		/* Always print resource header */
-		printf("\n");
-		oh_print_ep(&rptptr->ResourceEntity, 1);
-		
 		if (!f_listall && !f_rpt) 
-		printf("  Tag: %s, ResourceId %d\n\n",rptptr->ResourceTag.Data, rptptr->ResourceId);
-
+		printf("\nRPT Tag: %s, ResourceId %d\n",rptptr->ResourceTag.Data, rptptr->ResourceId);
+		oh_print_ep(&rptptr->ResourceEntity, 0);
+		printf("\n");
 
 		/* Print details when asked */
 		if (f_listall || f_rpt) oh_print_rptentry(rptptr, 2);
@@ -428,13 +426,19 @@ SaErrorT list_sens(SaHpiSessionIdT sessionid,
 					
 		if (&rdrptr->RdrTypeUnion.SensorRec == 0) printf("ERROR! Sensor pointer NULL\n");
 		
+		printf("  Sensor Name: ");
+		rv = oh_print_text(&(rdrptr->IdString));
+		if (rv) printf("oh_print_text Error=%s\n", oh_lookup_error(rv));
+		
+		rv = oh_print_ep(&(rdrptr->Entity), 4);
+		if (rv) printf("oh_print_ep Error=%s\n", oh_lookup_error(rv));
+
 		rv = oh_print_sensorrec(&rdrptr->RdrTypeUnion.SensorRec, 4);
 		if (rv) printf("oh_print_sensorrec Error=%s\n", oh_lookup_error(rv));
 		
 		sensor_readingthreshold(sessionid,
 					l_resourceid,
 					rdrptr);
-	
 		
 	} 
 	
