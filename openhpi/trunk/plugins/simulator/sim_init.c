@@ -109,7 +109,12 @@ SaErrorT sim_discover(void *hnd)
 	
 	oh_init_textbuffer(&build_name);
 
-	for(i=0; i<sizeof(&dummy_rpt_array)/sizeof(SaHpiRptEntryT); i++){
+	int x = 0;
+	while(dummy_rpt_array[x].rpt.ResourceInfo.ManufacturerId != 0){
+		x++;
+	}
+	
+	for(i=0; i<x; i++){
 		oh_append_textbuffer(&build_name, dummy_rpt_array[i].comment);
 		dummy_create_resourcetag(&(e->u.res_event.entry.ResourceTag), (char *)build_name.Data, root_ep.Entry[i].EntityLocation);
 	}
@@ -150,8 +155,13 @@ SaErrorT build_rptcache(RPTable *rptcache, SaHpiEntityPathT *root_ep)
 {
 	int i;
 	SaHpiRptEntryT res;
-	               
-	for(i=0; i<sizeof(&dummy_rpt_array)/sizeof(SaHpiRptEntryT); i++){
+	int x = 0;
+
+	while (dummy_rpt_array[x].rpt.ResourceInfo.ManufacturerId != 0){
+		x++;
+	}
+
+	for(i=0; i<x; i++){
 		memcpy(&res, &dummy_rpt_array[i], sizeof(SaHpiRptEntryT));
 		oh_concat_ep(&res.ResourceEntity, root_ep);
 		res.ResourceId = oh_uid_from_entity_path(&res.ResourceEntity);
@@ -162,7 +172,7 @@ SaErrorT build_rptcache(RPTable *rptcache, SaHpiEntityPathT *root_ep)
         return 0;
 }
 
-SaErrorT new_sensor(RPTable *rptcache, SaHpiResourceIdT ResId, SaHpiSensorNumT Index){
+SaErrorT new_sensor(RPTable *rptcache, SaHpiResourceIdT ResId, int Index){
 	SaHpiRdrT res_rdr;
 	SaHpiRptEntryT res;
 

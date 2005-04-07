@@ -3,6 +3,7 @@
 
 #include <sim_init.h>
 #include <sim_resources.h>
+#include <SaHpi.h>
 
 #define DUMMY_MAX_EVENTS_PER_SENSOR 24
 #define DUMMY_MAX_READING_MAPS_PER_SENSOR 3

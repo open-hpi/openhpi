@@ -313,5 +313,6 @@ struct dummy_rpt dummy_rpt_array[] = {
                 .comment = "Sim Power Module"
         
 	},
+	{},
 };
 
