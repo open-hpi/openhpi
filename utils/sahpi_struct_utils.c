@@ -886,7 +886,8 @@ static SaErrorT oh_build_sensorrec(oh_big_textbuffer *buffer, const SaHpiSensorR
 
 	/* Sensor Num */
 	oh_append_offset(buffer, offsets);
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Sensor Num: %d\n", sensor->Num);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Sensor Num: %d (%x hex)\n",
+		 sensor->Num, sensor->Num);
 	oh_append_bigtext(buffer, str);
 	offsets++;
 
@@ -1208,7 +1209,7 @@ SaErrorT oh_fprint_idrfield(FILE *stream, const SaHpiIdrFieldT *thisfield, int o
 	oh_append_bigtext(&mybuf, str);
 						
 	oh_append_offset(&mybuf, offsets);
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "DataType: %s\n",
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Data Type: %s\n",
 		 oh_lookup_texttype(thisfield->Field.DataType));
 	oh_append_bigtext(&mybuf, str);
 						
@@ -1757,7 +1758,8 @@ static SaErrorT oh_build_ctrlrec(oh_big_textbuffer *textbuf, const SaHpiCtrlRecT
 	oh_init_bigtext(&mybuf);
 
 	oh_append_offset(&mybuf, offsets);
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Control Number: %d\n", ctrlrec->Num);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Control Num: %d (%x hex)\n",
+		 ctrlrec->Num, ctrlrec->Num);
 	oh_append_bigtext(&mybuf, str);
 	
 	oh_append_offset(&mybuf, offsets);
@@ -1963,7 +1965,8 @@ static SaErrorT oh_build_wdogrec(oh_big_textbuffer *textbuff,const SaHpiWatchdog
 
 	oh_init_bigtext(&mybuf);
 	oh_append_offset(&mybuf, offsets);
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "WatchdogNum: %d\n",wdogrec->WatchdogNum);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Watchdog Num: %d (%x hex)\n",
+		 wdogrec->WatchdogNum, wdogrec->WatchdogNum);
 	oh_append_bigtext(&mybuf, str);
 
 	oh_append_offset(&mybuf, offsets);
@@ -1999,11 +2002,12 @@ static SaErrorT oh_build_annrec(oh_big_textbuffer *textbuff,const SaHpiAnnunciat
 
 	oh_init_bigtext(&mybuf);
 	oh_append_offset(&mybuf, offsets);
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "AnnunciatorNum: %d\n", annrec->AnnunciatorNum);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Annunciator Num: %d (%x hex)\n", 
+		 annrec->AnnunciatorNum, annrec->AnnunciatorNum);
 	oh_append_bigtext(&mybuf, str);
 
 	oh_append_offset(&mybuf, offsets);
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "AnnunciatorType: %s\n",
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Annunciator Type: %s\n",
 		 oh_lookup_annunciatortype(annrec->AnnunciatorType));
 	oh_append_bigtext(&mybuf, str);
 
@@ -2500,8 +2504,8 @@ static SaErrorT oh_build_event_sensor(oh_big_textbuffer *buffer, const SaHpiEven
 
 	/* Event Sensor Num */
 	oh_append_offset(buffer, offsets);
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Event Sensor Num: %d\n", 
-		 event->EventDataUnion.SensorEvent.SensorNum);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Event Sensor Num: %d (%x hex)\n", 
+		 event->EventDataUnion.SensorEvent.SensorNum, event->EventDataUnion.SensorEvent.SensorNum);
 	oh_append_bigtext(buffer, str);
 
 	/* Event Sensor Type */
@@ -2653,13 +2657,14 @@ static SaErrorT oh_build_event_sensor_enable_change(oh_big_textbuffer *buffer, c
 
 	/* Sensor Enable Change Event - Sensor Number */
 	oh_append_offset(buffer, offsets + 1);
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "SensorNum: %d\n", 
-		 	event->EventDataUnion.SensorEnableChangeEvent.SensorNum);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Sensor Num: %d (%x hex)\n", 
+		 event->EventDataUnion.SensorEnableChangeEvent.SensorNum,
+		 event->EventDataUnion.SensorEnableChangeEvent.SensorNum);
 	oh_append_bigtext(buffer, str);
 
 	/* Sensor Enable Change Event - Sensor Type */
 	oh_append_offset(buffer, offsets + 1);
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "SensorType: %s\n", 
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Sensor Type: %s\n", 
 		 	oh_lookup_sensortype(event->EventDataUnion.SensorEnableChangeEvent.SensorType));
 	oh_append_bigtext(buffer, str);
 
@@ -2789,16 +2794,17 @@ static SaErrorT oh_build_event_watchdog(oh_big_textbuffer *buffer, const SaHpiEv
 	}
 	
 	oh_append_offset(buffer, offsets);
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "WatchdogEvent: \n"); 
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Watchdog Event: \n"); 
 	oh_append_bigtext(buffer, str);
 
 	oh_append_offset(buffer, offsets + 1);
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "WatchdogNum: %d\n",
-					event->EventDataUnion.WatchdogEvent.WatchdogNum); 
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Watchdog Num: %d (%x hex)\n",
+		 event->EventDataUnion.WatchdogEvent.WatchdogNum,
+		 event->EventDataUnion.WatchdogEvent.WatchdogNum); 
 	oh_append_bigtext(buffer, str);
 
 	oh_append_offset(buffer, offsets + 1);
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "WatchdogNum: %s\n",
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "WatchdogActionEvent: %s\n",
 			oh_lookup_watchdogactionevent(event->EventDataUnion.WatchdogEvent.WatchdogAction)); 
 	oh_append_bigtext(buffer, str);
 
