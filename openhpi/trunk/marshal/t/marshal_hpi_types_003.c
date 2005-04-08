@@ -19,12 +19,15 @@
 
 
 static int
-cmp_entities( SaHpiEntityT *d1, SaHpiEntityT *d2 )
+cmp_sensorreading( SaHpiSensorReadingT *d1, SaHpiSensorReadingT *d2 )
 {
-  if ( d1->EntityType != d2->EntityType )
+  if ( d1->IsSupported != d2->IsSupported )
        return 0;
 
-  if ( d1->EntityLocation != d2->EntityLocation )
+  if ( d1->Type != d2->Type )
+       return 0;
+
+  if ( d1->Value.SensorInt64 != d2->Value.SensorInt64 )
        return 0;
 
   return 1;
@@ -34,20 +37,20 @@ cmp_entities( SaHpiEntityT *d1, SaHpiEntityT *d2 )
 typedef struct
 {
   tUint8 m_pad1;
-  SaHpiEntityT m_v1;
+  SaHpiSensorReadingT m_v1;
   tUint8 m_pad2;
-  SaHpiEntityT m_v2;
-  SaHpiEntityT m_v3;
+  SaHpiSensorReadingT m_v2;
+  SaHpiSensorReadingT m_v3;
   tUint8 m_pad3;
 } cTest;
 
 cMarshalType StructElements[] =
 {
   dStructElement( cTest, m_pad1 , Marshal_Uint8Type ),
-  dStructElement( cTest, m_v1   , SaHpiEntityType ),
+  dStructElement( cTest, m_v1   , SaHpiSensorReadingType ),
   dStructElement( cTest, m_pad2 , Marshal_Uint8Type ),
-  dStructElement( cTest, m_v2   , SaHpiEntityType ),
-  dStructElement( cTest, m_v3   , SaHpiEntityType ),
+  dStructElement( cTest, m_v2   , SaHpiSensorReadingType ),
+  dStructElement( cTest, m_v3   , SaHpiSensorReadingType ),
   dStructElement( cTest, m_pad3 , Marshal_Uint8Type ),
   dStructElementEnd()
 };
@@ -60,15 +63,18 @@ main( int argc, char *argv[] )
 {
   cTest value =
   {
-    .m_pad1 = 47,
-    .m_v1.EntityType     = SAHPI_ENT_SYSTEM_BOARD,
-    .m_v1.EntityLocation = 1,
-    .m_pad2              = 48,
-    .m_v2.EntityType     = SAHPI_ENT_POWER_MODULE,
-    .m_v2.EntityLocation = 2,
-    .m_v3.EntityType     = SAHPI_ENT_SWITCH,
-    .m_v3.EntityLocation = 3,
-    .m_pad3 = 49
+    .m_pad1               = 47,
+    .m_v1.IsSupported     = TRUE,
+    .m_v1.Type            = SAHPI_SENSOR_READING_TYPE_INT64,
+    .m_v1.Value           = {-21},
+    .m_pad2               = 48,
+    .m_v2.IsSupported     = TRUE,
+    .m_v2.Type            = SAHPI_SENSOR_READING_TYPE_UINT64,
+    .m_v2.Value           = {21},
+    .m_v3.IsSupported     = FALSE,
+    .m_v3.Type            = SAHPI_SENSOR_READING_TYPE_INT64,
+    .m_v3.Value           = {0},
+    .m_pad3               = 49
   };
 
   unsigned char *buffer = (char *)malloc(sizeof(value));
@@ -83,16 +89,16 @@ main( int argc, char *argv[] )
   if ( value.m_pad1 != result.m_pad1 )
        return 1;
 
-  if ( !cmp_entities( &value.m_v1, &result.m_v1 ) )
+  if ( !cmp_sensorreading( &value.m_v1, &result.m_v1 ) )
        return 1;
 
   if ( value.m_pad2 != result.m_pad2 )
        return 1;
 
-  if ( !cmp_entities( &value.m_v2, &result.m_v2 ) )
+  if ( !cmp_sensorreading( &value.m_v2, &result.m_v2 ) )
        return 1;
 
-  if ( !cmp_entities( &value.m_v3, &result.m_v3 ) )
+  if ( !cmp_sensorreading( &value.m_v3, &result.m_v3 ) )
        return 1;
 
   if ( value.m_pad3 != result.m_pad3 )
