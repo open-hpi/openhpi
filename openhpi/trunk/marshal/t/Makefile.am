@@ -78,7 +78,8 @@ TESTS = \
        marshal_hpi_types_003 \
        marshal_hpi_types_004 \
        marshal_hpi_types_005 \
-       marshal_hpi_types_006
+       marshal_hpi_types_006 \
+       marshal_hpi_types_007
 #       connection_seq_000 \
 #       connection_000 \
 #       connection_001
@@ -126,3 +127,4 @@ marshal_hpi_types_003_SOURCES = marshal_hpi_types_003.c $(MARSHAL_SOURCES) $(REM
 marshal_hpi_types_004_SOURCES = marshal_hpi_types_004.c $(MARSHAL_SOURCES) $(REMOTE_SOURCES)
 marshal_hpi_types_005_SOURCES = marshal_hpi_types_005.c $(MARSHAL_SOURCES) $(REMOTE_SOURCES)
 marshal_hpi_types_006_SOURCES = marshal_hpi_types_006.c $(MARSHAL_SOURCES) $(REMOTE_SOURCES)
+marshal_hpi_types_007_SOURCES = marshal_hpi_types_007.c $(MARSHAL_SOURCES) $(REMOTE_SOURCES)
