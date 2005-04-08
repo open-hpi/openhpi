@@ -17,10 +17,18 @@ AM_CFLAGS		= @NOCFLAGS@
 
 # removed until the gcc 3.4 bug is fixed
 # -ftest-coverage -fprofile-arcs
+TDEPLIB			= $(top_builddir)/src/libopenhpi.la \
+				$(top_builddir)/utils/libopenhpiutils.la
 
 TESTS_ENVIRONMENT = OPENHPI_PATH=$(top_builddir)/plugins/simulator
 TESTS_ENVIRONMENT += OPENHPI_UID_MAP=$(shell pwd)/uid_map
 TESTS_ENVIRONMENT += OPENHPI_CONF=$(srcdir)/openhpi.conf
 
-TESTS = 
+TESTS = sim_sanity_000
+
+check_PROGRAMS = $(TESTS)
+
+sim_sanity_000_SOURCES = sim_sanity_000.c
+sim_sanity_000_LDADD = $(TDEPLIB)
+
 
