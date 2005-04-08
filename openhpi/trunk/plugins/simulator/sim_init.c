@@ -115,13 +115,13 @@ SaErrorT sim_discover(void *hnd)
 	}
 	
 	for(i=0; i<x; i++){
+		printf("I hit the for loop");
 		oh_append_textbuffer(&build_name, dummy_rpt_array[i].comment);
 		dummy_create_resourcetag(&(e->u.res_event.entry.ResourceTag), (char *)build_name.Data, root_ep.Entry[i].EntityLocation);
 	}
 
-        
 	sim_discover_sensors(inst->rptcache);
-	
+	printf("I hit here");	
 	return 0;
 }
 
@@ -178,6 +178,7 @@ SaErrorT new_sensor(RPTable *rptcache, SaHpiResourceIdT ResId, int Index){
 
 	memcpy(&res_rdr, &dummy_voltage_sensors[Index], sizeof(SaHpiRdrT));
 	memcpy(&res, &dummy_rpt_array[ResId], sizeof(SaHpiRptEntryT));
+	printf("I am ResId %d", ResId);
 	res_rdr.Entity = res.ResourceEntity;
 	res_rdr.RdrTypeUnion.SensorRec.Num = sim_get_next_sensor_num(rptcache, ResId, res_rdr.RdrTypeUnion.SensorRec.Type);
 
@@ -188,9 +189,26 @@ SaErrorT new_sensor(RPTable *rptcache, SaHpiResourceIdT ResId, int Index){
 
 int sim_get_next_sensor_num(RPTable *rptcache, SaHpiResourceIdT ResId, SaHpiRdrTypeT type)
 {
-	int i=1;
+	int i=0;
+  	SaHpiRdrT *RdrEntry;
+
+	printf("how many times do i run?");	
+	RdrEntry = oh_get_rdr_next(rptcache, ResId, SAHPI_FIRST_ENTRY);
+
+	while(RdrEntry){
+		if (RdrEntry->RdrType == type){
+			i++;
+		}
+		if (RdrEntry->RecordId != 0){
+			printf("I am RdrEntry->RecordId %d", RdrEntry->RecordId);
+			RdrEntry = oh_get_rdr_next(rptcache, ResId, RdrEntry->RecordId); 
+		}
+	}	
 	
+	return i;
+	/*
 	if(!(oh_get_rdr_by_type(rptcache, ResId, type, i))){
+	printf("I hit sim_get_next_sensor_num %d", i);
 	return i;
 	}
 	else{
@@ -198,7 +216,7 @@ int sim_get_next_sensor_num(RPTable *rptcache, SaHpiResourceIdT ResId, SaHpiRdrT
 			i++;
 		}
 		return i;
-	}
+	}*/
 }
 	
 
