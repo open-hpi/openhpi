@@ -22,6 +22,8 @@
 #include <string.h>
 #include <ctype.h>
 #include <unistd.h>
+#include <readline/readline.h>
+#include <readline/history.h>
 #include "hpi_cmd.h"
 
 #define MAX_IN_FILES		10
@@ -46,6 +48,7 @@ static char	cmd_line[LINE_BUF_SIZE];	// current command line
 static int	max_term_count = 0;
 static int	term_count = 0;
 static int	current_term = 0;
+static int	index_readline = 0;		// command index for readline
 
 static int set_redirection(char *name, int redir)
 {
@@ -153,26 +156,28 @@ static char *get_input_line(char *mes)
 		return(res);
 	};
 	input_buf_ptr = input_buffer;
+	memset(input_buffer, 0, READ_BUF_SIZE);
 	fflush(stdout);
 	if (read_stdin) {
-		if (mes != (char *)NULL) printf("%s", mes);
-		else printf("OpenHPI> ");
-		f = stdin;
+		if (mes == (char *)NULL) mes = "OpenHPI> ";
+		res = readline(mes);
+		if (res == (char *)NULL) return(res);
+		snprintf(input_buffer, READ_BUF_SIZE - 1, "%s", res);
+		free(res);
+		res = input_buffer;
 	} else if (read_file) {
 		f = input_file;
+		res = fgets(input_buffer, READ_BUF_SIZE - 1, f);
+		if (res == (char *)NULL) return(res);
 	} else {
 		printf("Internal error: get_input_line:\n"
 			" No input file\n");
 		exit(1);
 	};
-	memset(input_buffer, 0, READ_BUF_SIZE);
-	res = fgets(input_buffer, READ_BUF_SIZE - 1, f);
-	if (res != (char *)NULL) {
-		len = strlen(res);
-		if ((len > 0) && (res[len - 1] == '\n'))
-			res[len - 1] = 0;
-		input_buf_ptr = find_cmd_end(input_buf_ptr);
-	};
+	len = strlen(res);
+	if ((len > 0) && (res[len - 1] == '\n'))
+		res[len - 1] = 0;
+	input_buf_ptr = find_cmd_end(input_buf_ptr);
 	return(res);
 }
 
@@ -200,6 +205,53 @@ static command_def_t *get_cmd(char *name)
 	return((command_def_t *)NULL);
 }
 
+static void add2history(char *str)
+{
+	int	len;
+	char	*s;
+
+	if (str == (char *)NULL) return;
+	while (isspace(*str)) str++;
+	len = strlen(str);
+	if (len == 0) return;
+	s = str + len - 1;
+	while (isspace(*s)) *s-- = 0;
+	add_history(str);
+}
+
+static char *get_command_list(const char *text, int num)
+{
+	command_def_t	*c;
+	int		len = strlen(text);
+
+	if (num == 0) index_readline = 0;
+	else index_readline++;
+	for (; commands[index_readline].cmd != NULL; index_readline++) {
+		c = commands + index_readline;
+		if ((c->type != MAIN_COM) && (c->type != block_type) &&
+			(c->type != UNDEF_COM))
+			continue;
+		if (strncmp(c->cmd, text, len) == 0)
+			return(strdup(c->cmd));
+	};
+	return((char *)NULL);
+}
+
+static char **command_completion(const char *text, int beg, int end)
+{
+	char	**res = (char **)NULL;
+
+	if (beg == 0) {	// it is a command
+		res = rl_completion_matches(text, get_command_list);
+	};
+	return(res);
+}
+
+void init_readline(void)
+{
+	rl_attempted_completion_function = command_completion;
+}
+	
 ret_code_t cmd_parser(char *mes, int as, int new_cmd, int *redirect)
 // as = 0  - get command
 // as = 1  - may be exit with empty command
@@ -330,6 +382,7 @@ int run_command(void)
 	if (c->fun) {
 		if (debug_flag)
 			printf("run_command: c->type = %d\n", c->type);
+		add2history(cmd_line);
 		term->term = c->cmd;
 		if ((block_type != c->type) && (c->type != UNDEF_COM)) {
 			block_type = c->type;
@@ -401,6 +454,7 @@ int get_new_command(char *mes)
 
 void cmd_shell(void)
 {
+	init_readline();
 	help(0);
 	for (;;) {
 		if (debug_flag) printf("cmd_shell:\n");

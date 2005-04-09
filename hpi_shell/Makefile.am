@@ -7,19 +7,21 @@ MOSTLYCLEANFILES        = @TEST_CLEAN@
 REMOTE_SOURCES 	= openhpiclient.cpp \
 			openhpiclient.h
 
-if SHELL_CLIENT
 COMMONLIBS		= $(top_builddir)/hpi_ui_lib/libopenhpiui.la \
-				$(top_builddir)/marshal/libohtcpconnx.la \
+				-lreadline -lhistory -lcurses
+
+if SHELL_CLIENT
+ADDEDLIBS		= $(top_builddir)/marshal/libohtcpconnx.la \
 				-L$(top_builddir)/utils/.libs -lopenhpiutils
-INCLUDES 		= -I$(top_srcdir)/include -I$(top_srcdir)/utils \
-				-I$(top_srcdir)/openhpid2  -I$(top_srcdir)/marshal
+ADDEDINCLUDES 		= -I$(top_srcdir)/openhpid2  -I$(top_srcdir)/marshal
 else
-INCLUDES 		= -I$(top_srcdir)/include -I$(top_srcdir)/utils
-COMMONLIBS		= $(top_builddir)/src/libopenhpi.la \
-				$(top_builddir)/hpi_ui_lib/libopenhpiui.la \
+ADDEDLIBS		= $(top_builddir)/src/libopenhpi.la \
 				@STATIC_PLUGIN_LIBS@ @STATIC_PLUGIN_EXTRA_LIBS@
+ADDEDINCLUDES 		= 
 endif
 
+COMMONINCLUDES 		= -I$(top_srcdir)/include -I$(top_srcdir)/utils
+INCLUDES 		= $(COMMONINCLUDES) $(ADDEDINCLUDES)
 AM_CFLAGS 		= @CFLAGS@ -D_REENTRANT
 
 bin_PROGRAMS		= hpi_cmd
@@ -40,7 +42,7 @@ else
 NHS_SOURCES = ${HS_SOURCES}
 endif
 hpi_cmd_SOURCES = ${NHS_SOURCES}
-hpi_cmd_LDADD        = $(COMMONLIBS)
+hpi_cmd_LDADD        = $(COMMONLIBS) $(ADDEDLIBS)
 hpi_cmd_LDFLAGS      =
 	
 $(REMOTE_SOURCES):
