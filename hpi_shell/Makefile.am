@@ -44,7 +44,7 @@ endif
 hpi_cmd_SOURCES = ${NHS_SOURCES}
 hpi_cmd_LDADD        = $(COMMONLIBS) $(ADDEDLIBS)
 hpi_cmd_LDFLAGS      =
-	
+
 $(REMOTE_SOURCES):
 	if test ! -f $@ -a ! -L $@; then \
 		ln -s ../openhpid2/$@; \
