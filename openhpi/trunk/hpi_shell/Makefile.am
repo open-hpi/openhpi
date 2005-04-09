@@ -41,6 +41,7 @@ NHS_SOURCES = ${HS_SOURCES} ${REMOTE_SOURCES}
 else
 NHS_SOURCES = ${HS_SOURCES}
 endif
+
 hpi_cmd_SOURCES = ${NHS_SOURCES}
 hpi_cmd_LDADD        = $(COMMONLIBS) $(ADDEDLIBS)
 hpi_cmd_LDFLAGS      =

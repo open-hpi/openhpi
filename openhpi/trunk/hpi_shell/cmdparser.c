@@ -29,7 +29,6 @@
 #define MAX_IN_FILES		10
 #define MAX_REDIRECTIONS	10
 
-
 term_def_t	*terms;
 int		read_stdin = 1;
 int		read_file = 0;

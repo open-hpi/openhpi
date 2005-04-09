@@ -14,6 +14,7 @@
  *
  *
  */
+
 #ifndef _INC_HPI_CMD_H
 #define _INC_HPI_CMD_H
 #include <SaHpi.h>
