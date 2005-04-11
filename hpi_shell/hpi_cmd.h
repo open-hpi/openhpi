@@ -114,7 +114,6 @@ extern ret_code_t	hs_block_ind(void);
 extern ret_code_t	hs_block_policy(void);
 extern ret_code_t	hs_block_state(void);
 extern ret_code_t	hs_block_stime(void);
-extern void		init_readline(void);
 extern ret_code_t	inv_block(void);
 extern ret_code_t	inv_block_show(void);
 extern ret_code_t	inv_block_addarea(void);
