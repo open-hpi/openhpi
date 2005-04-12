@@ -139,7 +139,7 @@ extern cMarshalType SaHpiCtrlRecType;
 #define SaHpiIdrIdType SaHpiUint32Type
 #define SaHpiIdrAreaTypeType SaHpiUint32Type
 #define SaHpiIdrFieldTypeType SaHpiUint32Type
-extern cMarshalType SaHpiIdrFieldTypeType;
+extern cMarshalType SaHpiIdrFieldType;
 extern cMarshalType SaHpiIdrAreaHeaderType;
 extern cMarshalType SaHpiIdrInfoType;
 
