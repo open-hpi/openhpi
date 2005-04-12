@@ -176,7 +176,11 @@ SaErrorT new_sensor(RPTable *rptcache, SaHpiResourceIdT ResId, int Index){
 	SaHpiRdrT res_rdr;
 	SaHpiRptEntryT res;
 
-	memcpy(&res_rdr, &dummy_voltage_sensors[Index], sizeof(SaHpiRdrT));
+//	memcpy(&res_rdr, &dummy_voltage_sensors[Index], sizeof(SaHpiRdrT));
+	res_rdr.RdrType = &dummy_voltage_sensors[Index].sensor.Type;
+	res_rdr.RdrTypeUnion = &dummy_voltage_sensors[Index].sensor;
+	res_rdr.IdString = &dummy_voltage_sensors[Index].comment;
+	res_rdr.IsFru = 1;
 	memcpy(&res, &dummy_rpt_array[ResId], sizeof(SaHpiRptEntryT));
 	printf("I am ResId %d", ResId);
 	res_rdr.Entity = res.ResourceEntity;
