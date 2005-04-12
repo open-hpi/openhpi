@@ -89,7 +89,11 @@ TESTS = \
        marshal_hpi_types_014 \
        marshal_hpi_types_015 \
        marshal_hpi_types_016 \
-       marshal_hpi_types_017
+       marshal_hpi_types_017 \
+       marshal_hpi_types_018 \
+       marshal_hpi_types_019 \
+       marshal_hpi_types_020 \
+       marshal_hpi_types_021
 #       connection_seq_000 \
 #       connection_000 \
 #       connection_001
@@ -148,3 +152,7 @@ marshal_hpi_types_014_SOURCES = marshal_hpi_types_014.c $(MARSHAL_SOURCES) $(REM
 marshal_hpi_types_015_SOURCES = marshal_hpi_types_015.c $(MARSHAL_SOURCES) $(REMOTE_SOURCES)
 marshal_hpi_types_016_SOURCES = marshal_hpi_types_016.c $(MARSHAL_SOURCES) $(REMOTE_SOURCES)
 marshal_hpi_types_017_SOURCES = marshal_hpi_types_017.c $(MARSHAL_SOURCES) $(REMOTE_SOURCES)
+marshal_hpi_types_018_SOURCES = marshal_hpi_types_018.c $(MARSHAL_SOURCES) $(REMOTE_SOURCES)
+marshal_hpi_types_019_SOURCES = marshal_hpi_types_019.c $(MARSHAL_SOURCES) $(REMOTE_SOURCES)
+marshal_hpi_types_020_SOURCES = marshal_hpi_types_020.c $(MARSHAL_SOURCES) $(REMOTE_SOURCES)
+marshal_hpi_types_021_SOURCES = marshal_hpi_types_021.c $(MARSHAL_SOURCES) $(REMOTE_SOURCES)
