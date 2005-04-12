@@ -51,7 +51,7 @@ int main(int argc, char **argv)
 		
 		/* oh_decode_manufacturerid: IBM testcase */
 		expected_str = "IBM";
-		mid = 2;
+		mid = 20944;
 
 		err = oh_decode_manufacturerid(mid, &buffer); 
 		

@@ -69,7 +69,9 @@
 #define SNMP_BC_NOT_VALID 0xFF
 
 /* IBM Manufacturing Number */
-#define IBM_MANUFACTURING_ID 2
+/* #define IBM_MANUFACTURING_ID 2 - designation in vpd using IANA number*/
+/* Modular Blade Server 20944 */
+#define IBM_MANUFACTURING_ID 20944
 
 /* Maximum OID string length */
 #define SNMP_BC_MAX_OID_LENGTH 50

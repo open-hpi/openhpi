@@ -66,7 +66,8 @@
 #define DUMMY_HPI_LOCATION_BASE 1
 
 /* IBM Manufacturing Number */
-#define IBM_MANUFACTURING_ID 2
+/* Corresponding to change made in snmp_bc_resources.h */
+#define IBM_MANUFACTURING_ID 20944
 
 /* Maximum OID string length */
 #define DUMMY_MAX_OID_LENGTH 50
