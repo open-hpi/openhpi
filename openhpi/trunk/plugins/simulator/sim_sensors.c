@@ -32,6 +32,7 @@ SaErrorT sim_discover_sensors(RPTable *rpt)
 		dbg("entity_root is needed and not present");
 		return 1;
 	}
+	printf("I am running sim_discover_sensors");
 	new_sensor(rpt, res->ResourceId, 1); /* add #1 ... */
 	new_sensor(rpt, res->ResourceId, 5); /* add #5 ... */
 		       
@@ -127,33 +128,64 @@ struct dummy_sensor dummy_voltage_sensors[] = {
                                 .Range = {
                                         .Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN | SAHPI_SRF_NOMINAL,
                                         .Max = {
-					.IsSupported = SAHPI_TRUE,
+						.IsSupported = SAHPI_TRUE,
                                                 .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
-						.SensorFloat64 = 0,
+							.SensorInt64 = 1,
+							.SensorUnit64 = 0,
+							.SensorFloat64 = 0,
+							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH]= 3,
                                                	},
                                         },
+					.Min = {
+						.IsSupported = SAHPI_TRUE,
+						.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorInt64 = 3,
+							.SensorUnit64 = 0,
+							.SensorFloat64 = -6.7,
+							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 4,
+							 },
+						},
+										
                                         .Nominal = {
-					.IsSupported = SAHPI_TRUE,
+						.IsSupported = SAHPI_TRUE,
                                                 .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
-						.SensorFloat64 = -5,
+							.SensorInt64 = 0,
+							.SensorUnit64 = 2,
+							.SensorFloat64 = -5,
+							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 3,
                                                 },
-                                        },
-                                        .Min = {
- 					.IsSupported = SAHPI_TRUE,
-                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+					.NormalMax = {
+						.IsSupported = SAHPI_TRUE,
+						.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
-						.SensorFloat64 = -6.7,
-                                                },
-                                        },
+							.SensorInt64 = 1000,
+							.SensorUnit64 = 1000,
+							.SensorFloat64 = 1000,
+							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 1000,
+						},
+					},
+					.NormalMin = {
+						.IsSupported = SAHPI_TRUE,
+						.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorInt64 = 0,
+							.SensorUnit64 = 0,
+							.SensorFloat64 = 0,
+							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 0,
+						},
+					},
                                 },
+				.AccuracyFactor = 45.3,
                         },
                         .ThresholdDefn = {
                                 .IsAccessible = SAHPI_TRUE,
                                 .ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR |
                                              SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
                                 .WriteThold = 0,
+				.Nonlinear = 1,
                                 /* Default HDW thresholds:
                                    Warning -5.50<>-4.75; Warning Reset -4.85<>-5.15 */
                          },
@@ -243,30 +275,63 @@ struct dummy_sensor dummy_voltage_sensors[] = {
 						.IsSupported = SAHPI_TRUE,
 						.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
+							.SensorInt64 = 1,
+							.SensorUnit64 = 3,
 							.SensorFloat64 = 3.3,
+							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 5,
 						},
 					},
+					.Min = {
+					  	.IsSupported = SAHPI_TRUE,
+						.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorInt64 = 2,
+							.SensorUnit64 = 2,
+							.SensorFloat64 = 0,
+							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 8,
+						},
+					},
+										
 					.Nominal = {
 						.IsSupported = SAHPI_TRUE,
 						.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
+							.SensorInt64 = 4,
+							.SensorUnit64 = 3,
 							.SensorFloat64 = 1.25,
+							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 9,
 						},
 					},
-					.Min = {
+					.NormalMax = {
 						.IsSupported = SAHPI_TRUE,
 						.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
-							.SensorFloat64 = 0,
+							.SensorInt64 = 1000,
+							.SensorUnit64 = 1000,
+							.SensorFloat64 = 1000,
+							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 1000,
 						},
 					},
+					.NormalMin = {
+						.IsSupported = SAHPI_TRUE,
+						.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorInt64 = 0,
+							.SensorUnit64 = 0,
+							.SensorFloat64 = 0,
+							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 0,
+						},
+					},
+															
 				},
+				.AccuracyFactor = 42.9,
 			},
 			.ThresholdDefn = {
 				.IsAccessible = SAHPI_TRUE,
-				.ReadThold  = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
+				.ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR |					                                             SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
 				.WriteThold = 0,
 				/* Default HDW thresholds: Warning 1.10<>1.4 */
+				.Nonlinear = 1,
 			},
 			.Oem = 0,
 		},
@@ -352,30 +417,62 @@ struct dummy_sensor dummy_voltage_sensors[] = {
 						.IsSupported = SAHPI_TRUE,
                                                 .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
+							.SensorInt64 = 2,
+							.SensorUnit64 = 3,
 							.SensorFloat64 = 4.4,
+							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 1,
                                                 },
                                         },
+					.Min = {
+						.IsSupported = SAHPI_TRUE,
+						.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorInt64 = 1,
+							.SensorUnit64 = 2, 
+							.SensorFloat64 = 0,
+							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 10,
+						},
+					},
                                         .Nominal = {
 						.IsSupported = SAHPI_TRUE,
                                                 .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
+							.SensorInt64 = 3,
+							.SensorUnit64 = 2,
 							.SensorFloat64 = 1.5,
+							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 3,
                                                 },
                                         },
-                                        .Min = {
+					.NormalMax = {
 						.IsSupported = SAHPI_TRUE,
-                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
+							.SensorInt64 = 1000,
+							.SensorUnit64 = 1000,
+							.SensorFloat64 = 1000,
+							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 1000,
+						},
+					},
+					.NormalMin = {
+						.IsSupported = SAHPI_TRUE,
+						.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorInt64 = 0,
+							.SensorUnit64 = 0,
 							.SensorFloat64 = 0,
-                                                },
-                                        },
+							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 0,
+						},
+					},
+															
                                 },
+				.AccuracyFactor = 29.4,
                         },
                         .ThresholdDefn = {
 				.IsAccessible = SAHPI_TRUE,
                                 .ReadThold  = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
                                 .WriteThold = 0,
                                 /* Default HDW thresholds: Warning 1.32<>1.68 */
+				.Nonlinear = 0,
                         },
                         .Oem = 0,
                 },
@@ -464,6 +561,16 @@ struct dummy_sensor dummy_voltage_sensors[] = {
 							.SensorFloat64 = 4.4,
 						},
                                         },
+					.Min - {
+						.IsSupported = SAHPI_TRUE,
+						.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorInt64 = 2,
+							.SensorUnit64 = 4,
+							.SensorFloat64 = 2.3,
+							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 9,
+						},
+					},
                                         .Nominal = {
 						.IsSupported = SAHPI_TRUE,
                                                 .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
@@ -471,20 +578,36 @@ struct dummy_sensor dummy_voltage_sensors[] = {
 							.SensorFloat64 = 1.8,
 						},
                                         },
-                                        .Min = {
+					.NormalMax = {
 						.IsSupported = SAHPI_TRUE,
-                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
-							.SensorFloat64 = 0,
+							.SensorInt64 = 1000,
+							.SensorUnit64 = 1000,
+							.SensorFloat64 = 1000,
+							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 1000,
 						},
-                                        },
+					},
+					.NormalMin = {
+						.IsSupported = SAHPI_TRUE,
+						.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorInt64 = 0,
+							.SensorUnit64 = 0,
+							.SensorFloat64 = 0,
+							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 0,
+						},
+					},
+															
                               },
+			      .AccuracyFactor = 87.2,
                         },
                         .ThresholdDefn = {
 				.IsAccessible = SAHPI_TRUE,
                                 .ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR |
                                              SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
 				.WriteThold = 0,
+				.Nonlinear = 1,
                          },
                         .Oem = 0,
                 },
@@ -574,24 +697,53 @@ struct dummy_sensor dummy_voltage_sensors[] = {
 						.IsSupported = SAHPI_TRUE,
                                                 .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
+							.SensorInt64 = 3,
+							.SensorUnit64 = 2,
 							.SensorFloat64 = 4.4,
+							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 8,
 						},
                                         },
+					.Min = {
+						.IsSupported = SAHPI_TRUE,
+						.TYPE = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorInt64 = 8,
+							.SensorUnit64 = 1,
+							.SensorFloat64 = 5.7,
+							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 5,
                                         .Nominal = {
 						.IsSupported = SAHPI_TRUE,
                                                 .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
+							.SensorInt64 = 2,
+							.SensorUnit64 = 5,
 							.SensorFloat64 = 2.5,
+							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 9,
                                                 },
                                         },
-                                        .Min = {
+					.NormalMax = {
 						.IsSupported = SAHPI_TRUE,
-                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
+							.SensorInt64 = 1000,
+							.SensorUnit64 = 1000,
+							.SensorFloat64 = 1000,
+							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 1000,
+						},
+					},
+					.NormalMin = {
+						.IsSupported = SAHPI_TRUE,
+						.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorInt64 = 0,
+							.SensorUnit64 = 0,
 							.SensorFloat64 = 0,
-                                                },
-                                        },
+							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 0,
+						},
+					},
+															
                                 },
+				.AccuracyFactor = 3.4,
                         },
                         .ThresholdDefn = {
 				.IsAccessible = SAHPI_TRUE,
@@ -600,6 +752,7 @@ struct dummy_sensor dummy_voltage_sensors[] = {
                                 .WriteThold = 0,
                                 /* Default HDW thresholds:
                                    Warning 2.25<>2.63; Warning Reset 2.58<>2.42 */
+				.Nonlinear = 1,
                         },
                         .Oem = 0,
                 },
@@ -689,24 +842,53 @@ struct dummy_sensor dummy_voltage_sensors[] = {
 						.IsSupported = SAHPI_TRUE,
                                                 .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
+							.SensorInt64 = 3,
+							.SensorUnit64 = 0,
 							.SensorFloat64 = 3.6,
+							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 8,
                                                 },
                                         },
+					.Min = {
+						.IsSupported = SAHPI_TRUE,
+						.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorInt64 = 2,
+							.SensorUnit64 = 4,
+							.SensorFloat64 = 0,
+							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 9,
                                         .Nominal = {
 						.IsSupported = SAHPI_TRUE,
                                                 .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
+							.SensorInt64 = 9,
+							.SensorUnit64 = 8,
 							.SensorFloat64 = 3.3,
+							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 3,
                                                 },
                                         },
-                                        .Min = {
+					.NormalMax = {
 						.IsSupported = SAHPI_TRUE,
-                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
+							.SensorInt64 = 1000,
+							.SensorUnit64 = 1000,
+							.SensorFloat64 = 1000,
+							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 1000,
+						},
+					},
+					.NormalMin = {
+						.IsSupported = SAHPI_TRUE,
+						.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorInt64 = 0,
+							.SensorUnit64 = 0,
 							.SensorFloat64 = 0,
-                                                },
-                                        },
+							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 0,
+						},
+					},
+															
                                 },
+				.AccuracyFactor = 48.8,
                         },
                         .ThresholdDefn = {
 				.IsAccessible = SAHPI_TRUE,
@@ -715,6 +897,7 @@ struct dummy_sensor dummy_voltage_sensors[] = {
                                 .WriteThold = 0,
                                 /* Default HDW thresholds:
                                    Warning 3.00<>3.47; Warning Reset 3.40<>3.20 */
+				.Nonlinear = 1,
                         },
                         .Oem = 0,
                 },
@@ -802,24 +985,55 @@ struct dummy_sensor dummy_voltage_sensors[] = {
 						.IsSupported = SAHPI_TRUE,
                                                 .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
+							.SensorInt64 = 4,
+							.SensorUnit64 = 2,
 							.SensorFloat64 = 6.7,
+							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 9,
 						},
                                         },
+					.Min = {
+						.IsSupported = SAHPI_TRUE,
+						.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorInt64 = 7,
+							.SensorUnit64 = 9,
+							.SensorFloat64 = 0, 
+							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 2,
+						},
+					},
                                         .Nominal = {
 						.IsSupported = SAHPI_TRUE,
                                                 .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
+							.SensorInt64 = 5,
+							.SensorUnit64 = 2,
 							.SensorFloat64 = 5,
+							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 3,
 						},
                                         },
-                                        .Min = {
+					.NormalMax = {
 						.IsSupported = SAHPI_TRUE,
-                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
+							.SensorInt64 = 1000,
+							.SensorUnit64 = 1000,
+							.SensorFloat64 = 1000,
+							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 1000,
+						},
+					},
+					.NormalMin = {
+						.IsSupported = SAHPI_TRUE,
+						.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorInt64 = 0,
+							.SensorUnit64 = 0,
 							.SensorFloat64 = 0,
-                                                },
-                                        },
+							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 0,
+						},
+					},
+															
 				},
+				.AccuracyFactor = 78.4,
 			},
                         .ThresholdDefn = {
                                 .IsAccessible = SAHPI_TRUE,
@@ -828,6 +1042,7 @@ struct dummy_sensor dummy_voltage_sensors[] = {
                                 .WriteThold = 0,
                                 /* Default HDW thresholds:
                                    Warning 4.50<>5.25; Warning Reset 5.15<>4.85 */
+				.Nonlinear = 1,
                          },
                         .Oem = 0,
                 },
@@ -915,24 +1130,53 @@ struct dummy_sensor dummy_voltage_sensors[] = {
 						.IsSupported = SAHPI_TRUE,
                                                 .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
+							.SensorInt64 = 8,
+							.SensorUnit64 = 7,
 							.SensorFloat64 = 16,
+							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 9,
                                                 },
                                         },
+					.Min = {
+						.IsSupported = SAHPI_TRUE,
+						.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorInt64 = 4,
+							.SensorUnit64 = 7,
+							.SensorFloat64 = 0,
+							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 7,
                                         .Nominal = {
 						.IsSupported = SAHPI_TRUE,
                                                 .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
+							.SensorInt64 = 8,
+							.SensorUnit64 = 0,
 							.SensorFloat64 = 12,
+							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 5,
                                                 },
                                         },
-                                        .Min = {
+					.NormalMax = {
 						.IsSupported = SAHPI_TRUE,
 						.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
-							.SensorFloat64 = 0,
+							.SensorInt64 = 1000,
+							.SensorUnit64 = 1000,
+							.SensorFloat64 = 1000,
+							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 1000,
 						},
-                                        },
-                                },
+					},
+					.NormalMin = {
+						.IsSupported = SAHPI_TRUE,
+						.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorInt64 = 0,
+							.SensorUnit64 = 0,
+							.SensorFloat64 = 0,
+							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 0,
+						},
+					},
+															
+				},
+				.AccuracyFactor = 46.5,
                         },
                         .ThresholdDefn = {
 				.IsAccessible = SAHPI_TRUE,
@@ -941,6 +1185,7 @@ struct dummy_sensor dummy_voltage_sensors[] = {
                                 .WriteThold = 0,
                                 /* Default HDW thresholds:
                                    Warning 10.80<>12.60; Warning Reset 12.34<>11.64 */
+				.Nonlinear = 0,
                         },
                         .Oem = 0,
                 },
@@ -1027,22 +1272,61 @@ struct dummy_sensor dummy_voltage_sensors[] = {
 						.IsSupported = SAHPI_TRUE,
                                                 .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
+							.SensorInt64 = 3,
+							.SensorUnit64 = 45,
 							.SensorFloat64 = 125,
+							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 34,
                                                 },
                                         },
                                         .Min = {
 						.IsSupported = SAHPI_TRUE,
                                                 .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
+							.SensorInt64 = 4,
+							.SensorUnit64 = 8,
 							.SensorFloat64 = 0,
+							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 18,
                                                 },
                                         },
-                                },
+					.Nominal = {
+						.IsSupported = SAHPI_TRUE,
+						.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorInt64 = 3,
+							.SensorUnit64 = 3,
+							.SensorFloat64 = 3.3,
+							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 3,
+						},
+					},
+					.NormalMax = {
+						.IsSupported = SAHPI_TRUE,
+						.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorInt64 = 1000,
+							.SensorUnit64 = 1000,
+							.SensorFloat64 = 1000,
+							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 1000,
+						},
+					},
+					.NormalMin = {
+						.IsSupported = SAHPI_TRUE,
+						.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorInt64 = 0,
+							.SensorUnit64 = 0,
+							.SensorFloat64 = 0,
+							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 0,
+						},
+					},
+															
+				},
+				.AccuracyFactor = 45.8,
                         },
                         .ThresholdDefn = {
                                 .IsAccessible = SAHPI_TRUE,
                                 .ReadThold  = SAHPI_STM_UP_MAJOR | SAHPI_STM_UP_CRIT,
                                 .WriteThold = 0,
+				.Nonlinear = 1,
                         },
                         .Oem = 0,
                 },
