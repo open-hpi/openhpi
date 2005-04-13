@@ -38,6 +38,8 @@ struct oh_handler {
                 
         struct oh_abi_v2 *abi; /* pointer to associated plugin interface */
 
+	GArray		*dids; /* domains represented by plugin */
+
         /*
           private pointer used by plugin implementations to distinguish
           between different instances
@@ -62,5 +64,11 @@ struct oh_handler *oh_lookup_handler(unsigned int hid);
 int oh_lookup_next_handler(unsigned int hid, unsigned int *next_hid);
 unsigned int oh_load_handler(GHashTable *handler_config);
 int oh_unload_handler(unsigned int hid);
+int oh_domain_served_by_handler(unsigned int hid,
+				SaHpiDomainIdT did);
+int oh_add_domain_to_handler(unsigned int hid,
+			     SaHpiDomainIdT did);
+int oh_remove_domain_from_handler(unsigned int hid,
+				SaHpiDomainIdT did);
 
 #endif /*__OH_PLUGIN_H*/

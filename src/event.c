@@ -146,6 +146,10 @@ int oh_event_final()
         return 1;
 }
 
+
+	
+
+
 /*
  *  Event processing is split up into 2 stages
  *
@@ -175,6 +179,11 @@ static SaErrorT harvest_events_for_handler(struct oh_handler *h)
                         trace("Found event for handler %p", h);
                         e2 =oh_dup_oh_event(&event);
                         e2->hid = h->id;
+			if (!oh_domain_served_by_handler(e2->hid, e2->did)) {
+				dbg("Handler %d sends event %d to wrong domain %d",
+					e2->type, e2->hid, e2->did);
+				return SA_ERR_HPI_INTERNAL_ERROR;
+			}
                         g_async_queue_push(oh_process_q, e2);
                 }
         } while(error > 0);
@@ -285,7 +294,7 @@ static int process_hpi_event(struct oh_event *full_event)
 
         /* FIXME: yes, we need to figure out the real domain at some point */
         trace("About to get session list");
-        sessions = oh_list_sessions(oh_get_default_domain_id());
+        sessions = oh_list_sessions(full_event->did);
         trace("process_hpi_event, done oh_list_sessions");
 
         /* multiplex event to the appropriate sessions */
@@ -417,15 +426,6 @@ SaErrorT oh_process_events()
         struct oh_event *e;
 
         while((e = g_async_queue_try_pop(oh_process_q)) != NULL) {
-
-                /* FIXME: add real check if handler is allowed to push event
-                   to the domain id in the event */
-                if((e->did != oh_get_default_domain_id()) &&
-                   (e->did != SAHPI_UNSPECIFIED_DOMAIN_ID)) {
-                        dbg("Domain Id %d not valid for event", e->did);
-                        g_free(e);
-                        continue;
-                }
 
                 switch(e->type) {
                 case OH_ET_RESOURCE:

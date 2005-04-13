@@ -41,6 +41,14 @@ struct oh_dat { /* Domain Alarm Table */
         SaHpiBoolT overflow;
 };
 
+struct oh_drt { /* Domain Reference Table */
+        SaHpiEntryIdT next_id;
+        GSList *list;
+        SaHpiUint32T update_count;
+        SaHpiTimeT update_timestamp;
+        SaHpiBoolT overflow;
+};
+
 extern struct oh_domain_table oh_domains;
 
 /*
@@ -52,14 +60,17 @@ struct oh_domain {
          */
         SaHpiDomainIdT id;
 
+	/* id of parent domain. 0 for unspecified domain */
+        SaHpiDomainIdT p_id;
+
         /* Domain's Resource Presence Table */
         RPTable rpt;
 
         /* Domain Alarm Table */
         struct oh_dat dat;
 
-        /* Domain Reference Table */
-        void *drt;
+       /* Domain Reference Table */
+        struct oh_drt drt;
 
         /* Domain Information */
         SaHpiDomainCapabilitiesT capabilities;
@@ -80,12 +91,21 @@ struct oh_domain {
 };
 
 SaHpiDomainIdT oh_create_domain(SaHpiDomainCapabilitiesT capabilities,
-                                SaHpiBoolT is_peer,
                                 SaHpiTextBufferT *tag);
 SaHpiDomainIdT oh_get_default_domain_id(void);
+SaHpiDomainIdT oh_request_domain_id(unsigned int handler_id,
+                                    SaHpiTextBufferT *tag,
+				    SaHpiDomainCapabilitiesT capabilities,
+				    SaHpiDomainIdT parent_id,
+				    SaHpiDomainIdT peer_id);
+SaErrorT oh_release_domain_id(unsigned int handler_id,
+                              SaHpiDomainIdT did);
 SaErrorT oh_destroy_domain(SaHpiDomainIdT did);
 struct oh_domain *oh_get_domain(SaHpiDomainIdT did);
 GArray *oh_list_domains(void);
 SaErrorT oh_release_domain(struct oh_domain *domain);
-
+SaErrorT oh_drt_entry_get(SaHpiDomainIdT    did,
+			  SaHpiEntryIdT     entryid,
+			  SaHpiEntryIdT     *nextentryid,
+			  SaHpiDrtEntryT    *drt);
 #endif /* __OH_DOMAIN_H */
