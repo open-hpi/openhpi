@@ -162,67 +162,14 @@ SaErrorT build_rptcache(RPTable *rptcache, SaHpiEntityPathT *root_ep)
 	}
 
 	for(i=0; i<x; i++){
-		memcpy(&res, &dummy_rpt_array[i], sizeof(SaHpiRptEntryT));
+		memcpy(&res, &dummy_rpt_array[i].rpt, sizeof(SaHpiRptEntryT));
 		oh_concat_ep(&res.ResourceEntity, root_ep);
 		res.ResourceId = oh_uid_from_entity_path(&res.ResourceEntity);
 		
 		dbg("Adding resource number %d",i);
 		oh_add_resource(rptcache, &res, NULL, FREE_RPT_DATA);
 	}
-        return 0;
-}
-
-SaErrorT new_sensor(RPTable *rptcache, SaHpiResourceIdT ResId, int Index){
-	SaHpiRdrT res_rdr;
-	SaHpiRptEntryT res;
-
-	// memcpy(&res_rdr, &dummy_voltage_sensors[Index], sizeof(SaHpiRdrT));
-	// Copy information from rdr array to res_rdr
-	res_rdr.RdrType = &dummy_voltage_sensors[Index].sensor.Type;
-	memcpy(&res_rdr.RdrTypeUnion.SensorRec, &dummy_voltage_sensors[Index].sensor, SaHpiRdrTypeUnionT);
-	res_rdr.IdString = &dummy_voltage_sensors[Index].comment;
-	res_rdr.IsFru = 1;
-	// Can I keep memcpy this the same?
-	memcpy(&res, &dummy_rpt_array[ResId], sizeof(SaHpiRptEntryT));
-	printf("I am ResId %d", ResId);
-	res_rdr.Entity = res.ResourceEntity;
-	res_rdr.RdrTypeUnion.SensorRec.Num = sim_get_next_sensor_num(rptcache, ResId, res_rdr.RdrTypeUnion.SensorRec.Type);
-
-	oh_add_rdr(rptcache, ResId, &res_rdr, NULL, 0);
-
-	return 0;
-}
-
-int sim_get_next_sensor_num(RPTable *rptcache, SaHpiResourceIdT ResId, SaHpiRdrTypeT type)
-{
-	int i=0;
-  	SaHpiRdrT *RdrEntry;
-
-	printf("how many times do i run?");	
-	RdrEntry = oh_get_rdr_next(rptcache, ResId, SAHPI_FIRST_ENTRY);
-
-	while(RdrEntry){
-		if (RdrEntry->RdrType == type){
-			i++;
-		}
-		if (RdrEntry->RecordId != 0){
-			printf("I am RdrEntry->RecordId %d", RdrEntry->RecordId);
-			RdrEntry = oh_get_rdr_next(rptcache, ResId, RdrEntry->RecordId); 
-		}
-	}	
-	
-	return i;
-	/*
-	if(!(oh_get_rdr_by_type(rptcache, ResId, type, i))){
-	printf("I hit sim_get_next_sensor_num %d", i);
-	return i;
-	}
-	else{
-		while(oh_get_rdr_by_type(rptcache, ResId, type, i)){
-			i++;
-		}
-		return i;
-	}*/
+        return i;
 }
 	
 
