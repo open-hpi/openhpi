@@ -1154,6 +1154,16 @@ static struct dummy_inventories {
 {}
 };
 
+
+/*
+ * Used if dummy represents 3 domains. In this case Resource i belongs to domain i.
+ */
+struct dummy_md_data {
+	unsigned int hid;
+	SaHpiDomainIdT dids[NUM_RESOURCES];
+};
+
+
 /************************************************************************/
 /* System Event Log data                                                                */
 /************************************************************************/
@@ -1367,11 +1377,33 @@ static int __build_the_rpt_cache(struct oh_handler_state *oh_hnd)
         return(0);
 }
 
+
+static SaHpiDomainIdT create_new_domain(unsigned int hid, int j) {
+	SaHpiTextBufferT tag = {
+		.DataType = SAHPI_TL_TYPE_TEXT,
+		.Language = SAHPI_LANG_ENGLISH,
+	};
+
+	snprintf(tag.Data, 15, "Dummy Child %d", j);
+	tag.DataLength = strlen(tag.Data) + 1;
+	return oh_request_domain_id(hid, &tag, 0, 0, 0);
+}
+
+
 static void *dummy_open(GHashTable *handler_config)
 {
         struct oh_handler_state *i;
         char *tok = NULL;
+	char *md_str = NULL;
+	unsigned int *hidp;
+	int j;
+	struct dummy_md_data *md_data;
+
+	
+	
         tok = g_hash_table_lookup(handler_config, "entity_root");
+	hidp = g_hash_table_lookup(handler_config, "handler-id");
+	md_str = g_hash_table_lookup(handler_config, "MultipleDomains");
         
         if (!handler_config) {
                 dbg("GHashTable *handler_config is NULL!");
@@ -1449,7 +1481,43 @@ static void *dummy_open(GHashTable *handler_config)
         }
 #endif
         
-        return( (void *)i );
+	if (hidp == NULL || md_str == NULL) {
+		/* dummy represents the single domain */
+		return( (void *)i );
+	}
+			
+	/* dummy represents multiple domains */
+	md_data = (struct dummy_md_data *)g_malloc0(
+					sizeof(struct dummy_md_data));
+	if (md_data == NULL) {
+		dbg("Out of memory");
+		g_free(i);
+		return NULL;
+	}
+	md_data->hid = *hidp;
+	for (j = 0; j < NUM_RESOURCES; j++) {
+		md_data->dids[j] = create_new_domain(*hidp, j);
+		if (md_data->dids[j] == 0) {
+			printf("Couldn't create domain %d\n", j);
+			break;
+		}
+	}
+	if (j < NUM_RESOURCES && md_data->dids[j] == 0) {
+		for (j = j; j >= 0; j--) {
+			if (md_data->dids[j] != 0) {
+				oh_release_domain_id(*hidp, md_data->dids[j]);
+			} else {
+				dbg("Couldn't create domain %d", j);
+			}
+		}
+		g_free(md_data);
+		g_free(i);
+		return NULL;
+	}
+	i->data = (void *)md_data;
+	
+	
+	return( (void *)i );
 }
 
 static void dummy_close(void *hnd)
@@ -1542,6 +1610,37 @@ static struct oh_event *add_resource(struct oh_handler_state *inst)
 }
 
 
+static struct oh_event *user_event_to_domain(SaHpiDomainIdT did)
+{
+        static struct oh_event e = {
+        	.type = OH_ET_HPI,
+        	.u = {
+                	.hpi_event = {
+                         	.res.ResourceId = 0,
+                         	.rdr.RecordId = 0,
+                         	.event = {
+                                 	.Source = 0,
+                                 	.EventType = SAHPI_ET_USER,
+                                 	.Timestamp = 0,
+                                 	.Severity = SAHPI_CRITICAL,
+                         	},
+                 	},
+        	},
+	};
+	SaHpiTextBufferT *tb;
+	
+	e.did = did;
+	tb = &e.u.hpi_event.event.EventDataUnion.UserEvent.UserEventData;
+	tb->DataType = SAHPI_TL_TYPE_TEXT;
+	tb->Language = SAHPI_LANG_ENGLISH;
+	snprintf(tb->Data, SAHPI_MAX_TEXT_BUFFER_LENGTH,
+		"User Event for domain %d", did);
+	tb->DataLength = strlen(tb->Data) + 1;
+	return &e;
+}
+
+
+	
 static int dummy_get_event(void *hnd, struct oh_event *event)
 {
         struct oh_handler_state *inst = hnd;
@@ -1553,6 +1652,7 @@ static int dummy_get_event(void *hnd, struct oh_event *event)
 
         static unsigned int toggle = 0;
         static unsigned int count = 0;
+	static unsigned int dmn_for_event = 0;
 
 	if ( (qse = g_async_queue_try_pop(inst->eventq_async)) ) {
 
@@ -1564,7 +1664,7 @@ static int dummy_get_event(void *hnd, struct oh_event *event)
 
                 g_free(qse);
 
-		dbg("*************** dummy_get_event, g_async_queue_try_pop\n");
+		dbg("*************** dummy_get_event, g_async_queue_try_pop");
 
                 return(1);
 
@@ -1603,7 +1703,7 @@ static int dummy_get_event(void *hnd, struct oh_event *event)
                 /* since it has no rdr's to add back later              */
                 if ( (count%2) == 0 ) {
                         count++;
-                        dbg("\n**** EVEN ****, remove the resource\n");
+                        dbg("**** EVEN ****, remove the resource");
                         if ( (e = remove_resource(inst)) ) {
                                 *event = *e;
 //                                g_static_rec_mutex_unlock (inst->handler_lock);
@@ -1611,7 +1711,7 @@ static int dummy_get_event(void *hnd, struct oh_event *event)
                         }
                 } else {
                         count++;
-                        dbg("\n**** ODD ****, add the resource\n");
+                        dbg("**** ODD ****, add the resource");
                         if ( (e = add_resource(inst)) ) {
                                 *event = *e;
 //                                g_static_rec_mutex_unlock (inst->handler_lock);
@@ -1619,6 +1719,44 @@ static int dummy_get_event(void *hnd, struct oh_event *event)
                         }
                 }
         }
+	
+	if (toggle%5 == 0 && inst->data != NULL) {
+		/* dummy represents several domains */
+		/* lets send USER event to one of them */
+		struct dummy_md_data *md = (struct dummy_md_data *)inst->data;
+		int id = dmn_for_event%NUM_RESOURCES;
+		SaErrorT rv;
+		
+		if (md->dids[id] == 0) {
+			/* this domain released. Let's create it again */
+			md->dids[id] = create_new_domain(md->hid, id);
+			if (md->dids[id] == 0) {
+				dbg("+++ couldn't create new domain %d", id);
+				dmn_for_event++;
+				return -1;
+			} else {
+				dbg("+++ child domain %d created = %d",
+					id, md->dids[id]);
+			}
+		}	   
+		*event = *user_event_to_domain(md->dids[id]);
+		dbg("+++ send user event to domain %d",md->dids[id]);
+		dmn_for_event++;
+		id = dmn_for_event%NUM_RESOURCES;
+		if (toggle%50 == 0 && md->dids[id] != 0) {
+			/* release this domain */
+			dbg("+++ release domain %d(%d)", id, md->dids[id]);
+			rv = oh_release_domain_id(md->hid, md->dids[id]);
+			if (rv != SA_OK) {
+				dbg("+++ couldn't release domain %d(%d)", id,
+					md->dids[id]);
+			} else {
+				md->dids[id] = 0;
+			}
+		}
+		return (1);
+	}
+		
 #endif
 //        g_static_rec_mutex_unlock (inst->handler_lock);
 
@@ -1676,6 +1814,14 @@ static int dummy_discover_resources(void *hnd)
         return 0;
 }
 
+
+static int dummy_discover_domain_resources(void *hnd, SaHpiDomainIdT did)
+{
+	dbg("dummy_discover_domain_resources called for doamin %d", did);
+	return dummy_discover_resources(hnd);
+}
+
+
 static SaErrorT dummy_set_resource_tag(void *hnd, SaHpiResourceIdT id, SaHpiTextBufferT *tag)
 {
         struct oh_handler_state *inst = hnd;
@@ -1732,6 +1878,7 @@ static int dummy_set_sel_time(void *hnd, SaHpiResourceIdT id, SaHpiTimeT time)
 static int dummy_add_sel_entry(void *hnd, SaHpiResourceIdT id, const SaHpiEventT *Event)
 {
         dbg("TODO: dummy_add_sel_entry(), need to set res based on id");
+
 
 #if 0
         struct dummy_instance *inst = hnd;
@@ -3237,6 +3384,7 @@ static struct oh_abi_v2 oh_dummy_plugin = {
         .close                  = dummy_close,
         .get_event              = dummy_get_event,
         .discover_resources     = dummy_discover_resources,
+	.discover_domain_resources = dummy_discover_domain_resources,
         .set_resource_tag       = dummy_set_resource_tag,
         .set_resource_severity  = dummy_set_resource_severity,
         .get_el_info            = dummy_get_sel_info,
