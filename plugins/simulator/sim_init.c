@@ -55,7 +55,7 @@ void *sim_open(GHashTable *handler_config)
         oh_init_rpt(state->rptcache);
 
         if ( !(state->eventq_async = g_async_queue_new()) ) {
-                printf("g_async_queue_new failed\n");
+                dbg("g_async_queue_new failed\n");
                 g_free(state);
                 return NULL;
         }
@@ -115,13 +115,11 @@ SaErrorT sim_discover(void *hnd)
 	}
 	
 	for(i=0; i<x; i++){
-		printf("I hit the for loop");
 		oh_append_textbuffer(&build_name, dummy_rpt_array[i].comment);
 		dummy_create_resourcetag(&(e->u.res_event.entry.ResourceTag), (char *)build_name.Data, root_ep.Entry[i].EntityLocation);
 	}
 
 	sim_discover_sensors(inst->rptcache);
-	printf("I hit here");	
 	return 0;
 }
 
