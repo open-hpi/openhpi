@@ -96,6 +96,63 @@ SaErrorT sim_discover_sensors(RPTable *rpt)
         return 0; 
 
 }
+
+SaErrorT new_sensor(RPTable *rptcache, SaHpiResourceIdT ResId, int Index){
+	SaHpiRdrT res_rdr;
+	SaHpiRptEntryT *RptEntry;
+
+	// Copy information from rdr array to res_rdr
+         res_rdr.RdrType = SAHPI_SENSOR_RDR;
+         memcpy(&res_rdr.RdrTypeUnion.SensorRec, &dummy_voltage_sensors[Index].sensor, sizeof(SaHpiSensorRecT));
+
+	 oh_init_textbuffer(&res_rdr.IdString);
+	 oh_append_textbuffer(&res_rdr.IdString, dummy_voltage_sensors[Index].comment);
+
+         res_rdr.IsFru = 1;
+         res_rdr.RdrTypeUnion.SensorRec.Num = sim_get_next_sensor_num(rptcache, ResId, res_rdr.RdrTypeUnion.SensorRec.Type);
+         res_rdr.RecordId = get_rdr_uid(res_rdr.RdrType, res_rdr.RdrTypeUnion.SensorRec.Num);
+	 
+	 RptEntry = oh_get_resource_data(rptcache, ResId);
+	 res_rdr.Entity = RptEntry->ResourceEntity;
+
+         oh_add_rdr(rptcache, ResId, &res_rdr, NULL, 0);
+
+         return 0;
+}
+
+int sim_get_next_sensor_num(RPTable *rptcache, SaHpiResourceIdT ResId, SaHpiRdrTypeT type)
+{
+	int i=0;
+	SaHpiRdrT *RdrEntry;
+ 
+ 	printf("how many times do i run?");
+	RdrEntry = oh_get_rdr_next(rptcache, ResId, SAHPI_FIRST_ENTRY);
+
+	while(RdrEntry){
+		if (RdrEntry->RdrType == type){
+			i++;
+		}
+		if (RdrEntry->RecordId != 0){
+			printf("I am RdrEntry->RecordId %d", RdrEntry->RecordId);
+			RdrEntry = oh_get_rdr_next(rptcache, ResId, RdrEntry->RecordId);
+		}
+	}
+
+	return i;
+	
+	if(!(oh_get_rdr_by_type(rptcache, ResId, type, i))){
+		printf("I hit sim_get_next_sensor_num %d", i);
+		return i;
+	}
+	else{
+		while(oh_get_rdr_by_type(rptcache, ResId, type, i)){
+			i++;
+		}
+		
+		return i;
+	}
+}
+
 /*************************************************************************
  *                      Sensor Definitions
  *************************************************************************/
@@ -132,9 +189,9 @@ struct dummy_sensor dummy_voltage_sensors[] = {
                                                 .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
 							.SensorInt64 = 1,
-							.SensorUnit64 = 0,
+							.SensorUint64 = 0,
 							.SensorFloat64 = 0,
-							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH]= 3,
+							.SensorBuffer[0]= 0,
                                                	},
                                         },
 					.Min = {
@@ -142,29 +199,30 @@ struct dummy_sensor dummy_voltage_sensors[] = {
 						.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
 							.SensorInt64 = 3,
-							.SensorUnit64 = 0,
+							.SensorUint64 = 0,
 							.SensorFloat64 = -6.7,
-							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 4,
-							 },
-						},
+							.SensorBuffer[0] = 0,
+						 },
+					},
 										
                                         .Nominal = {
 						.IsSupported = SAHPI_TRUE,
                                                 .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
 							.SensorInt64 = 0,
-							.SensorUnit64 = 2,
+							.SensorUint64 = 2,
 							.SensorFloat64 = -5,
-							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 3,
-                                                },
+							.SensorBuffer[0] = 0,
+						},
+                                        },
 					.NormalMax = {
 						.IsSupported = SAHPI_TRUE,
 						.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
 							.SensorInt64 = 1000,
-							.SensorUnit64 = 1000,
+							.SensorUint64 = 1000,
 							.SensorFloat64 = 1000,
-							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 1000,
+							.SensorBuffer[0] = 0,
 						},
 					},
 					.NormalMin = {
@@ -172,9 +230,9 @@ struct dummy_sensor dummy_voltage_sensors[] = {
 						.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
 							.SensorInt64 = 0,
-							.SensorUnit64 = 0,
+							.SensorUint64 = 0,
 							.SensorFloat64 = 0,
-							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 0,
+							.SensorBuffer[0] = 0,
 						},
 					},
                                 },
@@ -276,9 +334,9 @@ struct dummy_sensor dummy_voltage_sensors[] = {
 						.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
 							.SensorInt64 = 1,
-							.SensorUnit64 = 3,
+							.SensorUint64 = 3,
 							.SensorFloat64 = 3.3,
-							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 5,
+							.SensorBuffer[0] = 0,
 						},
 					},
 					.Min = {
@@ -286,9 +344,9 @@ struct dummy_sensor dummy_voltage_sensors[] = {
 						.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
 							.SensorInt64 = 2,
-							.SensorUnit64 = 2,
+							.SensorUint64 = 2,
 							.SensorFloat64 = 0,
-							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 8,
+							.SensorBuffer[0] = 0,
 						},
 					},
 										
@@ -297,9 +355,9 @@ struct dummy_sensor dummy_voltage_sensors[] = {
 						.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
 							.SensorInt64 = 4,
-							.SensorUnit64 = 3,
+							.SensorUint64 = 3,
 							.SensorFloat64 = 1.25,
-							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 9,
+							.SensorBuffer[0] = 0,
 						},
 					},
 					.NormalMax = {
@@ -307,9 +365,9 @@ struct dummy_sensor dummy_voltage_sensors[] = {
 						.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
 							.SensorInt64 = 1000,
-							.SensorUnit64 = 1000,
+							.SensorUint64 = 1000,
 							.SensorFloat64 = 1000,
-							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 1000,
+							.SensorBuffer[0] = 0,
 						},
 					},
 					.NormalMin = {
@@ -317,9 +375,9 @@ struct dummy_sensor dummy_voltage_sensors[] = {
 						.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
 							.SensorInt64 = 0,
-							.SensorUnit64 = 0,
+							.SensorUint64 = 0,
 							.SensorFloat64 = 0,
-							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 0,
+							.SensorBuffer[0] = 0,
 						},
 					},
 															
@@ -418,9 +476,9 @@ struct dummy_sensor dummy_voltage_sensors[] = {
                                                 .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
 							.SensorInt64 = 2,
-							.SensorUnit64 = 3,
+							.SensorUint64 = 3,
 							.SensorFloat64 = 4.4,
-							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 1,
+							.SensorBuffer[0] = 0,
                                                 },
                                         },
 					.Min = {
@@ -428,9 +486,9 @@ struct dummy_sensor dummy_voltage_sensors[] = {
 						.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
 							.SensorInt64 = 1,
-							.SensorUnit64 = 2, 
+							.SensorUint64 = 2, 
 							.SensorFloat64 = 0,
-							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 10,
+							.SensorBuffer[0] = 0,
 						},
 					},
                                         .Nominal = {
@@ -438,9 +496,9 @@ struct dummy_sensor dummy_voltage_sensors[] = {
                                                 .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
 							.SensorInt64 = 3,
-							.SensorUnit64 = 2,
+							.SensorUint64 = 2,
 							.SensorFloat64 = 1.5,
-							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 3,
+							.SensorBuffer[0] = 0,
                                                 },
                                         },
 					.NormalMax = {
@@ -448,9 +506,9 @@ struct dummy_sensor dummy_voltage_sensors[] = {
 						.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
 							.SensorInt64 = 1000,
-							.SensorUnit64 = 1000,
+							.SensorUint64 = 1000,
 							.SensorFloat64 = 1000,
-							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 1000,
+							.SensorBuffer[0] = 0,
 						},
 					},
 					.NormalMin = {
@@ -458,9 +516,9 @@ struct dummy_sensor dummy_voltage_sensors[] = {
 						.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
 							.SensorInt64 = 0,
-							.SensorUnit64 = 0,
+							.SensorUint64 = 0,
 							.SensorFloat64 = 0,
-							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 0,
+							.SensorBuffer[0] = 0,
 						},
 					},
 															
@@ -558,24 +616,30 @@ struct dummy_sensor dummy_voltage_sensors[] = {
 						.IsSupported = SAHPI_TRUE,
                                                 .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
+							.SensorInt64 = 3,
+							.SensorUint64 = -3,
 							.SensorFloat64 = 4.4,
+							.SensorBuffer[0] = 0,
 						},
                                         },
-					.Min - {
+					.Min = {
 						.IsSupported = SAHPI_TRUE,
 						.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
 							.SensorInt64 = 2,
-							.SensorUnit64 = 4,
+							.SensorUint64 = 4,
 							.SensorFloat64 = 2.3,
-							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 9,
+							.SensorBuffer[0] = 0,
 						},
 					},
                                         .Nominal = {
 						.IsSupported = SAHPI_TRUE,
                                                 .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
+							.SensorInt64 = 7,
+							.SensorUint64 = 2,
 							.SensorFloat64 = 1.8,
+							.SensorBuffer[0] = 0,
 						},
                                         },
 					.NormalMax = {
@@ -583,9 +647,9 @@ struct dummy_sensor dummy_voltage_sensors[] = {
 						.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
 							.SensorInt64 = 1000,
-							.SensorUnit64 = 1000,
+							.SensorUint64 = 1000,
 							.SensorFloat64 = 1000,
-							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 1000,
+							.SensorBuffer[0] = 0,
 						},
 					},
 					.NormalMin = {
@@ -593,9 +657,9 @@ struct dummy_sensor dummy_voltage_sensors[] = {
 						.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
 							.SensorInt64 = 0,
-							.SensorUnit64 = 0,
+							.SensorUint64 = 0,
 							.SensorFloat64 = 0,
-							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 0,
+							.SensorBuffer[0] = 0,
 						},
 					},
 															
@@ -698,27 +762,29 @@ struct dummy_sensor dummy_voltage_sensors[] = {
                                                 .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
 							.SensorInt64 = 3,
-							.SensorUnit64 = 2,
+							.SensorUint64 = 2,
 							.SensorFloat64 = 4.4,
-							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 8,
+							.SensorBuffer[0] = 0,
 						},
                                         },
 					.Min = {
 						.IsSupported = SAHPI_TRUE,
-						.TYPE = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
 							.SensorInt64 = 8,
-							.SensorUnit64 = 1,
+							.SensorUint64 = 1,
 							.SensorFloat64 = 5.7,
-							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 5,
+							.SensorBuffer[0] = 0,
+						},
+					},
                                         .Nominal = {
 						.IsSupported = SAHPI_TRUE,
                                                 .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
 							.SensorInt64 = 2,
-							.SensorUnit64 = 5,
+							.SensorUint64 = 5,
 							.SensorFloat64 = 2.5,
-							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 9,
+							.SensorBuffer[0] = 0,
                                                 },
                                         },
 					.NormalMax = {
@@ -726,9 +792,9 @@ struct dummy_sensor dummy_voltage_sensors[] = {
 						.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
 							.SensorInt64 = 1000,
-							.SensorUnit64 = 1000,
+							.SensorUint64 = 1000,
 							.SensorFloat64 = 1000,
-							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 1000,
+							.SensorBuffer[0] = 0,
 						},
 					},
 					.NormalMin = {
@@ -736,9 +802,9 @@ struct dummy_sensor dummy_voltage_sensors[] = {
 						.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
 							.SensorInt64 = 0,
-							.SensorUnit64 = 0,
+							.SensorUint64 = 0,
 							.SensorFloat64 = 0,
-							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 0,
+							.SensorBuffer[0] = 0,
 						},
 					},
 															
@@ -843,9 +909,9 @@ struct dummy_sensor dummy_voltage_sensors[] = {
                                                 .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
 							.SensorInt64 = 3,
-							.SensorUnit64 = 0,
+							.SensorUint64 = 0,
 							.SensorFloat64 = 3.6,
-							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 8,
+							.SensorBuffer[0] = 0,
                                                 },
                                         },
 					.Min = {
@@ -853,17 +919,19 @@ struct dummy_sensor dummy_voltage_sensors[] = {
 						.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
 							.SensorInt64 = 2,
-							.SensorUnit64 = 4,
+							.SensorUint64 = 4,
 							.SensorFloat64 = 0,
-							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 9,
+							.SensorBuffer[0] = 0,
+						},
+					},
                                         .Nominal = {
 						.IsSupported = SAHPI_TRUE,
                                                 .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
 							.SensorInt64 = 9,
-							.SensorUnit64 = 8,
+							.SensorUint64 = 8,
 							.SensorFloat64 = 3.3,
-							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 3,
+							.SensorBuffer[0] = 0,
                                                 },
                                         },
 					.NormalMax = {
@@ -871,9 +939,9 @@ struct dummy_sensor dummy_voltage_sensors[] = {
 						.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
 							.SensorInt64 = 1000,
-							.SensorUnit64 = 1000,
+							.SensorUint64 = 1000,
 							.SensorFloat64 = 1000,
-							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 1000,
+							.SensorBuffer[0] = 0,
 						},
 					},
 					.NormalMin = {
@@ -881,9 +949,9 @@ struct dummy_sensor dummy_voltage_sensors[] = {
 						.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
 							.SensorInt64 = 0,
-							.SensorUnit64 = 0,
+							.SensorUint64 = 0,
 							.SensorFloat64 = 0,
-							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 0,
+							.SensorBuffer[0] = 0,
 						},
 					},
 															
@@ -986,9 +1054,9 @@ struct dummy_sensor dummy_voltage_sensors[] = {
                                                 .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
 							.SensorInt64 = 4,
-							.SensorUnit64 = 2,
+							.SensorUint64 = 2,
 							.SensorFloat64 = 6.7,
-							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 9,
+							.SensorBuffer[0] = 0,
 						},
                                         },
 					.Min = {
@@ -996,9 +1064,9 @@ struct dummy_sensor dummy_voltage_sensors[] = {
 						.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
 							.SensorInt64 = 7,
-							.SensorUnit64 = 9,
+							.SensorUint64 = 9,
 							.SensorFloat64 = 0, 
-							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 2,
+							.SensorBuffer[0] = 0,
 						},
 					},
                                         .Nominal = {
@@ -1006,9 +1074,9 @@ struct dummy_sensor dummy_voltage_sensors[] = {
                                                 .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
 							.SensorInt64 = 5,
-							.SensorUnit64 = 2,
+							.SensorUint64 = 2,
 							.SensorFloat64 = 5,
-							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 3,
+							.SensorBuffer[0] = 0,
 						},
                                         },
 					.NormalMax = {
@@ -1016,9 +1084,9 @@ struct dummy_sensor dummy_voltage_sensors[] = {
 						.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
 							.SensorInt64 = 1000,
-							.SensorUnit64 = 1000,
+							.SensorUint64 = 1000,
 							.SensorFloat64 = 1000,
-							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 1000,
+							.SensorBuffer[0] = 0,
 						},
 					},
 					.NormalMin = {
@@ -1026,9 +1094,9 @@ struct dummy_sensor dummy_voltage_sensors[] = {
 						.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
 							.SensorInt64 = 0,
-							.SensorUnit64 = 0,
+							.SensorUint64 = 0,
 							.SensorFloat64 = 0,
-							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 0,
+							.SensorBuffer[0] = 0,
 						},
 					},
 															
@@ -1131,9 +1199,9 @@ struct dummy_sensor dummy_voltage_sensors[] = {
                                                 .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
 							.SensorInt64 = 8,
-							.SensorUnit64 = 7,
+							.SensorUint64 = 7,
 							.SensorFloat64 = 16,
-							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 9,
+							.SensorBuffer[0] = 0,
                                                 },
                                         },
 					.Min = {
@@ -1141,17 +1209,19 @@ struct dummy_sensor dummy_voltage_sensors[] = {
 						.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
 							.SensorInt64 = 4,
-							.SensorUnit64 = 7,
+							.SensorUint64 = 7,
 							.SensorFloat64 = 0,
-							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 7,
+							.SensorBuffer[0] = 0,
+						},
+					},
                                         .Nominal = {
 						.IsSupported = SAHPI_TRUE,
                                                 .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
 							.SensorInt64 = 8,
-							.SensorUnit64 = 0,
+							.SensorUint64 = 0,
 							.SensorFloat64 = 12,
-							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 5,
+							.SensorBuffer[0] = 0,
                                                 },
                                         },
 					.NormalMax = {
@@ -1159,9 +1229,9 @@ struct dummy_sensor dummy_voltage_sensors[] = {
 						.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
 							.SensorInt64 = 1000,
-							.SensorUnit64 = 1000,
+							.SensorUint64 = 1000,
 							.SensorFloat64 = 1000,
-							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 1000,
+							.SensorBuffer[0] = 0,
 						},
 					},
 					.NormalMin = {
@@ -1169,9 +1239,9 @@ struct dummy_sensor dummy_voltage_sensors[] = {
 						.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
 							.SensorInt64 = 0,
-							.SensorUnit64 = 0,
+							.SensorUint64 = 0,
 							.SensorFloat64 = 0,
-							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 0,
+							.SensorBuffer[0] = 0,
 						},
 					},
 															
@@ -1273,9 +1343,9 @@ struct dummy_sensor dummy_voltage_sensors[] = {
                                                 .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
 							.SensorInt64 = 3,
-							.SensorUnit64 = 45,
+							.SensorUint64 = 45,
 							.SensorFloat64 = 125,
-							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 34,
+							.SensorBuffer[0] = 0,
                                                 },
                                         },
                                         .Min = {
@@ -1283,9 +1353,9 @@ struct dummy_sensor dummy_voltage_sensors[] = {
                                                 .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
 							.SensorInt64 = 4,
-							.SensorUnit64 = 8,
+							.SensorUint64 = 8,
 							.SensorFloat64 = 0,
-							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 18,
+							.SensorBuffer[0] = 0,
                                                 },
                                         },
 					.Nominal = {
@@ -1293,9 +1363,9 @@ struct dummy_sensor dummy_voltage_sensors[] = {
 						.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
 							.SensorInt64 = 3,
-							.SensorUnit64 = 3,
+							.SensorUint64 = 3,
 							.SensorFloat64 = 3.3,
-							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 3,
+							.SensorBuffer[0] = 0,
 						},
 					},
 					.NormalMax = {
@@ -1303,9 +1373,9 @@ struct dummy_sensor dummy_voltage_sensors[] = {
 						.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
 							.SensorInt64 = 1000,
-							.SensorUnit64 = 1000,
+							.SensorUint64 = 1000,
 							.SensorFloat64 = 1000,
-							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 1000,
+							.SensorBuffer[0] = 0,
 						},
 					},
 					.NormalMin = {
@@ -1313,9 +1383,9 @@ struct dummy_sensor dummy_voltage_sensors[] = {
 						.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
 							.SensorInt64 = 0,
-							.SensorUnit64 = 0,
+							.SensorUint64 = 0,
 							.SensorFloat64 = 0,
-							.SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH] = 0,
+							.SensorBuffer[0] = 0,
 						},
 					},
 															

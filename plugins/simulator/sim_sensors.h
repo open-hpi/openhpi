@@ -91,6 +91,9 @@ struct dummy_sensor {
 extern struct dummy_sensor dummy_voltage_sensors[];
 
 SaErrorT sim_discover_sensors(RPTable *rpt);
+SaErrorT new_sensor(RPTable *rptcache, SaHpiResourceIdT ResId, int Index);
+int sim_get_next_sensor_num(RPTable *rptcache, SaHpiResourceIdT ResId, SaHpiRdrTypeT type);
+
 
 #endif
 
