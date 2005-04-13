@@ -102,8 +102,15 @@ SaErrorT SAHPI_API saHpiDiscover(
         while (next_hid) {
                 hid = next_hid;
                 h = oh_lookup_handler(hid);
-                if (h->abi->discover_resources(h->hnd) == SA_OK && rv)
-                        rv = SA_OK;
+		if (oh_domain_served_by_handler(hid, did)) {
+			if (h->abi->discover_domain_resources != NULL) {
+				if (h->abi->discover_domain_resources(h->hnd,
+						did) == SA_OK && rv) {
+					rv = SA_OK;
+				}
+                	} else if (h->abi->discover_resources(h->hnd) == SA_OK && rv)
+                        	rv = SA_OK;
+		}
 
                 oh_lookup_next_handler(hid, &next_hid);
         }
@@ -150,8 +157,8 @@ SaErrorT SAHPI_API saHpiDomainInfoGet (
         DomainInfo->DomainCapabilities = d->capabilities;
         DomainInfo->IsPeer = d->is_peer;
         /* DRT */
-        DomainInfo->DrtUpdateCount = 0;
-        DomainInfo->DrtUpdateTimestamp = SAHPI_TIME_UNSPECIFIED;
+        DomainInfo->DrtUpdateCount = d->drt.update_count;
+        DomainInfo->DrtUpdateTimestamp = d->drt.update_timestamp;
         /* RPT */
         DomainInfo->RptUpdateCount = d->rpt.update_count;
         DomainInfo->RptUpdateTimestamp = d->rpt.update_timestamp;
@@ -198,7 +205,7 @@ SaErrorT SAHPI_API saHpiDrtEntryGet (
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-        return SA_ERR_HPI_NOT_PRESENT;
+        return oh_drt_entry_get(did, EntryId, NextEntryId, DrtEntry);
 }
 
 SaErrorT SAHPI_API saHpiDomainTagSet (

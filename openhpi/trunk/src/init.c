@@ -81,6 +81,35 @@ SaErrorT oh_initialize()
         }
         trace("Initialized UID");
         
+
+        /* Initialize domain table */
+        oh_domains.table = g_hash_table_new(g_int_hash, g_int_equal);
+        trace("Initialized domain table");
+
+        /* Create first domain */
+        oh_init_textbuffer(&tag);
+        oh_append_textbuffer(&tag,"First Domain");
+        if (!oh_create_domain(capabilities, &tag)) {
+                data_access_unlock();
+                dbg("Could not create first domain!");
+                return SA_ERR_HPI_ERROR;
+        }
+        trace("Created first domain");
+
+        /* Initialize session table */
+        oh_sessions.table = g_hash_table_new(g_int_hash, g_int_equal);
+        trace("Initialized session table");
+
+        /* this only does something if the config says to */
+        oh_start_event_thread();
+        oh_init_state = INIT;
+        trace("Set init state");
+
+        data_access_unlock();
+        /* infrastructure initialization has completed */
+	
+	/* now load plugin and handlers */
+	        
         /* Initialize plugins */
         for (node = config.plugin_names; node; node = node->next) {
                 char *plugin_name = (char *)node->data;
@@ -120,32 +149,6 @@ SaErrorT oh_initialize()
                 /*data_access_unlock();*/
                 /*return SA_ERR_HPI_NOT_PRESENT;*/
         }
-
-        /* Initialize domain table */
-        oh_domains.table = g_hash_table_new(g_int_hash, g_int_equal);
-        trace("Initialized domain table");
-
-        /* Create first domain */
-        oh_init_textbuffer(&tag);
-        oh_append_textbuffer(&tag,"First Domain");
-        if (!oh_create_domain(capabilities, SAHPI_FALSE, &tag)) {
-                data_access_unlock();
-                dbg("Could not create first domain!");
-                return SA_ERR_HPI_ERROR;
-        }
-        trace("Created first domain");
-
-        /* Initialize session table */
-        oh_sessions.table = g_hash_table_new(g_int_hash, g_int_equal);
-        trace("Initialized session table");
-
-        /* this only does something if the config says to */
-        oh_start_event_thread();
-
-        oh_init_state = INIT;
-        trace("Set init state");
-
-        data_access_unlock();
 
         return SA_OK;
 }

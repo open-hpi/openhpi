@@ -25,6 +25,7 @@
 #include <oh_config.h>
 #include <oh_error.h>
 #include <oh_lock.h>
+#include <oh_domain.h>
 #include <config.h>
 
 /*
@@ -464,6 +465,8 @@ static struct oh_handler *new_handler(GHashTable *handler_config)
         struct oh_plugin *plugin = NULL;
         struct oh_handler *handler = NULL;
         static unsigned int handler_id = 1;
+	unsigned int *hidp;
+	char *hid_strp;
 
         if (!handler_config) {
                 dbg("ERROR creating new handler. Invalid parameter.");
@@ -475,8 +478,18 @@ static struct oh_handler *new_handler(GHashTable *handler_config)
                 dbg("Out of Memory!");
                 return NULL;
         }
-
-        plugin = oh_lookup_plugin((char *)g_hash_table_lookup(handler_config, "plugin"));
+	hidp = (unsigned int *)g_malloc(sizeof(unsigned int));
+        if (!hidp) {
+                dbg("Out of Memory!");
+                return NULL;
+        }
+	hid_strp = strdup("handler-id");
+        if (!hid_strp) {
+                dbg("Out of Memory!");
+                return NULL;
+        }
+        
+	plugin = oh_lookup_plugin((char *)g_hash_table_lookup(handler_config, "plugin"));
         if(!plugin || plugin->refcount < 1) {
                 dbg("Attempt to create handler for unknown plugin %s",
                         (char *)g_hash_table_lookup(handler_config, "plugin"));
@@ -486,15 +499,11 @@ static struct oh_handler *new_handler(GHashTable *handler_config)
         handler->plugin_name = g_strdup(plugin->name);
         handler->abi = plugin->abi;
         handler->config = handler_config;
-        
-        handler->hnd = handler->abi->open(handler->config);
-        if (!handler->hnd) {
-                dbg("A plugin instance could not be opened.");
-                goto err;
-        }
-
-        handler->id = handler_id++;
+        handler->dids = NULL;
+	handler->id = handler_id++;
         plugin->refcount++;
+	*hidp = handler->id;
+	g_hash_table_insert(handler_config, (gpointer)hid_strp,(gpointer)hidp);
 
         return handler;
 err:
@@ -536,6 +545,16 @@ unsigned int oh_load_handler (GHashTable *handler_config)
                             &(handler->id),
                             handler);
         handler_ids = g_slist_append(handler_ids, &(handler->id));
+
+	handler->hnd = handler->abi->open(handler->config);
+        if (!handler->hnd) {
+                dbg("A plugin instance could not be opened.");
+		g_hash_table_remove(handler_table, &(handler->id));
+		handler_ids = g_slist_remove(handler_ids, &(handler->id));
+		g_free(handler);
+                data_access_unlock();
+                return 0;
+        }
 
 	/* register atexit callback to close handlers
 	 * and handler connections to avoid zombies
@@ -593,3 +612,94 @@ int oh_unload_handler(unsigned int hid)
 
         return 0;
 }
+
+
+int oh_domain_served_by_handler(unsigned int h_id,
+				SaHpiDomainIdT did)
+{
+	gint i;
+	struct oh_handler *h;
+	
+	data_access_lock();
+	h = oh_lookup_handler(h_id);
+	if (h == NULL) {
+		data_access_unlock();
+		return 0;
+	}
+	if ((h->dids == NULL) &&
+		 (did == oh_get_default_domain_id())) {
+		// plugin didn't create domains, it serves default domain
+		data_access_unlock();
+		return 1;
+	}
+	for (i = 0; ; i++) {
+		if (g_array_index(h->dids, SaHpiDomainIdT, i) == 0) {
+			break;
+		}
+		if (g_array_index(h->dids, SaHpiDomainIdT, i) == did) {
+			data_access_unlock();
+			return 1;
+		}
+	}
+	data_access_unlock();
+	return 0;
+}
+
+int oh_add_domain_to_handler(unsigned int handler_id,
+			     SaHpiDomainIdT did)
+{
+	SaHpiDomainIdT default_did;
+	struct oh_handler *h;
+	
+	data_access_lock();
+	h = oh_lookup_handler(handler_id);
+	if (h == NULL) {
+		data_access_unlock();
+		return -1;
+	}
+	if (h->dids == NULL) {
+		h->dids =
+			g_array_new(TRUE, FALSE, sizeof(SaHpiDomainIdT));
+		if (h->dids == NULL) {
+			data_access_unlock();
+			return -1;
+		}
+		default_did = oh_get_default_domain_id();
+		h->dids = g_array_append_val(h->dids, default_did);
+	}
+	h->dids = g_array_append_val(h->dids, did);
+	data_access_unlock();
+	return 0;
+}
+
+int oh_remove_domain_from_handler(unsigned int h_id,
+				SaHpiDomainIdT did)
+{
+	gint i;
+	struct oh_handler *h;
+	
+	data_access_lock();
+	h = oh_lookup_handler(h_id);
+	if (h == NULL) {
+		data_access_unlock();
+		return -1;
+	}
+	for (i = 0; ; i++) {
+		if (g_array_index(h->dids, SaHpiDomainIdT, i) == 0) {
+			break;
+		}
+		if (g_array_index(h->dids, SaHpiDomainIdT, i) == did) {
+			h->dids = g_array_remove_index_fast(h->dids, i);
+			data_access_unlock();
+			return 0;
+		}
+	}
+	data_access_unlock();
+	return -1;
+}
+
+
+
+
+
+

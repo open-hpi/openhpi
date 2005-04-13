@@ -151,10 +151,20 @@ static const uuid_t UUID_OH_ABI_V2 = {
  * perl -e 'use POSIX qw(strftime); my $str = strftime("%Y%m%d%H%M%S",gmtime(time)); $str .= "00"; for my $c (split(//, $str)) {print "0x0$c, "} '
  * 
  * any time you make a change */
+ 
+/*
 static const uuid_t UUID_OH_ABI_V2 = {
         0x02, 0x00, 0x00, 0x04, 0x01, 0x02, 0x01, 0x05, 
         0x01, 0x06, 0x01, 0x04, 0x01, 0x00, 0x00, 0x00, 
 };
+*/
+
+
+static const uuid_t UUID_OH_ABI_V2 = {
+        0x02, 0x00, 0x00, 0x05, 0x00, 0x04, 0x01, 0x03,
+	0x01, 0x02, 0x05, 0x04, 0x05, 0x00, 0x00, 0x00,
+};
+
 
 struct oh_abi_v2 {
         /**
@@ -185,6 +195,7 @@ struct oh_abi_v2 {
          * prompt plug-in to search for new resources
          */
         SaErrorT (*discover_resources)(void *hnd);
+        SaErrorT (*discover_domain_resources)(void *hnd, SaHpiDomainIdT did);
 
         /**
          * set resource tag, this is passed down so the device has
