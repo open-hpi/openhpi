@@ -79,7 +79,7 @@ SaErrorT sim_discover_sensors(RPTable *rpt)
 		return 1;
 	}		
         new_sensor(rpt, res->ResourceId, 1); 
-        new_sensor(rpt, res->ResourceId, 9);
+        new_sensor(rpt, res->ResourceId, 2);
         new_sensor(rpt, res->ResourceId, 6);
         new_sensor(rpt, res->ResourceId, 7);
 
@@ -112,8 +112,13 @@ SaErrorT new_sensor(RPTable *rptcache, SaHpiResourceIdT ResId, int Index){
          res_rdr.RdrTypeUnion.SensorRec.Num = sim_get_next_sensor_num(rptcache, ResId, res_rdr.RdrTypeUnion.SensorRec.Type);
          res_rdr.RecordId = get_rdr_uid(res_rdr.RdrType, res_rdr.RdrTypeUnion.SensorRec.Num);
 	 
-	 RptEntry = oh_get_resource_data(rptcache, ResId);
+	 RptEntry = oh_get_resource_by_id(rptcache, ResId);
+	 if(!RptEntry){
+		 dbg("NULL rpt pointer\n");
+	 }
+	 else{
 	 res_rdr.Entity = RptEntry->ResourceEntity;
+	 }
 
          oh_add_rdr(rptcache, ResId, &res_rdr, NULL, 0);
 
@@ -125,7 +130,6 @@ int sim_get_next_sensor_num(RPTable *rptcache, SaHpiResourceIdT ResId, SaHpiRdrT
 	int i=0;
 	SaHpiRdrT *RdrEntry;
  
- 	printf("how many times do i run?");
 	RdrEntry = oh_get_rdr_next(rptcache, ResId, SAHPI_FIRST_ENTRY);
 
 	while(RdrEntry){
@@ -133,7 +137,6 @@ int sim_get_next_sensor_num(RPTable *rptcache, SaHpiResourceIdT ResId, SaHpiRdrT
 			i++;
 		}
 		if (RdrEntry->RecordId != 0){
-			printf("I am RdrEntry->RecordId %d", RdrEntry->RecordId);
 			RdrEntry = oh_get_rdr_next(rptcache, ResId, RdrEntry->RecordId);
 		}
 	}
@@ -141,7 +144,7 @@ int sim_get_next_sensor_num(RPTable *rptcache, SaHpiResourceIdT ResId, SaHpiRdrT
 	return i;
 	
 	if(!(oh_get_rdr_by_type(rptcache, ResId, type, i))){
-		printf("I hit sim_get_next_sensor_num %d", i);
+		printf("I hit sim_get_next_sensor_num\n");
 		return i;
 	}
 	else{
@@ -166,7 +169,7 @@ struct dummy_sensor dummy_voltage_sensors[] = {
 
     /* -5V voltage sensor on Management Module */
         {
-	.index = 1,
+	.index = 0,
         .sensor = {
                         .Num = 1,
                         .Type = SAHPI_VOLTAGE,
@@ -311,7 +314,7 @@ struct dummy_sensor dummy_voltage_sensors[] = {
  
      /* Blade's 1.25V voltage sensor */
         {
-		.index = 2,
+		.index = 1,
 		.sensor = {
 			.Num = 1,
 			.Type = SAHPI_VOLTAGE,
@@ -453,7 +456,7 @@ struct dummy_sensor dummy_voltage_sensors[] = {
 
 /* Blade's 1.5V voltage sensor */
 	{
-		.index = 3,
+		.index = 2,
                 .sensor = {
 			.Num = 1,
                         .Type = SAHPI_VOLTAGE,
@@ -594,7 +597,7 @@ struct dummy_sensor dummy_voltage_sensors[] = {
  
       /* 1.8V voltage sensor on Management Module */
         {
-		.index = 4,
+		.index = 3,
                 .sensor = {
                         .Num = 1,
                         .Type = SAHPI_VOLTAGE,
@@ -739,7 +742,7 @@ struct dummy_sensor dummy_voltage_sensors[] = {
 
 /* 2.5V voltage sensor template*/
         {
-		.index = 5,
+		.index = 4,
                 .sensor = {
                         .Num = 1,
                         .Type = SAHPI_VOLTAGE,
@@ -886,7 +889,7 @@ struct dummy_sensor dummy_voltage_sensors[] = {
 
      /* 3.3V voltage sensor on Management Module */
 {
-	.index = 6,
+	.index = 5,
                 .sensor = {
                         .Num = 1,
                         .Type = SAHPI_VOLTAGE,
@@ -1031,7 +1034,7 @@ struct dummy_sensor dummy_voltage_sensors[] = {
 
      /* 5V voltage sensor on Management Module */
         {
-		.index = 7,
+		.index = 6,
                 .sensor = {
                         .Num = 1,
                         .Type = SAHPI_VOLTAGE,
@@ -1176,7 +1179,7 @@ struct dummy_sensor dummy_voltage_sensors[] = {
 
          /* 12V voltage sensor on Management Module */
         {
-		.index = 8,
+		.index = 7,
                 .sensor = {
                         .Num = 1,
                         .Type = SAHPI_VOLTAGE,
@@ -1321,7 +1324,7 @@ struct dummy_sensor dummy_voltage_sensors[] = {
 
 	/* CPU 1 temperature sensor */
         {
-		.index = 1,
+		.index = 8,
                 .sensor = {
                         .Num = 1,
                         .Type = SAHPI_TEMPERATURE,
