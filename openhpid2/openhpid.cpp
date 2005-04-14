@@ -56,7 +56,8 @@ enum tResult
 static bool morph2daemon(void);
 static void service_thread(gpointer data, gpointer user_data);
 static void HandleInvalidRequest(psstrmsock thrdinst);
-static tResult HandleMsg(psstrmsock thrdinst, char *buf, GHashTable **ht);
+static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht,
+                         SaHpiSessionIdT * sid);
 static void hashtablefreeentry(gpointer key, gpointer value, gpointer data);
 
 }
@@ -377,6 +378,7 @@ static void service_thread(gpointer data, gpointer user_data)
         tResult result;
         GHashTable *thrdhashtable = NULL;
         gpointer thrdid = g_thread_self();
+        SaHpiSessionIdT session_id = 0;
 
 	PVERBOSE2("%p Servicing connection.\n", thrdid);
 
@@ -395,7 +397,8 @@ static void service_thread(gpointer data, gpointer user_data)
                 else {
                         switch( thrdinst->header.m_type ) {
                         case eMhMsg:
-                                result = HandleMsg(thrdinst, buf, &thrdhashtable);
+                                result = HandleMsg(thrdinst, buf,
+                                                   &thrdhashtable, &session_id);
                                 // marshal error ?
                                 if (result == eResultError) {
                                         PVERBOSE2("%p Invalid API found.\n", thrdid);
@@ -415,6 +418,10 @@ static void service_thread(gpointer data, gpointer user_data)
 	}
 
         thrd_cleanup:
+        // if necessary, clean up HPI lib data
+        if (session_id != 0) {
+                saHpiSessionClose( session_id );
+        }
         delete thrdinst; // cleanup thread instance data
 
 	PVERBOSE2("%p Connection ended.\n", thrdid);
@@ -442,7 +449,8 @@ void HandleInvalidRequest(psstrmsock thrdinst) {
 /* Function: HandleMsg                                                */
 /*--------------------------------------------------------------------*/
 
-static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
+static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht,
+                         SaHpiSessionIdT * sid)
 {
   cHpiMarshal *hm;
   SaErrorT ret;
@@ -483,6 +491,9 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               ret = saHpiSessionOpen( domain_id, &session_id, securityparams );
 
               thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &session_id );
+
+              // this is used in case the connection ever breaks!
+              *sid = session_id;
        }
        break;
 
