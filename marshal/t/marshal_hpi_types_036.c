@@ -19,15 +19,12 @@
 
 
 static int
-cmp_inventoryrec( SaHpiInventoryRecT *d1, SaHpiInventoryRecT *d2 )
+cmp_hotswapevent( SaHpiHotSwapEventT *d1, SaHpiHotSwapEventT *d2 )
 {
-  if ( d1->IdrId != d2->IdrId )
+  if ( d1->HotSwapState != d2->HotSwapState )
        return 0;
 
-  if ( d1->Persistent != d2->Persistent )
-       return 0;
-
-  if ( d1->Oem != d2->Oem )
+  if ( d1->PreviousHotSwapState != d2->PreviousHotSwapState )
        return 0;
 
   return 1;
@@ -37,20 +34,20 @@ cmp_inventoryrec( SaHpiInventoryRecT *d1, SaHpiInventoryRecT *d2 )
 typedef struct
 {
   tUint8 m_pad1;
-  SaHpiInventoryRecT m_v1;
+  SaHpiHotSwapEventT m_v1;
   tUint8 m_pad2;
-  SaHpiInventoryRecT m_v2;
-  SaHpiInventoryRecT m_v3;
+  SaHpiHotSwapEventT m_v2;
+  SaHpiHotSwapEventT m_v3;
   tUint8 m_pad3;
 } cTest;
 
 cMarshalType StructElements[] =
 {
   dStructElement( cTest, m_pad1 , Marshal_Uint8Type ),
-  dStructElement( cTest, m_v1   , SaHpiInventoryRecType ),
+  dStructElement( cTest, m_v1   , SaHpiHotSwapEventType ),
   dStructElement( cTest, m_pad2 , Marshal_Uint8Type ),
-  dStructElement( cTest, m_v2   , SaHpiInventoryRecType ),
-  dStructElement( cTest, m_v3   , SaHpiInventoryRecType ),
+  dStructElement( cTest, m_v2   , SaHpiHotSwapEventType ),
+  dStructElement( cTest, m_v3   , SaHpiHotSwapEventType ),
   dStructElement( cTest, m_pad3 , Marshal_Uint8Type ),
   dStructElementEnd()
 };
@@ -63,18 +60,15 @@ main( int argc, char *argv[] )
 {
   cTest value =
   {
-    .m_pad1                = 47,
-    .m_v1.IdrId            = 1,
-    .m_v1.Persistent       = TRUE,
-    .m_v1.Oem              = 0,
-    .m_pad2                = 48,
-    .m_v2.IdrId            = 2,
-    .m_v2.Persistent       = FALSE,
-    .m_v2.Oem              = 3,
-    .m_v3.IdrId            = 3,
-    .m_v3.Persistent       = TRUE,
-    .m_v3.Oem              = 2,
-    .m_pad3                = 49
+    .m_pad1                            = 47,
+    .m_v1.HotSwapState                 = SAHPI_HS_STATE_INACTIVE,
+    .m_v1.PreviousHotSwapState         = SAHPI_HS_STATE_ACTIVE,
+    .m_pad2                            = 48,
+    .m_v2.HotSwapState                 = SAHPI_HS_STATE_ACTIVE,
+    .m_v2.PreviousHotSwapState         = SAHPI_HS_STATE_INACTIVE,
+    .m_v3.HotSwapState                 = SAHPI_HS_STATE_NOT_PRESENT,
+    .m_v3.PreviousHotSwapState         = SAHPI_HS_STATE_ACTIVE,
+    .m_pad3                            = 49
   };
 
   unsigned char *buffer = (char *)malloc(sizeof(value));
@@ -89,16 +83,16 @@ main( int argc, char *argv[] )
   if ( value.m_pad1 != result.m_pad1 )
        return 1;
 
-  if ( !cmp_inventoryrec( &value.m_v1, &result.m_v1 ) )
+  if ( !cmp_hotswapevent( &value.m_v1, &result.m_v1 ) )
        return 1;
 
   if ( value.m_pad2 != result.m_pad2 )
        return 1;
 
-  if ( !cmp_inventoryrec( &value.m_v2, &result.m_v2 ) )
+  if ( !cmp_hotswapevent( &value.m_v2, &result.m_v2 ) )
        return 1;
 
-  if ( !cmp_inventoryrec( &value.m_v3, &result.m_v3 ) )
+  if ( !cmp_hotswapevent( &value.m_v3, &result.m_v3 ) )
        return 1;
 
   if ( value.m_pad3 != result.m_pad3 )
