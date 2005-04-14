@@ -61,7 +61,6 @@ void *sim_open(GHashTable *handler_config)
         }
        
 
-
         return ( (void *) state);
 }
 
@@ -69,19 +68,16 @@ void *sim_open(GHashTable *handler_config)
 
 
 
-SaErrorT sim_discover(void *hnd) 
+SaErrorT sim_discover(void *hnd)
 {
 
 	struct oh_handler_state *inst = (struct oh_handler_state *) hnd;
 	struct oh_event event;
 	SaHpiRptEntryT *rpt_entry;
 	SaHpiEntityPathT root_ep;
-	SaHpiTextBufferT build_name;
 	char *entity_root;
-	int i;
-	struct oh_event *e;
+	SaHpiRdrT *rdr_entry;
 
-        e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
 	
 
 	struct oh_handler_state *oh_hnd = hnd;
@@ -89,7 +85,8 @@ SaErrorT sim_discover(void *hnd)
 	oh_encode_entitypath (entity_root, &root_ep);
 
         build_rptcache(inst->rptcache, &root_ep);
-
+	sim_discover_sensors(inst->rptcache);
+		
 	rpt_entry = oh_get_resource_next(inst->rptcache, SAHPI_FIRST_ENTRY);
 
 	while (rpt_entry) {
@@ -100,26 +97,23 @@ SaErrorT sim_discover(void *hnd)
 		memcpy(&event.u.res_event.entry, rpt_entry, sizeof(SaHpiRptEntryT));
 		g_async_queue_push(inst->eventq_async, eventdup(&event));
 
+		rdr_entry = oh_get_rdr_next(inst->rptcache, rpt_entry->ResourceId, SAHPI_FIRST_ENTRY);
+		if(!rdr_entry){printf("I don't work\n");}
+		while (rdr_entry) {
+			printf("i am making an event out of an rdr \n");
+			/*dbg("here rdr event id %d", rdr_entry->RecordId);*/
+			memset(&event, 0, sizeof(event));
+			event.type = OH_ET_RDR;
+			event.u.rdr_event.parent = rpt_entry->ResourceId;
+			memcpy(&event.u.rdr_event.rdr, rdr_entry, sizeof(SaHpiRdrT));
+			g_async_queue_push(inst->eventq_async, eventdup(&event));
+	                
+			rdr_entry = oh_get_rdr_next(inst->rptcache, rpt_entry->ResourceId, rdr_entry->RecordId);
+		}
+								
 		rpt_entry = oh_get_resource_next(inst->rptcache, rpt_entry->ResourceId);	
         }
 	
-        e->u.res_event.entry.ResourceEntity = root_ep;
-        e->u.res_event.entry.ResourceId =
-	                oh_uid_from_entity_path(&(e->u.res_event.entry.ResourceEntity));
-	
-	oh_init_textbuffer(&build_name);
-
-	int x = 0;
-	while(dummy_rpt_array[x].rpt.ResourceInfo.ManufacturerId != 0){
-		x++;
-	}
-	
-	for(i=0; i<x; i++){
-		oh_append_textbuffer(&build_name, dummy_rpt_array[i].comment);
-		dummy_create_resourcetag(&(e->u.res_event.entry.ResourceTag), (char *)build_name.Data, root_ep.Entry[i].EntityLocation);
-	}
-
-	sim_discover_sensors(inst->rptcache);
 	return 0;
 }
 
@@ -151,21 +145,43 @@ void sim_close(void *hnd)
 
 SaErrorT build_rptcache(RPTable *rptcache, SaHpiEntityPathT *root_ep) 
 {
-	int i;
+	int i,j;
 	SaHpiRptEntryT res;
 	int x = 0;
+	SaHpiTextBufferT build_name;
+	struct oh_event *e;
+		
+        e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
 
+	//e->u.res_event.entry.ResourceEntity = root_ep;
+	//e->u.res_event.entry.ResourceId = oh_uid_from_entity_path(&(e->u.res_event.entry.ResourceEntity));
+			
 	while (dummy_rpt_array[x].rpt.ResourceInfo.ManufacturerId != 0){
 		x++;
 	}
 
 	for(i=0; i<x; i++){
-		memcpy(&res, &dummy_rpt_array[i].rpt, sizeof(SaHpiRptEntryT));
+
+        	memcpy(&res, &dummy_rpt_array[i].rpt, sizeof(SaHpiRptEntryT));
 		oh_concat_ep(&res.ResourceEntity, root_ep);
 		res.ResourceId = oh_uid_from_entity_path(&res.ResourceEntity);
-		
+		printf("I am res.ResourceId %d\ni", res.ResourceId);	
 		dbg("Adding resource number %d",i);
 		oh_add_resource(rptcache, &res, NULL, FREE_RPT_DATA);
+								
+		
+        	oh_init_textbuffer(&build_name);
+
+		int x = 0;
+		while(dummy_rpt_array[x].rpt.ResourceInfo.ManufacturerId != 0){
+			x++;
+		}
+
+		for(j=0; j<x; j++){
+			oh_append_textbuffer(&build_name, dummy_rpt_array[i].comment);
+			dummy_create_resourcetag(&(e->u.res_event.entry.ResourceTag), (char *)build_name.Data, root_ep->Entry[j].EntityLocation);
+		}
+				
 	}
         return i;
 }
@@ -183,7 +199,6 @@ struct oh_event *eventdup(const struct oh_event *event)
         memcpy(e, event, sizeof(*e));
         return e;
 }
-
 
 
 /*

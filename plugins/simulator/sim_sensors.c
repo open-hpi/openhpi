@@ -25,14 +25,12 @@ SaErrorT sim_discover_sensors(RPTable *rpt)
 {
          SaHpiRptEntryT *res;
 
-
 	 /* add to first resource */
 	res = oh_get_resource_next(rpt, SAHPI_FIRST_ENTRY);
 	if (!res){
 		dbg("entity_root is needed and not present");
 		return 1;
 	}
-	printf("I am running sim_discover_sensors");
 	new_sensor(rpt, res->ResourceId, 1); /* add #1 ... */
 	new_sensor(rpt, res->ResourceId, 5); /* add #5 ... */
 		       
@@ -89,18 +87,26 @@ SaErrorT sim_discover_sensors(RPTable *rpt)
 		dbg("entity_root is needed and not present");
 		return 1;
 	}
+	printf("I hit here\n");
         new_sensor(rpt, res->ResourceId, 4); 
         new_sensor(rpt, res->ResourceId, 2);
 
-
-        return 0; 
+	/*add to eighth resource*/
+	res = oh_get_resource_next(rpt, res->ResourceId);
+	if(!res){
+		dbg("entity_root is needed and not present");
+		return 1;
+	}
+	new_sensor(rpt, res->ResourceId, 8);
+        
+	return 0; 
 
 }
 
 SaErrorT new_sensor(RPTable *rptcache, SaHpiResourceIdT ResId, int Index){
 	SaHpiRdrT res_rdr;
 	SaHpiRptEntryT *RptEntry;
-
+	
 	// Copy information from rdr array to res_rdr
          res_rdr.RdrType = SAHPI_SENSOR_RDR;
          memcpy(&res_rdr.RdrTypeUnion.SensorRec, &dummy_voltage_sensors[Index].sensor, sizeof(SaHpiSensorRecT));
@@ -119,8 +125,8 @@ SaErrorT new_sensor(RPTable *rptcache, SaHpiResourceIdT ResId, int Index){
 	 else{
 	 res_rdr.Entity = RptEntry->ResourceEntity;
 	 }
-
-         oh_add_rdr(rptcache, ResId, &res_rdr, NULL, 0);
+	 
+	oh_add_rdr(rptcache, ResId, &res_rdr, NULL, 0);
 
          return 0;
 }
@@ -161,7 +167,7 @@ int sim_get_next_sensor_num(RPTable *rptcache, SaHpiResourceIdT ResId, SaHpiRdrT
  *************************************************************************/
 
 /*****************
- * Chassis Sensors
+ * Sensors
  *****************/
 
 struct dummy_sensor dummy_voltage_sensors[] = { 
@@ -309,7 +315,7 @@ struct dummy_sensor dummy_voltage_sensors[] = {
                         },
 			.reading2event = {},
                 },
-                .comment = "Chassis -5 volt sensor"
+                .comment = "Voltage Sensor (-5V)"
         },
  
      /* Blade's 1.25V voltage sensor */
@@ -451,7 +457,7 @@ struct dummy_sensor dummy_voltage_sensors[] = {
 			},
 			.reading2event = {},
 		},
-	.comment = "Blade IPMI 1.25 volt sensor",
+	.comment = "Voltage Sensor (1.25V)",
 	},
 
 /* Blade's 1.5V voltage sensor */
@@ -592,7 +598,7 @@ struct dummy_sensor dummy_voltage_sensors[] = {
                         },
 	.reading2event = {},
                  },
-                .comment = "Blade 1.5 volt sensor"
+                .comment = "Voltage Sensor (1.5V)"
         },
  
       /* 1.8V voltage sensor on Management Module */
@@ -736,7 +742,7 @@ struct dummy_sensor dummy_voltage_sensors[] = {
                         },
 			.reading2event = {},
                 },
-                .comment = "Chassis 1.8 volt sensor"
+                .comment = "Voltage Sensor (1.8V)"
         },
    
 
@@ -883,7 +889,7 @@ struct dummy_sensor dummy_voltage_sensors[] = {
                         },
 			.reading2event = {},
                 },
-                .comment = "Chassis 2.5 volt sensor"
+                .comment = "Voltage Sensor (2.5V)"
         },
 
 
@@ -1029,7 +1035,7 @@ struct dummy_sensor dummy_voltage_sensors[] = {
                         },
 			.reading2event = {},
                 },
-		.comment = "Chassis 3.3 volt sensor"
+		.comment = "Voltage Sensor (3.3V)"
 },
 
      /* 5V voltage sensor on Management Module */
@@ -1174,7 +1180,7 @@ struct dummy_sensor dummy_voltage_sensors[] = {
                         },
 			.reading2event = {},
                 },
-                .comment = "Chassis 5 volt sensor"
+                .comment = "Voltage Sensor (5V)"
         },
 
          /* 12V voltage sensor on Management Module */
@@ -1319,7 +1325,7 @@ struct dummy_sensor dummy_voltage_sensors[] = {
                         },
 			.reading2event = {},
                 },
-                .comment = "Chassis 12 volt sensor"
+                .comment = "Voltage Sensor (12V)"
         },
 
 	/* CPU 1 temperature sensor */
@@ -1456,7 +1462,7 @@ struct dummy_sensor dummy_voltage_sensors[] = {
                         },
  			.reading2event = {},
 		},
-                .comment = "Blade CPU 1 temperature sensor"
+                .comment = "Temperature Sensor (CPU 1)"
         }
 
 
