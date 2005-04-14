@@ -52,14 +52,22 @@ MAINTAINERCLEANFILES 	= Makefile.in aclocal.m4 configure config.guess config.sub
 MOSTLYCLEANFILES	= tags
 
 
-SUBDIRS			= utils src hpi_ui_lib @SNMPDIR@ @MARSHALDIR@ plugins docs hpi_shell @ENABLED_DIRS@ test tools man
+SUBDIRS			= utils src hpi_ui_lib @SNMPDIR@ @MARSHALDIR@ plugins docs hpi_shell @ENABLED_DIRS@ examples test tools man
 DIST_SUBDIRS 		= utils src hpi_ui_lib snmp marshal plugins docs hpi_shell openhpid2 examples clients test scripts tools man
 
 DISTCHECK_CONFIGURE_FLAGS = --with-initdir=prefix
 
 ALLSOURCES = \
-	find $(top_srcdir) \( -name SCCS -o -name BitKeeper -o -name .svn -o -name CVS \) -prune -o \
-	-name '*.[chS]' -print | grep -v '/t/'
+	$(shell find $(top_srcdir)/include \( -name .svn -o -name CVS \) -prune -o \
+	-name '*.[chS]' -print | grep -v '/t/') \
+	$(shell find $(top_srcdir)/src \( -name .svn -o -name CVS \) -prune -o \
+	-name '*.[chS]' -print | grep -v '/t/') \
+	$(shell find $(top_srcdir)/utils \( -name .svn -o -name CVS \) -prune -o \
+	-name '*.[chS]' -print | grep -v '/t/') \
+        $(shell find $(top_srcdir)/openhpid2 \( -name .svn -o -name CVS \) -prune -o \
+	-name '*.[chS]' -print | grep -v '/t/') \
+	$(shell find $(top_srcdir)/plugins \( -name .svn -o -name CVS \) -prune -o \
+	-name '*.[chS]' -print | grep -v '/t/')
 
 includedir=$(base_includedir)/openhpi
 
@@ -110,7 +118,7 @@ tags:   FORCE
 	$(ALLSOURCES) |xargs ctags
 TAGS:   FORCE
 	@echo making TAGS
-	$(ALLSOURCES) |xargs etags
+	etags	$(ALLSOURCES)
 cscope: FORCE
 	@echo making cscope
 	$(ALLSOURCES) > cscope.files
