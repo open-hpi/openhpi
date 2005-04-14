@@ -510,6 +510,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht,
 
 	      thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
               result = eResultClose;
+              *sid = 0;
        }
        break;
 
