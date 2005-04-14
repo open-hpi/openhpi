@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004 by FORCE Computers.
+ * Copyright (c) 2005 by IBM Corporation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -9,7 +9,7 @@
  * full licensing terms.
  *
  * Authors:
- *     Thomas Kanngieser <thomas.kanngieser@fci.com>
+ *     W. David Ashley <dashley@us.ibm.com>
  */
 
 #include "marshal_hpi_types.h"
