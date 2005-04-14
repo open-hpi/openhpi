@@ -145,7 +145,7 @@ void sim_close(void *hnd)
 
 SaErrorT build_rptcache(RPTable *rptcache, SaHpiEntityPathT *root_ep) 
 {
-	int i,j;
+	int i;
 	SaHpiRptEntryT res;
 	int x = 0;
 	SaHpiTextBufferT build_name;
@@ -172,15 +172,8 @@ SaErrorT build_rptcache(RPTable *rptcache, SaHpiEntityPathT *root_ep)
 		
         	oh_init_textbuffer(&build_name);
 
-		int x = 0;
-		while(dummy_rpt_array[x].rpt.ResourceInfo.ManufacturerId != 0){
-			x++;
-		}
-
-		for(j=0; j<x; j++){
-			oh_append_textbuffer(&build_name, dummy_rpt_array[i].comment);
-			dummy_create_resourcetag(&(e->u.res_event.entry.ResourceTag), (char *)build_name.Data, root_ep->Entry[j].EntityLocation);
-		}
+		oh_append_textbuffer(&build_name, dummy_rpt_array[i].comment);
+		dummy_create_resourcetag(&(e->u.res_event.entry.ResourceTag), (char *)build_name.Data, root_ep->Entry[i].EntityLocation);
 				
 	}
         return i;
