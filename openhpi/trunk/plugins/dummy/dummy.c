@@ -3371,6 +3371,9 @@ static int dummy_set_reset_state(void *hnd, SaHpiResourceIdT id,
                 case SAHPI_RESET_ASSERT:
                         dummy_resource_status[i].reset = SAHPI_RESET_ASSERT;
                         break;
+				case SAHPI_RESET_DEASSERT:
+                        dummy_resource_status[i].reset = SAHPI_RESET_DEASSERT;
+                        break;				                        
                 default:
                         rval = -1;
                 }
