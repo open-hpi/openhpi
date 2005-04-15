@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2004
+ * (C) Copyright IBM Corp. 2004, 2005
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -19,12 +19,12 @@
 #include <SaHpi.h>
 #include <oh_utils.h>
 
-#define fill_text_buffer(b, chartype, string)                    \
+#define fill_text_buffer(b, chartype, string)                           \
         do {                                                            \
                 b.DataType = chartype;                                  \
                 b.Language = SAHPI_LANG_ENGLISH;                        \
-                b.DataLength = sizeof(string) - 1;                          \
-                strncpy(b.Data,string,sizeof(string) - 1);                  \
+                b.DataLength = sizeof(string) - 1;                      \
+                strncpy(b.Data,string,sizeof(string) - 1);              \
         } while(0)
 
 #define TEXTT SAHPI_TL_TYPE_TEXT
@@ -33,9 +33,9 @@
 #define ASCII6T SAHPI_TL_TYPE_ASCII6
 #define BINARYT SAHPI_TL_TYPE_BINARY 
 
-#define failed(num) \
-        do {                 \
-                failcount++; \
+#define failed(num)                         \
+        do {                                \
+                failcount++;                \
                 dbg("Failed Test %d", num); \
         } while(0)
 
@@ -44,7 +44,8 @@ int main(int argc, char **argv)
 {
         /* const char *expected_str; */
         // SaErrorT   expected_err, err;
-        SaHpiTextBufferT buffer;
+        SaHpiTextBufferT buffer, buffer2;
+        oh_big_textbuffer oh_buff, oh_buff2;
         int failcount = 0;
        
         setenv("OPENHPI_DEBUG","YES",1);
@@ -119,6 +120,78 @@ int main(int argc, char **argv)
                 failed(11);
         }
 
+        /*
+         * TODO: add append tests for regular text buff
+         */
+
+        
+        memset(&buffer2, 0, sizeof(buffer2));
+        buffer2.DataType = SAHPI_TL_TYPE_TEXT;
+        buffer2.Language = SAHPI_LANG_ENGLISH;
+        oh_init_textbuffer(&buffer);
+        if(memcmp(&buffer, &buffer2, sizeof(buffer)) != 0) {
+                printf("Value %d\n",memcmp(&buffer, &buffer2, sizeof(buffer)));
+                oh_print_text(&buffer2);
+                oh_print_text(&buffer);
+                failed(12);
+                goto end;
+        }
+
+        /* we know init works now */
+        
+        oh_append_textbuffer(&buffer, "Some Text");
+
+        if(strncmp((char *)&buffer.Data, "Some Text", buffer.DataLength) != 0) {
+                failed(13);
+        }
+        if(buffer.DataLength != 9) {
+                failed(14);
+        }
+        // 
+        oh_append_textbuffer(&buffer, ", Some More Text");
+        if(strncmp((char *)&buffer.Data, "Some Text, Some More Text", buffer.DataLength) != 0) {
+                failed(15);
+        }
+        if(buffer.DataLength != 25) {
+                failed(16);
+        }
+
+        /***********************
+         *
+         *  oh_big_textbuffer tests
+         *
+         **********************/
+        memset(&oh_buff2, 0, sizeof(oh_buff2));
+        oh_buff2.DataType = SAHPI_TL_TYPE_TEXT;
+        oh_buff2.Language = SAHPI_LANG_ENGLISH;
+        oh_init_bigtext(&oh_buff);
+        if(memcmp(&oh_buff, &oh_buff2, sizeof(oh_buff)) != 0) {
+                printf("Value %d\n",memcmp(&oh_buff, &oh_buff2, sizeof(oh_buff)));
+                oh_print_bigtext(&oh_buff2);
+                oh_print_bigtext(&oh_buff);
+                failed(32);
+                goto end;
+        }
+        /* we know init works now */
+        
+        oh_append_bigtext(&oh_buff, "Some Text");
+
+        if(strncmp((char *)&oh_buff.Data, "Some Text", oh_buff.DataLength) != 0) {
+                failed(33);
+        }
+        if(oh_buff.DataLength != 9) {
+                failed(34);
+        }
+        // 
+        oh_append_bigtext(&oh_buff, ", Some More Text");
+        if(strncmp((char *)&oh_buff.Data, "Some Text, Some More Text", oh_buff.DataLength) != 0) {
+                failed(35);
+        }
+        if(oh_buff.DataLength != 25) {
+                failed(36);
+        }
+        
+end:
         if(failcount) {
                 return -1;
         }
