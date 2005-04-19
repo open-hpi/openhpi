@@ -167,14 +167,13 @@ SaErrorT build_rptcache(RPTable *rptcache, SaHpiEntityPathT *root_ep)
 		res.ResourceId = oh_uid_from_entity_path(&res.ResourceEntity);
 		printf("I am res.ResourceId %d\ni", res.ResourceId);	
 		dbg("Adding resource number %d",i);
-		oh_add_resource(rptcache, &res, NULL, FREE_RPT_DATA);
-								
-		
-        	oh_init_textbuffer(&build_name);
 
 		oh_append_textbuffer(&build_name, dummy_rpt_array[i].comment);
-		dummy_create_resourcetag(&(e->u.res_event.entry.ResourceTag), (char *)build_name.Data, root_ep->Entry[i].EntityLocation);
-				
+//		printf(&res.ResourceTag, "%s I am resourcetag\n");
+		dummy_create_resourcetag(&res.ResourceTag, (char*)build_name.Data, root_ep->Entry[i].EntityLocation);
+		printf("I actually run dummy_create_resourcetag\n");
+		oh_add_resource(rptcache, &res, NULL, FREE_RPT_DATA);
+								
 	}
         return i;
 }
