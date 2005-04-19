@@ -148,7 +148,7 @@ SaErrorT build_rptcache(RPTable *rptcache, SaHpiEntityPathT *root_ep)
 	int i;
 	SaHpiRptEntryT res;
 	int x = 0;
-	SaHpiTextBufferT build_name;
+//	SaHpiTextBufferT build_name;
 	struct oh_event *e;
 		
         e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
@@ -168,9 +168,10 @@ SaErrorT build_rptcache(RPTable *rptcache, SaHpiEntityPathT *root_ep)
 		printf("I am res.ResourceId %d\ni", res.ResourceId);	
 		dbg("Adding resource number %d",i);
 
-		oh_append_textbuffer(&build_name, dummy_rpt_array[i].comment);
+//		oh_append_textbuffer(&build_name, dummy_rpt_array[i].comment);
 //		printf(&res.ResourceTag, "%s I am resourcetag\n");
-		dummy_create_resourcetag(&res.ResourceTag, (char*)build_name.Data, root_ep->Entry[i].EntityLocation);
+//		dummy_create_resourcetag(&res.ResourceTag, (char*)build_name.Data, root_ep->Entry[i].EntityLocation);
+		dummy_create_resourcetag(&res.ResourceTag, dummy_rpt_array[i].comment, root_ep->Entry[i].EntityLocation);
 		printf("I actually run dummy_create_resourcetag\n");
 		oh_add_resource(rptcache, &res, NULL, FREE_RPT_DATA);
 								

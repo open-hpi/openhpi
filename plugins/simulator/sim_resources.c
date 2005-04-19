@@ -54,7 +54,8 @@ SaErrorT dummy_create_resourcetag(SaHpiTextBufferT *buffer, const char *str, SaH
 	char *locstr;
 	SaErrorT err = SA_OK;
 	SaHpiTextBufferT working;
-
+	
+	printf("I hit dummy_create_resourcetag\n");
 	if (!buffer || loc < DUMMY_HPI_LOCATION_BASE ||
 	    loc > (pow(10, OH_MAX_LOCATION_DIGITS) - 1)) {
 		return(SA_ERR_HPI_INVALID_PARAMS);

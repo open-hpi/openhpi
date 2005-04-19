@@ -62,8 +62,8 @@
 #ifndef __SIM_RESOURCES_H
 #define __SIM_RESOURCES_H
 
-/* Start HPI location numbers from 1 */
-#define DUMMY_HPI_LOCATION_BASE 1
+/* Start HPI location numbers from 0 */
+#define DUMMY_HPI_LOCATION_BASE 0
 
 /* IBM Manufacturing Number */
 /* Corresponding to change made in snmp_bc_resources.h */
