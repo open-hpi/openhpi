@@ -335,7 +335,7 @@ static int process_resource_event(struct oh_event *e)
                 trace("Resource %d in Domain %d has been REMOVED.",
                       e->u.res_event.entry.ResourceId,
                       e->did);
-
+                
                 hpie.did = e->did;
                 hpie.u.hpi_event.event.Severity = e->u.res_event.entry.ResourceSeverity;
                 hpie.u.hpi_event.event.Source = e->u.res_event.entry.ResourceId;
@@ -343,8 +343,8 @@ static int process_resource_event(struct oh_event *e)
                 hpie.u.hpi_event.event.EventDataUnion.ResourceEvent.ResourceEventType =
                         SAHPI_RESE_RESOURCE_FAILURE;
                 if (oh_gettimeofday(&hpie.u.hpi_event.event.Timestamp) != SA_OK)
-                    hpie.u.hpi_event.event.Timestamp = SAHPI_TIME_UNSPECIFIED;
-
+                        hpie.u.hpi_event.event.Timestamp = SAHPI_TIME_UNSPECIFIED;
+                
         } else {
                 struct oh_resource_data *rd = g_malloc0(sizeof(struct oh_resource_data));
 
@@ -373,8 +373,11 @@ static int process_resource_event(struct oh_event *e)
                     hpie.u.hpi_event.event.Timestamp = SAHPI_TIME_UNSPECIFIED;
         }
         oh_release_domain(d);
-
-        if (rv == SA_OK) {
+        
+        /* if the op succeed, and the resource isn't FRU */
+        if ((rv == SA_OK) && 
+            !(e->u.res_event.entry.ResourceCapabilities & 
+              SAHPI_CAPABILITY_FRU)) {
                 rv = process_hpi_event(&hpie);
         }
 
