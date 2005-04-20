@@ -37,8 +37,6 @@
 int main(int argc, char **argv)
 {
         SaHpiSessionIdT sid = 0;
-        SaHpiRptEntryT res;
-        SaHpiEntryIdT id = SAHPI_FIRST_ENTRY;
         int failcount = 0;
         int testnum = 0;
         SaErrorT rc = SA_OK;
@@ -49,41 +47,8 @@ int main(int argc, char **argv)
                 failed("Failed to open session");
         }
 
-        rc = saHpiDiscover(sid);
-        runtest();
-        if(rc != SA_OK) {
-                failed("Failed to run discover");
-        }
-        
-        rc = saHpiRptEntryGet(sid, id, &id, &res);
-        runtest();
-        if(rc != SA_OK) {
-                dbg("Error %s",oh_lookup_error(rc));
-                failed("Couldn't get the first rpt entry");
-                /* we're toast, bail */
-                goto end; 
-        }
-        
-        /* reset so we can do a full loop */
-        id = SAHPI_FIRST_ENTRY;
-
-        /* loop over all resources, ensure that ResourceTag and 
-           ManufacturerId have been set */
-        while(saHpiRptEntryGet(sid,id,&id,&res) == SA_OK) {
-                runtest();
-                if(!res.ResourceTag.DataLength) {
-                        failed("Resource Tag has zero length");
-                }
-                runtest();
-                if(!res.ResourceInfo.ManufacturerId) {
-                        failed("Resource has no Manufacturer Id");
-                }
-
-                /* there should be an inner loop here for Rdrs */
-        }
-        dbg("Ran %d tests", testnum);
         /* if there is any failures, the test fails */
-end:
+
         if(failcount) {
                 return -1;
         }

@@ -24,11 +24,20 @@ TESTS_ENVIRONMENT = OPENHPI_PATH=$(top_builddir)/plugins/simulator
 TESTS_ENVIRONMENT += OPENHPI_UID_MAP=$(shell pwd)/uid_map
 TESTS_ENVIRONMENT += OPENHPI_CONF=$(srcdir)/openhpi.conf
 
-TESTS = sim_sanity_000
+TESTS = sim_sanity_000 \
+	sim_sanity_001 \
+	sim_sanity_002 \
+	sim_sanity_003 
 
 check_PROGRAMS = $(TESTS)
 
 sim_sanity_000_SOURCES = sim_sanity_000.c
 sim_sanity_000_LDADD = $(TDEPLIB)
+sim_sanity_001_SOURCES = sim_sanity_001.c
+sim_sanity_001_LDADD = $(TDEPLIB)
+sim_sanity_002_SOURCES = sim_sanity_002.c
+sim_sanity_002_LDADD = $(TDEPLIB)
+sim_sanity_003_SOURCES = sim_sanity_003.c
+sim_sanity_003_LDADD = $(TDEPLIB)
 
 
