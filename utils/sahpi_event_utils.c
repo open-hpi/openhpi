@@ -20,6 +20,7 @@
 
 #include <SaHpi.h>
 #include <oh_utils.h>
+#include <oh_error.h>
 
 /**
  * oh_decode_eventstate:

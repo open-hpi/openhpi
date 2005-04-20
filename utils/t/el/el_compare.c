@@ -1,10 +1,11 @@
- #include <glib.h>
- #include <string.h>
+#include <glib.h>
+#include <string.h>
  
- #include <SaHpi.h>
- #include <oh_utils.h>
+#include <SaHpi.h>
+#include <oh_utils.h>
+#include <oh_error.h>
  
- #include "el_test.h"
+#include "el_test.h"
  
  /* function to compare two event logs */
  

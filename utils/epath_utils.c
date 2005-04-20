@@ -22,6 +22,7 @@
 #include <string.h>
 
 #include <oh_utils.h>
+#include <oh_error.h>
 
 /**
  * oh_encode_entitypath:

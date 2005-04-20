@@ -19,7 +19,7 @@
  *          Do not change this file manually. Update script instead
  *******************************************************************/
 
-#include <stdlib.h>
+#include <strings.h>
 
 #include <SaHpi.h>
 #include <oh_utils.h>

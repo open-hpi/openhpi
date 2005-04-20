@@ -17,6 +17,7 @@
 #include <sys/time.h>
 
 #include <oh_utils.h>
+#include <oh_error.h>
 
 static RPTEntry *get_rptentry_by_rid(RPTable *table, SaHpiResourceIdT rid)
 {

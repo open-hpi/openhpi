@@ -25,6 +25,7 @@
 
 #include <SaHpi.h>
 #include <oh_utils.h>
+#include <oh_error.h>
 
 /* allocate and initialize an EL */
 oh_el *oh_el_create(SaHpiUint32T size)

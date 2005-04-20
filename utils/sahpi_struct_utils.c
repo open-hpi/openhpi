@@ -25,6 +25,7 @@
 
 #include <SaHpi.h>
 #include <oh_utils.h>
+#include <oh_error.h>
 
 static inline SaErrorT oh_append_data(oh_big_textbuffer *big_buffer, const SaHpiUint8T *from, SaHpiUint8T len);
 

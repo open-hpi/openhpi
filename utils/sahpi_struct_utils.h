@@ -20,6 +20,8 @@
 #warning *** Include oh_utils.h instead of individual utility header files ***
 #endif
 
+#include <stdio.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif 
