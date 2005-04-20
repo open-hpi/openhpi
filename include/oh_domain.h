@@ -17,6 +17,10 @@
 #ifndef __OH_DOMAIN_H
 #define __OH_DOMAIN_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <SaHpi.h>
 #include <glib.h>
 #include <oh_utils.h>
@@ -108,4 +112,9 @@ SaErrorT oh_drt_entry_get(SaHpiDomainIdT    did,
 			  SaHpiEntryIdT     entryid,
 			  SaHpiEntryIdT     *nextentryid,
 			  SaHpiDrtEntryT    *drt);
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* __OH_DOMAIN_H */
