@@ -309,6 +309,7 @@ cIpmiMcThread::Discover( cIpmiMsg *get_device_id_rsp )
        // it up
        stdlog << "couldn't handle the device data !\n";
 
+       m_mc->Cleanup();
        delete m_mc;
        m_mc = 0;
 
@@ -321,6 +322,7 @@ cIpmiMcThread::Discover( cIpmiMsg *get_device_id_rsp )
       // If board is not ATCA, just give up
       if (!m_mc->IsAtcaBoard())
       {
+          m_mc->Cleanup();
           delete m_mc;
           m_mc = 0;
 
@@ -341,6 +343,7 @@ cIpmiMcThread::Discover( cIpmiMsg *get_device_id_rsp )
      {
        stdlog << "cannot initialize MC: " <<  (unsigned char)m_mc->GetAddress() << " !\n";
 
+       m_mc->Cleanup();
        delete m_mc;
        m_mc = 0;
 
@@ -353,6 +356,7 @@ cIpmiMcThread::Discover( cIpmiMsg *get_device_id_rsp )
      {
        stdlog << "ERROR while discover MC " << m_addr << ", giving up !\n";
 
+       m_mc->Cleanup();
        delete m_mc;
        m_mc = 0;
 
