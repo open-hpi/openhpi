@@ -116,7 +116,6 @@ cIpmiDomain::Init( cIpmiCon *con )
 
   // create main sdr
   m_main_sdrs = new cIpmiSdrs( m_si_mc, false );
-  assert( m_main_sdrs );
 
   // send get device id to system interface
   cIpmiMsg msg( eIpmiNetfnApp, eIpmiCmdGetDeviceId );

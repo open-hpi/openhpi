@@ -62,10 +62,8 @@ cIpmiMc::cIpmiMc( cIpmiDomain *domain, const cIpmiAddr &addr )
   m_aux_fw_revision[3] = 0;
 
   m_sdrs = new cIpmiSdrs( this, true );
-  assert( m_sdrs );
 
   m_sel = new cIpmiSel( this, 0 );
-  assert( m_sel );
 }
 
 
