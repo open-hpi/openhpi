@@ -668,7 +668,7 @@ cIpmiSensorThreshold::CreateEvent( cIpmiEvent *event, SaHpiEventT &h )
   }
   else if ( type == eIpmiEventData3 )
   {
-       se.SensorSpecific = (SaHpiUint32T)((event->m_data[12] << 8) & 0xff00);
+       se.SensorSpecific |= (SaHpiUint32T)((event->m_data[12] << 8) & 0xff00);
        optional_data |= SAHPI_SOD_SENSOR_SPECIFIC;
   }
 

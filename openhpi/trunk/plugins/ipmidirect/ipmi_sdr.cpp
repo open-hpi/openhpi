@@ -949,13 +949,13 @@ cIpmiSdrs::CreateFullSensorRecords( cIpmiSdr *sdr )
        int base  = 0;
        int start = 0;
 
-       if ( sdr->m_data[23] & 0x30 == 0 )
+       if (( sdr->m_data[23] & 0x30 ) == 0 )
           {
             // numeric
             base  = 10;
             start = '0';
           }
-       else if ( sdr->m_data[23] & 0x30 == 0x10 )
+       else if (( sdr->m_data[23] & 0x30 ) == 0x10 )
           {
             // alpha
             base  = 26;
