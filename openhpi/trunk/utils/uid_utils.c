@@ -25,6 +25,7 @@
 #include <SaHpi.h>
 #include <config.h>
 #include <oh_utils.h>
+#include <oh_error.h>
 
 static GStaticMutex oh_uid_lock = G_STATIC_MUTEX_INIT;
 static GHashTable *oh_ep_table;

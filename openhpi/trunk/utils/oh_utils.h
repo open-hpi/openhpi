@@ -17,8 +17,6 @@
 #ifndef __OH_UTILS_H
 #define __OH_UTILS_H
 
-#include <oh_error.h>
-
 /* Order is important */
 #include <el_utils.h>
 #include <sahpi_struct_utils.h>

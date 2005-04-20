@@ -18,6 +18,7 @@
 
 #include <SaHpi.h>
 #include <oh_utils.h>
+#include <oh_error.h>
 
 #define fill_text_buffer(b, chartype, string)                           \
         do {                                                            \

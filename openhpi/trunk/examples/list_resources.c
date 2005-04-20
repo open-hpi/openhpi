@@ -12,27 +12,18 @@
 
 /* debug macros */
 #define warn(str) fprintf(stderr,"%s: " str "\n", __FUNCTION__)
-#define error(str, e) fprintf(stderr,str ": %s\n", get_error_string(e))
+#define error(str, e) fprintf(stderr,"%s : %d\n", str, e)
 
 /* Function prototypes */
 SaErrorT discover_domain(SaHpiDomainIdT, SaHpiSessionIdT, SaHpiRptEntryT);
-const char * get_error_string(SaErrorT);
 void display_entity_capabilities(SaHpiCapabilitiesT);
-const char * severity2str(SaHpiSeverityT);
-const char * rdrtype2str(SaHpiRdrTypeT type);
 void rpt_cap2str(SaHpiCapabilitiesT ResourceCapabilities);
-const char * ctrldigital2str(SaHpiCtrlStateDigitalT digstate);
-const char * get_sensor_type(SaHpiSensorTypeT type);
-const char * get_control_type(SaHpiCtrlTypeT type);
-const char * get_sensor_category(SaHpiEventCategoryT category);
 void list_sel(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id);
 void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id);
 void display_textbuffer(SaHpiTextBufferT string);
 void display_oembuffer(SaHpiUint32T length, SaHpiUint8T *string);
 void printreading (SaHpiSensorReadingT reading);
 void time2str( SaHpiTimeT time, char *str );
-const char *eventtype2str(SaHpiEventTypeT type);
-const char *hotswapstate2str(SaHpiHsStateT state);
 
 
 /**
@@ -45,7 +36,6 @@ const char *hotswapstate2str(SaHpiHsStateT state);
 int main(int arc, const char *argv[])
 {
         SaErrorT 		err;
-        SaHpiVersionT		version;
         SaHpiSessionIdT 	session_id;
         SaHpiRptEntryT		entry;
         //SaHpiEventLogInfoT		Info;
@@ -116,7 +106,7 @@ SaErrorT discover_domain(SaHpiDomainIdT domain_id, SaHpiSessionIdT session_id, S
 		       entry.ResourceInfo.FirmwareMajorRev, 
 		       entry.ResourceInfo.FirmwareMinorRev,
 		       entry.ResourceInfo.AuxFirmwareRev);
-                printf("Severity: %s\n",severity2str(entry.ResourceSeverity));
+                printf("Severity: %s\n",oh_lookup_severity(entry.ResourceSeverity));
                 
                 rpt_cap2str(entry.ResourceCapabilities);
 
@@ -149,7 +139,6 @@ void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
 	SaHpiSensorTypeT	sensor_type;
 	SaHpiSensorNumT		sensor_num;
 	SaHpiEventCategoryT	category;
-	SaHpiSensorThresholdsT	thres; 
 
 	SaHpiCtrlNumT   	ctrl_num;
 	SaHpiCtrlStateT 	state;
@@ -170,7 +159,7 @@ void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
                 }
                 
                 printf("\tRecordId: %x\n", rdr.RecordId);
-                printf("\tRdrType: %s\n", rdrtype2str(rdr.RdrType));
+                printf("\tRdrType: %s\n", oh_lookup_rdrtype(rdr.RdrType));
                 
                 if (rdr.RdrType == SAHPI_SENSOR_RDR)
                 {			
@@ -182,8 +171,8 @@ void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
                                                  sensor_num, &sensor_type, 
                                                  &category);
                         
-                        printf("\tSensor num: %i\n\tType: %s\n", sensor_num, get_sensor_type(sensor_type)); 
-                        printf("\tCategory: %s\n", get_sensor_category(category)); 
+                        printf("\tSensor num: %i\n\tType: %s\n", sensor_num, oh_lookup_sensortype(sensor_type)); 
+                        printf("\tCategory: %s\n", oh_lookup_eventcategory(category)); 
                         
                         memset(&reading, 0, sizeof(SaHpiSensorReadingT));
                         
@@ -261,11 +250,11 @@ void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
                                 printf("Error=%d reading control type {control, %d}\n", err, ctrl_num);
                                 continue;
                         }
-                        printf("\tControl num: %i\n\tType: %s\n", ctrl_num, get_control_type(ctrl_type)); 
+                        printf("\tControl num: %i\n\tType: %s\n", ctrl_num, oh_lookup_ctrltype(ctrl_type)); 
                         
-                        err = saHpiControlGet(session_id, resource_id, ctrl_num, &state);
+                        err = saHpiControlGet(session_id, resource_id, ctrl_num, NULL, &state);
                         if (err != SA_OK) {
-                                printf("Error=%d reading control state {control, %d}\n", err, ctrl_num, NULL);
+                                printf("Error=%d reading control state {control, %d}\n", err, ctrl_num);
                                 continue;
                         }
                         if (ctrl_type != state.Type) {
@@ -276,7 +265,7 @@ void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
                         switch (state.Type) {
                         case SAHPI_CTRL_TYPE_DIGITAL:
                                 printf("\t\tControl Digital State: %s\n", 
-                                       ctrldigital2str(state.StateUnion.Digital));
+                                       oh_lookup_ctrlstatedigital(state.StateUnion.Digital));
                                 break;
                         case SAHPI_CTRL_TYPE_DISCRETE:
                                 printf("\t\tControl Discrete State: %x\n", state.StateUnion.Discrete);
@@ -347,9 +336,9 @@ void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
 			}
 
                         g_free(l_inventdata);
-#endif
                 }
 
+#endif
                 oh_print_ep(&rdr.Entity, 4);
                 printf("\tIdString: ");
                 display_textbuffer(rdr.IdString);
@@ -430,16 +419,11 @@ void list_sel(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
                 printf("SAHPI_EL_OVERFLOW_OVERWRITE\n");
                 break;
 
-        case SAHPI_EL_OVERFLOW_WRITELAST:
-                printf("SAHPI_SEL_OVERFLOW_WRITELAST\n");
-                break;
-
         default:
                 printf("unknown(0x%x)\n", info.OverflowAction);
                 break;
         }
 
-        printf("\tDeleteEntrySupported: %s\n", info.DeleteEntrySupported ? "true" : "false" );
 
 		if (info.Entries == 0)
 				return;
@@ -476,18 +460,18 @@ void list_sel(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
 			oh_print_ep(&rres.ResourceEntity, 0);
                 }
 
-                printf("\t\t\tEventType:            %s\n", eventtype2str(entry.Event.EventType));
+                printf("\t\t\tEventType:            %s\n", oh_lookup_eventtype(entry.Event.EventType));
                 time2str(entry.Timestamp, str);
                 printf("\t\t\tEvent timestamp:      %s\n", str);
-                printf("\t\t\tSeverity:             %s\n", severity2str( entry.Event.Severity ) );
+                printf("\t\t\tSeverity:             %s\n", oh_lookup_severity( entry.Event.Severity ) );
 
                 switch(entry.Event.EventType) {
                 case SAHPI_ET_SENSOR:
                         {
                                 SaHpiSensorEventT *se = &entry.Event.EventDataUnion.SensorEvent;
                 printf("\t\t\tSensorNum:            %d\n", se->SensorNum );
-                printf("\t\t\tSensorType:           %s\n", get_sensor_type(se->SensorType ) );
-                printf("\t\t\tEventCategory:        %s\n", get_sensor_category( se->EventCategory ) );
+                printf("\t\t\tSensorType:           %s\n", oh_lookup_sensortype(se->SensorType ) );
+                printf("\t\t\tEventCategory:        %s\n", oh_lookup_eventcategory( se->EventCategory ) );
                 printf("\t\t\tAssertion:            %s\n", se->Assertion ? "TRUE" : "FALSE" );
                         }
 
@@ -497,9 +481,9 @@ void list_sel(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
                         {
                                 SaHpiHotSwapEventT *he = &entry.Event.EventDataUnion.HotSwapEvent;
                 printf("\t\t\tHotSwapState:         %s\n",
-                                      hotswapstate2str( he->HotSwapState ) );
+                                      oh_lookup_hsstate( he->HotSwapState ) );
                 printf("\t\t\tPreviousHotSwapState: %s\n",
-                                        hotswapstate2str( he->PreviousHotSwapState ) );
+                                        oh_lookup_hsstate( he->PreviousHotSwapState ) );
                         }
 
                         break;
@@ -512,6 +496,8 @@ void list_sel(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
 
                 case SAHPI_ET_USER:
                         break;
+		default:
+			;
                 }
                 
                 current = next;
@@ -547,7 +533,7 @@ void display_textbuffer(SaHpiTextBufferT string)
                 for (i = 0; i < string.DataLength; i++)
                         printf("%c", string.Data[i]);
                 break;
-        case SAHPI_TL_TYPE_LANGUAGE:
+        case SAHPI_TL_TYPE_TEXT:
                 for (i = 0; i < string.DataLength; i++)
                         printf("%c", string.Data[i]);
                 break;
@@ -560,11 +546,9 @@ void display_textbuffer(SaHpiTextBufferT string)
 void rpt_cap2str (SaHpiCapabilitiesT ResourceCapabilities)
 {
         printf("\n");
-        if(ResourceCapabilities & SAHPI_CAPABILITY_DOMAIN)
-                printf("\tSAHPI_CAPABILITY_DOMAIN\n");
         if(ResourceCapabilities & SAHPI_CAPABILITY_RESOURCE)
                 printf("\tSAHPI_CAPABILITY_RESOURCE\n");
-        if(ResourceCapabilities & SAHPI_CAPABILITY_SEL)
+        if(ResourceCapabilities & SAHPI_CAPABILITY_EVENT_LOG)
                 printf("\tSAHPI_CAPABILITY_SEL\n");
         if(ResourceCapabilities & SAHPI_CAPABILITY_EVT_DEASSERTS)
                 printf("\tSAHPI_CAPABILITY_EVT_DEASSERTS\n");
