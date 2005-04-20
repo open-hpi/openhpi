@@ -1436,7 +1436,7 @@ cIpmi::AddHpiEvent( oh_event *event )
   m_event_lock.Lock();
 
   assert( m_handler );
-  event->did = SAHPI_UNSPECIFIED_DOMAIN_ID;
+  event->did = oh_get_default_domain_id();
 
   m_handler->eventq = g_slist_append( m_handler->eventq, event );
 
