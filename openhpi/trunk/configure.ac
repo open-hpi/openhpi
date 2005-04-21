@@ -411,13 +411,14 @@ dnl
 dnl defines CONFPATH, OH_DEFAULT_CONF and OH_CLIENT_DEFAULT_CONF
 dnl
 
-CONFPATH=${CONFPATH:=/etc/${PACKAGE_NAME}}
+#CONFPATH=${CONFPATH:=/etc/${PACKAGE_NAME}}
 
-AC_ARG_WITH(confpath,
-   [[  --with-confpath=PATH    use directory PATH to store openhpi configuration file [default=/etc/openhpi]]],
-   [CONFPATH=$withval])
+#AC_ARG_WITH(confpath,
+#   [[  --with-confpath=PATH    use directory PATH to store openhpi configuration file [default=/etc/openhpi]]],
+#   [CONFPATH=$withval])
 
 dnl substitute @CONFPATH@ in all Makefiles
+CONFPATH=${sysconfdir}/openhpi
 AC_SUBST(CONFPATH)
 
 dnl create the #define in config.h
