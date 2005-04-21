@@ -40,6 +40,7 @@ int main(int argc, char **argv)
 	SaHpiRptEntryT res;
 	SaHpiRdrT rdr;
 	SaHpiEntryIdT id = SAHPI_FIRST_ENTRY;
+	SaHpiResourceIdT resid;
 	int failcount = 0;
 	int testnum = 0;
 	SaErrorT rc = SA_OK;
@@ -57,6 +58,9 @@ int main(int argc, char **argv)
 	
         rc = saHpiRptEntryGet(sid, id, &id, &res);
         runtest();
+	if (rc == SA_OK){
+		resid = res.ResourceId;
+	}
         if(rc != SA_OK) {
 		dbg("Error %s",oh_lookup_error(rc));
 		failed("Couldn't get the first rpt entry");
@@ -65,10 +69,10 @@ int main(int argc, char **argv)
 	}
 	else{
 		int i, j = 0;
-		rc = saHpiRdrGet(sid, id, id, &id, &rdr);
+		rc = saHpiRdrGet(sid, resid, id, &id, &rdr);
 		while(rc == SA_OK && id != SAHPI_LAST_ENTRY){
 			int x = i;
-			int i = res.RdrTypeUnion.SensorRec.Num;
+			int i = rdr.RdrTypeUnion.SensorRec.Num;
 		       	if(j == 1){
 				if (i != x++){
 					dbg("Error %s", oh_lookup_error(rc));
@@ -76,7 +80,7 @@ int main(int argc, char **argv)
 					goto end;
 				}
 			}
-			rc = saHpiRdrGet(sid, id, id, &id, &rdr);
+			rc = saHpiRdrGet(sid, resid, id, &id, &rdr);
 		}
 			j = 1;
 		runtest();
