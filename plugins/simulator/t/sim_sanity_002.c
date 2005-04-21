@@ -64,6 +64,7 @@ int main(int argc, char **argv)
 		goto end;
 	}
 	else{
+		id = SAHPI_FIRST_ENTRY;
 		resid = res.ResourceId;
 		rc = saHpiRdrGet(sid, resid, id, &id, &rdr);
 		runtest();

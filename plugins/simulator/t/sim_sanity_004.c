@@ -68,6 +68,7 @@ int main(int argc, char **argv)
 		goto end;
 	}
 	else{
+		id = SAHPI_FIRST_ENTRY;
 		int i, j = 0;
 		rc = saHpiRdrGet(sid, resid, id, &id, &rdr);
 		while(rc == SA_OK && id != SAHPI_LAST_ENTRY){
