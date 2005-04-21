@@ -111,14 +111,15 @@ static char *get_thres_value(SaHpiSensorReadingT *item, char *buf, int len)
 
 static int Get_and_set_thres_value(thres_enum_t num, SaHpiSensorReadingT *item)
 {
-	char		tmp[256];
+	char		tmp[256], str[1024];
 	float		f;
 	int		res, modify = 0;
 
 	if (item->IsSupported) {
-		printf("%s(%s) ==> ", thres_names[num].name,
+		snprintf(str, 1024, "%s(%s) ==> ", thres_names[num].name,
 			get_thres_value(item, tmp, 256));
-		fgets(tmp, 256, stdin);
+		res = get_string_param(str, tmp, 256);
+		if (res != 0) return(0);
 		res = sscanf(tmp, "%f", &f);
 		if (res == 1) {
 			modify = 1;
@@ -170,7 +171,7 @@ static ret_code_t set_threshold(SaHpiResourceIdT rptid, SaHpiRdrT *rdr)
 	SaHpiSensorThresholdsT	senstbuff;
 	SaHpiSensorRangeT	*range;
 	SaHpiSensorNumT		num = rdr->RdrTypeUnion.SensorRec.Num;
-	int			modify = 0;
+	int			modify = 0, i;
 	char			tmp[256];
 	ret_code_t		ret;
 
@@ -239,9 +240,8 @@ static ret_code_t set_threshold(SaHpiResourceIdT rptid, SaHpiRdrT *rdr)
 			thres_names[THRES_PH].name, NULL, 0, ui_print);
 		print_thres_value(&(senstbuff.NegThdHysteresis),
 			thres_names[THRES_NH].name, NULL, 0, ui_print);
-		printf("Set new threshold (yes|no) : ");
-		fgets(tmp, 256, stdin);
-		if (strncmp(tmp, "yes", 3) != 0) {
+		i = get_string_param("Set new threshold (yes|no) : ", tmp, 256);
+		if ((i != 0) || (strncmp(tmp, "yes", 3) != 0)) {
 			printf("No action.\n");
 			return(HPI_SHELL_OK);
 		}

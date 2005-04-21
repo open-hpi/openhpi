@@ -38,11 +38,13 @@ int		in_files_count = 0;
 FILE		*input_files[MAX_IN_FILES];
 int		out_files_count = 0;
 FILE		*output_files[MAX_REDIRECTIONS];
+char		Title[1024];
 
 /* local variables */
 static char	input_buffer[READ_BUF_SIZE];	// command line buffer
 static char	*input_buf_ptr = input_buffer;	// current pointer in input_buffer
 static char	cmd_line[LINE_BUF_SIZE];	// current command line
+static char	new_cmd_line[LINE_BUF_SIZE];	// new command line
 static int	max_term_count = 0;
 static int	term_count = 0;
 static int	current_term = 0;
@@ -141,7 +143,7 @@ static char *find_cmd_end(char *str)
 	return(str);
 }
 
-static char *get_input_line(char *mes)
+static char *get_input_line(char *mes, int new_cmd)
 {
 	FILE	*f = stdin;
 	char	*res;
@@ -154,19 +156,24 @@ static char *get_input_line(char *mes)
 	};
 	input_buf_ptr = input_buffer;
 	fflush(stdout);
+	memset(input_buffer, 0, READ_BUF_SIZE);
 	if (read_stdin) {
-		if (mes != (char *)NULL) printf("%s", mes);
-		else printf("OpenHPI> ");
-		f = stdin;
+		if (mes != (char *)NULL) snprintf(Title, READ_BUF_SIZE, "%s", mes);
+		else strcpy(Title, "OpenHPI> ");
+		printf("%s", Title);
+		res = get_command_line(new_cmd, COMPL_CMD);
+		if (res != (char *)NULL) {
+			strcpy(input_buffer, res);
+			res = input_buffer;
+		}
 	} else if (read_file) {
 		f = input_file;
+		res = fgets(input_buffer, READ_BUF_SIZE - 1, f);
 	} else {
 		printf("Internal error: get_input_line:\n"
 			" No input file\n");
 		exit(1);
 	};
-	memset(input_buffer, 0, READ_BUF_SIZE);
-	res = fgets(input_buffer, READ_BUF_SIZE - 1, f);
 	if (res != (char *)NULL) {
 		len = strlen(res);
 		if ((len > 0) && (res[len - 1] == '\n'))
@@ -183,7 +190,6 @@ static command_def_t *get_cmd(char *name)
 	int		len = strlen(name);
 	int		n = 0;
 
-	if (debug_flag) printf("get_cmd: block_type = %d\n", block_type);
 	for (c = commands; (p = c->cmd) != NULL; c++) {
 		if ((c->type != MAIN_COM) && (c->type != block_type) &&
 			(c->type != UNDEF_COM))
@@ -200,6 +206,17 @@ static command_def_t *get_cmd(char *name)
 	return((command_def_t *)NULL);
 }
 
+static void add_to_cmd_line(char *str)
+{
+	int	len;
+
+	len = strlen(cmd_line);
+	if (len == 0)
+		strcpy(cmd_line, str);
+	else
+		snprintf(cmd_line + len, LINE_BUF_SIZE - len, " %s", str);
+}
+
 ret_code_t cmd_parser(char *mes, int as, int new_cmd, int *redirect)
 // as = 0  - get command
 // as = 1  - may be exit with empty command
@@ -210,9 +227,10 @@ ret_code_t cmd_parser(char *mes, int as, int new_cmd, int *redirect)
 //   1 - redirect to the empty file
 //   2 - add output to the existent file
 {
-	char	*cmd, *str, *beg;
+	char	*cmd, *str, *beg, *tmp;
 	term_t	type;
-	int	len, i;
+	int	i;
+	char	new_line[LINE_BUF_SIZE];
 
 	*redirect = 0;
 	for (;;) {
@@ -220,14 +238,13 @@ ret_code_t cmd_parser(char *mes, int as, int new_cmd, int *redirect)
 			new_command();
 			type = CMD_TERM;
 		} else type = ITEM_TERM;
-		cmd = get_input_line(mes);
+		cmd = get_input_line(mes, new_cmd);
 		if (cmd == (char *)NULL) {
 			go_to_dialog();
 			continue;
 		};
-		len = strlen(cmd_line);
-		snprintf(cmd_line + len, LINE_BUF_SIZE - len, " %s",cmd);
-		str = cmd;
+		strcpy(new_cmd_line, cmd);
+		str = new_cmd_line;
 		while (isspace(*str)) str++;
 		if (strlen(str) == 0) {
 			if (as) return HPI_SHELL_OK;
@@ -243,6 +260,7 @@ ret_code_t cmd_parser(char *mes, int as, int new_cmd, int *redirect)
 					type = ITEM_TERM;
 				};
 				while (isspace(*str)) str++;
+				add_to_cmd_line(beg);
 				beg = str;
 				continue;
 			};
@@ -250,6 +268,7 @@ ret_code_t cmd_parser(char *mes, int as, int new_cmd, int *redirect)
 				str++;
 				while ((*str != 0) && (*str != '\"')) str ++;
 				if (*str == 0) {
+					add_to_cmd_line(beg);
 					add_term(beg, type);
 					if (read_file)
 						add_term(";", CMD_ERROR_TERM);
@@ -260,6 +279,7 @@ ret_code_t cmd_parser(char *mes, int as, int new_cmd, int *redirect)
 					*str = 0;
 					add_term(beg, type);
 					type = ITEM_TERM;
+					add_to_cmd_line(beg);
 					beg = str + 1;
 				};
 				str++;
@@ -267,26 +287,56 @@ ret_code_t cmd_parser(char *mes, int as, int new_cmd, int *redirect)
 			};
 			if (*str == '>') {
 				*str++ = 0;
-				if (strlen(beg) > 0)
+				if (strlen(beg) > 0) {
+					add_to_cmd_line(beg);
 					add_term(beg, type);
+				};
 				if (*str == '>') {
+					add_to_cmd_line(">>");
 					add_term(">>", CMD_REDIR_TERM);
 					str++;
-				} else add_term(">", CMD_REDIR_TERM);
+				} else {
+					add_to_cmd_line(">");
+					add_term(">", CMD_REDIR_TERM);
+				};
 				type = ITEM_TERM;
 				beg = str;
 				continue;
 			};
+			if (*str == '!') {
+				if (str[1] == '!') {
+					i = 2;
+					tmp = get_last_history();
+				} else {
+					i = 1; 
+					tmp = get_def_history(str + 1, &i);
+				};
+				if (tmp == (char *)NULL) {
+					str += i;
+					continue;
+				};
+				*str = 0;
+				str += i;
+				snprintf(new_line, LINE_BUF_SIZE, "%s%s%s", beg, tmp, str);
+				str = new_cmd_line + strlen(beg);
+				strcpy(new_cmd_line, new_line);
+				beg = new_cmd_line;
+				continue;
+			};
 			if (*str == ';') {
 				*str++ = 0;
+				add_to_cmd_line(beg);
 				break;
 			};
 			str++;
 		};
-		if (strlen(beg) > 0)
+		if (strlen(beg) > 0) {
+			add_to_cmd_line(beg);
 			add_term(beg, type);
+		};
 		if (read_file)
 			add_term(";", CMD_END_TERM);
+		set_current_history(cmd_line);
 		if (new_cmd == 0)
 			return(HPI_SHELL_OK);
 		for (i = 0; i < term_count; i++) {
@@ -360,16 +410,11 @@ int run_command(void)
 
 int get_new_command(char *mes)
 {
-	term_def_t	*term;
 	int		redir = 0, i, res;
 	char		*name;
 
 	if (debug_flag) printf("get_new_command:\n");
-	term = get_next_term();
-	if ((term != NULL) && (term->term_type == CMD_TERM))
-		unget_term();
-	else
-		cmd_parser(mes, 0, 1, &redir);
+	cmd_parser(mes, 0, 1, &redir);
 	if (redir != 0) {
 		for (i = 0; i < term_count; i++) {
 			if (terms[i].term_type == CMD_REDIR_TERM)
@@ -401,6 +446,8 @@ int get_new_command(char *mes)
 
 void cmd_shell(void)
 {
+	*Title = 0;
+	init_history();
 	help(0);
 	for (;;) {
 		if (debug_flag) printf("cmd_shell:\n");
@@ -483,14 +530,17 @@ term_def_t *get_next_term(void)
 {
 	term_def_t	*res;
 
-	if (current_term >= term_count){
-		if (debug_flag) printf("get_next_term: term = (NULL)\n");
-		return((term_def_t *)NULL);
+	for (;;) {
+		if (current_term >= term_count){
+			if (debug_flag) printf("get_next_term: term = (NULL)\n");
+			return((term_def_t *)NULL);
+		};
+		res = terms + current_term;
+		if (read_file && (res->term_type == CMD_END_TERM))
+			return((term_def_t *)NULL);
+		current_term++;
+		if (res->term_type != EMPTY_TERM) break;
 	};
-	res = terms + current_term;
-	if (read_file && (res->term_type == CMD_END_TERM))
-		return((term_def_t *)NULL);
-	current_term++;
 	if (debug_flag) printf("get_next_term: term = %s\n", res->term);
 	return(res);
 }

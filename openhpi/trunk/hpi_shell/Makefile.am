@@ -31,6 +31,7 @@ HS_SOURCES		= \
 			cmdparser.c \
 			commands.c \
 			ctrl_inv.c \
+			inputcmd.c \
 			sensor.c \
 			session.c
 

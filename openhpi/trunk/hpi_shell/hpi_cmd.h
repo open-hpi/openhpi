@@ -21,8 +21,13 @@
 #include <hpi_ui.h>
 #include <glib.h>
 
+#define KUZ_DEBUG0
+
 #define READ_BUF_SIZE	1024
 #define LINE_BUF_SIZE	4096
+
+#define COMPL_NULL	0
+#define COMPL_CMD	1
 
 typedef enum {
 	HPI_SHELL_OK = 0,
@@ -74,6 +79,7 @@ extern FILE		*input_file;
 extern com_enum_t	block_type;
 extern ret_code_t	shell_error;
 extern int		debug_flag;
+extern char		Title[];
 
 extern int		add_domain(Domain_t *domain);
 extern int		add_input_file(char *name);
@@ -98,13 +104,17 @@ extern ret_code_t	ctrl_block_state(void);
 extern void		delete_progress(void);
 extern int		do_discover(Domain_t *domain);
 extern void		do_progress(char *mes);
+extern char		*get_command_line(int new_cmd, int type);
+extern char		*get_def_history(char *text, int *count);
 extern int		get_hex_int_param(char *mes, int *val);
 extern int		get_int_param(char *mes, int *val);
+extern char		*get_last_history(void);
 extern int		get_new_command(char *mes);
 extern int		get_string_param(char *mes, char *string, int len);
 extern term_def_t	*get_next_term(void);
 extern int		get_sessionId(Domain_t *domain);
 extern void		help(int as);
+extern ret_code_t	history_cmd(void);
 extern ret_code_t	hs_block(void);
 extern ret_code_t	hs_block_action(void);
 extern ret_code_t	hs_block_active(void);
@@ -114,6 +124,7 @@ extern ret_code_t	hs_block_ind(void);
 extern ret_code_t	hs_block_policy(void);
 extern ret_code_t	hs_block_state(void);
 extern ret_code_t	hs_block_stime(void);
+extern void		init_history(void);
 extern ret_code_t	inv_block(void);
 extern ret_code_t	inv_block_show(void);
 extern ret_code_t	inv_block_addarea(void);
@@ -124,6 +135,7 @@ extern ret_code_t	inv_block_setfield(void);
 extern ret_code_t	list_sensor(void);
 extern ret_code_t	open_file(char *path);
 extern int		open_session(int eflag);
+extern void		restore_term_flags(void);
 extern int		run_command(void);
 extern ret_code_t	sen_block(void);
 extern ret_code_t	sen_block_disable(void);
@@ -134,6 +146,7 @@ extern ret_code_t	sen_block_maskadd(void);
 extern ret_code_t	sen_block_maskrm(void);
 extern ret_code_t	sen_block_setthres(void);
 extern ret_code_t	sen_block_show(void);
+extern void		set_current_history(char *line);
 extern void		set_Subscribe(Domain_t *domain, int as);
 extern int		set_text_buffer(SaHpiTextBufferT *buf);
 extern ret_code_t	show_inv(void);
