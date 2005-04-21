@@ -59,8 +59,7 @@ void help(int as)
 	int		len;
 	term_def_t	*term;
 
-	term = get_next_term();
-	if ((term == NULL) || (as == 0)) {
+	if ((as == 0) || ((term = get_next_term()) == NULL)) {
 		int width = 0;
 
 		printf("Available commands are: \n\n");
@@ -1011,6 +1010,7 @@ static ret_code_t quit(void)
 		return(HPI_SHELL_OK);
 	};
         printf("quit\n");
+	restore_term_flags();
         close_session();
         exit(0);
 }
@@ -1171,6 +1171,22 @@ static ret_code_t domain_proc(void)
 	add_domain(Domain);
 	return(HPI_SHELL_OK);
 }
+#ifdef KUZ_DEBUG
+static ret_code_t test_cmd(void)
+{
+	char	ar[256], s[10];
+	int	c, n;
+
+	while (1) {
+		c = getchar();
+		memset(s, 0, 5);
+		n = *s;
+		snprintf(ar, 256, "input: <%c>  <0x%x>  <%d>\n", c, c, c);
+		printf("%s", ar);
+	};
+	return(HPI_SHELL_OK);
+}
+#endif
 
 /* command table */
 const char addcfghelp[] = "addcfg: add plugins, domains, handlers from"
@@ -1206,6 +1222,8 @@ const char exechelp[] = "exec: execute external program\n"
 			"Usage: exec <filename> [parameters]";
 const char helphelp[] = "help: help information for OpenHPI commands\n"
 			"Usage: help [optional commands]";
+const char historyhelp[] = "history: show input commands history\n"
+			"Usage: history";
 const char hsblockhelp[] = "hs: hot swap command block\n"
 			"Usage: hs <resourceId>\n";
 const char hsindhelp[] = "hotswap_ind: show hot swap indicator state\n"
@@ -1338,12 +1356,13 @@ command_def_t commands[] = {
     { "domaininfo",	domain_info,	domaininfohelp,	MAIN_COM },
     { "dscv",		discovery,	dscvhelp,	MAIN_COM },
     { "echo",		echo,		echohelp,	UNDEF_COM },
-    { "event",		event,		eventhelp,	MAIN_COM },
+    { "event",		event,		eventhelp,	UNDEF_COM },
     { "evtlogtime",	evtlog_time,	evtlogtimehelp,	MAIN_COM },
     { "evtlogreset",	evtlog_reset,	evtlresethelp,	MAIN_COM },
     { "evtlogstate",	evtlog_state,	evtlstatehelp,	MAIN_COM },
     { "exec",		exec_proc,	exechelp,	UNDEF_COM },
     { "help",		help_cmd,	helphelp,	UNDEF_COM },
+    { "history",	history_cmd,	historyhelp,	UNDEF_COM },
     { "hs",		hs_block,	hsblockhelp,	MAIN_COM },
     { "inv",		inv_block,	invhelp,	MAIN_COM },
     { "lsres",		listres,	lreshelp,	UNDEF_COM },
@@ -1367,6 +1386,9 @@ command_def_t commands[] = {
     { "wtdreset",	wtd_reset,	wtdresethelp,	MAIN_COM },
     { "wtdset",		wtd_set,	wtdsethelp,	MAIN_COM },
     { "?",		help_cmd,	helphelp,	UNDEF_COM },
+#ifdef KUZ_DEBUG
+    { "test",		test_cmd,	helphelp,	UNDEF_COM },
+#endif
 //  sensor command block
     { "disable",	sen_block_disable,	sen_dishelp,	SEN_COM },
     { "enable",		sen_block_enable,	sen_enbhelp,	SEN_COM },
