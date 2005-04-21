@@ -129,17 +129,11 @@ static ret_code_t add_inventory_field(SaHpiSessionIdT sessionId,
 	};
 	field.Type = Field_types[i].val;
 	field.ReadOnly = SAHPI_FALSE;
-	i = get_string_param("Field value: ", buf, 256);
+	i = set_text_buffer(&(field.Field));
 	if (i != 0) {
-		printf("Error!!! Invalid Field value: %s\n", buf);
+		printf("Invalid text\n");
 		return(HPI_SHELL_PARM_ERROR);
 	};
-	i = strlen(buf);
-	field.Field.DataType = SAHPI_TL_TYPE_TEXT;
-	field.Field.Language = SAHPI_LANG_ENGLISH;
-	field.Field.DataLength = i;
-	if (i > 0)
-		strcpy(field.Field.Data, buf);
 	rv = saHpiIdrFieldAdd(sessionId, rptid, rdrnum, &field);
 	if (rv != SA_OK) {
 		printf("ERROR!!! saHpiIdrFieldAdd: %s\n", oh_lookup_error(rv));
@@ -153,7 +147,6 @@ static ret_code_t set_inventory_field(SaHpiSessionIdT sessionId,
 {
 	SaErrorT	rv;
 	SaHpiIdrFieldT	field;
-	char		buf[256];
 	int		res, i;
 
 	memset(&field, 0, sizeof(SaHpiIdrFieldT));
@@ -171,17 +164,6 @@ static ret_code_t set_inventory_field(SaHpiSessionIdT sessionId,
 	};
 	field.FieldId = res;
 
-	i = get_string_param("Field type(chass,time,manuf,prodname,prodver,"
-		"snum,pnum,file,tag,custom): ", buf, 9);
-	if (i == 0) {
-		for (i = 0; Field_types[i].name != (char *)NULL; i++)
-			if (strcmp(Field_types[i].name, buf) == 0) break;
-		if (Field_types[i].name == (char *)NULL) {
-			printf("Error!!! Unknown Field type: %s\n", buf);
-			return(HPI_SHELL_PARM_ERROR);
-		};
-		field.Type = Field_types[i].val;
-	};
 	i = set_text_buffer(&(field.Field));
 	if (i != 0) {
 		printf("Invalid text\n");
