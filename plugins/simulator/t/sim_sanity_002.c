@@ -40,6 +40,7 @@ int main(int argc, char **argv)
 	SaHpiRptEntryT res;
 	SaHpiRdrT rdr;
 	SaHpiEntryIdT id = SAHPI_FIRST_ENTRY;
+	SaHpiResourceIdT resid;
 	int failcount = 0;
 	int testnum = 0;
 	SaErrorT rc = SA_OK;
@@ -54,7 +55,6 @@ int main(int argc, char **argv)
 		failed("Failed to run discover");
 	}
 						
-	
         rc = saHpiRptEntryGet(sid, id, &id, &res);
         runtest();
         if(rc != SA_OK) {
@@ -64,7 +64,8 @@ int main(int argc, char **argv)
 		goto end;
 	}
 	else{
-		rc = saHpiRdrGet(sid, id, id, &id, &rdr);
+		resid = res.ResourceId;
+		rc = saHpiRdrGet(sid, resid, id, &id, &rdr);
 		runtest();
 		if(rc != SA_OK){
 			dbg("Error %s", oh_lookup_error(rc));
