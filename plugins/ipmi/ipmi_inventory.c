@@ -20,6 +20,8 @@
 #include <oh_utils.h>
 #include <string.h>
 
+static int prnt_fru = 0;
+
 #define OHOI_IDR_DEFAULT_ID         0
 #define OHOI_CHECK_RPT_CAP_IDR()                                     \
 do{                                                                  \
@@ -262,35 +264,41 @@ static struct ohoi_field_data internal_fields[] = {
 static struct ohoi_area_data {
 	int field_num;
 	SaHpiIdrAreaTypeT areatype;
+	unsigned int empty_len;
 	SaHpiBoolT read_only;
 	struct ohoi_field_data *fields;
 } areas [] = {
 	{
 		sizeof(internal_fields)/sizeof(internal_fields[0]),
 		SAHPI_IDR_AREATYPE_INTERNAL_USE,
+		8,
 		SAHPI_TRUE,
 		internal_fields
 	},
 	{	sizeof(chassis_fields)/sizeof(chassis_fields[0]),
 		SAHPI_IDR_AREATYPE_CHASSIS_INFO,
+		8,
 		SAHPI_FALSE,
 		chassis_fields
 	}, 
 	{
 		sizeof(board_fields)/sizeof(board_fields[0]),
 		SAHPI_IDR_AREATYPE_BOARD_INFO,
+		16,
 		SAHPI_FALSE,
 		board_fields
 	},
 	{
 		sizeof(product_fields)/sizeof(product_fields[0]),
 		SAHPI_IDR_AREATYPE_PRODUCT_INFO,
+		16,
 		SAHPI_FALSE,
 		product_fields
 	},
 	{
 		0,
 		SAHPI_IDR_AREATYPE_OEM,
+		0,
 		SAHPI_TRUE,
 		NULL
 	}
@@ -306,15 +314,116 @@ static struct ohoi_area_data {
 #define OHOI_FIELD_FIRST_ID          1
 #define OHOI_FIELD_LAST_ID(area)     (area->field_num)
 
+	
+struct ohoi_area_layout {
+	unsigned int off;
+	unsigned int len;
+	unsigned int used_len;
+};
+
+
+struct ohoi_fru_layout {
+	unsigned int len;
+	unsigned int free_len;
+	struct ohoi_area_layout areas[IPMI_FRU_FTR_NUMBER - 1];
+};
+
+
+
+static SaHpiEntryIdT get_areaid_by_type(SaHpiIdrAreaTypeT areatype)
+{
+	SaHpiEntryIdT id;
+	
+	for (id = 0; id < OHOI_AREA_NUM; id++) {
+		if (areas[id].areatype == areatype) {
+			return id + 1;
+		}
+	}
+	return 0;
+}
+static SaHpiIdrAreaTypeT get_areatype_by_id(SaHpiEntryIdT id)
+{
+	if (id > OHOI_AREA_NUM || id < 1) {
+		return OHOI_AREA_EMPTY_ID;
+	}
+	return areas[id - 1].areatype;
+}
+
+
+static unsigned int get_ipmi_areatype(SaHpiIdrAreaTypeT areatype)
+{
+	switch (areatype) {
+	case SAHPI_IDR_AREATYPE_BOARD_INFO:
+		return IPMI_FRU_FTR_BOARD_INFO_AREA;
+	case SAHPI_IDR_AREATYPE_PRODUCT_INFO:
+		return IPMI_FRU_FTR_PRODUCT_INFO_AREA;
+	case SAHPI_IDR_AREATYPE_CHASSIS_INFO:
+		return IPMI_FRU_FTR_CHASSIS_INFO_AREA;
+	case SAHPI_IDR_AREATYPE_INTERNAL_USE:
+		return IPMI_FRU_FTR_INTERNAL_USE_AREA;
+	case SAHPI_IDR_AREATYPE_OEM:
+		return IPMI_FRU_FTR_MULTI_RECORD_AREA;
+	default:
+		return IPMI_FRU_FTR_NUMBER;
+	}
+}
+
 #if 0
-static void print_fru_layout(ipmi_fru_t *fru)
+static SaHpiIdrFieldTypeT get_fieldtype_by_id(SaHpiIdrAreaTypeT areatype,
+                                              SaHpiEntryIdT fieldid)
+{
+	struct ohoi_area_data *area;
+	SaHpiEntryIdT areaid;
+	
+	if (fieldid < 1) {
+		return SAHPI_IDR_FIELDTYPE_UNSPECIFIED;
+	}
+	if (areatype == SAHPI_IDR_AREATYPE_OEM) {
+		return SAHPI_IDR_FIELDTYPE_UNSPECIFIED;
+	}
+	areaid = get_areaid_by_type(areatype);
+	if (areaid == 0) {
+		return SAHPI_IDR_FIELDTYPE_UNSPECIFIED;
+	}
+	area = &areas[areaid - 1];
+	if (fieldid >= OHOI_FIELD_NUM(area) + 1) {
+		return SAHPI_IDR_FIELDTYPE_CUSTOM;
+	}
+	return area->fields[fieldid].fieldtype;
+}
+#endif
+
+
+static SaHpiEntryIdT get_fieldid_by_type(SaHpiEntryIdT areaid,
+                                         SaHpiIdrFieldTypeT type)
+{
+	struct ohoi_area_data *area;
+	SaHpiEntryIdT i;
+	
+	if (areaid < 1 || areaid > OHOI_AREA_NUM) {
+		dbg("Invalid areaid 0x%x", areaid);
+		return 0;
+	}
+	area = &areas[areaid - 1];
+	for (i = 0; i < OHOI_FIELD_NUM(area); i++) {
+		if (area->fields[i].fieldtype == type) {
+			return i + 1;
+		}
+	}
+	dbg("No area field type %d in areatype 0x%x", type, area->areatype);
+	return 0;
+}
+
+static int get_fru_layout(ipmi_fru_t *fru, struct ohoi_fru_layout *layout)
 {
 	unsigned int len, used_len;
 	unsigned int offset;
+	unsigned int common_len = 0;
 	int rv;
-	
-	len = ipmi_fru_get_data_length(fru);
-	printf("       FRU length = %i\n", len);
+	SaHpiEntryIdT id;
+
+	layout->free_len = 0;
+	layout->len = ipmi_fru_get_data_length(fru);
 
 	rv = ipmi_fru_area_get_length(fru, IPMI_FRU_FTR_INTERNAL_USE_AREA,
 			&len);
@@ -322,43 +431,67 @@ static void print_fru_layout(ipmi_fru_t *fru)
 			&offset);
 	rv |= ipmi_fru_area_get_used_length(fru, IPMI_FRU_FTR_INTERNAL_USE_AREA,
 			&used_len);
-	if (rv == 0) {
-		printf("         Internal Use Area: off = %i; len = %i"
-			"; used len = %i\n", offset, len, used_len);
+	if (rv != 0) {
+		offset = 0;
+		len = 0;
+		used_len = 0;
 	}
-
+	id = get_ipmi_areatype(SAHPI_IDR_AREATYPE_INTERNAL_USE);
+	layout->areas[id].off = offset;
+	layout->areas[id].len = len;
+	layout->areas[id].used_len = used_len;
+	common_len += len;
+	
 	rv = ipmi_fru_area_get_length(fru, IPMI_FRU_FTR_CHASSIS_INFO_AREA,
 			&len);
 	rv |= ipmi_fru_area_get_offset(fru, IPMI_FRU_FTR_CHASSIS_INFO_AREA,
 			&offset);
 	rv |= ipmi_fru_area_get_used_length(fru, IPMI_FRU_FTR_CHASSIS_INFO_AREA,
 			&used_len);
-	if (rv == 0) {
-		printf("         Chassis Info Area: off = %i; len = %i"
-			"; used len = %i\n", offset, len, used_len);
+	if (rv != 0) {
+		offset = 0;
+		len = 0;
+		used_len = 0;
 	}
-
+	id = get_ipmi_areatype(SAHPI_IDR_AREATYPE_CHASSIS_INFO);
+	layout->areas[id].off = offset;
+	layout->areas[id].len = len;
+	layout->areas[id].used_len = used_len;
+	common_len += len;
+	
 	rv = ipmi_fru_area_get_length(fru, IPMI_FRU_FTR_BOARD_INFO_AREA,
 			&len);
 	rv |= ipmi_fru_area_get_offset(fru, IPMI_FRU_FTR_BOARD_INFO_AREA,
 			&offset);
 	rv |= ipmi_fru_area_get_used_length(fru, IPMI_FRU_FTR_BOARD_INFO_AREA,
 			&used_len);
-	if (rv == 0) {
-		printf("         Board Info Area: off = %i; len = %i"
-			"; used len = %i\n", offset, len, used_len);
+	if (rv != 0) {
+		offset = 0;
+		len = 0;
+		used_len = 0;
 	}
-
+	id = get_ipmi_areatype(SAHPI_IDR_AREATYPE_BOARD_INFO);
+	layout->areas[id].off = offset;
+	layout->areas[id].len = len;
+	layout->areas[id].used_len = used_len;
+	common_len += len;
+	
 	rv = ipmi_fru_area_get_length(fru, IPMI_FRU_FTR_PRODUCT_INFO_AREA,
 			&len);
 	rv |= ipmi_fru_area_get_offset(fru, IPMI_FRU_FTR_PRODUCT_INFO_AREA,
 			&offset);
 	rv |= ipmi_fru_area_get_used_length(fru, IPMI_FRU_FTR_PRODUCT_INFO_AREA,
 			&used_len);
-	if (rv == 0) {
-		printf("         Product Info Area: off = %i; len = %i"
-			"; used len = %i\n", offset, len, used_len);
+	if (rv != 0) {
+		offset = 0;
+		len = 0;
+		used_len = 0;
 	}
+	id = get_ipmi_areatype(SAHPI_IDR_AREATYPE_PRODUCT_INFO);
+	layout->areas[id].off = offset;
+	layout->areas[id].len = len;
+	layout->areas[id].used_len = used_len;
+	common_len += len;
 
 	rv = ipmi_fru_area_get_length(fru, IPMI_FRU_FTR_MULTI_RECORD_AREA,
 			&len);
@@ -366,14 +499,74 @@ static void print_fru_layout(ipmi_fru_t *fru)
 			&offset);
 	rv |= ipmi_fru_area_get_used_length(fru, IPMI_FRU_FTR_MULTI_RECORD_AREA,
 			&used_len);
-	if (rv == 0) {
-		printf("         Multi Record Area: off = %i; len = %i"
-			"; used len = %i\n", offset, len, used_len);
+	if (rv != 0) {
+		offset = 0;
+		len = 0;
+		used_len = 0;
 	}
+	id = get_ipmi_areatype(SAHPI_IDR_AREATYPE_OEM);
+	layout->areas[id].off = offset;
+	layout->areas[id].len = len;
+	layout->areas[id].used_len = used_len;
+	common_len += len;
+	
+	layout->free_len = layout->len - common_len;
+	
+	return 0;
 }
 
-#endif
 
+
+static void print_fru_layout(char *head, struct ohoi_fru_layout *l)
+{
+	struct ohoi_area_layout *al;
+	
+	if (!prnt_fru) {
+		return;
+	}
+	if (head != NULL) {
+		printf("*****   %s\n", head);
+	}
+	printf("       FRU length = %i, free_len = %i\n", l->len, l->free_len);
+	al = &l->areas[IPMI_FRU_FTR_INTERNAL_USE_AREA];
+	printf("         Internal Use Area: off = %i; len = %i"
+			"; used len = %i\n", al->off, al->len, al->used_len);
+	al = &l->areas[IPMI_FRU_FTR_CHASSIS_INFO_AREA];
+	printf("         Chassis Info Area: off = %i; len = %i"
+			"; used len = %i\n", al->off, al->len, al->used_len);
+	al = &l->areas[IPMI_FRU_FTR_BOARD_INFO_AREA];
+	printf("         Board Info Area: off = %i; len = %i"
+			"; used len = %i\n", al->off, al->len, al->used_len);
+	al = &l->areas[IPMI_FRU_FTR_PRODUCT_INFO_AREA];
+	printf("         Product Info Area: off = %i; len = %i"
+			"; used len = %i\n", al->off, al->len, al->used_len);
+	al = &l->areas[IPMI_FRU_FTR_MULTI_RECORD_AREA];
+	printf("         Multi Record Area: off = %i; len = %i"
+			"; used len = %i\n", al->off, al->len, al->used_len);
+}
+
+
+
+
+
+
+struct ohoi_fru_write {
+	int done;
+	SaErrorT rv;
+};
+
+static void fru_write_done_cb(ipmi_domain_t *domain,
+			ipmi_fru_t    *fru,
+			int           err,
+			void          *cb_data)
+{
+	struct ohoi_fru_write *fw = cb_data;
+	fw->done = 1;
+	if (err) {
+		dbg("err = %d", err);
+		fw->rv = SA_ERR_HPI_INTERNAL_ERROR;
+	}
+}
 
 static int get_first_area(SaHpiIdrAreaTypeT areatype)
 {
@@ -460,9 +653,35 @@ SaHpiTextTypeT convert_to_hpi_data_type(enum ipmi_str_type_e type)
 	}
 	return SAHPI_TL_TYPE_BINARY;
 }
- 
 
-static unsigned char get_area_presence(struct ohoi_inventory_info *i_info,
+
+static SaErrorT get_str_type(SaHpiTextBufferT *tb,
+		      SaHpiLanguageT lang,
+		      enum ipmi_str_type_e *type)
+{
+	switch (tb->DataType) {
+	case SAHPI_TL_TYPE_BINARY:
+		*type = IPMI_BINARY_STR;
+		return SA_OK;
+	case SAHPI_TL_TYPE_TEXT:
+	case SAHPI_TL_TYPE_ASCII6:
+	case SAHPI_TL_TYPE_BCDPLUS:
+		*type = IPMI_ASCII_STR;
+		break;
+	case SAHPI_TL_TYPE_UNICODE:
+		*type = IPMI_UNICODE_STR;
+		break;
+	default:
+		return SA_ERR_HPI_INVALID_DATA;
+	}
+	if (lang && (tb->Language != lang)) {
+		return SA_ERR_HPI_INVALID_DATA;
+	}
+	return SA_OK;
+} 
+
+
+static SaHpiLanguageT get_language(struct ohoi_inventory_info *i_info,
 				   SaHpiIdrAreaTypeT areatype)
 {
 	switch (areatype) {
@@ -470,16 +689,11 @@ static unsigned char get_area_presence(struct ohoi_inventory_info *i_info,
 		return i_info->bi;
 	case SAHPI_IDR_AREATYPE_PRODUCT_INFO:
 		return i_info->pi;
-	case SAHPI_IDR_AREATYPE_CHASSIS_INFO:
-		return i_info->ci;
-	case SAHPI_IDR_AREATYPE_OEM:
-		return i_info->oem;
-	case SAHPI_IDR_AREATYPE_INTERNAL_USE:
-		return i_info->iu;
 	default:
-		return (unsigned char)0;
+		return SAHPI_LANG_UNDEF;
 	}
 }
+
 
 
 #if 0
@@ -501,7 +715,8 @@ static SaHpiBoolT valid_area_type(SaHpiIdrAreaTypeT areatype)
 
 
 
-static SaHpiLanguageT get_language(struct ohoi_inventory_info *i_info,
+
+static unsigned char get_area_presence(struct ohoi_inventory_info *i_info,
 				   SaHpiIdrAreaTypeT areatype)
 {
 	switch (areatype) {
@@ -509,10 +724,93 @@ static SaHpiLanguageT get_language(struct ohoi_inventory_info *i_info,
 		return i_info->bi;
 	case SAHPI_IDR_AREATYPE_PRODUCT_INFO:
 		return i_info->pi;
+	case SAHPI_IDR_AREATYPE_CHASSIS_INFO:
+		return i_info->ci;
+	case SAHPI_IDR_AREATYPE_OEM:
+		return i_info->oem;
+	case SAHPI_IDR_AREATYPE_INTERNAL_USE:
+		return i_info->iu;
 	default:
-		return SAHPI_LANG_UNDEF;
+		return (unsigned char)0;
 	}
 }
+
+
+
+static void set_area_presence(struct ohoi_inventory_info *i_info,
+				   SaHpiIdrAreaTypeT areatype)
+{
+	switch (areatype) {
+	case SAHPI_IDR_AREATYPE_BOARD_INFO:
+		i_info->bi = SAHPI_LANG_ENGLISH;
+		i_info->bi_fld_msk = 
+			(1 << SAHPI_IDR_FIELDTYPE_MANUFACTURER) |
+			(1 << SAHPI_IDR_FIELDTYPE_MFG_DATETIME) |
+			(1 << SAHPI_IDR_FIELDTYPE_PRODUCT_NAME) |
+			(1 << SAHPI_IDR_FIELDTYPE_SERIAL_NUMBER) |
+			(1 << SAHPI_IDR_FIELDTYPE_PART_NUMBER) |
+			(1 << SAHPI_IDR_FIELDTYPE_FILE_ID);
+		return;
+	case SAHPI_IDR_AREATYPE_PRODUCT_INFO:
+		i_info->pi = SAHPI_LANG_ENGLISH;
+		i_info->pi_fld_msk = 
+			(1 << SAHPI_IDR_FIELDTYPE_MANUFACTURER) |
+			(1 << SAHPI_IDR_FIELDTYPE_PRODUCT_NAME) |
+			(1 << SAHPI_IDR_FIELDTYPE_PART_NUMBER) |
+			(1 << SAHPI_IDR_FIELDTYPE_PRODUCT_VERSION) |
+			(1 << SAHPI_IDR_FIELDTYPE_SERIAL_NUMBER) |
+			(1 << SAHPI_IDR_FIELDTYPE_ASSET_TAG) |
+			(1 << SAHPI_IDR_FIELDTYPE_FILE_ID);
+		return;
+	case SAHPI_IDR_AREATYPE_CHASSIS_INFO:	
+		i_info->ci = 1;
+		i_info->ci_fld_msk =
+			(1 << SAHPI_IDR_FIELDTYPE_CHASSIS_TYPE) |
+			(1 << SAHPI_IDR_FIELDTYPE_PART_NUMBER) |
+			(1 << SAHPI_IDR_FIELDTYPE_SERIAL_NUMBER);
+		return;
+	case SAHPI_IDR_AREATYPE_OEM:
+		i_info->oem = 1;
+		return;
+		default:
+		return;
+	}
+}
+
+
+static void unset_area_presence(struct ohoi_inventory_info *i_info,
+				   SaHpiIdrAreaTypeT areatype)
+{
+	switch (areatype) {
+	case SAHPI_IDR_AREATYPE_BOARD_INFO:
+		i_info->bi = 0;
+		i_info->bi_fld_msk = 0;
+		i_info->bi_custom_num = 0;
+		return;
+	case SAHPI_IDR_AREATYPE_PRODUCT_INFO:
+		i_info->pi = 0;
+		i_info->pi_fld_msk = 0;
+		i_info->pi_custom_num = 0;
+		return;
+	case SAHPI_IDR_AREATYPE_OEM:
+		i_info->oem = 0;
+		i_info->oem_fields_num = 0;
+		return;
+	case SAHPI_IDR_AREATYPE_CHASSIS_INFO:	
+		i_info->ci = 0;
+		i_info->ci_fld_msk = 0;
+		i_info->ci_custom_num = 0;
+		return;
+	default:
+		return;
+	}
+}
+
+
+
+
+
+
 
 
 
@@ -579,6 +877,9 @@ static void get_field(ipmi_entity_t *ent,
 		gf->rv = SA_ERR_HPI_INTERNAL_ERROR;
 	}
 }
+
+
+
 
 struct oem_idr_field {
 	SaHpiIdrFieldT *field;
@@ -680,6 +981,11 @@ static SaErrorT get_oem_idr_field(struct oh_handler_state  *handler,
 		
 	return oif.rv; 
 }
+
+
+
+
+
 
 struct ohoi_custom_field {
 	int (*get_len)(ipmi_fru_t *, unsigned int, unsigned int*);
@@ -881,6 +1187,9 @@ static SaHpiUint32T get_num_fields(struct ohoi_inventory_info *fru,
 	return nf;
 }
 
+
+
+
 SaErrorT ohoi_get_idr_area_header(void *hnd, SaHpiResourceIdT rid,
 				  SaHpiIdrIdT idrid,
                                   SaHpiIdrAreaTypeT areatype,
@@ -982,18 +1291,311 @@ SaErrorT ohoi_get_idr_area_header(void *hnd, SaHpiResourceIdT rid,
 	return SA_OK;
 }
 
+static int try_to_alloc_room_for_area(ipmi_fru_t *fru,
+				      SaHpiIdrAreaTypeT areatype,
+				      unsigned int *off)
+{
+	struct ohoi_fru_layout layout;
+	unsigned int len;
+	unsigned int ipmi_atype;
+	unsigned int i;
+	unsigned int beg = 8; // common header length
+	unsigned int end;
+	struct ohoi_area_layout *al;
+	int r;
+	
+	len = areas[get_areaid_by_type(areatype) - 1].empty_len;
+
+	if (get_fru_layout(fru, &layout)) {
+		dbg("could not get fru layout");
+		return 1;
+	}
+	print_fru_layout("Initial layout", &layout);
+	if (len > layout.free_len) {
+		al = &layout.areas[IPMI_FRU_FTR_MULTI_RECORD_AREA];
+		if (al->off != 0 && (len <= layout.free_len + al->len -
+				((al->used_len +7)&~7))) {
+			dbg("Decrease len of OEM_AREA from %d to %d", al->len,
+				(al->used_len +7)&~7);
+			/*
+			r = ipmi_fru_area_set_length(fru,
+				IPMI_FRU_FTR_MULTI_RECORD_AREA,
+				(al->used_len +7)&~7);
+			if (r != 0) {
+				dbg("ipmi_fru_area_set_length() returned %d", r);
+				return 1;
+			}
+			*/
+			layout.free_len += al->len - ((al->used_len +7)&~7);
+			al->len = (al->used_len +7)&~7;
+		print_fru_layout("After truncate OEM AREA layout", &layout);
+		}
+	}
+	
+	if (len > layout.free_len) {
+		dbg("len(%d) < layout->free_len(%d)", len, layout.free_len);
+		return 1;
+	}
+	ipmi_atype = get_ipmi_areatype(areatype);
+	for (i = 0; i < ipmi_atype; i++) {
+		al = &layout.areas[i];
+		if (al->off == 0) {
+			continue;
+		}
+		if (beg < al->off) {
+			r = ipmi_fru_area_set_offset(fru, i, beg);
+			if (r != 0) {
+				dbg("ipmi_fru_area_set_offset for area %d = %d",
+					i, r);
+				return 1;
+			}
+			al->off = beg;
+			beg += al->len;
+		}
+	}
+	end =layout.len - 8; 
+	if ((ipmi_atype + 1) == IPMI_FRU_FTR_NUMBER) {
+		if (beg + len <= end) {
+			*off = beg;
+			print_fru_layout("After moving above areas layout", &layout);
+			return 0;
+		} else {
+			dbg("STRANGE. There is still not enough room.");
+			return 1;
+		}
+	}
+	for (i = IPMI_FRU_FTR_NUMBER - 1; i > ipmi_atype; i--) {
+		al = &layout.areas[i];
+		if (al->off == 0) {
+			continue;
+		}
+		if (al->off + al->len < end) {
+		r = ipmi_fru_area_set_offset(fru, i, end - al->len);
+			if (r != 0) {
+				dbg("ipmi_fru_area_set_offset to %d for area %d = %d",
+					end - al->len, i, r);
+				return 1;
+			}
+		}
+		al->off = end - al->len;
+		end = al->off;
+	}
+	print_fru_layout("Result Layout", &layout);
+	if (beg + len > end) {
+		dbg("STRANGE. There is still not enough room.");
+		return 1;
+	}
+	*off = beg;
+	return 0;
+}
+
+
+
+                       /**************   ADD AREA ************/
+		       
+struct ohoi_add_area {
+	struct ohoi_resource_info   *res_info;
+	struct oh_handler_state  *handler;
+	SaHpiIdrAreaTypeT areatype;
+	int done;
+	SaErrorT rv;
+};
+
+
+static void add_idr_area_cb(ipmi_entity_t *ent, void *cb_data)
+{
+	struct ohoi_add_area *ar_add = cb_data;
+	ipmi_fru_t *fru;
+	unsigned int off;
+	struct ohoi_fru_write fw;
+	int r;
+
+
+	fru = ipmi_entity_get_fru(ent);
+	ar_add->done = 1;
+	if (try_to_alloc_room_for_area(fru, ar_add->areatype, &off)) {
+		ar_add->rv = SA_ERR_HPI_OUT_OF_SPACE;
+		return;
+	}
+	r = ipmi_fru_add_area(fru, get_ipmi_areatype(ar_add->areatype), off,
+		areas[get_areaid_by_type(ar_add->areatype) - 1].empty_len);
+	if (r) {
+		dbg("ipmi_fru_add_area return %d", r);
+		ar_add->rv = SA_ERR_HPI_INTERNAL_ERROR;
+		return;
+	}
+	if (((struct ohoi_handler *)ar_add->handler->data)->real_write_fru) {
+		fw.done = 0;
+		fw.rv = SA_OK;
+		r = ipmi_fru_write(ipmi_entity_get_fru(ent),
+					fru_write_done_cb, &fw);
+		if (r) {
+			dbg("ipmi_fru_write failed. return = %d", r);
+			ar_add->rv = SA_ERR_HPI_INTERNAL_ERROR;
+		} else {
+			ar_add->rv = ohoi_loop(&fw.done, ar_add->handler->data);
+		}
+	}
+}
+
+
+
 SaErrorT ohoi_add_idr_area(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid,
                            SaHpiIdrAreaTypeT areatype, SaHpiEntryIdT *areaid)
 {
-	return SA_ERR_HPI_INVALID_REQUEST;
+	struct oh_handler_state  *handler = hnd;
+	struct ohoi_resource_info   *ohoi_res_info;
+	struct ohoi_inventory_info *fru;
+	int rv;
+	SaErrorT ret;
+	struct ohoi_add_area ar_add;
+	
+	OHOI_CHECK_RPT_CAP_IDR();
+	ohoi_res_info = oh_get_resource_data(handler->rptcache, rid);
+	if (ohoi_res_info->fru == NULL) {
+		dbg("bug: resource without fru?");
+		return SA_ERR_HPI_CAPABILITY;
+	}
+	fru = ohoi_res_info->fru;
+	g_mutex_lock(fru->mutex);
+	if (get_area_presence(fru, areatype)) {
+		g_mutex_unlock(fru->mutex);
+		return SA_ERR_HPI_INVALID_DATA;
+	}
+	ar_add.res_info = ohoi_res_info;
+	ar_add.handler = handler;
+	ar_add.areatype = areatype;
+	ar_add.done = 0;
+	ar_add.rv = SA_OK;
+	rv = ipmi_entity_pointer_cb(ohoi_res_info->u.entity_id,
+		add_idr_area_cb, &ar_add);
+	if (rv) {
+		dbg("ipmi_entity_pointer_cb returned %d", rv);
+		g_mutex_unlock (fru->mutex);
+		ar_add.rv = SA_ERR_HPI_INTERNAL_ERROR;
+	} else {
+		ret = ohoi_loop(&ar_add.done, handler->data);
+		if (ret != SA_OK) {
+			ar_add.rv = ret;
+		}
+	}
+	if (ar_add.rv != SA_OK) {
+		dbg("ohoi_del_idr_field failed. rv = %d", ar_add.rv);
+	} else {
+		set_area_presence(fru, areatype);
+		ohoi_res_info->fru->update_count++;
+	}
+	g_mutex_unlock (fru->mutex);
+
+	return ar_add.rv;
 }
+
+
+
+                    /**************  DELETE AREA  ******************/
+
+
+struct ohoi_del_area {
+	SaHpiIdrAreaTypeT areatype;
+	struct oh_handler_state  *handler;
+	int done;
+	SaErrorT rv;
+};
+
+
+static void del_idr_area_cb(ipmi_entity_t *ent, void *cb_data)
+{
+	struct ohoi_del_area *ar_del = cb_data;
+	ipmi_fru_t *fru;
+	struct ohoi_fru_write fw;
+	int r;
+
+
+	fru = ipmi_entity_get_fru(ent);
+	ar_del->done = 1;
+	r = ipmi_fru_delete_area(fru, get_ipmi_areatype(ar_del->areatype));
+	if (r) {
+		dbg("ipmi_fru_del_area return %d", r);
+		ar_del->rv = SA_ERR_HPI_INTERNAL_ERROR;
+		return;
+	}
+	if (((struct ohoi_handler *)ar_del->handler->data)->real_write_fru) {
+		fw.done = 0;
+		fw.rv = SA_OK;
+		r = ipmi_fru_write(ipmi_entity_get_fru(ent),
+					fru_write_done_cb, &fw);
+		if (r) {
+			dbg("ipmi_fru_write failed. return = %d", r);
+			ar_del->rv = SA_ERR_HPI_INTERNAL_ERROR;
+		} else {
+			ar_del->rv = ohoi_loop(&fw.done, ar_del->handler->data);
+		}
+	}
+}
+
 
 SaErrorT ohoi_del_idr_area(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid,
                            SaHpiEntryIdT areaid)
 {	
-	return SA_ERR_HPI_INVALID_REQUEST;
+	struct oh_handler_state  *handler = hnd;
+	struct ohoi_resource_info   *ohoi_res_info;
+	struct ohoi_inventory_info *fru;
+	int rv;
+	SaErrorT ret;
+	struct ohoi_del_area ar_del;
+	SaHpiIdrAreaTypeT areatype;
+	
+	
+	OHOI_CHECK_RPT_CAP_IDR();
+	ohoi_res_info = oh_get_resource_data(handler->rptcache, rid);
+	if (ohoi_res_info->fru == NULL) {
+		dbg("bug: resource without fru?");
+		return SA_ERR_HPI_CAPABILITY;
+	}
+	areatype = get_areatype_by_id(areaid);
+	if (areatype == OHOI_AREA_EMPTY_ID) {
+		return SA_ERR_HPI_INVALID_PARAMS;
+	}
+	if (areatype == SAHPI_IDR_AREATYPE_INTERNAL_USE) {
+		return SA_ERR_HPI_READ_ONLY;
+	}
+	fru = ohoi_res_info->fru;
+	g_mutex_lock(fru->mutex);
+	if (!get_area_presence(fru, areatype)) {
+		g_mutex_unlock(fru->mutex);
+		return SA_ERR_HPI_NOT_PRESENT;
+	}
+	ar_del.areatype = areatype;
+	ar_del.handler = handler;
+	ar_del.done = 0;
+	ar_del.rv = SA_OK;
+	rv = ipmi_entity_pointer_cb(ohoi_res_info->u.entity_id,
+		del_idr_area_cb, &ar_del);
+	if (rv) {
+		dbg("ipmi_entity_pointer_cb returned %d", rv);
+		g_mutex_unlock (fru->mutex);
+		ar_del.rv = SA_ERR_HPI_INTERNAL_ERROR;
+	} else {
+		ret = ohoi_loop(&ar_del.done, handler->data);
+		if (ret != SA_OK) {
+			ar_del.rv = ret;
+		}
+	}
+	if (ar_del.rv != SA_OK) {
+		dbg("ohoi_del_idr_field failed. rv = %d", ar_del.rv);
+	} else {
+		unset_area_presence(fru, areatype);
+		ohoi_res_info->fru->update_count++;
+	}
+	g_mutex_unlock (fru->mutex);
+
+	return ar_del.rv;	
 }
 
+
+
+
+                /****************   GET FIELD ****************/
 
 
 static  SaHpiEntryIdT get_nextfield(struct ohoi_inventory_info *i_info,
@@ -1103,11 +1705,6 @@ SaErrorT ohoi_get_idr_field(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid,
 		return ret;
 	}
 
-//	if (fieldid > OHOI_FIELD_LAST_ID(area_data)) {
-//		dbg("fieldid > OHOI_FIELD_LAST_ID(area_data)");
-//		return SA_ERR_HPI_NOT_PRESENT;
-//	}
-
 	if ((fieldtype == SAHPI_IDR_FIELDTYPE_UNSPECIFIED) &&
 	    (fieldid == SAHPI_FIRST_ENTRY)) {
 		fieldid = get_first_field(area_data, fru);	
@@ -1205,11 +1802,10 @@ SaErrorT ohoi_get_idr_field(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid,
 	return SA_OK;
 }
 
-SaErrorT ohoi_add_idr_field(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid,
-                            SaHpiIdrFieldT *field )
-{
-	return SA_ERR_HPI_INVALID_REQUEST;
-}
+
+
+               /*************   MODIFYING (ADD, SET, DELETE)  FIELD  **************/
+
 
 static SaErrorT modify_inventory(SaHpiIdrFieldT *field, ipmi_entity_t *ent,
 					struct ohoi_resource_info *res_info);
@@ -1231,23 +1827,7 @@ struct ohoi_del_field {
 	int done;
 };
 
-struct ohoi_fru_write {
-	int done;
-	SaErrorT rv;
-};
 
-static void fru_write_done_cb(ipmi_domain_t *domain,
-			ipmi_fru_t    *fru,
-			int           err,
-			void          *cb_data)
-{
-	struct ohoi_fru_write *fw = cb_data;
-	fw->done = 1;
-	if (err) {
-		dbg("err = %d", err);
-		fw->rv = SA_ERR_HPI_INTERNAL_ERROR;
-	}
-}
 
 static void modify_inventoty_field_cb(ipmi_entity_t *ent, void *cbdata)
 {
@@ -1274,6 +1854,12 @@ static void modify_inventoty_field_cb(ipmi_entity_t *ent, void *cbdata)
 		}
 	}
 }
+
+
+
+
+                /*************  SET FIELD *************/
+
 
 SaErrorT ohoi_set_idr_field(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid,
                             SaHpiIdrFieldT *field)
@@ -1327,6 +1913,25 @@ SaErrorT ohoi_set_idr_field(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid,
 
 }
 
+
+                        /******    ADD FIELD   ******/
+
+SaErrorT ohoi_add_idr_field(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid,
+                            SaHpiIdrFieldT *field)
+{
+	SaHpiEntryIdT fid;
+
+	fid = get_fieldid_by_type(field->AreaId, field->Type);
+	if (fid == 0) {
+		dbg("invalid field type %d", field->Type);
+		return SA_ERR_HPI_INVALID_PARAMS;
+	}
+	field->FieldId = fid;
+	return ohoi_set_idr_field(hnd, rid, idrid, field);
+}
+
+
+                /************   DELETE FIELD  ************/
 
 static void delete_inventoty_field_cb(ipmi_entity_t *ent, void *cbdata)
 {
@@ -1422,30 +2027,6 @@ SaErrorT ohoi_del_idr_field(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid,
 }
  
   
-static SaErrorT get_str_type(SaHpiTextBufferT *tb,
-		      SaHpiLanguageT lang,
-		      enum ipmi_str_type_e *type)
-{
-	switch (tb->DataType) {
-	case SAHPI_TL_TYPE_BINARY:
-		*type = IPMI_BINARY_STR;
-		return SA_OK;
-	case SAHPI_TL_TYPE_TEXT:
-	case SAHPI_TL_TYPE_ASCII6:
-	case SAHPI_TL_TYPE_BCDPLUS:
-		*type = IPMI_ASCII_STR;
-		break;
-	case SAHPI_TL_TYPE_UNICODE:
-		*type = IPMI_UNICODE_STR;
-		break;
-	default:
-		return SA_ERR_HPI_INVALID_DATA;
-	}
-	if (lang && (tb->Language != lang)) {
-		return SA_ERR_HPI_INVALID_DATA;
-	}
-	return SA_OK;
-}
 
 static int try_to_change_area_size(ipmi_fru_t *fru, unsigned int delta,
 				   unsigned int my_a_type)
