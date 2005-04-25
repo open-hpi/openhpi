@@ -61,7 +61,7 @@ extern "C" {
 #define SaHpiSessionIdType  SaHpiUint32Type
 #define SaHpiResourceIdType SaHpiUint32Type
 #define SaHpiHsCapabilitiesType  SaHpiUint32Type
-#define SaHpiEntryIdType    SaHpiUint32Type			
+#define SaHpiEntryIdType    SaHpiUint32Type
 #define SaHpiTimeType       SaHpiInt64Type
 #define SaHpiTimeoutType    SaHpiInt64Type
 
@@ -193,7 +193,7 @@ extern cMarshalType SaHpiSensorEnableChangeEventType;
 extern cMarshalType SaHpiHotSwapEventType;
 extern cMarshalType SaHpiWatchdogEventType;
 #define SaHpiSwEventTypeType SaHpiUint32Type
-extern cMarshalType SaHpiSwEventType;
+extern cMarshalType SaHpiHpiSwEventType;
 extern cMarshalType SaHpiOemEventType;
 extern cMarshalType SaHpiUserEventType;
 #define SaHpiEventTypeType SaHpiUint32Type

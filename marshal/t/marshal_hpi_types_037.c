@@ -72,14 +72,14 @@ main( int argc, char *argv[] )
     .m_v1.WatchdogPreTimerAction       = SAHPI_WPI_SMI,
     .m_v1.WatchdogUse                  = SAHPI_WTU_NONE,
     .m_pad2                            = 48,
-    .m_v1.WatchdogNum                  = 2,
-    .m_v1.WatchdogAction               = SAHPI_WA_POWER_DOWN,
-    .m_v1.WatchdogPreTimerAction       = SAHPI_WPI_NMI,
-    .m_v1.WatchdogUse                  = SAHPI_WTU_BIOS_POST,
-    .m_v1.WatchdogNum                  = 3,
-    .m_v1.WatchdogAction               = SAHPI_WA_POWER_CYCLE,
-    .m_v1.WatchdogPreTimerAction       = SAHPI_WPI_OEM,
-    .m_v1.WatchdogUse                  = SAHPI_WTU_OS_LOAD,
+    .m_v2.WatchdogNum                  = 2,
+    .m_v2.WatchdogAction               = SAHPI_WA_POWER_DOWN,
+    .m_v2.WatchdogPreTimerAction       = SAHPI_WPI_NMI,
+    .m_v2.WatchdogUse                  = SAHPI_WTU_BIOS_POST,
+    .m_v3.WatchdogNum                  = 3,
+    .m_v3.WatchdogAction               = SAHPI_WA_POWER_CYCLE,
+    .m_v3.WatchdogPreTimerAction       = SAHPI_WPI_OEM,
+    .m_v3.WatchdogUse                  = SAHPI_WTU_OS_LOAD,
     .m_pad3                            = 49
   };
 
