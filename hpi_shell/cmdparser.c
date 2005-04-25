@@ -303,7 +303,7 @@ ret_code_t cmd_parser(char *mes, int as, int new_cmd, int *redirect)
 				beg = str;
 				continue;
 			};
-			if (*str == '!') {
+			if ((*str == '!') && read_stdin) {
 				if (str[1] == '!') {
 					i = 2;
 					tmp = get_last_history();
@@ -336,7 +336,7 @@ ret_code_t cmd_parser(char *mes, int as, int new_cmd, int *redirect)
 		};
 		if (read_file)
 			add_term(";", CMD_END_TERM);
-		set_current_history(cmd_line);
+		if (read_stdin) set_current_history(cmd_line);
 		if (new_cmd == 0)
 			return(HPI_SHELL_OK);
 		for (i = 0; i < term_count; i++) {
