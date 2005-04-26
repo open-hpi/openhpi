@@ -153,6 +153,43 @@ SaErrorT oh_initialize()
         return SA_OK;
 }
 
+SaErrorT oh_add_config_file(char *file_name)
+{
+        struct oh_parsed_config config;
+	int			res;
+        GSList			*node = NULL;
+
+	memset (&config, 0, sizeof(struct oh_parsed_config));
+	// open and load config file
+	res = oh_load_config(file_name, &config);
+	if (res < 0) return(SA_ERR_HPI_INVALID_PARAMS);
+
+        /* Add plugins */
+        for (node = config.plugin_names; node; node = node->next) {
+                char *plugin_name = (char *)node->data;
+                if (oh_load_plugin(plugin_name) == 0) {
+                        dbg("Loaded plugin %s", plugin_name);
+                } else {
+                        dbg("Couldn't load plugin %s", plugin_name);
+                        g_free(plugin_name);
+                }
+        };
+
+        /* Add handlers */        
+        for (node = config.handler_configs; node; node = node->next) {
+                GHashTable *handler_config = (GHashTable *)node->data;
+                if(oh_load_handler(handler_config) > 0) {
+			dbg("Loaded handler for plugin %s",
+                        	(char *)g_hash_table_lookup(handler_config, "plugin"));
+                } else {
+                        dbg("Couldn't load handler for plugin %s",
+                            (char *)g_hash_table_lookup(handler_config, "plugin"));
+                        g_hash_table_destroy(handler_config);
+                }
+        };
+	return(SA_OK);
+}
+
 #if 0
 /**
  * oh_finalize

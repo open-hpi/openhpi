@@ -71,6 +71,7 @@ struct ohoi_handler {
 	time_t fullup_timeout;
 	unsigned int openipmi_scan_time;
 	int real_write_fru;
+	SaHpiDomainIdT	did;
 };
 
 struct ohoi_inventory_info;

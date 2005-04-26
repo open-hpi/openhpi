@@ -559,6 +559,8 @@ int oh_load_config (char *filename, struct oh_parsed_config *config)
                 return -1;
         }
 
+	plugin_names = NULL;
+	handler_configs = NULL;
         oh_scanner = g_scanner_new(&oh_scanner_config);
         if (!oh_scanner) {
                 dbg("Couldn't allocate g_scanner for file parsing");

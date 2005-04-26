@@ -104,6 +104,7 @@ extern ret_code_t	ctrl_block_state(void);
 extern void		delete_progress(void);
 extern int		do_discover(Domain_t *domain);
 extern void		do_progress(char *mes);
+extern ret_code_t	domain_proc(void);
 extern char		*get_command_line(int new_cmd, int type);
 extern char		*get_def_history(char *text, int *count);
 extern int		get_hex_int_param(char *mes, int *val);

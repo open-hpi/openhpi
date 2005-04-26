@@ -85,6 +85,7 @@ data_access_block_times
 oh_get_default_domain_id
 oh_request_domain_id
 oh_release_domain_id
+oh_add_config_file
 oHpiVersionGet
 oHpiPluginLoad
 oHpiPluginUnload

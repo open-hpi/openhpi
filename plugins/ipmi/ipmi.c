@@ -84,6 +84,11 @@ static void *ipmi_open(GHashTable *handler_config)
 	const char *scan_time;
 	const char *real_write_fru;
 	int rv = 0;
+	int *hid;
+	SaHpiTextBufferT	buf = {
+					.DataType = SAHPI_TL_TYPE_TEXT,
+					.Language = SAHPI_LANG_ENGLISH,
+				};
 
 	dbg("ipmi_open");
 	if (!handler_config) {
@@ -128,6 +133,11 @@ static void *ipmi_open(GHashTable *handler_config)
 	ipmi_handler->fullup_timeout = 60;
 	ipmi_handler->openipmi_scan_time = 0;
 	ipmi_handler->real_write_fru = 0;
+
+	hid = g_hash_table_lookup(handler_config, "handler-id");
+	oh_append_textbuffer(&buf, "Langley domain");
+	ipmi_handler->did = oh_request_domain_id(*hid, &buf, 0, 0, 0);
+
 	if (timeout != NULL) {
 		ipmi_handler->fullup_timeout = (time_t)strtol(timeout,
 					(char **)NULL, 10);
@@ -335,7 +345,7 @@ static int ipmi_get_event(void *hnd, struct oh_event *event)
 	for (;;) {
 		if(g_slist_length(handler->eventq)>0) {
 			memcpy(event, handler->eventq->data, sizeof(*event));
-			event->did = oh_get_default_domain_id();
+			event->did = ipmi_handler->did;
 			free(handler->eventq->data);
 			handler->eventq = g_slist_remove_link(handler->eventq,
 					handler->eventq);
