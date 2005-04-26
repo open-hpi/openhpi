@@ -449,6 +449,7 @@ void cmd_shell(void)
 	*Title = 0;
 	init_history();
 	help(0);
+	domain_proc();
 	for (;;) {
 		if (debug_flag) printf("cmd_shell:\n");
 		shell_error = HPI_SHELL_OK;

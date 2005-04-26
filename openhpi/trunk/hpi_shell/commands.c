@@ -24,6 +24,7 @@
 #include <time.h>
 #include <ctype.h>
 #include <unistd.h>
+#include <oh_init.h>
 #include <hpi_ui.h>
 #include "hpi_cmd.h"
 
@@ -115,7 +116,7 @@ static ret_code_t help_cmd(void)
 
 static ret_code_t add_config(void)
 {
-//	SaErrorT	rv = SA_OK;
+	SaErrorT	rv;
 	term_def_t	*term;
 
 	term = get_next_term();
@@ -123,15 +124,15 @@ static ret_code_t add_config(void)
 		printf("no config file\n");
 		return HPI_SHELL_CMD_ERROR;
 	}
-//	rv = oh_process_config_file(term->term);
-//	if (rv == SA_ERR_HPI_BUSY) {
-//		printf("Hold on. Another configuration changing is"
-//		" processing\n");
-//	}
-//	if (rv == SA_ERR_HPI_NOT_PRESENT) {
-//		printf("Hold on. Initialization is processing\n");
-//	}
-//	return rv;
+	rv = oh_add_config_file(term->term);
+	if (rv == SA_ERR_HPI_BUSY) {
+		printf("Hold on. Another configuration changing is"
+		" processing\n");
+	}
+	if (rv == SA_ERR_HPI_NOT_PRESENT) {
+		printf("Hold on. Initialization is processing\n");
+	}
+	if (rv == SA_OK) return HPI_SHELL_OK;
 	return HPI_SHELL_CMD_ERROR;
 }
   
@@ -1091,7 +1092,7 @@ static ret_code_t domain_info(void)
 	return(HPI_SHELL_OK);
 }
 
-static ret_code_t domain_proc(void)
+ret_code_t domain_proc(void)
 {
 	SaHpiDomainInfoT	info;
 	SaHpiEntryIdT		entryid, nextentryid;
