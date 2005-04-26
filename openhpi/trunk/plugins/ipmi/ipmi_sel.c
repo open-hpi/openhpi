@@ -415,8 +415,14 @@ static void set_sel_state(ipmi_mc_t *mc, void *cb_data)
 	struct ohoi_set_sel_state_cb_data *data = cb_data;
 	int rv;
 	
-	rv = ipmi_mc_set_events_enable(mc, data->enable, set_sel_state_done , &data->done);;
+	rv = ipmi_mc_set_events_enable(mc, data->enable, set_sel_state_done , &data->done);
 	if(rv) {
+		if (rv == ENOSYS) {
+			// ipmb doesn't support event generator
+			data->done = -2;
+		} else {
+			data->done = -1;
+		}
 		dbg("failed  set_sel_state = %d", rv);
         }
 }
@@ -436,7 +442,9 @@ SaErrorT ohoi_set_sel_state(struct ohoi_handler *ipmi_handler, ipmi_mcid_t mc_id
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 	rv = ohoi_loop(&data.done, ipmi_handler);
-	if (data.done < 0) {
+	if (data.done == -2) {
+		rv = SA_ERR_HPI_ERROR; 
+	} else if (data.done < 0) {
 		rv = SA_ERR_HPI_INTERNAL_ERROR;
 	}
 	if(rv) {
