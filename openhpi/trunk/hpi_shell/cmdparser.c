@@ -217,6 +217,24 @@ static void add_to_cmd_line(char *str)
 		snprintf(cmd_line + len, LINE_BUF_SIZE - len, " %s", str);
 }
 
+static int check_cmd_for_redirect(void)
+{
+	int	i, redirect = 0;
+
+	for (i = 0; i < term_count; i++) {
+		if (terms[i].term_type == CMD_ERROR_TERM)
+			return(HPI_SHELL_SYNTAX_ERROR);
+		if (terms[i].term_type == CMD_REDIR_TERM) {
+			if (redirect != 0)
+				return(HPI_SHELL_SYNTAX_ERROR);
+			if (strcmp(">>", terms[i].term) == 0)
+				redirect = 2;
+			else redirect = 1;
+		}
+	};
+	return(redirect);
+}
+
 ret_code_t cmd_parser(char *mes, int as, int new_cmd, int *redirect)
 // as = 0  - get command
 // as = 1  - may be exit with empty command
@@ -339,17 +357,7 @@ ret_code_t cmd_parser(char *mes, int as, int new_cmd, int *redirect)
 		if (read_stdin) set_current_history(cmd_line);
 		if (new_cmd == 0)
 			return(HPI_SHELL_OK);
-		for (i = 0; i < term_count; i++) {
-			if (terms[i].term_type == CMD_ERROR_TERM)
-				return(HPI_SHELL_SYNTAX_ERROR);
-			if (terms[i].term_type == CMD_REDIR_TERM) {
-				if (*redirect != 0)
-					return(HPI_SHELL_SYNTAX_ERROR);
-				if (strcmp(">>", terms[i].term) == 0)
-					*redirect = 2;
-				else *redirect = 1;
-			}
-		};
+		*redirect = check_cmd_for_redirect();
 		return(HPI_SHELL_OK);
 	}
 }
@@ -412,9 +420,16 @@ int get_new_command(char *mes)
 {
 	int		redir = 0, i, res;
 	char		*name;
+	term_def_t	*term;
 
 	if (debug_flag) printf("get_new_command:\n");
-	cmd_parser(mes, 0, 1, &redir);
+	term = get_next_term();
+	if ((term == NULL) || (term->term_type != CMD_TERM))
+		cmd_parser(mes, 0, 1, &redir);
+	else {
+		unget_term();
+		redir = check_cmd_for_redirect();
+	};
 	if (redir != 0) {
 		for (i = 0; i < term_count; i++) {
 			if (terms[i].term_type == CMD_REDIR_TERM)
@@ -441,7 +456,8 @@ int get_new_command(char *mes)
 		remove_reditection();
 		return(res);
 	};
-	return(run_command());
+	res = run_command();
+	return(res);
 }
 
 void cmd_shell(void)
