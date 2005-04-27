@@ -34,7 +34,7 @@ TESTS = sim_sanity_000 \
 	sim_sanity_101 \
 	sim_sanity_006 \
 	sim_sanity_007 \
-	sim_sanity_101
+	sim_sanity_102
 
 check_PROGRAMS = $(TESTS)
 
