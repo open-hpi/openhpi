@@ -40,7 +40,7 @@ int main(int argc, char **argv)
 	SaHpiSessionIdT sid = 0;
 	SaHpiRptEntryT res;
 	SaHpiRdrT rdr;
-	SaHpiEntryIdT id = SAHPI_FIRST_ENTRY;
+	SaHpiEntryIdT id = SAHPI_LAST_ENTRY;
 	SaHpiResourceIdT resid;
 	int failcount = 0;
 	int testnum = 0;
@@ -57,23 +57,17 @@ int main(int argc, char **argv)
 	}
 						
         rc = saHpiRptEntryGet(sid, id, &id, &res);
-        runtest();
-        if(rc != SA_OK) {
-		dbg("Error %s",oh_lookup_error(rc));
-		failed("Couldn't get the first rpt entry");
-		/* we're toast, bail */
-		goto end;
-	}
-	else{
-		id = SAHPI_LAST_ENTRY;
+	if(rc != SA_OK){
+		id = SAHPI_FIRST_ENTRY;
 		resid = res.ResourceId;
 		rc = saHpiRdrGet(sid, resid, id, &id, &rdr);
 		runtest();
 		if(rc == SA_OK){
 			dbg("Error %s", oh_lookup_error(rc));
-			failed("Retrieved an rdr entry that did not exist");
+			failed("Retrieved sensor rdr from non-existant resource");
 			goto end;
 		}
+		else{ printf("I work for some odd reason\n"); }
 	}
 	
 	dbg("Ran %d tests", testnum);
