@@ -85,6 +85,7 @@ static void *ipmi_open(GHashTable *handler_config)
 	const char *real_write_fru;
 	int rv = 0;
 	int *hid;
+	char *multi_domains;
 	SaHpiTextBufferT	buf = {
 					.DataType = SAHPI_TL_TYPE_TEXT,
 					.Language = SAHPI_LANG_ENGLISH,
@@ -134,9 +135,13 @@ static void *ipmi_open(GHashTable *handler_config)
 	ipmi_handler->openipmi_scan_time = 0;
 	ipmi_handler->real_write_fru = 0;
 
-	hid = g_hash_table_lookup(handler_config, "handler-id");
-	oh_append_textbuffer(&buf, "Langley domain");
-	ipmi_handler->did = oh_request_domain_id(*hid, &buf, 0, 0, 0);
+	multi_domains = g_hash_table_lookup(handler_config, "MultipleDomains");
+	if (multi_domains != (char *)NULL) {
+		hid = g_hash_table_lookup(handler_config, "handler-id");
+		oh_append_textbuffer(&buf, "Langley domain");
+		ipmi_handler->did = oh_request_domain_id(*hid, &buf, 0, 0, 0);
+	} else
+		ipmi_handler->did = oh_get_default_domain_id();
 
 	if (timeout != NULL) {
 		ipmi_handler->fullup_timeout = (time_t)strtol(timeout,
