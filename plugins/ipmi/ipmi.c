@@ -76,7 +76,8 @@ static void *ipmi_open(GHashTable *handler_config)
 {
 	struct oh_handler_state *handler;
 	struct ohoi_handler *ipmi_handler;
-	char	domain_name[24];
+	char	ohoi_domain_name[24];
+	char	*domain_name;
 
 	const char *name;
 	const char *addr;
@@ -102,7 +103,13 @@ static void *ipmi_open(GHashTable *handler_config)
 	timeout = g_hash_table_lookup(handler_config, "TimeOut");
 	scan_time = g_hash_table_lookup(handler_config, "OpenIPMIscanTime");	
 	real_write_fru = g_hash_table_lookup(handler_config, "RealWriteFru");	
-	snprintf(domain_name, 24, "%s %s", name, addr);
+	domain_name = g_hash_table_lookup(handler_config, "DomainName");
+	if (domain_name == NULL)
+	  	oh_append_textbuffer(&buf, "IPMI Domain");
+	else
+	  	oh_append_textbuffer(&buf, domain_name);
+	/* Domain name for OpenIPMI */
+	snprintf(ohoi_domain_name, 14, "%s %s", name, addr);
 
 	handler = (struct oh_handler_state *)g_malloc0(sizeof(
 			struct oh_handler_state));
@@ -138,7 +145,7 @@ static void *ipmi_open(GHashTable *handler_config)
 	multi_domains = g_hash_table_lookup(handler_config, "MultipleDomains");
 	if (multi_domains != (char *)NULL) {
 		hid = g_hash_table_lookup(handler_config, "handler-id");
-		oh_append_textbuffer(&buf, "Langley domain");
+	  	//oh_append_textbuffer(&buf, domain_name);
 		ipmi_handler->did = oh_request_domain_id(*hid, &buf, 0, 0, 0);
 	} else
 		ipmi_handler->did = oh_get_default_domain_id();
@@ -276,7 +283,7 @@ static void *ipmi_open(GHashTable *handler_config)
 
 	ipmi_handler->connected = -1;
 
-	rv = ipmi_open_domain(domain_name, &ipmi_handler->con, 1,
+	rv = ipmi_open_domain(ohoi_domain_name, &ipmi_handler->con, 1,
 			ipmi_connection_handler, handler,
 			ipmi_domain_fully_up, handler,
 			NULL, 0, &ipmi_handler->domain_id);
