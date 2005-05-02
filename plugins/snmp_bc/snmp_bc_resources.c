@@ -374,6 +374,10 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                                         .EntityLocation = SNMP_BC_HPI_LOCATION_BASE,
                                 },
                                 {
+                                        .EntityType = SAHPI_ENT_FRONT_PANEL_BOARD,
+                                        .EntityLocation = SNMP_BC_HPI_LOCATION_BASE,
+                                },
+                                {
                                         .EntityType = SAHPI_ENT_ROOT,
                                         .EntityLocation = 0,
                                 }
