@@ -545,12 +545,12 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 			{
 				SaHpiEntityPathT ep;
 
-				ep = snmp_bc_rpt_array[BC_RPT_ENTRY_BLADE_ADDIN_CARD].rpt.ResourceEntity;
+				ep = snmp_bc_rpt_array[BC_RPT_ENTRY_BLADE_EXPANSION_CARD].rpt.ResourceEntity;
 				oh_concat_ep(&ep, ep_root);
-				oh_set_ep_location(&ep, SAHPI_ENT_ADD_IN_CARD, i + SNMP_BC_HPI_LOCATION_BASE);
+				oh_set_ep_location(&ep, SAHPI_ENT_SYS_EXPANSION_BOARD, i + SNMP_BC_HPI_LOCATION_BASE);
 				oh_set_ep_location(&ep, SAHPI_ENT_SBC_BLADE, i + SNMP_BC_HPI_LOCATION_BASE);
 
-				err = snmp_bc_oid_snmp_get(custom_handle, &ep, SNMP_BC_BLADE_ADDIN_VECTOR, &get_value, SAHPI_TRUE);
+				err = snmp_bc_oid_snmp_get(custom_handle, &ep, SNMP_BC_BLADE_EXPANSION_VECTOR, &get_value, SAHPI_TRUE);
 
 				if (!err && get_value.integer != 0) {
 
@@ -563,11 +563,11 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 	
 					e->type = OH_ET_RESOURCE;
 					e->did = oh_get_default_domain_id();
-					e->u.res_event.entry = snmp_bc_rpt_array[BC_RPT_ENTRY_BLADE_ADDIN_CARD].rpt;
+					e->u.res_event.entry = snmp_bc_rpt_array[BC_RPT_ENTRY_BLADE_EXPANSION_CARD].rpt;
 					e->u.res_event.entry.ResourceEntity = ep;
 					e->u.res_event.entry.ResourceId = oh_uid_from_entity_path(&ep);
 					snmp_bc_create_resourcetag(&(e->u.res_event.entry.ResourceTag),
-								   snmp_bc_rpt_array[BC_RPT_ENTRY_BLADE_ADDIN_CARD].comment,
+								   snmp_bc_rpt_array[BC_RPT_ENTRY_BLADE_EXPANSION_CARD].comment,
 								   i + SNMP_BC_HPI_LOCATION_BASE);
 
 					trace("Discovered resource=%s; ID=%d",
@@ -575,7 +575,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 					      e->u.res_event.entry.ResourceId);
 
 					/* Create platform-specific info space to add to infra-structure */
-					res_info_ptr = g_memdup(&(snmp_bc_rpt_array[BC_RPT_ENTRY_BLADE_ADDIN_CARD].res_info),
+					res_info_ptr = g_memdup(&(snmp_bc_rpt_array[BC_RPT_ENTRY_BLADE_EXPANSION_CARD].res_info),
 								sizeof(struct ResourceInfo));
 					if (!res_info_ptr) {
 						dbg("Out of memory.");
@@ -601,9 +601,9 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 			
 					/* Find resource's events, sensors, controls, etc. */
 					snmp_bc_discover_res_events(handle, &(e->u.res_event.entry.ResourceEntity), res_info_ptr);
-					snmp_bc_discover_sensors(handle, snmp_bc_blade_addin_sensors, e);
-					snmp_bc_discover_controls(handle, snmp_bc_blade_addin_controls, e);
-					snmp_bc_discover_inventories(handle, snmp_bc_blade_addin_inventories, e);
+					snmp_bc_discover_sensors(handle, snmp_bc_blade_expansion_sensors, e);
+					snmp_bc_discover_controls(handle, snmp_bc_blade_expansion_controls, e);
+					snmp_bc_discover_inventories(handle, snmp_bc_blade_expansion_inventories, e);
 				}
 			}
 		}

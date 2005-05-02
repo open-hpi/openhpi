@@ -328,7 +328,7 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                         .ResourceEntity = {
                                 .Entry[0] =
                                 {
-                                        .EntityType = SAHPI_ENT_ADD_IN_CARD,
+                                        .EntityType = SAHPI_ENT_SYS_EXPANSION_BOARD,
                                         .EntityLocation = SNMP_BC_HPI_LOCATION_BASE,
                                 },
                                 {
@@ -5140,7 +5140,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
  * Blade Expansion Card Sensors
  ******************************/
 
-struct snmp_bc_sensor snmp_bc_blade_addin_sensors[] = {
+struct snmp_bc_sensor snmp_bc_blade_expansion_sensors[] = {
         /* Blade's expansion card thermal sensor */
         {
 		.index = 1,
@@ -6007,7 +6007,7 @@ struct snmp_bc_control snmp_bc_blade_controls[] = {
  * Blade Add In Controls
  ***********************/
 
-struct snmp_bc_control snmp_bc_blade_addin_controls[] = {
+struct snmp_bc_control snmp_bc_blade_expansion_controls[] = {
 
         {} /* Terminate array with a null element */
 };
@@ -6210,7 +6210,7 @@ struct snmp_bc_inventory snmp_bc_blade_inventories[] = {
  * Blade Expansion Card VPD
  **************************/
 
-struct snmp_bc_inventory snmp_bc_blade_addin_inventories[] = {
+struct snmp_bc_inventory snmp_bc_blade_expansion_inventories[] = {
 
         {} /* Terminate array with a null element */
 };

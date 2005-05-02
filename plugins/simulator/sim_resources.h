@@ -91,7 +91,7 @@ typedef enum {
         BC_RPT_ENTRY_MGMNT_MODULE,
         BC_RPT_ENTRY_SWITCH_MODULE,
         BC_RPT_ENTRY_BLADE,
-        BC_RPT_ENTRY_BLADE_ADDIN_CARD,
+        BC_RPT_ENTRY_BLADE_EXPANSION_CARD,
         BC_RPT_ENTRY_MEDIA_TRAY,
         BC_RPT_ENTRY_BLOWER_MODULE,
         BC_RPT_ENTRY_POWER_MODULE
@@ -114,7 +114,7 @@ typedef enum {
 
 /* OID definitions for discovering resources.*/
 #define DUMMY_BLADE_VECTOR        ".1.3.6.1.4.1.2.3.51.2.2.5.2.49.0"
-#define DUMMY_BLADE_ADDIN_VECTOR  ".1.3.6.1.4.1.2.3.51.2.22.1.5.1.1.14.x"
+#define DUMMY_BLADE_EXPANSION_VECTOR  ".1.3.6.1.4.1.2.3.51.2.22.1.5.1.1.14.x"
 #define DUMMY_FAN_VECTOR          ".1.3.6.1.4.1.2.3.51.2.2.5.2.73.0"
 #define DUMMY_MGMNT_VECTOR        ".1.3.6.1.4.1.2.3.51.2.22.4.30.0"
 #define DUMMY_MGMNT_ACTIVE        ".1.3.6.1.4.1.2.3.51.2.22.4.34.0"
