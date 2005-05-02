@@ -16,7 +16,7 @@ BuildRequires: docbook-utils docbook-utils-pdf docbook-dtd41-sgml
 Summary: Library that provides SAForum's HPI
 Group: Utilities
 AutoReq: yes
-Requires: libc.so.6 libglib-1.2.so.0 libpthread.so.0
+Requires: libc.so.6 libglib-2.0.so.0 libpthread.so.0
 
 %package devel
 Summary: Development files for HPI
