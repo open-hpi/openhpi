@@ -480,7 +480,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 			e->u.res_event.entry = snmp_bc_rpt_array[BC_RPT_ENTRY_BLADE].rpt;
 			oh_concat_ep(&(e->u.res_event.entry.ResourceEntity), ep_root);
 			oh_set_ep_location(&(e->u.res_event.entry.ResourceEntity),
-					   SAHPI_ENT_SBC_BLADE, i + SNMP_BC_HPI_LOCATION_BASE);
+					   SAHPI_ENT_PHYSICAL_SLOT, i + SNMP_BC_HPI_LOCATION_BASE);
 			e->u.res_event.entry.ResourceId = 
 				oh_uid_from_entity_path(&(e->u.res_event.entry.ResourceEntity));
 				
@@ -548,7 +548,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 				ep = snmp_bc_rpt_array[BC_RPT_ENTRY_BLADE_EXPANSION_CARD].rpt.ResourceEntity;
 				oh_concat_ep(&ep, ep_root);
 				oh_set_ep_location(&ep, SAHPI_ENT_SYS_EXPANSION_BOARD, i + SNMP_BC_HPI_LOCATION_BASE);
-				oh_set_ep_location(&ep, SAHPI_ENT_SBC_BLADE, i + SNMP_BC_HPI_LOCATION_BASE);
+				oh_set_ep_location(&ep, SAHPI_ENT_PHYSICAL_SLOT, i + SNMP_BC_HPI_LOCATION_BASE);
 
 				err = snmp_bc_oid_snmp_get(custom_handle, &ep, SNMP_BC_BLADE_EXPANSION_VECTOR, &get_value, SAHPI_TRUE);
 
