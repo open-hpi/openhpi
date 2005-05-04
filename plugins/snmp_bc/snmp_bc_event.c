@@ -924,6 +924,10 @@ static SaErrorT snmp_bc_set_cur_prev_event_states(struct oh_handler_state *handl
 		SaHpiEventStateT cur_state, prev_state;
 		struct SensorInfo *sinfo;
 
+		/* Initialize previous and current state event info */
+		event->EventDataUnion.SensorEvent.PreviousState = SAHPI_ES_UNSPECIFIED;
+		event->EventDataUnion.SensorEvent.CurrentState = SAHPI_ES_UNSPECIFIED;
+
 		/* Set previous state to sensor's current state */
 		SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, event->Source, SAHPI_SENSOR_RDR,
 						    event->EventDataUnion.SensorEvent.SensorNum);
@@ -1189,6 +1193,10 @@ static SaErrorT snmp_bc_logsrc2rid(struct oh_handler_state *handle,
 		return(SA_ERR_HPI_INTERNAL_ERROR);
 	}
 
+	if ((isblade == SAHPI_TRUE) || (isexpansioncard == SAHPI_TRUE)) {
+		err = oh_set_ep_location(&ep, SAHPI_ENT_PHYSICAL_SLOT, loc);	
+	}
+	
 	/* Special case - if Expansion Card set location of parent blade as well */
 	if (isexpansioncard == SAHPI_TRUE) {
 		err = oh_set_ep_location(&ep, SAHPI_ENT_SBC_BLADE, loc);
