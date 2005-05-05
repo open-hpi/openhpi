@@ -276,7 +276,7 @@ static ret_code_t sa_show_inv(SaHpiResourceIdT resourceid)
 					oh_lookup_error(rva));
 				break;
 			}
-			oh_print_idrareaheader(&areaHeader, 2);
+			show_inv_area_header(&areaHeader, 2, ui_print);
 
 			fieldType = SAHPI_IDR_FIELDTYPE_UNSPECIFIED;
 			fieldId = SAHPI_FIRST_ENTRY;
@@ -290,7 +290,7 @@ static ret_code_t sa_show_inv(SaHpiResourceIdT resourceid)
 						oh_lookup_error(rvf));
 					break;
 				}
-				oh_print_idrfield(&thisField, 4);
+				show_inv_field(&thisField, 4, ui_print);
 				fieldId = nextFieldId;
 			}
 			areaId = nextareaId;
