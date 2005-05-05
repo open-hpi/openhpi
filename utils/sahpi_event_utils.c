@@ -153,9 +153,14 @@ SaErrorT oh_encode_eventstate(SaHpiTextBufferT *buffer,
 		dbg("Invalid Data buffer parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
+
+	if (buffer->DataLength < SAHPI_MAX_TEXT_BUFFER_LENGTH) {
+		buffer->Data[buffer->DataLength] = '\0';
+	}
 	
 	/* Split out event definitions */
-	gstr = g_strstrip(g_strdup((gchar *)buffer->Data));
+        gstr = g_strstrip(g_strndup((gchar *)buffer->Data, SAHPI_MAX_TEXT_BUFFER_LENGTH));
+//gstr = g_strstrip(g_strdup((gchar *)buffer->Data));
 	if (gstr == NULL || gstr[0] == '\0') {
 		dbg("g_strstrip failed");
 		rtncode = SA_ERR_HPI_INTERNAL_ERROR;
