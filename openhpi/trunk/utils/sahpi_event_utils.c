@@ -33,8 +33,7 @@
  * is returned as the string "UPPER_MINOR | UPPER_MAJOR".
  * String is stored in an SaHpiTextBufferT data structure.
  *
- * Function validates that the @event_state bit map is valid for @event_cat. And
- * that the states are complete and not mutually exclusive.
+ * Function validates that the @event_state bit map is valid for @event_cat.
  *
  * SAHPI_ES_UNSPECIFIED definitions are stripped from @event_state, if there are 
  * other valid non-global states defined. For example, @event_state = 
@@ -159,8 +158,10 @@ SaErrorT oh_encode_eventstate(SaHpiTextBufferT *buffer,
 	}
 	
 	/* Split out event definitions */
-        gstr = g_strstrip(g_strndup((gchar *)buffer->Data, SAHPI_MAX_TEXT_BUFFER_LENGTH));
-//gstr = g_strstrip(g_strdup((gchar *)buffer->Data));
+	if (buffer->DataLength < SAHPI_MAX_TEXT_BUFFER_LENGTH) {
+		buffer->Data[buffer->DataLength] = '\0';
+	}
+	gstr = g_strstrip(g_strndup((gchar *)buffer->Data, SAHPI_MAX_TEXT_BUFFER_LENGTH));
 	if (gstr == NULL || gstr[0] == '\0') {
 		dbg("g_strstrip failed");
 		rtncode = SA_ERR_HPI_INTERNAL_ERROR;
@@ -169,6 +170,7 @@ SaErrorT oh_encode_eventstate(SaHpiTextBufferT *buffer,
 
 	eventdefs = g_strsplit(gstr, OH_ENCODE_DELIMITER_CHAR, -1);
 	if (eventdefs == NULL) {
+		dbg("No event definitions");
 		rtncode = SA_ERR_HPI_INVALID_PARAMS;
 		goto CLEANUP;
 	}
@@ -201,6 +203,7 @@ SaErrorT oh_encode_eventstate(SaHpiTextBufferT *buffer,
 		}
 
 		if (!found_event && !found_global_event) {
+			dbg("No events found");
 			rtncode = SA_ERR_HPI_INVALID_PARAMS;
 			goto CLEANUP;
 		}

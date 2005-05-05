@@ -130,6 +130,7 @@ int main(int argc, char **argv)
         /* oh_encode_eventstate testcases - handle blanks testcase */
         {
 		strcpy((char *)buffer.Data, "  LOWER_MINOR  |  LOWER_MAJOR|LOWER_CRIT ");
+		buffer.DataLength = strlen("  LOWER_MINOR  |  LOWER_MAJOR|LOWER_CRIT ");
                 expected_cat = SAHPI_EC_THRESHOLD;
                 expected_state = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT;
   
@@ -150,6 +151,7 @@ int main(int argc, char **argv)
 	/* oh_encode_eventstate testcases - valid states but different categories testcase */
         {
 		strcpy((char *)buffer.Data, "LOWER_MINOR | STATE_13 | IDLE");
+		buffer.DataLength = strlen("LOWER_MINOR | STATE_13 | IDLE");
 		expected_err = SA_ERR_HPI_INVALID_PARAMS;
   
                 err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
@@ -163,6 +165,7 @@ int main(int argc, char **argv)
 	/* oh_encode_eventstate testcases - garbage state testcase */	
         {
 		strcpy((char *)buffer.Data, "GARBAGE_STATE");
+		buffer.DataLength = strlen("GARBAGE_STATE");
 		expected_err = SA_ERR_HPI_INVALID_PARAMS;
   
                 err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
