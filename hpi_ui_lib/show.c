@@ -869,3 +869,44 @@ SaErrorT show_inventory(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 	};
 	return(SA_OK);
 }
+
+void show_inv_area_header(SaHpiIdrAreaHeaderT *Header, int del, hpi_ui_print_cb_t proc)
+{
+	char	buf[SHOW_BUF_SZ], *str;
+	int	len;
+
+	del <<= 1;
+	len = SHOW_BUF_SZ - del;
+	str = buf + del;
+	memset(buf, ' ', SHOW_BUF_SZ);
+	snprintf(str, len, "AreaId: %d\n", Header->AreaId);
+	if (proc(buf) != 0) return;
+	snprintf(str, len, "AreaType: %s\n", oh_lookup_idrareatype(Header->Type));
+	if (proc(buf) != 0) return;
+	snprintf(str, len, "ReadOnly: %s\n",
+		(Header->ReadOnly == SAHPI_TRUE) ? "TRUE" : "FALSE" );
+	if (proc(buf) != 0) return;
+	snprintf(str, len, "NumFields: %d\n", Header->NumFields);
+	proc(buf);
+}
+
+void show_inv_field(SaHpiIdrFieldT *Field, int del, hpi_ui_print_cb_t proc)
+{
+	char	buf[SHOW_BUF_SZ], *str;
+	int	len;
+
+	del <<= 1;
+	len = SHOW_BUF_SZ - del;
+	str = buf + del;
+	memset(buf, ' ', SHOW_BUF_SZ);
+	snprintf(str, len, "Field Id: %d\n", Field->FieldId);
+	if (proc(buf) != 0) return;
+	snprintf(str, len, "Field Type: %s\n", oh_lookup_idrfieldtype(Field->Type));
+	if (proc(buf) != 0) return;
+	snprintf(str, len, "ReadOnly: %s\n",
+		(Field->ReadOnly == SAHPI_TRUE) ? "TRUE" : "FALSE" );
+	if (proc(buf) != 0) return;
+	*str = 0;
+	proc(buf);
+	print_text_buffer("Content: ", &(Field->Field), "\n", proc);
+}

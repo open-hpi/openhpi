@@ -127,6 +127,9 @@ extern SaErrorT	show_control_state(SaHpiSessionIdT sessionid, SaHpiResourceIdT r
 extern SaErrorT	show_dat(Domain_t *domain, hpi_ui_print_cb_t proc);
 extern SaErrorT	show_event_log(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 			int show_short, hpi_ui_print_cb_t proc);
+extern void	show_inv_area_header(SaHpiIdrAreaHeaderT *Header, int del,
+			hpi_ui_print_cb_t proc);
+extern void	show_inv_field(SaHpiIdrFieldT *Field, int del, hpi_ui_print_cb_t proc);
 extern SaErrorT	show_inventory(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 			SaHpiIdrIdT num, hpi_ui_print_cb_t proc);
 extern SaErrorT	show_Rdr(Rdr_t *Rdr, hpi_ui_print_cb_t proc);
