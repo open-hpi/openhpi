@@ -5,6 +5,8 @@ show_threshold
 print_thres_value
 show_sensor
 show_event_log
+show_inv_area_header
+show_inv_field
 get_attr_name
 get_attr_type
 get_value_as_string
