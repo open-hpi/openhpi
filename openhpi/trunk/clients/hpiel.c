@@ -56,7 +56,8 @@ int frpt   = 0;
 int main(int argc, char **argv)
 {
         int c;
-        SaErrorT rv;
+	oh_big_textbuffer bigbuf2;
+        SaErrorT rv, rv_2;
         SaHpiVersionT hpiVer;
         SaHpiSessionIdT sessionid;
         
@@ -148,6 +149,11 @@ int main(int argc, char **argv)
 			}
 				    
 			rptentry.ResourceTag.Data[rptentry.ResourceTag.DataLength] = 0;
+	
+			rv_2 = oh_init_bigtext(&bigbuf2);
+			if (rv_2) return(rv_2);
+			rv  = oh_decode_entitypath(&rptentry.ResourceEntity, &bigbuf2);
+			printf("%s\n", bigbuf2.Data);
 			printf("rptentry[%d] tag: %s\n", resourceid,rptentry.ResourceTag.Data);
 				    
 			/* initialize structure */
@@ -155,16 +161,17 @@ int main(int argc, char **argv)
 			info.Size = 0;
 			info.Enabled = 0;
 				    
-			rv = saHpiEventLogInfoGet(sessionid,resourceid,&info);
+			rv_2 = saHpiEventLogInfoGet(sessionid,resourceid,&info);
 			
 			if (fdebug)
 				printf("saHpiEventLogInfoGet %s\n", oh_lookup_error(rv));
-			if (rv == SA_OK) {
+			if (rv_2 == SA_OK) {
 				printf("EventLogInfo for %s, ResourceId %d\n",
 						rptentry.ResourceTag.Data, resourceid);
 				oh_print_eventloginfo(&info, 4);
-			} else 
-				printf("saHpiEventLogInfoGet %s\n", oh_lookup_error(rv));
+			} else { 
+				printf("saHpiEventLogInfoGet %s\n", oh_lookup_error(rv_2));
+			}
 				    
 			if (fclear) {
 				rv = saHpiEventLogClear(sessionid,resourceid);
@@ -218,7 +225,7 @@ int main(int argc, char **argv)
 				}
 				
 			} else
-				printf("SEL is empty\n");
+				printf("\tSEL is empty.\n\n");
 				    
 			if (free < 6) {
 				printf("WARNING: Log free space is very low (%d records)\n",free);
