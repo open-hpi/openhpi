@@ -408,29 +408,6 @@ AC_SUBST(SNMPLIBS)
 AC_SUBST(SNMPDIR)
 
 dnl
-dnl defines CONFPATH, OH_DEFAULT_CONF and OH_CLIENT_DEFAULT_CONF
-dnl
-
-#CONFPATH=${CONFPATH:=/etc/${PACKAGE_NAME}}
-
-#AC_ARG_WITH(confpath,
-#   [[  --with-confpath=PATH    use directory PATH to store openhpi configuration file [default=/etc/openhpi]]],
-#   [CONFPATH=$withval])
-
-dnl substitute @CONFPATH@ in all Makefiles
-CONFPATH=${sysconfdir}/openhpi
-AC_SUBST(CONFPATH)
-
-dnl create the #define in config.h
-AC_DEFINE_UNQUOTED(CONFPATH, "$CONFPATH",
-                   [openhpi specific config path])
-AC_DEFINE_UNQUOTED(OH_DEFAULT_CONF,"$CONFPATH/${PACKAGE_NAME}.conf",
-                   [default configfile])
-AC_DEFINE_UNQUOTED(OH_CLIENT_DEFAULT_CONF,"$CONFPATH/${HPI_CLIENT_PKG}.conf",
-                   [default client configfile])
-
-
-dnl
 dnl This code was borrowed from linux-ha configure.in file
 dnl and is used for creating the proper substitutions
 dnl in the spec file. Without it, the spec file will
@@ -458,11 +435,36 @@ var() {
 exec_prefix=`var "$exec_prefix" "$prefix"`
 bindir=`var "$bindir" "$exec_prefix/bin"`
 sbindir=`var "$sbindir" "$exec_prefix/sbin"`
+sysconfdir=`var "$sysconfdir" "$prefix/etc"`
 libdir=`var "$libdir" "$exec_prefix/lib"`
 includedir=`var "$includedir" "$exec_prefix/include"`
 localstatedir=`var "$localstatedir" "/var"`
 base_includedir="${includedir}"
 AC_SUBST(base_includedir)
+
+dnl
+dnl defines CONFPATH, OH_DEFAULT_CONF and OH_CLIENT_DEFAULT_CONF
+dnl
+
+#CONFPATH=${CONFPATH:=/etc/${PACKAGE_NAME}}
+
+#AC_ARG_WITH(confpath,
+#   [[  --with-confpath=PATH    use directory PATH to store openhpi configuration file [default=/etc/openhpi]]],
+#   [CONFPATH=$withval])
+
+dnl substitute @CONFPATH@ in all Makefiles
+CONFPATH=${sysconfdir}/openhpi
+AC_SUBST(CONFPATH)
+
+dnl create the #define in config.h
+AC_DEFINE_UNQUOTED(CONFPATH, "$CONFPATH",
+                   [openhpi specific config path])
+AC_DEFINE_UNQUOTED(OH_DEFAULT_CONF,"$CONFPATH/${PACKAGE_NAME}.conf",
+                   [default configfile])
+AC_DEFINE_UNQUOTED(OH_CLIENT_DEFAULT_CONF,"$CONFPATH/${HPI_CLIENT_PKG}.conf",
+                   [default client configfile])
+
+
 
 dnl defines OH_DEFAULT_UID_MAP and VARPATH
 dnl set VARPATH only if unset or null.
