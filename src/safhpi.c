@@ -2392,6 +2392,10 @@ SaErrorT SAHPI_API saHpiIdrAreaAdd(
                 dbg("Invalid Parameters");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
+	if (AreaType == SAHPI_IDR_AREATYPE_UNSPECIFIED) {
+		dbg("AreaType == SAHPI_IDR_AREATYPE_UNSPECIFIED");
+		return SA_ERR_HPI_INVALID_DATA;
+	}
 
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
@@ -2567,6 +2571,9 @@ SaErrorT SAHPI_API saHpiIdrFieldAdd(
                 dbg("Invalid Parameters in Field->Type");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
+	if (oh_valid_textbuffer(&Field->Field) != SAHPI_TRUE) {
+		return SA_ERR_HPI_INVALID_PARAMS;
+	}
 
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
