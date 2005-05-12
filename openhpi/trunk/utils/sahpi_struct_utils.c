@@ -41,7 +41,6 @@ static SaErrorT oh_build_invrec(oh_big_textbuffer *textbuff, const SaHpiInventor
 static SaErrorT oh_build_wdogrec(oh_big_textbuffer *textbuff, const SaHpiWatchdogRecT *wdogrec, int offsets);
 static SaErrorT oh_build_annrec(oh_big_textbuffer *textbuff, const SaHpiAnnunciatorRecT *annrec, int offsets);
 
-static SaErrorT oh_build_event(oh_big_textbuffer *buffer, const SaHpiEventT *event, int offsets);
 static SaErrorT oh_build_event_resource(oh_big_textbuffer *buffer, const SaHpiEventT *event, int offsets);
 static SaErrorT oh_build_event_domain(oh_big_textbuffer *buffer, const SaHpiEventT *event, int offsets);
 static SaErrorT oh_build_event_sensor(oh_big_textbuffer *buffer, const SaHpiEventT *event, int offsets);
@@ -2199,7 +2198,7 @@ SaErrorT oh_fprint_event(FILE *stream, const SaHpiEventT *event, int offsets)
  * SA_OK - Normal operation.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) are NULL.
  **/
-static SaErrorT oh_build_event(oh_big_textbuffer *buffer, const SaHpiEventT *event, int offsets)
+SaErrorT oh_build_event(oh_big_textbuffer *buffer, const SaHpiEventT *event, int offsets)
 {
 	char str[SAHPI_MAX_TEXT_BUFFER_LENGTH];
 	SaErrorT err;
