@@ -145,6 +145,9 @@ SaErrorT oh_fprint_eventlogentry(FILE *stream, const SaHpiEventLogEntryT *thisev
 #define oh_print_ctrlstate(ctrlstate_ptr, offsets) oh_fprint_ctrlstate(stdout, ctrlstate_ptr, offsets)
 SaErrorT oh_fprint_ctrlstate(FILE *stream, const SaHpiCtrlStateT *thisctrlstate, int offsets);
 
+SaErrorT oh_build_event(oh_big_textbuffer *buffer, const SaHpiEventT *event, int offsets);
+
+
 #ifdef __cplusplus
 }
 #endif
