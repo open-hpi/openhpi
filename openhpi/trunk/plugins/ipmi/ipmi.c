@@ -76,7 +76,7 @@ static void *ipmi_open(GHashTable *handler_config)
 {
 	struct oh_handler_state *handler;
 	struct ohoi_handler *ipmi_handler;
-	char	domain_name[24];
+//	char	domain_name[24];
 
 	const char *name;
 	const char *addr;
@@ -102,7 +102,7 @@ static void *ipmi_open(GHashTable *handler_config)
 	timeout = g_hash_table_lookup(handler_config, "TimeOut");
 	scan_time = g_hash_table_lookup(handler_config, "OpenIPMIscanTime");	
 	real_write_fru = g_hash_table_lookup(handler_config, "RealWriteFru");	
-	snprintf(domain_name, 24, "%s %s", name, addr);
+
 
 	handler = (struct oh_handler_state *)g_malloc0(sizeof(
 			struct oh_handler_state));
@@ -112,6 +112,7 @@ static void *ipmi_open(GHashTable *handler_config)
 		dbg("Cannot allocate handler or private ipmi");
 		return NULL;
 	}	
+
 	g_static_rec_mutex_init(&(ipmi_handler->ohoih_lock));
 	handler->data = ipmi_handler;
 
@@ -119,6 +120,7 @@ static void *ipmi_open(GHashTable *handler_config)
 
 	handler->config = handler_config;
 
+	snprintf(ipmi_handler->domain_name, 24, "%s %s", name, addr);
 	/* Discovery routine depends on these flags */
 	ipmi_handler->SDRs_read_done = 0;
 	/* Domain (main) SDR flag, 1 when done */
@@ -197,6 +199,10 @@ static void *ipmi_open(GHashTable *handler_config)
 
 		/* Address */
 		tok = g_hash_table_lookup(handler_config, "addr");
+		if (tok == NULL) {
+			dbg("no ""addr"" token in config file");
+			return NULL;
+		}
 		dbg("IPMI LAN Address: %s", tok);
 		struct hostent *ent = gethostbyname(tok);
 		if (!ent) {
@@ -208,12 +214,20 @@ static void *ipmi_open(GHashTable *handler_config)
 			
 		/* Port */
 		tok = g_hash_table_lookup(handler_config, "port");
-		lan_port = atoi(tok);
+		if (tok == NULL) {
+			dbg("no ""port"" token in config file. set 623");
+			lan_port = 623;
+		} else {
+			lan_port = atoi(tok);
+		}
 		dbg("IPMI LAN Port: %i", lan_port);
 
 		/* Authentication type */
 		tok = g_hash_table_lookup(handler_config, "auth_type");
-		if (strcmp(tok, "none") == 0) {
+		if (tok == NULL) {
+			dbg("no ""auth_type"" token in config file. set ""none""");
+			auth = IPMI_AUTHTYPE_NONE;
+		} else if (strcmp(tok, "none") == 0) {
 			auth = IPMI_AUTHTYPE_NONE;
 		} else if (strcmp(tok, "straight") == 0) {
 			auth = IPMI_AUTHTYPE_STRAIGHT;
@@ -230,7 +244,11 @@ static void *ipmi_open(GHashTable *handler_config)
 
 		/* Priviledge */
 		tok = g_hash_table_lookup(handler_config, "auth_level");
-		if (strcmp(tok, "callback") == 0) {
+		if (tok == NULL) {
+			dbg("no ""auth_level"" token in config file."
+				" set ""admin""");
+			priv = IPMI_PRIVILEGE_ADMIN;
+		} else if (strcmp(tok, "callback") == 0) {
 			priv = IPMI_PRIVILEGE_CALLBACK;
 		} else if (strcmp(tok, "user") == 0) {
 			priv = IPMI_PRIVILEGE_USER;
@@ -249,15 +267,25 @@ static void *ipmi_open(GHashTable *handler_config)
 
 		/* User Name */
 		tok = g_hash_table_lookup(handler_config, "username"); 
-		strncpy(user, tok, 32);
+		if (tok == NULL) {
+			dbg("no ""username"" token in config file");
+			strncpy(user, "", 32);
+		} else {
+			strncpy(user, tok, 32);
+		}
 		dbg("IPMI LAN User: %s", user);
 
 		/* Password */
 		tok = g_hash_table_lookup(handler_config, "password");  
-		strncpy(passwd, tok, 32);
+		if (tok == NULL) {
+			dbg("no ""password"" token in config file");
+			strncpy(passwd, "", 32);
+		} else {
+			strncpy(passwd, tok, 32);
+			free(tok);
+		}
 		dbg("IPMI LAN Password: %s", passwd);
 
-		free(tok);
 
 		rv = ipmi_lan_setup_con(&lan_addr, &lan_port, 1,
 					auth, priv,
@@ -274,8 +302,10 @@ static void *ipmi_open(GHashTable *handler_config)
 		return NULL;
 	}
 
-	ipmi_handler->connected = -1;
-
+	// -2 means ipmi_open_domain was not called.
+	// It will be called in first discovery
+	ipmi_handler->connected = -2;
+/*
 	rv = ipmi_open_domain(domain_name, &ipmi_handler->con, 1,
 			ipmi_connection_handler, handler,
 			ipmi_domain_fully_up, handler,
@@ -284,7 +314,7 @@ static void *ipmi_open(GHashTable *handler_config)
 		fprintf(stderr, "ipmi_open_domain: %s\n", strerror(rv));
 		return NULL;
 	}
-	
+*/	
 	ipmi_refcount++;
 	return handler;
 }
@@ -346,7 +376,20 @@ static int ipmi_get_event(void *hnd, struct oh_event *event)
 	struct oh_handler_state *handler = hnd;
 	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
 	int sel_select_done = 0;
+	int rv;
 
+	if (ipmi_handler->connected == -2) {
+		// open domain wasn't called
+		ipmi_handler->connected = -1;
+		rv = ipmi_open_domain(ipmi_handler->domain_name, &ipmi_handler->con, 1,
+				ipmi_connection_handler, handler,
+				ipmi_domain_fully_up, handler,
+				NULL, 0, &ipmi_handler->domain_id);
+		if (rv) {
+			fprintf(stderr, "ipmi_open_domain: %s\n", strerror(rv));
+			return 0;
+		}	
+	}
 	for (;;) {
 		if(g_slist_length(handler->eventq)>0) {
 			memcpy(event, handler->eventq->data, sizeof(*event));
@@ -396,7 +439,22 @@ int ipmi_discover_resources(void *hnd)
 	struct ohoi_resource_info	*res_info;
 
 	trace("ipmi discover_resources");
+	if (ipmi_handler->connected == -2) {
+		// open domain wasn't called
+		ipmi_handler->connected = -1;
+		rv = ipmi_open_domain(ipmi_handler->domain_name, &ipmi_handler->con, 1,
+				ipmi_connection_handler, handler,
+				ipmi_domain_fully_up, handler,
+				NULL, 0, &ipmi_handler->domain_id);
+		if (rv) {
+			fprintf(stderr, "ipmi_open_domain: %s\n", strerror(rv));
+			return SA_ERR_HPI_NO_RESPONSE;
+		}
+		rv = 1;
+		
+	}
 	
+		
 	time(&tm0);
 	while (ipmi_handler->fully_up == 0) {
 		if (!ipmi_handler->connected) {
@@ -514,6 +572,18 @@ static SaErrorT ipmi_get_el_info(void               *hnd,
 
 	dbg("starting wait for sel retrieval");
 
+	if (ipmi_handler->connected == -2) {
+		// open domain wasn't called
+		ipmi_handler->connected = -1;
+		rv = ipmi_open_domain(ipmi_handler->domain_name, &ipmi_handler->con, 1,
+				ipmi_connection_handler, handler,
+				ipmi_domain_fully_up, handler,
+				NULL, 0, &ipmi_handler->domain_id);
+		if (rv) {
+			fprintf(stderr, "ipmi_open_domain: %s\n", strerror(rv));
+			return -1;
+		}	
+	}
 	while (0 == ipmi_handler->fully_up) {
 		rv = sel_select(ipmi_handler->ohoi_sel, NULL, 0 , NULL, NULL);
 		if (rv<0) {
