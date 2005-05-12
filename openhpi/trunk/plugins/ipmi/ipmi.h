@@ -72,6 +72,7 @@ struct ohoi_handler {
 	unsigned int openipmi_scan_time;
 	int real_write_fru;
 	SaHpiDomainIdT	did;
+	char domain_name[24];
 };
 
 struct ohoi_inventory_info;
