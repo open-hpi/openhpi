@@ -443,6 +443,7 @@ static void generate_domain_event(SaHpiDomainIdT pid,
 				  SaHpiDomainEventTypeT type)
 {
         struct oh_event *event = NULL;
+        struct timeval tv1;
 
         event = g_new0(struct oh_event, 1);
         event->type = OH_ET_HPI;
@@ -452,11 +453,12 @@ static void generate_domain_event(SaHpiDomainIdT pid,
         event->u.hpi_event.rdr.RecordId = SAHPI_ENTRY_UNSPECIFIED;
         event->u.hpi_event.event.Source = SAHPI_UNSPECIFIED_RESOURCE_ID;
         event->u.hpi_event.event.EventType = SAHPI_ET_DOMAIN;
-        event->u.hpi_event.event.Timestamp = SAHPI_TIME_UNSPECIFIED;
         event->u.hpi_event.event.Severity = SAHPI_INFORMATIONAL;
         event->u.hpi_event.event.EventDataUnion.DomainEvent.Type = type;
         event->u.hpi_event.event.EventDataUnion.DomainEvent.DomainId = did;
-
+        gettimeofday(&tv1, NULL);
+        event->u.hpi_event.event.Timestamp = (SaHpiTimeT) tv1.tv_sec *
+				1000000000 + tv1.tv_usec * 1000;
 	trace("domain %d %s domain %d", did,
 		type == SAHPI_DOMAIN_REF_ADDED ?
 		"added to" : "removed from", pid);
