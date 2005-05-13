@@ -22,6 +22,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <unistd.h>
+#include <sys/ioctl.h>
 #include "hpi_cmd.h"
 
 #define MAX_IN_FILES		10
@@ -48,6 +49,10 @@ static char	new_cmd_line[LINE_BUF_SIZE];	// new command line
 static int	max_term_count = 0;
 static int	term_count = 0;
 static int	current_term = 0;
+static int	window_nrows = 24;
+static int	window_ncols = 80;
+static int	current_row = 0;
+
 
 static int set_redirection(char *name, int redir)
 {
@@ -95,6 +100,7 @@ static int delete_input_file(void)
 static void new_command(void)
 {
 	term_count = 0;
+	current_row = 0;
 	current_term = 0;
 	*cmd_line = 0;
 }
@@ -590,4 +596,56 @@ int add_input_file(char *path)
 	in_files_count++;
 	input_file = f;
 	return(0);
+}
+
+Pr_ret_t ui_print(char *Str)
+{
+	struct winsize	win;
+	int		i, len, c, add_nl = 1;
+	char		*tmp, *s;
+	char		buf[LINE_BUF_SIZE];
+        const char green[] = "\033[0;40;32m";
+//        const char yellow[] = "\033[0;40;33m";
+        const char reset[] = "\033[0m";
+
+	i = ioctl(termfd, TIOCGWINSZ, &win);
+	if ((i != 0) || (win.ws_row == 0) || (win.ws_col == 0)) {
+		window_nrows = 24;
+		window_ncols = 80;
+	} else {
+		window_nrows = win.ws_row;
+		window_ncols = win.ws_col;
+	};
+	strncpy(buf, Str, LINE_BUF_SIZE);
+	s = tmp = buf;
+	for (i = 0, len = 0; *tmp != 0; i++, tmp++) {
+		c = *tmp;
+		switch (c) {
+		case '\b': continue;
+		case '\n':
+			*tmp = 0;
+			printf("%s\n", s);
+			current_row += add_nl;
+			if (current_row >= (window_nrows - 1)) {
+				printf("%s - more - %s", green, reset);
+				i = getchar();
+				printf("\r          \r");
+				current_row = 0;
+				if (i == 'q') return(HPI_UI_END);
+			};
+			s = tmp + 1;
+			len = 0;
+			add_nl = 1;
+			break;
+		case '\r': len = 0; continue;
+		case '\t': len += 8; len = (len / 8) * 8; break;
+		default  : len++; break;
+		};
+		if (len >= window_ncols) {
+			add_nl++;
+			len = 0;
+		}
+	};
+	if (*s != 0) printf("%s", s);
+	return(HPI_UI_OK);
 }

@@ -260,8 +260,11 @@ static ret_code_t set_threshold(SaHpiResourceIdT rptid, SaHpiRdrT *rdr)
 
 ret_code_t sen_block_show(void)
 {
-	show_sensor(Domain->sessionId, sen_block_env.rptid,
+	SaErrorT	res;
+
+	res = show_sensor(Domain->sessionId, sen_block_env.rptid,
 		sen_block_env.rdrnum, ui_print);
+	if (res != SA_OK) return(HPI_SHELL_CMD_ERROR);
 	return(HPI_SHELL_OK);
 }
 
@@ -457,7 +460,10 @@ ret_code_t sen_block(void)
 
 ret_code_t list_sensor(void)
 {
-	sensor_list(Domain->sessionId, ui_print);
+	SaErrorT	rv;
+
+	rv = sensor_list(Domain->sessionId, ui_print);
+	if (rv != SA_OK) return(HPI_SHELL_CMD_ERROR);
 	return(HPI_SHELL_OK);
 }
 

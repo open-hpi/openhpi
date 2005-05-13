@@ -80,6 +80,7 @@ extern com_enum_t	block_type;
 extern ret_code_t	shell_error;
 extern int		debug_flag;
 extern char		Title[];
+extern int		termfd;
 
 extern int		add_domain(Domain_t *domain);
 extern int		add_input_file(char *name);

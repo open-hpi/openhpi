@@ -63,11 +63,11 @@ typedef struct {
 } compl_t;
 
 compl_t	complition_struct;
+int	termfd = -1;
 
 static char	clear_buf[READ_BUF_SIZE];
 static int	no_stty = 1;
 static int	is_insert_key = 0;
-static int	termfd = -1;
 static char	**History;
 static int	hist_ind = 0;
 static int	hist_size = 0;
