@@ -76,6 +76,7 @@ static void *ipmi_open(GHashTable *handler_config)
 {
 	struct oh_handler_state *handler;
 	struct ohoi_handler *ipmi_handler;
+	char	domain_name[24];
 	char *domain_tag = NULL;
 
 	const char *name;
@@ -121,7 +122,7 @@ static void *ipmi_open(GHashTable *handler_config)
 
 	handler->config = handler_config;
 
-	snprintf(ipmi_handler->domain_name, 24, "%s %s", name, addr);
+	snprintf(domain_name, 24, "%s %s", name, addr);
 	/* Discovery routine depends on these flags */
 	ipmi_handler->SDRs_read_done = 0;
 	/* Domain (main) SDR flag, 1 when done */
@@ -308,10 +309,8 @@ static void *ipmi_open(GHashTable *handler_config)
 		return NULL;
 	}
 
-	// -2 means ipmi_open_domain was not called.
-	// It will be called in first discovery
-	ipmi_handler->connected = -2;
-/*
+	ipmi_handler->connected = -1;
+
 	rv = ipmi_open_domain(domain_name, &ipmi_handler->con, 1,
 			ipmi_connection_handler, handler,
 			ipmi_domain_fully_up, handler,
@@ -320,7 +319,7 @@ static void *ipmi_open(GHashTable *handler_config)
 		fprintf(stderr, "ipmi_open_domain: %s\n", strerror(rv));
 		return NULL;
 	}
-*/	
+
 	ipmi_refcount++;
 	return handler;
 }
@@ -382,20 +381,7 @@ static int ipmi_get_event(void *hnd, struct oh_event *event)
 	struct oh_handler_state *handler = hnd;
 	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
 	int sel_select_done = 0;
-	int rv;
 
-	if (ipmi_handler->connected == -2) {
-		// open domain wasn't called
-		ipmi_handler->connected = -1;
-		rv = ipmi_open_domain(ipmi_handler->domain_name, &ipmi_handler->con, 1,
-				ipmi_connection_handler, handler,
-				ipmi_domain_fully_up, handler,
-				NULL, 0, &ipmi_handler->domain_id);
-		if (rv) {
-			fprintf(stderr, "ipmi_open_domain: %s\n", strerror(rv));
-			return 0;
-		}	
-	}
 	for (;;) {
 		if(g_slist_length(handler->eventq)>0) {
 			memcpy(event, handler->eventq->data, sizeof(*event));
@@ -416,6 +402,7 @@ static int ipmi_get_event(void *hnd, struct oh_event *event)
 	};
 	return 0;
 }
+
 
 
 /**
@@ -445,21 +432,6 @@ int ipmi_discover_resources(void *hnd)
 	struct ohoi_resource_info	*res_info;
 
 	trace("ipmi discover_resources");
-	if (ipmi_handler->connected == -2) {
-		// open domain wasn't called
-		ipmi_handler->connected = -1;
-		rv = ipmi_open_domain(ipmi_handler->domain_name, &ipmi_handler->con, 1,
-				ipmi_connection_handler, handler,
-				ipmi_domain_fully_up, handler,
-				NULL, 0, &ipmi_handler->domain_id);
-		if (rv) {
-			fprintf(stderr, "ipmi_open_domain: %s\n", strerror(rv));
-			return SA_ERR_HPI_NO_RESPONSE;
-		}
-		rv = 1;
-		
-	}
-	
 		
 	time(&tm0);
 	while (ipmi_handler->fully_up == 0) {
@@ -578,18 +550,6 @@ static SaErrorT ipmi_get_el_info(void               *hnd,
 
 	dbg("starting wait for sel retrieval");
 
-	if (ipmi_handler->connected == -2) {
-		// open domain wasn't called
-		ipmi_handler->connected = -1;
-		rv = ipmi_open_domain(ipmi_handler->domain_name, &ipmi_handler->con, 1,
-				ipmi_connection_handler, handler,
-				ipmi_domain_fully_up, handler,
-				NULL, 0, &ipmi_handler->domain_id);
-		if (rv) {
-			fprintf(stderr, "ipmi_open_domain: %s\n", strerror(rv));
-			return -1;
-		}	
-	}
 	while (0 == ipmi_handler->fully_up) {
 		rv = sel_select(ipmi_handler->ohoi_sel, NULL, 0 , NULL, NULL);
 		if (rv<0) {
