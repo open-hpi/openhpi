@@ -46,12 +46,6 @@ static Sev_def_t Sev_array[] = {
 	{NULL,	 	0}
 };
 
-int ui_print(char *Str)
-{
-	printf("%s", Str);
-	return(0);
-}
-
 void help(int as)
 //  as = 0  - Available commands
 //  as = 1  - help command
