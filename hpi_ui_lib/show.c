@@ -29,6 +29,7 @@ extern SaErrorT	thres_value(SaHpiSensorReadingT *item, char *buf, int size);
 SaErrorT sensor_list(SaHpiSessionIdT sessionid, hpi_ui_print_cb_t proc)
 {
 	SaErrorT		rv = SA_OK;
+	Pr_ret_t		ret;
 	SaHpiRptEntryT		rptentry;
 	SaHpiEntryIdT		rptentryid;
 	SaHpiEntryIdT		nextrptentryid;
@@ -39,15 +40,15 @@ SaErrorT sensor_list(SaHpiSessionIdT sessionid, hpi_ui_print_cb_t proc)
 		rv = saHpiRptEntryGet(sessionid, rptentryid, &nextrptentryid, &rptentry);
 		if (rv != SA_OK)
 			break;
-		rv = show_sensor_list(sessionid, rptentry.ResourceId, proc);
-		if (rv == -1)
-			return(-1);
+		ret = show_sensor_list(sessionid, rptentry.ResourceId, proc);
+		if (ret == HPI_UI_END)
+			return(SA_OK);
 		rptentryid = nextrptentryid;
 	};
 	return(rv);
 }
 
-int print_thres_value(SaHpiSensorReadingT *item, char *info,
+Pr_ret_t print_thres_value(SaHpiSensorReadingT *item, char *info,
 	SaHpiSensorThdDefnT *def, int num, hpi_ui_print_cb_t proc)
 {
 	char	*val;
@@ -56,8 +57,7 @@ int print_thres_value(SaHpiSensorReadingT *item, char *info,
 
 	if (item->IsSupported != SAHPI_TRUE) {
 		snprintf(buf, SHOW_BUF_SZ, "%s     not supported.\n", info);
-		proc(buf);
-		return(0);
+		return(proc(buf));
 	};
 	strcpy(mes, info);
 	if (def != (SaHpiSensorThdDefnT *)NULL) {
@@ -84,11 +84,11 @@ int print_thres_value(SaHpiSensorReadingT *item, char *info,
 			break;
 		case SAHPI_SENSOR_READING_TYPE_BUFFER:
 			val = (char *)(item->Value.SensorBuffer);
-			if (val != NULL) {
+			if (val != NULL)
 				snprintf(buf, SHOW_BUF_SZ, "%s %s\n", mes, val);
-				break;
-			}
-			return(0);
+			else
+				snprintf(buf, SHOW_BUF_SZ, "%s %s\n", mes, "(null pointer)");
+			break;
 	};
 	return(proc(buf));
 }
@@ -102,7 +102,7 @@ int show_threshold(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 	SaHpiSensorTypeT	type;
 	SaHpiEventCategoryT	categ;
 	char			buf[SHOW_BUF_SZ];
-	int			res;
+	Pr_ret_t		res;
 
 	sendef = &(sen->ThresholdDefn);
 	rv = saHpiSensorTypeGet(sessionid, resourceid, sensornum, &type, &categ);
@@ -128,25 +128,25 @@ int show_threshold(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 	};
 	res = print_thres_value(&(senstbuff.LowMinor), "Lower Minor Threshold",
 		sendef, SAHPI_ES_LOWER_MINOR, proc);
-	if (res != 0) return(0);
+	if (res == HPI_UI_END) return(HPI_UI_END);
 	res = print_thres_value(&(senstbuff.LowMajor), "Lower Major Threshold",
 		sendef, SAHPI_ES_LOWER_MAJOR, proc);
-	if (res != 0) return(0);
+	if (res == HPI_UI_END) return(HPI_UI_END);
 	res = print_thres_value(&(senstbuff.LowCritical), "Lower Critical Threshold",
 		sendef, SAHPI_ES_LOWER_CRIT, proc);
-	if (res != 0) return(0);
+	if (res == HPI_UI_END) return(HPI_UI_END);
 	res = print_thres_value(&(senstbuff.UpMinor), "Upper Minor Threshold",
 		sendef, SAHPI_ES_UPPER_MINOR, proc);
-	if (res != 0) return(0);
+	if (res == HPI_UI_END) return(HPI_UI_END);
 	res = print_thres_value(&(senstbuff.UpMajor), "Upper Major Threshold",
 		sendef, SAHPI_ES_UPPER_MAJOR, proc);
-	if (res != 0) return(0);
+	if (res == HPI_UI_END) return(HPI_UI_END);
 	res = print_thres_value(&(senstbuff.UpCritical), "Upper Critical Threshold",
 		sendef, SAHPI_ES_UPPER_CRIT, proc);
-	if (res != 0) return(0);
+	if (res == HPI_UI_END) return(HPI_UI_END);
 	res = print_thres_value(&(senstbuff.PosThdHysteresis),
 		"Positive Threshold Hysteresis", NULL, 0, proc);
-	if (res != 0) return(0);
+	if (res == HPI_UI_END) return(HPI_UI_END);
 	res = print_thres_value(&(senstbuff.NegThdHysteresis),
 		"Negative Threshold Hysteresis", NULL, 0, proc);
 	return SA_OK;
@@ -184,13 +184,13 @@ SaErrorT show_control(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 	snprintf(buf, SHOW_BUF_SZ, "Control(%d/%d) Type: %s  %s  Output: %s\n",
 		resourceid, num, oh_lookup_ctrltype(type), str,
 		oh_lookup_ctrloutputtype(ctrl->OutputType));
-	if (proc(buf) != 0) return(SA_OK);
+	if (proc(buf) != HPI_UI_OK) return(SA_OK);
 	if (ctrl->DefaultMode.ReadOnly) str = "(Read Only)";
 	else str = " ";
 	snprintf(buf, SHOW_BUF_SZ, "  Mode: %s  %s\n",
 		oh_lookup_ctrlmode(ctrl->DefaultMode.Mode), str);
 
-	if (proc("Data:\n") != 0) return(SA_OK);
+	if (proc("Data:\n") != HPI_UI_OK) return(SA_OK);
 	switch (type) {
 		case SAHPI_CTRL_TYPE_DIGITAL:
 			digit = &(ctrl->TypeUnion.Digital);
@@ -219,7 +219,7 @@ SaErrorT show_control(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 		case SAHPI_CTRL_TYPE_TEXT:
 			text = &(ctrl->TypeUnion.Text);
 			snprintf(buf, SHOW_BUF_SZ, "\tDefault: Line # = %d", text->Default.Line);
-			proc(buf);
+			if (proc(buf) != HPI_UI_OK) return(SA_OK);
 			print_text_buffer_text("  Text = ", &(text->Default.Text), "\n", proc);
 			return SA_OK;
 		case SAHPI_CTRL_TYPE_OEM:
@@ -261,7 +261,7 @@ SaErrorT show_control_state(SaHpiSessionIdT sessionid, SaHpiResourceIdT resource
 	type = state.Type;
 	snprintf(buf, SHOW_BUF_SZ, "Control(%d/%d) %s State: ",
 		resourceid, num, oh_lookup_ctrlmode(mode));
-	if (proc(buf) != 0) return(SA_OK);
+	if (proc(buf) != HPI_UI_OK) return(SA_OK);
 
 	switch (type) {
 		case SAHPI_CTRL_TYPE_DIGITAL:
@@ -289,7 +289,7 @@ SaErrorT show_control_state(SaHpiSessionIdT sessionid, SaHpiResourceIdT resource
 		case SAHPI_CTRL_TYPE_TEXT:
 			text = &(state.StateUnion.Text);
 			snprintf(buf, SHOW_BUF_SZ, "Line # = %d", text->Line);
-			proc(buf);
+			if (proc(buf) != HPI_UI_OK) return(SA_OK);
 			print_text_buffer_text("  Text = ", &(text->Text), "\n", proc);
 			return SA_OK;
 		case SAHPI_CTRL_TYPE_OEM:
@@ -312,6 +312,7 @@ SaErrorT show_sensor(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 	SaHpiBoolT		val;
 	char			buf[SHOW_BUF_SZ];
 	char			errbuf[SHOW_BUF_SZ];
+	Pr_ret_t		res;
 
 	rv = saHpiRdrGetByInstrumentId(sessionid, resourceid, SAHPI_SENSOR_RDR,
 		sensornum, &rdr);
@@ -325,40 +326,43 @@ SaErrorT show_sensor(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 	snprintf(buf, SHOW_BUF_SZ, "Sensor(%d/%d) %s", resourceid, sensornum,
 		oh_lookup_sensortype(rdr.RdrTypeUnion.SensorRec.Type));
 	proc(buf);
-	print_text_buffer_text("  ", &(rdr.IdString), "\n", proc);
+	res = print_text_buffer_text("  ", &(rdr.IdString), "\n", proc);
+	if (res != HPI_UI_OK) return(SA_OK);
 	rv = saHpiSensorEnableGet(sessionid, resourceid, sensornum, &val);
 	if (rv != SA_OK) {
 		snprintf(errbuf, SHOW_BUF_SZ,
 			"\nERROR: saHpiSensorEnableGet: error: %s\n",
 			oh_lookup_error(rv));
-		if (proc(errbuf) != 0) return(rv);
+		if (proc(errbuf) != HPI_UI_OK) return(rv);
 	} else {
-		if (val) proc("Enable ");
-		else proc("Disable ");
+		if (val) res = proc("Enable ");
+		else res = proc("Disable ");
+		if (res != HPI_UI_OK) return(SA_OK);
 	};
 	rv = saHpiSensorEventEnableGet(sessionid, resourceid, sensornum, &val);
 	if (rv != SA_OK) {
 		snprintf(errbuf, SHOW_BUF_SZ,
 			"\nERROR: saHpiSensorEventEnableGet: error: %s\n",
 			oh_lookup_error(rv));
-		if (proc(errbuf) != 0) return(rv);
+		if (proc(errbuf) != HPI_UI_OK) return(rv);
 	} else {
-		proc("    event : ");
-		if (val) proc("Enable");
-		else proc("Disable");
+		if (proc("    event : ") != HPI_UI_OK) return(SA_OK);
+		if (val) res = proc("Enable");
+		else res = proc("Disable");
+		if (res != HPI_UI_OK) return(SA_OK);
 	};
 	rv = saHpiSensorEventMasksGet(sessionid, resourceid, sensornum, &assert, &deassert);
 	if (rv != SA_OK) {
 		snprintf(errbuf, SHOW_BUF_SZ,
 			"\nERROR: saHpiSensorEventMasksGet: error: %s\n",
 			oh_lookup_error(rv));
-		if (proc(errbuf) != 0) return(rv);
+		if (proc(errbuf) != HPI_UI_OK) return(rv);
 	} else {
 		snprintf(buf, SHOW_BUF_SZ,
 			"   supported: 0x%4.4x  masks: assert = 0x%4.4x"
 			"   deassert = 0x%4.4x\n",
 			rdr.RdrTypeUnion.SensorRec.Events, assert, deassert);
-		if (proc(buf) != 0) return(rv);
+		if (proc(buf) != HPI_UI_OK) return(rv);
 	};
 	rv = saHpiSensorReadingGet(sessionid, resourceid, sensornum,
 		&reading, &status);
@@ -371,10 +375,11 @@ SaErrorT show_sensor(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 	};
         if (reading.IsSupported) {
 		snprintf(buf, SHOW_BUF_SZ, "     Event states = %x", status);
-		proc(buf);
-		print_thres_value(&reading, "     Reading Value =", NULL, 0, proc);
+		if (proc(buf) != HPI_UI_OK) return(SA_OK);
+		res = print_thres_value(&reading, "     Reading Value =", NULL, 0, proc);
+		if (res == HPI_UI_END) return(SA_OK);
 	} else
-		proc("     Reading not supported\n");
+		if (proc("\tReading not supported\n") != HPI_UI_OK) return(SA_OK);
 
 	show_threshold(sessionid, resourceid, sensornum,
 		&(rdr.RdrTypeUnion.SensorRec), proc);
@@ -407,7 +412,7 @@ SaErrorT show_event_log(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 		};
 		if (!(rptentry.ResourceCapabilities & SAHPI_CAPABILITY_EVENT_LOG)) {
 			proc("ERROR: The designated resource hasn't SEL.\n");
-			return rv;
+			return SA_OK;
 		}
 	};
 
@@ -416,16 +421,16 @@ SaErrorT show_event_log(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 		snprintf(buf, SHOW_BUF_SZ, "ERROR: saHpiEventLogInfoGet error = %s\n",
 			oh_lookup_error(rv));
 		proc(buf);
-		return -1;
+		return rv;
 	}
 	snprintf(buf, SHOW_BUF_SZ, "EventLog: entries = %d, size = %d, enabled = %d\n",
 		info.Entries, info.Size, info.Enabled);
-	proc(buf);
+	if (proc(buf) != HPI_UI_OK) return(SA_OK);
 	time2str(info.UpdateTimestamp, date, 30);
 	time2str(info.CurrentTime, date1, 30);
 	snprintf(buf, SHOW_BUF_SZ, "UpdateTime = %s  CurrentTime = %s  Overflow = %d\n",
 		date, date1, info.OverflowFlag);
-	proc(buf);
+	if (proc(buf) != HPI_UI_OK) return(SA_OK);
 
 	if (info.Entries != 0){
 		entryid = SAHPI_OLDEST_ENTRY;
@@ -455,7 +460,7 @@ SaErrorT show_event_log(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 	return SA_OK;
 }
 
-SaErrorT show_sensor_list(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
+Pr_ret_t show_sensor_list(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 		hpi_ui_print_cb_t proc)
 {
 	SaErrorT	rv = SA_OK;
@@ -472,14 +477,14 @@ SaErrorT show_sensor_list(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid
 		if (rdr.RdrType == SAHPI_SENSOR_RDR) {
 			snprintf(buf, 256, "Resource Id: %d, Sensor Num: %d",
 				resourceid, rdr.RdrTypeUnion.SensorRec.Num);
-			if (proc(buf) != 0) return(-1);
+			if (proc(buf) != 0) return(HPI_UI_END);
 			if (print_text_buffer_text(" Tag: ", &(rdr.IdString), NULL, proc) != 0)
 				return(-1);
-			if (proc("\n") != 0) return(-1);
+			if (proc("\n") != 0) return(HPI_UI_END);
 		};
 		entryid = nextentryid;
 	};
-	return(rv);
+	return(HPI_UI_OK);
 }
 
 int show_rdr_list(Domain_t *domain, SaHpiResourceIdT rptid, SaHpiRdrTypeT passed_type,
@@ -547,9 +552,8 @@ int show_rdr_list(Domain_t *domain, SaHpiResourceIdT rptid, SaHpiRdrTypeT passed
 		};
 		strcat(buf, ar);
 		res_num++;
-		if (proc(buf) != 0)
-			return(res_num);
-		if (print_text_buffer_text(" Tag=", &(rdr.IdString), "\n", proc) != 0)
+		if (proc(buf) != HPI_UI_OK) return(res_num);
+		if (print_text_buffer_text(" Tag=", &(rdr.IdString), "\n", proc) != HPI_UI_OK)
 			return(res_num);
 		entryid = nextentryid;
 	};
@@ -586,8 +590,10 @@ int show_rpt_list(Domain_t *domain, int as, SaHpiResourceIdT rptid,
 		};
 		res_num++;
 		snprintf(buf, SHOW_BUF_SZ, "(%3.3d):", rpt_entry.ResourceId);
-		proc(buf);
-		print_text_buffer_text(NULL, &(rpt_entry.ResourceTag), ":", proc);
+		if (proc(buf) != HPI_UI_OK) return(res_num);
+		if (print_text_buffer_text(NULL, &(rpt_entry.ResourceTag),
+			":", proc) != HPI_UI_OK)
+			return(res_num);
 		strcpy(buf, "{");
 		cap = rpt_entry.ResourceCapabilities;
 		if (cap & SAHPI_CAPABILITY_SENSOR) strcat(buf, "S|");
@@ -628,8 +634,7 @@ int show_rpt_list(Domain_t *domain, int as, SaHpiResourceIdT rptid,
 			strcat(buf, "}");
 		};
 		strcat(buf, "\n");
-		if (proc(buf) != 0)
-			return(res_num);
+		if (proc(buf) != HPI_UI_OK) return(res_num);
 		if (as == SHOW_ALL_RDR)
 			show_rdr_list(domain, rpt_entry.ResourceId, SAHPI_NO_RECORD, proc);
 		rptentryid = nextrptentryid;
@@ -637,13 +642,14 @@ int show_rpt_list(Domain_t *domain, int as, SaHpiResourceIdT rptid,
 	return(res_num);
 }
 
-static int show_attrs(Attributes_t *Attrs, int delta, hpi_ui_print_cb_t proc)
+static Pr_ret_t show_attrs(Attributes_t *Attrs, int delta, hpi_ui_print_cb_t proc)
 {
 	int		i, type, len, del;
 	char		tmp[256], *name;
 	char		buf[SHOW_BUF_SZ];
 	union_type_t	val;
 	SaErrorT	rv;
+	Pr_ret_t	ret;
 
 	memset(buf, ' ', SHOW_BUF_SZ);
 	del = delta << 1;
@@ -659,11 +665,11 @@ static int show_attrs(Attributes_t *Attrs, int delta, hpi_ui_print_cb_t proc)
 			case NO_TYPE:	continue;
 			case STRUCT_TYPE:
 				snprintf(buf + del, len, "%s:\n", name);
-				if (proc(buf) != 0)
-					return(-1);
+				if (proc(buf) != 0) return(-1);
 				rv = get_value(Attrs, i, &val);
 				if (rv != SA_OK) continue;
-				show_attrs((Attributes_t *)(val.a), delta + 1, proc);
+				ret = show_attrs((Attributes_t *)(val.a), delta + 1, proc);
+				if (ret != HPI_UI_OK) return(HPI_UI_END);
 				continue;
 			case LOOKUP_TYPE:
 				strncpy(tmp, lookup_proc(Attrs->Attrs[i].lunum,
@@ -683,18 +689,18 @@ static int show_attrs(Attributes_t *Attrs, int delta, hpi_ui_print_cb_t proc)
 				break;
 			case TEXT_BUFF_TYPE:
 				snprintf(buf + del, len, "%s: ", name);
-				if (proc(buf) != 0) return(-1);
-				print_text_buffer(NULL, val.a, "\n", proc);
+				if (proc(buf) != HPI_UI_OK) return(HPI_UI_END);
+				ret = print_text_buffer(NULL, val.a, "\n", proc);
+				if (ret != HPI_UI_OK) return(HPI_UI_END);
 				continue;
 			default:
 				rv = get_value_as_string(Attrs, i, tmp, 256);
 				if (rv != SA_OK) continue;
 		};
 		snprintf(buf + del, len, "%s: %s\n", name, tmp);
-		if (proc(buf) != 0)
-			return(-1);
+		if (proc(buf) != HPI_UI_OK) return(HPI_UI_END);
 	};
-	return(SA_OK);
+	return(0);
 }
 	
 SaErrorT show_Rpt(Rpt_t *Rpt, hpi_ui_print_cb_t proc)
@@ -713,6 +719,7 @@ void show_short_event(SaHpiEventT *event, hpi_ui_print_cb_t proc)
 {
 	SaHpiTextBufferT	tmbuf;
 	SaHpiSensorEventT	*sen;
+	SaHpiDomainEventT	*dom;
 	SaErrorT		rv;
 	char			buf[SHOW_BUF_SZ], buf1[32];
 	char			*str, *str1;
@@ -726,6 +733,12 @@ void show_short_event(SaHpiEventT *event, hpi_ui_print_cb_t proc)
 	snprintf(buf, SHOW_BUF_SZ, "%s ", oh_lookup_eventtype(event->EventType));
 	proc(buf);
 	switch (event->EventType) {
+		case SAHPI_ET_DOMAIN:
+			dom = &(event->EventDataUnion.DomainEvent);
+			snprintf(buf, SHOW_BUF_SZ, "  Event: %s  DomainId: %d\n",
+				oh_lookup_domaineventtype(dom->Type), dom->DomainId);
+			proc(buf);
+			break;
 		case SAHPI_ET_SENSOR:
 			sen = &(event->EventDataUnion.SensorEvent);
 			if (sen->Assertion == SAHPI_TRUE) str = "ASSERTED";

@@ -982,48 +982,42 @@ static int ascii6tostring(char *ascii, int n_ascii, char *str, int n)
 	return(ascii_len);
 }
 
-int print_text_buffer_type(char *mes, SaHpiTextBufferT *buf, char *meslast,
+Pr_ret_t print_text_buffer_type(char *mes, SaHpiTextBufferT *buf, char *meslast,
 	hpi_ui_print_cb_t proc)
 {
+	char	*str = "";
+
 	if (mes != (char *)NULL) {
-		if (proc(mes) != 0) return(1);
+		if (proc(mes) == HPI_UI_END) return(HPI_UI_END);
 	};
 	switch (buf->DataType) {
-		case SAHPI_TL_TYPE_UNICODE:
-			proc("UNICODE");
-			break;
-		case SAHPI_TL_TYPE_BCDPLUS:
-			if (proc("BCDPLUS") != 0) return(1);
-			break;
-		case SAHPI_TL_TYPE_ASCII6:
-			if (proc("ASCII6") != 0) return(1);
-			break;
-		case SAHPI_TL_TYPE_TEXT:
-			if (proc("TEXT") != 0) return(1);
-			break;
-		case SAHPI_TL_TYPE_BINARY:
-			if (proc("BIN") != 0) return(1);
-			break;
+		case SAHPI_TL_TYPE_UNICODE:	str = "UNICODE"; break;
+		case SAHPI_TL_TYPE_BCDPLUS:	str = "BCDPLUS"; break;
+		case SAHPI_TL_TYPE_ASCII6:	str = "ASCII6"; break;
+		case SAHPI_TL_TYPE_TEXT:	str = "TEXT"; break;
+		case SAHPI_TL_TYPE_BINARY:	str = "BIN"; break;
 	};
+	if (proc(str) == HPI_UI_END) return(HPI_UI_END);
 	if (meslast != (char *)NULL) {
-		if (proc(meslast) != 0) return(1);
+		if (proc(meslast) == HPI_UI_END) return(HPI_UI_END);
 	};
 	return(0);
 }
 
-int print_text_buffer_text(char *mes, SaHpiTextBufferT *buf, char *meslast,
+Pr_ret_t print_text_buffer_text(char *mes, SaHpiTextBufferT *buf, char *meslast,
 	hpi_ui_print_cb_t proc)
 {
 	int	i, c, tmp_ind, len;
 	char	*tmp;
 
 	if (mes != (char *)NULL) {
-		if (proc(mes) != 0) return(1);
+		if (proc(mes) == HPI_UI_END) return(HPI_UI_END);
 	};
-	if (buf->DataLength < 2) return(0);
+	if (buf->DataLength < 2) return(HPI_UI_OK);
 	switch (buf->DataType) {
 		case SAHPI_TL_TYPE_UNICODE:
-			proc("Not implemented UNICODE");
+			if (proc("Not implemented UNICODE") == HPI_UI_END)
+				return(HPI_UI_END);
 			break;
 		case SAHPI_TL_TYPE_BCDPLUS:
 			len = buf->DataLength * 2 + 1;
@@ -1039,7 +1033,7 @@ int print_text_buffer_text(char *mes, SaHpiTextBufferT *buf, char *meslast,
 			};
 			i = proc(tmp);
 			free(tmp);
-			if (i != 0) return(1);
+			if (i == HPI_UI_END) return(HPI_UI_END);
 			break;
 		case SAHPI_TL_TYPE_ASCII6:
 			len = buf->DataLength * 8 / 6;
@@ -1049,10 +1043,10 @@ int print_text_buffer_text(char *mes, SaHpiTextBufferT *buf, char *meslast,
 			if (i == 0) break;
 			i = proc(tmp);
 			free(tmp);
-			if (i != 0) return(1);
+			if (i == HPI_UI_END) return(HPI_UI_END);
 			break;
 		case SAHPI_TL_TYPE_TEXT:
-			if (proc(buf->Data) != 0) return(1);
+			if (proc(buf->Data) == HPI_UI_END) return(HPI_UI_END);
 			break;
 		case SAHPI_TL_TYPE_BINARY:
 			len = buf->DataLength * 2 + 1;
@@ -1068,16 +1062,16 @@ int print_text_buffer_text(char *mes, SaHpiTextBufferT *buf, char *meslast,
 			};
 			i = proc(tmp);
 			free(tmp);
-			if (i != 0) return(1);
+			if (i == HPI_UI_END) return(HPI_UI_END);
 			break;
 	};
 	if (meslast != (char *)NULL) {
-		if (proc(meslast) != 0) return(1);
+		if (proc(meslast) == HPI_UI_END) return(HPI_UI_END);
 	};
-	return(0);
+	return(HPI_UI_OK);
 }
 
-int print_text_buffer_lang(char *mes, SaHpiTextBufferT *buf, char *meslast,
+Pr_ret_t print_text_buffer_lang(char *mes, SaHpiTextBufferT *buf, char *meslast,
 	hpi_ui_print_cb_t proc)
 {
 	char	*str;
@@ -1085,50 +1079,54 @@ int print_text_buffer_lang(char *mes, SaHpiTextBufferT *buf, char *meslast,
 	if ((buf->DataType == SAHPI_TL_TYPE_UNICODE) ||
 		(buf->DataType == SAHPI_TL_TYPE_TEXT)) {
 		str = oh_lookup_language(buf->Language);
-		if (str == (char *)NULL) return(0);
-		if (strlen(str) == 0) return(0);
+		if (str == (char *)NULL) return(HPI_UI_OK);
+		if (strlen(str) == 0) return(HPI_UI_OK);
 		if (mes != (char *)NULL) {
-			if (proc(mes) != 0) return(1);
+			if (proc(mes) == HPI_UI_END) return(HPI_UI_END);
 		};
 		if (proc(str) != 0) return(1);
 		if (meslast != (char *)NULL) {
-			if (proc(meslast) != 0) return(1);
+			if (proc(meslast) == HPI_UI_END) return(HPI_UI_END);
 		}
 	};
-	return(0);
+	return(HPI_UI_OK);
 }
 
-int print_text_buffer_length(char *mes, SaHpiTextBufferT *buf, char *meslast,
+Pr_ret_t print_text_buffer_length(char *mes, SaHpiTextBufferT *buf, char *meslast,
 	hpi_ui_print_cb_t proc)
 {
 	char	len_buf[32];
 
 	if (mes != (char *)NULL) {
-		if (proc(mes) != 0) return(1);
+		if (proc(mes) == HPI_UI_END) return(HPI_UI_END);
 	};
 	snprintf(len_buf, 31, "%d", buf->DataLength);
-	if (proc(len_buf) != 0) return(1);
+	if (proc(len_buf) == HPI_UI_END) return(HPI_UI_END);
 	if (meslast != (char *)NULL) {
-		if (proc(meslast) != 0) return(1);
+		if (proc(meslast) == HPI_UI_END) return(HPI_UI_END);
 	};
-	return(0);
+	return(HPI_UI_OK);
 }
 
-int print_text_buffer(char *mes, SaHpiTextBufferT *buf, char *meslast,
+Pr_ret_t print_text_buffer(char *mes, SaHpiTextBufferT *buf, char *meslast,
 	hpi_ui_print_cb_t proc)
 {
 	if (mes != (char *)NULL) {
-		if (proc(mes) != 0) return(1);
+		if (proc(mes) == HPI_UI_END) return(HPI_UI_END);
 	};
-	if (buf->DataLength < 2) return(0);
-	if (print_text_buffer_type(NULL, buf, ": ", proc) != 0) return(1);
-	if (print_text_buffer_lang(NULL, buf, ": ", proc) != 0) return(1);
-	if (print_text_buffer_text(NULL, buf, NULL, proc) != 0) return(1);
-	if (print_text_buffer_length(" (len=", buf, ")", proc) != 0) return(1);
+	if (buf->DataLength < 2) return(HPI_UI_OK);
+	if (print_text_buffer_type(NULL, buf, ": ", proc) != HPI_UI_OK)
+		return(HPI_UI_END);
+	if (print_text_buffer_lang(NULL, buf, ": ", proc) != HPI_UI_OK)
+		return(HPI_UI_END);
+	if (print_text_buffer_text(NULL, buf, NULL, proc) != HPI_UI_OK)
+		return(HPI_UI_END);
+	if (print_text_buffer_length(" (len=", buf, ")", proc) != HPI_UI_OK)
+		return(HPI_UI_END);
 	if (meslast != (char *)NULL) {
-		if (proc(meslast) != 0) return(1);
+		if (proc(meslast) == HPI_UI_END) return(HPI_UI_END);
 	};
-	return(0);
+	return(HPI_UI_OK);
 }
 
 

@@ -80,7 +80,18 @@ typedef struct {
 	int			discovered;
 } Domain_t;
 
-typedef int (*hpi_ui_print_cb_t)(char *buf);
+/* print function 
+ * This parameter is passed to the interface show functions
+ * It return HPI_UI_OK on successful completion, otherwise HPI_UI_END on
+ * output ending.
+ */
+
+typedef enum {
+	HPI_UI_OK = 0,
+	HPI_UI_END = -1
+} Pr_ret_t;		// Print return code
+
+typedef Pr_ret_t (*hpi_ui_print_cb_t)(char *buf);
 
 extern char *hex_codes;
 extern char *bcdplus_codes;
@@ -108,17 +119,17 @@ extern int	get_attr_type(Attributes_t *Attrs, int num);
 			// get attribute type
 extern void	make_attrs_rdr(Rdr_t *Rdr, SaHpiRdrT *rdr_entry);
 extern void	make_attrs_rpt(Rpt_t *Rpt, SaHpiRptEntryT *rptentry);
-extern int	print_text_buffer(char *mes, SaHpiTextBufferT *buf, char *meslast,
+extern Pr_ret_t	print_text_buffer(char *mes, SaHpiTextBufferT *buf, char *meslast,
 			hpi_ui_print_cb_t proc);
-extern int	print_text_buffer_lang(char *mes, SaHpiTextBufferT *buf,
+extern Pr_ret_t	print_text_buffer_lang(char *mes, SaHpiTextBufferT *buf,
 			char *meslast, hpi_ui_print_cb_t proc);
-extern int	print_text_buffer_length(char *mes, SaHpiTextBufferT *buf,
+extern Pr_ret_t	print_text_buffer_length(char *mes, SaHpiTextBufferT *buf,
 			char *meslast, hpi_ui_print_cb_t proc);
-extern int	print_text_buffer_text(char *mes, SaHpiTextBufferT *buf,
+extern Pr_ret_t	print_text_buffer_text(char *mes, SaHpiTextBufferT *buf,
 			char *meslast, hpi_ui_print_cb_t proc);
-extern int	print_text_buffer_type(char *mes, SaHpiTextBufferT *buf,
+extern Pr_ret_t	print_text_buffer_type(char *mes, SaHpiTextBufferT *buf,
 			char *meslast, hpi_ui_print_cb_t proc);
-extern int	print_thres_value(SaHpiSensorReadingT *item, char *mes,
+extern Pr_ret_t	print_thres_value(SaHpiSensorReadingT *item, char *mes,
 			SaHpiSensorThdDefnT *def, int num, hpi_ui_print_cb_t proc);
 extern SaErrorT	show_control(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 			SaHpiCtrlNumT num, hpi_ui_print_cb_t proc);
@@ -138,7 +149,7 @@ extern int	show_rdr_list(Domain_t *D, SaHpiResourceIdT resourceid,
 			SaHpiRdrTypeT passed_type, hpi_ui_print_cb_t proc);
 extern int	show_rpt_list(Domain_t *domain, int as, SaHpiResourceIdT rptid,
 			hpi_ui_print_cb_t proc);
-extern SaErrorT	show_sensor_list(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
+extern Pr_ret_t	show_sensor_list(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 			hpi_ui_print_cb_t proc);
 extern SaErrorT	show_sensor(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 			SaHpiSensorNumT sensornum, hpi_ui_print_cb_t proc);
