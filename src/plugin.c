@@ -626,12 +626,12 @@ int oh_domain_served_by_handler(unsigned int h_id,
 		data_access_unlock();
 		return 0;
 	}
-	if ((h->dids == NULL) &&
-		 (did == oh_get_default_domain_id())) {
+	if (h->dids == NULL) {
 		// plugin didn't create domains, it serves default domain
 		data_access_unlock();
-		return 1;
+		return (did == oh_get_default_domain_id());
 	}
+		
 	for (i = 0; ; i++) {
 		if (g_array_index(h->dids, SaHpiDomainIdT, i) == 0) {
 			break;
