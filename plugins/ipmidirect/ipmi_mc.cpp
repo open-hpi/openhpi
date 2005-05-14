@@ -794,8 +794,8 @@ cIpmiMc::Dump( cIpmiLog &dump, const char *name ) const
   dump.Entry( "DeviceId" ) << (int)m_device_id << ";\n";
   dump.Entry( "DeviceRevision" ) << (int)m_device_revision << ";\n";
   dump.Entry( "ProvidesDeviceSdr" ) << m_provides_device_sdrs << ";\n";
-  dump.Entry( "DeviceAvailable" ) << (m_device_available ? "dIpmiDeviceStateUpdateInProgress" 
-                                         : "dIpmiDeviceStateNormalOperation" ) << ";\n";
+  dump.Entry( "DeviceAvailable" ) << (m_device_available ? "UpdateInProgress" 
+                                         : "NormalOperation" ) << ";\n";
   dump.Entry( "ChassisSupport" ) << m_chassis_support << ";\n";
   dump.Entry( "BridgeSupport" ) << m_bridge_support << ";\n";
   dump.Entry( "IpmbEventGeneratorSupport" ) << m_ipmb_event_generator_support << ";\n";
