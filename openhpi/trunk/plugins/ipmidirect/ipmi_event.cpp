@@ -32,12 +32,12 @@
 
 static const char *thres_map[] =
 {
-  "dIpmiThresholdLowerNonCritical",
-  "dIpmiThresholdLowerCritical",
-  "dIpmiThresholdLowerNonRecoverable",
-  "dIpmiThresholdUpperNonCritical",
-  "dIpmiThresholdUpperCritical",
-  "dIpmiThresholdUpperNonRecoverable"
+  "LowerNonCritical",
+  "LowerCritical",
+  "LowerNonRecoverable",
+  "UpperNonCritical",
+  "UpperCritical",
+  "UpperNonRecoverable"
 };
 
 static int thres_map_num = sizeof( thres_map ) / sizeof( char * );
@@ -107,7 +107,7 @@ cIpmiEvent::Dump( cIpmiLog &dump, const char *name ) const
   char str[80];
 
   if ( m_type == 0x02 )
-       strcpy( str, "dIpmiEventRecordTypeSystemEvent" );
+       strcpy( str, "SystemEvent" );
   else
        sprintf( str, "0x%02x", m_type );
 
@@ -128,7 +128,7 @@ cIpmiEvent::Dump( cIpmiLog &dump, const char *name ) const
   if ( !strcmp( IpmiSensorTypeToString( sensor_type ), "Invalid" ) )
        sprintf( str, "0x%02x", sensor_type );
   else
-       sprintf( str, "dIpmiSensorType%s", IpmiSensorTypeToString( sensor_type ) );
+       sprintf( str, "%s", IpmiSensorTypeToString( sensor_type ) );
 
   dump.Entry( "SensorType" ) << str << ";\n";
 
@@ -136,8 +136,8 @@ cIpmiEvent::Dump( cIpmiLog &dump, const char *name ) const
   dump.Entry( "SensorNum" ) << str << ";\n";
 
   dump.Entry( "EventDirection" ) << ((m_data[9] & 0x80) ?
-				     "dIpmiEventDirectionDeassertion" 
-				     : "dIpmiEventDirectionAssertion" )
+				     "Deassertion" 
+				     : "Assertion" )
 				 << ";\n";
 
   tIpmiEventReadingType reading_type = (tIpmiEventReadingType)(m_data[9] & 0x7f);
@@ -145,7 +145,7 @@ cIpmiEvent::Dump( cIpmiLog &dump, const char *name ) const
   if ( !strcmp( IpmiEventReadingTypeToString( reading_type ), "Invalid" ) )
        sprintf( str, "0x%02x", reading_type );
   else
-       sprintf( str, "dIpmiEventReadingType%s", IpmiEventReadingTypeToString( reading_type ) );
+       sprintf( str, "%s", IpmiEventReadingTypeToString( reading_type ) );
 
   dump.Entry( "EventReadingType" ) << str << ";\n";
 
