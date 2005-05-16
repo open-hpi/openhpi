@@ -87,7 +87,6 @@ SaErrorT sim_discover_sensors(RPTable *rpt)
 		dbg("entity_root is needed and not present");
 		return 1;
 	}
-	printf("I hit here\n");
         new_sensor(rpt, res->ResourceId, 4); 
         new_sensor(rpt, res->ResourceId, 2);
 
@@ -262,14 +261,6 @@ struct dummy_sensor dummy_voltage_sensors[] = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
-                                .oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.5.0",
-                                .threshold_oids = {
-				.LowMajor = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.4",
-				.UpMajor  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.4",
-			       	.TotalPosThdHysteresis  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.7.4",
-				.TotalNegThdHysteresis = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.11.4",
-                                },
-			.threshold_write_oids = {},
                         },
                         .cur_state = SAHPI_ES_UNSPECIFIED,
                         .sensor_enabled = SAHPI_TRUE,
@@ -280,8 +271,6 @@ struct dummy_sensor dummy_voltage_sensors[] = {
                                          SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                         .event_array = {
                                 {
-                                        .event = "0803C480", /* EN_CUTOFF_HI_FAULT_N5V */
-					.event_assertion = SAHPI_TRUE,
 					.event_res_failure = SAHPI_TRUE,
 					.event_res_failure_unexpected = SAHPI_TRUE,
                                         .event_state = SAHPI_ES_UPPER_CRIT| SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
@@ -406,12 +395,6 @@ struct dummy_sensor dummy_voltage_sensors[] = {
 			.mib = {
 			.not_avail_indicator_num = 0,
 				.write_only = SAHPI_FALSE,
-				.oid = "discovered",
-				.threshold_oids = {
-					.UpMajor  = "discovered",
-					.LowMajor = "discovered",
-				},
-				.threshold_write_oids = {},
 			},
 			.cur_state = SAHPI_ES_UNSPECIFIED,
 			.sensor_enabled = SAHPI_TRUE,
@@ -426,8 +409,6 @@ struct dummy_sensor dummy_voltage_sensors[] = {
 				.event_assertion = SAHPI_TRUE,
 				.event_res_failure = SAHPI_TRUE,
 				.event_res_failure_unexpected = SAHPI_TRUE,
-				.event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
-				.recovery_state = SAHPI_ES_UNSPECIFIED,
 				},
 				{
 				.event = "08000881", /* EN_CUTOFF_LO_FAULT_1_2V */
@@ -547,12 +528,6 @@ struct dummy_sensor dummy_voltage_sensors[] = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
-                                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.11.x",
-                                .threshold_oids = {
-					.UpMajor  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.16.x",
-					.LowMajor = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.17.x",
-                                },
-				.threshold_write_oids = {},
                         },
                         .cur_state = SAHPI_ES_UNSPECIFIED,
                         .sensor_enabled = SAHPI_TRUE,
@@ -688,15 +663,6 @@ struct dummy_sensor dummy_voltage_sensors[] = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
-                                .oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.8.0",
-				/* Default HDW thresholds: Warning 1.62<>1.89; Warning Reset 1.86<>1.74 */
-                                .threshold_oids = {
-					.LowMajor = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.6",
-					.UpMajor  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.6",
-					.TotalPosThdHysteresis = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.7.6",
-					.TotalNegThdHysteresis = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.11.6",
-                                },
-				.threshold_write_oids = {},
                         },
                         .cur_state = SAHPI_ES_UNSPECIFIED,
                         .sensor_enabled = SAHPI_TRUE,
@@ -835,15 +801,6 @@ struct dummy_sensor dummy_voltage_sensors[] = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
-                                .oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.6.0",
-                                .threshold_oids = {
-					.LowMajor = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.5",
-					.UpMajor  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.5",
-					.TotalPosThdHysteresis  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.7.5",
-					.TotalNegThdHysteresis = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.11.5",
-                                },
-				.threshold_write_oids = {},
-                        
 			},
                         .cur_state = SAHPI_ES_UNSPECIFIED,
                         .sensor_enabled = SAHPI_TRUE,
@@ -982,16 +939,8 @@ struct dummy_sensor dummy_voltage_sensors[] = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
-                                .oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.2.0",
-                                .threshold_oids = {
-					.LowMajor = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.2",
-					.UpMajor  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.2",
-					.TotalPosThdHysteresis  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.7.2",
-					.TotalNegThdHysteresis = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.11.2",
-                                },
-				.threshold_write_oids = {},
-                        },
-                        .cur_state = SAHPI_ES_UNSPECIFIED,
+			},
+			.cur_state = SAHPI_ES_UNSPECIFIED,
                         .sensor_enabled = SAHPI_TRUE,
                         .events_enabled = SAHPI_TRUE,
 			.assert_mask   = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
@@ -1127,14 +1076,6 @@ struct dummy_sensor dummy_voltage_sensors[] = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
-                                .oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.1.0",
-                                .threshold_oids = {
-					.LowMajor = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.1",
-					.UpMajor  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.1",
-					.TotalPosThdHysteresis  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.7.1",
-					.TotalNegThdHysteresis = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.11.1",
-                                },
-				.threshold_write_oids = {},
                         },
                         .cur_state = SAHPI_ES_UNSPECIFIED,
                         .sensor_enabled = SAHPI_TRUE,
@@ -1272,14 +1213,6 @@ struct dummy_sensor dummy_voltage_sensors[] = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
-                                .oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.3.0",
-                                .threshold_oids = {
-					.LowMajor = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.3",
-					.UpMajor  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.3",
-					.TotalPosThdHysteresis  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.7.3",
-					.TotalNegThdHysteresis = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.11.3",
-                                },
-				.threshold_write_oids = {},
                         },
                         .cur_state = SAHPI_ES_UNSPECIFIED,
                         .sensor_enabled = SAHPI_TRUE,
@@ -1413,12 +1346,6 @@ struct dummy_sensor dummy_voltage_sensors[] = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
-                                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.6.x",
-                                .threshold_oids = {
-					.UpCritical = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.6.x",
-					.UpMajor    = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.7.x",
-                                },
-				.threshold_write_oids = {},
                         },
                         .cur_state = SAHPI_ES_UNSPECIFIED,
                         .sensor_enabled = SAHPI_TRUE,

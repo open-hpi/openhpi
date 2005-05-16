@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include <SaHpi.h>
 #include <oh_utils.h>
+#include <oh_error.h>
 
  /**
   *  * Run a series of sanity tests on the simulator

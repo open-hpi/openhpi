@@ -100,7 +100,6 @@ SaErrorT sim_discover(void *hnd)
 		rdr_entry = oh_get_rdr_next(inst->rptcache, rpt_entry->ResourceId, SAHPI_FIRST_ENTRY);
 		if(!rdr_entry){printf("I don't work\n");}
 		while (rdr_entry) {
-			printf("i am making an event out of an rdr \n");
 			/*dbg("here rdr event id %d", rdr_entry->RecordId);*/
 			memset(&event, 0, sizeof(event));
 			event.type = OH_ET_RDR;
@@ -165,14 +164,13 @@ SaErrorT build_rptcache(RPTable *rptcache, SaHpiEntityPathT *root_ep)
         	memcpy(&res, &dummy_rpt_array[i].rpt, sizeof(SaHpiRptEntryT));
 		oh_concat_ep(&res.ResourceEntity, root_ep);
 		res.ResourceId = oh_uid_from_entity_path(&res.ResourceEntity);
-		printf("I am res.ResourceId %d\ni", res.ResourceId);	
+		printf("I am res.ResourceId %d\n", res.ResourceId);	
 		dbg("Adding resource number %d",i);
 
 //		oh_append_textbuffer(&build_name, dummy_rpt_array[i].comment);
 //		printf(&res.ResourceTag, "%s I am resourcetag\n");
 //		dummy_create_resourcetag(&res.ResourceTag, (char*)build_name.Data, root_ep->Entry[i].EntityLocation);
 		dummy_create_resourcetag(&res.ResourceTag, dummy_rpt_array[i].comment, root_ep->Entry[i].EntityLocation);
-		printf("I actually run dummy_create_resourcetag\n");
 		oh_add_resource(rptcache, &res, NULL, FREE_RPT_DATA);
 								
 	}
@@ -200,10 +198,19 @@ struct oh_event *eventdup(const struct oh_event *event)
  */
 
 static struct oh_abi_v2 oh_sim_plugin = {
-        .open                   = sim_open,
-        .close                  = sim_close,
-        .get_event              = sim_get_event,
-        .discover_resources     = sim_discover
+        .open                   	= sim_open,
+        .close                  	= sim_close,
+        .get_event              	= sim_get_event,
+        .discover_resources     	= sim_discover,
+	.get_sensor_reading     	= sim_get_sensor_reading,
+        .get_sensor_thresholds  	= sim_get_sensor_thresholds,
+	.set_sensor_thresholds		= sim_set_sensor_thresholds,
+	.get_sensor_enable		= sim_get_sensor_enable,
+	.set_sensor_enable              = sim_set_sensor_enable,
+	.get_sensor_event_enables       = sim_get_sensor_event_enable,
+	.set_sensor_event_enables       = sim_set_sensor_event_enable,
+	.get_sensor_event_masks         = sim_get_sensor_event_masks,
+	.set_sensor_event_masks         = sim_set_sensor_event_masks,			
 };
 
 /* removes the warning about no previous declaration */

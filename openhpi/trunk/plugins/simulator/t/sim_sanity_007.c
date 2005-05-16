@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include <SaHpi.h>
 #include <oh_utils.h>
+#include <oh_error.h>
 
 /**
  * Run a series of sanity tests on the simulator
@@ -33,17 +34,18 @@
 	} while(0)
 
 #define runtest() testnum++
+
  
 int main(int argc, char **argv)
 {
+//	setenv{"OPENHPI_ON_EP",SYSTEM_CHASSIS,1};
+	
 	SaHpiSessionIdT sid = 0;
-//	SaHpiRptEntryT res;
-//	SaHpiEntryIdT id = SAHPI_FIRST_ENTRY;
 	SaHpiResourceIdT resid;
 	int failcount = 0;
 	int testnum = 0;
 	SaErrorT rc = SA_OK;
-
+	
         rc = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID, &sid, NULL);
 	if(rc != SA_OK) {
 		failed("Failed to open session");
