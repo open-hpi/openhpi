@@ -27,17 +27,15 @@
 
 #define oh_copy_event(new, old)                 \
         do {                                    \
-                memset(new, 0, sizeof(*new));     \
                 memcpy(new, old, sizeof(*new));  \
         } while(0)
 
-struct oh_event* oh_new_oh_event(oh_event_type t);
+/*struct oh_event* oh_new_oh_event(oh_event_type t);*/
 
 #define oh_dup_oh_event(old) g_memdup(old, sizeof(*old))
 
 #define oh_copy_oh_event(new, old)                 \
         do {                                    \
-                memset(new, 0, sizeof(*new));     \
                 memcpy(new, old, sizeof(*new));  \
         } while(0)
 

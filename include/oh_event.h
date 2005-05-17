@@ -26,6 +26,13 @@
 extern "C" {
 #endif
 
+/* Event utility macros */
+#define oh_new_event() g_new0(SaHpiEventT, 1)
+#define oh_dup_event(old) g_memdup(old, sizeof(*old))
+#define oh_copy_event(new, old) memcpy(new, old, sizeof(*new))
+#define oh_dup_oh_event(old) g_memdup(old, sizeof(*old))
+#define oh_copy_oh_event(new, old) memcpy(new, old, sizeof(*new))
+
 /*
  *  The event is used for plugin to report its resources.
  *  For OpenHPI >= 2.0 we use the full structure for add
