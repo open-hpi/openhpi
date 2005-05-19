@@ -35,7 +35,7 @@ SaErrorT ohoi_loop_until(loop_indicator_cb indicator, const void *cb_data, int t
 				sel_select(ipmi_handler->ohoi_sel, NULL, 0, NULL, &tv3);
 		}
 		
-		return ((indicator(cb_data))? SA_OK:SA_ERR_HPI_TIMEOUT);
+		return ((indicator(cb_data))? SA_OK:SA_ERR_HPI_NO_RESPONSE);
 }
 
 static int simple_indicator(const void *cb_data)

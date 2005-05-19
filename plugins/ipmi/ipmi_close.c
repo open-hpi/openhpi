@@ -17,9 +17,9 @@
 
 static void close_done(void *cb_data)
 {
-	int *flag = cb_data;
+	struct ohoi_handler *ipmi_handler = cb_data;
 	dbg("close_done");
-	*flag = 1;
+	ipmi_handler->fully_up = 0;
 }
 
 static void close_connection(ipmi_domain_t *domain, void *user_data)
@@ -29,7 +29,7 @@ static void close_connection(ipmi_domain_t *domain, void *user_data)
 	dbg("close flag:%d", *flag);
 
 	
-	rv = ipmi_close_connection(domain, close_done, user_data);
+	rv = ipmi_domain_close(domain, close_done, user_data);
 	if (rv) {
 		dbg("ipmi_close_connection failed!");
 		*flag = 1;
@@ -40,19 +40,18 @@ void ohoi_close_connection(ipmi_domain_id_t domain_id, void *user_data)
 {
 	struct oh_handler_state *handler = (struct oh_handler_state *)user_data;
 	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
-	int rv, close_flag = 0;
+	int rv;
 
 	dbg("ohoi_close_connection");
 
-	rv = ipmi_domain_pointer_cb(domain_id, close_connection, &close_flag);
+	rv = ipmi_domain_pointer_cb(domain_id, close_connection, ipmi_handler);
 	
 	if (rv) {
 		dbg("ipmi_domain_pointer_cb failed!");
 		return;
 	}
 
-	close_flag = 0;
-	while (close_flag != 1) {
+	while (ipmi_handler->fully_up != 0) {
 		sel_select(ipmi_handler->ohoi_sel, NULL, 0, NULL, NULL);
 	}
 }

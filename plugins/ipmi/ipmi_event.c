@@ -20,7 +20,6 @@
 #include <oh_utils.h>
 #include <string.h>
 
-
 static void SDRs_read_done(ipmi_domain_t *domain, int err, void *cb_data)
 {
 	int *flag = cb_data;
@@ -54,23 +53,25 @@ static void bus_scan_done(ipmi_domain_t *domain, int err, void *cb_data)
 		return;
 }
 
+
 void ohoi_setup_done(ipmi_domain_t	*domain,
                      void 		*user_data)
 {
 
-    static ipmi_domain_mc_upd_t *mc_update_handler_id;
         
 	struct oh_handler_state *handler = user_data;
 	struct ohoi_handler *ipmi_handler = handler->data;
 	int rv;
 
 	rv = ipmi_domain_enable_events(domain);
-   	if (rv)
-    	    dbg("ipmi_domain_enable_events return error %d", rv);
+	if (rv) {
+		dbg("ipmi_domain_enable_events return error %d", rv);
+	}
 
 
-	rv = ipmi_domain_set_entity_update_handler(domain, ohoi_entity_event, 
+	rv = ipmi_domain_add_entity_update_handler(domain, ohoi_entity_event, 
 			 			  handler);
+
 	if (rv)
 		dbg("ipmi_bmc_iterate_entities return error");
 	
@@ -79,15 +80,14 @@ void ohoi_setup_done(ipmi_domain_t	*domain,
 	if (rv)
 		dbg("ipmi_domain_set_main_SDRs_read_handler return error: %d\n", rv);
 	
-    rv = ipmi_domain_set_bus_scan_handler(domain, bus_scan_done,
-										      ipmi_handler);
+	rv = ipmi_domain_set_bus_scan_handler(domain, bus_scan_done, ipmi_handler);
 	if (rv) 
 		dbg("ipmi_domain_set_bus_scan_handler return error: %d\n", rv);
 
 
-    rv = ipmi_domain_register_mc_update_handler(domain, ohoi_mc_event, handler,
-                                                    &mc_update_handler_id);
+    rv = ipmi_domain_add_mc_updated_handler(domain, ohoi_mc_event, handler);
     if (rv)
 			dbg("ipmi_domain_register_mc_update_handler return error: %d\n", rv);
 	
 }
+
