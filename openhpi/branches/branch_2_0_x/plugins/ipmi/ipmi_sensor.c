@@ -19,6 +19,14 @@
 #include "ipmi.h"
 
 #define OHOI_TIMEOUT  10    /* 10 seconds, was 5 seconds */
+struct ipmi_event_state_s
+{
+    unsigned int status;
+    /* Pay no attention to the implementation. */
+    unsigned int __assertion_events;
+    unsigned int __deassertion_events;
+};
+
 
 /* 
  * Use for getting sensor reading
@@ -40,6 +48,7 @@ struct ohoi_sensor_thresholds {
 	int			rvalue;
 };
 
+
 /*
  * Use for sensor event enable and sensor event masks
  */
@@ -48,6 +57,8 @@ struct ohoi_sensor_event_enable_masks {
 	SaHpiBoolT   enable;
 	SaHpiEventStateT  assert;
 	SaHpiEventStateT  deassert;
+	unsigned int	  a_support;
+	unsigned int	  d_support;
 	int done;
 	int rvalue;
 };
@@ -66,6 +77,22 @@ static int ignore_sensor(ipmi_sensor_t *sensor)
 
         return 1;
 }
+
+static SaHpiEventStateT retrieve_states(ipmi_states_t *states)
+{
+	SaHpiEventStateT st = 0;
+	int i;
+
+	// fortunatly as discrete as threshold sensors IPMI states
+	// is mapped 1:1 to HPI states
+	for (i = 0; i < 15; i++) {
+		if (ipmi_is_state_set(states, i)) {
+			st |= (1 << i);
+		}
+	}
+	return st;
+}
+	
 static void sensor_read_states(ipmi_sensor_t *sensor,
 			       int	   err,
 			       ipmi_states_t *states,
@@ -80,7 +107,7 @@ static void sensor_read_states(ipmi_sensor_t *sensor,
 		return;
 	}
 	p->reading.IsSupported = SAHPI_FALSE;
-	p->ev_state = states->__states;
+	p->ev_state = retrieve_states(states);
 }
 static void sensor_reading(ipmi_sensor_t		*sensor,
 		  	   int 				err,
@@ -106,13 +133,13 @@ static void sensor_reading(ipmi_sensor_t		*sensor,
 		p->reading.IsSupported = SAHPI_TRUE;
 		p->reading.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64;
 		p->reading.Value.SensorFloat64 = val;
-	}else if(value_present == IPMI_RAW_VALUE_PRESENT) {
+	} else if(value_present == IPMI_RAW_VALUE_PRESENT) {
 		p->reading.IsSupported = SAHPI_TRUE;
 		p->reading.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64;
 		p->reading.Value.SensorFloat64 = raw_val;
 	}
 
-	p->ev_state = states->__states;
+	p->ev_state = retrieve_states(states);
 }
 
 static void get_sensor_reading(ipmi_sensor_t *sensor, void *cb_data)
@@ -132,15 +159,18 @@ static void get_sensor_reading(ipmi_sensor_t *sensor, void *cb_data)
 	if (ipmi_sensor_get_event_reading_type(sensor) ==
 			 IPMI_EVENT_READING_TYPE_THRESHOLD) {
 	
-		rv = ipmi_reading_get(sensor, sensor_reading, reading_data);
+		rv = ipmi_sensor_get_reading(sensor, sensor_reading,
+			reading_data);
 		if (rv) {
 			reading_data->done = 1;
 			reading_data->rvalue = SA_ERR_HPI_INVALID_REQUEST;
-			dbg("Unable to get sensor reading: %s\n", strerror( rv ) );
+			dbg("Unable to get sensor reading: %s\n",
+				strerror( rv ) );
 			return;
 		}
 	} else {
-		rv = ipmi_states_get(sensor, sensor_read_states, reading_data);
+		rv = ipmi_sensor_get_states(sensor, sensor_read_states,
+						 reading_data);
 		if (rv) {
 			reading_data->done = 1;
 			reading_data->rvalue = SA_ERR_HPI_INVALID_REQUEST;
@@ -190,10 +220,14 @@ static void thres_get(ipmi_sensor_t		*sensor,
 	int val;
 	
 	ipmi_sensor_threshold_readable(sensor, event, &val);
-	if (val) {
+	if (!val) {
+		thres->IsSupported = SAHPI_FALSE;
+		return;
+	}	
+	if (0 == ipmi_threshold_get(th, event,
+				&thres->Value.SensorFloat64)) {
 		thres->IsSupported = SAHPI_TRUE;
 		thres->Type = SAHPI_SENSOR_READING_TYPE_FLOAT64;
-		thres->Value.SensorFloat64 = th->vals[event].val;
 	}else {
 		thres->IsSupported = SAHPI_FALSE;
 	}
@@ -234,7 +268,7 @@ static SaErrorT get_thresholds(ipmi_sensor_t	*sensor,
 {
 	int		rv;
 
-	rv = ipmi_thresholds_get(sensor, thresholds_read, thres_data);
+	rv = ipmi_sensor_get_thresholds(sensor, thresholds_read, thres_data);
 	if (rv) 
 		dbg("Unable to get sensor thresholds: 0x%x\n", rv);
 	return (rv? SA_ERR_HPI_INVALID_CMD : SA_OK);
@@ -257,12 +291,16 @@ static void hysteresis_read(ipmi_sensor_t	*sensor,
 	}
 	
 	p->sensor_thres.PosThdHysteresis.IsSupported = SAHPI_TRUE;
-	p->sensor_thres.PosThdHysteresis.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64;
-	p->sensor_thres.PosThdHysteresis.Value.SensorFloat64 = positive_hysteresis;
+	p->sensor_thres.PosThdHysteresis.Type =
+		SAHPI_SENSOR_READING_TYPE_FLOAT64;
+	p->sensor_thres.PosThdHysteresis.Value.SensorFloat64 =
+		positive_hysteresis;
 
 	p->sensor_thres.NegThdHysteresis.IsSupported = SAHPI_TRUE;
-        p->sensor_thres.NegThdHysteresis.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64;
-        p->sensor_thres.NegThdHysteresis.Value.SensorFloat64 = negative_hysteresis;
+        p->sensor_thres.NegThdHysteresis.Type =
+		SAHPI_SENSOR_READING_TYPE_FLOAT64;
+        p->sensor_thres.NegThdHysteresis.Value.SensorFloat64 =
+		negative_hysteresis;
 
 }
 
@@ -295,43 +333,53 @@ static void get_sensor_thresholds(ipmi_sensor_t *sensor,
 		return;
 	}	
 
-	if (ipmi_sensor_get_event_reading_type(sensor) ==
+	if (ipmi_sensor_get_event_reading_type(sensor) !=
 			IPMI_EVENT_READING_TYPE_THRESHOLD) {
-		if (ipmi_sensor_get_threshold_access(sensor) ==
-				IPMI_THRESHOLD_ACCESS_SUPPORT_NONE)
-			dbg("sensor doesn't support threshold read");
-		else {
-			rv = get_thresholds(sensor, thres_data);
-			if (rv < 0) {
-                                dbg("Unable to get sensor thresholds");
-				return;
-                        }
-		}
-					
-		rv = ipmi_sensor_get_hysteresis_support(sensor);
-		if (rv == IPMI_HYSTERESIS_SUPPORT_NONE) {
-			thres_data->sensor_thres.PosThdHysteresis.IsSupported = SAHPI_FALSE;
-			thres_data->sensor_thres.NegThdHysteresis.IsSupported = SAHPI_FALSE;
-                        thres_data->hyster_done = 1; /* read no more */
-			return;
-		} else {
-			if (rv == IPMI_HYSTERESIS_SUPPORT_READABLE ||
-					rv == IPMI_HYSTERESIS_SUPPORT_SETTABLE) { 
-				rv = get_hysteresis(sensor, thres_data);
-				if (rv < 0)
-					dbg("failed to get hysteresis");
-			}
-			else {  /* may not get here, but just in case */
-			   thres_data->hyster_done = 1;
-			   thres_data->sensor_thres.PosThdHysteresis.IsSupported = SAHPI_FALSE;
-			   thres_data->sensor_thres.NegThdHysteresis.IsSupported = SAHPI_FALSE;
-			}
-		}
-		
-	} else {
 		dbg("Not threshold sensor!");
-        }
-	
+		thres_data->hyster_done = 1;
+		thres_data->thres_done = 1;
+		thres_data->rvalue = SA_ERR_HPI_INVALID_CMD;
+		return;
+	}
+	if (ipmi_sensor_get_threshold_access(sensor) ==
+				IPMI_THRESHOLD_ACCESS_SUPPORT_NONE) {
+		dbg("sensor doesn't support threshold read");
+			dbg("Unable to get sensor thresholds");
+			thres_data->hyster_done = 1;
+			thres_data->thres_done = 1;
+			thres_data->rvalue = SA_ERR_HPI_INVALID_CMD;
+			return;
+	}
+	rv = get_thresholds(sensor, thres_data);
+	if (rv != SA_OK) {
+		dbg("Unable to get sensor thresholds");
+		thres_data->hyster_done = 1;
+		thres_data->thres_done = 1;
+		thres_data->rvalue = rv;
+		return;
+	}
+
+	rv = ipmi_sensor_get_hysteresis_support(sensor);
+
+	if (rv != IPMI_HYSTERESIS_SUPPORT_READABLE &&
+			rv != IPMI_HYSTERESIS_SUPPORT_SETTABLE) {
+		thres_data->thres_done = 1;
+		thres_data->hyster_done = 1;
+		thres_data->sensor_thres.PosThdHysteresis.IsSupported =
+				SAHPI_FALSE;
+		thres_data->sensor_thres.NegThdHysteresis.IsSupported =
+				SAHPI_FALSE;
+		return;
+	} 
+	rv = get_hysteresis(sensor, thres_data);
+	if (rv != SA_OK) {
+		dbg("failed to get hysteresis");
+		thres_data->hyster_done = 1;
+		thres_data->thres_done = 1;
+		thres_data->rvalue = SA_ERR_HPI_INTERNAL_ERROR;
+		return;
+	}
+
 	return;
 }
 
@@ -384,18 +432,24 @@ static void set_data(ipmi_sensor_t *sensor, int err, void *cb_data)
 	*done = 1;
 }
 
-static int thres_cpy(ipmi_sensor_t			*sensor, 
+static SaErrorT thres_cpy(ipmi_sensor_t			*sensor, 
 		      const SaHpiSensorReadingT		reading,
 		      unsigned int			event,
 		      ipmi_thresholds_t			*info) 
 {
 	int	val;
+	int	rv;
 
-	ipmi_sensor_threshold_settable(sensor, event, &val);
+	if (!reading.IsSupported) {
+		return SA_OK;
+	}
+	if ((rv = ipmi_sensor_threshold_settable(sensor, event, &val))) {
+		dbg("ipmi_sensor_threshold_settable error = %d", rv);
+		return SA_ERR_HPI_INVALID_CMD;
+	}
 	if (!val)
-	       return 0;
+	       return SA_ERR_HPI_INVALID_DATA;
 	
-	info->vals[event].status = 1;
 	switch (reading.Type) {
 		/*Fix Me* case...*/
 		case  SAHPI_SENSOR_READING_TYPE_INT64:
@@ -403,70 +457,83 @@ static int thres_cpy(ipmi_sensor_t			*sensor,
 		case  SAHPI_SENSOR_READING_TYPE_BUFFER:
 			break;
 		case SAHPI_SENSOR_READING_TYPE_FLOAT64:
-        		info->vals[event].val = 
-				reading.Value.SensorFloat64;
+			if(ipmi_threshold_set(info, sensor, event, 
+				reading.Value.SensorFloat64)) {
+				return SA_OK;
+			}
 			break;
 	}
-	return 0;
+	return SA_OK;
 }
 
-static int init_thresholeds_info(ipmi_sensor_t			*sensor, 
-				  const SaHpiSensorThresholdsT	*thres,
-				  ipmi_thresholds_t		*info)
+static SaErrorT init_thresholeds_info(
+				ipmi_sensor_t			*sensor, 
+				const SaHpiSensorThresholdsT	*thres,
+				ipmi_thresholds_t		*info)
 {
-	int rv;
-	
+	SaErrorT rv;
+	if (ipmi_thresholds_init(info)) {
+		return SA_ERR_HPI_INTERNAL_ERROR;
+	}
 	rv = thres_cpy(sensor, thres->LowMinor, IPMI_LOWER_NON_CRITICAL, info);
-	if (rv < 0)
-		return -1;
+	if (rv != SA_OK)
+		return rv;
 	
 	rv = thres_cpy(sensor, thres->LowMajor, IPMI_LOWER_CRITICAL, info);
-	if (rv < 0)
-		return -1;
+	if (rv != SA_OK)
+		return rv;
 	
 	rv = thres_cpy(sensor, thres->LowCritical, IPMI_LOWER_NON_RECOVERABLE,
 		       info);
-	if (rv < 0)
-		return -1;
+	if (rv != SA_OK)
+		return rv;
 	
 	rv = thres_cpy(sensor, thres->UpMinor, IPMI_UPPER_NON_CRITICAL, info);
-	if (rv < 0)
-		return -1;
+	if (rv != SA_OK)
+		return rv;
 	
 	rv = thres_cpy(sensor, thres->UpMajor, IPMI_UPPER_CRITICAL, info);
-	if (rv < 0)
-		return -1;
+	if (rv != SA_OK)
+		return rv;
 	
 	rv = thres_cpy(sensor, thres->UpCritical, IPMI_UPPER_NON_RECOVERABLE,
 		       info);
-	if (rv < 0)
-		return -1;
+	if (rv != SA_OK)
+		return rv;
 
-	return 0;
+	return SA_OK;
 }
 
-static int set_thresholds(ipmi_sensor_t                 *sensor, 
+static SaErrorT set_thresholds(ipmi_sensor_t                 *sensor, 
 			  struct ohoi_sensor_thresholds *thres_data)
 {
-	ipmi_thresholds_t	info;
+	ipmi_thresholds_t	*info;
 	int			rv;	
-	
-	memset(&info, 0, sizeof(info));
-	rv = init_thresholeds_info(sensor, &thres_data->sensor_thres, &info);
-	if (rv < 0)
+	info = malloc(ipmi_thresholds_size());
+	if (info == NULL) {
+		dbg("could not alloc memory");
 		return -1;
+	}
+	memset(info, 0, sizeof(info));
+	rv = init_thresholeds_info(sensor, &thres_data->sensor_thres, info);
+	if (rv != SA_OK) {
+		dbg("Unable to init sensor thresholds: 0x%x\n", rv);
+		free(info);
+		return rv;
+	}
 	
-	rv = ipmi_thresholds_set(sensor, &info, set_data, 
+	rv = ipmi_sensor_set_thresholds(sensor, info, set_data, 
                                  &thres_data->thres_done);
 	if (rv) {
 		dbg("Unable to set sensor thresholds: 0x%x\n", rv);
-		return -1;
+		free(info);
+		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 
-	return rv;
+	return SA_OK;
 }
 
-static int set_hysteresis(ipmi_sensor_t	                *sensor,
+static SaErrorT set_hysteresis(ipmi_sensor_t	                *sensor,
 			  struct ohoi_sensor_thresholds	*thres_data)
 {
 	int			rv;	
@@ -488,7 +555,7 @@ static int set_hysteresis(ipmi_sensor_t	                *sensor,
                         break;
                 case SAHPI_SENSOR_READING_TYPE_BUFFER:
                         dbg("ipmi sensor doesn't support this type of reading");
-                        return -1;   
+                        return SA_ERR_HPI_INVALID_DATA;   
         }
 	
         switch (neg_reading.Type) {
@@ -503,54 +570,71 @@ static int set_hysteresis(ipmi_sensor_t	                *sensor,
                         break;
                 case SAHPI_SENSOR_READING_TYPE_BUFFER:
                         dbg("ipmi sensor doesn't support this type of reading");
-                        return -1;
+                        return SA_ERR_HPI_INVALID_DATA;
         }
 
 	rv = ipmi_sensor_set_hysteresis(sensor, pos, neg, set_data, 
                                         &thres_data->hyster_done);
 	if (rv) {
-		dbg("Unable to set sensor thresholds: 0x%x\n", rv);
-		return -1;
+		dbg("Unable to set sensor hysteresis: 0x%x\n", rv);
+		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 
-        return rv;
+        return SA_OK;
 }
 
 static void set_sensor_thresholds(ipmi_sensor_t *sensor, 
                                   void          *cb_data)
 {
-        struct ohoi_sensor_thresholds *thres_data;
-	int rv;	
+	struct ohoi_sensor_thresholds *thres_data;
+	SaErrorT rv;	
 
-        thres_data = cb_data;
+	thres_data = cb_data;
 	if (ignore_sensor(sensor)) {
 		dbg("sensor is ignored");
+		thres_data->hyster_done = 1;
+		thres_data->thres_done = 1;
+		thres_data->rvalue = SA_ERR_HPI_NOT_PRESENT;
+		return;
+	}
+
+	if (ipmi_sensor_get_event_reading_type(sensor) !=
+			IPMI_EVENT_READING_TYPE_THRESHOLD) {
+		dbg("Not threshold sensor!");
+		thres_data->hyster_done = 1;
+		thres_data->thres_done = 1;
+		thres_data->rvalue = SA_ERR_HPI_INVALID_CMD;
+		return;
+	}
+				
+	if ((ipmi_sensor_get_threshold_access(sensor) !=
+				IPMI_THRESHOLD_ACCESS_SUPPORT_SETTABLE) ||
+			(ipmi_sensor_get_hysteresis_support(sensor) !=
+					IPMI_HYSTERESIS_SUPPORT_SETTABLE)) {
+		dbg("sensor doesn't support threshold or histeresis set");
+		thres_data->hyster_done = 1;
+		thres_data->thres_done = 1;
+		thres_data->rvalue = SA_ERR_HPI_INVALID_CMD;
+		return;
+	}
+	rv = set_thresholds(sensor, thres_data);
+	if (rv != SA_OK) {
+		dbg("Unable to set thresholds");
+		thres_data->hyster_done = 1;
+		thres_data->thres_done = 1;
+		thres_data->rvalue = rv;
 		return;
 	}	
-	
-	if (ipmi_sensor_get_event_reading_type(sensor) ==
-			IPMI_EVENT_READING_TYPE_THRESHOLD) {
-		if (ipmi_sensor_get_threshold_access(sensor) ==
-		    IPMI_THRESHOLD_ACCESS_SUPPORT_SETTABLE) {
-			rv = set_thresholds(sensor, thres_data);
-			if (rv < 0) {
-                                dbg("Unable to set thresholds");
-				return;
-                        }
-		} else
-			dbg("sensor doesn't support threshold set");	
-
-		rv = ipmi_sensor_get_hysteresis_support(sensor);
-		if (rv == IPMI_HYSTERESIS_SUPPORT_SETTABLE) { 
-			rv = set_hysteresis(sensor, thres_data);
-			if (rv < 0) {
-                                dbg("Unable to set hysteresis");
-				return;
-                        }
-		} else
-			dbg("sensor doesn't support hysteresis set");
-	} else
-		dbg("Not threshold sensor!");
+ 
+	rv = set_hysteresis(sensor, thres_data);
+	if (rv != SA_OK) {
+		thres_data->hyster_done = 1;
+		thres_data->thres_done = 1;
+		thres_data->rvalue = rv;
+		dbg("Unable to set hysteresis");
+		return;
+	}
+	return;
 }
 
 int ohoi_set_sensor_thresholds(ipmi_sensor_id_t		        sensor_id, 
@@ -583,8 +667,10 @@ int ohoi_set_sensor_thresholds(ipmi_sensor_id_t		        sensor_id,
 static void set_sensor_enable(ipmi_sensor_t *sensor,
 			      void          *cb_data)
 {
-	SaHpiBoolT *enable = cb_data;
-	ipmi_sensor_set_ignore_if_no_entity(sensor, *enable);
+//	SaHpiBoolT *enable = cb_data;
+//	ipmi_sensor_set_ignore_if_no_entity(sensor, *enable);
+	return;
+
 }
 
 int ohoi_set_sensor_enable(ipmi_sensor_id_t sensor_id,
@@ -600,6 +686,162 @@ int ohoi_set_sensor_enable(ipmi_sensor_id_t sensor_id,
                 return SA_ERR_HPI_INVALID_CMD;
         }
 	return SA_OK;
+}
+
+
+static void convert_to_ohoi_event_states(ipmi_sensor_t	*sensor,
+			ipmi_event_state_t	*state,
+			SaHpiEventStateT *assert,
+			SaHpiEventStateT *deassert)
+{
+	int i;
+
+	*assert = 0;
+	*deassert = 0;
+	if(ipmi_sensor_get_event_reading_type(sensor) !=
+			IPMI_EVENT_READING_TYPE_THRESHOLD) {
+		for (i = 0; i < 15; i++) {
+			if (ipmi_is_discrete_event_set(state, i,
+					IPMI_ASSERTION)) {
+				*assert |= (1 << i);
+			}
+			if (ipmi_is_discrete_event_set(state, i,
+					IPMI_DEASSERTION)) {
+				*deassert |= (1 << i);
+			}
+
+		}
+		return;
+	}
+	
+	// threshold sensor
+	if (ipmi_is_threshold_event_set(state,
+			IPMI_LOWER_NON_CRITICAL, IPMI_GOING_LOW, 
+			IPMI_ASSERTION)) {
+		*assert |= SAHPI_ES_LOWER_MINOR;
+	}
+	if (ipmi_is_threshold_event_set(state,
+			IPMI_LOWER_NON_CRITICAL, IPMI_GOING_HIGH, 
+			IPMI_ASSERTION)) {
+		*deassert |= SAHPI_ES_LOWER_MINOR;
+	}
+	if (ipmi_is_threshold_event_set(state,
+			IPMI_LOWER_NON_CRITICAL, IPMI_GOING_LOW, 
+			IPMI_DEASSERTION)) {
+		*deassert |= SAHPI_ES_LOWER_MINOR;
+	}	
+	if (ipmi_is_threshold_event_set(state,
+			IPMI_LOWER_NON_CRITICAL, IPMI_GOING_HIGH, 
+			IPMI_DEASSERTION)) {
+		*assert |= SAHPI_ES_LOWER_MINOR;
+	}
+
+	if (ipmi_is_threshold_event_set(state,
+			IPMI_LOWER_CRITICAL, IPMI_GOING_LOW, 
+			IPMI_ASSERTION)) {
+		*assert |= SAHPI_ES_LOWER_MAJOR;
+	}
+	if (ipmi_is_threshold_event_set(state,
+			IPMI_LOWER_CRITICAL, IPMI_GOING_HIGH, 
+			IPMI_ASSERTION)) {
+		*deassert |= SAHPI_ES_LOWER_MAJOR;
+	}
+	if (ipmi_is_threshold_event_set(state,
+			IPMI_LOWER_CRITICAL, IPMI_GOING_LOW, 
+			IPMI_DEASSERTION)) {
+		*deassert |= SAHPI_ES_LOWER_MAJOR;
+	}	
+	if (ipmi_is_threshold_event_set(state,
+			IPMI_LOWER_CRITICAL, IPMI_GOING_HIGH, 
+			IPMI_DEASSERTION)) {
+		*assert |= SAHPI_ES_LOWER_MAJOR;
+	}
+
+	if (ipmi_is_threshold_event_set(state,
+			IPMI_LOWER_NON_RECOVERABLE, IPMI_GOING_LOW, 
+			IPMI_ASSERTION)) {
+		*assert |= SAHPI_ES_LOWER_CRIT;
+	}
+	if (ipmi_is_threshold_event_set(state,
+			IPMI_LOWER_NON_RECOVERABLE, IPMI_GOING_HIGH, 
+			IPMI_ASSERTION)) {
+		*deassert |= SAHPI_ES_LOWER_CRIT;
+	}
+	if (ipmi_is_threshold_event_set(state,
+			IPMI_LOWER_NON_RECOVERABLE, IPMI_GOING_LOW, 
+			IPMI_DEASSERTION)) {
+		*deassert |= SAHPI_ES_LOWER_CRIT;
+	}	
+	if (ipmi_is_threshold_event_set(state,
+			IPMI_LOWER_NON_RECOVERABLE, IPMI_GOING_HIGH, 
+			IPMI_DEASSERTION)) {
+		*assert |= SAHPI_ES_LOWER_CRIT;
+	}	
+
+
+	if (ipmi_is_threshold_event_set(state,
+			IPMI_UPPER_NON_CRITICAL, IPMI_GOING_LOW, 
+			IPMI_ASSERTION)) {
+		*deassert |= SAHPI_ES_UPPER_MINOR;
+	}
+	if (ipmi_is_threshold_event_set(state,
+			IPMI_UPPER_NON_CRITICAL, IPMI_GOING_HIGH, 
+			IPMI_ASSERTION)) {
+		*assert |= SAHPI_ES_UPPER_MINOR;
+	}
+	if (ipmi_is_threshold_event_set(state,
+			IPMI_UPPER_NON_CRITICAL, IPMI_GOING_LOW, 
+			IPMI_DEASSERTION)) {
+		*assert |= SAHPI_ES_UPPER_MINOR;
+	}	
+	if (ipmi_is_threshold_event_set(state,
+			IPMI_UPPER_NON_CRITICAL, IPMI_GOING_HIGH, 
+			IPMI_DEASSERTION)) {
+		*deassert |= SAHPI_ES_UPPER_MINOR;
+	}
+
+	if (ipmi_is_threshold_event_set(state,
+			IPMI_UPPER_CRITICAL, IPMI_GOING_LOW, 
+			IPMI_ASSERTION)) {
+		*deassert |= SAHPI_ES_UPPER_MAJOR;
+	}
+	if (ipmi_is_threshold_event_set(state,
+			IPMI_UPPER_CRITICAL, IPMI_GOING_HIGH, 
+			IPMI_ASSERTION)) {
+		*assert |= SAHPI_ES_UPPER_MAJOR;
+	}
+	if (ipmi_is_threshold_event_set(state,
+			IPMI_UPPER_CRITICAL, IPMI_GOING_LOW, 
+			IPMI_DEASSERTION)) {
+		*assert |= SAHPI_ES_UPPER_MAJOR;
+	}	
+	if (ipmi_is_threshold_event_set(state,
+			IPMI_UPPER_CRITICAL, IPMI_GOING_HIGH, 
+			IPMI_DEASSERTION)) {
+		*deassert |= SAHPI_ES_UPPER_MAJOR;
+	}
+
+	if (ipmi_is_threshold_event_set(state,
+			IPMI_UPPER_NON_RECOVERABLE, IPMI_GOING_LOW, 
+			IPMI_ASSERTION)) {
+		*deassert |= SAHPI_ES_UPPER_CRIT;
+	}
+	if (ipmi_is_threshold_event_set(state,
+			IPMI_UPPER_NON_RECOVERABLE, IPMI_GOING_HIGH, 
+			IPMI_ASSERTION)) {
+		*assert |= SAHPI_ES_UPPER_CRIT;
+	}
+	if (ipmi_is_threshold_event_set(state,
+			IPMI_UPPER_NON_RECOVERABLE, IPMI_GOING_LOW, 
+			IPMI_DEASSERTION)) {
+		*assert |= SAHPI_ES_UPPER_CRIT;
+	}	
+	if (ipmi_is_threshold_event_set(state,
+			IPMI_UPPER_NON_RECOVERABLE, IPMI_GOING_HIGH, 
+			IPMI_DEASSERTION)) {
+		*deassert |= SAHPI_ES_UPPER_CRIT;
+	}	
+
 }
 
 static void event_enable_masks_read(ipmi_sensor_t	*sensor,
@@ -624,9 +866,8 @@ static void event_enable_masks_read(ipmi_sensor_t	*sensor,
         if (rv)
 		p->enable = SAHPI_TRUE;
 
-	p->assert = (SaHpiEventStateT)state->__assertion_events;
-	p->deassert = (SaHpiEventStateT)state->__deassertion_events;
-
+	convert_to_ohoi_event_states(sensor, state,
+		&p->assert, &p->deassert);
 }
 
 static void get_sensor_event_enable_masks(ipmi_sensor_t *sensor, 
@@ -643,10 +884,12 @@ static void get_sensor_event_enable_masks(ipmi_sensor_t *sensor,
 		return;
 	}	
 
-	if ((ipmi_sensor_get_event_support(sensor) == IPMI_EVENT_SUPPORT_PER_STATE)||
-	   (ipmi_sensor_get_event_support(sensor) == IPMI_EVENT_SUPPORT_ENTIRE_SENSOR)){
-		rv = ipmi_sensor_events_enable_get(sensor, event_enable_masks_read,
-					           enable_data);
+	if ((ipmi_sensor_get_event_support(sensor) ==
+			IPMI_EVENT_SUPPORT_PER_STATE)||
+	   (ipmi_sensor_get_event_support(sensor) ==
+				 IPMI_EVENT_SUPPORT_ENTIRE_SENSOR)){
+		rv = ipmi_sensor_get_event_enables(sensor,
+				event_enable_masks_read, enable_data);
 		if (rv) {
 			dbg("Unable to sensor event enable: 0x%x\n", rv);
 			enable_data->rvalue = SA_ERR_HPI_INTERNAL_ERROR;
@@ -662,14 +905,214 @@ static void get_sensor_event_enable_masks(ipmi_sensor_t *sensor,
         }
 }
 
+static int insert_events_to_ipmi_event_state(
+		ipmi_sensor_t		*sensor,
+		ipmi_event_state_t	*state,
+		SaHpiEventStateT	a_mask,
+		SaHpiEventStateT	d_mask,
+		unsigned int		a_sup,
+		unsigned int		d_sup)
+{
+	int i;  
+
+	if (ipmi_sensor_get_event_support(sensor) !=
+			IPMI_EVENT_SUPPORT_PER_STATE) {
+		return 0;
+	}
+
+	if (ipmi_sensor_get_event_reading_type(sensor) !=
+			IPMI_EVENT_READING_TYPE_THRESHOLD) {
+		// discrete sensor. map states 1:1
+		if ((a_mask &~a_sup) || (d_mask & ~d_sup)) {
+			return 1;
+		}
+		for (i = 0; i < 15; i++) {
+			if (a_mask & (1 << i)) {
+				ipmi_discrete_event_set(state, i,
+					IPMI_ASSERTION);
+			}
+			if (d_mask & (1 << i)) {
+				ipmi_discrete_event_set(state, i,
+					IPMI_DEASSERTION);
+			}
+		}
+		return 0;
+	}
+
+	// threhold sensor;
+		// set assertion mask
+	if (a_mask & SAHPI_ES_LOWER_MINOR) {
+		if (a_sup & OHOI_THS_LMINL) {
+			ipmi_threshold_event_set(state, IPMI_LOWER_NON_CRITICAL,
+				IPMI_GOING_LOW, IPMI_ASSERTION);
+		} else if (d_sup & OHOI_THS_LMINH) {
+			ipmi_threshold_event_set(state, IPMI_LOWER_NON_CRITICAL,
+				IPMI_GOING_HIGH, IPMI_DEASSERTION);
+		} else {
+			return 1;
+		}
+	}
+
+	if (a_mask & SAHPI_ES_LOWER_MAJOR) {
+		if (a_sup & OHOI_THS_LMAJL) {
+			ipmi_threshold_event_set(state, IPMI_LOWER_CRITICAL,
+				IPMI_GOING_LOW, IPMI_ASSERTION);
+		} else if (d_sup & OHOI_THS_LMAJH) {
+			ipmi_threshold_event_set(state, IPMI_LOWER_CRITICAL,
+				IPMI_GOING_HIGH, IPMI_DEASSERTION);
+		} else {
+			return 1;
+		}
+	}
+
+	if (a_mask & SAHPI_ES_LOWER_CRIT) {
+		if (a_sup & OHOI_THS_LCRTL) {
+			ipmi_threshold_event_set(state,
+				IPMI_LOWER_NON_RECOVERABLE, IPMI_GOING_LOW,
+				IPMI_ASSERTION);
+		} else if (d_sup & OHOI_THS_LCRTH) {
+			ipmi_threshold_event_set(state,
+				IPMI_LOWER_NON_RECOVERABLE, IPMI_GOING_HIGH,
+				IPMI_DEASSERTION);
+		} else {
+			return 1;
+		}
+	}
+
+
+	if (a_mask & SAHPI_ES_UPPER_MINOR) {
+		if (a_sup & OHOI_THS_UMINH) {
+			ipmi_threshold_event_set(state, IPMI_GOING_HIGH,
+				IPMI_UPPER_NON_CRITICAL, IPMI_ASSERTION);
+		} else if (d_sup & OHOI_THS_UMINL) {
+			ipmi_threshold_event_set(state, IPMI_GOING_LOW,
+				IPMI_UPPER_NON_CRITICAL, IPMI_DEASSERTION);
+		} else {
+			return 1;
+		}
+	}
+
+	if (a_mask & SAHPI_ES_UPPER_MAJOR) {
+		if (a_sup & OHOI_THS_UMAJH) {
+			ipmi_threshold_event_set(state, IPMI_UPPER_CRITICAL,
+				IPMI_GOING_HIGH, IPMI_ASSERTION);
+		} else if (d_sup & OHOI_THS_UMAJL) {
+			ipmi_threshold_event_set(state, IPMI_UPPER_CRITICAL,
+				IPMI_GOING_LOW, IPMI_DEASSERTION);
+		} else {
+			return 1;
+		}
+	}
+
+	if (a_mask & SAHPI_ES_UPPER_CRIT) {
+		if (a_sup & OHOI_THS_UCRTH) {
+			ipmi_threshold_event_set(state,
+				IPMI_UPPER_NON_RECOVERABLE, IPMI_GOING_HIGH,
+				IPMI_ASSERTION);
+		} else if (d_sup & OHOI_THS_UCRTL) {
+			ipmi_threshold_event_set(state, IPMI_GOING_LOW,
+				IPMI_UPPER_NON_RECOVERABLE, IPMI_DEASSERTION);
+		} else {
+			return 1;
+		}
+	}
+
+		// set deassertion mask
+	if (d_mask & SAHPI_ES_LOWER_MINOR) {
+		if (d_sup & OHOI_THS_LMINL) {
+			ipmi_threshold_event_set(state,
+				IPMI_LOWER_NON_CRITICAL, IPMI_GOING_LOW,
+				IPMI_DEASSERTION);
+		} else if (a_sup & OHOI_THS_LMINH) {
+			ipmi_threshold_event_set(state,
+				IPMI_LOWER_NON_CRITICAL, IPMI_GOING_HIGH,
+				IPMI_ASSERTION);
+		} else {
+			return 1;
+		}
+	}
+
+	if (d_mask & SAHPI_ES_LOWER_MAJOR) {
+		if (d_sup & OHOI_THS_LMAJL) {
+			ipmi_threshold_event_set(state,
+				IPMI_LOWER_CRITICAL, IPMI_GOING_LOW,
+				IPMI_DEASSERTION);
+		} else if (a_sup & OHOI_THS_LMAJH) {
+			ipmi_threshold_event_set(state, IPMI_GOING_HIGH,
+				IPMI_LOWER_CRITICAL, IPMI_ASSERTION);
+		} else {
+			return 1;
+		}
+	}
+
+	if (d_mask & SAHPI_ES_LOWER_CRIT) {
+		if (d_sup & OHOI_THS_LCRTL) {
+			ipmi_threshold_event_set(state,
+				IPMI_LOWER_NON_RECOVERABLE, IPMI_GOING_LOW,
+				IPMI_DEASSERTION);
+		} else if (a_sup & OHOI_THS_LCRTH) {
+			ipmi_threshold_event_set(state,
+				IPMI_LOWER_NON_RECOVERABLE, IPMI_GOING_HIGH,
+				IPMI_ASSERTION);
+		} else {
+			return 1;
+		}
+	}
+
+
+	if (d_mask & SAHPI_ES_UPPER_MINOR) {
+		if (d_sup & OHOI_THS_UMINH) {
+			ipmi_threshold_event_set(state,
+				IPMI_UPPER_NON_CRITICAL, IPMI_GOING_HIGH,
+				IPMI_DEASSERTION);
+		} else if (a_sup & OHOI_THS_UMINL) {
+			ipmi_threshold_event_set(state,
+				IPMI_UPPER_NON_CRITICAL, IPMI_GOING_LOW,
+				IPMI_ASSERTION);
+		} else {
+			return 1;
+		}
+	}
+
+	if (d_mask & SAHPI_ES_UPPER_MAJOR) {
+		if (d_sup & OHOI_THS_UMAJH) {
+			ipmi_threshold_event_set(state,
+				IPMI_UPPER_CRITICAL, IPMI_GOING_HIGH,
+				IPMI_DEASSERTION);
+		} else if (a_sup & OHOI_THS_UMAJL) {
+			ipmi_threshold_event_set(state, IPMI_GOING_LOW,
+				IPMI_UPPER_CRITICAL, IPMI_ASSERTION);
+		} else {
+			return 1;
+		}
+	}
+
+	if (d_mask & SAHPI_ES_UPPER_CRIT) {
+		if (d_sup & OHOI_THS_UCRTH) {
+			ipmi_threshold_event_set(state,
+				IPMI_UPPER_NON_RECOVERABLE, IPMI_GOING_HIGH,
+				IPMI_DEASSERTION);
+		} else if (a_sup & OHOI_THS_UCRTL) {
+			ipmi_threshold_event_set(state,
+				IPMI_UPPER_NON_RECOVERABLE, IPMI_GOING_LOW,
+				IPMI_ASSERTION);
+		} else {
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+				
 static void set_sensor_event_enable_masks(ipmi_sensor_t      *sensor,
                                     void               *cb_data)
 {
 	struct ohoi_sensor_event_enable_masks *enable_data;
 	int			rv;
-	ipmi_event_state_t	info;
+	ipmi_event_state_t	*info;
 
-        enable_data = cb_data;
+	enable_data = cb_data;
 
 	if (ignore_sensor(sensor)) {
 		dbg("sensor is ignored");
@@ -677,37 +1120,42 @@ static void set_sensor_event_enable_masks(ipmi_sensor_t      *sensor,
 		enable_data->rvalue = SA_ERR_HPI_NOT_PRESENT;
 		return;
 	}
-	ipmi_event_state_init(&info);
-	if (enable_data->enable == SAHPI_TRUE)
-		ipmi_event_state_set_events_enabled(&info, 1);
-	else 
-		ipmi_event_state_set_events_enabled(&info, 0);
 
-	if (ipmi_sensor_get_event_support(sensor) == IPMI_EVENT_SUPPORT_PER_STATE) {
-		int i;
-
-		for (i = 0; i < 32 ; i++) {
-			if (enable_data->assert & 1<<i ) 
-				ipmi_discrete_event_set(&info, i, IPMI_ASSERTION);
-			else 
-				ipmi_discrete_event_clear(&info, i, IPMI_ASSERTION);
-
-			if (enable_data->deassert & 1<<i ) 
-				ipmi_discrete_event_set(&info, i, IPMI_DEASSERTION);
-			else
-				ipmi_discrete_event_clear(&info, i, IPMI_DEASSERTION);
-		}
+	info = malloc(ipmi_event_state_size());
+	if (info == NULL) {
+		dbg("out of memory");
+		enable_data->done = 1;
+		enable_data->rvalue = SA_ERR_HPI_OUT_OF_MEMORY;
+		return;
+	}	
+	ipmi_event_state_init(info);
+	ipmi_event_state_set_events_enabled(info,
+		(enable_data->enable == SAHPI_TRUE) ? 1 : 0);
+	if (insert_events_to_ipmi_event_state(sensor, info,
+			enable_data->assert, enable_data->deassert,
+			enable_data->a_support, enable_data->d_support)) {
+		dbg("Attempt to set not supported event 0x%x/0x%x",
+			enable_data->assert, enable_data->deassert);
+		enable_data->done = 1;
+		enable_data->rvalue = SA_ERR_HPI_INVALID_DATA;
+		free(info);
+		return;
 	}
-	
-	rv = ipmi_sensor_events_enable_set(sensor, &info, set_data,
+
+	rv = ipmi_sensor_set_event_enables(sensor, info, set_data,
 					   &enable_data->done);
 	if (rv) {
 		dbg("Unable to sensor event enable: 0x%x\n", rv);
 		enable_data->done = 1;
-		enable_data->rvalue = SA_ERR_HPI_INTERNAL_ERROR;
+		if (rv == EINVAL) {
+			// invalid event in mask for this sensor */
+			enable_data->rvalue = SA_ERR_HPI_INVALID_DATA;
+		} else {	
+			enable_data->rvalue = SA_ERR_HPI_INTERNAL_ERROR;
+		}
 	}
+	free(info);
 }
-
 
 int ohoi_get_sensor_event_enable_masks(ipmi_sensor_id_t sensor_id,
 				       SaHpiBoolT   *enable,
@@ -745,10 +1193,12 @@ int ohoi_get_sensor_event_enable_masks(ipmi_sensor_id_t sensor_id,
 }
 
 int ohoi_set_sensor_event_enable_masks(ipmi_sensor_id_t sensor_id,
-			               SaHpiBoolT enable,
-			 	       SaHpiEventStateT  assert,
-				       SaHpiEventStateT  deassert,
-				       void *cb_data)
+					SaHpiBoolT enable,
+					SaHpiEventStateT assert,
+					SaHpiEventStateT deassert,
+					unsigned int	 a_supported,
+					unsigned int	 d_supported, 
+					void *cb_data)
 {
 
         int rv;
@@ -760,14 +1210,16 @@ int ohoi_set_sensor_event_enable_masks(ipmi_sensor_id_t sensor_id,
 	enable_data.enable = enable;
 	enable_data.assert = assert;
 	enable_data.deassert = deassert;
-        rv = ipmi_sensor_pointer_cb(sensor_id,
+	enable_data.a_support = a_supported;
+	enable_data.d_support = d_supported;
+	rv = ipmi_sensor_pointer_cb(sensor_id,
 				    set_sensor_event_enable_masks,
 		  		    &enable_data);
 	if (rv) {
 		dbg("Unable to convert sensor_id to pointer");
-                return SA_ERR_HPI_INVALID_CMD;
-        }       
-        rv = ohoi_loop(&enable_data.done, ipmi_handler);      
+		return SA_ERR_HPI_INVALID_CMD;
+	}       
+	rv = ohoi_loop(&enable_data.done, ipmi_handler);      
 	if (rv)
 		return rv;
 	

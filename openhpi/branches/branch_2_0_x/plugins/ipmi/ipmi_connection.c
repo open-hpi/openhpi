@@ -20,6 +20,51 @@
 
 #include "ipmi.h"
 
+static int init_domain_handlers(ipmi_domain_t	*domain,
+                     void 		*user_data)
+{
+
+        
+	struct oh_handler_state *handler = user_data;
+	char	dmn_name[IPMI_DOMAIN_NAME_LEN];
+	int rv;
+	int ret = 0;
+
+	rv = ipmi_domain_enable_events(domain);
+	if (rv) {
+		fprintf(stderr, "ipmi_domain_enable_events return error %d\n", rv);
+		if (ret == 0) {
+			ret = rv;
+		}
+	}
+
+
+	rv = ipmi_domain_add_entity_update_handler(domain, ohoi_entity_event, 
+			 			  handler);
+	if (rv) {
+		fprintf(stderr, "ipmi_domain_add_entity_update_handler error %d\n", rv);
+		if (ret == 0) {
+			ret = rv;
+		}
+	}
+
+	rv = ipmi_domain_add_mc_updated_handler(domain, ohoi_mc_event, handler);
+	if (rv)  {
+		fprintf(stderr,
+			"ipmi_domain_register_mc_update_handler return error: %d\n", rv);
+		if (ret == 0) {
+			ret = rv;
+		}
+	}
+	if (ret) {
+		ipmi_domain_get_name(domain, dmn_name, IPMI_DOMAIN_NAME_LEN);
+		fprintf(stderr, "Could not initialize ipmi domain %s\n", dmn_name);
+	}
+	return ret;
+	
+}
+
+
 void ipmi_connection_handler (ipmi_domain_t	*domain,
 			      int		err,
 			      unsigned int	conn_num,
@@ -27,11 +72,11 @@ void ipmi_connection_handler (ipmi_domain_t	*domain,
 			      int		still_connected,
 			      void		*cb_data)
 {
-  	struct ohoi_handler	*ipmi_handler = cb_data;
+	struct oh_handler_state *handler = cb_data;
+	struct ohoi_handler	*ipmi_handler = handler->data;
 
-	dbg("connection handler called");
+	dbg("connection handler called. Error code: %d", err);
 
-	dbg("Domain error code: %d", err);
 
 	if (err) {
 	  	dbg("Failed to connect to IPMI domain");
@@ -44,4 +89,19 @@ void ipmi_connection_handler (ipmi_domain_t	*domain,
 		dbg("All IPMI connections down\n");
 		ipmi_handler->connected = 0;
 	}
+	if (ipmi_handler->connected == 0) {
+		return;
+	}
+	if (init_domain_handlers(domain, cb_data)) {
+		/* we can do something better */
+		ipmi_handler->connected = 0;
+	}
+	if (ipmi_handler->connected && ipmi_handler->openipmi_scan_time) {
+		ipmi_domain_set_sel_rescan_time(domain,
+					ipmi_handler->openipmi_scan_time);
+	}
 }
+
+
+
+

@@ -70,10 +70,11 @@ static void add_control_event_rdr(ipmi_control_t		*control,
 				 SaHpiEntityPathT	parent_ep,
 				 SaHpiResourceIdT	res_id)
 {
-	char	name[32];
-	//SaHpiEntityPathT rdr_ep;
+	char		name[SAHPI_MAX_TEXT_BUFFER_LENGTH];
+	SaHpiTextTypeT	data_type;
+	int		name_len;
 
-	memset(name,'\0',32);
+	memset(name, '\0' ,SAHPI_MAX_TEXT_BUFFER_LENGTH);
 	rdr->RecordId = 0;
 	rdr->RdrType = SAHPI_CTRL_RDR;
 	//rdr->Entity.Entry[0].EntityType = (SaHpiEntityTypeT)id;
@@ -89,12 +90,17 @@ static void add_control_event_rdr(ipmi_control_t		*control,
 
 	add_control_event_control_rec(control, &rdr->RdrTypeUnion.CtrlRec);
 
-	ipmi_control_get_id(control, name, 32);
-	rdr->IdString.DataType = SAHPI_TL_TYPE_ASCII6;
+	ipmi_control_get_id(control, name, SAHPI_MAX_TEXT_BUFFER_LENGTH);
+	name_len = ipmi_control_get_id_length(control);
+	if (name_len >= SAHPI_MAX_TEXT_BUFFER_LENGTH)
+		name_len = SAHPI_MAX_TEXT_BUFFER_LENGTH - 1;
+	data_type = convert_to_hpi_data_type(ipmi_control_get_id_type(control));
+	rdr->IdString.DataType = data_type;
 	rdr->IdString.Language = SAHPI_LANG_ENGLISH;
-	rdr->IdString.DataLength = 32;
+	rdr->IdString.DataLength = name_len;
 
-	memcpy(rdr->IdString.Data,name, strlen(name) + 1);
+	memset(rdr->IdString.Data, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);
+	memcpy(rdr->IdString.Data, name, name_len);
 }
 
 static void add_control_event(ipmi_entity_t	*ent,
@@ -139,6 +145,7 @@ static void add_control_event(ipmi_entity_t	*ent,
 	oh_add_rdr(handler->rptcache, rid, &e->u.rdr_event.rdr, control_id, 1);
 }
 
+
 /*
  * add_alarm_rdr
  */
@@ -146,29 +153,39 @@ static void add_alarm_rdr(char 				*name,
 			  int 				num,
 			  SaHpiResourceIdT 		rptid,
 			  SaHpiEntityPathT 		parent_ent,
+			  SaHpiCtrlDefaultModeT		*def_mode,
+			  SaHpiBoolT			wo,
 			  ipmi_control_id_t 		*control_id,
 			  struct oh_handler_state 	*handler)
 {
 	SaHpiRdrT               rdr_temp;
 	SaHpiRdrT               *rdr;
+	int			name_len;
  
 	rdr = &rdr_temp;
         rdr->RecordId = 0;
         rdr->RdrType = SAHPI_CTRL_RDR;
         rdr->Entity = parent_ent;
  
-        rdr->IdString.DataType = SAHPI_TL_TYPE_ASCII6;
+	name_len = strlen(name);
+	if (name_len >= SAHPI_MAX_TEXT_BUFFER_LENGTH)
+		name_len = SAHPI_MAX_TEXT_BUFFER_LENGTH - 1;
+        rdr->IdString.DataType = SAHPI_TL_TYPE_TEXT;
         rdr->IdString.Language = SAHPI_LANG_ENGLISH;
         rdr->IdString.DataLength = strlen(name);
+        memset(rdr->IdString.Data, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);
         memcpy(rdr->IdString.Data, name, strlen(name));
 
         rdr->RdrTypeUnion.CtrlRec.Num   = num;
         rdr->RdrTypeUnion.CtrlRec.Type         = SAHPI_CTRL_TYPE_DIGITAL;
+        rdr->RdrTypeUnion.CtrlRec.TypeUnion.Digital.Default =
+						SAHPI_CTRL_STATE_OFF;
         rdr->RdrTypeUnion.CtrlRec.OutputType   = SAHPI_CTRL_LED; 
         rdr->RdrTypeUnion.CtrlRec.Oem          = OEM_ALARM_BASE + num;
 	/* FIXME: OpenIPMI does not provide a reading */
-        rdr->RdrTypeUnion.CtrlRec.WriteOnly    = SAHPI_FALSE;
-
+        rdr->RdrTypeUnion.CtrlRec.WriteOnly    = wo;
+	rdr->RdrTypeUnion.CtrlRec.DefaultMode.Mode = def_mode->Mode;
+	rdr->RdrTypeUnion.CtrlRec.DefaultMode.ReadOnly = def_mode->ReadOnly;
         oh_add_rdr(handler->rptcache, rptid, rdr, control_id, 1);
 	dbg("add_alarm_rdr: %s\n",name); 
 }
@@ -183,23 +200,95 @@ static int add_alarm_rdrs(
 {
 	SaHpiResourceIdT   	rid;
         SaHpiEntityPathT        ent;
+	SaHpiCtrlDefaultModeT default_mode;
+	SaHpiBoolT wo;
 	static ipmi_control_id_t   alarm_control_id;  /*save this */
 	static int alarms_done = 0;
+	
 
 	if (alarms_done) return 0;  /* only do alarms the first time */
 	rid = rpt->ResourceId;
 	ent = rpt->ResourceEntity;
 
 	alarm_control_id = ipmi_control_convert_to_id(control);
-
+	wo = (ipmi_control_is_readable(control) == 0);
+	default_mode.ReadOnly = (ipmi_control_is_settable(control) != 0);
+	default_mode.Mode = SAHPI_CTRL_MODE_AUTO;
 	rpt->ResourceCapabilities |=  SAHPI_CAPABILITY_RDR;
 	rpt->ResourceCapabilities |=  SAHPI_CAPABILITY_CONTROL;
 
-	add_alarm_rdr("Power Alarm LED",   0,rid,ent,&alarm_control_id,handler);
-	add_alarm_rdr("Critical Alarm LED",1,rid,ent,&alarm_control_id,handler);
-	add_alarm_rdr("Major Alarm LED",   2,rid,ent,&alarm_control_id,handler);
-	add_alarm_rdr("Minor Alarm LED",   3,rid,ent,&alarm_control_id,handler);
+	add_alarm_rdr("Power Alarm LED", 0, rid, ent,
+		&default_mode, wo, &alarm_control_id, handler);
+	add_alarm_rdr("Critical Alarm LED", 1, rid, ent,
+		&default_mode, wo, &alarm_control_id, handler);
+	add_alarm_rdr("Major Alarm LED", 2, rid, ent,
+		&default_mode, wo, &alarm_control_id, handler);
+	add_alarm_rdr("Minor Alarm LED",   3, rid, ent,
+		&default_mode, wo, &alarm_control_id, handler);
 	alarms_done = 1;
+	return 0;
+}
+
+static void
+address_control(ipmi_control_t *control,
+		int		err,
+		unsigned char	*val,
+		int		length,
+		void		*cb_data)
+{
+	int i;
+	int *location = cb_data;
+	
+	if (control == NULL) {
+		dbg("Invalid control?");
+		return;
+	}
+	
+
+	for (i=0; i<length; i++) {
+		//dbg("Address control: 0x%2.2x", val[i]);
+		dbg("Address control: %d", val[i]);
+	}
+	*location = val[1];
+	dbg("Location %d", *location);
+
+}
+
+	
+static int
+address_control_get(ipmi_control_t			*control,
+			 struct oh_handler_state	*handler,
+			 ipmi_entity_t			*entity,
+			SaHpiRptEntryT	*rpt)
+{
+	int rv;
+	int location;
+	//SaHpiEntityPathT	entity_ep;
+	struct ohoi_handler *ipmi_handler = handler->data;
+
+	g_static_rec_mutex_lock(&ipmi_handler->ohoih_lock);	
+
+	rv = ipmi_control_identifier_get_val(control, address_control, &location);
+
+	if(rv) {
+		dbg("Error getting identifier control val");
+		return -1;
+	}
+
+	ohoi_loop(&location, ipmi_handler);
+
+	//rpt->ResourceEntity.Entry[0].EntityLocation = 
+		//ipmi_entity_get_entity_instance(entity) - 96 ;
+	//rpt->ResourceEntity.Entry[1].EntityLocation = location;
+
+				//rpt.ResourceId =
+					//oh_uid_from_entity_path(&rpt.ResourceEntity);
+				//dbg("Control New ResourceId: %d", rpt.ResourceId);
+	//rv = oh_add_resource(handler->rptcache, *rpt, NULL, 1);
+	//if (rv) {
+	      	//dbg("oh_add_resource failed for %d = %s\n", rpt->ResourceId, oh_lookup_error(rv));
+	//}
+	g_static_rec_mutex_unlock(&ipmi_handler->ohoih_lock);	
 	return 0;
 }
 
@@ -251,6 +340,14 @@ void ohoi_control_event(enum ipmi_update_e op,
                                 break;
 			case IPMI_CONTROL_ALARM:
 				rv = add_alarm_rdrs(handler,rpt_entry,control);
+				break;
+			case IPMI_CONTROL_IDENTIFIER:
+				dbg("Address control for AdvancedTCA entity %d",
+						rpt_entry->ResourceId);
+				rv = address_control_get(control,handler, ent, rpt_entry);
+				if (rv)
+					dbg("address_control_get failed");
+
 				break;
                         default:
                                 dbg("Other control(%d) is storaged in RDR", ctrl_type);
