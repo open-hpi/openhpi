@@ -92,7 +92,6 @@ cIpmiCon::AddOutstanding( cIpmiRequest *r )
 
   r->m_seq = m_current_seq;
 
-  assert( m_outstanding[m_current_seq] == 0 );
   m_outstanding[m_current_seq] = r;
   m_num_outstanding++;
 

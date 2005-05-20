@@ -202,7 +202,7 @@ cIpmiInventoryAreaMultiRecord::ParseFruArea( const unsigned char *data, unsigned
             return SA_ERR_HPI_INVALID_DATA;
        }
 
-       if ( record_type == eIpmiInventoryMultiRecordTypeOem )
+       if ( record_type >= eIpmiInventoryMultiRecordTypeOemFirst )
        {
             iif = new cIpmiInventoryField( m_area_header.AreaId, m_field_id++, SAHPI_IDR_FIELDTYPE_CUSTOM);
 

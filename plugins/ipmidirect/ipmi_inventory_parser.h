@@ -45,7 +45,8 @@ enum tIpmiInventoryRecordType
 
 const char *IpmiInventoryRecordTypeToString( tIpmiInventoryRecordType );
 
-#define eIpmiInventoryMultiRecordTypeOem    0xc0
+#define eIpmiInventoryMultiRecordTypeOemFirst   0xc0
+#define eIpmiInventoryMultiRecordTypeOemLast    0xff
 
 class cIpmiInventoryField
 {
