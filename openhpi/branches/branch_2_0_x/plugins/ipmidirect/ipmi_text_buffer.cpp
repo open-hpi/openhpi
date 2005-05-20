@@ -172,7 +172,8 @@ cIpmiTextBuffer::AsciiToBcdPlus( const char *s )
                  break;
 
 	    case 4:
-                 *p++ |= table_4_bit[(unsigned int)*s++] << 4;
+                 *p |= table_4_bit[(unsigned int)*s++] << 4;
+                 p++;
                  bit = 0;
                  break;
           }
@@ -253,14 +254,16 @@ cIpmiTextBuffer::AsciiToAscii6( const char *s )
                  break;
 
 	    case 4:
-                 *p++ |= table_4_bit[(unsigned int)*s] << 4;
+                 *p |= table_4_bit[(unsigned int)*s] << 4;
+                 p++;
                  *p = (table_4_bit[(unsigned int)*s++] >> 4) & 0x3;
 		 m_buffer.DataLength++;
                  bit = 2;
                  break;
 
 	    case 6:
-                 *p++ |= table_4_bit[(unsigned int)*s] << 6;
+                 *p |= table_4_bit[(unsigned int)*s] << 6;
+                 p++;
                  *p = (table_4_bit[(unsigned int)*s++] >> 2) & 0xf;
 		 m_buffer.DataLength++;
                  bit = 4;

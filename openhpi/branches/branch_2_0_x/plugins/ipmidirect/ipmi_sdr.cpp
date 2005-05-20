@@ -115,7 +115,7 @@ cIpmiSdr::DumpFullSensor( cIpmiLog &dump ) const
   if ( !strcmp( IpmiEntityIdToString( id ), "Invalid" ) )
        sprintf( str, "0x%02x", id );
   else
-       sprintf( str, "dIpmiEntityId%s", IpmiEntityIdToString( id ) );
+       sprintf( str, "%s", IpmiEntityIdToString( id ) );
 
   dump.Entry( "EntityId" ) << str << ";\n";
   dump.Entry( "EntityInstance" ) << (int)m_data[9] << ";\n";
@@ -131,23 +131,20 @@ cIpmiSdr::DumpFullSensor( cIpmiLog &dump ) const
   dump.Entry( "SupportsAutoRearm" ) << Bit( m_data[11], 6 ) << ";\n";
 
   tIpmiHysteresisSupport hs = (tIpmiHysteresisSupport)((m_data[11] >> 4) & 3);
-  dump.Entry( "HysteresisSupport" ) << "dIpmiHysteresisSupport" 
-       << IpmiHysteresisSupportToString( hs ) << ";\n";
+  dump.Entry( "HysteresisSupport" ) << IpmiHysteresisSupportToString( hs ) << ";\n";
 
   tIpmiThresholdAccessSuport ts = (tIpmiThresholdAccessSuport)((m_data[11] >> 2) & 3);
-  dump.Entry( "ThresholdAccess" ) << "dIpmiThresholdAccessSupport" 
-       << IpmiThresholdAccessSupportToString( ts ) << ";\n";
+  dump.Entry( "ThresholdAccess" ) << IpmiThresholdAccessSupportToString( ts ) << ";\n";
 
   tIpmiEventSupport es = (tIpmiEventSupport)(m_data[11] & 3);
-  dump.Entry( "EventSupport" ) << "dIpmiEventSupport"
-       << IpmiEventSupportToString( es ) <<  ";\n";
+  dump.Entry( "EventSupport" ) << IpmiEventSupportToString( es ) <<  ";\n";
 
   tIpmiSensorType sensor_type = (tIpmiSensorType)m_data[12];
 
   if ( !strcmp( IpmiSensorTypeToString( sensor_type ), "Invalid" ) )
        sprintf( str, "0x%02x", sensor_type );
   else
-       sprintf( str, "dIpmiSensorType%s", IpmiSensorTypeToString( sensor_type ) );
+       sprintf( str, "%s", IpmiSensorTypeToString( sensor_type ) );
 
   dump.Entry( "SensorType" ) << str << ";\n";
 
@@ -156,7 +153,7 @@ cIpmiSdr::DumpFullSensor( cIpmiLog &dump ) const
   if ( !strcmp( IpmiEventReadingTypeToString( reading_type ), "Invalid" ) )
        sprintf( str, "0x%02x", reading_type );
   else
-       sprintf( str, "dIpmiEventReadingType%s", IpmiEventReadingTypeToString( reading_type ) );
+       sprintf( str, "%s", IpmiEventReadingTypeToString( reading_type ) );
 
   dump.Entry( "EventReadingType" ) << str << ";\n";
 
@@ -204,26 +201,21 @@ cIpmiSdr::DumpFullSensor( cIpmiLog &dump ) const
        dump.Entry( "ReadableThresholdsMask" ) << str << ";\n";
 
        tIpmiRateUnit ru = (tIpmiRateUnit)((m_data[20] >> 3) & 7);
-       dump.Entry( "RateUnit" ) << "dIpmRateUnit" << IpmiRateUnitToString( ru ) << ";\n";
+       dump.Entry( "RateUnit" ) << IpmiRateUnitToString( ru ) << ";\n";
 
        tIpmiModifierUnit mu = (tIpmiModifierUnit)( (m_data[20] >> 1) & 3);
-       dump.Entry( "ModifierUnit" ) << "dIpmiModifierUnit"
-            << IpmiModifierUnitToString( mu ) << ";\n";
+       dump.Entry( "ModifierUnit" ) << IpmiModifierUnitToString( mu ) << ";\n";
        dump.Entry( "Percentage" ) << ((m_data[20] & 1) == 1) << ";\n";
 
-       dump.Entry( "BaseUnit" ) << "dIpmiSensorUnit"
-            << IpmiUnitTypeToString( (tIpmiUnitType)m_data[21] ) << ";\n";
-       dump.Entry( "ModifierUnit2" ) << "dIpmiSensorUnit"
-            << IpmiUnitTypeToString( (tIpmiUnitType)m_data[22] ) << ";\n";
+       dump.Entry( "BaseUnit" ) << IpmiUnitTypeToString( (tIpmiUnitType)m_data[21] ) << ";\n";
+       dump.Entry( "ModifierUnit2" ) << IpmiUnitTypeToString( (tIpmiUnitType)m_data[22] ) << ";\n";
 
        cIpmiSensorFactors sf;
        sf.GetDataFromSdr( this );
 
-       dump.Entry( "AnalogDataFormat" ) << "dIpmiAnalogDataFormat"
-            << IpmiAnalogeDataFormatToString( sf.AnalogDataFormat() ) << ";\n";
+       dump.Entry( "AnalogDataFormat" ) << IpmiAnalogeDataFormatToString( sf.AnalogDataFormat() ) << ";\n";
 
-       dump.Entry( "Linearization" ) << "dIpmiLinearization"
-            << IpmiLinearizationToString( sf.Linearization() ) << ";\n";
+       dump.Entry( "Linearization" ) << IpmiLinearizationToString( sf.Linearization() ) << ";\n";
 
        dump.Entry( "M" ) << sf.M() << ";\n";
        dump.Entry( "Tolerance" ) << sf.Tolerance() << ";\n";
@@ -320,7 +312,7 @@ cIpmiSdr::DumpFruDeviceLocator( cIpmiLog &dump ) const
   if ( !strcmp( IpmiEntityIdToString( id ), "Invalid" ) )
        sprintf( str, "0x%02x", id );
   else
-       sprintf( str, "dIpmiEntityId%s", IpmiEntityIdToString( id ) );
+       sprintf( str, "%s", IpmiEntityIdToString( id ) );
 
   dump.Entry( "EntityId" ) << str << ";\n";
   dump.Entry( "EntityInstance" ) << (int)m_data[13] << ";\n";
@@ -361,7 +353,7 @@ cIpmiSdr::DumpMcDeviceLocator( cIpmiLog &dump ) const
   if ( !strcmp( IpmiEntityIdToString( id ), "Invalid" ) )
        sprintf( str, "0x%02x", id );
   else
-       sprintf( str, "dIpmiEntityId%s", IpmiEntityIdToString( id ) );
+       sprintf( str, "%s", IpmiEntityIdToString( id ) );
 
   dump.Entry( "EntityId" ) << str << ";\n";
   dump.Entry( "EntityInstance" ) << (int)m_data[13] << ";\n";
@@ -949,13 +941,13 @@ cIpmiSdrs::CreateFullSensorRecords( cIpmiSdr *sdr )
        int base  = 0;
        int start = 0;
 
-       if ( sdr->m_data[23] & 0x30 == 0 )
+       if (( sdr->m_data[23] & 0x30 ) == 0 )
           {
             // numeric
             base  = 10;
             start = '0';
           }
-       else if ( sdr->m_data[23] & 0x30 == 0x10 )
+       else if (( sdr->m_data[23] & 0x30 ) == 0x10 )
           {
             // alpha
             base  = 26;

@@ -395,7 +395,6 @@ cIpmiMcVendor::CreateResource( cIpmiDomain *domain, cIpmiMc *mc,
 {
   // create a new resource
   cIpmiResource *res = new cIpmiResource( mc, fru_id );
-  assert( res );
 
   SaHpiEntityTypeT     type;
   SaHpiEntityLocationT instance;

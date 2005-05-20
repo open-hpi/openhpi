@@ -223,7 +223,7 @@ cIpmiSensorDiscrete::CreateEvent( cIpmiEvent *event, SaHpiEventT &h )
       }
       if ((event->m_data[11] & 0xf0) != 0xf0)
       {
-          SaHpiEventStateT evt_sec_state = (event->m_data[11]>> 4) & 0x0f;
+          SaHpiEventStateT evt_sec_state = (1 << ((event->m_data[11]>> 4) & 0x0f));
           switch (evt_sec_state)
           {
           case SAHPI_ES_OK:
@@ -277,7 +277,7 @@ cIpmiSensorDiscrete::CreateEvent( cIpmiEvent *event, SaHpiEventT &h )
   }
   else if ( type == eIpmiEventData3 )
   {
-       se.SensorSpecific = (SaHpiUint32T)((event->m_data[12] << 8) & 0xff00);
+       se.SensorSpecific |= (SaHpiUint32T)((event->m_data[12] << 8) & 0xff00);
        optional_data |= SAHPI_SOD_SENSOR_SPECIFIC;
   }
 

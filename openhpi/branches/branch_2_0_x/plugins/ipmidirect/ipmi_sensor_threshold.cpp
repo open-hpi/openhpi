@@ -87,34 +87,34 @@ IpmiThresholdEventMaskToString( unsigned short em, char *str )
   *str = 0;
 
   if ( em & dIpmiEventLowerNonCriticalLow )
-       AddOrStr( str, "dIpmiEventLowerNonCriticalLow" );
+       AddOrStr( str, "LowerNonCriticalLow" );
 
   if ( em & dIpmiEventLowerNonCriticalHigh )
-       AddOrStr( str, "dIpmiEventLowerNonCriticalHigh" );
+       AddOrStr( str, "LowerNonCriticalHigh" );
 
   if ( em & dIpmiEventLowerCriticalLow )
-       AddOrStr( str, "dIpmiEventLowerCriticalLow" );
+       AddOrStr( str, "LowerCriticalLow" );
 
   if ( em & dIpmiEventLowerCriticalHigh )
-       AddOrStr( str, "dIpmiEventLowerCriticalHigh" );
+       AddOrStr( str, "LowerCriticalHigh" );
 
   if ( em & dIpmiEventLowerNonRecoverableLow )
-       AddOrStr( str, "dIpmiEventLowerNonRecoverableLow" );
+       AddOrStr( str, "LowerNonRecoverableLow" );
 
   if ( em & dIpmiEventLowerNonRecoverableHigh )
-       AddOrStr( str, "dIpmiEventLowerNonRecoverableHigh" );
+       AddOrStr( str, "LowerNonRecoverableHigh" );
 
   if ( em & dIpmiEventUpperNonCriticalLow )
-       AddOrStr( str, "dIpmiEventUpperNonCriticalLow" );
+       AddOrStr( str, "UpperNonCriticalLow" );
 
   if ( em & dIpmiEventUpperCriticalHigh )
-       AddOrStr( str, "dIpmiEventUpperCriticalHigh" );
+       AddOrStr( str, "UpperCriticalHigh" );
 
   if ( em & dIpmiEventUpperNonRecoverableLow )
-       AddOrStr( str, "dIpmiEventUpperNonRecoverableLow" );
+       AddOrStr( str, "UpperNonRecoverableLow" );
 
   if ( em & dIpmiEventUpperNonRecoverableHigh )
-       AddOrStr( str, "dIpmiEventUpperNonRecoverableHigh" );
+       AddOrStr( str, "UpperNonRecoverableHigh" );
 }
 
 
@@ -668,7 +668,7 @@ cIpmiSensorThreshold::CreateEvent( cIpmiEvent *event, SaHpiEventT &h )
   }
   else if ( type == eIpmiEventData3 )
   {
-       se.SensorSpecific = (SaHpiUint32T)((event->m_data[12] << 8) & 0xff00);
+       se.SensorSpecific |= (SaHpiUint32T)((event->m_data[12] << 8) & 0xff00);
        optional_data |= SAHPI_SOD_SENSOR_SPECIFIC;
   }
 
