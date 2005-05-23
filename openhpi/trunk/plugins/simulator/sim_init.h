@@ -31,6 +31,10 @@
 #include <sim_resources.h>
 #include <sim_sensors.h>
 #include <sim_sensor_func.h>
+#include <sim_controls.h>
+#include <sim_control_func.h>
+//#include <sim_anunciators.h>
+//#include <sim_anunciator_func.h>
 
 void *sim_open(GHashTable *handler_config);
 SaErrorT sim_discover(void *hnd);
