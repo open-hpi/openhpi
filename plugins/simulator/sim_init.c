@@ -86,6 +86,7 @@ SaErrorT sim_discover(void *hnd)
 
         build_rptcache(inst->rptcache, &root_ep);
 	sim_discover_sensors(inst->rptcache);
+	sim_discover_controls(inst->rptcache);
 		
 	rpt_entry = oh_get_resource_next(inst->rptcache, SAHPI_FIRST_ENTRY);
 
@@ -211,6 +212,8 @@ static struct oh_abi_v2 oh_sim_plugin = {
 	.set_sensor_event_enables       = sim_set_sensor_event_enable,
 	.get_sensor_event_masks         = sim_get_sensor_event_masks,
 	.set_sensor_event_masks         = sim_set_sensor_event_masks,			
+	.get_control_state		= sim_get_control_state,
+	.set_control_state		= sim_set_control_state,
 };
 
 /* removes the warning about no previous declaration */
