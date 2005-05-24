@@ -24,13 +24,13 @@
 
 /**
  * oHpiVersionGet
- * 
+ *
  * Returns the version of the library as an SaHpiUint64T.  The version
  * consists of 4 16 bit ints, MAJOR, MINOR, PATCH, and TYPE.  TYPE
  * is used to determine if this is the stand alone library or the client library.
  */
 
-SaHpiUint64T oHpiVersionGet() 
+SaHpiUint64T oHpiVersionGet()
 {
         SaHpiUint64T v = 0;
         char * version = VERSION;
@@ -62,8 +62,8 @@ SaErrorT oHpiPluginLoad(char *name)
         if (!name) {
                 dbg("Invalid parameters.");
                 return SA_ERR_HPI_INVALID_PARAMS;
-        }        
-        
+        }
+
         if (oh_load_plugin(name))
                 return SA_ERR_HPI_ERROR;
 
@@ -85,7 +85,7 @@ SaErrorT oHpiPluginUnload(char *name)
         if (!name) {
                 dbg("Invalid parameters.");
                 return SA_ERR_HPI_INVALID_PARAMS;
-        }        
+        }
 
         if (oh_unload_plugin(name))
                 return SA_ERR_HPI_ERROR;
@@ -111,7 +111,7 @@ SaErrorT oHpiPluginInfo(char *name, oHpiPluginInfoT *info)
         if (!name || !info) {
                 dbg("Invalid parameters.");
                 return SA_ERR_HPI_INVALID_PARAMS;
-        }        
+        }
 
         data_access_lock();
         p = oh_lookup_plugin(name);
@@ -145,7 +145,7 @@ SaErrorT oHpiPluginGetNext(char *name, char *next_name, int size)
         if (!next_name) {
                 dbg("Invalid parameters.");
                 return SA_ERR_HPI_INVALID_PARAMS;
-        }        
+        }
 
         if (oh_lookup_next_plugin(name, next_name, size))
                 return SA_ERR_HPI_NOT_PRESENT;
@@ -177,7 +177,7 @@ SaErrorT oHpiHandlerCreate(GHashTable *config,
                 dbg("Invalid parameters.");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
-        
+
         if (oh_initialized() != SA_OK && oh_initialize() != SA_OK) {
                 dbg("ERROR. Could not initialize the library");
                 return SA_ERR_HPI_INTERNAL_ERROR;
@@ -204,8 +204,8 @@ SaErrorT oHpiHandlerCreate(GHashTable *config,
 SaErrorT oHpiHandlerDestroy(oHpiHandlerIdT id)
 {
         if (!id)
-                return SA_ERR_HPI_INVALID_PARAMS;        
-        
+                return SA_ERR_HPI_INVALID_PARAMS;
+
         if (oh_unload_handler(id))
                 return SA_ERR_HPI_ERROR;
 
@@ -226,7 +226,7 @@ SaErrorT oHpiHandlerInfo(oHpiHandlerIdT id, oHpiHandlerInfoT *info)
         struct oh_handler *h = NULL;
 
         if (!id || !info)
-               return SA_ERR_HPI_INVALID_PARAMS;        
+               return SA_ERR_HPI_INVALID_PARAMS;
 
 	data_access_lock();
         h = oh_lookup_handler(id);
@@ -237,8 +237,9 @@ SaErrorT oHpiHandlerInfo(oHpiHandlerIdT id, oHpiHandlerInfoT *info)
 	}
 
 	strncpy(info->plugin_name, h->plugin_name, MAX_PLUGIN_NAME_LENGTH);
+        info->hnd = h->hnd;
 	data_access_unlock();
-	
+
 	return SA_OK;
 }
 
@@ -259,7 +260,7 @@ SaErrorT oHpiHandlerGetNext(oHpiHandlerIdT id, oHpiHandlerIdT *next_id)
         if (!next_id) {
                 dbg("Invalid parameters.");
                 return SA_ERR_HPI_INVALID_PARAMS;
-        }        
+        }
 
         if (oh_lookup_next_handler(id, next_id))
                 return SA_ERR_HPI_NOT_PRESENT;
@@ -280,19 +281,19 @@ SaErrorT oHpiHandlerGetNext(oHpiHandlerIdT id, oHpiHandlerIdT *next_id)
 SaErrorT oHpiGlobalParamGet(oHpiGlobalParamT *param)
 {
         struct oh_global_param p;
-        
+
         if (!param || !param->Type) {
                 dbg("Invalid parameters.");
-                return SA_ERR_HPI_INVALID_PARAMS;                
+                return SA_ERR_HPI_INVALID_PARAMS;
         }
-        
+
         p.type = param->Type;
-        
+
         if (oh_get_global_param(&p))
                 return SA_ERR_HPI_UNKNOWN;
-                
+
         memcpy(&param->u, &p.u, sizeof(oh_global_param_union));
-        
+
         return SA_OK;
 }
 
@@ -308,17 +309,17 @@ SaErrorT oHpiGlobalParamGet(oHpiGlobalParamT *param)
 SaErrorT oHpiGlobalParamSet(oHpiGlobalParamT *param)
 {
         struct oh_global_param p;
-        
+
         if (!param || !param->Type) {
                 dbg("Invalid parameters.");
-                return SA_ERR_HPI_INVALID_PARAMS;                
+                return SA_ERR_HPI_INVALID_PARAMS;
         }
-        
+
         p.type = param->Type;
         memcpy(&p.u, &param->u, sizeof(oh_global_param_union));
-                
+
         if (oh_set_global_param(&p))
                 return SA_ERR_HPI_ERROR;
-                
+
         return SA_OK;
 }
