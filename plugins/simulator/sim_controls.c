@@ -171,7 +171,7 @@ struct sim_controls sim_control_rdrs[] = {
                 },
                 .RdrTypeUnion = {
                         .CtrlRec = {
-                                .Num = 7,
+                                .Num = 1,
                                 .OutputType = SAHPI_CTRL_LED,
                                 .Type = SAHPI_CTRL_TYPE_DIGITAL,
                                 .TypeUnion = {
@@ -197,7 +197,7 @@ struct sim_controls sim_control_rdrs[] = {
                 },
                 .RdrTypeUnion = {
                         .CtrlRec = {
-                                .Num = 9,
+                                .Num = 1,
                                 .OutputType = SAHPI_CTRL_FAN_SPEED,
                                 .Type = SAHPI_CTRL_TYPE_DISCRETE,
                                 .TypeUnion = {
@@ -222,7 +222,7 @@ struct sim_controls sim_control_rdrs[] = {
                 },
                 .RdrTypeUnion = {
                         .CtrlRec = {
-                                .Num = 10,
+                                .Num = 1,
                                 .OutputType = SAHPI_CTRL_FAN_SPEED,
                                 .Type = SAHPI_CTRL_TYPE_ANALOG,
                                 .TypeUnion = {
@@ -249,7 +249,7 @@ struct sim_controls sim_control_rdrs[] = {
                 },
                 .RdrTypeUnion = {
                         .CtrlRec = {
-                                .Num = 11,
+                                .Num = 1,
                                 .OutputType = SAHPI_CTRL_LCD_DISPLAY,
                                 .Type = SAHPI_CTRL_TYPE_STREAM,
                                 .TypeUnion = {
@@ -278,7 +278,7 @@ struct sim_controls sim_control_rdrs[] = {
                 },
                 .RdrTypeUnion = {
                         .CtrlRec = {
-                                .Num = 12,
+                                .Num = 1,
                                 .OutputType = SAHPI_CTRL_LCD_DISPLAY,
                                 .Type = SAHPI_CTRL_TYPE_TEXT,
                                 .TypeUnion = {
@@ -308,7 +308,7 @@ struct sim_controls sim_control_rdrs[] = {
                 },
                 .RdrTypeUnion = {
                         .CtrlRec = {
-                                .Num = 13,
+                                .Num = 1,
                                 .OutputType = SAHPI_CTRL_OEM,
                                 .Type = SAHPI_CTRL_TYPE_OEM,
                                 .TypeUnion = {
