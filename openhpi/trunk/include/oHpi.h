@@ -30,6 +30,7 @@ typedef struct {
 
 typedef struct {
         char plugin_name[MAX_PLUGIN_NAME_LENGTH];
+        void *hnd;  /* this is the pointer to the oh_handler_state */
         /* More to come later... */
 } oHpiHandlerInfoT;
 
