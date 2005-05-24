@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2003, 2004
+ * (C) Copyright IBM Corp. 2005
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -10,9 +10,11 @@
  * full licensing terms.
  *
  * Author(s):
- *      Christina Hernandez <hernanc@us.ibm.com>
+ *      Sean Dague
+ *      Christina Hernandez
  *
  */
+
 
 #include <sim_controls.h>
 #include <sim_init.h>
