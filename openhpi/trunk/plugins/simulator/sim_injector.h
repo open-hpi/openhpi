@@ -27,8 +27,9 @@ typedef enum {
 
 
 RPTable * sim_inject_get_rptcache(oHpiHandlerIdT id);
-SaErrorT sim_inject_resource(oHpiHandlerIdT id, void *data);
-SaErrorT sim_inject_rdr(oHpiHandlerIdT id, SaHpiResourceIdT resid, void *data);
-SaErrorT sim_inject_event(oHpiHandlerIdT id, void *data);
+SaErrorT sim_inject_resource(oHpiHandlerIdT id, SaHpiRptEntryT *data);
+SaErrorT sim_inject_rdr(oHpiHandlerIdT id, SaHpiResourceIdT resid,
+                        SaHpiRdrT *data);
+SaErrorT sim_inject_event(oHpiHandlerIdT id, struct oh_event *data);
 
 #endif /*__SIM_INJECTOR_H*/
