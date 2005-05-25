@@ -39,9 +39,11 @@ AM_CFLAGS		= -g @CFLAGS@
 
 pkglib_LTLIBRARIES	= libsimulator.la
 
+libsimulator_la_LIBADD	= -luuid 
 libsimulator_la_SOURCES	= sim_init.c sim_init.h \
                           sim_resources.c sim_resources.h \
 			  sim_sensors.c sim_sensors.h \
+			  sim_sensor_func.c sim_sensor_func.h \
 			  sim_injector.c sim_injector.h
 libsimulator_la_LIBADD	= -luuid
 libsimulator_la_LDFLAGS	= -version-info @HPI_LIB_VERSION@
