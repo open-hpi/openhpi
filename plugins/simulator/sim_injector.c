@@ -41,7 +41,7 @@ RPTable * sim_inject_get_rptcache(oHpiHandlerIdT id) {
 
 
 /* inject a resource */
-SaErrorT sim_inject_resource(oHpiHandlerIdT id, void *data) {
+SaErrorT sim_inject_resource(oHpiHandlerIdT id, SaHpiRptEntryT *data) {
         oh_handler_state *state;
         oHpiHandlerInfoT info;
 
@@ -56,13 +56,14 @@ SaErrorT sim_inject_resource(oHpiHandlerIdT id, void *data) {
 
         /* perform the injection */
         oh_add_resource(((oh_handler_state *)state->hnd)->rptcache,
-                        (SaHpiRptEntryT *)data, NULL, FREE_RPT_DATA);
+                        data, NULL, FREE_RPT_DATA);
         return SA_OK;
 }
 
 
 /* inject a resource */
-SaErrorT sim_inject_rdr(oHpiHandlerIdT id, SaHpiResourceIdT resid, void *data) {
+SaErrorT sim_inject_rdr(oHpiHandlerIdT id, SaHpiResourceIdT resid,
+                        SaHpiRdrT *data) {
         oh_handler_state *state;
         oHpiHandlerInfoT info;
 
@@ -77,13 +78,13 @@ SaErrorT sim_inject_rdr(oHpiHandlerIdT id, SaHpiResourceIdT resid, void *data) {
 
         /* perform the injection */
 	oh_add_rdr(((oh_handler_state *)state->hnd)->rptcache,
-                   resid, (SaHpiRdrT *)data, NULL, 0);
+                   resid, data, NULL, 0);
         return SA_OK;
 }
 
 
 /* inject an event */
-SaErrorT sim_inject_event(oHpiHandlerIdT id, void *data) {
+SaErrorT sim_inject_event(oHpiHandlerIdT id, struct oh_event *data) {
         oh_handler_state *state;
         oHpiHandlerInfoT info;
 
@@ -98,8 +99,7 @@ SaErrorT sim_inject_event(oHpiHandlerIdT id, void *data) {
 
         /* perform the injection */
         g_async_queue_push(handle->eventq_async,
-	oh_add_rdr(((oh_handler_state *)state->hnd)->eventq_async,
-                   (struct oh_event *)data);
+	oh_add_rdr(((oh_handler_state *)state->hnd)->eventq_async, data);
         return SA_OK;
 }
 
