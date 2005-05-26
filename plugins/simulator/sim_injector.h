@@ -19,17 +19,10 @@
 #define __SIM_INJECTOR_H
 
 
-typedef enum {
-        OHPI_INJECT_EVENT = 1,
-        OHPI_INJECT_RESOURCE,
-        OHPI_INJECT_RDR
-} SimInjectorTypeT;
-
-
-RPTable * sim_inject_get_rptcache(oHpiHandlerIdT id);
-SaErrorT sim_inject_resource(oHpiHandlerIdT id, SaHpiRptEntryT *data);
-SaErrorT sim_inject_rdr(oHpiHandlerIdT id, SaHpiResourceIdT resid,
+SaErrorT sim_inject_resource(struct oh_handler_state *state,
+                             SaHpiRptEntryT *data);
+SaErrorT sim_inject_rdr(struct oh_handler_state *state, SaHpiResourceIdT resid,
                         SaHpiRdrT *data);
-SaErrorT sim_inject_event(oHpiHandlerIdT id, struct oh_event *data);
+SaErrorT sim_inject_event(struct oh_handler_state *state, struct oh_event *data);
 
 #endif /*__SIM_INJECTOR_H*/

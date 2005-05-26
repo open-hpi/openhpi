@@ -21,85 +21,47 @@
 #include <sim_injector.h>
 
 
-/* get the address of the rptcache */
-RPTable * sim_inject_get_rptcache(oHpiHandlerIdT id) {
-        oh_handler_state *state;
-        oHpiHandlerInfoT info;
-        SaErrorT rc;
-
-        /* check arguments */
-        if (data == NULL) {
-                return SA_ERR_HPI_INVALID_PARAMS;
-        }
-        rc = oHpiHandlerInfo(id, &info);
-        if (rc) {
-                return SA_ERR_HPI_INVALID_PARAMS;
-        }
-
-        return ((oh_handler_state *)state.hnd)->rptcache;
-}
-
-
 /* inject a resource */
-SaErrorT sim_inject_resource(oHpiHandlerIdT id, SaHpiRptEntryT *data) {
-        oh_handler_state *state;
-        oHpiHandlerInfoT info;
+SaErrorT sim_inject_resource(struct oh_handler_state *state,
+                             SaHpiRptEntryT *data) {
 
         /* check arguments */
-        if (data == NULL) {
-                return SA_ERR_HPI_INVALID_PARAMS;
-        }
-        rc = oHpiHandlerInfo(id, &info);
-        if (rc) {
+        if (state == NULL || data == NULL) {
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
         /* perform the injection */
-        oh_add_resource(((oh_handler_state *)state->hnd)->rptcache,
-                        data, NULL, FREE_RPT_DATA);
+        oh_add_resource(state->rptcache, data, NULL, FREE_RPT_DATA);
         return SA_OK;
 }
 
 
 /* inject a resource */
-SaErrorT sim_inject_rdr(oHpiHandlerIdT id, SaHpiResourceIdT resid,
+SaErrorT sim_inject_rdr(struct oh_handler_state *state, SaHpiResourceIdT resid,
                         SaHpiRdrT *data) {
-        oh_handler_state *state;
-        oHpiHandlerInfoT info;
 
         /* check arguments */
-        if (data == NULL) {
-                return SA_ERR_HPI_INVALID_PARAMS;
-        }
-        rc = oHpiHandlerInfo(id, &info);
-        if (rc) {
+        if (state == NULL || resid = 0 || data == NULL) {
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
         /* perform the injection */
-	oh_add_rdr(((oh_handler_state *)state->hnd)->rptcache,
-                   resid, data, NULL, 0);
+	oh_add_rdr(state->rptcache, resid, data, NULL, 0);
         return SA_OK;
 }
 
 
 /* inject an event */
-SaErrorT sim_inject_event(oHpiHandlerIdT id, struct oh_event *data) {
-        oh_handler_state *state;
-        oHpiHandlerInfoT info;
+SaErrorT sim_inject_event(struct oh_handler_state *state, struct oh_event *data) {
 
         /* check arguments */
-        if (data == NULL) {
-                return SA_ERR_HPI_INVALID_PARAMS;
-        }
-        rc = oHpiHandlerInfo(id, &info);
-        if (rc) {
+        if (state== NULL || data == NULL) {
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
         /* perform the injection */
         g_async_queue_push(handle->eventq_async,
-	oh_add_rdr(((oh_handler_state *)state->hnd)->eventq_async, data);
+	oh_add_rdr(state->eventq_async, data);
         return SA_OK;
 }
 
