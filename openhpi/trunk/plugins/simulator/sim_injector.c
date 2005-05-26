@@ -23,7 +23,7 @@
 
 /* inject a resource */
 SaErrorT sim_inject_resource(struct oh_handler_state *state,
-                             SaHpiRptEntryT *data) {
+                             SaHpiRptEntryT *data, void *privdata) {
 
         /* check arguments */
         if (state == NULL || data == NULL) {
@@ -31,7 +31,7 @@ SaErrorT sim_inject_resource(struct oh_handler_state *state,
         }
 
         /* perform the injection */
-        oh_add_resource(state->rptcache, data, NULL, FREE_RPT_DATA);
+        oh_add_resource(state->rptcache, data, privdata, FREE_RPT_DATA);
         return SA_OK;
 }
 

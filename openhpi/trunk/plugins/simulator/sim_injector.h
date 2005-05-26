@@ -20,7 +20,7 @@
 
 
 SaErrorT sim_inject_resource(struct oh_handler_state *state,
-                             SaHpiRptEntryT *data);
+                             SaHpiRptEntryT *data, void *privdata);
 SaErrorT sim_inject_rdr(struct oh_handler_state *state, SaHpiResourceIdT resid,
                         SaHpiRdrT *data);
 SaErrorT sim_inject_event(struct oh_handler_state *state, struct oh_event *data);
