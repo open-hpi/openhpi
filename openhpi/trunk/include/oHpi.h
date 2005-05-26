@@ -30,7 +30,6 @@ typedef struct {
 
 typedef struct {
         char plugin_name[MAX_PLUGIN_NAME_LENGTH];
-        void *hnd;  /* this is the pointer to the oh_handler_state */
         /* More to come later... */
 } oHpiHandlerInfoT;
 
@@ -92,6 +91,7 @@ SaErrorT oHpiHandlerCreate(GHashTable *config,
 SaErrorT oHpiHandlerDestroy(oHpiHandlerIdT id);
 SaErrorT oHpiHandlerInfo(oHpiHandlerIdT id, oHpiHandlerInfoT *info);
 SaErrorT oHpiHandlerGetNext(oHpiHandlerIdT id, oHpiHandlerIdT *next_id);
+void *oHpiGetHandlerState(oHpiHandlerIdT id);
 
 /* Global parameters */
 SaErrorT oHpiGlobalParamGet(oHpiGlobalParamT *param);
