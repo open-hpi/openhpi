@@ -157,6 +157,7 @@ SaHpiAlarmT *oh_add_alarm(struct oh_domain *d, SaHpiAlarmT *alarm)
         gettimeofday(&tv1, NULL);
         a->Timestamp = (SaHpiTimeT) tv1.tv_sec * 1000000000 + tv1.tv_usec * 1000;
         a->AlarmCond.DomainId = d->id;
+	a->Acknowledged = SAHPI_FALSE;
         d->dat.list = g_slist_append(d->dat.list, a);
 
         /* Set alarm id and timestamp info in alarm reference */
