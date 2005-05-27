@@ -26,6 +26,7 @@ SaErrorT sim_get_sensor_reading(void *hnd, SaHpiResourceIdT id,
 
         struct SensorInfo *sinfo;
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
+	struct SensorMoreInfo *rptinfo;	
 
         if (!hnd || !data || !state) {
                 dbg("Invalid parameter.");
@@ -51,7 +52,8 @@ SaErrorT sim_get_sensor_reading(void *hnd, SaHpiResourceIdT id,
                 return(SA_ERR_HPI_INVALID_REQUEST);
         }
         else{
-        	memcpy(data, &dummy_voltage_sensors[num].sensor.DataFormat.ReadingType, sizeof(SaHpiSensorReadingT));
+		rptinfo = (struct SensorMoreInfo *)oh_get_resource_data(handle->rptcache, id);
+		memcpy(data, &rptinfo->reading, sizeof(SaHpiSensorReadingT));
                 return(SA_OK);
         }
 
@@ -143,6 +145,7 @@ SaErrorT sim_get_sensor_thresholds(void *hnd,
 {
         struct SensorInfo *sinfo;
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
+	struct SensorMoreInfo *rptinfo;
 
         if (!hnd || !rid || !sid) {
                 dbg("Invalid parameter.");
@@ -168,7 +171,9 @@ SaErrorT sim_get_sensor_thresholds(void *hnd,
                 return(SA_ERR_HPI_INVALID_REQUEST);
         }
         else{
-                memcpy(thres, &dummy_voltage_sensors[sid].sensor.DataFormat.Range, sizeof(SaHpiSensorThresholdsT));
+		rptinfo = (struct SensorMoreInfo *)oh_get_resource_data(handle->rptcache, rid);
+                memcpy(thres, &rptinfo->thres, sizeof(SaHpiSensorThresholdsT));
+
 		return(SA_OK);
 	}
 }
@@ -195,18 +200,16 @@ SaErrorT sim_set_sensor_thresholds(void *hnd,
 				       SaHpiSensorNumT sid,
 				       const SaHpiSensorThresholdsT *thres)
 {
-//	SaErrorT err;
-//	SaHpiSensorThresholdsT working;
 	struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
 	struct SensorInfo *sinfo;
+	struct SensorMoreInfo *rptinfo;
 
 	if (!hnd || !thres) {
 		dbg("Invalid parameter");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
-	struct sim_hnd *custom_handle = (struct sim_hnd *)handle->data;
-	
-        /* Check if resource exists and has sensor capabilities */
+        
+	/* Check if resource exists and has sensor capabilities */
         SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
         if (!rpt) return(SA_ERR_HPI_INVALID_RESOURCE);
         if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)) return(SA_ERR_HPI_CAPABILITY);
@@ -223,7 +226,6 @@ SaErrorT sim_set_sensor_thresholds(void *hnd,
 	if (rdr->RdrTypeUnion.SensorRec.Category != SAHPI_EC_THRESHOLD ||
 	    rdr->RdrTypeUnion.SensorRec.ThresholdDefn.IsAccessible == SAHPI_FALSE ||
 	    rdr->RdrTypeUnion.SensorRec.ThresholdDefn.WriteThold == 0) {
-	    	sim_unlock_handler(custom_handle);
 	    	return(SA_ERR_HPI_INVALID_CMD);
 	}
 
@@ -231,59 +233,19 @@ SaErrorT sim_set_sensor_thresholds(void *hnd,
         	return(SA_ERR_HPI_INVALID_REQUEST);
         }
         else{
-		memcpy(&dummy_voltage_sensors[sid].sensor.DataFormat.Range, thres, sizeof(SaHpiSensorThresholdsT));
+		rptinfo = (struct SensorMoreInfo *)oh_get_resource_data(handle->rptcache, rid);
+                memcpy(&rptinfo->thres, thres, sizeof(SaHpiSensorThresholdsT));
+
 		return(SA_OK);
 	}
 }
-
+/* Do we want this functionality???
 SaErrorT sim_set_threshold_reading(void *hnd,
 				       SaHpiResourceIdT rid,
 				       SaHpiSensorNumT sid,
 				       const SaHpiSensorReadingT *reading)
-{
-	SaErrorT err;
-	SaHpiTextBufferT buffer;
-	SaHpiFloat64T tmp_num;
-	struct SensorInfo *sinfo;
-	struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
-        struct sim_hnd *custom_handle = (struct sim_hnd *)handle->data;
-	struct sim_value set_value;
+*/
 
-	if (!hnd || !reading) {
-		dbg("Invalid parameter.");
-		return(SA_ERR_HPI_INTERNAL_ERROR);
-	}
-
-        SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, rid, SAHPI_SENSOR_RDR, sid);
-	if (rdr == NULL) return(SA_ERR_HPI_NOT_PRESENT);
-	sinfo = (struct SensorInfo *)oh_get_rdr_data(handle->rptcache, rid, rdr->RecordId);
- 	if (sinfo == NULL) {
-		dbg("No sensor data. Sensor=%s", rdr->IdString.Data);
-		return(SA_ERR_HPI_INTERNAL_ERROR);
-	}
-
-	/* Convert reading into SIM string structure */
-	err = oh_init_textbuffer(&buffer);
-	if (err) return(err);
-
-	switch (reading->Type) {
-	case SAHPI_SENSOR_READING_TYPE_INT64:
-		tmp_num = (SaHpiFloat64T)reading->Value.SensorInt64;
-		break;
-	case SAHPI_SENSOR_READING_TYPE_FLOAT64:
-		tmp_num = reading->Value.SensorFloat64;
-		break;
-	case SAHPI_SENSOR_READING_TYPE_UINT64:
-		tmp_num = (SaHpiFloat64T)reading->Value.SensorUint64;
-		break;
-	case SAHPI_SENSOR_READING_TYPE_BUFFER:
-		default:
-			dbg("Invalid type for threshold. Sensor=%s", rdr->IdString.Data);
-			return(SA_ERR_HPI_INTERNAL_ERROR);
-	}
-	
-	return(SA_OK);
-}
 
 /**
  * sim_get_sensor_enable:
@@ -308,44 +270,36 @@ SaErrorT sim_get_sensor_enable(void *hnd,
 
 	struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
 	struct SensorInfo *sinfo;
-
-	if (!hnd || !enable) {
-		dbg("Invalid parameter");
-		return(SA_ERR_HPI_INVALID_PARAMS);
-	}
-	struct sim_hnd *custom_handle = (struct sim_hnd *)handle->data;
-
-	sim_lock_handler(custom_handle);
-	/* Check if resource exists and has sensor capabilities */
-	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
-        if (!rpt) {
-		sim_unlock_handler(custom_handle);
-		return(SA_ERR_HPI_INVALID_RESOURCE);
-	}
 	
-        if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)) {
-		sim_unlock_handler(custom_handle);
-		return(SA_ERR_HPI_CAPABILITY);
-	}
+	        if (!hnd || !rid || !sid) {
+                dbg("Invalid parameter.");
+                return(SA_ERR_HPI_INVALID_PARAMS);
+        }
 
-	/* Check if sensor exists and return enablement status */
+        /* Check if resource exists and has sensor capabilities */
+        SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
+        if (!rpt) return(SA_ERR_HPI_INVALID_RESOURCE);
+        if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)) return(SA_ERR_HPI_CAPABILITY);
+
+        /* Check if sensor exist and is enabled */
         SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, rid, SAHPI_SENSOR_RDR, sid);
-	if (rdr == NULL) {
-		sim_unlock_handler(custom_handle);
-		return(SA_ERR_HPI_NOT_PRESENT);
-	}
-	
-	sinfo = (struct SensorInfo *)oh_get_rdr_data(handle->rptcache, rid, rdr->RecordId);
- 	if (sinfo == NULL) {
-		dbg("No sensor data. Sensor=%s", rdr->IdString.Data);
-		sim_unlock_handler(custom_handle);
-		return(SA_ERR_HPI_INTERNAL_ERROR);
-	}       
-	
-	*enable = sinfo->sensor_enabled;
+        if (rdr == NULL) return(SA_ERR_HPI_NOT_PRESENT);
+        sinfo = (struct SensorInfo *)oh_get_rdr_data(handle->rptcache, rid, rdr->RecordId);
+        if (sinfo == NULL) {
+                dbg("No sensor data. Sensor=%s", rdr->IdString.Data);
+                return(SA_ERR_HPI_INTERNAL_ERROR);
+        }
 
-	sim_unlock_handler(custom_handle);
-	return(SA_OK);
+        /*If sensor is enabled, get sensor reading*/
+        if (sinfo->sensor_enabled == SAHPI_FALSE){
+                return(SA_ERR_HPI_INVALID_REQUEST);
+        }
+        else{
+                *enable = sinfo->sensor_enabled;
+		return(SA_OK);
+        }
+
+        return(SA_OK);
 }
 
 /**
@@ -368,61 +322,44 @@ SaErrorT sim_set_sensor_enable(void *hnd,
 				   const SaHpiBoolT enable)
 {
 
-	if (!hnd ) {
-		dbg("Invalid parameter.");
-		return(SA_ERR_HPI_INVALID_PARAMS);
-	}
+        struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
+        struct SensorInfo *sinfo;
 
-	struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
-	struct sim_hnd *custom_handle = (struct sim_hnd *)handle->data;
+                if (!hnd || !rid || !sid || !enable) {
+                dbg("Invalid parameter.");
+                return(SA_ERR_HPI_INVALID_PARAMS);
+        }
 
-	sim_lock_handler(custom_handle);
-	/* Check if resource exists and has sensor capabilities */
-	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
-        if (!rpt) {
-		sim_unlock_handler(custom_handle);
-		return(SA_ERR_HPI_INVALID_RESOURCE);
-	}
-	
-        if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)) {
-		sim_unlock_handler(custom_handle);
-		return(SA_ERR_HPI_CAPABILITY);
-	}
+        /* Check if resource exists and has sensor capabilities */
+        SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
+        if (!rpt) return(SA_ERR_HPI_INVALID_RESOURCE);
+        if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)) return(SA_ERR_HPI_CAPABILITY);
 
-	/* Check if sensor exists and if it supports setting of sensor enablement */
+        /* Check if sensor exist and is enabled */
         SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, rid, SAHPI_SENSOR_RDR, sid);
-	if (rdr == NULL) {
-		sim_unlock_handler(custom_handle);
-		return(SA_ERR_HPI_NOT_PRESENT);
-	}
-	
-	if (rdr->RdrTypeUnion.SensorRec.EnableCtrl == SAHPI_TRUE) {
-		dbg("BladeCenter/RSA do not support sim_set_sensor_enable");
-		struct SensorInfo *sinfo;
-		sinfo = (struct SensorInfo *)oh_get_rdr_data(handle->rptcache, rid, rdr->RecordId);
-		if (sinfo == NULL) {
-			dbg("No sensor data. Sensor=%s", rdr->IdString.Data);
-			sim_unlock_handler(custom_handle);
-			return(SA_ERR_HPI_INTERNAL_ERROR);
-		}
+        if (rdr == NULL) return(SA_ERR_HPI_NOT_PRESENT);
+        sinfo = (struct SensorInfo *)oh_get_rdr_data(handle->rptcache, rid, rdr->RecordId);
+        if (sinfo == NULL) {
+                dbg("No sensor data. Sensor=%s", rdr->IdString.Data);
+                return(SA_ERR_HPI_INTERNAL_ERROR);
+        }
 
-		if (sinfo->sensor_enabled != enable) {
-			/* Probably need to drive an OID, if hardware supported it */
-			sinfo->sensor_enabled = enable;
-			/* FIXME:: Add SAHPI_ET_SENSOR_ENABLE_CHANGE event on IF event Q */
-		}
-	}
-	else {
-		sim_unlock_handler(custom_handle);
-		return(SA_ERR_HPI_READ_ONLY);
-	}
+        /*If sensor is enabled, get sensor reading*/
+        if (sinfo->sensor_enabled == SAHPI_FALSE){
+                return(SA_ERR_HPI_INVALID_REQUEST);
+        }
+        else{
+                sinfo->sensor_enabled = *enable;
+                return(SA_OK);
+        }
 
-	sim_unlock_handler(custom_handle);
-	return(SA_OK);
+        return(SA_OK);
+
+
 }
 
-/**
- * sim_get_sensor_event_enable:
+
+ sim_get_sensor_event_enable:
  * @hnd: Handler data pointer.
  * @rid: Resource ID.
  * @sid: Sensor ID.

@@ -3,6 +3,7 @@
 
 #include <sim_init.h>
 #include <sim_resources.h>
+#include <sim_sensor_func.h>
 #include <SaHpi.h>
 
 #define DUMMY_MAX_EVENTS_PER_SENSOR 24
@@ -74,6 +75,11 @@ struct SensorInfo {
 	SaHpiEventStateT deassert_mask;
 	struct sensor_event_map event_array[DUMMY_MAX_SENSOR_EVENT_ARRAY_SIZE];
 	struct sensor_reading_map reading2event[DUMMY_MAX_SENSOR_READING_MAP_ARRAY_SIZE];
+};
+
+struct SensorMoreInfo {
+	SaHpiSensorReadingT reading;
+	SaHpiSensorThresholdsT thres;
 };
 
 struct dummy_sensor {
