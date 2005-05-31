@@ -15,15 +15,13 @@
 
 #include <sim_init.h>
 #include <sim_sensors.h>
+#include <openhpi.h>
 
 #ifndef SIM_SENSOR_FUNC_H
 #define SIM_SENSOR_FUNC_H
 
-SaErrorT sim_get_sensor_reading(void *hnd,
-				    SaHpiResourceIdT rid,
-				    SaHpiSensorNumT sid,
-				    SaHpiSensorReadingT *reading,
-				    SaHpiEventStateT *state);
+
+SaErrorT sim_get_sensor_reading(void *hnd, SaHpiResourceIdT id, SaHpiSensorNumT num, SaHpiSensorReadingT *data, SaHpiEventStateT *state);
 
 SaErrorT sim_get_sensor_thresholds(void *hnd,
 				       SaHpiResourceIdT rid,
