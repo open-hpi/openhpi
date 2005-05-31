@@ -16,7 +16,6 @@
  */
 
 #include <sim_init.h>
-//#include <math.h>
 
 void *sim_open(GHashTable *handler_config)
 {
@@ -86,7 +85,7 @@ SaErrorT sim_discover(void *hnd)
 
         build_rptcache(inst->rptcache, &root_ep);
 	sim_discover_sensors(inst->rptcache);
-	sim_discover_controls(inst->rptcache);
+	//sim_discover_controls(inst->rptcache);
 		
 	rpt_entry = oh_get_resource_next(inst->rptcache, SAHPI_FIRST_ENTRY);
 
@@ -148,14 +147,12 @@ SaErrorT build_rptcache(RPTable *rptcache, SaHpiEntityPathT *root_ep)
 	int i;
 	SaHpiRptEntryT res;
 	int x = 0;
-//	SaHpiTextBufferT build_name;
-	struct oh_event *e;
-		
-        e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
+	//struct oh_event *e;
+	struct SensorMoreInfo *info;	
+	
+        //e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
+	info = (struct SensorMoreInfo *)g_malloc0(sizeof(struct SensorMoreInfo));
 
-	//e->u.res_event.entry.ResourceEntity = root_ep;
-	//e->u.res_event.entry.ResourceId = oh_uid_from_entity_path(&(e->u.res_event.entry.ResourceEntity));
-			
 	while (dummy_rpt_array[x].rpt.ResourceInfo.ManufacturerId != 0){
 		x++;
 	}
@@ -168,13 +165,12 @@ SaErrorT build_rptcache(RPTable *rptcache, SaHpiEntityPathT *root_ep)
 		printf("I am res.ResourceId %d\n", res.ResourceId);	
 		dbg("Adding resource number %d",i);
 
-//		oh_append_textbuffer(&build_name, dummy_rpt_array[i].comment);
-//		printf(&res.ResourceTag, "%s I am resourcetag\n");
-//		dummy_create_resourcetag(&res.ResourceTag, (char*)build_name.Data, root_ep->Entry[i].EntityLocation);
-		dummy_create_resourcetag(&res.ResourceTag, dummy_rpt_array[i].comment, root_ep->Entry[i].EntityLocation);
-		oh_add_resource(rptcache, &res, NULL, FREE_RPT_DATA);
-								
-	}
+		memcpy(&info->reading, &dummy_voltage_sensors[i].sensor.DataFormat.ReadingType, sizeof(SaHpiSensorReadingT));
+		memcpy(&info->thres, &dummy_voltage_sensors[i].sensor.DataFormat.Range, sizeof(SaHpiSensorThresholdsT));						
+	        dummy_create_resourcetag(&res.ResourceTag, dummy_rpt_array[i].comment, root_ep->Entry[i].EntityLocation);
+                oh_add_resource(rptcache, &res, info, FREE_RPT_DATA);
+
+	}	
         return i;
 }
 	
@@ -211,9 +207,10 @@ static struct oh_abi_v2 oh_sim_plugin = {
 	.get_sensor_event_enables       = sim_get_sensor_event_enable,
 	.set_sensor_event_enables       = sim_set_sensor_event_enable,
 	.get_sensor_event_masks         = sim_get_sensor_event_masks,
-	.set_sensor_event_masks         = sim_set_sensor_event_masks,			
-	.get_control_state		= sim_get_control_state,
-	.set_control_state		= sim_set_control_state,
+	.set_sensor_event_masks         = sim_set_sensor_event_masks,
+// look in include/oh_handler.h to see if these are correct
+//	.get_control_state		= sim_get_control_state,
+//	.set_control_state		= sim_set_control_state,
 };
 
 /* removes the warning about no previous declaration */

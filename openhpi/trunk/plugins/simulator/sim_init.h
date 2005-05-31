@@ -23,7 +23,7 @@
 #include <uuid/uuid.h>
 #include <unistd.h>
 
-#include <SaHpi.h>
+#include <openhpi.h>
 #include <oh_handler.h>
 #include <oh_domain.h>
 #include <oh_utils.h>
@@ -31,10 +31,10 @@
 #include <sim_resources.h>
 #include <sim_sensors.h>
 #include <sim_sensor_func.h>
-#include <sim_controls.h>
-#include <sim_control_func.h>
-#include <sim_annunciators.h>
-#include <sim_annunciator_func.h>
+//#include <sim_controls.h>
+//#include <sim_control_func.h>
+//#include <sim_annunciators.h>
+//#include <sim_annunciator_func.h>
 
 void *sim_open(GHashTable *handler_config);
 SaErrorT sim_discover(void *hnd);
