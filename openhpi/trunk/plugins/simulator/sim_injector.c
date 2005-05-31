@@ -18,6 +18,7 @@
 #include <SaHpi.h>
 #include <glib.h>
 #include <oh_utils.h>
+#include <oh_handler.h>
 #include <sim_injector.h>
 
 
@@ -41,7 +42,7 @@ SaErrorT sim_inject_rdr(struct oh_handler_state *state, SaHpiResourceIdT resid,
                         SaHpiRdrT *data) {
 
         /* check arguments */
-        if (state == NULL || resid = 0 || data == NULL) {
+        if (state == NULL || resid == 0 || data == NULL) {
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
@@ -60,8 +61,7 @@ SaErrorT sim_inject_event(struct oh_handler_state *state, struct oh_event *data)
         }
 
         /* perform the injection */
-        g_async_queue_push(handle->eventq_async,
-	oh_add_rdr(state->eventq_async, data);
+	g_async_queue_push(state->eventq_async, data);
         return SA_OK;
 }
 
