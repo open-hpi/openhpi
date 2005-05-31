@@ -148,10 +148,10 @@ SaErrorT build_rptcache(RPTable *rptcache, SaHpiEntityPathT *root_ep)
 	SaHpiRptEntryT res;
 	int x = 0;
 	//struct oh_event *e;
-	struct SensorMoreInfo *info;	
+	//struct SensorMoreInfo *info;	
 	
         //e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
-	info = (struct SensorMoreInfo *)g_malloc0(sizeof(struct SensorMoreInfo));
+	// info = (struct SensorMoreInfo *)g_malloc0(sizeof(struct SensorMoreInfo));
 
 	while (dummy_rpt_array[x].rpt.ResourceInfo.ManufacturerId != 0){
 		x++;
@@ -165,10 +165,8 @@ SaErrorT build_rptcache(RPTable *rptcache, SaHpiEntityPathT *root_ep)
 		printf("I am res.ResourceId %d\n", res.ResourceId);	
 		dbg("Adding resource number %d",i);
 
-		memcpy(&info->reading, &dummy_voltage_sensors[i].sensor.DataFormat.ReadingType, sizeof(SaHpiSensorReadingT));
-		memcpy(&info->thres, &dummy_voltage_sensors[i].sensor.DataFormat.Range, sizeof(SaHpiSensorThresholdsT));						
 	        dummy_create_resourcetag(&res.ResourceTag, dummy_rpt_array[i].comment, root_ep->Entry[i].EntityLocation);
-                oh_add_resource(rptcache, &res, info, FREE_RPT_DATA);
+                oh_add_resource(rptcache, &res, NULL, FREE_RPT_DATA);
 
 	}	
         return i;

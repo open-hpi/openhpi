@@ -75,13 +75,15 @@ struct SensorInfo {
 	SaHpiEventStateT deassert_mask;
 	struct sensor_event_map event_array[DUMMY_MAX_SENSOR_EVENT_ARRAY_SIZE];
 	struct sensor_reading_map reading2event[DUMMY_MAX_SENSOR_READING_MAP_ARRAY_SIZE];
+	SaHpiSensorReadingT reading;
+	SaHpiSensorThresholdsT thres;
 };
-
+/*
 struct SensorMoreInfo {
 	SaHpiSensorReadingT reading;
 	SaHpiSensorThresholdsT thres;
 };
-
+*/
 struct dummy_sensor {
 	
         /* Usually sensor.Num = index; index is used to search thru sensor arrays. It allows

@@ -26,7 +26,7 @@ SaErrorT sim_get_sensor_reading(void *hnd, SaHpiResourceIdT id,
 
         struct SensorInfo *sinfo;
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
-	struct SensorMoreInfo *rptinfo;	
+	struct SensorInfo *rptinfo;	
 
         if (!hnd || !data || !state) {
                 dbg("Invalid parameter.");
@@ -52,7 +52,7 @@ SaErrorT sim_get_sensor_reading(void *hnd, SaHpiResourceIdT id,
                 return(SA_ERR_HPI_INVALID_REQUEST);
         }
         else{
-		rptinfo = (struct SensorMoreInfo *)oh_get_resource_data(handle->rptcache, id);
+		rptinfo = (struct SensorInfo *)oh_get_resource_data(handle->rptcache, id);
 		memcpy(data, &rptinfo->reading, sizeof(SaHpiSensorReadingT));
                 return(SA_OK);
         }
@@ -143,7 +143,7 @@ SaErrorT sim_get_sensor_thresholds(void *hnd,
 {
         struct SensorInfo *sinfo;
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
-	struct SensorMoreInfo *rptinfo;
+	struct SensorInfo *rptinfo;
 
         if (!hnd || !rid || !sid) {
                 dbg("Invalid parameter.");
@@ -169,7 +169,7 @@ SaErrorT sim_get_sensor_thresholds(void *hnd,
                 return(SA_ERR_HPI_INVALID_REQUEST);
         }
         else{
-		rptinfo = (struct SensorMoreInfo *)oh_get_resource_data(handle->rptcache, rid);
+		rptinfo = (struct SensorInfo *)oh_get_resource_data(handle->rptcache, rid);
                 memcpy(thres, &rptinfo->thres, sizeof(SaHpiSensorThresholdsT));
 
 		return(SA_OK);
@@ -200,7 +200,7 @@ SaErrorT sim_set_sensor_thresholds(void *hnd,
 {
 	struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
 	struct SensorInfo *sinfo;
-	struct SensorMoreInfo *rptinfo;
+	struct SensorInfo *rptinfo;
 
 	if (!hnd || !thres) {
 		dbg("Invalid parameter");
@@ -231,7 +231,7 @@ SaErrorT sim_set_sensor_thresholds(void *hnd,
         	return(SA_ERR_HPI_INVALID_REQUEST);
         }
         else{
-		rptinfo = (struct SensorMoreInfo *)oh_get_resource_data(handle->rptcache, rid);
+		rptinfo = (struct SensorInfo *)oh_get_resource_data(handle->rptcache, rid);
                 memcpy(&rptinfo->thres, thres, sizeof(SaHpiSensorThresholdsT));
 
 		return(SA_OK);
