@@ -105,7 +105,11 @@ SaErrorT sim_discover_sensors(RPTable *rpt)
 SaErrorT new_sensor(RPTable *rptcache, SaHpiResourceIdT ResId, int Index){
 	SaHpiRdrT res_rdr;
 	SaHpiRptEntryT *RptEntry;
+	struct SensorInfo *info;
 	
+	info = (struct SensorInfo *)g_malloc0(sizeof(struct SensorInfo));
+
+
 	// Copy information from rdr array to res_rdr
          res_rdr.RdrType = SAHPI_SENSOR_RDR;
          memcpy(&res_rdr.RdrTypeUnion.SensorRec, &dummy_voltage_sensors[Index].sensor, sizeof(SaHpiSensorRecT));
@@ -124,8 +128,20 @@ SaErrorT new_sensor(RPTable *rptcache, SaHpiResourceIdT ResId, int Index){
 	 else{
 	 res_rdr.Entity = RptEntry->ResourceEntity;
 	 }
-	 
-	oh_add_rdr(rptcache, ResId, &res_rdr, NULL, 0);
+	       
+        memcpy(&info->mib, &dummy_voltage_sensors[Index].sensor_info.mib, sizeof(struct SensorMibInfo));
+        memcpy(&info->cur_state, &dummy_voltage_sensors[Index].sensor_info.cur_state, sizeof(SaHpiEventStateT));
+        memcpy(&info->sensor_enabled, &dummy_voltage_sensors[Index].sensor_info.sensor_enabled, sizeof(SaHpiBoolT));
+        memcpy(&info->events_enabled, &dummy_voltage_sensors[Index].sensor_info.events_enabled, sizeof(SaHpiBoolT));
+        memcpy(&info->assert_mask, &dummy_voltage_sensors[Index].sensor_info.assert_mask, sizeof(SaHpiEventStateT));
+        memcpy(&info->deassert_mask, &dummy_voltage_sensors[Index].sensor_info.deassert_mask, sizeof(SaHpiEventStateT));
+        memcpy(&info->event_array, &dummy_voltage_sensors[Index].sensor_info.event_array, sizeof(struct sensor_event_map));
+        memcpy(&info->reading2event, &dummy_voltage_sensors[Index].sensor_info.reading2event, sizeof(struct sensor_event_map));
+ 
+	memcpy(&info->reading, &dummy_voltage_sensors[Index].sensor.DataFormat.ReadingType, sizeof(SaHpiSensorReadingT));
+	memcpy(&info->thres, &dummy_voltage_sensors[Index].sensor.DataFormat.Range, sizeof(SaHpiSensorThresholdsT)); 
+ 
+	oh_add_rdr(rptcache, ResId, &res_rdr, info, 0);
 
          return 0;
 }
