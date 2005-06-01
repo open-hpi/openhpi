@@ -19,7 +19,7 @@
 
 static unsigned char oem_alarm_state = 0xff;
 
-struct ohoi_control_info {
+struct ohoi_ctrl_info {
         int done;
 	SaErrorT err;
         SaHpiCtrlStateT *state;
@@ -44,7 +44,7 @@ static void __get_control_state(ipmi_control_t *control,
                                 int            *val,
                                 void           *cb_data)
 {
-        struct ohoi_control_info *info = cb_data;
+        struct ohoi_ctrl_info *info = cb_data;
 
 	if (err || !val) {
 		dbg("__get_control_state: err = %d; val = %p", err, val);
@@ -84,9 +84,10 @@ SaErrorT ohoi_get_control_state(void *hnd, SaHpiResourceIdT id,
 {
 	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
 	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
-        struct ohoi_control_info info;
+        struct ohoi_ctrl_info info;
 	SaErrorT         rv;
-	ipmi_control_id_t *ctrl;
+	struct ohoi_control_info *ctrl_info;
+	ipmi_control_id_t ctrl;
 	SaHpiRdrT * rdr;
 	SaHpiUint8T val, mask, idx, i;
 	SaHpiCtrlStateT localstate;
@@ -94,8 +95,9 @@ SaErrorT ohoi_get_control_state(void *hnd, SaHpiResourceIdT id,
 
 	rdr = oh_get_rdr_by_type(handler->rptcache, id, SAHPI_CTRL_RDR, num);
 	if (!rdr) return SA_ERR_HPI_INVALID_RESOURCE;
-        rv = ohoi_get_rdr_data(hnd, id, SAHPI_CTRL_RDR, num, (void *)&ctrl);
+        rv = ohoi_get_rdr_data(hnd, id, SAHPI_CTRL_RDR, num, (void *)&ctrl_info);
         if (rv!=SA_OK) return rv;
+	ctrl = ctrl_info->ctrl_id;
 
 	if (state == NULL) {
 		state = &localstate;
@@ -103,13 +105,14 @@ SaErrorT ohoi_get_control_state(void *hnd, SaHpiResourceIdT id,
 	if (mode == NULL) {
 		mode = &localmode;
 	}
+	*mode = ctrl_info->mode;
 	memset(state, 0, sizeof(*state));
 	
         info.done  = 0;
         info.state = state;
         info.state->Type = SAHPI_CTRL_TYPE_OEM;
         
-        rv = ipmi_control_pointer_cb(*ctrl, _get_control_state, &info);
+        rv = ipmi_control_pointer_cb(ctrl, _get_control_state, &info);
 	if (rv) {
 		dbg("Unable to retrieve control state");
 		return SA_ERR_HPI_ERROR;
@@ -140,7 +143,7 @@ static void __set_control_state(ipmi_control_t *control,
                                 int            err,
                                 void           *cb_data)
 {
-	struct ohoi_control_info *info = cb_data;
+	struct ohoi_ctrl_info *info = cb_data;
 	info->done = 1;
 	if (err) {
 		dbg("__set_control_state: err = %d", err);
@@ -151,7 +154,7 @@ static void __set_control_state(ipmi_control_t *control,
 static void _set_control_state(ipmi_control_t *control,
                                 void           *cb_data)
 {
-        struct ohoi_control_info *info = cb_data;
+        struct ohoi_ctrl_info *info = cb_data;
         
         if (info->state->StateUnion.Oem.BodyLength 
                         != ipmi_control_get_num_vals(control)) {
@@ -169,24 +172,28 @@ static void _set_control_state(ipmi_control_t *control,
 static SaErrorT set_front_panrl_alarm_led(void *hnd,
 					  SaHpiResourceIdT id,
 					  SaHpiCtrlNumT num,
-					  ipmi_control_id_t *ctrl,
+					  ipmi_control_id_t ctrl,
 					  SaHpiUint8T idx,
 					  SaHpiCtrlModeT mode,
 					  SaHpiCtrlStateT *state)
 {
 	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
 	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
-        struct ohoi_control_info info;
+        struct ohoi_ctrl_info info;
 	SaErrorT         rv;
 	SaHpiUint8T val, mask;
+	SaHpiCtrlStateT my_state;
 
 
+	
 	/* just get the current control states */
-	rv = ohoi_get_control_state(hnd, id, num, NULL, NULL);
+	rv = ohoi_get_control_state(hnd, id, num, NULL, &my_state);
 	if (rv != SA_OK) {
 		return SA_ERR_HPI_NOT_PRESENT;
 	}
-	
+	if (my_state.Type != state->Type) {
+		return SA_ERR_HPI_INVALID_DATA;
+	}
 	val = oem_alarm_state;
 	val |= 0xf0;  /* h.o. nibble always write 1 */
 	state->Type = SAHPI_CTRL_TYPE_OEM;
@@ -219,7 +226,7 @@ static SaErrorT set_front_panrl_alarm_led(void *hnd,
 		}
 		/* turn it on */
 		state->StateUnion.Oem.Body[0] = val & ~mask;
-        	rv = ipmi_control_pointer_cb(*ctrl, _set_control_state, &info);
+        	rv = ipmi_control_pointer_cb(ctrl, _set_control_state, &info);
 		if (rv) {
 			dbg("Unable to set control state");
 			return SA_ERR_HPI_ERROR;
@@ -242,7 +249,7 @@ static SaErrorT set_front_panrl_alarm_led(void *hnd,
 		}
 		/* turn it off */
 		state->StateUnion.Oem.Body[0] = val | mask;
-        	rv = ipmi_control_pointer_cb(*ctrl, _set_control_state, &info);
+        	rv = ipmi_control_pointer_cb(ctrl, _set_control_state, &info);
 		if (rv) {
 			dbg("Unable to set control state");
 			return SA_ERR_HPI_ERROR;
@@ -263,7 +270,7 @@ static SaErrorT set_front_panrl_alarm_led(void *hnd,
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
 	
-        rv = ipmi_control_pointer_cb(*ctrl, _set_control_state, &info);
+        rv = ipmi_control_pointer_cb(ctrl, _set_control_state, &info);
 	if (rv) {
 		dbg("Unable to set control state");
 		return SA_ERR_HPI_ERROR;
@@ -288,15 +295,22 @@ SaErrorT ohoi_set_control_state(void *hnd, SaHpiResourceIdT id,
 {
 	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
 	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
-        struct ohoi_control_info info;
+        struct ohoi_ctrl_info info;
+	struct ohoi_control_info *ctrl_info;
 	SaErrorT         rv;
-	ipmi_control_id_t *ctrl;
+	ipmi_control_id_t ctrl;
 	SaHpiRdrT * rdr;
 
 	rdr = oh_get_rdr_by_type(handler->rptcache, id, SAHPI_CTRL_RDR, num);
 	if (!rdr) return SA_ERR_HPI_INVALID_RESOURCE;
-        rv = ohoi_get_rdr_data(hnd, id, SAHPI_CTRL_RDR, num, (void *)&ctrl);
+        rv = ohoi_get_rdr_data(hnd, id, SAHPI_CTRL_RDR, num, (void *)&ctrl_info);
         if (rv!=SA_OK) return rv;
+	ctrl = ctrl_info->ctrl_id;
+		
+	if (mode == SAHPI_CTRL_MODE_AUTO) {
+		ctrl_info->mode = mode;
+		return SA_OK;
+	}
 	
 	if ((rdr->RdrTypeUnion.CtrlRec.Type == SAHPI_CTRL_TYPE_DIGITAL) &&
             (rdr->RdrTypeUnion.CtrlRec.OutputType == SAHPI_CTRL_LED) &&
@@ -313,14 +327,14 @@ SaErrorT ohoi_set_control_state(void *hnd, SaHpiResourceIdT id,
                 return SA_ERR_HPI_INVALID_CMD;
         }
        
-        rv = ipmi_control_pointer_cb(*ctrl, _set_control_state, &info);
+        rv = ipmi_control_pointer_cb(ctrl, _set_control_state, &info);
 	if (rv) {
 		dbg("Unable to set control state");
 		return SA_ERR_HPI_ERROR;
 	}
 
         ohoi_loop(&info.done, ipmi_handler);
-
+	ctrl_info->mode = mode;
 	return SA_OK;
 }
 
