@@ -141,7 +141,7 @@ SaErrorT new_sensor(RPTable *rptcache, SaHpiResourceIdT ResId, int Index){
 	memcpy(&info->reading, &dummy_voltage_sensors[Index].sensor.DataFormat.ReadingType, sizeof(SaHpiSensorReadingT));
 	memcpy(&info->thres, &dummy_voltage_sensors[Index].sensor.DataFormat.Range, sizeof(SaHpiSensorThresholdsT)); 
  
-	oh_add_rdr(rptcache, ResId, &res_rdr, info, 0);
+	oh_add_rdr(rptcache, ResId, &res_rdr, &info, 0);
 
          return 0;
 }
