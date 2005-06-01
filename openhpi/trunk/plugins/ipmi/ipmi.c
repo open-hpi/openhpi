@@ -540,25 +540,20 @@ static SaErrorT ipmi_get_el_info(void               *hnd,
 {
         unsigned int count;
         unsigned int size;
-		int rv;
-		char del_support;
-
+	SaErrorT rv;
+	char del_support;
         struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
 	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
-
         const struct ohoi_resource_info *ohoi_res_info;
-
-	dbg("starting wait for sel retrieval");
 
 	while (0 == ipmi_handler->fully_up) {
 		rv = sel_select(ipmi_handler->ohoi_sel, NULL, 0 , NULL, NULL);
 		if (rv<0) {
 			dbg("error on waiting for SEL");
-			return -1;
+			return SA_ERR_HPI_INTERNAL_ERROR;
 		}
 	}
 
-	dbg("done retrieving sel");
         ohoi_res_info = oh_get_resource_data(handler->rptcache, id);
         if (ohoi_res_info->type != OHOI_RESOURCE_MC) {
 		dbg("BUG: try to get sel in unsupported resource");
@@ -566,24 +561,25 @@ static SaErrorT ipmi_get_el_info(void               *hnd,
         }
 	
         ohoi_get_sel_count(ohoi_res_info->u.mc_id, &count);
-	
-		if (count == 0)
-			  	info->Entries = 0;
-		else
-				info->Entries = count;
-		dbg("sel count: %d", count);
+	info->Entries = count;
 
-		ohoi_get_sel_size(ohoi_res_info->u.mc_id, &size);
+	ohoi_get_sel_size(ohoi_res_info->u.mc_id, &size);
         info->Size = size / 16;
-        ohoi_get_sel_updatetime(ohoi_res_info->u.mc_id, &info->UpdateTimestamp);
+        ohoi_get_sel_updatetime(ohoi_res_info->u.mc_id,
+					&info->UpdateTimestamp);
         ohoi_get_sel_time(ohoi_res_info->u.mc_id, &info->CurrentTime,
-			ipmi_handler);
-        info->Enabled = 1; /* FIXME: how to disable SEL in OpenIPMI */
+								ipmi_handler);
         ohoi_get_sel_overflow(ohoi_res_info->u.mc_id, &info->OverflowFlag);
         info->OverflowAction = SAHPI_EL_OVERFLOW_DROP;
         ohoi_get_sel_support_del(ohoi_res_info->u.mc_id, &del_support);
+	rv = ohoi_get_sel_state(ipmi_handler, ohoi_res_info->u.mc_id,
+						 (int *)&info->Enabled);
+	if (rv != SA_OK) {
+		dbg("couldn't get sel state rv = %d", rv);
+		return rv;
+	}
         
-        return 0;
+        return SA_OK;
 }
 
 /**
@@ -649,25 +645,8 @@ static SaErrorT ipmi_set_sel_state(void      *hnd,
 }
 
 
-
 #if 0
-/**
- * ipmi_set_sel_state: set ipmi sel state (enabled)
- * @hnd: pointer to handler
- * @id: resource id of resource with SEL capability
- * @enable: int value for enable
- *
- *
- *
- * Return value: 0 for success, -1 for error
- **/
-static int ipmi_set_sel_state(void      *hnd, 
-                //SaHpiResourceIdT   id, 
-                //int                     enable)
-{
-        ///* need OpenIPMI support */
-        //return -1;
-}
+ 
 
 /**
  * ipmi_add_sel_entry: add an entry to system sel from user
@@ -1717,7 +1696,7 @@ static struct oh_abi_v2 oh_ipmi_plugin = {
 	.set_el_time                    = ipmi_set_el_time,
 	.get_el_entry                   = ipmi_get_el_entry,
 	.clear_el                       = ipmi_clear_el,
-	.set_el_state                 =  ipmi_set_sel_state,
+	.set_el_state                   = ipmi_set_sel_state,
 	/* On IPMI Platform, it's discouraged to add
 	 * events manually
 	 */
@@ -1784,6 +1763,4 @@ int ipmi_get_interface(void **pp, const uuid_t uuid)
 }
 
 int get_interface(void **pp, const uuid_t uuid) __attribute__ ((weak, alias("ipmi_get_interface")));
-
-
 
