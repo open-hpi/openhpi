@@ -109,20 +109,21 @@ static void add_control_event(ipmi_entity_t	*ent,
 			     SaHpiEntityPathT	parent_ep,
 			     SaHpiResourceIdT	rid)
 {
-        ipmi_control_id_t         *control_id; 
 	struct oh_event           *e;
         struct ohoi_resource_info *info;
+	struct ohoi_control_info  *ctrl_info;
 
-        control_id = malloc(sizeof(*control_id));
-        if (!control_id) {
+        ctrl_info = malloc(sizeof(struct ohoi_control_info));
+        if (!ctrl_info) {
                 dbg("Out of memory");
                 return;
         }
-        *control_id = ipmi_control_convert_to_id(control);
+        ctrl_info->ctrl_id = ipmi_control_convert_to_id(control);
+	ctrl_info->mode = SAHPI_CTRL_MODE_AUTO;
         
 	e = malloc(sizeof(*e));
 	if (!e) {
-                free(control_id);
+                free(ctrl_info);
 		dbg("Out of space");   
 		return;
 	}
@@ -133,6 +134,7 @@ static void add_control_event(ipmi_entity_t	*ent,
 
 	info = oh_get_resource_data(handler->rptcache, rid);
         if (!info) {
+		free(ctrl_info);
                 free(e);
                 dbg("No info in resource(%d)\n", rid);
                 return;
@@ -142,7 +144,7 @@ static void add_control_event(ipmi_entity_t	*ent,
 
         rid = oh_uid_lookup(&e->u.rdr_event.rdr.Entity);
         
-	oh_add_rdr(handler->rptcache, rid, &e->u.rdr_event.rdr, control_id, 1);
+	oh_add_rdr(handler->rptcache, rid, &e->u.rdr_event.rdr, ctrl_info, 1);
 }
 
 
@@ -161,7 +163,17 @@ static void add_alarm_rdr(char 				*name,
 	SaHpiRdrT               rdr_temp;
 	SaHpiRdrT               *rdr;
 	int			name_len;
- 
+	struct ohoi_control_info *ctrl_info;
+	
+	
+        ctrl_info = malloc(sizeof(struct ohoi_control_info));
+        if (!ctrl_info) {
+                dbg("Out of memory");
+                return;
+        }
+        ctrl_info->ctrl_id = *control_id;
+	ctrl_info->mode = SAHPI_CTRL_MODE_AUTO;
+	 
 	rdr = &rdr_temp;
         rdr->RecordId = 0;
         rdr->RdrType = SAHPI_CTRL_RDR;
@@ -186,7 +198,7 @@ static void add_alarm_rdr(char 				*name,
         rdr->RdrTypeUnion.CtrlRec.WriteOnly    = wo;
 	rdr->RdrTypeUnion.CtrlRec.DefaultMode.Mode = def_mode->Mode;
 	rdr->RdrTypeUnion.CtrlRec.DefaultMode.ReadOnly = def_mode->ReadOnly;
-        oh_add_rdr(handler->rptcache, rptid, rdr, control_id, 1);
+        oh_add_rdr(handler->rptcache, rptid, rdr, ctrl_info, 1);
 	dbg("add_alarm_rdr: %s\n",name); 
 }
 
