@@ -128,17 +128,20 @@ SaErrorT new_sensor(RPTable *rptcache, SaHpiResourceIdT ResId, int Index){
 	 else{
 	 res_rdr.Entity = RptEntry->ResourceEntity;
 	 }
-	       
-        memcpy(&info->mib, &dummy_voltage_sensors[Index].sensor_info.mib, sizeof(struct SensorMibInfo));
-        memcpy(&info->cur_state, &dummy_voltage_sensors[Index].sensor_info.cur_state, sizeof(SaHpiEventStateT));
-        memcpy(&info->sensor_enabled, &dummy_voltage_sensors[Index].sensor_info.sensor_enabled, sizeof(SaHpiBoolT));
+        
+	memcpy(&info->mib, &dummy_voltage_sensors[Index].sensor_info.mib, sizeof(struct SensorMibInfo));
+        info->cur_state = dummy_voltage_sensors[Index].sensor_info.cur_state;
+	//memcpy(&info->cur_state, &dummy_voltage_sensors[Index].sensor_info.cur_state, sizeof(SaHpiEventStateT));
+	info->sensor_enabled = dummy_voltage_sensors[Index].sensor_info.sensor_enabled;
+	//memcpy(&info->sensor_enabled, &dummy_voltage_sensors[Index].sensor_info.sensor_enabled, sizeof(SaHpiBoolT));
         memcpy(&info->events_enabled, &dummy_voltage_sensors[Index].sensor_info.events_enabled, sizeof(SaHpiBoolT));
         memcpy(&info->assert_mask, &dummy_voltage_sensors[Index].sensor_info.assert_mask, sizeof(SaHpiEventStateT));
         memcpy(&info->deassert_mask, &dummy_voltage_sensors[Index].sensor_info.deassert_mask, sizeof(SaHpiEventStateT));
         memcpy(&info->event_array, &dummy_voltage_sensors[Index].sensor_info.event_array, sizeof(struct sensor_event_map));
         memcpy(&info->reading2event, &dummy_voltage_sensors[Index].sensor_info.reading2event, sizeof(struct sensor_event_map));
- 
-	memcpy(&info->reading, &dummy_voltage_sensors[Index].sensor.DataFormat.ReadingType, sizeof(SaHpiSensorReadingT));
+	info->reading.IsSupported = dummy_voltage_sensors[Index].sensor.DataFormat.IsSupported; 
+	info->reading.Type = dummy_voltage_sensors[Index].sensor.DataFormat.ReadingType;
+	//memcpy(&info->reading, &dummy_voltage_sensors[Index].sensor.DataFormat.ReadingType, sizeof(SaHpiSensorReadingT));
 	memcpy(&info->thres, &dummy_voltage_sensors[Index].sensor.DataFormat.Range, sizeof(SaHpiSensorThresholdsT)); 
  
 	oh_add_rdr(rptcache, ResId, &res_rdr, &info, 0);
