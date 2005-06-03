@@ -54,6 +54,8 @@ static void __get_control_state(ipmi_control_t *control,
 	}
        if (info->state->Type != SAHPI_CTRL_TYPE_OEM) {
                 dbg("IPMI plug-in only support OEM control now");
+		info->err = SA_ERR_HPI_INTERNAL_ERROR;
+		info->done = 1;
                 return;
         }
         
@@ -71,10 +73,45 @@ static void __get_control_state(ipmi_control_t *control,
         info->done = 1;
 }
 
+static void __get_control_leds_state(ipmi_control_t *control,
+                int err, ipmi_light_setting_t *settings, void *cb_data)
+{
+	struct ohoi_ctrl_info	*info = cb_data;
+	int			len, res ,val;
+
+	if (err) {
+		dbg("__get_control_leds_state: err = %d", err);
+		info->err = SA_ERR_HPI_INTERNAL_ERROR;
+		info->done = 1;
+		return;
+														}
+	if (info->state->Type != SAHPI_CTRL_TYPE_OEM) {
+		dbg("IPMI plug-in only support OEM control now");
+		info->err = SA_ERR_HPI_INTERNAL_ERROR;
+		info->done = 1;
+		return;
+	}
+			               
+	if (settings == (ipmi_light_setting_t *)NULL) {
+		dbg("__get_control_leds_state: settings = NULL");
+		info->err = SA_ERR_HPI_INTERNAL_ERROR;
+		info->done = 1;
+		return;
+	}
+	len = ipmi_control_get_num_vals(control);
+        info->state->StateUnion.Oem.BodyLength = len;
+	res = ipmi_light_setting_get_color(settings, 0, &val);
+        info->state->StateUnion.Oem.Body[0] = res;
+        info->done = 1;
+}
+
 static void _get_control_state(ipmi_control_t *control,
                                 void           *cb_data)
 {
-        ipmi_control_get_val(control, __get_control_state, cb_data);
+	if (ipmi_control_light_set_with_setting(control))
+		ipmi_control_get_light(control, __get_control_leds_state, cb_data);
+	else
+        	ipmi_control_get_val(control, __get_control_state, cb_data);
 }
 
 SaErrorT ohoi_get_control_state(void *hnd, SaHpiResourceIdT id,
@@ -164,9 +201,21 @@ static void _set_control_state(ipmi_control_t *control,
                 return;
         }
                         
-        ipmi_control_set_val(control, 
+	if (ipmi_control_light_set_with_setting(control)) {
+		ipmi_light_setting_t *setting;
+
+		setting = ipmi_alloc_light_settings(1);
+		ipmi_light_setting_set_local_control(setting, 0, 1);
+		ipmi_light_setting_set_color(setting, 0,
+			info->state->StateUnion.Oem.Body[0]);
+		ipmi_control_set_light(control, setting,
+			__set_control_state, cb_data);
+		ipmi_free_light_settings(setting);
+	} else {
+        	ipmi_control_set_val(control, 
                              (int *)&info->state->StateUnion.Oem.Body[0],
                              __set_control_state, info);
+	}
 }
 
 static SaErrorT set_front_panrl_alarm_led(void *hnd,
