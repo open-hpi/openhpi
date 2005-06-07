@@ -10,18 +10,13 @@
  * full licensing terms.
  *
  * Author(s):
- *      Sean Dague
- *      Christina Hernandez
- *
+ *	  Christina Hernandez <hernanc@us.ibm.com>
+ *        W. David Ashley <dashley@us.ibm.com>
  */
 
 
 #ifndef __SIM_CONTROLS_H
 #define __SIM_CONTROLS_H
-
-#include <sim_init.h>
-#include <sim_resources.h>
-#include <SaHpi.h>
 
 
 /*******************
@@ -44,25 +39,9 @@ struct sim_control {
 	const char *comment;
 };
 
-extern struct sim_control sim_control_rdrs[];
-
-extern struct sim_control sim_chassis_controls_bc[];
-extern struct sim_control sim_chassis_controls_bct[];
-extern struct sim_control sim_blade_controls[];
-extern struct sim_control sim_blade_addin_controls[];
-extern struct sim_control sim_mgmnt_controls[];
-extern struct sim_control sim_mediatray_controls[];
-extern struct sim_control sim_fan_controls[];
-extern struct sim_control sim_power_controls[];
-extern struct sim_control sim_switch_controls[];
-
-extern struct sim_control sim_chassis_controls_rsa[];
-extern struct sim_control sim_cpu_controls_rsa[];
-extern struct sim_control sim_dasd_controls_rsa[];
-extern struct sim_control sim_fan_controls_rsa[];
+extern struct sim_control sim_controls[];
 
 SaErrorT sim_discover_controls(RPTable *rpt);
-SaErrorT new_controls(RPTable *rptcache, SaHpiResourceIdT ResId, int Index);
 int sim_get_next_control_num(RPTable *rptcache, SaHpiResourceIdT ResId, SaHpiRdrTypeT type);
 
 

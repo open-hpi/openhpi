@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2004
+ * (C) Copyright IBM Corp. 2005
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -10,14 +10,13 @@
  * full licensing terms.
  *
  * Author(s):
- *      Christina Hernandez <hernanc@us.ibm.com>
+ *	  Christina Hernandez <hernanc@us.ibm.com>
+ *        W. David Ashley <dashley@us.ibm.com>
  */
 
 #ifndef __SIM_CONTROL_H
 #define __SIM_CONTROL_H
 
-#include <sim_init.h>
-#include <sim_controls.h>
 
 SaErrorT sim_get_control_state(void *hnd,
 				   SaHpiResourceIdT rid,

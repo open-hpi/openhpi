@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2003, 2005
+ * (C) Copyright IBM Corp. 2005
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -10,15 +10,12 @@
  * full licensing terms.
  *
  * Author(s):
- *      Sean Dague <http://dague.net/sean>
- *      Renier Morales <renierm@users.sf.net>
- *      Steve Sherman <stevees@us.ibm.com>
+ *	  Christina Hernandez <hernanc@us.ibm.com>
+ *        W. David Ashley <dashley@us.ibm.com>
  */
 
 
-#include <sim_sensors.h>
 #include <sim_init.h>
-#include <sim_resources.h>
 #include <rpt_utils.h>
 
 SaErrorT sim_discover_sensors(RPTable *rpt)
@@ -33,7 +30,7 @@ SaErrorT sim_discover_sensors(RPTable *rpt)
 	}
 	new_sensor(rpt, res->ResourceId, 1); /* add #1 ... */
 	new_sensor(rpt, res->ResourceId, 5); /* add #5 ... */
-		       
+
         /* add to second resource */
 	res = oh_get_resource_next(rpt, res->ResourceId);
 	if (!res){
@@ -50,7 +47,7 @@ SaErrorT sim_discover_sensors(RPTable *rpt)
 		dbg("entity_root is needed and not present");
 		return 1;
 	}
-        new_sensor(rpt, res->ResourceId, 2); 
+        new_sensor(rpt, res->ResourceId, 2);
         new_sensor(rpt, res->ResourceId, 7);
 
         /* add to fourth resource */
@@ -59,7 +56,7 @@ SaErrorT sim_discover_sensors(RPTable *rpt)
 		dbg("entity_root is needed and not present");
 		return 1;
 	}
-        new_sensor(rpt, res->ResourceId, 3); 
+        new_sensor(rpt, res->ResourceId, 3);
         new_sensor(rpt, res->ResourceId, 5);
 
         /* add to fifth resource */
@@ -68,15 +65,15 @@ SaErrorT sim_discover_sensors(RPTable *rpt)
 		dbg("entity_root is needed and not present");
 		return 1;
 	}
-        new_sensor(rpt, res->ResourceId, 2); 
-     
+        new_sensor(rpt, res->ResourceId, 2);
+
         /* add to sixth resource */
 	res = oh_get_resource_next(rpt, res->ResourceId);
 	if (!res){
 		dbg("entity_root is needed and not present");
 		return 1;
-	}		
-        new_sensor(rpt, res->ResourceId, 1); 
+	}
+        new_sensor(rpt, res->ResourceId, 1);
         new_sensor(rpt, res->ResourceId, 2);
         new_sensor(rpt, res->ResourceId, 6);
         new_sensor(rpt, res->ResourceId, 7);
@@ -87,7 +84,7 @@ SaErrorT sim_discover_sensors(RPTable *rpt)
 		dbg("entity_root is needed and not present");
 		return 1;
 	}
-        new_sensor(rpt, res->ResourceId, 4); 
+        new_sensor(rpt, res->ResourceId, 4);
         new_sensor(rpt, res->ResourceId, 2);
 
 	/*add to eighth resource*/
@@ -97,8 +94,8 @@ SaErrorT sim_discover_sensors(RPTable *rpt)
 		return 1;
 	}
 	new_sensor(rpt, res->ResourceId, 8);
-        
-	return 0; 
+
+	return 0;
 
 }
 
@@ -106,21 +103,21 @@ SaErrorT new_sensor(RPTable *rptcache, SaHpiResourceIdT ResId, int Index){
 	SaHpiRdrT res_rdr;
 	SaHpiRptEntryT *RptEntry;
 	struct SensorInfo *info;
-	
+
 	info = (struct SensorInfo *)g_malloc0(sizeof(struct SensorInfo));
 
 
 	// Copy information from rdr array to res_rdr
          res_rdr.RdrType = SAHPI_SENSOR_RDR;
-         memcpy(&res_rdr.RdrTypeUnion.SensorRec, &dummy_voltage_sensors[Index].sensor, sizeof(SaHpiSensorRecT));
+         memcpy(&res_rdr.RdrTypeUnion.SensorRec, &sim_voltage_sensors[Index].sensor, sizeof(SaHpiSensorRecT));
 
 	 oh_init_textbuffer(&res_rdr.IdString);
-	 oh_append_textbuffer(&res_rdr.IdString, dummy_voltage_sensors[Index].comment);
+	 oh_append_textbuffer(&res_rdr.IdString, sim_voltage_sensors[Index].comment);
 
          res_rdr.IsFru = 1;
          res_rdr.RdrTypeUnion.SensorRec.Num = sim_get_next_sensor_num(rptcache, ResId, res_rdr.RdrTypeUnion.SensorRec.Type);
          res_rdr.RecordId = get_rdr_uid(res_rdr.RdrType, res_rdr.RdrTypeUnion.SensorRec.Num);
-	 
+
 	 RptEntry = oh_get_resource_by_id(rptcache, ResId);
 	 if(!RptEntry){
 		 dbg("NULL rpt pointer\n");
@@ -128,22 +125,22 @@ SaErrorT new_sensor(RPTable *rptcache, SaHpiResourceIdT ResId, int Index){
 	 else{
 	 res_rdr.Entity = RptEntry->ResourceEntity;
 	 }
-        
-	memcpy(&info->mib, &dummy_voltage_sensors[Index].sensor_info.mib, sizeof(struct SensorMibInfo));
-        info->cur_state = dummy_voltage_sensors[Index].sensor_info.cur_state;
-	//memcpy(&info->cur_state, &dummy_voltage_sensors[Index].sensor_info.cur_state, sizeof(SaHpiEventStateT));
-	info->sensor_enabled = dummy_voltage_sensors[Index].sensor_info.sensor_enabled;
-	//memcpy(&info->sensor_enabled, &dummy_voltage_sensors[Index].sensor_info.sensor_enabled, sizeof(SaHpiBoolT));
-        memcpy(&info->events_enabled, &dummy_voltage_sensors[Index].sensor_info.events_enabled, sizeof(SaHpiBoolT));
-        memcpy(&info->assert_mask, &dummy_voltage_sensors[Index].sensor_info.assert_mask, sizeof(SaHpiEventStateT));
-        memcpy(&info->deassert_mask, &dummy_voltage_sensors[Index].sensor_info.deassert_mask, sizeof(SaHpiEventStateT));
-        memcpy(&info->event_array, &dummy_voltage_sensors[Index].sensor_info.event_array, sizeof(struct sensor_event_map));
-        memcpy(&info->reading2event, &dummy_voltage_sensors[Index].sensor_info.reading2event, sizeof(struct sensor_event_map));
-	info->reading.IsSupported = dummy_voltage_sensors[Index].sensor.DataFormat.IsSupported; 
-	info->reading.Type = dummy_voltage_sensors[Index].sensor.DataFormat.ReadingType;
-	//memcpy(&info->reading, &dummy_voltage_sensors[Index].sensor.DataFormat.ReadingType, sizeof(SaHpiSensorReadingT));
-	memcpy(&info->thres, &dummy_voltage_sensors[Index].sensor.DataFormat.Range, sizeof(SaHpiSensorThresholdsT)); 
- 
+
+	memcpy(&info->mib, &sim_voltage_sensors[Index].sensor_info.mib, sizeof(struct SensorMibInfo));
+        info->cur_state = sim_voltage_sensors[Index].sensor_info.cur_state;
+	//memcpy(&info->cur_state, &sim_voltage_sensors[Index].sensor_info.cur_state, sizeof(SaHpiEventStateT));
+	info->sensor_enabled = sim_voltage_sensors[Index].sensor_info.sensor_enabled;
+	//memcpy(&info->sensor_enabled, &sim_voltage_sensors[Index].sensor_info.sensor_enabled, sizeof(SaHpiBoolT));
+        memcpy(&info->events_enabled, &sim_voltage_sensors[Index].sensor_info.events_enabled, sizeof(SaHpiBoolT));
+        memcpy(&info->assert_mask, &sim_voltage_sensors[Index].sensor_info.assert_mask, sizeof(SaHpiEventStateT));
+        memcpy(&info->deassert_mask, &sim_voltage_sensors[Index].sensor_info.deassert_mask, sizeof(SaHpiEventStateT));
+        memcpy(&info->event_array, &sim_voltage_sensors[Index].sensor_info.event_array, sizeof(struct sensor_event_map));
+        memcpy(&info->reading2event, &sim_voltage_sensors[Index].sensor_info.reading2event, sizeof(struct sensor_event_map));
+	info->reading.IsSupported = sim_voltage_sensors[Index].sensor.DataFormat.IsSupported;
+	info->reading.Type = sim_voltage_sensors[Index].sensor.DataFormat.ReadingType;
+	//memcpy(&info->reading, &sim_voltage_sensors[Index].sensor.DataFormat.ReadingType, sizeof(SaHpiSensorReadingT));
+	memcpy(&info->thres, &sim_voltage_sensors[Index].sensor.DataFormat.Range, sizeof(SaHpiSensorThresholdsT));
+
 	oh_add_rdr(rptcache, ResId, &res_rdr, &info, 0);
 
          return 0;
@@ -153,7 +150,7 @@ int sim_get_next_sensor_num(RPTable *rptcache, SaHpiResourceIdT ResId, SaHpiRdrT
 {
 	int i=0;
 	SaHpiRdrT *RdrEntry;
- 
+
 	RdrEntry = oh_get_rdr_next(rptcache, ResId, SAHPI_FIRST_ENTRY);
 
 	while(RdrEntry){
@@ -166,7 +163,7 @@ int sim_get_next_sensor_num(RPTable *rptcache, SaHpiResourceIdT ResId, SaHpiRdrT
 	}
 
 	return i;
-	
+
 	if(!(oh_get_rdr_by_type(rptcache, ResId, type, i))){
 		printf("I hit sim_get_next_sensor_num\n");
 		return i;
@@ -175,7 +172,7 @@ int sim_get_next_sensor_num(RPTable *rptcache, SaHpiResourceIdT ResId, SaHpiRdrT
 		while(oh_get_rdr_by_type(rptcache, ResId, type, i)){
 			i++;
 		}
-		
+
 		return i;
 	}
 }
@@ -188,7 +185,7 @@ int sim_get_next_sensor_num(RPTable *rptcache, SaHpiResourceIdT ResId, SaHpiRdrT
  * Sensors
  *****************/
 
-struct dummy_sensor dummy_voltage_sensors[] = { 
+struct sim_sensor sim_voltage_sensors[] = {
 
 
     /* -5V voltage sensor on Management Module */
@@ -231,7 +228,7 @@ struct dummy_sensor dummy_voltage_sensors[] = {
 							.SensorBuffer[0] = 0,
 						 },
 					},
-										
+
                                         .Nominal = {
 						.IsSupported = SAHPI_TRUE,
                                                 .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
@@ -325,7 +322,7 @@ struct dummy_sensor dummy_voltage_sensors[] = {
                 },
                 .comment = "Voltage Sensor (-5V)"
         },
- 
+
      /* Blade's 1.25V voltage sensor */
         {
 		.index = 1,
@@ -366,7 +363,7 @@ struct dummy_sensor dummy_voltage_sensors[] = {
 							.SensorBuffer[0] = 0,
 						},
 					},
-										
+
 					.Nominal = {
 						.IsSupported = SAHPI_TRUE,
 						.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
@@ -397,7 +394,7 @@ struct dummy_sensor dummy_voltage_sensors[] = {
 							.SensorBuffer[0] = 0,
 						},
 					},
-															
+
 				},
 				.AccuracyFactor = 42.9,
 			},
@@ -418,12 +415,12 @@ struct dummy_sensor dummy_voltage_sensors[] = {
 			.cur_state = SAHPI_ES_UNSPECIFIED,
 			.sensor_enabled = SAHPI_TRUE,
 			.events_enabled = SAHPI_TRUE,
-			.assert_mask   = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT | 
+			.assert_mask   = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
 				SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-			.deassert_mask = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT | 
+			.deassert_mask = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
 				SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
 			.event_array = {
-				{	
+				{
 				.event = "08000481", /* EN_CUTOFF_HI_FAULT_1_2V */
 				.event_assertion = SAHPI_TRUE,
 				.event_res_failure = SAHPI_TRUE,
@@ -495,7 +492,7 @@ struct dummy_sensor dummy_voltage_sensors[] = {
 						.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 						.Value = {
 							.SensorInt64 = 1,
-							.SensorUint64 = 2, 
+							.SensorUint64 = 2,
 							.SensorFloat64 = 0,
 							.SensorBuffer[0] = 0,
 						},
@@ -530,7 +527,7 @@ struct dummy_sensor dummy_voltage_sensors[] = {
 							.SensorBuffer[0] = 0,
 						},
 					},
-															
+
                                 },
 				.AccuracyFactor = 29.4,
                         },
@@ -594,7 +591,7 @@ struct dummy_sensor dummy_voltage_sensors[] = {
                  },
                 .comment = "Voltage Sensor (1.5V)"
         },
- 
+
       /* 1.8V voltage sensor on Management Module */
         {
 		.index = 3,
@@ -665,7 +662,7 @@ struct dummy_sensor dummy_voltage_sensors[] = {
 							.SensorBuffer[0] = 0,
 						},
 					},
-															
+
                               },
 			      .AccuracyFactor = 87.2,
                         },
@@ -729,7 +726,7 @@ struct dummy_sensor dummy_voltage_sensors[] = {
                 },
                 .comment = "Voltage Sensor (1.8V)"
         },
-   
+
 
 /* 2.5V voltage sensor template*/
         {
@@ -801,7 +798,7 @@ struct dummy_sensor dummy_voltage_sensors[] = {
 							.SensorBuffer[0] = 0,
 						},
 					},
-															
+
                                 },
 				.AccuracyFactor = 3.4,
                         },
@@ -939,7 +936,7 @@ struct dummy_sensor dummy_voltage_sensors[] = {
 							.SensorBuffer[0] = 0,
 						},
 					},
-															
+
                                 },
 				.AccuracyFactor = 48.8,
                         },
@@ -1042,7 +1039,7 @@ struct dummy_sensor dummy_voltage_sensors[] = {
 						.Value = {
 							.SensorInt64 = 7,
 							.SensorUint64 = 9,
-							.SensorFloat64 = 0, 
+							.SensorFloat64 = 0,
 							.SensorBuffer[0] = 0,
 						},
 					},
@@ -1076,7 +1073,7 @@ struct dummy_sensor dummy_voltage_sensors[] = {
 							.SensorBuffer[0] = 0,
 						},
 					},
-															
+
 				},
 				.AccuracyFactor = 78.4,
 			},
@@ -1213,7 +1210,7 @@ struct dummy_sensor dummy_voltage_sensors[] = {
 							.SensorBuffer[0] = 0,
 						},
 					},
-															
+
 				},
 				.AccuracyFactor = 46.5,
                         },
@@ -1349,7 +1346,7 @@ struct dummy_sensor dummy_voltage_sensors[] = {
 							.SensorBuffer[0] = 0,
 						},
 					},
-															
+
 				},
 				.AccuracyFactor = 45.8,
                         },

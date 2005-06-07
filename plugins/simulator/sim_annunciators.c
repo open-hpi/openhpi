@@ -10,9 +10,8 @@
  * full licensing terms.
  *
  * Author(s):
- *      Sean Dague
- *      Christina Hernandez
- *
+ *	  Christina Hernandez <hernanc@us.ibm.com>
+ *        W. David Ashley <dashley@us.ibm.com>
  */
 
 #include <sim_annunciators.h>
@@ -193,7 +192,7 @@ sim_annunc sim_annunc[] = {
 	}
 };
 
-while(0){
+#ifdef 0
 static int __build_the_rpt_cache(struct oh_handler_state *oh_hnd)
 {
         int i;
@@ -239,7 +238,7 @@ static int __build_the_rpt_cache(struct oh_handler_state *oh_hnd)
 			}
 		}
 	};
-*/	
+*/
         /* append entity root to rdrs entity paths */
         for (i=0; i < NUM_RDRS; i++) {
                 memcpy(&res_rdr, &dummy_rdrs[i], sizeof(SaHpiRdrT));
@@ -247,9 +246,9 @@ static int __build_the_rpt_cache(struct oh_handler_state *oh_hnd)
 
                 id = oh_uid_lookup(&res_rdr.Entity);
 
-                if( id < 0 ) { 
-			dbg("error looking up uid in dummy_open");  
-			return-1; 
+                if( id < 0 ) {
+			dbg("error looking up uid in dummy_open");
+			return-1;
 		}
 
                 /* add rdrs */
@@ -328,4 +327,4 @@ static int __build_the_rpt_cache(struct oh_handler_state *oh_hnd)
 
         return(0);
 }
-}
+#endif

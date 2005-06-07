@@ -10,7 +10,7 @@
  * full licensing terms.
  *
  * Author(s):
- *      W. david Ashley <dashley@us.ibm.com>
+ *      W. David Ashley <dashley@us.ibm.com>
  *
  */
 
@@ -37,7 +37,7 @@ SaErrorT sim_inject_resource(struct oh_handler_state *state,
 }
 
 
-/* inject a resource */
+/* inject an rdr */
 SaErrorT sim_inject_rdr(struct oh_handler_state *state, SaHpiResourceIdT resid,
                         SaHpiRdrT *data) {
 

@@ -10,9 +10,11 @@
  * full licensing terms.
  *
  * Author(s):
- *      Sean Dague
- *
+ *	  Christina Hernandez <hernanc@us.ibm.com>
+ *        W. David Ashley <dashley@us.ibm.com>
  */
+
+
 #ifndef _SIM_INIT_H
 #define _SIM_INIT_H
 
@@ -22,7 +24,9 @@
 #include <sys/time.h>
 #include <uuid/uuid.h>
 #include <unistd.h>
+#include <math.h>
 
+#include <SaHpi.h>
 #include <openhpi.h>
 #include <oh_handler.h>
 #include <oh_domain.h>
@@ -31,8 +35,8 @@
 #include <sim_resources.h>
 #include <sim_sensors.h>
 #include <sim_sensor_func.h>
-//#include <sim_controls.h>
-//#include <sim_control_func.h>
+#include <sim_controls.h>
+#include <sim_control_func.h>
 //#include <sim_annunciators.h>
 //#include <sim_annunciator_func.h>
 
@@ -41,6 +45,6 @@ SaErrorT sim_discover(void *hnd);
 int sim_get_event(void *hnd, struct oh_event *event);
 void sim_close(void *hnd);
 int build_rptcache(RPTable *rptcache, SaHpiEntityPathT *root_ep);
-struct oh_event *eventdup(const struct oh_event *event);
+int sim_get_interface(void **pp, const uuid_t uuid);
 
 #endif
