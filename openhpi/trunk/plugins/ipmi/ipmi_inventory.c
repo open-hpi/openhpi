@@ -944,6 +944,7 @@ static SaErrorT get_oem_idr_field(struct oh_handler_state  *handler,
 	int rv;
 	
 	if (fieldtype != SAHPI_IDR_FIELDTYPE_UNSPECIFIED) {
+		dbg("fieldtype != SAHPI_IDR_FIELDTYPE_UNSPECIFIED");
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
 	if (fieldid == SAHPI_FIRST_ENTRY) {
@@ -1460,6 +1461,7 @@ SaErrorT ohoi_add_idr_area(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid,
 	g_mutex_lock(fru->mutex);
 	if (get_area_presence(fru, areatype)) {
 		g_mutex_unlock(fru->mutex);
+		dbg("area 0x%x already present", areatype);
 		return SA_ERR_HPI_INVALID_DATA;
 	}
 	ar_add.res_info = ohoi_res_info;
@@ -1554,6 +1556,7 @@ SaErrorT ohoi_del_idr_area(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid,
 	}
 	areatype = get_areatype_by_id(areaid);
 	if (areatype == OHOI_AREA_EMPTY_ID) {
+		dbg("areatype == OHOI_AREA_EMPTY_ID");
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
 	if (areatype == SAHPI_IDR_AREATYPE_INTERNAL_USE) {
@@ -1673,6 +1676,9 @@ SaErrorT ohoi_get_idr_field(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid,
 
 	OHOI_CHECK_RPT_CAP_IDR();
 
+	if (fieldid < 1) {
+		return SA_ERR_HPI_NOT_PRESENT;
+	}
 	ohoi_res_info = oh_get_resource_data(handler->rptcache, rid);
 	if (ohoi_res_info->type != OHOI_RESOURCE_ENTITY) {
 		dbg("Bug: try to get fru in unsupported resource");
@@ -1756,7 +1762,7 @@ SaErrorT ohoi_get_idr_field(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid,
 			dbg("area_data->fields[fieldid - 1].fieldtype != fieldtype(%d != %d)",
 				area_data->fields[fieldid - 1].fieldtype, fieldtype);
 			g_mutex_unlock(fru->mutex);
-			return SA_ERR_HPI_INVALID_PARAMS;
+			return SA_ERR_HPI_NOT_PRESENT;
 		}
 	}
 
@@ -1768,6 +1774,9 @@ SaErrorT ohoi_get_idr_field(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid,
 		} else {
 			*nextfieldid = SAHPI_LAST_ENTRY;
 		}
+	} else if ((fieldtype !=SAHPI_IDR_FIELDTYPE_UNSPECIFIED) &&
+			(fieldtype != SAHPI_IDR_FIELDTYPE_CUSTOM)) {
+		*nextfieldid = SAHPI_LAST_ENTRY;
 	} else {
 		*nextfieldid = get_nextfield(ohoi_res_info->fru,
 			area_data, fieldid);
