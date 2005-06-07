@@ -309,3 +309,23 @@ SaErrorT ohoi_set_indicator_state(void *hnd, SaHpiResourceIdT id,
                                               &done);
         return ohoi_loop(&done,ipmi_handler);
 }
+
+
+
+void * oh_get_hotswap_state (void *, SaHpiResourceIdT, SaHpiHsStateT *)
+                __attribute__ ((weak, alias("ohoi_get_hotswap_state")));
+
+void * oh_set_hotswap_state (void *, SaHpiResourceIdT, SaHpiHsStateT)
+                __attribute__ ((weak, alias("ohoi_set_hotswap_state")));
+
+void * oh_request_hotswap_action (void *, SaHpiResourceIdT, SaHpiHsActionT)
+                __attribute__ ((weak, alias("ohoi_request_hotswap_action")));
+
+void * oh_get_indicator_state (void *, SaHpiResourceIdT,
+                               SaHpiHsIndicatorStateT *)
+                __attribute__ ((weak, alias("ohoi_get_indicator_state")));
+
+void * oh_set_indicator_state (void *, SaHpiResourceIdT,
+                               SaHpiHsIndicatorStateT)
+                __attribute__ ((weak, alias("ohoi_set_indicator_state")));
+

@@ -249,8 +249,9 @@ extern struct oh_static_plugin static_plugins[];
  **/
 int oh_load_plugin(char *plugin_name)
 {
-        struct oh_plugin *plugin = NULL;
-        int (*get_interface) (struct oh_abi_v2 ** pp, const uuid_t uuid);
+        
+	struct oh_plugin *plugin = NULL;
+        /*int (*get_interface) (struct oh_abi_v2 ** pp, const uuid_t uuid); */
         int err;
         struct oh_static_plugin *p = static_plugins;
 
@@ -310,17 +311,13 @@ int oh_load_plugin(char *plugin_name)
                 goto err1;
         }
 
-        get_interface = lt_dlsym(plugin->dl_handle, "get_interface");
-        if (!get_interface) {
-                dbg("Can not get 'get_interface' symbol, is it a plugin?!");
+	err = oh_load_plugin_functions(plugin, &plugin->abi);
+	
+	if (err < 0 || !plugin->abi || !plugin->abi->open) {
+                dbg("Can not get ABI");
                 goto err1;
-        }
-
-        err = get_interface(&plugin->abi, UUID_OH_ABI_V2);
-        if (err < 0 || !plugin->abi || !plugin->abi->open) {
-                dbg("Can not get ABI V2");
-                goto err1;
-        }
+	}
+	
         plugin_list = g_slist_append(plugin_list, plugin);
         data_access_unlock();
 
@@ -698,8 +695,134 @@ int oh_remove_domain_from_handler(unsigned int h_id,
 	return -1;
 }
 
+/**
+ * oh_load_plugin_functions
+ * @plugin: plugin structure.
+ * @abi: oh_abi struct
+ *
+ * This function will load the symbol table from the plugin name and 
+ * assign the plugin functions to the abi struct. 
+ *
+ * Return value: 0 on success, otherwise any negative value on failure.
+ **/
+int oh_load_plugin_functions(struct oh_plugin *plugin, struct oh_abi_v2 **abi)
+{  	
+        
+	*abi = (struct oh_abi_v2 *)g_malloc0(sizeof(struct oh_abi_v2));         
+	
+	 
+        if (!(*abi)) {
+                dbg("Out of Memory!");
+                return -1;
+        }
+	
+	(*abi)->open			  = lt_dlsym(plugin->dl_handle,
+	  					"oh_open");
+	(*abi)->close			  = lt_dlsym(plugin->dl_handle,
+	  					"oh_close");		    
+	(*abi)->get_event		  = lt_dlsym(plugin->dl_handle,
+	  					"oh_get_event");
+	(*abi)->discover_resources	  = lt_dlsym(plugin->dl_handle,
+	  					"oh_discover_resources");
+	(*abi)->discover_domain_resources = lt_dlsym(plugin->dl_handle,
+	  					"oh_discover_domain_resource");
+	(*abi)->set_resource_tag	  = lt_dlsym(plugin->dl_handle,
+	  					"oh_set_resource_tag");
+	(*abi)->set_resource_severity	  = lt_dlsym(plugin->dl_handle,
+	  					"oh_set_resource_severity");
+	(*abi)->get_el_info		  = lt_dlsym(plugin->dl_handle,
+	  					"oh_get_el_info");
+	(*abi)->set_el_time		  = lt_dlsym(plugin->dl_handle,
+	  					"oh_set_el_time");
+	(*abi)->add_el_entry		  = lt_dlsym(plugin->dl_handle,
+	  					"oh_add_el_entry");
+	(*abi)->get_el_entry		  = lt_dlsym(plugin->dl_handle,
+	  					"oh_get_el_entry");
+	(*abi)->clear_el		  = lt_dlsym(plugin->dl_handle,
+	  					"oh_clear_el");
+	(*abi)->set_el_state		  = lt_dlsym(plugin->dl_handle,
+	  					"oh_set_el_state");
+	(*abi)->reset_el_overflow	  = lt_dlsym(plugin->dl_handle,
+	  					"oh_reset_el_overflow");
+	(*abi)->get_sensor_reading	  = lt_dlsym(plugin->dl_handle,
+	  					"oh_get_sensor_reading");
+	(*abi)->get_sensor_thresholds	  = lt_dlsym(plugin->dl_handle,
+	  					"oh_get_sensor_thresholds");
+	(*abi)->set_sensor_thresholds	  = lt_dlsym(plugin->dl_handle,
+	  					"oh_set_sensor_thresholds");
+	(*abi)->get_sensor_enable	  = lt_dlsym(plugin->dl_handle,
+	  					"oh_get_sensor_enable");
+	(*abi)->set_sensor_enable	  = lt_dlsym(plugin->dl_handle,
+	  					"oh_set_sensor_enable");				    
+	(*abi)->get_sensor_event_enables  = lt_dlsym(plugin->dl_handle,
+	  					"oh_get_sensor_event_enables");
+	(*abi)->set_sensor_event_enables  = lt_dlsym(plugin->dl_handle,
+	  					"oh_set_sensor_event_enables");
+	(*abi)->get_sensor_event_masks    = lt_dlsym(plugin->dl_handle,
+	  					"oh_get_sensor_event_masks");
+	(*abi)->set_sensor_event_masks    = lt_dlsym(plugin->dl_handle,
+	  					"oh_set_sensor_event_masks");
+	(*abi)->get_control_state	  = lt_dlsym(plugin->dl_handle,
+	  					"oh_get_control_state");
+	(*abi)->set_control_state	  = lt_dlsym(plugin->dl_handle,
+	  					"oh_set_control_state");
+	(*abi)->get_idr_info		  = lt_dlsym(plugin->dl_handle,
+	  					"oh_get_idr_info");
+	(*abi)->get_idr_area_header	  = lt_dlsym(plugin->dl_handle,
+	  					"oh_get_idr_area_header");
+	(*abi)->add_idr_area		  = lt_dlsym(plugin->dl_handle,
+	  					"oh_add_idr_area");
+	(*abi)->del_idr_area		  = lt_dlsym(plugin->dl_handle,
+	  					"oh_del_idr_area");
+	(*abi)->get_idr_field		  = lt_dlsym(plugin->dl_handle,
+	  					"oh_get_idr_field");
+	(*abi)->add_idr_field		  = lt_dlsym(plugin->dl_handle,
+	  					"oh_add_idr_field");
+	(*abi)->set_idr_field		  = lt_dlsym(plugin->dl_handle,
+	  					"oh_set_idr_field");
+	(*abi)->del_idr_field		  = lt_dlsym(plugin->dl_handle,
+	  					"oh_del_idr_field");
+	(*abi)->get_watchdog_info	  = lt_dlsym(plugin->dl_handle,
+	  					"oh_get_watchdog_info");
+	(*abi)->set_watchdog_info	  = lt_dlsym(plugin->dl_handle,
+	                                        "oh_set_watchdog_info");
+	(*abi)->reset_watchdog  	  = lt_dlsym(plugin->dl_handle,
+	                                        "oh_reset_watchdog");
+	(*abi)->get_next_announce	  = lt_dlsym(plugin->dl_handle,
+	                                        "oh_get_next_announce");
+	(*abi)->get_announce		  = lt_dlsym(plugin->dl_handle,
+	                                        "oh_get_announce");
+	(*abi)->ack_announce		  = lt_dlsym(plugin->dl_handle,
+	                                        "oh_ack_announce");
+	(*abi)->add_announce		  = lt_dlsym(plugin->dl_handle,
+	                                        "oh_add_announce");
+	(*abi)->del_announce		  = lt_dlsym(plugin->dl_handle,
+	                                        "oh_del_announce");
+	(*abi)->get_annunc_mode 	  = lt_dlsym(plugin->dl_handle,
+	                                        "oh_get_annunc_mode");
+	(*abi)->set_annunc_mode 	  = lt_dlsym(plugin->dl_handle,
+	                                        "oh_set_annunc_mode");
+	(*abi)->get_hotswap_state	  = lt_dlsym(plugin->dl_handle,
+	                                        "oh_get_hotswap_state");
+	(*abi)->set_hotswap_state	  = lt_dlsym(plugin->dl_handle,
+	                                        "oh_set_hotswap_state");
+	(*abi)->request_hotswap_action    = lt_dlsym(plugin->dl_handle,
+	                                        "oh_request_hotswap_action");
+	(*abi)->get_power_state 	  = lt_dlsym(plugin->dl_handle,
+	                                        "oh_get_power_state");
+	(*abi)->set_power_state 	  = lt_dlsym(plugin->dl_handle,
+	                                        "oh_set_power_state");
+	(*abi)->get_indicator_state	  = lt_dlsym(plugin->dl_handle,
+	                                        "oh_get_indicator_state");
+	(*abi)->set_indicator_state	  = lt_dlsym(plugin->dl_handle,
+	                                        "oh_set_indicator_state");
+	(*abi)->control_parm		  = lt_dlsym(plugin->dl_handle,
+	                                        "oh_control_parm");
+	(*abi)->get_reset_state 	  = lt_dlsym(plugin->dl_handle,
+	                                        "oh_get_reset_state");
+        (*abi)->set_reset_state 	  = lt_dlsym(plugin->dl_handle,
+	                                        "oh_set_reset_state");
 
-
-
-
-
+	return 0;
+  
+}  

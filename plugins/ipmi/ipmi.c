@@ -1681,86 +1681,95 @@ static SaErrorT ipmi_set_res_sev(void 			*hnd,
 	return SA_OK;
 }
 
-static struct oh_abi_v2 oh_ipmi_plugin = {
-		
-	/* basic ABI functions */
-	.open	 			= ipmi_open,
-	.close				= ipmi_close,
-	.get_event			= ipmi_get_event,
-	.discover_resources		= ipmi_discover_resources,
-	.set_resource_tag		= ipmi_set_res_tag,
-	.set_resource_severity		= ipmi_set_res_sev,
 
-	/* SEL support */
-	.get_el_info                    = ipmi_get_el_info,
-	.set_el_time                    = ipmi_set_el_time,
-	.get_el_entry                   = ipmi_get_el_entry,
-	.clear_el                       = ipmi_clear_el,
-	.set_el_state                   = ipmi_set_sel_state,
-	/* On IPMI Platform, it's discouraged to add
-	 * events manually
-	 */
-	//.add_sel_entry                  = ipmi_add_sel_entry,
+void * oh_open (GHashTable *) __attribute__ ((weak, alias("ipmi_open")));
 
-	/* Not supported on IPMI platform */
-	//.del_sel_entry                  = ipmi_del_sel_entry,
+void * oh_close (void *) __attribute__ ((weak, alias("ipmi_close")));
 
-	/* Sensor support */
-	.get_sensor_reading		= ipmi_get_sensor_reading,
-	.get_sensor_thresholds		= ipmi_get_sensor_thresholds,
-	.set_sensor_thresholds		= ipmi_set_sensor_thresholds,
-	.get_sensor_enable		= ipmi_get_sensor_enable,
-	.set_sensor_enable		= ipmi_set_sensor_enable,
-	.get_sensor_event_enables       = ipmi_get_sensor_event_enable,
-	.set_sensor_event_enables       = ipmi_set_sensor_event_enable,
-	.get_sensor_event_masks		= ipmi_get_sensor_event_masks,
-	.set_sensor_event_masks		= ipmi_set_sensor_event_masks,
-	
-	/* Inventory support */
-	.get_idr_info			= ohoi_get_idr_info,
-	.get_idr_area_header		= ohoi_get_idr_area_header,
-	.add_idr_area			= ohoi_add_idr_area,
-	.del_idr_area			= ohoi_del_idr_area,
-	.get_idr_field			= ohoi_get_idr_field,
-	.add_idr_field			= ohoi_add_idr_field,
-	.set_idr_field			= ohoi_set_idr_field,
-	.del_idr_field			= ohoi_del_idr_field,
- 
-	/* hotswap support */
-	.get_hotswap_state              = ohoi_get_hotswap_state,
-	.set_hotswap_state              = ohoi_set_hotswap_state,
-	.request_hotswap_action         = ohoi_request_hotswap_action,
-	.get_indicator_state            = ohoi_get_indicator_state,
-	.set_indicator_state            = ohoi_set_indicator_state,
-        
-	/* power support */
-	.get_power_state                = ohoi_get_power_state,
-	.set_power_state                = ohoi_set_power_state,
-	
-	/* reset support */
-	.get_reset_state                = ohoi_get_reset_state,
-	.set_reset_state                = ohoi_set_reset_state,
+void * oh_get_event (void *, struct oh_event *)
+                __attribute__ ((weak, alias("ipmi_get_event")));
 
-        /* control support */
-	.set_control_state 		= ohoi_set_control_state,
-	.get_control_state 		= ohoi_get_control_state,
+void * oh_discover_resources (void *)
+                __attribute__ ((weak, alias("ipmi_discover_resources")));
 
-	/* watchdog support */
-	.get_watchdog_info    		= ipmi_get_watchdog_info,
-	.set_watchdog_info    		= ipmi_set_watchdog_info,
-	.reset_watchdog       		= ipmi_reset_watchdog,
-};
+void * oh_set_resource_tag (void *, SaHpiResourceIdT, SaHpiTextBufferT *)
+                __attribute__ ((weak, alias("ipmi_set_res_tag")));
 
-int ipmi_get_interface(void **pp, const uuid_t uuid);
-int ipmi_get_interface(void **pp, const uuid_t uuid)
-{
-	if (uuid_compare(uuid, UUID_OH_ABI_V2)==0) {
-		*pp = &oh_ipmi_plugin;
-		return 0;
-	}
-	*pp = NULL;
-	return -1;
-}
+void * oh_set_resource_severity (void *, SaHpiResourceIdT, SaHpiSeverityT)
+                __attribute__ ((weak, alias("ipmi_set_res_sev")));
 
-int get_interface(void **pp, const uuid_t uuid) __attribute__ ((weak, alias("ipmi_get_interface")));
+void * oh_get_el_info (void *, SaHpiResourceIdT, SaHpiEventLogInfoT *)
+                __attribute__ ((weak, alias("ipmi_get_el_info")));
+
+void * oh_set_el_time (void *, SaHpiResourceIdT, const SaHpiEventT *)
+                __attribute__ ((weak, alias("ipmi_set_el_time")));
+
+void * oh_add_el_entry (void *, SaHpiResourceIdT, const SaHpiEventT *)
+                __attribute__ ((weak, alias("ipmi_get_el_entry")));
+
+void * oh_set_el_state (void *, SaHpiResourceIdT , SaHpiBoolT )
+                __attribute__ ((weak, alias("ipmi_set_sel_state")));
+
+void * oh_clear_el (void *, SaHpiResourceIdT)
+                __attribute__ ((weak, alias("ipmi_clear_el")));
+
+
+void * oh_get_sensor_reading (void *, SaHpiResourceIdT,
+                             SaHpiSensorNumT,
+                             SaHpiSensorReadingT *,
+                             SaHpiEventStateT    *)
+                __attribute__ ((weak, alias("ipmi_get_sensor_reading")));
+
+void * oh_get_sensor_thresholds (void *, SaHpiResourceIdT,
+                                 SaHpiSensorNumT,
+                                 SaHpiSensorThresholdsT *)
+                __attribute__ ((weak, alias("ipmi_get_sensor_thresholds")));
+
+void * oh_set_sensor_thresholds (void *, SaHpiResourceIdT,
+                                 SaHpiSensorNumT,
+                                 const SaHpiSensorThresholdsT *)
+                __attribute__ ((weak, alias("ipmi_set_sensor_thresholds")));
+
+void * oh_get_sensor_enable (void *, SaHpiResourceIdT,
+                             SaHpiSensorNumT,
+                             SaHpiBoolT *)
+                __attribute__ ((weak, alias("ipmi_get_sensor_enable")));
+
+void * oh_set_sensor_enable (void *, SaHpiResourceIdT,
+                             SaHpiSensorNumT,
+                             SaHpiBoolT)
+                __attribute__ ((weak, alias("ipmi_set_sensor_enable")));
+
+void * oh_get_sensor_event_enables (void *, SaHpiResourceIdT,
+                                    SaHpiSensorNumT,
+                                    SaHpiBoolT *)
+                __attribute__ ((weak, alias("ipmi_get_sensor_event_enable")));
+
+void * oh_set_sensor_event_enables (void *, SaHpiResourceIdT id, SaHpiSensorNumT,
+                                    SaHpiBoolT *)
+                __attribute__ ((weak, alias("ipmi_set_sensor_event_enable")));
+
+void * oh_get_sensor_event_masks (void *, SaHpiResourceIdT, SaHpiSensorNumT,
+                                  SaHpiEventStateT *, SaHpiEventStateT *)
+                __attribute__ ((weak, alias("ipmi_get_sensor_event_masks")));
+
+void * oh_set_sensor_event_masks (void *, SaHpiResourceIdT, SaHpiSensorNumT,
+                                  SaHpiSensorEventMaskActionT,
+                                  SaHpiEventStateT,
+                                  SaHpiEventStateT)
+                __attribute__ ((weak, alias("ipmi_set_sensor_event_masks")));
+
+void * oh_get_watchdog_info (void *, SaHpiResourceIdT, SaHpiWatchdogNumT,
+                             SaHpiWatchdogT *)
+                __attribute__ ((weak, alias("ipmi_get_watchdog_info")));
+
+void * oh_set_watchdog_info (void *, SaHpiResourceIdT, SaHpiWatchdogNumT,
+                             SaHpiWatchdogT *)
+                __attribute__ ((weak, alias("ipmi_set_watchdog_info")));
+
+void * oh_reset_watchdog (void *, SaHpiResourceIdT , SaHpiWatchdogNumT )
+                __attribute__ ((weak, alias("ipmi_reset_watchdog")));
+
+        SaErrorT (*reset_watchdog)(void *hnd, SaHpiResourceIdT id,
+                              SaHpiWatchdogNumT num);
 

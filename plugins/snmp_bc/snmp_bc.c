@@ -16,84 +16,6 @@
 
 #include <snmp_bc_plugin.h>
 
-struct oh_abi_v2 oh_snmp_bc_plugin = {
-        .open				= snmp_bc_open,
-        .close				= snmp_bc_close,
-        .get_event			= snmp_bc_get_event,
-        .discover_resources     	= snmp_bc_discover_resources,
-        .set_resource_tag               = snmp_bc_set_resource_tag,
-        .set_resource_severity          = snmp_bc_set_resource_severity,
-        .get_el_info			= snmp_bc_get_sel_info,
-        .set_el_time			= snmp_bc_set_sel_time,
-        .add_el_entry			= snmp_bc_add_sel_entry,
-        .get_el_entry			= snmp_bc_get_sel_entry,
-	.clear_el			= snmp_bc_clear_sel,
-	.reset_el_overflow		= snmp_bc_sel_overflowreset,
-        .get_sensor_reading		= snmp_bc_get_sensor_reading,
-        .get_sensor_thresholds		= snmp_bc_get_sensor_thresholds,
-        .set_sensor_thresholds		= snmp_bc_set_sensor_thresholds,
-	.get_sensor_enable              = snmp_bc_get_sensor_enable,
-	.set_sensor_enable              = snmp_bc_set_sensor_enable,
-        .get_sensor_event_enables	= snmp_bc_get_sensor_event_enable,
-	.set_sensor_event_enables	= snmp_bc_set_sensor_event_enable,
-	.get_sensor_event_masks         = snmp_bc_get_sensor_event_masks,
-	.set_sensor_event_masks         = snmp_bc_set_sensor_event_masks,
-        .get_control_state		= snmp_bc_get_control_state,
-        .set_control_state		= snmp_bc_set_control_state,
-	.get_idr_info			= snmp_bc_get_idr_info,
-	.get_idr_area_header		= snmp_bc_get_idr_area_header,
-	.add_idr_area			= snmp_bc_add_idr_area,
-	.del_idr_area			= snmp_bc_del_idr_area,
-	.get_idr_field			= snmp_bc_get_idr_field,
-	.add_idr_field			= snmp_bc_add_idr_field,
-	.set_idr_field			= snmp_bc_set_idr_field,
-	.del_idr_field			= snmp_bc_del_idr_field,
-	.get_watchdog_info 		= snmp_bc_get_watchdog_info,
-	.set_watchdog_info 		= snmp_bc_set_watchdog_info,
-        .reset_watchdog			= snmp_bc_reset_watchdog,
-        .get_hotswap_state		= snmp_bc_get_hotswap_state,
-        .set_hotswap_state		= snmp_bc_set_hotswap_state,
-        .request_hotswap_action		= snmp_bc_request_hotswap_action,
-        .get_power_state		= snmp_bc_get_power_state,
-        .set_power_state		= snmp_bc_set_power_state,
-        .get_indicator_state		= snmp_bc_get_indicator_state,
-        .set_indicator_state		= snmp_bc_set_indicator_state,
-        .control_parm			= snmp_bc_control_parm,
-        .get_reset_state		= snmp_bc_get_reset_state,
-        .set_reset_state		= snmp_bc_set_reset_state,
-	.get_next_announce              = snmp_bc_get_next_announce,
-	.get_announce                   = snmp_bc_get_announce,
-	.ack_announce                   = snmp_bc_ack_announce,
-	.add_announce                   = snmp_bc_add_announce,
-	.del_announce                   = snmp_bc_del_announce,
-	.get_annunc_mode                = snmp_bc_get_annunc_mode,
-	.set_annunc_mode                = snmp_bc_set_annunc_mode
-};
-
-/**
- * get_interface:
- * @pp: Location of a pointer to the plugin interface structure.
- * @uuid: Intra-structure's ABI version.
- *
- * Checks that the ABI version supported by the plugin is compatible with that
- * supported by the core infra-structure code.
- *
- * Return values:
- * SA_OK - Normal case.
- * SA_ERR_HPI_INTERNAL_ERROR - Infra-structure and plugin ABI versions are incompatible.
- **/
-SaErrorT get_interface(void **pp, const uuid_t uuid)
-{
-        if (uuid_compare(uuid, UUID_OH_ABI_V2) == 0) {
-                *pp = &oh_snmp_bc_plugin;
-                return(SA_OK);
-        }
-
-        *pp = NULL;
-	dbg("Incompatable plugin ABI version");
-        return(SA_ERR_HPI_INTERNAL_ERROR);
-}
-
 /**
  * snmp_bc_get_event:
  * @hnd: Handler data pointer.
@@ -484,3 +406,17 @@ SaErrorT snmp_bc_oid_snmp_set(struct snmp_bc_hnd *custom_handle,
 	g_free(oid);
 	return(rv);
 }
+
+
+void * oh_get_event (void *, struct oh_event *) 
+                __attribute__ ((weak, alias("snmp_bc_get_event")));
+						
+void * oh_set_resource_tag (void *, SaHpiResourceIdT, SaHpiTextBufferT *) 
+                __attribute__ ((weak, alias("snmp_bc_set_resource_tag")));
+		
+void * oh_set_resource_severity (void *, SaHpiResourceIdT, SaHpiSeverityT) 
+                __attribute__ ((weak, alias("snmp_bc_set_resource_severity")));
+	       
+void * oh_control_parm (void *, SaHpiResourceIdT, SaHpiParmActionT)
+                __attribute__ ((weak, alias("snmp_bc_control_parm")));
+

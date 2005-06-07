@@ -293,6 +293,7 @@ static int snmp_client_get_self_id(void *hnd, SaHpiResourceIdT id)
         return -1;
 }
 
+
 static int snmp_client_get_sensor_data(void *hnd, SaHpiResourceIdT id,
                                        SaHpiSensorNumT num,
                                        SaHpiSensorReadingT *data)
@@ -477,7 +478,7 @@ static int snmp_client_get_sensor_data(void *hnd, SaHpiResourceIdT id,
 
 	return(status);
 }
- 	   
+	   
 
 static int snmp_client_get_sensor_thresholds(void *hnd, 
 					     SaHpiResourceIdT id,
@@ -1226,6 +1227,7 @@ dbg("TODO: ******************* snmp_client_set_control_state() *****************
 return(-1);
 }
 
+
 static int snmp_client_get_inventory_size(void *hnd, SaHpiResourceIdT id,
                                       SaHpiEirIdT num, /* yes, they don't call it a
                                                     * num, but it still is one
@@ -1252,6 +1254,7 @@ static int snmp_client_set_inventory_info(void *hnd, SaHpiResourceIdT id,
 dbg("TODO: ******************* snmp_client_set_inventory_info() *******************");
         return -1;
 }
+
 
 static int snmp_client_get_watchdog_info(void *hnd, SaHpiResourceIdT id,
                                      SaHpiWatchdogNumT num,
@@ -1354,53 +1357,92 @@ dbg("TODO: ******************* snmp_client_set_reset_state() *******************
 }
 
 struct oh_abi_v2 oh_snmp_client_plugin = {
-        .open				= snmp_client_open,
-        .close				= snmp_client_close,
-        .get_event			= snmp_client_get_event,
-        .discover_resources     	= snmp_client_discover_resources,
-        .get_self_id			= snmp_client_get_self_id,
-//        .get_sel_info			= snmp_client_get_sel_info,
-        .get_sel_info			= NULL,
-//        .set_sel_time			= snmp_client_set_sel_time,
-        .set_sel_time			= NULL,
-//        .add_sel_entry			= snmp_client_add_sel_entry,
-        .add_sel_entry			= NULL,
-//        .del_sel_entry			= snmp_client_del_sel_entry,
-        .del_sel_entry			= NULL,
-//	.get_sel_entry			= snmp_client_get_sel_entry,        
-	.get_sel_entry			= NULL,
-	.get_sensor_data		= snmp_client_get_sensor_data,
-        .get_sensor_thresholds		= snmp_client_get_sensor_thresholds,
-        .set_sensor_thresholds		= snmp_client_set_sensor_thresholds,
-        .get_sensor_event_enables	= snmp_client_get_sensor_event_enables,
-        .set_sensor_event_enables	= snmp_client_set_sensor_event_enables,
-        .get_control_state		= snmp_client_get_control_state,
-        .set_control_state		= snmp_client_set_control_state,
-        .get_inventory_size		= snmp_client_get_inventory_size,
-        .get_inventory_info		= snmp_client_get_inventory_info,
-        .set_inventory_info		= snmp_client_set_inventory_info,
-        .get_watchdog_info		= snmp_client_get_watchdog_info,
-        .set_watchdog_info		= snmp_client_set_watchdog_info,
-        .reset_watchdog			= snmp_client_reset_watchdog,
-        .get_hotswap_state		= snmp_client_get_hotswap_state,
-        .set_hotswap_state		= snmp_client_set_hotswap_state,
-        .request_hotswap_action		= snmp_client_request_hotswap_action,
-        .get_power_state		= snmp_client_get_power_state,
-        .set_power_state		= snmp_client_set_power_state,
-        .get_indicator_state		= snmp_client_get_indicator_state,
-        .set_indicator_state		= snmp_client_set_indicator_state,
-        .control_parm			= snmp_client_control_parm,
-        .get_reset_state		= snmp_client_get_reset_state,
-        .set_reset_state		= snmp_client_set_reset_state
+        
+	.get_self_id		       = snmp_client_get_self_id,
+	.get_sensor_data	       = snmp_client_get_sensor_data,
+        
+	.get_inventory_size	       = snmp_client_get_inventory_size,
+        .get_inventory_info	       = snmp_client_get_inventory_info,
+        .set_inventory_info	       = snmp_client_set_inventory_info,
+        
 };
 
-int get_interface(void **pp, const uuid_t uuid)
-{
-        if(uuid_compare(uuid, UUID_OH_ABI_V2)==0) {
-                *pp = &oh_snmp_client_plugin;
-                return 0;
-        }
+void * oh_open (GHashTable *) __attribute__ ((weak, alias("snmp_client_open")));
 
-        *pp = NULL;
-        return -1;
-}
+void * oh_close (void *) __attribute__ ((weak, alias("snmp_client_close")));
+
+void * oh_get_event (void *, struct oh_event *) 
+                __attribute__ ((weak, alias("snmp_client_get_event")));
+		
+void * oh_discover_resources (void *) 
+                __attribute__ ((weak, alias("snmp_client_discover_resources")));
+
+void * oh_get_sensor_thresholds (void *, SaHpiResourceIdT,
+                                 SaHpiSensorNumT,
+                                 SaHpiSensorThresholdsT *) 
+                __attribute__ ((weak, alias("snmp_client_get_sensor_thresholds")));
+		
+void * oh_set_sensor_thresholds (void *, SaHpiResourceIdT,
+                                 SaHpiSensorNumT,
+                                 const SaHpiSensorThresholdsT *) 
+                __attribute__ ((weak, alias("snmp_client_set_sensor_thresholds")));
+
+void * oh_get_sensor_event_enables (void *, SaHpiResourceIdT,
+                                    SaHpiSensorNumT,
+                                    SaHpiBoolT *) 
+                __attribute__ ((weak, alias("snmp_client_get_sensor_event_enables")));
+
+void * oh_set_sensor_event_enables (void *, SaHpiResourceIdT id, SaHpiSensorNumT,
+                                    SaHpiBoolT *)
+                __attribute__ ((weak, alias("snmp_client_set_sensor_event_enables")));
+
+void * oh_get_control_state (void *, SaHpiResourceIdT, SaHpiCtrlNumT,
+                             SaHpiCtrlModeT *, SaHpiCtrlStateT *)
+                __attribute__ ((weak, alias("snmp_client_get_control_state")));
+	       
+void * oh_set_control_state (void *, SaHpiResourceIdT,SaHpiCtrlNumT,
+                             SaHpiCtrlModeT, SaHpiCtrlStateT *)
+                __attribute__ ((weak, alias("snmp_client_set_control_state")));
+
+void * oh_get_watchdog_info (void *, SaHpiResourceIdT, SaHpiWatchdogNumT,
+                             SaHpiWatchdogT *)
+                __attribute__ ((weak, alias("snmp_client_get_watchdog_info")));
+	       
+void * oh_set_watchdog_info (void *, SaHpiResourceIdT, SaHpiWatchdogNumT,
+                             SaHpiWatchdogT *)
+                __attribute__ ((weak, alias("snmp_client_set_watchdog_info")));
+
+void * oh_reset_watchdog (void *, SaHpiResourceIdT, SaHpiWatchdogNumT)
+                __attribute__ ((weak, alias("snmp_client_reset_watchdog")));
+		
+void * oh_get_hotswap_state (void *, SaHpiResourceIdT, SaHpiHsStateT *)
+                __attribute__ ((weak, alias("snmp_client_get_hotswap_state")));
+
+void * oh_set_hotswap_state (void *, SaHpiResourceIdT, SaHpiHsStateT)
+                __attribute__ ((weak, alias("snmp_client_set_hotswap_state")));
+	       
+void * oh_request_hotswap_action (void *, SaHpiResourceIdT, SaHpiHsActionT)
+                __attribute__ ((weak, alias("snmp_client_request_hotswap_action")));
+
+void * oh_get_power_state (void *, SaHpiResourceIdT, SaHpiPowerStateT *)
+                __attribute__ ((weak, alias("snmp_client_get_power_state")));
+	       
+void * oh_set_power_state (void *, SaHpiResourceIdT, SaHpiPowerStateT)
+                __attribute__ ((weak, alias("snmp_client_set_power_state")));
+
+void * oh_get_indicator_state (void *, SaHpiResourceIdT, 
+                               SaHpiHsIndicatorStateT *)
+                __attribute__ ((weak, alias("snmp_client_get_indicator_state")));
+	       			       
+void * oh_set_indicator_state (void *, SaHpiResourceIdT, 
+                               SaHpiHsIndicatorStateT)
+                __attribute__ ((weak, alias("snmp_client_set_indicator_state")));
+
+void * oh_control_parm (void *, SaHpiResourceIdT, SaHpiParmActionT)
+                __attribute__ ((weak, alias("snmp_client_control_parm")));
+				
+void * oh_get_reset_state (void *, SaHpiResourceIdT, SaHpiResetActionT *)
+                __attribute__ ((weak, alias("snmp_client_get_reset_state")));
+		
+void * oh_set_reset_state (void *, SaHpiResourceIdT, SaHpiResetActionT)
+                __attribute__ ((weak, alias("snmp_client_set_reset_state")));

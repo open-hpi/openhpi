@@ -70,5 +70,7 @@ int oh_add_domain_to_handler(unsigned int hid,
 			     SaHpiDomainIdT did);
 int oh_remove_domain_from_handler(unsigned int hid,
 				SaHpiDomainIdT did);
+				
+int oh_load_plugin_functions(struct oh_plugin *plugin, struct oh_abi_v2 **abi);				
 
 #endif /*__OH_PLUGIN_H*/

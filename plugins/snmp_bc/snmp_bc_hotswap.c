@@ -277,3 +277,15 @@ SaErrorT snmp_bc_set_indicator_state(void *hnd,
 	snmp_bc_unlock_handler(custom_handle);
 	return(SA_ERR_HPI_INTERNAL_ERROR);
 }
+
+
+void * oh_get_hotswap_state (void *, SaHpiResourceIdT, SaHpiHsStateT *)
+                __attribute__ ((weak, alias("snmp_bc_get_hotswap_state")));
+
+void * oh_set_hotswap_state (void *, SaHpiResourceIdT, SaHpiHsStateT)
+                __attribute__ ((weak, alias("snmp_bc_set_hotswap_state")));
+
+void * oh_request_hotswap_action (void *, SaHpiResourceIdT, SaHpiHsActionT)
+                __attribute__ ((weak, alias("snmp_bc_request_hotswap_action")));
+
+

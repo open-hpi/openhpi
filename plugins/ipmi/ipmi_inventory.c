@@ -2319,3 +2319,34 @@ out:
 	return ret;
 }
 
+
+void * oh_get_idr_info (void *hnd, SaHpiResourceIdT, SaHpiIdrIdT,SaHpiIdrInfoT)
+                __attribute__ ((weak, alias("ohoi_get_idr_info")));
+
+void * oh_get_idr_area_header (void *, SaHpiResourceIdT, SaHpiIdrIdT,
+                                SaHpiIdrAreaTypeT, SaHpiEntryIdT, SaHpiEntryIdT,
+                                SaHpiIdrAreaHeaderT)
+                __attribute__ ((weak, alias("ohoi_get_idr_area_header")));
+
+void * oh_add_idr_area (void *, SaHpiResourceIdT, SaHpiIdrIdT, SaHpiIdrAreaTypeT,
+                        SaHpiEntryIdT)
+                __attribute__ ((weak, alias("ohoi_add_idr_area")));
+
+void * oh_del_idr_area (void *, SaHpiResourceIdT, SaHpiIdrIdT, SaHpiEntryIdT)
+                __attribute__ ((weak, alias("ohoi_del_idr_area")));
+
+void * oh_get_idr_field (void *, SaHpiResourceIdT, SaHpiIdrIdT, SaHpiEntryIdT,
+                         SaHpiIdrFieldTypeT, SaHpiEntryIdT, SaHpiEntryIdT,
+                         SaHpiIdrFieldT)
+                __attribute__ ((weak, alias("ohoi_get_idr_field")));
+
+void * oh_add_idr_field (void *, SaHpiResourceIdT, SaHpiIdrIdT, SaHpiIdrFieldT)
+                __attribute__ ((weak, alias("ohoi_add_idr_field")));
+
+void * oh_set_idr_field (void *, SaHpiResourceIdT, SaHpiIdrIdT, SaHpiIdrFieldT)
+                __attribute__ ((weak, alias("ohoi_set_idr_field")));
+
+void * oh_del_idr_field (void *, SaHpiResourceIdT, SaHpiIdrIdT, SaHpiEntryIdT,
+                         SaHpiEntryIdT)
+                __attribute__ ((weak, alias("ohoi_del_idr_field")));
+

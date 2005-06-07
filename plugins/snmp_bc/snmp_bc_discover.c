@@ -533,3 +533,9 @@ SaHpiBoolT rdr_exists(struct snmp_bc_hnd *custom_handle,
 
         return(SAHPI_TRUE);
 }
+
+
+void * oh_discover_resources (void *)
+                __attribute__ ((weak, alias("snmp_bc_discover_resources")));
+
+

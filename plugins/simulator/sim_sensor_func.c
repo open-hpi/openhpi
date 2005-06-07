@@ -663,3 +663,51 @@ SaErrorT sim_set_sensor_event_masks(void *hnd,
 
 	return(SA_OK);
 }
+
+
+void * oh_get_sensor_reading (void *, SaHpiResourceIdT,
+                             SaHpiSensorNumT,
+                             SaHpiSensorReadingT *,
+                            SaHpiEventStateT    *)
+                __attribute__ ((weak, alias("sim_get_sensor_reading")));
+
+void * oh_get_sensor_thresholds (void *, SaHpiResourceIdT,
+                                 SaHpiSensorNumT,
+                                 SaHpiSensorThresholdsT *)
+                __attribute__ ((weak, alias("sim_get_sensor_thresholds")));
+
+void * oh_set_sensor_thresholds (void *, SaHpiResourceIdT,
+                                 SaHpiSensorNumT,
+                                 const SaHpiSensorThresholdsT *)
+                __attribute__ ((weak, alias("sim_set_sensor_thresholds")));
+
+void * oh_get_sensor_enable (void *, SaHpiResourceIdT,
+                             SaHpiSensorNumT,
+                             SaHpiBoolT *)
+                __attribute__ ((weak, alias("sim_get_sensor_enable")));
+
+void * oh_set_sensor_enable (void *, SaHpiResourceIdT,
+                             SaHpiSensorNumT,
+                             SaHpiBoolT)
+                __attribute__ ((weak, alias("sim_set_sensor_enable")));
+
+void * oh_get_sensor_event_enables (void *, SaHpiResourceIdT,
+                                    SaHpiSensorNumT,
+                                    SaHpiBoolT *)
+                __attribute__ ((weak, alias("sim_get_sensor_event_enable")));
+
+void * oh_set_sensor_event_enables (void *, SaHpiResourceIdT id, SaHpiSensorNumT,
+                                    SaHpiBoolT *)
+                __attribute__ ((weak, alias("sim_set_sensor_event_enable")));
+
+void * oh_get_sensor_event_masks (void *, SaHpiResourceIdT, SaHpiSensorNumT,
+                                  SaHpiEventStateT *, SaHpiEventStateT *)
+                __attribute__ ((weak, alias("sim_get_sensor_event_masks")));
+
+void * oh_set_sensor_event_masks (void *, SaHpiResourceIdT, SaHpiSensorNumT,
+                                  SaHpiSensorEventMaskActionT,
+                                  SaHpiEventStateT,
+                                  SaHpiEventStateT)
+                __attribute__ ((weak, alias("sim_set_sensor_event_masks")));
+
+
