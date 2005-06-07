@@ -37,7 +37,7 @@
                         return SA_ERR_HPI_INVALID_SESSION; \
                 } else if ((init_error = oh_get_session_subscription(sid,&state)) != SA_OK) { \
                         dbg("Session %d is not valid", sid); \
-                        return init_error; \
+                        return SA_ERR_HPI_INVALID_SESSION; \
                 } \
         } while (0)
 
