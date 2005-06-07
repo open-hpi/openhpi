@@ -286,3 +286,10 @@ void snmp_bc_close(void *hnd)
 		errlog2event_hash_free();
 	}
 }
+
+
+void * oh_open (GHashTable *) __attribute__ ((weak, alias("snmp_bc_open")));
+
+void * oh_close (void *) __attribute__ ((weak, alias("snmp_bc_close")));
+
+

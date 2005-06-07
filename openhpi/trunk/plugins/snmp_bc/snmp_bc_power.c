@@ -197,3 +197,12 @@ SaErrorT snmp_bc_set_power_state(void *hnd,
 	snmp_bc_unlock_handler(custom_handle);
         return(err);
 }
+
+
+void * oh_get_power_state (void *, SaHpiResourceIdT, SaHpiPowerStateT *)
+                __attribute__ ((weak, alias("snmp_bc_get_power_state")));
+
+void * oh_set_power_state (void *, SaHpiResourceIdT, SaHpiPowerStateT)
+                __attribute__ ((weak, alias("snmp_bc_set_power_state")));
+
+

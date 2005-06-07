@@ -277,3 +277,14 @@ SaErrorT snmp_bc_set_control_state(void *hnd,
 	snmp_bc_unlock_handler(custom_handle);
         return(SA_OK);
 }
+
+
+void * oh_get_control_state (void *, SaHpiResourceIdT, SaHpiCtrlNumT,
+                             SaHpiCtrlModeT *, SaHpiCtrlStateT *)
+                __attribute__ ((weak, alias("snmp_bc_get_control_state")));
+
+void * oh_set_control_state (void *, SaHpiResourceIdT,SaHpiCtrlNumT,
+                             SaHpiCtrlModeT, SaHpiCtrlStateT *)
+                __attribute__ ((weak, alias("snmp_bc_set_control_state")));
+
+

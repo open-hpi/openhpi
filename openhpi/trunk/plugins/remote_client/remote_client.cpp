@@ -1070,43 +1070,111 @@ get_interface( void **pp, const uuid_t uuid )
      {
        memset( &oh_remote_client_plugin, 0, sizeof(oh_abi_v2) );
 
-       oh_remote_client_plugin.open                     = RemoteClientOpen;
-       oh_remote_client_plugin.close                    = RemoteClientClose;
-       oh_remote_client_plugin.get_event                = RemoteClientGetEvent;
-       oh_remote_client_plugin.discover_resources       = RemoteClientDiscoverResources;
-       oh_remote_client_plugin.set_resource_severity    = RemoteClientSetResourceSeverity;
-       oh_remote_client_plugin.get_sel_info             = RemoteClientGetSelInfo;
-       oh_remote_client_plugin.set_sel_time             = RemoteClientSetSelTime;
-       oh_remote_client_plugin.add_sel_entry            = RemoteClientAddSelEntry;
        oh_remote_client_plugin.del_sel_entry            = RemoteClientDelSelEntry;
-       oh_remote_client_plugin.get_sel_entry            = RemoteClientGetSelEntry;
-       oh_remote_client_plugin.clear_sel                = RemoteClientClearSel;
+       
        oh_remote_client_plugin.get_sensor_data          = RemoteClientGetSensorData;
-       oh_remote_client_plugin.get_sensor_thresholds    = RemoteClientGetSensorThresholds;
-       oh_remote_client_plugin.set_sensor_thresholds    = RemoteClientSetSensorThresholds;
-       oh_remote_client_plugin.get_sensor_event_enables = RemoteClientGetSensorEventEnables;
-       oh_remote_client_plugin.set_sensor_event_enables = RemoteClientSetSensorEventEnables;
-       oh_remote_client_plugin.get_control_state        = RemoteClientGetControlState;
-       oh_remote_client_plugin.set_control_state        = RemoteClientSetControlState;
+       
        oh_remote_client_plugin.get_inventory_size       = RemoteClientGetInventorySize;
        oh_remote_client_plugin.get_inventory_info       = RemoteClientGetInventoryInfo;
-       oh_remote_client_plugin.get_hotswap_state        = RemoteClientGetHotswapState;
-       oh_remote_client_plugin.set_hotswap_state        = RemoteClientSetHotswapState;
-       oh_remote_client_plugin.request_hotswap_action   = RemoteClientRequestHotswapAction;
-       oh_remote_client_plugin.get_power_state          = RemoteClientGetPowerState;
-       oh_remote_client_plugin.set_power_state          = RemoteClientSetPowerState;
-       oh_remote_client_plugin.get_indicator_state      = RemoteClientGetIndicatorState;
-       oh_remote_client_plugin.set_indicator_state      = RemoteClientSetIndicatorState;
-       oh_remote_client_plugin.control_parm             = RemoteClientControlParm;
-       oh_remote_client_plugin.get_reset_state          = RemoteClientGetResetState;
-       oh_remote_client_plugin.set_reset_state          = RemoteClientSetResetState;
      }
 
   *pp = &oh_remote_client_plugin;
   return 0;
 }
 
+void * oh_open (GHashTable *) __attribute__ ((weak, alias("RemoteClientOpen")));
 
-int remote_client_get_interface(void **pp, const uuid_t uuid) __attribute__ ((alias("get_interface")));
+void * oh_close (void *) __attribute__ ((weak, alias("RemoteClientClose")));
+
+void * oh_get_event (void *, struct oh_event *) 
+                __attribute__ ((weak, alias("RemoteClientGetEvent")));
+		
+void * oh_discover_resources (void *) 
+                __attribute__ ((weak, alias("RemoteClientDiscoverResources")));
+		
+void * oh_set_resource_severity (void *, SaHpiResourceIdT, SaHpiSeverityT) 
+                __attribute__ ((weak, alias("RemoteClientSetResourceSeverity")));
+
+void * oh_get_el_info (void *, SaHpiResourceIdT, SaHpiEventLogInfoT *) 
+                __attribute__ ((weak, alias("RemoteClientGetSelInfo")));
+		
+void * oh_set_el_time (void *, SaHpiResourceIdT, const SaHpiEventT *) 
+                __attribute__ ((weak, alias("RemoteClientSetSelTime")));
+		
+void * oh_add_el_entry (void *, SaHpiResourceIdT, const SaHpiEventT *) 
+                __attribute__ ((weak, alias("RemoteClientAddSelEntry")));
+		
+void * oh_get_el_entry (void *, SaHpiResourceIdT, SaHpiEventLogEntryIdT,
+                       SaHpiEventLogEntryIdT *, SaHpiEventLogEntryIdT *,
+                       SaHpiEventLogEntryT *, SaHpiRdrT *, SaHpiRptEntryT  *) 
+                __attribute__ ((weak, alias("RemoteClientGetSelEntry")));
+		       
+void * oh_clear_el (void *, SaHpiResourceIdT) 
+                __attribute__ ((weak, alias("RemoteClientClearSel")));
+
+void * oh_get_sensor_reading (void *, SaHpiResourceIdT,
+                             SaHpiSensorNumT,
+                             SaHpiSensorReadingT *, 
+			     SaHpiEventStateT    *) 
+                __attribute__ ((weak, alias("dummy_get_sensor_reading")));
+		  	     
+void * oh_get_sensor_thresholds (void *, SaHpiResourceIdT,
+                                 SaHpiSensorNumT,
+                                 SaHpiSensorThresholdsT *) 
+                __attribute__ ((weak, alias("RemoteClientGetSensorThresholds")));
+		
+void * oh_set_sensor_thresholds (void *, SaHpiResourceIdT,
+                                 SaHpiSensorNumT,
+                                 const SaHpiSensorThresholdsT *) 
+                __attribute__ ((weak, alias("RemoteClientSetSensorThresholds")));
+		
+void * oh_get_sensor_event_enables (void *, SaHpiResourceIdT,
+                                    SaHpiSensorNumT,
+                                    SaHpiBoolT *) 
+                __attribute__ ((weak, alias("RemoteClientGetSensorEventEnables")));
+
+void * oh_set_sensor_event_enables (void *, SaHpiResourceIdT id, SaHpiSensorNumT,
+                                    SaHpiBoolT *)
+                __attribute__ ((weak, alias("RemoteClientSetSensorEventEnables")));
+
+void * oh_get_control_state (void *, SaHpiResourceIdT, SaHpiCtrlNumT,
+                             SaHpiCtrlModeT *, SaHpiCtrlStateT *)
+                __attribute__ ((weak, alias("RemoteClientGetControlState")));
+	       
+void * oh_set_control_state (void *, SaHpiResourceIdT,SaHpiCtrlNumT,
+                             SaHpiCtrlModeT, SaHpiCtrlStateT *)
+                __attribute__ ((weak, alias("RemoteClientSetControlState")));
+
+void * oh_get_hotswap_state (void *, SaHpiResourceIdT, SaHpiHsStateT *)
+                __attribute__ ((weak, alias("RemoteClientGetHotswapState")));
+
+void * oh_set_hotswap_state (void *, SaHpiResourceIdT, SaHpiHsStateT)
+                __attribute__ ((weak, alias("RemoteClientSetHotswapState")));
+	       
+void * oh_request_hotswap_action (void *, SaHpiResourceIdT, SaHpiHsActionT)
+                __attribute__ ((weak, alias("RemoteClientRequestHotswapAction")));
+	       
+void * oh_get_power_state (void *, SaHpiResourceIdT, SaHpiPowerStateT *)
+                __attribute__ ((weak, alias("RemoteClientGetPowerState")));
+	       
+void * oh_set_power_state (void *, SaHpiResourceIdT, SaHpiPowerStateT)
+                __attribute__ ((weak, alias("RemoteClientSetPowerState")));
+
+void * oh_get_indicator_state (void *, SaHpiResourceIdT, 
+                               SaHpiHsIndicatorStateT *)
+                __attribute__ ((weak, alias("RemoteClientGetIndicatorState")));
+	       			       
+void * oh_set_indicator_state (void *, SaHpiResourceIdT, 
+                               SaHpiHsIndicatorStateT)
+                __attribute__ ((weak, alias("RemoteClientSetIndicatorState")));
+	       
+void * oh_control_parm (void *, SaHpiResourceIdT, SaHpiParmActionT)
+                __attribute__ ((weak, alias("RemoteClientControlParm")));
+
+void * oh_get_reset_state (void *, SaHpiResourceIdT, SaHpiResetActionT *)
+                __attribute__ ((weak, alias("RemoteClientGetResetState")));
+		
+void * oh_set_reset_state (void *, SaHpiResourceIdT, SaHpiResetActionT)
+                __attribute__ ((weak, alias("RemoteClientSetResetState")));
 
 }

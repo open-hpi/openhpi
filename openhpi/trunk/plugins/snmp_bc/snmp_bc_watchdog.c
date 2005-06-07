@@ -40,3 +40,13 @@ SaErrorT snmp_bc_reset_watchdog(void *hnd,
  	/* Watchdog not supported */
         return SA_ERR_HPI_NOT_PRESENT;
 }
+
+
+void * oh_get_watchdog_info (void *, SaHpiResourceIdT, SaHpiWatchdogNumT,
+                             SaHpiWatchdogT *)
+                __attribute__ ((weak, alias("snmp_bc_get_watchdog_info")));
+
+void * oh_set_watchdog_info (void *, SaHpiResourceIdT, SaHpiWatchdogNumT,
+                             SaHpiWatchdogT *)
+                __attribute__ ((weak, alias("snmp_bc_set_watchdog_info")));
+

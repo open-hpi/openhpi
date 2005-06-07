@@ -786,3 +786,25 @@ SaErrorT ohoi_get_reset_state(void *hnd,
 
 	return reset_state.err;
 }
+
+
+void * oh_get_control_state (void *, SaHpiResourceIdT, SaHpiCtrlNumT,
+                             SaHpiCtrlModeT *, SaHpiCtrlStateT *)
+                __attribute__ ((weak, alias("ohoi_get_control_state")));
+
+void * oh_set_control_state (void *, SaHpiResourceIdT,SaHpiCtrlNumT,
+                             SaHpiCtrlModeT, SaHpiCtrlStateT *)
+                __attribute__ ((weak, alias("ohoi_set_control_state")));
+
+void * oh_get_power_state (void *, SaHpiResourceIdT, SaHpiPowerStateT *)
+                __attribute__ ((weak, alias("ohoi_get_power_state")));
+
+void * oh_set_power_state (void *, SaHpiResourceIdT, SaHpiPowerStateT)
+                __attribute__ ((weak, alias("ohoi_set_power_state")));
+
+void * oh_get_reset_state (void *, SaHpiResourceIdT, SaHpiResetActionT *)
+                __attribute__ ((weak, alias("ohoi_get_reset_state")));
+
+void * oh_set_reset_state (void *, SaHpiResourceIdT, SaHpiResetActionT)
+                __attribute__ ((weak, alias("ohoi_set_reset_state")));
+

@@ -831,3 +831,26 @@ SaErrorT snmp_bc_sel_overflowreset(void *hnd,
 {
         return(SA_ERR_HPI_INVALID_CMD);
 }
+
+
+void * oh_get_el_info (void *, SaHpiResourceIdT, SaHpiEventLogInfoT *)
+                __attribute__ ((weak, alias("snmp_bc_get_sel_info")));
+
+void * oh_set_el_time (void *, SaHpiResourceIdT, const SaHpiEventT *)
+                __attribute__ ((weak, alias("snmp_bc_set_sel_time")));
+
+void * oh_add_el_entry (void *, SaHpiResourceIdT, const SaHpiEventT *)
+                __attribute__ ((weak, alias("snmp_bc_add_sel_entry")));
+
+void * oh_get_el_entry (void *, SaHpiResourceIdT, SaHpiEventLogEntryIdT,
+                       SaHpiEventLogEntryIdT *, SaHpiEventLogEntryIdT *,
+                       SaHpiEventLogEntryT *, SaHpiRdrT *, SaHpiRptEntryT  *)
+                __attribute__ ((weak, alias("snmp_bc_get_sel_entry")));
+
+void * oh_clear_el (void *, SaHpiResourceIdT)
+                __attribute__ ((weak, alias("snmp_bc_clear_sel")));
+
+void * oh_reset_el_overflow (void *, SaHpiResourceIdT)
+                __attribute__ ((weak, alias("snmp_bc_sel_overflowreset")));
+
+

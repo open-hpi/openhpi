@@ -1392,3 +1392,51 @@ SaErrorT snmp_bc_set_sensor_event_masks(void *hnd,
 	snmp_bc_unlock_handler(custom_handle);
 	return(SA_OK);
 }
+
+
+void * oh_get_sensor_reading (void *, SaHpiResourceIdT,
+                             SaHpiSensorNumT,
+                             SaHpiSensorReadingT *,
+                             SaHpiEventStateT    *)
+                __attribute__ ((weak, alias("snmp_bc_get_sensor_reading")));
+
+void * oh_get_sensor_thresholds (void *, SaHpiResourceIdT,
+                                 SaHpiSensorNumT,
+                                 SaHpiSensorThresholdsT *)
+                __attribute__ ((weak, alias("snmp_bc_get_sensor_thresholds")));
+
+void * oh_set_sensor_thresholds (void *, SaHpiResourceIdT,
+                                 SaHpiSensorNumT,
+                                 const SaHpiSensorThresholdsT *)
+                __attribute__ ((weak, alias("snmp_bc_set_sensor_thresholds")));
+
+void * oh_get_sensor_enable (void *, SaHpiResourceIdT,
+                             SaHpiSensorNumT,
+                             SaHpiBoolT *)
+                __attribute__ ((weak, alias("snmp_bc_get_sensor_enable")));
+
+void * oh_set_sensor_enable (void *, SaHpiResourceIdT,
+                             SaHpiSensorNumT,
+                             SaHpiBoolT)
+                __attribute__ ((weak, alias("snmp_bc_set_sensor_enable")));
+
+void * oh_get_sensor_event_enables (void *, SaHpiResourceIdT,
+                                    SaHpiSensorNumT,
+                                    SaHpiBoolT *)
+                __attribute__ ((weak, alias("snmp_bc_get_sensor_event_enable")));
+
+void * oh_set_sensor_event_enables (void *, SaHpiResourceIdT id, SaHpiSensorNumT,
+                                    SaHpiBoolT *)
+                __attribute__ ((weak, alias("snmp_bc_set_sensor_event_enable")));
+
+void * oh_get_sensor_event_masks (void *, SaHpiResourceIdT, SaHpiSensorNumT,
+                                  SaHpiEventStateT *, SaHpiEventStateT *)
+                __attribute__ ((weak, alias("snmp_bc_get_sensor_event_masks")));
+
+void * oh_set_sensor_event_masks (void *, SaHpiResourceIdT, SaHpiSensorNumT,
+                                  SaHpiSensorEventMaskActionT,
+                                  SaHpiEventStateT,
+                                  SaHpiEventStateT)
+                __attribute__ ((weak, alias("snmp_bc_set_sensor_event_masks")));
+
+

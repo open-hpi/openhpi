@@ -594,23 +594,24 @@ static int watchdog_reset_watchdog(void *hnd, SaHpiResourceIdT id,
 	return 0;
 }
 
-struct oh_abi_v2 oh_watchdog_plugin = {
-	.open			= watchdog_open,
-	.close			= watchdog_close,
-	.get_event		= watchdog_get_event,
-	.discover_resources     = watchdog_discover_resources,
-	.get_watchdog_info	= watchdog_get_watchdog_info,
-	.set_watchdog_info	= watchdog_set_watchdog_info,
-	.reset_watchdog		= watchdog_reset_watchdog
-};
+void * oh_open (GHashTable *) __attribute__ ((weak, alias("watchdog_open")));
 
-int get_interface(void **pp, const uuid_t uuid)
-{
-	if (uuid_compare(uuid, UUID_OH_ABI_V2)==0) {
-		*pp = &oh_watchdog_plugin;
-		return 0;
-	}
+void * oh_close (void *) __attribute__ ((weak, alias("watchdog_close")));
 
-	*pp = NULL;
-	return -1;
-}
+void * oh_get_event (void *, struct oh_event *) 
+                __attribute__ ((weak, alias("watchdog_get_event")));
+		
+void * oh_discover_resources (void *) 
+                __attribute__ ((weak, alias("watchdog_discover_resources")));
+		
+void * oh_get_watchdog_info (void *, SaHpiResourceIdT, SaHpiWatchdogNumT,
+                             SaHpiWatchdogT *)
+                __attribute__ ((weak, alias("watchdog_get_watchdog_info")));
+		
+void * oh_set_watchdog_info (void *, SaHpiResourceIdT, SaHpiWatchdogNumT,
+                             SaHpiWatchdogT *)
+                __attribute__ ((weak, alias("watchdog_set_watchdog_info")));
+		
+void * oh_reset_watchdog (void *, SaHpiResourceIdT, SaHpiWatchdogNumT)
+                __attribute__ ((weak, alias("watchdog_reset_watchdog")));
+		

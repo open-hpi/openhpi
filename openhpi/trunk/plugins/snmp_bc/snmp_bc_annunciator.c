@@ -386,3 +386,36 @@ SaErrorT snmp_bc_set_annunc_mode(void *hnd,
 	snmp_bc_unlock_handler(custom_handle);
 	return(SA_ERR_HPI_INTERNAL_ERROR);
 }
+
+
+
+void * oh_get_next_announce (void *, SaHpiResourceIdT, SaHpiAnnunciatorNumT,
+                             SaHpiSeverityT, SaHpiBoolT, SaHpiAnnouncementT)
+                __attribute__ ((weak, alias("snmp_bc_get_next_announce")));
+
+void * oh_get_announce (void *, SaHpiResourceIdT, SaHpiAnnunciatorNumT,
+                        SaHpiEntryIdT, SaHpiAnnouncementT *)
+                __attribute__ ((weak, alias("snmp_bc_get_announce")));
+
+void * oh_ack_announce (void *, SaHpiResourceIdT, SaHpiAnnunciatorNumT,
+                        SaHpiEntryIdT, SaHpiSeverityT)
+                __attribute__ ((weak, alias("snmp_bc_ack_announce")));
+
+
+void * oh_add_announce (void *, SaHpiResourceIdT, SaHpiAnnunciatorNumT,
+                        SaHpiAnnouncementT *)
+                __attribute__ ((weak, alias("snmp_bc_add_announce")));
+
+void * oh_del_announce (void *, SaHpiResourceIdT, SaHpiAnnunciatorNumT,
+                       SaHpiEntryIdT, SaHpiSeverityT)
+                __attribute__ ((weak, alias("snmp_bc_del_announce")));
+
+void * oh_get_annunc_mode (void *, SaHpiResourceIdT, SaHpiAnnunciatorNumT,
+                           SaHpiAnnunciatorModeT *)
+                __attribute__ ((weak, alias("snmp_bc_get_annunc_mode")));
+
+void * oh_set_annunc_mode (void *, SaHpiResourceIdT, SaHpiAnnunciatorNumT,
+                           SaHpiAnnunciatorModeT)
+                __attribute__ ((weak, alias("snmp_bc_set_annunc_mode")));
+
+

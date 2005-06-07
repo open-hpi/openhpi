@@ -1023,36 +1023,38 @@ static int sysfs2hpi_set_sensor_event_enables(void *hnd,
 	return 0;
 }
 
-/* Interface definition */
-static struct oh_abi_v2 oh_sysfs2hpi_plugin = {
-	.open	 			= sysfs2hpi_open,
-	.close				= sysfs2hpi_close,
-	.get_event			= sysfs2hpi_get_event,
-	.discover_resources		= sysfs2hpi_discover_resources,
-	.get_sensor_reading		= sysfs2hpi_get_sensor_reading,
-	.get_sensor_thresholds		= sysfs2hpi_get_sensor_thresholds,
-	.set_sensor_thresholds		= sysfs2hpi_set_sensor_thresholds,
-	.get_sensor_event_enables       = sysfs2hpi_get_sensor_event_enables,
-	.set_sensor_event_enables       = sysfs2hpi_set_sensor_event_enables
-};
+void * oh_open (GHashTable *) __attribute__ ((weak, alias("sysfs2hpi_open")));
 
-/**
- * get_interface:
- * @pp: 
- * @uuid: 
- *
- * Called by infrastructure to get this
- * plugin's interface/functions
- *
- * Return value: 0 for success | -1 for error
- **/
-int get_interface(void **pp, const uuid_t uuid)
-{
-	if (uuid_compare(uuid, UUID_OH_ABI_V2)==0) {
-		*pp = &oh_sysfs2hpi_plugin;
-		return 0;
-	}
+void * oh_close (void *) __attribute__ ((weak, alias("sysfs2hpi_close")));
 
-	*pp = NULL;
-	return -1;
-}
+void * oh_get_event (void *, struct oh_event *) 
+            __attribute__ ((weak, alias("sysfs2hpi_get_event")));
+		
+void * oh_discover_resources (void *) 
+            __attribute__ ((weak, alias("sysfs2hpi_discover_resources")));
+
+void * oh_get_sensor_reading (void *, SaHpiResourceIdT,
+                             SaHpiSensorNumT,
+                             SaHpiSensorReadingT *, 
+			     SaHpiEventStateT    *) 
+            __attribute__ ((weak, alias("sysfs2hpi_get_sensor_reading")));
+		  	     
+void * oh_get_sensor_thresholds (void *, SaHpiResourceIdT,
+                                 SaHpiSensorNumT,
+                                 SaHpiSensorThresholdsT *) 
+            __attribute__ ((weak, alias("sysfs2hpi_get_sensor_thresholds")));
+		
+void * oh_set_sensor_thresholds (void *, SaHpiResourceIdT,
+                                 SaHpiSensorNumT,
+                                 const SaHpiSensorThresholdsT *) 
+            __attribute__ ((weak, alias("sysfs2hpi_set_sensor_thresholds")));
+		
+		
+void * oh_get_sensor_event_enables (void *, SaHpiResourceIdT,
+                                    SaHpiSensorNumT,
+                                    SaHpiBoolT *) 
+            __attribute__ ((weak, alias("sysfs2hpi_get_sensor_event_enables")));
+
+void * oh_set_sensor_event_enables (void *, SaHpiResourceIdT id, SaHpiSensorNumT,
+                                    SaHpiBoolT *)
+            __attribute__ ((weak, alias("sysfs2hpi_set_sensor_event_enables")));
