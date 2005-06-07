@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2004
+ * (C) Copyright IBM Corp. 2005
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -10,12 +10,8 @@
  * full licensing terms.
  *
  * Author(s):
- *      Steve Sherman <sesherman@us.ibm.com>
+ *        W. David Ashley <dashley@us.ibm.com>
  */
-
-#include <sim_init.h>
-#include <sim_sensors.h>
-#include <openhpi.h>
 
 #ifndef SIM_SENSOR_FUNC_H
 #define SIM_SENSOR_FUNC_H
@@ -52,7 +48,7 @@ SaErrorT sim_set_sensor_event_enable(void *hnd,
 					 SaHpiResourceIdT rid,
 					 SaHpiSensorNumT sid,
 					 const SaHpiBoolT enable);
-					  
+
 SaErrorT sim_get_sensor_event_masks(void *hnd,
 					SaHpiResourceIdT rid,
 					SaHpiSensorNumT sid,

@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2003, 2005
+ * (C) Copyright IBM Corp. 2005
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -10,52 +10,19 @@
  * full licensing terms.
  *
  * Author(s):
- *      Sean Dague <http://dague.net/sean>
- *      Renier Morales <renierm@users.sf.net>
- *      Steve Sherman <stevees@us.ibm.com>
- *	Christina Hernandez <hernanc@us.ibm.com>
+ *	  Christina Hernandez <hernanc@us.ibm.com>
+ *        W. David Ashley <dashley@us.ibm.com>
  */
 
-#include <sim_resources.h>
 #include <sim_init.h>
-#include <sim_sensors.h>
-#include <math.h>
 
-//	/* Find resource's events, sensors, controls, etc. */
-//	dummy_discover_res_events(handle, &(e->u.res_event.entry.ResourceEntity), res_info_ptr);
-//	dummy_discover_sensors(handle, dummy_chassis_sensors, e);
-//	if (custom_handle->platform == DUMMY_PLATFORM_BCT) {
-//		dummy_discover_sensors(handle, dummy_chassis_sensors_bct, e);
-//		dummy_discover_controls(handle, dummy_chassis_controls_bct, e);
-//	}
-//	else {
-//		dummy_discover_controls(handle, dummy_chassis_controls_bc, e);
-//	}
-//
-//	dummy_discover_inventories(handle, dummy_chassis_inventories, e);
-
-/**
- * dummy_create_resourcetag:
- * @buffer: Location of Resource Tag buffer.
- * @str: Resource name.
- * @location: Resource location.
- *
- * Creates a user friendly Resource Tag. Takes the comment found in the 
- * Resource's static definition, appends a trailing string (can be NULL) 
- * plus the resource's location.
- *
- * Return values:
- * SaHpiTextBufferT - normal operation.
- * SA_ERR_HPI_INVALID_PARAMS - @buffer is NULL; or @loc not valid
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
- **/
-SaErrorT dummy_create_resourcetag(SaHpiTextBufferT *buffer, const char *str, SaHpiEntityLocationT loc)
+SaErrorT sim_create_resourcetag(SaHpiTextBufferT *buffer, const char *str, SaHpiEntityLocationT loc)
 {
 	char *locstr;
 	SaErrorT err = SA_OK;
 	SaHpiTextBufferT working;
-	
-	if (!buffer || loc < DUMMY_HPI_LOCATION_BASE ||
+
+	if (!buffer || loc < SIM_HPI_LOCATION_BASE ||
 	    loc > (pow(10, OH_MAX_LOCATION_DIGITS) - 1)) {
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
@@ -84,9 +51,9 @@ SaErrorT dummy_create_resourcetag(SaHpiTextBufferT *buffer, const char *str, SaH
  *                        Resource Definitions
  **************************************************************************/
 
-struct dummy_rpt dummy_rpt_array[] = {
+struct sim_rpt sim_rpt_array[] = {
         /* Chassis */
-	{ 
+	{
                 .rpt = {
                         .ResourceInfo = {
                                 .ManufacturerId = IBM_MANUFACTURING_ID,
@@ -107,12 +74,12 @@ struct dummy_rpt dummy_rpt_array[] = {
                                                 SAHPI_CAPABILITY_SENSOR,
                         .ResourceSeverity = SAHPI_CRITICAL,
 			.ResourceFailed = SAHPI_FALSE,
-                
+
         	},
                 .comment = "Sim Blade Center"
-	},	
+	},
         /* Management module */
-	{ 
+	{
                 .rpt = {
                         .ResourceInfo = {
                                 .ManufacturerId = IBM_MANUFACTURING_ID,
@@ -121,7 +88,7 @@ struct dummy_rpt dummy_rpt_array[] = {
                                 .Entry[0] =
                                 {
                                         .EntityType = SAHPI_ENT_SYS_MGMNT_MODULE,
-                                        .EntityLocation = DUMMY_HPI_LOCATION_BASE,
+                                        .EntityLocation = SIM_HPI_LOCATION_BASE,
                                 },
                                 {
                                         .EntityType = SAHPI_ENT_ROOT,
@@ -150,7 +117,7 @@ struct dummy_rpt dummy_rpt_array[] = {
                                 .Entry[0] =
                                 {
                                         .EntityType = SAHPI_ENT_INTERCONNECT,
-                                        .EntityLocation = DUMMY_HPI_LOCATION_BASE,
+                                        .EntityLocation = SIM_HPI_LOCATION_BASE,
                                 },
                                 {
                                         .EntityType = SAHPI_ENT_ROOT,
@@ -179,7 +146,7 @@ struct dummy_rpt dummy_rpt_array[] = {
                                 .Entry[0] =
                                 {
                                         .EntityType = SAHPI_ENT_SBC_BLADE,
-                                        .EntityLocation = DUMMY_HPI_LOCATION_BASE,
+                                        .EntityLocation = SIM_HPI_LOCATION_BASE,
                                 },
                                 {
                                         .EntityType = SAHPI_ENT_ROOT,
@@ -210,11 +177,11 @@ struct dummy_rpt dummy_rpt_array[] = {
                                 .Entry[0] =
                                 {
                                         .EntityType = SAHPI_ENT_ADD_IN_CARD,
-                                        .EntityLocation = DUMMY_HPI_LOCATION_BASE,
+                                        .EntityLocation = SIM_HPI_LOCATION_BASE,
                                 },
                                 {
                                         .EntityType = SAHPI_ENT_SBC_BLADE,
-                                        .EntityLocation = DUMMY_HPI_LOCATION_BASE,
+                                        .EntityLocation = SIM_HPI_LOCATION_BASE,
                                 },
                                 {
                                         .EntityType = SAHPI_ENT_ROOT,
@@ -240,7 +207,7 @@ struct dummy_rpt dummy_rpt_array[] = {
                                 .Entry[0] =
                                 {
                                         .EntityType = SAHPI_ENT_PERIPHERAL_BAY,
-                                        .EntityLocation = DUMMY_HPI_LOCATION_BASE,
+                                        .EntityLocation = SIM_HPI_LOCATION_BASE,
                                 },
                                 {
                                         .EntityType = SAHPI_ENT_ROOT,
@@ -267,7 +234,7 @@ struct dummy_rpt dummy_rpt_array[] = {
                                 .Entry[0] =
                                 {
                                         .EntityType = SAHPI_ENT_FAN,
-                                        .EntityLocation = DUMMY_HPI_LOCATION_BASE,
+                                        .EntityLocation = SIM_HPI_LOCATION_BASE,
                                 },
                                 {
                                         .EntityType = SAHPI_ENT_ROOT,
@@ -295,7 +262,7 @@ struct dummy_rpt dummy_rpt_array[] = {
                                 .Entry[0] =
                                 {
                                         .EntityType = SAHPI_ENT_POWER_SUPPLY,
-                                        .EntityLocation = DUMMY_HPI_LOCATION_BASE,
+                                        .EntityLocation = SIM_HPI_LOCATION_BASE,
                                 },
                                 {
                                         .EntityType = SAHPI_ENT_ROOT,
@@ -311,7 +278,7 @@ struct dummy_rpt dummy_rpt_array[] = {
 			.ResourceFailed = SAHPI_FALSE,
                  },
                 .comment = "Sim Power Module"
-        
+
 	},
 	{},
 };

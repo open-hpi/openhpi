@@ -10,7 +10,7 @@
  * full licensing terms.
  *
  * Author(s):
- *      W. david Ashley <dashley@us.ibm.com>
+ *      W. David Ashley <dashley@us.ibm.com>
  *
  */
 

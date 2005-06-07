@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2004, 2005
+ * (C) Copyright IBM Corp. 2005
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -11,9 +11,10 @@
  *
  * Author(s):
  *	  Christina Hernandez <hernanc@us.ibm.com>
+ *        W. David Ashley <dashley@us.ibm.com>
  */
 
-#include <sim_sensor_func.h>
+#include <sim_init.h>
 
 /************************************************************************/
 /* Sensor functions                                                     */
@@ -26,7 +27,7 @@ SaErrorT sim_get_sensor_reading(void *hnd, SaHpiResourceIdT id,
 
         struct SensorInfo *sinfo;
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
-	struct SensorInfo *rptinfo;	
+	struct SensorInfo *rptinfo;
 
         if (!hnd || !data || !state) {
                 dbg("Invalid parameter.");
@@ -90,12 +91,12 @@ SaErrorT sim_get_sensor_eventstate(void *hnd,
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
-	
+
 	/* Check if resource exists and has sensor capabilities */
 	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
         if (!rpt) return(SA_ERR_HPI_INVALID_RESOURCE);
         if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)) return(SA_ERR_HPI_CAPABILITY);
-	
+
 	/* Check if sensor exist and is enabled */
         SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, rid, SAHPI_SENSOR_RDR, sid);
 	if (rdr == NULL) return(SA_ERR_HPI_NOT_PRESENT);
@@ -103,16 +104,16 @@ SaErrorT sim_get_sensor_eventstate(void *hnd,
  	if (sinfo == NULL) {
 		dbg("No sensor data. Sensor=%s", rdr->IdString.Data);
 		return(SA_ERR_HPI_INTERNAL_ERROR);
-	}  
+	}
 
-	/*If sensor is enabled, set event state to cur_state*/     
+	/*If sensor is enabled, set event state to cur_state*/
 	if (sinfo->sensor_enabled == SAHPI_FALSE){
 		return(SA_ERR_HPI_INVALID_REQUEST);
 	}
 	else{
 		*state = sinfo->cur_state;
 		return(SA_OK);
-	}		
+	}
 
 	return(SA_OK);
 }
@@ -206,7 +207,7 @@ SaErrorT sim_set_sensor_thresholds(void *hnd,
 		dbg("Invalid parameter");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
-        
+
 	/* Check if resource exists and has sensor capabilities */
         SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
         if (!rpt) return(SA_ERR_HPI_INVALID_RESOURCE);
@@ -220,7 +221,7 @@ SaErrorT sim_set_sensor_thresholds(void *hnd,
                 dbg("No sensor data. Sensor=%s", rdr->IdString.Data);
                 return(SA_ERR_HPI_INTERNAL_ERROR);
         }
-	
+
 	if (rdr->RdrTypeUnion.SensorRec.Category != SAHPI_EC_THRESHOLD ||
 	    rdr->RdrTypeUnion.SensorRec.ThresholdDefn.IsAccessible == SAHPI_FALSE ||
 	    rdr->RdrTypeUnion.SensorRec.ThresholdDefn.WriteThold == 0) {
@@ -268,7 +269,7 @@ SaErrorT sim_get_sensor_enable(void *hnd,
 
 	struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
 	struct SensorInfo *sinfo;
-	
+
 	        if (!hnd || !rid || !sid) {
                 dbg("Invalid parameter.");
                 return(SA_ERR_HPI_INVALID_PARAMS);
@@ -401,7 +402,7 @@ SaErrorT sim_get_sensor_event_enable(void *hnd,
         if (sinfo->sensor_enabled == SAHPI_FALSE){
                 return(SA_ERR_HPI_INVALID_REQUEST);
         }
-        else{	
+        else{
 		*enable = sinfo->events_enabled;
 		return(SA_OK);
 	}
@@ -438,7 +439,7 @@ SaErrorT sim_set_sensor_event_enable(void *hnd,
         if (!rpt) {
 		return(SA_ERR_HPI_INVALID_RESOURCE);
 	}
-	
+
         if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)) {
 		return(SA_ERR_HPI_CAPABILITY);
 	}
@@ -448,17 +449,17 @@ SaErrorT sim_set_sensor_event_enable(void *hnd,
 	if (rdr == NULL) {
 		return(SA_ERR_HPI_NOT_PRESENT);
 	}
-	
+
 	if (rdr->RdrTypeUnion.SensorRec.EventCtrl == SAHPI_SEC_PER_EVENT ||
 	    rdr->RdrTypeUnion.SensorRec.EventCtrl == SAHPI_SEC_READ_ONLY_MASKS) {
-		dbg("BladeCenter/RSA do not support sim_set_sensor_event_enable\n");    
+		dbg("BladeCenter/RSA do not support sim_set_sensor_event_enable\n");
 		struct SensorInfo *sinfo;
 		sinfo = (struct SensorInfo *)oh_get_rdr_data(handle->rptcache, rid, rdr->RecordId);
 		if (sinfo == NULL) {
 			dbg("No sensor data. Sensor=%s", rdr->IdString.Data);
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		}
-		
+
 		if (sinfo->events_enabled != enable) {
 			sinfo->events_enabled = enable;
 		}
@@ -509,29 +510,29 @@ SaErrorT sim_get_sensor_event_masks(void *hnd,
         if (!rpt) {
 		return(SA_ERR_HPI_INVALID_RESOURCE);
 	}
-	
+
         if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)) {
 		return(SA_ERR_HPI_CAPABILITY);
 	}
-	
+
 	/* Check if sensor exists and return enablement status */
         SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, rid, SAHPI_SENSOR_RDR, sid);
 	if (rdr == NULL) {
 		return(SA_ERR_HPI_NOT_PRESENT);
-	} 
-	
+	}
+
 	sinfo = (struct SensorInfo *)oh_get_rdr_data(handle->rptcache, rid, rdr->RecordId);
  	if (sinfo == NULL) {
 		dbg("No sensor data. Sensor=%s", rdr->IdString.Data);
 		return(SA_ERR_HPI_INTERNAL_ERROR);
-	}       
+	}
 
 	*AssertEventMask = sinfo->assert_mask;
 	if (rpt->ResourceCapabilities & SAHPI_CAPABILITY_EVT_DEASSERTS) {
 		*DeassertEventMask = sinfo->assert_mask;
 	}
 	else {
-		*DeassertEventMask = sinfo->deassert_mask;	
+		*DeassertEventMask = sinfo->deassert_mask;
 	}
 
         return(SA_OK);
@@ -552,7 +553,7 @@ SaErrorT sim_get_sensor_event_masks(void *hnd,
  * SA_OK - Normal case.
  * SA_ERR_HPI_CAPABILITY - Resource doesn't have SAHPI_CAPABILITY_SENSOR.
  * SA_ERR_HPI_INVALID_DATA - @act not valid or @AssertEventMask/@DeassertEventMask
- *                           contain events not supported by sensor. 
+ *                           contain events not supported by sensor.
  * SA_ERR_HPI_NOT_PRESENT - Sensor doesn't exist.
  **/
 SaErrorT sim_set_sensor_event_masks(void *hnd,
@@ -572,13 +573,13 @@ SaErrorT sim_set_sensor_event_masks(void *hnd,
 	if (oh_lookup_sensoreventmaskaction(act) == NULL) {
 		return(SA_ERR_HPI_INVALID_DATA);
 	}
-	
+
 	/* Check if resource exists and has sensor capabilities */
 	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
         if (!rpt) {
 		return(SA_ERR_HPI_INVALID_RESOURCE);
-	} 
-	
+	}
+
         if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)) {
 		return(SA_ERR_HPI_CAPABILITY);
 	}
@@ -588,7 +589,7 @@ SaErrorT sim_set_sensor_event_masks(void *hnd,
 	if (rdr == NULL) {
 		return(SA_ERR_HPI_NOT_PRESENT);
 	}
-	
+
 	if (rdr->RdrTypeUnion.SensorRec.EventCtrl == SAHPI_SEC_PER_EVENT) {
 		dbg("BladeCenter/RSA do not support sim_set_sensor_event_masks");
                 /* Probably need to drive an OID, if hardware supported it */
@@ -604,7 +605,7 @@ SaErrorT sim_set_sensor_event_masks(void *hnd,
 
 		/* Check for invalid data in user masks */
 		if ( (AssertEventMask != SAHPI_ALL_EVENT_STATES) &&
-		     (AssertEventMask & ~(rdr->RdrTypeUnion.SensorRec.Events)) ) { 
+		     (AssertEventMask & ~(rdr->RdrTypeUnion.SensorRec.Events)) ) {
 			return(SA_ERR_HPI_INVALID_DATA);
 		}
 		if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_EVT_DEASSERTS)) {
@@ -647,7 +648,7 @@ SaErrorT sim_set_sensor_event_masks(void *hnd,
 				}
 			}
 		}
-		
+
 		if (sinfo->assert_mask != orig_assert_mask) {
 		}
 		else {
