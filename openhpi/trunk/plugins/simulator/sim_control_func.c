@@ -204,3 +204,20 @@ SaErrorT sim_set_control_state(void *hnd,
 
         return(SA_OK);
 }
+
+
+/*
+ * Simulator plugin interface
+ *
+ */
+
+void * oh_get_control_state (void *, SaHpiResourceIdT, SaHpiCtrlNumT,
+                             SaHpiCtrlModeT *, SaHpiCtrlStateT *)
+                __attribute__ ((weak, alias("sim_get_control_state")));
+
+void * oh_set_control_state (void *, SaHpiResourceIdT,SaHpiCtrlNumT,
+                             SaHpiCtrlModeT, SaHpiCtrlStateT *)
+                __attribute__ ((weak, alias("sim_set_control_state")));
+
+
+

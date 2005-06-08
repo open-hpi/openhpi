@@ -665,6 +665,11 @@ SaErrorT sim_set_sensor_event_masks(void *hnd,
 }
 
 
+/*
+ * Simulator plugin interface
+ *
+ */
+
 void * oh_get_sensor_reading (void *, SaHpiResourceIdT,
                              SaHpiSensorNumT,
                              SaHpiSensorReadingT *,
