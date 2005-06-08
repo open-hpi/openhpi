@@ -18,6 +18,25 @@
 #include <sim_init.h>
 #include <rpt_utils.h>
 
+
+static int sim_get_next_sensor_num(RPTable *rptcache, SaHpiResourceIdT ResId, SaHpiRdrTypeT type)
+{
+	int i = 0;
+	SaHpiRdrT *RdrEntry;
+
+	RdrEntry = oh_get_rdr_next(rptcache, ResId, SAHPI_FIRST_ENTRY);
+
+	while(RdrEntry){
+		if (RdrEntry->RdrType == type){
+			i++;
+		}
+		RdrEntry = oh_get_rdr_next(rptcache, ResId, RdrEntry->RecordId);
+	}
+
+	return i;
+}
+
+
 SaErrorT sim_discover_sensors(RPTable *rpt)
 {
          SaHpiRptEntryT *res;
@@ -99,6 +118,7 @@ SaErrorT sim_discover_sensors(RPTable *rpt)
 
 }
 
+
 SaErrorT new_sensor(RPTable *rptcache, SaHpiResourceIdT ResId, int Index){
 	SaHpiRdrT res_rdr;
 	SaHpiRptEntryT *RptEntry;
@@ -121,60 +141,24 @@ SaErrorT new_sensor(RPTable *rptcache, SaHpiResourceIdT ResId, int Index){
 	 RptEntry = oh_get_resource_by_id(rptcache, ResId);
 	 if(!RptEntry){
 		 dbg("NULL rpt pointer\n");
-	 }
-	 else{
-	 res_rdr.Entity = RptEntry->ResourceEntity;
+	 } else {
+                 res_rdr.Entity = RptEntry->ResourceEntity;
 	 }
 
-	memcpy(&info->mib, &sim_voltage_sensors[Index].sensor_info.mib, sizeof(struct SensorMibInfo));
         info->cur_state = sim_voltage_sensors[Index].sensor_info.cur_state;
-	//memcpy(&info->cur_state, &sim_voltage_sensors[Index].sensor_info.cur_state, sizeof(SaHpiEventStateT));
 	info->sensor_enabled = sim_voltage_sensors[Index].sensor_info.sensor_enabled;
-	//memcpy(&info->sensor_enabled, &sim_voltage_sensors[Index].sensor_info.sensor_enabled, sizeof(SaHpiBoolT));
-        memcpy(&info->events_enabled, &sim_voltage_sensors[Index].sensor_info.events_enabled, sizeof(SaHpiBoolT));
-        memcpy(&info->assert_mask, &sim_voltage_sensors[Index].sensor_info.assert_mask, sizeof(SaHpiEventStateT));
-        memcpy(&info->deassert_mask, &sim_voltage_sensors[Index].sensor_info.deassert_mask, sizeof(SaHpiEventStateT));
+        info->assert_mask = sim_voltage_sensors[Index].sensor_info.assert_mask;
+        info->deassert_mask = sim_voltage_sensors[Index].sensor_info.deassert_mask;
         memcpy(&info->event_array, &sim_voltage_sensors[Index].sensor_info.event_array, sizeof(struct sensor_event_map));
         memcpy(&info->reading2event, &sim_voltage_sensors[Index].sensor_info.reading2event, sizeof(struct sensor_event_map));
 	info->reading.IsSupported = sim_voltage_sensors[Index].sensor.DataFormat.IsSupported;
 	info->reading.Type = sim_voltage_sensors[Index].sensor.DataFormat.ReadingType;
-	//memcpy(&info->reading, &sim_voltage_sensors[Index].sensor.DataFormat.ReadingType, sizeof(SaHpiSensorReadingT));
+        // TODO: need a reading copied here to info->reading
 	memcpy(&info->thres, &sim_voltage_sensors[Index].sensor.DataFormat.Range, sizeof(SaHpiSensorThresholdsT));
 
 	oh_add_rdr(rptcache, ResId, &res_rdr, &info, 0);
 
          return 0;
-}
-
-int sim_get_next_sensor_num(RPTable *rptcache, SaHpiResourceIdT ResId, SaHpiRdrTypeT type)
-{
-	int i=0;
-	SaHpiRdrT *RdrEntry;
-
-	RdrEntry = oh_get_rdr_next(rptcache, ResId, SAHPI_FIRST_ENTRY);
-
-	while(RdrEntry){
-		if (RdrEntry->RdrType == type){
-			i++;
-		}
-		if (RdrEntry->RecordId != 0){
-			RdrEntry = oh_get_rdr_next(rptcache, ResId, RdrEntry->RecordId);
-		}
-	}
-
-	return i;
-
-	if(!(oh_get_rdr_by_type(rptcache, ResId, type, i))){
-		printf("I hit sim_get_next_sensor_num\n");
-		return i;
-	}
-	else{
-		while(oh_get_rdr_by_type(rptcache, ResId, type, i)){
-			i++;
-		}
-
-		return i;
-	}
 }
 
 /*************************************************************************
@@ -274,10 +258,6 @@ struct sim_sensor sim_voltage_sensors[] = {
                         .Oem = 0,
                 },
                 .sensor_info = {
-                        .mib = {
-                                .not_avail_indicator_num = 0,
-                                .write_only = SAHPI_FALSE,
-                        },
                         .cur_state = SAHPI_ES_UNSPECIFIED,
                         .sensor_enabled = SAHPI_TRUE,
                         .events_enabled = SAHPI_TRUE,
@@ -408,10 +388,6 @@ struct sim_sensor sim_voltage_sensors[] = {
 			.Oem = 0,
 		},
 		.sensor_info = {
-			.mib = {
-			.not_avail_indicator_num = 0,
-				.write_only = SAHPI_FALSE,
-			},
 			.cur_state = SAHPI_ES_UNSPECIFIED,
 			.sensor_enabled = SAHPI_TRUE,
 			.events_enabled = SAHPI_TRUE,
@@ -541,10 +517,6 @@ struct sim_sensor sim_voltage_sensors[] = {
                         .Oem = 0,
                 },
                 .sensor_info = {
-                        .mib = {
-                                .not_avail_indicator_num = 0,
-                                .write_only = SAHPI_FALSE,
-                        },
                         .cur_state = SAHPI_ES_UNSPECIFIED,
                         .sensor_enabled = SAHPI_TRUE,
                         .events_enabled = SAHPI_TRUE,
@@ -676,10 +648,6 @@ struct sim_sensor sim_voltage_sensors[] = {
                         .Oem = 0,
                 },
                 .sensor_info = {
-                        .mib = {
-                                .not_avail_indicator_num = 0,
-                                .write_only = SAHPI_FALSE,
-                        },
                         .cur_state = SAHPI_ES_UNSPECIFIED,
                         .sensor_enabled = SAHPI_TRUE,
                         .events_enabled = SAHPI_TRUE,
@@ -814,10 +782,6 @@ struct sim_sensor sim_voltage_sensors[] = {
                         .Oem = 0,
                 },
 		.sensor_info = {
-                        .mib = {
-                                .not_avail_indicator_num = 0,
-                                .write_only = SAHPI_FALSE,
-			},
                         .cur_state = SAHPI_ES_UNSPECIFIED,
                         .sensor_enabled = SAHPI_TRUE,
                         .events_enabled = SAHPI_TRUE,
@@ -952,10 +916,6 @@ struct sim_sensor sim_voltage_sensors[] = {
                         .Oem = 0,
                 },
 		.sensor_info = {
-                        .mib = {
-                                .not_avail_indicator_num = 0,
-                                .write_only = SAHPI_FALSE,
-			},
 			.cur_state = SAHPI_ES_UNSPECIFIED,
                         .sensor_enabled = SAHPI_TRUE,
                         .events_enabled = SAHPI_TRUE,
@@ -1089,10 +1049,6 @@ struct sim_sensor sim_voltage_sensors[] = {
                         .Oem = 0,
                 },
                 .sensor_info = {
-                        .mib = {
-                                .not_avail_indicator_num = 0,
-                                .write_only = SAHPI_FALSE,
-                        },
                         .cur_state = SAHPI_ES_UNSPECIFIED,
                         .sensor_enabled = SAHPI_TRUE,
                         .events_enabled = SAHPI_TRUE,
@@ -1226,10 +1182,6 @@ struct sim_sensor sim_voltage_sensors[] = {
                         .Oem = 0,
                 },
                 .sensor_info = {
-                        .mib = {
-                                .not_avail_indicator_num = 0,
-                                .write_only = SAHPI_FALSE,
-                        },
                         .cur_state = SAHPI_ES_UNSPECIFIED,
                         .sensor_enabled = SAHPI_TRUE,
                         .events_enabled = SAHPI_TRUE,
@@ -1359,10 +1311,6 @@ struct sim_sensor sim_voltage_sensors[] = {
                         .Oem = 0,
                 },
                 .sensor_info = {
-                        .mib = {
-                                .not_avail_indicator_num = 0,
-                                .write_only = SAHPI_FALSE,
-                        },
                         .cur_state = SAHPI_ES_UNSPECIFIED,
                         .sensor_enabled = SAHPI_TRUE,
                         .events_enabled = SAHPI_TRUE,

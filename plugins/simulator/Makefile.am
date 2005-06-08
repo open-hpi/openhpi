@@ -32,5 +32,4 @@ libsimulator_la_SOURCES	= sim_init.c sim_init.h \
 			  sim_controls.c sim_controls.h \
 			  sim_control_func.c sim_control_func.h \
 			  sim_injector.c sim_injector.h
-libsimulator_la_LIBADD	= -luuid
 libsimulator_la_LDFLAGS	= -version-info @HPI_LIB_VERSION@

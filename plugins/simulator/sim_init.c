@@ -30,6 +30,34 @@ static struct oh_event *eventdup(const struct oh_event *event)
 }
 
 
+static SaErrorT build_rptcache(RPTable *rptcache, SaHpiEntityPathT *root_ep)
+{
+	SaHpiRptEntryT *res;
+	int i = 0;
+
+	while (sim_rpt_array[i].rpt.ResourceInfo.ManufacturerId != 0) {
+                res = g_malloc(sizeof(SaHpiRptEntryT));
+                if (res == NULL) {
+                        dbg("Out of memory in build_rptcache\n");
+                        return SA_ERR_HPI_OUT_OF_MEMORY;
+                }
+        	memcpy(res, &sim_rpt_array[i].rpt, sizeof(SaHpiRptEntryT));
+		oh_concat_ep(&res->ResourceEntity, root_ep);
+		res->ResourceId = oh_uid_from_entity_path(&res->ResourceEntity);
+	        sim_create_resourcetag(&res->ResourceTag,
+                                       sim_rpt_array[i].comment,
+                                       root_ep->Entry[i].EntityLocation);
+		dbg("I am ResourceId %d\n", res->ResourceId);
+		dbg("Adding resource number %d",i);
+
+                oh_add_resource(rptcache, res, NULL, FREE_RPT_DATA);
+		i++;
+	}
+
+        return SA_OK;
+}
+
+
 void *sim_open(GHashTable *handler_config)
 {
         struct oh_handler_state *state = NULL;
@@ -90,7 +118,7 @@ SaErrorT sim_discover(void *hnd)
 
         build_rptcache(inst->rptcache, &root_ep);
 	sim_discover_sensors(inst->rptcache);
-	sim_discover_controls(inst->rptcache);
+//	sim_discover_controls(inst->rptcache);
 
 	rpt_entry = oh_get_resource_next(inst->rptcache, SAHPI_FIRST_ENTRY);
 
@@ -144,116 +172,24 @@ void sim_close(void *hnd)
 	struct oh_handler_state *state = hnd;
 
         /* TODO: we may need to do more here than just this! */
-        g_free(state->rptcache);
+//      g_free(state->rptcache);
         g_free(state);
         return;
 }
 
 
-SaErrorT build_rptcache(RPTable *rptcache, SaHpiEntityPathT *root_ep)
-{
-	int i;
-	SaHpiRptEntryT res;
-	int x = 0;
-	//struct oh_event *e;
-	//struct SensorMoreInfo *info;
-
-        //e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
-	// info = (struct SensorMoreInfo *)g_malloc0(sizeof(struct SensorMoreInfo));
-
-	while (sim_rpt_array[x].rpt.ResourceInfo.ManufacturerId != 0){
-		x++;
-	}
-
-	for(i = 0; i < x; i++){
-        	memcpy(&res, &sim_rpt_array[i].rpt, sizeof(SaHpiRptEntryT));
-		oh_concat_ep(&res.ResourceEntity, root_ep);
-		res.ResourceId = oh_uid_from_entity_path(&res.ResourceEntity);
-		printf("I am res.ResourceId %d\n", res.ResourceId);
-		dbg("Adding resource number %d",i);
-
-	        sim_create_resourcetag(&res.ResourceTag, sim_rpt_array[i].comment, root_ep->Entry[i].EntityLocation);
-                oh_add_resource(rptcache, &res, NULL, FREE_RPT_DATA);
-
-	}
-        return i;
-}
-
-
 /*
- * Simulator function table for plugin interface
+ * Simulator plugin interface
  *
  */
 
-static struct oh_abi_v2 oh_sim_plugin = {
-        .open                   	= sim_open,
-        .close                  	= sim_close,
-        .get_event              	= sim_get_event,
-        .discover_resources     	= sim_discover,
-        .discover_domain_resources     	= NULL,
-        .set_resource_tag              	= NULL,
-        .set_resource_severity         	= NULL,
-        .get_el_info                   	= NULL,
-        .set_el_time                   	= NULL,
-        .add_el_entry                  	= NULL,
-        .get_el_entry                  	= NULL,
-        .clear_el                      	= NULL,
-        .set_el_state                  	= NULL,
-        .reset_el_overflow             	= NULL,
-	.get_sensor_reading     	= sim_get_sensor_reading,
-        .get_sensor_thresholds  	= sim_get_sensor_thresholds,
-	.set_sensor_thresholds		= sim_set_sensor_thresholds,
-	.get_sensor_enable		= sim_get_sensor_enable,
-	.set_sensor_enable              = sim_set_sensor_enable,
-	.get_sensor_event_enables       = sim_get_sensor_event_enable,
-	.set_sensor_event_enables       = sim_set_sensor_event_enable,
-	.get_sensor_event_masks         = sim_get_sensor_event_masks,
-	.set_sensor_event_masks         = sim_set_sensor_event_masks,
-	.get_control_state		= sim_get_control_state,
-	.set_control_state		= sim_set_control_state,
-	.get_idr_info     		= NULL,
-	.get_idr_area_header            = NULL,
-	.add_idr_area                   = NULL,
-	.del_idr_area                   = NULL,
-	.get_idr_field                  = NULL,
-	.add_idr_field                  = NULL,
-	.set_idr_field                  = NULL,
-	.del_idr_field                  = NULL,
-	.get_watchdog_info              = NULL,
-	.set_watchdog_info              = NULL,
-	.reset_watchdog                 = NULL,
-	.get_next_announce              = NULL,
-	.get_announce                   = NULL,
-	.ack_announce                   = NULL,
-	.add_announce                   = NULL,
-	.del_announce                   = NULL,
-	.get_annunc_mode                = NULL,
-	.set_annunc_mode                = NULL,
-	.get_hotswap_state              = NULL,
-	.set_hotswap_state              = NULL,
-	.request_hotswap_action         = NULL,
-	.get_power_state                = NULL,
-	.set_power_state                = NULL,
-	.get_indicator_state            = NULL,
-	.set_indicator_state            = NULL,
-	.control_parm                   = NULL,
-	.get_reset_state                = NULL,
-	.set_reset_state                = NULL
-};
+void * oh_open (GHashTable *) __attribute__ ((weak, alias("sim_open")));
 
+void * oh_close (void *) __attribute__ ((weak, alias("sim_close")));
 
-int sim_get_interface(void **pp, const uuid_t uuid)
-{
-        if (uuid_compare(uuid, UUID_OH_ABI_V2) == 0) {
-                *(struct oh_abi_v2 **)pp = &oh_sim_plugin;
-                return 0;
-        }
+void * oh_get_event (void *, struct oh_event *)
+                __attribute__ ((weak, alias("sim_get_event")));
 
-        *pp = NULL;
-        return -1;
-}
-
-
-int get_interface(void **pp, const uuid_t uuid)
-                  __attribute__ ((weak, alias("sim_get_interface")));
+void * oh_discover_resources (void *)
+                __attribute__ ((weak, alias("sim_discover")));
 

@@ -54,14 +54,6 @@ struct SimSensorWritableThresholdOids {
         const char *NegThdHysteresis;
 };
 
-struct SensorMibInfo {
-        unsigned int not_avail_indicator_num; /* 0 for none, n>0 otherwise */
-        SaHpiBoolT write_only; /* TRUE - Write-only SNMP command */
-        const char *oid;
-        struct SimSensorThresholdOids threshold_oids;
-	struct SimSensorWritableThresholdOids threshold_write_oids;
-};
-
 struct sensor_event_map {
       char *event;
       SaHpiBoolT event_assertion;
@@ -78,7 +70,6 @@ struct sensor_reading_map {
 };
 
 struct SensorInfo {
-	struct SensorMibInfo mib;
         SaHpiEventStateT cur_state; /* This really records the last state read from the SEL */
                            /* Which probably isn't the current state of the sensor */
 	SaHpiBoolT sensor_enabled;
@@ -114,7 +105,6 @@ extern struct sim_sensor sim_voltage_sensors[];
 
 SaErrorT sim_discover_sensors(RPTable *rpt);
 SaErrorT new_sensor(RPTable *rptcache, SaHpiResourceIdT ResId, int Index);
-int sim_get_next_sensor_num(RPTable *rptcache, SaHpiResourceIdT ResId, SaHpiRdrTypeT type);
 
 
 #endif
