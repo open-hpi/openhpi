@@ -122,43 +122,75 @@ SaErrorT sim_discover_sensors(RPTable *rpt)
 SaErrorT new_sensor(RPTable *rptcache, SaHpiResourceIdT ResId, int Index){
 	SaHpiRdrT res_rdr;
 	SaHpiRptEntryT *RptEntry;
-	struct SensorInfo *info;
+	struct SensorInfo *info;  // our extra info
 
 	info = (struct SensorInfo *)g_malloc0(sizeof(struct SensorInfo));
 
 
-	// Copy information from rdr array to res_rdr
-         res_rdr.RdrType = SAHPI_SENSOR_RDR;
-         memcpy(&res_rdr.RdrTypeUnion.SensorRec, &sim_voltage_sensors[Index].sensor, sizeof(SaHpiSensorRecT));
+	// set up res_rdr
+        res_rdr.RdrType = SAHPI_SENSOR_RDR;
+        memcpy(&res_rdr.RdrTypeUnion.SensorRec, &sim_voltage_sensors[Index].sensor, sizeof(SaHpiSensorRecT));
+        res_rdr.IsFru = 1;
+        res_rdr.RdrTypeUnion.SensorRec.Num = sim_get_next_sensor_num(rptcache, ResId, res_rdr.RdrTypeUnion.SensorRec.Type);
+        res_rdr.RecordId = get_rdr_uid(res_rdr.RdrType, res_rdr.RdrTypeUnion.SensorRec.Num);
+	oh_init_textbuffer(&res_rdr.IdString);
+	oh_append_textbuffer(&res_rdr.IdString, sim_voltage_sensors[Index].comment);
 
-	 oh_init_textbuffer(&res_rdr.IdString);
-	 oh_append_textbuffer(&res_rdr.IdString, sim_voltage_sensors[Index].comment);
+        // get the RptEntry
+	RptEntry = oh_get_resource_by_id(rptcache, ResId);
+	if(!RptEntry){
+                dbg("NULL rpt pointer\n");
+	} else {
+                res_rdr.Entity = RptEntry->ResourceEntity;
+	}
 
-         res_rdr.IsFru = 1;
-         res_rdr.RdrTypeUnion.SensorRec.Num = sim_get_next_sensor_num(rptcache, ResId, res_rdr.RdrTypeUnion.SensorRec.Type);
-         res_rdr.RecordId = get_rdr_uid(res_rdr.RdrType, res_rdr.RdrTypeUnion.SensorRec.Num);
-
-	 RptEntry = oh_get_resource_by_id(rptcache, ResId);
-	 if(!RptEntry){
-		 dbg("NULL rpt pointer\n");
-	 } else {
-                 res_rdr.Entity = RptEntry->ResourceEntity;
-	 }
-
+        // now set up our extra info for the sensor
         info->cur_state = sim_voltage_sensors[Index].sensor_info.cur_state;
-	info->sensor_enabled = sim_voltage_sensors[Index].sensor_info.sensor_enabled;
-        info->assert_mask = sim_voltage_sensors[Index].sensor_info.assert_mask;
-        info->deassert_mask = sim_voltage_sensors[Index].sensor_info.deassert_mask;
-        memcpy(&info->event_array, &sim_voltage_sensors[Index].sensor_info.event_array, sizeof(struct sensor_event_map));
-        memcpy(&info->reading2event, &sim_voltage_sensors[Index].sensor_info.reading2event, sizeof(struct sensor_event_map));
-	info->reading.IsSupported = sim_voltage_sensors[Index].sensor.DataFormat.IsSupported;
-	info->reading.Type = sim_voltage_sensors[Index].sensor.DataFormat.ReadingType;
-        // TODO: need a reading copied here to info->reading
-	memcpy(&info->thres, &sim_voltage_sensors[Index].sensor.DataFormat.Range, sizeof(SaHpiSensorThresholdsT));
+	info->sensor_enabled =
+                sim_voltage_sensors[Index].sensor_info.sensor_enabled;
+        info->assert_mask =
+                sim_voltage_sensors[Index].sensor_info.assert_mask;
+        info->deassert_mask =
+                sim_voltage_sensors[Index].sensor_info.deassert_mask;
+        memcpy(&info->event_array,
+               &sim_voltage_sensors[Index].sensor_info.event_array,
+               sizeof(struct sensor_event_map));
+        memcpy(&info->reading2event,
+               &sim_voltage_sensors[Index].sensor_info.reading2event,
+               sizeof(struct sensor_event_map));
+	info->reading.IsSupported =
+                sim_voltage_sensors[Index].sensor.DataFormat.IsSupported;
+	info->reading.Type =
+                sim_voltage_sensors[Index].sensor.DataFormat.ReadingType;
+        switch (info->reading.Type) {
+                case SAHPI_SENSOR_READING_TYPE_INT64:
+                        info->reading.Value.SensorInt64 =
+                         sim_voltage_sensors[Index].sensor.DataFormat.Range.Nominal.Value.SensorInt64;
+                        break;
+                case SAHPI_SENSOR_READING_TYPE_UINT64:
+                        info->reading.Value.SensorUint64 =
+                         sim_voltage_sensors[Index].sensor.DataFormat.Range.Nominal.Value.SensorUint64;
+                        break;
+                case SAHPI_SENSOR_READING_TYPE_FLOAT64:
+                        info->reading.Value.SensorFloat64 =
+                         sim_voltage_sensors[Index].sensor.DataFormat.Range.Nominal.Value.SensorFloat64;
+                        break;
+                case SAHPI_SENSOR_READING_TYPE_BUFFER:
+                default:
+                        memcpy(info->reading.Value.SensorBuffer,
+                               sim_voltage_sensors[Index].sensor.DataFormat.Range.Nominal.Value.SensorBuffer,
+                               SAHPI_SENSOR_BUFFER_LENGTH);
+        }
+	info->reading.Value.SensorFloat64 =
+                sim_voltage_sensors[Index].sensor.DataFormat.Range.Nominal.Value.SensorFloat64;
+	memcpy(&info->thres,
+               &sim_voltage_sensors[Index].sensor.DataFormat.Range,
+               sizeof(SaHpiSensorThresholdsT));
 
+        // everything ready so add the rdr and extra info to the rptcache
 	oh_add_rdr(rptcache, ResId, &res_rdr, &info, 0);
 
-         return 0;
+        return 0;
 }
 
 /*************************************************************************
