@@ -446,9 +446,10 @@ SaErrorT show_event_log(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 				proc(buf);
 				return -1;
 			};
-			if (show_short)
-				show_short_event(&(sel.Event), proc);
-			else
+			if (show_short) {
+				if (show_short_event(&(sel.Event), proc) != HPI_UI_OK)
+					return(SA_OK);
+			} else
 				oh_print_eventlogentry(&sel, 1);
 
 			preventryid = entryid;
@@ -715,7 +716,7 @@ SaErrorT show_Rdr(Rdr_t *Rdr, hpi_ui_print_cb_t proc)
 	return(SA_OK);
 }
 
-void show_short_event(SaHpiEventT *event, hpi_ui_print_cb_t proc)
+Pr_ret_t show_short_event(SaHpiEventT *event, hpi_ui_print_cb_t proc)
 {
 	SaHpiTextBufferT	tmbuf;
 	SaHpiSensorEventT	*sen;
@@ -735,7 +736,7 @@ void show_short_event(SaHpiEventT *event, hpi_ui_print_cb_t proc)
 	switch (event->EventType) {
 		case SAHPI_ET_DOMAIN:
 			dom = &(event->EventDataUnion.DomainEvent);
-			snprintf(buf, SHOW_BUF_SZ, "  Event: %s  DomainId: %d\n",
+			snprintf(buf, SHOW_BUF_SZ, "  Event: %s  DomainId: %d",
 				oh_lookup_domaineventtype(dom->Type), dom->DomainId);
 			proc(buf);
 			break;
@@ -771,14 +772,14 @@ void show_short_event(SaHpiEventT *event, hpi_ui_print_cb_t proc)
 				event->EventDataUnion.HotSwapEvent.PreviousHotSwapState),
 				oh_lookup_hsstate(
 				event->EventDataUnion.HotSwapEvent.HotSwapState));
-			proc(buf);
+			if (proc(buf) != HPI_UI_OK) return(HPI_UI_END);
 			break;						 
 		default:
 			snprintf(buf, SHOW_BUF_SZ, "%d", event->Source);
 			proc(buf);
 			break;
 	};
-	proc("\n");
+	return(proc("\n"));
 }
 
 SaErrorT show_dat(Domain_t *domain, hpi_ui_print_cb_t proc)

@@ -153,7 +153,7 @@ extern Pr_ret_t	show_sensor_list(SaHpiSessionIdT sessionid, SaHpiResourceIdT res
 			hpi_ui_print_cb_t proc);
 extern SaErrorT	show_sensor(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 			SaHpiSensorNumT sensornum, hpi_ui_print_cb_t proc);
-extern void	show_short_event(SaHpiEventT *event, hpi_ui_print_cb_t proc);
+extern Pr_ret_t	show_short_event(SaHpiEventT *event, hpi_ui_print_cb_t proc);
 extern SaErrorT	show_threshold(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 			SaHpiSensorNumT sensornum, SaHpiSensorRecT *sen,
 			hpi_ui_print_cb_t proc);
