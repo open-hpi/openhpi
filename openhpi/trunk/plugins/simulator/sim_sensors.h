@@ -101,10 +101,7 @@ struct sim_sensor {
 };
 
 
-extern struct sim_sensor sim_voltage_sensors[];
-
-SaErrorT sim_discover_sensors(RPTable *rpt);
-SaErrorT new_sensor(RPTable *rptcache, SaHpiResourceIdT ResId, int Index);
+SaErrorT sim_discover_sensors(struct oh_handler_state * state);
 
 
 #endif
