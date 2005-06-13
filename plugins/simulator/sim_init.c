@@ -17,47 +17,6 @@
 #include <sim_init.h>
 
 
-static struct oh_event *eventdup(const struct oh_event *event)
-{
-        struct oh_event *e;
-        e = g_malloc0(sizeof(*e));
-        if (!e) {
-                dbg("Out of memory!");
-                return NULL;
-        }
-        memcpy(e, event, sizeof(*e));
-        return e;
-}
-
-
-static SaErrorT build_rptcache(RPTable *rptcache, SaHpiEntityPathT *root_ep)
-{
-	SaHpiRptEntryT *res;
-	int i = 0;
-
-	while (sim_rpt_array[i].rpt.ResourceInfo.ManufacturerId != 0) {
-                res = g_malloc(sizeof(SaHpiRptEntryT));
-                if (res == NULL) {
-                        dbg("Out of memory in build_rptcache\n");
-                        return SA_ERR_HPI_OUT_OF_MEMORY;
-                }
-        	memcpy(res, &sim_rpt_array[i].rpt, sizeof(SaHpiRptEntryT));
-		oh_concat_ep(&res->ResourceEntity, root_ep);
-		res->ResourceId = oh_uid_from_entity_path(&res->ResourceEntity);
-	        sim_create_resourcetag(&res->ResourceTag,
-                                       sim_rpt_array[i].comment,
-                                       root_ep->Entry[i].EntityLocation);
-		dbg("I am ResourceId %d\n", res->ResourceId);
-		dbg("Adding resource number %d",i);
-
-                oh_add_resource(rptcache, res, NULL, FREE_RPT_DATA);
-		i++;
-	}
-
-        return SA_OK;
-}
-
-
 void *sim_open(GHashTable *handler_config)
 {
         struct oh_handler_state *state = NULL;
@@ -106,46 +65,19 @@ void *sim_open(GHashTable *handler_config)
 SaErrorT sim_discover(void *hnd)
 {
 	struct oh_handler_state *inst = (struct oh_handler_state *) hnd;
-	struct oh_event event;
-	SaHpiRptEntryT *rpt_entry;
-	SaHpiEntityPathT root_ep;
-	char *entity_root;
-	SaHpiRdrT *rdr_entry;
+        int i = 0;
 
-	struct oh_handler_state *oh_hnd = hnd;
-	entity_root = (char *)g_hash_table_lookup(oh_hnd->config,"entity_root");
-	oh_encode_entitypath (entity_root, &root_ep);
-
-        build_rptcache(inst->rptcache, &root_ep);
-	sim_discover_sensors(inst->rptcache);
-//	sim_discover_controls(inst->rptcache);
-
-	rpt_entry = oh_get_resource_next(inst->rptcache, SAHPI_FIRST_ENTRY);
-
-	while (rpt_entry) {
-		dbg("here resource event id %d", rpt_entry->ResourceId);
-		memset(&event, 0, sizeof(event));
-		event.type = OH_ET_RESOURCE;
-		event.did = oh_get_default_domain_id();
-		memcpy(&event.u.res_event.entry, rpt_entry, sizeof(SaHpiRptEntryT));
-		g_async_queue_push(inst->eventq_async, eventdup(&event));
-
-		rdr_entry = oh_get_rdr_next(inst->rptcache, rpt_entry->ResourceId, SAHPI_FIRST_ENTRY);
-		if(!rdr_entry){printf("I don't work\n");}
-		while (rdr_entry) {
-			// dbg("here rdr event id %d", rdr_entry->RecordId);
-			memset(&event, 0, sizeof(event));
-			event.type = OH_ET_RDR;
-			event.u.rdr_event.parent = rpt_entry->ResourceId;
-			memcpy(&event.u.rdr_event.rdr, rdr_entry, sizeof(SaHpiRdrT));
-			g_async_queue_push(inst->eventq_async, eventdup(&event));
-
-			rdr_entry = oh_get_rdr_next(inst->rptcache, rpt_entry->ResourceId, rdr_entry->RecordId);
-		}
-		rpt_entry = oh_get_resource_next(inst->rptcache, rpt_entry->ResourceId);
+        /* discover resources (build the base rptcache) */
+	while (sim_rpt_array[i].rpt.ResourceInfo.ManufacturerId != 0) {
+                sim_inject_resource(inst, &sim_rpt_array[i].rpt, NULL,
+                                    sim_rpt_array[i].comment);
+                i++;
         }
 
-	return 0;
+	sim_discover_sensors(inst);
+//	sim_discover_controls(inst->rptcache);
+
+	return SA_OK;
 }
 
 

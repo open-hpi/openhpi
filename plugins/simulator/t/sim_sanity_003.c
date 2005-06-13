@@ -1,5 +1,5 @@
 /*      -*- linux-c -*-
- *       
+ *
  * (C) Copyright IBM Corp. 2005
  *
  * This program is distributed in the hope that it will be useful,
@@ -8,7 +8,7 @@
  * file and program are licensed under a BSD style license.  See
  * the Copying file included with the OpenHPI distribution for
  * full licensing terms.
- *       
+ *
  * Authors:
  *     Sean Dague <http://dague.net/sean>
 */
@@ -34,7 +34,7 @@
 	} while(0)
 
 #define runtest() testnum++
- 
+
 int main(int argc, char **argv)
 {
         SaHpiSessionIdT sid = 0;
@@ -53,11 +53,11 @@ int main(int argc, char **argv)
 	if(rc != SA_OK) {
 		failed("Failed to run discover");
 	}
-						
-	
+
+
         /* loop over all resources, ensure that ResourceTag and
 	 *            ManufacturerId have been set */
-        while(saHpiRptEntryGet(sid,id,&id,&res) == SA_OK) {
+        while(saHpiRptEntryGet(sid, id, &id, &res) == SA_OK) {
 		runtest();
 		if(!res.ResourceTag.DataLength) {
 			failed("Resource Tag has zero length");
@@ -69,14 +69,13 @@ int main(int argc, char **argv)
 
 		/* there should be an inner loop here for Rdrs */
 	}
- 
- 	printf("I hit here\n");	
-	dbg("Ran %d tests", testnum);
-        
+
+	dbg("Ran %d tests\n", testnum);
+
 	/* if there is any failures, the test fails */
-	
+
         if(failcount) {
 	                return -1;
 		        }
         return(0);
-}	
+}

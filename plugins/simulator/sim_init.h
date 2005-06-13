@@ -33,6 +33,7 @@
 #include <oh_utils.h>
 #include <oh_error.h>
 #include <sim_resources.h>
+#include <sim_injector.h>
 #include <sim_sensors.h>
 #include <sim_sensor_func.h>
 #include <sim_controls.h>

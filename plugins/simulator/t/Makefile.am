@@ -22,19 +22,19 @@ TDEPLIB			= $(top_builddir)/src/libopenhpi.la \
 
 TESTS_ENVIRONMENT = OPENHPI_PATH=$(top_builddir)/plugins/simulator
 TESTS_ENVIRONMENT += OPENHPI_UID_MAP=$(shell pwd)/uid_map
-TESTS_ENVIRONMENT += OPENHPI_CONF=$(srcdir)/openhpi.conf
+TESTS_ENVIRONMENT += OPENHPI_CONF=./openhpi.conf
 
 TESTS = sim_sanity_000 \
 	sim_sanity_001 \
 	sim_sanity_002 \
-	sim_sanity_003 \
-	sim_sanity_004 \
-	sim_sanity_005 \
-	sim_sanity_006 \
-	sim_sanity_007 \
-	sim_sanity_100 \
-	sim_sanity_101 \
-	sim_sanity_102
+	sim_sanity_003
+#	sim_sanity_004 \
+#	sim_sanity_005 \
+#	sim_sanity_006 \
+#	sim_sanity_007 \
+#	sim_sanity_100 \
+#	sim_sanity_101 \
+#	sim_sanity_102
 
 check_PROGRAMS = $(TESTS)
 

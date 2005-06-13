@@ -15,39 +15,124 @@
  */
 
 
-#include <SaHpi.h>
-#include <glib.h>
-#include <oh_utils.h>
-#include <oh_handler.h>
-#include <sim_injector.h>
+#include <sim_init.h>
+
+
+static struct oh_event *eventdup(const struct oh_event *event)
+{
+        struct oh_event *e;
+        e = g_malloc0(sizeof(*e));
+        if (!e) {
+                dbg("Out of memory!");
+                return NULL;
+        }
+        memcpy(e, event, sizeof(*e));
+        return e;
+}
+
+
+
+static SaErrorT sim_create_resourcetag(SaHpiTextBufferT *buffer, const char *str, SaHpiEntityLocationT loc)
+{
+	char *locstr;
+	SaErrorT err = SA_OK;
+	SaHpiTextBufferT working;
+
+	if (!buffer || loc < SIM_HPI_LOCATION_BASE ||
+	    loc > (pow(10, OH_MAX_LOCATION_DIGITS) - 1)) {
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+
+	err = oh_init_textbuffer(&working);
+	if (err) { return(err); }
+
+	locstr = (gchar *)g_malloc0(OH_MAX_LOCATION_DIGITS + 1);
+	if (locstr == NULL) {
+		dbg("Out of memory.");
+		return(SA_ERR_HPI_OUT_OF_SPACE);
+	}
+	snprintf(locstr, OH_MAX_LOCATION_DIGITS + 1, " %d", loc);
+
+	if (str) { oh_append_textbuffer(&working, str); }
+	err = oh_append_textbuffer(&working, locstr);
+	if (!err) {
+		err = oh_copy_textbuffer(buffer, &working);
+	}
+	g_free(locstr);
+	return(err);
+}
 
 
 /* inject a resource */
+// assuptions about the input SaHpiRptEntryT *data entry
+// - all fields are assumed to have valid values except
+//    o EntryId (filled in by oh_add_resource function)
+//    o ResourceId
+//    o ResourceEntity (assumed to have only partial data)
 SaErrorT sim_inject_resource(struct oh_handler_state *state,
-                             SaHpiRptEntryT *data, void *privdata) {
+                             SaHpiRptEntryT *data, void *privdata,
+                             const char * comment) {
+	SaHpiEntityPathT root_ep;
+	SaHpiRptEntryT *res;
+	char *entity_root;
+	struct oh_event event;
 
         /* check arguments */
         if (state == NULL || data == NULL) {
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
+        /* get the entity root */
+	entity_root = (char *)g_hash_table_lookup(state->config,"entity_root");
+	oh_encode_entitypath (entity_root, &root_ep);
+
+        /* set up the rpt entry */
+        res = g_malloc(sizeof(SaHpiRptEntryT));
+        if (res == NULL) {
+                dbg("Out of memory in build_rptcache\n");
+                return SA_ERR_HPI_OUT_OF_MEMORY;
+        }
+        memcpy(res, data, sizeof(SaHpiRptEntryT));
+        oh_concat_ep(&res->ResourceEntity, &root_ep);
+        res->ResourceId = oh_uid_from_entity_path(&res->ResourceEntity);
+        sim_create_resourcetag(&res->ResourceTag, comment,
+                               root_ep.Entry[0].EntityLocation);
+        dbg("Injecting ResourceId %d\n", res->ResourceId);
+
         /* perform the injection */
-        oh_add_resource(state->rptcache, data, privdata, FREE_RPT_DATA);
+        oh_add_resource(state->rptcache, res, privdata, FREE_RPT_DATA);
+
+        /* now add an event for the resource add */
+        memset(&event, 0, sizeof(event));
+        event.type = OH_ET_RESOURCE;
+        event.did = oh_get_default_domain_id();
+        memcpy(&event.u.res_event.entry, res, sizeof(SaHpiRptEntryT));
+        sim_inject_event(state, eventdup(&event));
+
         return SA_OK;
 }
 
 
 /* inject an rdr */
 SaErrorT sim_inject_rdr(struct oh_handler_state *state, SaHpiResourceIdT resid,
-                        SaHpiRdrT *data) {
+                        SaHpiRdrT *rdr, void * privinfo) {
+	struct oh_event event;
 
         /* check arguments */
-        if (state == NULL || resid == 0 || data == NULL) {
+        if (state == NULL || resid == 0 || rdr == NULL) {
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
         /* perform the injection */
-	oh_add_rdr(state->rptcache, resid, data, NULL, 0);
+	oh_add_rdr(state->rptcache, resid, rdr, privinfo, 0);
+
+        /* now add an event for the rdr */
+        memset(&event, 0, sizeof(event));
+        event.type = OH_ET_RDR;
+        event.u.rdr_event.parent = resid;
+        memcpy(&event.u.rdr_event.rdr, rdr, sizeof(SaHpiRdrT));
+        sim_inject_event(state, eventdup(&event));
+
         return SA_OK;
 }
 
