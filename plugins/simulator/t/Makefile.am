@@ -27,11 +27,13 @@ TESTS_ENVIRONMENT += OPENHPI_CONF=./openhpi.conf
 TESTS = sim_sanity_000 \
 	sim_sanity_001 \
 	sim_sanity_002 \
-	sim_sanity_003
-#	sim_sanity_004 \
-#	sim_sanity_005 \
-#	sim_sanity_006 \
-#	sim_sanity_007 \
+	sim_sanity_003 \
+	sim_sanity_004 \
+	sim_sanity_005 \
+	sim_sanity_006 \
+	sim_sanity_007 \
+	sim_sanity_008 \
+	sim_sanity_009
 #	sim_sanity_100 \
 #	sim_sanity_101 \
 #	sim_sanity_102
@@ -54,6 +56,10 @@ sim_sanity_006_SOURCES = sim_sanity_006.c
 sim_sanity_006_LDADD = $(TDEPLIB)
 sim_sanity_007_SOURCES = sim_sanity_007.c
 sim_sanity_007_LDADD = $(TDEPLIB)
+sim_sanity_008_SOURCES = sim_sanity_008.c
+sim_sanity_008_LDADD = $(TDEPLIB)
+sim_sanity_009_SOURCES = sim_sanity_009.c
+sim_sanity_009_LDADD = $(TDEPLIB)
 sim_sanity_100_SOURCES = sim_sanity_100.c
 sim_sanity_100_LDADD = $(TDEPLIB)
 sim_sanity_101_SOURCES = sim_sanity_101.c

@@ -10,7 +10,6 @@
  * full licensing terms.
  *
  * Author(s):
- *	  Christina Hernandez <hernanc@us.ibm.com>
  *        W. David Ashley <dashley@us.ibm.com>
  */
 
@@ -1568,7 +1567,6 @@ struct sim_sensor sim_dasd_sensors[] = {
  *************/
 
 struct sim_sensor sim_fan_sensors[] = {
-
 	/* Fan speed */
         {
 		.index = 1,
@@ -1688,3 +1686,105 @@ struct sim_sensor sim_fan_sensors[] = {
 
         {} /* Terminate array with a null element */
 };
+
+
+/******************************************************************************
+ *                      Control Definitions
+ *
+ * These are patterned after an RSA type machine
+ ******************************************************************************/
+
+struct sim_control sim_chassis_controls[] = {
+        /* Front Panel Identify LED. User controlled. */
+  	/* 0 is Off; 1 is solid on; 2 is blinking */
+	{
+                .index = 1,
+                .control = {
+                        .Num = 1,
+                        .OutputType = SAHPI_CTRL_LED,
+                        .Type = SAHPI_CTRL_TYPE_DISCRETE,
+                        .TypeUnion.Discrete.Default = 0,
+			.DefaultMode = {
+				.Mode = SAHPI_CTRL_MODE_MANUAL,
+				.ReadOnly = SAHPI_TRUE,
+			},
+			.WriteOnly = SAHPI_FALSE,
+                        .Oem = 0,
+                },
+		.cur_mode = SAHPI_CTRL_MODE_MANUAL,
+                .comment = "Front Panel Identify LED"
+        },
+
+        {} /* Terminate array with a null element */
+};
+
+struct sim_control sim_cpu_controls[] = {
+
+        {} /* Terminate array with a null element */
+};
+
+struct sim_control sim_dasd_controls[] = {
+
+        {} /* Terminate array with a null element */
+};
+
+struct sim_control sim_fan_controls[] = {
+
+        {} /* Terminate array with a null element */
+};
+
+
+
+/*************************************************************************
+ *                   Inventory Definitions
+ *************************************************************************/
+
+/*************
+ * Chassis VPD
+ *************/
+
+// struct sim_inventory sim_chassis_inventories[] = {
+//         {
+//                 .inventory = {
+//                      .IdrId = 1,
+//                         .Oem = 0,
+//                 },
+//              .inventory_info = {
+//                      .mib = {
+//                              .not_avail_indicator_num = 0,
+//                              .write_only = SAHPI_FALSE,
+//                              .area_type = SAHPI_IDR_AREATYPE_CHASSIS_INFO,
+//                              .oid = {
+//                                      .OidChassisType = ".1.3.6.1.4.1.2.3.51.1.2.21.2.1.2.0",
+//                                         .OidMfgDateTime = '\0',   /* Set to SAHPI_TIME_UNSPECIFIED */
+//                                         .OidManufacturer = '\0',
+//                                         .OidProductName = '\0',
+//                                         .OidProductVersion = ".1.3.6.1.4.1.2.3.51.1.2.21.1.1.1.0",
+//                                         .OidSerialNumber = ".1.3.6.1.4.1.2.3.51.1.2.21.2.1.3.0",
+//                                         .OidPartNumber = ".1.3.6.1.4.1.2.3.51.1.2.21.2.1.1.0",
+//                                         .OidFileId = '\0',
+//                                         .OidAssetTag = '\0',
+//                              }
+//                      },
+//              },
+//                 .comment = "RSA VPD",
+//         },
+//
+//         {} /* Terminate array with a null element */
+// };
+//
+// struct sim_inventory sim_cpu_inventories[] = {
+//
+//         {} /* Terminate array with a null element */
+// };
+//
+// struct sim_inventory sim_dasd_inventories[] = {
+//
+//         {} /* Terminate array with a null element */
+// };
+//
+// struct sim_inventory sim_fan_inventories[] = {
+//
+//         {} /* Terminate array with a null element */
+// };
+

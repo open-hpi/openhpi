@@ -27,7 +27,7 @@
 int main(int argc, char **argv)
 {
 	SaHpiSessionIdT sid = 0;
-	SaHpiSensorThresholdsT thresholds;
+	SaHpiBoolT enable;
 	SaErrorT rc = SA_OK;
 
         rc = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID, &sid, NULL);
@@ -42,16 +42,16 @@ int main(int argc, char **argv)
                 return -1;
 	}
 
-        /* get sensor thresholds */
-        rc = saHpiSensorThresholdsGet(sid, 1, 1, &thresholds);
+        /* get sensor event enable */
+        rc = saHpiSensorEventEnableGet(sid, 1, 1, &enable);
         if (rc != SA_OK) {
-		dbg("Couldn't get sensor thresholds");
+		dbg("Couldn't get sensor event enable");
 		dbg("Error %s",oh_lookup_error(rc));
                 return -1;
 	}
 
-        /* set sensor thresholds */
-        rc = saHpiSensorThresholdsSet(sid, 1, 1, &thresholds);
+        /* set sensor event enable */
+        rc = saHpiSensorEventEnableSet(sid, 1, 1, enable);
         if (rc == SA_OK) {
                 /* all our sensors are read-only so if we can change the
                    sensor it is an error */

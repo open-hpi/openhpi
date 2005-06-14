@@ -25,7 +25,8 @@
 /* Corresponding to change made in snmp_bc_resources.h */
 #define IBM_MANUFACTURING_ID 20944
 
-/* Resource Id for SIM resources */
+/* Resource Ids for SIM resources
+   if the sim_rpt_array order changes this will need to change also */
 typedef enum {
 	SIM_RPT_ENTRY_CHASSIS = 1,
 	SIM_RPT_ENTRY_CPU,

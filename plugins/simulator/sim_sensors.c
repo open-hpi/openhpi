@@ -38,8 +38,8 @@ static int sim_get_next_sensor_num(RPTable *rptcache, SaHpiResourceIdT ResId,
 }
 
 
-static SaErrorT new_sensor(struct oh_handler_state * state, SaHpiResourceIdT ResId,
-                           struct sim_sensor *mysensor) {
+static SaErrorT new_sensor(struct oh_handler_state * state,
+                           SaHpiResourceIdT ResId, struct sim_sensor *mysensor) {
 	SaHpiRdrT res_rdr;
 	SaHpiRptEntryT *RptEntry;
 	struct SensorInfo *info;  // our extra info
@@ -60,8 +60,9 @@ static SaErrorT new_sensor(struct oh_handler_state * state, SaHpiResourceIdT Res
 
         // get the RptEntry
 	RptEntry = oh_get_resource_by_id(state->rptcache, ResId);
-	if(!RptEntry){
+	if (!RptEntry){
                 dbg("NULL rpt pointer during sensor add\n");
+                return SA_ERR_HPI_INVALID_RESOURCE;
 	} else {
                 res_rdr.Entity = RptEntry->ResourceEntity;
 	}
@@ -104,40 +105,61 @@ static SaErrorT new_sensor(struct oh_handler_state * state, SaHpiResourceIdT Res
         // everything ready so add the rdr and extra info to the rptcache
         sim_inject_rdr(state, ResId, &res_rdr, info);
 
-        return 0;
+        return SA_OK;
 }
 
 
 SaErrorT sim_discover_sensors(struct oh_handler_state * state)
 {
+        SaErrorT rc;
 
         /* chassis sensors */
         int i = 0;
         while (sim_chassis_sensors[i].index != 0) {
-                new_sensor(state, SIM_RPT_ENTRY_CHASSIS, &sim_chassis_sensors[i]);
-                i++;
+                rc = new_sensor(state, SIM_RPT_ENTRY_CHASSIS, &sim_chassis_sensors[i]);
+                if (rc) {
+                        dbg("Error %d returned when adding chassis sensor", rc);
+                } else {
+                        i++;
+                }
         }
+        dbg("%d chassis sensors injected", i);
 
         /* cpu sensors */
         i = 0;
         while (sim_cpu_sensors[i].index != 0) {
-                new_sensor(state, SIM_RPT_ENTRY_CPU, &sim_cpu_sensors[i]);
-                i++;
+                rc = new_sensor(state, SIM_RPT_ENTRY_CPU, &sim_cpu_sensors[i]);
+                if (rc) {
+                        dbg("Error %d returned when adding cpu sensor", rc);
+                } else {
+                        i++;
+                }
         }
+        dbg("%d cpu sensors injected", i);
 
         /* dasd sensors */
         i = 0;
         while (sim_dasd_sensors[i].index != 0) {
-                new_sensor(state, SIM_RPT_ENTRY_DASD, &sim_dasd_sensors[i]);
-                i++;
+                rc = new_sensor(state, SIM_RPT_ENTRY_DASD, &sim_dasd_sensors[i]);
+                if (rc) {
+                        dbg("Error %d returned when adding dasd sensor", rc);
+                } else {
+                        i++;
+                }
         }
+        dbg("%d dasd sensors injected", i);
 
         /* fan sensors */
         i = 0;
         while (sim_fan_sensors[i].index != 0) {
-                new_sensor(state, SIM_RPT_ENTRY_CPU, &sim_fan_sensors[i]);
-                i++;
+                rc = new_sensor(state, SIM_RPT_ENTRY_FAN, &sim_fan_sensors[i]);
+                if (rc) {
+                        dbg("Error %d returned when adding fan sensor", rc);
+                } else {
+                        i++;
+                }
         }
+        dbg("%d fan sensors injected", i);
 
 	return 0;
 

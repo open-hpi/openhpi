@@ -10,48 +10,28 @@
  * full licensing terms.
  *
  * Authors:
- *     Sean Dague <http://dague.net/sean>
+ *     W. David Ashley <dashley@us.ibm.com>
  */
- 
+
 #include <stdlib.h>
 #include <SaHpi.h>
 #include <oh_utils.h>
 #include <oh_error.h>
 
+
 /**
  * Run a series of sanity tests on the simulator
- * Pass on success, otherwise a failure.
+ * Return 0 on success, otherwise return -1
  **/
-
-/**
- * Utility macro to make it easier to state what failed
- */
-
-#define failed(err)                                \
-        do {                                            \
-                failcount++;                            \
-                dbg("Failed Test %d: %s", testnum, err);    \
-        } while(0) 
-
-#define runtest() testnum++
 
 int main(int argc, char **argv)
 {
         SaHpiSessionIdT sid = 0;
-        int failcount = 0;
-        int testnum = 0;
         SaErrorT rc = SA_OK;
-                
+
         rc = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID, &sid, NULL);
-        runtest();
-        if(rc != SA_OK) {
-                failed("Failed to open session");
-        }
-
-        /* if there is any failures, the test fails */
-
-        if(failcount) {
+        if (rc != SA_OK)
                 return -1;
-        }
-	return(0);
+
+	return 0;
 }

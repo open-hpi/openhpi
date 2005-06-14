@@ -97,9 +97,9 @@ SaErrorT sim_inject_resource(struct oh_handler_state *state,
         res->ResourceId = oh_uid_from_entity_path(&res->ResourceEntity);
         sim_create_resourcetag(&res->ResourceTag, comment,
                                root_ep.Entry[0].EntityLocation);
-        dbg("Injecting ResourceId %d\n", res->ResourceId);
 
         /* perform the injection */
+        dbg("Injecting ResourceId %d", res->ResourceId);
         oh_add_resource(state->rptcache, res, privdata, FREE_RPT_DATA);
 
         /* now add an event for the resource add */
@@ -114,6 +114,11 @@ SaErrorT sim_inject_resource(struct oh_handler_state *state,
 
 
 /* inject an rdr */
+// assuptions about the input SaHpiRdrT *data entry
+// - all fields are assumed to have valid values
+// - no checking of the data is performed
+// assuptions about the input *privdata entry
+// - no checking of the data is performed
 SaErrorT sim_inject_rdr(struct oh_handler_state *state, SaHpiResourceIdT resid,
                         SaHpiRdrT *rdr, void * privinfo) {
 	struct oh_event event;
@@ -124,9 +129,10 @@ SaErrorT sim_inject_rdr(struct oh_handler_state *state, SaHpiResourceIdT resid,
         }
 
         /* perform the injection */
+        dbg("Injecting rdr for ResourceId %d", resid);
 	oh_add_rdr(state->rptcache, resid, rdr, privinfo, 0);
 
-        /* now add an event for the rdr */
+        /* now inject an event for the rdr */
         memset(&event, 0, sizeof(event));
         event.type = OH_ET_RDR;
         event.u.rdr_event.parent = resid;
@@ -138,6 +144,9 @@ SaErrorT sim_inject_rdr(struct oh_handler_state *state, SaHpiResourceIdT resid,
 
 
 /* inject an event */
+// assuptions about the input oh_event *data entry
+// - all fields are assumed to have valid values
+// - no checking of the data is performed
 SaErrorT sim_inject_event(struct oh_handler_state *state, struct oh_event *data) {
 
         /* check arguments */
@@ -146,6 +155,7 @@ SaErrorT sim_inject_event(struct oh_handler_state *state, struct oh_event *data)
         }
 
         /* perform the injection */
+        dbg("Injecting event");
 	g_async_queue_push(state->eventq_async, data);
         return SA_OK;
 }
