@@ -92,6 +92,7 @@ SaErrorT snmp_bc_discover_resources(void *hnd)
 	 * Get difference between current rptcache and custom_handle->tmpcache.
 	 * Delete obsolete items from rptcache and add new items in.
 	 **********************************************************************/
+	SaHpiEntityPathT valEntity;	 
         GSList *res_new = NULL, *rdr_new = NULL, *res_gone = NULL, *rdr_gone = NULL;
         GSList *node = NULL;
         
@@ -101,7 +102,9 @@ SaErrorT snmp_bc_discover_resources(void *hnd)
 
         for (node = rdr_gone; node != NULL; node = node->next) {
                 SaHpiRdrT *rdr = (SaHpiRdrT *)node->data;
-                SaHpiRptEntryT *res = oh_get_resource_by_ep(handle->rptcache, &(rdr->Entity));
+		snmp_bc_validate_ep(&(rdr->Entity), &valEntity);
+                SaHpiRptEntryT *res = oh_get_resource_by_ep(handle->rptcache, &(valEntity));
+		
                 /* Create remove RDR event and add to event queue */
                 struct oh_event *e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
                 if (e) {
@@ -171,7 +174,8 @@ SaErrorT snmp_bc_discover_resources(void *hnd)
                 guint rdr_data_size = 0;
                 GSList *tmpnode = NULL;
                 SaHpiRdrT *rdr = (SaHpiRdrT *)node->data;
-                SaHpiRptEntryT *res = oh_get_resource_by_ep(handle->rptcache, &(rdr->Entity));
+		snmp_bc_validate_ep(&(rdr->Entity), &valEntity);
+                SaHpiRptEntryT *res = oh_get_resource_by_ep(handle->rptcache, &(valEntity));
                 if (!res || !rdr) {
                         dbg("No valid resource or rdr at hand. Could not process new rdr.");
                         continue;
@@ -225,6 +229,7 @@ SaErrorT snmp_bc_discover_resources(void *hnd)
 }
 
 /**
+
  * snmp_bc_discover_sensors: 
  * @handler: Pointer to handler's data.
  * @sensor_array: Pointer to resource's static sensor data array.
@@ -281,6 +286,7 @@ SaErrorT snmp_bc_discover_sensors(struct oh_handler_state *handle,
 			e->u.rdr_event.parent = res_oh_event->u.res_event.entry.ResourceId;
 			e->u.rdr_event.rdr.RdrType = SAHPI_SENSOR_RDR;
 			e->u.rdr_event.rdr.Entity = res_oh_event->u.res_event.entry.ResourceEntity;
+			err = snmp_bc_mod_sensor_ep(e, sensor_array, i);
 			e->u.rdr_event.rdr.RdrTypeUnion.SensorRec = sensor_array[i].sensor;
 
 			oh_init_textbuffer(&(e->u.rdr_event.rdr.IdString));
@@ -534,6 +540,150 @@ SaHpiBoolT rdr_exists(struct snmp_bc_hnd *custom_handle,
         return(SAHPI_TRUE);
 }
 
+
+/**
+ * snmp_bc_validate_ep:
+ * @org_ep: Pointer to entity path contained within SaHpiRdrT structure.
+ * @val_ep: Pointer to returned entity path that has been validated.
+ *
+ * Remove entity path entries that is not a snmp resource  in entity path structures (SaHpiEntityPathT).
+ * The validated entity path is returned in val_ep structure.  
+ * This is used for CPU sensors. We wish to have CPU in entity path. But snmp_bc does not have CPU as a 
+ * resource.
+ *
+ * Returns:
+ * SA_OK - normal operations.
+ * SA_ERR_HPI_INVALID_PARAMS - @org_ep or @val_ep is NULL.
+ **/
+SaErrorT snmp_bc_validate_ep(SaHpiEntityPathT *org_ep, SaHpiEntityPathT *val_ep)
+{
+        int i, j;
+
+        if (!org_ep || !val_ep) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+
+	i = 0;
+        for (j=0; i<SAHPI_MAX_ENTITY_PATH; i++) {
+		if (org_ep->Entry[i].EntityType != SAHPI_ENT_PROCESSOR) {
+                	val_ep->Entry[j].EntityLocation = org_ep->Entry[i].EntityLocation;
+                	val_ep->Entry[j].EntityType = org_ep->Entry[i].EntityType;
+			j++;
+		}
+                if (org_ep->Entry[i].EntityType == SAHPI_ENT_ROOT) break;
+        }
+        return(SA_OK);
+}
+
+
+/**
+ * snmp_bc_mod_sensor_ep:
+ * @e: Pointer to event structure for this sensor.
+ * @sensor_array: Pointer to resource's static sensor data array.
+ * @index: index in the static sensor data array for the current sensor. 
+ *
+ * If the sensor being discoverred is belong to blade CPU, then add CPU tuple 
+ * to sensor entity path. Else, do nothing.
+ * 
+ * Returns:
+ * SA_OK - normal operations.
+ * SA_ERR_HPI_INVALID_PARAMS - @e or @sensor is NULL.
+ **/
+SaErrorT snmp_bc_mod_sensor_ep(struct oh_event *e,
+				 void *sensor_array_in, 
+				 int index)
+{
+
+	int j;
+	gchar *pch;
+	struct snmp_bc_sensor *sensor_array = (struct snmp_bc_sensor *)sensor_array_in;;
+	struct snmp_bc_ipmi_sensor *sensor_array_ipmi = (struct snmp_bc_ipmi_sensor *)sensor_array_in;
+	SaHpiEntityPathT ep_add = { 
+                                .Entry[0] =
+                                {
+                                        .EntityType = SAHPI_ENT_PROCESSOR,
+                                        .EntityLocation = 0,
+                                },
+				};
+	
+        if (!e || !sensor_array) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+	
+	if (((struct snmp_bc_sensor *)sensor_array_in == (struct snmp_bc_sensor *)snmp_bc_blade_sensors)) {
+		 
+		for (j=0; j < 3; j++) {
+			if (sensor_array[index].sensor_info.mib.oid != NULL) {
+				if ((strncmp (sensor_array[index].sensor_info.mib.oid, 
+					snmp_bc_blade_sensors[j].sensor_info.mib.oid, 34) == 0)) {
+					
+					ep_add.Entry[0].EntityLocation = j + 1;
+					snmp_bc_add_ep(e, &ep_add);
+					break;
+				} 
+			} 
+		}
+	} else if ((struct snmp_bc_ipmi_sensor *)sensor_array_in == (struct snmp_bc_ipmi_sensor *)snmp_bc_blade_ipmi_sensors) {
+ 
+		if ( (pch = strstr(sensor_array_ipmi[index].ipmi_tag, "CPU")) != NULL) { 
+			ep_add.Entry[0].EntityLocation = atoi(&pch[3]);
+			snmp_bc_add_ep(e,&ep_add);
+		}
+	
+	} else {
+		trace("This not one of the Blade sensor.\n");
+	}
+	
+	return(SA_OK);	  
+
+}
+
+
+/**
+ * snmp_bc_add_ep:
+ * @e: Pointer to event structure for this sensor.
+ * @ep_add: Pointer to entity path tuple to be prepended.
+ *
+ * Prepend an entity path tuple to the existing (parent)  
+ * entity path in oh_event struct.
+ * 
+ * Returns:
+ * SA_OK - normal operations.
+ * SA_ERR_HPI_INVALID_PARAMS - @e or @ep_add is NULL.
+ **/
+SaErrorT snmp_bc_add_ep(struct oh_event *e, SaHpiEntityPathT *ep_add)
+{
+
+	int i;
+	
+	if ( !e || !ep_add) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);	
+	}
+	
+	for (i=0; i<SAHPI_MAX_ENTITY_PATH; i++) {
+        	ep_add->Entry[i+1].EntityLocation = 
+				e->u.rdr_event.rdr.Entity.Entry[i].EntityLocation;
+                ep_add->Entry[i+1].EntityType = 
+				e->u.rdr_event.rdr.Entity.Entry[i].EntityType;
+                if (e->u.rdr_event.rdr.Entity.Entry[i].EntityType == SAHPI_ENT_ROOT) break;
+       	}
+
+        for (i=0; i<SAHPI_MAX_ENTITY_PATH; i++) {
+                e->u.rdr_event.rdr.Entity.Entry[i].EntityLocation = ep_add->Entry[i].EntityLocation;
+                e->u.rdr_event.rdr.Entity.Entry[i].EntityType = ep_add->Entry[i].EntityType;
+                if (ep_add->Entry[i].EntityType == SAHPI_ENT_ROOT) break;
+       	 }
+
+	return(SA_OK);
+
+}
+
+/**
+ * Aliasing  
+ **/
 
 void * oh_discover_resources (void *)
                 __attribute__ ((weak, alias("snmp_bc_discover_resources")));

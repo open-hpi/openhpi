@@ -45,4 +45,14 @@ SaHpiBoolT rdr_exists(struct snmp_bc_hnd *custom_handle,
 			const gchar *oidstr,
 		      	unsigned int na,
 		      	SaHpiBoolT write_only);
+			
+SaErrorT snmp_bc_validate_ep(SaHpiEntityPathT *org_ep,
+				 SaHpiEntityPathT *val_ep);
+				 
+SaErrorT snmp_bc_mod_sensor_ep(struct oh_event *e,
+				 void *sensor_array, 
+				 int index);
+				 
+SaErrorT snmp_bc_add_ep(struct oh_event *e, SaHpiEntityPathT *ep_add);			 
+				 				 
 #endif
