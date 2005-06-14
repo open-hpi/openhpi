@@ -27,7 +27,8 @@
 int main(int argc, char **argv)
 {
 	SaHpiSessionIdT sid = 0;
-	SaHpiSensorThresholdsT thresholds;
+	SaHpiEventStateT amask;
+	SaHpiEventStateT dmask;
 	SaErrorT rc = SA_OK;
 
         rc = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID, &sid, NULL);
@@ -42,16 +43,17 @@ int main(int argc, char **argv)
                 return -1;
 	}
 
-        /* get sensor thresholds */
-        rc = saHpiSensorThresholdsGet(sid, 1, 1, &thresholds);
+        /* get sensor event masks */
+        rc = saHpiSensorEventMasksGet(sid, 1, 1, &amask, &dmask);
         if (rc != SA_OK) {
-		dbg("Couldn't get sensor thresholds");
+		dbg("Couldn't get sensor event masks");
 		dbg("Error %s",oh_lookup_error(rc));
                 return -1;
 	}
 
-        /* set sensor thresholds */
-        rc = saHpiSensorThresholdsSet(sid, 1, 1, &thresholds);
+        /* set sensor event masks */
+        rc = saHpiSensorEventMasksSet(sid, 1, 1, SAHPI_SENS_ADD_EVENTS_TO_MASKS,
+                                      amask, dmask);
         if (rc == SA_OK) {
                 /* all our sensors are read-only so if we can change the
                    sensor it is an error */

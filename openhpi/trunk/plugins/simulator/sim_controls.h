@@ -23,27 +23,19 @@
 Control Definitions
 *********************/
 
-struct ControlMibInfo {
-	unsigned int not_avail_indicator_num; /* 0 for none, n>0 otherwise */
-	int write_only; /* Write-only command; 0 no; 1 yes  */
-};
-
-struct ControlInfo {
-	struct ControlMibInfo mib;
-	SaHpiCtrlModeT cur_mode;
-};
-
 struct sim_control {
+        int index;
 	SaHpiCtrlRecT control;
-	struct ControlInfo control_info;
+	SaHpiCtrlModeT cur_mode;
 	const char *comment;
 };
 
-extern struct sim_control sim_controls[];
+extern struct sim_control sim_chassis_controls[];
+extern struct sim_control sim_cpu_controls[];
+extern struct sim_control sim_dasd_controls[];
+extern struct sim_control sim_fan_controls[];
 
-SaErrorT sim_discover_controls(RPTable *rpt);
-int sim_get_next_control_num(RPTable *rptcache, SaHpiResourceIdT ResId, SaHpiRdrTypeT type);
-
+SaErrorT sim_discover_controls(struct oh_handler_state * state);
 
 #endif
 

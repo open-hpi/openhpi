@@ -23,7 +23,7 @@ SaErrorT sim_get_control_state(void *hnd,
 				   SaHpiCtrlModeT *mode,
 				   SaHpiCtrlStateT *state) {
 	SaHpiCtrlStateT working_state;
-        struct ControlInfo *cinfo;
+	SaHpiCtrlModeT *cinfo;
 
 	if (!hnd) {
 		dbg("Invalid parameter.");
@@ -49,7 +49,7 @@ SaErrorT sim_get_control_state(void *hnd,
 		return(SA_ERR_HPI_NOT_PRESENT);
 	}
 
-	cinfo = (struct ControlInfo *)oh_get_rdr_data(handle->rptcache, cid, rdr->RecordId);
+	cinfo = (SaHpiCtrlModeT *)oh_get_rdr_data(handle->rptcache, cid, rdr->RecordId);
  	if (cinfo == NULL) {
 		dbg("No control data. Control=%s", rdr->IdString.Data);
 		return(SA_ERR_HPI_INTERNAL_ERROR);
@@ -99,7 +99,8 @@ SaErrorT sim_get_control_state(void *hnd,
 	}
 
 	if (state) memcpy(state, &working_state, sizeof(SaHpiCtrlStateT));
-	if (mode) *mode = cinfo->cur_mode;
+	if (mode)
+                *mode = *cinfo;
 
 	return(SA_OK);
 }
@@ -129,7 +130,7 @@ SaErrorT sim_set_control_state(void *hnd,
 				   SaHpiCtrlStateT *state)
 {
 	SaErrorT err;
-        struct ControlInfo *cinfo;
+	SaHpiCtrlModeT *cinfo;
 //	struct sim_value set_value;
 
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
@@ -155,7 +156,7 @@ SaErrorT sim_set_control_state(void *hnd,
 	}
 
 	/*Note: cinfo must be changed to write to David A's API, not the rptcache*/
-	cinfo = (struct ControlInfo *)oh_get_rdr_data(handle->rptcache, cid, rdr->RecordId);
+	cinfo = (SaHpiCtrlModeT *)oh_get_rdr_data(handle->rptcache, cid, rdr->RecordId);
  	if (cinfo == NULL) {
 		dbg("No control data. Control=%s", rdr->IdString.Data);
 		return(SA_ERR_HPI_INTERNAL_ERROR);
@@ -198,8 +199,8 @@ SaErrorT sim_set_control_state(void *hnd,
 
 	/* Write control mode, if changed */
 	/*Change to write to David A's API, not the rptcache*/
-	if (mode != cinfo->cur_mode) {
-		cinfo->cur_mode = mode;
+	if (mode != *cinfo) {
+		*cinfo = mode;
 	}
 
         return(SA_OK);

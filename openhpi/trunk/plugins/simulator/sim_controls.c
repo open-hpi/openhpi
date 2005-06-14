@@ -19,114 +19,7 @@
 #include <rpt_utils.h>
 
 
-static SaErrorT new_control(RPTable *rptcache, SaHpiResourceIdT ResId,
-                            int Index) {
-	SaHpiRdrT res_rdr;
-	SaHpiRptEntryT *RptEntry;
-
-	// Copy information from rdr array to res_rdr
-	res_rdr.RdrType = SAHPI_CTRL_RDR;
-	memcpy(&res_rdr.RdrTypeUnion.CtrlRec, &sim_controls[Index].control, sizeof(SaHpiCtrlRecT));
-
-	oh_init_textbuffer(&res_rdr.IdString);
-	oh_append_textbuffer(&res_rdr.IdString, sim_controls[Index].comment);
-	res_rdr.RdrTypeUnion.CtrlRec.Num = sim_get_next_control_num(rptcache, ResId, res_rdr.RdrTypeUnion.CtrlRec.Type);
-	res_rdr.RecordId = get_rdr_uid(SAHPI_CTRL_RDR, res_rdr.RdrTypeUnion.CtrlRec.Num);
-
-	RptEntry = oh_get_resource_by_id(rptcache, ResId);
-	if(!RptEntry){
-		dbg("NULL rpt pointer\n");
-	} else {
-		res_rdr.Entity = RptEntry->ResourceEntity;
-	}
-
-	oh_add_rdr(rptcache, ResId, &res_rdr, NULL, 0);
-
-	return 0;
-}
-
-
-SaErrorT sim_discover_controls(RPTable *rpt) {
-	SaHpiRptEntryT *res;
-
-	/* add to first resource */
-	res = oh_get_resource_next(rpt, SAHPI_FIRST_ENTRY);
-	if (!res) {
-		dbg("resource not fond");
-		return 1;
-	}
-	new_control(rpt, res->ResourceId, 1); /* add #1 ... */
-	new_control(rpt, res->ResourceId, 5); /* add #5 ... */
-
-	/* add to second resource */
-	res = oh_get_resource_next(rpt, res->ResourceId);
-	if (!res) {
-		dbg("entity_root is needed and not present");
-		return 1;
-	}
-	new_control(rpt, res->ResourceId, 1);
-	new_control(rpt, res->ResourceId, 2);
-	new_control(rpt, res->ResourceId, 3);
-
-	/* add to third resource */
-	res = oh_get_resource_next(rpt, res->ResourceId);
-	if (!res) {
-		dbg("entity_root is needed and not present");
-		return 1;
-	}
-	new_control(rpt, res->ResourceId, 2);
-	new_control(rpt, res->ResourceId, 6);
-
-	/* add to fourth resource */
-	res = oh_get_resource_next(rpt, res->ResourceId);
-	if (!res) {
-		dbg("entity_root is needed and not present");
-		return 1;
-	}
-	new_control(rpt, res->ResourceId, 3);
-	new_control(rpt, res->ResourceId, 5);
-
-	/* add to fifth resource */
-	res = oh_get_resource_next(rpt, res->ResourceId);
-	if (!res) {
-		dbg("entity_root is needed and not present");
-		return 1;
-	}
-	new_control(rpt, res->ResourceId, 2);
-
-	/* add to sixth resource */
-	res = oh_get_resource_next(rpt, res->ResourceId);
-	if (!res) {
-		dbg("entity_root is needed and not present");
-		return 1;
-	}
-	new_control(rpt, res->ResourceId, 1);
-	new_control(rpt, res->ResourceId, 2);
-	new_control(rpt, res->ResourceId, 3);
-	new_control(rpt, res->ResourceId, 4);
-
-	/* add to seventh resource */
-	res = oh_get_resource_next(rpt, res->ResourceId);
-	if (!res) {
-		dbg("entity_root is needed and not present");
-		return 1;
-	}
-	new_control(rpt, res->ResourceId, 4);
-	new_control(rpt, res->ResourceId, 2);
-
-	/*add to eighth resource*/
-	res = oh_get_resource_next(rpt, res->ResourceId);
-	if(!res) {
-		dbg("entity_root is needed and not present");
-		return 1;
-	}
-	new_control(rpt, res->ResourceId, 5);
-
-        return 0;
-}
-
-
-int sim_get_next_control_num(RPTable *rptcache, SaHpiResourceIdT ResId,
+static int sim_get_next_control_num(RPTable *rptcache, SaHpiResourceIdT ResId,
                              SaHpiRdrTypeT type) {
 	int i=0;
 	SaHpiRdrT *RdrEntry;
@@ -154,31 +47,91 @@ int sim_get_next_control_num(RPTable *rptcache, SaHpiResourceIdT ResId,
 }
 
 
-struct sim_control sim_controls[] = {
-        /* Front Panel Identify LED. User controlled. */
-  	/* 0 is Off; 1 is solid on; 2 is blinking */
-	{
-                .control = {
-                        .Num = 1,
-                        .OutputType = SAHPI_CTRL_LED,
-                        .Type = SAHPI_CTRL_TYPE_DISCRETE,
-                        .TypeUnion.Discrete.Default = 0,
-			.DefaultMode = {
-				.Mode = SAHPI_CTRL_MODE_MANUAL,
-				.ReadOnly = SAHPI_TRUE,
-			},
-			.WriteOnly = SAHPI_FALSE,
-                        .Oem = 0,
-                },
-                .control_info = {
-                        .mib = {
-                                .not_avail_indicator_num = 3,
-                                .write_only = SAHPI_FALSE,
-                        },
-			.cur_mode = SAHPI_CTRL_MODE_MANUAL,
-                },
-                .comment = "Front Panel Identify LED"
-        },
+static SaErrorT new_control(struct oh_handler_state * state,
+                            SaHpiResourceIdT ResId,
+                            struct sim_control *mycontrol) {
+	SaHpiRdrT res_rdr;
+	SaHpiRptEntryT *RptEntry;
 
-        {} /* Terminate array with a null element */
-};
+	// Copy information from rdr array to res_rdr
+	res_rdr.RdrType = SAHPI_CTRL_RDR;
+	memcpy(&res_rdr.RdrTypeUnion.CtrlRec, &mycontrol->control,
+               sizeof(SaHpiCtrlRecT));
+
+	oh_init_textbuffer(&res_rdr.IdString);
+	oh_append_textbuffer(&res_rdr.IdString, mycontrol->comment);
+	res_rdr.RdrTypeUnion.CtrlRec.Num =
+                sim_get_next_control_num(state->rptcache, ResId,
+                                         res_rdr.RdrTypeUnion.CtrlRec.Type);
+	res_rdr.RecordId =
+                get_rdr_uid(SAHPI_CTRL_RDR, res_rdr.RdrTypeUnion.CtrlRec.Num);
+
+	RptEntry = oh_get_resource_by_id(state->rptcache, ResId);
+	if(!RptEntry){
+		dbg("NULL rpt pointer\n");
+                return SA_ERR_HPI_INVALID_RESOURCE;
+	} else {
+		res_rdr.Entity = RptEntry->ResourceEntity;
+	}
+
+        // everything ready so add the rdr and extra info to the rptcache
+        sim_inject_rdr(state, ResId, &res_rdr, NULL);
+
+	return 0;
+}
+
+
+SaErrorT sim_discover_controls(struct oh_handler_state * state) {
+        SaErrorT rc;
+
+        /* chassis sensors */
+        int i = 0;
+        while (sim_chassis_controls[i].index != 0) {
+                rc = new_control(state, SIM_RPT_ENTRY_CHASSIS, &sim_chassis_controls[i]);
+                if (rc) {
+                        dbg("Error %d returned when adding chassis control", rc);
+                } else {
+                        i++;
+                }
+        }
+        dbg("%d chassis sensors injected", i);
+
+        /* cpu sensors */
+        i = 0;
+        while (sim_cpu_sensors[i].index != 0) {
+                rc = new_control(state, SIM_RPT_ENTRY_CPU, &sim_cpu_controls[i]);
+                if (rc) {
+                        dbg("Error %d returned when adding cpu control", rc);
+                } else {
+                        i++;
+                }
+        }
+        dbg("%d cpu sensors injected", i);
+
+        /* dasd sensors */
+        i = 0;
+        while (sim_dasd_sensors[i].index != 0) {
+                rc = new_control(state, SIM_RPT_ENTRY_DASD, &sim_dasd_controls[i]);
+                if (rc) {
+                        dbg("Error %d returned when adding dasd control", rc);
+                } else {
+                        i++;
+                }
+        }
+        dbg("%d dasd sensors injected", i);
+
+        /* fan sensors */
+        i = 0;
+        while (sim_fan_sensors[i].index != 0) {
+                rc = new_control(state, SIM_RPT_ENTRY_FAN, &sim_fan_controls[i]);
+                if (rc) {
+                        dbg("Error %d returned when adding fan control", rc);
+                } else {
+                        i++;
+                }
+        }
+        dbg("%d fan sensors injected", i);
+
+        return 0;
+}
+

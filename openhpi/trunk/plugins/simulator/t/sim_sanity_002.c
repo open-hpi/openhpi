@@ -8,7 +8,7 @@
  * file and program are licensed under a BSD style license.  See
  * the Copying file included with the OpenHPI distribution for
  * full licensing terms.
- *        
+ *
  *	Authors:
  *     	Sean Dague <http://dague.net/sean>
 */
@@ -18,71 +18,38 @@
 #include <oh_utils.h>
 #include <oh_error.h>
 
+
 /**
  * Run a series of sanity tests on the simulator
- * Pass on success, otherwise a failure.
-**/
+ * Return 0 on success, otherwise return -1
+ **/
 
-/*
- * Utility macro to make it easier to state what failed
-*/
-
-#define failed(err)                              \
-	do {                                            \
-		failcount++;                            \
-		dbg("Failed Test %d: %s", testnum, err);    \
-	} while(0)
-
-#define runtest() testnum++
- 
 int main(int argc, char **argv)
 {
 	SaHpiSessionIdT sid = 0;
 	SaHpiRptEntryT res;
-	SaHpiRdrT rdr;
 	SaHpiEntryIdT id = SAHPI_FIRST_ENTRY;
-	SaHpiResourceIdT resid;
-	int failcount = 0;
-	int testnum = 0;
 	SaErrorT rc = SA_OK;
 
         rc = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID, &sid, NULL);
-	if(rc != SA_OK) {
-		failed("Failed to open session");
+	if (rc != SA_OK) {
+		dbg("Failed to open session");
+                return -1;
 	}
 
 	rc = saHpiDiscover(sid);
-	if(rc != SA_OK) {
-		failed("Failed to run discover");
+	if (rc != SA_OK) {
+		dbg("Failed to run discover");
+                return -1;
 	}
-						
-        rc = saHpiRptEntryGet(sid, id, &id, &res);
-        runtest();
-        if(rc != SA_OK) {
-		dbg("Error %s",oh_lookup_error(rc));
-		failed("Couldn't get the first rpt entry");
-		/* we're toast, bail */
-		goto end;
-	}
-	else{
-		id = SAHPI_FIRST_ENTRY;
-		resid = res.ResourceId;
-		rc = saHpiRdrGet(sid, resid, id, &id, &rdr);
-		runtest();
-		if(rc != SA_OK){
-			dbg("Error %s", oh_lookup_error(rc));
-			failed("Couldn't get the first rdr entry");
-			goto end;
-		}
-	}
-	
-	dbg("Ran %d tests", testnum);
-	/* if there is any failures, the test fails */
-	end:
-		if(failcount) {
-			return -1;
-		}
 
-	return(0);
+        rc = saHpiRptEntryGet(sid, id, &id, &res);
+        if (rc != SA_OK) {
+		dbg("Couldn't get the first rpt entry");
+		dbg("Error %s",oh_lookup_error(rc));
+                return -1;
+	}
+
+	return 0;
 }
 
