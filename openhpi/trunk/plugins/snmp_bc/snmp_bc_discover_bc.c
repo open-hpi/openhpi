@@ -1146,6 +1146,7 @@ static SaErrorT snmp_bc_discover_ipmi_sensors(struct oh_handler_state *handle,
 			e->u.rdr_event.parent = res_oh_event->u.res_event.entry.ResourceId;
 			e->u.rdr_event.rdr.RdrType = SAHPI_SENSOR_RDR;
 			e->u.rdr_event.rdr.Entity = res_oh_event->u.res_event.entry.ResourceEntity;
+			err = snmp_bc_mod_sensor_ep(e, sensor_array, i);
 			e->u.rdr_event.rdr.RdrTypeUnion.SensorRec = sensor_array[i].ipmi.sensor;
 
 			oh_init_textbuffer(&(e->u.rdr_event.rdr.IdString));
