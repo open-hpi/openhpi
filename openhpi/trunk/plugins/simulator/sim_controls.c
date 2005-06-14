@@ -21,8 +21,9 @@
 
 static int sim_get_next_control_num(RPTable *rptcache, SaHpiResourceIdT ResId,
                              SaHpiRdrTypeT type) {
-	int i=0;
+	int i = 0;
 	SaHpiRdrT *RdrEntry;
+
 	RdrEntry = oh_get_rdr_next(rptcache, ResId, SAHPI_FIRST_ENTRY);
 	while(RdrEntry){
 		if (RdrEntry->RdrType == type){
@@ -52,6 +53,7 @@ static SaErrorT new_control(struct oh_handler_state * state,
                             struct sim_control *mycontrol) {
 	SaHpiRdrT res_rdr;
 	SaHpiRptEntryT *RptEntry;
+        struct sim_control_info *info;
 
 	// Copy information from rdr array to res_rdr
 	res_rdr.RdrType = SAHPI_CTRL_RDR;
@@ -74,8 +76,16 @@ static SaErrorT new_control(struct oh_handler_state * state,
 		res_rdr.Entity = RptEntry->ResourceEntity;
 	}
 
+        //set up our private data
+        info = (struct sim_control_info *)g_malloc(sizeof(struct sim_control_info));
+	if(!info){
+		dbg("NULL rpt pointer\n");
+                return SA_ERR_HPI_OUT_OF_MEMORY;
+	}
+        info->mode = mycontrol->mode;
+
         // everything ready so add the rdr and extra info to the rptcache
-        sim_inject_rdr(state, ResId, &res_rdr, NULL);
+        sim_inject_rdr(state, ResId, &res_rdr, info);
 
 	return 0;
 }

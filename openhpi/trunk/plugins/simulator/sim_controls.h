@@ -23,10 +23,14 @@
 Control Definitions
 *********************/
 
+struct sim_control_info {
+	SaHpiCtrlModeT mode;
+};
+
 struct sim_control {
         int index;
 	SaHpiCtrlRecT control;
-	SaHpiCtrlModeT cur_mode;
+	SaHpiCtrlModeT mode;
 	const char *comment;
 };
 
