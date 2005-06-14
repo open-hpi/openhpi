@@ -23,7 +23,7 @@ SaErrorT sim_get_control_state(void *hnd,
 				   SaHpiCtrlModeT *mode,
 				   SaHpiCtrlStateT *state) {
 	SaHpiCtrlStateT working_state;
-	SaHpiCtrlModeT *cinfo;
+        struct sim_control_info *info;
 
 	if (!hnd) {
 		dbg("Invalid parameter.");
@@ -49,8 +49,8 @@ SaErrorT sim_get_control_state(void *hnd,
 		return(SA_ERR_HPI_NOT_PRESENT);
 	}
 
-	cinfo = (SaHpiCtrlModeT *)oh_get_rdr_data(handle->rptcache, cid, rdr->RecordId);
- 	if (cinfo == NULL) {
+	info = (struct sim_control_info *)oh_get_rdr_data(handle->rptcache, cid, rdr->RecordId);
+ 	if (info == NULL) {
 		dbg("No control data. Control=%s", rdr->IdString.Data);
 		return(SA_ERR_HPI_INTERNAL_ERROR);
 	}
@@ -74,24 +74,33 @@ SaErrorT sim_get_control_state(void *hnd,
 		working_state.Type = rdr->RdrTypeUnion.CtrlRec.Type;
 
 		switch (rdr->RdrTypeUnion.CtrlRec.Type) {
-		case SAHPI_CTRL_TYPE_DIGITAL:
-			dbg("Digital controls not supported.");
-			return(SA_ERR_HPI_INTERNAL_ERROR);
+                case SAHPI_CTRL_TYPE_DIGITAL:
+                        working_state.StateUnion.Digital =
+                                rdr->RdrTypeUnion.CtrlRec.TypeUnion.Digital.Default;
+                        break;
 		case SAHPI_CTRL_TYPE_DISCRETE:
-//			working_state.StateUnion.Discrete = get_value.integer;
-			break;
+                        working_state.StateUnion.Discrete =
+                                rdr->RdrTypeUnion.CtrlRec.TypeUnion.Discrete.Default;
+                        break;
 		case SAHPI_CTRL_TYPE_ANALOG:
-			dbg("Analog controls not supported.");
-			return(SA_ERR_HPI_INTERNAL_ERROR);
+                        working_state.StateUnion.Analog =
+                                rdr->RdrTypeUnion.CtrlRec.TypeUnion.Analog.Default;
+                        break;
 		case SAHPI_CTRL_TYPE_STREAM:
-			dbg("Stream controls not supported.");
-			return(SA_ERR_HPI_INTERNAL_ERROR);
+                        memcpy(&working_state.StateUnion.Stream,
+                               &rdr->RdrTypeUnion.CtrlRec.TypeUnion.Stream,
+                               sizeof(SaHpiCtrlStateStreamT));
+                        break;
 		case SAHPI_CTRL_TYPE_TEXT:
-			dbg("Text controls not supported.");
-			return(SA_ERR_HPI_INTERNAL_ERROR);
+                        memcpy(&working_state.StateUnion.Text,
+                               &rdr->RdrTypeUnion.CtrlRec.TypeUnion.Text.Default,
+                               sizeof(SaHpiCtrlStateTextT));
+                        break;
 		case SAHPI_CTRL_TYPE_OEM:
-			dbg("Oem controls not supported.");
-			return(SA_ERR_HPI_INTERNAL_ERROR);
+                        memcpy(&working_state.StateUnion.Oem,
+                               &rdr->RdrTypeUnion.CtrlRec.TypeUnion.Oem.Default,
+                               sizeof(SaHpiCtrlStateTextT));
+                        break;
 		default:
 //			dbg("%s has invalid control state=%d.", cinfo->mib.oid, working_state.Type);
 			return(SA_ERR_HPI_INTERNAL_ERROR);
@@ -100,7 +109,7 @@ SaErrorT sim_get_control_state(void *hnd,
 
 	if (state) memcpy(state, &working_state, sizeof(SaHpiCtrlStateT));
 	if (mode)
-                *mode = *cinfo;
+                *mode = info->mode;
 
 	return(SA_OK);
 }
@@ -130,8 +139,7 @@ SaErrorT sim_set_control_state(void *hnd,
 				   SaHpiCtrlStateT *state)
 {
 	SaErrorT err;
-	SaHpiCtrlModeT *cinfo;
-//	struct sim_value set_value;
+        struct sim_control_info *info;
 
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
 	if (!hnd) {
@@ -156,8 +164,8 @@ SaErrorT sim_set_control_state(void *hnd,
 	}
 
 	/*Note: cinfo must be changed to write to David A's API, not the rptcache*/
-	cinfo = (SaHpiCtrlModeT *)oh_get_rdr_data(handle->rptcache, cid, rdr->RecordId);
- 	if (cinfo == NULL) {
+	info = (struct sim_control_info *)oh_get_rdr_data(handle->rptcache, cid, rdr->RecordId);
+ 	if (info == NULL) {
 		dbg("No control data. Control=%s", rdr->IdString.Data);
 		return(SA_ERR_HPI_INTERNAL_ERROR);
 	}
@@ -172,25 +180,32 @@ SaErrorT sim_set_control_state(void *hnd,
 	if (mode != SAHPI_CTRL_MODE_AUTO && state) {
 		switch (state->Type) {
 		case SAHPI_CTRL_TYPE_DIGITAL:
-			dbg("Digital controls not supported.");
-			return(SA_ERR_HPI_INTERNAL_ERROR);
+                        rdr->RdrTypeUnion.CtrlRec.TypeUnion.Digital.Default =
+                                state->StateUnion.Digital;
+			break;
 		case SAHPI_CTRL_TYPE_DISCRETE:
-//			set_value.type = ASN_INTEGER;
-//			set_value.str_len = 1;
-//			set_value.integer = state->StateUnion.Discrete;
+                        rdr->RdrTypeUnion.CtrlRec.TypeUnion.Discrete.Default =
+                                state->StateUnion.Discrete;
 			break;
 		case SAHPI_CTRL_TYPE_ANALOG:
-			dbg("Analog controls not supported.");
-			return(SA_ERR_HPI_INTERNAL_ERROR);
+                        rdr->RdrTypeUnion.CtrlRec.TypeUnion.Analog.Default =
+                                state->StateUnion.Analog;
+                        break;
 		case SAHPI_CTRL_TYPE_STREAM:
-			dbg("Stream controls not supported.");
-			return(SA_ERR_HPI_INTERNAL_ERROR);
+                        memcpy(&rdr->RdrTypeUnion.CtrlRec.TypeUnion.Stream.Default,
+                               &state->StateUnion.Stream,
+                               sizeof(SaHpiCtrlStateStreamT));
+                        break;
 		case SAHPI_CTRL_TYPE_TEXT:
-			dbg("Text controls not supported.");
-			return(SA_ERR_HPI_INTERNAL_ERROR);
+                        memcpy(&rdr->RdrTypeUnion.CtrlRec.TypeUnion.Text.Default,
+                               &state->StateUnion.Text,
+                               sizeof(SaHpiCtrlStateTextT));
+                        break;
 		case SAHPI_CTRL_TYPE_OEM:
-			dbg("OEM controls not supported.");
-			return(SA_ERR_HPI_INTERNAL_ERROR);
+                        memcpy(&rdr->RdrTypeUnion.CtrlRec.TypeUnion.Oem.Default,
+                               &state->StateUnion.Oem,
+                               sizeof(SaHpiCtrlStateOemT));
+                        break;
 		default:
 			dbg("Invalid control state=%d", state->Type);
 			return(SA_ERR_HPI_INTERNAL_ERROR);
@@ -199,8 +214,8 @@ SaErrorT sim_set_control_state(void *hnd,
 
 	/* Write control mode, if changed */
 	/*Change to write to David A's API, not the rptcache*/
-	if (mode != *cinfo) {
-		*cinfo = mode;
+	if (mode != info->mode) {
+		info->mode = mode;
 	}
 
         return(SA_OK);

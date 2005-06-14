@@ -1711,7 +1711,7 @@ struct sim_control sim_chassis_controls[] = {
 			.WriteOnly = SAHPI_FALSE,
                         .Oem = 0,
                 },
-		.cur_mode = SAHPI_CTRL_MODE_MANUAL,
+		.mode = SAHPI_CTRL_MODE_MANUAL,
                 .comment = "Front Panel Identify LED"
         },
 
