@@ -62,8 +62,8 @@ SaErrorT oh_el_close(oh_el *el)
 
 
 /* append a new entry to the EL */
-SaErrorT oh_el_append(oh_el *el, SaHpiEventT *event, SaHpiRdrT *rdr,
-                      SaHpiRptEntryT *res)
+SaErrorT oh_el_append(oh_el *el, const SaHpiEventT *event, const SaHpiRdrT *rdr,
+                      const SaHpiRptEntryT *res)
 {
         oh_el_entry *entry;
         time_t tt1;
@@ -117,8 +117,8 @@ SaErrorT oh_el_append(oh_el *el, SaHpiEventT *event, SaHpiRdrT *rdr,
 
 
 /* prepend a new entry to the EL */
-SaErrorT oh_el_prepend(oh_el *el, SaHpiEventT *event, SaHpiRdrT *rdr,
-                       SaHpiRptEntryT *res)
+SaErrorT oh_el_prepend(oh_el *el, const SaHpiEventT *event, const SaHpiRdrT *rdr,
+                       const SaHpiRptEntryT *res)
 {
         oh_el_entry *entry, *tmpentry;
         SaHpiEventLogEntryT *tmplog;
@@ -186,7 +186,7 @@ SaErrorT oh_el_clear(oh_el *el)
         if (el == NULL) {
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
-        
+
         /* free the list data elements */
         temp = g_list_first(el->elentries);
         while (temp != NULL) {
@@ -200,7 +200,7 @@ SaErrorT oh_el_clear(oh_el *el)
         el->lastUpdate = SAHPI_TIME_UNSPECIFIED;
         el->nextId = SAHPI_OLDEST_ENTRY + 1; // always start at 1
         el->elentries = NULL;
-        
+
         return SA_OK;
 }
 
@@ -292,11 +292,11 @@ SaErrorT oh_el_info(oh_el *el, SaHpiEventLogInfoT *info)
 /* reset EL overflowflag */
 SaErrorT oh_el_overflowreset(oh_el *el)
 {
-     
+
 
         if (el == NULL)
                 return SA_ERR_HPI_INVALID_PARAMS;
-		
+
 	el->overflow = SAHPI_FALSE;
         return SA_OK;
 }
