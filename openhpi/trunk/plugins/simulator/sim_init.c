@@ -32,31 +32,37 @@ void *sim_open(GHashTable *handler_config)
                 return NULL;
         }
 
-//      trace("%s, %s, %s",
-//            (char *)g_hash_table_lookup(handler_config, "plugin"),
-//            (char *)g_hash_table_lookup(handler_config, "name"),
-//            tok);
-
         state = g_malloc0(sizeof(struct oh_handler_state));
         if (!state) {
                 dbg("out of memory");
                 return NULL;
         }
 
-        /* save the handler config hash table it holds  */
-        /* the openhpi.conf file config info            */
-        state->config = handler_config;
-
-        /* initialize hashtable pointer */
+        /* initialize rpt hashtable pointer */
         state->rptcache = (RPTable *)g_malloc0(sizeof(RPTable));
         oh_init_rpt(state->rptcache);
 
-        if (!(state->eventq_async = g_async_queue_new())) {
-                dbg("g_async_queue_new failed\n");
+        /* initialize the event log */
+        state->elcache = oh_el_create(256);
+        if (!state->elcache) {
+                dbg("Event log creation failed");
                 g_free(state->rptcache);
                 g_free(state);
                 return NULL;
         }
+
+        /* initialize the async event queue */
+        if (!(state->eventq_async = g_async_queue_new())) {
+                dbg("Async event log creation failed");
+                g_free(state->rptcache);
+                oh_el_close(state->elcache);
+                g_free(state);
+                return NULL;
+        }
+
+        /* save the handler config hash table it holds  */
+        /* the openhpi.conf file config info            */
+        state->config = handler_config;
 
         return (void *)state;
 }
