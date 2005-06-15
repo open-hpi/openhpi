@@ -53,10 +53,10 @@ typedef struct {
 /* General EL utility calls */
 oh_el *oh_el_create(SaHpiUint32T size);
 SaErrorT oh_el_close(oh_el *el);
-SaErrorT oh_el_append(oh_el *el, SaHpiEventT *event, SaHpiRdrT *rdr,
-                      SaHpiRptEntryT *res);
-SaErrorT oh_el_prepend(oh_el *el, SaHpiEventT *event, SaHpiRdrT *rdr,
-                      SaHpiRptEntryT *res);
+SaErrorT oh_el_append(oh_el *el, const SaHpiEventT *event, const SaHpiRdrT *rdr,
+                      const SaHpiRptEntryT *res);
+SaErrorT oh_el_prepend(oh_el *el, const SaHpiEventT *event, const SaHpiRdrT *rdr,
+                      const SaHpiRptEntryT *res);
 SaErrorT oh_el_clear(oh_el *el);
 SaErrorT oh_el_get(oh_el *el, SaHpiEventLogEntryIdT entryid, SaHpiEventLogEntryIdT *prev,
                     SaHpiEventLogEntryIdT *next, oh_el_entry **entry);
