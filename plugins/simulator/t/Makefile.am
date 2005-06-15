@@ -15,6 +15,8 @@ INCLUDES		= @OPENHPI_INCLUDES@
 
 AM_CFLAGS		= @NOCFLAGS@
 
+MAINTAINERCLEANFILES 	= Makefile.in
+
 # removed until the gcc 3.4 bug is fixed
 # -ftest-coverage -fprofile-arcs
 TDEPLIB			= $(top_builddir)/src/libopenhpi.la \
@@ -33,7 +35,10 @@ TESTS = sim_sanity_000 \
 	sim_sanity_006 \
 	sim_sanity_007 \
 	sim_sanity_008 \
-	sim_sanity_009
+	sim_sanity_009 \
+	sim_sanity_010 \
+	sim_sanity_011 \
+	sim_sanity_012
 #	sim_sanity_100 \
 #	sim_sanity_101 \
 #	sim_sanity_102
@@ -60,6 +65,12 @@ sim_sanity_008_SOURCES = sim_sanity_008.c
 sim_sanity_008_LDADD = $(TDEPLIB)
 sim_sanity_009_SOURCES = sim_sanity_009.c
 sim_sanity_009_LDADD = $(TDEPLIB)
+sim_sanity_010_SOURCES = sim_sanity_010.c
+sim_sanity_010_LDADD = $(TDEPLIB)
+sim_sanity_011_SOURCES = sim_sanity_011.c
+sim_sanity_011_LDADD = $(TDEPLIB)
+sim_sanity_012_SOURCES = sim_sanity_012.c
+sim_sanity_012_LDADD = $(TDEPLIB)
 sim_sanity_100_SOURCES = sim_sanity_100.c
 sim_sanity_100_LDADD = $(TDEPLIB)
 sim_sanity_101_SOURCES = sim_sanity_101.c

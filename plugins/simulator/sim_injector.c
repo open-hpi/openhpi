@@ -76,6 +76,7 @@ SaErrorT sim_inject_resource(struct oh_handler_state *state,
 	SaHpiRptEntryT *res;
 	char *entity_root;
 	struct oh_event event;
+        SaErrorT rc;
 
         /* check arguments */
         if (state == NULL || data == NULL) {
@@ -100,7 +101,11 @@ SaErrorT sim_inject_resource(struct oh_handler_state *state,
 
         /* perform the injection */
         dbg("Injecting ResourceId %d", res->ResourceId);
-        oh_add_resource(state->rptcache, res, privdata, FREE_RPT_DATA);
+        rc = oh_add_resource(state->rptcache, res, privdata, FREE_RPT_DATA);
+        if (rc) {
+                dbg("Error %d injecting ResourceId %d", rc, res->ResourceId);
+                return rc;
+        }
 
         /* now add an event for the resource add */
         memset(&event, 0, sizeof(event));
@@ -122,6 +127,7 @@ SaErrorT sim_inject_resource(struct oh_handler_state *state,
 SaErrorT sim_inject_rdr(struct oh_handler_state *state, SaHpiResourceIdT resid,
                         SaHpiRdrT *rdr, void * privinfo) {
 	struct oh_event event;
+        SaErrorT rc;
 
         /* check arguments */
         if (state == NULL || resid == 0 || rdr == NULL) {
@@ -130,7 +136,11 @@ SaErrorT sim_inject_rdr(struct oh_handler_state *state, SaHpiResourceIdT resid,
 
         /* perform the injection */
         dbg("Injecting rdr for ResourceId %d", resid);
-	oh_add_rdr(state->rptcache, resid, rdr, privinfo, 0);
+	rc = oh_add_rdr(state->rptcache, resid, rdr, privinfo, 0);
+        if (rc) {
+                dbg("Error %d injecting rdr for ResourceId %d", rc, resid);
+                return rc;
+        }
 
         /* now inject an event for the rdr */
         memset(&event, 0, sizeof(event));
