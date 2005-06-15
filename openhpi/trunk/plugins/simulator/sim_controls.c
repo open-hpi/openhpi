@@ -19,35 +19,6 @@
 #include <rpt_utils.h>
 
 
-static int sim_get_next_control_num(RPTable *rptcache, SaHpiResourceIdT ResId,
-                             SaHpiRdrTypeT type) {
-	int i = 0;
-	SaHpiRdrT *RdrEntry;
-
-	RdrEntry = oh_get_rdr_next(rptcache, ResId, SAHPI_FIRST_ENTRY);
-	while(RdrEntry){
-		if (RdrEntry->RdrType == type){
-			i++;
-		}
-		if (RdrEntry->RecordId != 0){
-			RdrEntry = oh_get_rdr_next(rptcache, ResId, RdrEntry->RecordId);
-		}
-	}
-	return i;
-
-	if(!(oh_get_rdr_by_type(rptcache, ResId, type, i))){
-		printf("I hit sim_get_next_control_num\n");
-		return i;
-	}
-	else{
-		while(oh_get_rdr_by_type(rptcache, ResId, type, i)){
-			i++;
-		}
-		return i;
-	}
-}
-
-
 static SaErrorT new_control(struct oh_handler_state * state,
                             SaHpiResourceIdT ResId,
                             struct sim_control *mycontrol) {
@@ -62,23 +33,20 @@ static SaErrorT new_control(struct oh_handler_state * state,
 
 	oh_init_textbuffer(&res_rdr.IdString);
 	oh_append_textbuffer(&res_rdr.IdString, mycontrol->comment);
-	res_rdr.RdrTypeUnion.CtrlRec.Num =
-                sim_get_next_control_num(state->rptcache, ResId,
-                                         res_rdr.RdrTypeUnion.CtrlRec.Type);
 	res_rdr.RecordId =
                 get_rdr_uid(SAHPI_CTRL_RDR, res_rdr.RdrTypeUnion.CtrlRec.Num);
 
 	RptEntry = oh_get_resource_by_id(state->rptcache, ResId);
-	if(!RptEntry){
+	if (!RptEntry) {
 		dbg("NULL rpt pointer\n");
                 return SA_ERR_HPI_INVALID_RESOURCE;
-	} else {
-		res_rdr.Entity = RptEntry->ResourceEntity;
 	}
+	memcpy(&res_rdr.Entity, &RptEntry->ResourceEntity,
+               sizeof(SaHpiEntityPathT));
 
         //set up our private data
         info = (struct sim_control_info *)g_malloc(sizeof(struct sim_control_info));
-	if(!info){
+	if (!info) {
 		dbg("NULL rpt pointer\n");
                 return SA_ERR_HPI_OUT_OF_MEMORY;
 	}
@@ -94,53 +62,61 @@ static SaErrorT new_control(struct oh_handler_state * state,
 SaErrorT sim_discover_controls(struct oh_handler_state * state) {
         SaErrorT rc;
 
-        /* chassis sensors */
+        /* chassis controls */
         int i = 0;
+        int j = 0;
         while (sim_chassis_controls[i].index != 0) {
                 rc = new_control(state, SIM_RPT_ENTRY_CHASSIS, &sim_chassis_controls[i]);
                 if (rc) {
                         dbg("Error %d returned when adding chassis control", rc);
                 } else {
-                        i++;
+                        j++;
                 }
+                i++;
         }
-        dbg("%d chassis sensors injected", i);
+        dbg("%d of %d chassis controls injected", j, i);
 
-        /* cpu sensors */
+        /* cpu controls */
         i = 0;
-        while (sim_cpu_sensors[i].index != 0) {
+        j = 0;
+        while (sim_cpu_controls[i].index != 0) {
                 rc = new_control(state, SIM_RPT_ENTRY_CPU, &sim_cpu_controls[i]);
                 if (rc) {
                         dbg("Error %d returned when adding cpu control", rc);
                 } else {
-                        i++;
+                        j++;
                 }
+                i++;
         }
-        dbg("%d cpu sensors injected", i);
+        dbg("%d of %d cpu controls injected", j, i);
 
-        /* dasd sensors */
+        /* dasd controls */
         i = 0;
-        while (sim_dasd_sensors[i].index != 0) {
+        j = 0;
+        while (sim_dasd_controls[i].index != 0) {
                 rc = new_control(state, SIM_RPT_ENTRY_DASD, &sim_dasd_controls[i]);
                 if (rc) {
                         dbg("Error %d returned when adding dasd control", rc);
                 } else {
-                        i++;
+                        j++;
                 }
+                i++;
         }
-        dbg("%d dasd sensors injected", i);
+        dbg("%d of %d dasd controls injected", j, i);
 
-        /* fan sensors */
+        /* fan controls */
         i = 0;
-        while (sim_fan_sensors[i].index != 0) {
+        j = 0;
+        while (sim_fan_controls[i].index != 0) {
                 rc = new_control(state, SIM_RPT_ENTRY_FAN, &sim_fan_controls[i]);
                 if (rc) {
                         dbg("Error %d returned when adding fan control", rc);
                 } else {
-                        i++;
+                        j++;
                 }
+                i++;
         }
-        dbg("%d fan sensors injected", i);
+        dbg("%d of %d fan controls injected", j, i);
 
         return 0;
 }
