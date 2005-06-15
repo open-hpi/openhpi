@@ -814,14 +814,23 @@ cIpmiSdrs::ReadRecords( cIpmiSdr **&records, unsigned short &working_num_sdrs,
 {
   int retry_count = 0;
   bool loop = true;
+  unsigned short save_working = working_num_sdrs;
+  unsigned int save_num = num;
+  struct timespec ts;
+
+  ts.tv_sec = 0;
+  ts.tv_nsec = 0;
 
   while( loop )
      {
        unsigned short next_record_id = 0;
 
+       working_num_sdrs = save_working;
+       num = save_num;
+
        if ( retry_count++ == dMaxSdrFetchRetries )
           {
-            stdlog << "To many retries trying to fetch SDRs\n";
+            stdlog << "Too many retries trying to fetch SDRs\n";
 
             return SA_ERR_HPI_BUSY;
           }
@@ -842,7 +851,14 @@ cIpmiSdrs::ReadRecords( cIpmiSdr **&records, unsigned short &working_num_sdrs,
             if ( sdr == 0 )
                {
                  if ( err == eReadReservationLost )
-                      break;
+                 {
+                     stdlog << "MC " << (unsigned char)m_mc->GetAddress() << " Lost SDR reservation " << retry_count << " - sleeping\n";
+                     // Most likely the Shelf Manager is trying to access the device SDR too
+                     // Give him a break and wait till it's done
+                     ts.tv_sec = 5+2*retry_count;
+                     nanosleep(&ts, NULL);
+                     break;
+                 }
 
                  if ( err != eReadEndOfSdr )
                       return SA_ERR_HPI_BUSY;
