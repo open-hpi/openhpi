@@ -377,7 +377,8 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 		SaHpiIdrIdT       IdrId,
 		struct bc_inventory_record *i_record)
 {
-	SaErrorT rv = SA_OK;	
+	SaErrorT rv = SA_OK;
+		
 
 	if (!hnd || !i_record)
 		return(SA_ERR_HPI_INVALID_PARAMS);
@@ -385,7 +386,7 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 	struct oh_handler_state *handle = (struct oh_handler_state *) hnd;
 	struct snmp_bc_hnd *custom_handle = handle->data;
 	SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, ResourceId, SAHPI_INVENTORY_RDR, IdrId);
-	
+	SaHpiEntityPathT valEntity;
 	struct snmp_value get_value;
 	
 	/* Local work spaces */
@@ -414,6 +415,7 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 		thisField.ReadOnly = SAHPI_TRUE;
 		thisField.Field.Language = SAHPI_LANG_ENGLISH; /*  SaHpiLanguageT */
 
+		rv = snmp_bc_validate_ep(&(rdr->Entity), &valEntity);
 		/**
 		 *
 		 */
@@ -421,7 +423,8 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 		thisField.Type = SAHPI_IDR_FIELDTYPE_CHASSIS_TYPE;
 
 		if(s->mib.oid.OidChassisType != NULL) {
-			rv = snmp_bc_idr_build_field(custom_handle, &(rdr->Entity),
+			rv = snmp_bc_validate_ep(&(rdr->Entity), &valEntity);
+			rv = snmp_bc_idr_build_field(custom_handle, &valEntity,
 					s->mib.oid.OidChassisType, &thisField, &thisInventoryArea);
 			if (rv != SA_OK)
 				dbg("Having problem building Chassis Idr Field, continue to next field.\n");
@@ -442,7 +445,7 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 			strcpy((char *)thisField.Field.Data,"SAHPI_TIME_UNSPECIFIED");
 		
 		} else {
-                        rv = snmp_bc_oid_snmp_get(custom_handle, &(rdr->Entity),s->mib.oid.OidMfgDateTime, &get_value, SAHPI_TRUE);
+                        rv = snmp_bc_oid_snmp_get(custom_handle, &valEntity,s->mib.oid.OidMfgDateTime, &get_value, SAHPI_TRUE);
                         if(rv != SA_OK) {
                                 dbg("SNMP could not read %s; Type=%d.\n",s->mib.oid.OidMfgDateTime,get_value.type);
                                 return rv;
@@ -466,7 +469,7 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 		thisField.Type = SAHPI_IDR_FIELDTYPE_MANUFACTURER;
 
 		if(s->mib.oid.OidManufacturer != NULL) {
-			rv = snmp_bc_idr_build_field(custom_handle, &(rdr->Entity),
+			rv = snmp_bc_idr_build_field(custom_handle, &valEntity,
 					s->mib.oid.OidManufacturer, &thisField, &thisInventoryArea);
 			if (rv != SA_OK)
 				dbg("Having problem building ManufacturerId Idr Field, continue to next field.\n");
@@ -480,7 +483,7 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 		thisField.Type = SAHPI_IDR_FIELDTYPE_PRODUCT_NAME;
 
 		if(s->mib.oid.OidProductName != NULL) {
-			rv = snmp_bc_idr_build_field(custom_handle, &(rdr->Entity),
+			rv = snmp_bc_idr_build_field(custom_handle, &valEntity,
 					s->mib.oid.OidProductName, &thisField, &thisInventoryArea);
 			if (rv != SA_OK)
 				dbg("Having problem building ProductName Idr Field, continue to next field.\n");
@@ -494,7 +497,7 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 		thisField.Type = SAHPI_IDR_FIELDTYPE_PRODUCT_VERSION;
 
 		if(s->mib.oid.OidProductVersion != NULL) {
-			rv = snmp_bc_idr_build_field(custom_handle, &(rdr->Entity),
+			rv = snmp_bc_idr_build_field(custom_handle, &valEntity,
 				s->mib.oid.OidProductVersion, &thisField, &thisInventoryArea);
 			if (rv != SA_OK)
 				dbg("Having problem building ProductVersion Idr Field, continue to next field.\n");
@@ -508,7 +511,7 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 		thisField.Type = SAHPI_IDR_FIELDTYPE_SERIAL_NUMBER;
 
 		if(s->mib.oid.OidSerialNumber != NULL) {
-			rv = snmp_bc_idr_build_field(custom_handle, &(rdr->Entity),
+			rv = snmp_bc_idr_build_field(custom_handle, &valEntity,
 				s->mib.oid.OidSerialNumber, &thisField, &thisInventoryArea);
 			if (rv != SA_OK)
 				dbg("Having problem building SerialNumber Idr Field, continue to next field.\n");
@@ -522,7 +525,7 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 		thisField.Type = SAHPI_IDR_FIELDTYPE_PART_NUMBER;
 
 		if(s->mib.oid.OidPartNumber != NULL) {
-			rv = snmp_bc_idr_build_field(custom_handle, &(rdr->Entity),
+			rv = snmp_bc_idr_build_field(custom_handle, &valEntity,
 				s->mib.oid.OidPartNumber, &thisField, &thisInventoryArea);
 				if (rv != SA_OK)
 					dbg("Having problem building PartNumber Idr Field, continue to next field.\n");
@@ -536,7 +539,7 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 		thisField.Type = SAHPI_IDR_FIELDTYPE_FILE_ID;
 
 		if(s->mib.oid.OidFileId != NULL) {
-			rv = snmp_bc_idr_build_field(custom_handle, &(rdr->Entity),
+			rv = snmp_bc_idr_build_field(custom_handle, &valEntity,
 				s->mib.oid.OidFileId, &thisField, &thisInventoryArea);
 				if (rv != SA_OK)
 					dbg("Having problem building FileID Idr Field, continue to next field.\n");
@@ -550,7 +553,7 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 		thisField.Type = SAHPI_IDR_FIELDTYPE_ASSET_TAG;
 
 		if(s->mib.oid.OidAssetTag != NULL) {
-			rv = snmp_bc_idr_build_field(custom_handle, &(rdr->Entity),
+			rv = snmp_bc_idr_build_field(custom_handle, &valEntity,
 				s->mib.oid.OidAssetTag, &thisField, &thisInventoryArea);
 				if (rv != SA_OK)
 					dbg("Having problem building AssetTag Idr Field, continue ...\n");
