@@ -231,6 +231,24 @@ cIpmiMcVendor::CreateResources( cIpmiDomain *domain, cIpmiMc *source_mc, cIpmiSd
 
   bool found = false;
 
+  // Make sure that there is a mcdlr
+  for( unsigned int i = 0; i < sdrs->NumSdrs(); i++ )
+  {
+      cIpmiSdr *sdr = sdrs->Sdr( i );
+      if ( sdr->m_type == eSdrTypeMcDeviceLocatorRecord )
+	  {
+	    found = true;
+        break;
+	  }
+  }
+
+  // there must be a mcdlr !
+  if ( found == false )
+  {
+      stdlog << "WARNING : MC " << source_mc->GetAddress() << " NO MC Device Locator Record\n";
+      return false;
+  }
+
   // create one resource per mcdlr and fdlr
   for( unsigned int i = 0; i < sdrs->NumSdrs(); i++ )
      {
@@ -244,8 +262,6 @@ cIpmiMcVendor::CreateResources( cIpmiDomain *domain, cIpmiMc *source_mc, cIpmiSd
 	    addr.m_slave_addr = sdr->m_data[5];
 	    addr.m_channel    = sdr->m_data[6] & 0xf;
         fru_id = 0;
-
-	    found = true;
 	  }
        else if ( sdr->m_type == eSdrTypeFruDeviceLocatorRecord )
 	  {
@@ -270,9 +286,6 @@ cIpmiMcVendor::CreateResources( cIpmiDomain *domain, cIpmiMc *source_mc, cIpmiSd
        if ( FindOrCreateResource( domain, source_mc, fru_id, sdr, sdrs ) == false )
 	    return false;
      }
-
-  // there must be a mcdlr !
-  assert( found );
 
   return true;
 }
