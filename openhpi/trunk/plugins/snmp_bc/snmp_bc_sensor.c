@@ -800,6 +800,7 @@ SaErrorT snmp_bc_get_sensor_oid_reading(void *hnd,
 	struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
         struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 	struct snmp_value get_value;
+	SaHpiEntityPathT valEntity;
 
         SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, rid, SAHPI_SENSOR_RDR, sid);
 	if (rdr == NULL) return(SA_ERR_HPI_NOT_PRESENT);
@@ -810,7 +811,8 @@ SaErrorT snmp_bc_get_sensor_oid_reading(void *hnd,
 	}
 
 	/* Normalize and read sensor's raw SNMP OID */
-	err = snmp_bc_oid_snmp_get(custom_handle, &(rdr->Entity), raw_oid, &get_value, SAHPI_TRUE);
+	err = snmp_bc_validate_ep(&(rdr->Entity), &valEntity);
+	err = snmp_bc_oid_snmp_get(custom_handle, &valEntity, raw_oid, &get_value, SAHPI_TRUE);
 	if (err) {
 		dbg("SNMP cannot read sensor OID=%s. Type=%d", raw_oid, get_value.type);
 		return(err);
@@ -855,6 +857,7 @@ SaErrorT snmp_bc_set_threshold_reading(void *hnd,
 	struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
         struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 	struct snmp_value set_value;
+	SaHpiEntityPathT valEntity;
 
 	if (!hnd || !reading || !raw_oid) {
 		dbg("Invalid parameter.");
@@ -899,7 +902,8 @@ SaErrorT snmp_bc_set_threshold_reading(void *hnd,
 	strncpy(set_value.string, (char *)buffer.Data, buffer.DataLength);
 
 	/* Normalize and read sensor's raw SNMP OID */
-	err = snmp_bc_oid_snmp_set(custom_handle, &(rdr->Entity), raw_oid, set_value);
+	err = snmp_bc_validate_ep(&(rdr->Entity), &valEntity);
+	err = snmp_bc_oid_snmp_set(custom_handle, &valEntity, raw_oid, set_value);
 	if (err) {
 		dbg("SNMP cannot set sensor OID=%s.", raw_oid);
 		return(err);
