@@ -238,6 +238,12 @@ cIpmiMc::HandleNew()
        if ( rv )
             return rv;
 
+       if ( m_sdrs->NumSdrs() == 0 )
+       {
+            stdlog << "WARNING: MC " << m_addr.m_slave_addr << " SDR is empty !!!\n";
+            return SA_ERR_HPI_INVALID_PARAMS;
+       }
+
        if ( m_vendor->ProcessSdr( Domain(), this, m_sdrs ) == false )
             return SA_ERR_HPI_INVALID_PARAMS;
 
