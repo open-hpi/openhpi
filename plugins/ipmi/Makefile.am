@@ -62,6 +62,6 @@ libipmi_la_SOURCES	= ipmi.c 		\
 			  posix_vlog.c		\
 			  ipmi.h
 			  
-libipmi_la_LIBADD	= -luuid -lncurses -lOpenIPMI -lOpenIPMIposix @OPENIPMI_LIBS@
-# libipmi_la_LDFLAGS	= -version-info @HPI_LIB_VERSION@ -export-symbols $(srcdir)/ipmi.sym
-libipmi_la_LDFLAGS	= -version-info @HPI_LIB_VERSION@ -export-dynamic $(srcdir)/ipmi.sym
+libipmi_la_LIBADD	= $(top_builddir)/src/libopenhpi.la $(top_builddir)/utils/libopenhpiutils.la -luuid -lncurses -lOpenIPMI -lOpenIPMIposix @OPENIPMI_LIBS@
+#libipmi_la_LDFLAGS	= -version-info @HPI_LIB_VERSION@ -export-symbols $(srcdir)/ipmi.sym
+libipmi_la_LDFLAGS	= -version-info @HPI_LIB_VERSION@ -export-dymanic $(srcdir)/ipmi.sym
