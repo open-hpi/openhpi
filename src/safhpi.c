@@ -1023,9 +1023,15 @@ SaErrorT SAHPI_API saHpiEventGet (
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
 
-        if (Timeout < SAHPI_TIMEOUT_BLOCK || !Event) {
+        if (!Event) {
+		dbg("Event == NULL");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
+	if ((Timeout <= 0) && (Timeout != SAHPI_TIMEOUT_BLOCK) &&
+			(Timeout != SAHPI_TIMEOUT_IMMEDIATE)) {
+		dbg("Timeout is not positive");
+		return SA_ERR_HPI_INVALID_PARAMS;
+	}
 
         if( !oh_run_threaded() && Timeout != SAHPI_TIMEOUT_IMMEDIATE) {
                 dbg("Can not support timeouts in non threaded mode");
@@ -1036,6 +1042,7 @@ SaErrorT SAHPI_API saHpiEventGet (
         if (error) return error;
 
         if (session_state != OH_SUBSCRIBED) {
+		dbg("session is not subscribed");
                 return SA_ERR_HPI_INVALID_REQUEST;
         }
 
@@ -1069,15 +1076,34 @@ SaErrorT SAHPI_API saHpiEventAdd (
         SAHPI_IN SaHpiEventT     *EvtEntry)
 {
         SaHpiDomainIdT did;
-        struct oh_event e;        
+        struct oh_event e;
+	SaHpiEventLogInfoT info;        
         SaErrorT error = SA_OK;
 
         error = oh_valid_addevent(EvtEntry);
-        if (error) return error;
+        if (error) {
+		dbg("event is not valid");
+		return error;
+	}
+	
+
 
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
-
+	
+	error = saHpiEventLogInfoGet(SessionId, SAHPI_UNSPECIFIED_RESOURCE_ID, &info);
+	if (error) {
+		dbg("couldn't get loginfo");
+		return error;
+	}
+	if (EvtEntry->EventDataUnion.UserEvent.UserEventData.DataLength >
+			info.UserEventMaxSize) {
+		dbg("DataLength(%d) > info.UserEventMaxSize(%d)",
+			EvtEntry->EventDataUnion.UserEvent.UserEventData.DataLength,
+			info.UserEventMaxSize);
+		return SA_ERR_HPI_INVALID_DATA;
+	}
+	
         e.did = did;
         e.hid = 0;
         e.type = OH_ET_HPI;
@@ -1089,7 +1115,10 @@ SaErrorT SAHPI_API saHpiEventAdd (
 
         g_async_queue_push(oh_process_q, g_memdup(&e, sizeof(struct oh_event)));
         
-        error = oh_get_events();                
+        error = oh_get_events();
+	if (error != SA_OK) {
+		dbg("oh_get_events returned %d", error);
+	}                
         
         return error;
 }
@@ -2572,6 +2601,7 @@ SaErrorT SAHPI_API saHpiIdrFieldAdd(
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 	if (oh_valid_textbuffer(&Field->Field) != SAHPI_TRUE) {
+		dbg("invalid text buffer");
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
 
