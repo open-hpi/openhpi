@@ -75,7 +75,7 @@ void ipmi_connection_handler (ipmi_domain_t	*domain,
 	struct oh_handler_state *handler = cb_data;
 	struct ohoi_handler	*ipmi_handler = handler->data;
 
-	dbg("connection handler called. Error code: %d", err);
+	trace_ipmi("connection handler called. Error code: %d", err);
 
 
 	if (err) {

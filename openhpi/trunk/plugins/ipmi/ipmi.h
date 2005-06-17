@@ -396,3 +396,14 @@ void entity_rpt_set_presence(struct ohoi_resource_info *res_info,
 void ohoi_remove_entity(struct oh_handler_state *handler,
 			SaHpiResourceIdT res_id);
 
+
+
+
+#define trace_ipmi(format, ...) \
+        do { \
+                if (getenv("OPENHPI_DEBUG_TRACE_IPMI") && !strcmp("YES",getenv("OPENHPI_DEBUG_TRACE_IPMI"))) { \
+                        fprintf(stderr, " %s:%d:%s: ", __FILE__, __LINE__, __func__); \
+                        fprintf(stderr, format "\n", ## __VA_ARGS__); \
+                } \
+        } while(0)
+

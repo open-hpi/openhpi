@@ -28,7 +28,7 @@ static void get_mc_entity_event(ipmi_mc_t	*mc,
         
 	struct ohoi_handler *ipmi_handler = cb_data;
 
-	dbg("entity_root: %s", ipmi_handler->entity_root);
+	trace_ipmi("entity_root: %s", ipmi_handler->entity_root);
 	oh_encode_entitypath(ipmi_handler->entity_root, &mc_ep);
 
         snprintf(mc_name, sizeof(mc_name),
@@ -58,16 +58,16 @@ static void get_mc_entity_event(ipmi_mc_t	*mc,
         entry->ResourceEntity.Entry[1].EntityType = SAHPI_ENT_ROOT;
         entry->ResourceEntity.Entry[1].EntityLocation = 0;
         
-	dbg ("MC Instance: %d", entry->ResourceEntity.Entry[0].EntityLocation);
+	trace_ipmi("MC Instance: %d", entry->ResourceEntity.Entry[0].EntityLocation);
 	sel_support = ipmi_mc_sel_device_support(mc);
 	if (sel_support == 1) {
-		dbg("MC supports SEL");
+		trace_ipmi("MC supports SEL");
 		entry->ResourceCapabilities = SAHPI_CAPABILITY_RESOURCE |
 			SAHPI_CAPABILITY_EVENT_LOG;
 	}
 	else {
 		entry->ResourceCapabilities = SAHPI_CAPABILITY_RESOURCE;
-		dbg("MC does not support SEL");
+		trace_ipmi("MC does not support SEL");
 	}
 	entry->ResourceSeverity = SAHPI_CRITICAL;
 	entry->ResourceFailed = SAHPI_FALSE;
@@ -79,7 +79,7 @@ static void get_mc_entity_event(ipmi_mc_t	*mc,
 	oh_concat_ep(&entry->ResourceEntity, &mc_ep);
         
 	entry->ResourceId = oh_uid_from_entity_path(&entry->ResourceEntity);
-	dbg("MC ResourceId: %d", (int)entry->ResourceId);
+	trace_ipmi("MC ResourceId: %d", (int)entry->ResourceId);
 }
 
 static void mc_add(ipmi_mc_t                    *mc,
@@ -97,7 +97,7 @@ static void mc_add(ipmi_mc_t                    *mc,
         }
         ohoi_res_info->type      = OHOI_RESOURCE_MC;
         ohoi_res_info->u.mc_id    = ipmi_mc_convert_to_id(mc);
-	dbg("Set updated for resource %p . MC", mc);
+	trace_ipmi("Set updated for resource %p . MC", mc);
 	/* always present if active thus here */
 	entity_rpt_set_presence(ohoi_res_info, ipmi_handler, 1);
                 
@@ -125,7 +125,7 @@ void mc_SDRs_read_done(ipmi_mc_t *mc, void *cb_data)
 		/* one less MC to wait for */
 		*mc_count = *mc_count - 1;
 
-		dbg("mc(%d %x) SDRs read done mc count left: %d",
+		trace_ipmi("mc(%d %x) SDRs read done mc count left: %d",
 						ipmi_mc_get_address(mc),
 						ipmi_mc_get_channel(mc), *mc_count);
 }
@@ -140,7 +140,7 @@ void mc_active(ipmi_mc_t *mc, int active, void *cb_data)
 		int rv;
 
 		if (active) {
-				dbg("MC added and active...(%d %x)\n",
+				trace_ipmi("MC added and active...(%d %x)\n",
 								ipmi_mc_get_address(mc),
 								ipmi_mc_get_channel(mc));
 
@@ -173,32 +173,32 @@ ohoi_mc_event(enum ipmi_update_e op,
 						rv = ipmi_mc_add_active_handler(mc, mc_active, handler);
 						
 						if(!ipmi_mc_is_active(mc)) {
-								dbg("MC updated but inactive...we ignore (%d %x)\n",
+								trace_ipmi("MC updated but inactive...we ignore (%d %x)\n",
 												ipmi_mc_get_address(mc),
 												ipmi_mc_get_channel(mc));
 								break;
 						} else {
 
 								/* MC is active */
-								dbg("MC Added(%d %x)\n",
+								trace_ipmi("MC Added(%d %x)\n",
 												ipmi_mc_get_address(mc),
 												ipmi_mc_get_channel(mc));
 								mc_add(mc, handler);
 						
 								ipmi_handler->mc_count++;
-								dbg("OP:ADD - mc count increment: %d", ipmi_handler->mc_count);
+								trace_ipmi("OP:ADD - mc count increment: %d", ipmi_handler->mc_count);
 								
 								/* register MC level SDRs read */
 								ipmi_mc_set_sdrs_first_read_handler(mc, mc_SDRs_read_done,
 											   	&ipmi_handler->mc_count);
 								
-								dbg("MC updated and is active: (%d %x)\n", 
+								trace_ipmi("MC updated and is active: (%d %x)\n", 
 												ipmi_mc_get_address(mc), 
 												ipmi_mc_get_channel(mc));
 								break;
 						}
 					case IPMI_DELETED:
-						dbg("MC deleted: (%d %x)\n",
+						trace_ipmi("MC deleted: (%d %x)\n",
 										ipmi_mc_get_address(mc), 
 										ipmi_mc_get_channel(mc));
 						/* most likely won't get called during discovery so comment
@@ -210,12 +210,12 @@ ohoi_mc_event(enum ipmi_update_e op,
 
 					case IPMI_CHANGED:
 						if(!ipmi_mc_is_active(mc)) {
-								dbg("MC changed and is inactive: (%d %x)\n",
+								trace_ipmi("MC changed and is inactive: (%d %x)\n",
 												ipmi_mc_get_address(mc), 
 												ipmi_mc_get_channel(mc));
 						} else {
 								mc_add(mc, handler);
-								dbg("MC changed and is active: (%d %x)\n",
+								trace_ipmi("MC changed and is active: (%d %x)\n",
 												ipmi_mc_get_address(mc),
 												ipmi_mc_get_channel(mc));
 						}

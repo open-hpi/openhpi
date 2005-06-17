@@ -53,7 +53,7 @@ static void ipmi_domain_fully_up(ipmi_domain_t *domain,
 	struct oh_handler_state *handler = user_data;
 	struct ohoi_handler *ipmi_handler = handler->data;
 		
-	dbg("ipmi domain fully up. SDR_read_done = %d;"
+	trace_ipmi("ipmi domain fully up. SDR_read_done = %d;"
 			"SELS_read_done = %d; scan_done = %d; mc_count = %d",
 			ipmi_handler->SDRs_read_done,
 			ipmi_handler->SELs_read_done,
@@ -93,7 +93,7 @@ static void *ipmi_open(GHashTable *handler_config)
 					.Language = SAHPI_LANG_ENGLISH,
 				};
 
-	dbg("ipmi_open");
+	trace_ipmi("ipmi_open");
 	if (!handler_config) {
 		dbg("No config file provided.....ooops!");
 		return(NULL);
@@ -174,7 +174,7 @@ static void *ipmi_open(GHashTable *handler_config)
 				check config file");
 		return NULL;
 	} else
-		dbg("name: %s, addr: %s, entity_root: %s, timeout: %d",
+		trace_ipmi("name: %s, addr: %s, entity_root: %s, timeout: %d",
 				name, addr,
 		 ipmi_handler->entity_root, (int)ipmi_handler->fullup_timeout);
 
@@ -210,7 +210,7 @@ static void *ipmi_open(GHashTable *handler_config)
 			dbg("no ""addr"" token in config file");
 			return NULL;
 		}
-		dbg("IPMI LAN Address: %s", tok);
+		trace_ipmi("IPMI LAN Address: %s", tok);
 		struct hostent *ent = gethostbyname(tok);
 		if (!ent) {
 			dbg("Unable to resolve IPMI LAN address");
@@ -227,7 +227,7 @@ static void *ipmi_open(GHashTable *handler_config)
 		} else {
 			lan_port = atoi(tok);
 		}
-		dbg("IPMI LAN Port: %i", lan_port);
+		trace_ipmi("IPMI LAN Port: %i", lan_port);
 
 		/* Authentication type */
 		tok = g_hash_table_lookup(handler_config, "auth_type");
@@ -247,7 +247,7 @@ static void *ipmi_open(GHashTable *handler_config)
 			return NULL;
 		}
 
-		dbg("IPMI LAN Authority: %s(%i)", tok, auth);
+		trace_ipmi("IPMI LAN Authority: %s(%i)", tok, auth);
 
 		/* Priviledge */
 		tok = g_hash_table_lookup(handler_config, "auth_level");
@@ -270,7 +270,7 @@ static void *ipmi_open(GHashTable *handler_config)
 			return NULL;
 		}
 			
-		dbg("IPMI LAN Priviledge: %s(%i)", tok, priv);
+		trace_ipmi("IPMI LAN Priviledge: %s(%i)", tok, priv);
 
 		/* User Name */
 		tok = g_hash_table_lookup(handler_config, "username"); 
@@ -280,7 +280,7 @@ static void *ipmi_open(GHashTable *handler_config)
 		} else {
 			strncpy(user, tok, 32);
 		}
-		dbg("IPMI LAN User: %s", user);
+		trace_ipmi("IPMI LAN User: %s", user);
 
 		/* Password */
 		tok = g_hash_table_lookup(handler_config, "password");  
@@ -291,7 +291,7 @@ static void *ipmi_open(GHashTable *handler_config)
 			strncpy(passwd, tok, 32);
 			free(tok);
 		}
-		dbg("IPMI LAN Password: %s", passwd);
+		trace_ipmi("IPMI LAN Password: %s", passwd);
 
 
 		rv = ipmi_lan_setup_con(&lan_addr, &lan_port, 1,
@@ -341,18 +341,18 @@ static void ipmi_close(void *hnd)
 
 
 	if (ipmi_handler->connected) {
-		dbg("close connection");
+		trace_ipmi("close connection");
 		ohoi_close_connection(ipmi_handler->domain_id, handler);
 	}
 	
 	ipmi_close_mv();
 	ipmi_refcount--;	
-	dbg("ipmi_refcount :%d", ipmi_refcount);
+	trace_ipmi("ipmi_refcount :%d", ipmi_refcount);
 	
 	if(ipmi_refcount == 0) {
 		/* last connection and in case other instances didn't
 		   close correctly we clean up all connections */
-		dbg("Last connection :%d closing", ipmi_refcount);
+		trace_ipmi("Last connection :%d closing", ipmi_refcount);
 		ipmi_shutdown();
 	}
 	
@@ -476,7 +476,7 @@ int ipmi_discover_resources(void *hnd)
 	while (rpt_entry) {
 		res_info = oh_get_resource_data(handler->rptcache,
 			rpt_entry->ResourceId);
-		dbg("res: %d(%s) presence: %d; updated:%d",
+		trace_ipmi("res: %d(%s) presence: %d; updated:%d",
 			rpt_entry->ResourceId, rpt_entry->ResourceTag.Data,
 			res_info->presence, res_info->updated);
 		if (res_info->updated == 0) {
