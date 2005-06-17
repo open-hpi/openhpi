@@ -3145,7 +3145,7 @@ SaErrorT oh_encode_annunciatormode(SaHpiTextBufferT *buffer, SaHpiAnnunciatorMod
 	
 	found = 0;
 	for (i=0; i<OH_MAX_ANNUNCIATORMODE; i++) {
-		if (strcasecmp((char *)buffer->Data, annunciatormode_strings[i].str) == 0) {
+		if (strncasecmp((char *)buffer->Data, annunciatormode_strings[i].str, buffer->DataLength) == 0) {
 			found++;
 			break;
 		}
@@ -3227,7 +3227,7 @@ SaErrorT oh_encode_annunciatortype(SaHpiTextBufferT *buffer, SaHpiAnnunciatorTyp
 	
 	found = 0;
 	for (i=0; i<OH_MAX_ANNUNCIATORTYPE; i++) {
-		if (strcasecmp((char *)buffer->Data, annunciatortype_strings[i].str) == 0) {
+		if (strncasecmp((char *)buffer->Data, annunciatortype_strings[i].str, buffer->DataLength) == 0) {
 			found++;
 			break;
 		}
@@ -3306,7 +3306,7 @@ SaErrorT oh_encode_rdrtype(SaHpiTextBufferT *buffer, SaHpiRdrTypeT *type)
 	
 	found = 0;
 	for (i=0; i<OH_MAX_RDRTYPE; i++) {
-		if (strcasecmp((char *)buffer->Data, rdrtype_strings[i].str) == 0) {
+		if (strncasecmp((char *)buffer->Data, rdrtype_strings[i].str, buffer->DataLength) == 0) {
 			found++;
 			break;
 		}
@@ -3376,7 +3376,7 @@ SaErrorT oh_encode_parmaction(SaHpiTextBufferT *buffer, SaHpiParmActionT *type)
 	
 	found = 0;
 	for (i=0; i<OH_MAX_PARMACTION; i++) {
-		if (strcasecmp((char *)buffer->Data, parmaction_strings[i].str) == 0) {
+		if (strncasecmp((char *)buffer->Data, parmaction_strings[i].str, buffer->DataLength) == 0) {
 			found++;
 			break;
 		}
@@ -3449,7 +3449,7 @@ SaErrorT oh_encode_resetaction(SaHpiTextBufferT *buffer, SaHpiResetActionT *type
 	
 	found = 0;
 	for (i=0; i<OH_MAX_RESETACTION; i++) {
-		if (strcasecmp((char *)buffer->Data, resetaction_strings[i].str) == 0) {
+		if (strncasecmp((char *)buffer->Data, resetaction_strings[i].str, buffer->DataLength) == 0) {
 			found++;
 			break;
 		}
@@ -3519,7 +3519,7 @@ SaErrorT oh_encode_powerstate(SaHpiTextBufferT *buffer, SaHpiPowerStateT *type)
 	
 	found = 0;
 	for (i=0; i<OH_MAX_POWERSTATE; i++) {
-		if (strcasecmp((char *)buffer->Data, powerstate_strings[i].str) == 0) {
+		if (strncasecmp((char *)buffer->Data, powerstate_strings[i].str, buffer->DataLength) == 0) {
 			found++;
 			break;
 		}
@@ -3586,7 +3586,7 @@ SaErrorT oh_encode_eventlogoverflowaction(SaHpiTextBufferT *buffer, SaHpiEventLo
 	
 	found = 0;
 	for (i=0; i<OH_MAX_EVENTLOGOVERFLOWACTION; i++) {
-		if (strcasecmp((char *)buffer->Data, eventlogoverflowaction_strings[i].str) == 0) {
+		if (strncasecmp((char *)buffer->Data, eventlogoverflowaction_strings[i].str, buffer->DataLength) == 0) {
 			found++;
 			break;
 		}
@@ -3713,7 +3713,7 @@ SaErrorT oh_encode_error(SaHpiTextBufferT *buffer, SaErrorT *type)
 	
 	found = 0;
 	for (i=0; i<OH_MAX_ERROR; i++) {
-		if (strcasecmp((char *)buffer->Data, error_strings[i].str) == 0) {
+		if (strncasecmp((char *)buffer->Data, error_strings[i].str, buffer->DataLength) == 0) {
 			found++;
 			break;
 		}
@@ -3816,7 +3816,7 @@ SaErrorT oh_encode_eventcategory(SaHpiTextBufferT *buffer, SaHpiEventCategoryT *
 	
 	found = 0;
 	for (i=0; i<OH_MAX_EVENTCATEGORY; i++) {
-		if (strcasecmp((char *)buffer->Data, eventcategory_strings[i].str) == 0) {
+		if (strncasecmp((char *)buffer->Data, eventcategory_strings[i].str, buffer->DataLength) == 0) {
 			found++;
 			break;
 		}
