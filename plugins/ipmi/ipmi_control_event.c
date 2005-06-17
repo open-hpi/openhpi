@@ -199,7 +199,7 @@ static void add_alarm_rdr(char 				*name,
 	rdr->RdrTypeUnion.CtrlRec.DefaultMode.Mode = def_mode->Mode;
 	rdr->RdrTypeUnion.CtrlRec.DefaultMode.ReadOnly = def_mode->ReadOnly;
         oh_add_rdr(handler->rptcache, rptid, rdr, ctrl_info, 1);
-	dbg("add_alarm_rdr: %s\n",name); 
+	trace_ipmi("add_alarm_rdr: %s\n",name); 
 }
 
 /*
@@ -333,18 +333,18 @@ void ohoi_control_event(enum ipmi_update_e op,
                 
 		/* attach power and reset to chassis entity since
 		   IPMI provides them as such */
-		dbg("resource: %s", rpt_entry->ResourceTag.Data);
+		trace_ipmi("resource: %s", rpt_entry->ResourceTag.Data);
                 ctrl_type = ipmi_control_get_type(control);
                 switch (ctrl_type) {
                         case IPMI_CONTROL_ONE_SHOT_RESET:
-                                dbg("Attach reset control into entity");
+                                trace_ipmi("Attach reset control into entity");
                                 ohoi_res_info->reset_ctrl
                                         = ipmi_control_convert_to_id(control);
                                 rpt_entry->ResourceCapabilities |=
                                     SAHPI_CAPABILITY_RESET;
                                 break;
                         case IPMI_CONTROL_POWER:
-                                dbg("Attach power control into entity");
+                                trace_ipmi("Attach power control into entity");
                                 ohoi_res_info->power_ctrl
                                         = ipmi_control_convert_to_id(control);
                                 rpt_entry->ResourceCapabilities |=
@@ -354,7 +354,7 @@ void ohoi_control_event(enum ipmi_update_e op,
 				rv = add_alarm_rdrs(handler,rpt_entry,control);
 				break;
 			case IPMI_CONTROL_IDENTIFIER:
-				dbg("Address control for AdvancedTCA entity %d",
+				trace_ipmi("Address control for AdvancedTCA entity %d",
 						rpt_entry->ResourceId);
 				rv = address_control_get(control,handler, ent, rpt_entry);
 				if (rv)
@@ -362,7 +362,7 @@ void ohoi_control_event(enum ipmi_update_e op,
 
 				break;
                         default:
-                                dbg("Other control(%d) is storaged in RDR", ctrl_type);
+                                trace_ipmi("Other control(%d) is storaged in RDR", ctrl_type);
                                 rpt_entry->ResourceCapabilities |= SAHPI_CAPABILITY_CONTROL;
                                 add_control_event(ent, control, handler,
                                                   rpt_entry->ResourceEntity,
@@ -370,7 +370,7 @@ void ohoi_control_event(enum ipmi_update_e op,
                 }
                                 
 	}
-	dbg("Set updated for res_inf0 %p(%d). Control", ohoi_res_info, rpt_entry->ResourceId);
+	trace_ipmi("Set updated for res_inf0 %p(%d). Control", ohoi_res_info, rpt_entry->ResourceId);
 	entity_rpt_set_updated(ohoi_res_info, handler->data);;
 }
 	

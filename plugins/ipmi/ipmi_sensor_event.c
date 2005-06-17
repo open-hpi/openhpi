@@ -1015,7 +1015,7 @@ void ohoi_sensor_event(enum ipmi_update_e op,
 			add_sensor_event(ent, sensor, handler,
 					 rpt_entry->ResourceEntity,
 					 rpt_entry->ResourceId);
-			dbg("Sensor Added");
+			trace_ipmi("Sensor Added");
 		
 			if (ipmi_sensor_get_event_reading_type(sensor) == 
 					IPMI_EVENT_READING_TYPE_THRESHOLD)
@@ -1041,7 +1041,7 @@ void ohoi_sensor_event(enum ipmi_update_e op,
 			*/
 			break;
 	}
-	dbg("Set updated for resource %d . Sensor", rpt_entry->ResourceId);
+	trace_ipmi("Set updated for resource %d . Sensor", rpt_entry->ResourceId);
 	entity_rpt_set_updated(res_info, handler->data);
 }
 

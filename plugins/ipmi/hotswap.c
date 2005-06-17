@@ -90,7 +90,7 @@ int ohoi_hot_swap_cb(ipmi_entity_t  *ent,
 	SaHpiRptEntryT  *rpt_entry;
 	struct oh_event  *e;
 	
-	dbg("HotSwap Handler called");
+	trace_ipmi("HotSwap Handler called");
 
 	entity_id = ipmi_entity_convert_to_id(ent);
 	
@@ -133,11 +133,11 @@ int ohoi_hot_swap_cb(ipmi_entity_t  *ent,
 
 	if (e->u.hpi_event.event.EventDataUnion.HotSwapEvent.HotSwapState ==
 	    					SAHPI_HS_STATE_NOT_PRESENT) {
-		dbg("HS_STATE NOT PRESENT, removing RPT");
+		trace_ipmi("HS_STATE NOT PRESENT, removing RPT");
 	  	handler->eventq = g_slist_append(handler->eventq,e);
 	}else if (e->u.hpi_event.event.EventDataUnion.HotSwapEvent
 		  	.HotSwapState == SAHPI_HS_STATE_ACTIVE) {
-		dbg("HS_STATE ACTIVE");
+		trace_ipmi("HS_STATE ACTIVE");
 		handler->eventq = g_slist_append(handler->eventq, e);
 	}else {
 	  	handler->eventq = g_slist_append(handler->eventq, e);

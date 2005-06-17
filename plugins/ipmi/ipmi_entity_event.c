@@ -35,7 +35,7 @@ void entity_rpt_set_presence(struct ohoi_resource_info *res_info,
 		struct ohoi_handler *ipmi_handler, int present)
 {
 	g_static_rec_mutex_lock(&ipmi_handler->ohoih_lock);	
-	dbg("res_info %p: old presence %d, new presence %d",
+	trace_ipmi("res_info %p: old presence %d, new presence %d",
 		res_info, res_info->presence, present);
 	if (present == res_info->presence) {
 		g_static_rec_mutex_unlock(&ipmi_handler->ohoih_lock);	
@@ -80,7 +80,7 @@ int entity_presence(ipmi_entity_t		*entity,
 	}
 	rid = rpt->ResourceId;
 	res_info = oh_get_resource_data(handler->rptcache, rid);;
-	dbg("%s(%d)  %s",ipmi_entity_get_entity_id_string(entity), rid, present ? "present" : "not present");
+	trace_ipmi("%s(%d)  %s",ipmi_entity_get_entity_id_string(entity), rid, present ? "present" : "not present");
 	entity_rpt_set_presence(res_info, handler->data,  present);
 	return SA_OK;
 }
@@ -128,7 +128,7 @@ static void get_entity_event(ipmi_entity_t	*entity,
 	
 	entry->HotSwapCapabilities = 0;
 	if (ipmi_entity_supports_managed_hot_swap(entity)) {
-		dbg("Entity is hot swapable");
+		trace_ipmi("Entity is hot swapable");
 		entry->ResourceCapabilities |= SAHPI_CAPABILITY_MANAGED_HOTSWAP;
 		/* if entity supports managed hot swap
 		 * check if it has indicator */
@@ -145,7 +145,7 @@ static void get_entity_event(ipmi_entity_t	*entity,
 	 * it's used only for checking if entity has FRU data
 	 */
 	if(ipmi_entity_hot_swappable(entity)) {
-		dbg("Entity supports simplified hotswap");
+		trace_ipmi("Entity supports simplified hotswap");
 		entry->ResourceCapabilities |= SAHPI_CAPABILITY_FRU;
 	}
 
@@ -167,6 +167,7 @@ static void get_entity_event(ipmi_entity_t	*entity,
 	//ipmi_entity_get_id(entity, entry->ResourceTag.Data, SAHPI_MAX_TEXT_BUFFER_LENGTH);
 	str = ipmi_entity_get_entity_id_string(entity);
 	memcpy(entry->ResourceTag.Data,str, strlen(str) +1);
+	entry->ResourceTag.DataLength = strlen(entry->ResourceTag.Data);
 #if 0
 	if ((strlen(entry->ResourceTag.Data) == 0)
 	    || (!strcmp(entry->ResourceTag.Data, "invalid"))
@@ -313,7 +314,7 @@ static void get_entity_event(ipmi_entity_t	*entity,
 	oh_encode_entitypath(ipmi_handler->entity_root, &entity_ep);
 	oh_concat_ep(&entry->ResourceEntity, &entity_ep);
 	entry->ResourceId = oh_uid_from_entity_path(&entry->ResourceEntity);
-	dbg("ResourceId: %d", entry->ResourceId);
+	trace_ipmi("ResourceId: %d", entry->ResourceId);
 
 			/* controls */
 			rv = ipmi_entity_add_control_update_handler(entity,
@@ -335,7 +336,7 @@ static void add_entity_event(ipmi_entity_t	        *entity,
 	SaHpiRptEntryT	entry;
 	int rv;
 
-	dbg("adding ipmi entity: %s", ipmi_entity_get_entity_id_string(entity));
+	trace_ipmi("adding ipmi entity: %s", ipmi_entity_get_entity_id_string(entity));
 
 	ohoi_res_info = g_malloc0(sizeof(*ohoi_res_info));
 
@@ -459,14 +460,14 @@ add_processor_event(ipmi_entity_t *entity,
 	str2 = (char *)calloc(strlen(tag) + 3, sizeof(char));
 	snprintf(str2, strlen(tag) + 3, "%s-%d",tag, inst);
 	memcpy(entry.ResourceTag.Data, str2, strlen(str2) + 1);
-	dbg("ProcessorTag: %s", entry.ResourceTag.Data);
+	trace_ipmi("ProcessorTag: %s", entry.ResourceTag.Data);
 
 	entry.ResourceTag.DataLength = (SaHpiUint32T)strlen(entry.ResourceTag.Data);
 
 	oh_encode_entitypath(ipmi_handler->entity_root, &entity_ep);
 	oh_concat_ep(&entry.ResourceEntity, &entity_ep);
 	entry.ResourceId = oh_uid_from_entity_path(&entry.ResourceEntity);
-	dbg("Processor ResourceId: %d", entry.ResourceId);
+	trace_ipmi("Processor ResourceId: %d", entry.ResourceId);
 
 	rv = oh_add_resource(handler->rptcache, &entry, res_info, 1);
 	if (rv) {
@@ -504,7 +505,7 @@ void ohoi_entity_event(enum ipmi_update_e       op,
 				inst = inst - 96;
 			}
 
-			dbg("Entity added: %d.%d (%s)", 
+			trace_ipmi("Entity added: %d.%d (%s)", 
 					ipmi_entity_get_entity_id(entity), 
 					inst,
 					ipmi_entity_get_entity_id_string(entity));
@@ -559,7 +560,7 @@ void ohoi_entity_event(enum ipmi_update_e       op,
 			if(inst >=96) {
 				inst = inst - 96;
 			}
-			dbg("***Entity changed: %d.%d",
+			trace_ipmi("***Entity changed: %d.%d",
 						ipmi_entity_get_entity_id(entity), 
 						inst);
 			g_static_rec_mutex_unlock(&ipmi_handler->ohoih_lock);	

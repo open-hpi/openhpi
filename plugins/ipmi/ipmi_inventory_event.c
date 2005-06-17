@@ -40,11 +40,13 @@ static void add_inventory_event_rdr(
 
         memcpy(rdr->IdString.Data, name, sizeof(name));
 }
+/*
 #define IPMI_FRU_FTR_INTERNAL_USE_AREA 0
 #define IPMI_FRU_FTR_CHASSIS_INFO_AREA 1
 #define IPMI_FRU_FTR_BOARD_INFO_AREA   2
 #define IPMI_FRU_FTR_PRODUCT_INFO_AREA 3
 #define IPMI_FRU_FTR_MULTI_RECORD_AREA 4
+*/
 
 static void init_inventory_info(struct ohoi_resource_info *res_info,
 			ipmi_entity_t     *ent)
@@ -237,10 +239,10 @@ void ohoi_inventory_event(enum ipmi_update_e    op,
        res_info = oh_get_resource_data(handler->rptcache,
 				       rpt_entry->ResourceId);
        if (op == IPMI_ADDED) {
-		dbg("FRU added");
+		trace_ipmi("FRU added");
 		add_inventory_event(res_info, entity, handler, rpt_entry);
 	}
-	dbg("Set updated for res_info %p(%d). Inventory",
+	trace_ipmi("Set updated for res_info %p(%d). Inventory",
 		res_info, rpt_entry->ResourceId);
 	entity_rpt_set_updated(res_info, handler->data);;
 			   
