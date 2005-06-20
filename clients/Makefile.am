@@ -24,7 +24,8 @@ bin_PROGRAMS = \
 	hpithres \
 	hpievent \
 	hpitop   \
-	hpisettime
+	hpisettime \
+	hpidomainel
 	
 
 #bin_PROGRAMS           = hpifru
@@ -58,6 +59,10 @@ hpireset2_LDFLAGS       =
 hpiel_SOURCES           = hpiel.c
 hpiel_LDADD             = $(COMMONLIBS)
 hpiel_LDFLAGS           =
+
+hpidomainel_SOURCES     = hpidomainel.c
+hpidomainel_LDADD       = $(COMMONLIBS)
+hpidomainel_LDFLAGS     =
 
 hpisensor_SOURCES       = hpisensor.c
 hpisensor_LDADD         = $(COMMONLIBS)
