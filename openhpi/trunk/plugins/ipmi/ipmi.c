@@ -1704,7 +1704,7 @@ void * oh_get_el_info (void *, SaHpiResourceIdT, SaHpiEventLogInfoT *)
 void * oh_set_el_time (void *, SaHpiResourceIdT, const SaHpiEventT *)
                 __attribute__ ((weak, alias("ipmi_set_el_time")));
 
-void * oh_add_el_entry (void *, SaHpiResourceIdT, const SaHpiEventT *)
+void * oh_get_el_entry (void *, SaHpiResourceIdT, const SaHpiEventT *)
                 __attribute__ ((weak, alias("ipmi_get_el_entry")));
 
 void * oh_set_el_state (void *, SaHpiResourceIdT , SaHpiBoolT )
