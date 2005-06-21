@@ -105,7 +105,7 @@ SaErrorT oh_el_append(oh_el *el, const SaHpiEventT *event, const SaHpiRdrT *rdr,
         el->nextId++;
         if (el->gentimestamp) {
                 time(&tt1);
-                el->lastUpdate = (SaHpiTimeT) (tt1 * 1000000000) + el->offset;
+                el->lastUpdate = ((SaHpiTimeT) tt1 * 1000000000) + el->offset;
         } else {
                 el->lastUpdate = event->Timestamp;
         }
@@ -167,7 +167,7 @@ SaErrorT oh_el_prepend(oh_el *el, const SaHpiEventT *event, const SaHpiRdrT *rdr
         el->nextId++;
         if (el->gentimestamp) {
                 time(&tt1);
-                el->lastUpdate = (SaHpiTimeT) (tt1 * 1000000000) + el->offset;
+                el->lastUpdate = ((SaHpiTimeT) tt1 * 1000000000) + el->offset;
         } else {
                 el->lastUpdate = event->Timestamp;
         }
@@ -280,7 +280,7 @@ SaErrorT oh_el_info(oh_el *el, SaHpiEventLogInfoT *info)
         info->Size = el->maxsize;
         info->UpdateTimestamp = el->lastUpdate;
         time(&tt1);
-        info->CurrentTime = (SaHpiTimeT) (tt1 * 1000000000) + el->offset;
+        info->CurrentTime = ((SaHpiTimeT) tt1 * 1000000000) + el->offset;
         info->Enabled = el->enabled;
         info->OverflowFlag = el->overflow;
 	info->OverflowResetable = SAHPI_TRUE;
