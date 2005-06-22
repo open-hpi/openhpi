@@ -18,32 +18,27 @@
 #ifndef __SIM_ANNUNCIATORS_H
 #define __SIM_ANNUNCIATORS_H
 
-#include <sim_init.h>
-#include <sim_resources.h>
-#include <SaHpi.h>
-
 
 /*******************
 Annunciator Definitions
 *********************/
 
-#define ANNUN_MAX       1
-#define ANNOUN_MAX      1
+#define ANNOUN_MAX      5
 
-struct sim_annunc {
-        SaHpiAnnunciatorNumT    Num;
-        SaHpiAnnunciatorModeT   mode;
-        int                     count;
-        SaHpiAnnouncementT      def_announs[ANNOUN_MAX];
-        SaHpiAnnouncementT      *announs;
+struct sim_annunciator {
+        int                  index;
+        SaHpiAnnunciatorRecT annun;
+        SaHpiAnnouncementT   announs[ANNOUN_MAX + 1];
+	const char           *comment;
 };
 
 
-extern struct sim_annunc sim_annunc_rdrs[];
+extern struct sim_annunciator sim_chassis_annunciators[];
+extern struct sim_annunciator sim_cpu_annunciators[];
+extern struct sim_annunciator sim_dasd_annunciators[];
+extern struct sim_annunciator sim_fan_annunciators[];
 
-SaErrorT sim_discover_annunc(RPTable *rpt);
-SaErrorT new_annunc(RPTable *rptcache, SaHpiResourceIdT ResId, int Index);
-int sim_get_next_annunc_num(RPTable *rptcache, SaHpiResourceIdT ResId, SaHpiRdrTypeT type);
+SaErrorT sim_discover_annunciators(struct oh_handler_state * state);
 
 
 #endif
