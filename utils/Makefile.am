@@ -43,6 +43,7 @@ GENERATED_FILES = $(GENERATED_HEADER_FILES) $(GENERATED_SRC_FILES)
 
 EXTRA_DIST = \
 		$(GENERATED_HEADER_FILES) \
+		announcement_utils.h \
 		el_utils.h \
 		epath_utils.h \
 		oh_utils.h \
@@ -50,7 +51,7 @@ EXTRA_DIST = \
 		sahpi_event_utils.h \
 		sahpi_struct_utils.h \
 		sahpi_time_utils.h \
-		uid_utils.h 
+		uid_utils.h
 
 MOSTLYCLEANFILES = @TEST_CLEAN@
 # FIXME:: Add when we can auto-generate files for SMP systems
@@ -71,6 +72,7 @@ lib_LTLIBRARIES = libopenhpiutils.la
 # Generated files (e.g.sahpi_enum_utils.c) must be listed first
 libopenhpiutils_la_SOURCES = \
 			$(GENERATED_SRC_FILES) \
+			announcement_utils.c \
 			el_utils.c \
 			epath_utils.c \
 			rpt_utils.c \

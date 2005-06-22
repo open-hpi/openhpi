@@ -18,6 +18,7 @@
 #define __OH_UTILS_H
 
 /* Order is important */
+#include <announcement_utils.h>
 #include <el_utils.h>
 #include <sahpi_struct_utils.h>
 #include <epath_utils.h>
