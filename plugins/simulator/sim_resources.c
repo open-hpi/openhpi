@@ -43,6 +43,7 @@ struct sim_rpt sim_rpt_array[] = {
                                                 SAHPI_CAPABILITY_RDR |
 			                        SAHPI_CAPABILITY_RESOURCE |
 			                        SAHPI_CAPABILITY_SENSOR |
+                                                SAHPI_CAPABILITY_ANNUNCIATOR |
                                                 SAHPI_CAPABILITY_CONTROL,
                         .ResourceSeverity = SAHPI_CRITICAL,
 			.ResourceFailed = SAHPI_FALSE,
@@ -1730,6 +1731,69 @@ struct sim_control sim_dasd_controls[] = {
 };
 
 struct sim_control sim_fan_controls[] = {
+
+        {} /* Terminate array with a null element */
+};
+
+
+/******************************************************************************
+ *                      Annunciator Definitions
+ *
+ * These are completely made up as RSA has no annunciators
+ ******************************************************************************/
+
+struct sim_annunciator sim_chassis_annunciators[] = {
+        {
+                .index = 1,
+                .annun = {
+                        .AnnunciatorNum = 1,
+                        .AnnunciatorType = SAHPI_ANNUNCIATOR_TYPE_AUDIBLE,
+                        .ModeReadOnly = SAHPI_TRUE,
+                        .MaxConditions = 2,
+                        .Oem = 0,
+                },
+                .announs[0] = {
+                        .EntryId = 1,
+                        .Timestamp = 0,
+                        .AddedByUser = SAHPI_FALSE,
+                        .Severity = SAHPI_MAJOR,
+                        .Acknowledged = SAHPI_FALSE,
+                        .StatusCond = {
+                                .Type = SAHPI_STATUS_COND_TYPE_SENSOR,
+                                .Entity   = {
+                                        .Entry = {
+                                                {SAHPI_ENT_SYSTEM_BOARD, 1},
+                                                {SAHPI_ENT_ROOT, 0}
+                                        },
+                                },
+                                .DomainId = 1,
+                                .ResourceId = 1,
+                                .SensorNum = 1,
+                                .EventState = SAHPI_ES_UNSPECIFIED,
+                                .Name = {
+                                        .Length = 5,
+                                        .Value = "announ"
+                                },
+                                .Mid = 123,
+                        },
+                },
+                .comment = "Annunciator 1"
+        },
+
+        {} /* Terminate array with a null element */
+};
+
+struct sim_annunciator sim_cpu_annunciators[] = {
+
+        {} /* Terminate array with a null element */
+};
+
+struct sim_annunciator sim_dasd_annunciators[] = {
+
+        {} /* Terminate array with a null element */
+};
+
+struct sim_annunciator sim_fan_annunciators[] = {
 
         {} /* Terminate array with a null element */
 };

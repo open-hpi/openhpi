@@ -82,6 +82,7 @@ SaErrorT sim_discover(void *hnd)
 
 	sim_discover_sensors(inst);
 	sim_discover_controls(inst);
+	sim_discover_annunciators(inst);
 
 	return SA_OK;
 }
