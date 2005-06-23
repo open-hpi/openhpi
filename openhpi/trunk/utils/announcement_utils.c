@@ -56,8 +56,7 @@ SaErrorT oh_announcement_close(oh_announcement *ann)
 
 
 /* append a new entry to the announcement list */
-SaErrorT oh_announcement_append(oh_announcement *ann,
-                                SaHpiAnnouncementT *myann)
+SaErrorT oh_announcement_append(oh_announcement *ann, SaHpiAnnouncementT *myann)
 {
         oh_ann_entry *entry;
         time_t tt1;
@@ -142,10 +141,8 @@ SaErrorT oh_announcement_get(oh_announcement *ann, SaHpiEntryIdT srchid,
 
 
 /* get next announcement entry */
-SaErrorT oh_announcement_get_next(oh_announcement *ann,
-                                  SaHpiSeverityT sev,
-                                  SaHpiBoolT ack,
-                                  SaHpiAnnouncementT *entry)
+SaErrorT oh_announcement_get_next(oh_announcement *ann, SaHpiSeverityT sev,
+                                  SaHpiBoolT ack, SaHpiAnnouncementT *entry)
 {
         oh_ann_entry *myentry;
         GList *annlist;
@@ -225,9 +222,8 @@ SaErrorT oh_announcement_get_next(oh_announcement *ann,
 }
 
 
-SaErrorT oh_announcement_ack(oh_announcement *ann,
-                                  SaHpiEntryIdT srchid,
-                                  SaHpiSeverityT sev)
+SaErrorT oh_announcement_ack(oh_announcement *ann, SaHpiEntryIdT srchid,
+                             SaHpiSeverityT sev)
 {
         oh_ann_entry *myentry;
         GList *annlist;
@@ -252,7 +248,7 @@ SaErrorT oh_announcement_ack(oh_announcement *ann,
                 return SA_ERR_HPI_NOT_PRESENT;
         }
 
-        /* set all announcement acknowledged with a specified severity */
+        /* set all announcements acknowledged with a specified severity */
         annlist = g_list_first(ann->annentries);
         if (annlist == NULL) {
                 return SA_ERR_HPI_NOT_PRESENT;
@@ -263,6 +259,49 @@ SaErrorT oh_announcement_ack(oh_announcement *ann,
                 if (sev == SAHPI_ALL_SEVERITIES ||
                     sev == myentry->annentry.Severity)
                         myentry->annentry.Acknowledged = TRUE;
+                annlist = g_list_next(annlist);
+        }
+        return SA_OK;
+}
+
+
+SaErrorT oh_announcement_del(oh_announcement *ann, SaHpiEntryIdT srchid,
+                             SaHpiSeverityT sev)
+{
+        oh_ann_entry *myentry;
+        GList *annlist;
+
+        if (ann == NULL) {
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+        if (g_list_length(ann->annentries) == 0) {
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+
+        if (sev != SAHPI_ENTRY_UNSPECIFIED) {
+                annlist = g_list_first(ann->annentries);
+                while (annlist != NULL) {
+                        myentry = (oh_ann_entry *) annlist->data;
+                        if (srchid == myentry->annentry.EntryId) {
+                                ann->annentries = g_list_remove(annlist, myentry);
+                                return SA_OK;
+                        }
+                        annlist = g_list_next(annlist);
+                }
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+
+        /* remove all announcements with a specified severity */
+        annlist = g_list_first(ann->annentries);
+        if (annlist == NULL) {
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+        myentry = (oh_ann_entry *) annlist->data;
+        while (annlist != NULL) {
+                myentry = (oh_ann_entry *) annlist->data;
+                if (sev == SAHPI_ALL_SEVERITIES ||
+                    sev == myentry->annentry.Severity)
+                        ann->annentries = g_list_remove(annlist, myentry);
                 annlist = g_list_next(annlist);
         }
         return SA_OK;

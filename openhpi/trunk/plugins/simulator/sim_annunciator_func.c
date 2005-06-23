@@ -145,12 +145,38 @@ SaErrorT sim_add_announce(void *hnd,
 			  SaHpiAnnunciatorNumT aid,
 			  SaHpiAnnouncementT *announcement)
 {
+        struct oh_handler_state *state = (struct oh_handler_state *)hnd;
+        oh_announcement *ann;
+
 	if (!hnd || !announcement) {
 		dbg("Invalid parameter.");
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
 
-	return(SA_ERR_HPI_UNSUPPORTED_API);
+        /* Check if resource exists and has annunciator capabilities */
+        SaHpiRptEntryT *rpt = oh_get_resource_by_id(state->rptcache, rid);
+        if (!rpt) {
+                return(SA_ERR_HPI_INVALID_RESOURCE);
+        }
+
+        if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_ANNUNCIATOR)) {
+                return(SA_ERR_HPI_CAPABILITY);
+        }
+        SaHpiRdrT *rdr = oh_get_rdr_by_type(state->rptcache, rid,
+                                            SAHPI_ANNUNCIATOR_RDR, aid);
+        if (rdr == NULL)
+                return(SA_ERR_HPI_NOT_PRESENT);
+
+        /* get our announcement list */
+        ann = (oh_announcement *)oh_get_rdr_data(state->rptcache, rid,
+                                                 rdr->RecordId);
+        if (ann == NULL) {
+                dbg("No annunciator data.");
+                return(SA_ERR_HPI_NOT_PRESENT);
+        }
+
+        /* perform function */
+        return oh_announcement_append(ann, announcement);
 }
 
 
@@ -160,12 +186,38 @@ SaErrorT sim_del_announce(void *hnd,
 			  SaHpiEntryIdT entry,
 			  SaHpiSeverityT sev)
 {
+        struct oh_handler_state *state = (struct oh_handler_state *)hnd;
+        oh_announcement *ann;
+
 	if (!hnd || oh_lookup_severity(sev) == NULL) {
 		dbg("Invalid parameter.");
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
 
-	return(SA_ERR_HPI_UNSUPPORTED_API);
+        /* Check if resource exists and has annunciator capabilities */
+        SaHpiRptEntryT *rpt = oh_get_resource_by_id(state->rptcache, rid);
+        if (!rpt) {
+                return(SA_ERR_HPI_INVALID_RESOURCE);
+        }
+
+        if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_ANNUNCIATOR)) {
+                return(SA_ERR_HPI_CAPABILITY);
+        }
+        SaHpiRdrT *rdr = oh_get_rdr_by_type(state->rptcache, rid,
+                                            SAHPI_ANNUNCIATOR_RDR, aid);
+        if (rdr == NULL)
+                return(SA_ERR_HPI_NOT_PRESENT);
+
+        /* get our announcement list */
+        ann = (oh_announcement *)oh_get_rdr_data(state->rptcache, rid,
+                                                 rdr->RecordId);
+        if (ann == NULL) {
+                dbg("No annunciator data.");
+                return(SA_ERR_HPI_NOT_PRESENT);
+        }
+
+        /* perform function */
+        return oh_announcement_del(ann, entry, sev);
 }
 
 
@@ -174,12 +226,31 @@ SaErrorT sim_get_annunc_mode(void *hnd,
 			     SaHpiAnnunciatorNumT aid,
 			     SaHpiAnnunciatorModeT *mode)
 {
+        struct oh_handler_state *state = (struct oh_handler_state *)hnd;
+
 	if (!hnd || !mode) {
 		dbg("Invalid parameter.");
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
 
-	return(SA_ERR_HPI_UNSUPPORTED_API);
+        /* Check if resource exists and has annunciator capabilities */
+        SaHpiRptEntryT *rpt = oh_get_resource_by_id(state->rptcache, rid);
+        if (!rpt) {
+                return(SA_ERR_HPI_INVALID_RESOURCE);
+        }
+
+        if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_ANNUNCIATOR)) {
+                return(SA_ERR_HPI_CAPABILITY);
+        }
+        SaHpiRdrT *rdr = oh_get_rdr_by_type(state->rptcache, rid,
+                                            SAHPI_ANNUNCIATOR_RDR, aid);
+        if (rdr == NULL)
+                return(SA_ERR_HPI_NOT_PRESENT);
+
+        /* we allow everybody to modify annunciator announcements */
+        *mode = SAHPI_ANNUNCIATOR_MODE_SHARED;
+
+	return(SA_OK);
 }
 
 
@@ -188,12 +259,29 @@ SaErrorT sim_set_annunc_mode(void *hnd,
 			     SaHpiAnnunciatorNumT aid,
 			     SaHpiAnnunciatorModeT mode)
 {
+        struct oh_handler_state *state = (struct oh_handler_state *)hnd;
+
 	if (!hnd || oh_lookup_annunciatormode(mode) == NULL) {
 		dbg("Invalid parameter.");
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
 
-	return(SA_ERR_HPI_UNSUPPORTED_API);
+        /* Check if resource exists and has annunciator capabilities */
+        SaHpiRptEntryT *rpt = oh_get_resource_by_id(state->rptcache, rid);
+        if (!rpt) {
+                return(SA_ERR_HPI_INVALID_RESOURCE);
+        }
+
+        if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_ANNUNCIATOR)) {
+                return(SA_ERR_HPI_CAPABILITY);
+        }
+        SaHpiRdrT *rdr = oh_get_rdr_by_type(state->rptcache, rid,
+                                            SAHPI_ANNUNCIATOR_RDR, aid);
+        if (rdr == NULL)
+                return(SA_ERR_HPI_NOT_PRESENT);
+
+        /* our mode is not changeable */
+	return(SA_ERR_HPI_READ_ONLY);
 }
 
 
