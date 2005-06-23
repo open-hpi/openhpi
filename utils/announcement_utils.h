@@ -46,18 +46,16 @@ typedef struct {
 /* General EL utility calls */
 oh_announcement *oh_announcement_create(void);
 SaErrorT oh_announcement_close(oh_announcement *ann);
-SaErrorT oh_announcement_append(oh_announcement *ann,
-                                SaHpiAnnouncementT *myann);
+SaErrorT oh_announcement_append(oh_announcement *ann, SaHpiAnnouncementT *myann);
 SaErrorT oh_announcement_clear(oh_announcement *ann);
 SaErrorT oh_announcement_get(oh_announcement *ann, SaHpiEntryIdT srchid,
                              SaHpiAnnouncementT *myann);
-SaErrorT oh_announcement_get_next(oh_announcement *ann,
-                                  SaHpiSeverityT sev,
-                                  SaHpiBoolT ack,
-                                  SaHpiAnnouncementT *entry);
-SaErrorT oh_announcement_ack(oh_announcement *ann,
-                                  SaHpiEntryIdT entry,
-                                  SaHpiSeverityT sev);
+SaErrorT oh_announcement_get_next(oh_announcement *ann, SaHpiSeverityT sev,
+                                  SaHpiBoolT ack, SaHpiAnnouncementT *entry);
+SaErrorT oh_announcement_ack(oh_announcement *ann, SaHpiEntryIdT entry,
+                             SaHpiSeverityT sev);
+SaErrorT oh_announcement_del(oh_announcement *ann, SaHpiEntryIdT entry,
+                             SaHpiSeverityT sev);
 
 
 #ifdef __cplusplus

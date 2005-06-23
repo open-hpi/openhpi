@@ -1777,6 +1777,56 @@ struct sim_annunciator sim_chassis_annunciators[] = {
                                 .Mid = 123,
                         },
                 },
+                .announs[1] = {
+                        .EntryId = 2,
+                        .Timestamp = 0,
+                        .AddedByUser = SAHPI_FALSE,
+                        .Severity = SAHPI_MINOR,
+                        .Acknowledged = SAHPI_FALSE,
+                        .StatusCond = {
+                                .Type = SAHPI_STATUS_COND_TYPE_SENSOR,
+                                .Entity   = {
+                                        .Entry = {
+                                                {SAHPI_ENT_SYSTEM_BOARD, 1},
+                                                {SAHPI_ENT_ROOT, 0}
+                                        },
+                                },
+                                .DomainId = 1,
+                                .ResourceId = 1,
+                                .SensorNum = 1,
+                                .EventState = SAHPI_ES_UNSPECIFIED,
+                                .Name = {
+                                        .Length = 5,
+                                        .Value = "announ"
+                                },
+                                .Mid = 123,
+                        },
+                },
+                .announs[2] = {
+                        .EntryId = 3,
+                        .Timestamp = 0,
+                        .AddedByUser = SAHPI_FALSE,
+                        .Severity = SAHPI_INFORMATIONAL,
+                        .Acknowledged = SAHPI_FALSE,
+                        .StatusCond = {
+                                .Type = SAHPI_STATUS_COND_TYPE_SENSOR,
+                                .Entity   = {
+                                        .Entry = {
+                                                {SAHPI_ENT_SYSTEM_BOARD, 1},
+                                                {SAHPI_ENT_ROOT, 0}
+                                        },
+                                },
+                                .DomainId = 1,
+                                .ResourceId = 1,
+                                .SensorNum = 1,
+                                .EventState = SAHPI_ES_UNSPECIFIED,
+                                .Name = {
+                                        .Length = 5,
+                                        .Value = "announ"
+                                },
+                                .Mid = 123,
+                        },
+                },
                 .comment = "Annunciator 1"
         },
 
