@@ -528,7 +528,7 @@ CC_WARNINGS="\
 
 CXX_WARNINGS="\
         -Wall \
-   	-Wpointer-arith \	
+   	-Wpointer-arith \
         -Wformat=2 \
         -Wformat-security \
         -Wformat-nonliteral \
@@ -582,6 +582,7 @@ AC_CONFIG_FILES([openhpi.spec
 	utils/t/sahpi/Makefile
 	utils/t/el/Makefile
 	utils/t/uid/Makefile
+	utils/t/ann/Makefile
 	marshal/Makefile
 	marshal/t/Makefile
         plugins/Makefile

@@ -283,7 +283,8 @@ SaErrorT oh_announcement_del(oh_announcement *ann, SaHpiEntryIdT srchid,
                 while (annlist != NULL) {
                         myentry = (oh_ann_entry *) annlist->data;
                         if (srchid == myentry->annentry.EntryId) {
-                                ann->annentries = g_list_remove(annlist, myentry);
+                                ann->annentries =
+                                        g_list_remove(ann->annentries, myentry);
                                 return SA_OK;
                         }
                         annlist = g_list_next(annlist);
