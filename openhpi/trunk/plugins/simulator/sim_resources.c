@@ -44,6 +44,7 @@ struct sim_rpt sim_rpt_array[] = {
 			                        SAHPI_CAPABILITY_RESOURCE |
 			                        SAHPI_CAPABILITY_SENSOR |
                                                 SAHPI_CAPABILITY_ANNUNCIATOR |
+                                                SAHPI_CAPABILITY_POWER |
                                                 SAHPI_CAPABILITY_CONTROL,
                         .ResourceSeverity = SAHPI_CRITICAL,
 			.ResourceFailed = SAHPI_FALSE,
