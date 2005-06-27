@@ -35,5 +35,6 @@ libsimulator_la_SOURCES	= sim_init.c sim_init.h \
 			  sim_el.c sim_el.h \
 			  sim_annunciators.c sim_annunciators.h \
 			  sim_annunciator_func.c sim_annunciator_func.h \
-			  sim_power.c sim_power.h
+			  sim_power.c sim_power.h \
+			  sim_reset.c sim_reset.h
 libsimulator_la_LDFLAGS	= -version-info @HPI_LIB_VERSION@
