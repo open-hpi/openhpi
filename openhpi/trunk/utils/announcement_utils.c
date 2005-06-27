@@ -128,6 +128,17 @@ SaErrorT oh_announcement_get(oh_announcement *ann, SaHpiEntryIdT srchid,
         }
 
         annlist = g_list_first(ann->annentries);
+        if (srchid == SAHPI_FIRST_ENTRY && annlist != NULL) {
+                myentry = (oh_ann_entry *) annlist->data;
+                memcpy(entry, &myentry->annentry, sizeof(SaHpiAnnouncementT));
+                return SA_OK;
+        }
+        if (srchid == SAHPI_LAST_ENTRY && annlist != NULL) {
+                annlist = g_list_last(ann->annentries);
+                myentry = (oh_ann_entry *) annlist->data;
+                memcpy(entry, &myentry->annentry, sizeof(SaHpiAnnouncementT));
+                return SA_OK;
+        }
         while (annlist != NULL) {
                 myentry = (oh_ann_entry *) annlist->data;
                 if (srchid == myentry->annentry.EntryId) {
@@ -226,6 +237,7 @@ SaErrorT oh_announcement_ack(oh_announcement *ann, SaHpiEntryIdT srchid,
                              SaHpiSeverityT sev)
 {
         oh_ann_entry *myentry;
+        int acked = FALSE;
         GList *annlist;
 
         if (ann == NULL) {
@@ -235,15 +247,18 @@ SaErrorT oh_announcement_ack(oh_announcement *ann, SaHpiEntryIdT srchid,
                 return SA_ERR_HPI_NOT_PRESENT;
         }
 
-        if (sev != SAHPI_ENTRY_UNSPECIFIED) {
+        if (srchid != SAHPI_ENTRY_UNSPECIFIED) {
                 annlist = g_list_first(ann->annentries);
                 while (annlist != NULL) {
                         myentry = (oh_ann_entry *) annlist->data;
                         if (srchid == myentry->annentry.EntryId) {
                                 myentry->annentry.Acknowledged = TRUE;
-                                return SA_OK;
+                                acked = TRUE;
                         }
                         annlist = g_list_next(annlist);
+                }
+                if (acked) {
+                        return SA_OK;
                 }
                 return SA_ERR_HPI_NOT_PRESENT;
         }
@@ -253,15 +268,19 @@ SaErrorT oh_announcement_ack(oh_announcement *ann, SaHpiEntryIdT srchid,
         if (annlist == NULL) {
                 return SA_ERR_HPI_NOT_PRESENT;
         }
-        myentry = (oh_ann_entry *) annlist->data;
         while (annlist != NULL) {
                 myentry = (oh_ann_entry *) annlist->data;
                 if (sev == SAHPI_ALL_SEVERITIES ||
-                    sev == myentry->annentry.Severity)
+                    sev == myentry->annentry.Severity) {
                         myentry->annentry.Acknowledged = TRUE;
+                        acked = TRUE;
+                }
                 annlist = g_list_next(annlist);
         }
-        return SA_OK;
+        if (acked) {
+                return SA_OK;
+        }
+        return SA_ERR_HPI_NOT_PRESENT;
 }
 
 
@@ -278,7 +297,7 @@ SaErrorT oh_announcement_del(oh_announcement *ann, SaHpiEntryIdT srchid,
                 return SA_ERR_HPI_NOT_PRESENT;
         }
 
-        if (sev != SAHPI_ENTRY_UNSPECIFIED) {
+        if (srchid != SAHPI_ENTRY_UNSPECIFIED) {
                 annlist = g_list_first(ann->annentries);
                 while (annlist != NULL) {
                         myentry = (oh_ann_entry *) annlist->data;
@@ -297,13 +316,15 @@ SaErrorT oh_announcement_del(oh_announcement *ann, SaHpiEntryIdT srchid,
         if (annlist == NULL) {
                 return SA_ERR_HPI_NOT_PRESENT;
         }
-        myentry = (oh_ann_entry *) annlist->data;
         while (annlist != NULL) {
                 myentry = (oh_ann_entry *) annlist->data;
                 if (sev == SAHPI_ALL_SEVERITIES ||
-                    sev == myentry->annentry.Severity)
+                    sev == myentry->annentry.Severity) {
                         ann->annentries = g_list_remove(annlist, myentry);
-                annlist = g_list_next(annlist);
+                        annlist = g_list_first(ann->annentries);
+                } else {
+                        annlist = g_list_next(annlist);
+                }
         }
         return SA_OK;
 }
