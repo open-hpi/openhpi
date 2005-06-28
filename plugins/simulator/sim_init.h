@@ -43,6 +43,9 @@
 #include <sim_el.h>
 #include <sim_power.h>
 #include <sim_reset.h>
+#include <sim_inventory.h>
+#include <sim_watchdog.h>
+#include <sim_hotswap.h>
 
 void *sim_open(GHashTable *handler_config);
 SaErrorT sim_discover(void *hnd);
