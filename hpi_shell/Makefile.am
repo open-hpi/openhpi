@@ -7,6 +7,9 @@ MOSTLYCLEANFILES        = @TEST_CLEAN@
 REMOTE_SOURCES 	= openhpiclient.cpp \
 			openhpiclient.h
 
+EXTRA_DIST = \
+                hpi_cmd.h
+
 if SHELL_CLIENT
 COMMONLIBS		= $(top_builddir)/hpi_ui_lib/libopenhpiui.la \
 				$(top_builddir)/marshal/libohtcpconnx.la \
