@@ -41,8 +41,8 @@
 #include <sim_annunciators.h>
 #include <sim_annunciator_func.h>
 #include <sim_el.h>
-#include <sim_power.h>
-#include <sim_reset.h>
+//#include <sim_annunciators.h>
+//#include <sim_annunciator_func.h>
 
 void *sim_open(GHashTable *handler_config);
 SaErrorT sim_discover(void *hnd);

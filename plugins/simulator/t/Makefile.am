@@ -46,18 +46,10 @@ TESTS = sim_sanity_000 \
 	sim_sanity_017 \
 	sim_sanity_018 \
 	sim_sanity_019 \
-	sim_sanity_020 \
-	sim_sanity_021 \
-	sim_sanity_022 \
-	sim_sanity_023 \
-	sim_sanity_024 \
-	sim_sanity_025 \
-	sim_sanity_026 \
-	sim_sanity_027 \
-	sim_sanity_028 \
-	sim_sanity_029 \
-	sim_sanity_030 \
-	sim_sanity_031
+	sim_sanity_020
+#	sim_sanity_100 \
+#	sim_sanity_101 \
+#	sim_sanity_102
 
 check_PROGRAMS = $(TESTS)
 
@@ -103,26 +95,9 @@ sim_sanity_019_SOURCES = sim_sanity_019.c
 sim_sanity_019_LDADD = $(TDEPLIB)
 sim_sanity_020_SOURCES = sim_sanity_020.c
 sim_sanity_020_LDADD = $(TDEPLIB)
-sim_sanity_021_SOURCES = sim_sanity_021.c
-sim_sanity_021_LDADD = $(TDEPLIB)
-sim_sanity_022_SOURCES = sim_sanity_022.c
-sim_sanity_022_LDADD = $(TDEPLIB)
-sim_sanity_023_SOURCES = sim_sanity_023.c
-sim_sanity_023_LDADD = $(TDEPLIB)
-sim_sanity_024_SOURCES = sim_sanity_024.c
-sim_sanity_024_LDADD = $(TDEPLIB)
-sim_sanity_025_SOURCES = sim_sanity_025.c
-sim_sanity_025_LDADD = $(TDEPLIB)
-sim_sanity_026_SOURCES = sim_sanity_026.c
-sim_sanity_026_LDADD = $(TDEPLIB)
-sim_sanity_027_SOURCES = sim_sanity_027.c
-sim_sanity_027_LDADD = $(TDEPLIB)
-sim_sanity_028_SOURCES = sim_sanity_028.c
-sim_sanity_028_LDADD = $(TDEPLIB)
-sim_sanity_029_SOURCES = sim_sanity_029.c
-sim_sanity_029_LDADD = $(TDEPLIB)
-sim_sanity_030_SOURCES = sim_sanity_030.c
-sim_sanity_030_LDADD = $(TDEPLIB)
-sim_sanity_031_SOURCES = sim_sanity_031.c
-sim_sanity_031_LDADD = $(TDEPLIB)
-
+sim_sanity_100_SOURCES = sim_sanity_100.c
+sim_sanity_100_LDADD = $(TDEPLIB)
+sim_sanity_101_SOURCES = sim_sanity_101.c
+sim_sanity_101_LDADD = $(TDEPLIB)
+sim_sanity_102_SOURCES = sim_sanity_102.c
+sim_sanity_102_LDADD = $(TDEPLIB)
