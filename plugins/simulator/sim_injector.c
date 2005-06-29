@@ -76,6 +76,7 @@ SaErrorT sim_inject_resource(struct oh_handler_state *state,
 	SaHpiRptEntryT *res;
 	char *entity_root;
 	struct oh_event event;
+        struct simResourceInfo *privinfo;
         SaErrorT rc;
 
         /* check arguments */
@@ -98,6 +99,19 @@ SaErrorT sim_inject_resource(struct oh_handler_state *state,
         res->ResourceId = oh_uid_from_entity_path(&res->ResourceEntity);
         sim_create_resourcetag(&res->ResourceTag, comment,
                                root_ep.Entry[0].EntityLocation);
+
+        /* set up our private data store for resource state info */
+        if (!privdata) {
+                privinfo = (struct simResourceInfo *)g_malloc0(sizeof(struct simResourceInfo));
+                if (privinfo == NULL) {
+                        dbg("Out of memory in build_rptcache\n");
+                        return SA_ERR_HPI_OUT_OF_MEMORY;
+                }
+                if (res->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP) {
+                        privinfo->cur_hsstate = SAHPI_HS_STATE_ACTIVE;
+                }
+                privdata = (void *)privinfo;
+        }
 
         /* perform the injection */
         dbg("Injecting ResourceId %d", res->ResourceId);

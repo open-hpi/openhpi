@@ -102,7 +102,35 @@ struct sim_rpt sim_rpt_array[] = {
                         .ResourceSeverity = SAHPI_MAJOR,
  			.ResourceFailed = SAHPI_FALSE,
                 },
-                .comment = "DASD"
+                .comment = "DASD 1"
+        },
+        {
+                .rpt = {
+                        .ResourceInfo = {
+                                .ManufacturerId = IBM_MANUFACTURING_ID,
+                        },
+                        .ResourceEntity = {
+                                .Entry[0] =
+				{
+                                        .EntityType = SAHPI_ENT_DISK_BAY,
+                                        .EntityLocation = SIM_HPI_LOCATION_BASE
+                                },
+                                {
+                                        .EntityType = SAHPI_ENT_ROOT,
+                                        .EntityLocation = 0
+                                }
+			},
+                        .ResourceCapabilities = SAHPI_CAPABILITY_EVT_DEASSERTS |
+			                        SAHPI_CAPABILITY_RDR |
+			                        SAHPI_CAPABILITY_RESOURCE |
+                                                SAHPI_CAPABILITY_FRU |
+                                                SAHPI_CAPABILITY_MANAGED_HOTSWAP |
+                                                SAHPI_HS_CAPABILITY_AUTOEXTRACT_READ_ONLY |
+                                                SAHPI_CAPABILITY_SENSOR,
+                        .ResourceSeverity = SAHPI_MAJOR,
+ 			.ResourceFailed = SAHPI_FALSE,
+                },
+                .comment = "HS DASD 1"
         },
         /* Fans */
         {
