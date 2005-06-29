@@ -1079,14 +1079,13 @@ SaErrorT SAHPI_API saHpiEventAdd (
         struct oh_event e;
 	SaHpiEventLogInfoT info;        
         SaErrorT error = SA_OK;
+	struct timeval tv1;
 
         error = oh_valid_addevent(EvtEntry);
         if (error) {
 		dbg("event is not valid");
 		return error;
 	}
-	
-
 
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
@@ -1103,6 +1102,10 @@ SaErrorT SAHPI_API saHpiEventAdd (
 			info.UserEventMaxSize);
 		return SA_ERR_HPI_INVALID_DATA;
 	}
+
+	/* Timestamp the incoming user event */
+	gettimeofday(&tv1, NULL);
+	EvtEntry->Timestamp = (SaHpiTimeT) tv1.tv_sec * 1000000000 + tv1.tv_usec * 1000;
 	
         e.did = did;
         e.hid = 0;
