@@ -1102,19 +1102,21 @@ SaErrorT SAHPI_API saHpiEventAdd (
 			info.UserEventMaxSize);
 		return SA_ERR_HPI_INVALID_DATA;
 	}
-
-	/* Timestamp the incoming user event */
-	gettimeofday(&tv1, NULL);
-	EvtEntry->Timestamp = (SaHpiTimeT) tv1.tv_sec * 1000000000 + tv1.tv_usec * 1000;
 	
         e.did = did;
         e.hid = 0;
         e.type = OH_ET_HPI;
+	/* Copy SaHpiEventT into oh_event struct */
         e.u.hpi_event.event = *EvtEntry;
+	/* Timestamp the incoming user event */
+	gettimeofday(&tv1, NULL);
+	e.u.hpi_event.event.Timestamp =
+		(SaHpiTimeT) tv1.tv_sec * 1000000000 + tv1.tv_usec * 1000;
+	/* indicate there is no rdr or resource */
 	e.u.hpi_event.rdr.RdrType = SAHPI_NO_RECORD;
-	e.u.hpi_event.res.ResourceId = SAHPI_UNSPECIFIED_RESOURCE_ID; /* indicate there is not resource */
-	e.u.hpi_event.res.ResourceSeverity = SAHPI_INFORMATIONAL; /* indicate this is a user-added event */
-
+	e.u.hpi_event.res.ResourceId = SAHPI_UNSPECIFIED_RESOURCE_ID;
+	/* indicate this is a user-added event */
+	e.u.hpi_event.res.ResourceSeverity = SAHPI_INFORMATIONAL;
 
         g_async_queue_push(oh_process_q, g_memdup(&e, sizeof(struct oh_event)));
         
