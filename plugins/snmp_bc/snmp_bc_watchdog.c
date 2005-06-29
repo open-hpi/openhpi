@@ -49,4 +49,8 @@ void * oh_get_watchdog_info (void *, SaHpiResourceIdT, SaHpiWatchdogNumT,
 void * oh_set_watchdog_info (void *, SaHpiResourceIdT, SaHpiWatchdogNumT,
                              SaHpiWatchdogT *)
                 __attribute__ ((weak, alias("snmp_bc_set_watchdog_info")));
+		
+void * oh_reset_watchdog (void *, SaHpiResourceIdT, SaHpiWatchdogNumT)
+                __attribute__ ((weak, alias("snmp_bc_reset_watchdog")));
+
 
