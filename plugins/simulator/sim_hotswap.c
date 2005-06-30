@@ -40,6 +40,7 @@ SaErrorT sim_get_hotswap_state(void *hnd,
 		return SA_ERR_HPI_INVALID_RESOURCE;
 	}
         if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
+		dbg("No hs capability");
 		return SA_ERR_HPI_CAPABILITY;
 	}
 

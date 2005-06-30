@@ -97,7 +97,7 @@ struct sim_rpt sim_rpt_array[] = {
 			},
                         .ResourceCapabilities = SAHPI_CAPABILITY_EVT_DEASSERTS |
 			                        SAHPI_CAPABILITY_RDR |
-			                        SAHPI_CAPABILITY_RESOURCE |
+    			                        SAHPI_CAPABILITY_RESOURCE |
                                                 SAHPI_CAPABILITY_SENSOR,
                         .ResourceSeverity = SAHPI_MAJOR,
  			.ResourceFailed = SAHPI_FALSE,
@@ -130,7 +130,7 @@ struct sim_rpt sim_rpt_array[] = {
                         .ResourceSeverity = SAHPI_MAJOR,
  			.ResourceFailed = SAHPI_FALSE,
                 },
-                .comment = "HS DASD 1"
+                .comment = "HS DASD 2"
         },
         /* Fans */
         {
