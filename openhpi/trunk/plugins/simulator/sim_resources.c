@@ -1778,7 +1778,7 @@ struct sim_annunciator sim_chassis_annunciators[] = {
                 .annun = {
                         .AnnunciatorNum = 1,
                         .AnnunciatorType = SAHPI_ANNUNCIATOR_TYPE_AUDIBLE,
-                        .ModeReadOnly = SAHPI_TRUE,
+                        .ModeReadOnly = SAHPI_FALSE,
                         .MaxConditions = 2,
                         .Oem = 0,
                 },

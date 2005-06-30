@@ -25,6 +25,11 @@ Annunciator Definitions
 
 #define ANNOUN_MAX      5
 
+struct simAnnunciatorInfo {
+        SaHpiAnnunciatorModeT mode;
+        oh_announcement       *announs;
+};
+
 struct sim_annunciator {
         int                  index;
         SaHpiAnnunciatorRecT annun;
