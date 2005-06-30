@@ -23,7 +23,7 @@ static SaErrorT new_annunciator(struct oh_handler_state * state,
                                 struct sim_annunciator * myannun) {
         SaHpiRdrT res_rdr;
         SaHpiRptEntryT *RptEntry;
-        oh_announcement *announ = NULL;
+        struct simAnnunciatorInfo *info = NULL;
 
         // set up res_rdr
         res_rdr.RdrType = SAHPI_ANNUNCIATOR_RDR;
@@ -38,25 +38,32 @@ static SaErrorT new_annunciator(struct oh_handler_state * state,
                 dbg("NULL rpt pointer\n");
                 return SA_ERR_HPI_INVALID_RESOURCE;
         }
-        else{
+        else {
                 res_rdr.Entity = RptEntry->ResourceEntity;
         }
 
-        //save the announcements for the annunciator
+        // save the announcements for the annunciator
         int i = 0;
         while (myannun->announs[i].EntryId != 0) {
-                if (announ == NULL) {
-                        announ = oh_announcement_create();
-                        if (announ == NULL) {
+                if (info == NULL) {
+                        info = (struct simAnnunciatorInfo *)g_malloc(sizeof(struct simAnnunciatorInfo *));
+                        if (info == NULL) {
+                                return SA_ERR_HPI_OUT_OF_SPACE;
+                        }
+                        // set the default mode value
+                        info->mode = SAHPI_ANNUNCIATOR_MODE_SHARED;
+                        // set up the announcement list
+                        info->announs = oh_announcement_create();
+                        if (info->announs == NULL) {
                                 return SA_ERR_HPI_OUT_OF_SPACE;
                         }
                 }
-                oh_announcement_append(announ, &myannun->announs[i]);
+                oh_announcement_append(info->announs, &myannun->announs[i]);
                 i++;
         }
 
         /* everything ready so inject the rdr */
-        sim_inject_rdr(state, ResId, &res_rdr, announ);
+        sim_inject_rdr(state, ResId, &res_rdr, info);
 
         return 0;
 }

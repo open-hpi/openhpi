@@ -24,7 +24,7 @@ SaErrorT sim_get_next_announce(void *hnd,
 			       SaHpiAnnouncementT *announcement)
 {
         struct oh_handler_state *state = (struct oh_handler_state *)hnd;
-        oh_announcement *ann;
+        struct simAnnunciatorInfo *info;
 
 	if (!hnd || !announcement || oh_lookup_severity(sev) == NULL) {
 		dbg("Invalid parameter.");
@@ -45,16 +45,17 @@ SaErrorT sim_get_next_announce(void *hnd,
         if (rdr == NULL)
                 return(SA_ERR_HPI_NOT_PRESENT);
 
-        /* get our announcement list */
-        ann = (oh_announcement *)oh_get_rdr_data(state->rptcache, rid,
-                                                 rdr->RecordId);
-        if (ann == NULL) {
+        /* get our announcement info */
+        info = (struct simAnnunciatorInfo *)oh_get_rdr_data(state->rptcache, rid,
+                                                            rdr->RecordId);
+        if (info == NULL) {
                 dbg("No annunciator data.");
                 return(SA_ERR_HPI_NOT_PRESENT);
         }
 
         /* perform function */
-        return oh_announcement_get_next(ann, sev, unackonly, announcement);
+        return oh_announcement_get_next(info->announs, sev, unackonly,
+                                        announcement);
 }
 
 
@@ -65,7 +66,7 @@ SaErrorT sim_get_announce(void *hnd,
 			  SaHpiAnnouncementT *announcement)
  {
          struct oh_handler_state *state = (struct oh_handler_state *)hnd;
-         oh_announcement *ann;
+         struct simAnnunciatorInfo *info;
 
          if (!hnd || !announcement) {
                  dbg("Invalid parameter.");
@@ -86,16 +87,16 @@ SaErrorT sim_get_announce(void *hnd,
          if (rdr == NULL)
                  return(SA_ERR_HPI_NOT_PRESENT);
 
-         /* get our announcement list */
-         ann = (oh_announcement *)oh_get_rdr_data(state->rptcache, rid,
-                                                  rdr->RecordId);
-         if (ann == NULL) {
+         /* get our announcement info */
+         info = (struct simAnnunciatorInfo *)oh_get_rdr_data(state->rptcache, rid,
+                                                             rdr->RecordId);
+         if (info == NULL) {
                  dbg("No annunciator data.");
                  return(SA_ERR_HPI_NOT_PRESENT);
          }
 
          /* perform function */
-         return oh_announcement_get(ann, entry, announcement);
+         return oh_announcement_get(info->announs, entry, announcement);
  }
 
 
@@ -106,7 +107,7 @@ SaErrorT sim_ack_announce(void *hnd,
 			  SaHpiSeverityT sev)
 {
         struct oh_handler_state *state = (struct oh_handler_state *)hnd;
-        oh_announcement *ann;
+        struct simAnnunciatorInfo *info;
 
 	if (!hnd || oh_lookup_severity(sev) == NULL) {
 		dbg("Invalid parameter.");
@@ -127,16 +128,16 @@ SaErrorT sim_ack_announce(void *hnd,
         if (rdr == NULL)
                 return(SA_ERR_HPI_NOT_PRESENT);
 
-        /* get our announcement list */
-        ann = (oh_announcement *)oh_get_rdr_data(state->rptcache, rid,
-                                                 rdr->RecordId);
-        if (ann == NULL) {
+        /* get our announcement info */
+        info = (struct simAnnunciatorInfo *)oh_get_rdr_data(state->rptcache, rid,
+                                                            rdr->RecordId);
+        if (info == NULL) {
                 dbg("No annunciator data.");
                 return(SA_ERR_HPI_NOT_PRESENT);
         }
 
         /* perform function */
-        return oh_announcement_ack(ann, entry, sev);
+        return oh_announcement_ack(info->announs, entry, sev);
 }
 
 
@@ -146,7 +147,7 @@ SaErrorT sim_add_announce(void *hnd,
 			  SaHpiAnnouncementT *announcement)
 {
         struct oh_handler_state *state = (struct oh_handler_state *)hnd;
-        oh_announcement *ann;
+        struct simAnnunciatorInfo *info;
 
 	if (!hnd || !announcement) {
 		dbg("Invalid parameter.");
@@ -167,16 +168,16 @@ SaErrorT sim_add_announce(void *hnd,
         if (rdr == NULL)
                 return(SA_ERR_HPI_NOT_PRESENT);
 
-        /* get our announcement list */
-        ann = (oh_announcement *)oh_get_rdr_data(state->rptcache, rid,
-                                                 rdr->RecordId);
-        if (ann == NULL) {
+        /* get our announcement info */
+        info = (struct simAnnunciatorInfo *)oh_get_rdr_data(state->rptcache, rid,
+                                                            rdr->RecordId);
+        if (info == NULL) {
                 dbg("No annunciator data.");
                 return(SA_ERR_HPI_NOT_PRESENT);
         }
 
         /* perform function */
-        return oh_announcement_append(ann, announcement);
+        return oh_announcement_append(info->announs, announcement);
 }
 
 
@@ -187,7 +188,7 @@ SaErrorT sim_del_announce(void *hnd,
 			  SaHpiSeverityT sev)
 {
         struct oh_handler_state *state = (struct oh_handler_state *)hnd;
-        oh_announcement *ann;
+        struct simAnnunciatorInfo *info;
 
 	if (!hnd || oh_lookup_severity(sev) == NULL) {
 		dbg("Invalid parameter.");
@@ -208,16 +209,16 @@ SaErrorT sim_del_announce(void *hnd,
         if (rdr == NULL)
                 return(SA_ERR_HPI_NOT_PRESENT);
 
-        /* get our announcement list */
-        ann = (oh_announcement *)oh_get_rdr_data(state->rptcache, rid,
-                                                 rdr->RecordId);
-        if (ann == NULL) {
+        /* get our announcement info */
+        info = (struct simAnnunciatorInfo *)oh_get_rdr_data(state->rptcache, rid,
+                                                            rdr->RecordId);
+        if (info == NULL) {
                 dbg("No annunciator data.");
                 return(SA_ERR_HPI_NOT_PRESENT);
         }
 
         /* perform function */
-        return oh_announcement_del(ann, entry, sev);
+        return oh_announcement_del(info->announs, entry, sev);
 }
 
 
@@ -227,6 +228,7 @@ SaErrorT sim_get_annunc_mode(void *hnd,
 			     SaHpiAnnunciatorModeT *mode)
 {
         struct oh_handler_state *state = (struct oh_handler_state *)hnd;
+        struct simAnnunciatorInfo *info;
 
 	if (!hnd || !mode) {
 		dbg("Invalid parameter.");
@@ -247,8 +249,14 @@ SaErrorT sim_get_annunc_mode(void *hnd,
         if (rdr == NULL)
                 return(SA_ERR_HPI_NOT_PRESENT);
 
-        /* we allow everybody to modify annunciator announcements */
-        *mode = SAHPI_ANNUNCIATOR_MODE_SHARED;
+        /* get our announcement info */
+        info = (struct simAnnunciatorInfo *)oh_get_rdr_data(state->rptcache, rid,
+                                                            rdr->RecordId);
+        if (info == NULL) {
+                dbg("No annunciator data.");
+                return(SA_ERR_HPI_NOT_PRESENT);
+        }
+        *mode = info->mode;
 
 	return(SA_OK);
 }
@@ -260,6 +268,7 @@ SaErrorT sim_set_annunc_mode(void *hnd,
 			     SaHpiAnnunciatorModeT mode)
 {
         struct oh_handler_state *state = (struct oh_handler_state *)hnd;
+        struct simAnnunciatorInfo *info;
 
 	if (!hnd || oh_lookup_annunciatormode(mode) == NULL) {
 		dbg("Invalid parameter.");
@@ -280,8 +289,16 @@ SaErrorT sim_set_annunc_mode(void *hnd,
         if (rdr == NULL)
                 return(SA_ERR_HPI_NOT_PRESENT);
 
-        /* our mode is not changeable */
-	return(SA_ERR_HPI_READ_ONLY);
+        /* get our announcement info */
+        info = (struct simAnnunciatorInfo *)oh_get_rdr_data(state->rptcache, rid,
+                                                            rdr->RecordId);
+        if (info == NULL) {
+                dbg("No annunciator data.");
+                return(SA_ERR_HPI_NOT_PRESENT);
+        }
+
+        info->mode = mode;
+	return SA_OK;
 }
 
 

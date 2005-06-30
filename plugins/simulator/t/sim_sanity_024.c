@@ -43,8 +43,8 @@ int main(int argc, char **argv)
 	}
 
         rc = saHpiAnnunciatorModeSet(sid, 1, 1, SAHPI_ANNUNCIATOR_MODE_AUTO);
-        if (rc != SA_ERR_HPI_READ_ONLY) {
-		dbg("set annunciator mode should always return an error");
+        if (rc != SA_OK) {
+		dbg("Couldn't set annunciator mode");
 		dbg("Error %s",oh_lookup_error(rc));
                 return -1;
 	}
