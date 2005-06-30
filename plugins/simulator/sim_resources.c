@@ -46,6 +46,7 @@ struct sim_rpt sim_rpt_array[] = {
                                                 SAHPI_CAPABILITY_ANNUNCIATOR |
                                                 SAHPI_CAPABILITY_POWER |
                                                 SAHPI_CAPABILITY_RESET |
+                                                SAHPI_CAPABILITY_WATCHDOG |
                                                 SAHPI_CAPABILITY_CONTROL,
                         .ResourceSeverity = SAHPI_CRITICAL,
 			.ResourceFailed = SAHPI_FALSE,
@@ -1874,6 +1875,51 @@ struct sim_annunciator sim_dasd_annunciators[] = {
 };
 
 struct sim_annunciator sim_fan_annunciators[] = {
+
+        {} /* Terminate array with a null element */
+};
+
+
+/******************************************************************************
+ *                      Watchdog Definitions
+ *
+ * These are completely made up as RSA has no watchdogs
+ ******************************************************************************/
+
+struct sim_watchdog sim_chassis_watchdogs[] = {
+        {
+                .watchdogrec = {
+                        .WatchdogNum = 1,
+                        .Oem = 0,
+                },
+                .wd = {
+                        .Log = SAHPI_TRUE,
+                        .Running = SAHPI_FALSE,
+                        .TimerUse = SAHPI_WTU_NONE,
+                        .TimerAction = SAHPI_WA_NO_ACTION,
+                        .PretimerInterrupt = SAHPI_WPI_NONE,
+                        .PreTimeoutInterval = 0,
+                        .TimerUseExpFlags = SAHPI_WTU_NONE,
+                        .InitialCount = 0,
+                        .PresentCount = 0,
+                },
+                .comment = "Watchdog 1"
+        },
+
+        {} /* Terminate array with a null element */
+};
+
+struct sim_watchdog sim_cpu_watchdogs[] = {
+
+        {} /* Terminate array with a null element */
+};
+
+struct sim_watchdog sim_dasd_watchdogs[] = {
+
+        {} /* Terminate array with a null element */
+};
+
+struct sim_watchdog sim_fan_watchdogs[] = {
 
         {} /* Terminate array with a null element */
 };
