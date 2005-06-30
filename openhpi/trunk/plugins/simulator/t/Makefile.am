@@ -57,7 +57,9 @@ TESTS = sim_sanity_000 \
 	sim_sanity_028 \
 	sim_sanity_029 \
 	sim_sanity_030 \
-	sim_sanity_031
+	sim_sanity_031 \
+	sim_sanity_032 \
+	sim_sanity_033
 
 check_PROGRAMS = $(TESTS)
 
@@ -125,4 +127,8 @@ sim_sanity_030_SOURCES = sim_sanity_030.c
 sim_sanity_030_LDADD = $(TDEPLIB)
 sim_sanity_031_SOURCES = sim_sanity_031.c
 sim_sanity_031_LDADD = $(TDEPLIB)
+sim_sanity_032_SOURCES = sim_sanity_032.c
+sim_sanity_032_LDADD = $(TDEPLIB)
+sim_sanity_033_SOURCES = sim_sanity_033.c
+sim_sanity_033_LDADD = $(TDEPLIB)
 
