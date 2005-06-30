@@ -16,6 +16,18 @@
 #ifndef __SIM_WATCHDOG_H
 #define __SIM_WATCHDOG_H
 
+
+struct simWatchdogInfo {
+      SaHpiWatchdogT watchdog;
+};
+
+struct sim_watchdog {
+      SaHpiWatchdogRecT watchdogrec;
+      SaHpiWatchdogT wd;
+      const char *comment;
+};
+
+
 SaErrorT sim_get_watchdog_info(void *hnd,
 			       SaHpiResourceIdT id,
 			       SaHpiWatchdogNumT num,
@@ -29,5 +41,13 @@ SaErrorT sim_set_watchdog_info(void *hnd,
 SaErrorT sim_reset_watchdog(void *hnd,
 			    SaHpiResourceIdT id,
 			    SaHpiWatchdogNumT num);
+
+
+extern struct sim_watchdog sim_chassis_watchdogs[];
+extern struct sim_watchdog sim_cpu_watchdogs[];
+extern struct sim_watchdog sim_dasd_watchdogs[];
+extern struct sim_watchdog sim_fan_watchdogs[];
+
+SaErrorT sim_discover_watchdogs(struct oh_handler_state * state);
 
 #endif
