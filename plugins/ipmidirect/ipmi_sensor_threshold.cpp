@@ -578,15 +578,7 @@ cIpmiSensorThreshold::CreateEvent( cIpmiEvent *event, SaHpiEventT &h )
   // sensor event
   SaHpiSensorEventT &se = h.EventDataUnion.SensorEvent;
 
-  bool assertion = !(event->m_data[9] >> 7);
-  bool high      = (event->m_data[10] & 1);
-
-  if (    (  assertion &&  high  )
-       || ( !assertion && !high ) )
-       se.Assertion = SAHPI_TRUE;
-  else if ( (  assertion && !high )
-       ||   ( !assertion &&  high ) )
-       se.Assertion = SAHPI_FALSE;
+  se.Assertion = (SaHpiBoolT)!(event->m_data[9] & 0x80);
 
   tIpmiThresh threshold = (tIpmiThresh)((event->m_data[10] >> 1) & 0x07);
 
