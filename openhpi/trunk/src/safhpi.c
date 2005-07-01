@@ -1106,12 +1106,12 @@ SaErrorT SAHPI_API saHpiEventAdd (
 	e.did = did;
         e.hid = 0;
 	e.type = OH_ET_HPI;
-	/* Copy SaHpiEventT into oh_event struct */
-	e.u.hpi_event.event = *EvtEntry;
 	/* Timestamp the incoming user event */
         gettimeofday(&tv1, NULL);
-        e.u.hpi_event.event.Timestamp =
+        EvtEntry->Timestamp =
 	        (SaHpiTimeT) tv1.tv_sec * 1000000000 + tv1.tv_usec * 1000;
+	/* Copy SaHpiEventT into oh_event struct */
+	e.u.hpi_event.event = *EvtEntry;
         /* indicate there is no rdr or resource */
         e.u.hpi_event.rdr.RdrType = SAHPI_NO_RECORD;
         e.u.hpi_event.res.ResourceId = SAHPI_UNSPECIFIED_RESOURCE_ID;
