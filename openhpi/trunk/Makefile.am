@@ -94,7 +94,9 @@ install-data-local: openhpi.pc
 	$(INSTALL_DATA) openhpi.pc $(DESTDIR)$(libdir)/pkgconfig
 	$(mkinstalldirs) $(DESTDIR)$(VARPATH)
 	chmod 777 $(DESTDIR)$(VARPATH)
-	$(bindir)/@HPI_PKG@-switcher --set=standard
+
+install-exec-hook:
+	$(DESTDIR)$(bindir)/@HPI_PKG@-switcher --set=standard
 
 uninstall-local:
 	rm -f $(DESTDIR)$(libdir)/pkgconfig/openhpi.pc
