@@ -6,7 +6,7 @@ use Getopt::Long;
 use File::Copy;
 
 my $LIBVERSION="@VERSION@";
-my $INSTALLPREFIX="@libdir@";
+my $INSTALLPREFIX=$ENV{"DESTDIR"}."@libdir@";
 my $OHPREFIX=$INSTALLPREFIX."/@HPI_PKG@";
 my $PROGNAME="@HPI_PKG@-switcher";
 my $BASELIB="lib@HPI_PKG@.so.$LIBVERSION";
