@@ -15,7 +15,8 @@ COMMONLIBS		= $(top_builddir)/hpi_ui_lib/libopenhpiui.la \
 				$(top_builddir)/marshal/libohtcpconnx.la \
 				-L$(top_builddir)/utils/.libs -lopenhpiutils
 INCLUDES 		= -I$(top_srcdir)/include -I$(top_srcdir)/utils \
-				-I$(top_srcdir)/openhpid2  -I$(top_srcdir)/marshal
+				-I$(top_srcdir)/openhpid2  -I$(top_srcdir)/marshal \
+				-DCLIENT
 else
 INCLUDES 		= -I$(top_srcdir)/include -I$(top_srcdir)/utils
 COMMONLIBS		= $(top_builddir)/src/libopenhpi.la \
