@@ -110,6 +110,7 @@ static ret_code_t help_cmd(void)
 
 static ret_code_t add_config(void)
 {
+#ifndef CLIENT
 	SaErrorT	rv;
 	term_def_t	*term;
 
@@ -127,6 +128,7 @@ static ret_code_t add_config(void)
 		printf("Hold on. Initialization is processing\n");
 	}
 	if (rv == SA_OK) return HPI_SHELL_OK;
+#endif
 	return HPI_SHELL_CMD_ERROR;
 }
   
