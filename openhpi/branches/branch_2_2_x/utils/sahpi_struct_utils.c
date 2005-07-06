@@ -1346,6 +1346,10 @@ SaErrorT oh_fprint_textbuffer(FILE *stream, const SaHpiTextBufferT *textbuffer, 
 static SaErrorT oh_build_textbuffer(oh_big_textbuffer *buffer, const SaHpiTextBufferT *textbuffer, int offsets)
 {
 	char str[SAHPI_MAX_TEXT_BUFFER_LENGTH];
+	SaHpiTextBufferT working_textbuffer;
+	
+	memset(&working_textbuffer, 0, sizeof(working_textbuffer));
+	oh_copy_textbuffer(&working_textbuffer, textbuffer);
 
 	/* Text Buffer Data Type */
 	oh_append_offset(buffer, offsets);
@@ -1372,8 +1376,10 @@ static SaErrorT oh_build_textbuffer(oh_big_textbuffer *buffer, const SaHpiTextBu
 		oh_append_bigtext(buffer, "Data: ");
 		if (textbuffer->DataType == SAHPI_TL_TYPE_BINARY)
 			oh_append_data(buffer, textbuffer->Data, textbuffer->DataLength);
-		else
-			oh_append_bigtext(buffer, (const char *)textbuffer->Data);
+		else {
+			working_textbuffer.Data[working_textbuffer.DataLength] = '\0';
+			oh_append_bigtext(buffer, (const char *)&working_textbuffer.Data);
+		}
 		oh_append_bigtext(buffer, "\n");
 	}
 
