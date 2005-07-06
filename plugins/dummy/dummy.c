@@ -1861,6 +1861,7 @@ static int dummy_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiEventLogInfoT
 {
         info->Entries                   = 0;
         info->Size                      = 0xFFFFFFFF;
+	info->UserEventMaxSize		= SAHPI_MAX_TEXT_BUFFER_LENGTH;
         info->UpdateTimestamp           = 0;
         oh_gettimeofday(&info->CurrentTime);
         info->Enabled                   = sel_enabled;
