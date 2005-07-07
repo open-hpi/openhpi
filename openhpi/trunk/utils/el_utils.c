@@ -285,6 +285,7 @@ SaErrorT oh_el_info(oh_el *el, SaHpiEventLogInfoT *info)
         info->OverflowFlag = el->overflow;
 	info->OverflowResetable = SAHPI_TRUE;
         info->OverflowAction = SAHPI_EL_OVERFLOW_OVERWRITE;
+	info->UserEventMaxSize = SAHPI_MAX_TEXT_BUFFER_LENGTH;
         return SA_OK;
 }
 
