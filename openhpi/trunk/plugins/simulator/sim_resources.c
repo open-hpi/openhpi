@@ -1943,19 +1943,20 @@ struct sim_inventory sim_chassis_inventory[] = {
                                 .IdrId = 1,
                                 .UpdateCount = 0,
                                 .ReadOnly = SAHPI_TRUE,
-                                .NumAreas = 1,
+                                .NumAreas = 1, // change if you want more areas below
                         },
                         .area[0] = {
                                 .nextfieldid = 2, // change if you add more fields below
                                 .idrareahead = {
                                         .AreaId = 1,
-                                        .Type = SAHPI_IDR_FIELDTYPE_CHASSIS_TYPE,
+                                        .Type = SAHPI_IDR_AREATYPE_CHASSIS_INFO,
                                         .ReadOnly = SAHPI_TRUE,
-                                        .NumFields = 1,
+                                        .NumFields = 1, //change if you add more fields below
                                 },
                                 .field[0] = {
                                         .AreaId = 1,
                                         .FieldId = 1,
+                                        .Type = SAHPI_IDR_FIELDTYPE_MANUFACTURER,
                                         .ReadOnly = SAHPI_TRUE,
                                         .Field = {
                                                 .DataType = SAHPI_TL_TYPE_TEXT,
