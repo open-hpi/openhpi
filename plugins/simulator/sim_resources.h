@@ -49,24 +49,13 @@ typedef enum {
 #define SIM_MAX_EVENTS_PER_RESOURCE 10
 #define SIM_MAX_RESOURCE_EVENT_ARRAY_SIZE (SIM_MAX_EVENTS_PER_RESOURCE + 1)
                                        /* Includes an ending NULL entry */
-/*
-struct res_event_map {
-        char *event;
-	SaHpiBoolT event_res_failure;
-	SaHpiBoolT event_res_failure_unexpected;
-        SaHpiHsStateT event_state;
-        SaHpiHsStateT recovery_state;
-};
-*/
 
 struct simResourceInfo {
         SaHpiHsStateT cur_hsstate;
-//      struct res_event_map event_array[SIM_MAX_RESOURCE_EVENT_ARRAY_SIZE];
 };
 
 struct sim_rpt {
         SaHpiRptEntryT rpt;
-//        struct ResourceInfo res_info;
         const  char *comment;
 };
 

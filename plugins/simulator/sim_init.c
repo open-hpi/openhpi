@@ -17,6 +17,13 @@
 #include <sim_init.h>
 
 
+/* This list maintains a list of all handler state structs. It is used by
+   to determine the name of a handler so that the pointer to the handler state
+   can be returned to an injector API.
+ */
+GSList *sim_handler_states = NULL;
+
+
 void *sim_open(GHashTable *handler_config)
 {
         struct oh_handler_state *state = NULL;
@@ -64,12 +71,23 @@ void *sim_open(GHashTable *handler_config)
         /* the openhpi.conf file config info            */
         state->config = handler_config;
 
+        /* save the handler state to our list */
+        sim_handler_states = g_slist_append(sim_handler_states, state);
+
         return (void *)state;
 }
 
 
 SaErrorT sim_discover(void *hnd)
 {
+        /* NOTE!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+           The simulator plugin does not do a proper job of rediscovery.
+           If discovery is called multiple times there will be a huge
+           memory leak because we do not recover the memory from the
+           previous discovery. Also, the sim_handler_states list will be
+           invalid because only the pointer to the first discovery handler
+           state will be returned from the sim_get_handler_by_name API.
+         */
 	struct oh_handler_state *inst = (struct oh_handler_state *) hnd;
         int i = 0;
 
@@ -84,6 +102,7 @@ SaErrorT sim_discover(void *hnd)
 	sim_discover_controls(inst);
 	sim_discover_annunciators(inst);
 	sim_discover_watchdogs(inst);
+	sim_discover_inventory(inst);
 
 	return SA_OK;
 }

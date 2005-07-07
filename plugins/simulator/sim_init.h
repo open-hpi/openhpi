@@ -32,7 +32,6 @@
 #include <oh_domain.h>
 #include <oh_utils.h>
 #include <oh_error.h>
-#include <sim_resources.h>
 #include <sim_injector.h>
 #include <sim_sensors.h>
 #include <sim_sensor_func.h>
@@ -46,6 +45,12 @@
 #include <sim_inventory.h>
 #include <sim_watchdog.h>
 #include <sim_hotswap.h>
+#include <sim_resources.h>
+
+
+/* handler state list */
+extern GSList *sim_handler_states;
+
 
 void *sim_open(GHashTable *handler_config);
 SaErrorT sim_discover(void *hnd);
