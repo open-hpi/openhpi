@@ -578,7 +578,7 @@ static SaErrorT ipmi_get_el_info(void               *hnd,
 		dbg("couldn't get sel state rv = %d", rv);
 		return rv;
 	}
-        
+        info->UserEventMaxSize = 0;
         return SA_OK;
 }
 
