@@ -16,21 +16,32 @@
 #ifndef __SIM_INVENTORY_H
 #define __SIM_INVENTORY_H
 
-#define NOS_SIM_INVENTORY_FIELDS 10
+#define SIM_INVENTORY_FIELDS 10
+#define SIM_INVENTORY_AREAS 10
 
 /************************************************************************/
 /* Resource one inventory data   					*/
 /************************************************************************/
 struct  sim_idr_area {
-        SaHpiIdrAreaHeaderT idrareas;
-        SaHpiIdrFieldT      field[NOS_SIM_INVENTORY_FIELDS];
+        SaHpiEntryIdT       nextfieldid;
+        SaHpiIdrAreaHeaderT idrareahead;
+        SaHpiIdrFieldT      field[SIM_INVENTORY_FIELDS];
 };
 
-struct sim_inventory_record {
+struct sim_inventory_info {
+        SaHpiEntryIdT       nextareaid;
         SaHpiIdrInfoT       idrinfo;
-        struct sim_idr_area area[2];
+        struct sim_idr_area area[SIM_INVENTORY_AREAS];
 };
 
+struct sim_inventory {
+        SaHpiInventoryRecT        invrec;
+        struct sim_inventory_info info;
+	const char                *comment;
+};
+
+
+SaErrorT sim_discover_inventory(struct oh_handler_state * state);
 
 SaErrorT sim_get_idr_info(void *hnd,
 		          SaHpiResourceIdT        ResourceId,
@@ -80,5 +91,11 @@ SaErrorT sim_del_idr_field(void *hnd,
 		           SaHpiIdrIdT              IdrId,
 	 	           SaHpiEntryIdT            AreaId,
 		           SaHpiEntryIdT            FieldId);
+
+extern struct sim_inventory sim_chassis_inventory[];
+extern struct sim_inventory sim_cpu_inventory[];
+extern struct sim_inventory sim_dasd_inventory[];
+extern struct sim_inventory sim_fan_inventory[];
+
 
 #endif

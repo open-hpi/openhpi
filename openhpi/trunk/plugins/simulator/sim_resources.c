@@ -1930,52 +1930,66 @@ struct sim_watchdog sim_fan_watchdogs[] = {
  *                   Inventory Definitions
  *************************************************************************/
 
-/*************
- * Chassis VPD
- *************/
+struct sim_inventory sim_chassis_inventory[] = {
+        {
+                .invrec = {
+                        .IdrId = 1,
+                        .Persistent = SAHPI_FALSE,
+                        .Oem = 0,
+                },
+                .info = {
+                        .nextareaid = 2, // change if you add more areas below
+                        .idrinfo = {
+                                .IdrId = 1,
+                                .UpdateCount = 0,
+                                .ReadOnly = SAHPI_TRUE,
+                                .NumAreas = 1,
+                        },
+                        .area[0] = {
+                                .nextfieldid = 2, // change if you add more fields below
+                                .idrareahead = {
+                                        .AreaId = 1,
+                                        .Type = SAHPI_IDR_FIELDTYPE_CHASSIS_TYPE,
+                                        .ReadOnly = SAHPI_TRUE,
+                                        .NumFields = 1,
+                                },
+                                .field[0] = {
+                                        .AreaId = 1,
+                                        .FieldId = 1,
+                                        .ReadOnly = SAHPI_TRUE,
+                                        .Field = {
+                                                .DataType = SAHPI_TL_TYPE_TEXT,
+                                                .Language = SAHPI_LANG_ENGLISH,
+                                                .DataLength = 6,
+                                                .Data[0] = 'I',
+                                                .Data[1] = 'B',
+                                                .Data[2] = 'M',
+                                                .Data[3] = 'X',
+                                                .Data[4] = 'X',
+                                                .Data[5] = 'X',
+                                                .Data[6] = '\0',
+                                        },
+                                },
+                        },
+                },
+                .comment = "Simulator Inv 1",
+        },
 
-// struct sim_inventory sim_chassis_inventories[] = {
-//         {
-//                 .inventory = {
-//                      .IdrId = 1,
-//                         .Oem = 0,
-//                 },
-//              .inventory_info = {
-//                      .mib = {
-//                              .not_avail_indicator_num = 0,
-//                              .write_only = SAHPI_FALSE,
-//                              .area_type = SAHPI_IDR_AREATYPE_CHASSIS_INFO,
-//                              .oid = {
-//                                      .OidChassisType = ".1.3.6.1.4.1.2.3.51.1.2.21.2.1.2.0",
-//                                         .OidMfgDateTime = '\0',   /* Set to SAHPI_TIME_UNSPECIFIED */
-//                                         .OidManufacturer = '\0',
-//                                         .OidProductName = '\0',
-//                                         .OidProductVersion = ".1.3.6.1.4.1.2.3.51.1.2.21.1.1.1.0",
-//                                         .OidSerialNumber = ".1.3.6.1.4.1.2.3.51.1.2.21.2.1.3.0",
-//                                         .OidPartNumber = ".1.3.6.1.4.1.2.3.51.1.2.21.2.1.1.0",
-//                                         .OidFileId = '\0',
-//                                         .OidAssetTag = '\0',
-//                              }
-//                      },
-//              },
-//                 .comment = "RSA VPD",
-//         },
-//
-//         {} /* Terminate array with a null element */
-// };
-//
-// struct sim_inventory sim_cpu_inventories[] = {
-//
-//         {} /* Terminate array with a null element */
-// };
-//
-// struct sim_inventory sim_dasd_inventories[] = {
-//
-//         {} /* Terminate array with a null element */
-// };
-//
-// struct sim_inventory sim_fan_inventories[] = {
-//
-//         {} /* Terminate array with a null element */
-// };
+        {} /* Terminate array with a null element */
+};
+
+struct sim_inventory sim_cpu_inventory[] = {
+
+        {} /* Terminate array with a null element */
+};
+
+struct sim_inventory sim_dasd_inventory[] = {
+
+        {} /* Terminate array with a null element */
+};
+
+struct sim_inventory sim_fan_inventory[] = {
+
+        {} /* Terminate array with a null element */
+};
 

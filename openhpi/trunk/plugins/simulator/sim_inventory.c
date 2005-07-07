@@ -10,21 +10,126 @@
  * full licensing terms.
  *
  * Author(s):
- *      peter d phan  <dashley@us.ibm.com>
+ *      W. David Ashley <dashley@us.ibm.com>
  *
  */
 
 #include <sim_init.h>
 
 
+static SaErrorT new_inventory(struct oh_handler_state * state,
+                              SaHpiResourceIdT ResId,
+                              struct sim_inventory *myinv) {
+	SaHpiRdrT res_rdr;
+	SaHpiRptEntryT *RptEntry;
+        struct sim_inventory_info *info;
+
+	// Copy information from rdr array to res_rdr
+	res_rdr.RdrType = SAHPI_INVENTORY_RDR;
+	memcpy(&res_rdr.RdrTypeUnion.InventoryRec, &myinv->invrec,
+               sizeof(SaHpiInventoryRecT));
+
+	oh_init_textbuffer(&res_rdr.IdString);
+	oh_append_textbuffer(&res_rdr.IdString, myinv->comment);
+	res_rdr.RecordId =
+                get_rdr_uid(SAHPI_INVENTORY_RDR, res_rdr.RdrTypeUnion.InventoryRec.IdrId);
+
+
+	RptEntry = oh_get_resource_by_id(state->rptcache, ResId);
+	if (!RptEntry) {
+		dbg("NULL rpt pointer\n");
+                return SA_ERR_HPI_INVALID_RESOURCE;
+	}
+	memcpy(&res_rdr.Entity, &RptEntry->ResourceEntity,
+               sizeof(SaHpiEntityPathT));
+
+        //set up our private data
+        info = (struct sim_inventory_info *)g_malloc(sizeof(struct sim_inventory_info));
+	if (!info) {
+		dbg("NULL rpt pointer\n");
+                return SA_ERR_HPI_OUT_OF_MEMORY;
+	}
+	memcpy(info, &myinv->info, sizeof(struct sim_inventory_info));
+
+        // everything ready so add the rdr and extra info to the rptcache
+        sim_inject_rdr(state, ResId, &res_rdr, info);
+
+	return 0;
+}
+
+
+SaErrorT sim_discover_inventory(struct oh_handler_state * state) {
+        SaErrorT rc;
+
+        /* chassis inventory */
+        int i = 0;
+        int j = 0;
+        while (sim_chassis_inventory[i].invrec.IdrId != 0) {
+                rc = new_inventory(state, SIM_RPT_ENTRY_CHASSIS, &sim_chassis_inventory[i]);
+                if (rc) {
+                        dbg("Error %d returned when adding chassis inventory", rc);
+                } else {
+                        j++;
+                }
+                i++;
+        }
+        dbg("%d of %d chassis cinventory injected", j, i);
+
+        /* cpu inventory */
+        i = 0;
+        j = 0;
+        while (sim_cpu_inventory[i].invrec.IdrId != 0) {
+                rc = new_inventory(state, SIM_RPT_ENTRY_CPU, &sim_cpu_inventory[i]);
+                if (rc) {
+                        dbg("Error %d returned when adding cpu inventory", rc);
+                } else {
+                        j++;
+                }
+                i++;
+        }
+        dbg("%d of %d cpu inventory injected", j, i);
+
+        /* dasd inventory */
+        i = 0;
+        j = 0;
+        while (sim_dasd_inventory[i].invrec.IdrId != 0) {
+                rc = new_inventory(state, SIM_RPT_ENTRY_DASD, &sim_dasd_inventory[i]);
+                if (rc) {
+                        dbg("Error %d returned when adding dasd inventory", rc);
+                } else {
+                        j++;
+                }
+                i++;
+        }
+        dbg("%d of %d dasd inventory injected", j, i);
+
+        /* fan inventory */
+        i = 0;
+        j = 0;
+        while (sim_fan_inventory[i].invrec.IdrId != 0) {
+                rc = new_inventory(state, SIM_RPT_ENTRY_FAN, &sim_fan_inventory[i]);
+                if (rc) {
+                        dbg("Error %d returned when adding fan inventory", rc);
+                } else {
+                        j++;
+                }
+                i++;
+        }
+        dbg("%d of %d fan inventory injected", j, i);
+
+        return 0;
+}
+
 SaErrorT sim_get_idr_info(void *hnd,
 	                  SaHpiResourceIdT        rid,
 		          SaHpiIdrIdT             IdrId,
 		          SaHpiIdrInfoT          *IdrInfo)
 {
+        struct sim_inventory_info *info;
+
 	if (!hnd || !IdrInfo) {
 		dbg("Invalid parameter.");
-		return(SA_ERR_HPI_INVALID_PARAMS);
+		return SA_ERR_HPI_INVALID_PARAMS;
 	}
 
         struct oh_handler_state *state = (struct oh_handler_state *)hnd;
@@ -32,15 +137,26 @@ SaErrorT sim_get_idr_info(void *hnd,
 	/* Check if resource exists and has inventory capabilities */
 	SaHpiRptEntryT *rpt = oh_get_resource_by_id(state->rptcache, rid);
         if (!rpt) {
-		return(SA_ERR_HPI_INVALID_RESOURCE);
+		return SA_ERR_HPI_INVALID_RESOURCE;
 	}
-
         if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_INVENTORY_DATA)) {
-		return(SA_ERR_HPI_CAPABILITY);
+		return SA_ERR_HPI_CAPABILITY;
 	}
 
-	dbg("Inventory is not supported by platform");
-	return(SA_ERR_HPI_INTERNAL_ERROR);
+	/* Find inventory and its data - see if it accessable */
+        SaHpiRdrT *rdr = oh_get_rdr_by_type(state->rptcache, rid, SAHPI_INVENTORY_RDR, IdrId);
+	if (rdr == NULL) {
+		return SA_ERR_HPI_NOT_PRESENT;
+	}
+	info = (struct sim_inventory_info *)oh_get_rdr_data(state->rptcache, IdrId, rdr->RecordId);
+ 	if (info == NULL) {
+		dbg("No inventory data. IdrId=%s", rdr->IdString.Data);
+		return SA_ERR_HPI_INTERNAL_ERROR;
+	}
+
+        /* return the data */
+        memcpy(IdrInfo, &info->idrinfo, sizeof(SaHpiIdrInfoT));
+        return SA_OK;
 }
 
 
@@ -52,6 +168,10 @@ SaErrorT sim_get_idr_area_header(void *hnd,
 		                 SaHpiEntryIdT           *NextAreaId,
 		                 SaHpiIdrAreaHeaderT     *Header)
 {
+        struct sim_inventory_info *info;
+        int i;
+        int found = SAHPI_FALSE;
+
 	if (!hnd || !NextAreaId || !Header) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
@@ -64,13 +184,65 @@ SaErrorT sim_get_idr_area_header(void *hnd,
         if (!rpt) {
 		return(SA_ERR_HPI_INVALID_RESOURCE);
 	}
-
         if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_INVENTORY_DATA)) {
 		return(SA_ERR_HPI_CAPABILITY);
 	}
 
-	dbg("Inventory is not supported by platform");
-	return(SA_ERR_HPI_INTERNAL_ERROR);
+	/* Find inventory and its data - see if it accessable */
+        SaHpiRdrT *rdr = oh_get_rdr_by_type(state->rptcache, rid, SAHPI_INVENTORY_RDR, IdrId);
+	if (rdr == NULL) {
+		return SA_ERR_HPI_NOT_PRESENT;
+	}
+	info = (struct sim_inventory_info *)oh_get_rdr_data(state->rptcache, IdrId, rdr->RecordId);
+ 	if (info == NULL) {
+		dbg("No inventory data. IdrId=%s", rdr->IdString.Data);
+		return SA_ERR_HPI_INTERNAL_ERROR;
+	}
+
+        /* find the corresponding area */
+        if (info->idrinfo.NumAreas == 0) {
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+        if (AreaId == SAHPI_FIRST_ENTRY) {
+                for (i = 0; i < SIM_INVENTORY_AREAS && i < info->idrinfo.NumAreas - 1; i++) {
+                        if (AreaType == SAHPI_IDR_AREATYPE_UNSPECIFIED ||
+                            AreaType == info->area[i].idrareahead.Type) {
+                                /* found the next entry */
+                                if (found == TRUE) {
+                                        *NextAreaId = info->area[i].idrareahead.AreaId;
+                                        break;
+                                }
+                                /* found what we are looking for */
+                                memcpy(Header, &info->area[i].idrareahead,
+                                       sizeof(SaHpiIdrAreaHeaderT));
+                                found = SAHPI_TRUE;
+                                *NextAreaId = SAHPI_LAST_ENTRY;
+                        }
+                }
+        }
+        else for (i = 0; i < SIM_INVENTORY_AREAS && i < info->idrinfo.NumAreas - 1; i++) {
+                if (AreaType == SAHPI_IDR_AREATYPE_UNSPECIFIED ||
+                    AreaType == info->area[i].idrareahead.Type) {
+                        /* found the next entry */
+                        if (found == TRUE) {
+                                *NextAreaId = info->area[i].idrareahead.AreaId;
+                                break;
+                        }
+                        if (AreaId != info->area[i].idrareahead.AreaId) {
+                                continue;
+                        }
+                        /* found what we are looking for */
+                        memcpy(Header, &info->area[i].idrareahead,
+                               sizeof(SaHpiIdrAreaHeaderT));
+                        found = SAHPI_TRUE;
+                        *NextAreaId = SAHPI_LAST_ENTRY;
+                }
+        }
+        if (found == SAHPI_TRUE) {
+                return SAHPI_OK;
+        }
+
+	return SA_ERR_HPI_NOT_PRESENT;
 }
 
 
@@ -81,10 +253,20 @@ SaErrorT sim_add_idr_area(void *hnd,
 		          SaHpiEntryIdT           *AreaId)
 
 {
+        struct sim_inventory_info *info;
+        char * type;
+
 	if (!hnd || !AreaId) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
+        type = oh_lookup_idrareatype(AreaType);
+        if (type == NULL) {
+		return(SA_ERR_HPI_INVALID_PARAMS);
+        }
+        if (strcmp(type, "UNSPECIFIED") == 0) {
+		return(SA_ERR_HPI_INVALID_PARAMS);
+        }
 
         struct oh_handler_state *state = (struct oh_handler_state *)hnd;
 
@@ -93,13 +275,38 @@ SaErrorT sim_add_idr_area(void *hnd,
         if (!rpt) {
 		return(SA_ERR_HPI_INVALID_RESOURCE);
 	}
-
         if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_INVENTORY_DATA)) {
 		return(SA_ERR_HPI_CAPABILITY);
 	}
 
-	dbg("Inventory is not supported by platform");
-	return(SA_ERR_HPI_INTERNAL_ERROR);
+	/* Find inventory and its data - see if it accessable */
+        SaHpiRdrT *rdr = oh_get_rdr_by_type(state->rptcache, rid, SAHPI_INVENTORY_RDR, IdrId);
+	if (rdr == NULL) {
+		return SA_ERR_HPI_NOT_PRESENT;
+	}
+	info = (struct sim_inventory_info *)oh_get_rdr_data(state->rptcache, IdrId, rdr->RecordId);
+ 	if (info == NULL) {
+		dbg("No inventory data. IdrId=%s", rdr->IdString.Data);
+		return SA_ERR_HPI_INTERNAL_ERROR;
+	}
+
+        /* check to see if space is available for the new area */
+        if (info->idrinfo.NumAreas == SIM_INVENTORY_AREAS) {
+		return SA_ERR_HPI_OUT_OF_SPACE;
+        }
+
+        /* add the area */
+        info->area[info->idrinfo.NumAreas].idrareahead.AreaId = info->nextareaid;
+        info->area[info->idrinfo.NumAreas].idrareahead.Type = AreaType;
+        info->area[info->idrinfo.NumAreas].idrareahead.ReadOnly = SAHPI_FALSE;
+        info->area[info->idrinfo.NumAreas].idrareahead.NumFields = 0;
+
+        /* increment our counters and set return info */
+        info->idrinfo.NumAreas++;
+        *AreaId = info->nextareaid;
+        info->nextareaid++;
+
+        return SAHPI_OK;
 }
 
 
@@ -108,6 +315,10 @@ SaErrorT sim_del_idr_area(void *hnd,
 		          SaHpiIdrIdT            IdrId,
 		          SaHpiEntryIdT          AreaId)
 {
+        struct sim_inventory_info *info;
+        int i;
+        int found = SAHPI_FALSE;
+
 	if (!hnd) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
@@ -120,13 +331,44 @@ SaErrorT sim_del_idr_area(void *hnd,
         if (!rpt) {
 		return(SA_ERR_HPI_INVALID_RESOURCE);
 	}
-
         if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_INVENTORY_DATA)) {
 		return(SA_ERR_HPI_CAPABILITY);
 	}
 
-	dbg("Inventory is not supported by platform");
-	return(SA_ERR_HPI_INTERNAL_ERROR);
+	/* Find inventory and its data - see if it accessable */
+        SaHpiRdrT *rdr = oh_get_rdr_by_type(state->rptcache, rid, SAHPI_INVENTORY_RDR, IdrId);
+	if (rdr == NULL) {
+		return SA_ERR_HPI_NOT_PRESENT;
+	}
+	info = (struct sim_inventory_info *)oh_get_rdr_data(state->rptcache, IdrId, rdr->RecordId);
+ 	if (info == NULL) {
+		dbg("No inventory data. IdrId=%s", rdr->IdString.Data);
+		return SA_ERR_HPI_INTERNAL_ERROR;
+	}
+
+        /* find the entry to delete */
+        for (i = 0; i < SIM_INVENTORY_AREAS && i < info->idrinfo.NumAreas - 1; i++) {
+                if (AreaId != info->area[i].idrareahead.AreaId) {
+                        continue;
+                }
+                /* found what we are looking for */
+                found = SAHPI_TRUE;
+                break;
+        }
+        if (found == SAHPI_FALSE) {
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+
+        /* delete the area entry by moving the remaining array members up */
+        if (i < info->idrinfo.NumAreas - 2) {
+                for (i++; i < SIM_INVENTORY_AREAS && i < info->idrinfo.NumAreas - 1; i++) {
+                        memcpy(&info->area[i - 1], &info->area[i],
+                               sizeof(struct sim_idr_area));
+                }
+        }
+        info->idrinfo.NumAreas--;
+
+        return SAHPI_OK;
 }
 
 
@@ -139,6 +381,10 @@ SaErrorT sim_get_idr_field(void *hnd,
 		           SaHpiEntryIdT          *NextFieldId,
 		           SaHpiIdrFieldT         *Field)
 {
+        struct sim_inventory_info *info;
+        int i, j;
+        int found = SAHPI_FALSE;
+
 	if (!hnd || !NextFieldId || !Field) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
@@ -151,13 +397,62 @@ SaErrorT sim_get_idr_field(void *hnd,
         if (!rpt) {
 		return(SA_ERR_HPI_INVALID_RESOURCE);
 	}
-
         if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_INVENTORY_DATA)) {
 		return(SA_ERR_HPI_CAPABILITY);
 	}
 
-	dbg("Inventory is not supported by platform");
-	return(SA_ERR_HPI_INTERNAL_ERROR);
+	/* Find inventory and its data - see if it accessable */
+        SaHpiRdrT *rdr = oh_get_rdr_by_type(state->rptcache, rid, SAHPI_INVENTORY_RDR, IdrId);
+	if (rdr == NULL) {
+		return SA_ERR_HPI_NOT_PRESENT;
+	}
+	info = (struct sim_inventory_info *)oh_get_rdr_data(state->rptcache, IdrId, rdr->RecordId);
+ 	if (info == NULL) {
+		dbg("No inventory data. IdrId=%s", rdr->IdString.Data);
+		return SA_ERR_HPI_INTERNAL_ERROR;
+	}
+
+        /* find the corresponding area */
+        if (info->idrinfo.NumAreas == 0) {
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+        for (i = 0; i < SIM_INVENTORY_AREAS && i < info->idrinfo.NumAreas - 1; i++) {
+                if (AreaId != info->area[i].idrareahead.AreaId) {
+                        continue;
+                }
+                /* found the area we are looking for */
+                found = SAHPI_TRUE;
+                break;
+        }
+        if (found == SAHPI_FALSE) {
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+
+        /* find the corresponding field */
+        found = SAHPI_FALSE;
+        if (info->area[i].idrareahead.NumFields == 0) {
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+        for (j = 0; j < SIM_INVENTORY_FIELDS && j < info->area[i].idrareahead.NumFields - 1; j++) {
+                if (FieldType == SAHPI_IDR_FIELDTYPE_UNSPECIFIED ||
+                    FieldType == info->area[i].field[j].Type) {
+                        /* found the next field entry */
+                        if (found == TRUE) {
+                                *NextFieldId = info->area[i].field[j].FieldId;
+                                break;
+                        }
+                        /* found the field we are looking for */
+                        memcpy(Field, &info->area[i].field[j],
+                               sizeof(SaHpiIdrFieldT));
+                        found = SAHPI_TRUE;
+                        *NextFieldId = SAHPI_LAST_ENTRY;
+                }
+        }
+        if (found == SAHPI_FALSE) {
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+
+	return SA_OK;
 }
 
 
@@ -166,10 +461,22 @@ SaErrorT sim_add_idr_field(void *hnd,
 		           SaHpiIdrIdT              IdrId,
 		           SaHpiIdrFieldT           *Field)
 {
+        struct sim_inventory_info *info;
+        int i;
+        int found = SAHPI_FALSE;
+        char * type;
+
 	if (!hnd || !Field) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
+        type = oh_lookup_idrfieldtype(Field->Type);
+        if (type == NULL) {
+		return(SA_ERR_HPI_INVALID_PARAMS);
+        }
+        if (strcmp(type, "UNSPECIFIED") == 0) {
+		return(SA_ERR_HPI_INVALID_DATA);
+        }
 
         struct oh_handler_state *state = (struct oh_handler_state *)hnd;
 
@@ -178,13 +485,49 @@ SaErrorT sim_add_idr_field(void *hnd,
         if (!rpt) {
 		return(SA_ERR_HPI_INVALID_RESOURCE);
 	}
-
         if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_INVENTORY_DATA)) {
 		return(SA_ERR_HPI_CAPABILITY);
 	}
 
-	dbg("Inventory is not supported by platform");
-	return(SA_ERR_HPI_INTERNAL_ERROR);
+	/* Find inventory and its data - see if it accessable */
+        SaHpiRdrT *rdr = oh_get_rdr_by_type(state->rptcache, rid, SAHPI_INVENTORY_RDR, IdrId);
+	if (rdr == NULL) {
+		return SA_ERR_HPI_NOT_PRESENT;
+	}
+	info = (struct sim_inventory_info *)oh_get_rdr_data(state->rptcache, IdrId, rdr->RecordId);
+ 	if (info == NULL) {
+		dbg("No inventory data. IdrId=%s", rdr->IdString.Data);
+		return SA_ERR_HPI_INTERNAL_ERROR;
+	}
+
+        /* find the corresponding area */
+        if (info->idrinfo.NumAreas == 0) {
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+        for (i = 0; i < SIM_INVENTORY_AREAS && i < info->idrinfo.NumAreas - 1; i++) {
+                if (Field->AreaId != info->area[i].idrareahead.AreaId) {
+                        continue;
+                }
+                /* found the area we are looking for */
+                found = SAHPI_TRUE;
+                break;
+        }
+        if (found == SAHPI_FALSE) {
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+
+        /* try to add the new field */
+        if (info->area[i].idrareahead.NumFields == SIM_INVENTORY_FIELDS) {
+                return SA_ERR_HPI_OUT_OF_SPACE;
+        }
+        memcpy(&info->area[i].field[info->area[i].idrareahead.NumFields],
+               Field, sizeof(SaHpiIdrFieldT));
+        info->area[i].field[info->area[i].idrareahead.NumFields].FieldId = info->area[i].nextfieldid;
+        info->area[i].nextfieldid++;
+        info->area[i].field[info->area[i].idrareahead.NumFields].ReadOnly = SAHPI_FALSE;
+        info->area[i].idrareahead.NumFields++;
+
+        return SA_OK;
 }
 
 
@@ -193,10 +536,22 @@ SaErrorT sim_set_idr_field(void *hnd,
 		           SaHpiIdrIdT              IdrId,
 		           SaHpiIdrFieldT           *Field)
 {
+        struct sim_inventory_info *info;
+        int i, j;
+        int found = SAHPI_FALSE;
+        char * type;
+
 	if (!hnd || !Field) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
+        type = oh_lookup_idrfieldtype(Field->Type);
+        if (type == NULL) {
+		return(SA_ERR_HPI_INVALID_PARAMS);
+        }
+        if (strcmp(type, "UNSPECIFIED") == 0) {
+		return(SA_ERR_HPI_INVALID_DATA);
+        }
 
         struct oh_handler_state *state = (struct oh_handler_state *)hnd;
 
@@ -205,13 +560,55 @@ SaErrorT sim_set_idr_field(void *hnd,
         if (!rpt) {
 		return(SA_ERR_HPI_INVALID_RESOURCE);
 	}
-
         if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_INVENTORY_DATA)) {
 		return(SA_ERR_HPI_CAPABILITY);
 	}
 
-	dbg("Inventory is not supported by platform");
-	return(SA_ERR_HPI_INTERNAL_ERROR);
+	/* Find inventory and its data - see if it accessable */
+        SaHpiRdrT *rdr = oh_get_rdr_by_type(state->rptcache, rid, SAHPI_INVENTORY_RDR, IdrId);
+	if (rdr == NULL) {
+		return SA_ERR_HPI_NOT_PRESENT;
+	}
+	info = (struct sim_inventory_info *)oh_get_rdr_data(state->rptcache, IdrId, rdr->RecordId);
+ 	if (info == NULL) {
+		dbg("No inventory data. IdrId=%s", rdr->IdString.Data);
+		return SA_ERR_HPI_INTERNAL_ERROR;
+	}
+
+        /* find the corresponding area */
+        if (info->idrinfo.NumAreas == 0) {
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+        for (i = 0; i < SIM_INVENTORY_AREAS && i < info->idrinfo.NumAreas - 1; i++) {
+                if (Field->AreaId != info->area[i].idrareahead.AreaId) {
+                        continue;
+                }
+                /* found the area we are looking for */
+                found = SAHPI_TRUE;
+                break;
+        }
+        if (found == SAHPI_FALSE) {
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+
+        /* find the corresponding field */
+        if (info->area[i].idrareahead.NumFields == 0) {
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+        for (j = 0; j < SIM_INVENTORY_FIELDS && j < info->area[i].idrareahead.NumFields - 1; j++) {
+                if (Field->Type == info->area[i].field[j].Type) {
+                        /* found the field we are looking for */
+                        if (info->area[i].field[j].ReadOnly == SAHPI_TRUE) {
+                                return SA_ERR_HPI_READ_ONLY;
+                        }
+                        info->area[i].field[j].Type = Field->Type;
+                        memcpy(&info->area[i].field[j].Field, &Field->Field,
+                               sizeof(SaHpiTextBufferT));
+                        return SA_OK;
+                }
+        }
+
+        return SA_ERR_HPI_NOT_PRESENT;
 }
 
 
@@ -221,6 +618,10 @@ SaErrorT sim_del_idr_field(void *hnd,
 		           SaHpiEntryIdT            AreaId,
 		           SaHpiEntryIdT            FieldId)
 {
+        struct sim_inventory_info *info;
+        int i, j;
+        int found = SAHPI_FALSE;
+
 	if (!hnd) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
@@ -233,13 +634,63 @@ SaErrorT sim_del_idr_field(void *hnd,
         if (!rpt) {
 		return(SA_ERR_HPI_INVALID_RESOURCE);
 	}
-
         if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_INVENTORY_DATA)) {
 		return(SA_ERR_HPI_CAPABILITY);
 	}
 
-	dbg("Inventory is not supported by platform");
-	return(SA_ERR_HPI_INTERNAL_ERROR);
+	/* Find inventory and its data - see if it accessable */
+        SaHpiRdrT *rdr = oh_get_rdr_by_type(state->rptcache, rid, SAHPI_INVENTORY_RDR, IdrId);
+	if (rdr == NULL) {
+		return SA_ERR_HPI_NOT_PRESENT;
+	}
+	info = (struct sim_inventory_info *)oh_get_rdr_data(state->rptcache, IdrId, rdr->RecordId);
+ 	if (info == NULL) {
+		dbg("No inventory data. IdrId=%s", rdr->IdString.Data);
+		return SA_ERR_HPI_INTERNAL_ERROR;
+	}
+
+        /* find the corresponding area */
+        if (info->idrinfo.NumAreas == 0) {
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+        for (i = 0; i < SIM_INVENTORY_AREAS && i < info->idrinfo.NumAreas - 1; i++) {
+                if (AreaId != info->area[i].idrareahead.AreaId) {
+                        continue;
+                }
+                /* found the area we are looking for */
+                found = SAHPI_TRUE;
+                break;
+        }
+        if (found == SAHPI_FALSE) {
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+
+        /* find the corresponding field */
+        if (info->area[i].idrareahead.NumFields == 0) {
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+        found = SAHPI_FALSE;
+        for (j = 0; j < SIM_INVENTORY_FIELDS && j < info->area[i].idrareahead.NumFields - 1; j++) {
+                if (FieldId == info->area[i].field[j].FieldId) {
+                        /* found the field we are looking for */
+                        found = SAHPI_TRUE;
+                        break;
+                }
+        }
+        if (found == SAHPI_FALSE) {
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+
+        /* delete the area entry by moving the remaining array members up */
+        if (j < info->area[i].idrareahead.NumFields - 2) {
+                for (j++; j < SIM_INVENTORY_AREAS && j < info->area[i].idrareahead.NumFields - 1; j++) {
+                        memcpy(&info->area[i].field[j - 1], &info->area[i].field[j],
+                               sizeof(SaHpiIdrFieldT));
+                }
+        }
+        info->area[i].idrareahead.NumFields--;
+
+        return SA_OK;
 }
 
 

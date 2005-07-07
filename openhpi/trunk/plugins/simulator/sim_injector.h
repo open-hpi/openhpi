@@ -19,6 +19,7 @@
 #define __SIM_INJECTOR_H
 
 
+struct oh_handler_state *sim_get_handler_by_name(char *name);
 SaErrorT sim_inject_resource(struct oh_handler_state *state,
                              SaHpiRptEntryT *data, void *privdata,
                              const char * comment);

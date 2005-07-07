@@ -63,6 +63,31 @@ static SaErrorT sim_create_resourcetag(SaHpiTextBufferT *buffer, const char *str
 }
 
 
+/* return a handler state pointer by looking for its handler_name */
+struct oh_handler_state *sim_get_handler_by_name(char *name)
+{
+        struct oh_handler_state *state = NULL;
+        int i = 0;
+        char *handler_name;
+        state = (struct oh_handler_state *)g_slist_nth_data(sim_handler_states, i);
+        while (state != NULL) {
+                handler_name = (char *)g_hash_table_lookup(state->config,
+                                                           "handler_name");
+                if (strcmp(handler_name, name) == 0) {
+                        return state;
+                }
+                state = (struct oh_handler_state *)g_slist_nth_data(sim_handler_states, i);
+        }
+
+        return NULL;
+}
+
+
+
+
+
+
+
 /* inject a resource */
 // assuptions about the input SaHpiRptEntryT *data entry
 // - all fields are assumed to have valid values except
