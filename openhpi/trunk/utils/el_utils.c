@@ -278,6 +278,7 @@ SaErrorT oh_el_info(oh_el *el, SaHpiEventLogInfoT *info)
 
         info->Entries = g_list_length(el->elentries);
         info->Size = el->maxsize;
+	info->UserEventMaxSize	= SAHPI_MAX_TEXT_BUFFER_LENGTH;
         info->UpdateTimestamp = el->lastUpdate;
         time(&tt1);
         info->CurrentTime = ((SaHpiTimeT) tt1 * 1000000000) + el->offset;
