@@ -1384,7 +1384,7 @@ struct sim_sensor sim_chassis_sensors[] = {
 				},
 				{
 					.event = "08000880", /* EN_CUTOFF_LO_FAULT_1_25V */
-					.event_assertion = SAHPI_TRUE,
+                                        .event_assertion = SAHPI_TRUE,
 					.event_res_failure = SAHPI_TRUE,
 					.event_res_failure_unexpected = SAHPI_TRUE,
 					.event_state = SAHPI_ES_LOWER_CRIT,
