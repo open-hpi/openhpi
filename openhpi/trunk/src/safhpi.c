@@ -817,6 +817,10 @@ SaErrorT SAHPI_API saHpiEventLogTimeSet (
                 oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_CAPABILITY;
         }
+	if (Time == SAHPI_TIME_UNSPECIFIED) {
+		dbg("Time SAHPI_TIME_UNSPECIFIED");
+		return SA_ERR_HPI_INVALID_PARAMS;
+	}
 
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
