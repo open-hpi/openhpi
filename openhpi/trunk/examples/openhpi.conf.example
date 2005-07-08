@@ -62,6 +62,8 @@ plugin libdummy
 
 #plugin libipmidirect
 
+#plugin libsimulator
+
 #############################################################################
 ##**WARNING** System administrators have to make sure that entity paths are
 ## unique in a domain. To avoid entity paths conflicting among handlers, make
@@ -79,6 +81,16 @@ handler libdummy {
 ## Dummy allows you open second virtual by addr 1
 #handler libdummy {
 #       addr =  1
+#}
+
+## Section for the simulator plugin
+## You can load multiple copies of the simulator plugin but each
+## copy must have a unique handler_name.
+
+#handler libsimulator {
+#        entity_root = "{SYSTEM_CHASSIS,1}"
+#        name = "test"
+#        handler_name = "simulator"
 #}
 
 ## Section for ipmi plugin using SMI -- local interface
