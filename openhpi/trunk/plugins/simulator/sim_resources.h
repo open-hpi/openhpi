@@ -31,6 +31,7 @@ typedef enum {
 	SIM_RPT_ENTRY_CHASSIS = 1,
 	SIM_RPT_ENTRY_CPU,
         SIM_RPT_ENTRY_DASD,
+        SIM_RPT_ENTRY_HS_DASD,
 	SIM_RPT_ENTRY_FAN
 } SimRptEntryT;
 

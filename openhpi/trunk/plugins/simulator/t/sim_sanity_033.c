@@ -42,7 +42,7 @@ int main(int argc, char **argv)
                 return -1;
 	}
 
-        rc = saHpiHotSwapActionRequest(sid, 3, SAHPI_HS_ACTION_EXTRACTION);
+        rc = saHpiHotSwapActionRequest(sid, 4, SAHPI_HS_ACTION_EXTRACTION);
         if (rc != SA_OK) {
 		dbg("Couldn't request action");
 		dbg("Error %s",oh_lookup_error(rc));

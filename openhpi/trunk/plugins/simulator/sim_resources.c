@@ -113,7 +113,7 @@ struct sim_rpt sim_rpt_array[] = {
                         .ResourceEntity = {
                                 .Entry[0] =
 				{
-                                        .EntityType = SAHPI_ENT_DISK_BAY,
+                                        .EntityType = SAHPI_ENT_DISK_DRIVE_BAY,
                                         .EntityLocation = SIM_HPI_LOCATION_BASE
                                 },
                                 {
