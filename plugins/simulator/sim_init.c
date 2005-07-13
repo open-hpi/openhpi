@@ -28,14 +28,20 @@ void *sim_open(GHashTable *handler_config)
 {
         struct oh_handler_state *state = NULL;
         char *tok = NULL;
+
         if (!handler_config) {
                 dbg("GHashTable *handler_config is NULL!");
                 return NULL;
         }
+        /* check for required hash table entries */
         tok = g_hash_table_lookup(handler_config, "entity_root");
-
         if (!tok) {
-                dbg("entity_root is needed and not present");
+                dbg("entity_root is needed and not present in conf");
+                return NULL;
+        }
+        tok = g_hash_table_lookup(handler_config, "handler_name");
+        if (!tok) {
+                dbg("handler_name is needed and not present in conf");
                 return NULL;
         }
 

@@ -71,7 +71,8 @@ int main(int argc, char **argv)
                         }
                         rdrctr++;
                 }
-                if (rdrctr == 0) {
+                // note that the hot swap resource has no rdrs
+                if (rdrctr == 0 && res.ResourceId != 4) {
                         dbg("No rdr entries found");
                         return -1;
                 }

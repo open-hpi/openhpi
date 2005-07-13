@@ -43,7 +43,7 @@ int main(int argc, char **argv)
                 return -1;
 	}
 
-        rc = saHpiHotSwapStateGet(sid, 3, &state);
+        rc = saHpiHotSwapStateGet(sid, 4, &state);
         if (rc != SA_OK) {
 		dbg("Couldn't get state");
 		dbg("Error %s",oh_lookup_error(rc));
