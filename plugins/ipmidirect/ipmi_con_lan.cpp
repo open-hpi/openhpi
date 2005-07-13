@@ -700,6 +700,10 @@ cIpmiConLan::Reconnect()
        if ( WaitForPong( m_timeout ) == false )
             continue;
 
+       stdlog << "close old RMCP session.\n";
+
+       SendCloseSession();
+
        stdlog << "create new RMCP session.\n";
 
        if ( CreateSession() == SA_OK )
