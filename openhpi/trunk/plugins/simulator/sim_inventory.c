@@ -58,14 +58,14 @@ static SaErrorT new_inventory(struct oh_handler_state * state,
 }
 
 
-SaErrorT sim_discover_inventory(struct oh_handler_state * state) {
+SaErrorT sim_discover_chassis_inventory(struct oh_handler_state * state,
+                                        SaHpiResourceIdT resid) {
         SaErrorT rc;
-
-        /* chassis inventory */
         int i = 0;
         int j = 0;
+
         while (sim_chassis_inventory[i].invrec.IdrId != 0) {
-                rc = new_inventory(state, SIM_RPT_ENTRY_CHASSIS, &sim_chassis_inventory[i]);
+                rc = new_inventory(state, resid, &sim_chassis_inventory[i]);
                 if (rc) {
                         dbg("Error %d returned when adding chassis inventory", rc);
                 } else {
@@ -73,13 +73,20 @@ SaErrorT sim_discover_inventory(struct oh_handler_state * state) {
                 }
                 i++;
         }
-        dbg("%d of %d chassis cinventory injected", j, i);
+        dbg("%d of %d chassis inventory injected", j, i);
 
-        /* cpu inventory */
-        i = 0;
-        j = 0;
+        return 0;
+}
+
+
+SaErrorT sim_discover_cpu_inventory(struct oh_handler_state * state,
+                                    SaHpiResourceIdT resid) {
+        SaErrorT rc;
+        int i = 0;
+        int j = 0;
+
         while (sim_cpu_inventory[i].invrec.IdrId != 0) {
-                rc = new_inventory(state, SIM_RPT_ENTRY_CPU, &sim_cpu_inventory[i]);
+                rc = new_inventory(state, resid, &sim_cpu_inventory[i]);
                 if (rc) {
                         dbg("Error %d returned when adding cpu inventory", rc);
                 } else {
@@ -89,11 +96,18 @@ SaErrorT sim_discover_inventory(struct oh_handler_state * state) {
         }
         dbg("%d of %d cpu inventory injected", j, i);
 
-        /* dasd inventory */
-        i = 0;
-        j = 0;
+        return 0;
+}
+
+
+SaErrorT sim_discover_dasd_inventory(struct oh_handler_state * state,
+                                     SaHpiResourceIdT resid) {
+        SaErrorT rc;
+        int i = 0;
+        int j = 0;
+
         while (sim_dasd_inventory[i].invrec.IdrId != 0) {
-                rc = new_inventory(state, SIM_RPT_ENTRY_DASD, &sim_dasd_inventory[i]);
+                rc = new_inventory(state, resid, &sim_dasd_inventory[i]);
                 if (rc) {
                         dbg("Error %d returned when adding dasd inventory", rc);
                 } else {
@@ -103,11 +117,18 @@ SaErrorT sim_discover_inventory(struct oh_handler_state * state) {
         }
         dbg("%d of %d dasd inventory injected", j, i);
 
-        /* fan inventory */
-        i = 0;
-        j = 0;
+        return 0;
+}
+
+
+SaErrorT sim_discover_fan_inventory(struct oh_handler_state * state,
+                                    SaHpiResourceIdT resid) {
+        SaErrorT rc;
+        int i = 0;
+        int j = 0;
+
         while (sim_fan_inventory[i].invrec.IdrId != 0) {
-                rc = new_inventory(state, SIM_RPT_ENTRY_FAN, &sim_fan_inventory[i]);
+                rc = new_inventory(state, resid, &sim_fan_inventory[i]);
                 if (rc) {
                         dbg("Error %d returned when adding fan inventory", rc);
                 } else {

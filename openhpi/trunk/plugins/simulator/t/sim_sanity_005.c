@@ -24,6 +24,21 @@
  * Return 0 on success, otherwise return -1
  **/
 
+
+static SaHpiResourceIdT get_resid(SaHpiSessionIdT sid,
+                           SaHpiEntryIdT srchid) {
+        SaHpiRptEntryT res;
+        SaHpiEntryIdT rptid = SAHPI_FIRST_ENTRY;
+
+        while(saHpiRptEntryGet(sid, rptid, &rptid, &res) == SA_OK) {
+                if (srchid == res.ResourceEntity.Entry[0].EntityType) {
+                        return res.ResourceId;
+                }
+        }
+        return 0;
+}
+
+
 int main(int argc, char **argv)
 {
 	SaHpiSessionIdT sid = 0;
@@ -42,8 +57,15 @@ int main(int argc, char **argv)
                 return -1;
 	}
 
+        /* get the resource id of the chassis */
+        SaHpiResourceIdT resid = get_resid(sid, SAHPI_ENT_SYSTEM_CHASSIS);
+        if (resid == 0) {
+		dbg("Couldn't find the resource id of the chassis");
+                return -1;
+	}
+
         /* get sensor thresholds */
-        rc = saHpiSensorThresholdsGet(sid, 1, 1, &thresholds);
+        rc = saHpiSensorThresholdsGet(sid, resid, 1, &thresholds);
         if (rc != SA_OK) {
 		dbg("Couldn't get sensor thresholds");
 		dbg("Error %s",oh_lookup_error(rc));
@@ -51,7 +73,7 @@ int main(int argc, char **argv)
 	}
 
         /* set sensor thresholds */
-        rc = saHpiSensorThresholdsSet(sid, 1, 1, &thresholds);
+        rc = saHpiSensorThresholdsSet(sid, resid, 1, &thresholds);
         if (rc == SA_OK) {
                 /* all our sensors are read-only so if we can change the
                    sensor it is an error */

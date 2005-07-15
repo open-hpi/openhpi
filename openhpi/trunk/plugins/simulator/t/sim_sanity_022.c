@@ -25,6 +25,21 @@
  * Return 0 on success, otherwise return -1
  **/
 
+
+static SaHpiResourceIdT get_resid(SaHpiSessionIdT sid,
+                           SaHpiEntryIdT srchid) {
+        SaHpiRptEntryT res;
+        SaHpiEntryIdT rptid = SAHPI_FIRST_ENTRY;
+
+        while(saHpiRptEntryGet(sid, rptid, &rptid, &res) == SA_OK) {
+                if (srchid == res.ResourceEntity.Entry[0].EntityType) {
+                        return res.ResourceId;
+                }
+        }
+        return 0;
+}
+
+
 int main(int argc, char **argv)
 {
 	SaHpiSessionIdT sid = 0;
@@ -40,6 +55,13 @@ int main(int argc, char **argv)
 	rc = saHpiDiscover(sid);
 	if (rc != SA_OK) {
 		dbg("Failed to run discover");
+                return -1;
+	}
+
+        /* get the resource id of the chassis */
+        SaHpiResourceIdT resid = get_resid(sid, SAHPI_ENT_SYSTEM_CHASSIS);
+        if (resid == 0) {
+		dbg("Couldn't find the resource id of the chassis");
                 return -1;
 	}
 
@@ -62,7 +84,7 @@ int main(int argc, char **argv)
         memcpy(&announ.StatusCond.Name.Value,"announ", 5);
         announ.StatusCond.Mid = 123;
         /* we will not worry about the Data field for this test */
-        rc = saHpiAnnunciatorAdd(sid, 1, 1, &announ);
+        rc = saHpiAnnunciatorAdd(sid, resid, 1, &announ);
         if (rc != SA_OK) {
 		dbg("Couldn't add announcement");
 		dbg("Error %s",oh_lookup_error(rc));
@@ -70,7 +92,7 @@ int main(int argc, char **argv)
 	}
 
 
-        rc = saHpiAnnunciatorDelete(sid, 1, 1, SAHPI_ENTRY_UNSPECIFIED,
+        rc = saHpiAnnunciatorDelete(sid, resid, 1, SAHPI_ENTRY_UNSPECIFIED,
                                     SAHPI_CRITICAL);
         if (rc != SA_OK) {
 		dbg("Couldn't delete announcement");

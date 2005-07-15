@@ -146,6 +146,9 @@ SaErrorT sim_inject_resource(struct oh_handler_state *state,
                 return rc;
         }
 
+        /* make sure the caller knows what resiurce ID was actually assigned */
+        data->ResourceId = res->ResourceId;
+
         /* now add an event for the resource add */
         memset(&event, 0, sizeof(event));
         event.type = OH_ET_RESOURCE;

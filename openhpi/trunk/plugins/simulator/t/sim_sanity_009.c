@@ -24,6 +24,21 @@
  * Return 0 on success, otherwise return -1
  **/
 
+
+static SaHpiResourceIdT get_resid(SaHpiSessionIdT sid,
+                           SaHpiEntryIdT srchid) {
+        SaHpiRptEntryT res;
+        SaHpiEntryIdT rptid = SAHPI_FIRST_ENTRY;
+
+        while(saHpiRptEntryGet(sid, rptid, &rptid, &res) == SA_OK) {
+                if (srchid == res.ResourceEntity.Entry[0].EntityType) {
+                        return res.ResourceId;
+                }
+        }
+        return 0;
+}
+
+
 int main(int argc, char **argv)
 {
 	SaHpiSessionIdT sid = 0;
@@ -43,8 +58,15 @@ int main(int argc, char **argv)
                 return -1;
 	}
 
+        /* get the resource id of the chassis */
+        SaHpiResourceIdT resid = get_resid(sid, SAHPI_ENT_SYSTEM_CHASSIS);
+        if (resid == 0) {
+		dbg("Couldn't find the resource id of the chassis");
+                return -1;
+	}
+
         /* get sensor event masks */
-        rc = saHpiSensorEventMasksGet(sid, 1, 1, &amask, &dmask);
+        rc = saHpiSensorEventMasksGet(sid, resid, 1, &amask, &dmask);
         if (rc != SA_OK) {
 		dbg("Couldn't get sensor event masks");
 		dbg("Error %s",oh_lookup_error(rc));
@@ -52,7 +74,7 @@ int main(int argc, char **argv)
 	}
 
         /* set sensor event masks */
-        rc = saHpiSensorEventMasksSet(sid, 1, 1, SAHPI_SENS_ADD_EVENTS_TO_MASKS,
+        rc = saHpiSensorEventMasksSet(sid, resid, 1, SAHPI_SENS_ADD_EVENTS_TO_MASKS,
                                       amask, dmask);
         if (rc == SA_OK) {
                 /* all our sensors are read-only so if we can change the
