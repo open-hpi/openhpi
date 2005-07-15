@@ -25,6 +25,21 @@
  * Return 0 on success, otherwise return -1
  **/
 
+
+static SaHpiResourceIdT get_resid(SaHpiSessionIdT sid,
+                           SaHpiEntryIdT srchid) {
+        SaHpiRptEntryT res;
+        SaHpiEntryIdT rptid = SAHPI_FIRST_ENTRY;
+
+        while(saHpiRptEntryGet(sid, rptid, &rptid, &res) == SA_OK) {
+                if (srchid == res.ResourceEntity.Entry[0].EntityType) {
+                        return res.ResourceId;
+                }
+        }
+        return 0;
+}
+
+
 int main(int argc, char **argv)
 {
 	SaHpiSessionIdT sid = 0;
@@ -43,7 +58,14 @@ int main(int argc, char **argv)
                 return -1;
 	}
 
-        rc = saHpiIdrAreaAdd(sid, 1, 1, SAHPI_IDR_AREATYPE_PRODUCT_INFO,
+        /* get the resource id of the chassis */
+        SaHpiResourceIdT resid = get_resid(sid, SAHPI_ENT_SYSTEM_CHASSIS);
+        if (resid == 0) {
+		dbg("Couldn't find the resource id of the chassis");
+                return -1;
+	}
+
+        rc = saHpiIdrAreaAdd(sid, resid, 1, SAHPI_IDR_AREATYPE_PRODUCT_INFO,
                              &newid);
         if (rc != SA_OK) {
 		dbg("Couldn't add new area");
@@ -51,7 +73,7 @@ int main(int argc, char **argv)
                 return -1;
 	}
 
-        rc = saHpiIdrAreaDelete(sid, 1, 1, newid);
+        rc = saHpiIdrAreaDelete(sid, resid, 1, newid);
         if (rc != SA_OK) {
 		dbg("Couldn't delete new area");
 		dbg("Error %s",oh_lookup_error(rc));

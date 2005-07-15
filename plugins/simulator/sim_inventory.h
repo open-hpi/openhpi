@@ -41,7 +41,14 @@ struct sim_inventory {
 };
 
 
-SaErrorT sim_discover_inventory(struct oh_handler_state * state);
+SaErrorT sim_discover_chassis_inventory(struct oh_handler_state * state,
+                                        SaHpiResourceIdT resid);
+SaErrorT sim_discover_cpu_inventory(struct oh_handler_state * state,
+                                    SaHpiResourceIdT resid);
+SaErrorT sim_discover_dasd_inventory(struct oh_handler_state * state,
+                                     SaHpiResourceIdT resid);
+SaErrorT sim_discover_fan_inventory(struct oh_handler_state * state,
+                                    SaHpiResourceIdT resid);
 
 SaErrorT sim_get_idr_info(void *hnd,
 		          SaHpiResourceIdT        ResourceId,

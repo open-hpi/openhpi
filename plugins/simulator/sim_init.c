@@ -95,20 +95,64 @@ SaErrorT sim_discover(void *hnd)
            state will be returned from the sim_get_handler_by_name API.
          */
 	struct oh_handler_state *inst = (struct oh_handler_state *) hnd;
-        int i = 0;
+        int i;
+        SaHpiRptEntryT res;
 
-        /* discover resources (build the base rptcache) */
-	while (sim_rpt_array[i].rpt.ResourceInfo.ManufacturerId != 0) {
-                sim_inject_resource(inst, &sim_rpt_array[i].rpt, NULL,
-                                    sim_rpt_array[i].comment);
-                i++;
-        }
+        /* ---------------------------------------------------------------
+           The following assumes that the resource array is in a specific
+           order. Changing this order means changing some of this code.
+           ------------------------------------------------------------ */
 
-	sim_discover_sensors(inst);
-	sim_discover_controls(inst);
-	sim_discover_annunciators(inst);
-	sim_discover_watchdogs(inst);
-	sim_discover_inventory(inst);
+        /* discover chassis resources and RDRs */
+        i = SIM_RPT_ENTRY_CHASSIS - 1;
+        memcpy(&res, &sim_rpt_array[i].rpt, sizeof(SaHpiRptEntryT));
+        sim_inject_resource(inst, &res, NULL,
+                            sim_rpt_array[i].comment);
+	sim_discover_chassis_sensors(inst, res.ResourceId);
+	sim_discover_chassis_controls(inst, res.ResourceId);
+	sim_discover_chassis_annunciators(inst, res.ResourceId);
+	sim_discover_chassis_watchdogs(inst, res.ResourceId);
+	sim_discover_chassis_inventory(inst, res.ResourceId);
+
+        /* discover cpu resources and RDRs */
+        i = SIM_RPT_ENTRY_CPU - 1;
+        memcpy(&res, &sim_rpt_array[i].rpt, sizeof(SaHpiRptEntryT));
+        sim_inject_resource(inst, &res, NULL,
+                            sim_rpt_array[i].comment);
+	sim_discover_cpu_sensors(inst, res.ResourceId);
+	sim_discover_cpu_controls(inst, res.ResourceId);
+	sim_discover_cpu_annunciators(inst, res.ResourceId);
+	sim_discover_cpu_watchdogs(inst, res.ResourceId);
+	sim_discover_cpu_inventory(inst, res.ResourceId);
+
+        /* discover dasd resources and RDRs */
+        i = SIM_RPT_ENTRY_DASD - 1;
+        memcpy(&res, &sim_rpt_array[i].rpt, sizeof(SaHpiRptEntryT));
+        sim_inject_resource(inst, &res, NULL,
+                            sim_rpt_array[i].comment);
+	sim_discover_dasd_sensors(inst, res.ResourceId);
+	sim_discover_dasd_controls(inst, res.ResourceId);
+	sim_discover_dasd_annunciators(inst, res.ResourceId);
+	sim_discover_dasd_watchdogs(inst, res.ResourceId);
+	sim_discover_dasd_inventory(inst, res.ResourceId);
+
+        /* discover hot swap dasd resources and RDRs */
+        i = SIM_RPT_ENTRY_HS_DASD - 1;
+        memcpy(&res, &sim_rpt_array[i].rpt, sizeof(SaHpiRptEntryT));
+        sim_inject_resource(inst, &res, NULL,
+                            sim_rpt_array[i].comment);
+        /* the hot swap resource has no RDRs */
+
+        /* discover fan resources and RDRs */
+        i = SIM_RPT_ENTRY_FAN - 1;
+        memcpy(&res, &sim_rpt_array[i].rpt, sizeof(SaHpiRptEntryT));
+        sim_inject_resource(inst, &res, NULL,
+                            sim_rpt_array[i].comment);
+	sim_discover_fan_sensors(inst, res.ResourceId);
+	sim_discover_fan_controls(inst, res.ResourceId);
+	sim_discover_fan_annunciators(inst, res.ResourceId);
+	sim_discover_fan_watchdogs(inst, res.ResourceId);
+	sim_discover_fan_inventory(inst, res.ResourceId);
 
 	return SA_OK;
 }

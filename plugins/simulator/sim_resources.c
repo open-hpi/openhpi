@@ -22,6 +22,13 @@
  * These are patterned after an RSA type machine
  **************************************************************************/
 
+/*-------------------------------------------------------------------------
+  NOTE!!!!!!!!!
+  The order is important here! Changing the order of these resources or
+  adding additional resources means the code in the function sim_discovery()
+  also needs to change!
+  ------------------------------------------------------------------------*/
+
 struct sim_rpt sim_rpt_array[] = {
 	/* Chassis */
         {

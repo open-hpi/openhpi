@@ -43,7 +43,14 @@ extern struct sim_annunciator sim_cpu_annunciators[];
 extern struct sim_annunciator sim_dasd_annunciators[];
 extern struct sim_annunciator sim_fan_annunciators[];
 
-SaErrorT sim_discover_annunciators(struct oh_handler_state * state);
+SaErrorT sim_discover_chassis_annunciators(struct oh_handler_state * state,
+                                           SaHpiResourceIdT resid);
+SaErrorT sim_discover_cpu_annunciators(struct oh_handler_state * state,
+                                       SaHpiResourceIdT resid);
+SaErrorT sim_discover_dasd_annunciators(struct oh_handler_state * state,
+                                        SaHpiResourceIdT resid);
+SaErrorT sim_discover_fan_annunciators(struct oh_handler_state * state,
+                                       SaHpiResourceIdT resid);
 
 
 #endif

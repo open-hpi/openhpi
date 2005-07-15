@@ -25,6 +25,21 @@
  * Return 0 on success, otherwise return -1
  **/
 
+
+static SaHpiResourceIdT get_resid(SaHpiSessionIdT sid,
+                           SaHpiEntryIdT srchid) {
+        SaHpiRptEntryT res;
+        SaHpiEntryIdT rptid = SAHPI_FIRST_ENTRY;
+
+        while(saHpiRptEntryGet(sid, rptid, &rptid, &res) == SA_OK) {
+                if (srchid == res.ResourceEntity.Entry[0].EntityType) {
+                        return res.ResourceId;
+                }
+        }
+        return 0;
+}
+
+
 int main(int argc, char **argv)
 {
 	SaHpiSessionIdT sid = 0;
@@ -42,7 +57,14 @@ int main(int argc, char **argv)
                 return -1;
 	}
 
-        rc = saHpiResourceResetStateSet(sid, 1, SAHPI_COLD_RESET);
+        /* get the resource id of the chassis */
+        SaHpiResourceIdT resid = get_resid(sid, SAHPI_ENT_SYSTEM_CHASSIS);
+        if (resid == 0) {
+		dbg("Couldn't find the resource id of the chassis");
+                return -1;
+	}
+
+        rc = saHpiResourceResetStateSet(sid, resid, SAHPI_COLD_RESET);
         if (rc != SA_OK) {
 		dbg("Couldn't set reset state");
 		dbg("Error %s",oh_lookup_error(rc));

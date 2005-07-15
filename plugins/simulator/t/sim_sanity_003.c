@@ -72,7 +72,8 @@ int main(int argc, char **argv)
                         rdrctr++;
                 }
                 // note that the hot swap resource has no rdrs
-                if (rdrctr == 0 && res.ResourceId != 4) {
+                if (rdrctr == 0 &&
+                    res.ResourceEntity.Entry[0].EntityType != SAHPI_ENT_DISK_DRIVE_BAY) {
                         dbg("No rdr entries found");
                         return -1;
                 }

@@ -69,15 +69,14 @@ static SaErrorT new_annunciator(struct oh_handler_state * state,
 }
 
 
-SaErrorT sim_discover_annunciators(struct oh_handler_state * state)
-{
+SaErrorT sim_discover_chassis_annunciators(struct oh_handler_state * state,
+                                           SaHpiResourceIdT resid) {
         SaErrorT rc;
-
-        /* chassis annunciators */
         int i = 0;
         int j = 0;
+
         while (sim_chassis_annunciators[i].index != 0) {
-                rc = new_annunciator(state, SIM_RPT_ENTRY_CHASSIS, &sim_chassis_annunciators[i]);
+                rc = new_annunciator(state, resid, &sim_chassis_annunciators[i]);
                 if (rc) {
                         dbg("Error %d returned when adding chassis annunciator", rc);
                 } else {
@@ -87,11 +86,18 @@ SaErrorT sim_discover_annunciators(struct oh_handler_state * state)
         }
         dbg("%d of %d chassis annunciators injected", j, i);
 
-        /* cpu annunciators */
-        i = 0;
-        j = 0;
+	return 0;
+}
+
+
+SaErrorT sim_discover_cpu_annunciators(struct oh_handler_state * state,
+                                       SaHpiResourceIdT resid) {
+        SaErrorT rc;
+        int i = 0;
+        int j = 0;
+
         while (sim_cpu_annunciators[i].index != 0) {
-                rc = new_annunciator(state, SIM_RPT_ENTRY_CPU, &sim_cpu_annunciators[i]);
+                rc = new_annunciator(state, resid, &sim_cpu_annunciators[i]);
                 if (rc) {
                         dbg("Error %d returned when adding cpu annunciator", rc);
                 } else {
@@ -101,11 +107,18 @@ SaErrorT sim_discover_annunciators(struct oh_handler_state * state)
         }
         dbg("%d of %d cpu annunciators injected", j, i);
 
-        /* dasd annunciators */
-        i = 0;
-        j = 0;
+	return 0;
+}
+
+
+SaErrorT sim_discover_dasd_annunciators(struct oh_handler_state * state,
+                                        SaHpiResourceIdT resid) {
+        SaErrorT rc;
+        int i = 0;
+        int j = 0;
+
         while (sim_dasd_annunciators[i].index != 0) {
-                rc = new_annunciator(state, SIM_RPT_ENTRY_DASD, &sim_dasd_annunciators[i]);
+                rc = new_annunciator(state, resid, &sim_dasd_annunciators[i]);
                 if (rc) {
                         dbg("Error %d returned when adding dasd annunciator", rc);
                 } else {
@@ -115,11 +128,18 @@ SaErrorT sim_discover_annunciators(struct oh_handler_state * state)
         }
         dbg("%d of %d dasd annunciators injected", j, i);
 
-        /* fan annunciators */
-        i = 0;
-        j = 0;
+	return 0;
+}
+
+
+SaErrorT sim_discover_fan_annunciators(struct oh_handler_state * state,
+                                       SaHpiResourceIdT resid) {
+        SaErrorT rc;
+        int i = 0;
+        int j = 0;
+
         while (sim_fan_annunciators[i].index != 0) {
-                rc = new_annunciator(state, SIM_RPT_ENTRY_FAN, &sim_fan_annunciators[i]);
+                rc = new_annunciator(state, resid, &sim_fan_annunciators[i]);
                 if (rc) {
                         dbg("Error %d returned when adding fan annunciator", rc);
                 } else {

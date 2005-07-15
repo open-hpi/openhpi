@@ -48,6 +48,13 @@ extern struct sim_watchdog sim_cpu_watchdogs[];
 extern struct sim_watchdog sim_dasd_watchdogs[];
 extern struct sim_watchdog sim_fan_watchdogs[];
 
-SaErrorT sim_discover_watchdogs(struct oh_handler_state * state);
+SaErrorT sim_discover_chassis_watchdogs(struct oh_handler_state * state,
+                                        SaHpiResourceIdT resid);
+SaErrorT sim_discover_cpu_watchdogs(struct oh_handler_state * state,
+                                    SaHpiResourceIdT resid);
+SaErrorT sim_discover_dasd_watchdogs(struct oh_handler_state * state,
+                                     SaHpiResourceIdT resid);
+SaErrorT sim_discover_fan_watchdogs(struct oh_handler_state * state,
+                                    SaHpiResourceIdT resid);
 
 #endif
