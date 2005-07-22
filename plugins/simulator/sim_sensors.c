@@ -53,31 +53,10 @@ static SaErrorT new_sensor(struct oh_handler_state * state,
         memcpy(&info->event_array, &mysensor->sensor_info.event_array,
                sizeof(struct sensor_event_map));
         memcpy(&info->reading2event, &mysensor->sensor_info.reading2event,
-               sizeof(struct sensor_event_map));
-	info->reading.IsSupported = mysensor->sensor.DataFormat.IsSupported;
-	info->reading.Type = mysensor->sensor.DataFormat.ReadingType;
-        switch (info->reading.Type) {
-                case SAHPI_SENSOR_READING_TYPE_INT64:
-                        info->reading.Value.SensorInt64 =
-                         mysensor->sensor.DataFormat.Range.Nominal.Value.SensorInt64;
-                        break;
-                case SAHPI_SENSOR_READING_TYPE_UINT64:
-                        info->reading.Value.SensorUint64 =
-                         mysensor->sensor.DataFormat.Range.Nominal.Value.SensorUint64;
-                        break;
-                case SAHPI_SENSOR_READING_TYPE_FLOAT64:
-                        info->reading.Value.SensorFloat64 =
-                         mysensor->sensor.DataFormat.Range.Nominal.Value.SensorFloat64;
-                        break;
-                case SAHPI_SENSOR_READING_TYPE_BUFFER:
-                default:
-                        memcpy(info->reading.Value.SensorBuffer,
-                               mysensor->sensor.DataFormat.Range.Nominal.Value.SensorBuffer,
-                               SAHPI_SENSOR_BUFFER_LENGTH);
-        }
-	info->reading.Value.SensorFloat64 =
-                mysensor->sensor.DataFormat.Range.Nominal.Value.SensorFloat64;
-	memcpy(&info->thres, &mysensor->sensor.DataFormat.Range,
+               sizeof(struct sensor_reading_map));
+        memcpy(&info->reading, &mysensor->sensor_info.reading,
+               sizeof(SaHpiSensorReadingT));
+        memcpy(&info->thres, &mysensor->sensor_info.thres,
                sizeof(SaHpiSensorThresholdsT));
 
         // everything ready so add the rdr and extra info to the rptcache
