@@ -76,6 +76,7 @@ struct oh_handler_state *sim_get_handler_by_name(char *name)
                 if (strcmp(handler_name, name) == 0) {
                         return state;
                 }
+                i++;
                 state = (struct oh_handler_state *)g_slist_nth_data(sim_handler_states, i);
         }
 
