@@ -252,10 +252,10 @@ SaErrorT list_resources(SaHpiSessionIdT sessionid,SaHpiResourceIdT resourceid)
 void same_system(oh_big_textbuffer *bigbuf)
 {
 
-	int size = strcspn(bigbuf->Data, EPATHSTRING_END_DELIMITER);
+	int size = strcspn((char *)bigbuf->Data, EPATHSTRING_END_DELIMITER);
 	int old_size = strcspn(previous_system, EPATHSTRING_END_DELIMITER); 
 	if  ( (old_size != size) || 
-			(strncmp(bigbuf->Data, previous_system, size+1) != 0)) {
+			(strncmp((char *)bigbuf->Data, previous_system, size+1) != 0)) {
 		if (previous_system[0] == '{') show_trailer(previous_system);
 		memset (previous_system, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH); 
 		strncpy (previous_system, bigbuf->Data, size+1);
