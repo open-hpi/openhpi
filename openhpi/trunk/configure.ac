@@ -14,11 +14,6 @@ AH_TOP([#ifndef __OPENHPI_CONFIG_H
 #define __OPENHPI_CONFIG_H])
 AH_BOTTOM([#endif /* __OPENHPI_CONFIG_H */])
 
-AC_PROG_CC
-AC_LIBTOOL_DLOPEN
-AC_PROG_LIBTOOL
-AC_PROG_LN_S
-
 HPI_LIB_VERSION=4:0:2
 HPI_PKG=$PACKAGE_NAME
 HPI_UTIL_PKG=${PACKAGE_NAME}utils
@@ -31,6 +26,9 @@ AC_SUBST(ac_configure_args)
 
 dnl Checks for programs
 AC_PROG_CC
+AC_LIBTOOL_DLOPEN
+AC_PROG_LIBTOOL
+AC_PROG_LN_S
 AC_PROG_CXX
 AC_PROG_CPP
 AC_PROG_INSTALL
@@ -499,14 +497,40 @@ dnl we start with a good base set that has been built up
 CFLAGS="$CFLAGS $GLIB_CFLAGS"
 
 dnl next we have to do transformations to either turn on
-dnl test coverage or debug.
+dnl test coverage support.
 
 AC_ARG_ENABLE([testcover],
-    [  --enable-testcover      build with test coverage support [default=no]],
+    [  --enable-testcover      adds test coverage and profiling support [default=no]],
     [if test "x$enableval" = "xyes"; then
-            CFLAGS=`echo $CFLAGS | perl -p -e 's/-O\S*//g'`
-            CFLAGS="$CFLAGS -ftest-coverage -fprofile-arcs"
+	    CFLAGS=`echo $CFLAGS | sed -e 's/-O\w\?\>[ ]*//g'`
+	    CFLAGS="$CFLAGS -ftest-coverage -fprofile-arcs"
     fi]
+    )
+
+dnl This makes libopenhpi debugger friendly
+dnl by eliminating optimizations and adding the -g flag
+
+AC_ARG_ENABLE([debuggable],
+    [  --enable-debuggable     adds -g flag and turns off optimization [default=no]],
+    [if test "x$enableval" = "xyes"; then
+            CFLAGS=`echo $CFLAGS | sed -e 's/-O\w\?\>[ ]*//g'`
+	    CFLAGS=`echo $CFLAGS | sed -e 's/^-g\w*[ ]*\| -g\w*//g'`
+	    CFLAGS="$CFLAGS -g3"
+    else
+            CFLAGS=`echo $CFLAGS | sed -e 's/^-g\w*[ ]*\| -g\w*//g'`
+    fi],
+    [CFLAGS=`echo $CFLAGS | sed -e 's/^-g\w*[ ]*\| -g\w*//g'`]
+    )
+
+dnl This will let the user decide whether he wants
+dnl to use dbg/trace messages.
+
+AC_ARG_ENABLE([debug-msgs],
+    [  --enable-debug-msgs     enables dynamic debug messages [default=yes]],
+    [if test "x$enableval" = "xyes"; then
+            CFLAGS="$CFLAGS -DDBG_MSGS"
+    fi],
+    [CFLAGS="$CFLAGS -DDBG_MSGS"]
     )
 
 dnl Now we throw in a bunch of warnings.  C and C++ need
@@ -552,9 +576,9 @@ fi
 
 dnl there are certain places we always want to turn off optimization
 dnl this has to come last
-NOCFLAGS=`echo $CFLAGS | perl -p -e 's/-O\S*//g'`
+NOCFLAGS=`echo $CFLAGS | sed -e 's/-O\w\?\>[ ]*//g'`
 AC_SUBST(NOCFLAGS)
-NOCXXFLAGS=`echo $CXXFLAGS | perl -p -e 's/-O\S*//g'`
+NOCXXFLAGS=`echo $CXXFLAGS | sed -e 's/-O\w\?\>[ ]*//g'`
 AC_SUBST(NOCXXFLAGS)
 
 OPENHPI_INCLUDES="-I\$(top_srcdir)/include -I\$(top_srcdir)/utils -I\$(top_builddir)/utils"
