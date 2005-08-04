@@ -32,6 +32,7 @@
 extern "C" {
 #endif
 
+#ifdef DBG_MSGS
 /*
 #define dbg(format, ...) \
         do { \
@@ -48,14 +49,22 @@ extern "C" {
                         fprintf(stderr, format "\n", ## __VA_ARGS__); \
                 } \
         } while(0)
+#else
+#define dbg(format, ...)
+#endif
 
+#ifdef DBG_MSGS
 #define deprecated(format, ...) \
         do { \
                 fprintf(stderr, "The function %s in %s is deprecated\n", __func__, __FILE__); \
                 fprintf(stderr, "\tand will be removed in a future release\n"); \
                 fprintf(stderr, "\t" format "\n", ## __VA_ARGS__); \
         } while(0)
+#else
+#define deprecated(format, ...)
+#endif
 
+#ifdef DBG_MSGS
 /*
 #define trace(format, ...) \
         do { \
@@ -72,6 +81,9 @@ extern "C" {
                         fprintf(stderr, format "\n", ## __VA_ARGS__); \
                 } \
         } while(0)
+#else
+#define trace(format, ...)
+#endif
 
 #ifdef __cplusplus
 }

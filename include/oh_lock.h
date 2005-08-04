@@ -12,18 +12,19 @@
  *
  * Authors:
  *     Louis Zhuang <louis.zhuang@linux.intel.com>
+ *     Renier Morales <renierm@users.sf.net>
  */
 
 #ifndef __OH_LOCK_H
 #define __OH_LOCK_H
 
 #include <config.h>
-//#include <oh_config.h>
 
 extern int oh_will_block;
 
 int data_access_block_times(void);
 
+#ifdef DBG_MSGS
 /*
 #define dbg_lock(format, ...) \
         do { \
@@ -40,6 +41,9 @@ int data_access_block_times(void);
                         fprintf(stderr, format "\n", ## __VA_ARGS__); \
                 } \
         } while(0)
+#else
+#define dbg_lock(format, ...)
+#endif
 		 
 #ifdef HAVE_THREAD_SAFE
 /* multi-threading support, use Posix mutex for data access */
