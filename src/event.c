@@ -342,6 +342,7 @@ static int process_resource_event(struct oh_event *e)
                 hpie.u.hpi_event.event.EventType = SAHPI_ET_RESOURCE;
                 hpie.u.hpi_event.event.EventDataUnion.ResourceEvent.ResourceEventType =
                         SAHPI_RESE_RESOURCE_FAILURE;
+		hpie.u.hpi_event.res = e->u.res_event.entry;
                 if (oh_gettimeofday(&hpie.u.hpi_event.event.Timestamp) != SA_OK)
                         hpie.u.hpi_event.event.Timestamp = SAHPI_TIME_UNSPECIFIED;
                 
@@ -369,6 +370,7 @@ static int process_resource_event(struct oh_event *e)
                 hpie.u.hpi_event.event.EventType = SAHPI_ET_RESOURCE;
                 hpie.u.hpi_event.event.EventDataUnion.ResourceEvent.ResourceEventType =
                         SAHPI_RESE_RESOURCE_ADDED;
+		hpie.u.hpi_event.res = e->u.res_event.entry;
                 if (oh_gettimeofday(&hpie.u.hpi_event.event.Timestamp) != SA_OK)
                     hpie.u.hpi_event.event.Timestamp = SAHPI_TIME_UNSPECIFIED;
         }
