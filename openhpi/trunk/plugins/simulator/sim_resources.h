@@ -64,6 +64,7 @@ extern struct sim_rpt sim_rpt_array[];
 extern struct sim_sensor sim_chassis_sensors[];
 extern struct sim_sensor sim_cpu_sensors[];
 extern struct sim_sensor sim_dasd_sensors[];
+extern struct sim_sensor sim_hs_dasd_sensors[];
 extern struct sim_sensor sim_fan_sensors[];
 
 #endif
