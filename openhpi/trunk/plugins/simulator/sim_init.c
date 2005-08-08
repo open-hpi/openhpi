@@ -97,6 +97,7 @@ SaErrorT sim_discover(void *hnd)
 	struct oh_handler_state *inst = (struct oh_handler_state *) hnd;
         int i;
         SaHpiRptEntryT res;
+        GThread *service_thrd;
 
         /* ---------------------------------------------------------------
            The following assumes that the resource array is in a specific
@@ -157,6 +158,13 @@ SaErrorT sim_discover(void *hnd)
 	sim_discover_fan_annunciators(inst, res.ResourceId);
 	sim_discover_fan_watchdogs(inst, res.ResourceId);
 	sim_discover_fan_inventory(inst, res.ResourceId);
+
+        /* now start the message queue thread for reading events */
+        service_thrd = start_injector_service_thread(NULL);
+        if (service_thrd == NULL) {
+                trace("injector service thread not started");
+        }
+
 
 	return SA_OK;
 }

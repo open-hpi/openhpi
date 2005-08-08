@@ -16,6 +16,9 @@
 
 
 #include <sim_init.h>
+#include <sys/ipc.h>
+#include <sys/msg.h>
+#include <sys/types.h>
 
 
 static struct oh_event *eventdup(const struct oh_event *event)
@@ -90,7 +93,7 @@ struct oh_handler_state *sim_get_handler_by_name(char *name)
 
 
 /* inject a resource */
-// assuptions about the input SaHpiRptEntryT *data entry
+// assumptions about the input SaHpiRptEntryT *data entry
 // - all fields are assumed to have valid values except
 //    o EntryId (filled in by oh_add_resource function)
 //    o ResourceId
@@ -162,7 +165,7 @@ SaErrorT sim_inject_resource(struct oh_handler_state *state,
 
 
 /* inject an rdr */
-// assuptions about the input SaHpiRdrT *data entry
+// assumptions about the input SaHpiRdrT *data entry
 // - all fields are assumed to have valid values
 // - no checking of the data is performed
 // assuptions about the input *privdata entry
@@ -197,7 +200,7 @@ SaErrorT sim_inject_rdr(struct oh_handler_state *state, SaHpiResourceIdT resid,
 
 
 /* inject an event */
-// assuptions about the input oh_event *data entry
+// assumptions about the input oh_event *data entry
 // - all fields are assumed to have valid values
 // - no checking of the data is performed
 SaErrorT sim_inject_event(struct oh_handler_state *state, struct oh_event *data) {
@@ -212,4 +215,71 @@ SaErrorT sim_inject_event(struct oh_handler_state *state, struct oh_event *data)
 	g_async_queue_push(state->eventq_async, data);
         return SA_OK;
 }
+
+
+/*--------------------------------------------------------------------*/
+/* Function: service_thread                                           */
+/*--------------------------------------------------------------------*/
+
+static gpointer injector_service_thread(gpointer data) {
+        int msgqueid = (int)data;
+        struct {
+                long msgto;
+                long msgfm;
+                char handler_name[50];
+                struct oh_event ohevent;
+        } event;
+        int n;
+        struct oh_handler_state *state;
+
+        /* get message loop */
+        while (TRUE) {
+                n = msgrcv(msgqueid, &event, sizeof(event), 0, 0);
+                if (n != -1) {
+                        state = sim_get_handler_by_name(event.handler_name);
+                        if (state != NULL) {
+                                sim_inject_event(state, &event.ohevent);
+                        }
+                }
+        }
+        g_thread_exit(NULL);
+}
+
+
+static SaHpiBoolT thrd_running = FALSE;
+
+
+/*--------------------------------------------------------------------*/
+/* Function: start_injector_service_thread                            */
+/*--------------------------------------------------------------------*/
+
+GThread *start_injector_service_thread(gpointer data) {
+        key_t ipckey;
+        int msgqueid = -1;
+        GThread *service_thrd;
+
+        /* if thread already running then quit */
+        if (thrd_running) {
+                return NULL;
+        }
+
+        /* construct the queue */
+        ipckey = ftok(".", MSG_QUEUE_KEY);
+        msgqueid = msgget(ipckey, IPC_CREAT | 0660);
+        if (msgqueid == -1) {
+                return NULL;
+        }
+
+        /* start the thread */
+        service_thrd = g_thread_create(injector_service_thread, &msgqueid,
+                                       FALSE, NULL);
+        if (service_thrd != NULL) {
+                thrd_running = TRUE;
+        }
+        return service_thrd;
+}
+
+
+
+
 
