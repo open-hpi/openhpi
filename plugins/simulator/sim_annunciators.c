@@ -132,6 +132,27 @@ SaErrorT sim_discover_dasd_annunciators(struct oh_handler_state * state,
 }
 
 
+SaErrorT sim_discover_hs_dasd_annunciators(struct oh_handler_state * state,
+                                           SaHpiResourceIdT resid) {
+        SaErrorT rc;
+        int i = 0;
+        int j = 0;
+
+        while (sim_hs_dasd_annunciators[i].index != 0) {
+                rc = new_annunciator(state, resid, &sim_hs_dasd_annunciators[i]);
+                if (rc) {
+                        dbg("Error %d returned when adding hs dasd annunciator", rc);
+                } else {
+                        j++;
+                }
+                i++;
+        }
+        dbg("%d of %d hs dasd annunciators injected", j, i);
+
+	return 0;
+}
+
+
 SaErrorT sim_discover_fan_annunciators(struct oh_handler_state * state,
                                        SaHpiResourceIdT resid) {
         SaErrorT rc;

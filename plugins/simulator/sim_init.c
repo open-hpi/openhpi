@@ -141,7 +141,11 @@ SaErrorT sim_discover(void *hnd)
         memcpy(&res, &sim_rpt_array[i].rpt, sizeof(SaHpiRptEntryT));
         sim_inject_resource(inst, &res, NULL,
                             sim_rpt_array[i].comment);
-        /* the hot swap resource has no RDRs */
+        sim_discover_hs_dasd_sensors(inst, res.ResourceId);
+        sim_discover_hs_dasd_controls(inst, res.ResourceId);
+        sim_discover_hs_dasd_annunciators(inst, res.ResourceId);
+        sim_discover_hs_dasd_watchdogs(inst, res.ResourceId);
+        sim_discover_hs_dasd_inventory(inst, res.ResourceId);
 
         /* discover fan resources and RDRs */
         i = SIM_RPT_ENTRY_FAN - 1;

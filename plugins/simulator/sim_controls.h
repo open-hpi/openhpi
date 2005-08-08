@@ -37,6 +37,7 @@ struct sim_control {
 extern struct sim_control sim_chassis_controls[];
 extern struct sim_control sim_cpu_controls[];
 extern struct sim_control sim_dasd_controls[];
+extern struct sim_control sim_hs_dasd_controls[];
 extern struct sim_control sim_fan_controls[];
 
 SaErrorT sim_discover_chassis_controls(struct oh_handler_state * state,
@@ -45,6 +46,8 @@ SaErrorT sim_discover_cpu_controls(struct oh_handler_state * state,
                                    SaHpiResourceIdT resid);
 SaErrorT sim_discover_dasd_controls(struct oh_handler_state * state,
                                     SaHpiResourceIdT resid);
+SaErrorT sim_discover_hs_dasd_controls(struct oh_handler_state * state,
+                                       SaHpiResourceIdT resid);
 SaErrorT sim_discover_fan_controls(struct oh_handler_state * state,
                                    SaHpiResourceIdT resid);
 

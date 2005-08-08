@@ -2194,6 +2194,118 @@ struct sim_sensor sim_dasd_sensors[] = {
         {} /* Terminate array with a null element */
 };
 
+/***********************
+ * Hot Swap DASD Sensors
+ **********************/
+
+struct sim_sensor sim_hs_dasd_sensors[] = {
+        /* Hot Swap DASD thermal sensor */
+        {
+		.index = 1,
+                .sensor = {
+                        .Num = 1,
+                        .Type = SAHPI_TEMPERATURE,
+                        .Category = SAHPI_EC_THRESHOLD,
+  			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
+                        .Events = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+                        .DataFormat = {
+				.IsSupported = SAHPI_TRUE,
+                                .ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+                                .BaseUnits = SAHPI_SU_DEGREES_C,
+                                .ModifierUnits = SAHPI_SU_UNSPECIFIED,
+                                .ModifierUse = SAHPI_SMUU_NONE,
+                                .Percentage = SAHPI_FALSE,
+                                .Range = {
+                                        .Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
+                                        .Max = {
+						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 125,
+						},
+					},
+                                        .Min = {
+						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 0,
+						},
+                                        },
+                                },
+                        },
+                        .ThresholdDefn = {
+				.IsAccessible = SAHPI_TRUE,
+                                .ReadThold = SAHPI_STM_UP_MAJOR | SAHPI_STM_UP_CRIT |
+				             SAHPI_STM_UP_HYSTERESIS,
+				.WriteThold = 0,
+                        },
+                        .Oem = 0,
+                },
+		.sensor_info = {
+			.cur_state = SAHPI_ES_UNSPECIFIED,
+                        .sensor_enabled = SAHPI_TRUE,
+                        .events_enabled = SAHPI_TRUE,
+                        .assert_mask   = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+                        .deassert_mask = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+			.event_array = {
+				{
+					.event = "0681C08x", /* EN_CUTOFF_HI_OVER_TEMP_DASD1 */
+					.event_assertion = SAHPI_TRUE,
+					.event_res_failure = SAHPI_TRUE,
+					.event_res_failure_unexpected = SAHPI_TRUE,
+					.event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR |
+					               SAHPI_ES_UPPER_MINOR,
+					.recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
+				},
+				{
+                                        .event = "0681C40x", /* EN_PFA_HI_OVER_TEMP_DASD1 */
+ 					.event_assertion = SAHPI_TRUE,
+					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+					.event_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
+					.recovery_state = SAHPI_ES_UNSPECIFIED,
+				},
+				{},
+			},
+            .reading = { .IsSupported = SAHPI_TRUE,
+                                              .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+                                              .Value = {
+							                        .SensorFloat64 = 50,
+						                      },
+                                            },
+            .thres = {
+                        .LowCritical = { .IsSupported = SAHPI_FALSE, },
+                        .LowMajor =    { .IsSupported = SAHPI_FALSE, },
+                        .LowMinor =    { .IsSupported = SAHPI_FALSE, },
+                        .UpCritical =  { .IsSupported = SAHPI_TRUE,
+                                              .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+                                              .Value = {
+							                        .SensorFloat64 = 80,
+						                      },
+                                            },
+                        .UpMajor =     { .IsSupported =  SAHPI_TRUE,
+                                              .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+                                              .Value = {
+							                        .SensorFloat64 = 60,
+						                      },
+                                            },
+                        .UpMinor =     { .IsSupported = SAHPI_FALSE, },
+                        .PosThdHysteresis = { .IsSupported = SAHPI_TRUE,
+                                              .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+                                              .Value = {
+							                        .SensorFloat64 = 2,
+						                      },
+                                            },
+                        .NegThdHysteresis = { .IsSupported = SAHPI_FALSE, },
+             },
+		},
+                .comment = "DASD temperature sensor"
+        },
+
+        {} /* Terminate array with a null element */
+};
+
 /*************
  * Fan Sensors
  *************/
@@ -2366,6 +2478,11 @@ struct sim_control sim_dasd_controls[] = {
         {} /* Terminate array with a null element */
 };
 
+struct sim_control sim_hs_dasd_controls[] = {
+
+        {} /* Terminate array with a null element */
+};
+
 struct sim_control sim_fan_controls[] = {
 
         {} /* Terminate array with a null element */
@@ -2479,6 +2596,11 @@ struct sim_annunciator sim_dasd_annunciators[] = {
         {} /* Terminate array with a null element */
 };
 
+struct sim_annunciator sim_hs_dasd_annunciators[] = {
+
+        {} /* Terminate array with a null element */
+};
+
 struct sim_annunciator sim_fan_annunciators[] = {
 
         {} /* Terminate array with a null element */
@@ -2520,6 +2642,11 @@ struct sim_watchdog sim_cpu_watchdogs[] = {
 };
 
 struct sim_watchdog sim_dasd_watchdogs[] = {
+
+        {} /* Terminate array with a null element */
+};
+
+struct sim_watchdog sim_hs_dasd_watchdogs[] = {
 
         {} /* Terminate array with a null element */
 };
@@ -2590,6 +2717,11 @@ struct sim_inventory sim_cpu_inventory[] = {
 };
 
 struct sim_inventory sim_dasd_inventory[] = {
+
+        {} /* Terminate array with a null element */
+};
+
+struct sim_inventory sim_hs_dasd_inventory[] = {
 
         {} /* Terminate array with a null element */
 };

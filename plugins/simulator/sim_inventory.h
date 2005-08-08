@@ -47,6 +47,8 @@ SaErrorT sim_discover_cpu_inventory(struct oh_handler_state * state,
                                     SaHpiResourceIdT resid);
 SaErrorT sim_discover_dasd_inventory(struct oh_handler_state * state,
                                      SaHpiResourceIdT resid);
+SaErrorT sim_discover_hs_dasd_inventory(struct oh_handler_state * state,
+                                        SaHpiResourceIdT resid);
 SaErrorT sim_discover_fan_inventory(struct oh_handler_state * state,
                                     SaHpiResourceIdT resid);
 
@@ -102,6 +104,7 @@ SaErrorT sim_del_idr_field(void *hnd,
 extern struct sim_inventory sim_chassis_inventory[];
 extern struct sim_inventory sim_cpu_inventory[];
 extern struct sim_inventory sim_dasd_inventory[];
+extern struct sim_inventory sim_hs_dasd_inventory[];
 extern struct sim_inventory sim_fan_inventory[];
 
 

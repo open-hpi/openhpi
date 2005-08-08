@@ -122,6 +122,27 @@ SaErrorT sim_discover_dasd_controls(struct oh_handler_state * state,
 }
 
 
+SaErrorT sim_discover_hs_dasd_controls(struct oh_handler_state * state,
+                                       SaHpiResourceIdT resid) {
+        SaErrorT rc;
+        int i = 0;
+        int j = 0;
+
+        while (sim_hs_dasd_controls[i].index != 0) {
+                rc = new_control(state, resid, &sim_hs_dasd_controls[i]);
+                if (rc) {
+                        dbg("Error %d returned when adding hs dasd control", rc);
+                } else {
+                        j++;
+                }
+                i++;
+        }
+        dbg("%d of %d hs dasd controls injected", j, i);
+
+        return 0;
+}
+
+
 SaErrorT sim_discover_fan_controls(struct oh_handler_state * state,
                                    SaHpiResourceIdT resid) {
         SaErrorT rc;

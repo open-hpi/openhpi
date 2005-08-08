@@ -132,6 +132,28 @@ SaErrorT sim_discover_dasd_sensors(struct oh_handler_state * state,
 }
 
 
+SaErrorT sim_discover_hs_dasd_sensors(struct oh_handler_state * state,
+                                      SaHpiResourceIdT resid) {
+        SaErrorT rc;
+        int i = 0;
+        int j = 0;
+
+        while (sim_hs_dasd_sensors[i].index != 0) {
+                rc = new_sensor(state, resid, &sim_hs_dasd_sensors[i]);
+                if (rc) {
+                        dbg("Error %d returned when adding hs dasd sensor", rc);
+                } else {
+                        j++;
+                }
+                i++;
+        }
+        dbg("%d of %d hs dasd sensors injected", j, i);
+
+	return 0;
+
+}
+
+
 SaErrorT sim_discover_fan_sensors(struct oh_handler_state * state,
                                   SaHpiResourceIdT resid) {
         SaErrorT rc;

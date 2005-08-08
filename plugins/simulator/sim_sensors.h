@@ -107,6 +107,8 @@ SaErrorT sim_discover_cpu_sensors(struct oh_handler_state * state,
                                   SaHpiResourceIdT resid);
 SaErrorT sim_discover_dasd_sensors(struct oh_handler_state * state,
                                    SaHpiResourceIdT resid);
+SaErrorT sim_discover_hs_dasd_sensors(struct oh_handler_state * state,
+                                      SaHpiResourceIdT resid);
 SaErrorT sim_discover_fan_sensors(struct oh_handler_state * state,
                                   SaHpiResourceIdT resid);
 
