@@ -19,6 +19,9 @@
 #define __SIM_INJECTOR_H
 
 
+#define MSG_QUEUE_KEY 'I'
+
+
 struct oh_handler_state *sim_get_handler_by_name(char *name);
 SaErrorT sim_inject_resource(struct oh_handler_state *state,
                              SaHpiRptEntryT *data, void *privdata,
@@ -26,5 +29,6 @@ SaErrorT sim_inject_resource(struct oh_handler_state *state,
 SaErrorT sim_inject_rdr(struct oh_handler_state *state, SaHpiResourceIdT resid,
                         SaHpiRdrT *rdr, void * privinfo);
 SaErrorT sim_inject_event(struct oh_handler_state *state, struct oh_event *data);
+GThread *start_injector_service_thread(gpointer data);
 
 #endif /*__SIM_INJECTOR_H*/
