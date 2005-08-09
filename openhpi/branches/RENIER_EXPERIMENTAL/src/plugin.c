@@ -68,14 +68,14 @@ static void close_handlers_atexit(void)
 	}
 }
 	      
-extern GCond *oh_thread_wait;
-extern GMutex *oh_thread_mutex;
+extern GCond *oh_event_thread_wait;
+extern GMutex *oh_event_thread_mutex;
 
 void oh_wake_event_thread(SaHpiBoolT wait)
 {
-        if(oh_run_threaded()) {
+        if(oh_threaded_mode()) {
                 trace("Waking thread");
-                g_cond_broadcast(oh_thread_wait);
+                g_cond_broadcast(oh_event_thread_wait);
                 if(wait) {
                         /* the wait concept is important.  By taking these locks
                            we ensure that the thread is forced to go through
@@ -84,9 +84,9 @@ void oh_wake_event_thread(SaHpiBoolT wait)
                            calls like discover, which need to know *now* what
                            is going on.  Plugins probably don't care, but we
                            leave it as an option anyway. */
-                        g_mutex_lock(oh_thread_mutex);
+                        g_mutex_lock(oh_event_thread_mutex);
                         trace("Got the lock on the thread");
-                        g_mutex_unlock(oh_thread_mutex);
+                        g_mutex_unlock(oh_event_thread_mutex);
                         trace("Gave back the thread lock");
                 }
 	}
@@ -693,6 +693,36 @@ int oh_remove_domain_from_handler(unsigned int h_id,
 	}
 	data_access_unlock();
 	return -1;
+}
+
+/**
+ * oh_domain_resource_discovery
+ * @did:
+ *
+ *
+ *
+ * Returns:
+ **/
+int oh_domain_resource_discovery(SaHpiDomainIdT did)
+{
+        data_access_lock();
+        oh_lookup_next_handler(hid, &next_hid);
+        while (next_hid) {
+                hid = next_hid;
+                h = oh_lookup_handler(hid);
+		if (oh_domain_served_by_handler(hid, did)) {
+			if (h->abi->discover_domain_resources != NULL) {
+				if (h->abi->discover_domain_resources(h->hnd,
+						did) == SA_OK && rv) {
+					rv = SA_OK;
+				}
+                	} else if (h->abi->discover_resources(h->hnd) == SA_OK && rv)
+                        	rv = SA_OK;
+		}
+
+                oh_lookup_next_handler(hid, &next_hid);
+        }
+        data_access_unlock();
 }
 
 /**

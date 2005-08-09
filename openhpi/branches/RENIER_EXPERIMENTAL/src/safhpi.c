@@ -1050,7 +1050,7 @@ SaErrorT SAHPI_API saHpiEventGet (
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
 
-        if( !oh_run_threaded() && Timeout != SAHPI_TIMEOUT_IMMEDIATE) {
+        if( !oh_threaded_mode() && Timeout != SAHPI_TIMEOUT_IMMEDIATE) {
                 dbg("Can not support timeouts in non threaded mode");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }

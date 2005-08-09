@@ -59,7 +59,7 @@ SaErrorT oh_initialize()
         }        
 
         /* Initialize event process queue */
-        oh_event_init();
+        oh_threaded_init();
         
         /* Set openhpi configuration file location */        
         oh_get_global_param(&config_param);
@@ -101,7 +101,7 @@ SaErrorT oh_initialize()
         trace("Initialized session table");
 
         /* this only does something if the config says to */
-        oh_start_event_thread();
+        oh_threaded_start();
         oh_init_state = INIT;
         trace("Set init state");
 
@@ -145,9 +145,8 @@ SaErrorT oh_initialize()
         if (!u) {
                 /* there is no handler => this can not work */
                 dbg("No handlers loaded after initialization.");
-                dbg("Check configuration file %s", config_param.u.conf);
-                /*data_access_unlock();*/
-                /*return SA_ERR_HPI_NOT_PRESENT;*/
+                dbg("Check configuration file %s or previous messages",
+                    config_param.u.conf);
         }
 
         return SA_OK;
@@ -156,11 +155,11 @@ SaErrorT oh_initialize()
 SaErrorT oh_add_config_file(char *file_name)
 {
         struct oh_parsed_config config;
-	int			res;
-        GSList			*node = NULL;
+	int res;
+        GSList	*node = NULL;
 
 	memset (&config, 0, sizeof(struct oh_parsed_config));
-	// open and load config file
+	/* open and load config file */
 	res = oh_load_config(file_name, &config);
 	if (res < 0) return(SA_ERR_HPI_INVALID_PARAMS);
 

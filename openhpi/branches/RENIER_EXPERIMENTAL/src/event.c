@@ -26,14 +26,7 @@
 #include <oh_event.h>
 #include <openhpi.h>
 
-#define OH_THREAD_SLEEP_TIME 2 * G_USEC_PER_SEC
-
-static gboolean oh_is_threaded = FALSE;
 GAsyncQueue *oh_process_q = NULL;
-GCond *oh_thread_wait = NULL;
-GThread *oh_event_thread = NULL;
-GError *oh_event_thread_error = NULL;
-GMutex *oh_thread_mutex = NULL;
 
 /**
  * oh_new_oh_event
@@ -52,103 +45,6 @@ struct oh_event* oh_new_oh_event(oh_event_type t)
 	
 	return new;
 }
-
-gboolean oh_run_threaded()
-{
-        return oh_is_threaded;
-}
-
-static gpointer oh_event_thread_loop(gpointer data)
-{
-        GTimeVal time;
-        SaErrorT rv;
-
-	g_mutex_lock(oh_thread_mutex);
-        while(oh_run_threaded()) {
-		trace("Thread Harvesting events");
-                rv = oh_harvest_events();
-                if(rv != SA_OK) {
-                        trace("Error on harvest of events.");
-                }
-                
-		trace("Thread processing events");
-                rv = oh_process_events();
-                if(rv != SA_OK) {
-                        trace("Error on processing of events, aborting");
-                }
-                
-                trace("Thread processing hotswap");
-                process_hotswap_policy();
-                
-                g_get_current_time(&time);
-                g_time_val_add(&time, OH_THREAD_SLEEP_TIME);
-
-                trace("Going to sleep");
-                if (g_cond_timed_wait(oh_thread_wait, oh_thread_mutex, &time))
-                        trace("SIGNALED: Got signal from plugin");
-                else
-                        trace("TIMEDOUT: Woke up, am looping again");
-        }
-	g_mutex_unlock(oh_thread_mutex);
-        g_thread_exit(0);
-        return data;
-}
-
-/*
- *  The following is required to set up the thread state for
- *  the use of async queues.  This is true even if we aren't
- *  using live threads.
- */
-int oh_event_init()
-{
-        trace("Attempting to init event");
-        if (!g_thread_supported()) {
-                trace("Initializing thread support");
-                g_thread_init(NULL);
-        } else {
-                trace("Already supporting threads");
-        }
-        trace("Setting up event processing queue");
-        oh_process_q = g_async_queue_new();
-        if(oh_process_q) {
-                trace("Set up processing queue");
-                return 1;
-        } else {
-                dbg("Failed to allocate processing queue");
-                return 0;
-        }
-}
-
-int oh_start_event_thread()
-{
-        struct oh_global_param threaded_param = { .type = OPENHPI_THREADED };
-
-        oh_get_global_param(&threaded_param);
-        if (threaded_param.u.threaded) {
-                trace("Starting event thread");
-                oh_is_threaded = TRUE;
-                oh_thread_wait = g_cond_new();
-                oh_thread_mutex = g_mutex_new();
-                oh_event_thread = g_thread_create(oh_event_thread_loop,
-                                                  NULL, FALSE, &oh_event_thread_error);
-        }
-
-        return 1;
-}
-
-int oh_event_final()
-{
-        g_async_queue_unref(oh_process_q);
-        if(oh_run_threaded()) {
-                g_mutex_free(oh_thread_mutex);
-                g_cond_free(oh_thread_wait);
-        }
-        return 1;
-}
-
-
-	
-
 
 /*
  *  Event processing is split up into 2 stages
@@ -268,7 +164,7 @@ static int process_hpi_event(struct oh_event *full_event)
         d = oh_get_domain(full_event->did);
         if(!d) {
                 dbg("Domain %d doesn't exist", full_event->did);
-                return -1; /* FIXME: should this be -1? */
+                return -1;
         }
 
         e = &(full_event->u.hpi_event);
@@ -282,14 +178,13 @@ static int process_hpi_event(struct oh_event *full_event)
                 hotswap_push_event(&hs_eq, full_event);
                 trace("Pushed hotswap event");
         }
-
-        /* FIXME: Add event to DEL */
+        
         trace("About to add to EL");
         oh_add_event_to_del(d->id, e);
         trace("Added event to EL");
 
         /*
-         * TODO: Here is where we need the SESSION MULTIPLEXING code
+         * Here is where we need the SESSION MULTIPLEXING code
          */
 
         /* FIXME: yes, we need to figure out the real domain at some point */
@@ -342,7 +237,7 @@ static int process_resource_event(struct oh_event *e)
                 hpie.u.hpi_event.event.EventType = SAHPI_ET_RESOURCE;
                 hpie.u.hpi_event.event.EventDataUnion.ResourceEvent.ResourceEventType =
                         SAHPI_RESE_RESOURCE_FAILURE;
-		hpie.u.hpi_event.res = e->u.res_event.entry;
+                hpie.u.hpi_event.res = e->u.res_event.entry;
                 if (oh_gettimeofday(&hpie.u.hpi_event.event.Timestamp) != SA_OK)
                         hpie.u.hpi_event.event.Timestamp = SAHPI_TIME_UNSPECIFIED;
                 
@@ -370,7 +265,7 @@ static int process_resource_event(struct oh_event *e)
                 hpie.u.hpi_event.event.EventType = SAHPI_ET_RESOURCE;
                 hpie.u.hpi_event.event.EventDataUnion.ResourceEvent.ResourceEventType =
                         SAHPI_RESE_RESOURCE_ADDED;
-		hpie.u.hpi_event.res = e->u.res_event.entry;
+                hpie.u.hpi_event.res = e->u.res_event.entry;
                 if (oh_gettimeofday(&hpie.u.hpi_event.event.Timestamp) != SA_OK)
                     hpie.u.hpi_event.event.Timestamp = SAHPI_TIME_UNSPECIFIED;
         }
