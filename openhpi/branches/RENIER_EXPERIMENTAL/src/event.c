@@ -25,7 +25,9 @@
 
 #include <oh_event.h>
 #include <openhpi.h>
+#include <oh_threaded.h>
 
+extern GMutex *oh_event_thread_mutex;
 GAsyncQueue *oh_process_q = NULL;
 
 /**
@@ -34,16 +36,16 @@ GAsyncQueue *oh_process_q = NULL;
  * */
 struct oh_event* oh_new_oh_event(oh_event_type t)
 {
-	struct oh_event * new = NULL;
-	
-	new->type = t;
-	new = g_new0(struct oh_event, 1);
-	
-	if (new == NULL) {
-		dbg("Couldn't allocate new oh_event!");
-	}
-	
-	return new;
+        struct oh_event * new = NULL;
+
+        new->type = t;
+        new = g_new0(struct oh_event, 1);
+
+        if (new == NULL) {
+                dbg("Couldn't allocate new oh_event!");
+        }
+
+        return new;
 }
 
 /*
@@ -75,11 +77,11 @@ static SaErrorT harvest_events_for_handler(struct oh_handler *h)
                         trace("Found event for handler %p", h);
                         e2 =oh_dup_oh_event(&event);
                         e2->hid = h->id;
-			if (!oh_domain_served_by_handler(e2->hid, e2->did)) {
-				dbg("Handler %d sends event %d to wrong domain %d",
-					e2->type, e2->hid, e2->did);
-				return SA_ERR_HPI_INTERNAL_ERROR;
-			}
+                        if (!oh_domain_served_by_handler(e2->hid, e2->did)) {
+                                dbg("Handler %d sends event %d to wrong domain %d",
+                                        e2->type, e2->hid, e2->did);
+                                return SA_ERR_HPI_INTERNAL_ERROR;
+                        }
                         g_async_queue_push(oh_process_q, e2);
                 }
         } while(error > 0);
@@ -105,11 +107,11 @@ SaErrorT oh_harvest_events()
                         dbg("No such handler %d", hid);
                         break;
                 }
-		/*
-		 * Here we want to record an error unless there is
-		 * at least one harvest_events_for_handler that
-		 * finished with SA_OK. (RM 1/6/2005)
-		 */		
+                /*
+                 * Here we want to record an error unless there is
+                 * at least one harvest_events_for_handler that
+                 * finished with SA_OK. (RM 1/6/2005)
+                 */
                 if (harvest_events_for_handler(h) == SA_OK && error)
                         error = SA_OK;
 
@@ -168,17 +170,17 @@ static int process_hpi_event(struct oh_event *full_event)
         }
 
         e = &(full_event->u.hpi_event);
-	if (e->event.EventType == SAHPI_ET_USER) {
-		e->res.ResourceCapabilities = 0;
-		e->rdr.RdrType = SAHPI_NO_RECORD;
-	}
+        if (e->event.EventType == SAHPI_ET_USER) {
+                e->res.ResourceCapabilities = 0;
+                e->rdr.RdrType = SAHPI_NO_RECORD;
+        }
 
         if (e->res.ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP
             && e->event.EventType == SAHPI_ET_HOTSWAP) {
                 hotswap_push_event(&hs_eq, full_event);
                 trace("Pushed hotswap event");
         }
-        
+
         trace("About to add to EL");
         oh_add_event_to_del(d->id, e);
         trace("Added event to EL");
@@ -230,7 +232,7 @@ static int process_resource_event(struct oh_event *e)
                 trace("Resource %d in Domain %d has been REMOVED.",
                       e->u.res_event.entry.ResourceId,
                       e->did);
-                
+
                 hpie.did = e->did;
                 hpie.u.hpi_event.event.Severity = e->u.res_event.entry.ResourceSeverity;
                 hpie.u.hpi_event.event.Source = e->u.res_event.entry.ResourceId;
@@ -240,7 +242,7 @@ static int process_resource_event(struct oh_event *e)
                 hpie.u.hpi_event.res = e->u.res_event.entry;
                 if (oh_gettimeofday(&hpie.u.hpi_event.event.Timestamp) != SA_OK)
                         hpie.u.hpi_event.event.Timestamp = SAHPI_TIME_UNSPECIFIED;
-                
+
         } else {
                 struct oh_resource_data *rd = g_malloc0(sizeof(struct oh_resource_data));
 
@@ -270,10 +272,10 @@ static int process_resource_event(struct oh_event *e)
                     hpie.u.hpi_event.event.Timestamp = SAHPI_TIME_UNSPECIFIED;
         }
         oh_release_domain(d);
-        
+
         /* if the op succeed, and the resource isn't FRU */
-        if ((rv == SA_OK) && 
-            !(e->u.res_event.entry.ResourceCapabilities & 
+        if ((rv == SA_OK) &&
+            !(e->u.res_event.entry.ResourceCapabilities &
               SAHPI_CAPABILITY_FRU)) {
                 rv = process_hpi_event(&hpie);
         }
@@ -361,26 +363,26 @@ SaErrorT oh_get_events()
 {
         SaErrorT rv = SA_OK;
 
-        /* this waits for the event thread to sleep, then 
+        /* this waits for the event thread to sleep, then
            runs to deal with sync issues */
-        if(oh_run_threaded())
-		g_mutex_lock(oh_thread_mutex);
-	
+        if(oh_threaded_mode())
+                g_mutex_lock(oh_event_thread_mutex);
+
         trace("Harvesting events synchronously");
         rv = oh_harvest_events();
         if(rv != SA_OK) {
                 dbg("Error on harvest of events.");
         }
-        
+
         rv = oh_process_events();
         if(rv != SA_OK) {
                 dbg("Error on processing of events, aborting");
         }
-        
+
         process_hotswap_policy();
-        
-	if(oh_run_threaded())
-        	g_mutex_unlock(oh_thread_mutex);
-        
+
+        if(oh_threaded_mode())
+                g_mutex_unlock(oh_event_thread_mutex);
+
         return rv;
 }

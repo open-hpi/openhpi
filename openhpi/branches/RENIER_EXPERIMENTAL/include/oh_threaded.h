@@ -19,7 +19,6 @@
 
 #include <SaHpi.h>
 #include <glib.h>
-#include <oh_event.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -29,6 +28,8 @@ gboolean oh_threaded_mode(void);
 int oh_threaded_init(void);
 int oh_threaded_start(void);
 int oh_threaded_final(void);
+
+int oh_wake_discovery_thread(SaHpiBoolT wait);
 
 #ifdef __cplusplus
 }
