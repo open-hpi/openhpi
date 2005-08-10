@@ -236,7 +236,8 @@ int oh_wake_discovery_thread(SaHpiBoolT wait)
                                               oh_discovery_thread_mutex,
                                               &time)) {
                                 trace("Got signal from discovery"
-                                      " thread being done.");
+                                      " thread being done. Giving lock back");
+                                g_mutex_unlock(oh_discovery_thread_mutex);
                         } else {
                                 trace("Gave up waiting for discovery thread"
                                       " signal being done.");
