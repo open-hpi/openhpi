@@ -111,6 +111,10 @@ SaErrorT sim_set_hotswap_state(void *hnd,
                         privinfo->cur_hsstate = hsstate;
                         return SA_OK;
                 }
+                if (hsstate == SAHPI_HS_STATE_ACTIVE) {
+                        privinfo->cur_hsstate = hsstate;
+                        return SA_OK;
+                }
                 break;
         case SAHPI_HS_STATE_ACTIVE:
                 if (hsstate == SAHPI_HS_STATE_NOT_PRESENT) {
