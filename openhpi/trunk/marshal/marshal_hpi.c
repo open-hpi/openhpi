@@ -805,7 +805,7 @@ static const cMarshalType *saHpiIdrFieldGetOut[] =
 {
   &SaErrorType,            // result (SaErrorT)
   &SaHpiEntryIdType,
-  &SaHpiIdrFieldTypeType,
+  &SaHpiIdrFieldType,
   0
 };
 
@@ -815,7 +815,7 @@ static const cMarshalType *saHpiIdrFieldAddIn[] =
   &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
   &SaHpiResourceIdType,
   &SaHpiIdrIdType,
-  &SaHpiIdrFieldTypeType,
+  &SaHpiIdrFieldType,
   0
 };
 
@@ -832,7 +832,7 @@ static const cMarshalType *saHpiIdrFieldSetIn[] =
   &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
   &SaHpiResourceIdType,
   &SaHpiIdrIdType,
-  &SaHpiIdrFieldTypeType,
+  &SaHpiIdrFieldType,
   0
 };
 
