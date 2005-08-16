@@ -51,45 +51,21 @@ static GSList *handler_ids = NULL;
  **/
 static void close_handlers_atexit(void)
 {
-      	struct oh_handler *handler = NULL;
-	GSList *node = NULL;
-	unsigned int *id;
+        struct oh_handler *handler = NULL;
+        GSList *node = NULL;
+        unsigned int *id;
 
-	if (handler_ids == NULL) {
-	      	return;
-	}
+        if (handler_ids == NULL) {
+                return;
+        }
 
-	for (node = handler_ids; node; node=node->next) {
-	      	id = node->data;
-		handler = g_hash_table_lookup(handler_table, id);
-		if(handler->abi && handler->abi->close) {
-		      	handler->abi->close(handler->hnd);
-		}
-	}
-}
-	      
-extern GCond *oh_thread_wait;
-extern GMutex *oh_thread_mutex;
-
-void oh_wake_event_thread(SaHpiBoolT wait)
-{
-        if(oh_run_threaded()) {
-                trace("Waking thread");
-                g_cond_broadcast(oh_thread_wait);
-                if(wait) {
-                        /* the wait concept is important.  By taking these locks
-                           we ensure that the thread is forced to go through
-                           at least one cycle (though it could be 2 based on 
-                           racing) This is important for the infrastructure on
-                           calls like discover, which need to know *now* what
-                           is going on.  Plugins probably don't care, but we
-                           leave it as an option anyway. */
-                        g_mutex_lock(oh_thread_mutex);
-                        trace("Got the lock on the thread");
-                        g_mutex_unlock(oh_thread_mutex);
-                        trace("Gave back the thread lock");
+        for (node = handler_ids; node; node=node->next) {
+                id = node->data;
+                handler = g_hash_table_lookup(handler_table, id);
+                if(handler->abi && handler->abi->close) {
+                        handler->abi->close(handler->hnd);
                 }
-	}
+        }
 }
 
 /**
@@ -105,7 +81,7 @@ static int oh_init_ltdl(void)
         struct oh_global_param path_param = { .type = OPENHPI_PATH };
         int err;
         static int init_done = 0;
-        
+
         data_access_lock();
         if (init_done) {
                 data_access_unlock();
@@ -118,7 +94,7 @@ static int oh_init_ltdl(void)
                 data_access_unlock();
                 return -1;
         }
-        
+
         oh_get_global_param(&path_param);
 
         err = lt_dlsetsearchpath(path_param.u.path);
@@ -128,7 +104,7 @@ static int oh_init_ltdl(void)
                 data_access_unlock();
                 return -1;
         }
-        
+
         init_done = 1;
         data_access_unlock();
 
@@ -249,8 +225,8 @@ extern struct oh_static_plugin static_plugins[];
  **/
 int oh_load_plugin(char *plugin_name)
 {
-        
-	struct oh_plugin *plugin = NULL;
+
+        struct oh_plugin *plugin = NULL;
         /*int (*get_interface) (struct oh_abi_v2 ** pp, const uuid_t uuid); */
         int err;
         struct oh_static_plugin *p = static_plugins;
@@ -261,12 +237,12 @@ int oh_load_plugin(char *plugin_name)
         }
 
         data_access_lock();
-        if (oh_init_ltdl()) {                
+        if (oh_init_ltdl()) {
                 data_access_unlock();
                 dbg("ERROR. Could not initialize ltdl for loading plugins.");
                 return -1;
         }
-        
+
         if (oh_lookup_plugin(plugin_name)) {
                 dbg("Warning. Plugin %s already loaded. Not loading twice.",
                     plugin_name);
@@ -282,7 +258,7 @@ int oh_load_plugin(char *plugin_name)
         }
         plugin->name = g_strdup(plugin_name);
         plugin->refcount = 1;
-        
+
         /* first take search plugin in the array of static plugin */
         while( p->name ) {
                 if (!strcmp(plugin->name, p->name)) {
@@ -311,13 +287,13 @@ int oh_load_plugin(char *plugin_name)
                 goto err1;
         }
 
-	err = oh_load_plugin_functions(plugin, &plugin->abi);
-	
-	if (err < 0 || !plugin->abi || !plugin->abi->open) {
+        err = oh_load_plugin_functions(plugin, &plugin->abi);
+
+        if (err < 0 || !plugin->abi || !plugin->abi->open) {
                 dbg("Can not get ABI");
                 goto err1;
-	}
-	
+        }
+
         plugin_list = g_slist_append(plugin_list, plugin);
         data_access_unlock();
 
@@ -348,7 +324,7 @@ int oh_unload_plugin(char *plugin_name)
                 dbg("ERROR unloading plugin. NULL parameter passed.");
                 return -1;
         }
-        
+
         data_access_lock();
 
         plugin = oh_lookup_plugin(plugin_name);
@@ -356,7 +332,7 @@ int oh_unload_plugin(char *plugin_name)
                 dbg("ERROR unloading plugin. Plugin not found.");
                 data_access_unlock();
                 return -2;
-        }        
+        }
 
         if (plugin->refcount > 1) {
                 dbg("ERROR unloading plugin. Handlers are still referencing it.");
@@ -384,7 +360,7 @@ static int oh_init_handler_table(void)
 {
         if (!handler_table)
                 handler_table = g_hash_table_new(g_int_hash, g_int_equal);
-                
+
         return (handler_table) ? 0 : -1;
 }
 
@@ -400,10 +376,10 @@ struct oh_handler *oh_lookup_handler(unsigned int hid)
 
         data_access_lock();
         if (!handler_table) {
-                data_access_unlock();                
+                data_access_unlock();
                 return NULL;
         }
-        
+
         handler = g_hash_table_lookup(handler_table, &hid);
         data_access_unlock();
 
@@ -462,8 +438,8 @@ static struct oh_handler *new_handler(GHashTable *handler_config)
         struct oh_plugin *plugin = NULL;
         struct oh_handler *handler = NULL;
         static unsigned int handler_id = 1;
-	unsigned int *hidp;
-	char *hid_strp;
+        unsigned int *hidp;
+        char *hid_strp;
 
         if (!handler_config) {
                 dbg("ERROR creating new handler. Invalid parameter.");
@@ -475,18 +451,18 @@ static struct oh_handler *new_handler(GHashTable *handler_config)
                 dbg("Out of Memory!");
                 return NULL;
         }
-	hidp = (unsigned int *)g_malloc(sizeof(unsigned int));
+        hidp = (unsigned int *)g_malloc(sizeof(unsigned int));
         if (!hidp) {
                 dbg("Out of Memory!");
                 return NULL;
         }
-	hid_strp = strdup("handler-id");
+        hid_strp = strdup("handler-id");
         if (!hid_strp) {
                 dbg("Out of Memory!");
                 return NULL;
         }
-        
-	plugin = oh_lookup_plugin((char *)g_hash_table_lookup(handler_config, "plugin"));
+
+        plugin = oh_lookup_plugin((char *)g_hash_table_lookup(handler_config, "plugin"));
         if(!plugin || plugin->refcount < 1) {
                 dbg("Attempt to create handler for unknown plugin %s",
                         (char *)g_hash_table_lookup(handler_config, "plugin"));
@@ -497,10 +473,10 @@ static struct oh_handler *new_handler(GHashTable *handler_config)
         handler->abi = plugin->abi;
         handler->config = handler_config;
         handler->dids = NULL;
-	handler->id = handler_id++;
+        handler->id = handler_id++;
         plugin->refcount++;
-	*hidp = handler->id;
-	g_hash_table_insert(handler_config, (gpointer)hid_strp,(gpointer)hidp);
+        *hidp = handler->id;
+        g_hash_table_insert(handler_config, (gpointer)hid_strp,(gpointer)hidp);
 
         return handler;
 err:
@@ -516,8 +492,8 @@ err:
  **/
 unsigned int oh_load_handler (GHashTable *handler_config)
 {
-      	struct oh_handler *handler;
-	static int first_handler = 1;
+        struct oh_handler *handler;
+        static int first_handler = 1;
 
         if (!handler_config) {
                 dbg("ERROR loading handler. Invalid handler configuration passed.");
@@ -543,24 +519,24 @@ unsigned int oh_load_handler (GHashTable *handler_config)
                             handler);
         handler_ids = g_slist_append(handler_ids, &(handler->id));
 
-	handler->hnd = handler->abi->open(handler->config);
+        handler->hnd = handler->abi->open(handler->config);
         if (!handler->hnd) {
                 dbg("A plugin instance could not be opened.");
-		g_hash_table_remove(handler_table, &(handler->id));
-		handler_ids = g_slist_remove(handler_ids, &(handler->id));
-		g_free(handler);
+                g_hash_table_remove(handler_table, &(handler->id));
+                handler_ids = g_slist_remove(handler_ids, &(handler->id));
+                g_free(handler);
                 data_access_unlock();
                 return 0;
         }
 
-	/* register atexit callback to close handlers
-	 * and handler connections to avoid zombies
-	 */
-	if (first_handler) {
-	      	(void) atexit(close_handlers_atexit);
-		first_handler = 0;
-	}
-	
+        /* register atexit callback to close handlers
+         * and handler connections to avoid zombies
+         */
+        if (first_handler) {
+                (void) atexit(close_handlers_atexit);
+                first_handler = 0;
+        }
+
 
         data_access_unlock();
 
@@ -590,7 +566,7 @@ int oh_unload_handler(unsigned int hid)
                 data_access_unlock();
                 return -1;
         }
-        
+
         if (handler->abi && handler->abi->close)
                 handler->abi->close(handler->hnd);
 
@@ -598,12 +574,12 @@ int oh_unload_handler(unsigned int hid)
         handler_ids = g_slist_remove(handler_ids, &(handler->id));
         plugin = oh_lookup_plugin(handler->plugin_name);
         if (!plugin) {
-                dbg("WHAT?! Handler loaded, but plugin does not exist!");                
+                dbg("WHAT?! Handler loaded, but plugin does not exist!");
         } else {
                 plugin->refcount--;
         }
         data_access_unlock();
-        
+
         g_free(handler->plugin_name);
         g_free(handler);
 
@@ -612,87 +588,130 @@ int oh_unload_handler(unsigned int hid)
 
 
 int oh_domain_served_by_handler(unsigned int h_id,
-				SaHpiDomainIdT did)
+                                SaHpiDomainIdT did)
 {
-	gint i;
-	struct oh_handler *h;
-	
-	data_access_lock();
-	h = oh_lookup_handler(h_id);
-	if (h == NULL) {
-		data_access_unlock();
-		return 0;
-	}
-	if (h->dids == NULL) {
-		// plugin didn't create domains, it serves default domain
-		data_access_unlock();
-		return (did == oh_get_default_domain_id());
-	}
-		
-	for (i = 0; ; i++) {
-		if (g_array_index(h->dids, SaHpiDomainIdT, i) == 0) {
-			break;
-		}
-		if (g_array_index(h->dids, SaHpiDomainIdT, i) == did) {
-			data_access_unlock();
-			return 1;
-		}
-	}
-	data_access_unlock();
-	return 0;
+        gint i;
+        struct oh_handler *h;
+
+        data_access_lock();
+        h = oh_lookup_handler(h_id);
+        if (h == NULL) {
+                data_access_unlock();
+                return 0;
+        }
+        if (h->dids == NULL) {
+                // plugin didn't create domains, it serves default domain
+                data_access_unlock();
+                return (did == oh_get_default_domain_id());
+        }
+
+        for (i = 0; ; i++) {
+                if (g_array_index(h->dids, SaHpiDomainIdT, i) == 0) {
+                        break;
+                }
+                if (g_array_index(h->dids, SaHpiDomainIdT, i) == did) {
+                        data_access_unlock();
+                        return 1;
+                }
+        }
+        data_access_unlock();
+        return 0;
 }
 
 int oh_add_domain_to_handler(unsigned int handler_id,
-			     SaHpiDomainIdT did)
+                             SaHpiDomainIdT did)
 {
-	SaHpiDomainIdT default_did;
-	struct oh_handler *h;
-	
-	data_access_lock();
-	h = oh_lookup_handler(handler_id);
-	if (h == NULL) {
-		data_access_unlock();
-		return -1;
-	}
-	if (h->dids == NULL) {
-		h->dids =
-			g_array_new(TRUE, FALSE, sizeof(SaHpiDomainIdT));
-		if (h->dids == NULL) {
-			data_access_unlock();
-			return -1;
-		}
-		default_did = oh_get_default_domain_id();
-		h->dids = g_array_append_val(h->dids, default_did);
-	}
-	h->dids = g_array_append_val(h->dids, did);
-	data_access_unlock();
-	return 0;
+        SaHpiDomainIdT default_did;
+        struct oh_handler *h;
+
+        data_access_lock();
+        h = oh_lookup_handler(handler_id);
+        if (h == NULL) {
+                data_access_unlock();
+                return -1;
+        }
+        if (h->dids == NULL) {
+                h->dids =
+                        g_array_new(TRUE, FALSE, sizeof(SaHpiDomainIdT));
+                if (h->dids == NULL) {
+                        data_access_unlock();
+                        return -1;
+                }
+                default_did = oh_get_default_domain_id();
+                h->dids = g_array_append_val(h->dids, default_did);
+        }
+        h->dids = g_array_append_val(h->dids, did);
+        data_access_unlock();
+        return 0;
 }
 
 int oh_remove_domain_from_handler(unsigned int h_id,
-				SaHpiDomainIdT did)
+                                SaHpiDomainIdT did)
 {
-	gint i;
-	struct oh_handler *h;
-	
-	data_access_lock();
-	h = oh_lookup_handler(h_id);
-	if (h == NULL) {
-		data_access_unlock();
-		return -1;
-	}
-	for (i = 0; ; i++) {
-		if (g_array_index(h->dids, SaHpiDomainIdT, i) == 0) {
-			break;
-		}
-		if (g_array_index(h->dids, SaHpiDomainIdT, i) == did) {
-			h->dids = g_array_remove_index_fast(h->dids, i);
-			data_access_unlock();
-			return 0;
-		}
-	}
-	data_access_unlock();
-	return -1;
+        gint i;
+        struct oh_handler *h;
+
+        data_access_lock();
+        h = oh_lookup_handler(h_id);
+        if (h == NULL) {
+                data_access_unlock();
+                return -1;
+        }
+        for (i = 0; ; i++) {
+                if (g_array_index(h->dids, SaHpiDomainIdT, i) == 0) {
+                        break;
+                }
+                if (g_array_index(h->dids, SaHpiDomainIdT, i) == did) {
+                        h->dids = g_array_remove_index_fast(h->dids, i);
+                        data_access_unlock();
+                        return 0;
+                }
+        }
+        data_access_unlock();
+        return -1;
+}
+
+/**
+ * oh_domain_resource_discovery
+ * @did: Domain ID.
+ * 0 means perform discovery on all domains. Otherwise,
+ * will only perform discovery in domain specified. This call
+ * will undestand SAHPI_UNSPECIFIED_DOMAIN_ID as the default domain.
+ *
+ *
+ *
+ * Returns: An error if all handlers return error on discovery.
+ * Success if at least one handler returned SA_OK on discovery.
+ **/
+int oh_domain_resource_discovery(SaHpiDomainIdT did)
+{
+        unsigned int hid = 0, next_hid;
+        struct oh_handler *h = NULL;
+        int rv = SA_ERR_HPI_ERROR;
+
+        if (did == SAHPI_UNSPECIFIED_DOMAIN_ID)
+                did = oh_get_default_domain_id();
+
+        data_access_lock();
+        oh_lookup_next_handler(hid, &next_hid);
+        while (next_hid) {
+                hid = next_hid;
+                h = oh_lookup_handler(hid);
+                if (oh_domain_served_by_handler(hid, did) || did == 0) {
+                        if (h->abi->discover_domain_resources != NULL) {
+                                if (h->abi->discover_domain_resources(
+                                             h->hnd, did) == SA_OK && rv) {
+                                        rv = SA_OK;
+                                }
+                        } else if (h->abi->discover_resources(h->hnd) == SA_OK && rv)
+                                rv = SA_OK;
+                }
+
+                oh_lookup_next_handler(hid, &next_hid);
+        }
+        data_access_unlock();
+
+        return rv;
 }
 
 /**
@@ -700,129 +719,129 @@ int oh_remove_domain_from_handler(unsigned int h_id,
  * @plugin: plugin structure.
  * @abi: oh_abi struct
  *
- * This function will load the symbol table from the plugin name and 
- * assign the plugin functions to the abi struct. 
+ * This function will load the symbol table from the plugin name and
+ * assign the plugin functions to the abi struct.
  *
  * Return value: 0 on success, otherwise any negative value on failure.
  **/
 int oh_load_plugin_functions(struct oh_plugin *plugin, struct oh_abi_v2 **abi)
-{  	
-        
-	*abi = (struct oh_abi_v2 *)g_malloc0(sizeof(struct oh_abi_v2));         
-	
-	 
+{
+
+        *abi = (struct oh_abi_v2 *)g_malloc0(sizeof(struct oh_abi_v2));
+
+
         if (!(*abi)) {
                 dbg("Out of Memory!");
                 return -1;
         }
-	
-	(*abi)->open			  = lt_dlsym(plugin->dl_handle,
-	  					"oh_open");
-	(*abi)->close			  = lt_dlsym(plugin->dl_handle,
-	  					"oh_close");		    
-	(*abi)->get_event		  = lt_dlsym(plugin->dl_handle,
-	  					"oh_get_event");
-	(*abi)->discover_resources	  = lt_dlsym(plugin->dl_handle,
-	  					"oh_discover_resources");
-	(*abi)->discover_domain_resources = lt_dlsym(plugin->dl_handle,
-	  					"oh_discover_domain_resource");
-	(*abi)->set_resource_tag	  = lt_dlsym(plugin->dl_handle,
-	  					"oh_set_resource_tag");
-	(*abi)->set_resource_severity	  = lt_dlsym(plugin->dl_handle,
-	  					"oh_set_resource_severity");
-	(*abi)->get_el_info		  = lt_dlsym(plugin->dl_handle,
-	  					"oh_get_el_info");
-	(*abi)->set_el_time		  = lt_dlsym(plugin->dl_handle,
-	  					"oh_set_el_time");
-	(*abi)->add_el_entry		  = lt_dlsym(plugin->dl_handle,
-	  					"oh_add_el_entry");
-	(*abi)->get_el_entry		  = lt_dlsym(plugin->dl_handle,
-	  					"oh_get_el_entry");
-	(*abi)->clear_el		  = lt_dlsym(plugin->dl_handle,
-	  					"oh_clear_el");
-	(*abi)->set_el_state		  = lt_dlsym(plugin->dl_handle,
-	  					"oh_set_el_state");
-	(*abi)->reset_el_overflow	  = lt_dlsym(plugin->dl_handle,
-	  					"oh_reset_el_overflow");
-	(*abi)->get_sensor_reading	  = lt_dlsym(plugin->dl_handle,
-	  					"oh_get_sensor_reading");
-	(*abi)->get_sensor_thresholds	  = lt_dlsym(plugin->dl_handle,
-	  					"oh_get_sensor_thresholds");
-	(*abi)->set_sensor_thresholds	  = lt_dlsym(plugin->dl_handle,
-	  					"oh_set_sensor_thresholds");
-	(*abi)->get_sensor_enable	  = lt_dlsym(plugin->dl_handle,
-	  					"oh_get_sensor_enable");
-	(*abi)->set_sensor_enable	  = lt_dlsym(plugin->dl_handle,
-	  					"oh_set_sensor_enable");				    
-	(*abi)->get_sensor_event_enables  = lt_dlsym(plugin->dl_handle,
-	  					"oh_get_sensor_event_enables");
-	(*abi)->set_sensor_event_enables  = lt_dlsym(plugin->dl_handle,
-	  					"oh_set_sensor_event_enables");
-	(*abi)->get_sensor_event_masks    = lt_dlsym(plugin->dl_handle,
-	  					"oh_get_sensor_event_masks");
-	(*abi)->set_sensor_event_masks    = lt_dlsym(plugin->dl_handle,
-	  					"oh_set_sensor_event_masks");
-	(*abi)->get_control_state	  = lt_dlsym(plugin->dl_handle,
-	  					"oh_get_control_state");
-	(*abi)->set_control_state	  = lt_dlsym(plugin->dl_handle,
-	  					"oh_set_control_state");
-	(*abi)->get_idr_info		  = lt_dlsym(plugin->dl_handle,
-	  					"oh_get_idr_info");
-	(*abi)->get_idr_area_header	  = lt_dlsym(plugin->dl_handle,
-	  					"oh_get_idr_area_header");
-	(*abi)->add_idr_area		  = lt_dlsym(plugin->dl_handle,
-	  					"oh_add_idr_area");
-	(*abi)->del_idr_area		  = lt_dlsym(plugin->dl_handle,
-	  					"oh_del_idr_area");
-	(*abi)->get_idr_field		  = lt_dlsym(plugin->dl_handle,
-	  					"oh_get_idr_field");
-	(*abi)->add_idr_field		  = lt_dlsym(plugin->dl_handle,
-	  					"oh_add_idr_field");
-	(*abi)->set_idr_field		  = lt_dlsym(plugin->dl_handle,
-	  					"oh_set_idr_field");
-	(*abi)->del_idr_field		  = lt_dlsym(plugin->dl_handle,
-	  					"oh_del_idr_field");
-	(*abi)->get_watchdog_info	  = lt_dlsym(plugin->dl_handle,
-	  					"oh_get_watchdog_info");
-	(*abi)->set_watchdog_info	  = lt_dlsym(plugin->dl_handle,
-	                                        "oh_set_watchdog_info");
-	(*abi)->reset_watchdog  	  = lt_dlsym(plugin->dl_handle,
-	                                        "oh_reset_watchdog");
-	(*abi)->get_next_announce	  = lt_dlsym(plugin->dl_handle,
-	                                        "oh_get_next_announce");
-	(*abi)->get_announce		  = lt_dlsym(plugin->dl_handle,
-	                                        "oh_get_announce");
-	(*abi)->ack_announce		  = lt_dlsym(plugin->dl_handle,
-	                                        "oh_ack_announce");
-	(*abi)->add_announce		  = lt_dlsym(plugin->dl_handle,
-	                                        "oh_add_announce");
-	(*abi)->del_announce		  = lt_dlsym(plugin->dl_handle,
-	                                        "oh_del_announce");
-	(*abi)->get_annunc_mode 	  = lt_dlsym(plugin->dl_handle,
-	                                        "oh_get_annunc_mode");
-	(*abi)->set_annunc_mode 	  = lt_dlsym(plugin->dl_handle,
-	                                        "oh_set_annunc_mode");
-	(*abi)->get_hotswap_state	  = lt_dlsym(plugin->dl_handle,
-	                                        "oh_get_hotswap_state");
-	(*abi)->set_hotswap_state	  = lt_dlsym(plugin->dl_handle,
-	                                        "oh_set_hotswap_state");
-	(*abi)->request_hotswap_action    = lt_dlsym(plugin->dl_handle,
-	                                        "oh_request_hotswap_action");
-	(*abi)->get_power_state 	  = lt_dlsym(plugin->dl_handle,
-	                                        "oh_get_power_state");
-	(*abi)->set_power_state 	  = lt_dlsym(plugin->dl_handle,
-	                                        "oh_set_power_state");
-	(*abi)->get_indicator_state	  = lt_dlsym(plugin->dl_handle,
-	                                        "oh_get_indicator_state");
-	(*abi)->set_indicator_state	  = lt_dlsym(plugin->dl_handle,
-	                                        "oh_set_indicator_state");
-	(*abi)->control_parm		  = lt_dlsym(plugin->dl_handle,
-	                                        "oh_control_parm");
-	(*abi)->get_reset_state 	  = lt_dlsym(plugin->dl_handle,
-	                                        "oh_get_reset_state");
-        (*abi)->set_reset_state 	  = lt_dlsym(plugin->dl_handle,
-	                                        "oh_set_reset_state");
 
-	return 0;
-  
-}  
+        (*abi)->open                      = lt_dlsym(plugin->dl_handle,
+                                                "oh_open");
+        (*abi)->close                     = lt_dlsym(plugin->dl_handle,
+                                                "oh_close");
+        (*abi)->get_event                 = lt_dlsym(plugin->dl_handle,
+                                                "oh_get_event");
+        (*abi)->discover_resources        = lt_dlsym(plugin->dl_handle,
+                                                "oh_discover_resources");
+        (*abi)->discover_domain_resources = lt_dlsym(plugin->dl_handle,
+                                                "oh_discover_domain_resource");
+        (*abi)->set_resource_tag          = lt_dlsym(plugin->dl_handle,
+                                                "oh_set_resource_tag");
+        (*abi)->set_resource_severity     = lt_dlsym(plugin->dl_handle,
+                                                "oh_set_resource_severity");
+        (*abi)->get_el_info               = lt_dlsym(plugin->dl_handle,
+                                                "oh_get_el_info");
+        (*abi)->set_el_time               = lt_dlsym(plugin->dl_handle,
+                                                "oh_set_el_time");
+        (*abi)->add_el_entry              = lt_dlsym(plugin->dl_handle,
+                                                "oh_add_el_entry");
+        (*abi)->get_el_entry              = lt_dlsym(plugin->dl_handle,
+                                                "oh_get_el_entry");
+        (*abi)->clear_el                  = lt_dlsym(plugin->dl_handle,
+                                                "oh_clear_el");
+        (*abi)->set_el_state              = lt_dlsym(plugin->dl_handle,
+                                                "oh_set_el_state");
+        (*abi)->reset_el_overflow         = lt_dlsym(plugin->dl_handle,
+                                                "oh_reset_el_overflow");
+        (*abi)->get_sensor_reading        = lt_dlsym(plugin->dl_handle,
+                                                "oh_get_sensor_reading");
+        (*abi)->get_sensor_thresholds     = lt_dlsym(plugin->dl_handle,
+                                                "oh_get_sensor_thresholds");
+        (*abi)->set_sensor_thresholds     = lt_dlsym(plugin->dl_handle,
+                                                "oh_set_sensor_thresholds");
+        (*abi)->get_sensor_enable         = lt_dlsym(plugin->dl_handle,
+                                                "oh_get_sensor_enable");
+        (*abi)->set_sensor_enable         = lt_dlsym(plugin->dl_handle,
+                                                "oh_set_sensor_enable");
+        (*abi)->get_sensor_event_enables  = lt_dlsym(plugin->dl_handle,
+                                                "oh_get_sensor_event_enables");
+        (*abi)->set_sensor_event_enables  = lt_dlsym(plugin->dl_handle,
+                                                "oh_set_sensor_event_enables");
+        (*abi)->get_sensor_event_masks    = lt_dlsym(plugin->dl_handle,
+                                                "oh_get_sensor_event_masks");
+        (*abi)->set_sensor_event_masks    = lt_dlsym(plugin->dl_handle,
+                                                "oh_set_sensor_event_masks");
+        (*abi)->get_control_state         = lt_dlsym(plugin->dl_handle,
+                                                "oh_get_control_state");
+        (*abi)->set_control_state         = lt_dlsym(plugin->dl_handle,
+                                                "oh_set_control_state");
+        (*abi)->get_idr_info              = lt_dlsym(plugin->dl_handle,
+                                                "oh_get_idr_info");
+        (*abi)->get_idr_area_header       = lt_dlsym(plugin->dl_handle,
+                                                "oh_get_idr_area_header");
+        (*abi)->add_idr_area              = lt_dlsym(plugin->dl_handle,
+                                                "oh_add_idr_area");
+        (*abi)->del_idr_area              = lt_dlsym(plugin->dl_handle,
+                                                "oh_del_idr_area");
+        (*abi)->get_idr_field             = lt_dlsym(plugin->dl_handle,
+                                                "oh_get_idr_field");
+        (*abi)->add_idr_field             = lt_dlsym(plugin->dl_handle,
+                                                "oh_add_idr_field");
+        (*abi)->set_idr_field             = lt_dlsym(plugin->dl_handle,
+                                                "oh_set_idr_field");
+        (*abi)->del_idr_field             = lt_dlsym(plugin->dl_handle,
+                                                "oh_del_idr_field");
+        (*abi)->get_watchdog_info         = lt_dlsym(plugin->dl_handle,
+                                                "oh_get_watchdog_info");
+        (*abi)->set_watchdog_info         = lt_dlsym(plugin->dl_handle,
+                                                "oh_set_watchdog_info");
+        (*abi)->reset_watchdog            = lt_dlsym(plugin->dl_handle,
+                                                "oh_reset_watchdog");
+        (*abi)->get_next_announce         = lt_dlsym(plugin->dl_handle,
+                                                "oh_get_next_announce");
+        (*abi)->get_announce              = lt_dlsym(plugin->dl_handle,
+                                                "oh_get_announce");
+        (*abi)->ack_announce              = lt_dlsym(plugin->dl_handle,
+                                                "oh_ack_announce");
+        (*abi)->add_announce              = lt_dlsym(plugin->dl_handle,
+                                                "oh_add_announce");
+        (*abi)->del_announce              = lt_dlsym(plugin->dl_handle,
+                                                "oh_del_announce");
+        (*abi)->get_annunc_mode           = lt_dlsym(plugin->dl_handle,
+                                                "oh_get_annunc_mode");
+        (*abi)->set_annunc_mode           = lt_dlsym(plugin->dl_handle,
+                                                "oh_set_annunc_mode");
+        (*abi)->get_hotswap_state         = lt_dlsym(plugin->dl_handle,
+                                                "oh_get_hotswap_state");
+        (*abi)->set_hotswap_state         = lt_dlsym(plugin->dl_handle,
+                                                "oh_set_hotswap_state");
+        (*abi)->request_hotswap_action    = lt_dlsym(plugin->dl_handle,
+                                                "oh_request_hotswap_action");
+        (*abi)->get_power_state           = lt_dlsym(plugin->dl_handle,
+                                                "oh_get_power_state");
+        (*abi)->set_power_state           = lt_dlsym(plugin->dl_handle,
+                                                "oh_set_power_state");
+        (*abi)->get_indicator_state       = lt_dlsym(plugin->dl_handle,
+                                                "oh_get_indicator_state");
+        (*abi)->set_indicator_state       = lt_dlsym(plugin->dl_handle,
+                                                "oh_set_indicator_state");
+        (*abi)->control_parm              = lt_dlsym(plugin->dl_handle,
+                                                "oh_control_parm");
+        (*abi)->get_reset_state           = lt_dlsym(plugin->dl_handle,
+                                                "oh_get_reset_state");
+        (*abi)->set_reset_state           = lt_dlsym(plugin->dl_handle,
+                                                "oh_set_reset_state");
+
+        return 0;
+
+}
