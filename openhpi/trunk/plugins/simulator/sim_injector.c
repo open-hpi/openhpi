@@ -409,6 +409,132 @@ static void process_sensor_event_msg(SIM_MSG_QUEUE_BUF *buf) {
         ohevent.u.hpi_event.event.EventDataUnion.SensorEvent.EventState =
          (SaHpiEventStateT)atoi(value);
 
+        /* get the sensor event optional data */
+        value = find_value(SIM_MSG_SENSOR_OPTIONAL_DATA, buf->mtext);
+        if (value != NULL) {
+            ohevent.u.hpi_event.event.EventDataUnion.SensorEvent.OptionalDataPresent =
+             (SaHpiSensorOptionalDataT)atoi(value);
+
+            if (ohevent.u.hpi_event.event.EventDataUnion.SensorEvent.OptionalDataPresent
+             & SAHPI_SOD_TRIGGER_READING) {
+                value = find_value(SIM_MSG_SENSOR_TRIGGER_READING_SUPPORTED, buf->mtext);
+                if (value == NULL) {
+                    dbg("invalid SIM_MSG_SENSOR_TRIGGER_READING_SUPPORTED");
+                        return;
+                }
+                ohevent.u.hpi_event.event.EventDataUnion.SensorEvent.TriggerReading.IsSupported =
+                 (SaHpiBoolT)atoi(value);
+                value = find_value(SIM_MSG_SENSOR_TRIGGER_READING_TYPE, buf->mtext);
+                if (value == NULL) {
+                    dbg("invalid SIM_MSG_SENSOR_TRIGGER_READING_TYPE");
+                        return;
+                }
+                ohevent.u.hpi_event.event.EventDataUnion.SensorEvent.TriggerReading.Type =
+                 (SaHpiSensorReadingTypeT)atoi(value);
+                switch (ohevent.u.hpi_event.event.EventDataUnion.SensorEvent.TriggerReading.Type) {
+                case SAHPI_SENSOR_READING_TYPE_INT64:
+                case SAHPI_SENSOR_READING_TYPE_UINT64:
+                    ohevent.u.hpi_event.event.EventDataUnion.SensorEvent.TriggerReading.Value.SensorInt64 =
+                     strtoll(value, NULL, 10);
+                    break;
+                case SAHPI_SENSOR_READING_TYPE_FLOAT64:
+                    ohevent.u.hpi_event.event.EventDataUnion.SensorEvent.TriggerReading.Value.SensorFloat64 =
+                     strtod(value, NULL);
+                    break;
+                case SAHPI_SENSOR_READING_TYPE_BUFFER:
+                    strncpy(ohevent.u.hpi_event.event.EventDataUnion.SensorEvent.TriggerReading.Value.SensorBuffer,
+                     value, strlen(value));
+                    break;
+                default:
+                    return;
+                }
+            }
+
+            if (ohevent.u.hpi_event.event.EventDataUnion.SensorEvent.OptionalDataPresent
+             & SAHPI_SOD_TRIGGER_THRESHOLD) {
+                value = find_value(SIM_MSG_SENSOR_TRIGGER_THRESHOLD_SUPPORTED, buf->mtext);
+                if (value == NULL) {
+                    dbg("invalid SIM_MSG_SENSOR_TRIGGER_THRESHOLD_SUPPORTED");
+                        return;
+                }
+                ohevent.u.hpi_event.event.EventDataUnion.SensorEvent.TriggerReading.IsSupported =
+                 (SaHpiBoolT)atoi(value);
+                value = find_value(SIM_MSG_SENSOR_TRIGGER_READING_TYPE, buf->mtext);
+                if (value == NULL) {
+                    dbg("invalid SIM_MSG_SENSOR_TRIGGER_READING_TYPE");
+                        return;
+                }
+                ohevent.u.hpi_event.event.EventDataUnion.SensorEvent.TriggerReading.Type =
+                 (SaHpiSensorReadingTypeT)atoi(value);
+                value = find_value(SIM_MSG_SENSOR_TRIGGER_READING, buf->mtext);
+                if (value == NULL) {
+                    dbg("invalid SIM_MSG_SENSOR_TRIGGER_READING");
+                        return;
+                }
+                switch (ohevent.u.hpi_event.event.EventDataUnion.SensorEvent.TriggerThreshold.Type) {
+                case SAHPI_SENSOR_READING_TYPE_INT64:
+                case SAHPI_SENSOR_READING_TYPE_UINT64:
+                    ohevent.u.hpi_event.event.EventDataUnion.SensorEvent.TriggerThreshold.Value.SensorInt64 =
+                     strtoll(value, NULL, 10);
+                    break;
+                case SAHPI_SENSOR_READING_TYPE_FLOAT64:
+                    ohevent.u.hpi_event.event.EventDataUnion.SensorEvent.TriggerThreshold.Value.SensorFloat64 =
+                     strtod(value, NULL);
+                    break;
+                case SAHPI_SENSOR_READING_TYPE_BUFFER:
+                    strncpy(ohevent.u.hpi_event.event.EventDataUnion.SensorEvent.TriggerThreshold.Value.SensorBuffer,
+                     value, strlen(value));
+                    break;
+                default:
+                    return;
+                }
+            }
+
+            if (ohevent.u.hpi_event.event.EventDataUnion.SensorEvent.OptionalDataPresent
+             & SAHPI_SOD_PREVIOUS_STATE) {
+                value = find_value(SIM_MSG_SENSOR_PREVIOUS_STATE, buf->mtext);
+                if (value == NULL) {
+                    dbg("invalid SIM_MSG_SENSOR_PREVIOUS_STATE");
+                        return;
+                }
+                ohevent.u.hpi_event.event.EventDataUnion.SensorEvent.PreviousState =
+                 (SaHpiEventStateT)atoi(value);
+            }
+
+            if (ohevent.u.hpi_event.event.EventDataUnion.SensorEvent.OptionalDataPresent
+             & SAHPI_SOD_CURRENT_STATE) {
+                value = find_value(SIM_MSG_SENSOR_CURRENT_STATE, buf->mtext);
+                if (value == NULL) {
+                    dbg("invalid SIM_MSG_SENSOR_CURRENT_STATE");
+                        return;
+                }
+                ohevent.u.hpi_event.event.EventDataUnion.SensorEvent.CurrentState =
+                 (SaHpiEventStateT)atoi(value);
+            }
+
+            if (ohevent.u.hpi_event.event.EventDataUnion.SensorEvent.OptionalDataPresent
+             & SAHPI_SOD_OEM) {
+                value = find_value(SIM_MSG_SENSOR_OEM, buf->mtext);
+                if (value == NULL) {
+                    dbg("invalid SIM_MSG_SENSOR_OEM");
+                        return;
+                }
+                ohevent.u.hpi_event.event.EventDataUnion.SensorEvent.Oem =
+                 (SaHpiEventStateT)atoi(value);
+            }
+
+            if (ohevent.u.hpi_event.event.EventDataUnion.SensorEvent.OptionalDataPresent
+             & SAHPI_SOD_SENSOR_SPECIFIC) {
+                value = find_value(SIM_MSG_SENSOR_SPECIFIC, buf->mtext);
+                if (value == NULL) {
+                    dbg("invalid SIM_MSG_SENSOR_SPECIFIC");
+                        return;
+                }
+                ohevent.u.hpi_event.event.EventDataUnion.SensorEvent.SensorSpecific =
+                 (SaHpiEventStateT)atoi(value);
+            }
+        }
+
         /* get the sensor optional data present */
         /* TODO: for now we are going to skip this */
 

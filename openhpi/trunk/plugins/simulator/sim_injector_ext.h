@@ -36,12 +36,24 @@ typedef enum {
 #define SIM_MSG_EVENT_TYPE "event_type"
 #define SIM_MSG_RESOURCE_ID "resource_id"
 #define SIM_MSG_EVENT_SEVERITY "event_severity"
-// sensor event constants
+// required sensor event constants
 #define SIM_MSG_SENSOR_NUM "sensor_num"
 #define SIM_MSG_SENSOR_TYPE "sensor_type"
 #define SIM_MSG_SENSOR_EVENT_CATEGORY "sensor_category"
 #define SIM_MSG_SENSOR_ASSERTION "sensor_assertion"
 #define SIM_MSG_SENSOR_EVENT_STATE "sensor_state"
+// optional sensor event constants
+#define SIM_MSG_SENSOR_OPTIONAL_DATA "sensor_opt_data"
+#define SIM_MSG_SENSOR_TRIGGER_READING_SUPPORTED "sensor_trigger_reading_supported"
+#define SIM_MSG_SENSOR_TRIGGER_READING_TYPE "sensor_trigger_reading_type"
+#define SIM_MSG_SENSOR_TRIGGER_READING "sensor_trigger_reading"
+#define SIM_MSG_SENSOR_TRIGGER_THRESHOLD_SUPPORTED "sensor_trigger_threshold_supported"
+#define SIM_MSG_SENSOR_TRIGGER_THRESHOLD_TYPE "sensor_trigger_threshold_type"
+#define SIM_MSG_SENSOR_TRIGGER_THRESHOLD "sensor_trigger_threshold"
+#define SIM_MSG_SENSOR_PREVIOUS_STATE "sensor_previous_state"
+#define SIM_MSG_SENSOR_CURRENT_STATE "sensor_current_state"
+#define SIM_MSG_SENSOR_OEM "sensor_oem"
+#define SIM_MSG_SENSOR_SPECIFIC "sensor_specific"
 
 
 
