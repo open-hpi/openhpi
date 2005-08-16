@@ -118,13 +118,13 @@ void oh_wake_event_thread(SaHpiBoolT);
  */
 
 struct oh_handler_state {
-        RPTable 	*rptcache;
-        oh_el  		*elcache;
-        GSList 		*eventq;
-        GAsyncQueue 	*eventq_async;
-	GThread 	*thread_handle;
-        GHashTable 	*config;
-        void 		*data;
+        RPTable         *rptcache;
+        oh_el           *elcache;
+        GSList          *eventq;
+        GAsyncQueue     *eventq_async;
+        GThread         *thread_handle;
+        GHashTable      *config;
+        void            *data;
 };
 
 /* Current abi is version 2. Version 1 is out-of-date and nobody
@@ -147,22 +147,22 @@ static const uuid_t UUID_OH_ABI_V2 = {
 
 /* 13adfcc7-d788-4aaf-b966-5cd30bdcd808 */
 /* regen this with via
- * 
+ *
  * perl -e 'use POSIX qw(strftime); my $str = strftime("%Y%m%d%H%M%S",gmtime(time)); $str .= "00"; for my $c (split(//, $str)) {print "0x0$c, "} '
- * 
+ *
  * any time you make a change */
- 
+
 /*
 static const uuid_t UUID_OH_ABI_V2 = {
-        0x02, 0x00, 0x00, 0x04, 0x01, 0x02, 0x01, 0x05, 
-        0x01, 0x06, 0x01, 0x04, 0x01, 0x00, 0x00, 0x00, 
+        0x02, 0x00, 0x00, 0x04, 0x01, 0x02, 0x01, 0x05,
+        0x01, 0x06, 0x01, 0x04, 0x01, 0x00, 0x00, 0x00,
 };
 */
 
 
 static const uuid_t UUID_OH_ABI_V2 = {
         0x02, 0x00, 0x00, 0x05, 0x00, 0x04, 0x01, 0x03,
-	0x01, 0x02, 0x05, 0x04, 0x05, 0x00, 0x00, 0x00,
+        0x01, 0x02, 0x05, 0x04, 0x05, 0x00, 0x00, 0x00,
 };
 
 
@@ -234,12 +234,12 @@ struct oh_abi_v2 {
          * get entry in EL
          */
         SaErrorT (*get_el_entry)(void *hnd, SaHpiResourceIdT id,
-					    SaHpiEventLogEntryIdT current,
-                             		    SaHpiEventLogEntryIdT *prev,
-			     		    SaHpiEventLogEntryIdT *next,
-			     		    SaHpiEventLogEntryT *entry,
-					    SaHpiRdrT  *rdr,
-					    SaHpiRptEntryT  *rptentry);
+                                            SaHpiEventLogEntryIdT current,
+                                            SaHpiEventLogEntryIdT *prev,
+                                            SaHpiEventLogEntryIdT *next,
+                                            SaHpiEventLogEntryT *entry,
+                                            SaHpiRdrT  *rdr,
+                                            SaHpiRptEntryT  *rptentry);
 
         /**
          * clear EL
@@ -248,7 +248,7 @@ struct oh_abi_v2 {
 
         /**
          * set the EL state (enabled/disabled)
-         */ 
+         */
         SaErrorT (*set_el_state)(void *hnd, SaHpiResourceIdT id, SaHpiBoolT e);
 
         /**
@@ -280,22 +280,22 @@ struct oh_abi_v2 {
                                      const SaHpiSensorThresholdsT *thres);
 
         /**
-	 * get sensor enable
-	*/
+         * get sensor enable
+        */
 
-	SaErrorT (*get_sensor_enable)(void *hnd, SaHpiResourceIdT id,
-					     SaHpiSensorNumT num,
-					     SaHpiBoolT *enable);
+        SaErrorT (*get_sensor_enable)(void *hnd, SaHpiResourceIdT id,
+                                             SaHpiSensorNumT num,
+                                             SaHpiBoolT *enable);
 
-	/**
-	 * set sensor enable
-	*/
+        /**
+         * set sensor enable
+        */
 
-	SaErrorT (*set_sensor_enable)(void *hnd, SaHpiResourceIdT id,
-				      SaHpiSensorNumT num,
-				      SaHpiBoolT enable);
+        SaErrorT (*set_sensor_enable)(void *hnd, SaHpiResourceIdT id,
+                                      SaHpiSensorNumT num,
+                                      SaHpiBoolT enable);
 
-	/**
+        /**
          * get sensor event enables
          */
         SaErrorT (*get_sensor_event_enables)(void *hnd, SaHpiResourceIdT id,
@@ -309,20 +309,20 @@ struct oh_abi_v2 {
                                     SaHpiSensorNumT num,
                                     const SaHpiBoolT enables);
 
-      	/**
-      	 * get sensor event masks
-      	 */
-      	SaErrorT (*get_sensor_event_masks)(void *hnd, SaHpiResourceIdT id,
-      	 		 		   SaHpiSensorNumT  num,
-      	 		 		   SaHpiEventStateT *AssertEventMask,
-      	 		 		   SaHpiEventStateT *DeassertEventMask);
-      	/**
-      	 * set sensor event masks
-      	 */
-      	SaErrorT (*set_sensor_event_masks)(void *hnd, SaHpiResourceIdT id,
+        /**
+         * get sensor event masks
+         */
+        SaErrorT (*get_sensor_event_masks)(void *hnd, SaHpiResourceIdT id,
+                                           SaHpiSensorNumT  num,
+                                           SaHpiEventStateT *AssertEventMask,
+                                           SaHpiEventStateT *DeassertEventMask);
+        /**
+         * set sensor event masks
+         */
+        SaErrorT (*set_sensor_event_masks)(void *hnd, SaHpiResourceIdT id,
                                            SaHpiSensorNumT num,
-					   SaHpiSensorEventMaskActionT act,
-      	 		 		   SaHpiEventStateT AssertEventMask,
+                                           SaHpiSensorEventMaskActionT act,
+                                           SaHpiEventStateT AssertEventMask,
                                            SaHpiEventStateT DeassertEventMask);
 
 
@@ -354,7 +354,7 @@ struct oh_abi_v2 {
          * get Inventory Data Area Header
          */
         SaErrorT (*get_idr_area_header)(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid, SaHpiIdrAreaTypeT areatype,
-			      SaHpiEntryIdT areaid,  SaHpiEntryIdT *nextareaid, SaHpiIdrAreaHeaderT *header);
+                              SaHpiEntryIdT areaid,  SaHpiEntryIdT *nextareaid, SaHpiIdrAreaHeaderT *header);
 
         /**
          * add Inventory Data Area
@@ -370,8 +370,8 @@ struct oh_abi_v2 {
          * get Inventory Data Field
          */
         SaErrorT (*get_idr_field)(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid,
-	                     SaHpiEntryIdT areaid, SaHpiIdrFieldTypeT fieldtype, SaHpiEntryIdT fieldid,
-			     SaHpiEntryIdT *nextfieldid, SaHpiIdrFieldT *field);
+                             SaHpiEntryIdT areaid, SaHpiIdrFieldTypeT fieldtype, SaHpiEntryIdT fieldid,
+                             SaHpiEntryIdT *nextfieldid, SaHpiIdrFieldT *field);
 
         /**
          * add Inventory Data Field
@@ -413,26 +413,26 @@ struct oh_abi_v2 {
          *
          *********************************************************************/
 
-        /* the first 5 Annunciator functions are really operating on 
+        /* the first 5 Annunciator functions are really operating on
            a single Annunciator and doing things to the announcements
            that it contains.  For this reason the functions are named
            _announce */
-        SaErrorT (*get_next_announce)(void *, SaHpiResourceIdT, 
-                                      SaHpiAnnunciatorNumT, SaHpiSeverityT, 
+        SaErrorT (*get_next_announce)(void *, SaHpiResourceIdT,
+                                      SaHpiAnnunciatorNumT, SaHpiSeverityT,
                                       SaHpiBoolT, SaHpiAnnouncementT *);
-        
-        SaErrorT (*get_announce)(void *, SaHpiResourceIdT, 
+
+        SaErrorT (*get_announce)(void *, SaHpiResourceIdT,
                                  SaHpiAnnunciatorNumT, SaHpiEntryIdT, SaHpiAnnouncementT *);
 
-        SaErrorT (*ack_announce)(void *, SaHpiResourceIdT, 
+        SaErrorT (*ack_announce)(void *, SaHpiResourceIdT,
                              SaHpiAnnunciatorNumT, SaHpiEntryIdT, SaHpiSeverityT);
-        
-        SaErrorT (*add_announce)(void *, SaHpiResourceIdT, 
+
+        SaErrorT (*add_announce)(void *, SaHpiResourceIdT,
                              SaHpiAnnunciatorNumT, SaHpiAnnouncementT *);
 
-        SaErrorT (*del_announce)(void *, SaHpiResourceIdT, 
+        SaErrorT (*del_announce)(void *, SaHpiResourceIdT,
                              SaHpiAnnunciatorNumT, SaHpiEntryIdT, SaHpiSeverityT);
-        
+
         /* the last 2 functions deal with Annunciator mode setting */
 
         SaErrorT (*get_annunc_mode)(void *hnd, SaHpiResourceIdT id,

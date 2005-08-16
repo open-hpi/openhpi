@@ -1,4 +1,4 @@
- /*      -*- linux-c -*-
+/*      -*- linux-c -*-
  *
  * Copyright (c) 2003 by Intel Corp.
  * (C) Copyright IBM Corp. 2003, 2005
@@ -25,15 +25,10 @@
 
 #include <oh_event.h>
 #include <openhpi.h>
+#include <oh_threaded.h>
 
-#define OH_THREAD_SLEEP_TIME 2 * G_USEC_PER_SEC
-
-static gboolean oh_is_threaded = FALSE;
+extern GMutex *oh_event_thread_mutex;
 GAsyncQueue *oh_process_q = NULL;
-GCond *oh_thread_wait = NULL;
-GThread *oh_event_thread = NULL;
-GError *oh_event_thread_error = NULL;
-GMutex *oh_thread_mutex = NULL;
 
 /**
  * oh_new_oh_event
@@ -41,114 +36,17 @@ GMutex *oh_thread_mutex = NULL;
  * */
 struct oh_event* oh_new_oh_event(oh_event_type t)
 {
-	struct oh_event * new = NULL;
-	
-	new->type = t;
-	new = g_new0(struct oh_event, 1);
-	
-	if (new == NULL) {
-		dbg("Couldn't allocate new oh_event!");
-	}
-	
-	return new;
-}
+        struct oh_event * new = NULL;
 
-gboolean oh_run_threaded()
-{
-        return oh_is_threaded;
-}
+        new->type = t;
+        new = g_new0(struct oh_event, 1);
 
-static gpointer oh_event_thread_loop(gpointer data)
-{
-        GTimeVal time;
-        SaErrorT rv;
-
-	g_mutex_lock(oh_thread_mutex);
-        while(oh_run_threaded()) {
-		trace("Thread Harvesting events");
-                rv = oh_harvest_events();
-                if(rv != SA_OK) {
-                        trace("Error on harvest of events.");
-                }
-                
-		trace("Thread processing events");
-                rv = oh_process_events();
-                if(rv != SA_OK) {
-                        trace("Error on processing of events, aborting");
-                }
-                
-                trace("Thread processing hotswap");
-                process_hotswap_policy();
-                
-                g_get_current_time(&time);
-                g_time_val_add(&time, OH_THREAD_SLEEP_TIME);
-
-                trace("Going to sleep");
-                if (g_cond_timed_wait(oh_thread_wait, oh_thread_mutex, &time))
-                        trace("SIGNALED: Got signal from plugin");
-                else
-                        trace("TIMEDOUT: Woke up, am looping again");
-        }
-	g_mutex_unlock(oh_thread_mutex);
-        g_thread_exit(0);
-        return data;
-}
-
-/*
- *  The following is required to set up the thread state for
- *  the use of async queues.  This is true even if we aren't
- *  using live threads.
- */
-int oh_event_init()
-{
-        trace("Attempting to init event");
-        if (!g_thread_supported()) {
-                trace("Initializing thread support");
-                g_thread_init(NULL);
-        } else {
-                trace("Already supporting threads");
-        }
-        trace("Setting up event processing queue");
-        oh_process_q = g_async_queue_new();
-        if(oh_process_q) {
-                trace("Set up processing queue");
-                return 1;
-        } else {
-                dbg("Failed to allocate processing queue");
-                return 0;
-        }
-}
-
-int oh_start_event_thread()
-{
-        struct oh_global_param threaded_param = { .type = OPENHPI_THREADED };
-
-        oh_get_global_param(&threaded_param);
-        if (threaded_param.u.threaded) {
-                trace("Starting event thread");
-                oh_is_threaded = TRUE;
-                oh_thread_wait = g_cond_new();
-                oh_thread_mutex = g_mutex_new();
-                oh_event_thread = g_thread_create(oh_event_thread_loop,
-                                                  NULL, FALSE, &oh_event_thread_error);
+        if (new == NULL) {
+                dbg("Couldn't allocate new oh_event!");
         }
 
-        return 1;
+        return new;
 }
-
-int oh_event_final()
-{
-        g_async_queue_unref(oh_process_q);
-        if(oh_run_threaded()) {
-                g_mutex_free(oh_thread_mutex);
-                g_cond_free(oh_thread_wait);
-        }
-        return 1;
-}
-
-
-	
-
 
 /*
  *  Event processing is split up into 2 stages
@@ -179,11 +77,11 @@ static SaErrorT harvest_events_for_handler(struct oh_handler *h)
                         trace("Found event for handler %p", h);
                         e2 =oh_dup_oh_event(&event);
                         e2->hid = h->id;
-			if (!oh_domain_served_by_handler(e2->hid, e2->did)) {
-				dbg("Handler %d sends event %d to wrong domain %d",
-					e2->type, e2->hid, e2->did);
-				return SA_ERR_HPI_INTERNAL_ERROR;
-			}
+                        if (!oh_domain_served_by_handler(e2->hid, e2->did)) {
+                                dbg("Handler %d sends event %d to wrong domain %d",
+                                        e2->type, e2->hid, e2->did);
+                                return SA_ERR_HPI_INTERNAL_ERROR;
+                        }
                         g_async_queue_push(oh_process_q, e2);
                 }
         } while(error > 0);
@@ -209,11 +107,11 @@ SaErrorT oh_harvest_events()
                         dbg("No such handler %d", hid);
                         break;
                 }
-		/*
-		 * Here we want to record an error unless there is
-		 * at least one harvest_events_for_handler that
-		 * finished with SA_OK. (RM 1/6/2005)
-		 */		
+                /*
+                 * Here we want to record an error unless there is
+                 * at least one harvest_events_for_handler that
+                 * finished with SA_OK. (RM 1/6/2005)
+                 */
                 if (harvest_events_for_handler(h) == SA_OK && error)
                         error = SA_OK;
 
@@ -268,14 +166,14 @@ static int process_hpi_event(struct oh_event *full_event)
         d = oh_get_domain(full_event->did);
         if(!d) {
                 dbg("Domain %d doesn't exist", full_event->did);
-                return -1; /* FIXME: should this be -1? */
+                return -1;
         }
 
         e = &(full_event->u.hpi_event);
-	if (e->event.EventType == SAHPI_ET_USER) {
-		e->res.ResourceCapabilities = 0;
-		e->rdr.RdrType = SAHPI_NO_RECORD;
-	}
+        if (e->event.EventType == SAHPI_ET_USER) {
+                e->res.ResourceCapabilities = 0;
+                e->rdr.RdrType = SAHPI_NO_RECORD;
+        }
 
         if (e->res.ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP
             && e->event.EventType == SAHPI_ET_HOTSWAP) {
@@ -283,13 +181,12 @@ static int process_hpi_event(struct oh_event *full_event)
                 trace("Pushed hotswap event");
         }
 
-        /* FIXME: Add event to DEL */
         trace("About to add to EL");
         oh_add_event_to_del(d->id, e);
         trace("Added event to EL");
 
         /*
-         * TODO: Here is where we need the SESSION MULTIPLEXING code
+         * Here is where we need the SESSION MULTIPLEXING code
          */
 
         /* FIXME: yes, we need to figure out the real domain at some point */
@@ -335,17 +232,17 @@ static int process_resource_event(struct oh_event *e)
                 trace("Resource %d in Domain %d has been REMOVED.",
                       e->u.res_event.entry.ResourceId,
                       e->did);
-                
+
                 hpie.did = e->did;
                 hpie.u.hpi_event.event.Severity = e->u.res_event.entry.ResourceSeverity;
                 hpie.u.hpi_event.event.Source = e->u.res_event.entry.ResourceId;
                 hpie.u.hpi_event.event.EventType = SAHPI_ET_RESOURCE;
                 hpie.u.hpi_event.event.EventDataUnion.ResourceEvent.ResourceEventType =
                         SAHPI_RESE_RESOURCE_FAILURE;
-		hpie.u.hpi_event.res = e->u.res_event.entry;
+                hpie.u.hpi_event.res = e->u.res_event.entry;
                 if (oh_gettimeofday(&hpie.u.hpi_event.event.Timestamp) != SA_OK)
                         hpie.u.hpi_event.event.Timestamp = SAHPI_TIME_UNSPECIFIED;
-                
+
         } else {
                 struct oh_resource_data *rd = g_malloc0(sizeof(struct oh_resource_data));
 
@@ -370,15 +267,15 @@ static int process_resource_event(struct oh_event *e)
                 hpie.u.hpi_event.event.EventType = SAHPI_ET_RESOURCE;
                 hpie.u.hpi_event.event.EventDataUnion.ResourceEvent.ResourceEventType =
                         SAHPI_RESE_RESOURCE_ADDED;
-		hpie.u.hpi_event.res = e->u.res_event.entry;
+                hpie.u.hpi_event.res = e->u.res_event.entry;
                 if (oh_gettimeofday(&hpie.u.hpi_event.event.Timestamp) != SA_OK)
                     hpie.u.hpi_event.event.Timestamp = SAHPI_TIME_UNSPECIFIED;
         }
         oh_release_domain(d);
-        
+
         /* if the op succeed, and the resource isn't FRU */
-        if ((rv == SA_OK) && 
-            !(e->u.res_event.entry.ResourceCapabilities & 
+        if ((rv == SA_OK) &&
+            !(e->u.res_event.entry.ResourceCapabilities &
               SAHPI_CAPABILITY_FRU)) {
                 rv = process_hpi_event(&hpie);
         }
@@ -466,26 +363,26 @@ SaErrorT oh_get_events()
 {
         SaErrorT rv = SA_OK;
 
-        /* this waits for the event thread to sleep, then 
+        /* this waits for the event thread to sleep, then
            runs to deal with sync issues */
-        if(oh_run_threaded())
-		g_mutex_lock(oh_thread_mutex);
-	
+        if(oh_threaded_mode())
+                g_mutex_lock(oh_event_thread_mutex);
+
         trace("Harvesting events synchronously");
         rv = oh_harvest_events();
         if(rv != SA_OK) {
                 dbg("Error on harvest of events.");
         }
-        
+
         rv = oh_process_events();
         if(rv != SA_OK) {
                 dbg("Error on processing of events, aborting");
         }
-        
+
         process_hotswap_policy();
-        
-	if(oh_run_threaded())
-        	g_mutex_unlock(oh_thread_mutex);
-        
+
+        if(oh_threaded_mode())
+                g_mutex_unlock(oh_event_thread_mutex);
+
         return rv;
 }
