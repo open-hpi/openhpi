@@ -112,6 +112,7 @@ struct sim_rpt sim_rpt_array[] = {
                 },
                 .comment = "DASD 1"
         },
+        /* HS DASD */
         {
                 .rpt = {
                         .ResourceInfo = {

@@ -19,6 +19,12 @@
 #include <sys/ipc.h>
 #include <sys/msg.h>
 #include <sys/types.h>
+#include <errno.h>
+#include <sim_injector_ext.h>
+
+
+static char *find_value(char *name, char *buf);
+static void process_sensor_event_msg(SIM_MSG_QUEUE_BUF *buf);
 
 
 static struct oh_event *eventdup(const struct oh_event *event)
@@ -222,24 +228,35 @@ SaErrorT sim_inject_event(struct oh_handler_state *state, struct oh_event *data)
 /*--------------------------------------------------------------------*/
 
 static gpointer injector_service_thread(gpointer data) {
-        int msgqueid = (int)data;
-        struct {
-                long msgto;
-                long msgfm;
-                char handler_name[50];
-                struct oh_event ohevent;
-        } event;
+        key_t ipckey;
+        int msgqueid = -1;
+        SIM_MSG_QUEUE_BUF buf;
         int n;
-        struct oh_handler_state *state;
+
+        /* construct the queue */
+        ipckey = ftok(".", SIM_MSG_QUEUE_KEY);
+        msgqueid = msgget(ipckey, IPC_CREAT | 0660);
+        if (msgqueid == -1) {
+                return NULL;
+        }
 
         /* get message loop */
         while (TRUE) {
-                n = msgrcv(msgqueid, &event, sizeof(event), 0, 0);
-                if (n != -1) {
-                        state = sim_get_handler_by_name(event.handler_name);
-                        if (state != NULL) {
-                                sim_inject_event(state, &event.ohevent);
-                        }
+                n = msgrcv(msgqueid, &buf, SIM_MSG_QUEUE_BUFSIZE, 0, 0);
+                if (n == -1) {
+                    dbg("error during msgrcv");
+                    dbg("errorno = %d", errno);
+                    // invalid message, just ignore it
+                    continue;
+                }
+                switch (buf.mtype) {
+                case SIM_MSG_SENSOR_EVENT:
+                    dbg("processing sensor event");
+                    process_sensor_event_msg(&buf);
+                    break;
+                default:
+                    dbg("invalid msg recieved");
+                    break;
                 }
         }
         g_thread_exit(NULL);
@@ -254,8 +271,6 @@ static SaHpiBoolT thrd_running = FALSE;
 /*--------------------------------------------------------------------*/
 
 GThread *start_injector_service_thread(gpointer data) {
-        key_t ipckey;
-        int msgqueid = -1;
         GThread *service_thrd;
 
         /* if thread already running then quit */
@@ -263,20 +278,165 @@ GThread *start_injector_service_thread(gpointer data) {
                 return NULL;
         }
 
-        /* construct the queue */
-        ipckey = ftok(".", MSG_QUEUE_KEY);
-        msgqueid = msgget(ipckey, IPC_CREAT | 0660);
-        if (msgqueid == -1) {
-                return NULL;
-        }
-
         /* start the thread */
-        service_thrd = g_thread_create(injector_service_thread, &msgqueid,
+        service_thrd = g_thread_create(injector_service_thread, NULL,
                                        FALSE, NULL);
         if (service_thrd != NULL) {
                 thrd_running = TRUE;
         }
         return service_thrd;
+}
+
+
+/*--------------------------------------------------------------------*/
+/* Function: find_value                                               */
+/*--------------------------------------------------------------------*/
+
+static char *find_value(char *name, char *buf) {
+        char *value = NULL;
+        int len;
+
+        while (*buf != '\0') {
+                len = strlen(name);
+                if (strncmp(buf, name, len) == 0 && *(buf + len) == '=') {
+                        value = buf + len + 1;
+                        return value;
+                }
+                buf += strlen(buf) + 1;
+        }
+        return value;
+}
+
+
+/*--------------------------------------------------------------------*/
+/* Function: process_sensor_event_msg                                 */
+/*--------------------------------------------------------------------*/
+
+static void process_sensor_event_msg(SIM_MSG_QUEUE_BUF *buf) {
+        struct oh_handler_state *state;
+        struct oh_event ohevent;
+        char *value;
+
+        memset(&ohevent, sizeof(struct oh_event), 0);
+        ohevent.did = oh_get_default_domain_id();
+        ohevent.type = OH_ET_RESOURCE;
+
+        /* get the handler state */
+        value = find_value(SIM_MSG_HANDLER_NAME, buf->mtext);
+        if (value == NULL) {
+                dbg("invalid SIM_MSG_HANDLER_NAME");
+                return;
+        }
+        state = sim_get_handler_by_name(value);
+        if (state == NULL) {
+                dbg("invalid SIM_MSG_HANDLER_NAME");
+                return;
+        }
+
+        /* set the oh event type */
+        ohevent.type = OH_ET_HPI;
+
+        /* get the resource id */
+        value = find_value(SIM_MSG_RESOURCE_ID, buf->mtext);
+        if (value == NULL) {
+                dbg("invalid SIM_MSG_RESOURCE_ID");
+                return;
+        }
+        ohevent.u.hpi_event.event.Source = (SaHpiResourceIdT)atoi(value);
+
+        /* get the event type */
+        value = find_value(SIM_MSG_EVENT_TYPE, buf->mtext);
+        if (value == NULL) {
+                dbg("invalid SIM_MSG_EVENT_TYPE");
+                return;
+        }
+        ohevent.u.hpi_event.event.EventType = (SaHpiEventTypeT)atoi(value);
+
+        /* get the event timestamp */
+        oh_gettimeofday(&ohevent.u.hpi_event.event.Timestamp);
+
+        /* get the severity */
+        value = find_value(SIM_MSG_EVENT_SEVERITY, buf->mtext);
+        if (value == NULL) {
+                dbg("invalid SIM_MSG_EVENT_SEVERITY");
+                return;
+        }
+        ohevent.u.hpi_event.event.Severity = (SaHpiSeverityT)atoi(value);
+
+        /* fill out the SaHpiSensorEventT part of the structure */
+        /* get the sensor number */
+        value = find_value(SIM_MSG_SENSOR_NUM, buf->mtext);
+        if (value == NULL) {
+                dbg("invalid SIM_MSG_SENSOR_NUM");
+                return;
+        }
+        ohevent.u.hpi_event.event.EventDataUnion.SensorEvent.SensorNum =
+         (SaHpiSensorNumT)atoi(value);
+
+        /* get the sensor type */
+        value = find_value(SIM_MSG_SENSOR_TYPE, buf->mtext);
+        if (value == NULL) {
+                dbg("invalid SIM_MSG_SENSOR_TYPE");
+                return;
+        }
+        ohevent.u.hpi_event.event.EventDataUnion.SensorEvent.SensorType =
+         (SaHpiSensorTypeT)atoi(value);
+
+        /* get the sensor event category */
+        value = find_value(SIM_MSG_SENSOR_EVENT_CATEGORY, buf->mtext);
+        if (value == NULL) {
+                dbg("invalid SIM_MSG_SENSOR_EVENT_CATEGORY");
+                return;
+        }
+        ohevent.u.hpi_event.event.EventDataUnion.SensorEvent.EventCategory =
+         (SaHpiEventCategoryT)atoi(value);
+
+        /* get the sensor assertion */
+        value = find_value(SIM_MSG_SENSOR_ASSERTION, buf->mtext);
+        if (value == NULL) {
+                dbg("invalid SIM_MSG_SENSOR_ASSERTION");
+                return;
+        }
+        ohevent.u.hpi_event.event.EventDataUnion.SensorEvent.Assertion =
+         (SaHpiBoolT)atoi(value);
+
+        /* get the sensor event state */
+        value = find_value(SIM_MSG_SENSOR_EVENT_STATE, buf->mtext);
+        if (value == NULL) {
+            dbg("invalid SIM_MSG_SENSOR_EVENT_STATE");
+                return;
+        }
+        ohevent.u.hpi_event.event.EventDataUnion.SensorEvent.EventState =
+         (SaHpiEventStateT)atoi(value);
+
+        /* get the sensor optional data present */
+        /* TODO: for now we are going to skip this */
+
+        /* now fill out the RPT entry and the RDR */
+        SaHpiSessionIdT sid;
+        SaErrorT rc = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID, &sid, NULL);
+        if (rc) {
+                return;
+        }
+        rc = saHpiRptEntryGetByResourceId(sid, ohevent.u.hpi_event.event.Source,
+                                          &ohevent.u.hpi_event.res);
+        if (rc) {
+                saHpiSessionClose(sid);
+                return;
+        }
+        rc = saHpiRdrGetByInstrumentId(sid, ohevent.u.hpi_event.event.Source,
+                                       ohevent.u.hpi_event.event.EventDataUnion.SensorEvent.SensorType,
+                                       ohevent.u.hpi_event.event.EventDataUnion.SensorEvent.SensorNum,
+                                       &ohevent.u.hpi_event.rdr);
+        saHpiSessionClose(sid);
+        if (rc) {
+                return;
+        }
+
+        /* now inject the event */
+        sim_inject_event(state, &ohevent);
+
+        return;
 }
 
 
