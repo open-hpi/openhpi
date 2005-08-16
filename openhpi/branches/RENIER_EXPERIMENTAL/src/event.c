@@ -1,4 +1,4 @@
- /*      -*- linux-c -*-
+/*      -*- linux-c -*-
  *
  * Copyright (c) 2003 by Intel Corp.
  * (C) Copyright IBM Corp. 2003, 2005
