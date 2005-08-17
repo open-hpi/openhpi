@@ -25,6 +25,7 @@
 
 static char *find_value(char *name, char *buf);
 static void process_sensor_event_msg(SIM_MSG_QUEUE_BUF *buf);
+static void process_sensor_enable_change_event_msg(SIM_MSG_QUEUE_BUF *buf);
 
 
 static struct oh_event *eventdup(const struct oh_event *event)
@@ -253,6 +254,10 @@ static gpointer injector_service_thread(gpointer data) {
                 case SIM_MSG_SENSOR_EVENT:
                     dbg("processing sensor event");
                     process_sensor_event_msg(&buf);
+                    break;
+                case SIM_MSG_SENSOR_ENABLE_CHANGE_EVENT:
+                    dbg("processing sensor enable change event");
+                    process_sensor_enable_change_event_msg(&buf);
                     break;
                 default:
                     dbg("invalid msg recieved");
@@ -542,6 +547,171 @@ static void process_sensor_event_msg(SIM_MSG_QUEUE_BUF *buf) {
                         return;
                 }
                 ohevent.u.hpi_event.event.EventDataUnion.SensorEvent.SensorSpecific =
+                 (SaHpiEventStateT)atoi(value);
+            }
+        }
+
+        /* now fill out the RPT entry and the RDR */
+        SaHpiSessionIdT sid;
+        SaErrorT rc = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID, &sid, NULL);
+        if (rc) {
+                return;
+        }
+        rc = saHpiRptEntryGetByResourceId(sid, ohevent.u.hpi_event.event.Source,
+                                          &ohevent.u.hpi_event.res);
+        if (rc) {
+                saHpiSessionClose(sid);
+                return;
+        }
+        rc = saHpiRdrGetByInstrumentId(sid, ohevent.u.hpi_event.event.Source,
+                                       ohevent.u.hpi_event.event.EventDataUnion.SensorEvent.SensorType,
+                                       ohevent.u.hpi_event.event.EventDataUnion.SensorEvent.SensorNum,
+                                       &ohevent.u.hpi_event.rdr);
+        saHpiSessionClose(sid);
+        if (rc) {
+                return;
+        }
+
+        /* now inject the event */
+        sim_inject_event(state, &ohevent);
+
+        return;
+}
+
+
+/*--------------------------------------------------------------------*/
+/* Function: process_sensor_enable_change_event_msg                   */
+/*--------------------------------------------------------------------*/
+
+static void process_sensor_enable_change_event_msg(SIM_MSG_QUEUE_BUF *buf) {
+        struct oh_handler_state *state;
+        struct oh_event ohevent;
+        char *value;
+
+        memset(&ohevent, sizeof(struct oh_event), 0);
+        ohevent.did = oh_get_default_domain_id();
+        ohevent.type = OH_ET_RESOURCE;
+
+        /* get the handler state */
+        value = find_value(SIM_MSG_HANDLER_NAME, buf->mtext);
+        if (value == NULL) {
+                dbg("invalid SIM_MSG_HANDLER_NAME");
+                return;
+        }
+        state = sim_get_handler_by_name(value);
+        if (state == NULL) {
+                dbg("invalid SIM_MSG_HANDLER_NAME");
+                return;
+        }
+
+        /* set the oh event type */
+        ohevent.type = OH_ET_HPI;
+
+        /* get the resource id */
+        value = find_value(SIM_MSG_RESOURCE_ID, buf->mtext);
+        if (value == NULL) {
+                dbg("invalid SIM_MSG_RESOURCE_ID");
+                return;
+        }
+        ohevent.u.hpi_event.event.Source = (SaHpiResourceIdT)atoi(value);
+
+        /* get the event type */
+        value = find_value(SIM_MSG_EVENT_TYPE, buf->mtext);
+        if (value == NULL) {
+                dbg("invalid SIM_MSG_EVENT_TYPE");
+                return;
+        }
+        ohevent.u.hpi_event.event.EventType = (SaHpiEventTypeT)atoi(value);
+
+        /* get the event timestamp */
+        oh_gettimeofday(&ohevent.u.hpi_event.event.Timestamp);
+
+        /* get the severity */
+        value = find_value(SIM_MSG_EVENT_SEVERITY, buf->mtext);
+        if (value == NULL) {
+                dbg("invalid SIM_MSG_EVENT_SEVERITY");
+                return;
+        }
+        ohevent.u.hpi_event.event.Severity = (SaHpiSeverityT)atoi(value);
+
+        /* fill out the SaHpiSensorEnableChangeEventT part of the structure */
+        /* get the sensor number */
+        value = find_value(SIM_MSG_SENSOR_NUM, buf->mtext);
+        if (value == NULL) {
+                dbg("invalid SIM_MSG_SENSOR_NUM");
+                return;
+        }
+        ohevent.u.hpi_event.event.EventDataUnion.SensorEnableChangeEvent.SensorNum =
+         (SaHpiSensorNumT)atoi(value);
+
+        /* get the sensor type */
+        value = find_value(SIM_MSG_SENSOR_TYPE, buf->mtext);
+        if (value == NULL) {
+                dbg("invalid SIM_MSG_SENSOR_TYPE");
+                return;
+        }
+        ohevent.u.hpi_event.event.EventDataUnion.SensorEnableChangeEvent.SensorType =
+         (SaHpiSensorTypeT)atoi(value);
+
+        /* get the sensor event category */
+        value = find_value(SIM_MSG_SENSOR_EVENT_CATEGORY, buf->mtext);
+        if (value == NULL) {
+                dbg("invalid SIM_MSG_SENSOR_EVENT_CATEGORY");
+                return;
+        }
+        ohevent.u.hpi_event.event.EventDataUnion.SensorEnableChangeEvent.EventCategory =
+         (SaHpiEventCategoryT)atoi(value);
+
+        /* get the sensor enable */
+        value = find_value(SIM_MSG_SENSOR_ENABLE, buf->mtext);
+        if (value == NULL) {
+                dbg("invalid SIM_MSG_SENSOR_ENABLE");
+                return;
+        }
+        ohevent.u.hpi_event.event.EventDataUnion.SensorEnableChangeEvent.SensorEnable =
+         (SaHpiBoolT)atoi(value);
+
+        /* get the sensor event enable */
+        value = find_value(SIM_MSG_SENSOR_EVENT_ENABLE, buf->mtext);
+        if (value == NULL) {
+            dbg("invalid SIM_MSG_SENSOR_EVENT_ENABLE");
+                return;
+        }
+        ohevent.u.hpi_event.event.EventDataUnion.SensorEnableChangeEvent.SensorEventEnable =
+         (SaHpiBoolT)atoi(value);
+
+        /* get the sensor assert event mask */
+        value = find_value(SIM_MSG_SENSOR_ASSERT_EVENT_MASK, buf->mtext);
+        if (value == NULL) {
+            dbg("invalid SIM_MSG_SENSOR_ASSERT_EVENT_MASK");
+                return;
+        }
+        ohevent.u.hpi_event.event.EventDataUnion.SensorEnableChangeEvent.AssertEventMask =
+         (SaHpiEventStateT)atoi(value);
+
+        /* get the sensor deassert event mask */
+        value = find_value(SIM_MSG_SENSOR_DEASSERT_EVENT_MASK, buf->mtext);
+        if (value == NULL) {
+            dbg("invalid SIM_MSG_SENSOR_DEASSERT_EVENT_MASK");
+                return;
+        }
+        ohevent.u.hpi_event.event.EventDataUnion.SensorEnableChangeEvent.DeassertEventMask =
+         (SaHpiEventStateT)atoi(value);
+
+        /* get the sensor event optional data */
+        value = find_value(SIM_MSG_SENSOR_OPTIONAL_DATA, buf->mtext);
+        if (value != NULL) {
+            ohevent.u.hpi_event.event.EventDataUnion.SensorEnableChangeEvent.OptionalDataPresent =
+             (SaHpiSensorOptionalDataT)atoi(value);
+
+            if (ohevent.u.hpi_event.event.EventDataUnion.SensorEvent.OptionalDataPresent
+             & SAHPI_SOD_CURRENT_STATE) {
+                value = find_value(SIM_MSG_SENSOR_CURRENT_STATE, buf->mtext);
+                if (value == NULL) {
+                    dbg("invalid SIM_MSG_SENSOR_CURRENT_STATE");
+                        return;
+                }
+                ohevent.u.hpi_event.event.EventDataUnion.SensorEnableChangeEvent.CurrentState =
                  (SaHpiEventStateT)atoi(value);
             }
         }
