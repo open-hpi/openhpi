@@ -704,7 +704,7 @@ static void process_sensor_enable_change_event_msg(SIM_MSG_QUEUE_BUF *buf) {
             ohevent.u.hpi_event.event.EventDataUnion.SensorEnableChangeEvent.OptionalDataPresent =
              (SaHpiSensorOptionalDataT)atoi(value);
 
-            if (ohevent.u.hpi_event.event.EventDataUnion.SensorEvent.OptionalDataPresent
+            if (ohevent.u.hpi_event.event.EventDataUnion.SensorEnableChangeEvent.OptionalDataPresent
              & SAHPI_SOD_CURRENT_STATE) {
                 value = find_value(SIM_MSG_SENSOR_CURRENT_STATE, buf->mtext);
                 if (value == NULL) {
