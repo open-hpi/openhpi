@@ -67,4 +67,9 @@ SaErrorT snmp_bc_selcache_sync(struct oh_handler_state *handle,
 SaErrorT snmp_bc_sel_overflowreset(void *hnd,
 			       SaHpiResourceIdT id);
 			       
+SaErrorT snmp_bc_sel_state_set(void      *hnd, 
+                		SaHpiResourceIdT   id, 
+                		SaHpiBoolT         enable);
+
+			       
 #endif
