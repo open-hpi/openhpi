@@ -431,11 +431,19 @@ static void process_sensor_event_msg(SIM_MSG_QUEUE_BUF *buf) {
                 }
                 ohevent.u.hpi_event.event.EventDataUnion.SensorEvent.TriggerReading.Type =
                  (SaHpiSensorReadingTypeT)atoi(value);
+                value = find_value(SIM_MSG_SENSOR_TRIGGER_READING, buf->mtext);
+                if (value == NULL) {
+                    dbg("invalid SIM_MSG_SENSOR_TRIGGER_READING");
+                        return;
+                }
                 switch (ohevent.u.hpi_event.event.EventDataUnion.SensorEvent.TriggerReading.Type) {
                 case SAHPI_SENSOR_READING_TYPE_INT64:
-                case SAHPI_SENSOR_READING_TYPE_UINT64:
                     ohevent.u.hpi_event.event.EventDataUnion.SensorEvent.TriggerReading.Value.SensorInt64 =
                      strtoll(value, NULL, 10);
+                    break;
+                case SAHPI_SENSOR_READING_TYPE_UINT64:
+                    ohevent.u.hpi_event.event.EventDataUnion.SensorEvent.TriggerReading.Value.SensorInt64 =
+                     strtoull(value, NULL, 10);
                     break;
                 case SAHPI_SENSOR_READING_TYPE_FLOAT64:
                     ohevent.u.hpi_event.event.EventDataUnion.SensorEvent.TriggerReading.Value.SensorFloat64 =
@@ -457,25 +465,28 @@ static void process_sensor_event_msg(SIM_MSG_QUEUE_BUF *buf) {
                     dbg("invalid SIM_MSG_SENSOR_TRIGGER_THRESHOLD_SUPPORTED");
                         return;
                 }
-                ohevent.u.hpi_event.event.EventDataUnion.SensorEvent.TriggerReading.IsSupported =
+                ohevent.u.hpi_event.event.EventDataUnion.SensorEvent.TriggerThreshold.IsSupported =
                  (SaHpiBoolT)atoi(value);
-                value = find_value(SIM_MSG_SENSOR_TRIGGER_READING_TYPE, buf->mtext);
+                value = find_value(SIM_MSG_SENSOR_TRIGGER_THRESHOLD_TYPE, buf->mtext);
                 if (value == NULL) {
-                    dbg("invalid SIM_MSG_SENSOR_TRIGGER_READING_TYPE");
+                    dbg("invalid SIM_MSG_SENSOR_TRIGGER_THRESHOLD_TYPE");
                         return;
                 }
-                ohevent.u.hpi_event.event.EventDataUnion.SensorEvent.TriggerReading.Type =
+                ohevent.u.hpi_event.event.EventDataUnion.SensorEvent.TriggerThreshold.Type =
                  (SaHpiSensorReadingTypeT)atoi(value);
-                value = find_value(SIM_MSG_SENSOR_TRIGGER_READING, buf->mtext);
+                value = find_value(SIM_MSG_SENSOR_TRIGGER_THRESHOLD, buf->mtext);
                 if (value == NULL) {
-                    dbg("invalid SIM_MSG_SENSOR_TRIGGER_READING");
+                    dbg("invalid SIM_MSG_SENSOR_TRIGGER_THRESHOLD");
                         return;
                 }
                 switch (ohevent.u.hpi_event.event.EventDataUnion.SensorEvent.TriggerThreshold.Type) {
                 case SAHPI_SENSOR_READING_TYPE_INT64:
-                case SAHPI_SENSOR_READING_TYPE_UINT64:
                     ohevent.u.hpi_event.event.EventDataUnion.SensorEvent.TriggerThreshold.Value.SensorInt64 =
                      strtoll(value, NULL, 10);
+                    break;
+                case SAHPI_SENSOR_READING_TYPE_UINT64:
+                    ohevent.u.hpi_event.event.EventDataUnion.SensorEvent.TriggerThreshold.Value.SensorInt64 =
+                     strtoull(value, NULL, 10);
                     break;
                 case SAHPI_SENSOR_READING_TYPE_FLOAT64:
                     ohevent.u.hpi_event.event.EventDataUnion.SensorEvent.TriggerThreshold.Value.SensorFloat64 =
@@ -534,9 +545,6 @@ static void process_sensor_event_msg(SIM_MSG_QUEUE_BUF *buf) {
                  (SaHpiEventStateT)atoi(value);
             }
         }
-
-        /* get the sensor optional data present */
-        /* TODO: for now we are going to skip this */
 
         /* now fill out the RPT entry and the RDR */
         SaHpiSessionIdT sid;
