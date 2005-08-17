@@ -65,12 +65,6 @@ static int inject_event(char *plugin_name) {
     if (n > SIM_MSG_QUEUE_BUFSIZE) {
         return -1;
     }
-    sprintf(txtptr, "%s=%d", SIM_MSG_EVENT_TYPE, SAHPI_ET_SENSOR_ENABLE_CHANGE);
-    n += strlen(txtptr) + 1;
-    txtptr = buf.mtext + n;
-    if (n > SIM_MSG_QUEUE_BUFSIZE) {
-        return -1;
-    }
     sprintf(txtptr, "%s=%d", SIM_MSG_EVENT_SEVERITY, SAHPI_MINOR);
     n += strlen(txtptr) + 1;
     txtptr = buf.mtext + n;

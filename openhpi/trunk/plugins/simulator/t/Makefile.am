@@ -73,7 +73,8 @@ TESTS = sim_sanity_000 \
 	sim_sanity_044 \
 	sim_sanity_045 \
 	sim_sanity_046 \
-	sim_sanity_047
+	sim_sanity_047 \
+	sim_sanity_048
 
 check_PROGRAMS = $(TESTS)
 
@@ -173,4 +174,6 @@ sim_sanity_046_SOURCES = sim_sanity_046.c ../sim_injector_ext.h
 sim_sanity_046_LDADD = $(TDEPLIB)
 sim_sanity_047_SOURCES = sim_sanity_047.c ../sim_injector_ext.h
 sim_sanity_047_LDADD = $(TDEPLIB)
+sim_sanity_048_SOURCES = sim_sanity_048.c ../sim_injector_ext.h
+sim_sanity_048_LDADD = $(TDEPLIB)
 

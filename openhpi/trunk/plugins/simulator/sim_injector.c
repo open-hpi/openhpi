@@ -26,6 +26,7 @@
 static char *find_value(char *name, char *buf);
 static void process_sensor_event_msg(SIM_MSG_QUEUE_BUF *buf);
 static void process_sensor_enable_change_event_msg(SIM_MSG_QUEUE_BUF *buf);
+static void process_hot_swap_event_msg(SIM_MSG_QUEUE_BUF *buf);
 
 
 static struct oh_event *eventdup(const struct oh_event *event)
@@ -259,6 +260,10 @@ static gpointer injector_service_thread(gpointer data) {
                     dbg("processing sensor enable change event");
                     process_sensor_enable_change_event_msg(&buf);
                     break;
+                case SIM_MSG_HOT_SWAP_EVENT:
+                    dbg("processing hot swap event");
+                    process_hot_swap_event_msg(&buf);
+                    break;
                 default:
                     dbg("invalid msg recieved");
                     break;
@@ -324,7 +329,7 @@ static void process_sensor_event_msg(SIM_MSG_QUEUE_BUF *buf) {
 
         memset(&ohevent, sizeof(struct oh_event), 0);
         ohevent.did = oh_get_default_domain_id();
-        ohevent.type = OH_ET_RESOURCE;
+        ohevent.type = OH_ET_HPI;
 
         /* get the handler state */
         value = find_value(SIM_MSG_HANDLER_NAME, buf->mtext);
@@ -349,13 +354,8 @@ static void process_sensor_event_msg(SIM_MSG_QUEUE_BUF *buf) {
         }
         ohevent.u.hpi_event.event.Source = (SaHpiResourceIdT)atoi(value);
 
-        /* get the event type */
-        value = find_value(SIM_MSG_EVENT_TYPE, buf->mtext);
-        if (value == NULL) {
-                dbg("invalid SIM_MSG_EVENT_TYPE");
-                return;
-        }
-        ohevent.u.hpi_event.event.EventType = (SaHpiEventTypeT)atoi(value);
+        /* set the event type */
+        ohevent.u.hpi_event.event.EventType = SAHPI_ET_SENSOR;
 
         /* get the event timestamp */
         oh_gettimeofday(&ohevent.u.hpi_event.event.Timestamp);
@@ -590,7 +590,7 @@ static void process_sensor_enable_change_event_msg(SIM_MSG_QUEUE_BUF *buf) {
 
         memset(&ohevent, sizeof(struct oh_event), 0);
         ohevent.did = oh_get_default_domain_id();
-        ohevent.type = OH_ET_RESOURCE;
+        ohevent.type = OH_ET_HPI;
 
         /* get the handler state */
         value = find_value(SIM_MSG_HANDLER_NAME, buf->mtext);
@@ -615,13 +615,8 @@ static void process_sensor_enable_change_event_msg(SIM_MSG_QUEUE_BUF *buf) {
         }
         ohevent.u.hpi_event.event.Source = (SaHpiResourceIdT)atoi(value);
 
-        /* get the event type */
-        value = find_value(SIM_MSG_EVENT_TYPE, buf->mtext);
-        if (value == NULL) {
-                dbg("invalid SIM_MSG_EVENT_TYPE");
-                return;
-        }
-        ohevent.u.hpi_event.event.EventType = (SaHpiEventTypeT)atoi(value);
+        /* set the event type */
+        ohevent.u.hpi_event.event.EventType = SAHPI_ET_SENSOR_ENABLE_CHANGE;
 
         /* get the event timestamp */
         oh_gettimeofday(&ohevent.u.hpi_event.event.Timestamp);
@@ -729,13 +724,105 @@ static void process_sensor_enable_change_event_msg(SIM_MSG_QUEUE_BUF *buf) {
                 return;
         }
         rc = saHpiRdrGetByInstrumentId(sid, ohevent.u.hpi_event.event.Source,
-                                       ohevent.u.hpi_event.event.EventDataUnion.SensorEvent.SensorType,
-                                       ohevent.u.hpi_event.event.EventDataUnion.SensorEvent.SensorNum,
+                                       ohevent.u.hpi_event.event.EventDataUnion.SensorEnableChangeEvent.SensorType,
+                                       ohevent.u.hpi_event.event.EventDataUnion.SensorEnableChangeEvent.SensorNum,
                                        &ohevent.u.hpi_event.rdr);
         saHpiSessionClose(sid);
         if (rc) {
                 return;
         }
+
+        /* now inject the event */
+        sim_inject_event(state, &ohevent);
+
+        return;
+}
+
+
+/*--------------------------------------------------------------------*/
+/* Function: process_hot_swap_event_msg                               */
+/*--------------------------------------------------------------------*/
+
+static void process_hot_swap_event_msg(SIM_MSG_QUEUE_BUF *buf) {
+        struct oh_handler_state *state;
+        struct oh_event ohevent;
+        char *value;
+
+        memset(&ohevent, sizeof(struct oh_event), 0);
+        ohevent.did = oh_get_default_domain_id();
+        ohevent.type = OH_ET_HPI;
+
+        /* get the handler state */
+        value = find_value(SIM_MSG_HANDLER_NAME, buf->mtext);
+        if (value == NULL) {
+                dbg("invalid SIM_MSG_HANDLER_NAME");
+                return;
+        }
+        state = sim_get_handler_by_name(value);
+        if (state == NULL) {
+                dbg("invalid SIM_MSG_HANDLER_NAME");
+                return;
+        }
+
+        /* set the oh event type */
+        ohevent.type = OH_ET_HPI;
+
+        /* get the resource id */
+        value = find_value(SIM_MSG_RESOURCE_ID, buf->mtext);
+        if (value == NULL) {
+                dbg("invalid SIM_MSG_RESOURCE_ID");
+                return;
+        }
+        ohevent.u.hpi_event.event.Source = (SaHpiResourceIdT)atoi(value);
+
+        /* set the event type */
+        ohevent.u.hpi_event.event.EventType = SAHPI_ET_HOTSWAP;
+
+        /* get the event timestamp */
+        oh_gettimeofday(&ohevent.u.hpi_event.event.Timestamp);
+
+        /* get the severity */
+        value = find_value(SIM_MSG_EVENT_SEVERITY, buf->mtext);
+        if (value == NULL) {
+                dbg("invalid SIM_MSG_EVENT_SEVERITY");
+                return;
+        }
+        ohevent.u.hpi_event.event.Severity = (SaHpiSeverityT)atoi(value);
+
+        /* fill out the SaHpiHotSwapEventT part of the structure */
+        /* get the hot swap state */
+        value = find_value(SIM_MSG_HS_STATE, buf->mtext);
+        if (value == NULL) {
+                dbg("invalid SIM_MSG_HS_STATE");
+                return;
+        }
+        ohevent.u.hpi_event.event.EventDataUnion.HotSwapEvent.HotSwapState =
+         (SaHpiHsStateT)atoi(value);
+
+        /* get the hot swap state */
+        value = find_value(SIM_MSG_HS_PREVIOUS_STATE, buf->mtext);
+        if (value == NULL) {
+                dbg("invalid SIM_MSG_HS_PREVIOUS_STATE");
+                return;
+        }
+        ohevent.u.hpi_event.event.EventDataUnion.HotSwapEvent.PreviousHotSwapState =
+         (SaHpiHsStateT)atoi(value);
+
+        /* now fill out the RPT entry  */
+        SaHpiSessionIdT sid;
+        SaErrorT rc = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID, &sid, NULL);
+        if (rc) {
+                dbg("cannot open session");
+                return;
+        }
+        rc = saHpiRptEntryGetByResourceId(sid, ohevent.u.hpi_event.event.Source,
+                                          &ohevent.u.hpi_event.res);
+        if (rc) {
+                saHpiSessionClose(sid);
+                dbg("cannot get RPT entry");
+                return;
+        }
+        saHpiSessionClose(sid);
 
         /* now inject the event */
         sim_inject_event(state, &ohevent);
