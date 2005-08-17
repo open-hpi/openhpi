@@ -833,6 +833,28 @@ SaErrorT snmp_bc_sel_overflowreset(void *hnd,
 }
 
 
+/**
+ * snmp_bc_sel_state_set:
+ * @hnd: Pointer to handler's data.
+ * @id: Resource ID that owns the Event Log.
+ * @enable: State to which to set Resource Event Log.
+ * 
+ * Enable/Disable logging of event is not allowed via snmp for BladeCenter.
+ *
+ * Return values:
+ * SA_ERR_HPI_READ_ONLY - normal case.
+ * 
+ **/			      
+SaErrorT snmp_bc_sel_state_set(void      *hnd, 
+                SaHpiResourceIdT   id, 
+                SaHpiBoolT         enable)
+{
+	/* Other required test, SA_ERR_HPI_CAPABILITY, is done in infrastructure */ 
+	return SA_ERR_HPI_READ_ONLY;
+}
+
+
+
 void * oh_get_el_info (void *, SaHpiResourceIdT, SaHpiEventLogInfoT *)
                 __attribute__ ((weak, alias("snmp_bc_get_sel_info")));
 
@@ -853,4 +875,7 @@ void * oh_clear_el (void *, SaHpiResourceIdT)
 void * oh_reset_el_overflow (void *, SaHpiResourceIdT)
                 __attribute__ ((weak, alias("snmp_bc_sel_overflowreset")));
 
+void * oh_set_el_state(void *, SaHpiResourceIdT, SaHpiBoolT)
+		__attribute__ ((weak, alias("snmp_bc_sel_state_set")));
+	
 
