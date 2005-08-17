@@ -30,7 +30,8 @@ typedef struct {
 typedef enum {
     SIM_MSG_SENSOR_EVENT = 1,
     SIM_MSG_SENSOR_ENABLE_CHANGE_EVENT,
-    SIM_MSG_HOT_SWAP_EVENT
+    SIM_MSG_HOT_SWAP_EVENT,
+    SIM_MSG_WATCHDOG_EVENT
 } SIM_MSG_TYPE;
 
 // the following are name constants for the msg buf name/value pairs
@@ -64,12 +65,17 @@ typedef enum {
 #define SIM_MSG_SENSOR_EVENT_ENABLE "sensor_event_enable"
 #define SIM_MSG_SENSOR_ASSERT_EVENT_MASK "sensor_assert_event_mask"
 #define SIM_MSG_SENSOR_DEASSERT_EVENT_MASK "sensor_deassert_event_mask"
-// optional sensor event constants
+// optional sensor enable change event constants
 // #define SIM_MSG_SENSOR_OPTIONAL_DATA "sensor_opt_data"
 // #define SIM_MSG_SENSOR_CURRENT_STATE "sensor_current_state"
 // required hot swap event constants
 #define SIM_MSG_HS_STATE "hs_state"
 #define SIM_MSG_HS_PREVIOUS_STATE "hs_previous_state"
+// required watchdog event constants
+#define SIM_MSG_WATCHDOG_NUM "watchdog_num"
+#define SIM_MSG_WATCHDOG_ACTION "watchdog_action"
+#define SIM_MSG_WATCHDOG_PRETIMER_ACTION "watchdog_pretimer_action"
+#define SIM_MSG_WATCHDOG_TIMER_USE "watchdog_timer_use"
 
 
 

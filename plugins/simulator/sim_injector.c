@@ -27,6 +27,7 @@ static char *find_value(char *name, char *buf);
 static void process_sensor_event_msg(SIM_MSG_QUEUE_BUF *buf);
 static void process_sensor_enable_change_event_msg(SIM_MSG_QUEUE_BUF *buf);
 static void process_hot_swap_event_msg(SIM_MSG_QUEUE_BUF *buf);
+static void process_watchdog_event_msg(SIM_MSG_QUEUE_BUF *buf);
 
 
 static struct oh_event *eventdup(const struct oh_event *event)
@@ -263,6 +264,10 @@ static gpointer injector_service_thread(gpointer data) {
                 case SIM_MSG_HOT_SWAP_EVENT:
                     dbg("processing hot swap event");
                     process_hot_swap_event_msg(&buf);
+                    break;
+                case SIM_MSG_WATCHDOG_EVENT:
+                    dbg("processing watchdog event");
+                    process_watchdog_event_msg(&buf);
                     break;
                 default:
                     dbg("invalid msg recieved");
@@ -564,7 +569,7 @@ static void process_sensor_event_msg(SIM_MSG_QUEUE_BUF *buf) {
                 return;
         }
         rc = saHpiRdrGetByInstrumentId(sid, ohevent.u.hpi_event.event.Source,
-                                       ohevent.u.hpi_event.event.EventDataUnion.SensorEvent.SensorType,
+                                       SAHPI_SENSOR_RDR,
                                        ohevent.u.hpi_event.event.EventDataUnion.SensorEvent.SensorNum,
                                        &ohevent.u.hpi_event.rdr);
         saHpiSessionClose(sid);
@@ -724,7 +729,7 @@ static void process_sensor_enable_change_event_msg(SIM_MSG_QUEUE_BUF *buf) {
                 return;
         }
         rc = saHpiRdrGetByInstrumentId(sid, ohevent.u.hpi_event.event.Source,
-                                       ohevent.u.hpi_event.event.EventDataUnion.SensorEnableChangeEvent.SensorType,
+                                       SAHPI_SENSOR_RDR,
                                        ohevent.u.hpi_event.event.EventDataUnion.SensorEnableChangeEvent.SensorNum,
                                        &ohevent.u.hpi_event.rdr);
         saHpiSessionClose(sid);
@@ -823,6 +828,121 @@ static void process_hot_swap_event_msg(SIM_MSG_QUEUE_BUF *buf) {
                 return;
         }
         saHpiSessionClose(sid);
+
+        /* now inject the event */
+        sim_inject_event(state, &ohevent);
+
+        return;
+}
+
+
+/*--------------------------------------------------------------------*/
+/* Function: process_watchdog_event_msg                               */
+/*--------------------------------------------------------------------*/
+
+static void process_watchdog_event_msg(SIM_MSG_QUEUE_BUF *buf) {
+        struct oh_handler_state *state;
+        struct oh_event ohevent;
+        char *value;
+
+        memset(&ohevent, sizeof(struct oh_event), 0);
+        ohevent.did = oh_get_default_domain_id();
+        ohevent.type = OH_ET_HPI;
+
+        /* get the handler state */
+        value = find_value(SIM_MSG_HANDLER_NAME, buf->mtext);
+        if (value == NULL) {
+                dbg("invalid SIM_MSG_HANDLER_NAME");
+                return;
+        }
+        state = sim_get_handler_by_name(value);
+        if (state == NULL) {
+                dbg("invalid SIM_MSG_HANDLER_NAME");
+                return;
+        }
+
+        /* set the oh event type */
+        ohevent.type = OH_ET_HPI;
+
+        /* get the resource id */
+        value = find_value(SIM_MSG_RESOURCE_ID, buf->mtext);
+        if (value == NULL) {
+                dbg("invalid SIM_MSG_RESOURCE_ID");
+                return;
+        }
+        ohevent.u.hpi_event.event.Source = (SaHpiResourceIdT)atoi(value);
+
+        /* set the event type */
+        ohevent.u.hpi_event.event.EventType = SAHPI_ET_WATCHDOG;
+
+        /* get the event timestamp */
+        oh_gettimeofday(&ohevent.u.hpi_event.event.Timestamp);
+
+        /* get the severity */
+        value = find_value(SIM_MSG_EVENT_SEVERITY, buf->mtext);
+        if (value == NULL) {
+                dbg("invalid SIM_MSG_EVENT_SEVERITY");
+                return;
+        }
+        ohevent.u.hpi_event.event.Severity = (SaHpiSeverityT)atoi(value);
+
+        /* fill out the SaHpiWatchdogEventT part of the structure */
+        /* get the watchdog number */
+        value = find_value(SIM_MSG_WATCHDOG_NUM, buf->mtext);
+        if (value == NULL) {
+                dbg("invalid SIM_MSG_WATCHDOG_NUM");
+                return;
+        }
+        ohevent.u.hpi_event.event.EventDataUnion.WatchdogEvent.WatchdogNum =
+         (SaHpiWatchdogNumT)atoi(value);
+
+        /* get the watchdog action */
+        value = find_value(SIM_MSG_WATCHDOG_ACTION, buf->mtext);
+        if (value == NULL) {
+                dbg("invalid SIM_MSG_WATCHDOG_ACTION");
+                return;
+        }
+        ohevent.u.hpi_event.event.EventDataUnion.WatchdogEvent.WatchdogAction =
+         (SaHpiWatchdogActionEventT)atoi(value);
+
+        /* get the watchdog pretimer action */
+        value = find_value(SIM_MSG_WATCHDOG_PRETIMER_ACTION, buf->mtext);
+        if (value == NULL) {
+                dbg("invalid SIM_MSG_WATCHDOG_PRETIMER_ACTION");
+                return;
+        }
+        ohevent.u.hpi_event.event.EventDataUnion.WatchdogEvent.WatchdogPreTimerAction =
+         (SaHpiWatchdogPretimerInterruptT)atoi(value);
+
+        /* get the watchdog timer use */
+        value = find_value(SIM_MSG_WATCHDOG_TIMER_USE, buf->mtext);
+        if (value == NULL) {
+                dbg("invalid SIM_MSG_WATCHDOG_TIMER_USE");
+                return;
+        }
+        ohevent.u.hpi_event.event.EventDataUnion.WatchdogEvent.WatchdogUse =
+         (SaHpiWatchdogTimerUseT)atoi(value);
+
+        /* now fill out the RPT entry and the RDR */
+        SaHpiSessionIdT sid;
+        SaErrorT rc = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID, &sid, NULL);
+        if (rc) {
+                return;
+        }
+        rc = saHpiRptEntryGetByResourceId(sid, ohevent.u.hpi_event.event.Source,
+                                          &ohevent.u.hpi_event.res);
+        if (rc) {
+                saHpiSessionClose(sid);
+                return;
+        }
+        rc = saHpiRdrGetByInstrumentId(sid, ohevent.u.hpi_event.event.Source,
+                                       SAHPI_WATCHDOG_RDR,
+                                       ohevent.u.hpi_event.event.EventDataUnion.WatchdogEvent.WatchdogNum,
+                                       &ohevent.u.hpi_event.rdr);
+        saHpiSessionClose(sid);
+        if (rc) {
+                return;
+        }
 
         /* now inject the event */
         sim_inject_event(state, &ohevent);
