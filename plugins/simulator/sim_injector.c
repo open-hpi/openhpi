@@ -30,6 +30,7 @@ static void process_hot_swap_event_msg(SIM_MSG_QUEUE_BUF *buf);
 static void process_watchdog_event_msg(SIM_MSG_QUEUE_BUF *buf);
 static void process_sw_event_msg(SIM_MSG_QUEUE_BUF *buf);
 static void process_oem_event_msg(SIM_MSG_QUEUE_BUF *buf);
+static void process_user_event_msg(SIM_MSG_QUEUE_BUF *buf);
 
 
 static struct oh_event *eventdup(const struct oh_event *event)
@@ -278,6 +279,10 @@ static gpointer injector_service_thread(gpointer data) {
                 case SIM_MSG_OEM_EVENT:
                     dbg("processing oem event");
                     process_oem_event_msg(&buf);
+                    break;
+                case SIM_MSG_USER_EVENT:
+                    dbg("processing user event");
+                    process_user_event_msg(&buf);
                     break;
                 default:
                     dbg("invalid msg recieved");
@@ -1110,7 +1115,7 @@ static void process_oem_event_msg(SIM_MSG_QUEUE_BUF *buf) {
         /* get the oem event data */
         value = find_value(SIM_MSG_OEM_EVENT_DATA, buf->mtext);
         if (value == NULL) {
-                dbg("invalid SIM_MSG_SW_EVENT_DATA");
+                dbg("invalid SIM_MSG_OEM_EVENT_DATA");
                 return;
         }
         ohevent.u.hpi_event.event.EventDataUnion.OemEvent.OemEventData.DataType =
@@ -1120,6 +1125,89 @@ static void process_oem_event_msg(SIM_MSG_QUEUE_BUF *buf) {
         ohevent.u.hpi_event.event.EventDataUnion.OemEvent.OemEventData.DataLength =
          strlen(value);
         strncpy(ohevent.u.hpi_event.event.EventDataUnion.OemEvent.OemEventData.Data,
+                value, strlen(value));
+
+        /* now fill out the RPT entry */
+        SaHpiSessionIdT sid;
+        SaErrorT rc = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID, &sid, NULL);
+        if (rc) {
+                return;
+        }
+        rc = saHpiRptEntryGetByResourceId(sid, ohevent.u.hpi_event.event.Source,
+                                          &ohevent.u.hpi_event.res);
+        saHpiSessionClose(sid);
+        if (rc) {
+                return;
+        }
+
+        /* now inject the event */
+        sim_inject_event(state, &ohevent);
+
+        return;
+}
+
+
+/*--------------------------------------------------------------------*/
+/* Function: process_user_event_msg                                   */
+/*--------------------------------------------------------------------*/
+
+static void process_user_event_msg(SIM_MSG_QUEUE_BUF *buf) {
+        struct oh_handler_state *state;
+        struct oh_event ohevent;
+        char *value;
+
+        memset(&ohevent, sizeof(struct oh_event), 0);
+        ohevent.did = oh_get_default_domain_id();
+        ohevent.type = OH_ET_HPI;
+
+        /* get the handler state */
+        value = find_value(SIM_MSG_HANDLER_NAME, buf->mtext);
+        if (value == NULL) {
+                dbg("invalid SIM_MSG_HANDLER_NAME");
+                return;
+        }
+        state = sim_get_handler_by_name(value);
+        if (state == NULL) {
+                dbg("invalid SIM_MSG_HANDLER_NAME");
+                return;
+        }
+
+        /* get the resource id */
+        value = find_value(SIM_MSG_RESOURCE_ID, buf->mtext);
+        if (value == NULL) {
+                dbg("invalid SIM_MSG_RESOURCE_ID");
+                return;
+        }
+        ohevent.u.hpi_event.event.Source = (SaHpiResourceIdT)atoi(value);
+
+        /* set the event type */
+        ohevent.u.hpi_event.event.EventType = SAHPI_ET_USER;
+
+        /* get the event timestamp */
+        oh_gettimeofday(&ohevent.u.hpi_event.event.Timestamp);
+
+        /* get the severity */
+        value = find_value(SIM_MSG_EVENT_SEVERITY, buf->mtext);
+        if (value == NULL) {
+                dbg("invalid SIM_MSG_EVENT_SEVERITY");
+                return;
+        }
+        ohevent.u.hpi_event.event.Severity = (SaHpiSeverityT)atoi(value);
+
+        /* fill out the SaHpiUserEventT part of the structure */
+        /* get the user event data */
+        value = find_value(SIM_MSG_USER_EVENT_DATA, buf->mtext);
+        if (value == NULL) {
+                dbg("invalid SIM_MSG_USER_EVENT_DATA");
+                return;
+        }
+        ohevent.u.hpi_event.event.EventDataUnion.UserEvent.UserEventData.DataType =
+         SAHPI_TL_TYPE_TEXT;
+        ohevent.u.hpi_event.event.EventDataUnion.UserEvent.UserEventData.Language =
+         SAHPI_LANG_ENGLISH;
+        ohevent.u.hpi_event.event.EventDataUnion.UserEvent.UserEventData.DataLength =
+         strlen(value);
+        strncpy(ohevent.u.hpi_event.event.EventDataUnion.UserEvent.UserEventData.Data,
                 value, strlen(value));
 
         /* now fill out the RPT entry */
