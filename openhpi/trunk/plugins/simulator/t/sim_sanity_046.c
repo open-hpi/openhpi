@@ -107,6 +107,30 @@ static int inject_event(char *plugin_name) {
     if (n > SIM_MSG_QUEUE_BUFSIZE) {
         return -1;
     }
+    sprintf(txtptr, "%s=%d", SIM_MSG_SENSOR_OPTIONAL_DATA, SAHPI_SOD_TRIGGER_READING);
+    n += strlen(txtptr) + 1;
+    txtptr = buf.mtext + n;
+    if (n > SIM_MSG_QUEUE_BUFSIZE) {
+        return -1;
+    }
+    sprintf(txtptr, "%s=%d", SIM_MSG_SENSOR_TRIGGER_READING_SUPPORTED, SAHPI_TRUE);
+    n += strlen(txtptr) + 1;
+    txtptr = buf.mtext + n;
+    if (n > SIM_MSG_QUEUE_BUFSIZE) {
+        return -1;
+    }
+    sprintf(txtptr, "%s=%d", SIM_MSG_SENSOR_TRIGGER_READING_TYPE, SAHPI_SENSOR_READING_TYPE_INT64);
+    n += strlen(txtptr) + 1;
+    txtptr = buf.mtext + n;
+    if (n > SIM_MSG_QUEUE_BUFSIZE) {
+        return -1;
+    }
+    sprintf(txtptr, "%s=%d", SIM_MSG_SENSOR_TRIGGER_READING, 21);
+    n += strlen(txtptr) + 1;
+    txtptr = buf.mtext + n;
+    if (n > SIM_MSG_QUEUE_BUFSIZE) {
+        return -1;
+    }
     *txtptr = '\0'; // terminate buf with a zero-length string
     n++;
 
