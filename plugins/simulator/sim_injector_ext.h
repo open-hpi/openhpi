@@ -28,7 +28,8 @@ typedef struct {
 } SIM_MSG_QUEUE_BUF;
 
 typedef enum {
-    SIM_MSG_SENSOR_EVENT = 1
+    SIM_MSG_SENSOR_EVENT = 1,
+    SIM_MSG_SENSOR_ENABLE_CHANGE_EVENT
 } SIM_MSG_TYPE;
 
 // the following are name constants for the msg buf name/value pairs
@@ -54,6 +55,17 @@ typedef enum {
 #define SIM_MSG_SENSOR_CURRENT_STATE "sensor_current_state"
 #define SIM_MSG_SENSOR_OEM "sensor_oem"
 #define SIM_MSG_SENSOR_SPECIFIC "sensor_specific"
+// required sensor enable change event constants
+// #define SIM_MSG_SENSOR_NUM "sensor_num"
+// #define SIM_MSG_SENSOR_TYPE "sensor_type"
+// #define SIM_MSG_SENSOR_EVENT_CATEGORY "sensor_category"
+#define SIM_MSG_SENSOR_ENABLE "sensor_enable"
+#define SIM_MSG_SENSOR_EVENT_ENABLE "sensor_event_enable"
+#define SIM_MSG_SENSOR_ASSERT_EVENT_MASK "sensor_assert_event_mask"
+#define SIM_MSG_SENSOR_DEASSERT_EVENT_MASK "sensor_deassert_event_mask"
+// optional sensor event constants
+// #define SIM_MSG_SENSOR_OPTIONAL_DATA "sensor_opt_data"
+// #define SIM_MSG_SENSOR_CURRENT_STATE "sensor_current_state"
 
 
 
