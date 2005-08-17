@@ -31,7 +31,8 @@ typedef enum {
     SIM_MSG_SENSOR_EVENT = 1,
     SIM_MSG_SENSOR_ENABLE_CHANGE_EVENT,
     SIM_MSG_HOT_SWAP_EVENT,
-    SIM_MSG_WATCHDOG_EVENT
+    SIM_MSG_WATCHDOG_EVENT,
+    SIM_MSG_SW_EVENT
 } SIM_MSG_TYPE;
 
 // the following are name constants for the msg buf name/value pairs
@@ -76,6 +77,10 @@ typedef enum {
 #define SIM_MSG_WATCHDOG_ACTION "watchdog_action"
 #define SIM_MSG_WATCHDOG_PRETIMER_ACTION "watchdog_pretimer_action"
 #define SIM_MSG_WATCHDOG_TIMER_USE "watchdog_timer_use"
+// required software event constants
+#define SIM_MSG_SW_MID "sw_mid"
+#define SIM_MSG_SW_EVENT_TYPE "sw_event_type"
+#define SIM_MSG_SW_EVENT_DATA "sw_event_data"
 
 
 
