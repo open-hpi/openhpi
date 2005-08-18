@@ -216,7 +216,7 @@ SaErrorT oh_set_session_subscription(SaHpiSessionIdT sid, SaHpiBoolT state)
        if (state == SAHPI_FALSE) {
                while (oh_dequeue_session_event(sid,
 	       				       SAHPI_TIMEOUT_IMMEDIATE,
-	                                       &e) == SA_OK);
+	                                       &e, NULL) == SA_OK);
        }
        return SA_OK;
 }
@@ -255,6 +255,7 @@ SaErrorT oh_queue_session_event(SaHpiSessionIdT sid, struct oh_event *event)
        if (param.u.evt_queue_limit != OH_MAX_EVT_QUEUE_LIMIT &&
            g_async_queue_length(session->eventq) >= param.u.evt_queue_limit) {
                /* Don't proceed with event push if queue is overflowed */
+               session->eventq_status = SAHPI_EVT_QUEUE_OVERFLOW;
                g_static_rec_mutex_unlock(&oh_sessions.lock);
                g_free(qevent);
                dbg("Session %d's queue is out of space",session->id);
@@ -278,13 +279,14 @@ SaErrorT oh_queue_session_event(SaHpiSessionIdT sid, struct oh_event *event)
  **/
 SaErrorT oh_dequeue_session_event(SaHpiSessionIdT sid,
                                   SaHpiTimeoutT timeout,
-                                  struct oh_event *event)
+                                  struct oh_event *event,
+                                  SaHpiEvtQueueStatusT *eventq_status)
 {
        struct oh_session *session = NULL;
        struct oh_event *devent = NULL;
        GTimeVal gfinaltime;
        GAsyncQueue *eventq = NULL;
-
+       
        if (sid < 1 || (event == NULL)) return SA_ERR_HPI_INVALID_PARAMS;
 
        g_static_rec_mutex_lock(&oh_sessions.lock); /* Locked session table */
@@ -292,6 +294,11 @@ SaErrorT oh_dequeue_session_event(SaHpiSessionIdT sid,
        if (!session) {
                g_static_rec_mutex_unlock(&oh_sessions.lock);
                return SA_ERR_HPI_INVALID_SESSION;
+       }
+
+       if (eventq_status) {
+               *eventq_status = session->eventq_status;
+               session->eventq_status = 0;
        }
        eventq = session->eventq;
        g_async_queue_ref(eventq);

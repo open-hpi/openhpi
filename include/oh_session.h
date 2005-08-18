@@ -52,6 +52,9 @@ struct oh_session {
                 OH_UNSUBSCRIBED=0,
                 OH_SUBSCRIBED,
         } state;
+        
+        /* Initialized to false. Will be set to true*/
+        SaHpiEvtQueueStatusT eventq_status;
 
         /*
           Even if multiple sessions are opened for the same domain,
@@ -72,7 +75,8 @@ SaErrorT oh_set_session_subscription(SaHpiSessionIdT sid, SaHpiBoolT state);
 SaErrorT oh_queue_session_event(SaHpiSessionIdT sid, struct oh_event *event);
 SaErrorT oh_dequeue_session_event(SaHpiSessionIdT sid,
                                   SaHpiTimeoutT timeout,
-                                  struct oh_event *event);
+                                  struct oh_event *event,
+                                  SaHpiEvtQueueStatusT *eventq_status);
 SaErrorT oh_destroy_session(SaHpiSessionIdT sid);
 
 #endif /* __OH_SESSION_H */

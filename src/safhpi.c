@@ -1041,7 +1041,7 @@ SaErrorT SAHPI_API saHpiEventGet (
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-        if( !oh_threaded_mode() && Timeout != SAHPI_TIMEOUT_IMMEDIATE) {
+        if (!oh_threaded_mode() && Timeout != SAHPI_TIMEOUT_IMMEDIATE) {
                 dbg("Can not support timeouts in non threaded mode");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
@@ -1057,16 +1057,12 @@ SaErrorT SAHPI_API saHpiEventGet (
         error = oh_get_events();
         if (error < 0) return SA_ERR_HPI_UNKNOWN;
 
-        error = oh_dequeue_session_event(SessionId, Timeout, &e);
+        error = oh_dequeue_session_event(SessionId, Timeout,
+                                         &e, EventQueueStatus);
         if (error) return error;
 
         /* Return event, resource and rdr */
         *Event = e.u.hpi_event.event;
-
-        /* EventQueueStatus may be NULL if you don't care */
-        if(EventQueueStatus) {
-                *EventQueueStatus = 0x0000;
-        }
 
         if (RptEntry) {
                 *RptEntry = e.u.hpi_event.res;
