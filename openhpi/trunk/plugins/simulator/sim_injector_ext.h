@@ -34,7 +34,8 @@ typedef enum {
     SIM_MSG_WATCHDOG_EVENT,
     SIM_MSG_SW_EVENT,
     SIM_MSG_OEM_EVENT,
-    SIM_MSG_USER_EVENT
+    SIM_MSG_USER_EVENT,
+    SIM_MSG_RESOURCE_EVENT
 } SIM_MSG_TYPE;
 
 // the following are name constants for the msg buf name/value pairs
@@ -88,6 +89,8 @@ typedef enum {
 #define SIM_MSG_OEM_EVENT_DATA "oem_event_data"
 // required oem event constants
 #define SIM_MSG_USER_EVENT_DATA "user_event_data"
+// required resource event constants
+#define SIM_MSG_RESOURCE_EVENT_TYPE "resource_event_type"
 
 
 
