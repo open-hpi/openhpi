@@ -68,7 +68,7 @@ static struct {
 } global_params = { /* Defaults for global params are set here */
         .on_ep = { .Entry[0] = { .EntityType = SAHPI_ENT_ROOT, .EntityLocation = 0 } },
         .log_on_sev = SAHPI_MINOR,
-        .evt_queue_limit = 0, /* Unlimited size */
+        .evt_queue_limit = 10000,
         .del_size_limit = 0, /* Unlimited size */
         .del_save = SAHPI_FALSE,
         .dat_size_limit = 0, /* Unlimited size */
