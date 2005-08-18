@@ -32,6 +32,7 @@ static void process_sw_event_msg(SIM_MSG_QUEUE_BUF *buf);
 static void process_oem_event_msg(SIM_MSG_QUEUE_BUF *buf);
 static void process_user_event_msg(SIM_MSG_QUEUE_BUF *buf);
 static void process_resource_event_msg(SIM_MSG_QUEUE_BUF *buf);
+static void process_domain_event_msg(SIM_MSG_QUEUE_BUF *buf);
 
 
 static struct oh_event *eventdup(const struct oh_event *event)
@@ -288,6 +289,10 @@ static gpointer injector_service_thread(gpointer data) {
                 case SIM_MSG_RESOURCE_EVENT:
                     dbg("processing resource event");
                     process_resource_event_msg(&buf);
+                    break;
+                case SIM_MSG_DOMAIN_EVENT:
+                    dbg("processing domain event");
+                    process_domain_event_msg(&buf);
                     break;
                 default:
                     dbg("invalid msg recieved");
@@ -1304,6 +1309,71 @@ static void process_resource_event_msg(SIM_MSG_QUEUE_BUF *buf) {
         if (rc) {
                 return;
         }
+
+        /* now inject the event */
+        sim_inject_event(state, &ohevent);
+
+        return;
+}
+
+
+/*--------------------------------------------------------------------*/
+/* Function: process_domain_event_msg                                 */
+/*--------------------------------------------------------------------*/
+
+static void process_domain_event_msg(SIM_MSG_QUEUE_BUF *buf) {
+        struct oh_handler_state *state;
+        struct oh_event ohevent;
+        char *value;
+
+        memset(&ohevent, sizeof(struct oh_event), 0);
+        ohevent.did = oh_get_default_domain_id();
+        ohevent.type = OH_ET_HPI;
+
+        /* get the handler state */
+        value = find_value(SIM_MSG_HANDLER_NAME, buf->mtext);
+        if (value == NULL) {
+                dbg("invalid SIM_MSG_HANDLER_NAME");
+                return;
+        }
+        state = sim_get_handler_by_name(value);
+        if (state == NULL) {
+                dbg("invalid SIM_MSG_HANDLER_NAME");
+                return;
+        }
+
+        /* set the event type */
+        ohevent.u.hpi_event.event.EventType = SAHPI_ET_DOMAIN;
+
+        /* get the event timestamp */
+        oh_gettimeofday(&ohevent.u.hpi_event.event.Timestamp);
+
+        /* get the severity */
+        value = find_value(SIM_MSG_EVENT_SEVERITY, buf->mtext);
+        if (value == NULL) {
+                dbg("invalid SIM_MSG_EVENT_SEVERITY");
+                return;
+        }
+        ohevent.u.hpi_event.event.Severity = (SaHpiSeverityT)atoi(value);
+
+        /* fill out the SaHpiDomainEventT part of the structure */
+        /* get the domain type */
+        value = find_value(SIM_MSG_DOMAIN_TYPE, buf->mtext);
+        if (value == NULL) {
+                dbg("invalid SIM_MSG_DOMAIN_TYPE");
+                return;
+        }
+        ohevent.u.hpi_event.event.EventDataUnion.DomainEvent.Type =
+         atoi(value);
+
+        /* get the domain id */
+        value = find_value(SIM_MSG_DOMAIN_ID, buf->mtext);
+        if (value == NULL) {
+                dbg("invalid SIM_MSG_DOMAIN_ID");
+                return;
+        }
+        ohevent.u.hpi_event.event.EventDataUnion.DomainEvent.DomainId =
+         atoi(value);
 
         /* now inject the event */
         sim_inject_event(state, &ohevent);
