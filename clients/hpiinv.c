@@ -557,7 +557,7 @@ main(int argc, char **argv)
 		 printf("Rdr[%x] is inventory, IdrId=%x\n",rdr.RecordId,idrid);
 		 printf("Inv BufferSize=%d\n", buffersize);
 	      }
-	      if ( IsTagBmc(rdr.IdString.Data, rdr.IdString.DataLength) )
+	      if ( IsTagBmc((char *)rdr.IdString.Data, rdr.IdString.DataLength) )
 	      {
 		/* Get all of the inventory data areas and fields */
 		memset(inv,0,buffersize);
