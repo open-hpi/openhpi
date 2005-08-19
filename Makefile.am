@@ -31,60 +31,66 @@
 
 #AUTOMAKE_OPTIONS        = 1.8
 
-RPMREL			= @RPMREL@
-RPM			= @RPM@
-RPMFLAGS		= -ta
-TARFILE			= $(distdir).tar.gz
+RPMREL                  = @RPMREL@
+RPM                     = @RPM@
+RPMFLAGS                = -ta
+TARFILE                 = $(distdir).tar.gz
 
-DESTDIR			=
-RPMDIR			=$(HOME)/rpms
-RPMSRC	=$(DESTDIR)$(RPMDIR)/SRPMS/$(PACKAGE)-$(VERSION)-$(RPMREL).src.rpm
-RPM386	=$(DESTDIR)$(RPMDIR)/RPMS/i386/$(PACKAGE)-$(VERSION)-$(RPMREL).i386.rpm
+DESTDIR                 =
+RPMDIR                  =$(HOME)/rpms
+RPMSRC  =$(DESTDIR)$(RPMDIR)/SRPMS/$(PACKAGE)-$(VERSION)-$(RPMREL).src.rpm
+RPM386  =$(DESTDIR)$(RPMDIR)/RPMS/i386/$(PACKAGE)-$(VERSION)-$(RPMREL).i386.rpm
 
-EXTRA_DIST		= openhpi.spec \
-	$(shell find $(srcdir)/include -name '*.h')
+EXTRA_DIST              = openhpi.spec \
+        $(shell find $(srcdir)/include -name '*.h')
 
-AUTOMAKE_OPTIONS	= foreign
+AUTOMAKE_OPTIONS        = foreign
 
-MAINTAINERCLEANFILES 	= Makefile.in aclocal.m4 configure config.guess config.sub \
-			depcomp install-sh ltmain.sh missing mkinstalldirs config.h.in \
-			stamp-h.in cscope.files cscope.out $(distdir).tar.gz
-MOSTLYCLEANFILES	= tags
+MAINTAINERCLEANFILES    = Makefile.in aclocal.m4 configure config.guess config.sub \
+                        depcomp install-sh ltmain.sh missing mkinstalldirs config.h.in \
+                        stamp-h.in cscope.files cscope.out $(distdir).tar.gz
+MOSTLYCLEANFILES        = tags
 
 
-SUBDIRS			= utils tools src hpi_ui_lib @SNMPDIR@ @MARSHALDIR@ plugins docs hpi_shell @ENABLED_DIRS@ examples test man
-DIST_SUBDIRS 		= utils tools src hpi_ui_lib snmp marshal plugins docs hpi_shell openhpid2 examples clients test scripts man
+SUBDIRS                 = utils tools src hpi_ui_lib @SNMPDIR@ @MARSHALDIR@ plugins docs hpi_shell @ENABLED_DIRS@ examples test man
+DIST_SUBDIRS            = utils tools src hpi_ui_lib snmp marshal plugins docs hpi_shell openhpid2 examples clients test scripts man
 
 DISTCHECK_CONFIGURE_FLAGS = --with-initdir=prefix
 
 ALLSOURCES = \
-	$(shell find $(top_srcdir)/include \( -name .svn -o -name CVS \) -prune -o \
-	-name '*.[chS]' -print | grep -v '/t/') \
-	$(shell find $(top_srcdir)/src \( -name .svn -o -name CVS \) -prune -o \
-	-name '*.[chS]' -print | grep -v '/t/') \
-	$(shell find $(top_srcdir)/utils \( -name .svn -o -name CVS \) -prune -o \
-	-name '*.[chS]' -print | grep -v '/t/') \
-        $(shell find $(top_srcdir)/openhpid2 \( -name .svn -o -name CVS \) -prune -o \
-	-name '*.[chS]' -print | grep -v '/t/') \
-	$(shell find $(top_srcdir)/plugins \( -name .svn -o -name CVS \) -prune -o \
-	-name '*.[chS]' -print | grep -v '/t/')
+        $(shell find $(top_srcdir)/include -name .svn -o -name CVS -prune -o \
+        -name '*.[chS]' -print | grep -v '/t/') \
+        $(shell find $(top_srcdir)/src -name .svn -o -name CVS -prune -o \
+        -name '*.[chS]' -print | grep -v '/t/') \
+        $(shell find $(top_srcdir)/utils -name .svn -o -name CVS -prune -o \
+        -name '*.[chS]' -print | grep -v '/t/') \
+        $(shell find $(top_srcdir)/openhpid2 -name .svn -o -name CVS -prune -o \
+        -name '*.[chS]' -print | grep -v '/t/') \
+        $(shell find $(top_srcdir)/plugins -name .svn -o -name CVS -prune -o \
+        -name '*.[chS]' -print | grep -v '/t/') \
+        $(shell find $(top_srcdir)/snmp -name .svn -o -name CVS -prune -o \
+        -name '*.[chS]' -print | grep -v '/t/') \
+        $(shell find $(top_srcdir)/marshal -name .svn -o -name CVS -prune -o \
+        -name '*.[chS]' -print | grep -v '/t/') \
+        $(shell find $(top_srcdir)/clients -name .svn -o -name CVS -prune -o \
+        -name '*.[chS]' -print | grep -v '/t/')
 
 includedir=$(base_includedir)/openhpi
 
 # These are the only headers that users should have any access to
-include_HEADERS	= $(top_srcdir)/include/SaHpi.h \
-		  $(top_srcdir)/include/oHpi.h \
-		  $(top_srcdir)/utils/oh_utils.h \
-		  $(top_srcdir)/utils/announcement_utils.h \
-		  $(top_srcdir)/utils/rpt_utils.h \
-		  $(top_srcdir)/utils/sahpi_enum_utils.h \
-		  $(top_srcdir)/utils/sahpi_event_encode.h \
-		  $(top_srcdir)/utils/sahpi_event_utils.h \
-		  $(top_srcdir)/utils/sahpi_struct_utils.h \
-		  $(top_srcdir)/utils/sahpi_time_utils.h \
-		  $(top_srcdir)/utils/uid_utils.h \
-		  $(top_srcdir)/utils/epath_utils.h \
-		  $(top_srcdir)/utils/el_utils.h
+include_HEADERS = $(top_srcdir)/include/SaHpi.h \
+                  $(top_srcdir)/include/oHpi.h \
+                  $(top_srcdir)/utils/oh_utils.h \
+                  $(top_srcdir)/utils/announcement_utils.h \
+                  $(top_srcdir)/utils/rpt_utils.h \
+                  $(top_srcdir)/utils/sahpi_enum_utils.h \
+                  $(top_srcdir)/utils/sahpi_event_encode.h \
+                  $(top_srcdir)/utils/sahpi_event_utils.h \
+                  $(top_srcdir)/utils/sahpi_struct_utils.h \
+                  $(top_srcdir)/utils/sahpi_time_utils.h \
+                  $(top_srcdir)/utils/uid_utils.h \
+                  $(top_srcdir)/utils/epath_utils.h \
+                  $(top_srcdir)/utils/el_utils.h
 
 $(top_srcdir)/utils/sahpi_enum_utils.h:
 	make -C $(top_builddir)/utils sahpi_enum_utils.h
@@ -115,13 +121,13 @@ report:
 
 tags:   FORCE
 	@echo making tags
-	$(ALLSOURCES) |xargs ctags
+	echo "$(ALLSOURCES)" | xargs ctags
 TAGS:   FORCE
 	@echo making TAGS
-	etags	$(ALLSOURCES)
+	etags   $(ALLSOURCES)
 cscope: FORCE
 	@echo making cscope
-	$(ALLSOURCES) > cscope.files
+	echo "$(ALLSOURCES)" | sed -e 's/[ ]\+/\n/g' > cscope.files
 	cscope -b
 
 .PHONY: FORCE
