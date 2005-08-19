@@ -101,7 +101,8 @@ SaErrorT sim_file()
 	while ( !feof(file) )  {  // process each line in file
 		trace("xxx--- hash table size %d ---xxx\n", g_hash_table_size(sim_hash));
 		//g_hash_table_foreach (sim_hash, print_entry, NULL);
-		fgets(str_in, MAX_STR_LEN, file);
+		if (fgets(str_in, MAX_STR_LEN, file) == NULL)
+			trace("xxx--- Experience problem, check env OPENHPI_SIMTEST_FILE or ./test_file ---xxx\n");
 		//trace("%s", str_in);
 		g_strstrip(str_in);
 		if (str_in[0] == '\0') {
