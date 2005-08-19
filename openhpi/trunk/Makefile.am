@@ -121,10 +121,10 @@ report:
 
 tags:   FORCE
 	@echo making tags
-	echo "$(ALLSOURCES)" | xargs ctags
+	ctags $(ALLSOURCES)
 TAGS:   FORCE
 	@echo making TAGS
-	etags   $(ALLSOURCES)
+	etags $(ALLSOURCES)
 cscope: FORCE
 	@echo making cscope
 	echo "$(ALLSOURCES)" | sed -e 's/[ ]\+/\n/g' > cscope.files
