@@ -54,7 +54,7 @@ extern GSList *sim_handler_states;
 
 void *sim_open(GHashTable *handler_config);
 SaErrorT sim_discover(void *hnd);
-int sim_get_event(void *hnd, struct oh_event *event);
-void sim_close(void *hnd);
+SaErrorT sim_get_event(void *hnd, struct oh_event *event);
+SaErrorT sim_close(void *hnd);
 
 #endif
