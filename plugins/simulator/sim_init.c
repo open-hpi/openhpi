@@ -170,7 +170,13 @@ SaErrorT sim_discover(void *hnd)
 }
 
 
-int sim_get_event(void *hnd, struct oh_event *event)
+/*
+ * Return values:
+ * 1 - events to be processed.
+ * SA_OK - No events to be processed.
+ * SA_ERR_HPI_INVALID_PARAMS - @event is NULL.
+ */
+SaErrorT sim_get_event(void *hnd, struct oh_event *event)
 {
 	struct oh_handler_state *state = hnd;
 	struct oh_event *e = NULL;
@@ -179,7 +185,7 @@ int sim_get_event(void *hnd, struct oh_event *event)
 		trace("retrieving sim event from async q");
 		memcpy(event, e, sizeof(*event));
 		event->did = oh_get_default_domain_id();
-		g_free(e);
+//		g_free(e);
 		return 1;
 	} else {
 		trace("no more events for sim instance");
@@ -188,14 +194,14 @@ int sim_get_event(void *hnd, struct oh_event *event)
 }
 
 
-void sim_close(void *hnd)
+SaErrorT sim_close(void *hnd)
 {
 	struct oh_handler_state *state = hnd;
 
         /* TODO: we may need to do more here than just this! */
 //      g_free(state->rptcache);
         g_free(state);
-        return;
+        return 0;
 }
 
 
