@@ -199,7 +199,7 @@ SaErrorT oh_set_session_subscription(SaHpiSessionIdT sid, SaHpiBoolT state)
 {
        struct oh_session *session = NULL;
        struct oh_event e;
-	
+
        if (sid < 1) return SA_ERR_HPI_INVALID_PARAMS;
 
        g_static_rec_mutex_lock(&oh_sessions.lock); /* Locked session table */
@@ -209,14 +209,14 @@ SaErrorT oh_set_session_subscription(SaHpiSessionIdT sid, SaHpiBoolT state)
                return SA_ERR_HPI_INVALID_SESSION;
        }
        session->state = state;
- 
+
        g_static_rec_mutex_unlock(&oh_sessions.lock); /* Unlocked session table */
        /* Flush session's event queue
-	*/
+        */
        if (state == SAHPI_FALSE) {
                while (oh_dequeue_session_event(sid,
-	       				       SAHPI_TIMEOUT_IMMEDIATE,
-	                                       &e, NULL) == SA_OK);
+                                               SAHPI_TIMEOUT_IMMEDIATE,
+                                               &e, NULL) == SA_OK);
        }
        return SA_OK;
 }
@@ -252,14 +252,19 @@ SaErrorT oh_queue_session_event(SaHpiSessionIdT sid, struct oh_event *event)
                return SA_ERR_HPI_INVALID_SESSION;
        }
 
-       if (param.u.evt_queue_limit != OH_MAX_EVT_QUEUE_LIMIT &&
-           g_async_queue_length(session->eventq) >= param.u.evt_queue_limit) {
-               /* Don't proceed with event push if queue is overflowed */
-               session->eventq_status = SAHPI_EVT_QUEUE_OVERFLOW;
-               g_static_rec_mutex_unlock(&oh_sessions.lock);
-               g_free(qevent);
-               dbg("Session %d's queue is out of space",session->id);
-               return SA_ERR_HPI_OUT_OF_SPACE;
+       if (param.u.evt_queue_limit != OH_MAX_EVT_QUEUE_LIMIT) {
+               SaHpiSessionIdT tmp_sid = session->id;
+               gint qlength = g_async_queue_length(session->eventq);
+               if (qlength >= param.u.evt_queue_limit) {
+                       /* Don't proceed with event push if queue is overflowed */
+                       session->eventq_status = SAHPI_EVT_QUEUE_OVERFLOW;
+                       g_static_rec_mutex_unlock(&oh_sessions.lock);
+                       g_free(qevent);
+                       dbg("Session %d's queue is out of space; "
+                           "# of events is %d; Max is %d",
+                           tmp_sid, qlength, param.u.evt_queue_limit);
+                       return SA_ERR_HPI_OUT_OF_SPACE;
+               }
        }
 
        g_async_queue_push(session->eventq, qevent);
@@ -286,7 +291,7 @@ SaErrorT oh_dequeue_session_event(SaHpiSessionIdT sid,
        struct oh_event *devent = NULL;
        GTimeVal gfinaltime;
        GAsyncQueue *eventq = NULL;
-       
+
        if (sid < 1 || (event == NULL)) return SA_ERR_HPI_INVALID_PARAMS;
 
        g_static_rec_mutex_lock(&oh_sessions.lock); /* Locked session table */
