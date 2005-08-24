@@ -51,11 +51,23 @@ SaErrorT sim_get_hotswap_state(void *hnd,
 		return(SA_ERR_HPI_INTERNAL_ERROR);
 	}
 
+        /* It is possible that this API can return the NOT_PRESENT state in
+           violation of the spec. See the note attached to the
+           sim_set_hotswap_state() API to understand why this can happen.
+           */
 	*hsstate = privinfo->cur_hsstate;
 	return SA_OK;
 }
 
 
+/* Note:
+   When the hot swap state goes to NOT_PRESENT we really should remove the
+   RPT entry and all its associated RDRs. However, if we do then the simulator
+   has no way of knowing when the resource becomes active again. If this was
+   real hardware we could query it on rediscovery to find out if it has returned
+   or not but since we are virtual we have no way of figuring this out. So,
+   the simulator does NOT remove RPT entries in this case.
+   */
 SaErrorT sim_set_hotswap_state(void *hnd,
 			       SaHpiResourceIdT rid,
 			       SaHpiHsStateT    hsstate)
