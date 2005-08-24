@@ -218,6 +218,84 @@ SaErrorT sim_request_hotswap_action(void *hnd,
 }
 
 
+SaErrorT sim_get_indicator_state(void *hnd,
+	         		 SaHpiResourceIdT rid,
+				 SaHpiHsIndicatorStateT *ind_state)
+{
+        struct simResourceInfo *privinfo;
+
+	if (!hnd || !ind_state) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+
+        struct oh_handler_state *state = (struct oh_handler_state *)hnd;
+
+	/* Check if resource exists and has managed hotswap capabilities */
+	SaHpiRptEntryT *rpt = oh_get_resource_by_id(state->rptcache, rid);
+        if (!rpt) {
+		return SA_ERR_HPI_INVALID_RESOURCE;
+	}
+
+        /* if not simplified HS then return an error */
+        if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_FRU)) {
+		return SA_ERR_HPI_CAPABILITY;
+	}
+
+        /* get our private state data */
+	privinfo = (struct simResourceInfo *)oh_get_resource_data(state->rptcache, rid);
+ 	if (privinfo == NULL) {
+		dbg("No resource data. ResourceId=%d", rid);
+		return(SA_ERR_HPI_INTERNAL_ERROR);
+	}
+
+        *ind_state = privinfo->cur_indicator_hsstate;
+        return SA_OK;
+
+}
+
+
+SaErrorT sim_set_indicator_state(void *hnd,
+				 SaHpiResourceIdT rid,
+				 SaHpiHsIndicatorStateT ind_state)
+{
+        struct simResourceInfo *privinfo;
+
+	if (!hnd) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+
+	if (NULL == oh_lookup_hsindicatorstate(ind_state)) {
+		dbg("Invalid hotswap indicator state.");
+		return(SA_ERR_HPI_INVALID_REQUEST);
+	}
+
+        struct oh_handler_state *state = (struct oh_handler_state *)hnd;
+
+	/* Check if resource exists and has managed hotswap capabilities */
+	SaHpiRptEntryT *rpt = oh_get_resource_by_id(state->rptcache, rid);
+        if (!rpt) {
+		return SA_ERR_HPI_INVALID_RESOURCE;
+	}
+
+        /* if not simplified HS then return an error */
+        if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_FRU)) {
+		return SA_ERR_HPI_CAPABILITY;
+	}
+
+        /* get our private state data */
+	privinfo = (struct simResourceInfo *)oh_get_resource_data(state->rptcache, rid);
+ 	if (privinfo == NULL) {
+		dbg("No resource data. ResourceId=%d", rid);
+		return(SA_ERR_HPI_INTERNAL_ERROR);
+	}
+
+        privinfo->cur_indicator_hsstate = ind_state;
+        return SA_OK;
+}
+
+
 void * oh_get_hotswap_state (void *, SaHpiResourceIdT, SaHpiHsStateT *)
                 __attribute__ ((weak, alias("sim_get_hotswap_state")));
 
@@ -226,5 +304,11 @@ void * oh_set_hotswap_state (void *, SaHpiResourceIdT, SaHpiHsStateT)
 
 void * oh_request_hotswap_action (void *, SaHpiResourceIdT, SaHpiHsActionT)
                 __attribute__ ((weak, alias("sim_request_hotswap_action")));
+
+void * oh_set_indicator_state (void *, SaHpiResourceIdT, SaHpiHsIndicatorStateT)
+                __attribute__ ((weak, alias("sim_set_indicator_state")));
+
+void * oh_get_indicator_state (void *, SaHpiResourceIdT, SaHpiHsIndicatorStateT)
+                __attribute__ ((weak, alias("sim_get_indicator_state")));
 
 
