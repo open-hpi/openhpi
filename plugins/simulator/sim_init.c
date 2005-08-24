@@ -87,17 +87,19 @@ void *sim_open(GHashTable *handler_config)
 SaErrorT sim_discover(void *hnd)
 {
         /* NOTE!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-           The simulator plugin does not do a proper job of rediscovery.
-           If discovery is called multiple times there will be a huge
-           memory leak because we do not recover the memory from the
-           previous discovery. Also, the sim_handler_states list will be
-           invalid because only the pointer to the first discovery handler
-           state will be returned from the sim_get_handler_by_name API.
+           Since the simulator uses the full managed hot swap model and we
+           do not have any latency issues, discovery only needs to be performed
+           one time. Subsequent calls should just return SA_OK.
          */
 	struct oh_handler_state *inst = (struct oh_handler_state *) hnd;
         int i;
         SaHpiRptEntryT res;
         GThread *service_thrd;
+        static int initial_discovery_done = FALSE;
+
+        if (initial_discovery_done == TRUE) {
+                return SA_OK;
+        }
 
         /* ---------------------------------------------------------------
            The following assumes that the resource array is in a specific
@@ -165,7 +167,7 @@ SaErrorT sim_discover(void *hnd)
                 trace("injector service thread not started");
         }
 
-
+        initial_discovery_done = TRUE;
 	return SA_OK;
 }
 
