@@ -36,7 +36,8 @@ typedef enum {
     SIM_MSG_OEM_EVENT,
     SIM_MSG_USER_EVENT,
     SIM_MSG_RESOURCE_EVENT,
-    SIM_MSG_DOMAIN_EVENT
+    SIM_MSG_DOMAIN_EVENT,
+    SIM_MSG_RESOURCE_ADD_EVENT
 } SIM_MSG_TYPE;
 
 // the following are name constants for the msg buf name/value pairs
@@ -102,7 +103,23 @@ typedef enum {
 // required domain event constants
 #define SIM_MSG_DOMAIN_TYPE "domain_type"
 #define SIM_MSG_DOMAIN_ID "domain_id"
-
+// required resource event constants
+#define SIM_MSG_RPT_ENTITYPATH "rpt_entitypath"
+#define SIM_MSG_RPT_CAPABILITIES "rpt_capabilities"
+#define SIM_MSG_RPT_HSCAPABILITIES "rpt_hscapabilities"
+// #define SIM_MSG_EVENT_SEVERITY "event_severity"
+#define SIM_MSG_RPT_FAILED "rpt_failed"
+#define SIM_MSG_RPT_RESTAG "rpt_restag"
+#define SIM_MSG_RPT_COMMENT "rpt_comment"
+// optional resource event constants
+#define SIM_MSG_RPT_RESINFO_RESREV "rpt_resinfo_resrev"
+#define SIM_MSG_RPT_RESINFO_SPECVER "rpt_resinfo_specver"
+#define SIM_MSG_RPT_RESINFO_DEVSUPPORT "rpt_resinfo_devsupport"
+#define SIM_MSG_RPT_RESINFO_MFGID "rpt_resinfo_mfgid"
+#define SIM_MSG_RPT_RESINFO_PRODID "rpt_resinfo_prodid"
+#define SIM_MSG_RPT_RESINFO_FIRMMAJREV "rpt_resinfo_firmmajrev"
+#define SIM_MSG_RPT_RESINFO_FIRMMINREV "rpt_resinfo_firmminrev"
+#define SIM_MSG_RPT_RESINFO_AUXFIRMREV "rpt_resinfo_auxfirmrev"
 
 
 
