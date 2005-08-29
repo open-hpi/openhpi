@@ -1609,10 +1609,25 @@ static void process_rdr_add_event_msg(SIM_MSG_QUEUE_BUF *buf) {
                 }
                 data.RdrTypeUnion.AnnunciatorRec.Oem = (SaHpiUint32T)atoi(value);
                 break;
+        case SAHPI_WATCHDOG_RDR:
+                /* get the watchdog number */
+                value = find_value(SIM_MSG_RDR_WATCHDOG_NUM, buf->mtext);
+                if (value == NULL) {
+                        dbg("invalid SIM_MSG_RDR_WATCHDOG_NUM");
+                        return;
+                }
+                data.RdrTypeUnion.WatchdogRec.WatchdogNum = (SaHpiWatchdogNumT)atoi(value);
+                /* get the watchdog oem */
+                value = find_value(SIM_MSG_RDR_WATCHDOG_OEM, buf->mtext);
+                if (value == NULL) {
+                        dbg("invalid SIM_MSG_RDR_WATCHDOG_OEM");
+                        return;
+                }
+                data.RdrTypeUnion.WatchdogRec.Oem = (SaHpiUint32T)atoi(value);
+                break;
         case SAHPI_CTRL_RDR:
         case SAHPI_SENSOR_RDR:
         case SAHPI_INVENTORY_RDR:
-        case SAHPI_WATCHDOG_RDR:
         default:
                 dbg("invalid RdrType");
                 return;

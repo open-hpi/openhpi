@@ -133,6 +133,9 @@ typedef enum {
 #define SIM_MSG_RDR_ANNUN_MODE "rdr_annum_mode"
 #define SIM_MSG_RDR_ANNUN_MAXCOND "rdr_annum_maxcond"
 #define SIM_MSG_RDR_ANNUN_OEM "rdr_annum_oem"
+// required rdr watchdog constants
+#define SIM_MSG_RDR_WATCHDOG_NUM "rdr_watchdog_num"
+#define SIM_MSG_RDR_WATCHDOG_OEM "rdr_watchdog_oem"
 
 
 
