@@ -488,6 +488,41 @@ SaErrorT sim_get_idr_field(void *hnd,
                        && ((info->area[i].field[j].Type == FieldType) || 
 			   (SAHPI_IDR_FIELDTYPE_UNSPECIFIED == FieldType)) )
 		{
+
+                        memcpy(Field, &info->area[i].field[j],
+                               sizeof(SaHpiIdrFieldT));
+                        found = SAHPI_TRUE;
+                        *NextFieldId = SAHPI_LAST_ENTRY;
+			break;
+		}
+	}
+	
+	j++;
+	
+	if (found) {
+                if (j < info->area[i].idrareahead.NumFields) {
+                        do { 
+                                if ((info->area[i].field[j].Type == FieldType) || 
+						(SAHPI_IDR_FIELDTYPE_UNSPECIFIED == FieldType))
+                                {
+                                        *NextFieldId = info->area[i].field[j].FieldId;                                         
+                                        break;
+                                }
+                                j++;
+				
+                        } while (j < info->area[i].idrareahead.NumFields);                                        
+                }
+                        
+	}			
+
+
+
+
+
+
+
+
+#if 0
                         /* found the next field entry */
                         if (found == TRUE) {
                                 *NextFieldId = info->area[i].field[j].FieldId;
@@ -500,6 +535,8 @@ SaErrorT sim_get_idr_field(void *hnd,
                         *NextFieldId = SAHPI_LAST_ENTRY;
                 }
         }
+	
+#endif	
         if (found == SAHPI_FALSE) {
                 return SA_ERR_HPI_NOT_PRESENT;
         }
