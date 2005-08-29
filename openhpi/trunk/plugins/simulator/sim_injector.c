@@ -1402,6 +1402,8 @@ static void process_resource_add_event_msg(SIM_MSG_QUEUE_BUF *buf) {
         SaHpiRptEntryT data;
         char *value;
         char *comment;
+	SaHpiEntityPathT root_ep;
+	char *entity_root;
 
         memset(&data, sizeof(data), 0);
 
@@ -1416,6 +1418,12 @@ static void process_resource_add_event_msg(SIM_MSG_QUEUE_BUF *buf) {
                 dbg("invalid SIM_MSG_HANDLER_NAME");
                 return;
         }
+
+        /* get the entity root */
+	entity_root = (char *)g_hash_table_lookup(state->config,"entity_root");
+	oh_encode_entitypath (entity_root, &root_ep);
+        oh_concat_ep(&data.ResourceEntity, &root_ep);
+        data.ResourceId = oh_uid_from_entity_path(&data.ResourceEntity);
 
         /* get the resource info */
         value = find_value(SIM_MSG_RPT_RESINFO_RESREV, buf->mtext);
@@ -1485,15 +1493,6 @@ static void process_resource_add_event_msg(SIM_MSG_QUEUE_BUF *buf) {
                 return;
         }
         data.ResourceFailed = (SaHpiBoolT)atoi(value);
-        /* get the resource tag */
-        value = find_value(SIM_MSG_RPT_RESTAG, buf->mtext);
-        if (value == NULL) {
-                dbg("invalid SIM_MSG_RPT_RESTAG");
-                return;
-        }
-        data.ResourceTag.DataType = SAHPI_TL_TYPE_TEXT;
-        data.ResourceTag.Language = SAHPI_LANG_ENGLISH;
-        data.ResourceTag.DataLength = strlen(value);
         strncpy(data.ResourceTag.Data, value, strlen(value));
         /* get the comment */
         comment = find_value(SIM_MSG_RPT_COMMENT, buf->mtext);
@@ -1501,6 +1500,9 @@ static void process_resource_add_event_msg(SIM_MSG_QUEUE_BUF *buf) {
                 dbg("invalid SIM_MSG_RPT_COMMENT");
                 return;
         }
+        /* get the resource tag */
+        sim_create_resourcetag(&data.ResourceTag, comment,
+                               root_ep.Entry[0].EntityLocation);
 
         /* now inject the resource */
         sim_inject_resource(state, &data, NULL, comment);
@@ -1520,6 +1522,7 @@ static void process_rdr_add_event_msg(SIM_MSG_QUEUE_BUF *buf) {
         SaHpiResourceIdT resid;
         struct simWatchdogInfo *wdinfo = NULL;
         struct sim_inventory_info *idrinfo;
+        struct sim_control_info *ctrlinfo;
 
         memset(&data, sizeof(data), 0);
 
@@ -1675,6 +1678,118 @@ static void process_rdr_add_event_msg(SIM_MSG_QUEUE_BUF *buf) {
                 sim_inject_rdr(state, resid, &data, idrinfo);
                 break;
         case SAHPI_CTRL_RDR:
+                /* get the cntrl num */
+                value = find_value(SIM_MSG_RDR_CTRL_NUM, buf->mtext);
+                if (value == NULL) {
+                        dbg("invalid SIM_MSG_RDR_CTRL_NUM");
+                        return;
+                }
+                data.RdrTypeUnion.CtrlRec.Num = (SaHpiCtrlNumT)atoi(value);
+                /* get the cntrl output type */
+                value = find_value(SIM_MSG_RDR_CTRL_OUTTYPE, buf->mtext);
+                if (value == NULL) {
+                        dbg("invalid SIM_MSG_RDR_CTRL_OUTTYPE");
+                        return;
+                }
+                data.RdrTypeUnion.CtrlRec.OutputType = (SaHpiCtrlOutputTypeT)atoi(value);
+                /* get the cntrl type */
+                value = find_value(SIM_MSG_RDR_CTRL_TYPE, buf->mtext);
+                if (value == NULL) {
+                        dbg("invalid SIM_MSG_RDR_CTRL_TYPE");
+                        return;
+                }
+                data.RdrTypeUnion.CtrlRec.Type = (SaHpiCtrlTypeT)atoi(value);
+                /* get the cntrl default mode mode */
+                value = find_value(SIM_MSG_RDR_CTRL_MODE, buf->mtext);
+                if (value == NULL) {
+                        dbg("invalid SIM_MSG_RDR_CTRL_MODE");
+                        return;
+                }
+                data.RdrTypeUnion.CtrlRec.DefaultMode.Mode = (SaHpiCtrlModeT)atoi(value);
+                /* get the cntrl default mode readonly flag */
+                value = find_value(SIM_MSG_RDR_CTRL_MODE_READONLY, buf->mtext);
+                if (value == NULL) {
+                        dbg("invalid SIM_MSG_RDR_CTRL_MODE_READONLY");
+                        return;
+                }
+                data.RdrTypeUnion.CtrlRec.DefaultMode.ReadOnly = (SaHpiBoolT)atoi(value);
+                /* get the cntrl write only flag */
+                value = find_value(SIM_MSG_RDR_CTRL_WRITEONLY, buf->mtext);
+                if (value == NULL) {
+                        dbg("invalid SIM_MSG_RDR_CTRL_WRITEONLY");
+                        return;
+                }
+                data.RdrTypeUnion.CtrlRec.WriteOnly = (SaHpiBoolT)atoi(value);
+                /* get the cntrl oem */
+                value = find_value(SIM_MSG_RDR_CTRL_OEM, buf->mtext);
+                if (value == NULL) {
+                        dbg("invalid SIM_MSG_RDR_CTRL_OEM");
+                        return;
+                }
+                data.RdrTypeUnion.CtrlRec.Oem = (SaHpiUint32T)atoi(value);
+                switch (data.RdrTypeUnion.CtrlRec.Type) {
+                case SAHPI_CTRL_TYPE_DIGITAL:
+                        /* get the default state */
+                        value = find_value(SIM_MSG_RDR_CTRL_DIGITAL_DEFSTATE, buf->mtext);
+                        if (value == NULL) {
+                                dbg("invalid SIM_MSG_RDR_CTRL_DIGITAL_DEFSTATE");
+                                return;
+                        }
+                        data.RdrTypeUnion.CtrlRec.TypeUnion.Digital.Default = (SaHpiUint32T)atoi(value);
+                        break;
+                case SAHPI_CTRL_TYPE_DISCRETE:
+                        /* get the default state */
+                        value = find_value(SIM_MSG_RDR_CTRL_DISCRETE_DEFSTATE, buf->mtext);
+                        if (value == NULL) {
+                                dbg("invalid SIM_MSG_RDR_CTRL_DISCRETE_DEFSTATE");
+                                return;
+                        }
+                        data.RdrTypeUnion.CtrlRec.TypeUnion.Discrete.Default = (SaHpiUint32T)atoi(value);
+                        break;
+                case SAHPI_CTRL_TYPE_ANALOG:
+                        /* get the min */
+                        value = find_value(SIM_MSG_RDR_CTRL_ANALOG_MIN, buf->mtext);
+                        if (value == NULL) {
+                                dbg("invalid SIM_MSG_RDR_CTRL_ANALOG_MIN");
+                                return;
+                        }
+                        data.RdrTypeUnion.CtrlRec.TypeUnion.Analog.Min = (SaHpiCtrlStateAnalogT)atoi(value);
+                        /* get the max */
+                        value = find_value(SIM_MSG_RDR_CTRL_ANALOG_MAX, buf->mtext);
+                        if (value == NULL) {
+                                dbg("invalid SIM_MSG_RDR_CTRL_ANALOG_MAX");
+                                return;
+                        }
+                        data.RdrTypeUnion.CtrlRec.TypeUnion.Analog.Max = (SaHpiCtrlStateAnalogT)atoi(value);
+                        /* get the default */
+                        value = find_value(SIM_MSG_RDR_CTRL_ANALOG_DEFAULT, buf->mtext);
+                        if (value == NULL) {
+                                dbg("invalid SIM_MSG_RDR_CTRL_ANALOG_DEFAULT");
+                                return;
+                        }
+                        data.RdrTypeUnion.CtrlRec.TypeUnion.Analog.Default = (SaHpiCtrlStateAnalogT)atoi(value);
+                        break;
+                case SAHPI_CTRL_TYPE_STREAM:
+                        /* get the stream */
+                        value = find_value(SIM_MSG_RDR_CTRL_STREAM, buf->mtext);
+                        if (value == NULL) {
+                                dbg("invalid SIM_MSG_RDR_CTRL_STREAM");
+                                return;
+                        }
+                        data.RdrTypeUnion.CtrlRec.TypeUnion.Stream.Default.StreamLength = (SaHpiUint32T)strlen(value);
+                        strcpy(data.RdrTypeUnion.CtrlRec.TypeUnion.Stream.Default.Stream, value);
+                        break;
+                case SAHPI_CTRL_TYPE_TEXT:
+                case SAHPI_CTRL_TYPE_OEM:
+                default:
+                        dbg("invalid SIM_MSG_RDR_CTRL_TYPE");
+                        return;
+                }
+                ctrlinfo = (struct sim_control_info *)g_malloc0(sizeof(struct sim_control_info));
+                ctrlinfo->mode = SAHPI_CTRL_MODE_AUTO;
+                /* now inject the rdr */
+                sim_inject_rdr(state, resid, &data, ctrlinfo);
+                break;
         case SAHPI_SENSOR_RDR:
         default:
                 dbg("invalid RdrType");
