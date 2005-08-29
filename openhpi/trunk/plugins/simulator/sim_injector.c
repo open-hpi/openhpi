@@ -33,6 +33,7 @@ static void process_oem_event_msg(SIM_MSG_QUEUE_BUF *buf);
 static void process_user_event_msg(SIM_MSG_QUEUE_BUF *buf);
 static void process_resource_event_msg(SIM_MSG_QUEUE_BUF *buf);
 static void process_domain_event_msg(SIM_MSG_QUEUE_BUF *buf);
+static void process_resource_add_event_msg(SIM_MSG_QUEUE_BUF *buf);
 
 
 static struct oh_event *eventdup(const struct oh_event *event)
@@ -294,6 +295,10 @@ static gpointer injector_service_thread(gpointer data) {
                 case SIM_MSG_DOMAIN_EVENT:
                     dbg("processing domain event");
                     process_domain_event_msg(&buf);
+                    break;
+                case SIM_MSG_RESOURCE_ADD_EVENT:
+                    dbg("processing resource add event");
+                    process_resource_add_event_msg(&buf);
                     break;
                 default:
                     dbg("invalid msg recieved");
@@ -1378,6 +1383,123 @@ static void process_domain_event_msg(SIM_MSG_QUEUE_BUF *buf) {
 
         /* now inject the event */
         sim_inject_event(state, &ohevent);
+
+        return;
+}
+
+
+/*--------------------------------------------------------------------*/
+/* Function: process_resource_add_event_msg                           */
+/*--------------------------------------------------------------------*/
+
+static void process_resource_add_event_msg(SIM_MSG_QUEUE_BUF *buf) {
+        struct oh_handler_state *state;
+        SaHpiRptEntryT data;
+        char *value;
+        char *comment;
+
+        memset(&data, sizeof(data), 0);
+
+        /* get the handler state */
+        value = find_value(SIM_MSG_HANDLER_NAME, buf->mtext);
+        if (value == NULL) {
+                dbg("invalid SIM_MSG_HANDLER_NAME");
+                return;
+        }
+        state = sim_get_handler_by_name(value);
+        if (state == NULL) {
+                dbg("invalid SIM_MSG_HANDLER_NAME");
+                return;
+        }
+
+        /* fill out the SaHpiRptEntryT part of the structure */
+        /* get the resource info */
+        value = find_value(SIM_MSG_RPT_RESINFO_RESREV, buf->mtext);
+        if (value != NULL) {
+                data.ResourceInfo.ResourceRev = (SaHpiUint8T)atoi(value);
+        }
+        value = find_value(SIM_MSG_RPT_RESINFO_SPECVER, buf->mtext);
+        if (value != NULL) {
+                data.ResourceInfo.SpecificVer = (SaHpiUint8T)atoi(value);
+        }
+        value = find_value(SIM_MSG_RPT_RESINFO_DEVSUPPORT, buf->mtext);
+        if (value != NULL) {
+                data.ResourceInfo.DeviceSupport = (SaHpiUint8T)atoi(value);
+        }
+        value = find_value(SIM_MSG_RPT_RESINFO_MFGID, buf->mtext);
+        if (value != NULL) {
+                data.ResourceInfo.ManufacturerId = (SaHpiManufacturerIdT)atoi(value);
+        }
+        value = find_value(SIM_MSG_RPT_RESINFO_PRODID, buf->mtext);
+        if (value != NULL) {
+                data.ResourceInfo.ProductId = (SaHpiUint16T)atoi(value);
+        }
+        value = find_value(SIM_MSG_RPT_RESINFO_FIRMMAJREV, buf->mtext);
+        if (value != NULL) {
+                data.ResourceInfo.FirmwareMajorRev = (SaHpiUint8T)atoi(value);
+        }
+        value = find_value(SIM_MSG_RPT_RESINFO_FIRMMINREV, buf->mtext);
+        if (value != NULL) {
+                data.ResourceInfo.FirmwareMinorRev = (SaHpiUint8T)atoi(value);
+        }
+        value = find_value(SIM_MSG_RPT_RESINFO_AUXFIRMREV, buf->mtext);
+        if (value != NULL) {
+                data.ResourceInfo.AuxFirmwareRev = (SaHpiUint8T)atoi(value);
+        }
+        /* get the entity path */
+        value = find_value(SIM_MSG_RPT_ENTITYPATH, buf->mtext);
+        if (value == NULL) {
+                dbg("invalid SIM_MSG_RPT_ENTITYPATH");
+                return;
+        }
+        oh_encode_entitypath(value, &data.ResourceEntity);
+        /* get the resource capabilities */
+        value = find_value(SIM_MSG_RPT_CAPABILITIES, buf->mtext);
+        if (value == NULL) {
+                dbg("invalid SIM_MSG_RPT_CAPABILITIES");
+                return;
+        }
+        data.ResourceCapabilities = (SaHpiUint32T)atoi(value);
+        /* get the HS capabilities */
+        value = find_value(SIM_MSG_RPT_HSCAPABILITIES, buf->mtext);
+        if (value == NULL) {
+                dbg("invalid SIM_MSG_RPT_HSCAPABILITIES");
+                return;
+        }
+        data.HotSwapCapabilities = (SaHpiUint32T)atoi(value);
+        /* get the severity */
+        value = find_value(SIM_MSG_EVENT_SEVERITY, buf->mtext);
+        if (value == NULL) {
+                dbg("invalid SIM_MSG_EVENT_SEVERITY");
+                return;
+        }
+        data.ResourceSeverity = (SaHpiSeverityT)atoi(value);
+        /* get the res failed flag */
+        value = find_value(SIM_MSG_RPT_FAILED, buf->mtext);
+        if (value == NULL) {
+                dbg("invalid SIM_MSG_RPT_FAILED");
+                return;
+        }
+        data.ResourceFailed = (SaHpiBoolT)atoi(value);
+        /* get the resource tag */
+        value = find_value(SIM_MSG_RPT_RESTAG, buf->mtext);
+        if (value == NULL) {
+                dbg("invalid SIM_MSG_RPT_RESTAG");
+                return;
+        }
+        data.ResourceTag.DataType = SAHPI_TL_TYPE_TEXT;
+        data.ResourceTag.Language = SAHPI_LANG_ENGLISH;
+        data.ResourceTag.DataLength = strlen(value);
+        strncpy(data.ResourceTag.Data, value, strlen(value));
+        /* get the comment */
+        comment = find_value(SIM_MSG_RPT_COMMENT, buf->mtext);
+        if (value == NULL) {
+                dbg("invalid SIM_MSG_RPT_COMMENT");
+                return;
+        }
+
+        /* now inject the resource */
+        sim_inject_resource(state, &data, NULL, comment);
 
         return;
 }
