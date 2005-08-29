@@ -37,7 +37,8 @@ typedef enum {
     SIM_MSG_USER_EVENT,
     SIM_MSG_RESOURCE_EVENT,
     SIM_MSG_DOMAIN_EVENT,
-    SIM_MSG_RESOURCE_ADD_EVENT
+    SIM_MSG_RESOURCE_ADD_EVENT,
+    SIM_MSG_RDR_ADD_EVENT
 } SIM_MSG_TYPE;
 
 // the following are name constants for the msg buf name/value pairs
@@ -120,6 +121,18 @@ typedef enum {
 #define SIM_MSG_RPT_RESINFO_FIRMMAJREV "rpt_resinfo_firmmajrev"
 #define SIM_MSG_RPT_RESINFO_FIRMMINREV "rpt_resinfo_firmminrev"
 #define SIM_MSG_RPT_RESINFO_AUXFIRMREV "rpt_resinfo_auxfirmrev"
+// required rdr event constants
+#define SIM_MSG_RDR_RESID "rdr_resid"
+#define SIM_MSG_RDR_TYPE "rdr_type"
+#define SIM_MSG_RDR_ENTITYPATH "rdr_entitypath"
+#define SIM_MSG_RDR_FRU "rdr_fru"
+#define SIM_MSG_RDR_IDSTRING "rdr_idstring"
+// required rdr annunciator constants
+#define SIM_MSG_RDR_ANNUN_NUM "rdr_annum_num"
+#define SIM_MSG_RDR_ANNUN_TYPE "rdr_annum_type"
+#define SIM_MSG_RDR_ANNUN_MODE "rdr_annum_mode"
+#define SIM_MSG_RDR_ANNUN_MAXCOND "rdr_annum_maxcond"
+#define SIM_MSG_RDR_ANNUN_OEM "rdr_annum_oem"
 
 
 
