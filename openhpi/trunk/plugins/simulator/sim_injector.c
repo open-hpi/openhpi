@@ -1518,6 +1518,8 @@ static void process_rdr_add_event_msg(SIM_MSG_QUEUE_BUF *buf) {
         SaHpiRdrT data;
         char *value;
         SaHpiResourceIdT resid;
+        struct simWatchdogInfo *wdinfo = NULL;
+        struct sim_inventory_info *idrinfo;
 
         memset(&data, sizeof(data), 0);
 
@@ -1608,6 +1610,8 @@ static void process_rdr_add_event_msg(SIM_MSG_QUEUE_BUF *buf) {
                         return;
                 }
                 data.RdrTypeUnion.AnnunciatorRec.Oem = (SaHpiUint32T)atoi(value);
+                /* now inject the rdr */
+                sim_inject_rdr(state, resid, &data, NULL);
                 break;
         case SAHPI_WATCHDOG_RDR:
                 /* get the watchdog number */
@@ -1624,17 +1628,58 @@ static void process_rdr_add_event_msg(SIM_MSG_QUEUE_BUF *buf) {
                         return;
                 }
                 data.RdrTypeUnion.WatchdogRec.Oem = (SaHpiUint32T)atoi(value);
+                /* set up our private info */
+                wdinfo = (struct simWatchdogInfo *)g_malloc0(sizeof(struct simWatchdogInfo));
+                wdinfo->watchdog.Log = SAHPI_TRUE;
+                wdinfo->watchdog.Running = SAHPI_FALSE;
+                wdinfo->watchdog.TimerUse = SAHPI_WTU_NONE;
+                wdinfo->watchdog.TimerAction = SAHPI_WA_NO_ACTION;
+                wdinfo->watchdog.PretimerInterrupt = SAHPI_WPI_NONE;
+                wdinfo->watchdog.PreTimeoutInterval = 0;
+                wdinfo->watchdog.TimerUseExpFlags = SAHPI_WTU_NONE;
+                wdinfo->watchdog.InitialCount = 0;
+                wdinfo->watchdog.PresentCount = 0;
+                /* now inject the rdr */
+                sim_inject_rdr(state, resid, &data, wdinfo);
+                break;
+        case SAHPI_INVENTORY_RDR:
+                /* get the idr id */
+                value = find_value(SIM_MSG_RDR_IDR_ID, buf->mtext);
+                if (value == NULL) {
+                        dbg("invalid SIM_MSG_RDR_IDR_ID");
+                        return;
+                }
+                data.RdrTypeUnion.InventoryRec.IdrId = (SaHpiIdrIdT)atoi(value);
+                /* get the idr persistent flag */
+                value = find_value(SIM_MSG_RDR_IDR_PERSISTENT, buf->mtext);
+                if (value == NULL) {
+                        dbg("invalid SIM_MSG_RDR_IDR_PERSISTENT");
+                        return;
+                }
+                data.RdrTypeUnion.InventoryRec.Persistent = (SaHpiBoolT)atoi(value);
+                /* get the watchdog oem */
+                value = find_value(SIM_MSG_RDR_IDR_OEM, buf->mtext);
+                if (value == NULL) {
+                        dbg("invalid SIM_MSG_RDR_IDR_OEM");
+                        return;
+                }
+                data.RdrTypeUnion.InventoryRec.Oem = (SaHpiUint32T)atoi(value);
+                /* set up our private info */
+                idrinfo = (struct sim_inventory_info *)g_malloc0(sizeof(struct sim_inventory_info));
+                idrinfo->nextareaid = 3;
+                idrinfo->idrinfo.IdrId = data.RdrTypeUnion.InventoryRec.IdrId;
+                idrinfo->idrinfo.UpdateCount = 0;
+                idrinfo->idrinfo.ReadOnly = SAHPI_TRUE;
+                idrinfo->idrinfo.NumAreas = 0;
+                /* now inject the rdr */
+                sim_inject_rdr(state, resid, &data, idrinfo);
                 break;
         case SAHPI_CTRL_RDR:
         case SAHPI_SENSOR_RDR:
-        case SAHPI_INVENTORY_RDR:
         default:
                 dbg("invalid RdrType");
                 return;
         }
-
-        /* now inject the rdr */
-        sim_inject_rdr(state, resid, &data, NULL);
 
         return;
 }
