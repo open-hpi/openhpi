@@ -51,7 +51,7 @@ static int inject_event(char *plugin_name) {
     }
 
     /* fill out the message */
-    buf.mtype = SIM_MSG_RESOURCE_ADD_EVENT;
+    buf.mtype = SIM_MSG_RDR_ADD_EVENT;
     *txtptr = '\0';
     sprintf(txtptr, "%s=%s", SIM_MSG_HANDLER_NAME, plugin_name);
     n += strlen(txtptr) + 1;
@@ -59,44 +59,62 @@ static int inject_event(char *plugin_name) {
     if (n > SIM_MSG_QUEUE_BUFSIZE) {
         return -1;
     }
-    sprintf(txtptr, "%s=%s", SIM_MSG_RPT_ENTITYPATH,
-            "{BIOS,1},{ROOT,0}");
+    sprintf(txtptr, "%s=%d", SIM_MSG_RDR_RESID, 1);
     n += strlen(txtptr) + 1;
     txtptr = buf.mtext + n;
     if (n > SIM_MSG_QUEUE_BUFSIZE) {
         return -1;
     }
-    sprintf(txtptr, "%s=%d", SIM_MSG_RPT_CAPABILITIES, SAHPI_CAPABILITY_RESOURCE);
+    sprintf(txtptr, "%s=%d", SIM_MSG_RDR_TYPE, SAHPI_ANNUNCIATOR_RDR);
     n += strlen(txtptr) + 1;
     txtptr = buf.mtext + n;
     if (n > SIM_MSG_QUEUE_BUFSIZE) {
         return -1;
     }
-    sprintf(txtptr, "%s=%d", SIM_MSG_RPT_HSCAPABILITIES, 0);
+    sprintf(txtptr, "%s=%s", SIM_MSG_RDR_ENTITYPATH,
+            "{SYSTEM_CHASSIS, 1},(ROOT,0}");
     n += strlen(txtptr) + 1;
     txtptr = buf.mtext + n;
     if (n > SIM_MSG_QUEUE_BUFSIZE) {
         return -1;
     }
-    sprintf(txtptr, "%s=%d", SIM_MSG_EVENT_SEVERITY, SAHPI_OK);
+    sprintf(txtptr, "%s=%d", SIM_MSG_RDR_FRU, SAHPI_FALSE);
     n += strlen(txtptr) + 1;
     txtptr = buf.mtext + n;
     if (n > SIM_MSG_QUEUE_BUFSIZE) {
         return -1;
     }
-    sprintf(txtptr, "%s=%d", SIM_MSG_RPT_FAILED, SAHPI_FALSE);
+    sprintf(txtptr, "%s=%s", SIM_MSG_RDR_IDSTRING, "My ID");
     n += strlen(txtptr) + 1;
     txtptr = buf.mtext + n;
     if (n > SIM_MSG_QUEUE_BUFSIZE) {
         return -1;
     }
-    sprintf(txtptr, "%s=%s", SIM_MSG_RPT_RESTAG, "My resource tag");
+    sprintf(txtptr, "%s=%d", SIM_MSG_RDR_ANNUN_NUM, 2);
     n += strlen(txtptr) + 1;
     txtptr = buf.mtext + n;
     if (n > SIM_MSG_QUEUE_BUFSIZE) {
         return -1;
     }
-    sprintf(txtptr, "%s=%s", SIM_MSG_RPT_COMMENT, "BIOS comment");
+    sprintf(txtptr, "%s=%d", SIM_MSG_RDR_ANNUN_TYPE, SAHPI_ANNUNCIATOR_TYPE_OEM);
+    n += strlen(txtptr) + 1;
+    txtptr = buf.mtext + n;
+    if (n > SIM_MSG_QUEUE_BUFSIZE) {
+        return -1;
+    }
+    sprintf(txtptr, "%s=%d", SIM_MSG_RDR_ANNUN_MODE, SAHPI_TRUE);
+    n += strlen(txtptr) + 1;
+    txtptr = buf.mtext + n;
+    if (n > SIM_MSG_QUEUE_BUFSIZE) {
+        return -1;
+    }
+    sprintf(txtptr, "%s=%d", SIM_MSG_RDR_ANNUN_MAXCOND, 1);
+    n += strlen(txtptr) + 1;
+    txtptr = buf.mtext + n;
+    if (n > SIM_MSG_QUEUE_BUFSIZE) {
+        return -1;
+    }
+    sprintf(txtptr, "%s=%d", SIM_MSG_RDR_ANNUN_OEM, 1);
     n += strlen(txtptr) + 1;
     txtptr = buf.mtext + n;
     if (n > SIM_MSG_QUEUE_BUFSIZE) {

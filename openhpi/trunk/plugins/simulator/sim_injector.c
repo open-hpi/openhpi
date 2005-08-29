@@ -34,6 +34,7 @@ static void process_user_event_msg(SIM_MSG_QUEUE_BUF *buf);
 static void process_resource_event_msg(SIM_MSG_QUEUE_BUF *buf);
 static void process_domain_event_msg(SIM_MSG_QUEUE_BUF *buf);
 static void process_resource_add_event_msg(SIM_MSG_QUEUE_BUF *buf);
+static void process_rdr_add_event_msg(SIM_MSG_QUEUE_BUF *buf);
 
 
 static struct oh_event *eventdup(const struct oh_event *event)
@@ -299,6 +300,10 @@ static gpointer injector_service_thread(gpointer data) {
                 case SIM_MSG_RESOURCE_ADD_EVENT:
                     dbg("processing resource add event");
                     process_resource_add_event_msg(&buf);
+                    break;
+                case SIM_MSG_RDR_ADD_EVENT:
+                    dbg("processing rdr add event");
+                    process_rdr_add_event_msg(&buf);
                     break;
                 default:
                     dbg("invalid msg recieved");
@@ -1412,7 +1417,6 @@ static void process_resource_add_event_msg(SIM_MSG_QUEUE_BUF *buf) {
                 return;
         }
 
-        /* fill out the SaHpiRptEntryT part of the structure */
         /* get the resource info */
         value = find_value(SIM_MSG_RPT_RESINFO_RESREV, buf->mtext);
         if (value != NULL) {
@@ -1500,6 +1504,122 @@ static void process_resource_add_event_msg(SIM_MSG_QUEUE_BUF *buf) {
 
         /* now inject the resource */
         sim_inject_resource(state, &data, NULL, comment);
+
+        return;
+}
+
+
+/*--------------------------------------------------------------------*/
+/* Function: process_rdr_add_event_msg                                */
+/*--------------------------------------------------------------------*/
+
+static void process_rdr_add_event_msg(SIM_MSG_QUEUE_BUF *buf) {
+        struct oh_handler_state *state;
+        SaHpiRdrT data;
+        char *value;
+        SaHpiResourceIdT resid;
+
+        memset(&data, sizeof(data), 0);
+
+        /* get the handler state */
+        value = find_value(SIM_MSG_HANDLER_NAME, buf->mtext);
+        if (value == NULL) {
+                dbg("invalid SIM_MSG_HANDLER_NAME");
+                return;
+        }
+        state = sim_get_handler_by_name(value);
+        if (state == NULL) {
+                dbg("invalid SIM_MSG_HANDLER_NAME");
+                return;
+        }
+
+        /* get the rrsource id */
+        value = find_value(SIM_MSG_RDR_RESID, buf->mtext);
+        if (value == NULL) {
+                dbg("invalid SIM_MSG_RDR_RESID");
+                return;
+        }
+        resid = (SaHpiResourceIdT)atoi(value);
+        /* get the rdr type */
+        value = find_value(SIM_MSG_RDR_TYPE, buf->mtext);
+        if (value == NULL) {
+                dbg("invalid SIM_MSG_RDR_TYPE");
+                return;
+        }
+        data.RdrType = (SaHpiRdrTypeT)atoi(value);
+        /* get the entity path */
+        value = find_value(SIM_MSG_RDR_ENTITYPATH, buf->mtext);
+        if (value == NULL) {
+                dbg("invalid SIM_MSG_RDR_ENTITYPATH");
+                return;
+        }
+        /* get the fru flag */
+        value = find_value(SIM_MSG_RDR_FRU, buf->mtext);
+        if (value == NULL) {
+                dbg("invalid SIM_MSG_RDR_FRU");
+                return;
+        }
+        data.IsFru = (SaHpiBoolT)atoi(value);
+        /* get the id string */
+        value = find_value(SIM_MSG_RDR_IDSTRING, buf->mtext);
+        if (value == NULL) {
+                dbg("invalid SIM_MSG_RDR_IDSTRING");
+                return;
+        }
+        data.IdString.DataType = SAHPI_TL_TYPE_TEXT;
+        data.IdString.Language = SAHPI_LANG_ENGLISH;
+        data.IdString.DataLength = strlen(value);
+        strncpy(data.IdString.Data, value, strlen(value));
+        /* process the resource type */
+        switch (data.RdrType) {
+        case SAHPI_ANNUNCIATOR_RDR:
+                /* get the annunciator number */
+                value = find_value(SIM_MSG_RDR_ANNUN_NUM, buf->mtext);
+                if (value == NULL) {
+                        dbg("invalid SIM_MSG_RDR_ANNUN_NUM");
+                        return;
+                }
+                data.RdrTypeUnion.AnnunciatorRec.AnnunciatorNum = (SaHpiAnnunciatorNumT)atoi(value);
+                /* get the annunciator type */
+                value = find_value(SIM_MSG_RDR_ANNUN_TYPE, buf->mtext);
+                if (value == NULL) {
+                        dbg("invalid SIM_MSG_RDR_ANNUN_TYPE");
+                        return;
+                }
+                data.RdrTypeUnion.AnnunciatorRec.AnnunciatorType = (SaHpiAnnunciatorTypeT)atoi(value);
+                /* get the annunciator mode */
+                value = find_value(SIM_MSG_RDR_ANNUN_MODE, buf->mtext);
+                if (value == NULL) {
+                        dbg("invalid SIM_MSG_RDR_ANNUN_MODE");
+                        return;
+                }
+                data.RdrTypeUnion.AnnunciatorRec.ModeReadOnly = (SaHpiBoolT)atoi(value);
+                /* get the annunciator max conditions */
+                value = find_value(SIM_MSG_RDR_ANNUN_MAXCOND, buf->mtext);
+                if (value == NULL) {
+                        dbg("invalid SIM_MSG_RDR_ANNUN_MAXCOND");
+                        return;
+                }
+                data.RdrTypeUnion.AnnunciatorRec.MaxConditions = (SaHpiUint32T)atoi(value);
+                /* get the annunciator oem */
+                value = find_value(SIM_MSG_RDR_ANNUN_OEM, buf->mtext);
+                if (value == NULL) {
+                        dbg("invalid SIM_MSG_RDR_ANNUN_OEM");
+                        return;
+                }
+                data.RdrTypeUnion.AnnunciatorRec.Oem = (SaHpiUint32T)atoi(value);
+                break;
+        case SAHPI_CTRL_RDR:
+        case SAHPI_SENSOR_RDR:
+        case SAHPI_INVENTORY_RDR:
+        case SAHPI_WATCHDOG_RDR:
+        default:
+                dbg("invalid RdrType");
+                return;
+        }
+
+        /* now inject the rdr */
+        sim_inject_rdr(state, resid, &data, NULL);
 
         return;
 }
