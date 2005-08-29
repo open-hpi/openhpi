@@ -90,12 +90,6 @@ static int inject_event(char *plugin_name) {
     if (n > SIM_MSG_QUEUE_BUFSIZE) {
         return -1;
     }
-    sprintf(txtptr, "%s=%s", SIM_MSG_RPT_RESTAG, "My resource tag");
-    n += strlen(txtptr) + 1;
-    txtptr = buf.mtext + n;
-    if (n > SIM_MSG_QUEUE_BUFSIZE) {
-        return -1;
-    }
     sprintf(txtptr, "%s=%s", SIM_MSG_RPT_COMMENT, "BIOS comment");
     n += strlen(txtptr) + 1;
     txtptr = buf.mtext + n;
