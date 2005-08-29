@@ -136,6 +136,10 @@ typedef enum {
 // required rdr watchdog constants
 #define SIM_MSG_RDR_WATCHDOG_NUM "rdr_watchdog_num"
 #define SIM_MSG_RDR_WATCHDOG_OEM "rdr_watchdog_oem"
+// required rdr idr constants
+#define SIM_MSG_RDR_IDR_ID "rdr_idr_id"
+#define SIM_MSG_RDR_IDR_PERSISTENT "rdr_idr_persistent"
+#define SIM_MSG_RDR_IDR_OEM "rdr_idr_oem"
 
 
 
