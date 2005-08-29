@@ -140,6 +140,20 @@ typedef enum {
 #define SIM_MSG_RDR_IDR_ID "rdr_idr_id"
 #define SIM_MSG_RDR_IDR_PERSISTENT "rdr_idr_persistent"
 #define SIM_MSG_RDR_IDR_OEM "rdr_idr_oem"
+// required rdr ctrl constants
+#define SIM_MSG_RDR_CTRL_NUM "rdr_ctrl_num"
+#define SIM_MSG_RDR_CTRL_OUTTYPE "rdr_ctrl_outtype"
+#define SIM_MSG_RDR_CTRL_TYPE "rdr_ctrl_type"
+#define SIM_MSG_RDR_CTRL_MODE "rdr_ctrl_mode"
+#define SIM_MSG_RDR_CTRL_MODE_READONLY "rdr_ctrl_mode_readonly"
+#define SIM_MSG_RDR_CTRL_WRITEONLY "rdr_ctrl_writeonly"
+#define SIM_MSG_RDR_CTRL_OEM "rdr_ctrl_oem"
+#define SIM_MSG_RDR_CTRL_DIGITAL_DEFSTATE "rdr_ctrl_digital_defstate"
+#define SIM_MSG_RDR_CTRL_DISCRETE_DEFSTATE "rdr_ctrl_discrete_defstate"
+#define SIM_MSG_RDR_CTRL_ANALOG_MIN "rdr_ctrl_analog_min"
+#define SIM_MSG_RDR_CTRL_ANALOG_MAX "rdr_ctrl_analog_max"
+#define SIM_MSG_RDR_CTRL_ANALOG_DEFAULT "rdr_ctrl_analog_default"
+#define SIM_MSG_RDR_CTRL_STREAM "rdr_ctrl_stream"
 
 
 
