@@ -482,8 +482,12 @@ SaErrorT sim_get_idr_field(void *hnd,
                 return SA_ERR_HPI_NOT_PRESENT;
         }
         for (j = 0; j < info->area[i].idrareahead.NumFields; j++) {
-                if (FieldType == SAHPI_IDR_FIELDTYPE_UNSPECIFIED ||
-                    FieldType == info->area[i].field[j].Type) {
+	
+		if ( ((info->area[i].field[j].FieldId == FieldId) ||
+			(SAHPI_FIRST_ENTRY == FieldId)) 
+                       && ((info->area[i].field[j].Type == FieldType) || 
+			   (SAHPI_IDR_FIELDTYPE_UNSPECIFIED == FieldType)) )
+		{
                         /* found the next field entry */
                         if (found == TRUE) {
                                 *NextFieldId = info->area[i].field[j].FieldId;
