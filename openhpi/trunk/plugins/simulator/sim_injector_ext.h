@@ -122,7 +122,6 @@ typedef enum {
 #define SIM_MSG_RPT_RESINFO_FIRMMINREV "rpt_resinfo_firmminrev"
 #define SIM_MSG_RPT_RESINFO_AUXFIRMREV "rpt_resinfo_auxfirmrev"
 // required rdr event constants
-#define SIM_MSG_RDR_RESID "rdr_resid"
 #define SIM_MSG_RDR_TYPE "rdr_type"
 #define SIM_MSG_RDR_ENTITYPATH "rdr_entitypath"
 #define SIM_MSG_RDR_FRU "rdr_fru"
