@@ -488,22 +488,11 @@ static ret_code_t set_control_state(SaHpiSessionIdT sessionid,
 				return HPI_SHELL_CMD_ERROR;
 			};
 			state.StateUnion.Oem.MId = res;
-			i = get_string_param("Oem body: ", buf,
-				SAHPI_MAX_TEXT_BUFFER_LENGTH);
-			str = buf;
-			while (*str == ' ') str++;
-			i = strlen(str);
-			while ((i > 0) && (str[i - 1] == ' ')) i--;
-			str[i] = 0;
-			if (i == 0) {
-				printf("Invalid text: %s\n", buf);
-				return(HPI_SHELL_CMD_ERROR);
-			};
-			if (i > SAHPI_CTRL_MAX_OEM_BODY_LENGTH)
-				i = SAHPI_CTRL_MAX_OEM_BODY_LENGTH;
 			memset(state.StateUnion.Oem.Body, 0,
 				SAHPI_CTRL_MAX_OEM_BODY_LENGTH);
-			strncpy(state.StateUnion.Oem.Body, str, i);
+			i = get_hex_string_param("Oem body: ",
+				state.StateUnion.Oem.Body,
+				SAHPI_CTRL_MAX_OEM_BODY_LENGTH);
 			state.StateUnion.Oem.BodyLength = i;
 			break;
 		default:
