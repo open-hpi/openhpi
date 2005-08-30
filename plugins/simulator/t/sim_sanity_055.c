@@ -60,7 +60,7 @@ static int inject_event(char *plugin_name) {
         return -1;
     }
     sprintf(txtptr, "%s=%s", SIM_MSG_RPT_ENTITYPATH,
-            "{BIOS,1},{SYSTEM_CHASSIS,1}");
+            "{BIOS,1}{SYSTEM_CHASSIS,1}");
     n += strlen(txtptr) + 1;
     txtptr = buf.mtext + n;
     if (n > SIM_MSG_QUEUE_BUFSIZE) {

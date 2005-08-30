@@ -1402,6 +1402,7 @@ static void process_resource_add_event_msg(SIM_MSG_QUEUE_BUF *buf) {
         SaHpiRptEntryT data;
         char *value;
         char *comment;
+        SaErrorT rc;
 
         memset(&data, sizeof(data), 0);
 
@@ -1423,7 +1424,11 @@ static void process_resource_add_event_msg(SIM_MSG_QUEUE_BUF *buf) {
                 dbg("invalid SIM_MSG_HANDLER_NAME");
                 return;
         }
-	oh_encode_entitypath (value, &data.ResourceEntity);
+	rc = oh_encode_entitypath (value, &data.ResourceEntity);
+        if (rc) {
+                dbg("bad return code %d from oh_encode_entitypath()", rc);
+                return;
+        }
         data.ResourceId = oh_uid_from_entity_path(&data.ResourceEntity);
 
         /* get the resource info */
@@ -1525,6 +1530,7 @@ static void process_rdr_add_event_msg(SIM_MSG_QUEUE_BUF *buf) {
         struct sim_inventory_info *idrinfo;
         struct sim_control_info *ctrlinfo;
 	struct SensorInfo *sinfo;  // our extra info
+        SaErrorT rc;
 
         memset(&data, sizeof(data), 0);
 
@@ -1553,7 +1559,11 @@ static void process_rdr_add_event_msg(SIM_MSG_QUEUE_BUF *buf) {
                 dbg("invalid SIM_MSG_RDR_ENTITYPATH");
                 return;
         }
-	oh_encode_entitypath (value, &data.Entity);
+	rc = oh_encode_entitypath (value, &data.Entity);
+        if (rc) {
+                dbg("bad return code %d from oh_encode_entitypath()", rc);
+                return;
+        }
         resid = oh_uid_from_entity_path(&data.Entity);
         /* get the fru flag */
         value = find_value(SIM_MSG_RDR_FRU, buf->mtext);
