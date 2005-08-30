@@ -21,6 +21,8 @@
 
 #define SHOW_BUF_SZ	1024
 
+typedef unsigned char	uchar;
+
 extern char	*lookup_proc(int num, int val);
 extern SaErrorT	decode_proc(int num, void *val, char *buf, int bufsize);
 extern SaErrorT	decode1_proc(int num, int val, char *buf, int bufsize);
@@ -37,7 +39,8 @@ SaErrorT sensor_list(SaHpiSessionIdT sessionid, hpi_ui_print_cb_t proc)
 	/* walk the RPT list */
 	rptentryid = SAHPI_FIRST_ENTRY;
 	while (rptentryid != SAHPI_LAST_ENTRY) {
-		rv = saHpiRptEntryGet(sessionid, rptentryid, &nextrptentryid, &rptentry);
+		rv = saHpiRptEntryGet(sessionid, rptentryid, &nextrptentryid,
+			&rptentry);
 		if (rv != SA_OK)
 			break;
 		ret = show_sensor_list(sessionid, rptentry.ResourceId, proc);
@@ -87,7 +90,8 @@ Pr_ret_t print_thres_value(SaHpiSensorReadingT *item, char *info,
 			if (val != NULL)
 				snprintf(buf, SHOW_BUF_SZ, "%s %s\n", mes, val);
 			else
-				snprintf(buf, SHOW_BUF_SZ, "%s %s\n", mes, "(null pointer)");
+				snprintf(buf, SHOW_BUF_SZ, "%s %s\n", mes,
+					"(null pointer)");
 			break;
 	};
 	return(proc(buf));
@@ -117,7 +121,8 @@ int show_threshold(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 	memset(&senstbuff, 0, sizeof(SaHpiSensorThresholdsT));
 	rv = saHpiSensorThresholdsGet(sessionid, resourceid, sensornum, &senstbuff);
 	if (rv != SA_OK) {
-		snprintf(buf, SHOW_BUF_SZ, "ERROR: saHpiSensorThresholdsGet error = %s\n",
+		snprintf(buf, SHOW_BUF_SZ,
+			"ERROR: saHpiSensorThresholdsGet error = %s\n",
 			oh_lookup_error(rv));
 		proc(buf);
 		return -1; 
@@ -168,8 +173,10 @@ SaErrorT show_control(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 	SaHpiCtrlRecStreamT	*stream;
 	SaHpiCtrlRecTextT	*text;
 	SaHpiCtrlRecOemT	*oem;
+	int			i;
 
-	rv = saHpiRdrGetByInstrumentId(sessionid, resourceid, SAHPI_CTRL_RDR, num, &rdr);
+	rv = saHpiRdrGetByInstrumentId(sessionid, resourceid, SAHPI_CTRL_RDR,
+		num, &rdr);
 	if (rv != SA_OK) {
 		snprintf(errbuf, SHOW_BUF_SZ,
 			"\nERROR: saHpiRdrGetByInstrumentId: error: %s\n",
@@ -208,25 +215,40 @@ SaErrorT show_control(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 			break;
 		case SAHPI_CTRL_TYPE_ANALOG:
 			analog = &(ctrl->TypeUnion.Analog);
-			snprintf(buf, SHOW_BUF_SZ, "\tDefault: %d  (min = %d  max = %d)\n",
+			snprintf(buf, SHOW_BUF_SZ,
+				"\tDefault: %d  (min = %d  max = %d)\n",
 				analog->Default, analog->Min, analog->Max);
 			break;
 		case SAHPI_CTRL_TYPE_STREAM:
 			stream = &(ctrl->TypeUnion.Stream);
-			snprintf(buf, SHOW_BUF_SZ, "\tDefault: Repeat = %d  lendth = %d  stream = %s\n",
-				stream->Default.Repeat, stream->Default.StreamLength, stream->Default.Stream);
+			snprintf(buf, SHOW_BUF_SZ,
+				"\tDefault: Repeat = %d  lendth = %d  stream = %s\n",
+				stream->Default.Repeat, stream->Default.StreamLength,
+				stream->Default.Stream);
 			break;
 		case SAHPI_CTRL_TYPE_TEXT:
 			text = &(ctrl->TypeUnion.Text);
-			snprintf(buf, SHOW_BUF_SZ, "\tDefault: Line # = %d", text->Default.Line);
+			snprintf(buf, SHOW_BUF_SZ, "\tDefault: Line # = %d",
+				text->Default.Line);
 			if (proc(buf) != HPI_UI_OK) return(SA_OK);
-			print_text_buffer_text("  Text = ", &(text->Default.Text), "\n", proc);
+			print_text_buffer_text("  Text = ", &(text->Default.Text),
+				"\n", proc);
 			return SA_OK;
 		case SAHPI_CTRL_TYPE_OEM:
 			oem = &(ctrl->TypeUnion.Oem);
-			snprintf(buf, SHOW_BUF_SZ,
-				"\tMId = %d  Config data = %s\n\tDefault: MId = %d  Body = %s\n",
-				oem->MId, oem->ConfigData, oem->Default.MId, oem->Default.Body);
+			snprintf(buf, SHOW_BUF_SZ, "\tMId = %d  Config data = ",
+				oem->MId);
+			proc(buf);
+			str = (char *)(oem->ConfigData);
+			for (i = 0; i < SAHPI_CTRL_OEM_CONFIG_LENGTH; i++)
+				sprintf(buf + i * 3, "%2.2X ", (uchar)(str[i]));
+			strcat(buf, "\n\t");
+			if (proc(buf) != HPI_UI_OK) return(SA_OK);
+			sprintf(buf, "Default: MId = %d  Body = ", oem->MId);
+			str = (char *)(oem->Default.Body);
+			for (i = 0; i < oem->Default.BodyLength; i++)
+				sprintf(buf + i * 3, "%2.2X ", (uchar)(str[i]));
+			strcat(buf, "\n");
 			break;
 		default: strcpy(buf, "Unknown control type\n");
 	};
@@ -238,6 +260,7 @@ SaErrorT show_control_state(SaHpiSessionIdT sessionid, SaHpiResourceIdT resource
 	SaHpiCtrlNumT num, hpi_ui_print_cb_t proc)
 {
         SaErrorT		rv;
+	int			i;
 	char			*str;
 	char			buf[SHOW_BUF_SZ];
 	char			errbuf[SHOW_BUF_SZ];
@@ -268,7 +291,8 @@ SaErrorT show_control_state(SaHpiSessionIdT sessionid, SaHpiResourceIdT resource
 			digit = state.StateUnion.Digital;
 			str = oh_lookup_ctrlstatedigital(digit);
 			if (str == (char *)NULL) {
-				snprintf(errbuf, SHOW_BUF_SZ, "Invalid value (0x%x)", digit);
+				snprintf(errbuf, SHOW_BUF_SZ, "Invalid value (0x%x)",
+					digit);
 				str = errbuf;
 			};
 			snprintf(buf, SHOW_BUF_SZ, "%s\n", str);
@@ -283,7 +307,8 @@ SaErrorT show_control_state(SaHpiSessionIdT sessionid, SaHpiResourceIdT resource
 			break;
 		case SAHPI_CTRL_TYPE_STREAM:
 			stream = &(state.StateUnion.Stream);
-			snprintf(buf, SHOW_BUF_SZ, "Repeat = %d  lendth = %d  stream = %s\n",
+			snprintf(buf, SHOW_BUF_SZ,
+				"Repeat = %d  lendth = %d  stream = %s\n",
 				stream->Repeat, stream->StreamLength, stream->Stream);
 			break;
 		case SAHPI_CTRL_TYPE_TEXT:
@@ -294,7 +319,12 @@ SaErrorT show_control_state(SaHpiSessionIdT sessionid, SaHpiResourceIdT resource
 			return SA_OK;
 		case SAHPI_CTRL_TYPE_OEM:
 			oem = &(state.StateUnion.Oem);
-			snprintf(buf, SHOW_BUF_SZ, "MId = %d  Body = %s\n", oem->MId, oem->Body);
+			snprintf(buf, SHOW_BUF_SZ, "MId = %d  Body = ", oem->MId);
+			proc(buf);
+			str = (char *)(oem->Body);
+			for (i = 0; i < oem->BodyLength; i++)
+				sprintf(buf + i * 3, "%2.2X ", (uchar)(str[i]));
+			strcat(buf, "\n");
 			break;
 		default: strcpy(buf, "Unknown control type\n");
 	};
@@ -351,7 +381,8 @@ SaErrorT show_sensor(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 		else res = proc("Disable");
 		if (res != HPI_UI_OK) return(SA_OK);
 	};
-	rv = saHpiSensorEventMasksGet(sessionid, resourceid, sensornum, &assert, &deassert);
+	rv = saHpiSensorEventMasksGet(sessionid, resourceid, sensornum,
+		&assert, &deassert);
 	if (rv != SA_OK) {
 		snprintf(errbuf, SHOW_BUF_SZ,
 			"\nERROR: saHpiSensorEventMasksGet: error: %s\n",
@@ -376,7 +407,8 @@ SaErrorT show_sensor(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
         if (reading.IsSupported) {
 		snprintf(buf, SHOW_BUF_SZ, "     Event states = %x", status);
 		if (proc(buf) != HPI_UI_OK) return(SA_OK);
-		res = print_thres_value(&reading, "     Reading Value =", NULL, 0, proc);
+		res = print_thres_value(&reading, "     Reading Value =",
+			NULL, 0, proc);
 		if (res == HPI_UI_END) return(SA_OK);
 	} else
 		if (proc("\tReading not supported\n") != HPI_UI_OK) return(SA_OK);
@@ -479,7 +511,8 @@ Pr_ret_t show_sensor_list(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid
 			snprintf(buf, 256, "Resource Id: %d, Sensor Num: %d",
 				resourceid, rdr.RdrTypeUnion.SensorRec.Num);
 			if (proc(buf) != 0) return(HPI_UI_END);
-			if (print_text_buffer_text(" Tag: ", &(rdr.IdString), NULL, proc) != 0)
+			if (print_text_buffer_text(" Tag: ", &(rdr.IdString),
+				NULL, proc) != 0)
 				return(-1);
 			if (proc("\n") != 0) return(HPI_UI_END);
 		};
@@ -508,7 +541,8 @@ int show_rdr_list(Domain_t *domain, SaHpiResourceIdT rptid, SaHpiRdrTypeT passed
 
 	entryid = SAHPI_FIRST_ENTRY;
 	while (entryid !=SAHPI_LAST_ENTRY) {
-		ret = saHpiRdrGet(domain->sessionId, rptid, entryid, &nextentryid, &rdr);
+		ret = saHpiRdrGet(domain->sessionId, rptid, entryid,
+			&nextentryid, &rdr);
 		if (ret != SA_OK)
 			return(res_num);
 		type = rdr.RdrType;
@@ -554,7 +588,8 @@ int show_rdr_list(Domain_t *domain, SaHpiResourceIdT rptid, SaHpiRdrTypeT passed
 		strcat(buf, ar);
 		res_num++;
 		if (proc(buf) != HPI_UI_OK) return(res_num);
-		if (print_text_buffer_text(" Tag=", &(rdr.IdString), "\n", proc) != HPI_UI_OK)
+		if (print_text_buffer_text(" Tag=", &(rdr.IdString),
+			"\n", proc) != HPI_UI_OK)
 			return(res_num);
 		entryid = nextentryid;
 	};
@@ -637,7 +672,8 @@ int show_rpt_list(Domain_t *domain, int as, SaHpiResourceIdT rptid,
 		strcat(buf, "\n");
 		if (proc(buf) != HPI_UI_OK) return(res_num);
 		if (as == SHOW_ALL_RDR)
-			show_rdr_list(domain, rpt_entry.ResourceId, SAHPI_NO_RECORD, proc);
+			show_rdr_list(domain, rpt_entry.ResourceId,
+				SAHPI_NO_RECORD, proc);
 		rptentryid = nextrptentryid;
 	};
 	return(res_num);
@@ -669,7 +705,8 @@ static Pr_ret_t show_attrs(Attributes_t *Attrs, int delta, hpi_ui_print_cb_t pro
 				if (proc(buf) != 0) return(-1);
 				rv = get_value(Attrs, i, &val);
 				if (rv != SA_OK) continue;
-				ret = show_attrs((Attributes_t *)(val.a), delta + 1, proc);
+				ret = show_attrs((Attributes_t *)(val.a),
+					delta + 1, proc);
 				if (ret != HPI_UI_OK) return(HPI_UI_END);
 				continue;
 			case LOOKUP_TYPE:
@@ -677,11 +714,13 @@ static Pr_ret_t show_attrs(Attributes_t *Attrs, int delta, hpi_ui_print_cb_t pro
 					val.i), 256);
 				break;
 			case DECODE_TYPE:
-				rv = decode_proc(Attrs->Attrs[i].lunum, val.a, tmp, 256);
+				rv = decode_proc(Attrs->Attrs[i].lunum, val.a,
+					tmp, 256);
 				if (rv != SA_OK) continue;
 				break;
 			case DECODE1_TYPE:
-				rv = decode1_proc(Attrs->Attrs[i].lunum, val.i, tmp, 256);
+				rv = decode1_proc(Attrs->Attrs[i].lunum, val.i,
+					tmp, 256);
 				if (rv != SA_OK) continue;
 				break;
 			case READING_TYPE:
@@ -769,7 +808,8 @@ Pr_ret_t show_short_event(SaHpiEventT *event, hpi_ui_print_cb_t proc)
 			snprintf(buf, SHOW_BUF_SZ, "%d %s %s -> %s",
 				event->Source, oh_lookup_severity(event->Severity),
 				oh_lookup_hsstate(
-				event->EventDataUnion.HotSwapEvent.PreviousHotSwapState),
+					event->EventDataUnion.HotSwapEvent.
+						PreviousHotSwapState),
 				oh_lookup_hsstate(
 				event->EventDataUnion.HotSwapEvent.HotSwapState));
 			if (proc(buf) != HPI_UI_OK) return(HPI_UI_END);
@@ -839,12 +879,14 @@ SaErrorT show_inventory(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 
 	rv = saHpiIdrInfoGet(sessionid, resourceid, IdrId, &info);
 	if (rv != SA_OK) {
-		snprintf(buf, SHOW_BUF_SZ, "ERROR!!! saHpiIdrInfoGet: %s\n", oh_lookup_error(rv));
+		snprintf(buf, SHOW_BUF_SZ, "ERROR!!! saHpiIdrInfoGet: %s\n",
+			oh_lookup_error(rv));
 		proc(buf);
 		return(-1);
 	};
 	num = info.NumAreas;
-	snprintf(buf, SHOW_BUF_SZ, "Inventory: %d   Update count: %d   Read only: %d   Areas: %d\n",
+	snprintf(buf, SHOW_BUF_SZ,
+		"Inventory: %d   Update count: %d   Read only: %d   Areas: %d\n",
 		info.IdrId, info.UpdateCount, info.ReadOnly, num);
 	if (proc(buf) != 0) return(SA_OK);
 	entryid = SAHPI_FIRST_ENTRY;
@@ -858,7 +900,8 @@ SaErrorT show_inventory(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 		};
 		str = oh_lookup_idrareatype(hdr.Type);
 		if (str == NULL) str = "Unknown";
-		snprintf(buf, SHOW_BUF_SZ, "    Area: %d   Type: %s   Read Only: %d   Fields: %d\n",
+		snprintf(buf, SHOW_BUF_SZ,
+			"    Area: %d   Type: %s   Read Only: %d   Fields: %d\n",
 			hdr.AreaId, str, hdr.ReadOnly, hdr.NumFields);
 		if (proc(buf) != 0) return(SA_OK);
 		fentryid = SAHPI_FIRST_ENTRY;
@@ -873,10 +916,12 @@ SaErrorT show_inventory(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 			};
 			str = oh_lookup_idrfieldtype(field.Type);
 			if (str == NULL) str = "Unknown";
-			snprintf(buf, SHOW_BUF_SZ, "        Field: %d  Type: %s Read Only: %d (",
+			snprintf(buf, SHOW_BUF_SZ,
+				"        Field: %d  Type: %s Read Only: %d (",
 				field.FieldId, str, field.ReadOnly);
 			if (proc(buf) != 0) return(SA_OK);
-			if (print_text_buffer(NULL, &(field.Field), NULL, proc) != 0) return(SA_OK);
+			if (print_text_buffer(NULL, &(field.Field), NULL, proc) != 0)
+				return(SA_OK);
 			if (proc(")\n") != 0) return(SA_OK);
 			fentryid = nextfentryid;
 		}
