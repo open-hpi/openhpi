@@ -59,12 +59,6 @@ static int inject_event(char *plugin_name) {
     if (n > SIM_MSG_QUEUE_BUFSIZE) {
         return -1;
     }
-    sprintf(txtptr, "%s=%d", SIM_MSG_RDR_RESID, 1);
-    n += strlen(txtptr) + 1;
-    txtptr = buf.mtext + n;
-    if (n > SIM_MSG_QUEUE_BUFSIZE) {
-        return -1;
-    }
     sprintf(txtptr, "%s=%d", SIM_MSG_RDR_TYPE, SAHPI_INVENTORY_RDR);
     n += strlen(txtptr) + 1;
     txtptr = buf.mtext + n;
@@ -72,7 +66,7 @@ static int inject_event(char *plugin_name) {
         return -1;
     }
     sprintf(txtptr, "%s=%s", SIM_MSG_RDR_ENTITYPATH,
-            "{SYSTEM_CHASSIS, 1},(ROOT,0}");
+            "{SYSTEM_CHASSIS, 1}");
     n += strlen(txtptr) + 1;
     txtptr = buf.mtext + n;
     if (n > SIM_MSG_QUEUE_BUFSIZE) {

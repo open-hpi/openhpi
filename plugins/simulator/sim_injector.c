@@ -1402,8 +1402,6 @@ static void process_resource_add_event_msg(SIM_MSG_QUEUE_BUF *buf) {
         SaHpiRptEntryT data;
         char *value;
         char *comment;
-	SaHpiEntityPathT root_ep;
-	char *entity_root;
 
         memset(&data, sizeof(data), 0);
 
@@ -1420,9 +1418,12 @@ static void process_resource_add_event_msg(SIM_MSG_QUEUE_BUF *buf) {
         }
 
         /* get the entity root */
-	entity_root = (char *)g_hash_table_lookup(state->config,"entity_root");
-	oh_encode_entitypath (entity_root, &root_ep);
-        oh_concat_ep(&data.ResourceEntity, &root_ep);
+        value = find_value(SIM_MSG_RPT_ENTITYPATH, buf->mtext);
+        if (value == NULL) {
+                dbg("invalid SIM_MSG_HANDLER_NAME");
+                return;
+        }
+	oh_encode_entitypath (value, &data.ResourceEntity);
         data.ResourceId = oh_uid_from_entity_path(&data.ResourceEntity);
 
         /* get the resource info */
@@ -1502,7 +1503,7 @@ static void process_resource_add_event_msg(SIM_MSG_QUEUE_BUF *buf) {
         }
         /* get the resource tag */
         sim_create_resourcetag(&data.ResourceTag, comment,
-                               root_ep.Entry[0].EntityLocation);
+                               data.ResourceEntity.Entry[0].EntityLocation);
 
         /* now inject the resource */
         sim_inject_resource(state, &data, NULL, comment);
@@ -1538,13 +1539,6 @@ static void process_rdr_add_event_msg(SIM_MSG_QUEUE_BUF *buf) {
                 return;
         }
 
-        /* get the rrsource id */
-        value = find_value(SIM_MSG_RDR_RESID, buf->mtext);
-        if (value == NULL) {
-                dbg("invalid SIM_MSG_RDR_RESID");
-                return;
-        }
-        resid = (SaHpiResourceIdT)atoi(value);
         /* get the rdr type */
         value = find_value(SIM_MSG_RDR_TYPE, buf->mtext);
         if (value == NULL) {
@@ -1558,6 +1552,8 @@ static void process_rdr_add_event_msg(SIM_MSG_QUEUE_BUF *buf) {
                 dbg("invalid SIM_MSG_RDR_ENTITYPATH");
                 return;
         }
+	oh_encode_entitypath (value, &data.Entity);
+        resid = oh_uid_from_entity_path(&data.Entity);
         /* get the fru flag */
         value = find_value(SIM_MSG_RDR_FRU, buf->mtext);
         if (value == NULL) {
