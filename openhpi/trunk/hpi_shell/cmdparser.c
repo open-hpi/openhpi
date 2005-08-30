@@ -529,6 +529,30 @@ int get_hex_int_param(char *mes, int *val)
 	return(1);
 }
 
+int get_hex_string_param(char *mes, char *res, int max_length)
+{
+	char		*str, buf[32];
+	int		redir, i, val;
+	term_def_t	*term;
+
+	for (i = 0; i < max_length; i++) {
+		term = get_next_term();
+		if (term == NULL) {
+			cmd_parser(mes, 1, 0, &redir);
+			term = get_next_term();
+		};
+		if (term == NULL) return(i);
+		str = term->term;
+		if (strncmp(str, "0x", 2) == 0)
+			snprintf(buf, 31, "%s", str);
+		else
+			snprintf(buf, 31, "0x%s", str);
+		val = strtol(buf, (char **)NULL, 16);
+		res[i] = val;
+	};
+	return(i);
+}
+
 int get_string_param(char *mes, char *val, int len)
 {
 	term_def_t	*term;
