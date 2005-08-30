@@ -1919,211 +1919,220 @@ static void process_rdr_add_event_msg(SIM_MSG_QUEUE_BUF *buf) {
                         return;
                 }
                 data.RdrTypeUnion.SensorRec.DataFormat.Range.Flags = (SaHpiSensorRangeFlagsT)atoi(value);
-                /* get the sensor data range max supported */
-                value = find_value(SIM_MSG_RDR_SENSOR_DATA_RANGE_MAX_SUPPORTED, buf->mtext);
-                if (value == NULL) {
-                        dbg("invalid SIM_MSG_RDR_SENSOR_DATA_RANGE_MAX_SUPPORTED");
-                        return;
+                if (data.RdrTypeUnion.SensorRec.DataFormat.Range.Flags & SAHPI_SRF_MAX) {
+                        /* get the sensor data range max supported */
+                        value = find_value(SIM_MSG_RDR_SENSOR_DATA_RANGE_MAX_SUPPORTED, buf->mtext);
+                        if (value == NULL) {
+                                dbg("invalid SIM_MSG_RDR_SENSOR_DATA_RANGE_MAX_SUPPORTED");
+                                return;
+                        }
+                        data.RdrTypeUnion.SensorRec.DataFormat.Range.Max.IsSupported = (SaHpiBoolT)atoi(value);
+                        /* get the sensor data range max type */
+                        value = find_value(SIM_MSG_RDR_SENSOR_DATA_RANGE_MAX_TYPE, buf->mtext);
+                        if (value == NULL) {
+                                dbg("invalid SIM_MSG_RDR_SENSOR_DATA_RANGE_MAX_TYPE");
+                                return;
+                        }
+                        data.RdrTypeUnion.SensorRec.DataFormat.Range.Max.Type = (SaHpiSensorReadingTypeT)atoi(value);
+                        /* get the sensor data range max value */
+                        value = find_value(SIM_MSG_RDR_SENSOR_DATA_RANGE_MAX_VALUE, buf->mtext);
+                        if (value == NULL) {
+                                dbg("invalid SIM_MSG_RDR_SENSOR_DATA_RANGE_MAX_VALUE");
+                                return;
+                        }
+                        switch (data.RdrTypeUnion.SensorRec.DataFormat.Range.Max.Type) {
+                        case SAHPI_SENSOR_READING_TYPE_INT64:
+                                data.RdrTypeUnion.SensorRec.DataFormat.Range.Max.Value.SensorInt64 =
+                                 strtoll(value, NULL, 10);
+                                break;
+                        case SAHPI_SENSOR_READING_TYPE_UINT64:
+                                data.RdrTypeUnion.SensorRec.DataFormat.Range.Max.Value.SensorUint64 =
+                                 strtoull(value, NULL, 10);
+                                break;
+                        case SAHPI_SENSOR_READING_TYPE_FLOAT64:
+                                data.RdrTypeUnion.SensorRec.DataFormat.Range.Max.Value.SensorFloat64 =
+                                 strtod(value, NULL);
+                                break;
+                        case SAHPI_SENSOR_READING_TYPE_BUFFER:
+                                strncpy(data.RdrTypeUnion.SensorRec.DataFormat.Range.Max.Value.SensorBuffer,
+                                       value, SAHPI_SENSOR_BUFFER_LENGTH);
+                                break;
+                        default:
+                                dbg("invalid SIM_MSG_RDR_SENSOR_DATA_RANGE_MAX_TYPE");
+                                return;
+                        }
                 }
-                data.RdrTypeUnion.SensorRec.DataFormat.Range.Max.IsSupported = (SaHpiBoolT)atoi(value);
-                /* get the sensor data range max type */
-                value = find_value(SIM_MSG_RDR_SENSOR_DATA_RANGE_MAX_TYPE, buf->mtext);
-                if (value == NULL) {
-                        dbg("invalid SIM_MSG_RDR_SENSOR_DATA_RANGE_MAX_TYPE");
-                        return;
+                if (data.RdrTypeUnion.SensorRec.DataFormat.Range.Flags & SAHPI_SRF_MIN) {
+                        /* get the sensor data range min supported */
+                        value = find_value(SIM_MSG_RDR_SENSOR_DATA_RANGE_MIN_SUPPORTED, buf->mtext);
+                        if (value == NULL) {
+                                dbg("invalid SIM_MSG_RDR_SENSOR_DATA_RANGE_MIN_SUPPORTED");
+                                return;
+                        }
+                        data.RdrTypeUnion.SensorRec.DataFormat.Range.Min.IsSupported = (SaHpiBoolT)atoi(value);
+                        /* get the sensor data range min type */
+                        value = find_value(SIM_MSG_RDR_SENSOR_DATA_RANGE_MIN_TYPE, buf->mtext);
+                        if (value == NULL) {
+                                dbg("invalid SIM_MSG_RDR_SENSOR_DATA_RANGE_MIN_TYPE");
+                                return;
+                        }
+                        data.RdrTypeUnion.SensorRec.DataFormat.Range.Min.Type = (SaHpiSensorReadingTypeT)atoi(value);
+                        /* get the sensor data range min value */
+                        value = find_value(SIM_MSG_RDR_SENSOR_DATA_RANGE_MIN_VALUE, buf->mtext);
+                        if (value == NULL) {
+                                dbg("invalid SIM_MSG_RDR_SENSOR_DATA_RANGE_MIN_VALUE");
+                                return;
+                        }
+                        switch (data.RdrTypeUnion.SensorRec.DataFormat.Range.Min.Type) {
+                        case SAHPI_SENSOR_READING_TYPE_INT64:
+                                data.RdrTypeUnion.SensorRec.DataFormat.Range.Min.Value.SensorInt64 =
+                                 strtoll(value, NULL, 10);
+                                break;
+                        case SAHPI_SENSOR_READING_TYPE_UINT64:
+                                data.RdrTypeUnion.SensorRec.DataFormat.Range.Min.Value.SensorUint64 =
+                                 strtoull(value, NULL, 10);
+                                break;
+                        case SAHPI_SENSOR_READING_TYPE_FLOAT64:
+                                data.RdrTypeUnion.SensorRec.DataFormat.Range.Min.Value.SensorFloat64 =
+                                 strtod(value, NULL);
+                                break;
+                        case SAHPI_SENSOR_READING_TYPE_BUFFER:
+                                strncpy(data.RdrTypeUnion.SensorRec.DataFormat.Range.Min.Value.SensorBuffer,
+                                       value, SAHPI_SENSOR_BUFFER_LENGTH);
+                                break;
+                        default:
+                                dbg("invalid SIM_MSG_RDR_SENSOR_DATA_RANGE_MIN_TYPE");
+                                return;
+                        }
                 }
-                data.RdrTypeUnion.SensorRec.DataFormat.Range.Max.Type = (SaHpiSensorReadingTypeT)atoi(value);
-                /* get the sensor data range max value */
-                value = find_value(SIM_MSG_RDR_SENSOR_DATA_RANGE_MAX_VALUE, buf->mtext);
-                if (value == NULL) {
-                        dbg("invalid SIM_MSG_RDR_SENSOR_DATA_RANGE_MAX_VALUE");
-                        return;
+                if (data.RdrTypeUnion.SensorRec.DataFormat.Range.Flags & SAHPI_SRF_NOMINAL) {
+                        /* get the sensor data range nominal supported */
+                        value = find_value(SIM_MSG_RDR_SENSOR_DATA_RANGE_NOMINAL_SUPPORTED, buf->mtext);
+                        if (value == NULL) {
+                                dbg("invalid SIM_MSG_RDR_SENSOR_DATA_RANGE_NOMINAL_SUPPORTED");
+                                return;
+                        }
+                        data.RdrTypeUnion.SensorRec.DataFormat.Range.Nominal.IsSupported = (SaHpiBoolT)atoi(value);
+                        /* get the sensor data range nominal type */
+                        value = find_value(SIM_MSG_RDR_SENSOR_DATA_RANGE_NOMINAL_TYPE, buf->mtext);
+                        if (value == NULL) {
+                                dbg("invalid SIM_MSG_RDR_SENSOR_DATA_RANGE_NOMINAL_TYPE");
+                                return;
+                        }
+                        data.RdrTypeUnion.SensorRec.DataFormat.Range.Nominal.Type = (SaHpiSensorReadingTypeT)atoi(value);
+                        /* get the sensor data range nominal value */
+                        value = find_value(SIM_MSG_RDR_SENSOR_DATA_RANGE_NOMINAL_VALUE, buf->mtext);
+                        if (value == NULL) {
+                                dbg("invalid SIM_MSG_RDR_SENSOR_DATA_RANGE_NOMINAL_VALUE");
+                                return;
+                        }
+                        switch (data.RdrTypeUnion.SensorRec.DataFormat.Range.Nominal.Type) {
+                        case SAHPI_SENSOR_READING_TYPE_INT64:
+                                data.RdrTypeUnion.SensorRec.DataFormat.Range.Nominal.Value.SensorInt64 =
+                                 strtoll(value, NULL, 10);
+                                break;
+                        case SAHPI_SENSOR_READING_TYPE_UINT64:
+                                data.RdrTypeUnion.SensorRec.DataFormat.Range.Nominal.Value.SensorUint64 =
+                                 strtoull(value, NULL, 10);
+                                break;
+                        case SAHPI_SENSOR_READING_TYPE_FLOAT64:
+                                data.RdrTypeUnion.SensorRec.DataFormat.Range.Nominal.Value.SensorFloat64 =
+                                 strtod(value, NULL);
+                                break;
+                        case SAHPI_SENSOR_READING_TYPE_BUFFER:
+                                strncpy(data.RdrTypeUnion.SensorRec.DataFormat.Range.Nominal.Value.SensorBuffer,
+                                       value, SAHPI_SENSOR_BUFFER_LENGTH);
+                                break;
+                        default:
+                                dbg("invalid SIM_MSG_RDR_SENSOR_DATA_RANGE_NOMINAL_TYPE");
+                                return;
+                        }
                 }
-                switch (data.RdrTypeUnion.SensorRec.DataFormat.Range.Max.Type) {
-                case SAHPI_SENSOR_READING_TYPE_INT64:
-                        data.RdrTypeUnion.SensorRec.DataFormat.Range.Max.Value.SensorInt64 =
-                         strtoll(value, NULL, 10);
-                        break;
-                case SAHPI_SENSOR_READING_TYPE_UINT64:
-                        data.RdrTypeUnion.SensorRec.DataFormat.Range.Max.Value.SensorUint64 =
-                         strtoull(value, NULL, 10);
-                        break;
-                case SAHPI_SENSOR_READING_TYPE_FLOAT64:
-                        data.RdrTypeUnion.SensorRec.DataFormat.Range.Max.Value.SensorFloat64 =
-                         strtod(value, NULL);
-                        break;
-                case SAHPI_SENSOR_READING_TYPE_BUFFER:
-                        strncpy(data.RdrTypeUnion.SensorRec.DataFormat.Range.Max.Value.SensorBuffer,
-                               value, SAHPI_SENSOR_BUFFER_LENGTH);
-                        break;
-                default:
-                        dbg("invalid SIM_MSG_RDR_SENSOR_DATA_RANGE_MAX_TYPE");
-                        return;
+                if (data.RdrTypeUnion.SensorRec.DataFormat.Range.Flags & SAHPI_SRF_NORMAL_MAX) {
+                        /* get the sensor data range normalmax supported */
+                        value = find_value(SIM_MSG_RDR_SENSOR_DATA_RANGE_NORMALMAX_SUPPORTED, buf->mtext);
+                        if (value == NULL) {
+                                dbg("invalid SIM_MSG_RDR_SENSOR_DATA_RANGE_NORMAL_SUPPORTED");
+                                return;
+                        }
+                        data.RdrTypeUnion.SensorRec.DataFormat.Range.NormalMax.IsSupported = (SaHpiBoolT)atoi(value);
+                        /* get the sensor data range nominal type */
+                        value = find_value(SIM_MSG_RDR_SENSOR_DATA_RANGE_NORMALMAX_TYPE, buf->mtext);
+                        if (value == NULL) {
+                                dbg("invalid SIM_MSG_RDR_SENSOR_DATA_RANGE_NORMALMAX_TYPE");
+                                return;
+                        }
+                        data.RdrTypeUnion.SensorRec.DataFormat.Range.NormalMax.Type = (SaHpiSensorReadingTypeT)atoi(value);
+                        /* get the sensor data range normalmax value */
+                        value = find_value(SIM_MSG_RDR_SENSOR_DATA_RANGE_NORMALMAX_VALUE, buf->mtext);
+                        if (value == NULL) {
+                                dbg("invalid SIM_MSG_RDR_SENSOR_DATA_RANGE_NORMALMAX_VALUE");
+                                return;
+                        }
+                        switch (data.RdrTypeUnion.SensorRec.DataFormat.Range.NormalMax.Type) {
+                        case SAHPI_SENSOR_READING_TYPE_INT64:
+                                data.RdrTypeUnion.SensorRec.DataFormat.Range.NormalMax.Value.SensorInt64 =
+                                 strtoll(value, NULL, 10);
+                                break;
+                        case SAHPI_SENSOR_READING_TYPE_UINT64:
+                                data.RdrTypeUnion.SensorRec.DataFormat.Range.NormalMax.Value.SensorUint64 =
+                                 strtoull(value, NULL, 10);
+                                break;
+                        case SAHPI_SENSOR_READING_TYPE_FLOAT64:
+                                data.RdrTypeUnion.SensorRec.DataFormat.Range.NormalMax.Value.SensorFloat64 =
+                                 strtod(value, NULL);
+                                break;
+                        case SAHPI_SENSOR_READING_TYPE_BUFFER:
+                                strncpy(data.RdrTypeUnion.SensorRec.DataFormat.Range.NormalMax.Value.SensorBuffer,
+                                       value, SAHPI_SENSOR_BUFFER_LENGTH);
+                                break;
+                        default:
+                                dbg("invalid SIM_MSG_RDR_SENSOR_DATA_RANGE_NORMALMAX_TYPE");
+                                return;
+                        }
                 }
-                /* get the sensor data range min supported */
-                value = find_value(SIM_MSG_RDR_SENSOR_DATA_RANGE_MIN_SUPPORTED, buf->mtext);
-                if (value == NULL) {
-                        dbg("invalid SIM_MSG_RDR_SENSOR_DATA_RANGE_MIN_SUPPORTED");
-                        return;
-                }
-                data.RdrTypeUnion.SensorRec.DataFormat.Range.Min.IsSupported = (SaHpiBoolT)atoi(value);
-                /* get the sensor data range min type */
-                value = find_value(SIM_MSG_RDR_SENSOR_DATA_RANGE_MIN_TYPE, buf->mtext);
-                if (value == NULL) {
-                        dbg("invalid SIM_MSG_RDR_SENSOR_DATA_RANGE_MIN_TYPE");
-                        return;
-                }
-                data.RdrTypeUnion.SensorRec.DataFormat.Range.Min.Type = (SaHpiSensorReadingTypeT)atoi(value);
-                /* get the sensor data range min value */
-                value = find_value(SIM_MSG_RDR_SENSOR_DATA_RANGE_MIN_VALUE, buf->mtext);
-                if (value == NULL) {
-                        dbg("invalid SIM_MSG_RDR_SENSOR_DATA_RANGE_MIN_VALUE");
-                        return;
-                }
-                switch (data.RdrTypeUnion.SensorRec.DataFormat.Range.Min.Type) {
-                case SAHPI_SENSOR_READING_TYPE_INT64:
-                        data.RdrTypeUnion.SensorRec.DataFormat.Range.Min.Value.SensorInt64 =
-                         strtoll(value, NULL, 10);
-                        break;
-                case SAHPI_SENSOR_READING_TYPE_UINT64:
-                        data.RdrTypeUnion.SensorRec.DataFormat.Range.Min.Value.SensorUint64 =
-                         strtoull(value, NULL, 10);
-                        break;
-                case SAHPI_SENSOR_READING_TYPE_FLOAT64:
-                        data.RdrTypeUnion.SensorRec.DataFormat.Range.Min.Value.SensorFloat64 =
-                         strtod(value, NULL);
-                        break;
-                case SAHPI_SENSOR_READING_TYPE_BUFFER:
-                        strncpy(data.RdrTypeUnion.SensorRec.DataFormat.Range.Min.Value.SensorBuffer,
-                               value, SAHPI_SENSOR_BUFFER_LENGTH);
-                        break;
-                default:
-                        dbg("invalid SIM_MSG_RDR_SENSOR_DATA_RANGE_MIN_TYPE");
-                        return;
-                }
-                /* get the sensor data range nominal supported */
-                value = find_value(SIM_MSG_RDR_SENSOR_DATA_RANGE_NOMINAL_SUPPORTED, buf->mtext);
-                if (value == NULL) {
-                        dbg("invalid SIM_MSG_RDR_SENSOR_DATA_RANGE_NOMINAL_SUPPORTED");
-                        return;
-                }
-                data.RdrTypeUnion.SensorRec.DataFormat.Range.Nominal.IsSupported = (SaHpiBoolT)atoi(value);
-                /* get the sensor data range nominal type */
-                value = find_value(SIM_MSG_RDR_SENSOR_DATA_RANGE_NOMINAL_TYPE, buf->mtext);
-                if (value == NULL) {
-                        dbg("invalid SIM_MSG_RDR_SENSOR_DATA_RANGE_NOMINAL_TYPE");
-                        return;
-                }
-                data.RdrTypeUnion.SensorRec.DataFormat.Range.Nominal.Type = (SaHpiSensorReadingTypeT)atoi(value);
-                /* get the sensor data range nominal value */
-                value = find_value(SIM_MSG_RDR_SENSOR_DATA_RANGE_NOMINAL_VALUE, buf->mtext);
-                if (value == NULL) {
-                        dbg("invalid SIM_MSG_RDR_SENSOR_DATA_RANGE_NOMINAL_VALUE");
-                        return;
-                }
-                switch (data.RdrTypeUnion.SensorRec.DataFormat.Range.Nominal.Type) {
-                case SAHPI_SENSOR_READING_TYPE_INT64:
-                        data.RdrTypeUnion.SensorRec.DataFormat.Range.Nominal.Value.SensorInt64 =
-                         strtoll(value, NULL, 10);
-                        break;
-                case SAHPI_SENSOR_READING_TYPE_UINT64:
-                        data.RdrTypeUnion.SensorRec.DataFormat.Range.Nominal.Value.SensorUint64 =
-                         strtoull(value, NULL, 10);
-                        break;
-                case SAHPI_SENSOR_READING_TYPE_FLOAT64:
-                        data.RdrTypeUnion.SensorRec.DataFormat.Range.Nominal.Value.SensorFloat64 =
-                         strtod(value, NULL);
-                        break;
-                case SAHPI_SENSOR_READING_TYPE_BUFFER:
-                        strncpy(data.RdrTypeUnion.SensorRec.DataFormat.Range.Nominal.Value.SensorBuffer,
-                               value, SAHPI_SENSOR_BUFFER_LENGTH);
-                        break;
-                default:
-                        dbg("invalid SIM_MSG_RDR_SENSOR_DATA_RANGE_NOMINAL_TYPE");
-                        return;
-                }
-                break;
-                /* get the sensor data range normalmax supported */
-                value = find_value(SIM_MSG_RDR_SENSOR_DATA_RANGE_NORMALMAX_SUPPORTED, buf->mtext);
-                if (value == NULL) {
-                        dbg("invalid SIM_MSG_RDR_SENSOR_DATA_RANGE_NORMAL_SUPPORTED");
-                        return;
-                }
-                data.RdrTypeUnion.SensorRec.DataFormat.Range.NormalMax.IsSupported = (SaHpiBoolT)atoi(value);
-                /* get the sensor data range nominal type */
-                value = find_value(SIM_MSG_RDR_SENSOR_DATA_RANGE_NORMALMAX_TYPE, buf->mtext);
-                if (value == NULL) {
-                        dbg("invalid SIM_MSG_RDR_SENSOR_DATA_RANGE_NORMALMAX_TYPE");
-                        return;
-                }
-                data.RdrTypeUnion.SensorRec.DataFormat.Range.NormalMax.Type = (SaHpiSensorReadingTypeT)atoi(value);
-                /* get the sensor data range normalmax value */
-                value = find_value(SIM_MSG_RDR_SENSOR_DATA_RANGE_NORMALMAX_VALUE, buf->mtext);
-                if (value == NULL) {
-                        dbg("invalid SIM_MSG_RDR_SENSOR_DATA_RANGE_NORMALMAX_VALUE");
-                        return;
-                }
-                switch (data.RdrTypeUnion.SensorRec.DataFormat.Range.NormalMax.Type) {
-                case SAHPI_SENSOR_READING_TYPE_INT64:
-                        data.RdrTypeUnion.SensorRec.DataFormat.Range.NormalMax.Value.SensorInt64 =
-                         strtoll(value, NULL, 10);
-                        break;
-                case SAHPI_SENSOR_READING_TYPE_UINT64:
-                        data.RdrTypeUnion.SensorRec.DataFormat.Range.NormalMax.Value.SensorUint64 =
-                         strtoull(value, NULL, 10);
-                        break;
-                case SAHPI_SENSOR_READING_TYPE_FLOAT64:
-                        data.RdrTypeUnion.SensorRec.DataFormat.Range.NormalMax.Value.SensorFloat64 =
-                         strtod(value, NULL);
-                        break;
-                case SAHPI_SENSOR_READING_TYPE_BUFFER:
-                        strncpy(data.RdrTypeUnion.SensorRec.DataFormat.Range.NormalMax.Value.SensorBuffer,
-                               value, SAHPI_SENSOR_BUFFER_LENGTH);
-                        break;
-                default:
-                        dbg("invalid SIM_MSG_RDR_SENSOR_DATA_RANGE_NORMALMAX_TYPE");
-                        return;
-                }
-                /* get the sensor data range normalmin supported */
-                value = find_value(SIM_MSG_RDR_SENSOR_DATA_RANGE_NORMALMIN_SUPPORTED, buf->mtext);
-                if (value == NULL) {
-                        dbg("invalid SIM_MSG_RDR_SENSOR_DATA_RANGE_NORMALMIN_SUPPORTED");
-                        return;
-                }
-                data.RdrTypeUnion.SensorRec.DataFormat.Range.NormalMin.IsSupported = (SaHpiBoolT)atoi(value);
-                /* get the sensor data range min type */
-                value = find_value(SIM_MSG_RDR_SENSOR_DATA_RANGE_NORMALMIN_TYPE, buf->mtext);
-                if (value == NULL) {
-                        dbg("invalid SIM_MSG_RDR_SENSOR_DATA_RANGE_NORMALMIN_TYPE");
-                        return;
-                }
-                data.RdrTypeUnion.SensorRec.DataFormat.Range.NormalMin.Type = (SaHpiSensorReadingTypeT)atoi(value);
-                /* get the sensor data range min value */
-                value = find_value(SIM_MSG_RDR_SENSOR_DATA_RANGE_NORMALMIN_VALUE, buf->mtext);
-                if (value == NULL) {
-                        dbg("invalid SIM_MSG_RDR_SENSOR_DATA_RANGE_NORMALMIN_VALUE");
-                        return;
-                }
-                switch (data.RdrTypeUnion.SensorRec.DataFormat.Range.NormalMin.Type) {
-                case SAHPI_SENSOR_READING_TYPE_INT64:
-                        data.RdrTypeUnion.SensorRec.DataFormat.Range.NormalMin.Value.SensorInt64 =
-                         strtoll(value, NULL, 10);
-                        break;
-                case SAHPI_SENSOR_READING_TYPE_UINT64:
-                        data.RdrTypeUnion.SensorRec.DataFormat.Range.NormalMin.Value.SensorUint64 =
-                         strtoull(value, NULL, 10);
-                        break;
-                case SAHPI_SENSOR_READING_TYPE_FLOAT64:
-                        data.RdrTypeUnion.SensorRec.DataFormat.Range.NormalMin.Value.SensorFloat64 =
-                         strtod(value, NULL);
-                        break;
-                case SAHPI_SENSOR_READING_TYPE_BUFFER:
-                        strncpy(data.RdrTypeUnion.SensorRec.DataFormat.Range.NormalMin.Value.SensorBuffer,
-                               value, SAHPI_SENSOR_BUFFER_LENGTH);
-                        break;
-                default:
-                        dbg("invalid SIM_MSG_RDR_SENSOR_DATA_RANGE_NORMALMIN_TYPE");
-                        return;
+                if (data.RdrTypeUnion.SensorRec.DataFormat.Range.Flags & SAHPI_SRF_NORMAL_MIN) {
+                        /* get the sensor data range normalmin supported */
+                        value = find_value(SIM_MSG_RDR_SENSOR_DATA_RANGE_NORMALMIN_SUPPORTED, buf->mtext);
+                        if (value == NULL) {
+                                dbg("invalid SIM_MSG_RDR_SENSOR_DATA_RANGE_NORMALMIN_SUPPORTED");
+                                return;
+                        }
+                        data.RdrTypeUnion.SensorRec.DataFormat.Range.NormalMin.IsSupported = (SaHpiBoolT)atoi(value);
+                        /* get the sensor data range min type */
+                        value = find_value(SIM_MSG_RDR_SENSOR_DATA_RANGE_NORMALMIN_TYPE, buf->mtext);
+                        if (value == NULL) {
+                                dbg("invalid SIM_MSG_RDR_SENSOR_DATA_RANGE_NORMALMIN_TYPE");
+                                return;
+                        }
+                        data.RdrTypeUnion.SensorRec.DataFormat.Range.NormalMin.Type = (SaHpiSensorReadingTypeT)atoi(value);
+                        /* get the sensor data range min value */
+                        value = find_value(SIM_MSG_RDR_SENSOR_DATA_RANGE_NORMALMIN_VALUE, buf->mtext);
+                        if (value == NULL) {
+                                dbg("invalid SIM_MSG_RDR_SENSOR_DATA_RANGE_NORMALMIN_VALUE");
+                                return;
+                        }
+                        switch (data.RdrTypeUnion.SensorRec.DataFormat.Range.NormalMin.Type) {
+                        case SAHPI_SENSOR_READING_TYPE_INT64:
+                                data.RdrTypeUnion.SensorRec.DataFormat.Range.NormalMin.Value.SensorInt64 =
+                                 strtoll(value, NULL, 10);
+                                break;
+                        case SAHPI_SENSOR_READING_TYPE_UINT64:
+                                data.RdrTypeUnion.SensorRec.DataFormat.Range.NormalMin.Value.SensorUint64 =
+                                 strtoull(value, NULL, 10);
+                                break;
+                        case SAHPI_SENSOR_READING_TYPE_FLOAT64:
+                                data.RdrTypeUnion.SensorRec.DataFormat.Range.NormalMin.Value.SensorFloat64 =
+                                 strtod(value, NULL);
+                                break;
+                        case SAHPI_SENSOR_READING_TYPE_BUFFER:
+                                strncpy(data.RdrTypeUnion.SensorRec.DataFormat.Range.NormalMin.Value.SensorBuffer,
+                                       value, SAHPI_SENSOR_BUFFER_LENGTH);
+                                break;
+                        default:
+                                dbg("invalid SIM_MSG_RDR_SENSOR_DATA_RANGE_NORMALMIN_TYPE");
+                                return;
+                        }
                 }
                 /* get the sensor data accuracy factor */
                 value = find_value(SIM_MSG_RDR_SENSOR_DATA_ACCURACY, buf->mtext);
