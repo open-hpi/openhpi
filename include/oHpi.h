@@ -91,7 +91,6 @@ SaErrorT oHpiHandlerCreate(GHashTable *config,
 SaErrorT oHpiHandlerDestroy(oHpiHandlerIdT id);
 SaErrorT oHpiHandlerInfo(oHpiHandlerIdT id, oHpiHandlerInfoT *info);
 SaErrorT oHpiHandlerGetNext(oHpiHandlerIdT id, oHpiHandlerIdT *next_id);
-void *oHpiGetHandlerState(oHpiHandlerIdT id);
 
 /* Global parameters */
 SaErrorT oHpiGlobalParamGet(oHpiGlobalParamT *param);
