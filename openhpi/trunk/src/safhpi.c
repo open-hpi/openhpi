@@ -2241,32 +2241,34 @@ SaErrorT SAHPI_API saHpiControlSet (
          **         not set to the Language specified in the RDR.
          **      * OEM control data is invalid (see remarks below).
          **/
-        if(
-            /* case 1 */
-                (CtrlState->Type != rdr->RdrTypeUnion.CtrlRec.Type) ||
-            /* case 2 */
-                ((CtrlState->Type == SAHPI_CTRL_TYPE_ANALOG) &&
-                 ((CtrlState->StateUnion.Analog >
-                   rdr->RdrTypeUnion.CtrlRec.TypeUnion.Analog.Max) ||
-                  (CtrlState->StateUnion.Analog <
-                   rdr->RdrTypeUnion.CtrlRec.TypeUnion.Analog.Min))) ||
-            /* case 3, I think this needs to be handled by plugin */
-            /* case 4 */
-                ((CtrlState->Type == SAHPI_CTRL_TYPE_TEXT) &&
-                 (CtrlState->StateUnion.Text.Text.DataType !=
-                  rdr->RdrTypeUnion.CtrlRec.TypeUnion.Text.DataType)) ||
-            /* case 5 */
-                ((CtrlState->Type == SAHPI_CTRL_TYPE_TEXT) &&
-                 ((rdr->RdrTypeUnion.CtrlRec.TypeUnion.Text.DataType
-                   == SAHPI_TL_TYPE_UNICODE) ||
-                  (rdr->RdrTypeUnion.CtrlRec.TypeUnion.Text.DataType
-                   == SAHPI_TL_TYPE_TEXT)) &&
-                 (rdr->RdrTypeUnion.CtrlRec.TypeUnion.Text.Language !=
-                  CtrlState->StateUnion.Text.Text.Language))) {
-                dbg("Invalid data found for control");
-                oh_release_domain(d);
-                return SA_ERR_HPI_INVALID_DATA;
-        }
+	if (CtrlState) {
+		if(
+			/* case 1 */
+			(CtrlState->Type != rdr->RdrTypeUnion.CtrlRec.Type) ||
+			/* case 2 */
+			((CtrlState->Type == SAHPI_CTRL_TYPE_ANALOG) &&
+			 ((CtrlState->StateUnion.Analog >
+				rdr->RdrTypeUnion.CtrlRec.TypeUnion.Analog.Max) ||
+			 (CtrlState->StateUnion.Analog <
+				rdr->RdrTypeUnion.CtrlRec.TypeUnion.Analog.Min))) ||
+			/* case 3, I think this needs to be handled by plugin */
+			/* case 4 */
+			((CtrlState->Type == SAHPI_CTRL_TYPE_TEXT) &&
+			 (CtrlState->StateUnion.Text.Text.DataType !=
+				rdr->RdrTypeUnion.CtrlRec.TypeUnion.Text.DataType)) ||
+			/* case 5 */
+			((CtrlState->Type == SAHPI_CTRL_TYPE_TEXT) &&
+			 ((rdr->RdrTypeUnion.CtrlRec.TypeUnion.Text.DataType
+				== SAHPI_TL_TYPE_UNICODE) ||
+			 (rdr->RdrTypeUnion.CtrlRec.TypeUnion.Text.DataType
+				== SAHPI_TL_TYPE_TEXT)) &&
+			 (rdr->RdrTypeUnion.CtrlRec.TypeUnion.Text.Language !=
+				CtrlState->StateUnion.Text.Text.Language))) {
+			dbg("Invalid data found for control");
+			oh_release_domain(d);
+			return SA_ERR_HPI_INVALID_DATA;
+        	}
+	};
 
         oh_release_domain(d); /* Unlock domain */
 
