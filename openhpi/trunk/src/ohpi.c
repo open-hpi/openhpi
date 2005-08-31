@@ -323,32 +323,3 @@ SaErrorT oHpiGlobalParamSet(oHpiGlobalParamT *param)
         return SA_OK;
 }
 
-/**
- * oHpiGetHandlerState
- * @param: id is the id of the plugin instance
- *
- * This API should only be used by a test program that uses the simulator
- * plugin. It is very dangerous as the returned pointer actually points
- * to an oh_handler_state struct. Modification of data in that struct or
- * to data pointed to by that struct is EXTREMELY dangerous.
- *
- * Returns: void * pointer if the id is found, or NULL id not
- **/
-void *oHpiGetHandlerState(oHpiHandlerIdT id)
-{
-        struct oh_handler *h = NULL;
-
-        if (!id)
-               return NULL;
-
-	data_access_lock();
-        h = oh_lookup_handler(id);
-	if (!h) {
-		dbg("Handler not found.");
-		data_access_unlock();
-		return NULL;
-	}
-
-	data_access_unlock();
-        return h->hnd;
-}
