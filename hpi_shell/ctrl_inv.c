@@ -411,17 +411,34 @@ static ret_code_t set_control_state(SaHpiSessionIdT sessionid,
 	SaHpiCtrlRecT		*ctrl;
 	SaHpiCtrlTypeT		type;
 	SaHpiCtrlStateDigitalT	state_val = 0;
+	SaHpiCtrlModeT		mode;
 	SaHpiCtrlStateT		state;
 	char			buf[SAHPI_MAX_TEXT_BUFFER_LENGTH];
 	char			*str;
 	int			i, res;
 
-	rv = saHpiRdrGetByInstrumentId(sessionid, resourceid, SAHPI_CTRL_RDR, num, &rdr);
+	rv = saHpiRdrGetByInstrumentId(sessionid, resourceid, SAHPI_CTRL_RDR,
+		num, &rdr);
 	if (rv != SA_OK) {
 		printf("saHpiRdrGetByInstrumentId: error: %s\n", oh_lookup_error(rv));
 		return(HPI_SHELL_CMD_ERROR);
 	};
 	memset(&state, 0, sizeof(SaHpiCtrlStateT));
+	i = get_string_param("Mode(auto|manual): ", buf, 7);
+	if (i != 0) return(HPI_SHELL_CMD_ERROR);
+	if (strcmp(buf, "auto") == 0) mode = SAHPI_CTRL_MODE_AUTO;
+	else if (strcmp(buf, "manual") == 0) mode = SAHPI_CTRL_MODE_MANUAL;
+	else return(HPI_SHELL_CMD_ERROR);
+	if (mode == SAHPI_CTRL_MODE_AUTO) {
+		rv = saHpiControlSet(sessionid, resourceid, num,
+			mode, (SaHpiCtrlStateT *)NULL);
+		if (rv != SA_OK) {
+			printf("saHpiControlSet: error: %s\n",
+				oh_lookup_error(rv));
+			return(HPI_SHELL_CMD_ERROR);
+		};
+		return(HPI_SHELL_OK);
+	};
 	ctrl = &(rdr.RdrTypeUnion.CtrlRec);
 	type = ctrl->Type;
 	state.Type = type;
