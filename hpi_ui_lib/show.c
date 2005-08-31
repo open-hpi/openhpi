@@ -660,9 +660,9 @@ int show_rpt_list(Domain_t *domain, int as, SaHpiResourceIdT rptid,
 				strcat(buf, oh_lookup_hsstate(state));
 			if (hscap != 0) {
 				if (hscap & SAHPI_HS_CAPABILITY_AUTOEXTRACT_READ_ONLY)
-					strcat(buf, " RD|");
+					strcat(buf, " RO|");
 				if (hscap & SAHPI_HS_CAPABILITY_INDICATOR_SUPPORTED)
-					strcat(buf, " SUP|");
+					strcat(buf, " IND|");
 				ind  = strlen(buf);
 				if (buf[ind - 1] == '|')
 					buf[ind - 1] = 0;
