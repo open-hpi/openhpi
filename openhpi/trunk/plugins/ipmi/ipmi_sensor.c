@@ -982,11 +982,13 @@ static int insert_events_to_ipmi_event_state(
 
 	if (a_mask & SAHPI_ES_UPPER_MINOR) {
 		if (a_sup & OHOI_THS_UMINH) {
-			ipmi_threshold_event_set(state, IPMI_GOING_HIGH,
-				IPMI_UPPER_NON_CRITICAL, IPMI_ASSERTION);
+			ipmi_threshold_event_set(state,
+				IPMI_UPPER_NON_CRITICAL, IPMI_GOING_HIGH,
+				IPMI_ASSERTION);
 		} else if (d_sup & OHOI_THS_UMINL) {
-			ipmi_threshold_event_set(state, IPMI_GOING_LOW,
-				IPMI_UPPER_NON_CRITICAL, IPMI_DEASSERTION);
+			ipmi_threshold_event_set(state,
+				IPMI_UPPER_NON_CRITICAL, IPMI_GOING_LOW,
+				IPMI_DEASSERTION);
 		} else {
 			return 1;
 		}
@@ -1145,7 +1147,7 @@ static void set_sensor_event_enable_masks(ipmi_sensor_t      *sensor,
 	rv = ipmi_sensor_set_event_enables(sensor, info, set_data,
 					   &enable_data->done);
 	if (rv) {
-		dbg("Unable to sensor event enable: 0x%x\n", rv);
+		dbg("Unable to sensor event enable = %d", rv);
 		enable_data->done = 1;
 		if (rv == EINVAL) {
 			// invalid event in mask for this sensor */

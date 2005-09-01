@@ -22,6 +22,9 @@ static unsigned char oem_alarm_state = 0xff;
 struct ohoi_ctrl_info {
         int done;
 	SaErrorT err;
+        SaHpiRdrT * rdr;
+        struct oh_handler_state *handler;
+        SaHpiCtrlModeT mode;
         SaHpiCtrlStateT *state;
 };
 
@@ -84,7 +87,7 @@ static void __get_control_leds_state(ipmi_control_t *control,
 		info->err = SA_ERR_HPI_INTERNAL_ERROR;
 		info->done = 1;
 		return;
-														}
+	}
 	if (info->state->Type != SAHPI_CTRL_TYPE_OEM) {
 		dbg("IPMI plug-in only support OEM control now");
 		info->err = SA_ERR_HPI_INTERNAL_ERROR;
@@ -101,9 +104,11 @@ static void __get_control_leds_state(ipmi_control_t *control,
 	len = ipmi_control_get_num_vals(control);
         info->state->StateUnion.Oem.BodyLength = len;
 	res = ipmi_light_setting_get_color(settings, 0, &val);
-        info->state->StateUnion.Oem.Body[0] = res;
+        info->state->StateUnion.Oem.Body[0] = val;
         info->done = 1;
 }
+
+
 
 static void _get_control_state(ipmi_control_t *control,
                                 void           *cb_data)
@@ -113,6 +118,82 @@ static void _get_control_state(ipmi_control_t *control,
 	else
         	ipmi_control_get_val(control, __get_control_state, cb_data);
 }
+
+
+
+
+		/*
+		 *     ATCA LEDs
+		 */
+
+static void __get_atca_led(ipmi_control_t *control,
+                	   int err,
+			   ipmi_light_setting_t *st,
+			   void *cb_data)
+{
+	struct ohoi_ctrl_info	*info = cb_data;
+	SaHpiCtrlStateT *state = info->state;
+	int lc;
+	int on_time, off_time;
+	int color;
+	
+	ipmi_light_setting_in_local_control(st, 0, &lc);
+	info->mode = lc ? SAHPI_CTRL_MODE_AUTO : SAHPI_CTRL_MODE_MANUAL;
+	if (state == NULL) {
+		info->done = 1;
+		return;
+	}
+	if (!ipmi_light_setting_get_on_time(st, 0, &on_time) &&
+		!ipmi_light_setting_get_off_time(st, 0, &off_time)) {
+		if (off_time > 10) {
+			state->StateUnion.Oem.Body[0] = off_time / 10;
+		} else {
+			state->StateUnion.Oem.Body[0] = off_time ? 1 : 0;
+		}
+		if (on_time > 10) {
+			state->StateUnion.Oem.Body[1] = on_time / 10;
+		} else {
+			state->StateUnion.Oem.Body[1] = on_time ? 1 : 0;
+		}
+	} else {
+		dbg("couldn't get on/off times");
+		info->err = SA_ERR_HPI_INVALID_DATA;
+		info->done = 1;
+	}
+	if (ipmi_light_setting_get_color(st, 0, &color) == 0) {
+		state->StateUnion.Oem.Body[2] = ohoi_atca_led_to_hpi_color(color);
+		state->StateUnion.Oem.Body[3] = state->StateUnion.Oem.Body[2];
+	} else {
+		dbg("couldn't get color");
+		info->err = SA_ERR_HPI_INVALID_DATA;
+		info->done = 1;
+	}
+	state->StateUnion.Oem.Body[4] = 0;
+	state->StateUnion.Oem.Body[5] = 0;
+	state->StateUnion.Oem.Body[6] = 0;
+	state->StateUnion.Oem.MId = ATCAHPI_PICMG_MID;
+	state->StateUnion.Oem.BodyLength = 7;
+	state->Type = SAHPI_CTRL_TYPE_OEM;
+	info->done = 1;
+}
+
+static void _get_atca_led(ipmi_control_t *control,
+			  void *cb_data)
+{
+	struct ohoi_ctrl_info *info = cb_data;
+
+	
+	int rv;
+	rv = ipmi_control_get_light(control, __get_atca_led, info);
+	if (rv) {
+		dbg("ipmi_control_get_light. rv = %d", rv);
+		info->err = SA_ERR_HPI_INVALID_DATA;
+		info->done = 1;
+	}
+}
+
+
+
 
 SaErrorT ohoi_get_control_state(void *hnd, SaHpiResourceIdT id,
                                 SaHpiCtrlNumT num,
@@ -142,6 +223,35 @@ SaErrorT ohoi_get_control_state(void *hnd, SaHpiResourceIdT id,
 	if (mode == NULL) {
 		mode = &localmode;
 	}
+	if ((rdr->RdrTypeUnion.CtrlRec.Type == SAHPI_CTRL_TYPE_OEM) &&
+            (rdr->RdrTypeUnion.CtrlRec.OutputType == SAHPI_CTRL_LED) &&
+            (rdr->RdrTypeUnion.CtrlRec.TypeUnion.Oem.MId == ATCAHPI_PICMG_MID)) {
+	    	/* This is ATCA led */
+		info.done = 0;
+		info.err = 0;
+		info.rdr = rdr;
+		info.handler = handler;
+		info.mode = 0;
+		info.state = state;
+		rv = ipmi_control_pointer_cb(ctrl, _get_atca_led, &info);
+		if (rv) {
+			dbg("ipmi_control_pointer_cb. rv = %d", rv);
+			return SA_ERR_HPI_INVALID_DATA;
+		}
+		rv = ohoi_loop(&info.done, handler->data);
+		if (rv != SA_OK) {
+			dbg("ohoi_loop. rv = %d", rv);
+			return rv;
+		}
+		if (info.err != SA_OK) {
+			dbg("info.err = %d", info.err);
+			return info.err;
+		}
+		*mode = info.mode;
+		ctrl_info->mode = info.mode;
+		return SA_OK;
+        }
+
 	*mode = ctrl_info->mode;
 	memset(state, 0, sizeof(*state));
 	
@@ -181,11 +291,12 @@ static void __set_control_state(ipmi_control_t *control,
                                 void           *cb_data)
 {
 	struct ohoi_ctrl_info *info = cb_data;
-	info->done = 1;
+
 	if (err) {
 		dbg("__set_control_state: err = %d", err);
 		info->err = SA_ERR_HPI_INTERNAL_ERROR;
 	}
+	info->done = 1;
 }
 
 static void _set_control_state(ipmi_control_t *control,
@@ -337,7 +448,84 @@ static SaErrorT set_front_panrl_alarm_led(void *hnd,
 	return SA_OK;
 }
 
-SaErrorT ohoi_set_control_state(void *hnd, SaHpiResourceIdT id,
+
+
+
+
+	/*
+	 *      ATCA LED controls
+	 */
+
+
+static void __set_atca_led(ipmi_control_t *control,
+                          int err,
+			  ipmi_light_setting_t *st,
+			  void *cb_data)
+{
+	struct ohoi_ctrl_info *info = cb_data;
+	SaHpiUint8T *body;
+	int lc = 0;
+	int color = 0;
+	int rv;
+	
+	ipmi_light_setting_in_local_control(st, 0, &lc);
+	if (info->mode == SAHPI_CTRL_MODE_AUTO) {
+		/* set MODE only */
+		ipmi_light_setting_set_local_control(st, 0, 1);
+	} else {
+		body = &info->state->StateUnion.Oem.Body[0];
+		color = ohoi_atca_led_to_ipmi_color(body[2]);
+	
+		ipmi_light_setting_set_local_control(st, 0, 0);
+	
+		rv = ipmi_light_setting_set_color(st, 0, color);
+		if (rv) {
+			dbg("ipmi_light_setting_set_color. rv = %d", rv);
+		}
+		rv = ipmi_light_setting_set_off_time(st, 0, body[0] * 10);
+		if (rv) {
+			dbg("ipmi_light_setting_set_off_time. rv = %d", rv);
+		}
+		rv = ipmi_light_setting_set_on_time(st, 0, body[1] * 10);
+		if (rv) {
+			dbg("ipmi_light_setting_set_on_time. rv = %d", rv);
+		}
+	}
+	
+	rv = ipmi_control_set_light(control, st,
+			__set_control_state, info);
+	if (rv) {
+		dbg("ipmi_control_set_light = %d", rv);
+		info->err = SA_ERR_HPI_INVALID_DATA;
+		info->done = 1;
+		return;
+	}
+}
+
+
+
+
+
+static void _set_atca_led(ipmi_control_t *control,
+			  void *cb_data)
+{
+	struct ohoi_ctrl_info *info = cb_data;
+
+	
+	int rv;
+	rv = ipmi_control_get_light(control, __set_atca_led, info);
+	if (rv) {
+		dbg("ipmi_control_get_light. rv = %d", rv);
+		info->err = SA_ERR_HPI_INVALID_DATA;
+		info->done = 1;
+	}
+}	 
+
+
+	/* interface function */
+
+SaErrorT ohoi_set_control_state(void *hnd,
+                                SaHpiResourceIdT id,
                                 SaHpiCtrlNumT num,
                                 SaHpiCtrlModeT mode,
                                 SaHpiCtrlStateT *state)
@@ -356,19 +544,80 @@ SaErrorT ohoi_set_control_state(void *hnd, SaHpiResourceIdT id,
         if (rv!=SA_OK) return rv;
 	ctrl = ctrl_info->ctrl_id;
 		
+	if (rdr->RdrTypeUnion.CtrlRec.DefaultMode.ReadOnly &&
+		rdr->RdrTypeUnion.CtrlRec.DefaultMode.Mode != mode) {
+		dbg("Attempt to change mode of RO sensor mode");
+		return SA_ERR_HPI_READ_ONLY;
+	}
+
+
+	if ((rdr->RdrTypeUnion.CtrlRec.Type == SAHPI_CTRL_TYPE_OEM) &&
+            (rdr->RdrTypeUnion.CtrlRec.OutputType == SAHPI_CTRL_LED) &&
+            (rdr->RdrTypeUnion.CtrlRec.TypeUnion.Oem.MId == ATCAHPI_PICMG_MID)) {
+	    	/* This is ATCA led */
+		if (state != NULL) {
+			if (state->StateUnion.Oem.MId != ATCAHPI_PICMG_MID) {
+				dbg("state->StateUnion.Mid isn't ATCAHPI_PICMG_MID");
+				return SA_ERR_HPI_INVALID_DATA;
+			}
+			if (state->StateUnion.Oem.BodyLength != 7) {
+				dbg("state->StateUnion.Oem.BodyLength(%d) != 7",
+					state->StateUnion.Oem.BodyLength);
+				return SA_ERR_HPI_INVALID_DATA;
+			}
+			SaHpiUint8T *body = &state->StateUnion.Oem.Body[0];
+			if ((body[2] == 0) || ((body[2] & (body[2] - 1)) != 0)) {
+				/* exactly one color must be set */
+				return SA_ERR_HPI_INVALID_DATA;
+			}
+			if (!(body[2] & rdr->RdrTypeUnion.CtrlRec.TypeUnion.Oem.ConfigData[0])) {
+				/* LED doesn't support this color */
+				return SA_ERR_HPI_INVALID_DATA;
+			}
+		}
+		info.done = 0;
+		info.err = 0;
+		info.rdr = rdr;
+		info.handler = handler;
+		info.mode = mode;
+		info.state = state;
+		rv = ipmi_control_pointer_cb(ctrl, _set_atca_led, &info);
+		if (rv) {
+			dbg("ipmi_control_pointer_cb. rv = %d", rv);
+			return SA_ERR_HPI_INVALID_DATA;
+		}
+		rv = ohoi_loop(&info.done, handler->data);
+		if (rv != SA_OK) {
+			dbg("ohoi_loop. rv = %d", rv);
+			return rv;
+		}
+		if (info.err != SA_OK) {
+			dbg("info.err = %d", info.err);
+			return info.err;
+		}
+		ctrl_info->mode = mode;
+		return SA_OK;
+        }
+
 	if (mode == SAHPI_CTRL_MODE_AUTO) {
 		ctrl_info->mode = mode;
 		return SA_OK;
 	}
-	
+
 	if ((rdr->RdrTypeUnion.CtrlRec.Type == SAHPI_CTRL_TYPE_DIGITAL) &&
             (rdr->RdrTypeUnion.CtrlRec.OutputType == SAHPI_CTRL_LED) &&
             (rdr->RdrTypeUnion.CtrlRec.Oem >= OEM_ALARM_BASE)) {
                 /* This is a front panel alarm LED. */
-		return set_front_panrl_alarm_led(hnd, id, num, ctrl,
+		rv = set_front_panrl_alarm_led(hnd, id, num, ctrl,
 			rdr->RdrTypeUnion.CtrlRec.Oem - OEM_ALARM_BASE,
 			mode, state);
+		if (rv == SA_OK) {
+			ctrl_info->mode = mode;
+		}
+		return rv;
         }
+
+	    
         info.done  = 0;
         info.state = state;
         if (info.state->Type != SAHPI_CTRL_TYPE_OEM) {

@@ -82,6 +82,8 @@ struct ohoi_resource_info {
 			   	to push RPT to domain RPTable or not */
 	int updated;	/* refcount of resource add/update from
 			   	rptcache to domain RPT */
+	int deleted;	/* entity must be deleled after event of removing
+				RPT has been sent to domain */
 	SaHpiUint8T  sensor_count; 
         SaHpiUint8T  ctrl_count; 
 
@@ -96,6 +98,7 @@ struct ohoi_resource_info {
 
         ipmi_control_id_t reset_ctrl;
         ipmi_control_id_t power_ctrl;
+        SaHpiCtrlNumT hotswapind;
 	struct ohoi_inventory_info *fru;
 };
 
@@ -205,10 +208,11 @@ void ohoi_get_sel_prev_recid(ipmi_mcid_t mc_id,
                              unsigned int *record_id);
 void ohoi_get_sel_by_recid(ipmi_mcid_t mc_id, SaHpiEventLogEntryIdT entry_id, ipmi_event_t **event);
 
-/* This is used to help plug-in to find resource in rptcache by entity_id */
+/* This is used to help plug-in to find resource in rptcache by entity_id and mc_id*/
 SaHpiRptEntryT *ohoi_get_resource_by_entityid(RPTable                *table,
                                               const ipmi_entity_id_t *entity_id);
-
+SaHpiRptEntryT *ohoi_get_resource_by_mcid(RPTable                *table,
+                                          const ipmi_mcid_t *mc_id);
 /* This is used to help plug-in to find rdr in rptcache by data*/
 SaHpiRdrT *ohoi_get_rdr_by_data(RPTable *table,
                                 SaHpiResourceIdT rid,
@@ -224,8 +228,11 @@ void ohoi_sensor_event(enum ipmi_update_e op,
  * This is used to help saHpiEventLogEntryGet()
  * to convert sensor ipmi event to hpi event
  */
-struct oh_event *ohoi_sensor_ipmi_event_to_hpi_event(ipmi_sensor_id_t	sid,
-			ipmi_event_t	*event, ipmi_entity_t **entity);
+int ohoi_sensor_ipmi_event_to_hpi_event(
+			ipmi_sensor_id_t	sid,
+			ipmi_event_t		*event,
+			struct oh_event		**e,
+			ipmi_entity_id_t	*eid);
 
 
 /* This is used for OpenIPMI to notice control change */
@@ -325,6 +332,9 @@ SaErrorT ohoi_set_control_state(void *hnd, SaHpiResourceIdT id,
                                 SaHpiCtrlNumT num,
                                 SaHpiCtrlModeT mode,
                                 SaHpiCtrlStateT *state);
+				
+SaHpiUint8T ohoi_atca_led_to_hpi_color(int ipmi_color);
+int ohoi_atca_led_to_ipmi_color(SaHpiUint8T c);
 
 void ipmi_connection_handler(ipmi_domain_t	*domain,
 			      int		err,
@@ -399,11 +409,60 @@ void ohoi_remove_entity(struct oh_handler_state *handler,
 
 
 
+
+
+	/*
+	 * The following traces are available :
+	 *     OHOI_TRACE_ALL - trace all the following traces and trace_ipmi(). Must be "YES".
+	 *     OHOI_TRACE_SENSOR -  traces sensors add/change/delete and for events in SEL
+	 *     OHOI_TRACE_ENTITY - traces entities add/change/delete
+	 *     OHOI_TRACE_MC     - traces MCs  add/change/delete/active/inactive
+	 *     OHOI_TRACE_DISCOVERY - prints all existing resources (present and not present)
+	 *                            after discovery
+	 *
+	 * the values of these variables are ignored
+	 */
+	 
+#define IHOI_TRACE_ALL (getenv("OHOI_TRACE_ALL") &&\
+                           !strcmp("YES",getenv("OHOI_TRACE_ALL")))
+	
+
 #define trace_ipmi(format, ...) \
         do { \
-                if (getenv("OPENHPI_DEBUG_TRACE_IPMI") && !strcmp("YES",getenv("OPENHPI_DEBUG_TRACE_IPMI"))) { \
+                if (IHOI_TRACE_ALL) { \
                         fprintf(stderr, " %s:%d:%s: ", __FILE__, __LINE__, __func__); \
                         fprintf(stderr, format "\n", ## __VA_ARGS__); \
                 } \
         } while(0)
+
+	
+
+#define trace_ipmi_sensors(action, sid) \
+        do { \
+                if (getenv("OHOI_TRACE_SENSOR")) { \
+                        fprintf(stderr, "%s sensor. sensor_id = {{%p, %d, %d, %ld}, %d, %d}\n", action,\
+			sid.mcid.domain_id.domain, sid.mcid.mc_num, sid.mcid.channel, sid.mcid.seq,\
+			sid.lun, sid.sensor_num);\
+                } \
+        } while(0)
+	
+	
+	
+#if 1 // ATCA additional definitions
+
+#define ATCAHPI_PICMG_MID		0x315a
+#define ATCAHPI_LED_BR_SUPPORTED	0x01
+#define ATCAHPI_LED_BR_NOT_SUPPORTED	0x02
+#define ATCAHPI_BLINK_COLOR_LED		33
+
+#define	ATCAHPI_LED_WHITE		0x40
+#define	ATCAHPI_LED_ORANGE		0x20
+#define	ATCAHPI_LED_AMBER		0x10
+#define	ATCAHPI_LED_GREEN		0x08
+#define	ATCAHPI_LED_RED			0x04
+#define	ATCAHPI_LED_BLUE		0x02
+
+
+#endif
+
 
