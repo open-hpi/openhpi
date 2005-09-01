@@ -2245,7 +2245,7 @@ SaErrorT SAHPI_API saHpiControlSet (
          **         not set to the Language specified in the RDR.
          **      * OEM control data is invalid (see remarks below).
          **/
-	if (CtrlState) {
+	if (CtrlMode != SAHPI_CTRL_MODE_AUTO) {
 		if(
 			/* case 1 */
 			(CtrlState->Type != rdr->RdrTypeUnion.CtrlRec.Type) ||
