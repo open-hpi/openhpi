@@ -2190,12 +2190,16 @@ SaErrorT SAHPI_API saHpiControlSet (
         struct oh_domain *d = NULL;
 
         if (!oh_lookup_ctrlmode(CtrlMode) ||
-            (CtrlMode != SAHPI_CTRL_MODE_AUTO && !CtrlState) ||
-            (CtrlState && CtrlState->Type == SAHPI_CTRL_TYPE_DIGITAL &&
-             !oh_lookup_ctrlstatedigital(CtrlState->StateUnion.Digital)) ||
-            (CtrlState && CtrlState->Type == SAHPI_CTRL_TYPE_STREAM &&
-             CtrlState->StateUnion.Stream.StreamLength > SAHPI_CTRL_MAX_STREAM_LENGTH))
-        {
+            (CtrlMode != SAHPI_CTRL_MODE_AUTO && !CtrlState)) {
+                return SA_ERR_HPI_INVALID_PARAMS;
+        } else if (CtrlMode != SAHPI_CTRL_MODE_AUTO &&
+                   ((CtrlState->Type == SAHPI_CTRL_TYPE_DIGITAL &&
+                    !oh_lookup_ctrlstatedigital(CtrlState->StateUnion.Digital)) ||
+                    (CtrlState->Type == SAHPI_CTRL_TYPE_STREAM &&
+                     CtrlState->StateUnion.Stream.StreamLength
+                      > SAHPI_CTRL_MAX_STREAM_LENGTH) ||
+                    (CtrlState->Type == SAHPI_CTRL_TYPE_TEXT &&
+                     !oh_valid_textbuffer(&(CtrlState->StateUnion.Text.Text))))) {
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
