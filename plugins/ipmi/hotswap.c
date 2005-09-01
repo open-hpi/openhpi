@@ -25,6 +25,7 @@ SaHpiHsStateT _ipmi_to_hpi_state_conv(enum ipmi_hot_swap_states ipmi_state)
         SaHpiHsStateT state = 0;
         switch (ipmi_state) {
                 case IPMI_HOT_SWAP_NOT_PRESENT:
+                case IPMI_HOT_SWAP_OUT_OF_CON:
                         state = SAHPI_HS_STATE_NOT_PRESENT;
                         break;
                 case IPMI_HOT_SWAP_INACTIVE:
@@ -122,8 +123,12 @@ int ohoi_hot_swap_cb(ipmi_entity_t  *ent,
 	if (event != NULL) {
 	      	e->u.hpi_event.event.Timestamp =
 		    (SaHpiTimeT)ipmi_event_get_timestamp(event);
-	} else
+	} else {
 	      	e->u.hpi_event.event.Timestamp = SAHPI_TIME_UNSPECIFIED;
+	}
+	if (e->u.hpi_event.event.Timestamp == SAHPI_TIME_UNSPECIFIED) {
+		oh_gettimeofday(&e->u.hpi_event.event.Timestamp);
+	}
 	      	
 	
 	e->u.hpi_event.event.EventDataUnion.HotSwapEvent.HotSwapState
@@ -131,6 +136,13 @@ int ohoi_hot_swap_cb(ipmi_entity_t  *ent,
 	e->u.hpi_event.event.EventDataUnion.HotSwapEvent.PreviousHotSwapState 
 			= _ipmi_to_hpi_state_conv(last_state);
 
+			
+			
+	if (e->u.hpi_event.event.EventDataUnion.HotSwapEvent.PreviousHotSwapState ==
+		e->u.hpi_event.event.EventDataUnion.HotSwapEvent.HotSwapState) {
+		free(e);
+		return IPMI_EVENT_NOT_HANDLED;
+	}
 	if (e->u.hpi_event.event.EventDataUnion.HotSwapEvent.HotSwapState ==
 	    					SAHPI_HS_STATE_NOT_PRESENT) {
 		trace_ipmi("HS_STATE NOT PRESENT, removing RPT");
@@ -233,6 +245,84 @@ SaErrorT ohoi_request_hotswap_action(void *hnd, SaHpiResourceIdT id,
         return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
+
+
+#if 0
+SaErrorT ohoi_get_indicator_state(void *hnd, SaHpiResourceIdT id, 
+                                  SaHpiHsIndicatorStateT *state)
+{
+        struct oh_handler_state         *handler;
+        const struct ohoi_resource_info   *ohoi_res_info;
+	SaHpiCtrlStateT c_state;
+        SaErrorT rv;
+
+        handler = (struct oh_handler_state *)hnd;
+        ohoi_res_info = oh_get_resource_data(handler->rptcache, id);
+        if (ohoi_res_info->type != OHOI_RESOURCE_ENTITY) {
+                dbg("BUG: try to get HS in unsupported resource");
+                return SA_ERR_HPI_INVALID_CMD;
+        }
+	
+	rv = ohoi_get_control_state(hnd, id, ohoi_res_info->hotswapind,
+			NULL, &c_state);
+	if (rv != SA_OK) {
+		return rv;
+	}
+
+	if (c_state.StateUnion.Oem.Body[1] == 0) {
+		*state = SAHPI_HS_INDICATOR_OFF;
+	} else {
+		*state = SAHPI_HS_INDICATOR_ON;
+	}
+	return SA_OK;
+}
+ 
+
+SaErrorT ohoi_set_indicator_state(void *hnd, SaHpiResourceIdT id, 
+				  SaHpiHsIndicatorStateT state)
+{
+        struct oh_handler_state         *handler;
+        const struct ohoi_resource_info   *ohoi_res_info;
+	SaErrorT rv;
+	SaHpiCtrlStateT c_state;
+	SaHpiCtrlModeT mode;
+        
+        handler = (struct oh_handler_state *)hnd;
+        ohoi_res_info = oh_get_resource_data(handler->rptcache, id);
+        if (ohoi_res_info->type != OHOI_RESOURCE_ENTITY) {
+                dbg("BUG: try to set HS in unsupported resource");
+                return SA_ERR_HPI_INVALID_CMD;
+        }
+	rv = ohoi_get_control_state(hnd, id, ohoi_res_info->hotswapind,
+			&mode, &c_state);
+	if (rv != SA_OK) {
+		return rv;
+	}
+	if (state == SAHPI_HS_INDICATOR_OFF) {
+		c_state.StateUnion.Oem.Body[0] = 1;
+		c_state.StateUnion.Oem.Body[1] = 0;
+	} else if (state == SAHPI_HS_INDICATOR_ON) {
+		c_state.StateUnion.Oem.Body[0] = 0;
+		c_state.StateUnion.Oem.Body[1] = 1;
+	} else {
+		return SA_ERR_HPI_INVALID_PARAMS;
+	}
+	
+	rv = ohoi_set_control_state(hnd, id, ohoi_res_info->hotswapind,
+			SAHPI_CTRL_MODE_MANUAL, &c_state);
+	if ((rv == SA_OK) && (mode == SAHPI_CTRL_MODE_AUTO)) {
+		ohoi_set_control_state(hnd, id, ohoi_res_info->hotswapind,
+			SAHPI_CTRL_MODE_AUTO, NULL);
+	}
+	
+	return rv;
+}
+
+#endif
+
+
+
+
 struct ohoi_indicator_state {
         int done;
         int val;
@@ -250,6 +340,31 @@ void _get_indicator_state(ipmi_entity_t *ent,
         state->done = 1;
         state->val  = val;
 }
+	
+SaErrorT ohoi_set_indicator_state(void *hnd, SaHpiResourceIdT id, 
+				  SaHpiHsIndicatorStateT state)
+{
+        struct oh_handler_state         *handler;
+        const struct ohoi_resource_info   *ohoi_res_info;
+        int done;
+        
+        handler = (struct oh_handler_state *)hnd;
+		struct ohoi_handler *ipmi_handler = handler->data;
+
+        ohoi_res_info = oh_get_resource_data(handler->rptcache, id);
+	        if (ohoi_res_info->type != OHOI_RESOURCE_ENTITY) {
+                dbg("BUG: try to get sel in unsupported resource");
+                return SA_ERR_HPI_INVALID_CMD;
+        }
+
+        done = 0;
+        ipmi_entity_id_set_hot_swap_indicator(ohoi_res_info->u.entity_id,
+                                              state,
+                                              _hotswap_done,                                                                
+                                              &done);
+        return ohoi_loop(&done,ipmi_handler);
+}
+
 
 SaErrorT ohoi_get_indicator_state(void *hnd, SaHpiResourceIdT id, 
                                   SaHpiHsIndicatorStateT *state)
@@ -284,30 +399,6 @@ SaErrorT ohoi_get_indicator_state(void *hnd, SaHpiResourceIdT id,
 
         *state = ipmi_state.val;
         return SA_OK;;
-}
-
-SaErrorT ohoi_set_indicator_state(void *hnd, SaHpiResourceIdT id, 
-				  SaHpiHsIndicatorStateT state)
-{
-        struct oh_handler_state         *handler;
-        const struct ohoi_resource_info   *ohoi_res_info;
-        int done;
-        
-        handler = (struct oh_handler_state *)hnd;
-		struct ohoi_handler *ipmi_handler = handler->data;
-
-        ohoi_res_info = oh_get_resource_data(handler->rptcache, id);
-        if (ohoi_res_info->type != OHOI_RESOURCE_ENTITY) {
-                dbg("BUG: try to get sel in unsupported resource");
-                return SA_ERR_HPI_INVALID_CMD;
-        }
-
-        done = 0;
-        ipmi_entity_id_set_hot_swap_indicator(ohoi_res_info->u.entity_id,
-                                              state,
-                                              _hotswap_done,                                                                
-                                              &done);
-        return ohoi_loop(&done,ipmi_handler);
 }
 
 

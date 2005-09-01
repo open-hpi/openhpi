@@ -405,6 +405,26 @@ static int ipmi_get_event(void *hnd, struct oh_event *event)
 
 
 
+
+
+
+static void trace_ipmi_resources(SaHpiRptEntryT *rpt_entry,
+                                 struct ohoi_resource_info *res_info)
+{
+	oh_big_textbuffer bigbuf;
+	if (!getenv("OHOI_TRACE_DISCOVERY") && !IHOI_TRACE_ALL) {
+		return;
+	}
+	oh_decode_entitypath(&(rpt_entry->ResourceEntity), &bigbuf);
+	fprintf(stderr, "res: %d(%s) presence: %d; updated:%d  %s\n",
+			rpt_entry->ResourceId, rpt_entry->ResourceTag.Data,
+			res_info->presence, res_info->updated,
+			bigbuf.Data
+			);
+}
+
+ 
+
 /**
  * ipmi_discover_resources: discover resources in system
  * @hnd: pointer to handler
@@ -427,8 +447,6 @@ int ipmi_discover_resources(void *hnd)
 	SaHpiRdrT	*rdr_entry;
 	time_t		tm0, tm;
 	int was_connected = 0;
-
-	
 	struct ohoi_resource_info	*res_info;
 
 	trace("ipmi discover_resources");
@@ -476,9 +494,7 @@ int ipmi_discover_resources(void *hnd)
 	while (rpt_entry) {
 		res_info = oh_get_resource_data(handler->rptcache,
 			rpt_entry->ResourceId);
-		trace_ipmi("res: %d(%s) presence: %d; updated:%d",
-			rpt_entry->ResourceId, rpt_entry->ResourceTag.Data,
-			res_info->presence, res_info->updated);
+		trace_ipmi_resources(rpt_entry, res_info);
 		if (res_info->updated == 0) {
 			rpt_entry = oh_get_resource_next(handler->rptcache,
 				rpt_entry->ResourceId);
@@ -645,60 +661,21 @@ static SaErrorT ipmi_set_sel_state(void      *hnd,
 }
 
 
-#if 0
- 
 
-/**
- * ipmi_add_sel_entry: add an entry to system sel from user
- * @hnd: pointer to handler
- * @id: resource id with SEL capability
- * @Event: SaHpiEventLogEntryT pointer to event to be added
- *
- *
- *
- * Return value: -1 for error, success is OpenIPMI command succeed
- **/
-static int ipmi_add_sel_entry(void      *hnd, 
-                SaHpiResourceIdT   id, 
-                const SaHpiEventLogEntryT    *Event)
-{
-        //ipmi_mc_t *mc = id.ptr; 
-        ipmi_msg_t msg;
-        unsigned char *buf;
-        
-        /* Send a software event into Event Receiver IPMI_1_5 9.4 */
-        buf = malloc(sizeof(*Event)+1);
-        if (!buf) {
-                dbg("Out of memory");
-                return -1;
-        }
-        
-        msg.netfn       = 0x05;
-        msg.cmd         = 0x02;
-        msg.data[0]     = 0x41;
-        memcpy(msg.data+1, Event, sizeof(*Event));
-        msg.data_len    = sizeof(*Event)+1;
-        
-        //return ipmi_mc_send_command(mc, 0, &msg, NULL, NULL);
-	return(-1);
-}
+#if OPENIPMI_1_4_20
+typedef struct {
+	ipmi_sensor_id_t	*sid;
+	ipmi_event_t		*event;
+} get_event_sid_t;
+	
 
-static int ipmi_del_sel_entry(void      *hnd,
-        		        SaHpiResourceIdT id,
-				SaHpiEventLogEntryIdT sid)
+static void _get_event_sid(ipmi_mc_t *mc, void *cb_data)
 {
-        //struct ohoi_sel_entry *entry = id.ptr;
-        //ipmi_event_t event;
-        //event.record_id = entry->recid;
-        //_ipmi_mc_del_event(entry->mc, &event, NULL, NULL);
-        return -1;
+	 get_event_sid_t *info = cb_data;
+	*info->sid = ipmi_event_get_generating_sensor_id(
+		ipmi_mc_get_domain(mc), mc, info->event);
 }
 #endif
-
-
-
-
-
 
 /**
  * ipmi_get_el_entry: get IPMI SEL entry
@@ -733,9 +710,10 @@ static int ipmi_get_el_entry(void *hnd, SaHpiResourceIdT id,
 	char			Data[IPMI_EVENT_DATA_MAX_LEN];
 	int			data_len;
 	ipmi_sensor_id_t	sid;
-	ipmi_mcid_t		mc;
 	ipmi_entity_id_t	et;
-	ipmi_entity_t		*entity;
+#if OPENIPMI_1_4_20
+	get_event_sid_t		info;
+#endif
 
 	ohoi_res_info = oh_get_resource_data(handler->rptcache, id);
         if (ohoi_res_info->type != OHOI_RESOURCE_MC) {
@@ -808,19 +786,20 @@ static int ipmi_get_el_entry(void *hnd, SaHpiResourceIdT id,
 
 	if (event_type == 0x02) {   // sensor event
 		do {
-
-			mc = ipmi_event_get_mcid(event);
-			sid.mcid = mc;
+#if OPENIPMI_1_4_20
+			info.sid = &sid;
+			info.event = event;
+			ipmi_mc_pointer_cb(ohoi_res_info->u.mc_id,
+				_get_event_sid, &info);
+#else
+			sid.mcid = ipmi_event_get_mcid(event);
 			sid.lun = Data[5] & 0x3;
 			sid.sensor_num = Data[8];
+#endif
 
-			e = ohoi_sensor_ipmi_event_to_hpi_event(sid,
-							event, &entity);
-			if (e == NULL) {
-				break;
-			}
-			if (entity != NULL) {
-				et = ipmi_entity_convert_to_id(entity);
+			trace_ipmi_sensors("LOOK FOR", sid); 
+			if (ohoi_sensor_ipmi_event_to_hpi_event(sid,
+					event, &e, &et)) {
 				myrpt = ohoi_get_resource_by_entityid(
 					handler->rptcache, &et);
 				myrdr = ohoi_get_rdr_by_data(handler->rptcache,
@@ -881,7 +860,8 @@ static int ipmi_get_el_entry(void *hnd, SaHpiResourceIdT id,
 	
 	entry->Event.Source = SAHPI_UNSPECIFIED_RESOURCE_ID;
 	entry->Event.EventType = SAHPI_ET_USER;
-	entry->Event.Timestamp = SAHPI_TIME_UNSPECIFIED;
+	oh_gettimeofday(&entry->Event.Timestamp);
+//	entry->Event.Timestamp = SAHPI_TIME_UNSPECIFIED;
 	entry->Event.Severity = SAHPI_DEBUG; // FIX ME
 	entry->Event.EventDataUnion.UserEvent.UserEventData.DataType = 
 	                        SAHPI_TL_TYPE_BINARY;
@@ -1067,7 +1047,8 @@ static int ipmi_set_sensor_event_enable(void *hnd,
 	e->u.hpi_event.event.Source = id;
 	e->u.hpi_event.event.EventType = SAHPI_ET_SENSOR_ENABLE_CHANGE;
 	e->u.hpi_event.event.Severity = SAHPI_INFORMATIONAL;
-	e->u.hpi_event.event.Timestamp = SAHPI_TIME_UNSPECIFIED;
+	oh_gettimeofday(&e->u.hpi_event.event.Timestamp);
+//	e->u.hpi_event.event.Timestamp = SAHPI_TIME_UNSPECIFIED;
 	sen_evt = &(e->u.hpi_event.event.EventDataUnion.SensorEnableChangeEvent);
 	sen_evt->SensorNum = num;
 	sen_evt->SensorType = rdr->RdrTypeUnion.SensorRec.Type;
@@ -1322,7 +1303,8 @@ static int ipmi_set_sensor_event_masks(void *hnd, SaHpiResourceIdT id,
 	e->u.hpi_event.event.Source = id;
 	e->u.hpi_event.event.EventType = SAHPI_ET_SENSOR_ENABLE_CHANGE;
 	e->u.hpi_event.event.Severity = SAHPI_INFORMATIONAL;
-	e->u.hpi_event.event.Timestamp = SAHPI_TIME_UNSPECIFIED;
+	oh_gettimeofday(&e->u.hpi_event.event.Timestamp);
+//	e->u.hpi_event.event.Timestamp = SAHPI_TIME_UNSPECIFIED;
 	sen_evt = &(e->u.hpi_event.event.EventDataUnion.SensorEnableChangeEvent);
 	sen_evt->SensorNum = num;
 	sen_evt->SensorType = rdr->RdrTypeUnion.SensorRec.Type;
