@@ -150,18 +150,20 @@ handler libdummy {
 ## Section for ipmidirect plugin using RMCP:
 #handler libipmidirect {
 #        entity_root = "{SYSTEM_CHASSIS,7}"
-#        name = "lan"       # RMCP
-#        addr = "localhost" # ipaddress
-#        port = "623"      # RMCP port
-#        auth_type = "none" # none, md2, md5 or straight
-#        auth_level = "admin" # none, callback, user, operator or admin
+#        name = "lan"         # RMCP
+#        addr = "localhost"   # Host name or IP address
+#        port = "623"         # RMCP port
+#        auth_type = "none"   # none, md2, md5 or straight
+#        auth_level = "admin" # operator or admin
 #        username = "arthur"
 #        password = "pieman"
+#        CreateOwnDomain = "NO"  # "YES" creates a domain for this handler 
+#        DomainTag = "Chassis 1" # Used if CreateOwnDomain="YES"
 #        logflags = ""      # logging off
 #        # logflags = "file stdout"
 #        # infos goes to logfile and stdout
 #        # the logfile are log00.log, log01.log ...
-#        # if #logfile_max reached replace the oldest one
 #        logfile = "log"
-#        logfile_max = 10
+#        # if #logfile_max reached replace the oldest one
+#        logfile_max = "10"
 #}
