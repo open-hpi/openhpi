@@ -3396,7 +3396,7 @@ SaErrorT oh_valid_ctrl_state_mode(SaHpiCtrlRecT *ctrl_rdr,
 	if (mode != SAHPI_CTRL_MODE_AUTO && !state) return(SA_ERR_HPI_INVALID_PARAMS);
 
 	/* Check for valid state operations */
-	if (mode != SAHPI_CTRL_MODE_AUTO && state) {
+	if (mode != SAHPI_CTRL_MODE_AUTO) {
 		if (ctrl_rdr->Type != state->Type) return(SA_ERR_HPI_INVALID_DATA);
 		if (NULL == oh_lookup_ctrltype(state->Type)) return(SA_ERR_HPI_INVALID_DATA);
 
