@@ -40,6 +40,10 @@ cIpmiDomain::cIpmiDomain()
 {
   cIpmiMcVendorFactory::InitFactory();
 
+  m_did = oh_get_default_domain_id();
+
+  m_own_domain = false;
+
   for( int i = 0; i < 256; i++ )
      {
        m_mc_thread[i]   = 0;
@@ -212,6 +216,24 @@ cIpmiDomain::Init( cIpmiCon *con )
                                                                                                                     
   stdlog << "max number of outstanding = " << num << ".\n";
   m_con->SetMaxOutstanding( num );
+
+  if ( m_own_domain == true )
+  {
+    SaHpiTextBufferT buf = m_domain_tag;
+    m_did = oh_request_domain_id(m_handler_id, &buf, 0, 0, 0);
+
+    if ( m_did == 0 )
+    {
+        stdlog << "Failed to get a Domain ID - using default\n";
+        m_did = oh_get_default_domain_id();
+    }
+  }
+  else
+  {
+    m_did = oh_get_default_domain_id();
+  }
+
+  stdlog << "Domain ID " << m_did << "\n";
 
   // check for ATCA an modify m_mc_to_check
   CheckAtca();
