@@ -100,7 +100,15 @@ protected:
   // ipmi connection
   cIpmiCon     *m_con;
 
+  SaHpiDomainIdT m_did;
+  cIpmiTextBuffer m_domain_tag;
+  bool m_own_domain;
+  int m_handler_id;
+
 public:
+  SaHpiDomainIdT DomainId() { return m_did; }
+  int HandlerId() { return m_handler_id; }
+
   bool ConLogLevel( int v )
   {
     return m_con->LogLevel( v );

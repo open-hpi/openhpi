@@ -327,6 +327,16 @@ IpmiClose( void *hnd )
 
   cIpmi *ipmi = VerifyIpmi( hnd );
 
+  if ( ipmi->DomainId() != oh_get_default_domain_id() )
+  {
+      stdlog << "Releasing domain id " << ipmi->DomainId() << "\n";
+      
+      SaErrorT rv = oh_release_domain_id( ipmi->HandlerId(), ipmi->DomainId() );
+
+      if ( rv != SA_OK )
+          stdlog << "oh_release_domain_id error " << rv << "\n";
+  }
+
   ipmi->IfClose();
 
   assert( ipmi->CheckLock() );
@@ -369,6 +379,24 @@ static SaErrorT
 IpmiDiscoverResources( void *hnd )
 {
   cIpmi *ipmi = VerifyIpmi( hnd );
+
+  stdlog << "Simple discovery let's go " << hnd << "\n";
+
+  SaErrorT rv = ipmi->IfDiscoverResources();
+
+  return rv;
+}
+
+
+static SaErrorT
+IpmiDiscoverDomainResources( void *, SaHpiDomainIdT ) __attribute__((used));
+
+static SaErrorT
+IpmiDiscoverDomainResources( void *hnd, SaHpiDomainIdT did )
+{
+  cIpmi *ipmi = VerifyIpmi( hnd );
+
+  stdlog << "Dedicated discovery let's go " << hnd << " " << did << "\n";
 
   SaErrorT rv = ipmi->IfDiscoverResources();
 
@@ -1324,6 +1352,9 @@ void * oh_get_event (void *, struct oh_event *)
 void * oh_discover_resources (void *) 
                 __attribute__ ((weak, alias("IpmiDiscoverResources")));
 		
+void * oh_discover_domain_resource (void *) 
+                __attribute__ ((weak, alias("IpmiDiscoverDomainResources")));
+		
 void * oh_set_resource_tag (void *, SaHpiResourceIdT, SaHpiTextBufferT *) 
                 __attribute__ ((weak, alias("IpmiSetResourceTag")));
 		
@@ -1597,6 +1628,28 @@ cIpmi::AllocConnection( GHashTable *handler_config )
         stdlog << "AllocConnection: Don't poll alive MCs.\n";
      }
 
+  m_own_domain = false;
+  const char *create_own_domain = (const char *)g_hash_table_lookup(handler_config, "CreateOwnDomain");
+  if ((create_own_domain != (char *)NULL)
+      && ((strcmp(create_own_domain, "YES") == 0)
+            || (strcmp(create_own_domain, "yes") == 0)))
+  {
+      int *hid = (int *)g_hash_table_lookup(handler_config, "handler-id");
+      if (hid)
+      {
+          m_own_domain = true;
+          m_handler_id = *hid;
+          stdlog << "AllocConnection: Multi domain handler " << *hid << "\n";
+
+          const char *domain_tag = (const char *)g_hash_table_lookup(handler_config, "DomainTag");
+          
+          if (domain_tag != NULL)
+          {
+              m_domain_tag.SetAscii(domain_tag, SAHPI_TL_TYPE_TEXT, SAHPI_LANG_ENGLISH);
+          }
+      }
+  }
+
   const char *name = (const char *)g_hash_table_lookup(handler_config, "name");
 
   if ( !name )
@@ -1628,7 +1681,7 @@ cIpmi::AllocConnection( GHashTable *handler_config )
             return 0;
           }
 
-       stdlog << "IpmiAllocConnection: addr = '" << addr << "'.\n";
+       stdlog << "AllocConnection: addr = '" << addr << "'.\n";
        ent = gethostbyname( addr );
 
        if ( !ent )
@@ -1649,7 +1702,7 @@ cIpmi::AllocConnection( GHashTable *handler_config )
        // Port
        lan_port = GetIntNotNull( handler_config, "port", 623 );
 
-       stdlog << "IpmiAllocConnection: port = " << lan_port << ".\n";
+       stdlog << "AllocConnection: port = " << lan_port << ".\n";
 
        // Authentication type
        value = (char *)g_hash_table_lookup( handler_config, "auth_type" );
@@ -1685,7 +1738,7 @@ cIpmi::AllocConnection( GHashTable *handler_config )
                }
           }
 
-       stdlog << "IpmiAllocConnection: authority: " << value << "(" << auth << ").\n";
+       stdlog << "AllocConnection: authority: " << value << "(" << auth << ").\n";
 
        // Priviledge
        value = (char *)g_hash_table_lookup(handler_config, "auth_level" );
@@ -1704,7 +1757,7 @@ cIpmi::AllocConnection( GHashTable *handler_config )
                }
           }
 
-       stdlog << "IpmiAllocConnection: priviledge = " << value << "(" << priv << ").\n";
+       stdlog << "AllocConnection: priviledge = " << value << "(" << priv << ").\n";
 
        // User Name
        value = (char *)g_hash_table_lookup( handler_config, "username" ); 
@@ -1712,7 +1765,7 @@ cIpmi::AllocConnection( GHashTable *handler_config )
        if ( value )
             strncpy( user, value, 32);
 
-       stdlog << "IpmiAllocConnection: user = " << user << ".\n";
+       stdlog << "AllocConnection: user = " << user << ".\n";
 
        // Password
        value = (char *)g_hash_table_lookup( handler_config, "password" );
@@ -1733,7 +1786,7 @@ cIpmi::AllocConnection( GHashTable *handler_config )
        if ( addr )
             if_num = strtol( addr, 0, 10 );
 
-       stdlog << "IpmiAllocConnection: interface number = " << if_num << ".\n";
+       stdlog << "AllocConnection: interface number = " << if_num << ".\n";
 
        return new cIpmiConSmiDomain( this, m_con_ipmi_timeout, dIpmiConLogAll, if_num );
      }
@@ -1750,7 +1803,8 @@ cIpmi::AddHpiEvent( oh_event *event )
   m_event_lock.Lock();
 
   assert( m_handler );
-  event->did = oh_get_default_domain_id();
+
+  event->did = m_did;
 
   m_handler->eventq = g_slist_append( m_handler->eventq, event );
 
