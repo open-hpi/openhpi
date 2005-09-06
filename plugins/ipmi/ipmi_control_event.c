@@ -26,7 +26,42 @@
 
 //}
 
+static void trace_ipmi_control(char *str,
+                               ipmi_control_t *control,
+			       SaHpiRptEntryT *rpt)
+{
+	if (!getenv("OHOI_TRACE_CONTROL") && !IHOI_TRACE_ALL) {
+		return;
+	}
+	char strtype[24];
+	char name[24];
 
+	ipmi_control_get_id(control, name, 24);	
+	switch (ipmi_control_get_type(control)) {
+	case IPMI_CONTROL_ONE_SHOT_RESET:
+		strncpy(strtype,"reset", 24);
+		break;
+	case IPMI_CONTROL_POWER:
+		strncpy(strtype,"power", 24);
+		break;
+	case IPMI_CONTROL_ALARM:
+		strncpy(strtype,"alarm", 24);
+		break;
+	case IPMI_CONTROL_IDENTIFIER:
+		strncpy(strtype,"address", 24);
+		break;
+	case IPMI_CONTROL_LIGHT:
+		strncpy(strtype,"LED", 24);
+		break;
+	default:
+		snprintf(strtype, 24, "unknown(%d)",
+			ipmi_control_get_type(control));
+		break;
+	}
+		
+	fprintf(stderr, "   *** CONTROL %s. type %s (%s). RPT %d(%s)\n",
+		str, strtype, name, rpt->ResourceId, rpt->ResourceTag.Data);
+}
 
 SaHpiUint8T ohoi_atca_led_to_hpi_color(int ipmi_color)
 {
@@ -114,7 +149,7 @@ static void set_idstring(ipmi_control_t *control,
 }
 
 
-static void add_control_event(ipmi_entity_t	*ent,
+static int add_control_event(ipmi_entity_t	*ent,
 			     ipmi_control_t	*control,
 			     struct oh_handler_state *handler,
 			     SaHpiEntityPathT	parent_ep,
@@ -128,7 +163,7 @@ static void add_control_event(ipmi_entity_t	*ent,
         ctrl_info = malloc(sizeof(struct ohoi_control_info));
         if (!ctrl_info) {
                 dbg("Out of memory");
-                return;
+                return 1;
         }
         ctrl_info->ctrl_id = ipmi_control_convert_to_id(control);
 	ctrl_info->mode = SAHPI_CTRL_MODE_AUTO;
@@ -137,7 +172,7 @@ static void add_control_event(ipmi_entity_t	*ent,
 	if (!e) {
                 free(ctrl_info);
 		dbg("Out of space");   
-		return;
+		return 1;
 	}
 	memset(e, 0, sizeof(*e));
 
@@ -156,14 +191,18 @@ static void add_control_event(ipmi_entity_t	*ent,
 		free(ctrl_info);
                 free(e);
                 dbg("No info in resource(%d)\n", rid);
-                return;
+                return 1;
         }
         e->u.rdr_event.rdr.RdrTypeUnion.CtrlRec.Num = info->ctrl_count;
         info->ctrl_count++;
 
         rid = oh_uid_lookup(&e->u.rdr_event.rdr.Entity);
         
-	oh_add_rdr(handler->rptcache, rid, &e->u.rdr_event.rdr, ctrl_info, 1);
+	if (oh_add_rdr(handler->rptcache, rid,
+			&e->u.rdr_event.rdr, ctrl_info, 1) != SA_OK) {
+		return 1;
+	}
+	return 0;
 }
 
 
@@ -289,7 +328,7 @@ static void set_led_oem_cb(ipmi_control_t	*control,
 
 
 
-static void add_led_control_event(ipmi_entity_t	*ent,
+static int add_led_control_event(ipmi_entity_t	*ent,
 			     ipmi_control_t	*control,
 			     struct oh_handler_state *handler,
 			     SaHpiRptEntryT *rpt)
@@ -305,7 +344,7 @@ static void add_led_control_event(ipmi_entity_t	*ent,
         ctrl_info = malloc(sizeof(struct ohoi_control_info));
         if (!ctrl_info) {
                 dbg("Out of memory");
-                return;
+                return 1;
         }
         ctrl_info->ctrl_id = ipmi_control_convert_to_id(control);
         
@@ -313,7 +352,7 @@ static void add_led_control_event(ipmi_entity_t	*ent,
 	if (!e) {
                 free(ctrl_info);
 		dbg("Out of space");   
-		return;
+		return 1;
 	}
 	memset(e, 0, sizeof(*e));
 
@@ -354,7 +393,7 @@ static void add_led_control_event(ipmi_entity_t	*ent,
 		free(ctrl_info);
                 free(e);
                 dbg("No info in resource(%d)\n", rid);
-                return;
+                return 1;
         }
         e->u.rdr_event.rdr.RdrTypeUnion.CtrlRec.Num = info->ctrl_count;
         info->ctrl_count++;
@@ -380,6 +419,7 @@ static void add_led_control_event(ipmi_entity_t	*ent,
 	rpt->HotSwapCapabilities |=
 			SAHPI_HS_CAPABILITY_INDICATOR_SUPPORTED;
 #endif
+	return 0;
 }
 /*
  * add_alarm_rdr
@@ -564,23 +604,21 @@ void ohoi_control_event(enum ipmi_update_e op,
 	ohoi_res_info = oh_get_resource_data(handler->rptcache,
                                              rpt_entry->ResourceId);
         
+	trace_ipmi_control("ADD", control, rpt_entry);
 	if (op == IPMI_ADDED) {
 		int ctrl_type;
                 
 		/* attach power and reset to chassis entity since
 		   IPMI provides them as such */
-		trace_ipmi("resource: %s", rpt_entry->ResourceTag.Data);
                 ctrl_type = ipmi_control_get_type(control);
 		switch (ctrl_type) {
 		case IPMI_CONTROL_ONE_SHOT_RESET:
-			trace_ipmi("Attach reset control into entity");
 			ohoi_res_info->reset_ctrl =
 				ipmi_control_convert_to_id(control);
 			rpt_entry->ResourceCapabilities |=
 					SAHPI_CAPABILITY_RESET;
 			break;
 		case IPMI_CONTROL_POWER:
-			trace_ipmi("Attach power control into entity");
 			ohoi_res_info->power_ctrl =
 				ipmi_control_convert_to_id(control);
 			rpt_entry->ResourceCapabilities |=
@@ -593,38 +631,41 @@ void ohoi_control_event(enum ipmi_update_e op,
 				break;
 			}
 			rpt_entry->ResourceCapabilities |=
-					SAHPI_CAPABILITY_CONTROL;
+					SAHPI_CAPABILITY_CONTROL |
+					SAHPI_CAPABILITY_RDR;
 			break;
 		case IPMI_CONTROL_IDENTIFIER:
-			trace_ipmi("Address control for AdvancedTCA entity %d",
-						rpt_entry->ResourceId);
 			rv = address_control_get(control,handler, ent, rpt_entry);
 			if (rv) {
 				dbg("address_control_get failed");
 				break;
 			}
 			rpt_entry->ResourceCapabilities |=
-					SAHPI_CAPABILITY_CONTROL;
+					SAHPI_CAPABILITY_CONTROL |
+					SAHPI_CAPABILITY_RDR;
 			break;
 		case IPMI_CONTROL_LIGHT:
 			ipmi_control_get_id(control, str, 24);
-			trace_ipmi("LED control (%s) is storaged in RDR", str);
-                                rpt_entry->ResourceCapabilities |=
-					SAHPI_CAPABILITY_CONTROL;
-			add_led_control_event(ent, control, handler, rpt_entry);
+			if (add_led_control_event(ent, control, handler, rpt_entry)) {
+				break;
+			}
+			rpt_entry->ResourceCapabilities |=
+					SAHPI_CAPABILITY_CONTROL |
+     					SAHPI_CAPABILITY_RDR;
 			break;
 		default:
-			trace_ipmi("Other control(%d) is storaged in RDR",
-				ctrl_type);
+			if (SA_OK != add_control_event(ent, control, handler,
+					rpt_entry->ResourceEntity,
+					rpt_entry->ResourceId)) {
+				break;
+			}
 			rpt_entry->ResourceCapabilities |=
-					SAHPI_CAPABILITY_CONTROL;
-			add_control_event(ent, control, handler,
-			rpt_entry->ResourceEntity,
-			rpt_entry->ResourceId);
+					SAHPI_CAPABILITY_CONTROL |
+     					SAHPI_CAPABILITY_RDR;
 			break;
 		}            
 	}
-	trace_ipmi("Set updated for res_inf0 %p(%d). Control", ohoi_res_info, rpt_entry->ResourceId);
+	trace_ipmi("Set updated for res_info %p(%d). Control", ohoi_res_info, rpt_entry->ResourceId);
 	entity_rpt_set_updated(ohoi_res_info, handler->data);
 	g_static_rec_mutex_unlock(&ipmi_handler->ohoih_lock);	
 }

@@ -211,7 +211,8 @@ static void add_inventory_event(struct ohoi_resource_info *res_info,
         rid = oh_uid_lookup(&e->u.rdr_event.rdr.Entity);
         
         if (!oh_add_rdr(handler->rptcache, rid, &e->u.rdr_event.rdr, NULL, 0)) {
-		rpt_entry->ResourceCapabilities |= SAHPI_CAPABILITY_INVENTORY_DATA;
+		rpt_entry->ResourceCapabilities |= SAHPI_CAPABILITY_INVENTORY_DATA |
+			SAHPI_CAPABILITY_RDR;
 	}
 }
 
