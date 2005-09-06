@@ -415,10 +415,18 @@ static void trace_ipmi_resources(SaHpiRptEntryT *rpt_entry,
 	if (!getenv("OHOI_TRACE_DISCOVERY") && !IHOI_TRACE_ALL) {
 		return;
 	}
+	unsigned char str[32];
+	if (res_info->type == OHOI_RESOURCE_ENTITY) {
+		ipmi_entity_id_t *e = &res_info->u.entity_id;
+		snprintf(str, 32, "(%d,%d,%d,%d)", e->entity_id,
+			e->entity_instance, e->channel, e->address);
+	} else {
+		str[0] = 0;
+	}
 	oh_decode_entitypath(&(rpt_entry->ResourceEntity), &bigbuf);
-	fprintf(stderr, "res: %d(%s) presence: %d; updated:%d  %s\n",
-			rpt_entry->ResourceId, rpt_entry->ResourceTag.Data,
-			res_info->presence, res_info->updated,
+	fprintf(stderr, "%s %d %s presence: %d; updated:%d  %s\n",
+			rpt_entry->ResourceTag.Data, rpt_entry->ResourceId,
+			str, res_info->presence, res_info->updated,
 			bigbuf.Data
 			);
 }

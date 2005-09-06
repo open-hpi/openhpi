@@ -158,13 +158,32 @@ int ohoi_hot_swap_cb(ipmi_entity_t  *ent,
 	return IPMI_EVENT_HANDLED;
 }
 
+
+
+		/*    GET HOTSWAP STATE */
+
+
+typedef struct {
+	int done;
+	SaErrorT err;
+	enum ipmi_hot_swap_states ipmi_state;
+} get_hs_state_t;
+
+
 static
 void _get_hotswap_state(ipmi_entity_t             *ent,
                        int                       err,
                        enum ipmi_hot_swap_states state,
                        void                      *cb_data)
 {
-        *(enum ipmi_hot_swap_states*)cb_data = state;
+	get_hs_state_t *info = cb_data;
+	if (err) {
+		dbg("_get_hotswap_state. err = 0x%x", err);
+		err = SA_ERR_HPI_INVALID_CMD;
+	} else {
+        	info->ipmi_state = state;
+	}
+	info->done = 1;
 }
 
 SaErrorT ohoi_get_hotswap_state(void *hnd, SaHpiResourceIdT id, 
@@ -172,7 +191,7 @@ SaErrorT ohoi_get_hotswap_state(void *hnd, SaHpiResourceIdT id,
 {
         struct oh_handler_state         *handler;
         const struct ohoi_resource_info   *ohoi_res_info;
-        enum ipmi_hot_swap_states       ipmi_state;
+	get_hs_state_t info;
 
         int rv;
 
@@ -183,24 +202,50 @@ SaErrorT ohoi_get_hotswap_state(void *hnd, SaHpiResourceIdT id,
                 return SA_ERR_HPI_INVALID_CMD;
         }
         
+	info.done = 0;
+	info.err = SA_OK;
         rv = ipmi_entity_id_get_hot_swap_state(ohoi_res_info->u.entity_id,
                                                _get_hotswap_state,
-                                               &ipmi_state);
-        
+                                               &info);       
         if (rv) {
                 dbg("Unable to get hotswap state: %d", rv);
                 return SA_ERR_HPI_INVALID_CMD;
         }
-        
-        *state = _ipmi_to_hpi_state_conv(ipmi_state);        
+
+        rv = ohoi_loop(&info.done, handler->data);
+	if (rv) {
+		dbg("ohoi_loop returned %d", rv);
+		return rv;
+	}
+	if (info.err != SA_OK) {
+		dbg("info.err = %d", info.err);
+		return info.err;
+	}
+        *state = _ipmi_to_hpi_state_conv(info.ipmi_state);        
         return SA_OK;
 }
+
+
+
+		/*   SET HOTSWAP STATE  */
+
+struct hs_done_s {
+	int done;
+	int err;
+};
+
 
 static void _hotswap_done(ipmi_entity_t *ent,
                           int           err,
                           void          *cb_data)
 {
-        *(int *)cb_data = 1;
+	struct hs_done_s *info = cb_data;
+	
+	if (err) {
+		dbg("err = 0x%x", err);
+	}
+	info->err = err;
+	info->done = 1;
 }
 
 SaErrorT ohoi_set_hotswap_state(void *hnd, SaHpiResourceIdT id, 
@@ -208,7 +253,8 @@ SaErrorT ohoi_set_hotswap_state(void *hnd, SaHpiResourceIdT id,
 {
         struct oh_handler_state         *handler;
         const struct ohoi_resource_info   *ohoi_res_info;
-        int done = 0;
+	struct hs_done_s info;
+	SaErrorT rv;
 
         handler = (struct oh_handler_state *)hnd;
 	struct ohoi_handler *ipmi_handler = handler->data;
@@ -220,29 +266,99 @@ SaErrorT ohoi_set_hotswap_state(void *hnd, SaHpiResourceIdT id,
                 return SA_ERR_HPI_INVALID_CMD;
         }
 
+	info.done = 0;
+	info.err = 0;
         switch (_hpi_to_ipmi_state_conv(state)) {
                 case IPMI_HOT_SWAP_ACTIVE:
                          ipmi_entity_id_activate(ohoi_res_info->u.entity_id,
                                                  _hotswap_done,
-                                                 &done);
+                                                 &info);
                          break;
                 case IPMI_HOT_SWAP_INACTIVE:
                          ipmi_entity_id_deactivate(ohoi_res_info->u.entity_id,
                                                    _hotswap_done,
-                                                   &done);
+                                                   &info);
                          break;
                 default:
                          dbg("Unable set hotswap state: %d", state);
                          return SA_ERR_HPI_INVALID_CMD;
         }
                 
-        return ohoi_loop(&done, ipmi_handler);
+        rv = ohoi_loop(&info.done, ipmi_handler);
+	if (rv != SA_OK) {
+		return rv;
+	}
+	if (info.err) {
+		return SA_ERR_HPI_INVALID_CMD;
+	}
+	return SA_OK;
 }
 
+
+
+		/*    REQUEST HOTSWAP ACTION */
+
+	
+		
+static void activation_request(ipmi_entity_t *ent, void *cb_data)
+{
+	int rv;
+	struct hs_done_s *info = cb_data;
+
+	rv = ipmi_entity_set_activation_requested(ent, _hotswap_done,
+							cb_data);
+	if (rv) {
+		dbg("ipmi_entity_set_activation_requested = 0x%x", rv);
+		info->done = 1;
+		info->err = -1;
+	}
+}
+		
+		
 SaErrorT ohoi_request_hotswap_action(void *hnd, SaHpiResourceIdT id, 
                                      SaHpiHsActionT act)
 {
-        return SA_ERR_HPI_UNSUPPORTED_API;
+       struct oh_handler_state         *handler;
+        const struct ohoi_resource_info   *ohoi_res_info;
+	struct hs_done_s info;
+	SaErrorT rv;
+
+        handler = (struct oh_handler_state *)hnd;
+	struct ohoi_handler *ipmi_handler = handler->data;
+
+        ohoi_res_info = oh_get_resource_data(handler->rptcache, id);
+
+        if (ohoi_res_info->type != OHOI_RESOURCE_ENTITY) {
+                dbg("BUG: try to get sel in unsupported resource");
+                return SA_ERR_HPI_INVALID_CMD;
+        }
+
+	info.done = 0;
+	info.err = 0;
+	
+	switch (act) {
+	case SAHPI_HS_ACTION_INSERTION:
+		rv = ipmi_entity_pointer_cb(ohoi_res_info->u.entity_id,
+						activation_request, &info);
+		if (rv) {
+			dbg("ipmi_entity_pointer_cb = 0x%x", rv);
+			return SA_ERR_HPI_INVALID_PARAMS;
+		}
+		break;
+	case SAHPI_HS_ACTION_EXTRACTION:
+        	return SA_ERR_HPI_UNSUPPORTED_API;
+	default :
+		return SA_ERR_HPI_INVALID_PARAMS;
+	}
+	
+	rv = ohoi_loop(&info.done, ipmi_handler);
+	if (rv != SA_OK) {
+		return rv;
+	}
+	if (info.err) {
+		return SA_ERR_HPI_INVALID_REQUEST;
+	}
+	return SA_OK;
 }
 
 
@@ -326,6 +442,7 @@ SaErrorT ohoi_set_indicator_state(void *hnd, SaHpiResourceIdT id,
 struct ohoi_indicator_state {
         int done;
         int val;
+	int err;
 };
 
 static 
@@ -337,7 +454,11 @@ void _get_indicator_state(ipmi_entity_t *ent,
         struct ohoi_indicator_state *state;
         state = cb_data;
         
-        state->done = 1;
+        if (state->err) {
+		dbg("err = 0x%x", err);
+	}
+	state->err = err;
+	state->done = 1;
         state->val  = val;
 }
 	
@@ -346,7 +467,8 @@ SaErrorT ohoi_set_indicator_state(void *hnd, SaHpiResourceIdT id,
 {
         struct oh_handler_state         *handler;
         const struct ohoi_resource_info   *ohoi_res_info;
-        int done;
+	struct hs_done_s info;
+	SaErrorT rv;
         
         handler = (struct oh_handler_state *)hnd;
 		struct ohoi_handler *ipmi_handler = handler->data;
@@ -357,12 +479,18 @@ SaErrorT ohoi_set_indicator_state(void *hnd, SaHpiResourceIdT id,
                 return SA_ERR_HPI_INVALID_CMD;
         }
 
-        done = 0;
+        info.done = 0;
+	info.err = 0;
         ipmi_entity_id_set_hot_swap_indicator(ohoi_res_info->u.entity_id,
-                                              state,
-                                              _hotswap_done,                                                                
-                                              &done);
-        return ohoi_loop(&done,ipmi_handler);
+                                     state, _hotswap_done, &info);
+        rv = ohoi_loop(&info.done,ipmi_handler);
+	if (rv != SA_OK) {
+		return rv;
+	}
+	if (info.err) {
+		return SA_ERR_HPI_INVALID_CMD;
+	}
+	return SA_OK;
 }
 
 
@@ -372,8 +500,7 @@ SaErrorT ohoi_get_indicator_state(void *hnd, SaHpiResourceIdT id,
         struct oh_handler_state         *handler;
         const struct ohoi_resource_info   *ohoi_res_info;
         struct ohoi_indicator_state     ipmi_state;
-	
-        SaErrorT rv;
+	SaErrorT rv;	
 
         handler = (struct oh_handler_state *)hnd;
 		struct ohoi_handler *ipmi_handler = handler->data;

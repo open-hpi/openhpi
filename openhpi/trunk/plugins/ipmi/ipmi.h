@@ -47,6 +47,7 @@
 #define	IPMI_EVENT_DATA_MAX_LEN 13
 #define	MAX_ES_STATE 15 /* max number of possible event state - 1 */
 
+
 struct ohoi_handler {
 	GStaticRecMutex ohoih_lock;
 	int SDRs_read_done;

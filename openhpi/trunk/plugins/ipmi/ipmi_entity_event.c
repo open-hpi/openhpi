@@ -26,7 +26,27 @@ static void trace_ipmi_entity(char *str, int inst, ipmi_entity_t *entity)
 	if (!getenv("OHOI_TRACE_ENTITY") && !IHOI_TRACE_ALL) {
 		return;
 	}
-	fprintf(stderr, "*** Entity %s: %d.%d(%d).%d.%d (%s)\n", str,
+
+	char *type;
+	
+	switch (ipmi_entity_get_type(entity)) {
+	case IPMI_ENTITY_UNKNOWN:
+		type = "UNKNOWN"; break;
+	case IPMI_ENTITY_MC:
+		type = "MC"; break;
+	case IPMI_ENTITY_FRU:
+		type = "FRU"; break;
+	case IPMI_ENTITY_GENERIC:
+		type = "GENERIC"; break;
+	case IPMI_ENTITY_EAR:
+		type = "EAR"; break;
+	case IPMI_ENTITY_DREAR:
+		type = "DREAR"; break;
+	default :
+		type = "INVALID"; break;
+	}
+
+	fprintf(stderr, "*** Entity %s %s: %d.%d(%d).%d.%d (%s)\n", type, str,
 		ipmi_entity_get_entity_id(entity), 
 		inst,
 		ipmi_entity_get_entity_instance(entity),
@@ -171,11 +191,9 @@ static void get_entity_event(ipmi_entity_t	*entity,
 	SaHpiEntityPathT entity_ep;
 	struct oh_handler_state *handler = cb_data;
 	struct ohoi_handler *ipmi_handler = handler->data;
-
 	int rv;
 	const char *str;
 
-	g_static_rec_mutex_lock(&ipmi_handler->ohoih_lock);	
 
 	init_rpt(entry);
 
@@ -416,8 +434,6 @@ static void get_entity_event(ipmi_entity_t	*entity,
 				dbg("ipmi_entity_set_control_update_handler: %#x", rv);
 				return;
 			}
-                                                                                
-	g_static_rec_mutex_unlock(&ipmi_handler->ohoih_lock);	
 }
 
 static void add_entity_event(ipmi_entity_t	        *entity,
