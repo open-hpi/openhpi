@@ -30,6 +30,7 @@
 #include <oh_domain.h>
 #include <oh_session.h>
 #include <oh_alarm.h>
+#include <oh_init.h>
 #include <oh_utils.h>
 #include <oh_error.h>
 
@@ -332,7 +333,10 @@ SaErrorT oh_process_events()
 {
         struct oh_event *e;
 
-        while((e = g_async_queue_try_pop(oh_process_q)) != NULL) {
+        if (oh_initialized() != SA_OK)
+                return SA_ERR_HPI_INVALID_SESSION;
+
+        while ((e = g_async_queue_try_pop(oh_process_q)) != NULL) {
 
                 switch(e->type) {
                 case OH_ET_RESOURCE:
