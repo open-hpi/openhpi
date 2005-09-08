@@ -45,12 +45,9 @@ SaErrorT oh_initialized()
  **/
 SaErrorT oh_initialize()
 {
-        GSList *node = NULL;
-        struct oh_parsed_config config = {NULL, NULL};
+        struct oh_parsed_config config = {NULL, NULL, 0, 0, 0, 0};
         struct oh_global_param config_param = { .type = OPENHPI_CONF };
-        int rval;
-        unsigned int u;
-
+        SaErrorT rval;
         SaHpiDomainCapabilitiesT capabilities = 0x00000000;
         SaHpiTextBufferT tag;
 
@@ -58,12 +55,12 @@ SaErrorT oh_initialize()
 
         /* Check ready state */
         if (oh_initialized() == SA_OK) {
-                dbg("Cannot initialize twice");
+                dbg("Cannot initialize twice.");
                 data_access_unlock();
                 return SA_ERR_HPI_DUPLICATE;
         }
 
-        /* Initialize event process queue */
+        /* Initialize thread engine */
         oh_threaded_init();
 
         /* Set openhpi configuration file location */
@@ -72,7 +69,7 @@ SaErrorT oh_initialize()
         rval = oh_load_config(config_param.u.conf, &config);
         /* Don't error out if there is no conf file */
         if (rval < 0 && rval != -4) {
-                dbg("Can not load config");
+                dbg("Can not load config.");
                 data_access_unlock();
                 return SA_ERR_HPI_NOT_PRESENT;
         }
@@ -80,12 +77,15 @@ SaErrorT oh_initialize()
         /* Initialize uid_utils */
         rval = oh_uid_initialize();
         if( (rval != SA_OK) && (rval != SA_ERR_HPI_ERROR) ) {
-                dbg("uid_intialization failed");
+                dbg("Unique ID intialization failed.");
                 data_access_unlock();
-                return(rval);
+                return rval;
         }
-        trace("Initialized UID");
+        trace("Initialized UID.");
 
+        /* Initialize handler table */
+        oh_handlers.table = g_hash_table_new(g_int_hash, g_int_equal);
+        trace("Initialized handler table");
 
         /* Initialize domain table */
         oh_domains.table = g_hash_table_new(g_int_hash, g_int_equal);
@@ -105,153 +105,66 @@ SaErrorT oh_initialize()
         oh_sessions.table = g_hash_table_new(g_int_hash, g_int_equal);
         trace("Initialized session table");
 
-        /* this only does something if the config says to */
-        oh_threaded_start();
-        oh_init_state = INIT;
-        trace("Set init state");
-
-        data_access_unlock();
-        /* infrastructure initialization has completed */
-
-        /* now load plugin and handlers */
-
-        /* Initialize plugins */
-        for (node = config.plugin_names; node; node = node->next) {
-                char *plugin_name = (char *)node->data;
-                if (oh_load_plugin(plugin_name) == 0) {
-                        trace("Loaded plugin %s", plugin_name);
-                } else {
-                        dbg("Couldn't load plugin %s", plugin_name);
-                        g_free(plugin_name);
-                }
-        }
-
-        /* Initialize handlers */
-        for (node = config.handler_configs; node; node = node->next) {
-                GHashTable *handler_config = (GHashTable *)node->data;
-                if(oh_load_handler(handler_config) > 0) {
-                        trace("Loaded handler for plugin %s",
-                              (char *)g_hash_table_lookup(handler_config, "plugin"));
-                } else {
-                        dbg("Couldn't load handler for plugin %s",
-                            (char *)g_hash_table_lookup(handler_config, "plugin"));
-                        g_hash_table_destroy(handler_config);
-                }
-        }
+        /* Load plugins and create handlers*/
+        oh_process_config(&config);
 
         /*
          * Wipes away configuration lists (plugin_names and handler_configs).
          * global_params is not touched.
          */
-        oh_clean_config();
+        oh_clean_config(&config);
 
-        /* Check if there are any handler loaded */
-        oh_lookup_next_handler(0, &u);
-        if (!u) {
-                /* there is no handler => this can not work */
-                dbg("No handlers loaded after initialization.");
-                dbg("Check configuration file %s or previous messages",
+        /*
+         * If any handlers were defined in the config file AND
+         * all of them failed to load, Then return with an error.
+         */
+        if (config.handlers_defined > 0 && config.handlers_loaded == 0) {
+                data_access_unlock();
+                dbg("Error: Handlers were defined, but none loaded.");
+                return SA_ERR_HPI_ERROR;
+        } else if (config.handlers_defined > 0 &&
+                   config.handlers_loaded < config.handlers_defined) {
+                dbg("*Warning*: Not all handlers defined loaded."
+                    " Check previous messages.");
+        }
+
+        /* this only does something if the config says to */
+        oh_threaded_start();
+
+        oh_init_state = INIT;
+        trace("Set init state");
+        /* Set function to be called when application exits */
+        atexit(oh_finalize);
+        data_access_unlock();
+        /* infrastructure initialization has completed at this point */
+
+        /* Check if there are any handlers loaded */
+        if (config.handlers_defined == 0) {
+                dbg("*Warning*: No handler definitions found in config file."
+                    " Check configuration file %s and previous messages",
                     config_param.u.conf);
         }
 
         return SA_OK;
 }
 
-SaErrorT oh_add_config_file(char *file_name)
-{
-        struct oh_parsed_config config;
-        int res;
-        GSList  *node = NULL;
-
-        memset (&config, 0, sizeof(struct oh_parsed_config));
-        /* open and load config file */
-        res = oh_load_config(file_name, &config);
-        if (res < 0) return(SA_ERR_HPI_INVALID_PARAMS);
-
-        /* Add plugins */
-        for (node = config.plugin_names; node; node = node->next) {
-                char *plugin_name = (char *)node->data;
-                if (oh_load_plugin(plugin_name) == 0) {
-                        dbg("Loaded plugin %s", plugin_name);
-                } else {
-                        dbg("Couldn't load plugin %s", plugin_name);
-                        g_free(plugin_name);
-                }
-        };
-
-        /* Add handlers */
-        for (node = config.handler_configs; node; node = node->next) {
-                GHashTable *handler_config = (GHashTable *)node->data;
-                if(oh_load_handler(handler_config) > 0) {
-                        dbg("Loaded handler for plugin %s",
-                                (char *)g_hash_table_lookup(handler_config, "plugin"));
-                } else {
-                        dbg("Couldn't load handler for plugin %s",
-                            (char *)g_hash_table_lookup(handler_config, "plugin"));
-                        g_hash_table_destroy(handler_config);
-                }
-        };
-        return(SA_OK);
-}
-
-#if 0
 /**
  * oh_finalize
  *
  * Returns:
  **/
-SaErrorT oh_finalize()
+void oh_finalize()
 {
-        OH_STATE_READY_CHECK;
-
-        /* free mutex */
-        /* TODO: this wasn't here in branch, need to resolve history */
         data_access_lock();
 
-        /* TODO: realy should have a oh_uid_finalize() that */
-        /* frees memory,                                    */
-        if(oh_uid_map_to_file())
-                dbg("error writing uid entity path mapping to file");
-
-        /* check for open sessions */
-        if ( global_session_list ) {
-                dbg("cannot saHpiFinalize because of open sessions" );
+        if (oh_initialized() != SA_OK) {
+                dbg("Cannot finalize twice.");
                 data_access_unlock();
-                return SA_ERR_HPI_BUSY;
+                return;
         }
 
-        /* close all plugins */
-        while(global_handler_list) {
-                struct oh_handler *handler = (struct oh_handler *)global_handler_list->data;
-                /* unload_handler will remove handler from global_handler_list */
-                unload_handler(handler);
-        }
+        oh_close_handlers();
 
-        /* unload plugins */
-        while(global_plugin_list) {
-                struct oh_plugin_config *plugin = (struct oh_plugin_config *)global_plugin_list->data;
-                unload_plugin(plugin);
-        }
-
-        /* free global rpt */
-        if (default_rpt) {
-                oh_flush_rpt(default_rpt);
-                g_free(default_rpt);
-                default_rpt = 0;
-        }
-
-        /* free global_handler_configs and uninit_plugin */
-        oh_unload_config();
-        oh_exit_ltdl(); /* Free ltdl structures after unloading plugins */
-
-        /* free domain list */
-        oh_cleanup_domain();
-
-        oh_hpi_state = OH_STAT_UNINIT;
-
-        /* free mutex */
+        oh_init_state = UNINIT;
         data_access_unlock();
-
-        return SA_OK;
 }
-#endif
