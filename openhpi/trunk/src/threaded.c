@@ -114,16 +114,17 @@ static gpointer oh_event_thread_loop(gpointer data)
 {
         GTimeVal time;
         SaErrorT error = SA_OK;
+        static int first_loop = 1;
 
         g_mutex_lock(oh_event_thread_mutex);
         while (oh_threaded_mode()) {
-                g_get_current_time(&time);
-                g_time_val_add(&time, OH_EVENT_THREAD_SLEEP_TIME);
-                trace("Going to sleep");
-                if (g_cond_timed_wait(oh_event_thread_wait, oh_event_thread_mutex, &time))
-                        trace("SIGNALED: Got signal from plugin");
-                else
-                        trace("TIMEDOUT: Woke up, am looping again");
+                /* Give the discovery time to start first -> FIXME */
+                if (first_loop) {
+                        struct timespec sleepytime =
+                                { .tv_sec = 0, .tv_nsec = 500000000};
+                        first_loop = 0;
+                        nanosleep(&sleepytime, NULL);
+                }
 
                 trace("Thread Harvesting events");
                 error = oh_harvest_events();
@@ -139,6 +140,14 @@ static gpointer oh_event_thread_loop(gpointer data)
 
                 trace("Thread processing hotswap");
                 process_hotswap_policy();
+
+                g_get_current_time(&time);
+                g_time_val_add(&time, OH_EVENT_THREAD_SLEEP_TIME);
+                trace("Going to sleep");
+                if (g_cond_timed_wait(oh_event_thread_wait, oh_event_thread_mutex, &time))
+                        trace("SIGNALED: Got signal from plugin");
+                else
+                        trace("TIMEDOUT: Woke up, am looping again");
         }
         g_mutex_unlock(oh_event_thread_mutex);
         g_thread_exit(0);
@@ -191,7 +200,7 @@ int oh_threaded_start()
                                                   NULL, FALSE, &oh_event_thread_error);
         }
 
-        return 1;
+        return 0;
 }
 
 int oh_threaded_final()

@@ -1,7 +1,7 @@
 /*      -*- linux-c -*-
  *
  * Copyright (c) 2003 by Intel Corp.
- * (C) Copyright IBM Corp. 2003, 2005
+ * (C) Copyright IBM Corp. 2003, 2004, 2005
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,14 +18,20 @@
  *     Racing Guo <racing.guo@intel.com>
  */
 
-#include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
 #include <oh_event.h>
-#include <openhpi.h>
+#include <oh_config.h>
+#include <oh_handler.h>
+#include <oh_plugin.h>
+#include <oh_hotswap.h>
+#include <oh_lock.h>
 #include <oh_threaded.h>
+#include <oh_domain.h>
+#include <oh_session.h>
+#include <oh_alarm.h>
+#include <oh_utils.h>
+#include <oh_error.h>
 
 extern GMutex *oh_event_thread_mutex;
 GAsyncQueue *oh_process_q = NULL;
@@ -36,7 +42,7 @@ GAsyncQueue *oh_process_q = NULL;
  * */
 struct oh_event* oh_new_oh_event(oh_event_type t)
 {
-        struct oh_event * new = NULL;
+        struct oh_event *new = NULL;
 
         new->type = t;
         new = g_new0(struct oh_event, 1);
@@ -75,7 +81,7 @@ static SaErrorT harvest_events_for_handler(struct oh_handler *h)
                         return SA_ERR_HPI_OUT_OF_SPACE;
                 } else {
                         trace("Found event for handler %p", h);
-                        e2 =oh_dup_oh_event(&event);
+                        e2 = oh_dup_oh_event(&event);
                         e2->hid = h->id;
                         if (!oh_domain_served_by_handler(e2->hid, e2->did)) {
                                 dbg("Handler %d sends event %d to wrong domain %d",
@@ -95,15 +101,13 @@ SaErrorT oh_harvest_events()
         unsigned int hid = 0, next_hid;
         struct oh_handler *h = NULL;
 
-        data_access_lock();
-
-        oh_lookup_next_handler(hid, &next_hid);
+        oh_getnext_handler_id(hid, &next_hid);
         while (next_hid) {
                 trace("harvesting for %d", next_hid);
                 hid = next_hid;
 
-                h = oh_lookup_handler(hid);
-                if(!h) {
+                h = oh_get_handler(hid);
+                if (!h) {
                         dbg("No such handler %d", hid);
                         break;
                 }
@@ -115,9 +119,10 @@ SaErrorT oh_harvest_events()
                 if (harvest_events_for_handler(h) == SA_OK && error)
                         error = SA_OK;
 
-                oh_lookup_next_handler(hid, &next_hid);
+                oh_release_handler(h);
+
+                oh_getnext_handler_id(hid, &next_hid);
         }
-        data_access_unlock();
 
         return error;
 }
@@ -125,17 +130,18 @@ SaErrorT oh_harvest_events()
 static SaErrorT oh_add_event_to_del(SaHpiDomainIdT did, struct oh_hpi_event *e)
 {
         struct oh_global_param param = { .type = OPENHPI_LOG_ON_SEV };
-        struct oh_domain *d;
+        struct oh_domain *d = NULL;
         SaErrorT rv = SA_OK;
         char del_filepath[SAHPI_MAX_TEXT_BUFFER_LENGTH*2];
 
         oh_get_global_param(&param);
 
-        if (e->event.Severity <= param.u.log_on_sev) { /* less is more */
+        /* Events get logged in DEL if they are of high enough severity */
+        if (e->event.Severity <= param.u.log_on_sev) {
                 param.type = OPENHPI_DEL_SAVE;
                 oh_get_global_param(&param);
-                /* yes, we need to add real domain support later here */
                 d = oh_get_domain(did);
+
                 if (d) {
                         rv = oh_el_append(d->del, &e->event, &e->rdr, &e->res);
                         if (param.u.del_save) {
@@ -189,7 +195,6 @@ static int process_hpi_event(struct oh_event *full_event)
          * Here is where we need the SESSION MULTIPLEXING code
          */
 
-        /* FIXME: yes, we need to figure out the real domain at some point */
         trace("About to get session list");
         sessions = oh_list_sessions(full_event->did);
         trace("process_hpi_event, done oh_list_sessions");
@@ -365,23 +370,23 @@ SaErrorT oh_get_events()
 
         /* this waits for the event thread to sleep, then
            runs to deal with sync issues */
-        if(oh_threaded_mode())
+        if (oh_threaded_mode())
                 g_mutex_lock(oh_event_thread_mutex);
 
         trace("Harvesting events synchronously");
         rv = oh_harvest_events();
-        if(rv != SA_OK) {
+        if (rv != SA_OK) {
                 dbg("Error on harvest of events.");
         }
 
         rv = oh_process_events();
-        if(rv != SA_OK) {
+        if (rv != SA_OK) {
                 dbg("Error on processing of events, aborting");
         }
 
         process_hotswap_policy();
 
-        if(oh_threaded_mode())
+        if (oh_threaded_mode())
                 g_mutex_unlock(oh_event_thread_mutex);
 
         return rv;
