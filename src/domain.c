@@ -593,7 +593,7 @@ SaErrorT oh_request_domain_delete(unsigned int handler_id,
 {
         SaErrorT error;
 
-        if (did == oh_get_default_domain_id()) {
+        if (did == oh_get_default_domain_id() || handler_id < 1 || did < 1) {
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 

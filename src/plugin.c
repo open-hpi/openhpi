@@ -823,7 +823,7 @@ SaErrorT oh_domain_resource_discovery(SaHpiDomainIdT did)
         while (next_hid) {
                 hid = next_hid;
 
-                if (oh_domain_served_by_handler(hid, did) || did == 0) {
+                if (did == 0 || oh_domain_served_by_handler(hid, did)) {
                         SaErrorT cur_error;
 
                         h = oh_get_handler(hid);
@@ -832,7 +832,7 @@ SaErrorT oh_domain_resource_discovery(SaHpiDomainIdT did)
                                 break;
                         }
 
-                        if (h->abi->discover_domain_resources != NULL) {
+                        if (h->abi->discover_domain_resources != NULL && did != 0) {
                                 cur_error = h->abi->discover_domain_resources(h->hnd, did);
                                 if (cur_error == SA_OK && error) {
                                         error = cur_error;
