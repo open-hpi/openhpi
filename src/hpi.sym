@@ -83,9 +83,11 @@ saHpiResourcePowerStateGet
 saHpiResourcePowerStateSet
 data_access_block_times
 oh_get_default_domain_id
-oh_request_domain_id
-oh_release_domain_id
-oh_add_config_file
+oh_request_new_domain
+oh_request_domain_delete
+oh_load_config
+oh_process_config
+oh_clean_config
 oHpiVersionGet
 oHpiPluginLoad
 oHpiPluginUnload

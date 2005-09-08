@@ -1,6 +1,7 @@
 /*      -*- linux-c -*-
  *
  * Copyright (c) 2004 by Intel Corp.
+ * (C) Copyright IBM Corp. 2005
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -11,6 +12,7 @@
  *
  * Authors:
  *     Racing Guo <racing.guo@intel.com>
+ *     Renier Morales <renierm@users.sf.net>
  */
 
 #ifndef __OH_HOTSWAP_H
@@ -18,18 +20,33 @@
 
 #include <SaHpi.h>
 #include <glib.h>
-#include <oh_plugin.h>
-#include <oh_config.h>
-#include <oh_init.h>
-#include <oh_lock.h>
-#include <oh_error.h>
-#include <oh_domain.h>
-#include <oh_session.h>
-#include <oh_utils.h>
+#include <oh_event.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/*
+ * Representation of additional resource data
+ * stored in the data field rpt_utils for each
+ * resource
+ */
+
+struct oh_resource_data
+{
+        /*
+           The handler id of the resource
+        */
+        unsigned int hid;
+
+        /*
+         * The two fields are valid when resource is
+         * CAPABILITY_HOTSWAP
+         */
+
+        int                controlled;
+        SaHpiTimeoutT      auto_extract_timeout;
+};
 
 extern GSList *hs_eq;
 

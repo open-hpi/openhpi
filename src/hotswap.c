@@ -1,7 +1,7 @@
 /*      -*- linux-c -*-
  *
  * Copyright (c) 2003 by Intel Corp.
- * (C) Copyright IBM Corp. 2003, 2004
+ * (C) Copyright IBM Corp. 2003, 2004, 2005
  * Copyright (c) 2004 by FORCE Computers.
  *
  * This program is distributed in the hope that it will be useful,
@@ -15,133 +15,131 @@
  *     Louis Zhuang <louis.zhuang@linux.intel.com>
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
  *     Racing Guo <racing.guo@intel.com>
- * Contributors:
- *     David Judkovics <djudkovi@us.ibm.com> 
+ *     David Judkovics <djudkovi@us.ibm.com>
+ *     Renier Morales <renierm@users.sf.net>
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
-#include <SaHpi.h>
-#include <openhpi.h>
 #include <oh_hotswap.h>
+#include <oh_handler.h>
+#include <oh_plugin.h>
+#include <oh_lock.h>
+#include <oh_domain.h>
 #include <oh_utils.h>
+#include <oh_error.h>
 
 GSList *hs_eq = NULL;
 
 void process_hotswap_policy()
 {
-        SaHpiTimeT cur, est;	   
+        SaHpiTimeT cur, est;
         struct oh_event e;
-	struct oh_handler *handler;
-	struct oh_domain *domain;
+        struct oh_handler *handler = NULL;
+        struct oh_domain *domain = NULL;
         RPTable *rpt;
-	GSList *tmp_hs_eq = NULL;
+        GSList *tmp_hs_eq = NULL;
+        SaHpiEventT *event = NULL;
+        SaHpiRptEntryT *rptentry = NULL;
 
         int (*get_hotswap_state)(void *hnd, SaHpiResourceIdT rid,
                                  SaHpiHsStateT *state);
-        
-        while( hotswap_pop_event(&hs_eq, &e) > 0 ) {
+
+        while (hotswap_pop_event(&hs_eq, &e) > 0) {
                 struct oh_resource_data *rd;
-               
-		domain = oh_get_domain(e.did);
-		if (!domain) {
-			dbg("No domain\n");
-			continue;
-		}
 
-		if (e.type != OH_ET_HPI) {
-			dbg("Non-hpi event!");
-			oh_release_domain(domain);
-			continue;
-		}
+                event = &e.u.hpi_event.event;
+                rptentry = &e.u.hpi_event.res;
 
-		handler = oh_lookup_handler(e.hid);
-		if (!handler) {
-			dbg("handler is NULL\n");
-			oh_release_domain(domain);
-			continue;
-		}
+                if (e.type != OH_ET_HPI) {
+                        dbg("Non-hpi event!");
+                        continue;
+                }
 
-
-		/*rpt is impossible NULL */
-		rpt = &domain->rpt;
-
-        	get_hotswap_state = handler->abi->get_hotswap_state;
-        
-        	if (!get_hotswap_state) {
-                	dbg(" Very bad thing here or hotswap not yet supported");
-			oh_release_domain(domain);
-                	continue;
-        	}
-
-                if (e.u.hpi_event.event.EventType != SAHPI_ET_HOTSWAP) {
+                if (event->EventType != SAHPI_ET_HOTSWAP) {
                         dbg("Non-hotswap event!");
-			oh_release_domain(domain);
                         continue;
                 }
-                
-                if (!(e.u.hpi_event.res.ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
+
+                if (!(rptentry->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
                         dbg("Non-hotswapable resource?!");
-			oh_release_domain(domain);
                         continue;
                 }
-                
-                rd = oh_get_resource_data(rpt, e.u.hpi_event.res.ResourceId);
+
+                domain = oh_get_domain(e.did);
+                if (!domain) {
+                        dbg("No domain\n");
+                        continue;
+                }
+                /*rpt is impossible NULL */
+                rpt = &domain->rpt;
+
+                rd = oh_get_resource_data(rpt, rptentry->ResourceId);
                 if (!rd) {
-                        dbg( "Can't find resource data for Resource %d", e.u.hpi_event.res.ResourceId);
+                        dbg( "Can't find resource data for Resource %d", rptentry->ResourceId);
                         oh_release_domain(domain);
-			continue;
+                        continue;
                 }
 
                 if (rd->controlled) {
-                        dbg();
+                        trace("Hotswap policy was cancelled by user.");
                         oh_release_domain(domain);
-			continue;
+                        continue;
+                }
+
+                handler = oh_get_handler(e.hid);
+                if (!handler) {
+                        dbg("handler is NULL\n");
+                        oh_release_domain(domain);
+                        continue;
+                }
+
+                get_hotswap_state = handler->abi->get_hotswap_state;
+                if (!get_hotswap_state) {
+                        oh_release_handler(handler);
+                        oh_release_domain(domain);
+                        dbg(" Very bad thing here or hotswap not yet supported");
+                        continue;
                 }
 
                 oh_gettimeofday(&cur);
-
-                if (e.u.hpi_event.event.EventDataUnion.HotSwapEvent.HotSwapState 
-                    == SAHPI_HS_STATE_INSERTION_PENDING) {
-                    if (get_hotswap_auto_insert_timeout() != SAHPI_TIMEOUT_BLOCK)
-                    {
-                        est = e.u.hpi_event.event.Timestamp + get_hotswap_auto_insert_timeout();
-                        
-                        if (cur>=est) {
-                                handler->abi->set_hotswap_state( handler->hnd, e.u.hpi_event.res.ResourceId,
-                                                                 SAHPI_HS_STATE_ACTIVE);
-                        }else {
-				                /*push again in order to process in the feature*/
-				                hotswap_push_event(&tmp_hs_eq, &e);
+                if (event->EventDataUnion.HotSwapEvent.HotSwapState ==
+                    SAHPI_HS_STATE_INSERTION_PENDING) {
+                        if (get_hotswap_auto_insert_timeout() != SAHPI_TIMEOUT_BLOCK) {
+                                est = event->Timestamp + get_hotswap_auto_insert_timeout();
+                                if (cur>=est) {
+                                        handler->abi->set_hotswap_state(handler->hnd,
+                                                                        rptentry->ResourceId,
+                                                                        SAHPI_HS_STATE_ACTIVE);
+                                } else {
+                                        /*push again in order to process in the feature*/
+                                        hotswap_push_event(&tmp_hs_eq, &e);
+                                }
                         }
-			        }
-                } else if (e.u.hpi_event.event.EventDataUnion.HotSwapEvent.HotSwapState
-                           == SAHPI_HS_STATE_EXTRACTION_PENDING) {
-                    if (rd->auto_extract_timeout != SAHPI_TIMEOUT_BLOCK)
-                    {
-                        est = e.u.hpi_event.event.Timestamp + rd->auto_extract_timeout;
-                        if (cur>=est) {
-                                handler->abi->set_hotswap_state(handler->hnd, e.u.hpi_event.res.ResourceId,
-                                                                SAHPI_HS_STATE_INACTIVE);
-                        } else {
-				                /*push again in order to process in the feature*/
-                                hotswap_push_event(&tmp_hs_eq, &e);
-			            }
-                    }
-                } else {
-                        dbg();
+                } else if (event->EventDataUnion.HotSwapEvent.HotSwapState ==
+                           SAHPI_HS_STATE_EXTRACTION_PENDING) {
+                        if (rd->auto_extract_timeout != SAHPI_TIMEOUT_BLOCK) {
+                                est = e.u.hpi_event.event.Timestamp + rd->auto_extract_timeout;
+                                if (cur>=est) {
+                                        handler->abi->set_hotswap_state(handler->hnd,
+                                                                        rptentry->ResourceId,
+                                                                        SAHPI_HS_STATE_INACTIVE);
+                                } else {
+                                        /*push again in order to process in the feature*/
+                                        hotswap_push_event(&tmp_hs_eq, &e);
+                                }
+                        }
                 }
-		oh_release_domain(domain);
+                oh_release_handler(handler);
+                oh_release_domain(domain);
         }
 
-	/* Make sure:
-	   1. hs_eq has no event (hotswap_pop_event(&e) > 0)
-	   2. process_hotswap_policy is not reentry. (only one thread call this function)
-	*/
+        /* TODO:
+           1. Make sure hs_eq has no events (hotswap_pop_event(&e) > 0)
+           2. Make process_hotswap_policy reentrant (called by one thread for now).
+        */
 
-	hs_eq = tmp_hs_eq;
+        hs_eq = tmp_hs_eq;
 }
 
 /*
@@ -165,38 +163,38 @@ int hotswap_push_event(GSList **hs_eq, struct oh_event *e)
         memcpy(e1, e, sizeof(*e));
 
         *hs_eq = g_slist_append(*hs_eq, (gpointer *) e1);
-        
+
         data_access_unlock();
 
         return 0;
 }
 
 /*
- * session_pop_event - pops events off the session.  
+ * session_pop_event - pops events off the session.
  *
  * return codes are left as was, but it seems that return 1 for success
  * here doesn't jive with the rest of the exit codes
  */
 
-int hotswap_pop_event(GSList **hs_eq, struct oh_event *e) 
+int hotswap_pop_event(GSList **hs_eq, struct oh_event *e)
 {
         GSList *head;
-        
+
         data_access_lock();
 
         if (g_slist_length(*hs_eq) == 0) {
                 data_access_unlock();
                 return 0;
         }
-       
+
         head = *hs_eq;
         *hs_eq = g_slist_remove_link(*hs_eq, head);
-        
+
         memcpy(e, head->data, sizeof(*e));
-        
+
         free(head->data);
         g_slist_free_1(head);
-        
+
         data_access_unlock();
 
         return 1;

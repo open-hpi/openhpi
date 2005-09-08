@@ -28,6 +28,10 @@ extern "C" {
 struct oh_parsed_config {
         GSList *plugin_names;
         GSList *handler_configs;
+        guint plugins_defined;
+        guint plugins_loaded;
+        guint handlers_defined;
+        guint handlers_loaded;
 };
 
 typedef enum {
@@ -71,7 +75,8 @@ struct oh_global_param {
 
 /* Plugin configuration information prototypes */
 int oh_load_config(char *filename, struct oh_parsed_config *config);
-void oh_clean_config(void);
+SaErrorT oh_process_config(struct oh_parsed_config *config);
+void oh_clean_config(struct oh_parsed_config *config);
 
 /* For handling global parameters */
 int oh_get_global_param(struct oh_global_param *param);

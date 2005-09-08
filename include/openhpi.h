@@ -1,7 +1,7 @@
 /*      -*- linux-c -*-
  *
  * Copyright (c) 2003 by Intel Corp.
- * (C) Copyright IBM Corp. 2003
+ * (C) Copyright IBM Corp. 2003, 2005
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -36,28 +36,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-/*
- * Representation of additional resource data
- * stored in the data field rpt_utils for each
- * resource
- */
-
-struct oh_resource_data
-{
-        /*
-           The handler id of the resource
-        */
-        unsigned int hid;
-
-        /*
-         * The two fields are valid when resource is
-         * CAPABILITY_HOTSWAP
-         */
-
-        int                controlled;
-        SaHpiTimeoutT      auto_extract_timeout;
-};
 
 #define oh_session_event oh_hpi_event
 

@@ -347,7 +347,6 @@ SaErrorT oh_destroy_session(SaHpiSessionIdT sid)
         int i, len;
 
         if (sid < 1) return SA_ERR_HPI_INVALID_PARAMS;
-        data_access_lock();
 
         g_static_rec_mutex_lock(&oh_sessions.lock); /* Locked session table */
         session = g_hash_table_lookup(oh_sessions.table, &sid);
@@ -390,6 +389,5 @@ SaErrorT oh_destroy_session(SaHpiSessionIdT sid)
                 oh_release_domain(domain);
         }
 
-        data_access_unlock();
         return SA_OK;
 }

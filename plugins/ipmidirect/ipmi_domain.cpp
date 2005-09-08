@@ -55,9 +55,9 @@ cIpmiDomain::cIpmiDomain()
   // scan at least at dIpmiBmcSlaveAddr
   NewFruInfo( dIpmiBmcSlaveAddr, 0, SAHPI_ENT_SHELF_MANAGER, 0,
               eIpmiAtcaSiteTypeDedicatedShMc,
-	        dIpmiMcThreadInitialDiscover
-	      | dIpmiMcThreadPollDeadMc
-	      | dIpmiMcThreadPollAliveMc );
+                dIpmiMcThreadInitialDiscover
+              | dIpmiMcThreadPollDeadMc
+              | dIpmiMcThreadPollAliveMc );
 
   // default site type properties
   unsigned int prop =   dIpmiMcThreadInitialDiscover
@@ -97,7 +97,7 @@ cIpmiDomain::cIpmiDomain()
 
 cIpmiDomain::~cIpmiDomain()
 {
-  cIpmiMcVendorFactory::CleanupFactory();  
+  cIpmiMcVendorFactory::CleanupFactory();
 }
 
 
@@ -151,7 +151,7 @@ cIpmiDomain::Init( cIpmiCon *con )
   if ( m_major_version < 1 )
      {
        // We only support 1.0 and greater.
-       stdlog << "ipmi version " << m_major_version << "." 
+       stdlog << "ipmi version " << m_major_version << "."
               << m_minor_version << " not supported !\n";
 
        return false;
@@ -195,7 +195,7 @@ cIpmiDomain::Init( cIpmiCon *con )
           {
             num = rsp.m_data[1];
 
-            stdlog << "reading bt capabilities: max outstanding " << num 
+            stdlog << "reading bt capabilities: max outstanding " << num
                    << ", input " << (int)rsp.m_data[2]
                    << ", output " << (int)rsp.m_data[3]
                    << ", retries " << (int)rsp.m_data[5] << ".\n";
@@ -213,14 +213,14 @@ cIpmiDomain::Init( cIpmiCon *con )
      {
        num = 1;
      }
-                                                                                                                    
+
   stdlog << "max number of outstanding = " << num << ".\n";
   m_con->SetMaxOutstanding( num );
 
   if ( m_own_domain == true )
   {
     SaHpiTextBufferT buf = m_domain_tag;
-    m_did = oh_request_domain_id(m_handler_id, &buf, 0, 0, 0);
+    m_did = oh_request_new_domain(m_handler_id, &buf, 0, 0, 0);
 
     if ( m_did == 0 )
     {
@@ -423,13 +423,13 @@ cIpmiDomain::CleanupMc( cIpmiMc *mc )
        return false;
 
   int idx = m_mcs.Find( mc );
-  
+
   if ( idx == -1 )
      {
        stdlog << "unable to find mc at " << (unsigned char)mc->GetAddress() << " in mc list !\n";
        return false;
      }
-  
+
   m_mcs.Rem( idx );
   delete mc;
 
@@ -437,7 +437,7 @@ cIpmiDomain::CleanupMc( cIpmiMc *mc )
 }
 
 
-int 
+int
 cIpmiDomain::GetChannels()
 {
   int rv = 0;
@@ -549,7 +549,7 @@ cIpmiDomain::CheckAtca()
                  stdlog << "\tfound " << (unsigned char)i << " at " <<  rsp.m_data[3] << ".\n";
 
             // add slot for initial scan
-            NewFruInfo( rsp.m_data[3], rsp.m_data[5], entity, j + 1, 
+            NewFruInfo( rsp.m_data[3], rsp.m_data[5], entity, j + 1,
                         (tIpmiAtcaSiteType)i, m_atca_site_property[i].m_property );
           }
      }
@@ -688,7 +688,7 @@ cIpmiDomain::HandleEvent( cIpmiEvent *event )
        int slot = GetFreeSlotForOther( a );
 
        cIpmiFruInfo *fi = NewFruInfo( a, 0, SAHPI_ENT_SYS_MGMNT_MODULE, slot,
-                                      eIpmiAtcaSiteTypeUnknown, 
+                                      eIpmiAtcaSiteTypeUnknown,
                                         dIpmiMcThreadInitialDiscover
                                       | hotswap ? (   dIpmiMcThreadPollAliveMc
                                                     | dIpmiMcThreadCreateM0) : 0 );
@@ -709,7 +709,7 @@ cIpmiDomain::VerifyResource( cIpmiResource *res )
        cIpmiMc *mc = m_mcs[i];
 
        if ( mc->FindResource( res ) )
-	    return res;
+            return res;
      }
 
   return 0;
@@ -723,7 +723,7 @@ cIpmiDomain::VerifyMc( cIpmiMc *mc )
        return mc;
 
   int idx = m_mcs.Find( mc );
-  
+
   if ( idx == -1 )
        return 0;
 
@@ -754,7 +754,7 @@ cIpmiDomain::VerifySensor( cIpmiSensor *s )
        cIpmiMc *mc = m_mcs[i];
 
        if ( mc->FindRdr( s ) )
-	    return s;
+            return s;
      }
 
   return 0;
@@ -790,7 +790,7 @@ cIpmiDomain::VerifyInventory( cIpmiInventory *inv )
   return 0;
 }
 
-void 
+void
 cIpmiDomain::Dump( cIpmiLog &dump ) const
 {
   if ( dump.IsRecursive() )
@@ -804,22 +804,22 @@ cIpmiDomain::Dump( cIpmiLog &dump ) const
 
        // main sdr
        if ( m_main_sdrs )
-	  {
-	    dump << "// repository SDR\n";
-	    m_main_sdrs->Dump( dump, "MainSdr1" );
-	  }
+          {
+            dump << "// repository SDR\n";
+            m_main_sdrs->Dump( dump, "MainSdr1" );
+          }
 
        // dump all MCs
        for( int i = 0; i < 256; i++ )
-	  {
-	    if ( m_mc_thread[i] == 0 || m_mc_thread[i]->Mc() == 0 )
-		 continue;
+          {
+            if ( m_mc_thread[i] == 0 || m_mc_thread[i]->Mc() == 0 )
+                 continue;
 
-	    cIpmiMc *mc = m_mc_thread[i]->Mc();
-	    char str[80];
-	    snprintf( str, sizeof(str), "Mc%02x", i );
-	    mc->Dump( dump, str );
-	  }
+            cIpmiMc *mc = m_mc_thread[i]->Mc();
+            char str[80];
+            snprintf( str, sizeof(str), "Mc%02x", i );
+            mc->Dump( dump, str );
+          }
      }
 
   // sim
@@ -886,13 +886,13 @@ cIpmiDomain::Dump( cIpmiLog &dump ) const
        dump << "\n";
 
        if ( m_main_sdrs )
-	    dump.Entry( "MainSdr" ) << "MainSdr1\n";
+            dump.Entry( "MainSdr" ) << "MainSdr1\n";
 
        for( int i = 0; i < 256; i++ )
-	  {
-	    if (    m_mc_thread[i] == 0 
-		    || m_mc_thread[i]->Mc() == 0 )
-		 continue;
+          {
+            if (    m_mc_thread[i] == 0
+                    || m_mc_thread[i]->Mc() == 0 )
+                 continue;
 
             cIpmiFruInfo *fi = FindFruInfo( i, 0 );
 
@@ -916,10 +916,10 @@ cIpmiDomain::Dump( cIpmiLog &dump ) const
                  assert( 0 );
                }
 
-	    char str[30];
-	    snprintf( str, sizeof(str), "Mc%02x", i );
+            char str[30];
+            snprintf( str, sizeof(str), "Mc%02x", i );
             dump.Entry( "Mc" ) << str << ", " << type << ", " << fi->Slot() << ";\n";
-	  }
+          }
      }
 
   dump.End();
