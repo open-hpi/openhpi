@@ -17,7 +17,6 @@
 
 #include <netdb.h>
 #include <errno.h>
-#include <assert.h>
 
 #include "ipmi.h"
 #include "ipmi_con_lan.h"
@@ -28,26 +27,24 @@
 static cIpmi *
 VerifyIpmi( void *hnd )
 {
-  assert( hnd );
+  if (!hnd)
+    return 0;
 
   oh_handler_state *handler = (oh_handler_state *)hnd;
   cIpmi *ipmi = (cIpmi *)handler->data;
 
   if ( !ipmi )
      {
-       assert( 0 );
        return 0;
      }
 
   if ( !ipmi->CheckMagic() )
      {
-       assert( 0 );
        return 0;
      }
 
   if ( !ipmi->CheckHandler( handler ) )
      {
-       assert( 0 );
        return 0;
      }
 
@@ -63,7 +60,6 @@ VerifySensorAndEnter( void *hnd, SaHpiResourceIdT rid, SaHpiSensorNumT num,
 
   if ( !ipmi )
      {
-       assert( 0 );
        return 0;
      }
 
@@ -79,7 +75,11 @@ VerifySensorAndEnter( void *hnd, SaHpiResourceIdT rid, SaHpiSensorNumT num,
 
   cIpmiSensor *sensor = (cIpmiSensor *)oh_get_rdr_data( ipmi->GetHandler()->rptcache,
                                                         rid, rdr->RecordId );
-  assert( sensor );
+  if ( !sensor )
+     {
+       ipmi->IfLeave();
+       return 0;
+     }
 
   if ( !ipmi->VerifySensor( sensor ) )
      {
@@ -99,7 +99,6 @@ VerifyControlAndEnter( void *hnd, SaHpiResourceIdT rid, SaHpiCtrlNumT num,
 
   if ( !ipmi )
      {
-       assert( 0 );
        return 0;
      }
 
@@ -115,7 +114,11 @@ VerifyControlAndEnter( void *hnd, SaHpiResourceIdT rid, SaHpiCtrlNumT num,
 
   cIpmiControl *control = (cIpmiControl *)oh_get_rdr_data( ipmi->GetHandler()->rptcache,
                                                            rid, rdr->RecordId );
-  assert( control );
+  if ( !control )
+     {
+       ipmi->IfLeave();
+       return 0;
+     }
 
   if ( !ipmi->VerifyControl( control ) )
      {
@@ -134,7 +137,6 @@ VerifyInventoryAndEnter( void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid,
 
   if ( !ipmi )
      {
-       assert( 0 );
        return 0;
      }
 
@@ -150,7 +152,11 @@ VerifyInventoryAndEnter( void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid,
 
   cIpmiInventory *inv = (cIpmiInventory *)oh_get_rdr_data( ipmi->GetHandler()->rptcache,
                                                            rid, rdr->RecordId );
-  assert( inv );
+  if ( !inv )
+     {
+       ipmi->IfLeave();
+       return 0;
+     }
 
   if ( !ipmi->VerifyInventory( inv ) )
      {
@@ -169,13 +175,18 @@ VerifyResourceAndEnter( void *hnd, SaHpiResourceIdT rid, cIpmi *&ipmi )
 
   if ( !ipmi )
      {
-       assert( 0 );
        return 0;
      }
 
   ipmi->IfEnter();
 
   cIpmiResource *res = (cIpmiResource *)oh_get_resource_data( ipmi->GetHandler()->rptcache, rid );
+
+  if ( !res )
+     {
+       ipmi->IfLeave();
+       return 0;
+     }
 
   if ( !ipmi->VerifyResource( res ) )
      {
@@ -194,13 +205,18 @@ VerifySelAndEnter( void *hnd, SaHpiResourceIdT rid, cIpmi *&ipmi )
 
   if ( !ipmi )
      {
-       assert( 0 );
        return 0;
      }
 
   ipmi->IfEnter();
 
   cIpmiResource *res = (cIpmiResource *)oh_get_resource_data( ipmi->GetHandler()->rptcache, rid );
+
+  if ( !res )
+     {
+       ipmi->IfLeave();
+       return 0;
+     }
 
   if ( !ipmi->VerifyResource( res ) )
      {
@@ -327,6 +343,11 @@ IpmiClose( void *hnd )
 
   cIpmi *ipmi = VerifyIpmi( hnd );
 
+  if ( !ipmi )
+     {
+       return;
+     }
+
   if ( ipmi->DomainId() != oh_get_default_domain_id() )
   {
       stdlog << "Releasing domain id " << ipmi->DomainId() << "\n";
@@ -339,16 +360,18 @@ IpmiClose( void *hnd )
 
   ipmi->IfClose();
 
-  assert( ipmi->CheckLock() );
+  ipmi->CheckLock();
 
   delete ipmi;
 
   oh_handler_state *handler = (oh_handler_state *)hnd;
-  assert( handler );
 
-  assert( handler->rptcache );
-  oh_flush_rpt( handler->rptcache );
-  g_free( handler->rptcache );
+  if ( handler->rptcache )
+  {
+      oh_flush_rpt( handler->rptcache );
+      g_free( handler->rptcache );
+  }
+
   g_free( handler );
 
   // close logfile
@@ -363,6 +386,11 @@ static SaErrorT
 IpmiGetEvent( void *hnd, struct oh_event *event )
 {
   cIpmi *ipmi = VerifyIpmi( hnd );
+
+  if ( !ipmi )
+     {
+       return SA_ERR_HPI_INTERNAL_ERROR;
+     }
 
   // there is no need to get a lock because
   // the event queue has its own lock
@@ -379,6 +407,11 @@ static SaErrorT
 IpmiDiscoverResources( void *hnd )
 {
   cIpmi *ipmi = VerifyIpmi( hnd );
+
+  if ( !ipmi )
+     {
+       return SA_ERR_HPI_INTERNAL_ERROR;
+     }
 
   stdlog << "Simple discovery let's go " << hnd << "\n";
 
@@ -1528,7 +1561,6 @@ cIpmi::~cIpmi()
 void
 cIpmi::SetHandler( oh_handler_state *handler )
 {
-  assert( m_handler == 0 );
   m_handler = handler;
 }
 
@@ -1629,7 +1661,7 @@ cIpmi::AllocConnection( GHashTable *handler_config )
      }
 
   m_own_domain = false;
-  const char *create_own_domain = (const char *)g_hash_table_lookup(handler_config, "CreateOwnDomain");
+  const char *create_own_domain = (const char *)g_hash_table_lookup(handler_config, "MultipleDomains");
   if ((create_own_domain != (char *)NULL)
       && ((strcmp(create_own_domain, "YES") == 0)
             || (strcmp(create_own_domain, "yes") == 0)))
@@ -1802,13 +1834,14 @@ cIpmi::AddHpiEvent( oh_event *event )
 {
   m_event_lock.Lock();
 
-  assert( m_handler );
-
   event->did = m_did;
 
-  m_handler->eventq = g_slist_append( m_handler->eventq, event );
+  if ( m_handler )
+  {
+    m_handler->eventq = g_slist_append( m_handler->eventq, event );
 
-  oh_wake_event_thread(SAHPI_FALSE);
+    oh_wake_event_thread(SAHPI_FALSE);
+  }
 
   m_event_lock.Unlock();
 }
@@ -1831,9 +1864,14 @@ cIpmi::GetHandler()
 SaHpiRptEntryT *
 cIpmi::FindResource( SaHpiResourceIdT rid )
 {
-  assert( m_handler );
-
-  return oh_get_resource_by_id( m_handler->rptcache, rid);
+  if ( m_handler )
+  {
+      return oh_get_resource_by_id( m_handler->rptcache, rid);
+  }
+  else
+  {
+      return 0;
+  }
 }
 
 
@@ -2030,7 +2068,8 @@ cIpmi::IfSetResourceTag( cIpmiResource *ent, SaHpiTextBufferT *tag )
   // change tag in plugin cache
   SaHpiRptEntryT *rptentry = oh_get_resource_by_id( ent->Domain()->GetHandler()->rptcache,
                                                     ent->m_resource_id );
-  assert( rptentry );
+  if ( !rptentry )
+      return SA_ERR_HPI_NOT_PRESENT;
 
   memcpy(&rptentry->ResourceTag, tag, sizeof(SaHpiTextBufferT));
 
@@ -2063,7 +2102,8 @@ cIpmi::IfSetResourceSeverity( cIpmiResource *ent, SaHpiSeverityT sev )
   // change severity in plugin cache
   SaHpiRptEntryT *rptentry = oh_get_resource_by_id( ent->Domain()->GetHandler()->rptcache,
                                                     ent->m_resource_id );
-  assert( rptentry );
+  if ( !rptentry )
+      return SA_ERR_HPI_NOT_PRESENT;
 
   rptentry->ResourceSeverity = sev;
 
