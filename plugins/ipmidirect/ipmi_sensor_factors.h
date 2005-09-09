@@ -26,8 +26,6 @@
 #define dIpmiSensorFactors_h
 
 
-#include <assert.h>
-
 extern "C" {
 #include "SaHpi.h"
 }

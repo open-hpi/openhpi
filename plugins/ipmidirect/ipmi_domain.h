@@ -187,7 +187,6 @@ public:
   bool m_bmc_discovered;
 
   SaErrorT CheckAtca();
-  int GetChannels();
 
 public:
   void AddMc( cIpmiMc *mc );

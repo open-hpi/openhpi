@@ -306,7 +306,6 @@ cIpmiConSmi::IfSendCmd( cIpmiRequest *r )
             break;
 
        default:
-            assert( 0 );
             return SA_ERR_HPI_INVALID_PARAMS;
      }
 
@@ -381,7 +380,6 @@ cIpmiConSmi::IfReadResponse()
             break;
 
        default:
-            assert( 0 );
             return;
      }
 

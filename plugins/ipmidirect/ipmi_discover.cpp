@@ -26,6 +26,7 @@
 
 
 #include "ipmi_domain.h"
+#include <assert.h>
 #include <errno.h>
 
 
@@ -295,7 +296,14 @@ cIpmiMcThread::Discover( cIpmiMsg *get_device_id_rsp )
 
   if ( m_mc )
      {
-       assert( 0 );
+       // m_mc should be NULL here
+       // Let's clean up this mess
+       stdlog << "m_mc not NULL !\n";
+
+       m_mc->Cleanup();
+       delete m_mc;
+       m_mc = 0;
+
        return;
      }
 

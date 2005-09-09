@@ -69,7 +69,6 @@ cIpmiMc::cIpmiMc( cIpmiDomain *domain, const cIpmiAddr &addr )
 
 cIpmiMc::~cIpmiMc()
 {
-  assert( m_domain );
   assert( !m_active );
 
   if ( m_sdrs )
@@ -160,8 +159,6 @@ cIpmiMc::RemResource( cIpmiResource *res )
 bool
 cIpmiMc::Cleanup()
 {
-  assert( m_domain );
-
   m_vendor->CleanupMc( this );
 
   // First the device SDR sensors, since they can be there for any MC.
@@ -548,7 +545,6 @@ cIpmiMc::SendCommand( const cIpmiMsg &msg, cIpmiMsg &rsp_msg,
 {
   cIpmiAddr addr = m_addr;
 
-  assert( m_domain );
   addr.m_lun = lun;
 
   return m_domain->SendCommand( addr, msg, rsp_msg, retries );

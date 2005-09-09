@@ -22,6 +22,7 @@
 #include <fcntl.h>
 #include <time.h>
 #include <stdarg.h>
+#include <assert.h>
 
 #include "ipmi_log.h"
 #include "ipmi_utils.h"

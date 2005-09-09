@@ -16,6 +16,8 @@
  *     Pierre Sangouard  <psangouard@eso-tech.com>
  */
 
+#include <assert.h>
+
 #include "ipmi_mc_vendor.h"
 #include "ipmi_mc_vendor_force.h"
 #include "ipmi_mc_vendor_fix_sdr.h"
@@ -172,8 +174,8 @@ cIpmiMcVendor::cIpmiMcVendor( unsigned int manufacturer_id,
   : m_manufacturer_id( manufacturer_id ),
     m_product_id( product_id )
 {
-  strncpy( m_description, desc, 79 );
-  m_description[79] = 0;
+  strncpy( m_description, desc, sizeof(m_description) - 1 );
+  m_description[sizeof(m_description) - 1] = 0;
 }
 
 
@@ -552,7 +554,7 @@ cIpmiMcVendor::CreateSensors( cIpmiDomain *domain, cIpmiMc *source_mc, cIpmiSdrs
        // check if the sensor is defined twice
        if ( FindSensor( new_sensors, sensor->Num(), sensor->Lun() ) )
           {
-            stdlog << "sensor " << sensor->IdString() << " define twice in SDR !\n";
+            stdlog << "sensor " << sensor->IdString() << " defined twice in SDR !\n";
             delete sensor;
             continue;
           }
@@ -560,10 +562,15 @@ cIpmiMcVendor::CreateSensors( cIpmiDomain *domain, cIpmiMc *source_mc, cIpmiSdrs
        cIpmiSdr *sdr = sensor->GetSdr();
        
        if ( sdr == 0 )
-	  {
-	    sdr = sdrs->FindSdr( sensor->Mc() );
-	    assert( sdr );
-	  }
+       {
+           sdr = sdrs->FindSdr( sensor->Mc() );
+
+           if (!sdr)
+           {
+               delete sensor;
+               continue;
+           }
+       }
 
        type     = (SaHpiEntityTypeT)sdr->m_data[8];
        instance = (SaHpiEntityLocationT)sdr->m_data[9];
@@ -810,8 +817,6 @@ cIpmiMcVendor::FindMcBySdr( cIpmiDomain *domain, cIpmiSdr *sdr )
        default:
             break;
      }
-
-  assert( 0 );
 
   return 0;
 }

@@ -48,16 +48,15 @@ public:
     if ( m_magic == dIpmiMagic )
          return true;
 
-    assert( 0 );
     return false;
   }
 
   bool CheckHandler( oh_handler_state *handler )
   {
-    bool rv = ( handler == m_handler );
-    assert( rv );
+    if ( handler == m_handler )
+        return true;
 
-    return rv;
+    return false;
   }
 
   cIpmiCon *AllocConnection( GHashTable *handler_config );

@@ -16,6 +16,7 @@
  *     Pierre Sangouard  <psangouard@eso-tech.com>
  */
 
+#include <assert.h>
 #include "ipmi_fru_info.h"
 
 
@@ -38,7 +39,6 @@ MapAtcaSiteTypeToEntity( tIpmiAtcaSiteType type )
 
   if ( type > eIpmiAtcaSiteTypeRearTransitionModule )
      {
-       assert( 0 );
        return SAHPI_ENT_UNKNOWN;
      }
 
@@ -116,7 +116,6 @@ cIpmiFruInfoContainer::AddFruInfo( cIpmiFruInfo *fru_info )
 {
   if ( FindFruInfo( fru_info->Address(), fru_info->FruId() ) )
      {
-       assert( 0 );
        return false;
      }
 
@@ -142,8 +141,6 @@ cIpmiFruInfoContainer::RemFruInfo( cIpmiFruInfo *fru_info )
 	  }
      }
 
-  assert( 0 );
-
   return false;
 }
 
@@ -164,7 +161,6 @@ cIpmiFruInfoContainer::NewFruInfo( unsigned int addr, unsigned int fru_id,
 
   if ( !AddFruInfo( fi ) )
      {
-       assert( 0 );
        delete fi;
 
        return 0;
@@ -191,7 +187,6 @@ cIpmiFruInfoContainer::NewFruInfo( unsigned int addr, unsigned int fru_id )
 
   if ( !AddFruInfo( fi ) )
      {
-       assert( 0 );
        delete fi;
 
        return 0;

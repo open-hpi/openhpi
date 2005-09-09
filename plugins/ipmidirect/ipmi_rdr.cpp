@@ -73,7 +73,7 @@ cIpmiRdr::Populate()
 
   if ( !resource )
      {
-       assert( 0 );
+       stdlog << "Resource not found: Can't populate RDR !\n";
        return false;
      }
 
@@ -100,7 +100,12 @@ cIpmiRdr::Populate()
                        resource->ResourceId,
                        &e->u.rdr_event.rdr, this, 1 );
 
-  assert( rv == 0 );
+  if ( rv != 0 )
+  {
+       stdlog << "Can't add RDR to plugin cache !\n";
+       g_free( e );
+       return false;
+  }
 
   // assign the hpi record id to sensor, so we can find
   // the rdr for a given sensor.

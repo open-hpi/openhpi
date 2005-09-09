@@ -35,7 +35,6 @@
 #include "thread.h"
 #endif
 
-#include <assert.h>
 #include <glib.h>
 
 extern "C" {

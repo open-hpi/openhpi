@@ -22,7 +22,6 @@
  *     Pierre Sangouard  <psangouard@eso-tech.com>
  */
 
-#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
@@ -50,7 +49,6 @@ cIpmiSel::cIpmiSel( cIpmiMc *mc, unsigned int lun )
     m_sel( 0 ), m_sel_num( 0 ),
     m_async_events( 0 ), m_async_events_num( 0 )
 {
-  assert( lun < 4 );
 }
 
 
@@ -403,8 +401,6 @@ cIpmiSel::GetEvents()
 
   if ( uptodate )
      {
-       assert( events == 0 );
-
        return 0;
      }
 
@@ -777,7 +773,6 @@ cIpmiSel::AddAsyncEvent( cIpmiEvent *new_event )
   return 0;
 }
 
-
 void
 cIpmiSel::Dump( cIpmiLog &dump, const char *name )
 {
@@ -794,8 +789,6 @@ cIpmiSel::Dump( cIpmiLog &dump, const char *name )
 	    snprintf( str, sizeof(str), "Event%02x_%d", m_mc->GetAddress(), i++ );
 	    e->Dump( dump, str );
 	  }
-
-       assert( i == (int)m_sel_num );
      }
 
   dump.Begin( "Sel", name );
@@ -828,7 +821,6 @@ cIpmiSel::Dump( cIpmiLog &dump, const char *name )
 
   dump.End();
 }
-
 
 SaErrorT
 cIpmiSel::GetSelInfo( SaHpiEventLogInfoT &info )

@@ -21,7 +21,6 @@
 #include "ipmi_auth.h"
 #include <string.h>
 #include <errno.h>
-#include <assert.h>
 
 
 cIpmiAuth *
@@ -53,7 +52,6 @@ IpmiAuthFactory( tIpmiAuthType type )
             break;
      }
 
-  assert( 0 );
   return 0;
 }
 

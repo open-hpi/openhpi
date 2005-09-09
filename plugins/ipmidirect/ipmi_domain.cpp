@@ -22,7 +22,6 @@
  */
 
 #include <errno.h>
-#include <assert.h>
 
 #include "ipmi.h"
 #include "ipmi_utils.h"
@@ -104,7 +103,12 @@ cIpmiDomain::~cIpmiDomain()
 bool
 cIpmiDomain::Init( cIpmiCon *con )
 {
-  assert( m_con == 0 );
+  if ( m_con != 0 )
+     {
+       stdlog << "IPMI Domain already initialized !\n";
+       return false;
+     }
+
   m_con = con;
 
   // create system interface
@@ -243,7 +247,8 @@ cIpmiDomain::Init( cIpmiCon *con )
   {
     cIpmiFruInfo *fi = FindFruInfo( dIpmiBmcSlaveAddr, 0 );
 
-    assert ( fi );
+    if ( !fi )
+        return false;
 
     fi->Entity() = SAHPI_ENT_SYS_MGMNT_MODULE;
     fi->Site() = eIpmiAtcaSiteTypeUnknown;
@@ -286,11 +291,6 @@ cIpmiDomain::Init( cIpmiCon *con )
           }
      }
 
-  rv = GetChannels();
-
-  if ( rv )
-       return false;
-
   // Start all MC threads with the
   // properties found in m_mc_to_check.
   m_initial_discover = 0;
@@ -305,7 +305,11 @@ cIpmiDomain::Init( cIpmiCon *con )
 
        int addr = fi->Address();
 
-       assert( m_mc_thread[addr] == 0 );
+       if ( m_mc_thread[addr] != 0 )
+       {
+           stdlog << "Thread already started for " << addr << " !\n";
+           continue;
+       }
 
        m_mc_thread[addr] = new cIpmiMcThread( this, addr, fi->Properties()
                                            /*, m_mc_to_check[i],
@@ -387,15 +391,13 @@ cIpmiDomain::Cleanup()
      {
        cIpmiMc *mc = m_mcs[0];
 
-       if ( CleanupMc( mc ) == false )
-            assert( 0 );
+       CleanupMc( mc );
      }
 
   // destroy si
   if ( m_si_mc )
      {
-       bool rr = m_si_mc->Cleanup();
-       assert( rr );
+       m_si_mc->Cleanup();
        delete m_si_mc;
        m_si_mc = 0;
      }
@@ -437,15 +439,6 @@ cIpmiDomain::CleanupMc( cIpmiMc *mc )
 }
 
 
-int
-cIpmiDomain::GetChannels()
-{
-  int rv = 0;
-
-  return rv;
-}
-
-
 SaErrorT
 cIpmiDomain::CheckAtca()
 {
@@ -459,7 +452,8 @@ cIpmiDomain::CheckAtca()
 
   m_is_atca = false;
 
-  assert( m_si_mc );
+  if ( !m_si_mc )
+      return SA_ERR_HPI_INTERNAL_ERROR;
 
   stdlog << "checking for ATCA system.\n";
 
@@ -583,7 +577,6 @@ cIpmiDomain::SendCommand( const cIpmiAddr &addr, const cIpmiMsg &msg,
 {
   if ( m_con == 0 )
      {
-       assert( 0 );
        return SA_ERR_HPI_NOT_PRESENT;
      }
 
@@ -845,7 +838,7 @@ cIpmiDomain::Dump( cIpmiLog &dump ) const
                  break;
 
             case eIpmiAtcaSiteTypeDedicatedShMc:
-                 site = "Fan";
+                 site = "ShMc";
                  break;
 
             case eIpmiAtcaSiteTypeFanTray:
@@ -873,7 +866,6 @@ cIpmiDomain::Dump( cIpmiLog &dump ) const
                  break;
 
             default:
-                 assert( 0 );
                  site = "Unknown";
                  break;
           }
@@ -898,23 +890,57 @@ cIpmiDomain::Dump( cIpmiLog &dump ) const
 
             if ( fi == 0 )
                {
-                 assert( 0 );
                  continue;
                }
 
             const char *type = 0;
 
-            if ( fi->Site() == eIpmiAtcaSiteTypeAtcaBoard )
+            switch( fi->Site() )
+            {
+                case eIpmiAtcaSiteTypeAtcaBoard:
                  type = "AtcaBoard";
-            else if ( fi->Site() == eIpmiAtcaSiteTypePowerEntryModule )
+                 break;
+
+                case eIpmiAtcaSiteTypePowerEntryModule:
                  type = "PowerUnit";
-            else if ( fi->Site() == eIpmiAtcaSiteTypeFanTray )
+                 break;
+
+                case eIpmiAtcaSiteTypeShelfFruInformation:
+                 type = "ShelfFruInformation";
+                 break;
+
+                case eIpmiAtcaSiteTypeDedicatedShMc:
+                 type = "ShMc";
+                 break;
+
+                case eIpmiAtcaSiteTypeFanTray:
                  type = "FanTray";
-            else
-               {
-                 continue;
-                 assert( 0 );
-               }
+                 break;
+
+                case eIpmiAtcaSiteTypeFanFilterTray:
+                 type = "FanFilterTray";
+                 break;
+
+                case eIpmiAtcaSiteTypeAlarm:
+                 type = "Alarm";
+                 break;
+
+                case eIpmiAtcaSiteTypeAdvancedMcModule:
+                 type = "AdvancedMcModule";
+                 break;
+
+                case eIpmiAtcaSiteTypePMC:
+                 type = "PMC";
+                 break;
+
+                case eIpmiAtcaSiteTypeRearTransitionModule:
+                 type = "RearTransitionModule";
+                 break;
+
+                default:
+                 type = "Unknown";
+                 break;
+            }
 
             char str[30];
             snprintf( str, sizeof(str), "Mc%02x", i );

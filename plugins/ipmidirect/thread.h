@@ -48,9 +48,6 @@ public:
   cThread( const pthread_t &thread, bool main_thread, tTheadState state );
   virtual ~cThread();
 
-  // get the current thread class
-  static cThread *GetThread();
-
   // start thread
   virtual bool Start();
 
@@ -80,7 +77,6 @@ public:
   virtual void Unlock();
 
   virtual bool TryLock();
-  virtual bool TimedLock( unsigned int timeout );
 };
 
 
@@ -116,12 +112,10 @@ public:
   virtual void ReadLock();
   virtual void ReadUnlock();
   virtual bool TryReadLock();
-  virtual bool TimedReadLock( unsigned int timeout );
 
   virtual void WriteLock();
   virtual void WriteUnlock();
   virtual bool TryWriteLock();
-  virtual bool TimedWriteLock( unsigned int timeout );
 
   // true => no lock held
   bool CheckLock();
@@ -143,9 +137,6 @@ public:
 
   // call Lock before Wait
   virtual void Wait();
-
-  // call Lock before TimedWait, return false on timeout
-  virtual bool TimedWait( unsigned int timeout = 0 );
 };
 
 

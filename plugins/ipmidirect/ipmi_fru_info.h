@@ -72,7 +72,6 @@ public:
   tIpmiAtcaSiteType &Site() { return m_site; }
   unsigned int Properties()
   {
-    assert( m_fru_id == 0 );
     return m_properties;
   }
 

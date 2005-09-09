@@ -18,7 +18,6 @@
 
 
 #include <string.h>
-#include <assert.h>
 #include <errno.h>
 
 #include "ipmi_domain.h"

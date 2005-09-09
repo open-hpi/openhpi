@@ -16,7 +16,6 @@
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
  */
 
-#include <assert.h>
 #include <ctype.h>
 #include <string.h>
 #include <errno.h>
@@ -329,8 +328,6 @@ cIpmiConFile::cIpmiConFile( unsigned int timeout, unsigned int atca_timeout,
 {
   if ( filename == 0 )
        filename = dIpmiConFileDefault;
-
-  assert( filename );
 
   strcpy( m_filename, filename );
 }

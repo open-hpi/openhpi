@@ -597,7 +597,12 @@ cIpmiSdrs::Reserve()
   cIpmiMsg rsp;
   SaErrorT rv;
 
-  assert( m_supports_reserve_sdr );
+  if ( !m_supports_reserve_sdr )
+  {
+    stdlog << "cIpmiSdrs::Reserve: Reserve SDR not supported\n";
+
+    return SA_ERR_HPI_INTERNAL_ERROR;
+  }
 
   // Now get the reservation.
   if ( m_device_sdr )

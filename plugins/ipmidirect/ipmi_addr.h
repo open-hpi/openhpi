@@ -22,8 +22,6 @@
 #define dIpmiAddr_h
 
 
-#include <assert.h>
-
 // This is an overlay for all the address types, so it's easy to
 // determine the actual address type.  This is kind of like addresses
 // work for sockets.
@@ -83,7 +81,6 @@ public:
 
   unsigned char SlaveAddr() const
   { 
-    assert( m_type == eIpmiAddrTypeIpmb ); 
     return m_slave_addr;
   }
 
