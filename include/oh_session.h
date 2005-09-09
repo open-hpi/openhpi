@@ -52,7 +52,7 @@ struct oh_session {
                 OH_UNSUBSCRIBED=0,
                 OH_SUBSCRIBED,
         } state;
-        
+
         /* Initialized to false. Will be set to true*/
         SaHpiEvtQueueStatusT eventq_status;
 
@@ -78,6 +78,7 @@ SaErrorT oh_dequeue_session_event(SaHpiSessionIdT sid,
                                   struct oh_event *event,
                                   SaHpiEvtQueueStatusT *eventq_status);
 SaErrorT oh_destroy_session(SaHpiSessionIdT sid);
+SaErrorT oh_destroy_domain_sessions(SaHpiDomainIdT did);
 
 #endif /* __OH_SESSION_H */
 

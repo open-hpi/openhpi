@@ -312,7 +312,7 @@ SaErrorT oh_dequeue_session_event(SaHpiSessionIdT sid,
        if (timeout == SAHPI_TIMEOUT_IMMEDIATE) {
                devent = g_async_queue_try_pop(eventq);
        } else if (timeout == SAHPI_TIMEOUT_BLOCK) {
-               devent = g_async_queue_pop(eventq); /* FIXME: Need to time this. */
+               devent = g_async_queue_pop(eventq);
        } else {
                g_get_current_time(&gfinaltime);
                g_time_val_add(&gfinaltime, (glong) (timeout / 1000));
@@ -333,7 +333,7 @@ SaErrorT oh_dequeue_session_event(SaHpiSessionIdT sid,
 /**
  * oh_destroy_session
  * @sid:
- *
+ * @update_domain:
  *
  *
  * Returns:
@@ -352,7 +352,6 @@ SaErrorT oh_destroy_session(SaHpiSessionIdT sid)
         session = g_hash_table_lookup(oh_sessions.table, &sid);
         if (!session) {
                 g_static_rec_mutex_unlock(&oh_sessions.lock);
-                data_access_unlock();
                 return SA_ERR_HPI_INVALID_SESSION;
         }
 
@@ -388,6 +387,52 @@ SaErrorT oh_destroy_session(SaHpiSessionIdT sid)
                 }
                 oh_release_domain(domain);
         }
+
+        return SA_OK;
+}
+
+static void __delete_by_did(gpointer key, gpointer value, gpointer user_data)
+{
+        SaHpiDomainIdT did = *((SaHpiDomainIdT *)user_data);
+        struct oh_session *session = (struct oh_session *)value;
+        int i, len;
+        gpointer event = NULL;
+
+        if (!session) {
+                dbg("Session does not exist!");
+                return;
+        }
+
+        if (session->did != did) {
+                return;
+        }
+
+        g_hash_table_remove(oh_sessions.table, &(session->id));
+
+        /* Neutralize event queue */
+        len = g_async_queue_length(session->eventq);
+        if (len < 0) {
+                for (i = 0; i > len; i--) {
+                        g_async_queue_push(session->eventq, oh_generate_hpi_event());
+                }
+        } else if (len > 0) {
+                for (i = 0; i < len; i++) {
+                        event = g_async_queue_try_pop(session->eventq);
+                        if (event) g_free(event);
+                        event = NULL;
+                }
+        }
+        g_async_queue_unref(session->eventq);
+        g_free(session);
+}
+
+SaErrorT oh_destroy_domain_sessions(SaHpiDomainIdT did)
+{
+        if (did < 1) return SA_ERR_HPI_INVALID_PARAMS;
+
+        g_static_rec_mutex_lock(&oh_sessions.lock);
+        g_hash_table_foreach(oh_sessions.table, __delete_by_did, &did);
+        g_static_rec_mutex_unlock(&oh_sessions.lock);
 
         return SA_OK;
 }
