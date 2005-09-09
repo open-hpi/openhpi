@@ -157,8 +157,8 @@ handler libdummy {
 #        auth_level = "admin" # operator or admin
 #        username = "arthur"
 #        password = "pieman"
-#        CreateOwnDomain = "NO"  # "YES" creates a domain for this handler 
-#        DomainTag = "Chassis 1" # Used if CreateOwnDomain="YES"
+#        MultipleDomains = "no"  # "yes" creates a domain for this handler 
+#        DomainTag = "Chassis 1" # Used if MultipleDomains="yes"
 #        logflags = ""      # logging off
 #        # logflags = "file stdout"
 #        # infos goes to logfile and stdout
