@@ -21,7 +21,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <unistd.h>
-#include <time.h>
+#include <sys/time.h>
 
 #include <SaHpi.h>
 #include <oh_utils.h>
@@ -66,7 +66,7 @@ SaErrorT oh_el_append(oh_el *el, const SaHpiEventT *event, const SaHpiRdrT *rdr,
                       const SaHpiRptEntryT *res)
 {
         oh_el_entry *entry;
-        time_t tt1;
+        struct timeval tv;
         GList *temp;
 
         /* check for valid el params and state */
@@ -104,8 +104,8 @@ SaErrorT oh_el_append(oh_el *el, const SaHpiEventT *event, const SaHpiRdrT *rdr,
         entry->event.EntryId = el->nextId;
         el->nextId++;
         if (el->gentimestamp) {
-                time(&tt1);
-                el->lastUpdate = ((SaHpiTimeT) tt1 * 1000000000) + el->offset;
+                gettimeofday(&tv, NULL);
+                el->lastUpdate = ((SaHpiTimeT) tv.tv_sec * 1000000000 + tv.tv_usec * 1000) + el->offset;
         } else {
                 el->lastUpdate = event->Timestamp;
         }
@@ -122,7 +122,7 @@ SaErrorT oh_el_prepend(oh_el *el, const SaHpiEventT *event, const SaHpiRdrT *rdr
 {
         oh_el_entry *entry, *tmpentry;
         SaHpiEventLogEntryT *tmplog;
-        time_t tt1;
+        struct timeval tv;
         GList *ellist;
 
         /* check for valid el params and state */
@@ -166,8 +166,8 @@ SaErrorT oh_el_prepend(oh_el *el, const SaHpiEventT *event, const SaHpiRdrT *rdr
         entry->event.EntryId = 1;
         el->nextId++;
         if (el->gentimestamp) {
-                time(&tt1);
-                el->lastUpdate = ((SaHpiTimeT) tt1 * 1000000000) + el->offset;
+                gettimeofday(&tv, NULL);
+                el->lastUpdate = ((SaHpiTimeT) tv.tv_sec * 1000000000 + tv.tv_usec * 1000) + el->offset;
         } else {
                 el->lastUpdate = event->Timestamp;
         }
@@ -270,7 +270,7 @@ SaErrorT oh_el_get(oh_el *el, SaHpiEventLogEntryIdT entryid, SaHpiEventLogEntryI
 /* get EL info */
 SaErrorT oh_el_info(oh_el *el, SaHpiEventLogInfoT *info)
 {
-        time_t tt1;
+        struct timeval tv;
 
         if (el == NULL || info == NULL) {
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -278,15 +278,15 @@ SaErrorT oh_el_info(oh_el *el, SaHpiEventLogInfoT *info)
 
         info->Entries = g_list_length(el->elentries);
         info->Size = el->maxsize;
-	info->UserEventMaxSize	= SAHPI_MAX_TEXT_BUFFER_LENGTH;
+        info->UserEventMaxSize  = SAHPI_MAX_TEXT_BUFFER_LENGTH;
         info->UpdateTimestamp = el->lastUpdate;
-        time(&tt1);
-        info->CurrentTime = ((SaHpiTimeT) tt1 * 1000000000) + el->offset;
+        gettimeofday(&tv, NULL);
+        info->CurrentTime = ((SaHpiTimeT) tv.tv_sec * 1000000000 + tv.tv_usec * 1000) + el->offset;
         info->Enabled = el->enabled;
         info->OverflowFlag = el->overflow;
-	info->OverflowResetable = SAHPI_TRUE;
+        info->OverflowResetable = SAHPI_TRUE;
         info->OverflowAction = SAHPI_EL_OVERFLOW_OVERWRITE;
-	info->UserEventMaxSize = SAHPI_MAX_TEXT_BUFFER_LENGTH;
+        info->UserEventMaxSize = SAHPI_MAX_TEXT_BUFFER_LENGTH;
         return SA_OK;
 }
 
@@ -299,7 +299,7 @@ SaErrorT oh_el_overflowreset(oh_el *el)
         if (el == NULL)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
-	el->overflow = SAHPI_FALSE;
+        el->overflow = SAHPI_FALSE;
         return SA_OK;
 }
 

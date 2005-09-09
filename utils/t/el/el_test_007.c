@@ -42,22 +42,16 @@ int main(int argc, char **argv)
 {
         oh_el *el;
         SaErrorT retc;
-	SaHpiEventLogInfoT info, info1;
+	SaHpiEventLogInfoT info;
 	SaHpiEventT event;
-	SaHpiTimeT timestamp = 0;
+	SaHpiTimeT timestamp;
+	struct timeval tv;
 	static char *data[1] = {
         	"Test data"
 	};
 
 	/* create a new EL of size 20*/
-	el = oh_el_create(20);     
-
-       /* get el info */
-        retc = oh_el_info(el, &info);
-        if (retc != SA_OK) {
-                dbg("ERROR: oh_el_info failed.");
-                return 1;
-        }
+	el = oh_el_create(20);
 
 	/* add an event to el */
 	event.Source = 1;
@@ -67,28 +61,30 @@ int main(int argc, char **argv)
 
         strcpy((char *) &event.EventDataUnion.UserEvent.UserEventData.Data, data[0]);
 
-        retc = oh_el_append(el, &event, NULL, NULL);
-        if (retc != SA_OK) {
-        	dbg("ERROR: oh_el_append failed.");
-	        return 1;
-        }
-									
 	/* modifies the timestamp offset */
-	retc = oh_el_timeset(el, timestamp + 20);
+	retc = oh_el_timeset(el, 1000000000);
 	if (retc != SA_OK){
 		dbg("ERROR: timeset failed");
 		return 1;
 	} 
 
-       /* get el info after timestamp offset (info1) and add event */
-        retc = oh_el_info(el, &info1);
+        gettimeofday(&tv, NULL);
+	timestamp = (SaHpiTimeT) tv.tv_sec * 1000000000 + tv.tv_usec * 1000;
+	retc = oh_el_append(el, &event, NULL, NULL);
+        if (retc != SA_OK) {
+        	dbg("ERROR: oh_el_append failed.");
+	        return 1;
+        }
+       
+        /* get el info */
+        retc = oh_el_info(el, &info);
         if (retc != SA_OK) {
                 dbg("ERROR: oh_el_info failed.");
                 return 1;
         }
-
+									
 	/* Verifies timestamp offset worked */
-	if(info.CurrentTime + 20 != info1.CurrentTime){
+	if ((info.UpdateTimestamp - timestamp) < 1000000000){
 		dbg("ERROR: Timestamp offset failed");
 		return 1;
 	}    
