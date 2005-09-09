@@ -23,43 +23,44 @@
 #endif
 
 #define dbg_uid_lock(format, ...) \
-	do { \
-		if (getenv("OPENHPI_DBG_UID_LOCK") && !strcmp("YES",getenv("OPENHPI_DBG_UID_LOCK"))){ \
-			fprintf(stderr, "        UID_LOCK: %s:%d:%s: ", __FILE__, __LINE__, __func__); \
-			fprintf(stderr, format "\n", ## __VA_ARGS__); \
-		} \
-	} while(0)
+        do { \
+                if (getenv("OPENHPI_DBG_UID_LOCK") && !strcmp("YES",getenv("OPENHPI_DBG_UID_LOCK"))){ \
+                        fprintf(stderr, "        UID_LOCK: %s:%d:%s: ", __FILE__, __LINE__, __func__); \
+                        fprintf(stderr, format "\n", ## __VA_ARGS__); \
+                } \
+        } while(0)
 
 #define uid_lock(uidmutex) \
-	do { \
-		dbg_uid_lock("Locking UID mutex..."); \
-		g_static_mutex_lock(uidmutex); \
-		dbg_uid_lock("OK. UID mutex locked."); \
-	} while (0)
+        do { \
+                dbg_uid_lock("Locking UID mutex..."); \
+                g_static_mutex_lock(uidmutex); \
+                dbg_uid_lock("OK. UID mutex locked."); \
+        } while (0)
 
 #define uid_unlock(uidmutex) \
-	do { \
-		dbg_uid_lock("Unlocking UID mutex..."); \
-		g_static_mutex_unlock(uidmutex); \
-		dbg_uid_lock("OK. UID mutex unlocked."); \
-	} while (0)
+        do { \
+                dbg_uid_lock("Unlocking UID mutex..."); \
+                g_static_mutex_unlock(uidmutex); \
+                dbg_uid_lock("OK. UID mutex unlocked."); \
+        } while (0)
 
 #ifdef __cplusplus
 extern "C" {
-#endif 
+#endif
 
 /* hpi internal apis */
-SaErrorT oh_uid_initialize(void); 
-guint oh_uid_from_entity_path(SaHpiEntityPathT *ep); 
+SaErrorT oh_uid_initialize(void);
+SaHpiBoolT oh_uid_is_initialized(void);
+guint oh_uid_from_entity_path(SaHpiEntityPathT *ep);
 gint oh_uid_remove(guint uid);
 guint oh_uid_lookup(SaHpiEntityPathT *ep);
 gint oh_entity_path_lookup(guint *id, SaHpiEntityPathT *ep);
 gint oh_uid_map_to_file(void);
 #ifdef __cplusplus
 }
-#endif 
+#endif
 
-/* uid to entity path cross reference (xref) data structure */ 
+/* uid to entity path cross reference (xref) data structure */
 typedef struct {
         SaHpiResourceIdT resource_id;
         SaHpiEntityPathT entity_path;
