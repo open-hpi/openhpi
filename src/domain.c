@@ -385,8 +385,10 @@ SaErrorT oh_destroy_domain(SaHpiDomainIdT did)
         if (did == oh_get_default_domain_id())
                 return SA_ERR_HPI_INVALID_PARAMS;
 
+        g_static_rec_mutex_lock(&oh_domains.lock);
         domain = oh_get_domain(did);
         if (!domain) {
+                g_static_rec_mutex_unlock(&oh_domains.lock);
                 return SA_ERR_HPI_NOT_PRESENT;
         }
 
@@ -394,16 +396,24 @@ SaErrorT oh_destroy_domain(SaHpiDomainIdT did)
                 curdrt = node->data;
                 if (!curdrt->IsPeer) {
                         oh_release_domain(domain);
+                        g_static_rec_mutex_unlock(&oh_domains.lock);
                         return SA_ERR_HPI_BUSY;
                 }
         }
 
         if (domain->pdid != 0) {
                 parent = oh_get_domain(domain->pdid);
+                if (!parent) {
+                        oh_release_domain(domain);
+                        g_static_rec_mutex_unlock(&oh_domains.lock);
+                        return SA_ERR_HPI_NOT_PRESENT;
+                }
+                
                 pid = parent->id;
                 if (disconnect_domains(parent, domain) != 0) {
                         oh_release_domain(parent);
                         oh_release_domain(domain);
+                        g_static_rec_mutex_unlock(&oh_domains.lock);
                         return SA_ERR_HPI_INTERNAL_ERROR;
                 }
                 oh_release_domain(parent);
@@ -415,7 +425,6 @@ SaErrorT oh_destroy_domain(SaHpiDomainIdT did)
                 g_array_free(peers, TRUE);
         }
 
-        g_static_rec_mutex_unlock(&oh_domains.lock);
         g_hash_table_remove(oh_domains.table, &(domain->id));
         g_static_rec_mutex_unlock(&oh_domains.lock);
 
@@ -543,7 +552,7 @@ SaHpiDomainIdT oh_request_new_domain(unsigned int handler_id,
         }
 
         g_static_rec_mutex_lock(&oh_domains.lock);
-        parent = g_hash_table_lookup(oh_domains.table, &parent_id);
+        parent = oh_get_domain(parent_id);
         if (parent == NULL) {
                 g_static_rec_mutex_unlock(&oh_domains.lock);
                 dbg("Couldn't lookup parent domain %d", parent_id);
@@ -553,6 +562,7 @@ SaHpiDomainIdT oh_request_new_domain(unsigned int handler_id,
         if (peer_id != 0) {
                 peer = oh_get_domain(peer_id);
                 if (peer == NULL) {
+                        oh_release_domain(parent);
                         g_static_rec_mutex_unlock(&oh_domains.lock);
                         dbg("Couldn't lookup parent domain %d", peer_id);
                         return 0;
@@ -562,6 +572,7 @@ SaHpiDomainIdT oh_request_new_domain(unsigned int handler_id,
         did = oh_create_domain(capabilities, tag);
         if (did == 0) {
                 if (peer) oh_release_domain(peer);
+                oh_release_domain(parent);
                 g_static_rec_mutex_unlock(&oh_domains.lock);
                 dbg("Couldn't create child domain");
                 return 0;
@@ -570,10 +581,12 @@ SaHpiDomainIdT oh_request_new_domain(unsigned int handler_id,
         if (connect_domains(parent, did) != SA_OK) {
                 oh_destroy_domain(did);
                 if (peer) oh_release_domain(peer);
+                oh_release_domain(parent);
                 g_static_rec_mutex_unlock(&oh_domains.lock);
                 dbg("Couldn't make child domain");
                 return 0;
         }
+        oh_release_domain(parent);
 
 
         if (peer && (make_peer_domains(peer, did) != SA_OK)) {
@@ -674,5 +687,5 @@ SaErrorT oh_drt_entry_get(SaHpiDomainIdT     did,
         }
         oh_release_domain(domain);
 
-        return SA_ERR_HPI_ERROR;
+        return SA_ERR_HPI_NOT_PRESENT;
 }
