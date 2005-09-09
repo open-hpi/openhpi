@@ -1135,7 +1135,7 @@ int ohoi_sensor_ipmi_event_to_hpi_event(ipmi_sensor_id_t sid,
 	rv = ipmi_sensor_pointer_cb(sid, get_sensor_by_sensor_id_handler,
 					&info);
 	if (rv) {
-		printf("no sensor for sensor_id rv = 0x%x\n", rv);
+		dbg("no sensor for sensor_id rv = 0x%x", rv);
 	} 
 
 	dir = data[9] >> 7;	
