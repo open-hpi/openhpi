@@ -387,7 +387,7 @@ SaErrorT oh_el_timeset(oh_el *el, SaHpiTimeT timestamp)
         } else if (timestamp > SAHPI_TIME_MAX_RELATIVE) {
                 /* We accept absolute timestamp here to be
                    compliant with the spec. But we set it to zero
-                   anyway because we use time() to get the current
+                   anyway because we use gettimeofday() to get the current
                    time (absolute) to stamp new entries with.
                 */
                 timestamp = 0;
