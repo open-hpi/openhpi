@@ -628,19 +628,22 @@ unsigned int oh_create_handler (GHashTable *handler_config)
         }
 
         new_hid = handler->id;
-        handler->hnd = handler->abi->open(handler->config);
-        if (!handler->hnd) {
-                dbg("A handler #%d on the %s plugin could not be opened.",
-                    handler->id, handler->plugin_name);
-                __delete_handler(handler);
-                return 0;
-        }
-
         g_static_rec_mutex_lock(&oh_handlers.lock);
         oh_handlers.list = g_slist_append(oh_handlers.list, handler);
         g_hash_table_insert(oh_handlers.table,
                             &(handler->id),
                             g_slist_last(oh_handlers.list));
+                            
+        handler->hnd = handler->abi->open(handler->config);
+        if (!handler->hnd) {
+                g_hash_table_remove(oh_handlers.table, &handler->id);
+                oh_handlers.list = g_slist_remove(oh_handlers.list, &(handler->id));
+                g_static_rec_mutex_unlock(&oh_handlers.lock);
+                dbg("A handler #%d on the %s plugin could not be opened.",
+                    handler->id, handler->plugin_name);
+                __delete_handler(handler);
+                return 0;
+        }
         g_static_rec_mutex_unlock(&oh_handlers.lock);
 
         return new_hid;
