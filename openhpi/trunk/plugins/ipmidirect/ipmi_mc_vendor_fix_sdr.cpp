@@ -17,6 +17,7 @@
 #include "ipmi_log.h"
 #include "ipmi_mc.h"
 #include <errno.h>
+#include <assert.h>
 
 mc_sdr_patch_t sdr_patch_fboard[] =
 {

@@ -151,14 +151,13 @@ public:
 
   unsigned char AuxFwRevision( int v ) const
   {
-    assert( v >= 0 && v < 4 );
-    return m_aux_fw_revision[v];
+    if ( v >= 0 && v < 4 )
+        return m_aux_fw_revision[v];
+    else
+        return 0;
   }
 
   const cIpmiAddr &Addr() { return m_addr; }
-
-  bool IsActive() const { return m_active; }
-  void SetActive( bool active ) { m_active = active; }
 
   bool IsAtcaBoard();
 
@@ -204,8 +203,8 @@ public:
 
   void SetVendor( cIpmiMcVendor *mv )
   {
-    assert( mv );
-    m_vendor = mv;
+    if ( mv )
+        m_vendor = mv;
   }
 
   cIpmiMcVendor *GetVendor()  { return m_vendor; }

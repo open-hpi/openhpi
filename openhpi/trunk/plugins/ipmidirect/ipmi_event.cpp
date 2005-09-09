@@ -21,7 +21,6 @@
  */
 
 #include <string.h>
-#include <assert.h>
 
 #include "ipmi_event.h"
 #include "ipmi_utils.h"

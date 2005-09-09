@@ -15,7 +15,6 @@
 
 
 #include <string.h>
-#include <assert.h>
 
 #include "ipmi_msg.h"
 
@@ -29,13 +28,16 @@ cIpmiMsg::cIpmiMsg()
 
 cIpmiMsg::cIpmiMsg( tIpmiNetfn netfn, tIpmiCmd cmd,
                     unsigned short data_len, unsigned char *data )
-  : m_netfn( netfn ), m_cmd( cmd ),
-    m_data_len( data_len )
+  : m_netfn( netfn ), m_cmd( cmd )
 {
+  if ( data_len <= dIpmiMaxMsgLength )
+      m_data_len = data_len;
+  else
+      m_data_len = dIpmiMaxMsgLength;
+
   if ( data )
      {
-       assert( data_len < dIpmiMaxMsgLength );
-       memcpy( m_data, data, data_len );
+       memcpy( m_data, data, m_data_len );
      }
 }
 

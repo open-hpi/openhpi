@@ -31,8 +31,6 @@
 #include "ipmi_log.h"
 #endif
 
-#include <assert.h>
-
 extern "C" {
 #include "SaHpi.h"
 }

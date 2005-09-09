@@ -280,7 +280,6 @@ cIpmiCon::Run()
                  stdlog << "poll returns " << rv << ", " << errno << ", " 
                         << strerror( errno ) << " !\n";
                  assert( 0 );
-                 abort();
                }
           }
 
@@ -436,12 +435,6 @@ cIpmiCon::Cmd( const cIpmiAddr &addr, const cIpmiMsg &msg,
   assert( msg.m_data_len <= dIpmiMaxMsgLength );
   assert( IsRunning() );
 
-  int idx = addr.m_slave_addr;
-
-  // use 0 for system interface
-  if ( addr.m_type == eIpmiAddrTypeSystemInterface )
-       idx = 0;
-
   cThreadCond cond;
 
   // create request
@@ -489,8 +482,12 @@ cIpmiCon::Cmd( const cIpmiAddr &addr, const cIpmiMsg &msg,
 
   if ( rv == SA_OK )
      {
-       assert( (tIpmiNetfn)(msg.m_netfn | 1) == rsp.m_netfn );
-       assert( msg.m_cmd == rsp.m_cmd );  
+       if ( ((tIpmiNetfn)(msg.m_netfn | 1) != rsp.m_netfn)
+           || (msg.m_cmd != rsp.m_cmd) )
+       {
+            stdlog << "Mismatch send netfn " << msg.m_netfn << " cmd " << msg.m_cmd << ", recv netfn " << rsp.m_netfn << " cmd " << rsp.m_cmd << "\n";
+            rv = SA_ERR_HPI_INTERNAL_ERROR;
+       }
      }
 
   return rv;
