@@ -53,12 +53,19 @@ static void __dec_domain_refcount(struct oh_domain *d)
 
 static void __delete_domain(struct oh_domain *d)
 {
+        GSList *node = NULL;
+
         oh_flush_rpt(&(d->rpt));
         oh_el_close(d->del);
         oh_close_alarmtable(d);
+        for (node = d->drt.list; node; node = node->next) {
+                g_free(node->data);
+        }
+        g_slist_free(d->drt.list);
         g_array_free(d->sessions, TRUE);
         g_static_rec_mutex_free(&(d->lock));
         g_static_rec_mutex_free(&(d->refcount_lock));
+        oh_destroy_domain_sessions(d->id);
         g_free(d);
 }
 
@@ -81,11 +88,12 @@ static SaErrorT disconnect_domains(struct oh_domain *parent,
                 curdrt = node->data;
                 if (curdrt->DomainId == child->id) {
                         g_free(node->data);
-                        parent->drt.list = g_slist_delete_link(parent->drt.list, node);
+                        parent->drt.list =
+                                g_slist_delete_link(parent->drt.list, node);
                         child->pdid = 0;
                         gettimeofday(&tv1, NULL);
-                        parent->drt.update_timestamp = (SaHpiTimeT) tv1.tv_sec *
-                                                       1000000000 + tv1.tv_usec * 1000;
+                        parent->drt.update_timestamp =
+                                (SaHpiTimeT)tv1.tv_sec * 1000000000 + tv1.tv_usec * 1000;
                         parent->drt.update_count++;
                         return SA_OK;
                 }
@@ -157,9 +165,7 @@ static GArray *disconnect_from_peers(struct oh_domain *domain)
                         continue;
                 }
 
-                /* FIXME: This needs locking! */
-                peer_domain = g_hash_table_lookup(oh_domains.table,
-                                                  &curdrt->DomainId);
+                peer_domain = oh_get_domain(curdrt->DomainId);
                 if (!peer_domain) {
                         dbg("BUG. Can't find out peer %d for domain %d",
                             curdrt->DomainId, domain->id);
@@ -185,6 +191,7 @@ static GArray *disconnect_from_peers(struct oh_domain *domain)
                                 break;
                         }
                 }
+                oh_release_domain(peer_domain);
         }
 
         for (node = domain->drt.list; node;) {
@@ -368,47 +375,58 @@ SaHpiDomainIdT oh_create_domain(SaHpiDomainCapabilitiesT capabilities,
  **/
 SaErrorT oh_destroy_domain(SaHpiDomainIdT did)
 {
-        struct oh_domain *domain = NULL;
-        struct oh_domain *parent = NULL;
+        struct oh_domain *domain = NULL, *parent = NULL;
         GSList *node = NULL;
         SaHpiDrtEntryT *curdrt;
         GArray *peers;
         SaHpiDomainIdT pid = 0;
 
         if (did < 1) return SA_ERR_HPI_INVALID_PARAMS;
-        if (did == oh_get_default_domain_id()) return SA_ERR_HPI_INVALID_PARAMS;
-        g_static_rec_mutex_lock(&(oh_domains.lock)); /* Locked domain table */
-        domain = g_hash_table_lookup(oh_domains.table, &did);
+        if (did == oh_get_default_domain_id())
+                return SA_ERR_HPI_INVALID_PARAMS;
+
+        domain = oh_get_domain(did);
         if (!domain) {
-                g_static_rec_mutex_unlock(&(oh_domains.lock));
                 return SA_ERR_HPI_NOT_PRESENT;
         }
+
         for (node = domain->drt.list; node; node = node->next) {
                 curdrt = node->data;
                 if (!curdrt->IsPeer) {
-                        g_static_rec_mutex_unlock(&(oh_domains.lock));
+                        oh_release_domain(domain);
                         return SA_ERR_HPI_BUSY;
                 }
         }
+
         if (domain->pdid != 0) {
-                parent = g_hash_table_lookup(oh_domains.table, &domain->pdid);
+                parent = oh_get_domain(domain->pdid);
                 pid = parent->id;
                 if (disconnect_domains(parent, domain) != 0) {
-                        g_static_rec_mutex_unlock(&(oh_domains.lock));
+                        oh_release_domain(parent);
+                        oh_release_domain(domain);
                         return SA_ERR_HPI_INTERNAL_ERROR;
                 }
+                oh_release_domain(parent);
                 domain->pdid = 0;
         }
 
         if (domain->is_peer) {
                 peers = disconnect_from_peers(domain);
+                g_array_free(peers, TRUE);
         }
-        g_hash_table_remove(oh_domains.table, &(domain->id));
-        g_static_rec_mutex_unlock(&(oh_domains.lock)); /* Unlocked domain table */
 
+        g_static_rec_mutex_unlock(&oh_domains.lock);
+        g_hash_table_remove(oh_domains.table, &(domain->id));
+        g_static_rec_mutex_unlock(&oh_domains.lock);
 
         generate_domain_event(pid, did, SAHPI_DOMAIN_REF_REMOVED);
-        // FIXME. send domain event to peers
+        /* FIXME. send domain event to peers */
+
+        __dec_domain_refcount(domain);
+        if (domain->refcount < 1)
+                __delete_domain(domain);
+        else
+                oh_release_domain(domain);
 
         return SA_OK;
 }
@@ -478,15 +496,15 @@ SaErrorT oh_release_domain(struct oh_domain *domain)
  **/
 GArray *oh_list_domains()
 {
-        dbg("Entering list_domains");
+        trace("Entering list_domains");
         GArray *domain_ids = NULL;
 
         domain_ids = g_array_new(FALSE, TRUE, sizeof(SaHpiDomainIdT));
         if (!domain_ids) return NULL;
-        dbg("setup domain ids");
+        trace("setup domain ids");
         g_static_rec_mutex_lock(&(oh_domains.lock));
         g_hash_table_foreach(oh_domains.table, collect_domain_ids, domain_ids);
-        dbg("Looping through table");
+        trace("Looping through table");
         g_static_rec_mutex_unlock(&(oh_domains.lock));
 
         return domain_ids;
