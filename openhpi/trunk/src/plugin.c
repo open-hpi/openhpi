@@ -569,11 +569,14 @@ static struct oh_handler *new_handler(GHashTable *handler_config)
         hidp = (unsigned int *)g_malloc(sizeof(unsigned int));
         if (!hidp) {
                 dbg("Out of Memory!");
+                g_free(handler);
                 return NULL;
         }
         hid_strp = strdup("handler-id");
         if (!hid_strp) {
                 dbg("Out of Memory!");
+                g_free(handler);
+                g_free(hidp);
                 return NULL;
         }
 

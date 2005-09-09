@@ -157,6 +157,11 @@ SaErrorT oh_encode_entitypath(const gchar *epstr, SaHpiEntityPathT *ep)
 	g_free(gstr);
 	g_strfreev(epathdefs);
 	g_strfreev(epathvalues);
+	lst = epath_list;
+        while (lst != NULL) {
+               free(lst->data);
+               lst = g_slist_next(lst);
+        } 
 	g_slist_free(epath_list);
 
 	return(err);
