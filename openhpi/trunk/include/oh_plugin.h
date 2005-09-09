@@ -48,7 +48,7 @@ extern struct oh_plugins oh_plugins;
  */
 struct oh_handlers {
         GHashTable *table;
-        GSList *ids;
+        GSList *list;
         GStaticRecMutex lock;
 };
 struct oh_handler {

@@ -41,7 +41,7 @@ struct oh_plugins oh_plugins = {
  */
 struct oh_handlers oh_handlers = {
         .table = NULL,
-        .ids = NULL,
+        .list = NULL,
         .lock = G_STATIC_REC_MUTEX_INIT
 };
 
@@ -59,17 +59,15 @@ void oh_close_handlers()
 {
         struct oh_handler *h = NULL;
         GSList *node = NULL;
-        unsigned int *id;
 
         g_static_rec_mutex_lock(&oh_handlers.lock);
-        if (oh_handlers.ids == NULL) {
+        if (oh_handlers.list == NULL) {
                 g_static_rec_mutex_unlock(&oh_handlers.lock);
                 return;
         }
 
-        for (node = oh_handlers.ids; node; node = node->next) {
-                id = node->data;
-                h = g_hash_table_lookup(oh_handlers.table, id);
+        for (node = oh_handlers.list; node; node = node->next) {
+                h = node->data;
                 if (h && h->abi && h->abi->close) {
                         h->abi->close(h->hnd);
                 }
@@ -458,10 +456,12 @@ static void __delete_handler(struct oh_handler *h)
  **/
 struct oh_handler *oh_get_handler(unsigned int hid)
 {
+        GSList *node = NULL;
         struct oh_handler *handler = NULL;
 
         g_static_rec_mutex_lock(&oh_handlers.lock);
-        handler = g_hash_table_lookup(oh_handlers.table, &hid);
+        node = g_hash_table_lookup(oh_handlers.table, &hid);
+        handler = node ? node->data : NULL;
         if (!handler) {
                 g_static_rec_mutex_unlock(&oh_handlers.lock);
                 dbg("Error - Handler %d was not found", hid);
@@ -507,6 +507,7 @@ void oh_release_handler(struct oh_handler *handler)
 int oh_getnext_handler_id(unsigned int hid, unsigned int *next_hid)
 {
         GSList *node = NULL;
+        struct oh_handler *h = NULL;
 
         if (!next_hid) {
                 dbg("ERROR. Invalid parameter.");
@@ -516,9 +517,9 @@ int oh_getnext_handler_id(unsigned int hid, unsigned int *next_hid)
 
         if (!hid) { /* Return first handler id in the list */
                 g_static_rec_mutex_lock(&oh_handlers.lock);
-                if (oh_handlers.ids) {
-                        unsigned int *id = oh_handlers.ids->data;
-                        *next_hid = *id;
+                if (oh_handlers.list) {
+                        h = oh_handlers.list->data;
+                        *next_hid = h->id;
                         g_static_rec_mutex_unlock(&oh_handlers.lock);
                         return 0;
                 } else {
@@ -528,18 +529,11 @@ int oh_getnext_handler_id(unsigned int hid, unsigned int *next_hid)
                 }
         } else { /* Return handler id coming after hid in the list */
                 g_static_rec_mutex_lock(&oh_handlers.lock);
-                for (node = oh_handlers.ids; node; node = node->next) {
-                        unsigned int *id = node->data;
-                        if (*id == hid) {
-                                if (node->next) {
-                                        id = node->next->data;
-                                        *next_hid = *id;
-                                        g_static_rec_mutex_unlock(&oh_handlers.lock);
-                                        return 0;
-                                } else {
-                                        break;
-                                }
-                        }
+                node = g_hash_table_lookup(oh_handlers.table, &hid);
+                if (node && node->next && node->next->data) {
+                        h = node->next->data;
+                        *next_hid = h->id;
+                        g_static_rec_mutex_unlock(&oh_handlers.lock);
                 }
         }
         g_static_rec_mutex_unlock(&oh_handlers.lock);
@@ -643,10 +637,10 @@ unsigned int oh_create_handler (GHashTable *handler_config)
         }
 
         g_static_rec_mutex_lock(&oh_handlers.lock);
+        oh_handlers.list = g_slist_append(oh_handlers.list, handler);
         g_hash_table_insert(oh_handlers.table,
                             &(handler->id),
-                            handler);
-        oh_handlers.ids = g_slist_append(oh_handlers.ids, &(handler->id));
+                            g_slist_last(oh_handlers.list));
         g_static_rec_mutex_unlock(&oh_handlers.lock);
 
         return new_hid;
@@ -678,7 +672,7 @@ int oh_destroy_handler(unsigned int hid)
 
         g_static_rec_mutex_lock(&oh_handlers.lock);
         g_hash_table_remove(oh_handlers.table, &handler->id);
-        oh_handlers.ids = g_slist_remove(oh_handlers.ids, &(handler->id));
+        oh_handlers.list = g_slist_remove(oh_handlers.list, &(handler->id));
         g_static_rec_mutex_unlock(&oh_handlers.lock);
 
         __dec_handler_refcount(handler);
