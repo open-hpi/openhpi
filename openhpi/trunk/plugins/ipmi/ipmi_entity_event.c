@@ -270,11 +270,16 @@ static void get_entity_event(ipmi_entity_t	*entity,
 			oh_append_textbuffer(&srpt.ResourceTag, n);
 			srpt.ResourceId = oh_uid_from_entity_path(&srpt.ResourceEntity);
 			
-			s_r_info = g_malloc0(sizeof(*ohoi_res_info));
+			s_r_info = malloc(sizeof(*ohoi_res_info));
+			if (s_r_info == NULL) {
+				dbg("Out of Memory");
+				goto end_of_slot;
+			}
+			memset(s_r_info, 0, sizeof(*ohoi_res_info));
 			if (oh_add_resource(handler->rptcache, &srpt, s_r_info, 1)) {
 				dbg("couldn't add resource for slot %d",ep.Entry[0].EntityLocation);
-			} else { 
-				dbg("creating slot %d", ep.Entry[0].EntityLocation);
+			} else {
+				trace_ipmi_entity("CREATE SLOT for ", 0, entity); 
 				entity_rpt_set_presence(s_r_info, ipmi_handler, 1);
 				
 			}
@@ -442,16 +447,24 @@ static void add_entity_event(ipmi_entity_t	        *entity,
       	struct ohoi_resource_info *ohoi_res_info;
 	SaHpiRptEntryT	entry;
 	int rv;
+	int inst;
+	
+	inst = ipmi_entity_get_entity_instance(entity);
+	if (inst >= 96) {
+		inst -= 96;
+	}
 
-	trace_ipmi("adding ipmi entity: %s", ipmi_entity_get_entity_id_string(entity));
 	memset(&entry, 0, sizeof (entry));
 
-	ohoi_res_info = g_malloc0(sizeof(*ohoi_res_info));
+	ohoi_res_info = malloc(sizeof(*ohoi_res_info));
 
 	if (!ohoi_res_info) {
 	      	dbg("Out of memory");
+		trace_ipmi_entity("CAN NOT ADD ENTITY. OUT OF MEMORY",
+			inst, entity);
 		return;
 	}
+	memset(ohoi_res_info, 0, sizeof (*ohoi_res_info));
 
 	ohoi_res_info->type       = OHOI_RESOURCE_ENTITY; 
 	ohoi_res_info->u.entity_id= ipmi_entity_convert_to_id(entity);
@@ -461,15 +474,10 @@ static void add_entity_event(ipmi_entity_t	        *entity,
 	if (rv) {
 	      	dbg("oh_add_resource failed for %d = %s\n",
 			entry.ResourceId, oh_lookup_error(rv));
+		trace_ipmi_entity("CAN NOT ADD ENTITY. ADD RESOURCE FAILED",
+			inst, entity);
 		return;
 	}
-	trace_ipmi("Added resource %d for entity: %d.%d.%d.%d %s",
-		entry.ResourceId,
-		ipmi_entity_get_entity_id(entity), 
-		ipmi_entity_get_entity_instance(entity),
-		ipmi_entity_get_device_channel(entity),
-		ipmi_entity_get_device_address(entity),
-		ipmi_entity_get_entity_id_string(entity));
 }
 
 void ohoi_remove_entity(struct oh_handler_state *handler,
@@ -480,10 +488,13 @@ void ohoi_remove_entity(struct oh_handler_state *handler,
 
 	res_info = oh_get_resource_data(handler->rptcache, res_id);
 
-  	dbg("Entity (%d) removed", res_id);
 
 	/* Now put an event for the resource to DEL */
-	e = g_malloc0(sizeof(*e));
+	e = malloc(sizeof(*e));
+	if (e == NULL) {
+		dbg("Out of memory");
+		return;
+	}
 	memset(e, 0, sizeof(*e));
 
 	e->did = oh_get_default_domain_id();
@@ -511,12 +522,15 @@ add_processor_event(ipmi_entity_t *entity,
 
 	char instance[8];
 	
-	res_info = g_malloc0(sizeof(*res_info));
-
-	if (!res_info) {
+	inst = ipmi_entity_get_entity_instance(entity) - 96;
+	res_info = malloc(sizeof(*res_info));
+	if (res_info == NULL) {
+		trace_ipmi_entity("CAN NOT ADD PROCESSOR. OUT OF MEMORY",
+			inst, entity);
 	      	dbg("Out of memory");
 		return;
 	}
+	memset(res_info, 0, sizeof(*res_info));
 	pr_rpt = ohoi_get_resource_by_entityid(handler->rptcache, &parent_id);
 	if (pr_rpt == NULL) {
 		dbg("Couldn't find out res-info for processor parent: %d.%d.%d.%d %s",
@@ -525,12 +539,14 @@ add_processor_event(ipmi_entity_t *entity,
 			ipmi_entity_get_device_channel(parent),
 			ipmi_entity_get_device_address(parent),
 			ipmi_entity_get_entity_id_string(parent));
+		trace_ipmi_entity("CAN NOT ADD PROCESSOR. NO RES_INFO",
+			inst, entity);
+		
 		return;
 	}
 	res_info->type       = OHOI_RESOURCE_ENTITY; 
 	res_info->u.entity_id= ipmi_entity_convert_to_id(entity);
 
-	inst = ipmi_entity_get_entity_instance(entity) - 96;
 
 	init_rpt(&entry);
 
@@ -549,24 +565,17 @@ add_processor_event(ipmi_entity_t *entity,
 	oh_append_textbuffer(&entry.ResourceTag, "Processor ");
 	snprintf(instance, 8, "%d", inst);
 	oh_append_textbuffer(&entry.ResourceTag, instance);
-	trace_ipmi("ProcessorTag: %s", entry.ResourceTag.Data);
 
 
 	entry.ResourceId = oh_uid_from_entity_path(&entry.ResourceEntity);
-	trace_ipmi("Processor ResourceId: %d", entry.ResourceId);
 
 	rv = oh_add_resource(handler->rptcache, &entry, res_info, 1);
 	if (rv) {
 	      	dbg("oh_add_resource failed for %d = %s\n", entry.ResourceId, oh_lookup_error(rv));
+		trace_ipmi_entity("CAN NOT ADD PROCESSOR. ADD RESOURCE FAILED.",
+			inst, entity);
 		return;
 	}
-	trace_ipmi("Added resource %d for entity: %d.%d.%d.%d %s",
-		entry.ResourceId,
-		ipmi_entity_get_entity_id(entity), 
-		ipmi_entity_get_entity_instance(entity),
-		ipmi_entity_get_device_channel(entity),
-		ipmi_entity_get_device_address(entity),
-		ipmi_entity_get_entity_id_string(entity));
 }
 
 
@@ -584,6 +593,8 @@ static void change_entity(struct oh_handler_state	*handler,
 			ipmi_entity_get_device_channel(entity),
 			ipmi_entity_get_device_address(entity),
 			ipmi_entity_get_entity_id_string(entity));
+		trace_ipmi_entity("CAN NOT CHANGE RESOURCE. NO RPT",
+			0, entity);
 		return;
 	}
 	update_resource_capabilities(entity, rpt);

@@ -74,8 +74,8 @@ static void ipmi_domain_fully_up(ipmi_domain_t *domain,
  **/
 static void *ipmi_open(GHashTable *handler_config)
 {
-        struct oh_handler_state *handler;
-        struct ohoi_handler *ipmi_handler;
+        struct oh_handler_state *handler = NULL;
+        struct ohoi_handler *ipmi_handler = NULL;
         char    domain_name[24];
         char *domain_tag = NULL;
 
@@ -106,21 +106,35 @@ static void *ipmi_open(GHashTable *handler_config)
         real_write_fru = g_hash_table_lookup(handler_config, "RealWriteFru");
         domain_tag = g_hash_table_lookup(handler_config, "DomainTag");
 
-        handler = (struct oh_handler_state *)g_malloc0(sizeof(
+        handler = (struct oh_handler_state *)malloc(sizeof(
                         struct oh_handler_state));
-        ipmi_handler = (struct ohoi_handler *)g_malloc0(sizeof(
-                        struct ohoi_handler));
-        if (!handler || !ipmi_handler) {
-                dbg("Cannot allocate handler or private ipmi");
+	if (handler == NULL) {
+		dbg("Out of memory");
+		return NULL;
+	}
+	memset(handler, 0, sizeof(struct oh_handler_state));
+        ipmi_handler = (struct ohoi_handler *)malloc(sizeof(
+					struct ohoi_handler));
+        if (ipmi_handler == NULL) {
+                dbg("Out of memory");
+		free(handler);
                 return NULL;
         }
+	memset(ipmi_handler, 0, sizeof(struct ohoi_handler));
+	
+        handler->rptcache = (RPTable *)malloc(sizeof(RPTable));
+	if (handler->rptcache == NULL) {
+		dbg("Out of memory");
+		free(handler);
+		free(ipmi_handler);
+		return NULL;
+	}
+	memset(handler->rptcache, 0, sizeof(RPTable));
 
-        g_static_rec_mutex_init(&(ipmi_handler->ohoih_lock));
         handler->data = ipmi_handler;
-
-        handler->rptcache = (RPTable *)g_malloc0(sizeof(RPTable));
-
         handler->config = handler_config;
+	
+        g_static_rec_mutex_init(&(ipmi_handler->ohoih_lock));
 
         snprintf(domain_name, 24, "%s %s", name, addr);
         /* Discovery routine depends on these flags */
@@ -172,7 +186,7 @@ static void *ipmi_open(GHashTable *handler_config)
         if ( !name || !addr || !ipmi_handler->entity_root) {
                 dbg("Problem getting correct required parameters! \
                                 check config file");
-                return NULL;
+                goto free_and_out;
         } else
                 trace_ipmi("name: %s, addr: %s, entity_root: %s, timeout: %d",
                                 name, addr,
@@ -192,7 +206,7 @@ static void *ipmi_open(GHashTable *handler_config)
                                 ipmi_handler->ohoi_sel,&ipmi_handler->con);
                 if (rv) {
                         dbg("Cannot setup connection");
-                        return NULL;
+                        goto free_and_out;
                 }
                 ipmi_handler->islan = 0;
         } else if (strcmp(name, "lan") == 0) {
@@ -208,13 +222,13 @@ static void *ipmi_open(GHashTable *handler_config)
                 tok = g_hash_table_lookup(handler_config, "addr");
                 if (tok == NULL) {
                         dbg("no ""addr"" token in config file");
-                        return NULL;
+                        goto free_and_out;
                 }
                 trace_ipmi("IPMI LAN Address: %s", tok);
                 struct hostent *ent = gethostbyname(tok);
                 if (!ent) {
                         dbg("Unable to resolve IPMI LAN address");
-                        return NULL;
+                        goto free_and_out;
                 }
 
                 memcpy(&lan_addr, ent->h_addr_list[0], ent->h_length);
@@ -244,7 +258,7 @@ static void *ipmi_open(GHashTable *handler_config)
                         auth = IPMI_AUTHTYPE_MD5;
                 } else {
                         dbg("Invalid IPMI LAN authenication method: %s", tok);
-                        return NULL;
+                        goto free_and_out;
                 }
 
                 trace_ipmi("IPMI LAN Authority: %s(%i)", tok, auth);
@@ -267,7 +281,7 @@ static void *ipmi_open(GHashTable *handler_config)
                         priv = IPMI_PRIVILEGE_OEM;
                 } else {
                         dbg("Invalid IPMI LAN authenication method: %s", tok);
-                        return NULL;
+                        goto free_and_out;
                 }
 
                 trace_ipmi("IPMI LAN Priviledge: %s(%i)", tok, priv);
@@ -306,7 +320,7 @@ static void *ipmi_open(GHashTable *handler_config)
                 ipmi_handler->islan = 1;
         } else {
                 dbg("Unsupported IPMI connection method: %s",name);
-                return NULL;
+                goto free_and_out;
         }
 
         ipmi_handler->connected = -1;
@@ -317,11 +331,17 @@ static void *ipmi_open(GHashTable *handler_config)
                         NULL, 0, &ipmi_handler->domain_id);
         if (rv) {
                 fprintf(stderr, "ipmi_open_domain: %s\n", strerror(rv));
-                return NULL;
+                goto free_and_out;
         }
 
         ipmi_refcount++;
         return handler;
+
+free_and_out:
+	g_free(handler->rptcache);
+	g_free(handler);
+	g_free(ipmi_handler);
+	return NULL;
 }
 
 
@@ -357,13 +377,13 @@ static void ipmi_close(void *hnd)
         }
 
         oh_flush_rpt(handler->rptcache);
-        g_free(handler->rptcache);
+        free(handler->rptcache);
 
-        g_slist_foreach(handler->eventq, (GFunc)g_free, NULL);
+        g_slist_foreach(handler->eventq, (GFunc)free, NULL);
         g_slist_free(handler->eventq);
 
-        g_free(ipmi_handler);
-        g_free(handler);
+        free(ipmi_handler);
+        free(handler);
 }
 
 /**
@@ -386,7 +406,7 @@ static int ipmi_get_event(void *hnd, struct oh_event *event)
                 if(g_slist_length(handler->eventq)>0) {
                         memcpy(event, handler->eventq->data, sizeof(*event));
                         event->did = ipmi_handler->did;
-                        free(handler->eventq->data);
+                        g_free(handler->eventq->data);
                         handler->eventq = g_slist_remove_link(handler->eventq,
                                         handler->eventq);
                         return 1;
@@ -508,7 +528,12 @@ int ipmi_discover_resources(void *hnd)
                                 rpt_entry->ResourceId);
                         continue;
                 }
-                event = g_malloc0(sizeof(*event));
+                event = malloc(sizeof(*event));
+		if (event == NULL) {
+			dbg("Out of memory");
+        		g_static_rec_mutex_unlock(&ipmi_handler->ohoih_lock);
+			return SA_ERR_HPI_OUT_OF_MEMORY;
+		}
                 memset(event, 0, sizeof(*event));
                 event->type = res_info->presence ?
                         OH_ET_RESOURCE : OH_ET_RESOURCE_DEL;
@@ -522,7 +547,13 @@ int ipmi_discover_resources(void *hnd)
                                                         rpt_entry->ResourceId,
                                                         SAHPI_FIRST_ENTRY);
                         while (rdr_entry) {
-                                event = g_malloc0(sizeof(*event));
+                                event = malloc(sizeof(*event));
+				if (event == NULL) {
+					dbg("Out of memory");
+        				g_static_rec_mutex_unlock(
+						&ipmi_handler->ohoih_lock);
+					return SA_ERR_HPI_OUT_OF_MEMORY;
+				}
                                 memset(event, 0, sizeof(*event));
                                 event->type = OH_ET_RDR;
                                 event->u.rdr_event.parent =
