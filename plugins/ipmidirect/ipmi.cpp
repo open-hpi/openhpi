@@ -310,6 +310,19 @@ IpmiOpen( GHashTable *handler_config )
 
   handler->data     = ipmi;
   handler->rptcache = (RPTable *)g_malloc0( sizeof( RPTable ) );
+  if ( !handler->rptcache )
+     {
+       dbg("cannot allocate RPT cache");
+
+       g_free( handler );
+
+       delete ipmi;
+
+       stdlog.Close();
+
+       return 0;
+     }
+
   handler->config   = handler_config;
 
   ipmi->SetHandler( handler );
