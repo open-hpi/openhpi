@@ -155,51 +155,41 @@ static int add_control_event(ipmi_entity_t	*ent,
 			     SaHpiEntityPathT	parent_ep,
 			     SaHpiResourceIdT	rid)
 {
-	struct oh_event           *e;
         struct ohoi_resource_info *info;
 	struct ohoi_control_info  *ctrl_info;
-	SaHpiRdrT		*rdr;
+	SaHpiRdrT		rdr;
 
         ctrl_info = malloc(sizeof(struct ohoi_control_info));
         if (!ctrl_info) {
                 dbg("Out of memory");
                 return 1;
         }
+	memset(&rdr, 0, sizeof(rdr));
         ctrl_info->ctrl_id = ipmi_control_convert_to_id(control);
 	ctrl_info->mode = SAHPI_CTRL_MODE_AUTO;
-        
-	e = malloc(sizeof(*e));
-	if (!e) {
-                free(ctrl_info);
-		dbg("Out of space");   
-		return 1;
-	}
-	memset(e, 0, sizeof(*e));
 
-	e->type = OH_ET_RDR;
-	
-	rdr = &e->u.rdr_event.rdr;
-	rdr->RecordId = 0;
-	rdr->Entity = parent_ep;
-	rdr->RdrTypeUnion.CtrlRec.OutputType = _control_type_from_ipmi_to_hpi(control);
-	rdr->RdrTypeUnion.CtrlRec.Type = SAHPI_CTRL_TYPE_OEM;
+	rdr.RecordId = 0;
+	rdr.Entity = parent_ep;
+	rdr.RdrTypeUnion.CtrlRec.OutputType = _control_type_from_ipmi_to_hpi(control);
+	rdr.RdrTypeUnion.CtrlRec.Type = SAHPI_CTRL_TYPE_OEM;
 
-	set_idstring(control, rdr);
+	set_idstring(control, &rdr);
 
 	info = oh_get_resource_data(handler->rptcache, rid);
         if (!info) {
 		free(ctrl_info);
-                free(e);
                 dbg("No info in resource(%d)\n", rid);
                 return 1;
         }
-        e->u.rdr_event.rdr.RdrTypeUnion.CtrlRec.Num = info->ctrl_count;
+        rdr.RdrTypeUnion.CtrlRec.Num = info->ctrl_count;
         info->ctrl_count++;
 
-        rid = oh_uid_lookup(&e->u.rdr_event.rdr.Entity);
+        rid = oh_uid_lookup(&rdr.Entity);
         
 	if (oh_add_rdr(handler->rptcache, rid,
-			&e->u.rdr_event.rdr, ctrl_info, 1) != SA_OK) {
+			&rdr, ctrl_info, 1) != SA_OK) {
+		dbg("couldn't add control rdr");
+		free(ctrl_info);
 		return 1;
 	}
 	return 0;
@@ -335,10 +325,9 @@ static int add_led_control_event(ipmi_entity_t	*ent,
 {
 	SaHpiEntityPathT parent_ep = rpt->ResourceEntity;
 	SaHpiResourceIdT	rid = rpt->ResourceId;
-	struct oh_event           *e;
         struct ohoi_resource_info *info;
 	struct ohoi_control_info  *ctrl_info;
-	SaHpiRdrT		*rdr;
+	SaHpiRdrT		rdr;
 	int rv;
 
         ctrl_info = malloc(sizeof(struct ohoi_control_info));
@@ -346,33 +335,23 @@ static int add_led_control_event(ipmi_entity_t	*ent,
                 dbg("Out of memory");
                 return 1;
         }
+	memset(&rdr, 0, sizeof(rdr));
         ctrl_info->ctrl_id = ipmi_control_convert_to_id(control);
         
-	e = malloc(sizeof(*e));
-	if (!e) {
-                free(ctrl_info);
-		dbg("Out of space");   
-		return 1;
-	}
-	memset(e, 0, sizeof(*e));
-
-	e->type = OH_ET_RDR;
-	
-	rdr = &e->u.rdr_event.rdr;
-	rdr->RecordId = 0;
-	rdr->RdrType = SAHPI_CTRL_RDR;
-	rdr->Entity = parent_ep;
-	rdr->RdrTypeUnion.CtrlRec.OutputType = SAHPI_CTRL_LED;
-	rdr->RdrTypeUnion.CtrlRec.Type = SAHPI_CTRL_TYPE_OEM;
-	rdr->RdrTypeUnion.CtrlRec.DefaultMode.Mode = SAHPI_CTRL_MODE_AUTO;
-	rdr->RdrTypeUnion.CtrlRec.DefaultMode.ReadOnly = SAHPI_TRUE;
-	set_idstring(control, rdr);
+	rdr.RecordId = 0;
+	rdr.RdrType = SAHPI_CTRL_RDR;
+	rdr.Entity = parent_ep;
+	rdr.RdrTypeUnion.CtrlRec.OutputType = SAHPI_CTRL_LED;
+	rdr.RdrTypeUnion.CtrlRec.Type = SAHPI_CTRL_TYPE_OEM;
+	rdr.RdrTypeUnion.CtrlRec.DefaultMode.Mode = SAHPI_CTRL_MODE_AUTO;
+	rdr.RdrTypeUnion.CtrlRec.DefaultMode.ReadOnly = SAHPI_TRUE;
+	set_idstring(control, &rdr);
 	if (ipmi_control_light_set_with_setting(control)) {
 		ohoi_led_info_t info;
 		info.done = 0;
 		info.err = 0;
-		info.oem = &rdr->RdrTypeUnion.CtrlRec.TypeUnion.Oem;
-		info.dm = &rdr->RdrTypeUnion.CtrlRec.DefaultMode;
+		info.oem = &rdr.RdrTypeUnion.CtrlRec.TypeUnion.Oem;
+		info.dm = &rdr.RdrTypeUnion.CtrlRec.DefaultMode;
 		rv = ipmi_control_get_light(control,
 			set_led_oem_cb, &info);
 		if (rv) {
@@ -384,23 +363,27 @@ static int add_led_control_event(ipmi_entity_t	*ent,
 	} else {
 		dbg("ipmi_control_light_set_with_setting == 0");
 	} 
-	ctrl_info->mode = rdr->RdrTypeUnion.CtrlRec.DefaultMode.Mode;
+	ctrl_info->mode = rdr.RdrTypeUnion.CtrlRec.DefaultMode.Mode;
 	
 
 
 	info = oh_get_resource_data(handler->rptcache, rid);
         if (!info) {
 		free(ctrl_info);
-                free(e);
                 dbg("No info in resource(%d)\n", rid);
                 return 1;
         }
-        e->u.rdr_event.rdr.RdrTypeUnion.CtrlRec.Num = info->ctrl_count;
+        rdr.RdrTypeUnion.CtrlRec.Num = info->ctrl_count;
         info->ctrl_count++;
 
-        rid = oh_uid_lookup(&e->u.rdr_event.rdr.Entity);
+        rid = oh_uid_lookup(&rdr.Entity);
         
-	oh_add_rdr(handler->rptcache, rid, &e->u.rdr_event.rdr, ctrl_info, 1);
+	rv = oh_add_rdr(handler->rptcache, rid, &rdr, ctrl_info, 1);
+	if (rv != SA_OK) {
+		dbg("couldn't add control rdr. rv = %d", rv);
+		free(ctrl_info);
+		return 1;
+	}
 
 #if 0	
 		/* May be it's hot swap indicator? */	
@@ -471,7 +454,11 @@ static void add_alarm_rdr(char 				*name,
         rdr->RdrTypeUnion.CtrlRec.WriteOnly    = wo;
 	rdr->RdrTypeUnion.CtrlRec.DefaultMode.Mode = def_mode->Mode;
 	rdr->RdrTypeUnion.CtrlRec.DefaultMode.ReadOnly = def_mode->ReadOnly;
-        oh_add_rdr(handler->rptcache, rptid, rdr, ctrl_info, 1);
+        if(oh_add_rdr(handler->rptcache, rptid, rdr, ctrl_info, 1)) {
+		dbg("couldn't add alarm control");
+		free(ctrl_info);
+		return;
+	}
 	trace_ipmi("add_alarm_rdr: %s\n",name); 
 }
 
@@ -551,7 +538,6 @@ address_control_get(ipmi_control_t			*control,
 	//SaHpiEntityPathT	entity_ep;
 	struct ohoi_handler *ipmi_handler = handler->data;
 
-	g_static_rec_mutex_lock(&ipmi_handler->ohoih_lock);	
 
 	rv = ipmi_control_identifier_get_val(control, address_control, &location);
 
@@ -573,7 +559,7 @@ address_control_get(ipmi_control_t			*control,
 	//if (rv) {
 	      	//dbg("oh_add_resource failed for %d = %s\n", rpt->ResourceId, oh_lookup_error(rv));
 	//}
-	g_static_rec_mutex_unlock(&ipmi_handler->ohoih_lock);	
+
 	return 0;
 }
 

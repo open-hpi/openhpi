@@ -956,8 +956,8 @@ static void add_sensor_event(ipmi_entity_t	*ent,
 			     SaHpiEntityPathT	parent_ep,
 			     SaHpiResourceIdT	rid)
 {
-      	struct ohoi_sensor_info *sensor_info;
-	struct oh_event         *e;
+	struct ohoi_sensor_info *sensor_info;
+	SaHpiRdrT		rdr;
         struct ohoi_resource_info *info;
 	int lun, num;
 	int rv;
@@ -974,44 +974,37 @@ static void add_sensor_event(ipmi_entity_t	*ent,
         sensor_info->enable = SAHPI_TRUE;
 	add_sensor_states(sensor, sensor_info);
 	
-	e = malloc(sizeof(*e));
-	if (!e) {
-	      	free(sensor_info);
-		dbg("Out of space");   
-		return;
-	}
-	memset(e, 0, sizeof(*e));
-
-	e->type = OH_ET_RDR;
-	e->u.rdr_event.rdr.RdrTypeUnion.SensorRec.Events =
+	memset(&rdr, 0, sizeof(rdr));
+	rdr.RdrTypeUnion.SensorRec.Events =
 		convert_to_hpi_event_state(sensor, sensor_info);
 	
 	rv = ipmi_sensor_get_num(sensor, &lun, &num);
 	if(rv) {
-	      	dbg("Erro getting sensor number");
-        	e->u.rdr_event.rdr.RdrTypeUnion.SensorRec.Num =
-						SA_ERR_HPI_INVALID_DATA;
+		dbg("Erro getting sensor number");
+        	rdr.RdrTypeUnion.SensorRec.Num =
+					SA_ERR_HPI_INVALID_DATA;
 	} else { 
-	      	e->u.rdr_event.rdr.RdrTypeUnion.SensorRec.Num = num;
+	      rdr.RdrTypeUnion.SensorRec.Num = num;
 	}
 
-	add_sensor_event_rdr(sensor, &e->u.rdr_event.rdr,
-					 	parent_ep, rid);	
+	add_sensor_event_rdr(sensor, &rdr, parent_ep, rid);	
 
         info = oh_get_resource_data(handler->rptcache, rid);
         if (!info) {
-                free(e);
-                dbg("No info in resource(%d)\n", rid);
-                return;
+		free(sensor_info);
+		dbg("No info in resource(%d)\n", rid);
+		return;
         }
 
 
-	rid = oh_uid_lookup(&e->u.rdr_event.rdr.Entity);
+	rid = oh_uid_lookup(&rdr.Entity);
 
-	rv = oh_add_rdr(handler->rptcache, rid, &e->u.rdr_event.rdr,
+	rv = oh_add_rdr(handler->rptcache, rid, &rdr,
 					sensor_info, 1);
-	if (rv != SA_OK)
+	if (rv != SA_OK) {
+		free(sensor_info);
 		dbg("Failed to add sensor rdr");
+	}
 }
 
 void ohoi_sensor_event(enum ipmi_update_e op,

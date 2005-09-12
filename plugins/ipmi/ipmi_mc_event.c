@@ -103,14 +103,14 @@ static void mc_add(ipmi_mc_t                    *mc,
 
 		struct ohoi_handler *ipmi_handler = handler->data;
         
-        ohoi_res_info = g_malloc0(sizeof(*ohoi_res_info));
+        ohoi_res_info = malloc(sizeof(*ohoi_res_info));
         if (!ohoi_res_info) {
                 dbg("Out of space");
                 return;
         }
+	memset(ohoi_res_info, 0, sizeof(*ohoi_res_info));
         ohoi_res_info->type      = OHOI_RESOURCE_MC;
         ohoi_res_info->u.mc_id    = ipmi_mc_convert_to_id(mc);
-	trace_ipmi("Set updated for resource %p . MC", mc);
 	/* always present if active thus here */
 	entity_rpt_set_presence(ohoi_res_info, ipmi_handler, 1);
                 
