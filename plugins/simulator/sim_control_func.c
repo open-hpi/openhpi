@@ -52,7 +52,7 @@ SaErrorT sim_get_control_state(void *hnd,
 	info = (struct sim_control_info *)oh_get_rdr_data(handle->rptcache, cid, rdr->RecordId);
  	if (info == NULL) {
 		dbg("No control data. Control=%s", rdr->IdString.Data);
-		return(SA_ERR_HPI_INTERNAL_ERROR);
+		return(SA_ERR_HPI_NOT_PRESENT);
 	}
 
 	if (rdr->RdrTypeUnion.CtrlRec.WriteOnly) {
@@ -103,7 +103,7 @@ SaErrorT sim_get_control_state(void *hnd,
                         break;
 		default:
 //			dbg("%s has invalid control state=%d.", cinfo->mib.oid, working_state.Type);
-			return(SA_ERR_HPI_INTERNAL_ERROR);
+                        return(SA_ERR_HPI_INVALID_DATA);
 		}
 	}
 
@@ -167,7 +167,7 @@ SaErrorT sim_set_control_state(void *hnd,
 	info = (struct sim_control_info *)oh_get_rdr_data(handle->rptcache, cid, rdr->RecordId);
  	if (info == NULL) {
 		dbg("No control data. Control=%s", rdr->IdString.Data);
-		return(SA_ERR_HPI_INTERNAL_ERROR);
+		return(SA_ERR_HPI_NOT_PRESENT);
 	}
 
 	/* Validate static control state and mode data */
@@ -208,7 +208,7 @@ SaErrorT sim_set_control_state(void *hnd,
                         break;
 		default:
 			dbg("Invalid control state=%d", state->Type);
-			return(SA_ERR_HPI_INTERNAL_ERROR);
+                        return(SA_ERR_HPI_INVALID_DATA);
 		}
 	}
 

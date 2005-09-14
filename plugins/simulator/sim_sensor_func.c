@@ -48,7 +48,7 @@ SaErrorT sim_get_sensor_reading(void *hnd,
                                                      rdr->RecordId);
         if (sinfo == NULL) {
                 dbg("No sensor data. Sensor=%s", rdr->IdString.Data);
-                return(SA_ERR_HPI_INTERNAL_ERROR);
+                return(SA_ERR_HPI_NOT_PRESENT);
         }
 
         /*If sensor is enabled, get sensor reading*/
@@ -91,7 +91,7 @@ SaErrorT sim_get_sensor_eventstate(void *hnd,
                                                      rdr->RecordId);
  	if (sinfo == NULL) {
 		dbg("No sensor data. Sensor=%s", rdr->IdString.Data);
-		return(SA_ERR_HPI_INTERNAL_ERROR);
+                return(SA_ERR_HPI_NOT_PRESENT);
 	}
 
 	/*If sensor is enabled, set event state to cur_state*/
@@ -133,7 +133,7 @@ SaErrorT sim_get_sensor_thresholds(void *hnd,
                                                      rdr->RecordId);
         if (sinfo == NULL) {
                 dbg("No sensor data. Sensor=%s", rdr->IdString.Data);
-                return(SA_ERR_HPI_INTERNAL_ERROR);
+                return(SA_ERR_HPI_NOT_PRESENT);
         }
 
         /* If sensor is enabled, set thresholds */
@@ -175,7 +175,7 @@ SaErrorT sim_set_sensor_thresholds(void *hnd,
                                                      rdr->RecordId);
         if (sinfo == NULL) {
                 dbg("No sensor data. Sensor=%s", rdr->IdString.Data);
-                return(SA_ERR_HPI_INTERNAL_ERROR);
+                return(SA_ERR_HPI_NOT_PRESENT);
         }
 
 	if (rdr->RdrTypeUnion.SensorRec.Category != SAHPI_EC_THRESHOLD ||
@@ -229,7 +229,7 @@ SaErrorT sim_get_sensor_enable(void *hnd,
                                                      rdr->RecordId);
         if (sinfo == NULL) {
                 dbg("No sensor data. Sensor=%s", rdr->IdString.Data);
-                return(SA_ERR_HPI_INTERNAL_ERROR);
+                return(SA_ERR_HPI_NOT_PRESENT);
         }
 
         /*If sensor is enabled, get sensor enable */
@@ -271,7 +271,7 @@ SaErrorT sim_set_sensor_enable(void *hnd,
                                                      rdr->RecordId);
         if (sinfo == NULL) {
                 dbg("No sensor data. Sensor=%s", rdr->IdString.Data);
-                return(SA_ERR_HPI_INTERNAL_ERROR);
+                return(SA_ERR_HPI_NOT_PRESENT);
         }
 
         /* get senable flag */
@@ -313,7 +313,7 @@ SaErrorT sim_get_sensor_event_enable(void *hnd,
                                                      rdr->RecordId);
         if (sinfo == NULL) {
                 dbg("No sensor data. Sensor=%s", rdr->IdString.Data);
-                return(SA_ERR_HPI_INTERNAL_ERROR);
+                return(SA_ERR_HPI_NOT_PRESENT);
         }
 
         /* ge sensor event enable flag */
@@ -358,7 +358,7 @@ SaErrorT sim_set_sensor_event_enable(void *hnd,
                                                              rid, rdr->RecordId);
 		if (sinfo == NULL) {
 			dbg("No sensor data. Sensor=%s", rdr->IdString.Data);
-			return(SA_ERR_HPI_INTERNAL_ERROR);
+                        return(SA_ERR_HPI_NOT_PRESENT);
 		}
 		sinfo->events_enabled = enable;
 	} else {
@@ -402,7 +402,7 @@ SaErrorT sim_get_sensor_event_masks(void *hnd,
                                                      rdr->RecordId);
  	if (sinfo == NULL) {
 		dbg("No sensor data. Sensor=%s", rdr->IdString.Data);
-		return(SA_ERR_HPI_INTERNAL_ERROR);
+		return(SA_ERR_HPI_NOT_PRESENT);
 	}
 
 	*AssertEventMask = sinfo->assert_mask;
@@ -453,7 +453,7 @@ SaErrorT sim_set_sensor_event_masks(void *hnd,
                                                              rid, rdr->RecordId);
 		if (sinfo == NULL) {
 			dbg("No sensor data. Sensor=%s", rdr->IdString.Data);
-			return(SA_ERR_HPI_INTERNAL_ERROR);
+                        return(SA_ERR_HPI_NOT_PRESENT);
 		}
 
 		SaHpiEventStateT orig_assert_mask = sinfo->assert_mask;

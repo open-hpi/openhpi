@@ -193,7 +193,7 @@ SaErrorT sim_get_watchdog_info(void *hnd,
                                                          rdr->RecordId);
         if (info == NULL) {
                 dbg("No watchdog data. Watchdog=%s", rdr->IdString.Data);
-                return SA_ERR_HPI_INTERNAL_ERROR;
+                return SA_ERR_HPI_NOT_PRESENT;
         }
 
         memcpy(wdt, &info->watchdog, sizeof(SaHpiWatchdogT));
@@ -232,7 +232,7 @@ SaErrorT sim_set_watchdog_info(void *hnd,
                                                          rdr->RecordId);
         if (info == NULL) {
                 dbg("No watchdog data. Watchdog=%s", rdr->IdString.Data);
-                return SA_ERR_HPI_INTERNAL_ERROR;
+                return SA_ERR_HPI_NOT_PRESENT;
         }
 
         memcpy(&info->watchdog, wdt, sizeof(SaHpiWatchdogT));
