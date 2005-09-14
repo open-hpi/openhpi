@@ -193,7 +193,7 @@ SaErrorT sim_get_idr_info(void *hnd,
 	info = (struct sim_inventory_info *)oh_get_rdr_data(state->rptcache, IdrId, rdr->RecordId);
  	if (info == NULL) {
 		dbg("No inventory data. IdrId=%s", rdr->IdString.Data);
-		return SA_ERR_HPI_INTERNAL_ERROR;
+		return SA_ERR_HPI_NOT_PRESENT;
 	}
 
         /* return the data */
@@ -329,7 +329,7 @@ SaErrorT sim_add_idr_area(void *hnd,
 	info = (struct sim_inventory_info *)oh_get_rdr_data(state->rptcache, IdrId, rdr->RecordId);
  	if (info == NULL) {
 		dbg("No inventory data. IdrId=%s", rdr->IdString.Data);
-		return SA_ERR_HPI_INTERNAL_ERROR;
+		return SA_ERR_HPI_NOT_PRESENT;
 	}
 
         /* check to see if space is available for the new area */
@@ -385,7 +385,7 @@ SaErrorT sim_del_idr_area(void *hnd,
 	info = (struct sim_inventory_info *)oh_get_rdr_data(state->rptcache, IdrId, rdr->RecordId);
  	if (info == NULL) {
 		dbg("No inventory data. IdrId=%s", rdr->IdString.Data);
-		return SA_ERR_HPI_INTERNAL_ERROR;
+		return SA_ERR_HPI_NOT_PRESENT;
 	}
 
         /* find the entry to delete */
@@ -457,7 +457,7 @@ SaErrorT sim_get_idr_field(void *hnd,
 	info = (struct sim_inventory_info *)oh_get_rdr_data(state->rptcache, IdrId, rdr->RecordId);
  	if (info == NULL) {
 		dbg("No inventory data. IdrId=%s", rdr->IdString.Data);
-		return SA_ERR_HPI_INTERNAL_ERROR;
+		return SA_ERR_HPI_NOT_PRESENT;
 	}
 
         /* find the corresponding area */
@@ -586,7 +586,7 @@ SaErrorT sim_add_idr_field(void *hnd,
 	info = (struct sim_inventory_info *)oh_get_rdr_data(state->rptcache, IdrId, rdr->RecordId);
  	if (info == NULL) {
 		dbg("No inventory data. IdrId=%s", rdr->IdString.Data);
-		return SA_ERR_HPI_INTERNAL_ERROR;
+		return SA_ERR_HPI_NOT_PRESENT;
 	}
 
         /* find the corresponding area */
@@ -668,7 +668,7 @@ SaErrorT sim_set_idr_field(void *hnd,
 	info = (struct sim_inventory_info *)oh_get_rdr_data(state->rptcache, IdrId, rdr->RecordId);
  	if (info == NULL) {
 		dbg("No inventory data. IdrId=%s", rdr->IdString.Data);
-		return SA_ERR_HPI_INTERNAL_ERROR;
+		return SA_ERR_HPI_NOT_PRESENT;
 	}
 
         /* find the corresponding area */
@@ -747,7 +747,7 @@ SaErrorT sim_del_idr_field(void *hnd,
 	info = (struct sim_inventory_info *)oh_get_rdr_data(state->rptcache, IdrId, rdr->RecordId);
  	if (info == NULL) {
 		dbg("No inventory data. IdrId=%s", rdr->IdString.Data);
-		return SA_ERR_HPI_INTERNAL_ERROR;
+		return SA_ERR_HPI_NOT_PRESENT;
 	}
 
         /* find the corresponding area */

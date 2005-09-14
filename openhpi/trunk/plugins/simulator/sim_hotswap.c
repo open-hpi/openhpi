@@ -48,7 +48,7 @@ SaErrorT sim_get_hotswap_state(void *hnd,
 	privinfo = (struct simResourceInfo *)oh_get_resource_data(state->rptcache, rid);
  	if (privinfo == NULL) {
 		dbg("No resource data. ResourceId=%d", rid);
-		return(SA_ERR_HPI_INTERNAL_ERROR);
+		return SA_ERR_HPI_INVALID_RESOURCE;
 	}
 
         /* It is possible that this API can return the NOT_PRESENT state in
@@ -99,7 +99,7 @@ SaErrorT sim_set_hotswap_state(void *hnd,
 	privinfo = (struct simResourceInfo *)oh_get_resource_data(state->rptcache, rid);
  	if (privinfo == NULL) {
 		dbg("No resource data. ResourceId=%d", rid);
-		return(SA_ERR_HPI_INTERNAL_ERROR);
+		return SA_ERR_HPI_INVALID_RESOURCE;
 	}
 
         /* check that the state transition is correct */
@@ -199,7 +199,7 @@ SaErrorT sim_request_hotswap_action(void *hnd,
 	privinfo = (struct simResourceInfo *)oh_get_resource_data(state->rptcache, rid);
  	if (privinfo == NULL) {
 		dbg("No resource data. ResourceId=%d", rid);
-		return(SA_ERR_HPI_INTERNAL_ERROR);
+		return SA_ERR_HPI_INVALID_RESOURCE;
 	}
 
         /* check that the action corresponds to a valid state */
@@ -246,7 +246,7 @@ SaErrorT sim_get_indicator_state(void *hnd,
 	privinfo = (struct simResourceInfo *)oh_get_resource_data(state->rptcache, rid);
  	if (privinfo == NULL) {
 		dbg("No resource data. ResourceId=%d", rid);
-		return(SA_ERR_HPI_INTERNAL_ERROR);
+		return SA_ERR_HPI_INVALID_RESOURCE;
 	}
 
         *ind_state = privinfo->cur_indicator_hsstate;
@@ -288,7 +288,7 @@ SaErrorT sim_set_indicator_state(void *hnd,
 	privinfo = (struct simResourceInfo *)oh_get_resource_data(state->rptcache, rid);
  	if (privinfo == NULL) {
 		dbg("No resource data. ResourceId=%d", rid);
-		return(SA_ERR_HPI_INTERNAL_ERROR);
+		return SA_ERR_HPI_INVALID_RESOURCE;
 	}
 
         privinfo->cur_indicator_hsstate = ind_state;
