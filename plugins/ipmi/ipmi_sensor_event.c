@@ -213,6 +213,10 @@ static struct oh_event *sensor_discrete_map_event(
 		e->u.hpi_event.event.EventDataUnion.SensorEvent.SensorNum =
 				0x1100;
 	}
+	if (data[7] >= 0xc0) {
+		e->u.hpi_event.event.EventDataUnion.SensorEvent.SensorType =
+				SAHPI_OEM_SENSOR;
+	}
 	e->u.hpi_event.event.EventDataUnion.SensorEvent.Assertion 
                 = !(dir);
 
