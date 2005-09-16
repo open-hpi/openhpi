@@ -332,7 +332,7 @@ static ret_code_t set_tag(void)
                 printf("Invalid tag: %s\n", buf);
                 return(HPI_SHELL_PARM_ERROR);
         };
-        strcpy(tbuf.Data, buf);
+        strcpy((char *)(tbuf.Data), buf);
         tbuf.DataType = SAHPI_TL_TYPE_TEXT;
         tbuf.Language = SAHPI_LANG_ENGLISH;
         tbuf.DataLength = i;
