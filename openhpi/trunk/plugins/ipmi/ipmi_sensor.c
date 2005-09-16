@@ -148,8 +148,11 @@ static void sensor_reading(ipmi_sensor_t		*sensor,
 		p->reading.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64;
 		p->reading.Value.SensorFloat64 = raw_val;
 	}
-
-	p->ev_state = retrieve_states(states);
+	// always returns 1 in 7th bit. Ignore extra 1
+	p->ev_state = retrieve_states(states) &
+		(SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR |
+		 SAHPI_ES_LOWER_CRIT | SAHPI_ES_UPPER_MINOR |
+		 SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT);
 }
 
 static void get_sensor_reading(ipmi_sensor_t *sensor, void *cb_data)
