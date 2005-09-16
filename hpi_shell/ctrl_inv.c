@@ -482,7 +482,7 @@ static ret_code_t set_control_state(SaHpiSessionIdT sessionid,
 			i = strlen(buf);
 			if (i > 4) i = 4;
 			state.StateUnion.Stream.StreamLength = i;
-			strncpy(state.StateUnion.Stream.Stream, buf, i);
+			strncpy((char *)(state.StateUnion.Stream.Stream), buf, i);
 			break;
 		case SAHPI_CTRL_TYPE_TEXT:
 			i = get_int_param("Line #: ", &res);
@@ -508,7 +508,7 @@ static ret_code_t set_control_state(SaHpiSessionIdT sessionid,
 			memset(state.StateUnion.Oem.Body, 0,
 				SAHPI_CTRL_MAX_OEM_BODY_LENGTH);
 			i = get_hex_string_param("Oem body: ",
-				state.StateUnion.Oem.Body,
+				(char *)(state.StateUnion.Oem.Body),
 				SAHPI_CTRL_MAX_OEM_BODY_LENGTH);
 			state.StateUnion.Oem.BodyLength = i;
 			break;
@@ -846,15 +846,15 @@ static ret_code_t add_announ(SaHpiResourceIdT rptid, SaHpiInstrumentIdT rdrnum)
 	// EntityPath:  is needed ???
 	// oh_encode_entitypath(char *str, SaHpiEntityPathT *ep);   convert string into ep.
 
-	i = get_int_param("DomainId: ", &did);
+	i = get_int_param("DomainId: ", (int *)&did);
 	if (i != 1) did = SAHPI_UNSPECIFIED_DOMAIN_ID;
 	announ.StatusCond.DomainId = did;
 
-	i = get_int_param("ResourceId: ", &resId);
+	i = get_int_param("ResourceId: ", (int *)&resId);
 	if (i != 1) resId = SAHPI_UNSPECIFIED_RESOURCE_ID;
 	announ.StatusCond.ResourceId = resId;
 
-	i = get_int_param("Sensor number: ", &sennum);
+	i = get_int_param("Sensor number: ", (int *)&sennum);
 	announ.StatusCond.SensorNum = sennum;
 
 	rv = saHpiAnnunciatorAdd(Domain->sessionId, rptid, rdrnum, &announ);
