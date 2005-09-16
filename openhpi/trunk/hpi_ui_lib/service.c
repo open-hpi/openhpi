@@ -133,7 +133,7 @@ SaErrorT decode_proc(int num, void *val, char *buf, int bufsize)
 			if (rv != SA_OK) return(-1);
 			break;
 	};
-	strncpy(buf, tmpbuf.Data, bufsize);
+	strncpy(buf, (char *)(tmpbuf.Data), bufsize);
 	return(SA_OK);
 }
 
@@ -225,7 +225,7 @@ SaErrorT decode1_proc(int num, int val, char *buf, int bufsize)
 			oh_range_mask(val, buf, bufsize);
 			return(SA_OK);
 	};
-	strncpy(buf, tbuf.Data, bufsize);
+	strncpy(buf, (char *)(tbuf.Data), bufsize);
 	return(SA_OK);
 }
 
@@ -556,7 +556,7 @@ static Attributes_t *make_attrs_ctrl(SaHpiCtrlRecT *ctrl)
 			at2->Attrs = att2;
 			att2[0].value.i = stream->Default.Repeat;
 			att2[1].value.i = stream->Default.StreamLength;
-			att2[2].value.s = stream->Default.Stream;
+			att2[2].value.s = (char *)(stream->Default.Stream);
 			att1[3].value.a = at2;
 			break;
 		case SAHPI_CTRL_TYPE_TEXT:
@@ -1008,6 +1008,7 @@ Pr_ret_t print_text_buffer_text(char *mes, SaHpiTextBufferT *buf, char *meslast,
 	hpi_ui_print_cb_t proc)
 {
 	int	i, c, tmp_ind, len;
+    Pr_ret_t ret;
 	char	*tmp;
 
 	if (mes != (char *)NULL) {
@@ -1031,22 +1032,22 @@ Pr_ret_t print_text_buffer_text(char *mes, SaHpiTextBufferT *buf, char *meslast,
 				c = (buf->Data[i] & 0xF0) >> 4;
 				tmp[tmp_ind++] = bcdplus_codes[c];
 			};
-			i = proc(tmp);
+			ret = proc(tmp);
 			free(tmp);
-			if (i == HPI_UI_END) return(HPI_UI_END);
+			if (ret == HPI_UI_END) return(HPI_UI_END);
 			break;
 		case SAHPI_TL_TYPE_ASCII6:
 			len = buf->DataLength * 8 / 6;
 			tmp = malloc(len + 1);
 			memset(tmp, 0, len + 1);
-			i = ascii6tostring(buf->Data, buf->DataLength, tmp, len);
+			i = ascii6tostring((char *)(buf->Data), buf->DataLength, tmp, len);
 			if (i == 0) break;
 			i = proc(tmp);
 			free(tmp);
 			if (i == HPI_UI_END) return(HPI_UI_END);
 			break;
 		case SAHPI_TL_TYPE_TEXT:
-			if (proc(buf->Data) == HPI_UI_END) return(HPI_UI_END);
+			if (proc((char *)(buf->Data)) == HPI_UI_END) return(HPI_UI_END);
 			break;
 		case SAHPI_TL_TYPE_BINARY:
 			len = buf->DataLength * 2 + 1;
