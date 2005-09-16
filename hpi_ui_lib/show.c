@@ -789,7 +789,7 @@ Pr_ret_t show_short_event(SaHpiEventT *event, hpi_ui_print_cb_t proc)
 				snprintf(buf1, 32, "STATE(%4.4x)", sen->EventState);
 				str1 = buf1;
 			} else
-				str1 = tmbuf.Data;
+				str1 = (char *)(tmbuf.Data);
 			snprintf(buf, SHOW_BUF_SZ, "%s %d/%d %s %s %s:%s",
 				oh_lookup_sensortype(sen->SensorType),
 				event->Source, sen->SensorNum,
