@@ -187,7 +187,9 @@ SaErrorT sim_get_event(void *hnd, struct oh_event *event)
 		trace("retrieving sim event from async q");
 		memcpy(event, e, sizeof(*event));
 		event->did = oh_get_default_domain_id();
+
 //		g_free(e);
+
 		return 1;
 	} else {
 		trace("no more events for sim instance");
@@ -206,6 +208,26 @@ SaErrorT sim_close(void *hnd)
         return 0;
 }
 
+SaErrorT sim_set_resource_tag(void *hnd, SaHpiResourceIdT id, SaHpiTextBufferT *tag)
+{
+        struct oh_handler_state *inst = hnd;
+        SaHpiRptEntryT *resource = NULL;
+        
+        if (!tag)
+                return SA_ERR_HPI_INVALID_PARAMS;
+        
+        resource = oh_get_resource_by_id(inst->rptcache, id);
+        if (!resource) {
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+        
+        memcpy(&resource->ResourceTag, tag, sizeof(SaHpiTextBufferT));
+        
+        return SA_OK;
+}	 	
+
+
+
 
 /*
  * Simulator plugin interface
@@ -221,4 +243,7 @@ void * oh_get_event (void *, struct oh_event *)
 
 void * oh_discover_resources (void *)
                 __attribute__ ((weak, alias("sim_discover")));
+		
+void * oh_set_resource_tag (void *, SaHpiResourceIdT, SaHpiTextBufferT *) 
+                __attribute__ ((weak, alias("sim_set_resource_tag")));
 
