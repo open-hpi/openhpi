@@ -262,6 +262,8 @@ static SaErrorT connect_peers(SaHpiDomainIdT did, SaHpiDomainIdT bdid)
         struct oh_domain *d = NULL, *peer = NULL;
         GSList *node = NULL, *drtlist = NULL, *node2 = NULL;
 
+        if (did < 1 || bdid < 1) return 0; /* Don't return error here */
+
         /* Create a new drt that is the sum of the drts of both peers */
         d = oh_get_domain(did);
         if (d == NULL) {
