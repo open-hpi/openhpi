@@ -79,7 +79,7 @@ SaErrorT snmp_bc_get_control_state(void *hnd,
 		return(SA_ERR_HPI_NOT_PRESENT);
 	}
 	
-	cinfo = (struct ControlInfo *)oh_get_rdr_data(handle->rptcache, cid, rdr->RecordId);
+	cinfo = (struct ControlInfo *)oh_get_rdr_data(handle->rptcache, rid, rdr->RecordId);
  	if (cinfo == NULL) {
 		dbg("No control data. Control=%s", rdr->IdString.Data);
 		snmp_bc_unlock_handler(custom_handle);
@@ -212,7 +212,7 @@ SaErrorT snmp_bc_set_control_state(void *hnd,
 		return(SA_ERR_HPI_NOT_PRESENT);
 	}
 	
-	cinfo = (struct ControlInfo *)oh_get_rdr_data(handle->rptcache, cid, rdr->RecordId);
+	cinfo = (struct ControlInfo *)oh_get_rdr_data(handle->rptcache, rid, rdr->RecordId);
  	if (cinfo == NULL) {
 		dbg("No control data. Control=%s", rdr->IdString.Data);
 		snmp_bc_unlock_handler(custom_handle);
