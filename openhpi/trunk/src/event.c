@@ -65,21 +65,22 @@ static SaErrorT harvest_events_for_handler(struct oh_handler *h)
 {
         struct oh_event event;
         struct oh_event *e2;
-        struct oh_global_param param = { .type = OPENHPI_EVT_QUEUE_LIMIT };
+        /*struct oh_global_param param = { .type = OPENHPI_EVT_QUEUE_LIMIT };*/
 
         SaErrorT error = SA_OK;
 
-        if (oh_get_global_param(&param))
-                param.u.evt_queue_limit = OH_MAX_EVT_QUEUE_LIMIT;
+        /* Commenting code. Don't need to cap process_q - Renier 09/19/05 */
+        /*if (oh_get_global_param(&param))
+                param.u.evt_queue_limit = OH_MAX_EVT_QUEUE_LIMIT;*/
 
         do {
                 error = h->abi->get_event(h->hnd, &event);
                 if (error < 1) {
                         trace("Handler is out of Events");
-                } else if (param.u.evt_queue_limit != OH_MAX_EVT_QUEUE_LIMIT &&
+                /*} else if (param.u.evt_queue_limit != OH_MAX_EVT_QUEUE_LIMIT &&
                            g_async_queue_length(oh_process_q) >= param.u.evt_queue_limit) {
                         dbg("Process queue is out of space");
-                        return SA_ERR_HPI_OUT_OF_SPACE;
+                        return SA_ERR_HPI_OUT_OF_SPACE;*/
                 } else if (!oh_domain_served_by_handler(h->id, event.did)) {
                         dbg("Handler %d sends event %d to wrong domain %d",
                             h->id, event.type, event.did);

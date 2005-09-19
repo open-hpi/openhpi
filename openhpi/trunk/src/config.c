@@ -481,7 +481,8 @@ static int process_global_token(GScanner *scanner)
         /* Get the global parameter name */
         current_token = g_scanner_get_next_token(scanner);
         if (current_token != G_TOKEN_STRING) {
-                dbg("Processing global: Expected string token. Got %d", current_token);
+                dbg("Processing global: Expected string token. Got %d",
+                    current_token);
                 goto quit;
         }
 
@@ -498,12 +499,26 @@ static int process_global_token(GScanner *scanner)
         }
 
         current_token = g_scanner_get_next_token(scanner);
-        if (current_token != G_TOKEN_STRING) {
-                dbg("Did not get expected string value for global parameter. Got %d", current_token);
+        if (current_token != G_TOKEN_STRING && current_token != G_TOKEN_INT) {
+                dbg("Did not get expected string value for global parameter."
+                    " Got %d", current_token);
                 goto free_and_quit;
         }
 
-        value = g_strdup(scanner->value.v_string);
+        if (current_token == G_TOKEN_INT) {
+                guint num_chars = 0, result;
+                result = scanner->value.v_int;
+                while (result) {
+                        result = result / 10;
+                        num_chars++;
+                }
+                value = (char *)g_malloc0(++num_chars);
+                result = scanner->value.v_int;
+                snprintf(value, num_chars, "%u", result);
+        } else {
+                value = g_strdup(scanner->value.v_string);
+        }
+
         if (!value) {
                 dbg("Unable to allocate for global param value.");
                 goto free_and_quit;
