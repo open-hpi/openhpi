@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2004
+ * (C) Copyright IBM Corp. 2004, 2005
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -101,12 +101,12 @@ struct oh_domain *oh_get_domain(SaHpiDomainIdT did);
 SaErrorT oh_release_domain(struct oh_domain *domain);
 GArray *oh_list_domains(void);
 
-SaHpiDomainIdT oh_request_new_domain(unsigned int handler_id,
+SaHpiDomainIdT oh_request_new_domain(unsigned int hid,
                                     SaHpiTextBufferT *tag,
                                     SaHpiDomainCapabilitiesT capabilities,
-                                    SaHpiDomainIdT parent_id,
-                                    SaHpiDomainIdT peer_id);
-SaErrorT oh_request_domain_delete(unsigned int handler_id,
+                                    SaHpiDomainIdT pdid,
+                                    SaHpiDomainIdT bdid);
+SaErrorT oh_request_domain_delete(unsigned int hid,
                                   SaHpiDomainIdT did);
 SaErrorT oh_drt_entry_get(SaHpiDomainIdT    did,
                           SaHpiEntryIdT     entryid,

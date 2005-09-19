@@ -145,6 +145,16 @@ SaErrorT oh_initialize()
                     config_param.u.conf);
         }
 
+        /*
+         * HACK: If threaded mode is on, wait a second before returning
+         * to give the threads time to populate the RPT
+         */
+        if (oh_threaded_mode()) {
+                struct timespec waittime =
+                        { .tv_sec = 0, .tv_nsec = 1000000000};
+                nanosleep(&waittime, NULL);
+        }
+
         return SA_OK;
 }
 

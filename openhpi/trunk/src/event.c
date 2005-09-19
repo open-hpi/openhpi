@@ -80,15 +80,14 @@ static SaErrorT harvest_events_for_handler(struct oh_handler *h)
                            g_async_queue_length(oh_process_q) >= param.u.evt_queue_limit) {
                         dbg("Process queue is out of space");
                         return SA_ERR_HPI_OUT_OF_SPACE;
+                } else if (!oh_domain_served_by_handler(h->id, event.did)) {
+                        dbg("Handler %d sends event %d to wrong domain %d",
+                            h->id, event.type, event.did);
+                        return SA_ERR_HPI_INTERNAL_ERROR;
                 } else {
                         trace("Found event for handler %p", h);
                         e2 = oh_dup_oh_event(&event);
                         e2->hid = h->id;
-                        if (!oh_domain_served_by_handler(e2->hid, e2->did)) {
-                                dbg("Handler %d sends event %d to wrong domain %d",
-                                    e2->hid, e2->type, e2->did);
-                                return SA_ERR_HPI_INTERNAL_ERROR;
-                        }
                         g_async_queue_push(oh_process_q, e2);
                 }
         } while(error > 0);

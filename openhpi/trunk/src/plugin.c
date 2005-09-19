@@ -633,7 +633,7 @@ unsigned int oh_create_handler (GHashTable *handler_config)
         g_hash_table_insert(oh_handlers.table,
                             &(handler->id),
                             g_slist_last(oh_handlers.list));
-                            
+
         handler->hnd = handler->abi->open(handler->config);
         if (!handler->hnd) {
                 g_hash_table_remove(oh_handlers.table, &handler->id);
@@ -708,14 +708,11 @@ int oh_domain_served_by_handler(unsigned int hid, SaHpiDomainIdT did)
                 return 0;
         }
 
-        if (did == oh_get_default_domain_id()) {
+        if (did == oh_get_default_domain_id())
                 return 1;
-        }
 
         h = oh_get_handler(hid);
-        if (h == NULL) {
-                return 0;
-        }
+        if (h == NULL) return 0;
 
         for (node = h->dids; node; node = node->next) {
                 SaHpiDomainIdT cur_did = *((SaHpiDomainIdT *)node->data);
@@ -775,14 +772,15 @@ int oh_remove_domain_from_handler(unsigned int hid, SaHpiDomainIdT did)
         struct oh_handler *h;
         GSList *node = NULL;
 
-        if (hid < 1 || did < 1 || did == oh_get_default_domain_id()) {
-                dbg("Warning - Invalid parameters passed");
-                return -1;
-        }
+        if (hid < 1) return -1; /* Invalid handler id */
+        if (did < 1) return -2; /* Invalid domain id */
+        /* Cannot remove default domain from handler */
+        if (did == oh_get_default_domain_id()) return -3;
+
 
         h = oh_get_handler(hid);
         if (h == NULL) {
-                return -1;
+                return -4; /* Handler not found */
         }
 
         for (node = h->dids; node; node = node->next) {
@@ -796,7 +794,7 @@ int oh_remove_domain_from_handler(unsigned int hid, SaHpiDomainIdT did)
         }
         oh_release_handler(h);
 
-        return -1;
+        return -5; /* Domain id not found in the handler */
 }
 
 /**
