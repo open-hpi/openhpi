@@ -247,6 +247,7 @@ static int connect_parent(SaHpiDomainIdT did, SaHpiDomainIdT pdid)
                 return -2;
         }
         oh_release_domain(parent);
+        generate_domain_event(pdid, did, SAHPI_DOMAIN_REF_ADDED);
 
         child = oh_get_domain(did);
         if (!child) return -3;
@@ -604,9 +605,6 @@ SaHpiDomainIdT oh_request_new_domain(unsigned int hid,
                     " Could not make new domain peer of domain %d.", bdid);
                 return 0;
         }
-
-        generate_domain_event(pdid, did, SAHPI_DOMAIN_REF_ADDED);
-        generate_domain_event(bdid, did, SAHPI_DOMAIN_REF_ADDED);
 
         return did;
 }
