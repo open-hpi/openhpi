@@ -19,7 +19,7 @@
 
 /**
  * Load 'libdummy', get plugin info, compare it with the known
- * value (1) , and unload the plugins.
+ * value (0) , and unload the plugins.
  * Pass on success, otherwise failure.
  **/
  
@@ -39,7 +39,7 @@ int main(int argc, char **argv)
         if (oHpiPluginInfo("libdummy",&pinfo))
                 return -1;
                 
-        if (pinfo.refcount != 1)
+        if (pinfo.refcount != 0)
                 return -1;                
                 
         
