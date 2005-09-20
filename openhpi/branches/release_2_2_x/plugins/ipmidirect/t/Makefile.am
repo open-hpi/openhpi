@@ -57,11 +57,9 @@ $(SENSOR_FACTORS_REMOTE_SOURCES):
 check_PROGRAMS = \
 	con_000 \
 	con_001 \
-	thread_000 \
 	sensor_factors_000
 
 TESTS = \
-	thread_000 \
 	sensor_factors_000
 
 con_000_SOURCES = con_000.cpp $(CON_REMOTE_SOURCES)
@@ -70,6 +68,6 @@ con_000_LDADD   = @SSL_LIB@
 con_001_SOURCES = con_001.c $(CON_REMOTE_SOURCES)
 con_001_LDADD   = @SSL_LIB@
 
-thread_000_SOURCES = thread_000.cpp test.h $(THREAD_REMOTE_SOURCES)
+#thread_000_SOURCES = thread_000.cpp test.h $(THREAD_REMOTE_SOURCES)
 
 sensor_factors_000_SOURCES = sensor_factors_000.cpp test.h $(SENSOR_FACTORS_REMOTE_SOURCES)

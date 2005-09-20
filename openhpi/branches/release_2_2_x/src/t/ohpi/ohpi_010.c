@@ -35,14 +35,20 @@ int main(int argc, char **argv)
         
         setenv("OPENHPI_CONF","./noconfig", 1);
         
-        if (saHpiSessionOpen(1, &sid, NULL))
+        if (saHpiSessionOpen(1, &sid, NULL)) {
+		printf("Error opening session\n");
                 return -1;
+	}
                 
-        if (oHpiPluginLoad("libdummy"))
+        if (oHpiPluginLoad("libdummy")) {
+		printf("Error loading libdummy\n");
                 return -1;
+	}
                 
-        if (oHpiPluginLoad("libwatchdog"))
+        if (oHpiPluginLoad("libwatchdog")) {
+		printf("Error loading libwatchdog\n");
                 return -1;
+	}
                 
         /* Set configuration. */
         g_hash_table_insert(h0, "plugin", "libdummy");
@@ -61,28 +67,42 @@ int main(int argc, char **argv)
         
         if (oHpiHandlerCreate(h0, &hid0) ||
             oHpiHandlerCreate(h1, &hid1) ||
-            oHpiHandlerCreate(h2, &hid2))
+            oHpiHandlerCreate(h2, &hid2)) {
+		printf("Error creating handlers\n");
                 return -1;
+	}
                 
-        if (oHpiHandlerGetNext(0, &next_id) || next_id != 1)
+        if (oHpiHandlerGetNext(0, &next_id) || next_id != 1) {
+		printf("Got next id %u, but expected 1\n", next_id);
                 return -1;
+	}
                 
-        if (oHpiHandlerGetNext(1, &next_id) || next_id != 2)
+	if (oHpiHandlerGetNext(1, &next_id) || next_id != 2) {
+		printf("Got next id %u, but expected 2\n", next_id);
                 return -1;
+	}
                 
-        if (oHpiHandlerGetNext(2, &next_id) || next_id != 3)
+        if (oHpiHandlerGetNext(2, &next_id) || next_id != 3) {
+		printf("Got next id %u, but expected 3\n", next_id);
                 return -1;
+	}
                 
-        if (!oHpiHandlerGetNext(3, &next_id))
+        if (!oHpiHandlerGetNext(3, &next_id)) {
+		printf("Error. Got handler after supposed last.\n");
                 return -1;
+	}
                 
         if (oHpiHandlerDestroy(hid0) ||
             oHpiHandlerDestroy(hid1) ||
-            oHpiHandlerDestroy(hid2))
+            oHpiHandlerDestroy(hid2)) {
+		printf("Error destroying handlers\n");
                 return -1;
+	}
                 
-        if (oHpiPluginUnload("libwatchdog"))
+        if (oHpiPluginUnload("libwatchdog")) {
+		printf("Error unloading handlers\n");
                 return -1;
+	}
                 
         
         return oHpiPluginUnload("libdummy");
