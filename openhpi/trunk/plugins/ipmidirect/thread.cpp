@@ -88,6 +88,15 @@ cThread::~cThread()
 }
 
 
+cThread *
+cThread::GetThread()
+{
+  cThread *thread = (cThread *)pthread_getspecific( thread_key );
+
+  return thread;
+}
+
+
 void *
 cThread::Thread( void *param )
 {
