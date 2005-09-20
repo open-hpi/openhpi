@@ -276,7 +276,7 @@ int ohoi_loop_until(loop_indicator_cb indicator, const void *cb_data, int timeou
 SaErrorT ohoi_get_rdr_data(const struct oh_handler_state *handler,
                            SaHpiResourceIdT              id,
                            SaHpiRdrTypeT                 type,
-                           SaHpiUint8T                   num,
+                           SaHpiSensorNumT               num,
                            void                          **pdata);
 
 SaErrorT ohoi_get_idr_info(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid, SaHpiIdrInfoT *idrinfo);
