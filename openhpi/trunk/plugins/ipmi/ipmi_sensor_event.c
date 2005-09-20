@@ -401,8 +401,13 @@ static struct oh_event *sensor_threshold_map_event(
        // sensor num should be assigned later in calling functions
        e->u.hpi_event.event.EventDataUnion.SensorEvent.SensorNum = 0;
 
-	e->u.hpi_event.event.EventDataUnion.SensorEvent.SensorType 
-                = data[7];
+	if (data[7] >= 0xc0) {
+		e->u.hpi_event.event.EventDataUnion.SensorEvent.SensorType =
+			SAHPI_OEM_SENSOR;
+	} else { 
+		e->u.hpi_event.event.EventDataUnion.SensorEvent.SensorType = 
+                	data[7];
+	}
 	e->u.hpi_event.event.EventDataUnion.SensorEvent.EventCategory 
                 = data[9] & 0x7f;
 	
@@ -876,6 +881,9 @@ static void add_sensor_event_sensor_rec(ipmi_sensor_t	*sensor,
 	} else { 
 		rec->Type =
 			(SaHpiSensorTypeT)ipmi_sensor_get_sensor_type(sensor);
+		if (rec->Type >= 0xc0) {
+			rec->Type = SAHPI_OEM_SENSOR;
+		}
 		rec->Category = 
 			ohoi_sensor_get_event_reading_type(sensor);
 	}
