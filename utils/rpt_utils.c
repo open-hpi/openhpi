@@ -244,11 +244,6 @@ SaErrorT oh_flush_rpt(RPTable *table)
 {
         SaHpiRptEntryT *tmp_entry;
 
-        if (!table) {
-                dbg("ERROR: Cannot work on a null table pointer.");
-                return SA_ERR_HPI_INVALID_PARAMS;
-        }
-
         while ((tmp_entry = oh_get_resource_by_id(table, SAHPI_FIRST_ENTRY)) != NULL) {
                 oh_remove_resource(table, SAHPI_FIRST_ENTRY);
         }
@@ -460,11 +455,6 @@ SaErrorT oh_remove_resource(RPTable *table, SaHpiResourceIdT rid)
 {
         RPTEntry *rptentry;
 
-        if (!table) {
-                dbg("ERROR: Cannot work on a null table pointer.");
-                return SA_ERR_HPI_INVALID_PARAMS;
-        }
-
         rptentry = get_rptentry_by_rid(table, rid);
         if (!rptentry) {
                 dbg("Failed to remove RPT entry. No Resource found by that id");
@@ -507,11 +497,6 @@ void *oh_get_resource_data(RPTable *table, SaHpiResourceIdT rid)
 
         RPTEntry *rptentry;
 
-        if (!table) {
-                dbg("ERROR: Cannot work on a null table pointer.");
-                return NULL;
-        }
-
         rptentry = get_rptentry_by_rid(table, rid);
         if (!rptentry) {
                 /*dbg("Warning: RPT entry not found. Returning NULL.");*/
@@ -536,11 +521,6 @@ void *oh_get_resource_data(RPTable *table, SaHpiResourceIdT rid)
 SaHpiRptEntryT *oh_get_resource_by_id(RPTable *table, SaHpiResourceIdT rid)
 {
         RPTEntry *rptentry;
-
-        if (!table) {
-                dbg("ERROR: Cannot work on a null table pointer.");
-                return NULL;
-        }
 
         rptentry = get_rptentry_by_rid(table, rid);
         if (!rptentry) {
@@ -615,11 +595,6 @@ SaHpiRptEntryT *oh_get_resource_next(RPTable *table, SaHpiResourceIdT rid_prev)
         RPTEntry *rptentry = NULL;
         GSList *rptnode = NULL;
 
-        if (!table) {
-                dbg("ERROR: Cannot work on a null table pointer.");
-                return NULL;
-        }
-
         if (rid_prev == SAHPI_FIRST_ENTRY) {
                 rptentry = get_rptentry_by_rid(table, rid_prev);
         } else {
@@ -665,10 +640,7 @@ SaErrorT oh_add_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiRdrT *rdr, void *
         RDRecord *rdrecord;
         SaHpiInstrumentIdT type_num;
 
-        if (!table) {
-                dbg("Error: Cannot work on a null table pointer.");
-                return SA_ERR_HPI_INVALID_PARAMS;
-        } else if (!rdr) {
+        if (!rdr) {
                 dbg("Failed to add. RDR is NULL.");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
@@ -741,11 +713,6 @@ SaErrorT oh_remove_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT rdrid
         RPTEntry *rptentry;
         RDRecord *rdrecord;
 
-        if (!table) {
-                dbg("Error: Cannot work on a null table pointer.");
-                return SA_ERR_HPI_INVALID_PARAMS;
-        }
-
         rptentry = get_rptentry_by_rid(table, rid);
         if (!rptentry) {
                 dbg("Failed to remove RDR. Parent RPT entry was not found.");
@@ -791,11 +758,6 @@ void *oh_get_rdr_data(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT rdrid)
         RPTEntry *rptentry;
         RDRecord *rdrecord;
 
-        if (!table) {
-                dbg("Error: Cannot work on a null table pointer.");
-                return NULL;
-        }
-
         rptentry = get_rptentry_by_rid(table, rid);
         if (!rptentry) {
                 dbg("Warning: RPT entry not found. Cannot find RDR.");
@@ -830,11 +792,6 @@ SaHpiRdrT *oh_get_rdr_by_id(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT 
 {
         RPTEntry *rptentry;
         RDRecord *rdrecord;
-
-        if (!table) {
-                dbg("Error: Cannot work on a null table pointer.");
-                return NULL;
-        }
 
         rptentry = get_rptentry_by_rid(table, rid);
         if (!rptentry) {
@@ -872,11 +829,6 @@ SaHpiRdrT *oh_get_rdr_by_type(RPTable *table, SaHpiResourceIdT rid,
         RPTEntry *rptentry;
         RDRecord *rdrecord;
         SaHpiEntryIdT rdr_uid;
-
-        if (!table) {
-                dbg("Error: Cannot work on a null table pointer.");
-                return NULL;
-        }
 
         rptentry = get_rptentry_by_rid(table, rid);
         if (!rptentry) {
@@ -918,11 +870,6 @@ SaHpiRdrT *oh_get_rdr_next(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT r
         RPTEntry *rptentry = NULL;
         RDRecord *rdrecord = NULL;
         GSList *rdrnode = NULL;
-
-        if (!table) {
-                dbg("Error: Cannot work on a null table pointer.");
-                return NULL;
-        }
 
         rptentry = get_rptentry_by_rid(table, rid);
         if (!rptentry) {
