@@ -55,7 +55,7 @@ int main(int argc, char **argv)
         if (oHpiPluginInfo("libdummy",&pinfo))
                 return -1;
                 
-        if (pinfo.refcount != 3)
+        if (pinfo.refcount != 2)
                 return -1;
                 
         if (oHpiHandlerDestroy(hid0) || oHpiHandlerDestroy(hid1))
@@ -64,7 +64,7 @@ int main(int argc, char **argv)
         if (oHpiPluginInfo("libdummy",&pinfo))
                 return -1;
                 
-        if (pinfo.refcount != 1)
+        if (pinfo.refcount != 0)
                 return -1;
                 
         
