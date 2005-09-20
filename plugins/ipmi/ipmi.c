@@ -962,7 +962,7 @@ static SaErrorT ipmi_clear_el(void *hnd, SaHpiResourceIdT id)
 SaErrorT ohoi_get_rdr_data(const struct oh_handler_state *handler,
                            SaHpiResourceIdT              id,
                            SaHpiRdrTypeT                 type,
-                           SaHpiUint8T                   num,
+                           SaHpiSensorNumT               num,
                            void                          **pdata)
 {
         SaHpiRdrT * rdr;
@@ -971,6 +971,7 @@ SaErrorT ohoi_get_rdr_data(const struct oh_handler_state *handler,
                                  type,
                                  num);
         if (!rdr) {
+		dbg("no rdr for Resource %d. type = %d, num = %d", id, type, num);
                 /*XXX No err code for invalid rdr?*/
                 return SA_ERR_HPI_INVALID_RESOURCE;
         }
