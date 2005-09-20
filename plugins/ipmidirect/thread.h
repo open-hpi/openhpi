@@ -48,6 +48,9 @@ public:
   cThread( const pthread_t &thread, bool main_thread, tTheadState state );
   virtual ~cThread();
 
+  // get the current thread class
+  static cThread *GetThread();
+
   // start thread
   virtual bool Start();
 
