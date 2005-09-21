@@ -80,10 +80,13 @@ int main(int argc, char **argv)
         announ.StatusCond.ResourceId = 1;
         announ.StatusCond.SensorNum = 1;
         announ.StatusCond.EventState = SAHPI_ES_UNSPECIFIED;
-        announ.StatusCond.Name.Length = 5;
-        memcpy(&announ.StatusCond.Name.Value,"announ", 5);
+        announ.StatusCond.Name.Length = 6;
+        memcpy(&announ.StatusCond.Name.Value,"announ", 6);
         announ.StatusCond.Mid = 123;
-        /* we will not worry about the Data field for this test */
+        announ.StatusCond.Data.DataType = SAHPI_TL_TYPE_TEXT;
+        announ.StatusCond.Data.Language = SAHPI_LANG_ENGLISH;
+        announ.StatusCond.Data.DataLength = 6;
+        memcpy(&announ.StatusCond.Data.Data,"announ", 6);
         rc = saHpiAnnunciatorAdd(sid, resid, 1, &announ);
         if (rc != SA_OK) {
 		dbg("Couldn't add announcement");
