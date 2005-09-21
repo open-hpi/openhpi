@@ -85,12 +85,11 @@ handler libdummy {
 
 ## Section for the simulator plugin
 ## You can load multiple copies of the simulator plugin but each
-## copy must have a unique handler_name.
+## copy must have a unique name.
 
 #handler libsimulator {
 #        entity_root = "{SYSTEM_CHASSIS,1}"
-#        name = "test"
-#        handler_name = "simulator"
+#        name = "simulator"
 #}
 
 ## Section for ipmi plugin using SMI -- local interface
@@ -157,7 +156,7 @@ handler libdummy {
 #        auth_level = "admin" # operator or admin
 #        username = "arthur"
 #        password = "pieman"
-#        MultipleDomains = "no"  # "yes" creates a domain for this handler 
+#        MultipleDomains = "no"  # "yes" creates a domain for this handler
 #        DomainTag = "Chassis 1" # Used if MultipleDomains="yes"
 #        logflags = ""      # logging off
 #        # logflags = "file stdout"

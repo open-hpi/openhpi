@@ -91,7 +91,7 @@ struct oh_handler_state *sim_get_handler_by_name(char *name)
         state = (struct oh_handler_state *)g_slist_nth_data(sim_handler_states, i);
         while (state != NULL) {
                 handler_name = (char *)g_hash_table_lookup(state->config,
-                                                           "handler_name");
+                                                           "name");
                 if (strcmp(handler_name, name) == 0) {
                         return state;
                 }

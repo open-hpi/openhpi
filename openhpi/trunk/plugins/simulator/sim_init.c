@@ -39,11 +39,6 @@ void *sim_open(GHashTable *handler_config)
                 dbg("entity_root is needed and not present in conf");
                 return NULL;
         }
-        tok = g_hash_table_lookup(handler_config, "handler_name");
-        if (!tok) {
-                dbg("handler_name is needed and not present in conf");
-                return NULL;
-        }
 
         state = g_malloc0(sizeof(struct oh_handler_state));
         if (!state) {
@@ -73,8 +68,8 @@ void *sim_open(GHashTable *handler_config)
                 return NULL;
         }
 
-        /* save the handler config hash table it holds  */
-        /* the openhpi.conf file config info            */
+        /* save the handler config hash table, it holds  */
+        /* the openhpi.conf file config info             */
         state->config = handler_config;
 
         /* save the handler state to our list */
@@ -89,15 +84,18 @@ SaErrorT sim_discover(void *hnd)
         /* NOTE!!!!!!!!!!!!!!!!!!!!!!!!!!!!
            Since the simulator uses the full managed hot swap model and we
            do not have any latency issues, discovery only needs to be performed
-           one time. Subsequent calls should just return SA_OK.
+           one time for each handler instance. Subsequent calls should just
+           return SA_OK for that instance.
          */
 	struct oh_handler_state *inst = (struct oh_handler_state *) hnd;
         int i;
         SaHpiRptEntryT res;
         GThread *service_thrd;
-        static int initial_discovery_done = FALSE;
 
-        if (initial_discovery_done == TRUE) {
+        /* We use the inst->data variable to store the initial discovery state
+           for an instance of the handler.
+         */
+        if (inst->data) {
                 return SA_OK;
         }
 
@@ -167,7 +165,10 @@ SaErrorT sim_discover(void *hnd)
                 trace("injector service thread not started");
         }
 
-        initial_discovery_done = TRUE;
+        /* Let subsequent discovery invocations know that discovery has already
+           been performed.
+         */
+        inst->data = (void *)1;
 	return SA_OK;
 }
 
@@ -212,19 +213,19 @@ SaErrorT sim_set_resource_tag(void *hnd, SaHpiResourceIdT id, SaHpiTextBufferT *
 {
         struct oh_handler_state *inst = hnd;
         SaHpiRptEntryT *resource = NULL;
-        
+
         if (!tag)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        
+
         resource = oh_get_resource_by_id(inst->rptcache, id);
         if (!resource) {
                 return SA_ERR_HPI_NOT_PRESENT;
         }
-        
+
         memcpy(&resource->ResourceTag, tag, sizeof(SaHpiTextBufferT));
-        
+
         return SA_OK;
-}	 	
+}
 
 
 
@@ -243,7 +244,7 @@ void * oh_get_event (void *, struct oh_event *)
 
 void * oh_discover_resources (void *)
                 __attribute__ ((weak, alias("sim_discover")));
-		
-void * oh_set_resource_tag (void *, SaHpiResourceIdT, SaHpiTextBufferT *) 
+
+void * oh_set_resource_tag (void *, SaHpiResourceIdT, SaHpiTextBufferT *)
                 __attribute__ ((weak, alias("sim_set_resource_tag")));
 
