@@ -164,7 +164,7 @@ SaErrorT sim_set_control_state(void *hnd,
         }
 
         /*Note: cinfo must be changed to write to David A's API, not the rptcache*/
-        info = (struct sim_control_info *)oh_get_rdr_data(handle->rptcache, cid, rdr->RecordId);
+        info = (struct sim_control_info *)oh_get_rdr_data(handle->rptcache, rid, rdr->RecordId);
         if (info == NULL) {
                 dbg("No control data. Control=%s", rdr->IdString.Data);
                 return(SA_ERR_HPI_NOT_PRESENT);
