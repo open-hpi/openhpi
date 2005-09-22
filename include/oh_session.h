@@ -48,10 +48,7 @@ struct oh_session {
         */
         SaHpiDomainIdT did;
 
-        enum {
-                OH_UNSUBSCRIBED=0,
-                OH_SUBSCRIBED,
-        } state;
+        SaHpiBoolT subscribed;
 
         /* Initialized to false. Will be set to true*/
         SaHpiEvtQueueStatusT eventq_status;
