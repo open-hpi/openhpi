@@ -38,7 +38,7 @@ int main(int argc, char **argv)
                         return 1;
         }        
 
-        if (!oh_add_rdr(rptable, 1234567, rdrs, NULL, 1))
+        if (!oh_add_rdr(rptable, 1234567, sensors, NULL, 1))
                 return 1;
 
         return 0;

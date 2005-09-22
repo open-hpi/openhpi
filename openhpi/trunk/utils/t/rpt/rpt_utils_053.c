@@ -21,7 +21,7 @@
 #include <rpt_resources.h>
 
 /**
- * main: Starts with an RPTable of 1 resource, adds 5 rdrs to first resource.
+ * main: Starts with an RPTable of 1 resource, adds 5 sensors ++to first resource.
  * Fetches an rdr by id using a Record Id not present in the resource.
  * Success if the interface returns an error, otherwise there was a failure.
  *
@@ -37,7 +37,7 @@ int main(int argc, char **argv)
                 return 1;
 
         for (i = 0; i < 5; i++) {
-                if (oh_add_rdr(rptable, rptentries[0].ResourceId, rdrs+i, NULL, 1))
+                if (oh_add_rdr(rptable, rptentries[0].ResourceId, sensors+i, NULL, 1))
                         return 1;
         }
 
