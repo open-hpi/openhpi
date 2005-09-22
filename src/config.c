@@ -69,7 +69,7 @@ static struct {
         .on_ep = { .Entry[0] = { .EntityType = SAHPI_ENT_ROOT, .EntityLocation = 0 } },
         .log_on_sev = SAHPI_MINOR,
         .evt_queue_limit = 10000,
-        .del_size_limit = 0, /* Unlimited size */
+        .del_size_limit = 10000, /* 0 is unlimited size */
         .del_save = SAHPI_FALSE,
         .dat_size_limit = 0, /* Unlimited size */
         .dat_user_limit = 0, /* Unlimited size */
