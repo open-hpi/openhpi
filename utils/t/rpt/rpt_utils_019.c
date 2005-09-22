@@ -40,20 +40,20 @@ int main(int argc, char **argv)
         }
 
         for (i = 0; i < 5; i++) {
-                if (oh_add_rdr(rptable, SAHPI_FIRST_ENTRY, rdrs + i, NULL,0))
+                if (oh_add_rdr(rptable, SAHPI_FIRST_ENTRY, sensors + i, NULL,0))
                         return 1;
         }
 
         for (; i < 7; i++) {
-                if (oh_add_rdr(rptable, rptentries[9].ResourceId, rdrs + i, NULL,0))
+                if (oh_add_rdr(rptable, rptentries[9].ResourceId, sensors + i, NULL,0))
                         return 1;
         }
 
-        oh_remove_rdr(rptable, rptentries[0].ResourceId, rdrs[1].RecordId);
+        oh_remove_rdr(rptable, rptentries[0].ResourceId, sensors[1].RecordId);
         for (tmprdr = oh_get_rdr_by_id(rptable, rptentries[0].ResourceId, SAHPI_FIRST_ENTRY);
              tmprdr;
              tmprdr = oh_get_rdr_next(rptable, rptentries[0].ResourceId, tmprdr->RecordId)) {
-                if (tmprdr->RecordId == rdrs[1].RecordId) return 1;
+                if (tmprdr->RecordId == sensors[1].RecordId) return 1;
         }             
 
         return 0;

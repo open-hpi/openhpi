@@ -40,12 +40,12 @@ int main(int argc, char **argv)
         }
 
         for (i = 0; i < 5; i++) {
-                if (oh_add_rdr(rptable, SAHPI_FIRST_ENTRY, rdrs + i, NULL,0))
+                if (oh_add_rdr(rptable, SAHPI_FIRST_ENTRY, sensors + i, NULL,0))
                         return 1;
         }
 
         for (; i < 7; i++) {
-                if (oh_add_rdr(rptable, rptentries[9].ResourceId, rdrs + i, NULL,0))
+                if (oh_add_rdr(rptable, rptentries[9].ResourceId, sensors + i, NULL,0))
                         return 1;
         }
 

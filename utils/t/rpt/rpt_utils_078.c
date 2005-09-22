@@ -44,8 +44,8 @@ int main(int argc, char **argv)
                         return 1;
         }        
 
-	rdrs[0].RdrTypeUnion.SensorRec.Num = SAHPI_STANDARD_SENSOR_MIN;
-        if (!oh_add_rdr(rptable, SAHPI_FIRST_ENTRY, rdrs, NULL, 1))
+	sensors[0].RdrTypeUnion.SensorRec.Num = SAHPI_STANDARD_SENSOR_MIN;
+        if (!oh_add_rdr(rptable, SAHPI_FIRST_ENTRY, sensors, NULL, 1))
                 return 1;
 
         return 0;

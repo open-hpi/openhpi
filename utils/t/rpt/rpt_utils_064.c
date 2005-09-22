@@ -36,7 +36,7 @@ int main(int argc, char **argv)
         if (oh_add_resource(rptable, rptentries, NULL, 1))
                 return 1;
 
-        if (oh_add_rdr(rptable, rptentries[0].ResourceId, rdrs, data, 1))
+        if (oh_add_rdr(rptable, rptentries[0].ResourceId, sensors, data, 1))
                 return 1;
 
         if (!oh_get_rdr_data(rptable, rptentries[0].ResourceId, SAHPI_FIRST_ENTRY))
