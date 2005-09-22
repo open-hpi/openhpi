@@ -76,6 +76,7 @@ SaHpiSessionIdT oh_create_session(SaHpiDomainIdT did)
 
         session->did = did;
         session->eventq = g_async_queue_new();
+        session->subscribed = SAHPI_FALSE;
 
         domain = oh_get_domain(did);
         if (!domain) {
@@ -180,7 +181,7 @@ SaErrorT oh_get_session_subscription(SaHpiSessionIdT sid, SaHpiBoolT *state)
                 g_static_rec_mutex_unlock(&oh_sessions.lock);
                 return SA_ERR_HPI_INVALID_SESSION;
         }
-        *state = session->state;
+        *state = session->subscribed;
         g_static_rec_mutex_unlock(&oh_sessions.lock); /* Unlocked session table */
 
         return SA_OK;
@@ -208,7 +209,7 @@ SaErrorT oh_set_session_subscription(SaHpiSessionIdT sid, SaHpiBoolT state)
                g_static_rec_mutex_unlock(&oh_sessions.lock);
                return SA_ERR_HPI_INVALID_SESSION;
        }
-       session->state = state;
+       session->subscribed = state;
 
        g_static_rec_mutex_unlock(&oh_sessions.lock); /* Unlocked session table */
        /* Flush session's event queue
@@ -291,6 +292,8 @@ SaErrorT oh_dequeue_session_event(SaHpiSessionIdT sid,
        struct oh_event *devent = NULL;
        GTimeVal gfinaltime;
        GAsyncQueue *eventq = NULL;
+       SaHpiBoolT subscribed;
+       SaErrorT invalid;
 
        if (sid < 1 || (event == NULL)) return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -303,8 +306,8 @@ SaErrorT oh_dequeue_session_event(SaHpiSessionIdT sid,
 
        if (eventq_status) {
                *eventq_status = session->eventq_status;
-               session->eventq_status = 0;
        }
+       session->eventq_status = 0;
        eventq = session->eventq;
        g_async_queue_ref(eventq);
        g_static_rec_mutex_unlock(&oh_sessions.lock);
@@ -312,11 +315,29 @@ SaErrorT oh_dequeue_session_event(SaHpiSessionIdT sid,
        if (timeout == SAHPI_TIMEOUT_IMMEDIATE) {
                devent = g_async_queue_try_pop(eventq);
        } else if (timeout == SAHPI_TIMEOUT_BLOCK) {
-               devent = g_async_queue_pop(eventq);
+               while (devent == NULL) {
+                       g_get_current_time(&gfinaltime);
+                       g_time_val_add(&gfinaltime, 5000000L);
+                       devent = g_async_queue_timed_pop(eventq, &gfinaltime);
+                       /* compliance with spec page 63 */
+                       invalid = oh_get_session_subscription(sid, &subscribed);
+                       /* Is the session still open? or still subscribed? */
+                       if (invalid || !subscribed) {
+                               g_async_queue_unref(eventq);
+                               g_free(devent);
+                               return invalid ? SA_ERR_HPI_INVALID_SESSION : SA_ERR_HPI_INVALID_REQUEST;
+                       }
+               }
        } else {
                g_get_current_time(&gfinaltime);
                g_time_val_add(&gfinaltime, (glong) (timeout / 1000));
                devent = g_async_queue_timed_pop(eventq, &gfinaltime);
+               invalid = oh_get_session_subscription(sid, &subscribed);
+               if (invalid || !subscribed) {
+                       g_async_queue_unref(eventq);
+                       g_free(devent);
+                       return invalid ? SA_ERR_HPI_INVALID_SESSION : SA_ERR_HPI_INVALID_REQUEST;
+               }
        }
        g_async_queue_unref(eventq);
 
@@ -361,11 +382,7 @@ SaErrorT oh_destroy_session(SaHpiSessionIdT sid)
 
         /* Finalize session */
         len = g_async_queue_length(session->eventq);
-        if (len < 0) {
-                for (i = 0; i > len; i--) {
-                        g_async_queue_push(session->eventq, oh_generate_hpi_event());
-                }
-        } else if (len > 0) {
+        if (len > 0) {
                 for (i = 0; i < len; i++) {
                         event = g_async_queue_try_pop(session->eventq);
                         if (event) g_free(event);
