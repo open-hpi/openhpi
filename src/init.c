@@ -151,7 +151,7 @@ SaErrorT oh_initialize()
          */
         if (oh_threaded_mode()) {
                 struct timespec waittime =
-                        { .tv_sec = 0, .tv_nsec = 1000000000};
+                        { .tv_sec = 1, .tv_nsec = 1000L};
                 nanosleep(&waittime, NULL);
         }
 
