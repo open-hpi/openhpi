@@ -138,7 +138,8 @@ static SaErrorT oh_add_event_to_del(SaHpiDomainIdT did, struct oh_hpi_event *e)
         oh_get_global_param(&param);
 
         /* Events get logged in DEL if they are of high enough severity */
-        if (e->event.Severity <= param.u.log_on_sev) {
+        if (e->event.EventType == SAHPI_ET_USER ||
+            e->event.Severity <= param.u.log_on_sev) {
                 param.type = OPENHPI_DEL_SAVE;
                 oh_get_global_param(&param);
                 d = oh_get_domain(did);
