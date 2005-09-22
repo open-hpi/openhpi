@@ -983,19 +983,19 @@ SaErrorT SAHPI_API saHpiSubscribe (
         SAHPI_IN SaHpiSessionIdT SessionId)
 {
         SaHpiDomainIdT did;
-        SaHpiBoolT session_state;
+        SaHpiBoolT subscribed;
         SaErrorT error;
 
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
 
-        error = oh_get_session_subscription(SessionId, &session_state);
+        error = oh_get_session_subscription(SessionId, &subscribed);
         if (error) {
                 dbg("Error subscribing to SessionId: %d", SessionId);
                 return error;
         }
 
-        if (session_state != OH_UNSUBSCRIBED) {
+        if (subscribed) {
                 dbg("Cannot subscribe if session is not unsubscribed.");
                 return SA_ERR_HPI_DUPLICATE;
         }
@@ -1009,19 +1009,19 @@ SaErrorT SAHPI_API saHpiUnsubscribe (
         SAHPI_IN SaHpiSessionIdT SessionId)
 {
         SaHpiDomainIdT did;
-        SaHpiBoolT session_state;
+        SaHpiBoolT subscribed;
         SaErrorT error;
 
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
 
-        error = oh_get_session_subscription(SessionId, &session_state);
+        error = oh_get_session_subscription(SessionId, &subscribed);
         if (error) {
                 dbg("Error reading session subscription from SessionId: %d", SessionId);
                 return error;
         }
 
-        if (session_state == OH_UNSUBSCRIBED) {
+        if (!subscribed) {
                 dbg("Cannot unsubscribe if session is not subscribed.");
                 return SA_ERR_HPI_INVALID_REQUEST;
         }
@@ -1045,7 +1045,7 @@ SaErrorT SAHPI_API saHpiEventGet (
 {
 
         SaHpiDomainIdT did;
-        SaHpiBoolT session_state;
+        SaHpiBoolT subscribed;
         struct oh_event e;
         SaErrorT error;
 
@@ -1067,10 +1067,10 @@ SaErrorT SAHPI_API saHpiEventGet (
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-        error = oh_get_session_subscription(SessionId, &session_state);
+        error = oh_get_session_subscription(SessionId, &subscribed);
         if (error) return error;
 
-        if (session_state != OH_SUBSCRIBED) {
+        if (!subscribed) {
                 dbg("session is not subscribed");
                 return SA_ERR_HPI_INVALID_REQUEST;
         }
