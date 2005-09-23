@@ -91,7 +91,7 @@ SaErrorT SAHPI_API saHpiDiscover(
         SAHPI_IN SaHpiSessionIdT SessionId)
 {
         SaHpiDomainIdT did;
-        int rv = SA_ERR_HPI_ERROR;
+        SaErrorT error = SA_OK;
 
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
@@ -102,24 +102,24 @@ SaErrorT SAHPI_API saHpiDiscover(
                  * plugin instances. If the thread is already running,
                  * it will wait for it until it completes the round.
                  */
-                rv = oh_wake_discovery_thread(SAHPI_TRUE);
+                oh_wake_discovery_thread(SAHPI_TRUE);
+                oh_wake_event_thread(SAHPI_TRUE);
         } else {
-                rv = oh_domain_resource_discovery(did);
+                error = oh_domain_resource_discovery(did);
+                if (error) {
+                        dbg("Error attempting to discover"
+                            " resources in Domain %d",did);
+                        return error;
+                }
+
+                error = oh_get_events();
+                if (error) {
+                        dbg("Error attempting to process"
+                            " resources in Domain %d",did);
+                }
         }
 
-        if (rv) {
-                dbg("Error attempting to discover resources in Domain %d",did);
-                return SA_ERR_HPI_UNKNOWN;
-        }
-
-        rv = oh_get_events();
-
-        if (rv < 0) {
-                dbg("Error attempting to process resources in Domain %d",did);
-                return SA_ERR_HPI_UNKNOWN;
-        }
-
-        return SA_OK;
+        return error;
 }
 
 
@@ -710,12 +710,6 @@ SaErrorT SAHPI_API saHpiEventLogEntryAdd (
         }
         oh_release_handler(h);
 
-        /* to get REL entry into infrastructure */
-        rv = oh_get_events();
-        if(rv != SA_OK) {
-                dbg("Event loop failed");
-        }
-
         return rv;
 }
 
@@ -1047,7 +1041,8 @@ SaErrorT SAHPI_API saHpiEventGet (
         SaHpiDomainIdT did;
         SaHpiBoolT subscribed;
         struct oh_event e;
-        SaErrorT error;
+        SaErrorT error = SA_OK;
+        SaHpiEvtQueueStatusT qstatus1 = 0, qstatus2 = 0;
 
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
@@ -1055,15 +1050,13 @@ SaErrorT SAHPI_API saHpiEventGet (
         if (!Event) {
                 dbg("Event == NULL");
                 return SA_ERR_HPI_INVALID_PARAMS;
-        }
-        if ((Timeout <= 0) && (Timeout != SAHPI_TIMEOUT_BLOCK) &&
-                        (Timeout != SAHPI_TIMEOUT_IMMEDIATE)) {
+        } else if ((Timeout <= 0) && (Timeout != SAHPI_TIMEOUT_BLOCK) &&
+                   (Timeout != SAHPI_TIMEOUT_IMMEDIATE)) {
                 dbg("Timeout is not positive");
                 return SA_ERR_HPI_INVALID_PARAMS;
-        }
-
-        if (!oh_threaded_mode() && Timeout != SAHPI_TIMEOUT_IMMEDIATE) {
-                dbg("Can not support timeouts in non threaded mode");
+        } else if (!oh_threaded_mode() &&
+                   Timeout != SAHPI_TIMEOUT_IMMEDIATE) {
+                dbg("Can not support timeouts in non-threaded mode");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
@@ -1075,23 +1068,35 @@ SaErrorT SAHPI_API saHpiEventGet (
                 return SA_ERR_HPI_INVALID_REQUEST;
         }
 
-        error = oh_get_events();
-        if (error < 0) return SA_ERR_HPI_UNKNOWN;
+        /* See if there is already an event in the queue */
+        error = oh_dequeue_session_event(SessionId,
+                                         SAHPI_TIMEOUT_IMMEDIATE,
+                                         &e, &qstatus1);
 
-        error = oh_dequeue_session_event(SessionId, Timeout,
-                                         &e, EventQueueStatus);
+        if (error) { /* If queue empty then fetch more events */
+                if (oh_threaded_mode()) {
+                        oh_wake_event_thread(SAHPI_TRUE);
+                } else { /* Non-threaded */
+                        error = oh_get_events();
+                        if (error) return error;
+                }
+                /* Sent for more events. Ready to wait on queue. */
+                error = oh_dequeue_session_event(SessionId, Timeout,
+                                                 &e, &qstatus2);
+        }
+        /* If no events after trying to fetch them, return error */
         if (error) return error;
+
+        /* If there was overflow before or after getting events, return it */
+        if (EventQueueStatus)
+                *EventQueueStatus = qstatus1 ? qstatus1 : qstatus2;
 
         /* Return event, resource and rdr */
         *Event = e.u.hpi_event.event;
 
-        if (RptEntry) {
-                *RptEntry = e.u.hpi_event.res;
-        }
+        if (RptEntry) *RptEntry = e.u.hpi_event.res;
 
-        if (Rdr) {
-                *Rdr = e.u.hpi_event.rdr;
-        }
+        if (Rdr) *Rdr = e.u.hpi_event.rdr;
 
         return SA_OK;
 }
@@ -1120,11 +1125,12 @@ SaErrorT SAHPI_API saHpiEventAdd (
                 dbg("couldn't get loginfo");
                 return error;
         }
+
         if (EvtEntry->EventDataUnion.UserEvent.UserEventData.DataLength >
-                        info.UserEventMaxSize) {
+            info.UserEventMaxSize) {
                 dbg("DataLength(%d) > info.UserEventMaxSize(%d)",
-                        EvtEntry->EventDataUnion.UserEvent.UserEventData.DataLength,
-                        info.UserEventMaxSize);
+                    EvtEntry->EventDataUnion.UserEvent.UserEventData.DataLength,
+                    info.UserEventMaxSize);
                 return SA_ERR_HPI_INVALID_DATA;
         }
 
@@ -1145,9 +1151,14 @@ SaErrorT SAHPI_API saHpiEventAdd (
 
         g_async_queue_push(oh_process_q, g_memdup(&e, sizeof(struct oh_event)));
 
-        error = oh_get_events();
-        if (error != SA_OK) {
-                dbg("oh_get_events returned %d", error);
+        if (oh_threaded_mode()) {
+                oh_wake_event_thread(SAHPI_TRUE);
+        } else {
+                error = oh_get_events();
+                if (error) {
+                        dbg("Error attempting to process"
+                            " resources in Domain %d", did);
+                }
         }
 
         return error;
@@ -3788,7 +3799,11 @@ SaErrorT SAHPI_API saHpiHotSwapActionRequest (
         rv = request_hotswap_action(h->hnd, ResourceId, Action);
         oh_release_handler(h);
 
-        oh_get_events();
+        if (oh_threaded_mode()) {
+                oh_wake_event_thread(SAHPI_TRUE);
+        } else {
+                oh_get_events();
+        }
 
         return rv;
 }

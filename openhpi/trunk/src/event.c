@@ -371,28 +371,18 @@ SaErrorT oh_process_events()
 
 SaErrorT oh_get_events()
 {
-        SaErrorT rv = SA_OK;
+        SaErrorT error = SA_OK;
 
-        /* this waits for the event thread to sleep, then
-           runs to deal with sync issues */
-        if (oh_threaded_mode())
-                g_mutex_lock(oh_event_thread_mutex);
+        if (oh_threaded_mode()) return error;
 
         trace("Harvesting events synchronously");
-        rv = oh_harvest_events();
-        if (rv != SA_OK) {
-                dbg("Error on harvest of events.");
-        }
+        error = oh_harvest_events();
+        if (error) dbg("Error on harvest of events.");
 
-        rv = oh_process_events();
-        if (rv != SA_OK) {
-                dbg("Error on processing of events, aborting");
-        }
+        error = oh_process_events();
+        if (error) dbg("Error on processing of events, aborting");
 
         process_hotswap_policy();
 
-        if (oh_threaded_mode())
-                g_mutex_unlock(oh_event_thread_mutex);
-
-        return rv;
+        return error;
 }
