@@ -19,6 +19,7 @@
 #include <oh_plugin.h>
 #include <oh_hotswap.h>
 #include <oh_error.h>
+#include <oh_lock.h>
 
 #define OH_DISCOVERY_THREAD_SLEEP_TIME 180 * G_USEC_PER_SEC
 #define OH_EVENT_THREAD_SLEEP_TIME 3 * G_USEC_PER_SEC
@@ -27,10 +28,13 @@ GCond *oh_event_thread_wait = NULL;
 GThread *oh_event_thread = NULL;
 GError *oh_event_thread_error = NULL;
 GMutex *oh_event_thread_mutex = NULL;
+GStaticMutex oh_wake_event_mutex = G_STATIC_MUTEX_INIT;
+
 GThread *oh_discovery_thread = NULL;
 GError *oh_discovery_thread_error = NULL;
 GMutex *oh_discovery_thread_mutex = NULL;
 GCond *oh_discovery_thread_wait = NULL;
+GStaticMutex oh_wake_discovery_mutex = G_STATIC_MUTEX_INIT;
 
 static gboolean oh_is_threaded = FALSE;
 
@@ -92,11 +96,11 @@ static gpointer oh_discovery_thread_loop(gpointer data)
                         trace("Got error on threaded discovery return.");
                 }
 
-                /* Let oh_wake_discovery know this thread is done */
+                /* Let oh_wake_discovery_thread know this thread is done */
                 g_cond_broadcast(oh_discovery_thread_wait);
                 g_get_current_time(&time);
                 g_time_val_add(&time, OH_DISCOVERY_THREAD_SLEEP_TIME);
-                /* Go to sleep and let oh_wake_discovery take the mutex */
+                /* Go to sleep; let oh_wake_discovery_thread take the mutex */
                 trace("Going to sleep");
                 if (g_cond_timed_wait(oh_discovery_thread_wait,
                                       oh_discovery_thread_mutex, &time))
@@ -128,19 +132,17 @@ static gpointer oh_event_thread_loop(gpointer data)
 
                 trace("Thread Harvesting events");
                 error = oh_harvest_events();
-                if(error != SA_OK) {
-                        trace("Error on harvest of events.");
-                }
+                if (error != SA_OK) dbg("Error on harvest of events.");
 
                 trace("Thread processing events");
                 error = oh_process_events();
-                if(error != SA_OK) {
-                        trace("Error on processing of events, aborting");
-                }
+                if (error != SA_OK) dbg("Error on processing of events.");
 
-                trace("Thread processing hotswap");
+                trace("Thread processing hotswap policy");
                 process_hotswap_policy();
 
+                /* Let oh_wake_event_thread know this thread is done */
+                g_cond_broadcast(oh_event_thread_wait);
                 g_get_current_time(&time);
                 g_time_val_add(&time, OH_EVENT_THREAD_SLEEP_TIME);
                 trace("Going to sleep");
@@ -222,63 +224,81 @@ int oh_threaded_final()
  * plugin instances. If the thread is already running,
  * we will wait for it until it completes the round.
  *
- * Returns: SA_ERR_HPI_ERROR if in non-threaded mode, otherwise SA_OK.
+ * Returns: void
  **/
-int oh_wake_discovery_thread(SaHpiBoolT wait)
+void oh_wake_discovery_thread(SaHpiBoolT wait)
 {
-        GTimeVal time;
-
         if (oh_threaded_mode()) {
 
-                if (!wait) {
+                if (!wait) { /* If not waiting, just signal the thread and go. */
                         g_cond_broadcast(oh_discovery_thread_wait);
-                        return SA_OK;
+                        return;
                 }
 
-                /* else */
+                g_static_mutex_lock(&oh_wake_discovery_mutex);
                 if (g_mutex_trylock(oh_discovery_thread_mutex)) {
-                        g_cond_broadcast(oh_discovery_thread_wait);
-                        g_get_current_time(&time);
-                        g_time_val_add(&time, OH_DISCOVERY_THREAD_SLEEP_TIME);
+                        /* The thread was asleep; wake it up. */
                         trace("Going to wait for discovery thread to loop once.");
-                        if (g_cond_timed_wait(oh_discovery_thread_wait,
-                                              oh_discovery_thread_mutex,
-                                              &time)) {
-                                trace("Got signal from discovery"
-                                      " thread being done. Giving lock back");
-                                g_mutex_unlock(oh_discovery_thread_mutex);
-                        } else {
-                                trace("Gave up waiting for discovery thread"
-                                      " signal being done.");
-                        }
+                        g_cond_broadcast(oh_discovery_thread_wait);
+                        g_cond_wait(oh_discovery_thread_wait,
+                                    oh_discovery_thread_mutex);
+                        trace("Got signal from discovery"
+                              " thread being done. Giving lock back");
+                        g_mutex_unlock(oh_discovery_thread_mutex);
                 } else {
+                        /* Thread was already up. Wait until it completes */
+                        trace("Waiting for discovery thread...");
                         g_mutex_lock(oh_discovery_thread_mutex);
+                        trace("...Done waiting for discovery thread.");
                         g_mutex_unlock(oh_discovery_thread_mutex);
                 }
-        } else {
-                return SA_ERR_HPI_ERROR;
+                g_static_mutex_unlock(&oh_wake_discovery_mutex);
         }
 
-        return SA_OK;
+        return;
 }
 
+/**
+ * oh_wake_event_thread
+ * @wait: Says whether we should wait for the event thread
+ * to do one round through the plugin instances. Otherwise, we
+ * just knock on the event thread's door and return quickly.
+ *
+ * If wait is true, the event thread is woken up
+ * and we wait until it does a round throughout the
+ * plugin instances. If the thread is already running,
+ * we will wait for it until it completes the round.
+ *
+ * Returns: void
+ **/
 void oh_wake_event_thread(SaHpiBoolT wait)
 {
         if (oh_threaded_mode()) {
-                trace("Waking event thread");
-                g_cond_broadcast(oh_event_thread_wait);
-                if (wait) {
-                        /* the wait concept is important.  By taking these locks
-                           we ensure that the thread is forced to go through
-                           at least one cycle (though it could be 2 based on
-                           racing) This is important for the infrastructure on
-                           calls like discover, which need to know *now* what
-                           is going on.  Plugins probably don't care, but we
-                           leave it as an option anyway. */
-                        g_mutex_lock(oh_event_thread_mutex);
-                        trace("Got the lock on the event thread");
-                        g_mutex_unlock(oh_event_thread_mutex);
-                        trace("Gave back the event thread lock");
+
+                if (!wait) { /* If not waiting, just signal the thread and go. */
+                        g_cond_broadcast(oh_event_thread_wait);
+                        return;
                 }
+
+                g_static_mutex_lock(&oh_wake_event_mutex);
+                if (g_mutex_trylock(oh_event_thread_mutex)) {
+                        /* The thread was asleep; wake it up. */
+                        trace("Going to wait for event thread to loop once.");
+                        g_cond_broadcast(oh_event_thread_wait);
+                        g_cond_wait(oh_event_thread_wait,
+                                    oh_event_thread_mutex);
+                        trace("Got signal from event"
+                              " thread being done. Giving lock back");
+                        g_mutex_unlock(oh_event_thread_mutex);
+                } else {
+                        /* Thread was already up. Wait until it completes */
+                        trace("Waiting for event thread...");
+                        g_mutex_lock(oh_event_thread_mutex);
+                        trace("...Done waiting for event thread.");
+                        g_mutex_unlock(oh_event_thread_mutex);
+                }
+                g_static_mutex_unlock(&oh_wake_event_mutex);
         }
+
+        return;
 }

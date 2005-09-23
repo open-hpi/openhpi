@@ -29,7 +29,7 @@ int oh_threaded_init(void);
 int oh_threaded_start(void);
 int oh_threaded_final(void);
 
-int oh_wake_discovery_thread(SaHpiBoolT wait);
+void oh_wake_discovery_thread(SaHpiBoolT wait);
 
 #ifdef __cplusplus
 }
