@@ -139,8 +139,10 @@ Commands:
 	    		from area <AreaId>.
 	    delfield <AreaID> <FieldId> - delete field <FieldID> from area <AreaId>.
 
-	lsres
+	lsres [stat] [path]
 		Show resources list.
+		stat - show HS status.
+		path - show entity path.
 
 	lsensor
 		Show sensors list.
