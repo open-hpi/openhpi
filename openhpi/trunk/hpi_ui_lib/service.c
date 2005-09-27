@@ -1004,21 +1004,23 @@ Pr_ret_t print_text_buffer_type(char *mes, SaHpiTextBufferT *buf, char *meslast,
 	return(0);
 }
 
-Pr_ret_t print_text_buffer_text(char *mes, SaHpiTextBufferT *buf, char *meslast,
-	hpi_ui_print_cb_t proc)
+void get_text_buffer_text(char *mes, SaHpiTextBufferT *buf, char *meslast,
+	char *outbuf)
 {
 	int	i, c, tmp_ind, len;
-    Pr_ret_t ret;
 	char	*tmp;
 
-	if (mes != (char *)NULL) {
-		if (proc(mes) == HPI_UI_END) return(HPI_UI_END);
+	*outbuf = 0;
+	if (mes != (char *)NULL)
+		strcpy(outbuf,mes);
+	if (buf->DataLength < 2) {
+		if (meslast != (char *)NULL)
+			strcat(outbuf, meslast);
+		return;
 	};
-	if (buf->DataLength < 2) return(HPI_UI_OK);
 	switch (buf->DataType) {
 		case SAHPI_TL_TYPE_UNICODE:
-			if (proc("Not implemented UNICODE") == HPI_UI_END)
-				return(HPI_UI_END);
+			strcat(outbuf, "UNICODE does not implement");
 			break;
 		case SAHPI_TL_TYPE_BCDPLUS:
 			len = buf->DataLength * 2 + 1;
@@ -1032,22 +1034,21 @@ Pr_ret_t print_text_buffer_text(char *mes, SaHpiTextBufferT *buf, char *meslast,
 				c = (buf->Data[i] & 0xF0) >> 4;
 				tmp[tmp_ind++] = bcdplus_codes[c];
 			};
-			ret = proc(tmp);
+			strcat(outbuf, tmp);
 			free(tmp);
-			if (ret == HPI_UI_END) return(HPI_UI_END);
 			break;
 		case SAHPI_TL_TYPE_ASCII6:
 			len = buf->DataLength * 8 / 6;
 			tmp = malloc(len + 1);
 			memset(tmp, 0, len + 1);
-			i = ascii6tostring((char *)(buf->Data), buf->DataLength, tmp, len);
+			i = ascii6tostring((char *)(buf->Data), buf->DataLength,
+				tmp, len);
 			if (i == 0) break;
-			i = proc(tmp);
+			strcat(outbuf, tmp);
 			free(tmp);
-			if (i == HPI_UI_END) return(HPI_UI_END);
 			break;
 		case SAHPI_TL_TYPE_TEXT:
-			if (proc((char *)(buf->Data)) == HPI_UI_END) return(HPI_UI_END);
+			strcat(outbuf, buf->Data);
 			break;
 		case SAHPI_TL_TYPE_BINARY:
 			len = buf->DataLength * 2 + 1;
@@ -1061,15 +1062,22 @@ Pr_ret_t print_text_buffer_text(char *mes, SaHpiTextBufferT *buf, char *meslast,
 				c = buf->Data[i] & 0x0F;
 				tmp[tmp_ind++] = hex_codes[c];
 			};
-			i = proc(tmp);
+			strcat(outbuf, tmp);
 			free(tmp);
-			if (i == HPI_UI_END) return(HPI_UI_END);
 			break;
 	};
-	if (meslast != (char *)NULL) {
-		if (proc(meslast) == HPI_UI_END) return(HPI_UI_END);
-	};
-	return(HPI_UI_OK);
+	if (meslast != (char *)NULL)
+		strcat(outbuf, meslast);
+	return;
+}
+
+Pr_ret_t print_text_buffer_text(char *mes, SaHpiTextBufferT *buf, char *meslast,
+	hpi_ui_print_cb_t proc)
+{
+	char	outbuf[SHOW_BUF_SZ];
+
+	get_text_buffer_text(mes, buf, meslast, outbuf);
+	return(proc(outbuf));
 }
 
 Pr_ret_t print_text_buffer_lang(char *mes, SaHpiTextBufferT *buf, char *meslast,

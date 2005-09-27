@@ -388,7 +388,8 @@ ret_code_t show_inv(void)
 
 	term = get_next_term();
 	if (term == NULL) {
-		i = show_rpt_list(Domain, SHOW_ALL_RPT, resid, ui_print);
+		i = show_rpt_list(Domain, SHOW_ALL_RPT, resid,
+			SHORT_LSRES, ui_print);
 		if (i == 0) {
 			printf("NO rpt!\n");
 			return(HPI_SHELL_OK);

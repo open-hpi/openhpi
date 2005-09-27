@@ -448,7 +448,24 @@ static ret_code_t dat_list(void)
 
 static ret_code_t listres(void)
 {
-        show_rpt_list(Domain, SHOW_ALL_RPT, 0, ui_print);
+	term_def_t	*term;
+	int		mask = SHORT_LSRES;
+	
+
+	term = get_next_term();
+        while (term != NULL) {
+		if (strcmp(term->term, "stat") == 0)
+			mask |= STATE_LSRES;
+		else if (strcmp(term->term, "path") == 0)
+			mask |= PATH_LSRES;
+		else {
+			printf("Invalid argument: %s\n", term->term);
+			return(HPI_SHELL_PARM_ERROR);
+		};
+		term = get_next_term();
+	};
+
+       show_rpt_list(Domain, SHOW_ALL_RPT, 0, mask, ui_print);
         return(HPI_SHELL_OK);
 }
 
@@ -678,7 +695,8 @@ static ret_code_t show_rdr(void)
         term = get_next_term();
         if (term == NULL) {
                 if (read_file) return(HPI_SHELL_CMD_ERROR);
-                i = show_rpt_list(Domain, SHOW_ALL_RPT, rptid, ui_print);
+                i = show_rpt_list(Domain, SHOW_ALL_RPT, rptid,
+			SHORT_LSRES, ui_print);
                 if (i == 0) {
                         printf("NO rpt!\n");
                         return(HPI_SHELL_CMD_ERROR);
@@ -686,13 +704,15 @@ static ret_code_t show_rdr(void)
                 i = get_string_param("RPT (ID | all) ==> ", buf, 9);
                 if (i != 0) return HPI_SHELL_CMD_ERROR;
                 if (strncmp(buf, "all", 3) == 0) {
-                        show_rpt_list(Domain, SHOW_ALL_RDR, rptid, ui_print);
+                        show_rpt_list(Domain, SHOW_ALL_RDR, rptid,
+				SHORT_LSRES, ui_print);
                         return(HPI_SHELL_OK);
                 };
                 rptid = (SaHpiResourceIdT)atoi(buf);
         } else {
                 if (strcmp(term->term, "all") == 0) {
-                        show_rpt_list(Domain, SHOW_ALL_RDR, rptid, ui_print);
+                        show_rpt_list(Domain, SHOW_ALL_RDR, rptid,
+				SHORT_LSRES, ui_print);
                         return(HPI_SHELL_OK);
                 };
                 if (isdigit(term->term[0]))
@@ -1237,7 +1257,7 @@ const char invhelp[] =  "inv: inventory command block\n"
                         "Usage: inv [<InvId>]\n"
                         "       InvId:: <resourceId> <IdrId>\n";
 const char lreshelp[] = "lsres: list resources\n"
-                        "Usage: lsres";
+                        "Usage: lsres [stat] [path]";
 const char lsorhelp[] = "lsensor: list sensors\n"
                         "Usage: lsensor";
 const char parmctrlhelp[] = "parmctrl: save and restore parameters for a resource\n"
