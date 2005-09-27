@@ -152,9 +152,13 @@ main( int argc, char *argv[] )
 
   for( i = 0; i < float32_data_num; i++, p += sizeof( tFloat32 ) )
      {
-       unsigned int v = *(unsigned int *)p;
+	/* compile error */
+//       unsigned int v = *(unsigned int *)p;
+       unsigned int v = *(unsigned int *)(void *)p;
        v = bswap_32( v );
-       *(unsigned int *)p = v;
+	/* compile error */
+//       *(unsigned int *)p = v;
+       *(unsigned int *)(void *)p = v;
      }
 
   if ( memcmp( float32_data, f32, sizeof( float32_data ) ) )
@@ -173,9 +177,13 @@ main( int argc, char *argv[] )
 
   for( i = 0; i < float64_data_num; i++, p += sizeof( tFloat64 ) )
      {
-       unsigned long long v = *(unsigned long long *)p;
+	/* compile error */
+//       unsigned long long v = *(unsigned long long *)p;
+       unsigned long long v = *(unsigned long long *)(void *)p;
        v = bswap_64( v );
-       *(unsigned long long *)p = v;
+	/* compile error */
+//       *(unsigned long long *)p = v;
+       *(unsigned long long *)(void *)p = v;
      }
 
   if ( memcmp( float64_data, f64, sizeof( float64_data ) ) )

@@ -203,6 +203,9 @@ static int process_hpi_event(struct oh_event *full_event)
         /* multiplex event to the appropriate sessions */
         for(i = 0; i < sessions->len; i++) {
                 SaHpiBoolT is_subscribed = SAHPI_FALSE;
+	/* compile error */
+#undef g_array_index
+#define g_array_index(a,t,i)      (((t*)(void *) ((a)->data)) [(i)])
                 sid = g_array_index(sessions, SaHpiSessionIdT, i);
                 oh_get_session_subscription(sid, &is_subscribed);
                 if(is_subscribed) {

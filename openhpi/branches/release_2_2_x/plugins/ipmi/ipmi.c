@@ -628,7 +628,9 @@ static SaErrorT ipmi_get_el_info(void               *hnd,
         info->OverflowAction = SAHPI_EL_OVERFLOW_DROP;
         ohoi_get_sel_support_del(ohoi_res_info->u.mc_id, &del_support);
         rv = ohoi_get_sel_state(ipmi_handler, ohoi_res_info->u.mc_id,
-                                                 (int *)&info->Enabled);
+	/* compile error */
+//                                                 (int *)&info->Enabled);
+                                                 (int *)(void *)&info->Enabled);
         if (rv != SA_OK) {
                 dbg("couldn't get sel state rv = %d", rv);
                 return rv;
