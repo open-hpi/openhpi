@@ -19,7 +19,6 @@
 #include <oh_plugin.h>
 #include <oh_hotswap.h>
 #include <oh_error.h>
-#include <oh_lock.h>
 
 #define OH_DISCOVERY_THREAD_SLEEP_TIME 180 * G_USEC_PER_SEC
 #define OH_EVENT_THREAD_SLEEP_TIME 3 * G_USEC_PER_SEC
