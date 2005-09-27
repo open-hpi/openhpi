@@ -155,7 +155,7 @@ SaErrorT oh_announcement_get(oh_announcement *ann, SaHpiEntryIdT srchid,
 SaErrorT oh_announcement_get_next(oh_announcement *ann, SaHpiSeverityT sev,
                                   SaHpiBoolT ack, SaHpiAnnouncementT *entry)
 {
-        oh_ann_entry *myentry;
+        oh_ann_entry *myentry = NULL;
         GList *annlist;
         int notinset;
 
