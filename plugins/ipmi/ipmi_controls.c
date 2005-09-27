@@ -324,7 +324,9 @@ static void _set_control_state(ipmi_control_t *control,
 		ipmi_free_light_settings(setting);
 	} else {
         	ipmi_control_set_val(control, 
-                             (int *)&info->state->StateUnion.Oem.Body[0],
+	/* compile error */
+//                             (int *)&info->state->StateUnion.Oem.Body[0],
+                             (int *)(void *)&info->state->StateUnion.Oem.Body[0],
                              __set_control_state, info);
 	}
 }
