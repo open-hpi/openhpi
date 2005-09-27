@@ -148,6 +148,9 @@ GArray *oh_list_sessions(SaHpiDomainIdT did)
                                         sizeof(SaHpiSessionIdT),
                                         length);
 
+	/* compile error */
+#undef g_array_index
+#define g_array_index(a,t,i)      (((t*)(void *) ((a)->data)) [(i)])
         for (i = 0; i < length; i++) {
                 g_array_append_val(session_ids,
                                    g_array_index(domain->sessions,
