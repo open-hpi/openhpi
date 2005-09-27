@@ -2432,7 +2432,9 @@ static SaErrorT modify_inventory(SaHpiIdrFieldT *field,
 				rv = ipmi_fru_set_board_info_mfg_time(fru, 0);
 			} else {
 				rv = ipmi_fru_set_board_info_mfg_time(fru,
-					*(time_t *)tb->Data);
+	/* compile error */
+//					*(time_t *)tb->Data);
+					*(time_t *)(void *)tb->Data);
 			}
 			break;
 		case SAHPI_IDR_FIELDTYPE_MANUFACTURER:

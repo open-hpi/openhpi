@@ -492,7 +492,9 @@ main(int argc, char **argv)
           exit(1);
   }
 
-  inv = (SaHpiIdrAreaHeaderT *)&inbuff[0];
+	/* compile error */
+//  inv = (SaHpiIdrAreaHeaderT *)&inbuff[0];
+  inv = (SaHpiIdrAreaHeaderT *)(void *)&inbuff[0];
   rv = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID,&sessionid,NULL);
   if (fdebug) printf("saHpiSessionOpen rv = %d sessionid = %x\n",rv,sessionid);
   if (rv != SA_OK) {
