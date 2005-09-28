@@ -623,6 +623,7 @@ AC_CONFIG_FILES([openhpi.spec
 	plugins/simulator/t/Makefile
 	plugins/simulator/t1/Makefile
 	plugins/simulator/t1/rt-shell.sh
+	plugins/simulator/t2/Makefile
 	scripts/Makefile
         snmp/Makefile
         src/Makefile
