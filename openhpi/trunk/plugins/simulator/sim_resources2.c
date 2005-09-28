@@ -1562,6 +1562,92 @@ struct sim_annunciator sim_dasd_annunciators[] = {
 };
 
 struct sim_annunciator sim_hs_dasd_annunciators[] = {
+        {
+                .index = 1,
+                .annun = {
+                        .AnnunciatorNum = 1,
+                        .AnnunciatorType = SAHPI_ANNUNCIATOR_TYPE_AUDIBLE,
+                        .ModeReadOnly = SAHPI_FALSE,
+                        .MaxConditions = 2,
+                        .Oem = 0,
+                },
+                .announs[0] = {
+                        .EntryId = 1,
+                        .Timestamp = 0,
+                        .AddedByUser = SAHPI_FALSE,
+                        .Severity = SAHPI_MAJOR,
+                        .Acknowledged = SAHPI_FALSE,
+                        .StatusCond = {
+                                .Type = SAHPI_STATUS_COND_TYPE_SENSOR,
+                                .Entity   = {
+                                        .Entry = {
+                                                {SAHPI_ENT_DISK_DRIVE, 2},
+                                                {SAHPI_ENT_ROOT, 0}
+                                        },
+                                },
+                                .DomainId = 1,
+                                .ResourceId = 1,
+                                .SensorNum = 1,
+                                .EventState = SAHPI_ES_UNSPECIFIED,
+                                .Name = {
+                                        .Length = 5,
+                                        .Value = "announ"
+                                },
+                                .Mid = 123,
+                        },
+                },
+                .announs[1] = {
+                        .EntryId = 2,
+                        .Timestamp = 0,
+                        .AddedByUser = SAHPI_FALSE,
+                        .Severity = SAHPI_MINOR,
+                        .Acknowledged = SAHPI_FALSE,
+                        .StatusCond = {
+                                .Type = SAHPI_STATUS_COND_TYPE_SENSOR,
+                                .Entity   = {
+                                        .Entry = {
+                                                {SAHPI_ENT_DISK_DRIVE, 2},
+                                                {SAHPI_ENT_ROOT, 0}
+                                        },
+                                },
+                                .DomainId = 1,
+                                .ResourceId = 1,
+                                .SensorNum = 1,
+                                .EventState = SAHPI_ES_UNSPECIFIED,
+                                .Name = {
+                                        .Length = 5,
+                                        .Value = "announ"
+                                },
+                                .Mid = 123,
+                        },
+                },
+                .announs[2] = {
+                        .EntryId = 3,
+                        .Timestamp = 0,
+                        .AddedByUser = SAHPI_FALSE,
+                        .Severity = SAHPI_INFORMATIONAL,
+                        .Acknowledged = SAHPI_FALSE,
+                        .StatusCond = {
+                                .Type = SAHPI_STATUS_COND_TYPE_SENSOR,
+                                .Entity   = {
+                                        .Entry = {
+                                                {SAHPI_ENT_DISK_DRIVE, 2},
+                                                {SAHPI_ENT_ROOT, 0}
+                                        },
+                                },
+                                .DomainId = 1,
+                                .ResourceId = 1,
+                                .SensorNum = 1,
+                                .EventState = SAHPI_ES_UNSPECIFIED,
+                                .Name = {
+                                        .Length = 5,
+                                        .Value = "announ"
+                                },
+                                .Mid = 123,
+                        },
+                },
+                .comment = "Annunciator 2"
+        },
 
         {} /* Terminate array with a null element */
 };
@@ -1612,6 +1698,24 @@ struct sim_watchdog sim_dasd_watchdogs[] = {
 };
 
 struct sim_watchdog sim_hs_dasd_watchdogs[] = {
+        {
+                .watchdogrec = {
+                        .WatchdogNum = 1,
+                        .Oem = 0,
+                },
+                .wd = {
+                        .Log = SAHPI_TRUE,
+                        .Running = SAHPI_FALSE,
+                        .TimerUse = SAHPI_WTU_NONE,
+                        .TimerAction = SAHPI_WA_NO_ACTION,
+                        .PretimerInterrupt = SAHPI_WPI_NONE,
+                        .PreTimeoutInterval = 0,
+                        .TimerUseExpFlags = SAHPI_WTU_NONE,
+                        .InitialCount = 0,
+                        .PresentCount = 0,
+                },
+                .comment = "Watchdog 2"
+        },
 
         {} /* Terminate array with a null element */
 };
@@ -1687,6 +1791,50 @@ struct sim_inventory sim_dasd_inventory[] = {
 };
 
 struct sim_inventory sim_hs_dasd_inventory[] = {
+        {
+                .invrec = {
+                        .IdrId = 1,
+                        .Persistent = SAHPI_FALSE,
+                        .Oem = 0,
+                },
+                .info = {
+                        .nextareaid = 2, // change if you add more areas below
+                        .idrinfo = {
+                                .IdrId = 1,
+                                .UpdateCount = 0,
+                                .ReadOnly = SAHPI_TRUE,
+                                .NumAreas = 1, // change if you want more areas below
+                        },
+                        .area[0] = {
+                                .nextfieldid = 2, // change if you add more fields below
+                                .idrareahead = {
+                                        .AreaId = 1,
+                                        .Type = SAHPI_IDR_AREATYPE_CHASSIS_INFO,
+                                        .ReadOnly = SAHPI_TRUE,
+                                        .NumFields = 1, //change if you add more fields below
+                                },
+                                .field[0] = {
+                                        .AreaId = 1,
+                                        .FieldId = 1,
+                                        .Type = SAHPI_IDR_FIELDTYPE_MANUFACTURER,
+                                        .ReadOnly = SAHPI_TRUE,
+                                        .Field = {
+                                                .DataType = SAHPI_TL_TYPE_TEXT,
+                                                .Language = SAHPI_LANG_ENGLISH,
+                                                .DataLength = 6,
+                                                .Data[0] = 'I',
+                                                .Data[1] = 'B',
+                                                .Data[2] = 'M',
+                                                .Data[3] = 'X',
+                                                .Data[4] = 'X',
+                                                .Data[5] = 'X',
+                                                .Data[6] = '\0',
+                                        },
+                                },
+                        },
+                },
+                .comment = "Simulator HS DASD Inv 1",
+        },
 
         {} /* Terminate array with a null element */
 };
