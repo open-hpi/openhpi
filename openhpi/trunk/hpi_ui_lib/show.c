@@ -650,7 +650,7 @@ static void print_rpt_paths(rpt_outbuf_t *ar, int len, hpi_ui_print_cb_t proc)
 		strcat(buf, ": ");
 		rv = oh_decode_entitypath(&(ar[i].path), &tmpbuf);
 		if (rv == SA_OK) {
-			strcat(buf, tmpbuf.Data);
+			strcat(buf, (char *)(tmpbuf.Data));
 		};
 		strcat(buf, "\n");
 		if (proc(buf) != HPI_UI_OK) return;

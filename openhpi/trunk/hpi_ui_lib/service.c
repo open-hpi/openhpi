@@ -1047,7 +1047,7 @@ void get_text_buffer_text(char *mes, SaHpiTextBufferT *buf, char *meslast,
 			free(tmp);
 			break;
 		case SAHPI_TL_TYPE_TEXT:
-			strcat(outbuf, buf->Data);
+			strcat(outbuf, (char *)(buf->Data));
 			break;
 		case SAHPI_TL_TYPE_BINARY:
 			len = buf->DataLength * 2 + 1;
