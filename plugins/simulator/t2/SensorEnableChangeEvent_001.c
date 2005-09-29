@@ -14,7 +14,7 @@
 */
 
 /*
- * This is the same test as t1/sim_sanity_046.c
+ * This is the same test as t1/sim_sanity_047.c
  */
 
 #include <stdlib.h>
@@ -54,7 +54,7 @@ int main(int argc, char **argv)
         }
 
         /* fill out the message */
-        buf.mtype = SIM_MSG_SENSOR_EVENT;
+        buf.mtype = SIM_MSG_SENSOR_ENABLE_CHANGE_EVENT;
         *txtptr = '\0';
         sprintf(txtptr, "%s=%s", SIM_MSG_HANDLER_NAME, PLUGINNAME);
         n += strlen(txtptr) + 1;
@@ -68,7 +68,7 @@ int main(int argc, char **argv)
         if (n > SIM_MSG_QUEUE_BUFSIZE) {
             return -1;
         }
-        sprintf(txtptr, "%s=%d", SIM_MSG_EVENT_SEVERITY, SAHPI_CRITICAL);
+        sprintf(txtptr, "%s=%d", SIM_MSG_EVENT_SEVERITY, SAHPI_MINOR);
         n += strlen(txtptr) + 1;
         txtptr = buf.mtext + n;
         if (n > SIM_MSG_QUEUE_BUFSIZE) {
@@ -92,37 +92,37 @@ int main(int argc, char **argv)
         if (n > SIM_MSG_QUEUE_BUFSIZE) {
             return -1;
         }
-        sprintf(txtptr, "%s=%d", SIM_MSG_SENSOR_ASSERTION, SAHPI_TRUE);
+        sprintf(txtptr, "%s=%d", SIM_MSG_SENSOR_ENABLE, SAHPI_TRUE);
         n += strlen(txtptr) + 1;
         txtptr = buf.mtext + n;
         if (n > SIM_MSG_QUEUE_BUFSIZE) {
             return -1;
         }
-        sprintf(txtptr, "%s=%d", SIM_MSG_SENSOR_EVENT_STATE, SAHPI_ES_UPPER_CRIT);
+        sprintf(txtptr, "%s=%d", SIM_MSG_SENSOR_EVENT_ENABLE, SAHPI_TRUE);
         n += strlen(txtptr) + 1;
         txtptr = buf.mtext + n;
         if (n > SIM_MSG_QUEUE_BUFSIZE) {
             return -1;
         }
-        sprintf(txtptr, "%s=%d", SIM_MSG_SENSOR_OPTIONAL_DATA, SAHPI_SOD_TRIGGER_READING);
+        sprintf(txtptr, "%s=%d", SIM_MSG_SENSOR_ASSERT_EVENT_MASK, SAHPI_ES_OK);
         n += strlen(txtptr) + 1;
         txtptr = buf.mtext + n;
         if (n > SIM_MSG_QUEUE_BUFSIZE) {
             return -1;
         }
-        sprintf(txtptr, "%s=%d", SIM_MSG_SENSOR_TRIGGER_READING_SUPPORTED, SAHPI_TRUE);
+        sprintf(txtptr, "%s=%d", SIM_MSG_SENSOR_DEASSERT_EVENT_MASK, SAHPI_ES_OK);
         n += strlen(txtptr) + 1;
         txtptr = buf.mtext + n;
         if (n > SIM_MSG_QUEUE_BUFSIZE) {
             return -1;
         }
-        sprintf(txtptr, "%s=%d", SIM_MSG_SENSOR_TRIGGER_READING_TYPE, SAHPI_SENSOR_READING_TYPE_INT64);
+        sprintf(txtptr, "%s=%d", SIM_MSG_SENSOR_OPTIONAL_DATA, SAHPI_SOD_CURRENT_STATE);
         n += strlen(txtptr) + 1;
         txtptr = buf.mtext + n;
         if (n > SIM_MSG_QUEUE_BUFSIZE) {
             return -1;
         }
-        sprintf(txtptr, "%s=%d", SIM_MSG_SENSOR_TRIGGER_READING, 127);
+        sprintf(txtptr, "%s=%d", SIM_MSG_SENSOR_CURRENT_STATE, SAHPI_ES_OK);
         n += strlen(txtptr) + 1;
         txtptr = buf.mtext + n;
         if (n > SIM_MSG_QUEUE_BUFSIZE) {
