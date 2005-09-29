@@ -12,7 +12,6 @@
  * Author(s):
  *	Kouzmich	< Mikhail.V.Kouzmich@intel.com >
  *
- *
  */
 #include <stdio.h>
 #include <stdlib.h>
