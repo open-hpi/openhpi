@@ -1384,8 +1384,8 @@ static SaHpiDomainIdT create_new_domain(unsigned int hid, int j) {
                 .Language = SAHPI_LANG_ENGLISH,
         };
 
-        snprintf(tag.Data, 15, "Dummy Child %d", j);
-        tag.DataLength = strlen(tag.Data) + 1;
+        snprintf((char *)(tag.Data), 15, "Dummy Child %d", j);
+        tag.DataLength = strlen((char *)(tag.Data)) + 1;
         return oh_request_new_domain(hid, &tag, 0, 0, 0);
 }
 
@@ -1633,9 +1633,9 @@ static struct oh_event *user_event_to_domain(SaHpiDomainIdT did)
         tb = &e.u.hpi_event.event.EventDataUnion.UserEvent.UserEventData;
         tb->DataType = SAHPI_TL_TYPE_TEXT;
         tb->Language = SAHPI_LANG_ENGLISH;
-        snprintf(tb->Data, SAHPI_MAX_TEXT_BUFFER_LENGTH,
+        snprintf((char *)(tb->Data), SAHPI_MAX_TEXT_BUFFER_LENGTH,
                 "User Event for domain %d", did);
-        tb->DataLength = strlen(tb->Data) + 1;
+        tb->DataLength = strlen((char *)(tb->Data)) + 1;
         return &e;
 }
 
