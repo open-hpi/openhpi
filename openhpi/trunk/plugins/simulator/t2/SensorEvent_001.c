@@ -10,7 +10,7 @@
 * full licensing terms.
 *
 * Authors:
-*     W. david Ashley <dashley@us.ibm.com>
+*     W. David Ashley <dashley@us.ibm.com>
 */
 
 #include <stdlib.h>
@@ -22,6 +22,10 @@
 #include <oh_utils.h>
 #include <../sim_injector_ext.h>
 
+/*
+ * The following values are assumptions and may not be valid for your running
+ * instance of OpenHPI.
+ */
 #define PLUGINNAME "simulator"
 #define CHASSIS_RESID 1
 #define CHASSIS_SENSOR_NUM 1
