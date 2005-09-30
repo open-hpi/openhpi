@@ -32,7 +32,9 @@ noinst_PROGRAMS                     = SensorEvent_001 \
                                       ResourceFailEvent_001 \
                                       ResourceFailEvent_002 \
                                       ResourceRestoreEvent_001 \
-                                      ResourceRestoreEvent_002
+                                      ResourceRestoreEvent_002 \
+                                      DomainEvent_001 \
+                                      DomainEvent_002
 SensorEvent_001_SOURCES             = SensorEvent_001.c
 SensorEnableChangeEvent_001_SOURCES = SensorEnableChangeEvent_001.c
 HotSwapEvent_001_SOURCES            = HotSwapEvent_001.c
@@ -48,4 +50,6 @@ ResourceFailEvent_001_SOURCES       = ResourceFailEvent_001.c
 ResourceFailEvent_002_SOURCES       = ResourceFailEvent_002.c
 ResourceRestoreEvent_001_SOURCES    = ResourceRestoreEvent_001.c
 ResourceRestoreEvent_002_SOURCES    = ResourceRestoreEvent_002.c
+DomainEvent_001_SOURCES             = DomainEvent_001.c
+DomainEvent_002_SOURCES             = DomainEvent_002.c
 
