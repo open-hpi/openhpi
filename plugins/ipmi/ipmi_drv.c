@@ -148,7 +148,7 @@ int ipmicmd_mv(uchar cmd, uchar netfn, uchar lun, uchar *pdata, uchar sdata,
     bmc_addr.addr_type = IPMI_SYSTEM_INTERFACE_ADDR_TYPE;
     bmc_addr.channel = IPMI_BMC_CHANNEL;
     bmc_addr.lun = lun;       // BMC_LUN = 0
-    req.addr = (char *) &bmc_addr;
+    req.addr = (unsigned char *) &bmc_addr;
     req.addr_len = sizeof(bmc_addr);
     req.msg.cmd = cmd;
     req.msg.netfn = netfn;   
@@ -172,7 +172,7 @@ int ipmicmd_mv(uchar cmd, uchar netfn, uchar lun, uchar *pdata, uchar sdata,
 	   else rv = errno;
 	} else {
 	   /* receive the IPMI response */
-	   rsp.addr = (char *) &addr;
+	   rsp.addr = (unsigned char *) &addr;
 	   rsp.addr_len = sizeof(addr);
 	   rsp.msg.data = presp;
 	   rsp.msg.data_len = sresp;

@@ -242,12 +242,12 @@ static int _ipmi_entity_get_internal_use_data(ipmi_entity_t *entity,
 					      char *data,
 					      unsigned int  *max_len)
 {
-	return ipmi_entity_get_internal_use_data(entity, data, max_len);
+	return ipmi_entity_get_internal_use_data(entity, (unsigned char *)data, max_len);
 }
 static int _ipmi_fru_get_multi_record_type(ipmi_fru_t    *fru,
 						enum ipmi_str_type_e *type)
 {
-	return ipmi_fru_get_multi_record_type(fru, 0, (char *)type);
+	return ipmi_fru_get_multi_record_type(fru, 0, (unsigned char *)type);
 }
 
 static struct ohoi_field_data internal_fields[] = {
@@ -891,7 +891,7 @@ static void get_field(ipmi_entity_t *ent,
 	field->Field.Language = SAHPI_LANG_ENGLISH;
 	field->Field.DataLength = 0;
 
-	rv = get_len(ent, &len);
+	rv = get_len(ent, (unsigned int *)(&len));
 	if (rv) {
 		dbg("Error on get_len: %d", rv);
 		gf->rv = SA_ERR_HPI_NOT_PRESENT;
@@ -902,7 +902,7 @@ static void get_field(ipmi_entity_t *ent,
 	if (len > SAHPI_MAX_TEXT_BUFFER_LENGTH)
 		len = SAHPI_MAX_TEXT_BUFFER_LENGTH;
 
-	rv = get_data(ent, &field->Field.Data[0], &len);
+	rv = get_data(ent, (char *)(&field->Field.Data[0]), (unsigned int *)(&len));
 	if (!rv) {
 		field->Field.DataLength = len;
 	} else {
@@ -1061,7 +1061,7 @@ static void get_custom_field_cb(ipmi_entity_t *ent, void *cbdata)
 	if (len > SAHPI_MAX_TEXT_BUFFER_LENGTH)
 		len = SAHPI_MAX_TEXT_BUFFER_LENGTH;
 
-	rv = cf->get_data(fru, cf->num, &field->Field.Data[0], &len);
+	rv = cf->get_data(fru, cf->num, (char *)(&field->Field.Data[0]), (unsigned int *)(&len));
 	if (!rv) {
 		dbg("custom field len = %d", len);
 		field->Field.DataLength = len;
