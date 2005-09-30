@@ -438,7 +438,7 @@ static void trace_ipmi_resources(SaHpiRptEntryT *rpt_entry,
 	unsigned char str[32];
 	if (res_info->type == OHOI_RESOURCE_ENTITY) {
 		ipmi_entity_id_t *e = &res_info->u.entity_id;
-		snprintf(str, 32, "(%d,%d,%d,%d)", e->entity_id,
+		snprintf((char *)str, 32, "(%d,%d,%d,%d)", e->entity_id,
 			e->entity_instance, e->channel, e->address);
 	} else {
 		str[0] = 0;
@@ -615,16 +615,16 @@ static SaErrorT ipmi_get_el_info(void               *hnd,
                 return SA_ERR_HPI_INVALID_CMD;
         }
 
-        ohoi_get_sel_count(ohoi_res_info->u.mc_id, &count);
+        ohoi_get_sel_count(ohoi_res_info->u.mc_id, (int *)(&count));
         info->Entries = count;
 
-        ohoi_get_sel_size(ohoi_res_info->u.mc_id, &size);
+        ohoi_get_sel_size(ohoi_res_info->u.mc_id, (int *)(&size));
         info->Size = size / 16;
         ohoi_get_sel_updatetime(ohoi_res_info->u.mc_id,
                                         &info->UpdateTimestamp);
         ohoi_get_sel_time(ohoi_res_info->u.mc_id, &info->CurrentTime,
                                                                 ipmi_handler);
-        ohoi_get_sel_overflow(ohoi_res_info->u.mc_id, &info->OverflowFlag);
+        ohoi_get_sel_overflow(ohoi_res_info->u.mc_id, (char *)(&info->OverflowFlag));
         info->OverflowAction = SAHPI_EL_OVERFLOW_DROP;
         ohoi_get_sel_support_del(ohoi_res_info->u.mc_id, &del_support);
         rv = ohoi_get_sel_state(ipmi_handler, ohoi_res_info->u.mc_id,
@@ -820,7 +820,7 @@ static int ipmi_get_el_entry(void *hnd, SaHpiResourceIdT id,
 
         entry->EntryId = ipmi_event_get_record_id(event);
         event_type = ipmi_event_get_type(event);
-        data_len = ipmi_event_get_data(event, Data,
+        data_len = ipmi_event_get_data(event, (unsigned char *)Data,
                                         0, IPMI_EVENT_DATA_MAX_LEN);
 
 

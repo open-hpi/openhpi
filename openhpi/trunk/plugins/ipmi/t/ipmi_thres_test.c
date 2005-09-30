@@ -80,7 +80,7 @@ static void print_value(SaHpiSensorReadingT *item, char *mes)
 			printf("%s %10.3f\n", mes, item->Value.SensorFloat64);
 			return;
 		case SAHPI_SENSOR_READING_TYPE_BUFFER:
-			val = item->Value.SensorBuffer;
+			val = (char *)(item->Value.SensorBuffer);
 			if (val != NULL)
 				printf("%s %s\n", mes, val);
 			return;

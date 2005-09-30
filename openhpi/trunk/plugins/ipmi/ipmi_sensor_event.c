@@ -42,7 +42,7 @@ static void set_discrete_sensor_misc_event(ipmi_event_t		*event,
 	int	dt_len;
 	SaHpiSensorOptionalDataT od = 0;
  
-	dt_len = ipmi_event_get_data(event, data, 0, IPMI_EVENT_DATA_MAX_LEN);
+	dt_len = ipmi_event_get_data(event, (unsigned char *)data, 0, IPMI_EVENT_DATA_MAX_LEN);
 	if (dt_len != 13) {
 		dbg("Wrong size of ipmi event data = %i", dt_len);
 		return;
@@ -376,7 +376,7 @@ static struct oh_event *sensor_threshold_map_event(
 				   ipmi_event_t			*event)
 {
 	struct oh_event		*e;
-	SaHpiSeverityT		severity;
+	SaHpiSeverityT		severity = SAHPI_CRITICAL;
 	unsigned char	data[IPMI_EVENT_DATA_MAX_LEN];
 	unsigned int	dt_len;
  
