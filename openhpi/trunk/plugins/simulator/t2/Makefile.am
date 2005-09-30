@@ -24,7 +24,9 @@ noinst_PROGRAMS                     = SensorEvent_001 \
                                       HotSwapEvent_002 \
                                       HotSwapEvent_003 \
                                       HotSwapEvent_004 \
-                                      HotSwapEvent_005
+                                      HotSwapEvent_005 \
+                                      WatchdogEvent_001 \
+                                      SoftwareEvent_001
 SensorEvent_001_SOURCES             = SensorEvent_001.c
 SensorEnableChangeEvent_001_SOURCES = SensorEnableChangeEvent_001.c
 HotSwapEvent_001_SOURCES            = HotSwapEvent_001.c
@@ -32,4 +34,6 @@ HotSwapEvent_002_SOURCES            = HotSwapEvent_002.c
 HotSwapEvent_003_SOURCES            = HotSwapEvent_003.c
 HotSwapEvent_004_SOURCES            = HotSwapEvent_004.c
 HotSwapEvent_005_SOURCES            = HotSwapEvent_005.c
+WatchdogEvent_001_SOURCES           = WatchdogEvent_001.c
+SoftwareEvent_001_SOURCES           = SoftwareEvent_001.c
 
