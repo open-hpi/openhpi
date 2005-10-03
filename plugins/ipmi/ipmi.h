@@ -70,9 +70,11 @@ struct ohoi_handler {
 	int islan;
 	int fully_up;
 	time_t fullup_timeout;
+	int updated;
 	unsigned int openipmi_scan_time;
 	int real_write_fru;
 	SaHpiDomainIdT	did;
+	enum ipmi_domain_type d_type;
 	char domain_name[24];
 };
 

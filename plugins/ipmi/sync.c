@@ -21,21 +21,21 @@ SaErrorT ohoi_loop_until(loop_indicator_cb indicator, const void *cb_data, int t
 		
         /* Wait 5 seconds for result */
         gettimeofday(&tv1, NULL);
-		tv1.tv_sec += to;
-		while (1) {
-				if (indicator(cb_data))
-						break;
-
-				memset(&tv3, 0, sizeof(tv3));	
-				gettimeofday(&tv2, NULL);
-				
-				if (tv2.tv_sec>tv1.tv_sec) 
-						break;
-
-				sel_select(ipmi_handler->ohoi_sel, NULL, 0, NULL, &tv3);
+	tv1.tv_sec += to;
+	while (1) {
+		if (indicator(cb_data)) {
+			return SA_OK;
 		}
+		memset(&tv3, 0, sizeof(tv3));	
+		gettimeofday(&tv2, NULL);
+				
+		if (tv2.tv_sec>tv1.tv_sec) {
+			break;
+		}
+		sel_select(ipmi_handler->ohoi_sel, NULL, 0, NULL, &tv3);
+	}
 		
-		return ((indicator(cb_data))? SA_OK:SA_ERR_HPI_NO_RESPONSE);
+	return SA_ERR_HPI_NO_RESPONSE;
 }
 
 static int simple_indicator(const void *cb_data)

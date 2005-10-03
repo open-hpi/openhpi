@@ -71,15 +71,25 @@ static int ignore_sensor(ipmi_sensor_t *sensor)
 {
         ipmi_entity_t *ent;
 
-        if ( ipmi_sensor_get_ignore_if_no_entity(sensor) )
+        if (ipmi_sensor_get_ignore_if_no_entity(sensor)) {
+		dbg("ignore if no entity");
                 return 0;
-
+	}
         ent = ipmi_sensor_get_entity(sensor);
-
-        if (ent && ipmi_entity_is_present(ent))
+	if (ent == NULL) {
+		dbg("ipmi_sensor_get_entity = NULL");
+		return 1;
+	}
+        if (!ipmi_entity_is_present(ent)) {
+		dbg("!ipmi_entity_is_present. (%d,%d,%d,%d) %s",
+		ipmi_entity_get_entity_id(ent), 
+		ipmi_entity_get_entity_instance(ent),
+		ipmi_entity_get_device_channel(ent),
+		ipmi_entity_get_device_address(ent),
+		ipmi_entity_get_entity_id_string(ent));
                 return 0;
-
-        return 1;
+	}
+        return 0;
 }
 
 
@@ -258,10 +268,10 @@ static void thresholds_read(ipmi_sensor_t	*sensor,
 {
 	struct ohoi_sensor_thresholds *p = cb_data;
 
-	p->thres_done = 1;
 
 	if (err) {
 		p->rvalue = SA_ERR_HPI_INTERNAL_ERROR;
+		p->thres_done = 1;
 		dbg("sensor thresholds reading error");
 		return;
 	}
@@ -278,7 +288,7 @@ static void thresholds_read(ipmi_sensor_t	*sensor,
 		  &p->sensor_thres.UpMajor);
 	thres_get(sensor, th, IPMI_UPPER_NON_RECOVERABLE,
 		  &p->sensor_thres.UpCritical);
-
+	p->thres_done = 1;
 }
 
 static SaErrorT get_thresholds(ipmi_sensor_t	*sensor,
@@ -299,15 +309,14 @@ static void hysteresis_read(ipmi_sensor_t	*sensor,
 			    void 		*cb_data)
 {
 	struct ohoi_sensor_thresholds *p = cb_data;
-	
-	p->hyster_done = 1;
 
 	if (err) {
 		p->rvalue = SA_ERR_HPI_INTERNAL_ERROR;
+		p->hyster_done = 1;
 		dbg("sensor hysteresis reading error");
 		return;		
 	}
-	
+
 	p->sensor_thres.PosThdHysteresis.IsSupported = SAHPI_TRUE;
 	p->sensor_thres.PosThdHysteresis.Type =
 		SAHPI_SENSOR_READING_TYPE_FLOAT64;
@@ -319,7 +328,7 @@ static void hysteresis_read(ipmi_sensor_t	*sensor,
 		SAHPI_SENSOR_READING_TYPE_FLOAT64;
         p->sensor_thres.NegThdHysteresis.Value.SensorFloat64 =
 		negative_hysteresis;
-
+	p->hyster_done = 1;
 }
 
 static SaErrorT get_hysteresis(ipmi_sensor_t			*sensor,
@@ -381,7 +390,7 @@ static void get_sensor_thresholds(ipmi_sensor_t *sensor,
 
 	if (rv != IPMI_HYSTERESIS_SUPPORT_READABLE &&
 			rv != IPMI_HYSTERESIS_SUPPORT_SETTABLE) {
-		thres_data->thres_done = 1;
+//		thres_data->thres_done = 1;
 		thres_data->hyster_done = 1;
 		thres_data->sensor_thres.PosThdHysteresis.IsSupported =
 				SAHPI_FALSE;
@@ -393,7 +402,7 @@ static void get_sensor_thresholds(ipmi_sensor_t *sensor,
 	if (rv != SA_OK) {
 		dbg("failed to get hysteresis");
 		thres_data->hyster_done = 1;
-		thres_data->thres_done = 1;
+//		thres_data->thres_done = 1;
 		thres_data->rvalue = SA_ERR_HPI_INTERNAL_ERROR;
 		return;
 	}
@@ -917,7 +926,7 @@ static void event_enable_masks_read(ipmi_sensor_t	*sensor,
 	p->done = 1;
 
 	if (err) {
-		dbg("Sensor event enable reading error");
+		dbg("Sensor event enable reading error 0x%x", err);
 		p->rvalue = SA_ERR_HPI_INTERNAL_ERROR;
 		return;
 	}
@@ -942,6 +951,7 @@ static void get_sensor_event_enable_masks(ipmi_sensor_t *sensor,
 
 	if (ignore_sensor(sensor)) {
 		dbg("sensor is ignored");
+		enable_data->done = 1;
 		enable_data->rvalue = SA_ERR_HPI_NOT_PRESENT;
 		return;
 	}	

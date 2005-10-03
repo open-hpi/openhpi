@@ -228,7 +228,7 @@ SaErrorT ohoi_get_control_state(void *hnd, SaHpiResourceIdT id,
             (rdr->RdrTypeUnion.CtrlRec.TypeUnion.Oem.MId == ATCAHPI_PICMG_MID)) {
 	    	/* This is ATCA led */
 		info.done = 0;
-		info.err = 0;
+		info.err = SA_OK;
 		info.rdr = rdr;
 		info.handler = handler;
 		info.mode = 0;
@@ -257,6 +257,7 @@ SaErrorT ohoi_get_control_state(void *hnd, SaHpiResourceIdT id,
 	
         info.done  = 0;
         info.state = state;
+	info.err = SA_OK;
         info.state->Type = SAHPI_CTRL_TYPE_OEM;
         
         rv = ipmi_control_pointer_cb(ctrl, _get_control_state, &info);
@@ -266,6 +267,12 @@ SaErrorT ohoi_get_control_state(void *hnd, SaHpiResourceIdT id,
 	}
 
 	rv = ohoi_loop(&info.done, ipmi_handler);
+	if (rv != SA_OK) {
+		return rv;
+	}
+	if (info.err != SA_OK) {
+		return info.err;
+	}
 	val = info.state->StateUnion.Oem.Body[0];
 
 	if ((rdr->RdrTypeUnion.CtrlRec.Type == SAHPI_CTRL_TYPE_DIGITAL) &&
@@ -283,7 +290,7 @@ SaErrorT ohoi_get_control_state(void *hnd, SaHpiResourceIdT id,
 		else 
 		  state->StateUnion.Digital = SAHPI_CTRL_STATE_OFF;
 	} 
-	return(rv);
+	return SA_OK;
 }
 
 static void __set_control_state(ipmi_control_t *control,
@@ -622,6 +629,7 @@ SaErrorT ohoi_set_control_state(void *hnd,
 	    
         info.done  = 0;
         info.state = state;
+	info.err = SA_OK;
         if (info.state->Type != SAHPI_CTRL_TYPE_OEM) {
                 dbg("IPMI only support OEM control");
                 return SA_ERR_HPI_INVALID_CMD;
@@ -633,7 +641,13 @@ SaErrorT ohoi_set_control_state(void *hnd,
 		return SA_ERR_HPI_ERROR;
 	}
 
-        ohoi_loop(&info.done, ipmi_handler);
+        rv = ohoi_loop(&info.done, ipmi_handler);
+	if (rv != SA_OK) {
+		return rv;
+	}
+	if (info.err != SA_OK) {
+		return info.err;
+	}
 	ctrl_info->mode = mode;
 	return SA_OK;
 }
@@ -843,7 +857,11 @@ SaErrorT ohoi_set_power_state(void *hnd, SaHpiResourceIdT id,
 				dbg("set_power_state_off failed");
 				return SA_ERR_HPI_INTERNAL_ERROR;
 			}
-			ohoi_loop(&power_info.done, ipmi_handler);
+			rv = ohoi_loop(&power_info.done, ipmi_handler);
+			if (rv != SA_OK) {
+				dbg("ohopi_loop = 0x%x", rv);
+				return rv;
+			}
 			dbg("CYCLE Stage 1: OK");
 
 			if ((power_info.done) && (power_info.err == SA_OK)) {
@@ -866,8 +884,10 @@ SaErrorT ohoi_set_power_state(void *hnd, SaHpiResourceIdT id,
 			return SA_ERR_HPI_INVALID_PARAMS;
 	}
 
-        ohoi_loop(&power_info.done, ipmi_handler);
-        
+        rv = ohoi_loop(&power_info.done, ipmi_handler);
+ 	if (rv != SA_OK) {
+		return rv;
+	}       
         return power_info.err;
 }
 
@@ -927,7 +947,7 @@ SaErrorT ohoi_get_power_state (void *hnd,
 	int rv;
 
 	power_state.done = 0;
-	power_state.err = 0;
+	power_state.err = SA_OK;
 	power_state.state = state;
 	
         ohoi_res_info = oh_get_resource_data(handler->rptcache, id);
@@ -944,8 +964,10 @@ SaErrorT ohoi_get_power_state (void *hnd,
 	}
 
 	dbg("waiting for OIPMI to return");
-	ohoi_loop(&power_state.done, ipmi_handler);
-				     
+	rv = ohoi_loop(&power_state.done, ipmi_handler);
+	if (rv != SA_OK) {
+		return rv;
+	}	     
         return power_state.err;
 }
 
@@ -1033,8 +1055,10 @@ SaErrorT ohoi_get_reset_state(void *hnd,
 		return SA_ERR_HPI_INVALID_CMD;
 	}
 
-	ohoi_loop(&reset_state.done, ipmi_handler);
-
+	rv = ohoi_loop(&reset_state.done, ipmi_handler);
+	if (rv != SA_OK) {
+		return rv;
+	}
 	return reset_state.err;
 }
 

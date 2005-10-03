@@ -28,14 +28,24 @@ static void trace_ipmi_entity(char *str, int inst, ipmi_entity_t *entity)
 	}
 
 	char *type;
+	char logical[24];
 	
+	logical[0] = 0;
 	switch (ipmi_entity_get_type(entity)) {
 	case IPMI_ENTITY_UNKNOWN:
 		type = "UNKNOWN"; break;
 	case IPMI_ENTITY_MC:
 		type = "MC"; break;
 	case IPMI_ENTITY_FRU:
-		type = "FRU"; break;
+		type = "FRU";
+		if (ipmi_entity_get_is_logical_fru(entity)) {
+			snprintf(logical, 24, " Logical (%d) ",
+			   ipmi_entity_get_fru_device_id(entity));
+		} else {
+			snprintf(logical, 24, " NonLogic(%d) ",
+			   ipmi_entity_get_fru_device_id(entity));
+		}
+		break;
 	case IPMI_ENTITY_GENERIC:
 		type = "GENERIC"; break;
 	case IPMI_ENTITY_EAR:
@@ -46,7 +56,8 @@ static void trace_ipmi_entity(char *str, int inst, ipmi_entity_t *entity)
 		type = "INVALID"; break;
 	}
 
-	fprintf(stderr, "*** Entity %s %s: %d.%d(%d).%d.%d (%s)\n", type, str,
+	fprintf(stderr, "*** Entity %s %s %s: %d.%d(%d).%d.%d (%s)\n",
+		type, logical, str,
 		ipmi_entity_get_entity_id(entity), 
 		inst,
 		ipmi_entity_get_entity_instance(entity),
@@ -65,6 +76,7 @@ void entity_rpt_set_updated(struct ohoi_resource_info *res_info,
 		return;
 	}	
 	res_info->updated = 1;
+	ipmi_handler->updated = 1;
 	g_static_rec_mutex_unlock(&ipmi_handler->ohoih_lock);
 }
 
@@ -80,6 +92,7 @@ void entity_rpt_set_presence(struct ohoi_resource_info *res_info,
 	}
 	res_info->presence =  present;
 	res_info->updated = 1;
+	ipmi_handler->updated = 1;
 	g_static_rec_mutex_unlock(&ipmi_handler->ohoih_lock);
 }
 
@@ -198,6 +211,7 @@ static void add_parent_ep(ipmi_entity_t *ent, ipmi_entity_t *parent, void *cb_da
 		return;
 	}
 	append_parent_epath(info->entry, pr_rpt);
+	return;
 }
 
 
@@ -399,9 +413,10 @@ no_atca:
 		info.handler = handler;
 		info.entry = entry;
 		ipmi_entity_iterate_parents(entity, add_parent_ep, &info);
+	} else {
+		oh_encode_entitypath(ipmi_handler->entity_root, &entity_ep);
+		oh_concat_ep(&entry->ResourceEntity, &entity_ep);
 	}
-	oh_encode_entitypath(ipmi_handler->entity_root, &entity_ep);
-	oh_concat_ep(&entry->ResourceEntity, &entity_ep);
 
 	entry->ResourceId = oh_uid_from_entity_path(&entry->ResourceEntity);
 
