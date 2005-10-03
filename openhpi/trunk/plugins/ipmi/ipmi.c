@@ -60,6 +60,7 @@ static void ipmi_domain_fully_up(ipmi_domain_t *domain,
                         ipmi_handler->bus_scan_done,
                         ipmi_handler->mc_count);
         ipmi_handler->fully_up = 1;
+	ipmi_handler->d_type = ipmi_domain_get_type(domain);
 }
 
 /**
@@ -518,6 +519,11 @@ int ipmi_discover_resources(void *hnd)
         }
 
         g_static_rec_mutex_lock(&ipmi_handler->ohoih_lock);
+	if (!ipmi_handler->updated) {
+        	g_static_rec_mutex_unlock(&ipmi_handler->ohoih_lock);
+		return 0;
+	}
+	ipmi_handler->updated = 0;
         rpt_entry = oh_get_resource_next(handler->rptcache, SAHPI_FIRST_ENTRY);
         while (rpt_entry) {
                 res_info = oh_get_resource_data(handler->rptcache,

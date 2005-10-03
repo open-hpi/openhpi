@@ -154,7 +154,7 @@ int ohoi_hot_swap_cb(ipmi_entity_t  *ent,
 	}else {
 	  	handler->eventq = g_slist_append(handler->eventq, e);
 	}
-
+	oh_wake_event_thread(0);
 	return IPMI_EVENT_HANDLED;
 }
 
@@ -306,14 +306,33 @@ static void activation_request(ipmi_entity_t *ent, void *cb_data)
 	struct hs_done_s *info = cb_data;
 
 	rv = ipmi_entity_set_activation_requested(ent, _hotswap_done,
-							cb_data);
+					cb_data);
+
+	if (rv == ENOSYS) {
+		dbg("ipmi_entity_set_activation_requested = ENOSYS. "
+		    "Use ipmi_entity_activate");
+		rv = ipmi_entity_activate(ent, _hotswap_done, cb_data);
+	}
 	if (rv) {
 		dbg("ipmi_entity_set_activation_requested = 0x%x", rv);
 		info->done = 1;
 		info->err = -1;
 	}
 }
-		
+
+static void deactivation_request(ipmi_entity_t *ent, void *cb_data)
+{
+	int rv;
+	struct hs_done_s *info = cb_data;
+
+	rv = ipmi_entity_deactivate(ent, _hotswap_done,
+					cb_data);
+	if (rv) {
+		dbg("ipmi_entity_set_activation_requested = 0x%x", rv);
+		info->done = 1;
+		info->err = -1;
+	}
+}		
 		
 SaErrorT ohoi_request_hotswap_action(void *hnd, SaHpiResourceIdT id, 
                                      SaHpiHsActionT act)
@@ -346,7 +365,14 @@ SaErrorT ohoi_request_hotswap_action(void *hnd, SaHpiResourceIdT id,
 		}
 		break;
 	case SAHPI_HS_ACTION_EXTRACTION:
-        	return SA_ERR_HPI_UNSUPPORTED_API;
+		rv = ipmi_entity_pointer_cb(ohoi_res_info->u.entity_id,
+						deactivation_request, &info);
+		if (rv) {
+			dbg("ipmi_entity_pointer_cb = 0x%x", rv);
+			return SA_ERR_HPI_INVALID_PARAMS;
+		}
+		break;
+        	//return SA_ERR_HPI_UNSUPPORTED_API;
 	default :
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}

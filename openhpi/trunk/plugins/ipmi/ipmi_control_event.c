@@ -605,6 +605,12 @@ void ohoi_control_event(enum ipmi_update_e op,
 					SAHPI_CAPABILITY_RESET;
 			break;
 		case IPMI_CONTROL_POWER:
+			if ((ipmi_handler->d_type == IPMI_DOMAIN_TYPE_ATCA) &&
+				(ipmi_entity_get_entity_id(ent) ==
+				SAHPI_ENT_SYSTEM_CHASSIS)) {
+				// never power off ATCA chassis
+				break;
+			}
 			ohoi_res_info->power_ctrl =
 				ipmi_control_convert_to_id(control);
 			rpt_entry->ResourceCapabilities |=
