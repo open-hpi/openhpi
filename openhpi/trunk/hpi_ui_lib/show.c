@@ -19,6 +19,9 @@
 #include <string.h>
 #include <hpi_ui.h>
 
+#define SHOW_BUF_SZ	1024
+
+
 extern char	*lookup_proc(int num, int val);
 extern SaErrorT	decode_proc(int num, void *val, char *buf, int bufsize);
 extern SaErrorT	decode1_proc(int num, int val, char *buf, int bufsize);
@@ -237,13 +240,13 @@ SaErrorT show_control(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 			proc(buf);
 			str = (char *)(oem->ConfigData);
 			for (i = 0; i < SAHPI_CTRL_OEM_CONFIG_LENGTH; i++)
-				sprintf(buf + i * 3, "%2.2X ", (uchar)(str[i]));
+				sprintf(buf + i * 3, "%2.2X ", (unsigned char)(str[i]));
 			strcat(buf, "\n\t");
 			if (proc(buf) != HPI_UI_OK) return(SA_OK);
 			sprintf(buf, "Default: MId = %d  Body = ", oem->MId);
 			str = (char *)(oem->Default.Body);
 			for (i = 0; i < oem->Default.BodyLength; i++)
-				sprintf(buf + i * 3, "%2.2X ", (uchar)(str[i]));
+				sprintf(buf + i * 3, "%2.2X ", (unsigned char)(str[i]));
 			strcat(buf, "\n");
 			break;
 		default: strcpy(buf, "Unknown control type\n");
@@ -319,7 +322,7 @@ SaErrorT show_control_state(SaHpiSessionIdT sessionid, SaHpiResourceIdT resource
 			proc(buf);
 			str = (char *)(oem->Body);
 			for (i = 0; i < oem->BodyLength; i++)
-				sprintf(buf + i * 3, "%2.2X ", (uchar)(str[i]));
+				sprintf(buf + i * 3, "%2.2X ", (unsigned char)(str[i]));
 			strcat(buf, "\n");
 			break;
 		default: strcpy(buf, "Unknown control type\n");
@@ -400,14 +403,15 @@ SaErrorT show_sensor(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 		proc(errbuf);
 		return(rv);
 	};
+	snprintf(buf, SHOW_BUF_SZ, "\tEvent states = 0x%x\n", status);
+	if (proc(buf) != HPI_UI_OK) return(SA_OK);
         if (reading.IsSupported) {
-		snprintf(buf, SHOW_BUF_SZ, "     Event states = %x", status);
-		if (proc(buf) != HPI_UI_OK) return(SA_OK);
-		res = print_thres_value(&reading, "     Reading Value =",
+		res = print_thres_value(&reading, "\tReading Value =",
 			NULL, 0, proc);
 		if (res == HPI_UI_END) return(SA_OK);
-	} else
+	} else {
 		if (proc("\tReading not supported\n") != HPI_UI_OK) return(SA_OK);
+	}
 
 	show_threshold(sessionid, resourceid, sensornum,
 		&(rdr.RdrTypeUnion.SensorRec), proc);
