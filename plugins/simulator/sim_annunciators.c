@@ -58,6 +58,9 @@ static SaErrorT new_annunciator(struct oh_handler_state * state,
                                 return SA_ERR_HPI_OUT_OF_SPACE;
                         }
                 }
+                /* fix the resource id for the announcement */
+                myannun->announs[i].StatusCond.ResourceId = ResId;
+
                 oh_announcement_append(info->announs, &myannun->announs[i]);
                 i++;
         }
