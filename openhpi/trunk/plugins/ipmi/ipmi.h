@@ -131,9 +131,42 @@ struct ohoi_sensor_info {
 	unsigned int support_deassert;
 };
 
+typedef enum {
+	OHOI_CTRL_ORIGINAL,
+	OHOI_CTRL_ATCA_MAPPED
+} ohoi_control_type_t;
+
+typedef struct ohoi_ctrl_interfaces {
+	SaErrorT (*get_control_state)(void *hnd,
+				      SaHpiResourceIdT id,
+                                      SaHpiCtrlNumT num,
+                                      SaHpiCtrlModeT *mode,
+                                      SaHpiCtrlStateT *state);
+	SaErrorT (*set_control_state)(void *hnd,
+                                      SaHpiResourceIdT id,
+                                      SaHpiCtrlNumT num,
+                                      SaHpiCtrlModeT mode,
+                                      SaHpiCtrlStateT *state);
+} ohoi_ctrl_interfaces_t;
+
+typedef struct ohoi_original_ctrl_info {
+	ipmi_control_id_t		ctrl_id;
+} ohoi_original_ctrl_info_t;
+
+typedef struct ohoi_atcamap_ctrl_info {
+	int				some;
+} ohoi_atcamap_ctrl_info_t;
+
+typedef union {
+	ohoi_original_ctrl_info_t	orig_ctrl_info;
+	ohoi_atcamap_ctrl_info_t	atcamap_ctrl_info;
+} ohoi_control_info_union_t;
+
 struct ohoi_control_info {
-	ipmi_control_id_t ctrl_id;
-	SaHpiCtrlModeT mode;
+	ohoi_control_type_t		type;
+	ohoi_control_info_union_t	info;
+	SaHpiCtrlModeT 			mode;
+	ohoi_ctrl_interfaces_t		ohoii;
 };
 
 
@@ -325,6 +358,19 @@ SaErrorT ohoi_set_reset_state(void *hnd, SaHpiResourceIdT id,
 
 SaErrorT ohoi_get_reset_state(void *hnd, SaHpiResourceIdT id, 
 		              SaHpiResetActionT *act);
+
+
+SaErrorT orig_get_control_state(void *hnd,
+				SaHpiResourceIdT id,
+                                SaHpiCtrlNumT num,
+                                SaHpiCtrlModeT *mode,
+                                SaHpiCtrlStateT *state);
+
+SaErrorT orig_set_control_state(void *hnd,
+				SaHpiResourceIdT id,
+                                SaHpiCtrlNumT num,
+                                SaHpiCtrlModeT mode,
+                                SaHpiCtrlStateT *state);
 
 SaErrorT ohoi_get_control_state(void *hnd, SaHpiResourceIdT id,
                                 SaHpiCtrlNumT num,
