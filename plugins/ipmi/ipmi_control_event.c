@@ -165,8 +165,12 @@ static int add_control_event(ipmi_entity_t	*ent,
                 return 1;
         }
 	memset(&rdr, 0, sizeof(rdr));
-        ctrl_info->ctrl_id = ipmi_control_convert_to_id(control);
+	ctrl_info->type = OHOI_CTRL_ORIGINAL;
+        ctrl_info->info.orig_ctrl_info.ctrl_id =
+				ipmi_control_convert_to_id(control);
 	ctrl_info->mode = SAHPI_CTRL_MODE_AUTO;
+	ctrl_info->ohoii.get_control_state = orig_get_control_state;
+	ctrl_info->ohoii.set_control_state = orig_set_control_state;
 
 	rdr.RecordId = 0;
 	rdr.Entity = parent_ep;
@@ -336,7 +340,11 @@ static int add_led_control_event(ipmi_entity_t	*ent,
                 return 1;
         }
 	memset(&rdr, 0, sizeof(rdr));
-        ctrl_info->ctrl_id = ipmi_control_convert_to_id(control);
+	ctrl_info->type = OHOI_CTRL_ORIGINAL;
+        ctrl_info->info.orig_ctrl_info.ctrl_id =
+				ipmi_control_convert_to_id(control);
+	ctrl_info->ohoii.get_control_state = orig_get_control_state;
+	ctrl_info->ohoii.set_control_state = orig_set_control_state;
         
 	rdr.RecordId = 0;
 	rdr.RdrType = SAHPI_CTRL_RDR;
@@ -427,8 +435,11 @@ static void add_alarm_rdr(char 				*name,
                 dbg("Out of memory");
                 return;
         }
-        ctrl_info->ctrl_id = *control_id;
+	ctrl_info->type = OHOI_CTRL_ORIGINAL;
+        ctrl_info->info.orig_ctrl_info.ctrl_id = *control_id;
 	ctrl_info->mode = SAHPI_CTRL_MODE_AUTO;
+	ctrl_info->ohoii.get_control_state = orig_get_control_state;
+	ctrl_info->ohoii.set_control_state = orig_set_control_state;
 	 
 	rdr = &rdr_temp;
         rdr->RecordId = 0;
