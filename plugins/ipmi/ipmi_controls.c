@@ -193,9 +193,7 @@ static void _get_atca_led(ipmi_control_t *control,
 }
 
 
-
-
-SaErrorT ohoi_get_control_state(void *hnd, SaHpiResourceIdT id,
+SaErrorT orig_get_control_state(void *hnd, SaHpiResourceIdT id,
                                 SaHpiCtrlNumT num,
                                 SaHpiCtrlModeT *mode,
                                 SaHpiCtrlStateT *state)
@@ -215,7 +213,7 @@ SaErrorT ohoi_get_control_state(void *hnd, SaHpiResourceIdT id,
 	if (!rdr) return SA_ERR_HPI_INVALID_RESOURCE;
         rv = ohoi_get_rdr_data(hnd, id, SAHPI_CTRL_RDR, num, (void *)&ctrl_info);
         if (rv!=SA_OK) return rv;
-	ctrl = ctrl_info->ctrl_id;
+	ctrl = ctrl_info->info.orig_ctrl_info.ctrl_id;
 
 	if (state == NULL) {
 		state = &localstate;
@@ -291,6 +289,31 @@ SaErrorT ohoi_get_control_state(void *hnd, SaHpiResourceIdT id,
 		  state->StateUnion.Digital = SAHPI_CTRL_STATE_OFF;
 	} 
 	return SA_OK;
+}
+
+SaErrorT ohoi_get_control_state(void *hnd, SaHpiResourceIdT id,
+                                SaHpiCtrlNumT num,
+                                SaHpiCtrlModeT *mode,
+                                SaHpiCtrlStateT *state)
+{
+	struct oh_handler_state	*handler = (struct oh_handler_state *)hnd;
+	SaErrorT		rv;
+	struct ohoi_control_info *ctrl_info;
+	SaHpiRdrT		*rdr;
+
+	rdr = oh_get_rdr_by_type(handler->rptcache, id, SAHPI_CTRL_RDR, num);
+	if (!rdr) return SA_ERR_HPI_INVALID_RESOURCE;
+        rv = ohoi_get_rdr_data(hnd, id, SAHPI_CTRL_RDR, num, (void *)&ctrl_info);
+        if (rv!=SA_OK) return rv;
+	
+	if (ctrl_info->ohoii.get_control_state == NULL) {
+		return SA_ERR_HPI_UNSUPPORTED_API;
+	}
+	
+	rv = ctrl_info->ohoii.get_control_state(hnd, id, num, mode, state);
+	
+	return rv;	
+
 }
 
 static void __set_control_state(ipmi_control_t *control,
@@ -528,12 +551,10 @@ static void _set_atca_led(ipmi_control_t *control,
 		info->err = SA_ERR_HPI_INVALID_DATA;
 		info->done = 1;
 	}
-}	 
+}
 
 
-	/* interface function */
-
-SaErrorT ohoi_set_control_state(void *hnd,
+SaErrorT orig_set_control_state(void *hnd,
                                 SaHpiResourceIdT id,
                                 SaHpiCtrlNumT num,
                                 SaHpiCtrlModeT mode,
@@ -551,13 +572,7 @@ SaErrorT ohoi_set_control_state(void *hnd,
 	if (!rdr) return SA_ERR_HPI_INVALID_RESOURCE;
         rv = ohoi_get_rdr_data(hnd, id, SAHPI_CTRL_RDR, num, (void *)&ctrl_info);
         if (rv!=SA_OK) return rv;
-	ctrl = ctrl_info->ctrl_id;
-		
-	if (rdr->RdrTypeUnion.CtrlRec.DefaultMode.ReadOnly &&
-		rdr->RdrTypeUnion.CtrlRec.DefaultMode.Mode != mode) {
-		dbg("Attempt to change mode of RO sensor mode");
-		return SA_ERR_HPI_READ_ONLY;
-	}
+	ctrl = ctrl_info->info.orig_ctrl_info.ctrl_id;
 
 
 	if ((rdr->RdrTypeUnion.CtrlRec.Type == SAHPI_CTRL_TYPE_OEM) &&
@@ -650,6 +665,42 @@ SaErrorT ohoi_set_control_state(void *hnd,
 	}
 	ctrl_info->mode = mode;
 	return SA_OK;
+}	 
+
+
+	/* interface function */
+
+SaErrorT ohoi_set_control_state(void *hnd,
+                                SaHpiResourceIdT id,
+                                SaHpiCtrlNumT num,
+                                SaHpiCtrlModeT mode,
+                                SaHpiCtrlStateT *state)
+{
+	struct oh_handler_state		*handler =
+						(struct oh_handler_state *)hnd;
+	struct ohoi_control_info	*ctrl_info;
+	SaErrorT			rv;
+	SaHpiRdrT			*rdr;
+
+	rdr = oh_get_rdr_by_type(handler->rptcache, id, SAHPI_CTRL_RDR, num);
+	if (!rdr) return SA_ERR_HPI_INVALID_RESOURCE;
+        rv = ohoi_get_rdr_data(hnd, id, SAHPI_CTRL_RDR, num, (void *)&ctrl_info);
+        if (rv != SA_OK) return rv;
+		
+	if (rdr->RdrTypeUnion.CtrlRec.DefaultMode.ReadOnly &&
+		rdr->RdrTypeUnion.CtrlRec.DefaultMode.Mode != mode) {
+		dbg("Attempt to change mode of RO sensor mode");
+		return SA_ERR_HPI_READ_ONLY;
+	}
+
+	if (ctrl_info->ohoii.set_control_state == NULL) {
+		return SA_ERR_HPI_UNSUPPORTED_API;
+	}
+	
+	rv = ctrl_info->ohoii.set_control_state(hnd, id, num, mode, state);
+	
+	return rv;
+
 }
 
 static void reset_resource_done (ipmi_control_t *ipmi_control,
