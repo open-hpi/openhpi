@@ -193,27 +193,21 @@ static void _get_atca_led(ipmi_control_t *control,
 }
 
 
-SaErrorT orig_get_control_state(void *hnd, SaHpiResourceIdT id,
-                                SaHpiCtrlNumT num,
+SaErrorT orig_get_control_state(struct oh_handler_state *handler,
+                                struct ohoi_control_info *c,
+				SaHpiRdrT * rdr,
                                 SaHpiCtrlModeT *mode,
                                 SaHpiCtrlStateT *state)
 {
-	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
 	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
         struct ohoi_ctrl_info info;
 	SaErrorT         rv;
-	struct ohoi_control_info *ctrl_info;
 	ipmi_control_id_t ctrl;
-	SaHpiRdrT * rdr;
 	SaHpiUint8T val, mask, idx, i;
 	SaHpiCtrlStateT localstate;
 	SaHpiCtrlModeT  localmode;
 
-	rdr = oh_get_rdr_by_type(handler->rptcache, id, SAHPI_CTRL_RDR, num);
-	if (!rdr) return SA_ERR_HPI_INVALID_RESOURCE;
-        rv = ohoi_get_rdr_data(hnd, id, SAHPI_CTRL_RDR, num, (void *)&ctrl_info);
-        if (rv!=SA_OK) return rv;
-	ctrl = ctrl_info->info.orig_ctrl_info.ctrl_id;
+	ctrl = c->info.orig_ctrl_info.ctrl_id;
 
 	if (state == NULL) {
 		state = &localstate;
@@ -246,11 +240,11 @@ SaErrorT orig_get_control_state(void *hnd, SaHpiResourceIdT id,
 			return info.err;
 		}
 		*mode = info.mode;
-		ctrl_info->mode = info.mode;
+		c->mode = info.mode;
 		return SA_OK;
         }
 
-	*mode = ctrl_info->mode;
+	*mode = c->mode;
 	memset(state, 0, sizeof(*state));
 	
         info.done  = 0;
@@ -310,10 +304,7 @@ SaErrorT ohoi_get_control_state(void *hnd, SaHpiResourceIdT id,
 		return SA_ERR_HPI_UNSUPPORTED_API;
 	}
 	
-	rv = ctrl_info->ohoii.get_control_state(hnd, id, num, mode, state);
-	
-	return rv;	
-
+	return ctrl_info->ohoii.get_control_state(handler, ctrl_info, rdr, mode, state);	
 }
 
 static void __set_control_state(ipmi_control_t *control,
@@ -362,8 +353,8 @@ static void _set_control_state(ipmi_control_t *control,
 }
 
 static SaErrorT set_front_panrl_alarm_led(void *hnd,
-					  SaHpiResourceIdT id,
-					  SaHpiCtrlNumT num,
+                                	  struct ohoi_control_info *c,
+					  SaHpiRdrT * rdr,
 					  ipmi_control_id_t ctrl,
 					  SaHpiUint8T idx,
 					  SaHpiCtrlModeT mode,
@@ -379,7 +370,7 @@ static SaErrorT set_front_panrl_alarm_led(void *hnd,
 
 	
 	/* just get the current control states */
-	rv = ohoi_get_control_state(hnd, id, num, NULL, &my_state);
+	rv = orig_get_control_state(hnd, c, rdr, NULL, &my_state);
 	if (rv != SA_OK) {
 		return SA_ERR_HPI_NOT_PRESENT;
 	}
@@ -554,25 +545,18 @@ static void _set_atca_led(ipmi_control_t *control,
 }
 
 
-SaErrorT orig_set_control_state(void *hnd,
-                                SaHpiResourceIdT id,
-                                SaHpiCtrlNumT num,
+SaErrorT orig_set_control_state(struct oh_handler_state *handler,
+                                struct ohoi_control_info *c,
+				SaHpiRdrT * rdr,
                                 SaHpiCtrlModeT mode,
                                 SaHpiCtrlStateT *state)
 {
-	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
 	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
         struct ohoi_ctrl_info info;
-	struct ohoi_control_info *ctrl_info;
 	SaErrorT         rv;
 	ipmi_control_id_t ctrl;
-	SaHpiRdrT * rdr;
 
-	rdr = oh_get_rdr_by_type(handler->rptcache, id, SAHPI_CTRL_RDR, num);
-	if (!rdr) return SA_ERR_HPI_INVALID_RESOURCE;
-        rv = ohoi_get_rdr_data(hnd, id, SAHPI_CTRL_RDR, num, (void *)&ctrl_info);
-        if (rv!=SA_OK) return rv;
-	ctrl = ctrl_info->info.orig_ctrl_info.ctrl_id;
+	ctrl = c->info.orig_ctrl_info.ctrl_id;
 
 
 	if ((rdr->RdrTypeUnion.CtrlRec.Type == SAHPI_CTRL_TYPE_OEM) &&
@@ -619,12 +603,12 @@ SaErrorT orig_set_control_state(void *hnd,
 			dbg("info.err = %d", info.err);
 			return info.err;
 		}
-		ctrl_info->mode = mode;
+		c->mode = mode;
 		return SA_OK;
         }
 
 	if (mode == SAHPI_CTRL_MODE_AUTO) {
-		ctrl_info->mode = mode;
+		c->mode = mode;
 		return SA_OK;
 	}
 
@@ -632,11 +616,11 @@ SaErrorT orig_set_control_state(void *hnd,
             (rdr->RdrTypeUnion.CtrlRec.OutputType == SAHPI_CTRL_LED) &&
             (rdr->RdrTypeUnion.CtrlRec.Oem >= OEM_ALARM_BASE)) {
                 /* This is a front panel alarm LED. */
-		rv = set_front_panrl_alarm_led(hnd, id, num, ctrl,
+		rv = set_front_panrl_alarm_led(handler, c, rdr, ctrl,
 			rdr->RdrTypeUnion.CtrlRec.Oem - OEM_ALARM_BASE,
 			mode, state);
 		if (rv == SA_OK) {
-			ctrl_info->mode = mode;
+			c->mode = mode;
 		}
 		return rv;
         }
@@ -663,7 +647,7 @@ SaErrorT orig_set_control_state(void *hnd,
 	if (info.err != SA_OK) {
 		return info.err;
 	}
-	ctrl_info->mode = mode;
+	c->mode = mode;
 	return SA_OK;
 }	 
 
@@ -697,7 +681,7 @@ SaErrorT ohoi_set_control_state(void *hnd,
 		return SA_ERR_HPI_UNSUPPORTED_API;
 	}
 	
-	rv = ctrl_info->ohoii.set_control_state(hnd, id, num, mode, state);
+	rv = ctrl_info->ohoii.set_control_state(handler, ctrl_info, rdr, mode, state);
 	
 	return rv;
 

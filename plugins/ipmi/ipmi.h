@@ -39,6 +39,12 @@
 #include <oh_error.h>
 #include <oh_handler.h>
 
+//#define ATCA_HPI
+
+#ifdef ATCA_HPI
+#include "atca_hpi.h"
+#endif
+
 
 
 #define IPMI_DATA_WAIT	5
@@ -131,27 +137,21 @@ struct ohoi_sensor_info {
 	unsigned int support_deassert;
 };
 
+
+
+
+		/*  Control  info*/
+
 typedef enum {
 	OHOI_CTRL_ORIGINAL,
 	OHOI_CTRL_ATCA_MAPPED
 } ohoi_control_type_t;
 
-typedef struct ohoi_ctrl_interfaces {
-	SaErrorT (*get_control_state)(void *hnd,
-				      SaHpiResourceIdT id,
-                                      SaHpiCtrlNumT num,
-                                      SaHpiCtrlModeT *mode,
-                                      SaHpiCtrlStateT *state);
-	SaErrorT (*set_control_state)(void *hnd,
-                                      SaHpiResourceIdT id,
-                                      SaHpiCtrlNumT num,
-                                      SaHpiCtrlModeT mode,
-                                      SaHpiCtrlStateT *state);
-} ohoi_ctrl_interfaces_t;
 
 typedef struct ohoi_original_ctrl_info {
-	ipmi_control_id_t		ctrl_id;
+	ipmi_control_id_t ctrl_id;
 } ohoi_original_ctrl_info_t;
+
 
 typedef struct ohoi_atcamap_ctrl_info {
 	int				some;
@@ -162,12 +162,34 @@ typedef union {
 	ohoi_atcamap_ctrl_info_t	atcamap_ctrl_info;
 } ohoi_control_info_union_t;
 
+
+struct ohoi_control_info;
+
+typedef struct ohoi_ctrl_interfaces {
+	SaErrorT (*get_control_state)(struct oh_handler_state *hnd,
+				      struct ohoi_control_info *c,
+				      SaHpiRdrT * rdr,
+                                      SaHpiCtrlModeT *mode,
+                                      SaHpiCtrlStateT *state);
+	SaErrorT (*set_control_state)(struct oh_handler_state *hnd,
+                                      struct ohoi_control_info *c,
+                                      SaHpiRdrT * rdr,
+                                      SaHpiCtrlModeT mode,
+                                      SaHpiCtrlStateT *state);
+} ohoi_ctrl_interfaces_t;
+
+
+
 struct ohoi_control_info {
 	ohoi_control_type_t		type;
 	ohoi_control_info_union_t	info;
 	SaHpiCtrlModeT 			mode;
 	ohoi_ctrl_interfaces_t		ohoii;
 };
+
+
+
+		/*  Inventory info*/
 
 
 struct ohoi_inventory_info {
@@ -360,15 +382,15 @@ SaErrorT ohoi_get_reset_state(void *hnd, SaHpiResourceIdT id,
 		              SaHpiResetActionT *act);
 
 
-SaErrorT orig_get_control_state(void *hnd,
-				SaHpiResourceIdT id,
-                                SaHpiCtrlNumT num,
+SaErrorT orig_get_control_state(struct oh_handler_state *handler,
+				struct ohoi_control_info *c,
+				SaHpiRdrT * rdr,
                                 SaHpiCtrlModeT *mode,
                                 SaHpiCtrlStateT *state);
 
-SaErrorT orig_set_control_state(void *hnd,
-				SaHpiResourceIdT id,
-                                SaHpiCtrlNumT num,
+SaErrorT orig_set_control_state(struct oh_handler_state *handler,
+				struct ohoi_control_info *c,
+				SaHpiRdrT * rdr,
                                 SaHpiCtrlModeT mode,
                                 SaHpiCtrlStateT *state);
 
@@ -391,6 +413,19 @@ void ipmi_connection_handler(ipmi_domain_t	*domain,
 			      unsigned int	port_num,
 			      int		still_connected,
 			      void		*cb_data);
+			      
+			      
+			      
+		/* ATCA-HPI mapping functions */
+SaHpiRdrT *ohoi_create_atca_chassis_status_control(
+			struct ohoi_handler *ipmi_handler,
+			struct ohoi_control_info *ctrl_info);
+
+
+
+
+
+
 /* misc macros for debug */
 #define dump_entity_id(s, x) \
         do { \
@@ -418,9 +453,17 @@ static inline void  dump_rpttable(RPTable *table)
 
        printf("\n");
        while (rpt) {
+               printf("Resource Id:%d", rpt->ResourceId);
+	       struct ohoi_resource_info *res_info =
+	       		oh_get_resource_data(table, rpt->ResourceId);
+		if (res_info->type == OHOI_RESOURCE_ENTITY) {
+			ipmi_entity_id_t e = res_info->u.entity_id;
+			printf("; entity id: %x, entity instance: %x, channel: %x, address: %x, seq: %lx",
+				e.entity_id, e.entity_instance, e.channel, e.address, e.seq);
+		}
+		printf("\n");
+#if 0
                SaHpiRdrT  *rdr;
-
-               printf("Resource Id:%d\n", rpt->ResourceId);
                rdr = oh_get_rdr_next(table, rpt->ResourceId, SAHPI_FIRST_ENTRY);
                while (rdr) {
                        unsigned char *data;
@@ -432,13 +475,14 @@ static inline void  dump_rpttable(RPTable *table)
                                //rdr->RecordId,
                                //rdr->RdrType,
                                //(unsigned)(void *)data);
-                       if (data)
-                               for (i = 0; i < 30; i++)
-                                       printf("%u ", data[i]);
-                       printf("\n");
+                       //if (data)
+                       //        for (i = 0; i < 30; i++)
+                       //                printf("%u ", data[i]);
+                       //printf("\n");
                        rdr = oh_get_rdr_next(table, rpt->ResourceId, rdr->RecordId);
                }
-               printf("\n");
+              // printf("\n");
+#endif
                rpt = oh_get_resource_next(table, rpt->ResourceId);
       }
 }
@@ -497,7 +541,7 @@ void ohoi_remove_entity(struct oh_handler_state *handler,
 	
 	
 	
-#if 1 // ATCA additional definitions
+#ifndef ATCA_HPI // ATCA additional definitions
 
 #define ATCAHPI_PICMG_MID		0x315a
 #define ATCAHPI_LED_BR_SUPPORTED	0x01
@@ -510,6 +554,9 @@ void ohoi_remove_entity(struct oh_handler_state *handler,
 #define	ATCAHPI_LED_GREEN		0x08
 #define	ATCAHPI_LED_RED			0x04
 #define	ATCAHPI_LED_BLUE		0x02
+
+#define ATCAHPI_CTRL_NUM_SHELF_STATUS (SaHpiCtrlNumT)0x1002
+
 
 
 #endif
