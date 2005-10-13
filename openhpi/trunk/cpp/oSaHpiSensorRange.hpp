@@ -35,6 +35,11 @@ class oSaHpiSensorRange : public SaHpiSensorRangeT {
         // destructor
         ~oSaHpiSensorRange();
         // other methods
+        bool assignField(const char *field,
+                         const char *value);
+        bool assignField(SaHpiSensorRangeT * ptr,
+                         const char *field,
+                         const char *value);
         inline SaHpiSensorRangeT *getStruct(void) {
             return this;
         }
