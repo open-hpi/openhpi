@@ -32,7 +32,9 @@ class oSaHpiSensorThresholds : public SaHpiSensorThresholdsT {
         // copy constructor
         oSaHpiSensorThresholds(const oSaHpiSensorThresholds& sr);
         // destructor
-        ~oSaHpiSensorThresholds();
+        ~oSaHpiSensorThresholds() {
+
+        }
         // other methods
         inline SaHpiSensorThresholdsT *getStruct(void) {
             return this;

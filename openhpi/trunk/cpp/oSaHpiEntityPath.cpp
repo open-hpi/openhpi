@@ -53,14 +53,6 @@ oSaHpiEntityPath::oSaHpiEntityPath(const oSaHpiEntityPath& entpath) {
 }
 
 
-
-/**
- * Destructor.
- */
-oSaHpiEntityPath::~oSaHpiEntityPath() {
-}
-
-
 /**
  * Print the contents of the entity path.
  *

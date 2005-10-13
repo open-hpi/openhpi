@@ -30,7 +30,9 @@ class oSaHpiEntityPath : public SaHpiEntityPathT {
         // copy constructor
         oSaHpiEntityPath(const oSaHpiEntityPath& entpath);
         // destructor
-        ~oSaHpiEntityPath();
+        ~oSaHpiEntityPath() {
+
+        }
         // other methods
         inline SaHpiEntityPathT *getStruct(void) {
             return this;

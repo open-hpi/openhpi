@@ -55,29 +55,6 @@ oSaHpiSensorRange::oSaHpiSensorRange(const oSaHpiSensorRange& range) {
 }
 
 
-
-/**
- * Destructor.
- */
-oSaHpiSensorRange::~oSaHpiSensorRange() {
-}
-
-
-/**
- * Assign a field in the SaHpiSensorRangeT struct a value.
- *
- * @param field  The field name as a text string (case sensitive).
- * @param value  The character string value to be assigned to the field. This
- *               value will be converted as necessary.
- *
- * @return True if there was an error, otherwise false.
- */
-bool oSaHpiSensorRange::assignField(const char *field,
-                                    const char *value) {
-    return assignField(this, field, value);
-};
-
-
 /**
  * Assign a field in the SaHpiSensorRangeT struct a value.
  *

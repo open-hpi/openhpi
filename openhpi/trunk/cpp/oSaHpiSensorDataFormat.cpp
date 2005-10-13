@@ -63,29 +63,6 @@ oSaHpiSensorDataFormat::oSaHpiSensorDataFormat(const oSaHpiSensorDataFormat& df)
 }
 
 
-
-/**
- * Destructor.
- */
-oSaHpiSensorDataFormat::~oSaHpiSensorDataFormat() {
-}
-
-
-/**
- * Assign a field in the SaHpiSensorDataFormatT struct a value.
- *
- * @param field  The field name as a text string (case sensitive).
- * @param value  The character string value to be assigned to the field. This
- *               value will be converted as necessary.
- *
- * @return True if there was an error, otherwise false.
- */
-bool oSaHpiSensorDataFormat::assignField(const char *field,
-                                         const char *value) {
-    return assignField(this, field, value);
-};
-
-
 /**
  * Assign a field in the SaHpiSensorDataFormatT struct a value.
  *

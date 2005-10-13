@@ -44,21 +44,28 @@ class oSaHpiTextBuffer : public SaHpiTextBufferT {
         // copy constructor
         oSaHpiTextBuffer(const oSaHpiTextBuffer& buf);
         // destructor
-        ~oSaHpiTextBuffer();
+        ~oSaHpiTextBuffer() {
+        }
         // other methods
-        bool append(const char *str);
         bool append(SaHpiTextBufferT *ptr,
                     const char *str);
-        bool append(const void *str,
-                    const SaHpiUint8T len);
+        inline bool append(const char *str) {
+            return append(this, str);
+        }
         bool append(SaHpiTextBufferT *ptr,
                     const void *str,
                     const SaHpiUint8T len);
-        bool assignField(const char *field,
-                         const char *value);
+        inline bool append(const void *str,
+                           const SaHpiUint8T len) {
+            return append(this, str, len);
+        }
         bool assignField(SaHpiTextBufferT * ptr,
                          const char *field,
                          const char *value);
+        inline bool assignField(const char *field,
+                                const char *value) {
+            return assignField(this, field, value);
+        }
         inline SaHpiTextBufferT *getStruct(void) {
             return this;
         }
