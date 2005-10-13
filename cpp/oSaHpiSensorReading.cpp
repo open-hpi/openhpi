@@ -42,29 +42,6 @@ oSaHpiSensorReading::oSaHpiSensorReading(const oSaHpiSensorReading& ent) {
 }
 
 
-
-/**
- * Destructor.
- */
-oSaHpiSensorReading::~oSaHpiSensorReading() {
-}
-
-
-/**
- * Assign a field in the SaHpiSensorReadingT struct a value.
- *
- * @param field  The field name as a text string (case sensitive).
- * @param value  The character string value to be assigned to the field. This
- *               value will be converted as necessary.
- *
- * @return True if there was an error, otherwise false.
- */
-bool oSaHpiSensorReading::assignField(const char *field,
-                                      const char *value) {
-    return assignField(this, field, value);
-};
-
-
 /**
  * Assign a field in the SaHpiSensorReadingT struct a value.
  *

@@ -146,27 +146,6 @@ oSaHpiTextBuffer::oSaHpiTextBuffer(const oSaHpiTextBuffer& buf) {
 }
 
 
-
-/**
- * Destructor.
- */
-oSaHpiTextBuffer::~oSaHpiTextBuffer() {
-}
-
-
-/**
- * Append a character string to the buffer.
- *
- * @param str    The zero-terminated character string to be appended to the
- *               buffer.
- *
- * @return True if there was an error, otherwise false.
- */
-bool oSaHpiTextBuffer::append(const char *str) {
-    return append(this, str);
-}
-
-
 /**
  * Append a character string to the buffer.
  *
@@ -190,20 +169,6 @@ bool oSaHpiTextBuffer::append(SaHpiTextBufferT *ptr,
     strcat((char *)&ptr->Data[DataLength], str);
     ptr->DataLength = strlen((char *)ptr->Data);
     return false;
-};
-
-
-/**
- * Append an array of data to the buffer.
- *
- * @param str    The data to be appended.
- * @param len    The length of the data to be appended to the buffer.
- *
- * @return True if there was an error, otherwise false.
- */
-bool oSaHpiTextBuffer::append(const void *str,
-                              const SaHpiUint8T len) {
-    return append(this, str, len);
 };
 
 
@@ -237,20 +202,6 @@ bool oSaHpiTextBuffer::append(SaHpiTextBufferT *ptr,
     return false;
 };
 
-
-/**
- * Assign a field in the SaHpiTextBufferT struct a value.
- *
- * @param field  The field name as a text string (case sensitive).
- * @param value  The character string value to be assigned to the field. This
- *               value will be converted as necessary.
- *
- * @return True if there was an error, otherwise false.
- */
-bool oSaHpiTextBuffer::assignField(const char *field,
-                                   const char *value) {
-    return assignField(this, field, value);
-};
 
 
 /**

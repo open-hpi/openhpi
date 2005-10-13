@@ -35,13 +35,16 @@ class oSaHpiSensorReading : public SaHpiSensorReadingT {
         // copy constructor
         oSaHpiSensorReading(const oSaHpiSensorReading& sr);
         // destructor
-        ~oSaHpiSensorReading();
+        ~oSaHpiSensorReading() {
+        }
         // other methods
-        bool assignField(const char *field,
-                         const char *value);
         bool assignField(SaHpiSensorReadingT * ptr,
                          const char *field,
                          const char *value);
+        inline bool assignField(const char *field,
+                                const char *value) {
+            return assignField(this, field, value);
+        }
         inline SaHpiSensorReadingT *getStruct(void) {
             return this;
         }

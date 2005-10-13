@@ -37,13 +37,16 @@ class oSaHpiEntity : public SaHpiEntityT {
         // copy constructor
         oSaHpiEntity(const oSaHpiEntity& ent);
         // destructor
-        ~oSaHpiEntity();
+        ~oSaHpiEntity() {
+        }
         // other methods
-        bool assignField(const char *field,
-                         const char *value);
         bool assignField(SaHpiEntityT * ptr,
                          const char *field,
                          const char *value);
+        inline bool assignField(const char *field,
+                                const char *value) {
+            return assignField(this, field, value);
+        }
         inline SaHpiEntityT *getStruct(void) {
             return this;
         }

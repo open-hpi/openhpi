@@ -60,14 +60,6 @@ oSaHpiSensorThresholds::oSaHpiSensorThresholds(const oSaHpiSensorThresholds& th)
 }
 
 
-
-/**
- * Destructor.
- */
-oSaHpiSensorThresholds::~oSaHpiSensorThresholds() {
-}
-
-
 /**
  * Print the contents of the entity.
  *

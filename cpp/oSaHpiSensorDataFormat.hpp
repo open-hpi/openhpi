@@ -32,13 +32,16 @@ class oSaHpiSensorDataFormat : public SaHpiSensorDataFormatT {
         // copy constructor
         oSaHpiSensorDataFormat(const oSaHpiSensorDataFormat& sr);
         // destructor
-        ~oSaHpiSensorDataFormat();
+        ~oSaHpiSensorDataFormat() {
+        }
         // other methods
-        bool assignField(const char *field,
-                         const char *value);
         bool assignField(SaHpiSensorDataFormatT * ptr,
                          const char *field,
                          const char *value);
+        inline bool assignField(const char *field,
+                                const char *value) {
+            return assignField(this, field, value);
+        }
         inline SaHpiSensorDataFormatT *getStruct(void) {
             return this;
         }
