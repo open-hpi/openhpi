@@ -129,7 +129,7 @@ bool oSaHpiSensorRange::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    err = fprintf(stream, "Flags = %X\n", Flags);
+    err = fprintf(stream, "Flags = %X\n", rg->Flags);
     if (err < 0) {
         return true;
     }
