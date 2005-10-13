@@ -1308,7 +1308,8 @@ SaErrorT snmp_bc_add_to_eventq(struct oh_handler_state *handle, SaHpiEventT *thi
                 return(SA_ERR_HPI_OUT_OF_SPACE);
         }
         memcpy(e, &working, sizeof(struct oh_event));
-        handle->eventq = g_slist_append(handle->eventq, e);
+       /*  handle->eventq = g_slist_append(handle->eventq, e); */
+       handle->eventq = g_slist_prepend(handle->eventq, e);
 
         return(SA_OK);
 }
