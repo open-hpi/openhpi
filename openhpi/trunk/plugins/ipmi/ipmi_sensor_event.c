@@ -981,7 +981,20 @@ static void add_sensor_event(ipmi_entity_t	*ent,
 		return;
 	}
 
-	sensor_info->sensor_id  = ipmi_sensor_convert_to_id(sensor);
+	sensor_info->type = OHOI_SENSOR_ORIGINAL;
+	sensor_info->ohoii.get_sensor_event_enable =
+					orig_get_sensor_event_enable;
+	sensor_info->ohoii.set_sensor_event_enable =
+					orig_set_sensor_event_enable;
+	sensor_info->ohoii.get_sensor_reading =
+					orig_get_sensor_reading;
+	sensor_info->ohoii.get_sensor_thresholds =
+					orig_get_sensor_thresholds;
+	sensor_info->ohoii.set_sensor_thresholds =
+					orig_set_sensor_thresholds;
+
+	sensor_info->info.orig_sensor_info.sensor_id  =
+				ipmi_sensor_convert_to_id(sensor);
 	sensor_info->sen_enabled = SAHPI_TRUE;
         sensor_info->enable = SAHPI_TRUE;
 	add_sensor_states(sensor, sensor_info);

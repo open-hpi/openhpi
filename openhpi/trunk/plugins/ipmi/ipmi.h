@@ -112,6 +112,8 @@ struct ohoi_resource_info {
 };
 
 
+		/* Sensor info */
+
 
 #define OHOI_THS_LMINH	0x0001
 #define OHOI_THS_LMINL	0x0002
@@ -126,15 +128,64 @@ struct ohoi_resource_info {
 #define OHOI_THS_UCRTH	0x0400
 #define OHOI_THS_UCRTL	0x0800
 
+typedef enum {
+	OHOI_SENSOR_ORIGINAL,
+	OHOI_SENSOR_ATCA_MAPPED
+} ohoi_sensor_type_t;
+
+typedef struct ohoi_original_sensor_info {
+	ipmi_sensor_id_t		sensor_id;
+} ohoi_original_sensor_info_t;
+
+
+typedef struct ohoi_atcamap_sensor_info {
+	int				some;
+} ohoi_atcamap_sensor_info_t;
+
+typedef union {
+	ohoi_original_sensor_info_t	orig_sensor_info;
+	ohoi_atcamap_sensor_info_t	atcamap_sensor_info;
+} ohoi_sensor_info_union_t;
+
+
+struct ohoi_sensor_info;
+
+typedef struct ohoi_sensor_interfaces {
+	SaErrorT (*get_sensor_event_enable)(struct oh_handler_state *hnd,
+					    struct ohoi_sensor_info *sinfo,
+					    SaHpiBoolT   *enable,
+					    SaHpiEventStateT  *assert,
+					    SaHpiEventStateT  *deassert);
+	SaErrorT (*set_sensor_event_enable)(struct oh_handler_state *hnd,
+					    struct ohoi_sensor_info *sinfo,
+					    SaHpiBoolT enable,
+					    SaHpiEventStateT assert,
+					    SaHpiEventStateT deassert,
+					    unsigned int a_supported,
+					    unsigned int d_supported);
+	SaErrorT (*get_sensor_reading)(struct oh_handler_state *hnd,
+				       struct ohoi_sensor_info *sensor_info,
+				       SaHpiSensorReadingT *reading,
+				       SaHpiEventStateT *ev_state);
+	SaErrorT (*get_sensor_thresholds)(struct oh_handler_state *hnd,
+					  struct ohoi_sensor_info *sinfo,
+					  SaHpiSensorThresholdsT *thres);
+	SaErrorT (*set_sensor_thresholds)(struct oh_handler_state *hnd,
+					  struct ohoi_sensor_info *sinfo,
+					  const SaHpiSensorThresholdsT *thres);
+} ohoi_sensor_interfaces_t;
+
 struct ohoi_sensor_info {
-	ipmi_sensor_id_t sensor_id;
-	int sen_enabled;
-	SaHpiBoolT enable;
-	SaHpiBoolT saved_enable;	
-	SaHpiEventStateT  assert;
-	SaHpiEventStateT  deassert;
-	unsigned int support_assert;
-	unsigned int support_deassert;
+	ohoi_sensor_type_t		type;
+	ohoi_sensor_info_union_t	info;
+	int				sen_enabled;
+	SaHpiBoolT			enable;
+	SaHpiBoolT			saved_enable;	
+	SaHpiEventStateT		assert;
+	SaHpiEventStateT		deassert;
+	unsigned int			support_assert;
+	unsigned int			support_deassert;
+	ohoi_sensor_interfaces_t	ohoii;
 };
 
 
@@ -215,36 +266,64 @@ void ohoi_setup_done(ipmi_domain_t *domain, void *user_data);
 void ohoi_close_connection(ipmi_domain_id_t domain_id, void *user_data);
 
 /* implemented in ipmi_sensor.c	*/
-int ohoi_get_sensor_reading(ipmi_sensor_id_t sensor_id, 
-			    SaHpiSensorReadingT * reading,
-			    SaHpiEventStateT * ev_state,
-			    void *cb_data);
 
-int ohoi_get_sensor_thresholds(ipmi_sensor_id_t sensor_id,
-			       SaHpiSensorThresholdsT *thres,
-			       void *cb_data);
+SaErrorT orig_get_sensor_reading(struct oh_handler_state *handler,
+				 struct ohoi_sensor_info *sinfo, 
+				 SaHpiSensorReadingT * reading,
+				 SaHpiEventStateT * ev_state);
 
-int ohoi_set_sensor_thresholds(ipmi_sensor_id_t                 sensor_id, 
-                               const SaHpiSensorThresholdsT     *thres,
-			       void *cb_data);
+SaErrorT ohoi_get_sensor_reading(void *hnd,
+				 struct ohoi_sensor_info *sinfo, 
+				 SaHpiSensorReadingT * reading,
+				 SaHpiEventStateT * ev_state);
+
+SaErrorT orig_get_sensor_thresholds(struct oh_handler_state *handler,
+				    struct ohoi_sensor_info *sinfo,
+				    SaHpiSensorThresholdsT *thres);
+
+SaErrorT ohoi_get_sensor_thresholds(void *hnd,
+				    struct ohoi_sensor_info *sinfo,
+				    SaHpiSensorThresholdsT *thres);
+
+SaErrorT orig_set_sensor_thresholds(struct oh_handler_state *handler,
+				    struct ohoi_sensor_info *sinfo, 
+				    const SaHpiSensorThresholdsT *thres);
+
+SaErrorT ohoi_set_sensor_thresholds(void *hnd,
+				    struct ohoi_sensor_info *sinfo, 
+				    const SaHpiSensorThresholdsT *thres);
 
 int ohoi_set_sensor_enable(ipmi_sensor_id_t sensor_id,
 			   SaHpiBoolT   enable,
 			   void *cb_data);
 
-int ohoi_get_sensor_event_enable_masks(ipmi_sensor_id_t sensor_id,
-				       SaHpiBoolT   *enable,
-				       SaHpiEventStateT  *assert,
-				       SaHpiEventStateT  *deassert,
-				       void *cb_data);
+SaErrorT orig_get_sensor_event_enable(struct oh_handler_state *handler,
+				      struct ohoi_sensor_info *sinfo,
+				      SaHpiBoolT *enable,
+				      SaHpiEventStateT *assert,
+				      SaHpiEventStateT *deassert);
 
-int ohoi_set_sensor_event_enable_masks(ipmi_sensor_id_t sensor_id,
-					SaHpiBoolT enable,
-					SaHpiEventStateT  assert,
-					SaHpiEventStateT  deassert,
-					unsigned int a_supported,
-					unsigned int d_supported,
-					void *cb_data);
+SaErrorT ohoi_get_sensor_event_enable(void *hnd,
+				      struct ohoi_sensor_info *sinfo,
+				      SaHpiBoolT *enable,
+				      SaHpiEventStateT *assert,
+				      SaHpiEventStateT *deassert);
+
+SaErrorT orig_set_sensor_event_enable(struct oh_handler_state *handler,
+				      struct ohoi_sensor_info *sinfo,
+				      SaHpiBoolT enable,
+				      SaHpiEventStateT assert,
+				      SaHpiEventStateT deassert,
+				      unsigned int a_supported,
+				      unsigned int d_supported);
+
+SaErrorT ohoi_set_sensor_event_enable(void *hnd,
+				      struct ohoi_sensor_info *sinfo,
+				      SaHpiBoolT enable,
+				      SaHpiEventStateT assert,
+				      SaHpiEventStateT deassert,
+				      unsigned int a_supported,
+				      unsigned int d_supported);
 
 void ohoi_get_sel_time(ipmi_mcid_t mc_id, SaHpiTimeT *time, void *cb_data);
 void ohoi_set_sel_time(ipmi_mcid_t mc_id, const struct timeval *time, void *cb_data);
