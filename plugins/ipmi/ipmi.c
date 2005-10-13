@@ -1019,27 +1019,26 @@ do {                                                                          \
 } while (0)
 
 
-static int ipmi_get_sensor_event_enable(void *hnd, SaHpiResourceIdT id,
-                                         SaHpiSensorNumT num,
-                                         SaHpiBoolT *enable)
+static int ipmi_get_sensor_event_enable(void *hnd,
+					SaHpiResourceIdT id,
+					SaHpiSensorNumT num,
+					SaHpiBoolT *enable)
 
 {
-        SaErrorT         rv;
-        struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
-        struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
-        struct ohoi_sensor_info *sensor_info;
-        SaHpiBoolT t_enable;
-        SaHpiEventStateT t_assert;
-        SaHpiEventStateT t_deassert;
+        SaErrorT		rv;
+        struct oh_handler_state	*handler = (struct oh_handler_state *)hnd;
+        struct ohoi_sensor_info	*sensor_info;
+        SaHpiBoolT		t_enable;
+        SaHpiEventStateT	t_assert;
+        SaHpiEventStateT	t_deassert;
 
         SENSOR_CHECK(handler, sensor_info, id, num);
 
         if (!enable)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
-        rv = ohoi_get_sensor_event_enable_masks(sensor_info->sensor_id,
-                                                &t_enable, &t_assert,
-                                                &t_deassert, ipmi_handler);
+        rv = ohoi_get_sensor_event_enable(hnd, sensor_info, &t_enable,
+					  &t_assert, &t_deassert);
         if (rv)
                 return rv;
 
@@ -1052,26 +1051,25 @@ static int ipmi_get_sensor_event_enable(void *hnd, SaHpiResourceIdT id,
 }
 
 static int ipmi_set_sensor_event_enable(void *hnd,
-                                         SaHpiResourceIdT id,
-                                         SaHpiSensorNumT num,
-                                         const SaHpiBoolT enable)
+                                        SaHpiResourceIdT id,
+                                        SaHpiSensorNumT num,
+                                        const SaHpiBoolT enable)
 {
 
-        SaErrorT         rv;
-        struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
-        struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
-        struct ohoi_sensor_info *sensor_info;
-        struct oh_event  *e;
-        SaHpiRdrT *rdr;
-        SaHpiSensorEnableChangeEventT *sen_evt;
+        SaErrorT		rv;
+        struct oh_handler_state	*handler = (struct oh_handler_state *)hnd;
+        struct ohoi_sensor_info	*sensor_info;
+        struct oh_event		*e;
+        SaHpiRdrT		*rdr;
+        SaHpiSensorEnableChangeEventT	*sen_evt;
 
         SENSOR_CHECK(handler, sensor_info, id, num);
 
-        rv = ohoi_set_sensor_event_enable_masks(sensor_info->sensor_id,
-                                enable, sensor_info->assert,
-                                sensor_info->deassert,
-                                sensor_info->support_assert,
-                                sensor_info->support_deassert, ipmi_handler);
+        rv = ohoi_set_sensor_event_enable(hnd, sensor_info,
+					  enable, sensor_info->assert,
+					  sensor_info->deassert,
+					  sensor_info->support_assert,
+					  sensor_info->support_deassert);
         if (rv)
                 return rv;
 
@@ -1130,19 +1128,17 @@ static int ipmi_get_sensor_reading(void   *hnd,
                                    SaHpiSensorReadingT *reading,
                                    SaHpiEventStateT  *ev_state)
 {
-        SaErrorT         rv;
-        struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
-        struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
-        struct ohoi_sensor_info *sensor_info;
-
-        SaHpiSensorReadingT tmp_reading;
-        SaHpiEventStateT  tmp_state;
+        SaErrorT		rv;
+        struct oh_handler_state	*handler = (struct oh_handler_state *)hnd;
+        struct ohoi_sensor_info	*sensor_info;
+        SaHpiSensorReadingT	tmp_reading;
+        SaHpiEventStateT	tmp_state;
 
         SENSOR_CHECK(handler, sensor_info, id, num);
         CHECK_SENSOR_SEN_ENABLE(sensor_info);
 
-        rv = ohoi_get_sensor_reading(sensor_info->sensor_id, &tmp_reading,
-                                     &tmp_state, ipmi_handler);
+        rv = ohoi_get_sensor_reading(hnd, sensor_info,
+				     &tmp_reading, &tmp_state);
         if (rv)
                 return rv;
 
@@ -1165,14 +1161,13 @@ static int ipmi_get_sensor_reading(void   *hnd,
 *
 * Return value: 0 for success or negative for error
 **/
-static int ipmi_get_sensor_thresholds(void                      *hnd,
-                                      SaHpiResourceIdT          id,
-                                      SaHpiSensorNumT           num,
-                                      SaHpiSensorThresholdsT    *thres)
+static int ipmi_get_sensor_thresholds(void *hnd,
+                                      SaHpiResourceIdT id,
+                                      SaHpiSensorNumT num,
+                                      SaHpiSensorThresholdsT *thres)
 {
-        struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
-        struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
-        struct ohoi_sensor_info *sensor_info;
+        struct oh_handler_state	*handler = (struct oh_handler_state *)hnd;
+        struct ohoi_sensor_info	*sensor_info;
 
         SENSOR_CHECK(handler, sensor_info, id, num);
 //      CHECK_SENSOR_ENABLE(sensor_info);
@@ -1181,8 +1176,7 @@ static int ipmi_get_sensor_thresholds(void                      *hnd,
                 return SA_ERR_HPI_INVALID_PARAMS;
 
         memset(thres, 0, sizeof(*thres));
-        return ohoi_get_sensor_thresholds(sensor_info->sensor_id,
-                        thres, ipmi_handler);
+        return ohoi_get_sensor_thresholds(hnd, sensor_info, thres);
 }
 
 static int ipmi_set_sensor_thresholds(void                              *hnd,
@@ -1190,9 +1184,8 @@ static int ipmi_set_sensor_thresholds(void                              *hnd,
                                       SaHpiSensorNumT                   num,
                                       const SaHpiSensorThresholdsT      *thres)
 {
-        struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
-        struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
-        struct ohoi_sensor_info *sensor_info;
+        struct oh_handler_state	*handler = (struct oh_handler_state *)hnd;
+        struct ohoi_sensor_info	*sensor_info;
 
         SENSOR_CHECK(handler, sensor_info, id, num);
 //      CHECK_SENSOR_ENABLE(sensor_info);
@@ -1200,7 +1193,7 @@ static int ipmi_set_sensor_thresholds(void                              *hnd,
         if (!thres)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
-        return ohoi_set_sensor_thresholds(sensor_info->sensor_id, thres, ipmi_handler);
+        return ohoi_set_sensor_thresholds(hnd, sensor_info, thres);
 }
 
 static int ipmi_get_sensor_enable(void *hnd, SaHpiResourceIdT id,
@@ -1225,9 +1218,9 @@ static int ipmi_set_sensor_enable(void *hnd, SaHpiResourceIdT id,
                                   SaHpiBoolT enable)
 {
 
-        struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
-        struct ohoi_sensor_info *sensor_info;
-        SaErrorT         rv;
+        struct oh_handler_state	*handler = (struct oh_handler_state *)hnd;
+        struct ohoi_sensor_info	*sensor_info;
+        SaErrorT		rv;
 
         SENSOR_CHECK(handler, sensor_info, id, num);
 
@@ -1260,28 +1253,27 @@ static int ipmi_set_sensor_enable(void *hnd, SaHpiResourceIdT id,
 }
 
 
-static int ipmi_get_sensor_event_masks(void *hnd, SaHpiResourceIdT id,
-                                       SaHpiSensorNumT  num,
-                                       SaHpiEventStateT *assert,
-                                       SaHpiEventStateT *deassert)
+static int ipmi_get_sensor_event_masks(void *hnd,
+				       SaHpiResourceIdT id,
+				       SaHpiSensorNumT  num,
+				       SaHpiEventStateT *assert,
+				       SaHpiEventStateT *deassert)
 {
 
-        SaErrorT         rv;
-        struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
-        struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
-        struct ohoi_sensor_info *sensor_info;
-        SaHpiBoolT t_enable;
-        SaHpiEventStateT t_assert;
-        SaHpiEventStateT t_deassert;
+        SaErrorT		rv;
+        struct oh_handler_state	*handler = (struct oh_handler_state *)hnd;
+        struct ohoi_sensor_info	*sensor_info;
+        SaHpiBoolT		t_enable;
+        SaHpiEventStateT	t_assert;
+        SaHpiEventStateT	t_deassert;
 
         SENSOR_CHECK(handler, sensor_info, id, num);
 
         if (!assert || !deassert)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
-        rv = ohoi_get_sensor_event_enable_masks(sensor_info->sensor_id,
-                                                &t_enable, &t_assert,
-                                                &t_deassert, ipmi_handler);
+        rv = ohoi_get_sensor_event_enable(hnd, sensor_info,
+					  &t_enable, &t_assert, &t_deassert);
         if (rv)
                 return rv;
 
@@ -1301,15 +1293,14 @@ static int ipmi_set_sensor_event_masks(void *hnd, SaHpiResourceIdT id,
                                        SaHpiEventStateT  assert,
                                        SaHpiEventStateT  deassert)
 {
-        SaErrorT         rv;
-        struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
-        struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
-        struct ohoi_sensor_info *sensor_info;
-        SaHpiEventStateT t_assert;
-        SaHpiEventStateT t_deassert;
-        struct oh_event  *e;
-        SaHpiRdrT *rdr;
-        SaHpiSensorEnableChangeEventT *sen_evt;
+        SaErrorT		rv;
+        struct oh_handler_state	*handler = (struct oh_handler_state *)hnd;
+        struct ohoi_sensor_info	*sensor_info;
+        SaHpiEventStateT	t_assert;
+        SaHpiEventStateT	t_deassert;
+        struct oh_event 	*e;
+        SaHpiRdrT		*rdr;
+        SaHpiSensorEnableChangeEventT	*sen_evt;
 
         SENSOR_CHECK(handler, sensor_info, id, num);
 
@@ -1322,10 +1313,11 @@ static int ipmi_set_sensor_event_masks(void *hnd, SaHpiResourceIdT id,
         } else
                 return SA_ERR_HPI_INVALID_PARAMS;
 
-        rv = ohoi_set_sensor_event_enable_masks(sensor_info->sensor_id,
-                                sensor_info->enable, t_assert,
-                                t_deassert, sensor_info->support_assert,
-                                sensor_info->support_deassert, ipmi_handler);
+        rv = ohoi_set_sensor_event_enable(hnd, sensor_info,
+					  sensor_info->enable,
+					  t_assert, t_deassert,
+					  sensor_info->support_assert,
+					  sensor_info->support_deassert);
         if (rv)
                 return rv;
 

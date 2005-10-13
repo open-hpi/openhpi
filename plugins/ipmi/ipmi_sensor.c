@@ -203,14 +203,19 @@ static void get_sensor_reading(ipmi_sensor_t *sensor, void *cb_data)
 	}
 }
 
-int ohoi_get_sensor_reading(ipmi_sensor_id_t sensor_id, 
-                            SaHpiSensorReadingT *reading,
-			    SaHpiEventStateT * ev_state,
-			    void *cb_data)
+
+SaErrorT orig_get_sensor_reading(struct oh_handler_state *handler,
+				 struct ohoi_sensor_info *sensor_info,
+				 SaHpiSensorReadingT *reading,
+				 SaHpiEventStateT *ev_state)
 {
-	struct ohoi_handler *ipmi_handler = cb_data;
-	struct ohoi_sensor_reading reading_data;	
-        int rv;
+	struct ohoi_handler	*ipmi_handler =
+					(struct ohoi_handler *)(handler->data);
+	struct ohoi_sensor_reading	reading_data;	
+        int				rv;
+	ipmi_sensor_id_t		sensor_id;
+
+	sensor_id = sensor_info->info.orig_sensor_info.sensor_id;
 
 	memset(&reading_data, 0, sizeof(reading_data));
 
@@ -233,6 +238,21 @@ int ohoi_get_sensor_reading(ipmi_sensor_id_t sensor_id,
 	*ev_state = reading_data.ev_state;
 
 	return SA_OK;
+}
+
+SaErrorT ohoi_get_sensor_reading(void *hnd,
+				 struct ohoi_sensor_info *sensor_info,
+				 SaHpiSensorReadingT *reading,
+				 SaHpiEventStateT *ev_state)
+{
+	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
+
+	if (sensor_info->ohoii.get_sensor_reading == NULL) {
+		return SA_ERR_HPI_UNSUPPORTED_API;
+	}
+
+	return sensor_info->ohoii.get_sensor_reading(handler,
+					sensor_info, reading, ev_state);
 }
 
 
@@ -419,13 +439,18 @@ static int is_get_sensor_thresholds_done(const void *cb_data)
         return (thres_data->thres_done && thres_data->hyster_done);
 }
 
-int ohoi_get_sensor_thresholds(ipmi_sensor_id_t sensor_id,
-			       SaHpiSensorThresholdsT *thres, void *cb_data)
+SaErrorT orig_get_sensor_thresholds(struct oh_handler_state *handler,
+				    struct ohoi_sensor_info *sensor_info,
+				    SaHpiSensorThresholdsT *thres)
 {
-	struct ohoi_handler *ipmi_handler = cb_data;
+	struct ohoi_handler	*ipmi_handler =
+					(struct ohoi_handler *)(handler->data);
 	struct ohoi_sensor_thresholds	thres_data;
-        int rv;
-	
+        int				rv;
+		ipmi_sensor_id_t		sensor_id;
+
+	sensor_id = sensor_info->info.orig_sensor_info.sensor_id;
+
         memset(&thres_data, 0, sizeof(thres_data));
         
         rv = ipmi_sensor_pointer_cb(sensor_id,
@@ -438,8 +463,7 @@ int ohoi_get_sensor_thresholds(ipmi_sensor_id_t sensor_id,
 
         rv = ohoi_loop_until(is_get_sensor_thresholds_done, 
                                &thres_data, OHOI_TIMEOUT, ipmi_handler);
-	/* If this ever returns SA_ERR_HPI_TIMEOUT, the _done routine
-	   will SegFault.  */
+
 	if (rv) 
 		return rv;
 	
@@ -449,6 +473,20 @@ int ohoi_get_sensor_thresholds(ipmi_sensor_id_t sensor_id,
 	if (thres)
 		*thres = thres_data.sensor_thres;
 	return SA_OK;
+}
+
+SaErrorT ohoi_get_sensor_thresholds(void *hnd,
+				    struct ohoi_sensor_info *sensor_info,
+				    SaHpiSensorThresholdsT *thres)
+{
+	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
+
+	if (sensor_info->ohoii.get_sensor_thresholds == NULL) {
+		return SA_ERR_HPI_UNSUPPORTED_API;
+	}
+
+	return sensor_info->ohoii.get_sensor_thresholds(handler,
+							sensor_info, thres);
 }
 
 
@@ -686,13 +724,17 @@ static void set_sensor_thresholds(ipmi_sensor_t *sensor,
 	return;
 }
 
-int ohoi_set_sensor_thresholds(ipmi_sensor_id_t		        sensor_id, 
-			       const SaHpiSensorThresholdsT     *thres,
-			       void *cb_data)
+SaErrorT orig_set_sensor_thresholds(struct oh_handler_state *handler,
+				    struct ohoi_sensor_info *sensor_info,
+				    const SaHpiSensorThresholdsT *thres)
 {
-	struct ohoi_handler *ipmi_handler = cb_data;
-        struct ohoi_sensor_thresholds thres_data;
-        int rv;
+	struct ohoi_handler	*ipmi_handler =
+					(struct ohoi_handler *)(handler->data);
+        struct ohoi_sensor_thresholds	thres_data;
+        int				rv;
+		ipmi_sensor_id_t		sensor_id;
+
+	sensor_id = sensor_info->info.orig_sensor_info.sensor_id;
 
 	memset(&thres_data, 0, sizeof(thres_data));
 	thres_data.thrhlds = malloc(ipmi_thresholds_size()); 
@@ -723,6 +765,20 @@ int ohoi_set_sensor_thresholds(ipmi_sensor_id_t		        sensor_id,
 		return thres_data.rvalue;
 	}
 	return SA_OK;
+}
+
+SaErrorT ohoi_set_sensor_thresholds(void *hnd,
+				    struct ohoi_sensor_info *sensor_info,
+				    const SaHpiSensorThresholdsT *thres)
+{
+	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
+
+	if (sensor_info->ohoii.set_sensor_thresholds == NULL) {
+		return SA_ERR_HPI_UNSUPPORTED_API;
+	}
+
+	return sensor_info->ohoii.set_sensor_thresholds(handler,
+						sensor_info, thres);
 }
 
 
@@ -1231,15 +1287,19 @@ static void set_sensor_event_enable_masks(ipmi_sensor_t      *sensor,
 	}
 }
 
-int ohoi_get_sensor_event_enable_masks(ipmi_sensor_id_t sensor_id,
-				       SaHpiBoolT   *enable,
-				       SaHpiEventStateT  *assert,
-				       SaHpiEventStateT  *deassert,
-				       void *cb_data)
+SaErrorT orig_get_sensor_event_enable(struct oh_handler_state *handler,
+				      struct ohoi_sensor_info *sensor_info,
+				      SaHpiBoolT   *enable,
+				      SaHpiEventStateT  *assert,
+				      SaHpiEventStateT  *deassert)
 {
-        int rv;
-	struct ohoi_handler *ipmi_handler = cb_data;
-	struct ohoi_sensor_event_enable_masks enable_data;
+        SaErrorT		rv;
+	struct ohoi_handler	*ipmi_handler =
+					(struct ohoi_handler *)(handler->data);
+	struct ohoi_sensor_event_enable_masks	enable_data;
+		ipmi_sensor_id_t		sensor_id;
+
+	sensor_id = sensor_info->info.orig_sensor_info.sensor_id;
         
 	memset(&enable_data, 0, sizeof(enable_data));
         
@@ -1266,19 +1326,39 @@ int ohoi_get_sensor_event_enable_masks(ipmi_sensor_id_t sensor_id,
 
 }
 
-int ohoi_set_sensor_event_enable_masks(ipmi_sensor_id_t sensor_id,
-					SaHpiBoolT enable,
-					SaHpiEventStateT assert,
-					SaHpiEventStateT deassert,
-					unsigned int	 a_supported,
-					unsigned int	 d_supported, 
-					void *cb_data)
+
+SaErrorT ohoi_get_sensor_event_enable(void *hnd,
+				      struct ohoi_sensor_info *sensor_info,
+				      SaHpiBoolT   *enable,
+				      SaHpiEventStateT  *assert,
+				      SaHpiEventStateT  *deassert)
 {
+	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
 
-        int rv;
-	struct ohoi_handler *ipmi_handler = cb_data;
-	struct ohoi_sensor_event_enable_masks enable_data;
+	if (sensor_info->ohoii.get_sensor_event_enable == NULL) {
+		return SA_ERR_HPI_UNSUPPORTED_API;
+	}
 
+	return sensor_info->ohoii.get_sensor_event_enable(handler,
+					sensor_info, enable,
+					assert, deassert);
+}
+
+SaErrorT orig_set_sensor_event_enable(struct oh_handler_state *handler,
+				      struct ohoi_sensor_info *sensor_info,
+				      SaHpiBoolT enable,
+				      SaHpiEventStateT assert,
+				      SaHpiEventStateT deassert,
+				      unsigned int a_supported,
+				      unsigned int d_supported)
+{
+        int			rv;
+	struct ohoi_handler	*ipmi_handler =
+					(struct ohoi_handler *)(handler->data);
+	struct ohoi_sensor_event_enable_masks	enable_data;
+		ipmi_sensor_id_t		sensor_id;
+
+	sensor_id = sensor_info->info.orig_sensor_info.sensor_id;
 
 	memset(&enable_data, 0, sizeof(enable_data));
 	enable_data.states = malloc(ipmi_event_state_size());
@@ -1309,3 +1389,27 @@ int ohoi_set_sensor_event_enable_masks(ipmi_sensor_id_t sensor_id,
 
 	return SA_OK;
 }
+
+
+SaErrorT ohoi_set_sensor_event_enable(void *hnd,
+				      struct ohoi_sensor_info *sensor_info,
+				      SaHpiBoolT enable,
+				      SaHpiEventStateT assert,
+				      SaHpiEventStateT deassert,
+				      unsigned int a_supported,
+				      unsigned int d_supported)
+{
+	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
+
+	if (sensor_info->ohoii.set_sensor_event_enable == NULL) {
+		return SA_ERR_HPI_UNSUPPORTED_API;
+	}
+
+	return sensor_info->ohoii.set_sensor_event_enable(handler,
+					sensor_info, enable,
+					assert, deassert,
+					a_supported, d_supported);
+}
+
+
+
