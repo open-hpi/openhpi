@@ -105,7 +105,7 @@ bool oSaHpiSensorRec::assignField(SaHpiSensorRecT *ptr,
         return false;
     }
     else if (strcmp(field, "EnableCtrl") == 0) {
-        ptr->EnableCtrl = (SaHpiBoolT)atoi(value);
+        ptr->EnableCtrl = oSaHpiTypesEnums::str2torf(value);
         return false;
     }
     else if (strcmp(field, "EventCtrl") == 0) {
@@ -178,7 +178,7 @@ bool oSaHpiSensorRec::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    err = fprintf(stream, "EnableCtrl = %d\n", sr->EnableCtrl);
+    err = fprintf(stream, "EnableCtrl = %s\n", oSaHpiTypesEnums::torf2str(sr->EnableCtrl));
     if (err < 0) {
         return true;
     }

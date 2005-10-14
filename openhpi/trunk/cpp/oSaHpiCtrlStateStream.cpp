@@ -107,7 +107,7 @@ bool oSaHpiCtrlStateStream::assignField(SaHpiCtrlStateStreamT *ptr,
         return true;
     }
     if (strcmp(field, "Repeat") == 0) {
-        ptr->Repeat = atoi(value);
+        ptr->Repeat = oSaHpiTypesEnums::str2torf(value);
         return false;
     }
     else if (strcmp(field, "Stream") == 0) {
@@ -152,7 +152,8 @@ bool oSaHpiCtrlStateStream::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    err = fprintf(stream, "Repeat = %d\n", buffer->Repeat);
+    err = fprintf(stream, "Repeat = %s\n", oSaHpiTypesEnums::torf2str(buffer->Repeat));
+
     if (err < 0) {
         return true;
     }
