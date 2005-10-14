@@ -66,11 +66,11 @@ bool oSaHpiSensorThdDefn::assignField(SaHpiSensorThdDefnT *ptr,
         return false;
     }
     else if (strcmp(field, "ReadThold") == 0) {
-        ptr->ReadThold = str2sensorthdmask(value);
+        ptr->ReadThold |= str2sensorthdmask(value);
         return false;
     }
     else if (strcmp(field, "WriteThold") == 0) {
-        ptr->WriteThold = str2sensorthdmask(value);
+        ptr->WriteThold |= str2sensorthdmask(value);
         return false;
     }
     else if (strcmp(field, "Nonlinear") == 0) {
@@ -115,7 +115,7 @@ bool oSaHpiSensorThdDefn::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    err = fprintf(stream, "ReadThold = %s\n", sensorthdmask2str(df->ReadThold));
+    err = fprintf(stream, "ReadThold = %X\n", df->ReadThold);
     if (err < 0) {
         return true;
     }
@@ -123,7 +123,7 @@ bool oSaHpiSensorThdDefn::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    err = fprintf(stream, "WriteThold = %s\n", sensorthdmask2str(df->WriteThold));
+    err = fprintf(stream, "WriteThold = %X\n", df->WriteThold);
     if (err < 0) {
         return true;
     }
