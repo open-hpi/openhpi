@@ -21,6 +21,7 @@ extern "C"
 {
 #include <SaHpi.h>
 }
+#include "oSaHpiTypesEnums.hpp"
 #include "oSaHpiSensorReading.hpp"
 
 
@@ -63,7 +64,7 @@ bool oSaHpiSensorReading::assignField(SaHpiSensorReadingT *ptr,
         return false;
     }
     else if (strcmp(field, "Type") == 0) {
-        ptr->Type = str2sensorreadingtype(value);
+        ptr->Type = oSaHpiTypesEnums::str2sensorreadingtype(value);
         return false;
     }
     else if (strcmp(field, "SensorInt64") == 0) {
@@ -158,66 +159,6 @@ bool oSaHpiSensorReading::fprint(FILE *stream,
 
 	return false;
 }
-
-
-
-static struct sensorreadingtype_map {
-    SaHpiSensorReadingTypeT type;
-    const char              *str;
-} sensorreadingtype_strings[] = {
-       {SAHPI_SENSOR_READING_TYPE_INT64,   "SAHPI_SENSOR_READING_TYPE_INT64"},
-       {SAHPI_SENSOR_READING_TYPE_UINT64,  "SAHPI_SENSOR_READING_TYPE_UINT64"},
-       {SAHPI_SENSOR_READING_TYPE_FLOAT64, "SAHPI_SENSOR_READING_TYPE_FLOAT64"},
-       {SAHPI_SENSOR_READING_TYPE_BUFFER,  "SAHPI_SENSOR_READING_TYPE_BUFFER"},
-       {SAHPI_SENSOR_READING_TYPE_BUFFER,  NULL},
-};
-
-
-/**
- * Translates a string to a valid SaHpiSensorReadingTypeT type.
- *
- * @param strtype The entity type expressed as a string.
- *
- * @return SAHPI_OK on success, otherwise an HPI error code.
- */
-SaHpiSensorReadingTypeT oSaHpiSensorReading::str2sensorreadingtype(const char *strtype) {
-	int i, found = 0;
-
-    if (strtype == NULL) {
-        return SAHPISENSORREADINGTYPET_DEFAULT;
-    }
-	for (i = 0; sensorreadingtype_strings[i].str != NULL; i++) {
-		if (strcmp(strtype, sensorreadingtype_strings[i].str) == 0) {
-			found++;
-			break;
-		}
-	}
-
-	if (found) {
-		return sensorreadingtype_strings[i].type;
-	}
-	return SAHPISENSORREADINGTYPET_DEFAULT;
-}
-
-
-/**
- * Translates an sensor reading type to a string.
- *
- * @param value  The SaHpiSensorReadingTypeT to be converted.
- *
- * @return The string value of the type.
- */
-const char * oSaHpiSensorReading::sensorreadingtype2str(SaHpiSensorReadingTypeT value) {
-	int i;
-
-	for (i = 0; sensorreadingtype_strings[i].str != NULL; i++) {
-		if (value == sensorreadingtype_strings[i].type) {
-			return sensorreadingtype_strings[i].str;
-		}
-	}
-    return "Unknown";
-}
-
 
 
 void oSaHpiSensorReading::initSensorReading(SaHpiSensorReadingT *reading) {
