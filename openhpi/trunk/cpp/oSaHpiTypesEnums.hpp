@@ -33,6 +33,12 @@ class oSaHpiTypesEnums {
         static const char * texttype2str(SaHpiTextTypeT value);
         static SaHpiEntityTypeT str2entitytype(const char *strtype);
         static const char * entitytype2str(SaHpiEntityTypeT value);
+        static SaHpiSensorReadingTypeT str2sensorreadingtype(const char *strtype);
+        static const char * sensorreadingtype2str(SaHpiSensorReadingTypeT value);
+        static SaHpiSensorUnitsT str2sensorunits(const char *strtype);
+        static const char * sensorunits2str(SaHpiSensorUnitsT value);
+        static SaHpiSensorModUnitUseT str2sensoruse(const char *strtype);
+        static const char * sensoruse2str(SaHpiSensorModUnitUseT value);
 };
 
 #endif

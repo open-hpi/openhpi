@@ -52,14 +52,6 @@ class oSaHpiSensorDataFormat : public SaHpiSensorDataFormatT {
                            const int indent) {
             return fprint(stream, indent, this);
         }
-
-    protected:
-        SaHpiSensorReadingTypeT str2sensorreadingtype(const char *strtype);
-        const char * sensorreadingtype2str(SaHpiSensorReadingTypeT value);
-        SaHpiSensorUnitsT str2sensorunits(const char *strtype);
-        const char * sensorunits2str(SaHpiSensorUnitsT value);
-        SaHpiSensorModUnitUseT str2sensoruse(const char *strtype);
-        const char * sensoruse2str(SaHpiSensorModUnitUseT value);
 };
 
 #endif
