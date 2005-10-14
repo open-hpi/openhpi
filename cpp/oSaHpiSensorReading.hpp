@@ -56,10 +56,6 @@ class oSaHpiSensorReading : public SaHpiSensorReadingT {
             return fprint(stream, indent, this);
         }
         void initSensorReading(SaHpiSensorReadingT *reading);
-
-    protected:
-        const char * sensorreadingtype2str(SaHpiSensorReadingTypeT value);
-        SaHpiSensorReadingTypeT str2sensorreadingtype(const char *strtype);
 };
 
 #endif
