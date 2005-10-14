@@ -154,7 +154,7 @@ int ohoi_hot_swap_cb(ipmi_entity_t  *ent,
 	}else {
 	  	handler->eventq = g_slist_append(handler->eventq, e);
 	}
-	oh_wake_event_thread(0);
+//	oh_wake_event_thread(0);
 	return IPMI_EVENT_HANDLED;
 }
 
