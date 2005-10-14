@@ -39,6 +39,8 @@ class oSaHpiTypesEnums {
         static const char * sensorunits2str(SaHpiSensorUnitsT value);
         static SaHpiSensorModUnitUseT str2sensoruse(const char *strtype);
         static const char * sensoruse2str(SaHpiSensorModUnitUseT value);
+        static SaHpiSensorThdMaskT str2sensorthdmask(const char *strtype);
+        static const char * sensorthdmask2str(SaHpiSensorThdMaskT value);
 };
 
 #endif

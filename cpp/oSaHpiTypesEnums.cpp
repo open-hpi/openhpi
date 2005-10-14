@@ -653,3 +653,66 @@ const char * oSaHpiTypesEnums::sensoruse2str(SaHpiSensorModUnitUseT value) {
     return "Unknown";
 }
 
+
+static struct sensorthdmasktype_map {
+    SaHpiSensorThdMaskT type;
+    const char          *str;
+} sensorthdmask_strings[] = {
+       {SAHPI_STM_LOW_MINOR,       "SAHPI_STM_LOW_MINOR"},
+       {SAHPI_STM_LOW_MAJOR,       "SAHPI_STM_LOW_MAJOR"},
+       {SAHPI_STM_LOW_CRIT,        "SAHPI_STM_LOW_CRIT"},
+       {SAHPI_STM_UP_MAJOR,        "SAHPI_STM_UP_MAJOR"},
+       {SAHPI_STM_UP_MINOR,        "SAHPI_STM_UP_MINOR"},
+       {SAHPI_STM_UP_CRIT,         "SAHPI_STM_UP_CRIT"},
+       {SAHPI_STM_UP_HYSTERESIS,   "SAHPI_STM_UP_HYSTERESIS"},
+       {SAHPI_STM_LOW_HYSTERESIS,  "SAHPI_STM_LOW_HYSTERESIS"},
+       {0,                         NULL},
+};
+
+
+/**
+ * Translates a string to a valid SaHpiSensorThdMaskT type.
+ *
+ * @param strtype The entity type expressed as a string.
+ *
+ * @return SAHPI_OK on success, otherwise an HPI error code.
+ */
+SaHpiSensorThdMaskT oSaHpiTypesEnums::str2sensorthdmask(const char *strtype) {
+	int i, found = 0;
+
+    if (strtype == NULL) {
+        return 0;
+    }
+	for (i = 0; sensorthdmask_strings[i].str != NULL; i++) {
+		if (strcmp(strtype, sensorthdmask_strings[i].str) == 0) {
+			found++;
+			break;
+		}
+	}
+
+	if (found) {
+		return sensorthdmask_strings[i].type;
+	}
+	return 0;
+}
+
+
+/**
+ * Translates an sensor reading type to a string.
+ *
+ * @param value  The SaHpiSensorThdMaskT to be converted.
+ *
+ * @return The string value of the type.
+ */
+const char * oSaHpiTypesEnums::sensorthdmask2str(SaHpiSensorThdMaskT value) {
+	int i;
+
+	for (i = 0; sensorthdmask_strings[i].str != NULL; i++) {
+		if (value == sensorthdmask_strings[i].type) {
+			return sensorthdmask_strings[i].str;
+		}
+	}
+    return "Unknown";
+}
+
+
