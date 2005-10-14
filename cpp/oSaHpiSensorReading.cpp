@@ -60,7 +60,7 @@ bool oSaHpiSensorReading::assignField(SaHpiSensorReadingT *ptr,
         return true;
     }
     if (strcmp(field, "IsSupported") == 0) {
-        ptr->IsSupported = (SaHpiBoolT)atoi(value);
+        ptr->IsSupported = oSaHpiTypesEnums::str2torf(value);
         return false;
     }
     else if (strcmp(field, "Type") == 0) {
@@ -100,7 +100,6 @@ bool oSaHpiSensorReading::fprint(FILE *stream,
                                  const int indent,
                                  const SaHpiSensorReadingT *sr) {
 	int i, err = 0;
-    char buf[20];
     char indent_buf[indent + 1];
 
     if (stream == NULL || sr == NULL) {
@@ -115,8 +114,7 @@ bool oSaHpiSensorReading::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    snprintf(buf, sizeof(buf), "%u", sr->IsSupported, buf);
-    err = fprintf(stream, "IsSupported = %s\n", buf);
+    err = fprintf(stream, "IsSupported = %s\n", oSaHpiTypesEnums::torf2str(IsSupported));
     if (err < 0) {
         return true;
     }

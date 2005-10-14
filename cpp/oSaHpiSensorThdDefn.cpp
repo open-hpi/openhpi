@@ -63,7 +63,7 @@ bool oSaHpiSensorThdDefn::assignField(SaHpiSensorThdDefnT *ptr,
         return true;
     }
     if (strcmp(field, "IsAccessible") == 0) {
-        ptr->IsAccessible = (SaHpiBoolT)atoi(value);
+        ptr->IsAccessible = oSaHpiTypesEnums::str2torf(value);
         return false;
     }
     else if (strcmp(field, "ReadThold") == 0) {
@@ -75,7 +75,7 @@ bool oSaHpiSensorThdDefn::assignField(SaHpiSensorThdDefnT *ptr,
         return false;
     }
     else if (strcmp(field, "Nonlinear") == 0) {
-        ptr->Nonlinear = (SaHpiBoolT)atoi(value);
+        ptr->Nonlinear = oSaHpiTypesEnums::str2torf(value);
         return false;
     }
     return true;
@@ -108,7 +108,7 @@ bool oSaHpiSensorThdDefn::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    err = fprintf(stream, "IsAccessible = %d\n", df->IsAccessible);
+    err = fprintf(stream, "IsAccessible = %s\n", oSaHpiTypesEnums::torf2str(df->IsAccessible));
     if (err < 0) {
         return true;
     }
@@ -132,7 +132,7 @@ bool oSaHpiSensorThdDefn::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    err = fprintf(stream, "Nonlinear = %d\n", df->Nonlinear);
+    err = fprintf(stream, "Nonlinear = %s\n", oSaHpiTypesEnums::torf2str(df->Nonlinear));
     if (err < 0) {
         return true;
     }

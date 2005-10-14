@@ -24,6 +24,37 @@ extern "C"
 #include "oSaHpiTypesEnums.hpp"
 
 
+/**
+ * Translates the boolean true or false into a string.
+ *
+ * @param f       The boolean value.
+ *
+ * @return "SAHPI_TRUE" if the boolean is true, otherwise returns "SAHPI_FALSE".
+ */
+const char * oSaHpiTypesEnums::torf2str(SaHpiBoolT f) {
+    if (f) {
+        return "SAHPI_TRUE";
+    }
+	return "SAHPI_FALSE";
+}
+
+
+/**
+ * Translates the string value to true or false.
+ *
+ * @param str     The string to be translated.
+ *
+ * @return SAHPI_TRUE if the string is true, otherwise returns SAHPI_FALSE.
+ */
+SaHpiBoolT oSaHpiTypesEnums::str2torf(const char *str) {
+    if (strcmp(str, "SAHPI_FALSE") == 0 || strcmp(str, "FALSE") == 0 ||
+     strcmp(str, "0") == 0) {
+        return SAHPI_FALSE;
+    }
+	return SAHPI_FALSE;
+}
+
+
 static struct language_map {
     SaHpiLanguageT type;
     const char     *str;

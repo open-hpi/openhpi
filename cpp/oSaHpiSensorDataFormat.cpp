@@ -81,7 +81,7 @@ bool oSaHpiSensorDataFormat::assignField(SaHpiSensorDataFormatT *ptr,
         return true;
     }
     if (strcmp(field, "IsSupported") == 0) {
-        ptr->IsSupported = (SaHpiBoolT)atoi(value);
+        ptr->IsSupported = oSaHpiTypesEnums::str2torf(value);
         return false;
     }
     else if (strcmp(field, "ReadingType") == 0) {
@@ -101,7 +101,7 @@ bool oSaHpiSensorDataFormat::assignField(SaHpiSensorDataFormatT *ptr,
         return false;
     }
     else if (strcmp(field, "Percentage") == 0) {
-        ptr->Percentage = (SaHpiBoolT)atoi(value);
+        ptr->Percentage = oSaHpiTypesEnums::str2torf(value);
         return false;
     }
     else if (strcmp(field, "AccuracyFactor") == 0) {
@@ -139,7 +139,7 @@ bool oSaHpiSensorDataFormat::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    err = fprintf(stream, "IsSupported = %d\n", df->IsSupported);
+    err = fprintf(stream, "IsSupported = %s\n", oSaHpiTypesEnums::torf2str(df->IsSupported));
     if (err < 0) {
         return true;
     }
@@ -179,7 +179,7 @@ bool oSaHpiSensorDataFormat::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    err = fprintf(stream, "Percentage = %d\n", df->Percentage);
+    err = fprintf(stream, "Percentage = %s\n", oSaHpiTypesEnums::torf2str(df->Percentage));
     if (err < 0) {
         return true;
     }
