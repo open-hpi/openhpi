@@ -51,10 +51,6 @@ class oSaHpiSensorThdDefn : public SaHpiSensorThdDefnT {
                            const int indent) {
             return fprint(stream, indent, this);
         }
-
-    protected:
-        SaHpiSensorThdMaskT str2sensorthdmask(const char *strtype);
-        const char * sensorthdmask2str(SaHpiSensorThdMaskT value);
 };
 
 #endif
