@@ -49,6 +49,10 @@ class oSaHpiTypesEnums {
         static const char * eventcategory2str(SaHpiEventCategoryT value);
         static SaHpiEventStateT str2eventstate(const char *strtype);
         static const char * eventstate2str(SaHpiEventStateT value);
+        static SaHpiCtrlTypeT str2ctrltype(const char *strtype);
+        static const char * ctrltype2str(SaHpiCtrlTypeT value);
+        static SaHpiCtrlStateDigitalT str2ctrlstatedigital(const char *strtype);
+        static const char * ctrlstatedigital2str(SaHpiCtrlStateDigitalT value);
 };
 
 #endif
