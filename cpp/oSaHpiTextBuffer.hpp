@@ -24,10 +24,6 @@ extern "C"
 }
 
 
-#define SAHPILANGUAGET_DEFAULT SAHPI_LANG_ENGLISH
-#define SAHPITEXTTYPET_DEFAULT SAHPI_TL_TYPE_TEXT
-
-
 class oSaHpiTextBuffer : public SaHpiTextBufferT {
     public:
         // constructors
@@ -76,12 +72,6 @@ class oSaHpiTextBuffer : public SaHpiTextBufferT {
                            const int indent) {
             return fprint(stream, indent, this);
         }
-
-    protected:
-        const char * language2str(SaHpiLanguageT value);
-        SaHpiLanguageT str2language(const char *strtype);
-        const char * texttype2str(SaHpiTextTypeT value);
-        SaHpiTextTypeT str2texttype(const char *type);
 };
 
 #endif

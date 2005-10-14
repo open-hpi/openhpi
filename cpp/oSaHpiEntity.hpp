@@ -24,10 +24,6 @@ extern "C"
 }
 
 
-#define SAHPIENTITYTYPET_DEFAULT     SAHPI_ENT_ROOT
-#define SAHPIENTITYLOCATIONT_DEFAULT 0
-
-
 class oSaHpiEntity : public SaHpiEntityT {
     public:
         // constructors
@@ -57,10 +53,6 @@ class oSaHpiEntity : public SaHpiEntityT {
                            const int indent) {
             return fprint(stream, indent, this);
         }
-
-    protected:
-        const char * entitytype2str(SaHpiEntityTypeT value);
-        SaHpiEntityTypeT str2entitytype(const char *strtype);
 };
 
 #endif
