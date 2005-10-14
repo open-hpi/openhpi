@@ -203,13 +203,19 @@ SaErrorT snmp_bc_discover_resources(void *hnd)
         }        
         g_slist_free(rdr_new);
 
+
 	/* Build cache copy of SEL. RID == 1 (2nd parm) is a dummy id */
-	if (g_list_length(handle->elcache->elentries) != 0) {
-		trace("Discovery called and elcache is not empty. Re-discovery?\n");
-		err1 = oh_el_clear(handle->elcache);
-	}
-	err1 = snmp_bc_build_selcache(handle, 1);
-	/*err1 = snmp_bc_check_selcache(handle, 1, SAHPI_NEWEST_ENTRY); */
+	/*
+	   This design depends on the BladeCenter management of the Event Log.
+	   That is, 
+	   	(a) The BC Event Log will always have at least one entry. It *never* has zero entry.
+	   	(b) If a Clear Event Log command is received, the BC clears the log, then creates 
+		    "Event Log has just been cleared by xxx" entry
+	   So, if the cache copy of the Event Log is empty, this is the first invocation of OpenHPI/snmp_bc.
+	   Otherwise, only processes newer entries for (re) discovery.
+	*/
+	if (g_list_length(handle->elcache->elentries) == 0) err1 = snmp_bc_build_selcache(handle, 1);
+	else err1 = snmp_bc_check_selcache(handle, 1, SAHPI_NEWEST_ENTRY);
 	if (err1) {
 		/* --------------------------------------------------------------- */
 		/* If an error is encounterred during building of snmp_bc elcache, */
