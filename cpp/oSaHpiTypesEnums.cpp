@@ -999,3 +999,113 @@ const char * oSaHpiTypesEnums::eventstate2str(SaHpiEventStateT value) {
     return "Unknown";
 }
 
+
+static struct ctrltype_map {
+    SaHpiCtrlTypeT type;
+    const char     *str;
+} ctrltype_strings[] = {
+       {SAHPI_CTRL_TYPE_DIGITAL,  "SAHPI_CTRL_TYPE_DIGITAL"},
+       {SAHPI_CTRL_TYPE_DISCRETE, "SAHPI_CTRL_TYPE_DISCRETE"},
+       {SAHPI_CTRL_TYPE_ANALOG,   "SAHPI_CTRL_TYPE_ANALOG"},
+       {SAHPI_CTRL_TYPE_STREAM,   "SAHPI_CTRL_TYPE_STREAM"},
+       {SAHPI_CTRL_TYPE_TEXT,     "SAHPI_CTRL_TYPE_TEXT"},
+       {SAHPI_CTRL_TYPE_OEM,      "SAHPI_CTRL_TYPE_OEM"},
+       {SAHPI_CTRL_TYPE_OEM,      NULL}
+};
+
+
+/**
+ * Translates a string to a valid SaHpiCtrlTypeT type.
+ *
+ * @param strtype The entity type expressed as a string.
+ *
+ * @return SAHPI_OK on success, otherwise an HPI error code.
+ */
+SaHpiCtrlTypeT oSaHpiTypesEnums::str2ctrltype(const char *strtype) {
+	int i;
+
+    if (strtype == NULL) {
+        return SAHPI_CTRL_TYPE_DIGITAL;
+    }
+	for (i = 0; ctrltype_strings[i].str != NULL; i++) {
+		if (strcmp(strtype, ctrltype_strings[i].str) == 0) {
+            return ctrltype_strings[i].type;
+		}
+	}
+    return SAHPI_CTRL_TYPE_DIGITAL;
+}
+
+
+/**
+ * Translates an sensor reading type to a string.
+ *
+ * @param value  The SaHpiCtrlTypeT to be converted.
+ *
+ * @return The string value of the type.
+ */
+const char * oSaHpiTypesEnums::ctrltype2str(SaHpiCtrlTypeT value) {
+	int i;
+
+	for (i = 0; ctrltype_strings[i].str != NULL; i++) {
+		if (value == ctrltype_strings[i].type) {
+			return ctrltype_strings[i].str;
+		}
+	}
+    return "Unknown";
+}
+
+
+static struct ctrlstatedigital_map {
+    SaHpiCtrlStateDigitalT type;
+    const char             *str;
+} ctrlstatedigital_strings[] = {
+       {SAHPI_CTRL_STATE_OFF,       "SAHPI_CTRL_STATE_OFF"},
+       {SAHPI_CTRL_STATE_ON,        "SAHPI_CTRL_STATE_ON"},
+       {SAHPI_CTRL_STATE_PULSE_OFF, "SAHPI_CTRL_STATE_PULSE_OFF"},
+       {SAHPI_CTRL_STATE_PULSE_ON,  "SAHPI_CTRL_STATE_PULSE_ON"},
+       {SAHPI_CTRL_STATE_PULSE_ON,  NULL}
+};
+
+
+/**
+ * Translates a string to a valid SaHpiCtrlStateDigitalT type.
+ *
+ * @param strtype The entity type expressed as a string.
+ *
+ * @return SAHPI_OK on success, otherwise an HPI error code.
+ */
+SaHpiCtrlStateDigitalT oSaHpiTypesEnums::str2ctrlstatedigital(const char *strtype) {
+	int i;
+
+    if (strtype == NULL) {
+        return SAHPI_CTRL_STATE_OFF;
+    }
+	for (i = 0; ctrlstatedigital_strings[i].str != NULL; i++) {
+		if (strcmp(strtype, ctrlstatedigital_strings[i].str) == 0) {
+            return ctrlstatedigital_strings[i].type;
+		}
+	}
+    return SAHPI_CTRL_STATE_OFF;
+}
+
+
+/**
+ * Translates an sensor reading type to a string.
+ *
+ * @param value  The SaHpiCtrlStateDigitalT to be converted.
+ *
+ * @return The string value of the type.
+ */
+const char * oSaHpiTypesEnums::ctrlstatedigital2str(SaHpiCtrlStateDigitalT value) {
+	int i;
+
+	for (i = 0; ctrlstatedigital_strings[i].str != NULL; i++) {
+		if (value == ctrlstatedigital_strings[i].type) {
+			return ctrlstatedigital_strings[i].str;
+		}
+	}
+    return "Unknown";
+}
+
+
+
