@@ -176,20 +176,15 @@ static struct language_map {
  * @return SAHPI_OK on success, otherwise an HPI error code.
  */
 SaHpiLanguageT oSaHpiTypesEnums::str2language(const char *strtype) {
-	int i, found = 0;
+	int i;
 
     if (strtype == NULL) {
         return SAHPI_LANG_ENGLISH;
     }
 	for (i = 0; language_strings[i].str != NULL; i++) {
 		if (strcmp(strtype, language_strings[i].str) == 0) {
-			found++;
-			break;
+            return language_strings[i].type;
 		}
-	}
-
-	if (found) {
-		return language_strings[i].type;
 	}
 	return SAHPI_LANG_ENGLISH;
 }
@@ -235,20 +230,15 @@ static struct texttype_map {
  * @return SAHPI_OK on success, otherwise an HPI error code.
  */
 SaHpiTextTypeT oSaHpiTypesEnums::str2texttype(const char *type) {
-	int i, found = 0;
+	int i;
 
     if (type == NULL) {
         return SAHPI_TL_TYPE_TEXT;
     }
 	for (i = 0; texttype_strings[i].typestr != NULL; i++) {
 		if (strcmp(type, texttype_strings[i].typestr) == 0) {
-			found++;
-			break;
+            return texttype_strings[i].type;
 		}
-	}
-
-	if (found) {
-		return texttype_strings[i].type;
 	}
 	return SAHPI_TL_TYPE_TEXT;
 }
@@ -356,20 +346,15 @@ static struct entitytype_map {
  * @return SAHPI_OK on success, otherwise an HPI error code.
  */
 SaHpiEntityTypeT oSaHpiTypesEnums::str2entitytype(const char *strtype) {
-	int i, found = 0;
+	int i;
 
     if (strtype == NULL) {
         return SAHPI_ENT_ROOT;
     }
 	for (i = 0; entitytype_strings[i].str != NULL; i++) {
 		if (strcmp(strtype, entitytype_strings[i].str) == 0) {
-			found++;
-			break;
+            return entitytype_strings[i].type;
 		}
-	}
-
-	if (found) {
-		return entitytype_strings[i].type;
 	}
 	return SAHPI_ENT_ROOT;
 }
@@ -414,20 +399,15 @@ static struct sensorreadingtype_map {
  * @return SAHPI_OK on success, otherwise an HPI error code.
  */
 SaHpiSensorReadingTypeT oSaHpiTypesEnums::str2sensorreadingtype(const char *strtype) {
-	int i, found = 0;
+	int i;
 
     if (strtype == NULL) {
         return SAHPI_SENSOR_READING_TYPE_INT64;
     }
 	for (i = 0; sensorreadingtype_strings[i].str != NULL; i++) {
 		if (strcmp(strtype, sensorreadingtype_strings[i].str) == 0) {
-			found++;
-			break;
+            return sensorreadingtype_strings[i].type;
 		}
-	}
-
-	if (found) {
-		return sensorreadingtype_strings[i].type;
 	}
 	return SAHPI_SENSOR_READING_TYPE_INT64;
 }
@@ -559,20 +539,15 @@ static struct sensorunits_map {
  * @return SAHPI_OK on success, otherwise an HPI error code.
  */
 SaHpiSensorUnitsT oSaHpiTypesEnums::str2sensorunits(const char *strtype) {
-	int i, found = 0;
+	int i;
 
     if (strtype == NULL) {
         return SAHPI_SU_UNSPECIFIED;
     }
 	for (i = 0; sensorunits_strings[i].str != NULL; i++) {
 		if (strcmp(strtype, sensorunits_strings[i].str) == 0) {
-			found++;
-			break;
+            return sensorunits_strings[i].type;
 		}
-	}
-
-	if (found) {
-		return sensorunits_strings[i].type;
 	}
     return SAHPI_SU_UNSPECIFIED;
 }
@@ -616,20 +591,15 @@ static struct sensormodunituse_map {
  * @return SAHPI_OK on success, otherwise an HPI error code.
  */
 SaHpiSensorModUnitUseT oSaHpiTypesEnums::str2sensoruse(const char *strtype) {
-	int i, found = 0;
+	int i;
 
     if (strtype == NULL) {
         return SAHPI_SMUU_NONE;
     }
 	for (i = 0; sensormodunituse_strings[i].str != NULL; i++) {
 		if (strcmp(strtype, sensormodunituse_strings[i].str) == 0) {
-			found++;
-			break;
+            return sensormodunituse_strings[i].type;
 		}
-	}
-
-	if (found) {
-		return sensormodunituse_strings[i].type;
 	}
     return SAHPI_SMUU_NONE;
 }
@@ -678,20 +648,15 @@ static struct sensorthdmasktype_map {
  * @return SAHPI_OK on success, otherwise an HPI error code.
  */
 SaHpiSensorThdMaskT oSaHpiTypesEnums::str2sensorthdmask(const char *strtype) {
-	int i, found = 0;
+	int i;
 
     if (strtype == NULL) {
         return 0;
     }
 	for (i = 0; sensorthdmask_strings[i].str != NULL; i++) {
 		if (strcmp(strtype, sensorthdmask_strings[i].str) == 0) {
-			found++;
-			break;
+            return sensorthdmask_strings[i].type;
 		}
-	}
-
-	if (found) {
-		return sensorthdmask_strings[i].type;
 	}
 	return 0;
 }
@@ -715,4 +680,322 @@ const char * oSaHpiTypesEnums::sensorthdmask2str(SaHpiSensorThdMaskT value) {
     return "Unknown";
 }
 
+
+static struct sensoreventctrl_map {
+    SaHpiSensorEventCtrlT type;
+    const char            *str;
+} sensoreventctrl_strings[] = {
+    {SAHPI_SEC_PER_EVENT,       "SAHPI_SEC_PER_EVENT"},
+    {SAHPI_SEC_READ_ONLY_MASKS, "SAHPI_SEC_READ_ONLY_MASKS"},
+    {SAHPI_SEC_READ_ONLY,       "SAHPI_SEC_READ_ONLY"},
+    {SAHPI_SEC_READ_ONLY,       NULL}
+};
+
+
+/**
+ * Translates a string to a valid SaHpiSensorEventCtrlT type.
+ *
+ * @param strtype The entity type expressed as a string.
+ *
+ * @return SAHPI_OK on success, otherwise an HPI error code.
+ */
+SaHpiSensorEventCtrlT oSaHpiTypesEnums::str2sensoreventctrl(const char *strtype) {
+	int i;
+
+    if (strtype == NULL) {
+        return SAHPI_SEC_PER_EVENT;
+    }
+	for (i = 0; sensoreventctrl_strings[i].str != NULL; i++) {
+		if (strcmp(strtype, sensoreventctrl_strings[i].str) == 0) {
+            return sensoreventctrl_strings[i].type;
+		}
+	}
+    return SAHPI_SEC_PER_EVENT;
+}
+
+
+/**
+ * Translates an sensor reading type to a string.
+ *
+ * @param value  The SaHpiSensorEventCtrlT to be converted.
+ *
+ * @return The string value of the type.
+ */
+const char * oSaHpiTypesEnums::sensoreventctrl2str(SaHpiSensorEventCtrlT value) {
+	int i;
+
+	for (i = 0; sensoreventctrl_strings[i].str != NULL; i++) {
+		if (value == sensoreventctrl_strings[i].type) {
+			return sensoreventctrl_strings[i].str;
+		}
+	}
+    return "Unknown";
+}
+
+
+static struct sensortype_map {
+    SaHpiSensorTypeT type;
+    const char       *str;
+} sensortype_strings[] = {
+   {SAHPI_TEMPERATURE,                 "SAHPI_TEMPERATURE"},
+   {SAHPI_VOLTAGE,                     "SAHPI_VOLTAGE"},
+   {SAHPI_CURRENT,                     "SAHPI_CURRENT"},
+   {SAHPI_FAN,                         "SAHPI_FAN"},
+   {SAHPI_PHYSICAL_SECURITY,           "SAHPI_PHYSICAL_SECURITY"},
+   {SAHPI_PLATFORM_VIOLATION,          "SAHPI_PLATFORM_VIOLATION"},
+   {SAHPI_PROCESSOR,                   "SAHPI_PROCESSOR"},
+   {SAHPI_POWER_SUPPLY,                "SAHPI_POWER_SUPPLY"},
+   {SAHPI_POWER_UNIT,                  "SAHPI_POWER_UNIT"},
+   {SAHPI_COOLING_DEVICE,              "SAHPI_COOLING_DEVICE"},
+   {SAHPI_OTHER_UNITS_BASED_SENSOR,    "SAHPI_OTHER_UNITS_BASED_SENSOR"},
+   {SAHPI_MEMORY,                      "SAHPI_MEMORY"},
+   {SAHPI_DRIVE_SLOT,                  "SAHPI_DRIVE_SLOT"},
+   {SAHPI_POST_MEMORY_RESIZE,          "SAHPI_POST_MEMORY_RESIZE"},
+   {SAHPI_SYSTEM_FW_PROGRESS,          "SAHPI_SYSTEM_FW_PROGRESS"},
+   {SAHPI_EVENT_LOGGING_DISABLED,      "SAHPI_EVENT_LOGGING_DISABLED"},
+   {SAHPI_RESERVED1,                   "SAHPI_RESERVED1"},
+   {SAHPI_SYSTEM_EVENT,                "SAHPI_SYSTEM_EVENT"},
+   {SAHPI_CRITICAL_INTERRUPT,          "SAHPI_CRITICAL_INTERRUPT"},
+   {SAHPI_BUTTON,                      "SAHPI_BUTTON"},
+   {SAHPI_MODULE_BOARD,                "SAHPI_MODULE_BOARD"},
+   {SAHPI_MICROCONTROLLER_COPROCESSOR, "SAHPI_MICROCONTROLLER_COPROCESSOR"},
+   {SAHPI_ADDIN_CARD,                  "SAHPI_ADDIN_CARD"},
+   {SAHPI_CHASSIS,                     "SAHPI_CHASSIS"},
+   {SAHPI_CHIP_SET,                    "SAHPI_CHIP_SET"},
+   {SAHPI_OTHER_FRU,                   "SAHPI_OTHER_FRU"},
+   {SAHPI_CABLE_INTERCONNECT,          "SAHPI_CABLE_INTERCONNECT"},
+   {SAHPI_TERMINATOR,                  "SAHPI_TERMINATOR"},
+   {SAHPI_SYSTEM_BOOT_INITIATED,       "SAHPI_SYSTEM_BOOT_INITIATED"},
+   {SAHPI_BOOT_ERROR,                  "SAHPI_BOOT_ERROR"},
+   {SAHPI_OS_BOOT,                     "SAHPI_OS_BOOT"},
+   {SAHPI_OS_CRITICAL_STOP,            "SAHPI_OS_CRITICAL_STOP"},
+   {SAHPI_SLOT_CONNECTOR,              "SAHPI_SLOT_CONNECTOR"},
+   {SAHPI_SYSTEM_ACPI_POWER_STATE,     "SAHPI_SYSTEM_ACPI_POWER_STATE"},
+   {SAHPI_RESERVED2,                   "SAHPI_RESERVED2"},
+   {SAHPI_PLATFORM_ALERT,              "SAHPI_PLATFORM_ALERT"},
+   {SAHPI_ENTITY_PRESENCE,             "SAHPI_ENTITY_PRESENCE"},
+   {SAHPI_MONITOR_ASIC_IC,             "SAHPI_MONITOR_ASIC_IC"},
+   {SAHPI_LAN,                         "SAHPI_LAN"},
+   {SAHPI_MANAGEMENT_SUBSYSTEM_HEALTH, "SAHPI_MANAGEMENT_SUBSYSTEM_HEALTH"},
+   {SAHPI_BATTERY,                     "SAHPI_BATTERY"},
+   {SAHPI_OPERATIONAL,                 "SAHPI_OPERATIONAL"},
+   {SAHPI_OEM_SENSOR,                  "SAHPI_OEM_SENSOR"},
+   {SAHPI_OEM_SENSOR,                  NULL}
+};
+
+
+/**
+ * Translates a string to a valid SaHpiSensorTypeT type.
+ *
+ * @param strtype The entity type expressed as a string.
+ *
+ * @return SAHPI_OK on success, otherwise an HPI error code.
+ */
+SaHpiSensorTypeT oSaHpiTypesEnums::str2sensortype(const char *strtype) {
+	int i;
+
+    if (strtype == NULL) {
+        return SAHPI_TEMPERATURE;
+    }
+	for (i = 0; sensortype_strings[i].str != NULL; i++) {
+		if (strcmp(strtype, sensortype_strings[i].str) == 0) {
+            return sensortype_strings[i].type;
+		}
+	}
+    return SAHPI_TEMPERATURE;
+}
+
+
+/**
+ * Translates an sensor reading type to a string.
+ *
+ * @param value  The SaHpiSensorTypeT to be converted.
+ *
+ * @return The string value of the type.
+ */
+const char * oSaHpiTypesEnums::sensortype2str(SaHpiSensorTypeT value) {
+	int i;
+
+	for (i = 0; sensortype_strings[i].str != NULL; i++) {
+		if (value == sensortype_strings[i].type) {
+			return sensortype_strings[i].str;
+		}
+	}
+    return "Unknown";
+}
+
+
+static struct eventcategory_map {
+    SaHpiEventCategoryT type;
+    const char          *str;
+} eventcategory_strings[] = {
+   {SAHPI_EC_UNSPECIFIED,     "SAHPI_EC_UNSPECIFIED"},
+   {SAHPI_EC_THRESHOLD,       "SAHPI_EC_THRESHOLD"},
+   {SAHPI_EC_USAGE,           "SAHPI_EC_USAGE"},
+   {SAHPI_EC_STATE,           "SAHPI_EC_STATE"},
+   {SAHPI_EC_PRED_FAIL,       "SAHPI_EC_PRED_FAIL"},
+   {SAHPI_EC_LIMIT,           "SAHPI_EC_LIMIT"},
+   {SAHPI_EC_PERFORMANCE,     "SAHPI_EC_PERFORMANCE"},
+   {SAHPI_EC_SEVERITY,        "SAHPI_EC_SEVERITY"},
+   {SAHPI_EC_PRESENCE,        "SAHPI_EC_PRESENCE"},
+   {SAHPI_EC_ENABLE,          "SAHPI_EC_ENABLE"},
+   {SAHPI_EC_AVAILABILITY,    "SAHPI_EC_AVAILABILITY"},
+   {SAHPI_EC_REDUNDANCY,      "SAHPI_EC_REDUNDANCY"},
+   {SAHPI_EC_SENSOR_SPECIFIC, "SAHPI_EC_SENSOR_SPECIFIC"},
+   {SAHPI_EC_GENERIC,         "SAHPI_EC_GENERIC"},
+   {SAHPI_EC_GENERIC,         NULL},
+};
+
+
+/**
+ * Translates a string to a valid SaHpiEventCategoryT type.
+ *
+ * @param strtype The entity type expressed as a string.
+ *
+ * @return SAHPI_OK on success, otherwise an HPI error code.
+ */
+SaHpiEventCategoryT oSaHpiTypesEnums::str2eventcategory(const char *strtype) {
+	int i;
+
+    if (strtype == NULL) {
+        return SAHPI_EC_UNSPECIFIED;
+    }
+	for (i = 0; eventcategory_strings[i].str != NULL; i++) {
+		if (strcmp(strtype, eventcategory_strings[i].str) == 0) {
+            return eventcategory_strings[i].type;
+		}
+	}
+    return SAHPI_EC_UNSPECIFIED;
+}
+
+
+/**
+ * Translates an sensor reading type to a string.
+ *
+ * @param value  The SaHpiEventCategoryT to be converted.
+ *
+ * @return The string value of the type.
+ */
+const char * oSaHpiTypesEnums::eventcategory2str(SaHpiEventCategoryT value) {
+	int i;
+
+	for (i = 0; eventcategory_strings[i].str != NULL; i++) {
+		if (value == eventcategory_strings[i].type) {
+			return eventcategory_strings[i].str;
+		}
+	}
+    return "Unknown";
+}
+
+
+static struct eventstate_map {
+    SaHpiEventStateT type;
+    const char       *str;
+} eventstate_strings[] = {
+   {SAHPI_ES_UNSPECIFIED,                          "SAHPI_ES_UNSPECIFIED"},
+   {SAHPI_ES_LOWER_MINOR,                          "SAHPI_ES_LOWER_MINOR"},
+   {SAHPI_ES_LOWER_MAJOR,                          "SAHPI_ES_LOWER_MAJOR"},
+   {SAHPI_ES_LOWER_CRIT,                           "SAHPI_ES_LOWER_CRIT"},
+   {SAHPI_ES_UPPER_MINOR,                          "SAHPI_ES_UPPER_MINOR"},
+   {SAHPI_ES_UPPER_MAJOR,                          "SAHPI_ES_UPPER_MAJOR"},
+   {SAHPI_ES_UPPER_CRIT,                           "SAHPI_ES_UPPER_CRIT"},
+   {SAHPI_ES_IDLE,                                 "SAHPI_ES_IDLE"},
+   {SAHPI_ES_ACTIVE,                               "SAHPI_ES_ACTIVE"},
+   {SAHPI_ES_BUSY,                                 "SAHPI_ES_BUSY"},
+   {SAHPI_ES_STATE_DEASSERTED,                     "SAHPI_ES_STATE_DEASSERTED"},
+   {SAHPI_ES_STATE_ASSERTED,                       "SAHPI_ES_STATE_ASSERTED"},
+   {SAHPI_ES_PRED_FAILURE_DEASSERT,                "SAHPI_ES_PRED_FAILURE_DEASSERT"},
+   {SAHPI_ES_PRED_FAILURE_ASSERT,                  "SAHPI_ES_PRED_FAILURE_ASSERT"},
+   {SAHPI_ES_LIMIT_NOT_EXCEEDED,                   "SAHPI_ES_LIMIT_NOT_EXCEEDED"},
+   {SAHPI_ES_LIMIT_EXCEEDED,                       "SAHPI_ES_LIMIT_EXCEEDED"},
+   {SAHPI_ES_PERFORMANCE_MET,                      "SAHPI_ES_PERFORMANCE_MET"},
+   {SAHPI_ES_PERFORMANCE_LAGS,                     "SAHPI_ES_PERFORMANCE_LAGS"},
+   {SAHPI_ES_OK,                                   "SAHPI_ES_OK"},
+   {SAHPI_ES_MINOR_FROM_OK,                        "SAHPI_ES_MINOR_FROM_OK"},
+   {SAHPI_ES_MAJOR_FROM_LESS,                      "SAHPI_ES_MAJOR_FROM_LESS"},
+   {SAHPI_ES_CRITICAL_FROM_LESS,                   "SAHPI_ES_CRITICAL_FROM_LESS"},
+   {SAHPI_ES_MINOR_FROM_MORE,                      "SAHPI_ES_MINOR_FROM_MORE"},
+   {SAHPI_ES_MAJOR_FROM_CRITICAL,                  "SAHPI_ES_MAJOR_FROM_CRITICAL"},
+   {SAHPI_ES_CRITICAL,                             "SAHPI_ES_CRITICAL"},
+   {SAHPI_ES_MONITOR,                              "SAHPI_ES_MONITOR"},
+   {SAHPI_ES_INFORMATIONAL,                        "SAHPI_ES_INFORMATIONAL"},
+   {SAHPI_ES_ABSENT,                               "SAHPI_ES_ABSENT"},
+   {SAHPI_ES_PRESENT,                              "SAHPI_ES_PRESENT"},
+   {SAHPI_ES_DISABLED,                             "SAHPI_ES_DISABLED"},
+   {SAHPI_ES_ENABLED,                              "SAHPI_ES_ENABLED"},
+   {SAHPI_ES_RUNNING,                              "SAHPI_ES_RUNNING"},
+   {SAHPI_ES_TEST,                                 "SAHPI_ES_TEST"},
+   {SAHPI_ES_POWER_OFF,                            "SAHPI_ES_POWER_OFF"},
+   {SAHPI_ES_ON_LINE,                              "SAHPI_ES_ON_LINE"},
+   {SAHPI_ES_OFF_LINE,                             "SAHPI_ES_OFF_LINE"},
+   {SAHPI_ES_OFF_DUTY,                             "SAHPI_ES_OFF_DUTY"},
+   {SAHPI_ES_DEGRADED,                             "SAHPI_ES_DEGRADED"},
+   {SAHPI_ES_POWER_SAVE,                           "SAHPI_ES_POWER_SAVE"},
+   {SAHPI_ES_INSTALL_ERROR,                        "SAHPI_ES_INSTALL_ERROR"},
+   {SAHPI_ES_FULLY_REDUNDANT,                      "SAHPI_ES_FULLY_REDUNDANT"},
+   {SAHPI_ES_REDUNDANCY_LOST,                      "SAHPI_ES_REDUNDANCY_LOST"},
+   {SAHPI_ES_REDUNDANCY_DEGRADED,                  "SAHPI_ES_REDUNDANCY_DEGRADED"},
+   {SAHPI_ES_REDUNDANCY_LOST_SUFFICIENT_RESOURCES, "SAHPI_ES_REDUNDANCY_LOST_SUFFICIENT_RESOURCES"},
+   {SAHPI_ES_NON_REDUNDANT_SUFFICIENT_RESOURCES,   "SAHPI_ES_NON_REDUNDANT_SUFFICIENT_RESOURCES"},
+   {SAHPI_ES_NON_REDUNDANT_INSUFFICIENT_RESOURCES, "SAHPI_ES_NON_REDUNDANT_INSUFFICIENT_RESOURCES"},
+   {SAHPI_ES_REDUNDANCY_DEGRADED_FROM_FULL,        "SAHPI_ES_REDUNDANCY_DEGRADED_FROM_FULL"},
+   {SAHPI_ES_REDUNDANCY_DEGRADED_FROM_NON,         "SAHPI_ES_REDUNDANCY_DEGRADED_FROM_NON"},
+   {SAHPI_ES_STATE_00,                             "SAHPI_ES_STATE_00"},
+   {SAHPI_ES_STATE_01,                             "SAHPI_ES_STATE_01"},
+   {SAHPI_ES_STATE_02,                             "SAHPI_ES_STATE_02"},
+   {SAHPI_ES_STATE_03,                             "SAHPI_ES_STATE_03"},
+   {SAHPI_ES_STATE_04,                             "SAHPI_ES_STATE_04"},
+   {SAHPI_ES_STATE_05,                             "SAHPI_ES_STATE_05"},
+   {SAHPI_ES_STATE_06,                             "SAHPI_ES_STATE_06"},
+   {SAHPI_ES_STATE_07,                             "SAHPI_ES_STATE_07"},
+   {SAHPI_ES_STATE_08,                             "SAHPI_ES_STATE_08"},
+   {SAHPI_ES_STATE_09,                             "SAHPI_ES_STATE_09"},
+   {SAHPI_ES_STATE_10,                             "SAHPI_ES_STATE_10"},
+   {SAHPI_ES_STATE_11,                             "SAHPI_ES_STATE_11"},
+   {SAHPI_ES_STATE_12,                             "SAHPI_ES_STATE_12"},
+   {SAHPI_ES_STATE_13,                             "SAHPI_ES_STATE_13"},
+   {SAHPI_ES_STATE_14,                             "SAHPI_ES_STATE_14"},
+   {SAHPI_ES_STATE_14,                             NULL}
+};
+
+
+/**
+ * Translates a string to a valid SaHpiEventStateT type.
+ *
+ * @param strtype The entity type expressed as a string.
+ *
+ * @return SAHPI_OK on success, otherwise an HPI error code.
+ */
+SaHpiEventStateT oSaHpiTypesEnums::str2eventstate(const char *strtype) {
+	int i;
+
+    if (strtype == NULL) {
+        return SAHPI_ES_UNSPECIFIED;
+    }
+	for (i = 0; eventstate_strings[i].str != NULL; i++) {
+		if (strcmp(strtype, eventstate_strings[i].str) == 0) {
+            return eventstate_strings[i].type;
+		}
+	}
+    return SAHPI_ES_UNSPECIFIED;
+}
+
+
+/**
+ * Translates an sensor reading type to a string.
+ *
+ * @param value  The SaHpiEventStateT to be converted.
+ *
+ * @return The string value of the type.
+ */
+const char * oSaHpiTypesEnums::eventstate2str(SaHpiEventStateT value) {
+	int i;
+
+	for (i = 0; eventstate_strings[i].str != NULL; i++) {
+		if (value == eventstate_strings[i].type) {
+			return eventstate_strings[i].str;
+		}
+	}
+    return "Unknown";
+}
 

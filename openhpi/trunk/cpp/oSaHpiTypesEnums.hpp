@@ -41,6 +41,14 @@ class oSaHpiTypesEnums {
         static const char * sensoruse2str(SaHpiSensorModUnitUseT value);
         static SaHpiSensorThdMaskT str2sensorthdmask(const char *strtype);
         static const char * sensorthdmask2str(SaHpiSensorThdMaskT value);
+        static SaHpiSensorEventCtrlT str2sensoreventctrl(const char *strtype);
+        static const char * sensoreventctrl2str(SaHpiSensorEventCtrlT value);
+        static SaHpiSensorTypeT str2sensortype(const char *strtype);
+        static const char * sensortype2str(SaHpiSensorTypeT value);
+        static SaHpiEventCategoryT str2eventcategory(const char *strtype);
+        static const char * eventcategory2str(SaHpiEventCategoryT value);
+        static SaHpiEventStateT str2eventstate(const char *strtype);
+        static const char * eventstate2str(SaHpiEventStateT value);
 };
 
 #endif
