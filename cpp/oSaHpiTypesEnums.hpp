@@ -55,6 +55,8 @@ class oSaHpiTypesEnums {
         static const char * ctrltype2str(SaHpiCtrlTypeT value);
         static SaHpiCtrlStateDigitalT str2ctrlstatedigital(const char *strtype);
         static const char * ctrlstatedigital2str(SaHpiCtrlStateDigitalT value);
+        static SaHpiUint32T str2aggregatestatus(const char *strtype);
+        static const char * aggregatestatus2str(SaHpiUint32T value);
 };
 
 #endif

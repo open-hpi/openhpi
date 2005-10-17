@@ -129,7 +129,7 @@ bool oSaHpiCtrlStateStream::assignField(SaHpiCtrlStateStreamT *ptr,
  * Print the contents of the buffer.
  *
  * @param stream Target stream.
- * @param buffer Address of the SaHpiTextBuferT struct.
+ * @param buffer Address of the SaHpiCtrlStateStreamT struct.
  *
  * @return True if there was an error, otherwise false.
  */
