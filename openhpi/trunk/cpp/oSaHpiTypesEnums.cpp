@@ -1253,4 +1253,55 @@ const char * oSaHpiTypesEnums::ctrloutputtype2str(SaHpiCtrlOutputTypeT value) {
 }
 
 
+static struct ctrlmode_map {
+    SaHpiCtrlModeT type;
+    const char     *str;
+} ctrlMode_strings[] = {
+    {SAHPI_CTRL_MODE_AUTO,   "SAHPI_CTRL_MODE_AUTO"},
+    {SAHPI_CTRL_MODE_MANUAL, "SAHPI_CTRL_MODE_MANUAL"},
+    {SAHPI_CTRL_MODE_MANUAL, NULL}
+};
+
+
+/**
+ * Translates a string to a valid SaHpiCtrlModeT type.
+ *
+ * @param strtype The entity type expressed as a string.
+ *
+ * @return SAHPI_OK on success, otherwise an HPI error code.
+ */
+SaHpiCtrlModeT oSaHpiTypesEnums::str2ctrlmode(const char *strtype) {
+	int i;
+
+    if (strtype == NULL) {
+        return SAHPI_CTRL_MODE_AUTO;
+    }
+	for (i = 0; ctrlmode_strings[i].str != NULL; i++) {
+		if (strcmp(strtype, ctrlmode_strings[i].str) == 0) {
+            return ctrlmode_strings[i].type;
+		}
+	}
+    return SAHPI_CTRL_MODE_AUTO;
+}
+
+
+/**
+ * Translates an sensor aggregate status type to a string.
+ *
+ * @param value  The SaHpiCtrlModeT to be converted.
+ *
+ * @return The string value of the type.
+ */
+const char * oSaHpiTypesEnums::ctrlmode2str(SaHpiCtrlModeT value) {
+	int i;
+
+	for (i = 0; ctrlmode_strings[i].str != NULL; i++) {
+		if (value == ctrlmode_strings[i].type) {
+			return ctrlmode_strings[i].str;
+		}
+	}
+    return "Unknown";
+}
+
+
 
