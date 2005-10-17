@@ -28,6 +28,9 @@ class oSaHpiCtrlRecAnalog : public SaHpiCtrlRecAnalogT {
     public:
         // constructors
         oSaHpiCtrlRecAnalog();
+        oSaHpiCtrlRecAnalog(SaHpiCtrlStateAnalogT mn,
+                            SaHpiCtrlStateAnalogT mx,
+                            SaHpiCtrlStateAnalogT def);
         // copy constructor
         oSaHpiCtrlRecAnalog(const oSaHpiCtrlRecAnalog& cra);
         // destructor

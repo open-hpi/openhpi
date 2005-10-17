@@ -37,6 +37,18 @@ oSaHpiCtrlRecAnalog::oSaHpiCtrlRecAnalog() {
 
 /**
  * Constructor.
+ */
+oSaHpiCtrlRecAnalog::oSaHpiCtrlRecAnalog(SaHpiCtrlStateAnalogT mn,
+                                         SaHpiCtrlStateAnalogT mx,
+                                         SaHpiCtrlStateAnalogT def) {
+    Min = mn;
+    Max = mx;
+    Default = def;
+};
+
+
+/**
+ * Constructor.
  *
  * @param buf    The reference to the class to be copied.
  */
