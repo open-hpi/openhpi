@@ -1035,13 +1035,13 @@ static struct ctrltype_map {
     SaHpiCtrlTypeT type;
     const char     *str;
 } ctrltype_strings[] = {
-       {SAHPI_CTRL_TYPE_DIGITAL,  "SAHPI_CTRL_TYPE_DIGITAL"},
-       {SAHPI_CTRL_TYPE_DISCRETE, "SAHPI_CTRL_TYPE_DISCRETE"},
-       {SAHPI_CTRL_TYPE_ANALOG,   "SAHPI_CTRL_TYPE_ANALOG"},
-       {SAHPI_CTRL_TYPE_STREAM,   "SAHPI_CTRL_TYPE_STREAM"},
-       {SAHPI_CTRL_TYPE_TEXT,     "SAHPI_CTRL_TYPE_TEXT"},
-       {SAHPI_CTRL_TYPE_OEM,      "SAHPI_CTRL_TYPE_OEM"},
-       {SAHPI_CTRL_TYPE_OEM,      NULL}
+   {SAHPI_CTRL_TYPE_DIGITAL,  "SAHPI_CTRL_TYPE_DIGITAL"},
+   {SAHPI_CTRL_TYPE_DISCRETE, "SAHPI_CTRL_TYPE_DISCRETE"},
+   {SAHPI_CTRL_TYPE_ANALOG,   "SAHPI_CTRL_TYPE_ANALOG"},
+   {SAHPI_CTRL_TYPE_STREAM,   "SAHPI_CTRL_TYPE_STREAM"},
+   {SAHPI_CTRL_TYPE_TEXT,     "SAHPI_CTRL_TYPE_TEXT"},
+   {SAHPI_CTRL_TYPE_OEM,      "SAHPI_CTRL_TYPE_OEM"},
+   {SAHPI_CTRL_TYPE_OEM,      NULL}
 };
 
 
@@ -1090,11 +1090,11 @@ static struct ctrlstatedigital_map {
     SaHpiCtrlStateDigitalT type;
     const char             *str;
 } ctrlstatedigital_strings[] = {
-       {SAHPI_CTRL_STATE_OFF,       "SAHPI_CTRL_STATE_OFF"},
-       {SAHPI_CTRL_STATE_ON,        "SAHPI_CTRL_STATE_ON"},
-       {SAHPI_CTRL_STATE_PULSE_OFF, "SAHPI_CTRL_STATE_PULSE_OFF"},
-       {SAHPI_CTRL_STATE_PULSE_ON,  "SAHPI_CTRL_STATE_PULSE_ON"},
-       {SAHPI_CTRL_STATE_PULSE_ON,  NULL}
+   {SAHPI_CTRL_STATE_OFF,       "SAHPI_CTRL_STATE_OFF"},
+   {SAHPI_CTRL_STATE_ON,        "SAHPI_CTRL_STATE_ON"},
+   {SAHPI_CTRL_STATE_PULSE_OFF, "SAHPI_CTRL_STATE_PULSE_OFF"},
+   {SAHPI_CTRL_STATE_PULSE_ON,  "SAHPI_CTRL_STATE_PULSE_ON"},
+   {SAHPI_CTRL_STATE_PULSE_ON,  NULL}
 };
 
 
@@ -1143,11 +1143,12 @@ static struct aggregatestatus_map {
     SaHpiUint32T type;
     const char   *str;
 } aggregatestatus_strings[] = {
-       {SAHPI_DEFAGSENS_OPER, "SAHPI_DEFAGSENS_OPRR"},
-       {SAHPI_DEFAGSENS_PWR,  "SAHPI_DEFAGSENS_PWR"},
-       {SAHPI_DEFAGSENS_TEMP, "SAHPI_DEFAGSENS_TEMP"},
-       {SAHPI_DEFAGSENS_MIN,  "SAHPI_DEFAGSENS_MIN"},
-       {SAHPI_DEFAGSENS_MAX,  "SAHPI_DEFAGSENS_MAX"},
+   {SAHPI_DEFAGSENS_OPER, "SAHPI_DEFAGSENS_OPRR"},
+   {SAHPI_DEFAGSENS_PWR,  "SAHPI_DEFAGSENS_PWR"},
+   {SAHPI_DEFAGSENS_TEMP, "SAHPI_DEFAGSENS_TEMP"},
+   {SAHPI_DEFAGSENS_MIN,  "SAHPI_DEFAGSENS_MIN"},
+   {SAHPI_DEFAGSENS_MAX,  "SAHPI_DEFAGSENS_MAX"},
+   {SAHPI_DEFAGSENS_MAX,  NULL}
 };
 
 
@@ -1186,6 +1187,66 @@ const char * oSaHpiTypesEnums::aggregatestatus2str(SaHpiUint32T value) {
 	for (i = 0; aggregatestatus_strings[i].str != NULL; i++) {
 		if (value == aggregatestatus_strings[i].type) {
 			return aggregatestatus_strings[i].str;
+		}
+	}
+    return "Unknown";
+}
+
+
+static struct ctrloutputtype_map {
+    SaHpiCtrlOutputTypeT type;
+    const char           *str;
+} ctrloutputtype_strings[] = {
+    {SAHPI_CTRL_GENERIC,              "SAHPI_CTRL_GENERIC"},
+    {SAHPI_CTRL_LED,                  "SAHPI_CTRL_LED"},
+    {SAHPI_CTRL_FAN_SPEED,            "SAHPI_CTRL_FAN_SPEED"},
+    {SAHPI_CTRL_DRY_CONTACT_CLOSURE,  "SAHPI_CTRL_DRY_CONTACT_CLOSURE"},
+    {SAHPI_CTRL_POWER_SUPPLY_INHIBIT, "SAHPI_CTRL_POWER_SUPPLY_INHIBIT"},
+    {SAHPI_CTRL_AUDIBLE,              "SAHPI_CTRL_AUDIBLE"},
+    {SAHPI_CTRL_FRONT_PANEL_LOCKOUT,  "SAHPI_CTRL_FRONT_PANEL_LOCKOUT"},
+    {SAHPI_CTRL_POWER_INTERLOCK,      "SAHPI_CTRL_POWER_INTERLOCK"},
+    {SAHPI_CTRL_POWER_STATE,          "SAHPI_CTRL_POWER_STATE"},
+    {SAHPI_CTRL_LCD_DISPLAY,          "SAHPI_CTRL_LCD_DISPLAY"},
+    {SAHPI_CTRL_OEM,                  "SAHPI_CTRL_OEM"},
+    {SAHPI_CTRL_OEM,                  NULL}
+};
+
+
+/**
+ * Translates a string to a valid SaHpiCtrlOutputTypeT type.
+ *
+ * @param strtype The entity type expressed as a string.
+ *
+ * @return SAHPI_OK on success, otherwise an HPI error code.
+ */
+SaHpiCtrlOutputTypeT oSaHpiTypesEnums::str2ctrloutputtype(const char *strtype) {
+	int i;
+
+    if (strtype == NULL) {
+        return SAHPI_CTRL_GENERIC;
+    }
+	for (i = 0; ctrloutputtype_strings[i].str != NULL; i++) {
+		if (strcmp(strtype, ctrloutputtype_strings[i].str) == 0) {
+            return ctrloutputtype_strings[i].type;
+		}
+	}
+    return SAHPI_CTRL_GENERIC;
+}
+
+
+/**
+ * Translates an sensor aggregate status type to a string.
+ *
+ * @param value  The SaHpiCtrlOutputTypeT to be converted.
+ *
+ * @return The string value of the type.
+ */
+const char * oSaHpiTypesEnums::ctrloutputtype2str(SaHpiCtrlOutputTypeT value) {
+	int i;
+
+	for (i = 0; ctrloutputtype_strings[i].str != NULL; i++) {
+		if (value == ctrloutputtype_strings[i].type) {
+			return ctrloutputtype_strings[i].str;
 		}
 	}
     return "Unknown";
