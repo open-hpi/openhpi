@@ -114,7 +114,7 @@ bool oSaHpiSensorReading::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    err = fprintf(stream, "IsSupported = %s\n", oSaHpiTypesEnums::torf2str(IsSupported));
+    err = fprintf(stream, "IsSupported = %s\n", oSaHpiTypesEnums::torf2str(sr->IsSupported));
     if (err < 0) {
         return true;
     }
