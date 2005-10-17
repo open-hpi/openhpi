@@ -184,9 +184,6 @@ bool oSaHpiCtrlRecText::fprint(FILE *stream,
         return true;
     }
 
-
-
-
 	return false;
 }
 
