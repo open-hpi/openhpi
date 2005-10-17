@@ -14,8 +14,8 @@
  */
 
 
-#ifndef Included_oSaHpiCtrlRecStream
-#define Included_oSaHpiCtrlRecStream
+#ifndef Included_oSaHpiCtrlRec
+#define Included_oSaHpiCtrlRec
 
 #include <stdio.h>
 extern "C"
@@ -24,22 +24,29 @@ extern "C"
 }
 
 
-class oSaHpiCtrlRecStream : public SaHpiCtrlRecStreamT {
+class oSaHpiCtrlRec : public SaHpiCtrlRecT {
     public:
         // constructors
-        oSaHpiCtrlRecStream();
+        oSaHpiCtrlRec();
         // copy constructor
-        oSaHpiCtrlRecStream(const oSaHpiCtrlRecStream& crd);
+        oSaHpiCtrlRec(const oSaHpiCtrlRec& cr);
         // destructor
-        ~oSaHpiCtrlRecStream() {
+        ~oSaHpiCtrlRec() {
         }
         // other methods
-        inline SaHpiCtrlRecStreamT *getStruct(void) {
+        bool assignField(SaHpiCtrlRecT *ptr,
+                         const char *field,
+                         const char *value);
+        inline bool assignField(const char *field,
+                                const char *value) {
+            return assignField(this, field, value);
+        }
+        inline SaHpiCtrlRecT *getStruct(void) {
             return this;
         }
         bool fprint(FILE *stream,
                     const int indent,
-                    const SaHpiCtrlRecStreamT *ent);
+                    const SaHpiCtrlRecT *sr);
         inline bool fprint(FILE *stream,
                            const int indent) {
             return fprint(stream, indent, this);
