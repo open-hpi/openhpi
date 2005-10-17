@@ -1139,4 +1139,57 @@ const char * oSaHpiTypesEnums::ctrlstatedigital2str(SaHpiCtrlStateDigitalT value
 }
 
 
+static struct aggregatestatus_map {
+    SaHpiUint32T type;
+    const char   *str;
+} aggregatestatus_strings[] = {
+       {SAHPI_DEFAGSENS_OPER, "SAHPI_DEFAGSENS_OPRR"},
+       {SAHPI_DEFAGSENS_PWR,  "SAHPI_DEFAGSENS_PWR"},
+       {SAHPI_DEFAGSENS_TEMP, "SAHPI_DEFAGSENS_TEMP"},
+       {SAHPI_DEFAGSENS_MIN,  "SAHPI_DEFAGSENS_MIN"},
+       {SAHPI_DEFAGSENS_MAX,  "SAHPI_DEFAGSENS_MAX"},
+};
+
+
+/**
+ * Translates a string to a valid SaHpiUint32T type.
+ *
+ * @param strtype The entity type expressed as a string.
+ *
+ * @return SAHPI_OK on success, otherwise an HPI error code.
+ */
+SaHpiUint32T oSaHpiTypesEnums::str2aggregatestatus(const char *strtype) {
+	int i;
+
+    if (strtype == NULL) {
+        return 0;
+    }
+	for (i = 0; aggregatestatus_strings[i].str != NULL; i++) {
+		if (strcmp(strtype, aggregatestatus_strings[i].str) == 0) {
+            return aggregatestatus_strings[i].type;
+		}
+	}
+    return 0;
+}
+
+
+/**
+ * Translates an sensor aggregate status type to a string.
+ *
+ * @param value  The SaHpiUint32T to be converted.
+ *
+ * @return The string value of the type.
+ */
+const char * oSaHpiTypesEnums::aggregatestatus2str(SaHpiUint32T value) {
+	int i;
+
+	for (i = 0; aggregatestatus_strings[i].str != NULL; i++) {
+		if (value == aggregatestatus_strings[i].type) {
+			return aggregatestatus_strings[i].str;
+		}
+	}
+    return "Unknown";
+}
+
+
 
