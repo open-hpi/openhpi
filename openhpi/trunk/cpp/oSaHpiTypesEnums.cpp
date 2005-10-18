@@ -1256,7 +1256,7 @@ const char * oSaHpiTypesEnums::ctrloutputtype2str(SaHpiCtrlOutputTypeT value) {
 static struct ctrlmode_map {
     SaHpiCtrlModeT type;
     const char     *str;
-} ctrlMode_strings[] = {
+} ctrlmode_strings[] = {
     {SAHPI_CTRL_MODE_AUTO,   "SAHPI_CTRL_MODE_AUTO"},
     {SAHPI_CTRL_MODE_MANUAL, "SAHPI_CTRL_MODE_MANUAL"},
     {SAHPI_CTRL_MODE_MANUAL, NULL}
@@ -1303,5 +1303,119 @@ const char * oSaHpiTypesEnums::ctrlmode2str(SaHpiCtrlModeT value) {
     return "Unknown";
 }
 
+
+static struct idrareatype_map {
+    SaHpiIdrAreaTypeT type;
+    const char        *str;
+} idrareatype_strings[] = {
+    {SAHPI_IDR_AREATYPE_INTERNAL_USE, "SAHPI_IDR_AREATYPE_INTERNAL_USE"},
+    {SAHPI_IDR_AREATYPE_CHASSIS_INFO, "SAHPI_IDR_AREATYPE_CHASSIS_INFO"},
+    {SAHPI_IDR_AREATYPE_BOARD_INFO,   "SAHPI_IDR_AREATYPE_BOARD_INFO"},
+    {SAHPI_IDR_AREATYPE_PRODUCT_INFO, "SAHPI_IDR_AREATYPE_PRODUCT_INFO"},
+    {SAHPI_IDR_AREATYPE_OEM,          "SAHPI_IDR_AREATYPE_OEM"},
+    {SAHPI_IDR_AREATYPE_UNSPECIFIED,  "SAHPI_IDR_AREATYPE_UNSPECIFIED"},
+    {SAHPI_IDR_AREATYPE_UNSPECIFIED,  NULL}
+};
+
+
+/**
+ * Translates a string to a valid SaHpiIdrAreaTypeT type.
+ *
+ * @param strtype The entity type expressed as a string.
+ *
+ * @return SAHPI_OK on success, otherwise an HPI error code.
+ */
+SaHpiIdrAreaTypeT oSaHpiTypesEnums::str2idrareatype(const char *strtype) {
+	int i;
+
+    if (strtype == NULL) {
+        return SAHPI_IDR_AREATYPE_UNSPECIFIED;
+    }
+	for (i = 0; idrareatype_strings[i].str != NULL; i++) {
+		if (strcmp(strtype, idrareatype_strings[i].str) == 0) {
+            return idrareatype_strings[i].type;
+		}
+	}
+    return SAHPI_IDR_AREATYPE_UNSPECIFIED;
+}
+
+
+/**
+ * Translates an sensor aggregate status type to a string.
+ *
+ * @param value  The SaHpiIdrAreaTypeT to be converted.
+ *
+ * @return The string value of the type.
+ */
+const char * oSaHpiTypesEnums::idrareatype2str(SaHpiIdrAreaTypeT value) {
+	int i;
+
+	for (i = 0; idrareatype_strings[i].str != NULL; i++) {
+		if (value == idrareatype_strings[i].type) {
+			return idrareatype_strings[i].str;
+		}
+	}
+    return "Unknown";
+}
+
+
+static struct idrfieldtype_map {
+    SaHpiIdrFieldTypeT type;
+    const char         *str;
+} idrfieldtype_strings[] = {
+    {SAHPI_IDR_FIELDTYPE_CHASSIS_TYPE,    "SAHPI_IDR_FIELDTYPE_CHASSIS_TYPE"},
+    {SAHPI_IDR_FIELDTYPE_MFG_DATETIME,    "SAHPI_IDR_FIELDTYPE_MFG_DATETIME"},
+    {SAHPI_IDR_FIELDTYPE_MANUFACTURER,    "SAHPI_IDR_FIELDTYPE_MANUFACTURER"},
+    {SAHPI_IDR_FIELDTYPE_PRODUCT_NAME,    "SAHPI_IDR_FIELDTYPE_PRODUCT_NAME"},
+    {SAHPI_IDR_FIELDTYPE_PRODUCT_VERSION, "SAHPI_IDR_FIELDTYPE_PRODUCT_VERSION"},
+    {SAHPI_IDR_FIELDTYPE_SERIAL_NUMBER,   "SAHPI_IDR_FIELDTYPE_SERIAL_NUMBER"},
+    {SAHPI_IDR_FIELDTYPE_PART_NUMBER,     "SAHPI_IDR_FIELDTYPE_PART_NUMBER"},
+    {SAHPI_IDR_FIELDTYPE_FILE_ID,         "SAHPI_IDR_FIELDTYPE_FILE_ID"},
+    {SAHPI_IDR_FIELDTYPE_ASSET_TAG,       "SAHPI_IDR_FIELDTYPE_ASSET_TAG"},
+    {SAHPI_IDR_FIELDTYPE_CUSTOM,          "SAHPI_IDR_FIELDTYPE_CUSTOM"},
+    {SAHPI_IDR_FIELDTYPE_UNSPECIFIED,     "SAHPI_IDR_FIELDTYPE_UNSPECIFIED"},
+    {SAHPI_IDR_FIELDTYPE_UNSPECIFIED,     NULL}
+};
+
+
+/**
+ * Translates a string to a valid SaHpiIdrFieldTypeT type.
+ *
+ * @param strtype The entity type expressed as a string.
+ *
+ * @return SAHPI_OK on success, otherwise an HPI error code.
+ */
+SaHpiIdrFieldTypeT oSaHpiTypesEnums::str2idrfieldtype(const char *strtype) {
+	int i;
+
+    if (strtype == NULL) {
+        return SAHPI_IDR_FIELDTYPE_UNSPECIFIED;
+    }
+	for (i = 0; idrfieldtype_strings[i].str != NULL; i++) {
+		if (strcmp(strtype, idrfieldtype_strings[i].str) == 0) {
+            return idrfieldtype_strings[i].type;
+		}
+	}
+    return SAHPI_IDR_FIELDTYPE_UNSPECIFIED;
+}
+
+
+/**
+ * Translates an sensor aggregate status type to a string.
+ *
+ * @param value  The SaHpiIdrFieldTypeT to be converted.
+ *
+ * @return The string value of the type.
+ */
+const char * oSaHpiTypesEnums::idrfieldtype2str(SaHpiIdrFieldTypeT value) {
+	int i;
+
+	for (i = 0; idrfieldtype_strings[i].str != NULL; i++) {
+		if (value == idrfieldtype_strings[i].type) {
+			return idrfieldtype_strings[i].str;
+		}
+	}
+    return "Unknown";
+}
 
 
