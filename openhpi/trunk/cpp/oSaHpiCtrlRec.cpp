@@ -92,7 +92,7 @@ bool oSaHpiCtrlRec::assignField(SaHpiCtrlRecT *ptr,
     // Text
     //Oem
     else if (strcmp(field, "WriteOnly") == 0) {
-        ptr->WriteOnly = atoi(value);
+        ptr->WriteOnly = oSaHpiTypesEnums::str2torf(value);
         return false;
     }
     else if (strcmp(field, "Oem") == 0) {

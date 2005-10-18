@@ -75,7 +75,7 @@ bool oSaHpiCtrlDefaultMode::assignField(SaHpiCtrlDefaultModeT *ptr,
         return false;
     }
     else if (strcmp(field, "ReadOnly") == 0) {
-        ptr->ReadOnly = (SaHpiBoolT)atoi(value);
+        ptr->ReadOnly = oSaHpiTypesEnums::str2torf(value);
         return false;
     }
     return true;
