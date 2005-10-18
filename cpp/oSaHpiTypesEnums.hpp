@@ -61,6 +61,10 @@ class oSaHpiTypesEnums {
         static const char * ctrloutputtype2str(SaHpiCtrlOutputTypeT value);
         static SaHpiCtrlModeT str2ctrlmode(const char *strtype);
         static const char * ctrlmode2str(SaHpiCtrlModeT value);
+        static SaHpiIdrAreaTypeT str2idrareatype(const char *strtype);
+        static const char * idrareatype2str(SaHpiIdrAreaTypeT value);
+        static SaHpiIdrFieldTypeT str2idrfieldtype(const char *strtype);
+        static const char * idrfieldtype2str(SaHpiIdrFieldTypeT value);
 };
 
 #endif
