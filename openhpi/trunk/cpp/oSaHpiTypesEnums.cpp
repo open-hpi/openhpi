@@ -1419,3 +1419,274 @@ const char * oSaHpiTypesEnums::idrfieldtype2str(SaHpiIdrFieldTypeT value) {
 }
 
 
+static struct watchdogaction_map {
+    SaHpiWatchdogActionT type;
+    const char           *str;
+} watchdogaction_strings[] = {
+    {SAHPI_WA_NO_ACTION,   "SAHPI_WA_NO_ACTION"},
+    {SAHPI_WA_RESET,       "SAHPI_WA_RESET"},
+    {SAHPI_WA_POWER_DOWN,  "SAHPI_WA_POWER_DOWN"},
+    {SAHPI_WA_POWER_CYCLE, "SAHPI_WA_POWER_CYCLE"},
+    {SAHPI_WA_POWER_CYCLE, NULL}
+};
+
+
+/**
+ * Translates a string to a valid SaHpiWatchdogActionT type.
+ *
+ * @param strtype The entity type expressed as a string.
+ *
+ * @return SAHPI_OK on success, otherwise an HPI error code.
+ */
+SaHpiWatchdogActionT oSaHpiTypesEnums::str2watchdogaction(const char *strtype) {
+	int i;
+
+    if (strtype == NULL) {
+        return SAHPI_WA_NO_ACTION;
+    }
+	for (i = 0; watchdogaction_strings[i].str != NULL; i++) {
+		if (strcmp(strtype, watchdogaction_strings[i].str) == 0) {
+            return watchdogaction_strings[i].type;
+		}
+	}
+    return SAHPI_WA_NO_ACTION;
+}
+
+
+/**
+ * Translates an sensor aggregate status type to a string.
+ *
+ * @param value  The SaHpiWatchdogActionT to be converted.
+ *
+ * @return The string value of the type.
+ */
+const char * oSaHpiTypesEnums::watchdogaction2str(SaHpiWatchdogActionT value) {
+	int i;
+
+	for (i = 0; watchdogaction_strings[i].str != NULL; i++) {
+		if (value == watchdogaction_strings[i].type) {
+			return watchdogaction_strings[i].str;
+		}
+	}
+    return "Unknown";
+}
+
+
+static struct watchdogactionevent_map {
+    SaHpiWatchdogActionEventT type;
+    const char                *str;
+} watchdogactionevent_strings[] = {
+    {SAHPI_WAE_NO_ACTION,   "SAHPI_WAE_NO_ACTION"},
+    {SAHPI_WAE_RESET,       "SAHPI_WAE_RESET"},
+    {SAHPI_WAE_POWER_DOWN,  "SAHPI_WAE_POWER_DOWN"},
+    {SAHPI_WAE_POWER_CYCLE, "SAHPI_WAE_POWER_CYCLE"},
+    {SAHPI_WAE_TIMER_INT,   "SAHPI_WAE_TIMER_INT"},
+    {SAHPI_WAE_TIMER_INT,   NULL}
+};
+
+
+/**
+ * Translates a string to a valid SaHpiWatchdogActionEventT type.
+ *
+ * @param strtype The entity type expressed as a string.
+ *
+ * @return SAHPI_OK on success, otherwise an HPI error code.
+ */
+SaHpiWatchdogActionEventT oSaHpiTypesEnums::str2watchdogactionevent(const char *strtype) {
+	int i;
+
+    if (strtype == NULL) {
+        return SAHPI_WAE_NO_ACTION;
+    }
+	for (i = 0; watchdogactionevent_strings[i].str != NULL; i++) {
+		if (strcmp(strtype, watchdogactionevent_strings[i].str) == 0) {
+            return watchdogactionevent_strings[i].type;
+		}
+	}
+    return SAHPI_WAE_NO_ACTION;
+}
+
+
+/**
+ * Translates an sensor aggregate status type to a string.
+ *
+ * @param value  The SaHpiWatchdogActionEventT to be converted.
+ *
+ * @return The string value of the type.
+ */
+const char * oSaHpiTypesEnums::watchdogactionevent2str(SaHpiWatchdogActionEventT value) {
+	int i;
+
+	for (i = 0; watchdogactionevent_strings[i].str != NULL; i++) {
+		if (value == watchdogactionevent_strings[i].type) {
+			return watchdogactionevent_strings[i].str;
+		}
+	}
+    return "Unknown";
+}
+
+
+static struct watchdogpretimerinterrupt_map {
+    SaHpiWatchdogPretimerInterruptT type;
+    const char                      *str;
+} watchdogpretimerinterrupt_strings[] = {
+    {SAHPI_WPI_NONE,              "SAHPI_WPI_NONE"},
+    {SAHPI_WPI_SMI,               "SAHPI_WPI_SMI"},
+    {SAHPI_WPI_NMI,               "SAHPI_WPI_NMI"},
+    {SAHPI_WPI_MESSAGE_INTERRUPT, "SAHPI_WPI_MESSAGE_INTERRUPT"},
+    {SAHPI_WPI_OEM,               "SAHPI_WPI_OEM"},
+    {SAHPI_WPI_OEM,               NULL}
+};
+
+
+/**
+ * Translates a string to a valid SaHpiWatchdogPretimerInterruptT type.
+ *
+ * @param strtype The entity type expressed as a string.
+ *
+ * @return SAHPI_OK on success, otherwise an HPI error code.
+ */
+SaHpiWatchdogPretimerInterruptT oSaHpiTypesEnums::str2watchdogpretimerinterrupt(const char *strtype) {
+	int i;
+
+    if (strtype == NULL) {
+        return SAHPI_WPI_NONE;
+    }
+	for (i = 0; watchdogpretimerinterrupt_strings[i].str != NULL; i++) {
+		if (strcmp(strtype, watchdogpretimerinterrupt_strings[i].str) == 0) {
+            return watchdogpretimerinterrupt_strings[i].type;
+		}
+	}
+    return SAHPI_WPI_NONE;
+}
+
+
+/**
+ * Translates an sensor aggregate status type to a string.
+ *
+ * @param value  The SaHpiWatchdogPretimerInterruptT to be converted.
+ *
+ * @return The string value of the type.
+ */
+const char * oSaHpiTypesEnums::watchdogpretimerinterrupt2str(SaHpiWatchdogPretimerInterruptT value) {
+	int i;
+
+	for (i = 0; watchdogpretimerinterrupt_strings[i].str != NULL; i++) {
+		if (value == watchdogpretimerinterrupt_strings[i].type) {
+			return watchdogpretimerinterrupt_strings[i].str;
+		}
+	}
+    return "Unknown";
+}
+
+
+static struct watchdogtimeruse_map {
+    SaHpiWatchdogTimerUseT type;
+    const char             *str;
+} watchdogtimeruse_strings[] = {
+    {SAHPI_WTU_NONE,        "SAHPI_WTU_NONE"},
+    {SAHPI_WTU_BIOS_FRB2,   "SAHPI_WTU_BIOS_FRB2"},
+    {SAHPI_WTU_BIOS_POST,   "SAHPI_WTU_BIOS_POST"},
+    {SAHPI_WTU_OS_LOAD,     "SAHPI_WTU_OS_LOAD"},
+    {SAHPI_WTU_SMS_OS,      "SAHPI_WTU_SMS_OS"},
+    {SAHPI_WTU_OEM,         "SAHPI_WTU_OEM"},
+    {SAHPI_WTU_UNSPECIFIED, "SAHPI_WTU_UNSPECIFIED"},
+    {SAHPI_WTU_UNSPECIFIED, NULL}
+};
+
+
+/**
+ * Translates a string to a valid SaHpiWatchdogTimerUseT type.
+ *
+ * @param strtype The entity type expressed as a string.
+ *
+ * @return SAHPI_OK on success, otherwise an HPI error code.
+ */
+SaHpiWatchdogTimerUseT oSaHpiTypesEnums::str2watchdogtimeruse(const char *strtype) {
+	int i;
+
+    if (strtype == NULL) {
+        return SAHPI_WTU_NONE;
+    }
+	for (i = 0; watchdogtimeruse_strings[i].str != NULL; i++) {
+		if (strcmp(strtype, watchdogtimeruse_strings[i].str) == 0) {
+            return watchdogtimeruse_strings[i].type;
+		}
+	}
+    return SAHPI_WTU_NONE;
+}
+
+
+/**
+ * Translates an sensor aggregate status type to a string.
+ *
+ * @param value  The SaHpiWatchdogTimerUseT to be converted.
+ *
+ * @return The string value of the type.
+ */
+const char * oSaHpiTypesEnums::watchdogtimeruse2str(SaHpiWatchdogTimerUseT value) {
+	int i;
+
+	for (i = 0; watchdogtimeruse_strings[i].str != NULL; i++) {
+		if (value == watchdogtimeruse_strings[i].type) {
+			return watchdogtimeruse_strings[i].str;
+		}
+	}
+    return "Unknown";
+}
+
+
+static struct watchdogexpflags_map {
+    SaHpiWatchdogExpFlagsT type;
+    const char             *str;
+} watchdogexpflags_strings[] = {
+    {SAHPI_WATCHDOG_EXP_BIOS_FRB2, "SAHPI_WATCHDOG_EXP_BIOS_FRB2"},
+    {SAHPI_WATCHDOG_EXP_BIOS_POST, "SAHPI_WATCHDOG_EXP_BIOS_POST"},
+    {SAHPI_WATCHDOG_EXP_OS_LOAD,   "SAHPI_WATCHDOG_EXP_OS_LOAD"},
+    {SAHPI_WATCHDOG_EXP_SMS_OS,    "SAHPI_WATCHDOG_EXP_SMS_OS"},
+    {SAHPI_WATCHDOG_EXP_OEM,       "SAHPI_WATCHDOG_EXP_OEM"},
+    {SAHPI_WATCHDOG_EXP_OEM,       NULL}
+};
+
+
+/**
+ * Translates a string to a valid SaHpiWatchdogExpFlagsT type.
+ *
+ * @param strtype The entity type expressed as a string.
+ *
+ * @return SAHPI_OK on success, otherwise an HPI error code.
+ */
+SaHpiWatchdogExpFlagsT oSaHpiTypesEnums::str2watchdogexpflags(const char *strtype) {
+	int i;
+
+    if (strtype == NULL) {
+        return SAHPI_WTU_NONE;
+    }
+	for (i = 0; watchdogexpflags_strings[i].str != NULL; i++) {
+		if (strcmp(strtype, watchdogexpflags_strings[i].str) == 0) {
+            return watchdogexpflags_strings[i].type;
+		}
+	}
+    return SAHPI_WTU_NONE;
+}
+
+
+/**
+ * Translates an sensor aggregate status type to a string.
+ *
+ * @param value  The SaHpiWatchdogExpFlagsT to be converted.
+ *
+ * @return The string value of the type.
+ */
+const char * oSaHpiTypesEnums::watchdogexpflags2str(SaHpiWatchdogExpFlagsT value) {
+	int i;
+
+	for (i = 0; watchdogexpflags_strings[i].str != NULL; i++) {
+		if (value == watchdogexpflags_strings[i].type) {
+			return watchdogexpflags_strings[i].str;
+		}
+	}
+    return "Unknown";
+}
+
+

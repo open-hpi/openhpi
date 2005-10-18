@@ -65,6 +65,16 @@ class oSaHpiTypesEnums {
         static const char * idrareatype2str(SaHpiIdrAreaTypeT value);
         static SaHpiIdrFieldTypeT str2idrfieldtype(const char *strtype);
         static const char * idrfieldtype2str(SaHpiIdrFieldTypeT value);
+        static SaHpiWatchdogActionT str2watchdogaction(const char *strtype);
+        static const char * watchdogaction2str(SaHpiWatchdogActionT value);
+        static SaHpiWatchdogActionEventT str2watchdogactionevent(const char *strtype);
+        static const char * watchdogactionevent2str(SaHpiWatchdogActionEventT value);
+        static SaHpiWatchdogPretimerInterruptT str2watchdogpretimerinterrupt(const char *strtype);
+        static const char * watchdogpretimerinterrupt2str(SaHpiWatchdogPretimerInterruptT value);
+        static SaHpiWatchdogTimerUseT str2watchdogtimeruse(const char *strtype);
+        static const char * watchdogtimeruse2str(SaHpiWatchdogTimerUseT value);
+        static SaHpiWatchdogExpFlagsT str2watchdogexpflags(const char *strtype);
+        static const char * watchdogexpflags2str(SaHpiWatchdogExpFlagsT value);
 };
 
 #endif
