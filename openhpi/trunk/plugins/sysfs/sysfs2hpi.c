@@ -234,46 +234,46 @@ static int sysfs2hpi_setup_rdr(SaHpiSensorTypeT type,
 		case SAHPI_TEMPERATURE:
 			snprintf(s->name, SYSFS_NAME_LEN, "%i:Temp Sensor",s->num);
 		
-			snprintf(strinput, SYSFS_NAME_LEN, "temp_input%s", str);
-			s->value = sysfs_get_device_attr(d, strinput);
-			snprintf(strinput, SYSFS_NAME_LEN, "temp_max%s", str);
-			s->max = sysfs_get_device_attr(d, strinput);
-			snprintf(strinput, SYSFS_NAME_LEN, "temp_min%s", str);
-			s->min = sysfs_get_device_attr(d, strinput);
+			snprintf((char*)strinput, SYSFS_NAME_LEN, "temp_input%s", str);
+			s->value = sysfs_get_device_attr(d, (char*)strinput);
+			snprintf((char*)strinput, SYSFS_NAME_LEN, "temp_max%s", str);
+			s->max = sysfs_get_device_attr(d, (char*)strinput);
+			snprintf((char*)strinput, SYSFS_NAME_LEN, "temp_min%s", str);
+			s->min = sysfs_get_device_attr(d, (char*)strinput);
 			s->div = NULL;
 			break;
 		case SAHPI_VOLTAGE:
 			snprintf(s->name, SYSFS_NAME_LEN, "%i:Voltage Sensor",s->num);
 		
-			snprintf(strinput, SYSFS_NAME_LEN, "in_input%s", str);
-			s->value = sysfs_get_device_attr(d, strinput);
-			snprintf(strinput, SYSFS_NAME_LEN, "in_max%s", str);
-			s->max = sysfs_get_device_attr(d, strinput);
-			snprintf(strinput, SYSFS_NAME_LEN, "in_min%s", str);
-			s->min = sysfs_get_device_attr(d, strinput);
+			snprintf((char*)strinput, SYSFS_NAME_LEN, "in_input%s", str);
+			s->value = sysfs_get_device_attr(d, (char*)strinput);
+			snprintf((char*)strinput, SYSFS_NAME_LEN, "in_max%s", str);
+			s->max = sysfs_get_device_attr(d, (char*)strinput);
+			snprintf((char*)strinput, SYSFS_NAME_LEN, "in_min%s", str);
+			s->min = sysfs_get_device_attr(d, (char*)strinput);
 			s->div = NULL;
 			break;
 		case SAHPI_CURRENT:
 			snprintf(s->name, SYSFS_NAME_LEN, "%i:Current Sensor",s->num);
 		
-			snprintf(strinput, SYSFS_NAME_LEN, "curr_input%s", str);
-			s->value = sysfs_get_device_attr(d, strinput);
-			snprintf(strinput, SYSFS_NAME_LEN, "curr_max%s", str);
-			s->max = sysfs_get_device_attr(d, strinput);
-			snprintf(strinput, SYSFS_NAME_LEN, "curr_min%s", str);
-			s->min = sysfs_get_device_attr(d, strinput);
+			snprintf((char*)strinput, SYSFS_NAME_LEN, "curr_input%s", str);
+			s->value = sysfs_get_device_attr(d, (char*)strinput);
+			snprintf((char*)strinput, SYSFS_NAME_LEN, "curr_max%s", str);
+			s->max = sysfs_get_device_attr(d, (char*)strinput);
+			snprintf((char*)strinput, SYSFS_NAME_LEN, "curr_min%s", str);
+			s->min = sysfs_get_device_attr(d, (char*)strinput);
 			s->div = NULL;
 			break;
 		case SAHPI_FAN:
 			snprintf(s->name, SYSFS_NAME_LEN, "%i:Fan Sensor",s->num);	
-			snprintf(strinput, SYSFS_NAME_LEN, "fan_input%s", str);
-			s->value = sysfs_get_device_attr(d, strinput);
-			snprintf(strinput, SYSFS_NAME_LEN, "fan_max%s", str);
-			s->max = sysfs_get_device_attr(d, strinput);
-			snprintf(strinput, SYSFS_NAME_LEN, "fan_min%s", str);
-			s->min = sysfs_get_device_attr(d, strinput);
-			snprintf(strinput, SYSFS_NAME_LEN, "fan_div%s", str);
-			s->div = sysfs_get_device_attr(d, strinput);
+			snprintf((char*)strinput, SYSFS_NAME_LEN, "fan_input%s", str);
+			s->value = sysfs_get_device_attr(d, (char*)strinput);
+			snprintf((char*)strinput, SYSFS_NAME_LEN, "fan_max%s", str);
+			s->max = sysfs_get_device_attr(d, (char*)strinput);
+			snprintf((char*)strinput, SYSFS_NAME_LEN, "fan_min%s", str);
+			s->min = sysfs_get_device_attr(d, (char*)strinput);
+			snprintf((char*)strinput, SYSFS_NAME_LEN, "fan_div%s", str);
+			s->div = sysfs_get_device_attr(d, (char*)strinput);
 			break;
 		default: /* should never be executed */
 			return SA_ERR_HPI_INVALID_PARAMS;
@@ -526,7 +526,7 @@ static int sysfs2hpi_assign_resource(struct sysfs_device* d,
 	e->u.res_event.entry.ResourceTag.DataType = SAHPI_TL_TYPE_ASCII6;
 	e->u.res_event.entry.ResourceTag.Language = SAHPI_LANG_ENGLISH;
 	e->u.res_event.entry.ResourceTag.DataLength = strlen(r->name);
-	strcpy(e->u.res_event.entry.ResourceTag.Data, r->name);
+	strcpy((char*)e->u.res_event.entry.ResourceTag.Data, r->name);
 	
 	/* add resource */
 	if (0 != oh_add_resource(inst->rptcache, &(e->u.res_event.entry), NULL, 0)) {
