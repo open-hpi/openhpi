@@ -1962,3 +1962,211 @@ const char * oSaHpiTypesEnums::rdrtype2str(SaHpiRdrTypeT value) {
 }
 
 
+static struct hsindicatorstate_map {
+    SaHpiHsIndicatorStateT type;
+    const char             *str;
+} hsindicatorstate_strings[] = {
+    {SAHPI_HS_INDICATOR_OFF, "SAHPI_HS_INDICATOR_OFF"},
+    {SAHPI_HS_INDICATOR_ON,  "SAHPI_HS_INDICATOR_ON"},
+    {SAHPI_HS_INDICATOR_ON,  NULL}
+};
+
+
+/**
+ * Translates a string to a valid SaHpiHsIndicatorStateT type.
+ *
+ * @param strtype The entity type expressed as a string.
+ *
+ * @return SAHPI_OK on success, otherwise an HPI error code.
+ */
+SaHpiHsIndicatorStateT oSaHpiTypesEnums::str2hsindicatorstate(const char *strtype) {
+	int i;
+
+    if (strtype == NULL) {
+        return SAHPI_HS_INDICATOR_OFF;
+    }
+	for (i = 0; hsindicatorstate_strings[i].str != NULL; i++) {
+		if (strcmp(strtype, hsindicatorstate_strings[i].str) == 0) {
+            return hsindicatorstate_strings[i].type;
+		}
+	}
+    return SAHPI_HS_INDICATOR_OFF;
+}
+
+
+/**
+ * Translates an sensor aggregate status type to a string.
+ *
+ * @param value  The SaHpiHsIndicatorStateT to be converted.
+ *
+ * @return The string value of the type.
+ */
+const char * oSaHpiTypesEnums::hsindicatorstate2str(SaHpiHsIndicatorStateT value) {
+	int i;
+
+	for (i = 0; hsindicatorstate_strings[i].str != NULL; i++) {
+		if (value == hsindicatorstate_strings[i].type) {
+			return hsindicatorstate_strings[i].str;
+		}
+	}
+    return "Unknown";
+}
+
+
+static struct hsaction_map {
+    SaHpiHsActionT type;
+    const char     *str;
+} hsaction_strings[] = {
+    {SAHPI_HS_ACTION_INSERTION,  "SAHPI_HS_ACTION_INSERTION"},
+    {SAHPI_HS_ACTION_EXTRACTION, "SAHPI_HS_ACTION_EXTRACTION"},
+    {SAHPI_HS_ACTION_EXTRACTION, NULL}
+};
+
+
+/**
+ * Translates a string to a valid SaHpiHsActionT type.
+ *
+ * @param strtype The entity type expressed as a string.
+ *
+ * @return SAHPI_OK on success, otherwise an HPI error code.
+ */
+SaHpiHsActionT oSaHpiTypesEnums::str2hsaction(const char *strtype) {
+	int i;
+
+    if (strtype == NULL) {
+        return SAHPI_HS_ACTION_INSERTION;
+    }
+	for (i = 0; hsaction_strings[i].str != NULL; i++) {
+		if (strcmp(strtype, hsaction_strings[i].str) == 0) {
+            return hsaction_strings[i].type;
+		}
+	}
+    return SAHPI_HS_ACTION_INSERTION;
+}
+
+
+/**
+ * Translates an sensor aggregate status type to a string.
+ *
+ * @param value  The SaHpiHsActionT to be converted.
+ *
+ * @return The string value of the type.
+ */
+const char * oSaHpiTypesEnums::hsaction2str(SaHpiHsActionT value) {
+	int i;
+
+	for (i = 0; hsaction_strings[i].str != NULL; i++) {
+		if (value == hsaction_strings[i].type) {
+			return hsaction_strings[i].str;
+		}
+	}
+    return "Unknown";
+}
+
+
+static struct hsstate_map {
+    SaHpiHsStateT type;
+    const char    *str;
+} hsstate_strings[] = {
+    {SAHPI_HS_STATE_INACTIVE,           "SAHPI_HS_STATE_INACTIVE"},
+    {SAHPI_HS_STATE_INSERTION_PENDING,  "SAHPI_HS_STATE_INSERTION_PENDING"},
+    {SAHPI_HS_STATE_ACTIVE,             "SAHPI_HS_STATE_ACTIVE"},
+    {SAHPI_HS_STATE_EXTRACTION_PENDING, "SAHPI_HS_STATE_EXTRACTION_PENDING"},
+    {SAHPI_HS_STATE_NOT_PRESENT,        "SAHPI_HS_STATE_NOT_PRESENT"},
+    {SAHPI_HS_STATE_NOT_PRESENT,        NULL}
+};
+
+
+/**
+ * Translates a string to a valid SaHpiHsStateT type.
+ *
+ * @param strtype The entity type expressed as a string.
+ *
+ * @return SAHPI_OK on success, otherwise an HPI error code.
+ */
+SaHpiHsStateT oSaHpiTypesEnums::str2hsstate(const char *strtype) {
+	int i;
+
+    if (strtype == NULL) {
+        return SAHPI_HS_STATE_INACTIVE;
+    }
+	for (i = 0; hsstate_strings[i].str != NULL; i++) {
+		if (strcmp(strtype, hsstate_strings[i].str) == 0) {
+            return hsstate_strings[i].type;
+		}
+	}
+    return SAHPI_HS_STATE_INACTIVE;
+}
+
+
+/**
+ * Translates an sensor aggregate status type to a string.
+ *
+ * @param value  The SaHpiHsStateT to be converted.
+ *
+ * @return The string value of the type.
+ */
+const char * oSaHpiTypesEnums::hsstate2str(SaHpiHsStateT value) {
+	int i;
+
+	for (i = 0; hsstate_strings[i].str != NULL; i++) {
+		if (value == hsstate_strings[i].type) {
+			return hsstate_strings[i].str;
+		}
+	}
+    return "Unknown";
+}
+
+
+static struct resourceeventtype_map {
+    SaHpiResourceEventTypeT type;
+    const char              *str;
+} resourceeventtype_strings[] = {
+    {SAHPI_RESE_RESOURCE_FAILURE,  "SAHPI_RESE_RESOURCE_FAILURE"},
+    {SAHPI_RESE_RESOURCE_RESTORED, "SAHPI_RESE_RESOURCE_RESTORED"},
+    {SAHPI_RESE_RESOURCE_ADDED,    "SAHPI_RESE_RESOURCE_ADDED"},
+    {SAHPI_RESE_RESOURCE_ADDED,    NULL}
+};
+
+
+/**
+ * Translates a string to a valid SaHpiResourceEventTypeT type.
+ *
+ * @param strtype The entity type expressed as a string.
+ *
+ * @return SAHPI_OK on success, otherwise an HPI error code.
+ */
+SaHpiResourceEventTypeT oSaHpiTypesEnums::str2resourceeventtype(const char *strtype) {
+	int i;
+
+    if (strtype == NULL) {
+        return SAHPI_RESE_RESOURCE_FAILURE;
+    }
+	for (i = 0; resourceeventtype_strings[i].str != NULL; i++) {
+		if (strcmp(strtype, resourceeventtype_strings[i].str) == 0) {
+            return resourceeventtype_strings[i].type;
+		}
+	}
+    return SAHPI_RESE_RESOURCE_FAILURE;
+}
+
+
+/**
+ * Translates an sensor aggregate status type to a string.
+ *
+ * @param value  The SaHpiResourceEventTypeT to be converted.
+ *
+ * @return The string value of the type.
+ */
+const char * oSaHpiTypesEnums::resourceeventtype2str(SaHpiResourceEventTypeT value) {
+	int i;
+
+	for (i = 0; resourceeventtype_strings[i].str != NULL; i++) {
+		if (value == resourceeventtype_strings[i].type) {
+			return resourceeventtype_strings[i].str;
+		}
+	}
+    return "Unknown";
+}
+
+
