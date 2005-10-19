@@ -493,7 +493,7 @@ static void process_sensor_event_msg(SIM_MSG_QUEUE_BUF *buf) {
                      strtod(value, NULL);
                     break;
                 case SAHPI_SENSOR_READING_TYPE_BUFFER:
-                    strncpy(ohevent.u.hpi_event.event.EventDataUnion.SensorEvent.TriggerReading.Value.SensorBuffer,
+                    strncpy((char*)ohevent.u.hpi_event.event.EventDataUnion.SensorEvent.TriggerReading.Value.SensorBuffer,
                      value, strlen(value));
                     break;
                 default:
@@ -536,7 +536,7 @@ static void process_sensor_event_msg(SIM_MSG_QUEUE_BUF *buf) {
                      strtod(value, NULL);
                     break;
                 case SAHPI_SENSOR_READING_TYPE_BUFFER:
-                    strncpy(ohevent.u.hpi_event.event.EventDataUnion.SensorEvent.TriggerThreshold.Value.SensorBuffer,
+                    strncpy((char*)ohevent.u.hpi_event.event.EventDataUnion.SensorEvent.TriggerThreshold.Value.SensorBuffer,
                      value, strlen(value));
                     break;
                 default:
@@ -1053,7 +1053,7 @@ static void process_sw_event_msg(SIM_MSG_QUEUE_BUF *buf) {
          SAHPI_LANG_ENGLISH;
         ohevent.u.hpi_event.event.EventDataUnion.HpiSwEvent.EventData.DataLength =
          strlen(value);
-        strncpy(ohevent.u.hpi_event.event.EventDataUnion.HpiSwEvent.EventData.Data,
+        strncpy((char*)ohevent.u.hpi_event.event.EventDataUnion.HpiSwEvent.EventData.Data,
                 value, strlen(value));
 
         /* now fill out the RPT entry */
@@ -1145,7 +1145,7 @@ static void process_oem_event_msg(SIM_MSG_QUEUE_BUF *buf) {
          SAHPI_LANG_ENGLISH;
         ohevent.u.hpi_event.event.EventDataUnion.OemEvent.OemEventData.DataLength =
          strlen(value);
-        strncpy(ohevent.u.hpi_event.event.EventDataUnion.OemEvent.OemEventData.Data,
+        strncpy((char*)ohevent.u.hpi_event.event.EventDataUnion.OemEvent.OemEventData.Data,
                 value, strlen(value));
 
         /* now fill out the RPT entry */
@@ -1228,7 +1228,7 @@ static void process_user_event_msg(SIM_MSG_QUEUE_BUF *buf) {
          SAHPI_LANG_ENGLISH;
         ohevent.u.hpi_event.event.EventDataUnion.UserEvent.UserEventData.DataLength =
          strlen(value);
-        strncpy(ohevent.u.hpi_event.event.EventDataUnion.UserEvent.UserEventData.Data,
+        strncpy((char*)ohevent.u.hpi_event.event.EventDataUnion.UserEvent.UserEventData.Data,
                 value, strlen(value));
 
         /* now fill out the RPT entry */
@@ -1499,7 +1499,7 @@ static void process_resource_add_event_msg(SIM_MSG_QUEUE_BUF *buf) {
                 return;
         }
         data.ResourceFailed = (SaHpiBoolT)atoi(value);
-        strncpy(data.ResourceTag.Data, value, strlen(value));
+        strncpy((char*)data.ResourceTag.Data, value, strlen(value));
         /* get the comment */
         comment = find_value(SIM_MSG_RPT_COMMENT, buf->mtext);
         if (value == NULL) {
@@ -1581,7 +1581,7 @@ static void process_rdr_add_event_msg(SIM_MSG_QUEUE_BUF *buf) {
         data.IdString.DataType = SAHPI_TL_TYPE_TEXT;
         data.IdString.Language = SAHPI_LANG_ENGLISH;
         data.IdString.DataLength = strlen(value);
-        strncpy(data.IdString.Data, value, strlen(value));
+        strncpy((char*)data.IdString.Data, value, strlen(value));
         /* process the resource type */
         switch (data.RdrType) {
         case SAHPI_ANNUNCIATOR_RDR:
@@ -1784,7 +1784,7 @@ static void process_rdr_add_event_msg(SIM_MSG_QUEUE_BUF *buf) {
                                 return;
                         }
                         data.RdrTypeUnion.CtrlRec.TypeUnion.Stream.Default.StreamLength = (SaHpiUint32T)strlen(value);
-                        strcpy(data.RdrTypeUnion.CtrlRec.TypeUnion.Stream.Default.Stream, value);
+                        strcpy((char*)data.RdrTypeUnion.CtrlRec.TypeUnion.Stream.Default.Stream, value);
                         break;
                 case SAHPI_CTRL_TYPE_TEXT:
                         /* get the text */
@@ -1801,7 +1801,7 @@ static void process_rdr_add_event_msg(SIM_MSG_QUEUE_BUF *buf) {
                         data.RdrTypeUnion.CtrlRec.TypeUnion.Text.Default.Text.DataType = SAHPI_TL_TYPE_TEXT;
                         data.RdrTypeUnion.CtrlRec.TypeUnion.Text.Default.Text.Language = SAHPI_LANG_ENGLISH;
                         data.RdrTypeUnion.CtrlRec.TypeUnion.Text.Default.Text.DataLength = strlen(value);
-                        strcpy(data.RdrTypeUnion.CtrlRec.TypeUnion.Text.Default.Text.Data, value);
+                        strcpy((char*)data.RdrTypeUnion.CtrlRec.TypeUnion.Text.Default.Text.Data, value);
                         break;
                 case SAHPI_CTRL_TYPE_OEM:
                         /* get the MId */
@@ -1818,7 +1818,7 @@ static void process_rdr_add_event_msg(SIM_MSG_QUEUE_BUF *buf) {
                                 dbg("invalid SIM_MSG_RDR_CTRL_OEM_CONFIG");
                                 return;
                         }
-                        strcpy(data.RdrTypeUnion.CtrlRec.TypeUnion.Oem.ConfigData, value);
+                        strcpy((char*)data.RdrTypeUnion.CtrlRec.TypeUnion.Oem.ConfigData, value);
                         /* get the body */
                         value = find_value(SIM_MSG_RDR_CTRL_OEM_BODY, buf->mtext);
                         if (value == NULL) {
@@ -1826,7 +1826,7 @@ static void process_rdr_add_event_msg(SIM_MSG_QUEUE_BUF *buf) {
                                 return;
                         }
                         data.RdrTypeUnion.CtrlRec.TypeUnion.Oem.Default.BodyLength = strlen(value);
-                        strcpy(data.RdrTypeUnion.CtrlRec.TypeUnion.Oem.Default.Body, value);
+                        strcpy((char*)data.RdrTypeUnion.CtrlRec.TypeUnion.Oem.Default.Body, value);
                         break;
                 default:
                         dbg("invalid SIM_MSG_RDR_CTRL_TYPE");
@@ -1964,7 +1964,7 @@ static void process_rdr_add_event_msg(SIM_MSG_QUEUE_BUF *buf) {
                                  strtod(value, NULL);
                                 break;
                         case SAHPI_SENSOR_READING_TYPE_BUFFER:
-                                strncpy(data.RdrTypeUnion.SensorRec.DataFormat.Range.Max.Value.SensorBuffer,
+                                strncpy((char*)data.RdrTypeUnion.SensorRec.DataFormat.Range.Max.Value.SensorBuffer,
                                        value, SAHPI_SENSOR_BUFFER_LENGTH);
                                 break;
                         default:
@@ -2007,7 +2007,7 @@ static void process_rdr_add_event_msg(SIM_MSG_QUEUE_BUF *buf) {
                                  strtod(value, NULL);
                                 break;
                         case SAHPI_SENSOR_READING_TYPE_BUFFER:
-                                strncpy(data.RdrTypeUnion.SensorRec.DataFormat.Range.Min.Value.SensorBuffer,
+                                strncpy((char*)data.RdrTypeUnion.SensorRec.DataFormat.Range.Min.Value.SensorBuffer,
                                        value, SAHPI_SENSOR_BUFFER_LENGTH);
                                 break;
                         default:
@@ -2050,7 +2050,7 @@ static void process_rdr_add_event_msg(SIM_MSG_QUEUE_BUF *buf) {
                                  strtod(value, NULL);
                                 break;
                         case SAHPI_SENSOR_READING_TYPE_BUFFER:
-                                strncpy(data.RdrTypeUnion.SensorRec.DataFormat.Range.Nominal.Value.SensorBuffer,
+                                strncpy((char*)data.RdrTypeUnion.SensorRec.DataFormat.Range.Nominal.Value.SensorBuffer,
                                        value, SAHPI_SENSOR_BUFFER_LENGTH);
                                 break;
                         default:
@@ -2093,7 +2093,7 @@ static void process_rdr_add_event_msg(SIM_MSG_QUEUE_BUF *buf) {
                                  strtod(value, NULL);
                                 break;
                         case SAHPI_SENSOR_READING_TYPE_BUFFER:
-                                strncpy(data.RdrTypeUnion.SensorRec.DataFormat.Range.NormalMax.Value.SensorBuffer,
+                                strncpy((char*)data.RdrTypeUnion.SensorRec.DataFormat.Range.NormalMax.Value.SensorBuffer,
                                        value, SAHPI_SENSOR_BUFFER_LENGTH);
                                 break;
                         default:
@@ -2136,7 +2136,7 @@ static void process_rdr_add_event_msg(SIM_MSG_QUEUE_BUF *buf) {
                                  strtod(value, NULL);
                                 break;
                         case SAHPI_SENSOR_READING_TYPE_BUFFER:
-                                strncpy(data.RdrTypeUnion.SensorRec.DataFormat.Range.NormalMin.Value.SensorBuffer,
+                                strncpy((char*)data.RdrTypeUnion.SensorRec.DataFormat.Range.NormalMin.Value.SensorBuffer,
                                        value, SAHPI_SENSOR_BUFFER_LENGTH);
                                 break;
                         default:
