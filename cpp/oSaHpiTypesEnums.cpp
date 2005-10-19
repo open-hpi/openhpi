@@ -1851,3 +1851,59 @@ const char * oSaHpiTypesEnums::severity2str(SaHpiSeverityT value) {
 }
 
 
+static struct annunciatortype_map {
+    SaHpiAnnunciatorTypeT type;
+    const char     *str;
+} annunciatortype_strings[] = {
+    {SAHPI_ANNUNCIATOR_TYPE_LED,                 "SAHPI_ANNUNCIATOR_TYPE_LED"},
+    {SAHPI_ANNUNCIATOR_TYPE_DRY_CONTACT_CLOSURE, "SAHPI_ANNUNCIATOR_TYPE_DRY_CONTACT_CLOSURE"},
+    {SAHPI_ANNUNCIATOR_TYPE_AUDIBLE,             "SAHPI_ANNUNCIATOR_TYPE_AUDIBLE"},
+    {SAHPI_ANNUNCIATOR_TYPE_LCD_DISPLAY,         "SAHPI_ANNUNCIATOR_TYPE_LCD_DISPLAY"},
+    {SAHPI_ANNUNCIATOR_TYPE_MESSAGE,             "SAHPI_ANNUNCIATOR_TYPE_MESSAGE"},
+    {SAHPI_ANNUNCIATOR_TYPE_COMPOSITE,           "SAHPI_ANNUNCIATOR_TYPE_COMPOSITE"},
+    {SAHPI_ANNUNCIATOR_TYPE_OEM,                 "SAHPI_ANNUNCIATOR_TYPE_OEM"},
+    {SAHPI_ANNUNCIATOR_TYPE_OEM,                 NULL}
+};
+
+
+/**
+ * Translates a string to a valid SaHpiAnnunciatorTypeT type.
+ *
+ * @param strtype The entity type expressed as a string.
+ *
+ * @return SAHPI_OK on success, otherwise an HPI error code.
+ */
+SaHpiAnnunciatorTypeT oSaHpiTypesEnums::str2annunciatortype(const char *strtype) {
+	int i;
+
+    if (strtype == NULL) {
+        return SAHPI_ANNUNCIATOR_TYPE_LED;
+    }
+	for (i = 0; annunciatortype_strings[i].str != NULL; i++) {
+		if (strcmp(strtype, annunciatortype_strings[i].str) == 0) {
+            return annunciatortype_strings[i].type;
+		}
+	}
+    return SAHPI_ANNUNCIATOR_TYPE_LED;
+}
+
+
+/**
+ * Translates an sensor aggregate status type to a string.
+ *
+ * @param value  The SaHpiAnnunciatorTypeT to be converted.
+ *
+ * @return The string value of the type.
+ */
+const char * oSaHpiTypesEnums::annunciatortype2str(SaHpiAnnunciatorTypeT value) {
+	int i;
+
+	for (i = 0; annunciatortype_strings[i].str != NULL; i++) {
+		if (value == annunciatortype_strings[i].type) {
+			return annunciatortype_strings[i].str;
+		}
+	}
+    return "Unknown";
+}
+
+
