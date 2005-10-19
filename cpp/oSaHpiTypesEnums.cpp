@@ -1907,3 +1907,58 @@ const char * oSaHpiTypesEnums::annunciatortype2str(SaHpiAnnunciatorTypeT value) 
 }
 
 
+static struct rdrtype_map {
+    SaHpiRdrTypeT type;
+    const char     *str;
+} rdrtype_strings[] = {
+    {SAHPI_NO_RECORD,       "SAHPI_NO_RECORD"},
+    {SAHPI_CTRL_RDR,        "SAHPI_CTRL_RDR"},
+    {SAHPI_SENSOR_RDR,      "SAHPI_SENSOR_RDR"},
+    {SAHPI_INVENTORY_RDR,   "SAHPI_INVENTORY_RDR"},
+    {SAHPI_WATCHDOG_RDR,    "SAHPI_WATCHDOG_RDR"},
+    {SAHPI_ANNUNCIATOR_RDR, "SAHPI_ANNUNCIATOR_RDR"},
+    {SAHPI_ANNUNCIATOR_RDR, NULL}
+};
+
+
+/**
+ * Translates a string to a valid SaHpiRdrTypeT type.
+ *
+ * @param strtype The entity type expressed as a string.
+ *
+ * @return SAHPI_OK on success, otherwise an HPI error code.
+ */
+SaHpiRdrTypeT oSaHpiTypesEnums::str2rdrtype(const char *strtype) {
+	int i;
+
+    if (strtype == NULL) {
+        return SAHPI_NO_RECORD;
+    }
+	for (i = 0; rdrtype_strings[i].str != NULL; i++) {
+		if (strcmp(strtype, rdrtype_strings[i].str) == 0) {
+            return rdrtype_strings[i].type;
+		}
+	}
+    return SAHPI_NO_RECORD;
+}
+
+
+/**
+ * Translates an sensor aggregate status type to a string.
+ *
+ * @param value  The SaHpiRdrTypeT to be converted.
+ *
+ * @return The string value of the type.
+ */
+const char * oSaHpiTypesEnums::rdrtype2str(SaHpiRdrTypeT value) {
+	int i;
+
+	for (i = 0; rdrtype_strings[i].str != NULL; i++) {
+		if (value == rdrtype_strings[i].type) {
+			return rdrtype_strings[i].str;
+		}
+	}
+    return "Unknown";
+}
+
+
