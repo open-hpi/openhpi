@@ -2170,3 +2170,54 @@ const char * oSaHpiTypesEnums::resourceeventtype2str(SaHpiResourceEventTypeT val
 }
 
 
+static struct domaineventtype_map {
+    SaHpiDomainEventTypeT type;
+    const char            *str;
+} domaineventtype_strings[] = {
+    {SAHPI_DOMAIN_REF_ADDED,   "SAHPI_DOMAIN_REF_ADDED"},
+    {SAHPI_DOMAIN_REF_REMOVED, "SAHPI_DOMAIN_REF_REMOVED"},
+    {SAHPI_DOMAIN_REF_REMOVED, NULL}
+};
+
+
+/**
+ * Translates a string to a valid SaHpiDomainEventTypeT type.
+ *
+ * @param strtype The entity type expressed as a string.
+ *
+ * @return SAHPI_OK on success, otherwise an HPI error code.
+ */
+SaHpiDomainEventTypeT oSaHpiTypesEnums::str2domaineventtype(const char *strtype) {
+	int i;
+
+    if (strtype == NULL) {
+        return SAHPI_DOMAIN_REF_ADDED;
+    }
+	for (i = 0; domaineventtype_strings[i].str != NULL; i++) {
+		if (strcmp(strtype, domaineventtype_strings[i].str) == 0) {
+            return domaineventtype_strings[i].type;
+		}
+	}
+    return SAHPI_DOMAIN_REF_ADDED;
+}
+
+
+/**
+ * Translates an sensor aggregate status type to a string.
+ *
+ * @param value  The SaHpiDomainEventTypeT to be converted.
+ *
+ * @return The string value of the type.
+ */
+const char * oSaHpiTypesEnums::domaineventtype2str(SaHpiDomainEventTypeT value) {
+	int i;
+
+	for (i = 0; domaineventtype_strings[i].str != NULL; i++) {
+		if (value == domaineventtype_strings[i].type) {
+			return domaineventtype_strings[i].str;
+		}
+	}
+    return "Unknown";
+}
+
+
