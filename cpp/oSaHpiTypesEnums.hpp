@@ -93,6 +93,8 @@ class oSaHpiTypesEnums {
         static const char * hsstate2str(SaHpiHsStateT value);
         static SaHpiResourceEventTypeT str2resourceeventtype(const char *strtype);
         static const char * resourceeventtype2str(SaHpiResourceEventTypeT value);
+        static SaHpiDomainEventTypeT str2domaineventtype(const char *strtype);
+        static const char * domaineventtype2str(SaHpiDomainEventTypeT value);
 };
 
 #endif
