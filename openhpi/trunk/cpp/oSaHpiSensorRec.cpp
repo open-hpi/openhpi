@@ -93,7 +93,7 @@ bool oSaHpiSensorRec::assignField(SaHpiSensorRecT *ptr,
         return true;
     }
     if (strcmp(field, "Num") == 0) {
-        ptr->Num = (SaHpiSensorNumT)atoi(value);
+        ptr->Num = strtoul(value, NULL, 10);
         return false;
     }
     else if (strcmp(field, "Type") == 0) {
@@ -119,7 +119,7 @@ bool oSaHpiSensorRec::assignField(SaHpiSensorRecT *ptr,
     // DataFormat
     // ThresholdDefn
     else if (strcmp(field, "Oem") == 0) {
-        ptr->Oem = (SaHpiUint32T)atoi(value);
+        ptr->Oem = strtoul(value, NULL, 10);
         return false;
     }
     return true;

@@ -65,7 +65,7 @@ bool oSaHpiIdrAreaHeader::assignField(SaHpiIdrAreaHeaderT *ptr,
         return true;
     }
     if (strcmp(field, "AreaId") == 0) {
-        ptr->AreaId = atoi(value);
+        ptr->AreaId = strtoul(value, NULL, 10);
         return false;
     }
     else if (strcmp(field, "Type") == 0) {
@@ -77,7 +77,7 @@ bool oSaHpiIdrAreaHeader::assignField(SaHpiIdrAreaHeaderT *ptr,
         return false;
     }
     else if (strcmp(field, "NumFields") == 0) {
-        ptr->NumFields = atoi(value);
+        ptr->NumFields = strtoul(value, NULL, 10);
         return false;
     }
     // Field

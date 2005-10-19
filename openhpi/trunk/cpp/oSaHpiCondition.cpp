@@ -85,16 +85,16 @@ bool oSaHpiCondition::assignField(SaHpiConditionT *ptr,
             ptr->DomainId = SAHPI_UNSPECIFIED_DOMAIN_ID;
         }
         else {
-            ptr->DomainId = atoi(value);
+            ptr->DomainId = strtoul(value, NULL, 10);
         }
         return false;
     }
     else if (strcmp(field, "ResourceId") == 0) {
-        ptr->ResourceId = atoi(value);
+        ptr->ResourceId = strtoul(value, NULL, 10);
         return false;
     }
     else if (strcmp(field, "SensorNum") == 0) {
-        ptr->SensorNum = atoi(value);
+        ptr->SensorNum = strtoul(value, NULL, 10);
         return false;
     }
     else if (strcmp(field, "EventState") == 0) {

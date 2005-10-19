@@ -65,7 +65,7 @@ bool oSaHpiAnnunciatorRec::assignField(SaHpiAnnunciatorRecT *ptr,
         return true;
     }
     if (strcmp(field, "AnnunciatorNum") == 0) {
-        ptr->AnnunciatorNum = atoi(value);
+        ptr->AnnunciatorNum = strtoul(value, NULL, 10);
         return false;
     }
     else if (strcmp(field, "AnnunciatorType") == 0) {
@@ -77,11 +77,11 @@ bool oSaHpiAnnunciatorRec::assignField(SaHpiAnnunciatorRecT *ptr,
         return false;
     }
     else if (strcmp(field, "MaxConditions") == 0) {
-        ptr->MaxConditions = (SaHpiUint32T)atoi(value);
+        ptr->MaxConditions = strtoul(value, NULL, 10);
         return false;
     }
     else if (strcmp(field, "Oem") == 0) {
-        ptr->Oem = (SaHpiUint32T)atoi(value);
+        ptr->Oem = strtoul(value, NULL, 10);
         return false;
     }
     return true;

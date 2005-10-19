@@ -84,7 +84,7 @@ bool oSaHpiEntity::assignField(SaHpiEntityT *ptr,
         return false;
     }
     else if (strcmp(field, "EntityLocation") == 0) {
-        ptr->EntityLocation = (SaHpiEntityLocationT)atoi(value);
+        ptr->EntityLocation = strtoul(value, NULL, 10);
         return false;
     }
     return true;
