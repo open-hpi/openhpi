@@ -1226,7 +1226,7 @@ struct sim_control sim_chassis_controls[] = {
                         .TypeUnion.Text.Default = {
                                 .Line = 0,
                                 .Text = {
-                                        .DataType SAHPI_TL_TYPE_TEXT,
+                                        .DataType = SAHPI_TL_TYPE_TEXT,
                                         .Language = SAHPI_LANG_ENGLISH,
                                         .DataLength = 7,
                                         .Data[0] = 'U',
@@ -1388,7 +1388,7 @@ struct sim_control sim_hs_dasd_controls[] = {
                         .TypeUnion.Text.Default = {
                                 .Line = 0,
                                 .Text = {
-                                        .DataType SAHPI_TL_TYPE_TEXT,
+                                        .DataType = SAHPI_TL_TYPE_TEXT,
                                         .Language = SAHPI_LANG_ENGLISH,
                                         .DataLength = 7,
                                         .Data[0] = 'U',
