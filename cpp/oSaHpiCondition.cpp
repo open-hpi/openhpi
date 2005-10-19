@@ -40,7 +40,7 @@ oSaHpiCondition::oSaHpiCondition() {
     EventState = SAHPI_ES_UNSPECIFIED;
     Name.Length = 0;
     Name.Value[0] = '\0';
-    Mid = 0;
+    Mid = SAHPI_MANUFACTURER_ID_UNSPECIFIED;
     Data.DataType = SAHPI_TL_TYPE_TEXT;
     Data.Language = SAHPI_LANG_ENGLISH;
     Data.DataLength = 0;
@@ -226,6 +226,9 @@ bool oSaHpiCondition::fprint(FILE *stream,
         return true;
     }
     err = fprintf(stream, "Data\n");
+    if (err < 0) {
+        return true;
+    }
     oSaHpiTextBuffer * tb = (oSaHpiTextBuffer *)&buffer->Data;
     err = tb->oSaHpiTextBuffer::fprint(stream, indent + 3, (SaHpiTextBufferT *)tb);
     if (err < 0) {

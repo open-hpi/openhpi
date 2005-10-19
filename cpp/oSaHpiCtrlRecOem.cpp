@@ -30,9 +30,9 @@ extern "C"
  * Default constructor.
  */
 oSaHpiCtrlRecOem::oSaHpiCtrlRecOem() {
-    MId = 0;
+    MId = SAHPI_MANUFACTURER_ID_UNSPECIFIED;
     ConfigData[0] = '\0';
-    Default.MId = 0;
+    Default.MId = SAHPI_MANUFACTURER_ID_UNSPECIFIED;
     Default.BodyLength = 0;
     Default.Body[0] = '\0';
 };

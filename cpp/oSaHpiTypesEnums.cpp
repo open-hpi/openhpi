@@ -1795,3 +1795,59 @@ const char * oSaHpiTypesEnums::annunciatormode2str(SaHpiAnnunciatorModeT value) 
 }
 
 
+static struct severity_map {
+    SaHpiSeverityT type;
+    const char     *str;
+} severity_strings[] = {
+    {SAHPI_CRITICAL,       "SAHPI_CRITICAL"},
+    {SAHPI_MAJOR,          "SAHPI_MAJOR"},
+    {SAHPI_MINOR,          "SAHPI_MINOR"},
+    {SAHPI_INFORMATIONAL,  "SAHPI_INFORMATIONAL"},
+    {SAHPI_OK,             "SAHPI_OK"},
+    {SAHPI_DEBUG,          "SAHPI_DEBUG"},
+    {SAHPI_ALL_SEVERITIES, "SAHPI_ALL_SEVERITIES"},
+    {SAHPI_ALL_SEVERITIES, NULL}
+};
+
+
+/**
+ * Translates a string to a valid SaHpiSeverityT type.
+ *
+ * @param strtype The entity type expressed as a string.
+ *
+ * @return SAHPI_OK on success, otherwise an HPI error code.
+ */
+SaHpiSeverityT oSaHpiTypesEnums::str2severity(const char *strtype) {
+	int i;
+
+    if (strtype == NULL) {
+        return SAHPI_OK;
+    }
+	for (i = 0; severity_strings[i].str != NULL; i++) {
+		if (strcmp(strtype, severity_strings[i].str) == 0) {
+            return severity_strings[i].type;
+		}
+	}
+    return SAHPI_OK;
+}
+
+
+/**
+ * Translates an sensor aggregate status type to a string.
+ *
+ * @param value  The SaHpiSeverityT to be converted.
+ *
+ * @return The string value of the type.
+ */
+const char * oSaHpiTypesEnums::severity2str(SaHpiSeverityT value) {
+	int i;
+
+	for (i = 0; severity_strings[i].str != NULL; i++) {
+		if (value == severity_strings[i].type) {
+			return severity_strings[i].str;
+		}
+	}
+    return "Unknown";
+}
+
+
