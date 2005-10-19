@@ -162,7 +162,7 @@ SaErrorT show_control(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
         SaErrorT		rv;
 	SaHpiRdrT		rdr;
 	SaHpiCtrlRecT		*ctrl;
-	char			*str;
+	char			*str, *str1;
 	char			buf[SHOW_BUF_SZ];
 	char			errbuf[SHOW_BUF_SZ];
 	SaHpiCtrlTypeT		type;
@@ -227,6 +227,16 @@ SaErrorT show_control(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 			break;
 		case SAHPI_CTRL_TYPE_TEXT:
 			text = &(ctrl->TypeUnion.Text);
+			snprintf(buf, SHOW_BUF_SZ, "\tMaxChars = %d  MaxLines = %d\n",
+				text->MaxChars, text->MaxLines);
+			if (proc(buf) != HPI_UI_OK) return(SA_OK);
+			str = oh_lookup_language(text->Language);
+			if (str == (char *)NULL) str = "UNKNOWN";
+			str1 = oh_lookup_texttype(text->DataType);
+			if (str1 == (char *)NULL) str1 = "UNKNOWN";
+			snprintf(buf, SHOW_BUF_SZ,
+				"\tLanguage = %s  DataType = %s\n", str, str1);
+			if (proc(buf) != HPI_UI_OK) return(SA_OK);
 			snprintf(buf, SHOW_BUF_SZ, "\tDefault: Line # = %d",
 				text->Default.Line);
 			if (proc(buf) != HPI_UI_OK) return(SA_OK);
