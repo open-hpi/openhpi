@@ -29,7 +29,7 @@ extern "C"
  * Default constructor.
  */
 oSaHpiCtrlStateOem::oSaHpiCtrlStateOem() {
-    MId = 0;
+    MId = SAHPI_MANUFACTURER_ID_UNSPECIFIED;
     BodyLength = 0;
     Body[0] = '\0';
 };

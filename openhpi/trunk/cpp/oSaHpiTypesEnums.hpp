@@ -79,6 +79,8 @@ class oSaHpiTypesEnums {
         static const char * statuscondtype2str(SaHpiStatusCondTypeT value);
         static SaHpiAnnunciatorModeT str2annunciatormode(const char *strtype);
         static const char * annunciatormode2str(SaHpiAnnunciatorModeT value);
+        static SaHpiSeverityT str2severity(const char *strtype);
+        static const char * severity2str(SaHpiSeverityT value);
 };
 
 #endif
