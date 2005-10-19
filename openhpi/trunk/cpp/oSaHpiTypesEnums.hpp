@@ -75,6 +75,10 @@ class oSaHpiTypesEnums {
         static const char * watchdogtimeruse2str(SaHpiWatchdogTimerUseT value);
         static SaHpiWatchdogExpFlagsT str2watchdogexpflags(const char *strtype);
         static const char * watchdogexpflags2str(SaHpiWatchdogExpFlagsT value);
+        static SaHpiStatusCondTypeT str2statuscondtype(const char *strtype);
+        static const char * statuscondtype2str(SaHpiStatusCondTypeT value);
+        static SaHpiAnnunciatorModeT str2annunciatormode(const char *strtype);
+        static const char * annunciatormode2str(SaHpiAnnunciatorModeT value);
 };
 
 #endif
