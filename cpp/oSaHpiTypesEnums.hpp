@@ -85,6 +85,14 @@ class oSaHpiTypesEnums {
         static const char * annunciatortype2str(SaHpiAnnunciatorTypeT value);
         static SaHpiRdrTypeT str2rdrtype(const char *strtype);
         static const char * rdrtype2str(SaHpiRdrTypeT value);
+        static SaHpiHsIndicatorStateT str2hsindicatorstate(const char *strtype);
+        static const char * hsindicatorstate2str(SaHpiHsIndicatorStateT value);
+        static SaHpiHsActionT str2hsaction(const char *strtype);
+        static const char * hsaction2str(SaHpiHsActionT value);
+        static SaHpiHsStateT str2hsstate(const char *strtype);
+        static const char * hsstate2str(SaHpiHsStateT value);
+        static SaHpiResourceEventTypeT str2resourceeventtype(const char *strtype);
+        static const char * resourceeventtype2str(SaHpiResourceEventTypeT value);
 };
 
 #endif
