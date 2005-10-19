@@ -124,7 +124,7 @@ bool oSaHpiCondition::assignField(SaHpiConditionT *ptr,
             strcpy((char *)Data.Data, value);
         }
         else {
-            Name.Length = SAHPI_MAX_TEXT_BUFFER_LENGTH;
+            Data.DataLength = SAHPI_MAX_TEXT_BUFFER_LENGTH;
             memcpy(Data.Data, value, SAHPI_MAX_TEXT_BUFFER_LENGTH);
         }
         return false;

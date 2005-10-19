@@ -83,6 +83,8 @@ class oSaHpiTypesEnums {
         static const char * severity2str(SaHpiSeverityT value);
         static SaHpiAnnunciatorTypeT str2annunciatortype(const char *strtype);
         static const char * annunciatortype2str(SaHpiAnnunciatorTypeT value);
+        static SaHpiRdrTypeT str2rdrtype(const char *strtype);
+        static const char * rdrtype2str(SaHpiRdrTypeT value);
 };
 
 #endif
