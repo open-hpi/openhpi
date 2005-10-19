@@ -62,11 +62,11 @@ bool oSaHpiWatchdogRec::assignField(SaHpiWatchdogRecT *ptr,
         return true;
     }
     if (strcmp(field, "WatchdogNum") == 0) {
-        ptr->WatchdogNum = (SaHpiUint32T)atoi(value);
+        ptr->WatchdogNum = strtoul(value, NULL, 10);
         return false;
     }
     else if (strcmp(field, "Oem") == 0) {
-        ptr->Oem = (SaHpiUint32T)atoi(value);
+        ptr->Oem = strtoul(value, NULL, 10);
         return false;
     }
     return true;

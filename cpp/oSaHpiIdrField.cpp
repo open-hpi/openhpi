@@ -70,11 +70,11 @@ bool oSaHpiIdrField::assignField(SaHpiIdrFieldT *ptr,
         return true;
     }
     if (strcmp(field, "AreaId") == 0) {
-        ptr->AreaId = atoi(value);
+        ptr->AreaId = strtoul(value, NULL, 10);
         return false;
     }
     else if (strcmp(field, "FieldId") == 0) {
-        ptr->FieldId = atoi(value);
+        ptr->FieldId = strtoul(value, NULL, 10);
         return false;
     }
     else if (strcmp(field, "Type") == 0) {

@@ -89,7 +89,7 @@ bool oSaHpiWatchdog::assignField(SaHpiWatchdogT *ptr,
         return false;
     }
     else if (strcmp(field, "PreTimeoutInterval") == 0) {
-        ptr->PreTimeoutInterval = (SaHpiUint32T)atoi(value);
+        ptr->PreTimeoutInterval = strtoul(value, NULL, 10);
         return false;
     }
     else if (strcmp(field, "TimerUseExpFlags") == 0) {
@@ -97,11 +97,11 @@ bool oSaHpiWatchdog::assignField(SaHpiWatchdogT *ptr,
         return false;
     }
     else if (strcmp(field, "InitialCount") == 0) {
-        ptr->InitialCount = (SaHpiUint32T)atoi(value);
+        ptr->InitialCount = strtoul(value, NULL, 10);
         return false;
     }
     else if (strcmp(field, "PresentCount") == 0) {
-        ptr->PresentCount = (SaHpiUint32T)atoi(value);
+        ptr->PresentCount = strtoul(value, NULL, 10);
         return false;
     }
     return true;

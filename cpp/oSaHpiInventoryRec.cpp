@@ -63,7 +63,7 @@ bool oSaHpiInventoryRec::assignField(SaHpiInventoryRecT *ptr,
         return true;
     }
     if (strcmp(field, "IdrId") == 0) {
-        ptr->IdrId = atoi(value);
+        ptr->IdrId = strtoul(value, NULL, 10);
         return false;
     }
     else if (strcmp(field, "Persistent") == 0) {
@@ -71,7 +71,7 @@ bool oSaHpiInventoryRec::assignField(SaHpiInventoryRecT *ptr,
         return false;
     }
     else if (strcmp(field, "Oem") == 0) {
-        ptr->Oem = (SaHpiUint32T)atoi(value);
+        ptr->Oem = strtoul(value, NULL, 10);
         return false;
     }
     return true;

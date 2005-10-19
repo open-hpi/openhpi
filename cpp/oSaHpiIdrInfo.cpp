@@ -64,11 +64,11 @@ bool oSaHpiIdrInfo::assignField(SaHpiIdrInfoT *ptr,
         return true;
     }
     if (strcmp(field, "IdrId") == 0) {
-        ptr->IdrId = atoi(value);
+        ptr->IdrId = strtoul(value, NULL, 10);
         return false;
     }
     else if (strcmp(field, "UpdateCount") == 0) {
-        ptr->UpdateCount = atoi(value);
+        ptr->UpdateCount = strtoul(value, NULL, 10);
         return false;
     }
     else if (strcmp(field, "ReadOnly") == 0) {
@@ -76,7 +76,7 @@ bool oSaHpiIdrInfo::assignField(SaHpiIdrInfoT *ptr,
         return false;
     }
     else if (strcmp(field, "NumAreas") == 0) {
-        ptr->NumAreas = atoi(value);
+        ptr->NumAreas = strtoul(value, NULL, 10);
         return false;
     }
     return true;

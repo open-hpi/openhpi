@@ -74,7 +74,7 @@ bool oSaHpiCtrlRec::assignField(SaHpiCtrlRecT *ptr,
         return true;
     }
     if (strcmp(field, "Num") == 0) {
-        ptr->Num = (SaHpiCtrlNumT)atoi(value);
+        ptr->Num = strtoul(value, NULL, 10);
         return false;
     }
     else if (strcmp(field, "OutputType") == 0) {
@@ -96,7 +96,7 @@ bool oSaHpiCtrlRec::assignField(SaHpiCtrlRecT *ptr,
         return false;
     }
     else if (strcmp(field, "Oem") == 0) {
-        ptr->Oem = atoi(value);
+        ptr->Oem = strtoul(value, NULL, 10);
         return false;
     }
     return true;
