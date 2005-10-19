@@ -1690,3 +1690,108 @@ const char * oSaHpiTypesEnums::watchdogexpflags2str(SaHpiWatchdogExpFlagsT value
 }
 
 
+static struct statuscondtype_map {
+    SaHpiStatusCondTypeT type;
+    const char           *str;
+} statuscondtype_strings[] = {
+    {SAHPI_STATUS_COND_TYPE_SENSOR,   "SAHPI_STATUS_COND_TYPE_SENSOR"},
+    {SAHPI_STATUS_COND_TYPE_RESOURCE, "SAHPI_STATUS_COND_TYPE_RESOURCE"},
+    {SAHPI_STATUS_COND_TYPE_OEM,      "SAHPI_STATUS_COND_TYPE_OEM"},
+    {SAHPI_STATUS_COND_TYPE_USER,     "SAHPI_STATUS_COND_TYPE_USER"},
+    {SAHPI_STATUS_COND_TYPE_USER,     NULL}
+};
+
+
+/**
+ * Translates a string to a valid SaHpiStatusCondTypeT type.
+ *
+ * @param strtype The entity type expressed as a string.
+ *
+ * @return SAHPI_OK on success, otherwise an HPI error code.
+ */
+SaHpiStatusCondTypeT oSaHpiTypesEnums::str2statuscondtype(const char *strtype) {
+	int i;
+
+    if (strtype == NULL) {
+        return SAHPI_STATUS_COND_TYPE_SENSOR;
+    }
+	for (i = 0; statuscondtype_strings[i].str != NULL; i++) {
+		if (strcmp(strtype, statuscondtype_strings[i].str) == 0) {
+            return statuscondtype_strings[i].type;
+		}
+	}
+    return SAHPI_STATUS_COND_TYPE_SENSOR;
+}
+
+
+/**
+ * Translates an sensor aggregate status type to a string.
+ *
+ * @param value  The SaHpiStatusCondTypeT to be converted.
+ *
+ * @return The string value of the type.
+ */
+const char * oSaHpiTypesEnums::statuscondtype2str(SaHpiStatusCondTypeT value) {
+	int i;
+
+	for (i = 0; statuscondtype_strings[i].str != NULL; i++) {
+		if (value == statuscondtype_strings[i].type) {
+			return statuscondtype_strings[i].str;
+		}
+	}
+    return "Unknown";
+}
+
+
+static struct annunciatormode_map {
+    SaHpiAnnunciatorModeT type;
+    const char           *str;
+} annunciatormode_strings[] = {
+    {SAHPI_ANNUNCIATOR_MODE_AUTO,   "SAHPI_ANNUNCIATOR_MODE_AUTO"},
+    {SAHPI_ANNUNCIATOR_MODE_USER,   "SAHPI_ANNUNCIATOR_MODE_USER"},
+    {SAHPI_ANNUNCIATOR_MODE_SHARED, "SAHPI_ANNUNCIATOR_MODE_SHARED"},
+    {SAHPI_ANNUNCIATOR_MODE_SHARED, NULL}
+};
+
+
+/**
+ * Translates a string to a valid SaHpiAnnunciatorModeT type.
+ *
+ * @param strtype The entity type expressed as a string.
+ *
+ * @return SAHPI_OK on success, otherwise an HPI error code.
+ */
+SaHpiAnnunciatorModeT oSaHpiTypesEnums::str2annunciatormode(const char *strtype) {
+	int i;
+
+    if (strtype == NULL) {
+        return SAHPI_ANNUNCIATOR_MODE_AUTO;
+    }
+	for (i = 0; annunciatormode_strings[i].str != NULL; i++) {
+		if (strcmp(strtype, annunciatormode_strings[i].str) == 0) {
+            return annunciatormode_strings[i].type;
+		}
+	}
+    return SAHPI_ANNUNCIATOR_MODE_AUTO;
+}
+
+
+/**
+ * Translates an sensor aggregate status type to a string.
+ *
+ * @param value  The SaHpiAnnunciatorModeT to be converted.
+ *
+ * @return The string value of the type.
+ */
+const char * oSaHpiTypesEnums::annunciatormode2str(SaHpiAnnunciatorModeT value) {
+	int i;
+
+	for (i = 0; annunciatormode_strings[i].str != NULL; i++) {
+		if (value == annunciatormode_strings[i].type) {
+			return annunciatormode_strings[i].str;
+		}
+	}
+    return "Unknown";
+}
+
+
