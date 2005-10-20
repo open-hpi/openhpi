@@ -2386,3 +2386,160 @@ const char * oSaHpiTypesEnums::eventtype2str(SaHpiEventTypeT value) {
 }
 
 
+static struct parmaction_map {
+    SaHpiParmActionT type;
+    const char       *str;
+} parmaction_strings[] = {
+    {SAHPI_DEFAULT_PARM, "SAHPI_DEFAULT_PARM"},
+    {SAHPI_SAVE_PARM,    "SAHPI_SAVE_PARM"},
+    {SAHPI_RESTORE_PARM, "SAHPI_RESTORE_PARM"},
+    {SAHPI_RESTORE_PARM, NULL}
+};
+
+
+/**
+ * Translates a string to a valid SaHpiParmActionT type.
+ *
+ * @param strtype The entity type expressed as a string.
+ *
+ * @return SAHPI_OK on success, otherwise an HPI error code.
+ */
+SaHpiParmActionT oSaHpiTypesEnums::str2parmaction(const char *strtype) {
+	int i;
+
+    if (strtype == NULL) {
+        return SAHPI_DEFAULT_PARM;
+    }
+	for (i = 0; parmaction_strings[i].str != NULL; i++) {
+		if (strcmp(strtype, parmaction_strings[i].str) == 0) {
+            return parmaction_strings[i].type;
+		}
+	}
+    return SAHPI_DEFAULT_PARM;
+}
+
+
+/**
+ * Translates an sensor aggregate status type to a string.
+ *
+ * @param value  The SaHpiParmActionT to be converted.
+ *
+ * @return The string value of the type.
+ */
+const char * oSaHpiTypesEnums::parmaction2str(SaHpiParmActionT value) {
+	int i;
+
+	for (i = 0; parmaction_strings[i].str != NULL; i++) {
+		if (value == parmaction_strings[i].type) {
+			return parmaction_strings[i].str;
+		}
+	}
+    return "Unknown";
+}
+
+
+static struct resetaction_map {
+    SaHpiResetActionT type;
+    const char        *str;
+} resetaction_strings[] = {
+    {SAHPI_COLD_RESET,     "SAHPI_COLD_RESET"},
+    {SAHPI_WARM_RESET,     "SAHPI_WARM_RESET"},
+    {SAHPI_RESET_ASSERT,   "SAHPI_RESET_ASSERT"},
+    {SAHPI_RESET_DEASSERT, "SAHPI_RESET_DEASSERT"},
+    {SAHPI_RESET_DEASSERT, NULL}
+};
+
+
+/**
+ * Translates a string to a valid SaHpiResetActionT type.
+ *
+ * @param strtype The entity type expressed as a string.
+ *
+ * @return SAHPI_OK on success, otherwise an HPI error code.
+ */
+SaHpiResetActionT oSaHpiTypesEnums::str2resetaction(const char *strtype) {
+	int i;
+
+    if (strtype == NULL) {
+        return SAHPI_COLD_RESET;
+    }
+	for (i = 0; resetaction_strings[i].str != NULL; i++) {
+		if (strcmp(strtype, resetaction_strings[i].str) == 0) {
+            return resetaction_strings[i].type;
+		}
+	}
+    return SAHPI_COLD_RESET;
+}
+
+
+/**
+ * Translates an sensor aggregate status type to a string.
+ *
+ * @param value  The SaHpiResetActionT to be converted.
+ *
+ * @return The string value of the type.
+ */
+const char * oSaHpiTypesEnums::resetaction2str(SaHpiResetActionT value) {
+	int i;
+
+	for (i = 0; resetaction_strings[i].str != NULL; i++) {
+		if (value == resetaction_strings[i].type) {
+			return resetaction_strings[i].str;
+		}
+	}
+    return "Unknown";
+}
+
+
+static struct powerstate_map {
+    SaHpiPowerStateT type;
+    const char       *str;
+} powerstate_strings[] = {
+    {SAHPI_POWER_OFF,   "SAHPI_OFF"},
+    {SAHPI_POWER_ON,    "SAHPI_ON"},
+    {SAHPI_POWER_CYCLE, "SAHPI_CYCLE"},
+    {SAHPI_POWER_CYCLE, NULL}
+};
+
+
+/**
+ * Translates a string to a valid SaHpiPowerStateT type.
+ *
+ * @param strtype The entity type expressed as a string.
+ *
+ * @return SAHPI_OK on success, otherwise an HPI error code.
+ */
+SaHpiPowerStateT oSaHpiTypesEnums::str2powerstate(const char *strtype) {
+	int i;
+
+    if (strtype == NULL) {
+        return SAHPI_POWER_OFF;
+    }
+	for (i = 0; powerstate_strings[i].str != NULL; i++) {
+		if (strcmp(strtype, powerstate_strings[i].str) == 0) {
+            return powerstate_strings[i].type;
+		}
+	}
+    return SAHPI_POWER_OFF;
+}
+
+
+/**
+ * Translates an sensor aggregate status type to a string.
+ *
+ * @param value  The SaHpiPowerStateT to be converted.
+ *
+ * @return The string value of the type.
+ */
+const char * oSaHpiTypesEnums::powerstate2str(SaHpiPowerStateT value) {
+	int i;
+
+	for (i = 0; powerstate_strings[i].str != NULL; i++) {
+		if (value == powerstate_strings[i].type) {
+			return powerstate_strings[i].str;
+		}
+	}
+    return "Unknown";
+}
+
+
