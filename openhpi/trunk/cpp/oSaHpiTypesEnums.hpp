@@ -101,6 +101,12 @@ class oSaHpiTypesEnums {
         static const char * sweventtype2str(SaHpiSwEventTypeT value);
         static SaHpiEventTypeT str2eventtype(const char *strtype);
         static const char * eventtype2str(SaHpiEventTypeT value);
+        static SaHpiParmActionT str2parmaction(const char *strtype);
+        static const char * parmaction2str(SaHpiParmActionT value);
+        static SaHpiResetActionT str2resetaction(const char *strtype);
+        static const char * resetaction2str(SaHpiResetActionT value);
+        static SaHpiPowerStateT str2powerstate(const char *strtype);
+        static const char * powerstate2str(SaHpiPowerStateT value);
 };
 
 #endif
