@@ -23,19 +23,18 @@ extern "C"
 }
 #include "oSaHpiTypesEnums.hpp"
 #include "oSaHpiTextBuffer.hpp"
-#include "oSaHpiHpiSwEvent.hpp"
+#include "oSaHpiOemEvent.hpp"
 
 
 /**
  * Default constructor.
  */
-oSaHpiHpiSwEvent::oSaHpiHpiSwEvent() {
+oSaHpiOemEvent::oSaHpiOemEvent() {
     MId = SAHPI_MANUFACTURER_ID_UNSPECIFIED;
-    Type = SAHPI_HPIE_AUDIT;
-    EventData.DataType = SAHPI_TL_TYPE_TEXT;
-    EventData.Language = SAHPI_LANG_ENGLISH;
-    EventData.DataLength = 0;
-    EventData.Data[0] = '\0';
+    OemEventData.DataType = SAHPI_TL_TYPE_TEXT;
+    OemEventData.Language = SAHPI_LANG_ENGLISH;
+    OemEventData.DataLength = 0;
+    OemEventData.Data[0] = '\0';
 };
 
 
@@ -44,14 +43,14 @@ oSaHpiHpiSwEvent::oSaHpiHpiSwEvent() {
  *
  * @param buf    The reference to the class to be copied.
  */
-oSaHpiHpiSwEvent::oSaHpiHpiSwEvent(const oSaHpiHpiSwEvent& buf) {
-    memcpy(this, &buf, sizeof(SaHpiHpiSwEventT));
+oSaHpiOemEvent::oSaHpiOemEvent(const oSaHpiOemEvent& buf) {
+    memcpy(this, &buf, sizeof(SaHpiOemEventT));
 }
 
 
 
 /**
- * Assign a field in the SaHpiHpiSwEventT struct a value.
+ * Assign a field in the SaHpiOemEventT struct a value.
  *
  * @param field  The pointer to the struct (class).
  * @param field  The field name as a text string (case sensitive).
@@ -60,9 +59,9 @@ oSaHpiHpiSwEvent::oSaHpiHpiSwEvent(const oSaHpiHpiSwEvent& buf) {
  *
  * @return True if there was an error, otherwise false.
  */
-bool oSaHpiHpiSwEvent::assignField(SaHpiHpiSwEventT *ptr,
-                                   const char *field,
-                                   const char *value) {
+bool oSaHpiOemEvent::assignField(SaHpiOemEventT *ptr,
+                                 const char *field,
+                                 const char *value) {
     if (ptr == NULL || field == NULL || value == NULL) {
         return true;
     }
@@ -70,20 +69,16 @@ bool oSaHpiHpiSwEvent::assignField(SaHpiHpiSwEventT *ptr,
         ptr->MId = atoi(value);
         return false;
     }
-    else if (strcmp(field, "Type") == 0) {
-        ptr->Type = oSaHpiTypesEnums::str2sweventtype(value);
-        return false;
-    }
-    else if (strcmp(field, "EventData") == 0) {
-        EventData.DataType = SAHPI_TL_TYPE_TEXT;
-        EventData.Language = SAHPI_LANG_ENGLISH;
+    else if (strcmp(field, "OemEventData") == 0) {
+        OemEventData.DataType = SAHPI_TL_TYPE_TEXT;
+        OemEventData.Language = SAHPI_LANG_ENGLISH;
         if (strlen(value) < SAHPI_MAX_TEXT_BUFFER_LENGTH) {
-            EventData.DataLength = strlen(value);
-            strcpy((char *)EventData.Data, value);
+            OemEventData.DataLength = strlen(value);
+            strcpy((char *)OemEventData.Data, value);
         }
         else {
-            EventData.DataLength = SAHPI_MAX_TEXT_BUFFER_LENGTH;
-            memcpy(EventData.Data, value, SAHPI_MAX_TEXT_BUFFER_LENGTH);
+            OemEventData.DataLength = SAHPI_MAX_TEXT_BUFFER_LENGTH;
+            memcpy(OemEventData.Data, value, SAHPI_MAX_TEXT_BUFFER_LENGTH);
         }
         return false;
     }
@@ -95,13 +90,13 @@ bool oSaHpiHpiSwEvent::assignField(SaHpiHpiSwEventT *ptr,
  * Print the contents of the buffer.
  *
  * @param stream Target stream.
- * @param buffer Address of the SaHpiHpiSwEventT struct.
+ * @param buffer Address of the SaHpiOemEventT struct.
  *
  * @return True if there was an error, otherwise false.
  */
-bool oSaHpiHpiSwEvent::fprint(FILE *stream,
-                              const int indent,
-                              const SaHpiHpiSwEventT *buffer) {
+bool oSaHpiOemEvent::fprint(FILE *stream,
+                            const int indent,
+                            const SaHpiOemEventT *buffer) {
 	int i, err;
     char buf[20];
     char indent_buf[indent + 1];
@@ -126,19 +121,11 @@ bool oSaHpiHpiSwEvent::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    err = fprintf(stream, "Type = %s\n", oSaHpiTypesEnums::sweventtype2str(buffer->Type));
+    err = fprintf(stream, "OemEventData\n");
     if (err < 0) {
         return true;
     }
-    err = fprintf(stream, indent_buf);
-    if (err < 0) {
-        return true;
-    }
-    err = fprintf(stream, "EventData\n");
-    if (err < 0) {
-        return true;
-    }
-    oSaHpiTextBuffer * tb = (oSaHpiTextBuffer *)&buffer->EventData;
+    oSaHpiTextBuffer * tb = (oSaHpiTextBuffer *)&buffer->OemEventData;
     err = tb->oSaHpiTextBuffer::fprint(stream, indent + 3, (SaHpiTextBufferT *)tb);
     if (err < 0) {
         return true;
