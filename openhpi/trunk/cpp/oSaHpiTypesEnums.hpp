@@ -107,6 +107,10 @@ class oSaHpiTypesEnums {
         static const char * resetaction2str(SaHpiResetActionT value);
         static SaHpiPowerStateT str2powerstate(const char *strtype);
         static const char * powerstate2str(SaHpiPowerStateT value);
+        static SaHpiCapabilitiesT str2capabilities(const char *strtype);
+        static const char * capabilities2str(SaHpiCapabilitiesT value);
+        static SaHpiHsCapabilitiesT str2hscapabilities(const char *strtype);
+        static const char * hscapabilities2str(SaHpiHsCapabilitiesT value);
 };
 
 #endif

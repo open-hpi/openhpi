@@ -2543,3 +2543,118 @@ const char * oSaHpiTypesEnums::powerstate2str(SaHpiPowerStateT value) {
 }
 
 
+static struct capabilities_map {
+    SaHpiCapabilitiesT type;
+    const char         *str;
+} capabilities_strings[] = {
+    {SAHPI_CAPABILITY_RESOURCE,         "SAHPI_CAPABILITY_RESOURCE"},
+    {SAHPI_CAPABILITY_EVT_DEASSERTS,    "SAHPI_CAPABILITY_EVT_DEASSERTS"},
+    {SAHPI_CAPABILITY_AGGREGATE_STATUS, "SAHPI_CAPABILITY_AGGREGATE_STATUS"},
+    {SAHPI_CAPABILITY_CONFIGURATION,    "SAHPI_CAPABILITY_CONFIGURATION"},
+    {SAHPI_CAPABILITY_MANAGED_HOTSWAP,  "SAHPI_CAPABILITY_MANAGED_HOTSWAP"},
+    {SAHPI_CAPABILITY_WATCHDOG,         "SAHPI_CAPABILITY_WATCHDOG"},
+    {SAHPI_CAPABILITY_CONTROL,          "SAHPI_CAPABILITY_CONTROL"},
+    {SAHPI_CAPABILITY_FRU,              "SAHPI_CAPABILITY_FRU"},
+    {SAHPI_CAPABILITY_ANNUNCIATOR,      "SAHPI_CAPABILITY_ANNUNCIATOR"},
+    {SAHPI_CAPABILITY_POWER,            "SAHPI_CAPABILITY_POWER"},
+    {SAHPI_CAPABILITY_RESET,            "SAHPI_CAPABILITY_RESET"},
+    {SAHPI_CAPABILITY_INVENTORY_DATA,   "SAHPI_CAPABILITY_INVENTORY_DATA"},
+    {SAHPI_CAPABILITY_EVENT_LOG,        "SAHPI_CAPABILITY_EVENT_LOG"},
+    {SAHPI_CAPABILITY_RDR,              "SAHPI_CAPABILITY_RDR"},
+    {SAHPI_CAPABILITY_SENSOR,           "SAHPI_CAPABILITY_SENSOR"},
+    {SAHPI_CAPABILITY_SENSOR,           NULL}
+};
+
+
+/**
+ * Translates a string to a valid SaHpiCapabilitiesT type.
+ *
+ * @param strtype The entity type expressed as a string.
+ *
+ * @return SAHPI_OK on success, otherwise an HPI error code.
+ */
+SaHpiCapabilitiesT oSaHpiTypesEnums::str2capabilities(const char *strtype) {
+	int i;
+
+    if (strtype == NULL) {
+        return (SaHpiCapabilitiesT)0;
+    }
+	for (i = 0; capabilities_strings[i].str != NULL; i++) {
+		if (strcmp(strtype, capabilities_strings[i].str) == 0) {
+            return capabilities_strings[i].type;
+		}
+	}
+    return (SaHpiCapabilitiesT)0;
+}
+
+
+/**
+ * Translates an sensor aggregate status type to a string.
+ *
+ * @param value  The SaHpiCapabilitiesT to be converted.
+ *
+ * @return The string value of the type.
+ */
+const char * oSaHpiTypesEnums::capabilities2str(SaHpiCapabilitiesT value) {
+	int i;
+
+	for (i = 0; capabilities_strings[i].str != NULL; i++) {
+		if (value == capabilities_strings[i].type) {
+			return capabilities_strings[i].str;
+		}
+	}
+    return "Unknown";
+}
+
+
+static struct hscapabilities_map {
+    SaHpiHsCapabilitiesT type;
+    const char           *str;
+} hscapabilities_strings[] = {
+    {SAHPI_HS_CAPABILITY_AUTOEXTRACT_READ_ONLY, "SAHPI_HS_CAPABILITY_AUTOEXTRACT_READ_ONLY_SUPPORTED"},
+    {SAHPI_HS_CAPABILITY_INDICATOR_SUPPORTED,   "SAHPI_HS_CAPABILITY_INDICATOR_SUPPORTED"},
+    {SAHPI_HS_CAPABILITY_INDICATOR_SUPPORTED,   NULL}
+};
+
+
+/**
+ * Translates a string to a valid SaHpiHsCapabilitiesT type.
+ *
+ * @param strtype The entity type expressed as a string.
+ *
+ * @return SAHPI_OK on success, otherwise an HPI error code.
+ */
+SaHpiHsCapabilitiesT oSaHpiTypesEnums::str2hscapabilities(const char *strtype) {
+	int i;
+
+    if (strtype == NULL) {
+        return (SaHpiHsCapabilitiesT)0;
+    }
+	for (i = 0; hscapabilities_strings[i].str != NULL; i++) {
+		if (strcmp(strtype, hscapabilities_strings[i].str) == 0) {
+            return hscapabilities_strings[i].type;
+		}
+	}
+    return (SaHpiHsCapabilitiesT)0;
+}
+
+
+/**
+ * Translates an sensor aggregate status type to a string.
+ *
+ * @param value  The SaHpiHsCapabilitiesT to be converted.
+ *
+ * @return The string value of the type.
+ */
+const char * oSaHpiTypesEnums::hscapabilities2str(SaHpiHsCapabilitiesT value) {
+	int i;
+
+	for (i = 0; hscapabilities_strings[i].str != NULL; i++) {
+		if (value == hscapabilities_strings[i].type) {
+			return hscapabilities_strings[i].str;
+		}
+	}
+    return "Unknown";
+}
+
+
