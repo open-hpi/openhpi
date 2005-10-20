@@ -87,6 +87,10 @@ bool oSaHpiSensorEvent::assignField(SaHpiSensorEventT *ptr,
         ptr->EventCategory |= oSaHpiTypesEnums::str2eventcategory(value);
         return false;
     }
+    else if (strcmp(field, "Assertion") == 0) {
+        ptr->Assertion = oSaHpiTypesEnums::str2torf(value);
+        return false;
+    }
     else if (strcmp(field, "EventState") == 0) {
         ptr->EventState |= oSaHpiTypesEnums::str2eventstate(value);
         return false;
@@ -161,6 +165,14 @@ bool oSaHpiSensorEvent::fprint(FILE *stream,
         return true;
     }
     err = fprintf(stream, "EventCategory = %X\n", se->EventCategory);
+    if (err < 0) {
+        return true;
+    }
+    err = fprintf(stream, indent_buf);
+    if (err < 0) {
+        return true;
+    }
+    err = fprintf(stream, "Assertion = %s\n", oSaHpiTypesEnums::torf2str(se->Assertion));
     if (err < 0) {
         return true;
     }
