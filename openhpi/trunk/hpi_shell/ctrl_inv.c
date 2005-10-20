@@ -146,7 +146,8 @@ static ret_code_t set_inventory_field(SaHpiSessionIdT sessionId,
 	SaHpiResourceIdT rptid, SaHpiIdrIdT rdrnum)
 {
 	SaErrorT	rv;
-	SaHpiIdrFieldT	field;
+	SaHpiIdrFieldT	field, read_field;
+	SaHpiEntryIdT	next;
 	int		res, i;
 
 	memset(&field, 0, sizeof(SaHpiIdrFieldT));
@@ -163,6 +164,14 @@ static ret_code_t set_inventory_field(SaHpiSessionIdT sessionId,
 		return(HPI_SHELL_PARM_ERROR);
 	};
 	field.FieldId = res;
+	
+	rv = saHpiIdrFieldGet(sessionId, rptid, rdrnum, field.AreaId,
+		SAHPI_IDR_FIELDTYPE_UNSPECIFIED, field.FieldId, &next, &read_field);
+	if (rv != SA_OK) {
+		printf("ERROR!!! saHpiIdrFieldGet: %s\n", oh_lookup_error(rv));
+		return(HPI_SHELL_CMD_ERROR);
+	};
+	field.Type = read_field.Type;
 
 	i = set_text_buffer(&(field.Field));
 	if (i != 0) {
