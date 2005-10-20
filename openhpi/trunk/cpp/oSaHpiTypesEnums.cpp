@@ -2221,3 +2221,168 @@ const char * oSaHpiTypesEnums::domaineventtype2str(SaHpiDomainEventTypeT value) 
 }
 
 
+static struct sensoroptionaldata_map {
+    SaHpiSensorOptionalDataT type;
+    const char               *str;
+} sensoroptionaldata_strings[] = {
+    {SAHPI_SOD_TRIGGER_READING,   "SAHPI_SOD_TRIGGER_READING"},
+    {SAHPI_SOD_TRIGGER_THRESHOLD, "SAHPI_SOD_TRIGGER_THRESHOLD"},
+    {SAHPI_SOD_OEM,               "SAHPI_SOD_OEM"},
+    {SAHPI_SOD_PREVIOUS_STATE,    "SAHPI_SOD_PREVIOUS_STATE"},
+    {SAHPI_SOD_CURRENT_STATE,     "SAHPI_SOD_CURRENT_STATE"},
+    {SAHPI_SOD_SENSOR_SPECIFIC,   "SAHPI_SOD_SENSOR_SPECIFIC"},
+    {SAHPI_SOD_SENSOR_SPECIFIC,   NULL}
+};
+
+
+/**
+ * Translates a string to a valid SaHpiSensorOptionalDataT type.
+ *
+ * @param strtype The entity type expressed as a string.
+ *
+ * @return SAHPI_OK on success, otherwise an HPI error code.
+ */
+SaHpiSensorOptionalDataT oSaHpiTypesEnums::str2sensoroptionaldata(const char *strtype) {
+	int i;
+
+    if (strtype == NULL) {
+        return (SaHpiSensorOptionalDataT)0;
+    }
+	for (i = 0; sensoroptionaldata_strings[i].str != NULL; i++) {
+		if (strcmp(strtype, sensoroptionaldata_strings[i].str) == 0) {
+            return sensoroptionaldata_strings[i].type;
+		}
+	}
+    return (SaHpiSensorOptionalDataT)0;
+}
+
+
+/**
+ * Translates an sensor aggregate status type to a string.
+ *
+ * @param value  The SaHpiSensorOptionalDataT to be converted.
+ *
+ * @return The string value of the type.
+ */
+const char * oSaHpiTypesEnums::sensoroptionaldata2str(SaHpiSensorOptionalDataT value) {
+	int i;
+
+	for (i = 0; sensoroptionaldata_strings[i].str != NULL; i++) {
+		if (value == sensoroptionaldata_strings[i].type) {
+			return sensoroptionaldata_strings[i].str;
+		}
+	}
+    return "Unknown";
+}
+
+
+static struct sweventtype_map {
+    SaHpiSwEventTypeT type;
+    const char        *str;
+} sweventtype_strings[] = {
+    {SAHPI_HPIE_AUDIT,   "SAHPI_HPIE_AUDIT"},
+    {SAHPI_HPIE_STARTUP, "SAHPI_HPIE_STARTUP"},
+    {SAHPI_HPIE_OTHER,   "SAHPI_HPIE_OTHER"},
+    {SAHPI_HPIE_OTHER,   NULL}
+};
+
+
+/**
+ * Translates a string to a valid SaHpiSwEventTypeT type.
+ *
+ * @param strtype The entity type expressed as a string.
+ *
+ * @return SAHPI_OK on success, otherwise an HPI error code.
+ */
+SaHpiSwEventTypeT oSaHpiTypesEnums::str2sweventtype(const char *strtype) {
+	int i;
+
+    if (strtype == NULL) {
+        return SAHPI_HPIE_AUDIT;
+    }
+	for (i = 0; sweventtype_strings[i].str != NULL; i++) {
+		if (strcmp(strtype, sweventtype_strings[i].str) == 0) {
+            return sweventtype_strings[i].type;
+		}
+	}
+    return SAHPI_HPIE_AUDIT;
+}
+
+
+/**
+ * Translates an sensor aggregate status type to a string.
+ *
+ * @param value  The SaHpiSwEventTypeT to be converted.
+ *
+ * @return The string value of the type.
+ */
+const char * oSaHpiTypesEnums::sweventtype2str(SaHpiSwEventTypeT value) {
+	int i;
+
+	for (i = 0; sweventtype_strings[i].str != NULL; i++) {
+		if (value == sweventtype_strings[i].type) {
+			return sweventtype_strings[i].str;
+		}
+	}
+    return "Unknown";
+}
+
+
+static struct eventtype_map {
+    SaHpiEventTypeT type;
+    const char      *str;
+} eventtype_strings[] = {
+    {SAHPI_ET_RESOURCE,             "SAHPI_ET_RESOURCE"},
+    {SAHPI_ET_DOMAIN,               "SAHPI_ET_DOMAIN"},
+    {SAHPI_ET_SENSOR,               "SAHPI_ET_SENSOR"},
+    {SAHPI_ET_SENSOR_ENABLE_CHANGE, "SAHPI_ET_SENSOR_ENABLE_CHANGE"},
+    {SAHPI_ET_HOTSWAP,              "SAHPI_ET_HOTSWAP"},
+    {SAHPI_ET_WATCHDOG,             "SAHPI_ET_WATCHDOG"},
+    {SAHPI_ET_HPI_SW,               "SAHPI_ET_HPI_SW"},
+    {SAHPI_ET_OEM,                  "SAHPI_ET_OEM"},
+    {SAHPI_ET_USER,                 "SAHPI_ET_USER"},
+    {SAHPI_ET_USER,                 NULL}
+};
+
+
+/**
+ * Translates a string to a valid SaHpiEventTypeT type.
+ *
+ * @param strtype The entity type expressed as a string.
+ *
+ * @return SAHPI_OK on success, otherwise an HPI error code.
+ */
+SaHpiEventTypeT oSaHpiTypesEnums::str2eventtype(const char *strtype) {
+	int i;
+
+    if (strtype == NULL) {
+        return SAHPI_ET_RESOURCE;
+    }
+	for (i = 0; eventtype_strings[i].str != NULL; i++) {
+		if (strcmp(strtype, eventtype_strings[i].str) == 0) {
+            return eventtype_strings[i].type;
+		}
+	}
+    return SAHPI_ET_RESOURCE;
+}
+
+
+/**
+ * Translates an sensor aggregate status type to a string.
+ *
+ * @param value  The SaHpiEventTypeT to be converted.
+ *
+ * @return The string value of the type.
+ */
+const char * oSaHpiTypesEnums::eventtype2str(SaHpiEventTypeT value) {
+	int i;
+
+	for (i = 0; eventtype_strings[i].str != NULL; i++) {
+		if (value == eventtype_strings[i].type) {
+			return eventtype_strings[i].str;
+		}
+	}
+    return "Unknown";
+}
+
+

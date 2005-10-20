@@ -94,7 +94,7 @@ bool oSaHpiSensorRange::fprint(FILE *stream,
     char indent_buf[indent + 1];
     oSaHpiSensorReading *sr;
 
-    if (stream == NULL || sr == NULL) {
+    if (stream == NULL || rg == NULL) {
         return true;
     }
     for (i = 0; i < indent; i++) {
