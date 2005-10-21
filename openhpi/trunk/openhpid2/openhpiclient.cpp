@@ -154,8 +154,6 @@ static void DeleteConnx(pcstrmsock pinst)
 
 static bool InsertConnx(SaHpiSessionIdT SessionId, pcstrmsock pinst)
 {
-        SaHpiSessionIdT *mysession = (SaHpiSessionIdT *)g_malloc(sizeof(SaHpiSessionIdT));
-
 	if (SessionId == 0)
 		return TRUE;
 	if (pinst == NULL)
@@ -170,6 +168,7 @@ static bool InsertConnx(SaHpiSessionIdT SessionId, pcstrmsock pinst)
                 sessions_sem = g_mutex_new();
         }
         g_mutex_lock(sessions_sem);
+        SaHpiSessionIdT *mysession = (SaHpiSessionIdT *)g_malloc(sizeof(SaHpiSessionIdT));
         *mysession = SessionId;
         g_hash_table_insert(sessions, mysession, pinst);
         g_mutex_unlock(sessions_sem);
@@ -184,13 +183,18 @@ static bool InsertConnx(SaHpiSessionIdT SessionId, pcstrmsock pinst)
 
 static bool RemoveConnx(SaHpiSessionIdT SessionId)
 {
+        gpointer key;
+        gpointer value;
 
 	if (SessionId == 0)
 		return TRUE;
 
-        g_mutex_lock(sessions_sem);
-        g_hash_table_remove(sessions, &SessionId);
-        g_mutex_unlock(sessions_sem);
+        if (g_hash_table_lookup_extended(sessions, &SessionId, &key, &value)) {
+                g_mutex_lock(sessions_sem);
+                g_hash_table_remove(sessions, &SessionId);
+                g_free(key);
+                g_mutex_unlock(sessions_sem);
+        }
 
         return FALSE;
 }
