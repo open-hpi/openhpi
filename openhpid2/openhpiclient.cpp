@@ -162,7 +162,9 @@ static bool InsertConnx(SaHpiSessionIdT SessionId, pcstrmsock pinst)
 		return TRUE;
 
         if (thrd_init == FALSE && sessions == NULL) {
-                g_thread_init(NULL); // just to make sure, ignore any error
+                if (!g_thread_supported()) {
+                         g_thread_init(NULL); // just to make sure, ignore any error
+                }
                 thrd_init = TRUE;
                 sessions = g_hash_table_new(g_int_hash, g_int_equal);
                 sessions_sem = g_mutex_new();
