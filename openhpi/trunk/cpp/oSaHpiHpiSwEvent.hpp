@@ -14,8 +14,8 @@
  */
 
 
-#ifndef Included_oSaHpiCondition
-#define Included_oSaHpiCondition
+#ifndef Included_oSaHpiHpiSwEvent
+#define Included_oSaHpiHpiSwEvent
 
 #include <stdio.h>
 extern "C"

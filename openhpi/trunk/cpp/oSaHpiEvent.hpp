@@ -14,8 +14,8 @@
  */
 
 
-#ifndef Included_oSaHpiResourceInfo
-#define Included_oSaHpiResourceInfo
+#ifndef Included_oSaHpiEvent
+#define Included_oSaHpiEvent
 
 #include <stdio.h>
 extern "C"
@@ -24,29 +24,29 @@ extern "C"
 }
 
 
-class oSaHpiResourceInfo : public SaHpiResourceInfoT {
+class oSaHpiEvent : public SaHpiEventT {
     public:
         // constructors
-        oSaHpiResourceInfo();
+        oSaHpiEvent();
         // copy constructor
-        oSaHpiResourceInfo(const oSaHpiResourceInfo& buf);
+        oSaHpiEvent(const oSaHpiEvent& buf);
         // destructor
-        ~oSaHpiResourceInfo() {
+        ~oSaHpiEvent() {
         }
         // other methods
-        bool assignField(SaHpiResourceInfoT * ptr,
+        bool assignField(SaHpiEventT * ptr,
                          const char *field,
                          const char *value);
         inline bool assignField(const char *field,
                                 const char *value) {
             return assignField(this, field, value);
         }
-        inline SaHpiResourceInfoT *getStruct(void) {
+        inline SaHpiEventT *getStruct(void) {
             return this;
         }
         bool fprint(FILE *stream,
                     const int indent,
-                    const SaHpiResourceInfoT *buffer);
+                    const SaHpiEventT *buffer);
         inline bool fprint(FILE *stream,
                            const int indent) {
             return fprint(stream, indent, this);
