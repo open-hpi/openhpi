@@ -2658,3 +2658,106 @@ const char * oSaHpiTypesEnums::hscapabilities2str(SaHpiHsCapabilitiesT value) {
 }
 
 
+static struct eventlogoverflowaction_map {
+    SaHpiEventLogOverflowActionT type;
+    const char                   *str;
+} eventlogoverflowaction_strings[] = {
+    {SAHPI_EL_OVERFLOW_DROP,      "SAHPI_EL_OVERFLOW_DROP"},
+    {SAHPI_EL_OVERFLOW_OVERWRITE, "SAHPI_EL_OVERFLOW_OVERWRITE"},
+    {SAHPI_EL_OVERFLOW_OVERWRITE, NULL}
+};
+
+
+/**
+ * Translates a string to a valid SaHpiEventLogOverflowActionT type.
+ *
+ * @param strtype The entity type expressed as a string.
+ *
+ * @return SAHPI_OK on success, otherwise an HPI error code.
+ */
+SaHpiEventLogOverflowActionT oSaHpiTypesEnums::str2eventlogoverflowaction(const char *strtype) {
+	int i;
+
+    if (strtype == NULL) {
+        return SAHPI_EL_OVERFLOW_DROP;
+    }
+	for (i = 0; eventlogoverflowaction_strings[i].str != NULL; i++) {
+		if (strcmp(strtype, eventlogoverflowaction_strings[i].str) == 0) {
+            return eventlogoverflowaction_strings[i].type;
+		}
+	}
+    return SAHPI_EL_OVERFLOW_DROP;
+}
+
+
+/**
+ * Translates an sensor aggregate status type to a string.
+ *
+ * @param value  The SaHpiEventLogOverflowActionT to be converted.
+ *
+ * @return The string value of the type.
+ */
+const char * oSaHpiTypesEnums::eventlogoverflowaction2str(SaHpiEventLogOverflowActionT value) {
+	int i;
+
+	for (i = 0; eventlogoverflowaction_strings[i].str != NULL; i++) {
+		if (value == eventlogoverflowaction_strings[i].type) {
+			return eventlogoverflowaction_strings[i].str;
+		}
+	}
+    return "Unknown";
+}
+
+
+static struct eventlogentryid_map {
+    SaHpiEventLogEntryIdT type;
+    const char            *str;
+} eventlogentryid_strings[] = {
+    {SAHPI_OLDEST_ENTRY,    "SAHPI_OLDEST_ENTRY"},
+    {SAHPI_NEWEST_ENTRY,    "SAHPI_NEWEST_ENTRY"},
+    {SAHPI_NO_MORE_ENTRIES, "SAHPI_NO_MORE_ENTRIES"},
+    {SAHPI_NO_MORE_ENTRIES, NULL}
+};
+
+
+/**
+ * Translates a string to a valid SaHpiEventLogEntryIdT type.
+ *
+ * @param strtype The entity type expressed as a string.
+ *
+ * @return SAHPI_OK on success, otherwise an HPI error code.
+ */
+SaHpiEventLogEntryIdT oSaHpiTypesEnums::str2eventlogentryid(const char *strtype) {
+	int i;
+
+    if (strtype == NULL) {
+        return SAHPI_OLDEST_ENTRY;
+    }
+	for (i = 0; eventlogentryid_strings[i].str != NULL; i++) {
+		if (strcmp(strtype, eventlogentryid_strings[i].str) == 0) {
+            return eventlogentryid_strings[i].type;
+		}
+	}
+    return SAHPI_OLDEST_ENTRY;
+}
+
+
+/**
+ * Translates an sensor aggregate status type to a string.
+ *
+ * @param value  The SaHpiEventLogEntryIdT to be converted.
+ *
+ * @return The string value of the type.
+ */
+const char * oSaHpiTypesEnums::eventlogentryid2str(SaHpiEventLogEntryIdT value) {
+	int i;
+
+	for (i = 0; eventlogentryid_strings[i].str != NULL; i++) {
+		if (value == eventlogentryid_strings[i].type) {
+			return eventlogentryid_strings[i].str;
+		}
+	}
+    return "Unknown";
+}
+
+

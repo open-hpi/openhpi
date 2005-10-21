@@ -111,6 +111,10 @@ class oSaHpiTypesEnums {
         static const char * capabilities2str(SaHpiCapabilitiesT value);
         static SaHpiHsCapabilitiesT str2hscapabilities(const char *strtype);
         static const char * hscapabilities2str(SaHpiHsCapabilitiesT value);
+        static SaHpiEventLogOverflowActionT str2eventlogoverflowaction(const char *strtype);
+        static const char * eventlogoverflowaction2str(SaHpiEventLogOverflowActionT value);
+        static SaHpiEventLogEntryIdT str2eventlogentryid(const char *strtype);
+        static const char * eventlogentryid2str(SaHpiEventLogEntryIdT value);
 };
 
 #endif
