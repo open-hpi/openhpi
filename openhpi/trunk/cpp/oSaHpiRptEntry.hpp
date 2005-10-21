@@ -14,8 +14,8 @@
  */
 
 
-#ifndef Included_oSaHpiOemEvent
-#define Included_oSaHpiOemEvent
+#ifndef Included_oSaHpiRptEntry
+#define Included_oSaHpiRptEntry
 
 #include <stdio.h>
 extern "C"
@@ -24,29 +24,29 @@ extern "C"
 }
 
 
-class oSaHpiOemEvent : public SaHpiOemEventT {
+class oSaHpiRptEntry : public SaHpiRptEntryT {
     public:
         // constructors
-        oSaHpiOemEvent();
+        oSaHpiRptEntry();
         // copy constructor
-        oSaHpiOemEvent(const oSaHpiOemEvent& buf);
+        oSaHpiRptEntry(const oSaHpiRptEntry& buf);
         // destructor
-        ~oSaHpiOemEvent() {
+        ~oSaHpiRptEntry() {
         }
         // other methods
-        bool assignField(SaHpiOemEventT * ptr,
+        bool assignField(SaHpiRptEntryT * ptr,
                          const char *field,
                          const char *value);
         inline bool assignField(const char *field,
                                 const char *value) {
             return assignField(this, field, value);
         }
-        inline SaHpiOemEventT *getStruct(void) {
+        inline SaHpiRptEntryT *getStruct(void) {
             return this;
         }
         bool fprint(FILE *stream,
                     const int indent,
-                    const SaHpiOemEventT *buffer);
+                    const SaHpiRptEntryT *buffer);
         inline bool fprint(FILE *stream,
                            const int indent) {
             return fprint(stream, indent, this);
