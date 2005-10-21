@@ -66,7 +66,7 @@ bool oSaHpiOemEvent::assignField(SaHpiOemEventT *ptr,
         return true;
     }
     if (strcmp(field, "MId") == 0) {
-        ptr->MId = atoi(value);
+        ptr->MId = strtoul(value, NULL, 10);
         return false;
     }
     else if (strcmp(field, "OemEventData") == 0) {
