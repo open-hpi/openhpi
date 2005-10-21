@@ -344,7 +344,17 @@ if test "x$IPMIDIRECT" = "xipmidirect"; then
         fi
 fi
 
-#AC_ARG_ENABLE([remote_client],
+# Configure options for the RTAS plugin
+AC_ARG_ENABLE([rtas],
+    [  --enable-rtas       build rtas ppc plugin [default=no]],
+    [if test "x$enableval" = "xyes"; then
+	    AC_SUBST(RTAS,rtas)
+     else
+            AC_SUBST(RTAS,"")
+     fi],
+    [AC_SUBST(RTAS,"")])
+
+#AC_ARG_iENABLE([remote_client],
 #    [  --enable-remote_client     build remote client plugin [default=yes]],
 #    [if test "x$enableval" = "xyes"; then
 #            AC_SUBST(REMOTE_CLIENT,remote_client)
