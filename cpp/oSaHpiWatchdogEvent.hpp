@@ -14,8 +14,8 @@
  */
 
 
-#ifndef Included_oSaHpiSensorRange
-#define Included_oSaHpiSensorRange
+#ifndef Included_oSaHpiWatchdogEvent
+#define Included_oSaHpiWatchdogEvent
 
 #include <stdio.h>
 extern "C"

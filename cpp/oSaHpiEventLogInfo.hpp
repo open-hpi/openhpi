@@ -15,7 +15,7 @@
 
 
 #ifndef Included_oSaHpiEventLogInfo
-#define Included_oSaHpiAlarm
+#define Included_oSaHpiEventLogInfo
 
 #include <stdio.h>
 extern "C"
