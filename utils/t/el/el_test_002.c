@@ -83,7 +83,7 @@ int main(int argc, char **argv)
                 return 1;
         }
 
-	if (strcmp(entry->event.Event.EventDataUnion.UserEvent.UserEventData.Data, data[0])) {
+	if (strcmp((char *)entry->event.Event.EventDataUnion.UserEvent.UserEventData.Data, data[0])) {
                  dbg("ERROR: Data from el and what was entered into el do not match");
                  return 1;
         }

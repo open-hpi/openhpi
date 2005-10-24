@@ -117,7 +117,8 @@ sub setdefault {
                 if(-e $link) {
                     unlink($link) or die "Couldn't remove $link";
                 }
-                symlink("$dir/$lib",$link) or 
+                #symlink("$dir/$lib",$link) or 
+                symlink("@HPI_PKG@/$type/$lib",$link) or 
                   die "Couldn't link $dir/lib -> $link";
             }
         }

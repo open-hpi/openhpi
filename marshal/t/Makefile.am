@@ -23,7 +23,7 @@ MAINTAINERCLEANFILES 	= Makefile.in *~
 
 INCLUDES		= -I $(MARSHAL_SRCDIR) @OPENHPI_INCLUDES@
 
-AM_CFLAGS		= @CFLAGS@ -ftest-coverage -fprofile-arcs
+AM_CFLAGS		= @CFLAGS@ @COV_CFLAGS@
 
 noinst_PROGRAMS = float_format
 float_format_SOURCES = float_format.c

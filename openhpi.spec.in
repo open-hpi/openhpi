@@ -11,7 +11,7 @@ Vendor: OpenHPI Project
 Packager: TariqX
 Source: @HPI_PKG@-@VERSION@.tar.gz
 Buildroot: /var/tmp/@HPI_PKG@-root
-BuildRequires: pkgconfig glib-devel
+BuildRequires: pkgconfig glib2-devel
 BuildRequires: docbook-utils docbook-utils-pdf docbook-dtd41-sgml
 Summary: Library that provides SAForum's HPI
 Group: Utilities
@@ -96,7 +96,12 @@ install -m 644 examples/openhpi.conf.example $RPM_BUILD_ROOT/etc/@HPI_PKG@/@HPI_
 %config /etc/@HPI_PKG@/*
 %dir /var/lib/@HPI_PKG@
 %{prefix}/lib/libopen*
+%{prefix}/lib/@HPI_PKG@/standard/libopen*
+%{prefix}/lib/@HPI_PKG@/client/libopen*
 %{prefix}/lib/@HPI_PKG@/lib*
+%{prefix}/bin/@HPI_PKG@-switcher
+%{prefix}/man/man1/@HPI_PKG@-switcher.1.gz
+%{prefix}/man/man7/@HPI_PKG@.7.gz
 # dummy*
 #%{prefix}/lib/@HPI_PKG@/libsysfs*#
 #%{prefix}/lib/@HPI_PKG@/libsnmp_bc*
