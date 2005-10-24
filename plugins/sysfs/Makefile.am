@@ -34,7 +34,7 @@ MAINTAINERCLEANFILES 	= Makefile.in
 
 INCLUDES		= @OPENHPI_INCLUDES@  -I/usr/include/sysfs
 
-AM_CFLAGS		= -g @CFLAGS@
+AM_CFLAGS		= @CFLAGS@
 
 pkglib_LTLIBRARIES		= libsysfs2hpi.la
 
