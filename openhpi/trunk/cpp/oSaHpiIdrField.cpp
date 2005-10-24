@@ -102,9 +102,7 @@ bool oSaHpiIdrField::fprint(FILE *stream,
                             const int indent,
                             const SaHpiIdrFieldT *buffer) {
 	int i, err;
-    char buf[20];
     char indent_buf[indent + 1];
-    oSaHpiTextBuffer *tb;
 
     if (stream == NULL || buffer == NULL) {
         return true;
@@ -151,8 +149,8 @@ bool oSaHpiIdrField::fprint(FILE *stream,
         return true;
     }
     err = fprintf(stream, "Field");
-    tb = (oSaHpiTextBuffer *)&buffer->Field;
-    err = tb->oSaHpiTextBuffer::fprint(stream, indent + 3, (SaHpiTextBufferT *)tb);
+    const SaHpiTextBufferT *tb = (const SaHpiTextBufferT *)&buffer->Field;
+    err = oSaHpiTextBuffer::fprint(stream, indent + 3, tb);
     if (err < 0) {
         return true;
     }

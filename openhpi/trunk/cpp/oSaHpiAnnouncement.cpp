@@ -116,7 +116,6 @@ bool oSaHpiAnnouncement::fprint(FILE *stream,
                                 const int indent,
                                 const SaHpiAnnouncementT *buffer) {
 	int i, err;
-    char buf[20];
     char indent_buf[indent + 1];
 
     if (stream == NULL || buffer == NULL) {
@@ -175,8 +174,8 @@ bool oSaHpiAnnouncement::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    oSaHpiCondition * c = (oSaHpiCondition *)&buffer->StatusCond;
-    err = c->oSaHpiCondition::fprint(stream, indent + 3, (SaHpiConditionT *)c);
+    const SaHpiConditionT * c = (const SaHpiConditionT *)&buffer->StatusCond;
+    err = oSaHpiCondition::fprint(stream, indent + 3, c);
     if (err < 0) {
         return true;
     }

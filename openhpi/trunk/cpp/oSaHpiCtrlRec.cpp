@@ -159,8 +159,8 @@ bool oSaHpiCtrlRec::fprint(FILE *stream,
         if (err < 0) {
             return true;
         }
-        oSaHpiCtrlRecDigital *crd = (oSaHpiCtrlRecDigital *)&cr->TypeUnion.Digital;
-        err = crd->oSaHpiCtrlRecDigital::fprint(stream, indent + 3, (SaHpiCtrlRecDigitalT *)crd);
+        const SaHpiCtrlRecDigitalT *crd = (const SaHpiCtrlRecDigitalT *)&cr->TypeUnion.Digital;
+        err = oSaHpiCtrlRecDigital::fprint(stream, indent + 3, crd);
         if (err < 0) {
             return true;
         }
@@ -170,8 +170,8 @@ bool oSaHpiCtrlRec::fprint(FILE *stream,
         if (err < 0) {
             return true;
         }
-        oSaHpiCtrlRecDiscrete *crds = (oSaHpiCtrlRecDiscrete *)&cr->TypeUnion.Discrete;
-        err = crds->oSaHpiCtrlRecDiscrete::fprint(stream, indent + 3, (SaHpiCtrlRecDiscreteT *)crds);
+        const SaHpiCtrlRecDiscreteT *crds = (const SaHpiCtrlRecDiscreteT *)&cr->TypeUnion.Discrete;
+        err = oSaHpiCtrlRecDiscrete::fprint(stream, indent + 3, crds);
         if (err < 0) {
             return true;
         }
@@ -181,8 +181,8 @@ bool oSaHpiCtrlRec::fprint(FILE *stream,
         if (err < 0) {
             return true;
         }
-        oSaHpiCtrlRecAnalog *cra = (oSaHpiCtrlRecAnalog *)&cr->TypeUnion.Analog;
-        err = cra->oSaHpiCtrlRecAnalog::fprint(stream, indent + 3, (SaHpiCtrlRecAnalogT *)cra);
+        const SaHpiCtrlRecAnalogT *cra = (const SaHpiCtrlRecAnalogT *)&cr->TypeUnion.Analog;
+        err = oSaHpiCtrlRecAnalog::fprint(stream, indent + 3, cra);
         if (err < 0) {
             return true;
         }
@@ -192,8 +192,8 @@ bool oSaHpiCtrlRec::fprint(FILE *stream,
         if (err < 0) {
             return true;
         }
-        oSaHpiCtrlRecStream *crs = (oSaHpiCtrlRecStream *)&cr->TypeUnion.Stream;
-        err = crs->oSaHpiCtrlRecStream::fprint(stream, indent + 3, (SaHpiCtrlRecStreamT *)crs);
+        const SaHpiCtrlRecStreamT *crs = (const SaHpiCtrlRecStreamT *)&cr->TypeUnion.Stream;
+        err = oSaHpiCtrlRecStream::fprint(stream, indent + 3, crs);
         if (err < 0) {
             return true;
         }
@@ -203,8 +203,8 @@ bool oSaHpiCtrlRec::fprint(FILE *stream,
         if (err < 0) {
             return true;
         }
-        oSaHpiCtrlRecText *crt = (oSaHpiCtrlRecText *)&cr->TypeUnion.Text;
-        err = crt->oSaHpiCtrlRecText::fprint(stream, indent + 3, (SaHpiCtrlRecTextT *)crt);
+        const SaHpiCtrlRecTextT *crt = (const SaHpiCtrlRecTextT *)&cr->TypeUnion.Text;
+        err = oSaHpiCtrlRecText::fprint(stream, indent + 3, crt);
         if (err < 0) {
             return true;
         }
@@ -214,8 +214,8 @@ bool oSaHpiCtrlRec::fprint(FILE *stream,
         if (err < 0) {
             return true;
         }
-        oSaHpiCtrlRecOem *cro = (oSaHpiCtrlRecOem *)&cr->TypeUnion.Oem;
-        err = cro->oSaHpiCtrlRecOem::fprint(stream, indent + 3, (SaHpiCtrlRecOemT *)cro);
+        const SaHpiCtrlRecOemT *cro = (const SaHpiCtrlRecOemT *)&cr->TypeUnion.Oem;
+        err = oSaHpiCtrlRecOem::fprint(stream, indent + 3, cro);
         if (err < 0) {
             return true;
         }
@@ -231,8 +231,8 @@ bool oSaHpiCtrlRec::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    oSaHpiCtrlDefaultMode *dm = (oSaHpiCtrlDefaultMode *)&cr->DefaultMode;
-    err = dm->oSaHpiCtrlDefaultMode::fprint(stream, indent + 3, (SaHpiCtrlDefaultModeT *)dm);
+    const SaHpiCtrlDefaultModeT *dm = (const SaHpiCtrlDefaultModeT *)&cr->DefaultMode;
+    err = oSaHpiCtrlDefaultMode::fprint(stream, indent + 3, dm);
     if (err < 0) {
         return true;
     }

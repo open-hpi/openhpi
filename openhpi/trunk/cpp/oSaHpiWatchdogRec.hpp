@@ -34,9 +34,9 @@ class oSaHpiWatchdogRec : public SaHpiWatchdogRecT {
         ~oSaHpiWatchdogRec() {
         }
         // other methods
-        bool assignField(SaHpiWatchdogRecT * ptr,
-                         const char *field,
-                         const char *value);
+        static bool assignField(SaHpiWatchdogRecT * ptr,
+                                const char *field,
+                                const char *value);
         inline bool assignField(const char *field,
                                 const char *value) {
             return assignField(this, field, value);
@@ -44,9 +44,9 @@ class oSaHpiWatchdogRec : public SaHpiWatchdogRecT {
         inline SaHpiWatchdogRecT *getStruct(void) {
             return this;
         }
-        bool fprint(FILE *stream,
-                    const int indent,
-                    const SaHpiWatchdogRecT *buffer);
+        static bool fprint(FILE *stream,
+                           const int indent,
+                           const SaHpiWatchdogRecT *buffer);
         inline bool fprint(FILE *stream,
                            const int indent) {
             return fprint(stream, indent, this);

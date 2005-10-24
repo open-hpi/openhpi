@@ -35,9 +35,9 @@ class oSaHpiCtrlRecDiscrete : public SaHpiCtrlRecDiscreteT {
         ~oSaHpiCtrlRecDiscrete() {
         }
         // other methods
-        bool assignField(SaHpiCtrlRecDiscreteT * ptr,
-                         const char *field,
-                         const char *value);
+        static bool assignField(SaHpiCtrlRecDiscreteT * ptr,
+                                const char *field,
+                                const char *value);
         inline bool assignField(const char *field,
                                 const char *value) {
             return assignField(this, field, value);
@@ -45,9 +45,9 @@ class oSaHpiCtrlRecDiscrete : public SaHpiCtrlRecDiscreteT {
         inline SaHpiCtrlRecDiscreteT *getStruct(void) {
             return this;
         }
-        bool fprint(FILE *stream,
-                    const int indent,
-                    const SaHpiCtrlRecDiscreteT *ent);
+        static bool fprint(FILE *stream,
+                           const int indent,
+                           const SaHpiCtrlRecDiscreteT *ent);
         inline bool fprint(FILE *stream,
                            const int indent) {
             return fprint(stream, indent, this);

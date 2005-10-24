@@ -34,9 +34,9 @@ class oSaHpiDomainInfo : public SaHpiDomainInfoT {
         ~oSaHpiDomainInfo() {
         }
         // other methods
-        bool assignField(SaHpiDomainInfoT * ptr,
-                         const char *field,
-                         const char *value);
+        static bool assignField(SaHpiDomainInfoT * ptr,
+                                const char *field,
+                                const char *value);
         inline bool assignField(const char *field,
                                 const char *value) {
             return assignField(this, field, value);
@@ -44,9 +44,9 @@ class oSaHpiDomainInfo : public SaHpiDomainInfoT {
         inline SaHpiDomainInfoT *getStruct(void) {
             return this;
         }
-        bool fprint(FILE *stream,
-                    const int indent,
-                    const SaHpiDomainInfoT *buffer);
+        static bool fprint(FILE *stream,
+                           const int indent,
+                           const SaHpiDomainInfoT *buffer);
         inline bool fprint(FILE *stream,
                            const int indent) {
             return fprint(stream, indent, this);

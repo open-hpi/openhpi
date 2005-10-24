@@ -73,35 +73,35 @@ bool oSaHpiResourceInfo::assignField(SaHpiResourceInfoT *ptr,
         return true;
     }
     if (strcmp(field, "ResourceRev") == 0) {
-        ResourceRev = (SaHpiUint8T)strtoul(value, NULL, 10);
+        ptr->ResourceRev = (SaHpiUint8T)strtoul(value, NULL, 10);
         return false;
     }
     else if (strcmp(field, "SpecificVer") == 0) {
-        SpecificVer = (SaHpiUint8T)strtoul(value, NULL, 10);
+        ptr->SpecificVer = (SaHpiUint8T)strtoul(value, NULL, 10);
         return false;
     }
     else if (strcmp(field, "DeviceSupport") == 0) {
-        DeviceSupport = (SaHpiUint8T)strtoul(value, NULL, 10);
+        ptr->DeviceSupport = (SaHpiUint8T)strtoul(value, NULL, 10);
         return false;
     }
     else if (strcmp(field, "ManufacturerId") == 0) {
-        ManufacturerId = strtoul(value, NULL, 10);
+        ptr->ManufacturerId = strtoul(value, NULL, 10);
         return false;
     }
     else if (strcmp(field, "ProductId") == 0) {
-        ProductId = (SaHpiUint8T)strtoul(value, NULL, 10);
+        ptr->ProductId = (SaHpiUint8T)strtoul(value, NULL, 10);
         return false;
     }
     else if (strcmp(field, "FirmwareMajorRev") == 0) {
-        FirmwareMajorRev = (SaHpiUint8T)strtoul(value, NULL, 10);
+        ptr->FirmwareMajorRev = (SaHpiUint8T)strtoul(value, NULL, 10);
         return false;
     }
     else if (strcmp(field, "FirmwareMinorRev") == 0) {
-        FirmwareMinorRev = (SaHpiUint8T)strtoul(value, NULL, 10);
+        ptr->FirmwareMinorRev = (SaHpiUint8T)strtoul(value, NULL, 10);
         return false;
     }
     else if (strcmp(field, "AuxFirmwareRev") == 0) {
-        AuxFirmwareRev = (SaHpiUint8T)strtoul(value, NULL, 10);
+        ptr->AuxFirmwareRev = (SaHpiUint8T)strtoul(value, NULL, 10);
         return false;
     }
     // Guid
@@ -121,7 +121,6 @@ bool oSaHpiResourceInfo::fprint(FILE *stream,
                              const int indent,
                              const SaHpiResourceInfoT *buffer) {
 	int i, err;
-    char buf[20];
     char indent_buf[indent + 1];
 
     if (stream == NULL || buffer == NULL) {

@@ -258,7 +258,6 @@ bool oSaHpiTextBuffer::fprint(FILE *stream,
                               const int indent,
                               const SaHpiTextBufferT *buffer) {
 	int i, err;
-    char buf[20];
     char indent_buf[indent + 1];
 
     if (stream == NULL || buffer == NULL) {
@@ -301,7 +300,16 @@ bool oSaHpiTextBuffer::fprint(FILE *stream,
         err = fprintf(stream, "Data = %s\n", buffer->Data);
     }
 	else {
-        err = fprintf(stream, "(unknown value)");
+        for (i = 0; i < buffer->DataLength; i++) {
+            err = fprintf(stream, "%c", buffer->Data[i]);
+            if (err < 0) {
+                return true;
+            }
+        }
+        err = fprintf(stream, "\n");
+        if (err < 0) {
+            return true;
+        }
 	}
     if (err < 0) {
         return true;

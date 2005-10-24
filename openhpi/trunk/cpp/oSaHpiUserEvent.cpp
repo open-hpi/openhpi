@@ -64,19 +64,7 @@ bool oSaHpiUserEvent::assignField(SaHpiUserEventT *ptr,
     if (ptr == NULL || field == NULL || value == NULL) {
         return true;
     }
-    if (strcmp(field, "UserEventData") == 0) {
-        UserEventData.DataType = SAHPI_TL_TYPE_TEXT;
-        UserEventData.Language = SAHPI_LANG_ENGLISH;
-        if (strlen(value) < SAHPI_MAX_TEXT_BUFFER_LENGTH) {
-            UserEventData.DataLength = strlen(value);
-            strcpy((char *)UserEventData.Data, value);
-        }
-        else {
-            UserEventData.DataLength = SAHPI_MAX_TEXT_BUFFER_LENGTH;
-            memcpy(UserEventData.Data, value, SAHPI_MAX_TEXT_BUFFER_LENGTH);
-        }
-        return false;
-    }
+    // UserEventData
     return true;
 };
 
@@ -93,7 +81,6 @@ bool oSaHpiUserEvent::fprint(FILE *stream,
                              const int indent,
                              const SaHpiUserEventT *buffer) {
 	int i, err;
-    char buf[20];
     char indent_buf[indent + 1];
 
     if (stream == NULL || buffer == NULL) {
@@ -112,8 +99,8 @@ bool oSaHpiUserEvent::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    oSaHpiTextBuffer * tb = (oSaHpiTextBuffer *)&buffer->UserEventData;
-    err = tb->oSaHpiTextBuffer::fprint(stream, indent + 3, (SaHpiTextBufferT *)tb);
+    const SaHpiTextBufferT *tb = (const SaHpiTextBufferT *)&buffer->UserEventData;
+    err = oSaHpiTextBuffer::fprint(stream, indent + 3, tb);
     if (err < 0) {
         return true;
     }

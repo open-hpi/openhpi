@@ -36,9 +36,9 @@ class oSaHpiCtrlStateOem : public SaHpiCtrlStateOemT {
         ~oSaHpiCtrlStateOem() {
         }
         // other methods
-        bool assignField(SaHpiCtrlStateOemT * ptr,
-                         const char *field,
-                         const char *value);
+        static bool assignField(SaHpiCtrlStateOemT * ptr,
+                                const char *field,
+                                const char *value);
         inline bool assignField(const char *field,
                                 const char *value) {
             return assignField(this, field, value);
@@ -46,9 +46,9 @@ class oSaHpiCtrlStateOem : public SaHpiCtrlStateOemT {
         inline SaHpiCtrlStateOemT *getStruct(void) {
             return this;
         }
-        bool fprint(FILE *stream,
-                    const int indent,
-                    const SaHpiCtrlStateOemT *buffer);
+        static bool fprint(FILE *stream,
+                           const int indent,
+                           const SaHpiCtrlStateOemT *buffer);
         inline bool fprint(FILE *stream,
                            const int indent) {
             return fprint(stream, indent, this);

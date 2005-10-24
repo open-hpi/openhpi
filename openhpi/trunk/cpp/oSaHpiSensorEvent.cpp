@@ -134,7 +134,7 @@ bool oSaHpiSensorEvent::fprint(FILE *stream,
                                const SaHpiSensorEventT *se) {
 	int i, err = 0;
     char indent_buf[indent + 1];
-    oSaHpiSensorReading *sr;
+    const SaHpiSensorReadingT *sr;
 
     if (stream == NULL || se == NULL) {
         return true;
@@ -192,7 +192,7 @@ bool oSaHpiSensorEvent::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    if (OptionalDataPresent && SAHPI_SOD_TRIGGER_READING) {
+    if (se->OptionalDataPresent && SAHPI_SOD_TRIGGER_READING) {
         err = fprintf(stream, indent_buf);
         if (err < 0) {
             return true;
@@ -201,13 +201,13 @@ bool oSaHpiSensorEvent::fprint(FILE *stream,
         if (err < 0) {
             return true;
         }
-        sr = (oSaHpiSensorReading *)&se->TriggerReading;
-        err = sr->oSaHpiSensorReading::fprint(stream, indent + 3, sr);
+        sr = (const SaHpiSensorReadingT *)&se->TriggerReading;
+        err = oSaHpiSensorReading::fprint(stream, indent + 3, sr);
         if (err < 0) {
             return true;
         }
     }
-    if (OptionalDataPresent && SAHPI_SOD_TRIGGER_THRESHOLD) {
+    if (se->OptionalDataPresent && SAHPI_SOD_TRIGGER_THRESHOLD) {
         err = fprintf(stream, indent_buf);
         if (err < 0) {
             return true;
@@ -216,13 +216,13 @@ bool oSaHpiSensorEvent::fprint(FILE *stream,
         if (err < 0) {
             return true;
         }
-        sr = (oSaHpiSensorReading *)&se->TriggerThreshold;
-        err = sr->oSaHpiSensorReading::fprint(stream, indent + 3, sr);
+        sr = (const SaHpiSensorReadingT *)&se->TriggerThreshold;
+        err = oSaHpiSensorReading::fprint(stream, indent + 3, sr);
         if (err < 0) {
             return true;
         }
     }
-    if (OptionalDataPresent && SAHPI_SOD_PREVIOUS_STATE) {
+    if (se->OptionalDataPresent && SAHPI_SOD_PREVIOUS_STATE) {
         err = fprintf(stream, indent_buf);
         if (err < 0) {
             return true;
@@ -232,7 +232,7 @@ bool oSaHpiSensorEvent::fprint(FILE *stream,
             return true;
         }
     }
-    if (OptionalDataPresent && SAHPI_SOD_CURRENT_STATE) {
+    if (se->OptionalDataPresent && SAHPI_SOD_CURRENT_STATE) {
         err = fprintf(stream, indent_buf);
         if (err < 0) {
             return true;
@@ -242,7 +242,7 @@ bool oSaHpiSensorEvent::fprint(FILE *stream,
             return true;
         }
     }
-    if (OptionalDataPresent && SAHPI_SOD_OEM) {
+    if (se->OptionalDataPresent && SAHPI_SOD_OEM) {
         err = fprintf(stream, indent_buf);
         if (err < 0) {
             return true;
@@ -252,7 +252,7 @@ bool oSaHpiSensorEvent::fprint(FILE *stream,
             return true;
         }
     }
-    if (OptionalDataPresent && SAHPI_SOD_SENSOR_SPECIFIC) {
+    if (se->OptionalDataPresent && SAHPI_SOD_SENSOR_SPECIFIC) {
         err = fprintf(stream, indent_buf);
         if (err < 0) {
             return true;

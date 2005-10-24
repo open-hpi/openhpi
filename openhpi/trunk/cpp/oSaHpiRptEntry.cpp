@@ -113,19 +113,7 @@ bool oSaHpiRptEntry::assignField(SaHpiRptEntryT *ptr,
         ptr->ResourceFailed = oSaHpiTypesEnums::str2torf(value);
         return false;
     }
-    else if (strcmp(field, "ResourceTag") == 0) {
-        ResourceTag.DataType = SAHPI_TL_TYPE_TEXT;
-        ResourceTag.Language = SAHPI_LANG_ENGLISH;
-        if (strlen(value) < SAHPI_MAX_TEXT_BUFFER_LENGTH) {
-            ResourceTag.DataLength = strlen(value);
-            strcpy((char *)ResourceTag.Data, value);
-        }
-        else {
-            ResourceTag.DataLength = SAHPI_MAX_TEXT_BUFFER_LENGTH;
-            memcpy(ResourceTag.Data, value, SAHPI_MAX_TEXT_BUFFER_LENGTH);
-        }
-        return false;
-    }
+    // ResourceTag
     return true;
 };
 
@@ -142,7 +130,6 @@ bool oSaHpiRptEntry::fprint(FILE *stream,
                             const int indent,
                             const SaHpiRptEntryT *buffer) {
 	int i, err;
-    char buf[20];
     char indent_buf[indent + 1];
 
     if (stream == NULL || buffer == NULL) {
@@ -177,8 +164,8 @@ bool oSaHpiRptEntry::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    oSaHpiResourceInfo * ri = (oSaHpiResourceInfo *)&buffer->ResourceInfo;
-    err = ri->oSaHpiResourceInfo::fprint(stream, indent + 3, (SaHpiResourceInfoT *)ri);
+    const SaHpiResourceInfoT *ri = (const SaHpiResourceInfoT *)&buffer->ResourceInfo;
+    err = oSaHpiResourceInfo::fprint(stream, indent + 3, ri);
     if (err < 0) {
         return true;
     }
@@ -190,8 +177,8 @@ bool oSaHpiRptEntry::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    oSaHpiEntityPath * ep = (oSaHpiEntityPath *)&buffer->ResourceEntity;
-    err = ep->oSaHpiEntityPath::fprint(stream, indent + 3, (SaHpiEntityPathT *)ep);
+    const SaHpiEntityPathT *ep = (const SaHpiEntityPathT *)&buffer->ResourceEntity;
+    err = oSaHpiEntityPath::fprint(stream, indent + 3, ep);
     if (err < 0) {
         return true;
     }
@@ -227,8 +214,8 @@ bool oSaHpiRptEntry::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    oSaHpiTextBuffer * tb = (oSaHpiTextBuffer *)&buffer->ResourceTag;
-    err = tb->oSaHpiTextBuffer::fprint(stream, indent + 3, (SaHpiTextBufferT *)tb);
+    const SaHpiTextBufferT *tb = (const SaHpiTextBufferT *)&buffer->ResourceTag;
+    err = oSaHpiTextBuffer::fprint(stream, indent + 3, tb);
     if (err < 0) {
         return true;
     }

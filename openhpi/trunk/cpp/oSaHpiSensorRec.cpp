@@ -139,8 +139,8 @@ bool oSaHpiSensorRec::fprint(FILE *stream,
                                  const SaHpiSensorRecT *sr) {
 	int i, err = 0;
     char indent_buf[indent + 1];
-    oSaHpiSensorDataFormat *df;
-    oSaHpiSensorThdDefn *td;
+    const SaHpiSensorDataFormatT *df;
+    const SaHpiSensorThdDefnT *td;
 
     if (stream == NULL) {
         return true;
@@ -206,8 +206,8 @@ bool oSaHpiSensorRec::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    df = (oSaHpiSensorDataFormat *)&(sr->DataFormat);
-    err = df->oSaHpiSensorDataFormat::fprint(stream, indent + 3, df);
+    df = (const SaHpiSensorDataFormatT *)&(sr->DataFormat);
+    err = oSaHpiSensorDataFormat::fprint(stream, indent + 3, df);
     if (err < 0) {
         return true;
     }
@@ -219,8 +219,8 @@ bool oSaHpiSensorRec::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    td = (oSaHpiSensorThdDefn *)&(sr->ThresholdDefn);
-    err = td->oSaHpiSensorThdDefn::fprint(stream, indent + 3, td);
+    td = (const SaHpiSensorThdDefnT *)&(sr->ThresholdDefn);
+    err = oSaHpiSensorThdDefn::fprint(stream, indent + 3, td);
     if (err < 0) {
         return true;
     }

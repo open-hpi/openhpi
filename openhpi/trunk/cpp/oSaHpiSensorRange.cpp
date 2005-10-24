@@ -92,7 +92,7 @@ bool oSaHpiSensorRange::fprint(FILE *stream,
                                const SaHpiSensorRangeT *rg) {
 	int i, err = 0;
     char indent_buf[indent + 1];
-    oSaHpiSensorReading *sr;
+    const SaHpiSensorReadingT *sr;
 
     if (stream == NULL || rg == NULL) {
         return true;
@@ -118,8 +118,8 @@ bool oSaHpiSensorRange::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    sr = (oSaHpiSensorReading *)&rg->Max;
-    err = sr->oSaHpiSensorReading::fprint(stream, indent + 3, sr);
+    sr = (const SaHpiSensorReadingT *)&rg->Max;
+    err = oSaHpiSensorReading::fprint(stream, indent + 3, sr);
     if (err < 0) {
         return true;
     }
@@ -131,8 +131,8 @@ bool oSaHpiSensorRange::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    sr = (oSaHpiSensorReading *)&rg->Min;
-    err = sr->oSaHpiSensorReading::fprint(stream, indent + 3, sr);
+    sr = (const SaHpiSensorReadingT *)&rg->Min;
+    err = oSaHpiSensorReading::fprint(stream, indent + 3, sr);
     if (err < 0) {
         return true;
     }
@@ -144,8 +144,8 @@ bool oSaHpiSensorRange::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    sr = (oSaHpiSensorReading *)&rg->Nominal;
-    err = sr->oSaHpiSensorReading::fprint(stream, indent + 3, sr);
+    sr = (const SaHpiSensorReadingT *)&rg->Nominal;
+    err = oSaHpiSensorReading::fprint(stream, indent + 3, sr);
     if (err < 0) {
         return true;
     }
@@ -157,8 +157,8 @@ bool oSaHpiSensorRange::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    sr = (oSaHpiSensorReading *)&rg->NormalMax;
-    err = sr->oSaHpiSensorReading::fprint(stream, indent + 3, sr);
+    sr = (const SaHpiSensorReadingT *)&rg->NormalMax;
+    err = oSaHpiSensorReading::fprint(stream, indent + 3, sr);
     if (err < 0) {
         return true;
     }
@@ -170,8 +170,8 @@ bool oSaHpiSensorRange::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    sr = (oSaHpiSensorReading *)&rg->NormalMin;
-    err = sr->oSaHpiSensorReading::fprint(stream, indent + 3, sr);
+    sr = (const SaHpiSensorReadingT *)&rg->NormalMin;
+    err = oSaHpiSensorReading::fprint(stream, indent + 3, sr);
     if (err < 0) {
         return true;
     }

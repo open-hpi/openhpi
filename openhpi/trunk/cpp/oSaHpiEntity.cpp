@@ -103,7 +103,6 @@ bool oSaHpiEntity::fprint(FILE *stream,
                           const int indent,
                           const SaHpiEntityT *ent) {
 	int i, err = 0;
-    char buf[20];
     char indent_buf[indent + 1];
 
     if (stream == NULL || ent == NULL) {
@@ -122,12 +121,11 @@ bool oSaHpiEntity::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    snprintf(buf, sizeof(buf), "%u", ent->EntityLocation, buf);
     err = fprintf(stream, indent_buf);
     if (err < 0) {
         return true;
     }
-    err = fprintf(stream, "EntityLocation = %s\n", buf);
+    err = fprintf(stream, "EntityLocation = %u\n", ent->EntityLocation);
  	if (err < 0) {
    		return true;
    	}

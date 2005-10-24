@@ -87,7 +87,6 @@ bool oSaHpiEventLogEntry::fprint(FILE *stream,
                                  const int indent,
                                  const SaHpiEventLogEntryT *buffer) {
 	int i, err;
-    char buf[20];
     char indent_buf[indent + 1];
 
     if (stream == NULL || buffer == NULL) {
@@ -118,8 +117,8 @@ bool oSaHpiEventLogEntry::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    oSaHpiEvent * e = (oSaHpiEvent *)&buffer->Event;
-    err = e->oSaHpiEvent::fprint(stream, indent + 3, (SaHpiEventT *)e);
+    const SaHpiEventT *e = (const SaHpiEventT *)&buffer->Event;
+    err = oSaHpiEvent::fprint(stream, indent + 3, e);
     if (err < 0) {
         return true;
     }

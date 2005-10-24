@@ -34,9 +34,9 @@ class oSaHpiRptEntry : public SaHpiRptEntryT {
         ~oSaHpiRptEntry() {
         }
         // other methods
-        bool assignField(SaHpiRptEntryT * ptr,
-                         const char *field,
-                         const char *value);
+        static bool assignField(SaHpiRptEntryT * ptr,
+                                const char *field,
+                                const char *value);
         inline bool assignField(const char *field,
                                 const char *value) {
             return assignField(this, field, value);
@@ -44,9 +44,9 @@ class oSaHpiRptEntry : public SaHpiRptEntryT {
         inline SaHpiRptEntryT *getStruct(void) {
             return this;
         }
-        bool fprint(FILE *stream,
-                    const int indent,
-                    const SaHpiRptEntryT *buffer);
+        static bool fprint(FILE *stream,
+                           const int indent,
+                           const SaHpiRptEntryT *buffer);
         inline bool fprint(FILE *stream,
                            const int indent) {
             return fprint(stream, indent, this);
