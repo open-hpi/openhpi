@@ -34,9 +34,9 @@ class oSaHpiCondition : public SaHpiConditionT {
         ~oSaHpiCondition() {
         }
         // other methods
-        bool assignField(SaHpiConditionT * ptr,
-                         const char *field,
-                         const char *value);
+        static bool assignField(SaHpiConditionT * ptr,
+                                const char *field,
+                                const char *value);
         inline bool assignField(const char *field,
                                 const char *value) {
             return assignField(this, field, value);
@@ -44,9 +44,9 @@ class oSaHpiCondition : public SaHpiConditionT {
         inline SaHpiConditionT *getStruct(void) {
             return this;
         }
-        bool fprint(FILE *stream,
-                    const int indent,
-                    const SaHpiConditionT *buffer);
+        static bool fprint(FILE *stream,
+                           const int indent,
+                           const SaHpiConditionT *buffer);
         inline bool fprint(FILE *stream,
                            const int indent) {
             return fprint(stream, indent, this);

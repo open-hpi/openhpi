@@ -119,7 +119,6 @@ bool oSaHpiName::fprint(FILE *stream,
                         const int indent,
                         const SaHpiNameT *buffer) {
 	int i, err;
-    char buf[20];
     char indent_buf[indent + 1];
 
     if (stream == NULL || buffer == NULL) {

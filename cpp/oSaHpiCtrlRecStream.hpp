@@ -37,9 +37,9 @@ class oSaHpiCtrlRecStream : public SaHpiCtrlRecStreamT {
         inline SaHpiCtrlRecStreamT *getStruct(void) {
             return this;
         }
-        bool fprint(FILE *stream,
-                    const int indent,
-                    const SaHpiCtrlRecStreamT *ent);
+        static bool fprint(FILE *stream,
+                           const int indent,
+                           const SaHpiCtrlRecStreamT *ent);
         inline bool fprint(FILE *stream,
                            const int indent) {
             return fprint(stream, indent, this);

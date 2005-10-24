@@ -193,7 +193,7 @@ bool oSaHpiSensorEnableChangeEvent::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    if (OptionalDataPresent && SAHPI_SOD_CURRENT_STATE) {
+    if (se->OptionalDataPresent && SAHPI_SOD_CURRENT_STATE) {
         err = fprintf(stream, indent_buf);
         if (err < 0) {
             return true;

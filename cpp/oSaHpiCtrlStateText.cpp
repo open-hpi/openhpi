@@ -108,9 +108,7 @@ bool oSaHpiCtrlStateText::fprint(FILE *stream,
                                  const int indent,
                                  const SaHpiCtrlStateTextT *buffer) {
 	int i, err;
-    char buf[20];
     char indent_buf[indent + 1];
-    oSaHpiTextBuffer *tb;
 
     if (stream == NULL || buffer == NULL) {
         return true;
@@ -134,8 +132,8 @@ bool oSaHpiCtrlStateText::fprint(FILE *stream,
         return true;
     }
     err = fprintf(stream, "Text");
-    tb = (oSaHpiTextBuffer *)&buffer->Text;
-    err = tb->oSaHpiTextBuffer::fprint(stream, indent + 3, (SaHpiTextBufferT *)tb);
+    const SaHpiTextBufferT *tb = (const SaHpiTextBufferT *)&buffer->Text;
+    err = oSaHpiTextBuffer::fprint(stream, indent + 3, tb);
     if (err < 0) {
         return true;
     }

@@ -103,12 +103,12 @@ bool oSaHpiCondition::assignField(SaHpiConditionT *ptr,
     }
     else if (strcmp(field, "Name") == 0) {
         if (strlen(value) < SA_HPI_MAX_NAME_LENGTH) {
-            Name.Length = strlen(value);
-            strcpy((char *)Name.Value, value);
+            ptr->Name.Length = strlen(value);
+            strcpy((char *)ptr->Name.Value, value);
         }
         else {
-            Name.Length = SA_HPI_MAX_NAME_LENGTH;
-            memcpy(Name.Value, value, SA_HPI_MAX_NAME_LENGTH);
+            ptr->Name.Length = SA_HPI_MAX_NAME_LENGTH;
+            memcpy(ptr->Name.Value, value, SA_HPI_MAX_NAME_LENGTH);
         }
         return false;
     }
@@ -116,19 +116,7 @@ bool oSaHpiCondition::assignField(SaHpiConditionT *ptr,
         ptr->Mid = atoi(value);
         return false;
     }
-    else if (strcmp(field, "Data") == 0) {
-        Data.DataType = SAHPI_TL_TYPE_TEXT;
-        Data.Language = SAHPI_LANG_ENGLISH;
-        if (strlen(value) < SAHPI_MAX_TEXT_BUFFER_LENGTH) {
-            Data.DataLength = strlen(value);
-            strcpy((char *)Data.Data, value);
-        }
-        else {
-            Data.DataLength = SAHPI_MAX_TEXT_BUFFER_LENGTH;
-            memcpy(Data.Data, value, SAHPI_MAX_TEXT_BUFFER_LENGTH);
-        }
-        return false;
-    }
+    // Data
     return true;
 };
 
@@ -145,7 +133,6 @@ bool oSaHpiCondition::fprint(FILE *stream,
                              const int indent,
                              const SaHpiConditionT *buffer) {
 	int i, err;
-    char buf[20];
     char indent_buf[indent + 1];
 
     if (stream == NULL || buffer == NULL) {
@@ -169,8 +156,8 @@ bool oSaHpiCondition::fprint(FILE *stream,
         return true;
     }
     err = fprintf(stream, "Entity\n");
-    oSaHpiEntityPath * ep = (oSaHpiEntityPath *)&buffer->Entity;
-    err = ep->oSaHpiEntityPath::fprint(stream, indent + 3, (SaHpiEntityPathT *)ep);
+    const SaHpiEntityPathT *ep = (const SaHpiEntityPathT *)&buffer->Entity;
+    err = oSaHpiEntityPath::fprint(stream, indent + 3, ep);
     if (err < 0) {
         return true;
     }
@@ -229,8 +216,8 @@ bool oSaHpiCondition::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    oSaHpiTextBuffer * tb = (oSaHpiTextBuffer *)&buffer->Data;
-    err = tb->oSaHpiTextBuffer::fprint(stream, indent + 3, (SaHpiTextBufferT *)tb);
+    const SaHpiTextBufferT * tb = (const SaHpiTextBufferT *)&buffer->Data;
+    err = oSaHpiTextBuffer::fprint(stream, indent + 3, tb);
     if (err < 0) {
         return true;
     }

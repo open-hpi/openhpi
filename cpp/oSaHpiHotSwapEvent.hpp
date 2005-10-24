@@ -34,9 +34,9 @@ class oSaHpiHotSwapEvent : public SaHpiHotSwapEventT {
         ~oSaHpiHotSwapEvent() {
         }
         // other methods
-        bool assignField(SaHpiHotSwapEventT * ptr,
-                         const char *field,
-                         const char *value);
+        static bool assignField(SaHpiHotSwapEventT * ptr,
+                                const char *field,
+                                const char *value);
         inline bool assignField(const char *field,
                                 const char *value) {
             return assignField(this, field, value);
@@ -44,9 +44,9 @@ class oSaHpiHotSwapEvent : public SaHpiHotSwapEventT {
         inline SaHpiHotSwapEventT *getStruct(void) {
             return this;
         }
-        bool fprint(FILE *stream,
-                    const int indent,
-                    const SaHpiHotSwapEventT *ent);
+        static bool fprint(FILE *stream,
+                           const int indent,
+                           const SaHpiHotSwapEventT *ent);
         inline bool fprint(FILE *stream,
                            const int indent) {
             return fprint(stream, indent, this);

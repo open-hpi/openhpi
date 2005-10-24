@@ -34,9 +34,9 @@ class oSaHpiAlarm : public SaHpiAlarmT {
         ~oSaHpiAlarm() {
         }
         // other methods
-        bool assignField(SaHpiAlarmT * ptr,
-                         const char *field,
-                         const char *value);
+        static bool assignField(SaHpiAlarmT * ptr,
+                                const char *field,
+                                const char *value);
         inline bool assignField(const char *field,
                                 const char *value) {
             return assignField(this, field, value);
@@ -44,9 +44,9 @@ class oSaHpiAlarm : public SaHpiAlarmT {
         inline SaHpiAlarmT *getStruct(void) {
             return this;
         }
-        bool fprint(FILE *stream,
-                    const int indent,
-                    const SaHpiAlarmT *buffer);
+        static bool fprint(FILE *stream,
+                           const int indent,
+                           const SaHpiAlarmT *buffer);
         inline bool fprint(FILE *stream,
                            const int indent) {
             return fprint(stream, indent, this);

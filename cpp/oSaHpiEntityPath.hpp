@@ -37,9 +37,9 @@ class oSaHpiEntityPath : public SaHpiEntityPathT {
         inline SaHpiEntityPathT *getStruct(void) {
             return this;
         }
-        bool fprint(FILE *stream,
-                    const int indent,
-                    const SaHpiEntityPathT *entpath);
+        static bool fprint(FILE *stream,
+                           const int indent,
+                           const SaHpiEntityPathT *entpath);
         inline bool fprint(FILE *stream,
                            const int indent) {
             return fprint(stream, indent, this);

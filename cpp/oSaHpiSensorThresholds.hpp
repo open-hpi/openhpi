@@ -39,9 +39,9 @@ class oSaHpiSensorThresholds : public SaHpiSensorThresholdsT {
         inline SaHpiSensorThresholdsT *getStruct(void) {
             return this;
         }
-        bool fprint(FILE *stream,
-                    const int indent,
-                    const SaHpiSensorThresholdsT *ent);
+        static bool fprint(FILE *stream,
+                           const int indent,
+                           const SaHpiSensorThresholdsT *ent);
         inline bool fprint(FILE *stream,
                            const int indent) {
             return fprint(stream, indent, this);

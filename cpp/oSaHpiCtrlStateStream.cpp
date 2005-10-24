@@ -136,14 +136,14 @@ bool oSaHpiCtrlStateStream::assignField(SaHpiCtrlStateStreamT *ptr,
 bool oSaHpiCtrlStateStream::fprint(FILE *stream,
                                    const int indent,
                                    const SaHpiCtrlStateStreamT *buffer) {
-	int i, err;
-    char buf[20];
+	unsigned int i;
+	int err;
     char indent_buf[indent + 1];
 
     if (stream == NULL || buffer == NULL) {
         return true;
     }
-    for (i = 0; i < indent; i++) {
+    for (i = 0; i < (unsigned int)indent; i++) {
         indent_buf[i] = ' ';
     }
     indent_buf[indent] = '\0';

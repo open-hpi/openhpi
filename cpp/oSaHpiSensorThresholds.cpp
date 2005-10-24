@@ -73,9 +73,9 @@ bool oSaHpiSensorThresholds::fprint(FILE *stream,
                                  const SaHpiSensorThresholdsT *st) {
 	int i, err = 0;
     char indent_buf[indent + 1];
-    oSaHpiSensorReading *sr;
+    const SaHpiSensorReadingT *sr;
 
-    if (stream == NULL || sr == NULL) {
+    if (stream == NULL || st == NULL) {
         return true;
     }
     for (i = 0; i < indent; i++) {
@@ -91,8 +91,8 @@ bool oSaHpiSensorThresholds::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    sr = (oSaHpiSensorReading *)&st->LowCritical;
-    err = sr->oSaHpiSensorReading::fprint(stream, indent + 3, sr);
+    sr = (const SaHpiSensorReadingT *)&st->LowCritical;
+    err = oSaHpiSensorReading::fprint(stream, indent + 3, sr);
     if (err < 0) {
         return true;
     }
@@ -104,8 +104,8 @@ bool oSaHpiSensorThresholds::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    sr = (oSaHpiSensorReading *)&st->LowMajor;
-    err = sr->oSaHpiSensorReading::fprint(stream, indent + 3, sr);
+    sr = (const SaHpiSensorReadingT *)&st->LowMajor;
+    err = oSaHpiSensorReading::fprint(stream, indent + 3, sr);
     if (err < 0) {
         return true;
     }
@@ -117,8 +117,8 @@ bool oSaHpiSensorThresholds::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    sr = (oSaHpiSensorReading *)&st->LowMinor;
-    err = sr->oSaHpiSensorReading::fprint(stream, indent + 3, sr);
+    sr = (const SaHpiSensorReadingT *)&st->LowMinor;
+    err = oSaHpiSensorReading::fprint(stream, indent + 3, sr);
     if (err < 0) {
         return true;
     }
@@ -130,8 +130,8 @@ bool oSaHpiSensorThresholds::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    sr = (oSaHpiSensorReading *)&st->UpCritical;
-    err = sr->oSaHpiSensorReading::fprint(stream, indent + 3, sr);
+    sr = (const SaHpiSensorReadingT *)&st->UpCritical;
+    err = oSaHpiSensorReading::fprint(stream, indent + 3, sr);
     if (err < 0) {
         return true;
     }
@@ -143,8 +143,8 @@ bool oSaHpiSensorThresholds::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    sr = (oSaHpiSensorReading *)&st->UpMajor;
-    err = sr->oSaHpiSensorReading::fprint(stream, indent + 3, sr);
+    sr = (const SaHpiSensorReadingT *)&st->UpMajor;
+    err = oSaHpiSensorReading::fprint(stream, indent + 3, sr);
     if (err < 0) {
         return true;
     }
@@ -156,8 +156,8 @@ bool oSaHpiSensorThresholds::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    sr = (oSaHpiSensorReading *)&st->UpMinor;
-    err = sr->oSaHpiSensorReading::fprint(stream, indent + 3, sr);
+    sr = (const SaHpiSensorReadingT *)&st->UpMinor;
+    err = oSaHpiSensorReading::fprint(stream, indent + 3, sr);
     if (err < 0) {
         return true;
     }
@@ -169,8 +169,8 @@ bool oSaHpiSensorThresholds::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    sr = (oSaHpiSensorReading *)&st->PosThdHysteresis;
-    err = sr->oSaHpiSensorReading::fprint(stream, indent + 3, sr);
+    sr = (const SaHpiSensorReadingT *)&st->PosThdHysteresis;
+    err = oSaHpiSensorReading::fprint(stream, indent + 3, sr);
     if (err < 0) {
         return true;
     }
@@ -182,8 +182,8 @@ bool oSaHpiSensorThresholds::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    sr = (oSaHpiSensorReading *)&st->NegThdHysteresis;
-    err = sr->oSaHpiSensorReading::fprint(stream, indent + 3, sr);
+    sr = (const SaHpiSensorReadingT *)&st->NegThdHysteresis;
+    err = oSaHpiSensorReading::fprint(stream, indent + 3, sr);
     if (err < 0) {
         return true;
     }

@@ -37,9 +37,9 @@ class oSaHpiCtrlRecAnalog : public SaHpiCtrlRecAnalogT {
         ~oSaHpiCtrlRecAnalog() {
         }
         // other methods
-        bool assignField(SaHpiCtrlRecAnalogT * ptr,
-                         const char *field,
-                         const char *value);
+        static bool assignField(SaHpiCtrlRecAnalogT * ptr,
+                                const char *field,
+                                const char *value);
         inline bool assignField(const char *field,
                                 const char *value) {
             return assignField(this, field, value);
@@ -47,9 +47,9 @@ class oSaHpiCtrlRecAnalog : public SaHpiCtrlRecAnalogT {
         inline SaHpiCtrlRecAnalogT *getStruct(void) {
             return this;
         }
-        bool fprint(FILE *stream,
-                    const int indent,
-                    const SaHpiCtrlRecAnalogT *ent);
+        static bool fprint(FILE *stream,
+                           const int indent,
+                           const SaHpiCtrlRecAnalogT *ent);
         inline bool fprint(FILE *stream,
                            const int indent) {
             return fprint(stream, indent, this);

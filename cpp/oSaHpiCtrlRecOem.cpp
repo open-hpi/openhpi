@@ -95,10 +95,10 @@ bool oSaHpiCtrlRecOem::assignField(SaHpiCtrlRecOemT *ptr,
     }
     else if (strcmp(field, "ConfigData") == 0) {
         if (strlen(value) < SAHPI_CTRL_OEM_CONFIG_LENGTH) {
-            strcpy((char *)ConfigData, value);
+            strcpy((char *)ptr->ConfigData, value);
         }
         else {
-            memcpy(ConfigData, value, SAHPI_CTRL_OEM_CONFIG_LENGTH);
+            memcpy(ptr->ConfigData, value, SAHPI_CTRL_OEM_CONFIG_LENGTH);
         }
         return false;
     }
@@ -153,8 +153,8 @@ bool oSaHpiCtrlRecOem::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    oSaHpiCtrlStateOem *cs = (oSaHpiCtrlStateOem *)&oem->Default;
-    err = cs->oSaHpiCtrlStateOem::fprint(stream, indent + 3, (SaHpiCtrlStateOemT *)cs);
+    const SaHpiCtrlStateOemT *cs = (const SaHpiCtrlStateOemT *)&oem->Default;
+    err = oSaHpiCtrlStateOem::fprint(stream, indent + 3, cs);
     if (err < 0) {
         return true;
     }

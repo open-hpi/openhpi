@@ -69,19 +69,7 @@ bool oSaHpiOemEvent::assignField(SaHpiOemEventT *ptr,
         ptr->MId = strtoul(value, NULL, 10);
         return false;
     }
-    else if (strcmp(field, "OemEventData") == 0) {
-        OemEventData.DataType = SAHPI_TL_TYPE_TEXT;
-        OemEventData.Language = SAHPI_LANG_ENGLISH;
-        if (strlen(value) < SAHPI_MAX_TEXT_BUFFER_LENGTH) {
-            OemEventData.DataLength = strlen(value);
-            strcpy((char *)OemEventData.Data, value);
-        }
-        else {
-            OemEventData.DataLength = SAHPI_MAX_TEXT_BUFFER_LENGTH;
-            memcpy(OemEventData.Data, value, SAHPI_MAX_TEXT_BUFFER_LENGTH);
-        }
-        return false;
-    }
+    // OemEventData
     return true;
 };
 
@@ -98,7 +86,6 @@ bool oSaHpiOemEvent::fprint(FILE *stream,
                             const int indent,
                             const SaHpiOemEventT *buffer) {
 	int i, err;
-    char buf[20];
     char indent_buf[indent + 1];
 
     if (stream == NULL || buffer == NULL) {
@@ -125,8 +112,8 @@ bool oSaHpiOemEvent::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    oSaHpiTextBuffer * tb = (oSaHpiTextBuffer *)&buffer->OemEventData;
-    err = tb->oSaHpiTextBuffer::fprint(stream, indent + 3, (SaHpiTextBufferT *)tb);
+    const SaHpiTextBufferT *tb = (const SaHpiTextBufferT *)&buffer->OemEventData;
+    err = oSaHpiTextBuffer::fprint(stream, indent + 3, tb);
     if (err < 0) {
         return true;
     }

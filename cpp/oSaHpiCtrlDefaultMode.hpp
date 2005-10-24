@@ -36,9 +36,9 @@ class oSaHpiCtrlDefaultMode : public SaHpiCtrlDefaultModeT {
         ~oSaHpiCtrlDefaultMode() {
         }
         // other methods
-        bool assignField(SaHpiCtrlDefaultModeT * ptr,
-                         const char *field,
-                         const char *value);
+        static bool assignField(SaHpiCtrlDefaultModeT * ptr,
+                                const char *field,
+                                const char *value);
         inline bool assignField(const char *field,
                                 const char *value) {
             return assignField(this, field, value);
@@ -46,9 +46,9 @@ class oSaHpiCtrlDefaultMode : public SaHpiCtrlDefaultModeT {
         inline SaHpiCtrlDefaultModeT *getStruct(void) {
             return this;
         }
-        bool fprint(FILE *stream,
-                    const int indent,
-                    const SaHpiCtrlDefaultModeT *ent);
+        static bool fprint(FILE *stream,
+                           const int indent,
+                           const SaHpiCtrlDefaultModeT *ent);
         inline bool fprint(FILE *stream,
                            const int indent) {
             return fprint(stream, indent, this);

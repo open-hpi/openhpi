@@ -90,19 +90,7 @@ bool oSaHpiRdr::assignField(SaHpiRdrT *ptr,
         return false;
     }
     // RdrTypeUnion
-    else if (strcmp(field, "IdString") == 0) {
-        IdString.DataType = SAHPI_TL_TYPE_TEXT;
-        IdString.Language = SAHPI_LANG_ENGLISH;
-        if (strlen(value) < SAHPI_MAX_TEXT_BUFFER_LENGTH) {
-            IdString.DataLength = strlen(value);
-            strcpy((char *)IdString.Data, value);
-        }
-        else {
-            IdString.DataLength = SAHPI_MAX_TEXT_BUFFER_LENGTH;
-            memcpy(IdString.Data, value, SAHPI_MAX_TEXT_BUFFER_LENGTH);
-        }
-        return false;
-    }
+    // IdString
     return true;
 };
 
@@ -119,7 +107,6 @@ bool oSaHpiRdr::fprint(FILE *stream,
                        const int indent,
                        const SaHpiRdrT *buffer) {
 	int i, err;
-    char buf[20];
     char indent_buf[indent + 1];
 
     if (stream == NULL || buffer == NULL) {
@@ -154,8 +141,8 @@ bool oSaHpiRdr::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    oSaHpiEntityPath * ep = (oSaHpiEntityPath *)&buffer->Entity;
-    err = ep->oSaHpiEntityPath::fprint(stream, indent + 3, (SaHpiEntityPathT *)ep);
+    const SaHpiEntityPathT *ep = (const SaHpiEntityPathT *)&buffer->Entity;
+    err = oSaHpiEntityPath::fprint(stream, indent + 3, ep);
     if (err < 0) {
         return true;
     }
@@ -177,36 +164,36 @@ bool oSaHpiRdr::fprint(FILE *stream,
     }
     switch (buffer->RdrType) {
     case SAHPI_CTRL_RDR:
-        oSaHpiCtrlRec * cr = (oSaHpiCtrlRec *)&buffer->RdrTypeUnion.CtrlRec;
-        err = cr->oSaHpiCtrlRec::fprint(stream, indent + 3, (SaHpiCtrlRecT *)cr);
+        const SaHpiCtrlRecT *cr = (const SaHpiCtrlRecT *)&buffer->RdrTypeUnion.CtrlRec;
+        err = oSaHpiCtrlRec::fprint(stream, indent + 3, cr);
         if (err < 0) {
             return true;
         }
         break;
     case SAHPI_SENSOR_RDR:
-        oSaHpiSensorRec * sr = (oSaHpiSensorRec *)&buffer->RdrTypeUnion.SensorRec;
-        err = sr->oSaHpiSensorRec::fprint(stream, indent + 3, (SaHpiSensorRecT *)sr);
+        const SaHpiSensorRecT *sr = (const SaHpiSensorRecT *)&buffer->RdrTypeUnion.SensorRec;
+        err = oSaHpiSensorRec::fprint(stream, indent + 3, sr);
         if (err < 0) {
             return true;
         }
         break;
     case SAHPI_INVENTORY_RDR:
-        oSaHpiInventoryRec * ir = (oSaHpiInventoryRec *)&buffer->RdrTypeUnion.InventoryRec;
-        err = ir->oSaHpiInventoryRec::fprint(stream, indent + 3, (SaHpiInventoryRecT *)ir);
+        const SaHpiInventoryRecT *ir = (const SaHpiInventoryRecT *)&buffer->RdrTypeUnion.InventoryRec;
+        err = oSaHpiInventoryRec::fprint(stream, indent + 3, ir);
         if (err < 0) {
             return true;
         }
         break;
     case SAHPI_WATCHDOG_RDR:
-        oSaHpiWatchdogRec * wr = (oSaHpiWatchdogRec *)&buffer->RdrTypeUnion.WatchdogRec;
-        err = wr->oSaHpiWatchdogRec::fprint(stream, indent + 3, (SaHpiWatchdogRecT *)wr);
+        const SaHpiWatchdogRecT *wr = (const SaHpiWatchdogRecT *)&buffer->RdrTypeUnion.WatchdogRec;
+        err = oSaHpiWatchdogRec::fprint(stream, indent + 3, wr);
         if (err < 0) {
             return true;
         }
         break;
     case SAHPI_ANNUNCIATOR_RDR:
-        oSaHpiAnnunciatorRec * ar = (oSaHpiAnnunciatorRec *)&buffer->RdrTypeUnion.AnnunciatorRec;
-        err = ar->oSaHpiAnnunciatorRec::fprint(stream, indent + 3, (SaHpiAnnunciatorRecT *)ar);
+        const SaHpiAnnunciatorRecT *ar = (const SaHpiAnnunciatorRecT *)&buffer->RdrTypeUnion.AnnunciatorRec;
+        err = oSaHpiAnnunciatorRec::fprint(stream, indent + 3, ar);
         if (err < 0) {
             return true;
         }
@@ -229,8 +216,8 @@ bool oSaHpiRdr::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    oSaHpiTextBuffer * tb = (oSaHpiTextBuffer *)&buffer->IdString;
-    err = tb->oSaHpiTextBuffer::fprint(stream, indent + 3, (SaHpiTextBufferT *)tb);
+    const SaHpiTextBufferT *tb = (const SaHpiTextBufferT *)&buffer->IdString;
+    err = oSaHpiTextBuffer::fprint(stream, indent + 3, tb);
     if (err < 0) {
         return true;
     }

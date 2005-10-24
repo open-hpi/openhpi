@@ -35,9 +35,9 @@ class oSaHpiSensorDataFormat : public SaHpiSensorDataFormatT {
         ~oSaHpiSensorDataFormat() {
         }
         // other methods
-        bool assignField(SaHpiSensorDataFormatT * ptr,
-                         const char *field,
-                         const char *value);
+        static bool assignField(SaHpiSensorDataFormatT * ptr,
+                                const char *field,
+                                const char *value);
         inline bool assignField(const char *field,
                                 const char *value) {
             return assignField(this, field, value);
@@ -45,9 +45,9 @@ class oSaHpiSensorDataFormat : public SaHpiSensorDataFormatT {
         inline SaHpiSensorDataFormatT *getStruct(void) {
             return this;
         }
-        bool fprint(FILE *stream,
-                    const int indent,
-                    const SaHpiSensorDataFormatT *ent);
+        static bool fprint(FILE *stream,
+                           const int indent,
+                           const SaHpiSensorDataFormatT *ent);
         inline bool fprint(FILE *stream,
                            const int indent) {
             return fprint(stream, indent, this);

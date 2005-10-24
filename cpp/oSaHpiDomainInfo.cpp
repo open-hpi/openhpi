@@ -101,19 +101,7 @@ bool oSaHpiDomainInfo::assignField(SaHpiDomainInfoT *ptr,
         ptr->IsPeer = oSaHpiTypesEnums::str2torf(value);
         return false;
     }
-    else if (strcmp(field, "OemEventData") == 0) {
-        DomainTag.DataType = SAHPI_TL_TYPE_TEXT;
-        DomainTag.Language = SAHPI_LANG_ENGLISH;
-        if (strlen(value) < SAHPI_MAX_TEXT_BUFFER_LENGTH) {
-            DomainTag.DataLength = strlen(value);
-            strcpy((char *)DomainTag.Data, value);
-        }
-        else {
-            DomainTag.DataLength = SAHPI_MAX_TEXT_BUFFER_LENGTH;
-            memcpy(DomainTag.Data, value, SAHPI_MAX_TEXT_BUFFER_LENGTH);
-        }
-        return false;
-    }
+    // DomainTag
     else if (strcmp(field, "DrtUpdateCount") == 0) {
         ptr->DrtUpdateCount = strtoul(value, NULL, 10);
         return false;
@@ -179,7 +167,6 @@ bool oSaHpiDomainInfo::fprint(FILE *stream,
                               const int indent,
                               const SaHpiDomainInfoT *buffer) {
 	int i, err;
-    char buf[20];
     char indent_buf[indent + 1];
 
     if (stream == NULL || buffer == NULL) {
@@ -222,8 +209,8 @@ bool oSaHpiDomainInfo::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    oSaHpiTextBuffer * tb = (oSaHpiTextBuffer *)&buffer->DomainTag;
-    err = tb->oSaHpiTextBuffer::fprint(stream, indent + 3, (SaHpiTextBufferT *)tb);
+    const SaHpiTextBufferT *tb = (const SaHpiTextBufferT *)&buffer->DomainTag;
+    err = oSaHpiTextBuffer::fprint(stream, indent + 3, tb);
     if (err < 0) {
         return true;
     }

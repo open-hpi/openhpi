@@ -125,9 +125,8 @@ bool oSaHpiSensorDataFormat::fprint(FILE *stream,
                                     const SaHpiSensorDataFormatT *df) {
 	int i, err = 0;
     char indent_buf[indent + 1];
-    oSaHpiSensorRange *sr;
 
-    if (stream == NULL || sr == NULL) {
+    if (stream == NULL || df == NULL) {
         return true;
     }
     for (i = 0; i < indent; i++) {
@@ -191,8 +190,8 @@ bool oSaHpiSensorDataFormat::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    sr = (oSaHpiSensorRange *)&df->Range;
-    err = sr->oSaHpiSensorRange::fprint(stream, indent + 3, sr);
+    const SaHpiSensorRangeT *sr = (const SaHpiSensorRangeT *)&df->Range;
+    err = oSaHpiSensorRange::fprint(stream, indent + 3, sr);
     if (err < 0) {
         return true;
     }

@@ -65,9 +65,8 @@ bool oSaHpiEntityPath::fprint(FILE *stream,
                               const int indent,
                               const SaHpiEntityPathT *entpath) {
 	int i, err = 0;
-    char buf[20];
     char indent_buf[indent + 1];
-    oSaHpiEntity *ent;
+    const SaHpiEntityT *ent;
 
     if (stream == NULL || entpath == NULL) {
         return true;
@@ -86,8 +85,8 @@ bool oSaHpiEntityPath::fprint(FILE *stream,
         if (err < 0) {
             return true;
         }
-        ent = (oSaHpiEntity *)&(entpath->Entry[i]);
-        err = ent->oSaHpiEntity::fprint(stream, indent + 3, ent);
+        ent = (const SaHpiEntityT *)&(entpath->Entry[i]);
+        err = oSaHpiEntity::fprint(stream, indent + 3, ent);
         if (err < 0) {
             return true;
         }
