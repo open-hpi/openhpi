@@ -15,6 +15,7 @@
 #
 
 SUBDIRS = t t2
+DIST_SUBDIRS = t t1 t2
 
 MAINTAINERCLEANFILES 	= Makefile.in
 
