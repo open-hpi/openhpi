@@ -26,6 +26,7 @@
  * of unqualified sprintf calls in plugin code. Use snprintf instead
  * to ensure there are no buffer overruns 
  */
+#undef sprintf
 #pragma GCC poison sprintf
 
 #ifdef __cplusplus

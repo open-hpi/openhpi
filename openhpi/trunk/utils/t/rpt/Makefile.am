@@ -23,7 +23,7 @@ INCLUDES		= @OPENHPI_INCLUDES@
 
 EXTRA_DIST              = rpt_resources.h
 
-AM_CFLAGS		= @NOCFLAGS@ -ftest-coverage -fprofile-arcs
+AM_CFLAGS		= @NOCFLAGS@ @COV_CFLAGS@
 
 $(REMOTE_SOURCES):
 	if test ! -f $@ -a ! -L $@; then \

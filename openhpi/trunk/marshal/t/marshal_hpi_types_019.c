@@ -71,7 +71,7 @@ main( int argc, char *argv[] )
     .m_pad3                      = 49
   };
 
-  unsigned char *buffer = (char *)malloc(sizeof(value));
+  unsigned char *buffer = (unsigned char *)malloc(sizeof(value));
   cTest          result;
 
   unsigned int s1 = Marshal( &TestType, &value, buffer );

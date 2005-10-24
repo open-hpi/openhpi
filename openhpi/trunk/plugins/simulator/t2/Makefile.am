@@ -9,7 +9,6 @@
 # full licensing terms.
 
 MOSTLYCLEANFILES 	= uid_map
-EXTRA_DIST              = openhpi.conf
 
 INCLUDES		= @OPENHPI_INCLUDES@
 

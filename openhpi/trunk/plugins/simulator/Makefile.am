@@ -14,7 +14,7 @@
 #        W. David Ashley <dashley@us.ibm.com>
 #
 
-SUBDIRS = t t2
+SUBDIRS = t
 DIST_SUBDIRS = t t1 t2
 
 MAINTAINERCLEANFILES 	= Makefile.in

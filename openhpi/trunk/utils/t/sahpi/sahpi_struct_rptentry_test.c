@@ -119,7 +119,7 @@ int main(int argc, char **argv)
 	/* ------------------------------------------------ */
 	/* Normal write to file test                        */
 	/* ------------------------------------------------ */
-	strncpy(thisrptentry.ResourceInfo.Guid, "GUID-123", sizeof("GUID-123"));
+	strncpy((char *)thisrptentry.ResourceInfo.Guid, "GUID-123", sizeof("GUID-123"));
 
 	err = oh_fprint_rptentry(fp, &thisrptentry, 3);
 	if (err != SA_OK) {

@@ -514,6 +514,8 @@ AC_ARG_ENABLE([testcover],
     [if test "x$enableval" = "xyes"; then
 	    CFLAGS=`echo $CFLAGS | sed -e 's/-O\w\?\>[ ]*//g'`
 	    CFLAGS="$CFLAGS -ftest-coverage -fprofile-arcs"
+	    COV_CFLAGS = "-ftest-coverage -fprofile-arcs"
+	    AC_SUBST(COV_CFLAGS)
     fi]
     )
 
@@ -634,6 +636,7 @@ AC_CONFIG_FILES([openhpi.spec
 	plugins/simulator/t1/Makefile
 	plugins/simulator/t1/rt-shell.sh
 	plugins/simulator/t2/Makefile
+	plugins/rtas/Makefile
 	scripts/Makefile
         snmp/Makefile
         src/Makefile

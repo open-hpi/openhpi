@@ -25,7 +25,7 @@
                 b.DataType = chartype;                                  \
                 b.Language = SAHPI_LANG_ENGLISH;                        \
                 b.DataLength = sizeof(string) - 1;                      \
-                strncpy(b.Data,string,sizeof(string) - 1);              \
+                strncpy((char *)b.Data,string,sizeof(string) - 1);              \
         } while(0)
 
 #define TEXTT SAHPI_TL_TYPE_TEXT
