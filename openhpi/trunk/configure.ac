@@ -183,14 +183,18 @@ AC_ARG_ENABLE([examples],
 	ENABLED_DIRS="$ENABLED_DIRS examples"
     fi])
 
-dnl    [ENABLED_DIRS="$ENABLED_DIRS examples"])
-
 AC_ARG_ENABLE([clients],
     [  --enable-clients        build HPI client programs [default=yes]],
     [if test "x$enableval" = "xyes"; then
 	ENABLED_DIRS="$ENABLED_DIRS clients"
     fi],
     [ENABLED_DIRS="$ENABLED_DIRS clients"])
+
+AC_ARG_ENABLE([cpp_wrappers],
+    [  --enable-cpp_wrappers   build SaHpi C++ wrapper objects [default=no]],
+    [if test "x$enableval" = "xyes"; then
+    	ENABLED_DIRS="$ENABLED_DIRS cpp"
+    fi])
 
 AC_SUBST(ENABLED_DIRS)
 
