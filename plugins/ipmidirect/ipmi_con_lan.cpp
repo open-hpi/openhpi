@@ -78,7 +78,7 @@ cIpmiConLan::AuthGen( unsigned char *out,
 {
   if ( m_auth != m_working_auth )
       return SA_ERR_HPI_INVALID_PARAMS;
-  if ( !m_auth_method );
+  if ( !m_auth_method )
       return SA_ERR_HPI_INVALID_PARAMS;
   
   int rv;
@@ -105,7 +105,7 @@ cIpmiConLan::AuthCheck( uint8_t       *ses_id,
 {
   if ( m_auth != m_working_auth )
       return SA_ERR_HPI_INVALID_PARAMS;
-  if ( !m_auth_method );
+  if ( !m_auth_method )
       return SA_ERR_HPI_INVALID_PARAMS;
 
   int rv;
