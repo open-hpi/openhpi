@@ -148,7 +148,7 @@ bool oSaHpiIdrField::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    err = fprintf(stream, "Field");
+    err = fprintf(stream, "Field\n");
     const SaHpiTextBufferT *tb = (const SaHpiTextBufferT *)&buffer->Field;
     err = oSaHpiTextBuffer::fprint(stream, indent + 3, tb);
     if (err < 0) {
