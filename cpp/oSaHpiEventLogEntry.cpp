@@ -109,7 +109,7 @@ bool oSaHpiEventLogEntry::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    err = fprintf(stream, "Timestamp = %ld\n", buffer->Timestamp);
+    err = fprintf(stream, "Timestamp = %lld\n", buffer->Timestamp);
     if (err < 0) {
         return true;
     }

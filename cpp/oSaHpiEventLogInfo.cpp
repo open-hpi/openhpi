@@ -158,7 +158,7 @@ bool oSaHpiEventLogInfo::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    err = fprintf(stream, "UpdateTimestamp = %ld\n", buffer->UpdateTimestamp);
+    err = fprintf(stream, "UpdateTimestamp = %lld\n", buffer->UpdateTimestamp);
     if (err < 0) {
         return true;
     }
