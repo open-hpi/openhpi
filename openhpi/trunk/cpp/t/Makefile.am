@@ -32,7 +32,15 @@ TESTS = tSaHpiTextBuffer \
 	tSaHpiWatchdogRec \
 	tSaHpiAnnouncement \
 	tSaHpiAnnunciatorRec \
-	tSaHpiRdr
+	tSaHpiRdr \
+	tSaHpiSensorEvent \
+	tSaHpiSensorEnableChangeEvent \
+	tSaHpiHotSwapEvent \
+	tSaHpiWatchdogEvent \
+	tSaHpiHpiSwEvent \
+	tSaHpiOemEvent \
+	tSaHpiUserEvent \
+	tSaHpiEvent
 
 check_PROGRAMS = $(TESTS)
 
@@ -66,4 +74,20 @@ tSaHpiAnnunciatorRec_SOURCES = tSaHpiAnnunciatorRec.cpp
 tSaHpiAnnunciatorRec_LDADD = $(TDEPLIB)
 tSaHpiRdr_SOURCES = tSaHpiRdr.cpp
 tSaHpiRdr_LDADD = $(TDEPLIB)
+tSaHpiSensorEvent_SOURCES = tSaHpiSensorEvent.cpp
+tSaHpiSensorEvent_LDADD = $(TDEPLIB)
+tSaHpiSensorEnableChangeEvent_SOURCES = tSaHpiSensorEnableChangeEvent.cpp
+tSaHpiSensorEnableChangeEvent_LDADD = $(TDEPLIB)
+tSaHpiHotSwapEvent_SOURCES = tSaHpiHotSwapEvent.cpp
+tSaHpiHotSwapEvent_LDADD = $(TDEPLIB)
+tSaHpiWatchdogEvent_SOURCES = tSaHpiWatchdogEvent.cpp
+tSaHpiWatchdogEvent_LDADD = $(TDEPLIB)
+tSaHpiHpiSwEvent_SOURCES = tSaHpiHpiSwEvent.cpp
+tSaHpiHpiSwEvent_LDADD = $(TDEPLIB)
+tSaHpiOemEvent_SOURCES = tSaHpiOemEvent.cpp
+tSaHpiOemEvent_LDADD = $(TDEPLIB)
+tSaHpiUserEvent_SOURCES = tSaHpiUserEvent.cpp
+tSaHpiUserEvent_LDADD = $(TDEPLIB)
+tSaHpiEvent_SOURCES = tSaHpiEvent.cpp
+tSaHpiEvent_LDADD = $(TDEPLIB)
 
