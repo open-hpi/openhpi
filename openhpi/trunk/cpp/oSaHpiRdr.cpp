@@ -117,7 +117,7 @@ bool oSaHpiRdr::fprint(FILE *stream,
     }
     indent_buf[indent] = '\0';
 
-    err = fprintf(stream, indent_buf);
+    err = fprintf(stream, "%s", indent_buf);
     if (err < 0) {
         return true;
     }
@@ -125,7 +125,7 @@ bool oSaHpiRdr::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    err = fprintf(stream, indent_buf);
+    err = fprintf(stream, "%s", indent_buf);
     if (err < 0) {
         return true;
     }
@@ -133,7 +133,7 @@ bool oSaHpiRdr::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    err = fprintf(stream, indent_buf);
+    err = fprintf(stream, "%s", indent_buf);
     if (err < 0) {
         return true;
     }
@@ -146,7 +146,7 @@ bool oSaHpiRdr::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    err = fprintf(stream, indent_buf);
+    err = fprintf(stream, "%s", indent_buf);
     if (err < 0) {
         return true;
     }
@@ -154,7 +154,7 @@ bool oSaHpiRdr::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    err = fprintf(stream, indent_buf);
+    err = fprintf(stream, "%s", indent_buf);
     if (err < 0) {
         return true;
     }
@@ -208,7 +208,7 @@ bool oSaHpiRdr::fprint(FILE *stream,
             return true;
         }
     }
-    err = fprintf(stream, indent_buf);
+    err = fprintf(stream, "%s", indent_buf);
     if (err < 0) {
         return true;
     }
