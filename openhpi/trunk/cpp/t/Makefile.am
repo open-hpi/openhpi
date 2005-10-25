@@ -40,7 +40,14 @@ TESTS = tSaHpiTextBuffer \
 	tSaHpiHpiSwEvent \
 	tSaHpiOemEvent \
 	tSaHpiUserEvent \
-	tSaHpiEvent
+	tSaHpiEvent \
+	tSaHpiResourceInfo \
+	tSaHpiRptEntry \
+	tSaHpiDomainInfo \
+	tSaHpiDrtEntry \
+	tSaHpiAlarm \
+	tSaHpiEventLogInfo \
+	tSaHpiEventLogEntry
 
 check_PROGRAMS = $(TESTS)
 
@@ -90,4 +97,18 @@ tSaHpiUserEvent_SOURCES = tSaHpiUserEvent.cpp
 tSaHpiUserEvent_LDADD = $(TDEPLIB)
 tSaHpiEvent_SOURCES = tSaHpiEvent.cpp
 tSaHpiEvent_LDADD = $(TDEPLIB)
+tSaHpiResourceInfo_SOURCES = tSaHpiResourceInfo.cpp
+tSaHpiResourceInfo_LDADD = $(TDEPLIB)
+tSaHpiRptEntry_SOURCES = tSaHpiRptEntry.cpp
+tSaHpiRptEntry_LDADD = $(TDEPLIB)
+tSaHpiDomainInfo_SOURCES = tSaHpiDomainInfo.cpp
+tSaHpiDomainInfo_LDADD = $(TDEPLIB)
+tSaHpiDrtEntry_SOURCES = tSaHpiDrtEntry.cpp
+tSaHpiDrtEntry_LDADD = $(TDEPLIB)
+tSaHpiAlarm_SOURCES = tSaHpiAlarm.cpp
+tSaHpiAlarm_LDADD = $(TDEPLIB)
+tSaHpiEventLogInfo_SOURCES = tSaHpiEventLogInfo.cpp
+tSaHpiEventLogInfo_LDADD = $(TDEPLIB)
+tSaHpiEventLogEntry_SOURCES = tSaHpiEventLogEntry.cpp
+tSaHpiEventLogEntry_LDADD = $(TDEPLIB)
 
