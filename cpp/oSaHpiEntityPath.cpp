@@ -77,7 +77,7 @@ bool oSaHpiEntityPath::fprint(FILE *stream,
     indent_buf[indent] = '\0';
 
     for (i = 0; i < SAHPI_MAX_ENTITY_PATH; i++) {
-        err = fprintf(stream, indent_buf);
+        err = fprintf(stream, "%s", indent_buf);
         if (err < 0) {
             return true;
         }

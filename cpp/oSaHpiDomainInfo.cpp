@@ -177,7 +177,7 @@ bool oSaHpiDomainInfo::fprint(FILE *stream,
     }
     indent_buf[indent] = '\0';
 
-    err = fprintf(stream, indent_buf);
+    err = fprintf(stream, "%s", indent_buf);
     if (err < 0) {
         return true;
     }
@@ -185,7 +185,7 @@ bool oSaHpiDomainInfo::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    err = fprintf(stream, indent_buf);
+    err = fprintf(stream, "%s", indent_buf);
     if (err < 0) {
         return true;
     }
@@ -193,7 +193,7 @@ bool oSaHpiDomainInfo::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    err = fprintf(stream, indent_buf);
+    err = fprintf(stream, "%s", indent_buf);
     if (err < 0) {
         return true;
     }
@@ -201,7 +201,7 @@ bool oSaHpiDomainInfo::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    err = fprintf(stream, indent_buf);
+    err = fprintf(stream, "%s", indent_buf);
     if (err < 0) {
         return true;
     }
@@ -214,7 +214,7 @@ bool oSaHpiDomainInfo::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    err = fprintf(stream, indent_buf);
+    err = fprintf(stream, "%s", indent_buf);
     if (err < 0) {
         return true;
     }
@@ -222,7 +222,7 @@ bool oSaHpiDomainInfo::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    err = fprintf(stream, indent_buf);
+    err = fprintf(stream, "%s", indent_buf);
     if (err < 0) {
         return true;
     }
@@ -230,7 +230,7 @@ bool oSaHpiDomainInfo::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    err = fprintf(stream, indent_buf);
+    err = fprintf(stream, "%s", indent_buf);
     if (err < 0) {
         return true;
     }
@@ -238,7 +238,7 @@ bool oSaHpiDomainInfo::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    err = fprintf(stream, indent_buf);
+    err = fprintf(stream, "%s", indent_buf);
     if (err < 0) {
         return true;
     }
@@ -246,7 +246,7 @@ bool oSaHpiDomainInfo::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    err = fprintf(stream, indent_buf);
+    err = fprintf(stream, "%s", indent_buf);
     if (err < 0) {
         return true;
     }
@@ -254,7 +254,7 @@ bool oSaHpiDomainInfo::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    err = fprintf(stream, indent_buf);
+    err = fprintf(stream, "%s", indent_buf);
     if (err < 0) {
         return true;
     }
@@ -262,7 +262,7 @@ bool oSaHpiDomainInfo::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    err = fprintf(stream, indent_buf);
+    err = fprintf(stream, "%s", indent_buf);
     if (err < 0) {
         return true;
     }
@@ -270,7 +270,7 @@ bool oSaHpiDomainInfo::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    err = fprintf(stream, indent_buf);
+    err = fprintf(stream, "%s", indent_buf);
     if (err < 0) {
         return true;
     }
@@ -278,7 +278,7 @@ bool oSaHpiDomainInfo::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    err = fprintf(stream, indent_buf);
+    err = fprintf(stream, "%s", indent_buf);
     if (err < 0) {
         return true;
     }
@@ -286,7 +286,7 @@ bool oSaHpiDomainInfo::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    err = fprintf(stream, indent_buf);
+    err = fprintf(stream, "%s", indent_buf);
     if (err < 0) {
         return true;
     }
@@ -294,7 +294,7 @@ bool oSaHpiDomainInfo::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    err = fprintf(stream, indent_buf);
+    err = fprintf(stream, "%s", indent_buf);
     if (err < 0) {
         return true;
     }
@@ -303,7 +303,7 @@ bool oSaHpiDomainInfo::fprint(FILE *stream,
         return true;
     }
     for (i = 0; i < 16; i++) {
-        err = fprintf(stream, indent_buf);
+        err = fprintf(stream, "%s", indent_buf);
         if (err < 0) {
             return true;
         }
