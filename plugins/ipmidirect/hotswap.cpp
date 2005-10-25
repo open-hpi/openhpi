@@ -315,7 +315,7 @@ cIpmi::IfSetPowerState( cIpmiResource *res, SaHpiPowerStateT state )
        power_level = rsp.m_data[2] & 0x1f;
      }
   else if ( state != SAHPI_POWER_OFF )
-       return SA_ERR_HPI_INVALID_PARAMS;;
+       return SA_ERR_HPI_INVALID_PARAMS;
 
   // set power level
   msg.m_cmd = eIpmiCmdSetPowerLevel;
