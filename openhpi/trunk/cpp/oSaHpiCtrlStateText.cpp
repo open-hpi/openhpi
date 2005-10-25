@@ -131,7 +131,7 @@ bool oSaHpiCtrlStateText::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    err = fprintf(stream, "Text");
+    err = fprintf(stream, "Text\n");
     const SaHpiTextBufferT *tb = (const SaHpiTextBufferT *)&buffer->Text;
     err = oSaHpiTextBuffer::fprint(stream, indent + 3, tb);
     if (err < 0) {

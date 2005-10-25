@@ -178,8 +178,8 @@ bool oSaHpiCtrlRecText::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    const SaHpiTextBufferT *tb = (const SaHpiTextBufferT *)&txt->Default;
-    err = oSaHpiTextBuffer::fprint(stream, indent + 3, tb);
+    const SaHpiCtrlStateTextT *cs = (const SaHpiCtrlStateTextT *)&txt->Default;
+    err = oSaHpiCtrlStateText::fprint(stream, indent + 3, cs);
     if (err < 0) {
         return true;
     }

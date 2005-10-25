@@ -126,7 +126,7 @@ bool oSaHpiCtrlState::fprint(FILE *stream,
         }
         break;
     case SAHPI_CTRL_TYPE_STREAM:
-        err = fprintf(stream, "StateUnion\n");
+        err = fprintf(stream, "StateUnion.Stream\n");
         const SaHpiCtrlStateStreamT *css = (const SaHpiCtrlStateStreamT *)&cs->StateUnion.Stream;
         err = oSaHpiCtrlStateStream::fprint(stream, indent + 3, css);
         if (err < 0) {
@@ -134,7 +134,7 @@ bool oSaHpiCtrlState::fprint(FILE *stream,
         }
         break;
     case SAHPI_CTRL_TYPE_TEXT:
-        err = fprintf(stream, "StateUnion\n");
+        err = fprintf(stream, "StateUnion.Text\n");
         const SaHpiCtrlStateTextT *cst = (const SaHpiCtrlStateTextT *)&cs->StateUnion.Text;
         err = oSaHpiCtrlStateText::fprint(stream, indent + 3, cst);
         if (err < 0) {
@@ -142,7 +142,7 @@ bool oSaHpiCtrlState::fprint(FILE *stream,
         }
         break;
     case SAHPI_CTRL_TYPE_OEM:
-        err = fprintf(stream, "StateUnion\n");
+        err = fprintf(stream, "StateUnion.Oem\n");
         const SaHpiCtrlStateOemT *cso = (const SaHpiCtrlStateOemT *)&cs->StateUnion.Oem;
         err = oSaHpiCtrlStateOem::fprint(stream, indent + 3, cso);
         if (err < 0) {
