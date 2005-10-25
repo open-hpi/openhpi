@@ -300,6 +300,10 @@ bool oSaHpiTextBuffer::fprint(FILE *stream,
         err = fprintf(stream, "Data = %s\n", buffer->Data);
     }
 	else {
+        err = fprintf(stream, "Data = ");
+        if (err < 0) {
+            return true;
+        }
         for (i = 0; i < buffer->DataLength; i++) {
             err = fprintf(stream, "%c", buffer->Data[i]);
             if (err < 0) {

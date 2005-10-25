@@ -29,7 +29,10 @@ TESTS = tSaHpiTextBuffer \
 	tSaHpiIdrInfo \
 	tSaHpiInventoryRec \
 	tSaHpiWatchdog \
-	tSaHpiWatchdogRec
+	tSaHpiWatchdogRec \
+	tSaHpiAnnouncement \
+	tSaHpiAnnunciatorRec \
+	tSaHpiRdr
 
 check_PROGRAMS = $(TESTS)
 
@@ -57,4 +60,10 @@ tSaHpiWatchdog_SOURCES = tSaHpiWatchdog.cpp
 tSaHpiWatchdog_LDADD = $(TDEPLIB)
 tSaHpiWatchdogRec_SOURCES = tSaHpiWatchdogRec.cpp
 tSaHpiWatchdogRec_LDADD = $(TDEPLIB)
+tSaHpiAnnouncement_SOURCES = tSaHpiAnnouncement.cpp
+tSaHpiAnnouncement_LDADD = $(TDEPLIB)
+tSaHpiAnnunciatorRec_SOURCES = tSaHpiAnnunciatorRec.cpp
+tSaHpiAnnunciatorRec_LDADD = $(TDEPLIB)
+tSaHpiRdr_SOURCES = tSaHpiRdr.cpp
+tSaHpiRdr_LDADD = $(TDEPLIB)
 
