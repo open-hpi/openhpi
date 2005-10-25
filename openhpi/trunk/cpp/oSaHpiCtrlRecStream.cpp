@@ -72,7 +72,12 @@ bool oSaHpiCtrlRecStream::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    err = fprintf(stream, "Default = %d\n", strm->Default);
+    err = fprintf(stream, "Default\n");
+    if (err < 0) {
+        return true;
+    }
+    const SaHpiCtrlStateStreamT *css = (const SaHpiCtrlStateStreamT *)&strm->Default;
+    err = oSaHpiCtrlStateStream::fprint(stream, indent + 3, css);
     if (err < 0) {
         return true;
     }

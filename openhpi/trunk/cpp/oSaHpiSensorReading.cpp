@@ -124,13 +124,13 @@ bool oSaHpiSensorReading::fprint(FILE *stream,
     }
     switch (sr->Type) {
     case SAHPI_SENSOR_READING_TYPE_INT64:
-        err = fprintf(stream, "Value.SensorInt64 = %d\n", sr->Value.SensorInt64);
+        err = fprintf(stream, "Value.SensorInt64 = %lld\n", sr->Value.SensorInt64);
         if (err < 0) {
             return true;
         }
         break;
     case SAHPI_SENSOR_READING_TYPE_UINT64:
-        err = fprintf(stream, "Value.SensorUint64 = %u\n", sr->Value.SensorUint64);
+        err = fprintf(stream, "Value.SensorUint64 = %llu\n", sr->Value.SensorUint64);
         if (err < 0) {
             return true;
         }

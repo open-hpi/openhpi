@@ -108,7 +108,7 @@ bool oSaHpiCtrlState::fprint(FILE *stream,
     }
     switch (cs->Type) {
     case SAHPI_CTRL_TYPE_DIGITAL:
-        err = fprintf(stream, "StateUnion.Digital = %d\n", oSaHpiTypesEnums::ctrlstatedigital2str(cs->StateUnion.Digital));
+        err = fprintf(stream, "StateUnion.Digital = %s\n", oSaHpiTypesEnums::ctrlstatedigital2str(cs->StateUnion.Digital));
         if (err < 0) {
             return true;
         }

@@ -199,7 +199,7 @@ bool oSaHpiRdr::fprint(FILE *stream,
         }
         break;
     default:
-        err = fprintf(stream, indent_buf);
+        err = fprintf(stream, "%s", indent_buf);
         if (err < 0) {
             return true;
         }
