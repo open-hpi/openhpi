@@ -226,7 +226,7 @@ bool oSaHpiDomainInfo::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    err = fprintf(stream, "DrtUpdateTimestamp = %ld\n", buffer->DrtUpdateTimestamp);
+    err = fprintf(stream, "DrtUpdateTimestamp = %lld\n", buffer->DrtUpdateTimestamp);
     if (err < 0) {
         return true;
     }
@@ -242,7 +242,7 @@ bool oSaHpiDomainInfo::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    err = fprintf(stream, "RptUpdateTimestamp = %ld\n", buffer->RptUpdateTimestamp);
+    err = fprintf(stream, "RptUpdateTimestamp = %lld\n", buffer->RptUpdateTimestamp);
     if (err < 0) {
         return true;
     }
@@ -258,7 +258,7 @@ bool oSaHpiDomainInfo::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    err = fprintf(stream, "DatUpdateTimestamp = %ld\n", buffer->DatUpdateTimestamp);
+    err = fprintf(stream, "DatUpdateTimestamp = %lld\n", buffer->DatUpdateTimestamp);
     if (err < 0) {
         return true;
     }
