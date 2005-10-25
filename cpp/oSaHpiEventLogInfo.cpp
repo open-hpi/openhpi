@@ -166,7 +166,7 @@ bool oSaHpiEventLogInfo::fprint(FILE *stream,
     if (err < 0) {
         return true;
     }
-    err = fprintf(stream, "CurrentTime = %ld\n", buffer->CurrentTime);
+    err = fprintf(stream, "CurrentTime = %lld\n", buffer->CurrentTime);
     if (err < 0) {
         return true;
     }
