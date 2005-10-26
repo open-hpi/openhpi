@@ -107,25 +107,28 @@ bool oSaHpiCtrlState::fprint(FILE *stream,
         return true;
     }
     switch (cs->Type) {
-    case SAHPI_CTRL_TYPE_DIGITAL:
+    case SAHPI_CTRL_TYPE_DIGITAL: {
         err = fprintf(stream, "StateUnion.Digital = %s\n", oSaHpiTypesEnums::ctrlstatedigital2str(cs->StateUnion.Digital));
         if (err < 0) {
             return true;
         }
         break;
-    case SAHPI_CTRL_TYPE_DISCRETE:
+    }
+    case SAHPI_CTRL_TYPE_DISCRETE: {
         err = fprintf(stream, "StateUnion.Discrete = %u\n", cs->StateUnion.Discrete);
         if (err < 0) {
             return true;
         }
         break;
-    case SAHPI_CTRL_TYPE_ANALOG:
+    }
+    case SAHPI_CTRL_TYPE_ANALOG: {
         err = fprintf(stream, "StateUnion.Analog = %d\n", cs->StateUnion.Analog);
         if (err < 0) {
             return true;
         }
         break;
-    case SAHPI_CTRL_TYPE_STREAM:
+    }
+    case SAHPI_CTRL_TYPE_STREAM: {
         err = fprintf(stream, "StateUnion.Stream\n");
         const SaHpiCtrlStateStreamT *css = (const SaHpiCtrlStateStreamT *)&cs->StateUnion.Stream;
         err = oSaHpiCtrlStateStream::fprint(stream, indent + 3, css);
@@ -133,7 +136,8 @@ bool oSaHpiCtrlState::fprint(FILE *stream,
             return true;
         }
         break;
-    case SAHPI_CTRL_TYPE_TEXT:
+    }
+    case SAHPI_CTRL_TYPE_TEXT: {
         err = fprintf(stream, "StateUnion.Text\n");
         const SaHpiCtrlStateTextT *cst = (const SaHpiCtrlStateTextT *)&cs->StateUnion.Text;
         err = oSaHpiCtrlStateText::fprint(stream, indent + 3, cst);
@@ -141,7 +145,8 @@ bool oSaHpiCtrlState::fprint(FILE *stream,
             return true;
         }
         break;
-    case SAHPI_CTRL_TYPE_OEM:
+    }
+    case SAHPI_CTRL_TYPE_OEM: {
         err = fprintf(stream, "StateUnion.Oem\n");
         const SaHpiCtrlStateOemT *cso = (const SaHpiCtrlStateOemT *)&cs->StateUnion.Oem;
         err = oSaHpiCtrlStateOem::fprint(stream, indent + 3, cso);
@@ -149,6 +154,7 @@ bool oSaHpiCtrlState::fprint(FILE *stream,
             return true;
         }
         break;
+    }
     default:
         err = fprintf(stream, "StateUnion = Unknown\n");
         if (err < 0) {

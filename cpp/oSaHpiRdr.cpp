@@ -163,41 +163,46 @@ bool oSaHpiRdr::fprint(FILE *stream,
         return true;
     }
     switch (buffer->RdrType) {
-    case SAHPI_CTRL_RDR:
+    case SAHPI_CTRL_RDR: {
         const SaHpiCtrlRecT *cr = (const SaHpiCtrlRecT *)&buffer->RdrTypeUnion.CtrlRec;
         err = oSaHpiCtrlRec::fprint(stream, indent + 3, cr);
         if (err < 0) {
             return true;
         }
         break;
-    case SAHPI_SENSOR_RDR:
+    }
+    case SAHPI_SENSOR_RDR: {
         const SaHpiSensorRecT *sr = (const SaHpiSensorRecT *)&buffer->RdrTypeUnion.SensorRec;
         err = oSaHpiSensorRec::fprint(stream, indent + 3, sr);
         if (err < 0) {
             return true;
         }
         break;
-    case SAHPI_INVENTORY_RDR:
+    }
+    case SAHPI_INVENTORY_RDR: {
         const SaHpiInventoryRecT *ir = (const SaHpiInventoryRecT *)&buffer->RdrTypeUnion.InventoryRec;
         err = oSaHpiInventoryRec::fprint(stream, indent + 3, ir);
         if (err < 0) {
             return true;
         }
         break;
-    case SAHPI_WATCHDOG_RDR:
+    }
+    case SAHPI_WATCHDOG_RDR: {
         const SaHpiWatchdogRecT *wr = (const SaHpiWatchdogRecT *)&buffer->RdrTypeUnion.WatchdogRec;
         err = oSaHpiWatchdogRec::fprint(stream, indent + 3, wr);
         if (err < 0) {
             return true;
         }
         break;
-    case SAHPI_ANNUNCIATOR_RDR:
+    }
+    case SAHPI_ANNUNCIATOR_RDR: {
         const SaHpiAnnunciatorRecT *ar = (const SaHpiAnnunciatorRecT *)&buffer->RdrTypeUnion.AnnunciatorRec;
         err = oSaHpiAnnunciatorRec::fprint(stream, indent + 3, ar);
         if (err < 0) {
             return true;
         }
         break;
+    }
     default:
         err = fprintf(stream, "%s", indent_buf);
         if (err < 0) {
