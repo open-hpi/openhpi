@@ -157,69 +157,78 @@ bool oSaHpiEvent::fprint(FILE *stream,
         return true;
     }
     switch (buffer->EventType) {
-    case SAHPI_ET_RESOURCE:
+    case SAHPI_ET_RESOURCE: {
         const SaHpiResourceEventT *re = (const SaHpiResourceEventT *)&buffer->EventDataUnion.ResourceEvent;
         err = oSaHpiResourceEvent::fprint(stream, indent + 3, re);
         if (err < 0) {
             return true;
         }
         break;
-    case SAHPI_ET_DOMAIN:
+    }
+    case SAHPI_ET_DOMAIN: {
         const SaHpiDomainEventT *de = (const SaHpiDomainEventT *)&buffer->EventDataUnion.DomainEvent;
         err = oSaHpiDomainEvent::fprint(stream, indent + 3, de);
         if (err < 0) {
             return true;
         }
         break;
-    case SAHPI_ET_SENSOR:
+    }
+    case SAHPI_ET_SENSOR: {
         const SaHpiSensorEventT *se = (const SaHpiSensorEventT *)&buffer->EventDataUnion.SensorEvent;
         err = oSaHpiSensorEvent::fprint(stream, indent + 3, se);
         if (err < 0) {
             return true;
         }
         break;
-    case SAHPI_ET_SENSOR_ENABLE_CHANGE:
+    }
+    case SAHPI_ET_SENSOR_ENABLE_CHANGE: {
         const SaHpiSensorEnableChangeEventT *sec = (const SaHpiSensorEnableChangeEventT *)&buffer->EventDataUnion.SensorEnableChangeEvent;
         err = oSaHpiSensorEnableChangeEvent::fprint(stream, indent + 3, sec);
         if (err < 0) {
             return true;
         }
         break;
-    case SAHPI_ET_HOTSWAP:
+    }
+    case SAHPI_ET_HOTSWAP: {
         const SaHpiHotSwapEventT *hs = (const SaHpiHotSwapEventT *)&buffer->EventDataUnion.HotSwapEvent;
         err = oSaHpiHotSwapEvent::fprint(stream, indent + 3, hs);
         if (err < 0) {
             return true;
         }
         break;
-    case SAHPI_ET_WATCHDOG:
+    }
+    case SAHPI_ET_WATCHDOG: {
         const SaHpiWatchdogEventT *we = (const SaHpiWatchdogEventT *)&buffer->EventDataUnion.WatchdogEvent;
         err = oSaHpiWatchdogEvent::fprint(stream, indent + 3, we);
         if (err < 0) {
             return true;
         }
         break;
-    case SAHPI_ET_HPI_SW:
+    }
+    case SAHPI_ET_HPI_SW: {
         const SaHpiHpiSwEventT *hpise = (const SaHpiHpiSwEventT *)&buffer->EventDataUnion.HpiSwEvent;
         err = oSaHpiHpiSwEvent::fprint(stream, indent + 3, hpise);
         if (err < 0) {
             return true;
         }
         break;
-    case SAHPI_ET_OEM:
+    }
+    case SAHPI_ET_OEM: {
         const SaHpiOemEventT *oe = (const SaHpiOemEventT *)&buffer->EventDataUnion.OemEvent;
         err = oSaHpiOemEvent::fprint(stream, indent + 3, oe);
         if (err < 0) {
             return true;
         }
         break;
-    case SAHPI_ET_USER:
+    }
+    case SAHPI_ET_USER: {
         const SaHpiUserEventT *ue = (const SaHpiUserEventT *)&buffer->EventDataUnion.UserEvent;
         err = oSaHpiUserEvent::fprint(stream, indent + 3, ue);
         if (err < 0) {
             return true;
         }
         break;
+    }
     default:
         err = fprintf(stream, "%s", indent_buf);
         if (err < 0) {

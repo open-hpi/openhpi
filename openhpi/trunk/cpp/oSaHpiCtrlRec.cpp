@@ -154,7 +154,7 @@ bool oSaHpiCtrlRec::fprint(FILE *stream,
         return true;
     }
     switch (cr->Type) {
-    case SAHPI_CTRL_TYPE_DIGITAL:
+    case SAHPI_CTRL_TYPE_DIGITAL: {
         err = fprintf(stream, "TypeUnion.Digital\n");
         if (err < 0) {
             return true;
@@ -165,7 +165,8 @@ bool oSaHpiCtrlRec::fprint(FILE *stream,
             return true;
         }
         break;
-    case SAHPI_CTRL_TYPE_DISCRETE:
+    }
+    case SAHPI_CTRL_TYPE_DISCRETE: {
         err = fprintf(stream, "TypeUnion.Discrete\n");
         if (err < 0) {
             return true;
@@ -176,7 +177,8 @@ bool oSaHpiCtrlRec::fprint(FILE *stream,
             return true;
         }
         break;
-    case SAHPI_CTRL_TYPE_ANALOG:
+    }
+    case SAHPI_CTRL_TYPE_ANALOG: {
         err = fprintf(stream, "TypeUnion.Analog\n");
         if (err < 0) {
             return true;
@@ -187,7 +189,8 @@ bool oSaHpiCtrlRec::fprint(FILE *stream,
             return true;
         }
         break;
-    case SAHPI_CTRL_TYPE_STREAM:
+    }
+    case SAHPI_CTRL_TYPE_STREAM: {
         err = fprintf(stream, "TypeUnion.Stream\n");
         if (err < 0) {
             return true;
@@ -198,7 +201,8 @@ bool oSaHpiCtrlRec::fprint(FILE *stream,
             return true;
         }
         break;
-    case SAHPI_CTRL_TYPE_TEXT:
+    }
+    case SAHPI_CTRL_TYPE_TEXT: {
         err = fprintf(stream, "TypeUnion.Text\n");
         if (err < 0) {
             return true;
@@ -209,7 +213,8 @@ bool oSaHpiCtrlRec::fprint(FILE *stream,
             return true;
         }
         break;
-    case SAHPI_CTRL_TYPE_OEM:
+    }
+    case SAHPI_CTRL_TYPE_OEM: {
         err = fprintf(stream, "TypeUnion.Oem\n");
         if (err < 0) {
             return true;
@@ -220,6 +225,7 @@ bool oSaHpiCtrlRec::fprint(FILE *stream,
             return true;
         }
         break;
+    }
     default:
         break;
     }
