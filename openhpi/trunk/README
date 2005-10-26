@@ -4,7 +4,7 @@ Hardware Platform Interface B.01.01 specification.
 The following components are supported:
 * OpenHPI base library
 * OpenHPI utility library
-* Dummy Plugin
+* Simulator Plugin
 * SNMP BladeCenter/RSA Plugin
 * IPMI Plugin
 * HPI Clients
@@ -20,15 +20,16 @@ PREREQUISITES
 The following software is required to build openhpi
 
 autoconf >= 2.57
-automake >= 1.5
+automake >= 1.8
 gcc      >= 3.2.0
 uuid.h      (may be found in e2fsprogs-devel or uuid-dev)
-GLIB-2.0	
+glib2	 >= 2.2
+pkgconfig (may be called pkg-config depending on distro)
 
 The follow libraries are needed to build certain plugins
 
 ipmi plugin
-  OpenIPMI >= 0.26 (http://openipmi.sf.net)  suggest tip of CVS.
+  OpenIPMI >= 1.4.16 (http://openipmi.sf.net)  suggest tip of CVS.
 
 sysfs plugin
   libsysfs = 0.3
@@ -93,7 +94,7 @@ make maintainer-clean
 ---------------------------------------------------------
 Active Plug-ins
 ---------------------------------------------------------
-dummy - dummy plugin for use in testing
+simulator - plugin for use in testing
 ipmi - OpenIPMI based plugin
 ipmidirect - IPMI plugin that talks to device driver directly
 snmp_bc - IBM BladeCenter/RSA plugin (uses snmp)
