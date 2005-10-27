@@ -415,7 +415,7 @@ static int sysfs2hpi_assign_rdrs(struct sysfs_device* d,
 		struct resource* r, struct oh_handler_state* inst)
 {
 	int num_sensors = 0;
-	char str[1];
+	char str[2];
 	int i;
 
 	/* Max # fan, voltage, temp, current entries is set by
@@ -430,7 +430,7 @@ static int sysfs2hpi_assign_rdrs(struct sysfs_device* d,
 	i=0;
 	while(i != -1) {
 		i++;
-		snprintf(str, SYSFS_NAME_LEN, "%d", i);
+		snprintf(str, sizeof(str), "%d", i);
 		if (sysfs2hpi_setup_rdr(SAHPI_CURRENT, str, 
 				++num_sensors, d, r, inst) != 0) {
 			i=-1; /* keep going until we get an error returned */
@@ -440,7 +440,7 @@ static int sysfs2hpi_assign_rdrs(struct sysfs_device* d,
 	
 	/* Set up fan RDR */
 	for (i=1;i<=fanmax;i++) {
-		snprintf(str, SYSFS_NAME_LEN, "%d", i);
+		snprintf(str, sizeof(str), "%d", i);
 		if (sysfs2hpi_setup_rdr(SAHPI_FAN, str, 
 				++num_sensors, d, r, inst) != 0) {
 			num_sensors--;
@@ -449,7 +449,7 @@ static int sysfs2hpi_assign_rdrs(struct sysfs_device* d,
 	
 	/* Set up voltage RDR */
 	for (i=0;i<=voltagemax;i++) {
-		snprintf(str, SYSFS_NAME_LEN, "%d", i);
+		snprintf(str, sizeof(str), "%d", i);
 		if (sysfs2hpi_setup_rdr(SAHPI_VOLTAGE, str, 
 				++num_sensors, d, r, inst) != 0) {
 			num_sensors--;
@@ -458,7 +458,7 @@ static int sysfs2hpi_assign_rdrs(struct sysfs_device* d,
 	
 	/* Set up temp RDR */
 	for (i=1;i<=tempmax;i++) {
-		snprintf(str, SYSFS_NAME_LEN, "%d", i);
+		snprintf(str, sizeof(str), "%d", i);
 		if (sysfs2hpi_setup_rdr(SAHPI_TEMPERATURE, str, 
 				++num_sensors, d, r, inst) != 0) {
 			num_sensors--;
