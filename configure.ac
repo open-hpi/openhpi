@@ -265,12 +265,12 @@ dnl
 dnl We really need to make ipmi enablement be contigent on OpenIPMI
 dnl
 
-if pkg-config --atleast-version 1.4.16 OpenIPMI; then
+if PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/local/lib/pkgconfig pkg-config --atleast-version 1.4.16 OpenIPMI; then
     have_openipmi=yes
     AC_CHECK_LIB([OpenIPMI], [ipmi_smi_setup_con], [have_openipmi=yes])
-    OPENIPMI_CFLAGS=`pkg-config --cflags OpenIPMI`
+    OPENIPMI_CFLAGS=`PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/local/lib/pkgconfig pkg-config --cflags OpenIPMI`
     AC_SUBST(OPENIPMI_CFLAGS)
-    OPENIPMI_LIBS=`pkg-config --libs OpenIPMI`
+    OPENIPMI_LIBS=`PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/local/lib/pkgconfig pkg-config --libs OpenIPMI`
     AC_SUBST(OPENIPMI_LIBS)
 fi
 
