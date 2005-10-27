@@ -30,7 +30,7 @@ void state2str(SaHpiPowerStateT state);
 
 static void usage(char *pname)
 {
-	printf("Usage: %s -pdc\n", pname);
+	printf("Usage: %s -udc\n", pname);
         printf(" where: -u  powers Up the system\n");
         printf("        -d  powers Down the system\n");
 	printf("        -c  powers Cycles the system\n");
