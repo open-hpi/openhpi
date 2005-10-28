@@ -1,0 +1,2010 @@
+<?xml version="1.0"?>
+<!--
+
+   This is an XML schema definition for the data types contained in the
+   SAI-HPI-B.01.01 specification published by the Sevivce Availability
+   Forum (SAF).
+
+   (C) Copyright IBM Corp. 2005. All rights reserved.
+
+   Redistribution and use in source and binary forms, with or
+   without modification, are permitted provided that the following
+   conditions are met:
+
+   Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+   Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in
+   the documentation and/or other materials provided with the distribution.
+
+   Neither the name of IBM Corporation nor the names
+   of its contributors may be used to endorse or promote products
+   derived from this software without specific prior written permission.
+
+   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+   "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+   LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+   FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+   OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+   SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
+   TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+   OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+   OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+   NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+   Author: W. David Ashley <dashley@us.ibm.com>
+
+-->
+
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+   xmlns:hpi="http://www.openhpi.org/hpiB"
+   targetNamespace="http://www.openhpi.org/hpiB"
+   elementFormDefault="qualified"
+   version="1.0">
+
+<!-- This is the root element -->
+
+<xsd:element name="hpi">
+   <xsd:complexType>
+      <xsd:choice minOccurs="0" maxOccurs="unbounded">
+
+         <!-- base types -->
+
+         <xsd:element name="SaHpiUint8T" type="hpi:SaHpiUint8Type" />
+         <xsd:element name="SaHpiUint16T" type="hpi:SaHpiUint16Type" />
+         <xsd:element name="SaHpiUint32T" type="hpi:SaHpiUint32Type" />
+         <xsd:element name="SaHpiUint64T" type="hpi:SaHpiUint64Type" />
+         <xsd:element name="SaHpiInt8T" type="hpi:SaHpiInt8Type" />
+         <xsd:element name="SaHpiInt16T" type="hpi:SaHpiInt16Type" />
+         <xsd:element name="SaHpiInt32T" type="hpi:SaHpiInt32Type" />
+         <xsd:element name="SaHpiInt64T" type="hpi:SaHpiInt64Type" />
+         <xsd:element name="SaHpiFloat64T" type="hpi:SaHpiFloat64Type" />
+         <xsd:element name="SaHpiBoolT" type="hpi:SaHpiBooleanType" />
+
+         <!-- special hpi base types -->
+
+         <xsd:element name="SaHpiVersionT" type="hpi:SaHpiUint32Type" />
+         <xsd:element name="SaErrorT" type="hpi:SaHpiInt32Type" />
+         <xsd:element name="SaHpiDomainIdT" type="hpi:SaHpiUint32Type" />
+         <xsd:element name="SaHpiSessionIdT" type="hpi:SaHpiUint32Type" />
+         <xsd:element name="SaHpiResourceIdT" type="hpi:SaHpiUint32Type" />
+         <xsd:element name="SaHpiEntryIdT" type="hpi:SaHpiUint32Type" />
+         <xsd:element name="SaHpiTimeT" type="hpi:SaHpiInt64Type" />
+         <xsd:element name="SaHpiTimeoutT" type="hpi:SaHpiInt64Type" />
+         <xsd:element name="SaHpiInstrumentIdT" type="hpi:SaHpiUint32Type" />
+         <xsd:element name="SaHpiEnitityLocationT" type="hpi:SaHpiUint32Type" />
+         <xsd:element name="SaHpiEventCategoryT" type="hpi:SaHpiUint8Type" />
+         <xsd:element name="SaHpiEventStateT" type="hpi:SaHpiUint16Type" />
+
+         <!-- hpi structs -->
+
+         <!-- Note that there are single element struct entries as well as
+              entries for arrays of structs -->
+
+         <xsd:element name="SaHpiTextBufferT" type="hpi:SaHpiTextBufferType" />
+         <xsd:element name="SaHpiTextBufferTarray">
+            <xsd:complexType>
+               <xsd:sequence minOccurs="1" maxOccurs="unbounded">
+                  <xsd:element name="SaHpiTextBufferT" type="hpi:SaHpiTextBufferType" />
+               </xsd:sequence>
+               <xsd:attribute name="name" type="xsd:string" use="optional" />
+            </xsd:complexType>
+         </xsd:element>
+         <xsd:element name="SaHpiEntityPathT" type="hpi:SaHpiEntityPathType" />
+         <xsd:element name="SaHpiEntityPathTarray">
+            <xsd:complexType>
+               <xsd:sequence minOccurs="1" maxOccurs="unbounded">
+                  <xsd:element name="SaHpiEntityPathT" type="hpi:SaHpiEntityPathType" />
+               </xsd:sequence>
+               <xsd:attribute name="name" type="xsd:string" use="optional" />
+            </xsd:complexType>
+         </xsd:element>
+         <xsd:element name="SaHpiSensorReadingT" type="hpi:SaHpiSensorReadingType" />
+         <xsd:element name="SaHpiSensorReadingTarray">
+            <xsd:complexType>
+               <xsd:sequence minOccurs="1" maxOccurs="unbounded">
+                  <xsd:element name="SaHpiSensorReadingT" type="hpi:SaHpiSensorReadingType" />
+               </xsd:sequence>
+               <xsd:attribute name="name" type="xsd:string" use="optional" />
+            </xsd:complexType>
+         </xsd:element>
+         <xsd:element name="SaHpiThresholdsT" type="hpi:SaHpiThresholdsType" />
+         <xsd:element name="SaHpiThresholdsTarray">
+            <xsd:complexType>
+               <xsd:sequence minOccurs="1" maxOccurs="unbounded">
+                  <xsd:element name="SaHpiThresholdsT" type="hpi:SaHpiThresholdsType" />
+               </xsd:sequence>
+               <xsd:attribute name="name" type="xsd:string" use="optional" />
+            </xsd:complexType>
+         </xsd:element>
+         <xsd:element name="SaHpiSensorRangeT" type="hpi:SaHpiSensorRangeType" />
+         <xsd:element name="SaHpiSensorRangeTarray">
+            <xsd:complexType>
+               <xsd:sequence minOccurs="1" maxOccurs="unbounded">
+                  <xsd:element name="SaHpiSensorRangeT" type="hpi:SaHpiSensorRangeType" />
+               </xsd:sequence>
+               <xsd:attribute name="name" type="xsd:string" use="optional" />
+            </xsd:complexType>
+         </xsd:element>
+         <xsd:element name="SaHpiSensorDataFormatT" type="hpi:SaHpiSensorDataFormatType" />
+         <xsd:element name="SaHpiSensorDataFormatTarray">
+            <xsd:complexType>
+               <xsd:sequence minOccurs="1" maxOccurs="unbounded">
+                  <xsd:element name="SaHpiSensorDataFormatT" type="hpi:SaHpiSensorDataFormatType" />
+               </xsd:sequence>
+               <xsd:attribute name="name" type="xsd:string" use="optional" />
+            </xsd:complexType>
+         </xsd:element>
+         <xsd:element name="SaHpiSensorThdDefnT" type="hpi:SaHpiSensorThdDefnType" />
+         <xsd:element name="SaHpiSensorThdDefnTarray">
+            <xsd:complexType>
+               <xsd:sequence minOccurs="1" maxOccurs="unbounded">
+                  <xsd:element name="SaHpiSensorThdDefnT" type="hpi:SaHpiSensorThdDefnType" />
+               </xsd:sequence>
+               <xsd:attribute name="name" type="xsd:string" use="optional" />
+            </xsd:complexType>
+         </xsd:element>
+         <xsd:element name="SaHpiSensorRecT" type="hpi:SaHpiSensorRecType" />
+         <xsd:element name="SaHpiSensorRecTarray">
+            <xsd:complexType>
+               <xsd:sequence minOccurs="1" maxOccurs="unbounded">
+                  <xsd:element name="SaHpiSensorRecT" type="hpi:SaHpiSensorRecType" />
+               </xsd:sequence>
+               <xsd:attribute name="name" type="xsd:string" use="optional" />
+            </xsd:complexType>
+         </xsd:element>
+         <xsd:element name="SaHpiCtrlStateT" type="hpi:SaHpiCtrlStateType" />
+         <xsd:element name="SaHpiCtrlStateTarray">
+            <xsd:complexType>
+               <xsd:sequence minOccurs="1" maxOccurs="unbounded">
+                  <xsd:element name="SaHpiCtrlStateT" type="hpi:SaHpiCtrlStateType" />
+               </xsd:sequence>
+               <xsd:attribute name="name" type="xsd:string" use="optional" />
+            </xsd:complexType>
+         </xsd:element>
+         <xsd:element name="SaHpiCtrlRecT" type="hpi:SaHpiCtrlRecType" />
+         <xsd:element name="SaHpiCtrlRecTarray">
+            <xsd:complexType>
+               <xsd:sequence minOccurs="1" maxOccurs="unbounded">
+                  <xsd:element name="SaHpiCtrlRecT" type="hpi:SaHpiCtrlRecType" />
+               </xsd:sequence>
+               <xsd:attribute name="name" type="xsd:string" use="optional" />
+            </xsd:complexType>
+         </xsd:element>
+         <xsd:element name="SaHpiIdrFieldT" type="hpi:SaHpiIdrFieldType" />
+         <xsd:element name="SaHpiIdrFieldTarray">
+            <xsd:complexType>
+               <xsd:sequence minOccurs="1" maxOccurs="unbounded">
+                  <xsd:element name="SaHpiIdrFieldT" type="hpi:SaHpiIdrFieldType" />
+               </xsd:sequence>
+               <xsd:attribute name="name" type="xsd:string" use="optional" />
+            </xsd:complexType>
+         </xsd:element>
+         <xsd:element name="SaHpiIdrAreaHeaderT" type="hpi:SaHpiIdrAreaHeaderType" />
+         <xsd:element name="SaHpiIdrAreaHeaderTarray">
+            <xsd:complexType>
+               <xsd:sequence minOccurs="1" maxOccurs="unbounded">
+                  <xsd:element name="SaHpiIdrAreaHeaderT" type="hpi:SaHpiIdrAreaHeaderType" />
+               </xsd:sequence>
+               <xsd:attribute name="name" type="xsd:string" use="optional" />
+            </xsd:complexType>
+         </xsd:element>
+         <xsd:element name="SaHpiIdrInfoT" type="hpi:SaHpiIdrInfoType" />
+         <xsd:element name="SaHpiIdrInfoTarray">
+            <xsd:complexType>
+               <xsd:sequence minOccurs="1" maxOccurs="unbounded">
+                  <xsd:element name="SaHpiIdrInfoT" type="hpi:SaHpiIdrInfoType" />
+               </xsd:sequence>
+               <xsd:attribute name="name" type="xsd:string" use="optional" />
+            </xsd:complexType>
+         </xsd:element>
+         <xsd:element name="SaHpiInventoryRecT" type="hpi:SaHpiInventoryRecType" />
+         <xsd:element name="SaHpiInventoryRecTarray">
+            <xsd:complexType>
+               <xsd:sequence minOccurs="1" maxOccurs="unbounded">
+                  <xsd:element name="SaHpiInventoryRecT" type="hpi:SaHpiInventoryRecType" />
+               </xsd:sequence>
+               <xsd:attribute name="name" type="xsd:string" use="optional" />
+            </xsd:complexType>
+         </xsd:element>
+         <xsd:element name="SaHpiWatchdogT" type="hpi:SaHpiWatchdogType" />
+         <xsd:element name="SaHpiWatchdogTarray">
+            <xsd:complexType>
+               <xsd:sequence minOccurs="1" maxOccurs="unbounded">
+                  <xsd:element name="SaHpiWatchdogT" type="hpi:SaHpiWatchdogType" />
+               </xsd:sequence>
+               <xsd:attribute name="name" type="xsd:string" use="optional" />
+            </xsd:complexType>
+         </xsd:element>
+         <xsd:element name="SaHpiWatchdogRecT" type="hpi:SaHpiWatchdogRecType" />
+         <xsd:element name="SaHpiWatchdogRecTarray">
+            <xsd:complexType>
+               <xsd:sequence minOccurs="1" maxOccurs="unbounded">
+                  <xsd:element name="SaHpiWatchdogRecT" type="hpi:SaHpiWatchdogRecType" />
+               </xsd:sequence>
+               <xsd:attribute name="name" type="xsd:string" use="optional" />
+            </xsd:complexType>
+         </xsd:element>
+         <xsd:element name="SaHpiResourceEventT" type="hpi:SaHpiResourceEventType" />
+         <xsd:element name="SaHpiResourceEventTarray">
+            <xsd:complexType>
+               <xsd:sequence minOccurs="1" maxOccurs="unbounded">
+                  <xsd:element name="SaHpiResourceEventT" type="hpi:SaHpiResourceEventType" />
+               </xsd:sequence>
+               <xsd:attribute name="name" type="xsd:string" use="optional" />
+            </xsd:complexType>
+         </xsd:element>
+         <xsd:element name="SaHpiDomainEventT" type="hpi:SaHpiDomainEventType" />
+         <xsd:element name="SaHpiDomainEventTarray">
+            <xsd:complexType>
+               <xsd:sequence minOccurs="1" maxOccurs="unbounded">
+                  <xsd:element name="SaHpiDomainEventT" type="hpi:SaHpiDomainEventType" />
+               </xsd:sequence>
+               <xsd:attribute name="name" type="xsd:string" use="optional" />
+            </xsd:complexType>
+         </xsd:element>
+         <xsd:element name="SaHpiSensorEventT" type="hpi:SaHpiSensorEventType" />
+         <xsd:element name="SaHpiSensorEventTarray">
+            <xsd:complexType>
+               <xsd:sequence minOccurs="1" maxOccurs="unbounded">
+                  <xsd:element name="SaHpiSensorEventT" type="hpi:SaHpiSensorEventType" />
+               </xsd:sequence>
+               <xsd:attribute name="name" type="xsd:string" use="optional" />
+            </xsd:complexType>
+         </xsd:element>
+         <xsd:element name="SaHpiSensorEnableChangeEventT" type="hpi:SaHpiSensorEnableChangeEventType" />
+         <xsd:element name="SaHpiSensorEnableChangeEventTarray">
+            <xsd:complexType>
+               <xsd:sequence minOccurs="1" maxOccurs="unbounded">
+                  <xsd:element name="SaHpiSensorEnableChangeEventT" type="hpi:SaHpiSensorEnableChangeEventType" />
+               </xsd:sequence>
+               <xsd:attribute name="name" type="xsd:string" use="optional" />
+            </xsd:complexType>
+         </xsd:element>
+         <xsd:element name="SaHpiHotSwapEventT" type="hpi:SaHpiHotSwapEventType" />
+         <xsd:element name="SaHpiHotSwapEventTarray">
+            <xsd:complexType>
+               <xsd:sequence minOccurs="1" maxOccurs="unbounded">
+                  <xsd:element name="SaHpiHotSwapEventT" type="hpi:SaHpiHotSwapEventType" />
+               </xsd:sequence>
+               <xsd:attribute name="name" type="xsd:string" use="optional" />
+            </xsd:complexType>
+         </xsd:element>
+         <xsd:element name="SaHpiWatchdogEventT" type="hpi:SaHpiWatchdogEventType" />
+         <xsd:element name="SaHpiWatchdogEventTarray">
+            <xsd:complexType>
+               <xsd:sequence minOccurs="1" maxOccurs="unbounded">
+                  <xsd:element name="SaHpiWatchdogEventT" type="hpi:SaHpiWatchdogEventType" />
+               </xsd:sequence>
+               <xsd:attribute name="name" type="xsd:string" use="optional" />
+            </xsd:complexType>
+         </xsd:element>
+         <xsd:element name="SaHpiSwEventT" type="hpi:SaHpiSwEventType" />
+         <xsd:element name="SaHpiSwEventTarray">
+            <xsd:complexType>
+               <xsd:sequence minOccurs="1" maxOccurs="unbounded">
+                  <xsd:element name="SaHpiSwEventT" type="hpi:SaHpiSwEventType" />
+               </xsd:sequence>
+               <xsd:attribute name="name" type="xsd:string" use="optional" />
+            </xsd:complexType>
+         </xsd:element>
+         <xsd:element name="SaHpiOemEventT" type="hpi:SaHpiOemEventType" />
+         <xsd:element name="SaHpiOemEventTarray">
+            <xsd:complexType>
+               <xsd:sequence minOccurs="1" maxOccurs="unbounded">
+                  <xsd:element name="SaHpiOemEventT" type="hpi:SaHpiOemEventType" />
+               </xsd:sequence>
+               <xsd:attribute name="name" type="xsd:string" use="optional" />
+            </xsd:complexType>
+         </xsd:element>
+         <xsd:element name="SaHpiUserEventT" type="hpi:SaHpiUserEventType" />
+         <xsd:element name="SaHpiUserEventTarray">
+            <xsd:complexType>
+               <xsd:sequence minOccurs="1" maxOccurs="unbounded">
+                  <xsd:element name="SaHpiUserEventT" type="hpi:SaHpiUserEventType" />
+               </xsd:sequence>
+               <xsd:attribute name="name" type="xsd:string" use="optional" />
+            </xsd:complexType>
+         </xsd:element>
+         <xsd:element name="SaHpiEventT" type="hpi:SaHpiEventType" />
+         <xsd:element name="SaHpiEventTarray">
+            <xsd:complexType>
+               <xsd:sequence minOccurs="1" maxOccurs="unbounded">
+                  <xsd:element name="SaHpiEventT" type="hpi:SaHpiEventType" />
+               </xsd:sequence>
+               <xsd:attribute name="name" type="xsd:string" use="optional" />
+            </xsd:complexType>
+         </xsd:element>
+         <xsd:element name="SaHpiNameT" type="hpi:SaHpiNameType" />
+         <xsd:element name="SaHpiNameTarray">
+            <xsd:complexType>
+               <xsd:sequence minOccurs="1" maxOccurs="unbounded">
+                  <xsd:element name="SaHpiNameT" type="hpi:SaHpiNameType" />
+               </xsd:sequence>
+               <xsd:attribute name="name" type="xsd:string" use="optional" />
+            </xsd:complexType>
+         </xsd:element>
+         <xsd:element name="SaHpiConditionT" type="hpi:SaHpiConditionType" />
+         <xsd:element name="SaHpiConditionTarray">
+            <xsd:complexType>
+               <xsd:sequence minOccurs="1" maxOccurs="unbounded">
+                  <xsd:element name="SaHpiConditionT" type="hpi:SaHpiConditionType" />
+               </xsd:sequence>
+               <xsd:attribute name="name" type="xsd:string" use="optional" />
+            </xsd:complexType>
+         </xsd:element>
+         <xsd:element name="SaHpiAnnouncementT" type="hpi:SaHpiAnnouncementType" />
+         <xsd:element name="SaHpiAnnouncementTarray">
+            <xsd:complexType>
+               <xsd:sequence minOccurs="1" maxOccurs="unbounded">
+                  <xsd:element name="SaHpiAnnouncementT" type="hpi:SaHpiAnnouncementType" />
+               </xsd:sequence>
+               <xsd:attribute name="name" type="xsd:string" use="optional" />
+            </xsd:complexType>
+         </xsd:element>
+         <xsd:element name="SaHpiAnnunciatorRecT" type="hpi:SaHpiAnnunciatorRecType" />
+         <xsd:element name="SaHpiAnnunciatorRecTarray">
+            <xsd:complexType>
+               <xsd:sequence minOccurs="1" maxOccurs="unbounded">
+                  <xsd:element name="SaHpiAnnunciatorRecT" type="hpi:SaHpiAnnunciatorRecType" />
+               </xsd:sequence>
+               <xsd:attribute name="name" type="xsd:string" use="optional" />
+            </xsd:complexType>
+         </xsd:element>
+         <xsd:element name="SaHpiRdrT" type="hpi:SaHpiRdrType" />
+         <xsd:element name="SaHpiRdrTarray">
+            <xsd:complexType>
+               <xsd:sequence minOccurs="1" maxOccurs="unbounded">
+                  <xsd:element name="SaHpiRdrT" type="hpi:SaHpiRdrType" />
+               </xsd:sequence>
+               <xsd:attribute name="name" type="xsd:string" use="optional" />
+            </xsd:complexType>
+         </xsd:element>
+         <xsd:element name="SaHpiResourceInfoT" type="hpi:SaHpiResourceInfoType" />
+         <xsd:element name="SaHpiResourceInfoTarray">
+            <xsd:complexType>
+               <xsd:sequence minOccurs="1" maxOccurs="unbounded">
+                  <xsd:element name="SaHpiResourceInfoT" type="hpi:SaHpiResourceInfoType" />
+               </xsd:sequence>
+               <xsd:attribute name="name" type="xsd:string" use="optional" />
+            </xsd:complexType>
+         </xsd:element>
+         <xsd:element name="SaHpiRptEntryT" type="hpi:SaHpiRptEntryType" />
+         <xsd:element name="SaHpiRptEntryTarray">
+            <xsd:complexType>
+               <xsd:sequence minOccurs="1" maxOccurs="unbounded">
+                  <xsd:element name="SaHpiRptEntryT" type="hpi:SaHpiRptEntryType" />
+               </xsd:sequence>
+               <xsd:attribute name="name" type="xsd:string" use="optional" />
+            </xsd:complexType>
+         </xsd:element>
+         <xsd:element name="SaHpiDomainInfoT" type="hpi:SaHpiDomainInfoType" />
+         <xsd:element name="SaHpiDomainInfoTarray">
+            <xsd:complexType>
+               <xsd:sequence minOccurs="1" maxOccurs="unbounded">
+                  <xsd:element name="SaHpiDomainInfoT" type="hpi:SaHpiDomainInfoType" />
+               </xsd:sequence>
+               <xsd:attribute name="name" type="xsd:string" use="optional" />
+            </xsd:complexType>
+         </xsd:element>
+         <xsd:element name="SaHpiDrtEntryT" type="hpi:SaHpiDrtEntryType" />
+         <xsd:element name="SaHpiDrtEntryTarray">
+            <xsd:complexType>
+               <xsd:sequence minOccurs="1" maxOccurs="unbounded">
+                  <xsd:element name="SaHpiDrtEntryT" type="hpi:SaHpiDrtEntryType" />
+               </xsd:sequence>
+               <xsd:attribute name="name" type="xsd:string" use="optional" />
+            </xsd:complexType>
+         </xsd:element>
+         <xsd:element name="SaHpiAlarmT" type="hpi:SaHpiAlarmType" />
+         <xsd:element name="SaHpiAlarmTarray">
+            <xsd:complexType>
+               <xsd:sequence minOccurs="1" maxOccurs="unbounded">
+                  <xsd:element name="SaHpiAlarmT" type="hpi:SaHpiAlarmType" />
+               </xsd:sequence>
+               <xsd:attribute name="name" type="xsd:string" use="optional" />
+            </xsd:complexType>
+         </xsd:element>
+         <xsd:element name="SaHpiEventLogInfoT" type="hpi:SaHpiEventLogInfoType" />
+         <xsd:element name="SaHpiEventLogInfoTarray">
+            <xsd:complexType>
+               <xsd:sequence minOccurs="1" maxOccurs="unbounded">
+                  <xsd:element name="SaHpiEventLogInfoT" type="hpi:SaHpiEventLogInfoType" />
+               </xsd:sequence>
+               <xsd:attribute name="name" type="xsd:string" use="optional" />
+            </xsd:complexType>
+         </xsd:element>
+         <xsd:element name="SaHpiEventLogEntryT" type="hpi:SaHpiEventLogEntryType" />
+         <xsd:element name="SaHpiEventLogEntryTarray">
+            <xsd:complexType>
+               <xsd:sequence minOccurs="1" maxOccurs="unbounded">
+                  <xsd:element name="SaHpiEventLogEntryT" type="hpi:SaHpiEventLogEntryType" />
+               </xsd:sequence>
+               <xsd:attribute name="name" type="xsd:string" use="optional" />
+            </xsd:complexType>
+         </xsd:element>
+      </xsd:choice>
+      <xsd:attribute name="name" type="xsd:string" use="optional" />
+   </xsd:complexType>
+</xsd:element>
+
+<!-- Basic HPI Data Types -->
+
+<xsd:complexType name="SaHpiUint8Type">
+   <xsd:simpleContent>
+      <xsd:extension base="xsd:unsignedByte">
+         <xsd:attribute name="name" type="xsd:string" use="optional" />
+         <xsd:attribute name="type" type="xsd:string" use="optional" default="SaHpiUint8T" />
+      </xsd:extension>
+   </xsd:simpleContent>
+</xsd:complexType>
+
+<xsd:complexType name="SaHpiUint16Type">
+   <xsd:simpleContent>
+      <xsd:extension base="xsd:unsignedShort">
+         <xsd:attribute name="name" type="xsd:string" use="optional" />
+         <xsd:attribute name="type" type="xsd:string" use="optional" default="SaHpiUint16T" />
+      </xsd:extension>
+   </xsd:simpleContent>
+</xsd:complexType>
+
+<xsd:complexType name="SaHpiUint32Type">
+   <xsd:simpleContent>
+      <xsd:extension base="xsd:unsignedInt">
+         <xsd:attribute name="name" type="xsd:string" use="optional" />
+         <xsd:attribute name="type" type="xsd:string" use="optional" default="SaHpiUint32T" />
+      </xsd:extension>
+   </xsd:simpleContent>
+</xsd:complexType>
+
+<xsd:complexType name="SaHpiUint64Type">
+   <xsd:simpleContent>
+      <xsd:extension base="xsd:unsignedLong">
+         <xsd:attribute name="name" type="xsd:string" use="optional" />
+         <xsd:attribute name="type" type="xsd:string" use="optional" default="SaHpiUint64T" />
+      </xsd:extension>
+   </xsd:simpleContent>
+</xsd:complexType>
+
+<xsd:complexType name="SaHpiInt8Type">
+   <xsd:simpleContent>
+      <xsd:extension base="xsd:byte">
+         <xsd:attribute name="name" type="xsd:string" use="optional" />
+         <xsd:attribute name="type" type="xsd:string" use="optional" default="SaHpiInt8T" />
+      </xsd:extension>
+   </xsd:simpleContent>
+</xsd:complexType>
+
+<xsd:complexType name="SaHpiInt16Type">
+   <xsd:simpleContent>
+      <xsd:extension base="xsd:short">
+         <xsd:attribute name="name" type="xsd:string" use="optional" />
+         <xsd:attribute name="type" type="xsd:string" use="optional" default="SaHpiInt16T" />
+      </xsd:extension>
+   </xsd:simpleContent>
+</xsd:complexType>
+
+<xsd:complexType name="SaHpiInt32Type">
+   <xsd:simpleContent>
+      <xsd:extension base="xsd:int">
+         <xsd:attribute name="name" type="xsd:string" use="optional" />
+         <xsd:attribute name="type" type="xsd:string" use="optional" default="SaHpiInt32T" />
+      </xsd:extension>
+   </xsd:simpleContent>
+</xsd:complexType>
+
+<xsd:complexType name="SaHpiInt64Type">
+   <xsd:simpleContent>
+      <xsd:extension base="xsd:long">
+         <xsd:attribute name="name" type="xsd:string" use="optional" />
+         <xsd:attribute name="type" type="xsd:string" use="optional" default="SaHpiInt64T" />
+      </xsd:extension>
+   </xsd:simpleContent>
+</xsd:complexType>
+
+<xsd:complexType name="SaHpiFloat64Type">
+   <xsd:simpleContent>
+      <xsd:extension base="xsd:double">
+         <xsd:attribute name="name" type="xsd:string" use="optional" />
+         <xsd:attribute name="type" type="xsd:string" use="optional" default="SaHpiFloat64T" />
+      </xsd:extension>
+   </xsd:simpleContent>
+</xsd:complexType>
+
+<xsd:complexType name="SaHpiBooleanType">
+   <xsd:simpleContent>
+      <xsd:extension base="hpi:SaHpiBooleanTypeValues">
+         <xsd:attribute name="name" type="xsd:string" use="optional" />
+         <xsd:attribute name="type" type="xsd:string" use="optional" default="SaHpiBooleanT" />
+      </xsd:extension>
+   </xsd:simpleContent>
+</xsd:complexType>
+
+<xsd:simpleType name="SaHpiBooleanTypeValues">
+   <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="SAHPI_TRUE" />
+      <xsd:enumeration value="SAHPI_FALSE" />
+   </xsd:restriction>
+</xsd:simpleType>
+
+<!-- Basic HPI structs -->
+
+<xsd:simpleType name="SaHpiLanguageT">
+   <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="SAHPI_LANG_UNDEF" />
+      <xsd:enumeration value="SAHPI_LANG_AFAR" />
+      <xsd:enumeration value="SAHPI_LANG_ABKHAZIAN" />
+      <xsd:enumeration value="SAHPI_LANG_AFRIKAANS" />
+      <xsd:enumeration value="SAHPI_LANG_AMHARIC" />
+      <xsd:enumeration value="SAHPI_LANG_ARABIC" />
+      <xsd:enumeration value="SAHPI_LANG_ASSAMESE" />
+      <xsd:enumeration value="SAHPI_LANG_AYMARA" />
+      <xsd:enumeration value="SAHPI_LANG_AZERBAIJANI" />
+      <xsd:enumeration value="SAHPI_LANG_BASHKIR" />
+      <xsd:enumeration value="SAHPI_LANG_BYELORUSSIAN" />
+      <xsd:enumeration value="SAHPI_LANG_BULGARIAN" />
+      <xsd:enumeration value="SAHPI_LANG_BIHARI" />
+      <xsd:enumeration value="SAHPI_LANG_BISLAMA" />
+      <xsd:enumeration value="SAHPI_LANG_BENGALI" />
+      <xsd:enumeration value="SAHPI_LANG_TIBETAN" />
+      <xsd:enumeration value="SAHPI_LANG_BRETON" />
+      <xsd:enumeration value="SAHPI_LANG_CATALAN" />
+      <xsd:enumeration value="SAHPI_LANG_CORSICAN" />
+      <xsd:enumeration value="SAHPI_LANG_CZECH" />
+      <xsd:enumeration value="SAHPI_LANG_WELSH" />
+      <xsd:enumeration value="SAHPI_LANG_DANISH" />
+      <xsd:enumeration value="SAHPI_LANG_GERMAN" />
+      <xsd:enumeration value="SAHPI_LANG_BHUTANI" />
+      <xsd:enumeration value="SAHPI_LANG_GREEK" />
+      <xsd:enumeration value="SAHPI_LANG_ENGLISH" />
+      <xsd:enumeration value="SAHPI_LANG_ESPERANTO" />
+      <xsd:enumeration value="SAHPI_LANG_SPANISH" />
+      <xsd:enumeration value="SAHPI_LANG_ESTONIAN" />
+      <xsd:enumeration value="SAHPI_LANG_BASQUE" />
+      <xsd:enumeration value="SAHPI_LANG_PERSIAN" />
+      <xsd:enumeration value="SAHPI_LANG_FINNISH" />
+      <xsd:enumeration value="SAHPI_LANG_FIJI" />
+      <xsd:enumeration value="SAHPI_LANG_FAEROESE" />
+      <xsd:enumeration value="SAHPI_LANG_FRENCH" />
+      <xsd:enumeration value="SAHPI_LANG_FRISIAN" />
+      <xsd:enumeration value="SAHPI_LANG_IRISH" />
+      <xsd:enumeration value="SAHPI_LANG_SCOTSGAELIC" />
+      <xsd:enumeration value="SAHPI_LANG_GALICIAN" />
+      <xsd:enumeration value="SAHPI_LANG_GUARANI" />
+      <xsd:enumeration value="SAHPI_LANG_GUJARATI" />
+      <xsd:enumeration value="SAHPI_LANG_HAUSA" />
+      <xsd:enumeration value="SAHPI_LANG_HINDI" />
+      <xsd:enumeration value="SAHPI_LANG_CROATIAN" />
+      <xsd:enumeration value="SAHPI_LANG_HUNGARIAN" />
+      <xsd:enumeration value="SAHPI_LANG_ARMENIAN" />
+      <xsd:enumeration value="SAHPI_LANG_INTERLINGUA" />
+      <xsd:enumeration value="SAHPI_LANG_INTERLINGUE" />
+      <xsd:enumeration value="SAHPI_LANG_INUPIAK" />
+      <xsd:enumeration value="SAHPI_LANG_INDONESIAN" />
+      <xsd:enumeration value="SAHPI_LANG_ICELANDIC" />
+      <xsd:enumeration value="SAHPI_LANG_ITALIAN" />
+      <xsd:enumeration value="SAHPI_LANG_HEBREW" />
+      <xsd:enumeration value="SAHPI_LANG_JAPANESE" />
+      <xsd:enumeration value="SAHPI_LANG_YIDDISH" />
+      <xsd:enumeration value="SAHPI_LANG_JAVANESE" />
+      <xsd:enumeration value="SAHPI_LANG_GEORGIAN" />
+      <xsd:enumeration value="SAHPI_LANG_KAZAKH" />
+      <xsd:enumeration value="SAHPI_LANG_GREENLANDIC" />
+      <xsd:enumeration value="SAHPI_LANG_CAMBODIAN" />
+      <xsd:enumeration value="SAHPI_LANG_KANNADA" />
+      <xsd:enumeration value="SAHPI_LANG_KOREAN" />
+      <xsd:enumeration value="SAHPI_LANG_KASHMIRI" />
+      <xsd:enumeration value="SAHPI_LANG_KURDISH" />
+      <xsd:enumeration value="SAHPI_LANG_KIRGHIZ" />
+      <xsd:enumeration value="SAHPI_LANG_LATIN" />
+      <xsd:enumeration value="SAHPI_LANG_LINGALA" />
+      <xsd:enumeration value="SAHPI_LANG_LAOTHIAN" />
+      <xsd:enumeration value="SAHPI_LANG_LITHUANIAN" />
+      <xsd:enumeration value="SAHPI_LANG_LATVIANLETTISH" />
+      <xsd:enumeration value="SAHPI_LANG_MALAGASY" />
+      <xsd:enumeration value="SAHPI_LANG_MAORI" />
+      <xsd:enumeration value="SAHPI_LANG_MACEDONIAN" />
+      <xsd:enumeration value="SAHPI_LANG_MALAYALAM" />
+      <xsd:enumeration value="SAHPI_LANG_MONGOLIAN" />
+      <xsd:enumeration value="SAHPI_LANG_MOLDAVIAN" />
+      <xsd:enumeration value="SAHPI_LANG_MARATHI" />
+      <xsd:enumeration value="SAHPI_LANG_MALAY" />
+      <xsd:enumeration value="SAHPI_LANG_MALTESE" />
+      <xsd:enumeration value="SAHPI_LANG_BURMESE" />
+      <xsd:enumeration value="SAHPI_LANG_NAURU" />
+      <xsd:enumeration value="SAHPI_LANG_NEPALI" />
+      <xsd:enumeration value="SAHPI_LANG_DUTCH" />
+      <xsd:enumeration value="SAHPI_LANG_NORWEGIAN" />
+      <xsd:enumeration value="SAHPI_LANG_OCCITAN" />
+      <xsd:enumeration value="SAHPI_LANG_AFANOROMO" />
+      <xsd:enumeration value="SAHPI_LANG_ORIYA" />
+      <xsd:enumeration value="SAHPI_LANG_PUNJABI" />
+      <xsd:enumeration value="SAHPI_LANG_POLISH" />
+      <xsd:enumeration value="SAHPI_LANG_PASHTOPUSHTO" />
+      <xsd:enumeration value="SAHPI_LANG_PORTUGUESE" />
+      <xsd:enumeration value="SAHPI_LANG_QUECHUA" />
+      <xsd:enumeration value="SAHPI_LANG_RHAETOROMANCE" />
+      <xsd:enumeration value="SAHPI_LANG_KIRUNDI" />
+      <xsd:enumeration value="SAHPI_LANG_ROMANIAN" />
+      <xsd:enumeration value="SAHPI_LANG_RUSSIAN" />
+      <xsd:enumeration value="SAHPI_LANG_KINYARWANDA" />
+      <xsd:enumeration value="SAHPI_LANG_SANSKRIT" />
+      <xsd:enumeration value="SAHPI_LANG_SINDHI" />
+      <xsd:enumeration value="SAHPI_LANG_SANGRO" />
+      <xsd:enumeration value="SAHPI_LANG_SERBOCROATIAN" />
+      <xsd:enumeration value="SAHPI_LANG_SINGHALESE" />
+      <xsd:enumeration value="SAHPI_LANG_SLOVAK" />
+      <xsd:enumeration value="SAHPI_LANG_SLOVENIAN" />
+      <xsd:enumeration value="SAHPI_LANG_SAMOAN" />
+      <xsd:enumeration value="SAHPI_LANG_SHONA" />
+      <xsd:enumeration value="SAHPI_LANG_SOMALI" />
+      <xsd:enumeration value="SAHPI_LANG_ALBANIAN" />
+      <xsd:enumeration value="SAHPI_LANG_SERBIAN" />
+      <xsd:enumeration value="SAHPI_LANG_SISWATI" />
+      <xsd:enumeration value="SAHPI_LANG_SESOTHO" />
+      <xsd:enumeration value="SAHPI_LANG_SUDANESE" />
+      <xsd:enumeration value="SAHPI_LANG_SWEDISH" />
+      <xsd:enumeration value="SAHPI_LANG_SWAHILI" />
+      <xsd:enumeration value="SAHPI_LANG_TAMIL" />
+      <xsd:enumeration value="SAHPI_LANG_TELUGU" />
+      <xsd:enumeration value="SAHPI_LANG_TAJIK" />
+      <xsd:enumeration value="SAHPI_LANG_THAI" />
+      <xsd:enumeration value="SAHPI_LANG_TIGRINYA" />
+      <xsd:enumeration value="SAHPI_LANG_TURKMEN" />
+      <xsd:enumeration value="SAHPI_LANG_TAGALOG" />
+      <xsd:enumeration value="SAHPI_LANG_SETSWANA" />
+      <xsd:enumeration value="SAHPI_LANG_TONGA" />
+      <xsd:enumeration value="SAHPI_LANG_TURKISH" />
+      <xsd:enumeration value="SAHPI_LANG_TSONGA" />
+      <xsd:enumeration value="SAHPI_LANG_TATAR" />
+      <xsd:enumeration value="SAHPI_LANG_TWI" />
+      <xsd:enumeration value="SAHPI_LANG_UKRAINIAN" />
+      <xsd:enumeration value="SAHPI_LANG_URDU" />
+      <xsd:enumeration value="SAHPI_LANG_UZBEK" />
+      <xsd:enumeration value="SAHPI_LANG_VIETNAMESE" />
+      <xsd:enumeration value="SAHPI_LANG_VOLAPUK" />
+      <xsd:enumeration value="SAHPI_LANG_WOLOF" />
+      <xsd:enumeration value="SAHPI_LANG_XHOSA" />
+      <xsd:enumeration value="SAHPI_LANG_YORUBA" />
+      <xsd:enumeration value="SAHPI_LANG_CHINESE" />
+      <xsd:enumeration value="SAHPI_LANG_ZULU" />
+      </xsd:restriction>
+</xsd:simpleType>
+
+<xsd:simpleType name="SaHpiTextTypeT">
+   <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="SAHPI_TL_TYPE_UNICODE" />
+      <xsd:enumeration value="SAHPI_TL_TYPE_BCDPLUS" />
+      <xsd:enumeration value="SAHPI_TL_TYPE_ASCII6" />
+      <xsd:enumeration value="SAHPI_TL_TYPE_TEXT" />
+      <xsd:enumeration value="SAHPI_TL_TYPE_BINARY" />
+   </xsd:restriction>
+</xsd:simpleType>
+
+<xsd:complexType name="SaHpiTextBufferType">
+   <xsd:sequence minOccurs="1" maxOccurs="1">
+      <xsd:element name="DataType" type="hpi:SaHpiTextTypeT" />
+      <xsd:element name="Language" type="hpi:SaHpiLanguageT" />
+      <xsd:element name="DataLength" type="hpi:SaHpiUint8Type" />
+      <xsd:sequence minOccurs="1" maxOccurs="255">
+         <xsd:element name="Data" type="hpi:SaHpiUint8Type" />
+      </xsd:sequence>
+   </xsd:sequence>
+   <xsd:attribute name="name" use="optional" default="myTextBuffer" />
+</xsd:complexType>
+
+<!-- Entities -->
+
+<xsd:simpleType name="SaHpiEntityTypeT">
+   <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="SAHPI_ENT_UNSPECIFIED" />
+      <xsd:enumeration value="SAHPI_ENT_OTHER" />
+      <xsd:enumeration value="SAHPI_ENT_UNKNOWN" />
+      <xsd:enumeration value="SAHPI_ENT_PROCESSOR" />
+      <xsd:enumeration value="SAHPI_ENT_DISK_BAY" />
+      <xsd:enumeration value="SAHPI_ENT_PERIPHERAL_BAY" />
+      <xsd:enumeration value="SAHPI_ENT_SYS_MGMNT_MODULE" />
+      <xsd:enumeration value="SAHPI_ENT_SYSTEM_BOARD" />
+      <xsd:enumeration value="SAHPI_ENT_MEMORY_MODULE" />
+      <xsd:enumeration value="SAHPI_ENT_PROCESSOR_MODULE" />
+      <xsd:enumeration value="SAHPI_ENT_POWER_SUPPLY" />
+      <xsd:enumeration value="SAHPI_ENT_ADD_IN_CARD" />
+      <xsd:enumeration value="SAHPI_ENT_FRONT_PANEL_BOARD" />
+      <xsd:enumeration value="SAHPI_ENT_BACK_PANEL_BOARD" />
+      <xsd:enumeration value="SAHPI_ENT_POWER_SYSTEM_BOARD" />
+      <xsd:enumeration value="SAHPI_ENT_DRIVE_BACKPLANE" />
+      <xsd:enumeration value="SAHPI_ENT_SYS_EXPANSION_BOARD" />
+      <xsd:enumeration value="SAHPI_ENT_OTHER_SYSTEM_BOARD" />
+      <xsd:enumeration value="SAHPI_ENT_PROCESSOR_BOARD" />
+      <xsd:enumeration value="SAHPI_ENT_POWER_UNIT" />
+      <xsd:enumeration value="SAHPI_ENT_POWER_MODULE" />
+      <xsd:enumeration value="SAHPI_ENT_POWER_MGMNT" />
+      <xsd:enumeration value="SAHPI_ENT_CHASSIS_BACK_PANEL_BOARD" />
+      <xsd:enumeration value="SAHPI_ENT_SYSTEM_CHASSIS" />
+      <xsd:enumeration value="SAHPI_ENT_SUB_CHASSIS" />
+      <xsd:enumeration value="SAHPI_ENT_OTHER_CHASSIS_BOARD" />
+      <xsd:enumeration value="SAHPI_ENT_DISK_DRIVE_BAY" />
+      <xsd:enumeration value="SAHPI_ENT_PERIPHERAL_BAY_2" />
+      <xsd:enumeration value="SAHPI_ENT_DEVICE_BAY" />
+      <xsd:enumeration value="SAHPI_ENT_COOLING_DEVICE" />
+      <xsd:enumeration value="SAHPI_ENT_COOLING_UNIT" />
+      <xsd:enumeration value="SAHPI_ENT_INTERCONNECT" />
+      <xsd:enumeration value="SAHPI_ENT_MEMORY_DEVICE" />
+      <xsd:enumeration value="SAHPI_ENT_SYS_MGMNT_SOFTWARE" />
+      <xsd:enumeration value="SAHPI_ENT_BIOS" />
+      <xsd:enumeration value="SAHPI_ENT_OPERATING_SYSTEM" />
+      <xsd:enumeration value="SAHPI_ENT_SYSTEM_BUS" />
+      <xsd:enumeration value="SAHPI_ENT_GROUP" />
+      <xsd:enumeration value="SAHPI_ENT_REMOTE" />
+      <xsd:enumeration value="SAHPI_ENT_EXTERNAL_ENVIRONMENT" />
+      <xsd:enumeration value="SAHPI_ENT_BATTERY" />
+      <xsd:enumeration value="SAHPI_ENT_CHASSIS_SPECIFIC" />
+      <xsd:enumeration value="SAHPI_ENT_BOARD_SET_SPECIFIC" />
+      <xsd:enumeration value="SAHPI_ENT_OEM_SYSINT_SPECIFIC" />
+      <xsd:enumeration value="SAHPI_ENT_ROOT" />
+      <xsd:enumeration value="SAHPI_ENT_RACK" />
+      <xsd:enumeration value="SAHPI_ENT_SUBRACK" />
+      <xsd:enumeration value="SAHPI_ENT_COMPACTPCI_CHASSIS" />
+      <xsd:enumeration value="SAHPI_ENT_ADVANCEDTCA_CHASSIS" />
+      <xsd:enumeration value="SAHPI_ENT_RACK_MOUNTED_SERVER" />
+      <xsd:enumeration value="SAHPI_ENT_SYSTEM_BLADE" />
+      <xsd:enumeration value="SAHPI_ENT_SWITCH" />
+      <xsd:enumeration value="SAHPI_ENT_SWITCH_BLADE" />
+      <xsd:enumeration value="SAHPI_ENT_SBC_BLADE" />
+      <xsd:enumeration value="SAHPI_ENT_IO_BLADE" />
+      <xsd:enumeration value="SAHPI_ENT_DISK_BLADE" />
+      <xsd:enumeration value="SAHPI_ENT_DISK_DRIVE" />
+      <xsd:enumeration value="SAHPI_ENT_FAN" />
+      <xsd:enumeration value="SAHPI_ENT_POWER_DISTRIBUTION_UNIT" />
+      <xsd:enumeration value="SAHPI_ENT_SPEC_PROC_BLADE" />
+      <xsd:enumeration value="SAHPI_ENT_IO_SUBBOARD" />
+      <xsd:enumeration value="SAHPI_ENT_SBC_SUBBOARD" />
+      <xsd:enumeration value="SAHPI_ENT_ALARM_MANAGER" />
+      <xsd:enumeration value="SAHPI_ENT_SHELF_MANAGER" />
+      <xsd:enumeration value="SAHPI_ENT_DISPLAY_PANEL" />
+      <xsd:enumeration value="SAHPI_ENT_SUBBOARD_CARRIER_BLADE" />
+      <xsd:enumeration value="SAHPI_ENT_PHYSICAL_SLOT" />
+   </xsd:restriction>
+</xsd:simpleType>
+
+<xsd:complexType name="SaHpiEntityT">
+   <xsd:sequence minOccurs="1" maxOccurs="1">
+      <xsd:element name="EntityType" type="hpi:SaHpiEntityTypeT" />
+      <xsd:element name="EntityLocation" type="hpi:SaHpiUint32Type" />
+   </xsd:sequence>
+</xsd:complexType>
+
+<xsd:complexType name="SaHpiEntityPathType">
+   <xsd:sequence minOccurs="1" maxOccurs="16">
+      <xsd:element name="Entry" type="hpi:SaHpiEntityT" />
+   </xsd:sequence>
+   <xsd:attribute name="name" use="optional" default="myEntityPath" />
+</xsd:complexType>
+
+<!-- Events Part 1 -->
+
+<xsd:simpleType name="SaHpiEventCategoryT">
+   <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="SAHPI_EC_UNSPECIFIED" />
+      <xsd:enumeration value="SAHPI_EC_THRESHOLD" />
+      <xsd:enumeration value="SAHPI_EC_USAGE" />
+      <xsd:enumeration value="SAHPI_EC_STATE" />
+      <xsd:enumeration value="SAHPI_EC_PRED_FAIL" />
+      <xsd:enumeration value="SAHPI_EC_LIMIT" />
+      <xsd:enumeration value="SAHPI_EC_PERFORMANCE" />
+      <xsd:enumeration value="SAHPI_EC_SEVERITY" />
+      <xsd:enumeration value="SAHPI_EC_PRESENCE" />
+      <xsd:enumeration value="SAHPI_EC_ENABLE" />
+      <xsd:enumeration value="SAHPI_EC_AVAILABILITY" />
+      <xsd:enumeration value="SAHPI_EC_REDUNDANCY" />
+      <xsd:enumeration value="SAHPI_EC_SENSOR_SPECIFIC" />
+      <xsd:enumeration value="SAHPI_EC_GENERIC" />
+   </xsd:restriction>
+</xsd:simpleType>
+
+<xsd:simpleType name="SaHpiEventStateT">
+   <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="0" />
+      <xsd:enumeration value="SAHPI_ES_UNSPECIFIED" />
+      <xsd:enumeration value="SAHPI_ES_LOWER_MINOR" />
+      <xsd:enumeration value="SAHPI_ES_LOWER_MAJOR" />
+      <xsd:enumeration value="SAHPI_ES_LOWER_CRIT" />
+      <xsd:enumeration value="SAHPI_ES_UPPER_MINOR" />
+      <xsd:enumeration value="SAHPI_ES_UPPER_MAJOR" />
+      <xsd:enumeration value="SAHPI_ES_UPPER_CRIT" />
+      <xsd:enumeration value="SAHPI_ES_IDLE" />
+      <xsd:enumeration value="SAHPI_ES_ACTIVE" />
+      <xsd:enumeration value="SAHPI_ES_BUSY" />
+      <xsd:enumeration value="SAHPI_ES_STATE_DEASSERTED" />
+      <xsd:enumeration value="SAHPI_ES_STATE_ASSERTED" />
+      <xsd:enumeration value="SAHPI_ES_PRED_FAILURE_DEASSERT" />
+      <xsd:enumeration value="SAHPI_ES_PRED_FAILURE_ASSERT" />
+      <xsd:enumeration value="SAHPI_ES_LIMIT_NOT_EXCEEDED" />
+      <xsd:enumeration value="SAHPI_ES_LIMIT_EXCEEDED" />
+      <xsd:enumeration value="SAHPI_ES_PERFORMANCE_MET" />
+      <xsd:enumeration value="SAHPI_ES_PERFORMANCE_LAGS" />
+      <xsd:enumeration value="SAHPI_ES_OK" />
+      <xsd:enumeration value="SAHPI_ES_MINOR_FROM_OK" />
+      <xsd:enumeration value="SAHPI_ES_MAJOR_FROM_LESS" />
+      <xsd:enumeration value="SAHPI_ES_CRITICAL_FROM_LESS" />
+      <xsd:enumeration value="SAHPI_ES_MINOR_FROM_MORE" />
+      <xsd:enumeration value="SAHPI_ES_MAJOR_FROM_CRITICAL" />
+      <xsd:enumeration value="SAHPI_ES_CRITICAL" />
+      <xsd:enumeration value="SAHPI_ES_MONITOR" />
+      <xsd:enumeration value="SAHPI_ES_INFORMATIONAL" />
+      <xsd:enumeration value="SAHPI_ES_ABSENT" />
+      <xsd:enumeration value="SAHPI_ES_PRESENT" />
+      <xsd:enumeration value="SAHPI_ES_DISABLED" />
+      <xsd:enumeration value="SAHPI_ES_ENABLED" />
+      <xsd:enumeration value="SAHPI_ES_RUNNING" />
+      <xsd:enumeration value="SAHPI_ES_TEST" />
+      <xsd:enumeration value="SAHPI_ES_POWER_OFF" />
+      <xsd:enumeration value="SAHPI_ES_ON_LINE" />
+      <xsd:enumeration value="SAHPI_ES_OFF_LINE" />
+      <xsd:enumeration value="SAHPI_ES_OFF_DUTY" />
+      <xsd:enumeration value="SAHPI_ES_DEGRADED" />
+      <xsd:enumeration value="SAHPI_ES_POWER_SAVE" />
+      <xsd:enumeration value="SAHPI_ES_INSTALL_ERROR" />
+      <xsd:enumeration value="SAHPI_ES_FULLY_REDUNDANT" />
+      <xsd:enumeration value="SAHPI_ES_REDUNDANCY_LOST" />
+      <xsd:enumeration value="SAHPI_ES_REDUNDANCY_DEGRADED" />
+      <xsd:enumeration value="SAHPI_ES_REDUNDANCY_LOST_SUFFICIENT_RESOURCES" />
+      <xsd:enumeration value="SAHPI_ES_NON_REDUNDANT_SUFFICIENT_RESOURCES" />
+      <xsd:enumeration value="SAHPI_ES_NON_REDUNDANT_INSUFFICIENT_RESOURCES" />
+      <xsd:enumeration value="SAHPI_ES_REDUNDANCY_DEGRADED_FROM_FULL" />
+      <xsd:enumeration value="SAHPI_ES_REDUNDANCY_DEGRADED_FROM_NON" />
+      <xsd:enumeration value="SAHPI_ES_STATE_00" />
+      <xsd:enumeration value="SAHPI_ES_STATE_01" />
+      <xsd:enumeration value="SAHPI_ES_STATE_02" />
+      <xsd:enumeration value="SAHPI_ES_STATE_03" />
+      <xsd:enumeration value="SAHPI_ES_STATE_04" />
+      <xsd:enumeration value="SAHPI_ES_STATE_05" />
+      <xsd:enumeration value="SAHPI_ES_STATE_06" />
+      <xsd:enumeration value="SAHPI_ES_STATE_07" />
+      <xsd:enumeration value="SAHPI_ES_STATE_08" />
+      <xsd:enumeration value="SAHPI_ES_STATE_09" />
+      <xsd:enumeration value="SAHPI_ES_STATE_10" />
+      <xsd:enumeration value="SAHPI_ES_STATE_11" />
+      <xsd:enumeration value="SAHPI_ES_STATE_12" />
+      <xsd:enumeration value="SAHPI_ES_STATE_13" />
+      <xsd:enumeration value="SAHPI_ES_STATE_14" />
+   </xsd:restriction>
+</xsd:simpleType>
+
+<!-- Sensors -->
+
+<xsd:simpleType name="SaHpiSensorTypeT">
+   <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="SAHPI_TEMPERATURE" />
+      <xsd:enumeration value="SAHPI_VOLTAGE" />
+      <xsd:enumeration value="SAHPI_CURRENT" />
+      <xsd:enumeration value="SAHPI_FAN" />
+      <xsd:enumeration value="SAHPI_PHYSICAL_SECURITY" />
+      <xsd:enumeration value="SAHPI_PLATFORM_VIOLATION" />
+      <xsd:enumeration value="SAHPI_PROCESSOR" />
+      <xsd:enumeration value="SAHPI_POWER_SUPPLY" />
+      <xsd:enumeration value="SAHPI_POWER_UNIT" />
+      <xsd:enumeration value="SAHPI_COOLING_DEVICE" />
+      <xsd:enumeration value="SAHPI_OTHER_UNITS_BASED_SENSOR" />
+      <xsd:enumeration value="SAHPI_MEMORY" />
+      <xsd:enumeration value="SAHPI_DRIVE_SLOT" />
+      <xsd:enumeration value="SAHPI_POST_MEMORY_RESIZE" />
+      <xsd:enumeration value="SAHPI_SYSTEM_FW_PROGRESS" />
+      <xsd:enumeration value="SAHPI_EVENT_LOGGING_DISABLED" />
+      <xsd:enumeration value="SAHPI_RESERVED1" />
+      <xsd:enumeration value="SAHPI_SYSTEM_EVENT" />
+      <xsd:enumeration value="SAHPI_CRITICAL_INTERRUPT" />
+      <xsd:enumeration value="SAHPI_BUTTON" />
+      <xsd:enumeration value="SAHPI_MODULE_BOARD" />
+      <xsd:enumeration value="SAHPI_MICROCONTROLLER_COPROCESSOR" />
+      <xsd:enumeration value="SAHPI_ADDIN_CARD" />
+      <xsd:enumeration value="SAHPI_CHASSIS" />
+      <xsd:enumeration value="SAHPI_CHIP_SET" />
+      <xsd:enumeration value="SAHPI_OTHER_FRU" />
+      <xsd:enumeration value="SAHPI_CABLE_INTERCONNECT" />
+      <xsd:enumeration value="SAHPI_TERMINATOR" />
+      <xsd:enumeration value="SAHPI_SYSTEM_BOOT_INITIATED" />
+      <xsd:enumeration value="SAHPI_BOOT_ERROR" />
+      <xsd:enumeration value="SAHPI_OS_BOOT" />
+      <xsd:enumeration value="SAHPI_OS_CRITICAL_STOP" />
+      <xsd:enumeration value="SAHPI_SLOT_CONNECTOR" />
+      <xsd:enumeration value="SAHPI_SYSTEM_ACPI_POWER_STATE" />
+      <xsd:enumeration value="SAHPI_RESERVED2" />
+      <xsd:enumeration value="SAHPI_PLATFORM_ALERT" />
+      <xsd:enumeration value="SAHPI_ENTITY_PRESENCE" />
+      <xsd:enumeration value="SAHPI_MONITOR_ASIC_IC" />
+      <xsd:enumeration value="SAHPI_LAN" />
+      <xsd:enumeration value="SAHPI_MANAGEMENT_SUBSYSTEM_HEALTH" />
+      <xsd:enumeration value="SAHPI_BATTERY" />
+      <xsd:enumeration value="SAHPI_OPERATIONAL" />
+      <xsd:enumeration value="SAHPI_OEM_SENSOR" />
+   </xsd:restriction>
+</xsd:simpleType>
+
+<xsd:simpleType name="SaHpiSensorReadingTypeT">
+   <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="SAHPI_SENSOR_READING_TYPE_INT64" />
+      <xsd:enumeration value="SAHPI_SENSOR_READING_TYPE_UINT64" />
+      <xsd:enumeration value="SAHPI_SENSOR_READING_TYPE_FLOAT64" />
+      <xsd:enumeration value="SAHPI_SENSOR_READING_TYPE_BUFFER" />
+   </xsd:restriction>
+</xsd:simpleType>
+
+<xsd:complexType name="SaHpiSensorReadingType">
+   <xsd:sequence minOccurs="1" maxOccurs="1">
+      <xsd:element name="IsSupported" type="hpi:SaHpiBooleanType" />
+      <xsd:element name="Type" type="hpi:SaHpiSensorReadingTypeT" />
+      <xsd:element name="Value">
+         <xsd:complexType>
+            <xsd:choice>
+               <xsd:element name="SensorInt64" type="hpi:SaHpiInt64Type" />
+               <xsd:element name="SensorUint64" type="hpi:SaHpiUint64Type" />
+               <xsd:element name="SensorFloat64" type="hpi:SaHpiFloat64Type" />
+               <xsd:sequence minOccurs="1" maxOccurs="32">
+                  <xsd:element name="SensorBuffer" type="hpi:SaHpiUint8Type" />
+               </xsd:sequence>
+            </xsd:choice>
+         </xsd:complexType>
+      </xsd:element>
+   </xsd:sequence>
+   <xsd:attribute name="name" use="optional" default="mySensorReading" />
+</xsd:complexType>
+
+<xsd:complexType name="SaHpiThresholdsType">
+   <xsd:sequence minOccurs="1" maxOccurs="1">
+      <xsd:element name="LowCritical" type="hpi:SaHpiSensorReadingType" />
+      <xsd:element name="LowMajor" type="hpi:SaHpiSensorReadingType" />
+      <xsd:element name="LowMinor" type="hpi:SaHpiSensorReadingType" />
+      <xsd:element name="UpCritical" type="hpi:SaHpiSensorReadingType" />
+      <xsd:element name="UpMajor" type="hpi:SaHpiSensorReadingType" />
+      <xsd:element name="UpMinor" type="hpi:SaHpiSensorReadingType" />
+      <xsd:element name="PosThdHysteresis" type="hpi:SaHpiSensorReadingType" />
+      <xsd:element name="NegThdHysteresis" type="hpi:SaHpiSensorReadingType" />
+   </xsd:sequence>
+   <xsd:attribute name="name" use="optional" default="myThresholds" />
+</xsd:complexType>
+
+<!-- Sensor RDRs -->
+
+<xsd:simpleType name="SaHpiSensorRangeFlagsT">
+   <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="0" />
+      <xsd:enumeration value="SAHPI_SRF_MIN" />
+      <xsd:enumeration value="SAHPI_SRF_MAX" />
+      <xsd:enumeration value="SAHPI_SRF_NORMAL_MIN" />
+      <xsd:enumeration value="SAHPI_SRF_NORMAL_MAX" />
+      <xsd:enumeration value="SAHPI_SRF_NOMINAL" />
+   </xsd:restriction>
+</xsd:simpleType>
+
+<xsd:complexType name="SaHpiSensorRangeType">
+   <xsd:sequence minOccurs="1" maxOccurs="1">
+      <xsd:element name="Flags">
+         <xsd:simpleType>
+            <xsd:list itemType="hpi:SaHpiSensorRangeFlagsT" />
+         </xsd:simpleType>
+      </xsd:element>
+      <xsd:element name="Max" type="hpi:SaHpiSensorReadingType" />
+      <xsd:element name="Min" type="hpi:SaHpiSensorReadingType" />
+      <xsd:element name="Nominal" type="hpi:SaHpiSensorReadingType" />
+      <xsd:element name="NominalMax" type="hpi:SaHpiSensorReadingType" />
+      <xsd:element name="NominalMin" type="hpi:SaHpiSensorReadingType" />
+   </xsd:sequence>
+   <xsd:attribute name="name" use="optional" default="mySensorRange" />
+</xsd:complexType>
+
+<xsd:simpleType name="SaHpiSensorUnitsT">
+   <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="SAHPI_SU_UNSPECIFIED" />
+      <xsd:enumeration value="SAHPI_SU_DEGREES_C" />
+      <xsd:enumeration value="SAHPI_SU_DEGREES_F" />
+      <xsd:enumeration value="SAHPI_SU_DEGREES_K" />
+      <xsd:enumeration value="SAHPI_SU_VOLTS" />
+      <xsd:enumeration value="SAHPI_SU_AMPS" />
+      <xsd:enumeration value="SAHPI_SU_WATTS" />
+      <xsd:enumeration value="SAHPI_SU_JOULES" />
+      <xsd:enumeration value="SAHPI_SU_COULOMBS" />
+      <xsd:enumeration value="SAHPI_SU_VA" />
+      <xsd:enumeration value="SAHPI_SU_NITS" />
+      <xsd:enumeration value="SAHPI_SU_LUMEN" />
+      <xsd:enumeration value="SAHPI_SU_LUX" />
+      <xsd:enumeration value="SAHPI_SU_CANDELA" />
+      <xsd:enumeration value="SAHPI_SU_KPA" />
+      <xsd:enumeration value="SAHPI_SU_PSI" />
+      <xsd:enumeration value="SAHPI_SU_NEWTON" />
+      <xsd:enumeration value="SAHPI_SU_CFM" />
+      <xsd:enumeration value="SAHPI_SU_RPM" />
+      <xsd:enumeration value="SAHPI_SU_HZ" />
+      <xsd:enumeration value="SAHPI_SU_MICROSECOND" />
+      <xsd:enumeration value="SAHPI_SU_MILLISECOND" />
+      <xsd:enumeration value="SAHPI_SU_SECOND" />
+      <xsd:enumeration value="SAHPI_SU_MINUTE" />
+      <xsd:enumeration value="SAHPI_SU_HOUR" />
+      <xsd:enumeration value="SAHPI_SU_DAY" />
+      <xsd:enumeration value="SAHPI_SU_WEEK" />
+      <xsd:enumeration value="SAHPI_SU_MIL" />
+      <xsd:enumeration value="SAHPI_SU_INCHES" />
+      <xsd:enumeration value="SAHPI_SU_FEET" />
+      <xsd:enumeration value="SAHPI_SU_CU_IN" />
+      <xsd:enumeration value="SAHPI_SU_CU_FEET" />
+      <xsd:enumeration value="SAHPI_SU_MM" />
+      <xsd:enumeration value="SAHPI_SU_CM" />
+      <xsd:enumeration value="SAHPI_SU_M" />
+      <xsd:enumeration value="SAHPI_SU_CU_CM" />
+      <xsd:enumeration value="SAHPI_SU_CU_M" />
+      <xsd:enumeration value="SAHPI_SU_LITERS" />
+      <xsd:enumeration value="SAHPI_SU_FLUID_OUNCE" />
+      <xsd:enumeration value="SAHPI_SU_RADIANS" />
+      <xsd:enumeration value="SAHPI_SU_STERADIANS" />
+      <xsd:enumeration value="SAHPI_SU_REVOLUTIONS" />
+      <xsd:enumeration value="SAHPI_SU_CYCLES" />
+      <xsd:enumeration value="SAHPI_SU_GRAVITIES" />
+      <xsd:enumeration value="SAHPI_SU_OUNCE" />
+      <xsd:enumeration value="SAHPI_SU_POUND" />
+      <xsd:enumeration value="SAHPI_SU_FT_LB" />
+      <xsd:enumeration value="SAHPI_SU_OZ_IN" />
+      <xsd:enumeration value="SAHPI_SU_GAUSS" />
+      <xsd:enumeration value="SAHPI_SU_GILBERTS" />
+      <xsd:enumeration value="SAHPI_SU_HENRY" />
+      <xsd:enumeration value="SAHPI_SU_MILLIHENRY" />
+      <xsd:enumeration value="SAHPI_SU_FARAD" />
+      <xsd:enumeration value="SAHPI_SU_MICROFARAD" />
+      <xsd:enumeration value="SAHPI_SU_OHMS" />
+      <xsd:enumeration value="SAHPI_SU_SIEMENS" />
+      <xsd:enumeration value="SAHPI_SU_MOLE" />
+      <xsd:enumeration value="SAHPI_SU_BECQUEREL" />
+      <xsd:enumeration value="SAHPI_SU_PPM" />
+      <xsd:enumeration value="SAHPI_SU_RESERVED" />
+      <xsd:enumeration value="SAHPI_SU_DECIBELS" />
+      <xsd:enumeration value="SAHPI_SU_DBA" />
+      <xsd:enumeration value="SAHPI_SU_DBC" />
+      <xsd:enumeration value="SAHPI_SU_GRAY" />
+      <xsd:enumeration value="SAHPI_SU_SIEVERT" />
+      <xsd:enumeration value="SAHPI_SU_COLOR_TEMP_DEG_K" />
+      <xsd:enumeration value="SAHPI_SU_BIT" />
+      <xsd:enumeration value="SAHPI_SU_KILOBIT" />
+      <xsd:enumeration value="SAHPI_SU_MEGABIT" />
+      <xsd:enumeration value="SAHPI_SU_GIGABIT" />
+      <xsd:enumeration value="SAHPI_SU_BYTE" />
+      <xsd:enumeration value="SAHPI_SU_KILOBYTE" />
+      <xsd:enumeration value="SAHPI_SU_MEGABYTE" />
+      <xsd:enumeration value="SAHPI_SU_GIGABYTE" />
+      <xsd:enumeration value="SAHPI_SU_WORD" />
+      <xsd:enumeration value="SAHPI_SU_DWORD" />
+      <xsd:enumeration value="SAHPI_SU_QWORD" />
+      <xsd:enumeration value="SAHPI_SU_LINE" />
+      <xsd:enumeration value="SAHPI_SU_HIT" />
+      <xsd:enumeration value="SAHPI_SU_MISS" />
+      <xsd:enumeration value="SAHPI_SU_RETRY" />
+      <xsd:enumeration value="SAHPI_SU_RESET" />
+      <xsd:enumeration value="SAHPI_SU_OVERRUN" />
+      <xsd:enumeration value="SAHPI_SU_UNDERRUN" />
+      <xsd:enumeration value="SAHPI_SU_COLLISION" />
+      <xsd:enumeration value="SAHPI_SU_PACKETS" />
+      <xsd:enumeration value="SAHPI_SU_MESSAGES" />
+      <xsd:enumeration value="SAHPI_SU_CHARACTERS" />
+      <xsd:enumeration value="SAHPI_SU_ERRORS" />
+      <xsd:enumeration value="SAHPI_SU_CORRECTABLE_ERRORS" />
+      <xsd:enumeration value="SAHPI_SU_UNCORRECTABLE_ERRORS" />
+   </xsd:restriction>
+</xsd:simpleType>
+
+<xsd:simpleType name="SaHpiSensorModUnitUseT">
+   <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="SAHPI_SMUU_NONE" />
+      <xsd:enumeration value="SAHPI_SMUU_BASIC_OVER_MODIFIER" />
+      <xsd:enumeration value="SAHPI_SMUU_BASIC_TIMES_MODIFIER" />
+   </xsd:restriction>
+</xsd:simpleType>
+
+<xsd:complexType name="SaHpiSensorDataFormatType">
+   <xsd:sequence minOccurs="1" maxOccurs="1">
+      <xsd:element name="IsSupported" type="hpi:SaHpiBooleanType" />
+      <xsd:element name="ReadingType" type="hpi:SaHpiSensorReadingType" />
+      <xsd:element name="BaseUnits" type="hpi:SaHpiSensorUnitsT" />
+      <xsd:element name="ModifierUnits" type="hpi:SaHpiSensorUnitsT" />
+      <xsd:element name="ModifierUse" type="hpi:SaHpiSensorModUnitUseT" />
+      <xsd:element name="Percentage" type="hpi:SaHpiBooleanType" />
+      <xsd:element name="Range" type="hpi:SaHpiSensorRangeType" />
+      <xsd:element name="AccuracyFactor" type="hpi:SaHpiFloat64Type" />
+   </xsd:sequence>
+   <xsd:attribute name="name" use="optional" default="mySensorRange" />
+</xsd:complexType>
+
+<xsd:simpleType name="SaHpiSensorThdMaskT">
+   <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="0" />
+      <xsd:enumeration value="SAHPI_STM_LOW_MINOR" />
+      <xsd:enumeration value="SAHPI_STM_LOW_MAJOR" />
+      <xsd:enumeration value="SAHPI_STM_LOW_CRIT" />
+      <xsd:enumeration value="SAHPI_STM_UP_MINOR" />
+      <xsd:enumeration value="SAHPI_STM_UP_MAJOR" />
+      <xsd:enumeration value="SAHPI_STM_UP_CRIT" />
+      <xsd:enumeration value="SAHPI_STM_UP_HYSTERESIS" />
+      <xsd:enumeration value="SAHPI_STM_LOW_HYSTERESIS" />
+   </xsd:restriction>
+</xsd:simpleType>
+
+<xsd:complexType name="SaHpiSensorThdDefnType">
+   <xsd:sequence minOccurs="1" maxOccurs="1">
+      <xsd:element name="IsAccessible" type="hpi:SaHpiBooleanType" />
+      <xsd:element name="ReadThold">
+         <xsd:simpleType>
+            <xsd:list itemType="hpi:SaHpiSensorThdMaskT" />
+         </xsd:simpleType>
+      </xsd:element>
+      <xsd:element name="WriteThold">
+         <xsd:simpleType>
+            <xsd:list itemType="hpi:SaHpiSensorThdMaskT" />
+         </xsd:simpleType>
+      </xsd:element>
+      <xsd:element name="Nonlinear" type="hpi:SaHpiBooleanType" />
+   </xsd:sequence>
+   <xsd:attribute name="name" use="optional" default="mySensorThdDefn" />
+</xsd:complexType>
+
+<xsd:simpleType name="SaHpiSensorEventCtrlT">
+   <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="SAHPI_SEC_PER_EVENT" />
+      <xsd:enumeration value="SAHPI_SEC_READ_ONLY_MASKS" />
+      <xsd:enumeration value="SAHPI_SEC_READ_ONLY" />
+   </xsd:restriction>
+</xsd:simpleType>
+
+<xsd:complexType name="SaHpiSensorRecType">
+   <xsd:sequence minOccurs="1" maxOccurs="1">
+      <xsd:element name="Num" type="hpi:SaHpiUint32Type" />
+      <xsd:element name="Type" type="hpi:SaHpiSensorTypeT" />
+      <xsd:element name="Category" type="hpi:SaHpiEventCategoryT" />
+      <xsd:element name="EnableCtrl" type="hpi:SaHpiBooleanType" />
+      <xsd:element name="EventCtrl" type="hpi:SaHpiSensorEventCtrlT" />
+      <xsd:element name="Events">
+         <xsd:simpleType>
+            <xsd:list itemType="hpi:SaHpiEventStateT" />
+         </xsd:simpleType>
+      </xsd:element>
+      <xsd:element name="DataFormat" type="hpi:SaHpiSensorDataFormatType" />
+      <xsd:element name="ThresholdDefn" type="hpi:SaHpiSensorThdDefnType" />
+      <xsd:element name="Oem" type="xsd:unsignedInt" />
+   </xsd:sequence>
+   <xsd:attribute name="name" use="optional" default="mySensorRec" />
+   <xsd:attribute name="comment" use="optional" />
+</xsd:complexType>
+
+<!-- Controls -->
+
+<xsd:simpleType name="SaHpiCtrlTypeT">
+   <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="SAHPI_CTRL_TYPE_DIGITAL" />
+      <xsd:enumeration value="SAHPI_CTRL_TYPE_DISCRETE" />
+      <xsd:enumeration value="SAHPI_CTRL_TYPE_ANALOG" />
+      <xsd:enumeration value="SAHPI_CTRL_TYPE_STREAM" />
+      <xsd:enumeration value="SAHPI_CTRL_TYPE_TEXT" />
+      <xsd:enumeration value="SAHPI_CTRL_TYPE_OEM" />
+   </xsd:restriction>
+</xsd:simpleType>
+
+<xsd:simpleType name="SaHpiCtrlStateDigitalT">
+   <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="SAHPI_CTRL_STATE_OFF" />
+      <xsd:enumeration value="SAHPI_CTRL_STATE_ON" />
+      <xsd:enumeration value="SAHPI_CTRL_STATE_PULSE_OFF" />
+      <xsd:enumeration value="SAHPI_CTRL_STATE_PULSE_ON" />
+   </xsd:restriction>
+</xsd:simpleType>
+
+<xsd:complexType name="SaHpiCtrlStateStreamType">
+   <xsd:sequence minOccurs="1" maxOccurs="1">
+      <xsd:element name="Repeat" type="hpi:SaHpiBooleanType" />
+      <xsd:element name="StreamLength" type="hpi:SaHpiInt32Type" />
+      <xsd:sequence minOccurs="1" maxOccurs="4">
+         <xsd:element name="Stream" type="hpi:SaHpiUint8Type" />
+      </xsd:sequence>
+   </xsd:sequence>
+</xsd:complexType>
+
+<xsd:complexType name="SaHpiCtrlStateTextType">
+   <xsd:sequence minOccurs="1" maxOccurs="1">
+      <xsd:sequence>
+         <xsd:element name="Line" type="hpi:SaHpiUint8Type" />
+         <xsd:element name="Text" type="hpi:SaHpiTextBufferType" />
+      </xsd:sequence>
+   </xsd:sequence>
+   <xsd:attribute name="name" use="optional" default="myCtrlState" />
+</xsd:complexType>
+
+<xsd:complexType name="SaHpiCtrlStateOemType">
+   <xsd:sequence minOccurs="1" maxOccurs="1">
+      <xsd:element name="MId" type="hpi:SaHpiInt32Type" />
+      <xsd:element name="BodyLength" type="hpi:SaHpiUint8Type" />
+      <xsd:sequence minOccurs="1" maxOccurs="255">
+         <xsd:element name="Body" type="hpi:SaHpiUint8Type" />
+      </xsd:sequence>
+   </xsd:sequence>
+</xsd:complexType>
+
+<xsd:complexType name="SaHpiCtrlStateType">
+   <xsd:sequence minOccurs="1" maxOccurs="1">
+      <xsd:element name="Type" type="hpi:SaHpiCtrlTypeT" />
+      <xsd:element name="StateUnion">
+         <xsd:complexType>
+            <xsd:choice>
+               <xsd:element name="Digital" type="hpi:SaHpiCtrlStateDigitalT" />
+               <xsd:element name="Discrete" type="hpi:SaHpiUint32Type" />
+               <xsd:element name="Analog" type="hpi:SaHpiInt32Type" />
+               <xsd:element name="Stream" type="hpi:SaHpiCtrlStateStreamType" />
+               <xsd:element name="Text" type="hpi:SaHpiCtrlStateTextType" />
+               <xsd:element name="Oem" type="hpi:SaHpiCtrlStateOemType" />
+            </xsd:choice>
+         </xsd:complexType>
+      </xsd:element>
+   </xsd:sequence>
+   <xsd:attribute name="name" use="optional" default="myCtrlState" />
+</xsd:complexType>
+
+<xsd:simpleType name="SaHpiCtrlModeT">
+   <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="SAHPI_CTRL_MODE_AUTO" />
+      <xsd:enumeration value="SAHPI_CTRL_MODE_MANUAL" />
+   </xsd:restriction>
+</xsd:simpleType>
+
+<!-- Controls RDRs -->
+
+<xsd:simpleType name="SaHpiCtrlOutputTypeT">
+   <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="SAHPI_CTRL_GENERIC" />
+      <xsd:enumeration value="SAHPI_CTRL_LED" />
+      <xsd:enumeration value="SAHPI_CTRL_FAN_SPEED" />
+      <xsd:enumeration value="SAHPI_CTRL_DRY_CONTACT_CLOSURE" />
+      <xsd:enumeration value="SAHPI_CTRL_POWER_SUPPLY_INHIBIT" />
+      <xsd:enumeration value="SAHPI_CTRL_AUDIBLE" />
+      <xsd:enumeration value="SAHPI_CTRL_FRONT_PANEL_LOCKOUT" />
+      <xsd:enumeration value="SAHPI_CTRL_POWER_INTERLOCK" />
+      <xsd:enumeration value="SAHPI_CTRL_POWER_STATE" />
+      <xsd:enumeration value="SAHPI_CTRL_LCD_DISPLAY" />
+      <xsd:enumeration value="SAHPI_CTRL_OEM" />
+   </xsd:restriction>
+</xsd:simpleType>
+
+<xsd:complexType name="SaHpiCtrlRecDigitalType">
+   <xsd:sequence minOccurs="1" maxOccurs="1">
+      <xsd:element name="Default" type="hpi:SaHpiCtrlStateDigitalT" />
+   </xsd:sequence>
+</xsd:complexType>
+
+<xsd:complexType name="SaHpiCtrlRecDiscreteType">
+   <xsd:sequence minOccurs="1" maxOccurs="1">
+      <xsd:element name="Default" type="hpi:SaHpiUint32Type" />
+   </xsd:sequence>
+</xsd:complexType>
+
+<xsd:complexType name="SaHpiCtrlRecAnalogType">
+   <xsd:sequence minOccurs="1" maxOccurs="1">
+      <xsd:element name="Min" type="hpi:SaHpiInt32Type" />
+      <xsd:element name="Max" type="hpi:SaHpiInt32Type" />
+      <xsd:element name="Default" type="hpi:SaHpiInt32Type" />
+   </xsd:sequence>
+</xsd:complexType>
+
+<xsd:complexType name="SaHpiCtrlRecStreamType">
+   <xsd:sequence minOccurs="1" maxOccurs="1">
+      <xsd:element name="Repeat" type="hpi:SaHpiBooleanType" />
+      <xsd:element name="StreamLength" type="hpi:SaHpiUint32Type" />
+      <xsd:sequence minOccurs="1" maxOccurs="4">
+         <xsd:element name="Stream" type="hpi:SaHpiUint8Type" />
+      </xsd:sequence>
+   </xsd:sequence>
+</xsd:complexType>
+
+<xsd:complexType name="SaHpiCtrlRecTextType">
+   <xsd:sequence minOccurs="1" maxOccurs="1">
+      <xsd:element name="MaxChars" type="hpi:SaHpiUint8Type" />
+      <xsd:element name="MaxLines" type="hpi:SaHpiUint8Type" />
+      <xsd:element name="Language" type="hpi:SaHpiLanguageT" />
+      <xsd:element name="DataType" type="hpi:SaHpiTextTypeT" />
+      <xsd:element name="Default">
+         <xsd:complexType>
+            <xsd:sequence>
+               <xsd:element name="Line" type="hpi:SaHpiUint8Type" />
+               <xsd:element name="Text" type="hpi:SaHpiTextBufferType" />
+            </xsd:sequence>
+         </xsd:complexType>
+      </xsd:element>
+   </xsd:sequence>
+</xsd:complexType>
+
+<xsd:complexType name="SaHpiCtrlRecOemType">
+   <xsd:sequence minOccurs="1" maxOccurs="1">
+      <xsd:element name="MId" type="hpi:SaHpiUint32Type" />
+      <xsd:sequence minOccurs="1" maxOccurs="10">
+         <xsd:element name="ConfigData" type="hpi:SaHpiUint8Type" />
+      </xsd:sequence>
+      <xsd:element name="Default" type="hpi:SaHpiCtrlStateOemType" />
+   </xsd:sequence>
+</xsd:complexType>
+
+<xsd:complexType name="SaHpiCtrlDefaultModeType">
+   <xsd:sequence minOccurs="1" maxOccurs="1">
+      <xsd:element name="Mode" type="hpi:SaHpiCtrlModeT" />
+      <xsd:element name="ReadOnly" type="hpi:SaHpiBooleanType" />
+   </xsd:sequence>
+</xsd:complexType>
+
+<xsd:complexType name="SaHpiCtrlRecType">
+   <xsd:sequence minOccurs="1" maxOccurs="1">
+      <xsd:element name="Num" type="hpi:SaHpiUint32Type" />
+      <xsd:element name="OutputType" type="hpi:SaHpiCtrlOutputTypeT" />
+      <xsd:element name="Type" type="hpi:SaHpiCtrlTypeT" />
+      <xsd:element name="TypeUnion">
+         <xsd:complexType>
+            <xsd:choice>
+               <xsd:element name="Digital" type="hpi:SaHpiCtrlRecDigitalType" />
+               <xsd:element name="Discrete" type="hpi:SaHpiCtrlRecDiscreteType" />
+               <xsd:element name="Analog" type="hpi:SaHpiCtrlRecAnalogType" />
+               <xsd:element name="Stream" type="hpi:SaHpiCtrlRecStreamType" />
+               <xsd:element name="Text" type="hpi:SaHpiCtrlRecTextType" />
+               <xsd:element name="Oem" type="hpi:SaHpiCtrlRecOemType" />
+            </xsd:choice>
+         </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="DefaultMode" type="hpi:SaHpiCtrlDefaultModeType" />
+      <xsd:element name="WriteOnly" type="hpi:SaHpiBooleanType" />
+      <xsd:element name="Oem" type="hpi:SaHpiUint32Type" />
+   </xsd:sequence>
+   <xsd:attribute name="name" use="optional" default="myCtrlRec" />
+   <xsd:attribute name="comment" use="optional" />
+</xsd:complexType>
+
+<!-- Entity Inventory Data -->
+
+<xsd:simpleType name="SaHpiIdrAreaTypeT">
+   <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="SAHPI_IDR_AREATYPE_INTERNAL_USE" />
+      <xsd:enumeration value="SAHPI_IDR_AREATYPE_CHASSIS_INFO" />
+      <xsd:enumeration value="SAHPI_IDR_AREATYPE_BOARD_INFO" />
+      <xsd:enumeration value="SAHPI_IDR_AREATYPE_PRODUCT_INFO" />
+      <xsd:enumeration value="SAHPI_IDR_AREATYPE_OEM" />
+      <xsd:enumeration value="SAHPI_IDR_AREATYPE_UNSPECIFIED" />
+   </xsd:restriction>
+</xsd:simpleType>
+
+<xsd:simpleType name="SaHpiIdrFieldTypeT">
+   <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="SAHPI_IDR_FIELDTYPE_CHASSIS_TYPE" />
+      <xsd:enumeration value="SAHPI_IDR_FIELDTYPE_MFG_DATETIME" />
+      <xsd:enumeration value="SAHPI_IDR_FIELDTYPE_MANUFACTURER" />
+      <xsd:enumeration value="SAHPI_IDR_FIELDTYPE_PRODUCT_NAME" />
+      <xsd:enumeration value="SAHPI_IDR_FIELDTYPE_PRODUCT_VERSION" />
+      <xsd:enumeration value="SAHPI_IDR_FIELDTYPE_SERIAL_NUMBER" />
+      <xsd:enumeration value="SAHPI_IDR_FIELDTYPE_PART_NUMBER" />
+      <xsd:enumeration value="SAHPI_IDR_FIELDTYPE_FILE_ID" />
+      <xsd:enumeration value="SAHPI_IDR_FIELDTYPE_ASSET_TAG" />
+      <xsd:enumeration value="SAHPI_IDR_FIELDTYPE_CUSTOM" />
+      <xsd:enumeration value="SAHPI_IDR_FIELDTYPE_UNSPECIFIED" />
+   </xsd:restriction>
+</xsd:simpleType>
+
+<xsd:complexType name="SaHpiIdrFieldType">
+   <xsd:sequence minOccurs="1" maxOccurs="1">
+      <xsd:element name="AreaId" type="hpi:SaHpiUint32Type" />
+      <xsd:element name="FieldId" type="hpi:SaHpiUint32Type" />
+      <xsd:element name="Type" type="hpi:SaHpiIdrFieldTypeT" />
+      <xsd:element name="ReadOnly" type="hpi:SaHpiBooleanType" />
+      <xsd:element name="Field" type="hpi:SaHpiTextBufferType" />
+   </xsd:sequence>
+   <xsd:attribute name="name" use="optional" default="myIdrField" />
+</xsd:complexType>
+
+<xsd:complexType name="SaHpiIdrAreaHeaderType">
+   <xsd:sequence minOccurs="1" maxOccurs="1">
+      <xsd:element name="AreaId" type="hpi:SaHpiUint32Type" />
+      <xsd:element name="Type" type="hpi:SaHpiIdrAreaTypeT" />
+      <xsd:element name="ReadOnly" type="hpi:SaHpiBooleanType" />
+      <xsd:element name="NumFields" type="hpi:SaHpiUint32Type" />
+   </xsd:sequence>
+   <xsd:attribute name="name" use="optional" default="myIdrAreaHeader" />
+</xsd:complexType>
+
+<xsd:complexType name="SaHpiIdrInfoType">
+   <xsd:sequence minOccurs="1" maxOccurs="1">
+      <xsd:element name="IdrId" type="hpi:SaHpiUint32Type" />
+      <xsd:element name="UpdateCount" type="hpi:SaHpiUint32Type" />
+      <xsd:element name="ReadOnly" type="hpi:SaHpiBooleanType" />
+      <xsd:element name="NumAreas" type="hpi:SaHpiUint32Type" />
+   </xsd:sequence>
+   <xsd:attribute name="name" use="optional" default="myIdrInfo" />
+</xsd:complexType>
+
+<!-- Inventory Data RDRs -->
+
+<xsd:complexType name="SaHpiInventoryRecType">
+   <xsd:sequence minOccurs="1" maxOccurs="1">
+      <xsd:element name="IdrId" type="hpi:SaHpiUint32Type" />
+      <xsd:element name="Persistent" type="hpi:SaHpiBooleanType" />
+      <xsd:element name="Oem" type="hpi:SaHpiUint32Type" />
+   </xsd:sequence>
+   <xsd:attribute name="name" use="optional" default="myInventoryRec" />
+   <xsd:attribute name="comment" use="optional" />
+</xsd:complexType>
+
+<!-- Watchdogs -->
+
+<xsd:simpleType name="SaHpiWatchdogActionT">
+   <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="SAHPI_WA_NO_ACTION" />
+      <xsd:enumeration value="SAHPI_WA_RESET" />
+      <xsd:enumeration value="SAHPI_WA_POWER_DOWN" />
+      <xsd:enumeration value="SAHPI_WA_POWER_CYCLE" />
+   </xsd:restriction>
+</xsd:simpleType>
+
+<xsd:simpleType name="SaHpiWatchdogActionEventT">
+   <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="SAHPI_WAE_NO_ACTION" />
+      <xsd:enumeration value="SAHPI_WAE_RESET" />
+      <xsd:enumeration value="SAHPI_WAE_POWER_DOWN" />
+      <xsd:enumeration value="SAHPI_WAE_POWER_CYCLE" />
+      <xsd:enumeration value="SAHPI_WAE_TIMER_INT" />
+   </xsd:restriction>
+</xsd:simpleType>
+
+<xsd:simpleType name="SaHpiWatchdogPretimerInterruptT">
+   <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="SAHPI_WPI_NONE" />
+      <xsd:enumeration value="SAHPI_WPI_SMI" />
+      <xsd:enumeration value="SAHPI_WPI_NMI" />
+      <xsd:enumeration value="SAHPI_WPI_MESSAGE_INTERRUPT" />
+      <xsd:enumeration value="SAHPI_WPI_OEM" />
+   </xsd:restriction>
+</xsd:simpleType>
+
+<xsd:simpleType name="SaHpiWatchdogTimerUseT">
+   <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="SAHPI_WTU_NONE" />
+      <xsd:enumeration value="SAHPI_WTU_BIOS_FRB2" />
+      <xsd:enumeration value="SAHPI_WTU_BIOS_POST" />
+      <xsd:enumeration value="SAHPI_WTU_OS_LOAD" />
+      <xsd:enumeration value="SAHPI_WTU_SMS_OS" />
+      <xsd:enumeration value="SAHPI_WTU_OEM" />
+      <xsd:enumeration value="SAHPI_WTU_UNSPECIFIED" />
+   </xsd:restriction>
+</xsd:simpleType>
+
+<xsd:simpleType name="SaHpiWatchdogExpFlagsT">
+   <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="0" />
+      <xsd:enumeration value="SAHPI_WATCHDOG_EXP_BIOS_FRB2" />
+      <xsd:enumeration value="SAHPI_WATCHDOG_EXP_BIOS_POST" />
+      <xsd:enumeration value="SAHPI_WATCHDOG_EXP_OS_LOAD" />
+      <xsd:enumeration value="SAHPI_WATCHDOG_EXP_SMS_OS" />
+      <xsd:enumeration value="SAHPI_WATCHDOG_EXP_OEM" />
+   </xsd:restriction>
+</xsd:simpleType>
+
+<xsd:complexType name="SaHpiWatchdogType">
+   <xsd:sequence minOccurs="1" maxOccurs="1">
+      <xsd:element name="Log" type="hpi:SaHpiBooleanType" />
+      <xsd:element name="Running" type="hpi:SaHpiBooleanType" />
+      <xsd:element name="TimerUse" type="hpi:SaHpiWatchdogTimerUseT" />
+      <xsd:element name="TimerAction" type="hpi:SaHpiWatchdogActionT" />
+      <xsd:element name="PretimerInterrupt" type="hpi:SaHpiWatchdogPretimerInterruptT" />
+      <xsd:element name="PreTimeoutInterval" type="hpi:SaHpiUint32Type" />
+      <xsd:element name="TimerUseExpFlags">
+         <xsd:simpleType>
+            <xsd:list itemType="hpi:SaHpiWatchdogExpFlagsT" />
+         </xsd:simpleType>
+      </xsd:element>
+      <xsd:element name="InitialCount" type="hpi:SaHpiUint32Type" />
+      <xsd:element name="PresentCount" type="hpi:SaHpiUint32Type" />
+   </xsd:sequence>
+   <xsd:attribute name="name" use="optional" default="myWatchdog" />
+</xsd:complexType>
+
+<!-- Watchdog RDRs -->
+
+<xsd:complexType name="SaHpiWatchdogRecType">
+   <xsd:sequence minOccurs="1" maxOccurs="1">
+      <xsd:element name="WatchdogNum" type="hpi:SaHpiUint32Type" />
+      <xsd:element name="Oem" type="hpi:SaHpiUint32Type" />
+   </xsd:sequence>
+   <xsd:attribute name="name" use="optional" default="myWatchdogRec" />
+   <xsd:attribute name="comment" use="optional" />
+</xsd:complexType>
+
+<!-- Hotswap -->
+
+<xsd:simpleType name="SaHpiHsStateT">
+   <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="SAHPI_HS_STATE_INACTIVE" />
+      <xsd:enumeration value="SAHPI_HS_STATE_INSERTION_PENDING" />
+      <xsd:enumeration value="SAHPI_HS_STATE_ACTIVE" />
+      <xsd:enumeration value="SAHPI_HS_STATE_EXTRACTION_PENDING" />
+      <xsd:enumeration value="SAHPI_HS_STATE_NOT_PRESENT" />
+   </xsd:restriction>
+</xsd:simpleType>
+
+<!-- Events Part 2 -->
+
+<xsd:simpleType name="SaHpiSeverityT">
+   <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="SAHPI_CRITICAL" />
+      <xsd:enumeration value="SAHPI_MAJOR" />
+      <xsd:enumeration value="SAHPI_MINOR" />
+      <xsd:enumeration value="SAHPI_INFORMATIONAL" />
+      <xsd:enumeration value="SAHPI_OK" />
+      <xsd:enumeration value="SAHPI_DEBUG" />
+      <xsd:enumeration value="SAHPI_ALL_SEVERITIES" />
+   </xsd:restriction>
+</xsd:simpleType>
+
+<xsd:simpleType name="SaHpiResourceEventTypeT">
+   <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="SAHPI_RESE_RESOURCE_FAILURE" />
+      <xsd:enumeration value="SAHPI_RESE_RESOURCE_RESTORED" />
+      <xsd:enumeration value="SAHPI_RESE_RESOURCE_ADDED" />
+   </xsd:restriction>
+</xsd:simpleType>
+
+<xsd:complexType name="SaHpiResourceEventType">
+   <xsd:sequence minOccurs="1" maxOccurs="1">
+      <xsd:element name="ResourceEvent" type="hpi:SaHpiResourceEventTypeT" />
+   </xsd:sequence>
+   <xsd:attribute name="name" use="optional" default="myResourceEvent" />
+</xsd:complexType>
+
+<xsd:simpleType name="SaHpiDomainEventTypeT">
+   <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="SAHPI_DOMAIN_REF_ADDED" />
+      <xsd:enumeration value="SAHPI_DOMAIN_REF_REMOVED" />
+   </xsd:restriction>
+</xsd:simpleType>
+
+<xsd:complexType name="SaHpiDomainEventType">
+   <xsd:sequence minOccurs="1" maxOccurs="1">
+      <xsd:element name="Type" type="hpi:SaHpiDomainEventTypeT" />
+      <xsd:element name="DomainId" type="hpi:SaHpiUint32Type" />
+   </xsd:sequence>
+   <xsd:attribute name="name" use="optional" default="myDomainEvent" />
+</xsd:complexType>
+
+<xsd:simpleType name="SaHpiSensorOptionalDataT">
+   <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="0" />
+      <xsd:enumeration value="SAHPI_SOD_TRIGGER_READING" />
+      <xsd:enumeration value="SAHPI_SOD_TRIGGER_THRESHOLD" />
+      <xsd:enumeration value="SAHPI_SOD_OEM" />
+      <xsd:enumeration value="SAHPI_SOD_PREVIOUS_STATE" />
+      <xsd:enumeration value="SAHPI_SOD_CURRENT_STATE" />
+      <xsd:enumeration value="SAHPI_SOD_SENSOR_SPECIFIC" />
+   </xsd:restriction>
+</xsd:simpleType>
+
+<xsd:complexType name="SaHpiSensorEventType">
+   <xsd:sequence minOccurs="1" maxOccurs="1">
+      <xsd:element name="SensorNum" type="hpi:SaHpiUint32Type" />
+      <xsd:element name="SensorType" type="hpi:SaHpiSensorTypeT" />
+      <xsd:element name="EventCategory" type="hpi:SaHpiEventCategoryT" />
+      <xsd:element name="Assertion" type="hpi:SaHpiBooleanType" />
+      <xsd:element name="EventState">
+         <xsd:simpleType>
+            <xsd:list itemType="hpi:SaHpiEventStateT" />
+         </xsd:simpleType>
+      </xsd:element>
+      <xsd:element name="OptionalDataPresent">
+         <xsd:simpleType>
+            <xsd:list itemType="hpi:SaHpiSensorOptionalDataT" />
+         </xsd:simpleType>
+      </xsd:element>
+      <xsd:element name="TriggerReading" type="hpi:SaHpiSensorReadingType" />
+      <xsd:element name="TriggerThreshold" type="hpi:SaHpiSensorReadingType" />
+      <xsd:element name="PreviousState">
+         <xsd:simpleType>
+            <xsd:list itemType="hpi:SaHpiEventStateT" />
+         </xsd:simpleType>
+      </xsd:element>
+      <xsd:element name="CurrentState">
+         <xsd:simpleType>
+            <xsd:list itemType="hpi:SaHpiEventStateT" />
+         </xsd:simpleType>
+      </xsd:element>
+      <xsd:element name="Oem" type="xsd:unsignedInt" />
+      <xsd:element name="SensorSpecific" type="hpi:SaHpiUint32Type" />
+   </xsd:sequence>
+   <xsd:attribute name="name" use="optional" default="mySensorEvent" />
+</xsd:complexType>
+
+<xsd:complexType name="SaHpiSensorEnableChangeEventType">
+   <xsd:sequence minOccurs="1" maxOccurs="1">
+      <xsd:element name="SensorNum" type="hpi:SaHpiUint32Type" />
+      <xsd:element name="SensorType" type="hpi:SaHpiSensorTypeT" />
+      <xsd:element name="EventCategory" type="hpi:SaHpiEventCategoryT" />
+      <xsd:element name="SensorEnable" type="hpi:SaHpiBooleanType" />
+      <xsd:element name="SensorEventEnable" type="hpi:SaHpiBooleanType" />
+      <xsd:element name="AssertEventMask">
+         <xsd:simpleType>
+            <xsd:list itemType="hpi:SaHpiEventStateT" />
+         </xsd:simpleType>
+      </xsd:element>
+      <xsd:element name="DeassertEventMask">
+         <xsd:simpleType>
+            <xsd:list itemType="hpi:SaHpiEventStateT" />
+         </xsd:simpleType>
+      </xsd:element>
+      <xsd:element name="OptionalDataPresent">
+         <xsd:simpleType>
+            <xsd:list itemType="hpi:SaHpiSensorOptionalDataT" />
+         </xsd:simpleType>
+      </xsd:element>
+      <xsd:element name="CurrentState">
+         <xsd:simpleType>
+            <xsd:list itemType="hpi:SaHpiEventStateT" />
+         </xsd:simpleType>
+      </xsd:element>
+   </xsd:sequence>
+   <xsd:attribute name="name" use="optional" default="mySensorEnableChangeEvent" />
+</xsd:complexType>
+
+<xsd:complexType name="SaHpiHotSwapEventType">
+   <xsd:sequence minOccurs="1" maxOccurs="1">
+      <xsd:element name="HotSwapState" type="hpi:SaHpiHsStateT" />
+      <xsd:element name="PreviousHotSwapState" type="hpi:SaHpiHsStateT" />
+   </xsd:sequence>
+   <xsd:attribute name="name" use="optional" default="myHotSwapEvent" />
+</xsd:complexType>
+
+<xsd:complexType name="SaHpiWatchdogEventType">
+   <xsd:sequence minOccurs="1" maxOccurs="1">
+      <xsd:element name="WatchdogNum" type="hpi:SaHpiUint32Type" />
+      <xsd:element name="WatchdogAction" type="hpi:SaHpiWatchdogActionEventT" />
+      <xsd:element name="WatchdogPreTimerAction" type="hpi:SaHpiWatchdogPretimerInterruptT" />
+      <xsd:element name="WatchdogUse" type="hpi:SaHpiWatchdogTimerUseT" />
+   </xsd:sequence>
+   <xsd:attribute name="name" use="optional" default="myWatchdogEvent" />
+</xsd:complexType>
+
+<xsd:simpleType name="SaHpiSwEventTypeT">
+   <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="SAHPI_HPIE_AUDIT" />
+      <xsd:enumeration value="SAHPI_HPIE_STARTUP" />
+      <xsd:enumeration value="SAHPI_HPIE_OTHER" />
+   </xsd:restriction>
+</xsd:simpleType>
+
+<xsd:complexType name="SaHpiSwEventType">
+   <xsd:sequence minOccurs="1" maxOccurs="1">
+      <xsd:element name="MId" type="hpi:SaHpiUint32Type" />
+      <xsd:element name="Type" type="hpi:SaHpiSwEventTypeT" />
+      <xsd:element name="EventData" type="hpi:SaHpiTextBufferType" />
+   </xsd:sequence>
+   <xsd:attribute name="name" use="optional" default="mySwEvent" />
+</xsd:complexType>
+
+<xsd:complexType name="SaHpiOemEventType">
+   <xsd:sequence minOccurs="1" maxOccurs="1">
+      <xsd:element name="MId" type="hpi:SaHpiUint32Type" />
+      <xsd:element name="OemEventData" type="hpi:SaHpiTextBufferType" />
+   </xsd:sequence>
+   <xsd:attribute name="name" use="optional" default="myOemEvent" />
+</xsd:complexType>
+
+<xsd:complexType name="SaHpiUserEventType">
+   <xsd:sequence minOccurs="1" maxOccurs="1">
+      <xsd:element name="UserEventData" type="hpi:SaHpiTextBufferType" />
+   </xsd:sequence>
+   <xsd:attribute name="name" use="optional" default="myUserEvent" />
+</xsd:complexType>
+
+<xsd:simpleType name="SaHpiEventTypeT">
+   <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="SAHPI_ET_RESOURCE" />
+      <xsd:enumeration value="SAHPI_ET_DOMAIN" />
+      <xsd:enumeration value="SAHPI_ET_SENSOR" />
+      <xsd:enumeration value="SAHPI_ET_SENSOR_ENABLE_CHANGE" />
+      <xsd:enumeration value="SAHPI_ET_HOTSWAP" />
+      <xsd:enumeration value="SAHPI_ET_WATCHDOG" />
+      <xsd:enumeration value="SAHPI_ET_HPI_SW" />
+      <xsd:enumeration value="SAHPI_ET_OEM" />
+      <xsd:enumeration value="SAHPI_ET_USER" />
+   </xsd:restriction>
+</xsd:simpleType>
+
+<xsd:complexType name="SaHpiEventType">
+   <xsd:sequence minOccurs="1" maxOccurs="1">
+      <xsd:element name="Source" type="hpi:SaHpiUint32Type" />
+      <xsd:element name="EventType" type="hpi:SaHpiEventTypeT" />
+      <xsd:element name="Timestamp" type="hpi:SaHpiInt64Type" />
+      <xsd:element name="Severity" type="hpi:SaHpiSeverityT" />
+      <xsd:element name="EventDataUnion">
+         <xsd:complexType>
+            <xsd:choice>
+               <xsd:element name="ResourceEvent" type="hpi:SaHpiResourceEventType" />
+               <xsd:element name="DomainEvent" type="hpi:SaHpiDomainEventType" />
+               <xsd:element name="SensorEvent" type="hpi:SaHpiSensorEventType" />
+               <xsd:element name="SensorEnableChangeEvent" type="hpi:SaHpiSensorEnableChangeEventType" />
+               <xsd:element name="HotSwapEvent" type="hpi:SaHpiHotSwapEventType" />
+               <xsd:element name="WatchdogEvent" type="hpi:SaHpiWatchdogEventType" />
+               <xsd:element name="HpiSwEvent" type="hpi:SaHpiSwEventType" />
+               <xsd:element name="OemEvent" type="hpi:SaHpiOemEventType" />
+               <xsd:element name="UserEvent" type="hpi:SaHpiUserEventType" />
+            </xsd:choice>
+         </xsd:complexType>
+      </xsd:element>
+   </xsd:sequence>
+   <xsd:attribute name="name" use="optional" default="myEvent" />
+   <xsd:attribute name="parent" use="required" />
+   <xsd:attribute name="comment" use="optional" />
+</xsd:complexType>
+
+<!-- Annunciators -->
+
+<xsd:complexType name="SaHpiNameType">
+   <xsd:sequence minOccurs="1" maxOccurs="1">
+      <xsd:element name="Length" type="hpi:SaHpiUint16Type" />
+      <xsd:sequence minOccurs="1" maxOccurs="256">
+         <xsd:element name="Value" type="hpi:SaHpiUint8Type" />
+      </xsd:sequence>
+   </xsd:sequence>
+   <xsd:attribute name="name" use="optional" default="myName" />
+</xsd:complexType>
+
+<xsd:simpleType name="SaHpiStatusCondTypeT">
+   <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="SAHPI_STATUS_COND_TYPE_SENSOR" />
+      <xsd:enumeration value="SAHPI_STATUS_COND_TYPE_RESOURCE" />
+      <xsd:enumeration value="SAHPI_STATUS_COND_TYPE_OEM" />
+      <xsd:enumeration value="SAHPI_STATUS_COND_TYPE_USER" />
+   </xsd:restriction>
+</xsd:simpleType>
+
+<xsd:complexType name="SaHpiConditionType">
+   <xsd:sequence minOccurs="1" maxOccurs="1">
+      <xsd:element name="Type" type="hpi:SaHpiStatusCondTypeT" />
+      <xsd:element name="Entity" type="hpi:SaHpiEntityPathType" />
+      <xsd:element name="DomainId" type="hpi:SaHpiUint32Type" />
+      <xsd:element name="ResourceId" type="hpi:SaHpiUint32Type" />
+      <xsd:element name="SensorNum" type="hpi:SaHpiUint32Type" />
+      <xsd:element name="EventState" type="hpi:SaHpiUint16Type" />
+      <xsd:element name="Name" type="hpi:SaHpiNameType" />
+      <xsd:element name="MId" type="hpi:SaHpiUint32Type" />
+      <xsd:element name="Data" type="hpi:SaHpiTextBufferType" />
+   </xsd:sequence>
+   <xsd:attribute name="name" use="optional" default="myCondition" />
+</xsd:complexType>
+
+<xsd:complexType name="SaHpiAnnouncementType">
+   <xsd:sequence minOccurs="1" maxOccurs="1">
+      <xsd:element name="EntryId" type="hpi:SaHpiUint32Type" />
+      <xsd:element name="Timestamp" type="hpi:SaHpiInt64Type" />
+      <xsd:element name="AddedByUser" type="hpi:SaHpiBooleanType" />
+      <xsd:element name="Severity" type="hpi:SaHpiSeverityT" />
+      <xsd:element name="Acknowledged" type="hpi:SaHpiBooleanType" />
+      <xsd:element name="StatusCond" type="hpi:SaHpiConditionType" />
+   </xsd:sequence>
+   <xsd:attribute name="name" use="optional" default="myAnnouncement" />
+</xsd:complexType>
+
+<!-- Annunciators RDRs -->
+
+<xsd:simpleType name="SaHpiAnnunciatorTypeT">
+   <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="SAHPI_ANNUNCIATOR_TYPE_LED" />
+      <xsd:enumeration value="SAHPI_ANNUNCIATOR_TYPE_DRY_CONTACT_CLOSURE" />
+      <xsd:enumeration value="SAHPI_ANNUNCIATOR_TYPE_AUDIBLE" />
+      <xsd:enumeration value="SAHPI_ANNUNCIATOR_TYPE_LCD_DISPLAY" />
+      <xsd:enumeration value="SAHPI_ANNUNCIATOR_TYPE_MESSAGE" />
+      <xsd:enumeration value="SAHPI_ANNUNCIATOR_TYPE_COMPOSITE" />
+      <xsd:enumeration value="SAHPI_ANNUNCIATOR_TYPE_OEM" />
+   </xsd:restriction>
+</xsd:simpleType>
+
+<xsd:complexType name="SaHpiAnnunciatorRecType">
+   <xsd:sequence minOccurs="1" maxOccurs="1">
+      <xsd:element name="AnnunciatorNum" type="hpi:SaHpiUint32Type" />
+      <xsd:element name="AnnunciatorType" type="hpi:SaHpiAnnunciatorTypeT" />
+      <xsd:element name="ModeReadOnly" type="hpi:SaHpiBooleanType" />
+      <xsd:element name="MaxConditions" type="hpi:SaHpiUint32Type" />
+      <xsd:element name="Oem" type="hpi:SaHpiUint32Type" />
+   </xsd:sequence>
+   <xsd:attribute name="name" use="optional" default="myAnnouncement" />
+   <xsd:attribute name="comment" use="optional" />
+</xsd:complexType>
+
+<!-- RDRs -->
+
+<xsd:simpleType name="SaHpiRdrTypeT">
+   <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="SAHPI_NO_RECORD" />
+      <xsd:enumeration value="SAHPI_CTRL_RDR" />
+      <xsd:enumeration value="SAHPI_SENSOR_RDR" />
+      <xsd:enumeration value="SAHPI_INVENTORY_RDR" />
+      <xsd:enumeration value="SAHPI_WATCHDOG_RDR" />
+      <xsd:enumeration value="SAHPI_ANNUNCIATOR_RDR" />
+   </xsd:restriction>
+</xsd:simpleType>
+
+<xsd:complexType name="SaHpiRdrType">
+   <xsd:sequence minOccurs="1" maxOccurs="1">
+      <xsd:element name="RecordId" type="hpi:SaHpiUint32Type" />
+      <xsd:element name="RdrType" type="hpi:SaHpiRdrTypeT" />
+      <xsd:element name="Entity" type="hpi:SaHpiEntityPathType" />
+      <xsd:element name="IsFru" type="hpi:SaHpiBooleanType" />
+      <xsd:element name="RdrTypeUnion">
+         <xsd:complexType>
+            <xsd:choice>
+               <xsd:element name="CtrlRec" type="hpi:SaHpiCtrlRecType" />
+               <xsd:element name="SensorRec" type="hpi:SaHpiSensorRecType" />
+               <xsd:element name="InventoryRec" type="hpi:SaHpiInventoryRecType" />
+               <xsd:element name="WatchdogRec" type="hpi:SaHpiWatchdogRecType" />
+               <xsd:element name="AnnunciatorRec" type="hpi:SaHpiAnnunciatorRecType" />
+            </xsd:choice>
+         </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="IdString" type="hpi:SaHpiTextBufferType" />
+   </xsd:sequence>
+   <xsd:attribute name="name" use="required" />
+   <xsd:attribute name="parent" use="required" />
+   <xsd:attribute name="comment" use="optional" />
+</xsd:complexType>
+
+<!-- RPT -->
+
+<xsd:complexType name="SaHpiResourceInfoType">
+   <xsd:sequence minOccurs="1" maxOccurs="1">
+      <xsd:element name="ResourceRev" type="hpi:SaHpiUint8Type" />
+      <xsd:element name="SpecificVer" type="hpi:SaHpiUint8Type" />
+      <xsd:element name="DeviceSupport" type="hpi:SaHpiUint8Type" />
+      <xsd:element name="ManufacturerId" type="hpi:SaHpiUint32Type" />
+      <xsd:element name="ProductId" type="hpi:SaHpiUint16Type" />
+      <xsd:element name="FirmwareMajorRev" type="hpi:SaHpiUint8Type" />
+      <xsd:element name="FirmwareMinorRev" type="hpi:SaHpiUint8Type" />
+      <xsd:element name="AuxFirmwareRev" type="hpi:SaHpiUint8Type" />
+      <xsd:sequence minOccurs="1" maxOccurs="16">
+         <xsd:element name="Guid" type="hpi:SaHpiUint8Type" />
+      </xsd:sequence>
+   </xsd:sequence>
+   <xsd:attribute name="name" use="optional" default="myResourceInfo" />
+</xsd:complexType>
+
+<xsd:simpleType name="SaHpiCapabilitiesT">
+   <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="0" />
+      <xsd:enumeration value="SAHPI_CAPABILITY_RESOURCE" />
+      <xsd:enumeration value="SAHPI_CAPABILITY_EVT_DEASSERTS" />
+      <xsd:enumeration value="SAHPI_CAPABILITY_AGGREGATE_STATUS" />
+      <xsd:enumeration value="SAHPI_CAPABILITY_CONFIGURATION" />
+      <xsd:enumeration value="SAHPI_CAPABILITY_MANAGED_HOTSWAP" />
+      <xsd:enumeration value="SAHPI_CAPABILITY_WATCHDOG" />
+      <xsd:enumeration value="SAHPI_CAPABILITY_CONTROL" />
+      <xsd:enumeration value="SAHPI_CAPABILITY_FRU" />
+      <xsd:enumeration value="SAHPI_CAPABILITY_ANNUNCIATOR" />
+      <xsd:enumeration value="SAHPI_CAPABILITY_POWER" />
+      <xsd:enumeration value="SAHPI_CAPABILITY_RESET" />
+      <xsd:enumeration value="SAHPI_CAPABILITY_INVENTORY_DATA" />
+      <xsd:enumeration value="SAHPI_CAPABILITY_EVENT_LOG" />
+      <xsd:enumeration value="SAHPI_CAPABILITY_RDR" />
+      <xsd:enumeration value="SAHPI_CAPABILITY_SENSOR" />
+   </xsd:restriction>
+</xsd:simpleType>
+
+<xsd:simpleType name="SaHpiHsCapabilitiesT">
+   <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="0" />
+      <xsd:enumeration value="SAHPI_HS_CAPABILITY_AUTOEXTRACT_READ_ONLY" />
+      <xsd:enumeration value="SAHPI_HS_CAPABILITY_INDICATOR_SUPPORTED" />
+   </xsd:restriction>
+</xsd:simpleType>
+
+<xsd:complexType name="SaHpiRptEntryType">
+   <xsd:sequence minOccurs="1" maxOccurs="1">
+      <xsd:element name="EntryId" type="hpi:SaHpiUint32Type" />
+      <xsd:element name="ResourceId" type="hpi:SaHpiUint32Type" />
+      <xsd:element name="ResourceInfo" type="hpi:SaHpiResourceInfoType" />
+      <xsd:element name="ResourceEntity" type="hpi:SaHpiEntityPathType" />
+      <xsd:element name="ResourceCapabilities">
+         <xsd:simpleType>
+            <xsd:list itemType="hpi:SaHpiCapabilitiesT" />
+         </xsd:simpleType>
+      </xsd:element>
+      <xsd:element name="HotSwapCapabilities">
+         <xsd:simpleType>
+            <xsd:list itemType="hpi:SaHpiHsCapabilitiesT" />
+         </xsd:simpleType>
+      </xsd:element>
+      <xsd:element name="ResourceSeverity" type="hpi:SaHpiSeverityT" />
+      <xsd:element name="ResourceFailed" type="hpi:SaHpiBooleanType" />
+      <xsd:element name="ResourceTag" type="hpi:SaHpiTextBufferType" />
+   </xsd:sequence>
+   <xsd:attribute name="name" use="required" />
+   <xsd:attribute name="comment" use="optional" />
+</xsd:complexType>
+
+<!-- Domains -->
+
+<xsd:simpleType name="SaHpiDomainCapabilitiesT">
+   <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="0" />
+      <xsd:enumeration value="SAHPI_DOMAIN_CAP_AUTOINSERT_READ_ONLY" />
+   </xsd:restriction>
+</xsd:simpleType>
+
+<xsd:complexType name="SaHpiDomainInfoType">
+   <xsd:sequence minOccurs="1" maxOccurs="1">
+      <xsd:element name="DomainId" type="hpi:SaHpiUint32Type" />
+      <xsd:element name="DomainCapabilities" type="hpi:SaHpiDomainCapabilitiesT" />
+      <xsd:element name="IsPeer" type="hpi:SaHpiBooleanType" />
+      <xsd:element name="DomainTag" type="hpi:SaHpiTextBufferType" />
+      <xsd:element name="DrtUpdateCount" type="hpi:SaHpiUint32Type" />
+      <xsd:element name="DrtUpdateTimestamp" type="hpi:SaHpiInt64Type" />
+      <xsd:element name="RptUpdateCount" type="hpi:SaHpiUint32Type" />
+      <xsd:element name="RptUpdateTimestamp" type="hpi:SaHpiInt64Type" />
+      <xsd:element name="DatUpdateCount" type="hpi:SaHpiUint32Type" />
+      <xsd:element name="DatUpdateTimestamp" type="hpi:SaHpiInt64Type" />
+      <xsd:element name="ActiveAlarms" type="hpi:SaHpiUint32Type" />
+      <xsd:element name="CriticalAlarms" type="hpi:SaHpiUint32Type" />
+      <xsd:element name="MajorAlarms" type="hpi:SaHpiUint32Type" />
+      <xsd:element name="MinorAlarms" type="hpi:SaHpiUint32Type" />
+      <xsd:element name="DatUserAlarmLimit" type="hpi:SaHpiUint32Type" />
+      <xsd:element name="DatOverflow" type="hpi:SaHpiBooleanType" />
+      <xsd:sequence minOccurs="1" maxOccurs="16">
+         <xsd:element name="Guid" type="hpi:SaHpiUint8Type" />
+      </xsd:sequence>
+   </xsd:sequence>
+   <xsd:attribute name="name" use="optional" default="myDomainInfo" />
+</xsd:complexType>
+
+<xsd:complexType name="SaHpiDrtEntryType">
+   <xsd:sequence minOccurs="1" maxOccurs="1">
+      <xsd:element name="EntryId" type="hpi:SaHpiUint32Type" />
+      <xsd:element name="DomainId" type="hpi:SaHpiUint32Type" />
+      <xsd:element name="IsPeer" type="hpi:SaHpiBooleanType" />
+   </xsd:sequence>
+   <xsd:attribute name="name" use="optional" default="myDrtEntry" />
+</xsd:complexType>
+
+<xsd:complexType name="SaHpiAlarmType">
+   <xsd:sequence minOccurs="1" maxOccurs="1">
+      <xsd:element name="AlarmId" type="hpi:SaHpiUint32Type" />
+      <xsd:element name="Timestamp" type="hpi:SaHpiInt64Type" />
+      <xsd:element name="Severity" type="hpi:SaHpiSeverityT" />
+      <xsd:element name="Acknowledged" type="hpi:SaHpiBooleanType" />
+      <xsd:element name="AlarmCond" type="hpi:SaHpiConditionType" />
+   </xsd:sequence>
+   <xsd:attribute name="name" use="optional" default="myAlarm" />
+</xsd:complexType>
+
+<!-- Event Log -->
+
+<xsd:simpleType name="SaHpiEventLogOverflowActionT">
+   <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="SAHPI_EL_OVERFLOW_DROP" />
+      <xsd:enumeration value="SAHPI_EL_OVERFLOW_OVERWRITE" />
+   </xsd:restriction>
+</xsd:simpleType>
+
+<xsd:complexType name="SaHpiEventLogInfoType">
+   <xsd:sequence minOccurs="1" maxOccurs="1">
+      <xsd:element name="Entries" type="hpi:SaHpiUint32Type" />
+      <xsd:element name="Size" type="hpi:SaHpiUint32Type" />
+      <xsd:element name="UserEventMaxSize" type="hpi:SaHpiUint32Type" />
+      <xsd:element name="UpdateTimestamp" type="hpi:SaHpiInt64Type" />
+      <xsd:element name="CurrentTime" type="hpi:SaHpiInt64Type" />
+      <xsd:element name="Enabled" type="hpi:SaHpiBooleanType" />
+      <xsd:element name="OverflowFlag" type="hpi:SaHpiBooleanType" />
+      <xsd:element name="OverflowResetable" type="hpi:SaHpiBooleanType" />
+      <xsd:element name="OverflowAction" type="hpi:SaHpiEventLogOverflowActionT" />
+   </xsd:sequence>
+   <xsd:attribute name="name" use="optional" default="myEventLogInfo" />
+</xsd:complexType>
+
+<xsd:complexType name="SaHpiEventLogEntryType">
+   <xsd:sequence minOccurs="1" maxOccurs="1">
+      <xsd:element name="EntryId" type="hpi:SaHpiUint32Type" />
+      <xsd:element name="Timestamp" type="hpi:SaHpiInt64Type" />
+      <xsd:element name="Event" type="hpi:SaHpiEventType" />
+   </xsd:sequence>
+   <xsd:attribute name="name" use="optional" default="myEventLogEntry" />
+</xsd:complexType>
+
+</xsd:schema>
