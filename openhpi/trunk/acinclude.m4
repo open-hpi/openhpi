@@ -189,3 +189,13 @@ AC_DEFUN([OH_CHECK_FAM],
 		AC_MSG_RESULT(no)
 	fi
 ])
+
+AC_DEFUN([PKG_CFG_SETPATH],
+[
+	if test -f "/etc/ld.so.conf"; then
+		TEMP=`cat /etc/ld.so.conf | grep "/lib$"`
+		TEMP=`echo $TEMP | sed -e 's/\/lib \|\/lib$/\/lib\/pkgconfig:/g'`
+		PKG_CONFIG_PATH="${PKG_CONFIG_PATH}:${TEMP}"
+	fi
+])
+

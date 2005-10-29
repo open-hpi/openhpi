@@ -60,6 +60,7 @@ AC_CHECK_PROG([found_pkg_config],[pkg-config],[yes])
 if test "x$found_pkg_config" != "xyes"; then
     OH_CHECK_FAIL(pkg-config,pkg-config)
 fi
+PKG_CFG_SETPATH
 
 # check for gcc version
 
@@ -242,15 +243,14 @@ dnl        AC_SUBST(SNMP_CLIENT,snmp_client)
 dnl     fi])
 
 AC_ARG_ENABLE([dummy],
-    [  --enable-dummy          build dummy plugin [default=yes]],
+    [  --enable-dummy          build dummy plugin [default=no]],
     [if test "x$enableval" = "xyes"; then
         AC_SUBST(DUMMY,dummy)
      elif test "x$enableval" = "xstatic"; then
         AC_SUBST(DUMMY,dummy)
         STATIC_PLUGIN_LIST="$STATIC_PLUGIN_LIST dummy"
         STATIC_PLUGIN_EXTRA_LIBS="$STATIC_PLUGIN_EXTRA_LIBS -luuid"
-    fi],
-    [AC_SUBST(DUMMY,dummy)])
+    fi])
 
 AC_ARG_ENABLE([watchdog],
     [  --enable-watchdog       build watchdog plugin [default=yes]],
@@ -375,10 +375,11 @@ dnl     NEED_MARSHAL="yes"])
 
 OH_CHECK_FAM
 AC_ARG_ENABLE([simulator],
-    [  --enable-simulator      build simulator plugin [default=no]],
+    [  --enable-simulator      build simulator plugin [default=yes]],
     [if test "x$enableval" = "xyes"; then
         AC_SUBST(SIMULATOR,simulator)
-    fi])
+    fi],
+    [AC_SUBST(SIMULATOR,simulator)])
 
 #    [AC_SUBST(SIMULATOR,simulator)])
 
