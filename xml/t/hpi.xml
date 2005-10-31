@@ -41,7 +41,7 @@
 <hpi
    xmlns="http://www.openhpi.org/hpiB"
    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-   xsi:schemaLocation="http://www.openhpi.org/hpiB hpi.xsd">
+   xsi:schemaLocation="http://www.openhpi.org/hpiB ../hpi.xsd">
 
    <SaHpiUint8T name="myUint8">8</SaHpiUint8T>
 
@@ -55,6 +55,12 @@
       <DataLength>2</DataLength>
       <Data>0</Data>
       <Data>0</Data>
+   </SaHpiTextBufferT>
+
+   <SaHpiTextBufferT name="myBuffer2">
+      <DataType>SAHPI_TL_TYPE_TEXT</DataType>
+      <Language>SAHPI_LANG_ENGLISH</Language>
+      <DataString>My string</DataString>
    </SaHpiTextBufferT>
 
    <SaHpiTextBufferTarray name="myBufferArray">

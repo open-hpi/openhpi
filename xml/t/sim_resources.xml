@@ -41,7 +41,7 @@
 <hpi
    xmlns="http://www.openhpi.org/hpiB"
    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-   xsi:schemaLocation="http://www.openhpi.org/hpiB hpi.xsd">
+   xsi:schemaLocation="http://www.openhpi.org/hpiB ../hpi.xsd">
 
 	<!-- Chassis -->
    <SaHpiRptEntryT name="chasis_rpt" comment="Chassis">

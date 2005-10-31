@@ -683,14 +683,21 @@
 </xsd:simpleType>
 
 <xsd:complexType name="SaHpiTextBufferType">
-   <xsd:sequence minOccurs="1" maxOccurs="1">
-      <xsd:element name="DataType" type="hpi:SaHpiTextTypeT" />
-      <xsd:element name="Language" type="hpi:SaHpiLanguageT" />
-      <xsd:element name="DataLength" type="hpi:SaHpiUint8Type" />
-      <xsd:sequence minOccurs="1" maxOccurs="255">
-         <xsd:element name="Data" type="hpi:SaHpiUint8Type" />
+   <xsd:choice>
+      <xsd:sequence minOccurs="1" maxOccurs="1">
+         <xsd:element name="DataType" type="hpi:SaHpiTextTypeT" />
+         <xsd:element name="Language" type="hpi:SaHpiLanguageT" />
+         <xsd:element name="DataLength" type="hpi:SaHpiUint8Type" />
+         <xsd:sequence minOccurs="1" maxOccurs="255">
+            <xsd:element name="Data" type="hpi:SaHpiUint8Type" />
+         </xsd:sequence>
       </xsd:sequence>
-   </xsd:sequence>
+      <xsd:sequence minOccurs="1" maxOccurs="1">
+         <xsd:element name="DataType" type="hpi:SaHpiTextTypeT" />
+         <xsd:element name="Language" type="hpi:SaHpiLanguageT" />
+         <xsd:element name="DataString" type="xsd:string" />
+      </xsd:sequence>
+   </xsd:choice>
    <xsd:attribute name="name" use="optional" default="myTextBuffer" />
 </xsd:complexType>
 
@@ -1195,13 +1202,19 @@
 </xsd:simpleType>
 
 <xsd:complexType name="SaHpiCtrlStateStreamType">
-   <xsd:sequence minOccurs="1" maxOccurs="1">
-      <xsd:element name="Repeat" type="hpi:SaHpiBooleanType" />
-      <xsd:element name="StreamLength" type="hpi:SaHpiInt32Type" />
-      <xsd:sequence minOccurs="1" maxOccurs="4">
-         <xsd:element name="Stream" type="hpi:SaHpiUint8Type" />
+   <xsd:choice>
+      <xsd:sequence minOccurs="1" maxOccurs="1">
+         <xsd:element name="Repeat" type="hpi:SaHpiBooleanType" />
+         <xsd:element name="StreamLength" type="hpi:SaHpiInt32Type" />
+         <xsd:sequence minOccurs="1" maxOccurs="4">
+            <xsd:element name="Stream" type="hpi:SaHpiUint8Type" />
+         </xsd:sequence>
       </xsd:sequence>
-   </xsd:sequence>
+      <xsd:sequence minOccurs="1" maxOccurs="1">
+         <xsd:element name="Repeat" type="hpi:SaHpiBooleanType" />
+         <xsd:element name="StreamString" type="xsd:string" />
+      </xsd:sequence>
+   </xsd:choice>
 </xsd:complexType>
 
 <xsd:complexType name="SaHpiCtrlStateTextType">
@@ -1215,13 +1228,19 @@
 </xsd:complexType>
 
 <xsd:complexType name="SaHpiCtrlStateOemType">
-   <xsd:sequence minOccurs="1" maxOccurs="1">
-      <xsd:element name="MId" type="hpi:SaHpiInt32Type" />
-      <xsd:element name="BodyLength" type="hpi:SaHpiUint8Type" />
-      <xsd:sequence minOccurs="1" maxOccurs="255">
-         <xsd:element name="Body" type="hpi:SaHpiUint8Type" />
+   <xsd:choice>
+      <xsd:sequence minOccurs="1" maxOccurs="1">
+         <xsd:element name="MId" type="hpi:SaHpiInt32Type" />
+         <xsd:element name="BodyLength" type="hpi:SaHpiUint8Type" />
+         <xsd:sequence minOccurs="1" maxOccurs="255">
+            <xsd:element name="Body" type="hpi:SaHpiUint8Type" />
+         </xsd:sequence>
       </xsd:sequence>
-   </xsd:sequence>
+      <xsd:sequence minOccurs="1" maxOccurs="1">
+         <xsd:element name="MId" type="hpi:SaHpiInt32Type" />
+         <xsd:element name="BodyString" type="xsd:string" />
+      </xsd:sequence>
+   </xsd:choice>
 </xsd:complexType>
 
 <xsd:complexType name="SaHpiCtrlStateType">
@@ -1290,11 +1309,7 @@
 
 <xsd:complexType name="SaHpiCtrlRecStreamType">
    <xsd:sequence minOccurs="1" maxOccurs="1">
-      <xsd:element name="Repeat" type="hpi:SaHpiBooleanType" />
-      <xsd:element name="StreamLength" type="hpi:SaHpiUint32Type" />
-      <xsd:sequence minOccurs="1" maxOccurs="4">
-         <xsd:element name="Stream" type="hpi:SaHpiUint8Type" />
-      </xsd:sequence>
+      <xsd:element name="Default" type="hpi:SaHpiCtrlStateStreamType" />
    </xsd:sequence>
 </xsd:complexType>
 
@@ -1316,13 +1331,20 @@
 </xsd:complexType>
 
 <xsd:complexType name="SaHpiCtrlRecOemType">
-   <xsd:sequence minOccurs="1" maxOccurs="1">
-      <xsd:element name="MId" type="hpi:SaHpiUint32Type" />
-      <xsd:sequence minOccurs="1" maxOccurs="10">
-         <xsd:element name="ConfigData" type="hpi:SaHpiUint8Type" />
+   <xsd:choice>
+      <xsd:sequence minOccurs="1" maxOccurs="1">
+         <xsd:element name="MId" type="hpi:SaHpiUint32Type" />
+         <xsd:sequence minOccurs="1" maxOccurs="10">
+            <xsd:element name="ConfigData" type="hpi:SaHpiUint8Type" />
+         </xsd:sequence>
+         <xsd:element name="Default" type="hpi:SaHpiCtrlStateOemType" />
       </xsd:sequence>
-      <xsd:element name="Default" type="hpi:SaHpiCtrlStateOemType" />
-   </xsd:sequence>
+      <xsd:sequence minOccurs="1" maxOccurs="1">
+         <xsd:element name="MId" type="hpi:SaHpiUint32Type" />
+         <xsd:element name="ConfigDataString" type="xsd:string" />
+         <xsd:element name="Default" type="hpi:SaHpiCtrlStateOemType" />
+      </xsd:sequence>
+   </xsd:choice>
 </xsd:complexType>
 
 <xsd:complexType name="SaHpiCtrlDefaultModeType">
@@ -1740,12 +1762,17 @@
 <!-- Annunciators -->
 
 <xsd:complexType name="SaHpiNameType">
-   <xsd:sequence minOccurs="1" maxOccurs="1">
-      <xsd:element name="Length" type="hpi:SaHpiUint16Type" />
-      <xsd:sequence minOccurs="1" maxOccurs="256">
-         <xsd:element name="Value" type="hpi:SaHpiUint8Type" />
+   <xsd:choice>
+      <xsd:sequence minOccurs="1" maxOccurs="1">
+         <xsd:element name="Length" type="hpi:SaHpiUint16Type" />
+         <xsd:sequence minOccurs="1" maxOccurs="256">
+            <xsd:element name="Value" type="hpi:SaHpiUint8Type" />
+         </xsd:sequence>
       </xsd:sequence>
-   </xsd:sequence>
+      <xsd:sequence minOccurs="1" maxOccurs="1">
+         <xsd:element name="ValueString" type="xsd:string" />
+      </xsd:sequence>
+   </xsd:choice>
    <xsd:attribute name="name" use="optional" default="myName" />
 </xsd:complexType>
 
