@@ -33,3 +33,5 @@
 
 EXTRA_DIST              = SaHpi2code.pl text2cstr.pl
 
+MAINTAINERCLEANFILES = Makefile.in
+

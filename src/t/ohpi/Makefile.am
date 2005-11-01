@@ -8,12 +8,14 @@
 # the Copying file included with the OpenHPI distribution for
 # full licensing terms.
 
+MAINTAINERCLEANFILES = Makefile.in
+
 MOSTLYCLEANFILES 	= @TEST_CLEAN@ uid_map
 EXTRA_DIST              = openhpi.conf
 
-INCLUDES		= @OPENHPI_INCLUDES@ 
+INCLUDES		= @OPENHPI_INCLUDES@
 
-AM_CFLAGS		= @NOCFLAGS@ 
+AM_CFLAGS		= @NOCFLAGS@
 
 # removed until the gcc 3.4 bug is fixed
 # @COV_CFLAGS@
