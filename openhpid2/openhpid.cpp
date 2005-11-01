@@ -102,7 +102,7 @@ void display_help(void)
         printf("                 This option is required unless the environment\n");
         printf("                 variable OPENHPI_CONF has been set to a valid\n");
         printf("                 configuration file.\n");
-        printf("   -verbose      This option causes the daemon to display verbose\n");
+        printf("   -v            This option causes the daemon to display verbose\n");
         printf("                 messages. This option is optional.\n");
         printf("   -p port       This overrides the default listening port (4743) of\n");
         printf("                 the daemon. This option is optional.\n");
@@ -112,7 +112,7 @@ void display_help(void)
         printf("                 minutes. This option is optional.\n");
         printf("   -t threads    This sets the maximum number of connection threads.\n");
         printf("                 The default is umlimited. This option is optional.\n");
-        printf("   -nondaemon    This forces the code to run as a foreground process\n");
+        printf("   -n            This forces the code to run as a foreground process\n");
         printf("                 and NOT as a daemon. The default is to run as\n");
         printf("                 a daemon. This option is optional.\n\n");
         printf("A typical invocation might be\n\n");
@@ -501,7 +501,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht,
 	      SaHpiSessionIdT session_id;
 
               PVERBOSE2("%p Processing saHpiSessionClose.\n", thrdid);
-	
+
               if ( HpiDemarshalRequest1( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id ) < 0 )
 		   return eResultError;
@@ -518,7 +518,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht,
 	      SaHpiSessionIdT session_id;
 
               PVERBOSE2("%p Processing saHpiDiscover.\n", thrdid);
-	
+
               if ( HpiDemarshalRequest1( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id ) < 0 )
 		   return eResultError;
