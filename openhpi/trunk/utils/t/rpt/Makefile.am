@@ -8,6 +8,8 @@
 # the Copying file included with the OpenHPI distribution for
 # full licensing terms.
 
+MAINTAINERCLEANFILES = Makefile.in
+
 REMOTE_SOURCES		= rpt_utils.c \
 			  epath_utils.c \
 			  uid_utils.c \
@@ -19,7 +21,7 @@ REMOTE_SOURCES		= rpt_utils.c \
 
 MOSTLYCLEANFILES 	= $(REMOTE_SOURCES) @TEST_CLEAN@
 
-INCLUDES		= @OPENHPI_INCLUDES@ 
+INCLUDES		= @OPENHPI_INCLUDES@
 
 EXTRA_DIST              = rpt_resources.h
 
