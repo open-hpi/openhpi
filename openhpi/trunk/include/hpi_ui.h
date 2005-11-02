@@ -102,6 +102,7 @@ typedef enum {
 } Pr_ret_t;		// Print return code
 
 typedef Pr_ret_t (*hpi_ui_print_cb_t)(char *buf);
+typedef int (*get_int_param_t)(char *buf, int *val);
 
 extern char *hex_codes;
 extern char *bcdplus_codes;
@@ -146,7 +147,7 @@ extern Pr_ret_t	print_thres_value(SaHpiSensorReadingT *item, char *mes,
 extern SaErrorT	show_control(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 			SaHpiCtrlNumT num, hpi_ui_print_cb_t proc);
 extern SaErrorT	show_control_state(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
-			SaHpiCtrlNumT num, hpi_ui_print_cb_t proc);
+			SaHpiCtrlNumT num, hpi_ui_print_cb_t proc, get_int_param_t);
 extern SaErrorT	show_dat(Domain_t *domain, hpi_ui_print_cb_t proc);
 extern SaErrorT	show_event_log(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 			int show_short, hpi_ui_print_cb_t proc);
