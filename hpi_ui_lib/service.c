@@ -1012,7 +1012,7 @@ void get_text_buffer_text(char *mes, SaHpiTextBufferT *buf, char *meslast,
 	*outbuf = 0;
 	if (mes != (char *)NULL)
 		strcpy(outbuf,mes);
-	if (buf->DataLength < 2) {
+	if ((buf->DataLength < 2) && (buf->DataType != SAHPI_TL_TYPE_BINARY)) {
 		if (meslast != (char *)NULL)
 			strcat(outbuf, meslast);
 		return;
@@ -1122,7 +1122,9 @@ Pr_ret_t print_text_buffer(char *mes, SaHpiTextBufferT *buf, char *meslast,
 	if (mes != (char *)NULL) {
 		if (proc(mes) == HPI_UI_END) return(HPI_UI_END);
 	};
-	if (buf->DataLength < 2) return(HPI_UI_OK);
+	if ((buf->DataLength < 2) && (buf->DataType != SAHPI_TL_TYPE_BINARY)) {
+		return(HPI_UI_OK);
+	}
 	if (print_text_buffer_type(NULL, buf, ": ", proc) != HPI_UI_OK)
 		return(HPI_UI_END);
 	if (print_text_buffer_lang(NULL, buf, ": ", proc) != HPI_UI_OK)

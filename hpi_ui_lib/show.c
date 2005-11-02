@@ -265,11 +265,15 @@ SaErrorT show_control(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 	return SA_OK;
 }
 
+
+
 SaErrorT show_control_state(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
-	SaHpiCtrlNumT num, hpi_ui_print_cb_t proc)
+	SaHpiCtrlNumT num, hpi_ui_print_cb_t proc,
+	get_int_param_t get_int_param)
 {
         SaErrorT		rv;
 	int			i;
+	int			res;
 	char			*str;
 	char			buf[SHOW_BUF_SZ];
 	char			errbuf[SHOW_BUF_SZ];
@@ -283,6 +287,23 @@ SaErrorT show_control_state(SaHpiSessionIdT sessionid, SaHpiResourceIdT resource
 	SaHpiCtrlStateTextT	*text;
 	SaHpiCtrlStateOemT	*oem;
 
+	rv = saHpiControlTypeGet(sessionid, resourceid, num, &type);
+	if (rv != SA_OK) {
+		snprintf(errbuf, SHOW_BUF_SZ,
+			"\nERROR: saHpiControlTypeGet: error: %s\n", oh_lookup_error(rv));
+		proc(errbuf);
+		return(rv);
+	};
+	
+	state.Type = type;
+	if (type == SAHPI_CTRL_TYPE_TEXT) {
+		i = get_int_param("Line #(0 == all): ", &res);
+		if (i != 1) {
+			printf("Invalid value\n");
+			return SA_ERR_HPI_ERROR;
+		};
+		state.StateUnion.Text.Line = res;
+	}
 	rv = saHpiControlGet(sessionid, resourceid, num, &mode, &state);
 	if (rv != SA_OK) {
 		snprintf(errbuf, SHOW_BUF_SZ,

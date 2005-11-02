@@ -539,7 +539,7 @@ static ret_code_t set_control_state(SaHpiSessionIdT sessionid,
 ret_code_t ctrl_block_state(void)
 {
 	show_control_state(Domain->sessionId, ctrl_block_env.rptid,
-		ctrl_block_env.rdrnum, ui_print);
+		ctrl_block_env.rdrnum, ui_print, get_int_param);
 	return(HPI_SHELL_OK);
 }
 
