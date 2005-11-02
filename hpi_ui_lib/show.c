@@ -635,32 +635,32 @@ typedef struct {
 
 static int lsres_sort(void *st1, void *st2)
 {
-	int		i1, i2;
+	int		i, n1, n2;
 	rpt_outbuf_t	*ar1 = (rpt_outbuf_t *)st1;
 	rpt_outbuf_t	*ar2 = (rpt_outbuf_t *)st2;
 
-	for (i1 = 0; i1 < SAHPI_MAX_ENTITY_PATH; i1++)
-		if (ar1->path.Entry[i1].EntityType == 0) break;
-	for (i2 = 0; i2 < SAHPI_MAX_ENTITY_PATH; i2++)
-		if (ar2->path.Entry[i2].EntityType == 0) break;
-	i1--;
-	i2--;
-	while ((i1 >= 0) && (i2 >= 0)) {
-		if (ar1->path.Entry[i1].EntityType > ar2->path.Entry[i2].EntityType)
+	for (i = 0; i < SAHPI_MAX_ENTITY_PATH; i++)
+		if (ar1->path.Entry[i].EntityType == SAHPI_ENT_ROOT) break;
+	n1 = i;
+	for (i = 0; i < SAHPI_MAX_ENTITY_PATH; i++)
+		if (ar2->path.Entry[i].EntityType == SAHPI_ENT_ROOT) break;
+	n2 = i;
+	while ((n1 >= 0) && (n2 >= 0)) {
+		if (ar1->path.Entry[n1].EntityType > ar2->path.Entry[n2].EntityType)
 			return(1);
-		if (ar1->path.Entry[i1].EntityType < ar2->path.Entry[i2].EntityType)
+		if (ar1->path.Entry[n1].EntityType < ar2->path.Entry[n2].EntityType)
 			return(-1);
-		if (ar1->path.Entry[i1].EntityLocation >
-			ar2->path.Entry[i2].EntityLocation)
+		if (ar1->path.Entry[n1].EntityLocation >
+			ar2->path.Entry[n2].EntityLocation)
 			return(1);
-		if (ar1->path.Entry[i1].EntityLocation <
-			ar2->path.Entry[i2].EntityLocation)
+		if (ar1->path.Entry[n1].EntityLocation <
+			ar2->path.Entry[n2].EntityLocation)
 			return(-1);
-		i1--;
-		i2--;
+		n1--;
+		n2--;
 	};
-	if (i1 >= 0) return(1);
-	if (i2 >= 0) return(-1);
+	if (n1 >= 0) return(1);
+	if (n2 >= 0) return(-1);
 	return(0);
 }
 
@@ -776,7 +776,7 @@ int show_rpt_list(Domain_t *domain, int as, SaHpiResourceIdT rptid,
 				memset(tmp, 0, sizeof(rpt_outbuf_t) * max_rpt);
 				if (n_rpt > 0) {
 					memcpy(tmp, rpt_out,
-						sizeof(rpt_outbuf_t) * max_rpt);
+						sizeof(rpt_outbuf_t) * n_rpt);
 					free(rpt_out);
 				};
 				rpt_out = tmp;
