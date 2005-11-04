@@ -220,5 +220,36 @@ SaErrorT oh_rtas_get_reset_state(void *hnd,
 SaErrorT oh_rtas_set_reset_state(void *hnd,
                                  SaHpiResourceIdT id,
                                  SaHpiResetActionT act);
+				 
+SaErrorT oh_rtas_get_sel_info (void *hnd, 
+                               SaHpiResourceIdT id, 
+			       SaHpiEventLogInfoT *evtlog);
+			       
+SaErrorT oh_rtas_set_sel_time (void *hnd, 
+                             SaHpiResourceIdT id, 
+			     const SaHpiEventT *evt);
+			     
+SaErrorT oh_rtas_add_sel_entry (void *hnd, 
+                                SaHpiResourceIdT id, 
+				const SaHpiEventT *evt);
+				
+SaErrorT oh_rtas_get_sel_entry (void *hnd, 
+                                SaHpiResourceIdT id, 
+				SaHpiEventLogEntryIdT current,
+                                SaHpiEventLogEntryIdT *prev, 
+				SaHpiEventLogEntryIdT *next,
+                                SaHpiEventLogEntryT *entry, 
+				SaHpiRdrT *rdr, 
+				SaHpiRptEntryT  *rdtentry);	
+
+SaErrorT oh_rtas_get_sensor_event_enabled(void *hnd, 
+                                          SaHpiResourceIdT id,
+                                          SaHpiSensorNumT sensornum,
+                                          SaHpiBoolT *enable);
+					  
+SaErrorT oh_rtas_set_sensor_event_enabled(void *hnd, 
+                                          SaHpiResourceIdT id,
+                                          SaHpiSensorNumT sensornum,
+                                          SaHpiBoolT *enable);					  										 
 
 #endif /* _OH_RTAS_H */
