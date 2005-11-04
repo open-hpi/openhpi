@@ -425,6 +425,56 @@ SaErrorT oh_rtas_set_reset_state(void *hnd,
         return SA_ERR_HPI_INTERNAL_ERROR;
 }
 
+SaErrorT oh_rtas_get_sel_info (void *hnd, 
+                               SaHpiResourceIdT id, 
+			       SaHpiEventLogInfoT *evtlog)
+{
+        return SA_ERR_HPI_INTERNAL_ERROR;
+}			       
+
+SaErrorT oh_rtas_set_sel_time (void *hnd, 
+                             SaHpiResourceIdT id, 
+			     const SaHpiEventT *evt)
+{
+	return SA_ERR_HPI_INTERNAL_ERROR;
+}	
+
+SaErrorT oh_rtas_add_sel_entry (void *hnd, 
+                                SaHpiResourceIdT id, 
+				const SaHpiEventT *evt)
+{
+	return SA_ERR_HPI_INTERNAL_ERROR;
+}
+		     
+SaErrorT oh_rtas_get_sel_entry (void *hnd, 
+                                SaHpiResourceIdT id, 
+				SaHpiEventLogEntryIdT current,
+                                SaHpiEventLogEntryIdT *prev, 
+				SaHpiEventLogEntryIdT *next,
+                                SaHpiEventLogEntryT *entry, 
+				SaHpiRdrT *rdr, 
+				SaHpiRptEntryT  *rdtentry) 
+{
+	return SA_ERR_HPI_INTERNAL_ERROR;
+}
+
+SaErrorT oh_rtas_get_sensor_event_enabled(void *hnd, 
+                                          SaHpiResourceIdT id,
+                                          SaHpiSensorNumT sensornum,
+                                          SaHpiBoolT *enable)
+{
+	return SA_ERR_HPI_INTERNAL_ERROR;
+}
+
+SaErrorT oh_rtas_set_sensor_event_enabled(void *hnd, 
+                                          SaHpiResourceIdT id,
+                                          SaHpiSensorNumT sensornum,
+                                          SaHpiBoolT *enable)
+{
+	return SA_ERR_HPI_INTERNAL_ERROR;
+}
+
+					  			
 /* Function ABI aliases */
 void * oh_open (GHashTable *) __attribute__ ((weak, alias("oh_rtas_open")));
 void * oh_close (void *) __attribute__ ((weak, alias("oh_rtas_close")));
