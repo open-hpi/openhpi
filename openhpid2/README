@@ -29,7 +29,7 @@ a forground or background application. To compile the daemon code you need to
 configure the OpenHPI compilation environment correctly. The following option
 needs to be used when running the configure script for OpenHPI.
 
-     ./configure --enable-daemon
+     ./configure --enable-daemon (Update 11/08/05. Now enabled by default)
 
 This will ensure that the daemon application and the client library are created
 at compile and link time by make. The daemon application and client libraries
