@@ -578,6 +578,7 @@ SaErrorT oh_valid_addevent(SaHpiEventT *event)
 	if (event->Source != SAHPI_UNSPECIFIED_RESOURCE_ID ||
 	    event->EventType != SAHPI_ET_USER ||
 	    NULL == oh_lookup_severity(event->Severity) ||
+	    event->Severity == SAHPI_ALL_SEVERITIES ||
 	    !oh_valid_textbuffer(&(event->EventDataUnion.UserEvent.UserEventData))) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
