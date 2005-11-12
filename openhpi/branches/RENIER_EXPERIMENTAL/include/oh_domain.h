@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2004
+ * (C) Copyright IBM Corp. 2004, 2005
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -50,7 +50,6 @@ struct oh_drt { /* Domain Reference Table */
         GSList *list;
         SaHpiUint32T update_count;
         SaHpiTimeT update_timestamp;
-        SaHpiBoolT overflow;
 };
 
 extern struct oh_domain_table oh_domains;
@@ -64,8 +63,8 @@ struct oh_domain {
          */
         SaHpiDomainIdT id;
 
-	/* id of parent domain. 0 for unspecified domain */
-        SaHpiDomainIdT p_id;
+        /* Parent domain id. 0 for unspecified domain */
+        SaHpiDomainIdT pdid;
 
         /* Domain's Resource Presence Table */
         RPTable rpt;
@@ -73,17 +72,17 @@ struct oh_domain {
         /* Domain Alarm Table */
         struct oh_dat dat;
 
-       /* Domain Reference Table */
+        /* Domain Reference Table */
         struct oh_drt drt;
+
+        /* Domain Event Log */
+        oh_el *del;
 
         /* Domain Information */
         SaHpiDomainCapabilitiesT capabilities;
         SaHpiBoolT        is_peer;
         SaHpiTextBufferT  tag;
         SaHpiGuidT        guid;
-
-        /* Domain Event Log */
-        oh_el *del;
 
         /* List of session ids */
         GArray *sessions;
@@ -94,24 +93,25 @@ struct oh_domain {
         GStaticRecMutex refcount_lock;
 };
 
+SaHpiDomainIdT oh_get_default_domain_id(void);
 SaHpiDomainIdT oh_create_domain(SaHpiDomainCapabilitiesT capabilities,
                                 SaHpiTextBufferT *tag);
-SaHpiDomainIdT oh_get_default_domain_id(void);
-SaHpiDomainIdT oh_request_domain_id(unsigned int handler_id,
-                                    SaHpiTextBufferT *tag,
-				    SaHpiDomainCapabilitiesT capabilities,
-				    SaHpiDomainIdT parent_id,
-				    SaHpiDomainIdT peer_id);
-SaErrorT oh_release_domain_id(unsigned int handler_id,
-                              SaHpiDomainIdT did);
 SaErrorT oh_destroy_domain(SaHpiDomainIdT did);
 struct oh_domain *oh_get_domain(SaHpiDomainIdT did);
-GArray *oh_list_domains(void);
 SaErrorT oh_release_domain(struct oh_domain *domain);
+GArray *oh_list_domains(void);
+
+SaHpiDomainIdT oh_request_new_domain(unsigned int hid,
+                                    SaHpiTextBufferT *tag,
+                                    SaHpiDomainCapabilitiesT capabilities,
+                                    SaHpiDomainIdT pdid,
+                                    SaHpiDomainIdT bdid);
+SaErrorT oh_request_domain_delete(unsigned int hid,
+                                  SaHpiDomainIdT did);
 SaErrorT oh_drt_entry_get(SaHpiDomainIdT    did,
-			  SaHpiEntryIdT     entryid,
-			  SaHpiEntryIdT     *nextentryid,
-			  SaHpiDrtEntryT    *drt);
+                          SaHpiEntryIdT     entryid,
+                          SaHpiEntryIdT     *nextentryid,
+                          SaHpiDrtEntryT    *drt);
 
 #ifdef __cplusplus
 }

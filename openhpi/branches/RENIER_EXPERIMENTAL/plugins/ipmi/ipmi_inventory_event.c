@@ -18,35 +18,6 @@
 #include <oh_utils.h>
 #include <string.h>
 
-static void add_inventory_event_rdr(
-                SaHpiRdrT		*rdr,
-                SaHpiEntityPathT	parent_ep)
-{
-        char name[] = "FRU Inventory data";
-        
-        rdr->RecordId = 0;
-        rdr->RdrType = SAHPI_INVENTORY_RDR;
-        rdr->Entity = parent_ep;
-	rdr->IsFru = SAHPI_TRUE;
-
-	/* One Fru has only one inventory, so IdrId always is 0 */
-	rdr->RdrTypeUnion.InventoryRec.IdrId = 0;
-        rdr->RdrTypeUnion.InventoryRec.Persistent = SAHPI_TRUE;
-	rdr->RdrTypeUnion.InventoryRec.Oem = 0;
-
-        rdr->IdString.DataType = SAHPI_TL_TYPE_TEXT;
-        rdr->IdString.Language = SAHPI_LANG_ENGLISH;
-        rdr->IdString.DataLength = sizeof(name);
-
-        memcpy(rdr->IdString.Data, name, sizeof(name));
-}
-/*
-#define IPMI_FRU_FTR_INTERNAL_USE_AREA 0
-#define IPMI_FRU_FTR_CHASSIS_INFO_AREA 1
-#define IPMI_FRU_FTR_BOARD_INFO_AREA   2
-#define IPMI_FRU_FTR_PRODUCT_INFO_AREA 3
-#define IPMI_FRU_FTR_MULTI_RECORD_AREA 4
-*/
 
 static void init_inventory_info(struct ohoi_resource_info *res_info,
 			ipmi_entity_t     *ent)
@@ -188,31 +159,42 @@ static void add_inventory_event(struct ohoi_resource_info *res_info,
 			      struct oh_handler_state *handler,
 			      SaHpiRptEntryT           *rpt_entry)
 {
-        struct oh_event *e;
-	SaHpiEntityPathT  parent_ep = rpt_entry->ResourceEntity;
 	SaHpiResourceIdT  rid = rpt_entry->ResourceId;
+	SaHpiRdrT		rdr;
+	int rv;
         
 	init_inventory_info(res_info, ent);
 	if (res_info->fru == NULL) {
+		dbg("Out of memory");
 		return;
 	}
-	e = malloc(sizeof(*e));
-        if (!e) {
-                dbg("Out of memory");
+
+        memset(&rdr, 0, sizeof(rdr));
+        
+        rdr.RecordId = 0;
+        rdr.RdrType = SAHPI_INVENTORY_RDR;
+        rdr.Entity = rpt_entry->ResourceEntity;
+	rdr.IsFru = SAHPI_TRUE;
+
+	/* One Fru has only one inventory, so IdrId always is 0 */
+	rdr.RdrTypeUnion.InventoryRec.IdrId = 0;
+        rdr.RdrTypeUnion.InventoryRec.Persistent = SAHPI_TRUE;
+	rdr.RdrTypeUnion.InventoryRec.Oem = 0;
+
+	oh_init_textbuffer(&rdr.IdString);
+	oh_append_textbuffer(&rdr.IdString, "FRU Inventory data");
+
+        rid = oh_uid_lookup(&rdr.Entity);
+        
+        rv = oh_add_rdr(handler->rptcache, rid, &rdr, NULL, 0);
+	if (rv == SA_OK) {
+		rpt_entry->ResourceCapabilities |= SAHPI_CAPABILITY_INVENTORY_DATA |
+			SAHPI_CAPABILITY_RDR;
+	} else {
 		free(res_info->fru);
 		res_info->fru = NULL;
-                return;
-        }
-        memset(e, 0, sizeof(*e));
-        e->type = OH_ET_RDR;
-
-        add_inventory_event_rdr(&e->u.rdr_event.rdr, parent_ep);
-
-        rid = oh_uid_lookup(&e->u.rdr_event.rdr.Entity);
-        
-        if (!oh_add_rdr(handler->rptcache, rid, &e->u.rdr_event.rdr, NULL, 0)) {
-		rpt_entry->ResourceCapabilities |= SAHPI_CAPABILITY_INVENTORY_DATA;
-	}
+		dbg("couldn't add inventory. rv = %d", rv);
+	}	
 }
 
 /* Per IPMI spec., one FRU per entity */

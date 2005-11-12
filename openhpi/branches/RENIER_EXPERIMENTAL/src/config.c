@@ -68,8 +68,8 @@ static struct {
 } global_params = { /* Defaults for global params are set here */
         .on_ep = { .Entry[0] = { .EntityType = SAHPI_ENT_ROOT, .EntityLocation = 0 } },
         .log_on_sev = SAHPI_MINOR,
-        .evt_queue_limit = 0, /* Unlimited size */
-        .del_size_limit = 0, /* Unlimited size */
+        .evt_queue_limit = 10000,
+        .del_size_limit = 10000, /* 0 is unlimited size */
         .del_save = SAHPI_FALSE,
         .dat_size_limit = 0, /* Unlimited size */
         .dat_user_limit = 0, /* Unlimited size */
@@ -211,7 +211,7 @@ static int process_plugin_token (GScanner *oh_scanner)
                 return -1;
         }
         my_token = g_scanner_get_next_token(oh_scanner);
-        if(my_token != G_TOKEN_STRING) {
+        if (my_token != G_TOKEN_STRING) {
                 dbg("Where the heck is my string!");
                 data_access_unlock();
                 return -1;
@@ -219,7 +219,7 @@ static int process_plugin_token (GScanner *oh_scanner)
 
         seen = seen_plugin(oh_scanner->value.v_string);
 
-        if(!seen) {
+        if (!seen) {
                 plugin_names = g_slist_append(
                         plugin_names,
                         (gpointer) g_strdup(oh_scanner->value.v_string)
@@ -295,7 +295,7 @@ static void process_global_param(const char *name, char *value)
                 g_static_rec_mutex_lock(&global_params.lock);
                 memset(global_params.varpath, 0, OH_MAX_TEXT_BUFFER_LENGTH);
                 strncpy(global_params.varpath, value, OH_MAX_TEXT_BUFFER_LENGTH-1);
-                g_static_rec_mutex_unlock(&global_params.lock);        
+                g_static_rec_mutex_unlock(&global_params.lock);
         } else if (!strcmp("OPENHPI_CONF", name)) {
                 g_static_rec_mutex_lock(&global_params.lock);
                 memset(global_params.conf, 0, OH_MAX_TEXT_BUFFER_LENGTH);
@@ -379,7 +379,7 @@ static int process_handler_token (GScanner* oh_scanner)
                 goto free_table;
         }
 
-        while(!found_right_curly) {
+        while (!found_right_curly) {
                 /* get key token in key\value pair set (e.g. key = value) */
                 if (g_scanner_get_next_token(oh_scanner) != G_TOKEN_STRING) {
                         dbg("Processing handler: Expected string token.");
@@ -398,10 +398,10 @@ static int process_handler_token (GScanner* oh_scanner)
                         goto free_table_and_key;
                 }
 
-                /**
-                Now check for the value token in the key\value set. Store the key\value value pair
-                in the hash table and continue on.
-                */
+                /*
+                 * Now check for the value token in the key\value set.
+                 * Store the key\value value pair in the hash table and continue on.
+                 */
                 if (g_scanner_peek_next_token(oh_scanner) != G_TOKEN_INT &&
                     g_scanner_peek_next_token(oh_scanner) != G_TOKEN_FLOAT &&
                     g_scanner_peek_next_token(oh_scanner) != G_TOKEN_STRING) {
@@ -428,7 +428,9 @@ static int process_handler_token (GScanner* oh_scanner)
                         }
 
                         if (value == NULL) {
-                                dbg("Processing handler: Unable to allocate memory for value. Token Type: %d",
+                                dbg("Processing handler:"
+                                    " Unable to allocate memory for value."
+                                    " Token Type: %d",
                                     current_token);
                                 goto free_table_and_key;
                         }
@@ -479,7 +481,8 @@ static int process_global_token(GScanner *scanner)
         /* Get the global parameter name */
         current_token = g_scanner_get_next_token(scanner);
         if (current_token != G_TOKEN_STRING) {
-                dbg("Processing global: Expected string token. Got %d", current_token);
+                dbg("Processing global: Expected string token. Got %d",
+                    current_token);
                 goto quit;
         }
 
@@ -496,12 +499,26 @@ static int process_global_token(GScanner *scanner)
         }
 
         current_token = g_scanner_get_next_token(scanner);
-        if (current_token != G_TOKEN_STRING) {
-                dbg("Did not get expected string value for global parameter. Got %d", current_token);
+        if (current_token != G_TOKEN_STRING && current_token != G_TOKEN_INT) {
+                dbg("Did not get expected string value for global parameter."
+                    " Got %d", current_token);
                 goto free_and_quit;
         }
 
-        value = g_strdup(scanner->value.v_string);
+        if (current_token == G_TOKEN_INT) {
+                guint num_chars = 0, result;
+                result = scanner->value.v_int;
+                while (result) {
+                        result = result / 10;
+                        num_chars++;
+                }
+                value = (char *)g_malloc0(++num_chars);
+                result = scanner->value.v_int;
+                snprintf(value, num_chars, "%u", result);
+        } else {
+                value = g_strdup(scanner->value.v_string);
+        }
+
         if (!value) {
                 dbg("Unable to allocate for global param value.");
                 goto free_and_quit;
@@ -540,12 +557,14 @@ static void scanner_msg_handler (GScanner *scanner, gchar *message, gboolean is_
 }
 
 /**
- * oh_load_config:
- * @filename:
- * @config
+ * oh_load_config
+ * @filename: OpenHPI configuration filename
+ * @config: place where the parsed configuration will be placed.
  *
+ * Parses an OpenHPI configuration file and gives the results
+ * which can be processed by the caller.
  *
- * Return value:
+ * Return value: 0 on success, otherwise a failure.
  **/
 int oh_load_config (char *filename, struct oh_parsed_config *config)
 {
@@ -559,8 +578,8 @@ int oh_load_config (char *filename, struct oh_parsed_config *config)
                 return -1;
         }
 
-	plugin_names = NULL;
-	handler_configs = NULL;
+        plugin_names = NULL;
+        handler_configs = NULL;
         oh_scanner = g_scanner_new(&oh_scanner_config);
         if (!oh_scanner) {
                 dbg("Couldn't allocate g_scanner for file parsing");
@@ -628,16 +647,65 @@ int oh_load_config (char *filename, struct oh_parsed_config *config)
         config->plugin_names = plugin_names;
         config->handler_configs = handler_configs;
 
+        plugin_names = NULL;
+        handler_configs = NULL;
+
         return 0;
 }
 
-void oh_clean_config()
+/**
+ * oh_process_config
+ * @config: pointer to parsed configuration for processing
+ *
+ * This will process a parsed configuration by loading
+ * the specified plugins and corresponding handlers.
+ *
+ * Returns: SA_OK on success, otherwise the call failed.
+ **/
+SaErrorT oh_process_config(struct oh_parsed_config *config)
+{
+        GSList *node = NULL;
+
+        if (!config) return SA_ERR_HPI_INVALID_PARAMS;
+
+        /* Initialize plugins */
+        for (node = config->plugin_names; node; node = node->next) {
+                char *plugin_name = (char *)node->data;
+                if (oh_load_plugin(plugin_name) == 0) {
+                        trace("Loaded plugin %s", plugin_name);
+                        config->plugins_loaded++;
+                } else {
+                        dbg("Couldn't load plugin %s", plugin_name);
+                        g_free(plugin_name);
+                }
+                config->plugins_defined++;
+        }
+
+        /* Initialize handlers */
+        for (node = config->handler_configs; node; node = node->next) {
+                GHashTable *handler_config = (GHashTable *)node->data;
+                if(oh_create_handler(handler_config) > 0) {
+                        trace("Loaded handler for plugin %s",
+                              (char *)g_hash_table_lookup(handler_config, "plugin"));
+                        config->handlers_loaded++;
+                } else {
+                        dbg("Couldn't load handler for plugin %s",
+                            (char *)g_hash_table_lookup(handler_config, "plugin"));
+                        g_hash_table_destroy(handler_config);
+                }
+                config->handlers_defined++;
+        }
+
+        return SA_OK;
+}
+
+void oh_clean_config(struct oh_parsed_config *config)
 {
         /* Free list of plugin names read from configuration file. */
-        g_slist_free(plugin_names);
+        g_slist_free(config->plugin_names);
 
         /* Free list of handler configuration blocks */
-        g_slist_free(handler_configs);
+        g_slist_free(config->handler_configs);
 }
 
 /**

@@ -8,16 +8,18 @@
 # the Copying file included with the OpenHPI distribution for
 # full licensing terms.
 
+MAINTAINERCLEANFILES = Makefile.in
+
 REMOTE_SOURCES =  epath_utils.c \
 		  sahpi_enum_utils.c \
 		  sahpi_event_encode.c \
 		  sahpi_event_utils.c \
 	          sahpi_struct_utils.c \
-	          sahpi_time_utils.c 
+	          sahpi_time_utils.c
 
 MOSTLYCLEANFILES = $(REMOTE_SOURCES) @TEST_CLEAN@
-INCLUDES	= @OPENHPI_INCLUDES@ 
-AM_CFLAGS	= @NOCFLAGS@ -ftest-coverage -fprofile-arcs -std=c99
+INCLUDES	= @OPENHPI_INCLUDES@
+AM_CFLAGS	= @NOCFLAGS@ @COV_CFLAGS@ -std=c99
 # the -std=c99 comment above is required to have unicode in the tests
 
 $(REMOTE_SOURCES):
@@ -29,8 +31,8 @@ $(REMOTE_SOURCES):
 		fi; \
 	fi
 
-# FIXME:: Remove epath_enum_utils_test and sahpi_event_encode_test files 
-#         when we can auto-generate file for SMP systems. 
+# FIXME:: Remove epath_enum_utils_test and sahpi_event_encode_test files
+#         when we can auto-generate file for SMP systems.
 #         Create rule using SaHpi2code.pl using -tdir option
 TESTS = sahpi_enum_utils_test \
 	sahpi_event_encode_test \

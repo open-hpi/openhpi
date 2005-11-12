@@ -18,29 +18,8 @@
 
 #include "thread.h"
 #include <stdio.h>
-#include <assert.h>
 #include <sys/time.h>
 #include <errno.h>
-
-
-static void
-GetTimeout( struct timespec &t, unsigned int timeout )
-{
-  timeval tv;
-
-  int rv = gettimeofday( &tv, 0 );
-  assert( rv == 0 );
-  tv.tv_usec += timeout * 1000;
-
-  while( tv.tv_usec > 1000000 )
-     {
-       tv.tv_sec++;
-       tv.tv_usec -= 1000000;
-     }
-
-  t.tv_sec  = tv.tv_sec;
-  t.tv_nsec = tv.tv_usec * 1000;
-}
 
 
 //////////////////////////////////////////////////
@@ -80,10 +59,12 @@ cInit::cInit()
 cInit::~cInit()
 {
   cThreadMain *thread = (cThreadMain *)pthread_getspecific( thread_key );
-  assert( thread );
-  delete thread;
 
-  pthread_key_delete( thread_key );  
+  if ( thread )
+  {
+      delete thread;
+      pthread_key_delete( thread_key );  
+  }
 }
 
 
@@ -111,7 +92,6 @@ cThread *
 cThread::GetThread()
 {
   cThread *thread = (cThread *)pthread_getspecific( thread_key );
-  assert( thread );
 
   return thread;
 }
@@ -137,7 +117,6 @@ cThread::Start()
 {
   if ( m_state == eTsRun )
      {
-       assert( 0 );
        return false;
      }
 
@@ -199,8 +178,7 @@ cThreadLock::cThreadLock()
 
 cThreadLock::~cThreadLock()
 {
-  int rv = pthread_mutex_destroy( &m_lock );
-  assert( rv == 0 );
+  pthread_mutex_destroy( &m_lock );
 }
 
 
@@ -225,24 +203,6 @@ cThreadLock::TryLock()
 }
 
 
-bool
-cThreadLock::TimedLock( unsigned int timeout )
-{
-  struct timespec t;
-  GetTimeout( t, timeout );
-
-  int rv = pthread_mutex_timedlock( &m_lock, &t );
-
-  if ( rv )
-     {
-       assert( rv == ETIMEDOUT );
-       return false;
-     }
-
-  return true;
-}
-
-
 //////////////////////////////////////////////////
 //                  cThreadLockRw
 //////////////////////////////////////////////////
@@ -257,8 +217,7 @@ cThreadLockRw::cThreadLockRw()
 
 cThreadLockRw::~cThreadLockRw()
 {
-  int rv = pthread_rwlock_destroy( &m_rwlock );
-  assert( rv == 0 );
+  pthread_rwlock_destroy( &m_rwlock );
 }
 
 
@@ -285,24 +244,6 @@ cThreadLockRw::TryReadLock()
 }
 
 
-bool
-cThreadLockRw::TimedReadLock( unsigned int timeout )
-{
-  struct timespec t;
-  GetTimeout( t, timeout );
-
-  int rv = pthread_rwlock_timedrdlock( &m_rwlock, &t );
-
-  if ( rv )
-     {
-       assert( rv == ETIMEDOUT );
-       return false;
-     }
-
-  return true;
-}
-
-
 void
 cThreadLockRw::WriteLock()
 {
@@ -323,24 +264,6 @@ cThreadLockRw::TryWriteLock()
   int rv = pthread_rwlock_trywrlock( &m_rwlock );
 
   return rv == 0;
-}
-
-
-bool
-cThreadLockRw::TimedWriteLock( unsigned int timeout )
-{
-  struct timespec t;
-  GetTimeout( t, timeout );
-
-  int rv = pthread_rwlock_timedwrlock( &m_rwlock, &t );
-
-  if ( rv )
-     {
-       assert( rv == ETIMEDOUT );
-       return false;
-     }
-
-  return true;
 }
 
 
@@ -370,8 +293,7 @@ cThreadCond::cThreadCond()
 
 cThreadCond::~cThreadCond()
 {
-  int rv = pthread_cond_destroy( &m_cond );
-  assert( rv == 0 );
+  pthread_cond_destroy( &m_cond );
 }
 
 
@@ -388,20 +310,3 @@ cThreadCond::Wait()
   pthread_cond_wait( &m_cond, &m_lock );
 }
 
-
-bool
-cThreadCond::TimedWait( unsigned int timeout )
-{
-  struct timespec t;
-  GetTimeout( t, timeout );
-
-  int rv = pthread_cond_timedwait( &m_cond, &m_lock, &t );
-
-  if ( rv )
-     {
-       assert( rv == ETIMEDOUT );
-       return false;
-     }
-
-  return true;
-}

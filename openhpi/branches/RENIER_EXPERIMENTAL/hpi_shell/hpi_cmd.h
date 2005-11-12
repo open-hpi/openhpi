@@ -109,6 +109,7 @@ extern ret_code_t	domain_proc(void);
 extern char		*get_command_line(int new_cmd, int type);
 extern char		*get_def_history(char *text, int *count);
 extern int		get_hex_int_param(char *mes, int *val);
+extern int		get_hex_string_param(char *mes, char *val, int max_length);
 extern int		get_int_param(char *mes, int *val);
 extern char		*get_last_history(void);
 extern int		get_new_command(char *mes);

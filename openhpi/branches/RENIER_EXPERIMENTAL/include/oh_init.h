@@ -29,8 +29,7 @@
  *********************************************************************/
 
 SaErrorT oh_initialize(void);
-/*SaErrorT oh_finalize(void);*/
 SaErrorT oh_initialized(void);
-SaErrorT oh_add_config_file(char *conf_file_name);
+void oh_finalize(void);
 
 #endif /* __OH_INIT_H */

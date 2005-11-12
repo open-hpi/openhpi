@@ -3,7 +3,7 @@ _____________________________________________________
 Note:
 To find the file where the test is implemented,
 find its number and prepend it with "rpt_utils_"
-and append it with ".c" so that it looks somthing
+and append it with ".c" so that it looks something
 like "rpt_utils_024.c".
 _____________________________________________________
 
@@ -35,10 +35,10 @@ Start with 10 resources
           - fetch by type, compare (012)
           - fetch by next, compare (013)
     - add 5 rdrs of for each of these types:
-        - Control
-        - Inventory
-        - Watchdog
-        - Annunciator
+        - Control (079)
+        - Inventory (080)
+        - Watchdog (081)
+        - Annunciator (082)
 
 Start with 10 resources, multiple rdrs on some resources
     - remove resource

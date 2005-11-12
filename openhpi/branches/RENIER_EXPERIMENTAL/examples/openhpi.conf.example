@@ -4,11 +4,11 @@
 
 #OPENHPI_LOG_ON_SEV = "MINOR"
 #OPENHPI_ON_EP = "{SYSTEM_CHASSIS,1}"
-#OPENHPI_EVT_QUEUE_LIMIT = "0"
-#OPENHPI_DEL_SIZE_LIMIT = "0"
+#OPENHPI_EVT_QUEUE_LIMIT = 10000
+#OPENHPI_DEL_SIZE_LIMIT = 10000
 #OPENHPI_DEL_SAVE = "NO"
-#OPENHPI_DAT_SIZE_LIMIT = "0"
-#OPENHPI_DAT_USER_LIMIT = "0"
+#OPENHPI_DAT_SIZE_LIMIT = 0
+#OPENHPI_DAT_USER_LIMIT = 0
 #OPENHPI_THREADED = "NO"
 #OPENHPI_PATH = "/usr/local/lib/openhpi:/usr/lib/openhpi"
 #OPENHPI_VARPATH = "/usr/local/var/lib/openhpi"
@@ -26,15 +26,17 @@
 ## OPENHPI_ON_EP sets the entity path on wich the application is running. This
 ## entity path will be returned when SaHpiResourceIdGet() is called.
 ## OPENHPI_EVT_QUEUE_LIMIT sets the maximum number of events that are allowed
-## in the session's event queue. "0" means unlimited.
+## in the session's event queue. Default is 10000 events. Setting it to 0 means
+## unlimited.
 ## OPENHPI_DEL_SIZE_LIMIT sets the maximum size (in number of event log entries)
-## for the domain event log. "0" means unlimited.
+## for the domain event log. Default is 10000 log entries. Setting it to 0
+## means unlimited.
 ## OPENHPI_DEL_SAVE sets wether the domain event log will be persisted to disk or
 ## not. The event log is written to OPENHPI_VARPATH value.
 ## OPENHPI_DAT_SIZE_LIMIT sets the maximum size (in number of alarm entries) for
-## the alarm table. "0" means unlimited.
+## the alarm table. The default 0 means unlimited.
 ## OPENHPI_DAT_USER_LIMIT sets the maximum number of user type alarm entries
-## allowed in the alarm table.
+## allowed in the alarm table. The default 0 means unlimited.
 ## OPENHPI_THREADED sets whether a thread is used for handling the event loop.
 ## This thread will be looping around the plugin instances and fetching events.
 ## OPENHPI_PATH is a colon (:) delimited list of directories specifying
@@ -85,12 +87,11 @@ handler libdummy {
 
 ## Section for the simulator plugin
 ## You can load multiple copies of the simulator plugin but each
-## copy must have a unique handler_name.
+## copy must have a unique name.
 
 #handler libsimulator {
 #        entity_root = "{SYSTEM_CHASSIS,1}"
-#        name = "test"
-#        handler_name = "simulator"
+#        name = "simulator"
 #}
 
 ## Section for ipmi plugin using SMI -- local interface
@@ -150,18 +151,20 @@ handler libdummy {
 ## Section for ipmidirect plugin using RMCP:
 #handler libipmidirect {
 #        entity_root = "{SYSTEM_CHASSIS,7}"
-#        name = "lan"       # RMCP
-#        addr = "localhost" # ipaddress
-#        port = "623"      # RMCP port
-#        auth_type = "none" # none, md2, md5 or straight
-#        auth_level = "admin" # none, callback, user, operator or admin
+#        name = "lan"         # RMCP
+#        addr = "localhost"   # Host name or IP address
+#        port = "623"         # RMCP port
+#        auth_type = "none"   # none, md2, md5 or straight
+#        auth_level = "admin" # operator or admin
 #        username = "arthur"
 #        password = "pieman"
+#        MultipleDomains = "no"  # "yes" creates a domain for this handler
+#        DomainTag = "Chassis 1" # Used if MultipleDomains="yes"
 #        logflags = ""      # logging off
 #        # logflags = "file stdout"
 #        # infos goes to logfile and stdout
 #        # the logfile are log00.log, log01.log ...
-#        # if #logfile_max reached replace the oldest one
 #        logfile = "log"
-#        logfile_max = 10
+#        # if #logfile_max reached replace the oldest one
+#        logfile_max = "10"
 #}

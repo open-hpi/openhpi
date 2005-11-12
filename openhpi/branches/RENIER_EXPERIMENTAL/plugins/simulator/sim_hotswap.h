@@ -28,4 +28,12 @@ SaErrorT sim_request_hotswap_action(void *hnd,
 				    SaHpiResourceIdT rid,
 				    SaHpiHsActionT act);
 
+SaErrorT sim_get_indicator_state(void *hnd,
+	         		 SaHpiResourceIdT rid,
+				 SaHpiHsIndicatorStateT *state);
+
+SaErrorT sim_set_indicator_state(void *hnd,
+				 SaHpiResourceIdT rid,
+				 SaHpiHsIndicatorStateT state);
+
 #endif

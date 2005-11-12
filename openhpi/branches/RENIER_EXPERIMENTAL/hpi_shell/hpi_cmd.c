@@ -72,7 +72,7 @@ ret_code_t ask_rpt(SaHpiResourceIdT *ret)
 	term = get_next_term();
 	if (term == NULL) {
 		if (read_file) return(HPI_SHELL_PARM_ERROR);
-		i = show_rpt_list(Domain, SHOW_ALL_RPT, 0, ui_print);
+		i = show_rpt_list(Domain, SHOW_ALL_RPT, 0, SHORT_LSRES, ui_print);
 		if (i == 0) {
 			printf("NO rpts!\n");
 			return(HPI_SHELL_CMD_ERROR);

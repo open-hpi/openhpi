@@ -40,7 +40,7 @@
                         },
                         {
                                 .EntityType = SAHPI_ENT_SUB_CHASSIS,
-			        .EntityLocation = 1
+                                .EntityLocation = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
@@ -52,11 +52,11 @@
                         }
                 },
                 .ResourceCapabilities = SAHPI_CAPABILITY_CONTROL |
-		                        SAHPI_CAPABILITY_FRU |
-		                        SAHPI_CAPABILITY_INVENTORY_DATA |
-		                        SAHPI_CAPABILITY_RDR |
-		                        SAHPI_CAPABILITY_RESOURCE |
-		                        SAHPI_CAPABILITY_SENSOR,
+                                        SAHPI_CAPABILITY_FRU |
+                                        SAHPI_CAPABILITY_INVENTORY_DATA |
+                                        SAHPI_CAPABILITY_RDR |
+                                        SAHPI_CAPABILITY_RESOURCE |
+                                        SAHPI_CAPABILITY_SENSOR,
                 .ResourceSeverity = SAHPI_MAJOR,
                 .ResourceTag = {
                         .DataType = SAHPI_TL_TYPE_TEXT,
@@ -85,7 +85,7 @@
                         },
                         {
                                 .EntityType = SAHPI_ENT_SUB_CHASSIS,
-			        .EntityLocation = 1
+                                .EntityLocation = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
@@ -97,11 +97,11 @@
                         }
                 },
                 .ResourceCapabilities = SAHPI_CAPABILITY_CONTROL |
-		                        SAHPI_CAPABILITY_FRU |
-		                        SAHPI_CAPABILITY_INVENTORY_DATA |
-		                        SAHPI_CAPABILITY_RDR |
-		                        SAHPI_CAPABILITY_RESOURCE |
-		                        SAHPI_CAPABILITY_SENSOR,
+                                        SAHPI_CAPABILITY_FRU |
+                                        SAHPI_CAPABILITY_INVENTORY_DATA |
+                                        SAHPI_CAPABILITY_RDR |
+                                        SAHPI_CAPABILITY_RESOURCE |
+                                        SAHPI_CAPABILITY_SENSOR,
                 .ResourceSeverity = SAHPI_MAJOR,
                 .ResourceTag = {
                         .DataType = SAHPI_TL_TYPE_TEXT,
@@ -130,7 +130,7 @@
                         },
                         {
                                 .EntityType = SAHPI_ENT_SUB_CHASSIS,
-			        .EntityLocation = 1
+                                .EntityLocation = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
@@ -142,11 +142,11 @@
                         }
                 },
                 .ResourceCapabilities = SAHPI_CAPABILITY_CONTROL |
-		                        SAHPI_CAPABILITY_FRU |
-		                        SAHPI_CAPABILITY_INVENTORY_DATA |
-		                        SAHPI_CAPABILITY_RDR |
-		                        SAHPI_CAPABILITY_RESOURCE |
-		                        SAHPI_CAPABILITY_SENSOR,
+                                        SAHPI_CAPABILITY_FRU |
+                                        SAHPI_CAPABILITY_INVENTORY_DATA |
+                                        SAHPI_CAPABILITY_RDR |
+                                        SAHPI_CAPABILITY_RESOURCE |
+                                        SAHPI_CAPABILITY_SENSOR,
                 .ResourceSeverity = SAHPI_MAJOR,
                 .ResourceTag = {
                         .DataType = SAHPI_TL_TYPE_TEXT,
@@ -175,7 +175,7 @@
                         },
                         {
                                 .EntityType = SAHPI_ENT_SUB_CHASSIS,
-			        .EntityLocation = 2
+                                .EntityLocation = 2
                         },
                         {
                                 .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
@@ -187,11 +187,11 @@
                         }
                 },
                 .ResourceCapabilities = SAHPI_CAPABILITY_CONTROL |
-		                        SAHPI_CAPABILITY_FRU |
-		                        SAHPI_CAPABILITY_INVENTORY_DATA |
-		                        SAHPI_CAPABILITY_RDR |
-		                        SAHPI_CAPABILITY_RESOURCE |
-		                        SAHPI_CAPABILITY_SENSOR,
+                                        SAHPI_CAPABILITY_FRU |
+                                        SAHPI_CAPABILITY_INVENTORY_DATA |
+                                        SAHPI_CAPABILITY_RDR |
+                                        SAHPI_CAPABILITY_RESOURCE |
+                                        SAHPI_CAPABILITY_SENSOR,
                 .ResourceSeverity = SAHPI_MAJOR,
                 .ResourceTag = {
                         .DataType = SAHPI_TL_TYPE_TEXT,
@@ -220,7 +220,7 @@
                         },
                         {
                                 .EntityType = SAHPI_ENT_SUB_CHASSIS,
-			        .EntityLocation = 2
+                                .EntityLocation = 2
                         },
                         {
                                 .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
@@ -232,11 +232,11 @@
                         }
                 },
                 .ResourceCapabilities = SAHPI_CAPABILITY_CONTROL |
-		                        SAHPI_CAPABILITY_FRU |
-		                        SAHPI_CAPABILITY_INVENTORY_DATA |
-		                        SAHPI_CAPABILITY_RDR |
-		                        SAHPI_CAPABILITY_RESOURCE |
-		                        SAHPI_CAPABILITY_SENSOR,
+                                        SAHPI_CAPABILITY_FRU |
+                                        SAHPI_CAPABILITY_INVENTORY_DATA |
+                                        SAHPI_CAPABILITY_RDR |
+                                        SAHPI_CAPABILITY_RESOURCE |
+                                        SAHPI_CAPABILITY_SENSOR,
                 .ResourceSeverity = SAHPI_MAJOR,
                 .ResourceTag = {
                         .DataType = SAHPI_TL_TYPE_TEXT,
@@ -265,7 +265,7 @@
                         },
                         {
                                 .EntityType = SAHPI_ENT_SUB_CHASSIS,
-			        .EntityLocation = 2
+                                .EntityLocation = 2
                         },
                         {
                                 .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
@@ -277,11 +277,11 @@
                         }
                 },
                 .ResourceCapabilities = SAHPI_CAPABILITY_CONTROL |
-		                        SAHPI_CAPABILITY_FRU |
-		                        SAHPI_CAPABILITY_INVENTORY_DATA |
-		                        SAHPI_CAPABILITY_RDR |
-		                        SAHPI_CAPABILITY_RESOURCE |
-		                        SAHPI_CAPABILITY_SENSOR,
+                                        SAHPI_CAPABILITY_FRU |
+                                        SAHPI_CAPABILITY_INVENTORY_DATA |
+                                        SAHPI_CAPABILITY_RDR |
+                                        SAHPI_CAPABILITY_RESOURCE |
+                                        SAHPI_CAPABILITY_SENSOR,
                 .ResourceSeverity = SAHPI_MAJOR,
                 .ResourceTag = {
                         .DataType = SAHPI_TL_TYPE_TEXT,
@@ -310,7 +310,7 @@
                         },
                         {
                                 .EntityType = SAHPI_ENT_SUB_CHASSIS,
-			        .EntityLocation = 1
+                                .EntityLocation = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
@@ -322,9 +322,9 @@
                         }
                 },
                 .ResourceCapabilities = SAHPI_CAPABILITY_FRU |
-		                        SAHPI_CAPABILITY_INVENTORY_DATA |
-			                SAHPI_CAPABILITY_RDR |
-		                        SAHPI_CAPABILITY_RESOURCE,
+                                        SAHPI_CAPABILITY_INVENTORY_DATA |
+                                        SAHPI_CAPABILITY_RDR |
+                                        SAHPI_CAPABILITY_RESOURCE,
                 .ResourceSeverity = SAHPI_MAJOR,
                 .ResourceTag = {
                         .DataType = SAHPI_TL_TYPE_TEXT,
@@ -353,7 +353,7 @@
                         },
                         {
                                 .EntityType = SAHPI_ENT_SUB_CHASSIS,
-			        .EntityLocation = 1
+                                .EntityLocation = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
@@ -365,9 +365,9 @@
                         }
                 },
                 .ResourceCapabilities = SAHPI_CAPABILITY_FRU |
-			                SAHPI_CAPABILITY_INVENTORY_DATA |
-			                SAHPI_CAPABILITY_RDR |
-			                SAHPI_CAPABILITY_RESOURCE,
+                                        SAHPI_CAPABILITY_INVENTORY_DATA |
+                                        SAHPI_CAPABILITY_RDR |
+                                        SAHPI_CAPABILITY_RESOURCE,
                 .ResourceSeverity = SAHPI_MAJOR,
                 .ResourceTag = {
                         .DataType = SAHPI_TL_TYPE_TEXT,
@@ -396,7 +396,7 @@
                         },
                         {
                                 .EntityType = SAHPI_ENT_SUB_CHASSIS,
-			        .EntityLocation = 2
+                                .EntityLocation = 2
                         },
                         {
                                 .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
@@ -408,9 +408,9 @@
                         }
                 },
                 .ResourceCapabilities = SAHPI_CAPABILITY_FRU |
-			                SAHPI_CAPABILITY_INVENTORY_DATA |
-			                SAHPI_CAPABILITY_RDR |
-			                SAHPI_CAPABILITY_RESOURCE,
+                                        SAHPI_CAPABILITY_INVENTORY_DATA |
+                                        SAHPI_CAPABILITY_RDR |
+                                        SAHPI_CAPABILITY_RESOURCE,
                 .ResourceSeverity = SAHPI_MAJOR,
                 .ResourceTag = {
                         .DataType = SAHPI_TL_TYPE_TEXT,
@@ -443,11 +443,11 @@
                         }
                 },
                 .ResourceCapabilities = SAHPI_CAPABILITY_CONTROL |
-			                SAHPI_CAPABILITY_INVENTORY_DATA |
+                                        SAHPI_CAPABILITY_INVENTORY_DATA |
                                         SAHPI_CAPABILITY_RDR |
-			                SAHPI_CAPABILITY_RESOURCE |
-			                SAHPI_CAPABILITY_EVENT_LOG |
-			                SAHPI_CAPABILITY_SENSOR,
+                                        SAHPI_CAPABILITY_RESOURCE |
+                                        SAHPI_CAPABILITY_EVENT_LOG |
+                                        SAHPI_CAPABILITY_SENSOR,
                 .ResourceSeverity = SAHPI_CRITICAL,
                 .ResourceTag = {
                         .DataType = SAHPI_TL_TYPE_TEXT,
@@ -462,7 +462,7 @@
 /*****************
  * Start of RDRs *
  *****************/
-SaHpiRdrT rdrs[] = {
+SaHpiRdrT sensors[] = {
         {
                 .RdrType = SAHPI_SENSOR_RDR,
                 .Entity = {
@@ -472,7 +472,7 @@ SaHpiRdrT rdrs[] = {
                         },
                         {
                                 .EntityType = SAHPI_ENT_SUB_CHASSIS,
-			        .EntityLocation = 1
+                                .EntityLocation = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
@@ -529,7 +529,7 @@ SaHpiRdrT rdrs[] = {
                         },
                         {
                                 .EntityType = SAHPI_ENT_SUB_CHASSIS,
-			        .EntityLocation = 1
+                                .EntityLocation = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
@@ -586,7 +586,7 @@ SaHpiRdrT rdrs[] = {
                         },
                         {
                                 .EntityType = SAHPI_ENT_SUB_CHASSIS,
-			        .EntityLocation = 1
+                                .EntityLocation = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
@@ -643,7 +643,7 @@ SaHpiRdrT rdrs[] = {
                         },
                         {
                                 .EntityType = SAHPI_ENT_SUB_CHASSIS,
-			        .EntityLocation = 1
+                                .EntityLocation = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
@@ -700,7 +700,7 @@ SaHpiRdrT rdrs[] = {
                         },
                         {
                                 .EntityType = SAHPI_ENT_SUB_CHASSIS,
-			        .EntityLocation = 1
+                                .EntityLocation = 1
                         },
                         {
                                 .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
@@ -817,7 +817,7 @@ SaHpiRdrT rdrs[] = {
                                 .EventCtrl = SAHPI_SEC_PER_EVENT,
                                 .Events = SAHPI_ES_OK | SAHPI_ES_CRITICAL,
                                 .EnableCtrl = SAHPI_FALSE,
-                                .DataFormat = {                                        
+                                .DataFormat = {
                                         .BaseUnits = SAHPI_SU_UNSPECIFIED,
                                         .ModifierUnits = SAHPI_SU_UNSPECIFIED,
                                         .ModifierUse = SAHPI_SMUU_NONE,
@@ -846,7 +846,763 @@ SaHpiRdrT rdrs[] = {
                         .Data = "Sensor 2 for Chassis."
                 }
         },
-        {}        
+        {}
+};
+
+SaHpiRdrT controls[] = {
+        {
+                .RdrType = SAHPI_CTRL_RDR,
+                .Entity = {
+                        .Entry[0] = {
+                                .EntityType = SAHPI_ENT_SBC_BLADE,
+                                .EntityLocation = 14
+                        },
+                        {
+                                .EntityType = SAHPI_ENT_SUB_CHASSIS,
+                                .EntityLocation = 1
+                        },
+                        {
+                                .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
+                                .EntityLocation = 1
+                        },
+                        {
+                                .EntityType = SAHPI_ENT_ROOT,
+                                .EntityLocation = 0
+                        }
+                },
+                .RdrTypeUnion = {
+                        .CtrlRec = {
+                                .Num = 1,
+                                .OutputType = SAHPI_CTRL_GENERIC,
+                                .Type = SAHPI_CTRL_TYPE_DIGITAL,
+                                .TypeUnion = {
+                                        .Digital = {
+                                                .Default = SAHPI_CTRL_STATE_OFF
+                                        }
+                                },
+                                .DefaultMode = {
+                                        .Mode = SAHPI_CTRL_MODE_MANUAL,
+                                        .ReadOnly = SAHPI_TRUE
+                                },
+                                .WriteOnly = SAHPI_FALSE,
+                                .Oem = 1
+                        }
+                },
+                .IdString = {
+                        .DataType = SAHPI_TL_TYPE_TEXT,
+                        .Language = SAHPI_LANG_ENGLISH,
+                        .DataLength = 23,
+                        .Data = "Control 1 for Blade 14."
+                }
+        },
+        {
+                .RdrType = SAHPI_CTRL_RDR,
+                .Entity = {
+                        .Entry[0] = {
+                                .EntityType = SAHPI_ENT_SBC_BLADE,
+                                .EntityLocation = 14
+                        },
+                        {
+                                .EntityType = SAHPI_ENT_SUB_CHASSIS,
+                                .EntityLocation = 1
+                        },
+                        {
+                                .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
+                                .EntityLocation = 1
+                        },
+                        {
+                                .EntityType = SAHPI_ENT_ROOT,
+                                .EntityLocation = 0
+                        }
+                },
+                .RdrTypeUnion = {
+                        .CtrlRec = {
+                                .Num = 2,
+                                .OutputType = SAHPI_CTRL_GENERIC,
+                                .Type = SAHPI_CTRL_TYPE_DIGITAL,
+                                .TypeUnion = {
+                                        .Digital = {
+                                                .Default = SAHPI_CTRL_STATE_OFF
+                                        }
+                                },
+                                .DefaultMode = {
+                                        .Mode = SAHPI_CTRL_MODE_MANUAL,
+                                        .ReadOnly = SAHPI_TRUE
+                                },
+                                .WriteOnly = SAHPI_FALSE,
+                                .Oem = 2
+                        }
+                },
+                .IdString = {
+                        .DataType = SAHPI_TL_TYPE_TEXT,
+                        .Language = SAHPI_LANG_ENGLISH,
+                        .DataLength = 23,
+                        .Data = "Control 2 for Blade 14."
+                }
+        },
+        {
+                .RdrType = SAHPI_CTRL_RDR,
+                .Entity = {
+                        .Entry[0] = {
+                                .EntityType = SAHPI_ENT_SBC_BLADE,
+                                .EntityLocation = 14
+                        },
+                        {
+                                .EntityType = SAHPI_ENT_SUB_CHASSIS,
+                                .EntityLocation = 1
+                        },
+                        {
+                                .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
+                                .EntityLocation = 1
+                        },
+                        {
+                                .EntityType = SAHPI_ENT_ROOT,
+                                .EntityLocation = 0
+                        }
+                },
+                .RdrTypeUnion = {
+                        .CtrlRec = {
+                                .Num = 3,
+                                .OutputType = SAHPI_CTRL_GENERIC,
+                                .Type = SAHPI_CTRL_TYPE_DIGITAL,
+                                .TypeUnion = {
+                                        .Digital = {
+                                                .Default = SAHPI_CTRL_STATE_OFF
+                                        }
+                                },
+                                .DefaultMode = {
+                                        .Mode = SAHPI_CTRL_MODE_MANUAL,
+                                        .ReadOnly = SAHPI_TRUE
+                                },
+                                .WriteOnly = SAHPI_FALSE,
+                                .Oem = 3
+                        }
+                },
+                .IdString = {
+                        .DataType = SAHPI_TL_TYPE_TEXT,
+                        .Language = SAHPI_LANG_ENGLISH,
+                        .DataLength = 23,
+                        .Data = "Control 3 for Blade 14."
+                }
+        },
+        {
+                .RdrType = SAHPI_CTRL_RDR,
+                .Entity = {
+                        .Entry[0] = {
+                                .EntityType = SAHPI_ENT_SBC_BLADE,
+                                .EntityLocation = 14
+                        },
+                        {
+                                .EntityType = SAHPI_ENT_SUB_CHASSIS,
+                                .EntityLocation = 1
+                        },
+                        {
+                                .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
+                                .EntityLocation = 1
+                        },
+                        {
+                                .EntityType = SAHPI_ENT_ROOT,
+                                .EntityLocation = 0
+                        }
+                },
+                .RdrTypeUnion = {
+                        .CtrlRec = {
+                                .Num = 4,
+                                .OutputType = SAHPI_CTRL_GENERIC,
+                                .Type = SAHPI_CTRL_TYPE_DIGITAL,
+                                .TypeUnion = {
+                                        .Digital = {
+                                                .Default = SAHPI_CTRL_STATE_OFF
+                                        }
+                                },
+                                .DefaultMode = {
+                                        .Mode = SAHPI_CTRL_MODE_MANUAL,
+                                        .ReadOnly = SAHPI_TRUE
+                                },
+                                .WriteOnly = SAHPI_FALSE,
+                                .Oem = 4
+                        }
+                },
+                .IdString = {
+                        .DataType = SAHPI_TL_TYPE_TEXT,
+                        .Language = SAHPI_LANG_ENGLISH,
+                        .DataLength = 23,
+                        .Data = "Control 4 for Blade 14."
+                }
+        },
+        {
+                .RdrType = SAHPI_CTRL_RDR,
+                .Entity = {
+                        .Entry[0] = {
+                                .EntityType = SAHPI_ENT_SBC_BLADE,
+                                .EntityLocation = 14
+                        },
+                        {
+                                .EntityType = SAHPI_ENT_SUB_CHASSIS,
+                                .EntityLocation = 1
+                        },
+                        {
+                                .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
+                                .EntityLocation = 1
+                        },
+                        {
+                                .EntityType = SAHPI_ENT_ROOT,
+                                .EntityLocation = 0
+                        }
+                },
+                .RdrTypeUnion = {
+                        .CtrlRec = {
+                                .Num = 5,
+                                .OutputType = SAHPI_CTRL_GENERIC,
+                                .Type = SAHPI_CTRL_TYPE_DIGITAL,
+                                .TypeUnion = {
+                                        .Digital = {
+                                                .Default = SAHPI_CTRL_STATE_OFF
+                                        }
+                                },
+                                .DefaultMode = {
+                                        .Mode = SAHPI_CTRL_MODE_MANUAL,
+                                        .ReadOnly = SAHPI_TRUE
+                                },
+                                .WriteOnly = SAHPI_FALSE,
+                                .Oem = 5
+                        }
+                },
+                .IdString = {
+                        .DataType = SAHPI_TL_TYPE_TEXT,
+                        .Language = SAHPI_LANG_ENGLISH,
+                        .DataLength = 23,
+                        .Data = "Control 5 for Blade 14."
+                }
+        },
+        {}
+};
+
+SaHpiRdrT inventories[] = {
+        {
+                .RdrType = SAHPI_INVENTORY_RDR,
+                .Entity = {
+                        .Entry[0] = {
+                                .EntityType = SAHPI_ENT_SBC_BLADE,
+                                .EntityLocation = 14
+                        },
+                        {
+                                .EntityType = SAHPI_ENT_SUB_CHASSIS,
+                                .EntityLocation = 1
+                        },
+                        {
+                                .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
+                                .EntityLocation = 1
+                        },
+                        {
+                                .EntityType = SAHPI_ENT_ROOT,
+                                .EntityLocation = 0
+                        }
+                },
+                .RdrTypeUnion = {
+                        .InventoryRec = {
+                                .IdrId = 1,
+                                .Persistent = SAHPI_TRUE,
+                                .Oem = 1
+                        }
+                },
+                .IdString = {
+                        .DataType = SAHPI_TL_TYPE_TEXT,
+                        .Language = SAHPI_LANG_ENGLISH,
+                        .DataLength = 25,
+                        .Data = "Inventory 1 for Blade 14."
+                }
+        },
+        {
+                .RdrType = SAHPI_INVENTORY_RDR,
+                .Entity = {
+                        .Entry[0] = {
+                                .EntityType = SAHPI_ENT_SBC_BLADE,
+                                .EntityLocation = 14
+                        },
+                        {
+                                .EntityType = SAHPI_ENT_SUB_CHASSIS,
+                                .EntityLocation = 1
+                        },
+                        {
+                                .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
+                                .EntityLocation = 1
+                        },
+                        {
+                                .EntityType = SAHPI_ENT_ROOT,
+                                .EntityLocation = 0
+                        }
+                },
+                .RdrTypeUnion = {
+                        .InventoryRec = {
+                                .IdrId = 2,
+                                .Persistent = SAHPI_TRUE,
+                                .Oem = 2
+                        }
+                },
+                .IdString = {
+                        .DataType = SAHPI_TL_TYPE_TEXT,
+                        .Language = SAHPI_LANG_ENGLISH,
+                        .DataLength = 25,
+                        .Data = "Inventory 2 for Blade 14."
+                }
+        },
+        {
+                .RdrType = SAHPI_INVENTORY_RDR,
+                .Entity = {
+                        .Entry[0] = {
+                                .EntityType = SAHPI_ENT_SBC_BLADE,
+                                .EntityLocation = 14
+                        },
+                        {
+                                .EntityType = SAHPI_ENT_SUB_CHASSIS,
+                                .EntityLocation = 1
+                        },
+                        {
+                                .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
+                                .EntityLocation = 1
+                        },
+                        {
+                                .EntityType = SAHPI_ENT_ROOT,
+                                .EntityLocation = 0
+                        }
+                },
+                .RdrTypeUnion = {
+                        .InventoryRec = {
+                                .IdrId = 3,
+                                .Persistent = SAHPI_TRUE,
+                                .Oem = 3
+                        }
+                },
+                .IdString = {
+                        .DataType = SAHPI_TL_TYPE_TEXT,
+                        .Language = SAHPI_LANG_ENGLISH,
+                        .DataLength = 25,
+                        .Data = "Inventory 3 for Blade 14."
+                }
+        },
+        {
+                .RdrType = SAHPI_INVENTORY_RDR,
+                .Entity = {
+                        .Entry[0] = {
+                                .EntityType = SAHPI_ENT_SBC_BLADE,
+                                .EntityLocation = 14
+                        },
+                        {
+                                .EntityType = SAHPI_ENT_SUB_CHASSIS,
+                                .EntityLocation = 1
+                        },
+                        {
+                                .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
+                                .EntityLocation = 1
+                        },
+                        {
+                                .EntityType = SAHPI_ENT_ROOT,
+                                .EntityLocation = 0
+                        }
+                },
+                .RdrTypeUnion = {
+                        .InventoryRec = {
+                                .IdrId = 4,
+                                .Persistent = SAHPI_TRUE,
+                                .Oem = 4
+                        }
+                },
+                .IdString = {
+                        .DataType = SAHPI_TL_TYPE_TEXT,
+                        .Language = SAHPI_LANG_ENGLISH,
+                        .DataLength = 25,
+                        .Data = "Inventory 4 for Blade 14."
+                }
+        },
+        {
+                .RdrType = SAHPI_INVENTORY_RDR,
+                .Entity = {
+                        .Entry[0] = {
+                                .EntityType = SAHPI_ENT_SBC_BLADE,
+                                .EntityLocation = 14
+                        },
+                        {
+                                .EntityType = SAHPI_ENT_SUB_CHASSIS,
+                                .EntityLocation = 1
+                        },
+                        {
+                                .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
+                                .EntityLocation = 1
+                        },
+                        {
+                                .EntityType = SAHPI_ENT_ROOT,
+                                .EntityLocation = 0
+                        }
+                },
+                .RdrTypeUnion = {
+                        .InventoryRec = {
+                                .IdrId = 5,
+                                .Persistent = SAHPI_TRUE,
+                                .Oem = 5
+                        }
+                },
+                .IdString = {
+                        .DataType = SAHPI_TL_TYPE_TEXT,
+                        .Language = SAHPI_LANG_ENGLISH,
+                        .DataLength = 25,
+                        .Data = "Inventory 5 for Blade 14."
+                }
+        },
+        {}
+};
+
+SaHpiRdrT watchdogs[] = {
+        {
+                .RdrType = SAHPI_WATCHDOG_RDR,
+                .Entity = {
+                        .Entry[0] = {
+                                .EntityType = SAHPI_ENT_SBC_BLADE,
+                                .EntityLocation = 14
+                        },
+                        {
+                                .EntityType = SAHPI_ENT_SUB_CHASSIS,
+                                .EntityLocation = 1
+                        },
+                        {
+                                .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
+                                .EntityLocation = 1
+                        },
+                        {
+                                .EntityType = SAHPI_ENT_ROOT,
+                                .EntityLocation = 0
+                        }
+                },
+                .RdrTypeUnion = {
+                        .WatchdogRec = {
+                                .WatchdogNum = 1,
+                                .Oem = 1
+                        }
+                },
+                .IdString = {
+                        .DataType = SAHPI_TL_TYPE_TEXT,
+                        .Language = SAHPI_LANG_ENGLISH,
+                        .DataLength = 24,
+                        .Data = "Watchdog 1 for Blade 14."
+                }
+        },
+        {
+                .RdrType = SAHPI_WATCHDOG_RDR,
+                .Entity = {
+                        .Entry[0] = {
+                                .EntityType = SAHPI_ENT_SBC_BLADE,
+                                .EntityLocation = 14
+                        },
+                        {
+                                .EntityType = SAHPI_ENT_SUB_CHASSIS,
+                                .EntityLocation = 1
+                        },
+                        {
+                                .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
+                                .EntityLocation = 1
+                        },
+                        {
+                                .EntityType = SAHPI_ENT_ROOT,
+                                .EntityLocation = 0
+                        }
+                },
+                .RdrTypeUnion = {
+                        .WatchdogRec = {
+                                .WatchdogNum = 2,
+                                .Oem = 2
+                        }
+                },
+                .IdString = {
+                        .DataType = SAHPI_TL_TYPE_TEXT,
+                        .Language = SAHPI_LANG_ENGLISH,
+                        .DataLength = 24,
+                        .Data = "Watchdog 2 for Blade 14."
+                }
+        },
+        {
+                .RdrType = SAHPI_WATCHDOG_RDR,
+                .Entity = {
+                        .Entry[0] = {
+                                .EntityType = SAHPI_ENT_SBC_BLADE,
+                                .EntityLocation = 14
+                        },
+                        {
+                                .EntityType = SAHPI_ENT_SUB_CHASSIS,
+                                .EntityLocation = 1
+                        },
+                        {
+                                .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
+                                .EntityLocation = 1
+                        },
+                        {
+                                .EntityType = SAHPI_ENT_ROOT,
+                                .EntityLocation = 0
+                        }
+                },
+                .RdrTypeUnion = {
+                        .WatchdogRec = {
+                                .WatchdogNum = 3,
+                                .Oem = 3
+                        }
+                },
+                .IdString = {
+                        .DataType = SAHPI_TL_TYPE_TEXT,
+                        .Language = SAHPI_LANG_ENGLISH,
+                        .DataLength = 24,
+                        .Data = "Watchdog 3 for Blade 14."
+                }
+        },
+        {
+                .RdrType = SAHPI_WATCHDOG_RDR,
+                .Entity = {
+                        .Entry[0] = {
+                                .EntityType = SAHPI_ENT_SBC_BLADE,
+                                .EntityLocation = 14
+                        },
+                        {
+                                .EntityType = SAHPI_ENT_SUB_CHASSIS,
+                                .EntityLocation = 1
+                        },
+                        {
+                                .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
+                                .EntityLocation = 1
+                        },
+                        {
+                                .EntityType = SAHPI_ENT_ROOT,
+                                .EntityLocation = 0
+                        }
+                },
+                .RdrTypeUnion = {
+                        .WatchdogRec = {
+                                .WatchdogNum = 4,
+                                .Oem = 4
+                        }
+                },
+                .IdString = {
+                        .DataType = SAHPI_TL_TYPE_TEXT,
+                        .Language = SAHPI_LANG_ENGLISH,
+                        .DataLength = 24,
+                        .Data = "Watchdog 4 for Blade 14."
+                }
+        },
+        {
+                .RdrType = SAHPI_WATCHDOG_RDR,
+                .Entity = {
+                        .Entry[0] = {
+                                .EntityType = SAHPI_ENT_SBC_BLADE,
+                                .EntityLocation = 14
+                        },
+                        {
+                                .EntityType = SAHPI_ENT_SUB_CHASSIS,
+                                .EntityLocation = 1
+                        },
+                        {
+                                .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
+                                .EntityLocation = 1
+                        },
+                        {
+                                .EntityType = SAHPI_ENT_ROOT,
+                                .EntityLocation = 0
+                        }
+                },
+                .RdrTypeUnion = {
+                        .WatchdogRec = {
+                                .WatchdogNum = 5,
+                                .Oem = 5
+                        }
+                },
+                .IdString = {
+                        .DataType = SAHPI_TL_TYPE_TEXT,
+                        .Language = SAHPI_LANG_ENGLISH,
+                        .DataLength = 24,
+                        .Data = "Watchdog 5 for Blade 14."
+                }
+        },
+        {}
+};
+
+SaHpiRdrT annunciators[] = {
+        {
+                .RdrType = SAHPI_ANNUNCIATOR_RDR,
+                .Entity = {
+                        .Entry[0] = {
+                                .EntityType = SAHPI_ENT_SBC_BLADE,
+                                .EntityLocation = 14
+                        },
+                        {
+                                .EntityType = SAHPI_ENT_SUB_CHASSIS,
+                                .EntityLocation = 1
+                        },
+                        {
+                                .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
+                                .EntityLocation = 1
+                        },
+                        {
+                                .EntityType = SAHPI_ENT_ROOT,
+                                .EntityLocation = 0
+                        }
+                },
+                .RdrTypeUnion = {
+                        .AnnunciatorRec = {
+                                .AnnunciatorNum = 1,
+                                .AnnunciatorType = SAHPI_ANNUNCIATOR_TYPE_LED,
+                                .ModeReadOnly = SAHPI_FALSE,
+                                .MaxConditions = 2,
+                                .Oem = 1
+                        }
+                },
+                .IdString = {
+                        .DataType = SAHPI_TL_TYPE_TEXT,
+                        .Language = SAHPI_LANG_ENGLISH,
+                        .DataLength = 27,
+                        .Data = "Annunciator 1 for Blade 14."
+                }
+        },
+        {
+                .RdrType = SAHPI_ANNUNCIATOR_RDR,
+                .Entity = {
+                        .Entry[0] = {
+                                .EntityType = SAHPI_ENT_SBC_BLADE,
+                                .EntityLocation = 14
+                        },
+                        {
+                                .EntityType = SAHPI_ENT_SUB_CHASSIS,
+                                .EntityLocation = 1
+                        },
+                        {
+                                .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
+                                .EntityLocation = 1
+                        },
+                        {
+                                .EntityType = SAHPI_ENT_ROOT,
+                                .EntityLocation = 0
+                        }
+                },
+                .RdrTypeUnion = {
+                        .AnnunciatorRec = {
+                                .AnnunciatorNum = 2,
+                                .AnnunciatorType = SAHPI_ANNUNCIATOR_TYPE_LED,
+                                .ModeReadOnly = SAHPI_FALSE,
+                                .MaxConditions = 2,
+                                .Oem = 2
+                        }
+                },
+                .IdString = {
+                        .DataType = SAHPI_TL_TYPE_TEXT,
+                        .Language = SAHPI_LANG_ENGLISH,
+                        .DataLength = 27,
+                        .Data = "Annunciator 2 for Blade 14."
+                }
+        },
+        {
+                .RdrType = SAHPI_ANNUNCIATOR_RDR,
+                .Entity = {
+                        .Entry[0] = {
+                                .EntityType = SAHPI_ENT_SBC_BLADE,
+                                .EntityLocation = 14
+                        },
+                        {
+                                .EntityType = SAHPI_ENT_SUB_CHASSIS,
+                                .EntityLocation = 1
+                        },
+                        {
+                                .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
+                                .EntityLocation = 1
+                        },
+                        {
+                                .EntityType = SAHPI_ENT_ROOT,
+                                .EntityLocation = 0
+                        }
+                },
+                .RdrTypeUnion = {
+                        .AnnunciatorRec = {
+                                .AnnunciatorNum = 3,
+                                .AnnunciatorType = SAHPI_ANNUNCIATOR_TYPE_LED,
+                                .ModeReadOnly = SAHPI_FALSE,
+                                .MaxConditions = 2,
+                                .Oem = 3
+                        }
+                },
+                .IdString = {
+                        .DataType = SAHPI_TL_TYPE_TEXT,
+                        .Language = SAHPI_LANG_ENGLISH,
+                        .DataLength = 27,
+                        .Data = "Annunciator 3 for Blade 14."
+                }
+        },
+        {
+                .RdrType = SAHPI_ANNUNCIATOR_RDR,
+                .Entity = {
+                        .Entry[0] = {
+                                .EntityType = SAHPI_ENT_SBC_BLADE,
+                                .EntityLocation = 14
+                        },
+                        {
+                                .EntityType = SAHPI_ENT_SUB_CHASSIS,
+                                .EntityLocation = 1
+                        },
+                        {
+                                .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
+                                .EntityLocation = 1
+                        },
+                        {
+                                .EntityType = SAHPI_ENT_ROOT,
+                                .EntityLocation = 0
+                        }
+                },
+                .RdrTypeUnion = {
+                        .AnnunciatorRec = {
+                                .AnnunciatorNum = 4,
+                                .AnnunciatorType = SAHPI_ANNUNCIATOR_TYPE_LED,
+                                .ModeReadOnly = SAHPI_FALSE,
+                                .MaxConditions = 2,
+                                .Oem = 4
+                        }
+                },
+                .IdString = {
+                        .DataType = SAHPI_TL_TYPE_TEXT,
+                        .Language = SAHPI_LANG_ENGLISH,
+                        .DataLength = 27,
+                        .Data = "Annunciator 4 for Blade 14."
+                }
+        },
+        {
+                .RdrType = SAHPI_ANNUNCIATOR_RDR,
+                .Entity = {
+                        .Entry[0] = {
+                                .EntityType = SAHPI_ENT_SBC_BLADE,
+                                .EntityLocation = 14
+                        },
+                        {
+                                .EntityType = SAHPI_ENT_SUB_CHASSIS,
+                                .EntityLocation = 1
+                        },
+                        {
+                                .EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
+                                .EntityLocation = 1
+                        },
+                        {
+                                .EntityType = SAHPI_ENT_ROOT,
+                                .EntityLocation = 0
+                        }
+                },
+                .RdrTypeUnion = {
+                        .AnnunciatorRec = {
+                                .AnnunciatorNum = 5,
+                                .AnnunciatorType = SAHPI_ANNUNCIATOR_TYPE_LED,
+                                .ModeReadOnly = SAHPI_FALSE,
+                                .MaxConditions = 2,
+                                .Oem = 5
+                        }
+                },
+                .IdString = {
+                        .DataType = SAHPI_TL_TYPE_TEXT,
+                        .Language = SAHPI_LANG_ENGLISH,
+                        .DataLength = 27,
+                        .Data = "Annunciator 5 for Blade 14."
+                }
+        },
+        {}
 };
 
 #endif /* RPT_RESOURCES_H  */

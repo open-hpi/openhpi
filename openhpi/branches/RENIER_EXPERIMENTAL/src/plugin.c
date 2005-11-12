@@ -29,43 +29,70 @@
 #include <config.h>
 
 /*
- * List of plugins (oh_plugin).
+ * Structure containing global list of plugins (oh_plugin).
  */
-static GSList *plugin_list = NULL;
+struct oh_plugins oh_plugins = {
+        .list = NULL,
+        .lock = G_STATIC_REC_MUTEX_INIT
+};
+
 /*
- * Table of handlers (oh_handler).
+ * Structure containing global table of handlers (oh_handler).
  */
-static GHashTable *handler_table = NULL;
-/*
- * List of handler ids (unsigned int).
- */
-static GSList *handler_ids = NULL;
+struct oh_handlers oh_handlers = {
+        .table = NULL,
+        .list = NULL,
+        .lock = G_STATIC_REC_MUTEX_INIT
+};
 
 /**
- * close_handler_atexit
+ * oh_close_handlers
  *
  * When a client calls exit() this function
  * gets called to clean up the handlers
  * and any handler connections to the hardware.
  * Until clients use dynamic oHPI interface
+ *
+ * Returns: void
  **/
-static void close_handlers_atexit(void)
+void oh_close_handlers()
 {
-        struct oh_handler *handler = NULL;
+        struct oh_handler *h = NULL;
         GSList *node = NULL;
-        unsigned int *id;
 
-        if (handler_ids == NULL) {
+        g_static_rec_mutex_lock(&oh_handlers.lock);
+        if (oh_handlers.list == NULL) {
+                g_static_rec_mutex_unlock(&oh_handlers.lock);
                 return;
         }
 
-        for (node = handler_ids; node; node=node->next) {
-                id = node->data;
-                handler = g_hash_table_lookup(handler_table, id);
-                if(handler->abi && handler->abi->close) {
-                        handler->abi->close(handler->hnd);
+        for (node = oh_handlers.list; node; node = node->next) {
+                h = node->data;
+                if (h && h->abi && h->abi->close) {
+                        h->abi->close(h->hnd);
                 }
         }
+        g_static_rec_mutex_unlock(&oh_handlers.lock);
+}
+
+/**
+ * oh_exit_ltdl
+ *
+ * Does everything needed to close the ltdl structures.
+ *
+ * Returns: 0 on Success.
+ **/
+static int oh_exit_ltdl(void)
+{
+        int rv;
+
+        rv = lt_dlexit();
+        if (rv < 0) {
+                dbg("Could not exit ltdl!");
+                return -1;
+        }
+
+        return 0;
 }
 
 /**
@@ -111,35 +138,45 @@ static int oh_init_ltdl(void)
         return 0;
 }
 
-/**
- * oh_exit_ltdl
- *
- * Does everything needed to close the ltdl structures.
- *
- * Returns: 0 on Success.
- **/
-int oh_exit_ltdl()
+static void __inc_plugin_refcount(struct oh_plugin *p)
 {
-        int rv;
+        g_static_rec_mutex_lock(&p->refcount_lock);
+        p->refcount++;
+        g_static_rec_mutex_unlock(&p->refcount_lock);
+}
 
-        rv = lt_dlexit();
-        if (rv < 0) {
-                dbg("Could not exit ltdl!");
-                return -1;
+static void __dec_plugin_refcount(struct oh_plugin *p)
+{
+        g_static_rec_mutex_lock(&p->refcount_lock);
+        p->refcount--;
+        g_static_rec_mutex_unlock(&p->refcount_lock);
+}
+
+static void __delete_plugin(struct oh_plugin *p)
+{
+        if (!p) return;
+
+        g_free(p->name);
+        g_static_rec_mutex_free(&p->lock);
+        g_static_rec_mutex_free(&p->refcount_lock);
+        g_free(p->abi);
+        if (p->dl_handle) {
+                lt_dlclose(p->dl_handle);
         }
-
-        return 0;
+        g_free(p);
 }
 
 /**
- * oh_lookup_plugin
- * @plugin_name
+ * oh_get_plugin
+ * @plugin_name: name of plugin. string.
  *
  * Lookup and get a reference for @plugin_name.
+ * Locks out the plugin. Need to call oh_putback_plugin
+ * to unlock it.
  *
  * Returns: oh_plugin reference or NULL if plugin_name was not found.
  **/
-struct oh_plugin *oh_lookup_plugin(char *plugin_name)
+struct oh_plugin *oh_get_plugin(char *plugin_name)
 {
         GSList *node = NULL;
         struct oh_plugin *plugin = NULL;
@@ -149,30 +186,55 @@ struct oh_plugin *oh_lookup_plugin(char *plugin_name)
                 return NULL;
         }
 
-        data_access_lock();
-        for (node = plugin_list; node != NULL; node = node->next) {
-                struct oh_plugin *p = node->data;
-                if(strcmp(p->name, plugin_name) == 0) {
+        g_static_rec_mutex_lock(&oh_plugins.lock);
+        for (node = oh_plugins.list; node; node = node->next) {
+                struct oh_plugin *p = (struct oh_plugin *)(node->data);
+                if (strcmp(p->name, plugin_name) == 0) {
+                        __inc_plugin_refcount(p);
+                        g_static_rec_mutex_unlock(&oh_plugins.lock);
+                        g_static_rec_mutex_lock(&p->lock);
                         plugin = p;
-                        break;
+                        return plugin;
                 }
         }
-        data_access_unlock();
+        g_static_rec_mutex_unlock(&oh_plugins.lock);
 
         return plugin;
 }
 
 /**
- * oh_lookup_next_plugin
+ * oh_release_plugin
+ * @plugin: Pointer to plugin
+ *
+ * Decrements refcount on plugin and unlocks it.
+ *
+ * Returns: void
+ **/
+void oh_release_plugin(struct oh_plugin *plugin)
+{
+        if (!plugin) {
+                dbg("WARNING - NULL plugin parameter passed.");
+                return;
+        }
+
+        __dec_plugin_refcount(plugin);
+        if (plugin->refcount < 0)
+                __delete_plugin(plugin);
+        else
+                g_static_rec_mutex_unlock(&plugin->lock);
+}
+
+/**
+ * oh_getnext_plugin_name
  * @plugin_name: IN. If NULL is passed, the first plugin in the list is returned.
  * @next_plugin_name: OUT. Buffer to print the next plugin name to.
  * @size: IN. Size of the buffer at @next_plugin_name.
  *
  * Returns: 0 on Success.
  **/
-int oh_lookup_next_plugin(char *plugin_name,
-                          char *next_plugin_name,
-                          unsigned int size)
+int oh_getnext_plugin_name(char *plugin_name,
+                           char *next_plugin_name,
+                           unsigned int size)
 {
         GSList *node = NULL;
 
@@ -182,33 +244,35 @@ int oh_lookup_next_plugin(char *plugin_name,
         }
         memset(next_plugin_name, '\0', size);
 
-        data_access_lock();
         if (!plugin_name) {
-                if (plugin_list) {
-                        struct oh_plugin *plugin = plugin_list->data;
+                g_static_rec_mutex_lock(&oh_plugins.lock);
+                if (oh_plugins.list) {
+                        struct oh_plugin *plugin = oh_plugins.list->data;
                         strncpy(next_plugin_name, plugin->name, size);
-                        data_access_unlock();
+                        g_static_rec_mutex_unlock(&oh_plugins.lock);
                         return 0;
                 } else {
+                        g_static_rec_mutex_unlock(&oh_plugins.lock);
                         trace("No plugins have been loaded yet.");
-                        data_access_unlock();
                         return -1;
                 }
         } else {
-                for (node = plugin_list; node != NULL; node = node->next) {
+                g_static_rec_mutex_lock(&oh_plugins.lock);
+                for (node = oh_plugins.list; node; node = node->next) {
                         struct oh_plugin *p = node->data;
                         if (strcmp(p->name, plugin_name) == 0) {
                                 if (node->next) {
                                         p = node->next->data;
                                         strncpy(next_plugin_name, p->name, size);
-                                        data_access_unlock();
+                                        g_static_rec_mutex_unlock(&oh_plugins.lock);
                                         return 0;
-                                } else
+                                } else {
                                         break;
+                                }
                         }
                 }
+                g_static_rec_mutex_unlock(&oh_plugins.lock);
         }
-        data_access_unlock();
 
         return -1;
 }
@@ -216,10 +280,10 @@ int oh_lookup_next_plugin(char *plugin_name,
 /* list of static plugins. defined in plugin_static.c.in */
 extern struct oh_static_plugin static_plugins[];
 /**
- * oh_unload_plugin
- * @plugin_name
+ * oh_load_plugin
+ * @plugin_name: name of plugin to be loaded (e.g. "libdummy").
  *
- * Load plugin by name and make a instance.
+ * Load plugin by name
  *
  * Returns: 0 on Success.
  **/
@@ -227,92 +291,85 @@ int oh_load_plugin(char *plugin_name)
 {
 
         struct oh_plugin *plugin = NULL;
-        /*int (*get_interface) (struct oh_abi_v2 ** pp, const uuid_t uuid); */
-        int err;
         struct oh_static_plugin *p = static_plugins;
+        int err;
 
         if (!plugin_name) {
                 dbg("ERROR. NULL plugin name passed.");
                 return -1;
         }
 
-        data_access_lock();
         if (oh_init_ltdl()) {
-                data_access_unlock();
                 dbg("ERROR. Could not initialize ltdl for loading plugins.");
                 return -1;
         }
 
-        if (oh_lookup_plugin(plugin_name)) {
+        plugin = oh_get_plugin(plugin_name);
+        if (plugin) {
+                oh_release_plugin(plugin);
                 dbg("Warning. Plugin %s already loaded. Not loading twice.",
                     plugin_name);
-                data_access_unlock();
                 return -1;
         }
 
         plugin = (struct oh_plugin *)g_malloc0(sizeof(struct oh_plugin));
         if (!plugin) {
                 dbg("Out of memory.");
-                data_access_unlock();
                 return -1;
         }
         plugin->name = g_strdup(plugin_name);
-        plugin->refcount = 1;
+        plugin->handler_count = 0;
+        plugin->refcount = 0;
+        g_static_rec_mutex_init(&plugin->lock);
+        g_static_rec_mutex_init(&plugin->refcount_lock);
 
         /* first take search plugin in the array of static plugin */
-        while( p->name ) {
+        while (p->name) {
                 if (!strcmp(plugin->name, p->name)) {
                         plugin->dl_handle = 0;
                         err = (*p->get_interface)((void **)&plugin->abi, UUID_OH_ABI_V2);
 
                         if (err < 0 || !plugin->abi || !plugin->abi->open) {
                                 dbg("Can not get ABI V2");
-                                goto err1;
+                                goto cleanup_and_quit;
                         }
 
-                        trace( "found static plugin %s", p->name );
+                        trace("found static plugin %s", p->name);
 
-                        plugin_list = g_slist_append(plugin_list, plugin);
-                        data_access_unlock();
+                        g_static_rec_mutex_lock(&oh_plugins.lock);
+                        oh_plugins.list = g_slist_append(oh_plugins.list, plugin);
+                        g_static_rec_mutex_unlock(&oh_plugins.lock);
 
                         return 0;
                 }
-
                 p++;
         }
 
         plugin->dl_handle = lt_dlopenext(plugin->name);
         if (plugin->dl_handle == NULL) {
                 dbg("Can not open %s plugin: %s", plugin->name, lt_dlerror());
-                goto err1;
+                goto cleanup_and_quit;
         }
 
         err = oh_load_plugin_functions(plugin, &plugin->abi);
 
         if (err < 0 || !plugin->abi || !plugin->abi->open) {
                 dbg("Can not get ABI");
-                goto err1;
+                goto cleanup_and_quit;
         }
-
-        plugin_list = g_slist_append(plugin_list, plugin);
-        data_access_unlock();
+        g_static_rec_mutex_lock(&oh_plugins.lock);
+        oh_plugins.list = g_slist_append(oh_plugins.list, plugin);
+        g_static_rec_mutex_unlock(&oh_plugins.lock);
 
         return 0;
-
- err1:
-        if (plugin->dl_handle) {
-                lt_dlclose(plugin->dl_handle);
-                plugin->dl_handle = 0;
-        }
-        data_access_unlock();
-        g_free(plugin);
-
+cleanup_and_quit:
+        __delete_plugin(plugin);
         return -1;
 }
 
 /**
  * oh_unload_plugin
- * @plugin_name
+ * @plugin_name: String. Name of plugin to unload.
  *
  * Returns: 0 on Success.
  **/
@@ -325,77 +382,132 @@ int oh_unload_plugin(char *plugin_name)
                 return -1;
         }
 
-        data_access_lock();
-
-        plugin = oh_lookup_plugin(plugin_name);
+        plugin = oh_get_plugin(plugin_name);
         if (!plugin) {
                 dbg("ERROR unloading plugin. Plugin not found.");
-                data_access_unlock();
                 return -2;
         }
 
-        if (plugin->refcount > 1) {
+        if (plugin->handler_count > 0) {
+                oh_release_plugin(plugin);
                 dbg("ERROR unloading plugin. Handlers are still referencing it.");
-                data_access_unlock();
                 return -3;
         }
 
-        if (plugin->dl_handle) {
-                lt_dlclose(plugin->dl_handle);
-                plugin->dl_handle = 0;
-        }
+        g_static_rec_mutex_lock(&oh_plugins.lock);
+        oh_plugins.list = g_slist_remove(oh_plugins.list, plugin);
+        g_static_rec_mutex_unlock(&oh_plugins.lock);
 
-        plugin_list = g_slist_remove(plugin_list, plugin);
-        data_access_unlock();
-
-        if (plugin->name)
-                g_free(plugin->name);
-
-        g_free(plugin);
+        __dec_plugin_refcount(plugin);
+        if (plugin->refcount < 1)
+                __delete_plugin(plugin);
+        else
+                oh_release_plugin(plugin);
 
         return 0;
 }
 
-static int oh_init_handler_table(void)
+static void __inc_handler_refcount(struct oh_handler *h)
 {
-        if (!handler_table)
-                handler_table = g_hash_table_new(g_int_hash, g_int_equal);
+        g_static_rec_mutex_lock(&h->refcount_lock);
+        h->refcount++;
+        g_static_rec_mutex_unlock(&h->refcount_lock);
+}
 
-        return (handler_table) ? 0 : -1;
+static void __dec_handler_refcount(struct oh_handler *h)
+{
+        g_static_rec_mutex_lock(&h->refcount_lock);
+        h->refcount--;
+        g_static_rec_mutex_unlock(&h->refcount_lock);
+}
+
+static void __delete_handler(struct oh_handler *h)
+{
+        GSList *node = NULL;
+        struct oh_plugin *plugin = NULL;
+
+        if (!h) return;
+
+        /* Subtract one from the number of handlers using this plugin */
+        plugin = oh_get_plugin(h->plugin_name);
+        if (!plugin) {
+                dbg("BAD ERROR - Handler loaded, but plugin does not exist!");
+        } else {
+                plugin->handler_count--;
+                oh_release_plugin(plugin);
+        }
+
+        /* Free the oh_handler members first, then the handler. */
+        /* FIXME: Where/When should the handler config table be freed? */
+        for (node = h->dids; node; node = node->next) {
+                g_free(node->data);
+        }
+        g_slist_free(h->dids);
+        g_static_rec_mutex_free(&h->lock);
+        g_static_rec_mutex_free(&h->refcount_lock);
+        g_free(h);
 }
 
 /**
- * oh_lookup_handler
- * @hid
+ * oh_get_handler
+ * @hid: id of handler being requested
  *
- * Returns: NULL on Failure.
+ * Returns: NULL if handler was not found.
  **/
-struct oh_handler *oh_lookup_handler(unsigned int hid)
+struct oh_handler *oh_get_handler(unsigned int hid)
 {
+        GSList *node = NULL;
         struct oh_handler *handler = NULL;
 
-        data_access_lock();
-        if (!handler_table) {
-                data_access_unlock();
+        g_static_rec_mutex_lock(&oh_handlers.lock);
+        node = g_hash_table_lookup(oh_handlers.table, &hid);
+        handler = node ? node->data : NULL;
+        if (!handler) {
+                g_static_rec_mutex_unlock(&oh_handlers.lock);
+                dbg("Error - Handler %d was not found", hid);
                 return NULL;
         }
-
-        handler = g_hash_table_lookup(handler_table, &hid);
-        data_access_unlock();
+        __inc_handler_refcount(handler);
+        g_static_rec_mutex_unlock(&oh_handlers.lock);
+        g_static_rec_mutex_lock(&handler->lock);
 
         return handler;
 }
 
 /**
- * oh_lookup_next_handler
+ * oh_release_handler
+ * @handler: a handler, previously obtained (i.e. locked) with
+ * oh_get_handler(), to be released (i.e. unlocked).
+ *
+ * Returns: void
+ **/
+void oh_release_handler(struct oh_handler *handler)
+{
+        if (!handler) {
+                dbg("Warning - NULL parameter passed.");
+                return;
+        }
+
+        __dec_handler_refcount(handler);
+        if (handler->refcount < 0)
+                __delete_handler(handler);
+        else
+                g_static_rec_mutex_unlock(&handler->lock);
+}
+
+/**
+ * oh_getnext_handler_id
  * @hid: If 0, will return the first handler id in the list.
- * @next_hid
+ * Otherwise, indicates handler id previous to the one being requested.
+ * @next_hid: Place where the next handler id after @hid
+ * will be put.
  *
  * Returns: 0 on Success.
  **/
-int oh_lookup_next_handler(unsigned int hid, unsigned int *next_hid)
+int oh_getnext_handler_id(unsigned int hid, unsigned int *next_hid)
 {
         GSList *node = NULL;
+        struct oh_handler *h = NULL;
 
         if (!next_hid) {
                 dbg("ERROR. Invalid parameter.");
@@ -403,38 +515,35 @@ int oh_lookup_next_handler(unsigned int hid, unsigned int *next_hid)
         }
         *next_hid = 0;
 
-        data_access_lock();
-        if (!hid) {
-                if (handler_ids) {
-                        unsigned int *id = handler_ids->data;
-                        *next_hid = *id;
-                        data_access_unlock();
+        if (!hid) { /* Return first handler id in the list */
+                g_static_rec_mutex_lock(&oh_handlers.lock);
+                if (oh_handlers.list) {
+                        h = oh_handlers.list->data;
+                        *next_hid = h->id;
+                        g_static_rec_mutex_unlock(&oh_handlers.lock);
                         return 0;
                 } else {
-                        data_access_unlock();
+                        g_static_rec_mutex_unlock(&oh_handlers.lock);
+                        dbg("Warning - no handlers");
                         return -1;
                 }
-        } else {
-                for (node = handler_ids; node; node = node->next) {
-                        unsigned int *id = node->data;
-                        if (*id == hid) {
-                                if (node->next) {
-                                        id = node->next->data;
-                                        *next_hid = *id;
-                                        data_access_unlock();
-                                        return 0;
-                                } else
-                                        break;
-                        }
+        } else { /* Return handler id coming after hid in the list */
+                g_static_rec_mutex_lock(&oh_handlers.lock);
+                node = g_hash_table_lookup(oh_handlers.table, &hid);
+                if (node && node->next && node->next->data) {
+                        h = node->next->data;
+                        *next_hid = h->id;
+                        g_static_rec_mutex_unlock(&oh_handlers.lock);
+                        return 0;
                 }
         }
-        data_access_unlock();
+        g_static_rec_mutex_unlock(&oh_handlers.lock);
 
         return -1;
 }
 
 static struct oh_handler *new_handler(GHashTable *handler_config)
-{
+{       /* Return a new oh_handler instance */
         struct oh_plugin *plugin = NULL;
         struct oh_handler *handler = NULL;
         static unsigned int handler_id = 1;
@@ -451,267 +560,294 @@ static struct oh_handler *new_handler(GHashTable *handler_config)
                 dbg("Out of Memory!");
                 return NULL;
         }
+
         hidp = (unsigned int *)g_malloc(sizeof(unsigned int));
         if (!hidp) {
                 dbg("Out of Memory!");
+                g_free(handler);
                 return NULL;
         }
         hid_strp = strdup("handler-id");
         if (!hid_strp) {
                 dbg("Out of Memory!");
+                g_free(handler);
+                g_free(hidp);
                 return NULL;
         }
 
-        plugin = oh_lookup_plugin((char *)g_hash_table_lookup(handler_config, "plugin"));
-        if(!plugin || plugin->refcount < 1) {
+        plugin = oh_get_plugin((char *)g_hash_table_lookup(handler_config, "plugin"));
+        if(!plugin) {
                 dbg("Attempt to create handler for unknown plugin %s",
-                        (char *)g_hash_table_lookup(handler_config, "plugin"));
-                goto err;
+                    (char *)g_hash_table_lookup(handler_config, "plugin"));
+                goto cleanexit;
         }
-
-        handler->plugin_name = g_strdup(plugin->name);
+        /* Initialize handler */
         handler->abi = plugin->abi;
-        handler->config = handler_config;
-        handler->dids = NULL;
+        plugin->handler_count++; /* Increment # of handlers using the plugin */
+        oh_release_plugin(plugin);
+        g_static_rec_mutex_lock(&oh_handlers.lock);
         handler->id = handler_id++;
-        plugin->refcount++;
+        g_static_rec_mutex_unlock(&oh_handlers.lock);
         *hidp = handler->id;
         g_hash_table_insert(handler_config, (gpointer)hid_strp,(gpointer)hidp);
+        handler->plugin_name = (char *)g_hash_table_lookup(handler_config, "plugin");
+        handler->config = handler_config;
+        handler->dids = NULL;
+        handler->refcount = 0;
+        g_static_rec_mutex_init(&handler->lock);
+        g_static_rec_mutex_init(&handler->refcount_lock);
 
         return handler;
-err:
+cleanexit:
+        g_free(hidp);
+        g_free(hid_strp);
         g_free(handler);
         return NULL;
 }
 
 /**
- * oh_load_handler
- * @handler_config
+ * oh_create_handler
+ * @handler_config: Hash table containing the configuration for a handler
+ * read from the configuration file.
  *
- * Returns: 0 on Failure, otherwise the handler id
+ * Returns: 0 on Failure, otherwise the handler id (id > 0) of
+ * the newly created handler
  **/
-unsigned int oh_load_handler (GHashTable *handler_config)
+unsigned int oh_create_handler (GHashTable *handler_config)
 {
         struct oh_handler *handler;
-        static int first_handler = 1;
+        unsigned int new_hid = 0;
 
         if (!handler_config) {
                 dbg("ERROR loading handler. Invalid handler configuration passed.");
                 return 0;
         }
 
-        data_access_lock();
-        if (oh_init_handler_table()) {
-                data_access_unlock();
-                dbg("ERROR. Could not initialize handler table.");
-                return 0;
-        }
-
         handler = new_handler(handler_config);
-
         if (handler == NULL) {
-                data_access_unlock();
                 return 0;
         }
 
-        g_hash_table_insert(handler_table,
+        new_hid = handler->id;
+        g_static_rec_mutex_lock(&oh_handlers.lock);
+        oh_handlers.list = g_slist_append(oh_handlers.list, handler);
+        g_hash_table_insert(oh_handlers.table,
                             &(handler->id),
-                            handler);
-        handler_ids = g_slist_append(handler_ids, &(handler->id));
+                            g_slist_last(oh_handlers.list));
 
         handler->hnd = handler->abi->open(handler->config);
         if (!handler->hnd) {
-                dbg("A plugin instance could not be opened.");
-                g_hash_table_remove(handler_table, &(handler->id));
-                handler_ids = g_slist_remove(handler_ids, &(handler->id));
-                g_free(handler);
-                data_access_unlock();
+                g_hash_table_remove(oh_handlers.table, &handler->id);
+                oh_handlers.list = g_slist_remove(oh_handlers.list, &(handler->id));
+                g_static_rec_mutex_unlock(&oh_handlers.lock);
+                dbg("A handler #%d on the %s plugin could not be opened.",
+                    handler->id, handler->plugin_name);
+                __delete_handler(handler);
                 return 0;
         }
+        g_static_rec_mutex_unlock(&oh_handlers.lock);
 
-        /* register atexit callback to close handlers
-         * and handler connections to avoid zombies
-         */
-        if (first_handler) {
-                (void) atexit(close_handlers_atexit);
-                first_handler = 0;
-        }
-
-
-        data_access_unlock();
-
-        return handler->id;
+        return new_hid;
 }
 
 /**
- * oh_unload_handler
- * @hid
+ * oh_destroy_handler
+ * @hid: Id of handler to destroy
  *
  * Returns: 0 on Success.
  **/
-int oh_unload_handler(unsigned int hid)
+int oh_destroy_handler(unsigned int hid)
 {
         struct oh_handler *handler = NULL;
-        struct oh_plugin *plugin = NULL;
 
-        if (!hid) {
-                dbg("ERROR unloading handler. Invalid handler id passed.");
+        if (hid < 1) {
+                dbg("ERROR - Invalid handler 0 id passed.");
                 return -1;
         }
 
-        data_access_lock();
-        handler = oh_lookup_handler(hid);
+        handler = oh_get_handler(hid);
         if (!handler) {
-                dbg("ERROR unloading handler. Handler not found.");
-                data_access_unlock();
+                dbg("ERROR - Handler %d not found.", hid);
                 return -1;
         }
 
         if (handler->abi && handler->abi->close)
                 handler->abi->close(handler->hnd);
 
-        g_hash_table_remove(handler_table, &(handler->id));
-        handler_ids = g_slist_remove(handler_ids, &(handler->id));
-        plugin = oh_lookup_plugin(handler->plugin_name);
-        if (!plugin) {
-                dbg("WHAT?! Handler loaded, but plugin does not exist!");
-        } else {
-                plugin->refcount--;
-        }
-        data_access_unlock();
+        g_static_rec_mutex_lock(&oh_handlers.lock);
+        g_hash_table_remove(oh_handlers.table, &handler->id);
+        oh_handlers.list = g_slist_remove(oh_handlers.list, &(handler->id));
+        g_static_rec_mutex_unlock(&oh_handlers.lock);
 
-        g_free(handler->plugin_name);
-        g_free(handler);
+        __dec_handler_refcount(handler);
+        if (handler->refcount < 1)
+                __delete_handler(handler);
+        else
+                oh_release_handler(handler);
 
         return 0;
 }
 
 
-int oh_domain_served_by_handler(unsigned int h_id,
-                                SaHpiDomainIdT did)
+/**
+ * oh_domain_served_by_handler
+ * @hid: A handler id.
+ * @did: A domain id.
+ *
+ * Checks to see whether @did is a valid domain for @hid.
+ * The default domain is always a valid domain for any handler.
+ *
+ * Returns: FALSE on a failed check, otherwise TRUE.
+ **/
+int oh_domain_served_by_handler(unsigned int hid, SaHpiDomainIdT did)
 {
-        gint i;
-        struct oh_handler *h;
+        GSList *node = NULL;
+        struct oh_handler *h = NULL;
 
-        data_access_lock();
-        h = oh_lookup_handler(h_id);
-        if (h == NULL) {
-                data_access_unlock();
+        if (hid < 1 || did < 1) {
+                dbg("Warning - Invalid parameters passed");
                 return 0;
         }
-        if (h->dids == NULL) {
-                // plugin didn't create domains, it serves default domain
-                data_access_unlock();
-                return (did == oh_get_default_domain_id());
-        }
 
-        for (i = 0; ; i++) {
-                if (g_array_index(h->dids, SaHpiDomainIdT, i) == 0) {
-                        break;
-                }
-                if (g_array_index(h->dids, SaHpiDomainIdT, i) == did) {
-                        data_access_unlock();
+        if (did == oh_get_default_domain_id())
+                return 1;
+
+        h = oh_get_handler(hid);
+        if (h == NULL) return 0;
+
+        for (node = h->dids; node; node = node->next) {
+                SaHpiDomainIdT cur_did = *((SaHpiDomainIdT *)node->data);
+                if (cur_did == did) {
+                        oh_release_handler(h);
                         return 1;
                 }
         }
-        data_access_unlock();
+        oh_release_handler(h);
+
         return 0;
 }
 
-int oh_add_domain_to_handler(unsigned int handler_id,
-                             SaHpiDomainIdT did)
+/**
+ * oh_add_domain_to_handler
+ * @hid: A handler id.
+ * @did: A domain id.
+ *
+ * Adds a domain to a handler, indicating that the handler
+ * can serve events/resources in said domain.
+ *
+ * Returns: 0 on success, otherwise an error ocurred.
+ **/
+int oh_add_domain_to_handler(unsigned int hid, SaHpiDomainIdT did)
 {
-        SaHpiDomainIdT default_did;
         struct oh_handler *h;
 
-        data_access_lock();
-        h = oh_lookup_handler(handler_id);
-        if (h == NULL) {
-                data_access_unlock();
+        if (hid < 1 || did < 1) {
+                dbg("Warning - Invalid parameters passed");
                 return -1;
         }
-        if (h->dids == NULL) {
-                h->dids =
-                        g_array_new(TRUE, FALSE, sizeof(SaHpiDomainIdT));
-                if (h->dids == NULL) {
-                        data_access_unlock();
-                        return -1;
-                }
-                default_did = oh_get_default_domain_id();
-                h->dids = g_array_append_val(h->dids, default_did);
+
+        h = oh_get_handler(hid);
+        if (h == NULL) {
+                return -2;
         }
-        h->dids = g_array_append_val(h->dids, did);
-        data_access_unlock();
+
+        h->dids = g_slist_append(h->dids,
+                                 g_memdup(&did, sizeof(SaHpiDomainIdT)));
+        oh_release_handler(h);
+
         return 0;
 }
 
-int oh_remove_domain_from_handler(unsigned int h_id,
-                                SaHpiDomainIdT did)
+/**
+ * oh_remove_domain_from_handler
+ * @hid: A handler id.
+ * @did: A domain id.
+ *
+ * Removes a domain from a handler, indicating that the handler
+ * cannot serve events/resources in that domain.
+ *
+ * Returns: 0 on success, otherwise an error ocurred.
+ **/
+int oh_remove_domain_from_handler(unsigned int hid, SaHpiDomainIdT did)
 {
-        gint i;
         struct oh_handler *h;
+        GSList *node = NULL;
 
-        data_access_lock();
-        h = oh_lookup_handler(h_id);
+        if (hid < 1) return -1; /* Invalid handler id */
+        if (did < 1) return -2; /* Invalid domain id */
+        /* Cannot remove default domain from handler */
+        if (did == oh_get_default_domain_id()) return -3;
+
+
+        h = oh_get_handler(hid);
         if (h == NULL) {
-                data_access_unlock();
-                return -1;
+                return -4; /* Handler not found */
         }
-        for (i = 0; ; i++) {
-                if (g_array_index(h->dids, SaHpiDomainIdT, i) == 0) {
-                        break;
-                }
-                if (g_array_index(h->dids, SaHpiDomainIdT, i) == did) {
-                        h->dids = g_array_remove_index_fast(h->dids, i);
-                        data_access_unlock();
+
+        for (node = h->dids; node; node = node->next) {
+                SaHpiDomainIdT cur_did = *((SaHpiDomainIdT *)node->data);
+                if (did == cur_did) {
+                        g_free(node->data);
+                        h->dids = g_slist_delete_link(h->dids, node);
+                        oh_release_handler(h);
                         return 0;
                 }
         }
-        data_access_unlock();
-        return -1;
+        oh_release_handler(h);
+
+        return -5; /* Domain id not found in the handler */
 }
 
 /**
  * oh_domain_resource_discovery
- * @did: Domain ID.
- * 0 means perform discovery on all domains. Otherwise,
- * will only perform discovery in domain specified. This call
- * will undestand SAHPI_UNSPECIFIED_DOMAIN_ID as the default domain.
+ * @did: A domain ID.
  *
+ * @did of 0 means perform discovery on all domains. Otherwise,
+ * will only perform discovery in domain specified. This call will
+ * undestand SAHPI_UNSPECIFIED_DOMAIN_ID as the default domain.
  *
- *
- * Returns: An error if all handlers return error on discovery.
- * Success if at least one handler returned SA_OK on discovery.
+ * Returns: SA_ERR_HPI_ERROR if all handlers return error on discovery.
+ * Success (SA_OK) if at least one handler returned SA_OK on discovery.
  **/
-int oh_domain_resource_discovery(SaHpiDomainIdT did)
+SaErrorT oh_domain_resource_discovery(SaHpiDomainIdT did)
 {
         unsigned int hid = 0, next_hid;
         struct oh_handler *h = NULL;
-        int rv = SA_ERR_HPI_ERROR;
+        SaErrorT error = SA_ERR_HPI_ERROR;
 
         if (did == SAHPI_UNSPECIFIED_DOMAIN_ID)
                 did = oh_get_default_domain_id();
 
-        data_access_lock();
-        oh_lookup_next_handler(hid, &next_hid);
+        oh_getnext_handler_id(hid, &next_hid);
         while (next_hid) {
                 hid = next_hid;
-                h = oh_lookup_handler(hid);
-                if (oh_domain_served_by_handler(hid, did) || did == 0) {
-                        if (h->abi->discover_domain_resources != NULL) {
-                                if (h->abi->discover_domain_resources(
-                                             h->hnd, did) == SA_OK && rv) {
-                                        rv = SA_OK;
+
+                if (did == 0 || oh_domain_served_by_handler(hid, did)) {
+                        SaErrorT cur_error;
+
+                        h = oh_get_handler(hid);
+                        if (!h) {
+                                dbg("No such handler %d", hid);
+                                break;
+                        }
+
+                        if (h->abi->discover_domain_resources != NULL && did != 0) {
+                                cur_error = h->abi->discover_domain_resources(h->hnd, did);
+                                if (cur_error == SA_OK && error) {
+                                        error = cur_error;
                                 }
-                        } else if (h->abi->discover_resources(h->hnd) == SA_OK && rv)
-                                rv = SA_OK;
+                        } else if (h->abi->discover_resources != NULL) {
+                                cur_error = h->abi->discover_resources(h->hnd);
+                                if (cur_error == SA_OK && error) {
+                                        error = cur_error;
+                                }
+                        }
+                        oh_release_handler(h);
                 }
-
-                oh_lookup_next_handler(hid, &next_hid);
+                oh_getnext_handler_id(hid, &next_hid);
         }
-        data_access_unlock();
 
-        return rv;
+        return error;
 }
 
 /**

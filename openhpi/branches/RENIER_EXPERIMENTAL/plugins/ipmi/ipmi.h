@@ -39,6 +39,12 @@
 #include <oh_error.h>
 #include <oh_handler.h>
 
+//#define ATCA_HPI
+
+#ifdef ATCA_HPI
+#include "atca_hpi.h"
+#endif
+
 
 
 #define IPMI_DATA_WAIT	5
@@ -46,6 +52,7 @@
 
 #define	IPMI_EVENT_DATA_MAX_LEN 13
 #define	MAX_ES_STATE 15 /* max number of possible event state - 1 */
+
 
 struct ohoi_handler {
 	GStaticRecMutex ohoih_lock;
@@ -69,9 +76,11 @@ struct ohoi_handler {
 	int islan;
 	int fully_up;
 	time_t fullup_timeout;
+	int updated;
 	unsigned int openipmi_scan_time;
 	int real_write_fru;
 	SaHpiDomainIdT	did;
+	enum ipmi_domain_type d_type;
 	char domain_name[24];
 };
 
@@ -82,6 +91,8 @@ struct ohoi_resource_info {
 			   	to push RPT to domain RPTable or not */
 	int updated;	/* refcount of resource add/update from
 			   	rptcache to domain RPT */
+	int deleted;	/* entity must be deleled after event of removing
+				RPT has been sent to domain */
 	SaHpiUint8T  sensor_count; 
         SaHpiUint8T  ctrl_count; 
 
@@ -96,9 +107,12 @@ struct ohoi_resource_info {
 
         ipmi_control_id_t reset_ctrl;
         ipmi_control_id_t power_ctrl;
+        SaHpiCtrlNumT hotswapind;
 	struct ohoi_inventory_info *fru;
 };
 
+
+		/* Sensor info */
 
 
 #define OHOI_THS_LMINH	0x0001
@@ -114,21 +128,119 @@ struct ohoi_resource_info {
 #define OHOI_THS_UCRTH	0x0400
 #define OHOI_THS_UCRTL	0x0800
 
+typedef enum {
+	OHOI_SENSOR_ORIGINAL,
+	OHOI_SENSOR_ATCA_MAPPED
+} ohoi_sensor_type_t;
+
+typedef struct ohoi_original_sensor_info {
+	ipmi_sensor_id_t		sensor_id;
+} ohoi_original_sensor_info_t;
+
+
+typedef struct ohoi_atcamap_sensor_info {
+	int				some;
+} ohoi_atcamap_sensor_info_t;
+
+typedef union {
+	ohoi_original_sensor_info_t	orig_sensor_info;
+	ohoi_atcamap_sensor_info_t	atcamap_sensor_info;
+} ohoi_sensor_info_union_t;
+
+
+struct ohoi_sensor_info;
+
+typedef struct ohoi_sensor_interfaces {
+	SaErrorT (*get_sensor_event_enable)(struct oh_handler_state *hnd,
+					    struct ohoi_sensor_info *sinfo,
+					    SaHpiBoolT   *enable,
+					    SaHpiEventStateT  *assert,
+					    SaHpiEventStateT  *deassert);
+	SaErrorT (*set_sensor_event_enable)(struct oh_handler_state *hnd,
+					    struct ohoi_sensor_info *sinfo,
+					    SaHpiBoolT enable,
+					    SaHpiEventStateT assert,
+					    SaHpiEventStateT deassert,
+					    unsigned int a_supported,
+					    unsigned int d_supported);
+	SaErrorT (*get_sensor_reading)(struct oh_handler_state *hnd,
+				       struct ohoi_sensor_info *sensor_info,
+				       SaHpiSensorReadingT *reading,
+				       SaHpiEventStateT *ev_state);
+	SaErrorT (*get_sensor_thresholds)(struct oh_handler_state *hnd,
+					  struct ohoi_sensor_info *sinfo,
+					  SaHpiSensorThresholdsT *thres);
+	SaErrorT (*set_sensor_thresholds)(struct oh_handler_state *hnd,
+					  struct ohoi_sensor_info *sinfo,
+					  const SaHpiSensorThresholdsT *thres);
+} ohoi_sensor_interfaces_t;
+
 struct ohoi_sensor_info {
-	ipmi_sensor_id_t sensor_id;
-	int sen_enabled;
-	SaHpiBoolT enable;
-	SaHpiBoolT saved_enable;	
-	SaHpiEventStateT  assert;
-	SaHpiEventStateT  deassert;
-	unsigned int support_assert;
-	unsigned int support_deassert;
+	ohoi_sensor_type_t		type;
+	ohoi_sensor_info_union_t	info;
+	int				sen_enabled;
+	SaHpiBoolT			enable;
+	SaHpiBoolT			saved_enable;	
+	SaHpiEventStateT		assert;
+	SaHpiEventStateT		deassert;
+	unsigned int			support_assert;
+	unsigned int			support_deassert;
+	ohoi_sensor_interfaces_t	ohoii;
 };
 
-struct ohoi_control_info {
+
+
+
+		/*  Control  info*/
+
+typedef enum {
+	OHOI_CTRL_ORIGINAL,
+	OHOI_CTRL_ATCA_MAPPED
+} ohoi_control_type_t;
+
+
+typedef struct ohoi_original_ctrl_info {
 	ipmi_control_id_t ctrl_id;
-	SaHpiCtrlModeT mode;
+} ohoi_original_ctrl_info_t;
+
+
+typedef struct ohoi_atcamap_ctrl_info {
+	int				some;
+} ohoi_atcamap_ctrl_info_t;
+
+typedef union {
+	ohoi_original_ctrl_info_t	orig_ctrl_info;
+	ohoi_atcamap_ctrl_info_t	atcamap_ctrl_info;
+} ohoi_control_info_union_t;
+
+
+struct ohoi_control_info;
+
+typedef struct ohoi_ctrl_interfaces {
+	SaErrorT (*get_control_state)(struct oh_handler_state *hnd,
+				      struct ohoi_control_info *c,
+				      SaHpiRdrT * rdr,
+                                      SaHpiCtrlModeT *mode,
+                                      SaHpiCtrlStateT *state);
+	SaErrorT (*set_control_state)(struct oh_handler_state *hnd,
+                                      struct ohoi_control_info *c,
+                                      SaHpiRdrT * rdr,
+                                      SaHpiCtrlModeT mode,
+                                      SaHpiCtrlStateT *state);
+} ohoi_ctrl_interfaces_t;
+
+
+
+struct ohoi_control_info {
+	ohoi_control_type_t		type;
+	ohoi_control_info_union_t	info;
+	SaHpiCtrlModeT 			mode;
+	ohoi_ctrl_interfaces_t		ohoii;
 };
+
+
+
+		/*  Inventory info*/
 
 
 struct ohoi_inventory_info {
@@ -154,36 +266,64 @@ void ohoi_setup_done(ipmi_domain_t *domain, void *user_data);
 void ohoi_close_connection(ipmi_domain_id_t domain_id, void *user_data);
 
 /* implemented in ipmi_sensor.c	*/
-int ohoi_get_sensor_reading(ipmi_sensor_id_t sensor_id, 
-			    SaHpiSensorReadingT * reading,
-			    SaHpiEventStateT * ev_state,
-			    void *cb_data);
 
-int ohoi_get_sensor_thresholds(ipmi_sensor_id_t sensor_id,
-			       SaHpiSensorThresholdsT *thres,
-			       void *cb_data);
+SaErrorT orig_get_sensor_reading(struct oh_handler_state *handler,
+				 struct ohoi_sensor_info *sinfo, 
+				 SaHpiSensorReadingT * reading,
+				 SaHpiEventStateT * ev_state);
 
-int ohoi_set_sensor_thresholds(ipmi_sensor_id_t                 sensor_id, 
-                               const SaHpiSensorThresholdsT     *thres,
-			       void *cb_data);
+SaErrorT ohoi_get_sensor_reading(void *hnd,
+				 struct ohoi_sensor_info *sinfo, 
+				 SaHpiSensorReadingT * reading,
+				 SaHpiEventStateT * ev_state);
+
+SaErrorT orig_get_sensor_thresholds(struct oh_handler_state *handler,
+				    struct ohoi_sensor_info *sinfo,
+				    SaHpiSensorThresholdsT *thres);
+
+SaErrorT ohoi_get_sensor_thresholds(void *hnd,
+				    struct ohoi_sensor_info *sinfo,
+				    SaHpiSensorThresholdsT *thres);
+
+SaErrorT orig_set_sensor_thresholds(struct oh_handler_state *handler,
+				    struct ohoi_sensor_info *sinfo, 
+				    const SaHpiSensorThresholdsT *thres);
+
+SaErrorT ohoi_set_sensor_thresholds(void *hnd,
+				    struct ohoi_sensor_info *sinfo, 
+				    const SaHpiSensorThresholdsT *thres);
 
 int ohoi_set_sensor_enable(ipmi_sensor_id_t sensor_id,
 			   SaHpiBoolT   enable,
 			   void *cb_data);
 
-int ohoi_get_sensor_event_enable_masks(ipmi_sensor_id_t sensor_id,
-				       SaHpiBoolT   *enable,
-				       SaHpiEventStateT  *assert,
-				       SaHpiEventStateT  *deassert,
-				       void *cb_data);
+SaErrorT orig_get_sensor_event_enable(struct oh_handler_state *handler,
+				      struct ohoi_sensor_info *sinfo,
+				      SaHpiBoolT *enable,
+				      SaHpiEventStateT *assert,
+				      SaHpiEventStateT *deassert);
 
-int ohoi_set_sensor_event_enable_masks(ipmi_sensor_id_t sensor_id,
-					SaHpiBoolT enable,
-					SaHpiEventStateT  assert,
-					SaHpiEventStateT  deassert,
-					unsigned int a_supported,
-					unsigned int d_supported,
-					void *cb_data);
+SaErrorT ohoi_get_sensor_event_enable(void *hnd,
+				      struct ohoi_sensor_info *sinfo,
+				      SaHpiBoolT *enable,
+				      SaHpiEventStateT *assert,
+				      SaHpiEventStateT *deassert);
+
+SaErrorT orig_set_sensor_event_enable(struct oh_handler_state *handler,
+				      struct ohoi_sensor_info *sinfo,
+				      SaHpiBoolT enable,
+				      SaHpiEventStateT assert,
+				      SaHpiEventStateT deassert,
+				      unsigned int a_supported,
+				      unsigned int d_supported);
+
+SaErrorT ohoi_set_sensor_event_enable(void *hnd,
+				      struct ohoi_sensor_info *sinfo,
+				      SaHpiBoolT enable,
+				      SaHpiEventStateT assert,
+				      SaHpiEventStateT deassert,
+				      unsigned int a_supported,
+				      unsigned int d_supported);
 
 void ohoi_get_sel_time(ipmi_mcid_t mc_id, SaHpiTimeT *time, void *cb_data);
 void ohoi_set_sel_time(ipmi_mcid_t mc_id, const struct timeval *time, void *cb_data);
@@ -205,10 +345,11 @@ void ohoi_get_sel_prev_recid(ipmi_mcid_t mc_id,
                              unsigned int *record_id);
 void ohoi_get_sel_by_recid(ipmi_mcid_t mc_id, SaHpiEventLogEntryIdT entry_id, ipmi_event_t **event);
 
-/* This is used to help plug-in to find resource in rptcache by entity_id */
+/* This is used to help plug-in to find resource in rptcache by entity_id and mc_id*/
 SaHpiRptEntryT *ohoi_get_resource_by_entityid(RPTable                *table,
                                               const ipmi_entity_id_t *entity_id);
-
+SaHpiRptEntryT *ohoi_get_resource_by_mcid(RPTable                *table,
+                                          const ipmi_mcid_t *mc_id);
 /* This is used to help plug-in to find rdr in rptcache by data*/
 SaHpiRdrT *ohoi_get_rdr_by_data(RPTable *table,
                                 SaHpiResourceIdT rid,
@@ -224,8 +365,11 @@ void ohoi_sensor_event(enum ipmi_update_e op,
  * This is used to help saHpiEventLogEntryGet()
  * to convert sensor ipmi event to hpi event
  */
-struct oh_event *ohoi_sensor_ipmi_event_to_hpi_event(ipmi_sensor_id_t	sid,
-			ipmi_event_t	*event, ipmi_entity_t **entity);
+int ohoi_sensor_ipmi_event_to_hpi_event(
+			ipmi_sensor_id_t	sid,
+			ipmi_event_t		*event,
+			struct oh_event		**e,
+			ipmi_entity_id_t	*eid);
 
 
 /* This is used for OpenIPMI to notice control change */
@@ -268,7 +412,7 @@ int ohoi_loop_until(loop_indicator_cb indicator, const void *cb_data, int timeou
 SaErrorT ohoi_get_rdr_data(const struct oh_handler_state *handler,
                            SaHpiResourceIdT              id,
                            SaHpiRdrTypeT                 type,
-                           SaHpiUint8T                   num,
+                           SaHpiSensorNumT               num,
                            void                          **pdata);
 
 SaErrorT ohoi_get_idr_info(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid, SaHpiIdrInfoT *idrinfo);
@@ -316,6 +460,19 @@ SaErrorT ohoi_set_reset_state(void *hnd, SaHpiResourceIdT id,
 SaErrorT ohoi_get_reset_state(void *hnd, SaHpiResourceIdT id, 
 		              SaHpiResetActionT *act);
 
+
+SaErrorT orig_get_control_state(struct oh_handler_state *handler,
+				struct ohoi_control_info *c,
+				SaHpiRdrT * rdr,
+                                SaHpiCtrlModeT *mode,
+                                SaHpiCtrlStateT *state);
+
+SaErrorT orig_set_control_state(struct oh_handler_state *handler,
+				struct ohoi_control_info *c,
+				SaHpiRdrT * rdr,
+                                SaHpiCtrlModeT mode,
+                                SaHpiCtrlStateT *state);
+
 SaErrorT ohoi_get_control_state(void *hnd, SaHpiResourceIdT id,
                                 SaHpiCtrlNumT num,
                                 SaHpiCtrlModeT *mode,
@@ -325,6 +482,9 @@ SaErrorT ohoi_set_control_state(void *hnd, SaHpiResourceIdT id,
                                 SaHpiCtrlNumT num,
                                 SaHpiCtrlModeT mode,
                                 SaHpiCtrlStateT *state);
+				
+SaHpiUint8T ohoi_atca_led_to_hpi_color(int ipmi_color);
+int ohoi_atca_led_to_ipmi_color(SaHpiUint8T c);
 
 void ipmi_connection_handler(ipmi_domain_t	*domain,
 			      int		err,
@@ -332,6 +492,19 @@ void ipmi_connection_handler(ipmi_domain_t	*domain,
 			      unsigned int	port_num,
 			      int		still_connected,
 			      void		*cb_data);
+			      
+			      
+			      
+		/* ATCA-HPI mapping functions */
+SaHpiRdrT *ohoi_create_atca_chassis_status_control(
+			struct ohoi_handler *ipmi_handler,
+			struct ohoi_control_info *ctrl_info);
+
+
+
+
+
+
 /* misc macros for debug */
 #define dump_entity_id(s, x) \
         do { \
@@ -359,9 +532,17 @@ static inline void  dump_rpttable(RPTable *table)
 
        printf("\n");
        while (rpt) {
+               printf("Resource Id:%d", rpt->ResourceId);
+	       struct ohoi_resource_info *res_info =
+	       		oh_get_resource_data(table, rpt->ResourceId);
+		if (res_info->type == OHOI_RESOURCE_ENTITY) {
+			ipmi_entity_id_t e = res_info->u.entity_id;
+			printf("; entity id: %x, entity instance: %x, channel: %x, address: %x, seq: %lx",
+				e.entity_id, e.entity_instance, e.channel, e.address, e.seq);
+		}
+		printf("\n");
+#if 0
                SaHpiRdrT  *rdr;
-
-               printf("Resource Id:%d\n", rpt->ResourceId);
                rdr = oh_get_rdr_next(table, rpt->ResourceId, SAHPI_FIRST_ENTRY);
                while (rdr) {
                        unsigned char *data;
@@ -373,13 +554,14 @@ static inline void  dump_rpttable(RPTable *table)
                                //rdr->RecordId,
                                //rdr->RdrType,
                                //(unsigned)(void *)data);
-                       if (data)
-                               for (i = 0; i < 30; i++)
-                                       printf("%u ", data[i]);
-                       printf("\n");
+                       //if (data)
+                       //        for (i = 0; i < 30; i++)
+                       //                printf("%u ", data[i]);
+                       //printf("\n");
                        rdr = oh_get_rdr_next(table, rpt->ResourceId, rdr->RecordId);
                }
-               printf("\n");
+              // printf("\n");
+#endif
                rpt = oh_get_resource_next(table, rpt->ResourceId);
       }
 }
@@ -399,11 +581,63 @@ void ohoi_remove_entity(struct oh_handler_state *handler,
 
 
 
+
+
+	/*
+	 * The following traces are available :
+	 *     OHOI_TRACE_ALL - trace all the following traces and trace_ipmi(). Must be "YES".
+	 *     OHOI_TRACE_SENSOR -  traces sensors add/change/delete and for events in SEL
+	 *     OHOI_TRACE_ENTITY - traces entities add/change/delete
+	 *     OHOI_TRACE_MC     - traces MCs  add/change/delete/active/inactive
+	 *     OHOI_TRACE_DISCOVERY - prints all existing resources (present and not present)
+	 *                            after discovery
+	 *
+	 * the values of these variables are ignored
+	 */
+	 
+#define IHOI_TRACE_ALL (getenv("OHOI_TRACE_ALL") &&\
+                           !strcmp("YES",getenv("OHOI_TRACE_ALL")))
+	
+
 #define trace_ipmi(format, ...) \
         do { \
-                if (getenv("OPENHPI_DEBUG_TRACE_IPMI") && !strcmp("YES",getenv("OPENHPI_DEBUG_TRACE_IPMI"))) { \
+                if (IHOI_TRACE_ALL) { \
                         fprintf(stderr, " %s:%d:%s: ", __FILE__, __LINE__, __func__); \
                         fprintf(stderr, format "\n", ## __VA_ARGS__); \
                 } \
         } while(0)
+
+	
+
+#define trace_ipmi_sensors(action, sid) \
+        do { \
+                if (getenv("OHOI_TRACE_SENSOR")) { \
+                        fprintf(stderr, "%s sensor. sensor_id = {{%p, %d, %d, %ld}, %d, %d}\n", action,\
+			sid.mcid.domain_id.domain, sid.mcid.mc_num, sid.mcid.channel, sid.mcid.seq,\
+			sid.lun, sid.sensor_num);\
+                } \
+        } while(0)
+	
+	
+	
+#ifndef ATCA_HPI // ATCA additional definitions
+
+#define ATCAHPI_PICMG_MID		0x315a
+#define ATCAHPI_LED_BR_SUPPORTED	0x01
+#define ATCAHPI_LED_BR_NOT_SUPPORTED	0x02
+#define ATCAHPI_BLINK_COLOR_LED		33
+
+#define	ATCAHPI_LED_WHITE		0x40
+#define	ATCAHPI_LED_ORANGE		0x20
+#define	ATCAHPI_LED_AMBER		0x10
+#define	ATCAHPI_LED_GREEN		0x08
+#define	ATCAHPI_LED_RED			0x04
+#define	ATCAHPI_LED_BLUE		0x02
+
+#define ATCAHPI_CTRL_NUM_SHELF_STATUS (SaHpiCtrlNumT)0x1002
+
+
+
+#endif
+
 

@@ -18,7 +18,7 @@ AM_CFLAGS		= @NOCFLAGS@
 MAINTAINERCLEANFILES 	= Makefile.in
 
 # removed until the gcc 3.4 bug is fixed
-# -ftest-coverage -fprofile-arcs
+# @COV_CFLAGS@
 TDEPLIB			= $(top_builddir)/src/libopenhpi.la \
 			  $(top_builddir)/utils/libopenhpiutils.la
 
@@ -71,7 +71,27 @@ TESTS = sim_sanity_000 \
 	sim_sanity_042 \
 	sim_sanity_043 \
 	sim_sanity_044 \
-	sim_sanity_045
+	sim_sanity_045 \
+	sim_sanity_046 \
+	sim_sanity_047 \
+	sim_sanity_048 \
+	sim_sanity_049 \
+	sim_sanity_050 \
+	sim_sanity_051 \
+	sim_sanity_052 \
+	sim_sanity_053 \
+	sim_sanity_054 \
+	sim_sanity_055 \
+	sim_sanity_056 \
+	sim_sanity_057 \
+	sim_sanity_058 \
+	sim_sanity_059 \
+	sim_sanity_060 \
+	sim_sanity_061 \
+	sim_sanity_062 \
+	sim_sanity_063 \
+	sim_sanity_064 \
+	sim_sanity_065
 
 check_PROGRAMS = $(TESTS)
 
@@ -167,4 +187,44 @@ sim_sanity_044_SOURCES = sim_sanity_044.c
 sim_sanity_044_LDADD = $(TDEPLIB)
 sim_sanity_045_SOURCES = sim_sanity_045.c
 sim_sanity_045_LDADD = $(TDEPLIB)
+sim_sanity_046_SOURCES = sim_sanity_046.c ../sim_injector_ext.h
+sim_sanity_046_LDADD = $(TDEPLIB)
+sim_sanity_047_SOURCES = sim_sanity_047.c ../sim_injector_ext.h
+sim_sanity_047_LDADD = $(TDEPLIB)
+sim_sanity_048_SOURCES = sim_sanity_048.c ../sim_injector_ext.h
+sim_sanity_048_LDADD = $(TDEPLIB)
+sim_sanity_049_SOURCES = sim_sanity_049.c ../sim_injector_ext.h
+sim_sanity_049_LDADD = $(TDEPLIB)
+sim_sanity_050_SOURCES = sim_sanity_050.c ../sim_injector_ext.h
+sim_sanity_050_LDADD = $(TDEPLIB)
+sim_sanity_051_SOURCES = sim_sanity_051.c ../sim_injector_ext.h
+sim_sanity_051_LDADD = $(TDEPLIB)
+sim_sanity_052_SOURCES = sim_sanity_052.c ../sim_injector_ext.h
+sim_sanity_052_LDADD = $(TDEPLIB)
+sim_sanity_053_SOURCES = sim_sanity_053.c ../sim_injector_ext.h
+sim_sanity_053_LDADD = $(TDEPLIB)
+sim_sanity_054_SOURCES = sim_sanity_054.c ../sim_injector_ext.h
+sim_sanity_054_LDADD = $(TDEPLIB)
+sim_sanity_055_SOURCES = sim_sanity_055.c ../sim_injector_ext.h
+sim_sanity_055_LDADD = $(TDEPLIB)
+sim_sanity_056_SOURCES = sim_sanity_056.c ../sim_injector_ext.h
+sim_sanity_056_LDADD = $(TDEPLIB)
+sim_sanity_057_SOURCES = sim_sanity_057.c ../sim_injector_ext.h
+sim_sanity_057_LDADD = $(TDEPLIB)
+sim_sanity_058_SOURCES = sim_sanity_058.c ../sim_injector_ext.h
+sim_sanity_058_LDADD = $(TDEPLIB)
+sim_sanity_059_SOURCES = sim_sanity_059.c ../sim_injector_ext.h
+sim_sanity_059_LDADD = $(TDEPLIB)
+sim_sanity_060_SOURCES = sim_sanity_060.c ../sim_injector_ext.h
+sim_sanity_060_LDADD = $(TDEPLIB)
+sim_sanity_061_SOURCES = sim_sanity_061.c ../sim_injector_ext.h
+sim_sanity_061_LDADD = $(TDEPLIB)
+sim_sanity_062_SOURCES = sim_sanity_062.c ../sim_injector_ext.h
+sim_sanity_062_LDADD = $(TDEPLIB)
+sim_sanity_063_SOURCES = sim_sanity_063.c ../sim_injector_ext.h
+sim_sanity_063_LDADD = $(TDEPLIB)
+sim_sanity_064_SOURCES = sim_sanity_064.c ../sim_injector_ext.h
+sim_sanity_064_LDADD = $(TDEPLIB)
+sim_sanity_065_SOURCES = sim_sanity_065.c ../sim_injector_ext.h
+sim_sanity_065_LDADD = $(TDEPLIB)
 

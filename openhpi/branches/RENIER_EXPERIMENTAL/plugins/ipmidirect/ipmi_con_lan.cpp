@@ -27,7 +27,6 @@
 #include <sys/socket.h>
 #include <errno.h>
 #include <unistd.h>
-#include <assert.h>
 #include <poll.h>
 #include <sys/time.h>
 
@@ -47,19 +46,16 @@ cIpmiConLan::cIpmiConLan( unsigned int timeout, int log_level, struct in_addr ad
     m_outbound_seq_num( 0 ), m_inbound_seq_num( 0 ),
     m_recv_msg_map( 0 )
 {
-  assert( strlen( user ) < dIpmiUsernameMax );
-  assert( strlen( passwd ) < dIpmiPasswordMax );
-
   m_ip_addr.sin_family = AF_INET;
   m_ip_addr.sin_port = htons( port );
   m_ip_addr.sin_addr = addr;
   m_port = port;
 
   memset( m_username, 0, dIpmiUsernameMax );
-  strcpy( m_username, user );
+  strncpy( m_username, user, dIpmiUsernameMax );
 
   memset( m_passwd, 0, dIpmiPasswordMax );
-  strcpy( m_passwd, passwd );
+  strncpy( m_passwd, passwd, dIpmiPasswordMax );
 }
 
 
@@ -80,8 +76,10 @@ cIpmiConLan::AuthGen( unsigned char *out,
                       unsigned char *data,
                       unsigned int   data_len )
 {
-  assert( m_auth == m_working_auth );
-  assert( m_auth_method );
+  if ( m_auth != m_working_auth )
+      return SA_ERR_HPI_INVALID_PARAMS;
+  if ( !m_auth_method )
+      return SA_ERR_HPI_INVALID_PARAMS;
   
   int rv;
   cIpmiAuthSg l[] =
@@ -105,8 +103,10 @@ cIpmiConLan::AuthCheck( uint8_t       *ses_id,
                         unsigned int   data_len,
                         unsigned char *code )
 {
-  assert( m_auth == m_working_auth );
-  assert( m_auth_method );
+  if ( m_auth != m_working_auth )
+      return SA_ERR_HPI_INVALID_PARAMS;
+  if ( !m_auth_method )
+      return SA_ERR_HPI_INVALID_PARAMS;
 
   int rv;
   cIpmiAuthSg l[] =
@@ -225,11 +225,12 @@ cIpmiConLan::WaitForPong( unsigned int timeout_ms )
 
        if ( rv == -1 )
 	  {
-	    assert( 0 );
+        stdlog << "poll failed while waiting for pong.\n";
 	    return false;
 	  }
 
-       assert( rv == 1 );
+       if ( rv != 1 )
+           stdlog << "poll return != 1 while waiting for pong.\n";
        int seq;
        cIpmiAddr addr;
        cIpmiMsg msg;
@@ -299,11 +300,12 @@ cIpmiConLan::WaitForResponse( unsigned int timeout_ms, int &seq,
 
        if ( rv == -1 )
 	  {
-	    assert( 0 );
+        stdlog << "poll failed while waiting for response.\n";
 	    return eResponseTypeError;
 	  }
 
-       assert( rv == 1 );
+       if ( rv != 1 )
+           stdlog << "poll return != 1 while waiting for response.\n";
        ret = ReadResponse( seq, addr, msg );
      }
   while( ret != eResponseTypeMessage );
@@ -618,24 +620,25 @@ cIpmiConLan::CreateSession()
   SaErrorT rv = AuthCap();
 
   if ( rv != SA_OK )
-       return -1;
+       return rv;
 
   rv = Challange();
         
   if ( rv != SA_OK )
-       return -1;
+       return rv;
 
   rv = ActiveSession();
 
   if ( rv != SA_OK )
-       return -1;
+       return rv;
 
   rv = SetSessionPriv();
 
   if ( rv != SA_OK )
        return rv;
 
-  assert( m_num_outstanding == 0 );
+  if ( m_num_outstanding != 0 )
+      return SA_ERR_HPI_INTERNAL_ERROR;
 
   // reset seq
   m_current_seq = 0;
@@ -734,7 +737,6 @@ cIpmiConLan::IfSendCmd( cIpmiRequest *r )
 	    break;
 
        default:
-            assert( 0 );
 	    return SA_ERR_HPI_INVALID_PARAMS;
      }
 
@@ -1146,7 +1148,6 @@ cIpmiConLan::ReadResponse( int &seq, cIpmiAddr &addr, cIpmiMsg &msg )
        stdlog << "len " << len << ", m_num_outstanding " << m_num_outstanding << ", m_queue " 
               << (m_queue ? "full" : "empty") << "\n";
 
-       assert( 0 );
        return eResponseTypeError;
      }
 

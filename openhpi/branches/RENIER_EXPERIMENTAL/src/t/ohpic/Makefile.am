@@ -8,14 +8,16 @@
 # the Copying file included with the OpenHPI distribution for
 # full licensing terms.
 
+MAINTAINERCLEANFILES = Makefile.in
+
 MOSTLYCLEANFILES 	= @TEST_CLEAN@ uid_map
 
-INCLUDES		= @OPENHPI_INCLUDES@ 
+INCLUDES		= @OPENHPI_INCLUDES@
 
-AM_CFLAGS		= @NOCFLAGS@ 
+AM_CFLAGS		= @NOCFLAGS@
 
 # removed until the gcc 3.4 bug is fixed
-# -ftest-coverage -fprofile-arcs
+# @COV_CFLAGS@
 
 TDEPLIB                 = $(top_builddir)/src/libopenhpi.la \
 			  $(top_builddir)/utils/libopenhpiutils.la

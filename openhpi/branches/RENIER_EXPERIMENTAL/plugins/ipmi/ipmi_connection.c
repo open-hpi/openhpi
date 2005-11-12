@@ -51,7 +51,7 @@ static int init_domain_handlers(ipmi_domain_t	*domain,
 	rv = ipmi_domain_add_mc_updated_handler(domain, ohoi_mc_event, handler);
 	if (rv)  {
 		fprintf(stderr,
-			"ipmi_domain_register_mc_update_handler return error: %d\n", rv);
+			"ipmi_domain_add_mc_updated_handler return error: %d\n", rv);
 		if (ret == 0) {
 			ret = rv;
 		}
@@ -74,12 +74,14 @@ void ipmi_connection_handler (ipmi_domain_t	*domain,
 {
 	struct oh_handler_state *handler = cb_data;
 	struct ohoi_handler	*ipmi_handler = handler->data;
+	int rv;
 
-	trace_ipmi("connection handler called. Error code: %d", err);
+	trace_ipmi("connection handler called. Error code: 0x%x", err);
 
+	ipmi_handler->d_type = ipmi_domain_get_type(domain);
 
 	if (err) {
-	  	dbg("Failed to connect to IPMI domain");
+	  	dbg("Failed to connect to IPMI domain. err = 0x%x", err);
 		ipmi_handler->connected = 0;
 	} else {
 	  	dbg("IPMI domain Connection success");
@@ -92,8 +94,10 @@ void ipmi_connection_handler (ipmi_domain_t	*domain,
 	if (ipmi_handler->connected == 0) {
 		return;
 	}
-	if (init_domain_handlers(domain, cb_data)) {
+	rv = init_domain_handlers(domain, cb_data);
+	if (rv) {
 		/* we can do something better */
+		dbg("Couldn't init_domain_handlers. rv = 0x%x", rv);
 		ipmi_handler->connected = 0;
 	}
 	if (ipmi_handler->connected && ipmi_handler->openipmi_scan_time) {

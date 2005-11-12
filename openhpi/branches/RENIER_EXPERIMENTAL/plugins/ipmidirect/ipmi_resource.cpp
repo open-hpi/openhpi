@@ -196,14 +196,24 @@ cIpmiResource::Destroy()
   e->type = OH_ET_RESOURCE_DEL;
   rptentry = oh_get_resource_by_id( Domain()->GetHandler()->rptcache, m_resource_id );
   if ( !rptentry )
-      assert( 0 );
+  {
+      stdlog << "Can't find resource in plugin cache !\n";
+      g_free( e );
+      return false;
+  }
+
   e->u.res_event.entry = *rptentry;
   stdlog << "cIpmiResource::Destroy OH_ET_RESOURCE_DEL Event resource " << m_resource_id << "\n";
   Domain()->AddHpiEvent( e );
 
   // remove resource from local cache
   int rv = oh_remove_resource( Domain()->GetHandler()->rptcache, m_resource_id );
-  assert( rv == 0 );
+
+  if ( rv != 0 )
+  {
+      stdlog << "Can't remove resource from plugin cache !\n";
+      return false;
+  }
 
   m_mc->RemResource( this );
 
@@ -243,15 +253,7 @@ cIpmiResource::AddRdr( cIpmiRdr *rdr )
   rdr->Resource() = this;
 
   // add rdr to resource
-  if ( Add( rdr ) == -1 )
-     {
-       assert( 0 );
-       return false;
-     }
-
-  // this is for testing, because currently
-  // rdrs cannot exits without an mc
-  assert( rdr->Mc() );
+  Add( rdr );
 
   // check for hotswap sensor
   cIpmiSensorHotswap *hs = dynamic_cast<cIpmiSensorHotswap *>( rdr );
@@ -283,10 +285,6 @@ cIpmiResource::RemRdr( cIpmiRdr *rdr )
   if ( rdr == m_hotswap_sensor )
        m_hotswap_sensor = 0;
 
-  // this is for testing, because currently
-  // rdrs cannot exits without an mc
-  assert( rdr->Mc() );
-
   Rem( idx );
 
   return true;
@@ -301,14 +299,14 @@ cIpmiResource::PopulateSel()
 
   if ( !resource )
      {
-       assert( 0 );
-       return true;
+       stdlog << "Can't find resource !\n";
+       return false;
      }
 
   if ( resource->ResourceCapabilities & SAHPI_CAPABILITY_EVENT_LOG )
      {
-       assert( 0 );
-       return true;
+       stdlog << "EventLog capabilities already set !\n";
+       return false;
      }
 
   // update resource
@@ -365,7 +363,13 @@ cIpmiResource::Populate()
        // add the resource to the resource cache
        int rv = oh_add_resource( Domain()->GetHandler()->rptcache,
                                  &(e->u.res_event.entry), this, 1 );
-       assert( rv == 0 );
+
+       if ( rv != 0 )
+       {
+            stdlog << "Can't add resource to plugin cache !\n";
+            g_free( e );
+            return false;
+       }
 
        stdlog << "cIpmiResource::Populate OH_ET_RESOURCE Event resource " << m_resource_id << "\n";
        Domain()->AddHpiEvent( e );

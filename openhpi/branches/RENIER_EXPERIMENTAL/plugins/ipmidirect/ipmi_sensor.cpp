@@ -690,12 +690,16 @@ void
 cIpmiSensor::CreateEnableChangeEvent()
 {
   cIpmiResource *res = Resource();
-  assert( res );
+  if( !res )
+     {
+       stdlog << "CreateEnableChangeEvent: No resource !\n";
+       return;
+     }
 
   oh_event *e = (oh_event *)g_malloc0( sizeof( struct oh_event ) );
   if ( !e )
      {
-       stdlog << "out of space !\n";
+       stdlog << "CreateEnableChangeEvent: out of space !\n";
        return;
      }
 
@@ -708,8 +712,15 @@ cIpmiSensor::CreateEnableChangeEvent()
   SaHpiRptEntryT *rptentry = oh_get_resource_by_id( res->Domain()->GetHandler()->rptcache, res->m_resource_id );
   SaHpiRdrT *rdrentry = oh_get_rdr_by_id( res->Domain()->GetHandler()->rptcache, res->m_resource_id, m_record_id );
 
-  ohpi_event.res = *rptentry;
-  ohpi_event.rdr = *rdrentry;
+  if ( rptentry )
+      ohpi_event.res = *rptentry;
+  else
+      ohpi_event.res.ResourceCapabilities = 0;
+
+  if ( rdrentry )
+      ohpi_event.rdr = *rdrentry;
+  else
+      ohpi_event.rdr.RdrType = SAHPI_NO_RECORD;
 
   // hpi event
   SaHpiEventT &hpie = ohpi_event.event;
@@ -743,7 +754,11 @@ cIpmiSensor::CreateEvent( cIpmiEvent *event, SaHpiEventT &h )
   memset( &h, 0, sizeof( SaHpiEventT ) );
 
   cIpmiResource *res = Resource();
-  assert( res );
+  if( !res )
+     {
+       stdlog << "CreateEvent: No resource !\n";
+       return SA_ERR_HPI_NOT_PRESENT;
+     }
 
   h.Source    = res->m_resource_id;
   h.EventType = SAHPI_ET_SENSOR;
@@ -771,7 +786,13 @@ void
 cIpmiSensor::HandleEvent( cIpmiEvent *event )
 {
   cIpmiResource *res = Resource();
-  assert( res );
+
+  if( !res )
+     {
+       stdlog << "HandleEvent: No resource !\n";
+       return;
+     }
+
   SaHpiRptEntryT *rptentry;
   SaHpiRdrT *rdrentry;
 
@@ -799,8 +820,15 @@ cIpmiSensor::HandleEvent( cIpmiEvent *event )
   rptentry = oh_get_resource_by_id( res->Domain()->GetHandler()->rptcache, res->m_resource_id );
   rdrentry = oh_get_rdr_by_id( res->Domain()->GetHandler()->rptcache, res->m_resource_id, m_record_id );
 
-  hpi_event.res = *rptentry;
-  hpi_event.rdr = *rdrentry;
+  if ( rptentry )
+      hpi_event.res = *rptentry;
+  else
+      hpi_event.res.ResourceCapabilities = 0;
+
+  if ( rdrentry )
+      hpi_event.rdr = *rdrentry;
+  else
+      hpi_event.rdr.RdrType = SAHPI_NO_RECORD;
 
   // hpi event
   SaHpiEventT &he = hpi_event.event;

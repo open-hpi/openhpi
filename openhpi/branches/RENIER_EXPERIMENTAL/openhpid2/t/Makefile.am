@@ -22,7 +22,7 @@ MOSTLYCLEANFILES 	= @TEST_CLEAN@ \
 
 INCLUDES		= @OPENHPI_INCLUDES@ -I$(top_srcdir)/openhpid2  -I$(top_srcdir)/marshal
 
-AM_CFLAGS		= -g @NOCFLAGS@ -ftest-coverage -fprofile-arcs
+AM_CFLAGS		= @NOCFLAGS@ @COV_CFLAGS@
 
 $(REMOTE_LIB_SOURCES):
 	if test ! -f $@ -a ! -L $@; then \

@@ -8,8 +8,11 @@
 # the Copying file included with the OpenHPI distribution for
 # full licensing terms.
 
+MAINTAINERCLEANFILES = Makefile.in
+
 REMOTE_SOURCES		= rpt_utils.c \
 			  epath_utils.c \
+			  uid_utils.c \
 			  sahpi_enum_utils.c \
 			  sahpi_event_encode.c \
 			  sahpi_event_utils.c \
@@ -18,11 +21,11 @@ REMOTE_SOURCES		= rpt_utils.c \
 
 MOSTLYCLEANFILES 	= $(REMOTE_SOURCES) @TEST_CLEAN@
 
-INCLUDES		= @OPENHPI_INCLUDES@ 
+INCLUDES		= @OPENHPI_INCLUDES@
 
 EXTRA_DIST              = rpt_resources.h
 
-AM_CFLAGS		= @NOCFLAGS@ -ftest-coverage -fprofile-arcs
+AM_CFLAGS		= @NOCFLAGS@ @COV_CFLAGS@
 
 $(REMOTE_SOURCES):
 	if test ! -f $@ -a ! -L $@; then \
@@ -107,6 +110,10 @@ TESTS = rpt_utils_000 \
 	rpt_utils_076 \
 	rpt_utils_077 \
         rpt_utils_078 \
+        rpt_utils_079 \
+        rpt_utils_080 \
+        rpt_utils_081 \
+        rpt_utils_082 \
         rpt_utils_1000
 
 check_PROGRAMS = $(TESTS)
@@ -189,4 +196,8 @@ rpt_utils_075_SOURCES = rpt_utils_075.c $(REMOTE_SOURCES)
 rpt_utils_076_SOURCES = rpt_utils_076.c $(REMOTE_SOURCES)
 rpt_utils_077_SOURCES = rpt_utils_077.c $(REMOTE_SOURCES)
 rpt_utils_078_SOURCES = rpt_utils_078.c $(REMOTE_SOURCES)
+rpt_utils_079_SOURCES = rpt_utils_079.c $(REMOTE_SOURCES)
+rpt_utils_080_SOURCES = rpt_utils_080.c $(REMOTE_SOURCES)
+rpt_utils_081_SOURCES = rpt_utils_081.c $(REMOTE_SOURCES)
+rpt_utils_082_SOURCES = rpt_utils_082.c $(REMOTE_SOURCES)
 rpt_utils_1000_SOURCES = rpt_utils_1000.c $(REMOTE_SOURCES)

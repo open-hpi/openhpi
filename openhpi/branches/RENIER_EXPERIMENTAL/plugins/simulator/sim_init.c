@@ -39,11 +39,6 @@ void *sim_open(GHashTable *handler_config)
                 dbg("entity_root is needed and not present in conf");
                 return NULL;
         }
-        tok = g_hash_table_lookup(handler_config, "handler_name");
-        if (!tok) {
-                dbg("handler_name is needed and not present in conf");
-                return NULL;
-        }
 
         state = g_malloc0(sizeof(struct oh_handler_state));
         if (!state) {
@@ -73,8 +68,8 @@ void *sim_open(GHashTable *handler_config)
                 return NULL;
         }
 
-        /* save the handler config hash table it holds  */
-        /* the openhpi.conf file config info            */
+        /* save the handler config hash table, it holds  */
+        /* the openhpi.conf file config info             */
         state->config = handler_config;
 
         /* save the handler state to our list */
@@ -87,17 +82,22 @@ void *sim_open(GHashTable *handler_config)
 SaErrorT sim_discover(void *hnd)
 {
         /* NOTE!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-           The simulator plugin does not do a proper job of rediscovery.
-           If discovery is called multiple times there will be a huge
-           memory leak because we do not recover the memory from the
-           previous discovery. Also, the sim_handler_states list will be
-           invalid because only the pointer to the first discovery handler
-           state will be returned from the sim_get_handler_by_name API.
+           Since the simulator uses the full managed hot swap model and we
+           do not have any latency issues, discovery only needs to be performed
+           one time for each handler instance. Subsequent calls should just
+           return SA_OK for that instance.
          */
 	struct oh_handler_state *inst = (struct oh_handler_state *) hnd;
         int i;
         SaHpiRptEntryT res;
         GThread *service_thrd;
+
+        /* We use the inst->data variable to store the initial discovery state
+           for an instance of the handler.
+         */
+        if (inst->data) {
+                return SA_OK;
+        }
 
         /* ---------------------------------------------------------------
            The following assumes that the resource array is in a specific
@@ -165,12 +165,21 @@ SaErrorT sim_discover(void *hnd)
                 trace("injector service thread not started");
         }
 
-
+        /* Let subsequent discovery invocations know that discovery has already
+           been performed.
+         */
+        inst->data = (void *)1;
 	return SA_OK;
 }
 
 
-int sim_get_event(void *hnd, struct oh_event *event)
+/*
+ * Return values:
+ * 1 - events to be processed.
+ * SA_OK - No events to be processed.
+ * SA_ERR_HPI_INVALID_PARAMS - @event is NULL.
+ */
+SaErrorT sim_get_event(void *hnd, struct oh_event *event)
 {
 	struct oh_handler_state *state = hnd;
 	struct oh_event *e = NULL;
@@ -179,7 +188,9 @@ int sim_get_event(void *hnd, struct oh_event *event)
 		trace("retrieving sim event from async q");
 		memcpy(event, e, sizeof(*event));
 		event->did = oh_get_default_domain_id();
-		g_free(e);
+
+//		g_free(e);
+
 		return 1;
 	} else {
 		trace("no more events for sim instance");
@@ -188,15 +199,35 @@ int sim_get_event(void *hnd, struct oh_event *event)
 }
 
 
-void sim_close(void *hnd)
+SaErrorT sim_close(void *hnd)
 {
 	struct oh_handler_state *state = hnd;
 
         /* TODO: we may need to do more here than just this! */
 //      g_free(state->rptcache);
         g_free(state);
-        return;
+        return 0;
 }
+
+SaErrorT sim_set_resource_tag(void *hnd, SaHpiResourceIdT id, SaHpiTextBufferT *tag)
+{
+        struct oh_handler_state *inst = hnd;
+        SaHpiRptEntryT *resource = NULL;
+
+        if (!tag)
+                return SA_ERR_HPI_INVALID_PARAMS;
+
+        resource = oh_get_resource_by_id(inst->rptcache, id);
+        if (!resource) {
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+
+        memcpy(&resource->ResourceTag, tag, sizeof(SaHpiTextBufferT));
+
+        return SA_OK;
+}
+
+
 
 
 /*
@@ -213,4 +244,7 @@ void * oh_get_event (void *, struct oh_event *)
 
 void * oh_discover_resources (void *)
                 __attribute__ ((weak, alias("sim_discover")));
+
+void * oh_set_resource_tag (void *, SaHpiResourceIdT, SaHpiTextBufferT *)
+                __attribute__ ((weak, alias("sim_set_resource_tag")));
 

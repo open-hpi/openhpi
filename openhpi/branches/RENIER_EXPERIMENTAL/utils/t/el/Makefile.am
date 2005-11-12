@@ -8,15 +8,17 @@
 # the Copying file included with the OpenHPI distribution for
 # full licensing terms.
 
+MAINTAINERCLEANFILES = Makefile.in
+
 REMOTE_SOURCES          = el_utils.c
 
 MOSTLYCLEANFILES        = $(shell ls *data) $(REMOTE_SOURCES) @TEST_CLEAN@
 
 DISTCLEANFILES          = $(top_builddir)/src/t/el/elTest.data
 
-INCLUDES                = @OPENHPI_INCLUDES@ 
+INCLUDES                = @OPENHPI_INCLUDES@
 
-AM_CFLAGS               = @NOCFLAGS@ -ftest-coverage -fprofile-arcs
+AM_CFLAGS               = @NOCFLAGS@ @COV_CFLAGS@
 
 $(REMOTE_SOURCES):
 	if test ! -f $@ -a ! -L $@; then \
@@ -67,7 +69,7 @@ TESTS = el_test_001 \
 	el_test_042 \
 	el_test_043 \
 	el_test_044 \
-	el_test_045 
+	el_test_045
 
 
 check_PROGRAMS = $(TESTS)

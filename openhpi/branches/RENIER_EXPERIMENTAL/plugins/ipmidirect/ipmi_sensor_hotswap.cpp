@@ -28,7 +28,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-#include <assert.h>
 #include <glib.h>
 #include <math.h>
 #include <oh_utils.h>
@@ -123,12 +122,9 @@ cIpmiSensorHotswap::ConvertIpmiToHpiHotswapState( tIpmiFruState h )
             return SAHPI_HS_STATE_EXTRACTION_PENDING;
 
        case eIpmiFruStateCommunicationLost:
+       default:
             return SAHPI_HS_STATE_NOT_PRESENT;
      }
-
-  assert( 0 );
-
-  return SAHPI_HS_STATE_NOT_PRESENT;
 }
 
 
@@ -138,7 +134,11 @@ cIpmiSensorHotswap::CreateEvent( cIpmiEvent *event, SaHpiEventT &h )
   memset( &h, 0, sizeof( SaHpiEventT ) );
 
   cIpmiResource *res = Resource();
-  assert( res );
+
+  if (!res)
+  {
+      return SA_ERR_HPI_NOT_PRESENT;
+  }
 
   h.Source    = res->m_resource_id;
   h.EventType = SAHPI_ET_HOTSWAP;

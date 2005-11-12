@@ -146,7 +146,8 @@ static ret_code_t set_inventory_field(SaHpiSessionIdT sessionId,
 	SaHpiResourceIdT rptid, SaHpiIdrIdT rdrnum)
 {
 	SaErrorT	rv;
-	SaHpiIdrFieldT	field;
+	SaHpiIdrFieldT	field, read_field;
+	SaHpiEntryIdT	next;
 	int		res, i;
 
 	memset(&field, 0, sizeof(SaHpiIdrFieldT));
@@ -163,6 +164,14 @@ static ret_code_t set_inventory_field(SaHpiSessionIdT sessionId,
 		return(HPI_SHELL_PARM_ERROR);
 	};
 	field.FieldId = res;
+	
+	rv = saHpiIdrFieldGet(sessionId, rptid, rdrnum, field.AreaId,
+		SAHPI_IDR_FIELDTYPE_UNSPECIFIED, field.FieldId, &next, &read_field);
+	if (rv != SA_OK) {
+		printf("ERROR!!! saHpiIdrFieldGet: %s\n", oh_lookup_error(rv));
+		return(HPI_SHELL_CMD_ERROR);
+	};
+	field.Type = read_field.Type;
 
 	i = set_text_buffer(&(field.Field));
 	if (i != 0) {
@@ -388,7 +397,8 @@ ret_code_t show_inv(void)
 
 	term = get_next_term();
 	if (term == NULL) {
-		i = show_rpt_list(Domain, SHOW_ALL_RPT, resid, ui_print);
+		i = show_rpt_list(Domain, SHOW_ALL_RPT, resid,
+			SHORT_LSRES, ui_print);
 		if (i == 0) {
 			printf("NO rpt!\n");
 			return(HPI_SHELL_OK);
@@ -411,17 +421,34 @@ static ret_code_t set_control_state(SaHpiSessionIdT sessionid,
 	SaHpiCtrlRecT		*ctrl;
 	SaHpiCtrlTypeT		type;
 	SaHpiCtrlStateDigitalT	state_val = 0;
+	SaHpiCtrlModeT		mode;
 	SaHpiCtrlStateT		state;
 	char			buf[SAHPI_MAX_TEXT_BUFFER_LENGTH];
 	char			*str;
 	int			i, res;
 
-	rv = saHpiRdrGetByInstrumentId(sessionid, resourceid, SAHPI_CTRL_RDR, num, &rdr);
+	rv = saHpiRdrGetByInstrumentId(sessionid, resourceid, SAHPI_CTRL_RDR,
+		num, &rdr);
 	if (rv != SA_OK) {
 		printf("saHpiRdrGetByInstrumentId: error: %s\n", oh_lookup_error(rv));
 		return(HPI_SHELL_CMD_ERROR);
 	};
 	memset(&state, 0, sizeof(SaHpiCtrlStateT));
+	i = get_string_param("Mode(auto|manual): ", buf, 7);
+	if (i != 0) return(HPI_SHELL_CMD_ERROR);
+	if (strcmp(buf, "auto") == 0) mode = SAHPI_CTRL_MODE_AUTO;
+	else if (strcmp(buf, "manual") == 0) mode = SAHPI_CTRL_MODE_MANUAL;
+	else return(HPI_SHELL_CMD_ERROR);
+	if (mode == SAHPI_CTRL_MODE_AUTO) {
+		rv = saHpiControlSet(sessionid, resourceid, num,
+			mode, (SaHpiCtrlStateT *)NULL);
+		if (rv != SA_OK) {
+			printf("saHpiControlSet: error: %s\n",
+				oh_lookup_error(rv));
+			return(HPI_SHELL_CMD_ERROR);
+		};
+		return(HPI_SHELL_OK);
+	};
 	ctrl = &(rdr.RdrTypeUnion.CtrlRec);
 	type = ctrl->Type;
 	state.Type = type;
@@ -465,7 +492,7 @@ static ret_code_t set_control_state(SaHpiSessionIdT sessionid,
 			i = strlen(buf);
 			if (i > 4) i = 4;
 			state.StateUnion.Stream.StreamLength = i;
-			strncpy(state.StateUnion.Stream.Stream, buf, i);
+			strncpy((char *)(state.StateUnion.Stream.Stream), buf, i);
 			break;
 		case SAHPI_CTRL_TYPE_TEXT:
 			i = get_int_param("Line #: ", &res);
@@ -488,22 +515,11 @@ static ret_code_t set_control_state(SaHpiSessionIdT sessionid,
 				return HPI_SHELL_CMD_ERROR;
 			};
 			state.StateUnion.Oem.MId = res;
-			i = get_string_param("Oem body: ", buf,
-				SAHPI_MAX_TEXT_BUFFER_LENGTH);
-			str = buf;
-			while (*str == ' ') str++;
-			i = strlen(str);
-			while ((i > 0) && (str[i - 1] == ' ')) i--;
-			str[i] = 0;
-			if (i == 0) {
-				printf("Invalid text: %s\n", buf);
-				return(HPI_SHELL_CMD_ERROR);
-			};
-			if (i > SAHPI_CTRL_MAX_OEM_BODY_LENGTH)
-				i = SAHPI_CTRL_MAX_OEM_BODY_LENGTH;
 			memset(state.StateUnion.Oem.Body, 0,
 				SAHPI_CTRL_MAX_OEM_BODY_LENGTH);
-			strncpy(state.StateUnion.Oem.Body, str, i);
+			i = get_hex_string_param("Oem body: ",
+				(char *)(state.StateUnion.Oem.Body),
+				SAHPI_CTRL_MAX_OEM_BODY_LENGTH);
 			state.StateUnion.Oem.BodyLength = i;
 			break;
 		default:
@@ -523,7 +539,7 @@ static ret_code_t set_control_state(SaHpiSessionIdT sessionid,
 ret_code_t ctrl_block_state(void)
 {
 	show_control_state(Domain->sessionId, ctrl_block_env.rptid,
-		ctrl_block_env.rdrnum, ui_print);
+		ctrl_block_env.rdrnum, ui_print, get_int_param);
 	return(HPI_SHELL_OK);
 }
 
@@ -840,15 +856,15 @@ static ret_code_t add_announ(SaHpiResourceIdT rptid, SaHpiInstrumentIdT rdrnum)
 	// EntityPath:  is needed ???
 	// oh_encode_entitypath(char *str, SaHpiEntityPathT *ep);   convert string into ep.
 
-	i = get_int_param("DomainId: ", &did);
+	i = get_int_param("DomainId: ", (int *)&did);
 	if (i != 1) did = SAHPI_UNSPECIFIED_DOMAIN_ID;
 	announ.StatusCond.DomainId = did;
 
-	i = get_int_param("ResourceId: ", &resId);
+	i = get_int_param("ResourceId: ", (int *)&resId);
 	if (i != 1) resId = SAHPI_UNSPECIFIED_RESOURCE_ID;
 	announ.StatusCond.ResourceId = resId;
 
-	i = get_int_param("Sensor number: ", &sennum);
+	i = get_int_param("Sensor number: ", (int *)&sennum);
 	announ.StatusCond.SensorNum = sennum;
 
 	rv = saHpiAnnunciatorAdd(Domain->sessionId, rptid, rdrnum, &announ);

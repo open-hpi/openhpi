@@ -8,6 +8,8 @@
 # the Copying file included with the OpenHPI distribution for
 # full licensing terms.
 
+MAINTAINERCLEANFILES = Makefile.in
+
 REMOTE_SOURCES		= uid_utils.c \
 			  epath_utils.c \
 			  sahpi_enum_utils.c \
@@ -20,9 +22,9 @@ MOSTLYCLEANFILES 	= @TEST_CLEAN@ \
 	                  $(REMOTE_SOURCES) \
 			  uid_map
 
-INCLUDES		= @OPENHPI_INCLUDES@ 
+INCLUDES		= @OPENHPI_INCLUDES@
 
-AM_CFLAGS		= @NOCFLAGS@ -ftest-coverage -fprofile-arcs
+AM_CFLAGS		= @NOCFLAGS@ @COV_CFLAGS@
 
 $(REMOTE_SOURCES):
 	if test ! -f $@ -a ! -L $@; then \

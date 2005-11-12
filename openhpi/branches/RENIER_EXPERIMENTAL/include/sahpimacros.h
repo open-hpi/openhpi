@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2003-2004
+ * (C) Copyright IBM Corp. 2003, 2004, 2005
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -11,13 +11,14 @@
  *
  * Authors:
  *     Sean Dague <sdague@users.sf.net>
+ *     Renier Morales <renierm@users.sf.net>
  */
 
 #ifndef __SAHPIMACROS_H
 #define __SAHPIMACROS_H
 
 /**************************************************************
- *  
+ *
  *  These macros are defined for clarity of the sahpi.c
  *  source file.  They provide standard mechanisms for
  *  checking for and populating standard types, as well
@@ -77,9 +78,9 @@
                 if(!rd || !rd->hid) { \
                         dbg("Can't find handler for Resource %d in Domain %d", rid, d->id); \
                         oh_release_domain(d); \
-                        return SA_ERR_HPI_INVALID_PARAMS; \
+                        return SA_ERR_HPI_INVALID_RESOURCE; \
                 } \
-                h = oh_lookup_handler(rd->hid); \
+                h = oh_get_handler(rd->hid); \
         } while (0)
 
 /*
@@ -90,10 +91,29 @@
 #define OH_RESOURCE_GET(d, rid, r) \
         do { \
                 r = oh_get_resource_by_id(&(d->rpt), rid); \
-                if(!r) { \
+                if (!r) { \
                         dbg("Resource %d in Domain %d doesn't exist", rid, d->id); \
                         oh_release_domain(d); \
                         return SA_ERR_HPI_INVALID_RESOURCE; \
+                } \
+        } while (0)
+
+/*
+ * OH_RESOURCE_GET_CHECK gets the resource for an resource id and rpt
+ * it returns invalid resource if no resource id is found. It will
+ * return NO_RESPONSE if the resource is marked as being failed.
+ */
+#define OH_RESOURCE_GET_CHECK(d, rid, r) \
+        do { \
+                r = oh_get_resource_by_id(&(d->rpt), rid); \
+                if (!r) { \
+                        dbg("Resource %d in Domain %d doesn't exist", rid, d->id); \
+                        oh_release_domain(d); \
+                        return SA_ERR_HPI_INVALID_RESOURCE; \
+                } else if (r->ResourceFailed != SAHPI_FALSE) { \
+                        dbg("Resource %d in Domain %d is Failed", rid, d->id); \
+                        oh_release_domain(d); \
+                        return SA_ERR_HPI_NO_RESPONSE; \
                 } \
         } while (0)
 

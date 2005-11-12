@@ -36,10 +36,10 @@ int main(int argc, char **argv)
         if (oh_add_resource(rptable, rptentries, NULL, 1))
                 return 1;
 
-        if (oh_add_rdr(rptable, rptentries[0].ResourceId, rdrs, data, 1))
+        if (oh_add_rdr(rptable, rptentries[0].ResourceId, sensors, data, 1))
                 return 1;
 
-        if (oh_get_rdr_data(rptable, 1234567, rdrs[0].RecordId))
+        if (oh_get_rdr_data(rptable, 1234567, sensors[0].RecordId))
                 return 1;
 
         return 0;

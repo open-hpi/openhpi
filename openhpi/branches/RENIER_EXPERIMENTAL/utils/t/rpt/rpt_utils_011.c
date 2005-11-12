@@ -23,7 +23,7 @@
 
 /**
  * main: Starts with an RPTable of 10 resources, adds 5 rdr
- * to first resource. Fetches rdrs randomly by record id and compares
+ * to first resource. Fetches sensors ++randomly by record id and compares
  * with original. A failed comparison means the test failed,
  * otherwise the test passed.
  *
@@ -42,10 +42,10 @@ int main(int argc, char **argv)
         }
 
         for (i = 0; i < 5; i++) {
-                if (oh_add_rdr(rptable, SAHPI_FIRST_ENTRY, rdrs + i, NULL,0))
+                if (oh_add_rdr(rptable, SAHPI_FIRST_ENTRY, sensors + i, NULL,0))
                         return 1;
                 else
-                        records = g_slist_append(records, rdrs + i);                
+                        records = g_slist_append(records, sensors + i);                
         }
 
         for (; records; i--) {

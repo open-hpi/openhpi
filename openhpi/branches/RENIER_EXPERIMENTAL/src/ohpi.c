@@ -113,16 +113,14 @@ SaErrorT oHpiPluginInfo(char *name, oHpiPluginInfoT *info)
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-        data_access_lock();
-        p = oh_lookup_plugin(name);
+        p = oh_get_plugin(name);
         if (!p) {
                 dbg("Plugin %s not found.", name);
-        	data_access_unlock();
                 return SA_ERR_HPI_NOT_PRESENT;
         }
 
-        info->refcount = p->refcount;
-        data_access_unlock();
+        info->refcount = p->handler_count;
+        oh_release_plugin(p);
 
         return SA_OK;
 }
@@ -147,7 +145,7 @@ SaErrorT oHpiPluginGetNext(char *name, char *next_name, int size)
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-        if (oh_lookup_next_plugin(name, next_name, size))
+        if (oh_getnext_plugin_name(name, next_name, size))
                 return SA_ERR_HPI_NOT_PRESENT;
 
         return SA_OK;
@@ -183,7 +181,7 @@ SaErrorT oHpiHandlerCreate(GHashTable *config,
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-        if (!(hid = oh_load_handler(config))) {
+        if (!(hid = oh_create_handler(config))) {
              *id = 0;
              return SA_ERR_HPI_ERROR;
         }
@@ -206,7 +204,7 @@ SaErrorT oHpiHandlerDestroy(oHpiHandlerIdT id)
         if (!id)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
-        if (oh_unload_handler(id))
+        if (oh_destroy_handler(id))
                 return SA_ERR_HPI_ERROR;
 
         return SA_OK;
@@ -228,18 +226,16 @@ SaErrorT oHpiHandlerInfo(oHpiHandlerIdT id, oHpiHandlerInfoT *info)
         if (!id || !info)
                return SA_ERR_HPI_INVALID_PARAMS;
 
-	data_access_lock();
-        h = oh_lookup_handler(id);
-	if (!h) {
-		dbg("Handler not found.");
-		data_access_unlock();
-		return SA_ERR_HPI_NOT_PRESENT;
-	}
+        h = oh_get_handler(id);
+        if (!h) {
+                dbg("Handler %d not found.", id);
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
 
-	strncpy(info->plugin_name, h->plugin_name, MAX_PLUGIN_NAME_LENGTH);
-	data_access_unlock();
+        strncpy(info->plugin_name, h->plugin_name, MAX_PLUGIN_NAME_LENGTH);
+        oh_release_handler(h);
 
-	return SA_OK;
+        return SA_OK;
 }
 
 /**
@@ -261,7 +257,7 @@ SaErrorT oHpiHandlerGetNext(oHpiHandlerIdT id, oHpiHandlerIdT *next_id)
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-        if (oh_lookup_next_handler(id, next_id))
+        if (oh_getnext_handler_id(id, next_id))
                 return SA_ERR_HPI_NOT_PRESENT;
 
         return SA_OK;
@@ -323,32 +319,3 @@ SaErrorT oHpiGlobalParamSet(oHpiGlobalParamT *param)
         return SA_OK;
 }
 
-/**
- * oHpiGetHandlerState
- * @param: id is the id of the plugin instance
- *
- * This API should only be used by a test program that uses the simulator
- * plugin. It is very dangerous as the returned pointer actually points
- * to an oh_handler_state struct. Modification of data in that struct or
- * to data pointed to by that struct is EXTREMELY dangerous.
- *
- * Returns: void * pointer if the id is found, or NULL id not
- **/
-void *oHpiGetHandlerState(oHpiHandlerIdT id)
-{
-        struct oh_handler *h = NULL;
-
-        if (!id)
-               return NULL;
-
-	data_access_lock();
-        h = oh_lookup_handler(id);
-	if (!h) {
-		dbg("Handler not found.");
-		data_access_unlock();
-		return NULL;
-	}
-
-	data_access_unlock();
-        return h->hnd;
-}

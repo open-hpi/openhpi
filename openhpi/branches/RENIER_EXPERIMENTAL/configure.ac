@@ -5,7 +5,7 @@ dnl   various hacks by Sean Dague <http://dague.net/sean> 4/23/03
 
 
 AC_PREREQ(2.57)
-AC_INIT(openhpi, 2.2.0)
+AC_INIT(openhpi, 2.3.0)
 AC_CONFIG_SRCDIR(openhpi.spec.in)
 AM_INIT_AUTOMAKE([1.8])
 
@@ -14,7 +14,7 @@ AH_TOP([#ifndef __OPENHPI_CONFIG_H
 #define __OPENHPI_CONFIG_H])
 AH_BOTTOM([#endif /* __OPENHPI_CONFIG_H */])
 
-HPI_LIB_VERSION=4:0:2
+HPI_LIB_VERSION=5:0:3
 HPI_PKG=$PACKAGE_NAME
 HPI_UTIL_PKG=${PACKAGE_NAME}utils
 HPI_CLIENT_PKG=${PACKAGE_NAME}client
@@ -60,6 +60,7 @@ AC_CHECK_PROG([found_pkg_config],[pkg-config],[yes])
 if test "x$found_pkg_config" != "xyes"; then
     OH_CHECK_FAIL(pkg-config,pkg-config)
 fi
+PKG_CFG_SETPATH
 
 # check for gcc version
 
@@ -183,14 +184,18 @@ AC_ARG_ENABLE([examples],
 	ENABLED_DIRS="$ENABLED_DIRS examples"
     fi])
 
-dnl    [ENABLED_DIRS="$ENABLED_DIRS examples"])
-
 AC_ARG_ENABLE([clients],
     [  --enable-clients        build HPI client programs [default=yes]],
     [if test "x$enableval" = "xyes"; then
 	ENABLED_DIRS="$ENABLED_DIRS clients"
     fi],
     [ENABLED_DIRS="$ENABLED_DIRS clients"])
+
+AC_ARG_ENABLE([cpp_wrappers],
+    [  --enable-cpp_wrappers   build SaHpi C++ wrapper objects [default=no]],
+    [if test "x$enableval" = "xyes"; then
+    	ENABLED_DIRS="$ENABLED_DIRS cpp"
+    fi])
 
 AC_SUBST(ENABLED_DIRS)
 
@@ -238,15 +243,14 @@ dnl        AC_SUBST(SNMP_CLIENT,snmp_client)
 dnl     fi])
 
 AC_ARG_ENABLE([dummy],
-    [  --enable-dummy          build dummy plugin [default=yes]],
+    [  --enable-dummy          build dummy plugin [default=no]],
     [if test "x$enableval" = "xyes"; then
         AC_SUBST(DUMMY,dummy)
      elif test "x$enableval" = "xstatic"; then
         AC_SUBST(DUMMY,dummy)
         STATIC_PLUGIN_LIST="$STATIC_PLUGIN_LIST dummy"
         STATIC_PLUGIN_EXTRA_LIBS="$STATIC_PLUGIN_EXTRA_LIBS -luuid"
-    fi],
-    [AC_SUBST(DUMMY,dummy)])
+    fi])
 
 AC_ARG_ENABLE([watchdog],
     [  --enable-watchdog       build watchdog plugin [default=yes]],
@@ -261,12 +265,12 @@ dnl
 dnl We really need to make ipmi enablement be contigent on OpenIPMI
 dnl
 
-if pkg-config --atleast-version 1.4.16 OpenIPMI; then
+if PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/local/lib/pkgconfig pkg-config --atleast-version 1.4.16 OpenIPMI; then
     have_openipmi=yes
     AC_CHECK_LIB([OpenIPMI], [ipmi_smi_setup_con], [have_openipmi=yes])
-    OPENIPMI_CFLAGS=`pkg-config --cflags OpenIPMI`
+    OPENIPMI_CFLAGS=`PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/local/lib/pkgconfig pkg-config --cflags OpenIPMI`
     AC_SUBST(OPENIPMI_CFLAGS)
-    OPENIPMI_LIBS=`pkg-config --libs OpenIPMI`
+    OPENIPMI_LIBS=`PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/local/lib/pkgconfig pkg-config --libs OpenIPMI`
     AC_SUBST(OPENIPMI_LIBS)
 fi
 
@@ -344,7 +348,17 @@ if test "x$IPMIDIRECT" = "xipmidirect"; then
         fi
 fi
 
-#AC_ARG_ENABLE([remote_client],
+# Configure options for the RTAS plugin
+AC_ARG_ENABLE([rtas],
+    [  --enable-rtas       build rtas ppc plugin [default=no]],
+    [if test "x$enableval" = "xyes"; then
+	    AC_SUBST(RTAS,rtas)
+     else
+            AC_SUBST(RTAS,"")
+     fi],
+    [AC_SUBST(RTAS,"")])
+
+#AC_ARG_iENABLE([remote_client],
 #    [  --enable-remote_client     build remote client plugin [default=yes]],
 #    [if test "x$enableval" = "xyes"; then
 #            AC_SUBST(REMOTE_CLIENT,remote_client)
@@ -361,10 +375,11 @@ dnl     NEED_MARSHAL="yes"])
 
 OH_CHECK_FAM
 AC_ARG_ENABLE([simulator],
-    [  --enable-simulator      build simulator plugin [default=no]],
+    [  --enable-simulator      build simulator plugin [default=yes]],
     [if test "x$enableval" = "xyes"; then
         AC_SUBST(SIMULATOR,simulator)
-    fi])
+    fi],
+    [AC_SUBST(SIMULATOR,simulator)])
 
 #    [AC_SUBST(SIMULATOR,simulator)])
 
@@ -504,6 +519,8 @@ AC_ARG_ENABLE([testcover],
     [if test "x$enableval" = "xyes"; then
 	    CFLAGS=`echo $CFLAGS | sed -e 's/-O\w\?\>[ ]*//g'`
 	    CFLAGS="$CFLAGS -ftest-coverage -fprofile-arcs"
+	    COV_CFLAGS = "-ftest-coverage -fprofile-arcs"
+	    AC_SUBST(COV_CFLAGS)
     fi]
     )
 
@@ -621,6 +638,10 @@ AC_CONFIG_FILES([openhpi.spec
         plugins/ipmidirect/t/Makefile
         plugins/simulator/Makefile
 	plugins/simulator/t/Makefile
+	plugins/simulator/t1/Makefile
+	plugins/simulator/t1/rt-shell.sh
+	plugins/simulator/t2/Makefile
+	plugins/rtas/Makefile
 	scripts/Makefile
         snmp/Makefile
         src/Makefile
@@ -637,6 +658,8 @@ AC_CONFIG_FILES([openhpi.spec
         examples/Makefile
 	hpi_ui_lib/Makefile
 	hpi_shell/Makefile
+	cpp/Makefile
+	cpp/t/Makefile
 	clients/Makefile])
 
 AC_OUTPUT

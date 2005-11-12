@@ -19,6 +19,54 @@
 #include <string.h>
 
 
+
+
+static void trace_ipmi_entity(char *str, int inst, ipmi_entity_t *entity)
+{
+	if (!getenv("OHOI_TRACE_ENTITY") && !IHOI_TRACE_ALL) {
+		return;
+	}
+
+	char *type;
+	char logical[24];
+	
+	logical[0] = 0;
+	switch (ipmi_entity_get_type(entity)) {
+	case IPMI_ENTITY_UNKNOWN:
+		type = "UNKNOWN"; break;
+	case IPMI_ENTITY_MC:
+		type = "MC"; break;
+	case IPMI_ENTITY_FRU:
+		type = "FRU";
+		if (ipmi_entity_get_is_logical_fru(entity)) {
+			snprintf(logical, 24, " Logical (%d) ",
+			   ipmi_entity_get_fru_device_id(entity));
+		} else {
+			snprintf(logical, 24, " NonLogic(%d) ",
+			   ipmi_entity_get_fru_device_id(entity));
+		}
+		break;
+	case IPMI_ENTITY_GENERIC:
+		type = "GENERIC"; break;
+	case IPMI_ENTITY_EAR:
+		type = "EAR"; break;
+	case IPMI_ENTITY_DREAR:
+		type = "DREAR"; break;
+	default :
+		type = "INVALID"; break;
+	}
+
+	fprintf(stderr, "*** Entity %s %s %s: %d.%d(%d).%d.%d (%s)\n",
+		type, logical, str,
+		ipmi_entity_get_entity_id(entity), 
+		inst,
+		ipmi_entity_get_entity_instance(entity),
+		ipmi_entity_get_device_channel(entity),
+		ipmi_entity_get_device_address(entity),
+		ipmi_entity_get_entity_id_string(entity));
+}
+
+
 void entity_rpt_set_updated(struct ohoi_resource_info *res_info,
 		struct ohoi_handler *ipmi_handler)
 {
@@ -28,6 +76,7 @@ void entity_rpt_set_updated(struct ohoi_resource_info *res_info,
 		return;
 	}	
 	res_info->updated = 1;
+	ipmi_handler->updated = 1;
 	g_static_rec_mutex_unlock(&ipmi_handler->ohoih_lock);
 }
 
@@ -43,21 +92,11 @@ void entity_rpt_set_presence(struct ohoi_resource_info *res_info,
 	}
 	res_info->presence =  present;
 	res_info->updated = 1;
+	ipmi_handler->updated = 1;
 	g_static_rec_mutex_unlock(&ipmi_handler->ohoih_lock);
 }
 
 
-/* need to update some information here */
-/*
-static void entity_update_rpt(RPTable *table, struct ohoi_handler *ipmi_handler,
-			SaHpiResourceIdT rid, int present)
-{
-  	struct ohoi_resource_info	*res_info;
-       
-	res_info = oh_get_resource_data(table, rid);
-	entity_rpt_set_presence(res_info, ipmi_handler, present);
-}
-*/
 
 int entity_presence(ipmi_entity_t		*entity,
 			    int			present,
@@ -80,53 +119,49 @@ int entity_presence(ipmi_entity_t		*entity,
 	}
 	rid = rpt->ResourceId;
 	res_info = oh_get_resource_data(handler->rptcache, rid);;
-	trace_ipmi("%s(%d)  %s",ipmi_entity_get_entity_id_string(entity), rid, present ? "present" : "not present");
+	trace_ipmi("%s(%d)  %s",ipmi_entity_get_entity_id_string(entity),
+		rid, present ? "present" : "not present");
 	entity_rpt_set_presence(res_info, handler->data,  present);
 	return SA_OK;
 }
 
-static void get_entity_event(ipmi_entity_t	*entity,
-			     SaHpiRptEntryT	*entry, void *cb_data)
+
+static void append_parent_epath(SaHpiRptEntryT	*entry, SaHpiRptEntryT	*parent)
 {
-	SaHpiEntityPathT entity_ep;
-	struct oh_handler_state *handler = cb_data;
-	struct ohoi_handler *ipmi_handler = handler->data;
+	const SaHpiEntityPathT *ep = &(parent->ResourceEntity);
+	oh_concat_ep(&entry->ResourceEntity, ep);
+}
 
-	int er, i;
-	int rv;
-	const char *str;
 
-	g_static_rec_mutex_lock(&ipmi_handler->ohoih_lock);	
-
+static void init_rpt(SaHpiRptEntryT	*entry)
+{
+	int i;
+	
 	entry->ResourceInfo.ResourceRev = 0;
 	entry->ResourceInfo.SpecificVer = 0;
 	entry->ResourceInfo.DeviceSupport = 0;
 	entry->ResourceInfo.ManufacturerId = 0;
 	entry->ResourceInfo.ProductId = 0;
 	entry->ResourceInfo.FirmwareMajorRev = 0;
-	entry->ResourceInfo.FirmwareMinorRev = 0;
+	entry->ResourceInfo.FirmwareMinorRev = 0;	
+	entry->ResourceInfo.AuxFirmwareRev = 0;
+
+	entry->EntryId = 0;
+	entry->ResourceCapabilities = SAHPI_CAPABILITY_RESOURCE;	
+	entry->HotSwapCapabilities = 0;
+	
 	for (i=0;i<15;i++) {
 		entry->ResourceInfo.Guid[i] = 0;
 	}
-	
-	entry->ResourceInfo.AuxFirmwareRev = 0;
-	entry->ResourceEntity.Entry[0].EntityType 
-                = ipmi_entity_get_entity_id(entity);
-	entry->ResourceEntity.Entry[0].EntityLocation 
-                = ipmi_entity_get_entity_instance(entity);
-	if(ipmi_entity_get_entity_instance(entity) >= 96) {
-		entry->ResourceEntity.Entry[0].EntityLocation 
-                	= ipmi_entity_get_entity_instance(entity)- 96;
-	}
+	entry->ResourceSeverity = SAHPI_MAJOR;	/* Default Value -- not related to IPMI */
+	entry->ResourceFailed = SAHPI_FALSE;
+	oh_init_textbuffer(&entry->ResourceTag);
+}
 
-	entry->ResourceEntity.Entry[1].EntityType = SAHPI_ENT_ROOT;
-	entry->ResourceEntity.Entry[1].EntityLocation = 0;
 
-	entry->EntryId = 0;
-	entry->ResourceId = oh_uid_from_entity_path(&entry->ResourceEntity);
-	entry->ResourceCapabilities = SAHPI_CAPABILITY_RESOURCE;
-	
-	entry->HotSwapCapabilities = 0;
+static void update_resource_capabilities(ipmi_entity_t	*entity,
+					 SaHpiRptEntryT	*entry)
+{
 	if (ipmi_entity_supports_managed_hot_swap(entity)) {
 		trace_ipmi("Entity is hot swapable");
 		entry->ResourceCapabilities |= SAHPI_CAPABILITY_MANAGED_HOTSWAP;
@@ -134,8 +169,8 @@ static void get_entity_event(ipmi_entity_t	*entity,
 		 * check if it has indicator */
 
 		/* we need only return value from function */
-		er = ipmi_entity_get_hot_swap_indicator(entity, NULL, NULL);
-		if (!er) {
+		if (!ipmi_entity_get_hot_swap_indicator(entity, NULL, NULL)) {
+			trace_ipmi("setting SAHPI_HS_CAPABILITY_INDICATOR_SUPPORTED");
 			entry->HotSwapCapabilities |= SAHPI_HS_CAPABILITY_INDICATOR_SUPPORTED;
 		}
 	}
@@ -148,173 +183,242 @@ static void get_entity_event(ipmi_entity_t	*entity,
 		trace_ipmi("Entity supports simplified hotswap");
 		entry->ResourceCapabilities |= SAHPI_CAPABILITY_FRU;
 	}
+}
 
-//	if (ipmi_entity_get_is_fru(entity)) {
-//		dbg("Entity supports FRU Inventory Data");
-//		entry->ResourceCapabilities |= SAHPI_CAPABILITY_INVENTORY_DATA;
-//	}
+struct add_parent_ep_s {
+	struct oh_handler_state *handler;
+	SaHpiRptEntryT	*entry;
+};
+
+static void add_parent_ep(ipmi_entity_t *ent, ipmi_entity_t *parent, void *cb_data)
+{
+	struct add_parent_ep_s *info = cb_data;
+	ipmi_entity_id_t parent_id = ipmi_entity_convert_to_id(parent);
+	SaHpiRptEntryT *pr_rpt;
+
+
+	pr_rpt = ohoi_get_resource_by_entityid(info->handler->rptcache, &parent_id);
+	if (pr_rpt == NULL) {
+		dbg("               Couldn't find out res-info for parent: %d.%d.%d.%d %s",
+			ipmi_entity_get_entity_id(parent),
+			ipmi_entity_get_entity_instance(parent),
+			ipmi_entity_get_device_channel(parent),
+			ipmi_entity_get_device_address(parent),
+			ipmi_entity_get_entity_id_string(parent));
+		trace_ipmi_entity("CAN NOT FIND OUT PARENT. NO RES_INFO",
+			0, parent);
+		
+		return;
+	}
+	append_parent_epath(info->entry, pr_rpt);
+	return;
+}
+
+
+static void get_entity_event(ipmi_domain_t            *domain,
+			     ipmi_entity_t	*entity,
+			     struct ohoi_resource_info *ohoi_res_info,
+			     SaHpiRptEntryT	*entry,
+			     void *cb_data)
+{
+	SaHpiEntityPathT entity_ep;
+	struct oh_handler_state *handler = cb_data;
+	struct ohoi_handler *ipmi_handler = handler->data;
+	int rv;
+	const char *str;
+
+
+	init_rpt(entry);
+
+	entry->ResourceEntity.Entry[0].EntityType 
+                = ipmi_entity_get_entity_id(entity);
+	if(ipmi_entity_get_entity_instance(entity) >= 96) {
+		entry->ResourceEntity.Entry[0].EntityLocation 
+                	= ipmi_entity_get_entity_instance(entity)- 96;
+	} else {
+		entry->ResourceEntity.Entry[0].EntityLocation 
+                	= ipmi_entity_get_entity_instance(entity);	
+	}
+
+	entry->ResourceEntity.Entry[1].EntityType = SAHPI_ENT_ROOT;
+	entry->ResourceEntity.Entry[1].EntityLocation = 0;
+
+
+	update_resource_capabilities(entity, entry);
+
 			
-	if (entry->ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SYSTEM_BOARD)
-	{	/* This is the BMC entry, so we need to add watchdog. */
+	if (entry->ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SYSTEM_BOARD) {
+		/* This is the BMC entry, so we need to add watchdog. */
 		entry->ResourceCapabilities |= SAHPI_CAPABILITY_WATCHDOG;
 	}
-	entry->ResourceSeverity = SAHPI_MAJOR;	/* Default Value -- not related to IPMI */
-	entry->ResourceFailed = SAHPI_FALSE;
-	entry->ResourceTag.DataType = SAHPI_TL_TYPE_TEXT;
-	
-	entry->ResourceTag.Language = SAHPI_LANG_ENGLISH;
+	if (entry->ResourceEntity.Entry[0].EntityType ==SAHPI_ENT_SYSTEM_CHASSIS) {
+		entry->ResourceEntity.Entry[0].EntityType = SAHPI_ENT_ROOT;
+		entry->ResourceEntity.Entry[0].EntityLocation = 0;
+	}
 
 	//ipmi_entity_get_id(entity, entry->ResourceTag.Data, SAHPI_MAX_TEXT_BUFFER_LENGTH);
 	str = ipmi_entity_get_entity_id_string(entity);
-	memcpy(entry->ResourceTag.Data,str, strlen(str) +1);
-	entry->ResourceTag.DataLength = strlen(entry->ResourceTag.Data);
-#if 0
-	if ((strlen(entry->ResourceTag.Data) == 0)
-	    || (!strcmp(entry->ResourceTag.Data, "invalid"))
-	    || ((ipmi_entity_get_entity_id(entity) == 7 || 15))) {
+	oh_append_textbuffer(&entry->ResourceTag, str);
 
-			const char *str;
-			char *str2;
-			int inst;
 
-			inst = ipmi_entity_get_entity_instance(entity);
-			if (inst >= 96)
-				inst = inst - 96;
-			str = ipmi_entity_get_entity_id_string(entity);
-
-			if (!(strcmp(str, "invalid"))) {
-				dbg("entity_id_string is invlaid, bad SDR..stick to entity_id");
-			} else {
-			  	/* Let's identify the entity-instance in the ResourceTag */
-				dbg("Instance for ResourceTag %d", inst);
-				  str2 = (char *)calloc(strlen(str) + 4, sizeof(char));
-				  snprintf(str2, strlen(str) + 4, "%s-%d",str, inst);
-				  memcpy(entry->ResourceTag.Data, str2, strlen(str2) + 1);
-			}
+	if (ipmi_domain_get_type(domain) != IPMI_DOMAIN_TYPE_ATCA) {
+		goto no_atca;
 	}
-
-	/* AdvancedTCA fix-up */
-
-	/* Here we start dealing with device relative entities */
-#endif
-
-#if 0
-        if (ipmi_entity_get_entity_instance(entity) >= 96) {
-		entry->ResourceEntity.Entry[0].EntityLocation = 
-			ipmi_entity_get_entity_instance(entity) - 96;
-		entry->ResourceEntity.Entry[0].EntityType =
-			ipmi_entity_get_entity_id(entity);
-
-		entry->ResourceEntity.Entry[1].EntityType =
-		       	SAHPI_ENT_PHYSICAL_SLOT;
-		int rv;
-		unsigned int val;
-		
-		rv = ipmi_entity_get_physical_slot_num(entity, &val);
-		if (rv != 0) {
-			entry->ResourceEntity.Entry[1].EntityLocation = 
-				ipmi_entity_get_device_address(entity);
-		}else {
-			entry->ResourceEntity.Entry[1].EntityLocation = val;
-		}
-
-		entry->ResourceEntity.Entry[2].EntityType = SAHPI_ENT_ROOT;
-		entry->ResourceEntity.Entry[2].EntityLocation = 0;
-        }
-#endif
 	/* Since OpenIPMI does not hand us a more descriptive
-	   tag which is an SDR issue inthe chassis really, we'll over-ride
+	   tag which is an SDR issue in the chassis really, we'll over-ride
 	   it here until things change
 	*/
+
+	
+		/*
+		 * If entity has a slot try to get it's number
+		 */
+	int no_slot;
+	unsigned int slot_val;
+	no_slot = ipmi_entity_get_physical_slot_num(entity, &slot_val);
+	if (no_slot) {
+		/* will use device address */
+		slot_val = ipmi_entity_get_device_address(entity);
+	}
+	if (ipmi_entity_get_entity_id(entity) == 160) {
+		// create Resource for phisical blade slot if it hasn't already been created
+		SaHpiEntityPathT ep;
+		SaHpiEntityPathT rootep;
 		
-        if ((ipmi_entity_get_entity_id(entity) == 160) &&
-                        (ipmi_entity_get_entity_instance(entity) >= 96)) {
-                dbg("SBC Blade");
-		const char sbc_tag[] = "SBC Blade";
-		memcpy(entry->ResourceTag.Data, sbc_tag, strlen(sbc_tag) + 1);
-
-               entry->ResourceEntity.Entry[0].EntityLocation =
-		       ipmi_entity_get_entity_instance(entity) - 96;
-		entry->ResourceEntity.Entry[0].EntityType = SAHPI_ENT_SBC_BLADE;
-		entry->ResourceEntity.Entry[1].EntityType = SAHPI_ENT_PHYSICAL_SLOT;
-		unsigned int val;
-		rv = ipmi_entity_get_physical_slot_num(entity, &val);
-		if (rv != 0) {
-			entry->ResourceEntity.Entry[1].EntityLocation = 
-						ipmi_entity_get_device_address(entity);
-			dbg("Erro getting Physical Slot Number");
-		} else {
-			dbg("Physical lot Num: %d", val);
-			entry->ResourceEntity.Entry[1].EntityLocation = val;
+		if (no_slot) {
+			dbg("couldn't get slot for device");
+			goto end_of_slot;
 		}
+		ep.Entry[0].EntityType = SAHPI_ENT_PHYSICAL_SLOT;     
+		ep.Entry[0].EntityLocation = slot_val;
+		ep.Entry[1].EntityType = SAHPI_ENT_ROOT;
+		ep.Entry[1].EntityLocation = 0;   
+		oh_encode_entitypath(ipmi_handler->entity_root, &rootep);
+		oh_concat_ep(&ep, &rootep);
+		if (oh_get_resource_by_ep(handler->rptcache, &ep) == NULL) {
+			// create rpt for slot
+			SaHpiRptEntryT srpt;
+			struct ohoi_resource_info *s_r_info;
+			char n[8];
+			int i;
+			init_rpt(&srpt);
+			for (i = 0; i < SAHPI_MAX_ENTITY_PATH; i ++) {
+				srpt.ResourceEntity.Entry[i].EntityLocation =
+					ep.Entry[i].EntityLocation;
+				srpt.ResourceEntity.Entry[i].EntityType =
+					ep.Entry[i].EntityType;
+				if (ep.Entry[i].EntityType == SAHPI_ENT_ROOT) {
+					break;
+				}
+			}
+			oh_append_textbuffer(&srpt.ResourceTag, "Blade Slot ");
+			snprintf(n, 8, "%d", slot_val);
+			oh_append_textbuffer(&srpt.ResourceTag, n);
+			srpt.ResourceId = oh_uid_from_entity_path(&srpt.ResourceEntity);
+			
+			s_r_info = malloc(sizeof(*ohoi_res_info));
+			if (s_r_info == NULL) {
+				dbg("Out of Memory");
+				goto end_of_slot;
+			}
+			memset(s_r_info, 0, sizeof(*ohoi_res_info));
+			if (oh_add_resource(handler->rptcache, &srpt, s_r_info, 1)) {
+				dbg("couldn't add resource for slot %d",ep.Entry[0].EntityLocation);
+			} else {
+				trace_ipmi_entity("CREATE SLOT for ", 0, entity); 
+				entity_rpt_set_presence(s_r_info, ipmi_handler, 1);
+				
+			}
+		} else {
+			dbg("slot %d already created", ep.Entry[0].EntityLocation);
+		}
+	}
+	end_of_slot:
+		
+	if ((ipmi_entity_get_entity_id(entity) == 160) &&
+			(ipmi_entity_get_entity_instance(entity) >= 96)) {
+		dbg("SBC Blade");
+		oh_init_textbuffer(&entry->ResourceTag);
+		if ((ipmi_entity_get_device_address(entity) == 130)
+			|| (ipmi_entity_get_device_address(entity) == 132)) {
+			oh_append_textbuffer(&entry->ResourceTag,
+							"Switch Blade");
+			entry->ResourceEntity.Entry[0].EntityType =
+							SAHPI_ENT_SWITCH_BLADE;
+		} else {
+			oh_append_textbuffer(&entry->ResourceTag, "SBC Blade");
+			entry->ResourceEntity.Entry[0].EntityType =
+							SAHPI_ENT_SBC_BLADE;
+		}
+		entry->ResourceEntity.Entry[1].EntityType =
+						SAHPI_ENT_PHYSICAL_SLOT;
+		entry->ResourceEntity.Entry[1].EntityLocation = slot_val;
 		entry->ResourceEntity.Entry[2].EntityType = SAHPI_ENT_ROOT;
 		entry->ResourceEntity.Entry[2].EntityLocation = 0;
         }
 
-        if ((ipmi_entity_get_entity_id(entity) == 160) &&
-                        ((ipmi_entity_get_device_address(entity) == 130)
-       			|| (ipmi_entity_get_device_address(entity) == 132)))	{
-                dbg("Switch Blade");
-		const char switch_tag[] = "Switch Blade";
-		memcpy(entry->ResourceTag.Data, switch_tag, strlen(switch_tag) + 1);
-
-               entry->ResourceEntity.Entry[0].EntityLocation =
-		       ipmi_entity_get_entity_instance(entity) - 96;
-		entry->ResourceEntity.Entry[0].EntityType = SAHPI_ENT_SWITCH_BLADE;
-		entry->ResourceEntity.Entry[1].EntityType = SAHPI_ENT_PHYSICAL_SLOT;
-		unsigned int val;
-		rv = ipmi_entity_get_physical_slot_num(entity, &val);
-		if (rv != 0)
-			entry->ResourceEntity.Entry[1].EntityLocation = 
-						ipmi_entity_get_device_address(entity);
-		else
-			entry->ResourceEntity.Entry[1].EntityLocation = val;
-		dbg("Physical lot Num: %d", val);
-		entry->ResourceEntity.Entry[2].EntityType = SAHPI_ENT_ROOT;
-		entry->ResourceEntity.Entry[2].EntityLocation = 0;
-        }
-
-        //if ((ipmi_entity_get_entity_id(entity) == 10)) {
-                       
-                //dbg("PowerSupply  Device");
-	       //entry->ResourceEntity.Entry[1].EntityLocation = 0;
-	       //entry->ResourceEntity.Entry[1].EntityType =
-		       	//SAHPI_ENT_POWER_UNIT;
-        //}
-	
-        if ((ipmi_entity_get_entity_id(entity) == 30)) {
-                       
-                dbg("Cooling Device");
-		//const char disk_tag[] = "Cooling Unit";
-		//memcpy(entry->ResourceTag.Data, disk_tag, strlen(disk_tag) + 1);
-               entry->ResourceEntity.Entry[0].EntityLocation =
-		       ipmi_entity_get_entity_instance(entity) - 96;
-               entry->ResourceEntity.Entry[0].EntityType = ipmi_entity_get_entity_id(entity);
-        }
-	
 	/* this is here for Force-made Storage blades
 	 * until we have access to latest hardware
 	 * DO NOT CHANGE
 	*/
-        if ((ipmi_entity_get_entity_id(entity) == 160) &&
-                        (ipmi_entity_get_entity_instance(entity) == 102)) {
-                dbg("DISK Blade");
-		const char disk_tag[] = "Storage/Disk Blade";
-		memcpy(entry->ResourceTag.Data, disk_tag, strlen(disk_tag) + 1);
-               //entry->ResourceEntity.Entry[0].EntityLocation =
-		       //ipmi_entity_get_entity_instance(entity) - 96;
-               entry->ResourceEntity.Entry[0].EntityType = SAHPI_ENT_DISK_BLADE;
+	if ((ipmi_entity_get_entity_id(entity) == 160) &&
+			(ipmi_entity_get_entity_instance(entity) == 102)) {
+		dbg("DISK Blade");
+		oh_init_textbuffer(&entry->ResourceTag);
+		oh_append_textbuffer(&entry->ResourceTag, "Storage/Disk Blade");
+		entry->ResourceEntity.Entry[0].EntityType = SAHPI_ENT_DISK_BLADE;
         }
 	
+	if ((ipmi_entity_get_entity_id(entity) == 10) &&
+			(ipmi_entity_get_entity_instance(entity) >= 96)) {
+		dbg("Power Unit");
 
-        /* End AdvancedTCA Fix-ups */
+#if 0
+		entry->ResourceEntity.Entry[1].EntityLocation = val;
+		entry->ResourceEntity.Entry[1].EntityType = SAHPI_ENT_CHASSIS_SPECIFIC + 1;
+		entry->ResourceEntity.Entry[2].EntityType = SAHPI_ENT_ROOT;
+		entry->ResourceEntity.Entry[2].EntityLocation = 0;
+#else
+		entry->ResourceEntity.Entry[0].EntityLocation = slot_val;
+#endif
+        }
+	
+       if ((ipmi_entity_get_entity_id(entity) == 0xf0) &&
+                        (ipmi_entity_get_entity_instance(entity) >= 96))  {
+		dbg("ShMC");
+		if ((ipmi_entity_get_device_channel(entity) != 0) ||
+				(ipmi_entity_get_device_address(entity) != 32)) {
+			entry->ResourceEntity.Entry[1].EntityLocation = slot_val;
+			entry->ResourceEntity.Entry[1].EntityType =
+					SAHPI_ENT_CHASSIS_SPECIFIC + 3;
+			entry->ResourceEntity.Entry[2].EntityType = SAHPI_ENT_ROOT;
+			entry->ResourceEntity.Entry[2].EntityLocation = 0;
+		}
+        }        
 
-	entry->ResourceTag.DataLength = (SaHpiUint32T)strlen(entry->ResourceTag.Data);
+       if ((ipmi_entity_get_entity_id(entity) == 0xf2) &&
+                        (ipmi_entity_get_entity_instance(entity) >= 96))  {
+		dbg("Shelf FRU");
+		entry->ResourceEntity.Entry[1].EntityLocation = slot_val;
+		entry->ResourceEntity.Entry[1].EntityType =
+					SAHPI_ENT_CHASSIS_SPECIFIC + 2;
+		entry->ResourceEntity.Entry[2].EntityType = SAHPI_ENT_ROOT;
+		entry->ResourceEntity.Entry[2].EntityLocation = 0;
+        }        
+	/* End AdvancedTCA Fix-ups */
 
-	oh_encode_entitypath(ipmi_handler->entity_root, &entity_ep);
-	oh_concat_ep(&entry->ResourceEntity, &entity_ep);
+no_atca:
+	if (ipmi_entity_get_is_child(entity)) {
+		struct add_parent_ep_s info;
+		info.handler = handler;
+		info.entry = entry;
+		ipmi_entity_iterate_parents(entity, add_parent_ep, &info);
+	} else {
+		oh_encode_entitypath(ipmi_handler->entity_root, &entity_ep);
+		oh_concat_ep(&entry->ResourceEntity, &entity_ep);
+	}
+
 	entry->ResourceId = oh_uid_from_entity_path(&entry->ResourceEntity);
-	trace_ipmi("ResourceId: %d", entry->ResourceId);
 
 			/* controls */
 			rv = ipmi_entity_add_control_update_handler(entity,
@@ -325,33 +429,45 @@ static void get_entity_event(ipmi_entity_t	*entity,
 				dbg("ipmi_entity_set_control_update_handler: %#x", rv);
 				return;
 			}
-                                                                                
-	g_static_rec_mutex_unlock(&ipmi_handler->ohoih_lock);	
 }
 
-static void add_entity_event(ipmi_entity_t	        *entity,
+static void add_entity_event(ipmi_domain_t            *domain,
+			     ipmi_entity_t	        *entity,
 			     struct oh_handler_state    *handler)
 {
       	struct ohoi_resource_info *ohoi_res_info;
 	SaHpiRptEntryT	entry;
 	int rv;
+	int inst;
+	
+	inst = ipmi_entity_get_entity_instance(entity);
+	if (inst >= 96) {
+		inst -= 96;
+	}
 
-	trace_ipmi("adding ipmi entity: %s", ipmi_entity_get_entity_id_string(entity));
+	memset(&entry, 0, sizeof (entry));
 
-	ohoi_res_info = g_malloc0(sizeof(*ohoi_res_info));
+	ohoi_res_info = malloc(sizeof(*ohoi_res_info));
 
 	if (!ohoi_res_info) {
 	      	dbg("Out of memory");
+		trace_ipmi_entity("CAN NOT ADD ENTITY. OUT OF MEMORY",
+			inst, entity);
 		return;
 	}
+	memset(ohoi_res_info, 0, sizeof (*ohoi_res_info));
 
 	ohoi_res_info->type       = OHOI_RESOURCE_ENTITY; 
 	ohoi_res_info->u.entity_id= ipmi_entity_convert_to_id(entity);
 
-	get_entity_event(entity, &entry, handler);	
+	get_entity_event(domain, entity, ohoi_res_info, &entry, handler);	
 	rv = oh_add_resource(handler->rptcache, &entry, ohoi_res_info, 1);
 	if (rv) {
-	      	dbg("oh_add_resource failed for %d = %s\n", entry.ResourceId, oh_lookup_error(rv));
+	      	dbg("oh_add_resource failed for %d = %s\n",
+			entry.ResourceId, oh_lookup_error(rv));
+		trace_ipmi_entity("CAN NOT ADD ENTITY. ADD RESOURCE FAILED",
+			inst, entity);
+		return;
 	}
 }
 
@@ -363,10 +479,13 @@ void ohoi_remove_entity(struct oh_handler_state *handler,
 
 	res_info = oh_get_resource_data(handler->rptcache, res_id);
 
-  	dbg("Entity (%d) removed", res_id);
 
 	/* Now put an event for the resource to DEL */
-	e = g_malloc0(sizeof(*e));
+	e = malloc(sizeof(*e));
+	if (e == NULL) {
+		dbg("Out of memory");
+		return;
+	}
 	memset(e, 0, sizeof(*e));
 
 	e->did = oh_get_default_domain_id();
@@ -377,104 +496,44 @@ void ohoi_remove_entity(struct oh_handler_state *handler,
 	entity_rpt_set_updated(res_info, handler->data);
 }
 
-static void 
-add_processor_event(ipmi_entity_t *entity,
-			ipmi_entity_t *parent,
-			void *cb_data)
+
+
+static void change_entity(struct oh_handler_state	*handler,
+		          ipmi_entity_t			*entity)
 {
-	struct oh_handler_state *handler = cb_data;
-	struct ohoi_handler *ipmi_handler = handler->data;
-	struct ohoi_resource_info *res_info;
-
-	SaHpiRptEntryT	entry;
-
-	SaHpiEntityPathT entity_ep;
+	ipmi_entity_id_t entity_id = ipmi_entity_convert_to_id(entity);
+	SaHpiRptEntryT	*rpt;
 	
-	int rv, i;
-	unsigned int parent_location;
-	int inst;	/* instance */
-
-	const char tag[] = "Processor";
-	char *str2;
-	
-	res_info = g_malloc0(sizeof(*res_info));
-
-	if (!res_info) {
-	      	dbg("Out of memory");
+	rpt = ohoi_get_resource_by_entityid(handler->rptcache, &entity_id);
+	if (rpt == NULL) {
+		dbg("Couldn't find out resource by entity %d.%.d.%d.%d  %s",
+			ipmi_entity_get_entity_id(entity), 
+			ipmi_entity_get_entity_instance(entity),
+			ipmi_entity_get_device_channel(entity),
+			ipmi_entity_get_device_address(entity),
+			ipmi_entity_get_entity_id_string(entity));
+		trace_ipmi_entity("CAN NOT CHANGE RESOURCE. NO RPT",
+			0, entity);
 		return;
 	}
-
-	res_info->type       = OHOI_RESOURCE_ENTITY; 
-	res_info->u.entity_id= ipmi_entity_convert_to_id(entity);
-
-	inst = ipmi_entity_get_entity_instance(entity) - 96;
-
-	entry.ResourceInfo.ResourceRev = 0;
-	entry.ResourceInfo.SpecificVer = 0;
-	entry.ResourceInfo.DeviceSupport = 0;
-	entry.ResourceInfo.ManufacturerId = 0;
-	entry.ResourceInfo.ProductId = 0;
-	entry.ResourceInfo.FirmwareMajorRev = 0;
-	entry.ResourceInfo.FirmwareMinorRev = 0;
-	for (i=0;i<15;i++) {
-		entry.ResourceInfo.Guid[i] = 0;
-	}
-
-	entry.ResourceEntity.Entry[0].EntityType 
-                = ipmi_entity_get_entity_id(entity);
-	entry.ResourceEntity.Entry[0].EntityLocation = inst;
-
-	rv = ipmi_entity_get_physical_slot_num(parent, &parent_location);
-	if (rv != 0) {
-		dbg("Processor parent address unavailable, using self address");
-		entry.ResourceEntity.Entry[1].EntityType = SAHPI_ENT_SBC_BLADE; 
-		entry.ResourceEntity.Entry[1].EntityLocation = 
-				ipmi_entity_get_device_address(entity);
-	} else {
-		dbg("Processor Parent Address %d", parent_location);
-		entry.ResourceEntity.Entry[1].EntityType = SAHPI_ENT_SBC_BLADE; 
-		entry.ResourceEntity.Entry[1].EntityLocation = 
-				ipmi_entity_get_entity_instance(parent) - 96;
-	}
-
-	entry.ResourceEntity.Entry[2].EntityType = SAHPI_ENT_PHYSICAL_SLOT;
-	entry.ResourceEntity.Entry[2].EntityLocation = parent_location;
-
-	entry.ResourceEntity.Entry[3].EntityType = SAHPI_ENT_ROOT;
-	entry.ResourceEntity.Entry[3].EntityLocation = 0;
-
-	entry.EntryId = 0;
-	entry.ResourceCapabilities = SAHPI_CAPABILITY_RESOURCE;
-	entry.HotSwapCapabilities = 0;
-
-	entry.ResourceSeverity = SAHPI_MAJOR;	/* Default Value -- not related to IPMI */
-	entry.ResourceFailed = SAHPI_FALSE;
-	entry.ResourceTag.DataType = SAHPI_TL_TYPE_TEXT;
-	
-	entry.ResourceTag.Language = SAHPI_LANG_ENGLISH;
-
-	//ipmi_entity_get_id(entity, entry->ResourceTag.Data, SAHPI_MAX_TEXT_BUFFER_LENGTH);
-	//str = ipmi_entity_get_entity_id_string(entity);
-
-	/* Let's identify the entity-instance in the ResourceTag */
-	str2 = (char *)calloc(strlen(tag) + 3, sizeof(char));
-	snprintf(str2, strlen(tag) + 3, "%s-%d",tag, inst);
-	memcpy(entry.ResourceTag.Data, str2, strlen(str2) + 1);
-	trace_ipmi("ProcessorTag: %s", entry.ResourceTag.Data);
-
-	entry.ResourceTag.DataLength = (SaHpiUint32T)strlen(entry.ResourceTag.Data);
-
-	oh_encode_entitypath(ipmi_handler->entity_root, &entity_ep);
-	oh_concat_ep(&entry.ResourceEntity, &entity_ep);
-	entry.ResourceId = oh_uid_from_entity_path(&entry.ResourceEntity);
-	trace_ipmi("Processor ResourceId: %d", entry.ResourceId);
-
-	rv = oh_add_resource(handler->rptcache, &entry, res_info, 1);
-	if (rv) {
-	      	dbg("oh_add_resource failed for %d = %s\n", entry.ResourceId, oh_lookup_error(rv));
-	}
+	update_resource_capabilities(entity, rpt);
 }
-			
+
+static void delete_entity(struct oh_handler_state	*handler,
+		          ipmi_entity_t			*entity)
+{
+	ipmi_entity_id_t entity_id = ipmi_entity_convert_to_id(entity);
+	SaHpiRptEntryT	*rpt;
+	struct ohoi_resource_info *res_info;
+
+	rpt = ohoi_get_resource_by_entityid(handler->rptcache, &entity_id);
+	if (rpt == NULL) {
+		dbg("couldn't find out resource");
+		return;
+	}
+	res_info =  oh_get_resource_data(handler->rptcache, rpt->ResourceId);
+	entity_rpt_set_presence(res_info, handler->data, 0);
+}
 
 void ohoi_entity_event(enum ipmi_update_e       op,
                        ipmi_domain_t            *domain,
@@ -485,30 +544,16 @@ void ohoi_entity_event(enum ipmi_update_e       op,
 	struct ohoi_handler *ipmi_handler = handler->data;
 	int rv;
 	int inst=0;
-		
+	
+	inst=ipmi_entity_get_entity_instance(entity);
+	if(inst >=96) {
+		inst = inst - 96;
+	}
+	g_static_rec_mutex_lock(&ipmi_handler->ohoih_lock);			
 	switch (op) {
 	  	case IPMI_ADDED:
-			g_static_rec_mutex_lock(&ipmi_handler->ohoih_lock);	
-
-			if ((ipmi_entity_get_entity_id(entity) == 3)
-				&& (ipmi_entity_get_entity_instance(entity)
-				       	>= 96)) {
-				dbg("We got a processor");
-				ipmi_entity_iterate_parents(entity,
-					       add_processor_event,
-					       handler);
-			}else 
-				add_entity_event(entity, handler);
-
-			inst=ipmi_entity_get_entity_instance(entity);
-			if(inst >=96) {
-				inst = inst - 96;
-			}
-
-			trace_ipmi("Entity added: %d.%d (%s)", 
-					ipmi_entity_get_entity_id(entity), 
-					inst,
-					ipmi_entity_get_entity_id_string(entity));
+			add_entity_event(domain, entity, handler);
+			trace_ipmi_entity("ADDED", inst, entity);
 
 			/* entity presence overall */
 			rv = ipmi_entity_add_presence_handler(entity,
@@ -530,7 +575,7 @@ void ohoi_entity_event(enum ipmi_update_e       op,
 								  handler);
 			if (rv) {
 				dbg("ipmi_entity_set_sensor_update_handler: %#x", rv);
-				return;
+				break;
 			}
                                                                                 
 			/* inventory (a.k.a FRU) */
@@ -539,34 +584,21 @@ void ohoi_entity_event(enum ipmi_update_e       op,
 								handler);
 			if (rv) {
 			  	dbg("ipmi_entity_set_fru_update_handler: %#x", rv);
-				return;
-			}
-			g_static_rec_mutex_unlock(&ipmi_handler->ohoih_lock);	
-				                                                                              
+				break;
+			}                                                                          
 			break;
 			
 		case IPMI_DELETED:
-			return;              /* we need to remove_entity */
-			dbg("Entity deleted: %d.%d", 
-						ipmi_entity_get_entity_id(entity), 
-						ipmi_entity_get_entity_instance(entity));
+			delete_entity(handler, entity);
+			trace_ipmi_entity("DELETED", inst, entity);
 			break;
 			
 		case IPMI_CHANGED:
-			g_static_rec_mutex_lock(&ipmi_handler->ohoih_lock);	
-			//add_entity_event(entity, handler);
-			inst = 0;
-			inst=ipmi_entity_get_entity_instance(entity);
-			if(inst >=96) {
-				inst = inst - 96;
-			}
-			trace_ipmi("***Entity changed: %d.%d",
-						ipmi_entity_get_entity_id(entity), 
-						inst);
-			g_static_rec_mutex_unlock(&ipmi_handler->ohoih_lock);	
+			change_entity(handler, entity);
+			trace_ipmi_entity("CHANGED", inst, entity);
 			break;
 		default:
 			dbg("Entity: Unknow change?!");
 	}
-
+	g_static_rec_mutex_unlock(&ipmi_handler->ohoih_lock);	
 }

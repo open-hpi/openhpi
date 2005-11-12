@@ -48,14 +48,26 @@ SaErrorT sim_get_hotswap_state(void *hnd,
 	privinfo = (struct simResourceInfo *)oh_get_resource_data(state->rptcache, rid);
  	if (privinfo == NULL) {
 		dbg("No resource data. ResourceId=%d", rid);
-		return(SA_ERR_HPI_INTERNAL_ERROR);
+		return SA_ERR_HPI_INVALID_RESOURCE;
 	}
 
+        /* It is possible that this API can return the NOT_PRESENT state in
+           violation of the spec. See the note attached to the
+           sim_set_hotswap_state() API to understand why this can happen.
+           */
 	*hsstate = privinfo->cur_hsstate;
 	return SA_OK;
 }
 
 
+/* Note:
+   When the hot swap state goes to NOT_PRESENT we really should remove the
+   RPT entry and all its associated RDRs. However, if we do then the simulator
+   has no way of knowing when the resource becomes active again. If this was
+   real hardware we could query it on rediscovery to find out if it has returned
+   or not but since we are virtual we have no way of figuring this out. So,
+   the simulator does NOT remove RPT entries in this case.
+   */
 SaErrorT sim_set_hotswap_state(void *hnd,
 			       SaHpiResourceIdT rid,
 			       SaHpiHsStateT    hsstate)
@@ -87,7 +99,7 @@ SaErrorT sim_set_hotswap_state(void *hnd,
 	privinfo = (struct simResourceInfo *)oh_get_resource_data(state->rptcache, rid);
  	if (privinfo == NULL) {
 		dbg("No resource data. ResourceId=%d", rid);
-		return(SA_ERR_HPI_INTERNAL_ERROR);
+		return SA_ERR_HPI_INVALID_RESOURCE;
 	}
 
         /* check that the state transition is correct */
@@ -108,6 +120,10 @@ SaErrorT sim_set_hotswap_state(void *hnd,
                         return SA_OK;
                 }
                 if (hsstate == SAHPI_HS_STATE_INACTIVE) {
+                        privinfo->cur_hsstate = hsstate;
+                        return SA_OK;
+                }
+                if (hsstate == SAHPI_HS_STATE_ACTIVE) {
                         privinfo->cur_hsstate = hsstate;
                         return SA_OK;
                 }
@@ -183,7 +199,7 @@ SaErrorT sim_request_hotswap_action(void *hnd,
 	privinfo = (struct simResourceInfo *)oh_get_resource_data(state->rptcache, rid);
  	if (privinfo == NULL) {
 		dbg("No resource data. ResourceId=%d", rid);
-		return(SA_ERR_HPI_INTERNAL_ERROR);
+		return SA_ERR_HPI_INVALID_RESOURCE;
 	}
 
         /* check that the action corresponds to a valid state */
@@ -202,6 +218,84 @@ SaErrorT sim_request_hotswap_action(void *hnd,
 }
 
 
+SaErrorT sim_get_indicator_state(void *hnd,
+	         		 SaHpiResourceIdT rid,
+				 SaHpiHsIndicatorStateT *ind_state)
+{
+        struct simResourceInfo *privinfo;
+
+	if (!hnd || !ind_state) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+
+        struct oh_handler_state *state = (struct oh_handler_state *)hnd;
+
+	/* Check if resource exists and has managed hotswap capabilities */
+	SaHpiRptEntryT *rpt = oh_get_resource_by_id(state->rptcache, rid);
+        if (!rpt) {
+		return SA_ERR_HPI_INVALID_RESOURCE;
+	}
+
+        /* if not simplified HS then return an error */
+        if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_FRU)) {
+		return SA_ERR_HPI_CAPABILITY;
+	}
+
+        /* get our private state data */
+	privinfo = (struct simResourceInfo *)oh_get_resource_data(state->rptcache, rid);
+ 	if (privinfo == NULL) {
+		dbg("No resource data. ResourceId=%d", rid);
+		return SA_ERR_HPI_INVALID_RESOURCE;
+	}
+
+        *ind_state = privinfo->cur_indicator_hsstate;
+        return SA_OK;
+
+}
+
+
+SaErrorT sim_set_indicator_state(void *hnd,
+				 SaHpiResourceIdT rid,
+				 SaHpiHsIndicatorStateT ind_state)
+{
+        struct simResourceInfo *privinfo;
+
+	if (!hnd) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+
+	if (NULL == oh_lookup_hsindicatorstate(ind_state)) {
+		dbg("Invalid hotswap indicator state.");
+		return(SA_ERR_HPI_INVALID_REQUEST);
+	}
+
+        struct oh_handler_state *state = (struct oh_handler_state *)hnd;
+
+	/* Check if resource exists and has managed hotswap capabilities */
+	SaHpiRptEntryT *rpt = oh_get_resource_by_id(state->rptcache, rid);
+        if (!rpt) {
+		return SA_ERR_HPI_INVALID_RESOURCE;
+	}
+
+        /* if not simplified HS then return an error */
+        if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_FRU)) {
+		return SA_ERR_HPI_CAPABILITY;
+	}
+
+        /* get our private state data */
+	privinfo = (struct simResourceInfo *)oh_get_resource_data(state->rptcache, rid);
+ 	if (privinfo == NULL) {
+		dbg("No resource data. ResourceId=%d", rid);
+		return SA_ERR_HPI_INVALID_RESOURCE;
+	}
+
+        privinfo->cur_indicator_hsstate = ind_state;
+        return SA_OK;
+}
+
+
 void * oh_get_hotswap_state (void *, SaHpiResourceIdT, SaHpiHsStateT *)
                 __attribute__ ((weak, alias("sim_get_hotswap_state")));
 
@@ -210,5 +304,11 @@ void * oh_set_hotswap_state (void *, SaHpiResourceIdT, SaHpiHsStateT)
 
 void * oh_request_hotswap_action (void *, SaHpiResourceIdT, SaHpiHsActionT)
                 __attribute__ ((weak, alias("sim_request_hotswap_action")));
+
+void * oh_set_indicator_state (void *, SaHpiResourceIdT, SaHpiHsIndicatorStateT)
+                __attribute__ ((weak, alias("sim_set_indicator_state")));
+
+void * oh_get_indicator_state (void *, SaHpiResourceIdT, SaHpiHsIndicatorStateT)
+                __attribute__ ((weak, alias("sim_get_indicator_state")));
 
 

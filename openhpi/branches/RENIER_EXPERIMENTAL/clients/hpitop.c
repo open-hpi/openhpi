@@ -258,7 +258,7 @@ void same_system(oh_big_textbuffer *bigbuf)
 			(strncmp((char *)bigbuf->Data, previous_system, size+1) != 0)) {
 		if (previous_system[0] == '{') show_trailer(previous_system);
 		memset (previous_system, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH); 
-		strncpy (previous_system, bigbuf->Data, size+1);
+		strncpy (previous_system, (char *)(bigbuf->Data), size+1);
 		previous_system[size+2] = '\0';
 		printf("\n\n%s\n", previous_system);
 	} 

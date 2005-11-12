@@ -492,7 +492,9 @@ main(int argc, char **argv)
           exit(1);
   }
 
-  inv = (SaHpiIdrAreaHeaderT *)&inbuff[0];
+	/* compile error */
+//  inv = (SaHpiIdrAreaHeaderT *)&inbuff[0];
+  inv = (SaHpiIdrAreaHeaderT *)(void *)&inbuff[0];
   rv = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID,&sessionid,NULL);
   if (fdebug) printf("saHpiSessionOpen rv = %d sessionid = %x\n",rv,sessionid);
   if (rv != SA_OK) {
@@ -557,7 +559,7 @@ main(int argc, char **argv)
 		 printf("Rdr[%x] is inventory, IdrId=%x\n",rdr.RecordId,idrid);
 		 printf("Inv BufferSize=%d\n", buffersize);
 	      }
-	      if ( IsTagBmc(rdr.IdString.Data, rdr.IdString.DataLength) )
+	      if ( IsTagBmc((char *)rdr.IdString.Data, rdr.IdString.DataLength) )
 	      {
 		/* Get all of the inventory data areas and fields */
 		memset(inv,0,buffersize);

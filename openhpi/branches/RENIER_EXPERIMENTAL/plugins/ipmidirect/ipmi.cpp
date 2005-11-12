@@ -17,7 +17,6 @@
 
 #include <netdb.h>
 #include <errno.h>
-#include <assert.h>
 
 #include "ipmi.h"
 #include "ipmi_con_lan.h"
@@ -28,26 +27,24 @@
 static cIpmi *
 VerifyIpmi( void *hnd )
 {
-  assert( hnd );
+  if (!hnd)
+    return 0;
 
   oh_handler_state *handler = (oh_handler_state *)hnd;
   cIpmi *ipmi = (cIpmi *)handler->data;
 
   if ( !ipmi )
      {
-       assert( 0 );
        return 0;
      }
 
   if ( !ipmi->CheckMagic() )
      {
-       assert( 0 );
        return 0;
      }
 
   if ( !ipmi->CheckHandler( handler ) )
      {
-       assert( 0 );
        return 0;
      }
 
@@ -57,13 +54,12 @@ VerifyIpmi( void *hnd )
 
 static cIpmiSensor *
 VerifySensorAndEnter( void *hnd, SaHpiResourceIdT rid, SaHpiSensorNumT num,
-		      cIpmi *&ipmi )
+                      cIpmi *&ipmi )
 {
   ipmi = VerifyIpmi( hnd );
 
   if ( !ipmi )
      {
-       assert( 0 );
        return 0;
      }
 
@@ -77,9 +73,13 @@ VerifySensorAndEnter( void *hnd, SaHpiResourceIdT rid, SaHpiSensorNumT num,
        return 0;
      }
 
-  cIpmiSensor *sensor = (cIpmiSensor *)oh_get_rdr_data( ipmi->GetHandler()->rptcache, 
+  cIpmiSensor *sensor = (cIpmiSensor *)oh_get_rdr_data( ipmi->GetHandler()->rptcache,
                                                         rid, rdr->RecordId );
-  assert( sensor );
+  if ( !sensor )
+     {
+       ipmi->IfLeave();
+       return 0;
+     }
 
   if ( !ipmi->VerifySensor( sensor ) )
      {
@@ -99,7 +99,6 @@ VerifyControlAndEnter( void *hnd, SaHpiResourceIdT rid, SaHpiCtrlNumT num,
 
   if ( !ipmi )
      {
-       assert( 0 );
        return 0;
      }
 
@@ -113,9 +112,13 @@ VerifyControlAndEnter( void *hnd, SaHpiResourceIdT rid, SaHpiCtrlNumT num,
        return 0;
      }
 
-  cIpmiControl *control = (cIpmiControl *)oh_get_rdr_data( ipmi->GetHandler()->rptcache, 
+  cIpmiControl *control = (cIpmiControl *)oh_get_rdr_data( ipmi->GetHandler()->rptcache,
                                                            rid, rdr->RecordId );
-  assert( control );
+  if ( !control )
+     {
+       ipmi->IfLeave();
+       return 0;
+     }
 
   if ( !ipmi->VerifyControl( control ) )
      {
@@ -134,7 +137,6 @@ VerifyInventoryAndEnter( void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid,
 
   if ( !ipmi )
      {
-       assert( 0 );
        return 0;
      }
 
@@ -148,9 +150,13 @@ VerifyInventoryAndEnter( void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid,
        return 0;
      }
 
-  cIpmiInventory *inv = (cIpmiInventory *)oh_get_rdr_data( ipmi->GetHandler()->rptcache, 
+  cIpmiInventory *inv = (cIpmiInventory *)oh_get_rdr_data( ipmi->GetHandler()->rptcache,
                                                            rid, rdr->RecordId );
-  assert( inv );
+  if ( !inv )
+     {
+       ipmi->IfLeave();
+       return 0;
+     }
 
   if ( !ipmi->VerifyInventory( inv ) )
      {
@@ -169,13 +175,18 @@ VerifyResourceAndEnter( void *hnd, SaHpiResourceIdT rid, cIpmi *&ipmi )
 
   if ( !ipmi )
      {
-       assert( 0 );
        return 0;
      }
 
   ipmi->IfEnter();
 
   cIpmiResource *res = (cIpmiResource *)oh_get_resource_data( ipmi->GetHandler()->rptcache, rid );
+
+  if ( !res )
+     {
+       ipmi->IfLeave();
+       return 0;
+     }
 
   if ( !ipmi->VerifyResource( res ) )
      {
@@ -194,13 +205,18 @@ VerifySelAndEnter( void *hnd, SaHpiResourceIdT rid, cIpmi *&ipmi )
 
   if ( !ipmi )
      {
-       assert( 0 );
        return 0;
      }
 
   ipmi->IfEnter();
 
   cIpmiResource *res = (cIpmiResource *)oh_get_resource_data( ipmi->GetHandler()->rptcache, rid );
+
+  if ( !res )
+     {
+       ipmi->IfLeave();
+       return 0;
+     }
 
   if ( !ipmi->VerifyResource( res ) )
      {
@@ -222,6 +238,10 @@ VerifySelAndEnter( void *hnd, SaHpiResourceIdT rid, cIpmi *&ipmi )
 extern "C" {
 
 // ABI Interface functions
+
+static void *
+IpmiOpen( GHashTable * ) __attribute__((used));
+
 static void *
 IpmiOpen( GHashTable *handler_config )
 {
@@ -290,6 +310,19 @@ IpmiOpen( GHashTable *handler_config )
 
   handler->data     = ipmi;
   handler->rptcache = (RPTable *)g_malloc0( sizeof( RPTable ) );
+  if ( !handler->rptcache )
+     {
+       dbg("cannot allocate RPT cache");
+
+       g_free( handler );
+
+       delete ipmi;
+
+       stdlog.Close();
+
+       return 0;
+     }
+
   handler->config   = handler_config;
 
   ipmi->SetHandler( handler );
@@ -314,24 +347,44 @@ IpmiOpen( GHashTable *handler_config )
 
 
 static void
+IpmiClose( void * ) __attribute__((used));
+
+static void
 IpmiClose( void *hnd )
 {
   dbg( "IpmiClose" );
 
   cIpmi *ipmi = VerifyIpmi( hnd );
 
+  if ( !ipmi )
+     {
+       return;
+     }
+
+  if ( ipmi->DomainId() != oh_get_default_domain_id() )
+  {
+      stdlog << "Releasing domain id " << ipmi->DomainId() << "\n";
+
+      SaErrorT rv = oh_request_domain_delete( ipmi->HandlerId(), ipmi->DomainId() );
+
+      if ( rv != SA_OK )
+          stdlog << "oh_request_domain_delete error " << rv << "\n";
+  }
+
   ipmi->IfClose();
 
-  assert( ipmi->CheckLock() );
+  ipmi->CheckLock();
 
   delete ipmi;
 
   oh_handler_state *handler = (oh_handler_state *)hnd;
-  assert( handler );
 
-  assert( handler->rptcache );
-  oh_flush_rpt( handler->rptcache );
-  g_free( handler->rptcache );
+  if ( handler->rptcache )
+  {
+      oh_flush_rpt( handler->rptcache );
+      g_free( handler->rptcache );
+  }
+
   g_free( handler );
 
   // close logfile
@@ -340,9 +393,17 @@ IpmiClose( void *hnd )
 
 
 static SaErrorT
+IpmiGetEvent( void *, struct oh_event * ) __attribute__((used));
+
+static SaErrorT
 IpmiGetEvent( void *hnd, struct oh_event *event )
 {
   cIpmi *ipmi = VerifyIpmi( hnd );
+
+  if ( !ipmi )
+     {
+       return SA_ERR_HPI_INTERNAL_ERROR;
+     }
 
   // there is no need to get a lock because
   // the event queue has its own lock
@@ -353,15 +414,44 @@ IpmiGetEvent( void *hnd, struct oh_event *event )
 
 
 static SaErrorT
+IpmiDiscoverResources( void * ) __attribute__((used));
+
+static SaErrorT
 IpmiDiscoverResources( void *hnd )
 {
   cIpmi *ipmi = VerifyIpmi( hnd );
+
+  if ( !ipmi )
+     {
+       return SA_ERR_HPI_INTERNAL_ERROR;
+     }
+
+  stdlog << "Simple discovery let's go " << hnd << "\n";
 
   SaErrorT rv = ipmi->IfDiscoverResources();
 
   return rv;
 }
 
+
+static SaErrorT
+IpmiDiscoverDomainResources( void *, SaHpiDomainIdT ) __attribute__((used));
+
+static SaErrorT
+IpmiDiscoverDomainResources( void *hnd, SaHpiDomainIdT did )
+{
+  cIpmi *ipmi = VerifyIpmi( hnd );
+
+  stdlog << "Dedicated discovery let's go " << hnd << " " << did << "\n";
+
+  SaErrorT rv = ipmi->IfDiscoverResources();
+
+  return rv;
+}
+
+
+static SaErrorT
+IpmiSetResourceTag( void *, SaHpiResourceIdT, SaHpiTextBufferT * ) __attribute__((used));
 
 static SaErrorT
 IpmiSetResourceTag( void *hnd, SaHpiResourceIdT id, SaHpiTextBufferT *tag )
@@ -381,6 +471,9 @@ IpmiSetResourceTag( void *hnd, SaHpiResourceIdT id, SaHpiTextBufferT *tag )
 
 
 static SaErrorT
+IpmiSetResourceSeverity( void *, SaHpiResourceIdT, SaHpiSeverityT ) __attribute__((used));
+
+static SaErrorT
 IpmiSetResourceSeverity( void *hnd, SaHpiResourceIdT id, SaHpiSeverityT sev )
 {
   cIpmi *ipmi = 0;
@@ -398,11 +491,18 @@ IpmiSetResourceSeverity( void *hnd, SaHpiResourceIdT id, SaHpiSeverityT sev )
 
 
 static SaErrorT
+IpmiGetSensorReading( void *,
+                   SaHpiResourceIdT id,
+                   SaHpiSensorNumT num,
+                   SaHpiSensorReadingT *data,
+                   SaHpiEventStateT *state ) __attribute__((used));
+
+static SaErrorT
 IpmiGetSensorReading( void *hnd,
                    SaHpiResourceIdT id,
                    SaHpiSensorNumT num,
                    SaHpiSensorReadingT *data,
-                   SaHpiEventStateT *state)
+                   SaHpiEventStateT *state )
 {
   cIpmi *ipmi = 0;
   cIpmiSensor *sensor = VerifySensorAndEnter( hnd, id, num, ipmi );
@@ -417,6 +517,12 @@ IpmiGetSensorReading( void *hnd,
   return rv;
 }
 
+
+static SaErrorT
+IpmiGetSensorThresholds( void *hnd,
+                         SaHpiResourceIdT,
+                         SaHpiSensorNumT,
+                         SaHpiSensorThresholdsT * ) __attribute__((used));
 
 static SaErrorT
 IpmiGetSensorThresholds( void                   *hnd,
@@ -444,6 +550,12 @@ IpmiGetSensorThresholds( void                   *hnd,
 
 
 static SaErrorT
+IpmiSetSensorThresholds( void *,
+                         SaHpiResourceIdT,
+                         SaHpiSensorNumT,
+                         const SaHpiSensorThresholdsT * ) __attribute__((used));
+
+static SaErrorT
 IpmiSetSensorThresholds( void *hnd,
                          SaHpiResourceIdT id,
                          SaHpiSensorNumT  num,
@@ -469,7 +581,13 @@ IpmiSetSensorThresholds( void *hnd,
 
 
 static SaErrorT
-IpmiGetSensorEnable( void *hnd, 
+IpmiGetSensorEnable( void *,
+                     SaHpiResourceIdT,
+                     SaHpiSensorNumT,
+                     SaHpiBoolT * ) __attribute__((used));
+
+static SaErrorT
+IpmiGetSensorEnable( void *hnd,
                      SaHpiResourceIdT id,
                      SaHpiSensorNumT  num,
                      SaHpiBoolT       *enable )
@@ -489,6 +607,12 @@ IpmiGetSensorEnable( void *hnd,
 
 
 static SaErrorT
+IpmiSetSensorEnable( void *,
+                     SaHpiResourceIdT,
+                     SaHpiSensorNumT,
+                     SaHpiBoolT ) __attribute__((used));
+
+static SaErrorT
 IpmiSetSensorEnable( void *hnd,
                      SaHpiResourceIdT id,
                      SaHpiSensorNumT  num,
@@ -506,8 +630,16 @@ IpmiSetSensorEnable( void *hnd,
 
   return rv;
 }
+
+
 static SaErrorT
-IpmiGetSensorEventEnables( void *hnd, 
+IpmiGetSensorEventEnables( void *,
+                           SaHpiResourceIdT,
+                           SaHpiSensorNumT,
+                           SaHpiBoolT * ) __attribute__((used));
+
+static SaErrorT
+IpmiGetSensorEventEnables( void *hnd,
                            SaHpiResourceIdT id,
                            SaHpiSensorNumT  num,
                            SaHpiBoolT       *enables )
@@ -527,6 +659,12 @@ IpmiGetSensorEventEnables( void *hnd,
 
 
 static SaErrorT
+IpmiSetSensorEventEnables( void *,
+                           SaHpiResourceIdT,
+                           SaHpiSensorNumT,
+                           SaHpiBoolT ) __attribute__((used));
+
+static SaErrorT
 IpmiSetSensorEventEnables( void *hnd,
                            SaHpiResourceIdT id,
                            SaHpiSensorNumT  num,
@@ -544,8 +682,17 @@ IpmiSetSensorEventEnables( void *hnd,
 
   return rv;
 }
+
+
 static SaErrorT
-IpmiGetSensorEventMasks( void *hnd, 
+IpmiGetSensorEventMasks( void *,
+                           SaHpiResourceIdT,
+                           SaHpiSensorNumT,
+                           SaHpiEventStateT *,
+                           SaHpiEventStateT * ) __attribute__((used));
+
+static SaErrorT
+IpmiGetSensorEventMasks( void *hnd,
                            SaHpiResourceIdT id,
                            SaHpiSensorNumT  num,
                            SaHpiEventStateT *AssertEventMask,
@@ -565,6 +712,14 @@ IpmiGetSensorEventMasks( void *hnd,
   return rv;
 }
 
+
+static SaErrorT
+IpmiSetSensorEventMasks( void *,
+                           SaHpiResourceIdT,
+                           SaHpiSensorNumT,
+                           SaHpiSensorEventMaskActionT,
+                           SaHpiEventStateT,
+                           SaHpiEventStateT ) __attribute__((used));
 
 static SaErrorT
 IpmiSetSensorEventMasks( void *hnd,
@@ -590,10 +745,16 @@ IpmiSetSensorEventMasks( void *hnd,
 
 
 static SaErrorT
+IpmiGetControlState( void *, SaHpiResourceIdT,
+                     SaHpiCtrlNumT,
+                     SaHpiCtrlModeT *,
+                     SaHpiCtrlStateT * ) __attribute__((used));
+
+static SaErrorT
 IpmiGetControlState( void *hnd, SaHpiResourceIdT id,
-		     SaHpiCtrlNumT num,
-		     SaHpiCtrlModeT *mode,
-		     SaHpiCtrlStateT *state )
+                     SaHpiCtrlNumT num,
+                     SaHpiCtrlModeT *mode,
+                     SaHpiCtrlStateT *state )
 {
   cIpmi *ipmi;
   cIpmiControl *control = VerifyControlAndEnter( hnd, id, num, ipmi );
@@ -610,10 +771,16 @@ IpmiGetControlState( void *hnd, SaHpiResourceIdT id,
 
 
 static SaErrorT
+IpmiSetControlState( void *, SaHpiResourceIdT,
+                     SaHpiCtrlNumT,
+                     SaHpiCtrlModeT,
+                     SaHpiCtrlStateT * ) __attribute__((used));
+
+static SaErrorT
 IpmiSetControlState( void *hnd, SaHpiResourceIdT id,
-		     SaHpiCtrlNumT num,
-		     SaHpiCtrlModeT mode,
-		     SaHpiCtrlStateT *state )
+                     SaHpiCtrlNumT num,
+                     SaHpiCtrlModeT mode,
+                     SaHpiCtrlStateT *state )
 {
   cIpmi *ipmi;
   cIpmiControl *control = VerifyControlAndEnter( hnd, id, num, ipmi );
@@ -627,6 +794,13 @@ IpmiSetControlState( void *hnd, SaHpiResourceIdT id,
 
   return rv;
 }
+
+
+static SaErrorT
+IpmiGetIdrInfo( void *,
+                SaHpiResourceIdT,
+                SaHpiIdrIdT,
+                SaHpiIdrInfoT * ) __attribute__((used));
 
 static SaErrorT
 IpmiGetIdrInfo( void *hnd,
@@ -647,12 +821,22 @@ IpmiGetIdrInfo( void *hnd,
   return rv;
 }
 
+
+static SaErrorT
+IpmiGetIdrAreaHeader( void *,
+                      SaHpiResourceIdT,
+                      SaHpiIdrIdT,
+                      SaHpiIdrAreaTypeT,
+                                  SaHpiEntryIdT,
+                      SaHpiEntryIdT *,
+                      SaHpiIdrAreaHeaderT * ) __attribute__((used));
+
 static SaErrorT
 IpmiGetIdrAreaHeader( void *hnd,
                       SaHpiResourceIdT id,
                       SaHpiIdrIdT idrid,
                       SaHpiIdrAreaTypeT areatype,
-			          SaHpiEntryIdT areaid,
+                                  SaHpiEntryIdT areaid,
                       SaHpiEntryIdT *nextareaid,
                       SaHpiIdrAreaHeaderT *header )
 {
@@ -669,12 +853,20 @@ IpmiGetIdrAreaHeader( void *hnd,
   return rv;
 }
 
+
+static SaErrorT
+IpmiAddIdrArea( void *,
+                SaHpiResourceIdT,
+                SaHpiIdrIdT,
+                SaHpiIdrAreaTypeT,
+                            SaHpiEntryIdT * ) __attribute__((used));
+
 static SaErrorT
 IpmiAddIdrArea( void *hnd,
                 SaHpiResourceIdT id,
                 SaHpiIdrIdT idrid,
                 SaHpiIdrAreaTypeT areatype,
-			    SaHpiEntryIdT *areaid )
+                            SaHpiEntryIdT *areaid )
 {
   cIpmi *ipmi = 0;
   cIpmiInventory *inv = VerifyInventoryAndEnter( hnd, id, idrid, ipmi );
@@ -689,11 +881,18 @@ IpmiAddIdrArea( void *hnd,
   return rv;
 }
 
+
+static SaErrorT
+IpmiDelIdrArea( void *,
+                SaHpiResourceIdT,
+                SaHpiIdrIdT,
+                            SaHpiEntryIdT ) __attribute__((used));
+
 static SaErrorT
 IpmiDelIdrArea( void *hnd,
                 SaHpiResourceIdT id,
                 SaHpiIdrIdT idrid,
-			    SaHpiEntryIdT areaid )
+                            SaHpiEntryIdT areaid )
 {
   cIpmi *ipmi = 0;
   cIpmiInventory *inv = VerifyInventoryAndEnter( hnd, id, idrid, ipmi );
@@ -708,6 +907,17 @@ IpmiDelIdrArea( void *hnd,
   return rv;
 }
 
+
+static SaErrorT
+IpmiGetIdrField( void *,
+                 SaHpiResourceIdT,
+                 SaHpiIdrIdT,
+                 SaHpiEntryIdT,
+                 SaHpiIdrFieldTypeT,
+                 SaHpiEntryIdT,
+                             SaHpiEntryIdT *,
+                 SaHpiIdrFieldT * ) __attribute__((used));
+
 static SaErrorT
 IpmiGetIdrField( void *hnd,
                  SaHpiResourceIdT id,
@@ -715,7 +925,7 @@ IpmiGetIdrField( void *hnd,
                  SaHpiEntryIdT areaid,
                  SaHpiIdrFieldTypeT fieldtype,
                  SaHpiEntryIdT fieldid,
-			     SaHpiEntryIdT *nextfieldid,
+                             SaHpiEntryIdT *nextfieldid,
                  SaHpiIdrFieldT *field )
 {
   cIpmi *ipmi = 0;
@@ -731,6 +941,12 @@ IpmiGetIdrField( void *hnd,
   return rv;
 }
 
+
+static SaErrorT
+IpmiAddIdrField( void *,
+                 SaHpiResourceIdT,
+                 SaHpiIdrIdT,
+                 SaHpiIdrFieldT * ) __attribute__((used));
 
 static SaErrorT
 IpmiAddIdrField( void *hnd,
@@ -751,6 +967,13 @@ IpmiAddIdrField( void *hnd,
   return rv;
 }
 
+
+static SaErrorT
+IpmiSetIdrField( void *,
+                 SaHpiResourceIdT,
+                 SaHpiIdrIdT,
+                 SaHpiIdrFieldT * ) __attribute__((used));
+
 static SaErrorT
 IpmiSetIdrField( void *hnd,
                  SaHpiResourceIdT id,
@@ -769,6 +992,14 @@ IpmiSetIdrField( void *hnd,
 
   return rv;
 }
+
+
+static SaErrorT
+IpmiDelIdrField( void *,
+                 SaHpiResourceIdT,
+                 SaHpiIdrIdT,
+                 SaHpiEntryIdT,
+                 SaHpiEntryIdT ) __attribute__((used));
 
 static SaErrorT
 IpmiDelIdrField( void *hnd,
@@ -790,6 +1021,12 @@ IpmiDelIdrField( void *hnd,
   return rv;
 }
 
+
+static SaErrorT
+IpmiGetSelInfo( void *,
+                SaHpiResourceIdT,
+                SaHpiEventLogInfoT * ) __attribute__((used));
+
 static SaErrorT
 IpmiGetSelInfo( void *hnd,
                 SaHpiResourceIdT id,
@@ -810,6 +1047,9 @@ IpmiGetSelInfo( void *hnd,
 
 
 static SaErrorT
+IpmiSetSelTime( void *, SaHpiResourceIdT, SaHpiTimeT ) __attribute__((used));
+
+static SaErrorT
 IpmiSetSelTime( void *hnd, SaHpiResourceIdT id, SaHpiTimeT t )
 {
   cIpmi *ipmi = 0;
@@ -825,6 +1065,10 @@ IpmiSetSelTime( void *hnd, SaHpiResourceIdT id, SaHpiTimeT t )
   return rv;
 }
 
+
+static SaErrorT
+IpmiAddSelEntry( void *, SaHpiResourceIdT,
+                 const SaHpiEventT * ) __attribute__((used));
 
 static SaErrorT
 IpmiAddSelEntry( void *hnd, SaHpiResourceIdT id,
@@ -845,6 +1089,10 @@ IpmiAddSelEntry( void *hnd, SaHpiResourceIdT id,
 
 #ifdef NOTUSED
 static SaErrorT
+IpmiDelSelEntry( void *, SaHpiResourceIdT,
+                 SaHpiEventLogEntryIdT ) __attribute__((used));
+
+static SaErrorT
 IpmiDelSelEntry( void *hnd, SaHpiResourceIdT id,
                  SaHpiEventLogEntryIdT sid )
 {
@@ -862,13 +1110,22 @@ IpmiDelSelEntry( void *hnd, SaHpiResourceIdT id,
 }
 #endif
 
+
+static SaErrorT
+IpmiGetSelEntry( void *hnd, SaHpiResourceIdT,
+                 SaHpiEventLogEntryIdT,
+                 SaHpiEventLogEntryIdT *, SaHpiEventLogEntryIdT *,
+                 SaHpiEventLogEntryT *,
+                 SaHpiRdrT *,
+                 SaHpiRptEntryT * ) __attribute__((used));
+
 static SaErrorT
 IpmiGetSelEntry( void *hnd, SaHpiResourceIdT id,
                  SaHpiEventLogEntryIdT current,
                  SaHpiEventLogEntryIdT *prev, SaHpiEventLogEntryIdT *next,
                  SaHpiEventLogEntryT *entry,
                  SaHpiRdrT *rdr,
-                 SaHpiRptEntryT *rptentry)
+                 SaHpiRptEntryT *rptentry )
 {
   cIpmi *ipmi = 0;
   cIpmiSel *sel = VerifySelAndEnter( hnd, id, ipmi );
@@ -883,6 +1140,9 @@ IpmiGetSelEntry( void *hnd, SaHpiResourceIdT id,
   return rv;
 }
 
+
+static SaErrorT
+IpmiClearSel( void *, SaHpiResourceIdT ) __attribute__((used));
 
 static SaErrorT
 IpmiClearSel( void *hnd, SaHpiResourceIdT id )
@@ -902,7 +1162,11 @@ IpmiClearSel( void *hnd, SaHpiResourceIdT id )
 
 
 static SaErrorT
-IpmiGetHotswapState( void *hnd, SaHpiResourceIdT id, 
+IpmiGetHotswapState( void *, SaHpiResourceIdT ,
+                     SaHpiHsStateT * ) __attribute__((used));
+
+static SaErrorT
+IpmiGetHotswapState( void *hnd, SaHpiResourceIdT id,
                      SaHpiHsStateT *state )
 {
   cIpmi *ipmi = 0;
@@ -920,7 +1184,11 @@ IpmiGetHotswapState( void *hnd, SaHpiResourceIdT id,
 
 
 static SaErrorT
-IpmiSetHotswapState( void *hnd, SaHpiResourceIdT id, 
+IpmiSetHotswapState( void *, SaHpiResourceIdT,
+                     SaHpiHsStateT ) __attribute__((used));
+
+static SaErrorT
+IpmiSetHotswapState( void *hnd, SaHpiResourceIdT id,
                      SaHpiHsStateT state )
 {
   cIpmi *ipmi = 0;
@@ -938,7 +1206,11 @@ IpmiSetHotswapState( void *hnd, SaHpiResourceIdT id,
 
 
 static SaErrorT
-IpmiRequestHotswapAction( void *hnd, SaHpiResourceIdT id, 
+IpmiRequestHotswapAction( void *, SaHpiResourceIdT,
+                          SaHpiHsActionT ) __attribute__((used));
+
+static SaErrorT
+IpmiRequestHotswapAction( void *hnd, SaHpiResourceIdT id,
                           SaHpiHsActionT act )
 {
   cIpmi *ipmi = 0;
@@ -956,7 +1228,11 @@ IpmiRequestHotswapAction( void *hnd, SaHpiResourceIdT id,
 
 
 static SaErrorT
-IpmiGetPowerState( void *hnd, SaHpiResourceIdT id, 
+IpmiGetPowerState( void *, SaHpiResourceIdT,
+                   SaHpiPowerStateT * ) __attribute__((used));
+
+static SaErrorT
+IpmiGetPowerState( void *hnd, SaHpiResourceIdT id,
                    SaHpiPowerStateT *state )
 {
   cIpmi *ipmi = 0;
@@ -974,7 +1250,11 @@ IpmiGetPowerState( void *hnd, SaHpiResourceIdT id,
 
 
 static SaErrorT
-IpmiSetPowerState( void *hnd, SaHpiResourceIdT id, 
+IpmiSetPowerState( void *, SaHpiResourceIdT,
+                   SaHpiPowerStateT ) __attribute__((used));
+
+static SaErrorT
+IpmiSetPowerState( void *hnd, SaHpiResourceIdT id,
                    SaHpiPowerStateT state )
 {
   cIpmi *ipmi = 0;
@@ -992,7 +1272,11 @@ IpmiSetPowerState( void *hnd, SaHpiResourceIdT id,
 
 
 static SaErrorT
-IpmiGetIndicatorState( void *hnd, SaHpiResourceIdT id, 
+IpmiGetIndicatorState( void *, SaHpiResourceIdT,
+                       SaHpiHsIndicatorStateT * ) __attribute__((used));
+
+static SaErrorT
+IpmiGetIndicatorState( void *hnd, SaHpiResourceIdT id,
                        SaHpiHsIndicatorStateT *state )
 {
   cIpmi *ipmi = 0;
@@ -1008,6 +1292,10 @@ IpmiGetIndicatorState( void *hnd, SaHpiResourceIdT id,
   return rv;
 }
 
+
+static SaErrorT
+IpmiSetIndicatorState( void *, SaHpiResourceIdT,
+                       SaHpiHsIndicatorStateT ) __attribute__((used));
 
 static SaErrorT
 IpmiSetIndicatorState( void *hnd, SaHpiResourceIdT id,
@@ -1028,6 +1316,11 @@ IpmiSetIndicatorState( void *hnd, SaHpiResourceIdT id,
 
 
 static SaErrorT
+IpmiControlParm( void *,
+                 SaHpiResourceIdT,
+                 SaHpiParmActionT ) __attribute__((used));
+
+static SaErrorT
 IpmiControlParm( void *hnd,
                  SaHpiResourceIdT id,
                  SaHpiParmActionT act )
@@ -1042,12 +1335,16 @@ IpmiControlParm( void *hnd,
 
   ipmi->IfLeave();
 
-  return rv;  
+  return rv;
 }
 
 
 static SaErrorT
-IpmiGetResetState( void *hnd, SaHpiResourceIdT id, 
+IpmiGetResetState( void *, SaHpiResourceIdT,
+                   SaHpiResetActionT * ) __attribute__((used));
+
+static SaErrorT
+IpmiGetResetState( void *hnd, SaHpiResourceIdT id,
                    SaHpiResetActionT *act )
 {
   cIpmi *ipmi = 0;
@@ -1063,6 +1360,11 @@ IpmiGetResetState( void *hnd, SaHpiResourceIdT id,
   return rv;
 }
 
+
+static SaErrorT
+IpmiSetResetState( void *,
+                   SaHpiResourceIdT,
+                   SaHpiResetActionT ) __attribute__((used));
 
 static SaErrorT
 IpmiSetResetState( void *hnd,
@@ -1090,64 +1392,67 @@ void * oh_open (GHashTable *) __attribute__ ((weak, alias("IpmiOpen")));
 
 void * oh_close (void *) __attribute__ ((weak, alias("IpmiClose")));
 
-void * oh_get_event (void *, struct oh_event *) 
+void * oh_get_event (void *, struct oh_event *)
                 __attribute__ ((weak, alias("IpmiGetEvent")));
-		
-void * oh_discover_resources (void *) 
+
+void * oh_discover_resources (void *)
                 __attribute__ ((weak, alias("IpmiDiscoverResources")));
-		
-void * oh_set_resource_tag (void *, SaHpiResourceIdT, SaHpiTextBufferT *) 
+
+void * oh_discover_domain_resource (void *)
+                __attribute__ ((weak, alias("IpmiDiscoverDomainResources")));
+
+void * oh_set_resource_tag (void *, SaHpiResourceIdT, SaHpiTextBufferT *)
                 __attribute__ ((weak, alias("IpmiSetResourceTag")));
-		
-void * oh_set_resource_severity (void *, SaHpiResourceIdT, SaHpiSeverityT) 
+
+void * oh_set_resource_severity (void *, SaHpiResourceIdT, SaHpiSeverityT)
                 __attribute__ ((weak, alias("IpmiSetResourceSeverity")));
 
-void * oh_get_el_info (void *, SaHpiResourceIdT, SaHpiEventLogInfoT *) 
+void * oh_get_el_info (void *, SaHpiResourceIdT, SaHpiEventLogInfoT *)
                 __attribute__ ((weak, alias("IpmiGetSelInfo")));
-		
-void * oh_set_el_time (void *, SaHpiResourceIdT, const SaHpiEventT *) 
+
+void * oh_set_el_time (void *, SaHpiResourceIdT, const SaHpiEventT *)
                 __attribute__ ((weak, alias("IpmiSetSelTime")));
-		
-void * oh_add_el_entry (void *, SaHpiResourceIdT, const SaHpiEventT *) 
+
+void * oh_add_el_entry (void *, SaHpiResourceIdT, const SaHpiEventT *)
                 __attribute__ ((weak, alias("IpmiAddSelEntry")));
-		
+
 void * oh_get_el_entry (void *, SaHpiResourceIdT, SaHpiEventLogEntryIdT,
                        SaHpiEventLogEntryIdT *, SaHpiEventLogEntryIdT *,
-                       SaHpiEventLogEntryT *, SaHpiRdrT *, SaHpiRptEntryT  *) 
+                       SaHpiEventLogEntryT *, SaHpiRdrT *, SaHpiRptEntryT  *)
                 __attribute__ ((weak, alias("IpmiGetSelEntry")));
-		       
-void * oh_clear_el (void *, SaHpiResourceIdT) 
+
+void * oh_clear_el (void *, SaHpiResourceIdT)
                 __attribute__ ((weak, alias("IpmiClearSel")));
 
 void * oh_get_sensor_reading (void *, SaHpiResourceIdT,
                              SaHpiSensorNumT,
-                             SaHpiSensorReadingT *, 
-			     SaHpiEventStateT    *) 
+                             SaHpiSensorReadingT *,
+                             SaHpiEventStateT    *)
                 __attribute__ ((weak, alias("IpmiGetSensorReading")));
-		  	     
+
 void * oh_get_sensor_thresholds (void *, SaHpiResourceIdT,
                                  SaHpiSensorNumT,
-                                 SaHpiSensorThresholdsT *) 
+                                 SaHpiSensorThresholdsT *)
                 __attribute__ ((weak, alias("IpmiGetSensorThresholds")));
-		
+
 void * oh_set_sensor_thresholds (void *, SaHpiResourceIdT,
                                  SaHpiSensorNumT,
-                                 const SaHpiSensorThresholdsT *) 
+                                 const SaHpiSensorThresholdsT *)
                 __attribute__ ((weak, alias("IpmiSetSensorThresholds")));
-		
+
 void * oh_get_sensor_enable (void *, SaHpiResourceIdT,
                              SaHpiSensorNumT,
-                             SaHpiBoolT *) 
+                             SaHpiBoolT *)
                 __attribute__ ((weak, alias("IpmiGetSensorEnable")));
 
 void * oh_set_sensor_enable (void *, SaHpiResourceIdT,
                              SaHpiSensorNumT,
-                             SaHpiBoolT) 
+                             SaHpiBoolT)
                 __attribute__ ((weak, alias("IpmiSetSensorEnable")));
-		
+
 void * oh_get_sensor_event_enables (void *, SaHpiResourceIdT,
                                     SaHpiSensorNumT,
-                                    SaHpiBoolT *) 
+                                    SaHpiBoolT *)
                 __attribute__ ((weak, alias("IpmiGetSensorEventEnables")));
 
 void * oh_set_sensor_event_enables (void *, SaHpiResourceIdT id, SaHpiSensorNumT,
@@ -1157,7 +1462,7 @@ void * oh_set_sensor_event_enables (void *, SaHpiResourceIdT id, SaHpiSensorNumT
 void * oh_get_sensor_event_masks (void *, SaHpiResourceIdT, SaHpiSensorNumT,
                                   SaHpiEventStateT *, SaHpiEventStateT *)
                 __attribute__ ((weak, alias("IpmiGetSensorEventMasks")));
-	       
+
 void * oh_set_sensor_event_masks (void *, SaHpiResourceIdT, SaHpiSensorNumT,
                                   SaHpiSensorEventMaskActionT,
                                   SaHpiEventStateT,
@@ -1167,31 +1472,31 @@ void * oh_set_sensor_event_masks (void *, SaHpiResourceIdT, SaHpiSensorNumT,
 void * oh_get_control_state (void *, SaHpiResourceIdT, SaHpiCtrlNumT,
                              SaHpiCtrlModeT *, SaHpiCtrlStateT *)
                 __attribute__ ((weak, alias("IpmiGetControlState")));
-	       
+
 void * oh_set_control_state (void *, SaHpiResourceIdT,SaHpiCtrlNumT,
                              SaHpiCtrlModeT, SaHpiCtrlStateT *)
                 __attribute__ ((weak, alias("IpmiSetControlState")));
-	        
+
 void * oh_get_idr_info (void *hnd, SaHpiResourceIdT, SaHpiIdrIdT,SaHpiIdrInfoT)
                 __attribute__ ((weak, alias("IpmiGetIdrInfo")));
-	       
-void * oh_get_idr_area_header (void *, SaHpiResourceIdT, SaHpiIdrIdT, 
+
+void * oh_get_idr_area_header (void *, SaHpiResourceIdT, SaHpiIdrIdT,
                                 SaHpiIdrAreaTypeT, SaHpiEntryIdT, SaHpiEntryIdT,
-				SaHpiIdrAreaHeaderT)
+                                SaHpiIdrAreaHeaderT)
                 __attribute__ ((weak, alias("IpmiGetIdrAreaHeader")));
-	       
+
 void * oh_add_idr_area (void *, SaHpiResourceIdT, SaHpiIdrIdT, SaHpiIdrAreaTypeT,
                         SaHpiEntryIdT)
                 __attribute__ ((weak, alias("IpmiAddIdrArea")));
 
 void * oh_del_idr_area (void *, SaHpiResourceIdT, SaHpiIdrIdT, SaHpiEntryIdT)
-                __attribute__ ((weak, alias("IpmiDelIdrArea"))); 
-	                   
+                __attribute__ ((weak, alias("IpmiDelIdrArea")));
+
 void * oh_get_idr_field (void *, SaHpiResourceIdT, SaHpiIdrIdT, SaHpiEntryIdT,
                          SaHpiIdrFieldTypeT, SaHpiEntryIdT, SaHpiEntryIdT,
                          SaHpiIdrFieldT)
-                __attribute__ ((weak, alias("IpmiGetIdrField"))); 
-	       
+                __attribute__ ((weak, alias("IpmiGetIdrField")));
+
 void * oh_add_idr_field (void *, SaHpiResourceIdT, SaHpiIdrIdT, SaHpiIdrFieldT)
                 __attribute__ ((weak, alias("IpmiAddIdrField")));
 
@@ -1207,30 +1512,30 @@ void * oh_get_hotswap_state (void *, SaHpiResourceIdT, SaHpiHsStateT *)
 
 void * oh_set_hotswap_state (void *, SaHpiResourceIdT, SaHpiHsStateT)
                 __attribute__ ((weak, alias("IpmiSetHotswapState")));
-	       
+
 void * oh_request_hotswap_action (void *, SaHpiResourceIdT, SaHpiHsActionT)
                 __attribute__ ((weak, alias("IpmiRequestHotswapAction")));
-	       
+
 void * oh_get_power_state (void *, SaHpiResourceIdT, SaHpiPowerStateT *)
                 __attribute__ ((weak, alias("IpmiGetPowerState")));
-	       
+
 void * oh_set_power_state (void *, SaHpiResourceIdT, SaHpiPowerStateT)
                 __attribute__ ((weak, alias("IpmiSetPowerState")));
 
-void * oh_get_indicator_state (void *, SaHpiResourceIdT, 
+void * oh_get_indicator_state (void *, SaHpiResourceIdT,
                                SaHpiHsIndicatorStateT *)
                 __attribute__ ((weak, alias("IpmiGetIndicatorState")));
-	       			       
-void * oh_set_indicator_state (void *, SaHpiResourceIdT, 
+
+void * oh_set_indicator_state (void *, SaHpiResourceIdT,
                                SaHpiHsIndicatorStateT)
                 __attribute__ ((weak, alias("IpmiSetIndicatorState")));
-	       
+
 void * oh_control_parm (void *, SaHpiResourceIdT, SaHpiParmActionT)
                 __attribute__ ((weak, alias("IpmiControlParm")));
 
 void * oh_get_reset_state (void *, SaHpiResourceIdT, SaHpiResetActionT *)
                 __attribute__ ((weak, alias("IpmiGetResetState")));
-		
+
 void * oh_set_reset_state (void *, SaHpiResourceIdT, SaHpiResetActionT)
                 __attribute__ ((weak, alias("IpmiSetResetState")));
 
@@ -1269,7 +1574,6 @@ cIpmi::~cIpmi()
 void
 cIpmi::SetHandler( oh_handler_state *handler )
 {
-  assert( m_handler == 0 );
   m_handler = handler;
 }
 
@@ -1280,12 +1584,12 @@ class cIpmiConLanDomain : public cIpmiConLan
   cIpmiDomain *m_domain;
 
 public:
-  cIpmiConLanDomain( cIpmiDomain *domain, 
+  cIpmiConLanDomain( cIpmiDomain *domain,
                      unsigned int timeout, int log_level,
                      struct in_addr addr, int port,
-                     tIpmiAuthType auth, tIpmiPrivilege priv, 
+                     tIpmiAuthType auth, tIpmiPrivilege priv,
                      char *user, char *passwd )
-    : cIpmiConLan( timeout, log_level, addr, port, auth, priv, 
+    : cIpmiConLan( timeout, log_level, addr, port, auth, priv,
                    user, passwd ),
       m_domain( domain )
   {
@@ -1308,7 +1612,7 @@ class cIpmiConSmiDomain : public cIpmiConSmi
   cIpmiDomain *m_domain;
 
 public:
-  cIpmiConSmiDomain( cIpmiDomain *domain, 
+  cIpmiConSmiDomain( cIpmiDomain *domain,
                      unsigned int timeout, int log_level, int if_num )
     : cIpmiConSmi( timeout, log_level, if_num ), m_domain( domain )
   {
@@ -1369,6 +1673,28 @@ cIpmi::AllocConnection( GHashTable *handler_config )
         stdlog << "AllocConnection: Don't poll alive MCs.\n";
      }
 
+  m_own_domain = false;
+  const char *create_own_domain = (const char *)g_hash_table_lookup(handler_config, "MultipleDomains");
+  if ((create_own_domain != (char *)NULL)
+      && ((strcmp(create_own_domain, "YES") == 0)
+            || (strcmp(create_own_domain, "yes") == 0)))
+  {
+      int *hid = (int *)g_hash_table_lookup(handler_config, "handler-id");
+      if (hid)
+      {
+          m_own_domain = true;
+          m_handler_id = *hid;
+          stdlog << "AllocConnection: Multi domain handler " << *hid << "\n";
+
+          const char *domain_tag = (const char *)g_hash_table_lookup(handler_config, "DomainTag");
+
+          if (domain_tag != NULL)
+          {
+              m_domain_tag.SetAscii(domain_tag, SAHPI_TL_TYPE_TEXT, SAHPI_LANG_ENGLISH);
+          }
+      }
+  }
+
   const char *name = (const char *)g_hash_table_lookup(handler_config, "name");
 
   if ( !name )
@@ -1400,7 +1726,7 @@ cIpmi::AllocConnection( GHashTable *handler_config )
             return 0;
           }
 
-       stdlog << "IpmiAllocConnection: addr = '" << addr << "'.\n";
+       stdlog << "AllocConnection: addr = '" << addr << "'.\n";
        ent = gethostbyname( addr );
 
        if ( !ent )
@@ -1414,14 +1740,14 @@ cIpmi::AllocConnection( GHashTable *handler_config )
 
        stdlog << "Using host at "
               << (int)(a & 0xff) << "."
-              << (int)((a >> 8 ) & 0xff) << "." 
+              << (int)((a >> 8 ) & 0xff) << "."
               << (int)((a >> 16) & 0xff) << "."
               << (int)((a >> 24) & 0xff) << ".\n";
 
        // Port
        lan_port = GetIntNotNull( handler_config, "port", 623 );
 
-       stdlog << "IpmiAllocConnection: port = " << lan_port << ".\n";
+       stdlog << "AllocConnection: port = " << lan_port << ".\n";
 
        // Authentication type
        value = (char *)g_hash_table_lookup( handler_config, "auth_type" );
@@ -1436,19 +1762,19 @@ cIpmi::AllocConnection( GHashTable *handler_config )
 #ifdef HAVE_OPENSSL_MD2_H
                  auth = eIpmiAuthTypeMd2;
 #else
-	       {
-		 stdlog << "MD2 is not supported. Please install SSL and recompile.\n";
-		 return 0;
-	       }
+               {
+                 stdlog << "MD2 is not supported. Please install SSL and recompile.\n";
+                 return 0;
+               }
 #endif
             else if ( !strcmp( value, "md5" ) )
 #ifdef HAVE_OPENSSL_MD5_H
                  auth = eIpmiAuthTypeMd5;
 #else
-	       {
-		 stdlog << "MD5 is not supported. Please install SSL and recompile.\n";
-		 return 0;
-	       }
+               {
+                 stdlog << "MD5 is not supported. Please install SSL and recompile.\n";
+                 return 0;
+               }
 #endif
             else
                {
@@ -1457,7 +1783,7 @@ cIpmi::AllocConnection( GHashTable *handler_config )
                }
           }
 
-       stdlog << "IpmiAllocConnection: authority: " << value << "(" << auth << ").\n";
+       stdlog << "AllocConnection: authority: " << value << "(" << auth << ").\n";
 
        // Priviledge
        value = (char *)g_hash_table_lookup(handler_config, "auth_level" );
@@ -1476,15 +1802,15 @@ cIpmi::AllocConnection( GHashTable *handler_config )
                }
           }
 
-       stdlog << "IpmiAllocConnection: priviledge = " << value << "(" << priv << ").\n";
+       stdlog << "AllocConnection: priviledge = " << value << "(" << priv << ").\n";
 
        // User Name
-       value = (char *)g_hash_table_lookup( handler_config, "username" ); 
+       value = (char *)g_hash_table_lookup( handler_config, "username" );
 
        if ( value )
             strncpy( user, value, 32);
 
-       stdlog << "IpmiAllocConnection: user = " << user << ".\n";
+       stdlog << "AllocConnection: user = " << user << ".\n";
 
        // Password
        value = (char *)g_hash_table_lookup( handler_config, "password" );
@@ -1493,7 +1819,7 @@ cIpmi::AllocConnection( GHashTable *handler_config )
             strncpy( passwd, value, 32 );
 
        return new cIpmiConLanDomain( this, m_con_ipmi_timeout, dIpmiConLogAll,
-				     lan_addr, lan_port, auth, priv,
+                                     lan_addr, lan_port, auth, priv,
                                      user, passwd );
      }
   else if ( !strcmp( name, "smi" ) )
@@ -1505,7 +1831,7 @@ cIpmi::AllocConnection( GHashTable *handler_config )
        if ( addr )
             if_num = strtol( addr, 0, 10 );
 
-       stdlog << "IpmiAllocConnection: interface number = " << if_num << ".\n";
+       stdlog << "AllocConnection: interface number = " << if_num << ".\n";
 
        return new cIpmiConSmiDomain( this, m_con_ipmi_timeout, dIpmiConLogAll, if_num );
      }
@@ -1521,12 +1847,14 @@ cIpmi::AddHpiEvent( oh_event *event )
 {
   m_event_lock.Lock();
 
-  assert( m_handler );
-  event->did = oh_get_default_domain_id();
+  event->did = m_did;
 
-  m_handler->eventq = g_slist_append( m_handler->eventq, event );
+  if ( m_handler )
+  {
+    m_handler->eventq = g_slist_append( m_handler->eventq, event );
 
-  oh_wake_event_thread(SAHPI_FALSE);
+    oh_wake_event_thread(SAHPI_FALSE);
+  }
 
   m_event_lock.Unlock();
 }
@@ -1549,9 +1877,14 @@ cIpmi::GetHandler()
 SaHpiRptEntryT *
 cIpmi::FindResource( SaHpiResourceIdT rid )
 {
-  assert( m_handler );
-
-  return oh_get_resource_by_id( m_handler->rptcache, rid);
+  if ( m_handler )
+  {
+      return oh_get_resource_by_id( m_handler->rptcache, rid);
+  }
+  else
+  {
+      return 0;
+  }
 }
 
 
@@ -1746,9 +2079,10 @@ SaErrorT
 cIpmi::IfSetResourceTag( cIpmiResource *ent, SaHpiTextBufferT *tag )
 {
   // change tag in plugin cache
-  SaHpiRptEntryT *rptentry = oh_get_resource_by_id( ent->Domain()->GetHandler()->rptcache, 
+  SaHpiRptEntryT *rptentry = oh_get_resource_by_id( ent->Domain()->GetHandler()->rptcache,
                                                     ent->m_resource_id );
-  assert( rptentry );
+  if ( !rptentry )
+      return SA_ERR_HPI_NOT_PRESENT;
 
   memcpy(&rptentry->ResourceTag, tag, sizeof(SaHpiTextBufferT));
 
@@ -1779,9 +2113,10 @@ SaErrorT
 cIpmi::IfSetResourceSeverity( cIpmiResource *ent, SaHpiSeverityT sev )
 {
   // change severity in plugin cache
-  SaHpiRptEntryT *rptentry = oh_get_resource_by_id( ent->Domain()->GetHandler()->rptcache, 
+  SaHpiRptEntryT *rptentry = oh_get_resource_by_id( ent->Domain()->GetHandler()->rptcache,
                                                     ent->m_resource_id );
-  assert( rptentry );
+  if ( !rptentry )
+      return SA_ERR_HPI_NOT_PRESENT;
 
   rptentry->ResourceSeverity = sev;
 
@@ -1823,6 +2158,6 @@ cIpmi::IfControlParm( cIpmiResource * /*res*/, SaHpiParmActionT act )
        case SAHPI_RESTORE_PARM:
             break;
      }
-  
+
   return SA_OK;
 }

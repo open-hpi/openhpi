@@ -288,4 +288,10 @@ void * oh_set_hotswap_state (void *, SaHpiResourceIdT, SaHpiHsStateT)
 void * oh_request_hotswap_action (void *, SaHpiResourceIdT, SaHpiHsActionT)
                 __attribute__ ((weak, alias("snmp_bc_request_hotswap_action")));
 
+void * oh_set_indicator_state (void *, SaHpiResourceIdT, SaHpiHsIndicatorStateT)
+                __attribute__ ((weak, alias("snmp_bc_set_indicator_state")));
+		
+void * oh_get_indicator_state (void *, SaHpiResourceIdT, SaHpiHsIndicatorStateT)
+                __attribute__ ((weak, alias("snmp_bc_get_indicator_state")));
+
 

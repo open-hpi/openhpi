@@ -23,7 +23,6 @@
  */
 
 #include <string.h>
-#include <assert.h>
 
 #include "ipmi_text_buffer.h"
 
@@ -482,11 +481,8 @@ cIpmiTextBuffer::GetAscii( char *buffer, unsigned int len ) const
             return LanguageToAscii( buffer, len );
 
        default:
-            assert( 0 );
             return -1;
      }
-
-  return -1;
 }
 
 

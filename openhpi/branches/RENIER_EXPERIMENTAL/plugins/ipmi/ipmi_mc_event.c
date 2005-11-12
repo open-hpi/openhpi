@@ -18,6 +18,19 @@
 #include <string.h>
 
 
+
+
+static void trace_ipmi_mc(char *str, ipmi_mc_t *mc)
+{
+	if (!getenv("OHOI_TRACE_MC") && !IHOI_TRACE_ALL) {
+		return;
+	}
+	fprintf(stderr, "*** MC %s: (%d, %d)\n", str,
+                 ipmi_mc_get_channel(mc), 
+                 ipmi_mc_get_address(mc));
+}
+
+
 static void get_mc_entity_event(ipmi_mc_t	*mc,
 			        SaHpiRptEntryT	*entry, void *cb_data)
 {
@@ -37,9 +50,9 @@ static void get_mc_entity_event(ipmi_mc_t	*mc,
                  ipmi_mc_get_address(mc));
         
 	entry->EntryId = 0;
-	entry->ResourceInfo.ResourceRev = 0;
+	entry->ResourceInfo.ResourceRev = ipmi_mc_device_revision(mc);
 	entry->ResourceInfo.SpecificVer = 0;
-	entry->ResourceInfo.DeviceSupport = 0;
+	entry->ResourceInfo.DeviceSupport = ipmi_mc_sensor_device_support(mc);
 	entry->ResourceInfo.ManufacturerId =
 		(SaHpiManufacturerIdT)ipmi_mc_manufacturer_id(mc);
 	entry->ResourceInfo.ProductId = (SaHpiUint16T)ipmi_mc_product_id(mc);
@@ -90,14 +103,14 @@ static void mc_add(ipmi_mc_t                    *mc,
 
 		struct ohoi_handler *ipmi_handler = handler->data;
         
-        ohoi_res_info = g_malloc0(sizeof(*ohoi_res_info));
+        ohoi_res_info = malloc(sizeof(*ohoi_res_info));
         if (!ohoi_res_info) {
                 dbg("Out of space");
                 return;
         }
+	memset(ohoi_res_info, 0, sizeof(*ohoi_res_info));
         ohoi_res_info->type      = OHOI_RESOURCE_MC;
         ohoi_res_info->u.mc_id    = ipmi_mc_convert_to_id(mc);
-	trace_ipmi("Set updated for resource %p . MC", mc);
 	/* always present if active thus here */
 	entity_rpt_set_presence(ohoi_res_info, ipmi_handler, 1);
                 
@@ -114,9 +127,33 @@ static void mc_add(ipmi_mc_t                    *mc,
 
 	/* add to rptcache */
 	oh_add_resource(handler->rptcache, &(e->u.res_event.entry), ohoi_res_info, 1);
+	trace_ipmi_mc("ADDED and ACTIVE", mc);
 
 }
 
+
+static void mc_remove(ipmi_mc_t                    *mc,
+                   struct oh_handler_state      *handler)
+{
+        struct ohoi_resource_info *res_info;
+	struct ohoi_handler *ipmi_handler = handler->data;
+	ipmi_mcid_t mcid;
+	SaHpiRptEntryT *rpt;
+        
+
+        mcid    = ipmi_mc_convert_to_id(mc);
+	rpt = ohoi_get_resource_by_mcid(handler->rptcache, &mcid);
+	if (rpt == NULL) {
+		dbg("couldn't find out resource");
+		return;
+	}
+	res_info =  oh_get_resource_data(handler->rptcache, rpt->ResourceId);
+	/* always present if active thus here */
+	entity_rpt_set_presence(res_info, ipmi_handler, 0);
+	trace_ipmi_mc("REMOVED (not present)", mc);
+}
+
+#if 0
 static
 void mc_SDRs_read_done(ipmi_mc_t *mc, void *cb_data)
 {
@@ -130,29 +167,23 @@ void mc_SDRs_read_done(ipmi_mc_t *mc, void *cb_data)
 						ipmi_mc_get_channel(mc), *mc_count);
 }
 
+#endif
+
 
 static
 void mc_active(ipmi_mc_t *mc, int active, void *cb_data)
 {
-		struct oh_handler_state *handler = cb_data;
-		struct ohoi_handler *ipmi_handler = handler->data;
+	struct oh_handler_state *handler = cb_data;
+//	struct ohoi_handler *ipmi_handler = handler->data;
 
-		int rv;
+	if (active) {
+		mc_add(mc, handler);
 
-		if (active) {
-				trace_ipmi("MC added and active...(%d %x)\n",
-								ipmi_mc_get_address(mc),
-								ipmi_mc_get_channel(mc));
+//		ipmi_handler->mc_count++;
 
-				mc_add(mc, handler);
-
-				ipmi_handler->mc_count++;
-				/* register MC level SDRs read */
-				rv = ipmi_mc_set_sdrs_first_read_handler(mc, mc_SDRs_read_done,
-								&ipmi_handler->mc_count);
-				if (rv)
-						dbg("mc level SDRs read handler failed");
-		}
+	} else {
+		mc_remove(mc, handler);
+	}
 }
 
 void
@@ -165,61 +196,39 @@ ohoi_mc_event(enum ipmi_update_e op,
 		struct ohoi_handler *ipmi_handler = handler->data;
 		int rv;
 
+	g_static_rec_mutex_lock(&ipmi_handler->ohoih_lock);			
         switch (op) {
                 case IPMI_ADDED:
-						
-						/* if we get an MC but inactive, register a call to add
-						   it once it goes active */
-						rv = ipmi_mc_add_active_handler(mc, mc_active, handler);
-						
-						if(!ipmi_mc_is_active(mc)) {
-								trace_ipmi("MC updated but inactive...we ignore (%d %x)\n",
-												ipmi_mc_get_address(mc),
-												ipmi_mc_get_channel(mc));
-								break;
-						} else {
-
-								/* MC is active */
-								trace_ipmi("MC Added(%d %x)\n",
-												ipmi_mc_get_address(mc),
-												ipmi_mc_get_channel(mc));
-								mc_add(mc, handler);
-						
-								ipmi_handler->mc_count++;
-								trace_ipmi("OP:ADD - mc count increment: %d", ipmi_handler->mc_count);
+			/* if we get an MC but inactive, register a call to add
+			it once it goes active */
+			rv = ipmi_mc_add_active_handler(mc, mc_active, handler);
+			if(!ipmi_mc_is_active(mc)) {
+				trace_ipmi_mc("ADDED but inactive...we ignore", mc);
+				break;
+			} else {
+				mc_add(mc, handler);
+//				ipmi_handler->mc_count++;
+//				trace_ipmi("OP:ADD - mc count increment: %d", ipmi_handler->mc_count);
 								
-								/* register MC level SDRs read */
-								ipmi_mc_set_sdrs_first_read_handler(mc, mc_SDRs_read_done,
-											   	&ipmi_handler->mc_count);
-								
-								trace_ipmi("MC updated and is active: (%d %x)\n", 
-												ipmi_mc_get_address(mc), 
-												ipmi_mc_get_channel(mc));
-								break;
-						}
-					case IPMI_DELETED:
-						trace_ipmi("MC deleted: (%d %x)\n",
-										ipmi_mc_get_address(mc), 
-										ipmi_mc_get_channel(mc));
-						/* most likely won't get called during discovery so comment
-						   out for now */
-						//ipmi_handler->mc_count--;
+				/* register MC level SDRs read */
+//				ipmi_mc_set_sdrs_first_read_handler(mc, mc_SDRs_read_done,
+//								&ipmi_handler->mc_count);
+				break;
+			}
+		case IPMI_DELETED:
+			trace_ipmi_mc("DELETED, but nothing done", mc);
+			break;
 
-						/* need to add call to remove from RPT */
-						break;
-
-					case IPMI_CHANGED:
-						if(!ipmi_mc_is_active(mc)) {
-								trace_ipmi("MC changed and is inactive: (%d %x)\n",
-												ipmi_mc_get_address(mc), 
-												ipmi_mc_get_channel(mc));
-						} else {
-								mc_add(mc, handler);
-								trace_ipmi("MC changed and is active: (%d %x)\n",
-												ipmi_mc_get_address(mc),
-												ipmi_mc_get_channel(mc));
-						}
-						break;
+		case IPMI_CHANGED:
+			if(!ipmi_mc_is_active(mc)) {
+				trace_ipmi("CHANGED and is inactive: (%d %x)\n",
+						ipmi_mc_get_address(mc), 
+						ipmi_mc_get_channel(mc));
+			} else {
+				mc_add(mc, handler);
+			}
+			break;
 		}
+	g_static_rec_mutex_unlock(&ipmi_handler->ohoih_lock);			
 }
 

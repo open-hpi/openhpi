@@ -86,8 +86,38 @@ SaHpiRptEntryT *ohoi_get_resource_by_entityid(RPTable                *table,
         }
 
 	dbg("Not found resource by entity_id");
+
         return NULL;
 }
+
+
+/*XXX algorithm here is so ulgy! */
+SaHpiRptEntryT *ohoi_get_resource_by_mcid(RPTable                *table,
+                                          const ipmi_mcid_t *mc_id)
+{
+        struct ohoi_resource_info res_info1;
+        SaHpiRptEntryT *rpt_entry;
+        
+        res_info1.type            = OHOI_RESOURCE_MC;
+        res_info1.u.mc_id     = *mc_id;
+        
+        rpt_entry = oh_get_resource_next(table, SAHPI_FIRST_ENTRY);
+        while (rpt_entry) {
+                struct ohoi_resource_info *ohoi_res_info;
+                ohoi_res_info = oh_get_resource_data(table, rpt_entry->ResourceId);
+                if (ohoi_resource_info_is_equal(res_info1, *ohoi_res_info)) {
+                        return rpt_entry;
+		}
+                rpt_entry = oh_get_resource_next(table, 
+                                                 rpt_entry->ResourceId);            
+        }
+
+	dbg("Not found resource by mc_id");
+
+        return NULL;
+}
+
+
 
 SaHpiRdrT *ohoi_get_rdr_by_data(RPTable *table,
                                 SaHpiResourceIdT rid,
@@ -115,3 +145,5 @@ SaHpiRdrT *ohoi_get_rdr_by_data(RPTable *table,
         }
         return NULL;
 }
+
+

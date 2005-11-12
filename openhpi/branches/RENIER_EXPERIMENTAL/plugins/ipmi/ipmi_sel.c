@@ -230,6 +230,11 @@ void ohoi_set_sel_time(ipmi_mcid_t mc_id, const struct timeval *time, void *cb_d
 	return;
 }
 
+struct clear_sel_cb {
+	SaErrorT err;
+	struct ohoi_handler *ipmi_handler;
+};
+
 static void mc_clear_sel_done(ipmi_mc_t *mc, int err, void *cb_data)
 {
 	int *flag = cb_data;
@@ -239,47 +244,62 @@ static void mc_clear_sel_done(ipmi_mc_t *mc, int err, void *cb_data)
 	return;
 }
 
+
 static void clear_sel(ipmi_mc_t *mc, void *cb_data)
 {
-	struct ohoi_handler *ipmi_handler = cb_data;
+	 struct clear_sel_cb *info = cb_data;
       
-	ipmi_event_t *event;
+	ipmi_event_t *event, *event2;
 	int rv;
+	int done = 0;
 
         event = ipmi_mc_first_event(mc);
         while (event) {
-                ipmi_mc_del_event(mc, event, NULL, NULL);
-                event = ipmi_mc_next_event(mc, event);
+		event2 = event;
+		event = ipmi_mc_next_event(mc, event);
+                rv = ipmi_mc_del_event(mc, event2, NULL, NULL);
+		if (rv != 0) {
+			dbg("ipmi_mc_del_event = 0x%x", rv);
+			info->err = SA_ERR_HPI_INVALID_CMD;
+			return;
+		}
+                ipmi_event_free(event2);
         }
 
 		/* we're done, now force an sel_reread so
 		   delete takes effect */
 
-	rv = ipmi_mc_reread_sel(mc, mc_clear_sel_done, &ipmi_handler->sel_clear_done);
-	if (rv)
+	rv = ipmi_mc_reread_sel(mc, mc_clear_sel_done, &done);
+	if (rv) {
 		dbg("ipmi_mc_reread_sel failed");
+			info->err = SA_ERR_HPI_INVALID_CMD;
+			return;
+	}
+	info->err = ohoi_loop(&done, info->ipmi_handler);
 }
+	
 
 SaErrorT ohoi_clear_sel(ipmi_mcid_t mc_id, void *cb_data)
 {
         char support_del = 0;
         int rv;
+	struct clear_sel_cb info;
 
-	struct ohoi_handler *ipmi_handler = cb_data;
+	info.ipmi_handler = cb_data;
         
         ohoi_get_sel_support_del(mc_id, &support_del);
         if (!support_del) {
                 dbg("MC SEL doesn't support del");
-                return SA_ERR_HPI_INVALID_CMD;
+//                return SA_ERR_HPI_INVALID_CMD;
         }
-
-        rv = ipmi_mc_pointer_cb(mc_id, clear_sel, ipmi_handler);
+	info.err = 0;
+        rv = ipmi_mc_pointer_cb(mc_id, clear_sel, &info);
         if (rv) {
                 dbg("Unable to convert mcid to pointer: %d", rv);
 		return SA_ERR_HPI_INVALID_CMD;
         }
-        
-        return SA_OK;
+        info.ipmi_handler->sel_clear_done = 1; // atavism
+        return info.err;
 }
 
 

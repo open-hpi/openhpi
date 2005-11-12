@@ -27,12 +27,14 @@
 
 
 static SaHpiResourceIdT get_resid(SaHpiSessionIdT sid,
-                           SaHpiEntryIdT srchid) {
+                           SaHpiEntityTypeT srchid) {
         SaHpiRptEntryT res;
         SaHpiEntryIdT rptid = SAHPI_FIRST_ENTRY;
 
         while(saHpiRptEntryGet(sid, rptid, &rptid, &res) == SA_OK) {
-                if (srchid == res.ResourceEntity.Entry[0].EntityType) {
+                oh_print_ep(&res.ResourceEntity, 0);
+                if (srchid == res.ResourceEntity.Entry[0].EntityType &&
+                    res.ResourceEntity.Entry[0].EntityLocation == 2) {
                         return res.ResourceId;
                 }
         }
@@ -59,7 +61,7 @@ int main(int argc, char **argv)
 	}
 
         /* get the resource id of the hs drive */
-        SaHpiResourceIdT resid = get_resid(sid, SAHPI_ENT_DISK_DRIVE_BAY);
+        SaHpiResourceIdT resid = get_resid(sid, SAHPI_ENT_DISK_DRIVE);
         if (resid == 0) {
 		dbg("Couldn't find the resource id of the hs drive");
                 return -1;

@@ -15,7 +15,6 @@
  *     Pierre Sangouard  <psangouard@eso-tech.com>
  */
 
-#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -315,8 +314,8 @@ cIpmi::IfSetPowerState( cIpmiResource *res, SaHpiPowerStateT state )
 
        power_level = rsp.m_data[2] & 0x1f;
      }
-  else
-       assert( state == SAHPI_POWER_OFF );
+  else if ( state != SAHPI_POWER_OFF )
+       return SA_ERR_HPI_INVALID_PARAMS;
 
   // set power level
   msg.m_cmd = eIpmiCmdSetPowerLevel;

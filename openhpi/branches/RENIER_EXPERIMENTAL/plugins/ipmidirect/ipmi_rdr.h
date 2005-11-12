@@ -22,7 +22,6 @@
 #include "ipmi_text_buffer.h"
 #endif
 
-#include <assert.h>
 #include <glib.h>
 
 extern "C" {

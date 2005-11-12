@@ -39,7 +39,7 @@ int main(int argc, char **argv)
                         return 1;
         }
 
-        if (oh_add_rdr(rptable, rptentries[0].ResourceId, rdrs, NULL, 1))
+        if (oh_add_rdr(rptable, rptentries[0].ResourceId, sensors, NULL, 1))
                 return 1;
 
         if (!oh_remove_rdr(rptable, rptentries[0].ResourceId, 20))

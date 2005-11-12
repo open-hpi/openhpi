@@ -31,5 +31,13 @@
 
 MAINTAINERCLEANFILES 	= Makefile.in
 
-SUBDIRS = @DUMMY@ @IPMI@ @WATCHDOG@ @SYSFS@ @SNMP_BC@ @IPMIDIRECT@ @SIMULATOR@ 
-DIST_SUBDIRS = dummy ipmi watchdog sysfs snmp_bc ipmidirect simulator 
+SUBDIRS = @DUMMY@ @IPMI@ @WATCHDOG@ @SYSFS@ @SNMP_BC@ @IPMIDIRECT@ @SIMULATOR@ @RTAS@
+DIST_SUBDIRS = 	dummy \
+		ipmi \
+		watchdog \
+		sysfs \
+		snmp_bc \
+		ipmidirect \
+		simulator \
+		rtas
+

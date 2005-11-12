@@ -1,7 +1,7 @@
 /*      -*- linux-c -*-
  *
  * Copyright (c) 2003 by Intel Corp.
- * (C) Copyright IBM Corp. 2003, 2005
+ * (C) Copyright IBM Corp. 2003, 2004, 2005
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,14 +18,21 @@
  *     Racing Guo <racing.guo@intel.com>
  */
 
-#include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
 #include <oh_event.h>
-#include <openhpi.h>
+#include <oh_config.h>
+#include <oh_handler.h>
+#include <oh_plugin.h>
+#include <oh_hotswap.h>
+#include <oh_lock.h>
 #include <oh_threaded.h>
+#include <oh_domain.h>
+#include <oh_session.h>
+#include <oh_alarm.h>
+#include <oh_init.h>
+#include <oh_utils.h>
+#include <oh_error.h>
 
 extern GMutex *oh_event_thread_mutex;
 GAsyncQueue *oh_process_q = NULL;
@@ -36,7 +43,7 @@ GAsyncQueue *oh_process_q = NULL;
  * */
 struct oh_event* oh_new_oh_event(oh_event_type t)
 {
-        struct oh_event * new = NULL;
+        struct oh_event *new = NULL;
 
         new->type = t;
         new = g_new0(struct oh_event, 1);
@@ -58,30 +65,30 @@ static SaErrorT harvest_events_for_handler(struct oh_handler *h)
 {
         struct oh_event event;
         struct oh_event *e2;
-        struct oh_global_param param = { .type = OPENHPI_EVT_QUEUE_LIMIT };
+        /*struct oh_global_param param = { .type = OPENHPI_EVT_QUEUE_LIMIT };*/
 
         SaErrorT error = SA_OK;
 
-        if (oh_get_global_param(&param))
-                param.u.evt_queue_limit = OH_MAX_EVT_QUEUE_LIMIT;
+        /* Commenting code. Don't need to cap process_q - Renier 09/19/05 */
+        /*if (oh_get_global_param(&param))
+                param.u.evt_queue_limit = OH_MAX_EVT_QUEUE_LIMIT;*/
 
         do {
                 error = h->abi->get_event(h->hnd, &event);
                 if (error < 1) {
                         trace("Handler is out of Events");
-                } else if (param.u.evt_queue_limit != OH_MAX_EVT_QUEUE_LIMIT &&
+                /*} else if (param.u.evt_queue_limit != OH_MAX_EVT_QUEUE_LIMIT &&
                            g_async_queue_length(oh_process_q) >= param.u.evt_queue_limit) {
                         dbg("Process queue is out of space");
-                        return SA_ERR_HPI_OUT_OF_SPACE;
+                        return SA_ERR_HPI_OUT_OF_SPACE;*/
+                } else if (!oh_domain_served_by_handler(h->id, event.did)) {
+                        dbg("Handler %d sends event %d to wrong domain %d",
+                            h->id, event.type, event.did);
+                        return SA_ERR_HPI_INTERNAL_ERROR;
                 } else {
                         trace("Found event for handler %p", h);
-                        e2 =oh_dup_oh_event(&event);
+                        e2 = oh_dup_oh_event(&event);
                         e2->hid = h->id;
-                        if (!oh_domain_served_by_handler(e2->hid, e2->did)) {
-                                dbg("Handler %d sends event %d to wrong domain %d",
-                                        e2->type, e2->hid, e2->did);
-                                return SA_ERR_HPI_INTERNAL_ERROR;
-                        }
                         g_async_queue_push(oh_process_q, e2);
                 }
         } while(error > 0);
@@ -95,15 +102,13 @@ SaErrorT oh_harvest_events()
         unsigned int hid = 0, next_hid;
         struct oh_handler *h = NULL;
 
-        data_access_lock();
-
-        oh_lookup_next_handler(hid, &next_hid);
+        oh_getnext_handler_id(hid, &next_hid);
         while (next_hid) {
                 trace("harvesting for %d", next_hid);
                 hid = next_hid;
 
-                h = oh_lookup_handler(hid);
-                if(!h) {
+                h = oh_get_handler(hid);
+                if (!h) {
                         dbg("No such handler %d", hid);
                         break;
                 }
@@ -115,9 +120,10 @@ SaErrorT oh_harvest_events()
                 if (harvest_events_for_handler(h) == SA_OK && error)
                         error = SA_OK;
 
-                oh_lookup_next_handler(hid, &next_hid);
+                oh_release_handler(h);
+
+                oh_getnext_handler_id(hid, &next_hid);
         }
-        data_access_unlock();
 
         return error;
 }
@@ -125,17 +131,19 @@ SaErrorT oh_harvest_events()
 static SaErrorT oh_add_event_to_del(SaHpiDomainIdT did, struct oh_hpi_event *e)
 {
         struct oh_global_param param = { .type = OPENHPI_LOG_ON_SEV };
-        struct oh_domain *d;
+        struct oh_domain *d = NULL;
         SaErrorT rv = SA_OK;
         char del_filepath[SAHPI_MAX_TEXT_BUFFER_LENGTH*2];
 
         oh_get_global_param(&param);
 
-        if (e->event.Severity <= param.u.log_on_sev) { /* less is more */
+        /* Events get logged in DEL if they are of high enough severity */
+        if (e->event.EventType == SAHPI_ET_USER ||
+            e->event.Severity <= param.u.log_on_sev) {
                 param.type = OPENHPI_DEL_SAVE;
                 oh_get_global_param(&param);
-                /* yes, we need to add real domain support later here */
                 d = oh_get_domain(did);
+
                 if (d) {
                         rv = oh_el_append(d->del, &e->event, &e->rdr, &e->res);
                         if (param.u.del_save) {
@@ -189,7 +197,6 @@ static int process_hpi_event(struct oh_event *full_event)
          * Here is where we need the SESSION MULTIPLEXING code
          */
 
-        /* FIXME: yes, we need to figure out the real domain at some point */
         trace("About to get session list");
         sessions = oh_list_sessions(full_event->did);
         trace("process_hpi_event, done oh_list_sessions");
@@ -197,6 +204,9 @@ static int process_hpi_event(struct oh_event *full_event)
         /* multiplex event to the appropriate sessions */
         for(i = 0; i < sessions->len; i++) {
                 SaHpiBoolT is_subscribed = SAHPI_FALSE;
+	/* compile error */
+#undef g_array_index
+#define g_array_index(a,t,i)      (((t*)(void *) ((a)->data)) [(i)])
                 sid = g_array_index(sessions, SaHpiSessionIdT, i);
                 oh_get_session_subscription(sid, &is_subscribed);
                 if(is_subscribed) {
@@ -327,7 +337,10 @@ SaErrorT oh_process_events()
 {
         struct oh_event *e;
 
-        while((e = g_async_queue_try_pop(oh_process_q)) != NULL) {
+        if (oh_initialized() != SA_OK)
+                return SA_ERR_HPI_INVALID_SESSION;
+
+        while ((e = g_async_queue_try_pop(oh_process_q)) != NULL) {
 
                 switch(e->type) {
                 case OH_ET_RESOURCE:
@@ -361,28 +374,18 @@ SaErrorT oh_process_events()
 
 SaErrorT oh_get_events()
 {
-        SaErrorT rv = SA_OK;
+        SaErrorT error = SA_OK;
 
-        /* this waits for the event thread to sleep, then
-           runs to deal with sync issues */
-        if(oh_threaded_mode())
-                g_mutex_lock(oh_event_thread_mutex);
+        if (oh_threaded_mode()) return error;
 
         trace("Harvesting events synchronously");
-        rv = oh_harvest_events();
-        if(rv != SA_OK) {
-                dbg("Error on harvest of events.");
-        }
+        error = oh_harvest_events();
+        if (error) dbg("Error on harvest of events.");
 
-        rv = oh_process_events();
-        if(rv != SA_OK) {
-                dbg("Error on processing of events, aborting");
-        }
+        error = oh_process_events();
+        if (error) dbg("Error on processing of events, aborting");
 
         process_hotswap_policy();
 
-        if(oh_threaded_mode())
-                g_mutex_unlock(oh_event_thread_mutex);
-
-        return rv;
+        return error;
 }

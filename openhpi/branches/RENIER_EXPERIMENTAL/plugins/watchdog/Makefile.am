@@ -34,7 +34,7 @@ MAINTAINERCLEANFILES 	= Makefile.in
 
 INCLUDES		= @OPENHPI_INCLUDES@ 
 
-AM_CFLAGS		= -g @CFLAGS@
+AM_CFLAGS		= @CFLAGS@
 
 pkglib_LTLIBRARIES	= libwatchdog.la
 
