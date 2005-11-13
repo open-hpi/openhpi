@@ -204,7 +204,7 @@ static bool InsertConnx(SaHpiSessionIdT SessionId, pcstrmsock pinst)
                                                  g_free, __destroy_table);
         }
         // Create connections table for new session.
-        conns = g_hash_table_new_full(g_int_hash, g_int_equal,
+        conns = g_hash_table_new_full(g_direct_hash, g_direct_equal,
                                       g_free, __delete_connx);
         // Map connection to thread id
         thread_id = pthread_self();
@@ -479,8 +479,6 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(Discover)
 		return SA_ERR_HPI_INVALID_SESSION;
 
 	cHpiMarshal *hm = HpiMarshalFind(eFsaHpiDiscover);
-        if (!hm) printf("Big Error!! Marshal find failed!\n"); // Debug
-        printf("eMhMsh is %d\n", eMhMsg); // Debug
 	pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiDiscover,
 				 hm->m_request_len);
 	request = malloc(hm->m_request_len);
