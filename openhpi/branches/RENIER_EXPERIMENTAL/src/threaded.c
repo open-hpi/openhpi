@@ -20,6 +20,8 @@
 #include <oh_hotswap.h>
 #include <oh_error.h>
 
+//#include <pthread.h>
+
 #define OH_DISCOVERY_THREAD_SLEEP_TIME 180 * G_USEC_PER_SEC
 #define OH_EVENT_THREAD_SLEEP_TIME 3 * G_USEC_PER_SEC
 
@@ -87,6 +89,7 @@ static gpointer oh_discovery_thread_loop(gpointer data)
         GTimeVal time;
         SaErrorT error = SA_OK;
 
+        //printf("*discovery thread: %lu\n", pthread_self());
         g_mutex_lock(oh_discovery_thread_mutex);
         while (oh_threaded_mode()) {
                 trace("Doing threaded discovery on all handlers");
@@ -119,6 +122,7 @@ static gpointer oh_event_thread_loop(gpointer data)
         SaErrorT error = SA_OK;
         static int first_loop = 1;
 
+        //printf("*event thread: %lu\n", pthread_self());
         g_mutex_lock(oh_event_thread_mutex);
         while (oh_threaded_mode()) {
                 /* Give the discovery time to start first -> FIXME */
@@ -183,6 +187,7 @@ int oh_threaded_start()
 {
         struct oh_global_param threaded_param = { .type = OPENHPI_THREADED };
 
+        //printf("*main thread: %lu\n", pthread_self());
         oh_get_global_param(&threaded_param);
         if (threaded_param.u.threaded) {
                 oh_is_threaded = TRUE;
