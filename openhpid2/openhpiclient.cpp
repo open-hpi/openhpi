@@ -11,6 +11,7 @@
  *
  * Author(s):
  *      W. David Ashley <dashley@us.ibm.com>
+ *      Renier Morales <renierm@users.sf.net>
  *
  */
 
@@ -20,6 +21,7 @@
 #include <sys/types.h>
 #include <stdio.h>
 #include <errno.h>
+#include <pthread.h>
 #include <glib.h>
 #include <config.h>
 extern "C"
@@ -47,17 +49,25 @@ extern "C"
 #define cdebug_err(cmd, str)	fprintf(stderr, "%s: %s\n", cmd, str);
 #endif
 
-#define SendRecv(cmd) \
+#define SendRecv(sid, cmd) \
 	if (pinst->WriteMsg(request)) { \
 		cdebug_err(cmd, "WriteMsg failed\n"); \
 		if(request) \
 			free(request); \
+                if (sid) \
+                        RemoveOneConnx(sid); \
+                else \
+                        DeleteConnx(pinst); \
 		return SA_ERR_HPI_NO_RESPONSE; \
 	} \
 	if (pinst->ReadMsg(reply)) { \
 		cdebug_err(cmd, "Read failed\n"); \
 		if(request) \
 			free(request); \
+                if (sid) \
+                        RemoveOneConnx(sid); \
+                else \
+                        DeleteConnx(pinst); \
 		return SA_ERR_HPI_NO_RESPONSE; \
 	}
 
@@ -66,12 +76,14 @@ extern "C"
 		cdebug_err(cmd, "WriteMsg failed\n"); \
 		if(request) \
 			free(request); \
+                DeleteConnx(pinst); \
 		return; \
 	} \
 	if (pinst->ReadMsg(reply)) { \
 		cdebug_err(cmd, "Read failed\n"); \
 		if(request) \
 			free(request); \
+                DeleteConnx(pinst); \
 		return; \
 	}
 
@@ -81,7 +93,7 @@ extern "C"
 /*----------------------------------------------------------------------------*/
 
 static GHashTable *sessions = NULL;
-static GMutex *sessions_sem = NULL;
+static GStaticRecMutex sessions_sem = G_STATIC_REC_MUTEX_INIT;
 static bool thrd_init = FALSE;
 
 
@@ -93,6 +105,7 @@ static pcstrmsock CreateConnx(void);
 static void DeleteConnx(pcstrmsock);
 static bool InsertConnx(SaHpiSessionIdT, pcstrmsock);
 static bool RemoveConnx(SaHpiSessionIdT);
+static bool RemoveOneConnx(SaHpiSessionIdT);
 static pcstrmsock GetConnx(SaHpiSessionIdT);
 static SaErrorT oHpiHandlerCreateInit(void);
 static void oHpiHandlerCreateAddTEntry(gpointer key, gpointer value, gpointer data);
@@ -120,10 +133,14 @@ static pcstrmsock CreateConnx(void)
                 port =  atoi(portstr);
         }
 
+        g_static_rec_mutex_lock(&sessions_sem);
 	pinst = new cstrmsock;
         if (pinst == NULL) {
+                g_static_rec_mutex_unlock(&sessions_sem);
                 return pinst;
         }
+        g_static_rec_mutex_unlock(&sessions_sem);
+        
 	if (pinst->Open(host, port)) {
 		cdebug_err("CreateConnx", "Could not open client socket");
                 delete pinst;
@@ -149,29 +166,55 @@ static void DeleteConnx(pcstrmsock pinst)
 
 
 /*----------------------------------------------------------------------------*/
-/* InsertConnx                                                                */
+/* InsertConnx - with helper functions: __destroy_table, __delete_connx       */
 /*----------------------------------------------------------------------------*/
+static void __destroy_table(gpointer data)
+{
+        GHashTable *table = (GHashTable *)data;
+
+        g_hash_table_destroy(table);
+}
+
+static void __delete_connx(gpointer data)
+{
+        pcstrmsock pinst = (pcstrmsock)data;
+
+        DeleteConnx(pinst);
+}
 
 static bool InsertConnx(SaHpiSessionIdT SessionId, pcstrmsock pinst)
 {
-	if (SessionId == 0)
+        GHashTable *conns = NULL;
+        pthread_t thread_id;
+        
+        if (SessionId == 0)
 		return TRUE;
 	if (pinst == NULL)
 		return TRUE;
 
+        g_static_rec_mutex_lock(&sessions_sem);
+        // Create session table if it doesn't exist.
         if (thrd_init == FALSE && sessions == NULL) {
                 if (!g_thread_supported()) {
                          g_thread_init(NULL); // just to make sure, ignore any error
                 }
                 thrd_init = TRUE;
-                sessions = g_hash_table_new(g_int_hash, g_int_equal);
-                sessions_sem = g_mutex_new();
+                sessions = g_hash_table_new_full(g_int_hash, g_int_equal,
+                                                 g_free, __destroy_table);
         }
-        g_mutex_lock(sessions_sem);
-        SaHpiSessionIdT *mysession = (SaHpiSessionIdT *)g_malloc(sizeof(SaHpiSessionIdT));
-        *mysession = SessionId;
-        g_hash_table_insert(sessions, mysession, pinst);
-        g_mutex_unlock(sessions_sem);
+        // Create connections table for new session.
+        conns = g_hash_table_new_full(g_direct_hash, g_direct_equal,
+                                      g_free, __delete_connx);
+        // Map connection to thread id
+        thread_id = pthread_self();
+        g_hash_table_insert(conns, g_memdup(&thread_id,
+                                            sizeof(pthread_t)),
+                                   pinst);
+        // Map connecitons table to session id
+        g_hash_table_insert(sessions, g_memdup(&SessionId,
+                                               sizeof(SaHpiSessionIdT)),
+                                      conns);
+        g_static_rec_mutex_unlock(&sessions_sem);
 
         return FALSE;
 }
@@ -183,22 +226,40 @@ static bool InsertConnx(SaHpiSessionIdT SessionId, pcstrmsock pinst)
 
 static bool RemoveConnx(SaHpiSessionIdT SessionId)
 {
-        gpointer key;
-        gpointer value;
-
 	if (SessionId == 0)
 		return TRUE;
 
-        if (g_hash_table_lookup_extended(sessions, &SessionId, &key, &value)) {
-                g_mutex_lock(sessions_sem);
-                g_hash_table_remove(sessions, &SessionId);
-                g_free(key);
-                g_mutex_unlock(sessions_sem);
-        }
+        g_static_rec_mutex_lock(&sessions_sem);
+        // Since we used g_hash_table_new_full to create the tables,
+        // this will remove the connection hash table and all of its entries also.
+        g_hash_table_remove(sessions, &SessionId);
+        g_static_rec_mutex_unlock(&sessions_sem);
 
         return FALSE;
 }
 
+/*----------------------------------------------------------------------------*/
+/* RemoveOneConnx                                                             */
+/*----------------------------------------------------------------------------*/
+
+static bool RemoveOneConnx(SaHpiSessionIdT SessionId)
+{
+        GHashTable *conns = NULL;
+        pthread_t thread_id;
+
+        if (SessionId == 0)
+                return TRUE;
+
+        g_static_rec_mutex_lock(&sessions_sem);
+        thread_id = pthread_self();
+        conns = (GHashTable *)g_hash_table_lookup(sessions, &SessionId);
+        if (conns)
+                g_hash_table_remove(conns, &thread_id);
+
+        g_static_rec_mutex_unlock(&sessions_sem);
+
+        return FALSE;
+}
 
 /*----------------------------------------------------------------------------*/
 /* GetConnx                                                                   */
@@ -206,14 +267,31 @@ static bool RemoveConnx(SaHpiSessionIdT SessionId)
 
 static pcstrmsock GetConnx(SaHpiSessionIdT SessionId)
 {
-        pcstrmsock pinst;
+        pthread_t thread_id;
+        GHashTable *conns = NULL;
+        pcstrmsock pinst = NULL;
 
 	if (SessionId == 0)
 		return FALSE;
 
-        g_mutex_lock(sessions_sem);
-        pinst = (pcstrmsock) g_hash_table_lookup(sessions, &SessionId);
-        g_mutex_unlock(sessions_sem);
+        // Look up connection table. If it exists, look up connection.
+        // if there is not connection, create one on-the-fly.
+        g_static_rec_mutex_lock(&sessions_sem);
+        thread_id = pthread_self();
+        conns = (GHashTable *)g_hash_table_lookup(sessions, &SessionId);
+        if (conns) {
+                pinst = (pcstrmsock)g_hash_table_lookup(conns, &thread_id);
+
+                if (!pinst)
+                        pinst = CreateConnx();
+
+                if (pinst)
+                        g_hash_table_insert(conns, g_memdup(&thread_id,
+                                                            sizeof(pthread_t)),
+                                                   pinst);
+        }
+        g_static_rec_mutex_unlock(&sessions_sem);
+        
         return pinst;
 }
 
@@ -270,7 +348,7 @@ SaHpiVersionT SAHPI_API dOpenHpiClientFunction(VersionGet)
 
 	pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiVersionGet, 0);
 
-	SendRecv(cmd);
+        SendRecv(0, cmd);
 
 	int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit,
 				    hm, reply + sizeof(cMessageHeader), &err);
@@ -315,7 +393,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SessionOpen)
 
 	pinst->header.m_len = HpiMarshalRequest1(hm, request, &DomainId);
 
-	SendRecv(cmd);
+        SendRecv(0, cmd);
 
 	int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit,
 				    hm, reply + sizeof(cMessageHeader), &err, SessionId);
@@ -362,15 +440,16 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SessionClose)
 
 	pinst->header.m_len = HpiMarshalRequest1(hm, request, &SessionId);
 
-	SendRecv(cmd);
+	SendRecv(SessionId, cmd);
 
 	int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit,
 				    hm, reply + sizeof(cMessageHeader), &err);
 
 	if (request)
 		free(request);
+                
         RemoveConnx(SessionId);
-        DeleteConnx(pinst);
+        
 	if (mr < 0)
 		return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -393,6 +472,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(Discover)
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
+
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
@@ -404,16 +484,18 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(Discover)
 
 	pinst->header.m_len = HpiMarshalRequest1(hm, request, &SessionId);
 
-	SendRecv(cmd);
+	SendRecv(SessionId, cmd);
 
 	int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit,
 				    hm, reply + sizeof(cMessageHeader), &err);
 
 	if (request)
 		free(request);
-	if (pinst->header.m_type == eMhError)
+
+        if (pinst->header.m_type == eMhError)
 		return SA_ERR_HPI_INVALID_PARAMS;
-	if (mr < 0)
+
+        if (mr < 0)
 		return SA_ERR_HPI_INVALID_PARAMS;
 
 	return err;
@@ -448,7 +530,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(DomainInfoGet)
 
         pinst->header.m_len = HpiMarshalRequest1(hm, request, &SessionId);
 
-	SendRecv(cmd);
+	SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, DomainInfo);
 
@@ -496,7 +578,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(DrtEntryGet)
 
         pinst->header.m_len = HpiMarshalRequest2(hm, request, &SessionId, &EntryId);
 
-	SendRecv(cmd);
+	SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply2(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, NextEntryId, DrtEntry);
 
@@ -541,7 +623,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(DomainTagSet)
 
         pinst->header.m_len = HpiMarshalRequest2(hm, request, &SessionId, DomainTag);
 
-	SendRecv(cmd);
+	SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
@@ -590,7 +672,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(RptEntryGet)
 
         pinst->header.m_len = HpiMarshalRequest2(hm, request, &SessionId, &EntryId);
 
-	SendRecv(cmd);
+	SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply2(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, NextEntryId, RptEntry);
 
@@ -636,7 +718,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(RptEntryGetByResourceId)
 
         pinst->header.m_len = HpiMarshalRequest2(hm, request, &SessionId, &ResourceId);
 
-	SendRecv(cmd);
+	SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, RptEntry);
 
@@ -682,7 +764,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ResourceSeveritySet)
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request, &SessionId, &ResourceId, &Severity);
 
-	SendRecv(cmd);
+	SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
@@ -726,7 +808,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ResourceTagSet)
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request, &SessionId, &ResourceId, ResourceTag);
 
-	SendRecv(cmd);
+	SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
@@ -769,7 +851,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ResourceIdGet)
 
         pinst->header.m_len = HpiMarshalRequest1(hm, request, &SessionId);
 
-	SendRecv(cmd);
+	SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, ResourceId);
 
@@ -813,7 +895,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogInfoGet)
 
         pinst->header.m_len = HpiMarshalRequest2(hm, request, &SessionId, &ResourceId);
 
-	SendRecv(cmd);
+	SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, Info);
 
@@ -866,7 +948,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogEntryGet)
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request, &SessionId, &ResourceId, &EntryId);
 
-	SendRecv(cmd);
+	SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply5(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, PrevEntryId, NextEntryId, EventLogEntry, &tmp_rdr, &tmp_rpt);
 
@@ -922,7 +1004,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogEntryAdd)
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request, &SessionId, &ResourceId, EvtEntry);
 
-	SendRecv(cmd);
+	SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
@@ -963,7 +1045,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogClear)
 
         pinst->header.m_len = HpiMarshalRequest2(hm, request, &SessionId, &ResourceId);
 
-	SendRecv(cmd);
+	SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
@@ -1007,7 +1089,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogTimeGet)
 
         pinst->header.m_len = HpiMarshalRequest2(hm, request, &SessionId, &ResourceId);
 
-	SendRecv(cmd);
+	SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, Time);
 
@@ -1049,7 +1131,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogTimeSet)
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request, &SessionId, &ResourceId, &Time);
 
-	SendRecv(cmd);
+	SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
@@ -1093,7 +1175,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogStateGet)
 
         pinst->header.m_len = HpiMarshalRequest2(hm, request, &SessionId, &ResourceId);
 
-	SendRecv(cmd);
+	SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, EnableState);
 
@@ -1135,7 +1217,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogStateSet)
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request, &SessionId, &ResourceId, &EnableState);
 
-	SendRecv(cmd);
+	SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
@@ -1176,7 +1258,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogOverflowReset)
 
         pinst->header.m_len = HpiMarshalRequest2(hm, request, &SessionId, &ResourceId);
 
-	SendRecv(cmd);
+	SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
@@ -1216,7 +1298,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(Subscribe)
 
         pinst->header.m_len = HpiMarshalRequest1(hm, request, &SessionId);
 
-	SendRecv(cmd);
+	SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
@@ -1256,7 +1338,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(Unsubscribe)
 
         pinst->header.m_len = HpiMarshalRequest1(hm, request, &SessionId);
 
-	SendRecv(cmd);
+	SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
@@ -1306,7 +1388,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventGet)
 
         pinst->header.m_len = HpiMarshalRequest2(hm, request, &SessionId, &Timeout);
 
-	SendRecv(cmd);
+	SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply4(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, Event, &tmp_rdr, &tmp_rpt, &tmp_status);
 
@@ -1359,7 +1441,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventAdd)
 
         pinst->header.m_len = HpiMarshalRequest2(hm, request, &SessionId, Event);
 
-	SendRecv(cmd);
+	SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
@@ -1408,7 +1490,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AlarmGetNext)
 
         pinst->header.m_len = HpiMarshalRequest4(hm, request, &SessionId, &Severity, &Unack, Alarm);
 
-	SendRecv(cmd);
+	SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, Alarm);
 
@@ -1452,7 +1534,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AlarmGet)
 
         pinst->header.m_len = HpiMarshalRequest2(hm, request, &SessionId, &AlarmId);
 
-	SendRecv(cmd);
+	SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, Alarm);
 
@@ -1497,7 +1579,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AlarmAcknowledge)
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request, &SessionId, &AlarmId, &Severity);
 
-	SendRecv(cmd);
+	SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
@@ -1542,7 +1624,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AlarmAdd)
 
         pinst->header.m_len = HpiMarshalRequest2(hm, request, &SessionId, Alarm);
 
-	SendRecv(cmd);
+ SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, Alarm);
 
@@ -1587,7 +1669,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AlarmDelete)
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request, &SessionId, &AlarmId, &Severity);
 
-	SendRecv(cmd);
+ SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
@@ -1633,7 +1715,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(RdrGet)
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request, &SessionId, &ResourceId, &EntryId);
 
-	SendRecv(cmd);
+ SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply2(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, NextEntryId, Rdr);
 
@@ -1680,7 +1762,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(RdrGetByInstrumentId)
 
         pinst->header.m_len = HpiMarshalRequest4(hm, request, &SessionId, &ResourceId, &RdrType, &InstrumentId);
 
-	SendRecv(cmd);
+ SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, Rdr);
 
@@ -1726,7 +1808,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SensorReadingGet)
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request, &SessionId, &ResourceId, &SensorNum);
 
-	SendRecv(cmd);
+ SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply2(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, &tmp_reading, &tmp_state);
 
@@ -1778,7 +1860,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SensorThresholdsGet)
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request, &SessionId, &ResourceId, &SensorNum);
 
-	SendRecv(cmd);
+ SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, Thresholds);
 
@@ -1823,7 +1905,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SensorThresholdsSet)
 
         pinst->header.m_len = HpiMarshalRequest4(hm, request, &SessionId, &ResourceId, &SensorNum, Thresholds);
 
-	SendRecv(cmd);
+ SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
@@ -1869,7 +1951,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SensorTypeGet)
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request, &SessionId, &ResourceId, &SensorNum);
 
-	SendRecv(cmd);
+ SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply2(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, Type, Category);
 
@@ -1914,7 +1996,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SensorEnableGet)
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request, &SessionId, &ResourceId, &SensorNum);
 
-	SendRecv(cmd);
+ SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, Enabled);
 
@@ -1957,7 +2039,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SensorEnableSet)
 
         pinst->header.m_len = HpiMarshalRequest4(hm, request, &SessionId, &ResourceId, &SensorNum, &Enabled);
 
-	SendRecv(cmd);
+ SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
@@ -2002,7 +2084,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SensorEventEnableGet)
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request, &SessionId, &ResourceId, &SensorNum);
 
-	SendRecv(cmd);
+ SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, Enabled);
 
@@ -2045,7 +2127,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SensorEventEnableSet)
 
         pinst->header.m_len = HpiMarshalRequest4(hm, request, &SessionId, &ResourceId, &SensorNum, &Enabled);
 
-	SendRecv(cmd);
+ SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
@@ -2093,7 +2175,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SensorEventMasksGet)
 
         pinst->header.m_len = HpiMarshalRequest5(hm, request, &SessionId, &ResourceId, &SensorNum, Assert, Deassert);
 
-	SendRecv(cmd);
+ SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply2(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, Assert, Deassert);
 
@@ -2138,7 +2220,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SensorEventMasksSet)
 
         pinst->header.m_len = HpiMarshalRequest6(hm, request, &SessionId, &ResourceId, &SensorNum, &Action, &Assert, &Deassert);
 
-	SendRecv(cmd);
+ SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
@@ -2183,7 +2265,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ControlTypeGet)
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request, &SessionId, &ResourceId, &CtrlNum);
 
-	SendRecv(cmd);
+ SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, Type);
 
@@ -2239,7 +2321,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ControlGet)
 
         pinst->header.m_len = HpiMarshalRequest4(hm, request, &SessionId, &ResourceId, &CtrlNum, &tmp_state);
 
-	SendRecv(cmd);
+ SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply2(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, &tmp_mode, &tmp_state);
 
@@ -2299,7 +2381,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ControlSet)
 
         pinst->header.m_len = HpiMarshalRequest5(hm, request, &SessionId, &ResourceId, &CtrlNum, &Mode, State);
 
-	SendRecv(cmd);
+ SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
@@ -2344,7 +2426,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(IdrInfoGet)
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request, &SessionId, &ResourceId, &Idrid);
 
-	SendRecv(cmd);
+ SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, Info);
 
@@ -2398,7 +2480,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(IdrAreaHeaderGet)
 
         pinst->header.m_len = HpiMarshalRequest5(hm, request, &SessionId, &ResourceId, &Idrid, &AreaType, &AreaId);
 
-	SendRecv(cmd);
+ SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply2(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, NextAreaId, Header);
 
@@ -2448,7 +2530,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(IdrAreaAdd)
 
         pinst->header.m_len = HpiMarshalRequest4(hm, request, &SessionId, &ResourceId, &Idrid, &AreaType);
 
-	SendRecv(cmd);
+ SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, AreaId);
 
@@ -2493,7 +2575,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(IdrAreaDelete)
 
         pinst->header.m_len = HpiMarshalRequest4(hm, request, &SessionId, &ResourceId, &Idrid, &AreaId);
 
-	SendRecv(cmd);
+ SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
@@ -2547,7 +2629,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(IdrFieldGet)
 
         pinst->header.m_len = HpiMarshalRequest6(hm, request, &SessionId, &ResourceId, &Idrid, &AreaId, &FieldType, &FieldId);
 
-	SendRecv(cmd);
+ SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply2(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, NextId, Field);
 
@@ -2594,7 +2676,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(IdrFieldAdd)
 
         pinst->header.m_len = HpiMarshalRequest4(hm, request, &SessionId, &ResourceId, &Idrid, Field);
 
-	SendRecv(cmd);
+ SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, Field);
 
@@ -2641,7 +2723,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(IdrFieldSet)
 
         pinst->header.m_len = HpiMarshalRequest4(hm, request, &SessionId, &ResourceId, &Idrid, Field);
 
-	SendRecv(cmd);
+ SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
@@ -2687,7 +2769,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(IdrFieldDelete)
 
         pinst->header.m_len = HpiMarshalRequest5(hm, request, &SessionId, &ResourceId, &Idrid, &AreaId, &FieldId);
 
-	SendRecv(cmd);
+ SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
@@ -2732,7 +2814,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(WatchdogTimerGet)
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request, &SessionId, &ResourceId, &WatchdogNum);
 
-	SendRecv(cmd);
+ SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, Watchdog);
 
@@ -2781,7 +2863,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(WatchdogTimerSet)
 
         pinst->header.m_len = HpiMarshalRequest4(hm, request, &SessionId, &ResourceId, &WatchdogNum, Watchdog);
 
-	SendRecv(cmd);
+ SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
@@ -2823,7 +2905,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(WatchdogTimerReset)
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request, &SessionId, &ResourceId, &WatchdogNum);
 
-	SendRecv(cmd);
+ SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
@@ -2872,7 +2954,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AnnunciatorGetNext)
 
         pinst->header.m_len = HpiMarshalRequest6(hm, request, &SessionId, &ResourceId, &AnnNum, &Severity, &Unack, Announcement);
 
-	SendRecv(cmd);
+ SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, Announcement);
 
@@ -2918,7 +3000,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AnnunciatorGet)
 
         pinst->header.m_len = HpiMarshalRequest4(hm, request, &SessionId, &ResourceId, &AnnNum, &EntryId);
 
-	SendRecv(cmd);
+ SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, Announcement);
 
@@ -2966,7 +3048,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AnnunciatorAcknowledge)
 
         pinst->header.m_len = HpiMarshalRequest5(hm, request, &SessionId, &ResourceId, &AnnNum, &EntryId, &Severity);
 
-	SendRecv(cmd);
+ SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
@@ -3011,7 +3093,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AnnunciatorAdd)
 
         pinst->header.m_len = HpiMarshalRequest4(hm, request, &SessionId, &ResourceId, &AnnNum, Announcement);
 
-	SendRecv(cmd);
+ SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, Announcement);
 
@@ -3059,7 +3141,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AnnunciatorDelete)
 
         pinst->header.m_len = HpiMarshalRequest5(hm, request, &SessionId, &ResourceId, &AnnNum, &EntryId, &Severity);
 
-	SendRecv(cmd);
+ SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
@@ -3104,7 +3186,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AnnunciatorModeGet)
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request, &SessionId, &ResourceId, &AnnNum);
 
-	SendRecv(cmd);
+ SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, Mode);
 
@@ -3149,7 +3231,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AnnunciatorModeSet)
 
         pinst->header.m_len = HpiMarshalRequest4(hm, request, &SessionId, &ResourceId, &AnnNum, &Mode);
 
-	SendRecv(cmd);
+ SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
@@ -3190,7 +3272,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(HotSwapPolicyCancel)
 
         pinst->header.m_len = HpiMarshalRequest2(hm, request, &SessionId, &ResourceId);
 
-	SendRecv(cmd);
+ SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
@@ -3231,7 +3313,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ResourceActiveSet)
 
         pinst->header.m_len = HpiMarshalRequest2(hm, request, &SessionId, &ResourceId);
 
-	SendRecv(cmd);
+ SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
@@ -3272,7 +3354,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ResourceInactiveSet)
 
         pinst->header.m_len = HpiMarshalRequest2(hm, request, &SessionId, &ResourceId);
 
-	SendRecv(cmd);
+ SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
@@ -3315,7 +3397,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AutoInsertTimeoutGet)
 
         pinst->header.m_len = HpiMarshalRequest1(hm, request, &SessionId);
 
-	SendRecv(cmd);
+ SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, Timeout);
 
@@ -3360,7 +3442,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AutoInsertTimeoutSet)
 
         pinst->header.m_len = HpiMarshalRequest2(hm, request, &SessionId, &Timeout);
 
-	SendRecv(cmd);
+ SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
@@ -3404,7 +3486,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AutoExtractTimeoutGet)
 
         pinst->header.m_len = HpiMarshalRequest2(hm, request, &SessionId, &ResourceId);
 
-	SendRecv(cmd);
+ SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, Timeout);
 
@@ -3450,7 +3532,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AutoExtractTimeoutSet)
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request, &SessionId, &ResourceId, &Timeout);
 
-	SendRecv(cmd);
+ SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
@@ -3494,7 +3576,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(HotSwapStateGet)
 
         pinst->header.m_len = HpiMarshalRequest2(hm, request, &SessionId, &ResourceId);
 
-	SendRecv(cmd);
+ SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, State);
 
@@ -3538,7 +3620,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(HotSwapActionRequest)
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request, &SessionId, &ResourceId, &Action);
 
-	SendRecv(cmd);
+ SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
@@ -3582,7 +3664,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(HotSwapIndicatorStateGet)
 
         pinst->header.m_len = HpiMarshalRequest2(hm, request, &SessionId, &ResourceId);
 
-	SendRecv(cmd);
+ SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, State);
 
@@ -3626,7 +3708,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(HotSwapIndicatorStateSet)
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request, &SessionId, &ResourceId, &State);
 
-	SendRecv(cmd);
+ SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
@@ -3670,7 +3752,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ParmControl)
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request, &SessionId, &ResourceId, &Action);
 
-	SendRecv(cmd);
+ SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
@@ -3714,7 +3796,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ResourceResetStateGet)
 
         pinst->header.m_len = HpiMarshalRequest2(hm, request, &SessionId, &ResourceId);
 
-	SendRecv(cmd);
+ SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, Action);
 
@@ -3758,7 +3840,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ResourceResetStateSet)
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request, &SessionId, &ResourceId, &Action);
 
-	SendRecv(cmd);
+ SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
@@ -3802,7 +3884,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ResourcePowerStateGet)
 
         pinst->header.m_len = HpiMarshalRequest2(hm, request, &SessionId, &ResourceId);
 
-	SendRecv(cmd);
+ SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, State);
 
@@ -3846,7 +3928,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ResourcePowerStateSet)
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request, &SessionId, &ResourceId, &State);
 
-	SendRecv(cmd);
+ SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
@@ -3883,7 +3965,7 @@ SaErrorT oHpiPluginLoad(char *name)
 
         pinst->header.m_len = HpiMarshalRequest1(hm, request, &buf);
 
-	SendRecv(cmd);
+        SendRecv(0, cmd);
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
@@ -3922,7 +4004,7 @@ SaErrorT oHpiPluginUnload(char *name)
 
         pinst->header.m_len = HpiMarshalRequest1(hm, request, &buf);
 
-	SendRecv(cmd);
+        SendRecv(0, cmd);
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
@@ -3960,7 +4042,7 @@ SaErrorT oHpiPluginInfo(char *name, oHpiPluginInfoT *info)
 
         pinst->header.m_len = HpiMarshalRequest1(hm, request, &buf);
 
-	SendRecv(cmd);
+        SendRecv(0, cmd);
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, info);
 
@@ -4002,7 +4084,7 @@ SaErrorT oHpiPluginGetNext(char *name, char *next_name, int size)
 
         pinst->header.m_len = HpiMarshalRequest1(hm, request, &buf);
 
-	SendRecv(cmd);
+        SendRecv(0, cmd);
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, &retbuf);
 
@@ -4055,7 +4137,7 @@ SaErrorT oHpiHandlerCreate(GHashTable *config,
 
         pinst->header.m_len = HpiMarshalRequest1(hm, request, &err);
 
-	SendRecv(cmd);
+        SendRecv(0, cmd);
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, id);
 
@@ -4089,7 +4171,7 @@ SaErrorT oHpiHandlerDestroy(oHpiHandlerIdT id)
 
         pinst->header.m_len = HpiMarshalRequest1(hm, request, &id);
 
-	SendRecv(cmd);
+        SendRecv(0, cmd);
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
@@ -4123,7 +4205,7 @@ SaErrorT oHpiHandlerInfo(oHpiHandlerIdT id, oHpiHandlerInfoT *info)
 
         pinst->header.m_len = HpiMarshalRequest1(hm, request, &id);
 
-	SendRecv(cmd);
+        SendRecv(0, cmd);
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, &info);
 
@@ -4157,7 +4239,7 @@ SaErrorT oHpiHandlerGetNext(oHpiHandlerIdT id, oHpiHandlerIdT *next_id)
 
         pinst->header.m_len = HpiMarshalRequest1(hm, request, &id);
 
-	SendRecv(cmd);
+        SendRecv(0, cmd);
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, next_id);
 
@@ -4191,7 +4273,7 @@ SaErrorT oHpiGlobalParamGet(oHpiGlobalParamT *param)
 
         pinst->header.m_len = HpiMarshalRequest1(hm, request, param);
 
-	SendRecv(cmd);
+        SendRecv(0, cmd);
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, param);
 
@@ -4225,7 +4307,7 @@ SaErrorT oHpiGlobalParamSet(oHpiGlobalParamT *param)
 
         pinst->header.m_len = HpiMarshalRequest1(hm, request, param);
 
-	SendRecv(cmd);
+        SendRecv(0, cmd);
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, param);
 
@@ -4259,7 +4341,7 @@ static SaErrorT oHpiHandlerCreateInit(void)
 
         pinst->header.m_len = HpiMarshalRequest1(hm, request, &err);
 
-	SendRecv(cmd);
+        SendRecv(0, cmd);
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
@@ -4309,4 +4391,3 @@ static void oHpiHandlerCreateAddTEntry(gpointer key, gpointer value, gpointer da
 
 	return;
 }
-
