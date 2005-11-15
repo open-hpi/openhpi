@@ -61,7 +61,6 @@ extern "C"
 		return SA_ERR_HPI_NO_RESPONSE; \
 	} \
 	if (pinst->ReadMsg(reply)) { \
-                DeleteConnx(pinst); \
 		cdebug_err(cmd, "Read failed\n"); \
 		if(request) \
 			free(request); \
