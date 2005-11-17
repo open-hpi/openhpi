@@ -141,7 +141,7 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                                         .event = "0028200x", /* EN_MM_x_INSTALLED */
 					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_HS_STATE_ACTIVE,
+                                        .event_state = SAHPI_HS_STATE_INSERTION_PENDING,
                                         .recovery_state = SAHPI_HS_STATE_NOT_PRESENT,
                                 },
                                 {
@@ -149,6 +149,13 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
 					.event_res_failure = SAHPI_TRUE,
 					.event_res_failure_unexpected = SAHPI_TRUE,
                                         .event_state = SAHPI_HS_STATE_NOT_PRESENT,
+                                        .recovery_state = SAHPI_HS_STATE_ACTIVE,
+                                },
+                                {
+                                        .event = "0600020x", /* EN_MM_x_ISPRIME */
+					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_HS_STATE_ACTIVE,
                                         .recovery_state = SAHPI_HS_STATE_ACTIVE,
                                 },
                                 {},
@@ -197,7 +204,7 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                                         .event = "0EA0200x", /* EN_SWITCH_x_INSTALLED */
 					.event_res_failure = SAHPI_FALSE,
  					.event_res_failure_unexpected = SAHPI_FALSE,
-					.event_state = SAHPI_HS_STATE_ACTIVE,
+					.event_state = SAHPI_HS_STATE_INSERTION_PENDING,
                                         .recovery_state = SAHPI_HS_STATE_NOT_PRESENT,
                                 },
                                 {
@@ -211,7 +218,7 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                                         .event = "0EA0600x", /* EN_SWITCH_x_POWERED_OFF */
 					.event_res_failure = SAHPI_TRUE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_HS_STATE_NOT_PRESENT,
+                                        .event_state = SAHPI_HS_STATE_INSERTION_PENDING,
                                         .recovery_state = SAHPI_HS_STATE_ACTIVE,
                                 },
                                 {
@@ -219,7 +226,7 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
 					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
                                         .event_state = SAHPI_HS_STATE_ACTIVE,
-                                        .recovery_state = SAHPI_HS_STATE_NOT_PRESENT,
+                                        .recovery_state = SAHPI_HS_STATE_INSERTION_PENDING,
                                 },
                                 {
                                         .event = "0EA0000x", /* EN_FAULT_SWITCH_x */
@@ -279,7 +286,7 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                                         .event = "0E00200x", /* EN_BLADE_x_INSTALLED */
 					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_HS_STATE_ACTIVE,
+                                        .event_state = SAHPI_HS_STATE_INSERTION_PENDING,
                                         .recovery_state = SAHPI_HS_STATE_NOT_PRESENT,
                                 },
                                 {
@@ -293,7 +300,7 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                                         .event = "1C000001", /* EN_BLADE_PWR_DWN */
 					.event_res_failure = SAHPI_TRUE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_HS_STATE_NOT_PRESENT,
+                                        .event_state = SAHPI_HS_STATE_INSERTION_PENDING,
                                         .recovery_state = SAHPI_HS_STATE_ACTIVE,
                                 },
                                 {
@@ -301,20 +308,20 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
 					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
                                         .event_state = SAHPI_HS_STATE_ACTIVE,
-                                        .recovery_state = SAHPI_HS_STATE_NOT_PRESENT,
+                                        .recovery_state = SAHPI_HS_STATE_INSERTION_PENDING,
                                 },
                                 {
                                         .event = "06026080", /* EN_BLADE_PWR_DN_FAN_FAIL */
 					.event_res_failure = SAHPI_TRUE,
 					.event_res_failure_unexpected = SAHPI_TRUE,
-                                        .event_state = SAHPI_HS_STATE_NOT_PRESENT,
+                                        .event_state = SAHPI_HS_STATE_INSERTION_PENDING,
                                         .recovery_state = SAHPI_HS_STATE_ACTIVE,
                                 },
                                 {
                                         .event = "0821C080", /* EN_BLADE_PWR_DN_PM_TEMP */
 					.event_res_failure = SAHPI_TRUE,
 					.event_res_failure_unexpected = SAHPI_TRUE,
-                                        .event_state = SAHPI_HS_STATE_NOT_PRESENT,
+                                        .event_state = SAHPI_HS_STATE_INSERTION_PENDING,
                                         .recovery_state = SAHPI_HS_STATE_ACTIVE,
                                 },
                                 {},
@@ -766,6 +773,22 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                         .event_array = {
                                 {
                                         .event = "08080001", /* EN_NR_PWR_SUPPLY */
+ 					.event_assertion = SAHPI_TRUE,
+ 					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+					.event_state = SAHPI_ES_REDUNDANCY_LOST,
+                                        .recovery_state = SAHPI_ES_FULLY_REDUNDANT,
+                                },
+                                {
+                                        .event = "08081001", /* EN_NR_PWR_SUPPLY_DOM_1 */
+ 					.event_assertion = SAHPI_TRUE,
+ 					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+					.event_state = SAHPI_ES_REDUNDANCY_LOST,
+                                        .recovery_state = SAHPI_ES_FULLY_REDUNDANT,
+                                },
+                                {
+                                        .event = "08081002", /* EN_NR_PWR_SUPPLY_DOM_2 */
  					.event_assertion = SAHPI_TRUE,
  					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
@@ -1799,7 +1822,7 @@ struct snmp_bc_sensor snmp_bc_mgmnt_sensors[] = {
  * Blade Sensors
  ***************/
 
-#define SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR 12
+#define SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR 13
 
 struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
         /* CPU 1 thermal sensor */
@@ -2894,7 +2917,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
         {
 		.index = 12,
                 .sensor = {
-                        .Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR,
+                        .Num = 12,
                         .Type = SAHPI_OPERATIONAL,
                         .Category = SAHPI_EC_AVAILABILITY,
 			.EnableCtrl = SAHPI_FALSE,
@@ -3050,7 +3073,46 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                },
                 .comment = "Blade global operational sensor"
         },
-	
+	        /* Blade's memory sensor - event only */
+        {
+		.index = 13,
+                .sensor = {
+                        .Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR,
+                        .Type = SAHPI_OPERATIONAL,
+                        .Category = SAHPI_EC_AVAILABILITY,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
+                        .Events = SAHPI_ES_RUNNING | SAHPI_ES_DEGRADED,
+                        .DataFormat = {
+                                .IsSupported = SAHPI_FALSE,
+                        },
+                        .ThresholdDefn = {
+                                .IsAccessible = SAHPI_FALSE,
+                        },
+                        .Oem = 0,
+                },
+                .sensor_info = {
+                        .cur_state = SAHPI_ES_UNSPECIFIED,
+                        .sensor_enabled = SAHPI_TRUE,
+                        .events_enabled = SAHPI_TRUE,
+			.assert_mask   = SAHPI_ES_DEGRADED,
+			.deassert_mask = SAHPI_ES_DEGRADED,
+                        .event_array = {
+                                {
+                                        .event = "05200000", /* EN_MEMORY_FAIL */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {},
+                        },
+   			.reading2event = {},
+               },
+                .comment = "Blade's memory sensor"
+        },
+
         {} /* Terminate array with a null element */
 };
 

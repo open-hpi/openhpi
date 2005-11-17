@@ -146,6 +146,7 @@ SaErrorT oh_fprint_eventlogentry(FILE *stream, const SaHpiEventLogEntryT *thisev
 SaErrorT oh_fprint_ctrlstate(FILE *stream, const SaHpiCtrlStateT *thisctrlstate, int offsets);
 
 SaErrorT oh_build_event(oh_big_textbuffer *buffer, const SaHpiEventT *event, int offsets);
+SaErrorT oh_build_threshold_mask(oh_big_textbuffer *buffer, const SaHpiSensorThdMaskT tmask, int offsets);
 
 
 #ifdef __cplusplus

@@ -1,11 +1,12 @@
 /* -*- linux-c -*-
  *
  * Copyright (c) 2003 Intel Corporation.
- * (C) Copyright IBM Corp 2004
+ * (C) Copyright IBM Corp 2004-2005
  *
  * Author(s):
  *     Andy Cress  arcress@users.sourceforge.net
  *     Sean Dague <http://dague.net/sean>
+ *     Renier Morales <renierm@users.sf.net>
  *
  */
 /*
@@ -48,10 +49,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 char progver[] = "1.3 HPI B";
-int fdebug = 0;
-int fclear = 0;
-int frdr   = 0;
-int frpt   = 0;
+int fdebug              = 0;
+int fclear              = 0;
+int frdr                = 0;
+int frpt                = 0;
+SaHpiResourceIdT fresid = 0;
+int fraw                = 0;
+
+unsigned int frawcount  = 0;
 
 int main(int argc, char **argv)
 {
@@ -78,25 +83,27 @@ int main(int argc, char **argv)
 
         int free = 50;
 
-        printf("%s: version %s\n",argv[0],progver);
-
-        while ( (c = getopt( argc, argv,"cdpx?")) != EOF )
+        while ( (c = getopt( argc, argv,"cdpxr:w?")) != EOF )
                 switch(c) {
                 case 'c': fclear = 1; break;
                 case 'd': frdr   = 1; break;
                 case 'p': frpt   = 1; break;				
                 case 'x': fdebug = 1; break;
+		case 'r': fresid = strtoul(optarg, NULL, 10); break;
+                case 'w': fraw = 1; fdebug = 0; break;
                 default:
-                        printf("\n\n\nUsage %s [-cdpx]\n",argv[0]);
+                        printf("\n\nUsage %s [-cdpx]\n",argv[0]);
 			printf("    Where                             \n");
                         printf("        -c clears the event log\n");
 			printf("        -d also get RDR with the event log\n");
 			printf("        -p also get RPT with the event log\n");
+                        printf("        -r <Resource Id>, prints log for a specific resource\n");
+                        printf("        -w Print raw output\n");
                         printf("        -x displays eXtra debug messages\n\n\n");
                         exit(1);
                 }
-	
-	
+        if (!fraw) printf("%s: version %s\n",argv[0],progver);
+                
 	/* 
 	 * House keeping:
 	 * 	-- get (check?) hpi implementation version
@@ -104,12 +111,12 @@ int main(int argc, char **argv)
 	 */
 	if (fdebug) printf("saHpiVersionGet\n");
 	hpiVer = saHpiVersionGet();
-	printf("Hpi Version %d Implemented.\n", hpiVer);
+	if (!fraw) printf("Hpi Version %d Implemented.\n", hpiVer);
 	
         rv = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID,&sessionid,NULL);
         if (rv != SA_OK) {
                 if (rv == SA_ERR_HPI_ERROR) 
-                        printf("saHpiSessionOpen: error %d, SpiLibd not running\n",rv);
+                        printf("saHpiSessionOpen: error %d, HpiLibd not running\n",rv);
                 else
                         printf("saHpiSessionOpen: %s\n", oh_lookup_error(rv));
                 exit(-1);
@@ -122,14 +129,16 @@ int main(int argc, char **argv)
         rv = saHpiDomainInfoGet(sessionid, &domainInfo);
 
         if (fdebug) printf("saHpiDomainInfoGet %s\n", oh_lookup_error(rv));
-        printf("DomainInfo: UpdateCount = %d, UpdateTime = %lx\n",
+        if (!fraw) printf("DomainInfo: UpdateCount = %d, UpdateTime = %lx\n",
                domainInfo.RptUpdateCount, (unsigned long)domainInfo.RptUpdateTimestamp);
 
         /* walk the RPT list */
         rptentryid = SAHPI_FIRST_ENTRY;
         while ((rv == SA_OK) && (rptentryid != SAHPI_LAST_ENTRY))
 	{
-		rv = saHpiRptEntryGet(sessionid,rptentryid,&nextrptentryid,&rptentry);
+                if (fresid) rptentryid = fresid; // Doing only one resource.
+                
+                rv = saHpiRptEntryGet(sessionid,rptentryid,&nextrptentryid,&rptentry);
 
 		if (fdebug)
 			printf("saHpiRptEntryGet %s\n", oh_lookup_error(rv));
@@ -153,8 +162,9 @@ int main(int argc, char **argv)
 			rv_2 = oh_init_bigtext(&bigbuf2);
 			if (rv_2) return(rv_2);
 			rv  = oh_decode_entitypath(&rptentry.ResourceEntity, &bigbuf2);
-			printf("%s\n", bigbuf2.Data);
-			printf("rptentry[%d] tag: %s\n", resourceid,rptentry.ResourceTag.Data);
+			if (!fraw) printf("%s\n", bigbuf2.Data);
+			if (!fraw)
+                                printf("rptentry[%d] tag: %s\n", resourceid,rptentry.ResourceTag.Data);
 				    
 			/* initialize structure */
 			info.Entries = 0;
@@ -166,18 +176,20 @@ int main(int argc, char **argv)
 			if (fdebug)
 				printf("saHpiEventLogInfoGet %s\n", oh_lookup_error(rv));
 			if (rv_2 == SA_OK) {
-				printf("EventLogInfo for %s, ResourceId %d\n",
+				if (!fraw) {
+                                        printf("EventLogInfo for %s, ResourceId %d\n",
 						rptentry.ResourceTag.Data, resourceid);
-				oh_print_eventloginfo(&info, 4);
+				        oh_print_eventloginfo(&info, 4);
+                                }
 			} else { 
 				printf("saHpiEventLogInfoGet %s\n", oh_lookup_error(rv_2));
 			}
 				    
 			if (fclear) {
 				rv = saHpiEventLogClear(sessionid,resourceid);
-				if (rv == SA_OK)
-					printf("EventLog successfully cleared\n");
-				else
+				if (rv == SA_OK) {
+					if (!fraw) printf("EventLog successfully cleared\n");
+				} else
 					printf("EventLog clear, error = %d, %s\n", rv, oh_lookup_error(rv));
 				break;
 			}
@@ -187,11 +199,11 @@ int main(int argc, char **argv)
 				while ((rv == SA_OK) && (entryid != SAHPI_NO_MORE_ENTRIES))
 				{
 				
-					if (frdr) rdrptr = &rdr;
-						else rdrptr = NULL;
+					if (frdr || fraw) rdrptr = &rdr;
+                                        else rdrptr = NULL;
 					
-					if (frpt) rptptr = &rpt_2nd;
-						else rptptr = NULL;
+					if (frpt || fraw) rptptr = &rpt_2nd;
+					else rptptr = NULL;
 						
 						
 					if(fdebug) printf("rdrptr %p, rptptr %p\n", rdrptr, rptptr);
@@ -203,40 +215,223 @@ int main(int argc, char **argv)
 							    			oh_lookup_error(rv));
 								   
 					if (rv == SA_OK) {
-						oh_print_eventlogentry(&el, 6);
+						if (!fraw) oh_print_eventlogentry(&el, 6);
 						if (frdr) {
-							if (rdrptr->RdrType == SAHPI_NO_RECORD)
-								printf("            No RDR associated with EventType =  %s\n\n", 
-									 oh_lookup_eventtype(el.Event.EventType));
-							else	
-								oh_print_rdr(rdrptr, 12);
+							if (rdrptr->RdrType == SAHPI_NO_RECORD) {
+								if (!fraw)
+                                                                        printf("            No RDR associated with EventType =  %s\n\n",
+                                                                                oh_lookup_eventtype(el.Event.EventType));
+							} else	
+								if (!fraw) oh_print_rdr(rdrptr, 12);
 						}
 						if (frpt) {
-							if (rptptr->ResourceCapabilities == 0)
-								printf("            No RPT associated with EventType =  %s\n\n", 
-									 oh_lookup_eventtype(el.Event.EventType));							
-							else 
-								oh_print_rptentry(rptptr, 10);
+							if (rptptr->ResourceCapabilities == 0) {
+								if (!fraw)
+                                                                        printf("            No RPT associated with EventType =  %s\n\n", 
+									       oh_lookup_eventtype(el.Event.EventType));
+							} else 
+								if (!fraw)
+                                                                        oh_print_rptentry(rptptr, 10);
 						}
 
 						preventryid = entryid;
 						entryid = nextentryid;
 					}
+
+                                        if (fraw && rv == SA_OK) {
+                                                SaHpiTextBufferT buffer;
+                                                oh_big_textbuffer bigbuf;
+
+                                                oh_init_textbuffer(&buffer);
+                                                oh_init_bigtext(&bigbuf);
+                                                frawcount++;
+                                                // No.,
+                                                printf("%u,", frawcount);
+                                                // Name,
+                                                if (el.Event.EventType == SAHPI_ET_OEM) {
+                                                        printf("%s %u - %s,", oh_lookup_entitytype(rptptr->ResourceEntity.Entry[0].EntityType),
+                                                                rptptr->ResourceEntity.Entry[0].EntityLocation,
+                                                                el.Event.EventDataUnion.OemEvent.OemEventData.Data);
+                                                } else {
+                                                        printf("%s %u - %s,", oh_lookup_entitytype(rptptr->ResourceEntity.Entry[0].EntityType),
+                                                                rptptr->ResourceEntity.Entry[0].EntityLocation, rdrptr->IdString.Data);
+                                                }
+                                                if (el.Event.EventType == SAHPI_ET_SENSOR) {
+                                                        // Sensor Type,
+                                                        printf("%d,", rdrptr->RdrTypeUnion.SensorRec.Type);
+                                                        // Sensor Num,
+                                                        printf("%u,", rdrptr->RdrTypeUnion.SensorRec.Num);
+                                                        // Assertion,
+                                                        printf("%d,", el.Event.EventDataUnion.SensorEvent.Assertion);
+                                                        // Event State, Blank Field,
+                                                        oh_decode_eventstate(el.Event.EventDataUnion.SensorEvent.EventState,
+                                                                             el.Event.EventDataUnion.SensorEvent.EventCategory,
+                                                                             &buffer);
+                                                        printf("%s,,", buffer.Data);
+                                                } else printf(",,,,");
+                                                // Record Id, Rdr Type,
+                                                printf("%u,%d,", rdrptr->RecordId, rdrptr->RdrType);
+                                                // Timestamp, Manufacturer Id, Resource Rev,
+                                                printf("%llu,%u,%u,", el.Event.Timestamp, rptptr->ResourceInfo.ManufacturerId,
+                                                       rptptr->ResourceInfo.ResourceRev);
+                                                if (el.Event.EventType == SAHPI_ET_SENSOR) {
+                                                        // Sensor Type, Sensor Num,
+                                                        printf("%d,%d,",rdrptr->RdrTypeUnion.SensorRec.Type,
+                                                               rdrptr->RdrTypeUnion.SensorRec.Num);
+                                                } else printf(",,");
+                                                // Event Type,
+                                                printf("%d,", el.Event.EventType);
+                                                // Event Data 1, Event Data 2, Event Data 3,
+                                                printf(",,,");
+                                                // Source, Event Type,
+                                                printf("%u,%s,", el.Event.Source, oh_lookup_eventtype(el.Event.EventType));
+                                                // Timestamp, Severity,
+                                                oh_init_textbuffer(&buffer);
+                                                oh_decode_time(el.Event.Timestamp, &buffer);
+                                                printf("%s,%s,", buffer.Data, oh_lookup_severity(el.Event.Severity));
+                                                if (el.Event.EventType == SAHPI_ET_SENSOR) {
+                                                        // Sensor Num,
+                                                        printf("%u,", rdrptr->RdrTypeUnion.SensorRec.Num);
+                                                        // Sensor Type,
+                                                        printf("%s,", oh_lookup_sensortype(rdrptr->RdrTypeUnion.SensorRec.Type));
+                                                        // Event Category,
+                                                        printf("%s,",
+                                                                oh_lookup_eventcategory(el.Event.EventDataUnion.SensorEvent.EventCategory));
+                                                        // Assertion,
+                                                        printf("%d,", el.Event.EventDataUnion.SensorEvent.Assertion);
+                                                        // Event State,
+                                                        oh_init_textbuffer(&buffer);
+                                                        oh_decode_eventstate(el.Event.EventDataUnion.SensorEvent.EventState,
+                                                                             el.Event.EventDataUnion.SensorEvent.EventCategory,
+                                                                             &buffer);
+                                                        printf("%s,", buffer.Data);
+                                                        // Sensor Optional Data, Trigger Reading, Trigger Threshold,
+                                                        oh_init_textbuffer(&buffer);
+                                                        oh_decode_sensoroptionaldata(
+                                                                el.Event.EventDataUnion.SensorEvent.OptionalDataPresent, &buffer);
+                                                        printf("%s,,,", buffer.Data);
+                                                        // Oem, Sensor Specific,
+                                                        printf("%u,%u,", el.Event.EventDataUnion.SensorEvent.Oem,
+                                                               el.Event.EventDataUnion.SensorEvent.SensorSpecific);
+                                                } else printf(",,,,,,,,,,");
+                                                // Record Id, Rdr Type, Entity,
+                                                oh_init_bigtext(&bigbuf);
+                                                oh_decode_entitypath(&rdrptr->Entity, &bigbuf);
+                                                printf("%u,%s,\"%s\",", rdrptr->RecordId,
+                                                       oh_lookup_rdrtype(rdrptr->RdrType), bigbuf.Data);
+                                                // IsFru, Data Type, Language, Data Length,
+                                                printf("%d,%s,%s,%u,",
+                                                       rdrptr->IsFru,
+                                                       oh_lookup_texttype(rdrptr->IdString.DataType),
+                                                       oh_lookup_language(rdrptr->IdString.Language),
+                                                       rdrptr->IdString.DataLength);
+                                                // Data
+                                                printf("%s,", rdrptr->IdString.Data);
+                                                if (el.Event.EventType == SAHPI_ET_SENSOR) {
+                                                        // Sensor Num,
+                                                        printf("%u,", rdrptr->RdrTypeUnion.SensorRec.Num);
+                                                        // Sensor Type,
+                                                        printf("%s,", oh_lookup_sensortype(rdrptr->RdrTypeUnion.SensorRec.Type));
+                                                        // Event Category,
+                                                        printf("%s,", oh_lookup_eventcategory(
+                                                                          el.Event.EventDataUnion.SensorEvent.EventCategory));
+                                                        // EnableCtrl,
+                                                        printf("%d,", rdrptr->RdrTypeUnion.SensorRec.EnableCtrl);
+                                                        // EventCtrl,
+                                                        printf("%s,", oh_lookup_sensoreventctrl(rdrptr->RdrTypeUnion.SensorRec.EventCtrl));
+                                                        // Events
+                                                        oh_init_textbuffer(&buffer);
+                                                        oh_decode_eventstate(rdrptr->RdrTypeUnion.SensorRec.Events,
+                                                                             el.Event.EventDataUnion.SensorEvent.EventCategory,
+                                                                             &buffer);
+                                                        printf("%s,", buffer.Data);
+                                                        // Reading Formats,
+                                                        printf("%s,",
+                                                               oh_lookup_sensorreadingtype(rdrptr->RdrTypeUnion.SensorRec.DataFormat.ReadingType));
+                                                        // Base Units,
+                                                        printf(",%s,",
+                                                               oh_lookup_sensorunits(rdrptr->RdrTypeUnion.SensorRec.DataFormat.BaseUnits));
+                                                        // IsAccessible,
+                                                        printf("%d,",
+                                                                rdrptr->RdrTypeUnion.SensorRec.ThresholdDefn.IsAccessible);
+                                                        // ReadThold,
+                                                        oh_init_bigtext(&bigbuf);
+                                                        oh_build_threshold_mask(&bigbuf,
+                                                                rdrptr->RdrTypeUnion.SensorRec.ThresholdDefn.ReadThold, 0);
+                                                        printf("%s,", bigbuf.Data);
+                                                        // WriteThold,
+                                                        oh_init_bigtext(&bigbuf);
+                                                        oh_build_threshold_mask(&bigbuf,
+                                                                rdrptr->RdrTypeUnion.SensorRec.ThresholdDefn.WriteThold, 0);
+                                                        printf("%s,", bigbuf.Data);
+                                                        // Non linear,
+                                                        printf("%d,", rdrptr->RdrTypeUnion.SensorRec.ThresholdDefn.Nonlinear);
+                                                        // Oem,
+                                                        printf("%u,", rdrptr->RdrTypeUnion.SensorRec.Oem);
+                                                        // Is Supported,
+                                                        printf("%d,", rdrptr->RdrTypeUnion.SensorRec.DataFormat.IsSupported);
+                                                        // Reading Type,
+                                                        printf("%s,",
+                                                                oh_lookup_sensorreadingtype(rdrptr->RdrTypeUnion.SensorRec.DataFormat.ReadingType));
+                                                } else printf(",,,,,,,,,,,,,,,,");
+                                                // Log Entry Id, Timestamp,
+                                                oh_init_textbuffer(&buffer);
+                                                oh_decode_time(el.Timestamp, &buffer);
+                                                printf("%u,%s,", el.EntryId, buffer.Data);
+                                                // Source, Event Type,
+                                                printf("%u,%s,", el.Event.Source, oh_lookup_eventtype(el.Event.EventType));
+                                                // Timestamp, Severity,
+                                                oh_init_textbuffer(&buffer);
+                                                oh_decode_time(el.Event.Timestamp, &buffer);
+                                                printf("%s,%s,", buffer.Data, oh_lookup_severity(el.Event.Severity));
+                                                if (el.Event.EventType == SAHPI_ET_SENSOR) {
+                                                        // Sensor Num,
+                                                        printf("%u,", rdrptr->RdrTypeUnion.SensorRec.Num);
+                                                        // Sensor Type,
+                                                        printf("%s,", oh_lookup_sensortype(rdrptr->RdrTypeUnion.SensorRec.Type));
+                                                        // Event Category,
+                                                        printf("%s,",
+                                                                oh_lookup_eventcategory(el.Event.EventDataUnion.SensorEvent.EventCategory));
+                                                        // Assertion,
+                                                        printf("%d,", el.Event.EventDataUnion.SensorEvent.Assertion);
+                                                        // Event State,
+                                                        oh_init_textbuffer(&buffer);
+                                                        oh_decode_eventstate(el.Event.EventDataUnion.SensorEvent.EventState,
+                                                                el.Event.EventDataUnion.SensorEvent.EventCategory, &buffer);
+                                                        printf("%s,", buffer.Data);
+                                                        // Sensor Optional Data,
+                                                        oh_init_textbuffer(&buffer);
+                                                        oh_decode_sensoroptionaldata(
+                                                                el.Event.EventDataUnion.SensorEvent.OptionalDataPresent,
+                                                                &buffer);
+                                                        printf("%s,,,", buffer.Data);
+                                                        // Oem, Sensor Specific,
+                                                        printf("%u,%u,",
+                                                                el.Event.EventDataUnion.SensorEvent.Oem,
+                                                                el.Event.EventDataUnion.SensorEvent.SensorSpecific);
+                                                } else printf(",,,,,,,,,,");
+                                                printf("\n");
+                                        }
 				}
 				
 			} else
 				printf("\tSEL is empty.\n\n");
 				    
 			if (free < 6) {
-				printf("WARNING: Log free space is very low (%d records)\n",free);
-				printf("\tClear log with hpiel -c\n");
+				if (!fraw) {
+                                        printf("WARNING: Log free space is very low (%d records)\n",
+                                               free);
+                                        printf("\tClear log with hpiel -c\n");
+                                }
 			}
 		}		    
 		rptentryid = nextrptentryid;
+
+                if (fresid) break; // Doing only one resource.
 	}
 	
 	
-	printf("done.\n");
+	if (!fraw) printf("done.\n");
         rv = saHpiSessionClose(sessionid);
 	return(0);
 }
