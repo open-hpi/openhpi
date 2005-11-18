@@ -22,14 +22,13 @@
 #include <oh_handler.h>
 #include <oh_utils.h>
 #include <oh_error.h>
+#include <oh_domain.h>
 #include <librtas.h>
 
 #define RTAS_SENSORS_PATH	"/proc/device-tree/rtas/rtas-sensors"
 
+
 SaErrorT rtas_discover_sensors(struct oh_handler_state *handle,
 			       struct oh_event *res_oh_event);
 			       
-void decode_rtas_error (int error, char *buf, size_t size, int token, int index);			       
-
-
 #endif /* RTAS_DISCOVER_H */
