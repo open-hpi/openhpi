@@ -154,7 +154,7 @@ SaErrorT rtas_discover_sensors(struct oh_handler_state *handle,
 
 				}
 				else{
-					//fill in the RDR......
+					printf("Token: %d, Index: %d, State: %d\n", token, index, sensor_state);
 
 				}	
 				
