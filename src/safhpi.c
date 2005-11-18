@@ -311,7 +311,7 @@ SaErrorT SAHPI_API saHpiRptEntryGetByResourceId(
         if (req_entry == NULL) {
                 dbg("No such Resource Id %d in Domain %d", ResourceId, did);
                 oh_release_domain(d); /* Unlock domain */
-                return SA_ERR_HPI_INVALID_CMD;
+                return SA_ERR_HPI_INVALID_RESOURCE;
         }
 
         memcpy(RptEntry, req_entry, sizeof(*RptEntry));
