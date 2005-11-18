@@ -24,59 +24,8 @@
 #include <ctype.h>
 #include <sys/types.h>
 #include <rtas_discover.h>
+#include <rtas_utils.h>
 
-/**
- * librtas_error
- * @brief check for a librtas specific return code
- *
- * @param error librtas return code
- * @param buf buffer to write librtas error message to
- * @param size size of "buffer"
- */
-void decode_rtas_error (int error, char *buf, size_t size, int token, int index) 
-{
-	switch (error) {
-		case -1:
-			snprintf(buf, size, "Hardware error retrieving a sensor: token %04d, "
-				            "index %d\n", token, index);
-			break;
-		case -3:
-			snprintf(buf, size,"The sensor at token %04d, index %d is not "
-						    "implemented.\n", token, index);
-			break;	
-		case RTAS_KERNEL_INT:
-			snprintf(buf, size, "No kernel interface to firmware");
-			break;
-		case RTAS_KERNEL_IMP:
-			snprintf(buf, size, "No kernel implementation of function");
-			break;
-		case RTAS_PERM:
-			snprintf(buf, size, "Non-root caller");
-			break;
-		case RTAS_NO_MEM:
-			snprintf(buf, size, "Out of heap memory");
-			break;
-		case RTAS_NO_LOWMEM:
-			snprintf(buf, size, "Kernel out of low memory");
-			break;
-		case RTAS_FREE_ERR:
-			snprintf(buf, size, "Attempt to free nonexistant RMO buffer");
-			break;
-		case RTAS_TIMEOUT:
-			snprintf(buf, size, "RTAS delay exceeded specified timeout");
-			break;
-		case RTAS_IO_ASSERT:
-			snprintf(buf, size, "Unexpected I/O error");
-			break;
-		case RTAS_UNKNOWN_OP:
-			snprintf(buf, size, "No firmware implementation of function");
-			break;
-		default:
-			snprintf(buf, size, "Unknown librtas error %d", error);
-	}
-
-}
- 
 
 /**
  * rtas_discover_sensors: 
@@ -94,9 +43,9 @@ SaErrorT rtas_discover_sensors(struct oh_handler_state *handle,
 			       struct oh_event *parent_res_event)
 
 {
-	int file, rc, sensor_state;
+	int file, rc, sensor_state, sensor_num = 0;
         char err_buf[SAHPI_MAX_TEXT_BUFFER_LENGTH];
-	SaHpiUint32T token, max_index, index;
+	SaHpiUint32T token, max_index, index = 0;
 
 	struct oh_event * event;
 
@@ -127,7 +76,7 @@ SaErrorT rtas_discover_sensors(struct oh_handler_state *handle,
 	 */
 	while (read(file, (char *)&token, 
 	                     sizeof(SaHpiUint32T)) == sizeof(SaHpiUint32T)) {
-
+		
 		if (read(file, (char *)&max_index, 
 		             sizeof(SaHpiUint32T)) != sizeof(SaHpiUint32T));
 			{
@@ -141,7 +90,7 @@ SaErrorT rtas_discover_sensors(struct oh_handler_state *handle,
 			for (index = 0; index <= max_index; index++) {
 				
 				rc = rtas_get_sensor (token, index, &sensor_state);
-
+				
 				
 				if (rc < SA_OK) {
 					
@@ -153,8 +102,40 @@ SaErrorT rtas_discover_sensors(struct oh_handler_state *handle,
 					     token, index, err_buf);
 
 				}
+				
+				/* This function assumes the RPT */
+				
 				else{
 					printf("Token: %d, Index: %d, State: %d\n", token, index, sensor_state);
+					
+					event->type = OH_ET_RDR;
+					event->did = oh_get_default_domain_id();
+					event->u.rdr_event.parent = parent_res_event->u.res_event.entry.ResourceId;
+					event->u.rdr_event.rdr.RdrType = SAHPI_SENSOR_RDR;
+					event->u.rdr_event.rdr.Entity = parent_res_event->u.res_event.entry.ResourceEntity;
+					
+					/* Do entity path business */
+					//rtas_modify_sensor_ep();
+					
+					/* For now, assume sensor number represents a count.  If we decide later to 
+					 * create an RPT for each sensor type (and fill in the RDRs that consist of
+					 * the sensor type), then the num will need to be reset.
+					 */
+					event->u.rdr_event.rdr.RdrTypeUnion.SensorRec.Num = sensor_num++;
+					
+					populate_rtas_sensor_info(token, &(event->u.rdr_event.rdr.RdrTypeUnion.SensorRec));
+					 	    
+					event->u.rdr_event.rdr.RdrTypeUnion.SensorRec.Category = SAHPI_EC_UNSPECIFIED;    
+					
+					event->u.rdr_event.rdr.RdrTypeUnion.SensorRec.EnableCtrl = SAHPI_FALSE;
+					event->u.rdr_event.rdr.RdrTypeUnion.SensorRec.EventCtrl = SAHPI_SEC_READ_ONLY;  
+					event->u.rdr_event.rdr.RdrTypeUnion.SensorRec.Events = SAHPI_ES_UNSPECIFIED;
+					
+					//event->u.rdr_event.rdr.RdrTypeUnion.SensorRec.ThresholdDefn
+					//event->u.rdr_event.rdr.RdrTypeUnion.SensorRec.Oem 
+					
+					//oh_init_textbuffer(&(event->u.rdr_event.rdr.IdString));
+					//oh_append_textbuffer(&(e->u.rdr_event.rdr.IdString), sensor_array[i].comment);
 
 				}	
 				
