@@ -54,7 +54,7 @@
        msg="Blade Server 3 was removed." />
 
 <event name="EN_MM_2_REMOVED" hex="00284002" type="BC"
-       severity="SAHPI_INFORMATIONAL" override="OVR_SEV | OVR_MM" dup="0"
+       severity="SAHPI_INFORMATIONAL" override="OVR_SEV | OVR_MM2" dup="0"
        msg="Management Module 2 was removed." />
 
 <event name="EN_FAULT_FAN1" hex="0A026001" type="BC"
@@ -66,7 +66,7 @@
        msg="IO Board +1.5V under recommended voltage." />
 
 <event name="EN_MM_2_REMOVED" hex="00284002" type="BCT"
-       severity="SAHPI_INFORMATIONAL" override="OVR_SEV | OVR_MM" dup="0"
+       severity="SAHPI_INFORMATIONAL" override="OVR_SEV | OVR_MM2" dup="0"
        msg="Management Module 2 was removed." />
 
 <event name="EN_BLADE_12_THROTTLED" hex="0E00C00C" type="BCT"
@@ -78,7 +78,7 @@
        msg="Blade Server 4 was removed." />
 
 <event name="EN_CUTOFF_LO_FAULT_12V_PLANAR" hex="06036800" type="BC"
-       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MM" dup="0"
+       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MMACT" dup="0"
        msg="System shutoff due to +12v under voltage." />
 
 <event name="EN_PFA_HI_FAULT_PLANAR_5V" hex="06035500" type="RSA"
@@ -130,7 +130,7 @@
        msg="IO Board +12V over recommended voltage." />
 
 <event name="EN_PFA_HI_FAULT_3_35V" hex="08033480" type="BC"
-       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MM" dup="1"
+       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MMACT" dup="1"
        msg="System over recommended voltage on +3.3v." />
 
 <event name="EN_BLADE_9_NO_MGT_VPD" hex="0E010009" type="BC"
@@ -138,12 +138,16 @@
        msg="Can not read VPD for blade 9 management." />
 
 <event name="EN_PFA_HI_FAULT_2_5V" hex="08031480" type="BCT"
-       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MM" dup="1"
+       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MMACT" dup="1"
        msg="System over recommended voltage on +2.5v." />
 
 <event name="EN_FAULT_PS3_12V_OVER" hex="08236483" type="BCT"
        severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_RID" dup="0"
        msg="Power Supply 3 12V Over Voltage Fault" />
+
+<event name="EN_SYSERR_LED_ONLY" hex="0000007E" type="BCT"
+       severity="SAHPI_CRITICAL" override="OVR_SEV" dup="0"
+       msg="Critical Interrupt - Front panel NMI" />
 
 <event name="EN_BLADE_D_NO_MGT_VPD" hex="0E01000D" type="BC"
        severity="SAHPI_MAJOR" override="OVR_SEV" dup="0"
@@ -178,7 +182,7 @@
        msg="System shutoff due to CPU 4 over temperature." />
 
 <event name="EN_MM_2_INSTALLED" hex="00282002" type="BC"
-       severity="SAHPI_INFORMATIONAL" override="OVR_SEV | OVR_MM" dup="0"
+       severity="SAHPI_INFORMATIONAL" override="OVR_SEV | OVR_MM2" dup="0"
        msg="Management Module 2 was installed." />
 
 <event name="EN_BLADE_D_COMM_FAIL" hex="0E00800D" type="BC"
@@ -302,7 +306,7 @@
        msg="System shutoff due to high ambient temperature." />
 
 <event name="EN_CUTOFF_HI_FAULT_2_5V" hex="08030480" type="BCT"
-       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MM" dup="0"
+       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MMACT" dup="0"
        msg="System shutoff due to +2.5v over voltage." />
 
 <event name="EN_PFA_LO_FAULT_2_5V" hex="FF031880" type="BC"
@@ -314,7 +318,7 @@
        msg="Blade Server 3 was installed." />
 
 <event name="EN_CUTOFF_HI_FAULT_3_35V" hex="08032480" type="BCT"
-       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MM" dup="0"
+       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MMACT" dup="0"
        msg="System shutoff due to +3.3v over voltage." />
 
 <event name="EN_IO_BD_VOLTAGE_FAULT" hex="06018000" type="BCT"
@@ -329,10 +333,6 @@
        severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_RID" dup="0"
        msg="SP Communications Failure on Blade 6." />
 
-<event name="EN_PWR_DOMAIN_2_OVER_SUBSCRIP_NONREC" hex="08008402" type="BCT"
-       severity="SAHPI_MINOR" override="OVR_SEV" dup="0"
-       msg="A power failure in domain 2 can result in an immediate shutdown." />
-
 <event name="EN_SWITCH_1_POST_TIMEOUT" hex="0EA0D001" type="BCT"
        severity="SAHPI_MAJOR" override="OVR_SEV | OVR_RID" dup="0"
        msg="I/O module 1 POST Timeout." />
@@ -340,6 +340,10 @@
 <event name="EN_FAULT_PS1_TEMP_WARN" hex="0821C001" type="BC"
        severity="SAHPI_MAJOR" override="OVR_SEV | OVR_RID" dup="0"
        msg="Power Supply 1 Temperature Warning" />
+
+<event name="EN_FAULT_FAN2" hex="0A026002" type="BC"
+       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_RID" dup="0"
+       msg="Blower 2 Fault" />
 
 <event name="EN_OVER_TEMP_WARN_SWITCH_3" hex="0EA1D403" type="BCT"
        severity="SAHPI_MAJOR" override="OVR_SEV | OVR_RID" dup="0"
@@ -354,8 +358,12 @@
        msg="Input Voltage Removed from Power Supply 4" />
 
 <event name="EN_MM_1_INSTALLED" hex="00282001" type="BC"
-       severity="SAHPI_INFORMATIONAL" override="OVR_SEV | OVR_MM" dup="0"
+       severity="SAHPI_INFORMATIONAL" override="OVR_SEV | OVR_MM1" dup="0"
        msg="Management Module 1 was installed." />
+
+<event name="EN_I2C_BUS_3_FAIL" hex="00020003" type="BC"
+       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MMACT" dup="0"
+       msg="Failure reading I2C device. Check devices on bus 3." />
 
 <event name="EN_OVER_TEMP_SWITCH_1" hex="0EA1C401" type="BCT"
        severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_RID" dup="0"
@@ -378,7 +386,7 @@
        msg="System over recommended temperature" />
 
 <event name="EN_MAJOR_HI_FAULT_1_8V" hex="0807A500" type="BC"
-       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MM" dup="1"
+       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MMACT" dup="1"
        msg="System is over recommended voltage for 1.8V CPU" />
 
 <event name="EN_BLADE_2_CFG_FAIL" hex="0E006002" type="BCT"
@@ -434,7 +442,7 @@
        msg="Blade 7 is not allowed to power on because of insufficient power." />
 
 <event name="EN_MM_1_ISPRIME" hex="06000201" type="BCT"
-       severity="SAHPI_INFORMATIONAL" override="OVR_SEV | OVR_MM" dup="0"
+       severity="SAHPI_INFORMATIONAL" override="OVR_SEV | OVR_MM1" dup="0"
        msg="Management Module in bay 1 is Active." />
 
 <event name="EN_NC_VOLT" hex="0000006F" type="BCT"
@@ -486,7 +494,7 @@
        msg="I/O module 3 POST Error." />
 
 <event name="EN_PFA_LO_FAULT_2_5V" hex="08031880" type="BCT"
-       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MM" dup="1"
+       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MMACT" dup="1"
        msg="System under recommended voltage on +2.5v." />
 
 <event name="EN_PFA_HI_OVER_TEMP_CPU8" hex="0421D508" type="RSA"
@@ -593,6 +601,10 @@
        severity="SAHPI_MAJOR" override="OVR_SEV" dup="0"
        msg="Can not read VPD for blade 11 management." />
 
+<event name="EN_FAN1_SPEED" hex="00026801" type="BCT"
+       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_RID" dup="0"
+       msg="Blower 1 Failure" />
+
 <event name="EN_IO_2_5V_WARNING_LOW" hex="0A030C00" type="BCT"
        severity="SAHPI_CRITICAL" override="OVR_SEV" dup="0"
        msg="IO Board 2.5V under recommended voltage." />
@@ -609,9 +621,17 @@
        severity="SAHPI_CRITICAL" override="OVR_SEV" dup="0"
        msg="IO Board +1.8V over recommended voltage." />
 
+<event name="EN_PWR_DOMAIN_1_OVER_SUBSCRIP_NONREC" hex="08008401" type="BC"
+       severity="SAHPI_MINOR" override="OVR_SEV" dup="0"
+       msg="Demand exceeds a single power module. Immediate shutdown in domain 1 may occur if module f" />
+
 <event name="EN_BLADE_B_CFG_FAIL" hex="0E00600B" type="BCT"
        severity="SAHPI_CRITICAL" override="OVR_SEV" dup="0"
        msg="Blade Server 11 is incompatible with I/O module configuration." />
+
+<event name="EN_PWR_DOMAIN_2_OVER_SUBSCRIP_NONREC" hex="08008402" type="BC"
+       severity="SAHPI_MINOR" override="OVR_SEV" dup="0"
+       msg="Demand exceeds a single power module. Immediate shutdown in domain 2 may occur if module f" />
 
 <event name="EN_SWITCH_1_CFG_ERROR" hex="0EA0C001" type="BCT"
        severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_RID" dup="0"
@@ -658,7 +678,7 @@
        msg="I/O module 1 Current Fault" />
 
 <event name="EN_MAJOR_HI_FAULT_PLANAR_5V" hex="06034500" type="BC"
-       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MM" dup="0"
+       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MMACT" dup="0"
        msg="System over recommended voltage for +5v." />
 
 <event name="EN_SWITCH_4_REMOVED" hex="0EA04004" type="BCT"
@@ -701,6 +721,10 @@
        severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_RID" dup="0"
        msg="SP Communications Failure on Blade 4." />
 
+<event name="EN_FAULT_FAN3" hex="0A026003" type="BCT"
+       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_RID" dup="0"
+       msg="Blower 3 Fault" />
+
 <event name="EN_DASD" hex="00000069" type="BC"
        severity="SAHPI_CRITICAL" override="OVR_SEV" dup="0"
        msg="DASD backplane Failure" />
@@ -722,7 +746,7 @@
        msg="Critical Blower Failure, Blade Server Powering Down" />
 
 <event name="EN_MM_1_ISPRIME" hex="06000201" type="BC"
-       severity="SAHPI_INFORMATIONAL" override="OVR_SEV | OVR_MM" dup="0"
+       severity="SAHPI_INFORMATIONAL" override="OVR_SEV | OVR_MM1" dup="0"
        msg="Management Module in bay 1 is Active." />
 
 <event name="EN_CUTOFF_HI_OVER_TEMP_CPU4" hex="0421C484" type="BC"
@@ -732,10 +756,6 @@
 <event name="EN_3_3VS_WARNING_HI" hex="0A02DC02" type="BCT"
        severity="SAHPI_MAJOR" override="OVR_SEV" dup="0"
        msg="Standby +3.3V over recommended voltage." />
-
-<event name="EN_PWR_DOMAIN_2_OVER_SUBSCRIP_NONREC" hex="08008402" type="BC"
-       severity="SAHPI_MINOR" override="OVR_SEV" dup="0"
-       msg="A power failure in domain 2 can result in an immediate shutdown." />
 
 <event name="EN_FAN1_PFA" hex="000A6001" type="RSA"
        severity="SAHPI_MAJOR" override="OVR_SEV | OVR_RID" dup="0"
@@ -786,7 +806,7 @@
        msg="Blade Server 3 was removed." />
 
 <event name="EN_CUTOFF_HI_FAULT_N5V" hex="0803C480" type="BC"
-       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MM" dup="0"
+       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MMACT" dup="0"
        msg="System shutoff due to -5v over voltage." />
 
 <event name="EN_SWITCH_4_REMOVED" hex="0EA04004" type="BC"
@@ -812,6 +832,10 @@
 <event name="EN_BLADE_4_NO_PWR_VPD" hex="0E00E004" type="BC"
        severity="SAHPI_CRITICAL" override="OVR_SEV" dup="0"
        msg="Can not read power-on VPD for blade 4." />
+
+<event name="EN_PWR_DOMAIN_1_OVER_SUBSCRIP_NONREC" hex="08008401" type="BC"
+       severity="SAHPI_MINOR" override="OVR_SEV" dup="0"
+       msg="Demand exceeds a single power module. Immediate shutdown in domain 1 may occur if module fails." />
 
 <event name="EN_FAN4_SPEED" hex="00026804" type="BC"
        severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_RID" dup="0"
@@ -854,7 +878,7 @@
        msg="Blade Server 8 was removed." />
 
 <event name="EN_MAJOR_LO_FAULT_3_35V" hex="08032900" type="BCT"
-       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MM" dup="1"
+       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MMACT" dup="1"
        msg="System under recommended voltage on +3.3v." />
 
 <event name="EN_SWITCH_3_REMOVED" hex="0EA04003" type="BCT"
@@ -910,7 +934,7 @@
        msg="I/O module 3 Current Fault" />
 
 <event name="EN_MM_2_ISPRIME" hex="06000202" type="BC"
-       severity="SAHPI_INFORMATIONAL" override="OVR_SEV | OVR_MM" dup="0"
+       severity="SAHPI_INFORMATIONAL" override="OVR_SEV | OVR_MM2" dup="0"
        msg="Management Module in bay 2 is Active." />
 
 <event name="EN_FAULT_PS1_12V_OVR_CUR" hex="08236001" type="BC"
@@ -922,12 +946,16 @@
        msg="CPU 4 Over Temperature" />
 
 <event name="EN_CUTOFF_HI_FAULT_PLANAR_5V" hex="06034480" type="BC"
-       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MM" dup="0"
+       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MMACT" dup="0"
        msg="System shutoff due to +5v over voltage." />
 
 <event name="EN_BLADE_12_INSUFFICIENT_PWR" hex="0E00A00C" type="BC"
        severity="SAHPI_CRITICAL" override="OVR_SEV" dup="0"
        msg="Blade 12 is not allowed to power on because of insufficient power." />
+
+<event name="EN_FAN3_SPEED" hex="00026803" type="BC"
+       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_RID" dup="0"
+       msg="Blower 3 Failure" />
 
 <event name="EN_BLADE_8_CFG_FAIL" hex="0E006008" type="BC"
        severity="SAHPI_CRITICAL" override="OVR_SEV" dup="0"
@@ -953,6 +981,10 @@
        severity="SAHPI_MAJOR" override="OVR_SEV" dup="0"
        msg="System over recommended ambient temperature." />
 
+<event name="EN_I2C_BUS_4_FAIL" hex="00020004" type="BCT"
+       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MMACT" dup="0"
+       msg="Failure reading I2C device. Check devices on bus 4." />
+
 <event name="EN_BLADE_C_INSTALLED" hex="0E00200C" type="BCT"
        severity="SAHPI_INFORMATIONAL" override="OVR_SEV | OVR_RID" dup="0"
        msg="Blade Server 12 was installed." />
@@ -976,6 +1008,10 @@
 <event name="EN_BLADE_D_CFG_FAIL" hex="0E00600D" type="BC"
        severity="SAHPI_CRITICAL" override="OVR_SEV" dup="0"
        msg="Blade Server 13 is incompatible with I/O module configuration." />
+
+<event name="EN_I2C_BUS_4_FAIL" hex="00020004" type="BC"
+       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MMACT" dup="0"
+       msg="Failure reading I2C device. Check devices on bus 4." />
 
 <event name="EN_BOOT_FAIL" hex="00000077" type="BC"
        severity="SAHPI_MAJOR" override="OVR_SEV" dup="0"
@@ -1066,7 +1102,7 @@
        msg="Power modules are nonredundant in domain 1" />
 
 <event name="EN_CUTOFF_HI_FAULT_PLANAR_5V" hex="06034480" type="BCT"
-       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MM" dup="0"
+       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MMACT" dup="0"
        msg="System shutoff due to +5v over voltage." />
 
 <event name="EN_PFA_HI_OVER_TEMP_CPU4" hex="0421D504" type="BC"
@@ -1078,7 +1114,7 @@
        msg="BEM +18V under recommended voltage." />
 
 <event name="EN_CUTOFF_HI_OVER_TEMP_SP_CARD" hex="0001C500" type="BCT"
-       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MM" dup="0"
+       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MMACT" dup="0"
        msg="Shutoff due to high Management Module temperature." />
 
 <event name="EN_BLADE_5_REMOVED" hex="0E004005" type="BC"
@@ -1097,6 +1133,10 @@
        severity="SAHPI_CRITICAL" override="OVR_SEV" dup="0"
        msg="Blade 8 is not allowed to power on because of insufficient power." />
 
+<event name="EN_I2C_BUS_5_FAIL" hex="00020005" type="BC"
+       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MMACT" dup="0"
+       msg="Failure reading I2C device. Check devices on bus 5." />
+
 <event name="EN_FAULT_PS4_CUR_FAIL" hex="0821A004" type="BCT"
        severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_RID" dup="0"
        msg="Power Supply 4 Current Fault" />
@@ -1108,6 +1148,10 @@
 <event name="EN_FAULT_PS3_REMOVED" hex="0821E003" type="BC"
        severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_RID" dup="0"
        msg="Power Supply 3 Removed." />
+
+<event name="EN_I2C_BUS_1_FAIL" hex="00020001" type="BCT"
+       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MMACT" dup="0"
+       msg="Failure reading I2C device. Check devices on bus 1." />
 
 <event name="EN_FAN4_PFA" hex="000A6004" type="BC"
        severity="SAHPI_MAJOR" override="OVR_SEV | OVR_RID" dup="0"
@@ -1169,6 +1213,10 @@
        severity="SAHPI_MAJOR" override="OVR_SEV" dup="0"
        msg="System over recommended 5V Fault." />
 
+<event name="EN_FAN1_SPEED" hex="00026801" type="BC"
+       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_RID" dup="0"
+       msg="Blower 1 Failure" />
+
 <event name="EN_BUST_2_5V_WARNING_LOW" hex="0E830802" type="BCT"
        severity="SAHPI_MAJOR" override="OVR_SEV | OVR_EXP" dup="0"
        msg="BEM +2.5V under recommended voltage." />
@@ -1194,7 +1242,7 @@
        msg="System shutoff due to Processor area over temperature." />
 
 <event name="EN_CUTOFF_LO_FAULT_1_8V" hex="0807A880" type="BC"
-       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MM" dup="0"
+       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MMACT" dup="0"
        msg="System shutoff due to 1.8V CPU under voltage" />
 
 <event name="EN_FAULT_FAN2" hex="0A026002" type="BCT"
@@ -1309,8 +1357,12 @@
        severity="SAHPI_CRITICAL" override="OVR_SEV" dup="0"
        msg="IO Board +5V under recommended voltage." />
 
+<event name="EN_PWR_DOMAIN_2_OVER_SUBSCRIP_NONREC" hex="08008402" type="BC"
+       severity="SAHPI_MINOR" override="OVR_SEV" dup="0"
+       msg="Demand exceeds a single power module. Immediate shutdown in domain 2 may occur if module fails." />
+
 <event name="EN_MM_2_INSTALLED" hex="00282002" type="BCT"
-       severity="SAHPI_INFORMATIONAL" override="OVR_SEV | OVR_MM" dup="0"
+       severity="SAHPI_INFORMATIONAL" override="OVR_SEV | OVR_MM2" dup="0"
        msg="Management Module 2 was installed." />
 
 <event name="EN_PROC_HOT_CPU5" hex="0421C405" type="RSA"
@@ -1329,6 +1381,10 @@
        severity="SAHPI_CRITICAL" override="OVR_SEV" dup="0"
        msg="Blade Server 1 is incompatible with I/O module configuration." />
 
+<event name="EN_FAULT_FAN2" hex="0A026002" type="BCT"
+       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_RID" dup="0"
+       msg="Blower 2 Fault" />
+
 <event name="EN_BLADE_4_NO_MGT_VPD" hex="0E010004" type="BCT"
        severity="SAHPI_MAJOR" override="OVR_SEV" dup="0"
        msg="Can not read VPD for blade 4 management." />
@@ -1342,7 +1398,7 @@
        msg="Blower 1 Outside Recommended Speed." />
 
 <event name="EN_CUTOFF_HI_FAULT_N5V" hex="0803C480" type="BCT"
-       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MM" dup="0"
+       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MMACT" dup="0"
        msg="System shutoff due to -5v over voltage." />
 
 <event name="EN_BLADE_10_INSUFFICIENT_PWR" hex="0E00A00A" type="BCT"
@@ -1397,6 +1453,10 @@
        severity="SAHPI_INFORMATIONAL" override="OVR_SEV | OVR_RID" dup="0"
        msg="I/O module 2 was removed." />
 
+<event name="EN_I2C_BUS_2_FAIL" hex="00020002" type="BCT"
+       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MMACT" dup="0"
+       msg="Failure reading I2C device. Check devices on bus 2." />
+
 <event name="EN_FAULT_SWITCH_4" hex="0EA00004" type="BCT"
        severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_RID" dup="0"
        msg="I/O module 4 Fault" />
@@ -1410,7 +1470,7 @@
        msg="Blower 2 Failure Single blower failure" />
 
 <event name="EN_PFA_LO_FAULT_2_5V" hex="08031880" type="BC"
-       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MM" dup="1"
+       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MMACT" dup="1"
        msg="System under recommended voltage on +2.5v." />
 
 <event name="EN_BLADE_4_CFG_FAIL" hex="0E006004" type="BC"
@@ -1473,6 +1533,10 @@
        severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_RID" dup="0"
        msg="I/O module 4 is incompatible with Blade Server configuration. Multiple I/O module failures" />
 
+<event name="EN_FAULT_FAN3" hex="0A026003" type="BC"
+       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_RID" dup="0"
+       msg="Blower 3 Fault" />
+
 <event name="EN_SWITCH_2_POST_ERROR" hex="0EA0E002" type="BCT"
        severity="SAHPI_MAJOR" override="OVR_SEV | OVR_RID" dup="0"
        msg="I/O module 2 POST Error." />
@@ -1482,11 +1546,11 @@
        msg="Blower 2 Fault Single blower failure" />
 
 <event name="EN_CUTOFF_LO_FAULT_PLANAR_5V" hex="06034800" type="BCT"
-       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MM" dup="0"
+       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MMACT" dup="0"
        msg="System shutoff due to +5v under voltage." />
 
 <event name="EN_PFA_HI_FAULT_N5V" hex="0803D500" type="BCT"
-       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MM" dup="0"
+       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MMACT" dup="0"
        msg="System over recommended voltage for -5v." />
 
 <event name="EN_SWITCH_2_CFG_ERROR" hex="0EA0C002" type="BC"
@@ -1538,7 +1602,7 @@
        msg="System shutoff due to +12v over voltage." />
 
 <event name="EN_CUTOFF_HI_FAULT_2_5V" hex="08030480" type="BC"
-       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MM" dup="0"
+       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MMACT" dup="0"
        msg="System shutoff due to +2.5v over voltage." />
 
 <event name="EN_BLADE_PWR_DWN" hex="1C000001" type="BCT"
@@ -1550,11 +1614,11 @@
        msg="Fan 3 not detected Multiple fan failures" />
 
 <event name="EN_CUTOFF_HI_FAULT_1_8V" hex="0807A480" type="BC"
-       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MM" dup="0"
+       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MMACT" dup="0"
        msg="System shutoff due to 1.8V CPU over voltage" />
 
 <event name="EN_MAJOR_LO_OVER_TEMP_SP_CARD" hex="0011C901" type="BCT"
-       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MM" dup="0"
+       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MMACT" dup="0"
        msg="System under recommended Management Module temperature." />
 
 <event name="EN_PFA_HI_OVER_TEMP_PLANAR" hex="0601D500" type="RSA"
@@ -1642,7 +1706,7 @@
        msg="Blade Server 10 is incompatible with I/O module configuration." />
 
 <event name="EN_CUTOFF_LO_OVER_TEMP_SP_CARD" hex="0011C881" type="BCT"
-       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MM" dup="0"
+       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MMACT" dup="0"
        msg="System shutoff due to under Management Module temperature." />
 
 <event name="EN_SWITCH_3_POWERED_OFF" hex="0EA06003" type="BC"
@@ -1674,15 +1738,15 @@
        msg="CPU Board voltage fault." />
 
 <event name="EN_CUTOFF_HI_FAULT_3_35V" hex="08032480" type="BC"
-       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MM" dup="0"
+       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MMACT" dup="0"
        msg="System shutoff due to +3.3v over voltage." />
 
 <event name="EN_FAULT_PS1_12V_UNDER" hex="08236801" type="BC"
        severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_RID" dup="0"
        msg="Power Supply 1 12V Under Voltage Fault" />
 
-<event name="EN_MM_NETWORK_LOSS" hex="00222000" type="BCT"
-       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MM" dup="0"
+<event name="EN_MM_NETWORK_LOSS" hex="00217000" type="BCT"
+       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MMACT" dup="0"
        msg="Management Module network uplink loss." />
 
 <event name="EN_FAULT_PS1_OVR_TEMP" hex="0821C081" type="BC"
@@ -1694,7 +1758,7 @@
        msg="Power Supply 2 Removed." />
 
 <event name="EN_MAJOR_LO_OVER_TEMP_SP_CARD" hex="0011C901" type="BC"
-       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MM" dup="0"
+       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MMACT" dup="0"
        msg="System under recommended Management Module temperature." />
 
 <event name="EN_BLADE_6_INSTALLED" hex="0E002006" type="BCT"
@@ -1722,7 +1786,7 @@
        msg="Input Voltage Removed from Power Supply 1" />
 
 <event name="EN_MAJOR_HI_FAULT_1_8V" hex="0807A500" type="BCT"
-       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MM" dup="1"
+       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MMACT" dup="1"
        msg="System is over recommended voltage for 1.8V CPU" />
 
 <event name="EN_FAULT_MNR_FILTER_SERVICE" hex="6F500000" type="BCT"
@@ -1754,7 +1818,7 @@
        msg="Switch 2 is not allowed to power on because of insufficient power." />
 
 <event name="EN_PFA_HI_OVER_TEMP_SP_CARD" hex="0001D400" type="BC"
-       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MM" dup="0"
+       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MMACT" dup="0"
        msg="Management Module is over recommended temperature." />
 
 <event name="EN_FAULT_PS1_12V_OVER" hex="08236481" type="BC"
@@ -1762,7 +1826,7 @@
        msg="Power Supply 1 12V Over Voltage Fault" />
 
 <event name="EN_CUTOFF_LO_OVER_TEMP_SP_CARD" hex="0011C881" type="BC"
-       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MM" dup="0"
+       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MMACT" dup="0"
        msg="System shutoff due to under Management Module temperature." />
 
 <event name="EN_IO_3_3V_WARNING_HI" hex="0A02DC00" type="BCT"
@@ -1798,7 +1862,7 @@
        msg="CPU 1 Over Temperature" />
 
 <event name="EN_PFA_HI_FAULT_N5V" hex="0803D500" type="BC"
-       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MM" dup="0"
+       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MMACT" dup="0"
        msg="System over recommended voltage for -5v." />
 
 <event name="EN_FAN3_SPEED" hex="00026803" type="BCT"
@@ -1861,20 +1925,20 @@
        severity="SAHPI_MAJOR" override="OVR_SEV" dup="0"
        msg="IO Board voltage fault." />
 
+<event name="EN_MAJOR_LO_FAULT_3_35V" hex="08032900" type="BC"
+       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MMACT" dup="1"
+       msg="System under recommended voltage on +3.3v." />
+
 <event name="EN_BLADE_B_INSTALLED" hex="0E00200B" type="BCT"
        severity="SAHPI_INFORMATIONAL" override="OVR_SEV | OVR_RID" dup="0"
        msg="Blade Server 11 was installed." />
-
-<event name="EN_MAJOR_LO_FAULT_3_35V" hex="08032900" type="BC"
-       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MM" dup="1"
-       msg="System under recommended voltage on +3.3v." />
 
 <event name="EN_CUTOFF_HI_OVER_TEMP_DASD1_4" hex="0681C484" type="RSA"
        severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_RID" dup="0"
        msg="System shutoff due to DASD 4 temperature." />
 
-<event name="EN_MM_NETWORK_LOSS" hex="00222000" type="BC"
-       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MM" dup="0"
+<event name="EN_MM_NETWORK_LOSS" hex="00217000" type="BC"
+       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MMACT" dup="0"
        msg="Management Module network uplink loss." />
 
 <event name="EN_BLADE_3_CFG_FAIL" hex="0E006003" type="BC"
@@ -1930,7 +1994,7 @@
        msg="Blade Server 9 was removed." />
 
 <event name="EN_CUTOFF_HI_FAULT_1_8V" hex="0807A480" type="BCT"
-       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MM" dup="0"
+       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MMACT" dup="0"
        msg="System shutoff due to 1.8V CPU over voltage" />
 
 <event name="EN_BLADE_C_CFG_FAIL" hex="0E00600C" type="BCT"
@@ -2029,8 +2093,12 @@
        severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_RID" dup="0"
        msg="CPU 3 Over Temperature" />
 
+<event name="EN_FAN4_SPEED" hex="00026804" type="BCT"
+       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_RID" dup="0"
+       msg="Blower 4 Failure" />
+
 <event name="EN_PFA_HI_FAULT_2_5V" hex="08031480" type="BC"
-       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MM" dup="1"
+       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MMACT" dup="1"
        msg="System over recommended voltage on +2.5v." />
 
 <event name="EN_BLADE_3_COMM_FAIL" hex="0E008003" type="BCT"
@@ -2054,7 +2122,7 @@
        msg="Power Supply 4 Temperature Warning" />
 
 <event name="EN_PFA_LO_FAULT_PLANAR_5V" hex="06035800" type="BC"
-       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MM" dup="0"
+       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MMACT" dup="0"
        msg="System under recommended voltage for +5v." />
 
 <event name="EN_BUST_5V_WARNING_HI" hex="0E834402" type="BCT"
@@ -2070,11 +2138,11 @@
        msg="System over temperature for CPU 5." />
 
 <event name="EN_CUTOFF_LO_FAULT_PLANAR_5V" hex="06034800" type="BC"
-       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MM" dup="0"
+       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MMACT" dup="0"
        msg="System shutoff due to +5v under voltage." />
 
 <event name="EN_PFA_HI_FAULT_12V_PLANAR" hex="06037500" type="BCT"
-       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MM" dup="1"
+       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MMACT" dup="1"
        msg="System over recommended voltage for +12v." />
 
 <event name="EN_BUST_12V_WARNING_LOW" hex="0E836802" type="BCT"
@@ -2085,16 +2153,16 @@
        severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_RID" dup="0"
        msg="I/O module 2 Current Fault" />
 
-<event name="EN_THERM_TRIP_CPU2" hex="0421D082" type="BCT"
-       severity="SAHPI_CRITICAL" override="OVR_SEV" dup="0"
-       msg="CPU 2 Over Temperature" />
-
 <event name="EN_BUST_3_3V_FAULT" hex="0E832002" type="BCT"
        severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_EXP" dup="0"
        msg="BEM +3.3V Fault." />
 
+<event name="EN_THERM_TRIP_CPU2" hex="0421D082" type="BCT"
+       severity="SAHPI_CRITICAL" override="OVR_SEV" dup="0"
+       msg="CPU 2 Over Temperature" />
+
 <event name="EN_CUTOFF_LO_FAULT_12V_PLANAR" hex="06036800" type="BCT"
-       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MM" dup="0"
+       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MMACT" dup="0"
        msg="System shutoff due to +12v under voltage." />
 
 <event name="EN_FAULT_PS3_REMOVED" hex="0821E003" type="BCT"
@@ -2105,6 +2173,10 @@
        severity="SAHPI_INFORMATIONAL" override="OVR_SEV | OVR_RID" dup="0"
        msg="Blade Server 14 was removed." />
 
+<event name="EN_PWR_DOMAIN_1_OVER_SUBSCRIP_NONREC" hex="08008401" type="BCT"
+       severity="SAHPI_MINOR" override="OVR_SEV" dup="0"
+       msg="Demand exceeds a single power module. Immediate shutdown in domain 1 may occur if module fails." />
+
 <event name="EN_BLADE_7_REMOVED" hex="0E004007" type="BCT"
        severity="SAHPI_INFORMATIONAL" override="OVR_SEV | OVR_RID" dup="0"
        msg="Blade Server 7 was removed." />
@@ -2114,7 +2186,7 @@
        msg="System Memory Error" />
 
 <event name="EN_CUTOFF_HI_OVER_TEMP_SP_CARD" hex="0001C500" type="BC"
-       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MM" dup="0"
+       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MMACT" dup="0"
        msg="Shutoff due to high Management Module temperature." />
 
 <event name="EN_BLADE_5_INSTALLED" hex="0E002005" type="BCT"
@@ -2246,11 +2318,11 @@
        msg="I/O module 3 POST Error." />
 
 <event name="EN_PFA_LO_FAULT_12V_PLANAR" hex="06037800" type="BCT"
-       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MM" dup="1"
+       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MMACT" dup="1"
        msg="System under recommended voltage for +12v." />
 
 <event name="EN_MAJOR_LO_FAULT_N5V" hex="803C9000" type="BC"
-       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MM" dup="0"
+       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MMACT" dup="0"
        msg="System under recommended voltage for -5v." />
 
 <event name="EN_BLADE_D_NO_PWR_VPD" hex="0E00E00D" type="BC"
@@ -2270,7 +2342,7 @@
        msg="BEM +18V over recommended voltage." />
 
 <event name="EN_MM_2_ISPRIME" hex="06000202" type="BCT"
-       severity="SAHPI_INFORMATIONAL" override="OVR_SEV | OVR_MM" dup="0"
+       severity="SAHPI_INFORMATIONAL" override="OVR_SEV | OVR_MM2" dup="0"
        msg="Management Module in bay 2 is Active." />
 
 <event name="EN_BLADE_PWR_DN_FAN_FAIL" hex="06026080" type="BCT"
@@ -2302,7 +2374,7 @@
        msg="Power Supply 1 was installed." />
 
 <event name="EN_CUTOFF_LO_FAULT_3_35V" hex="08032880" type="BC"
-       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MM" dup="0"
+       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MMACT" dup="0"
        msg="System shutoff due to +3.3v under voltage." />
 
 <event name="EN_BLADE_3_NO_PWR_VPD" hex="0E00E003" type="BC"
@@ -2316,6 +2388,10 @@
 <event name="EN_BLADE_D_INSTALLED" hex="0E00200D" type="BC"
        severity="SAHPI_INFORMATIONAL" override="OVR_SEV | OVR_RID" dup="0"
        msg="Blade Server 13 was installed." />
+
+<event name="EN_I2C_BUS_2_FAIL" hex="00020002" type="BC"
+       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MMACT" dup="0"
+       msg="Failure reading I2C device. Check devices on bus 2." />
 
 <event name="EN_BLADE_8_THROTTLED" hex="0E00C008" type="BCT"
        severity="SAHPI_INFORMATIONAL" override="OVR_SEV" dup="0"
@@ -2353,10 +2429,6 @@
        severity="SAHPI_INFORMATIONAL" override="OVR_SEV" dup="0"
        msg="Blade 14 is throttled." />
 
-<event name="EN_PWR_DOMAIN_1_OVER_SUBSCRIP_NONREC" hex="08008401" type="BC"
-       severity="SAHPI_MINOR" override="OVR_SEV" dup="0"
-       msg="A power failure in domain 1 can result in an immediate shutdown." />
-
 <event name="EN_OVER_TEMP_AMBIENT" hex="0001C080" type="RSA"
        severity="SAHPI_CRITICAL" override="OVR_SEV" dup="0"
        msg="System ambient temperature is too high." />
@@ -2381,6 +2453,10 @@
        severity="SAHPI_MAJOR" override="OVR_SEV | OVR_RID" dup="0"
        msg="DASD 1 over recommended temperature." />
 
+<event name="EN_SYSERR_LED_ONLY" hex="0000007E" type="BC"
+       severity="SAHPI_CRITICAL" override="OVR_SEV" dup="0"
+       msg="Critical Interrupt - Front panel NMI" />
+
 <event name="EN_OVER_TEMP_SWITCH_4" hex="0EA1C404" type="BC"
        severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_RID" dup="0"
        msg="I/O module 4 Temperature Fault" />
@@ -2393,6 +2469,10 @@
        severity="SAHPI_CRITICAL" override="OVR_SEV" dup="0"
        msg="IO Board +3.3V over recommended voltage." />
 
+<event name="EN_FAULT_FAN4" hex="0A026004" type="BC"
+       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_RID" dup="0"
+       msg="Blower 4 Fault" />
+
 <event name="EN_2_5VS_WARNING_HI" hex="0A031C02" type="BCT"
        severity="SAHPI_MAJOR" override="OVR_SEV" dup="0"
        msg="Standby +2.5V over recommended voltage." />
@@ -2402,7 +2482,7 @@
        msg="I/O module 1 POST Timeout." />
 
 <event name="EN_PFA_HI_OVER_TEMP_SP_CARD" hex="0001D400" type="BCT"
-       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MM" dup="0"
+       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MMACT" dup="0"
        msg="Management Module is over recommended temperature." />
 
 <event name="EN_PFA_HI_FAULT_2_5V" hex="FF031480" type="BC"
@@ -2434,11 +2514,11 @@
        msg="DASD backplane Failure" />
 
 <event name="EN_CUTOFF_HI_FAULT_12V_PLANAR" hex="06036480" type="BC"
-       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MM" dup="0"
+       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MMACT" dup="0"
        msg="System shutoff due to +12v over voltage." />
 
 <event name="EN_MAJOR_LO_FAULT_1_8V" hex="0807A900" type="BC"
-       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MM" dup="1"
+       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MMACT" dup="1"
        msg="System is under recommended voltage for 1.8V CPU" />
 
 <event name="EN_THERM_TRIP_CPU8" hex="0421D088" type="RSA"
@@ -2448,6 +2528,10 @@
 <event name="EN_CUTOFF_HI_OVER_TEMP_CPU2" hex="0421C482" type="BCT"
        severity="SAHPI_CRITICAL" override="OVR_SEV" dup="0"
        msg="System shutoff due to CPU 2 over temperature." />
+
+<event name="EN_FAN3_SPEED" hex="00026803" type="BCT"
+       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_RID" dup="0"
+       msg="Blower 3 Failure" />
 
 <event name="EN_THERM_TRIP_CPU4" hex="0421D084" type="RSA"
        severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_RID" dup="0"
@@ -2477,13 +2561,13 @@
        severity="SAHPI_MAJOR" override="OVR_SEV" dup="0"
        msg="System under recommended voltage for +5v." />
 
-<event name="EN_BUST_1_5V_FAULT" hex="0E840002" type="BC"
-       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_EXP" dup="0"
-       msg="BEM +1.5V Fault." />
-
 <event name="EN_BUST_5V_WARNING_LOW" hex="0E834802" type="BC"
        severity="SAHPI_MAJOR" override="OVR_SEV | OVR_EXP" dup="0"
        msg="BEM +5V under recommended voltage." />
+
+<event name="EN_BUST_1_5V_FAULT" hex="0E840002" type="BC"
+       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_EXP" dup="0"
+       msg="BEM +1.5V Fault." />
 
 <event name="EN_CUTOFF_LO_FAULT_1_5V" hex="08040880" type="RSA"
        severity="SAHPI_CRITICAL" override="OVR_SEV" dup="0"
@@ -2682,7 +2766,7 @@
        msg="Fan 5 Fault Multiple fan failures" />
 
 <event name="EN_MM_1_INSTALLED" hex="00282001" type="BCT"
-       severity="SAHPI_INFORMATIONAL" override="OVR_SEV | OVR_MM" dup="0"
+       severity="SAHPI_INFORMATIONAL" override="OVR_SEV | OVR_MM1" dup="0"
        msg="Management Module 1 was installed." />
 
 <event name="EN_CUTOFF_LO_FAULT_2_5V" hex="08030880" type="RSA"
@@ -2722,7 +2806,7 @@
        msg="Power Supply 3 Current Fault" />
 
 <event name="EN_MAJOR_LO_FAULT_1_8V" hex="0807A900" type="BCT"
-       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MM" dup="1"
+       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MMACT" dup="1"
        msg="System is under recommended voltage for 1.8V CPU" />
 
 <event name="EN_BLADE_D_COMM_FAIL" hex="0E00800D" type="BCT"
@@ -2798,7 +2882,7 @@
        msg="I/O module 1 was removed." />
 
 <event name="EN_CUTOFF_LO_FAULT_2_5V" hex="08030880" type="BCT"
-       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MM" dup="0"
+       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MMACT" dup="0"
        msg="System shutoff due to +2.5v under voltage." />
 
 <event name="EN_SWITCH_3_POWERED_ON" hex="0EA08003" type="BC"
@@ -2832,6 +2916,10 @@
 <event name="EN_PFA_HI_OVER_TEMP_CPU1" hex="0421D501" type="BCT"
        severity="SAHPI_MAJOR" override="OVR_SEV" dup="0"
        msg="System over temperature for CPU 1." />
+
+<event name="EN_I2C_BUS_1_FAIL" hex="00020001" type="BC"
+       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MMACT" dup="0"
+       msg="Failure reading I2C device. Check devices on bus 1." />
 
 <event name="EN_BLADE_1_INSTALLED" hex="0E002001" type="BC"
        severity="SAHPI_INFORMATIONAL" override="OVR_SEV | OVR_RID" dup="0"
@@ -2889,12 +2977,16 @@
        severity="SAHPI_MAJOR" override="OVR_SEV" dup="0"
        msg="System over recommended voltage on +1.5v." />
 
+<event name="EN_FAN2_SPEED" hex="00026802" type="BC"
+       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_RID" dup="0"
+       msg="Blower 2 Failure" />
+
 <event name="EN_BLADE_5_INSTALLED" hex="0E002005" type="BC"
        severity="SAHPI_INFORMATIONAL" override="OVR_SEV | OVR_RID" dup="0"
        msg="Blade Server 5 was installed." />
 
 <event name="EN_CUTOFF_HI_FAULT_12V_PLANAR" hex="06036480" type="BCT"
-       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MM" dup="0"
+       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MMACT" dup="0"
        msg="System shutoff due to +12v over voltage." />
 
 <event name="EN_BLADE_3_COMM_FAIL" hex="0E008003" type="BC"
@@ -2910,7 +3002,7 @@
        msg="Blade 13 is throttled." />
 
 <event name="EN_PFA_LO_FAULT_PLANAR_5V" hex="06035800" type="BCT"
-       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MM" dup="0"
+       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MMACT" dup="0"
        msg="System under recommended voltage for +5v." />
 
 <event name="EN_FAULT_PS2_EPOW" hex="08180002" type="BC"
@@ -2985,6 +3077,10 @@
        severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_RID" dup="0"
        msg="I/O module 1 Current Fault Multiple I/O module failures" />
 
+<event name="EN_FAN4_SPEED" hex="00026804" type="BC"
+       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_RID" dup="0"
+       msg="Blower 4 Failure" />
+
 <event name="EN_FAULT_SWITCH_2" hex="0EA00002" type="BCT"
        severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_RID" dup="0"
        msg="I/O module 2 Fault Multiple I/O module failures" />
@@ -3000,6 +3096,10 @@
 <event name="EN_FAULT_FAN3" hex="0A026003" type="RSA"
        severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_RID" dup="0"
        msg="Fan 3 Fault Multiple fan failures" />
+
+<event name="EN_FAULT_FAN4" hex="0A026004" type="BCT"
+       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_RID" dup="0"
+       msg="Blower 4 Fault" />
 
 <event name="EN_2_5VS_WARNING_LOW" hex="0A030C02" type="BC"
        severity="SAHPI_MAJOR" override="OVR_SEV" dup="0"
@@ -3046,7 +3146,7 @@
        msg="I/O module 1 Temperature Fault Multiple I/O module failures" />
 
 <event name="EN_MAJOR_LO_FAULT_N5V" hex="803C9000" type="BCT"
-       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MM" dup="0"
+       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MMACT" dup="0"
        msg="System under recommended voltage for -5v." />
 
 <event name="EN_SWITCH_2_POST_ERROR" hex="0EA0E002" type="BC"
@@ -3057,13 +3157,13 @@
        severity="SAHPI_MAJOR" override="OVR_SEV" dup="0"
        msg="Standby +2.5V over recommended voltage." />
 
-<event name="EN_BLADE_3_THROTTLED" hex="0E00C003" type="BC"
-       severity="SAHPI_INFORMATIONAL" override="OVR_SEV" dup="0"
-       msg="Blade 3 is throttled." />
-
 <event name="EN_BUST_5V_WARNING_HI" hex="0E834402" type="BC"
        severity="SAHPI_MAJOR" override="OVR_SEV | OVR_EXP" dup="0"
        msg="BEM +5V over recommended voltage." />
+
+<event name="EN_BLADE_3_THROTTLED" hex="0E00C003" type="BC"
+       severity="SAHPI_INFORMATIONAL" override="OVR_SEV" dup="0"
+       msg="Blade 3 is throttled." />
 
 <event name="EN_FAULT_PS3_TEMP_WARN" hex="0821C003" type="BCT"
        severity="SAHPI_MAJOR" override="OVR_SEV | OVR_RID" dup="0"
@@ -3086,7 +3186,7 @@
        msg="Power Supply 2 12V Over Voltage Fault" />
 
 <event name="EN_PFA_HI_FAULT_12V_PLANAR" hex="06037500" type="BC"
-       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MM" dup="1"
+       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MMACT" dup="1"
        msg="System over recommended voltage for +12v." />
 
 <event name="EN_FAN_3_NOT_PRESENT" hex="06026003" type="RSA"
@@ -3141,6 +3241,10 @@
        severity="SAHPI_MAJOR" override="OVR_SEV" dup="0"
        msg="System over recommended voltage on +3.3v." />
 
+<event name="EN_PWR_DOMAIN_2_OVER_SUBSCRIP_NONREC" hex="08008402" type="BCT"
+       severity="SAHPI_MINOR" override="OVR_SEV" dup="0"
+       msg="Demand exceeds a single power module. Immediate shutdown in domain 2 may occur if module f" />
+
 <event name="EN_SWITCH_2_INSUFFICIENT_PWR" hex="0E00B002" type="BCT"
        severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_RID" dup="0"
        msg="Switch 2 is not allowed to power on because of insufficient power." />
@@ -3194,7 +3298,7 @@
        msg="DASD 4 over recommended temperature." />
 
 <event name="EN_MM_1_REMOVED" hex="00284001" type="BCT"
-       severity="SAHPI_INFORMATIONAL" override="OVR_SEV | OVR_MM" dup="0"
+       severity="SAHPI_INFORMATIONAL" override="OVR_SEV | OVR_MM1" dup="0"
        msg="Management Module 1 was removed." />
 
 <event name="EN_BLADE_1_THROTTLED" hex="0E00C001" type="BC"
@@ -3243,6 +3347,10 @@
 
 <event name="EN_FAULT_FAN1" hex="0A026001" type="BCT"
        severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_RID" dup="0"
+       msg="Blower 1 Fault" />
+
+<event name="EN_FAULT_FAN1" hex="0A026001" type="BCT"
+       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_RID" dup="0"
        msg="Blower 1 Fault Multiple blower failures" />
 
 <event name="EN_FAN_4_NOT_PRESENT" hex="06026004" type="RSA"
@@ -3250,8 +3358,12 @@
        msg="Fan 4 not detected Multiple fan failures" />
 
 <event name="EN_CUTOFF_LO_FAULT_1_8V" hex="0807A880" type="BCT"
-       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MM" dup="0"
+       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MMACT" dup="0"
        msg="System shutoff due to 1.8V CPU under voltage" />
+
+<event name="EN_FAULT_FAN1" hex="0A026001" type="BC"
+       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_RID" dup="0"
+       msg="Blower 1 Fault" />
 
 <event name="EN_SWITCH_3_CFG_ERROR" hex="0EA0C003" type="BC"
        severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_RID" dup="0"
@@ -3317,16 +3429,16 @@
        severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_RID" dup="0"
        msg="I/O module 4 Fault Multiple I/O module failures" />
 
-<event name="EN_BLADE_A_COMM_FAIL" hex="0E00800A" type="BC"
-       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_RID" dup="0"
-       msg="SP Communications Failure on Blade 10." />
-
 <event name="EN_BUST_3_3V_WARNING_LOW" hex="0E832802" type="BC"
        severity="SAHPI_MAJOR" override="OVR_SEV | OVR_EXP" dup="0"
        msg="BEM +3.3V under recommended voltage." />
 
+<event name="EN_BLADE_A_COMM_FAIL" hex="0E00800A" type="BC"
+       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_RID" dup="0"
+       msg="SP Communications Failure on Blade 10." />
+
 <event name="EN_CUTOFF_LO_FAULT_N5V" hex="0803C800" type="BCT"
-       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MM" dup="0"
+       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MMACT" dup="0"
        msg="System shutoff due to -5v under voltage." />
 
 <event name="EN_CUTOFF_LO_FAULT_3_35V_CONT" hex="0002C880" type="RSA"
@@ -3336,6 +3448,10 @@
 <event name="EN_BLADE_E_NO_PWR_VPD" hex="0E00E00E" type="BC"
        severity="SAHPI_CRITICAL" override="OVR_SEV" dup="0"
        msg="Can not read power-on VPD for blade 14." />
+
+<event name="EN_FAN2_SPEED" hex="00026802" type="BCT"
+       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_RID" dup="0"
+       msg="Blower 2 Failure" />
 
 <event name="EN_MAJOR_LO_FAULT_3_35V" hex="FF032900" type="BCT"
        severity="SAHPI_MAJOR" override="OVR_SEV" dup="0"
@@ -3369,17 +3485,21 @@
        severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_RID" dup="0"
        msg="Power Supply 2 Fault" />
 
-<event name="EN_IO_3_3V_WARNING_LOW" hex="0A02CC00" type="BC"
-       severity="SAHPI_CRITICAL" override="OVR_SEV" dup="0"
-       msg="IO Board +3.3V under recommended voltage." />
-
 <event name="EN_BLADE_6_REMOVED" hex="0E004006" type="BC"
        severity="SAHPI_INFORMATIONAL" override="OVR_SEV | OVR_RID" dup="0"
        msg="Blade Server 6 was removed." />
 
+<event name="EN_IO_3_3V_WARNING_LOW" hex="0A02CC00" type="BC"
+       severity="SAHPI_CRITICAL" override="OVR_SEV" dup="0"
+       msg="IO Board +3.3V under recommended voltage." />
+
 <event name="EN_SWITCH_2_POST_TIMEOUT" hex="0EA0D002" type="BC"
        severity="SAHPI_MAJOR" override="OVR_SEV | OVR_RID" dup="0"
        msg="I/O module 2 POST Timeout." />
+
+<event name="EN_PWR_DOMAIN_2_OVER_SUBSCRIP_NONREC" hex="08008402" type="BCT"
+       severity="SAHPI_MINOR" override="OVR_SEV" dup="0"
+       msg="Demand exceeds a single power module. Immediate shutdown in domain 2 may occur if module fails." />
 
 <event name="EN_PFA_LO_FAULT_2_5V" hex="08031880" type="RSA"
        severity="SAHPI_MAJOR" override="OVR_SEV" dup="0"
@@ -3390,7 +3510,7 @@
        msg="System shutoff due to DASD Option temperature." />
 
 <event name="EN_CUTOFF_LO_FAULT_3_35V" hex="08032880" type="BCT"
-       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MM" dup="0"
+       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MMACT" dup="0"
        msg="System shutoff due to +3.3v under voltage." />
 
 <event name="EN_FAN3_SPEED" hex="00026803" type="RSA"
@@ -3401,6 +3521,10 @@
        severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_RID" dup="0"
        msg="Blower 1 Fault Single blower failure" />
 
+<event name="EN_BUST_5V_FAULT" hex="0E834002" type="BC"
+       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_EXP" dup="0"
+       msg="BEM +5V Fault." />
+
 <event name="EN_MAJOR_LO_FAULT_1_8V" hex="FF07A900" type="BC"
        severity="SAHPI_MAJOR" override="OVR_SEV" dup="0"
        msg="System is under recommended voltage for 1.8V CPU_HPIDUP1" />
@@ -3409,10 +3533,6 @@
        severity="SAHPI_CRITICAL" override="NO_OVR" dup="0"
        msg="Bogus Test Event." />
 
-<event name="EN_BUST_5V_FAULT" hex="0E834002" type="BC"
-       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_EXP" dup="0"
-       msg="BEM +5V Fault." />
-
 <event name="EN_NR_PWR_SUPPLY_DOM_2" hex="08081002" type="BCT"
        severity="SAHPI_MINOR" override="OVR_SEV" dup="0"
        msg="Power modules are nonredundant in domain 2" />
@@ -3420,10 +3540,6 @@
 <event name="EN_FAULT_FP_R" hex="09020000" type="BC"
        severity="SAHPI_MINOR" override="OVR_SEV | OVR_RID" dup="0"
        msg="System front panel controller not responding." />
-
-<event name="EN_PWR_DOMAIN_1_OVER_SUBSCRIP_NONREC" hex="08008401" type="BCT"
-       severity="SAHPI_MINOR" override="OVR_SEV" dup="0"
-       msg="A power failure in domain 1 can result in an immediate shutdown." />
 
 <event name="EN_12VS_WARNING_LOW" hex="0A036C02" type="BCT"
        severity="SAHPI_MAJOR" override="OVR_SEV" dup="0"
@@ -3438,7 +3554,7 @@
        msg="I/O module 3 POST Timeout." />
 
 <event name="EN_MM_1_REMOVED" hex="00284001" type="BC"
-       severity="SAHPI_INFORMATIONAL" override="OVR_SEV | OVR_MM" dup="0"
+       severity="SAHPI_INFORMATIONAL" override="OVR_SEV | OVR_MM1" dup="0"
        msg="Management Module 1 was removed." />
 
 <event name="EN_OVER_TEMP_PLANAR" hex="0601C080" type="RSA"
@@ -3458,7 +3574,7 @@
        msg="BEM +1.8V under recommended voltage." />
 
 <event name="EN_CUTOFF_LO_FAULT_N5V" hex="0803C800" type="BC"
-       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MM" dup="0"
+       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MMACT" dup="0"
        msg="System shutoff due to -5v under voltage." />
 
 <event name="EN_BLADE_B_INSTALLED" hex="0E00200B" type="BC"
@@ -3541,12 +3657,16 @@
        severity="SAHPI_CRITICAL" override="OVR_SEV" dup="0"
        msg="Blade Server 7 is incompatible with I/O module configuration." />
 
+<event name="EN_BUST_3_3V_WARNING_HI" hex="0E832402" type="BC"
+       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_EXP" dup="0"
+       msg="BEM +3.3V over recommended voltage." />
+
 <event name="EN_PFA_LO_FAULT_1_2V" hex="08001801" type="BC"
        severity="SAHPI_MAJOR" override="OVR_SEV" dup="0"
        msg="System under recommended voltage on +1.2v." />
 
 <event name="EN_PFA_HI_FAULT_3_35V" hex="08033480" type="BCT"
-       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MM" dup="1"
+       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MMACT" dup="1"
        msg="System over recommended voltage on +3.3v." />
 
 <event name="EN_IO_12V_WARNING_HI" hex="0A037C00" type="BCT"
@@ -3557,12 +3677,8 @@
        severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_RID" dup="0"
        msg="SP Communications Failure on Blade 11." />
 
-<event name="EN_BUST_3_3V_WARNING_HI" hex="0E832402" type="BC"
-       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_EXP" dup="0"
-       msg="BEM +3.3V over recommended voltage." />
-
 <event name="EN_PFA_LO_FAULT_12V_PLANAR" hex="06037800" type="BC"
-       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MM" dup="1"
+       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MMACT" dup="1"
        msg="System under recommended voltage for +12v." />
 
 <event name="EN_BLADE_D_REMOVED" hex="0E00400D" type="BCT"
@@ -3614,12 +3730,16 @@
        msg="I/O module 1 is incompatible with Blade Server configuration. Multiple I/O module failures" />
 
 <event name="EN_MAJOR_HI_FAULT_PLANAR_5V" hex="06034500" type="BCT"
-       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MM" dup="0"
+       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MMACT" dup="0"
        msg="System over recommended voltage for +5v." />
 
 <event name="EN_FAULT_PS2_12V_UNDER" hex="08236802" type="BCT"
        severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_RID" dup="0"
        msg="Power Supply 2 12V Under Voltage Fault" />
+
+<event name="EN_I2C_BUS_3_FAIL" hex="00020003" type="BCT"
+       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MMACT" dup="0"
+       msg="Failure reading I2C device. Check devices on bus 3." />
 
 <event name="EN_BLADE_1_REMOVED" hex="0E004001" type="BCT"
        severity="SAHPI_INFORMATIONAL" override="OVR_SEV | OVR_RID" dup="0"
@@ -3709,6 +3829,10 @@
        severity="SAHPI_INFORMATIONAL" override="OVR_SEV | OVR_RID" dup="0"
        msg="I/O module 1 was installed." />
 
+<event name="EN_PWR_DOMAIN_1_OVER_SUBSCRIP_NONREC" hex="08008401" type="BCT"
+       severity="SAHPI_MINOR" override="OVR_SEV" dup="0"
+       msg="Demand exceeds a single power module. Immediate shutdown in domain 1 may occur if module f" />
+
 <event name="EN_PFA_HI_OVER_TEMP_CPU2" hex="0421D502" type="RSA"
        severity="SAHPI_MAJOR" override="OVR_SEV | OVR_RID" dup="0"
        msg="System over temperature for CPU 2." />
@@ -3769,13 +3893,13 @@
        severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_RID" dup="0"
        msg="I/O module 2 is incompatible with Blade Server configuration. Multiple I/O module failures" />
 
+<event name="EN_CUTOFF_LO_FAULT_2_5V" hex="08030880" type="BC"
+       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MMACT" dup="0"
+       msg="System shutoff due to +2.5v under voltage." />
+
 <event name="EN_3_3VS_WARNING_LOW" hex="0A02CC02" type="BC"
        severity="SAHPI_MAJOR" override="OVR_SEV" dup="0"
        msg="Standby +3.3V under recommended voltage." />
-
-<event name="EN_CUTOFF_LO_FAULT_2_5V" hex="08030880" type="BC"
-       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MM" dup="0"
-       msg="System shutoff due to +2.5v under voltage." />
 
 <event name="EN_BLADE_E_CFG_FAIL" hex="0E00600E" type="BC"
        severity="SAHPI_CRITICAL" override="OVR_SEV" dup="0"
@@ -3793,13 +3917,13 @@
        severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_RID" dup="0"
        msg="Blower 3 Failure Multiple blower failures" />
 
-<event name="EN_3_3VS_WARNING_HI" hex="0A02DC02" type="BC"
-       severity="SAHPI_MAJOR" override="OVR_SEV" dup="0"
-       msg="Standby +3.3V over recommended voltage." />
-
 <event name="EN_IO_1_5V_WARNING_LOW" hex="0A040C00" type="BCT"
        severity="SAHPI_CRITICAL" override="OVR_SEV" dup="0"
        msg="IO Board +1.5V under recommended voltage." />
+
+<event name="EN_3_3VS_WARNING_HI" hex="0A02DC02" type="BC"
+       severity="SAHPI_MAJOR" override="OVR_SEV" dup="0"
+       msg="Standby +3.3V over recommended voltage." />
 
 <event name="EN_PFA_HI_OVER_TEMP_DASD1_2" hex="0681C402" type="RSA"
        severity="SAHPI_MAJOR" override="OVR_SEV | OVR_RID" dup="0"
@@ -3828,6 +3952,10 @@
 <event name="EN_SWITCH_3_CFG_ERROR" hex="0EA0C003" type="BCT"
        severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_RID" dup="0"
        msg="I/O module 3 is incompatible with Blade Server configuration." />
+
+<event name="EN_I2C_BUS_5_FAIL" hex="00020005" type="BCT"
+       severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MMACT" dup="0"
+       msg="Failure reading I2C device. Check devices on bus 5." />
 
 <event name="EN_OVER_TEMP_SWITCH_4" hex="0EA1C404" type="BCT"
        severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_RID" dup="0"

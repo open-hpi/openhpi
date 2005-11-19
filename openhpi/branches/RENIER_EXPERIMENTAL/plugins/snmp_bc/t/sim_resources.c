@@ -87,9 +87,10 @@ struct snmp_bc_data sim_resource_array[] = {
                         },
                 },
         },
-        /* Add more example event log messages */
+        /* NOTE:: Must have one plus the END of Log Entry for each
+           event in the simulator's event log */
         {
-                /* Event Log Index Number */
+                /* Event Log Index Number for Event 1 */
                 .oid = ".1.3.6.1.4.1.2.3.51.2.3.4.2.1.1.1",
                 .mib = {
                         .type = ASN_INTEGER,
@@ -98,8 +99,8 @@ struct snmp_bc_data sim_resource_array[] = {
                         },
                 },
         },
-        {
-                /* Event Log Index Number */
+	{
+                /* Event Log Index Number for Event 2 */
                 .oid = ".1.3.6.1.4.1.2.3.51.2.3.4.2.1.1.2",
                 .mib = {
                         .type = ASN_INTEGER,
@@ -109,14 +110,24 @@ struct snmp_bc_data sim_resource_array[] = {
                 },
         },
         {
-                /*
-                 *  Special End of Log Entry - Simulator ONLY
-                 * Code always reads one SNMP OID past end of log. When
-                 * snmp_get returns a negative value, the code knows its read
-                 * the entire error log. This entry allows the simulator to
-                 * force the snmp_get to return a negative value
-                 */
+                /* Event Log Index Number for Event 3 */
                 .oid = ".1.3.6.1.4.1.2.3.51.2.3.4.2.1.1.3",
+                .mib = {
+                        .type = ASN_INTEGER,
+                        .value = {
+                                .integer = 3,
+                        },
+                },
+        },
+	/*
+	 * Special End of Log Entry - Simulator ONLY
+	 * Code always reads one SNMP OID past end of log. When
+	 * snmp_get returns a negative value, the code knows its read
+	 * the entire error log. This entry allows the simulator to
+	 * force the snmp_get to return a negative value
+	 */
+        {
+                .oid = ".1.3.6.1.4.1.2.3.51.2.3.4.2.1.1.4",
                 .mib = {
                         .type = ASN_INTEGER,
                         .value = {
@@ -129,14 +140,67 @@ struct snmp_bc_data sim_resource_array[] = {
                 .oid = ".1.3.6.1.4.1.2.3.51.2.3.4.2.1.2.1",
                 .mib = {
                         .type = ASN_OCTET_STR,
+			.value = {
+				.string = "Severity:WARN  Source:BLADE_01  Name:SN#ZJ1R6G5932JX  Date:11/18/05  Time:18:15:47  Text:System over temperature for CPU 4.   Read value. 0. Threshold value. 0.",
+			},
+		},
+        },
+        {
+                /* Event Log Message */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.3.4.2.1.2.2",
+                .mib = {
+                        .type = ASN_OCTET_STR,
                         .value = {
-                                .string = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:12/25/03  Time:09:09:48  Text:Remote Login Successful.Login ID:'(SNMP Manager at IP@=192.168.64.5 authenticated).'",
+				.string =  "Severity:WARN  Source:BLADE_01  Name:SN#ZJ1R6G5932JX  Date:11/18/05  Time:15:26:02  Text:System shutoff due to VRM 1 over voltage.  Read value 247.01. Threshold value. 0.",
                         },
                 },
         },
         {
                 /* Event Log Message */
-                .oid = ".1.3.6.1.4.1.2.3.51.2.3.4.2.1.2.2",
+                .oid = ".1.3.6.1.4.1.2.3.51.2.3.4.2.1.2.3",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+				.string = "Severity:INFO  Source:SERVPROC  Name:SN#   Date:11/19/05  Time:12:17:55  Text:Management Module 2 was installed.",
+                        },
+                },
+	},
+#if 0
+	.string = "Severity:ERR  Source:SERVPROC  Name:SN#              Date:11/18/05  Time:21:46:49  Text:Blower 1 Failure Single blower failure",
+
+	.string = "Severity:WARN  Source:BLADE_01  Name:SN#ZJ1R6G5932JX  Date:11/18/05  Time:18:15:47  Text:System over temperature for CPU 4.   Read value. 0. Threshold value. 0.",
+
+	.string = "Severity:INFO  Source:SERVPROC  Name:SN#              Date:11/18/05  Time:18:15:47  Text:TAM MNR alert for Event (ID = 0x0421d504) System over temperature for CPU 4.",
+
+	.string = "Severity:ERR  Source:BLADE_01  Name:SN#ZJ1R6G5932JX  Date:11/18/05  Time:18:14:37  Text:System shutoff due to CPU 3 over temperature.   Read value 247.01. Threshold value. 0.",
+
+	.string = "Severity:ERR  Source:SERVPROC  Name:SN#              Date:11/18/05  Time:17:44:41  Text:CPU 1 shut off due to over temperature ",
+.
+	.string = "Severity:ERR  Source:BLADE_01  Name:SN#ZJ1R6G5932JX  Date:11/18/05  Time:17:15:15  Text:Planar voltage fault.  Read value. 0. Threshold value. 0.",
+
+	.string = "Severity:ERR  Source:BLADE_01  Name:SN#ZJ1R6G5932JX  Date:11/18/05  Time:16:43:46  Text:IO Board voltage fault.  Read value. 0. Threshold value. 0.",
+
+	.string =  "Severity:WARN  Source:BLADE_01  Name:SN#ZJ1R6G5932JX  Date:11/18/05  Time:15:26:02  Text:System shutoff due to VRM 1 over voltage.  Read value 247.01. Threshold value. 0.",
+
+	.string = "Severity:ERR  Source:BLADE_01  Name:SN#ZJ1R6G5932JX  Date:11/17/05  Time:14:08:22  Text:BEM +1.5V Fault.  Read value 247.01. Threshold value. 0.",
+
+	.string = "Severity:ERR  Source:BLADE_01  Name:SN#ZJ1R6G5932JX  Date:11/17/05  Time:14:08:10  Text:BEM Option failure ",
+
+	.string = "Severity:ERR  Source:BLADE_01  Name:SN#ZJ1R6G5932JX  Date:11/17/05  Time:14:08:22  Text:BEM +1.5V Fault.  Read value 247.01. Threshold value. 0.",
+
+	.string = "Severity:ERR  Source:BLADE_01  Name:SN#ZJ1R6G5932JX  Date:11/17/05  Time:14:08:10  Text:BEM Option failure ",
+
+	.string = "Severity:INFO  Source:SERVPROC  Name:SN#              Date:11/12/05  Time:21:39:10  Text:Management Module in bay 1 is Active.",
+
+	.string = "Severity:ERR  Source:SERVPROC  Name:bct-33  Date:11/12/05  Time:21:29:08  Text:Blower 1 Fault Single blower failure",
+
+	.string = "Severity:WARN  Source:SERVPROC  Name:SN#              Date:11/13/05  Time:16:19:07  Text:Power modules are nonredundant in domain 2",
+
+	.string = "Severity:ERR  Source:SERVPROC  Name:SN#              Date:11/13/05  Time:16:19:07  Text:Power Supply 4 Removed.",
+#endif
+	{
+                /* Event Log Message */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.3.4.2.1.2.4",
                 .mib = {
                         .type = ASN_OCTET_STR,
                         .value = {

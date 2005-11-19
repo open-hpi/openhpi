@@ -31,9 +31,11 @@
 # NOTES:
 # - Cannot have duplicate events with the chassis and any other resource
 #   that cannot be explicitly derived from the event log's Source field.
-# - OVR_MM is used to change the default resource from the chassis to
-#   the MM. Had to do this to support duplicate event strings between 
-#   blades and the MM.
+# - OVR_MM1 and OVR_MM2 used to identify MM1 or MM2 for hotswap and
+#   takeover events.
+# - OVR_MMACT is used to change the default resource from the
+#   chassis to the active MM. Had to do this to support duplicate event 
+#   strings between blades and the MM.
 # - OVR_EXP is used to assign BEM events to the add-in card resource.
 #   They are reported by the event log's Source field as blade events. 
 ###########################################################################
@@ -84,10 +86,14 @@ EN_NR_PWR_SUPPLY_DOM_1|0x08081001|BCT,BC|SAHPI_MINOR|OVR_SEV|"Power modules are 
 EN_NR_PWR_SUPPLY_DOM_2|0x08081002|BCT,BC|SAHPI_MINOR|OVR_SEV|"Power modules are nonredundant in domain 2"
 
 # Power domain 1 redundancy sensor - No real physical sensor; event-only sensor 
-EN_PWR_DOMAIN_1_OVER_SUBSCRIP_NONREC|0x08008401|BCT,BC|SAHPI_MINOR|OVR_SEV|"A power failure in domain 1 can result in an immediate shutdown."
+EN_PWR_DOMAIN_1_OVER_SUBSCRIP_NONREC|0x08008401|BCT,BC|SAHPI_MINOR|OVR_SEV|"Demand exceeds a single power module. Immediate shutdown in domain 1 may occur if module fails."
+# This string necessary since Recovery string is truncated
+EN_PWR_DOMAIN_1_OVER_SUBSCRIP_NONREC|0x08008401|BCT,BC|SAHPI_MINOR|OVR_SEV|"Demand exceeds a single power module. Immediate shutdown in domain 1 may occur if module f"
 
 # Power domain 2 redundancy sensor - No real physical sensor; event-only sensor
-EN_PWR_DOMAIN_2_OVER_SUBSCRIP_NONREC|0x08008402|BCT,BC|SAHPI_MINOR|OVR_SEV|"A power failure in domain 2 can result in an immediate shutdown."
+# This string necessary since Recovery string is truncated
+EN_PWR_DOMAIN_2_OVER_SUBSCRIP_NONREC|0x08008402|BCT,BC|SAHPI_MINOR|OVR_SEV|"Demand exceeds a single power module. Immediate shutdown in domain 2 may occur if module fails."
+EN_PWR_DOMAIN_2_OVER_SUBSCRIP_NONREC|0x08008402|BCT,BC|SAHPI_MINOR|OVR_SEV|"Demand exceeds a single power module. Immediate shutdown in domain 2 may occur if module f"
 
 # Chassis filter sensor - event only
 EN_FAULT_CRT_FILTER|0x6F100000|BCT|SAHPI_CRITICAL|OVR_SEV|"Telco Filter is in CRITICAL condition. Replace filter needed."
@@ -100,64 +106,79 @@ EN_FAULT_MNR_FILTER_SERVICE|0x6F500000|BCT|SAHPI_MINOR|OVR_SEV|"Telco Filter: Ro
 # Management Module Resource
 ############################
 
-EN_MM_1_INSTALLED|0x00282001|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV,OVR_MM|"Management Module 1 was installed."
-EN_MM_2_INSTALLED|0x00282002|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV,OVR_MM|"Management Module 2 was installed."
+EN_MM_1_INSTALLED|0x00282001|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV,OVR_MM1|"Management Module 1 was installed."
+EN_MM_2_INSTALLED|0x00282002|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV,OVR_MM2|"Management Module 2 was installed."
 
-EN_MM_1_REMOVED|0x00284001|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV,OVR_MM|"Management Module 1 was removed."
-EN_MM_2_REMOVED|0x00284002|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV,OVR_MM|"Management Module 2 was removed."
+EN_MM_1_REMOVED|0x00284001|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV,OVR_MM1|"Management Module 1 was removed."
+EN_MM_2_REMOVED|0x00284002|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV,OVR_MM2|"Management Module 2 was removed."
 
-EN_MM_1_ISPRIME|0x06000201|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV,OVR_MM|"Management Module in bay 1 is Active."
-EN_MM_2_ISPRIME|0x06000202|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV,OVR_MM|"Management Module in bay 2 is Active."
+EN_MM_1_ISPRIME|0x06000201|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV,OVR_MM1|"Management Module in bay 1 is Active."
+EN_MM_2_ISPRIME|0x06000202|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV,OVR_MM2|"Management Module in bay 2 is Active."
 
 ###########################
 # Management Module Sensors
 ###########################
 
 # Thermal sensor on MM
-EN_CUTOFF_HI_OVER_TEMP_SP_CARD|0x0001C500|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MM|"Shutoff due to high Management Module temperature."
-EN_CUTOFF_LO_OVER_TEMP_SP_CARD|0x0011C881|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MM|"System shutoff due to under Management Module temperature."
-EN_PFA_HI_OVER_TEMP_SP_CARD|0x0001D400|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MM|"Management Module is over recommended temperature."
-EN_MAJOR_LO_OVER_TEMP_SP_CARD|0x0011C901|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MM|"System under recommended Management Module temperature."
+EN_CUTOFF_HI_OVER_TEMP_SP_CARD|0x0001C500|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MMACT|"Shutoff due to high Management Module temperature."
+EN_CUTOFF_LO_OVER_TEMP_SP_CARD|0x0011C881|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MMACT|"System shutoff due to under Management Module temperature."
+EN_PFA_HI_OVER_TEMP_SP_CARD|0x0001D400|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MMACT|"Management Module is over recommended temperature."
+EN_MAJOR_LO_OVER_TEMP_SP_CARD|0x0011C901|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MMACT|"System under recommended Management Module temperature."
 
 # 1.8V voltage sensor on Management Module
 # Manually changed warnings to SAHPI_MAJOR 
-EN_CUTOFF_HI_FAULT_1_8V|0x0807A480|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MM|"System shutoff due to 1.8V CPU over voltage"
-EN_CUTOFF_LO_FAULT_1_8V|0x0807A880|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MM|"System shutoff due to 1.8V CPU under voltage"
-EN_MAJOR_HI_FAULT_1_8V|0x0807A500|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MM|"System is over recommended voltage for 1.8V CPU"
-EN_MAJOR_LO_FAULT_1_8V|0x0807A900|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MM|"System is under recommended voltage for 1.8V CPU"
+EN_CUTOFF_HI_FAULT_1_8V|0x0807A480|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MMACT|"System shutoff due to 1.8V CPU over voltage"
+EN_CUTOFF_LO_FAULT_1_8V|0x0807A880|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MMACT|"System shutoff due to 1.8V CPU under voltage"
+EN_MAJOR_HI_FAULT_1_8V|0x0807A500|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MMACT|"System is over recommended voltage for 1.8V CPU"
+EN_MAJOR_LO_FAULT_1_8V|0x0807A900|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MMACT|"System is under recommended voltage for 1.8V CPU"
 
 # 2.5V voltage sensor on Management Module
-EN_CUTOFF_HI_FAULT_2_5V|0x08030480|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MM|"System shutoff due to +2.5v over voltage."
-EN_CUTOFF_LO_FAULT_2_5V|0x08030880|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MM|"System shutoff due to +2.5v under voltage."
-EN_PFA_HI_FAULT_2_5V|0x08031480|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MM|"System over recommended voltage on +2.5v."
-EN_PFA_LO_FAULT_2_5V|0x08031880|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MM|"System under recommended voltage on +2.5v."
+EN_CUTOFF_HI_FAULT_2_5V|0x08030480|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MMACT|"System shutoff due to +2.5v over voltage."
+EN_CUTOFF_LO_FAULT_2_5V|0x08030880|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MMACT|"System shutoff due to +2.5v under voltage."
+EN_PFA_HI_FAULT_2_5V|0x08031480|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MMACT|"System over recommended voltage on +2.5v."
+EN_PFA_LO_FAULT_2_5V|0x08031880|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MMACT|"System under recommended voltage on +2.5v."
 
 # 3.3V voltage sensor on Management Module
-EN_CUTOFF_HI_FAULT_3_35V|0x08032480|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MM|"System shutoff due to +3.3v over voltage."
-EN_CUTOFF_LO_FAULT_3_35V|0x08032880|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MM|"System shutoff due to +3.3v under voltage."
-EN_PFA_HI_FAULT_3_35V|0x08033480|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MM|"System over recommended voltage on +3.3v."
-EN_MAJOR_LO_FAULT_3_35V|0x08032900|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MM|"System under recommended voltage on +3.3v."
+EN_CUTOFF_HI_FAULT_3_35V|0x08032480|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MMACT|"System shutoff due to +3.3v over voltage."
+EN_CUTOFF_LO_FAULT_3_35V|0x08032880|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MMACT|"System shutoff due to +3.3v under voltage."
+EN_PFA_HI_FAULT_3_35V|0x08033480|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MMACT|"System over recommended voltage on +3.3v."
+EN_MAJOR_LO_FAULT_3_35V|0x08032900|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MMACT|"System under recommended voltage on +3.3v."
 
 # 5V voltage sensor on Management Module
-EN_CUTOFF_HI_FAULT_PLANAR_5V|0x06034480|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MM|"System shutoff due to +5v over voltage."
-EN_CUTOFF_LO_FAULT_PLANAR_5V|0x06034800|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MM|"System shutoff due to +5v under voltage."
-EN_MAJOR_HI_FAULT_PLANAR_5V|0x06034500|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MM|"System over recommended voltage for +5v."
-EN_PFA_LO_FAULT_PLANAR_5V|0x06035800|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MM|"System under recommended voltage for +5v."
+EN_CUTOFF_HI_FAULT_PLANAR_5V|0x06034480|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MMACT|"System shutoff due to +5v over voltage."
+EN_CUTOFF_LO_FAULT_PLANAR_5V|0x06034800|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MMACT|"System shutoff due to +5v under voltage."
+EN_MAJOR_HI_FAULT_PLANAR_5V|0x06034500|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MMACT|"System over recommended voltage for +5v."
+EN_PFA_LO_FAULT_PLANAR_5V|0x06035800|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MMACT|"System under recommended voltage for +5v."
 
 # -5V voltage sensor on Management Module
-EN_CUTOFF_HI_FAULT_N5V|0x0803C480|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MM|"System shutoff due to -5v over voltage."
-EN_CUTOFF_LO_FAULT_N5V|0x0803C800|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MM|"System shutoff due to -5v under voltage."
-EN_PFA_HI_FAULT_N5V|0x0803D500|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MM|"System over recommended voltage for -5v."
-EN_MAJOR_LO_FAULT_N5V|0x803C9000|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MM|"System under recommended voltage for -5v."
+EN_CUTOFF_HI_FAULT_N5V|0x0803C480|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MMACT|"System shutoff due to -5v over voltage."
+EN_CUTOFF_LO_FAULT_N5V|0x0803C800|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MMACT|"System shutoff due to -5v under voltage."
+EN_PFA_HI_FAULT_N5V|0x0803D500|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MMACT|"System over recommended voltage for -5v."
+EN_MAJOR_LO_FAULT_N5V|0x803C9000|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MMACT|"System under recommended voltage for -5v."
 
 # 12V voltage sensor on Management Module
-EN_CUTOFF_HI_FAULT_12V_PLANAR|0x06036480|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MM|"System shutoff due to +12v over voltage."
-EN_CUTOFF_LO_FAULT_12V_PLANAR|0x06036800|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MM|"System shutoff due to +12v under voltage."
-EN_PFA_HI_FAULT_12V_PLANAR|0x06037500|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MM|"System over recommended voltage for +12v."
-EN_PFA_LO_FAULT_12V_PLANAR|0x06037800|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MM|"System under recommended voltage for +12v."
+EN_CUTOFF_HI_FAULT_12V_PLANAR|0x06036480|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MMACT|"System shutoff due to +12v over voltage."
+EN_CUTOFF_LO_FAULT_12V_PLANAR|0x06036800|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MMACT|"System shutoff due to +12v under voltage."
+EN_PFA_HI_FAULT_12V_PLANAR|0x06037500|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MMACT|"System over recommended voltage for +12v."
+EN_PFA_LO_FAULT_12V_PLANAR|0x06037800|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MMACT|"System under recommended voltage for +12v."
 
-# Network uplink loss
-EN_MM_NETWORK_LOSS|0x00222000|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MM|"Management Module network uplink loss."
+# MM network uplink loss
+EN_MM_NETWORK_LOSS|0x00217000|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MMACT|"Management Module network uplink loss."
+
+# MM I2C bus general operations - event only
+EN_I2C_BUS_1_FAIL|0x00020001|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MMACT|"Failure reading I2C device. Check devices on bus 1."
+
+# MM I2C bus blade presence operations - event only
+EN_I2C_BUS_2_FAIL|0x00020002|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MMACT|"Failure reading I2C device. Check devices on bus 2."
+
+# MM I2C bus power module operations - event only
+EN_I2C_BUS_3_FAIL|0x00020003|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MMACT|"Failure reading I2C device. Check devices on bus 3."
+
+# MM I2C bus media tray operations - event only
+EN_I2C_BUS_4_FAIL|0x00020004|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MMACT|"Failure reading I2C device. Check devices on bus 4."
+
+# MM I2C bus IO module operations - event only
+EN_I2C_BUS_5_FAIL|0x00020005|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MMACT|"Failure reading I2C device. Check devices on bus 5."
 
 ################
 # Blade Resource
@@ -407,6 +428,9 @@ EN_CPU_BD_POWER_FAULT|0x0401A000|BCT,BC|SAHPI_MAJOR|OVR_SEV|"Planar power fault.
 EN_DASD|0x00000069|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"DASD backplane Failure"
 EN_FAULT_POWER_GOOD|0x00028000|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"Power Good Fault"
 
+# Blade NMI Error
+EN_SYSERR_LED_ONLY|0x0000007E|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"Critical Interrupt - Front panel NMI"
+
 #########################
 # Expansion Card Resource
 #########################
@@ -582,21 +606,29 @@ EN_FAN4_PFA|0x000A6004|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_RID|"Blower 4 Outside Reco
 # Map to generic blower operational sensor
 EN_FAN1_SPEED|0x00026801|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 1 Failure Multiple blower failures"
 EN_FAN1_SPEED|0x00026801|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 1 Failure Single blower failure"
+EN_FAN1_SPEED|0x00026801|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 1 Failure"
 EN_FAN2_SPEED|0x00026802|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 2 Failure Multiple blower failures"
 EN_FAN2_SPEED|0x00026802|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 2 Failure Single blower failure"
+EN_FAN2_SPEED|0x00026802|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 2 Failure"
 EN_FAN3_SPEED|0x00026803|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 3 Failure Multiple blower failures"
 EN_FAN3_SPEED|0x00026803|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 3 Failure Single blower failure"
+EN_FAN3_SPEED|0x00026803|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 3 Failure"
 EN_FAN4_SPEED|0x00026804|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 4 Failure Multiple blower failures"
 EN_FAN4_SPEED|0x00026804|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 4 Failure Single blower failure"
+EN_FAN4_SPEED|0x00026804|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 4 Failure"
 
 EN_FAULT_FAN1|0x0A026001|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 1 Fault Multiple blower failures"
 EN_FAULT_FAN1|0x0A026001|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 1 Fault Single blower failure"
+EN_FAULT_FAN1|0x0A026001|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 1 Fault"
 EN_FAULT_FAN2|0x0A026002|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 2 Fault Multiple blower failures"
 EN_FAULT_FAN2|0x0A026002|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 2 Fault Single blower failure"
+EN_FAULT_FAN2|0x0A026002|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 2 Fault"
 EN_FAULT_FAN3|0x0A026003|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 3 Fault Multiple blower failures"
 EN_FAULT_FAN3|0x0A026003|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 3 Fault Single blower failure"
+EN_FAULT_FAN3|0x0A026003|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 3 Fault"
 EN_FAULT_FAN4|0x0A026004|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 4 Fault Multiple blower failures"
 EN_FAULT_FAN4|0x0A026004|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 4 Fault Single blower failure"
+EN_FAULT_FAN4|0x0A026004|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 4 Fault"
 
 ################
 # Power Resource

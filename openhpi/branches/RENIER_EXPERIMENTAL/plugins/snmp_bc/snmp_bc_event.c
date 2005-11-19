@@ -49,7 +49,7 @@ static SaErrorT snmp_bc_parse_threshold_str(gchar *str,
 static SaErrorT snmp_bc_logsrc2rid(struct oh_handler_state *handle,
 				   gchar *src,
 				   LogSource2ResourceT *resinfo,
-				   unsigned short ovr_flags);
+				   unsigned int ovr_flags);
 
 static SaErrorT snmp_bc_set_cur_prev_event_states(struct oh_handler_state *handle,
 						  EventMapInfoT *eventmap_info,
@@ -471,9 +471,12 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 	/* See if need to override default RID; These are hardcoded exceptions caused by the
            fact that we have to handle duplicates event strings for resources that the
            BladeCenter's event log Source field doesn't define. These options must not be
-           used with the OVR_RID option. Assumption is that exp card events all have
-           BLADE_0X in the Source field (not SERVPROC) */
-	if (strhash_data->event_ovr & OVR_EXP || strhash_data->event_ovr & OVR_MM) {
+           used with the OVR_RID option. Note: OVR_EXP messages always assumed to
+           have a SOURCE field = BLADE_0x */
+	if (strhash_data->event_ovr & OVR_EXP ||
+	    strhash_data->event_ovr & OVR_MMACT ||
+	    strhash_data->event_ovr & OVR_MM1 ||
+	    strhash_data->event_ovr & OVR_MM2) {
 
 		err = snmp_bc_logsrc2rid(handle, log_entry.source, &resinfo,
 					 strhash_data->event_ovr);
@@ -522,8 +525,6 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 		}
 		goto DONE;
 	}
-
-	trace("Found event in event map");
 
 	/* Set static event data defined during resource discovery */
 	working = eventmap_info->hpievent;
@@ -784,7 +785,6 @@ static SaErrorT snmp_bc_parse_threshold_str(gchar *str,
 	if (thresh_substrs[1][0] == '.') thresh_substrs[1][0] = ' ';
 
 	/* Strip any leading/trailing blanks - do again after any period conversion */
-	event_substrs[0]= g_strstrip(event_substrs[0]);
 	thresh_substrs[0] = g_strstrip(thresh_substrs[0]);
 	thresh_substrs[1] = g_strstrip(thresh_substrs[1]);
 	if ((event_substrs[0] == NULL || event_substrs[0] == '\0') ||
@@ -1113,8 +1113,10 @@ static SaErrorT snmp_bc_map2oem(SaHpiEventT *event,
  *
  * @ovr_flags is used to indicate exception cases. The two case
  * supported are:
- *   - OVR_EXP - indicates resource is an expansion card.
- *   - OVR_MM - indicates resource is the active MM card.
+ *   - OVR_EXP    - indicates resource is an expansion card.
+ *   - OVR_MMACT  - indicates resource is the active MM card.
+ *   - OVR_MM1    - indicates resource is the MM 1 card.
+ *   - OVR_MM2    - indicates resource is the MM 2 card.
  *
  * Return values:
  * SA_OK - Normal case.
@@ -1123,7 +1125,7 @@ static SaErrorT snmp_bc_map2oem(SaHpiEventT *event,
 static SaErrorT snmp_bc_logsrc2rid(struct oh_handler_state *handle,
 				   gchar *src,
 				   LogSource2ResourceT *resinfo,
-				   unsigned short ovr_flags)
+				   unsigned int ovr_flags)
 {
 	int rpt_index;
 	guint loc;
@@ -1194,10 +1196,15 @@ static SaErrorT snmp_bc_logsrc2rid(struct oh_handler_state *handle,
 		entity_type = snmp_bc_rpt_array[rpt_index].rpt.ResourceEntity.Entry[0].EntityType;
 	}
 	else {
-		/* Check for OVR_MM override, if cannot find explict resource from error
+		/* Check for OVR_MMx overrides, if cannot find explict resource from error
                    logs "Source" field */
-		if (ovr_flags & OVR_MM) {
-			loc = custom_handle->active_mm;
+
+		if (ovr_flags & OVR_MMACT || ovr_flags & OVR_MM1 || ovr_flags & OVR_MM2) {
+			if (ovr_flags & OVR_MMACT) { loc  = custom_handle->active_mm; }
+			else {
+				if (ovr_flags & OVR_MM1) { loc = 1; }
+				else { loc = 2; }
+			}
 			rpt_index = BC_RPT_ENTRY_MGMNT_MODULE;
 			entity_type = snmp_bc_rpt_array[rpt_index].rpt.ResourceEntity.Entry[0].EntityType;
 			array_ptr = &snmp_bc_mgmnt_sensors[0];
