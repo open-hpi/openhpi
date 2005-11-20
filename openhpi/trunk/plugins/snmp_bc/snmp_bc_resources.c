@@ -141,7 +141,7 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                                         .event = "0028200x", /* EN_MM_x_INSTALLED */
 					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_HS_STATE_ACTIVE,
+                                        .event_state = SAHPI_HS_STATE_INSERTION_PENDING,
                                         .recovery_state = SAHPI_HS_STATE_NOT_PRESENT,
                                 },
                                 {
@@ -149,6 +149,13 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
 					.event_res_failure = SAHPI_TRUE,
 					.event_res_failure_unexpected = SAHPI_TRUE,
                                         .event_state = SAHPI_HS_STATE_NOT_PRESENT,
+                                        .recovery_state = SAHPI_HS_STATE_ACTIVE,
+                                },
+                                {
+                                        .event = "0600020x", /* EN_MM_x_ISPRIME */
+					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_HS_STATE_ACTIVE,
                                         .recovery_state = SAHPI_HS_STATE_ACTIVE,
                                 },
                                 {},
@@ -197,7 +204,7 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                                         .event = "0EA0200x", /* EN_SWITCH_x_INSTALLED */
 					.event_res_failure = SAHPI_FALSE,
  					.event_res_failure_unexpected = SAHPI_FALSE,
-					.event_state = SAHPI_HS_STATE_ACTIVE,
+					.event_state = SAHPI_HS_STATE_INSERTION_PENDING,
                                         .recovery_state = SAHPI_HS_STATE_NOT_PRESENT,
                                 },
                                 {
@@ -211,7 +218,7 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                                         .event = "0EA0600x", /* EN_SWITCH_x_POWERED_OFF */
 					.event_res_failure = SAHPI_TRUE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_HS_STATE_NOT_PRESENT,
+                                        .event_state = SAHPI_HS_STATE_INSERTION_PENDING,
                                         .recovery_state = SAHPI_HS_STATE_ACTIVE,
                                 },
                                 {
@@ -219,7 +226,7 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
 					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
                                         .event_state = SAHPI_HS_STATE_ACTIVE,
-                                        .recovery_state = SAHPI_HS_STATE_NOT_PRESENT,
+                                        .recovery_state = SAHPI_HS_STATE_INSERTION_PENDING,
                                 },
                                 {
                                         .event = "0EA0000x", /* EN_FAULT_SWITCH_x */
@@ -279,7 +286,7 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                                         .event = "0E00200x", /* EN_BLADE_x_INSTALLED */
 					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_HS_STATE_ACTIVE,
+                                        .event_state = SAHPI_HS_STATE_INSERTION_PENDING,
                                         .recovery_state = SAHPI_HS_STATE_NOT_PRESENT,
                                 },
                                 {
@@ -293,7 +300,7 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                                         .event = "1C000001", /* EN_BLADE_PWR_DWN */
 					.event_res_failure = SAHPI_TRUE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_HS_STATE_NOT_PRESENT,
+                                        .event_state = SAHPI_HS_STATE_INSERTION_PENDING,
                                         .recovery_state = SAHPI_HS_STATE_ACTIVE,
                                 },
                                 {
@@ -301,20 +308,20 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
 					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
                                         .event_state = SAHPI_HS_STATE_ACTIVE,
-                                        .recovery_state = SAHPI_HS_STATE_NOT_PRESENT,
+                                        .recovery_state = SAHPI_HS_STATE_INSERTION_PENDING,
                                 },
                                 {
                                         .event = "06026080", /* EN_BLADE_PWR_DN_FAN_FAIL */
 					.event_res_failure = SAHPI_TRUE,
 					.event_res_failure_unexpected = SAHPI_TRUE,
-                                        .event_state = SAHPI_HS_STATE_NOT_PRESENT,
+                                        .event_state = SAHPI_HS_STATE_INSERTION_PENDING,
                                         .recovery_state = SAHPI_HS_STATE_ACTIVE,
                                 },
                                 {
                                         .event = "0821C080", /* EN_BLADE_PWR_DN_PM_TEMP */
 					.event_res_failure = SAHPI_TRUE,
 					.event_res_failure_unexpected = SAHPI_TRUE,
-                                        .event_state = SAHPI_HS_STATE_NOT_PRESENT,
+                                        .event_state = SAHPI_HS_STATE_INSERTION_PENDING,
                                         .recovery_state = SAHPI_HS_STATE_ACTIVE,
                                 },
                                 {},
@@ -766,6 +773,22 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                         .event_array = {
                                 {
                                         .event = "08080001", /* EN_NR_PWR_SUPPLY */
+ 					.event_assertion = SAHPI_TRUE,
+ 					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+					.event_state = SAHPI_ES_REDUNDANCY_LOST,
+                                        .recovery_state = SAHPI_ES_FULLY_REDUNDANT,
+                                },
+                                {
+                                        .event = "08081001", /* EN_NR_PWR_SUPPLY_DOM_1 */
+ 					.event_assertion = SAHPI_TRUE,
+ 					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+					.event_state = SAHPI_ES_REDUNDANCY_LOST,
+                                        .recovery_state = SAHPI_ES_FULLY_REDUNDANT,
+                                },
+                                {
+                                        .event = "08081002", /* EN_NR_PWR_SUPPLY_DOM_2 */
  					.event_assertion = SAHPI_TRUE,
  					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
@@ -1752,7 +1775,7 @@ struct snmp_bc_sensor snmp_bc_mgmnt_sensors[] = {
                 .comment = "MM 12 volt sensor"
         },
 
-	/* Management module network link availablity sensor - event only */
+	/* MM network link availablity sensor - event only */
         {
 		.index = 8,
                 .sensor = {
@@ -1771,14 +1794,14 @@ struct snmp_bc_sensor snmp_bc_mgmnt_sensors[] = {
                         .Oem = 0,
                 },
                 .sensor_info = {
-                        .cur_state = SAHPI_ES_UNSPECIFIED,
+                        .cur_state = SAHPI_ES_RUNNING,
                         .sensor_enabled = SAHPI_TRUE,
                         .events_enabled = SAHPI_TRUE,
 			.assert_mask   = SAHPI_ES_OFF_LINE,
 			.deassert_mask = SAHPI_ES_OFF_LINE,
                         .event_array = {
                                 {
-                                        .event = "000217000", /* EN_MM_NETWORK_LOSS */
+                                        .event = "00217000", /* EN_MM_NETWORK_LOSS */
   					.event_assertion = SAHPI_TRUE,
        					.event_res_failure = SAHPI_TRUE,
 					.event_res_failure_unexpected = SAHPI_TRUE,
@@ -1791,6 +1814,201 @@ struct snmp_bc_sensor snmp_bc_mgmnt_sensors[] = {
                 },
                 .comment = "MM network link availablity sensor"
         },
+	/* MM I2C bus general operations - event only */
+        {
+		.index = 9,
+                .sensor = {
+                        .Num = 9,
+                        .Type = SAHPI_OPERATIONAL,
+                        .Category = SAHPI_EC_AVAILABILITY,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
+			.Events = SAHPI_ES_RUNNING | SAHPI_ES_OFF_LINE,
+                        .DataFormat = {
+                                .IsSupported = SAHPI_FALSE,
+                        },
+                        .ThresholdDefn = {
+                                .IsAccessible = SAHPI_FALSE,
+                        },
+                        .Oem = 0,
+                },
+                .sensor_info = {
+                        .cur_state = SAHPI_ES_RUNNING,
+                        .sensor_enabled = SAHPI_TRUE,
+                        .events_enabled = SAHPI_TRUE,
+			.assert_mask   = SAHPI_ES_OFF_LINE,
+			.deassert_mask = SAHPI_ES_OFF_LINE,
+                        .event_array = {
+                                {
+                                        .event = "00020001", /* EN_I2C_BUS_1_FAIL */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {},
+                        },
+   			.reading2event = {},
+                },
+                .comment = "MM I2C bus general operations"
+        },
+	/* MM I2C bus blade presence operations - event only */
+        {
+		.index = 10,
+                .sensor = {
+                        .Num = 10,
+                        .Type = SAHPI_OPERATIONAL,
+                        .Category = SAHPI_EC_AVAILABILITY,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
+			.Events = SAHPI_ES_RUNNING | SAHPI_ES_OFF_LINE,
+                        .DataFormat = {
+                                .IsSupported = SAHPI_FALSE,
+                        },
+                        .ThresholdDefn = {
+                                .IsAccessible = SAHPI_FALSE,
+                        },
+                        .Oem = 0,
+                },
+                .sensor_info = {
+                        .cur_state = SAHPI_ES_RUNNING,
+                        .sensor_enabled = SAHPI_TRUE,
+                        .events_enabled = SAHPI_TRUE,
+			.assert_mask   = SAHPI_ES_OFF_LINE,
+			.deassert_mask = SAHPI_ES_OFF_LINE,
+                        .event_array = {
+                                {
+                                        .event = "00020002", /* EN_I2C_BUS_2_FAIL */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {},
+                        },
+   			.reading2event = {},
+                },
+                .comment = "MM I2C bus blade presence operations"
+        },
+	/* MM I2C bus power module operations - event only */
+        {
+		.index = 11,
+                .sensor = {
+                        .Num = 11,
+                        .Type = SAHPI_OPERATIONAL,
+                        .Category = SAHPI_EC_AVAILABILITY,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
+			.Events = SAHPI_ES_RUNNING | SAHPI_ES_OFF_LINE,
+                        .DataFormat = {
+                                .IsSupported = SAHPI_FALSE,
+                        },
+                        .ThresholdDefn = {
+                                .IsAccessible = SAHPI_FALSE,
+                        },
+                        .Oem = 0,
+                },
+                .sensor_info = {
+                        .cur_state = SAHPI_ES_RUNNING,
+                        .sensor_enabled = SAHPI_TRUE,
+                        .events_enabled = SAHPI_TRUE,
+			.assert_mask   = SAHPI_ES_OFF_LINE,
+			.deassert_mask = SAHPI_ES_OFF_LINE,
+                        .event_array = {
+                                {
+                                        .event = "00020003", /* EN_I2C_BUS_3_FAIL */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {},
+                        },
+   			.reading2event = {},
+                },
+                .comment = "MM I2C bus power module operations"
+        },
+	/* MM I2C bus media tray operations - event only */
+        {
+		.index = 12,
+                .sensor = {
+                        .Num = 12,
+                        .Type = SAHPI_OPERATIONAL,
+                        .Category = SAHPI_EC_AVAILABILITY,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
+			.Events = SAHPI_ES_RUNNING | SAHPI_ES_OFF_LINE,
+                        .DataFormat = {
+                                .IsSupported = SAHPI_FALSE,
+                        },
+                        .ThresholdDefn = {
+                                .IsAccessible = SAHPI_FALSE,
+                        },
+                        .Oem = 0,
+                },
+                .sensor_info = {
+                        .cur_state = SAHPI_ES_RUNNING,
+                        .sensor_enabled = SAHPI_TRUE,
+                        .events_enabled = SAHPI_TRUE,
+			.assert_mask   = SAHPI_ES_OFF_LINE,
+			.deassert_mask = SAHPI_ES_OFF_LINE,
+                        .event_array = {
+                                {
+                                        .event = "00020004", /* EN_I2C_BUS_4_FAIL */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {},
+                        },
+   			.reading2event = {},
+                },
+                .comment = "MM I2C bus media tray operations"
+        },
+	/* MM I2C bus IO module operations - event only */
+        {
+		.index = 13,
+                .sensor = {
+                        .Num = 13,
+                        .Type = SAHPI_OPERATIONAL,
+                        .Category = SAHPI_EC_AVAILABILITY,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
+			.Events = SAHPI_ES_RUNNING | SAHPI_ES_OFF_LINE,
+                        .DataFormat = {
+                                .IsSupported = SAHPI_FALSE,
+                        },
+                        .ThresholdDefn = {
+                                .IsAccessible = SAHPI_FALSE,
+                        },
+                        .Oem = 0,
+                },
+                .sensor_info = {
+                        .cur_state = SAHPI_ES_RUNNING,
+                        .sensor_enabled = SAHPI_TRUE,
+                        .events_enabled = SAHPI_TRUE,
+			.assert_mask   = SAHPI_ES_OFF_LINE,
+			.deassert_mask = SAHPI_ES_OFF_LINE,
+                        .event_array = {
+                                {
+                                        .event = "00020005", /* EN_I2C_BUS_5_FAIL */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {},
+                        },
+   			.reading2event = {},
+                },
+                .comment = "MM I2C bus IO module 0perations"
+        },
 
         {} /* Terminate array with a null element */
 };
@@ -1799,7 +2017,7 @@ struct snmp_bc_sensor snmp_bc_mgmnt_sensors[] = {
  * Blade Sensors
  ***************/
 
-#define SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR 12
+#define SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR 14
 
 struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
         /* CPU 1 thermal sensor */
@@ -2887,14 +3105,14 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 {},
                         },
    			.reading2event = {},
-               },
-                .comment = "Blade VRM 1 volt sensor"
+		},
+		.comment = "Blade VRM 1 volt sensor"
         },
         /* Blade's global operational sensor - event only */
         {
 		.index = 12,
                 .sensor = {
-                        .Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR,
+                        .Num = 12,
                         .Type = SAHPI_OPERATIONAL,
                         .Category = SAHPI_EC_AVAILABILITY,
 			.EnableCtrl = SAHPI_FALSE,
@@ -3050,7 +3268,84 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                },
                 .comment = "Blade global operational sensor"
         },
-	
+	/* Blade memory sensor - event only */
+        {
+		.index = 13,
+                .sensor = {
+                        .Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR,
+                        .Type = SAHPI_OPERATIONAL,
+                        .Category = SAHPI_EC_AVAILABILITY,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
+                        .Events = SAHPI_ES_RUNNING | SAHPI_ES_DEGRADED,
+                        .DataFormat = {
+                                .IsSupported = SAHPI_FALSE,
+                        },
+                        .ThresholdDefn = {
+                                .IsAccessible = SAHPI_FALSE,
+                        },
+                        .Oem = 0,
+                },
+                .sensor_info = {
+                        .cur_state = SAHPI_ES_UNSPECIFIED,
+                        .sensor_enabled = SAHPI_TRUE,
+                        .events_enabled = SAHPI_TRUE,
+			.assert_mask   = SAHPI_ES_DEGRADED,
+			.deassert_mask = SAHPI_ES_DEGRADED,
+                        .event_array = {
+                                {
+                                        .event = "05200000", /* EN_MEMORY_FAIL */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {},
+                        },
+   			.reading2event = {},
+               },
+                .comment = "Blade memory sensor"
+        },
+        {
+		.index = 14,
+                .sensor = {
+                        .Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR,
+                        .Type = SAHPI_CRITICAL_INTERRUPT,
+                        .Category = SAHPI_EC_STATE,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
+                        .Events = SAHPI_ES_STATE_ASSERTED | SAHPI_ES_STATE_DEASSERTED,
+                        .DataFormat = {
+                                .IsSupported = SAHPI_FALSE,
+                        },
+                        .ThresholdDefn = {
+                                .IsAccessible = SAHPI_FALSE,
+                        },
+                        .Oem = 0,
+                },
+                .sensor_info = {
+                        .cur_state = SAHPI_ES_STATE_DEASSERTED,
+                        .sensor_enabled = SAHPI_TRUE,
+                        .events_enabled = SAHPI_TRUE,
+			.assert_mask   = SAHPI_ES_STATE_ASSERTED,
+			.deassert_mask = SAHPI_ES_STATE_ASSERTED,
+                        .event_array = {
+                                {
+					.event = "0000007E", /* EN_SYSERR_LED_ONLY */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_TRUE,
+					.event_res_failure_unexpected = SAHPI_TRUE,
+                                        .event_state = SAHPI_ES_STATE_ASSERTED,
+                                        .recovery_state = SAHPI_ES_STATE_DEASSERTED,
+                                },
+                                {},
+                        },
+   			.reading2event = {},
+               },
+                .comment = "Blade NMI sensor"
+        },
+
         {} /* Terminate array with a null element */
 };
 
