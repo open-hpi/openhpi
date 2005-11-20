@@ -33,7 +33,6 @@ static SaErrorT oh_build_resourceinfo(oh_big_textbuffer *buffer, const SaHpiReso
 static SaErrorT oh_build_sensorrec(oh_big_textbuffer *buffer, const SaHpiSensorRecT *sensor, int offsets);
 static SaErrorT oh_build_sensordataformat(oh_big_textbuffer *buffer, const SaHpiSensorDataFormatT *format, int offsets);
 static SaErrorT oh_build_sensorthddefn(oh_big_textbuffer *buffer, const SaHpiSensorThdDefnT *tdef, int offsets);
-static SaErrorT oh_build_threshold_mask(oh_big_textbuffer *buffer, const SaHpiSensorThdMaskT tmask, int offsets);
 static SaErrorT oh_build_textbuffer(oh_big_textbuffer *buffer, const SaHpiTextBufferT *textbuffer, int offsets);
 
 static SaErrorT oh_build_ctrlrec(oh_big_textbuffer *textbuf, const SaHpiCtrlRecT *ctrlrec, int offsets);
@@ -1123,13 +1122,17 @@ static SaErrorT oh_build_sensorthddefn(oh_big_textbuffer *buffer,
 	return(SA_OK);
 }
 
-static SaErrorT oh_build_threshold_mask(oh_big_textbuffer *buffer,
-					const SaHpiSensorThdMaskT tmask, 
-					int offsets)
+SaErrorT oh_build_threshold_mask(oh_big_textbuffer *buffer,
+                                 const SaHpiSensorThdMaskT tmask,
+                                 int offsets)
 {
-	int i;
-
 	oh_append_offset(buffer, offsets);
+
+        if (tmask == 0) {
+                oh_append_bigtext(buffer, "None");
+                oh_append_bigtext(buffer, "\n");
+                return SA_OK;
+        }
 
 	if (tmask & SAHPI_STM_LOW_MINOR) {
 		oh_append_bigtext(buffer, "LOW_MINOR");
@@ -1165,10 +1168,9 @@ static SaErrorT oh_build_threshold_mask(oh_big_textbuffer *buffer,
 	}
 
 	/* Remove last delimiter; add NL */
-	for (i=0; i<OH_ENCODE_DELIMITER_LENGTH + 1; i++) {
-		buffer->Data[buffer->DataLength - i] = 0x00;
-	}
-	buffer->DataLength = buffer->DataLength - (i-1);
+        buffer->Data[buffer->DataLength-OH_ENCODE_DELIMITER_LENGTH] = '\0';
+        buffer->DataLength = buffer->DataLength - OH_ENCODE_DELIMITER_LENGTH;
+
 	oh_append_bigtext(buffer, "\n");
 
 	return(SA_OK);
