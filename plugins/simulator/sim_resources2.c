@@ -366,7 +366,7 @@ struct sim_sensor sim_chassis_sensors[] = {
         {
 		.index = 2,
                 .sensor = {
-                        .Num = 2,
+                        .Num = 1,
                         .Type = SAHPI_TEMPERATURE,
                         .Category = SAHPI_EC_THRESHOLD,
 			.EnableCtrl = SAHPI_FALSE,
@@ -920,7 +920,7 @@ struct sim_sensor sim_hs_dasd_sensors[] = {
         {
 		.index = 2,
                 .sensor = {
-                        .Num = 2,
+                        .Num = 1,
                         .Type = SAHPI_TEMPERATURE,
                         .Category = SAHPI_EC_THRESHOLD,
 			.EnableCtrl = SAHPI_FALSE,
