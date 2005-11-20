@@ -52,7 +52,7 @@ MOSTLYCLEANFILES = \
 MAINTAINERCLEANFILES = Makefile.in
 
 # FIXME:: Add when we can auto-generate files for SMP systems
-# MOSTLYCLEANFILES += $(GENERATED_CODE)
+ MOSTLYCLEANFILES += $(GENERATED_CODE)
 
 SNMPUTILSDIR = $(top_srcdir)/$(SNMPDIR)
 
@@ -96,11 +96,11 @@ EVENT_MAP_SCRIPT = $(top_srcdir)/plugins/snmp_bc/eventmap2code.pl
 EVENT_XML_MAP_SCRIPT = $(top_srcdir)/scripts/text2cstr.pl
 
 # FIXME:: Add when we can auto-generate files for SMP systems
-#$(GENERATED_EVENT_CODE): $(GENERATED_EVENT_HEADER_FILES)
-#	$(EVENT_XML_MAP_SCRIPT) -s eventxml $(GENERATED_EVENT_XML_MAP) > $(GENERATED_EVENT_CODE)
-#
-#$(GENERATED_EVENT_HEADER_FILES): $(EVENT_MAP_FILE) $(EVENT_MAP_SCRIPT)
-#	$(EVENT_MAP_SCRIPT) -xml -idir $(top_srcdir)/plugins/snmp_bc -mapfile snmp_bc_event.map
+$(GENERATED_EVENT_CODE): $(GENERATED_EVENT_HEADER_FILES)
+	$(EVENT_XML_MAP_SCRIPT) -s eventxml $(GENERATED_EVENT_XML_MAP) > $(GENERATED_EVENT_CODE)
+
+$(GENERATED_EVENT_HEADER_FILES): $(EVENT_MAP_FILE) $(EVENT_MAP_SCRIPT)
+	$(EVENT_MAP_SCRIPT) -xml -idir $(top_srcdir)/plugins/snmp_bc -mapfile snmp_bc_event.map
 
 # Setup environment variables for TESTS programs
 TESTS_ENVIRONMENT  = OPENHPI_CONF=$(srcdir)/openhpi.conf
