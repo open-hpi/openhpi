@@ -1,0 +1,110 @@
+               Readme for the OpenHPI Client/Daemon
+
+
+                      By W. David Ashley
+                          Dec, 2004
+                      OpenHPI Version 2.0
+
+This file documents the OpenHPI daemon and client libraries for the current
+release.
+
+The OpenHPI daemon allows a user to build a version of OpenHPI which runs as a
+background process and accepts connections from remote clients to perform
+OpenHPI library function calls. The daemon wraps the standard OpenHPI function
+library with a sockets-based API that is archicture neutral for all types of
+clients.
+
+The client library is a complete replacement for the standard OpenHPI library.
+The client application include the standard OpenHPI include file but links to
+the client library instead of the OpenHPI library. The client library provides
+all the conecction functionality needed by the client application to connect
+to the OpenHPI daemon running on the local or remote server.
+
+
+The OpenHPI Daemon
+------------------
+
+The daemon is compiled as a standalone application and can be run as either
+a forground or background application. To compile the daemon code you need to
+configure the OpenHPI compilation environment correctly. The following option
+needs to be used when running the configure script for OpenHPI.
+
+     ./configure --enable-daemon (Update 11/08/05. Now enabled by default)
+
+This will ensure that the daemon application and the client library are created
+at compile and link time by make. The daemon application and client libraries
+will be located in the openhpid2 subdirectory.
+
+When you run the daemon the standard method for locating the OpenHPI configuration
+file is used. However, the daemon will accept a configuration file as a command
+line option to override the default file.
+
+An option in the configuration file determines the port number the daemon will
+listen on for client connections. If a configuration file is not found the
+the daemon will listen on port 4743 by default.
+
+Currently, if you are not running as the root user, you must override the default
+PID file location. Normally the PID file is created in the /var/run subdirectory.
+This directory is not writable by normal users and only the root user can write
+to this location. Thus the daemon will fail when run as a normal user if the PID
+file location is not overridden. To override the PID file location you can use
+the command line option.
+
+     ./openhpid -f ./openhpid.pid
+
+
+The OpenHPI Client Library
+--------------------------
+
+The OpenHPI client library is a complete replacement of the standard OpenHPI
+shared library. The client application still include the standard OpenHPI
+include file but it links with the client library instead of the standard
+OpenHPI shared library.
+
+The easiect method to use to link to the client library is to first run the
+OpenHPI installation script.
+
+     make install
+
+This will install the client library in the standard system locations. You can
+now use the following link flags to link the client library to your application.
+
+     -lopenhpiclient -lopenhpimarshal -lohtcpconnx -lstdc++
+
+When you run your application the client library uses two environment variables
+to locate the daemon application.
+
+   OPENHPI_DAEMON_HOST - URL for the host running the daemon. This can be
+                         "localhost" if the daemon is running on the local host.
+   OPENHPI_DAEMON_PORT - The port number the host is listening on for clent
+                         connections.
+		
+If the OPENHPI_DAEMON_HOST variable is not found the client library uses
+localhost as the default. If the OPENHPI_DAEMON_PORT variable is not found then
+the client library uses port 4743 as the default.
+
+
+General Information
+-------------------
+
+The client and the daemon do not have to be on the same hardware architecture.
+The daemon could be running on a P-series processor and the client running on an
+x86-series processor. The client library and daemon use a marshaling technique
+to resolve architecture and structure padding conflicts. The user does not need
+to concern themselves with architectureal differences between the client and
+daemon. The one exception to this rule is 64-bit architectures. The clent and
+daemon currently cannot resolve differences between 32-bit and 64-bit
+architectures. DO NOT MIX THESE TYPES OF ARCHITECTURES!
+
+It is important that data passed to the client library OpenHPI functions is
+correct. Passing incorrect data could cause the client library or the daemon
+to crash. The client library performs an extensive set of data validation
+functions for each OpenHPI function, but it is still possible for bad data to be
+missed by those functions. BE CAREFUL!.
+
+
+
+
+
+
+

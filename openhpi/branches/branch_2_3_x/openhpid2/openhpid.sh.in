@@ -1,0 +1,72 @@
+#! /bin/bash
+#
+# openhpid.sh    Start/Stop the openhpi daemon.
+#
+# description: openhpid is standard UNIX program which uses the OpenHPI \
+#              APIs and provides a standard internet server to access those \
+#              APIs for client programs.
+# processname: openhpid
+# config: the standard openhpi conf file specified on the command line or the env.
+# pidfile: /var/run/openhpid.pid
+
+# Source function library.
+. /etc/init.d/functions
+
+prog="openhpid"
+
+start() {
+        export `@prefix@/bin/openhpi-switcher --env=standard` || return 1
+	echo -n $"Starting $prog: "
+	daemon @prefix@/bin/openhpid -c @CONFPATH@/@HPI_PKG@.conf
+	RETVAL=$?
+	echo
+	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/openhpid
+	return $RETVAL
+}
+
+stop() {
+	echo -n $"Stopping $prog: "
+	killproc openhpid
+	RETVAL=$?
+	echo
+	[ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/openhpid
+	return $RETVAL
+}	
+
+rhstatus() {
+	status @prefix@/bin/openhpid
+}	
+
+restart() {
+  	stop
+	start
+}	
+
+force-reload() {
+	echo -n $"Force-reload not supported."
+	echo
+	return 0
+}	
+
+# See how we were called.
+
+case "$1" in
+  start)
+  	start
+	;;
+  stop)
+  	stop
+	;;
+  restart)
+  	restart
+	;;
+  status)
+  	rhstatus
+	;;
+  force-reload)
+  	force-reload
+	;;
+  *)
+	echo $"Usage: $0 {start|stop|restart|status|force-reload}"
+	exit 1
+esac
