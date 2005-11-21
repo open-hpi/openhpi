@@ -49,7 +49,7 @@ static SaErrorT snmp_bc_parse_threshold_str(gchar *str,
 static SaErrorT snmp_bc_logsrc2rid(struct oh_handler_state *handle,
 				   gchar *src,
 				   LogSource2ResourceT *resinfo,
-				   unsigned short ovr_flags);
+				   unsigned int ovr_flags);
 
 static SaErrorT snmp_bc_set_cur_prev_event_states(struct oh_handler_state *handle,
 						  EventMapInfoT *eventmap_info,
@@ -347,11 +347,11 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 			   SaHpiEventT *event,
 			   int isdst)
 {
-	sel_entry        log_entry;
+	sel_entry           log_entry;
 	gchar               *recovery_str, *login_str;
 	gchar               root_str[SNMP_BC_MAX_SEL_ENTRY_LENGTH];
 	gchar               search_str[SNMP_BC_MAX_SEL_ENTRY_LENGTH];
-	EventMapInfoT      *eventmap_info;
+	EventMapInfoT       *eventmap_info;
 	LogSource2ResourceT resinfo;
 	SaErrorT            err;
 	SaHpiBoolT          is_recovery_event, is_threshold_event;
@@ -360,7 +360,7 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 	SaHpiSeverityT      event_severity;
 	SaHpiTextBufferT    thresh_read_value, thresh_trigger_value;
 	SaHpiTimeT          event_time;
-	ErrLog2EventInfoT *strhash_data;
+	ErrLog2EventInfoT   *strhash_data;
 
 	if (!handle || !logstr || !event) {
 		dbg("Invalid parameter.");
@@ -399,7 +399,7 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 	if (recovery_str && (recovery_str == search_str)) {
 		is_recovery_event = SAHPI_TRUE;
 		memset(search_str, 0, SNMP_BC_MAX_SEL_ENTRY_LENGTH);
-		strcpy(search_str, (log_entry.text + strlen(EVT_RECOVERY)));
+		strncpy(search_str, (log_entry.text + strlen(EVT_RECOVERY)), SNMP_BC_MAX_SEL_ENTRY_LENGTH);
 	}
 
 	/* Adjust "login" event strings - strip username */
@@ -425,11 +425,22 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 		}
 		else {
 			memset(search_str, 0, SNMP_BC_MAX_SEL_ENTRY_LENGTH);
-			strcpy(search_str, root_str);
+			strncpy(search_str, root_str, SNMP_BC_MAX_SEL_ENTRY_LENGTH);
 		}
 	}
 
-	trace("Event search string=%s.", search_str);
+	/* Strip any leading/trailing blanks */
+	{
+		gchar *tmp_str;
+		tmp_str = g_strstrip(g_strdup(search_str));
+		strncpy(search_str, tmp_str, SNMP_BC_MAX_SEL_ENTRY_LENGTH);
+		if ((search_str == NULL || search_str[0] == '\0')) {
+			dbg("Search string is NULL for log string=%s", log_entry.text);
+			return(SA_ERR_HPI_INTERNAL_ERROR);
+		}
+	}
+
+	trace("Event search string=%s", search_str);
 
 	/* Set dynamic event fields with default values from the log string.
 	   These may be overwritten in the code below */
@@ -459,9 +470,13 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 
 	/* See if need to override default RID; These are hardcoded exceptions caused by the
            fact that we have to handle duplicates event strings for resources that the
-           BladeCenter's event log Source file doesn't define. These options must not be
-           used with the OVR_RID option. */
-	if (strhash_data->event_ovr & OVR_EXP || strhash_data->event_ovr & OVR_MM) {
+           BladeCenter's event log Source field doesn't define. These options must not be
+           used with the OVR_RID option. Note: OVR_EXP messages always assumed to
+           have a SOURCE field = BLADE_0x */
+	if (strhash_data->event_ovr & OVR_EXP ||
+	    strhash_data->event_ovr & OVR_MMACT ||
+	    strhash_data->event_ovr & OVR_MM1 ||
+	    strhash_data->event_ovr & OVR_MM2) {
 
 		err = snmp_bc_logsrc2rid(handle, log_entry.source, &resinfo,
 					 strhash_data->event_ovr);
@@ -749,17 +764,37 @@ static SaErrorT snmp_bc_parse_threshold_str(gchar *str,
 		err = SA_ERR_HPI_INTERNAL_ERROR;
 		goto CLEANUP;
 	}
-
+	
 	/* Strip any leading/trailing blanks */
+	event_substrs[0]= g_strstrip(event_substrs[0]);
 	thresh_substrs[0] = g_strstrip(thresh_substrs[0]);
 	thresh_substrs[1] = g_strstrip(thresh_substrs[1]);
-	if ((thresh_substrs[0] == NULL || thresh_substrs[0][0] == '\0') ||
+	if ((event_substrs[0] == NULL || event_substrs[0] == '\0') ||
+	    (thresh_substrs[0] == NULL || thresh_substrs[0][0] == '\0') ||
 	    (thresh_substrs[1] == NULL || thresh_substrs[1][0] == '\0')) {
-		dbg("NULL threshold values=%s.", str);
+		dbg("NULL base string or threshold values=%s.", str);
 		err = SA_ERR_HPI_INTERNAL_ERROR;
 		goto CLEANUP;
 	}
-	
+
+	/* Change any leading period to a blank.
+           This put here because MM code added a period after the 
+           Threadhold Value string and before the threshold value 
+           (e.g. "Threshold value." 23.0 */
+	if (thresh_substrs[0][0] == '.') thresh_substrs[0][0] = ' ';
+	if (thresh_substrs[1][0] == '.') thresh_substrs[1][0] = ' ';
+
+	/* Strip any leading/trailing blanks - do again after any period conversion */
+	thresh_substrs[0] = g_strstrip(thresh_substrs[0]);
+	thresh_substrs[1] = g_strstrip(thresh_substrs[1]);
+	if ((event_substrs[0] == NULL || event_substrs[0] == '\0') ||
+	    (thresh_substrs[0] == NULL || thresh_substrs[0][0] == '\0') ||
+	    (thresh_substrs[1] == NULL || thresh_substrs[1][0] == '\0')) {
+		dbg("NULL base string or threshold values=%s.", str);
+		err = SA_ERR_HPI_INTERNAL_ERROR;
+		goto CLEANUP;
+	}
+
 	/* Strip any ending periods */
 	if (thresh_substrs[0][strlen(thresh_substrs[0]) - 1] == '.')
 		thresh_substrs[0][strlen(thresh_substrs[0]) - 1] = '\0';
@@ -899,7 +934,7 @@ static SaErrorT snmp_bc_set_event_severity(struct oh_handler_state *handle,
  * For non-readable sensors, current state is simply the processed 
  * event's state.
  *
- * This routine is optional for sensors; but NOT hotswap. 
+ * This routine is optional for sensors; but NOT hotswap.
  *
  * Return values:
  * SA_OK - Normal case.
@@ -1078,8 +1113,10 @@ static SaErrorT snmp_bc_map2oem(SaHpiEventT *event,
  *
  * @ovr_flags is used to indicate exception cases. The two case
  * supported are:
- *   - OVR_EXP - indicates resource is an expansion card.
- *   - OVR_MM - indicates resource is the active MM card.
+ *   - OVR_EXP    - indicates resource is an expansion card.
+ *   - OVR_MMACT  - indicates resource is the active MM card.
+ *   - OVR_MM1    - indicates resource is the MM 1 card.
+ *   - OVR_MM2    - indicates resource is the MM 2 card.
  *
  * Return values:
  * SA_OK - Normal case.
@@ -1088,7 +1125,7 @@ static SaErrorT snmp_bc_map2oem(SaHpiEventT *event,
 static SaErrorT snmp_bc_logsrc2rid(struct oh_handler_state *handle,
 				   gchar *src,
 				   LogSource2ResourceT *resinfo,
-				   unsigned short ovr_flags)
+				   unsigned int ovr_flags)
 {
 	int rpt_index;
 	guint loc;
@@ -1159,10 +1196,15 @@ static SaErrorT snmp_bc_logsrc2rid(struct oh_handler_state *handle,
 		entity_type = snmp_bc_rpt_array[rpt_index].rpt.ResourceEntity.Entry[0].EntityType;
 	}
 	else {
-		/* Check for OVR_MM override, if cannot find explict resource from error
+		/* Check for OVR_MMx overrides, if cannot find explict resource from error
                    logs "Source" field */
-		if (ovr_flags & OVR_MM) {
-			loc = custom_handle->active_mm;
+
+		if (ovr_flags & OVR_MMACT || ovr_flags & OVR_MM1 || ovr_flags & OVR_MM2) {
+			if (ovr_flags & OVR_MMACT) { loc  = custom_handle->active_mm; }
+			else {
+				if (ovr_flags & OVR_MM1) { loc = 1; }
+				else { loc = 2; }
+			}
 			rpt_index = BC_RPT_ENTRY_MGMNT_MODULE;
 			entity_type = snmp_bc_rpt_array[rpt_index].rpt.ResourceEntity.Entry[0].EntityType;
 			array_ptr = &snmp_bc_mgmnt_sensors[0];
@@ -1173,7 +1215,6 @@ static SaErrorT snmp_bc_logsrc2rid(struct oh_handler_state *handle,
 		}
 	}
 	g_strfreev(src_parts);
-
 
 	/* Find rest of Entity Path and calculate the RID */
 	err = oh_concat_ep(&ep, &snmp_bc_rpt_array[rpt_index].rpt.ResourceEntity);

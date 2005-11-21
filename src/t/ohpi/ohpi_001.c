@@ -19,7 +19,7 @@
 #include <oHpi.h>
 
 /**
- * Load the dummy plugin and unload it.
+ * Load the simulator plugin and unload it.
  * Pass on success, otherwise a failure.
  **/
  
@@ -34,13 +34,13 @@ int main(int argc, char **argv)
                 return -1;
 	}
                     
-        if (oHpiPluginLoad("libdummy")) {
-		printf("Failed to load dummy pluin.");
+        if (oHpiPluginLoad("libsimulator")) {
+		printf("Failed to load simulator pluin.");
 	        return -1;
 	}
                 
-        if (oHpiPluginUnload("libdummy")) {
-		printf("Failed to unload dummy plugin.");
+        if (oHpiPluginUnload("libsimulator")) {
+		printf("Failed to unload simulator plugin.");
 		return -1;
 	}
 

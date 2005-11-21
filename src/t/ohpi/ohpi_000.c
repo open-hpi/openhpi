@@ -18,7 +18,7 @@
 #include <oHpi.h>
 
 /**
- * Load the dummy plugin.
+ * Load the simulator plugin.
  * Pass on success, otherwise a failure.
  **/
  
@@ -31,5 +31,5 @@ int main(int argc, char **argv)
         if (saHpiSessionOpen(1, &sid, NULL))
                 return -1;
         
-        return oHpiPluginLoad("libdummy");
+        return oHpiPluginLoad("libsimulator");
 }

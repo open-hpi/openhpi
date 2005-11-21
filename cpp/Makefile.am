@@ -60,7 +60,7 @@ libosahpi_la_SOURCES	= oSaHpiAlarm.cpp oSaHpiAlarm.hpp \
                           oSaHpiRdr.cpp oSaHpiRdr.hpp \
                           oSaHpiResourceEvent.cpp oSaHpiResourceEvent.hpp \
                           oSaHpiResourceInfo.cpp oSaHpiResourceInfo.hpp \
-                          oSaHpiRptEntry.cpp oSaHpiRprEntry.hpp \
+                          oSaHpiRptEntry.cpp oSaHpiRptEntry.hpp \
                           oSaHpiSensorDataFormat.cpp oSaHpiSensorDataFormat.hpp \
                           oSaHpiSensorEnableChangeEvent.cpp oSaHpiSensorEnableChangeEvent.hpp \
                           oSaHpiSensorEvent.cpp oSaHpiSensorEvent.hpp \
