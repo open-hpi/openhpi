@@ -19,7 +19,7 @@
 #include <oHpi.h>
 
 /**
- * Load 'libdummy', load 'libwatchdog', iterate through the names
+ * Load 'libsimulator', load 'libwatchdog', iterate through the names
  * and make sure they match with the expected values.
  * Unload the plugins.
  * Pass on success, otherwise failure.
@@ -38,7 +38,7 @@ int main(int argc, char **argv)
                 return -1;
                     
         /* Load plugins */
-        if (oHpiPluginLoad("libdummy"))
+        if (oHpiPluginLoad("libsimulator"))
                 return -1;
                 
         if (oHpiPluginLoad("libwatchdog"))
@@ -47,11 +47,11 @@ int main(int argc, char **argv)
         /* Iterate through all loaded plugins and check them */
         next_plugin[0] = '\0';
         oHpiPluginGetNext(NULL, next_plugin, PLUGIN_NAME_SIZE);
-        if (strcmp("libdummy", next_plugin))
+        if (strcmp("libsimulator", next_plugin))
                 return -1;
                         
         next_plugin[0] = '\0';
-        oHpiPluginGetNext("libdummy", next_plugin, PLUGIN_NAME_SIZE);
+        oHpiPluginGetNext("libsimulator", next_plugin, PLUGIN_NAME_SIZE);
         if (strcmp("libwatchdog", next_plugin))
                 return -1;
                 
@@ -63,5 +63,5 @@ int main(int argc, char **argv)
                 return -1;
 
         
-        return oHpiPluginUnload("libdummy");
+        return oHpiPluginUnload("libsimulator");
 }

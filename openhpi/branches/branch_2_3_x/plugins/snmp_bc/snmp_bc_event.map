@@ -31,9 +31,11 @@
 # NOTES:
 # - Cannot have duplicate events with the chassis and any other resource
 #   that cannot be explicitly derived from the event log's Source field.
-# - OVR_MM is used to change the default resource from the chassis to
-#   the MM. Had to do this to support duplicate event strings between 
-#   blades and the MM.
+# - OVR_MM1 and OVR_MM2 used to identify MM1 or MM2 for hotswap and
+#   takeover events.
+# - OVR_MMACT is used to change the default resource from the
+#   chassis to the active MM. Had to do this to support duplicate event 
+#   strings between blades and the MM.
 # - OVR_EXP is used to assign BEM events to the add-in card resource.
 #   They are reported by the event log's Source field as blade events. 
 ###########################################################################
@@ -44,8 +46,8 @@
 
 HPI_DEF|LOG_LOGIN_STRING|"Login ID:"
 HPI_DEF|LOG_LOGIN_CHAR|"'"
-HPI_DEF|LOG_READ_VALUE_STRING|" Read value "
-HPI_DEF|LOG_THRESHOLD_VALUE_STRING|" Threshold value "
+HPI_DEF|LOG_READ_VALUE_STRING|"Read value"
+HPI_DEF|LOG_THRESHOLD_VALUE_STRING|"Threshold value"
 HPI_DEF|ER_STR_POST_LOG_CLEARED|"System log cleared."
 HPI_DEF|EVT_EN_LOG_FULL|"System error log full"
 HPI_DEF|EVT_RECOVERY|"Recovery "
@@ -80,12 +82,18 @@ EN_SWITCH_NON_REDUNDANT|0x0EA16000|BCT,BC|SAHPI_MINOR|OVR_SEV|"Chassis Running N
 
 # Power redundancy sensor - No real physical sensor; event-only sensor
 EN_NR_PWR_SUPPLY|0x08080001|BCT,BC|SAHPI_MINOR|OVR_SEV|"Insufficient chassis power to support redundancy"
+EN_NR_PWR_SUPPLY_DOM_1|0x08081001|BCT,BC|SAHPI_MINOR|OVR_SEV|"Power modules are nonredundant in domain 1"
+EN_NR_PWR_SUPPLY_DOM_2|0x08081002|BCT,BC|SAHPI_MINOR|OVR_SEV|"Power modules are nonredundant in domain 2"
 
 # Power domain 1 redundancy sensor - No real physical sensor; event-only sensor 
-EN_PWR_DOMAIN_1_OVER_SUBSCRIP_NONREC|0x08008401|BCT,BC|SAHPI_MINOR|OVR_SEV|"A power failure in domain 1 can result in an immediate shutdown."
+EN_PWR_DOMAIN_1_OVER_SUBSCRIP_NONREC|0x08008401|BCT,BC|SAHPI_MINOR|OVR_SEV|"Demand exceeds a single power module. Immediate shutdown in domain 1 may occur if module fails."
+# This string necessary since Recovery string is truncated
+EN_PWR_DOMAIN_1_OVER_SUBSCRIP_NONREC|0x08008401|BCT,BC|SAHPI_MINOR|OVR_SEV|"Demand exceeds a single power module. Immediate shutdown in domain 1 may occur if module f"
 
 # Power domain 2 redundancy sensor - No real physical sensor; event-only sensor
-EN_PWR_DOMAIN_2_OVER_SUBSCRIP_NONREC|0x08008402|BCT,BC|SAHPI_MINOR|OVR_SEV|"A power failure in domain 2 can result in an immediate shutdown."
+# This string necessary since Recovery string is truncated
+EN_PWR_DOMAIN_2_OVER_SUBSCRIP_NONREC|0x08008402|BCT,BC|SAHPI_MINOR|OVR_SEV|"Demand exceeds a single power module. Immediate shutdown in domain 2 may occur if module fails."
+EN_PWR_DOMAIN_2_OVER_SUBSCRIP_NONREC|0x08008402|BCT,BC|SAHPI_MINOR|OVR_SEV|"Demand exceeds a single power module. Immediate shutdown in domain 2 may occur if module f"
 
 # Chassis filter sensor - event only
 EN_FAULT_CRT_FILTER|0x6F100000|BCT|SAHPI_CRITICAL|OVR_SEV|"Telco Filter is in CRITICAL condition. Replace filter needed."
@@ -98,61 +106,79 @@ EN_FAULT_MNR_FILTER_SERVICE|0x6F500000|BCT|SAHPI_MINOR|OVR_SEV|"Telco Filter: Ro
 # Management Module Resource
 ############################
 
-EN_MM_1_INSTALLED|0x00282001|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV,OVR_MM|"Management Module 1 was installed."
-EN_MM_2_INSTALLED|0x00282002|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV,OVR_MM|"Management Module 2 was installed."
+EN_MM_1_INSTALLED|0x00282001|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV,OVR_MM1|"Management Module 1 was installed."
+EN_MM_2_INSTALLED|0x00282002|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV,OVR_MM2|"Management Module 2 was installed."
 
-EN_MM_1_REMOVED|0x00284001|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV,OVR_MM|"Management Module 1 was removed."
-EN_MM_2_REMOVED|0x00284002|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV,OVR_MM|"Management Module 2 was removed."
+EN_MM_1_REMOVED|0x00284001|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV,OVR_MM1|"Management Module 1 was removed."
+EN_MM_2_REMOVED|0x00284002|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV,OVR_MM2|"Management Module 2 was removed."
+
+EN_MM_1_ISPRIME|0x06000201|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV,OVR_MM1|"Management Module in bay 1 is Active."
+EN_MM_2_ISPRIME|0x06000202|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV,OVR_MM2|"Management Module in bay 2 is Active."
 
 ###########################
 # Management Module Sensors
 ###########################
 
 # Thermal sensor on MM
-EN_CUTOFF_HI_OVER_TEMP_SP_CARD|0x0001C500|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"Shutoff due to high Management Module temperature."
-EN_CUTOFF_LO_OVER_TEMP_SP_CARD|0x0011C881|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to under Management Module temperature."
-EN_PFA_HI_OVER_TEMP_SP_CARD|0x0001D400|BCT,BC|SAHPI_MAJOR|OVR_SEV|"Management Module is over recommended temperature."
-EN_MAJOR_LO_OVER_TEMP_SP_CARD|0x0011C901|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System under recommended Management Module temperature."
+EN_CUTOFF_HI_OVER_TEMP_SP_CARD|0x0001C500|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MMACT|"Shutoff due to high Management Module temperature."
+EN_CUTOFF_LO_OVER_TEMP_SP_CARD|0x0011C881|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MMACT|"System shutoff due to under Management Module temperature."
+EN_PFA_HI_OVER_TEMP_SP_CARD|0x0001D400|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MMACT|"Management Module is over recommended temperature."
+EN_MAJOR_LO_OVER_TEMP_SP_CARD|0x0011C901|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MMACT|"System under recommended Management Module temperature."
 
 # 1.8V voltage sensor on Management Module
 # Manually changed warnings to SAHPI_MAJOR 
-EN_CUTOFF_HI_FAULT_1_8V|0x0807A480|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MM|"System shutoff due to 1.8V CPU over voltage"
-EN_CUTOFF_LO_FAULT_1_8V|0x0807A880|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MM|"System shutoff due to 1.8V CPU under voltage"
-EN_MAJOR_HI_FAULT_1_8V|0x0807A500|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MM|"System is over recommended voltage for 1.8V CPU"
-EN_MAJOR_LO_FAULT_1_8V|0x0807A900|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MM|"System is under recommended voltage for 1.8V CPU"
+EN_CUTOFF_HI_FAULT_1_8V|0x0807A480|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MMACT|"System shutoff due to 1.8V CPU over voltage"
+EN_CUTOFF_LO_FAULT_1_8V|0x0807A880|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MMACT|"System shutoff due to 1.8V CPU under voltage"
+EN_MAJOR_HI_FAULT_1_8V|0x0807A500|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MMACT|"System is over recommended voltage for 1.8V CPU"
+EN_MAJOR_LO_FAULT_1_8V|0x0807A900|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MMACT|"System is under recommended voltage for 1.8V CPU"
 
 # 2.5V voltage sensor on Management Module
-EN_CUTOFF_HI_FAULT_2_5V|0x08030480|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MM|"System shutoff due to +2.5v over voltage."
-EN_CUTOFF_LO_FAULT_2_5V|0x08030880|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MM|"System shutoff due to +2.5v under voltage."
-EN_PFA_HI_FAULT_2_5V|0x08031480|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MM|"System over recommended voltage on +2.5v."
-EN_PFA_LO_FAULT_2_5V|0x08031880|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MM|"System under recommended voltage on +2.5v."
+EN_CUTOFF_HI_FAULT_2_5V|0x08030480|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MMACT|"System shutoff due to +2.5v over voltage."
+EN_CUTOFF_LO_FAULT_2_5V|0x08030880|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MMACT|"System shutoff due to +2.5v under voltage."
+EN_PFA_HI_FAULT_2_5V|0x08031480|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MMACT|"System over recommended voltage on +2.5v."
+EN_PFA_LO_FAULT_2_5V|0x08031880|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MMACT|"System under recommended voltage on +2.5v."
 
 # 3.3V voltage sensor on Management Module
-EN_CUTOFF_HI_FAULT_3_35V|0x08032480|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MM|"System shutoff due to +3.3v over voltage."
-EN_CUTOFF_LO_FAULT_3_35V|0x08032880|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MM|"System shutoff due to +3.3v under voltage."
-EN_PFA_HI_FAULT_3_35V|0x08033480|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MM|"System over recommended voltage on +3.3v."
-EN_MAJOR_LO_FAULT_3_35V|0x08032900|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MM|"System under recommended voltage on +3.3v."
+EN_CUTOFF_HI_FAULT_3_35V|0x08032480|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MMACT|"System shutoff due to +3.3v over voltage."
+EN_CUTOFF_LO_FAULT_3_35V|0x08032880|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MMACT|"System shutoff due to +3.3v under voltage."
+EN_PFA_HI_FAULT_3_35V|0x08033480|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MMACT|"System over recommended voltage on +3.3v."
+EN_MAJOR_LO_FAULT_3_35V|0x08032900|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MMACT|"System under recommended voltage on +3.3v."
 
 # 5V voltage sensor on Management Module
-EN_CUTOFF_HI_FAULT_PLANAR_5V|0x06034480|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MM|"System shutoff due to +5v over voltage."
-EN_CUTOFF_LO_FAULT_PLANAR_5V|0x06034800|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MM|"System shutoff due to +5v under voltage."
-EN_MAJOR_HI_FAULT_PLANAR_5V|0x06034500|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MM|"System over recommended voltage for +5v."
-EN_PFA_LO_FAULT_PLANAR_5V|0x06035800|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MM|"System under recommended voltage for +5v."
+EN_CUTOFF_HI_FAULT_PLANAR_5V|0x06034480|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MMACT|"System shutoff due to +5v over voltage."
+EN_CUTOFF_LO_FAULT_PLANAR_5V|0x06034800|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MMACT|"System shutoff due to +5v under voltage."
+EN_MAJOR_HI_FAULT_PLANAR_5V|0x06034500|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MMACT|"System over recommended voltage for +5v."
+EN_PFA_LO_FAULT_PLANAR_5V|0x06035800|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MMACT|"System under recommended voltage for +5v."
 
 # -5V voltage sensor on Management Module
-EN_CUTOFF_HI_FAULT_N5V|0x0803C480|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MM|"System shutoff due to -5v over voltage."
-EN_CUTOFF_LO_FAULT_N5V|0x0803C800|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MM|"System shutoff due to -5v under voltage."
-EN_PFA_HI_FAULT_N5V|0x0803D500|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MM|"System over recommended voltage for -5v."
-EN_MAJOR_LO_FAULT_N5V|0x803C900|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MM|"System under recommended voltage for -5v."
+EN_CUTOFF_HI_FAULT_N5V|0x0803C480|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MMACT|"System shutoff due to -5v over voltage."
+EN_CUTOFF_LO_FAULT_N5V|0x0803C800|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MMACT|"System shutoff due to -5v under voltage."
+EN_PFA_HI_FAULT_N5V|0x0803D500|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MMACT|"System over recommended voltage for -5v."
+EN_MAJOR_LO_FAULT_N5V|0x803C9000|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MMACT|"System under recommended voltage for -5v."
 
 # 12V voltage sensor on Management Module
-EN_CUTOFF_HI_FAULT_12V_PLANAR|0x06036480|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MM|"System shutoff due to +12v over voltage."
-EN_CUTOFF_LO_FAULT_12V_PLANAR|0x06036800|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MM|"System shutoff due to +12v under voltage."
-EN_PFA_HI_FAULT_12V_PLANAR|0x06037500|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MM|"System over recommended voltage for +12v."
-EN_PFA_LO_FAULT_12V_PLANAR|0x06037800|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MM|"System under recommended voltage for +12v."
+EN_CUTOFF_HI_FAULT_12V_PLANAR|0x06036480|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MMACT|"System shutoff due to +12v over voltage."
+EN_CUTOFF_LO_FAULT_12V_PLANAR|0x06036800|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MMACT|"System shutoff due to +12v under voltage."
+EN_PFA_HI_FAULT_12V_PLANAR|0x06037500|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MMACT|"System over recommended voltage for +12v."
+EN_PFA_LO_FAULT_12V_PLANAR|0x06037800|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MMACT|"System under recommended voltage for +12v."
 
-# Network uplink loss
-EN_MM_NETWORK_LOSS|0x00222000|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MM|"Management Module network uplink loss."
+# MM network uplink loss
+EN_MM_NETWORK_LOSS|0x00217000|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MMACT|"Management Module network uplink loss."
+
+# MM I2C bus general operations - event only
+EN_I2C_BUS_1_FAIL|0x00020001|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MMACT|"Failure reading I2C device. Check devices on bus 1."
+
+# MM I2C bus blade presence operations - event only
+EN_I2C_BUS_2_FAIL|0x00020002|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MMACT|"Failure reading I2C device. Check devices on bus 2."
+
+# MM I2C bus power module operations - event only
+EN_I2C_BUS_3_FAIL|0x00020003|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MMACT|"Failure reading I2C device. Check devices on bus 3."
+
+# MM I2C bus media tray operations - event only
+EN_I2C_BUS_4_FAIL|0x00020004|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MMACT|"Failure reading I2C device. Check devices on bus 4."
+
+# MM I2C bus IO module operations - event only
+EN_I2C_BUS_5_FAIL|0x00020005|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MMACT|"Failure reading I2C device. Check devices on bus 5."
 
 ################
 # Blade Resource
@@ -293,6 +319,9 @@ EN_12VS_WARNING_LOW|0x0A036C02|BCT,BC|SAHPI_MAJOR|OVR_SEV|"Standby +12V under re
 # Blade's VRM 1 voltage sensor
 EN_CUTOFF_HI_FAULT_VRM1|0x04400481|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to VRM 1 over voltage."
 
+# Blade's memory sensor
+EN_MEMORY_FAIL|0x05200000|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System Memory Error"
+
 # Map to generic blade operational sensor
 EN_BLADE_1_NO_PWR_VPD|0x0E00E001|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"Can not read power-on VPD for blade 1."
 EN_BLADE_2_NO_PWR_VPD|0x0E00E002|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"Can not read power-on VPD for blade 2."
@@ -394,9 +423,13 @@ EN_IO_BD_POWER_FAULT|0x0601A000|BCT,BC|SAHPI_MAJOR|OVR_SEV|"IO Board power fault
 EN_CPU_BD_VOLTAGE_FAULT|0x04018000|BCT,BC|SAHPI_MAJOR|OVR_SEV|"CPU Board voltage fault."
 EN_NC_VOLT|0x0000006F|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System over/under recommended voltage"
 EN_BOOT_FAIL|0x00000077|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System Boot Failed"
-EN_CPU_BD_POWER_FAULT|0x0401A000|BCT,BC|SAHPI_MAJOR|OVR_SEV|"CPU Board power fault."
+#EN_CPU_BD_POWER_FAULT|0x0401A000|BCT,BC|SAHPI_MAJOR|OVR_SEV|"CPU Board power fault."
+EN_CPU_BD_POWER_FAULT|0x0401A000|BCT,BC|SAHPI_MAJOR|OVR_SEV|"Planar power fault."
 EN_DASD|0x00000069|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"DASD backplane Failure"
 EN_FAULT_POWER_GOOD|0x00028000|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"Power Good Fault"
+
+# Blade NMI Error
+EN_SYSERR_LED_ONLY|0x0000007E|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"Critical Interrupt - Front panel NMI"
 
 #########################
 # Expansion Card Resource
@@ -415,6 +448,7 @@ EN_PFA_HI_OVER_TEMP_DASD1_4|0x0681C404|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"DASD 
 EN_PFA_HI_OVER_TEMP_BEM|0x0621D481|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM Option over recommended temperature."
 #EN_PFA_LO_OVER_TEMP_BEM|0x0621D801|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM 1 under recommended temperature."
 
+# Blade expansion card voltage sensor - event only
 # Changed all warnings below to SAHPI_MAJOR
 EN_FAULT_DASD|0x06800000|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"BEM Option failure"
 EN_BUST_1_5V_FAULT|0x0E840002|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"BEM +1.5V Fault."
@@ -469,90 +503,90 @@ EN_SWITCH_2_REMOVED|0x0EA04002|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"I/O m
 EN_SWITCH_3_REMOVED|0x0EA04003|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"I/O module 3 was removed."
 EN_SWITCH_4_REMOVED|0x0EA04004|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"I/O module 4 was removed."
 
-EN_SWITCH_1_POWERED_OFF|0x0EA06001|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV|"I/O module 1 was instructed to power off."
-EN_SWITCH_2_POWERED_OFF|0x0EA06002|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV|"I/O module 2 was instructed to power off."
-EN_SWITCH_3_POWERED_OFF|0x0EA06003|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV|"I/O module 3 was instructed to power off."
-EN_SWITCH_4_POWERED_OFF|0x0EA06004|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV|"I/O module 4 was instructed to power off."
+EN_SWITCH_1_POWERED_OFF|0x0EA06001|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"I/O module 1 was instructed to power off."
+EN_SWITCH_2_POWERED_OFF|0x0EA06002|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"I/O module 2 was instructed to power off."
+EN_SWITCH_3_POWERED_OFF|0x0EA06003|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"I/O module 3 was instructed to power off."
+EN_SWITCH_4_POWERED_OFF|0x0EA06004|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"I/O module 4 was instructed to power off."
 
-EN_SWITCH_1_POWERED_ON|0x0EA08001|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV|"I/O module 1 was instructed to power on."
-EN_SWITCH_2_POWERED_ON|0x0EA08002|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV|"I/O module 2 was instructed to power on."
-EN_SWITCH_3_POWERED_ON|0x0EA08003|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV|"I/O module 3 was instructed to power on."
-EN_SWITCH_4_POWERED_ON|0x0EA08004|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV|"I/O module 4 was instructed to power on."
+EN_SWITCH_1_POWERED_ON|0x0EA08001|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"I/O module 1 was instructed to power on."
+EN_SWITCH_2_POWERED_ON|0x0EA08002|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"I/O module 2 was instructed to power on."
+EN_SWITCH_3_POWERED_ON|0x0EA08003|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"I/O module 3 was instructed to power on."
+EN_SWITCH_4_POWERED_ON|0x0EA08004|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"I/O module 4 was instructed to power on."
 
-EN_FAULT_SWITCH_1|0x0EA00001|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"I/O module 1 Fault"
-EN_FAULT_SWITCH_1|0x0EA00001|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"I/O module 1 Fault Multiple I/O module failures"
-EN_FAULT_SWITCH_2|0x0EA00002|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"I/O module 2 Fault"
-EN_FAULT_SWITCH_2|0x0EA00002|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"I/O module 2 Fault Multiple I/O module failures"
-EN_FAULT_SWITCH_3|0x0EA00003|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"I/O module 3 Fault"
-EN_FAULT_SWITCH_3|0x0EA00003|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"I/O module 3 Fault Multiple I/O module failures"
-EN_FAULT_SWITCH_4|0x0EA00004|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"I/O module 4 Fault"
-EN_FAULT_SWITCH_4|0x0EA00004|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"I/O module 4 Fault Multiple I/O module failures"
+EN_FAULT_SWITCH_1|0x0EA00001|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"I/O module 1 Fault"
+EN_FAULT_SWITCH_1|0x0EA00001|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"I/O module 1 Fault Multiple I/O module failures"
+EN_FAULT_SWITCH_2|0x0EA00002|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"I/O module 2 Fault"
+EN_FAULT_SWITCH_2|0x0EA00002|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"I/O module 2 Fault Multiple I/O module failures"
+EN_FAULT_SWITCH_3|0x0EA00003|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"I/O module 3 Fault"
+EN_FAULT_SWITCH_3|0x0EA00003|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"I/O module 3 Fault Multiple I/O module failures"
+EN_FAULT_SWITCH_4|0x0EA00004|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"I/O module 4 Fault"
+EN_FAULT_SWITCH_4|0x0EA00004|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"I/O module 4 Fault Multiple I/O module failures"
 
 ################
 # Switch Sensors
 ################
 
 # Switch temperature sensor - not accessable through MIB; event-only sensor
-EN_OVER_TEMP_SWITCH_1|0x0EA1C401|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"I/O module 1 Temperature Fault"
-EN_OVER_TEMP_SWITCH_1|0x0EA1C401|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"I/O module 1 Temperature Fault Multiple I/O module failures"
-EN_OVER_TEMP_SWITCH_2|0x0EA1C402|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"I/O module 2 Temperature Fault"
-EN_OVER_TEMP_SWITCH_2|0x0EA1C402|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"I/O module 2 Temperature Fault Multiple I/O module failures"
-EN_OVER_TEMP_SWITCH_3|0x0EA1C403|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"I/O module 3 Temperature Fault"
-EN_OVER_TEMP_SWITCH_3|0x0EA1C403|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"I/O module 3 Temperature Fault Multiple I/O module failures"
-EN_OVER_TEMP_SWITCH_4|0x0EA1C404|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"I/O module 4 Temperature Fault"
-EN_OVER_TEMP_SWITCH_4|0x0EA1C404|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"I/O module 4 Temperature Fault Multiple I/O module failures"
+EN_OVER_TEMP_SWITCH_1|0x0EA1C401|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"I/O module 1 Temperature Fault"
+EN_OVER_TEMP_SWITCH_1|0x0EA1C401|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"I/O module 1 Temperature Fault Multiple I/O module failures"
+EN_OVER_TEMP_SWITCH_2|0x0EA1C402|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"I/O module 2 Temperature Fault"
+EN_OVER_TEMP_SWITCH_2|0x0EA1C402|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"I/O module 2 Temperature Fault Multiple I/O module failures"
+EN_OVER_TEMP_SWITCH_3|0x0EA1C403|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"I/O module 3 Temperature Fault"
+EN_OVER_TEMP_SWITCH_3|0x0EA1C403|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"I/O module 3 Temperature Fault Multiple I/O module failures"
+EN_OVER_TEMP_SWITCH_4|0x0EA1C404|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"I/O module 4 Temperature Fault"
+EN_OVER_TEMP_SWITCH_4|0x0EA1C404|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"I/O module 4 Temperature Fault Multiple I/O module failures"
 
-EN_OVER_TEMP_WARN_SWITCH_1|0x0EA1D401|BCT,BC|SAHPI_MAJOR|OVR_SEV|"I/O module 1 Temperature Warning"
-EN_OVER_TEMP_WARN_SWITCH_1|0x0EA1D401|BCT,BC|SAHPI_MAJOR|OVR_SEV|"I/O module 1 Temperature Warning Multiple I/O module failures"
-EN_OVER_TEMP_WARN_SWITCH_2|0x0EA1D402|BCT,BC|SAHPI_MAJOR|OVR_SEV|"I/O module 2 Temperature Warning"
-EN_OVER_TEMP_WARN_SWITCH_2|0x0EA1D402|BCT,BC|SAHPI_MAJOR|OVR_SEV|"I/O module 2 Temperature Warning Multiple I/O module failures"
-EN_OVER_TEMP_WARN_SWITCH_3|0x0EA1D403|BCT,BC|SAHPI_MAJOR|OVR_SEV|"I/O module 3 Temperature Warning"
-EN_OVER_TEMP_WARN_SWITCH_3|0x0EA1D403|BCT,BC|SAHPI_MAJOR|OVR_SEV|"I/O module 3 Temperature Warning Multiple I/O module failures"
-EN_OVER_TEMP_WARN_SWITCH_4|0x0EA1D404|BCT,BC|SAHPI_MAJOR|OVR_SEV|"I/O module 4 Temperature Warning"
-EN_OVER_TEMP_WARN_SWITCH_4|0x0EA1D404|BCT,BC|SAHPI_MAJOR|OVR_SEV|"I/O module 4 Temperature Warning Multiple I/O module failures"
+EN_OVER_TEMP_WARN_SWITCH_1|0x0EA1D401|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_RID|"I/O module 1 Temperature Warning"
+EN_OVER_TEMP_WARN_SWITCH_1|0x0EA1D401|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_RID|"I/O module 1 Temperature Warning Multiple I/O module failures"
+EN_OVER_TEMP_WARN_SWITCH_2|0x0EA1D402|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_RID|"I/O module 2 Temperature Warning"
+EN_OVER_TEMP_WARN_SWITCH_2|0x0EA1D402|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_RID|"I/O module 2 Temperature Warning Multiple I/O module failures"
+EN_OVER_TEMP_WARN_SWITCH_3|0x0EA1D403|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_RID|"I/O module 3 Temperature Warning"
+EN_OVER_TEMP_WARN_SWITCH_3|0x0EA1D403|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_RID|"I/O module 3 Temperature Warning Multiple I/O module failures"
+EN_OVER_TEMP_WARN_SWITCH_4|0x0EA1D404|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_RID|"I/O module 4 Temperature Warning"
+EN_OVER_TEMP_WARN_SWITCH_4|0x0EA1D404|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_RID|"I/O module 4 Temperature Warning Multiple I/O module failures"
 
 # Map to generic operational sensor; event-only sensor
-EN_SWITCH_1_INSUFFICIENT_PWR|0x0E00B001|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"Switch 1 is not allowed to power on because of insufficient power."
-EN_SWITCH_2_INSUFFICIENT_PWR|0x0E00B002|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"Switch 2 is not allowed to power on because of insufficient power."
-EN_SWITCH_3_INSUFFICIENT_PWR|0x0E00B003|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"Switch 3 is not allowed to power on because of insufficient power."
-EN_SWITCH_4_INSUFFICIENT_PWR|0x0E00B004|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"Switch 4 is not allowed to power on because of insufficient power."
+EN_SWITCH_1_INSUFFICIENT_PWR|0x0E00B001|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Switch 1 is not allowed to power on because of insufficient power."
+EN_SWITCH_2_INSUFFICIENT_PWR|0x0E00B002|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Switch 2 is not allowed to power on because of insufficient power."
+EN_SWITCH_3_INSUFFICIENT_PWR|0x0E00B003|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Switch 3 is not allowed to power on because of insufficient power."
+EN_SWITCH_4_INSUFFICIENT_PWR|0x0E00B004|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Switch 4 is not allowed to power on because of insufficient power."
 
-EN_SWITCH_1_CFG_ERROR|0x0EA0C001|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"I/O module 1 is incompatible with Blade Server configuration."
-EN_SWITCH_1_CFG_ERROR|0x0EA0C001|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"I/O module 1 is incompatible with Blade Server configuration. Multiple I/O module failures"
-EN_SWITCH_2_CFG_ERROR|0x0EA0C002|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"I/O module 2 is incompatible with Blade Server configuration."
-EN_SWITCH_2_CFG_ERROR|0x0EA0C002|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"I/O module 2 is incompatible with Blade Server configuration. Multiple I/O module failures"
-EN_SWITCH_3_CFG_ERROR|0x0EA0C003|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"I/O module 3 is incompatible with Blade Server configuration."
-EN_SWITCH_3_CFG_ERROR|0x0EA0C003|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"I/O module 3 is incompatible with Blade Server configuration. Multiple I/O module failures"
-EN_SWITCH_4_CFG_ERROR|0x0EA0C004|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"I/O module 4 is incompatible with Blade Server configuration."
-EN_SWITCH_4_CFG_ERROR|0x0EA0C004|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"I/O module 4 is incompatible with Blade Server configuration. Multiple I/O module failures"
+EN_SWITCH_1_CFG_ERROR|0x0EA0C001|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"I/O module 1 is incompatible with Blade Server configuration."
+EN_SWITCH_1_CFG_ERROR|0x0EA0C001|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"I/O module 1 is incompatible with Blade Server configuration. Multiple I/O module failures"
+EN_SWITCH_2_CFG_ERROR|0x0EA0C002|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"I/O module 2 is incompatible with Blade Server configuration."
+EN_SWITCH_2_CFG_ERROR|0x0EA0C002|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"I/O module 2 is incompatible with Blade Server configuration. Multiple I/O module failures"
+EN_SWITCH_3_CFG_ERROR|0x0EA0C003|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"I/O module 3 is incompatible with Blade Server configuration."
+EN_SWITCH_3_CFG_ERROR|0x0EA0C003|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"I/O module 3 is incompatible with Blade Server configuration. Multiple I/O module failures"
+EN_SWITCH_4_CFG_ERROR|0x0EA0C004|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"I/O module 4 is incompatible with Blade Server configuration."
+EN_SWITCH_4_CFG_ERROR|0x0EA0C004|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"I/O module 4 is incompatible with Blade Server configuration. Multiple I/O module failures"
 
-EN_SWITCH_1_POST_ERROR|0x0EA0E001|BCT,BC|SAHPI_MAJOR|OVR_SEV|"I/O module 1 POST Error."
-EN_SWITCH_1_POST_ERROR|0x0EA0E001|BCT,BC|SAHPI_MAJOR|OVR_SEV|"I/O module 1 POST Error. Multiple I/O module failures"
-EN_SWITCH_2_POST_ERROR|0x0EA0E002|BCT,BC|SAHPI_MAJOR|OVR_SEV|"I/O module 2 POST Error."
-EN_SWITCH_2_POST_ERROR|0x0EA0E002|BCT,BC|SAHPI_MAJOR|OVR_SEV|"I/O module 2 POST Error. Multiple I/O module failures"
-EN_SWITCH_3_POST_ERROR|0x0EA0E003|BCT,BC|SAHPI_MAJOR|OVR_SEV|"I/O module 3 POST Error."
-EN_SWITCH_3_POST_ERROR|0x0EA0E003|BCT,BC|SAHPI_MAJOR|OVR_SEV|"I/O module 3 POST Error. Multiple I/O module failures"
-EN_SWITCH_4_POST_ERROR|0x0EA0E004|BCT,BC|SAHPI_MAJOR|OVR_SEV|"I/O module 4 POST Error."
-EN_SWITCH_4_POST_ERROR|0x0EA0E004|BCT,BC|SAHPI_MAJOR|OVR_SEV|"I/O module 4 POST Error. Multiple I/O module failures"
+EN_SWITCH_1_POST_ERROR|0x0EA0E001|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_RID|"I/O module 1 POST Error."
+EN_SWITCH_1_POST_ERROR|0x0EA0E001|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_RID|"I/O module 1 POST Error. Multiple I/O module failures"
+EN_SWITCH_2_POST_ERROR|0x0EA0E002|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_RID|"I/O module 2 POST Error."
+EN_SWITCH_2_POST_ERROR|0x0EA0E002|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_RID|"I/O module 2 POST Error. Multiple I/O module failures"
+EN_SWITCH_3_POST_ERROR|0x0EA0E003|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_RID|"I/O module 3 POST Error."
+EN_SWITCH_3_POST_ERROR|0x0EA0E003|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_RID|"I/O module 3 POST Error. Multiple I/O module failures"
+EN_SWITCH_4_POST_ERROR|0x0EA0E004|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_RID|"I/O module 4 POST Error."
+EN_SWITCH_4_POST_ERROR|0x0EA0E004|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_RID|"I/O module 4 POST Error. Multiple I/O module failures"
 
-EN_SWITCH_1_POST_TIMEOUT|0x0EA0D001|BCT,BC|SAHPI_MAJOR|OVR_SEV|"I/O module 1 POST Timeout."
-EN_SWITCH_1_POST_TIMEOUT|0x0EA0D001|BCT,BC|SAHPI_MAJOR|OVR_SEV|"I/O module 1 POST Timeout. Multiple I/O module failures"
-EN_SWITCH_2_POST_TIMEOUT|0x0EA0D002|BCT,BC|SAHPI_MAJOR|OVR_SEV|"I/O module 2 POST Timeout."
-EN_SWITCH_2_POST_TIMEOUT|0x0EA0D002|BCT,BC|SAHPI_MAJOR|OVR_SEV|"I/O module 2 POST Timeout. Multiple I/O module failures"
-EN_SWITCH_3_POST_TIMEOUT|0x0EA0D003|BCT,BC|SAHPI_MAJOR|OVR_SEV|"I/O module 3 POST Timeout."
-EN_SWITCH_3_POST_TIMEOUT|0x0EA0D003|BCT,BC|SAHPI_MAJOR|OVR_SEV|"I/O module 3 POST Timeout. Multiple I/O module failures"
-EN_SWITCH_4_POST_TIMEOUT|0x0EA0D004|BCT,BC|SAHPI_MAJOR|OVR_SEV|"I/O module 4 POST Timeout."
-EN_SWITCH_4_POST_TIMEOUT|0x0EA0D004|BCT,BC|SAHPI_MAJOR|OVR_SEV|"I/O module 4 POST Timeout. Multiple I/O module failures"
+EN_SWITCH_1_POST_TIMEOUT|0x0EA0D001|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_RID|"I/O module 1 POST Timeout."
+EN_SWITCH_1_POST_TIMEOUT|0x0EA0D001|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_RID|"I/O module 1 POST Timeout. Multiple I/O module failures"
+EN_SWITCH_2_POST_TIMEOUT|0x0EA0D002|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_RID|"I/O module 2 POST Timeout."
+EN_SWITCH_2_POST_TIMEOUT|0x0EA0D002|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_RID|"I/O module 2 POST Timeout. Multiple I/O module failures"
+EN_SWITCH_3_POST_TIMEOUT|0x0EA0D003|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_RID|"I/O module 3 POST Timeout."
+EN_SWITCH_3_POST_TIMEOUT|0x0EA0D003|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_RID|"I/O module 3 POST Timeout. Multiple I/O module failures"
+EN_SWITCH_4_POST_TIMEOUT|0x0EA0D004|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_RID|"I/O module 4 POST Timeout."
+EN_SWITCH_4_POST_TIMEOUT|0x0EA0D004|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_RID|"I/O module 4 POST Timeout. Multiple I/O module failures"
 
 # Didn't map to event-only current sensor since there is no threshold concept
-EN_OVER_CURRENT_SWITCH_1|0x0EA1A401|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"I/O module 1 Current Fault"
-EN_OVER_CURRENT_SWITCH_1|0x0EA1A401|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"I/O module 1 Current Fault Multiple I/O module failures"
-EN_OVER_CURRENT_SWITCH_2|0x0EA1A402|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"I/O module 2 Current Fault"
-EN_OVER_CURRENT_SWITCH_2|0x0EA1A402|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"I/O module 2 Current Fault Multiple I/O module failures"
-EN_OVER_CURRENT_SWITCH_3|0x0EA1A403|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"I/O module 3 Current Fault"
-EN_OVER_CURRENT_SWITCH_3|0x0EA1A403|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"I/O module 3 Current Fault Multiple I/O module failures"
-EN_OVER_CURRENT_SWITCH_4|0x0EA1A404|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"I/O module 4 Current Fault"
-EN_OVER_CURRENT_SWITCH_4|0x0EA1A404|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"I/O module 4 Current Fault Multiple I/O module failures"
+EN_OVER_CURRENT_SWITCH_1|0x0EA1A401|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"I/O module 1 Current Fault"
+EN_OVER_CURRENT_SWITCH_1|0x0EA1A401|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"I/O module 1 Current Fault Multiple I/O module failures"
+EN_OVER_CURRENT_SWITCH_2|0x0EA1A402|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"I/O module 2 Current Fault"
+EN_OVER_CURRENT_SWITCH_2|0x0EA1A402|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"I/O module 2 Current Fault Multiple I/O module failures"
+EN_OVER_CURRENT_SWITCH_3|0x0EA1A403|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"I/O module 3 Current Fault"
+EN_OVER_CURRENT_SWITCH_3|0x0EA1A403|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"I/O module 3 Current Fault Multiple I/O module failures"
+EN_OVER_CURRENT_SWITCH_4|0x0EA1A404|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"I/O module 4 Current Fault"
+EN_OVER_CURRENT_SWITCH_4|0x0EA1A404|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"I/O module 4 Current Fault Multiple I/O module failures"
 
 ##############
 # Fan Resource
@@ -572,21 +606,29 @@ EN_FAN4_PFA|0x000A6004|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_RID|"Blower 4 Outside Reco
 # Map to generic blower operational sensor
 EN_FAN1_SPEED|0x00026801|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 1 Failure Multiple blower failures"
 EN_FAN1_SPEED|0x00026801|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 1 Failure Single blower failure"
+EN_FAN1_SPEED|0x00026801|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 1 Failure"
 EN_FAN2_SPEED|0x00026802|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 2 Failure Multiple blower failures"
 EN_FAN2_SPEED|0x00026802|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 2 Failure Single blower failure"
+EN_FAN2_SPEED|0x00026802|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 2 Failure"
 EN_FAN3_SPEED|0x00026803|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 3 Failure Multiple blower failures"
 EN_FAN3_SPEED|0x00026803|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 3 Failure Single blower failure"
+EN_FAN3_SPEED|0x00026803|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 3 Failure"
 EN_FAN4_SPEED|0x00026804|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 4 Failure Multiple blower failures"
 EN_FAN4_SPEED|0x00026804|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 4 Failure Single blower failure"
+EN_FAN4_SPEED|0x00026804|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 4 Failure"
 
 EN_FAULT_FAN1|0x0A026001|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 1 Fault Multiple blower failures"
 EN_FAULT_FAN1|0x0A026001|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 1 Fault Single blower failure"
+EN_FAULT_FAN1|0x0A026001|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 1 Fault"
 EN_FAULT_FAN2|0x0A026002|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 2 Fault Multiple blower failures"
 EN_FAULT_FAN2|0x0A026002|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 2 Fault Single blower failure"
+EN_FAULT_FAN2|0x0A026002|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 2 Fault"
 EN_FAULT_FAN3|0x0A026003|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 3 Fault Multiple blower failures"
 EN_FAULT_FAN3|0x0A026003|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 3 Fault Single blower failure"
+EN_FAULT_FAN3|0x0A026003|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 3 Fault"
 EN_FAULT_FAN4|0x0A026004|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 4 Fault Multiple blower failures"
 EN_FAULT_FAN4|0x0A026004|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 4 Fault Single blower failure"
+EN_FAULT_FAN4|0x0A026004|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 4 Fault"
 
 ################
 # Power Resource
@@ -985,11 +1027,10 @@ EN_FAN_8_NOT_PRESENT|0x06026008|RSA|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Fan 8 not de
 #EN_MEM_PORT0_PWR_GOOD_FAULT_BOT|0x00028009|RSA|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Lower CEC Port 0 Power Fault"
 #EN_MEM_PORT0_PWR_GOOD_FAULT_TOP|0x00028008|RSA|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Upper CEC Port 0 Power Fault"
 #EN_MEM_PORT1_PWR_GOOD_FAULT_TOP|0x0002800A|RSA|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Upper CEC Port 1 Power Fault"
-#EN_MEM_RISER_PRESENT|0x0501E000|RSA|SAHPI_MAJOR|OVR_SEV,OVR_RID|"Memory Card Not Responding "
+#EN_MEM_RISER_PRESENT|0x0501E000|RSA|SAHPI_MAJOR|OVR_SEV,OVR_RID|"Memory Card Not Responding"
 #EN_MEMCARD_PD|0x6501E000|RSA|SAHPI_MAJOR|OVR_SEV,OVR_RID|"Left Memory Card AND Right Memory Card Not Present."
 #EN_MEMORY_1_8_PG_FAULT|0x04019004|RSA|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Memory +1.8v power fault."
 #EN_MEMORY_2_5_PG_FAULT|0x04019003|RSA|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Memory +2.5v power fault."
-#EN_MEMORY_FAIL|0x05200000|RSA|SAHPI_MAJOR|OVR_SEV,OVR_RID|"System Memory Error"
 #EN_PECOS_ECC_MEM_FAULT|0x05280200|RSA|SAHPI_MAJOR|OVR_SEV,OVR_RID|"Uncorrectable Memory Error Detected. Removed Failed Component(s) from active configuration"
 #EN_POW_GOOD_FAULT_MEM_CARD|0x05028000|RSA|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Memory Power Fault"
 #EN_POW_GOOD_FAULT_MEM_PORT_0|0x05228000|RSA|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Memory Port-1 2.5v Power Fault"

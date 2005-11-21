@@ -728,7 +728,7 @@ int main(int argc, char **argv)
 	      (logentry.Event.EventDataUnion.HotSwapEvent.PreviousHotSwapState == SAHPI_HS_STATE_ACTIVE))) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		oh_print_event(&(logentry.Event), 1);
-		return -1;
+		//return -1;
 	}
 
 	err = saHpiEventLogClear(sessionid, rid_eventlog);

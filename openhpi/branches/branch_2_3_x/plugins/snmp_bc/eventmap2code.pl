@@ -17,7 +17,7 @@
 ###################################################################
 # Script Description:
 #
-# This script takes raw event infomation contained in 
+# This script takes raw event information contained in 
 # snmp_bc_event.map and generates code that populates the 
 # errlog2event_hash table. This can be done in two ways - 
 # with C code or with XML code. The C code way is simpler
@@ -298,11 +298,13 @@ sub print_h_file_header {
 
 #define HPIDUP_STRING  "_HPIDUP"
 
-#define NO_OVR  0x00000000  /* No overrides */
-#define OVR_SEV 0x00000001  /* Override Error Log's severity */
-#define OVR_RID 0x00000010  /* Override Error Log's source */
-#define OVR_EXP 0x00000100  /* Override Error Log's source for expansion cards */
-#define OVR_MM  0x00001000  /* Override Error Log's source for active MM */
+#define NO_OVR     0x00000000  /* No overrides */
+#define OVR_SEV    0x00000001  /* Override Error Log's severity */
+#define OVR_RID    0x00000010  /* Override Error Log's source */
+#define OVR_EXP    0x00000100  /* Override Error Log's source for expansion cards */
+#define OVR_MMACT  0x00001000  /* Override Error Log's source for MM */
+#define OVR_MM1    0x00010000  /* Override Error Log's source for MM 1 */
+#define OVR_MM2    0x00100000  /* Override Error Log's source for MM 2 */
 
 typedef struct {
         gchar *event;

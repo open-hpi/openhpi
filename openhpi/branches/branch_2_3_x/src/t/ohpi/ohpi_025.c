@@ -33,7 +33,7 @@ int main(int argc, char **argv)
         if (saHpiSessionOpen(1, &sid, NULL))
                 return -1;
                 
-        if (oHpiPluginLoad("libdummy"))
+        if (oHpiPluginLoad("libsimulator"))
                 return -1;
                 
         /* Set configuration. */

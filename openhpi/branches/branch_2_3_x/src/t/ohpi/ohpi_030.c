@@ -34,11 +34,11 @@ int main(int argc, char **argv)
         if (saHpiSessionOpen(1, &sid, NULL))
                 return -1;
                 
-        if (oHpiPluginLoad("libdummy"))
+        if (oHpiPluginLoad("libsimulator"))
                 return -1;
                 
         /* Set configuration. */
-        g_hash_table_insert(config, "plugin", "libdummy");
+        g_hash_table_insert(config, "plugin", "libsimulator");
         g_hash_table_insert(config, "entity_root", "{SYSTEM_CHASSIS,1}");
         g_hash_table_insert(config, "name", "test");
         g_hash_table_insert(config, "addr", "0");

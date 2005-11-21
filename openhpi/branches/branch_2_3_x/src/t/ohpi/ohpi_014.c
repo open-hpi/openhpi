@@ -18,7 +18,7 @@
 #include <oHpi.h>
 
 /**
- * Load the dummy plugin. Unload passing NULL argument.
+ * Load the simulator plugin. Unload passing NULL argument.
  * Pass on error, otherwise test failed.
  **/
  
@@ -31,7 +31,7 @@ int main(int argc, char **argv)
         if (saHpiSessionOpen(1, &sid, NULL))
                 return -1;
                     
-        if (oHpiPluginLoad("libdummy"))
+        if (oHpiPluginLoad("libsimulator"))
                 return -1;
                 
         

@@ -19,7 +19,7 @@
 #include <oHpi.h>
 
 /**
- * Load 'libdummy', load 'libwatchdog', 
+ * Load 'libsimulator', load 'libwatchdog', 
  * and call oHpiPluginGetNext passing a bogus plugin.
  * Unload the plugins.
  * Pass on error, otherwise test failed.
@@ -38,7 +38,7 @@ int main(int argc, char **argv)
                 return -1;
                     
         /* Load plugins */
-        if (oHpiPluginLoad("libdummy"))
+        if (oHpiPluginLoad("libsimulator"))
                 return -1;
                 
         if (oHpiPluginLoad("libwatchdog"))
@@ -52,5 +52,5 @@ int main(int argc, char **argv)
                 return -1;
 
         
-        return oHpiPluginUnload("libdummy");
+        return oHpiPluginUnload("libsimulator");
 }

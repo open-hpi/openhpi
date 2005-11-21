@@ -19,7 +19,7 @@
 #include <oHpi.h>
 
 /**
- * Load 'libdummy', create handler, get handler info and check for
+ * Load 'libsimulator', create handler, get handler info and check for
  * expected information. Destroy handler, unload plugin.
  * Pass on success, otherwise failure.
  **/
@@ -36,11 +36,11 @@ int main(int argc, char **argv)
         if (saHpiSessionOpen(1, &sid, NULL))
                 return -1;
                 
-        if (oHpiPluginLoad("libdummy"))
+        if (oHpiPluginLoad("libsimulator"))
                 return -1;
                 
         /* Set configuration. */
-        g_hash_table_insert(config, "plugin", "libdummy");
+        g_hash_table_insert(config, "plugin", "libsimulator");
         g_hash_table_insert(config, "entity_root", "{SYSTEM_CHASSIS,1}");
         g_hash_table_insert(config, "name", "test");
         g_hash_table_insert(config, "addr", "0");
@@ -51,12 +51,12 @@ int main(int argc, char **argv)
         if (oHpiHandlerInfo(hid, &hinfo))
                 return -1;
                 
-        if (strcmp("libdummy",hinfo.plugin_name))
+        if (strcmp("libsimulator",hinfo.plugin_name))
                 return -1;
                 
         if (oHpiHandlerDestroy(hid))
                 return -1;
                 
         
-        return oHpiPluginUnload("libdummy");
+        return oHpiPluginUnload("libsimulator");
 }
