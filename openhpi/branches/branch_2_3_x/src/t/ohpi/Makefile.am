@@ -22,7 +22,7 @@ TDEPLIB                 = $(top_builddir)/src/libopenhpi.la \
 
 TESTS_ENVIRONMENT = OPENHPI_PATH=$(top_builddir)/plugins/simulator:$(top_builddir)/plugins/watchdog
 TESTS_ENVIRONMENT += OPENHPI_UID_MAP=$(top_builddir)/src/t/ohpi/uid_map
-TESTS_ENVIRONMENT += OPENHPI_CONF=$(top_builddir)/src/t/ohpi/openhpi.conf
+TESTS_ENVIRONMENT += OPENHPI_CONF=$(top_srcdir)/src/t/ohpi/openhpi.conf
 
 TESTS = ohpi_000 \
         ohpi_001 \
