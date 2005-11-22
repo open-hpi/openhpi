@@ -19,7 +19,7 @@
 #include <oHpi.h>
 
 /**
- * Load 'libdummy' and 'libwatchdog', create two handlers on each.
+ * Load 'libsimulator' and 'libwatchdog', create two handlers on each.
  * Destroy handlers and unload plugin.
  * Pass on success, otherwise failure.
  **/
@@ -41,19 +41,19 @@ int main(int argc, char **argv)
                 return -1;
                     
         /* Load plugins */
-        if (oHpiPluginLoad("libdummy"))
+        if (oHpiPluginLoad("libsimulator"))
                 return -1;
                 
         if (oHpiPluginLoad("libwatchdog"))
                 return -1;
                 
         /* Set configuration for handlers and create them. */
-        g_hash_table_insert(h0, "plugin", "libdummy");
+        g_hash_table_insert(h0, "plugin", "libsimulator");
         g_hash_table_insert(h0, "entity_root", "{SYSTEM_CHASSIS,1}");
         g_hash_table_insert(h0, "name", "test0");
         g_hash_table_insert(h0, "addr", "0");
         
-        g_hash_table_insert(h1, "plugin", "libdummy");
+        g_hash_table_insert(h1, "plugin", "libsimulator");
         g_hash_table_insert(h1, "entity_root", "{SYSTEM_CHASSIS,2}");
         g_hash_table_insert(h1, "name", "test1");
         g_hash_table_insert(h1, "addr", "1");
@@ -79,7 +79,7 @@ int main(int argc, char **argv)
         if (oHpiHandlerDestroy(hid2) || oHpiHandlerDestroy(hid3))
                 return -1;
                 
-        if (oHpiPluginUnload("libdummy") || oHpiPluginUnload("libwatchdog"))
+        if (oHpiPluginUnload("libsimulator") || oHpiPluginUnload("libwatchdog"))
                 return -1;
                 
         

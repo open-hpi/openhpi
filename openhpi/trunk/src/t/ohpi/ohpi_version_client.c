@@ -21,7 +21,7 @@
 #include <config.h>
 
 /**
- * Load the dummy plugin.
+ * Load the simulator plugin.
  * Pass on success, otherwise a failure.
  **/
  

@@ -18,7 +18,7 @@
 #include <oHpi.h>
 
 /**
- * Load 'libdummy', get plugin info, compare it with the known
+ * Load 'libsimulator', get plugin info, compare it with the known
  * value (1) , and unload the plugins.
  * Pass on success, otherwise failure.
  **/
@@ -33,15 +33,15 @@ int main(int argc, char **argv)
         if (saHpiSessionOpen(1, &sid, NULL))
                 return -1;
                     
-        if (oHpiPluginLoad("libdummy"))
+        if (oHpiPluginLoad("libsimulator"))
                 return -1;
                 
-        if (oHpiPluginInfo("libdummy",&pinfo))
+        if (oHpiPluginInfo("libsimulator",&pinfo))
                 return -1;
                 
         if (pinfo.refcount != 0)
                 return -1;                
                 
         
-        return oHpiPluginUnload("libdummy");
+        return oHpiPluginUnload("libsimulator");
 }

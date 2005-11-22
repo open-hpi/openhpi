@@ -18,7 +18,7 @@
 #include <oHpi.h>
 
 /**
- * Load 'libdummy', create two handlers, get plugin info and
+ * Load 'libsimulator', create two handlers, get plugin info and
  * compare with known value (3), destroy handlers, get info again
  * and compare with known value (1), unload plugin.
  * Test without opening a session. Opening a handler should
@@ -35,16 +35,16 @@ int main(int argc, char **argv)
         
         setenv("OPENHPI_CONF","./noconfig", 1);
 
-        if (oHpiPluginLoad("libdummy"))
+        if (oHpiPluginLoad("libsimulator"))
                 return -1;
                 
         /* Set configuration for two handlers and create them. */
-        g_hash_table_insert(h0, "plugin", "libdummy");
+        g_hash_table_insert(h0, "plugin", "libsimulator");
         g_hash_table_insert(h0, "entity_root", "{SYSTEM_CHASSIS,1}");
         g_hash_table_insert(h0, "name", "test0");
         g_hash_table_insert(h0, "addr", "0");
         
-        g_hash_table_insert(h1, "plugin", "libdummy");
+        g_hash_table_insert(h1, "plugin", "libsimulator");
         g_hash_table_insert(h1, "entity_root", "{SYSTEM_CHASSIS,2}");
         g_hash_table_insert(h1, "name", "test1");
         g_hash_table_insert(h1, "addr", "1");
@@ -52,7 +52,7 @@ int main(int argc, char **argv)
         if (oHpiHandlerCreate(h0,&hid0) || oHpiHandlerCreate(h1,&hid1))
                 return -1;
                 
-        if (oHpiPluginInfo("libdummy",&pinfo))
+        if (oHpiPluginInfo("libsimulator",&pinfo))
                 return -1;
                 
         if (pinfo.refcount != 2)
@@ -61,12 +61,12 @@ int main(int argc, char **argv)
         if (oHpiHandlerDestroy(hid0) || oHpiHandlerDestroy(hid1))
                 return -1;
                 
-        if (oHpiPluginInfo("libdummy",&pinfo))
+        if (oHpiPluginInfo("libsimulator",&pinfo))
                 return -1;
                 
         if (pinfo.refcount != 0)
                 return -1;
                 
         
-        return oHpiPluginUnload("libdummy");
+        return oHpiPluginUnload("libsimulator");
 }
