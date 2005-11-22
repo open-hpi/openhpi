@@ -18,7 +18,7 @@
 #include <oHpi.h>
 
 /**
- * Load the dummy plugin, unload it, and load it again.
+ * Load the simulator plugin, unload it, and load it again.
  * Test without opening a session. Opening a handler should
  * initialize the library.
  * Pass on success, otherwise a failure.
@@ -29,12 +29,12 @@ int main(int argc, char **argv)
         
         setenv("OPENHPI_CONF","./noconfig", 1);        
                     
-        if (oHpiPluginLoad("libdummy"))
+        if (oHpiPluginLoad("libsimulator"))
                 return -1;
         
-        if (oHpiPluginUnload("libdummy"))
+        if (oHpiPluginUnload("libsimulator"))
                 return -1;
         
         
-        return oHpiPluginLoad("libdummy");
+        return oHpiPluginLoad("libsimulator");
 }

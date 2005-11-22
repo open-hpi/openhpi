@@ -36,17 +36,17 @@ int main(int argc, char **argv)
                 return -1;
                     
         /* Load plugins */
-        if (oHpiPluginLoad("libdummy"))
+        if (oHpiPluginLoad("libsimulator"))
                 return -1;
                 
         if (oHpiPluginLoad("libwatchdog"))
                 return -1;
                 
-        if (oHpiPluginUnload("libdummy"))
+        if (oHpiPluginUnload("libsimulator"))
                 return -1;
                 
         next_plugin[0] = '\0';
-        if (!oHpiPluginGetNext("libdummy", next_plugin, PLUGIN_NAME_SIZE))
+        if (!oHpiPluginGetNext("libsimulator", next_plugin, PLUGIN_NAME_SIZE))
                 return -1;        
 
         

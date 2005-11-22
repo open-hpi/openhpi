@@ -17,14 +17,11 @@ INCLUDES		= @OPENHPI_INCLUDES@
 
 AM_CFLAGS		= @NOCFLAGS@
 
-# removed until the gcc 3.4 bug is fixed
-# @COV_CFLAGS@
-
 TDEPLIB                 = $(top_builddir)/src/libopenhpi.la \
 			  $(top_builddir)/utils/libopenhpiutils.la
 
-TESTS_ENVIRONMENT = OPENHPI_PATH=$(top_builddir)/plugins/dummy:$(top_builddir)/plugins/ipmi:$(top_builddir)/plugins/ipmidirect:$(top_builddir)/plugins/watchdog:$(top_builddir)/plugins/sysfs:$(top_builddir)/plugins/text_remote:$(top_builddir)/plugins/snmp_bc:$(top_builddir)/plugins/snmp_rsa
-TESTS_ENVIRONMENT += OPENHPI_UID_MAP=$(shell pwd)/uid_map
+TESTS_ENVIRONMENT = OPENHPI_PATH=$(top_builddir)/plugins/simulator:$(top_builddir)/plugins/watchdog
+TESTS_ENVIRONMENT += OPENHPI_UID_MAP=$(top_builddir)/src/t/ohpi/uid_map
 TESTS_ENVIRONMENT += OPENHPI_CONF=$(top_srcdir)/src/t/ohpi/openhpi.conf
 
 TESTS = ohpi_000 \
