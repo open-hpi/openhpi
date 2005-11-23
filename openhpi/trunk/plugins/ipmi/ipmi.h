@@ -47,7 +47,7 @@
 
 
 
-#define IPMI_DATA_WAIT	5
+#define IPMI_DATA_WAIT	10
 #define OEM_ALARM_BASE  0x10
 
 #define	IPMI_EVENT_DATA_MAX_LEN 13
