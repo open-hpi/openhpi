@@ -2097,7 +2097,7 @@ SaErrorT ohoi_add_idr_field(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid,
 	fid = get_fieldid_by_type(fru, field->AreaId, field->Type);
 	if (fid == 0) {
 		dbg("invalid field type %d", field->Type);
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_DATA;
 	}
 
 	field->FieldId = fid;
