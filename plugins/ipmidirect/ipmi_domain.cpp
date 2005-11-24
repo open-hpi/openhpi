@@ -471,7 +471,7 @@ cIpmiDomain::CheckAtca()
 
   stdlog << "found a PicMg system version " << (unsigned int)major << "." << (unsigned int)minor << ".\n";
 
-  if ( major != 2 || ( ( minor != 0 ) && ( minor != 1 ) ) )
+  if ( major != 2 )
        return SA_OK;
 
   stdlog << "found an ATCA system.\n";
@@ -542,9 +542,10 @@ cIpmiDomain::CheckAtca()
             else
                  stdlog << "\tfound " << (unsigned char)i << " at " <<  rsp.m_data[3] << ".\n";
 
-            // add slot for initial scan
-            NewFruInfo( rsp.m_data[3], rsp.m_data[5], entity, j + 1,
-                        (tIpmiAtcaSiteType)i, m_atca_site_property[i].m_property );
+            // add MC for initial scan (FRU 0)
+            if (rsp.m_data[5] == 0)
+                NewFruInfo( rsp.m_data[3], rsp.m_data[5], entity, j + 1,
+                                (tIpmiAtcaSiteType)i, m_atca_site_property[i].m_property );
           }
      }
 
