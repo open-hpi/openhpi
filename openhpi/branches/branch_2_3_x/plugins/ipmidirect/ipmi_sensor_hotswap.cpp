@@ -190,10 +190,11 @@ cIpmiSensorHotswap::GetState( tIpmiFruState &state )
        return rv;
      }
 
+  // Reading should be 0 according to PICMG 3.0 specification
+  // However if it's not this is not a fatal error so just flag it
   if ( rsp.m_data[1] != 0 )
      {
-       stdlog << "cannot read hotswap sensor " << rsp.m_data[1] << " !\n";
-       return SA_ERR_HPI_INVALID_DATA;
+       stdlog << "WARNING: hotswap sensor reading not 0 : " << rsp.m_data[1] << " !\n";
      }
 
   unsigned int value = rsp.m_data[3];
@@ -207,7 +208,7 @@ cIpmiSensorHotswap::GetState( tIpmiFruState &state )
 
   stdlog << "WRONG Hot Swap State " << value << "\n";
 
-  return SA_ERR_HPI_INVALID_CMD;
+  return SA_ERR_HPI_INVALID_DATA;
 }
 
 
