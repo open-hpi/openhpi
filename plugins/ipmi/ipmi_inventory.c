@@ -1573,6 +1573,7 @@ SaErrorT ohoi_add_idr_area(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid,
 		dbg("callback failed. ar_add.rv = %d", ar_add.rv);
 	} else {
 		set_area_presence(fru, areatype);
+		*areaid = get_areaid_by_type(areatype);
 		ohoi_res_info->fru->update_count++;
 	}
 	g_mutex_unlock (fru->mutex);
