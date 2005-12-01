@@ -43,8 +43,8 @@ SaErrorT rtas_discover_sensors(struct oh_handler_state *handle,
 			       struct oh_event *parent_res_event)
 
 {
-	int file, rc, sensor_state, sensor_num = 0;
-        char err_buf[SAHPI_MAX_TEXT_BUFFER_LENGTH];
+	int file, sensor_num = 0;
+        //char err_buf[SAHPI_MAX_TEXT_BUFFER_LENGTH];
 	SaHpiUint32T token, max_index, index = 0;
 
 	struct oh_event * event;
@@ -83,67 +83,370 @@ SaErrorT rtas_discover_sensors(struct oh_handler_state *handle,
 				return SA_ERR_HPI_INTERNAL_ERROR;
 			}
 	
-		        /* Now that we have the token and the index, we can
-			 * grab the specific data about the sensor from the
-			 * RTAS library and build the RDR.
+		        
+		/* Make sure we didn't get bogus tokens */
+		if (token != RTAS_RESERVED_SENSOR_2  &&
+			token != RTAS_RESERVED_SENSOR_4  &&
+			token != RTAS_RESERVED_SENSOR_5  &&
+			token != RTAS_RESERVED_SENSOR_6  &&
+			token != RTAS_RESERVED_SENSOR_7  &&
+			token != RTAS_RESERVED_SENSOR_8  &&
+			token != RTAS_RESERVED_SENSOR_10 &&
+			token != RTAS_RESERVED_SENSOR_11 &&
+			token != RTAS_RESERVED_SENSOR_9008 )
+		{
+			/* Now that we have the token and the index, we can
+			 * grab the specific data about the sensor  and build the RDR.
 			 */
 			for (index = 0; index <= max_index; index++) {
 				
-				rc = rtas_get_sensor (token, index, &sensor_state);
+				event->type = OH_ET_RDR;
+				event->did  = oh_get_default_domain_id();
+				event->u.rdr_event.parent      = parent_res_event->u.res_event.entry.ResourceId;
+				event->u.rdr_event.rdr.RdrType = SAHPI_SENSOR_RDR;
+				event->u.rdr_event.rdr.Entity  = parent_res_event->u.res_event.entry.ResourceEntity;
 				
+				/* Do entity path business */
+				//rtas_modify_sensor_ep(); //needs more research
 				
-				if (rc < SA_OK) {
+				/* For now, assume sensor number represents a count.  If we decide later to 
+				 * create an RPT for each sensor type (and fill in the RDRs that consist of
+				 * the sensor type), then the num will need to be reset.
+				 */
+         			event->u.rdr_event.rdr.RdrTypeUnion.SensorRec.Num = sensor_num++;
+				
+				populate_rtas_sensor_rec_info(token, &(event->u.rdr_event.rdr.RdrTypeUnion.SensorRec));
+			 	     
+				event->u.rdr_event.rdr.RdrTypeUnion.SensorRec.Category   = SAHPI_EC_SENSOR_SPECIFIC;					 
+				event->u.rdr_event.rdr.RdrTypeUnion.SensorRec.EnableCtrl = SAHPI_FALSE;
+				event->u.rdr_event.rdr.RdrTypeUnion.SensorRec.EventCtrl  = SAHPI_SEC_READ_ONLY;  
+				event->u.rdr_event.rdr.RdrTypeUnion.SensorRec.Events	 = SAHPI_ES_UNSPECIFIED;
+				
+				event->u.rdr_event.rdr.RdrTypeUnion.SensorRec.ThresholdDefn.IsAccessible = SAHPI_FALSE;
+				
+				/* For now, take the token, OR it with the index, shove it in the Oem field 
+				 * I think this will be good for quick lookup when we query
+				 */
+				event->u.rdr_event.rdr.RdrTypeUnion.SensorRec.Oem = token | (index >> 4);
 					
-					decode_rtas_error(rc, err_buf, SAHPI_MAX_TEXT_BUFFER_LENGTH, 
-					                      token, index);
+				oh_add_rdr(handle->rptcache, parent_res_event->u.res_event.entry.ResourceId,
+					           &(event->u.rdr_event.rdr), NULL, 0);
+			}	
 	
-					dbg("Library call (rtas_get_sensor) failure for the "
-					    "sensor at token %04d, index %d:\n%s\n",
-					     token, index, err_buf);
-
-				}
-				
-				/* This function assumes the RPT */
-				
-				else{
-					printf("Token: %d, Index: %d, State: %d\n", token, index, sensor_state);
-					
-					event->type = OH_ET_RDR;
-					event->did = oh_get_default_domain_id();
-					event->u.rdr_event.parent = parent_res_event->u.res_event.entry.ResourceId;
-					event->u.rdr_event.rdr.RdrType = SAHPI_SENSOR_RDR;
-					event->u.rdr_event.rdr.Entity = parent_res_event->u.res_event.entry.ResourceEntity;
-					
-					/* Do entity path business */
-					//rtas_modify_sensor_ep();
-					
-					/* For now, assume sensor number represents a count.  If we decide later to 
-					 * create an RPT for each sensor type (and fill in the RDRs that consist of
-					 * the sensor type), then the num will need to be reset.
-					 */
-					event->u.rdr_event.rdr.RdrTypeUnion.SensorRec.Num = sensor_num++;
-					
-					populate_rtas_sensor_info(token, &(event->u.rdr_event.rdr.RdrTypeUnion.SensorRec));
-					 	    
-					event->u.rdr_event.rdr.RdrTypeUnion.SensorRec.Category = SAHPI_EC_UNSPECIFIED;    
-					
-					event->u.rdr_event.rdr.RdrTypeUnion.SensorRec.EnableCtrl = SAHPI_FALSE;
-					event->u.rdr_event.rdr.RdrTypeUnion.SensorRec.EventCtrl = SAHPI_SEC_READ_ONLY;  
-					event->u.rdr_event.rdr.RdrTypeUnion.SensorRec.Events = SAHPI_ES_UNSPECIFIED;
-					
-					//event->u.rdr_event.rdr.RdrTypeUnion.SensorRec.ThresholdDefn
-					//event->u.rdr_event.rdr.RdrTypeUnion.SensorRec.Oem 
-					
-					//oh_init_textbuffer(&(event->u.rdr_event.rdr.IdString));
-					//oh_append_textbuffer(&(e->u.rdr_event.rdr.IdString), sensor_array[i].comment);
-
-				}	
-				
-				
-					
-			
-			}
+		}
 	}
 	
-	return 1;
+	return SA_OK;
 }	
+
+/**
+ * populate_rtas_sensor_info
+ * 
+ * @data - pointer to the location of the SaHpiSensorRecT.
+ * @token - the sensor type.
+ *
+ * @return - writes the specific sensor info based on the type
+ *           of sensor.
+ */
+void populate_rtas_sensor_rec_info(int token, SaHpiSensorRecT *sensor_info)
+{
+
+	if (!sensor_info)
+		return;
+	
+	
+      	sensor_info->DataFormat.IsSupported = SAHPI_TRUE;
+		
+	switch ((rtasSensorToken)token) {
+		
+		case RTAS_SECURITY_SENSOR:
+				
+			sensor_info->Type = SAHPI_PHYSICAL_SECURITY;
+			
+			sensor_info->DataFormat.IsSupported    = SAHPI_TRUE;
+			sensor_info->DataFormat.ReadingType    = SAHPI_SENSOR_READING_TYPE_UINT64;
+			sensor_info->DataFormat.BaseUnits      = SAHPI_SU_CHARACTERS;
+			sensor_info->DataFormat.ModifierUnits  = SAHPI_SU_UNSPECIFIED;
+   			sensor_info->DataFormat.ModifierUse    = SAHPI_SMUU_NONE;
+	      		sensor_info->DataFormat.Percentage     = SAHPI_FALSE;
+    			
+			sensor_info->DataFormat.Range.Flags    = SAHPI_SRF_MAX | SAHPI_SRF_MIN;
+			
+			sensor_info->DataFormat.Range.Max.IsSupported        = SAHPI_TRUE;
+			sensor_info->DataFormat.Range.Max.Type               = SAHPI_SENSOR_READING_TYPE_UINT64;
+			sensor_info->DataFormat.Range.Max.Value.SensorUint64 = 3;
+			
+			sensor_info->DataFormat.Range.Min.IsSupported 	     = SAHPI_TRUE;
+			sensor_info->DataFormat.Range.Min.Type 	   	     = SAHPI_SENSOR_READING_TYPE_UINT64;
+			sensor_info->DataFormat.Range.Min.Value.SensorUint64 = 0;
+				
+			break;
+
+		case RTAS_THERMAL_SENSOR:
+		
+			sensor_info->Type = SAHPI_TEMPERATURE;
+			
+			sensor_info->DataFormat.IsSupported    = SAHPI_TRUE;
+			sensor_info->DataFormat.ReadingType    = SAHPI_SENSOR_READING_TYPE_INT64;
+			sensor_info->DataFormat.BaseUnits      = SAHPI_SU_DEGREES_C;
+			sensor_info->DataFormat.ModifierUnits  = SAHPI_SU_UNSPECIFIED;
+   			sensor_info->DataFormat.ModifierUse    = SAHPI_SMUU_NONE;
+	      		sensor_info->DataFormat.Percentage     = SAHPI_FALSE;
+
+			sensor_info->DataFormat.Range.Flags    = SAHPI_SRF_MAX | SAHPI_SRF_MIN;
+			
+			sensor_info->DataFormat.Range.Max.IsSupported        = SAHPI_TRUE;
+			sensor_info->DataFormat.Range.Max.Type               = SAHPI_SENSOR_READING_TYPE_INT64;
+			
+			sensor_info->DataFormat.Range.Min.IsSupported 	     = SAHPI_TRUE;
+			sensor_info->DataFormat.Range.Min.Type 	   	     = SAHPI_SENSOR_READING_TYPE_INT64;
+			
+			
+			break;
+			
+		case RTAS_POWER_STATE_SENSOR:
+		
+			sensor_info->Type = SAHPI_SYSTEM_ACPI_POWER_STATE;
+			
+			sensor_info->DataFormat.IsSupported    = SAHPI_TRUE;
+			sensor_info->DataFormat.ReadingType    = SAHPI_SENSOR_READING_TYPE_UINT64;
+			sensor_info->DataFormat.BaseUnits      = SAHPI_SU_CHARACTERS;
+			sensor_info->DataFormat.ModifierUnits  = SAHPI_SU_UNSPECIFIED;
+   			sensor_info->DataFormat.ModifierUse    = SAHPI_SMUU_NONE;
+	      		sensor_info->DataFormat.Percentage     = SAHPI_FALSE;
+
+			sensor_info->DataFormat.Range.Flags    = SAHPI_SRF_MAX | SAHPI_SRF_MIN;
+			
+			sensor_info->DataFormat.Range.Max.IsSupported        = SAHPI_TRUE;
+			sensor_info->DataFormat.Range.Max.Type               = SAHPI_SENSOR_READING_TYPE_UINT64;
+			sensor_info->DataFormat.Range.Max.Value.SensorUint64 = 7;			
+			
+			sensor_info->DataFormat.Range.Min.IsSupported 	     = SAHPI_TRUE;
+			sensor_info->DataFormat.Range.Min.Type 	   	     = SAHPI_SENSOR_READING_TYPE_UINT64;
+			sensor_info->DataFormat.Range.Min.Value.SensorUint64 = 0;
+						
+			break;
+		
+		case RTAS_SURVEILLANCE_SENSOR:
+			
+			sensor_info->Type = SAHPI_MANAGEMENT_SUBSYSTEM_HEALTH;
+			
+			sensor_info->DataFormat.ReadingType    = SAHPI_SENSOR_READING_TYPE_UINT64;
+			sensor_info->DataFormat.BaseUnits      = SAHPI_SU_MINUTE;
+			sensor_info->DataFormat.ModifierUnits  = SAHPI_SU_UNSPECIFIED;
+   			sensor_info->DataFormat.ModifierUse    = SAHPI_SMUU_NONE;
+	      		sensor_info->DataFormat.Percentage     = SAHPI_FALSE;
+
+			sensor_info->DataFormat.Range.Flags    = SAHPI_SRF_MAX | SAHPI_SRF_MIN;
+			
+			sensor_info->DataFormat.Range.Max.IsSupported        = SAHPI_TRUE;
+			sensor_info->DataFormat.Range.Max.Type               = SAHPI_SENSOR_READING_TYPE_UINT64;
+			sensor_info->DataFormat.Range.Max.Value.SensorUint64 = 255;			
+			
+			sensor_info->DataFormat.Range.Min.IsSupported 	     = SAHPI_TRUE;
+			sensor_info->DataFormat.Range.Min.Type 	   	     = SAHPI_SENSOR_READING_TYPE_UINT64;
+			sensor_info->DataFormat.Range.Min.Value.SensorUint64 = 0;			
+
+			break;
+			
+		case RTAS_FAN_SENSOR:
+			
+			sensor_info->Type = SAHPI_FAN;
+			
+			sensor_info->DataFormat.IsSupported    = SAHPI_TRUE;
+			sensor_info->DataFormat.ReadingType    = SAHPI_SENSOR_READING_TYPE_UINT64;
+			sensor_info->DataFormat.BaseUnits      = SAHPI_SU_RPM;
+			sensor_info->DataFormat.ModifierUnits  = SAHPI_SU_UNSPECIFIED;
+   			sensor_info->DataFormat.ModifierUse    = SAHPI_SMUU_NONE;
+	      		sensor_info->DataFormat.Percentage     = SAHPI_FALSE;
+
+			sensor_info->DataFormat.Range.Flags    = SAHPI_SRF_MAX | SAHPI_SRF_MIN;
+			
+			sensor_info->DataFormat.Range.Max.IsSupported        = SAHPI_TRUE;
+			sensor_info->DataFormat.Range.Max.Type               = SAHPI_SENSOR_READING_TYPE_UINT64;			
+			
+			sensor_info->DataFormat.Range.Min.IsSupported 	     = SAHPI_TRUE;
+			sensor_info->DataFormat.Range.Min.Type 	   	     = SAHPI_SENSOR_READING_TYPE_UINT64;
+	
+			break;
+		
+		case RTAS_VOLTAGE_SENSOR:
+			
+			sensor_info->Type = SAHPI_VOLTAGE;
+			
+			sensor_info->DataFormat.IsSupported    = SAHPI_TRUE;
+			sensor_info->DataFormat.ReadingType    = SAHPI_SENSOR_READING_TYPE_INT64;
+			sensor_info->DataFormat.BaseUnits      = SAHPI_SU_VOLTS;
+			sensor_info->DataFormat.ModifierUnits  = SAHPI_SU_UNSPECIFIED;
+   			sensor_info->DataFormat.ModifierUse    = SAHPI_SMUU_NONE;
+	      		sensor_info->DataFormat.Percentage     = SAHPI_FALSE;
+
+			sensor_info->DataFormat.Range.Flags    = SAHPI_SRF_MAX | SAHPI_SRF_MIN;
+			
+			sensor_info->DataFormat.Range.Max.IsSupported        = SAHPI_TRUE;
+			sensor_info->DataFormat.Range.Max.Type               = SAHPI_SENSOR_READING_TYPE_INT64;			
+			
+			sensor_info->DataFormat.Range.Min.IsSupported 	     = SAHPI_TRUE;
+			sensor_info->DataFormat.Range.Min.Type 	   	     = SAHPI_SENSOR_READING_TYPE_INT64;	
+
+					
+			break;
+		
+		
+		case RTAS_CONNECTOR_SENSOR:
+		
+			sensor_info->Type = SAHPI_SLOT_CONNECTOR;
+			
+			sensor_info->DataFormat.IsSupported    = SAHPI_TRUE;
+			sensor_info->DataFormat.ReadingType    = SAHPI_SENSOR_READING_TYPE_UINT64;
+			sensor_info->DataFormat.BaseUnits      = SAHPI_SU_UNSPECIFIED;
+			sensor_info->DataFormat.ModifierUnits  = SAHPI_SU_UNSPECIFIED;
+   			sensor_info->DataFormat.ModifierUse    = SAHPI_SMUU_NONE;
+	      		sensor_info->DataFormat.Percentage     = SAHPI_FALSE;
+
+			sensor_info->DataFormat.Range.Flags    = SAHPI_SRF_MAX | SAHPI_SRF_MIN;
+			
+			sensor_info->DataFormat.Range.Max.IsSupported        = SAHPI_TRUE;
+			sensor_info->DataFormat.Range.Max.Type               = SAHPI_SENSOR_READING_TYPE_UINT64;
+			sensor_info->DataFormat.Range.Max.Value.SensorUint64 = 4;						
+			
+			sensor_info->DataFormat.Range.Min.IsSupported 	     = SAHPI_TRUE;
+			sensor_info->DataFormat.Range.Min.Type 	   	     = SAHPI_SENSOR_READING_TYPE_UINT64;
+			sensor_info->DataFormat.Range.Min.Value.SensorUint64 = 0;
+			
+			break;
+		
+		case RTAS_POWER_SUPPLY_SENSOR:
+			
+			sensor_info->Type = SAHPI_POWER_SUPPLY;
+			
+			sensor_info->DataFormat.IsSupported    = SAHPI_TRUE;
+			sensor_info->DataFormat.ReadingType    = SAHPI_SENSOR_READING_TYPE_UINT64;
+			sensor_info->DataFormat.BaseUnits      = SAHPI_SU_UNSPECIFIED;
+			sensor_info->DataFormat.ModifierUnits  = SAHPI_SU_UNSPECIFIED;
+   			sensor_info->DataFormat.ModifierUse    = SAHPI_SMUU_NONE;
+	      		sensor_info->DataFormat.Percentage     = SAHPI_FALSE;
+
+			sensor_info->DataFormat.Range.Flags    = SAHPI_SRF_MAX | SAHPI_SRF_MIN;
+			
+			sensor_info->DataFormat.Range.Max.IsSupported        = SAHPI_TRUE;
+			sensor_info->DataFormat.Range.Max.Type               = SAHPI_SENSOR_READING_TYPE_UINT64;
+			sensor_info->DataFormat.Range.Max.Value.SensorUint64 = 3;						
+			
+			sensor_info->DataFormat.Range.Min.IsSupported 	     = SAHPI_TRUE;
+			sensor_info->DataFormat.Range.Min.Type 	   	     = SAHPI_SENSOR_READING_TYPE_UINT64;
+			sensor_info->DataFormat.Range.Min.Value.SensorUint64 = 0;
+						
+			
+			break;
+
+		case RTAS_GIQ_SENSOR:
+		
+			sensor_info->Type = SAHPI_CRITICAL_INTERRUPT;
+			
+			sensor_info->DataFormat.IsSupported    = SAHPI_TRUE;
+			sensor_info->DataFormat.ReadingType    = SAHPI_SENSOR_READING_TYPE_UINT64;
+			sensor_info->DataFormat.BaseUnits      = SAHPI_SU_UNSPECIFIED;
+			sensor_info->DataFormat.ModifierUnits  = SAHPI_SU_UNSPECIFIED;
+   			sensor_info->DataFormat.ModifierUse    = SAHPI_SMUU_NONE;
+	      		sensor_info->DataFormat.Percentage     = SAHPI_FALSE;
+
+			sensor_info->DataFormat.Range.Flags    = SAHPI_SRF_MAX | SAHPI_SRF_MIN;
+			
+			sensor_info->DataFormat.Range.Max.IsSupported        = SAHPI_TRUE;
+			sensor_info->DataFormat.Range.Max.Type               = SAHPI_SENSOR_READING_TYPE_UINT64;
+			sensor_info->DataFormat.Range.Max.Value.SensorUint64 = 1;						
+			
+			sensor_info->DataFormat.Range.Min.IsSupported 	     = SAHPI_TRUE;
+			sensor_info->DataFormat.Range.Min.Type 	   	     = SAHPI_SENSOR_READING_TYPE_UINT64;
+			sensor_info->DataFormat.Range.Min.Value.SensorUint64 = 0;			
+			
+			break;
+		
+		case RTAS_SYSTEM_ATTENTION_SENSOR:
+		
+			sensor_info->Type = SAHPI_PLATFORM_ALERT;
+			
+			sensor_info->DataFormat.IsSupported    = SAHPI_TRUE;
+			sensor_info->DataFormat.ReadingType    = SAHPI_SENSOR_READING_TYPE_UINT64;
+			sensor_info->DataFormat.BaseUnits      = SAHPI_SU_UNSPECIFIED;
+			sensor_info->DataFormat.ModifierUnits  = SAHPI_SU_UNSPECIFIED;
+   			sensor_info->DataFormat.ModifierUse    = SAHPI_SMUU_NONE;
+	      		sensor_info->DataFormat.Percentage     = SAHPI_FALSE;
+
+			sensor_info->DataFormat.Range.Flags    = SAHPI_SRF_MAX | SAHPI_SRF_MIN;
+			
+			sensor_info->DataFormat.Range.Max.IsSupported        = SAHPI_TRUE;
+			sensor_info->DataFormat.Range.Max.Type               = SAHPI_SENSOR_READING_TYPE_UINT64;
+			sensor_info->DataFormat.Range.Max.Value.SensorUint64 = 1;						
+			
+			sensor_info->DataFormat.Range.Min.IsSupported 	     = SAHPI_TRUE;
+			sensor_info->DataFormat.Range.Min.Type 	   	     = SAHPI_SENSOR_READING_TYPE_UINT64;
+			sensor_info->DataFormat.Range.Min.Value.SensorUint64 = 0;
+									
+			break;
+		
+		case RTAS_IDENTIFY_INDICATOR_SENSOR:
+		
+			sensor_info->Type = SAHPI_OTHER_FRU;
+			
+			sensor_info->DataFormat.ReadingType    = SAHPI_SENSOR_READING_TYPE_UINT64;
+			sensor_info->DataFormat.BaseUnits      = SAHPI_SU_UNSPECIFIED;
+			sensor_info->DataFormat.ModifierUnits  = SAHPI_SU_UNSPECIFIED;
+   			sensor_info->DataFormat.ModifierUse    = SAHPI_SMUU_NONE;
+	      		sensor_info->DataFormat.Percentage     = SAHPI_FALSE;
+
+			sensor_info->DataFormat.Range.Flags    = SAHPI_SRF_MAX | SAHPI_SRF_MIN;
+			
+			sensor_info->DataFormat.Range.Max.IsSupported        = SAHPI_TRUE;
+			sensor_info->DataFormat.Range.Max.Type               = SAHPI_SENSOR_READING_TYPE_UINT64;
+			sensor_info->DataFormat.Range.Max.Value.SensorUint64 = 1;						
+			
+			sensor_info->DataFormat.Range.Min.IsSupported 	     = SAHPI_TRUE;
+			sensor_info->DataFormat.Range.Min.Type 	   	     = SAHPI_SENSOR_READING_TYPE_UINT64;
+			sensor_info->DataFormat.Range.Min.Value.SensorUint64 = 0;			
+
+			break;
+				
+		case RTAS_COMPONENT_RESET_STATE_SENSOR:
+		
+			sensor_info->Type = SAHPI_OPERATIONAL;
+			
+			sensor_info->DataFormat.ReadingType    = SAHPI_SENSOR_READING_TYPE_UINT64;
+			sensor_info->DataFormat.BaseUnits      = SAHPI_SU_UNSPECIFIED;
+			sensor_info->DataFormat.ModifierUnits  = SAHPI_SU_UNSPECIFIED;
+   			sensor_info->DataFormat.ModifierUse    = SAHPI_SMUU_NONE;
+	      		sensor_info->DataFormat.Percentage     = SAHPI_FALSE;
+
+			sensor_info->DataFormat.Range.Flags    = SAHPI_SRF_MAX | SAHPI_SRF_MIN;
+			
+			sensor_info->DataFormat.Range.Max.IsSupported        = SAHPI_TRUE;
+			sensor_info->DataFormat.Range.Max.Type               = SAHPI_SENSOR_READING_TYPE_UINT64;
+			sensor_info->DataFormat.Range.Max.Value.SensorUint64 = 2;						
+			
+			sensor_info->DataFormat.Range.Min.IsSupported 	     = SAHPI_TRUE;
+			sensor_info->DataFormat.Range.Min.Type 	   	     = SAHPI_SENSOR_READING_TYPE_UINT64;
+			sensor_info->DataFormat.Range.Min.Value.SensorUint64 = 0;			
+			
+			break;
+		
+		default:
+			
+			sensor_info->Type = SAHPI_OEM_SENSOR;
+			
+			sensor_info->DataFormat.ReadingType    = SAHPI_SENSOR_READING_TYPE_UINT64;
+			sensor_info->DataFormat.BaseUnits      = SAHPI_SU_UNSPECIFIED;
+			sensor_info->DataFormat.ModifierUnits  = SAHPI_SU_UNSPECIFIED;
+   			sensor_info->DataFormat.ModifierUse    = SAHPI_SMUU_NONE;
+	      		sensor_info->DataFormat.Percentage     = SAHPI_FALSE;
+
+			sensor_info->DataFormat.Range.Flags    = SAHPI_SRF_MAX | SAHPI_SRF_MIN;
+			
+			sensor_info->DataFormat.Range.Max.IsSupported        = SAHPI_FALSE;						
+			
+			sensor_info->DataFormat.Range.Min.IsSupported 	     = SAHPI_FALSE;
+			
+			break;
+
+	}
+}				
