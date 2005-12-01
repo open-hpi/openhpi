@@ -27,7 +27,5 @@
 #include <librtas.h>
 
 void decode_rtas_error (int error, char *buf, size_t size, int token, int index);
-		       
-void populate_rtas_sensor_info(int token, SaHpiSensorRecT *sensor_info);
 
 #endif /* RTAS_UTILS_H */
