@@ -23,9 +23,8 @@
 #include <oh_utils.h>
 #include <oh_error.h>
 #include <oh_domain.h>
+#include <rtas_sensor.h>
 #include <librtas.h>
-
-#define RTAS_SENSORS_PATH	"/proc/device-tree/rtas/rtas-sensors"
 
 
 /* Enums */
@@ -55,14 +54,10 @@ typedef enum rtasSensorTokenEnum {
 	RTAS_OEM_SPECIFIC_SENSOR_END = 9999
 }rtasSensorToken;
 	
-
-
 SaErrorT rtas_discover_sensors(struct oh_handler_state *handle,
 			       struct oh_event *res_oh_event);
 			       
 void populate_rtas_sensor_rec_info(int token, SaHpiSensorRecT *sensor_info);
 
-
-			       
-			       
+			       			       
 #endif /* RTAS_DISCOVER_H */

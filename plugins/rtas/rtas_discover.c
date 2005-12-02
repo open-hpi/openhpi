@@ -46,6 +46,7 @@ SaErrorT rtas_discover_sensors(struct oh_handler_state *handle,
 	int file, sensor_num = 0;
         //char err_buf[SAHPI_MAX_TEXT_BUFFER_LENGTH];
 	SaHpiUint32T token, max_index, index = 0;
+	struct SensorInfo *sensor_info;
 
 	struct oh_event * event;
 
@@ -53,13 +54,6 @@ SaErrorT rtas_discover_sensors(struct oh_handler_state *handle,
 	{
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}	
-	
-	event = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
-	
-	if (!event) {
-		dbg("Out of memory.");
-		return SA_ERR_HPI_OUT_OF_SPACE;
-	}
 	
 	/* open the binary file and read the indexes */
 	file = open(RTAS_SENSORS_PATH, O_RDONLY);
@@ -100,6 +94,14 @@ SaErrorT rtas_discover_sensors(struct oh_handler_state *handle,
 			 */
 			for (index = 0; index <= max_index; index++) {
 				
+				event = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
+				sensor_info = (struct SensorInfo*)g_malloc0(sizeof(struct SensorInfo));
+	
+				if (!event || !sensor_info) {
+					dbg("Out of memory.");
+					return SA_ERR_HPI_OUT_OF_SPACE;
+				}
+				
 				event->type = OH_ET_RDR;
 				event->did  = oh_get_default_domain_id();
 				event->u.rdr_event.parent      = parent_res_event->u.res_event.entry.ResourceId;
@@ -124,11 +126,11 @@ SaErrorT rtas_discover_sensors(struct oh_handler_state *handle,
 				
 				event->u.rdr_event.rdr.RdrTypeUnion.SensorRec.ThresholdDefn.IsAccessible = SAHPI_FALSE;
 				
-				/* For now, take the token, OR it with the index, shove it in the Oem field 
-				 * I think this will be good for quick lookup when we query
-				 */
-				event->u.rdr_event.rdr.RdrTypeUnion.SensorRec.Oem = token | (index >> 4);
-					
+				sensor_info->token = token;
+				sensor_info->index = index;
+				
+				rtas_get_sensor_location_code(token, index, sensor_info->sensor_location);
+	
 				oh_add_rdr(handle->rptcache, parent_res_event->u.res_event.entry.ResourceId,
 					           &(event->u.rdr_event.rdr), NULL, 0);
 			}	
@@ -336,8 +338,7 @@ void populate_rtas_sensor_rec_info(int token, SaHpiSensorRecT *sensor_info)
 			sensor_info->DataFormat.Range.Min.IsSupported 	     = SAHPI_TRUE;
 			sensor_info->DataFormat.Range.Min.Type 	   	     = SAHPI_SENSOR_READING_TYPE_UINT64;
 			sensor_info->DataFormat.Range.Min.Value.SensorUint64 = 0;
-						
-			
+
 			break;
 
 		case RTAS_GIQ_SENSOR:
@@ -449,4 +450,4 @@ void populate_rtas_sensor_rec_info(int token, SaHpiSensorRecT *sensor_info)
 			break;
 
 	}
-}				
+}
