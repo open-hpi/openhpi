@@ -40,6 +40,7 @@ FILE		*input_files[MAX_IN_FILES];
 int		out_files_count = 0;
 FILE		*output_files[MAX_REDIRECTIONS];
 char		Title[1024];
+int		is_more = 1;
 
 /* local variables */
 static char	input_buffer[READ_BUF_SIZE];	// command line buffer
@@ -163,6 +164,7 @@ static char *get_input_line(char *mes, int new_cmd)
 	input_buf_ptr = input_buffer;
 	fflush(stdout);
 	memset(input_buffer, 0, READ_BUF_SIZE);
+	current_row = 0;
 	if (read_stdin) {
 		if (mes != (char *)NULL) snprintf(Title, READ_BUF_SIZE, "%s", mes);
 		else strcpy(Title, "OpenHPI> ");
@@ -650,7 +652,7 @@ Pr_ret_t ui_print(char *Str)
 			*tmp = 0;
 			printf("%s\n", s);
 			current_row += add_nl;
-			if (current_row >= (window_nrows - 1)) {
+			if ((current_row >= (window_nrows - 1)) && is_more) {
 				printf("%s - more - %s", green, reset);
 				i = getchar();
 				printf("\r          \r");
