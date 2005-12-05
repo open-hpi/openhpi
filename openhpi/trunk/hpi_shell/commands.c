@@ -193,6 +193,28 @@ static ret_code_t debugset(void)
         return HPI_SHELL_OK;
 }
 
+static ret_code_t moreset(void)
+{
+        char            *val;
+        term_def_t      *term;
+
+        term = get_next_term();
+        if (term == NULL) {
+                 if (is_more) val = "NO";
+		 else val = "OFF";
+                printf("more = %s\n", val);
+                return(HPI_SHELL_OK);
+        };
+        if (strcmp(term->term, "on") == 0)
+                is_more = 1;
+        else if (strcmp(term->term, "off") == 0)
+                is_more = 0;
+        else
+                return HPI_SHELL_PARM_ERROR;
+
+        return HPI_SHELL_OK;
+}
+
 static ret_code_t power(void)
 {
         SaErrorT                rv;
@@ -1260,6 +1282,8 @@ const char lreshelp[] = "lsres: list resources\n"
                         "Usage: lsres [stat] [path]";
 const char lsorhelp[] = "lsensor: list sensors\n"
                         "Usage: lsensor";
+const char morehelp[] = "more: set or unset more enable\n"
+                        "Usage: more [ on | off ]";
 const char parmctrlhelp[] = "parmctrl: save and restore parameters for a resource\n"
                         "Usage: parmctrl <resource id> <action>\n"
                         "    action - default | save | restore";
@@ -1390,6 +1414,7 @@ command_def_t commands[] = {
     { "inv",            inv_block,      invhelp,        MAIN_COM },
     { "lsres",          listres,        lreshelp,       UNDEF_COM },
     { "lsensor",        list_sensor,    lsorhelp,       MAIN_COM },
+    { "more",           moreset,        morehelp,       UNDEF_COM },
     { "parmctrl",       parmctrl,       parmctrlhelp,   MAIN_COM },
     { "power",          power,          powerhelp,      MAIN_COM },
     { "quit",           quit,           quithelp,       UNDEF_COM },
