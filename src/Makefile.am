@@ -78,6 +78,7 @@ uninstall-local:
 
 install-data-local:
 	mkdir -p $(DESTDIR)$(pkglibdir)/standard/
+	rm -f $(DESTDIR)$(pkglibdir)/standard/libopenhpi.*
 	mv $(DESTDIR)$(libdir)/libopenhpi.* $(DESTDIR)$(pkglibdir)/standard/
 	$(DESTDIR)$(bindir)/@HPI_PKG@-switcher --set=standard
 
