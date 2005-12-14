@@ -52,6 +52,7 @@ have_uuid=no
 have_openipmi=no
 have_fam=no
 have_sysfs=no
+have_rtas_lib=no
 
 dnl Check for GLIB
 
@@ -348,15 +349,20 @@ if test "x$IPMIDIRECT" = "xipmidirect"; then
         fi
 fi
 
-# Configure options for the RTAS plugin
+
+OH_CHECK_RTAS
+
+#Configure options for the RTAS plugin
 AC_ARG_ENABLE([rtas],
-    [  --enable-rtas       build rtas ppc plugin [default=no]],
+    [  --enable-rtas        build rtas ppc plugin [default=no]],
     [if test "x$enableval" = "xyes"; then
-	    AC_SUBST(RTAS,rtas)
-     else
-            AC_SUBST(RTAS,"")
-     fi],
-    [AC_SUBST(RTAS,"")])
+        if test "x$have_rtas_lib" = "xyes"; then
+            AC_SUBST(RTAS,rtas)
+        else
+            OH_CHECK_FAIL(librtas, librtas-devel, http://librtas.ozlabs.org/,
+                Cannot build RTAS plugin without the librtas library)
+        fi
+    fi])
 
 #AC_ARG_iENABLE([remote_client],
 #    [  --enable-remote_client     build remote client plugin [default=yes]],
