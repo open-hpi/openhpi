@@ -319,6 +319,14 @@ EN_12VS_WARNING_LOW|0x0A036C02|BCT,BC|SAHPI_MAJOR|OVR_SEV|"Standby +12V under re
 # Blade's VRM 1 voltage sensor
 EN_CUTOFF_HI_FAULT_VRM1|0x04400481|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to VRM 1 over voltage."
 
+# Blade's IPMI CPU 1 VCore voltage sensor 
+EN_PFA_HI_FAULT_VRM1|0x04401501|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System is over recommended voltage on VRM 1."
+EN_PFA_LO_FAULT_VRM1|0x04401801|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System is under recommended voltage on VRM 1."
+
+# Blade's IPMI CPU 2 VCore voltage sensor 
+EN_PFA_HI_FAULT_VRM2|0x04401502|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System is over recommended voltage on VRM 2."
+EN_PFA_LO_FAULT_VRM2|0x04401802|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System is under recommended voltage on VRM 2."
+ 
 # Blade's memory sensor
 EN_MEMORY_FAIL|0x05200000|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System Memory Error"
 
@@ -439,7 +447,7 @@ EN_SYSERR_LED_ONLY|0x0000007E|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"Critical Interrupt 
 ########################
 # Expansion Card Sensors
 ########################
-# Blade Expansion Card (DASD 1) thermal sensor
+# Blade BEM thermal sensor
 EN_CUTOFF_HI_OVER_TEMP_DASD1_2|0x0681C482|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"System shutoff due to DASD Option temperature."
 EN_CUTOFF_HI_OVER_TEMP_BEM|0x0621C481|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"System shutoff due to BEM Option temperature."
 EN_OVER_TEMP_BEM|0x0621C081|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"BEM 1 Over Temperature"
@@ -448,7 +456,7 @@ EN_PFA_HI_OVER_TEMP_DASD1_4|0x0681C404|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"DASD 
 EN_PFA_HI_OVER_TEMP_BEM|0x0621D481|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM Option over recommended temperature."
 #EN_PFA_LO_OVER_TEMP_BEM|0x0621D801|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM 1 under recommended temperature."
 
-# Blade expansion card voltage sensor - event only
+# Blade BEM voltage sensor - event only
 # Changed all warnings below to SAHPI_MAJOR
 EN_FAULT_DASD|0x06800000|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"BEM Option failure"
 EN_BUST_1_5V_FAULT|0x0E840002|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"BEM +1.5V Fault."
@@ -472,6 +480,12 @@ EN_BUST_12V_WARNING_LOW|0x0E836802|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM +12V 
 EN_BUST_18V_FAULT|0x0E83C002|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"BEM +18V Fault."
 EN_BUST_18V_WARNING_HI|0x0E83C402|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM +18V over recommended voltage."
 EN_BUST_18V_WARNING_LOW|0x0E83C802|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM +18V under recommended voltage."
+
+# Blade BEM DASD (SCSI ID=2) operational - event only
+EN_FAULT_DASD1_SCSI_ID_2|0x06801002|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"Hard Drive Fault (SCSI ID 2)"
+
+# Blade BEM DASD (SCSI ID=3) operational - event only
+EN_FAULT_DASD1_SCSI_ID_3|0x06801003|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"Hard Drive Fault (SCSI ID 3)"
 
 #####################
 # Media Tray Resource
