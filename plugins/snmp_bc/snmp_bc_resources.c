@@ -330,7 +330,7 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                 .comment = "Blade",
 		.OidResourceTag = ".1.3.6.1.4.1.2.3.51.2.2.8.2.1.1.6.x"
         },
-        /* Blade expansion (add-in) card */
+        /* Blade expansion module */
         {
                 .rpt = {
                         .ResourceInfo = {
@@ -374,7 +374,7 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                                 {},
                         },
                 },
-                .comment = "Blade Expansion Card"
+                .comment = "Blade Expansion Module (BEM)"
         },
         /* Media Tray */
         {
@@ -3177,7 +3177,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 {
                                         .event = "0E00C00x", /* EN_BLADE_x_THROTTLED */
  					.event_assertion = SAHPI_TRUE,
-      					.event_res_failure = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
                                         .event_state = SAHPI_ES_DEGRADED,
                                         .recovery_state = SAHPI_ES_RUNNING,
@@ -3272,7 +3272,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
         {
 		.index = 13,
                 .sensor = {
-                        .Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR,
+                        .Num = 13,
                         .Type = SAHPI_OPERATIONAL,
                         .Category = SAHPI_EC_AVAILABILITY,
 			.EnableCtrl = SAHPI_FALSE,
@@ -5277,6 +5277,22 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				.deassert_mask = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
 				                 SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
 				.event_array = {
+					{
+						.event = "04401501", /* EN_PFA_HI_FAULT_VRM1 */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
+					{
+						.event = "04401801", /* EN_PFA_LO_FAULT_VRM1 */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_MINOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
 					{},
 				},
 				.reading2event = {},
@@ -5349,6 +5365,22 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				.deassert_mask = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
 				                 SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
 				.event_array = {
+					{
+						.event = "04401502", /* EN_PFA_HI_FAULT_VRM2 */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
+					{
+						.event = "04401802", /* EN_PFA_LO_FAULT_VRM2 */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_MINOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
 					{},
 				},
 				.reading2event = {},
@@ -5432,19 +5464,19 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				},
 				.reading2event = {},
 			},
-			.comment = "Blade IPMI battery volt sensor",
+			.comment = "Blade IPMI battery voltage sensor",
 		},
         },
 
         {} /* Terminate array with a null element */
 };
 
-/******************************
- * Blade Expansion Card Sensors
- ******************************/
+/********************************
+ * Blade Expansion Module Sensors
+ ********************************/
 
 struct snmp_bc_sensor snmp_bc_blade_expansion_sensors[] = {
-        /* Blade's expansion card thermal sensor */
+        /* Blade BEM thermal sensor */
         {
 		.index = 1,
                 .sensor = {
@@ -5547,9 +5579,9 @@ struct snmp_bc_sensor snmp_bc_blade_expansion_sensors[] = {
                         },
   			.reading2event = {},
                 },
-                .comment = "Blade expansion card thermal sensor"
+                .comment = "Blade BEM thermal sensor"
         },
-        /* Blade expansion card voltage sensor - event only */
+        /* Blade BEM voltage sensor - event only */
         {
 		.index = 2,
                 .sensor = {
@@ -5754,7 +5786,85 @@ struct snmp_bc_sensor snmp_bc_blade_expansion_sensors[] = {
                         },
   			.reading2event = {},
                  },
-                .comment = "Blade expansion card voltage sensor"
+                .comment = "Blade BEM voltage sensor"
+        },
+	/* Blade BEM DASD (SCSI ID=2) operational sensor - event only */
+        {
+		.index = 3,
+                .sensor = {
+                        .Num = 3,
+                        .Type = SAHPI_OPERATIONAL,
+                        .Category = SAHPI_EC_AVAILABILITY,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
+			.Events = SAHPI_ES_RUNNING | SAHPI_ES_OFF_LINE,
+                        .DataFormat = {
+                                .IsSupported = SAHPI_FALSE,
+                        },
+                        .ThresholdDefn = {
+                                .IsAccessible = SAHPI_FALSE,
+                        },
+                        .Oem = 0,
+                },
+                .sensor_info = {
+                        .cur_state = SAHPI_ES_RUNNING,
+                        .sensor_enabled = SAHPI_TRUE,
+                        .events_enabled = SAHPI_TRUE,
+			.assert_mask   = SAHPI_ES_OFF_LINE,
+			.deassert_mask = SAHPI_ES_OFF_LINE,
+                        .event_array = {
+                                {
+                                        .event = "06801002", /* EN_FAULT_DASD1_SCSI_ID_2 */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {},
+                        },
+   			.reading2event = {},
+                },
+                .comment = "Blade BEM DASD (SCSI ID=2) operational sensor"
+        },
+	/* Blade BEM DASD (SCSI ID=3) operational sensor - event only */
+        {
+		.index = 4,
+                .sensor = {
+                        .Num = 4,
+                        .Type = SAHPI_OPERATIONAL,
+                        .Category = SAHPI_EC_AVAILABILITY,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
+			.Events = SAHPI_ES_RUNNING | SAHPI_ES_OFF_LINE,
+                        .DataFormat = {
+                                .IsSupported = SAHPI_FALSE,
+                        },
+                        .ThresholdDefn = {
+                                .IsAccessible = SAHPI_FALSE,
+                        },
+                        .Oem = 0,
+                },
+                .sensor_info = {
+                        .cur_state = SAHPI_ES_RUNNING,
+                        .sensor_enabled = SAHPI_TRUE,
+                        .events_enabled = SAHPI_TRUE,
+			.assert_mask   = SAHPI_ES_OFF_LINE,
+			.deassert_mask = SAHPI_ES_OFF_LINE,
+                        .event_array = {
+                                {
+                                        .event = "06801003", /* EN_FAULT_DASD1_SCSI_ID_3 */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {},
+                        },
+   			.reading2event = {},
+                },
+                .comment = "Blade BEM DASD (SCSI ID=3) operational sensor"
         },
 
         {} /* Terminate array with a null element */
