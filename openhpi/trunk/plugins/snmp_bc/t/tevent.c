@@ -724,7 +724,7 @@ int main(int argc, char **argv)
 	if (!((!(logentry.Event.Source == rid_eventlog)) &&
 	      (logentry.Event.EventType == SAHPI_ET_HOTSWAP) &&
 	      (logentry.Event.Severity == SAHPI_INFORMATIONAL) &&
-	      (logentry.Event.EventDataUnion.HotSwapEvent.HotSwapState == SAHPI_HS_STATE_ACTIVE) && 
+	      (logentry.Event.EventDataUnion.HotSwapEvent.HotSwapState == SAHPI_HS_STATE_INSERTION_PENDING) && 
 	      (logentry.Event.EventDataUnion.HotSwapEvent.PreviousHotSwapState == SAHPI_HS_STATE_ACTIVE))) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		oh_print_event(&(logentry.Event), 1);
