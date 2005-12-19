@@ -115,9 +115,29 @@ struct snmp_bc_data sim_resource_array[] = {
                 .mib = {
                         .type = ASN_INTEGER,
                         .value = {
-                                .integer = 3,
+                                .integer = 1,
                         },
                 },
+        },
+        {
+                /* Event Log Index Number for Event 4 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.3.4.2.1.1.4",
+                .mib = {
+                        .type = ASN_INTEGER,
+                        .value = {
+                                .integer = 1,
+                        },
+                },
+        },
+	/* Event Log Index Number for Event 5 */
+	{
+		.oid = ".1.3.6.1.4.1.2.3.51.2.3.4.2.1.1.5",
+		.mib = {
+			.type = ASN_INTEGER,
+			.value = {
+				.integer = 1,
+			},
+		},
         },
 	/*
 	 * Special End of Log Entry - Simulator ONLY
@@ -127,7 +147,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	 * force the snmp_get to return a negative value
 	 */
         {
-                .oid = ".1.3.6.1.4.1.2.3.51.2.3.4.2.1.1.4",
+                .oid = ".1.3.6.1.4.1.2.3.51.2.3.4.2.1.1.6",
                 .mib = {
                         .type = ASN_INTEGER,
                         .value = {
@@ -141,7 +161,7 @@ struct snmp_bc_data sim_resource_array[] = {
                 .mib = {
                         .type = ASN_OCTET_STR,
 			.value = {
-				.string = "Severity:WARN  Source:BLADE_01  Name:SN#ZJ1R6G5932JX  Date:11/18/05  Time:18:15:47  Text:System over temperature for CPU 4.   Read value. 0. Threshold value. 0.",
+				.string = "Severity:ERR  Source:BLADE_01  Name:SN#ZJ1R6G5932JX  Date:11/19/05  Time:14:13:15  Text:CPU 3 shut off due to over temperature ",
 			},
 		},
         },
@@ -151,8 +171,8 @@ struct snmp_bc_data sim_resource_array[] = {
                 .mib = {
                         .type = ASN_OCTET_STR,
                         .value = {
-				.string =  "Severity:WARN  Source:BLADE_01  Name:SN#ZJ1R6G5932JX  Date:11/18/05  Time:15:26:02  Text:System shutoff due to VRM 1 over voltage.  Read value 247.01. Threshold value. 0.",
-                        },
+				.string = "Severity:WARN  Source:BLADE_01  Name:SN#ZJ1R6G5932JX  Date:11/19/05  Time:16:49:42  Text:System shutoff due to VRM 1 over voltage.  Read value 247.01. Threshold value. 0.",
+                       },
                 },
         },
         {
@@ -161,11 +181,46 @@ struct snmp_bc_data sim_resource_array[] = {
                 .mib = {
                         .type = ASN_OCTET_STR,
                         .value = {
-				.string = "Severity:INFO  Source:SERVPROC  Name:SN#   Date:11/19/05  Time:12:17:55  Text:Management Module 2 was installed.",
-                        },
+ 				.string = "Severity:WARN  Source:BLADE_01  Name:SN#ZJ1R6G5932JX  Date:11/19/05  Time:16:49:42  Text:System shutoff due to VRM 1 over voltage.  Read value 247.01. Threshold value. 0.",
+                     },
                 },
 	},
+        {
+                /* Event Log Message */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.3.4.2.1.2.4",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+				.string = "Severity:WARN  Source:BLADE_01  Name:SN#ZJ1R6G5932JX  Date:11/19/05  Time:16:49:42  Text:System shutoff due to VRM 1 over voltage.  Read value 247.01. Threshold value. 0.",
+                      },
+                },
+	},
+        {
+                /* Event Log Message */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.3.4.2.1.2.5",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+				.string = "Severity:WARN  Source:BLADE_01  Name:SN#ZJ1R6G5932JX  Date:11/19/05  Time:16:49:42  Text:System shutoff due to VRM 1 over voltage.  Read value 247.01. Threshold value. 0.",
+                      },
+                },
+	},
+
 #if 0
+	.string = "Severity:ERR  Source:BLADE_02  Name:SN#ZJ1R6G5931XY  Date:11/19/05  Time:17:26:32  Text:Critical Interrupt - Front panel NMI",
+
+	.string = "Severity:WARN  Source:BLADE_01  Name:SN#ZJ1R6G5932JX  Date:11/19/05  Time:16:49:42  Text:System shutoff due to VRM 1 over voltage.  Read value 247.01. Threshold value. 0.",
+
+	.string = "Severity:INFO  Source:SERVPROC  Name:SN#              Date:11/19/05  Time:15:34:05  Text:Management Module 2 was removed.",
+
+	.string = "Severity:ERR  Source:BLADE_01  Name:SN#ZJ1R6G5932JX  Date:11/19/05  Time:14:13:15  Text:CPU 3 shut off due to over temperature ",
+
+	.string = "Severity:ERR  Source:SERVPROC  Name:SN#              Date:11/19/05  Time:12:27:43  Text:Blower 1 Fault Single blower failure",
+
+	.string = "Severity:INFO  Source:SERVPROC  Name:SN#              Date:11/19/05  Time:12:17:51  Text:Management Module 2 was removed.",
+
+	.string "Severity:WARN  Source:SERVPROC  Name:SN#              Date:11/19/05  Time:10:56:35  Text:Management Module network uplink loss.",
+.
 	.string = "Severity:ERR  Source:SERVPROC  Name:SN#              Date:11/18/05  Time:21:46:49  Text:Blower 1 Failure Single blower failure",
 
 	.string = "Severity:WARN  Source:BLADE_01  Name:SN#ZJ1R6G5932JX  Date:11/18/05  Time:18:15:47  Text:System over temperature for CPU 4.   Read value. 0. Threshold value. 0.",
@@ -198,16 +253,6 @@ struct snmp_bc_data sim_resource_array[] = {
 
 	.string = "Severity:ERR  Source:SERVPROC  Name:SN#              Date:11/13/05  Time:16:19:07  Text:Power Supply 4 Removed.",
 #endif
-	{
-                /* Event Log Message */
-                .oid = ".1.3.6.1.4.1.2.3.51.2.3.4.2.1.2.4",
-                .mib = {
-                        .type = ASN_OCTET_STR,
-                        .value = {
-                                .string = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:12/25/03  Time:09:10:00  Text:Bogus String",
-                        },
-                },
-        },
         {
                 /* Clear Event Log */
                 .oid = ".1.3.6.1.4.1.2.3.51.2.3.4.3.0",
@@ -9934,6 +9979,146 @@ struct snmp_bc_data sim_resource_array[] = {
                         .type = ASN_OCTET_STR,
                         .value = {
                                 .string = "59P6609",
+                        },
+                },
+        },
+        {
+                /* Blade Name - Blade 1 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.2.8.2.1.1.6.1",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "Blade 1",
+                        },
+                },
+        },
+        {
+                /* Blade Name - Blade 2 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.2.8.2.1.1.6.2",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "Blade 2",
+                        },
+                },
+        },
+        {
+                /* Blade Name - Blade 3 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.2.8.2.1.1.6.3",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "Blade 3",
+                        },
+                },
+        },
+        {
+                /* Blade Name - Blade 4 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.2.8.2.1.1.6.4",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "Blade 4",
+                        },
+                },
+        },
+        {
+                /* Blade Name - Blade 5 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.2.8.2.1.1.6.5",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "Blade 5",
+                        },
+                },
+        },
+        {
+                /* Blade Name - Blade 6 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.2.8.2.1.1.6.6",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "Blade 6",
+                        },
+                },
+        },
+        {
+                /* Blade Name - Blade 7 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.2.8.2.1.1.6.7",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "Blade 7",
+                        },
+                },
+        },
+        {
+                /* Blade Name - Blade 8 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.2.8.2.1.1.6.8",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "Blade 8",
+                        },
+                },
+        },
+        {
+                /* Blade Name - Blade 9 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.2.8.2.1.1.6.9",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "Blade 9",
+                        },
+                },
+        },
+        {
+                /* Blade Name - Blade 10 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.2.8.2.1.1.6.10",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "Blade 10",
+                        },
+                },
+        },
+        {
+                /* Blade Name - Blade 11 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.2.8.2.1.1.6.11",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "Blade 11",
+                        },
+                },
+        },
+        {
+                /* Blade Name - Blade 12 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.2.8.2.1.1.6.12",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "Blade 12",
+                        },
+                },
+        },
+        {
+                /* Blade Name - Blade 13 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.2.8.2.1.1.6.13",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "Blade 13",
+                        },
+                },
+        },
+        {
+                /* Blade Name - Blade 14 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.2.8.2.1.1.6.14",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "Blade 14",
                         },
                 },
         },
