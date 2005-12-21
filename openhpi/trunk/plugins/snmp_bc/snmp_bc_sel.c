@@ -560,7 +560,7 @@ SaErrorT snmp_bc_sel_read_add (struct oh_handler_state *handle,
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
-        struct snmp_bc_hnd *custom_handle = handle->data;
+        struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 
 	if (custom_handle->platform == SNMP_BC_PLATFORM_RSA) {
 		snprintf(oid, SNMP_BC_MAX_OID_LENGTH, "%s.%d",
@@ -644,7 +644,8 @@ SaErrorT snmp_bc_sel_read_add (struct oh_handler_state *handle,
 	/*	  6. we repeat step 1 ... indefinite loop                 */   
 	
 	if (!err) {
-		err = snmp_bc_add_to_eventq(handle, &tmpevent);
+		if (custom_handle->first_discovery == SAHPI_TRUE)
+		             err = snmp_bc_add_to_eventq(handle, &tmpevent);
 		if (err) 
 		 dbg("Cannot add el entry to eventq. Error=%s.", oh_lookup_error(err));
 	} else { 
