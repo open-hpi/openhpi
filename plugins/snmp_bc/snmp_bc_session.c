@@ -61,6 +61,12 @@ void *snmp_bc_open(GHashTable *handler_config)
         /* g_static_rec_mutex_init(&handle->handler_lock); */
 	g_static_rec_mutex_init(&custom_handle->snmp_bc_hlock.lock);
 	custom_handle->snmp_bc_hlock.count = 0;
+
+        /* Indicate the 1st discovery is not yet done */
+        /* Use to see if we need to create events for log entries.  */
+	/* Do not report any event from event log entries, for      */
+	/* entries that are created before this instance of OpenHPI */	
+	custom_handle->first_discovery = SAHPI_FALSE;
 	
         /* Initialize RPT cache */
         handle->rptcache = (RPTable *)g_malloc0(sizeof(RPTable));
