@@ -216,7 +216,7 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                                 },
                                 {
                                         .event = "0EA0600x", /* EN_SWITCH_x_POWERED_OFF */
-					.event_res_failure = SAHPI_TRUE,
+					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
                                         .event_state = SAHPI_HS_STATE_INSERTION_PENDING,
                                         .recovery_state = SAHPI_HS_STATE_ACTIVE,
@@ -230,7 +230,7 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                                 },
                                 {
                                         .event = "0EA0000x", /* EN_FAULT_SWITCH_x */
-					.event_res_failure = SAHPI_TRUE,
+					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_TRUE,
                                         .event_state = SAHPI_HS_STATE_NOT_PRESENT,
                                         .recovery_state = SAHPI_HS_STATE_ACTIVE,
@@ -298,7 +298,7 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                                 },
                                 {
                                         .event = "1C000001", /* EN_BLADE_PWR_DWN */
-					.event_res_failure = SAHPI_TRUE,
+					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
                                         .event_state = SAHPI_HS_STATE_INSERTION_PENDING,
                                         .recovery_state = SAHPI_HS_STATE_ACTIVE,
@@ -312,14 +312,14 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                                 },
                                 {
                                         .event = "06026080", /* EN_BLADE_PWR_DN_FAN_FAIL */
-					.event_res_failure = SAHPI_TRUE,
+					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_TRUE,
                                         .event_state = SAHPI_HS_STATE_INSERTION_PENDING,
                                         .recovery_state = SAHPI_HS_STATE_ACTIVE,
                                 },
                                 {
                                         .event = "0821C080", /* EN_BLADE_PWR_DN_PM_TEMP */
-					.event_res_failure = SAHPI_TRUE,
+					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_TRUE,
                                         .event_state = SAHPI_HS_STATE_INSERTION_PENDING,
                                         .recovery_state = SAHPI_HS_STATE_ACTIVE,
