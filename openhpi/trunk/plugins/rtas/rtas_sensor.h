@@ -34,19 +34,45 @@
 #define TIME_MASK ~TOKEN_MASK
 
 
+typedef enum rtasSensorStateEnum {
+	SENSOR_OK            = 0,
+	SENSOR_CRITICAL_LOW  = 9,
+	SENSOR_WARNING_LOW   = 10,
+	SENSOR_NORMAL        = 11,
+	SENSOR_WARNING_HIGH  = 12,
+	SENSOR_CRITICAL_HIGH = 13
+}rtasSensorState;	
+	
+
+
 struct SensorInfo {
-	SaHpiUint32T	token;
-	SaHpiUint32T	index;
-	char 		sensor_location[MAX_SENSOR_LOCATION_STRING_SIZE];
+	SaHpiUint32T	 token;
+	SaHpiUint32T	 index;
+	SaHpiBoolT       enabled;
+	SaHpiEventStateT current_state;
+	SaHpiUint32T     current_val;
+	char 		 sensor_location[MAX_SENSOR_LOCATION_STRING_SIZE];
 };
 
 
+SaErrorT rtas_get_sensor_reading(void *handler,
+				 SaHpiResourceIdT resourceid,
+				 SaHpiSensorNumT  sensornum,
+				 SaHpiSensorReadingT *reading,
+				 SaHpiEventStateT *e_state);
+				 
+SaErrorT rtas_get_sensor_thresholds(void *handler,
+				    SaHpiResourceIdT resourceid,
+				    SaHpiSensorNumT sensornum,
+				    SaHpiSensorThresholdsT *thresholds);	
+
+SaErrorT rtas_set_sensor_thresholds(void *handler,
+				       SaHpiResourceIdT resourceid,
+				       SaHpiSensorNumT sensornum,
+				       const SaHpiSensorThresholdsT *thresholds);
+				       			       
+
 int rtas_get_sensor_location_code(int token, int index, char *buffer);  
 
-SaErrorT rtas_get_sensor_reading(void *hnd,
-				 SaHpiResourceIdT rid,
-				 SaHpiSensorNumT sid,
-				 SaHpiSensorReadingT *reading,
-				 SaHpiEventStateT *state);
 
 #endif
