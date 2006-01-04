@@ -23,7 +23,7 @@
 #include <oh_utils.h>
 #include <oh_error.h>
 #include <oh_domain.h>
-#include </home/dan/dev/librtas-1.2.4/librtas_src/librtas.h>
+#include <librtas.h>
 
 void decode_rtas_error (int error, char *buf, size_t size, int token, int index);
 

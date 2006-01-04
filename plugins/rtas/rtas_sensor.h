@@ -23,7 +23,7 @@
 #include <oh_utils.h>
 #include <oh_error.h>
 #include <oh_domain.h>
-#include </home/dan/dev/librtas-1.2.4/librtas_src/librtas.h>
+#include <librtas.h>
 
 #define RTAS_SENSORS_PATH	"/proc/device-tree/rtas/rtas-sensors"
 #define RTAS_SENSOR_LOCATION    "/proc/device-tree/rtas/ibm,sensor-"
