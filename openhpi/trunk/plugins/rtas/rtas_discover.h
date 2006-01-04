@@ -24,7 +24,7 @@
 #include <oh_error.h>
 #include <oh_domain.h>
 #include <rtas_sensor.h>
-#include </home/dan/dev/librtas-1.2.4/librtas_src/librtas.h>
+#include <librtas.h>
 
 
 /* Enums */
