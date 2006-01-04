@@ -21,7 +21,22 @@ AM_CFLAGS		= @CFLAGS@
 
 pkglib_LTLIBRARIES	= librtas.la 
 
-librtas_la_SOURCES	= oh_rtas.c rtas_utils.c rtas_discover.c rtas_sensor.c
+librtas_la_SOURCES	=  rtas.c \
+			   rtas_annunciator.c \
+			   rtas_discover.c \
+			   rtas_control.c \
+			   rtas_event.c \
+			   rtas_eventlog.c \
+			   rtas_hotswap.c \
+			   rtas_indicator.c \
+			   rtas_inventory.c \
+			   rtas_power.c \
+			   rtas_reset.c \
+			   rtas_resource.c \
+			   rtas_sensor.c \
+			   rtas_utils.c \
+			   rtas_watchdog.c
+			   
 librtas_la_LIBADD	= -luuid
 librtas_la_LDFLAGS	= -module -version-info @HPI_LIB_VERSION@ -export-dynamic
 

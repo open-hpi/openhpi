@@ -23,7 +23,7 @@
 #include <oh_utils.h>
 #include <oh_error.h>
 #include <oh_domain.h>
-#include <librtas.h>
+#include </home/dan/dev/librtas-1.2.4/librtas_src/librtas.h>
 
 #define RTAS_SENSORS_PATH	"/proc/device-tree/rtas/rtas-sensors"
 #define RTAS_SENSOR_LOCATION    "/proc/device-tree/rtas/ibm,sensor-"
@@ -55,6 +55,8 @@ struct SensorInfo {
 };
 
 
+
+/* Function Protos */
 SaErrorT rtas_get_sensor_reading(void *handler,
 				 SaHpiResourceIdT resourceid,
 				 SaHpiSensorNumT  sensornum,
@@ -70,6 +72,50 @@ SaErrorT rtas_set_sensor_thresholds(void *handler,
 				       SaHpiResourceIdT resourceid,
 				       SaHpiSensorNumT sensornum,
 				       const SaHpiSensorThresholdsT *thresholds);
+				       
+				       
+SaErrorT rtas_get_sensor_enable(void *hnd,
+                                   SaHpiResourceIdT id,
+                                   SaHpiSensorNumT num,
+                                   SaHpiBoolT *enable);
+				   
+SaErrorT rtas_set_sensor_enable(void *hnd,
+                                   SaHpiResourceIdT id,
+                                   SaHpiSensorNumT num,
+                                   SaHpiBoolT enable);
+				   
+SaErrorT rtas_get_sensor_event_enables(void *hnd,
+                                          SaHpiResourceIdT id,
+                                          SaHpiSensorNumT num,
+                                          SaHpiBoolT *enables);
+					  
+SaErrorT rtas_set_sensor_event_enables(void *hnd,
+                                          SaHpiResourceIdT id,
+                                          SaHpiSensorNumT num,
+                                          const SaHpiBoolT enables);
+					  
+SaErrorT rtas_get_sensor_event_masks(void *hnd,
+                                        SaHpiResourceIdT id,
+                                        SaHpiSensorNumT  num,
+                                        SaHpiEventStateT *AssertEventMask,
+                                        SaHpiEventStateT *DeassertEventMask);
+					
+SaErrorT rtas_set_sensor_event_masks(void *hnd,
+                                        SaHpiResourceIdT id,
+                                        SaHpiSensorNumT num,
+                                        SaHpiSensorEventMaskActionT act,
+                                        SaHpiEventStateT AssertEventMask,
+                                        SaHpiEventStateT DeassertEventMask);	
+					
+SaErrorT rtas_get_sensor_event_enabled(void *hnd, 
+                                          SaHpiResourceIdT id,
+                                          SaHpiSensorNumT sensornum,
+                                          SaHpiBoolT *enable);
+					  
+SaErrorT rtas_set_sensor_event_enabled(void *hnd, 
+                                          SaHpiResourceIdT id,
+                                          SaHpiSensorNumT sensornum,
+                                          SaHpiBoolT *enable);									       
 				       			       
 
 int rtas_get_sensor_location_code(int token, int index, char *buffer);  

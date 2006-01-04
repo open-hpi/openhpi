@@ -14,17 +14,18 @@
  *        Daniel de Araujo <ddearauj@us.ibm.com>
  */
 
-#ifndef RTAS_UTILS_H
-#define RTAS_UTILS_H
+#ifndef RTAS_RESOURCE_H
+#define RTAS_RESOURCE_H
 
 #include <glib.h>
 #include <SaHpi.h>
-#include <oh_handler.h>
-#include <oh_utils.h>
-#include <oh_error.h>
-#include <oh_domain.h>
-#include </home/dan/dev/librtas-1.2.4/librtas_src/librtas.h>
 
-void decode_rtas_error (int error, char *buf, size_t size, int token, int index);
+SaErrorT rtas_set_resource_tag(void *hnd,
+                                  SaHpiResourceIdT id,
+                                  SaHpiTextBufferT *tag);
+				  
+SaErrorT rtas_set_resource_severity(void *hnd,
+                                       SaHpiResourceIdT id,
+                                       SaHpiSeverityT sev); 
 
-#endif /* RTAS_UTILS_H */
+#endif

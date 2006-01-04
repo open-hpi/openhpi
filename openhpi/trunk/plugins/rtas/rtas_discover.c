@@ -27,6 +27,17 @@
 #include <rtas_utils.h>
 
 
+
+SaErrorT rtas_discover_resources(void *hnd)
+{
+        return SA_ERR_HPI_INTERNAL_ERROR;
+}
+
+SaErrorT rtas_discover_domain_resources(void *hnd, SaHpiDomainIdT did)
+{
+        return SA_ERR_HPI_INTERNAL_ERROR;
+}
+
 /**
  * rtas_discover_sensors: 
  * @handler: Pointer to handler's data.
@@ -536,3 +547,9 @@ void populate_rtas_sensor_rec_info(int token, SaHpiSensorRecT *sensor_info)
 
 	}
 }
+
+void * oh_discover_resources (void *)
+        __attribute__ ((weak, alias("rtas_discover_resources")));
+void * oh_discover_domain_resource (void *, SaHpiDomainIdT)
+        __attribute__ ((weak, alias("rtas_discover_domain_resources")));
+
