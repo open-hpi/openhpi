@@ -24,7 +24,7 @@
 #include <oh_error.h>
 #include <oh_domain.h>
 #include <rtas_sensor.h>
-#include <librtas.h>
+#include </home/dan/dev/librtas-1.2.4/librtas_src/librtas.h>
 
 
 /* Enums */
@@ -54,6 +54,11 @@ typedef enum rtasSensorTokenEnum {
 	RTAS_OEM_SPECIFIC_SENSOR_END = 9999
 }rtasSensorToken;
 	
+/* Function Protos */	
+SaErrorT rtas_discover_resources(void *hnd);
+
+SaErrorT rtas_discover_domain_resources(void *hnd, SaHpiDomainIdT did);
+
 SaErrorT rtas_discover_sensors(struct oh_handler_state *handle,
 			       struct oh_event *res_oh_event);
 			       

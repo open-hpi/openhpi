@@ -13,18 +13,12 @@
  *        Renier Morales <renierm@users.sf.net>
  *        Daniel de Araujo <ddearauj@us.ibm.com>
  */
+#include <rtas_event.h> 
 
-#ifndef RTAS_UTILS_H
-#define RTAS_UTILS_H
+SaErrorT rtas_get_event(void *hnd, struct oh_event *event)
+{
+        return SA_ERR_HPI_INTERNAL_ERROR;
+}
 
-#include <glib.h>
-#include <SaHpi.h>
-#include <oh_handler.h>
-#include <oh_utils.h>
-#include <oh_error.h>
-#include <oh_domain.h>
-#include </home/dan/dev/librtas-1.2.4/librtas_src/librtas.h>
-
-void decode_rtas_error (int error, char *buf, size_t size, int token, int index);
-
-#endif /* RTAS_UTILS_H */
+void * oh_get_event (void *, struct oh_event *)
+        __attribute__ ((weak, alias("rtas_get_event")));

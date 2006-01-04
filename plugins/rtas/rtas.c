@@ -11,20 +11,21 @@
  *
  * Author(s):
  *        Renier Morales <renierm@users.sf.net>
- *        Daniel de Araujo <ddearauj@us.ibm.com>
  */
 
-#ifndef RTAS_UTILS_H
-#define RTAS_UTILS_H
+#include <rtas.h>
 
-#include <glib.h>
-#include <SaHpi.h>
-#include <oh_handler.h>
-#include <oh_utils.h>
-#include <oh_error.h>
-#include <oh_domain.h>
-#include </home/dan/dev/librtas-1.2.4/librtas_src/librtas.h>
+void *rtas_open(GHashTable *handler_config)
+{
+        return NULL;
+}
 
-void decode_rtas_error (int error, char *buf, size_t size, int token, int index);
+void rtas_close(void *hnd)
+{
+        return;
+}
 
-#endif /* RTAS_UTILS_H */
+				  			
+/* Function ABI aliases */
+void * oh_open (GHashTable *) __attribute__ ((weak, alias("rtas_open")));
+void * oh_close (void *) __attribute__ ((weak, alias("rtas_close")));

@@ -383,6 +383,76 @@ SaErrorT rtas_set_sensor_thresholds(void *handler,
 	
 }
 
+
+
+SaErrorT rtas_get_sensor_enable(void *hnd,
+                                   SaHpiResourceIdT id,
+                                   SaHpiSensorNumT num,
+                                   SaHpiBoolT *enable)
+{
+        return SA_ERR_HPI_INTERNAL_ERROR;
+}
+
+SaErrorT rtas_set_sensor_enable(void *hnd,
+                                   SaHpiResourceIdT id,
+                                   SaHpiSensorNumT num,
+                                   SaHpiBoolT enable)
+{
+        return SA_ERR_HPI_INTERNAL_ERROR;
+}
+
+SaErrorT rtas_get_sensor_event_enables(void *hnd,
+                                          SaHpiResourceIdT id,
+                                          SaHpiSensorNumT num,
+                                          SaHpiBoolT *enables)
+{
+        return SA_ERR_HPI_INTERNAL_ERROR;
+}
+
+SaErrorT rtas_set_sensor_event_enables(void *hnd,
+                                          SaHpiResourceIdT id,
+                                          SaHpiSensorNumT num,
+                                          const SaHpiBoolT enables)
+{
+        return SA_ERR_HPI_INTERNAL_ERROR;
+}
+
+SaErrorT rtas_get_sensor_event_masks(void *hnd,
+                                        SaHpiResourceIdT id,
+                                        SaHpiSensorNumT  num,
+                                        SaHpiEventStateT *AssertEventMask,
+                                        SaHpiEventStateT *DeassertEventMask)
+{
+        return SA_ERR_HPI_INTERNAL_ERROR;
+}
+
+SaErrorT rtas_set_sensor_event_masks(void *hnd,
+                                        SaHpiResourceIdT id,
+                                        SaHpiSensorNumT num,
+                                        SaHpiSensorEventMaskActionT act,
+                                        SaHpiEventStateT AssertEventMask,
+                                        SaHpiEventStateT DeassertEventMask)
+{
+        return SA_ERR_HPI_INTERNAL_ERROR;
+}
+
+SaErrorT rtas_get_sensor_event_enabled(void *hnd, 
+                                          SaHpiResourceIdT id,
+                                          SaHpiSensorNumT sensornum,
+                                          SaHpiBoolT *enable)
+{
+	return SA_ERR_HPI_INTERNAL_ERROR;
+}
+
+SaErrorT rtas_set_sensor_event_enabled(void *hnd, 
+                                          SaHpiResourceIdT id,
+                                          SaHpiSensorNumT sensornum,
+                                          SaHpiBoolT *enable)
+{
+	return SA_ERR_HPI_INTERNAL_ERROR;
+}
+
+
 /**
  * rtas_get_sensor_location_code
  * 
@@ -446,3 +516,27 @@ void * oh_set_sensor_thresholds (void *,
                                  SaHpiSensorNumT,
                                  const SaHpiSensorThresholdsT *)
                 __attribute__ ((weak, alias("rtas_set_sensor_thresholds")));
+
+void * oh_get_sensor_enable (void *, SaHpiResourceIdT,
+                             SaHpiSensorNumT,
+                             SaHpiBoolT *)
+        __attribute__ ((weak, alias("rtas_get_sensor_enable")));
+void * oh_set_sensor_enable (void *, SaHpiResourceIdT,
+                             SaHpiSensorNumT,
+                             SaHpiBoolT)
+        __attribute__ ((weak, alias("rtas_set_sensor_enable")));
+void * oh_get_sensor_event_enables (void *, SaHpiResourceIdT,
+                                    SaHpiSensorNumT,
+                                    SaHpiBoolT *)
+        __attribute__ ((weak, alias("rtas_get_sensor_event_enabled")));
+void * oh_set_sensor_event_enables (void *, SaHpiResourceIdT id, SaHpiSensorNumT,
+                                    SaHpiBoolT *)
+        __attribute__ ((weak, alias("rtas_set_sensor_event_enabled")));
+void * oh_get_sensor_event_masks (void *, SaHpiResourceIdT, SaHpiSensorNumT,
+                                  SaHpiEventStateT *, SaHpiEventStateT *)
+        __attribute__ ((weak, alias("rtas_get_sensor_event_masks")));
+void * oh_set_sensor_event_masks (void *, SaHpiResourceIdT, SaHpiSensorNumT,
+                                  SaHpiSensorEventMaskActionT,
+                                  SaHpiEventStateT,
+                                  SaHpiEventStateT)
+        __attribute__ ((weak, alias("rtas_set_sensor_event_masks")));

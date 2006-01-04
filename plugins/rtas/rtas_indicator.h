@@ -14,17 +14,18 @@
  *        Daniel de Araujo <ddearauj@us.ibm.com>
  */
 
-#ifndef RTAS_UTILS_H
-#define RTAS_UTILS_H
+#ifndef RTAS_INDICATOR_H
+#define RTAS_INDICATOR_H
 
 #include <glib.h>
 #include <SaHpi.h>
-#include <oh_handler.h>
-#include <oh_utils.h>
-#include <oh_error.h>
-#include <oh_domain.h>
-#include </home/dan/dev/librtas-1.2.4/librtas_src/librtas.h>
 
-void decode_rtas_error (int error, char *buf, size_t size, int token, int index);
+SaErrorT rtas_get_indicator_state(void *hnd,
+                                     SaHpiResourceIdT id,
+                                     SaHpiHsIndicatorStateT *state);
+				     
+SaErrorT rtas_set_indicator_state(void *hnd,
+                                     SaHpiResourceIdT id,
+                                     SaHpiHsIndicatorStateT state);
 
-#endif /* RTAS_UTILS_H */
+#endif
