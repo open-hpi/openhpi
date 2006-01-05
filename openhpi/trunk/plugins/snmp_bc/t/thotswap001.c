@@ -43,8 +43,8 @@ int main(int argc, char **argv)
 	}
 	err = tfind_resource(&sessionid, SAHPI_CAPABILITY_POWER, SAHPI_FIRST_ENTRY, &rptentry, SAHPI_FALSE);
 	if (err != SA_OK) {
-		printf("Can not find a Power resource for test environment\n");
-		printf("       File=%s, Line=%d\n", __FILE__, __LINE__);
+		trace("Can not find a Power resource for test environment\n");
+		trace("       File=%s, Line=%d\n", __FILE__, __LINE__);
 		err = tcleanup(&sessionid);
 		return SA_OK;
 	}
@@ -117,8 +117,8 @@ int main(int argc, char **argv)
 	 * ************************************* */
 	err = tfind_resource(&sessionid, SAHPI_CAPABILITY_MANAGED_HOTSWAP, SAHPI_FIRST_ENTRY, &rptentry, SAHPI_TRUE);
 	if (err != SA_OK) {
-		printf("Can not find a ManagedHotSwap resource for test environment\n");
-		printf("       File=%s, Line=%d\n", __FILE__, __LINE__);
+		trace("Can not find a ManagedHotSwap resource for test environment\n");
+		trace("       File=%s, Line=%d\n", __FILE__, __LINE__);
 		err = tcleanup(&sessionid);
 		return SA_OK;
 	}
