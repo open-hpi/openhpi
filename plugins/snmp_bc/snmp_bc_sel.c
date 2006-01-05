@@ -621,8 +621,11 @@ SaErrorT snmp_bc_sel_read_add (struct oh_handler_state *handle,
 	/* Since oh_el_append() does a copy of RES and RDR into it own data struct, */ 
 	/* just pass the pointers to it.                                            */
 	id = tmpevent.Source;
-	if (NULL == oh_get_resource_by_id(handle->rptcache, id))
-					dbg("NULL RPT for rid %d.", id);
+	if (NULL == oh_get_resource_by_id(handle->rptcache, id)) {
+		trace("Warning: NULL RPT for rid %d.", id);
+		trace("Warning: Log string %s\n\n", get_value.string);	
+	}
+	
 	if (prepend) 
 		err = oh_el_prepend(handle->elcache, &tmpevent,
 			    rdr_ptr, oh_get_resource_by_id(handle->rptcache, id));
