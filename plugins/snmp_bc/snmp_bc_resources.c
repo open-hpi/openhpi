@@ -3097,7 +3097,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 {
                                         .event = "04400481", /* EN_CUTOFF_HI_FAULT_VRM1 */
  					.event_assertion = SAHPI_TRUE,
-      					.event_res_failure = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_TRUE,
                                         .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
                                         .recovery_state = SAHPI_ES_UNSPECIFIED,
@@ -3233,7 +3233,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 {
                                         .event = "04428000", /* EN_FAULT_VRM_POWER_GOOD */
  					.event_assertion = SAHPI_TRUE,
-      					.event_res_failure = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_TRUE,
                                         .event_state = SAHPI_ES_OFF_LINE,
                                         .recovery_state = SAHPI_ES_RUNNING,
