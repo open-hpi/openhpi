@@ -47,8 +47,8 @@ int main(int argc, char **argv)
 	}
 	err = tfind_resource(&sessionid, SAHPI_CAPABILITY_SENSOR, SAHPI_FIRST_ENTRY, &rptentry, SAHPI_FALSE);
 	if (err != SA_OK) {
-		printf("Error! Can not find resources for test environment\n");
-		printf("       File=%s, Line=%d\n", __FILE__, __LINE__);
+		trace("Error! Can not find resources for test environment\n");
+		trace("       File=%s, Line=%d\n", __FILE__, __LINE__);
 		err = tcleanup(&sessionid);
 		return SA_OK;
 	}
