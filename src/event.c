@@ -337,9 +337,6 @@ SaErrorT oh_process_events()
 {
         struct oh_event *e;
 
-        if (oh_initialized() != SA_OK)
-                return SA_ERR_HPI_INVALID_SESSION;
-
         while ((e = g_async_queue_try_pop(oh_process_q)) != NULL) {
 
                 switch(e->type) {

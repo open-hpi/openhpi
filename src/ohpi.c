@@ -176,11 +176,6 @@ SaErrorT oHpiHandlerCreate(GHashTable *config,
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-        if (oh_initialized() != SA_OK && oh_initialize() != SA_OK) {
-                dbg("ERROR. Could not initialize the library");
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
-
         if (!(hid = oh_create_handler(config))) {
              *id = 0;
              return SA_ERR_HPI_ERROR;

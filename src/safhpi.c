@@ -58,11 +58,6 @@ SaErrorT SAHPI_API saHpiSessionOpen(
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-        if (oh_initialized() != SA_OK && oh_initialize() != SA_OK) {
-                dbg("ERROR. Could not initialize the library");
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
-
         if (DomainId == SAHPI_UNSPECIFIED_DOMAIN_ID)
                 did = oh_get_default_domain_id();
         else
