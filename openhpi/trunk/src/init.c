@@ -24,26 +24,13 @@
 #include <oh_lock.h>
 #include <oh_utils.h>
 
-static enum {
-        UNINIT = 0,
-        INIT
-} oh_init_state = UNINIT;
-
-SaErrorT oh_initialized()
-{
-        if(oh_init_state == UNINIT) {
-                return SA_ERR_HPI_ERROR;
-        } else {
-                return SA_OK;
-        }
-}
 
 /**
- * oh_initialize
+ * _init
  *
- * Returns:
+ * Returns: 0 on success otherwise an error code
  **/
-SaErrorT oh_initialize()
+int _init(void)
 {
         struct oh_parsed_config config = {NULL, NULL, 0, 0, 0, 0};
         struct oh_global_param config_param = { .type = OPENHPI_CONF };
@@ -52,13 +39,6 @@ SaErrorT oh_initialize()
         SaHpiTextBufferT tag;
 
         data_access_lock();
-
-        /* Check ready state */
-        if (oh_initialized() == SA_OK) {
-                dbg("Cannot initialize twice.");
-                data_access_unlock();
-                return SA_ERR_HPI_DUPLICATE;
-        }
 
         /* Initialize thread engine */
         oh_threaded_init();
@@ -131,10 +111,7 @@ SaErrorT oh_initialize()
         /* this only does something if the config says to */
         oh_threaded_start();
 
-        oh_init_state = INIT;
         trace("Set init state");
-        /* Set function to be called when application exits */
-        atexit(oh_finalize);
         data_access_unlock();
         /* infrastructure initialization has completed at this point */
 
@@ -155,26 +132,26 @@ SaErrorT oh_initialize()
                 nanosleep(&waittime, NULL);
         }
 
-        return SA_OK;
+        /* Do not use SA_OK here in case it is ever changed to something
+         * besides zero, The runtime stuff depends on zero being returned here
+         * in order for the shared library to be completely initialized.
+         */
+        return 0;
 }
 
 /**
- * oh_finalize
+ * _fini
  *
- * Returns:
+ * Returns: always returns 0
  **/
-void oh_finalize()
+int _fini(void)
 {
         data_access_lock();
 
-        if (oh_initialized() != SA_OK) {
-                dbg("Cannot finalize twice.");
-                data_access_unlock();
-                return;
-        }
-
         oh_close_handlers();
 
-        oh_init_state = UNINIT;
         data_access_unlock();
+
+        return 0;
 }
+
