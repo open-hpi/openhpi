@@ -455,6 +455,8 @@ SaErrorT SAHPI_API saHpiResourceIdGet(
         rptentry = oh_get_resource_by_ep(&(d->rpt), &ep_param.u.on_ep);
         if (!rptentry) {
                 oh_release_domain(d); /* Unlock domain */
+		dbg("Could not get resource id we are running in."
+		    "It is probably not set in openhpi.conf (OPENHPI_ON_EP).");
                 return SA_ERR_HPI_UNKNOWN;
         }
 
