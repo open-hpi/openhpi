@@ -19,17 +19,7 @@
 
 #include <SaHpi.h>
 
-/**********************************************************************
- *
- *  Finalize and Initialize were dropped in HPI B.  We keep
- *  them as a hold over for now, however once new plugin
- *  and handler utilities are provided, we'll rewrite them to
- *  be cleaner.
- *
- *********************************************************************/
-
-SaErrorT oh_initialize(void);
-SaErrorT oh_initialized(void);
-void oh_finalize(void);
+int _init(void) __attribute__((constructor));
+int _fini(void) __attribute__((destructor));
 
 #endif /* __OH_INIT_H */

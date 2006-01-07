@@ -73,8 +73,7 @@ SaErrorT snmp_get( void *sessp,
 			} else if ( !(CHECK_END(vars->type)) ) {
 				/* This is one of the exception condition */
 				returncode = SA_ERR_HPI_NOT_PRESENT;
-				dbg("snmp exception %d \n",vars->type);
-				dbg("OID=%s", objid);
+				trace("Warning: OID=%s gets snmp exception %d \n",objid, vars->type);
 
                     	} else if ( (vars->type == ASN_INTEGER) || 
 				    (vars->type == ASN_COUNTER) || 

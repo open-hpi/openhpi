@@ -137,6 +137,7 @@ AC_DEFUN([OH_CHECK_NETSNMP],
     [AC_MSG_RESULT(no.  No SNMP based plugins can be built!)])
 ])
 
+
 AC_DEFUN([OH_CHECK_OPENIPMI],
 	[
 	AC_MSG_CHECKING(for OpenIPMI)
@@ -197,5 +198,23 @@ AC_DEFUN([PKG_CFG_SETPATH],
 		TEMP=`echo $TEMP | sed -e 's/\/lib \|\/lib$/\/lib\/pkgconfig:/g'`
 		PKG_CONFIG_PATH="${PKG_CONFIG_PATH}:${TEMP}"
 	fi
+])
+
+AC_DEFUN([OH_CHECK_RTAS],
+    [
+    AC_MSG_CHECKING(for RTAS libary)
+    AC_TRY_COMPILE(
+    [
+	#include <stdio.h>
+	#include <librtas.h>
+    ],    
+    [
+        int main (void) { rtas_activate_firmware(); }
+    ],
+    [
+        have_rtas_lib=yes
+        AC_MSG_RESULT(yes)
+    ],
+    [AC_MSG_RESULT(no)])
 ])
 

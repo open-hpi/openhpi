@@ -69,7 +69,7 @@ OpenHPI installation script.
 This will install the client library in the standard system locations. You can
 now use the following link flags to link the client library to your application.
 
-     -lopenhpiclient -lopenhpimarshal -lohtcpconnx -lstdc++
+     -lopenhpi 
 
 When you run your application the client library uses two environment variables
 to locate the daemon application.
@@ -92,7 +92,7 @@ The daemon could be running on a P-series processor and the client running on an
 x86-series processor. The client library and daemon use a marshaling technique
 to resolve architecture and structure padding conflicts. The user does not need
 to concern themselves with architectureal differences between the client and
-daemon. The one exception to this rule is 64-bit architectures. The clent and
+daemon. The one exception to this rule is 64-bit architectures. The client and
 daemon currently cannot resolve differences between 32-bit and 64-bit
 architectures. DO NOT MIX THESE TYPES OF ARCHITECTURES!
 

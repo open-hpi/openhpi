@@ -560,7 +560,7 @@ SaErrorT snmp_bc_sel_read_add (struct oh_handler_state *handle,
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
-        struct snmp_bc_hnd *custom_handle = handle->data;
+        struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 
 	if (custom_handle->platform == SNMP_BC_PLATFORM_RSA) {
 		snprintf(oid, SNMP_BC_MAX_OID_LENGTH, "%s.%d",
@@ -621,8 +621,11 @@ SaErrorT snmp_bc_sel_read_add (struct oh_handler_state *handle,
 	/* Since oh_el_append() does a copy of RES and RDR into it own data struct, */ 
 	/* just pass the pointers to it.                                            */
 	id = tmpevent.Source;
-	if (NULL == oh_get_resource_by_id(handle->rptcache, id))
-					dbg("NULL RPT for rid %d.", id);
+	if (NULL == oh_get_resource_by_id(handle->rptcache, id)) {
+		trace("Warning: NULL RPT for rid %d.", id);
+		trace("Warning: Log string %s\n\n", get_value.string);	
+	}
+	
 	if (prepend) 
 		err = oh_el_prepend(handle->elcache, &tmpevent,
 			    rdr_ptr, oh_get_resource_by_id(handle->rptcache, id));
@@ -644,7 +647,8 @@ SaErrorT snmp_bc_sel_read_add (struct oh_handler_state *handle,
 	/*	  6. we repeat step 1 ... indefinite loop                 */   
 	
 	if (!err) {
-		err = snmp_bc_add_to_eventq(handle, &tmpevent);
+		if (custom_handle->first_discovery == SAHPI_TRUE)
+		             err = snmp_bc_add_to_eventq(handle, &tmpevent);
 		if (err) 
 		 dbg("Cannot add el entry to eventq. Error=%s.", oh_lookup_error(err));
 	} else { 
