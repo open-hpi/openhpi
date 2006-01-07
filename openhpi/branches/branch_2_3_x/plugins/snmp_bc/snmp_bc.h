@@ -36,6 +36,7 @@ struct snmp_bc_hnd {
 	GHashTable *event2hpi_hash_ptr; /* Global "Event Number to HPI Event" hash table */
 	int   platform;
 	int   active_mm;                /* Used for duplicate event RID override */
+	SaHpiBoolT  first_discovery;
 	char  handler_timezone[10];
         int   handler_retries;          /* Number of retries attempted on SNMP target (client) */
 	RPTable *tmpcache;

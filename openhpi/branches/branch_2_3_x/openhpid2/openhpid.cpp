@@ -270,7 +270,9 @@ int main (int argc, char *argv[])
         setenv("OPENHPI_CONF", configfile, 1);
 
         // create the thread pool
-	g_thread_init(NULL);
+        if (!g_thread_supported()) {
+                g_thread_init(NULL);
+        }
 	thrdpool = g_thread_pool_new(service_thread, NULL, max_threads, FALSE, NULL);
 
         // create the server socket

@@ -320,7 +320,7 @@ SaErrorT oh_announcement_del(oh_announcement *ann, SaHpiEntryIdT srchid,
                 myentry = (oh_ann_entry *) annlist->data;
                 if (sev == SAHPI_ALL_SEVERITIES ||
                     sev == myentry->annentry.Severity) {
-                        ann->annentries = g_list_remove(annlist, myentry);
+                        ann->annentries = g_list_remove(ann->annentries, myentry);
                         annlist = g_list_first(ann->annentries);
                 } else {
                         annlist = g_list_next(annlist);

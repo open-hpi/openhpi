@@ -35,7 +35,7 @@ MOSTLYCLEANFILES        = @TEST_CLEAN@
 
 EXTRA_DIST              = plugin_static.c.in hpi.sym
 
-INCLUDES                = @OPENHPI_INCLUDES@ 
+INCLUDES                = @OPENHPI_INCLUDES@
 
 SUBDIRS                 = t
 DIST_SUBDIRS            = t
@@ -60,7 +60,7 @@ libopenhpi_la_SOURCES   = \
                            ohpi.c
 
 libopenhpi_la_LIBADD    = @STATIC_PLUGIN_LIBS@ @STATIC_PLUGIN_EXTRA_LIBS@ $(top_builddir)/utils/libopenhpiutils.la
-libopenhpi_la_LDFLAGS   = -L$(top_builddir)/utils -version-info @HPI_LIB_VERSION@ -export-symbols $(top_srcdir)/src/hpi.sym
+libopenhpi_la_LDFLAGS   = -L$(top_builddir)/utils -version-info @HPI_LIB_VERSION@ -Xcompiler -nostartfiles -export-symbols $(top_srcdir)/src/hpi.sym
 libopenhpi_la_DEPENDENCIES = @STATIC_PLUGIN_LIBS@ $(top_srcdir)/src/hpi.sym
 
 $(top_builddir)/utils/libopenhpiutils.la:
@@ -78,6 +78,7 @@ uninstall-local:
 
 install-data-local:
 	mkdir -p $(DESTDIR)$(pkglibdir)/standard/
+	rm -f $(DESTDIR)$(pkglibdir)/standard/libopenhpi.*
 	mv $(DESTDIR)$(libdir)/libopenhpi.* $(DESTDIR)$(pkglibdir)/standard/
 	$(DESTDIR)$(bindir)/@HPI_PKG@-switcher --set=standard
 

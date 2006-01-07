@@ -274,12 +274,8 @@ SaErrorT sim_set_sensor_enable(void *hnd,
                 return(SA_ERR_HPI_NOT_PRESENT);
         }
 
-        /* get senable flag */
-        if (sinfo->sensor_enabled == SAHPI_FALSE){
-                return(SA_ERR_HPI_INVALID_REQUEST);
-        } else {
-                sinfo->sensor_enabled = enable;
-        }
+        /* set sensor flag */
+        sinfo->sensor_enabled = enable;
 
         return(SA_OK);
 }

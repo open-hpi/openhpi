@@ -894,72 +894,76 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 		if (err) { return(err); }
 		else { return(SA_ERR_HPI_INTERNAL_ERROR); }
         }
-
+	
 	for (i=0; i < strlen(get_value.string); i++) {
-		err = snmp_bc_snmp_get(custom_handle, SNMP_BC_MGMNT_ACTIVE, &get_active, SAHPI_TRUE);
-		if (err || get_active.type != ASN_INTEGER) {
-			dbg("Cannot get OID=%s; Received Type=%d; Error=%s.",
-			      SNMP_BC_MGMNT_ACTIVE, get_active.type, oh_lookup_error(err));
-			if (err) { return(err); }
-			else { return(SA_ERR_HPI_INTERNAL_ERROR); }
-		}
+		trace("Management Module installed bit map %s\n", get_value.string);
+		if (get_value.string[i] == '1'){
+			err = snmp_bc_snmp_get(custom_handle, SNMP_BC_MGMNT_ACTIVE, &get_active, SAHPI_TRUE);
+			if (err || get_active.type != ASN_INTEGER) {
+				dbg("Cannot get OID=%s; Received Type=%d; Error=%s.",
+			      		SNMP_BC_MGMNT_ACTIVE, get_active.type, oh_lookup_error(err));
+				if (err) { return(err); }
+				else { return(SA_ERR_HPI_INTERNAL_ERROR); }
+			}
+                        trace("Active Management Module Id %ld\n", get_active.integer);
+			
+                	/* Set active MM location in handler's custom data  */
+			/* - used to override duplicate MM events in snmp_bc_event.c */
+                	custom_handle->active_mm = get_active.integer;
 
-                /* Set active MM location in handler's custom data - used to override
-                           duplicate MM events in snmp_bc_event.c */
-                custom_handle->active_mm = get_active.integer;
+                	e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
+                	if (e == NULL) {
+                        	dbg("Out of memory.");
+                        	return(SA_ERR_HPI_OUT_OF_SPACE);
+                	}
 
-                e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
-                if (e == NULL) {
-                        dbg("Out of memory.");
-                        return(SA_ERR_HPI_OUT_OF_SPACE);
-                }
-
-                e->type = OH_ET_RESOURCE;
-                e->did = oh_get_default_domain_id();
-                e->u.res_event.entry = snmp_bc_rpt_array[BC_RPT_ENTRY_MGMNT_MODULE].rpt;
-                oh_concat_ep(&(e->u.res_event.entry.ResourceEntity), ep_root);
-                oh_set_ep_location(&(e->u.res_event.entry.ResourceEntity),
+                	e->type = OH_ET_RESOURCE;
+                	e->did = oh_get_default_domain_id();
+                	e->u.res_event.entry = snmp_bc_rpt_array[BC_RPT_ENTRY_MGMNT_MODULE].rpt;
+                	oh_concat_ep(&(e->u.res_event.entry.ResourceEntity), ep_root);
+                	oh_set_ep_location(&(e->u.res_event.entry.ResourceEntity),
                                         SAHPI_ENT_SYS_MGMNT_MODULE, i + SNMP_BC_HPI_LOCATION_BASE);
-                e->u.res_event.entry.ResourceId =
-                        oh_uid_from_entity_path(&(e->u.res_event.entry.ResourceEntity));
-                snmp_bc_create_resourcetag(&(e->u.res_event.entry.ResourceTag),
+                	e->u.res_event.entry.ResourceId =
+                        		oh_uid_from_entity_path(&(e->u.res_event.entry.ResourceEntity));
+                	snmp_bc_create_resourcetag(&(e->u.res_event.entry.ResourceTag),
                                                 snmp_bc_rpt_array[BC_RPT_ENTRY_MGMNT_MODULE].comment,
                                                 i + SNMP_BC_HPI_LOCATION_BASE);
 
-                trace("Discovered resource=%s; ID=%d",
-                        e->u.res_event.entry.ResourceTag.Data,
-                        e->u.res_event.entry.ResourceId);
+                	trace("Discovered resource=%s; ID=%d",
+                        	e->u.res_event.entry.ResourceTag.Data,
+                        	e->u.res_event.entry.ResourceId);
 
-                /* Create platform-specific info space to add to infra-structure */
-                res_info_ptr = g_memdup(&(snmp_bc_rpt_array[BC_RPT_ENTRY_MGMNT_MODULE].res_info),
+                	/* Create platform-specific info space to add to infra-structure */
+                	res_info_ptr = g_memdup(&(snmp_bc_rpt_array[BC_RPT_ENTRY_MGMNT_MODULE].res_info),
                                         sizeof(struct ResourceInfo));
-                if (!res_info_ptr) {
-                        dbg("Out of memory.");
-                        g_free(e);
-                        return(SA_ERR_HPI_OUT_OF_SPACE);
-                }
+                	if (!res_info_ptr) {
+                        	dbg("Out of memory.");
+                        	g_free(e);
+                        	return(SA_ERR_HPI_OUT_OF_SPACE);
+                	}
 
-                res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
+                	res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
 
-                /* Get UUID and convert to GUID */
-                err = snmp_bc_get_guid(custom_handle, e, res_info_ptr);
+                	/* Get UUID and convert to GUID */
+                	err = snmp_bc_get_guid(custom_handle, e, res_info_ptr);
 
-                /* Add resource to temporary event cache/queue */
-                err = oh_add_resource(custom_handle->tmpcache,
-                                        &(e->u.res_event.entry),
-                                        res_info_ptr, 0);
-                if (err) {
-                        dbg("Failed to add resource. Error=%s.", oh_lookup_error(err));
-                        g_free(e);
-                        return(err);
-                }
-                custom_handle->tmpqueue = g_slist_append(custom_handle->tmpqueue, e);
+                	/* Add resource to temporary event cache/queue */
+                	err = oh_add_resource(custom_handle->tmpcache,
+                        	                &(e->u.res_event.entry),
+                                	        res_info_ptr, 0);
+                	if (err) {
+                        	dbg("Failed to add resource. Error=%s.", oh_lookup_error(err));
+                        	g_free(e);
+                        	return(err);
+                	}
+                	custom_handle->tmpqueue = g_slist_append(custom_handle->tmpqueue, e);
                 
-                /* Find resource's events, sensors, controls, etc. */
-                snmp_bc_discover_res_events(handle, &(e->u.res_event.entry.ResourceEntity), res_info_ptr);
-                snmp_bc_discover_sensors(handle, snmp_bc_mgmnt_sensors, e);
-                snmp_bc_discover_controls(handle, snmp_bc_mgmnt_controls, e);
-                snmp_bc_discover_inventories(handle, snmp_bc_mgmnt_inventories, e);
+                	/* Find resource's events, sensors, controls, etc. */
+                	snmp_bc_discover_res_events(handle, &(e->u.res_event.entry.ResourceEntity), res_info_ptr);
+                	snmp_bc_discover_sensors(handle, snmp_bc_mgmnt_sensors, e);
+                	snmp_bc_discover_controls(handle, snmp_bc_mgmnt_controls, e);
+                	snmp_bc_discover_inventories(handle, snmp_bc_mgmnt_inventories, e);
+		}
 	}
 
 	return(SA_OK);
