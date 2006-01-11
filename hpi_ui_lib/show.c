@@ -195,6 +195,7 @@ SaErrorT show_control(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 	else str = " ";
 	snprintf(buf, SHOW_BUF_SZ, "  Mode: %s  %s\n",
 		oh_lookup_ctrlmode(ctrl->DefaultMode.Mode), str);
+	if (proc(buf) != HPI_UI_OK) return(SA_OK);
 
 	if (proc("Data:\n") != HPI_UI_OK) return(SA_OK);
 	switch (type) {
