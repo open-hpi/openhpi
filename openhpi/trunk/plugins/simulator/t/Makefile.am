@@ -23,7 +23,7 @@ TDEPLIB			= $(top_builddir)/src/libopenhpi.la \
 			  $(top_builddir)/utils/libopenhpiutils.la
 
 TESTS_ENVIRONMENT = OPENHPI_PATH=$(top_builddir)/plugins/simulator
-TESTS_ENVIRONMENT += OPENHPI_UID_MAP=$(top_builddir)/plugins/simulator/t//uid_map
+TESTS_ENVIRONMENT += OPENHPI_UID_MAP=$(top_builddir)/plugins/simulator/t/uid_map
 TESTS_ENVIRONMENT += OPENHPI_CONF=$(top_srcdir)/plugins/simulator/t/openhpi.conf
 
 TESTS = sim_sanity_000 \
