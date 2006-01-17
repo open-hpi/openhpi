@@ -17,7 +17,21 @@
 
 SaErrorT rtas_get_event(void *hnd, struct oh_event *event)
 {
-        return SA_ERR_HPI_INTERNAL_ERROR;
+        struct oh_handler_state *h = (struct oh_handler_state *)hnd;
+
+        if (!event || !hnd) {
+                dbg("Invalid parameter");
+                return(SA_ERR_HPI_INVALID_PARAMS);
+        }
+
+        if (g_slist_length(h->eventq) > 0) {
+                memcpy(event, h->eventq->data, sizeof(struct oh_event));
+                free(h->eventq->data);
+                h->eventq = g_slist_remove_link(h->eventq, h->eventq);
+                return 1;
+        }
+
+        return SA_OK;
 }
 
 void * oh_get_event (void *, struct oh_event *)
