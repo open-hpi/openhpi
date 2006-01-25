@@ -1255,8 +1255,7 @@ SaErrorT SAHPI_API saHpiAlarmAcknowledge(
         OH_CHECK_INIT_STATE(SessionId);
 
         if (AlarmId == SAHPI_ENTRY_UNSPECIFIED &&
-		!((Severity == SAHPI_CRITICAL) || (Severity == SAHPI_MAJOR) ||
-		  (Severity == SAHPI_MINOR)))
+            !oh_lookup_severity(Severity))
                 return SA_ERR_HPI_INVALID_PARAMS;
 
         OH_GET_DID(SessionId, did);
@@ -1333,8 +1332,7 @@ SaErrorT SAHPI_API saHpiAlarmDelete(
         OH_CHECK_INIT_STATE(SessionId);
 
         if (AlarmId == SAHPI_ENTRY_UNSPECIFIED &&
-		!((Severity == SAHPI_CRITICAL) || (Severity == SAHPI_MAJOR) ||
-		  (Severity == SAHPI_MINOR)))
+            !oh_lookup_severity(Severity))
                 return SA_ERR_HPI_INVALID_PARAMS;
 
         OH_GET_DID(SessionId, did);
