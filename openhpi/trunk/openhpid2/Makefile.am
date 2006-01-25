@@ -30,7 +30,7 @@ INCLUDES 		= @OPENHPI_INCLUDES@  -I $(top_srcdir)/marshal
 #pkgconfig_DATA          =
 
 # daemon
-bin_PROGRAMS            = openhpid
+sbin_PROGRAMS            = openhpid
 
 openhpid_SOURCES        = \
 	openhpid.cpp
@@ -58,5 +58,10 @@ libopenhpi_la_LDFLAGS = -version-info @HPI_LIB_VERSION@
 libopenhpi_la_LIBADD  = $(top_builddir)/marshal/libohtcpconnx.la -lstdc++ \
                         $(top_builddir)/utils/libopenhpiutils.la
 
+
+install-data-local:
+	cp openhpid.sh /etc/init.d/openhpid
+	chmod 755 /etc/init.d/openhpid
+	
 clean-local:
 	rm -f *~ core core.*
