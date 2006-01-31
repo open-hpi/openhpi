@@ -30,12 +30,58 @@
 
 SaErrorT rtas_discover_resources(void *hnd)
 {
-        return SA_ERR_HPI_INTERNAL_ERROR;
+        SaErrorT error = SA_OK;
+        struct oh_handler_state *h = (struct oh_handler_state *)hnd;
+        
+        char *entity_root = NULL;
+        SaHpiEntityPathT root_ep;
+        SaHpiRptEntryT lone_res;
+
+        if (!hnd) {
+                dbg("Null handle!");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        entity_root = (char *)g_hash_table_lookup(h->config, "entity_root");
+        if (entity_root == NULL) {
+                dbg("Could not aquire entity_root parameter.");
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
+
+        error = oh_encode_entitypath(entity_root, &root_ep);
+        if (error) {
+                dbg("Could not convert entity path to string. Error=%s.", oh_lookup_error(error));
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
+
+        // Discover lone resource
+        lone_res.ResourceEntity = root_ep;
+        lone_res.ResourceCapabilities = SAHPI_CAPABILITY_RESOURCE |
+                                        SAHPI_CAPABILITY_RDR |
+                                        SAHPI_CAPABILITY_SENSOR;
+        lone_res.ResourceSeverity = SAHPI_MAJOR;
+        oh_init_textbuffer(&lone_res.ResourceTag);
+        oh_append_textbuffer(&lone_res.ResourceTag, entity_root);
+        lone_res.ResourceId = oh_uid_from_entity_path(lone_res.ResourceEntity);
+        error = oh_add_resource(h->rptcache, &lone_res, NULL, FREE_RPT_DATA);
+        if (!error) {
+                struct oh_event *e =
+                        (struct oh_event *)g_malloc0(sizeof(struct oh_event));
+                e->did = oh_get_default_domain_id();
+                e->type = OH_ET_RESOURCE;
+                e->u.res_entry.entry = lone_res;
+                h->eventq = g_slist_append(h->eventq, e);
+        } else {
+                dbg("Error adding resource. %s", oh_lookup_error(error));
+                return error;
+        }
+
+        return SA_OK;
 }
 
 SaErrorT rtas_discover_domain_resources(void *hnd, SaHpiDomainIdT did)
 {
-        return SA_ERR_HPI_INTERNAL_ERROR;
+        return rtas_discover_resources(hnd);
 }
 
 /**
