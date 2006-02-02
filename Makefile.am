@@ -86,6 +86,7 @@ includedir=$(base_includedir)/openhpi
 # the library. You need the --enable-cpp_wrappers configuration option to get
 # the library installed.
 include_HEADERS = $(top_srcdir)/include/SaHpi.h \
+                  $(top_srcdir)/include/SaHpiAtca.h \
                   $(top_srcdir)/include/oHpi.h \
                   $(top_srcdir)/utils/oh_utils.h \
                   $(top_srcdir)/utils/announcement_utils.h \
