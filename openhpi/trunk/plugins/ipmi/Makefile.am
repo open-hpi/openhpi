@@ -60,6 +60,11 @@ libipmi_la_SOURCES	= ipmi.c 		\
 			  hotswap.c		\
 			  sync.c 		\
 			  posix_vlog.c		\
+			  atca_shelf_rdrs.c	\
+			  atca_slot_rdrs.c	\
+			  atca_vshm_rdrs.c	\
+			  atca_fru_rdrs.c	\
+			  atca_shelf_fru.c	\
 			  ipmi.h
 			  
 libipmi_la_LIBADD	= $(top_builddir)/src/libopenhpi.la $(top_builddir)/utils/libopenhpiutils.la -luuid -lncurses -lOpenIPMI -lOpenIPMIposix @OPENIPMI_LIBS@

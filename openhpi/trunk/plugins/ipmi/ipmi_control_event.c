@@ -305,7 +305,7 @@ static void set_led_oem_cb(ipmi_control_t	*control,
 	oem->Default.Body[2] = oem->ConfigData[1];
 	oem->Default.Body[3] = oem->ConfigData[2];
 	oem->Default.Body[4] = SAHPI_FALSE;
-	oem->Default.BodyLength = 7;
+	oem->Default.BodyLength = 6;
 	
 	if (!ipmi_control_light_has_local_control(control)) {
 		dm->Mode = SAHPI_CTRL_MODE_AUTO;
@@ -372,6 +372,7 @@ static int add_led_control_event(ipmi_entity_t	*ent,
 		dbg("ipmi_control_light_set_with_setting == 0");
 	} 
 	ctrl_info->mode = rdr.RdrTypeUnion.CtrlRec.DefaultMode.Mode;
+	rdr.RdrTypeUnion.CtrlRec.Oem = ATCAHPI_PICMG_CT_ATCA_LED;
 	
 
 
@@ -512,6 +513,8 @@ static int add_alarm_rdrs(
 	return 0;
 }
 
+
+#if 0
 static void
 address_control(ipmi_control_t *control,
 		int		err,
@@ -573,6 +576,7 @@ address_control_get(ipmi_control_t			*control,
 
 	return 0;
 }
+#endif
 
 void ohoi_control_event(enum ipmi_update_e op,
 		        ipmi_entity_t      *ent,
@@ -601,10 +605,10 @@ void ohoi_control_event(enum ipmi_update_e op,
 	ohoi_res_info = oh_get_resource_data(handler->rptcache,
                                              rpt_entry->ResourceId);
         
-	trace_ipmi_control("ADD", control, rpt_entry);
 	if (op == IPMI_ADDED) {
 		int ctrl_type;
-                
+		
+		trace_ipmi_control("ADD", control, rpt_entry);                
 		/* attach power and reset to chassis entity since
 		   IPMI provides them as such */
                 ctrl_type = ipmi_control_get_type(control);
@@ -638,6 +642,7 @@ void ohoi_control_event(enum ipmi_update_e op,
 					SAHPI_CAPABILITY_RDR;
 			break;
 		case IPMI_CONTROL_IDENTIFIER:
+#if 0
 			rv = address_control_get(control,handler, ent, rpt_entry);
 			if (rv) {
 				dbg("address_control_get failed");
@@ -646,6 +651,7 @@ void ohoi_control_event(enum ipmi_update_e op,
 			rpt_entry->ResourceCapabilities |=
 					SAHPI_CAPABILITY_CONTROL |
 					SAHPI_CAPABILITY_RDR;
+#endif
 			break;
 		case IPMI_CONTROL_LIGHT:
 			ipmi_control_get_id(control, str, 24);
@@ -667,6 +673,8 @@ void ohoi_control_event(enum ipmi_update_e op,
      					SAHPI_CAPABILITY_RDR;
 			break;
 		}            
+	} else if (op == IPMI_DELETED) {
+		trace_ipmi_control("DELETE", control, rpt_entry);
 	}
 	trace_ipmi("Set updated for res_info %p(%d). Control", ohoi_res_info, rpt_entry->ResourceId);
 	entity_rpt_set_updated(ohoi_res_info, handler->data);
