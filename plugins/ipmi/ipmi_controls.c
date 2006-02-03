@@ -172,7 +172,7 @@ static void __get_atca_led(ipmi_control_t *control,
 	state->StateUnion.Oem.Body[5] = 0;
 	state->StateUnion.Oem.Body[6] = 0;
 	state->StateUnion.Oem.MId = ATCAHPI_PICMG_MID;
-	state->StateUnion.Oem.BodyLength = 7;
+	state->StateUnion.Oem.BodyLength = 6;
 	state->Type = SAHPI_CTRL_TYPE_OEM;
 	info->done = 1;
 }
@@ -301,7 +301,7 @@ SaErrorT ohoi_get_control_state(void *hnd, SaHpiResourceIdT id,
         if (rv!=SA_OK) return rv;
 	
 	if (ctrl_info->ohoii.get_control_state == NULL) {
-		return SA_ERR_HPI_UNSUPPORTED_API;
+		return SA_ERR_HPI_INVALID_CMD;
 	}
 	
 	return ctrl_info->ohoii.get_control_state(handler, ctrl_info, rdr, mode, state);	
@@ -775,11 +775,11 @@ SaErrorT ohoi_set_reset_state(void *hnd, SaHpiResourceIdT id,
 	}
 
         ohoi_res_info = oh_get_resource_data(handler->rptcache, id);
-        if (ohoi_res_info->type == OHOI_RESOURCE_ENTITY) {
+        if (!(ohoi_res_info->type & OHOI_RESOURCE_ENTITY)) {
                 rv = ipmi_control_pointer_cb(ohoi_res_info->reset_ctrl, 
                                      set_resource_reset_state, &info);
 	} else {
-		rv = ipmi_mc_pointer_cb(ohoi_res_info->u.mc_id, 
+		rv = ipmi_mc_pointer_cb(ohoi_res_info->u.entity.mc_id, 
 			set_mc_reset_state, &info);
 	}
 
@@ -822,8 +822,8 @@ static void set_power_state_on(ipmi_control_t *control,
         rv = ipmi_control_set_val(control, (int *)power_info->state, power_done, cb_data);
 
 	if (rv) {
-	  	dbg("Failed to set control val (power off)");
-		power_info->err = SA_ERR_HPI_INTERNAL_ERROR;
+		dbg("Failed to set control val (power on). rv = %d", rv);
+		OHOI_MAP_ERROR(power_info->err, rv);
 		power_info->done = 1;
 	} else
 	  	power_info->err = SA_OK;
@@ -838,8 +838,8 @@ static void set_power_state_off(ipmi_control_t *control,
         rv = ipmi_control_set_val(control, (int *)power_info->state,
 				  power_done, cb_data);
 	if (rv) {
-	  	dbg("Failed to set control val (power off)");
-		power_info->err = SA_ERR_HPI_INTERNAL_ERROR;
+	  	dbg("Failed to set control val (power off). rv = %d", rv);
+		OHOI_MAP_ERROR(power_info->err, rv);
 		power_info->done = 1;
 	} else
 	  	power_info->err = SA_OK;
@@ -859,7 +859,7 @@ SaErrorT ohoi_set_power_state(void *hnd, SaHpiResourceIdT id,
 	power_info.state = &state;
 
         ohoi_res_info = oh_get_resource_data(handler->rptcache, id);
-        if (ohoi_res_info->type != OHOI_RESOURCE_ENTITY) {
+        if (!(ohoi_res_info->type & OHOI_RESOURCE_ENTITY)) {
                 dbg("Not support power in MC");
                 return SA_ERR_HPI_INVALID_CMD;
         }
@@ -986,7 +986,7 @@ SaErrorT ohoi_get_power_state (void *hnd,
 	power_state.state = state;
 	
         ohoi_res_info = oh_get_resource_data(handler->rptcache, id);
-        if (ohoi_res_info->type != OHOI_RESOURCE_ENTITY) {
+        if (!(ohoi_res_info->type & OHOI_RESOURCE_ENTITY)) {
                 dbg("MC does not support power!");
                 return SA_ERR_HPI_CAPABILITY;
         }
@@ -1078,7 +1078,7 @@ SaErrorT ohoi_get_reset_state(void *hnd,
 	reset_state.state = act;
 
         ohoi_res_info = oh_get_resource_data(handler->rptcache, id);
-        if (ohoi_res_info->type != OHOI_RESOURCE_ENTITY) {
+        if (!(ohoi_res_info->type & OHOI_RESOURCE_ENTITY)) {
                 dbg("Not support power in MC");
                 return SA_ERR_HPI_CAPABILITY;
         }

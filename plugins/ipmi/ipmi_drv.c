@@ -17,6 +17,7 @@
  * Changes:
  *     12/01/04 ARCress - created from ipmiutil/ipmimv.c
  */
+#include "ipmi.h"
 #include <stdio.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -31,7 +32,6 @@
 
 #define uchar    unsigned char
 #define IPMI_MAX_ADDR_SIZE 32
-#define IPMI_SYSTEM_INTERFACE_ADDR_TYPE 0x0c
 #define IPMI_BMC_CHANNEL  0xf
 #define IPMI_IOC_MAGIC 'i'
 
@@ -43,20 +43,6 @@ struct timeval {
 };
 #endif
 
-struct ipmi_addr
-{
-        int   addr_type;
-        short channel;
-        char  data[IPMI_MAX_ADDR_SIZE];
-};
-
-struct ipmi_msg
-{
-        unsigned char  netfn;
-        unsigned char  cmd;
-        unsigned short data_len;
-        unsigned char  *data;
-};
 
 struct ipmi_req
 {
@@ -75,28 +61,37 @@ struct ipmi_recv
         struct ipmi_msg msg; 	/* The data field must point to a buffer. */
 };
 
-struct ipmi_system_interface_addr
-{
-        int           addr_type;
-        short         channel;
-        unsigned char lun;
-};
 
 #define IPMICTL_RECEIVE_MSG         _IOWR(IPMI_IOC_MAGIC, 12, struct ipmi_recv)
 #define IPMICTL_RECEIVE_MSG_TRUNC   _IOWR(IPMI_IOC_MAGIC, 11, struct ipmi_recv)
 #define IPMICTL_SEND_COMMAND        _IOR(IPMI_IOC_MAGIC,  13, struct ipmi_req)
 #define IPMICTL_SET_GETS_EVENTS_CMD _IOR(IPMI_IOC_MAGIC,  16, int)
 
+
+#if 0
 FILE *fperr = NULL;    /* if NULL, no messages */
 static int ipmi_timeout_mv = 10;   /* 10 seconds, was 5 sec */
 static int ipmi_fd = -1;
 static int curr_seq = 0;
+#endif
 
-int ipmi_open_mv(void);
-int ipmi_close_mv(void);
-int ipmicmd_mv(uchar cmd, uchar netfn, uchar lun, uchar *pdata, uchar sdata, 
-		uchar *presp, int sresp, int *rlen);
+//int ipmi_open_mv(void);
+//int ipmi_close_mv(void);
+int ipmicmd_mv(struct ohoi_handler *ipmi_handler,
+           uchar cmd, uchar netfn, uchar lun, uchar *pdata, uchar sdata, 
+	   uchar *presp, int sresp, int *rlen);
+int ipmicmd_send(ipmi_domain_t *domain,
+                 uchar netfn, uchar cmd, uchar lun, uchar chan,
+		 uchar *pdata, uchar sdata,
+		 ipmi_addr_response_handler_t handler,
+		 void *handler_data);
+int ipmicmd_mc_send(ipmi_mc_t *mc,
+                 uchar netfn, uchar cmd, uchar lun,
+		 uchar *pdata, uchar sdata,
+		 ipmi_mc_response_handler_t handler,
+		 void *handler_data);
 
+#if 0
 int ipmi_open_mv(void)
 {
     if (ipmi_fd != -1) return(0);
@@ -194,6 +189,152 @@ int ipmicmd_mv(uchar cmd, uchar netfn, uchar lun, uchar *pdata, uchar sdata,
     /* ipmi_close_mv();  * rely on the app calling ipmi_close */
     return(rv);
 }
+
+#endif
+
+
+int ipmicmd_send(ipmi_domain_t *domain,
+                 uchar netfn, uchar cmd, uchar lun, uchar chan,
+		 uchar *pdata, uchar sdata,
+		 ipmi_addr_response_handler_t handler,
+		 void *handler_data)
+{
+    struct ipmi_system_interface_addr si;
+    struct ipmi_msg                   msg;
+
+
+    /* Send the IPMI command */ 
+    si.addr_type = IPMI_SYSTEM_INTERFACE_ADDR_TYPE;
+    si.channel = chan;
+    si.lun = lun;       // BMC_LUN = 0
+    
+    msg.netfn = netfn;
+    msg.cmd = cmd;
+    msg.data = pdata;
+    msg.data_len = sdata;
+    
+    return ipmi_send_command_addr(domain,
+			(ipmi_addr_t *) &si, sizeof(si),
+			&msg,
+			handler, handler_data, NULL);
+}
+
+
+int ipmicmd_mc_send(ipmi_mc_t *mc,
+                 uchar netfn, uchar cmd, uchar lun,
+		 uchar *pdata, uchar sdata,
+		 ipmi_mc_response_handler_t handler,
+		 void *handler_data)
+{
+
+    struct ipmi_msg                   msg;
+    
+    msg.netfn = netfn;
+    msg.cmd = cmd;
+    msg.data = pdata;
+    msg.data_len = sdata;
+
+    return ipmi_mc_send_command(mc, lun, &msg, handler, handler_data);
+}
+
+
+
+typedef struct {
+	uchar cmd;
+	uchar netfn;
+	uchar lun;
+	uchar *pdata;
+	uchar sdata;
+	uchar *presp;
+	int sresp;
+	int *rlen;
+	SaErrorT rv;
+	int done;
+} ipmicmd_mv_arg_t;
+
+
+
+static int ipmicmd_mv_handler(
+			ipmi_domain_t *domain,
+			ipmi_msgi_t   *rspi)
+{
+	ipmicmd_mv_arg_t *info = rspi->data1;
+	ipmi_msg_t *msg = &rspi->msg;
+	
+	
+	if (domain == NULL) {
+		dbg("domain == NULL");
+		info->rv = SA_ERR_HPI_INVALID_PARAMS;
+		info->done = 1;
+		return IPMI_MSG_ITEM_NOT_USED;
+	}
+	if (info->sresp < msg->data_len) {
+		dbg("info->sresp(%d) < msg->data_len(%d)",
+			info->sresp, msg->data_len);
+		info->done = 1;
+		info->rv = SA_ERR_HPI_OUT_OF_SPACE;
+		return IPMI_MSG_ITEM_NOT_USED;
+	}
+	memcpy(info->presp, msg->data, msg->data_len);
+	*info->rlen = msg->data_len;
+	info->done = 1;
+	return IPMI_MSG_ITEM_NOT_USED;
+}
+
+
+static void ipmicmd_mv_cb(ipmi_domain_t *domain, void *cb_data)
+{
+	ipmicmd_mv_arg_t *info = cb_data;
+	int rv;
+	rv = ipmicmd_send(domain, info->netfn, info->cmd, info->lun,
+		0, info->pdata, info->sdata,
+		ipmicmd_mv_handler, cb_data);
+	if (rv != 0) {
+		dbg("ipmicmd_send = %d", rv);
+		OHOI_MAP_ERROR(info->rv, rv);
+		info->done = 1;
+	}
+}
+
+int ipmicmd_mv(struct ohoi_handler *ipmi_handler,
+               uchar cmd,
+	       uchar netfn,
+	       uchar lun,
+	       uchar *pdata,
+	       uchar sdata, 
+	       uchar *presp,
+	       int sresp,
+	       int *rlen)
+{
+	ipmicmd_mv_arg_t info;
+	int rv;
+	
+	info.cmd = cmd;
+	info.netfn = netfn;
+	info.lun = lun;
+	info.pdata = pdata;
+	info.sdata = sdata;
+	info.presp = presp;
+	info.sresp = sresp;
+	info.rlen = rlen;
+	info.rv = 0;
+	info.done = 0;
+	
+	rv = ipmi_domain_pointer_cb(ipmi_handler->domain_id,
+					ipmicmd_mv_cb, &info);
+	if (rv != 0) {
+		dbg("ipmi_domain_pointer_cb = %d", rv);
+		return SA_ERR_HPI_BUSY;
+	}
+	rv = ohoi_loop(&info.done, ipmi_handler);
+	if (rv != SA_OK) {
+		dbg("ohoi_loop = %d", rv);
+		return rv;
+	}
+	return info.rv;
+}
+	
+	
 
 #ifdef TEST
 int

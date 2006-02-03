@@ -18,10 +18,21 @@ void
 posix_vlog(char *format, enum ipmi_log_type_e log_type, va_list ap)
 {
      int do_nl = 1;
-     char *dstr = getenv("OPENHPI_DEBUG");
+     char *msg = getenv("OHOI_TRACE_MSG");
+     char *mem = getenv("OHOI_DBG_MEM");
+     int do_debug = (getenv("OPENHPI_DEBUG") && !strcmp("YES", getenv("OPENHPI_DEBUG")));
      
-     if (!dstr || strcmp("YES", getenv("OPENHPI_DEBUG")))
-	     return;
+     if ((msg || mem) && trace_msg_file) {
+	vfprintf(trace_msg_file, format, ap);
+	if ((log_type == IPMI_LOG_DEBUG_END) && do_nl)
+		fprintf(trace_msg_file, "\n");
+	if (mem) fprintf(trace_msg_file, "\n");
+	fflush(trace_msg_file);
+     }
+     
+	if (!do_debug) {
+		return;
+	}
     switch(log_type)
     {
 	case IPMI_LOG_INFO:

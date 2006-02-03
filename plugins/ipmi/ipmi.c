@@ -30,9 +30,15 @@
 #define IPMI_WD_RESOLUTION           100
 #define IPMI_WD_PRETIMER_RESOLUTION 1000
 #define uchar  unsigned char
-extern int ipmi_close_mv(void);
-extern int ipmicmd_mv(uchar cmd, uchar netfn, uchar lun, uchar *pdata,
+
+
+extern int __ipmi_debug_malloc;
+//extern int ipmi_close_mv(void);
+extern int ipmicmd_mv(struct ohoi_handler *ipmi_handler,
+               uchar cmd, uchar netfn, uchar lun, uchar *pdata,
                uchar sdata, uchar *presp, int sresp, int *rlen);
+	       
+FILE *trace_msg_file = NULL;
 
 /**
  * This is data structure reference by rsel_id.ptr
@@ -45,7 +51,7 @@ struct ohoi_sel_entry {
 /* global reference count of instances */
 static int ipmi_refcount = 0;
 
-/* ABI Interface functions */
+
 
 static void ipmi_domain_fully_up(ipmi_domain_t *domain,
                                 void *user_data)
@@ -53,15 +59,27 @@ static void ipmi_domain_fully_up(ipmi_domain_t *domain,
         struct oh_handler_state *handler = user_data;
         struct ohoi_handler *ipmi_handler = handler->data;
 
-        trace_ipmi("ipmi domain fully up. SDR_read_done = %d;"
-                        "SELS_read_done = %d; scan_done = %d; mc_count = %d",
-                        ipmi_handler->SDRs_read_done,
-                        ipmi_handler->SELs_read_done,
-                        ipmi_handler->bus_scan_done,
-                        ipmi_handler->mc_count);
+        if (getenv("OHOI_TRACE_DOMAINUP")) {
+		printf("           ****    DOMAIN FULLY UP *****\n");
+	}
+	g_static_rec_mutex_lock(&ipmi_handler->ohoih_lock);
         ipmi_handler->fully_up = 1;
 	ipmi_handler->d_type = ipmi_domain_get_type(domain);
+	if (!IS_ATCA(ipmi_handler->d_type)) {
+		g_static_rec_mutex_unlock(&ipmi_handler->ohoih_lock);
+		return;
+	}
+	ohoi_atca_create_shelf_virtual_rdrs(handler);
+	ohoi_atca_create_fru_rdrs(handler);
+        g_static_rec_mutex_unlock(&ipmi_handler->ohoih_lock);
 }
+
+
+
+
+
+
+		/* ABI Interface functions */
 
 /**
  * *ipmi_open: open (initiate) instance of the ipmi plug-in
@@ -88,6 +106,7 @@ static void *ipmi_open(GHashTable *handler_config)
         int rv = 0;
         int *hid;
         char *multi_domains;
+	char *trace_file_name;
 
         SaHpiTextBufferT        buf = {
                                         .DataType = SAHPI_TL_TYPE_TEXT,
@@ -198,17 +217,115 @@ static void *ipmi_open(GHashTable *handler_config)
         sel_alloc_selector(ipmi_handler->os_hnd, &ipmi_handler->ohoi_sel);
         ipmi_posix_os_handler_set_sel(ipmi_handler->os_hnd,
                         ipmi_handler->ohoi_sel);
-        ipmi_init(ipmi_handler->os_hnd);
 
-        if (strcmp(name, "smi") == 0) {
+	trace_file_name = getenv("OHOI_TRACE_FILE");
+	if (trace_file_name != NULL) {
+		trace_msg_file = fopen(trace_file_name, "w+");
+		if (trace_msg_file) {
+			if (getenv("OHOI_TRACE_MSG")) {
+				DEBUG_MSG_ENABLE();
+				DEBUG_MSG_ERR_ENABLE();
+			}
+			//if (getenv("OHOI_DBG_MEM")) {
+			//	__ipmi_debug_malloc = 1;
+			//	DEBUG_MALLOC_ENABLE();
+			//}
+		}
+	}
+        ipmi_init(ipmi_handler->os_hnd);
+        if (strcmp(name, "general") == 0) {
+#if 0
+		char *tok;
+		char *pptr;
+		char *val;
+		char **argv = NULL;
+		int  vals_len = 0;
+		int  argc = 0;
+		int  curr_arg = 0;
+		ipmi_args_t *iargs[2];
+		int curr_iarg = 0;
+		int i, j;
+
+                tok = g_hash_table_lookup(handler_config, "addr");
+                if (tok == NULL) {
+                        dbg("no ""addr"" token in config file");
+                        goto free_and_out;
+                }
+		val = strtok_r(tok, " \t\n", &pptr);
+		while (val) {
+			if (argc == vals_len) {
+				vals_len += 10;
+				char **nv = malloc(sizeof(char *) * vals_len);
+				if (!nv) {
+					dbg("Out of memory");
+					if (argv)
+						free(argv);
+					goto free_and_out;
+				}
+				if (argv)
+					free(argv);
+				argv = nv;
+			}
+			argv[argc] = val;
+			argc++;
+			val = strtok_r(NULL, " \t\n", &pptr);
+		}
+
+		if (!argv) {
+                        dbg("""addr"" token in config file was empty");
+			goto free_and_out;
+		}
+
+		while (curr_arg < argc) {
+			if (curr_iarg == 2)
+				break;
+			rv = ipmi_parse_args2(&curr_arg, argc, argv,
+					      &iargs[curr_iarg]);
+			if (rv) {
+				dbg("Cannot parse connection arguments");
+				free(argv);
+				goto free_and_out;
+			}
+			curr_iarg++;
+		}
+		free(argv);
+
+		for (i=0; i<curr_iarg; i++) {
+			rv = ipmi_args_setup_con(iargs[i],
+						 ipmi_handler->os_hnd,
+						 ipmi_handler->ohoi_sel,
+						 &ipmi_handler->cons[i]);
+			if (rv) {
+				dbg("Cannot setup connection");
+				for (j=0; j<i; j++)
+					ipmi_free_args(iargs[j]);
+				for (j=0; j<curr_iarg; j++)
+					ipmi_free_args(iargs[j]);
+				goto free_and_out;
+			}
+		}
+		for (i=0; i<curr_iarg; i++)
+			ipmi_free_args(iargs[i]);
+
+		ipmi_handler->num_cons = curr_iarg;
+
+                ipmi_handler->islan = strcmp(ipmi_handler->cons[0]->con_type,
+					     "smi") != 0;
+#else
+                dbg("Unsupported IPMI connection method: %s",name);
+                goto free_and_out;
+#endif
+        } else if (strcmp(name, "smi") == 0) {
                 int tmp = strtol(addr, (char **)NULL, 10);
 
                 rv = ipmi_smi_setup_con(tmp,ipmi_handler->os_hnd,
-                                ipmi_handler->ohoi_sel,&ipmi_handler->con);
+                                ipmi_handler->ohoi_sel,
+				&ipmi_handler->cons[0]);
                 if (rv) {
                         dbg("Cannot setup connection");
                         goto free_and_out;
                 }
+		ipmi_handler->num_cons = 1;
                 ipmi_handler->islan = 0;
         } else if (strcmp(name, "lan") == 0) {
                 static struct in_addr lan_addr;
@@ -315,9 +432,12 @@ static void *ipmi_open(GHashTable *handler_config)
                                         passwd, strlen(passwd),
                                         ipmi_handler->os_hnd,
                                         ipmi_handler->ohoi_sel,
-                                        &ipmi_handler->con);
-                if (rv) dbg("ipmi_lan_setup_con rv = %d",rv);
-
+                                        &ipmi_handler->cons[0]);
+                if (rv) {
+			dbg("ipmi_lan_setup_con rv = %d", rv);
+                	goto free_and_out;
+		}
+		ipmi_handler->num_cons = 1;
                 ipmi_handler->islan = 1;
         } else {
                 dbg("Unsupported IPMI connection method: %s",name);
@@ -326,7 +446,8 @@ static void *ipmi_open(GHashTable *handler_config)
 
         ipmi_handler->connected = -1;
 
-        rv = ipmi_open_domain(domain_name, &ipmi_handler->con, 1,
+        rv = ipmi_open_domain(domain_name, ipmi_handler->cons,
+			ipmi_handler->num_cons,
                         ipmi_connection_handler, handler,
                         ipmi_domain_fully_up, handler,
                         NULL, 0, &ipmi_handler->domain_id);
@@ -366,7 +487,7 @@ static void ipmi_close(void *hnd)
                 ohoi_close_connection(ipmi_handler->domain_id, handler);
         }
 
-        ipmi_close_mv();
+//        ipmi_close_mv();
         ipmi_refcount--;
         trace_ipmi("ipmi_refcount :%d", ipmi_refcount);
 
@@ -437,8 +558,8 @@ static void trace_ipmi_resources(SaHpiRptEntryT *rpt_entry,
 		return;
 	}
 	unsigned char str[32];
-	if (res_info->type == OHOI_RESOURCE_ENTITY) {
-		ipmi_entity_id_t *e = &res_info->u.entity_id;
+	if (res_info->type & OHOI_RESOURCE_ENTITY) {
+		ipmi_entity_id_t *e = &res_info->u.entity.entity_id;
 		snprintf((char *)str, 32, "(%d,%d,%d,%d)", e->entity_id,
 			e->entity_instance, e->channel, e->address);
 	} else {
@@ -616,24 +737,24 @@ static SaErrorT ipmi_get_el_info(void               *hnd,
         }
 
         ohoi_res_info = oh_get_resource_data(handler->rptcache, id);
-        if (ohoi_res_info->type != OHOI_RESOURCE_MC) {
+        if (!(ohoi_res_info->type & OHOI_RESOURCE_MC)) {
                 dbg("BUG: try to get sel in unsupported resource");
                 return SA_ERR_HPI_INVALID_CMD;
         }
 
-        ohoi_get_sel_count(ohoi_res_info->u.mc_id, (int *)(&count));
+        ohoi_get_sel_count(ohoi_res_info->u.entity.mc_id, (int *)(&count));
         info->Entries = count;
 
-        ohoi_get_sel_size(ohoi_res_info->u.mc_id, (int *)(&size));
+        ohoi_get_sel_size(ohoi_res_info->u.entity.mc_id, (int *)(&size));
         info->Size = size / 16;
-        ohoi_get_sel_updatetime(ohoi_res_info->u.mc_id,
+        ohoi_get_sel_updatetime(ohoi_res_info->u.entity.mc_id,
                                         &info->UpdateTimestamp);
-        ohoi_get_sel_time(ohoi_res_info->u.mc_id, &info->CurrentTime,
+        ohoi_get_sel_time(ohoi_res_info->u.entity.mc_id, &info->CurrentTime,
                                                                 ipmi_handler);
-        ohoi_get_sel_overflow(ohoi_res_info->u.mc_id, (char *)(&info->OverflowFlag));
+        ohoi_get_sel_overflow(ohoi_res_info->u.entity.mc_id, (char *)(&info->OverflowFlag));
         info->OverflowAction = SAHPI_EL_OVERFLOW_DROP;
-        ohoi_get_sel_support_del(ohoi_res_info->u.mc_id, &del_support);
-        rv = ohoi_get_sel_state(ipmi_handler, ohoi_res_info->u.mc_id,
+        ohoi_get_sel_support_del(ohoi_res_info->u.entity.mc_id, &del_support);
+        rv = ohoi_get_sel_state(ipmi_handler, ohoi_res_info->u.entity.mc_id,
 	/* compile error */
 //                                                 (int *)&info->Enabled);
                                                  (int *)(void *)&info->Enabled);
@@ -669,14 +790,14 @@ static int ipmi_set_el_time(void               *hnd,
         dbg("sel_set_time called");
 
         ohoi_res_info = oh_get_resource_data(handler->rptcache, id);
-        if (ohoi_res_info->type != OHOI_RESOURCE_MC) {
+        if (!(ohoi_res_info->type & OHOI_RESOURCE_MC)) {
                 dbg("BUG: try to get sel in unsupported resource");
                 return SA_ERR_HPI_INVALID_CMD;
         }
 
         tv.tv_sec = time/1000000000;
         tv.tv_usec= (time%1000000000)/1000;
-        ohoi_set_sel_time(ohoi_res_info->u.mc_id, &tv, ipmi_handler);
+        ohoi_set_sel_time(ohoi_res_info->u.entity.mc_id, &tv, ipmi_handler);
         return 0;
 }
 
@@ -700,16 +821,16 @@ static SaErrorT ipmi_set_sel_state(void      *hnd,
         struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
 
         ohoi_res_info = oh_get_resource_data(handler->rptcache, id);
-        if (ohoi_res_info->type != OHOI_RESOURCE_MC) {
+        if (!(ohoi_res_info->type & OHOI_RESOURCE_MC)) {
                 dbg("BUG: try to set sel state in unsupported resource");
                 return SA_ERR_HPI_CAPABILITY;
         }
-        return ohoi_set_sel_state(ipmi_handler, ohoi_res_info->u.mc_id, enable);
+        return ohoi_set_sel_state(ipmi_handler, ohoi_res_info->u.entity.mc_id, enable);
 }
 
 
 
-#if OPENIPMI_1_4_20
+
 typedef struct {
         ipmi_sensor_id_t        *sid;
         ipmi_event_t            *event;
@@ -722,7 +843,7 @@ static void _get_event_sid(ipmi_mc_t *mc, void *cb_data)
         *info->sid = ipmi_event_get_generating_sensor_id(
                 ipmi_mc_get_domain(mc), mc, info->event);
 }
-#endif
+
 
 /**
  * ipmi_get_el_entry: get IPMI SEL entry
@@ -758,12 +879,10 @@ static int ipmi_get_el_entry(void *hnd, SaHpiResourceIdT id,
         int                     data_len;
         ipmi_sensor_id_t        sid;
         ipmi_entity_id_t        et;
-#if OPENIPMI_1_4_20
         get_event_sid_t         info;
-#endif
 
         ohoi_res_info = oh_get_resource_data(handler->rptcache, id);
-        if (ohoi_res_info->type != OHOI_RESOURCE_MC) {
+        if (!(ohoi_res_info->type & OHOI_RESOURCE_MC)) {
                 dbg("BUG: try to get sel in unsupported resource");
                 return SA_ERR_HPI_INVALID_CMD;
         }
@@ -778,11 +897,11 @@ static int ipmi_get_el_entry(void *hnd, SaHpiResourceIdT id,
         switch (current) {
                 case SAHPI_OLDEST_ENTRY:
                         ohoi_get_sel_first_entry(
-                                ohoi_res_info->u.mc_id, &event);
+                                ohoi_res_info->u.entity.mc_id, &event);
                         if (!event)
                                 return SA_ERR_HPI_NOT_PRESENT;
 
-                        ohoi_get_sel_next_recid(ohoi_res_info->u.mc_id,
+                        ohoi_get_sel_next_recid(ohoi_res_info->u.entity.mc_id,
                                                 event, next);
 
                         *prev = SAHPI_NO_MORE_ENTRIES;
@@ -791,14 +910,14 @@ static int ipmi_get_el_entry(void *hnd, SaHpiResourceIdT id,
 
                 case SAHPI_NEWEST_ENTRY:
 
-                        ohoi_get_sel_last_entry(ohoi_res_info->u.mc_id,
+                        ohoi_get_sel_last_entry(ohoi_res_info->u.entity.mc_id,
                                         &event);
                         if (!event)
                                 return SA_ERR_HPI_NOT_PRESENT;
 
                         *next = SAHPI_NO_MORE_ENTRIES;
 
-                        ohoi_get_sel_prev_recid(ohoi_res_info->u.mc_id,
+                        ohoi_get_sel_prev_recid(ohoi_res_info->u.entity.mc_id,
                                                 event, prev);
 
                         break;
@@ -810,14 +929,14 @@ static int ipmi_get_el_entry(void *hnd, SaHpiResourceIdT id,
 
                 default:
                         /* get the entry requested by id */
-                        ohoi_get_sel_by_recid(ohoi_res_info->u.mc_id,
+                        ohoi_get_sel_by_recid(ohoi_res_info->u.entity.mc_id,
                                                 current, &event);
                         if (!event)
                                 return SA_ERR_HPI_NOT_PRESENT;
-                        ohoi_get_sel_next_recid(ohoi_res_info->u.mc_id,
+                        ohoi_get_sel_next_recid(ohoi_res_info->u.entity.mc_id,
                                                 event, next);
 
-                        ohoi_get_sel_prev_recid(ohoi_res_info->u.mc_id,
+                        ohoi_get_sel_prev_recid(ohoi_res_info->u.entity.mc_id,
                                                 event, prev);
 
                         break;
@@ -832,49 +951,50 @@ static int ipmi_get_el_entry(void *hnd, SaHpiResourceIdT id,
 
 
         if (event_type == 0x02) {   // sensor event
-                do {
-#if OPENIPMI_1_4_20
-                        info.sid = &sid;
-                        info.event = event;
-                        ipmi_mc_pointer_cb(ohoi_res_info->u.mc_id,
+		if (rptentry) {
+			rptentry->ResourceCapabilities = 0;
+		}
+		if (rdr) {
+			rdr->RdrType = SAHPI_NO_RECORD;
+		}
+                info.sid = &sid;
+                info.event = event;
+                ipmi_mc_pointer_cb(ohoi_res_info->u.entity.mc_id,
                                 _get_event_sid, &info);
-#else
-                        sid.mcid = ipmi_event_get_mcid(event);
-                        sid.lun = Data[5] & 0x3;
-                        sid.sensor_num = Data[8];
-#endif
 
-                        trace_ipmi_sensors("LOOK FOR", sid);
-                        if (ohoi_sensor_ipmi_event_to_hpi_event(sid,
-                                        event, &e, &et)) {
-                                myrpt = ohoi_get_resource_by_entityid(
-                                        handler->rptcache, &et);
-                                myrdr = ohoi_get_rdr_by_data(handler->rptcache,
-                                      myrpt->ResourceId, SAHPI_SENSOR_RDR,
-                                      &sid);
-                                e->u.hpi_event.event.Source = myrpt->ResourceId;
-                                e->u.hpi_event.event.EventDataUnion.
-                                        SensorEvent.SensorNum =
-                                               myrdr->RdrTypeUnion.SensorRec.Num;
-                                if (rptentry) {
-                                        memcpy(rptentry, myrpt, sizeof (*myrpt));
-                                }
-                                if (rdr) {
-                                        memcpy(rdr, myrdr, sizeof (myrdr));
-                                }
-                        }
-                        memcpy(&entry->Event, &e->u.hpi_event.event,
+                trace_ipmi_sensors("LOOK FOR", sid);
+                if (ohoi_sensor_ipmi_event_to_hpi_event(handler->data,
+							sid, event, &e, &et)) {
+			//we will handle sensor event as user event
+			goto no_sensor_event;
+		}
+                myrpt = ohoi_get_resource_by_entityid(handler->rptcache, &et);
+		if (myrpt == NULL) {
+			goto no_rpt;
+		} 
+                myrdr = ohoi_get_rdr_by_data(handler->rptcache,
+                                 myrpt->ResourceId, SAHPI_SENSOR_RDR, &sid);
+                e->u.hpi_event.event.Source = myrpt->ResourceId;
+                if (rptentry) {
+                        memcpy(rptentry, myrpt, sizeof (*myrpt));
+                }
+                if (myrdr) {
+                        e->u.hpi_event.event.EventDataUnion.SensorEvent.SensorNum =
+                                             myrdr->RdrTypeUnion.SensorRec.Num;
+			if (rdr) {
+                        	memcpy(rdr, myrdr, sizeof (*myrdr));
+			}
+                }
+no_rpt:
+                memcpy(&entry->Event, &e->u.hpi_event.event,
                                                    sizeof (SaHpiEventT));
-                        free(e);
-                        entry->Event.EventType = SAHPI_ET_SENSOR;
-                        entry->Timestamp =
-                                        ipmi_event_get_timestamp(event);
-                        return SA_OK;
-                } while(0);
-                // if we are here we will handle sensor event as user
-                // event
+                free(e);
+                entry->Event.EventType = SAHPI_ET_SENSOR;
+                entry->Timestamp = ipmi_event_get_timestamp(event);
+                return SA_OK;
         }
 
+no_sensor_event:
 
         entry->Event.Source = SAHPI_UNSPECIFIED_RESOURCE_ID;
 
@@ -932,31 +1052,21 @@ static SaErrorT ipmi_clear_el(void *hnd, SaHpiResourceIdT id)
                 int i;
 
         ohoi_res_info = oh_get_resource_data(handler->rptcache, id);
-        if (ohoi_res_info->type != OHOI_RESOURCE_MC) {
+        if (!(ohoi_res_info->type & OHOI_RESOURCE_MC)) {
                 dbg("BUG: try to get sel in unsupported resource");
                 return SA_ERR_HPI_INVALID_CMD;
         }
 
         ipmi_handler->sel_clear_done = 0;
 
-        rv = ohoi_clear_sel(ohoi_res_info->u.mc_id, ipmi_handler);
+        rv = ohoi_clear_sel(ohoi_res_info->u.entity.mc_id, ipmi_handler);
 
         if (rv != SA_OK) {
                 dbg("Error in attempting to clear sel");
                 return rv;
         }
 
-/*      bug #1046867. It looks process can hang up. 12/9/2004
-        while (0 == ipmi_handler->sel_clear_done) {
-                rv = sel_select(ipmi_handler->ohoi_sel, NULL, 0 , NULL, NULL);
-                if (rv<0) {
-                        dbg("error on waiting for SEL");
-                        return -1;
-                }
-        }
 
-        return SA_OK;
-*/
         for (i =0; i < 6; i++) {
                 /* long wait - 1 min */
                 rv = ohoi_loop(&ipmi_handler->sel_clear_done, ipmi_handler);
@@ -1042,9 +1152,11 @@ static int ipmi_get_sensor_event_enable(void *hnd,
         if (rv)
                 return rv;
 
-        sensor_info->enable = t_enable;
-        sensor_info->assert = t_assert;
-        sensor_info->deassert = t_deassert;
+        if (sensor_info->sen_enabled) {
+		sensor_info->enable = t_enable;
+        	sensor_info->assert = t_assert;
+        	sensor_info->deassert = t_deassert;
+	}
 
         *enable = t_enable;
         return SA_OK;
@@ -1076,6 +1188,7 @@ static int ipmi_set_sensor_event_enable(void *hnd,
         if (sensor_info->enable == enable)
                 return(SA_OK);
         sensor_info->enable = enable;
+ //       sensor_info->saved_enable = enable;
         e = malloc(sizeof(*e));
         if (!e) {
                 dbg("Out of space");
@@ -1208,7 +1321,7 @@ static int ipmi_get_sensor_enable(void *hnd, SaHpiResourceIdT id,
         if (!enable)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
-        *enable = sensor_info->enable;
+        *enable = sensor_info->sen_enabled;
         return SA_OK;
 }
 
@@ -1229,26 +1342,38 @@ static int ipmi_set_sensor_enable(void *hnd, SaHpiResourceIdT id,
         }
 
         if (enable == SAHPI_FALSE) {
-                sensor_info->saved_enable = sensor_info->enable;
+//                sensor_info->saved_enable = sensor_info->enable;
                 if (sensor_info->enable == SAHPI_FALSE) {
                         sensor_info->sen_enabled = SAHPI_FALSE;
                         return SA_OK;
                 }
-                rv = ipmi_set_sensor_event_enable(hnd, id, num, SAHPI_FALSE);
+       		 // Disable events
+		rv = ohoi_set_sensor_event_enable(hnd, sensor_info,
+					  SAHPI_FALSE, sensor_info->assert,
+					  sensor_info->deassert,
+					  sensor_info->support_assert,
+					  sensor_info->support_deassert);
                 if (rv == SA_OK) {
                         sensor_info->sen_enabled = SAHPI_FALSE;
                 };
                 return rv;
         }
         // enable == SAHPI_TRUE
-        if (sensor_info->saved_enable == SAHPI_FALSE) {
+        if (sensor_info->enable == SAHPI_FALSE) {
+                sensor_info->sen_enabled = SAHPI_TRUE;
                 return SA_OK;
-        } else {   // (sensor_info->saved_enable == SAHPI_TRUE)
-                rv = ipmi_set_sensor_event_enable(hnd, id, num, SAHPI_TRUE);
-                if (rv == SA_OK) {
-                        sensor_info->sen_enabled = SAHPI_TRUE;
-                }
         }
+        // Restore events
+	rv = ohoi_set_sensor_event_enable(hnd, sensor_info,
+					  SAHPI_TRUE, sensor_info->assert,
+					  sensor_info->deassert,
+					  sensor_info->support_assert,
+					  sensor_info->support_deassert);
+        if (rv != SA_OK) {
+		dbg("ipmi_set_sensor_event_enable = %d", rv);
+		sensor_info->enable = SAHPI_FALSE;
+        }
+	sensor_info->sen_enabled = SAHPI_TRUE;
         return rv;
 }
 
@@ -1269,20 +1394,20 @@ static int ipmi_get_sensor_event_masks(void *hnd,
 
         SENSOR_CHECK(handler, sensor_info, id, num);
 
-        if (!assert || !deassert)
-                return SA_ERR_HPI_INVALID_PARAMS;
-
         rv = ohoi_get_sensor_event_enable(hnd, sensor_info,
 					  &t_enable, &t_assert, &t_deassert);
         if (rv)
                 return rv;
 
-        sensor_info->enable = t_enable;
-        sensor_info->assert = t_assert;
-        sensor_info->deassert = t_deassert;
+        
+	if (sensor_info->sen_enabled) {
+		sensor_info->enable = t_enable;
+        	sensor_info->assert = t_assert;
+        	sensor_info->deassert = t_deassert;
+	}
 
-        *assert = t_assert;
-        *deassert = t_deassert;
+        if (assert) *assert = t_assert;
+        if (deassert) *deassert = t_deassert;
 
         return SA_OK;
 }
@@ -1358,6 +1483,20 @@ static int ipmi_set_sensor_event_masks(void *hnd, SaHpiResourceIdT id,
         return SA_OK;
 }
 
+
+
+
+
+
+	/*
+	 *          WATCHDOG FUNCTIONS
+	 */
+
+
+
+
+
+
 static int ipmi_get_watchdog_info(void *hnd,
          SaHpiResourceIdT  id,
          SaHpiWatchdogNumT num,
@@ -1376,19 +1515,28 @@ static int ipmi_get_watchdog_info(void *hnd,
          * Currently support only default watchdog num, and only local.
          */
         if (ipmi_handler->islan) return(SA_ERR_HPI_UNSUPPORTED_API);
-        if (num != SAHPI_DEFAULT_WATCHDOG_NUM)
+        if (num != SAHPI_DEFAULT_WATCHDOG_NUM) {
+		dbg("num = %d", num);
                 return SA_ERR_HPI_INVALID_PARAMS;
+	}
         rlen = sizeof(response);
-        rv = ipmicmd_mv(WATCHDOG_GET,NETFN_APP,0,reqdata,0,response,rlen,&rlen);
-        if (rv != 0) return(rv);
-        rv = response[0];  /*completion code*/
+	memset(reqdata, 0, 16);
+	memset(response, 0, 16);
+        rv = ipmicmd_mv(ipmi_handler, WATCHDOG_GET, NETFN_APP, 0,
+				reqdata, 0, response, rlen, &rlen);
         if (rv != 0) return(rv);
 
-#if DEBUG
-        dbg("wdog_get: %02x %02x %02x %02x %02x %02x %02x %02x\n",
+        dbg("wdog_get: %02x %02x %02x %02x %02x %02x %02x %02x %02x\n",
+		response[0],
                 response[1], response[2], response[3], response[4],
                 response[5], response[6], response[7], response[8]);
-#endif
+
+        rv = response[0];  /*completion code*/
+        if (rv != 0) {
+		rv |= IPMI_IPMI_ERR_TOP;
+		OHOI_MAP_ERROR(rv, rv);
+		return(rv);
+	}
 
         /* Translate IPMI response to HPI format */
         memset(watchdog, 0, sizeof(SaHpiWatchdogT));
@@ -1480,7 +1628,7 @@ static int ipmi_get_watchdog_info(void *hnd,
         watchdog->InitialCount = (response[5] + (response[6] * 256)) * IPMI_WD_RESOLUTION;
         watchdog->PresentCount = (response[7] + (response[8] * 256)) * IPMI_WD_RESOLUTION;
 
-        return rv;
+        return SA_OK;
 }
 
 static int ipmi_set_watchdog_info(void *hnd,
@@ -1498,8 +1646,10 @@ static int ipmi_set_watchdog_info(void *hnd,
 
         if (ipmi_handler->islan) return(SA_ERR_HPI_UNSUPPORTED_API);
 
-        if (num != SAHPI_DEFAULT_WATCHDOG_NUM)
+        if (num != SAHPI_DEFAULT_WATCHDOG_NUM) {
+		dbg("watchdog num = %d", num);
                 return SA_ERR_HPI_INVALID_PARAMS;
+	}
         /* translate HPI values to IPMI */
         switch (watchdog->TimerUse)
         {
@@ -1581,17 +1731,22 @@ static int ipmi_set_watchdog_info(void *hnd,
         reqdata[4] = tv & 0x00ff;  // tv % 256;
         reqdata[5] = tv / 256;   // (tv & 0xff00) >> 8;
 
-#if DEBUG
         dbg("wdog_set: %02x %02x %02x %02x %02x %02x\n",
                 reqdata[0], reqdata[1], reqdata[2],
                 reqdata[3], reqdata[4], reqdata[5]);
-#endif
 
         rlen = sizeof(response);
-        rv = ipmicmd_mv(WATCHDOG_SET,NETFN_APP,0,reqdata,6,response,rlen,&rlen);
+        rv = ipmicmd_mv(ipmi_handler, WATCHDOG_SET, NETFN_APP, 0,
+				reqdata, 6, response, rlen, &rlen);
         if (rv != 0) return(rv);
-        rv = response[0];  /*completion code*/
 
+        rv = response[0];  /*completion code*/
+	if (rv != 0) {
+		dbg("wdog_set response: %02x", rv);
+		OHOI_MAP_ERROR(rv, rv);
+	} else {
+		rv = SA_OK;
+	}
         return rv;
 }
 
@@ -1607,14 +1762,23 @@ static int ipmi_reset_watchdog(void *hnd,
 
         if (ipmi_handler->islan) return(SA_ERR_HPI_UNSUPPORTED_API);
 
-        if (num != SAHPI_DEFAULT_WATCHDOG_NUM)
+        if (num != SAHPI_DEFAULT_WATCHDOG_NUM) {
+		dbg("watchdog num = %d", num);
                 return SA_ERR_HPI_INVALID_PARAMS;
+	}
 
         rlen = sizeof(response);
-        rv = ipmicmd_mv(WATCHDOG_RESET,NETFN_APP,0,NULL,0,response,rlen,&rlen);
+        rv = ipmicmd_mv(ipmi_handler, WATCHDOG_RESET, NETFN_APP, 0,
+		NULL, 0, response, rlen, &rlen);
         if (rv != 0) return(rv);
+	
         rv = response[0];  /*completion code*/
-        if (rv != 0) return(rv);
+		if (rv != 0) {
+		dbg("wdog_set response: %02x", rv);
+		OHOI_MAP_ERROR(rv, rv);
+	} else {
+		rv = SA_OK;
+	}
 
         return rv;
 }
@@ -1649,9 +1813,9 @@ static SaErrorT ipmi_set_res_tag (void                  *hnd,
         /* do it in openIPMI's memory first for subsequest updates */
 
         /* can only be an Entity in the ohoi_resource_info struct */
-        if (rpt_entry->ResourceCapabilities & SAHPI_CAPABILITY_RESOURCE) {
+        if (res_info->type & OHOI_RESOURCE_ENTITY) {
                 dbg("Setting new Tag: %s for resource: %d", (char *) tag->Data, id);
-                rv = ipmi_entity_pointer_cb(res_info->u.entity_id, ohoi_set_resource_tag,
+                rv = ipmi_entity_pointer_cb(res_info->u.entity.entity_id, ohoi_set_resource_tag,
                                     tag->Data);
                 if (rv)
                         dbg("Error retrieving entity pointer for resource %d",

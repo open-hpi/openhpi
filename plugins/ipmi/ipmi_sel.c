@@ -247,12 +247,11 @@ static void mc_clear_sel_done(ipmi_mc_t *mc, int err, void *cb_data)
 
 static void clear_sel(ipmi_mc_t *mc, void *cb_data)
 {
-	 struct clear_sel_cb *info = cb_data;
-      
-	ipmi_event_t *event, *event2;
+	 struct clear_sel_cb *info = cb_data;     
 	int rv;
 	int done = 0;
-
+#if 0     
+	ipmi_event_t *event, *event2;
         event = ipmi_mc_first_event(mc);
         while (event) {
 		event2 = event;
@@ -275,6 +274,14 @@ static void clear_sel(ipmi_mc_t *mc, void *cb_data)
 			info->err = SA_ERR_HPI_INVALID_CMD;
 			return;
 	}
+#endif
+	rv = ipmi_mc_sel_clear(mc, NULL, mc_clear_sel_done, &done);
+	if (rv) {
+		dbg("ipmi_mc_reread_sel failed");
+			info->err = SA_ERR_HPI_INVALID_CMD;
+			return;
+	}
+
 	info->err = ohoi_loop(&done, info->ipmi_handler);
 }
 	

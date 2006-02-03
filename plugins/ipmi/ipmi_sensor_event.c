@@ -82,32 +82,6 @@ static void set_discrete_sensor_misc_event(ipmi_event_t		*event,
 }
 
 
-#if 0
-static void 
-set_discrete_sensor_event_state(ipmi_event_t		*event,
-				  SaHpiEventStateT	*state)
-{
-	enum ohoi_discrete_e e;
-        unsigned char *data;
- 
-        data = ipmi_event_get_data_ptr(event);
-	
-        e = data[10] & 0x7;
-	switch (e) {
-		case IPMI_TRANS_IDLE:
-			*state = SAHPI_ES_IDLE;
-			break;
-		
-		case IPMI_TRANS_ACTIVE:
-			*state = SAHPI_ES_ACTIVE;
-			break;
-
-		case IPMI_TRANS_BUSY:
-			*state = SAHPI_ES_BUSY;
-			break;
-	}
-}
-#endif
 
 
 static void set_event_sensor_num(ipmi_sensor_t    *sensor,
@@ -133,7 +107,8 @@ static void set_event_sensor_num(ipmi_sensor_t    *sensor,
 		                    rpt_entry->ResourceId,
 	                            SAHPI_SENSOR_RDR, &sensor_id);
         if (!rdr) {
-                dbg("No rdr in resource:%d\n",  rpt_entry->ResourceId);
+                dbg("No rdr for sensor %d in resource:%d\n", 
+			sensor_id.sensor_num, rpt_entry->ResourceId);
 		return;
 	}
 	
@@ -156,6 +131,7 @@ static void set_event_sensor_num(ipmi_sensor_t    *sensor,
  * Returns: oh_event to which ipmi event is mapped
  */
 static struct oh_event *sensor_discrete_map_event(
+				  struct ohoi_handler *ipmi_handler,
 				  enum ipmi_event_dir_e	dir,
 				  int	offset,
 				  int	severity,
@@ -198,30 +174,72 @@ static struct oh_event *sensor_discrete_map_event(
 		e->u.hpi_event.event.EventDataUnion.SensorEvent.EventCategory 
                 	= data[9] & 0x7f;
 	}
-	
-	if (data[7] == 0xf0) {
-		// ATCA hot swap sensor
-		e->u.hpi_event.event.EventDataUnion.SensorEvent.SensorType =
-				SAHPI_OEM_SENSOR;
-	}
-	if (data[7] == 0xf1) {
-		// ATCA IPMB-0 link sensor
-		e->u.hpi_event.event.EventDataUnion.SensorEvent.SensorType =
-				SAHPI_OEM_SENSOR;
-		e->u.hpi_event.event.EventDataUnion.SensorEvent.EventCategory =
-				SAHPI_EC_REDUNDANCY;
-		e->u.hpi_event.event.EventDataUnion.SensorEvent.SensorNum =
-				0x1100;
-	}
 	if (data[7] >= 0xc0) {
 		e->u.hpi_event.event.EventDataUnion.SensorEvent.SensorType =
 				SAHPI_OEM_SENSOR;
 	}
+
+
 	e->u.hpi_event.event.EventDataUnion.SensorEvent.Assertion 
                 = !(dir);
 
 	set_discrete_sensor_misc_event(event,
 		&e->u.hpi_event.event.EventDataUnion.SensorEvent);
+
+
+	if (!IS_ATCA(ipmi_handler->d_type) || ( data[7] != 0xf1)) {
+		return e;
+	}
+	// ATCA IPMB-0 link sensor. Special mapping
+	e->u.hpi_event.event.EventDataUnion.SensorEvent.EventCategory =
+							SAHPI_EC_REDUNDANCY;
+	switch (data[10] & 0x0f) { // IPMI event state
+	case 0x00: // IPMB_A disable, IPMB-B disable
+		e->u.hpi_event.event.EventDataUnion.SensorEvent.EventState =
+				SAHPI_ES_NON_REDUNDANT_INSUFFICIENT_RESOURCES;
+		e->u.hpi_event.event.Severity = SAHPI_CRITICAL;
+		break;
+	case 0x01: // IPMB_A enable, IPMB-B disable
+	case 0x02: // IPMB_A disable, IPMB-B enable
+		e->u.hpi_event.event.EventDataUnion.SensorEvent.EventState =
+				SAHPI_ES_NON_REDUNDANT_SUFFICIENT_RESOURCES;
+		e->u.hpi_event.event.Severity = SAHPI_MAJOR;
+		break;
+	case 0x03: // IPMB_A enable, IPMB-B enable
+		e->u.hpi_event.event.EventDataUnion.SensorEvent.EventState =
+					SAHPI_ES_FULLY_REDUNDANT;
+		e->u.hpi_event.event.Severity = SAHPI_OK;
+		break;
+	default:
+		dbg("wrong IPMIB-0 Status Change Event State = 0x%x",
+				data[10] & 0x0f);
+		break;
+	}
+	if (!(e->u.hpi_event.event.EventDataUnion.SensorEvent.OptionalDataPresent
+			 & SAHPI_SOD_PREVIOUS_STATE)) {
+		// no previous state
+		return e;
+	}
+	switch (data[11] & 0x0f) { // previous IPMI event state
+	case 0x00: // IPMB_A disable, IPMB-B disable
+		e->u.hpi_event.event.EventDataUnion.SensorEvent.PreviousState =
+				SAHPI_ES_NON_REDUNDANT_INSUFFICIENT_RESOURCES;
+		break;
+	case 0x01: // IPMB_A enable, IPMB-B disable
+	case 0x02: // IPMB_A disable, IPMB-B enable
+		e->u.hpi_event.event.EventDataUnion.SensorEvent.PreviousState =
+				SAHPI_ES_NON_REDUNDANT_SUFFICIENT_RESOURCES;
+		break;
+	case 0x03: // IPMB_A enable, IPMB-B enable
+		e->u.hpi_event.event.EventDataUnion.SensorEvent.PreviousState =
+					SAHPI_ES_FULLY_REDUNDANT;
+		break;
+	default:
+		dbg("wrong IPMIB-0 Status Change Previous Event State = 0x%x",
+				data[11] & 0x0f);
+		break;
+	}
+
 	return e;
 
 }
@@ -236,11 +254,18 @@ static int sensor_discrete_event(ipmi_sensor_t	*sensor,
 {
 	struct oh_event		*e;
 	struct oh_handler_state *handler = cb_data;
-	
+	struct ohoi_handler *ipmi_handler = handler->data;	
 	ipmi_sensor_id_t sid = ipmi_sensor_convert_to_id(sensor);
+
 	trace_ipmi_sensors("EVENT", sid);
- 
-	e = sensor_discrete_map_event(dir, offset, severity,
+	if ((ipmi_handler->d_type == IPMI_DOMAIN_TYPE_ATCA) &&
+			(ipmi_sensor_get_sensor_type(sensor) == 0xF0)) {
+		// hot swap sensor. We don't report its event.
+		// hotswap event will be reported via entity hotswap
+		// handeler instead of.
+		return SA_OK;
+	} 
+	e = sensor_discrete_map_event(ipmi_handler, dir, offset, severity,
 					prev_severity, event);
 	if (e == NULL) {
 		return SA_ERR_HPI_NOT_PRESENT;
@@ -552,14 +577,6 @@ static void add_sensor_event_thresholds(ipmi_sensor_t	*sensor,
 			
 		rec->ThresholdDefn.WriteThold = temp;
 	}
-/* Fix Me */	
-#if 0
-	temp = 0;
-	val = ipmi_sensor_get_hysteresis_support(sensor);
-	if (val == IPMI_HYSTERESIS_SUPPORT_FIXED)
-		temp |= SAHPI_STM_UP_HYSTERESIS | SAHPI_STM_LOW_HYSTERESIS;
-	rec->ThresholdDefn.FixedThold = temp;
-#endif
 }
 
 static void add_sensor_event_data_format(ipmi_sensor_t		*sensor,
@@ -672,6 +689,7 @@ static void add_sensor_states(ipmi_sensor_t	*sensor,
 			}
 
 		}
+		
 		return;
 	}
 	
@@ -838,7 +856,7 @@ static SaHpiEventStateT convert_to_hpi_event_state(
 	
 	if(ipmi_sensor_get_event_reading_type(sensor) !=
 			IPMI_EVENT_READING_TYPE_THRESHOLD) {
-		return (SaHpiEventStateT)(ast | dst);
+		return (SaHpiEventStateT)((ast | dst) & 0x7fff);
 	}
 	if ((ast | dst) & (OHOI_THS_LMINL | OHOI_THS_LMINH)) {
 		hst |= SAHPI_ES_LOWER_MINOR;
@@ -862,48 +880,25 @@ static SaHpiEventStateT convert_to_hpi_event_state(
 }
 	
 	
-static void add_sensor_event_sensor_rec(ipmi_sensor_t	*sensor,
+static void add_sensor_event_sensor_rec(struct oh_handler_state *handler,
+					ipmi_sensor_t	*sensor,
 					SaHpiSensorRecT	*rec)
 {
-	ipmi_entity_t *ent;	
 
-
-	if (ipmi_sensor_get_sensor_type(sensor) == 0xf0) {
-		// ATCA hot swap sensor
+	rec->Type = (SaHpiSensorTypeT)ipmi_sensor_get_sensor_type(sensor);
+	if (rec->Type >= 0xc0) {
 		rec->Type = SAHPI_OEM_SENSOR;
-		rec->Category = SAHPI_EC_GENERIC;
-	} else if (ipmi_sensor_get_sensor_type(sensor) == 0xf1) {
-		// ATCA IPMB-0 link sensor.
-		// XXX only Bussed IPMB topology is supported
-		rec->Type = SAHPI_OEM_SENSOR;
-		rec->Category = SAHPI_EC_REDUNDANCY;
-		rec->Num = 0x1100;
-	} else { 
-		rec->Type =
-			(SaHpiSensorTypeT)ipmi_sensor_get_sensor_type(sensor);
-		if (rec->Type >= 0xc0) {
-			rec->Type = SAHPI_OEM_SENSOR;
-		}
-		rec->Category = 
-			ohoi_sensor_get_event_reading_type(sensor);
 	}
-	rec->EventCtrl = (SaHpiSensorEventCtrlT)
-		ipmi_sensor_get_event_support(sensor);
-	/* Cannot find Events in IPMI. */
-//	rec->Events = 0xffff;
-
-	ent = ipmi_sensor_get_entity(sensor);
-
+	rec->Category = ohoi_sensor_get_event_reading_type(sensor);
+	rec->EventCtrl =
+		(SaHpiSensorEventCtrlT)ipmi_sensor_get_event_support(sensor);
 	add_sensor_event_data_format(sensor, rec);
-
 	add_sensor_event_thresholds(sensor, rec);
-
-	
-	/* We do not care about oem. */
-	rec->Oem = 0;
+	rec->Oem = ipmi_sensor_get_oem1(sensor);
 }
 
-static void add_sensor_event_rdr(ipmi_sensor_t		*sensor, 
+static void add_sensor_event_rdr(struct oh_handler_state *handler,
+				 ipmi_sensor_t		*sensor, 
 				 SaHpiRdrT		*rdr,
 				 SaHpiEntityPathT	parent_ep,
 				 SaHpiResourceIdT	res_id)
@@ -915,18 +910,10 @@ static void add_sensor_event_rdr(ipmi_sensor_t		*sensor,
 	memset(name, '\0', SAHPI_MAX_TEXT_BUFFER_LENGTH);
 	rdr->RecordId = 0;
 	rdr->RdrType = SAHPI_SENSOR_RDR;
-	//rdr->Entity.Entry[0].EntityType = (SaHpiEntityTypeT)id;
-	//rdr->Entity.Entry[0].EntityLocation = (SaHpiEntityLocationT)instance;
-	//rdr->Entity.Entry[1].EntityType = 0;
-	//rdr->Entity.Entry[1].EntityLocation = 0;
 	rdr->Entity = parent_ep;
 
-	/* append ep */
-	//oh_encode_entitypath(entity_root, &rdr_ep);
-
-	//oh_concat_ep (&rdr->Entity, &rdr_ep);
-
-	add_sensor_event_sensor_rec(sensor, &rdr->RdrTypeUnion.SensorRec);
+	add_sensor_event_sensor_rec(handler, sensor,
+				&rdr->RdrTypeUnion.SensorRec);
 
 	ipmi_sensor_get_id(sensor, name, SAHPI_MAX_TEXT_BUFFER_LENGTH);
 	data_type = convert_to_hpi_data_type(ipmi_sensor_get_id_type(sensor));
@@ -965,12 +952,10 @@ static void add_sensor_event_rdr(ipmi_sensor_t		*sensor,
 static void add_sensor_event(ipmi_entity_t	*ent,
 			     ipmi_sensor_t	*sensor,
 			     struct oh_handler_state *handler,
-			     SaHpiEntityPathT	parent_ep,
-			     SaHpiResourceIdT	rid)
+			     SaHpiRptEntryT	*rpt)
 {
 	struct ohoi_sensor_info *sensor_info;
 	SaHpiRdrT		rdr;
-        struct ohoi_resource_info *info;
 	int lun, num;
 	int rv;
 
@@ -1012,20 +997,14 @@ static void add_sensor_event(ipmi_entity_t	*ent,
 	      rdr.RdrTypeUnion.SensorRec.Num = num;
 	}
 
-	add_sensor_event_rdr(sensor, &rdr, parent_ep, rid);	
+	add_sensor_event_rdr(handler, sensor, &rdr,
+		rpt->ResourceEntity, rpt->ResourceId);
 
-        info = oh_get_resource_data(handler->rptcache, rid);
-        if (!info) {
-		free(sensor_info);
-		dbg("No info in resource(%d)\n", rid);
-		return;
-        }
+	adjust_sensor_to_atcahpi_spec(handler, rpt, &rdr,
+				sensor_info, sensor);
 
-
-	rid = oh_uid_lookup(&rdr.Entity);
-
-	rv = oh_add_rdr(handler->rptcache, rid, &rdr,
-					sensor_info, 1);
+	rv = oh_add_rdr(handler->rptcache, rpt->ResourceId,
+				&rdr, sensor_info, 1);
 	if (rv != SA_OK) {
 		free(sensor_info);
 		dbg("Failed to add sensor rdr");
@@ -1043,7 +1022,7 @@ void ohoi_sensor_event(enum ipmi_update_e op,
 
 	ipmi_sensor_id_t sid = ipmi_sensor_convert_to_id(sensor);
 	struct oh_handler_state *handler = cb_data;
-	struct ohoi_resource_info *res_info;	
+	struct ohoi_resource_info *res_info;
 	ipmi_entity_id_t entity_id;
 	SaHpiRptEntryT *rpt_entry;
      
@@ -1070,9 +1049,8 @@ void ohoi_sensor_event(enum ipmi_update_e op,
 	               	/* fill in the sensor data, add it to ipmi_event_list
 			 * and finally to the rpt-cache
 			 */		 
-			add_sensor_event(ent, sensor, handler,
-					 rpt_entry->ResourceEntity,
-					 rpt_entry->ResourceId);
+			add_sensor_event(ent, sensor, handler, rpt_entry);
+
 			trace_ipmi("Sensor Added");
 		
 			if (ipmi_sensor_get_event_reading_type(sensor) == 
@@ -1089,9 +1067,7 @@ void ohoi_sensor_event(enum ipmi_update_e op,
 			break;
 		case IPMI_CHANGED:
 			trace_ipmi_sensors("CHANGED", sid);
-			add_sensor_event(ent, sensor, handler,
-					 rpt_entry->ResourceEntity, 
-					 rpt_entry->ResourceId);
+			add_sensor_event(ent, sensor, handler, rpt_entry);
 			dbg("Sensor Changed");
 			break;
 		case IPMI_DELETED:
@@ -1111,32 +1087,30 @@ void ohoi_sensor_event(enum ipmi_update_e op,
  * This is just callback to get ipmi_sensor_t from ipmi_sensor_id_t
  * and auxiliary structure to do it
  */
-typedef struct {
-	ipmi_entity_id_t entity_id;
-	int done;
-} sens_info_t;
+
 
 
 static void get_sensor_by_sensor_id_handler(ipmi_sensor_t *sensor,
 					    void *cb_data)
 {
-	sens_info_t	*info = (sens_info_t *)cb_data;	
+	ipmi_entity_id_t    *entity_id = cb_data;
 	if (sensor == NULL) {
-		return;
+		ipmi_entity_id_set_invalid(entity_id);
 	}
-	info->entity_id = ipmi_entity_convert_to_id(
+	*entity_id = ipmi_entity_convert_to_id(
 			ipmi_sensor_get_entity(sensor));
-	info->done = 1;
 }
 
 
-int ohoi_sensor_ipmi_event_to_hpi_event(ipmi_sensor_id_t sid,
-					ipmi_event_t     *event,
-					struct oh_event **e,
-					ipmi_entity_id_t    *entity_id
-					)
+int ohoi_sensor_ipmi_event_to_hpi_event(
+				struct ohoi_handler *ipmi_handler,
+				ipmi_sensor_id_t sid,
+				ipmi_event_t     *event,
+				struct oh_event **e,
+				ipmi_entity_id_t    *entity_id
+				)
 {
-	sens_info_t		info;
+//	sens_info_t		info;
 	enum ipmi_event_dir_e       dir;
 	struct oh_event * ev = NULL;
 	unsigned char	data[IPMI_EVENT_DATA_MAX_LEN];
@@ -1149,14 +1123,13 @@ int ohoi_sensor_ipmi_event_to_hpi_event(ipmi_sensor_id_t sid,
 		return 0;
 	}
 			
-	info.done = 0;
 	rv = ipmi_sensor_pointer_cb(sid, get_sensor_by_sensor_id_handler,
-					&info);
+					entity_id);
 	if (rv) {
 		dbg("no sensor for sensor_id rv = 0x%x", rv);
 	} 
 
-	dir = data[9] >> 7;	
+	dir = data[9] >> 7;
 		
 	if ((data[9] & 0x7f) == IPMI_EVENT_READING_TYPE_THRESHOLD) {
 		enum ipmi_thresh_e          threshold;
@@ -1188,18 +1161,18 @@ int ohoi_sensor_ipmi_event_to_hpi_event(ipmi_sensor_id_t sid,
 				prev_severity = -1;
 			}
 		}
-		ev = sensor_discrete_map_event(dir, offset, severity,
-		                           prev_severity, event);
+		ev = sensor_discrete_map_event(ipmi_handler,dir, offset,
+					severity, prev_severity, event);
 	}
 	if (ev == NULL) {
-		return 0;
+		return 1;
 	}
-	*entity_id = info.entity_id;
+
 	if (ev->u.hpi_event.event.EventDataUnion.SensorEvent.SensorNum == 0) {
 		ev->u.hpi_event.event.EventDataUnion.SensorEvent.SensorNum =
 				data[8];
 	}
 	*e = ev;
-	return info.done;
+	return 0;
 }
 

@@ -129,6 +129,8 @@ static void sensor_read_states(ipmi_sensor_t *sensor,
 	p->reading.IsSupported = SAHPI_FALSE;
 	p->ev_state = retrieve_states(states);
 }
+
+
 static void sensor_reading(ipmi_sensor_t		*sensor,
 		  	   int 				err,
 			   enum ipmi_value_present_e	value_present,
@@ -142,6 +144,7 @@ static void sensor_reading(ipmi_sensor_t		*sensor,
 	p->done = 1;
 
 	if (err) {
+		OHOI_MAP_ERROR(p->rvalue, err);
 		dbg("sensor reading error");
 		p->rvalue = SA_ERR_HPI_INTERNAL_ERROR;
 		return;
@@ -157,6 +160,8 @@ static void sensor_reading(ipmi_sensor_t		*sensor,
 		p->reading.IsSupported = SAHPI_TRUE;
 		p->reading.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64;
 		p->reading.Value.SensorFloat64 = raw_val;
+	} else {
+		dbg("value present = 0x%x", value_present);
 	}
 	// always returns 1 in 7th bit. Ignore extra 1
 	p->ev_state = retrieve_states(states) &
@@ -177,30 +182,27 @@ static void get_sensor_reading(ipmi_sensor_t *sensor, void *cb_data)
 		reading_data->rvalue = SA_ERR_HPI_NOT_PRESENT;
 		dbg("Sensor is not present, ignored");
 		return;
-	}	
-	
+	}
+
 	if (ipmi_sensor_get_event_reading_type(sensor) ==
 			 IPMI_EVENT_READING_TYPE_THRESHOLD) {
-	
 		rv = ipmi_sensor_get_reading(sensor, sensor_reading,
 			reading_data);
 		if (rv) {
 			reading_data->done = 1;
 			reading_data->rvalue = SA_ERR_HPI_INVALID_REQUEST;
-			dbg("Unable to get sensor reading: %s\n",
-				strerror( rv ) );
-			return;
+			dbg("Unable to get sensor reading: 0x%x", rv);
+				
 		}
-	} else {
-		rv = ipmi_sensor_get_states(sensor, sensor_read_states,
-						 reading_data);
-		if (rv) {
-			reading_data->done = 1;
-			reading_data->rvalue = SA_ERR_HPI_INVALID_REQUEST;
-			dbg("Unable to get sensor reading states: %s\n",
-					strerror( rv ) );
-		}
+		return;
 	}
+	rv = ipmi_sensor_get_states(sensor, sensor_read_states, reading_data);
+	if (rv) {
+		reading_data->done = 1;
+		reading_data->rvalue = SA_ERR_HPI_INVALID_REQUEST;
+		dbg("Unable to get sensor reading states: 0x%x", rv);
+	}
+
 }
 
 
@@ -235,7 +237,7 @@ SaErrorT orig_get_sensor_reading(struct oh_handler_state *handler,
 		return reading_data.rvalue;
 
 	*reading = reading_data.reading;
-	*ev_state = reading_data.ev_state;
+	*ev_state = reading_data.ev_state & 0x7fff;
 
 	return SA_OK;
 }
@@ -248,7 +250,7 @@ SaErrorT ohoi_get_sensor_reading(void *hnd,
 	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
 
 	if (sensor_info->ohoii.get_sensor_reading == NULL) {
-		return SA_ERR_HPI_UNSUPPORTED_API;
+		return SA_ERR_HPI_INVALID_CMD;
 	}
 
 	return sensor_info->ohoii.get_sensor_reading(handler,
@@ -290,7 +292,7 @@ static void thresholds_read(ipmi_sensor_t	*sensor,
 
 
 	if (err) {
-		p->rvalue = SA_ERR_HPI_INTERNAL_ERROR;
+		OHOI_MAP_ERROR(p->rvalue, err);
 		p->thres_done = 1;
 		dbg("sensor thresholds reading error");
 		return;
@@ -482,7 +484,7 @@ SaErrorT ohoi_get_sensor_thresholds(void *hnd,
 	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
 
 	if (sensor_info->ohoii.get_sensor_thresholds == NULL) {
-		return SA_ERR_HPI_UNSUPPORTED_API;
+		return SA_ERR_HPI_INVALID_CMD;
 	}
 
 	return sensor_info->ohoii.get_sensor_thresholds(handler,
@@ -501,7 +503,7 @@ static void thres_set_data(ipmi_sensor_t *sensor, int err, void *cb_data)
 	if (err) {
 		dbg("err = 0x%x", err);
 		if (info->rvalue == SA_OK) {
-			info->rvalue = SA_ERR_HPI_INVALID_CMD;
+			OHOI_MAP_ERROR(info->rvalue, err);
 		}
 	}
 	info->thres_done = 1;
@@ -514,7 +516,7 @@ static void hys_set_data(ipmi_sensor_t *sensor, int err, void *cb_data)
 	if (err) {
 		dbg("err = 0x%x", err);
 		if (info->rvalue == SA_OK) {
-			info->rvalue = SA_ERR_HPI_INVALID_CMD;
+			OHOI_MAP_ERROR(info->rvalue, err);
 		}
 	}
 	info->hyster_done = 1;
@@ -774,7 +776,7 @@ SaErrorT ohoi_set_sensor_thresholds(void *hnd,
 	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
 
 	if (sensor_info->ohoii.set_sensor_thresholds == NULL) {
-		return SA_ERR_HPI_UNSUPPORTED_API;
+		return SA_ERR_HPI_INVALID_CMD;
 	}
 
 	return sensor_info->ohoii.set_sensor_thresholds(handler,
@@ -983,7 +985,7 @@ static void event_enable_masks_read(ipmi_sensor_t	*sensor,
 
 	if (err) {
 		dbg("Sensor event enable reading error 0x%x", err);
-		p->rvalue = SA_ERR_HPI_INTERNAL_ERROR;
+			OHOI_MAP_ERROR(p->rvalue, err);
 		return;
 	}
 
@@ -1319,8 +1321,8 @@ SaErrorT orig_get_sensor_event_enable(struct oh_handler_state *handler,
 		return enable_data.rvalue;
 
 	*enable = enable_data.enable;
-	*assert = enable_data.assert;
-	*deassert = enable_data.deassert;
+	*assert = enable_data.assert & 0x7fff;
+	*deassert = enable_data.deassert & 0x7fff;
 
 	return SA_OK;
 
@@ -1336,7 +1338,7 @@ SaErrorT ohoi_get_sensor_event_enable(void *hnd,
 	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
 
 	if (sensor_info->ohoii.get_sensor_event_enable == NULL) {
-		return SA_ERR_HPI_UNSUPPORTED_API;
+		return SA_ERR_HPI_INVALID_CMD;
 	}
 
 	return sensor_info->ohoii.get_sensor_event_enable(handler,
@@ -1402,7 +1404,7 @@ SaErrorT ohoi_set_sensor_event_enable(void *hnd,
 	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
 
 	if (sensor_info->ohoii.set_sensor_event_enable == NULL) {
-		return SA_ERR_HPI_UNSUPPORTED_API;
+		return SA_ERR_HPI_INVALID_CMD;
 	}
 
 	return sensor_info->ohoii.set_sensor_event_enable(handler,

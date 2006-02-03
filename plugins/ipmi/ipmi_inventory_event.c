@@ -19,9 +19,28 @@
 #include <string.h>
 
 
-static void init_inventory_info(struct ohoi_resource_info *res_info,
+
+static void trace_ipmi_fru(char *str, ipmi_entity_t *entity)
+{
+	if (!getenv("OHOI_TRACE_FRU") && !IHOI_TRACE_ALL) {
+		return;
+	}
+	fprintf(stderr, "*** FRU %s: for (%d,%d,%d,%d) %s\n", str,
+		ipmi_entity_get_entity_id(entity), 
+		ipmi_entity_get_entity_instance(entity),
+		ipmi_entity_get_device_channel(entity),
+		ipmi_entity_get_device_address(entity),
+		ipmi_entity_get_entity_id_string(entity));
+}
+
+
+
+static void init_inventory_info(
+			struct oh_handler_state *handler,
+			struct ohoi_resource_info *res_info,
 			ipmi_entity_t     *ent)
 {
+	struct ohoi_handler *ipmi_handler = handler->data;
 	ipmi_fru_t   *fru = ipmi_entity_get_fru(ent);
 	struct ohoi_inventory_info *i_info;
 	unsigned int len;
@@ -148,8 +167,13 @@ static void init_inventory_info(struct ohoi_resource_info *res_info,
 	}
 	if (ipmi_fru_area_get_length(
 			fru, IPMI_FRU_FTR_MULTI_RECORD_AREA, &len) == 0) {
-		i_info->oem = 255;
-		i_info->oem_fields_num = ipmi_fru_get_num_multi_records(fru);
+		unsigned int r_num = ipmi_fru_get_num_multi_records(fru);
+		i_info->oem = 1;
+		i_info->oem_fields_num = r_num;
+		if (ipmi_handler->d_type == IPMI_DOMAIN_TYPE_ATCA) {
+			i_info->oem = ohoi_create_atca_oem_idr_areas(handler,
+						ent, res_info,  i_info, r_num);
+		}
 	}
 	res_info->fru = i_info;
 }
@@ -163,7 +187,7 @@ static void add_inventory_event(struct ohoi_resource_info *res_info,
 	SaHpiRdrT		rdr;
 	int rv;
         
-	init_inventory_info(res_info, ent);
+	init_inventory_info(handler, res_info, ent);
 	if (res_info->fru == NULL) {
 		dbg("Out of memory");
 		return;
@@ -214,15 +238,18 @@ void ohoi_inventory_event(enum ipmi_update_e    op,
                        handler->rptcache,
                        &entity_id);
        if (!rpt_entry) {
-               dump_entity_id("FRU without RPT entry?!", entity_id);
-               return;
+		trace_ipmi_fru("NO RPT ENTRY", entity);
+		dump_entity_id("FRU without RPT entry?!", entity_id);
+		return;
        }
 
        res_info = oh_get_resource_data(handler->rptcache,
 				       rpt_entry->ResourceId);
        if (op == IPMI_ADDED) {
-		trace_ipmi("FRU added");
+		trace_ipmi_fru("ADDED", entity);
 		add_inventory_event(res_info, entity, handler, rpt_entry);
+	} else if (op == IPMI_DELETED) {
+		trace_ipmi_fru("DELETED", entity);
 	}
 	trace_ipmi("Set updated for res_info %p(%d). Inventory",
 		res_info, rpt_entry->ResourceId);

@@ -33,17 +33,17 @@
 #include <OpenIPMI/selector.h>
 #include <OpenIPMI/os_handler.h>
 #include <OpenIPMI/ipmi_posix.h>
+#include <OpenIPMI/ipmi_debug.h>
 
 #include <SaHpi.h>
 #include <oh_utils.h>
 #include <oh_error.h>
 #include <oh_handler.h>
 
-//#define ATCA_HPI
 
-#ifdef ATCA_HPI
-#include "atca_hpi.h"
-#endif
+#include <SaHpiAtca.h>
+#include <OpenIPMI/ipmi_picmg.h>
+#include <OpenIPMI/ipmi_msgbits.h>
 
 
 
@@ -52,6 +52,18 @@
 
 #define	IPMI_EVENT_DATA_MAX_LEN 13
 #define	MAX_ES_STATE 15 /* max number of possible event state - 1 */
+
+
+typedef struct ohoi_atca_pwonseq_dsk_s {
+	unsigned char body[5];
+	SaHpiResourceIdT slotid;
+} ohoi_atca_pwonseq_dsk_t;
+
+typedef struct ohoi_atca_pwonseq_rec_s {
+	unsigned char head[7];
+	unsigned char updated;
+	unsigned int rec_num;
+} ohoi_atca_pwonseq_rec_t;
 
 
 struct ohoi_handler {
@@ -67,7 +79,8 @@ struct ohoi_handler {
 
 	/* OpenIPMI connection and os_handler */
 	os_handler_t *os_hnd;
-	ipmi_con_t *con;
+	ipmi_con_t *cons[2];
+	unsigned int num_cons;
 
 	selector_t *ohoi_sel;
 
@@ -82,9 +95,45 @@ struct ohoi_handler {
 	SaHpiDomainIdT	did;
 	enum ipmi_domain_type d_type;
 	char domain_name[24];
+	/*  ATCA part */
+	int shmc_num;
+	int shmc_present_num;
+	ipmi_mcid_t virt_mcid;
+	SaHpiResourceIdT atca_shelf_id;
+	SaHpiResourceIdT atca_vshm_id;
+	int shelf_fru_corrupted;
+	int atca_pwonseq_updated;
+	GSList *atca_pwonseq_recs;
+	GSList *atca_pwonseq_desk;
 };
 
+#define IS_ATCA(type) ((type) == IPMI_DOMAIN_TYPE_ATCA)
+
 struct ohoi_inventory_info;
+
+typedef struct ohoi_slotid_s {
+	unsigned char addr;
+	unsigned char devid;
+	ipmi_entity_id_t entity_id;
+} ohoi_slotid_t;
+
+
+
+typedef struct ohoi_entity_s {
+	ipmi_mcid_t      mc_id;
+	ipmi_entity_id_t entity_id;
+} ohoi_entity_t;;
+
+
+#define	OHOI_RESOURCE_ENTITY		0x01
+#define	OHOI_RESOURCE_SLOT		0x02 
+#define OHOI_RESOURCE_MC		0x04
+#define OHOI_FAN_CONTROL_CREATED	0x10
+#define OHOI_MC_RESET_CONTROL_CREATED	0x20
+#define OHOI_MC_IPMB0_CONTROL_CREATED	0x40
+
+
+
 struct ohoi_resource_info {
 	  	
   	int presence;	/* entity presence from OpenIPMI to determine
@@ -96,21 +145,28 @@ struct ohoi_resource_info {
 	SaHpiUint8T  sensor_count; 
         SaHpiUint8T  ctrl_count; 
 
-        enum {
-                OHOI_RESOURCE_ENTITY = 0,
-                OHOI_RESOURCE_MC
-        } type;
+	unsigned int type;
         union {
-                ipmi_entity_id_t entity_id;
-                ipmi_mcid_t      mc_id;
+                ohoi_entity_t entity;
+		ohoi_slotid_t    slot;
         } u;
-
+	int max_ipmb0_link;
         ipmi_control_id_t reset_ctrl;
         ipmi_control_id_t power_ctrl;
         SaHpiCtrlNumT hotswapind;
 	struct ohoi_inventory_info *fru;
 };
 
+
+typedef struct atca_common_info {
+	int		done;
+	SaErrorT	rv;
+	unsigned char	data[255];
+	unsigned int	len;
+	unsigned char	addr;
+	unsigned char	devid;
+	void		*info;
+} atca_common_info_t;
 
 		/* Sensor info */
 
@@ -129,7 +185,7 @@ struct ohoi_resource_info {
 #define OHOI_THS_UCRTL	0x0800
 
 typedef enum {
-	OHOI_SENSOR_ORIGINAL,
+	OHOI_SENSOR_ORIGINAL = 1,
 	OHOI_SENSOR_ATCA_MAPPED
 } ohoi_sensor_type_t;
 
@@ -139,7 +195,9 @@ typedef struct ohoi_original_sensor_info {
 
 
 typedef struct ohoi_atcamap_sensor_info {
-	int				some;
+	void			*data;
+	int			val;
+	SaHpiResourceIdT	rid;
 } ohoi_atcamap_sensor_info_t;
 
 typedef union {
@@ -180,7 +238,6 @@ struct ohoi_sensor_info {
 	ohoi_sensor_info_union_t	info;
 	int				sen_enabled;
 	SaHpiBoolT			enable;
-	SaHpiBoolT			saved_enable;	
 	SaHpiEventStateT		assert;
 	SaHpiEventStateT		deassert;
 	unsigned int			support_assert;
@@ -194,7 +251,7 @@ struct ohoi_sensor_info {
 		/*  Control  info*/
 
 typedef enum {
-	OHOI_CTRL_ORIGINAL,
+	OHOI_CTRL_ORIGINAL = 1,
 	OHOI_CTRL_ATCA_MAPPED
 } ohoi_control_type_t;
 
@@ -205,7 +262,9 @@ typedef struct ohoi_original_ctrl_info {
 
 
 typedef struct ohoi_atcamap_ctrl_info {
-	int				some;
+	void			*data;
+	int			val;
+	SaHpiResourceIdT	rid;
 } ohoi_atcamap_ctrl_info_t;
 
 typedef union {
@@ -255,8 +314,21 @@ struct ohoi_inventory_info {
 	unsigned int pi_fld_msk;
 	unsigned int pi_custom_num;
 	unsigned int oem_fields_num;
+	GSList *oem_areas;
 	GMutex *mutex;
 };
+
+#define OHOI_AREA_EMPTY_ID		0
+#define OHOI_AREA_FIRST_ID		1
+
+#define	OHOI_INTERNAL_USE_AREA_ID	1
+#define	OHOI_CHASSIS_INFO_AREA_ID	2
+#define	OHOI_BOARD_INFO_AREA_ID		3
+#define	OHOI_PRODUCT_INFO_AREA_ID	4
+#define	FIRST_OEM_AREA_NUM		5
+
+#define OHOI_FIELD_EMPTY_ID		0
+#define OHOI_FIELD_FIRST_ID		1
 
 SaHpiTextTypeT convert_to_hpi_data_type(enum ipmi_str_type_e type);
 
@@ -346,6 +418,8 @@ void ohoi_get_sel_prev_recid(ipmi_mcid_t mc_id,
 void ohoi_get_sel_by_recid(ipmi_mcid_t mc_id, SaHpiEventLogEntryIdT entry_id, ipmi_event_t **event);
 
 /* This is used to help plug-in to find resource in rptcache by entity_id and mc_id*/
+SaHpiResourceIdT ohoi_get_parent_id(SaHpiRptEntryT *child);
+
 SaHpiRptEntryT *ohoi_get_resource_by_entityid(RPTable                *table,
                                               const ipmi_entity_id_t *entity_id);
 SaHpiRptEntryT *ohoi_get_resource_by_mcid(RPTable                *table,
@@ -366,6 +440,7 @@ void ohoi_sensor_event(enum ipmi_update_e op,
  * to convert sensor ipmi event to hpi event
  */
 int ohoi_sensor_ipmi_event_to_hpi_event(
+			struct ohoi_handler *ipmi_handler,
 			ipmi_sensor_id_t	sid,
 			ipmi_event_t		*event,
 			struct oh_event		**e,
@@ -396,16 +471,6 @@ void ohoi_entity_event(enum ipmi_update_e       op,
                        void                     *cb_data);
 
 int ohoi_loop(int *done_flag, struct ohoi_handler *ipmi_handler);
-/**
- * loop_indicator_cb:
- * @cb_data: callback data
- *
- * Use to indicate if the loop 
- * can end
- *
- * Return value: non-zero means 
- * end.
- **/
 typedef int (*loop_indicator_cb)(const void *cb_data);
 int ohoi_loop_until(loop_indicator_cb indicator, const void *cb_data, int timeout, struct ohoi_handler *ipmi_handler); 
 
@@ -414,6 +479,22 @@ SaErrorT ohoi_get_rdr_data(const struct oh_handler_state *handler,
                            SaHpiRdrTypeT                 type,
                            SaHpiSensorNumT               num,
                            void                          **pdata);
+
+typedef int (*rpt_loop_handler_cb)(
+			     struct oh_handler_state *handler,
+			     SaHpiRptEntryT *rpt,
+                             struct ohoi_resource_info *res_info,
+			     void *cb_data);
+void ohoi_iterate_rptcache(struct oh_handler_state *handler,
+			   rpt_loop_handler_cb func, void *cb_data);
+typedef int (*rdr_loop_handler_cb)(
+			     struct oh_handler_state *handler,
+			     SaHpiRptEntryT *rpt,
+                             SaHpiRdrT      *rdr,
+			     void *cb_data);
+void ohoi_iterate_rpt_rdrs(struct oh_handler_state *handler,
+			   SaHpiRptEntryT *rpt,
+			   rdr_loop_handler_cb func, void *cb_data);
 
 SaErrorT ohoi_get_idr_info(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid, SaHpiIdrInfoT *idrinfo);
 SaErrorT ohoi_get_idr_area_header(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid, SaHpiIdrAreaTypeT areatype,
@@ -482,26 +563,91 @@ SaErrorT ohoi_set_control_state(void *hnd, SaHpiResourceIdT id,
                                 SaHpiCtrlNumT num,
                                 SaHpiCtrlModeT mode,
                                 SaHpiCtrlStateT *state);
-				
-SaHpiUint8T ohoi_atca_led_to_hpi_color(int ipmi_color);
-int ohoi_atca_led_to_ipmi_color(SaHpiUint8T c);
 
 void ipmi_connection_handler(ipmi_domain_t	*domain,
 			      int		err,
 			      unsigned int	conn_num,
 			      unsigned int	port_num,
 			      int		still_connected,
-			      void		*cb_data);
-			      
-			      
-			      
+			      void		*cb_data);	     
+
+struct ohoi_fru_write_s {
+	SaErrorT rv;
+	int      done;
+};
+SaErrorT ohoi_fru_write(struct ohoi_handler	*ipmi_handler,
+			ipmi_entity_id_t	entid);
+
+
+
+
+
 		/* ATCA-HPI mapping functions */
-SaHpiRdrT *ohoi_create_atca_chassis_status_control(
-			struct ohoi_handler *ipmi_handler,
-			struct ohoi_control_info *ctrl_info);
+		
+void ohoi_atca_create_fru_rdrs(struct oh_handler_state *handler);
+				
+SaHpiUint8T ohoi_atca_led_to_hpi_color(int ipmi_color);
+int ohoi_atca_led_to_ipmi_color(SaHpiUint8T c);
+
+void adjust_sensor_to_atcahpi_spec(struct oh_handler_state *handler,
+				   SaHpiRptEntryT	*rpt,
+				   SaHpiRdrT		*rdr,
+				   struct ohoi_sensor_info *sensor_info,
+				   ipmi_sensor_t	*sensor);
 
 
+void ohoi_atca_create_shelf_virtual_rdrs(struct oh_handler_state *hnd);
+void create_atca_virt_shmgr_rdrs(struct oh_handler_state *hnd);
+void ohoi_send_vshmgr_redundancy_sensor_event(
+                                      struct oh_handler_state *handler,
+				      int become_present);
+	/* ATCA Fan Control */
+void ohoi_create_fan_control(struct oh_handler_state *handler,
+                             SaHpiResourceIdT rid);
+	/* ATCA IPMB-0 Control */
+void ohoi_create_ipmb0_controls(struct oh_handler_state *handler,
+				ipmi_entity_t *entity,
+				unsigned int max_link);
 
+	/* ATCA FRU MC Reset Control */
+void ohoi_create_fru_mc_reset_control(struct oh_handler_state *handler,
+                             SaHpiResourceIdT rid);
+
+	/* ATCA Ekeying Link State Sensor */
+#define OHOI_FIRST_EKEYING_SENSOR_NUM 0x400
+void ohoi_create_ekeying_link_state_sensor(
+			struct oh_handler_state *handler,
+			ipmi_entity_t	*entity,
+			unsigned int	s_num,
+			unsigned char	*guid,
+			unsigned char	link_grouping_id,
+			unsigned char	link_type,
+			unsigned char	link_type_extension,
+			unsigned char	interface_type,
+			unsigned char	*channels);
+
+	/* ATCA inventory functions */
+unsigned int ohoi_create_atca_oem_idr_areas(
+			struct oh_handler_state *handler,
+			ipmi_entity_t *entity,
+			struct ohoi_resource_info *res_info,
+			struct ohoi_inventory_info *i_info,
+			unsigned int r_num);
+SaHpiUint32T ohoi_atca_oem_area_fields_num(struct ohoi_inventory_info *fru,
+			    SaHpiEntryIdT areaid);
+SaErrorT ohoi_atca_oem_area_field(struct oh_handler_state  *handler,
+				struct ohoi_resource_info   *ohoi_res_info,
+				SaHpiEntryIdT *nextfieldid,
+				SaHpiIdrFieldT *field);
+
+
+	/* ATCA slot state specific functions */
+
+void atca_slot_state_sensor_event_send(struct oh_handler_state *handler,
+				       SaHpiRptEntryT *dev_entry,
+				       int present);
+void atca_create_slot_rdrs(struct oh_handler_state *handler,
+			   SaHpiResourceIdT rid);
 
 
 
@@ -535,8 +681,8 @@ static inline void  dump_rpttable(RPTable *table)
                printf("Resource Id:%d", rpt->ResourceId);
 	       struct ohoi_resource_info *res_info =
 	       		oh_get_resource_data(table, rpt->ResourceId);
-		if (res_info->type == OHOI_RESOURCE_ENTITY) {
-			ipmi_entity_id_t e = res_info->u.entity_id;
+		if (res_info->type & OHOI_RESOURCE_ENTITY) {
+			ipmi_entity_id_t e = res_info->u.entity.entity_id;
 			printf("; entity id: %x, entity instance: %x, channel: %x, address: %x, seq: %lx",
 				e.entity_id, e.entity_instance, e.channel, e.address, e.seq);
 		}
@@ -580,7 +726,22 @@ void ohoi_remove_entity(struct oh_handler_state *handler,
 
 
 
-
+#define OHOI_MAP_ERROR(to, err) \
+         do {\
+		if (err == (IPMI_IPMI_ERR_TOP | IPMI_INVALID_CMD_CC)) {\
+			to = SA_ERR_HPI_INVALID_CMD;\
+		} else if (err == (IPMI_IPMI_ERR_TOP | IPMI_NODE_BUSY_CC)) {\
+			to = SA_ERR_HPI_BUSY;\
+		} else if (err == (IPMI_IPMI_ERR_TOP | IPMI_TIMEOUT_CC)) {\
+			to = SA_ERR_HPI_NO_RESPONSE;\
+		} else if (err == (IPMI_IPMI_ERR_TOP | IPMI_COMMAND_INVALID_FOR_LUN_CC)) {\
+			to = SA_ERR_HPI_INVALID_CMD;\
+		} else if (err == (IPMI_IPMI_ERR_TOP | IPMI_CANNOT_EXEC_DUPLICATE_REQUEST_CC)) {\
+			to = SA_ERR_HPI_BUSY;\
+		} else {\
+			to = SA_ERR_HPI_INTERNAL_ERROR;\
+		}\
+	} while (0)
 
 
 	/*
@@ -611,33 +772,15 @@ void ohoi_remove_entity(struct oh_handler_state *handler,
 
 #define trace_ipmi_sensors(action, sid) \
         do { \
-                if (getenv("OHOI_TRACE_SENSOR")) { \
-                        fprintf(stderr, "%s sensor. sensor_id = {{%p, %d, %d, %ld}, %d, %d}\n", action,\
+                if (getenv("OHOI_TRACE_SENSOR") || IHOI_TRACE_ALL) { \
+                        fprintf(stderr, "   *** SENSOR %s. sensor_id = {{%p, %d, %d, %ld}, %d, %d}\n", action,\
 			sid.mcid.domain_id.domain, sid.mcid.mc_num, sid.mcid.channel, sid.mcid.seq,\
 			sid.lun, sid.sensor_num);\
                 } \
         } while(0)
 	
-	
-	
-#ifndef ATCA_HPI // ATCA additional definitions
-
-#define ATCAHPI_PICMG_MID		0x315a
-#define ATCAHPI_LED_BR_SUPPORTED	0x01
-#define ATCAHPI_LED_BR_NOT_SUPPORTED	0x02
-#define ATCAHPI_BLINK_COLOR_LED		33
-
-#define	ATCAHPI_LED_WHITE		0x40
-#define	ATCAHPI_LED_ORANGE		0x20
-#define	ATCAHPI_LED_AMBER		0x10
-#define	ATCAHPI_LED_GREEN		0x08
-#define	ATCAHPI_LED_RED			0x04
-#define	ATCAHPI_LED_BLUE		0x02
-
-#define ATCAHPI_CTRL_NUM_SHELF_STATUS (SaHpiCtrlNumT)0x1002
+extern FILE *trace_msg_file; // File to trace all IPMI messages	
 
 
-
-#endif
 
 
