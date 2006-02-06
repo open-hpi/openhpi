@@ -32,10 +32,15 @@ SaErrorT rtas_discover_resources(void *hnd)
 {
         SaErrorT error = SA_OK;
         struct oh_handler_state *h = (struct oh_handler_state *)hnd;
+        static int did_discovery = 0;
         
         char *entity_root = NULL;
         SaHpiEntityPathT root_ep;
         SaHpiRptEntryT lone_res;
+
+        if (did_discovery) {
+                return SA_OK;
+        }
 
         if (!hnd) {
                 dbg("Null handle!");
@@ -71,12 +76,14 @@ SaErrorT rtas_discover_resources(void *hnd)
                 e->type = OH_ET_RESOURCE;
                 e->u.res_entry.entry = lone_res;
                 h->eventq = g_slist_append(h->eventq, e);
+                error = rtas_discover_sensors(h, e); // Discover sensors
         } else {
                 dbg("Error adding resource. %s", oh_lookup_error(error));
                 return error;
         }
 
-        return SA_OK;
+        if (!error) did_discovery = 1;
+        return error;
 }
 
 SaErrorT rtas_discover_domain_resources(void *hnd, SaHpiDomainIdT did)
