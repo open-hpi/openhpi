@@ -110,6 +110,7 @@ AC_CHECK_LIB([ltdl], [lt_dlopen], [], [
     ])
 
 AC_CHECK_LIB([sysfs], [sysfs_get_mnt_path], [have_sysfs=yes])
+AC_CHECK_HEADER([sysfs/libsysfs.h], [], [have_sysfs=no])
 
 OH_CHECK_NETSNMP
 
