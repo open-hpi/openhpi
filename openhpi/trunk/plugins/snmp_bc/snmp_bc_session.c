@@ -196,32 +196,37 @@ void *snmp_bc_open(GHashTable *handler_config)
 		const char *oid;
 		struct snmp_value get_value;
 		SaErrorT err;
-
-		err = snmp_bc_snmp_get(custom_handle, SNMP_BC_PLATFORM_OID_RSA, &get_value, SAHPI_FALSE);
-		if (err == SA_OK) {
-			trace("Found RSA");
-			custom_handle->platform = SNMP_BC_PLATFORM_RSA;
-		}
-		else {
+		do {
 			err = snmp_bc_snmp_get(custom_handle, SNMP_BC_PLATFORM_OID_BCT, &get_value, SAHPI_FALSE);
 			if (err == SA_OK) {
 				trace("Found BCT");
 				custom_handle->platform = SNMP_BC_PLATFORM_BCT;
+				break;
+			} 
+			
+			err = snmp_bc_snmp_get(custom_handle, SNMP_BC_PLATFORM_OID_BC, &get_value, SAHPI_FALSE);			 			
+		 	if (err == SA_OK) {
+				trace("Found BC");
+				custom_handle->platform = SNMP_BC_PLATFORM_BC;
+				break;
 			}
-			else {
-				err = snmp_bc_snmp_get(custom_handle, SNMP_BC_PLATFORM_OID_BC, &get_value, SAHPI_FALSE);
-				if (err == SA_OK) {
-					trace("Found BC");
-					custom_handle->platform = SNMP_BC_PLATFORM_BC;
-				}
-				else {
-					dbg("Cannot read model type=%s; Error=%d.",
+			
+			err = snmp_bc_snmp_get(custom_handle, SNMP_BC_PLATFORM_OID_RSA, &get_value, SAHPI_FALSE);
+			if (err == SA_OK) {
+				trace("Found RSA");
+				custom_handle->platform = SNMP_BC_PLATFORM_RSA;
+				break;
+			} 
+		
+			/* If we did not break in one of the 3 previous platform test, */
+			/* we are not talking to one of the support platform,          */
+			/* or communication to target is not possible                  */ 	
+			dbg("Cannot read model type=%s; Error=%d.",
 					      SNMP_BC_PLATFORM_OID_BCT, err);
-					return NULL;
-				}
-			}
-		}
-
+			return NULL;
+			
+		} while(0);
+		
 		/* DST */
 		if (custom_handle->platform == SNMP_BC_PLATFORM_RSA) { oid = SNMP_BC_DST_RSA; }
 		else { oid = SNMP_BC_DST; }
