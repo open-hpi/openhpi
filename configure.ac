@@ -572,6 +572,7 @@ CC_WARNINGS="\
 	-Wno-format-y2k \
 	-Wcast-qual \
 	-Wcast-align \
+	-Wno-strict-aliasing \
 	-Werror "
 
 CXX_WARNINGS="\
@@ -585,6 +586,7 @@ CXX_WARNINGS="\
         -Wshadow \
         -Wwrite-strings \
         -Wredundant-decls \
+	-Wno-strict-aliasing \
 	-Werror "
 
 dnl remerge the warnings into the FLAGS
