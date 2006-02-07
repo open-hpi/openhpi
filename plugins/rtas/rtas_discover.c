@@ -67,14 +67,14 @@ SaErrorT rtas_discover_resources(void *hnd)
         lone_res.ResourceSeverity = SAHPI_MAJOR;
         oh_init_textbuffer(&lone_res.ResourceTag);
         oh_append_textbuffer(&lone_res.ResourceTag, entity_root);
-        lone_res.ResourceId = oh_uid_from_entity_path(lone_res.ResourceEntity);
+        lone_res.ResourceId = oh_uid_from_entity_path(&lone_res.ResourceEntity);
         error = oh_add_resource(h->rptcache, &lone_res, NULL, FREE_RPT_DATA);
         if (!error) {
                 struct oh_event *e =
                         (struct oh_event *)g_malloc0(sizeof(struct oh_event));
                 e->did = oh_get_default_domain_id();
                 e->type = OH_ET_RESOURCE;
-                e->u.res_entry.entry = lone_res;
+                e->u.res_event.entry = lone_res;
                 h->eventq = g_slist_append(h->eventq, e);
                 error = rtas_discover_sensors(h, e); // Discover sensors
         } else {

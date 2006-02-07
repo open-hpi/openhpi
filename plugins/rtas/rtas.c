@@ -31,7 +31,7 @@ void *rtas_open(GHashTable *handler_config)
         h->rptcache = (RPTable *)g_malloc0(sizeof(RPTable));
         oh_init_rpt(h->rptcache);
 
-        h->elcache = oh_el_create(BC_EL_MAX_SIZE);
+        h->elcache = oh_el_create(0);
         h->elcache->gentimestamp = FALSE;
 
         return h;
