@@ -35,5 +35,6 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 			   int isdst);
 
 SaErrorT snmp_bc_add_to_eventq(struct oh_handler_state *handle,
-			       SaHpiEventT *thisEvent);
+			       SaHpiEventT *thisEvent, 
+			       SaHpiBoolT prepend);
 #endif

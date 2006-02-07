@@ -1284,7 +1284,7 @@ static SaErrorT snmp_bc_logsrc2rid(struct oh_handler_state *handle,
  * SA_OK - Normal case.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) are NULL.
  **/
-SaErrorT snmp_bc_add_to_eventq(struct oh_handler_state *handle, SaHpiEventT *thisEvent)
+SaErrorT snmp_bc_add_to_eventq(struct oh_handler_state *handle, SaHpiEventT *thisEvent, SaHpiBoolT prepend)
 {
 	SaHpiEntryIdT rdrid = 0;
         struct oh_event working;
@@ -1349,8 +1349,14 @@ SaErrorT snmp_bc_add_to_eventq(struct oh_handler_state *handle, SaHpiEventT *thi
                 return(SA_ERR_HPI_OUT_OF_SPACE);
         }
         memcpy(e, &working, sizeof(struct oh_event));
-       /*  handle->eventq = g_slist_append(handle->eventq, e); */
-       handle->eventq = g_slist_prepend(handle->eventq, e);
+	
+	if (prepend == SAHPI_TRUE) { 
+       		trace("Add event to beginning of eventq\n");
+       		handle->eventq = g_slist_prepend(handle->eventq, e);
+	} else {
+       		trace("Add event to end of eventq\n");		
+		handle->eventq = g_slist_append(handle->eventq, e);
+	}
 
         return(SA_OK);
 }

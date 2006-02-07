@@ -66,6 +66,7 @@ static int snmp_bc_get_sel_size(struct oh_handler_state *handle, SaHpiResourceId
  * Return values:
  * Number of event log entries - normal case.
  **/
+#if 0
 static int snmp_bc_get_sel_size_from_hardware(struct snmp_bc_hnd *custom_handle)
 {
         struct snmp_value run_value;
@@ -87,6 +88,7 @@ static int snmp_bc_get_sel_size_from_hardware(struct snmp_bc_hnd *custom_handle)
         return i;
 }
 
+#endif
 /**
  * snmp_bc_get_sel_info:
  * @hnd: Pointer to handler's data.
@@ -271,15 +273,24 @@ SaErrorT snmp_bc_get_sel_entry(void *hnd,
  **/
 SaErrorT snmp_bc_build_selcache(struct oh_handler_state *handle, SaHpiResourceIdT id)
 {
-	int i,current;
+	int i;
 	SaErrorT err;
 	
 	if (!handle) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
-	struct snmp_bc_hnd *custom_handle = handle->data;
 
+
+	/* ------------------------------------------------------------------ */
+	/*  This code block is disabled because we no longer reading EventLog */
+	/*  backward for BladeCenter and forward for RSA.  Rather, we read    */
+	/*  EventLog forward and re-order them by timestamps accordingly.     */
+	/*  Just leave code it here for documentation purposes.               */
+	/* ------------------------------------------------------------------ */  
+#if 0
+	struct snmp_bc_hnd *custom_handle = handle->data;
+	int current;
 	current = snmp_bc_get_sel_size_from_hardware(custom_handle);
 
 	if (current > 0) {
@@ -296,7 +307,25 @@ SaErrorT snmp_bc_build_selcache(struct oh_handler_state *handle, SaHpiResourceId
 			}
 		}
 	}
+#endif
+	/*  End-of-obsolete code                                              */
+	/* ------------------------------------------------------------------ */  
 
+	i = 1;
+	while(1) {
+		err = snmp_bc_sel_read_add(handle, id, i, SAHPI_TRUE);
+		if ( (err == SA_ERR_HPI_OUT_OF_SPACE) || (err == SA_ERR_HPI_INVALID_PARAMS)) {
+				/* Either of these 2 errors prevent us from doing anything meaningful */
+				return(err);
+		} else if (err != SA_OK) {
+			/* other errors (mainly HPI_INTERNAL_ERROR or HPI_BUSY) means */
+			/* only this record has problem. record error then go to next */
+			dbg("Error, %s, encountered with EventLog entry %d\n", 
+				    oh_lookup_error(err), i);
+			break;
+		}	
+		i++;
+	}
 	return(SA_OK);
 }
 
@@ -363,7 +392,9 @@ SaErrorT snmp_bc_selcache_sync(struct oh_handler_state *handle,
 	SaHpiEventLogEntryIdT next;
         struct snmp_value get_value;
         sel_entry sel_entry;
-        oh_el_entry *fetchentry;
+        oh_el_entry *fetchentry, tmpentry;
+	fetchentry = &tmpentry; 
+
         SaHpiTimeT new_timestamp;
 	char oid[SNMP_BC_MAX_OID_LENGTH];
 	SaErrorT err;
@@ -441,8 +472,24 @@ SaErrorT snmp_bc_selcache_sync(struct oh_handler_state *handle,
 		}
 		
 		if (cacheupdate) {
+			struct oh_handler_state *sync_handle;
+			sync_handle = (struct oh_handler_state *)g_malloc0(sizeof(struct oh_handler_state));
+			
+			if (sync_handle == NULL) 
+				dbg ("NULL g_malloc0 for sync_handle\n");
+			else {
+				trace("g_malloc0 ok for sync_handle\n");
+				trace("Duplicate copy of original handle\n");
+				memcpy(sync_handle, handle, sizeof(struct oh_handler_state));
+				
+				trace("Change sync_handle el cache copy\n");
+		        	/* Initialize event log cache */
+        			sync_handle->elcache = oh_el_create(BC_EL_MAX_SIZE);
+				sync_handle->elcache->gentimestamp = FALSE;
+			}
+			
 			for (i=1; i<=current; i++) {
-				err = snmp_bc_sel_read_add (handle, id, i, SAHPI_FALSE);
+				err = snmp_bc_sel_read_add (sync_handle, id, i, SAHPI_TRUE);
 				if ( (err == SA_ERR_HPI_OUT_OF_SPACE) || (err == SA_ERR_HPI_INVALID_PARAMS)) {
 					/* Either of these 2 errors prevent us from doing anything meaningful */
 					return(err);
@@ -453,6 +500,32 @@ SaErrorT snmp_bc_selcache_sync(struct oh_handler_state *handle,
 					    oh_lookup_error(err), i);
 				}
 			}
+			
+			current = g_list_length(sync_handle->elcache->elentries);
+			trace ("%d new entries found\n", current);
+			for (i = 1; (i < current + 1); i++) {
+				err = oh_el_get(sync_handle->elcache, i, &prev, &next, &fetchentry);
+				if (err == SA_OK) {
+					trace ("Adding new entry to el cache\n"); 
+					err = oh_el_append(handle->elcache,
+							   &(fetchentry->event.Event),
+						  	   &(fetchentry->rdr),
+						   	   &(fetchentry->res));
+					if (!err) {
+						if (custom_handle->first_discovery == SAHPI_TRUE) {
+							trace("Request new event to be added to eventq\n");
+		             				err = snmp_bc_add_to_eventq(handle, &(fetchentry->event.Event), SAHPI_FALSE);
+						
+							if (err) 
+		 						dbg("Cannot add el entry to eventq. Error=%s.", oh_lookup_error(err));
+						}		
+					}
+				}
+			}
+			trace ("freeing sync_cache & sync_handle\n"); 
+			oh_el_close(sync_handle->elcache);
+			g_free(sync_handle); 
+			
 		} else {
 			err = oh_el_clear(handle->elcache);
 			if (err != SA_OK)
@@ -648,7 +721,7 @@ SaErrorT snmp_bc_sel_read_add (struct oh_handler_state *handle,
 	
 	if (!err) {
 		if (custom_handle->first_discovery == SAHPI_TRUE)
-		             err = snmp_bc_add_to_eventq(handle, &tmpevent);
+		             err = snmp_bc_add_to_eventq(handle, &tmpevent, SAHPI_TRUE);
 		if (err) 
 		 dbg("Cannot add el entry to eventq. Error=%s.", oh_lookup_error(err));
 	} else { 
