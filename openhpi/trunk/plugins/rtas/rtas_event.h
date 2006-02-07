@@ -20,6 +20,7 @@
 #include <glib.h>
 #include <oh_handler.h>
 #include <SaHpi.h>
+#include <oh_error.h>
  
 SaErrorT rtas_get_event(void *hnd, struct oh_event *event);
 
