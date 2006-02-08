@@ -465,8 +465,8 @@ cIpmiSensor::GetEventMasks( SaHpiEventStateT &AssertEventMask,
 
     stdlog << "GetEventMasks sensor " << m_num << " assert " << m_current_hpi_assert_mask << " deassert " << m_current_hpi_deassert_mask << "\n";
 
-    AssertEventMask = m_current_hpi_assert_mask;
-    DeassertEventMask = m_current_hpi_deassert_mask;
+    if (&AssertEventMask) AssertEventMask = m_current_hpi_assert_mask;
+    if (&DeassertEventMask) DeassertEventMask = m_current_hpi_deassert_mask;
 
     return rv;
 }
