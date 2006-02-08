@@ -45,8 +45,6 @@ cIpmiLog::cIpmiLog()
 
 cIpmiLog::~cIpmiLog()
 {
-  assert( m_open_count == 0 );
-  assert( m_lock_count == 0 );
 }
 
 
