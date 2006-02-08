@@ -93,20 +93,25 @@ SaErrorT tfind_resource(SaHpiSessionIdT *sessionid_ptr,
 		if (rvRptGet != SA_OK) printf("RptEntryGet error %s\n",oh_lookup_error(rvRptGet));
 
 		if ( (rvRptGet == SA_OK) ) {
+			if (l_rptentry.ResourceFailed == SAHPI_FALSE) {
 		 
-		 	if (samecap) {
-				if ((l_rptentry.ResourceCapabilities & search_rdr_type)) 
-				{
-                			memcpy(rptentry,&l_rptentry, sizeof(SaHpiRptEntryT));	
-			     		break;
-				}
-			} else {
-				if (!(l_rptentry.ResourceCapabilities & search_rdr_type))
-				{
-                			memcpy(rptentry,&l_rptentry, sizeof(SaHpiRptEntryT));	
-			     		break;
-				}			
-			} 
+		 		if (samecap) {
+					if ((l_rptentry.ResourceCapabilities & search_rdr_type)) 
+					{
+                				memcpy(rptentry,&l_rptentry, sizeof(SaHpiRptEntryT));	
+			     			break;
+					}
+				} else {
+					if (!(l_rptentry.ResourceCapabilities & search_rdr_type))
+					{
+                				memcpy(rptentry,&l_rptentry, sizeof(SaHpiRptEntryT));	
+			     			break;
+					}			
+				} 
+                        } else {
+                                dbg("Resource %s is marked failed.\n", l_rptentry.ResourceTag.Data);
+                        }
+
 		}
 		rptentryid = nextrptentryid;
 	} while ((rvRptGet == SA_OK) && (rptentryid != SAHPI_LAST_ENTRY));
