@@ -35,6 +35,11 @@ void *snmp_bc_open(GHashTable *handler_config)
         char *hostname, *version, *sec_level, *authtype, *user, *pass, *community;
         char *root_tuple;
 
+        if (!handler_config) {
+                dbg("Invalid parm - NULL handler_config.\n");
+                return NULL;
+        }
+
         root_tuple = (char *)g_hash_table_lookup(handler_config, "entity_root");
         if (!root_tuple) {
                 dbg("Cannot find \"entity_root\" configuration parameter.");
@@ -274,6 +279,12 @@ void *snmp_bc_open(GHashTable *handler_config)
  **/
 void snmp_bc_close(void *hnd)
 {
+
+        if (!hnd) {
+                dbg("Invalid parm - NULL handle.\n");
+                return;
+        }
+
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
         oh_el_close(handle->elcache);
 
