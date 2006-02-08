@@ -58,7 +58,7 @@ int main(int argc, char **argv)
 	/**************************
 	 * Test: Invalid assert and deassert masks
 	 **************************/
-	expected_err = SA_ERR_HPI_INVALID_PARAMS;
+	expected_err = SA_ERR_HPI_NOT_PRESENT;  
 	err = saHpiSensorEventMasksGet(sessionid, id, sid, NULL, NULL);
 	checkstatus(err, expected_err, testfail);
 
