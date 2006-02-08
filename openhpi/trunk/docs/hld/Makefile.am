@@ -42,7 +42,7 @@ openhpi_docsdir		= $(datadir)/openhpi/docs/hld
 
 SGML_FILES              = $(shell echo $(srcdir)/*.dtd) $(shell echo $(srcdir)/*.sgml)
 
-EXTRA_DIST		= $(DIAGRAMS) $(SGML_FILES)
+EXTRA_DIST		= $(DIAGRAMS) $(SGML_FILES) htmlfilter.pl
 
 all:
 
