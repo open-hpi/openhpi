@@ -2006,10 +2006,6 @@ SaErrorT SAHPI_API saHpiSensorEventMasksGet (
         SaHpiDomainIdT did;
         struct oh_domain *d = NULL;
 
-        if (!AssertEventMask) return SA_ERR_HPI_INVALID_PARAMS;
-        if (!DeassertEventMask) return SA_ERR_HPI_INVALID_PARAMS;
-
-
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
         OH_GET_DOMAIN(did, d); /* Lock domain */

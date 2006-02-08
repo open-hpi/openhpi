@@ -1212,11 +1212,6 @@ SaErrorT snmp_bc_get_sensor_event_masks(void *hnd,
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
-	if (!AssertEventMask || !DeassertEventMask) {
-		dbg("Invalid parameter");
-		return(SA_ERR_HPI_INVALID_PARAMS);
-	}
-
 	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 	snmp_bc_lock_handler(custom_handle);
 	/* Check if resource exists and has sensor capabilities */
@@ -1245,12 +1240,14 @@ SaErrorT snmp_bc_get_sensor_event_masks(void *hnd,
 		return(SA_ERR_HPI_INTERNAL_ERROR);
 	}       
 
-	*AssertEventMask = sinfo->assert_mask;
-	if (rpt->ResourceCapabilities & SAHPI_CAPABILITY_EVT_DEASSERTS) {
-		*DeassertEventMask = sinfo->assert_mask;
-	}
-	else {
-		*DeassertEventMask = sinfo->deassert_mask;	
+	if (AssertEventMask) *AssertEventMask = sinfo->assert_mask;
+	
+	if (DeassertEventMask) {
+	        if (rpt->ResourceCapabilities & SAHPI_CAPABILITY_EVT_DEASSERTS) {
+		        *DeassertEventMask = sinfo->assert_mask;
+	        } else {
+		        *DeassertEventMask = sinfo->deassert_mask;	
+	        }
 	}
 
 	snmp_bc_unlock_handler(custom_handle);
