@@ -1608,6 +1608,8 @@ void ohoi_create_ekeying_link_state_sensor(
 }
 
 
+
+
 		/*
 		 *  RPT iterator. It is called after all scannings done.
 		 *  Create nessesary RDRs are not created yet
@@ -2030,12 +2032,13 @@ no_reset_control:
 	if (res_info->type & OHOI_MC_IPMB0_CONTROL_CREATED) {
 		goto no_ipmb0_controls;
 	}
+
 	// calculate the number of IPMB links 
 	ohoi_iterate_rpt_rdrs(handler, rpt,
 		ipmb0_state_control_rdr_iterator, &max);
 	if (max < 0) {
 		dbg("No ipmb0 sensors for resource %d", rpt->ResourceId);
-		res_info->type |= OHOI_MC_RESET_CONTROL_CREATED;
+		res_info->type |= OHOI_MC_IPMB0_CONTROL_CREATED;
 		goto no_ipmb0_controls;
 	}
 

@@ -1156,11 +1156,19 @@ orig_record:
 	return area_num;
 }
 
-	unsigned char link_grouping_id;
-	unsigned char link_type;
-	unsigned char link_type_extension;
-	unsigned char interface_type;
-	unsigned char channels[16];
+
+
+
+extern void ohoi_delete_oem_area(gpointer arg, gpointer u_data);
+void ohoi_delete_oem_area(gpointer arg, gpointer u_data)
+{
+	atca_oem_area_info_t	*area = arg;
+	if (area && area->fields)
+		free(area->fields);
+	if (area)
+		free(area);
+}
+
 
 
 SaHpiUint32T ohoi_atca_oem_area_fields_num(struct ohoi_inventory_info *fru,

@@ -90,6 +90,19 @@ int ohoi_hot_swap_cb(ipmi_entity_t  *ent,
 	ipmi_entity_id_t entity_id;
 	SaHpiRptEntryT  *rpt_entry;
 	struct oh_event  *e;
+
+#if 0
+if (event) {
+unsigned char	data[IPMI_EVENT_DATA_MAX_LEN];
+unsigned int	dt_len, i;
+printf("event body : ");
+dt_len = ipmi_event_get_data(event, data, 0, IPMI_EVENT_DATA_MAX_LEN);
+for (i =0; i < dt_len; i++) printf(" 0x%02x", data[i]);
+printf("\n");
+}
+#endif
+
+
 	
 	if (getenv("OHOI_TRACE_HOTSWAP") || IHOI_TRACE_ALL) {
 		printf(" *** Hotswap HANDLER for entity %d,%d,%d,%d "
@@ -109,15 +122,84 @@ int ohoi_hot_swap_cb(ipmi_entity_t  *ent,
 
 	if (!rpt_entry) {
 		dbg(" No rpt\n");
-		return IPMI_EVENT_NOT_HANDLED;
+		return IPMI_EVENT_HANDLED;
 	}
 	e = malloc(sizeof(*e));
 	if (!e) {
 		dbg("Out of space");
-		return IPMI_EVENT_NOT_HANDLED;
+		return IPMI_EVENT_HANDLED;
 	}
 	
 	memset(e, 0, sizeof(*e));
+	e->type = OH_ET_HPI;
+	e->u.hpi_event.event.Source = rpt_entry->ResourceId;
+	if ((curr_state == IPMI_HOT_SWAP_OUT_OF_CON) && 
+			(last_state != IPMI_HOT_SWAP_NOT_PRESENT)) {
+		// special case. connection to entity lost
+		rpt_entry->ResourceFailed = SAHPI_TRUE;
+#if 0
+		e->type = OH_ET_RESOURCE;
+                memcpy(&e->u.res_event.entry, rpt_entry,
+                        sizeof(SaHpiRptEntryT));
+                handler->eventq = g_slist_append(handler->eventq, e);
+		e = malloc(sizeof(*e));
+		if (!e) {
+			dbg("Out of space");
+			return IPMI_EVENT_NOT_HANDLED;
+		}
+#endif
+		e->type = OH_ET_HPI;
+		e->u.hpi_event.event.EventType = SAHPI_ET_RESOURCE;
+		e->u.hpi_event.event.Severity = rpt_entry->ResourceSeverity;
+		oh_gettimeofday(&e->u.hpi_event.event.Timestamp);
+		e->u.hpi_event.event.Source = rpt_entry->ResourceId;
+		e->u.hpi_event.event.EventDataUnion.ResourceEvent.
+				ResourceEventType = SAHPI_RESE_RESOURCE_FAILURE;
+		handler->eventq = g_slist_append(handler->eventq, e);
+		if (!IS_ATCA(ipmi_handler->d_type)) {
+			return IPMI_EVENT_HANDLED;
+		}
+		if (ipmi_entity_get_entity_id(ent) == 0xf0) {
+			// Shelf Manager. Handle ShM Redundancy Sensor
+			if (ipmi_handler->fully_up) {
+				ipmi_handler->shmc_present_num--;
+				ohoi_send_vshmgr_redundancy_sensor_event(
+						handler, 0);
+			}
+		}
+		return IPMI_EVENT_HANDLED;
+	}
+	
+	if ((curr_state != IPMI_HOT_SWAP_OUT_OF_CON) &&
+			rpt_entry->ResourceFailed) {
+		// special case
+		rpt_entry->ResourceFailed = SAHPI_FALSE;
+		if (curr_state != IPMI_HOT_SWAP_NOT_PRESENT) {
+			// connection to entity restored
+			e->type = OH_ET_HPI;
+			e->u.hpi_event.event.EventType = SAHPI_ET_RESOURCE;
+			e->u.hpi_event.event.Severity = rpt_entry->ResourceSeverity;
+			oh_gettimeofday(&e->u.hpi_event.event.Timestamp);
+			e->u.hpi_event.event.Source = rpt_entry->ResourceId;
+			e->u.hpi_event.event.EventDataUnion.ResourceEvent.
+				ResourceEventType = SAHPI_RESE_RESOURCE_RESTORED;
+			handler->eventq = g_slist_append(handler->eventq, e);
+			if (!IS_ATCA(ipmi_handler->d_type)) {
+				return IPMI_EVENT_HANDLED;
+			}
+			if (ipmi_entity_get_entity_id(ent) == 0xf0) {
+				// Shelf Manager. Handle ShM Redundancy Sensor
+				if (ipmi_handler->fully_up) {
+					ipmi_handler->shmc_present_num++;
+					ohoi_send_vshmgr_redundancy_sensor_event(
+						handler, 1);
+				}
+			}
+			return IPMI_EVENT_HANDLED;
+		}
+		// XXX here must be handled M7->M0 transition
+	}
+
 	e->type = OH_ET_HPI;
 	e->u.hpi_event.event.Source = rpt_entry->ResourceId;
 	e->u.hpi_event.event.EventType = SAHPI_ET_HOTSWAP;

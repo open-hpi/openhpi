@@ -263,17 +263,17 @@ static int sensor_discrete_event(ipmi_sensor_t	*sensor,
 		// hot swap sensor. We don't report its event.
 		// hotswap event will be reported via entity hotswap
 		// handeler instead of.
-		return SA_OK;
+		return IPMI_EVENT_NOT_HANDLED;
 	} 
 	e = sensor_discrete_map_event(ipmi_handler, dir, offset, severity,
 					prev_severity, event);
 	if (e == NULL) {
-		return SA_ERR_HPI_NOT_PRESENT;
+		return IPMI_EVENT_HANDLED;
 	}
 	set_event_sensor_num(sensor, e, handler);
 	handler->eventq = g_slist_append(handler->eventq, e);
 
-	return SA_OK;
+	return IPMI_EVENT_HANDLED;
 }
 
 
@@ -464,12 +464,12 @@ static int sensor_threshold_event(ipmi_sensor_t		*sensor,
 	e = sensor_threshold_map_event(dir, threshold, high_low,
 			value_present, raw_value, value, event);
 	if (e == NULL) {
-		return SA_ERR_HPI_NOT_PRESENT;
+		return IPMI_EVENT_HANDLED;
 	}
 	set_event_sensor_num(sensor, e, handler);
 	handler->eventq = g_slist_append(handler->eventq, e);
 
-	return SA_OK;
+	return IPMI_EVENT_HANDLED;
 }
 
 
@@ -1022,10 +1022,12 @@ void ohoi_sensor_event(enum ipmi_update_e op,
 
 	ipmi_sensor_id_t sid = ipmi_sensor_convert_to_id(sensor);
 	struct oh_handler_state *handler = cb_data;
+	struct ohoi_handler *ipmi_handler = handler->data;
 	struct ohoi_resource_info *res_info;
 	ipmi_entity_id_t entity_id;
 	SaHpiRptEntryT *rpt_entry;
-     
+
+	g_static_rec_mutex_lock(&ipmi_handler->ohoih_lock);    
 	ipmi_sensor_get_id(sensor, name, 32);
 
         entity_id = ipmi_entity_convert_to_id(ent);
@@ -1034,12 +1036,13 @@ void ohoi_sensor_event(enum ipmi_update_e op,
 						  &entity_id);
         if (!rpt_entry) {
                 dump_entity_id("Sensor without RPT Entry?!", entity_id);
+		g_static_rec_mutex_unlock(&ipmi_handler->ohoih_lock);
                 return;
         }
 
 	res_info =  oh_get_resource_data(handler->rptcache,
 						rpt_entry->ResourceId);
-	
+
 	switch (op) {
 		case IPMI_ADDED:
 			trace_ipmi_sensors("ADD", sid);
@@ -1054,13 +1057,19 @@ void ohoi_sensor_event(enum ipmi_update_e op,
 			trace_ipmi("Sensor Added");
 		
 			if (ipmi_sensor_get_event_reading_type(sensor) == 
-					IPMI_EVENT_READING_TYPE_THRESHOLD)
+					IPMI_EVENT_READING_TYPE_THRESHOLD) {
 			      	rv = ipmi_sensor_add_threshold_event_handler(
 					sensor, sensor_threshold_event,
 					handler);
-			else
+			} else {
+				if (IS_ATCA(ipmi_handler->d_type) &&
+					(ipmi_sensor_get_sensor_type(sensor) 
+								== 0xF0)) {
+					break;
+				}
 			      	rv = ipmi_sensor_add_discrete_event_handler(
 					sensor, sensor_discrete_event, handler);
+			}
 			if (rv)
 			      	dbg("Unable to reg sensor event handler: %#x\n",
 					rv);
@@ -1079,6 +1088,7 @@ void ohoi_sensor_event(enum ipmi_update_e op,
 	}
 	trace_ipmi("Set updated for resource %d . Sensor", rpt_entry->ResourceId);
 	entity_rpt_set_updated(res_info, handler->data);
+	g_static_rec_mutex_unlock(&ipmi_handler->ohoih_lock);
 }
 
 /*

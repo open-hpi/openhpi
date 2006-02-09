@@ -111,21 +111,38 @@ int entity_presence(ipmi_entity_t		*entity,
 	SaHpiResourceIdT rid;
 	ipmi_entity_id_t ent_id;
   	struct ohoi_resource_info	*res_info;
-	
-	ent_id = ipmi_entity_convert_to_id(entity);
 
+	ent_id = ipmi_entity_convert_to_id(entity);
+	
+	g_static_rec_mutex_lock(&ipmi_handler->ohoih_lock);	
 	rpt = ohoi_get_resource_by_entityid(handler->rptcache, &ent_id);
 	if (!rpt) {
 		trace_ipmi_entity("SET PRESENCE. NO RPT", present, entity);
 		dbg("No rpt");
+		g_static_rec_mutex_unlock(&ipmi_handler->ohoih_lock);
 		return SA_ERR_HPI_NOT_PRESENT;
 	}
 	rid = rpt->ResourceId;
+	if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_FRU) && !present) {
+		// This is a workaround
+		trace_ipmi_entity("PRESENCE HANDLER CALLED FOR NOT FRU ENTITY",
+					present, entity);
+		g_static_rec_mutex_unlock(&ipmi_handler->ohoih_lock);
+		return SA_ERR_HPI_NOT_PRESENT;
+	}
 	res_info = oh_get_resource_data(handler->rptcache, rid);
 	if (res_info->presence == present) {
+		g_static_rec_mutex_unlock(&ipmi_handler->ohoih_lock);
 		return SA_OK;
 	}
-	trace_ipmi_entity(present ? "PRESENT" : "NOT PRESENT", 0, entity);
+	trace_ipmi_entity(present ? "PRESENT" : "NOT PRESENT",
+						present, entity);
+
+	if (present && res_info->deleted) {
+		// became not present and present again.
+		res_info->deleted = 0;
+		rpt->ResourceFailed = SAHPI_FALSE;
+	}
 
 	if (IS_ATCA(ipmi_handler->d_type)) {
 		switch (ipmi_entity_get_entity_id(entity)) {
@@ -137,12 +154,16 @@ int entity_presence(ipmi_entity_t		*entity,
 		case 0xf0: // Shelf Manager
 			if ((ipmi_entity_get_device_channel(entity) == 0) &&
 				(ipmi_entity_get_device_address(entity) == 32)) {
-				// Virtual ShM. Do nothing
+				// Virtual ShM. Do nothing. It cannot be.
 				break;
 			}
 			if (present) {
 				ipmi_handler->shmc_present_num++;
 			} else {
+				if (rpt->ResourceFailed) {
+					// it's already marked
+					break;
+				}
 				ipmi_handler->shmc_present_num--;
 			}
 			if (ipmi_handler->fully_up) {
@@ -159,8 +180,33 @@ int entity_presence(ipmi_entity_t		*entity,
 			break;
 		}
 	}
+	
 
 	entity_rpt_set_presence(res_info, handler->data,  present);
+	
+	if (!present) {
+		res_info->deleted = 1;
+		// send event to infrastructure but don't
+		// touch our local structures while
+                struct oh_event *event = malloc(sizeof(*event));
+		if (event != NULL) {
+                	memset(event, 0, sizeof(*event));
+                	event->type = OH_ET_RESOURCE_DEL;
+                	memcpy(&event->u.res_event.entry, rpt,
+                        			sizeof(SaHpiRptEntryT));
+                	handler->eventq = g_slist_append(handler->eventq,
+									event);
+		} else {
+			dbg("Out of memory");
+		}
+        	while (SA_OK == oh_remove_rdr(handler->rptcache, rid,
+							SAHPI_FIRST_ENTRY));
+		ohoi_delete_rpt_fru(res_info);
+		res_info->type = OHOI_RESOURCE_ENTITY;
+		// XXX free inventory area memory
+	}
+
+	g_static_rec_mutex_unlock(&ipmi_handler->ohoih_lock);
 
 	return SA_OK;
 }
@@ -224,6 +270,9 @@ static void update_resource_capabilities(ipmi_entity_t	*entity,
 			trace_ipmi("setting SAHPI_HS_CAPABILITY_INDICATOR_SUPPORTED");
 			entry->HotSwapCapabilities |= SAHPI_HS_CAPABILITY_INDICATOR_SUPPORTED;
 		}
+	} else {
+		entry->ResourceCapabilities &= ~SAHPI_CAPABILITY_MANAGED_HOTSWAP;
+		entry->HotSwapCapabilities &= ~SAHPI_HS_CAPABILITY_INDICATOR_SUPPORTED;
 	}
 
 	/* OpenIPMI used ipmi_entity_hot_swappable to indicate it's FRU
@@ -237,22 +286,19 @@ static void update_resource_capabilities(ipmi_entity_t	*entity,
 		if(ipmi_entity_hot_swappable(entity)) {
 			trace_ipmi("Entity supports simplified hotswap");
 			entry->ResourceCapabilities |= SAHPI_CAPABILITY_FRU;
+		} else {
+			entry->ResourceCapabilities &= ~SAHPI_CAPABILITY_FRU;
 		}
+		
 	}
 	
 	ipmi_mcid_t mc_id;
-//	int is_sel = 0;	
 	if (ipmi_entity_get_mc_id(entity, &mc_id) == 0) {
 		res_info->u.entity.mc_id = mc_id;
 		res_info->type |= OHOI_RESOURCE_MC;
-//		if (ipmi_entity_get_SEL_device(entity)) {
-//		ipmi_mc_pointer_cb(mc_id, _get_is_sel, &is_sel);
-//		if (is_sel) {
-//			entry->ResourceCapabilities |=
-//					SAHPI_CAPABILITY_EVENT_LOG;
-//		}
+	} else {
+		res_info->type &= ~OHOI_RESOURCE_MC;
 	}
-
 }
 
 struct add_parent_ep_s {
@@ -288,8 +334,7 @@ static void add_parent_ep(ipmi_entity_t *ent, ipmi_entity_t *parent, void *cb_da
 
 
 
-static void get_entity_event(ipmi_domain_t            *domain,
-			     ipmi_entity_t	*entity,
+static void get_entity_event(ipmi_entity_t	*entity,
 			     struct ohoi_resource_info *ohoi_res_info,
 			     SaHpiRptEntryT	*entry,
 			     void *cb_data)
@@ -335,7 +380,7 @@ static void get_entity_event(ipmi_domain_t            *domain,
 
 
 
-	if (ipmi_domain_get_type(domain) != IPMI_DOMAIN_TYPE_ATCA) {
+	if (ipmi_handler->d_type != IPMI_DOMAIN_TYPE_ATCA) {
 		goto no_atca;
 	}
 	
@@ -602,7 +647,7 @@ static void add_entity_event(ipmi_domain_t            *domain,
 	ohoi_res_info->type       = OHOI_RESOURCE_ENTITY; 
 	ohoi_res_info->u.entity.entity_id= ipmi_entity_convert_to_id(entity);
 
-	get_entity_event(domain, entity, ohoi_res_info, &entry, handler);
+	get_entity_event(entity, ohoi_res_info, &entry, handler);
 
 	rv = oh_add_resource(handler->rptcache, &entry, ohoi_res_info, 1);
 	if (rv) {
@@ -738,7 +783,24 @@ static void delete_entity(struct oh_handler_state	*handler,
 		return;
 	}
 	res_info =  oh_get_resource_data(handler->rptcache, rpt->ResourceId);
-	entity_rpt_set_presence(res_info, handler->data, 0);
+	// send event to infrastructure and remove rpt entry
+	struct oh_event *event = malloc(sizeof(*event));
+	if (event != NULL) {
+                memset(event, 0, sizeof(*event));
+                event->type = OH_ET_RESOURCE_DEL;
+                memcpy(&event->u.res_event.entry, rpt,
+                        	sizeof(SaHpiRptEntryT));
+                handler->eventq = g_slist_append(handler->eventq, event);
+	} else {
+		dbg("Out of memory");
+	}
+
+	while (SA_OK == oh_remove_rdr(handler->rptcache, rpt->ResourceId,
+						SAHPI_FIRST_ENTRY));
+	if (res_info) {
+		ohoi_delete_rpt_fru(res_info);
+	}
+	oh_remove_resource(handler->rptcache, rpt->ResourceId);
 }
 
 void ohoi_entity_event(enum ipmi_update_e       op,

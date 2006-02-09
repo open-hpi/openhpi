@@ -508,6 +508,8 @@ SaErrorT ohoi_add_idr_field(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid, 
 SaErrorT ohoi_set_idr_field(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid, SaHpiIdrFieldT *field );
 SaErrorT ohoi_del_idr_field(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid, SaHpiEntryIdT areaid, SaHpiEntryIdT fieldid);
 
+void ohoi_delete_rpt_fru(struct ohoi_resource_info *res_info);
+
 int ohoi_hot_swap_cb(ipmi_entity_t  *ent,
                      enum ipmi_hot_swap_states last_state,
 		     enum ipmi_hot_swap_states curr_state,

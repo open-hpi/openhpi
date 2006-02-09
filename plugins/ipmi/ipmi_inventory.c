@@ -50,7 +50,43 @@ struct ohoi_field_data {
 	int (*get_type)(ipmi_fru_t *fru, enum ipmi_str_type_e *type);
 };
 
+static int _ipmi_entity_get_chassis_info_type_len(ipmi_entity_t   *ent,
+					      unsigned int *length)
+{
+	*length = 1;
+	return 0;
+}
+
+static int _ipmi_entity_get_chassis_info_type(ipmi_entity_t   *ent,
+					  char         *str,
+					  unsigned int *strlen)
+{
+	unsigned char tp;
+	int r;
+	r = ipmi_entity_get_chassis_info_type(ent, &tp);
+	if (r) {
+		return r;
+	}
+	str[0] = (char)tp;
+	*strlen = 1;
+	return 0;
+}
+
+static int _ipmi_fru_get_chassis_info_type_type(ipmi_fru_t           *fru,
+					       enum ipmi_str_type_e *type)
+{
+	*type = IPMI_BINARY_STR;
+	return 0;
+}
+
 static struct ohoi_field_data chassis_fields[] = {
+	{
+		SAHPI_IDR_FIELDTYPE_CHASSIS_TYPE,
+		SAHPI_LANG_UNDEF, 
+		_ipmi_entity_get_chassis_info_type_len,
+		_ipmi_entity_get_chassis_info_type,
+		_ipmi_fru_get_chassis_info_type_type,
+	},
 	{
 		SAHPI_IDR_FIELDTYPE_SERIAL_NUMBER,
 		SAHPI_LANG_ENGLISH, 
@@ -637,6 +673,58 @@ static void set_field_presence(struct ohoi_inventory_info *i_info,
 	}
 }
 
+static int field_present(struct ohoi_inventory_info *fru,
+			 SaHpiEntryIdT areaid,
+			 SaHpiEntryIdT fieldid)
+{
+	SaHpiUint32T nf = 0;
+	unsigned int msk;
+	unsigned int cust_num;
+	struct ohoi_area_data *area;
+	
+	if (fieldid < OHOI_FIELD_FIRST_ID) {
+		return 0;
+	}
+
+	switch (areaid) {
+	case OHOI_BOARD_INFO_AREA_ID:
+		msk = fru->bi_fld_msk;
+		cust_num = fru->bi_custom_num;
+		break;
+	case OHOI_PRODUCT_INFO_AREA_ID:
+		msk = fru->pi_fld_msk;
+		cust_num = fru->pi_custom_num;
+		break;
+	case OHOI_CHASSIS_INFO_AREA_ID:
+		msk = fru->ci_fld_msk;
+		cust_num = fru->ci_custom_num;
+		break;
+	case SAHPI_IDR_AREATYPE_INTERNAL_USE:
+		return fru->iu;
+	default:
+		if (areaid < OHOI_AREA_FIRST_ID) {
+			dbg("wrong area id 0x%x", areaid);
+			return 0;
+		}
+		if (areaid > OHOI_AREA_LAST_ID(fru)) {
+			dbg("wrong area id 0x%x", areaid);
+			return 0;
+		}
+		if (fru->oem_areas) {
+			nf = fru->oem_fields_num;
+		} else {
+			nf = ohoi_atca_oem_area_fields_num(fru, areaid);
+		}
+		return (fieldid <= nf);
+	}
+	area = &areas[areaid - 1];
+	if (fieldid <= OHOI_FIELD_NUM(area)) {
+		return ((1 << (area->fields[fieldid - 1].fieldtype)) & msk);
+		//return (msk & (1 << (fieldid -1)));
+	}
+	return (fieldid < cust_num + OHOI_FIELD_NUM(area));
+}
+
 static void unset_area_presence(struct ohoi_inventory_info *i_info,
 				   SaHpiIdrAreaTypeT areatype)
 {
@@ -1186,13 +1274,14 @@ static SaHpiUint32T get_num_fields(struct ohoi_inventory_info *fru,
 		return ohoi_atca_oem_area_fields_num(fru, areaid);
 	}
 
-	msk &= ~SAHPI_IDR_FIELDTYPE_CUSTOM; 
+	msk &= ~(1 << SAHPI_IDR_FIELDTYPE_CUSTOM); 
 	for (i = 0; i < sizeof (msk) * 8; i++) {
 		if (msk & 1) {
 			nf++;
 		}
 		msk = (msk >> 1);
 	}
+
 	nf += cust_num;
 
 	return nf;
@@ -1551,20 +1640,28 @@ SaErrorT ohoi_del_idr_area(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid,
 		return SA_ERR_HPI_CAPABILITY;
 	}
 	fru = ohoi_res_info->fru;
-	areatype = get_areatype_by_id(areaid, fru);
-	if (areatype == OHOI_AREA_EMPTY_ID) {
-		dbg("areatype == OHOI_AREA_EMPTY_ID");
-		return SA_ERR_HPI_INVALID_PARAMS;
-	}
-	if (areatype == SAHPI_IDR_AREATYPE_INTERNAL_USE) {
-		return SA_ERR_HPI_READ_ONLY;
-	}
-	
 	g_mutex_lock(fru->mutex);
 	if (!get_area_presence(fru, areaid)) {
 		g_mutex_unlock(fru->mutex);
 		return SA_ERR_HPI_NOT_PRESENT;
 	}
+	areatype = get_areatype_by_id(areaid, fru);
+	if (areatype == OHOI_AREA_EMPTY_ID) {
+		dbg("areatype == OHOI_AREA_EMPTY_ID");
+		g_mutex_unlock(fru->mutex);
+		return SA_ERR_HPI_INVALID_PARAMS;
+	}
+	if (areatype == SAHPI_IDR_AREATYPE_INTERNAL_USE) {
+		g_mutex_unlock(fru->mutex);
+		return SA_ERR_HPI_READ_ONLY;
+	}
+
+	if ((areatype == SAHPI_IDR_AREATYPE_OEM) &&
+			fru->oem_areas) {
+		g_mutex_unlock(fru->mutex);
+		return SA_ERR_HPI_READ_ONLY;
+	}
+	
 	ar_del.areatype = areatype;
 	ar_del.handler = handler;
 	ar_del.done = 0;
@@ -1643,8 +1740,8 @@ static  SaHpiEntryIdT get_nextfield(struct ohoi_inventory_info *i_info,
 
 	for (i = 1; fieldid + i <= OHOI_FIELD_LAST_ID(area_data); i++) {
 		if ((1 << (area_data->fields[fieldid + i - 1].fieldtype)) & msk) {
-			dbg("return %d for not custom field %d",
-				fieldid + i,
+			dbg("return %d for not custom field %d, type %d",
+				fieldid + i, fieldid,
 				area_data->fields[fieldid + i - 1].fieldtype);
 			return fieldid + i;
 		}
@@ -1751,6 +1848,11 @@ SaErrorT ohoi_get_idr_field(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid,
 		}
 	} else if ((fieldtype == SAHPI_IDR_FIELDTYPE_UNSPECIFIED) &&
 					(fieldid != SAHPI_FIRST_ENTRY)) {
+		if (!field_present(fru, areaid, fieldid)) {
+			g_mutex_unlock(fru->mutex);
+			dbg("field %d of area %d not present", fieldid, areaid);
+			return SA_ERR_HPI_NOT_PRESENT;
+		}
 		if (fieldid > OHOI_FIELD_LAST_ID(area_data)) {
 			dbg("area %x; fieldid(%u) >= "
 			    "OHOI_FIELD_LAST_ID(area_data)(%u)",
@@ -1758,7 +1860,7 @@ SaErrorT ohoi_get_idr_field(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid,
 				OHOI_FIELD_LAST_ID(area_data));
 				field->FieldId = fieldid;
 				field->Type = SAHPI_IDR_FIELDTYPE_CUSTOM;
-				field->ReadOnly = area_data->read_only;
+				field->ReadOnly = SAHPI_FALSE; //area_data->read_only;
 				ret = get_custom_field(handler, ohoi_res_info,
 						OHOI_FIELD_LAST_ID(area_data),
 						fieldid, nextfieldid, field);
@@ -1832,7 +1934,7 @@ SaErrorT ohoi_get_idr_field(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid,
 		g_mutex_unlock(fru->mutex);
 		return gf.rv;
 	}
-	field->ReadOnly = area_data->read_only;
+	field->ReadOnly = SAHPI_FALSE; //area_data->read_only;
 	if (field_data->lang == SAHPI_LANG_UNDEF) {
 		field->Field.Language = get_language(ohoi_res_info->fru,
 						area_data->areatype);
@@ -2022,7 +2124,7 @@ SaErrorT ohoi_add_idr_field(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid,
 	fid = get_fieldid_by_type(fru, field->AreaId, field->Type);
 	if (fid == 0) {
 		dbg("invalid field type %d", field->Type);
-		return SA_ERR_HPI_INVALID_DATA;
+		return SA_ERR_HPI_INVALID_PARAMS;
 	}
 
 	field->FieldId = fid;
@@ -2115,6 +2217,9 @@ SaErrorT ohoi_del_idr_field(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid,
 		return SA_ERR_HPI_READ_ONLY;
 	}
 	if (!get_area_presence(fru, areaid)) {
+		return SA_ERR_HPI_NOT_PRESENT;
+	}
+	if (!field_present(fru, areaid, fieldid)) {
 		return SA_ERR_HPI_NOT_PRESENT;
 	}
 	df.fieldid = fieldid;
