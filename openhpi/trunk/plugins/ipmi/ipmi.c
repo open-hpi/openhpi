@@ -655,6 +655,12 @@ int ipmi_discover_resources(void *hnd)
                                 rpt_entry->ResourceId);
                         continue;
                 }
+                if (res_info->deleted) {
+			// We have already sent the event
+                        rpt_entry = oh_get_resource_next(handler->rptcache,
+                                rpt_entry->ResourceId);
+                        continue;
+                }
                 event = malloc(sizeof(*event));
 		if (event == NULL) {
 			dbg("Out of memory");
@@ -1394,6 +1400,9 @@ static int ipmi_get_sensor_event_masks(void *hnd,
 
         SENSOR_CHECK(handler, sensor_info, id, num);
 
+        if (!assert || !deassert)
+                return SA_ERR_HPI_INVALID_PARAMS;
+
         rv = ohoi_get_sensor_event_enable(hnd, sensor_info,
 					  &t_enable, &t_assert, &t_deassert);
         if (rv)
@@ -1406,8 +1415,8 @@ static int ipmi_get_sensor_event_masks(void *hnd,
         	sensor_info->deassert = t_deassert;
 	}
 
-        if (assert) *assert = t_assert;
-        if (deassert) *deassert = t_deassert;
+        *assert = t_assert;
+        *deassert = t_deassert;
 
         return SA_OK;
 }

@@ -221,6 +221,26 @@ static void add_inventory_event(struct ohoi_resource_info *res_info,
 	}	
 }
 
+extern void ohoi_delete_oem_area(gpointer arg, gpointer u_data);
+
+void ohoi_delete_rpt_fru(struct ohoi_resource_info *res_info)
+{
+	struct ohoi_inventory_info *i_info;
+
+	if (res_info->fru == NULL) {
+		return;
+	}
+	i_info = res_info->fru;
+	if (i_info->oem_areas) {
+        	g_slist_foreach(i_info->oem_areas,
+			ohoi_delete_oem_area, NULL);
+        	g_slist_free(i_info->oem_areas);
+	}
+	free(i_info);
+	res_info->fru = NULL;
+}
+	
+
 /* Per IPMI spec., one FRU per entity */
 void ohoi_inventory_event(enum ipmi_update_e    op,
                           ipmi_entity_t         *entity,

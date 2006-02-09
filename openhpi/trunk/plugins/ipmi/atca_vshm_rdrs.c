@@ -319,16 +319,20 @@ void create_atca_virt_shmgr_rdrs(struct oh_handler_state *hnd)
 
 	// Create Power On Sequence Commit Status sensor
 	rdr = create_vshmgr_redundancy_sensor(hnd, rpt, &s_info);
-	if (rdr != NULL && (oh_add_rdr(hnd->rptcache,
+	if (rdr != NULL) {
+		if (oh_add_rdr(hnd->rptcache,
 					ipmi_handler->atca_vshm_id,
-					rdr, s_info, 1) != SA_OK)) {
-		dbg("couldn't add control rdr");
-		free(rdr);
-		free(s_info);
+					rdr, s_info, 1) != SA_OK) {
+			dbg("couldn't add control rdr");
+			free(rdr);
+			free(s_info);
+		}
+	} else {
+		rpt->ResourceCapabilities |= SAHPI_CAPABILITY_SENSOR |
+						SAHPI_CAPABILITY_RDR;
 	}
 	g_static_rec_mutex_unlock(&ipmi_handler->ohoih_lock);
 }
-
 
 
 
