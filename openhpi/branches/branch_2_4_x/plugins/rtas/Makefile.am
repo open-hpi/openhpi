@@ -37,6 +37,6 @@ librtas_la_SOURCES	=  rtas.c \
 			   rtas_utils.c \
 			   rtas_watchdog.c
 			   
-librtas_la_LIBADD	= -luuid
+librtas_la_LIBADD	= -luuid $(top_builddir)/src/libopenhpi.la $(top_builddir)/utils/libopenhpiutils.la
 librtas_la_LDFLAGS	= -module -version-info @HPI_LIB_VERSION@ -export-dynamic
 
