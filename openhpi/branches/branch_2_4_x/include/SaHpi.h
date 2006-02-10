@@ -291,14 +291,14 @@ typedef SaHpiUint32T SaHpiEntryIdT;
 ** SAHPI_TIME_UNSPECIFIED which always means the time is not available), or 
 ** "absolute" times if the value is greater than SAHPI_TIME_MAX_RELATIVE. 
 */
-typedef SaHpiInt64T SaHpiTimeT;    /* Time in nanoseconds */
+typedef SaHpiInt64T SaHpiTimeT __attribute__((__aligned__(8)));    /* Time in nanoseconds */
 
 /* Unspecified or unknown time */
 #define SAHPI_TIME_UNSPECIFIED     (SaHpiTimeT) 0x8000000000000000LL
 
 /* Maximum time that can be specified as relative */
 #define SAHPI_TIME_MAX_RELATIVE    (SaHpiTimeT) 0x0C00000000000000LL
-typedef SaHpiInt64T SaHpiTimeoutT; /* Timeout in nanoseconds */
+typedef SaHpiInt64T SaHpiTimeoutT __attribute__((__aligned__(8))); /* Timeout in nanoseconds */
 
 /* Non-blocking call */
 #define SAHPI_TIMEOUT_IMMEDIATE    (SaHpiTimeoutT) 0x0000000000000000LL
@@ -855,9 +855,9 @@ typedef enum {
 } SaHpiSensorReadingTypeT;
 
 typedef union {
-    SaHpiInt64T          SensorInt64;
-    SaHpiUint64T         SensorUint64;
-    SaHpiFloat64T        SensorFloat64; 
+    SaHpiInt64T          SensorInt64 __attribute__((__aligned__(8)));
+    SaHpiUint64T         SensorUint64 __attribute__((__aligned__(8)));
+    SaHpiFloat64T        SensorFloat64 __attribute__((__aligned__(8))); 
     SaHpiUint8T          SensorBuffer[SAHPI_SENSOR_BUFFER_LENGTH];
 } SaHpiSensorReadingUnionT;
 
@@ -1029,7 +1029,7 @@ typedef struct {
     SaHpiSensorModUnitUseT     ModifierUse;    /* Modifier use(m/sec, etc.)  */
     SaHpiBoolT                 Percentage;     /* Is value a percentage */
     SaHpiSensorRangeT          Range;          /* Valid range of sensor */
-    SaHpiFloat64T              AccuracyFactor; /* Accuracy */
+    SaHpiFloat64T              AccuracyFactor __attribute__((__aligned__(8))); /* Accuracy */
 } SaHpiSensorDataFormatT;
 
 /*
@@ -1917,7 +1917,7 @@ typedef union {
 typedef struct { 
     SaHpiResourceIdT  Source;
     SaHpiEventTypeT   EventType;
-    SaHpiTimeT        Timestamp; /*Equal to SAHPI_TIME_UNSPECIFED if time is
+    SaHpiTimeT        Timestamp __attribute__((__aligned__(8))); /*Equal to SAHPI_TIME_UNSPECIFED if time is
                                    not available; Absolute time if greater
                                    than SAHPI_TIME_MAX_RELATIVE, Relative
                                    time if less than or equal to 
@@ -2011,7 +2011,7 @@ typedef struct {
 /* Announcement structure definition */
 typedef struct {
     SaHpiEntryIdT        EntryId;      /* Announcment Entry Id */
-    SaHpiTimeT           Timestamp;    /* Time when announcement added to set */
+    SaHpiTimeT           Timestamp __attribute__((__aligned__(8)));    /* Time when announcement added to set */
     SaHpiBoolT           AddedByUser;  /* True if added to set by HPI User,
                                           False if added automatically by 
                                           HPI implementation */
@@ -2393,19 +2393,19 @@ typedef struct {
                                           table is changed. It rolls over to 
                                           zero when the maximum value is
                                           reached  */
-    SaHpiTimeT        DrtUpdateTimestamp; /* This timestamp is set any time the
+    SaHpiTimeT        DrtUpdateTimestamp __attribute__((__aligned__(8))); /* This timestamp is set any time the
                                              DRT table is changed. */
     SaHpiUint32T      RptUpdateCount;  /* This count is incremented any time 
                                            the RPT is changed. It rolls over
                                            to zero when the maximum value is
                                            reached  */
-    SaHpiTimeT        RptUpdateTimestamp; /* This timestamp is set any time the 
+    SaHpiTimeT        RptUpdateTimestamp __attribute__((__aligned__(8))); /* This timestamp is set any time the 
                                              RPT table is changed. */
     SaHpiUint32T      DatUpdateCount;  /* This count is incremented any time 
                                           the DAT is changed. It rolls over to 
                                           zero when the maximum value is 
                                           reached */
-    SaHpiTimeT        DatUpdateTimestamp; /* This timestamp is set any time the
+    SaHpiTimeT        DatUpdateTimestamp __attribute__((__aligned__(8))); /* This timestamp is set any time the
                                               DAT is changed. */
     SaHpiUint32T      ActiveAlarms;    /* Count of active alarms in the DAT */
     SaHpiUint32T      CriticalAlarms;  /* Count of active critical alarms in
@@ -2450,7 +2450,7 @@ typedef SaHpiEntryIdT SaHpiAlarmIdT;
 
 typedef struct {
     SaHpiAlarmIdT       AlarmId;      /* Alarm Id */
-    SaHpiTimeT          Timestamp;    /* Time when alarm added to DAT */
+    SaHpiTimeT          Timestamp __attribute__((__aligned__(8)));    /* Time when alarm added to DAT */
     SaHpiSeverityT      Severity;     /* Severity of alarm */
     SaHpiBoolT          Acknowledged; /* Acknowledged flag */
     SaHpiConditionT     AlarmCond;    /* Detailed alarm condition */
@@ -2504,8 +2504,8 @@ typedef struct {
     SaHpiUint32T                   Entries;        
     SaHpiUint32T                   Size;      
     SaHpiUint32T                   UserEventMaxSize;
-    SaHpiTimeT                     UpdateTimestamp;
-    SaHpiTimeT                     CurrentTime;
+    SaHpiTimeT                     UpdateTimestamp __attribute__((__aligned__(8)));
+    SaHpiTimeT                     CurrentTime __attribute__((__aligned__(8)));
     SaHpiBoolT                     Enabled;
     SaHpiBoolT                     OverflowFlag;
     SaHpiBoolT                     OverflowResetable;
@@ -2523,7 +2523,7 @@ typedef SaHpiUint32T SaHpiEventLogEntryIdT;
 
 typedef struct {
     SaHpiEventLogEntryIdT EntryId;   /* Entry ID for record */
-    SaHpiTimeT            Timestamp; /* Time at which the event was placed
+    SaHpiTimeT            Timestamp __attribute__((__aligned__(8))); /* Time at which the event was placed
                                    in the Event Log. If less than or equal to
                                    SAHPI_TIME_MAX_RELATIVE, then it is 
                                    relative; if it is greater than SAHPI_TIME_
