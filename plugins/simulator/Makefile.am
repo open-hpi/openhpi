@@ -25,7 +25,7 @@ AM_CFLAGS		= @CFLAGS@
 
 pkglib_LTLIBRARIES	= libsimulator.la
 
-libsimulator_la_LIBADD	= -luuid
+libsimulator_la_LIBADD	= -luuid $(top_builddir)/src/libopenhpi.la $(top_builddir)/utils/libopenhpiutils.la
 libsimulator_la_SOURCES	= sim_init.c sim_init.h \
                           sim_resources2.c sim_resources.h \
 			  sim_sensors.c sim_sensors.h \
