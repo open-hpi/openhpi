@@ -2689,7 +2689,10 @@ SaErrorT SAHPI_API saHpiIdrFieldSet(
         } else if (Field->Type > SAHPI_IDR_FIELDTYPE_CUSTOM) {
                 dbg("Invalid Parameters in Field->Type");
                 return SA_ERR_HPI_INVALID_PARAMS;
-        }
+        } else if (!oh_lookup_texttype(Field->Field.DataType)) {
+		dbg("Invalid Field Data Type");
+		return SA_ERR_HPI_INVALID_PARAMS;
+	}
 
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
