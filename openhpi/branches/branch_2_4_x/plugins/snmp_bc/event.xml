@@ -13,6 +13,10 @@
        severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_RID" dup="0"
        msg="Power Supply 1 DC Good Fault" />
 
+<event name="EN_FAULT_DASD1_SCSI_ID_2" hex="06801002" type="BCT"
+       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_EXP" dup="0"
+       msg="Hard Drive Fault (SCSI ID 2)" />
+
 <event name="EN_OVER_TEMP_SWITCH_3" hex="0EA1C403" type="BC"
        severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_RID" dup="0"
        msg="I/O module 3 Temperature Fault Multiple I/O module failures" />
@@ -68,6 +72,10 @@
 <event name="EN_MM_2_REMOVED" hex="00284002" type="BCT"
        severity="SAHPI_INFORMATIONAL" override="OVR_SEV | OVR_MM2" dup="0"
        msg="Management Module 2 was removed." />
+
+<event name="EN_PFA_LO_FAULT_VRM1" hex="04401801" type="BCT"
+       severity="SAHPI_MAJOR" override="OVR_SEV" dup="0"
+       msg="System is under recommended voltage on VRM 1." />
 
 <event name="EN_BLADE_12_THROTTLED" hex="0E00C00C" type="BCT"
        severity="SAHPI_INFORMATIONAL" override="OVR_SEV" dup="0"
@@ -1085,6 +1093,10 @@
        severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_RID" dup="0"
        msg="Power Supply 1 Removed." />
 
+<event name="EN_PFA_LO_FAULT_VRM2" hex="04401802" type="BC"
+       severity="SAHPI_MAJOR" override="OVR_SEV" dup="0"
+       msg="System is under recommended voltage on VRM 2." />
+
 <event name="EN_PROC_HOT_CPU8" hex="0421C408" type="RSA"
        severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_RID" dup="0"
        msg="CPU 8 shut off due to over temperature" />
@@ -1381,6 +1393,10 @@
        severity="SAHPI_CRITICAL" override="OVR_SEV" dup="0"
        msg="Blade Server 1 is incompatible with I/O module configuration." />
 
+<event name="EN_PFA_LO_FAULT_VRM1" hex="04401801" type="BC"
+       severity="SAHPI_MAJOR" override="OVR_SEV" dup="0"
+       msg="System is under recommended voltage on VRM 1." />
+
 <event name="EN_FAULT_FAN2" hex="0A026002" type="BCT"
        severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_RID" dup="0"
        msg="Blower 2 Fault" />
@@ -1468,6 +1484,10 @@
 <event name="EN_FAN2_SPEED" hex="00026802" type="BC"
        severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_RID" dup="0"
        msg="Blower 2 Failure Single blower failure" />
+
+<event name="EN_FAULT_DASD1_SCSI_ID_3" hex="06801003" type="BC"
+       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_EXP" dup="0"
+       msg="Hard Drive Fault (SCSI ID 3)" />
 
 <event name="EN_PFA_LO_FAULT_2_5V" hex="08031880" type="BC"
        severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MMACT" dup="1"
@@ -1769,6 +1789,10 @@
        severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_RID" dup="0"
        msg="I/O module 3 Temperature Fault" />
 
+<event name="EN_PFA_HI_FAULT_VRM1" hex="04401501" type="BC"
+       severity="SAHPI_MAJOR" override="OVR_SEV" dup="0"
+       msg="System is over recommended voltage on VRM 1." />
+
 <event name="EN_BUST_12V_FAULT" hex="0E836002" type="BC"
        severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_EXP" dup="0"
        msg="BEM +12V Fault." />
@@ -2053,6 +2077,10 @@
        severity="SAHPI_INFORMATIONAL" override="OVR_SEV" dup="0"
        msg="Blade 3 is throttled." />
 
+<event name="EN_PFA_HI_FAULT_VRM2" hex="04401502" type="BCT"
+       severity="SAHPI_MAJOR" override="OVR_SEV" dup="0"
+       msg="System is over recommended voltage on VRM 2." />
+
 <event name="EN_CUTOFF_LO_FAULT_1_2V" hex="08000881" type="BC"
        severity="SAHPI_CRITICAL" override="OVR_SEV" dup="0"
        msg="System shutoff due to +1.2v under voltage." />
@@ -2096,6 +2124,10 @@
 <event name="EN_FAN4_SPEED" hex="00026804" type="BCT"
        severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_RID" dup="0"
        msg="Blower 4 Failure" />
+
+<event name="EN_FAULT_DASD1_SCSI_ID_3" hex="06801003" type="BCT"
+       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_EXP" dup="0"
+       msg="Hard Drive Fault (SCSI ID 3)" />
 
 <event name="EN_PFA_HI_FAULT_2_5V" hex="08031480" type="BC"
        severity="SAHPI_MAJOR" override="OVR_SEV | OVR_MMACT" dup="1"
@@ -2373,6 +2405,10 @@
        severity="SAHPI_INFORMATIONAL" override="OVR_SEV | OVR_RID" dup="0"
        msg="Power Supply 1 was installed." />
 
+<event name="EN_BUST_2_5V_FAULT" hex="0E830002" type="BCT"
+       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_EXP" dup="0"
+       msg="BEM +2.5V Fault." />
+
 <event name="EN_CUTOFF_LO_FAULT_3_35V" hex="08032880" type="BC"
        severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_MMACT" dup="0"
        msg="System shutoff due to +3.3v under voltage." />
@@ -2380,10 +2416,6 @@
 <event name="EN_BLADE_3_NO_PWR_VPD" hex="0E00E003" type="BC"
        severity="SAHPI_CRITICAL" override="OVR_SEV" dup="0"
        msg="Can not read power-on VPD for blade 3." />
-
-<event name="EN_BUST_2_5V_FAULT" hex="0E830002" type="BCT"
-       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_EXP" dup="0"
-       msg="BEM +2.5V Fault." />
 
 <event name="EN_BLADE_D_INSTALLED" hex="0E00200D" type="BC"
        severity="SAHPI_INFORMATIONAL" override="OVR_SEV | OVR_RID" dup="0"
@@ -2901,6 +2933,10 @@
        severity="SAHPI_INFORMATIONAL" override="OVR_SEV" dup="0"
        msg="Blade Server Powered Down" />
 
+<event name="EN_PFA_LO_FAULT_VRM2" hex="04401802" type="BCT"
+       severity="SAHPI_MAJOR" override="OVR_SEV" dup="0"
+       msg="System is under recommended voltage on VRM 2." />
+
 <event name="EN_PFA_HI_FAULT_1_2V" hex="08001401" type="RSA"
        severity="SAHPI_MAJOR" override="OVR_SEV" dup="0"
        msg="System over recommended voltage on +1.2v." />
@@ -3117,13 +3153,13 @@
        severity="SAHPI_INFORMATIONAL" override="OVR_SEV | OVR_RID" dup="0"
        msg="I/O module 4 was instructed to power off." />
 
-<event name="EN_BLADE_5_CFG_FAIL" hex="0E006005" type="BC"
-       severity="SAHPI_CRITICAL" override="OVR_SEV" dup="0"
-       msg="Blade Server 5 is incompatible with I/O module configuration." />
-
 <event name="EN_BUST_2_5V_WARNING_HI" hex="0E830402" type="BCT"
        severity="SAHPI_MAJOR" override="OVR_SEV | OVR_EXP" dup="0"
        msg="BEM +2.5V over recommended voltage." />
+
+<event name="EN_BLADE_5_CFG_FAIL" hex="0E006005" type="BC"
+       severity="SAHPI_CRITICAL" override="OVR_SEV" dup="0"
+       msg="Blade Server 5 is incompatible with I/O module configuration." />
 
 <event name="EN_CUTOFF_LO_FAULT_12V_PLANAR" hex="06036800" type="RSA"
        severity="SAHPI_CRITICAL" override="OVR_SEV" dup="0"
@@ -3180,6 +3216,10 @@
 <event name="EN_FAULT_PS3_DC_GOOD" hex="08028003" type="BC"
        severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_RID" dup="0"
        msg="Power Supply 3 DC Good Fault" />
+
+<event name="EN_PFA_HI_FAULT_VRM2" hex="04401502" type="BC"
+       severity="SAHPI_MAJOR" override="OVR_SEV" dup="0"
+       msg="System is over recommended voltage on VRM 2." />
 
 <event name="EN_FAULT_PS2_12V_OVER" hex="08236482" type="BCT"
        severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_RID" dup="0"
@@ -3629,6 +3669,10 @@
        severity="SAHPI_CRITICAL" override="OVR_SEV" dup="0"
        msg="Can not read power-on VPD for blade 4." />
 
+<event name="EN_FAULT_DASD1_SCSI_ID_2" hex="06801002" type="BC"
+       severity="SAHPI_CRITICAL" override="OVR_SEV | OVR_EXP" dup="0"
+       msg="Hard Drive Fault (SCSI ID 2)" />
+
 <event name="EN_BLADE_6_NO_MGT_VPD" hex="0E010006" type="BCT"
        severity="SAHPI_MAJOR" override="OVR_SEV" dup="0"
        msg="Can not read VPD for blade 6 management." />
@@ -3752,6 +3796,10 @@
 <event name="EN_PFA_HI_FAULT_3_35V_CONT" hex="0002D400" type="RSA"
        severity="SAHPI_MAJOR" override="OVR_SEV" dup="0"
        msg="Continuous 3.3V over recommended value." />
+
+<event name="EN_PFA_HI_FAULT_VRM1" hex="04401501" type="BCT"
+       severity="SAHPI_MAJOR" override="OVR_SEV" dup="0"
+       msg="System is over recommended voltage on VRM 1." />
 
 <event name="EN_BLADE_4_INSTALLED" hex="0E002004" type="BCT"
        severity="SAHPI_INFORMATIONAL" override="OVR_SEV | OVR_RID" dup="0"
