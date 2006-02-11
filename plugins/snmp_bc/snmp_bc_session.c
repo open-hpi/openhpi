@@ -34,6 +34,11 @@ void *snmp_bc_open(GHashTable *handler_config)
         struct snmp_bc_hnd *custom_handle;
         char *hostname, *version, *sec_level, *authtype, *user, *pass, *community;
         char *root_tuple;
+	
+	if (!handler_config) {
+                dbg("INVALID PARM - NULL handler_config pointer.");
+                return NULL;	
+	}
 
         if (!handler_config) {
                 dbg("Invalid parm - NULL handler_config.\n");
@@ -279,13 +284,13 @@ void *snmp_bc_open(GHashTable *handler_config)
  **/
 void snmp_bc_close(void *hnd)
 {
+	
+	if (!hnd) {
+                dbg("INVALID PARM - NULL handle pointer.");
+                return;	
+	}
 
-        if (!hnd) {
-                dbg("Invalid parm - NULL handle.\n");
-                return;
-        }
-
-        struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
+	struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
         oh_el_close(handle->elcache);
 
 	if (is_simulator()) {
