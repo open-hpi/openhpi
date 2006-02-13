@@ -107,7 +107,12 @@ SaErrorT rtas_discover_sensors(struct oh_handler_state *handle,
 			       struct oh_event *parent_res_event)
 
 {
-	int file, sensor_num = 0;
+	FILE *file = NULL;
+	struct sensor_pair {
+		SaHpiUint32T token;
+		SaHpiUint32T max_index;
+	} chunk;
+	int sensor_num = 0;
         //char err_buf[SAHPI_MAX_TEXT_BUFFER_LENGTH];
 	SaHpiUint32T token, max_index, index = 0;
 	SaHpiInt32T val, state;
@@ -121,8 +126,11 @@ SaErrorT rtas_discover_sensors(struct oh_handler_state *handle,
 	}	
 	
 	/* open the binary file and read the indexes */
-	file = open(RTAS_SENSORS_PATH, O_RDONLY);
-	
+	file = fopen(RTAS_SENSORS_PATH, "r");
+	if (!file) {
+                dbg("Error reading RTAS sensor file %s.", RTAS_SENSORS_PATH);
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
 	/* The rtas-sensors file is layed out in the following fashion :
 	 * 
 	 * 	32-bit-integer-token 32-bit-integer-index ...
@@ -133,15 +141,9 @@ SaErrorT rtas_discover_sensors(struct oh_handler_state *handle,
 	 * token.  This process repeats until we've reached EOL. 
 	 * Note, sensor indices are not necessarily contiguous.
 	 */
-	while (read(file, (char *)&token, 
-	                     sizeof(SaHpiUint32T)) == sizeof(SaHpiUint32T)) {
-		
-		if (read(file, (char *)&max_index, 
-		             sizeof(SaHpiUint32T)) != sizeof(SaHpiUint32T));
-			{
-				return SA_ERR_HPI_INTERNAL_ERROR;
-			}
-	
+	while (fread(&chunk, sizeof(struct sensor_pair), 1, file) == 1) {
+                token = chunk.token;
+                max_index = chunk.max_index;
 		        
 		/* Make sure we didn't get bogus tokens */
 		if (    token != RTAS_RESERVED_SENSOR_2  &&
@@ -252,12 +254,13 @@ SaErrorT rtas_discover_sensors(struct oh_handler_state *handle,
 	
 					oh_add_rdr(handle->rptcache, parent_res_event->u.res_event.entry.ResourceId,
 					           &(event->u.rdr_event.rdr), sensor_info, 0);
+					handle->eventq = g_slist_append(handle->eventq, event);
 				}	
 			}
 		}
 	}
 	
-	close(file);
+	fclose(file);
 	
 	return SA_OK;
 }	
