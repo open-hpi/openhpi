@@ -1641,6 +1641,10 @@ SaErrorT ohoi_del_idr_area(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid,
 	}
 	fru = ohoi_res_info->fru;
 	g_mutex_lock(fru->mutex);
+	if (areaid == SAHPI_FIRST_ENTRY) {
+		areaid = get_first_area(ohoi_res_info,
+				SAHPI_IDR_AREATYPE_UNSPECIFIED);
+	}
 	if (!get_area_presence(fru, areaid)) {
 		g_mutex_unlock(fru->mutex);
 		return SA_ERR_HPI_NOT_PRESENT;
