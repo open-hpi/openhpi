@@ -2060,12 +2060,20 @@ SaErrorT ohoi_set_idr_field(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid,
 	}
 	if (mf.rv != SA_OK) {
 		dbg("ohoi_set_idr_field failed. rv = %d", mf.rv);
-	} else {
-		fru->update_count++;
+		g_mutex_unlock (fru->mutex);
+		return mf.rv;
+		
 	}
-	g_mutex_unlock (fru->mutex);
-	if (mf.rv == SA_OK) {
-		switch (get_areatype_by_id(field->AreaId, fru)) {
+	ret = ohoi_fru_write(handler->data,
+				ohoi_res_info->u.entity.entity_id);
+	if (ret != SA_OK) {
+		dbg("Couldn't write up updated field %d of area %d",
+				field->FieldId, field->AreaId);
+		g_mutex_unlock (fru->mutex);
+		return ret;
+	}
+
+	switch (get_areatype_by_id(field->AreaId, fru)) {
 		case SAHPI_IDR_AREATYPE_CHASSIS_INFO :
 			fru->ci_fld_msk |= (1 << field->Type);
 			break;
@@ -2079,9 +2087,11 @@ SaErrorT ohoi_set_idr_field(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid,
 			dbg("area 0x%x doesn't permit fields modification",
 				get_areatype_by_id(field->AreaId, fru));
 			break;
-		}
 	}
-	return mf.rv; 
+
+	fru->update_count++;
+	g_mutex_unlock (fru->mutex);
+	return SA_OK; 
 
 }
 
@@ -2255,7 +2265,7 @@ SaErrorT ohoi_del_idr_field(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid,
 	}
 
 	g_mutex_unlock(fru->mutex);
-	return df.rv; 
+	return ret; 
 
 }
  
@@ -2688,6 +2698,7 @@ SaErrorT ohoi_fru_write(struct ohoi_handler	*ipmi_handler,
 	SaErrorT	rv;
 	
 	if (!ipmi_handler->real_write_fru) {
+		dbg("No real FRU write. Real FRU write isn't set");
 		return SA_OK;
 	}
 	

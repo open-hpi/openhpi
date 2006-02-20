@@ -199,11 +199,13 @@ int entity_presence(ipmi_entity_t		*entity,
 		} else {
 			dbg("Out of memory");
 		}
+#if 0
         	while (SA_OK == oh_remove_rdr(handler->rptcache, rid,
 							SAHPI_FIRST_ENTRY));
 		ohoi_delete_rpt_fru(res_info);
 		res_info->type = OHOI_RESOURCE_ENTITY;
 		// XXX free inventory area memory
+#endif
 	}
 
 	g_static_rec_mutex_unlock(&ipmi_handler->ohoih_lock);

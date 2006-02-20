@@ -136,12 +136,13 @@ typedef struct ohoi_entity_s {
 
 struct ohoi_resource_info {
 	  	
-  	int presence;	/* entity presence from OpenIPMI to determine
+  	unsigned char presence;	/* entity presence from OpenIPMI to determine
 			   	to push RPT to domain RPTable or not */
-	int updated;	/* refcount of resource add/update from
+	unsigned char updated;	/* refcount of resource add/update from
 			   	rptcache to domain RPT */
-	int deleted;	/* entity must be deleled after event of removing
+	unsigned char deleted;	/* entity must be deleled after event of removing
 				RPT has been sent to domain */
+	unsigned char hs_mark;  /* to handle properly M3->M6->M1 ATCA transition */
 	SaHpiUint8T  sensor_count; 
         SaHpiUint8T  ctrl_count; 
 
@@ -479,7 +480,12 @@ SaErrorT ohoi_get_rdr_data(const struct oh_handler_state *handler,
                            SaHpiRdrTypeT                 type,
                            SaHpiSensorNumT               num,
                            void                          **pdata);
-
+int ohoi_delete_orig_sensor_rdr(struct oh_handler_state *handler,
+			   SaHpiRptEntryT *rpt,
+			   ipmi_sensor_id_t *mysid);
+int ohoi_delete_orig_control_rdr(struct oh_handler_state *handler,
+			   SaHpiRptEntryT *rpt,
+			   ipmi_control_id_t *mycid);
 typedef int (*rpt_loop_handler_cb)(
 			     struct oh_handler_state *handler,
 			     SaHpiRptEntryT *rpt,
@@ -495,6 +501,10 @@ typedef int (*rdr_loop_handler_cb)(
 void ohoi_iterate_rpt_rdrs(struct oh_handler_state *handler,
 			   SaHpiRptEntryT *rpt,
 			   rdr_loop_handler_cb func, void *cb_data);
+int ohoi_rpt_has_controls(struct oh_handler_state *handler,
+                         SaHpiResourceIdT rid);
+int ohoi_rpt_has_sensors(struct oh_handler_state *handler,
+                         SaHpiResourceIdT rid);
 
 SaErrorT ohoi_get_idr_info(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid, SaHpiIdrInfoT *idrinfo);
 SaErrorT ohoi_get_idr_area_header(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid, SaHpiIdrAreaTypeT areatype,
@@ -527,6 +537,7 @@ SaErrorT ohoi_request_hotswap_action(void *hnd, SaHpiResourceIdT id,
 
 SaErrorT ohoi_get_indicator_state(void *hnd, SaHpiResourceIdT id, 
                                   SaHpiHsIndicatorStateT *state);
+SaErrorT ohoi_hotswap_policy_cancel(void *hnd, SaHpiResourceIdT rid);
 
 SaErrorT ohoi_set_indicator_state(void *hnd, SaHpiResourceIdT id, 
 				  SaHpiHsIndicatorStateT state);
@@ -587,6 +598,8 @@ SaErrorT ohoi_fru_write(struct ohoi_handler	*ipmi_handler,
 		/* ATCA-HPI mapping functions */
 		
 void ohoi_atca_create_fru_rdrs(struct oh_handler_state *handler);
+void ohoi_atca_delete_fru_rdrs(struct oh_handler_state *handler,
+                             ipmi_mcid_t mcid);
 				
 SaHpiUint8T ohoi_atca_led_to_hpi_color(int ipmi_color);
 int ohoi_atca_led_to_ipmi_color(SaHpiUint8T c);

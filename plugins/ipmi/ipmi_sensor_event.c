@@ -592,6 +592,12 @@ static void add_sensor_event_data_format(ipmi_sensor_t		*sensor,
 	double accur = 0;
 	double fval = 0;
 
+	
+	if (ipmi_sensor_get_event_reading_type(sensor) != 
+				IPMI_EVENT_READING_TYPE_THRESHOLD) {
+		rec->DataFormat.IsSupported = SAHPI_FALSE;
+		return;
+	}
 	rec->DataFormat.IsSupported = SAHPI_TRUE;
 	
 	rec->DataFormat.ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64;
@@ -1081,13 +1087,27 @@ void ohoi_sensor_event(enum ipmi_update_e op,
 			break;
 		case IPMI_DELETED:
 			trace_ipmi_sensors("DELELE", sid);
+			if (ohoi_delete_orig_sensor_rdr(handler,
+							rpt_entry, &sid)) {
+				// no more sensors for rpt
+				rpt_entry->ResourceCapabilities &=
+				 ~SAHPI_CAPABILITY_SENSOR;
+			}
+			if ((oh_get_rdr_next(handler->rptcache,
+					 rpt_entry->ResourceId,
+					 SAHPI_FIRST_ENTRY) == NULL) &&
+					 (res_info->fru == NULL)) {
+				// no more rdrs for rpt
+				rpt_entry->ResourceCapabilities &=
+				 ~SAHPI_CAPABILITY_RDR; 
+			}
 			/* We don't do anything, if the entity is gone
 			   infrastructre deletes the RDRs automatically
 			*/
 			break;
 	}
 	trace_ipmi("Set updated for resource %d . Sensor", rpt_entry->ResourceId);
-	entity_rpt_set_updated(res_info, handler->data);
+	entity_rpt_set_updated(res_info, ipmi_handler);
 	g_static_rec_mutex_unlock(&ipmi_handler->ohoih_lock);
 }
 

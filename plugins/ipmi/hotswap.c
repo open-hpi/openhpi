@@ -79,6 +79,57 @@ enum ipmi_hot_swap_states _hpi_to_ipmi_state_conv(SaHpiHsStateT hpi_state)
         return state;
 }
 
+
+
+static SaHpiSeverityT get_severity(enum ipmi_hot_swap_states prev,
+                                   enum ipmi_hot_swap_states curr,
+                                   SaHpiRptEntryT  *rpt,
+				   struct ohoi_resource_info   *res_info)
+{
+	unsigned char hs_mark = 0;
+	
+	if (res_info) {
+		hs_mark = res_info->hs_mark;
+		res_info->hs_mark = 0;
+	}
+	if ((prev == IPMI_HOT_SWAP_ACTIVATION_IN_PROGRESS) &&
+			(curr == IPMI_HOT_SWAP_INACTIVE)) {
+		return rpt->ResourceSeverity;
+	}
+	if ((prev != IPMI_HOT_SWAP_INACTIVE) &&
+			(curr == IPMI_HOT_SWAP_NOT_PRESENT)) {
+		return rpt->ResourceSeverity;
+	}
+	if (hs_mark && (prev == IPMI_HOT_SWAP_DEACTIVATION_IN_PROGRESS) &&
+			(curr == IPMI_HOT_SWAP_INACTIVE)) {
+		return rpt->ResourceSeverity;
+	}
+	return SAHPI_INFORMATIONAL;
+}
+	
+
+static unsigned char _ipmi_to_hpi_cause_of_change_conv(unsigned char cause)
+{
+	switch (cause) {
+		case 0x00: return 0;
+		case 0x03: return 1;
+		case 0x02: return 2;
+		case 0x07: return 3;
+		case 0x09: return 4;
+		case 0x06: return 5;
+		case 0x08: return 6;
+		case 0x0f:
+		default:   return 7;
+	}
+}
+
+
+
+
+
+
+
+
 int ohoi_hot_swap_cb(ipmi_entity_t  *ent,
 		     enum ipmi_hot_swap_states last_state,
                      enum ipmi_hot_swap_states curr_state,
@@ -86,9 +137,11 @@ int ohoi_hot_swap_cb(ipmi_entity_t  *ent,
 		     ipmi_event_t              *event)
 {
 	struct oh_handler_state *handler =  (struct oh_handler_state*)cb_data;
-	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)ipmi_handler;
+	struct ohoi_handler *ipmi_handler =
+					(struct ohoi_handler *)handler->data;
 	ipmi_entity_id_t entity_id;
 	SaHpiRptEntryT  *rpt_entry;
+        struct ohoi_resource_info   *res_info;
 	struct oh_event  *e;
 
 #if 0
@@ -124,6 +177,14 @@ printf("\n");
 		dbg(" No rpt\n");
 		return IPMI_EVENT_HANDLED;
 	}
+        res_info = oh_get_resource_data(handler->rptcache, rpt_entry->ResourceId);
+	if ((last_state == IPMI_HOT_SWAP_ACTIVATION_IN_PROGRESS) &&
+			(curr_state == IPMI_HOT_SWAP_DEACTIVATION_IN_PROGRESS)) {
+		if (res_info) {
+			res_info->hs_mark = 1;
+		}
+		return IPMI_EVENT_HANDLED;
+	}
 	e = malloc(sizeof(*e));
 	if (!e) {
 		dbg("Out of space");
@@ -137,17 +198,6 @@ printf("\n");
 			(last_state != IPMI_HOT_SWAP_NOT_PRESENT)) {
 		// special case. connection to entity lost
 		rpt_entry->ResourceFailed = SAHPI_TRUE;
-#if 0
-		e->type = OH_ET_RESOURCE;
-                memcpy(&e->u.res_event.entry, rpt_entry,
-                        sizeof(SaHpiRptEntryT));
-                handler->eventq = g_slist_append(handler->eventq, e);
-		e = malloc(sizeof(*e));
-		if (!e) {
-			dbg("Out of space");
-			return IPMI_EVENT_NOT_HANDLED;
-		}
-#endif
 		e->type = OH_ET_HPI;
 		e->u.hpi_event.event.EventType = SAHPI_ET_RESOURCE;
 		e->u.hpi_event.event.Severity = rpt_entry->ResourceSeverity;
@@ -203,15 +253,10 @@ printf("\n");
 	e->type = OH_ET_HPI;
 	e->u.hpi_event.event.Source = rpt_entry->ResourceId;
 	e->u.hpi_event.event.EventType = SAHPI_ET_HOTSWAP;
-	/* Real severity is in the sensor event and not
-	 * in the hotswap (presence) event itself
-	 * We should ignore this but will set to SAHPI_INFORMATIONAL
-	 */
-	e->u.hpi_event.event.Severity = SAHPI_INFORMATIONAL;
+	e->u.hpi_event.event.Severity = get_severity(last_state, curr_state,
+						rpt_entry, res_info);
 
-	/* FIXME: Possible bug with OpenIPMI, event is always NULL so we don't get 
-	 * timestamp?? 
-	 */
+
 	if (event != NULL) {
 	      	e->u.hpi_event.event.Timestamp =
 		    (SaHpiTimeT)ipmi_event_get_timestamp(event);
@@ -247,7 +292,51 @@ printf("\n");
 	  	handler->eventq = g_slist_append(handler->eventq, e);
 	}
 //	oh_wake_event_thread(0);
+	if (!IS_ATCA(ipmi_handler->d_type) || !event) {
+		return IPMI_EVENT_HANDLED;
+	}
+
+	unsigned char	data[IPMI_EVENT_DATA_MAX_LEN];
+	unsigned int	dt_len;
+
+	dt_len = ipmi_event_get_data(event, data, 0, IPMI_EVENT_DATA_MAX_LEN);
+	if (dt_len < 12) {
+		dbg("event data len (%d) too short", dt_len);
+		return IPMI_EVENT_HANDLED;
+	}
+
+	e = malloc(sizeof(*e));
+	if (!e) {
+		dbg("Out of space");
+		return IPMI_EVENT_HANDLED;
+	}
+	memset(e, 0, sizeof(*e));
+
+	e->type = OH_ET_HPI;
+	e->u.hpi_event.event.Source = rpt_entry->ResourceId;
+	e->u.hpi_event.event.Timestamp =
+		    (SaHpiTimeT)ipmi_event_get_timestamp(event);
+	e->u.hpi_event.event.Severity = SAHPI_INFORMATIONAL;
+	e->u.hpi_event.event.EventType = SAHPI_ET_OEM;
+	e->u.hpi_event.event.EventDataUnion.OemEvent.MId =
+						ATCAHPI_PICMG_MID;
+	e->u.hpi_event.event.EventDataUnion.OemEvent.OemEventData.DataType =
+					SAHPI_TL_TYPE_TEXT;
+	e->u.hpi_event.event.EventDataUnion.OemEvent.OemEventData.Language =
+					SAHPI_LANG_UNDEF;
+	e->u.hpi_event.event.EventDataUnion.OemEvent.OemEventData.DataLength =
+									 3;
+	e->u.hpi_event.event.EventDataUnion.OemEvent.OemEventData.Data[0] =
+					_ipmi_to_hpi_state_conv(curr_state);
+	e->u.hpi_event.event.EventDataUnion.OemEvent.OemEventData.Data[1] =
+					_ipmi_to_hpi_state_conv(last_state);
+	e->u.hpi_event.event.EventDataUnion.OemEvent.OemEventData.Data[3] =
+			_ipmi_to_hpi_cause_of_change_conv(data[11] >> 4);
+
+	handler->eventq = g_slist_append(handler->eventq, e);
+
 	return IPMI_EVENT_HANDLED;
+	
 }
 
 
@@ -647,6 +736,30 @@ SaErrorT ohoi_get_indicator_state(void *hnd, SaHpiResourceIdT id,
 }
 
 
+SaErrorT ohoi_hotswap_policy_cancel(void *hnd, SaHpiResourceIdT rid)
+{
+	struct oh_handler_state         *handler = hnd;
+	struct ohoi_handler *ipmi_handler = handler->data;
+	struct ohoi_control_info	*ctrl_info;
+	SaErrorT rv;
+
+	if (!IS_ATCA(ipmi_handler->d_type)) {
+		return SA_OK;
+	}
+        rv = ohoi_get_rdr_data(hnd, rid, SAHPI_CTRL_RDR,
+		ATCAHPI_CTRL_NUM_FRU_ACTIVATION, (void *)&ctrl_info);
+
+	if (rv == SA_OK) {
+		dbg("NO FRU Activation Control");
+		return SA_ERR_HPI_INVALID_REQUEST;
+	}
+	if (ctrl_info->mode == SAHPI_CTRL_MODE_AUTO) {
+		return SA_ERR_HPI_INVALID_REQUEST;
+	}
+	return SA_OK;
+}
+
+
 
 void * oh_get_hotswap_state (void *, SaHpiResourceIdT, SaHpiHsStateT *)
                 __attribute__ ((weak, alias("ohoi_get_hotswap_state")));
@@ -664,4 +777,8 @@ void * oh_get_indicator_state (void *, SaHpiResourceIdT,
 void * oh_set_indicator_state (void *, SaHpiResourceIdT,
                                SaHpiHsIndicatorStateT)
                 __attribute__ ((weak, alias("ohoi_set_indicator_state")));
+void * oh_hotswap_policy_cancel (void *, SaHpiResourceIdT)
+                __attribute__ ((weak, alias("ohoi_hotswap_policy_cancel")));
+
+
 

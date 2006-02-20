@@ -270,6 +270,12 @@ void ohoi_inventory_event(enum ipmi_update_e    op,
 		add_inventory_event(res_info, entity, handler, rpt_entry);
 	} else if (op == IPMI_DELETED) {
 		trace_ipmi_fru("DELETED", entity);
+		ohoi_delete_rpt_fru(res_info);
+		rpt_entry->ResourceCapabilities &= ~SAHPI_CAPABILITY_INVENTORY_DATA;
+		if (oh_get_rdr_next(handler->rptcache, rpt_entry->ResourceId,
+					 SAHPI_FIRST_ENTRY) == NULL) {
+			rpt_entry->ResourceCapabilities &= ~SAHPI_CAPABILITY_RDR;
+		}
 	}
 	trace_ipmi("Set updated for res_info %p(%d). Inventory",
 		res_info, rpt_entry->ResourceId);

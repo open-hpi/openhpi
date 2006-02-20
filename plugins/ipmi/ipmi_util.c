@@ -228,5 +228,139 @@ void ohoi_iterate_rpt_rdrs(struct oh_handler_state *handler,
 	return;
 }
 
-
+int ohoi_delete_orig_sensor_rdr(struct oh_handler_state *handler,
+			   SaHpiRptEntryT *rpt,
+			   ipmi_sensor_id_t *mysid)
+{
+	SaHpiRdrT *rdr;
+	SaHpiRdrT *rdr_todelete = NULL;
+	RPTable *table = handler->rptcache;
+	ipmi_sensor_id_t *sid;
+	struct ohoi_sensor_info *s_info;
+	int more_sensors = 0;
+	
+	rdr = oh_get_rdr_next(table, rpt->ResourceId, SAHPI_FIRST_ENTRY);
         
+	while (rdr) {
+		if (rdr_todelete && more_sensors) {
+			break;
+		}
+		if (rdr->RdrType != SAHPI_SENSOR_RDR) {
+			goto next_rdr;
+		}
+		s_info = oh_get_rdr_data(table, rpt->ResourceId,
+							rdr->RecordId);
+		if (!s_info) {
+			dbg("s_info == NULL");
+			goto next_rdr;
+		}
+		if (rdr_todelete) {
+			more_sensors = 1;
+			break;
+		}
+		if (s_info->type == OHOI_SENSOR_ATCA_MAPPED) {
+			more_sensors = 1;
+			goto next_rdr;
+		}
+
+		sid = &s_info->info.orig_sensor_info.sensor_id;
+		if (!ipmi_cmp_sensor_id(*mysid, *sid)) {
+			rdr_todelete = rdr;
+			goto next_rdr;
+		}
+next_rdr:
+		rdr = oh_get_rdr_next(table, rpt->ResourceId, rdr->RecordId);
+	}
+	if (rdr_todelete) {
+		oh_remove_rdr(table, rpt->ResourceId, rdr_todelete->RecordId);
+	} else {
+		dbg("Sensor %d for rpt %d not deleted", mysid->sensor_num, rpt->ResourceId);
+	}
+	return !more_sensors;
+}
+
+
+
+int ohoi_delete_orig_control_rdr(struct oh_handler_state *handler,
+			   SaHpiRptEntryT *rpt,
+			   ipmi_control_id_t *mycid)
+{
+	SaHpiRdrT *rdr;
+	SaHpiRdrT *rdr_todelete = NULL;
+	RPTable *table = handler->rptcache;
+	ipmi_control_id_t *cid;
+	struct ohoi_control_info *c_info;
+	int more_controls = 0;
+	
+	rdr = oh_get_rdr_next(table, rpt->ResourceId, SAHPI_FIRST_ENTRY);
+        
+	while (rdr) {
+		if (rdr->RdrType != SAHPI_CTRL_RDR) {
+			goto next_rdr;
+		}
+		c_info = oh_get_rdr_data(table, rpt->ResourceId,
+							rdr->RecordId);
+		if (!c_info) {
+			dbg("c_info == NULL");
+			goto next_rdr;
+		}
+		if (c_info->type == OHOI_CTRL_ATCA_MAPPED) {
+			more_controls = 1;
+			goto next_rdr;
+		}
+
+		cid = &c_info->info.orig_ctrl_info.ctrl_id;
+		if (!ipmi_cmp_control_id(*mycid, *cid)) {
+			rdr_todelete = rdr;
+			goto next_rdr;
+		}
+		more_controls = 1;
+next_rdr:
+	
+		rdr = oh_get_rdr_next(table, rpt->ResourceId, rdr->RecordId);
+		if (rdr_todelete) {
+			oh_remove_rdr(table, rpt->ResourceId, rdr_todelete->RecordId);
+			rdr_todelete = NULL;
+		}
+		// can be more than one control with the same cid. don't break
+		
+	}
+	return !more_controls;
+}
+
+int ohoi_rpt_has_sensors(struct oh_handler_state *handler,
+                         SaHpiResourceIdT rid)
+{
+	SaHpiRdrT *rdr;
+	RPTable *table = handler->rptcache;
+	
+	rdr = oh_get_rdr_next(table, rid, SAHPI_FIRST_ENTRY);
+        
+	while (rdr) {
+		if (rdr->RdrType == SAHPI_SENSOR_RDR) {
+			return 1;
+		}
+		rdr = oh_get_rdr_next(table, rid, rdr->RecordId);
+	}
+	return 0;
+}
+
+
+
+int ohoi_rpt_has_controls(struct oh_handler_state *handler,
+                         SaHpiResourceIdT rid)
+{
+	SaHpiRdrT *rdr;
+	RPTable *table = handler->rptcache;
+	
+	rdr = oh_get_rdr_next(table, rid, SAHPI_FIRST_ENTRY);
+        
+	while (rdr) {
+		if (rdr->RdrType == SAHPI_CTRL_RDR) {
+			return 1;
+		}
+		rdr = oh_get_rdr_next(table, rid, rdr->RecordId);
+	}
+	return 0;
+}
+

@@ -2117,4 +2117,112 @@ void ohoi_atca_create_fru_rdrs(struct oh_handler_state *handler)
 	ohoi_iterate_rptcache(handler, fru_rdrs_rpt_iterator, NULL);
 }
 
+void ohoi_atca_delete_fru_rdrs(struct oh_handler_state *handler,
+                             ipmi_mcid_t mcid)
+{
+	SaHpiRptEntryT *rpt;
+	struct ohoi_resource_info *res_info;
+	SaHpiRdrT *rdr;
+	SaHpiSensorNumT num;
+
+	rpt = ohoi_get_resource_by_mcid(handler->rptcache, &mcid);
+	if (rpt == NULL) {
+		dbg("Can't delete mc rdrs. rpt == NULL");
+		return;
+	}
+	res_info = oh_get_resource_data(handler->rptcache,
+                                             rpt->ResourceId);
+	if (res_info == NULL) {
+		dbg("res_info == NULL");
+		return;
+	}
+	
+	// Delete FRU Management Controller Reset Control
+	if (!(res_info->type & OHOI_MC_RESET_CONTROL_CREATED)) {
+		goto no_reset_control;
+	}
+	rdr = oh_get_rdr_by_type(handler->rptcache, rpt->ResourceId,
+			SAHPI_CTRL_RDR, ATCAHPI_CTRL_NUM_FRU_IPMC_RESET);
+	if (rdr) {
+		oh_remove_rdr(handler->rptcache, rpt->ResourceId,
+							rdr->RecordId);
+	} else {
+		dbg("No rdr for FRU Management Controller Reset Control");
+	}
+	res_info ->type &= ~OHOI_MC_RESET_CONTROL_CREATED;
+	
+no_reset_control:
+	if (!(res_info->type & OHOI_MC_IPMB0_CONTROL_CREATED)) {
+		goto no_ipmb0_controls;
+	}
+	rdr = oh_get_rdr_by_type(handler->rptcache, rpt->ResourceId,
+			SAHPI_CTRL_RDR, ATCAHPI_CTRL_NUM_IPMB_A_STATE);
+	if (rdr) {
+		oh_remove_rdr(handler->rptcache, rpt->ResourceId,
+							rdr->RecordId);
+	} else {
+		dbg("No rdr for ATCAHPI_CTRL_NUM_IPMB_A_STATE");
+	}
+	rdr = oh_get_rdr_by_type(handler->rptcache, rpt->ResourceId,
+			SAHPI_CTRL_RDR, ATCAHPI_CTRL_NUM_IPMB_B_STATE);
+	if (rdr) {
+		oh_remove_rdr(handler->rptcache, rpt->ResourceId,
+							rdr->RecordId);
+	} else {
+		dbg("No rdr for ATCAHPI_CTRL_NUM_IPMB_B_STATE");
+	}
+	for (num = ATCAHPI_SENSOR_NUM_IPMB0;
+			num < ATCAHPI_SENSOR_NUM_IPMB0 + 0x5F; num++) {
+		rdr = oh_get_rdr_by_type(handler->rptcache, rpt->ResourceId,
+						SAHPI_SENSOR_RDR, num);
+		if (rdr) {
+			oh_remove_rdr(handler->rptcache, rpt->ResourceId,
+							rdr->RecordId);
+		}
+	}
+	res_info ->type &= ~OHOI_MC_IPMB0_CONTROL_CREATED;
+
+no_ipmb0_controls:
+	if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
+		goto no_fru_control;
+	}
+
+	rdr = oh_get_rdr_by_type(handler->rptcache, rpt->ResourceId,
+			SAHPI_CTRL_RDR, ATCAHPI_CTRL_NUM_DESIRED_PWR);
+	if (rdr) {
+		oh_remove_rdr(handler->rptcache, rpt->ResourceId,
+							rdr->RecordId);
+	} else {
+		dbg("No rdr for ATCAHPI_CTRL_NUM_DESIRED_PWR");
+	}
+
+	rdr = oh_get_rdr_by_type(handler->rptcache, rpt->ResourceId,
+			SAHPI_CTRL_RDR, ATCAHPI_CTRL_NUM_FRU_CONTROL);
+	if (rdr) {
+		oh_remove_rdr(handler->rptcache, rpt->ResourceId,
+							rdr->RecordId);
+	} else {
+		dbg("No rdr for ATCAHPI_CTRL_NUM_FRU_CONTROL");
+	}
+
+no_fru_control:
+	if (!ohoi_rpt_has_sensors(handler, rpt->ResourceId)) {
+		rpt->ResourceCapabilities &= SAHPI_CAPABILITY_SENSOR;
+	}
+	if (!ohoi_rpt_has_controls(handler, rpt->ResourceId)) {
+		rpt->ResourceCapabilities &= SAHPI_CAPABILITY_CONTROL;
+	}
+	if ((oh_get_rdr_next(handler->rptcache, rpt->ResourceId,
+					 SAHPI_FIRST_ENTRY) == NULL) &&
+					 (res_info->fru == NULL)) {
+		// no more rdrs for rpt
+		rpt->ResourceCapabilities &= ~SAHPI_CAPABILITY_RDR; 
+	}
+	entity_rpt_set_updated(res_info, handler->data);
+}
+
+
+
+
+
 
