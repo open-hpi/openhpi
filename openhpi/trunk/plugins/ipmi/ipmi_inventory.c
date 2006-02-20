@@ -722,7 +722,7 @@ static int field_present(struct ohoi_inventory_info *fru,
 		return ((1 << (area->fields[fieldid - 1].fieldtype)) & msk);
 		//return (msk & (1 << (fieldid -1)));
 	}
-	return (fieldid < cust_num + OHOI_FIELD_NUM(area));
+	return (fieldid <= cust_num + OHOI_FIELD_NUM(area));
 }
 
 static void unset_area_presence(struct ohoi_inventory_info *i_info,
