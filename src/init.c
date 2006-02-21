@@ -74,7 +74,7 @@ int _init(void)
         /* Create first domain */
         oh_init_textbuffer(&tag);
         oh_append_textbuffer(&tag,"First Domain");
-        if (!oh_create_domain(capabilities, &tag)) {
+        if (!oh_create_domain(capabilities, SAHPI_TIMEOUT_IMMEDIATE, &tag)) {
                 data_access_unlock();
                 dbg("Could not create first domain!");
                 return SA_ERR_HPI_ERROR;

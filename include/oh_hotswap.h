@@ -21,6 +21,7 @@
 #include <SaHpi.h>
 #include <glib.h>
 #include <oh_event.h>
+#include <oh_domain.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -55,8 +56,8 @@ int hotswap_push_event(GSList **hs_eq, struct oh_event *e);
 int hotswap_pop_event(GSList **hs_eq, struct oh_event *e);
 int hotswap_has_event(GSList *hs_eq);
 
-SaHpiTimeoutT get_hotswap_auto_insert_timeout(void);
-void set_hotswap_auto_insert_timeout(SaHpiTimeoutT);
+SaHpiTimeoutT get_hotswap_auto_insert_timeout(struct oh_domain *domain);
+void set_hotswap_auto_insert_timeout(struct oh_domain *domain, SaHpiTimeoutT t);
 SaHpiTimeoutT get_default_hotswap_auto_extract_timeout(void);
 void set_default_hotswap_auto_extract_timeout(SaHpiTimeoutT to);
 SaHpiBoolT oh_allowed_hotswap_transition(SaHpiHsStateT from, SaHpiHsStateT to);

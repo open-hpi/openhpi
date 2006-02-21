@@ -80,6 +80,7 @@ struct oh_domain {
 
         /* Domain Information */
         SaHpiDomainCapabilitiesT capabilities;
+        SaHpiTimeoutT     ai_timeout;
         SaHpiBoolT        is_peer;
         SaHpiTextBufferT  tag;
         SaHpiGuidT        guid;
@@ -95,6 +96,7 @@ struct oh_domain {
 
 SaHpiDomainIdT oh_get_default_domain_id(void);
 SaHpiDomainIdT oh_create_domain(SaHpiDomainCapabilitiesT capabilities,
+                                SaHpiTimeoutT aitimeout,
                                 SaHpiTextBufferT *tag);
 SaErrorT oh_destroy_domain(SaHpiDomainIdT did);
 struct oh_domain *oh_get_domain(SaHpiDomainIdT did);
@@ -104,6 +106,13 @@ GArray *oh_list_domains(void);
 SaHpiDomainIdT oh_request_new_domain(unsigned int hid,
                                     SaHpiTextBufferT *tag,
                                     SaHpiDomainCapabilitiesT capabilities,
+                                    SaHpiDomainIdT pdid,
+                                    SaHpiDomainIdT bdid);
+SaHpiDomainIdT oh_request_new_domain_aitimeout(
+                                    unsigned int hid,
+                                    SaHpiTextBufferT *tag,
+                                    SaHpiDomainCapabilitiesT capabilities,
+                                    SaHpiTimeoutT aitimeout,
                                     SaHpiDomainIdT pdid,
                                     SaHpiDomainIdT bdid);
 SaErrorT oh_request_domain_delete(unsigned int hid,
