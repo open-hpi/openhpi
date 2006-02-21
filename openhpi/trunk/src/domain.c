@@ -373,6 +373,7 @@ SaHpiDomainIdT oh_get_default_domain_id()
  * Returns: Domain id of newly created domain, or 0 if failed to create.
  **/
 SaHpiDomainIdT oh_create_domain(SaHpiDomainCapabilitiesT capabilities,
+                                SaHpiTimeoutT   aitimeout,
                                 SaHpiTextBufferT *tag)
 {
         struct oh_domain *domain = NULL;
@@ -384,6 +385,7 @@ SaHpiDomainIdT oh_create_domain(SaHpiDomainCapabilitiesT capabilities,
         if (!domain) return 0;
 
         domain->capabilities = capabilities;
+        domain->ai_timeout = aitimeout;
         domain->is_peer = SAHPI_FALSE;
         oh_init_rpt(&(domain->rpt));
 
@@ -553,6 +555,17 @@ GArray *oh_list_domains()
         return domain_ids;
 }
 
+
+SaHpiDomainIdT oh_request_new_domain(unsigned int hid,
+                                     SaHpiTextBufferT *tag,
+                                     SaHpiDomainCapabilitiesT capabilities,
+                                     SaHpiDomainIdT pdid,
+                                     SaHpiDomainIdT bdid)
+{
+         return oh_request_new_domain_aitimeout(hid, tag, capabilities,
+                           SAHPI_TIMEOUT_IMMEDIATE, pdid, bdid);
+}
+
 /**
  * oh_request_new_domain
  * @hid: a handler id that is requesting the domain
@@ -566,11 +579,14 @@ GArray *oh_list_domains()
  *
  * Returns: domain id of new domain requested, or 0 if an error ocurred.
  **/
-SaHpiDomainIdT oh_request_new_domain(unsigned int hid,
-                                     SaHpiTextBufferT *tag,
-                                     SaHpiDomainCapabilitiesT capabilities,
-                                     SaHpiDomainIdT pdid,
-                                     SaHpiDomainIdT bdid)
+SaHpiDomainIdT oh_request_new_domain_aitimeout(
+                                    unsigned int hid,
+                                    SaHpiTextBufferT *tag,
+                                    SaHpiDomainCapabilitiesT capabilities,
+                                    SaHpiTimeoutT aitimeout,
+                                    SaHpiDomainIdT pdid,
+                                    SaHpiDomainIdT bdid)
+
 {
         SaHpiDomainIdT did = 0;
 
@@ -583,7 +599,7 @@ SaHpiDomainIdT oh_request_new_domain(unsigned int hid,
                 pdid = oh_get_default_domain_id();
         }
 
-        did = oh_create_domain(capabilities, tag);
+        did = oh_create_domain(capabilities, aitimeout, tag);
         if (did == 0) {
                 dbg("New domain request failed.");
                 return 0;

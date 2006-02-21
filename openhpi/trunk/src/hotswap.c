@@ -105,8 +105,8 @@ void process_hotswap_policy()
                 oh_gettimeofday(&cur);
                 if (event->EventDataUnion.HotSwapEvent.HotSwapState ==
                     SAHPI_HS_STATE_INSERTION_PENDING) {
-                        if (get_hotswap_auto_insert_timeout() != SAHPI_TIMEOUT_BLOCK) {
-                                est = event->Timestamp + get_hotswap_auto_insert_timeout();
+                        if (get_hotswap_auto_insert_timeout(domain) != SAHPI_TIMEOUT_BLOCK) {
+                                est = event->Timestamp + get_hotswap_auto_insert_timeout(domain);
                                 if (cur>=est) {
                                         handler->abi->set_hotswap_state(handler->hnd,
                                                                         rptentry->ResourceId,
@@ -208,16 +208,16 @@ int hotswap_has_event(GSList *hs_eq)
         return (hs_eq == NULL) ? 0 : 1;
 }
 
-static SaHpiTimeoutT hotswap_auto_insert_timeout = 0;
 
-SaHpiTimeoutT get_hotswap_auto_insert_timeout(void)
+SaHpiTimeoutT get_hotswap_auto_insert_timeout(struct oh_domain *domain)
 {
-        return hotswap_auto_insert_timeout;
+        return domain->ai_timeout;
 }
 
-void set_hotswap_auto_insert_timeout(SaHpiTimeoutT to)
+void set_hotswap_auto_insert_timeout(struct oh_domain *domain,
+                                     SaHpiTimeoutT to)
 {
-        hotswap_auto_insert_timeout = to;
+        domain->ai_timeout = to;
 }
 
 

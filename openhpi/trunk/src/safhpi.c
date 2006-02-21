@@ -3589,6 +3589,7 @@ SaErrorT SAHPI_API saHpiAutoInsertTimeoutGet(
 {
 
         SaHpiDomainIdT did;
+        struct oh_domain *domain;
 
         if (!Timeout) {
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -3596,8 +3597,14 @@ SaErrorT SAHPI_API saHpiAutoInsertTimeoutGet(
 
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
+        domain = oh_get_domain(did);
+        if (domain == NULL) {
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
 
-        *Timeout = get_hotswap_auto_insert_timeout();
+        *Timeout = get_hotswap_auto_insert_timeout(domain);
+
+        oh_release_domain(domain);
 
         return SA_OK;
 }
@@ -3607,6 +3614,7 @@ SaErrorT SAHPI_API saHpiAutoInsertTimeoutSet(
         SAHPI_IN SaHpiTimeoutT   Timeout)
 {
         SaHpiDomainIdT did;
+        struct oh_domain *domain;
 
         if (Timeout != SAHPI_TIMEOUT_IMMEDIATE &&
             Timeout != SAHPI_TIMEOUT_BLOCK &&
@@ -3615,8 +3623,18 @@ SaErrorT SAHPI_API saHpiAutoInsertTimeoutSet(
 
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
+        domain = oh_get_domain(did);
+        if (domain == NULL) {
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
 
-        set_hotswap_auto_insert_timeout(Timeout);
+        if (domain->capabilities & SAHPI_DOMAIN_CAP_AUTOINSERT_READ_ONLY) {
+                return SA_ERR_HPI_READ_ONLY;
+        }
+        
+        set_hotswap_auto_insert_timeout(domain, Timeout);
+        
+        oh_release_domain(domain);
 
         return SA_OK;
 }
