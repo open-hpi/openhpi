@@ -1,11 +1,11 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2003, 2005
+ * (C) Copyright IBM Corp. 2003, 2006
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
- * file and program are licensed under a BSD style license.  See
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. This
+ * file and program are licensed under a BSD style license. See
  * the Copying file included with the OpenHPI distribution for
  * full licensing terms.
  *
@@ -17,43 +17,43 @@
 
 /**************************************************************************
  * This header file stubs resource and RDR static infomation that are used
- * in constructing RPT and RDR for IBM's BladeCenter - models Integrated
- * and Telco and IBM's RSA (Integrated and separate adapter models).
+ * in constructing RPTs and RDRs for IBM's BladeCenter, BladeCenter T, and
+ * RSA (Integrated and separate adapter models).
  *
- * The BladeCenter Integrated model has the following entity hierarchy:
+ * BladeCenter has the following entity hierarchy:
  *
  *  {CHASSIS,X}
  *      |
- *      +-- {SYS_MGMNT_MODULE,[1-2]} (Management Module)
+ *      +-- {SYS_MGMNT_MODULE,[1-2]}    (Management Module)
  *      |
- *      +-- {INTERCONNECT,[1-4]}     (Switch Module)
+ *      +-- {INTERCONNECT,[1-4]}        (Switch Module)
  *      |
- *      +-- {SBC_BLADE,[1-14]}       (Blade)
+ *      +-- {SBC_BLADE,[1-14]}          (Blade)
  *      |   |
  *      |   +-- {EXPANSION_CARD,[1-14]} (Blade expansion card (BSE card))
- *      |                            (Expansion card number match's)
- *      |                            (it's parent blade's number)
+ *      |                               (Expansion card number match's)
+ *      |                               (it's parent blade's number)
  *      |
- *      +-- {PERIPHERAL_BAY,1}       (Control Panel/Media Tray)
+ *      +-- {PERIPHERAL_BAY,1}          (Control Panel/Media Tray)
  *      |
- *      +-- {POWER_SUPPLY,[1-4]}     (Power Module)
+ *      +-- {POWER_SUPPLY,[1-4]}        (Power Module)
  *      |
- *      +-- {FAN,[1-2]}              (Blower Module)
+ *      +-- {FAN,[1-2]}                 (Blower Module)
  *
- * BladeCenter Telco has the same hierarchy and number of devices except:
+ * BladeCenter T has the same hierarchy and number of devices except:
  *
- *   - Telco supports 4 blower modules (instead of 2)
- *   - Telco supports 8 blades (instead of 14)
+ *   - BCT supports 4 blower modules (instead of 2)
+ *   - BCT supports 8 blades (instead of 14)
  *
  * The RSA Integrated model has the following entity hierarchy:
  *
  *  {CHASSIS,X}
  *      |
- *      +-- {PROCESSOR,[1-8]}        (CPUs)
+ *      +-- {PROCESSOR,[1-8]} (CPUs)
  *      |
- *      +-- {DISK_BAY,[1-4]}         (DASDs)
+ *      +-- {DISK_BAY,[1-4]}  (DASDs)
  *      |
- *      +-- {FAN,[1-8]}              (Fans)
+ *      +-- {FAN,[1-8]}       (Fans)
  *
  * Differences between the models are discovered dynamically by this
  * plugin at run-time during resource discovery.
@@ -68,9 +68,7 @@
 /* An invalid snmp_bc index */
 #define SNMP_BC_NOT_VALID 0xFF
 
-/* IBM Manufacturing Number */
-/* #define IBM_MANUFACTURING_ID 2 - designation in vpd using IANA number*/
-/* Modular Blade Server 20944 */
+/* IBM Manufacturing Number - Use IANA number for "Modular Blade Server" */
 #define IBM_MANUFACTURING_ID 20944
 
 /* Maximum OID string length */
@@ -117,29 +115,30 @@ typedef enum {
 #define BC_EL_MAX_SIZE 768 /* 512 */
 
 /* OID definitions for discovering resources.*/
-#define SNMP_BC_BLADE_VECTOR        ".1.3.6.1.4.1.2.3.51.2.2.5.2.49.0"
+#define SNMP_BC_BLADE_VECTOR            ".1.3.6.1.4.1.2.3.51.2.2.5.2.49.0"
 #define SNMP_BC_BLADE_EXPANSION_VECTOR  ".1.3.6.1.4.1.2.3.51.2.22.1.5.1.1.14.x"
-#define SNMP_BC_FAN_VECTOR          ".1.3.6.1.4.1.2.3.51.2.2.5.2.73.0"
-#define SNMP_BC_MGMNT_VECTOR        ".1.3.6.1.4.1.2.3.51.2.22.4.30.0"
-#define SNMP_BC_MGMNT_ACTIVE        ".1.3.6.1.4.1.2.3.51.2.22.4.34.0"
-#define SNMP_BC_MEDIATRAY_EXISTS    ".1.3.6.1.4.1.2.3.51.2.2.5.2.74.0"
-#define SNMP_BC_POWER_VECTOR        ".1.3.6.1.4.1.2.3.51.2.2.5.2.89.0"
-#define SNMP_BC_SWITCH_VECTOR       ".1.3.6.1.4.1.2.3.51.2.2.5.2.113.0"
-#define SNMP_BC_DST                 ".1.3.6.1.4.1.2.3.51.2.4.4.2.0"
-#define SNMP_BC_DST_RSA             ".1.3.6.1.4.1.2.3.51.1.4.4.2.0"
-#define SNMP_BC_CPU_OID_RSA         ".1.3.6.1.4.1.2.3.51.1.2.20.1.5.1.1.3.x"
-#define SNMP_BC_DASD_OID_RSA        ".1.3.6.1.4.1.2.3.51.1.2.20.1.6.1.1.3.x"
-#define SNMP_BC_FAN_OID_RSA         ".1.3.6.1.4.1.2.3.51.1.2.3.x.0"
+#define SNMP_BC_FAN_VECTOR              ".1.3.6.1.4.1.2.3.51.2.2.5.2.73.0"
+#define SNMP_BC_MGMNT_VECTOR            ".1.3.6.1.4.1.2.3.51.2.22.4.30.0"
+#define SNMP_BC_MGMNT_ACTIVE            ".1.3.6.1.4.1.2.3.51.2.22.4.34.0"
+#define SNMP_BC_MEDIATRAY_EXISTS        ".1.3.6.1.4.1.2.3.51.2.2.5.2.74.0"
+#define SNMP_BC_POWER_VECTOR            ".1.3.6.1.4.1.2.3.51.2.2.5.2.89.0"
+#define SNMP_BC_SWITCH_VECTOR           ".1.3.6.1.4.1.2.3.51.2.2.5.2.113.0"
+#define SNMP_BC_DST                     ".1.3.6.1.4.1.2.3.51.2.4.4.2.0"
+
+#define SNMP_BC_DST_RSA                 ".1.3.6.1.4.1.2.3.51.1.4.4.2.0"
+#define SNMP_BC_CPU_OID_RSA             ".1.3.6.1.4.1.2.3.51.1.2.20.1.5.1.1.3.x"
+#define SNMP_BC_DASD_OID_RSA            ".1.3.6.1.4.1.2.3.51.1.2.20.1.6.1.1.3.x"
+#define SNMP_BC_FAN_OID_RSA             ".1.3.6.1.4.1.2.3.51.1.2.3.x.0"
 
 /* OID definitions for System Event Log */
-#define SNMP_BC_DATETIME_OID      ".1.3.6.1.4.1.2.3.51.2.4.4.1.0"
-#define SNMP_BC_DATETIME_OID_RSA  ".1.3.6.1.4.1.2.3.51.1.4.4.1.0"
-#define SNMP_BC_SEL_INDEX_OID     ".1.3.6.1.4.1.2.3.51.2.3.4.2.1.1"
-#define SNMP_BC_SEL_INDEX_OID_RSA ".1.3.6.1.4.1.2.3.51.1.3.4.2.1.1"
-#define SNMP_BC_SEL_ENTRY_OID     ".1.3.6.1.4.1.2.3.51.2.3.4.2.1.2"
-#define SNMP_BC_SEL_ENTRY_OID_RSA ".1.3.6.1.4.1.2.3.51.1.3.4.2.1.2"
-#define SNMP_BC_SEL_CLEAR_OID     ".1.3.6.1.4.1.2.3.51.2.3.4.3.0"
-#define SNMP_BC_SEL_CLEAR_OID_RSA ".1.3.6.1.4.1.2.3.51.1.3.4.3.0"
+#define SNMP_BC_DATETIME_OID            ".1.3.6.1.4.1.2.3.51.2.4.4.1.0"
+#define SNMP_BC_DATETIME_OID_RSA        ".1.3.6.1.4.1.2.3.51.1.4.4.1.0"
+#define SNMP_BC_SEL_INDEX_OID           ".1.3.6.1.4.1.2.3.51.2.3.4.2.1.1"
+#define SNMP_BC_SEL_INDEX_OID_RSA       ".1.3.6.1.4.1.2.3.51.1.3.4.2.1.1"
+#define SNMP_BC_SEL_ENTRY_OID           ".1.3.6.1.4.1.2.3.51.2.3.4.2.1.2"
+#define SNMP_BC_SEL_ENTRY_OID_RSA       ".1.3.6.1.4.1.2.3.51.1.3.4.2.1.2"
+#define SNMP_BC_SEL_CLEAR_OID           ".1.3.6.1.4.1.2.3.51.2.3.4.3.0"
+#define SNMP_BC_SEL_CLEAR_OID_RSA       ".1.3.6.1.4.1.2.3.51.1.3.4.3.0"
 
 /**********************
  * Resource Definitions
@@ -154,9 +153,10 @@ struct ResourceMibInfo {
 	const char *OidUuid;
 };
 
+/* SNMP_BC_MAX_RESOURCE_EVENT_ARRAY_SIZE includes an ending NULL entry */
 #define SNMP_BC_MAX_EVENTS_PER_RESOURCE 10
-#define SNMP_BC_MAX_RESOURCE_EVENT_ARRAY_SIZE  (SNMP_BC_MAX_EVENTS_PER_RESOURCE + 1)
-                                       /* Includes an ending NULL entry */
+#define SNMP_BC_MAX_RESOURCE_EVENT_ARRAY_SIZE (SNMP_BC_MAX_EVENTS_PER_RESOURCE + 1) 
+
 struct res_event_map {
         char *event;
 	SaHpiBoolT event_res_failure;
@@ -218,10 +218,9 @@ struct SensorMibInfo {
 	struct SnmpSensorWritableThresholdOids threshold_write_oids;
 };
 
+/*  Size definitions include an ending NULL entry */
 #define SNMP_BC_MAX_EVENTS_PER_SENSOR 24
 #define SNMP_BC_MAX_READING_MAPS_PER_SENSOR 3
-
-/* Includes an ending NULL entry */
 #define SNMP_BC_MAX_SENSOR_EVENT_ARRAY_SIZE  (SNMP_BC_MAX_EVENTS_PER_SENSOR + 1)
 #define SNMP_BC_MAX_SENSOR_READING_MAP_ARRAY_SIZE (SNMP_BC_MAX_READING_MAPS_PER_SENSOR + 1)
 
@@ -245,7 +244,7 @@ struct sensor_reading_map {
 struct SensorInfo {
         struct SensorMibInfo mib;
         SaHpiEventStateT cur_state; /* This really records the last state read from the SEL */
-	                            /* Which probably isn't the current state of the sensor */
+	                            /* Which may not be the current state of the sensor */
 	SaHpiBoolT sensor_enabled;
 	SaHpiBoolT events_enabled;
         SaHpiEventStateT assert_mask;
@@ -254,9 +253,11 @@ struct SensorInfo {
 	struct sensor_reading_map reading2event[SNMP_BC_MAX_SENSOR_READING_MAP_ARRAY_SIZE];
 };
 
+/* Usually sensor.Num = index in snmp_bc_resources.c. But to support HPI-defined
+   sensor numbers (e.g. aggregate sensors), they can be different. sensor.Num 
+   supports the HPI sensor number while index is used to search through the 
+   plugin's sensor definition arrays */
 struct snmp_bc_sensor {
-        /* Usually sensor.Num = index; index is used to search thru sensor arrays. It allows
-           sensor.Num to be independent from array index (e.g. for aggregate sensors) */
 	int index;
         SaHpiSensorRecT sensor;
         struct SensorInfo sensor_info;
@@ -268,21 +269,21 @@ struct snmp_bc_ipmi_sensor {
 	struct snmp_bc_sensor ipmi;
 };
 
-extern struct snmp_bc_sensor snmp_bc_chassis_sensors[];
-extern struct snmp_bc_sensor snmp_bc_chassis_sensors_bct[];
-extern struct snmp_bc_sensor snmp_bc_blade_sensors[];
+extern struct snmp_bc_sensor      snmp_bc_chassis_sensors[];
+extern struct snmp_bc_sensor      snmp_bc_chassis_sensors_bct[];
+extern struct snmp_bc_sensor      snmp_bc_blade_sensors[];
 extern struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[];
-extern struct snmp_bc_sensor snmp_bc_blade_expansion_sensors[];
-extern struct snmp_bc_sensor snmp_bc_mgmnt_sensors[];
-extern struct snmp_bc_sensor snmp_bc_mediatray_sensors[];
-extern struct snmp_bc_sensor snmp_bc_fan_sensors[];
-extern struct snmp_bc_sensor snmp_bc_power_sensors[];
-extern struct snmp_bc_sensor snmp_bc_switch_sensors[];
+extern struct snmp_bc_sensor      snmp_bc_blade_expansion_sensors[];
+extern struct snmp_bc_sensor      snmp_bc_mgmnt_sensors[];
+extern struct snmp_bc_sensor      snmp_bc_mediatray_sensors[];
+extern struct snmp_bc_sensor      snmp_bc_fan_sensors[];
+extern struct snmp_bc_sensor      snmp_bc_power_sensors[];
+extern struct snmp_bc_sensor      snmp_bc_switch_sensors[];
 
-extern struct snmp_bc_sensor snmp_bc_chassis_sensors_rsa[];
-extern struct snmp_bc_sensor snmp_bc_cpu_sensors_rsa[];
-extern struct snmp_bc_sensor snmp_bc_dasd_sensors_rsa[];
-extern struct snmp_bc_sensor snmp_bc_fan_sensors_rsa[];
+extern struct snmp_bc_sensor      snmp_bc_chassis_sensors_rsa[];
+extern struct snmp_bc_sensor      snmp_bc_cpu_sensors_rsa[];
+extern struct snmp_bc_sensor      snmp_bc_dasd_sensors_rsa[];
+extern struct snmp_bc_sensor      snmp_bc_fan_sensors_rsa[];
 
 /*********************
  * Control Definitions
@@ -290,7 +291,7 @@ extern struct snmp_bc_sensor snmp_bc_fan_sensors_rsa[];
 
 struct ControlMibInfo {
         unsigned int not_avail_indicator_num; /* 0 for none, n>0 otherwise */
-        int write_only; /* Write-only SNMP command; 0 no; 1 yes  */
+        int write_only; /* Write-only SNMP command; 0 no; 1 yes */
         const char *oid;
 };
 

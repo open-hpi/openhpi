@@ -836,8 +836,8 @@ static SaErrorT snmp_bc_parse_threshold_str(gchar *str,
  *
  * Overwrites normal severity, if sensor is of type SAHPI_EC_THRESHOLD or
  * SAHPI_EC_SEVERITY. If event is not one of these types, this routine 
- * checks to see if its an unexpected resource failure event. 
- * If it is, then the resource's severity (user writable) is used.
+ * checks to see if it's an unexpected resource failure event.
+ * If it is, the resource's severity (user writable) is used.
  *
  * Return values:
  * SA_OK - Normal case.
