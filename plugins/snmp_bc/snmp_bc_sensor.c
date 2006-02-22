@@ -223,37 +223,37 @@ SaErrorT snmp_bc_get_sensor_eventstate(void *hnd,
 		}
 		if (thres.LowCritical.IsSupported == SAHPI_TRUE) {
 			if (oh_compare_sensorreading(reading->Type, reading, &thres.LowCritical) <= 0) {
-				*state = SAHPI_ES_LOWER_CRIT | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_MINOR;
+				*state = *state | SAHPI_ES_LOWER_CRIT;
 				return(SA_OK);
 			}
 		}
 		if (thres.LowMajor.IsSupported == SAHPI_TRUE) {
 			if (oh_compare_sensorreading(reading->Type, reading, &thres.LowMajor) <= 0) {
-				*state = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_MINOR;
+				*state = *state | SAHPI_ES_LOWER_MAJOR;
 				return(SA_OK);
 			}
 		}
 		if (thres.LowMinor.IsSupported == SAHPI_TRUE) {
 			if (oh_compare_sensorreading(reading->Type, reading, &thres.LowMinor) <= 0) {
-				*state = SAHPI_ES_LOWER_MINOR;
+				*state = *state | SAHPI_ES_LOWER_MINOR;
 				return(SA_OK);
 			}
 		}
 		if (thres.UpCritical.IsSupported == SAHPI_TRUE) {
 			if (oh_compare_sensorreading(reading->Type, reading, &thres.UpCritical) >= 0) {
-				*state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR;
+				*state = *state | SAHPI_ES_UPPER_CRIT;
 				return(SA_OK);
 			}
 		}
 		if (thres.UpMajor.IsSupported == SAHPI_TRUE) {
 			if (oh_compare_sensorreading(reading->Type, reading, &thres.UpMajor) >= 0) {
-				*state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR;
+				*state = *state | SAHPI_ES_UPPER_MAJOR;
 				return(SA_OK);
 			}
 		}
 		if (thres.UpMinor.IsSupported == SAHPI_TRUE) {		
 			if (oh_compare_sensorreading(reading->Type, reading, &thres.UpMinor) >= 0) {
-				*state = SAHPI_ES_UPPER_MINOR;
+				*state = *state | SAHPI_ES_UPPER_MINOR;
 				return(SA_OK);
 			}
 		}

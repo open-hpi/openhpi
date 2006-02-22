@@ -149,8 +149,8 @@ int main(int argc, char **argv)
 	      (logentry.Event.EventDataUnion.SensorEvent.SensorType == SAHPI_VOLTAGE) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.Assertion == SAHPI_TRUE) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_CRIT) &&
-	      (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MAJOR) &&
-	      (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MINOR) &&
+	      (!(logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MAJOR)) &&
+	      (!(logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MINOR)) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.PreviousState == SAHPI_ES_UNSPECIFIED) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.CurrentState == SAHPI_ES_UNSPECIFIED) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.TriggerReading.Value.SensorFloat64 == (double)3.5) &&
@@ -191,8 +191,8 @@ int main(int argc, char **argv)
 	      (logentry.Event.EventDataUnion.SensorEvent.SensorType == SAHPI_VOLTAGE) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.Assertion == SAHPI_FALSE) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_CRIT) &&
-	      (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MAJOR) &&
-	      (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MINOR) &&
+	      (!(logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MAJOR)) &&
+	      (!(logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MINOR)) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.PreviousState == SAHPI_ES_UNSPECIFIED) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.CurrentState == SAHPI_ES_UNSPECIFIED) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.TriggerReading.Value.SensorFloat64 == (double)3.5) &&
@@ -243,12 +243,12 @@ int main(int argc, char **argv)
 	      (logentry.Event.EventDataUnion.SensorEvent.SensorType == SAHPI_VOLTAGE) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.Assertion == SAHPI_TRUE) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_CRIT) &&
-	      (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MAJOR) &&
-	      (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MINOR) &&
+	      (!(logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MAJOR)) &&
+	      (!(logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MINOR)) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.PreviousState == SAHPI_ES_UNSPECIFIED) &&
 	      (!(logentry.Event.EventDataUnion.SensorEvent.CurrentState & SAHPI_ES_LOWER_CRIT)) &&
-	      (logentry.Event.EventDataUnion.SensorEvent.CurrentState & SAHPI_ES_LOWER_MINOR) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.CurrentState & SAHPI_ES_LOWER_MAJOR) &&      
+	      (!(logentry.Event.EventDataUnion.SensorEvent.CurrentState & SAHPI_ES_LOWER_MINOR)) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.TriggerReading.Value.SensorFloat64 == (double)3.5) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.TriggerThreshold.Value.SensorFloat64 == (double)3.4))) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
@@ -306,14 +306,14 @@ int main(int argc, char **argv)
 	      (logentry.Event.EventDataUnion.SensorEvent.SensorType == SAHPI_VOLTAGE) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.Assertion == SAHPI_TRUE) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_CRIT) &&
-	      (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MAJOR) &&
-	      (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MINOR) &&
+	      (!(logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MAJOR)) &&
+	      (!(logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MINOR)) &&
 	      (!(logentry.Event.EventDataUnion.SensorEvent.PreviousState & SAHPI_ES_LOWER_CRIT)) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.PreviousState & SAHPI_ES_LOWER_MAJOR) &&
-	      (logentry.Event.EventDataUnion.SensorEvent.PreviousState & SAHPI_ES_LOWER_MINOR) &&
+	      (!(logentry.Event.EventDataUnion.SensorEvent.PreviousState & SAHPI_ES_LOWER_MINOR)) &&
 	      (!(logentry.Event.EventDataUnion.SensorEvent.CurrentState & SAHPI_ES_UPPER_CRIT)) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.CurrentState & SAHPI_ES_UPPER_MAJOR) &&
-	      (logentry.Event.EventDataUnion.SensorEvent.CurrentState & SAHPI_ES_UPPER_MINOR) &&
+	      (!(logentry.Event.EventDataUnion.SensorEvent.CurrentState & SAHPI_ES_UPPER_MINOR)) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.TriggerReading.Value.SensorFloat64 == (double)3.5) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.TriggerThreshold.Value.SensorFloat64 == (double)3.4))) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
@@ -362,10 +362,10 @@ int main(int argc, char **argv)
 	      (logentry.Event.EventDataUnion.SensorEvent.Assertion == SAHPI_TRUE) &&
 	      (!(logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_CRIT)) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MAJOR) &&
-	      (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MINOR) &&
+	      (!(logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MINOR)) &&
 	      (!(logentry.Event.EventDataUnion.SensorEvent.PreviousState & SAHPI_ES_UPPER_CRIT)) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.PreviousState & SAHPI_ES_UPPER_MAJOR) &&
-	      (logentry.Event.EventDataUnion.SensorEvent.PreviousState & SAHPI_ES_UPPER_MINOR) &&
+	      (!(logentry.Event.EventDataUnion.SensorEvent.PreviousState & SAHPI_ES_UPPER_MINOR)) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.CurrentState == SAHPI_ES_UNSPECIFIED) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.TriggerReading.Value.SensorFloat64 == (double)3.5) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.TriggerThreshold.Value.SensorFloat64 == (double)3.4))) {
@@ -406,7 +406,7 @@ int main(int argc, char **argv)
 	      (logentry.Event.EventDataUnion.SensorEvent.Assertion == SAHPI_TRUE) &&
 	      (!(logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_CRIT)) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MAJOR) &&
-	      (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MINOR) &&
+	      (!(logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MINOR)) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.PreviousState == SAHPI_ES_UNSPECIFIED) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.CurrentState == SAHPI_ES_UNSPECIFIED) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.TriggerReading.Value.SensorFloat64 == (double)3.5) &&
@@ -457,7 +457,7 @@ int main(int argc, char **argv)
 	      (logentry.Event.EventDataUnion.SensorEvent.Assertion == SAHPI_TRUE) &&
 	      (!(logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_CRIT)) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MAJOR) &&
-	      (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MINOR) &&
+	      (!(logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MINOR)) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.PreviousState == SAHPI_ES_UNSPECIFIED) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.CurrentState == SAHPI_ES_UNSPECIFIED))) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
@@ -506,11 +506,11 @@ int main(int argc, char **argv)
 	      (logentry.Event.EventDataUnion.SensorEvent.Assertion == SAHPI_TRUE) &&
 	      (!(logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_CRIT)) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MAJOR) &&
-	      (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MINOR) &&
+	      (!(logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MINOR)) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.PreviousState == SAHPI_ES_UNSPECIFIED) &&
 	      (!(logentry.Event.EventDataUnion.SensorEvent.CurrentState & SAHPI_ES_UPPER_CRIT)) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.CurrentState & SAHPI_ES_UPPER_MAJOR) &&
-	      (logentry.Event.EventDataUnion.SensorEvent.CurrentState & SAHPI_ES_UPPER_MINOR))) {
+	      (!(logentry.Event.EventDataUnion.SensorEvent.CurrentState & SAHPI_ES_UPPER_MINOR)))) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		oh_print_event(&(logentry.Event), 1);
 		return -1;
@@ -579,7 +579,7 @@ int main(int argc, char **argv)
 	      (logentry.Event.EventDataUnion.SensorEvent.Assertion == SAHPI_TRUE) &&
 	      (!(logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_CRIT)) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MAJOR) &&
-	      (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MINOR) &&
+	      (!(logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MINOR)) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.PreviousState == SAHPI_ES_UNSPECIFIED) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.CurrentState == SAHPI_ES_UNSPECIFIED) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.TriggerReading.Value.SensorFloat64 == (double)87) &&
@@ -863,9 +863,9 @@ int main(int argc, char **argv)
 	      (logentry.Event.EventDataUnion.SensorEvent.SensorType == SAHPI_VOLTAGE) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.Assertion == SAHPI_TRUE) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_CRIT) &&
-	      (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MAJOR) &&
-	      (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MINOR) &&
-	      (logentry.Event.EventDataUnion.SensorEvent.PreviousState == SAHPI_ES_UNSPECIFIED) &&
+	      (!(logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MAJOR)) &&
+	      (!(logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MINOR) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.PreviousState == SAHPI_ES_UNSPECIFIED)) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.CurrentState == SAHPI_ES_UNSPECIFIED) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.TriggerReading.Value.SensorFloat64 == (double)0) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.TriggerThreshold.Value.SensorFloat64 == (double)0) )) {
