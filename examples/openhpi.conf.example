@@ -127,6 +127,11 @@ handler libdummy {
 #        passphrase = "opensesame" # Version 3. Required if security_level is authNoPriv or authPriv.
 #        auth_type = "MD5" # Version 3. Passphrase encoding (MD5|SHA)
 #        security_level = "noAuthNoPriv" # Version 3. (noAuthNoPriv|authNoPriv|authPriv)
+#        count_per_getbulk = "xx"   # Version 3 Optional. With Version 3, we use SNMP_MSG_GETBULK for performance.
+#				    # This variable sets the MAX OIDs per MSG_GETBULK.
+#                                   # Lower limit is set by OpenHPI/snmp_bc at 10.
+#				    # Upper limit is set by target snmp agent. Depends on BladeCenter 
+#				    # Management Module code load, this upper limit is either 32 or 96.
 #}
 
 ## Section for static dummy plugin:
@@ -136,7 +141,7 @@ handler libdummy {
 ## It is possible to use dummy and libdummy
 ## at the same time.
 #handler dummy {
-#        entity_root = "{SYSTEM_CHASSIS,5}"
+#        entity_root = "{SYSTEMk_CHASSIS,5}"
 #        name = "test"
 #        addr = 2
 #}
