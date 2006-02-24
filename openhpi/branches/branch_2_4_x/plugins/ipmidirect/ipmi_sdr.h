@@ -150,7 +150,7 @@ private:
                         tReadRecord &err, unsigned int lun );
   GList *CreateFullSensorRecords( cIpmiSdr *sdr );
 
-  SaErrorT Reserve();
+  SaErrorT Reserve(unsigned int lun);
   int GetInfo( unsigned short &working_num_sdrs );
 
 public:
