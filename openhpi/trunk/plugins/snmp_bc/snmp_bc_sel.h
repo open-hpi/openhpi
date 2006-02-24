@@ -71,5 +71,8 @@ SaErrorT snmp_bc_sel_state_set(void      *hnd,
                 		SaHpiResourceIdT   id, 
                 		SaHpiBoolT         enable);
 
+SaErrorT snmp_bc_bulk_selcache(	struct oh_handler_state *handle,
+				SaHpiResourceIdT id);
+
 			       
 #endif

@@ -33,6 +33,8 @@ struct snmp_bc_hnd {
 	void   *sessp;			/* Opaque pointer, not a pointer to struct snmp_session */
         struct snmp_session session;
         struct snmp_session *ss; 	/* SNMP Session pointer */
+	int    count_per_getbulk;       /* For performance, GETBULK is used with snmpV3. */
+					/* This value indicates max OIDs per GETBULK request */
 	GHashTable *event2hpi_hash_ptr; /* Global "Event Number to HPI Event" hash table */
 	int   platform;
 	int   active_mm;                /* Used for duplicate event RID override */
