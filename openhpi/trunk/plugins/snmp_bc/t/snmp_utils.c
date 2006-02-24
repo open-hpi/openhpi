@@ -76,3 +76,14 @@ int snmp_set(void *sessp, char *objid, struct snmp_value value)
 
 	return 0;
 }
+
+int snmp_getn_bulk( void *sessp,
+                    oid *bulk_objid,
+                    size_t bulk_objid_len,
+                    struct snmp_pdu *bulk_pdu,
+                    struct snmp_pdu **bulk_response,
+                    int num_repetitions )
+{
+	return 0;
+
+}
