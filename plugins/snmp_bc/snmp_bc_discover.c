@@ -222,7 +222,7 @@ SaErrorT snmp_bc_discover_resources(void *hnd)
 		/* only log the error.  Do not do any recovery because log entries */
 		/* are still kept in bc mm.  We'll pick them up during synch.      */
 		/* --------------------------------------------------------------- */
-		dbg("snmp_bc_discover, Error %s when building elcache.\n", oh_lookup_error(err1));
+		trace("snmp_bc_discover, Error %s when building elcache.\n", oh_lookup_error(err1));
 	}
 	
 	if (custom_handle->first_discovery == SAHPI_FALSE)
