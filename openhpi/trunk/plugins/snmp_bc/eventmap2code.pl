@@ -1,17 +1,25 @@
 #!/usr/bin/perl
 
 ##################################################################
-# (C) COPYRIGHT IBM Corp 2004
+# (C) COPYRIGHT IBM Corp 2004, 2006
 #
 #  This program is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
-#  file and program are licensed under a BSD style license.  See
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. This
+#  file and program are licensed under a BSD style license. See
 #  the Copying file included with the OpenHPI distribution for
 #  full licensing terms.
 #
 #  Author(s):
 #       Steve Sherman <stevees@us.ibm.com>
+###################################################################
+
+###################################################################
+# NOTE!! Parallel make had problems with generated header files. To
+# get around this, the code in this script that generates the
+# header files has been commented out. Instead the header files have
+# been checked into CVS. The HPI_DEF in snmp_bc_event.map have also
+# been commented out.
 ###################################################################
 
 ###################################################################
@@ -66,16 +74,16 @@ use strict;
 use Getopt::Long;
 
 sub check4dups($$$);
-sub print_h_file_header;
-sub print_h_file_ending;
+#sub print_h_file_header;
+#sub print_h_file_ending;
 sub print_c_file_header;
 sub print_c_file_ending;
 sub print_c_file_hash_member($);
 sub print_xml_file_header;
 sub print_xml_file_ending;
 sub print_xml_file_hash_member($);
-sub print_err_hfile_header;
-sub print_err_hfile_ending;
+#sub print_err_hfile_header;
+#sub print_err_hfile_ending;
 
 GetOptions(
   "debug"         => \my $debug,
@@ -101,35 +109,37 @@ if ($odir eq "") {
    $odir = `pwd`;
    chomp $odir;
 }
-my $oerror_hfile = "el.h";
-my $oevent_hfile = "el2event.h";
+
 my $oevent_cfile = "el2event.c";
+#my $oerror_hfile = "el.h";
+#my $oevent_hfile = "el2event.h";
 
 if ($xml) {
     $oevent_cfile = "event.xml";
 }
 
 my $file_c = $odir . "/$oevent_cfile";
-my $file_h = $odir . "/$oevent_hfile";
-my $file_err_h = $odir . "/$oerror_hfile";
+#my $file_err_h = $odir . "/$oerror_hfile";
+#my $file_h = $odir . "/$oevent_hfile";
+
 unlink $file_c;
-unlink $file_h;
-unlink $file_err_h;
+#unlink $file_h;
+#unlink $file_err_h;
 
 ############
 # Open files
 ############
 open (FILE_MAP, $file_map) or die "$0 Error! Cannot open $file_map. $! Stopped";
 open (FILE_C, ">>$file_c") or die "$0 Error! Cannot open file $file_c. $! Stopped";
-open (FILE_H, ">>$file_h") or die "$0 Error! Cannot open file $file_h. $! Stopped";
-open (FILE_ERR_H, ">>$file_err_h") or die "$0 Error! Cannot open file $file_err_h. $! Stopped";
+#open (FILE_H, ">>$file_h") or die "$0 Error! Cannot open file $file_h. $! Stopped";
+#open (FILE_ERR_H, ">>$file_err_h") or die "$0 Error! Cannot open file $file_err_h. $! Stopped";
 
 #################################################################
 # Parse event map file information into internal perl hash tables
 #################################################################
 my $err = 0;
 my %eventmap = ();
-my %defmap = ();
+#my %defmap = ();
 
 while ( <FILE_MAP> ) {
 
@@ -137,24 +147,24 @@ while ( <FILE_MAP> ) {
     next if /^\s*\/\// || /^\s*#/ || /^\s*$/;
 
     my $line = $_;
-    (my $hpidef_event, my $hpidef, my $def) = split/\|/,$line;
+#    (my $hpidef_event, my $hpidef, my $def) = split/\|/,$line;
     (my $event_name, my $event_hex, my $platforms, my $event_severity,
      my $override_flags, my $event_msg, my $rest) = split/\|/,$line;
 
-    chomp($def);
+#    chomp($def);
     chomp($event_msg);
 
-    if ($hpidef_event eq "HPI_DEF") {
-	if ($hpidef eq "" || $def eq "" || $defmap{$hpidef} ne "") {
-	    print "******************************************************\n";
-	    print "$0: Error! Definition $hpidef not found or not unique.\n";
-	    print "******************************************************\n\n";
-	    $err = 1;
-	    goto CLEANUP;
-	}
-	$defmap{$hpidef} = $def;
-    }
-    else {
+#    if ($hpidef_event eq "HPI_DEF") {
+#	if ($hpidef eq "" || $def eq "" || $defmap{$hpidef} ne "") {
+#	    print "******************************************************\n";
+#	    print "$0: Error! Definition $hpidef not found or not unique.\n";
+#	    print "******************************************************\n\n";
+#	    $err = 1;
+#	    goto CLEANUP;
+#	}
+#	$defmap{$hpidef} = $def;
+#    }
+#    else {
 	if ($event_name eq "" || $event_hex eq "" || $platforms eq "" ||
 	    $event_severity eq "" || $override_flags eq "" || $event_msg eq "") {
             print "Line is $_\n";
@@ -176,24 +186,24 @@ while ( <FILE_MAP> ) {
 	    check4dups($line, $hash_msg, $plat);
 	    $platforms = $platrest;
 	}
-    }
+ #   }
 }
 
 ##############################
 # Create error log header file
 ##############################
-if (&print_err_hfile_header) { $err = 0; goto CLEANUP; }
-foreach my $d (keys %defmap) {
-    chomp $defmap{$d};
-    print FILE_ERR_H "#define $d $defmap{$d}\n";
-}
-if (&print_err_hfile_ending) { $err = 0; goto CLEANUP; }
+#if (&print_err_hfile_header) { $err = 0; goto CLEANUP; }
+#foreach my $d (keys %defmap) {
+#    chomp $defmap{$d};
+#    print FILE_ERR_H "#define $d $defmap{$d}\n";
+#}
+#if (&print_err_hfile_ending) { $err = 0; goto CLEANUP; }
 
 #################################################
 # Create "Error Log to event" mapping header file
 #################################################
-if (&print_h_file_header) { $err = 0; goto CLEANUP; }
-if (&print_h_file_ending) { $err = 0; goto CLEANUP; }
+#if (&print_h_file_header) { $err = 0; goto CLEANUP; }
+#if (&print_h_file_ending) { $err = 0; goto CLEANUP; }
 
 ################################################
 # Create "Error Log 2 event" mapping source file
@@ -216,8 +226,8 @@ else {
 CLEANUP:
 close FILE_MAP;
 close FILE_C;
-close FILE_H;
-close FILE_ERR_H;
+#close FILE_H;
+#close FILE_ERR_H;
 exit ($err);
 
 ##################################################################
@@ -272,83 +282,83 @@ sub check4dups($$$) {
 #######################################################
 # Print "Error Log to Event" header file's leading text 
 #######################################################
-sub print_h_file_header {
-
-    print FILE_H <<EOF;
-/*      -*- linux-c -*-
- *
- * (C) Copyright IBM Corp. 2004
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
- * file and program are licensed under a BSD style license.  See
- * the Copying file included with the OpenHPI distribution for
- * full licensing terms.
- */
-
-/******************************************************************* 
- * WARNING! This file is auto-magically generated by:
- *          $0. 
- *          Do not change this file manually. Update script instead.
- *******************************************************************/
-
-#ifndef __EL2EVENT_H
-#define __EL2EVENT_H
-
-#define HPIDUP_STRING  "_HPIDUP"
-
-#define NO_OVR     0x00000000  /* No overrides */
-#define OVR_SEV    0x00000001  /* Override Error Log's severity */
-#define OVR_RID    0x00000010  /* Override Error Log's source */
-#define OVR_EXP    0x00000100  /* Override Error Log's source for expansion cards */
-#define OVR_MMACT  0x00001000  /* Override Error Log's source for MM */
-#define OVR_MM1    0x00010000  /* Override Error Log's source for MM 1 */
-#define OVR_MM2    0x00100000  /* Override Error Log's source for MM 2 */
-
-typedef struct {
-        gchar *event;
-	SaHpiSeverityT event_sev;
-	unsigned int   event_ovr;
-        short          event_dup;
-} ErrLog2EventInfoT;
-
-/* Global \"Error Log to Event\" mapping hash table and usage count */
-extern GHashTable *errlog2event_hash;
-extern unsigned int errlog2event_hash_use_count;
-
-SaErrorT errlog2event_hash_init(struct snmp_bc_hnd *custom_handle);
-SaErrorT errlog2event_hash_free(void);
-EOF
-
-    if ($xml) {
-	print FILE_H <<EOF;
-
-/* XML event code and mapping structures */
-extern char *eventxml;
-
-struct errlog2event_hash_info {
-        int platform;
-	GHashTable *hashtable;
-};
-EOF
-    }
-
-    return 0;
-}
+#sub print_h_file_header {
+#
+#    print FILE_H <<EOF;
+#/*      -*- linux-c -*-
+# *
+# * (C) Copyright IBM Corp. 2004
+# *
+# * This program is distributed in the hope that it will be useful,
+# * but WITHOUT ANY WARRANTY; without even the implied warranty of
+# * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. This
+# * file and program are licensed under a BSD style license. See
+# * the Copying file included with the OpenHPI distribution for
+# * full licensing terms.
+# */
+#
+#/******************************************************************* 
+# * WARNING! This file is auto-magically generated by:
+# *          $0. 
+# *          Do not change this file manually. Update script instead.
+# *******************************************************************/
+#
+##ifndef __EL2EVENT_H
+##define __EL2EVENT_H
+#
+##define HPIDUP_STRING  "_HPIDUP"
+#
+##define NO_OVR     0x00000000  /* No overrides */
+##define OVR_SEV    0x00000001  /* Override Error Log's severity */
+##define OVR_RID    0x00000010  /* Override Error Log's source */
+##define OVR_EXP    0x00000100  /* Override Error Log's source for expansion cards */
+##define OVR_MMACT  0x00001000  /* Override Error Log's source for MM */
+##define OVR_MM1    0x00010000  /* Override Error Log's source for MM 1 */
+##define OVR_MM2    0x00100000  /* Override Error Log's source for MM 2 */
+#
+#typedef struct {
+#        gchar *event;
+#	SaHpiSeverityT event_sev;
+#	unsigned int   event_ovr;
+#        short          event_dup;
+#} ErrLog2EventInfoT;
+#
+#/* Global \"Error Log to Event\" mapping hash table and usage count */
+#extern GHashTable *errlog2event_hash;
+#extern unsigned int errlog2event_hash_use_count;
+#
+#SaErrorT errlog2event_hash_init(struct snmp_bc_hnd *custom_handle);
+#SaErrorT errlog2event_hash_free(void);
+#EOF
+#
+#    if ($xml) {
+#	print FILE_H <<EOF;
+#
+#/* XML event code and mapping structures */
+#extern char *eventxml;
+#
+#struct errlog2event_hash_info {
+#        int platform;
+#	GHashTable *hashtable;
+#};
+#EOF
+#    }
+#
+#    return 0;
+#}
 
 #######################################################
 # Print "Error Log to Event" header file's leading text 
 #######################################################
-sub print_h_file_ending {
-
-    print FILE_H <<EOF;
-
-#endif
-EOF
-
-    return 0;
-}
+#sub print_h_file_ending {
+#
+#    print FILE_H <<EOF;
+#
+##endif
+#EOF
+#
+#    return 0;
+#}
 
 ####################################
 # Print c file's static leading text 
@@ -362,8 +372,8 @@ sub print_c_file_header {
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
- * file and program are licensed under a BSD style license.  See
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. This
+ * file and program are licensed under a BSD style license. See
  * the Copying file included with the OpenHPI distribution for
  * full licensing terms.
  */
@@ -540,47 +550,47 @@ EOF
 ############################################
 # Print error log header file's leading text
 ############################################
-sub print_err_hfile_header {
-    print FILE_ERR_H <<EOF;
-/*      -*- linux-c -*-
- *
- * (C) Copyright IBM Corp. 2004
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
- * file and program are licensed under a BSD style license.  See
- * the Copying file included with the OpenHPI distribution for
- * full licensing terms.
- */
-
-/******************************************************************* 
- * WARNING! This file is auto-magically generated by:
- *          $0.
- *          Do not change this file manually. Update script instead.
- *******************************************************************/
-
-#ifndef __EL_H
-#define __EL_H
-
-EOF
-
-return 0;
-
-}
+#sub print_err_hfile_header {
+#    print FILE_ERR_H <<EOF;
+#/*      -*- linux-c -*-
+# *
+# * (C) Copyright IBM Corp. 2004
+# *
+# * This program is distributed in the hope that it will be useful,
+# * but WITHOUT ANY WARRANTY; without even the implied warranty of
+# * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. This
+# * file and program are licensed under a BSD style license. See
+# * the Copying file included with the OpenHPI distribution for
+# * full licensing terms.
+# */
+#
+#/******************************************************************* 
+# * WARNING! This file is auto-magically generated by:
+# *          $0.
+# *          Do not change this file manually. Update script instead.
+# *******************************************************************/
+#
+##ifndef __EL_H
+##define __EL_H
+#
+#EOF
+#
+#return 0;
+#
+#}
 
 #############################################
 # Print error log header file's trailing text
 #############################################
-sub print_err_hfile_ending {
-
-    print FILE_ERR_H <<EOF;
-
-#endif
-EOF
-
-    return 0;
-}
+#sub print_err_hfile_ending {
+#
+#    print FILE_ERR_H <<EOF;
+#
+##endif
+#EOF
+#
+#    return 0;
+#}
 
 ######################################
 # Print XML file's static leading text 

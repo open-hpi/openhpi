@@ -1,11 +1,11 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2003, 2005
+ * (C) Copyright IBM Corp. 2003, 2006
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
- * file and program are licensed under a BSD style license.  See
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. This
+ * file and program are licensed under a BSD style license. See
  * the Copying file included with the OpenHPI distribution for
  * full licensing terms.
  *
@@ -17,6 +17,7 @@
 
 #include <glib.h>
 #include <time.h>
+
 #include <snmp_bc_plugin.h>
 #include <sim_init.h>
 
@@ -1112,7 +1113,6 @@ SaErrorT snmp_bc_clear_sel(void *hnd, SaHpiResourceIdT id)
  *
  * Return values:
  * SA_ERR_HPI_INVALID_CMD - normal case.
- * 
  **/			      
 SaErrorT snmp_bc_sel_overflowreset(void *hnd,
 			           SaHpiResourceIdT id)
@@ -1127,11 +1127,10 @@ SaErrorT snmp_bc_sel_overflowreset(void *hnd,
  * @id: Resource ID that owns the Event Log.
  * @enable: State to which to set Resource Event Log.
  * 
- * Enable/Disable logging of event is not allowed via snmp for BladeCenter.
+ * Enable/Disable logging of event is not allowed via SMMP for BladeCenter.
  *
  * Return values:
  * SA_ERR_HPI_READ_ONLY - normal case.
- * 
  **/			      
 SaErrorT snmp_bc_sel_state_set(void      *hnd, 
                 SaHpiResourceIdT   id, 
@@ -1140,8 +1139,6 @@ SaErrorT snmp_bc_sel_state_set(void      *hnd,
 	/* Other required test, SA_ERR_HPI_CAPABILITY, is done in infrastructure */ 
 	return SA_ERR_HPI_READ_ONLY;
 }
-
-
 
 void * oh_get_el_info (void *, SaHpiResourceIdT, SaHpiEventLogInfoT *)
                 __attribute__ ((weak, alias("snmp_bc_get_sel_info")));
@@ -1165,5 +1162,3 @@ void * oh_reset_el_overflow (void *, SaHpiResourceIdT)
 
 void * oh_set_el_state(void *, SaHpiResourceIdT, SaHpiBoolT)
 		__attribute__ ((weak, alias("snmp_bc_sel_state_set")));
-	
-

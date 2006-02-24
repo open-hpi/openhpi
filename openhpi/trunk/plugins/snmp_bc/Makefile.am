@@ -1,29 +1,22 @@
-# (C) Copyright IBM Corp 2003, 2004
+# (C) Copyright IBM Corp 2003, 2006
 # All rights reserved.
 # 
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
-# file and program are licensed under a BSD style license.  See
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. This
+# file and program are licensed under a BSD style license. See
 # the Copying file included with the OpenHPI distribution for
 # full licensing terms.
 
 MAINTAINERCLEANFILES = Makefile.in
 
-# Note same rule and files are generated in the t sub-directory - Make sure
-# you change the t/Makefile.am, if you change these
-GENERATED_EVENT_HEADER_FILES = \
-				el.h \
-				el2event.h
-
+# Generated files - need to keep in sync with t/Makefile.am
 GENERATED_EVENT_XML_MAP = event.xml
 GENERATED_EVENT_CODE = el2event.c
-
-GENERATED_CODE = $(GENERATED_EVENT_HEADER_FILES) $(GENERATED_EVENT_XML_MAP) $(GENERATED_EVENT_CODE)
+GENERATED_CODE = $(GENERATED_EVENT_XML_MAP) $(GENERATED_EVENT_CODE)
 
 MOSTLYCLEANFILES = @TEST_CLEAN@
-# FIXME:: Add when we can auto-generate code for SMP systems
-# MOSTLYCLEANFILES += $(GENERATED_CODE)
+MOSTLYCLEANFILES += $(GENERATED_CODE)
 
 SNMPUTILSDIR = $(top_srcdir)/$(SNMPDIR)
 SNMPUTILBDIR = $(top_builddir)/$(SNMPDIR)
@@ -37,13 +30,14 @@ AM_CFLAGS = @CFLAGS@ @SNMPFLAGS@
 pkglib_LTLIBRARIES = libsnmp_bc.la
 
 EXTRA_DIST = \
-		$(GENERATED_EVENT_HEADER_FILES) \
 		eventmap2code.pl \
 		snmp_bc_event.map \
 		snmp_bc.h \
 		snmp_bc_annunciator.h \
 		snmp_bc_control.h \
 		snmp_bc_discover.h \
+		snmp_bc_el.h \
+		snmp_bc_el2event.h \
 		snmp_bc_event.h \
 		snmp_bc_hotswap.h \
 		snmp_bc_inventory.h \
@@ -94,9 +88,6 @@ EVENT_MAP_FILE = $(top_srcdir)/plugins/snmp_bc/snmp_bc_event.map
 EVENT_MAP_SCRIPT = $(top_srcdir)/plugins/snmp_bc/eventmap2code.pl
 EVENT_XML_MAP_SCRIPT = $(top_srcdir)/scripts/text2cstr.pl
 
-# FIXME:: Add when we can auto-generate code for SMP systems
-#$(GENERATED_EVENT_CODE): $(GENERATED_EVENT_HEADER_FILES)
-#	$(EVENT_XML_MAP_SCRIPT) -s eventxml $(GENERATED_EVENT_XML_MAP) > $(GENERATED_EVENT_CODE)
-#
-#$(GENERATED_EVENT_HEADER_FILES): $(EVENT_MAP_FILE) $(EVENT_MAP_SCRIPT)
-#	$(EVENT_MAP_SCRIPT) -xml -idir $(top_srcdir)/plugins/snmp_bc -mapfile snmp_bc_event.map
+$(GENERATED_EVENT_CODE): $(EVENT_MAP_FILE) $(EVENT_MAP_SCRIPT) $(EVENT_XML_MAP_SCRIPT)
+	$(EVENT_MAP_SCRIPT) -xml -idir $(top_srcdir)/plugins/snmp_bc -mapfile snmp_bc_event.map
+	$(EVENT_XML_MAP_SCRIPT) -s eventxml $(GENERATED_EVENT_XML_MAP) > $(GENERATED_EVENT_CODE)
