@@ -591,7 +591,7 @@ cIpmiSdrs::ReadRecord( unsigned short record_id,
 
 
 SaErrorT
-cIpmiSdrs::Reserve()
+cIpmiSdrs::Reserve(unsigned int lun)
 {
   cIpmiMsg msg;
   cIpmiMsg rsp;
@@ -617,7 +617,7 @@ cIpmiSdrs::Reserve()
      }
 
   msg.m_data_len = 0;
-  rv = m_mc->SendCommand( msg, rsp );
+  rv = m_mc->SendCommand( msg, rsp, lun );
 
   if ( rv != SA_OK )
      {
@@ -840,7 +840,7 @@ cIpmiSdrs::ReadRecords( cIpmiSdr **&records, unsigned short &working_num_sdrs,
             return SA_ERR_HPI_BUSY;
           }
 
-       SaErrorT rv = Reserve();
+       SaErrorT rv = Reserve(lun);
 
        if ( rv )
            return rv;
