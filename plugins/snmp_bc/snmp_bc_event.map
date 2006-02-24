@@ -1,5 +1,5 @@
 ########################################################################
-# (C) Copyright IBM Corp. 2004
+# (C) Copyright IBM Corp. 2004, 2006
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -40,24 +40,12 @@
 #   They are reported by the event log's Source field as blade events. 
 ###########################################################################
 
-#########
-# Defines
-#########
-
-HPI_DEF|LOG_LOGIN_STRING|"Login ID:"
-HPI_DEF|LOG_LOGIN_CHAR|"'"
-HPI_DEF|LOG_READ_VALUE_STRING|"Read value"
-HPI_DEF|LOG_THRESHOLD_VALUE_STRING|"Threshold value"
-HPI_DEF|ER_STR_POST_LOG_CLEARED|"System log cleared."
-HPI_DEF|EVT_EN_LOG_FULL|"System error log full"
-HPI_DEF|EVT_RECOVERY|"Recovery "
-
 # Test event - used to unit test code
 EN_TEST_EVENT|0xFFFFFFFF|BCT,BC,RSA|SAHPI_CRITICAL|NO_OVR|"Bogus Test Event."
 
-##########################################
-# BladeCenter and BladeCenter Telco Events
-##########################################
+######################################
+# BladeCenter and BladeCenter T Events
+######################################
 
 ##################
 # Chassis Resource

@@ -1,11 +1,11 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2003, 2005
+ * (C) Copyright IBM Corp. 2003, 2006
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
- * file and program are licensed under a BSD style license.  See
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. This
+ * file and program are licensed under a BSD style license. See
  * the Copying file included with the OpenHPI distribution for
  * full licensing terms.
  *
@@ -16,7 +16,6 @@
 
 #include <snmp_bc_plugin.h>
 #include <sim_init.h>
-
 
 /**
  * snmp_bc_open:
@@ -326,9 +325,5 @@ void snmp_bc_close(void *hnd)
 	}
 }
 
-
 void * oh_open (GHashTable *) __attribute__ ((weak, alias("snmp_bc_open")));
-
 void * oh_close (void *) __attribute__ ((weak, alias("snmp_bc_close")));
-
-

@@ -1,28 +1,19 @@
-#
-# (C) Copyright IBM Corp 2003, 2004
+# (C) Copyright IBM Corp 2003, 2006
 # All rights reserved.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
-# file and program are licensed under a BSD style license.  See
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. This
+# file and program are licensed under a BSD style license. See
 # the Copying file included with the OpenHPI distribution for
 # full licensing terms.
 
-# Generated files - need to keep in sync with parent's directory's Makefile.am
-GENERATED_EVENT_HEADER_FILES = \
-				el.h \
-				el2event.h
-
+# Generated files - need to keep in sync with parent directory's Makefile.am
 GENERATED_EVENT_XML_MAP = event.xml
 GENERATED_EVENT_CODE = el2event.c
+GENERATED_CODE = $(GENERATED_EVENT_XML_MAP) $(GENERATED_EVENT_CODE)
 
-GENERATED_CODE = $(GENERATED_EVENT_HEADER_FILES) $(GENERATED_EVENT_XML_MAP) $(GENERATED_EVENT_CODE)
-
-# FIXME:: May be able to remove $(GENERATED_EVENT_CODE), if get auto-generated
-# files working with SMP systems
 REMOTE_SIM_SOURCES = \
-		$(GENERATED_EVENT_CODE) \
 		snmp_bc.c \
 		snmp_bc_annunciator.c \
 		snmp_bc_control.c \
@@ -44,15 +35,10 @@ REMOTE_SIM_SOURCES = \
 		snmp_bc_watchdog.c \
 		snmp_bc_xml2event.c
 
-MOSTLYCLEANFILES = \
-		@TEST_CLEAN@ \
-		$(REMOTE_SIM_SOURCES) \
-		uid_map
+MOSTLYCLEANFILES = @TEST_CLEAN@ $(REMOTE_SIM_SOURCES) uid_map
+MOSTLYCLEANFILES += $(GENERATED_CODE)
 
 MAINTAINERCLEANFILES = Makefile.in
-
-# FIXME:: Add when we can auto-generate files for SMP systems
-# MOSTLYCLEANFILES += $(GENERATED_CODE)
 
 SNMPUTILSDIR = $(top_srcdir)/$(SNMPDIR)
 
@@ -74,13 +60,13 @@ $(REMOTE_SIM_SOURCES):
 	fi
 
 libsnmp_bc_la_SOURCES = \
+		$(GENERATED_EVENT_CODE) \
 		$(REMOTE_SIM_SOURCES) \
 		sim_init.c \
 		sim_resources.c \
 		sim_file.c \
 		snmp_utils.c \
 		tsetup.c
-# FIXME:: May have to add $(GENERATED_EVENT_CODE) if auto generate files
 
 libsnmp_bc_la_LIBADD = -luuid @SNMPLIBS@
 libsnmp_bc_la_LDFLAGS = -version 0:0:0
@@ -95,12 +81,9 @@ EVENT_MAP_FILE = $(top_srcdir)/plugins/snmp_bc/snmp_bc_event.map
 EVENT_MAP_SCRIPT = $(top_srcdir)/plugins/snmp_bc/eventmap2code.pl
 EVENT_XML_MAP_SCRIPT = $(top_srcdir)/scripts/text2cstr.pl
 
-# FIXME:: Add when we can auto-generate files for SMP systems
-#$(GENERATED_EVENT_CODE): $(GENERATED_EVENT_HEADER_FILES)
-#	$(EVENT_XML_MAP_SCRIPT) -s eventxml $(GENERATED_EVENT_XML_MAP) > $(GENERATED_EVENT_CODE)
-#
-#$(GENERATED_EVENT_HEADER_FILES): $(EVENT_MAP_FILE) $(EVENT_MAP_SCRIPT)
-#	$(EVENT_MAP_SCRIPT) -xml -idir $(top_srcdir)/plugins/snmp_bc -mapfile snmp_bc_event.map
+$(GENERATED_EVENT_CODE): $(EVENT_MAP_FILE) $(EVENT_MAP_SCRIPT) $(EVENT_XML_MAP_SCRIPT)
+	$(EVENT_MAP_SCRIPT) -xml -idir $(top_srcdir)/plugins/snmp_bc -mapfile snmp_bc_event.map
+	$(EVENT_XML_MAP_SCRIPT) -s eventxml $(GENERATED_EVENT_XML_MAP) > $(GENERATED_EVENT_CODE)
 
 # Setup environment variables for TESTS programs
 TESTS_ENVIRONMENT  = OPENHPI_CONF=$(srcdir)/openhpi.conf
