@@ -66,6 +66,8 @@ static int snmp_bc_get_sel_size(struct oh_handler_state *handle, SaHpiResourceId
  * Return values:
  * Number of event log entries - normal case.
  **/
+ /* ------------------------------------------------------------------------------------- */
+ /* This routine is no longer needed. Keep it here (with #if 0) for documentation purpose */
 #if 0
 static int snmp_bc_get_sel_size_from_hardware(struct snmp_bc_hnd *custom_handle)
 {
@@ -257,75 +259,188 @@ SaErrorT snmp_bc_get_sel_entry(void *hnd,
         return(SA_OK);
 }
 
+
 /**
- * snmp_bc_build_selcache
+ * snmp_bc_bulk_selcache
  * @handle: Pointer to handler's data.
  * @id: Resource ID that owns the Event Log. 
  * 
- * Builds internal event log cache. Although BladeCenter can read events from 
- * the hardware in any order;  RSA requires that they be read from first to last.
- * To support common code, events are read in order and preappended to the
- * cache log.
+ * Builds internal event log cache using SNMP_MSG_GETBULK.
  * 
  * Return values:
  * SA_OK - normal case.
  * SA_ERR_HPI_INVALID_PARAMS - @handle is NULL.
  **/
-SaErrorT snmp_bc_build_selcache(struct oh_handler_state *handle, SaHpiResourceIdT id)
+
+SaErrorT snmp_bc_bulk_selcache(	struct oh_handler_state *handle,
+				SaHpiResourceIdT id)
 {
-	int i;
-	SaErrorT err;
-	
+
 	if (!handle) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
+        struct snmp_bc_hnd *custom_handle;
+	SaErrorT 	err;
+	int 		isdst=0;
+	sel_entry 	sel_entry;
+        SaHpiEventT 	tmpevent;
+    	netsnmp_pdu	*pdu, *response;
+    	netsnmp_variable_list *vars;
+	int             count;
+    	int             running;
+    	int             status;
+	
+	char 		logstring[MAX_ASN_STR_LEN];
+    	char 		objoid[SNMP_BC_MAX_OID_LENGTH];	
+    	oid             name[MAX_OID_LEN];
+	oid             root[MAX_OID_LEN];
+    	size_t          rootlen;
+    	size_t          name_length;	
+	size_t 		str_len = MAX_ASN_STR_LEN;
+		
+    	int             reps;
+	
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
+	reps = custom_handle->count_per_getbulk;
 
-	/* ------------------------------------------------------------------ */
-	/*  This code block is disabled because we no longer reading EventLog */
-	/*  backward for BladeCenter and forward for RSA.  Rather, we read    */
-	/*  EventLog forward and re-order them by timestamps accordingly.     */
-	/*  Just leave code it here for documentation purposes.               */
-	/* ------------------------------------------------------------------ */  
-#if 0
-	struct snmp_bc_hnd *custom_handle = handle->data;
-	int current;
-	current = snmp_bc_get_sel_size_from_hardware(custom_handle);
+	/* --------------------------------------------------- */
+     	/* Set initial Event Log Entry OID and root tree       */
+     	/* --------------------------------------------------- */
 
-	if (current > 0) {
-		for (i=1; i<=current; i++) {
-			err = snmp_bc_sel_read_add(handle, id, i, SAHPI_TRUE);
-			if ( (err == SA_ERR_HPI_OUT_OF_SPACE) || (err == SA_ERR_HPI_INVALID_PARAMS)) {
-				/* Either of these 2 errors prevent us from doing anything meaningful */
-				return(err);
-			} else if (err != SA_OK) {
-				/* other errors (mainly HPI_INTERNAL_ERROR or HPI_BUSY) means */
-				/* only this record has problem. record error then go to next */
-				dbg("Error, %s, encountered with EventLog entry %d\n", 
-				    oh_lookup_error(err), i);
-			}
-		}
+	if (custom_handle->platform == SNMP_BC_PLATFORM_RSA) {
+		snprintf(objoid, SNMP_BC_MAX_OID_LENGTH, "%s", SNMP_BC_SEL_ENTRY_OID_RSA);
+	} else {
+		snprintf(objoid, SNMP_BC_MAX_OID_LENGTH, "%s",SNMP_BC_SEL_ENTRY_OID);
 	}
-#endif
-	/*  End-of-obsolete code                                              */
-	/* ------------------------------------------------------------------ */  
+        read_objid(objoid, root, &rootlen);
 
-	i = 1;
-	while(1) {
-		err = snmp_bc_sel_read_add(handle, id, i, SAHPI_TRUE);
-		if ( (err == SA_ERR_HPI_OUT_OF_SPACE) || (err == SA_ERR_HPI_INVALID_PARAMS)) {
-				/* Either of these 2 errors prevent us from doing anything meaningful */
-				return(err);
-		} else if (err != SA_OK) {
-			/* other errors (mainly HPI_INTERNAL_ERROR or HPI_BUSY) means */
-			/* only this record has problem. record error then go to next */
-			dbg("Error, %s, encountered with EventLog entry %d\n", 
-				    oh_lookup_error(err), i);
-			break;
-		}	
-		i++;
-	}
+	/* --------------------------------------------------- */
+     	/* Object ID for GETBULK request                       */ 
+	/* --------------------------------------------------- */
+    	g_memmove(name, root, rootlen * sizeof(oid));
+    	name_length = rootlen;
+
+    	running = 1;
+
+    	while (running) {
+    
+       		/* --------------------------------------------------- */
+         	/* Create PDU for GETBULK request                      */ 
+         	/* --------------------------------------------------- */
+        	pdu = snmp_pdu_create(SNMP_MSG_GETBULK);
+
+		status = snmp_getn_bulk(custom_handle->sessp,
+					 name,
+					 name_length,
+					 pdu, 
+					 &response,
+					 reps);
+					 	
+        	if (status == STAT_SUCCESS) {
+            		if (response->errstat == SNMP_ERR_NOERROR) {
+	                	for (vars = response->variables; vars;
+                     			vars = vars->next_variable) {
+	
+				 	/* ------------------------------------------------- */
+				 	/* Check if this variable is of the same OID tree    */
+				 	/* ------------------------------------------------- */
+                    			if ((vars->name_length < rootlen)
+                        			|| (memcmp(root, vars->name, rootlen * sizeof(oid)) != 0))
+                            		{
+						/* Exit vars processing */
+                        			running = 0;
+                        			continue;
+                    			}  			
+		  
+                    			if ((vars->type != SNMP_ENDOFMIBVIEW) &&
+                        			(vars->type != SNMP_NOSUCHOBJECT) &&
+                        			(vars->type != SNMP_NOSUCHINSTANCE)) {
+                        
+                        			if (snmp_oid_compare(name, name_length,
+                                                			vars->name,
+									vars->name_length) >= 0) {
+                            				fprintf(stderr, "Error: OID not increasing: ");
+                            				fprint_objid(stderr, name, name_length);
+                            				fprintf(stderr, " >= ");
+                            				fprint_objid(stderr, vars->name,
+                                        					 vars->name_length);
+                            				fprintf(stderr, "\n");
+                            				running = 0;
+                        			}
+			                        /* ---------------------------------- */
+                         			/* Check if last variable,            */
+						/* and if so, save for next request.  */ 
+                         			/* ---------------------------------- */
+                        			if (vars->next_variable == NULL) {
+                            				g_memmove(name, vars->name,
+                                    			vars->name_length * sizeof(oid));
+                            				name_length = vars->name_length;
+                        			}
+						
+						/* ---------------------------------- */
+				 		/* ---------------------------------- */ 
+				 		/* ---------------------------------- */
+						if ((running == 1) && (vars->type == ASN_OCTET_STR)) {
+						
+                        				if (vars->val_len < MAX_ASN_STR_LEN) str_len = vars->val_len;
+							else str_len = MAX_ASN_STR_LEN;
+						
+							/* ---------------------------------- */
+				 			/* Guarantee NULL terminated string   */
+				 			/* ---------------------------------- */
+                        				// memcpy(logstring, vars->val.string, str_len);
+							g_memmove(logstring, vars->val.string, str_len);
+							logstring[str_len] = '\0';
+							
+							
+							err = snmp_bc_parse_sel_entry(handle,logstring, &sel_entry);
+							isdst = sel_entry.time.tm_isdst;
+
+							snmp_bc_log2event(handle, logstring, &tmpevent, isdst);
+							err = oh_el_prepend(handle->elcache, &tmpevent, NULL, NULL);
+						}
+                    			} else {
+                        			/* Stop on an exception value */
+                        			running = 0;
+                    			}
+                		}  /* end for */
+              		} else {   /* if (response->errstat != SNMP_ERR_NOERROR) */
+			
+                		/* --------------------------------------------- */
+				/* Error condition is seen in response,          */
+                 		/* for now, print the error then exit            */ 
+                 		/* Not sure what to do for recovery              */
+                		running = 0;
+                		if (response->errstat == SNMP_ERR_NOSUCHNAME) {
+                    				printf("End of MIB\n");
+                		} else {
+                    			fprintf(stderr, "Error in packet.\nReason: %s\n",
+                            				snmp_errstring(response->errstat));
+                    		if (response->errindex != 0) {
+                        		fprintf(stderr, "Failed object: ");
+                        		for (count = 1, vars = response->variables;
+                             				vars && count != response->errindex;
+                             				vars = vars->next_variable, count++)
+                        			if (vars)
+                            				fprint_objid(stderr, vars->name,
+                                         				vars->name_length);
+                        			fprintf(stderr, "\n");
+                    			}
+                		}
+            		}  
+		} else if (status == STAT_TIMEOUT) {            
+            		fprintf(stderr, "Timeout: No Response\n");
+            		running = 0;
+        	} else {                /* status == STAT_ERROR */
+            		snmp_sess_perror("snmp_bulk_sel",custom_handle->sessp );
+            		running = 0;
+        	}
+
+        	if (response)
+            		snmp_free_pdu(response);
+    	}
 	return(SA_OK);
 }
 
@@ -543,6 +658,102 @@ SaErrorT snmp_bc_selcache_sync(struct oh_handler_state *handle,
 	
 	return(SA_OK);  
 }
+
+/**
+ * snmp_bc_build_selcache
+ * @handle: Pointer to handler's data.
+ * @id: Resource ID that owns the Event Log. 
+ * 
+ * Builds internal event log cache. Although BladeCenter can read events from 
+ * the hardware in any order;  RSA requires that they be read from first to last.
+ * To support common code, events are read in order and preappended to the
+ * cache log.
+ * 
+ * Return values:
+ * SA_OK - normal case.
+ * SA_ERR_HPI_INVALID_PARAMS - @handle is NULL.
+ **/
+SaErrorT snmp_bc_build_selcache(struct oh_handler_state *handle, SaHpiResourceIdT id)
+{
+	int i;
+	SaErrorT err = SA_OK;
+	
+	if (!handle) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+	struct snmp_bc_hnd *custom_handle = handle->data;
+
+#if 0
+	/* ------------------------------------------------------------------ */
+	/*  This code block is disabled because we no longer reading EventLog */
+	/*  backward for BladeCenter and forward for RSA.  Rather, we read    */
+	/*  EventLog forward and re-order them by timestamps accordingly.     */
+	/*  Just leave code it here for documentation purposes.               */
+	/* ------------------------------------------------------------------ */  
+	int current;
+	current = snmp_bc_get_sel_size_from_hardware(custom_handle);
+
+	if (current > 0) {
+		for (i=1; i<=current; i++) {
+			err = snmp_bc_sel_read_add(handle, id, i, SAHPI_TRUE);
+			if ( (err == SA_ERR_HPI_OUT_OF_SPACE) || (err == SA_ERR_HPI_INVALID_PARAMS)) {
+				/* Either of these 2 errors prevent us from doing anything meaningful */
+				return(err);
+			} else if (err != SA_OK) {
+				/* other errors (mainly HPI_INTERNAL_ERROR or HPI_BUSY) means */
+				/* only this record has problem. record error then go to next */
+				dbg("Error, %s, encountered with EventLog entry %d\n", 
+				    oh_lookup_error(err), i);
+			}
+		}
+	}
+#endif
+	/*  End-of-obsolete code                                              */
+	/* ------------------------------------------------------------------ */
+
+	/* ------------------------------------------------------------------- */
+	/* If user has configured for snmpV3, then use GETBULK for performance */
+	/* Else, stay with individual GETs                                     */
+	/* ------------------------------------------------------------------- */   
+	if (custom_handle->session.version == SNMP_VERSION_3)
+	{
+	
+		/* ------------------------------------------------- */
+		/*      DO NOT remove this trace statement!!!!       */
+		/* ------------------------------------------------- */		
+		/* Without this trace statement,                     */
+		/* -- stack corruption issue with multiple handlers  */
+		/*	gcc (GCC) 4.0.2 20051125 (Red Hat 4.0.2-8)   */
+		/* -- works OK  with with multiple handlers          */
+		/*	gcc (GCC) 4.1.0 20060123 (SLES10 Beta 2)     */
+		/* -- works OK with with multiple handlers           */
+		/*	gcc (GCC) 4.0.1 (4.0.1-5mdk  Mandriva 2006)  */
+		/* -- works OK with all gcc vers for single handler  */
+		trace(">>>>>> bulk build selcache %p.\n", handle);
+		/* ------------------------------------------------- */
+				
+		err = snmp_bc_bulk_selcache(handle, id);
+	} else {
+		i = 1;
+		while(1) {
+			err = snmp_bc_sel_read_add(handle, id, i, SAHPI_TRUE);
+			if ( (err == SA_ERR_HPI_OUT_OF_SPACE) || (err == SA_ERR_HPI_INVALID_PARAMS)) {
+				/* Either of these 2 errors prevent us from doing anything meaningful */
+				return(err);
+			} else if (err != SA_OK) {
+				/* other errors (mainly HPI_INTERNAL_ERROR or HPI_BUSY) means */
+				/* only this record has problem. record error then go to next */
+				dbg("Error, %s, encountered with EventLog entry %d\n", 
+				oh_lookup_error(err), i);
+				break;
+			}	
+			i++;
+		}
+	}
+	return(SA_OK);
+}
+
 
 /**
  * snmp_bc_set_sel_time:
