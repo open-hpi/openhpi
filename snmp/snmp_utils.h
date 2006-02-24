@@ -58,6 +58,7 @@
 #include <net-snmp/library/transform_oids.h>
 
 #define MAX_ASN_STR_LEN 300
+#define SNMP_BC_BULK_DEFAULT 30
 
 #define SA_ERR_SNMP_BASE - 10000
 #define SA_ERR_SNMP_NOSUCHOBJECT	(SaErrorT)(SA_ERR_SNMP_BASE - SNMP_NOSUCHOBJECT)
@@ -91,7 +92,7 @@ SaErrorT snmp_set(
         void *sessp,
         char *objid,
         struct snmp_value value);
-
+		    
 SaErrorT snmp_get2(void *sessp, 
 		   oid *objid, 
 		   size_t objid_len,
@@ -102,7 +103,7 @@ SaErrorT snmp_set2(void *sessp,
 	           size_t objid_len,
                    struct snmp_value *value);
 
-SaErrorT snmp_getn_bulk( void *sessp, 
+int snmp_getn_bulk( void *sessp, 
 		    oid *bulk_objid, 
 		    size_t bulk_objid_len,
 		    struct snmp_pdu *bulk_pdu, 

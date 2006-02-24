@@ -90,7 +90,7 @@ SaErrorT snmp_get( void *sessp,
                 	}
 
 		} else {
-                        dbg("Error in packet %s\nReason: %s\n",
+                        trace("Error in packet %s\nReason: %s\n",
                                	 objid, snmp_errstring(response->errstat));
 			returncode = errstat2hpi(response->errstat);
 		}
@@ -415,7 +415,28 @@ SaErrorT snmp_set2(void *sessp,
 
 }
 
-SaErrorT snmp_getn_bulk( void *sessp, 
+
+/**
+ * snmp_getn_bulk: Builds and sends a SNMP_BET_BULK pdu using snmp 
+ * @sessp: snmp session
+ * @bulk_objid: string containing the OID entry.
+ * @bulk_objid_len: len of OID string 
+ * @bulk_pdu: pointer to the PDU to be created
+ * @bulk_response: pointer to the response for this PDU request
+ * @num_repetitions: max OIDs for this request. 
+ *                   Note: this is the max requested. Actual number returned can be less
+ *                   than maximum.  That depends on the target snmp agent. 
+ *         
+ * Return value: status from snmp_sess_synch_response(). See snmp_client.h of net-snmp library.
+ *	STAT_SUCCESS
+ *	STAT_ERROR
+ *	STAT_TIMEOUT
+ *
+ *      Additionally, if status == STAT_SUCCESS, consumer of this routine needs to check for exception
+ *      conditions.
+ *      Possible exception conditions are SNMP_ENDOFMIBVIEW, SNMP_NOSUCHOBJECT, SNMP_NOSUCHINSTANCE 
+ **/
+int snmp_getn_bulk( void *sessp, 
 		    oid *bulk_objid, 
 		    size_t bulk_objid_len,
 		    struct snmp_pdu *bulk_pdu, 
@@ -423,9 +444,7 @@ SaErrorT snmp_getn_bulk( void *sessp,
 		    int num_repetitions )
 {
 	int status;
-	SaErrorT rtncode = SA_OK;
-//        struct variable_list *vars;
-
+	
 	bulk_pdu = snmp_pdu_create(SNMP_MSG_GETBULK);
  	
 	bulk_pdu->non_repeaters = 0; 
@@ -438,30 +457,9 @@ SaErrorT snmp_getn_bulk( void *sessp,
 	status = snmp_sess_synch_response(sessp, bulk_pdu, bulk_response);
 
 	/*
-	 * Process the response.
-	*/
-#if 0
-	if (status == STAT_SUCCESS) {
-		vars = (*bulk_response)->variables;
-		if ((*bulk_response)->errstat == SNMP_ERR_NOERROR) {
-			if (!CHECH_END(vars->type)) {
-                                /* This is one of the exception condition */
-				rtncode = SA_ERR_HPI_NOT_PRESENT;
-				dbg("snmp exception %d \n",vars->type);
-			}
-		} else {
-			fprintf(stderr, "Error in packet %s\nReason: %s\n",
-					(char *)bulk_objid, snmp_errstring((*bulk_response)->errstat));
-			if ((*bulk_response)->errstat == SNMP_ERR_NOSUCHNAME)
-					(*bulk_response)->errstat = SNMP_NOSUCHOBJECT;
-			rtncode = (SaErrorT) (SA_ERR_SNMP_BASE - (*bulk_response)->errstat);
-		}
-	} else {
-		snmp_sess_perror("snmpset", ss);
-		rtncode = (SaErrorT) (SA_ERR_SNMP_BASE - status);
-	}
-#endif
-	return(rtncode);
+	 * Return the status.  Consumer of this util has to process the response.
+	 */
+	return(status);
 
 }
 
