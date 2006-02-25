@@ -50,13 +50,14 @@ SaErrorT errlog2event_hash_init(struct snmp_bc_hnd *custom_handle) {
         GMarkupParser parser;
         GMarkupParseContext *pcontext;
         gboolean rc;
-        GError *err = NULL;
+        GError *err;
         struct errlog2event_hash_info user_data;
         if (!custom_handle) {
                 dbg("Invalid parameter.");
                 return(SA_ERR_HPI_INVALID_PARAMS);
         }
-        
+	
+        err = NULL;
         snmp_bc_lock(snmp_bc_plock);
 	/* Initialize hash table */
         errlog2event_hash = g_hash_table_new(g_str_hash, g_str_equal);

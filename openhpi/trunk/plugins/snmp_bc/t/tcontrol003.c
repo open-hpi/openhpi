@@ -34,6 +34,11 @@ int main(int argc, char **argv)
 	SaHpiCtrlNumT cid = 1;
 	SaHpiCtrlModeT mode = SAHPI_CTRL_MODE_AUTO;
 	SaHpiCtrlStateT state;
+	SaHpiEntryIdT entryid;
+	SaHpiEntryIdT nextentryid;
+	SaHpiBoolT foundControl;			
+	struct oh_handler_state l_handle;
+
 	/* *************************************	 	 
 	 * Find a resource with Control type rdr
 	 * ************************************* */
@@ -55,9 +60,8 @@ int main(int argc, char **argv)
 	/************************** 
 	 * Test: find a control RDR
 	 **************************/
-	SaHpiEntryIdT entryid = SAHPI_FIRST_ENTRY;
-	SaHpiEntryIdT nextentryid;
-	SaHpiBoolT foundControl = SAHPI_FALSE;			
+	entryid = SAHPI_FIRST_ENTRY;
+	foundControl = SAHPI_FALSE;			
 	do {
 		err = saHpiRdrGet(sessionid,id,entryid,&nextentryid, &rdr);
 		if (err == SA_OK)
@@ -82,7 +86,6 @@ int main(int argc, char **argv)
 	/************************** 
 	 * Test 1: Invalid Handle    
 	 *************************/
-	struct oh_handler_state l_handle;
 	memset(&l_handle, 0, sizeof(struct oh_handler_state));
 
 	expected_err = SA_ERR_HPI_INVALID_PARAMS;

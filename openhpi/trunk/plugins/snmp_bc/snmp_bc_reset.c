@@ -34,14 +34,19 @@ SaErrorT snmp_bc_get_reset_state(void *hnd,
 				 SaHpiResourceIdT rid,
 				 SaHpiResetActionT *act)
 {
+        struct oh_handler_state *handle;
+        struct snmp_bc_hnd *custom_handle;
+	SaHpiRptEntryT *rpt;
+
 	if (!hnd || !act) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
-        struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
-        struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 
+	handle = (struct oh_handler_state *)hnd;
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
+	
 	if (!custom_handle) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
@@ -49,7 +54,7 @@ SaErrorT snmp_bc_get_reset_state(void *hnd,
 
 	snmp_bc_lock_handler(custom_handle);
 	/* Check if resource exists and has reset capabilities */
-	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
+	rpt = oh_get_resource_by_id(handle->rptcache, rid);
         if (!rpt) {
 		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INVALID_RESOURCE);
@@ -88,16 +93,22 @@ SaErrorT snmp_bc_set_reset_state(void *hnd,
 	SaErrorT err;
 	struct ResourceInfo *resinfo;
         struct snmp_value set_value;
+        struct oh_handler_state *handle;
+        struct snmp_bc_hnd *custom_handle;
+	SaHpiRptEntryT *rpt;
 
 	if (!hnd || NULL == oh_lookup_resetaction(act)){
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
-	if (act == SAHPI_RESET_ASSERT || act == SAHPI_RESET_DEASSERT) return(SA_ERR_HPI_INVALID_CMD);
-	
-        struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
-        struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 
+	if (act == SAHPI_RESET_ASSERT || act == SAHPI_RESET_DEASSERT)
+					 return(SA_ERR_HPI_INVALID_CMD);	
+					 
+
+	handle = (struct oh_handler_state *)hnd;
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
+	
 	if (!custom_handle) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
@@ -105,7 +116,7 @@ SaErrorT snmp_bc_set_reset_state(void *hnd,
 
 	snmp_bc_lock_handler(custom_handle);
 	/* Check if resource exists and has reset capabilities */
-	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
+	rpt = oh_get_resource_by_id(handle->rptcache, rid);
         if (!rpt) {
 		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INVALID_RESOURCE);

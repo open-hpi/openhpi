@@ -19,18 +19,20 @@
 SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
 			      SaHpiEntityPathT *ep_root)
 {
+	
 	int i;
 	SaErrorT err;
         struct oh_event *e;
 	struct snmp_value get_value;
 	struct ResourceInfo *res_info_ptr;
+	struct snmp_bc_hnd *custom_handle;
 
 	if (!handle || !ep_root) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
-
-	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
+		
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
 	if (!custom_handle) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);

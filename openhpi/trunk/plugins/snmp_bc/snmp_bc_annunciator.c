@@ -38,14 +38,19 @@ SaErrorT snmp_bc_get_next_announce(void *hnd,
 				   SaHpiBoolT unackonly,
 				   SaHpiAnnouncementT *announcement)
 {
+
+        struct oh_handler_state *handle;
+        struct snmp_bc_hnd *custom_handle;
+	SaHpiRptEntryT *rpt;
+
 	if (!hnd || !announcement || oh_lookup_severity(sev) == NULL) {
 		dbg("Invalid parameter.");
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
 
-        struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
-        struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
-
+	handle = (struct oh_handler_state *)hnd;
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
+	
 	if (!custom_handle) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
@@ -53,7 +58,7 @@ SaErrorT snmp_bc_get_next_announce(void *hnd,
 
 	snmp_bc_lock_handler(custom_handle);
 	/* Check if resource exists and has managed hotswap capabilities */
-	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
+	rpt = oh_get_resource_by_id(handle->rptcache, rid);
         if (!rpt) {
 		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INVALID_RESOURCE);
@@ -92,14 +97,18 @@ SaErrorT snmp_bc_get_announce(void *hnd,
 			      SaHpiEntryIdT entry,
 			      SaHpiAnnouncementT *announcement)
  {
+        struct oh_handler_state *handle;
+        struct snmp_bc_hnd *custom_handle;
+	SaHpiRptEntryT *rpt;
+	
 	if (!hnd || !announcement) {
 		dbg("Invalid parameter.");
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
 
-        struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
-        struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
-
+	handle = (struct oh_handler_state *)hnd;
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
+	
 	if (!custom_handle) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
@@ -107,7 +116,7 @@ SaErrorT snmp_bc_get_announce(void *hnd,
 
 	snmp_bc_lock_handler(custom_handle);
 	/* Check if resource exists and has managed hotswap capabilities */
-	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
+	rpt = oh_get_resource_by_id(handle->rptcache, rid);
         if (!rpt) {
 		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INVALID_RESOURCE);
@@ -145,14 +154,19 @@ SaErrorT snmp_bc_ack_announce(void *hnd,
 			      SaHpiEntryIdT entry,
 			      SaHpiSeverityT sev)
 {
+
+        struct oh_handler_state *handle;
+        struct snmp_bc_hnd *custom_handle;
+	SaHpiRptEntryT *rpt;
+	
 	if (!hnd || oh_lookup_severity(sev) == NULL) {
 		dbg("Invalid parameter.");
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
 
-        struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
-        struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
-
+	handle = (struct oh_handler_state *)hnd;
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
+	
 	if (!custom_handle) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
@@ -160,7 +174,7 @@ SaErrorT snmp_bc_ack_announce(void *hnd,
 
 	snmp_bc_lock_handler(custom_handle);
 	/* Check if resource exists and has managed hotswap capabilities */
-	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
+	rpt = oh_get_resource_by_id(handle->rptcache, rid);
         if (!rpt) {
 		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INVALID_RESOURCE);
@@ -197,14 +211,19 @@ SaErrorT snmp_bc_add_announce(void *hnd,
 			      SaHpiAnnunciatorNumT aid,
 			      SaHpiAnnouncementT *announcement)
 {
+
+        struct oh_handler_state *handle;
+        struct snmp_bc_hnd *custom_handle;
+	SaHpiRptEntryT *rpt;
+
 	if (!hnd || !announcement) {
 		dbg("Invalid parameter.");
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
 
-        struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
-        struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
-
+	handle = (struct oh_handler_state *)hnd;
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
+	
 	if (!custom_handle) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
@@ -212,7 +231,7 @@ SaErrorT snmp_bc_add_announce(void *hnd,
 
 	snmp_bc_lock_handler(custom_handle);
 	/* Check if resource exists and has managed hotswap capabilities */
-	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
+	rpt = oh_get_resource_by_id(handle->rptcache, rid);
         if (!rpt) {
 		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INVALID_RESOURCE);
@@ -251,14 +270,19 @@ SaErrorT snmp_bc_del_announce(void *hnd,
 			      SaHpiEntryIdT entry,
 			      SaHpiSeverityT sev)
 {
+
+        struct oh_handler_state *handle;
+        struct snmp_bc_hnd *custom_handle;
+	SaHpiRptEntryT *rpt;
+
 	if (!hnd || oh_lookup_severity(sev) == NULL) {
 		dbg("Invalid parameter.");
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
 
-        struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
-        struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
-
+	handle = (struct oh_handler_state *)hnd;
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
+	
 	if (!custom_handle) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
@@ -266,7 +290,7 @@ SaErrorT snmp_bc_del_announce(void *hnd,
 
 	snmp_bc_lock_handler(custom_handle);
 	/* Check if resource exists and has managed hotswap capabilities */
-	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
+	rpt = oh_get_resource_by_id(handle->rptcache, rid);
         if (!rpt) {
 		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INVALID_RESOURCE);
@@ -303,14 +327,19 @@ SaErrorT snmp_bc_get_annunc_mode(void *hnd,
 				 SaHpiAnnunciatorNumT aid,
 				 SaHpiAnnunciatorModeT *mode)
 {
+
+        struct oh_handler_state *handle;
+        struct snmp_bc_hnd *custom_handle;
+	SaHpiRptEntryT *rpt;
+
 	if (!hnd || !mode) {
 		dbg("Invalid parameter.");
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
 
-        struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
-        struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
-
+	handle = (struct oh_handler_state *)hnd;
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
+	
 	if (!custom_handle) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
@@ -318,7 +347,7 @@ SaErrorT snmp_bc_get_annunc_mode(void *hnd,
 
 	snmp_bc_lock_handler(custom_handle);
 	/* Check if resource exists and has managed hotswap capabilities */
-	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
+	rpt = oh_get_resource_by_id(handle->rptcache, rid);
         if (!rpt) {
 		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INVALID_RESOURCE);
@@ -355,14 +384,19 @@ SaErrorT snmp_bc_set_annunc_mode(void *hnd,
 				 SaHpiAnnunciatorNumT aid,
 				 SaHpiAnnunciatorModeT mode)
 {
+
+        struct oh_handler_state *handle;
+        struct snmp_bc_hnd *custom_handle;
+	SaHpiRptEntryT *rpt;
+	
 	if (!hnd || oh_lookup_annunciatormode(mode) == NULL) {
 		dbg("Invalid parameter.");
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
 
-        struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
-        struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
-
+	handle = (struct oh_handler_state *)hnd;
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
+	
 	if (!custom_handle) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
@@ -370,7 +404,7 @@ SaErrorT snmp_bc_set_annunc_mode(void *hnd,
 
 	snmp_bc_lock_handler(custom_handle);
 	/* Check if resource exists and has managed hotswap capabilities */
-	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
+	rpt = oh_get_resource_by_id(handle->rptcache, rid);
         if (!rpt) {
 		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INVALID_RESOURCE);

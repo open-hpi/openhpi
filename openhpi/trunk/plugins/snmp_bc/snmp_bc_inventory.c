@@ -55,14 +55,19 @@ SaErrorT snmp_bc_get_idr_info( void *hnd,
 		SaHpiIdrIdT             IdrId,
 		SaHpiIdrInfoT          *IdrInfo)
 {
-	SaErrorT  rv = SA_OK;
+		
+	SaErrorT  rv;
 	struct bc_inventory_record *i_record;
-	struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
+	struct oh_handler_state *handle;
+	struct snmp_bc_hnd *custom_handle;
 
 	if (!hnd || !IdrInfo)
 		return(SA_ERR_HPI_INVALID_PARAMS);
-	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 		
+	rv = SA_OK;
+	handle = (struct oh_handler_state *)hnd;
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
+	
 	i_record = (struct bc_inventory_record *)g_malloc0(sizeof(struct bc_inventory_record));
  	if (!i_record) {
   		dbg("Cannot allocate working buffer memory");
@@ -118,15 +123,19 @@ SaErrorT snmp_bc_get_idr_area_header( void *hnd,
 		SaHpiEntryIdT           *NextAreaId,
 		SaHpiIdrAreaHeaderT     *Header)
 {
-
-	SaErrorT rv = SA_OK;
+	SaErrorT rv;
 	struct bc_inventory_record *i_record;
-	struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
+	struct oh_handler_state *handle;
+	struct snmp_bc_hnd *custom_handle;
 
 	if (!hnd || !NextAreaId || !Header)
 		return(SA_ERR_HPI_INVALID_PARAMS);
+
+		
+	rv = SA_OK;
+	handle = (struct oh_handler_state *)hnd;
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
 	
-	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 	i_record = (struct bc_inventory_record *)g_malloc0(sizeof(struct bc_inventory_record));
  	if (!i_record) {
   		dbg("Cannot allocate working buffer memory");
@@ -229,17 +238,22 @@ SaErrorT snmp_bc_get_idr_field( void *hnd,
 		SaHpiEntryIdT           FieldId,
 		SaHpiEntryIdT          *NextFieldId,
 		SaHpiIdrFieldT         *Field)
-{
+{		
 	SaErrorT rv = SA_OK;
 	struct bc_inventory_record *i_record;
 	int i;
 	SaHpiBoolT foundit = SAHPI_FALSE;
-	struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
+	struct oh_handler_state *handle;
+	struct snmp_bc_hnd *custom_handle;
+
 
 	if (!hnd || !NextFieldId || !Field)
 		return(SA_ERR_HPI_INVALID_PARAMS);
 		
-	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
+	rv = SA_OK;
+	handle = (struct oh_handler_state *)hnd;
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
+	
 	i_record = (struct bc_inventory_record *)g_malloc0(sizeof(struct bc_inventory_record));
 	
  	if (!i_record) {
@@ -376,16 +390,11 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 		SaHpiResourceIdT  ResourceId,
 		SaHpiIdrIdT       IdrId,
 		struct bc_inventory_record *i_record)
-{
-	SaErrorT rv = SA_OK;
-		
-
-	if (!hnd || !i_record)
-		return(SA_ERR_HPI_INVALID_PARAMS);
-	
-	struct oh_handler_state *handle = (struct oh_handler_state *) hnd;
-	struct snmp_bc_hnd *custom_handle = handle->data;
-	SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, ResourceId, SAHPI_INVENTORY_RDR, IdrId);
+{		
+	SaErrorT rv;
+	struct oh_handler_state *handle;
+	struct snmp_bc_hnd *custom_handle;
+	SaHpiRdrT *rdr;
 	SaHpiEntityPathT valEntity;
 	struct snmp_value get_value;
 	
@@ -393,7 +402,13 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 	SaHpiIdrFieldT	thisField;
 	struct bc_idr_area  thisInventoryArea;
 
-	
+	if (!hnd || !i_record)
+		return(SA_ERR_HPI_INVALID_PARAMS);
+
+	rv = SA_OK;
+	handle = (struct oh_handler_state *) hnd;
+	custom_handle = handle->data;
+	rdr = oh_get_rdr_by_type(handle->rptcache, ResourceId, SAHPI_INVENTORY_RDR, IdrId);
 	
 	if (rdr != NULL) {
 	
@@ -591,13 +606,13 @@ SaErrorT snmp_bc_idr_build_field(struct snmp_bc_hnd *custom_handle,
 		  		 SaHpiIdrFieldT  *thisField,
 				 struct bc_idr_area *thisInventoryArea)
 {
+	struct snmp_value get_value;
+	SaErrorT rv;
 
 	if (!custom_handle || !thisField || !thisInventoryArea)
 		return(SA_ERR_HPI_INVALID_PARAMS);
-
-	struct snmp_value get_value;
-	SaErrorT rv = SA_OK;
-
+		
+	rv = SA_OK;
 	/**
 	 *
 	 */

@@ -44,22 +44,26 @@ SaErrorT snmp_bc_get_sensor_reading(void *hnd,
 	SaHpiSensorReadingT working_reading;
 	SaHpiEventStateT working_state;
 	struct SensorInfo *sinfo;
-	
+        struct oh_handler_state *handle;
+        struct snmp_bc_hnd *custom_handle;
+	SaHpiRptEntryT *rpt;
+        SaHpiRdrT *rdr;
+
 	if (!hnd) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
-        struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
-        struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
-
+	handle = (struct oh_handler_state *)hnd;
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
+	
 	if (!custom_handle) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 	snmp_bc_lock_handler(custom_handle);
 	/* Check if resource exists and has sensor capabilities */
-	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
+	rpt = oh_get_resource_by_id(handle->rptcache, rid);
         if (!rpt) {	
 		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INVALID_RESOURCE);
@@ -71,7 +75,7 @@ SaErrorT snmp_bc_get_sensor_reading(void *hnd,
 	}
 
 	/* Check if sensor exists and is enabled */
-        SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, rid, SAHPI_SENSOR_RDR, sid);
+        rdr = oh_get_rdr_by_type(handle->rptcache, rid, SAHPI_SENSOR_RDR, sid);
 	if (rdr == NULL) {
 		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_NOT_PRESENT);
@@ -167,23 +171,27 @@ SaErrorT snmp_bc_get_sensor_eventstate(void *hnd,
 				       SaHpiSensorNumT sid,
 				       SaHpiSensorReadingT *reading,
 				       SaHpiEventStateT *state)
-{
+{	
 	int i;
 	struct SensorInfo *sinfo;
-        struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
+        struct oh_handler_state *handle;
+	SaHpiRptEntryT *rpt;
+        SaHpiRdrT *rdr;
+	SaErrorT err;
 
 	if (!hnd || !reading || !state) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
-	
+
+	handle = (struct oh_handler_state *)hnd;
 	/* Check if resource exists and has sensor capabilities */
-	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
+	rpt = oh_get_resource_by_id(handle->rptcache, rid);
         if (!rpt) return(SA_ERR_HPI_INVALID_RESOURCE);
         if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)) return(SA_ERR_HPI_CAPABILITY);
 	
 	/* Check if sensor exist and is enabled */
-        SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, rid, SAHPI_SENSOR_RDR, sid);
+        rdr = oh_get_rdr_by_type(handle->rptcache, rid, SAHPI_SENSOR_RDR, sid);
 	if (rdr == NULL) return(SA_ERR_HPI_NOT_PRESENT);
 	sinfo = (struct SensorInfo *)oh_get_rdr_data(handle->rptcache, rid, rdr->RecordId);
  	if (sinfo == NULL) {
@@ -215,7 +223,7 @@ SaErrorT snmp_bc_get_sensor_eventstate(void *hnd,
 		SaHpiSensorThresholdsT thres;		
 		memset(&thres, 0, sizeof(SaHpiSensorThresholdsT));
 
-		SaErrorT err = snmp_bc_get_sensor_thresholds(hnd, rid, sid, &thres);
+		err = snmp_bc_get_sensor_thresholds(hnd, rid, sid, &thres);
 		if (err) {
 			dbg("Cannot get sensor thresholds for Sensor=%s. Error=%s", 
 			    rdr->IdString.Data, oh_lookup_error(err));
@@ -317,7 +325,7 @@ do { \
 			snmp_bc_unlock_handler(custom_handle); \
 			return(SA_ERR_HPI_INTERNAL_ERROR); \
 		} \
-		SaErrorT err = snmp_bc_get_sensor_oid_reading(hnd, rid, sid, \
+		err = snmp_bc_get_sensor_oid_reading(hnd, rid, sid, \
 							      sinfo->mib.threshold_oids.thdname, \
 							      &(working.thdname)); \
 		if (err) { \
@@ -357,23 +365,28 @@ SaErrorT snmp_bc_get_sensor_thresholds(void *hnd,
 				       SaHpiResourceIdT rid,
 				       SaHpiSensorNumT sid,
 				       SaHpiSensorThresholdsT *thres)
-{
+{	
 	int upper_thresholds, lower_thresholds;
 	SaHpiSensorThdMaskT  found_thresholds;
 	SaHpiSensorThresholdsT working;
         struct SensorInfo *sinfo;
-        struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
-	
+        struct oh_handler_state *handle;	
+	struct snmp_bc_hnd *custom_handle;
+	SaHpiRptEntryT *rpt;
+        SaHpiRdrT *rdr;
+	SaErrorT err;
+
 	if (!hnd || !thres) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
-	
-	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
+		
+	handle = (struct oh_handler_state *)hnd;	
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
 	
 	snmp_bc_lock_handler(custom_handle);
 	/* Check if resource exists and has sensor capabilities */
-	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
+	rpt = oh_get_resource_by_id(handle->rptcache, rid);
         if (!rpt) {
 		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INVALID_RESOURCE);
@@ -385,7 +398,7 @@ SaErrorT snmp_bc_get_sensor_thresholds(void *hnd,
 	}
 
 	/* Check if sensor exits and has readable thresholds */
-        SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, rid, SAHPI_SENSOR_RDR, sid);
+        rdr = oh_get_rdr_by_type(handle->rptcache, rid, SAHPI_SENSOR_RDR, sid);
 	if (rdr == NULL){
 		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_NOT_PRESENT);
@@ -469,7 +482,7 @@ SaErrorT snmp_bc_get_sensor_thresholds(void *hnd,
 		}
 
 		/* Get negative hysteresis value */
-		SaErrorT err = snmp_bc_get_sensor_oid_reading(hnd, rid, sid,
+		err = snmp_bc_get_sensor_oid_reading(hnd, rid, sid,
 							      sinfo->mib.threshold_oids.TotalNegThdHysteresis,
 							      &reading);
 		if (err) {
@@ -557,7 +570,7 @@ SaErrorT snmp_bc_get_sensor_thresholds(void *hnd,
 		}
 
 		/* Get positive hysteresis value */
-		SaErrorT err = snmp_bc_get_sensor_oid_reading(hnd, rid, sid,
+		err = snmp_bc_get_sensor_oid_reading(hnd, rid, sid,
 							      sinfo->mib.threshold_oids.TotalPosThdHysteresis,
 							      &reading);
 		if (err) {
@@ -703,21 +716,26 @@ SaErrorT snmp_bc_set_sensor_thresholds(void *hnd,
 				       SaHpiResourceIdT rid,
 				       SaHpiSensorNumT sid,
 				       const SaHpiSensorThresholdsT *thres)
-{
+{	
 	SaErrorT err;
 	SaHpiSensorThresholdsT working;
-	struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
+	struct oh_handler_state *handle;
 	struct SensorInfo *sinfo;
+	struct snmp_bc_hnd *custom_handle;
+	SaHpiRptEntryT *rpt;
+        SaHpiRdrT *rdr;
 
 	if (!hnd || !thres) {
 		dbg("Invalid parameter");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
-	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
+		
+	handle = (struct oh_handler_state *)hnd;
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
 	
 	snmp_bc_lock_handler(custom_handle);
 	/* Check if resource exists and has sensor capabilities */
-	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
+	rpt = oh_get_resource_by_id(handle->rptcache, rid);
         if (!rpt) {
 		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INVALID_RESOURCE);
@@ -729,7 +747,7 @@ SaErrorT snmp_bc_set_sensor_thresholds(void *hnd,
 	}
 
 	/* Check if sensor exists and has writable thresholds */
-        SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, rid, SAHPI_SENSOR_RDR, sid);
+        rdr = oh_get_rdr_by_type(handle->rptcache, rid, SAHPI_SENSOR_RDR, sid);
 	if (rdr == NULL) {
 		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_NOT_PRESENT);
@@ -797,12 +815,16 @@ SaErrorT snmp_bc_get_sensor_oid_reading(void *hnd,
 	SaHpiSensorReadingT working;
 	SaErrorT err;
 	struct SensorInfo *sinfo;
-	struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
-        struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
+	struct oh_handler_state *handle;
+        struct snmp_bc_hnd *custom_handle;
 	struct snmp_value get_value;
 	SaHpiEntityPathT valEntity;
+	SaHpiRdrT *rdr;
 
-        SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, rid, SAHPI_SENSOR_RDR, sid);
+	handle = (struct oh_handler_state *)hnd;
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
+	
+        rdr = oh_get_rdr_by_type(handle->rptcache, rid, SAHPI_SENSOR_RDR, sid);
 	if (rdr == NULL) return(SA_ERR_HPI_NOT_PRESENT);
 	sinfo = (struct SensorInfo *)oh_get_rdr_data(handle->rptcache, rid, rdr->RecordId);
  	if (sinfo == NULL) {
@@ -849,22 +871,26 @@ SaErrorT snmp_bc_set_threshold_reading(void *hnd,
 				       SaHpiSensorNumT sid,
 				       const char *raw_oid,
 				       const SaHpiSensorReadingT *reading)
-{
+{	
 	SaErrorT err;
 	SaHpiTextBufferT buffer;
 	SaHpiFloat64T tmp_num;
 	struct SensorInfo *sinfo;
-	struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
-        struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
+	struct oh_handler_state *handle;
+        struct snmp_bc_hnd *custom_handle;
 	struct snmp_value set_value;
 	SaHpiEntityPathT valEntity;
+	SaHpiRdrT *rdr;
 
 	if (!hnd || !reading || !raw_oid) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INTERNAL_ERROR);
 	}
 
-        SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, rid, SAHPI_SENSOR_RDR, sid);
+	handle = (struct oh_handler_state *)hnd;
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
+	
+        rdr = oh_get_rdr_by_type(handle->rptcache, rid, SAHPI_SENSOR_RDR, sid);
 	if (rdr == NULL) return(SA_ERR_HPI_NOT_PRESENT);
 	sinfo = (struct SensorInfo *)oh_get_rdr_data(handle->rptcache, rid, rdr->RecordId);
  	if (sinfo == NULL) {
@@ -931,20 +957,24 @@ SaErrorT snmp_bc_get_sensor_enable(void *hnd,
 				   SaHpiResourceIdT rid,
 				   SaHpiSensorNumT sid,
 				   SaHpiBoolT *enable)
-{
-
-	struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
+{	
+	struct oh_handler_state *handle;
 	struct SensorInfo *sinfo;
+	struct snmp_bc_hnd *custom_handle;
+	SaHpiRptEntryT *rpt;
+        SaHpiRdrT *rdr;
 
 	if (!hnd || !enable) {
 		dbg("Invalid parameter");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
-	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 
+	handle = (struct oh_handler_state *)hnd;
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
+	
 	snmp_bc_lock_handler(custom_handle);
 	/* Check if resource exists and has sensor capabilities */
-	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
+	rpt = oh_get_resource_by_id(handle->rptcache, rid);
         if (!rpt) {
 		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INVALID_RESOURCE);
@@ -956,7 +986,7 @@ SaErrorT snmp_bc_get_sensor_enable(void *hnd,
 	}
 
 	/* Check if sensor exists and return enablement status */
-        SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, rid, SAHPI_SENSOR_RDR, sid);
+        rdr = oh_get_rdr_by_type(handle->rptcache, rid, SAHPI_SENSOR_RDR, sid);
 	if (rdr == NULL) {
 		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_NOT_PRESENT);
@@ -994,18 +1024,23 @@ SaErrorT snmp_bc_set_sensor_enable(void *hnd,
 				   SaHpiSensorNumT sid,
 				   const SaHpiBoolT enable)
 {
+	struct oh_handler_state *handle;
+	struct snmp_bc_hnd *custom_handle;
+	SaHpiRptEntryT *rpt;
+        SaHpiRdrT *rdr;
+	struct SensorInfo *sinfo;
 
 	if (!hnd ) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
-	struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
-	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
-
+	handle = (struct oh_handler_state *)hnd;
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
+	
 	snmp_bc_lock_handler(custom_handle);
 	/* Check if resource exists and has sensor capabilities */
-	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
+	rpt = oh_get_resource_by_id(handle->rptcache, rid);
         if (!rpt) {
 		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INVALID_RESOURCE);
@@ -1017,7 +1052,7 @@ SaErrorT snmp_bc_set_sensor_enable(void *hnd,
 	}
 
 	/* Check if sensor exists and if it supports setting of sensor enablement */
-        SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, rid, SAHPI_SENSOR_RDR, sid);
+        rdr = oh_get_rdr_by_type(handle->rptcache, rid, SAHPI_SENSOR_RDR, sid);
 	if (rdr == NULL) {
 		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_NOT_PRESENT);
@@ -1025,7 +1060,6 @@ SaErrorT snmp_bc_set_sensor_enable(void *hnd,
 	
 	if (rdr->RdrTypeUnion.SensorRec.EnableCtrl == SAHPI_TRUE) {
 		dbg("BladeCenter/RSA do not support snmp_bc_set_sensor_enable");
-		struct SensorInfo *sinfo;
 		sinfo = (struct SensorInfo *)oh_get_rdr_data(handle->rptcache, rid, rdr->RecordId);
 		if (sinfo == NULL) {
 			dbg("No sensor data. Sensor=%s", rdr->IdString.Data);
@@ -1066,19 +1100,24 @@ SaErrorT snmp_bc_get_sensor_event_enable(void *hnd,
 					 SaHpiResourceIdT rid,
 					 SaHpiSensorNumT sid,
 					 SaHpiBoolT *enable)
-{
-	struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
+{	
+	struct oh_handler_state *handle;
 	struct SensorInfo *sinfo;
+	struct snmp_bc_hnd *custom_handle;
+	SaHpiRptEntryT *rpt;
+        SaHpiRdrT *rdr;
 
 	if (!hnd || !enable) {
 		dbg("Invalid parameter");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
-	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 
+	handle = (struct oh_handler_state *)hnd;
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
+	
 	snmp_bc_lock_handler(custom_handle);
 	/* Check if resource exists and has sensor capabilities */
-	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
+	rpt = oh_get_resource_by_id(handle->rptcache, rid);
         if (!rpt) {
 		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INVALID_RESOURCE);
@@ -1090,7 +1129,7 @@ SaErrorT snmp_bc_get_sensor_event_enable(void *hnd,
 	}
 
 	/* Check if sensor exists and return enablement status */
-        SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, rid, SAHPI_SENSOR_RDR, sid);
+        rdr = oh_get_rdr_by_type(handle->rptcache, rid, SAHPI_SENSOR_RDR, sid);
 	if (rdr == NULL) {
 		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_NOT_PRESENT);
@@ -1128,18 +1167,24 @@ SaErrorT snmp_bc_set_sensor_event_enable(void *hnd,
 					 SaHpiSensorNumT sid,
 					 const SaHpiBoolT enable)
 {
-	struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
+	struct oh_handler_state *handle;
+	struct snmp_bc_hnd *custom_handle;
+	SaHpiRptEntryT *rpt;
+        SaHpiRdrT *rdr;
+	struct SensorInfo *sinfo;
 
 	if (!hnd ) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
-	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 
+	handle = (struct oh_handler_state *)hnd;
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
+	
 	snmp_bc_lock_handler(custom_handle);
 
 	/* Check if resource exists and has sensor capabilities */
-	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
+	rpt = oh_get_resource_by_id(handle->rptcache, rid);
         if (!rpt) {
 		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INVALID_RESOURCE);
@@ -1151,7 +1196,7 @@ SaErrorT snmp_bc_set_sensor_event_enable(void *hnd,
 	}
 
 	/* Check if sensor exists and if it supports setting of sensor event enablement */
-        SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, rid, SAHPI_SENSOR_RDR, sid);
+        rdr = oh_get_rdr_by_type(handle->rptcache, rid, SAHPI_SENSOR_RDR, sid);
 	if (rdr == NULL) {
 		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_NOT_PRESENT);
@@ -1160,7 +1205,6 @@ SaErrorT snmp_bc_set_sensor_event_enable(void *hnd,
 	if (rdr->RdrTypeUnion.SensorRec.EventCtrl == SAHPI_SEC_PER_EVENT ||
 	    rdr->RdrTypeUnion.SensorRec.EventCtrl == SAHPI_SEC_READ_ONLY_MASKS) {
 		dbg("BladeCenter/RSA do not support snmp_bc_set_sensor_event_enable\n");    
-		struct SensorInfo *sinfo;
 		sinfo = (struct SensorInfo *)oh_get_rdr_data(handle->rptcache, rid, rdr->RecordId);
 		if (sinfo == NULL) {
 			dbg("No sensor data. Sensor=%s", rdr->IdString.Data);
@@ -1203,19 +1247,24 @@ SaErrorT snmp_bc_get_sensor_event_masks(void *hnd,
 					SaHpiSensorNumT sid,
 					SaHpiEventStateT *AssertEventMask,
 					SaHpiEventStateT *DeassertEventMask)
-{
-	struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
+{	
+	struct oh_handler_state *handle;
 	struct SensorInfo *sinfo;
+	struct snmp_bc_hnd *custom_handle;
+	SaHpiRptEntryT *rpt;
+        SaHpiRdrT *rdr;
 
 	if (!hnd ) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
-
-	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
+		
+	handle = (struct oh_handler_state *)hnd;
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
+	
 	snmp_bc_lock_handler(custom_handle);
 	/* Check if resource exists and has sensor capabilities */
-	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
+	rpt = oh_get_resource_by_id(handle->rptcache, rid);
         if (!rpt) {
 		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INVALID_RESOURCE);
@@ -1227,7 +1276,7 @@ SaErrorT snmp_bc_get_sensor_event_masks(void *hnd,
 	}
 	
 	/* Check if sensor exists and return enablement status */
-        SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, rid, SAHPI_SENSOR_RDR, sid);
+        rdr = oh_get_rdr_by_type(handle->rptcache, rid, SAHPI_SENSOR_RDR, sid);
 	if (rdr == NULL) {
 		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_NOT_PRESENT);
@@ -1279,7 +1328,14 @@ SaErrorT snmp_bc_set_sensor_event_masks(void *hnd,
 					const SaHpiEventStateT AssertEventMask,
 					const SaHpiEventStateT DeassertEventMask)
 {
-	struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
+	
+	struct oh_handler_state *handle;
+	struct snmp_bc_hnd *custom_handle;
+	SaHpiRptEntryT *rpt;
+        SaHpiRdrT *rdr;
+	struct SensorInfo *sinfo;
+	SaHpiEventStateT orig_assert_mask;
+	SaHpiEventStateT orig_deassert_mask;
 
 	if (!hnd ) {
 		dbg("Invalid parameter.");
@@ -1289,12 +1345,13 @@ SaErrorT snmp_bc_set_sensor_event_masks(void *hnd,
 	if (oh_lookup_sensoreventmaskaction(act) == NULL) {
 		return(SA_ERR_HPI_INVALID_DATA);
 	}
-	
-	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 
+	handle = (struct oh_handler_state *)hnd;
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
+	
 	snmp_bc_lock_handler(custom_handle);
 	/* Check if resource exists and has sensor capabilities */
-	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
+	rpt = oh_get_resource_by_id(handle->rptcache, rid);
         if (!rpt) {
 		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INVALID_RESOURCE);
@@ -1306,7 +1363,7 @@ SaErrorT snmp_bc_set_sensor_event_masks(void *hnd,
 	}
 
 	/* Check if sensor exists and if it supports setting of sensor event masks */
-        SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, rid, SAHPI_SENSOR_RDR, sid);
+        rdr = oh_get_rdr_by_type(handle->rptcache, rid, SAHPI_SENSOR_RDR, sid);
 	if (rdr == NULL) {
 		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_NOT_PRESENT);
@@ -1315,7 +1372,6 @@ SaErrorT snmp_bc_set_sensor_event_masks(void *hnd,
 	if (rdr->RdrTypeUnion.SensorRec.EventCtrl == SAHPI_SEC_PER_EVENT) {
 		dbg("BladeCenter/RSA do not support snmp_bc_set_sensor_event_masks");
                 /* Probably need to drive an OID, if hardware supported it */
-		struct SensorInfo *sinfo;
 		sinfo = (struct SensorInfo *)oh_get_rdr_data(handle->rptcache, rid, rdr->RecordId);
 		if (sinfo == NULL) {
 			dbg("No sensor data. Sensor=%s", rdr->IdString.Data);
@@ -1323,8 +1379,8 @@ SaErrorT snmp_bc_set_sensor_event_masks(void *hnd,
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		}
 
-		SaHpiEventStateT orig_assert_mask = sinfo->assert_mask;
-		SaHpiEventStateT orig_deassert_mask = sinfo->deassert_mask;
+		orig_assert_mask = sinfo->assert_mask;
+		orig_deassert_mask = sinfo->deassert_mask;
 
 		/* Check for invalid data in user masks */
 		if ( (AssertEventMask != SAHPI_ALL_EVENT_STATES) &&
