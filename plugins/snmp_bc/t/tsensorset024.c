@@ -33,6 +33,10 @@ int main(int argc, char **argv)
 	SaHpiRdrT	rdr;	 
 	SaHpiSensorNumT sid = 0;
 	SaHpiSensorThresholdsT thres;
+	SaHpiEntryIdT entryid;
+	SaHpiEntryIdT nextentryid;
+	SaHpiBoolT foundSensor;			
+
 	/* *************************************	 	 
 	 * Find a resource with Sensor type rdr
 	 * ************************************* */		
@@ -55,9 +59,8 @@ int main(int argc, char **argv)
 	/************************** 
 	 * Test: find a sensor with desired property
 	 **************************/
-	SaHpiEntryIdT entryid = SAHPI_FIRST_ENTRY;
-	SaHpiEntryIdT nextentryid;
-	SaHpiBoolT foundSensor = SAHPI_FALSE;			
+	entryid = SAHPI_FIRST_ENTRY;
+	foundSensor = SAHPI_FALSE;			
 	do {
 		err = saHpiRdrGet(sessionid,id,entryid,&nextentryid, &rdr);
 		if (err == SA_OK)

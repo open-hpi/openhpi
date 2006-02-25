@@ -32,10 +32,14 @@ int main(int argc, char **argv)
 	SaHpiRdrT      rdr;
 	SaHpiResourceIdT  id;
         SaHpiSessionIdT sessionid;
+	SaHpiEntryIdT entryid;
+	SaHpiEntryIdT nextentryid;
+	SaHpiBoolT foundSensor;			
 	 
 	SaHpiSensorNumT sid = 1;
 	SaHpiEventStateT assertMask       = SAHPI_ES_UPPER_MINOR;
 	SaHpiEventStateT deassertMask      = SAHPI_ES_UPPER_CRIT;
+	SaHpiSensorEventMaskActionT act   = SAHPI_SENS_NONSENSE_ACTION;    
 	
 
 	/* *************************************	 	 
@@ -60,9 +64,8 @@ int main(int argc, char **argv)
         /**************************
          * Test: find a sensor with desired property
          **************************/
-	SaHpiEntryIdT entryid = SAHPI_FIRST_ENTRY;
-	SaHpiEntryIdT nextentryid;
-	SaHpiBoolT foundSensor = SAHPI_FALSE;			
+	entryid = SAHPI_FIRST_ENTRY;
+	foundSensor = SAHPI_FALSE;			
 	do {
 		err = saHpiRdrGet(sessionid,id,entryid,&nextentryid, &rdr);
 		if (err == SA_OK)
@@ -88,7 +91,7 @@ int main(int argc, char **argv)
 	/************************** 
 	 * Test : Invalid data
 	 **************************/
-	SaHpiSensorEventMaskActionT act   = SAHPI_SENS_NONSENSE_ACTION;    
+	act   = SAHPI_SENS_NONSENSE_ACTION;    
 	expected_err = SA_ERR_HPI_INVALID_DATA;                   
 	err = saHpiSensorEventMasksSet(sessionid, id, sid, act, assertMask, deassertMask);
 	checkstatus(err, expected_err, testfail);

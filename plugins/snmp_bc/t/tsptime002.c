@@ -30,8 +30,9 @@ int main(int argc, char **argv)
 
         SaHpiSessionIdT sessionid;
 	struct tm time;
-	memset(&time, 0, sizeof(struct tm));
 	struct snmp_bc_hnd custom_handle;
+
+	memset(&time, 0, sizeof(struct tm));
 	/************************** 
 	 * Test : Invalid handle
 	 **************************/
