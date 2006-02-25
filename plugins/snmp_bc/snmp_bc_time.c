@@ -197,9 +197,10 @@ gboolean is_dst_in_effect(struct tm *time, gchar **zone_token) {
 	guchar	start_week, end_week;
 	guchar	start_wkday, end_wkday;
 	guchar	start_month, end_month;
-	gboolean rc = FALSE;
+	gboolean rc;
 	guchar zone_index;
 
+	rc = FALSE;
 	year = time->tm_year;
 	
 	if (zone_token[2] == NULL) {
@@ -297,15 +298,19 @@ SaErrorT snmp_bc_set_dst(struct oh_handler_state *handle, struct tm *time) {
  **/
 SaErrorT snmp_bc_get_sp_time(struct oh_handler_state *handle, struct tm *time)
 {
+	
         struct snmp_value get_value;
         struct tm tmptime;
 	SaErrorT rv = SA_OK;
-	
+        struct snmp_bc_hnd *custom_handle;
+
 	if (!handle || !time)
 		return(SA_ERR_HPI_INVALID_PARAMS);
-		
-        struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
-        
+
+	        
+	rv = SA_OK;
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
+	
 	if (custom_handle->platform == SNMP_BC_PLATFORM_RSA) {
 		rv = snmp_bc_snmp_get(custom_handle, SNMP_BC_DATETIME_OID_RSA, &get_value, SAHPI_TRUE);
 	}
@@ -346,14 +351,15 @@ SaErrorT snmp_bc_get_sp_time(struct oh_handler_state *handle, struct tm *time)
  * SA_ERR_HPI_INTERNAL_ERROR - If cannot parse date and time returned from bc
  * Returncode from snmp_set()
  **/
-SaErrorT snmp_bc_set_sp_time(struct snmp_bc_hnd *custom_handle, struct tm *time) {
-
+SaErrorT snmp_bc_set_sp_time(struct snmp_bc_hnd *custom_handle, struct tm *time) 
+{
         struct snmp_value set_value;
-        SaErrorT returncode = SA_OK;
+        SaErrorT returncode;
 
 	if (!custom_handle || !time)
 		return(SA_ERR_HPI_INVALID_PARAMS);
-
+		
+	returncode = SA_OK;
         set_value.type = ASN_OCTET_STR;
 	
         strftime(set_value.string, sizeof(set_value.string), "%m/%d/%Y,%H:%M:%S", time);

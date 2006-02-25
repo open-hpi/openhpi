@@ -33,6 +33,10 @@ int main(int argc, char **argv)
         SaHpiSessionIdT   sessionid;
 	SaHpiIdrIdT       idrId = 0;
 	SaHpiIdrInfoT	  info;
+	SaHpiEntryIdT entryid;
+	SaHpiEntryIdT nextentryid;
+	SaHpiBoolT foundControl;			
+
 	/* *************************************	 	 
 	 * Find a resource with inventory capability
 	 * ************************************* */
@@ -55,9 +59,8 @@ int main(int argc, char **argv)
 	/************************** 
 	 * Test: find an Inventory RDR
 	 **************************/
-	SaHpiEntryIdT entryid = SAHPI_FIRST_ENTRY;
-	SaHpiEntryIdT nextentryid;
-	SaHpiBoolT foundControl = SAHPI_FALSE;			
+	entryid = SAHPI_FIRST_ENTRY;
+	foundControl = SAHPI_FALSE;			
 	do {
 		err = saHpiRdrGet(sessionid,id,entryid,&nextentryid, &rdr);
 		if (err == SA_OK)

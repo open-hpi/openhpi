@@ -71,12 +71,14 @@ static ErrLog2EventInfoT *snmp_bc_findevent4dupstr(gchar *search_str,
 
 SaErrorT event2hpi_hash_init(struct oh_handler_state *handle)
 {
+	struct snmp_bc_hnd *custom_handle;
+
 	if (!handle) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
-
-	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
+		
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
 	if (!custom_handle) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
@@ -100,12 +102,14 @@ static void free_hash_data(gpointer key, gpointer value, gpointer user_data)
 
 SaErrorT event2hpi_hash_free(struct oh_handler_state *handle)
 {
+	struct snmp_bc_hnd *custom_handle;
+	
 	if (!handle) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
-	
-	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
+		
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
 	if (!custom_handle) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
@@ -140,18 +144,21 @@ SaErrorT snmp_bc_discover_res_events(struct oh_handler_state *handle,
 				     const struct ResourceInfo *resinfo)
 {
 	int i;
-	int max = SNMP_BC_MAX_RESOURCE_EVENT_ARRAY_SIZE;
+	int max;
 	char *normalized_str;
 	char *hash_existing_key, *hash_value;
 	EventMapInfoT *eventmap_info;
 	SaHpiResourceIdT rid;
+	struct snmp_bc_hnd *custom_handle;
 
 	if (!handle || !ep || !resinfo) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
-	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
+	max = SNMP_BC_MAX_RESOURCE_EVENT_ARRAY_SIZE;
+	
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
 	if (!custom_handle || !custom_handle->event2hpi_hash_ptr) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
@@ -233,19 +240,23 @@ SaErrorT snmp_bc_discover_sensor_events(struct oh_handler_state *handle,
 					SaHpiSensorNumT sid,
 					const struct snmp_bc_sensor *sinfo)
 {
+
 	int i;
 	int max = SNMP_BC_MAX_SENSOR_EVENT_ARRAY_SIZE;
 	char *normalized_str;
 	char *hash_existing_key, *hash_value;
 	EventMapInfoT *eventmap_info;
 	SaHpiResourceIdT rid;
+	struct snmp_bc_hnd *custom_handle;
 
 	if (!handle || !ep || !sinfo || sid <= 0) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
+		
+	max = SNMP_BC_MAX_SENSOR_EVENT_ARRAY_SIZE;
 
-	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
 	if (!custom_handle || !custom_handle->event2hpi_hash_ptr) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
@@ -361,13 +372,16 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 	SaHpiTextBufferT    thresh_read_value, thresh_trigger_value;
 	SaHpiTimeT          event_time;
 	ErrLog2EventInfoT   *strhash_data;
+        struct snmp_bc_hnd *custom_handle;
+	int dupovrovr;
+	struct oh_event *e;
 
 	if (!handle || !logstr || !event) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
-
-        struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
+		
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
 	if (!custom_handle) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
@@ -490,7 +504,7 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 	}
 
 	/* Handle duplicate strings that have different event numbers */
-	int dupovrovr = 0;
+	dupovrovr = 0;
 	if (strhash_data->event_dup) {
 		strhash_data = snmp_bc_findevent4dupstr(search_str, strhash_data, &resinfo);
 		if (strhash_data == NULL) {
@@ -605,7 +619,7 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 			if (rpt->ResourceFailed == SAHPI_FALSE) {
 				rpt->ResourceFailed = SAHPI_TRUE;
 				/* Add changed resource to event queue */
-				struct oh_event *e = g_malloc0(sizeof(struct oh_event));
+				e = g_malloc0(sizeof(struct oh_event));
 				if (e == NULL) {
 					dbg("Out of memory.");
 					return(SA_ERR_HPI_OUT_OF_SPACE);
@@ -656,7 +670,7 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 static ErrLog2EventInfoT *snmp_bc_findevent4dupstr(gchar *search_str,
 						   ErrLog2EventInfoT *strhash_data,
 						   LogSource2ResourceT *resinfo)
-{
+{	
 	gchar dupstr[SNMP_BC_MAX_SEL_ENTRY_LENGTH];
 	ErrLog2EventInfoT *dupstr_hash_data;
 	short strnum;
@@ -744,15 +758,19 @@ static SaErrorT snmp_bc_parse_threshold_str(gchar *str,
 					    SaHpiTextBufferT *read_value_str,
 					    SaHpiTextBufferT *trigger_value_str)
 {
-	gchar  **event_substrs = NULL;
-	gchar  **thresh_substrs = NULL;
-	SaErrorT err = SA_OK;
+	gchar  **event_substrs;
+	gchar  **thresh_substrs;
+	SaErrorT err;
 
 	if (!str || !root_str || !read_value_str || !trigger_value_str) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
-
+		
+	event_substrs = NULL;
+	thresh_substrs = NULL;
+	err = SA_OK;
+	
 	event_substrs = g_strsplit(str, LOG_READ_VALUE_STRING, -1);
 	thresh_substrs = g_strsplit(event_substrs[1], LOG_THRESHOLD_VALUE_STRING, -1);
 
@@ -848,13 +866,15 @@ static SaErrorT snmp_bc_set_event_severity(struct oh_handler_state *handle,
 					   SaHpiEventT *event,
 					   SaHpiSeverityT *event_severity)
 {
-	int sensor_severity_override = 0;
+	int sensor_severity_override;
+	sensor_severity_override = 0;
+
 
 	if (!handle || !eventmap_info || !event || !event_severity) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
-	
+						
 	if (event->EventType == SAHPI_ET_SENSOR) {
 
 		/* Force HPI Threshold and Severity category severities */
@@ -946,6 +966,7 @@ static SaErrorT snmp_bc_set_cur_prev_event_states(struct oh_handler_state *handl
 						  int recovery_event)
 {
 	SaErrorT err;
+	SaHpiRdrT *rdr;
 
 	if (!handle || !eventmap_info || !event) {
 		dbg("Invalid parameters.");
@@ -964,7 +985,7 @@ static SaErrorT snmp_bc_set_cur_prev_event_states(struct oh_handler_state *handl
 		event->EventDataUnion.SensorEvent.CurrentState = SAHPI_ES_UNSPECIFIED;
 
 		/* Set previous state to sensor's current state */
-		SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, event->Source, SAHPI_SENSOR_RDR,
+		rdr = oh_get_rdr_by_type(handle->rptcache, event->Source, SAHPI_SENSOR_RDR,
 						    event->EventDataUnion.SensorEvent.SensorNum);
 		if (rdr == NULL) {
 			return(SA_ERR_HPI_NOT_PRESENT);
@@ -1129,19 +1150,23 @@ static SaErrorT snmp_bc_logsrc2rid(struct oh_handler_state *handle,
 {
 	int rpt_index;
 	guint loc;
-	gchar **src_parts = NULL, *endptr = NULL, *root_tuple;
+	gchar **src_parts, *endptr, *root_tuple;
 	SaErrorT err;
 	SaHpiBoolT isblade, isexpansioncard, isswitch;
 	SaHpiEntityPathT ep, ep_root;
 	SaHpiEntityTypeT entity_type;
 	struct snmp_bc_sensor *array_ptr;
+	struct snmp_bc_hnd *custom_handle;
 
 	if (!handle || !src || !resinfo) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
-
-	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
+		
+	src_parts = NULL;
+	endptr = NULL;
+	
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
 	if (!custom_handle) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
@@ -1286,12 +1311,13 @@ static SaErrorT snmp_bc_logsrc2rid(struct oh_handler_state *handle,
  **/
 SaErrorT snmp_bc_add_to_eventq(struct oh_handler_state *handle, SaHpiEventT *thisEvent, SaHpiBoolT prepend)
 {
-	SaHpiEntryIdT rdrid = 0;
+	SaHpiEntryIdT rdrid;
         struct oh_event working;
         struct oh_event *e = NULL;
 	SaHpiRptEntryT *thisRpt;
 	SaHpiRdrT      *thisRdr;
 	
+	rdrid = 0;
         memset(&working, 0, sizeof(struct oh_event));
 
 	working.did = oh_get_default_domain_id();

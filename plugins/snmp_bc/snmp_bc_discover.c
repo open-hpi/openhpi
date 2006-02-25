@@ -33,16 +33,34 @@
 SaErrorT snmp_bc_discover_resources(void *hnd)
 {
         char *root_tuple;
-	SaErrorT err = SA_OK, err1 = SA_OK;
+	SaErrorT err, err1;
         SaHpiEntityPathT ep_root;
+	SaHpiEntityPathT valEntity;	 
+        GSList *res_new,
+		 *rdr_new,
+		 *res_gone,
+		 *rdr_gone;
+        GSList *node;
+        guint rdr_data_size;
+        GSList *tmpnode;
+        SaHpiRdrT *rdr;
+        SaHpiRptEntryT *res;
+        struct oh_event *e;
+        gpointer data;
 
+        struct oh_handler_state *handle;		
+        struct snmp_bc_hnd *custom_handle;
+	
 	if (!hnd) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}		
-
-        struct oh_handler_state *handle = (struct oh_handler_state *)hnd;		
-        struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
+			
+	err = SA_OK;
+	err1 = SA_OK;
+	handle = (struct oh_handler_state *)hnd;		
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
+	
         if (!custom_handle) {
                 dbg("Invalid parameter.");
                 return(SA_ERR_HPI_INVALID_PARAMS);
@@ -92,21 +110,23 @@ SaErrorT snmp_bc_discover_resources(void *hnd)
 	 * Get difference between current rptcache and custom_handle->tmpcache.
 	 * Delete obsolete items from rptcache and add new items in.
 	 **********************************************************************/
-	SaHpiEntityPathT valEntity;	 
-        GSList *res_new = NULL, *rdr_new = NULL, *res_gone = NULL, *rdr_gone = NULL;
-        GSList *node = NULL;
+        res_new = NULL;
+	rdr_new = NULL;
+	res_gone = NULL;
+	rdr_gone = NULL;
+        node = NULL;
         
        	rpt_diff(handle->rptcache, custom_handle->tmpcache, &res_new, &rdr_new, &res_gone, &rdr_gone);
 	trace("%d resources have gone away.", g_slist_length(res_gone));
 	trace("%d resources are new or have changed", g_slist_length(res_new));
 
         for (node = rdr_gone; node != NULL; node = node->next) {
-                SaHpiRdrT *rdr = (SaHpiRdrT *)node->data;
+                rdr = (SaHpiRdrT *)node->data;
 		snmp_bc_validate_ep(&(rdr->Entity), &valEntity);
-                SaHpiRptEntryT *res = oh_get_resource_by_ep(handle->rptcache, &(valEntity));
+                res = oh_get_resource_by_ep(handle->rptcache, &(valEntity));
 		
                 /* Create remove RDR event and add to event queue */
-                struct oh_event *e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
+                e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
                 if (e) {
 			e->did = oh_get_default_domain_id();
                         e->type = OH_ET_RDR_DEL;
@@ -124,9 +144,9 @@ SaErrorT snmp_bc_discover_resources(void *hnd)
         g_slist_free(rdr_gone);
 
         for (node = res_gone; node != NULL; node = node->next) {
-                SaHpiRptEntryT *res = (SaHpiRptEntryT *)node->data;
+                res = (SaHpiRptEntryT *)node->data;
 		/* Create remove resource event and add to event queue */
-		struct oh_event *e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
+		e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
                 if (e) {
 			e->did = oh_get_default_domain_id();
                         e->type = OH_ET_RESOURCE_DEL;
@@ -143,13 +163,13 @@ SaErrorT snmp_bc_discover_resources(void *hnd)
         g_slist_free(res_gone);
 
         for (node = res_new; node != NULL; node = node->next) {
-                GSList *tmpnode = NULL;
-                SaHpiRptEntryT *res = (SaHpiRptEntryT *)node->data;
+                tmpnode = NULL;
+                res = (SaHpiRptEntryT *)node->data;
                 if (!res) {
                         dbg("No valid resource at hand. Could not process new resource.");
                         continue;
                 }
-                gpointer data = oh_get_resource_data(custom_handle->tmpcache, res->ResourceId);
+                data = oh_get_resource_data(custom_handle->tmpcache, res->ResourceId);
 		if (data) {
                 	oh_add_resource(handle->rptcache, res, g_memdup(data, sizeof(struct snmp_rpt)),0);
                 	/* Add new/changed resources to the event queue */
@@ -171,16 +191,16 @@ SaErrorT snmp_bc_discover_resources(void *hnd)
         g_slist_free(res_new);
         
         for (node = rdr_new; node != NULL; node = node->next) {
-                guint rdr_data_size = 0;
-                GSList *tmpnode = NULL;
-                SaHpiRdrT *rdr = (SaHpiRdrT *)node->data;
+                rdr_data_size = 0;
+                tmpnode = NULL;
+                rdr = (SaHpiRdrT *)node->data;
 		snmp_bc_validate_ep(&(rdr->Entity), &valEntity);
-                SaHpiRptEntryT *res = oh_get_resource_by_ep(handle->rptcache, &(valEntity));
+                res = oh_get_resource_by_ep(handle->rptcache, &(valEntity));
                 if (!res || !rdr) {
                         dbg("No valid resource or rdr at hand. Could not process new rdr.");
                         continue;
                 }
-                gpointer data = oh_get_rdr_data(custom_handle->tmpcache, res->ResourceId, rdr->RecordId);
+                data = oh_get_rdr_data(custom_handle->tmpcache, res->ResourceId, rdr->RecordId);
                 /* Need to figure out the size of the data associated with the rdr */
                 if (rdr->RdrType == SAHPI_SENSOR_RDR) rdr_data_size = sizeof(struct SensorInfo);
                 else if (rdr->RdrType == SAHPI_CTRL_RDR)
@@ -258,8 +278,10 @@ SaErrorT snmp_bc_discover_sensors(struct oh_handler_state *handle,
 	SaErrorT err;
 	SaHpiBoolT valid_sensor;
 	struct oh_event *e;
-	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
+	struct snmp_bc_hnd *custom_handle;
 	struct SensorInfo *sensor_info_ptr;
+	
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
 	
 	for (i=0; sensor_array[i].index != 0; i++) {
 		e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
@@ -348,8 +370,10 @@ SaErrorT snmp_bc_discover_controls(struct oh_handler_state *handle,
 	SaErrorT err;
 	SaHpiBoolT valid_control;
 	struct oh_event *e;
-	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
+	struct snmp_bc_hnd *custom_handle;
 	struct ControlInfo *control_info_ptr;
+	
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
 	
 	for (i=0; control_array[i].control.Num != 0; i++) {
 		e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
@@ -419,8 +443,10 @@ SaErrorT snmp_bc_discover_inventories(struct oh_handler_state *handle,
 	SaHpiBoolT valid_idr;
 	SaErrorT err;
 	struct oh_event *e;
-	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
+	struct snmp_bc_hnd *custom_handle;
 	struct InventoryInfo *inventory_info_ptr;
+
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
 
 	/* Assumming OidManufacturer is defined and determines readable of other VPD */
 	for (i=0; inventory_array[i].inventory_info.mib.oid.OidManufacturer != NULL; i++) {
@@ -487,9 +513,11 @@ SaErrorT snmp_bc_discover_inventories(struct oh_handler_state *handle,
  **/
 SaErrorT snmp_bc_create_resourcetag(SaHpiTextBufferT *buffer, const char *str, SaHpiEntityLocationT loc)
 {
+
 	char *locstr;
 	SaErrorT err = SA_OK;
 	SaHpiTextBufferT working;
+
 
 	if (!buffer || loc < SNMP_BC_HPI_LOCATION_BASE ||
 	    loc > (pow(10, OH_MAX_LOCATION_DIGITS) - 1)) {
@@ -606,20 +634,20 @@ SaErrorT snmp_bc_mod_sensor_ep(struct oh_event *e,
 
 	int j;
 	gchar *pch;
-	struct snmp_bc_sensor *sensor_array = (struct snmp_bc_sensor *)sensor_array_in;;
-	struct snmp_bc_ipmi_sensor *sensor_array_ipmi = (struct snmp_bc_ipmi_sensor *)sensor_array_in;
-	SaHpiEntityPathT ep_add = { 
-                                .Entry[0] =
-                                {
-                                        .EntityType = SAHPI_ENT_PROCESSOR,
-                                        .EntityLocation = 0,
-                                },
-				};
+	struct snmp_bc_sensor *sensor_array;
+	struct snmp_bc_ipmi_sensor *sensor_array_ipmi;
+	SaHpiEntityPathT ep_add;
 	
+	sensor_array = (struct snmp_bc_sensor *)sensor_array_in;
+	sensor_array_ipmi = (struct snmp_bc_ipmi_sensor *)sensor_array_in;
+
         if (!e || !sensor_array) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
+	
+	ep_add.Entry[0].EntityType = SAHPI_ENT_PROCESSOR;
+	ep_add.Entry[0].EntityLocation = 0;
 	
 	if (((struct snmp_bc_sensor *)sensor_array_in == (struct snmp_bc_sensor *)snmp_bc_blade_sensors)) {
 		 

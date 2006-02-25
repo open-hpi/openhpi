@@ -31,6 +31,8 @@ int main(int argc, char **argv)
 	SaHpiResourceIdT  id = 0;
         SaHpiSessionIdT sessionid;
 	SaHpiHsStateT state = 0;
+	struct oh_handler_state l_handle;
+
 	/* *************************************	 	 
 	 * Find a resource with Power capability
 	 * ************************************* */
@@ -53,7 +55,6 @@ int main(int argc, char **argv)
 	/************************** 
 	 * Test: Invalid resource ID
 	 **************************/
-	struct oh_handler_state l_handle;
 	memset(&l_handle, 0, sizeof(struct oh_handler_state));
 
 	expected_err = SA_ERR_HPI_INVALID_RESOURCE;                   

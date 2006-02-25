@@ -352,18 +352,21 @@ static SaErrorT snmp_bc_discover_ipmi_sensors(struct oh_handler_state *handle,
 SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 			  SaHpiEntityPathT *ep_root)
 {
+
 	int i;
 	SaErrorT err;
         struct oh_event *e;
 	struct snmp_value get_value, get_active, get_blade_resourcetag;
 	struct ResourceInfo *res_info_ptr;
+	struct snmp_bc_hnd *custom_handle;
+
 
 	if (!handle || !ep_root) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
-
-	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
+		
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
 	if (!custom_handle) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
@@ -989,8 +992,10 @@ static SaErrorT snmp_bc_discover_ipmi_sensors(struct oh_handler_state *handle,
 	GHashTable *ipmi_sensor_hash;
 	SaErrorT err, rtn_code = SA_OK;
 	struct SensorMibInfo *mib_info;
-	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
+	struct snmp_bc_hnd *custom_handle;
 	struct snmp_value get_value;
+	
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
 
 	/* Check if this is an IPMI blade */
 	err = snmp_bc_oid_snmp_get(custom_handle,

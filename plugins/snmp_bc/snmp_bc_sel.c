@@ -35,8 +35,12 @@ oh_el *bc_selcache = NULL;
  **/
 static int snmp_bc_get_sel_size(struct oh_handler_state *handle, SaHpiResourceIdT id)
 {
-        int i = 1;
-	SaErrorT err = SA_OK;
+        int i;
+	SaErrorT err;
+	
+	i = 1;
+	err = SA_OK;
+	
 	/* Go synchronize cache and hardware copy of the SEL */
         err = snmp_bc_check_selcache(handle, id, SAHPI_NEWEST_ENTRY);
 	if (err)
@@ -74,8 +78,9 @@ static int snmp_bc_get_sel_size_from_hardware(struct snmp_bc_hnd *custom_handle)
 {
         struct snmp_value run_value;
         char oid[SNMP_BC_MAX_OID_LENGTH];
-        int i = 1;
+        int i;
 
+	i = 1;
         do {
 		if (custom_handle->platform == SNMP_BC_PLATFORM_RSA) {
 			snprintf(oid, SNMP_BC_MAX_OID_LENGTH, "%s.%d", SNMP_BC_SEL_INDEX_OID_RSA, i);
@@ -106,35 +111,39 @@ static int snmp_bc_get_sel_size_from_hardware(struct snmp_bc_hnd *custom_handle)
  **/
 SaErrorT snmp_bc_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiEventLogInfoT *info) 
 {
+	
         char oid[SNMP_BC_MAX_OID_LENGTH];
 	SaErrorT err;
         struct snmp_value first_value;
-        struct oh_handler_state *handle = hnd;
+        struct oh_handler_state *handle;
         struct tm curtime;
         sel_entry sel_entry;
-
+    	struct snmp_bc_hnd *custom_handle;
+        SaHpiEventLogInfoT sel;
+	
         if (!hnd || !info) {
                 dbg("Invalid parameter.");
                 return(SA_ERR_HPI_INVALID_PARAMS);
 	}
-    	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
+		
+	handle = (struct oh_handler_state *)hnd;
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
 	
         snmp_bc_lock_handler(custom_handle);
         
         /* Build local copy of EventLogInfo  */
-        SaHpiEventLogInfoT sel = {
-			     /* Max number of entries that can be stored  */
-			     /* in bc EventLog varies, depending on       */
-			     /* what events have been logged so far and   */
-			     /* the information each logged event contains*/    	
-                .Size = BC_EL_MAX_SIZE, /* This is clearly a guess but looks about right 
+     /* Max number of entries that can be stored  */
+     /* in bc EventLog varies, depending on       */
+     /* what events have been logged so far and   */
+     /* the information each logged event contains*/    	
+        sel.Size = BC_EL_MAX_SIZE; /* This is clearly a guess but looks about right 
                               * from the 75% full errors we have seen.    */
-		.UserEventMaxSize = SAHPI_MAX_TEXT_BUFFER_LENGTH,
-                .Enabled = SAHPI_TRUE,
-                .OverflowFlag = SAHPI_FALSE,
-		.OverflowResetable = SAHPI_FALSE,
-                .OverflowAction = SAHPI_EL_OVERFLOW_OVERWRITE,
-        };
+	sel.UserEventMaxSize = SAHPI_MAX_TEXT_BUFFER_LENGTH;
+        sel.Enabled = SAHPI_TRUE;
+        sel.OverflowFlag = SAHPI_FALSE; 
+	sel.OverflowResetable = SAHPI_FALSE;
+        sel.OverflowAction = SAHPI_EL_OVERFLOW_OVERWRITE;
+        sel.UpdateTimestamp = 0;
 
 	/* In Event Log, the newest entry is index at index 1 */
 	/* Need first value to figure out what update time is */
@@ -204,19 +213,21 @@ SaErrorT snmp_bc_get_sel_entry(void *hnd,
 			       SaHpiRdrT  *rdr,
                                SaHpiRptEntryT  *rptentry)
 {
-
-	SaErrorT err = SA_OK;
+	SaErrorT err;
 	oh_el_entry tmpentry, *tmpentryptr;
-	tmpentryptr = &tmpentry; 
-
-        struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
-
+        struct oh_handler_state *handle;
+	struct snmp_bc_hnd *custom_handle;
+ 
         if (!hnd || !prev || !next || !entry) {
                 dbg("Invalid parameter.");
                 return(SA_ERR_HPI_INVALID_PARAMS);
         }
-	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
-        
+	       
+	err = SA_OK;
+	tmpentryptr = &tmpentry; 
+	handle = (struct oh_handler_state *)hnd;
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
+	
         snmp_bc_lock_handler(custom_handle);
         
         if (handle->elcache != NULL) {
@@ -276,15 +287,9 @@ SaErrorT snmp_bc_get_sel_entry(void *hnd,
 SaErrorT snmp_bc_bulk_selcache(	struct oh_handler_state *handle,
 				SaHpiResourceIdT id)
 {
-
-	if (!handle) {
-		dbg("Invalid parameter.");
-		return(SA_ERR_HPI_INVALID_PARAMS);
-	}
-
         struct snmp_bc_hnd *custom_handle;
 	SaErrorT 	err;
-	int 		isdst=0;
+	int 		isdst;
 	sel_entry 	sel_entry;
         SaHpiEventT 	tmpevent;
     	netsnmp_pdu	*pdu, *response;
@@ -299,10 +304,16 @@ SaErrorT snmp_bc_bulk_selcache(	struct oh_handler_state *handle,
 	oid             root[MAX_OID_LEN];
     	size_t          rootlen;
     	size_t          name_length;	
-	size_t 		str_len = MAX_ASN_STR_LEN;
-		
+	size_t 		str_len;
     	int             reps;
-	
+
+	if (!handle) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+		
+	str_len = MAX_ASN_STR_LEN;
+	isdst=0;
 	custom_handle = (struct snmp_bc_hnd *)handle->data;
 	reps = custom_handle->count_per_getbulk;
 
@@ -462,12 +473,14 @@ SaErrorT snmp_bc_check_selcache(struct oh_handler_state *handle,
 				SaHpiResourceIdT id,
 				SaHpiEventLogEntryIdT entryId)
 {
-	SaErrorT err = SA_OK;
-
+	SaErrorT err;
+	
 	if (!handle) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
+	
+	err = SA_OK;
 
 	if ((g_list_length(handle->elcache->elentries) == 0) && 
 	     !(is_simulator())) {
@@ -509,18 +522,20 @@ SaErrorT snmp_bc_selcache_sync(struct oh_handler_state *handle,
         struct snmp_value get_value;
         sel_entry sel_entry;
         oh_el_entry *fetchentry, tmpentry;
-	fetchentry = &tmpentry; 
-
         SaHpiTimeT new_timestamp;
 	char oid[SNMP_BC_MAX_OID_LENGTH];
 	SaErrorT err;
-	int current, i, cacheupdate = 0;
+	int current, i, cacheupdate;
+        struct snmp_bc_hnd *custom_handle;
 
 	if (!handle) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
-        struct snmp_bc_hnd *custom_handle = handle->data;
+			
+	fetchentry = &tmpentry; 
+	cacheupdate = 0;
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
 
 	err = oh_el_get(handle->elcache, SAHPI_NEWEST_ENTRY, &prev, &next, &fetchentry);
 	if (err) fetchentry = NULL;
@@ -675,15 +690,18 @@ SaErrorT snmp_bc_selcache_sync(struct oh_handler_state *handle,
  * SA_ERR_HPI_INVALID_PARAMS - @handle is NULL.
  **/
 SaErrorT snmp_bc_build_selcache(struct oh_handler_state *handle, SaHpiResourceIdT id)
-{
+{	
 	int i;
-	SaErrorT err = SA_OK;
+	SaErrorT err;
+	struct snmp_bc_hnd *custom_handle;
 	
 	if (!handle) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
-	struct snmp_bc_hnd *custom_handle = handle->data;
+	
+	err = SA_OK;
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
 
 #if 0
 	/* ------------------------------------------------------------------ */
@@ -769,19 +787,21 @@ SaErrorT snmp_bc_build_selcache(struct oh_handler_state *handle, SaHpiResourceId
  * SA_ERR_HPI_INVALID_PARAMS - @hnd is NULL.
  **/
 SaErrorT snmp_bc_set_sel_time(void *hnd, SaHpiResourceIdT id, SaHpiTimeT time)
-{
-        struct oh_handler_state *handle = hnd;
-
+{        
         struct tm tv;
         time_t tt;
         SaErrorT err;
+	struct oh_handler_state *handle;
+        struct snmp_bc_hnd *custom_handle;
 
 	if (!hnd) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);    
 	}
-        struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 
+	handle = (struct oh_handler_state *)hnd;
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
+	
 	snmp_bc_lock_handler(custom_handle);
         tt = time / 1000000000;
         localtime_r(&tt, &tv);
@@ -829,23 +849,26 @@ SaErrorT snmp_bc_sel_read_add (struct oh_handler_state *handle,
 			       SaHpiResourceIdT id, 
 			       SaHpiEventLogEntryIdT current, 
 			       SaHpiBoolT prepend)
-{
-	int isdst=0;
+{	
+	int isdst;
         char oid[SNMP_BC_MAX_OID_LENGTH];
 	sel_entry sel_entry;
-
 	SaErrorT err;
         SaHpiEventT tmpevent;
-	SaHpiEntryIdT rdrid=0;
-	SaHpiRdrT rdr, *rdr_ptr=NULL; 
-
+	SaHpiEntryIdT rdrid;
+	SaHpiRdrT rdr, *rdr_ptr; 
         struct snmp_value get_value;
+	struct snmp_bc_hnd *custom_handle;
 
 	if (!handle) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
-        struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
+
+	isdst=0;
+	rdrid=0;
+	rdr_ptr=NULL;
+        custom_handle = (struct snmp_bc_hnd *)handle->data;
 
 	if (custom_handle->platform == SNMP_BC_PLATFORM_RSA) {
 		snprintf(oid, SNMP_BC_MAX_OID_LENGTH, "%s.%d",
@@ -961,14 +984,16 @@ SaErrorT snmp_bc_parse_sel_entry(struct oh_handler_state *handle, char *logstr, 
         sel_entry ent;
         char level[8];
         char *findit;
+	struct snmp_bc_hnd *custom_handle;
 
-	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
-
-	if (!handle || !logstr || !sel || !custom_handle) {
+	if (!handle || !logstr || !sel) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
-
+	
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
+	if (!custom_handle) return(SA_ERR_HPI_INVALID_PARAMS);
+	
         /* Severity first */
 	findit = strstr(logstr, "Severity:");
 	if (findit != NULL) {
@@ -1061,17 +1086,20 @@ SaErrorT snmp_bc_parse_sel_entry(struct oh_handler_state *handle, char *logstr, 
  * SA_ERR_HPI_INVALID_PARAMS - @hnd is NULL.
  **/
 SaErrorT snmp_bc_clear_sel(void *hnd, SaHpiResourceIdT id)
-{
+{	
 	struct snmp_value set_value;
-        struct oh_handler_state *handle = hnd;
+        struct oh_handler_state *handle;
 	SaErrorT err;
+        struct snmp_bc_hnd *custom_handle;
 
 	if (!hnd) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
-        struct snmp_bc_hnd *custom_handle = handle->data;
-		
+				
+	handle = (struct oh_handler_state *)hnd;
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
+	
 	snmp_bc_lock_handler(custom_handle);
 	err = oh_el_clear(handle->elcache);
 	if (err) {

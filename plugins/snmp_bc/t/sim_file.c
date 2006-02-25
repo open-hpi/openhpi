@@ -80,6 +80,7 @@ SaErrorT sim_file()
 	gboolean  found_plat = FALSE;
 	gchar    *key = NULL;
 	gchar    *key_exists = NULL;
+	SnmpMibInfoT *mibinfo;
 
         file_in = getenv("OPENHPI_SIMTEST_FILE");
         if (!file_in)  file_in = file_std; 
@@ -160,7 +161,6 @@ SaErrorT sim_file()
 			invalid++;
 			continue;
 		}
-		SnmpMibInfoT *mibinfo;
 		mibinfo = g_malloc0(sizeof(SnmpMibInfoT));
                 if (!mibinfo) {
                         printf("Error: Malloc failed for oid (%s) hash", tmpstr);

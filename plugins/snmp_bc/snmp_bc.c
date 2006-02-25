@@ -30,15 +30,18 @@
  **/
 SaErrorT snmp_bc_get_event(void *hnd, struct oh_event *event)
 {
+
         SaErrorT err;
-        struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
-        
+        struct oh_handler_state *handle;
+        struct snmp_bc_hnd *custom_handle;
+	
         if (!event || !hnd) {
                 dbg("Invalid parameter");
                 return(SA_ERR_HPI_INVALID_PARAMS);
         }
-	
-	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
+
+	handle = (struct oh_handler_state *)hnd;
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
 	
      	snmp_bc_lock_handler(custom_handle);	
 	err = snmp_bc_check_selcache(handle, 1, SAHPI_NEWEST_ENTRY);
@@ -79,16 +82,20 @@ SaErrorT snmp_bc_get_event(void *hnd, struct oh_event *event)
  **/
 SaErrorT snmp_bc_set_resource_tag(void *hnd, SaHpiResourceIdT rid, SaHpiTextBufferT *tag)
 {
+		
 	SaErrorT err;
         SaHpiRptEntryT *rpt;
         struct oh_event *e;
-        struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
+        struct oh_handler_state *handle;
+	struct snmp_bc_hnd *custom_handle;
 
 	if (!oh_valid_textbuffer(tag) || !hnd) {
 		dbg("Invalid parameter");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
-	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
+	
+	handle = (struct oh_handler_state *)hnd;
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
 
 	snmp_bc_lock_handler(custom_handle);
 	rpt = oh_get_resource_by_id(handle->rptcache, rid);
@@ -136,14 +143,17 @@ SaErrorT snmp_bc_set_resource_tag(void *hnd, SaHpiResourceIdT rid, SaHpiTextBuff
 SaErrorT snmp_bc_set_resource_severity(void *hnd, SaHpiResourceIdT rid, SaHpiSeverityT sev)
 {
         SaHpiRptEntryT *rpt;
-        struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
+        struct oh_handler_state *handle;
+	struct snmp_bc_hnd *custom_handle;
         struct oh_event *e;
 
 	if (oh_lookup_severity(sev) == NULL) {
 		dbg("Invalid parameter");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
-	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
+	
+	handle = (struct oh_handler_state *)hnd;
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
 	
 	snmp_bc_lock_handler(custom_handle);
 	rpt = oh_get_resource_by_id(handle->rptcache, rid);
@@ -185,6 +195,9 @@ SaErrorT snmp_bc_set_resource_severity(void *hnd, SaHpiResourceIdT rid, SaHpiSev
  **/
 SaErrorT snmp_bc_control_parm(void *hnd, SaHpiResourceIdT rid, SaHpiParmActionT act)
 {
+	SaHpiRptEntryT *rpt;
+	struct oh_handler_state *handle;
+	struct snmp_bc_hnd *custom_handle;
 
 	if (!hnd) return(SA_ERR_HPI_INVALID_PARAMS);	
 	if (oh_lookup_parmaction(act) == NULL) {
@@ -192,10 +205,10 @@ SaErrorT snmp_bc_control_parm(void *hnd, SaHpiResourceIdT rid, SaHpiParmActionT 
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 	
-	SaHpiRptEntryT *rpt;
-	struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
-	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 
+	handle = (struct oh_handler_state *)hnd;
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
+	
 	snmp_bc_lock_handler(custom_handle);
 	rpt = oh_get_resource_by_id(handle->rptcache, rid);
 	if (!rpt) {
@@ -315,9 +328,10 @@ SaErrorT snmp_bc_oid_snmp_get(struct snmp_bc_hnd *custom_handle,
 				struct snmp_value *value, SaHpiBoolT retry)
 {
 
-	SaErrorT rv = SA_OK;
+	SaErrorT rv;
 	gchar *oid;
 	
+	rv = SA_OK;
 	oid = oh_derive_string(ep, oidstr);
 	if (oid == NULL) {
 		dbg("Cannot derive %s.", oidstr); 
@@ -394,9 +408,10 @@ SaErrorT snmp_bc_oid_snmp_set(struct snmp_bc_hnd *custom_handle,
 				SaHpiEntityPathT *ep, const gchar *oidstr,
 			  	struct snmp_value value)
 {
-	SaErrorT rv = SA_OK;
+	SaErrorT rv;
 	gchar *oid;
 
+	rv = SA_OK;
 	oid = oh_derive_string(ep , oidstr);
 	if (oid == NULL) {
 		dbg("NULL SNMP OID returned for %s.", oidstr);

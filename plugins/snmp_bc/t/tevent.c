@@ -47,6 +47,7 @@ int main(int argc, char **argv)
 	char *hash_key, *logstr;
 	SnmpMibInfoT *hash_value;
 	SnmpMibInfoT *hash_set_value;
+	SnmpMibInfoT * hash_data;
 
         err = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID, &sessionid, NULL);
         if (err) {
@@ -89,7 +90,7 @@ int main(int argc, char **argv)
 	}
 
 	/* Determine platform */
-	SnmpMibInfoT * hash_data = (SnmpMibInfoT *)g_hash_table_lookup(sim_hash, SNMP_BC_PLATFORM_OID_RSA);
+	hash_data = (SnmpMibInfoT *)g_hash_table_lookup(sim_hash, SNMP_BC_PLATFORM_OID_RSA);
 	if (hash_data->value.integer == 255) {
 		printf("Executing RSA event tests\n");
 		goto RSA_TESTS;

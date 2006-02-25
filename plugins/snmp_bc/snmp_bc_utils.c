@@ -21,23 +21,36 @@ SaErrorT snmp_bc_get_guid(struct snmp_bc_hnd *custom_handle,
 			  struct oh_event *e,
 			  struct ResourceInfo *res_info_ptr)
 {
-        SaErrorT status;
+	SaErrorT status;
+	gchar  *UUID;
+	gchar  *BC_UUID;
+        gchar  **tmpstr;
 	SaHpiGuidT guid;
         struct  snmp_value get_value;
-        gchar  *UUID = NULL, *BC_UUID = NULL;
-        gchar **tmpstr = NULL;
-        const   gchar  *UUID_delimiter1 = " ";
-        const   gchar  *UUID_delimiter2 = "-";
-        const   gchar  *UUID_delimiter    = "-";
-        const   gchar  *NA   = "NOT AVAILABLE";    /* not case sensitive */
-        guint   UUID_cnt = 0, i = 0;
+        const   gchar  *UUID_delimiter1;
+        const   gchar  *UUID_delimiter2;
+        const   gchar  *UUID_delimiter;
+        const   gchar  *NA;    /* not case sensitive */
+        guint   UUID_cnt, i;
         uuid_t  UUID_val;
+	
+	UUID_delimiter1 = " ";
+	UUID_delimiter2 = "-";
+	UUID_delimiter  = "-";
+	NA   = "NOT AVAILABLE";
+	UUID_cnt = 0;
+	i = 0;	
+	UUID = NULL;
+	BC_UUID = NULL;
+	tmpstr = NULL;
 
         if ( (custom_handle == NULL) || (e == NULL) || (res_info_ptr == NULL)) {
                 dbg("Invalid parameter.");
                 status = SA_ERR_HPI_INVALID_PARAMS;
                 goto CLEANUP2;
         }
+	
+
 	
 	memset(&guid, 0, sizeof(SaHpiGuidT));  /* default to zero */
 	if (res_info_ptr->mib.OidUuid == NULL) {
