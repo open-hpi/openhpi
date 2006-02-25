@@ -55,6 +55,7 @@ SaErrorT tfind_resource(SaHpiSessionIdT *sessionid_ptr,
         SaHpiRptEntryT l_rptentry;
         SaHpiEntryIdT  rptentryid;
         SaHpiEntryIdT  nextrptentryid;
+        SaHpiCapabilitiesT cap_mask;
   	     
         if (!sessionid_ptr) {
                 printf("Error! Invalid test setup.\n");
@@ -62,20 +63,20 @@ SaErrorT tfind_resource(SaHpiSessionIdT *sessionid_ptr,
                 return(SA_ERR_HPI_INVALID_PARAMS);
 	} 
         
-        SaHpiCapabilitiesT cap_mask =	(SAHPI_CAPABILITY_RESOURCE 	  |
-                                         SAHPI_CAPABILITY_AGGREGATE_STATUS |
-                                         SAHPI_CAPABILITY_CONFIGURATION	  |
-                                         SAHPI_CAPABILITY_MANAGED_HOTSWAP |
-                                         SAHPI_CAPABILITY_WATCHDOG	  |
-                                         SAHPI_CAPABILITY_CONTROL	  |
-                                         SAHPI_CAPABILITY_FRU		  |
-                                         SAHPI_CAPABILITY_ANNUNCIATOR	  |
-                                         SAHPI_CAPABILITY_POWER		  |
-                                         SAHPI_CAPABILITY_RESET		  |
-                                         SAHPI_CAPABILITY_INVENTORY_DATA  |
-                                         SAHPI_CAPABILITY_EVENT_LOG	  |
-                                         SAHPI_CAPABILITY_RDR		  |
-                                         SAHPI_CAPABILITY_SENSOR); 
+        cap_mask =	(SAHPI_CAPABILITY_RESOURCE 	   |
+                         SAHPI_CAPABILITY_AGGREGATE_STATUS |
+                         SAHPI_CAPABILITY_CONFIGURATION	   |
+                         SAHPI_CAPABILITY_MANAGED_HOTSWAP  |
+                         SAHPI_CAPABILITY_WATCHDOG	   |
+                         SAHPI_CAPABILITY_CONTROL	   |
+                         SAHPI_CAPABILITY_FRU		   |
+                         SAHPI_CAPABILITY_ANNUNCIATOR	   |
+                         SAHPI_CAPABILITY_POWER		   |
+                         SAHPI_CAPABILITY_RESET		   |
+                         SAHPI_CAPABILITY_INVENTORY_DATA   |
+                         SAHPI_CAPABILITY_EVENT_LOG	   |
+                         SAHPI_CAPABILITY_RDR		   |
+                         SAHPI_CAPABILITY_SENSOR); 
         
         if ((search_rdr_type & cap_mask) == 0) {
                 printf("Error! Invalid resource type.\n");

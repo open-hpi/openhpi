@@ -45,6 +45,7 @@ int main(int argc, char **argv)
 	struct oh_handler *h= &l_handler;
         SaHpiRptEntryT rptentry;
 	SaHpiRdrT *rdrptr;
+	struct oh_handler_state *handle;
 		
 	err = tsetup(&sessionid);
 	if (err != SA_OK) {
@@ -60,7 +61,7 @@ int main(int argc, char **argv)
 
 	}
 
-	struct oh_handler_state *handle = (struct oh_handler_state *)h->hnd;
+	handle = (struct oh_handler_state *)h->hnd;
 	id = rptentry.ResourceId;
 	/************************** 
 	 *  

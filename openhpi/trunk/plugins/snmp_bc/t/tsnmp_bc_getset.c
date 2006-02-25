@@ -33,6 +33,7 @@ int main(int argc, char **argv)
 
         SaHpiSessionIdT sessionid;
 	struct snmp_value value;
+	struct snmp_bc_hnd custom_handle;
 		
 	/* ************************	 	 
 	 * Find a resource with Control type rdr
@@ -53,7 +54,6 @@ int main(int argc, char **argv)
 
 	}
 
-	struct snmp_bc_hnd custom_handle;
 	memset (&custom_handle, 0, sizeof(struct snmp_bc_hnd));
 	
 	/************************** 

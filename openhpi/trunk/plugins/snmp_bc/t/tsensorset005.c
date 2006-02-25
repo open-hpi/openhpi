@@ -28,9 +28,9 @@ int main(int argc, char **argv)
 	SaErrorT          err;
 	SaErrorT expected_err;
 	SaHpiRptEntryT rptentry;				
-	SaHpiResourceIdT  id = 0;
         SaHpiSessionIdT sessionid;
 	 
+	SaHpiResourceIdT  id = 0;
 	SaHpiSensorNumT sid = 0;
 	SaHpiBoolT enable = SAHPI_FALSE;
 

@@ -28,9 +28,9 @@ int main(int argc, char **argv)
 	SaErrorT          err;
 	SaErrorT expected_err;
 	struct tm time;
-	memset(&time, 0, sizeof(struct tm));
-	
 	struct oh_handler_state l_handle;
+
+	memset(&time, 0, sizeof(struct tm));
 	memset(&l_handle, 0, sizeof(struct oh_handler_state));
 	/************************** 
 	 * Test : Invalid handle
