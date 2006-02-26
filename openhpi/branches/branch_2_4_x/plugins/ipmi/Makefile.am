@@ -31,7 +31,7 @@
  
 MAINTAINERCLEANFILES 	= Makefile.in
 
-EXTRA_DIST 		= ipmi.sym
+EXTRA_DIST 		= ipmi.sym ekeyfru.h
 
 SUBDIRS			= t
 
