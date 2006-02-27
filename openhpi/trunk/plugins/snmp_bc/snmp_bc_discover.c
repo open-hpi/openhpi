@@ -636,8 +636,13 @@ SaErrorT snmp_bc_mod_sensor_ep(struct oh_event *e,
 	gchar *pch;
 	struct snmp_bc_sensor *sensor_array;
 	struct snmp_bc_ipmi_sensor *sensor_array_ipmi;
-	SaHpiEntityPathT ep_add;
-	
+	SaHpiEntityPathT ep_add = { 
+                                .Entry[0] =
+                                {
+                                        .EntityType = SAHPI_ENT_PROCESSOR,
+                                        .EntityLocation = 0,
+                                },
+				};
 	sensor_array = (struct snmp_bc_sensor *)sensor_array_in;
 	sensor_array_ipmi = (struct snmp_bc_ipmi_sensor *)sensor_array_in;
 
@@ -645,9 +650,6 @@ SaErrorT snmp_bc_mod_sensor_ep(struct oh_event *e,
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
-	
-	ep_add.Entry[0].EntityType = SAHPI_ENT_PROCESSOR;
-	ep_add.Entry[0].EntityLocation = 0;
 	
 	if (((struct snmp_bc_sensor *)sensor_array_in == (struct snmp_bc_sensor *)snmp_bc_blade_sensors)) {
 		 
