@@ -353,10 +353,146 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 			  SaHpiEntityPathT *ep_root)
 {
 
-	int i;
+	SaErrorT err;
+	struct snmp_value get_value_blade, get_value_fan,
+			  get_value_power_module, get_value_switch,
+			  get_value_media, get_value_mm;
+	struct snmp_bc_hnd *custom_handle;
+
+
+	if (!handle || !ep_root) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+		
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
+	if (!custom_handle) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+
+	/* --------------------------------------------------------- */
+	/* Fetch various resource installation maps from BladeCenter */
+	/* --------------------------------------------------------- */
+
+	/* Fetch blade installed vector from BladeCenter */
+	err = snmp_bc_snmp_get(custom_handle, SNMP_BC_BLADE_VECTOR, &get_value_blade, SAHPI_TRUE);
+        if (err || get_value_blade.type != ASN_OCTET_STR) {
+		dbg("Cannot get OID=%s; Received Type=%d; Error=%s.",
+		      SNMP_BC_BLADE_VECTOR, get_value_blade.type, oh_lookup_error(err));
+		if (err) { return(err); }
+		else { return(SA_ERR_HPI_INTERNAL_ERROR); }
+        }
+
+	/* Fetch fan installed vector from BladeCenter */
+	err = snmp_bc_snmp_get(custom_handle, SNMP_BC_FAN_VECTOR, &get_value_fan, SAHPI_TRUE);
+        if (err || get_value_fan.type != ASN_OCTET_STR) {
+		dbg("Cannot get OID=%s; Received Type=%d; Error=%s.",
+		      SNMP_BC_FAN_VECTOR, get_value_fan.type, oh_lookup_error(err));
+		if (err) { return(err); }
+		else { return(SA_ERR_HPI_INTERNAL_ERROR); }
+        }
+
+	/* Fetch power module installed vector from BladeCenter */ 
+	err = snmp_bc_snmp_get(custom_handle, SNMP_BC_POWER_VECTOR, &get_value_power_module, SAHPI_TRUE);
+        if (err || get_value_power_module.type != ASN_OCTET_STR) {
+		dbg("Cannot get OID=%s; Received Type=%d; Error=%s.",
+		      SNMP_BC_POWER_VECTOR, get_value_power_module.type, oh_lookup_error(err));
+		if (err) { return(err); }
+		else { return(SA_ERR_HPI_INTERNAL_ERROR); }
+        }
+
+	/* Fetch switch installed vector from BladeCenter */
+	err = snmp_bc_snmp_get(custom_handle, SNMP_BC_SWITCH_VECTOR, &get_value_switch, SAHPI_TRUE);
+        if (err || get_value_switch.type != ASN_OCTET_STR) {
+		dbg("Cannot get OID=%s; Received Type=%d; Error=%s.",
+		      SNMP_BC_SWITCH_VECTOR, get_value_switch.type, oh_lookup_error(err));
+		if (err) { return(err); }
+		else { return(SA_ERR_HPI_INTERNAL_ERROR); }
+        }
+
+	err = snmp_bc_snmp_get(custom_handle, SNMP_BC_MEDIATRAY_EXISTS, &get_value_media, SAHPI_TRUE);
+        if (err || get_value_media.type != ASN_INTEGER) {
+		dbg("Cannot get OID=%s; Received Type=%d; Error=%s.",
+		      SNMP_BC_MEDIATRAY_EXISTS, get_value_media.type, oh_lookup_error(err));
+		if (err) { return(err); }
+		else { return(SA_ERR_HPI_INTERNAL_ERROR); }
+        }
+
+	/* Fetch MMs installed vector from BladeCenter */
+	err = snmp_bc_snmp_get(custom_handle, SNMP_BC_MGMNT_VECTOR, &get_value_mm, SAHPI_TRUE);
+        if (err || get_value_mm.type != ASN_OCTET_STR) {
+		dbg("Cannot get OID=%s; Received Type=%d; Error=%s.",
+		      SNMP_BC_MGMNT_VECTOR, get_value_mm.type, oh_lookup_error(err));
+		if (err) { return(err); }
+		else { return(SA_ERR_HPI_INTERNAL_ERROR); }
+        }
+															
+	/****************** 
+	 * Discover Chassis
+	 ******************/
+	err = snmp_bc_discover_chassis(handle, ep_root);
+	if (err != SA_OK) return(err);
+				  
+	/***************** 
+	 * Discover Blades
+	 *****************/
+	err = snmp_bc_discover_blade(handle, ep_root,get_value_blade.string);
+	if (err != SA_OK) return(err);
+				  			
+        /*************** 
+	 * Discover Fans
+	 ***************/
+	err = snmp_bc_discover_fans(handle, ep_root, get_value_fan.string);
+	if (err != SA_OK) return(err);
+	
+        /************************
+	 * Discover Power Modules
+	 ************************/
+	err = snmp_bc_discover_power_module(handle, ep_root, get_value_power_module.string);
+	if (err != SA_OK) return(err);
+	
+	/******************* 
+	 * Discover Switches
+	 *******************/
+
+	err = snmp_bc_discover_switch(handle, ep_root, get_value_switch.string);
+	if (err != SA_OK) return(err);
+	
+	/********************** 
+	 * Discover Media Tray
+	 *********************/
+	err = snmp_bc_discover_media_tray(handle, ep_root, get_value_media.integer);
+	if (err != SA_OK) return(err);
+
+	/***************************** 
+	 * Discover Management Modules (MMs)
+	 *****************************/
+	err = snmp_bc_discover_mm(handle, ep_root, get_value_mm.string);
+	if (err != SA_OK) return(err);
+
+	return(SA_OK);
+}
+
+/**
+ * snmp_bc_discover_media_tray:
+ * @handler: Pointer to handler's data.
+ * @ep_root: Pointer to chassis Root Entity Path which comes from openhpi.conf
+ * @media_tray_installed: Indicator whether medis tray is installed in system
+ *
+ * Discovers media tray resources.
+ *
+ * Return values:
+ * Adds chassis RDRs to internal Infra-structure queues - normal case
+ * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory
+ * SA_ERR_HPI_INVALID_PARAMS - Invalid pointers passed in
+  **/
+SaErrorT snmp_bc_discover_media_tray(struct oh_handler_state *handle,
+			  SaHpiEntityPathT *ep_root, int  media_tray_installed)
+{
+
 	SaErrorT err;
         struct oh_event *e;
-	struct snmp_value get_value, get_active, get_blade_resourcetag;
 	struct ResourceInfo *res_info_ptr;
 	struct snmp_bc_hnd *custom_handle;
 
@@ -372,15 +508,96 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
-        /* Discover chassis, blades, expansion cards */
-	err = snmp_bc_snmp_get(custom_handle, SNMP_BC_BLADE_VECTOR, &get_value, SAHPI_TRUE);
-        if (err || get_value.type != ASN_OCTET_STR) {
-		dbg("Cannot get OID=%s; Received Type=%d; Error=%s.",
-		      SNMP_BC_BLADE_VECTOR, get_value.type, oh_lookup_error(err));
-		if (err) { return(err); }
-		else { return(SA_ERR_HPI_INTERNAL_ERROR); }
-        }
+	if (media_tray_installed) {
+		e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
+		if (e == NULL) {
+			dbg("Out of memory.");
+			return(SA_ERR_HPI_OUT_OF_SPACE);
+		}
+
+		e->type = OH_ET_RESOURCE;
+		e->did = oh_get_default_domain_id();
+		e->u.res_event.entry = snmp_bc_rpt_array[BC_RPT_ENTRY_MEDIA_TRAY].rpt;
+		oh_concat_ep(&(e->u.res_event.entry.ResourceEntity), ep_root);
+		oh_set_ep_location(&(e->u.res_event.entry.ResourceEntity),
+				   SAHPI_ENT_PERIPHERAL_BAY, SNMP_BC_HPI_LOCATION_BASE);
+		e->u.res_event.entry.ResourceId = 
+			oh_uid_from_entity_path(&(e->u.res_event.entry.ResourceEntity));
+		snmp_bc_create_resourcetag(&(e->u.res_event.entry.ResourceTag),
+					   snmp_bc_rpt_array[BC_RPT_ENTRY_MEDIA_TRAY].comment,
+					   SNMP_BC_HPI_LOCATION_BASE);
+
+		trace("Discovered resource=%s; ID=%d",
+		      e->u.res_event.entry.ResourceTag.Data,
+		      e->u.res_event.entry.ResourceId);
+
+		/* Create platform-specific info space to add to infra-structure */
+		res_info_ptr = g_memdup(&(snmp_bc_rpt_array[BC_RPT_ENTRY_MEDIA_TRAY].res_info),
+					sizeof(struct ResourceInfo));
+		if (!res_info_ptr) {
+			dbg("Out of memory.");
+			g_free(e);
+			return(SA_ERR_HPI_OUT_OF_SPACE);
+		}
+
+		res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
+
+                /* Get UUID and convert to GUID */
+                err = snmp_bc_get_guid(custom_handle, e, res_info_ptr);
+		
+		/* Add resource to temporary event cache/queue */
+		err = oh_add_resource(custom_handle->tmpcache, 
+				      &(e->u.res_event.entry),
+				      res_info_ptr, 0);
+		if (err) {
+			dbg("Failed to add resource. Error=%s.", oh_lookup_error(err));
+			g_free(e);
+			return(err);
+		}
+		custom_handle->tmpqueue = g_slist_append(custom_handle->tmpqueue, e);
+		
+		/* Find resource's events, sensors, controls, etc. */
+		snmp_bc_discover_res_events(handle, &(e->u.res_event.entry.ResourceEntity), res_info_ptr);
+		snmp_bc_discover_sensors(handle, snmp_bc_mediatray_sensors, e);
+		snmp_bc_discover_controls(handle, snmp_bc_mediatray_controls, e);
+		snmp_bc_discover_inventories(handle, snmp_bc_mediatray_inventories, e);
+	}
 	
+	return(SA_OK);
+}
+/**
+ * snmp_bc_discover_chassis:
+ * @handler: Pointer to handler's data.
+ * @ep_root: Pointer to chassis Root Entity Path which comes from openhpi.conf
+ *
+ * Discovers chassis resources.
+ *
+ * Return values:
+ * Adds chassis RDRs to internal Infra-structure queues - normal case
+ * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory
+ * SA_ERR_HPI_INVALID_PARAMS - Invalid pointers passed in
+  **/
+SaErrorT snmp_bc_discover_chassis(struct oh_handler_state *handle,
+			  SaHpiEntityPathT *ep_root)
+{
+
+	SaErrorT err;
+        struct oh_event *e;
+	struct ResourceInfo *res_info_ptr;
+	struct snmp_bc_hnd *custom_handle;
+
+
+	if (!handle || !ep_root) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+		
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
+	if (!custom_handle) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+
 	/****************** 
 	 * Discover Chassis
 	 ******************/
@@ -465,12 +682,48 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 	}
 
 	snmp_bc_discover_inventories(handle, snmp_bc_chassis_inventories, e);
+	return(SA_OK);
 
-	/***************** 
-	 * Discover Blades
-	 *****************/
-	for (i=0; i < strlen(get_value.string); i++) {
-		if (get_value.string[i] == '1') {
+}
+
+/**
+ * snmp_bc_discover_blades:
+ * @handler: Pointer to handler's data.
+ * @ep_root: Pointer to chassis Root Entity Path which comes from openhpi.conf
+ * @blade_vector: String of installed blade bitmap
+ *
+ * Discovers blade resources.
+ *
+ * Return values:
+ * Adds blade RDRs to internal Infra-structure queues - normal case
+ * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory
+ * SA_ERR_HPI_INVALID_PARAMS - Invalid pointers passed in
+  **/
+SaErrorT snmp_bc_discover_blade(struct oh_handler_state *handle,
+			  SaHpiEntityPathT *ep_root, char *blade_vector)
+{
+
+	int i;
+	SaErrorT err;
+        struct oh_event *e;
+	struct snmp_value get_value, get_blade_resourcetag;
+	struct ResourceInfo *res_info_ptr;
+	struct snmp_bc_hnd *custom_handle;
+
+
+	if (!handle || !blade_vector) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+		
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
+	if (!custom_handle) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+	
+	for (i=0; i < strlen(blade_vector); i++) {
+		if (blade_vector[i] == '1') {
 
 			e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
 			if (e == NULL) {
@@ -616,19 +869,45 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 		}
 	}
 
-        /*************** 
-	 * Discover Fans
-	 ***************/
-	err = snmp_bc_snmp_get(custom_handle, SNMP_BC_FAN_VECTOR, &get_value, SAHPI_TRUE);
-        if (err || get_value.type != ASN_OCTET_STR) {
-		dbg("Cannot get OID=%s; Received Type=%d; Error=%s.",
-		      SNMP_BC_FAN_VECTOR, get_value.type, oh_lookup_error(err));
-		if (err) { return(err); }
-		else { return(SA_ERR_HPI_INTERNAL_ERROR); }
-        }
+	return(SA_OK);
+}
 
-	for (i=0; i < strlen(get_value.string); i++) {
-		if (get_value.string[i] == '1') {
+/**
+ * snmp_bc_discover_fans:
+ * @handler: Pointer to handler's data.
+ * @ep_root: Pointer to chassis Root Entity Path which comes from openhpi.conf 
+ * @fan_vector: String of installed fan bitmap
+ *
+ * Discovers fan resources.
+ *
+ * Return values:
+ * Adds fan RDRs to internal Infra-structure queues - normal case
+ * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory
+ * SA_ERR_HPI_INVALID_PARAMS - Invalid pointers passed in
+  **/
+SaErrorT snmp_bc_discover_fans(struct oh_handler_state *handle,
+			  SaHpiEntityPathT *ep_root, char *fan_vector)
+{
+
+	int i;
+	SaErrorT err;
+        struct oh_event *e;
+	struct ResourceInfo *res_info_ptr;
+	struct snmp_bc_hnd *custom_handle;
+
+
+	if (!handle || !fan_vector) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+		
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
+	if (!custom_handle) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+	for (i=0; i < strlen(fan_vector); i++) {
+		if (fan_vector[i] == '1') {
 			e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
 			if (e == NULL) {
 				dbg("Out of memory.");
@@ -683,20 +962,47 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 			snmp_bc_discover_inventories(handle, snmp_bc_fan_inventories, e);
 		}
 	}
+	return(SA_OK);
+}
 
-        /************************
-	 * Discover Power Modules
-	 ************************/
-	err = snmp_bc_snmp_get(custom_handle, SNMP_BC_POWER_VECTOR, &get_value, SAHPI_TRUE);
-        if (err || get_value.type != ASN_OCTET_STR) {
-		dbg("Cannot get OID=%s; Received Type=%d; Error=%s.",
-		      SNMP_BC_POWER_VECTOR, get_value.type, oh_lookup_error(err));
-		if (err) { return(err); }
-		else { return(SA_ERR_HPI_INTERNAL_ERROR); }
-        }
+/**
+ * snmp_bc_discover_power_module:
+ * @handler: Pointer to handler's data.
+ * @ep_root: Pointer to chassis Root Entity Path which comes from openhpi.conf 
+ * @power_module_vector: String of installed power module bitmap
+ *
+ * Discovers power module resources.
+ *
+ * Return values:
+ * Adds power module RDRs to internal Infra-structure queues - normal case
+ * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory
+ * SA_ERR_HPI_INVALID_PARAMS - Invalid pointers passed in
+  **/
+SaErrorT snmp_bc_discover_power_module(struct oh_handler_state *handle,
+			  SaHpiEntityPathT *ep_root, char *power_module_vector)
+{
 
-	for (i=0; i < strlen(get_value.string); i++) {
-		if (get_value.string[i] == '1') {
+	int i;
+	SaErrorT err;
+        struct oh_event *e;
+	struct ResourceInfo *res_info_ptr;
+	struct snmp_bc_hnd *custom_handle;
+
+
+	if (!handle || !power_module_vector) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+		
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
+	if (!custom_handle) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+
+
+	for (i=0; i < strlen(power_module_vector); i++) {
+		if (power_module_vector[i] == '1') {
 			e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
 			if (e == NULL) {
 				dbg("Out of memory.");
@@ -751,20 +1057,46 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 			snmp_bc_discover_inventories(handle, snmp_bc_power_inventories, e);
 		}
 	}
+	return(SA_OK);
+}
 
-	/******************* 
-	 * Discover Switches
-	 *******************/
-	err = snmp_bc_snmp_get(custom_handle, SNMP_BC_SWITCH_VECTOR, &get_value, SAHPI_TRUE);
-        if (err || get_value.type != ASN_OCTET_STR) {
-		dbg("Cannot get OID=%s; Received Type=%d; Error=%s.",
-		      SNMP_BC_SWITCH_VECTOR, get_value.type, oh_lookup_error(err));
-		if (err) { return(err); }
-		else { return(SA_ERR_HPI_INTERNAL_ERROR); }
-        }
+/**
+ * snmp_bc_discover_switch:
+ * @handler: Pointer to handler's data.
+ * @ep_root: Pointer to chassis Root Entity Path which comes from openhpi.conf 
+ * @switch_vector: String of installed switch bitmap 
+ *
+ * Discovers switch resources.
+ *
+ * Return values:
+ * Adds switch RDRs to internal Infra-structure queues - normal case
+ * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory
+ * SA_ERR_HPI_INVALID_PARAMS - Invalid pointers passed in
+  **/
+SaErrorT snmp_bc_discover_switch(struct oh_handler_state *handle,
+			  SaHpiEntityPathT *ep_root, char *switch_vector)
+{
 
-	for (i=0; i < strlen(get_value.string); i++) {
-		if (get_value.string[i] == '1') {
+	int i;
+	SaErrorT err;
+        struct oh_event *e;
+	struct ResourceInfo *res_info_ptr;
+	struct snmp_bc_hnd *custom_handle;
+
+
+	if (!handle || !switch_vector) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+		
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
+	if (!custom_handle) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+
+	for (i=0; i < strlen(switch_vector); i++) {
+		if (switch_vector[i] == '1') {
 			e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
 			if (e == NULL) {
 				dbg("Out of memory.");
@@ -819,88 +1151,48 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 			snmp_bc_discover_inventories(handle, snmp_bc_switch_inventories, e);
 		}
 	}
+	return(SA_OK);
+}
 
-	/********************** 
-	 * Discover Media Tray
-	 *********************/
-	err = snmp_bc_snmp_get(custom_handle, SNMP_BC_MEDIATRAY_EXISTS, &get_value, SAHPI_TRUE);
-        if (err || get_value.type != ASN_INTEGER) {
-		dbg("Cannot get OID=%s; Received Type=%d; Error=%s.",
-		      SNMP_BC_MEDIATRAY_EXISTS, get_value.type, oh_lookup_error(err));
-		if (err) { return(err); }
-		else { return(SA_ERR_HPI_INTERNAL_ERROR); }
-        }
+/**
+ * snmp_bc_discover_mm:
+ * @handler: Pointer to handler's data.
+ * @ep_root: Pointer to chassis Root Entity Path which comes from openhpi.conf 
+ * @mm_vector: String of installed MM bitmap 
+ *
+ * Discovers management module (mm) resources.
+ *
+ * Return values:
+ * Adds switch RDRs to internal Infra-structure queues - normal case
+ * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory
+ * SA_ERR_HPI_INVALID_PARAMS - Invalid pointers passed in
+  **/
+SaErrorT snmp_bc_discover_mm(struct oh_handler_state *handle,
+			  SaHpiEntityPathT *ep_root, char *mm_vector)
+{
 
-	if (get_value.integer) {
-		e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
-		if (e == NULL) {
-			dbg("Out of memory.");
-			return(SA_ERR_HPI_OUT_OF_SPACE);
-		}
+	int i;
+	SaErrorT err;
+        struct oh_event *e;
+	struct snmp_value get_value, get_active;
+	struct ResourceInfo *res_info_ptr;
+	struct snmp_bc_hnd *custom_handle;
 
-		e->type = OH_ET_RESOURCE;
-		e->did = oh_get_default_domain_id();
-		e->u.res_event.entry = snmp_bc_rpt_array[BC_RPT_ENTRY_MEDIA_TRAY].rpt;
-		oh_concat_ep(&(e->u.res_event.entry.ResourceEntity), ep_root);
-		oh_set_ep_location(&(e->u.res_event.entry.ResourceEntity),
-				   SAHPI_ENT_PERIPHERAL_BAY, i + SNMP_BC_HPI_LOCATION_BASE);
-		e->u.res_event.entry.ResourceId = 
-			oh_uid_from_entity_path(&(e->u.res_event.entry.ResourceEntity));
-		snmp_bc_create_resourcetag(&(e->u.res_event.entry.ResourceTag),
-					   snmp_bc_rpt_array[BC_RPT_ENTRY_MEDIA_TRAY].comment,
-					   SNMP_BC_HPI_LOCATION_BASE);
 
-		trace("Discovered resource=%s; ID=%d",
-		      e->u.res_event.entry.ResourceTag.Data,
-		      e->u.res_event.entry.ResourceId);
-
-		/* Create platform-specific info space to add to infra-structure */
-		res_info_ptr = g_memdup(&(snmp_bc_rpt_array[BC_RPT_ENTRY_MEDIA_TRAY].res_info),
-					sizeof(struct ResourceInfo));
-		if (!res_info_ptr) {
-			dbg("Out of memory.");
-			g_free(e);
-			return(SA_ERR_HPI_OUT_OF_SPACE);
-		}
-
-		res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
-
-                /* Get UUID and convert to GUID */
-                err = snmp_bc_get_guid(custom_handle, e, res_info_ptr);
-		
-		/* Add resource to temporary event cache/queue */
-		err = oh_add_resource(custom_handle->tmpcache, 
-				      &(e->u.res_event.entry),
-				      res_info_ptr, 0);
-		if (err) {
-			dbg("Failed to add resource. Error=%s.", oh_lookup_error(err));
-			g_free(e);
-			return(err);
-		}
-		custom_handle->tmpqueue = g_slist_append(custom_handle->tmpqueue, e);
-		
-		/* Find resource's events, sensors, controls, etc. */
-		snmp_bc_discover_res_events(handle, &(e->u.res_event.entry.ResourceEntity), res_info_ptr);
-		snmp_bc_discover_sensors(handle, snmp_bc_mediatray_sensors, e);
-		snmp_bc_discover_controls(handle, snmp_bc_mediatray_controls, e);
-		snmp_bc_discover_inventories(handle, snmp_bc_mediatray_inventories, e);
+	if (!handle || !mm_vector) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
-	
+		
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
+	if (!custom_handle) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
 
-	/***************************** 
-	 * Discover Management Modules
-	 *****************************/
-	err = snmp_bc_snmp_get(custom_handle, SNMP_BC_MGMNT_VECTOR, &get_value, SAHPI_TRUE);
-        if (err || get_value.type != ASN_OCTET_STR) {
-		dbg("Cannot get OID=%s; Received Type=%d; Error=%s.",
-		      SNMP_BC_MGMNT_VECTOR, get_value.type, oh_lookup_error(err));
-		if (err) { return(err); }
-		else { return(SA_ERR_HPI_INTERNAL_ERROR); }
-        }
-	
-	for (i=0; i < strlen(get_value.string); i++) {
+	for (i=0; i < strlen(mm_vector); i++) {
 		trace("Management Module installed bit map %s\n", get_value.string);
-		if (get_value.string[i] == '1'){
+		if (mm_vector[i] == '1'){
 			err = snmp_bc_snmp_get(custom_handle, SNMP_BC_MGMNT_ACTIVE, &get_active, SAHPI_TRUE);
 			if (err || get_active.type != ASN_INTEGER) {
 				dbg("Cannot get OID=%s; Received Type=%d; Error=%s.",
@@ -968,8 +1260,8 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
                 	snmp_bc_discover_inventories(handle, snmp_bc_mgmnt_inventories, e);
 		}
 	}
-
 	return(SA_OK);
+
 }
 
 /**
