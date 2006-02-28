@@ -2209,11 +2209,24 @@ SaErrorT oh_fprint_event(FILE *stream, const SaHpiEventT *event, int offsets)
 SaErrorT oh_build_event(oh_big_textbuffer *buffer, const SaHpiEventT *event, int offsets)
 {
 	char str[SAHPI_MAX_TEXT_BUFFER_LENGTH];
+	gint i;
+	guint id;
 	SaErrorT err;
+	SaHpiEntityPathT ep;
 	SaHpiTextBufferT tmpbuffer;
+	oh_big_textbuffer bigbuf;
 
 	memset( buffer->Data, 0, OH_MAX_TEXT_BUFFER_LENGTH );
 	memset( tmpbuffer.Data, 0, sizeof( tmpbuffer.Data ) );
+	
+	id = event->Source;
+	i = oh_entity_path_lookup(&id, &ep);
+	err  = oh_decode_entitypath(&ep, &bigbuf);
+	
+	/* Entity Path */
+	oh_append_offset(buffer, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "%s\n", bigbuf.Data); 
+	oh_append_bigtext(buffer, str);
 	
 	/* Event Type */
 	oh_append_offset(buffer, offsets);
