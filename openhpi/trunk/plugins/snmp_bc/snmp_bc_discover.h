@@ -53,6 +53,29 @@ SaErrorT snmp_bc_mod_sensor_ep(struct oh_event *e,
 				 void *sensor_array, 
 				 int index);
 				 
-SaErrorT snmp_bc_add_ep(struct oh_event *e, SaHpiEntityPathT *ep_add);			 
+SaErrorT snmp_bc_add_ep(struct oh_event *e, SaHpiEntityPathT *ep_add);	
+		
+SaErrorT snmp_bc_discover_media_tray(struct oh_handler_state *handle,
+			  SaHpiEntityPathT *ep_root, int  media_tray_installed);
+			  
+SaErrorT snmp_bc_discover_chassis(struct oh_handler_state *handle,
+			  SaHpiEntityPathT *ep_root);
+
+SaErrorT snmp_bc_discover_blade(struct oh_handler_state *handle,
+			  SaHpiEntityPathT *ep_root, char *blade_vector);
+
+SaErrorT snmp_bc_discover_fans(struct oh_handler_state *handle,
+			  SaHpiEntityPathT *ep_root, char *fan_vector);
+
+SaErrorT snmp_bc_discover_power_module(struct oh_handler_state *handle,
+			  SaHpiEntityPathT *ep_root, char *power_module_vector);
+
+SaErrorT snmp_bc_discover_switch(struct oh_handler_state *handle,
+			  SaHpiEntityPathT *ep_root, char *switch_vector);
+
+SaErrorT snmp_bc_discover_mm(struct oh_handler_state *handle,
+			  SaHpiEntityPathT *ep_root, char *mm_vector);
+
+
 				 				 
 #endif
