@@ -127,6 +127,7 @@ handler libdummy {
 #        passphrase = "opensesame" # Version 3. Required if security_level is authNoPriv or authPriv.
 #        auth_type = "MD5" # Version 3. Passphrase encoding (MD5|SHA)
 #        security_level = "noAuthNoPriv" # Version 3. (noAuthNoPriv|authNoPriv|authPriv)
+#        context_name  = "context_name" # Version 3 only.  Optional for snmp agent that requires context_name 
 #        count_per_getbulk = "xx"   # Version 3 Optional. With Version 3, we use SNMP_MSG_GETBULK for performance.
 #				    # This variable sets the MAX OIDs per MSG_GETBULK.
 #                                   # Lower limit is set by OpenHPI/snmp_bc at 10.
