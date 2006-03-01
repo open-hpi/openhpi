@@ -31,7 +31,9 @@ void *snmp_bc_open(GHashTable *handler_config)
 {
         struct oh_handler_state *handle;
         struct snmp_bc_hnd *custom_handle;
-        char *hostname, *version, *sec_level, *authtype, *user, *pass, *community, *count_per_getbulk;
+        char *hostname, *version, *sec_level, 
+		*authtype, *user, *pass, *community, 
+		*context_name, *count_per_getbulk;
         char *root_tuple;
 
 	if (!handler_config) {
@@ -103,6 +105,7 @@ void *snmp_bc_open(GHashTable *handler_config)
 		user = (char *)g_hash_table_lookup(handle->config, "security_name");
 		pass = (char *)g_hash_table_lookup(handle->config, "passphrase");
 		community = (char *)g_hash_table_lookup(handle->config, "community");
+		context_name = (char *)g_hash_table_lookup(handle->config, "context_name");
 		count_per_getbulk = (char *)g_hash_table_lookup(handle->config, "count_per_getbulk");
 		
 		/* Configure SNMP V3 session */
@@ -166,8 +169,6 @@ void *snmp_bc_open(GHashTable *handler_config)
 					
 				}
 				
-				/* ---------------------------------------------------------------------- */				
-				/* ---------------------------------------------------------------------- */
 				if (count_per_getbulk != NULL) 
 				{
 					custom_handle->count_per_getbulk = atoi((char *)count_per_getbulk);
@@ -179,8 +180,11 @@ void *snmp_bc_open(GHashTable *handler_config)
 					custom_handle->count_per_getbulk = SNMP_BC_BULK_DEFAULT;
 				}
 
-				/* ---------------------------------------------------------------------- */								
-				/* ---------------------------------------------------------------------- */
+				if (context_name != NULL) 
+				{
+					custom_handle->session.contextName = (char *)context_name;
+					custom_handle->session.contextNameLen = strlen(context_name);
+				}
 			}                                
                 /* Configure SNMP V1 session */
 		} else if (!strcmp(version, "1")) { 
