@@ -22,6 +22,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <errno.h>
+#include <uuid/uuid.h>
 
 #include <SaHpi.h>
 #include <oh_utils.h>
@@ -780,6 +781,7 @@ SaErrorT oh_fprint_sensorrec(FILE *stream, const SaHpiSensorRecT *sensor, int of
 static SaErrorT oh_build_resourceinfo(oh_big_textbuffer *buffer, const SaHpiResourceInfoT *ResourceInfo, int offsets)
 {
 	char str[SAHPI_MAX_TEXT_BUFFER_LENGTH];
+	char tempstr[SAHPI_MAX_TEXT_BUFFER_LENGTH];
 	int found;
 	oh_big_textbuffer working;
 	SaHpiTextBufferT tmpbuffer;
@@ -860,9 +862,10 @@ static SaErrorT oh_build_resourceinfo(oh_big_textbuffer *buffer, const SaHpiReso
 		memset(empty_guid, 0, sizeof(SaHpiGuidT));
 
  		if (memcmp(empty_guid, ResourceInfo->Guid, sizeof(SaHpiGuidT))) {
+			uuid_unparse(ResourceInfo->Guid, tempstr);		
 			oh_append_offset(&working, offsets);
 			snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "GUID: %s\n",
-				 ResourceInfo->Guid);
+				 	tempstr);
 			oh_append_bigtext(&working, str);
 			found++;
 		}
