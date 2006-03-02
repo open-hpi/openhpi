@@ -231,7 +231,7 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                                 {
                                         .event = "0EA0000x", /* EN_FAULT_SWITCH_x */
 					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_TRUE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
                                         .event_state = SAHPI_HS_STATE_NOT_PRESENT,
                                         .recovery_state = SAHPI_HS_STATE_ACTIVE,
                                 },
@@ -313,14 +313,14 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                                 {
                                         .event = "06026080", /* EN_BLADE_PWR_DN_FAN_FAIL */
 					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_TRUE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
                                         .event_state = SAHPI_HS_STATE_INSERTION_PENDING,
                                         .recovery_state = SAHPI_HS_STATE_ACTIVE,
                                 },
                                 {
                                         .event = "0821C080", /* EN_BLADE_PWR_DN_PM_TEMP */
 					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_TRUE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
                                         .event_state = SAHPI_HS_STATE_INSERTION_PENDING,
                                         .recovery_state = SAHPI_HS_STATE_ACTIVE,
                                 },
@@ -427,7 +427,7 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                 },
                 .comment = "Control Panel/Media Tray"
         },
-        /* Blower module */
+        /* Blower Module */
         {
                 .rpt = {
                         .ResourceInfo = {
@@ -461,12 +461,19 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
 				.OidUuid = '\0',
                         },
                         .event_array = {
-                                {},
+				{
+                                        .event = "0A02600x", /* EN_FAULT_FAN1 */
+					.event_res_failure = SAHPI_TRUE,
+					.event_res_failure_unexpected = SAHPI_TRUE,
+                                        .event_state = SAHPI_HS_STATE_NOT_PRESENT,
+                                        .recovery_state = SAHPI_HS_STATE_ACTIVE,
+                                },
+				{},
                         },
                 },
                 .comment = "Blower Module"
         },
-        /* Power supply */
+        /* Power Supply */
         {
                 .rpt = {
                         .ResourceInfo = {
@@ -5993,14 +6000,6 @@ struct snmp_bc_sensor snmp_bc_fan_sensors[] = {
                                         .event_state = SAHPI_ES_OFF_LINE,
        					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .recovery_state = SAHPI_ES_RUNNING,
-                                },
-                                {
-                                        .event = "0A02600x", /* EN_FAULT_FAN1 */
-  					.event_assertion = SAHPI_TRUE,
-       					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_OFF_LINE,
                                         .recovery_state = SAHPI_ES_RUNNING,
                                 },
                                 {},

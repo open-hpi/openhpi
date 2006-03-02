@@ -479,7 +479,9 @@ EN_FAULT_DASD1_SCSI_ID_3|0x06801003|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"Hard 
 # Media Tray Resource
 #####################
 
-# No separate installed event  - recovery of this event is the install
+# There are not separate hot-swap installed/removed events for media trays.
+# This event represents a media tray removal; the recovery of this event represents an install.
+
 EN_MEDIA_TRAY_REMOVED|0x06A1E001|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"The media tray was removed."
 
 ####################
@@ -593,31 +595,9 @@ EN_OVER_CURRENT_SWITCH_4|0x0EA1A404|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"I/O m
 ##############
 # Fan Resource
 ##############
-# None
 
-#############
-# Fan Sensors
-#############
-
-# Blower fan speed
-EN_FAN1_PFA|0x000A6001|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_RID|"Blower 1 Outside Recommended Speed."
-EN_FAN2_PFA|0x000A6002|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_RID|"Blower 2 Outside Recommended Speed."
-EN_FAN3_PFA|0x000A6003|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_RID|"Blower 3 Outside Recommended Speed."
-EN_FAN4_PFA|0x000A6004|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_RID|"Blower 4 Outside Recommended Speed."
-
-# Map to generic blower operational sensor
-EN_FAN1_SPEED|0x00026801|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 1 Failure Multiple blower failures"
-EN_FAN1_SPEED|0x00026801|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 1 Failure Single blower failure"
-EN_FAN1_SPEED|0x00026801|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 1 Failure"
-EN_FAN2_SPEED|0x00026802|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 2 Failure Multiple blower failures"
-EN_FAN2_SPEED|0x00026802|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 2 Failure Single blower failure"
-EN_FAN2_SPEED|0x00026802|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 2 Failure"
-EN_FAN3_SPEED|0x00026803|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 3 Failure Multiple blower failures"
-EN_FAN3_SPEED|0x00026803|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 3 Failure Single blower failure"
-EN_FAN3_SPEED|0x00026803|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 3 Failure"
-EN_FAN4_SPEED|0x00026804|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 4 Failure Multiple blower failures"
-EN_FAN4_SPEED|0x00026804|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 4 Failure Single blower failure"
-EN_FAN4_SPEED|0x00026804|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 4 Failure"
+# There are not separate hot-swap installed/removed events for fans.
+# These events represent fan removal; the recovery of these events represent an install.
 
 EN_FAULT_FAN1|0x0A026001|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 1 Fault Multiple blower failures"
 EN_FAULT_FAN1|0x0A026001|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 1 Fault Single blower failure"
@@ -631,6 +611,31 @@ EN_FAULT_FAN3|0x0A026003|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 3 Fault"
 EN_FAULT_FAN4|0x0A026004|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 4 Fault Multiple blower failures"
 EN_FAULT_FAN4|0x0A026004|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 4 Fault Single blower failure"
 EN_FAULT_FAN4|0x0A026004|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 4 Fault"
+
+#############
+# Fan Sensors
+#############
+
+# Fan speed
+EN_FAN1_PFA|0x000A6001|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_RID|"Blower 1 Outside Recommended Speed."
+EN_FAN2_PFA|0x000A6002|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_RID|"Blower 2 Outside Recommended Speed."
+EN_FAN3_PFA|0x000A6003|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_RID|"Blower 3 Outside Recommended Speed."
+EN_FAN4_PFA|0x000A6004|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_RID|"Blower 4 Outside Recommended Speed."
+
+# Generic blower operational sensor
+EN_FAN1_SPEED|0x00026801|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 1 Failure Multiple blower failures"
+EN_FAN1_SPEED|0x00026801|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 1 Failure Single blower failure"
+EN_FAN1_SPEED|0x00026801|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 1 Failure"
+EN_FAN2_SPEED|0x00026802|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 2 Failure Multiple blower failures"
+EN_FAN2_SPEED|0x00026802|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 2 Failure Single blower failure"
+EN_FAN2_SPEED|0x00026802|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 2 Failure"
+EN_FAN3_SPEED|0x00026803|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 3 Failure Multiple blower failures"
+EN_FAN3_SPEED|0x00026803|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 3 Failure Single blower failure"
+EN_FAN3_SPEED|0x00026803|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 3 Failure"
+EN_FAN4_SPEED|0x00026804|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 4 Failure Multiple blower failures"
+EN_FAN4_SPEED|0x00026804|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 4 Failure Single blower failure"
+EN_FAN4_SPEED|0x00026804|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blower 4 Failure"
+
 
 ################
 # Power Resource
