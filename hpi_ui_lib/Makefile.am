@@ -48,7 +48,7 @@ libopenhpiui_la_SOURCES   = \
 
 libopenhpiui_la_LIBADD    = @STATIC_PLUGIN_LIBS@ @STATIC_PLUGIN_EXTRA_LIBS@ /
 				$(top_builddir)/utils/libopenhpiutils.la
-libopenhpiui_la_LDFLAGS   = -L$(top_builddir)/utils -version-info @HPI_LIB_VERSION@ /
+libopenhpiui_la_LDFLAGS   = -version-info @HPI_LIB_VERSION@ /
 				-export-symbols $(top_srcdir)/hpi_ui_lib/hpi_ui.sym
 libopenhpiui_la_DEPENDENCIES = @STATIC_PLUGIN_LIBS@ $(top_srcdir)/hpi_ui_lib/hpi_ui.sym
 
