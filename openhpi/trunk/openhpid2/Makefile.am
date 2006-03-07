@@ -60,8 +60,7 @@ libopenhpi_la_LIBADD  = $(top_builddir)/marshal/libohtcpconnx.la -lstdc++ \
 
 
 install-data-local:
-	cp openhpid.sh /etc/init.d/openhpid
-	chmod 755 /etc/init.d/openhpid
+	install -D -m 0755 openhpid.sh $(DESTDIR)$(sysconfdir)/init.d/openhpid
 	
 clean-local:
 	rm -f *~ core core.*
