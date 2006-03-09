@@ -59,7 +59,7 @@ protected:
 
   unsigned char m_major_version;
   unsigned char m_minor_version;
-  unsigned char m_entries;
+  unsigned short m_entries;
   unsigned int  m_last_addition_timestamp;
   unsigned int  m_last_erase_timestamp;
   bool          m_overflow;
