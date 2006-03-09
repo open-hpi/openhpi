@@ -142,7 +142,7 @@ cIpmiSel::GetInfo()
        return SA_ERR_HPI_INVALID_DATA;
      }
 
-  unsigned int num = m_entries;
+  unsigned short num = m_entries;
 
   // Pull pertinant info from the response.
   m_major_version               = rsp.m_data[1] & 0xf;
