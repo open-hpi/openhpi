@@ -19,10 +19,9 @@
  *          Do not change this file manually. Update script instead
  *******************************************************************/
 
-#include <string.h>
+#include <strings.h>
 
 #include <SaHpi.h>
-#include <SaHpiAtca.h>
 #include <oh_utils.h>
 
 /**
@@ -481,8 +480,7 @@ SaErrorT oh_encode_language(SaHpiTextBufferT *buffer, SaHpiLanguageT *type)
 	
 	found = 0;
 	for (i=0; i<OH_MAX_LANGUAGE; i++) {
-		if (strncasecmp((char *)buffer->Data, language_strings[i].str,
-				buffer->DataLength) == 0) {
+		if (strcasecmp((char *)buffer->Data, language_strings[i].str) == 0) {
 			found++;
 			break;
 		}
@@ -558,8 +556,7 @@ SaErrorT oh_encode_texttype(SaHpiTextBufferT *buffer, SaHpiTextTypeT *type)
 	
 	found = 0;
 	for (i=0; i<OH_MAX_TEXTTYPE; i++) {
-		if (strncasecmp((char *)buffer->Data, texttype_strings[i].str,
-				buffer->DataLength) == 0) {
+		if (strcasecmp((char *)buffer->Data, texttype_strings[i].str) == 0) {
 			found++;
 			break;
 		}
@@ -821,8 +818,7 @@ SaErrorT oh_encode_entitytype(SaHpiTextBufferT *buffer, SaHpiEntityTypeT *type)
 	
 	found = 0;
 	for (i=0; i<OH_MAX_ENTITYTYPE; i++) {
-		if (strncasecmp((char *)buffer->Data, entitytype_strings[i].str,
-				buffer->DataLength) == 0) {
+		if (strcasecmp((char *)buffer->Data, entitytype_strings[i].str) == 0) {
 			found++;
 			break;
 		}
@@ -1012,8 +1008,7 @@ SaErrorT oh_encode_sensortype(SaHpiTextBufferT *buffer, SaHpiSensorTypeT *type)
 	
 	found = 0;
 	for (i=0; i<OH_MAX_SENSORTYPE; i++) {
-		if (strncasecmp((char *)buffer->Data, sensortype_strings[i].str,
-				buffer->DataLength) == 0) {
+		if (strcasecmp((char *)buffer->Data, sensortype_strings[i].str) == 0) {
 			found++;
 			break;
 		}
@@ -1086,8 +1081,7 @@ SaErrorT oh_encode_sensorreadingtype(SaHpiTextBufferT *buffer, SaHpiSensorReadin
 	
 	found = 0;
 	for (i=0; i<OH_MAX_SENSORREADINGTYPE; i++) {
-		if (strncasecmp((char *)buffer->Data, sensorreadingtype_strings[i].str,
-				buffer->DataLength) == 0) {
+		if (strcasecmp((char *)buffer->Data, sensorreadingtype_strings[i].str) == 0) {
 			found++;
 			break;
 		}
@@ -1154,8 +1148,7 @@ SaErrorT oh_encode_sensoreventmaskaction(SaHpiTextBufferT *buffer, SaHpiSensorEv
 	
 	found = 0;
 	for (i=0; i<OH_MAX_SENSOREVENTMASKACTION; i++) {
-		if (strncasecmp((char *)buffer->Data, sensoreventmaskaction_strings[i].str,
-				buffer->DataLength) == 0) {
+		if (strcasecmp((char *)buffer->Data, sensoreventmaskaction_strings[i].str) == 0) {
 			found++;
 			break;
 		}
@@ -1489,8 +1482,7 @@ SaErrorT oh_encode_sensorunits(SaHpiTextBufferT *buffer, SaHpiSensorUnitsT *type
 	
 	found = 0;
 	for (i=0; i<OH_MAX_SENSORUNITS; i++) {
-		if (strncasecmp((char *)buffer->Data, sensorunits_strings[i].str,
-				buffer->DataLength) == 0) {
+		if (strcasecmp((char *)buffer->Data, sensorunits_strings[i].str) == 0) {
 			found++;
 			break;
 		}
@@ -1560,8 +1552,7 @@ SaErrorT oh_encode_sensormodunituse(SaHpiTextBufferT *buffer, SaHpiSensorModUnit
 	
 	found = 0;
 	for (i=0; i<OH_MAX_SENSORMODUNITUSE; i++) {
-		if (strncasecmp((char *)buffer->Data, sensormodunituse_strings[i].str,
-				buffer->DataLength) == 0) {
+		if (strcasecmp((char *)buffer->Data, sensormodunituse_strings[i].str) == 0) {
 			found++;
 			break;
 		}
@@ -1631,8 +1622,7 @@ SaErrorT oh_encode_sensoreventctrl(SaHpiTextBufferT *buffer, SaHpiSensorEventCtr
 	
 	found = 0;
 	for (i=0; i<OH_MAX_SENSOREVENTCTRL; i++) {
-		if (strncasecmp((char *)buffer->Data, sensoreventctrl_strings[i].str,
-				buffer->DataLength) == 0) {
+		if (strcasecmp((char *)buffer->Data, sensoreventctrl_strings[i].str) == 0) {
 			found++;
 			break;
 		}
@@ -1711,8 +1701,7 @@ SaErrorT oh_encode_ctrltype(SaHpiTextBufferT *buffer, SaHpiCtrlTypeT *type)
 	
 	found = 0;
 	for (i=0; i<OH_MAX_CTRLTYPE; i++) {
-		if (strncasecmp((char *)buffer->Data, ctrltype_strings[i].str,
-				buffer->DataLength) == 0) {
+		if (strcasecmp((char *)buffer->Data, ctrltype_strings[i].str) == 0) {
 			found++;
 			break;
 		}
@@ -1785,8 +1774,7 @@ SaErrorT oh_encode_ctrlstatedigital(SaHpiTextBufferT *buffer, SaHpiCtrlStateDigi
 	
 	found = 0;
 	for (i=0; i<OH_MAX_CTRLSTATEDIGITAL; i++) {
-		if (strncasecmp((char *)buffer->Data, ctrlstatedigital_strings[i].str,
-				buffer->DataLength) == 0) {
+		if (strcasecmp((char *)buffer->Data, ctrlstatedigital_strings[i].str) == 0) {
 			found++;
 			break;
 		}
@@ -1853,8 +1841,7 @@ SaErrorT oh_encode_ctrlmode(SaHpiTextBufferT *buffer, SaHpiCtrlModeT *type)
 	
 	found = 0;
 	for (i=0; i<OH_MAX_CTRLMODE; i++) {
-		if (strncasecmp((char *)buffer->Data, ctrlmode_strings[i].str,
-				buffer->DataLength) == 0) {
+		if (strcasecmp((char *)buffer->Data, ctrlmode_strings[i].str) == 0) {
 			found++;
 			break;
 		}
@@ -1948,8 +1935,7 @@ SaErrorT oh_encode_ctrloutputtype(SaHpiTextBufferT *buffer, SaHpiCtrlOutputTypeT
 	
 	found = 0;
 	for (i=0; i<OH_MAX_CTRLOUTPUTTYPE; i++) {
-		if (strncasecmp((char *)buffer->Data, ctrloutputtype_strings[i].str,
-				buffer->DataLength) == 0) {
+		if (strcasecmp((char *)buffer->Data, ctrloutputtype_strings[i].str) == 0) {
 			found++;
 			break;
 		}
@@ -2028,8 +2014,7 @@ SaErrorT oh_encode_idrareatype(SaHpiTextBufferT *buffer, SaHpiIdrAreaTypeT *type
 	
 	found = 0;
 	for (i=0; i<OH_MAX_IDRAREATYPE; i++) {
-		if (strncasecmp((char *)buffer->Data, idrareatype_strings[i].str,
-				buffer->DataLength) == 0) {
+		if (strcasecmp((char *)buffer->Data, idrareatype_strings[i].str) == 0) {
 			found++;
 			break;
 		}
@@ -2123,8 +2108,7 @@ SaErrorT oh_encode_idrfieldtype(SaHpiTextBufferT *buffer, SaHpiIdrFieldTypeT *ty
 	
 	found = 0;
 	for (i=0; i<OH_MAX_IDRFIELDTYPE; i++) {
-		if (strncasecmp((char *)buffer->Data, idrfieldtype_strings[i].str,
-				buffer->DataLength) == 0) {
+		if (strcasecmp((char *)buffer->Data, idrfieldtype_strings[i].str) == 0) {
 			found++;
 			break;
 		}
@@ -2197,8 +2181,7 @@ SaErrorT oh_encode_watchdogaction(SaHpiTextBufferT *buffer, SaHpiWatchdogActionT
 	
 	found = 0;
 	for (i=0; i<OH_MAX_WATCHDOGACTION; i++) {
-		if (strncasecmp((char *)buffer->Data, watchdogaction_strings[i].str,
-				buffer->DataLength) == 0) {
+		if (strcasecmp((char *)buffer->Data, watchdogaction_strings[i].str) == 0) {
 			found++;
 			break;
 		}
@@ -2274,8 +2257,7 @@ SaErrorT oh_encode_watchdogactionevent(SaHpiTextBufferT *buffer, SaHpiWatchdogAc
 	
 	found = 0;
 	for (i=0; i<OH_MAX_WATCHDOGACTIONEVENT; i++) {
-		if (strncasecmp((char *)buffer->Data, watchdogactionevent_strings[i].str,
-				buffer->DataLength) == 0) {
+		if (strcasecmp((char *)buffer->Data, watchdogactionevent_strings[i].str) == 0) {
 			found++;
 			break;
 		}
@@ -2351,8 +2333,7 @@ SaErrorT oh_encode_watchdogpretimerinterrupt(SaHpiTextBufferT *buffer, SaHpiWatc
 	
 	found = 0;
 	for (i=0; i<OH_MAX_WATCHDOGPRETIMERINTERRUPT; i++) {
-		if (strncasecmp((char *)buffer->Data, watchdogpretimerinterrupt_strings[i].str,
-				buffer->DataLength) == 0) {
+		if (strcasecmp((char *)buffer->Data, watchdogpretimerinterrupt_strings[i].str) == 0) {
 			found++;
 			break;
 		}
@@ -2434,8 +2415,7 @@ SaErrorT oh_encode_watchdogtimeruse(SaHpiTextBufferT *buffer, SaHpiWatchdogTimer
 	
 	found = 0;
 	for (i=0; i<OH_MAX_WATCHDOGTIMERUSE; i++) {
-		if (strncasecmp((char *)buffer->Data, watchdogtimeruse_strings[i].str,
-				buffer->DataLength) == 0) {
+		if (strcasecmp((char *)buffer->Data, watchdogtimeruse_strings[i].str) == 0) {
 			found++;
 			break;
 		}
@@ -2502,8 +2482,7 @@ SaErrorT oh_encode_hsindicatorstate(SaHpiTextBufferT *buffer, SaHpiHsIndicatorSt
 	
 	found = 0;
 	for (i=0; i<OH_MAX_HSINDICATORSTATE; i++) {
-		if (strncasecmp((char *)buffer->Data, hsindicatorstate_strings[i].str,
-				buffer->DataLength) == 0) {
+		if (strcasecmp((char *)buffer->Data, hsindicatorstate_strings[i].str) == 0) {
 			found++;
 			break;
 		}
@@ -2570,8 +2549,7 @@ SaErrorT oh_encode_hsaction(SaHpiTextBufferT *buffer, SaHpiHsActionT *type)
 	
 	found = 0;
 	for (i=0; i<OH_MAX_HSACTION; i++) {
-		if (strncasecmp((char *)buffer->Data, hsaction_strings[i].str,
-				buffer->DataLength) == 0) {
+		if (strcasecmp((char *)buffer->Data, hsaction_strings[i].str) == 0) {
 			found++;
 			break;
 		}
@@ -2647,8 +2625,7 @@ SaErrorT oh_encode_hsstate(SaHpiTextBufferT *buffer, SaHpiHsStateT *type)
 	
 	found = 0;
 	for (i=0; i<OH_MAX_HSSTATE; i++) {
-		if (strncasecmp((char *)buffer->Data, hsstate_strings[i].str,
-				buffer->DataLength) == 0) {
+		if (strcasecmp((char *)buffer->Data, hsstate_strings[i].str) == 0) {
 			found++;
 			break;
 		}
@@ -2730,8 +2707,7 @@ SaErrorT oh_encode_severity(SaHpiTextBufferT *buffer, SaHpiSeverityT *type)
 	
 	found = 0;
 	for (i=0; i<OH_MAX_SEVERITY; i++) {
-		if (strncasecmp((char *)buffer->Data, severity_strings[i].str,
-				buffer->DataLength) == 0) {
+		if (strcasecmp((char *)buffer->Data, severity_strings[i].str) == 0) {
 			found++;
 			break;
 		}
@@ -2801,8 +2777,7 @@ SaErrorT oh_encode_resourceeventtype(SaHpiTextBufferT *buffer, SaHpiResourceEven
 	
 	found = 0;
 	for (i=0; i<OH_MAX_RESOURCEEVENTTYPE; i++) {
-		if (strncasecmp((char *)buffer->Data, resourceeventtype_strings[i].str,
-				buffer->DataLength) == 0) {
+		if (strcasecmp((char *)buffer->Data, resourceeventtype_strings[i].str) == 0) {
 			found++;
 			break;
 		}
@@ -2869,8 +2844,7 @@ SaErrorT oh_encode_domaineventtype(SaHpiTextBufferT *buffer, SaHpiDomainEventTyp
 	
 	found = 0;
 	for (i=0; i<OH_MAX_DOMAINEVENTTYPE; i++) {
-		if (strncasecmp((char *)buffer->Data, domaineventtype_strings[i].str,
-				buffer->DataLength) == 0) {
+		if (strcasecmp((char *)buffer->Data, domaineventtype_strings[i].str) == 0) {
 			found++;
 			break;
 		}
@@ -2940,8 +2914,7 @@ SaErrorT oh_encode_sweventtype(SaHpiTextBufferT *buffer, SaHpiSwEventTypeT *type
 	
 	found = 0;
 	for (i=0; i<OH_MAX_SWEVENTTYPE; i++) {
-		if (strncasecmp((char *)buffer->Data, sweventtype_strings[i].str,
-				buffer->DataLength) == 0) {
+		if (strcasecmp((char *)buffer->Data, sweventtype_strings[i].str) == 0) {
 			found++;
 			break;
 		}
@@ -3029,8 +3002,7 @@ SaErrorT oh_encode_eventtype(SaHpiTextBufferT *buffer, SaHpiEventTypeT *type)
 	
 	found = 0;
 	for (i=0; i<OH_MAX_EVENTTYPE; i++) {
-		if (strncasecmp((char *)buffer->Data, eventtype_strings[i].str,
-				buffer->DataLength) == 0) {
+		if (strcasecmp((char *)buffer->Data, eventtype_strings[i].str) == 0) {
 			found++;
 			break;
 		}
@@ -3103,8 +3075,7 @@ SaErrorT oh_encode_statuscondtype(SaHpiTextBufferT *buffer, SaHpiStatusCondTypeT
 	
 	found = 0;
 	for (i=0; i<OH_MAX_STATUSCONDTYPE; i++) {
-		if (strncasecmp((char *)buffer->Data, statuscondtype_strings[i].str,
-				buffer->DataLength) == 0) {
+		if (strcasecmp((char *)buffer->Data, statuscondtype_strings[i].str) == 0) {
 			found++;
 			break;
 		}
@@ -3174,8 +3145,7 @@ SaErrorT oh_encode_annunciatormode(SaHpiTextBufferT *buffer, SaHpiAnnunciatorMod
 	
 	found = 0;
 	for (i=0; i<OH_MAX_ANNUNCIATORMODE; i++) {
-		if (strncasecmp((char *)buffer->Data, annunciatormode_strings[i].str,
-				buffer->DataLength) == 0) {
+		if (strcasecmp((char *)buffer->Data, annunciatormode_strings[i].str) == 0) {
 			found++;
 			break;
 		}
@@ -3257,8 +3227,7 @@ SaErrorT oh_encode_annunciatortype(SaHpiTextBufferT *buffer, SaHpiAnnunciatorTyp
 	
 	found = 0;
 	for (i=0; i<OH_MAX_ANNUNCIATORTYPE; i++) {
-		if (strncasecmp((char *)buffer->Data, annunciatortype_strings[i].str,
-				buffer->DataLength) == 0) {
+		if (strcasecmp((char *)buffer->Data, annunciatortype_strings[i].str) == 0) {
 			found++;
 			break;
 		}
@@ -3337,8 +3306,7 @@ SaErrorT oh_encode_rdrtype(SaHpiTextBufferT *buffer, SaHpiRdrTypeT *type)
 	
 	found = 0;
 	for (i=0; i<OH_MAX_RDRTYPE; i++) {
-		if (strncasecmp((char *)buffer->Data, rdrtype_strings[i].str,
-				buffer->DataLength) == 0) {
+		if (strcasecmp((char *)buffer->Data, rdrtype_strings[i].str) == 0) {
 			found++;
 			break;
 		}
@@ -3408,8 +3376,7 @@ SaErrorT oh_encode_parmaction(SaHpiTextBufferT *buffer, SaHpiParmActionT *type)
 	
 	found = 0;
 	for (i=0; i<OH_MAX_PARMACTION; i++) {
-		if (strncasecmp((char *)buffer->Data, parmaction_strings[i].str,
-				buffer->DataLength) == 0) {
+		if (strcasecmp((char *)buffer->Data, parmaction_strings[i].str) == 0) {
 			found++;
 			break;
 		}
@@ -3482,8 +3449,7 @@ SaErrorT oh_encode_resetaction(SaHpiTextBufferT *buffer, SaHpiResetActionT *type
 	
 	found = 0;
 	for (i=0; i<OH_MAX_RESETACTION; i++) {
-		if (strncasecmp((char *)buffer->Data, resetaction_strings[i].str,
-				buffer->DataLength) == 0) {
+		if (strcasecmp((char *)buffer->Data, resetaction_strings[i].str) == 0) {
 			found++;
 			break;
 		}
@@ -3553,8 +3519,7 @@ SaErrorT oh_encode_powerstate(SaHpiTextBufferT *buffer, SaHpiPowerStateT *type)
 	
 	found = 0;
 	for (i=0; i<OH_MAX_POWERSTATE; i++) {
-		if (strncasecmp((char *)buffer->Data, powerstate_strings[i].str,
-				buffer->DataLength) == 0) {
+		if (strcasecmp((char *)buffer->Data, powerstate_strings[i].str) == 0) {
 			found++;
 			break;
 		}
@@ -3621,8 +3586,7 @@ SaErrorT oh_encode_eventlogoverflowaction(SaHpiTextBufferT *buffer, SaHpiEventLo
 	
 	found = 0;
 	for (i=0; i<OH_MAX_EVENTLOGOVERFLOWACTION; i++) {
-		if (strncasecmp((char *)buffer->Data, eventlogoverflowaction_strings[i].str,
-				buffer->DataLength) == 0) {
+		if (strcasecmp((char *)buffer->Data, eventlogoverflowaction_strings[i].str) == 0) {
 			found++;
 			break;
 		}
@@ -3749,8 +3713,7 @@ SaErrorT oh_encode_error(SaHpiTextBufferT *buffer, SaErrorT *type)
 	
 	found = 0;
 	for (i=0; i<OH_MAX_ERROR; i++) {
-		if (strncasecmp((char *)buffer->Data, error_strings[i].str,
-				buffer->DataLength) == 0) {
+		if (strcasecmp((char *)buffer->Data, error_strings[i].str) == 0) {
 			found++;
 			break;
 		}
@@ -3853,8 +3816,7 @@ SaErrorT oh_encode_eventcategory(SaHpiTextBufferT *buffer, SaHpiEventCategoryT *
 	
 	found = 0;
 	for (i=0; i<OH_MAX_EVENTCATEGORY; i++) {
-		if (strncasecmp((char *)buffer->Data, eventcategory_strings[i].str,
-				buffer->DataLength) == 0) {
+		if (strcasecmp((char *)buffer->Data, eventcategory_strings[i].str) == 0) {
 			found++;
 			break;
 		}

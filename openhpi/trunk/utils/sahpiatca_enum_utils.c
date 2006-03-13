@@ -19,10 +19,9 @@
  *          Do not change this file manually. Update script instead
  *******************************************************************/
 
-#include <string.h>
+#include <strings.h>
 
 #include <SaHpi.h>
-#include <SaHpiAtca.h>
 #include <oh_utils.h>
 
 /**
@@ -97,8 +96,7 @@ SaErrorT oh_encode_atcahpiledcolor(SaHpiTextBufferT *buffer, AtcaHpiLedColorT *t
 	
 	found = 0;
 	for (i=0; i<OH_MAX_ATCAHPILEDCOLOR; i++) {
-		if (strncasecmp((char *)buffer->Data, atcahpiledcolor_strings[i].str,
-				buffer->DataLength) == 0) {
+		if (strcasecmp((char *)buffer->Data, atcahpiledcolor_strings[i].str) == 0) {
 			found++;
 			break;
 		}
@@ -168,8 +166,7 @@ SaErrorT oh_encode_atcahpiresourceledmode(SaHpiTextBufferT *buffer, AtcaHpiResou
 	
 	found = 0;
 	for (i=0; i<OH_MAX_ATCAHPIRESOURCELEDMODE; i++) {
-		if (strncasecmp((char *)buffer->Data, atcahpiresourceledmode_strings[i].str,
-				buffer->DataLength) == 0) {
+		if (strcasecmp((char *)buffer->Data, atcahpiresourceledmode_strings[i].str) == 0) {
 			found++;
 			break;
 		}
@@ -239,8 +236,7 @@ SaErrorT oh_encode_atcahpiledbrsupport(SaHpiTextBufferT *buffer, AtcaHpiLedBrSup
 	
 	found = 0;
 	for (i=0; i<OH_MAX_ATCAHPILEDBRSUPPORT; i++) {
-		if (strncasecmp((char *)buffer->Data, atcahpiledbrsupport_strings[i].str,
-				buffer->DataLength) == 0) {
+		if (strcasecmp((char *)buffer->Data, atcahpiledbrsupport_strings[i].str) == 0) {
 			found++;
 			break;
 		}
@@ -340,8 +336,7 @@ SaErrorT oh_encode_atcahpientitytype(SaHpiTextBufferT *buffer, AtcaHpiEntityType
 	
 	found = 0;
 	for (i=0; i<OH_MAX_ATCAHPIENTITYTYPE; i++) {
-		if (strncasecmp((char *)buffer->Data, atcahpientitytype_strings[i].str,
-				buffer->DataLength) == 0) {
+		if (strcasecmp((char *)buffer->Data, atcahpientitytype_strings[i].str) == 0) {
 			found++;
 			break;
 		}
