@@ -18,6 +18,7 @@
 #define __OH_UTILS_H
 
 /* Order is important */
+#include <SaHpiAtca.h>
 #include <announcement_utils.h>
 #include <el_utils.h>
 #include <sahpi_struct_utils.h>
@@ -27,6 +28,7 @@
 #include <sahpi_event_encode.h>
 #include <sahpi_event_utils.h>
 #include <sahpi_time_utils.h>
+#include <sahpiatca_enum_utils.h>
 #include <uid_utils.h>
 
 #endif
