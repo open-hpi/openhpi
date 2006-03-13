@@ -37,6 +37,8 @@
 # --ifile     (optional)   Full path name to header file, including the
 #                          header's filename.
 #                          Default is "current_directory/SaHpi.h".
+# --atca      (optional)   Auto-generating should take account of additional
+#                          ATCA spec (SaHpiAtac.h).
 # --odir      (optional)   Directory for generated output files.
 #                          Default is current directory.
 # --tdir      (optional)   Directory for generated testcase files.
@@ -51,6 +53,7 @@ use Getopt::Long;
 
 GetOptions(
   "debug"   => \my $debug,
+  "atca"    => \my $atca,
   "ifile=s" => \my $ifile,
   "odir=s"  => \my $odir,
   "tdir=s"  => \my $tdir,
@@ -118,15 +121,21 @@ my $file_h  = $odir . "/$ohfile";
 my $file_x  = $odir . "/$oxcfile";
 my $file_xh = $odir . "/$oxhfile";
 
+my ($atca_base) = "sahpiatca";
+
 unlink $file_c;
 unlink $file_h;
-unlink $file_x;
-unlink $file_xh;
+if ($base ne $atca_base) {
+    unlink $file_x;
+    unlink $file_xh;
+}
 open(INPUT_HEADER, $ifile) or die "$0 Error! Cannot open $ifile. $! Stopped";
 open(FILE_C, ">>$file_c") or die "$0 Error! Cannot open file $file_c. $! Stopped";
 open(FILE_H, ">>$file_h") or die "$0 Error! Cannot open file $file_h. $! Stopped";
-open(FILE_X, ">>$file_x") or die "$0 Error! Cannot open file $file_x. $! Stopped";
-open(FILE_XH, ">>$file_xh") or die "$0 Error! Cannot open file $file_xh. $! Stopped";
+if ($base ne $atca_base) {
+    open(FILE_X, ">>$file_x") or die "$0 Error! Cannot open file $file_x. $! Stopped";
+    open(FILE_XH, ">>$file_xh") or die "$0 Error! Cannot open file $file_xh. $! Stopped";
+}
 
 my $tbase_name = "$ocfile";
 my $txbase_name = "$oxcfile";
@@ -150,9 +159,16 @@ my $rtn_code = 0;
 
 my $cat_type = "SaHpiEventCategoryT";
 my $err_type = "SaErrorT";
+my $entity_type = "SaHpiEntityTypeT";
+my $atca_entity_type = "AtcaHpiEntityTypeT";
+
+my $atca_pretty_type = beautify_type_name($atca_entity_type);
+my $atca_entity_encode_name = "oh_encode_" . "$atca_pretty_type";
+my $atca_entity_lookup_name = "oh_lookup_" . "$atca_pretty_type";
 
 my @cat_array = ();
 my @err_array = ();
+my @atca_entity_array = ();
 my @enum_array = ();
 my @normalized_array = ();
 
@@ -185,13 +201,21 @@ my $line_count = 0;
 my $max_global_events = 0;
 my $max_events = 0;
 
-foreach my $line (@normalized_array) {
-    $_ = $line;
+
+for ( my ($i) = 0; $i < @normalized_array; ++$i ) {
+    $_ = $normalized_array[ $i ];
 
     # Handle SaErrorT definitions
     my ($err_code) = /^\s*\#define\s+(\w+)\s*\($err_type\).*$/;
     if ($err_code) {
         push(@err_array, $err_code);
+	next;
+    }
+
+    if (/^\s*\($atca_entity_type\).*$/) {
+    	$_ = @normalized_array[ $i - 1 ];
+	my ($atca_entity_code) = /^\s*\#define\s+(\w+).*$/;
+        push(@atca_entity_array, $atca_entity_code);
 	next;
     }
 
@@ -220,7 +244,7 @@ foreach my $line (@normalized_array) {
 		print_cfile_case($enum_type, $case);
 		if ($tdir) { print_testfile_case($enum_type, $case); }
 	    }
-	    print_cfile_endfunc();
+	    print_cfile_endfunc($enum_type);
 
 	    # Create encoding code
 	    print_cfile_encode_array_header($enum_type);
@@ -268,7 +292,7 @@ if ($#err_array > 0) {
     print_hfile_func($err_type, $max_enums);
 }
 
-if ($#cat_array > 0) {
+if (($#cat_array > 0) && ($base ne $atca_base)) {
     my $max_enums = 0;
     $line_count++;
     print_cfile_func($cat_type);
@@ -293,10 +317,36 @@ if ($#cat_array > 0) {
     print_hfile_func($cat_type, $max_enums);
 }
 
+if ($#atca_entity_array > 0) {
+    my $max_enums = 0;
+    $line_count++;
+    print_cfile_func($atca_entity_type);
+    foreach my $case (@atca_entity_array) {
+	$max_enums++;
+	print_cfile_case($atca_entity_type, $case);
+	if ($tdir) { 
+	    print_testfile_case($atca_entity_type, $case); 
+	}
+    }
+    print_cfile_endfunc();
+
+    # Create encode function
+    print_cfile_encode_array_header($atca_entity_type);
+    foreach my $case (@atca_entity_array) {
+	print_cfile_encode_array($atca_entity_type, $case);
+    }
+    print FILE_C "};\n\n";
+    print_cfile_encode_func($atca_entity_type);
+
+    if ($tdir) { print_testfile_endfunc($atca_entity_type); }
+    print_hfile_func($atca_entity_type, $max_enums);
+}
+
 ####################################
 # Handle event states and categories 
 ####################################
 
+if ($base ne $atca_base) {
 print FILE_X "oh_categorystate_map state_global_strings[] = {\n";
 foreach my $gc (keys %global_category) {
     foreach my $gevt (sort {$global_category{$gc}->{$a}->{value} <=>
@@ -333,8 +383,9 @@ print FILE_X "};\n\n";
 print FILE_XH "\#define OH_MAX_STATE_STRINGS $max_events\n";
 print FILE_XH "extern oh_categorystate_map state_strings[OH_MAX_STATE_STRINGS];\n\n";
 
-print_hfile_ending *FILE_H;
 print_hfile_ending *FILE_XH;
+}
+print_hfile_ending *FILE_H;
 
 if ($tdir) { 
     print_testfile_ending();
@@ -345,8 +396,10 @@ CLEANUP:
 close INPUT_HEADER;
 close FILE_C;
 close FILE_H;
-close FILE_X;
-close FILE_XH;
+if ($base ne $atca_base) {
+    close FILE_X;
+    close FILE_XH;
+}
 if ($tdir) { 
     close FILE_TEST;
     close XFILE_TEST;
@@ -361,11 +414,10 @@ if ($line_count == 0) {
     }
 }
 
-if ($max_events == 0) {
+if (($max_events == 0) && ($base ne $atca_base)) {
     print "$0 Warning! No Events found in header file - $ifile\n";
-    unlink $file_x;
     if ($tdir) { 
-	unlink $txfile;
+	rm $txfile;
     }
 }
 
@@ -392,6 +444,7 @@ sub normalize_file(*) {
 	next if /^\s*\/\*.*\*\/\s*$/;  # Skip /* ... */ lines
 	
 	my $line = $_;
+
 	($line) =~ s/^(.*?)\s*$/$1/;    # Strip blanks from end of line
 	($line) =~ s/^(.*?)\/\/.*$/$1/; # Strip trailing C++ comments
 
@@ -572,9 +625,10 @@ EOF
 sub print_cfile_header {
 
     print FILE_C <<EOF;
-#include <stdlib.h>
+#include <string.h>
 
 #include <SaHpi.h>
+#include <SaHpiAtca.h>
 #include <oh_utils.h>
 
 EOF
@@ -588,6 +642,7 @@ sub print_xfile_header {
 
     print FILE_X <<EOF;
 #include <SaHpi.h>
+#include <SaHpiAtca.h>
 #include <oh_utils.h>
 
 EOF
@@ -625,6 +680,7 @@ sub print_testfile_header {
 #include <string.h>
 
 #include <SaHpi.h>
+#include <SaHpiAtca.h>
 #include <oh_utils.h>
 
 #define BAD_ENUM_VALUE -1
@@ -648,6 +704,7 @@ sub print_xtestfile_header {
 #include <string.h>
 
 #include <SaHpi.h>
+#include <SaHpiAtca.h>
 #include <oh_utils.h>
 
 int main(int argc, char **argv) 
@@ -849,6 +906,11 @@ sub print_cfile_encode_func($) {
     my $upper_pretty_type = uc($pretty_type);
     my $max_name = "OH_MAX_" . "$upper_pretty_type";
     my $array_member = "$pretty_type" . "_strings[i]";
+    my $ret = "SA_ERR_HPI_INVALID_DATA";
+
+    if (($type eq $entity_type) && $atca ) {
+    	$ret = "$atca_entity_encode_name(buffer, type)";
+    }
 
     print FILE_C <<EOF;
 /**
@@ -874,7 +936,8 @@ SaErrorT $encode_name(SaHpiTextBufferT *buffer, $type *type)
 	
 	found = 0;
 	for (i=0; i<$max_name; i++) {
-		if (strcasecmp((char *)buffer->Data, $array_member.str) == 0) {
+		if (strncasecmp((char *)buffer->Data, $array_member.str,
+				buffer->DataLength) == 0) {
 			found++;
 			break;
 		}
@@ -884,7 +947,7 @@ SaErrorT $encode_name(SaHpiTextBufferT *buffer, $type *type)
 		*type = $array_member.entity_type;
 	}
 	else {
-		return(SA_ERR_HPI_INVALID_DATA);
+		return($ret);
 	}
 	
 	return(SA_OK);
@@ -1041,11 +1104,17 @@ EOF
 #########################
 # Print c file's func end
 #########################
-sub print_cfile_endfunc {
+sub print_cfile_endfunc($) {
+   my( $type ) = @_;
+   my( $ret ) = "NULL";
+
+    if (($type eq $entity_type) && $atca) {
+    	$ret = "$atca_entity_lookup_name(value)";
+    }
 
    print FILE_C <<EOF;
         default:
-                return NULL;
+                return $ret;
         }
 }
 EOF
