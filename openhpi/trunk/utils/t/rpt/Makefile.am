@@ -14,6 +14,7 @@ REMOTE_SOURCES		= rpt_utils.c \
 			  epath_utils.c \
 			  uid_utils.c \
 			  sahpi_enum_utils.c \
+			  sahpiatca_enum_utils.c \
 			  sahpi_event_encode.c \
 			  sahpi_event_utils.c \
 			  sahpi_struct_utils.c \
@@ -26,6 +27,8 @@ INCLUDES		= @OPENHPI_INCLUDES@
 EXTRA_DIST              = rpt_resources.h
 
 AM_CFLAGS		= @NOCFLAGS@ @COV_CFLAGS@
+
+LIBS += -luuid
 
 $(REMOTE_SOURCES):
 	if test ! -f $@ -a ! -L $@; then \

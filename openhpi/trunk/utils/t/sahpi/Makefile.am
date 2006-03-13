@@ -12,15 +12,19 @@ MAINTAINERCLEANFILES = Makefile.in
 
 REMOTE_SOURCES =  epath_utils.c \
 		  sahpi_enum_utils.c \
+		  sahpiatca_enum_utils.c \
 		  sahpi_event_encode.c \
 		  sahpi_event_utils.c \
 	          sahpi_struct_utils.c \
-	          sahpi_time_utils.c
+	          sahpi_time_utils.c \
+		  uid_utils.c
 
 MOSTLYCLEANFILES = $(REMOTE_SOURCES) @TEST_CLEAN@
 INCLUDES	= @OPENHPI_INCLUDES@
 AM_CFLAGS	= @NOCFLAGS@ @COV_CFLAGS@ -std=c99
 # the -std=c99 comment above is required to have unicode in the tests
+
+LIBS += -luuid
 
 $(REMOTE_SOURCES):
 	if test ! -f $@ -a ! -L $@; then \
@@ -35,6 +39,7 @@ $(REMOTE_SOURCES):
 #         when we can auto-generate file for SMP systems.
 #         Create rule using SaHpi2code.pl using -tdir option
 TESTS = sahpi_enum_utils_test \
+	sahpiatca_enum_utils_test \
 	sahpi_event_encode_test \
 	sahpi_event_utils_test \
 	sahpi_time_utils_test \
@@ -49,6 +54,7 @@ TESTS = sahpi_enum_utils_test \
 check_PROGRAMS = $(TESTS)
 
 sahpi_enum_utils_test_SOURCES = sahpi_enum_utils_test.c  $(REMOTE_SOURCES)
+sahpiatca_enum_utils_test_SOURCES = sahpiatca_enum_utils_test.c  $(REMOTE_SOURCES)
 sahpi_event_encode_test_SOURCES = sahpi_event_encode_test.c  $(REMOTE_SOURCES)
 sahpi_event_utils_test_SOURCES = sahpi_event_utils_test.c  $(REMOTE_SOURCES)
 sahpi_struct_utils_test_SOURCES = sahpi_struct_utils_test.c $(REMOTE_SOURCES)

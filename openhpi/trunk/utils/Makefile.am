@@ -33,10 +33,12 @@ MAINTAINERCLEANFILES = Makefile.in
 
 GENERATED_HEADER_FILES = \
 			sahpi_enum_utils.h \
+			sahpiatca_enum_utils.h \
 			sahpi_event_encode.h
 
 GENERATED_SRC_FILES = \
 			sahpi_enum_utils.c \
+			sahpiatca_enum_utils.c \
 			sahpi_event_encode.c
 
 GENERATED_FILES = $(GENERATED_HEADER_FILES) $(GENERATED_SRC_FILES)

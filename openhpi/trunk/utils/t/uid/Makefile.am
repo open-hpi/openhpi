@@ -13,6 +13,7 @@ MAINTAINERCLEANFILES = Makefile.in
 REMOTE_SOURCES		= uid_utils.c \
 			  epath_utils.c \
 			  sahpi_enum_utils.c \
+			  sahpiatca_enum_utils.c \
 			  sahpi_event_encode.c \
 			  sahpi_event_utils.c \
 			  sahpi_struct_utils.c \
@@ -25,6 +26,8 @@ MOSTLYCLEANFILES 	= @TEST_CLEAN@ \
 INCLUDES		= @OPENHPI_INCLUDES@
 
 AM_CFLAGS		= @NOCFLAGS@ @COV_CFLAGS@
+
+LIBS += -luuid
 
 $(REMOTE_SOURCES):
 	if test ! -f $@ -a ! -L $@; then \

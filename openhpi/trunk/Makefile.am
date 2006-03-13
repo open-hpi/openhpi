@@ -92,6 +92,7 @@ include_HEADERS = $(top_srcdir)/include/SaHpi.h \
                   $(top_srcdir)/utils/announcement_utils.h \
                   $(top_srcdir)/utils/rpt_utils.h \
                   $(top_srcdir)/utils/sahpi_enum_utils.h \
+		  $(top_srcdir)/utils/sahpiatca_enum_utils.h \
                   $(top_srcdir)/utils/sahpi_event_encode.h \
                   $(top_srcdir)/utils/sahpi_event_utils.h \
                   $(top_srcdir)/utils/sahpi_struct_utils.h \
@@ -154,6 +155,9 @@ include_HEADERS = $(top_srcdir)/include/SaHpi.h \
 
 $(top_srcdir)/utils/sahpi_enum_utils.h:
 	make -C $(top_builddir)/utils sahpi_enum_utils.h
+
+$(top_srcdir)/utils/sahpiatca_enum_utils.h:
+	make -C $(top_builddir)/utils sahpiatca_enum_utils.h
 
 install-data-local: openhpi.pc
 	$(mkinstalldirs) $(DESTDIR)$(libdir)/pkgconfig
