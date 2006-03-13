@@ -122,17 +122,21 @@ my $file_x  = $odir . "/$oxcfile";
 my $file_xh = $odir . "/$oxhfile";
 
 my ($atca_base) = "sahpiatca";
+my ($atca_header) = 0;
+if ($base eq $atca_base) {
+    $atca_header = 1;
+}
 
 unlink $file_c;
 unlink $file_h;
-if ($base ne $atca_base) {
+if (!$atca_header) {
     unlink $file_x;
     unlink $file_xh;
 }
 open(INPUT_HEADER, $ifile) or die "$0 Error! Cannot open $ifile. $! Stopped";
 open(FILE_C, ">>$file_c") or die "$0 Error! Cannot open file $file_c. $! Stopped";
 open(FILE_H, ">>$file_h") or die "$0 Error! Cannot open file $file_h. $! Stopped";
-if ($base ne $atca_base) {
+if (!$atca_header) {
     open(FILE_X, ">>$file_x") or die "$0 Error! Cannot open file $file_x. $! Stopped";
     open(FILE_XH, ">>$file_xh") or die "$0 Error! Cannot open file $file_xh. $! Stopped";
 }
@@ -145,10 +149,12 @@ my $tfile = "$tdir/$tbase_name";
 my $txfile = "$tdir/$txbase_name";
 
 if ($tdir) {
-    unlink $txfile;
     unlink $tfile;
     open(FILE_TEST, ">>$tfile") or die "$0 Error! Cannot open file $tfile. $! Stopped";
-    open(XFILE_TEST, ">>$txfile") or die "$0 Error! Cannot open file $txfile. $! Stopped";
+    if (!$atca_header) {
+        unlink $txfile;
+        open(XFILE_TEST, ">>$txfile") or die "$0 Error! Cannot open file $txfile. $! Stopped";
+    }
 }
 
 #########################
@@ -179,21 +185,29 @@ if (normalize_file INPUT_HEADER) { $rtn_code = 1; goto CLEANUP; }
 
 print_copywrite *FILE_C;
 print_copywrite *FILE_H;
-print_copywrite *FILE_X;
-print_copywrite *FILE_XH;
+if (!$atca_header) {
+    print_copywrite *FILE_X;
+    print_copywrite *FILE_XH;
+}
 if ($tdir) { 
     print_copywrite *FILE_TEST;
-    print_copywrite *XFILE_TEST;
+    if (!$atca_header) {
+        print_copywrite *XFILE_TEST;
+    }
 }
 
 print_hfile_header *FILE_H, $ohfile;
-print_hfile_header *FILE_XH, $oxhfile;
 print_cfile_header();
-print_xfile_header();
-print_xhfile_header();
+if (!$atca_header) {
+    print_hfile_header *FILE_XH, $oxhfile;
+    print_xfile_header();
+    print_xhfile_header();
+}
 if ($tdir) { 
     print_testfile_header();
-    print_xtestfile_header();
+    if (!$atca_header) {
+        print_xtestfile_header();
+    }
 }
 
 my $in_enum = 0;
@@ -292,7 +306,7 @@ if ($#err_array > 0) {
     print_hfile_func($err_type, $max_enums);
 }
 
-if (($#cat_array > 0) && ($base ne $atca_base)) {
+if (($#cat_array > 0) && (!$atca_header)) {
     my $max_enums = 0;
     $line_count++;
     print_cfile_func($cat_type);
@@ -346,7 +360,7 @@ if ($#atca_entity_array > 0) {
 # Handle event states and categories 
 ####################################
 
-if ($base ne $atca_base) {
+if (!$atca_header) {
 print FILE_X "oh_categorystate_map state_global_strings[] = {\n";
 foreach my $gc (keys %global_category) {
     foreach my $gevt (sort {$global_category{$gc}->{$a}->{value} <=>
@@ -389,20 +403,24 @@ print_hfile_ending *FILE_H;
 
 if ($tdir) { 
     print_testfile_ending();
-    print_xtestfile_ending();
+    if (!$atca_header) {
+        print_xtestfile_ending();
+    }
 }
 
 CLEANUP:
 close INPUT_HEADER;
 close FILE_C;
 close FILE_H;
-if ($base ne $atca_base) {
+if (!$atca_header) {
     close FILE_X;
     close FILE_XH;
 }
 if ($tdir) { 
     close FILE_TEST;
-    close XFILE_TEST;
+    if (!$atca_header) {
+        close XFILE_TEST;
+    }
 }
 
 if ($line_count == 0) {
@@ -414,7 +432,7 @@ if ($line_count == 0) {
     }
 }
 
-if (($max_events == 0) && ($base ne $atca_base)) {
+if (($max_events == 0) && (!$atca_header)) {
     print "$0 Warning! No Events found in header file - $ifile\n";
     if ($tdir) { 
 	rm $txfile;
@@ -625,10 +643,9 @@ EOF
 sub print_cfile_header {
 
     print FILE_C <<EOF;
-#include <string.h>
+#include <strings.h>
 
 #include <SaHpi.h>
-#include <SaHpiAtca.h>
 #include <oh_utils.h>
 
 EOF
@@ -642,7 +659,6 @@ sub print_xfile_header {
 
     print FILE_X <<EOF;
 #include <SaHpi.h>
-#include <SaHpiAtca.h>
 #include <oh_utils.h>
 
 EOF
@@ -680,7 +696,6 @@ sub print_testfile_header {
 #include <string.h>
 
 #include <SaHpi.h>
-#include <SaHpiAtca.h>
 #include <oh_utils.h>
 
 #define BAD_ENUM_VALUE -1
@@ -704,7 +719,6 @@ sub print_xtestfile_header {
 #include <string.h>
 
 #include <SaHpi.h>
-#include <SaHpiAtca.h>
 #include <oh_utils.h>
 
 int main(int argc, char **argv) 
@@ -936,8 +950,7 @@ SaErrorT $encode_name(SaHpiTextBufferT *buffer, $type *type)
 	
 	found = 0;
 	for (i=0; i<$max_name; i++) {
-		if (strncasecmp((char *)buffer->Data, $array_member.str,
-				buffer->DataLength) == 0) {
+		if (strcasecmp((char *)buffer->Data, $array_member.str) == 0) {
 			found++;
 			break;
 		}
@@ -1090,7 +1103,7 @@ sub print_xtestfile_badevent($) {
     print XFILE_TEST <<EOF;
         /* $cat - Bad event testcase */
         {
-		if (oh_valid_eventstate(BAD_EVENT, $cat)) {
+		if (oh_valid_eventstate(BAD_EVENT, $cat, SAHPI_FALSE)) {
                         printf("  Error! Testcase failed. Line=%d\\n", __LINE__);
                         return -1;
                 }
