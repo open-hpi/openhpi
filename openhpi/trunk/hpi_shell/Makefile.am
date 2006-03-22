@@ -8,7 +8,7 @@ REMOTE_SOURCES 	= openhpiclient.cpp \
 			openhpiclient.h
 
 EXTRA_DIST = \
-                hpi_cmd.h
+                hpi_cmd.h hpi_cmd.sh
 
 if SHELL_CLIENT
 COMMONLIBS		= $(top_builddir)/hpi_ui_lib/libopenhpiui.la \
@@ -26,7 +26,7 @@ endif
 
 AM_CFLAGS 		= @CFLAGS@ -D_REENTRANT
 
-bin_PROGRAMS		= hpi_cmd
+bin_PROGRAMS		= hpi_cmd hpi_shell
 
 HS_SOURCES		= \
 			hpi_cmd.c \
@@ -42,10 +42,14 @@ NHS_SOURCES = ${HS_SOURCES} ${REMOTE_SOURCES}
 else
 NHS_SOURCES = ${HS_SOURCES}
 endif
-hpi_cmd_SOURCES = ${NHS_SOURCES}
-hpi_cmd_LDADD        = $(COMMONLIBS)
-hpi_cmd_LDFLAGS      =
-	
+hpi_shell_SOURCES = ${NHS_SOURCES}
+hpi_shell_LDADD        = $(COMMONLIBS)
+hpi_shell_LDFLAGS      =
+
+hpi_cmd: hpi_cmd.sh
+	/bin/cp -f hpi_cmd.sh hpi_cmd
+	chmod a+x hpi_cmd
+
 $(REMOTE_SOURCES):
 	if test ! -f $@ -a ! -L $@; then \
 		ln -s ../openhpid2/$@; \
