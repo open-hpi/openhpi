@@ -85,9 +85,13 @@ static struct option long_options[] = {
 };
 
 /* verbose macro */
-#define PVERBOSE1(msg) if (verbose_flag) printf(msg); else
-#define PVERBOSE2(msg, arg1) if (verbose_flag) printf(msg, arg1); else
-#define PVERBOSE3(msg, arg1, arg2) if (verbose_flag) printf(msg, arg1, arg2); else
+//#define PVERBOSE1(msg) if (verbose_flag) printf(msg); else
+//#define PVERBOSE2(msg, arg1) if (verbose_flag) printf(msg, arg1); else
+//#define PVERBOSE3(msg, arg1, arg2) if (verbose_flag) printf(msg, arg1, arg2); else
+
+#define PVERBOSE1(msg) printf(msg); 
+#define PVERBOSE2(msg, arg1) printf(msg, arg1); 
+#define PVERBOSE3(msg, arg1, arg2) printf(msg, arg1, arg2); 
 
 
 /*--------------------------------------------------------------------*/
@@ -183,10 +187,12 @@ int main (int argc, char *argv[])
                         exit(-1);
                 }
         }
+
         if (pid_file == NULL) {
                 pid_file = (char *)malloc(strlen(PID_FILE) + 1);
                 strcpy(pid_file, PID_FILE);
         }
+
         if (optind < argc) {
                 printf("Error: Unknown command line option specified .\n");
                 printf("       Aborting execution.\n\n");
@@ -289,16 +295,27 @@ int main (int argc, char *argv[])
         printf("OPENHPI_CONF = %s\n", configfile);
         printf("OPENHPI_DAEMON_PORT = %d\n\n", port);
 
+//printf("****** spawning thread 1 ***********\n");
+
         // wait for a connection and then service the connection
 	while (TRUE) {
+
+//printf("****** spawning thread 2 ***********\n");
+
 		if (stop_server) {
 			break;
 		}
+
+//printf("****** spawning thread 3 ***********\n");
+
 		if (servinst->Accept()) {
 			PVERBOSE1("Error accepting server socket.\n");
 			break;
 		}
-		PVERBOSE1("Spawning thread to handle connection.\n");
+
+//printf("****** spawning thread 4 ***********\n");
+
+		PVERBOSE1("### Spawning thread to handle connection. ###\n");
 		psstrmsock thrdinst = new sstrmsock(*servinst);
 		g_thread_pool_push(thrdpool, (gpointer)thrdinst, NULL);
 	}
@@ -337,26 +354,27 @@ static bool morph2daemon(void)
 			exit( 0 );
 		}
 
-                // become the session leader
+        // become the session leader
 		setsid();
-                // second fork to become a real daemon
-		pid = fork();
+        // second fork to become a real daemon
+/*		pid = fork();
 		if (pid < 0) {
 			return false;
 		}
-                // parent process
+
+        // parent process
 		if (pid != 0) {
 			exit(0);
 		}
+*/
+        // create the pid file (overwrite of old pid file is ok)
+        unlink(pid_file);
+        pfile = open(pid_file, O_WRONLY | O_CREAT, 0640);
+        snprintf(pid_buf, sizeof(pid_buf), "%d\n", (int)getpid());
+        write(pfile, pid_buf, strlen(pid_buf));
+        close(pfile);
 
-                // create the pid file (overwrite of old pid file is ok)
-                unlink(pid_file);
-                pfile = open(pid_file, O_WRONLY | O_CREAT, 0640);
-                snprintf(pid_buf, sizeof(pid_buf), "%d\n", (int)getpid());
-                write(pfile, pid_buf, strlen(pid_buf));
-                close(pfile);
-
-                // housekeeping
+        // housekeeping
 		chdir("/");
 		umask(0);
 		for(int i = 0; i < 1024; i++) {
@@ -489,7 +507,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht,
               if ( HpiDemarshalRequest1( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &domain_id ) < 0 )
                    return eResultError;
-
+printf(" ***** saHpiSessionOpen() DJ ************\n");
               ret = saHpiSessionOpen( domain_id, &session_id, securityparams );
 
               thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &session_id );
