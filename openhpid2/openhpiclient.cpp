@@ -199,12 +199,16 @@ static bool InsertConnx(SaHpiSessionIdT SessionId, pcstrmsock pinst)
                          g_thread_init(NULL); // just to make sure, ignore any error
                 }
                 thrd_init = TRUE;
-                sessions = g_hash_table_new_full(g_int_hash, g_int_equal,
-                                                 g_free, __destroy_table);
+                sessions = g_hash_table_new_full(g_int_hash, 
+                                                 g_int_equal,
+                                                 g_free, 
+                                                 __destroy_table);
         }
         // Create connections table for new session.
-        conns = g_hash_table_new_full(g_direct_hash, g_direct_equal,
-                                      g_free, __delete_connx);
+        conns = g_hash_table_new_full(g_int_hash, 
+                                      g_int_equal,
+                                      g_free, 
+                                      __delete_connx);
         // Map connection to thread id
         thread_id = pthread_self();
         g_hash_table_insert(conns, g_memdup(&thread_id,
@@ -282,17 +286,27 @@ static pcstrmsock GetConnx(SaHpiSessionIdT SessionId)
         if (conns) {
                 pinst = (pcstrmsock)g_hash_table_lookup(conns, &thread_id);
 
-                if (!pinst)
+                if (!pinst) {
                         pinst = CreateConnx();
+                        if (pinst) {
+                            g_hash_table_insert(conns, 
+                                                g_memdup(&thread_id,
+                                                sizeof(pthread_t)),
+                                                pinst);
+printf(" we are inserting a new connection in conns table\n");
+                        }
+                }
 
-                if (pinst)
-                        g_hash_table_insert(conns, g_memdup(&thread_id,
-                                                            sizeof(pthread_t)),
-                                                   pinst);
+
         }
         g_static_rec_mutex_unlock(&sessions_sem);
-        
-        return pinst;
+
+        if (pinst) {
+            return pinst;
+        } else {
+            return FALSE;
+        }
+
 }
 
 
