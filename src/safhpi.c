@@ -2689,8 +2689,8 @@ SaErrorT SAHPI_API saHpiIdrFieldSet(
         } else if (Field->Type > SAHPI_IDR_FIELDTYPE_CUSTOM) {
                 dbg("Invalid Parameters in Field->Type");
                 return SA_ERR_HPI_INVALID_PARAMS;
-        } else if (!oh_lookup_texttype(Field->Field.DataType)) {
-		dbg("Invalid Field Data Type");
+	} else if (!oh_valid_textbuffer(&Field->Field)) {
+		dbg("Invalid Text Buffer in field.");
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
 

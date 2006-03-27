@@ -1,22 +1,20 @@
 
 .NOTPARALLEL:
 
-MAINTAINERCLEANFILES = Makefile.in
-MOSTLYCLEANFILES        = @TEST_CLEAN@
+MAINTAINERCLEANFILES 	= Makefile.in
+MOSTLYCLEANFILES	= @TEST_CLEAN@
 
-REMOTE_SOURCES 	= openhpiclient.cpp \
-			openhpiclient.h
+REMOTE_SOURCES		= openhpiclient.cpp openhpiclient.h
 
-EXTRA_DIST = \
-                hpi_cmd.h hpi_cmd.sh
+EXTRA_DIST		= hpi_cmd.sh
 
 if SHELL_CLIENT
-COMMONLIBS		= $(top_builddir)/hpi_ui_lib/libopenhpiui.la \
-				$(top_builddir)/marshal/libohtcpconnx.la \
-				-L$(top_builddir)/utils/.libs -lopenhpiutils
 INCLUDES 		= -I$(top_srcdir)/include -I$(top_srcdir)/utils \
 				-I$(top_srcdir)/openhpid2  -I$(top_srcdir)/marshal \
 				-DCLIENT
+COMMONLIBS		= $(top_builddir)/hpi_ui_lib/libopenhpiui.la \
+				$(top_builddir)/marshal/libohtcpconnx.la \
+				-L$(top_builddir)/utils/.libs -lopenhpiutils
 else
 INCLUDES 		= -I$(top_srcdir)/include -I$(top_srcdir)/utils
 COMMONLIBS		= $(top_builddir)/src/libopenhpi.la \
@@ -26,29 +24,29 @@ endif
 
 AM_CFLAGS 		= @CFLAGS@ -D_REENTRANT
 
-bin_PROGRAMS		= hpi_cmd hpi_shell
+bin_PROGRAMS		= hpi_shell
+dist_bin_SCRIPTS	= hpi_cmd
 
 HS_SOURCES		= \
-			hpi_cmd.c \
-			cmdparser.c \
-			commands.c \
-			ctrl_inv.c \
-			inputcmd.c \
-			sensor.c \
-			session.c
+	hpi_cmd.h \
+	hpi_cmd.c \
+	cmdparser.c \
+	commands.c \
+	ctrl_inv.c \
+	inputcmd.c \
+	sensor.c \
+	session.c
 
 if SHELL_CLIENT
-NHS_SOURCES = ${HS_SOURCES} ${REMOTE_SOURCES}
+hpi_shell_SOURCES = $(HS_SOURCES) $(REMOTE_SOURCES)
 else
-NHS_SOURCES = ${HS_SOURCES}
+hpi_shell_SOURCES = $(HS_SOURCES)
 endif
-hpi_shell_SOURCES = ${NHS_SOURCES}
 hpi_shell_LDADD        = $(COMMONLIBS)
 hpi_shell_LDFLAGS      =
 
 hpi_cmd: hpi_cmd.sh
-	/bin/cp -f hpi_cmd.sh hpi_cmd
-	chmod a+x hpi_cmd
+	cp -f $(srcdir)/hpi_cmd.sh hpi_cmd
 
 $(REMOTE_SOURCES):
 	if test ! -f $@ -a ! -L $@; then \
@@ -56,4 +54,4 @@ $(REMOTE_SOURCES):
 	fi
 
 clean-local:
-	rm -f *~ *.o  ${REMOTE_SOURCES}
+	rm -f *~ *.o $(REMOTE_SOURCES) hpi_cmd
