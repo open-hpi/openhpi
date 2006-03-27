@@ -18,10 +18,12 @@
 #include <sys/ipc.h>
 #include <sys/msg.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <SaHpi.h>
 #include <oh_utils.h>
 #include <../sim_injector_ext.h>
 
+#include <errno.h>
 
 /**
  * Run a series of sanity tests on the simulator
@@ -43,10 +45,27 @@ static int inject_event(char *plugin_name) {
     char *txtptr = buf.mtext;
     int rc;
 
-    /* get the  queue */
+    /* get the queue */
     ipckey = ftok(".", SIM_MSG_QUEUE_KEY);
-    msgqueid = msgget(ipckey, 0660);
+    msgqueid = msgget(ipckey, IPC_CREAT | S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
+    
     if (msgqueid == -1) {
+        int errsv = errno;
+        
+	if (errsv == EACCES) {
+                printf("Error: On msgget. EACCES\n");
+        } else if (errsv == EEXIST) {
+                printf("Error: On msgget. EEXIST\n");
+        } else if (errsv == ENOENT) {
+                printf("Error: On msgget. ENOENT\n");
+        } else if (errsv == ENOMEM) {
+                printf("Error: On msgget. ENOMEM\n");
+        } else if (errsv == ENOSPC) {
+                printf("Error: On msgget. ENOSPC\n");
+        } else {
+                printf("Error: On msgget. Unknown errno\n");
+        }
+        
         return -1;
     }
 
@@ -57,72 +76,84 @@ static int inject_event(char *plugin_name) {
     n += strlen(txtptr) + 1;
     txtptr = buf.mtext + n;
     if (n > SIM_MSG_QUEUE_BUFSIZE) {
+	printf("Error: On message size 1\n");
         return -1;
     }
     sprintf(txtptr, "%s=%d", SIM_MSG_RESOURCE_ID, 1);
     n += strlen(txtptr) + 1;
     txtptr = buf.mtext + n;
     if (n > SIM_MSG_QUEUE_BUFSIZE) {
+	printf("Error: On message size 2\n");
         return -1;
     }
     sprintf(txtptr, "%s=%d", SIM_MSG_EVENT_SEVERITY, SAHPI_CRITICAL);
     n += strlen(txtptr) + 1;
     txtptr = buf.mtext + n;
     if (n > SIM_MSG_QUEUE_BUFSIZE) {
+	printf("Error: On message size 3\n");
         return -1;
     }
     sprintf(txtptr, "%s=%d", SIM_MSG_SENSOR_NUM, 1);
     n += strlen(txtptr) + 1;
     txtptr = buf.mtext + n;
     if (n > SIM_MSG_QUEUE_BUFSIZE) {
+	printf("Error: On message size 4\n");
         return -1;
     }
     sprintf(txtptr, "%s=%d", SIM_MSG_SENSOR_TYPE, SAHPI_TEMPERATURE);
     n += strlen(txtptr) + 1;
     txtptr = buf.mtext + n;
     if (n > SIM_MSG_QUEUE_BUFSIZE) {
+	printf("Error: On message size 5\n");
         return -1;
     }
     sprintf(txtptr, "%s=%d", SIM_MSG_SENSOR_EVENT_CATEGORY, SAHPI_EC_THRESHOLD);
     n += strlen(txtptr) + 1;
     txtptr = buf.mtext + n;
     if (n > SIM_MSG_QUEUE_BUFSIZE) {
+	printf("Error: On message size 6\n");
         return -1;
     }
     sprintf(txtptr, "%s=%d", SIM_MSG_SENSOR_ASSERTION, SAHPI_TRUE);
     n += strlen(txtptr) + 1;
     txtptr = buf.mtext + n;
     if (n > SIM_MSG_QUEUE_BUFSIZE) {
+	printf("Error: On message size 7\n");
         return -1;
     }
     sprintf(txtptr, "%s=%d", SIM_MSG_SENSOR_EVENT_STATE, SAHPI_ES_UPPER_CRIT);
     n += strlen(txtptr) + 1;
     txtptr = buf.mtext + n;
     if (n > SIM_MSG_QUEUE_BUFSIZE) {
+	printf("Error: On message size 8\n");
         return -1;
     }
     sprintf(txtptr, "%s=%d", SIM_MSG_SENSOR_OPTIONAL_DATA, SAHPI_SOD_TRIGGER_READING);
     n += strlen(txtptr) + 1;
     txtptr = buf.mtext + n;
     if (n > SIM_MSG_QUEUE_BUFSIZE) {
+	printf("Error: On message size 9\n");
         return -1;
     }
     sprintf(txtptr, "%s=%d", SIM_MSG_SENSOR_TRIGGER_READING_SUPPORTED, SAHPI_TRUE);
     n += strlen(txtptr) + 1;
     txtptr = buf.mtext + n;
     if (n > SIM_MSG_QUEUE_BUFSIZE) {
+	printf("Error: On message size 10\n");
         return -1;
     }
     sprintf(txtptr, "%s=%d", SIM_MSG_SENSOR_TRIGGER_READING_TYPE, SAHPI_SENSOR_READING_TYPE_INT64);
     n += strlen(txtptr) + 1;
     txtptr = buf.mtext + n;
     if (n > SIM_MSG_QUEUE_BUFSIZE) {
+	printf("Error: On message size 11\n");
         return -1;
     }
     sprintf(txtptr, "%s=%d", SIM_MSG_SENSOR_TRIGGER_READING, 21);
     n += strlen(txtptr) + 1;
     txtptr = buf.mtext + n;
     if (n > SIM_MSG_QUEUE_BUFSIZE) {
+	printf("Error: On message size 12\n");
         return -1;
     }
     *txtptr = '\0'; // terminate buf with a zero-length string
@@ -131,6 +162,7 @@ static int inject_event(char *plugin_name) {
     /* send the msg */
     rc = msgsnd(msgqueid, &buf, n, 0);
     if (rc) {
+	printf("Error: On message send\n");
         return -1;
     }
 
@@ -145,16 +177,21 @@ int main(int argc, char **argv)
     int retc;
 
     rc = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID, &sid, NULL);
-	if(rc != SA_OK)
-		return -1;
+    if(rc != SA_OK) {
+	printf("Error: On Session Open\n");
+	return -1;
+    }
 
-	rc = saHpiDiscover(sid);
-	if (rc != SA_OK)
-		return -1;
+    rc = saHpiDiscover(sid);
+    if (rc != SA_OK) {
+	printf("Error: On Discover\n");
+	return -1;
+    }
 
     /* inject an event */
     retc = inject_event("simulator");
     if (retc != 0) {
+	printf("Error: On Inject\n");
         return -1;
     }
 
