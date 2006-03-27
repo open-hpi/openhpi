@@ -18,6 +18,8 @@
 #include <sys/ipc.h>
 #include <sys/msg.h>
 #include <sys/types.h>
+#include <sys/stat.h>
+#include <errno.h>
 #include <SaHpi.h>
 #include <oh_utils.h>
 #include <../sim_injector_ext.h>
@@ -45,7 +47,7 @@ static int inject_event(char *plugin_name) {
 
     /* get the  queue */
     ipckey = ftok(".", SIM_MSG_QUEUE_KEY);
-    msgqueid = msgget(ipckey, 0660);
+    msgqueid = msgget(ipckey, IPC_CREAT | S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
     if (msgqueid == -1) {
         return -1;
     }
