@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2005
+ * (C) Copyright IBM Corp. 2005,2006
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -17,19 +17,19 @@
 #include <rtas_reset.h>
 
 SaErrorT rtas_get_reset_state(void *hnd,
-                                 SaHpiResourceIdT id,
-                                 SaHpiResetActionT *act)
+                              SaHpiResourceIdT id,
+                              SaHpiResetActionT *act)
 {
-        return SA_ERR_HPI_INTERNAL_ERROR;
+        return SA_ERR_HPI_CAPABILITY;
 }
 
 SaErrorT rtas_set_reset_state(void *hnd,
-                                 SaHpiResourceIdT id,
-                                 SaHpiResetActionT act)
+                              SaHpiResourceIdT id,
+                              SaHpiResetActionT act)
 {
-        return SA_ERR_HPI_INTERNAL_ERROR;
+        return SA_ERR_HPI_CAPABILITY;
 }
- 
+
 void * oh_get_reset_state (void *, SaHpiResourceIdT, SaHpiResetActionT *)
         __attribute__ ((weak, alias("rtas_get_reset_state")));
 void * oh_set_reset_state (void *, SaHpiResourceIdT, SaHpiResetActionT)
