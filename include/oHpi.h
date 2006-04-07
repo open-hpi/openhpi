@@ -41,6 +41,7 @@ typedef enum {
         OHPI_DEL_SAVE,
         OHPI_DAT_SIZE_LIMIT,
         OHPI_DAT_USER_LIMIT,
+        OHPI_DAEMON_MODE,
         //OHPI_DEBUG,
         //OHPI_DEBUG_TRACE,
         //OHPI_DEBUG_LOCK,
@@ -59,6 +60,7 @@ typedef union {
         SaHpiBoolT DelSave; /* True if domain event log is to be saved to disk */
         SaHpiUint32T DatSizeLimit; /* Max alarms allowed in alarm table */
         SaHpiUint32T DatUserLimit; /* Max number of user alarms allowed */
+        SaHpiUint32T daemon_mode;
         //unsigned char Debug; /* 1 = YES, 0 = NO */
         //unsigned char DebugTrace; /* !0 = YES, 0 = NO */
         //unsigned char DebugLock; /* !0 = YES, 0 = NO */
