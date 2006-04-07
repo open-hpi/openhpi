@@ -27,7 +27,8 @@
  
 int main(int argc, char **argv)
 {
-        SaHpiUint64T v = 0;
+    SaHpiUint64T v = 0;
+
 	char * buf = g_malloc(100);
         char * version = VERSION ".0";	
         
