@@ -90,6 +90,7 @@ static gpointer oh_discovery_thread_loop(gpointer data)
         g_mutex_lock(oh_discovery_thread_mutex);
         while (oh_threaded_mode()) {
                 trace("Doing threaded discovery on all handlers");
+dbg("Doing threaded discovery on all handlers");
                 error = oh_domain_resource_discovery(0);
                 if (error) {
                         trace("Got error on threaded discovery return.");
@@ -130,6 +131,9 @@ static gpointer oh_event_thread_loop(gpointer data)
                 }
 
                 trace("Thread Harvesting events");
+
+dbg("Doing event harvesting on all handlers");
+
                 error = oh_harvest_events();
                 if (error != SA_OK) dbg("Error on harvest of events.");
 
@@ -194,11 +198,16 @@ int oh_threaded_start()
                                                       NULL, FALSE,
                                                       &oh_discovery_thread_error);
 
+dbg("### discovery_thread, thrdid [%p] ###\n", (void *)oh_discovery_thread);
+
                 trace("Starting event thread");
                 oh_event_thread_wait = g_cond_new();
                 oh_event_thread_mutex = g_mutex_new();
                 oh_event_thread = g_thread_create(oh_event_thread_loop,
                                                   NULL, FALSE, &oh_event_thread_error);
+
+dbg("### event_thread, thrdid [%p] ###\n", (void *)oh_discovery_thread);
+
         }
 
         return 0;
