@@ -137,7 +137,7 @@ SaErrorT snmp_bc_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiEventLogInfoT
      /* what events have been logged so far and   */
      /* the information each logged event contains*/    	
         sel.Size = BC_EL_MAX_SIZE; /* This is clearly a guess but looks about right 
-                              * from the 75% full errors we have seen.    */
+                                    * from the 75% full errors we have seen.    */
 	sel.UserEventMaxSize = SAHPI_MAX_TEXT_BUFFER_LENGTH;
         sel.Enabled = SAHPI_TRUE;
         sel.OverflowFlag = SAHPI_FALSE; 
@@ -294,10 +294,10 @@ SaErrorT snmp_bc_bulk_selcache(	struct oh_handler_state *handle,
         SaHpiEventT 	tmpevent;
     	netsnmp_pdu	*pdu, *response;
     	netsnmp_variable_list *vars;
+	LogSource2ResourceT resinfo;
 	int             count;
     	int             running;
     	int             status;
-	
 	char 		logstring[MAX_ASN_STR_LEN];
     	char 		objoid[SNMP_BC_MAX_OID_LENGTH];	
     	oid             name[MAX_OID_LEN];
@@ -326,6 +326,7 @@ SaErrorT snmp_bc_bulk_selcache(	struct oh_handler_state *handle,
 	} else {
 		snprintf(objoid, SNMP_BC_MAX_OID_LENGTH, "%s",SNMP_BC_SEL_ENTRY_OID);
 	}
+	rootlen = MAX_OID_LEN;
         read_objid(objoid, root, &rootlen);
 
 	/* --------------------------------------------------- */
@@ -410,8 +411,10 @@ SaErrorT snmp_bc_bulk_selcache(	struct oh_handler_state *handle,
 							err = snmp_bc_parse_sel_entry(handle,logstring, &sel_entry);
 							isdst = sel_entry.time.tm_isdst;
 
-							snmp_bc_log2event(handle, logstring, &tmpevent, isdst);
+							snmp_bc_log2event(handle, logstring, &tmpevent, isdst, &resinfo);
 							err = oh_el_prepend(handle->elcache, &tmpevent, NULL, NULL);
+							if (custom_handle->first_discovery_done == SAHPI_TRUE)
+		             					err = snmp_bc_add_to_eventq(handle, &tmpevent, SAHPI_TRUE);								
 						}
                     			} else {
                         			/* Stop on an exception value */
@@ -519,14 +522,20 @@ SaErrorT snmp_bc_selcache_sync(struct oh_handler_state *handle,
 {
 	SaHpiEventLogEntryIdT prev;
 	SaHpiEventLogEntryIdT next;
-        struct snmp_value get_value;
+        struct snmp_value get_value, *this_value;
         sel_entry sel_entry;
         oh_el_entry *fetchentry, tmpentry;
         SaHpiTimeT new_timestamp;
 	char oid[SNMP_BC_MAX_OID_LENGTH];
 	SaErrorT err;
-	int current, i, cacheupdate;
+	int current, cacheupdate;
         struct snmp_bc_hnd *custom_handle;
+
+	int isdst;
+        SaHpiEventT tmpevent;
+	LogSource2ResourceT resinfo;
+
+
 
 	if (!handle) {
 		dbg("Invalid parameter.");
@@ -573,6 +582,10 @@ SaErrorT snmp_bc_selcache_sync(struct oh_handler_state *handle,
 
 	new_timestamp = (SaHpiTimeT)mktime(&sel_entry.time) * 1000000000;
 	if (fetchentry->event.Event.Timestamp != new_timestamp) {
+		GList *sync_log = NULL;
+		this_value = g_memdup(&get_value, sizeof(get_value));
+		if (this_value != NULL) 
+			sync_log = g_list_prepend(sync_log, this_value);
 		while (1) {
 			current++;
 			if (custom_handle->platform == SNMP_BC_PLATFORM_RSA) {
@@ -595,6 +608,10 @@ SaErrorT snmp_bc_selcache_sync(struct oh_handler_state *handle,
 					current--;
 					cacheupdate = 1;	
 					break;
+				} else {
+					this_value = g_memdup(&get_value, sizeof(struct snmp_value));
+					if (this_value != NULL) 
+						sync_log = g_list_prepend(sync_log, this_value);
 				}
 			} else {
 				dbg("Old entry not found and end of SNMP log reached.");
@@ -602,60 +619,33 @@ SaErrorT snmp_bc_selcache_sync(struct oh_handler_state *handle,
 			}
 		}
 		
+		
 		if (cacheupdate) {
-			struct oh_handler_state *sync_handle;
-			sync_handle = (struct oh_handler_state *)g_malloc0(sizeof(struct oh_handler_state));
-			
-			if (sync_handle == NULL) 
-				dbg ("NULL g_malloc0 for sync_handle\n");
-			else {
-				trace("g_malloc0 ok for sync_handle\n");
-				trace("Duplicate copy of original handle\n");
-				memcpy(sync_handle, handle, sizeof(struct oh_handler_state));
-				
-				trace("Change sync_handle el cache copy\n");
-		        	/* Initialize event log cache */
-        			sync_handle->elcache = oh_el_create(BC_EL_MAX_SIZE);
-				sync_handle->elcache->gentimestamp = FALSE;
-			}
-			
-			for (i=1; i<=current; i++) {
-				err = snmp_bc_sel_read_add (sync_handle, id, i, SAHPI_TRUE);
-				if ( (err == SA_ERR_HPI_OUT_OF_SPACE) || (err == SA_ERR_HPI_INVALID_PARAMS)) {
-					/* Either of these 2 errors prevent us from doing anything meaningful */
-					return(err);
-				} else if (err != SA_OK) {
-					/* other errors (mainly HPI_INTERNAL_ERROR or HPI_BUSY) means */
-					/* only this record has problem. record error then go to next */
-					dbg("Error, %s, encountered with EventLog entry %d\n", 
-					    oh_lookup_error(err), i);
+			GList *proc_log = NULL;
+			proc_log = g_list_first(sync_log);
+
+			while(proc_log != NULL) {
+				this_value = (struct snmp_value *)proc_log->data;
+				err = snmp_bc_parse_sel_entry(handle,this_value->string, &sel_entry);
+				if (err != SA_OK) return(err);
+		
+				if (strncmp(get_value.string, EVT_EN_LOG_FULL, sizeof(EVT_EN_LOG_FULL)) == 0 )
+		 				handle->elcache->overflow = SAHPI_TRUE;
+		 
+				isdst = sel_entry.time.tm_isdst;
+				snmp_bc_log2event(handle, this_value->string, &tmpevent, isdst, &resinfo);
+
+				if ((tmpevent.EventType == SAHPI_ET_HOTSWAP) && 
+							(custom_handle->first_discovery_done == SAHPI_TRUE))
+				{
+					err = snmp_bc_rediscover(handle, &tmpevent, &resinfo);
 				}
-			}
+
+				/*  append to end-of-elcache and end-of-eventq   */
+				err = snmp_bc_add_entry_to_elcache(handle, &tmpevent, SAHPI_FALSE);
+				proc_log = g_list_next(proc_log);
 			
-			current = g_list_length(sync_handle->elcache->elentries);
-			trace ("%d new entries found\n", current);
-			for (i = 1; (i < current + 1); i++) {
-				err = oh_el_get(sync_handle->elcache, i, &prev, &next, &fetchentry);
-				if (err == SA_OK) {
-					trace ("Adding new entry to el cache\n"); 
-					err = oh_el_append(handle->elcache,
-							   &(fetchentry->event.Event),
-						  	   &(fetchentry->rdr),
-						   	   &(fetchentry->res));
-					if (!err) {
-						if (custom_handle->first_discovery == SAHPI_TRUE) {
-							trace("Request new event to be added to eventq\n");
-		             				err = snmp_bc_add_to_eventq(handle, &(fetchentry->event.Event), SAHPI_FALSE);
-						
-							if (err) 
-		 						dbg("Cannot add el entry to eventq. Error=%s.", oh_lookup_error(err));
-						}		
-					}
-				}
 			}
-			trace ("freeing sync_cache & sync_handle\n"); 
-			oh_el_close(sync_handle->elcache);
-			g_free(sync_handle); 
 			
 		} else {
 			err = oh_el_clear(handle->elcache);
@@ -668,6 +658,7 @@ SaErrorT snmp_bc_selcache_sync(struct oh_handler_state *handle,
 				return(err);
 			}
 		}
+		g_list_free(sync_log);
 	} else {
 		trace("EL Sync: there are no new entry indicated.\n");
 	}
@@ -855,8 +846,7 @@ SaErrorT snmp_bc_sel_read_add (struct oh_handler_state *handle,
 	sel_entry sel_entry;
 	SaErrorT err;
         SaHpiEventT tmpevent;
-	SaHpiEntryIdT rdrid;
-	SaHpiRdrT rdr, *rdr_ptr; 
+	LogSource2ResourceT resinfo;
         struct snmp_value get_value;
 	struct snmp_bc_hnd *custom_handle;
 
@@ -866,8 +856,7 @@ SaErrorT snmp_bc_sel_read_add (struct oh_handler_state *handle,
 	}
 
 	isdst=0;
-	rdrid=0;
-	rdr_ptr=NULL;
+
         custom_handle = (struct snmp_bc_hnd *)handle->data;
 
 	if (custom_handle->platform == SNMP_BC_PLATFORM_RSA) {
@@ -894,10 +883,48 @@ SaErrorT snmp_bc_sel_read_add (struct oh_handler_state *handle,
 		 handle->elcache->overflow = SAHPI_TRUE;
 		 
 	isdst = sel_entry.time.tm_isdst;
-	snmp_bc_log2event(handle, get_value.string, &tmpevent, isdst);
+	snmp_bc_log2event(handle, get_value.string, &tmpevent, isdst, &resinfo);
+
+	err = snmp_bc_add_entry_to_elcache(handle, &tmpevent, prepend);
+        return(err);
+}
+
+
+/**
+ * snmp_bc_add_entry_to_elcache
+ * @hnd: Pointer to handler's data. 
+ * @id: Resource's ID that owns Event Log.
+ * @current: Current Event Log entry ID.
+ * 
+ *  Add event to Event Log.
+ * 
+ * Return values:
+ * SA_OK - normal operation.
+ * SA_ERR_HPI_INVALID_PARAMS - @hnd is NULL.
+ **/
+SaErrorT snmp_bc_add_entry_to_elcache(struct oh_handler_state *handle,
+        				SaHpiEventT *tmpevent,
+			       		SaHpiBoolT prepend)
+{
+
+	SaHpiEntryIdT rdrid;
+	SaHpiRdrT rdr, *rdr_ptr; 
+	struct snmp_bc_hnd *custom_handle;
+	SaHpiResourceIdT id;
+	SaErrorT err;
+
+
+	if (!handle) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
 	
+	rdrid=0;
+	rdr_ptr=NULL;			
+        custom_handle = (struct snmp_bc_hnd *)handle->data;
+			
 	/* See feature 1077241 */
-	switch (tmpevent.EventType) {
+	switch (tmpevent->EventType) {
 		case SAHPI_ET_OEM:
 		case SAHPI_ET_HOTSWAP:
 		case SAHPI_ET_USER:
@@ -912,33 +939,43 @@ SaErrorT snmp_bc_sel_read_add (struct oh_handler_state *handle,
 			break;		  
 		case SAHPI_ET_SENSOR:
 			rdrid = get_rdr_uid(SAHPI_SENSOR_RDR,
-					    tmpevent.EventDataUnion.SensorEvent.SensorNum); 
-			rdr_ptr = oh_get_rdr_by_id(handle->rptcache, tmpevent.Source, rdrid);
+					    tmpevent->EventDataUnion.SensorEvent.SensorNum); 
+			rdr_ptr = oh_get_rdr_by_id(handle->rptcache, tmpevent->Source, rdrid);
 			break;
 		case SAHPI_ET_WATCHDOG:
 			rdrid = get_rdr_uid(SAHPI_WATCHDOG_RDR,
-					    tmpevent.EventDataUnion.WatchdogEvent.WatchdogNum);
-			rdr_ptr = oh_get_rdr_by_id(handle->rptcache, tmpevent.Source, rdrid);
+					    tmpevent->EventDataUnion.WatchdogEvent.WatchdogNum);
+			rdr_ptr = oh_get_rdr_by_id(handle->rptcache, tmpevent->Source, rdrid);
 			break;
 		default:
-			dbg("Unrecognized Event Type=%d.", tmpevent.EventType);
+			dbg("Unrecognized Event Type=%d.", tmpevent->EventType);
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 			break;
 	} 
-
+	
+	
 	/* Since oh_el_append() does a copy of RES and RDR into it own data struct, */ 
 	/* just pass the pointers to it.                                            */
-	id = tmpevent.Source;
+	id = tmpevent->Source;
 	if (NULL == oh_get_resource_by_id(handle->rptcache, id)) {
 		trace("Warning: NULL RPT for rid %d.", id);
-		trace("Warning: Log string %s\n\n", get_value.string);	
 	}
 	
+	/* During discovery and elcache build, we process BladeCenter/RSA log */
+        /* from entry 1 to end-of-log. Within BladeCenter/RSA, entry 1 is the */
+        /* newest (most recent) and end-of-log is the oldest                  */
+        /* During rediscover/elcach sync, we process BladeCenter/RSA log from */
+        /* entry 1 to entry n (somewhere in the middle of log. To get the     */
+        /* event sequence to correct order, we need to read BladeCenter/RSA   */
+        /* log into hpi, reorder before processing them.                      */
+        /* So,                                                                */
+        /*  1. We need to prepend the **current** entry during elcache build  */
+        /*  2. And, append during re-discovery/elcache sync                   */
 	if (prepend) 
-		err = oh_el_prepend(handle->elcache, &tmpevent,
+		err = oh_el_prepend(handle->elcache, tmpevent,
 			    rdr_ptr, oh_get_resource_by_id(handle->rptcache, id));
 	else 
-		err = oh_el_append(handle->elcache, &tmpevent,
+		err = oh_el_append(handle->elcache, tmpevent,
 			    rdr_ptr, oh_get_resource_by_id(handle->rptcache, id));
 	
 	
@@ -955,8 +992,8 @@ SaErrorT snmp_bc_sel_read_add (struct oh_handler_state *handle,
 	/*	  6. we repeat step 1 ... indefinite loop                 */   
 	
 	if (!err) {
-		if (custom_handle->first_discovery == SAHPI_TRUE)
-		             err = snmp_bc_add_to_eventq(handle, &tmpevent, SAHPI_TRUE);
+		if (custom_handle->first_discovery_done == SAHPI_TRUE)
+		             err = snmp_bc_add_to_eventq(handle, tmpevent, prepend);
 		if (err) 
 		 dbg("Cannot add el entry to eventq. Error=%s.", oh_lookup_error(err));
 	} else { 
@@ -964,6 +1001,8 @@ SaErrorT snmp_bc_sel_read_add (struct oh_handler_state *handle,
 	}
 			
         return(err);
+
+
 }
 
 /**

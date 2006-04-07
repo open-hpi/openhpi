@@ -21,26 +21,6 @@
 
 #include <snmp_bc_plugin.h>
 
-typedef enum {
-	EVENT_NOT_MAPPED,
-	EVENT_NOT_ALERTABLE,
-} OEMReasonCodeT;
-
-typedef struct {
-	SaHpiResourceIdT      rid;
-	BCRptEntryT           rpt;
-	struct snmp_bc_sensor *sensor_array_ptr;
-	SaHpiEntityPathT      ep;
-} LogSource2ResourceT;
-
-typedef struct {
-	SaHpiEventT      hpievent;
-        SaHpiEventStateT sensor_recovery_state;
-	SaHpiHsStateT    hotswap_recovery_state;
-	SaHpiBoolT       event_res_failure;
-	SaHpiBoolT       event_res_failure_unexpected;
-} EventMapInfoT;
-
 static SaErrorT snmp_bc_parse_threshold_str(gchar *str,
 					    gchar *root_str,
 					    SaHpiTextBufferT *read_value_str,
@@ -69,6 +49,15 @@ static ErrLog2EventInfoT *snmp_bc_findevent4dupstr(gchar *search_str,
 						     ErrLog2EventInfoT *dupstrhash_data,
 						     LogSource2ResourceT *resinfo);
 
+/**
+ * event2hpi_hash_init:
+ * @handle: Pointer to handler's data.
+ *
+ * Return values:
+ * SA_OK - Normal case.
+ * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) or event2hpi_hash_ptr are NULL.
+ * SA_ERR_HPI_OUT_OF_SPACE   - Can not malloc space
+ **/
 SaErrorT event2hpi_hash_init(struct oh_handler_state *handle)
 {
 	struct snmp_bc_hnd *custom_handle;
@@ -93,6 +82,15 @@ SaErrorT event2hpi_hash_init(struct oh_handler_state *handle)
 	return(SA_OK);
 }
 
+
+/**
+ * free_hash_data:
+ * @key
+ * @value
+ * @user_data
+ *
+ * Return values: none
+ **/
 static void free_hash_data(gpointer key, gpointer value, gpointer user_data)
 {
         g_free(key); /* Memory was created for these during normalization process */
@@ -100,6 +98,15 @@ static void free_hash_data(gpointer key, gpointer value, gpointer user_data)
 }
 
 
+
+/**
+ * event2hpi_hash_free:
+ * @handle: Pointer to handler's data.
+ *
+ * Return values:
+ * SA_OK - Normal case.
+ * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) or event2hpi_hash_ptr are NULL.
+ **/
 SaErrorT event2hpi_hash_free(struct oh_handler_state *handle)
 {
 	struct snmp_bc_hnd *custom_handle;
@@ -163,7 +170,7 @@ SaErrorT snmp_bc_discover_res_events(struct oh_handler_state *handle,
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
-
+	
 	rid = oh_uid_lookup(ep);
 	if (rid == 0) {
 		dbg("No RID.");
@@ -192,6 +199,7 @@ SaErrorT snmp_bc_discover_res_events(struct oh_handler_state *handle,
 			}
 
 			eventmap_info->hpievent.Source = rid;
+			eventmap_info->ep = *ep;
 			eventmap_info->hpievent.EventType = SAHPI_ET_HOTSWAP;
 
 			eventmap_info->hpievent.EventDataUnion.HotSwapEvent.HotSwapState =
@@ -356,7 +364,8 @@ SaErrorT snmp_bc_discover_sensor_events(struct oh_handler_state *handle,
 SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 			   gchar *logstr,
 			   SaHpiEventT *event,
-			   int isdst)
+			   int isdst, 
+			   LogSource2ResourceT *ret_resinfo)
 {
 	sel_entry           log_entry;
 	gchar               *recovery_str, *login_str;
@@ -517,7 +526,7 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 			goto DONE;
 		}
 		if (strhash_data->event_ovr & OVR_RID) {
-			dbg("Cannot have RID override on duplicate string=%s.", search_str);
+			dbg("Cannot have RID override on duplicate strin;g=%s.", search_str);
 			dupovrovr = 1;
 		}
 	}
@@ -542,6 +551,8 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 
 	/* Set static event data defined during resource discovery */
 	working = eventmap_info->hpievent;
+	resinfo.ep = eventmap_info->ep;
+	resinfo.rid = eventmap_info->hpievent.Source;
 
 	/* Handle OVR_RID - only for non-duplicate event strings */
 	if ((strhash_data->event_ovr & OVR_RID) && !dupovrovr) {
@@ -598,7 +609,6 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 		if (is_recovery_event != SAHPI_TRUE) {
 			snmp_bc_set_event_severity(handle, eventmap_info, &working, &event_severity);
 		}
-		
 		/* Set event's state */
 		snmp_bc_set_cur_prev_event_states(handle, eventmap_info,
 						  &working, is_recovery_event);
@@ -637,6 +647,7 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 	working.Timestamp = event_time;
 	working.Severity = event_severity;
 	memcpy((void *)event, (void *)&working, sizeof(SaHpiEventT));
+	memcpy(ret_resinfo, &resinfo, sizeof(LogSource2ResourceT));
 
 	return(SA_OK);
 }
@@ -973,6 +984,15 @@ static SaErrorT snmp_bc_set_cur_prev_event_states(struct oh_handler_state *handl
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
+	if ( (((struct snmp_bc_hnd *)handle->data)->first_discovery_done == SAHPI_FALSE) && 
+	     (event->EventType == SAHPI_ET_HOTSWAP) )
+	{
+		/* This is HPI time zero processing */
+		/* Discovery routines set proper current state for each resource */
+		/* Do not override state setting with (stale) data from Event Log processing */
+		return(SA_OK);
+	}
+	
 	switch (event->EventType) {
 	case SAHPI_ET_SENSOR:
 	{
@@ -1049,7 +1069,9 @@ static SaErrorT snmp_bc_set_cur_prev_event_states(struct oh_handler_state *handl
 		resinfo = (struct ResourceInfo *)oh_get_resource_data(handle->rptcache, event->Source);
 		if (resinfo == NULL) {
 			dbg("No resource data. RID=%x", event->Source);
-			return(SA_ERR_HPI_INTERNAL_ERROR);
+			event->EventDataUnion.HotSwapEvent.PreviousHotSwapState	= SAHPI_HS_STATE_NOT_PRESENT;
+			event->EventDataUnion.HotSwapEvent.HotSwapState =  SAHPI_HS_STATE_INSERTION_PENDING;			
+			return(SA_OK);
 		}
 
 		event->EventDataUnion.HotSwapEvent.PreviousHotSwapState	= resinfo->cur_state;
@@ -1060,9 +1082,13 @@ static SaErrorT snmp_bc_set_cur_prev_event_states(struct oh_handler_state *handl
 				eventmap_info->hotswap_recovery_state;
 		}
 		else {
+			//event->EventDataUnion.HotSwapEvent.HotSwapState =
+			//	resinfo->cur_state =
+			//	event->EventDataUnion.HotSwapEvent.HotSwapState;
 			event->EventDataUnion.HotSwapEvent.HotSwapState =
 				resinfo->cur_state =
-				event->EventDataUnion.HotSwapEvent.HotSwapState;
+				eventmap_info->hpievent.EventDataUnion.HotSwapEvent.HotSwapState;
+			
 		}
 		break;
 	}
@@ -1294,7 +1320,7 @@ static SaErrorT snmp_bc_logsrc2rid(struct oh_handler_state *handle,
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		}
 	}
-
+	
 	return(SA_OK);
 }
 
@@ -1375,14 +1401,12 @@ SaErrorT snmp_bc_add_to_eventq(struct oh_handler_state *handle, SaHpiEventT *thi
                 return(SA_ERR_HPI_OUT_OF_SPACE);
         }
         memcpy(e, &working, sizeof(struct oh_event));
-	
+
 	if (prepend == SAHPI_TRUE) { 
-       		trace("Add event to beginning of eventq\n");
        		handle->eventq = g_slist_prepend(handle->eventq, e);
 	} else {
-       		trace("Add event to end of eventq\n");		
 		handle->eventq = g_slist_append(handle->eventq, e);
 	}
-
+	
         return(SA_OK);
 }

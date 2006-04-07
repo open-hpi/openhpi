@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2004, 2005
+ * (C) Copyright IBM Corp. 2004, 2005, 2006
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -101,10 +101,21 @@ SaErrorT snmp_bc_discover_resources(void *hnd)
 		err = snmp_bc_discover(handle, &ep_root);
 	}
  	if (err) {
-		dbg("Discovery failed. Error=%s.", oh_lookup_error(err));
+		if (err == SA_ERR_HPI_DUPLICATE) {
+			/* Special case: 
+			 *  snmp_bc_discover() has found there is
+			 *  no changes in any of the BladeCenter 
+			 *  resource masks, so there is nothing to do.
+			 *  Setting returncode to SA_OK then return.
+			 */
+			err = SA_OK;
+		} else {
+			dbg("Discovery failed. Error=%s.", oh_lookup_error(err));
+		}
 		goto CLEANUP;
 	}
-
+	
+	
 	/**********************************************************************
 	 * Rediscovery:
 	 * Get difference between current rptcache and custom_handle->tmpcache.
@@ -225,15 +236,15 @@ SaErrorT snmp_bc_discover_resources(void *hnd)
 
 
 	/* Build cache copy of SEL. RID == 1 (2nd parm) is a dummy id */
-	/*
-	   This design depends on the BladeCenter management of the Event Log.
-	   That is, 
-	   	(a) The BC Event Log will always have at least one entry. It *never* has zero entry.
-	   	(b) If a Clear Event Log command is received, the BC clears the log, then creates 
-		    "Event Log has just been cleared by xxx" entry
-	   So, if the cache copy of the Event Log is empty, this is the first invocation of OpenHPI/snmp_bc.
-	   Otherwise, only processes newer entries for (re) discovery.
-	*/
+	/**
+	 * This design depends on the BladeCenter management of the Event Log.
+	 * That is, 
+	 * 	(a) The BC Event Log will always have at least one entry. It *never* has zero entry.
+	 * 	(b) If a Clear Event Log command is received, the BC clears the log, then creates 
+	 *          "Event Log has just been cleared by xxx" entry
+	 * So, if the cache copy of the Event Log is empty, this is the first invocation of OpenHPI/snmp_bc.
+	 * Otherwise, only processes newer entries for (re) discovery.
+	 **/
 	if (g_list_length(handle->elcache->elentries) == 0) err1 = snmp_bc_build_selcache(handle, 1);
 	else err1 = snmp_bc_check_selcache(handle, 1, SAHPI_NEWEST_ENTRY);
 	if (err1) {
@@ -245,8 +256,8 @@ SaErrorT snmp_bc_discover_resources(void *hnd)
 		trace("snmp_bc_discover, Error %s when building elcache.\n", oh_lookup_error(err1));
 	}
 	
-	if (custom_handle->first_discovery == SAHPI_FALSE)
-	                                custom_handle->first_discovery = SAHPI_TRUE;
+	if (custom_handle->first_discovery_done == SAHPI_FALSE)
+	                                custom_handle->first_discovery_done = SAHPI_TRUE;
 
  CLEANUP:        
         g_slist_free(custom_handle->tmpqueue);

@@ -181,6 +181,7 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                                 }
                         },
                         .ResourceCapabilities = SAHPI_CAPABILITY_FRU |
+						SAHPI_CAPABILITY_MANAGED_HOTSWAP |
                                                 SAHPI_CAPABILITY_INVENTORY_DATA |
 			                        SAHPI_CAPABILITY_POWER |
                                                 SAHPI_CAPABILITY_RDR |
@@ -263,6 +264,7 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                         },
                         .ResourceCapabilities = SAHPI_CAPABILITY_CONTROL |
                                                 SAHPI_CAPABILITY_FRU |
+						SAHPI_CAPABILITY_MANAGED_HOTSWAP |
                                                 SAHPI_CAPABILITY_INVENTORY_DATA |
 			                        SAHPI_CAPABILITY_POWER |
                                                 SAHPI_CAPABILITY_RDR |

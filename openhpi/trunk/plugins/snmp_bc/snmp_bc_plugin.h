@@ -24,10 +24,11 @@
 #include <snmp_bc_resources.h>
 #include <snmp_bc_annunciator.h>
 #include <snmp_bc_control.h>
+#include <snmp_bc_event.h> /* has to be before discover.h */
 #include <snmp_bc_discover.h>
+#include <snmp_bc_discover_bc.h>
 #include <snmp_bc_el.h>
 #include <snmp_bc_el2event.h>
-#include <snmp_bc_event.h>
 #include <snmp_bc_hotswap.h>
 #include <snmp_bc_inventory.h>
 #include <snmp_bc_power.h>

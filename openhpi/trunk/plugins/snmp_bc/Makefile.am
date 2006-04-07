@@ -36,6 +36,7 @@ EXTRA_DIST = \
 		snmp_bc_annunciator.h \
 		snmp_bc_control.h \
 		snmp_bc_discover.h \
+		snmp_bc_discover_bc.h \
 		snmp_bc_el.h \
 		snmp_bc_el2event.h \
 		snmp_bc_event.h \

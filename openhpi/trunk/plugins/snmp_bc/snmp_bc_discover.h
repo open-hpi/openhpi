@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2004
+ * (C) Copyright IBM Corp. 2004, 2005, 2006
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -23,6 +23,10 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 
 SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
 			      SaHpiEntityPathT *ep_root);
+			      
+SaErrorT snmp_bc_rediscover(struct oh_handler_state *handle,
+			  	SaHpiEventT *event,
+				LogSource2ResourceT *resinfo);
 
 SaErrorT snmp_bc_discover_sensors(struct oh_handler_state *handle,
 				  struct snmp_bc_sensor *sensor_array,
