@@ -27,6 +27,7 @@
 #include <oh_threaded.h>
 #include <sahpimacros.h>
 
+static int initialized = FALSE;
 /*********************************************************************
  *
  * Begin SAHPI B.1.1 Functions. For full documentation please see
@@ -46,6 +47,19 @@ SaErrorT SAHPI_API saHpiSessionOpen(
 {
         SaHpiSessionIdT sid;
         SaHpiDomainIdT did;
+        struct oh_global_param my_global_param;
+
+
+        /* if we are in threaded mode and runnning as a daemon */
+        my_global_param.type = OPENHPI_DAEMON_MODE;
+        oh_get_global_param(&my_global_param);
+        if ((my_global_param.u.daemon_mode) && (initialized == FALSE)) {
+            initialized = TRUE;
+            oh_threaded_start();
+            dbg(" ### we are running as a daemon my_global_param.u.daemon_mode[%d]###\n", my_global_param.u.daemon_mode);
+        } else {
+            dbg(" ### we are not running as a daemon my_global_param.u.daemon_mode[%d]###\n", my_global_param.u.daemon_mode);
+        }
 
         if (SessionId == NULL) {
                 dbg("Invalid Session Id pointer");
