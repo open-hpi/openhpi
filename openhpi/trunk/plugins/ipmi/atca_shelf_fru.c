@@ -846,7 +846,7 @@ unsigned int ohoi_create_atca_oem_idr_areas(
 	GSList *areas = NULL;
 	int i;
 	unsigned char ver, type;
-	int max_link = 0;
+	unsigned int max_link = 0;
 	ekey_sensors_info_t eks_info;
 
 
