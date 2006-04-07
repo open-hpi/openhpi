@@ -49,7 +49,7 @@ ULONG APIENTRY LnxOpenQueue(PSZ Name, LONG Argc, RXSTRING Argv[],
 
     /* get the  queue */
     ipckey = ftok(Argv[0].strptr, SIM_MSG_QUEUE_KEY);
-    msgqueid = msgget(ipckey, 0660);
+    msgqueid = msgget(ipckey, IPC_CREAT | 0660);
     if (msgqueid == -1) {
         sprintf(Retstr->strptr, "%d", -1);
         Retstr->strlength = strlen(Retstr->strptr);
