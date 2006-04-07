@@ -11,6 +11,7 @@
  *
  * Author(s):
  *      Renier Morales <renierm@users.sf.net>
+ *      David Judkovics <djudkovi@us.ibm.com>
  *
  */
 
@@ -24,6 +25,10 @@
 #include <oh_lock.h>
 #include <oh_utils.h>
 
+#include <oh_config.h>
+
+
+
 
 /**
  * _init
@@ -32,111 +37,124 @@
  **/
 int _init(void)
 {
-        struct oh_parsed_config config = {NULL, NULL, 0, 0, 0, 0};
-        struct oh_global_param config_param = { .type = OPENHPI_CONF };
-        SaErrorT rval;
-        SaHpiDomainCapabilitiesT capabilities = 0x00000000;
-        SaHpiTextBufferT tag;
 
-        data_access_lock();
 
-        /* Initialize thread engine */
-        oh_threaded_init();
 
-        /* Set openhpi configuration file location */
-        oh_get_global_param(&config_param);
+            struct oh_parsed_config config = {NULL, NULL, 0, 0, 0, 0};
+            struct oh_global_param config_param = { .type = OPENHPI_CONF };
+            SaErrorT rval;
+            SaHpiDomainCapabilitiesT capabilities = 0x00000000;
+            SaHpiTextBufferT tag;
+        
+            data_access_lock();
 
-        rval = oh_load_config(config_param.u.conf, &config);
-        /* Don't error out if there is no conf file */
-        if (rval < 0 && rval != -4) {
-                dbg("Can not load config.");
-                data_access_unlock();
-                return SA_ERR_HPI_NOT_PRESENT;
-        }
+            /* Initialize thread engine */
+            oh_threaded_init();
 
-        /* Initialize uid_utils */
-        rval = oh_uid_initialize();
-        if( (rval != SA_OK) && (rval != SA_ERR_HPI_ERROR) ) {
-                dbg("Unique ID intialization failed.");
-                data_access_unlock();
-                return rval;
-        }
-        trace("Initialized UID.");
+            /* Set openhpi configuration file location */
+            oh_get_global_param(&config_param);
 
-        /* Initialize handler table */
-        oh_handlers.table = g_hash_table_new(g_int_hash, g_int_equal);
-        trace("Initialized handler table");
+            rval = oh_load_config(config_param.u.conf, &config);
+            /* Don't error out if there is no conf file */
+            if (rval < 0 && rval != -4) {
+                    dbg("Can not load config.");
+                    data_access_unlock();
+                    return SA_ERR_HPI_NOT_PRESENT;
+            }
 
-        /* Initialize domain table */
-        oh_domains.table = g_hash_table_new(g_int_hash, g_int_equal);
-        trace("Initialized domain table");
+            /* Initialize uid_utils */
+            rval = oh_uid_initialize();
+            if( (rval != SA_OK) && (rval != SA_ERR_HPI_ERROR) ) {
+                    dbg("Unique ID intialization failed.");
+                    data_access_unlock();
+                    return rval;
+            }
+            trace("Initialized UID.");
 
-        /* Create first domain */
-        oh_init_textbuffer(&tag);
-        oh_append_textbuffer(&tag,"First Domain");
-        if (!oh_create_domain(capabilities, SAHPI_TIMEOUT_IMMEDIATE, &tag)) {
-                data_access_unlock();
-                dbg("Could not create first domain!");
-                return SA_ERR_HPI_ERROR;
-        }
-        trace("Created first domain");
+            /* Initialize handler table */
+            oh_handlers.table = g_hash_table_new(g_int_hash, g_int_equal);
+            trace("Initialized handler table");
 
-        /* Initialize session table */
-        oh_sessions.table = g_hash_table_new(g_int_hash, g_int_equal);
-        trace("Initialized session table");
+            /* Initialize domain table */
+            oh_domains.table = g_hash_table_new(g_int_hash, g_int_equal);
+            trace("Initialized domain table");
 
-        /* Load plugins and create handlers*/
-        oh_process_config(&config);
+            /* Create first domain */
+            oh_init_textbuffer(&tag);
+            oh_append_textbuffer(&tag,"First Domain");
+            if (!oh_create_domain(capabilities, SAHPI_TIMEOUT_IMMEDIATE, &tag)) {
+                    data_access_unlock();
+                    dbg("Could not create first domain!");
+                    return SA_ERR_HPI_ERROR;
+            }
+            trace("Created first domain");
 
-        /*
-         * Wipes away configuration lists (plugin_names and handler_configs).
-         * global_params is not touched.
-         */
-        oh_clean_config(&config);
+            /* Initialize session table */
+            oh_sessions.table = g_hash_table_new(g_int_hash, g_int_equal);
+            trace("Initialized session table");
+            
+            /* Load plugins and create handlers*/
+            oh_process_config(&config);
+            
+            /*
+            * Wipes away configuration lists (plugin_names and handler_configs).
+            * global_params is not touched.
+            */
+            oh_clean_config(&config);
 
-        /*
-         * If any handlers were defined in the config file AND
-         * all of them failed to load, Then return with an error.
-         */
-        if (config.handlers_defined > 0 && config.handlers_loaded == 0) {
-                data_access_unlock();
-                dbg("Error: Handlers were defined, but none loaded.");
-                return SA_ERR_HPI_ERROR;
-        } else if (config.handlers_defined > 0 &&
-                   config.handlers_loaded < config.handlers_defined) {
-                dbg("*Warning*: Not all handlers defined loaded."
-                    " Check previous messages.");
-        }
+            /*
+            * If any handlers were defined in the config file AND
+            * all of them failed to load, Then return with an error.
+            */
+            if (config.handlers_defined > 0 && config.handlers_loaded == 0) {
+                    data_access_unlock();
+                    dbg("Error: Handlers were defined, but none loaded.");
+                    return SA_ERR_HPI_ERROR;
+            } else if (config.handlers_defined > 0 &&
+                       config.handlers_loaded < config.handlers_defined) {
+                    dbg("*Warning*: Not all handlers defined loaded."
+                        " Check previous messages.");
+            }
 
-        /* this only does something if the config says to */
-        oh_threaded_start();
+            /* this only does something if the config says to */
+            struct oh_global_param my_global_param;
+            my_global_param.type = OPENHPI_DAEMON_MODE;
+            oh_get_global_param(&my_global_param);
+            if (!my_global_param.u.daemon_mode) {
+                oh_threaded_start();
+                dbg("### We ARE Starting infrastructure threads in _init() ###\n");
+            } else {
+                dbg("### We ARE NOT Starting infrastructure threads in _init() ###\n");
+            }
 
-        trace("Set init state");
-        data_access_unlock();
-        /* infrastructure initialization has completed at this point */
 
-        /* Check if there are any handlers loaded */
-        if (config.handlers_defined == 0) {
-                dbg("*Warning*: No handler definitions found in config file."
-                    " Check configuration file %s and previous messages",
-                    config_param.u.conf);
-        }
+            trace("Set init state");
+            data_access_unlock();
+            /* infrastructure initialization has completed at this point */
 
-        /*
-         * HACK: If threaded mode is on, wait a second before returning
-         * to give the threads time to populate the RPT
-         */
-        if (oh_threaded_mode()) {
-                struct timespec waittime =
-                        { .tv_sec = 1, .tv_nsec = 1000L};
-                nanosleep(&waittime, NULL);
-        }
-
+            /* Check if there are any handlers loaded */
+            if (config.handlers_defined == 0) {
+                    dbg("*Warning*: No handler definitions found in config file."
+                        " Check configuration file %s and previous messages",
+                        config_param.u.conf);
+            }
+            
+            /*
+             * HACK: If threaded mode is on, wait a second before returning
+            * to give the threads time to populate the RPT
+            */
+            if (oh_threaded_mode()) {
+                    struct timespec waittime =
+                            { .tv_sec = 1, .tv_nsec = 1000L};
+                            nanosleep(&waittime, NULL);
+            }
+            
         /* Do not use SA_OK here in case it is ever changed to something
          * besides zero, The runtime stuff depends on zero being returned here
          * in order for the shared library to be completely initialized.
          */
         return 0;
+
 }
 
 /**
@@ -146,6 +164,7 @@ int _init(void)
  **/
 int _fini(void)
 {
+
         data_access_lock();
 
         oh_close_handlers();
@@ -153,5 +172,6 @@ int _fini(void)
         data_access_unlock();
 
         return 0;
+
 }
 
