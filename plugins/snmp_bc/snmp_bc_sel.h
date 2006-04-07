@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2003, 2005
+ * (C) Copyright IBM Corp. 2003, 2005, 2006
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -74,5 +74,8 @@ SaErrorT snmp_bc_sel_state_set(void      *hnd,
 SaErrorT snmp_bc_bulk_selcache(	struct oh_handler_state *handle,
 				SaHpiResourceIdT id);
 
+SaErrorT snmp_bc_add_entry_to_elcache(struct oh_handler_state *handle,
+        				SaHpiEventT *tmpevent,
+			       		SaHpiBoolT prepend);
 			       
 #endif

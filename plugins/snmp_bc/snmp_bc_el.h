@@ -20,5 +20,6 @@
 #define ER_STR_POST_LOG_CLEARED "System log cleared."
 #define LOG_READ_VALUE_STRING "Read value"
 #define LOG_LOGIN_CHAR "'"
+#define LOG_DISCOVERING "Discovering"
 
 #endif

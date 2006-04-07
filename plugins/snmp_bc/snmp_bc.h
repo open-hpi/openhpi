@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2003, 2005
+ * (C) Copyright IBM Corp. 2003, 2005, 2006
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,6 +18,7 @@
 #define __SNMP_BC_H
 
 #define SNMP_BC_MAX_SNMP_RETRY_ATTEMPTED  5
+#define SNMP_BC_MAX_RESOURCES_MASK        16 /* 15-char long plus NULL terminated */
 
 #include <stdlib.h>
 #include <glib.h>
@@ -38,12 +39,19 @@ struct snmp_bc_hnd {
 	GHashTable *event2hpi_hash_ptr; /* Global "Event Number to HPI Event" hash table */
 	int   platform;
 	int   active_mm;                /* Used for duplicate event RID override */
-	SaHpiBoolT  first_discovery;
+	SaHpiBoolT  first_discovery_done;
 	char  handler_timezone[10];
-        int   handler_retries;          /* Number of retries attempted on SNMP target (client) */
+        int   handler_retries;          /* Number of retries attempted on SNMP target (agent) */
 	RPTable *tmpcache;
 	GSList *tmpqueue;
 	ohpi_bc_lock snmp_bc_hlock;
+	char blade_mask[SNMP_BC_MAX_RESOURCES_MASK];
+	char fan_mask[SNMP_BC_MAX_RESOURCES_MASK];
+	char powermodule_mask[SNMP_BC_MAX_RESOURCES_MASK];
+	char switch_mask[SNMP_BC_MAX_RESOURCES_MASK];
+	char mm_mask[SNMP_BC_MAX_RESOURCES_MASK];		
+        long mediatray_mask;
+
 };
 
 SaErrorT snmp_bc_snmp_get(struct snmp_bc_hnd *custom_handle,

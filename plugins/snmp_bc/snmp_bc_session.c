@@ -67,12 +67,21 @@ void *snmp_bc_open(GHashTable *handler_config)
         /* g_static_rec_mutex_init(&handle->handler_lock); */
 	g_static_rec_mutex_init(&custom_handle->snmp_bc_hlock.lock);
 	custom_handle->snmp_bc_hlock.count = 0;
+	
+        /* Initialize resource masks */
+	/* Set all mask to zero's    */
+	memset(&custom_handle->blade_mask, '\0', SNMP_BC_MAX_RESOURCES_MASK);
+	memset(&custom_handle->fan_mask, '\0', SNMP_BC_MAX_RESOURCES_MASK);
+	memset(&custom_handle->powermodule_mask, '\0', SNMP_BC_MAX_RESOURCES_MASK);
+	memset(&custom_handle->switch_mask, '\0', SNMP_BC_MAX_RESOURCES_MASK);
+	memset(&custom_handle->mm_mask, '\0', SNMP_BC_MAX_RESOURCES_MASK);
+	custom_handle->mediatray_mask = 0;
 
         /* Indicate the 1st discovery is not yet done */
         /* Use to see if we need to create events for log entries.  */
 	/* Do not report any event from event log entries, for      */
 	/* entries that are created before this instance of OpenHPI */	
-	custom_handle->first_discovery = SAHPI_FALSE;
+	custom_handle->first_discovery_done = SAHPI_FALSE;
 	
         /* Initialize RPT cache */
         handle->rptcache = (RPTable *)g_malloc0(sizeof(RPTable));
