@@ -47,7 +47,7 @@ int main(int argc, char **argv)
 
         /* get the  queue */
         ipckey = ftok(".", SIM_MSG_QUEUE_KEY);
-        msgqueid = msgget(ipckey, 0660);
+        msgqueid = msgget(ipckey, IPC_CREAT | 0660);
         if (msgqueid == -1) {
             return -1;
         }
