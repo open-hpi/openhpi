@@ -222,10 +222,10 @@ cstrmsock::~cstrmsock()
 
 bool cstrmsock::Open(
 		const char * pszHost,		// the remote host
-		const int lPort)		// the remote port
+		const int lPort)		    // the remote port
 {
 	struct sockaddr_in  addr;		// address structure
-	struct hostent     *phe;		 // pointer to a host entry
+	struct hostent     *phe;		// pointer to a host entry
 
         // get a socket
 	s = socket(domain, type, protocol);
