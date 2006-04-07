@@ -273,7 +273,7 @@ SaErrorT oHpiGlobalParamGet(oHpiGlobalParamT *param)
         struct oh_global_param p;
 
         if (!param || !param->Type) {
-                dbg("Invalid parameters.");
+                dbg("Invalid parameters. oHpiGlobalParamGet()");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
@@ -301,7 +301,7 @@ SaErrorT oHpiGlobalParamSet(oHpiGlobalParamT *param)
         struct oh_global_param p;
 
         if (!param || !param->Type) {
-                dbg("Invalid parameters.");
+                dbg("Invalid parameters. oHpiGlobalParamSet()");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
