@@ -1158,7 +1158,7 @@ static SaErrorT snmp_bc_set_cur_prev_event_states(struct oh_handler_state *handl
 			/* It is safe to assume that it is being Hotswap-Installed */
 			dbg("No resource data. RID=%x", event->Source);
 			event->EventDataUnion.HotSwapEvent.PreviousHotSwapState	= SAHPI_HS_STATE_NOT_PRESENT;
-			event->EventDataUnion.HotSwapEvent.HotSwapState =  SAHPI_HS_STATE_INSERTION_PENDING;			
+			event->EventDataUnion.HotSwapEvent.HotSwapState =  SAHPI_HS_STATE_INACTIVE;			
 			return(SA_OK);
 		}
 
