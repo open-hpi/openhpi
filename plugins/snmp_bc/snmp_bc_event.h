@@ -30,13 +30,14 @@ typedef struct {
 
 typedef struct {
 	SaHpiEventT      hpievent;
-	SaHpiEntityPathT ep;
+	SaHpiEntityPathT ep;			  /* ep that matches hpievent.ResourceID */
         SaHpiEventStateT sensor_recovery_state;
-	SaHpiHsStateT    hotswap_recovery_state;
-	SaHpiBoolT       event_res_failure;
-	SaHpiBoolT       event_res_failure_unexpected;
+        SaHpiHsStateT    hs_event_auto_state;     /* Hot swap state in hpievent */
+        SaHpiHsStateT    hs_recovery_state;       /* Kill this when BC removes "Recovery" hot swap events */
+        SaHpiHsStateT    hs_recovery_auto_state;  /* Kill this when BC removes "Recovery" hot swap events */
+        SaHpiBoolT       event_res_failure;
+        SaHpiBoolT       event_res_failure_unexpected;
 } EventMapInfoT;
-
 
 SaErrorT event2hpi_hash_init(struct oh_handler_state *handle);
 
@@ -55,7 +56,7 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 			   gchar *logstr,
 			   SaHpiEventT *event,
 			   int isdst,
-			   LogSource2ResourceT *ret_resinfo); 
+			   LogSource2ResourceT *ret_logsrc2res); 
 
 SaErrorT snmp_bc_add_to_eventq(struct oh_handler_state *handle,
 			       SaHpiEventT *thisEvent, 

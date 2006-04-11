@@ -28,7 +28,7 @@ static SaErrorT snmp_bc_parse_threshold_str(gchar *str,
 
 static SaErrorT snmp_bc_logsrc2rid(struct oh_handler_state *handle,
 				   gchar *src,
-				   LogSource2ResourceT *resinfo,
+				   LogSource2ResourceT *logsrc2res,
 				   unsigned int ovr_flags);
 
 static SaErrorT snmp_bc_set_cur_prev_event_states(struct oh_handler_state *handle,
@@ -47,7 +47,7 @@ static SaErrorT snmp_bc_map2oem(SaHpiEventT *event,
 
 static ErrLog2EventInfoT *snmp_bc_findevent4dupstr(gchar *search_str,
 						     ErrLog2EventInfoT *dupstrhash_data,
-						     LogSource2ResourceT *resinfo);
+						     LogSource2ResourceT *logsrc2res);
 
 /**
  * event2hpi_hash_init:
@@ -137,8 +137,9 @@ SaErrorT event2hpi_hash_free(struct oh_handler_state *handle)
  * @resinfo: Pointer to a resource's event mapping information.
  *
  * Discovers a resource's events and records the static mapping
- * information needed to translate platform error log event messages
- * into HPI event types.
+ * information needed to translate BladeCenter event log messages
+ * into HPI event types. It is assumed that all resource events are
+ * hot swap events.
  * 
  * Mapping information is stored in the hash table - event2hpi_hash.
  *
@@ -163,8 +164,6 @@ SaErrorT snmp_bc_discover_res_events(struct oh_handler_state *handle,
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
-	max = SNMP_BC_MAX_RESOURCE_EVENT_ARRAY_SIZE;
-	
 	custom_handle = (struct snmp_bc_hnd *)handle->data;
 	if (!custom_handle || !custom_handle->event2hpi_hash_ptr) {
 		dbg("Invalid parameter.");
@@ -177,6 +176,7 @@ SaErrorT snmp_bc_discover_res_events(struct oh_handler_state *handle,
 		return(SA_ERR_HPI_INTERNAL_ERROR);
 	}
 
+	max = SNMP_BC_MAX_RESOURCE_EVENT_ARRAY_SIZE;
 	for (i=0; resinfo->event_array[i].event != NULL && i < max; i++) {
 		/* Normalized and convert event string */
 		normalized_str = oh_derive_string(ep, resinfo->event_array[i].event);
@@ -202,14 +202,12 @@ SaErrorT snmp_bc_discover_res_events(struct oh_handler_state *handle,
 			eventmap_info->ep = *ep;
 			eventmap_info->hpievent.EventType = SAHPI_ET_HOTSWAP;
 
-			eventmap_info->hpievent.EventDataUnion.HotSwapEvent.HotSwapState =
-				resinfo->event_array[i].event_state;
-			eventmap_info->hotswap_recovery_state =
-				resinfo->event_array[i].recovery_state;
-			eventmap_info->event_res_failure =
-				resinfo->event_array[i].event_res_failure;
-			eventmap_info->event_res_failure_unexpected =
-				resinfo->event_array[i].event_res_failure_unexpected;
+			eventmap_info->hpievent.EventDataUnion.HotSwapEvent.HotSwapState = resinfo->event_array[i].event_state;
+			eventmap_info->hs_event_auto_state = resinfo->event_array[i].event_auto_state;
+			eventmap_info->hs_recovery_state = resinfo->event_array[i].recovery_state;
+			eventmap_info->hs_recovery_auto_state = resinfo->event_array[i].recovery_auto_state;
+			eventmap_info->event_res_failure = resinfo->event_array[i].event_res_failure;
+			eventmap_info->event_res_failure_unexpected = resinfo->event_array[i].event_res_failure_unexpected;
 
 			trace("Discovered resource event=%s.", normalized_str);
 
@@ -234,7 +232,7 @@ SaErrorT snmp_bc_discover_res_events(struct oh_handler_state *handle,
  * @sinfo: Pointer to a sensor's event mapping information.
  *
  * Discovers a sensor's events and records the static mapping
- * information needed to translate platform error log event messages
+ * information needed to translate BladeCenter event log messages
  * into HPI event types.
  * 
  * Mapping information is stored in the hash table - event2hpi_hash.
@@ -303,18 +301,15 @@ SaErrorT snmp_bc_discover_sensor_events(struct oh_handler_state *handle,
 			eventmap_info->hpievent.EventDataUnion.SensorEvent.SensorNum = sid;
 			eventmap_info->hpievent.EventDataUnion.SensorEvent.SensorType = sinfo->sensor.Type;
 			eventmap_info->hpievent.EventDataUnion.SensorEvent.EventCategory = sinfo->sensor.Category;
-			eventmap_info->hpievent.EventDataUnion.SensorEvent.Assertion =
+			eventmap_info->hpievent.EventDataUnion.SensorEvent.Assertion = 
 				sinfo->sensor_info.event_array[i].event_assertion;
 			eventmap_info->hpievent.EventDataUnion.SensorEvent.EventState =
 			eventmap_info->hpievent.EventDataUnion.SensorEvent.CurrentState =
 				sinfo->sensor_info.event_array[i].event_state;
 
-			eventmap_info->sensor_recovery_state =
-				sinfo->sensor_info.event_array[i].recovery_state;
-			eventmap_info->event_res_failure =
-				sinfo->sensor_info.event_array[i].event_res_failure;
-			eventmap_info->event_res_failure_unexpected =
-				sinfo->sensor_info.event_array[i].event_res_failure_unexpected;
+			eventmap_info->sensor_recovery_state = sinfo->sensor_info.event_array[i].recovery_state;
+			eventmap_info->event_res_failure = sinfo->sensor_info.event_array[i].event_res_failure;
+			eventmap_info->event_res_failure_unexpected = sinfo->sensor_info.event_array[i].event_res_failure_unexpected;
 			
 			/* Setup static trigger info for threshold sensors - some may be event-only */
 			if (sinfo->sensor.Category == SAHPI_EC_THRESHOLD) {
@@ -345,11 +340,11 @@ SaErrorT snmp_bc_discover_sensor_events(struct oh_handler_state *handle,
 /**
  * snmp_bc_log2event: 
  * @handle: Pointer to handler's data.
- * @logstr: Platform Error Log string to be mapped to an HPI event.
+ * @logstr: BladeCenter event log string to be mapped to an HPI event.
  * @event: Location to store mapped HPI event.
  * @isdst: Is Daylight Savings Time on or off.
  *
- * Maps platform error log messages to HPI events.
+ * Maps BladeCenter event log messages to HPI events.
  * 
  * @isdst ("is DayLight Savings Time") parameter is a performance hack.
  * Design assumes the event's timestamp is the time local to the platform itself.
@@ -364,15 +359,15 @@ SaErrorT snmp_bc_discover_sensor_events(struct oh_handler_state *handle,
 SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 			   gchar *logstr,
 			   SaHpiEventT *event,
-			   int isdst, 
-			   LogSource2ResourceT *ret_resinfo)
+			   int isdst,
+			   LogSource2ResourceT *ret_logsrc2res)
 {
 	sel_entry           log_entry;
 	gchar               *recovery_str, *login_str;
 	gchar               root_str[SNMP_BC_MAX_SEL_ENTRY_LENGTH];
 	gchar               search_str[SNMP_BC_MAX_SEL_ENTRY_LENGTH];
 	EventMapInfoT       *eventmap_info;
-	LogSource2ResourceT resinfo;
+	LogSource2ResourceT logsrc2res;
 	SaErrorT            err;
 	SaHpiBoolT          is_recovery_event, is_threshold_event;
 	SaHpiEventT         working;
@@ -385,7 +380,7 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 	int dupovrovr;
 	struct oh_event *e;
 
-	if (!handle || !logstr || !event) {
+	if (!handle || !logstr || !event || !ret_logsrc2res) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
@@ -409,9 +404,9 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 	}
 
 	/**********************************************************************
-	 * For some types of events (e.g. thresholds), dynamic data is appended
-	 * to some root string. Need to find this root string, since its the
-         * root string which is mapped in the error log to event hash table.
+	 * For some types of BladeCenter events (e.g. thresholds), dynamic
+	 * data is appended to a root event log string. Need to find this root 
+         * string, since its what mapped in the event hash table.
          **********************************************************************/
 
 	/* Set default search string */
@@ -471,12 +466,12 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 	event_time = (SaHpiTimeT)mktime(&log_entry.time) * 1000000000;
 
 	/* Find default RID from Error Log's "Source" field - need if NOT_ALERTABLE OEM event */
-	err = snmp_bc_logsrc2rid(handle, log_entry.source, &resinfo, 0);
+	err = snmp_bc_logsrc2rid(handle, log_entry.source, &logsrc2res, 0);
 	if (err) {
 		dbg("Cannot translate %s to RID. Error=%s", log_entry.source, oh_lookup_error(err));
 		return(err);
 	}
-	event_rid = resinfo.rid;
+	event_rid = logsrc2res.rid;
 
 	/***********************************************************
 	 * See if adjusted root string is in errlog2event_hash table
@@ -501,7 +496,7 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 	    strhash_data->event_ovr & OVR_MM1 ||
 	    strhash_data->event_ovr & OVR_MM2) {
 
-		err = snmp_bc_logsrc2rid(handle, log_entry.source, &resinfo,
+		err = snmp_bc_logsrc2rid(handle, log_entry.source, &logsrc2res,
 					 strhash_data->event_ovr);
 		if (err) {
 			dbg("Cannot translate %s to RID. Error=%s.",
@@ -509,16 +504,16 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 			return(err);
 		}
 		
-		event_rid = resinfo.rid;
+		event_rid = logsrc2res.rid;
 	}
 
 	/* Handle duplicate strings that have different event numbers */
 	dupovrovr = 0;
 	if (strhash_data->event_dup) {
-		strhash_data = snmp_bc_findevent4dupstr(search_str, strhash_data, &resinfo);
+		strhash_data = snmp_bc_findevent4dupstr(search_str, strhash_data, &logsrc2res);
 		if (strhash_data == NULL) {
 			dbg("Cannot find valid event for duplicate string=%s and RID=%d.", 
-			    search_str, resinfo.rid);
+			    search_str, logsrc2res.rid);
 			if (snmp_bc_map2oem(&working, &log_entry,  EVENT_NOT_ALERTABLE)) {
 				dbg("Cannot map to OEM Event %s.", log_entry.text);
 				return(SA_ERR_HPI_INTERNAL_ERROR);
@@ -551,8 +546,8 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 
 	/* Set static event data defined during resource discovery */
 	working = eventmap_info->hpievent;
-	resinfo.ep = eventmap_info->ep;
-	resinfo.rid = eventmap_info->hpievent.Source;
+	logsrc2res.ep = eventmap_info->ep;
+	logsrc2res.rid = eventmap_info->hpievent.Source;
 
 	/* Handle OVR_RID - only for non-duplicate event strings */
 	if ((strhash_data->event_ovr & OVR_RID) && !dupovrovr) {
@@ -575,7 +570,7 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 		err = snmp_bc_set_cur_prev_event_states(handle, eventmap_info, 
 							&working, is_recovery_event);
 		
-		/* Set optional event threshold trigger values */
+		/* Set optional event threshold triSaHpiRptEntryT *rptgger values */
 		if (is_threshold_event == SAHPI_TRUE) {
 			if (oh_encode_sensorreading(&thresh_read_value,
 						    working.EventDataUnion.SensorEvent.TriggerReading.Type,
@@ -601,27 +596,116 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 		}
 	}
 	
-	/* Handle hot-swap events */
+	/* Handle hot swap events */
 	else if (working.EventType == SAHPI_ET_HOTSWAP) {
-		/* Determine severity of event. Sometimes a Recovery event is sent for a
-		   removal event to mean installed - don't want these "install" events 
-		   to pick up the resource's severity */
-		if (is_recovery_event != SAHPI_TRUE) {
-			snmp_bc_set_event_severity(handle, eventmap_info, &working, &event_severity);
+		SaHpiHsStateT  hs_event_state, hs_event_auto_state;
+		SaHpiRptEntryT *rpt;	
+		struct ResourceInfo *resinfo2;
+
+		rpt = oh_get_resource_by_id(handle->rptcache, event_rid);
+		resinfo2 = (struct ResourceInfo *)oh_get_resource_data(handle->rptcache, event_rid);
+
+		if (!rpt || !resinfo2) {
+			dbg("No RPT RID=%x", event_rid);
+			if (is_recovery_event != SAHPI_TRUE) {
+				snmp_bc_set_event_severity(handle, eventmap_info, &working, &event_severity);
+			}
+			snmp_bc_set_cur_prev_event_states(handle, eventmap_info,
+							  &working, is_recovery_event);
+			
+			goto RESUME_TO_EXIT;
+			// return(SA_ERR_HPI_INTERNAL_ERROR);
 		}
-		/* Set event's state */
-		snmp_bc_set_cur_prev_event_states(handle, eventmap_info,
-						  &working, is_recovery_event);
+
+		/* Find hot swap state and any defined hot swap events to generate */
+		if (is_recovery_event) {
+			hs_event_state = eventmap_info->hs_recovery_state;
+			hs_event_auto_state = eventmap_info->hs_recovery_auto_state;
+		}
+		else {
+			hs_event_state = eventmap_info->hpievent.EventDataUnion.HotSwapEvent.HotSwapState;
+			hs_event_auto_state = eventmap_info->hs_event_auto_state;
+		}
+
+		/********************************************************************
+                 * Check for reannouncement of current state
+                 *  - don't auto-generate any events
+		 *  - reannoucement has same current/previous state as original event
+  		 ********************************************************************/
+		if (hs_event_state == resinfo2->cur_state) {
+			working.EventDataUnion.HotSwapEvent.HotSwapState = resinfo2->cur_state;
+			working.EventDataUnion.HotSwapEvent.PreviousHotSwapState = resinfo2->prev_state;
+			event_severity = SAHPI_INFORMATIONAL;
+		}
+		else {
+			/* Generate any automatic hot swap state event */
+			if (hs_event_auto_state) {
+				if (rpt->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP) {
+					SaErrorT err;
+					SaHpiEventT autoevent;
+					
+					/* Build event */
+					memcpy((void *)&autoevent, (void *)&working, sizeof(SaHpiEventT));
+					// autoevent.Timestamp = event_time; 
+					autoevent.Severity = SAHPI_INFORMATIONAL;
+					
+					autoevent.EventDataUnion.HotSwapEvent.PreviousHotSwapState =
+						resinfo2->prev_state = resinfo2->cur_state;
+					autoevent.EventDataUnion.HotSwapEvent.HotSwapState =
+						resinfo2->cur_state = hs_event_auto_state;
+					
+					/* oh_print_event(&autoevent, 0); */
+					
+					/* Add event to event cache and HPI event queue */
+					err = oh_el_prepend(handle->elcache, &autoevent, NULL, rpt);
+					if (err) {
+						dbg("Cannot add entry to cache. Error=%s.", oh_lookup_error(err));
+						return(err);
+					}
+					if (custom_handle->first_discovery_done == SAHPI_TRUE) {
+						err = snmp_bc_add_to_eventq(handle, &autoevent, SAHPI_TRUE);
+						if (err) {
+							dbg("Cannot add entry to eventq. Error=%s.", oh_lookup_error(err));
+							return(err);
+						}
+					}
+				}
+				else {
+					dbg("Invalid Hot Swap State for %s", rpt->ResourceTag.Data);
+					return(SA_ERR_HPI_INTERNAL_ERROR);
+				}
+			}
+
+			/* Normal hot swap event transitions */
+			/* FIXME:: SES Check valid state ???? - What not valid - do what ??? */
+			
+			working.EventDataUnion.HotSwapEvent.PreviousHotSwapState =
+				resinfo2->prev_state = resinfo2->cur_state;
+			working.EventDataUnion.HotSwapEvent.HotSwapState =
+				resinfo2->cur_state = 
+				eventmap_info->hpievent.EventDataUnion.HotSwapEvent.HotSwapState;
+			
+			/* Determine severity */
+			if (resinfo2->cur_state == SAHPI_HS_STATE_NOT_PRESENT &&
+			    resinfo2->prev_state != SAHPI_HS_STATE_INACTIVE) {
+				event_severity = rpt->ResourceSeverity;
+			}
+			else {
+				event_severity = SAHPI_INFORMATIONAL;
+			}
+		}
 	}
 	else {
-		dbg("Platform doesn't support events of type=%s.",
-		    oh_lookup_eventtype(working.EventType));
+		dbg("Platform doesn't support events of type=%s.", oh_lookup_eventtype(working.EventType));
 		return(SA_ERR_HPI_INTERNAL_ERROR);
 	}
 	
 	/************************************************** 
 	 * Check to see if need to mark resource as failed.
 	 **************************************************/
+
+	/* FIXME:: SES this is garbage */
+RESUME_TO_EXIT:
 	if (eventmap_info->event_res_failure) {
 		SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, event->Source);
 		if (rpt) {
@@ -647,7 +731,7 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 	working.Timestamp = event_time;
 	working.Severity = event_severity;
 	memcpy((void *)event, (void *)&working, sizeof(SaHpiEventT));
-	memcpy(ret_resinfo, &resinfo, sizeof(LogSource2ResourceT));
+	memcpy(ret_logsrc2res, &logsrc2res, sizeof(LogSource2ResourceT));
 
 	return(SA_OK);
 }
@@ -680,13 +764,13 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
  **/
 static ErrLog2EventInfoT *snmp_bc_findevent4dupstr(gchar *search_str,
 						   ErrLog2EventInfoT *strhash_data,
-						   LogSource2ResourceT *resinfo)
+						   LogSource2ResourceT *logsrc2res)
 {	
 	gchar dupstr[SNMP_BC_MAX_SEL_ENTRY_LENGTH];
 	ErrLog2EventInfoT *dupstr_hash_data;
 	short strnum;
 
-	if (!search_str || !strhash_data || !resinfo) {
+	if (!search_str || !strhash_data || !logsrc2res) {
 		dbg("Invalid parameter.");
 		return(NULL);
 	}
@@ -700,10 +784,10 @@ static ErrLog2EventInfoT *snmp_bc_findevent4dupstr(gchar *search_str,
 		gchar *normalized_event; 
 
 		/* Search entire sensor array for the duplicate string's event */
-		for (i=0; (resinfo->sensor_array_ptr + i)->sensor.Num != 0; i++) {
-			for (j=0; (resinfo->sensor_array_ptr + i)->sensor_info.event_array[j].event != NULL; j++) {
-				normalized_event = oh_derive_string(&(resinfo->ep),
-						   (resinfo->sensor_array_ptr + i)->sensor_info.event_array[j].event);
+		for (i=0; (logsrc2res->sensor_array_ptr + i)->sensor.Num != 0; i++) {
+			for (j=0; (logsrc2res->sensor_array_ptr + i)->sensor_info.event_array[j].event != NULL; j++) {
+				normalized_event = oh_derive_string(&(logsrc2res->ep),
+						   (logsrc2res->sensor_array_ptr + i)->sensor_info.event_array[j].event);
 				if (!strcmp(dupstr_hash_data->event, normalized_event)) {
 					g_free(normalized_event);
 					return(dupstr_hash_data);
@@ -713,9 +797,9 @@ static ErrLog2EventInfoT *snmp_bc_findevent4dupstr(gchar *search_str,
 		}
 		
 		/* Search resource array for the duplicate string's event */
-		for (i=0; snmp_bc_rpt_array[resinfo->rpt].res_info.event_array[i].event != NULL; i++) {
-			normalized_event = oh_derive_string(&(resinfo->ep),
-					   snmp_bc_rpt_array[resinfo->rpt].res_info.event_array[i].event);
+		for (i=0; snmp_bc_rpt_array[logsrc2res->rpt].res_info.event_array[i].event != NULL; i++) {
+			normalized_event = oh_derive_string(&(logsrc2res->ep),
+					   snmp_bc_rpt_array[logsrc2res->rpt].res_info.event_array[i].event);
 			if (!strcmp(dupstr_hash_data->event, normalized_event)) {
 				g_free(normalized_event);
 				return(dupstr_hash_data);
@@ -965,7 +1049,7 @@ static SaErrorT snmp_bc_set_event_severity(struct oh_handler_state *handle,
  * For non-readable sensors, current state is simply the processed 
  * event's state.
  *
- * This routine is optional for sensors; but NOT hotswap.
+ * This routine is optional for sensors; but NOT hot swap.
  *
  * Return values:
  * SA_OK - Normal case.
@@ -1068,6 +1152,10 @@ static SaErrorT snmp_bc_set_cur_prev_event_states(struct oh_handler_state *handl
 
 		resinfo = (struct ResourceInfo *)oh_get_resource_data(handle->rptcache, event->Source);
 		if (resinfo == NULL) {
+			/* If there is no resource data in rptcache, ie. no rpt,   */
+			/* this resource either did not exist at HPI time 0, or    */
+			/* has previously been removed from system.                */
+			/* It is safe to assume that it is being Hotswap-Installed */
 			dbg("No resource data. RID=%x", event->Source);
 			event->EventDataUnion.HotSwapEvent.PreviousHotSwapState	= SAHPI_HS_STATE_NOT_PRESENT;
 			event->EventDataUnion.HotSwapEvent.HotSwapState =  SAHPI_HS_STATE_INSERTION_PENDING;			
@@ -1079,16 +1167,12 @@ static SaErrorT snmp_bc_set_cur_prev_event_states(struct oh_handler_state *handl
 		if (recovery_event) {
 			event->EventDataUnion.HotSwapEvent.HotSwapState =
 				resinfo->cur_state =
-				eventmap_info->hotswap_recovery_state;
+				eventmap_info->hs_recovery_state;
 		}
 		else {
-			//event->EventDataUnion.HotSwapEvent.HotSwapState =
-			//	resinfo->cur_state =
-			//	event->EventDataUnion.HotSwapEvent.HotSwapState;
 			event->EventDataUnion.HotSwapEvent.HotSwapState =
 				resinfo->cur_state =
 				eventmap_info->hpievent.EventDataUnion.HotSwapEvent.HotSwapState;
-			
 		}
 		break;
 	}
@@ -1171,7 +1255,7 @@ static SaErrorT snmp_bc_map2oem(SaHpiEventT *event,
  **/
 static SaErrorT snmp_bc_logsrc2rid(struct oh_handler_state *handle,
 				   gchar *src,
-				   LogSource2ResourceT *resinfo,
+				   LogSource2ResourceT *logsrc2res,
 				   unsigned int ovr_flags)
 {
 	int rpt_index;
@@ -1184,7 +1268,7 @@ static SaErrorT snmp_bc_logsrc2rid(struct oh_handler_state *handle,
 	struct snmp_bc_sensor *array_ptr;
 	struct snmp_bc_hnd *custom_handle;
 
-	if (!handle || !src || !resinfo) {
+	if (!handle || !src || !logsrc2res) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
@@ -1300,10 +1384,10 @@ static SaErrorT snmp_bc_logsrc2rid(struct oh_handler_state *handle,
 	}
 
 	/* Fill in RID and RPT table info about "Source" */
-	resinfo->rpt = rpt_index;
-	resinfo->sensor_array_ptr = array_ptr;
-	resinfo->ep = ep;
-	resinfo->rid = oh_uid_lookup(&ep);
+	logsrc2res->rpt = rpt_index;
+	logsrc2res->sensor_array_ptr = array_ptr;
+	logsrc2res->ep = ep;
+	logsrc2res->rid = oh_uid_lookup(&ep);
 
 	/**********************************************************************************
 	 * Generate RID, if necessary.
@@ -1311,11 +1395,15 @@ static SaErrorT snmp_bc_logsrc2rid(struct oh_handler_state *handle,
 	 * RID may be zero if resource hasn't ever been discovered since HPI initialization.
 	 * In this case, generate a valid RID. Infra-structure always assigns same RID 
          * number to an unique entity path. User app needs to worry about if resource 
-         * is actually in the chassis - just as they do for hot-swapped resources.
+         * is actually in the chassis - just as they do for hot swapped resources.
          **********************************************************************************/
-	if (resinfo->rid == 0) {
-		resinfo->rid = oh_uid_from_entity_path(&ep);
-		if (resinfo->rid == 0) {
+	
+	/* FIXME:: SES Is this required anymore? - should always get a valid RID if Peter discovers
+           all possible values. Can't find a RID implies and error */
+
+	if (logsrc2res->rid == 0) {
+		logsrc2res->rid = oh_uid_from_entity_path(&ep);
+		if (logsrc2res->rid == 0) {
 			dbg("No RID.");
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		}
