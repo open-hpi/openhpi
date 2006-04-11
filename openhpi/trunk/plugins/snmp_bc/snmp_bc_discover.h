@@ -26,7 +26,7 @@ SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
 			      
 SaErrorT snmp_bc_rediscover(struct oh_handler_state *handle,
 			  	SaHpiEventT *event,
-				LogSource2ResourceT *resinfo);
+				LogSource2ResourceT *logsrc2res);
 
 SaErrorT snmp_bc_discover_sensors(struct oh_handler_state *handle,
 				  struct snmp_bc_sensor *sensor_array,

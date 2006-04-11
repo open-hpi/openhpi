@@ -155,19 +155,26 @@ struct ResourceMibInfo {
 
 /* SNMP_BC_MAX_RESOURCE_EVENT_ARRAY_SIZE includes an ending NULL entry */
 #define SNMP_BC_MAX_EVENTS_PER_RESOURCE 10
-#define SNMP_BC_MAX_RESOURCE_EVENT_ARRAY_SIZE (SNMP_BC_MAX_EVENTS_PER_RESOURCE + 1) 
+#define SNMP_BC_MAX_RESOURCE_EVENT_ARRAY_SIZE (SNMP_BC_MAX_EVENTS_PER_RESOURCE + 1)
 
+/* For BladeCenter resources, some managed hot swap state events
+  (e.g. INSERTION_PENDING and EXTRACTION_PENDING) are automatically generated.
+  The "auto" fields below determine the auto-generated events. It's assummed 
+  that the INACTIVE state (0) never needs to be auto generated. */
 struct res_event_map {
         char *event;
 	SaHpiBoolT event_res_failure;
 	SaHpiBoolT event_res_failure_unexpected;
         SaHpiHsStateT event_state;
+	SaHpiHsStateT event_auto_state;
         SaHpiHsStateT recovery_state;
+	SaHpiHsStateT recovery_auto_state;	
 };
 
 struct ResourceInfo {
         struct ResourceMibInfo mib;
         SaHpiHsStateT cur_state;
+	SaHpiHsStateT prev_state; /* Needed to handle events that re-announce current hot swap state */
         struct res_event_map event_array[SNMP_BC_MAX_RESOURCE_EVENT_ARRAY_SIZE];
 };
 

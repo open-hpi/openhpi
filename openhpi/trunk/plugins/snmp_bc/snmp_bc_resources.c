@@ -53,6 +53,8 @@ struct snmp_rpt snmp_bc_rpt_array_bct[] = {
                                 .OidPowerOnOff = '\0',
 				.OidUuid = ".1.3.6.1.4.1.2.3.51.2.2.21.1.1.4.0",
                         },
+			.cur_state = 0,
+			.prev_state = 0,
                         .event_array = {
                                 {},
                         },
@@ -94,6 +96,8 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                                 .OidPowerOnOff = '\0',
 				.OidUuid = ".1.3.6.1.4.1.2.3.51.2.2.21.1.1.4.0",
                         },
+			.cur_state = 0,
+			.prev_state = 0,
                         .event_array = {
                                 {},
                         },
@@ -136,27 +140,37 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                                 .OidPowerOnOff = '\0',
 				.OidUuid = ".1.3.6.1.4.1.2.3.51.2.2.21.2.1.1.6.x",
                         },
+			.cur_state = SAHPI_HS_STATE_NOT_PRESENT,
+			.prev_state = SAHPI_HS_STATE_NOT_PRESENT,
                         .event_array = {
+				/* FIXME:: SES - Can MM be Managed Hot Swap? Else
+                                   kill the PENDING state */
                                 {
                                         .event = "0028200x", /* EN_MM_x_INSTALLED */
 					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
                                         .event_state = SAHPI_HS_STATE_INSERTION_PENDING,
+					.event_auto_state = 0,
                                         .recovery_state = SAHPI_HS_STATE_NOT_PRESENT,
-                                },
+					.recovery_auto_state = 0,
+				},
                                 {
                                         .event = "0028400x", /* EN_MM_x_REMOVED */
-					.event_res_failure = SAHPI_TRUE,
-					.event_res_failure_unexpected = SAHPI_TRUE,
+					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
                                         .event_state = SAHPI_HS_STATE_NOT_PRESENT,
+					.event_auto_state = 0,
                                         .recovery_state = SAHPI_HS_STATE_ACTIVE,
+					.recovery_auto_state = 0,
                                 },
                                 {
                                         .event = "0600020x", /* EN_MM_x_ISPRIME */
 					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
                                         .event_state = SAHPI_HS_STATE_ACTIVE,
+					.event_auto_state = 0,
                                         .recovery_state = SAHPI_HS_STATE_ACTIVE,
+					.recovery_auto_state = 0,
                                 },
                                 {},
                         },
@@ -183,11 +197,13 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                         .ResourceCapabilities = SAHPI_CAPABILITY_FRU |
 						SAHPI_CAPABILITY_MANAGED_HOTSWAP |
                                                 SAHPI_CAPABILITY_INVENTORY_DATA |
+			                        SAHPI_CAPABILITY_MANAGED_HOTSWAP |
 			                        SAHPI_CAPABILITY_POWER |
                                                 SAHPI_CAPABILITY_RDR |
 			                        SAHPI_CAPABILITY_RESET |
                                                 SAHPI_CAPABILITY_RESOURCE |
                                                 SAHPI_CAPABILITY_SENSOR,
+			.HotSwapCapabilities = SAHPI_HS_CAPABILITY_AUTOEXTRACT_READ_ONLY,
                         .ResourceSeverity = SAHPI_MAJOR,
 			.ResourceFailed = SAHPI_FALSE,
                 },
@@ -200,41 +216,55 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                                 .OidPowerOnOff = ".1.3.6.1.4.1.2.3.51.2.22.3.1.1.1.7.x",
 				.OidUuid = ".1.3.6.1.4.1.2.3.51.2.2.21.6.1.1.8.x",
                         },
-                        .event_array = {
+ 			.cur_state = SAHPI_HS_STATE_NOT_PRESENT,
+			.prev_state = SAHPI_HS_STATE_NOT_PRESENT,
+			.event_array = {
                                 {
                                         .event = "0EA0200x", /* EN_SWITCH_x_INSTALLED */
 					.event_res_failure = SAHPI_FALSE,
  					.event_res_failure_unexpected = SAHPI_FALSE,
-					.event_state = SAHPI_HS_STATE_INSERTION_PENDING,
-                                        .recovery_state = SAHPI_HS_STATE_NOT_PRESENT,
-                                },
-                                {
-                                        .event = "0EA0400x", /* EN_SWITCH_x_REMOVED */
-					.event_res_failure = SAHPI_TRUE,
-					.event_res_failure_unexpected = SAHPI_TRUE,
-                                        .event_state = SAHPI_HS_STATE_NOT_PRESENT,
-                                        .recovery_state = SAHPI_HS_STATE_ACTIVE,
-                                },
-                                {
-                                        .event = "0EA0600x", /* EN_SWITCH_x_POWERED_OFF */
-					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_HS_STATE_INSERTION_PENDING,
-                                        .recovery_state = SAHPI_HS_STATE_ACTIVE,
-                                },
+					.event_state = SAHPI_HS_STATE_INACTIVE,
+ 					.event_auto_state = 0,
+                                        .recovery_state = 0,
+					.recovery_auto_state = 0,
+				},
                                 {
                                         .event = "0EA0800x", /* EN_SWITCH_x_POWERED_ON */
 					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
                                         .event_state = SAHPI_HS_STATE_ACTIVE,
-                                        .recovery_state = SAHPI_HS_STATE_INSERTION_PENDING,
+ 					.event_auto_state = SAHPI_HS_STATE_INSERTION_PENDING,
+                                        .recovery_state = 0,
+					.recovery_auto_state = 0,
                                 },
+                                {
+                                        .event = "0EA0600x", /* EN_SWITCH_x_POWERED_OFF */
+					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_HS_STATE_INACTIVE,
+ 					.event_auto_state = SAHPI_HS_STATE_EXTRACTION_PENDING,
+                                        .recovery_state = 0,
+					.recovery_auto_state = 0,
+				},
+                                {
+                                        .event = "0EA0400x", /* EN_SWITCH_x_REMOVED */
+					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_HS_STATE_NOT_PRESENT,
+  					.event_auto_state = 0,
+                                        .recovery_state = 0,
+ 					.recovery_auto_state = 0,
+                              },
+				/* FIXME:: SES this should be a fault event - some aggregate
+                                   operational switch sensor */
                                 {
                                         .event = "0EA0000x", /* EN_FAULT_SWITCH_x */
 					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
                                         .event_state = SAHPI_HS_STATE_NOT_PRESENT,
+ 					.event_auto_state = 0,
                                         .recovery_state = SAHPI_HS_STATE_ACTIVE,
+					.recovery_auto_state = 0,
                                 },
                                 {},
                         },
@@ -266,11 +296,13 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                                                 SAHPI_CAPABILITY_FRU |
 						SAHPI_CAPABILITY_MANAGED_HOTSWAP |
                                                 SAHPI_CAPABILITY_INVENTORY_DATA |
+			                        SAHPI_CAPABILITY_MANAGED_HOTSWAP |
 			                        SAHPI_CAPABILITY_POWER |
                                                 SAHPI_CAPABILITY_RDR |
 			                        SAHPI_CAPABILITY_RESET |
                                                 SAHPI_CAPABILITY_RESOURCE |
                                                 SAHPI_CAPABILITY_SENSOR,
+			.HotSwapCapabilities = SAHPI_HS_CAPABILITY_AUTOEXTRACT_READ_ONLY,
                         .ResourceSeverity = SAHPI_MAJOR,
 			.ResourceFailed = SAHPI_FALSE,
                 },
@@ -283,49 +315,63 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                                 .OidPowerOnOff = ".1.3.6.1.4.1.2.3.51.2.22.1.6.1.1.7.x",
 				.OidUuid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.8.x",
                         },
-                        .event_array = {
+  			.cur_state = SAHPI_HS_STATE_NOT_PRESENT,
+			.prev_state = SAHPI_HS_STATE_NOT_PRESENT,
+			.event_array = {
                                 {
                                         .event = "0E00200x", /* EN_BLADE_x_INSTALLED */
 					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_HS_STATE_INSERTION_PENDING,
-                                        .recovery_state = SAHPI_HS_STATE_NOT_PRESENT,
-                                },
-                                {
-                                        .event = "0E00400x", /* EN_BLADE_x_REMOVED */
-					.event_res_failure = SAHPI_TRUE,
-					.event_res_failure_unexpected = SAHPI_TRUE,
-                                        .event_state = SAHPI_HS_STATE_NOT_PRESENT,
-                                        .recovery_state = SAHPI_HS_STATE_ACTIVE,
-                                },
-                                {
-                                        .event = "1C000001", /* EN_BLADE_PWR_DWN */
-					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_HS_STATE_INSERTION_PENDING,
-                                        .recovery_state = SAHPI_HS_STATE_ACTIVE,
+                                        .event_state = SAHPI_HS_STATE_INACTIVE,
+ 					.event_auto_state = 0,
+                                        .recovery_state = 0,
+					.recovery_auto_state = 0,
                                 },
                                 {
                                         .event = "1C000002",/* EN_BLADE_PWR_UP */
 					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
                                         .event_state = SAHPI_HS_STATE_ACTIVE,
-                                        .recovery_state = SAHPI_HS_STATE_INSERTION_PENDING,
+ 					.event_auto_state = SAHPI_HS_STATE_INSERTION_PENDING,
+                                        .recovery_state = 0,
+					.recovery_auto_state = 0,
                                 },
+                                {
+                                        .event = "1C000001", /* EN_BLADE_PWR_DWN */
+					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_HS_STATE_INACTIVE,
+ 					.event_auto_state = SAHPI_HS_STATE_EXTRACTION_PENDING,
+                                        .recovery_state = 0,
+ 					.recovery_auto_state = 0,
+				},
                                 {
                                         .event = "06026080", /* EN_BLADE_PWR_DN_FAN_FAIL */
 					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_HS_STATE_INSERTION_PENDING,
+                                        .event_state = SAHPI_HS_STATE_INACTIVE,
+ 					.event_auto_state = SAHPI_HS_STATE_EXTRACTION_PENDING,
                                         .recovery_state = SAHPI_HS_STATE_ACTIVE,
+					.recovery_auto_state = SAHPI_HS_STATE_INSERTION_PENDING,
                                 },
                                 {
                                         .event = "0821C080", /* EN_BLADE_PWR_DN_PM_TEMP */
 					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_HS_STATE_INSERTION_PENDING,
+                                        .event_state = SAHPI_HS_STATE_INACTIVE,
+ 					.event_auto_state = SAHPI_HS_STATE_EXTRACTION_PENDING,
                                         .recovery_state = SAHPI_HS_STATE_ACTIVE,
-                                },
+ 					.recovery_auto_state = SAHPI_HS_STATE_INSERTION_PENDING,
+				},
+                                {
+                                        .event = "0E00400x", /* EN_BLADE_x_REMOVED */
+					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_HS_STATE_NOT_PRESENT,
+  					.event_auto_state = 0,
+                                        .recovery_state = 0,
+					.recovery_auto_state = 0,
+				},
                                 {},
                         },
                 },
@@ -372,6 +418,8 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                                 .OidPowerOnOff = '\0',
 				.OidUuid = '\0',
                         },
+  			.cur_state = 0,
+			.prev_state = 0,
                         .event_array = {
                                 {},
                         },
@@ -416,13 +464,17 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                                 .OidPowerOnOff = '\0',
 				.OidUuid = ".1.3.6.1.4.1.2.3.51.2.2.21.9.8.0",
                         },
+  			.cur_state = SAHPI_HS_STATE_NOT_PRESENT,
+			.prev_state = SAHPI_HS_STATE_NOT_PRESENT,
                         .event_array = {
                                 {
                                         .event = "06A1E001", /* EN_MEDIA_TRAY_REMOVED */
-					.event_res_failure = SAHPI_TRUE,
-					.event_res_failure_unexpected = SAHPI_TRUE,
+					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
                                         .event_state = SAHPI_HS_STATE_NOT_PRESENT,
+					.event_auto_state = 0,
                                         .recovery_state = SAHPI_HS_STATE_ACTIVE,
+					.recovery_auto_state = 0,
                                 },
                                 {},
                         },
@@ -462,20 +514,24 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                                 .OidPowerOnOff = '\0',
 				.OidUuid = '\0',
                         },
+  			.cur_state = SAHPI_HS_STATE_NOT_PRESENT,
+			.prev_state = SAHPI_HS_STATE_NOT_PRESENT,
                         .event_array = {
 				{
-                                        .event = "0A02600x", /* EN_FAULT_FAN1 */
-					.event_res_failure = SAHPI_TRUE,
-					.event_res_failure_unexpected = SAHPI_TRUE,
+                                        .event = "0A02600x", /* EN_FAULT_FANx */
+					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
                                         .event_state = SAHPI_HS_STATE_NOT_PRESENT,
-                                        .recovery_state = SAHPI_HS_STATE_ACTIVE,
-                                },
+ 					.event_auto_state = 0,
+					.recovery_state = SAHPI_HS_STATE_ACTIVE,
+ 					.recovery_auto_state = 0,
+				},
 				{},
                         },
                 },
                 .comment = "Blower Module"
         },
-        /* Power Supply */
+        /* Power Module */
         {
                 .rpt = {
                         .ResourceInfo = {
@@ -509,25 +565,31 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                                 .OidPowerOnOff = '\0',
 				.OidUuid = ".1.3.6.1.4.1.2.3.51.2.2.21.8.1.1.8.x",
                         },
+  			.cur_state = SAHPI_HS_STATE_NOT_PRESENT,
+			.prev_state = SAHPI_HS_STATE_NOT_PRESENT,
                         .event_array = {
                                 {
                                         .event = "0821600x", /* EN_PSx_INSTALLED */
 					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
                                         .event_state = SAHPI_HS_STATE_ACTIVE,
+					.event_auto_state = 0,
                                         .recovery_state = SAHPI_HS_STATE_NOT_PRESENT,
+					.recovery_auto_state = 0,
                                 },
                                 {
                                         .event = "0821E00x", /* EN_FAULT_PSx_REMOVED */
-					.event_res_failure = SAHPI_TRUE,
-					.event_res_failure_unexpected = SAHPI_TRUE,
+					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
                                         .event_state = SAHPI_HS_STATE_NOT_PRESENT,
+					.event_auto_state = 0,
                                         .recovery_state = SAHPI_HS_STATE_ACTIVE,
-                                },
+ 					.recovery_auto_state = 0,
+				},
                                 {},
                         },
                 },
-                .comment = "Power Supply"
+                .comment = "Power Module"
         },
 
         {} /* Terminate array with a null element */

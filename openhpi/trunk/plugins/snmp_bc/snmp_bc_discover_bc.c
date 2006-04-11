@@ -753,7 +753,6 @@ SaErrorT snmp_bc_discover_blade(struct oh_handler_state *handle,
 				   SAHPI_ENT_SBC_BLADE, i + SNMP_BC_HPI_LOCATION_BASE);
 			e->u.res_event.entry.ResourceId = 
 				oh_uid_from_entity_path(&(e->u.res_event.entry.ResourceEntity));
-
 			res_info_ptr = g_memdup(&(snmp_bc_rpt_array[BC_RPT_ENTRY_BLADE].res_info),
 						sizeof(struct ResourceInfo));
 			if (!res_info_ptr) {
@@ -766,7 +765,7 @@ SaErrorT snmp_bc_discover_blade(struct oh_handler_state *handle,
 		if ((blade_vector[i] == '0') && 
 		    (custom_handle->first_discovery_done == SAHPI_FALSE)) 
 		{
-			/* Make sure that we have static information 
+			/* Make sure that we have static infomation 
 			 * for this **empty** blade slot in hash during HPI initialization
 			 */ 
 			res_info_ptr->cur_state = SAHPI_HS_STATE_NOT_PRESENT;
@@ -1602,7 +1601,6 @@ static void free_hash_data(gpointer key, gpointer value, gpointer user_data)
         g_free(value);
 }
 
-
 /**
  * snmp_bc_rediscover: 
  * @handler: Pointer to handler's data.
@@ -1613,13 +1611,11 @@ static void free_hash_data(gpointer key, gpointer value, gpointer user_data)
  *   -- In resource is newly installed, then rediscover ...
  *
  * Return values:
- * SA_OK - normal case
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory
- * SA_ERR_HPI_INVALID_PARAMS - Invalid pointers passed in
+ *
  **/
 SaErrorT snmp_bc_rediscover(struct oh_handler_state *handle,
 			  		SaHpiEventT *event, 
-					LogSource2ResourceT *resinfo)
+					LogSource2ResourceT *logsrc2res)
 {
 	SaErrorT err;
 	gint i;
@@ -1709,8 +1705,8 @@ SaErrorT snmp_bc_rediscover(struct oh_handler_state *handle,
     		hotswap_entitylocation = 0xFF;   /* Invalid location                   */
 						 /* Do not use 0 for invalid location  */
 						 /* because virtual resource has loc 0 */
-		for (i=0; resinfo->ep.Entry[i].EntityType != SAHPI_ENT_SYSTEM_CHASSIS; i++) {
-			switch (resinfo->ep.Entry[i].EntityType) {
+		for (i=0; logsrc2res->ep.Entry[i].EntityType != SAHPI_ENT_SYSTEM_CHASSIS; i++) {
+			switch (logsrc2res->ep.Entry[i].EntityType) {
 				case SAHPI_ENT_SBC_BLADE:
 				case SAHPI_ENT_FAN: 
 				case SAHPI_ENT_POWER_SUPPLY: 
@@ -1718,8 +1714,8 @@ SaErrorT snmp_bc_rediscover(struct oh_handler_state *handle,
 				case SAHPI_ENT_SYS_MGMNT_MODULE:
 				case SAHPI_ENT_PERIPHERAL_BAY:
 					foundit = SAHPI_TRUE;
-					hotswap_entitytype = resinfo->ep.Entry[i].EntityType;
-    					hotswap_entitylocation = resinfo->ep.Entry[i].EntityLocation;
+					hotswap_entitytype = logsrc2res->ep.Entry[i].EntityType;
+    					hotswap_entitylocation = logsrc2res->ep.Entry[i].EntityLocation;
 					for (i=0; i < SNMP_BC_MAX_RESOURCES_MASK; i++) {
 						if (  i != (hotswap_entitylocation - 1) ) 
 							resource_mask[i] = '0';

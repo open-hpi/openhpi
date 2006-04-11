@@ -43,7 +43,7 @@ SaErrorT snmp_bc_get_event(void *hnd, struct oh_event *event)
 	handle = (struct oh_handler_state *)hnd;
 	custom_handle = (struct snmp_bc_hnd *)handle->data;
 	
-     	snmp_bc_lock_handler(custom_handle);	
+     	snmp_bc_lock_handler(custom_handle);
 	err = snmp_bc_check_selcache(handle, 1, SAHPI_NEWEST_ENTRY);
 	
 	/* If err is encountered during el cache sync, */
