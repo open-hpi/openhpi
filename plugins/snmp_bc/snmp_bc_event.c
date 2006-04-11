@@ -646,7 +646,7 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 					
 					/* Build event */
 					memcpy((void *)&autoevent, (void *)&working, sizeof(SaHpiEventT));
-					// autoevent.Timestamp = event_time; 
+					autoevent.Timestamp = event_time; 
 					autoevent.Severity = SAHPI_INFORMATIONAL;
 					
 					autoevent.EventDataUnion.HotSwapEvent.PreviousHotSwapState =
