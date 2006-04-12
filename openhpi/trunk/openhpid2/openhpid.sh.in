@@ -75,6 +75,7 @@ print_outcome()
 
 start() {
         export `@prefix@/bin/openhpi-switcher --env=standard` || return 1
+	export OPENHPI_DAEMON_MODE="YES"
 	echo $"Starting $prog: "
 	case "${lsbtype}" in
 		
