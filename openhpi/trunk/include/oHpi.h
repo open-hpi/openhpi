@@ -60,7 +60,7 @@ typedef union {
         SaHpiBoolT DelSave; /* True if domain event log is to be saved to disk */
         SaHpiUint32T DatSizeLimit; /* Max alarms allowed in alarm table */
         SaHpiUint32T DatUserLimit; /* Max number of user alarms allowed */
-        SaHpiUint32T daemon_mode;
+        SaHpiUint32T Daemon; /* 1 = YES, 0 = NO */
         //unsigned char Debug; /* 1 = YES, 0 = NO */
         //unsigned char DebugTrace; /* !0 = YES, 0 = NO */
         //unsigned char DebugLock; /* !0 = YES, 0 = NO */
