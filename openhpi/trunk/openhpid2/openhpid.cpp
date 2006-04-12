@@ -31,6 +31,8 @@ extern "C"
 {
 #include <SaHpi.h>
 #include <oHpi.h>
+#include <oh_error.h>
+#include <oh_threaded.h>
 }
 
 #include "strmsock.h"
@@ -119,6 +121,7 @@ void display_help(void)
 }
 
 
+static int initialized = FALSE;
 /*--------------------------------------------------------------------*/
 /* Function: main                                                     */
 /*--------------------------------------------------------------------*/
@@ -132,6 +135,7 @@ int main (int argc, char *argv[])
         char pid_buf[256];
         int pfile, len, pid = 0;
         SaHpiUint64T version = 0;
+        oHpiGlobalParamT my_global_param;
 
         /* get the command line options */
         while (1) {
@@ -274,6 +278,7 @@ int main (int argc, char *argv[])
         if (!g_thread_supported()) {
                 g_thread_init(NULL);
         }
+
 	thrdpool = g_thread_pool_new(service_thread, NULL, max_threads, FALSE, NULL);
 
         // create the server socket
@@ -284,6 +289,19 @@ int main (int argc, char *argv[])
                 	delete servinst;
 		return 8;
 	}
+
+
+
+        /* if we are in threaded mode and runnning as a daemon */
+        my_global_param.Type = OHPI_DAEMON_MODE;
+        oHpiGlobalParamGet(&my_global_param);
+        if ((my_global_param.u.Daemon) && (initialized == FALSE)) {
+            initialized = TRUE;
+            oh_threaded_start();
+            trace(" ### we are running as a daemon my_global_param.u.Daemon[%d]###\n", my_global_param.u.Daemon);
+        } else {
+            trace(" ### we are not running as a daemon my_global_param.u.Daemon[%d]###\n", my_global_param.u.Daemon);
+        }
 
         // announce ourselves
         printf("%s started.\n", argv[0]);
