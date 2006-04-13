@@ -2,7 +2,7 @@ MAINTAINERCLEANFILES = Makefile.in
 
 MOSTLYCLEANFILES        = @TEST_CLEAN@
 
-sysconf_DATA = openhpi.conf
+#sysconf_DATA = openhpi.conf
 
 EXTRA_DIST = openhpi.conf.example
 
@@ -23,9 +23,9 @@ uninstall-local:
 #pkgsysconfdir = $(sysconfdir)/$(PACKAGE)
 #pkgsysconf_DATA = openhpi.conf.example
 
-openhpi.conf: openhpi.conf.example
-	cp -f $(srcdir)/openhpi.conf.example openhpi.conf
+#openhpi.conf: openhpi.conf.example
+#	cp -f $(srcdir)/openhpi.conf.example openhpi.conf
 
 clean-local:
-	rm -f *~ openhpi.conf
+	rm -f *~
 
