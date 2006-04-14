@@ -1634,6 +1634,7 @@ SaErrorT snmp_bc_rediscover(struct oh_handler_state *handle,
 	struct snmp_value get_value;
 	struct snmp_bc_hnd *custom_handle;
 	char *root_tuple;
+	struct ResourceInfo *resinfo;
 	char resource_mask[SNMP_BC_MAX_RESOURCES_MASK];
 	SaHpiEntityPathT     ep_root;
 	SaHpiEntityTypeT     hotswap_entitytype;
@@ -1906,6 +1907,32 @@ SaErrorT snmp_bc_rediscover(struct oh_handler_state *handle,
         	g_slist_free(custom_handle->tmpqueue);
         	oh_flush_rpt(custom_handle->tmpcache);  
         	g_free(custom_handle->tmpcache);
+		
+		/** 
+		 **  Before returning, see if we need to readjust current Hotswap state.
+		 **  (1) Previously, snmp_bc_log2event()/snmp_bc_set_cur_prev_event_states() set 
+		 **      HotSwapState =  SAHPI_HS_STATE_INACTIVE by default if there **was** no rpt,
+		 **      no resinfo.   
+		 **  (2) Now that rediscovery is complete, check handle->rptcache for this resource
+		 **      CAPABILITY.  If it is Managed Hotswap, then INACTIVE HotSwapState is OK.
+		 **      If it is Simple Hotswap, then HotSwapState needs to be set to ACTIVE in both event
+		 **      and resinfo. 
+		 **/
+		 res = oh_get_resource_by_ep(handle->rptcache, &logsrc2res->ep);
+		 if (res) {
+		 	if ( (event->EventType == SAHPI_ET_HOTSWAP) 
+					&& (event->EventDataUnion.HotSwapEvent.HotSwapState == SAHPI_HS_STATE_INACTIVE) ) 
+			{
+				if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP))
+				{
+					resinfo = (struct ResourceInfo *)oh_get_resource_data(handle->rptcache, event->Source);
+			
+					resinfo->cur_state =
+						event->EventDataUnion.HotSwapEvent.HotSwapState = 
+												SAHPI_HS_STATE_ACTIVE;
+				}
+			}
+		}
 	}	
 	return(SA_OK);
 	
