@@ -605,7 +605,7 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 		rpt = oh_get_resource_by_id(handle->rptcache, event_rid);
 		resinfo2 = (struct ResourceInfo *)oh_get_resource_data(handle->rptcache, event_rid);
 
-		if (!rpt || !resinfo2) {
+		if ( (custom_handle->first_discovery_done == SAHPI_FALSE)||!rpt || !resinfo2) {
 			dbg("No RPT RID=%x", event_rid);
 			if (is_recovery_event != SAHPI_TRUE) {
 				snmp_bc_set_event_severity(handle, eventmap_info, &working, &event_severity);
