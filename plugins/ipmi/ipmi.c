@@ -182,7 +182,9 @@ static void *ipmi_open(GHashTable *handler_config)
                         oh_append_textbuffer(&buf, "IPMI Domain");
                 }
 
-                ipmi_handler->did = oh_request_new_domain(*hid, &buf, 0, 0, 0);
+                ipmi_handler->did = oh_request_new_domain_aitimeout(*hid, &buf,
+                        SAHPI_DOMAIN_CAP_AUTOINSERT_READ_ONLY,
+                        SAHPI_TIMEOUT_BLOCK, 0, 0);
         } else
                 ipmi_handler->did = oh_get_default_domain_id();
 
@@ -1083,28 +1085,7 @@ static SaErrorT ipmi_clear_el(void *hnd, SaHpiResourceIdT id)
         return rv;
 }
 
-SaErrorT ohoi_get_rdr_data(const struct oh_handler_state *handler,
-                           SaHpiResourceIdT              id,
-                           SaHpiRdrTypeT                 type,
-                           SaHpiSensorNumT               num,
-                           void                          **pdata)
-{
-        SaHpiRdrT * rdr;
-        rdr = oh_get_rdr_by_type(handler->rptcache,
-                                 id,
-                                 type,
-                                 num);
-        if (!rdr) {
-		dbg("no rdr for Resource %d. type = %d, num = %d", id, type, num);
-                /*XXX No err code for invalid rdr?*/
-                return SA_ERR_HPI_INVALID_RESOURCE;
-        }
 
-        *pdata = oh_get_rdr_data(handler->rptcache,
-                                 id,
-                                 rdr->RecordId);
-        return SA_OK;
-}
 
 #define SENSOR_CHECK(handler, sensor_info, id, num)                           \
 do {                                                                          \

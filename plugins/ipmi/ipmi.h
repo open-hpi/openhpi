@@ -143,6 +143,7 @@ struct ohoi_resource_info {
 	unsigned char deleted;	/* entity must be deleled after event of removing
 				RPT has been sent to domain */
 	unsigned char hs_mark;  /* to handle properly M3->M6->M1 ATCA transition */
+	SaHpiTimeoutT hs_inspen_time; /* time of last insertion pending state */
 	SaHpiUint8T  sensor_count; 
         SaHpiUint8T  ctrl_count; 
 
@@ -537,7 +538,8 @@ SaErrorT ohoi_request_hotswap_action(void *hnd, SaHpiResourceIdT id,
 
 SaErrorT ohoi_get_indicator_state(void *hnd, SaHpiResourceIdT id, 
                                   SaHpiHsIndicatorStateT *state);
-SaErrorT ohoi_hotswap_policy_cancel(void *hnd, SaHpiResourceIdT rid);
+SaErrorT ohoi_hotswap_policy_cancel(void *hnd, SaHpiResourceIdT rid,
+                                    SaHpiTimeoutT  ins_timeout);
 
 SaErrorT ohoi_set_indicator_state(void *hnd, SaHpiResourceIdT id, 
 				  SaHpiHsIndicatorStateT state);

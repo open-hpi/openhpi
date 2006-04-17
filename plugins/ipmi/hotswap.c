@@ -278,7 +278,13 @@ printf("\n");
 	if (e->u.hpi_event.event.EventDataUnion.HotSwapEvent.PreviousHotSwapState ==
 		e->u.hpi_event.event.EventDataUnion.HotSwapEvent.HotSwapState) {
 		free(e);
-		return IPMI_EVENT_NOT_HANDLED;
+		return IPMI_EVENT_HANDLED;
+	}
+	if (e->u.hpi_event.event.EventDataUnion.HotSwapEvent.HotSwapState ==
+					SAHPI_HS_STATE_INSERTION_PENDING) {
+		res_info->hs_inspen_time = e->u.hpi_event.event.Timestamp;
+	} else {
+		res_info->hs_inspen_time = SAHPI_TIME_UNSPECIFIED;
 	}
 	if (e->u.hpi_event.event.EventDataUnion.HotSwapEvent.HotSwapState ==
 	    					SAHPI_HS_STATE_NOT_PRESENT) {
@@ -432,13 +438,12 @@ static void _hotswap_done(ipmi_entity_t *ent,
 SaErrorT ohoi_set_hotswap_state(void *hnd, SaHpiResourceIdT id, 
                                 SaHpiHsStateT state)
 {
-        struct oh_handler_state         *handler;
+        struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
+	struct ohoi_handler *ipmi_handler = handler->data;
         const struct ohoi_resource_info   *ohoi_res_info;
 	struct hs_done_s info;
 	SaErrorT rv;
 
-        handler = (struct oh_handler_state *)hnd;
-	struct ohoi_handler *ipmi_handler = handler->data;
 
         ohoi_res_info = oh_get_resource_data(handler->rptcache, id);
 
@@ -736,24 +741,63 @@ SaErrorT ohoi_get_indicator_state(void *hnd, SaHpiResourceIdT id,
 }
 
 
-SaErrorT ohoi_hotswap_policy_cancel(void *hnd, SaHpiResourceIdT rid)
+SaErrorT ohoi_hotswap_policy_cancel(void *hnd, SaHpiResourceIdT rid,
+                                    SaHpiTimeoutT  ins_timeout)
 {
 	struct oh_handler_state         *handler = hnd;
 	struct ohoi_handler *ipmi_handler = handler->data;
+        struct ohoi_resource_info   *res_info;
 	struct ohoi_control_info	*ctrl_info;
+        SaHpiRptEntryT *rpt;
+	SaHpiResourceIdT prid;
+	SaHpiTimeoutT curtime;
 	SaErrorT rv;
 
 	if (!IS_ATCA(ipmi_handler->d_type)) {
 		return SA_OK;
 	}
-        rv = ohoi_get_rdr_data(hnd, rid, SAHPI_CTRL_RDR,
+        rpt = oh_get_resource_by_id(handler->rptcache, rid);
+        if (rpt == NULL) {
+        	dbg("No rpt for id = %d", rid);
+		return SA_ERR_HPI_INTERNAL_ERROR;
+	}
+	
+	// get parent (slot) rpt
+	
+	prid = ohoi_get_parent_id(rpt);
+        rv = ohoi_get_rdr_data(hnd, prid, SAHPI_CTRL_RDR,
 		ATCAHPI_CTRL_NUM_FRU_ACTIVATION, (void *)&ctrl_info);
 
-	if (rv == SA_OK) {
+	if (rv != SA_OK) {
 		dbg("NO FRU Activation Control");
 		return SA_ERR_HPI_INVALID_REQUEST;
 	}
+
 	if (ctrl_info->mode == SAHPI_CTRL_MODE_AUTO) {
+		dbg("mode == AUTO");
+		return SA_ERR_HPI_INVALID_REQUEST;
+	}
+
+	res_info = oh_get_resource_data(handler->rptcache, rid);
+	if (res_info == NULL) {
+		dbg("no res_info");
+		return SA_ERR_HPI_INTERNAL_ERROR;
+	}
+	if (ins_timeout == SAHPI_TIMEOUT_BLOCK) {
+		return SA_OK;
+	}
+	if (res_info->hs_inspen_time == SAHPI_TIME_UNSPECIFIED) {
+		// time of last insertion pending state unknown
+		dbg("time of last insertion pending state unknown");
+		return SA_ERR_HPI_INVALID_REQUEST;
+	}
+	if (ins_timeout == SAHPI_TIMEOUT_IMMEDIATE) {
+		dbg("ins_timeout == SAHPI_TIMEOUT_IMMEDIATE");
+		return SA_ERR_HPI_INVALID_REQUEST;
+	}
+	oh_gettimeofday(&curtime);
+	if (res_info->hs_inspen_time + ins_timeout > curtime) {
+		dbg("time expired");
 		return SA_ERR_HPI_INVALID_REQUEST;
 	}
 	return SA_OK;
@@ -777,7 +821,7 @@ void * oh_get_indicator_state (void *, SaHpiResourceIdT,
 void * oh_set_indicator_state (void *, SaHpiResourceIdT,
                                SaHpiHsIndicatorStateT)
                 __attribute__ ((weak, alias("ohoi_set_indicator_state")));
-void * oh_hotswap_policy_cancel (void *, SaHpiResourceIdT)
+void * oh_hotswap_policy_cancel (void *, SaHpiResourceIdT, SaHpiTimeoutT)
                 __attribute__ ((weak, alias("ohoi_hotswap_policy_cancel")));
 
 

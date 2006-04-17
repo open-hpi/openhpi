@@ -58,7 +58,7 @@ static void mc_remove(ipmi_mc_t                    *mc,
 		dbg("couldn't find out resource");
 	} else {
 		rpt->ResourceCapabilities &=
-			SAHPI_CAPABILITY_EVENT_LOG;
+			~SAHPI_CAPABILITY_EVENT_LOG;
 	}
 	g_static_rec_mutex_unlock(&ipmi_handler->ohoih_lock);
 }
