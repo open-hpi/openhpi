@@ -441,6 +441,20 @@ struct oh_abi_v2 {
                                     SaHpiAnnunciatorNumT num, SaHpiAnnunciatorModeT mode);
 
 
+                                   
+                                    
+        /**
+         * hotswap policy cancel
+         */
+        SaErrorT (*hotswap_policy_cancel)(void *hnd, SaHpiResourceIdT id,
+                                 SaHpiTimeoutT timeout);
+
+        /**
+         * set autoinsert timeout
+         */
+        SaErrorT (*set_autoinsert_timeout)(void *hnd, SaHpiTimeoutT timeout);
+
+        
         /**
          * get hotswap state
          */

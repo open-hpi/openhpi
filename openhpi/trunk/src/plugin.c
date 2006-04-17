@@ -957,8 +957,12 @@ int oh_load_plugin_functions(struct oh_plugin *plugin, struct oh_abi_v2 **abi)
                                                 "oh_get_annunc_mode");
         (*abi)->set_annunc_mode           = lt_dlsym(plugin->dl_handle,
                                                 "oh_set_annunc_mode");
+        (*abi)->hotswap_policy_cancel     = lt_dlsym(plugin->dl_handle,
+                                                "oh_hotswap_policy_cancel");
         (*abi)->get_hotswap_state         = lt_dlsym(plugin->dl_handle,
                                                 "oh_get_hotswap_state");
+        (*abi)->set_autoinsert_timeout    = lt_dlsym(plugin->dl_handle,
+                                                "oh_set_autoinsert_timeout");
         (*abi)->set_hotswap_state         = lt_dlsym(plugin->dl_handle,
                                                 "oh_set_hotswap_state");
         (*abi)->request_hotswap_action    = lt_dlsym(plugin->dl_handle,
