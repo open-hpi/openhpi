@@ -144,6 +144,30 @@ SaHpiRptEntryT *ohoi_get_resource_by_mcid(RPTable                *table,
         return NULL;
 }
 
+SaErrorT ohoi_get_rdr_data(const struct oh_handler_state *handler,
+                           SaHpiResourceIdT              id,
+                           SaHpiRdrTypeT                 type,
+                           SaHpiSensorNumT               num,
+                           void                          **pdata)
+{
+        SaHpiRdrT * rdr;
+        rdr = oh_get_rdr_by_type(handler->rptcache,
+                                 id,
+                                 type,
+                                 num);
+        if (!rdr) {
+		dbg("no rdr for Resource %d. type = %d, num = %d", id, type, num);
+                /*XXX No err code for invalid rdr?*/
+                return SA_ERR_HPI_INVALID_RESOURCE;
+        }
+
+        *pdata = oh_get_rdr_data(handler->rptcache,
+                                 id,
+                                 rdr->RecordId);
+        return SA_OK;
+}
+
+
 
 
 SaHpiRdrT *ohoi_get_rdr_by_data(RPTable *table,

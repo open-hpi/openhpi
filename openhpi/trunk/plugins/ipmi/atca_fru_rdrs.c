@@ -2207,10 +2207,10 @@ no_ipmb0_controls:
 
 no_fru_control:
 	if (!ohoi_rpt_has_sensors(handler, rpt->ResourceId)) {
-		rpt->ResourceCapabilities &= SAHPI_CAPABILITY_SENSOR;
+		rpt->ResourceCapabilities &= ~SAHPI_CAPABILITY_SENSOR;
 	}
 	if (!ohoi_rpt_has_controls(handler, rpt->ResourceId)) {
-		rpt->ResourceCapabilities &= SAHPI_CAPABILITY_CONTROL;
+		rpt->ResourceCapabilities &= ~SAHPI_CAPABILITY_CONTROL;
 	}
 	if ((oh_get_rdr_next(handler->rptcache, rpt->ResourceId,
 					 SAHPI_FIRST_ENTRY) == NULL) &&
