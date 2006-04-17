@@ -3406,8 +3406,12 @@ SaErrorT SAHPI_API saHpiHotSwapPolicyCancel (
         SaHpiDomainIdT did;
         SaHpiHsStateT currentstate;
         SaErrorT rv;
+        struct oh_handler *h;
         struct oh_domain *d = NULL;
         struct oh_resource_data *rd;
+        SaHpiTimeoutT timeout;
+        SaErrorT (*hotswap_policy_cancel)(void *hnd, SaHpiResourceIdT,
+                                          SaHpiTimeoutT timeout);
 
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
@@ -3439,11 +3443,22 @@ SaErrorT SAHPI_API saHpiHotSwapPolicyCancel (
                 oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
-
-        rd->controlled = 1;
+        OH_HANDLER_GET(d, ResourceId, h);
+        timeout = d->ai_timeout;
         oh_release_domain(d); /* Unlock domain */
+        
+        hotswap_policy_cancel = h ? h->abi->hotswap_policy_cancel : NULL;
+        if (hotswap_policy_cancel) {
+                rv = hotswap_policy_cancel(h->hnd, ResourceId, timeout);
+        } else {
+                rv = SA_OK;
+        }
+        if (rv == SA_OK) {
+                rd->controlled = 1;
+        }
 
-        return SA_OK;
+        oh_release_handler(h);
+        return rv;
 }
 
 SaErrorT SAHPI_API saHpiResourceActiveSet (
@@ -3609,12 +3624,19 @@ SaErrorT SAHPI_API saHpiAutoInsertTimeoutGet(
         return SA_OK;
 }
 
+
+
+
+
 SaErrorT SAHPI_API saHpiAutoInsertTimeoutSet(
         SAHPI_IN SaHpiSessionIdT SessionId,
         SAHPI_IN SaHpiTimeoutT   Timeout)
 {
         SaHpiDomainIdT did;
         struct oh_domain *domain;
+        unsigned int hid = 0, next_hid;
+        struct oh_handler *h = NULL;
+        SaErrorT res = SA_OK;
 
         if (Timeout != SAHPI_TIMEOUT_IMMEDIATE &&
             Timeout != SAHPI_TIMEOUT_BLOCK &&
@@ -3630,6 +3652,34 @@ SaErrorT SAHPI_API saHpiAutoInsertTimeoutSet(
 
         if (domain->capabilities & SAHPI_DOMAIN_CAP_AUTOINSERT_READ_ONLY) {
                 return SA_ERR_HPI_READ_ONLY;
+        }
+        
+        oh_getnext_handler_id(hid, &next_hid);
+        while (next_hid) {
+                hid = next_hid;
+
+                if (oh_domain_served_by_handler(hid, did)) {
+                        h = oh_get_handler(hid);
+                        if (!h) {
+                                dbg("No such handler %d", hid);
+                                res = SA_ERR_HPI_INTERNAL_ERROR;
+                                break;
+                        }
+                        if (h->abi->set_autoinsert_timeout != NULL) {
+                                res = h->abi->set_autoinsert_timeout(
+                                                             h->hnd, Timeout);
+                        }
+                        oh_release_handler(h);
+                        if (res != SA_OK) {
+                                break;
+                        }
+                }
+                oh_getnext_handler_id(hid, &next_hid);
+        }
+        
+        if (res != SA_OK) {
+                oh_release_domain(domain);
+                return res;
         }
         
         set_hotswap_auto_insert_timeout(domain, Timeout);
