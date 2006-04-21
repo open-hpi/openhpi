@@ -131,7 +131,6 @@ AC_DEFUN([OH_CHECK_NETSNMP],
         have_netsnmp=yes
         SNMPFLAGS=`net-snmp-config --cflags | perl -p -e 's/-O\S*//g'`
         SNMPLIBS=`net-snmp-config --libs`
-        SNMPDIR=snmp
         AC_MSG_RESULT(yes)
     ],
     [AC_MSG_RESULT(no.  No SNMP based plugins can be built!)])

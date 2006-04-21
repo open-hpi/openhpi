@@ -225,6 +225,7 @@ AC_ARG_ENABLE([snmp_client],
     [if test "x$enableval" = "xyes"; then
         if test "x$have_netsnmp" = "xyes"; then
             AC_SUBST(SNMP_CLIENT,snmp_client)
+	    SNMPDIR=snmp
         else
             OH_CHECK_FAIL(net-snmp,net-snmp-devel,http://net-snmp.sourceforge.net/,
                 Can not build SNMP client support without net-snmp)
@@ -234,6 +235,7 @@ AC_ARG_ENABLE([snmp_client],
             AC_SUBST(SNMP_CLIENT,snmp_client)
             STATIC_PLUGIN_LIST="$STATIC_PLUGIN_LIST snmp_client"
             STATIC_PLUGIN_EXTRA_LIBS="$STATIC_PLUGIN_EXTRA_LIBS -luuid"
+	    SNMPDIR=snmp
         else
             OH_CHECK_FAIL(net-snmp,net-snmp-devel,http://net-snmp.sourceforge.net/,
                 Can not build SNMP client support without net-snmp)
@@ -320,6 +322,7 @@ AC_ARG_ENABLE([snmp_bc],
     [if test "x$enableval" = "xyes"; then
         if test "x$have_netsnmp" = "xyes"; then
             AC_SUBST(SNMP_BC,snmp_bc)
+	    SNMPDIR=snmp
         else
             OH_CHECK_FAIL(net-snmp,net-snmp-devel,http://net-snmp.sourceforge.net/,
                 Can not build IBM Blade Center support without net-snmp)
@@ -327,6 +330,7 @@ AC_ARG_ENABLE([snmp_bc],
     fi],
     [if test "x$have_netsnmp" = "xyes"; then
             AC_SUBST(SNMP_BC,snmp_bc)
+	    SNMPDIR=snmp
     fi]
     )
 
