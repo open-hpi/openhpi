@@ -1,0 +1,10 @@
+#!/bin/sh -x
+. $(top_builddir)/rt-shell.sh
+
+export OPENHPI_PATH=$(top_builddir)/plugins/simulator
+export OPENHPI_UID_MAP=$(shell pwd)/uid_map
+export OPENHPI_CONF=./openhpi.conf
+export OPENHPI_THREADED=YES
+
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:./.libs
+
