@@ -681,7 +681,12 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 			
 			working.EventDataUnion.HotSwapEvent.PreviousHotSwapState =
 				resinfo2->prev_state = resinfo2->cur_state;
-			working.EventDataUnion.HotSwapEvent.HotSwapState =
+			if (is_recovery_event)
+				working.EventDataUnion.HotSwapEvent.HotSwapState =
+				resinfo2->cur_state = 
+				eventmap_info->hs_recovery_state;
+			else
+				working.EventDataUnion.HotSwapEvent.HotSwapState =
 				resinfo2->cur_state = 
 				eventmap_info->hpievent.EventDataUnion.HotSwapEvent.HotSwapState;
 			
