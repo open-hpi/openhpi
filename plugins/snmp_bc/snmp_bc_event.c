@@ -606,7 +606,6 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 		resinfo2 = (struct ResourceInfo *)oh_get_resource_data(handle->rptcache, event_rid);
 
 		if ( (custom_handle->first_discovery_done == SAHPI_FALSE)||!rpt || !resinfo2) {
-			dbg("No RPT RID=%x", event_rid);
 			if (is_recovery_event != SAHPI_TRUE) {
 				snmp_bc_set_event_severity(handle, eventmap_info, &working, &event_severity);
 			}
@@ -678,10 +677,14 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 
 			/* Normal hot swap event transitions */
 			/* FIXME:: SES Check valid state ???? - What not valid - do what ??? */
-			
 			working.EventDataUnion.HotSwapEvent.PreviousHotSwapState =
 				resinfo2->prev_state = resinfo2->cur_state;
-			working.EventDataUnion.HotSwapEvent.HotSwapState =
+			if (is_recovery_event)
+				working.EventDataUnion.HotSwapEvent.HotSwapState =
+				resinfo2->cur_state = 
+				eventmap_info->hs_recovery_state;
+			else
+				working.EventDataUnion.HotSwapEvent.HotSwapState =
 				resinfo2->cur_state = 
 				eventmap_info->hpievent.EventDataUnion.HotSwapEvent.HotSwapState;
 			
