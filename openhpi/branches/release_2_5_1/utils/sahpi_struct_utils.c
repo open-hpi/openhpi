@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2004, 2005
+ * (C) Copyright IBM Corp. 2004-2006
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -12,8 +12,8 @@
  * Author(s):
  *      Sean Dague <sdague@users.sf.net>
  *      Steve Sherman <stevees@us.ibm.com>
- * Contributors:
  *      Racing Guo <racing.guo@intel.com>
+ *      Renier Morales <renierm@users.sf.net>
  */
 
 #include <glib.h>
@@ -27,6 +27,10 @@
 #include <SaHpi.h>
 #include <oh_utils.h>
 #include <oh_error.h>
+
+#define U_IS_SURROGATE(c) (((c)&0xfffff800)==0xd800)
+#define U_IS_LEAD(c) (((c)&0xfffffc00)==0xd800)
+#define U_IS_TRAIL(c) (((c)&0xfffffc00)==0xdc00)
 
 static inline SaErrorT oh_append_data(oh_big_textbuffer *big_buffer, const SaHpiUint8T *from, SaHpiUint8T len);
 
@@ -3080,18 +3084,40 @@ SaErrorT oh_fprint_ctrlstate(FILE *stream, const SaHpiCtrlStateT *thisctrlstate,
 SaHpiBoolT oh_valid_textbuffer(SaHpiTextBufferT *buffer)
 {
 	int i;
+	SaHpiUint16T c1, c2;
         if (!buffer) return SAHPI_FALSE;
 	if (oh_lookup_texttype(buffer->DataType) == NULL) return SAHPI_FALSE;
 	/* Compiler checks DataLength <= SAHPI_MAX_TEXT_BUFFER_LENGTH */
 
 	switch (buffer->DataType) {
-	case SAHPI_TL_TYPE_UNICODE:                
+	case SAHPI_TL_TYPE_UNICODE:
+		/* Validate language and length */
 		if (oh_lookup_language(buffer->Language) == NULL) return SAHPI_FALSE;
 		if (buffer->DataLength % 2 != 0) return SAHPI_FALSE;
-                /* FIXME: Need to find a way to validate UTF-16 strings.
-                 * Using http://www.campusprogram.com/reference/en/wikipedia/u/ut/utf_16.html
-                 * as reference. -- RM 09/29/04
-                 */                
+		/* Validate utf-16 buffers in the case of surrogates */
+		for (i = 0; i < buffer->DataLength; i = i + 2) {
+			/* here I am assuming that the least
+			 * significant byte is first */
+			c1 = buffer->Data[i];
+			c1 |= buffer->Data[i+1] << 8;
+			if (U_IS_SURROGATE(c1)) {
+				if (buffer->DataLength > i+3) {
+					c2 = buffer->Data[i+2];
+					c2 |= buffer->Data[i+3] << 8;
+					if (U_IS_LEAD(c1) && U_IS_TRAIL(c2)) {
+						/* already checked for trail ..
+                                                 * so increment i by 2 */
+						i = i + 2;
+					} else {
+						/* found a unpaired surrogate */
+						return SAHPI_FALSE;
+					}
+				} else {
+					/* found a unpaired surrogate */
+					return SAHPI_FALSE;
+				}
+			}	
+		}
 		break;
 	case SAHPI_TL_TYPE_BCDPLUS:                
                 /* 8-bit ASCII, '0'-'9', space, dash, period, colon, comma, or
