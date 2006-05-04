@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2005
+ * (C) Copyright IBM Corp. 2005-2006
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -11,6 +11,7 @@
  *
  * Authors:
  *      W. David Ashley <dashley@us.ibm.com>
+ *      Renier Morales <renierm@users.sf.net>
  */
 
 #include <stdio.h>
@@ -60,12 +61,31 @@ int main(int argc, char **argv)
         ann = oh_announcement_create();
 
         rc = oh_announcement_append(ann, &announ);
+	if (rc != SA_OK) {
+		dbg("ERROR: 1 oh_announcement_append failed.");
+		return 1;
+	}
 
         announ.Severity = SAHPI_MAJOR;
         rc = oh_announcement_append(ann, &announ);
+	if (rc != SA_OK) {
+		dbg("ERROR: 2 oh_announcement_append failed.");
+		return 1;
+	}
 
         announ.Severity = SAHPI_MINOR;
         rc = oh_announcement_append(ann, &announ);
+	if (rc != SA_OK) {
+		dbg("ERROR: 3 oh_announcement_append failed.");
+		return 1;
+	}
+
+	announ.Severity = SAHPI_CRITICAL;
+	rc = oh_announcement_append(ann, &announ);
+	if (rc != SA_OK) {
+		dbg("ERROR: 4 oh_announcement_append failed.");
+		return 1;
+	}
 
         announ.EntryId = SAHPI_FIRST_ENTRY;
         announ.Timestamp = 0;
@@ -74,11 +94,25 @@ int main(int argc, char **argv)
                 dbg("ERROR: on_announcement_get_next returned %d.", rc);
                 return 1;
         }
-        dbg("EntryId %d returned.", announ.EntryId);
+        dbg("EntryId %d returned with Severity %d.", announ.EntryId, announ.Severity);
 
         rc = oh_announcement_get_next(ann, SAHPI_ALL_SEVERITIES, FALSE, &announ);
         if(rc != SA_OK) {
                 dbg("ERROR: on_announcement_get_next returned %d.", rc);
+                return 1;
+        }
+        dbg("EntryId %d returned with Severity %d.", announ.EntryId, announ.Severity);
+
+        rc = oh_announcement_get(ann, 1, &announ);
+	if (rc != SA_OK) {
+		dbg("ERROR: oh_announcement_get did not find anything.");
+		return 1;
+	}
+	rc = oh_announcement_get_next(ann, SAHPI_CRITICAL, FALSE, &announ);
+        if(rc != SA_OK || announ.Severity != SAHPI_CRITICAL) {
+                dbg("ERROR: on_announcement_get_next returned %d."
+                    " Severity returned is %d. EntryId %d.",
+                    rc, announ.Severity, announ.EntryId);
                 return 1;
         }
         dbg("EntryId %d returned.", announ.EntryId);
