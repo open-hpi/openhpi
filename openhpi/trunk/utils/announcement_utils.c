@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2003, 2004
+ * (C) Copyright IBM Corp. 2003-2006
  * Copyright (c) 2003 by Intel Corp.
  *
  * This program is distributed in the hope that it will be useful,
@@ -50,7 +50,7 @@ SaErrorT oh_announcement_close(oh_announcement *ann)
         }
 
         oh_announcement_clear(ann);
-        free(ann);
+        g_free(ann);
         return SA_OK;
 }
 
@@ -74,8 +74,7 @@ SaErrorT oh_announcement_append(oh_announcement *ann, SaHpiAnnouncementT *myann)
         memcpy(&entry->annentry, myann, sizeof(SaHpiAnnouncementT));
 
         /* initialize the struct and append the new entry */
-        entry->annentry.EntryId = ann->nextId;
-        ann->nextId++;
+        entry->annentry.EntryId = ann->nextId++;
         time(&tt1);
         entry->annentry.Timestamp = ((SaHpiTimeT) tt1) * 1000000000;
         entry->annentry.AddedByUser = TRUE;
@@ -123,11 +122,10 @@ SaErrorT oh_announcement_get(oh_announcement *ann, SaHpiEntryIdT srchid,
         if (ann == NULL || entry == NULL) {
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
-        if (g_list_length(ann->annentries) == 0) {
-                return SA_ERR_HPI_NOT_PRESENT;
-        }
 
         annlist = g_list_first(ann->annentries);
+        if (annlist == NULL) return SA_ERR_HPI_NOT_PRESENT;
+        
         if (srchid == SAHPI_FIRST_ENTRY && annlist != NULL) {
                 myentry = (oh_ann_entry *) annlist->data;
                 memcpy(entry, &myentry->annentry, sizeof(SaHpiAnnouncementT));
@@ -155,81 +153,54 @@ SaErrorT oh_announcement_get(oh_announcement *ann, SaHpiEntryIdT srchid,
 SaErrorT oh_announcement_get_next(oh_announcement *ann, SaHpiSeverityT sev,
                                   SaHpiBoolT ack, SaHpiAnnouncementT *entry)
 {
-        oh_ann_entry *myentry = NULL;
-        GList *annlist;
-        int notinset;
+        GList *annlist = NULL;
 
         if (ann == NULL || entry == NULL) {
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
-        if (g_list_length(ann->annentries) == 0) {
-                return SA_ERR_HPI_NOT_PRESENT;
-        }
-
-        /* get the first physical entry */
-        annlist = g_list_first(ann->annentries);
 
         if (entry->EntryId == SAHPI_FIRST_ENTRY) {
-                /* find the first logical entry */
-                notinset = FALSE;
-                while (annlist != NULL) {
-                        myentry = (oh_ann_entry *) annlist->data;
-                        if (notinset == FALSE &&
-                            sev != SAHPI_ALL_SEVERITIES &&
-                            sev == myentry->annentry.Severity)
-                                notinset = TRUE;
-                        if (notinset == FALSE &&
-                            ack == TRUE &&
-                            myentry->annentry.Acknowledged != TRUE)
-                                notinset = TRUE;
-                        if (notinset == FALSE)
-                                break;
-                        notinset = FALSE;
+                annlist = ann->annentries; /* start search at beginning */
+        } else {
+                /* find the previous matching entry */
+                for (annlist = ann->annentries;
+                     annlist; annlist = annlist->next) {
+                        oh_ann_entry *annentry = annlist->data;
+                        if (entry->EntryId == annentry->annentry.EntryId) {
+                                if (entry->Timestamp ==
+                                    annentry->annentry.Timestamp) {
+                                        break;
+                                } else {
+                                        return SA_ERR_HPI_INVALID_DATA;
+                                }
+                        }
+                }
+        
+                /* Set list node for searching for next matching entry */
+                if (annlist)
                         annlist = g_list_next(annlist);
+                else {
+                        trace("Did not find previous entry."
+                              " Searching from first one.");
+                        annlist = g_list_first(ann->annentries);
                 }
-                if (annlist == NULL) {
-                        return SA_ERR_HPI_NOT_PRESENT;
+        }
+
+        /* Find the matching entry based on severity and ack */
+        for (; annlist; annlist = annlist->next) {
+                oh_ann_entry *annentry = annlist->data;
+                if (annentry && (sev == SAHPI_ALL_SEVERITIES ||
+                                 sev == annentry->annentry.Severity) &&
+                    (ack ? !annentry->annentry.Acknowledged : 1)) {
+                        trace("Severity searched for is %d."
+                              " Severity found is %d",
+                            sev, annentry->annentry.Severity);
+                        *entry = annentry->annentry;
+                        return SA_OK;
                 }
-                memcpy(entry, &myentry->annentry, sizeof(SaHpiAnnouncementT));
-                return SA_OK;
         }
 
-        /* find the start matching entry */
-        while (annlist != NULL) {
-                myentry = (oh_ann_entry *) annlist->data;
-                if (entry->EntryId == myentry->annentry.EntryId &&
-                    entry->Timestamp == myentry->annentry.Timestamp)
-                        break;
-                annlist = g_list_next(annlist);
-        }
-        if (annlist == NULL) {
-                return SA_ERR_HPI_NOT_PRESENT;
-        }
-
-        /* find the next logical entry */
-        notinset = FALSE;
-        annlist = g_list_next(annlist);
-        while (annlist != NULL) {
-                myentry = (oh_ann_entry *) annlist->data;
-                if (notinset == FALSE &&
-                    sev != SAHPI_ALL_SEVERITIES &&
-                    sev == myentry->annentry.Severity)
-                        notinset = TRUE;
-                if (notinset == FALSE &&
-                    ack == TRUE && myentry->annentry.Acknowledged != TRUE)
-                        notinset = TRUE;
-                if (notinset == FALSE)
-                        break;
-                notinset = FALSE;
-                annlist = g_list_next(annlist);
-        }
-        if (annlist == NULL) {
-                return SA_ERR_HPI_NOT_PRESENT;
-        }
-
-        /* found a matching announcement */
-        memcpy(entry, &myentry->annentry, sizeof(SaHpiAnnouncementT));
-        return SA_OK;
+        return SA_ERR_HPI_NOT_PRESENT;
 }
 
 
@@ -237,50 +208,40 @@ SaErrorT oh_announcement_ack(oh_announcement *ann, SaHpiEntryIdT srchid,
                              SaHpiSeverityT sev)
 {
         oh_ann_entry *myentry;
-        int acked = FALSE;
         GList *annlist;
 
         if (ann == NULL) {
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
-        if (g_list_length(ann->annentries) == 0) {
-                return SA_ERR_HPI_NOT_PRESENT;
-        }
-
+        
+        /* Search for one announcement if entryid is specified */
         if (srchid != SAHPI_ENTRY_UNSPECIFIED) {
                 annlist = g_list_first(ann->annentries);
                 while (annlist != NULL) {
                         myentry = (oh_ann_entry *) annlist->data;
                         if (srchid == myentry->annentry.EntryId) {
                                 myentry->annentry.Acknowledged = TRUE;
-                                acked = TRUE;
+                                return SA_OK;
                         }
                         annlist = g_list_next(annlist);
-                }
-                if (acked) {
-                        return SA_OK;
                 }
                 return SA_ERR_HPI_NOT_PRESENT;
         }
 
-        /* set all announcements acknowledged with a specified severity */
+        /* EntryId not specified, so ack announcements which have the specified severity */
         annlist = g_list_first(ann->annentries);
-        if (annlist == NULL) {
-                return SA_ERR_HPI_NOT_PRESENT;
-        }
+        if (annlist == NULL) return SA_ERR_HPI_NOT_PRESENT;
+        
         while (annlist != NULL) {
                 myentry = (oh_ann_entry *) annlist->data;
                 if (sev == SAHPI_ALL_SEVERITIES ||
                     sev == myentry->annentry.Severity) {
                         myentry->annentry.Acknowledged = TRUE;
-                        acked = TRUE;
                 }
                 annlist = g_list_next(annlist);
         }
-        if (acked) {
-                return SA_OK;
-        }
-        return SA_ERR_HPI_NOT_PRESENT;
+
+        return SA_OK;
 }
 
 
@@ -293,10 +254,8 @@ SaErrorT oh_announcement_del(oh_announcement *ann, SaHpiEntryIdT srchid,
         if (ann == NULL) {
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
-        if (g_list_length(ann->annentries) == 0) {
-                return SA_ERR_HPI_NOT_PRESENT;
-        }
 
+        /* Search for one announcement if entryid is specified */
         if (srchid != SAHPI_ENTRY_UNSPECIFIED) {
                 annlist = g_list_first(ann->annentries);
                 while (annlist != NULL) {
@@ -313,9 +272,8 @@ SaErrorT oh_announcement_del(oh_announcement *ann, SaHpiEntryIdT srchid,
 
         /* remove all announcements with a specified severity */
         annlist = g_list_first(ann->annentries);
-        if (annlist == NULL) {
-                return SA_ERR_HPI_NOT_PRESENT;
-        }
+        if (annlist == NULL) return SA_ERR_HPI_NOT_PRESENT;
+        
         while (annlist != NULL) {
                 myentry = (oh_ann_entry *) annlist->data;
                 if (sev == SAHPI_ALL_SEVERITIES ||
