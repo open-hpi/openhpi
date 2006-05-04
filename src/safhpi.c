@@ -3134,8 +3134,10 @@ SaErrorT SAHPI_API saHpiAnnunciatorAdd(
 
         if (Announcement == NULL) return SA_ERR_HPI_INVALID_PARAMS;
 
-        if (!oh_lookup_severity(Announcement->Severity) ||
-            !oh_valid_textbuffer(&Announcement->StatusCond.Data))
+        if (Announcement->Severity == SAHPI_ALL_SEVERITIES ||
+	    !oh_lookup_severity(Announcement->Severity) ||
+            !oh_valid_textbuffer(&Announcement->StatusCond.Data) ||
+	    !oh_lookup_statuscondtype(Announcement->StatusCond.Type))
                 return SA_ERR_HPI_INVALID_PARAMS;
 
         OH_CHECK_INIT_STATE(SessionId);
