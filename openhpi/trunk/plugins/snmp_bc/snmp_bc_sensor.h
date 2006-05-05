@@ -82,4 +82,10 @@ SaErrorT snmp_bc_set_threshold_reading(void *hnd,
 				       SaHpiSensorNumT sid,
 				       const char *raw_oid,
 				       const SaHpiSensorReadingT *reading);
+				       
+SaErrorT snmp_bc_get_logical_sensors(void *hnd,
+				       SaHpiResourceIdT rid,
+				       SaHpiSensorNumT sid,
+				       SaHpiSensorReadingT *reading);
+				       
 #endif

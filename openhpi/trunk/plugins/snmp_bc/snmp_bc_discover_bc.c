@@ -1288,6 +1288,60 @@ SaErrorT snmp_bc_discover_mm(struct oh_handler_state *handle,
 	e = NULL;
 	res_info_ptr = NULL;
 	
+	/* Discover Virtual MM at time T0 */
+	if (custom_handle->first_discovery_done == SAHPI_FALSE)
+	{			
+		e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
+                if (e == NULL) {
+                       	dbg("Out of memory.");
+                        return(SA_ERR_HPI_OUT_OF_SPACE);
+                }
+
+                e->type = OH_ET_RESOURCE;
+                e->did = oh_get_default_domain_id();
+                e->u.res_event.entry = snmp_bc_rpt_array[BC_RPT_ENTRY_VIRTUAL_MGMNT_MODULE].rpt;
+                oh_concat_ep(&(e->u.res_event.entry.ResourceEntity), ep_root);
+                oh_set_ep_location(&(e->u.res_event.entry.ResourceEntity),
+                                       SAHPI_ENT_SYS_MGMNT_MODULE, 0);
+                e->u.res_event.entry.ResourceId =
+                       	oh_uid_from_entity_path(&(e->u.res_event.entry.ResourceEntity));
+                snmp_bc_create_resourcetag(&(e->u.res_event.entry.ResourceTag),
+                                             snmp_bc_rpt_array[BC_RPT_ENTRY_VIRTUAL_MGMNT_MODULE].comment,
+                                             0);
+
+                trace("Discovered resource=%s; ID=%d",
+                        e->u.res_event.entry.ResourceTag.Data,
+                        e->u.res_event.entry.ResourceId);
+
+                /* Create platform-specific info space to add to infra-structure */
+                res_info_ptr = g_memdup(&(snmp_bc_rpt_array[BC_RPT_ENTRY_VIRTUAL_MGMNT_MODULE].res_info),
+                        	                sizeof(struct ResourceInfo));
+                if (!res_info_ptr) {
+                        dbg("Out of memory.");
+                        g_free(e);
+                        return(SA_ERR_HPI_OUT_OF_SPACE);
+                }
+
+
+                /* Add resource to temporary event cache/queue */
+                err = oh_add_resource(custom_handle->tmpcache,
+                        	        &(e->u.res_event.entry),
+                                	        res_info_ptr, 0);
+                if (err) {
+                        dbg("Failed to add resource. Error=%s.", oh_lookup_error(err));
+                        g_free(e);
+                        return(err);
+                }
+                custom_handle->tmpqueue = g_slist_append(custom_handle->tmpqueue, e);
+				
+		/* Find resource's events, sensors, controls, etc. */
+                snmp_bc_discover_res_events(handle, &(e->u.res_event.entry.ResourceEntity), res_info_ptr);
+                snmp_bc_discover_sensors(handle, snmp_bc_virtual_mgmnt_sensors, e);
+                snmp_bc_discover_controls(handle, snmp_bc_virtual_mgmnt_controls, e);
+                snmp_bc_discover_inventories(handle, snmp_bc_virtual_mgmnt_inventories, e);
+	}		
+			
+	/* Discover Physical MM */                				
 	for (i=0; i < strlen(mm_vector); i++) {
 		trace("Management Module installed bit map %s\n", get_value.string);
 		if ((mm_vector[i] == '1') || (custom_handle->first_discovery_done == SAHPI_FALSE))
@@ -1703,7 +1757,7 @@ SaErrorT snmp_bc_rediscover(struct oh_handler_state *handle,
 		memset(resource_mask, '\0', SNMP_BC_MAX_RESOURCES_MASK);
 		foundit = SAHPI_FALSE;
 		hotswap_entitytype = SAHPI_ENT_UNKNOWN;
-    		hotswap_entitylocation = 0xFF;   /* Invalid location                   */
+    		hotswap_entitylocation = SNMP_BC_NOT_VALID;   /* Invalid location                   */
 						 /* Do not use 0 for invalid location  */
 						 /* because virtual resource has loc 0 */
 		for (i=0; logsrc2res->ep.Entry[i].EntityType != SAHPI_ENT_SYSTEM_CHASSIS; i++) {
