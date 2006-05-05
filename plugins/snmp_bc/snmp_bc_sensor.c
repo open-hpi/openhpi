@@ -105,7 +105,13 @@ SaErrorT snmp_bc_get_sensor_reading(void *hnd,
          * sensor reading to event in this case.
          ************************************************************/
 	if (rdr->RdrTypeUnion.SensorRec.DataFormat.IsSupported == SAHPI_TRUE) {
-		err = snmp_bc_get_sensor_oid_reading(hnd, rid, sid, sinfo->mib.oid, &working_reading);
+		err = SA_OK;
+		if ((sid == BLADECENTER_SENSOR_NUM_MGMNT_ACTIVE) || 
+				(sid ==  BLADECENTER_SENSOR_NUM_MGMNT_STANDBY)) 
+			err = snmp_bc_get_logical_sensors(hnd, rid, sid, &working_reading);
+		else 
+			err = snmp_bc_get_sensor_oid_reading(hnd, rid, sid, sinfo->mib.oid, &working_reading);
+	
 		if (err) {
 			dbg("Cannot determine sensor's reading. Error=%s", oh_lookup_error(err));
 			snmp_bc_unlock_handler(custom_handle);
@@ -210,13 +216,13 @@ SaErrorT snmp_bc_get_sensor_eventstate(void *hnd,
 	 * Translate reading into event state. Algorithm is:
 	 * - If sensor is a threshold and has readable thresholds.
          *   - If so, check from most severe to least
-	 * - If not found or not a threshold value, search reading2event array.
+	 * - If not found or (not a threshold value && not present sensor), search reading2event array.
 	 *   - Check for Ranges supported; return after first match.
 	 *   - Nominal only - reading must match nominal value
 	 *   - Max && Min - min value <= reading <= max value
 	 *   - Max only - reading > max value 
 	 *   - Min only - reading < min value
-	 * - else SAHPI_ES_UNSPECIFIED
+	 *   - else SAHPI_ES_UNSPECIFIED
 	 ***************************************************************************/
 	if (rdr->RdrTypeUnion.SensorRec.Category == SAHPI_EC_THRESHOLD &&
 	    rdr->RdrTypeUnion.SensorRec.ThresholdDefn.ReadThold != 0) {
@@ -265,54 +271,59 @@ SaErrorT snmp_bc_get_sensor_eventstate(void *hnd,
 				return(SA_OK);
 			}
 		}
-	}		
+		
+	} else if (rdr->RdrTypeUnion.SensorRec.Category == SAHPI_EC_PRESENCE) {
+		*state = SAHPI_ES_PRESENT;
+		
+	} else {		
 	
-	/* Check reading2event array */
-	for (i=0; i < SNMP_BC_MAX_SENSOR_READING_MAP_ARRAY_SIZE &&
-		     sinfo->reading2event[i].num != 0; i++) {
+		/* Check reading2event array */
+		for (i=0; i < SNMP_BC_MAX_SENSOR_READING_MAP_ARRAY_SIZE &&
+				     sinfo->reading2event[i].num != 0; i++) {
 
-		/* reading == nominal */
-		if (sinfo->reading2event[i].rangemap.Flags & SAHPI_SRF_NOMINAL) {
-			if (oh_compare_sensorreading(reading->Type, reading, 
+			/* reading == nominal */
+			if (sinfo->reading2event[i].rangemap.Flags & SAHPI_SRF_NOMINAL) {
+				if (oh_compare_sensorreading(reading->Type, reading, 
 						     &sinfo->reading2event[i].rangemap.Nominal) == 0) {
-				*state = sinfo->reading2event[i].state;
-				return(SA_OK);
+					*state = sinfo->reading2event[i].state;
+					return(SA_OK);
+				}
 			}
-		}
-		/* min <= reading <= max */
-		if (sinfo->reading2event[i].rangemap.Flags & SAHPI_SRF_MAX &&
-		    sinfo->reading2event[i].rangemap.Flags & SAHPI_SRF_MIN) {
-			if (oh_compare_sensorreading(reading->Type, reading, 
+			/* min <= reading <= max */
+			if (sinfo->reading2event[i].rangemap.Flags & SAHPI_SRF_MAX &&
+		    			sinfo->reading2event[i].rangemap.Flags & SAHPI_SRF_MIN) {
+				if (oh_compare_sensorreading(reading->Type, reading, 
 						     &sinfo->reading2event[i].rangemap.Min) >= 0 &&
-			    oh_compare_sensorreading(reading->Type, reading, 
-						     &sinfo->reading2event[i].rangemap.Max) <= 0) {
-				*state = sinfo->reading2event[i].state;
-				return(SA_OK);
+			    				oh_compare_sensorreading(reading->Type, reading, 
+						     	&sinfo->reading2event[i].rangemap.Max) <= 0) {
+					*state = sinfo->reading2event[i].state;
+					return(SA_OK);
+				}
 			}
-		}
-		/* reading > max */
-		if (sinfo->reading2event[i].rangemap.Flags & SAHPI_SRF_MAX &&
-		    !(sinfo->reading2event[i].rangemap.Flags & SAHPI_SRF_MIN)) {
-			if (oh_compare_sensorreading(reading->Type, reading, 
+			/* reading > max */
+			if (sinfo->reading2event[i].rangemap.Flags & SAHPI_SRF_MAX &&
+		    			!(sinfo->reading2event[i].rangemap.Flags & SAHPI_SRF_MIN)) {
+				if (oh_compare_sensorreading(reading->Type, reading, 
 						     &sinfo->reading2event[i].rangemap.Max) > 0) {
-				*state = sinfo->reading2event[i].state;
-				return(SA_OK);
+					*state = sinfo->reading2event[i].state;
+					return(SA_OK);
+				}
 			}
-		}
-		/* reading < min */
-		if (!(sinfo->reading2event[i].rangemap.Flags & SAHPI_SRF_MAX) &&
-		    sinfo->reading2event[i].rangemap.Flags & SAHPI_SRF_MIN) {
-			if (oh_compare_sensorreading(reading->Type, reading, 
+			/* reading < min */
+			if (!(sinfo->reading2event[i].rangemap.Flags & SAHPI_SRF_MAX) &&
+		    			sinfo->reading2event[i].rangemap.Flags & SAHPI_SRF_MIN) {
+				if (oh_compare_sensorreading(reading->Type, reading, 
 						     &sinfo->reading2event[i].rangemap.Min) < 0) {
-				*state = sinfo->reading2event[i].state;
-				return(SA_OK);
+					*state = sinfo->reading2event[i].state;
+					return(SA_OK);
+				}
 			}
 		}
+
+        	/* Unfortunately for thresholds, this also means normal */
+		*state = SAHPI_ES_UNSPECIFIED; 
 	}
-
-        /* Unfortunately for thresholds, this also means normal */
-	*state = SAHPI_ES_UNSPECIFIED; 
-
+	
 	return(SA_OK);
 }
 
@@ -344,6 +355,117 @@ do { \
 		working.thdname.IsSupported = SAHPI_FALSE; \
 	} \
 } while(0)
+
+
+/**
+ * snmp_bc_get_virtual_MM_sensor:
+ * @hnd: Handler data pointer.
+ * @rid: Resource ID.
+ * @sid: Sensor ID.
+ * @reading: Location of sensor's reading
+ *
+ * Translates and sensor's reading into an event state(s).
+ *
+ * Return values:
+ * SA_OK - Normal case.
+ * SA_ERR_HPI_CAPABILITY - Resource doesn't have SAHPI_CAPABILITY_SENSOR.
+ * SA_ERR_HPI_INVALID_REQUEST - Sensor is disabled.
+ * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) are NULL.
+ * SA_ERR_HPI_NOT_PRESENT - Sensor doesn't exist.
+ **/
+SaErrorT snmp_bc_get_logical_sensors(void *hnd,
+				       SaHpiResourceIdT rid,
+				       SaHpiSensorNumT sid,
+				       SaHpiSensorReadingT *reading)
+				     
+{	
+        struct oh_handler_state *handle;
+        struct snmp_bc_hnd *custom_handle;
+	struct snmp_value  mm_install_mask, active_mm_id;
+        SaHpiEntityPathT   ep_root, res_ep;
+	char * root_tuple;
+	int    mm_id;
+	SaErrorT err;
+	
+
+
+	if (!hnd) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+
+	err = SA_OK;
+	handle = (struct oh_handler_state *)hnd;
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
+	
+	if (!custom_handle) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+	
+	/* Fetch MMs installed vector  */
+	get_install_mask(SNMP_BC_MGMNT_VECTOR, mm_install_mask);
+	 
+	/* Fetch Active MM ID */
+	err = snmp_bc_snmp_get(custom_handle, SNMP_BC_MGMNT_ACTIVE, &active_mm_id, SAHPI_TRUE);
+        if (err || active_mm_id.type != ASN_INTEGER) {
+		dbg("Cannot get SNMP_BC_MGMNT_ACTIVE=%s; Received Type=%d; Error=%s.",
+		      SNMP_BC_MGMNT_ACTIVE, active_mm_id.type, oh_lookup_error(err));
+		if (err) { return(err); }
+		else { return(SA_ERR_HPI_INTERNAL_ERROR); }
+        }
+	
+	mm_id = SNMP_BC_NOT_VALID;  /* Init it to someting invalid, so we can visually catch error */
+	switch (sid) {
+		case BLADECENTER_SENSOR_NUM_MGMNT_ACTIVE:
+			mm_id = active_mm_id.integer;
+			break;
+		case BLADECENTER_SENSOR_NUM_MGMNT_STANDBY:
+			if ( atoi(mm_install_mask.string) > 10) {
+				switch(active_mm_id.integer)
+				{
+					case 1:
+						mm_id = 2;
+						break;
+					case 2:
+						mm_id = 1;
+						break;
+					default:
+						dbg("Internal Error .\n");
+						break;
+				}
+			}
+			break; 
+		default:
+			dbg("Should not be here. sid is not one of the special sensors.\n");
+			break;
+	}
+
+	/* Complete Sensor Read record */
+	reading->IsSupported = SAHPI_TRUE;
+	reading->Type  = SAHPI_SENSOR_READING_TYPE_UINT64;
+		
+	if (mm_id != SNMP_BC_NOT_VALID) {
+		root_tuple = (char *)g_hash_table_lookup(handle->config, "entity_root");
+        	if (root_tuple == NULL) {
+                	dbg("Cannot find configuration parameter.");
+                	snmp_bc_unlock_handler(custom_handle);
+                	return(SA_ERR_HPI_INTERNAL_ERROR);
+        	}
+        	err = oh_encode_entitypath(root_tuple, &ep_root);
+			
+		res_ep = snmp_bc_rpt_array[BC_RPT_ENTRY_MGMNT_MODULE].rpt.ResourceEntity;
+		oh_concat_ep(&res_ep, &ep_root);
+		oh_set_ep_location(&res_ep,  SAHPI_ENT_SYS_MGMNT_MODULE, mm_id);	
+		reading->Value.SensorUint64 = (SaHpiUint64T) oh_uid_from_entity_path(&res_ep);
+		
+	} else {
+		reading->Value.SensorUint64 = SAHPI_UNSPECIFIED_RESOURCE_ID;
+	}        
+	
+	
+	return(err);
+}
 
 /**
  * snmp_bc_get_sensor_thresholds:

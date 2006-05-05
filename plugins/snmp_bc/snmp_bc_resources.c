@@ -104,6 +104,49 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                 },
                 .comment = "BladeCenter"
         },
+        /* Virtual Management module */
+        {
+                .rpt = {
+                        .ResourceInfo = {
+                                .ManufacturerId = IBM_MANUFACTURING_ID,
+                        },
+                        .ResourceEntity = {
+                                .Entry[0] =
+                                {
+                                        .EntityType = SAHPI_ENT_SYS_MGMNT_MODULE,
+                                        .EntityLocation = 0, /* Must be zero(0) for Virtual resource */
+                                },
+                                {
+                                        .EntityType = SAHPI_ENT_ROOT,
+                                        .EntityLocation = 0,   
+                                }
+                        },
+                        .ResourceCapabilities = SAHPI_CAPABILITY_EVENT_LOG |
+                                                SAHPI_CAPABILITY_RESOURCE |
+						SAHPI_CAPABILITY_CONTROL |
+						SAHPI_CAPABILITY_RDR |
+			                        SAHPI_CAPABILITY_SENSOR,
+                        .ResourceSeverity = SAHPI_MAJOR,
+			.ResourceFailed = SAHPI_FALSE,
+                },
+                .res_info = {
+                        .mib = {
+                                .OidHealth = '\0',
+                                .HealthyValue = 0,
+                                .OidReset = '\0',
+                                .OidPowerState = '\0',
+                                .OidPowerOnOff = '\0',
+				.OidUuid = '\0',
+                        },
+			.cur_state = SAHPI_HS_STATE_ACTIVE,
+			.prev_state = SAHPI_HS_STATE_NOT_PRESENT,
+                        .event_array = {
+
+                                {},
+                        },
+                },
+                .comment = "Virtual Management Module"
+        },	
         /* Management module */
         {
                 .rpt = {
@@ -121,7 +164,7 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                                         .EntityLocation = 0,
                                 }
                         },
-                        .ResourceCapabilities = SAHPI_CAPABILITY_EVENT_LOG |
+                        .ResourceCapabilities = 
                                                 SAHPI_CAPABILITY_FRU |
                                                 SAHPI_CAPABILITY_INVENTORY_DATA |
                                                 SAHPI_CAPABILITY_RDR |
@@ -599,6 +642,16 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
  *                      Sensor Definitions
  *************************************************************************/
 
+/*************************************************************************
+ * WARNING  -   WARNING  - WARNING  -  WARNING 
+ *  Most of the .sensor.num are arbitrary assigned.   
+ *  There are 3 specially assigned .sensor.num defined in snmp_resources.h
+ *  They are 
+ *      BLADECENTER_SENSOR_NUM_MGMNT_REDUNDANCY
+ *      BLADECENTER_SENSOR_NUM_MGMNT_ACTIVE  
+ *      BLADECENTER_SENSOR_NUM_MGMNT_STANDBY 
+ *************************************************************************/
+
 /*****************
  * Chassis Sensors
  *****************/
@@ -739,6 +792,8 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                 },
                 .comment = "Ambient temperature sensor"
         },
+
+#if 0		
         /* Management module redundancy sensor - event-only */
         {
 		.index = 2,
@@ -778,6 +833,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                 },
                 .comment = "Chassis management module redundancy sensor"
         },
+#endif	
         /* I/O module redundancy sensor - event-only */
         {
 		.index = 3,
@@ -1035,10 +1091,10 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors_bct[] = {
 };
 
 /***************************
- * Management Module Sensors
+ * Virtual Management Module Sensors
  ***************************/
 
-struct snmp_bc_sensor snmp_bc_mgmnt_sensors[] = {
+struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
         /* Thermal sensor on MM */
         {
 		.index = 1,
@@ -1846,50 +1902,11 @@ struct snmp_bc_sensor snmp_bc_mgmnt_sensors[] = {
                 .comment = "MM 12 volt sensor"
         },
 
-	/* MM network link availablity sensor - event only */
+	/* MM I2C bus general operations - event only */
         {
 		.index = 8,
                 .sensor = {
                         .Num = 8,
-                        .Type = SAHPI_CABLE_INTERCONNECT,
-                        .Category = SAHPI_EC_AVAILABILITY,
-			.EnableCtrl = SAHPI_FALSE,
-                        .EventCtrl = SAHPI_SEC_READ_ONLY,
-			.Events = SAHPI_ES_RUNNING | SAHPI_ES_OFF_LINE,
-                        .DataFormat = {
-                                .IsSupported = SAHPI_FALSE,
-                        },
-                        .ThresholdDefn = {
-                                .IsAccessible = SAHPI_FALSE,
-                        },
-                        .Oem = 0,
-                },
-                .sensor_info = {
-                        .cur_state = SAHPI_ES_RUNNING,
-                        .sensor_enabled = SAHPI_TRUE,
-                        .events_enabled = SAHPI_TRUE,
-			.assert_mask   = SAHPI_ES_OFF_LINE,
-			.deassert_mask = SAHPI_ES_OFF_LINE,
-                        .event_array = {
-                                {
-                                        .event = "00217000", /* EN_MM_NETWORK_LOSS */
-  					.event_assertion = SAHPI_TRUE,
-       					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_OFF_LINE,
-                                        .recovery_state = SAHPI_ES_RUNNING,
-                                },
-                                {},
-                        },
-   			.reading2event = {},
-                },
-                .comment = "MM network link availablity sensor"
-        },
-	/* MM I2C bus general operations - event only */
-        {
-		.index = 9,
-                .sensor = {
-                        .Num = 9,
                         .Type = SAHPI_OPERATIONAL,
                         .Category = SAHPI_EC_AVAILABILITY,
 			.EnableCtrl = SAHPI_FALSE,
@@ -1926,9 +1943,9 @@ struct snmp_bc_sensor snmp_bc_mgmnt_sensors[] = {
         },
 	/* MM I2C bus blade presence operations - event only */
         {
-		.index = 10,
+		.index = 9,
                 .sensor = {
-                        .Num = 10,
+                        .Num = 9,
                         .Type = SAHPI_OPERATIONAL,
                         .Category = SAHPI_EC_AVAILABILITY,
 			.EnableCtrl = SAHPI_FALSE,
@@ -1965,9 +1982,9 @@ struct snmp_bc_sensor snmp_bc_mgmnt_sensors[] = {
         },
 	/* MM I2C bus power module operations - event only */
         {
-		.index = 11,
+		.index = 10,
                 .sensor = {
-                        .Num = 11,
+                        .Num = 10,
                         .Type = SAHPI_OPERATIONAL,
                         .Category = SAHPI_EC_AVAILABILITY,
 			.EnableCtrl = SAHPI_FALSE,
@@ -2004,9 +2021,9 @@ struct snmp_bc_sensor snmp_bc_mgmnt_sensors[] = {
         },
 	/* MM I2C bus media tray operations - event only */
         {
-		.index = 12,
+		.index = 11,
                 .sensor = {
-                        .Num = 12,
+                        .Num = 11,
                         .Type = SAHPI_OPERATIONAL,
                         .Category = SAHPI_EC_AVAILABILITY,
 			.EnableCtrl = SAHPI_FALSE,
@@ -2043,9 +2060,9 @@ struct snmp_bc_sensor snmp_bc_mgmnt_sensors[] = {
         },
 	/* MM I2C bus IO module operations - event only */
         {
-		.index = 13,
+		.index = 12,
                 .sensor = {
-                        .Num = 13,
+                        .Num = 12,
                         .Type = SAHPI_OPERATIONAL,
                         .Category = SAHPI_EC_AVAILABILITY,
 			.EnableCtrl = SAHPI_FALSE,
@@ -2080,6 +2097,182 @@ struct snmp_bc_sensor snmp_bc_mgmnt_sensors[] = {
                 },
                 .comment = "MM I2C bus IO module 0perations"
         },
+        /* Management module redundancy sensor - event-only */
+        {
+		.index = 13,
+                .sensor = {
+                        .Num = BLADECENTER_SENSOR_NUM_MGMNT_REDUNDANCY,
+                        .Type = SAHPI_OPERATIONAL,
+                        .Category = SAHPI_EC_REDUNDANCY,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
+                        .Events = SAHPI_ES_FULLY_REDUNDANT | 
+			          SAHPI_ES_NON_REDUNDANT_SUFFICIENT_RESOURCES,
+                        .DataFormat = {
+                                .IsSupported = SAHPI_FALSE,
+                        },
+                        .ThresholdDefn = {
+                                .IsAccessible = SAHPI_FALSE,
+                        },
+                        .Oem = 0,
+                },
+                .sensor_info = {
+                        .cur_state = SAHPI_ES_UNSPECIFIED,
+                        .sensor_enabled = SAHPI_TRUE,
+                        .events_enabled = SAHPI_TRUE,
+			.assert_mask   = SAHPI_ES_NON_REDUNDANT_SUFFICIENT_RESOURCES | 
+					 SAHPI_ES_FULLY_REDUNDANT,
+			.deassert_mask = SAHPI_ES_NON_REDUNDANT_SUFFICIENT_RESOURCES | 
+					 SAHPI_ES_FULLY_REDUNDANT,
+                        .event_array = {
+                                {
+                                        .event = "00284000", /* EN_MM_NON_REDUNDANT */
+					.event_assertion = SAHPI_TRUE,
+ 					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_NON_REDUNDANT_SUFFICIENT_RESOURCES,
+                                        .recovery_state = SAHPI_ES_FULLY_REDUNDANT,
+                                },
+                                {},
+                        },
+			.reading2event = {},
+                },
+                .comment = "Chassis management module redundancy sensor"
+        },
+        /* Active Management Module Sensor */
+        {
+		.index = 14,
+                .sensor = {
+                        .Num = BLADECENTER_SENSOR_NUM_MGMNT_ACTIVE,
+                        .Type = SAHPI_ENTITY_PRESENCE,
+                        .Category = SAHPI_EC_PRESENCE,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY |
+				     SAHPI_SEC_READ_ONLY_MASKS |
+				     SAHPI_SEC_PER_EVENT,
+                        .Events = SAHPI_ES_PRESENT | SAHPI_ES_ABSENT, 
+                        .DataFormat = {
+                                .IsSupported = SAHPI_TRUE,
+                                .ReadingType = SAHPI_SENSOR_READING_TYPE_UINT64,
+                                .BaseUnits = SAHPI_SU_UNSPECIFIED,
+                                .ModifierUnits = SAHPI_SU_UNSPECIFIED,
+                                .ModifierUse = SAHPI_SMUU_NONE,
+                                .Percentage = SAHPI_FALSE,
+                                .Range = {} 
+                        },
+                        .ThresholdDefn = {
+				.IsAccessible = SAHPI_FALSE,
+                        },
+                        .Oem = 0,
+                },
+                .sensor_info = {
+                        .mib = {
+                                .not_avail_indicator_num = 0,
+                                .write_only = SAHPI_FALSE,
+                                .oid = ".1.3.6.1.4.1.2.3.51.2.22.4.34.0",
+                        },
+                        .cur_state = SAHPI_ES_UNSPECIFIED,
+                        .sensor_enabled = SAHPI_TRUE,
+                        .events_enabled = SAHPI_FALSE,
+                        .assert_mask   = 0,
+                        .deassert_mask = 0,
+                        .event_array = {},
+			
+                        .reading2event = {},
+                },
+                .comment = "Active management module sensor"
+        },	
+        /* Standby Management Module Sensor */
+        {
+		.index = 15,
+                .sensor = {
+                        .Num = BLADECENTER_SENSOR_NUM_MGMNT_STANDBY,
+                        .Type = SAHPI_ENTITY_PRESENCE,
+                        .Category = SAHPI_EC_PRESENCE,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY |
+				     SAHPI_SEC_READ_ONLY_MASKS |
+				     SAHPI_SEC_PER_EVENT,
+                        .Events = SAHPI_ES_PRESENT | SAHPI_ES_ABSENT, 
+                        .DataFormat = {
+                                .IsSupported = SAHPI_TRUE,
+                                .ReadingType = SAHPI_SENSOR_READING_TYPE_UINT64,
+                                .BaseUnits = SAHPI_SU_UNSPECIFIED,
+                                .ModifierUnits = SAHPI_SU_UNSPECIFIED,
+                                .ModifierUse = SAHPI_SMUU_NONE,
+                                .Percentage = SAHPI_FALSE,
+                                .Range = {} 
+                        },
+                        .ThresholdDefn = {
+				.IsAccessible = SAHPI_FALSE,
+                        },
+                        .Oem = 0,
+                },
+                .sensor_info = {
+                        .mib = {
+                                .not_avail_indicator_num = 0,
+                                .write_only = SAHPI_FALSE,
+                                .oid = ".1.3.6.1.4.1.2.3.51.2.22.4.34.0",
+                        },
+                        .cur_state = SAHPI_ES_UNSPECIFIED,
+                        .sensor_enabled = SAHPI_TRUE,
+                        .events_enabled = SAHPI_FALSE,
+                        .assert_mask   = 0,
+                        .deassert_mask = 0,
+                        .event_array = {},
+			
+                        .reading2event = {},
+                },
+                .comment = "Standby management module sensor"
+        },		
+        {} /* Terminate array with a null element */
+};
+
+/***************************
+ * Management Module Sensors
+ ***************************/
+
+struct snmp_bc_sensor snmp_bc_mgmnt_sensors[] = {
+	/* MM network link availablity sensor - event only */
+        {
+		.index = 1,
+                .sensor = {
+                        .Num = 1,
+                        .Type = SAHPI_CABLE_INTERCONNECT,
+                        .Category = SAHPI_EC_AVAILABILITY,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
+			.Events = SAHPI_ES_RUNNING | SAHPI_ES_OFF_LINE,
+                        .DataFormat = {
+                                .IsSupported = SAHPI_FALSE,
+                        },
+                        .ThresholdDefn = {
+                                .IsAccessible = SAHPI_FALSE,
+                        },
+                        .Oem = 0,
+                },
+                .sensor_info = {
+                        .cur_state = SAHPI_ES_RUNNING,
+                        .sensor_enabled = SAHPI_TRUE,
+                        .events_enabled = SAHPI_TRUE,
+			.assert_mask   = SAHPI_ES_OFF_LINE,
+			.deassert_mask = SAHPI_ES_OFF_LINE,
+                        .event_array = {
+                                {
+                                        .event = "00217000", /* EN_MM_NETWORK_LOSS */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {},
+                        },
+   			.reading2event = {},
+                },
+                .comment = "MM network link availablity sensor"
+        },
+
 
         {} /* Terminate array with a null element */
 };
@@ -6350,6 +6543,15 @@ struct snmp_bc_sensor snmp_bc_switch_sensors[] = {
  *                   Control Definitions
  *************************************************************************/
 
+/*************************************************************************
+ * WARNING  -   WARNING  - WARNING  -  WARNING 
+ *  Most of the .control.num are arbitrary assigned.   
+ *  There are 2 specially assigned .control.num defined in snmp_resources.h
+ *  They are 
+ *        BLADECENTER_CTRL_NUM_MGMNT_FAILOVER 
+ *        BLADECENTER_CTRL_NUM_FAILED_RESOURCE_EXTRACT
+ *************************************************************************/
+ 
 /******************
  * Chassis Controls
  ******************/
@@ -6461,6 +6663,17 @@ struct snmp_bc_control snmp_bc_blade_expansion_controls[] = {
         {} /* Terminate array with a null element */
 };
 
+
+/****************************
+ * Virtual Management Module Controls
+ ****************************/
+
+struct snmp_bc_control snmp_bc_virtual_mgmnt_controls[] = {
+        
+	/* Empty for now   */
+        {} /* Terminate array with a null element */
+};
+
 /****************************
  * Management Module Controls
  ****************************/
@@ -6552,6 +6765,17 @@ struct snmp_bc_inventory snmp_bc_fan_inventories[] = {
 
         {} /* Terminate array with a null element */
 };
+
+
+/*********
+ * Virtual Management Module VPD
+ **********/
+
+struct snmp_bc_inventory snmp_bc_virtual_mgmnt_inventories[] = {
+
+        {} /* Terminate array with a null element */
+};
+
 
 /***********************
  * Management Module VPD
