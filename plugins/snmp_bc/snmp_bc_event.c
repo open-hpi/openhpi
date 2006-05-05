@@ -181,9 +181,9 @@ SaErrorT snmp_bc_discover_res_events(struct oh_handler_state *handle,
 		/* Normalized and convert event string */
 		normalized_str = oh_derive_string(ep, resinfo->event_array[i].event);
 		if (normalized_str == NULL) {
-			dbg("Cannot derive %s.", resinfo->event_array[i].event);
+			dbg(">>>   Cannot derive %s.\n", resinfo->event_array[i].event);
 			return(SA_ERR_HPI_INTERNAL_ERROR);
-		}
+		} 
 
 		/*  Add to hash; Set HPI values */
 		if (!g_hash_table_lookup_extended(custom_handle->event2hpi_hash_ptr,
@@ -281,7 +281,7 @@ SaErrorT snmp_bc_discover_sensor_events(struct oh_handler_state *handle,
 			dbg("Cannot derive %s.", sinfo->sensor_info.event_array[i].event);
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		}
-
+		  
 		/*  Add to hash; Set HPI values */
 		if (!g_hash_table_lookup_extended(custom_handle->event2hpi_hash_ptr,
 						  normalized_str,
@@ -476,7 +476,6 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 	/***********************************************************
 	 * See if adjusted root string is in errlog2event_hash table
          ***********************************************************/
-
 	strhash_data = (ErrLog2EventInfoT *)g_hash_table_lookup(errlog2event_hash, search_str);
 	if (!strhash_data) {
 		if (snmp_bc_map2oem(&working, &log_entry, EVENT_NOT_ALERTABLE)) {
@@ -485,7 +484,6 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 		}
 		goto DONE;
 	}
-
 	/* See if need to override default RID; These are hardcoded exceptions caused by the
            fact that we have to handle duplicates event strings for resources that the
            BladeCenter's event log Source field doesn't define. These options must not be
@@ -514,12 +512,14 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 		if (strhash_data == NULL) {
 			dbg("Cannot find valid event for duplicate string=%s and RID=%d.", 
 			    search_str, logsrc2res.rid);
+			
 			if (snmp_bc_map2oem(&working, &log_entry,  EVENT_NOT_ALERTABLE)) {
 				dbg("Cannot map to OEM Event %s.", log_entry.text);
 				return(SA_ERR_HPI_INTERNAL_ERROR);
 			}
 			goto DONE;
 		}
+		
 		if (strhash_data->event_ovr & OVR_RID) {
 			dbg("Cannot have RID override on duplicate strin;g=%s.", search_str);
 			dupovrovr = 1;
@@ -679,6 +679,7 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 			/* FIXME:: SES Check valid state ???? - What not valid - do what ??? */
 			working.EventDataUnion.HotSwapEvent.PreviousHotSwapState =
 				resinfo2->prev_state = resinfo2->cur_state;
+
 			if (is_recovery_event)
 				working.EventDataUnion.HotSwapEvent.HotSwapState =
 				resinfo2->cur_state = 
@@ -791,6 +792,7 @@ static ErrLog2EventInfoT *snmp_bc_findevent4dupstr(gchar *search_str,
 			for (j=0; (logsrc2res->sensor_array_ptr + i)->sensor_info.event_array[j].event != NULL; j++) {
 				normalized_event = oh_derive_string(&(logsrc2res->ep),
 						   (logsrc2res->sensor_array_ptr + i)->sensor_info.event_array[j].event);
+				
 				if (!strcmp(dupstr_hash_data->event, normalized_event)) {
 					g_free(normalized_event);
 					return(dupstr_hash_data);
@@ -1338,14 +1340,20 @@ static SaErrorT snmp_bc_logsrc2rid(struct oh_handler_state *handle,
                    logs "Source" field */
 
 		if (ovr_flags & OVR_MMACT || ovr_flags & OVR_MM1 || ovr_flags & OVR_MM2) {
-			if (ovr_flags & OVR_MMACT) { loc  = custom_handle->active_mm; }
+			if (ovr_flags & OVR_MMACT) {
+				rpt_index = BC_RPT_ENTRY_VIRTUAL_MGMNT_MODULE; 
+				loc  = 0;
+				array_ptr = &snmp_bc_virtual_mgmnt_sensors[0];
+			}
 			else {
+				rpt_index = BC_RPT_ENTRY_MGMNT_MODULE;
 				if (ovr_flags & OVR_MM1) { loc = 1; }
 				else { loc = 2; }
+				array_ptr = &snmp_bc_mgmnt_sensors[0];
 			}
-			rpt_index = BC_RPT_ENTRY_MGMNT_MODULE;
+			
 			entity_type = snmp_bc_rpt_array[rpt_index].rpt.ResourceEntity.Entry[0].EntityType;
-			array_ptr = &snmp_bc_mgmnt_sensors[0];
+			
 		}
 		else {
 			rpt_index = BC_RPT_ENTRY_CHASSIS;
