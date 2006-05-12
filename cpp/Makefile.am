@@ -22,6 +22,58 @@ INCLUDES		= @OPENHPI_INCLUDES@
 
 AM_CFLAGS		= -g @CFLAGS@
 
+include_HEADERS		= oSaHpiAlarm.hpp \
+                  	  oSaHpiAnnouncement.hpp \
+                  	  oSaHpiAnnunciatorRec.hpp \
+                  	  oSaHpiCondition.hpp \
+                  	  oSaHpiCtrlDefaultMode.hpp \
+                  	  oSaHpiCtrlRec.hpp \
+                  	  oSaHpiCtrlRecAnalog.hpp \
+                  	  oSaHpiCtrlRecDigital.hpp \
+                  	  oSaHpiCtrlRecDiscrete.hpp \
+                  	  oSaHpiCtrlRecOem.hpp \
+                  	  oSaHpiCtrlRecStream.hpp \
+                  	  oSaHpiCtrlRecText.hpp \
+                  	  oSaHpiCtrlState.hpp \
+                  	  oSaHpiCtrlStateOem.hpp \
+                  	  oSaHpiCtrlStateStream.hpp \
+                  	  oSaHpiCtrlStateText.hpp \
+                  	  oSaHpiDomainEvent.hpp \
+                  	  oSaHpiDomainInfo.hpp \
+                  	  oSaHpiDrtEntry.hpp \
+                  	  oSaHpiEntity.hpp \
+                  	  oSaHpiEntityPath.hpp \
+                  	  oSaHpiEvent.hpp \
+                  	  oSaHpiEventLogEntry.hpp \
+                  	  oSaHpiEventLogInfo.hpp \
+                  	  oSaHpiHotSwapEvent.hpp \
+                  	  oSaHpiHpiSwEvent.hpp \
+                  	  oSaHpiIdrAreaHeader.hpp \
+                  	  oSaHpiIdrField.hpp \
+                  	  oSaHpiIdrInfo.hpp \
+                  	  oSaHpiInventoryRec.hpp \
+                  	  oSaHpiName.hpp \
+                  	  oSaHpiOemEvent.hpp \
+                  	  oSaHpiRdr.hpp \
+                  	  oSaHpiResourceEvent.hpp \
+                  	  oSaHpiResourceInfo.hpp \
+                  	  oSaHpiRptEntry.hpp \
+                  	  oSaHpiSensorDataFormat.hpp \
+                  	  oSaHpiSensorEnableChangeEvent.hpp \
+                  	  oSaHpiSensorEvent.hpp \
+                  	  oSaHpiSensorRange.hpp \
+                  	  oSaHpiSensorReading.hpp \
+                  	  oSaHpiSensorRec.hpp \
+                  	  oSaHpiSensorThdDefn.hpp \
+                  	  oSaHpiSensorThresholds.hpp \
+                  	  oSaHpiTextBuffer.hpp \
+                  	  oSaHpiTypesEnums.hpp \
+                  	  oSaHpiUserEvent.hpp \
+                  	  oSaHpiWatchdog.hpp \
+                  	  oSaHpiWatchdogEvent.hpp \
+                  	  oSaHpiWatchdogRec.hpp \
+                  	  oSaHpi.hpp
+
 pkglib_LTLIBRARIES	= libosahpi.la
 
 libosahpi_la_LIBADD	= -luuid
@@ -61,14 +113,17 @@ libosahpi_la_SOURCES	= oSaHpiAlarm.cpp oSaHpiAlarm.hpp \
                           oSaHpiResourceEvent.cpp oSaHpiResourceEvent.hpp \
                           oSaHpiResourceInfo.cpp oSaHpiResourceInfo.hpp \
                           oSaHpiRptEntry.cpp oSaHpiRptEntry.hpp \
-                          oSaHpiSensorDataFormat.cpp oSaHpiSensorDataFormat.hpp \
-                          oSaHpiSensorEnableChangeEvent.cpp oSaHpiSensorEnableChangeEvent.hpp \
+                          oSaHpiSensorDataFormat.cpp oSaHpiSensorDataFormat.hpp
+\
+                          oSaHpiSensorEnableChangeEvent.cpp
+oSaHpiSensorEnableChangeEvent.hpp \
                           oSaHpiSensorEvent.cpp oSaHpiSensorEvent.hpp \
                           oSaHpiSensorRange.cpp oSaHpiSensorRange.hpp \
                           oSaHpiSensorReading.cpp oSaHpiSensorReading.hpp \
                           oSaHpiSensorRec.cpp oSaHpiSensorRec.hpp \
                           oSaHpiSensorThdDefn.cpp oSaHpiSensorThdDefn.hpp \
-                          oSaHpiSensorThresholds.cpp oSaHpiSensorThresholds.hpp \
+                          oSaHpiSensorThresholds.cpp oSaHpiSensorThresholds.hpp
+\
                           oSaHpiTextBuffer.cpp oSaHpiTextBuffer.hpp \
                           oSaHpiTypesEnums.cpp oSaHpiTypesEnums.hpp \
                           oSaHpiUserEvent.cpp oSaHpiUserEvent.hpp \
