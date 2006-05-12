@@ -28,8 +28,6 @@
 #include <oh_config.h>
 
 
-
-
 /**
  * _init
  *
@@ -37,11 +35,8 @@
  **/
 int _init(void)
 {
-
-
-
-            struct oh_parsed_config config = {NULL, NULL, 0, 0, 0, 0};
-            struct oh_global_param config_param = { .type = OPENHPI_CONF };
+//            struct oh_parsed_config config = {NULL, NULL, 0, 0, 0, 0};
+//            struct oh_global_param config_param = { .type = OPENHPI_CONF };
             SaErrorT rval;
             SaHpiDomainCapabilitiesT capabilities = 0x00000000;
             SaHpiTextBufferT tag;
@@ -51,6 +46,7 @@ int _init(void)
             /* Initialize thread engine */
             oh_threaded_init();
 
+#if 0
             /* Set openhpi configuration file location */
             oh_get_global_param(&config_param);
 
@@ -61,6 +57,8 @@ int _init(void)
                     data_access_unlock();
                     return SA_ERR_HPI_NOT_PRESENT;
             }
+#endif
+
 
             /* Initialize uid_utils */
             rval = oh_uid_initialize();
@@ -92,7 +90,20 @@ int _init(void)
             /* Initialize session table */
             oh_sessions.table = g_hash_table_new(g_int_hash, g_int_equal);
             trace("Initialized session table");
-            
+
+
+#if 0
+            /* Set openhpi configuration file location */
+            oh_get_global_param(&config_param);
+
+            rval = oh_load_config(config_param.u.conf, &config);
+            /* Don't error out if there is no conf file */
+            if (rval < 0 && rval != -4) {
+                    dbg("Can not load config.");
+                    data_access_unlock();
+                    return SA_ERR_HPI_NOT_PRESENT;
+            }
+
             /* Load plugins and create handlers*/
             oh_process_config(&config);
             
@@ -117,19 +128,19 @@ int _init(void)
             }
 
             /* this only does something if the config says to */
-            struct oh_global_param my_global_param;
-            my_global_param.type = OPENHPI_DAEMON_MODE;
-            oh_get_global_param(&my_global_param);
-            if (!my_global_param.u.daemon_mode) {
+            //struct oh_global_param my_global_param;
+            //my_global_param.type = OPENHPI_DAEMON_MODE;
+            //oh_get_global_param(&my_global_param);
+            //if (!my_global_param.u.daemon_mode) {
                 oh_threaded_start();
                 dbg("### We ARE Starting infrastructure threads in _init() ###\n");
-            } else {
-                dbg("### We ARE NOT Starting infrastructure threads in _init() ###\n");
-            }
+            //} else {
+            //    dbg("### We ARE NOT Starting infrastructure threads in _init() ###\n");
+            //}
 
 
             trace("Set init state");
-            data_access_unlock();
+
             /* infrastructure initialization has completed at this point */
 
             /* Check if there are any handlers loaded */
@@ -138,7 +149,13 @@ int _init(void)
                         " Check configuration file %s and previous messages",
                         config_param.u.conf);
             }
+#endif
             
+            /* load plugins and start discovery threads if not a daemon */
+            if ( _initialize(FALSE) == SA_ERR_HPI_ERROR) return SA_ERR_HPI_ERROR;
+
+            data_access_unlock();
+
             /*
              * HACK: If threaded mode is on, wait a second before returning
             * to give the threads time to populate the RPT
@@ -153,7 +170,95 @@ int _init(void)
          * besides zero, The runtime stuff depends on zero being returned here
          * in order for the shared library to be completely initialized.
          */
+
         return 0;
+
+}
+
+
+/**
+ * _init
+ *
+ * Returns: 0 on success otherwise an error code
+ **/
+int _initialize(int daemon)
+{
+
+            struct oh_parsed_config config = {NULL, NULL, 0, 0, 0, 0};
+            struct oh_global_param config_param = { .type = OPENHPI_CONF };
+            SaErrorT rval;
+        
+            data_access_lock();
+
+            /* Set openhpi configuration file location */
+            oh_get_global_param(&config_param);
+
+            rval = oh_load_config(config_param.u.conf, &config);
+            /* Don't error out if there is no conf file */
+            if (rval < 0 && rval != -4) {
+                    dbg("Can not load config.");
+                    data_access_unlock();
+                    return SA_ERR_HPI_NOT_PRESENT;
+            }
+
+            /* this only does something if the config says to */
+            struct oh_global_param my_global_param;
+            my_global_param.type = OPENHPI_DAEMON_MODE;
+            oh_get_global_param(&my_global_param);
+            if ((my_global_param.u.daemon_mode) && (daemon == TRUE)) {
+
+
+                /* Load plugins and create handlers*/
+                oh_process_config(&config);
+            
+                /*
+                * Wipes away configuration lists (plugin_names and handler_configs).
+                * global_params is not touched.
+                */
+                oh_clean_config(&config);
+
+
+                oh_threaded_start();
+                dbg("### We ARE Starting infrastructure threads in _initialize() my_global_param.u.daemon_mode[%d] daemon[%d]###\n",
+                    my_global_param.u.daemon_mode, daemon);
+
+                /*
+                * If any handlers were defined in the config file AND
+                * all of them failed to load, Then return with an error.
+                */
+                if (config.handlers_defined > 0 && config.handlers_loaded == 0) {
+                        data_access_unlock();
+                        dbg("Error: Handlers were defined, but none loaded.");
+                        return SA_ERR_HPI_ERROR;
+                } else if (config.handlers_defined > 0 &&
+                           config.handlers_loaded < config.handlers_defined) {
+                        dbg("*Warning*: Not all handlers defined loaded."
+                            " Check previous messages.");
+                }
+
+                trace("Set init state");
+
+                /* infrastructure initialization has completed at this point */
+
+                /* Check if there are any handlers loaded */
+                if (config.handlers_defined == 0) {
+                        dbg("*Warning*: No handler definitions found in config file."
+                            " Check configuration file %s and previous messages",
+                            config_param.u.conf);
+                }
+            } else {
+                dbg("### We ARE NOT Starting infrastructure threads in _initialize() my_global_param.u.daemon_mode[%d] daemon[%d]###\n",
+                    my_global_param.u.daemon_mode, daemon);
+            }
+            
+            /* Do not use SA_OK here in case it is ever changed to something
+            * besides zero, The runtime stuff depends on zero being returned here
+            * in order for the shared library to be completely initialized.
+            */
+
+            data_access_unlock();
+
+            return 0;
 
 }
 
