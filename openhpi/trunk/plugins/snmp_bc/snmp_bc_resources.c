@@ -23,7 +23,7 @@
 
 /* BCT has different OID for System Health */
 struct snmp_rpt snmp_bc_rpt_array_bct[] = {
-        /* Chassis */
+        /* BladeCenter Chassis */
         {
                 .rpt = {
                         .ResourceInfo = {
@@ -59,14 +59,14 @@ struct snmp_rpt snmp_bc_rpt_array_bct[] = {
                                 {},
                         },
                 },
-                .comment = "BladeCenter"
+                .comment = "BladeCenter Chassis",
         },
 
         {} /* Terminate array with a null element */	
 };
 
 struct snmp_rpt snmp_bc_rpt_array[] = {
-        /* Chassis */
+        /* BladeCenter Chassis */
         {
                 .rpt = {
                         .ResourceInfo = {
@@ -102,9 +102,9 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                                 {},
                         },
                 },
-                .comment = "BladeCenter"
+                .comment = "BladeCenter Chassis",
         },
-        /* Virtual Management module */
+        /* Virtual Management Module */
         {
                 .rpt = {
                         .ResourceInfo = {
@@ -121,12 +121,12 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                                         .EntityLocation = 0,   
                                 }
                         },
-                        .ResourceCapabilities = SAHPI_CAPABILITY_EVENT_LOG |
-                                                SAHPI_CAPABILITY_RESOURCE |
-						SAHPI_CAPABILITY_CONTROL |
+                        .ResourceCapabilities = SAHPI_CAPABILITY_CONTROL |
+			                        SAHPI_CAPABILITY_EVENT_LOG |
 						SAHPI_CAPABILITY_RDR |
+                                                SAHPI_CAPABILITY_RESOURCE |
 			                        SAHPI_CAPABILITY_SENSOR,
-                        .ResourceSeverity = SAHPI_MAJOR,
+                        .ResourceSeverity = SAHPI_CRITICAL,
 			.ResourceFailed = SAHPI_FALSE,
                 },
                 .res_info = {
@@ -141,13 +141,12 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
 			.cur_state = SAHPI_HS_STATE_ACTIVE,
 			.prev_state = SAHPI_HS_STATE_NOT_PRESENT,
                         .event_array = {
-
                                 {},
                         },
                 },
-                .comment = "Virtual Management Module"
+                .comment = "Virtual Management Module",
         },	
-        /* Management module */
+        /* Management Module */
         {
                 .rpt = {
                         .ResourceInfo = {
@@ -160,13 +159,17 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                                         .EntityLocation = SNMP_BC_HPI_LOCATION_BASE,
                                 },
                                 {
+                                        .EntityType = BLADECENTER_SYS_MGMNT_MODULE_SLOT,
+                                        .EntityLocation = SNMP_BC_HPI_LOCATION_BASE,
+                                },
+                                {
                                         .EntityType = SAHPI_ENT_ROOT,
                                         .EntityLocation = 0,
                                 }
                         },
-                        .ResourceCapabilities = 
-                                                SAHPI_CAPABILITY_FRU |
+                        .ResourceCapabilities = SAHPI_CAPABILITY_FRU |
                                                 SAHPI_CAPABILITY_INVENTORY_DATA |
+			                        SAHPI_CAPABILITY_MANAGED_HOTSWAP |
                                                 SAHPI_CAPABILITY_RDR |
 			                        SAHPI_CAPABILITY_RESET |
                                                 SAHPI_CAPABILITY_RESOURCE |
@@ -218,9 +221,9 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                                 {},
                         },
                 },
-                .comment = "Management Module"
+                .comment = "Management Module",
         },
-        /* Switch module */
+        /* I/O Module */
         {
                 .rpt = {
                         .ResourceInfo = {
@@ -233,14 +236,17 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                                         .EntityLocation = SNMP_BC_HPI_LOCATION_BASE,
                                 },
                                 {
+                                        .EntityType = BLADECENTER_INTERCONNECT_SLOT,
+                                        .EntityLocation = SNMP_BC_HPI_LOCATION_BASE,
+                                },
+                                {
                                         .EntityType = SAHPI_ENT_ROOT,
                                         .EntityLocation = 0,
                                 }
                         },
                         .ResourceCapabilities = SAHPI_CAPABILITY_FRU |
-						SAHPI_CAPABILITY_MANAGED_HOTSWAP |
                                                 SAHPI_CAPABILITY_INVENTORY_DATA |
-			                        SAHPI_CAPABILITY_MANAGED_HOTSWAP |
+						SAHPI_CAPABILITY_MANAGED_HOTSWAP |
 			                        SAHPI_CAPABILITY_POWER |
                                                 SAHPI_CAPABILITY_RDR |
 			                        SAHPI_CAPABILITY_RESET |
@@ -312,7 +318,7 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                                 {},
                         },
                 },
-                .comment = "I/0 Module"
+                .comment = "I/0 Module",
         },
         /* Blade */
         {
@@ -337,7 +343,6 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                         },
                         .ResourceCapabilities = SAHPI_CAPABILITY_CONTROL |
                                                 SAHPI_CAPABILITY_FRU |
-						SAHPI_CAPABILITY_MANAGED_HOTSWAP |
                                                 SAHPI_CAPABILITY_INVENTORY_DATA |
 			                        SAHPI_CAPABILITY_MANAGED_HOTSWAP |
 			                        SAHPI_CAPABILITY_POWER |
@@ -421,7 +426,7 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                 .comment = "Blade",
 		.OidResourceTag = ".1.3.6.1.4.1.2.3.51.2.2.8.2.1.1.6.x"
         },
-        /* Blade expansion module */
+        /* Blade Expansion Module */
         {
                 .rpt = {
                         .ResourceInfo = {
@@ -467,7 +472,7 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                                 {},
                         },
                 },
-                .comment = "Blade Expansion Module (BEM)"
+                .comment = "Blade Expansion Module",
         },
         /* Media Tray */
         {
@@ -482,7 +487,7 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                                         .EntityLocation = SNMP_BC_HPI_LOCATION_BASE,
                                 },
                                 {
-                                        .EntityType = SAHPI_ENT_FRONT_PANEL_BOARD,
+                                        .EntityType = BLADECENTER_PERIPHERAL_BAY_SLOT,
                                         .EntityLocation = SNMP_BC_HPI_LOCATION_BASE,
                                 },
                                 {
@@ -522,7 +527,7 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                                 {},
                         },
                 },
-                .comment = "Control Panel/Media Tray"
+                .comment = "Media Tray",
         },
         /* Blower Module */
         {
@@ -537,13 +542,17 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                                         .EntityLocation = SNMP_BC_HPI_LOCATION_BASE,
                                 },
                                 {
+                                        .EntityType = BLADECENTER_FAN_SLOT,
+                                        .EntityLocation = SNMP_BC_HPI_LOCATION_BASE,
+                                },
+                                {
                                         .EntityType = SAHPI_ENT_ROOT,
                                         .EntityLocation = 0,
                                 }
                         },
                         .ResourceCapabilities = SAHPI_CAPABILITY_FRU |
-                                                SAHPI_CAPABILITY_RESOURCE |
                                                 SAHPI_CAPABILITY_RDR |
+                                                SAHPI_CAPABILITY_RESOURCE |
                                                 SAHPI_CAPABILITY_SENSOR,
                         .ResourceSeverity = SAHPI_MAJOR,
 			.ResourceFailed = SAHPI_FALSE,
@@ -572,7 +581,7 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
 				{},
                         },
                 },
-                .comment = "Blower Module"
+                .comment = "Blower Module",
         },
         /* Power Module */
         {
@@ -587,14 +596,18 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                                         .EntityLocation = SNMP_BC_HPI_LOCATION_BASE,
                                 },
                                 {
+                                        .EntityType = BLADECENTER_POWER_SUPPLY_SLOT,
+                                        .EntityLocation = SNMP_BC_HPI_LOCATION_BASE,
+                                },
+                                {
                                         .EntityType = SAHPI_ENT_ROOT,
                                         .EntityLocation = 0,
                                 }
                         },
                         .ResourceCapabilities = SAHPI_CAPABILITY_FRU |
 			                        SAHPI_CAPABILITY_INVENTORY_DATA |
-                                                SAHPI_CAPABILITY_RESOURCE |
                                                 SAHPI_CAPABILITY_RDR |
+                                                SAHPI_CAPABILITY_RESOURCE |
                                                 SAHPI_CAPABILITY_SENSOR,
                         .ResourceSeverity = SAHPI_MAJOR,
 			.ResourceFailed = SAHPI_FALSE,
@@ -632,7 +645,7 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                                 {},
                         },
                 },
-                .comment = "Power Module"
+                .comment = "Power Module",
         },
 
         {} /* Terminate array with a null element */
@@ -643,13 +656,13 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
  *************************************************************************/
 
 /*************************************************************************
- * WARNING  -   WARNING  - WARNING  -  WARNING 
- *  Most of the .sensor.num are arbitrary assigned.   
- *  There are 3 specially assigned .sensor.num defined in snmp_resources.h
- *  They are 
- *      BLADECENTER_SENSOR_NUM_MGMNT_REDUNDANCY
- *      BLADECENTER_SENSOR_NUM_MGMNT_ACTIVE  
- *      BLADECENTER_SENSOR_NUM_MGMNT_STANDBY 
+ * WARNING  -   WARNING  - WARNING  -  WARNING
+ * Most of the .sensor.num are arbitrary assigned. There are 4 hardcoded
+ * Sensor Numbers:
+ *   SAHPI_DEFAGSENS_OPER 
+ *   BLADECENTER_SENSOR_NUM_MGMNT_REDUNDANCY
+ *   BLADECENTER_SENSOR_NUM_MGMNT_ACTIVE  
+ *   BLADECENTER_SENSOR_NUM_MGMNT_STANDBY 
  *************************************************************************/
 
 /*****************
@@ -657,7 +670,7 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
  *****************/
 
 struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
-        /* Ambient air thermal sensor on Control Panel/Media Tray */
+        /* Ambient Air Temperature Sensor */
         {
 		.index = 1,
                 .sensor = {
@@ -790,55 +803,13 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
 				{},
 			},
                 },
-                .comment = "Ambient temperature sensor"
+                .comment = "Ambient Air Temperature Sensor",
         },
-
-#if 0		
-        /* Management module redundancy sensor - event-only */
+        /* I/O Module Redundancy Sensor - event-only */
         {
 		.index = 2,
                 .sensor = {
                         .Num = 2,
-                        .Type = SAHPI_PLATFORM_ALERT,
-                        .Category = SAHPI_EC_REDUNDANCY,
-			.EnableCtrl = SAHPI_FALSE,
-                        .EventCtrl = SAHPI_SEC_READ_ONLY,
-                        .Events = SAHPI_ES_REDUNDANCY_LOST | SAHPI_ES_FULLY_REDUNDANT,
-                        .DataFormat = {
-                                .IsSupported = SAHPI_FALSE,
-                        },
-                        .ThresholdDefn = {
-                                .IsAccessible = SAHPI_FALSE,
-                        },
-                        .Oem = 0,
-                },
-                .sensor_info = {
-                        .cur_state = SAHPI_ES_UNSPECIFIED,
-                        .sensor_enabled = SAHPI_TRUE,
-                        .events_enabled = SAHPI_TRUE,
-			.assert_mask   = SAHPI_ES_REDUNDANCY_LOST,
-			.deassert_mask = SAHPI_ES_REDUNDANCY_LOST,
-                        .event_array = {
-                                {
-                                        .event = "00284000", /* EN_MM_NON_REDUNDANT */
-					.event_assertion = SAHPI_TRUE,
- 					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_REDUNDANCY_LOST,
-                                        .recovery_state = SAHPI_ES_FULLY_REDUNDANT,
-                                },
-                                {},
-                        },
-			.reading2event = {},
-                },
-                .comment = "Chassis management module redundancy sensor"
-        },
-#endif	
-        /* I/O module redundancy sensor - event-only */
-        {
-		.index = 3,
-                .sensor = {
-                        .Num = 3,
                         .Type = SAHPI_PLATFORM_ALERT,
                         .Category = SAHPI_EC_REDUNDANCY,
 			.EnableCtrl = SAHPI_FALSE,
@@ -871,13 +842,13 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                         },
  			.reading2event = {},
                },
-                .comment = "Chassis I/O module redundancy sensor"
+                .comment = "I/O Module Redundancy Sensor",
         },
-        /* Power supply redundancy sensor - event-only */
+        /* Power Module Redundancy Sensor - event-only */
         {
-		.index = 4,
+		.index = 3,
                 .sensor = {
-                        .Num = 4,
+                        .Num = 3,
                         .Type = SAHPI_PLATFORM_ALERT,
                         .Category = SAHPI_EC_REDUNDANCY,
 			.EnableCtrl = SAHPI_FALSE,
@@ -926,13 +897,13 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                         },
  			.reading2event = {},
                },
-                .comment = "Chassis power supply redundancy sensor"
+                .comment = "Power Module Redundancy Sensor",
         },
-        /* Power domain 1 redundancy sensor - event-only */
+        /* Power Domain 1 Redundancy Sensor - event-only */
         {
-		.index = 5,
+		.index = 4,
                 .sensor = {
-                        .Num = 5,
+                        .Num = 4,
                         .Type = SAHPI_PLATFORM_ALERT,
                         .Category = SAHPI_EC_REDUNDANCY,
 			.EnableCtrl = SAHPI_FALSE,
@@ -965,13 +936,13 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                         },
  			.reading2event = {},
                },
-                .comment = "Chassis power domain 1 redundancy sensor"
+                .comment = "Power Domain 1 Redundancy Sensor",
         },
-        /* Power domain 2 redundancy sensor - event-only */
+        /* Power Domain 2 Redundancy Sensor - event-only */
         {
-		.index = 6,
+		.index = 5,
                 .sensor = {
-                        .Num = 6,
+                        .Num = 5,
                         .Type = SAHPI_PLATFORM_ALERT,
                         .Category = SAHPI_EC_REDUNDANCY,
 			.EnableCtrl = SAHPI_FALSE,
@@ -1004,16 +975,16 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                         },
  			.reading2event = {},
                },
-                .comment = "Chassis power domain 2 redundancy sensor"
+                .comment = "Power Domain 2 Redundancy Sensor",
         },
 
         {} /* Terminate array with a null element */
 };
 
-#define SNMP_BC_MAX_COMMON_CHASSIS_SENSORS 6
+#define SNMP_BC_MAX_COMMON_CHASSIS_SENSORS 5
 
 struct snmp_bc_sensor snmp_bc_chassis_sensors_bct[] = {
-        /* Chassis filter sensor - event only */
+        /* Chassis Filter Sensor - event only */
         {
 		.index = SNMP_BC_MAX_COMMON_CHASSIS_SENSORS + 1,
                 .sensor = {
@@ -1084,18 +1055,18 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors_bct[] = {
                         },
    			.reading2event = {},
                },
-                .comment = "Chassis filter sensor"
+                .comment = "Chassis Filter Sensor",
         },
 
        {} /* Terminate array with a null element */
 };
 
-/***************************
+/***********************************
  * Virtual Management Module Sensors
- ***************************/
+ ***********************************/
 
 struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
-        /* Thermal sensor on MM */
+        /* MM Air Temperature */
         {
 		.index = 1,
                 .sensor = {
@@ -1228,9 +1199,9 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
 				{},
 			},
                 },
-                .comment = "MM temperature sensor"
+                .comment = "MM Air Temperature Sensor",
         },
-        /* 1.8V voltage sensor on Management Module */
+        /* System 1.8 Volt Sensor */
         {
 		.index = 2,
                 .sensor = {
@@ -1339,9 +1310,9 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                         },
 			.reading2event = {},
                 },
-                .comment = "MM 1.8 volt sensor"
+                .comment = "System 1.8 Volt Sensor",
         },
-        /* 2.5V voltage sensor on Management Module */
+        /* System 2.5 Volt Sensor */
         {
 		.index = 3,
                 .sensor = {
@@ -1451,9 +1422,9 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                         },
 			.reading2event = {},
                 },
-                .comment = "MM 2.5 volt sensor"
+                .comment = "System 2.5 Volt Sensor",
         },
-        /* 3.3V voltage sensor on Management Module */
+        /* System 3.3 Volt Sensor */
 	{
 		.index = 4,
                 .sensor = {
@@ -1563,9 +1534,9 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                         },
 		        .reading2event = {},
                 },
-		.comment = "MM 3.3 volt sensor"
+		.comment = "System 3.3 Volt Sensor",
 	},
-        /* 5V voltage sensor on Management Module */
+        /* System 5 Volt Sensor */
         {
 		.index = 5,
                 .sensor = {
@@ -1675,9 +1646,9 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                         },
 			.reading2event = {},
                 },
-                .comment = "MM 5 volt sensor"
+                .comment = "System 5 Volt Sensor",
         },
-        /* -5V voltage sensor on Management Module */
+        /* System -5 Volt Sensor */
         {
 		.index = 6,
                 .sensor = {
@@ -1787,9 +1758,9 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                         },
 			.reading2event = {},
                 },
-                .comment = "MM -5 volt sensor"
+                .comment = "System -5 Volt Sensor",
         },
-        /* 12V voltage sensor on Management Module */
+        /* System 12 Volt Sensor */
         {
 		.index = 7,
                 .sensor = {
@@ -1899,10 +1870,9 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                         },
 			.reading2event = {},
                 },
-                .comment = "MM 12 volt sensor"
+                .comment = "System 12 Volt Sensor",
         },
-
-	/* MM I2C bus general operations - event only */
+	/* General I2C Bus Operations Sensor - event only */
         {
 		.index = 8,
                 .sensor = {
@@ -1939,9 +1909,9 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                         },
    			.reading2event = {},
                 },
-                .comment = "MM I2C bus general operations"
+                .comment = "General I2C Bus Operations Sensor",
         },
-	/* MM I2C bus blade presence operations - event only */
+	/* Blade I2C Bus Operations Sensor - event only */
         {
 		.index = 9,
                 .sensor = {
@@ -1978,9 +1948,9 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                         },
    			.reading2event = {},
                 },
-                .comment = "MM I2C bus blade presence operations"
+                .comment = "Blade I2C Bus Operations Sensor",
         },
-	/* MM I2C bus power module operations - event only */
+	/* I/O Module I2C Bus Operations Sensor - event only */
         {
 		.index = 10,
                 .sensor = {
@@ -2006,7 +1976,7 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
 			.deassert_mask = SAHPI_ES_OFF_LINE,
                         .event_array = {
                                 {
-                                        .event = "00020003", /* EN_I2C_BUS_3_FAIL */
+                                        .event = "00020005", /* EN_I2C_BUS_5_FAIL */
   					.event_assertion = SAHPI_TRUE,
        					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
@@ -2017,9 +1987,9 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                         },
    			.reading2event = {},
                 },
-                .comment = "MM I2C bus power module operations"
+                .comment = "I/O Module I2C Bus 0perations Sensor",
         },
-	/* MM I2C bus media tray operations - event only */
+	/* Media Tray I2C Bus Operations Sensor - event only */
         {
 		.index = 11,
                 .sensor = {
@@ -2056,9 +2026,9 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                         },
    			.reading2event = {},
                 },
-                .comment = "MM I2C bus media tray operations"
+                .comment = "Media Tray I2C Bus Operations Sensor",
         },
-	/* MM I2C bus IO module operations - event only */
+	/* Power Module I2C Bus Operations Sensor - event only */
         {
 		.index = 12,
                 .sensor = {
@@ -2084,7 +2054,7 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
 			.deassert_mask = SAHPI_ES_OFF_LINE,
                         .event_array = {
                                 {
-                                        .event = "00020005", /* EN_I2C_BUS_5_FAIL */
+                                        .event = "00020003", /* EN_I2C_BUS_3_FAIL */
   					.event_assertion = SAHPI_TRUE,
        					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
@@ -2095,9 +2065,9 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                         },
    			.reading2event = {},
                 },
-                .comment = "MM I2C bus IO module 0perations"
+                .comment = "Power Module I2C Bus Operations Sensor",
         },
-        /* Management module redundancy sensor - event-only */
+        /* MM Redundancy Sensor - event-only */
         {
 		.index = 13,
                 .sensor = {
@@ -2137,9 +2107,9 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                         },
 			.reading2event = {},
                 },
-                .comment = "Chassis management module redundancy sensor"
+                .comment = "MM Redundancy Sensor",
         },
-        /* Active Management Module Sensor */
+        /* Active MM Sensor */
         {
 		.index = 14,
                 .sensor = {
@@ -2180,9 +2150,9 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
 			
                         .reading2event = {},
                 },
-                .comment = "Active management module sensor"
+                .comment = "Active MM Sensor",
         },	
-        /* Standby Management Module Sensor */
+        /* Standby MM Sensor */
         {
 		.index = 15,
                 .sensor = {
@@ -2223,8 +2193,9 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
 			
                         .reading2event = {},
                 },
-                .comment = "Standby management module sensor"
-        },		
+                .comment = "Standby MM Sensor",
+        },
+
         {} /* Terminate array with a null element */
 };
 
@@ -2233,7 +2204,7 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
  ***************************/
 
 struct snmp_bc_sensor snmp_bc_mgmnt_sensors[] = {
-	/* MM network link availablity sensor - event only */
+	/* MM Network Link Availablity Sensor - event only */
         {
 		.index = 1,
                 .sensor = {
@@ -2270,9 +2241,8 @@ struct snmp_bc_sensor snmp_bc_mgmnt_sensors[] = {
                         },
    			.reading2event = {},
                 },
-                .comment = "MM network link availablity sensor"
+                .comment = "MM Network Link Availablity Sensor",
         },
-
 
         {} /* Terminate array with a null element */
 };
@@ -2281,10 +2251,8 @@ struct snmp_bc_sensor snmp_bc_mgmnt_sensors[] = {
  * Blade Sensors
  ***************/
 
-#define SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR 14
-
 struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
-        /* CPU 1 thermal sensor */
+        /* Blade CPU 1 Temperature Sensor */
         {
 		.index = 1,
                 .sensor = {
@@ -2379,9 +2347,9 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         },
  			.reading2event = {},
 		},
-                .comment = "Blade CPU 1 temperature sensor"
+                .comment = "Blade CPU 1 Temperature Sensor",
         },
-        /* CPU 2 thermal sensor */
+        /* Blade CPU 2 Temperature Sensor */
         {
 		.index = 2,
                 .sensor = {
@@ -2476,9 +2444,9 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         },
   			.reading2event = {},
                 },
-                .comment = "Blade CPU 2 temperature sensor"
+                .comment = "Blade CPU 2 Temperature Sensor",
         },
-        /* CPU 3 thermal sensor */
+        /* Blade CPU 3 Temperature Sensor */
         {
 		.index = 3,
                 .sensor = {
@@ -2573,9 +2541,9 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         },
  			.reading2event = {},
 		},
-                .comment = "Blade CPU 3 temperature sensor"
+                .comment = "Blade CPU 3 Temperature Sensor",
         },
-        /* CPU 4 thermal sensor */
+        /* Blade CPU 4 Temperature Sensor */
         {
 		.index = 4,
                 .sensor = {
@@ -2670,9 +2638,9 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         },
   			.reading2event = {},
                 },
-                .comment = "Blade CPU 4 temperature sensor"
+                .comment = "Blade CPU 4 Temperature Sensor",
         },
-        /* Blade's 1.25V voltage sensor */
+        /* Blade 1.25 Volt Sensor */
         {
 		.index = 5,
                 .sensor = {
@@ -2759,9 +2727,9 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         },
   			.reading2event = {},
                 },
-                .comment = "Blade 1.25 volt sensor"
+                .comment = "Blade 1.25 Volt Sensor",
         },
-        /* Blade's 1.5V voltage sensor */
+        /* Blade 1.5 Volt Sensor */
         {
 		.index = 6,
                 .sensor = {
@@ -2867,9 +2835,9 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         },
  			.reading2event = {},
                  },
-                .comment = "Blade 1.5 volt sensor"
+                .comment = "Blade 1.5 Volt Sensor",
         },
-        /* Blade's 2.5V voltage sensor */
+        /* Blade 2.5 Volt Sensor */
         {
 		.index = 7,
                 .sensor = {
@@ -2975,9 +2943,9 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         },
   			.reading2event = {},
                 },
-                .comment = "Blade 2.5 volt sensor"
+                .comment = "Blade 2.5 Volt Sensor",
         },
-        /* Blade's 3.3V voltage sensor */
+        /* Blade 3.3 Volt Sensor */
         {
 		.index = 8,
                 .sensor = {
@@ -3083,9 +3051,9 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         },
   			.reading2event = {},
                 },
-                .comment = "Blade 3.3 volt sensor"
+                .comment = "Blade 3.3 Volt Sensor",
         },
-        /* Blade's 5V voltage sensor */
+        /* Blade 5 Volt Sensor */
         {
 		.index = 9,
                 .sensor = {
@@ -3191,9 +3159,9 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         },
   			.reading2event = {},
                 },
-                .comment = "Blade 5 volt sensor"
+                .comment = "Blade 5 Volt Sensor",
         },
-        /* Blade's 12V voltage sensor */
+        /* Blade 12 Volt Sensor */
         {
 		.index = 10,
                 .sensor = {
@@ -3299,9 +3267,9 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         },
   			.reading2event = {},
                 },
-                .comment = "Blade 12 volt sensor"
+                .comment = "Blade 12 Volt Sensor",
         },
-        /* Blade's VRM 1 voltage sensor */
+        /* Blade VRM Voltage Sensor */
         {
 		.index = 11,
                 .sensor = {
@@ -3367,9 +3335,9 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         },
    			.reading2event = {},
 		},
-		.comment = "Blade VRM 1 volt sensor"
+		.comment = "Blade VRM Voltage Sensor",
         },
-        /* Blade's global operational sensor - event only */
+        /* Blade Operational Status Sensor - event only */
         {
 		.index = 12,
                 .sensor = {
@@ -3527,9 +3495,9 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         },
    			.reading2event = {},
                },
-                .comment = "Blade global operational sensor"
+                .comment = "Blade Operational Status Sensor",
         },
-	/* Blade memory sensor - event only */
+	/* Blade Memory Status Sensor - event only */
         {
 		.index = 13,
                 .sensor = {
@@ -3566,12 +3534,13 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         },
    			.reading2event = {},
                },
-                .comment = "Blade memory sensor"
+                .comment = "Blade Memory Status Sensor",
         },
+	/* Blade NMI Status Sensor */
         {
 		.index = 14,
                 .sensor = {
-                        .Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR,
+                        .Num = 14,
                         .Type = SAHPI_CRITICAL_INTERRUPT,
                         .Category = SAHPI_EC_STATE,
 			.EnableCtrl = SAHPI_FALSE,
@@ -3604,18 +3573,21 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         },
    			.reading2event = {},
                },
-                .comment = "Blade NMI sensor"
+                .comment = "Blade NMI Status Sensor",
         },
 
         {} /* Terminate array with a null element */
 };
+
+
+#define SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR 14
 
 /********************
  * Blade IPMI Sensors
  ********************/
 
 struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
-        /* IPMI CPU 1 thermal sensor */
+        /* Blade CPU 1 Temperature Sensor */
         {
 		.ipmi_tag = "CPU1 TEMP",
 		.ipmi = {
@@ -3712,10 +3684,10 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				},
 				.reading2event = {},
 			},
-			.comment = "Blade IPMI CPU 1 temperature sensor",
+			.comment = "Blade CPU 1 Temperature Sensor",
 		},
 	},
-        /* IPMI CPU 2 thermal sensor */
+        /* Blade CPU 2 Temperature Sensor */
         {
 		.ipmi_tag = "CPU2 TEMP",
 		.ipmi = {
@@ -3812,10 +3784,10 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				},
 				.reading2event = {},
 			},
-			.comment = "Blade IPMI CPU 2 temperature sensor",
+			.comment = "Blade CPU 2 Temperature Sensor",
 		},
         },
-        /* IPMI CPU 3 thermal sensor */
+        /* Blade CPU 3 Temperature Sensor */
         {
 		.ipmi_tag = "CPU3 TEMP",
 		.ipmi = {
@@ -3912,10 +3884,10 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				},
 				.reading2event = {},
 			},
-			.comment = "Blade IPMI CPU 3 temperature sensor",
+			.comment = "Blade CPU 3 Temperature Sensor",
 		},
         },
-        /* IPMI CPU 4 thermal sensor */
+        /* Blade CPU 4 Temperature Sensor */
         {
 		.ipmi_tag = "CPU4 TEMP",
 		.ipmi = {
@@ -4012,10 +3984,10 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				},
 				.reading2event = {},
 			},
-			.comment = "Blade IPMI CPU 4 temperature sensor",
+			.comment = "Blade CPU 4 Temperature Sensor",
 		},
 	},
-        /* Blade's 1.25V voltage sensor */
+        /* Blade 1.25 Volt Sensor */
         {
 		.ipmi_tag = "1.2V Sense",
 		.ipmi = {
@@ -4123,10 +4095,10 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				},
 				.reading2event = {},
 			},
-			.comment = "Blade IPMI 1.25 volt sensor",
+			.comment = "Blade 1.25 Volt Sensor",
 		},
         },
-        /* Blade's 1.25 VSB voltage sensor */
+        /* Blade Standby 1.25 Volt Sensor */
         {
 		.ipmi_tag = "1.2VSB Sense",
 		.ipmi = {
@@ -4215,10 +4187,10 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				},
 				.reading2event = {},
 			},
-			.comment = "Blade IPMI 1.25 volt standby sensor",
+			.comment = "Blade Standby 1.25 Volt Sensor",
 		},
         },
-	/* Blade's IPMI 1.5V voltage sensor */
+	/* Blade 1.5 Volt Sensor */
         {
 		.ipmi_tag = "1.5V Sense",
 		.ipmi = {
@@ -4326,10 +4298,10 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				},
 				.reading2event = {},
 			},
-			.comment = "Blade IPMI 1.5 volt sensor",
+			.comment = "Blade 1.5 Volt Sensor",
 		},
         },
-	/* Blade's IPMI 1.5V standby voltage sensor */
+	/* Blade Standby 1.5 Volt Sensor */
         {
 		.ipmi_tag = "1.5VSB Sense",
 		.ipmi = {
@@ -4418,10 +4390,10 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				},
 				.reading2event = {},
 			},
-			.comment = "Blade IPMI 1.5 standby volt sensor",
+			.comment = "Blade Standby 1.5 Volt Sensor",
 		},
         },
-        /* Blade's IPMI 1.8V voltage sensor */
+        /* Blade 1.8 Volt Sensor */
         {
 		.ipmi_tag = "1.8V Sense",
 		.ipmi = {
@@ -4529,10 +4501,10 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				},
 				.reading2event = {},
 			},
-			.comment = "Blade IPMI 1.8 volt sensor",
+			.comment = "Blade 1.8 Volt Sensor",
 		},
         },
-	/* Blade's IPMI 2.5V voltage sensor */
+	/* Blade 2.5 Volt Sensor */
         {
 		.ipmi_tag = "2.5V Sense",
 		.ipmi = {
@@ -4640,10 +4612,10 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				},
 				.reading2event = {},
 			},
-			.comment = "Blade IPMI 2.5 volt sensor",
+			.comment = "Blade 2.5 Volt Sensor",
 		},
         },
-        /* Blade's IPMI 2.5V standby voltage sensor */
+        /* Blade Standby 2.5 Volt Sensor */
         {
 		.ipmi_tag = "2.5VSB Sense",
 		.ipmi = {
@@ -4732,10 +4704,10 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				},
 				.reading2event = {},
 			},
-			.comment = "Blade IPMI 2.5 standby volt sensor",
+			.comment = "Blade Standby 2.5 Volt Sensor",
 		},
         },
-        /* Blade's IPMI 3.3V voltage sensor */
+        /* Blade 3.3 Volt Sensor */
         {
 		.ipmi_tag = "3.3V Sense",
 		.ipmi = {
@@ -4843,10 +4815,10 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				},
 				.reading2event = {},
 			},
-			.comment = "Blade IPMI 3.3 volt sensor",
+			.comment = "Blade 3.3 Volt Sensor",
 		},
         },
-        /* Blade's IPMI 3.3V standby voltage sensor */
+        /* Blade Standby 3.3 Volt Sensor */
         {
 		.ipmi_tag = "3.3VSB Sense",
 		.ipmi = {
@@ -4935,10 +4907,10 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				},
 				.reading2event = {},
 			},
-			.comment = "Blade IPMI 3.3 standby volt sensor",
+			.comment = "Blade Standby 3.3 Volt Sensor",
 		},
         },
-        /* Blade's IPMI 5V voltage sensor */
+        /* Blade 5 Volt Sensor */
         {
 		.ipmi_tag = "5V Sense",
 		.ipmi = {
@@ -5046,10 +5018,10 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				},
 				.reading2event = {},
 			},
-			.comment = "Blade IPMI 5 volt sensor",
+			.comment = "Blade 5 Volt Sensor",
 		},
         },
-        /* Blade's IPMI 5V standby voltage sensor */
+        /* Blade Standby 5 Volt Sensor */
         {
 		.ipmi_tag = "5VSB Sense",
 		.ipmi = {
@@ -5138,10 +5110,10 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				},
 				.reading2event = {},
 			},
-			.comment = "Blade IPMI 5 standby volt sensor",
+			.comment = "Blade Standby 5 Volt Sensor",
 		},
         },
-        /* Blade's IPMI -5V voltage sensor */
+        /* Blade -5 Volt Sensor */
         {
 		.ipmi_tag = "-5V Sense",
 		.ipmi = {
@@ -5249,10 +5221,10 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				},
 				.reading2event = {},
 			},
-			.comment = "Blade IPMI -5 volt sensor",
+			.comment = "Blade -5 Volt Sensor",
 		},
         },
-        /* Blade's 12V voltage sensor */
+        /* Blade 12 Voltage Sensor */
         {
 		.ipmi_tag = "12V Sense",
 		.ipmi = {
@@ -5360,10 +5332,10 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				},
 				.reading2event = {},
 			},
-			.comment = "Blade IPMI 12 volt sensor",
+			.comment = "Blade 12 Volt Sensor",
 		},
         },
-        /* Blade's 12V standby voltage sensor */
+        /* Blade Standby 12 Volt Sensor */
         {
 		.ipmi_tag = "12VSB Sense",
 		.ipmi = {
@@ -5452,10 +5424,10 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				},
 				.reading2event = {},
 			},
-			.comment = "Blade IPMI 12 standby volt sensor",
+			.comment = "Blade Standby 12 Volt Sensor",
 		},
         },
-        /* Blade's IPMI CPU 1 VCore voltage sensor */
+        /* Blade CPU 1 Core Voltage Sensor */
         {
 		.ipmi_tag = "CPU 1 VCore",
 		.ipmi = {
@@ -5537,10 +5509,10 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				},
 				.reading2event = {},
 			},
-			.comment = "Blade IPMI CPU 1 VCore sensor",
+			.comment = "Blade CPU 1 Core Voltage Sensor",
 		},
         },
-        /* Blade's IPMI CPU 2 VCore voltage sensor */
+        /* Blade CPU 2 Core Voltage Sensor */
         {
 		.ipmi_tag = "CPU 2 VCore",
 		.ipmi = {
@@ -5622,10 +5594,10 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				},
 				.reading2event = {},
 			},
-			.comment = "Blade IPMI CPU 2 VCore sensor",
+			.comment = "Blade CPU 2 Core Voltage Sensor",
 		},
         },
-        /* Blade's IPMI Battery voltage sensor */
+        /* Blade Battery Voltage Sensor */
         {
 		.ipmi_tag = "VBATT Sense",
 		.ipmi = {
@@ -5701,7 +5673,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				},
 				.reading2event = {},
 			},
-			.comment = "Blade IPMI battery voltage sensor",
+			.comment = "Blade Battery Voltage Sensor",
 		},
         },
 
@@ -5713,7 +5685,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
  ********************************/
 
 struct snmp_bc_sensor snmp_bc_blade_expansion_sensors[] = {
-        /* Blade BEM thermal sensor */
+        /* BEM Temperature Sensor */
         {
 		.index = 1,
                 .sensor = {
@@ -5816,9 +5788,9 @@ struct snmp_bc_sensor snmp_bc_blade_expansion_sensors[] = {
                         },
   			.reading2event = {},
                 },
-                .comment = "Blade BEM thermal sensor"
+                .comment = "BEM Temperature Sensor",
         },
-        /* Blade BEM voltage sensor - event only */
+        /* BEM Voltage Sensor - event only */
         {
 		.index = 2,
                 .sensor = {
@@ -6023,9 +5995,9 @@ struct snmp_bc_sensor snmp_bc_blade_expansion_sensors[] = {
                         },
   			.reading2event = {},
                  },
-                .comment = "Blade BEM voltage sensor"
+                .comment = "BEM Voltage Sensor",
         },
-	/* Blade BEM DASD (SCSI ID=2) operational sensor - event only */
+	/* BEM DASD (SCSI ID=2) Operational Sensor - event only */
         {
 		.index = 3,
                 .sensor = {
@@ -6062,9 +6034,9 @@ struct snmp_bc_sensor snmp_bc_blade_expansion_sensors[] = {
                         },
    			.reading2event = {},
                 },
-                .comment = "Blade BEM DASD (SCSI ID=2) operational sensor"
+                .comment = "BEM DASD (SCSI ID=2) Operational Sensor",
         },
-	/* Blade BEM DASD (SCSI ID=3) operational sensor - event only */
+	/* BEM DASD (SCSI ID=3) Operational Sensor - event only */
         {
 		.index = 4,
                 .sensor = {
@@ -6101,7 +6073,7 @@ struct snmp_bc_sensor snmp_bc_blade_expansion_sensors[] = {
                         },
    			.reading2event = {},
                 },
-                .comment = "Blade BEM DASD (SCSI ID=3) operational sensor"
+                .comment = "BEM DASD (SCSI ID=3) Operational Sensor",
         },
 
         {} /* Terminate array with a null element */
@@ -6112,7 +6084,7 @@ struct snmp_bc_sensor snmp_bc_blade_expansion_sensors[] = {
  ********************/
 
 struct snmp_bc_sensor snmp_bc_mediatray_sensors[] = {
-        /* Media Tray's global operational sensor - event only */
+        /* Media Tray Operational Status Sensor - event only */
         {
 		.index = 1,
                 .sensor = {
@@ -6149,22 +6121,61 @@ struct snmp_bc_sensor snmp_bc_mediatray_sensors[] = {
                         },
    			.reading2event = {},
                 },
-                .comment = "Media Tray global operational sensor"
+                .comment = "Media Tray Operational Status Sensor",
         },
 
         {} /* Terminate array with a null element */
 };
 
-/***********************
- * Blower Module Sensors
- ***********************/
+/*************
+ * Fan Sensors
+ *************/
 
 struct snmp_bc_sensor snmp_bc_fan_sensors[] = {
-        /* Blower fan speed */
+        /* Fan Operational Status Sensor - event-only */
         {
 		.index = 1,
                 .sensor = {
                         .Num = 1,
+                        .Type = SAHPI_OPERATIONAL,
+                        .Category = SAHPI_EC_AVAILABILITY,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
+                        .Events = SAHPI_ES_RUNNING | SAHPI_ES_OFF_LINE,
+                        .DataFormat = {
+                                .IsSupported = SAHPI_FALSE,
+                        },
+                        .ThresholdDefn = {
+                                .IsAccessible = SAHPI_FALSE,
+                        },
+                        .Oem = 0,
+                },
+                .sensor_info = {
+                        .cur_state = SAHPI_ES_UNSPECIFIED,
+                        .sensor_enabled = SAHPI_TRUE,
+                        .events_enabled = SAHPI_TRUE,
+			.assert_mask   = SAHPI_ES_OFF_LINE,
+			.deassert_mask = SAHPI_ES_OFF_LINE,
+                        .event_array = {
+                                {
+                                        .event = "0002680x", /* EN_FAN1_SPEED */
+  					.event_assertion = SAHPI_TRUE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {},
+                        },
+   			.reading2event = {},
+                },
+                .comment = "Fan Operational Status Sensor",
+        },
+        /* Fan Speed Percentage Sensor */
+        {
+		.index = 2,
+                .sensor = {
+                        .Num = 2,
                         .Type = SAHPI_FAN,
                         .Category = SAHPI_EC_PRED_FAIL,
 			.EnableCtrl = SAHPI_FALSE,
@@ -6224,46 +6235,7 @@ struct snmp_bc_sensor snmp_bc_fan_sensors[] = {
                         },
    			.reading2event = {},
                 },
-                .comment = "Blower fan speed - percent of maximum RPM"
-        },
-        /* Blower's global operational sensor - event-only */
-        {
-		.index = 2,
-                .sensor = {
-                        .Num = 2,
-                        .Type = SAHPI_OPERATIONAL,
-                        .Category = SAHPI_EC_AVAILABILITY,
-			.EnableCtrl = SAHPI_FALSE,
-                        .EventCtrl = SAHPI_SEC_READ_ONLY,
-                        .Events = SAHPI_ES_RUNNING | SAHPI_ES_OFF_LINE,
-                        .DataFormat = {
-                                .IsSupported = SAHPI_FALSE,
-                        },
-                        .ThresholdDefn = {
-                                .IsAccessible = SAHPI_FALSE,
-                        },
-                        .Oem = 0,
-                },
-                .sensor_info = {
-                        .cur_state = SAHPI_ES_UNSPECIFIED,
-                        .sensor_enabled = SAHPI_TRUE,
-                        .events_enabled = SAHPI_TRUE,
-			.assert_mask   = SAHPI_ES_OFF_LINE,
-			.deassert_mask = SAHPI_ES_OFF_LINE,
-                        .event_array = {
-                                {
-                                        .event = "0002680x", /* EN_FAN1_SPEED */
-  					.event_assertion = SAHPI_TRUE,
-                                        .event_state = SAHPI_ES_OFF_LINE,
-       					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .recovery_state = SAHPI_ES_RUNNING,
-                                },
-                                {},
-                        },
-   			.reading2event = {},
-                },
-                .comment = "Blower global operational sensor"
+                .comment = "Fan Speed Percentage Sensor",
         },
 
         {} /* Terminate array with a null element */
@@ -6274,58 +6246,11 @@ struct snmp_bc_sensor snmp_bc_fan_sensors[] = {
  ***************/
 
 struct snmp_bc_sensor snmp_bc_power_sensors[] = {
-        /* Power's over temperature sensor - event-only */
+        /* Power Module Operational Status Sensor - event-only */
         {
 		.index = 1,
                 .sensor = {
                         .Num = 1,
-                        .Type = SAHPI_TEMPERATURE,
-                        .Category = SAHPI_EC_SEVERITY,
- 			.EnableCtrl = SAHPI_FALSE,
-                        .EventCtrl = SAHPI_SEC_READ_ONLY,
-                        .Events = SAHPI_ES_OK | SAHPI_ES_MAJOR_FROM_LESS | SAHPI_ES_CRITICAL,
-                         .DataFormat = {
-                                 .IsSupported = SAHPI_FALSE,
-                        },
-                        .ThresholdDefn = {
-                                .IsAccessible = SAHPI_FALSE,
-                        },
-                        .Oem = 0,
-                },
-                .sensor_info = {
-                        .cur_state = SAHPI_ES_OK,
-                        .sensor_enabled = SAHPI_TRUE,
-                        .events_enabled = SAHPI_TRUE,
-			.assert_mask   = SAHPI_ES_MAJOR_FROM_LESS | SAHPI_ES_CRITICAL,
-			.deassert_mask = SAHPI_ES_MAJOR_FROM_LESS | SAHPI_ES_CRITICAL,
-                        .event_array = {
-                                {
-                                        .event = "0821C08x", /* EN_FAULT_PSx_OVR_TEMP */
-  					.event_assertion = SAHPI_TRUE,
-       					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_CRITICAL,
-                                        .recovery_state = SAHPI_ES_MAJOR_FROM_LESS,
-                                },
-                                {
-                                        .event = "0821C00x", /* EN_FAULT_PS1_TEMP_WARN */
-  					.event_assertion = SAHPI_TRUE,
-       					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_MAJOR_FROM_LESS,
-                                        .recovery_state = SAHPI_ES_OK,
-                                },
-                                {},
-                        },
-   			.reading2event = {},
-                },
-                .comment = "Power over temperature sensor"
-        },
-        /* Power's global operational sensor - event-only */
-        {
-		.index = 2,
-                .sensor = {
-                        .Num = 2,
                         .Type = SAHPI_OPERATIONAL,
                         .Category = SAHPI_EC_AVAILABILITY,
 			.EnableCtrl = SAHPI_FALSE,
@@ -6406,28 +6331,20 @@ struct snmp_bc_sensor snmp_bc_power_sensors[] = {
                         },
    			.reading2event = {},
                 },
-                .comment = "Power global operational sensor"
+                .comment = "Power Module Operational Status Sensor",
         },
-        {} /* Terminate array with a null element */
-};
-
-/****************
- * Switch Sensors
- ****************/
-
-struct snmp_bc_sensor snmp_bc_switch_sensors[] = {
-        /* Switch's over temperature sensor - event-only */
+        /* Power Module Temperature Sensor - event-only */
         {
-		.index = 1,
+		.index = 2,
                 .sensor = {
-                        .Num = 1,
+                        .Num = 2,
                         .Type = SAHPI_TEMPERATURE,
                         .Category = SAHPI_EC_SEVERITY,
-			.EnableCtrl = SAHPI_FALSE,
+ 			.EnableCtrl = SAHPI_FALSE,
                         .EventCtrl = SAHPI_SEC_READ_ONLY,
-			.Events = SAHPI_ES_OK | SAHPI_ES_MAJOR_FROM_LESS | SAHPI_ES_CRITICAL,
-			.DataFormat = {
-                                .IsSupported = SAHPI_FALSE,
+                        .Events = SAHPI_ES_OK | SAHPI_ES_MAJOR_FROM_LESS | SAHPI_ES_CRITICAL,
+                         .DataFormat = {
+                                 .IsSupported = SAHPI_FALSE,
                         },
                         .ThresholdDefn = {
                                 .IsAccessible = SAHPI_FALSE,
@@ -6442,7 +6359,7 @@ struct snmp_bc_sensor snmp_bc_switch_sensors[] = {
 			.deassert_mask = SAHPI_ES_MAJOR_FROM_LESS | SAHPI_ES_CRITICAL,
                         .event_array = {
                                 {
-                                        .event = "0EA1C40x", /* EN_OVER_TEMP_SWITCH_x */
+                                        .event = "0821C08x", /* EN_FAULT_PSx_OVR_TEMP */
   					.event_assertion = SAHPI_TRUE,
        					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
@@ -6450,24 +6367,33 @@ struct snmp_bc_sensor snmp_bc_switch_sensors[] = {
                                         .recovery_state = SAHPI_ES_MAJOR_FROM_LESS,
                                 },
                                 {
-                                        .event = "0EA1D40x", /* EN_OVER_TEMP_WARN_SWITCH_x */
+                                        .event = "0821C00x", /* EN_FAULT_PS1_TEMP_WARN */
   					.event_assertion = SAHPI_TRUE,
-					.event_res_failure = SAHPI_FALSE,
+       					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
                                         .event_state = SAHPI_ES_MAJOR_FROM_LESS,
-                                       .recovery_state = SAHPI_ES_OK,
+                                        .recovery_state = SAHPI_ES_OK,
                                 },
                                 {},
                         },
    			.reading2event = {},
                 },
-                .comment = "Switch over temperature sensor"
+                .comment = "Power Module Temperature Sensor",
         },
-        /* Switch's global operational sensor - event only */
+
+        {} /* Terminate array with a null element */
+};
+
+/********************
+ * I/O Module Sensors
+ ********************/
+
+struct snmp_bc_sensor snmp_bc_switch_sensors[] = {
+        /* I/O Module Operational Status Sensor - event only */
         {
-		.index = 2,
+		.index = 1,
                 .sensor = {
-                        .Num = 2,
+                        .Num = 1,
                         .Type = SAHPI_OPERATIONAL,
                         .Category = SAHPI_EC_AVAILABILITY,
 			.EnableCtrl = SAHPI_FALSE,
@@ -6533,7 +6459,54 @@ struct snmp_bc_sensor snmp_bc_switch_sensors[] = {
                         },
    			.reading2event = {},
                 },
-                .comment = "Switch global operational sensor"
+                .comment = "I/O Operational Status Sensor",
+        },
+        /* I/O Module Temperature Sensor - event-only */
+        {
+		.index = 2,
+                .sensor = {
+                        .Num = 2,
+                        .Type = SAHPI_TEMPERATURE,
+                        .Category = SAHPI_EC_SEVERITY,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
+			.Events = SAHPI_ES_OK | SAHPI_ES_MAJOR_FROM_LESS | SAHPI_ES_CRITICAL,
+			.DataFormat = {
+                                .IsSupported = SAHPI_FALSE,
+                        },
+                        .ThresholdDefn = {
+                                .IsAccessible = SAHPI_FALSE,
+                        },
+                        .Oem = 0,
+                },
+                .sensor_info = {
+                        .cur_state = SAHPI_ES_OK,
+                        .sensor_enabled = SAHPI_TRUE,
+                        .events_enabled = SAHPI_TRUE,
+			.assert_mask   = SAHPI_ES_MAJOR_FROM_LESS | SAHPI_ES_CRITICAL,
+			.deassert_mask = SAHPI_ES_MAJOR_FROM_LESS | SAHPI_ES_CRITICAL,
+                        .event_array = {
+                                {
+                                        .event = "0EA1C40x", /* EN_OVER_TEMP_SWITCH_x */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_CRITICAL,
+                                        .recovery_state = SAHPI_ES_MAJOR_FROM_LESS,
+                                },
+                                {
+                                        .event = "0EA1D40x", /* EN_OVER_TEMP_WARN_SWITCH_x */
+  					.event_assertion = SAHPI_TRUE,
+					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_MAJOR_FROM_LESS,
+                                       .recovery_state = SAHPI_ES_OK,
+                                },
+                                {},
+                        },
+   			.reading2event = {},
+                },
+                .comment = "I/O Module Temperature Sensor",
         },
 
         {} /* Terminate array with a null element */
@@ -6545,11 +6518,9 @@ struct snmp_bc_sensor snmp_bc_switch_sensors[] = {
 
 /*************************************************************************
  * WARNING  -   WARNING  - WARNING  -  WARNING 
- *  Most of the .control.num are arbitrary assigned.   
- *  There are 2 specially assigned .control.num defined in snmp_resources.h
- *  They are 
+ * Most of the .control.num are arbitrary assigned.   
+ * There is 1 hardcoded Control Number:
  *        BLADECENTER_CTRL_NUM_MGMNT_FAILOVER 
- *        BLADECENTER_CTRL_NUM_FAILED_RESOURCE_EXTRACT
  *************************************************************************/
  
 /******************
@@ -6561,9 +6532,10 @@ struct snmp_bc_sensor snmp_bc_switch_sensors[] = {
    discover the common controls */
 
 struct snmp_bc_control snmp_bc_chassis_controls_bc[] = {
-        /* Front Panel Identify LED. User controlled. */
+        /* Chassis Location LED */
   	/* 0 is Off; 1 is solid on; 2 is blinking */
 	{
+		.index = 1,
                 .control = {
                         .Num = 1,
                         .OutputType = SAHPI_CTRL_LED,
@@ -6584,16 +6556,17 @@ struct snmp_bc_control snmp_bc_chassis_controls_bc[] = {
                         },
 			.cur_mode = SAHPI_CTRL_MODE_MANUAL,
                 },
-                .comment = "Front Panel Identify LED"
+                .comment = "Chassis Location LED",
         },
 
         {} /* Terminate array with a null element */
 };
 
 struct snmp_bc_control snmp_bc_chassis_controls_bct[] = {
-        /* Front Panel Identify LED. User controlled. */
+        /* Chassis Location LED */
   	/* 0 is Off; 1 is solid on; 2 is blinking */
 	{
+		.index = 1,
                 .control = {
                         .Num = 1,
                         .OutputType = SAHPI_CTRL_LED,
@@ -6614,7 +6587,7 @@ struct snmp_bc_control snmp_bc_chassis_controls_bct[] = {
                         },
 			.cur_mode = SAHPI_CTRL_MODE_MANUAL,
                 },
-                .comment = "Front Panel Identify LED"
+                .comment = "Chassis Location LED",
         },
 
         {} /* Terminate array with a null element */
@@ -6625,9 +6598,10 @@ struct snmp_bc_control snmp_bc_chassis_controls_bct[] = {
  ****************/
 
 struct snmp_bc_control snmp_bc_blade_controls[] = {
-        /* Blade Identify LED. User controlled. */
+        /* Blade Location LED */
 	/* 0 is Off; 1 is solid on; 2 is blinking */
         {
+		.index = 1,
                 .control = {
                         .Num = 1,
                         .OutputType = SAHPI_CTRL_LED,
@@ -6648,7 +6622,7 @@ struct snmp_bc_control snmp_bc_blade_controls[] = {
                         },
  			.cur_mode = SAHPI_CTRL_MODE_MANUAL,
                },
-                .comment = "Blade Identify LED"
+                .comment = "Blade Location LED",
         },
 
         {} /* Terminate array with a null element */
@@ -6663,14 +6637,50 @@ struct snmp_bc_control snmp_bc_blade_expansion_controls[] = {
         {} /* Terminate array with a null element */
 };
 
-
-/****************************
+/************************************
  * Virtual Management Module Controls
- ****************************/
+ ************************************/
 
 struct snmp_bc_control snmp_bc_virtual_mgmnt_controls[] = {
-        
-	/* Empty for now   */
+	/* MM Failover Control */
+	{
+		.index = 1,
+		.control = {
+			.Num = BLADECENTER_CTRL_NUM_MGMNT_FAILOVER,
+			.OutputType = SAHPI_CTRL_GENERIC,
+			.Type = SAHPI_CTRL_TYPE_DIGITAL,
+			.TypeUnion.Digital.Default = SAHPI_CTRL_STATE_OFF,
+			.DefaultMode = {
+				.Mode = SAHPI_CTRL_MODE_MANUAL,
+				.ReadOnly = SAHPI_TRUE,
+			},
+			.WriteOnly = SAHPI_FALSE,
+			.Oem = 0,
+		},
+		.control_info = {
+			.mib = {
+				.not_avail_indicator_num = 0,
+				.write_only = SAHPI_FALSE,
+				.oid = ".1.3.6.1.4.1.2.3.51.2.7.7.0",
+				/* Read values */
+				.digitalmap[0] = -1, /* Always return SAHPI_CTRL_STATE_OFF */
+				.digitalmap[1] = -1, /* Always return SAHPI_CTRL_STATE_OFF */
+				.digitalmap[2] = -1, /* Always return SAHPI_CTRL_STATE_OFF */
+				.digitalmap[3] = -1, /* Always return SAHPI_CTRL_STATE_OFF */
+				/* Write values */
+				.digitalwmap[0] = -1, /* SAHPI_CTRL_STATE_OFF - Invalid */
+				.digitalwmap[1] = -1, /* SAHPI_CTRL_STATE_ON - Invalid */
+				.digitalwmap[2] = -1, /* SAHPI_CTRL_STATE_PULSE_OF - Invalid */
+				.digitalwmap[3] = 1,  /* SAHPI_CTRL_STATE_PULSE_ON */
+				/* Constant read state */
+				.isDigitalReadStateConstant = SAHPI_TRUE,
+				.DigitalStateConstantValue = SAHPI_CTRL_STATE_OFF,
+			},
+			.cur_mode = SAHPI_CTRL_MODE_MANUAL,
+		},
+		.comment = "MM Failover Control",
+	},
+
         {} /* Terminate array with a null element */
 };
 
@@ -6759,23 +6769,21 @@ struct snmp_bc_inventory snmp_bc_chassis_inventories[] = {
 
 /*********
  * Fan VPD
- **********/
+ *********/
 
 struct snmp_bc_inventory snmp_bc_fan_inventories[] = {
 
         {} /* Terminate array with a null element */
 };
 
-
-/*********
+/*******************************
  * Virtual Management Module VPD
- **********/
+ *******************************/
 
 struct snmp_bc_inventory snmp_bc_virtual_mgmnt_inventories[] = {
 
         {} /* Terminate array with a null element */
 };
-
 
 /***********************
  * Management Module VPD
@@ -6805,15 +6813,15 @@ struct snmp_bc_inventory snmp_bc_mgmnt_inventories[] = {
                                 }
                         },
                 },
-                .comment = "Management Module VPD",
+                .comment = "MM VPD",
         },
 
         {} /* Terminate array with a null element */
 };
 
-/*******************
- * Switch Module VPD
- *******************/
+/****************
+ * I/O Module VPD
+ ****************/
 
 struct snmp_bc_inventory snmp_bc_switch_inventories[] = {
         {
@@ -6839,15 +6847,15 @@ struct snmp_bc_inventory snmp_bc_switch_inventories[] = {
                                 }
                         },
                 },
-                .comment = "Switch Module VPD",
+                .comment = "I/O Module VPD",
         },
 
         {} /* Terminate array with a null element */
 };
 
-/************
+/***********
  * Blade VPD
- ************/
+ ***********/
 
 struct snmp_bc_inventory snmp_bc_blade_inventories[] = {
         {
@@ -6879,9 +6887,9 @@ struct snmp_bc_inventory snmp_bc_blade_inventories[] = {
         {} /* Terminate array with a null element */
 };
 
-/**************************
- * Blade Expansion Card VPD
- **************************/
+/****************************
+ * Blade Expansion Module VPD
+ ****************************/
 
 struct snmp_bc_inventory snmp_bc_blade_expansion_inventories[] = {
 
@@ -6890,7 +6898,7 @@ struct snmp_bc_inventory snmp_bc_blade_expansion_inventories[] = {
 
 /****************
  * Media Tray VPD
- *****************/
+ ****************/
 
 struct snmp_bc_inventory snmp_bc_mediatray_inventories[] = {
         {
@@ -6922,9 +6930,9 @@ struct snmp_bc_inventory snmp_bc_mediatray_inventories[] = {
         {} /* Terminate array with a null element */
 };
 
-/*******************
+/******************
  * Power Module VPD
- *******************/
+ ******************/
 
 struct snmp_bc_inventory snmp_bc_power_inventories[] = {
         {

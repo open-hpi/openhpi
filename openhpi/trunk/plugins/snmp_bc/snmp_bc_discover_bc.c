@@ -1,18 +1,17 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2004, 2005, 2006
+ * (C) Copyright IBM Corp. 2004, 2006
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
- * file and program are licensed under a BSD style license.  See
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. This
+ * file and program are licensed under a BSD style license. See
  * the Copying file included with the OpenHPI distribution for
  * full licensing terms.
  *
  * Author(s):
- *      Sean Dague <sdague@users.sf.net>
+ *      Peter Phan <pdphan@sourceforge.net>
  *      Steve Sherman <stevees@us.ibm.com>
- *      Chris Chia <cchia@users.sf.net>
  */
 
 #include <glib.h>
@@ -345,16 +344,15 @@ static SaErrorT snmp_bc_discover_ipmi_sensors(struct oh_handler_state *handle,
 /**
  * snmp_bc_discover:
  * @handler: Pointer to handler's data.
- * @ep_root: Pointer to chassis Root Entity Path which comes from openhpi.conf
+ * @ep_root: Pointer to chassis Root Entity Path which comes from openhpi.conf.
  *
- * Discovers IBM Blade Center resources
+ * Discovers IBM BladeCenter resources and RDRs.
  *
  * Return values:
- * Adds chassis RPTs and RDRs to internal Infra-structure queues - normal case
  * SA_OK - normal case
- * SA_ERR_HPI_DUPLICATE - There is no changes to BladeCenter resource masks; normal case for re-discovery 
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory
- * SA_ERR_HPI_INVALID_PARAMS - Invalid pointers passed in
+ * SA_ERR_HPI_DUPLICATE - There is no changes to BladeCenter resource masks; normal case for re-discovery.
+ * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
  **/
 
 SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
@@ -379,23 +377,23 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
-	/* --------------------------------------------------------- */
-	/* Fetch various resource installation maps from BladeCenter */
-	/* --------------------------------------------------------- */
+	/**************************************************************
+	 * Fetch various resource installation vectors from BladeCenter
+	 **************************************************************/
 
-	/* Fetch blade installed vector  */
+	/* Fetch blade installed vector */
 	get_install_mask(SNMP_BC_BLADE_VECTOR, get_value_blade);
 	
 	/* Fetch fan installed vector  */
 	get_install_mask(SNMP_BC_FAN_VECTOR, get_value_fan);
 
-	/* Fetch power module installed vector */ 
+	/* Fetch power module installed vector */
 	get_install_mask(SNMP_BC_POWER_VECTOR, get_value_power_module);
 
 	/* Fetch switch installed vector */
 	get_install_mask(SNMP_BC_SWITCH_VECTOR, get_value_switch);		 
 
-	/* Fetch MMs installed vector  */
+	/* Fetch MM installed vector */
 	get_install_mask(SNMP_BC_MGMNT_VECTOR, get_value_mm);
 
 	/* Fetch media tray installed vector */
@@ -416,15 +414,17 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 		(get_value_media.integer == custom_handle->mediatray_mask) ) {
 		
 		
-		/* 
-		 * If **all** the resource masks are still the same, 
+		/**************************************************** 
+		 * If **ALL** the resource masks are still the same, 
 		 * do not rediscover, return with special return code 
-		 */
+		 ****************************************************/
 		return(SA_ERR_HPI_DUPLICATE);
 	} else {
-		/* Set saved masks to the newly read values */
-		/* Use strcpy() instead of strncpy(), counting on snmp_utils.c */
-		/* to NULL terminates string read from snmp agent  */
+		/*************************************************************
+                 * Set saved masks to the newly read values
+		 * Use strcpy() instead of strncpy(), counting on snmp_utils.c
+		 * to NULL terminate strings read from snmp agent
+		 *************************************************************/
 		strcpy(custom_handle->blade_mask, get_value_blade.string);
 		strcpy(custom_handle->fan_mask, get_value_fan.string);
 		strcpy(custom_handle->powermodule_mask, get_value_power_module.string);
@@ -433,9 +433,9 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 		custom_handle->mediatray_mask = get_value_media.integer;
 	}
 															
-	/****************** 
-	 * Discover Chassis
-	 ******************/
+	/******************************
+	 * Discover BladeCenter Chassis
+	 ******************************/
 	err = snmp_bc_discover_chassis(handle, ep_root);
 	if (err != SA_OK) return(err);
 				  
@@ -463,15 +463,15 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 	err = snmp_bc_discover_switch(handle, ep_root, get_value_switch.string);
 	if (err != SA_OK) return(err);
 	
-	/********************** 
-	 * Discover Media Tray
-	 *********************/
+	/**********************
+	 * Discover Media Trays
+	 **********************/
 	err = snmp_bc_discover_media_tray(handle, ep_root, get_value_media.integer);
 	if (err != SA_OK) return(err);
 
-	/***************************** 
+	/*********************************** 
 	 * Discover Management Modules (MMs)
-	 *****************************/
+	 ***********************************/
 	err = snmp_bc_discover_mm(handle, ep_root, get_value_mm.string);
 	if (err != SA_OK) return(err);
 
@@ -481,15 +481,15 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 /**
  * snmp_bc_discover_media_tray:
  * @handler: Pointer to handler's data.
- * @ep_root: Pointer to chassis Root Entity Path which comes from openhpi.conf
- * @media_tray_installed: Indicator whether medis tray is installed in system
+ * @ep_root: Pointer to chassis Root Entity Path which comes from openhpi.conf.
+ * @media_tray_installed: Bitmap vector of installed media trays.
  *
- * Discovers media tray resources.
+ * Discovers media tray resources and their RDRs.
  *
  * Return values:
- * Adds chassis RDRs to internal Infra-structure queues - normal case
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory
- * SA_ERR_HPI_INVALID_PARAMS - Invalid pointers passed in
+ * SA_OK - normal case.
+ * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_INVALID_PARAMS - Pointer parameters are NULL.
  **/
 SaErrorT snmp_bc_discover_media_tray(struct oh_handler_state *handle,
 			  SaHpiEntityPathT *ep_root, int  media_tray_installed)
@@ -522,6 +522,8 @@ SaErrorT snmp_bc_discover_media_tray(struct oh_handler_state *handle,
 	e->did = oh_get_default_domain_id();
 	e->u.res_event.entry = snmp_bc_rpt_array[BC_RPT_ENTRY_MEDIA_TRAY].rpt;
 	oh_concat_ep(&(e->u.res_event.entry.ResourceEntity), ep_root);
+	oh_set_ep_location(&(e->u.res_event.entry.ResourceEntity),
+			   BLADECENTER_PERIPHERAL_BAY_SLOT, SNMP_BC_HPI_LOCATION_BASE);
 	oh_set_ep_location(&(e->u.res_event.entry.ResourceEntity),
 			   SAHPI_ENT_PERIPHERAL_BAY, SNMP_BC_HPI_LOCATION_BASE);
 	e->u.res_event.entry.ResourceId = 
@@ -579,14 +581,14 @@ SaErrorT snmp_bc_discover_media_tray(struct oh_handler_state *handle,
 /**
  * snmp_bc_discover_chassis:
  * @handler: Pointer to handler's data.
- * @ep_root: Pointer to chassis Root Entity Path which comes from openhpi.conf
+ * @ep_root: Pointer to chassis Root Entity Path which comes from openhpi.conf.
  *
- * Discovers chassis resources.
+ * Discovers the BladeCenter chassis resource and its RDRs.
  *
  * Return values:
- * Adds chassis RDRs to internal Infra-structure queues - normal case
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory
- * SA_ERR_HPI_INVALID_PARAMS - Invalid pointers passed in
+ * SA_OK - normal case.
+ * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
   **/
 SaErrorT snmp_bc_discover_chassis(struct oh_handler_state *handle,
 			  SaHpiEntityPathT *ep_root)
@@ -634,16 +636,15 @@ SaErrorT snmp_bc_discover_chassis(struct oh_handler_state *handle,
 		SaHpiTextBufferT build_name;
 
 		oh_init_textbuffer(&build_name);
-		oh_append_textbuffer(&build_name, snmp_bc_rpt_array[BC_RPT_ENTRY_CHASSIS].comment);
 		if (custom_handle->platform == SNMP_BC_PLATFORM_BC) {
-			oh_append_textbuffer(&build_name, " Integrated Chassis");
+			oh_append_textbuffer(&build_name, "BladeCenter Chassis");
 		}
 		else {
 			if (custom_handle->platform == SNMP_BC_PLATFORM_BCT) {
-				oh_append_textbuffer(&build_name, " Telco Chassis");
+				oh_append_textbuffer(&build_name, "BladeCenter T Chassis");
 			}
 			else {
-				oh_append_textbuffer(&build_name, " Chassis");
+				oh_append_textbuffer(&build_name, "BladeCenter Chassis");
 			}
 		}
 		snmp_bc_create_resourcetag(&(e->u.res_event.entry.ResourceTag),
@@ -699,15 +700,15 @@ SaErrorT snmp_bc_discover_chassis(struct oh_handler_state *handle,
 /**
  * snmp_bc_discover_blades:
  * @handler: Pointer to handler's data.
- * @ep_root: Pointer to chassis Root Entity Path which comes from openhpi.conf
- * @blade_vector: String of installed blade bitmap
+ * @ep_root: Pointer to chassis Root Entity Path which comes from openhpi.conf.
+ * @blade_vector: Bitmap vector of installed blades.
  *
- * Discovers blade resources.
+ * Discovers blade resources and their RDRs.
  *
  * Return values:
- * Adds blade RDRs to internal Infra-structure queues - normal case
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory
- * SA_ERR_HPI_INVALID_PARAMS - Invalid pointers passed in
+ * SA_OK - normal case.
+ * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
   **/
 SaErrorT snmp_bc_discover_blade(struct oh_handler_state *handle,
 			  SaHpiEntityPathT *ep_root, char *blade_vector)
@@ -839,9 +840,9 @@ SaErrorT snmp_bc_discover_blade(struct oh_handler_state *handle,
 			snmp_bc_discover_controls(handle, snmp_bc_blade_controls, e);
 			snmp_bc_discover_inventories(handle, snmp_bc_blade_inventories, e);
 			
-			/******************************** 
-			 * Discover Blade Expansion Cards
-			 ********************************/
+			/********************************** 
+			 * Discover Blade Expansion Modules
+			 **********************************/
 			{
 				SaHpiEntityPathT ep;
 
@@ -856,7 +857,7 @@ SaErrorT snmp_bc_discover_blade(struct oh_handler_state *handle,
 
 				if (!err && get_value.integer != 0) {
 
-					/* Found an expansion card */
+					/* Found an expansion module */
 					e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
 					if (e == NULL) {
 						dbg("Out of memory.");
@@ -917,15 +918,15 @@ SaErrorT snmp_bc_discover_blade(struct oh_handler_state *handle,
 /**
  * snmp_bc_discover_fans:
  * @handler: Pointer to handler's data.
- * @ep_root: Pointer to chassis Root Entity Path which comes from openhpi.conf 
- * @fan_vector: String of installed fan bitmap
+ * @ep_root: Pointer to chassis Root Entity Path which comes from openhpi.conf.
+ * @fan_vector: Bitmap vector of installed fans.
  *
- * Discovers fan resources.
+ * Discovers fan resources and their RDRs.
  *
  * Return values:
- * Adds fan RDRs to internal Infra-structure queues - normal case
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory
- * SA_ERR_HPI_INVALID_PARAMS - Invalid pointers passed in
+ * SA_OK - normal case.
+ * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_INVALID_PARAMS - Pointer paramter(s) NULL.
   **/
 SaErrorT snmp_bc_discover_fans(struct oh_handler_state *handle,
 			  SaHpiEntityPathT *ep_root, char *fan_vector)
@@ -966,6 +967,8 @@ SaErrorT snmp_bc_discover_fans(struct oh_handler_state *handle,
 			e->did = oh_get_default_domain_id();
 			e->u.res_event.entry = snmp_bc_rpt_array[BC_RPT_ENTRY_BLOWER_MODULE].rpt;
 			oh_concat_ep(&(e->u.res_event.entry.ResourceEntity), ep_root);
+			oh_set_ep_location(&(e->u.res_event.entry.ResourceEntity),
+					   BLADECENTER_FAN_SLOT, i + SNMP_BC_HPI_LOCATION_BASE);
 			oh_set_ep_location(&(e->u.res_event.entry.ResourceEntity),
 					   SAHPI_ENT_FAN, i + SNMP_BC_HPI_LOCATION_BASE);
 			e->u.res_event.entry.ResourceId = 
@@ -1026,15 +1029,15 @@ SaErrorT snmp_bc_discover_fans(struct oh_handler_state *handle,
 /**
  * snmp_bc_discover_power_module:
  * @handler: Pointer to handler's data.
- * @ep_root: Pointer to chassis Root Entity Path which comes from openhpi.conf 
- * @power_module_vector: String of installed power module bitmap
+ * @ep_root: Pointer to chassis Root Entity Path which comes from openhpi.conf.
+ * @power_module_vector: Bitmap vector of installed power modules.
  *
- * Discovers power module resources.
+ * Discovers power module resources and their RDRs.
  *
  * Return values:
- * Adds power module RDRs to internal Infra-structure queues - normal case
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory
- * SA_ERR_HPI_INVALID_PARAMS - Invalid pointers passed in
+ * SA_OK - normal case.
+ * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
   **/
 SaErrorT snmp_bc_discover_power_module(struct oh_handler_state *handle,
 			  SaHpiEntityPathT *ep_root, char *power_module_vector)
@@ -1075,6 +1078,8 @@ SaErrorT snmp_bc_discover_power_module(struct oh_handler_state *handle,
 			e->did = oh_get_default_domain_id();
 			e->u.res_event.entry = snmp_bc_rpt_array[BC_RPT_ENTRY_POWER_MODULE].rpt;
 			oh_concat_ep(&(e->u.res_event.entry.ResourceEntity), ep_root);
+			oh_set_ep_location(&(e->u.res_event.entry.ResourceEntity),
+					   BLADECENTER_POWER_SUPPLY_SLOT, i + SNMP_BC_HPI_LOCATION_BASE);
 			oh_set_ep_location(&(e->u.res_event.entry.ResourceEntity),
 					   SAHPI_ENT_POWER_SUPPLY, i + SNMP_BC_HPI_LOCATION_BASE);
 			e->u.res_event.entry.ResourceId = 
@@ -1134,15 +1139,15 @@ SaErrorT snmp_bc_discover_power_module(struct oh_handler_state *handle,
 /**
  * snmp_bc_discover_switch:
  * @handler: Pointer to handler's data.
- * @ep_root: Pointer to chassis Root Entity Path which comes from openhpi.conf 
- * @switch_vector: String of installed switch bitmap 
+ * @ep_root: Pointer to chassis Root Entity Path which comes from openhpi.conf.
+ * @switch_vector: Bitmap vector of installed I/O modules.
  *
- * Discovers switch resources.
+ * Discovers I/O module resources and their RDRs.
  *
  * Return values:
- * Adds switch RDRs to internal Infra-structure queues - normal case
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory
- * SA_ERR_HPI_INVALID_PARAMS - Invalid pointers passed in
+ * SA_OK - normal case.
+ * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
   **/
 SaErrorT snmp_bc_discover_switch(struct oh_handler_state *handle,
 			  SaHpiEntityPathT *ep_root, char *switch_vector)
@@ -1184,6 +1189,8 @@ SaErrorT snmp_bc_discover_switch(struct oh_handler_state *handle,
 			e->did = oh_get_default_domain_id();
 			e->u.res_event.entry = snmp_bc_rpt_array[BC_RPT_ENTRY_SWITCH_MODULE].rpt;
 			oh_concat_ep(&(e->u.res_event.entry.ResourceEntity), ep_root);
+			oh_set_ep_location(&(e->u.res_event.entry.ResourceEntity),
+					   BLADECENTER_INTERCONNECT_SLOT, i + SNMP_BC_HPI_LOCATION_BASE);
 			oh_set_ep_location(&(e->u.res_event.entry.ResourceEntity),
 					   SAHPI_ENT_INTERCONNECT, i + SNMP_BC_HPI_LOCATION_BASE);
 			e->u.res_event.entry.ResourceId = 
@@ -1252,15 +1259,15 @@ SaErrorT snmp_bc_discover_switch(struct oh_handler_state *handle,
 /**
  * snmp_bc_discover_mm:
  * @handler: Pointer to handler's data.
- * @ep_root: Pointer to chassis Root Entity Path which comes from openhpi.conf 
- * @mm_vector: String of installed MM bitmap 
+ * @ep_root: Pointer to chassis Root Entity Path which comes from openhpi.conf.
+ * @mm_vector: Bitmap vector of installed MMs.
  *
- * Discovers management module (mm) resources.
+ * Discovers management module (MM) resources and their RDRs.
  *
  * Return values:
- * Adds switch RDRs to internal Infra-structure queues - normal case
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory
- * SA_ERR_HPI_INVALID_PARAMS - Invalid pointers passed in
+ * SA_OK - normal case.
+ * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
   **/
 SaErrorT snmp_bc_discover_mm(struct oh_handler_state *handle,
 			  SaHpiEntityPathT *ep_root, char *mm_vector)
@@ -1356,6 +1363,8 @@ SaErrorT snmp_bc_discover_mm(struct oh_handler_state *handle,
                 	e->did = oh_get_default_domain_id();
                 	e->u.res_event.entry = snmp_bc_rpt_array[BC_RPT_ENTRY_MGMNT_MODULE].rpt;
                 	oh_concat_ep(&(e->u.res_event.entry.ResourceEntity), ep_root);
+                	oh_set_ep_location(&(e->u.res_event.entry.ResourceEntity),
+                                       BLADECENTER_SYS_MGMNT_MODULE_SLOT, i + SNMP_BC_HPI_LOCATION_BASE);
                 	oh_set_ep_location(&(e->u.res_event.entry.ResourceEntity),
                                        SAHPI_ENT_SYS_MGMNT_MODULE, i + SNMP_BC_HPI_LOCATION_BASE);
                 	e->u.res_event.entry.ResourceId =

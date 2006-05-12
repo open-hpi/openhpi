@@ -141,6 +141,13 @@ typedef enum {
 #define SNMP_BC_SEL_CLEAR_OID           ".1.3.6.1.4.1.2.3.51.2.3.4.3.0"
 #define SNMP_BC_SEL_CLEAR_OID_RSA       ".1.3.6.1.4.1.2.3.51.1.3.4.3.0"
 
+/* Slot Numbers */
+#define BLADECENTER_INTERCONNECT_SLOT      SAHPI_ENT_CHASSIS_SPECIFIC + 0x10
+#define BLADECENTER_POWER_SUPPLY_SLOT      SAHPI_ENT_CHASSIS_SPECIFIC + 0x11
+#define BLADECENTER_PERIPHERAL_BAY_SLOT    SAHPI_ENT_CHASSIS_SPECIFIC + 0x12
+#define BLADECENTER_SYS_MGMNT_MODULE_SLOT  SAHPI_ENT_CHASSIS_SPECIFIC + 0x13
+#define BLADECENTER_FAN_SLOT               SAHPI_ENT_CHASSIS_SPECIFIC + 0x14
+
 /* Sensor and Control Numbers defined for Redundancy MM Implementation */
 #define BLADECENTER_SENSOR_NUM_MGMNT_REDUNDANCY  	(SaHpiSensorNumT) 0x1001
 #define BLADECENTER_SENSOR_NUM_MGMNT_ACTIVE  		(SaHpiSensorNumT) 0x1002
@@ -309,6 +316,10 @@ struct ControlMibInfo {
         unsigned int not_avail_indicator_num; /* 0 for none, n>0 otherwise */
         int write_only; /* Write-only SNMP command; 0 no; 1 yes */
         const char *oid;
+        int digitalmap[OH_MAX_CTRLSTATEDIGITAL];  /* Readable digital controls */
+	int digitalwmap[OH_MAX_CTRLSTATEDIGITAL]; /* Writable digital controls */
+	SaHpiBoolT isDigitalReadStateConstant;
+	SaHpiCtrlStateDigitalT DigitalStateConstantValue;
 };
 
 struct ControlInfo {
@@ -318,7 +329,12 @@ struct ControlInfo {
 	SaHpiCtrlStateUnionT allowed_states_set;  /* Only meaningful for Digital Controls */
 };
 
+/* Usually control.Num = index in snmp_bc_resources.c. But to support ATCA/HPI defined
+   control numbers, they can be different. control.Num 
+   supports the HPI control number while index is used to search through the 
+   plugin's control definition arrays */
 struct snmp_bc_control {
+	int index;
         SaHpiCtrlRecT control;
         struct ControlInfo control_info;
         const char *comment;
