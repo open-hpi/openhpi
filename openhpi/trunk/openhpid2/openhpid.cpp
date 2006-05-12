@@ -33,6 +33,27 @@ extern "C"
 #include <oHpi.h>
 #include <oh_error.h>
 #include <oh_threaded.h>
+
+
+#include <oh_init.h>
+
+/*
+#include <oh_config.h>
+#include <oh_plugin.h>
+#include <oh_domain.h>
+#include <oh_session.h>
+#include <oh_threaded.h>
+#include <oh_error.h>
+#include <oh_lock.h>
+#include <oh_utils.h>
+
+#include <oh_config.h>
+#include <oh_lock.h>
+#include <oh_plugin.h>
+#include <oh_domain.h>
+#include <oh_session.h>
+*/
+
 }
 
 #include "strmsock.h"
@@ -120,8 +141,7 @@ void display_help(void)
         printf("   ./openhpid -c /etc/openhpi/openhpi.conf\n\n");
 }
 
-
-static int initialized = FALSE;
+//static int initialized = FALSE;
 /*--------------------------------------------------------------------*/
 /* Function: main                                                     */
 /*--------------------------------------------------------------------*/
@@ -135,7 +155,6 @@ int main (int argc, char *argv[])
         char pid_buf[256];
         int pfile, len, pid = 0;
         SaHpiUint64T version = 0;
-        oHpiGlobalParamT my_global_param;
 
         /* get the command line options */
         while (1) {
@@ -270,7 +289,13 @@ int main (int argc, char *argv[])
         if (!morph2daemon()) {
 		exit(8);
 	}
-
+#if 1
+//printf("_initialize called\n");
+//_initialize();
+//_init2(); 
+_initialize(TRUE);
+//printf("_initialize returned\n");
+#endif
         // as a daemon we do NOT inherit the environment!
         setenv("OPENHPI_CONF", configfile, 1);
 
@@ -291,8 +316,9 @@ int main (int argc, char *argv[])
 	}
 
 
-
+#if 0
         /* if we are in threaded mode and runnning as a daemon */
+        oHpiGlobalParamT my_global_param;
         my_global_param.Type = OHPI_DAEMON_MODE;
         oHpiGlobalParamGet(&my_global_param);
         if ((my_global_param.u.Daemon) && (initialized == FALSE)) {
@@ -302,7 +328,7 @@ int main (int argc, char *argv[])
         } else {
             trace(" ### we are not running as a daemon my_global_param.u.Daemon[%d]###\n", my_global_param.u.Daemon);
         }
-
+#endif
         // announce ourselves
         printf("%s started.\n", argv[0]);
         printf("OPENHPI_CONF = %s\n", configfile);
