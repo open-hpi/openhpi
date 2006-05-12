@@ -102,3 +102,4 @@ oh_process_config
 oh_clean_config
 oh_wake_event_thread
 oh_threaded_start
+_initialize
