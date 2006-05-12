@@ -1,11 +1,11 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2004, 2005, 2006
+ * (C) Copyright IBM Corp. 2004, 2006
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
- * file and program are licensed under a BSD style license.  See
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. This
+ * file and program are licensed under a BSD style license. See
  * the Copying file included with the OpenHPI distribution for
  * full licensing terms.
  *
@@ -386,7 +386,7 @@ SaErrorT snmp_bc_discover_controls(struct oh_handler_state *handle,
 	
 	custom_handle = (struct snmp_bc_hnd *)handle->data;
 	
-	for (i=0; control_array[i].control.Num != 0; i++) {
+	for (i=0; control_array[i].index != 0; i++) {
 		e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
 		if (e == NULL) {
 			dbg("Out of memory.");
@@ -524,34 +524,36 @@ SaErrorT snmp_bc_discover_inventories(struct oh_handler_state *handle,
  **/
 SaErrorT snmp_bc_create_resourcetag(SaHpiTextBufferT *buffer, const char *str, SaHpiEntityLocationT loc)
 {
-
-	char *locstr;
-	SaErrorT err = SA_OK;
+	SaErrorT err;
 	SaHpiTextBufferT working;
 
-
-	if (!buffer || loc < SNMP_BC_HPI_LOCATION_BASE ||
+	if (!buffer || loc < 0 ||
 	    loc > (pow(10, OH_MAX_LOCATION_DIGITS) - 1)) {
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
 	err = oh_init_textbuffer(&working);
 	if (err) { return(err); }
+	if (str) { err = oh_append_textbuffer(&working, str); }
+	if (err) { return(err); }
+	if (loc) {
+		char *locstr;
 
-	locstr = (gchar *)g_malloc0(OH_MAX_LOCATION_DIGITS + 1);
-	if (locstr == NULL) {
-		dbg("Out of memory.");
-		return(SA_ERR_HPI_OUT_OF_SPACE);
-	}
-	if (loc != SNMP_BC_NOT_VALID) 
-		snprintf(locstr, OH_MAX_LOCATION_DIGITS + 1, " %d", loc);
+		locstr = (gchar *)g_malloc0(OH_MAX_LOCATION_DIGITS + 1);
+		if (locstr == NULL) {
+			dbg("Out of memory.");
+			return(SA_ERR_HPI_OUT_OF_SPACE);
+		}
+		if (loc != SNMP_BC_NOT_VALID) {
+			snprintf(locstr, OH_MAX_LOCATION_DIGITS + 1, " %d", loc);
+		}
 
-	if (str) { oh_append_textbuffer(&working, str); }
-	err = oh_append_textbuffer(&working, locstr);
-	if (!err) {
-		err = oh_copy_textbuffer(buffer, &working);
+		err = oh_append_textbuffer(&working, locstr);
+		g_free(locstr);
+		if (err) { return(err); }
 	}
-	g_free(locstr);
+
+	err = oh_copy_textbuffer(buffer, &working);
 	return(err);
 }
 

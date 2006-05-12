@@ -119,6 +119,7 @@ TESTS = \
 	tcontrol001   \
 	tcontrol002   \
 	tcontrol003   \
+	tcontrolfailover \
 	tdiscover001  \
 	tel001        \
 	tel002        \
@@ -582,6 +583,11 @@ tcontrol002_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
 #
 tcontrol003_SOURCES = tcontrol003.c
 tcontrol003_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+		 $(top_builddir)/src/libopenhpi.la \
+		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la
+
+tcontrolfailover_SOURCES = tcontrolfailover.c
+tcontrolfailover_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
 		 $(top_builddir)/src/libopenhpi.la \
 		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la
 

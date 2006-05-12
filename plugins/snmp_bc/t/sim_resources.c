@@ -205,6 +205,15 @@ struct snmp_bc_data sim_resource_array[] = {
                       },
                 },
 	},
+        {
+                .oid = ".1.3.6.1.4.1.2.3.51.2.3.4.2.1.2.6",
+                .mib = {
+                        .type = ASN_INTEGER,
+                        .value = {
+                                .integer = SNMP_FORCE_ERROR, /* Force negative return */
+                        },
+                },
+        },
 
 #if 0
 	.string = "Severity:ERR  Source:BLADE_02  Name:SN#ZJ1R6G5931XY  Date:11/19/05  Time:17:26:32  Text:Critical Interrupt - Front panel NMI",
@@ -335,11 +344,21 @@ struct snmp_bc_data sim_resource_array[] = {
         },
         {
                 /*  Management module - Reset */
-                .oid = ".1.3.6.1.4.1.2.3.51.2.7.4.0", /* write-only */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.7.4.0",
                 .mib = {
                         .type = ASN_INTEGER,
                         .value = {
                                 .integer = 1, /* 1=execute */
+                        },
+                },
+        },
+        {
+                /*  Management module - Failover */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.7.7.0",
+                .mib = {
+                        .type = ASN_INTEGER,
+                        .value = {
+                                .integer = 0, /* 1=execute */
                         },
                 },
         },
