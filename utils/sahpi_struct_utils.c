@@ -3413,7 +3413,7 @@ int oh_compare_sensorreading(SaHpiSensorReadingTypeT type,
  * @state: Pointer to contol's state.
  *
  * Verifies that the @mode and @state data are compatible with a control's RDR information.
- * This routine performs all the static checks defined in the HPI spec but the call must
+ * This routine performs all the static checks defined in the HPI spec but the caller must
  * perform the following checks:
  *   - Verify control's resource has SAHPI_CAPABILITY_CONTROL set.
  *   - Check to see if control is on, if SAHPI_STATE_PULSE_ON is supported and set;
@@ -3427,6 +3427,7 @@ int oh_compare_sensorreading(SaHpiSensorReadingTypeT type,
  * SA_OK - Normal operation.
  * SA_ERR_HPI_INVALID_PARAMS - See HPI spec.
  * SA_ERR_HPI_INVALID_DATA - See HPI spec.
+ * SA_ERR_HPI_READ_ONLY - See HPI spec.
  **/
 SaErrorT oh_valid_ctrl_state_mode(SaHpiCtrlRecT *ctrl_rdr,
 				  SaHpiCtrlModeT mode,
