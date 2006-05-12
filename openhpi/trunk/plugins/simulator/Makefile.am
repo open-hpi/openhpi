@@ -23,6 +23,8 @@ INCLUDES		= @OPENHPI_INCLUDES@
 
 AM_CFLAGS		= @CFLAGS@
 
+include_HEADERS		= sim_injector_ext.h
+
 pkglib_LTLIBRARIES	= libsimulator.la
 
 libsimulator_la_LIBADD	= -luuid $(top_builddir)/src/libopenhpi.la $(top_builddir)/utils/libopenhpiutils.la
@@ -41,4 +43,5 @@ libsimulator_la_SOURCES	= sim_init.c sim_init.h \
 			  sim_watchdog.c sim_watchdog.h \
 			  sim_hotswap.c sim_hotswap.h \
 			  sim_reset.c sim_reset.h
+
 libsimulator_la_LDFLAGS	= -version-info @HPI_LIB_VERSION@
