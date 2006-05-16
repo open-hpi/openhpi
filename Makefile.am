@@ -1,5 +1,6 @@
 #
 # Copyright (c) 2003, Intel Corporation
+# (C) Copyright IBM Corp 2003-2006
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or
@@ -42,6 +43,7 @@ RPMSRC  =$(DESTDIR)$(RPMDIR)/SRPMS/$(PACKAGE)-$(VERSION)-$(RPMREL).src.rpm
 RPM386  =$(DESTDIR)$(RPMDIR)/RPMS/i386/$(PACKAGE)-$(VERSION)-$(RPMREL).i386.rpm
 
 EXTRA_DIST              = openhpi.spec \
+	openhpi.conf.example \
         $(shell find $(srcdir)/include -name '*.h')
 
 AUTOMAKE_OPTIONS        = foreign
@@ -104,14 +106,23 @@ $(top_srcdir)/utils/sahpi_enum_utils.h:
 $(top_srcdir)/utils/sahpiatca_enum_utils.h:
 	make -C $(top_builddir)/utils sahpiatca_enum_utils.h
 
-install-data-local: openhpi.pc
+install-data-local: openhpi.pc openhpi.conf.example
 	$(mkinstalldirs) $(DESTDIR)$(libdir)/pkgconfig
 	$(INSTALL_DATA) openhpi.pc $(DESTDIR)$(libdir)/pkgconfig
 	$(mkinstalldirs) $(DESTDIR)$(VARPATH)
 	chmod 777 $(DESTDIR)$(VARPATH)
+	$(mkinstalldirs) $(DESTDIR)$(sysconfdir)/openhpi
+	if test ! -e  $(DESTDIR)$(sysconfdir)/openhpi/openhpi.conf; then \
+		$(INSTALL_DATA) openhpi.conf.example $(DESTDIR)$(sysconfdir)/openhpi/openhpi.conf; \
+	fi
 
 uninstall-local:
 	rm -f $(DESTDIR)$(libdir)/pkgconfig/openhpi.pc
+	if cmp $(top_srcdir)/openhpi.conf.example $(DESTDIR)$(sysconfdir)/openhpi/openhpi.conf; then \
+		: \
+	else \
+		rm -f $(DESTDIR)$(sysconfdir)/openhpi/openhpi.conf; \
+	fi
 
 
 rpm: dist
