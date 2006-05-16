@@ -205,7 +205,8 @@ int _initialize(int daemon)
             struct oh_global_param my_global_param;
             my_global_param.type = OPENHPI_DAEMON_MODE;
             oh_get_global_param(&my_global_param);
-            if ((my_global_param.u.daemon_mode) && (daemon == TRUE)) {
+            if ( ((my_global_param.u.daemon_mode) && (daemon == TRUE)) ||
+                 ((!my_global_param.u.daemon_mode) && (daemon == FALSE)) ) {
 
 
                 /* Load plugins and create handlers*/
@@ -239,7 +240,7 @@ int _initialize(int daemon)
                 trace("Set init state");
 
                 /* infrastructure initialization has completed at this point */
-
+ 
                 /* Check if there are any handlers loaded */
                 if (config.handlers_defined == 0) {
                         dbg("*Warning*: No handler definitions found in config file."
