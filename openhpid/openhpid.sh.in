@@ -124,6 +124,8 @@ stop() {
 		
 	esac
 	
+	print_outcome
+	
 	if test "$RETVAL" -eq 0 && test -f /var/run/openhpid.pid
 	then
 		rm -f /var/lock/openhpid
