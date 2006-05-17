@@ -7,19 +7,19 @@ COMMONLIBS              = $(top_builddir)/src/libopenhpi.la @STATIC_PLUGIN_LIBS@
 
 AM_CFLAGS               = @CFLAGS@
 
+EXTRA_DIST		= hpifan.c
+
 bin_PROGRAMS = \
-	hpigetevents \
+	hpievents \
         hpiinv \
 	hpiel \
 	hpisensor \
         hpipower \
 	hpitree \
 	hpialarms \
-	hpifan \
 	hpireset \
 	hpiwdt \
 	hpipower2 \
-	hpievent \
 	hpithres \
 	hpievent \
 	hpitop   \
@@ -37,9 +37,9 @@ hpithres_SOURCES        = hpithres.c
 hpithres_LDADD          = $(COMMONLIBS)
 hpithres_LDFLAGS        =
 
-hpifan_SOURCES          = hpifan.c
-hpifan_LDADD            = $(COMMONLIBS)
-hpifan_LDFLAGS          =
+#hpifan_SOURCES          = hpifan.c
+#hpifan_LDADD            = $(COMMONLIBS)
+#hpifan_LDFLAGS          =
 
 hpitop_SOURCES          = hpitop.c
 hpitop_LDADD            = $(COMMONLIBS)
@@ -73,9 +73,9 @@ hpisettime_SOURCES      = hpisettime.c
 hpisettime_LDADD        = $(COMMONLIBS)
 hpisettime_LDFLAGS      =
 
-hpigetevents_SOURCES      = hpigetevents.c
-hpigetevents_LDADD        = $(COMMONLIBS)
-hpigetevents_LDFLAGS      =
+hpievents_SOURCES      = hpievents.c
+hpievents_LDADD        = $(COMMONLIBS)
+hpievents_LDFLAGS      =
 
 hpipower_SOURCES      = hpipower.c
 hpipower_LDADD        = $(COMMONLIBS)
@@ -84,10 +84,6 @@ hpipower_LDFLAGS      =
 hpipower2_SOURCES      = hpipower2.c
 hpipower2_LDADD        = $(COMMONLIBS)
 hpipower2_LDFLAGS      =
-
-hpievent_SOURCES      = hpievent.c
-hpievent_LDADD        = $(COMMONLIBS)
-hpievent_LDFLAGS      =
 
 hpitree_SOURCES      = hpitree.c
 hpitree_LDADD        = $(COMMONLIBS)
