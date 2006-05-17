@@ -54,8 +54,8 @@ MAINTAINERCLEANFILES    = Makefile.in aclocal.m4 configure config.guess config.s
 MOSTLYCLEANFILES        = tags
 
 
-SUBDIRS                 = utils tools src hpi_ui_lib @SNMPDIR@ @MARSHALDIR@ plugins docs hpi_shell @ENABLED_DIRS@
-DIST_SUBDIRS            = utils tools src hpi_ui_lib snmp marshal plugins docs hpi_shell openhpid clients scripts cpp
+SUBDIRS                 = utils scripts src hpi_ui_lib @SNMPDIR@ @MARSHALDIR@ plugins docs hpi_shell @ENABLED_DIRS@
+DIST_SUBDIRS            = utils scripts src hpi_ui_lib snmp marshal plugins docs hpi_shell openhpid clients cpp
 
 
 DISTCHECK_CONFIGURE_FLAGS = --with-initdir=prefix
