@@ -1,6 +1,6 @@
 dnl
 dnl autoconf and automake for openhpi
-dnl 	initial file by Andrea Brugger <andrea.l.brugger@intel.com> 1/03
+dnl     initial file by Andrea Brugger <andrea.l.brugger@intel.com> 1/03
 dnl   various hacks by Sean Dague <http://dague.net/sean> 4/23/03
 
 
@@ -128,7 +128,7 @@ dnl Extra goodies enablement stanzas
 AC_ARG_ENABLE([thread],
     [  --enable-thread       make implementation thread-safe [default=yes]],
     [if test "x$enableval" = "xyes"; then
-	THREAD_SAFE="yes"
+        THREAD_SAFE="yes"
     fi],
     [THREAD_SAFE="yes"])
 
@@ -148,10 +148,10 @@ AC_ARG_ENABLE([daemon],
     [  --enable-daemon         build HPI daemon and client library [default=yes]],
     [if test "x$enableval" = "xyes"; then
         ENABLED_DIRS="$ENABLED_DIRS openhpid2"
-	NEED_MARSHAL="yes"
+        NEED_MARSHAL="yes"
      elif test "x$enableval" = "xstatic"; then
         ENABLED_DIRS="$ENABLED_DIRS openhpid2"
-	NEED_MARSHAL="yes"
+        NEED_MARSHAL="yes"
         openhpid_static="yes"
     fi],
     [
@@ -170,8 +170,8 @@ AC_ARG_ENABLE([shell_client],
     [  --enable-shell_client         build HPI client library [default=no]],
     [if test "x$enableval" = "xyes"; then
         ENABLED_DIRS="$ENABLED_DIRS openhpid2"
-	NEED_MARSHAL="yes"
-	shell_client="yes"
+        NEED_MARSHAL="yes"
+        shell_client="yes"
     fi])
 
 dnl    [ENABLED_DIRS="$ENABLED_DIRS openhpid2"
@@ -179,24 +179,17 @@ dnl     NEED_MARSHAL="yes"])
 
 AM_CONDITIONAL(SHELL_CLIENT, test x$shell_client = xyes)
 
-
-AC_ARG_ENABLE([examples],
-    [  --enable-examples       build HPI examples [default=no]],
-    [if test "x$enableval" = "xyess"; then
-	ENABLED_DIRS="$ENABLED_DIRS examples"
-    fi])
-
 AC_ARG_ENABLE([clients],
     [  --enable-clients        build HPI client programs [default=yes]],
     [if test "x$enableval" = "xyes"; then
-	ENABLED_DIRS="$ENABLED_DIRS clients"
+        ENABLED_DIRS="$ENABLED_DIRS clients"
     fi],
     [ENABLED_DIRS="$ENABLED_DIRS clients"])
 
 AC_ARG_ENABLE([cpp_wrappers],
     [  --enable-cpp_wrappers   build SaHpi C++ wrapper objects [default=no]],
     [if test "x$enableval" = "xyes"; then
-    	ENABLED_DIRS="$ENABLED_DIRS cpp"
+        ENABLED_DIRS="$ENABLED_DIRS cpp"
     fi])
 
 AC_SUBST(ENABLED_DIRS)
@@ -225,7 +218,7 @@ AC_ARG_ENABLE([snmp_client],
     [if test "x$enableval" = "xyes"; then
         if test "x$have_netsnmp" = "xyes"; then
             AC_SUBST(SNMP_CLIENT,snmp_client)
-	    SNMPDIR=snmp
+            SNMPDIR=snmp
         else
             OH_CHECK_FAIL(net-snmp,net-snmp-devel,http://net-snmp.sourceforge.net/,
                 Can not build SNMP client support without net-snmp)
@@ -235,7 +228,7 @@ AC_ARG_ENABLE([snmp_client],
             AC_SUBST(SNMP_CLIENT,snmp_client)
             STATIC_PLUGIN_LIST="$STATIC_PLUGIN_LIST snmp_client"
             STATIC_PLUGIN_EXTRA_LIBS="$STATIC_PLUGIN_EXTRA_LIBS -luuid"
-	    SNMPDIR=snmp
+            SNMPDIR=snmp
         else
             OH_CHECK_FAIL(net-snmp,net-snmp-devel,http://net-snmp.sourceforge.net/,
                 Can not build SNMP client support without net-snmp)
@@ -322,7 +315,7 @@ AC_ARG_ENABLE([snmp_bc],
     [if test "x$enableval" = "xyes"; then
         if test "x$have_netsnmp" = "xyes"; then
             AC_SUBST(SNMP_BC,snmp_bc)
-	    SNMPDIR=snmp
+            SNMPDIR=snmp
         else
             OH_CHECK_FAIL(net-snmp,net-snmp-devel,http://net-snmp.sourceforge.net/,
                 Can not build IBM Blade Center support without net-snmp)
@@ -330,7 +323,7 @@ AC_ARG_ENABLE([snmp_bc],
     fi],
     [if test "x$have_netsnmp" = "xyes"; then
             AC_SUBST(SNMP_BC,snmp_bc)
-	    SNMPDIR=snmp
+            SNMPDIR=snmp
     fi]
     )
 
@@ -373,7 +366,7 @@ AC_ARG_ENABLE([rtas],
 #    [  --enable-remote_client     build remote client plugin [default=yes]],
 #    [if test "x$enableval" = "xyes"; then
 #            AC_SUBST(REMOTE_CLIENT,remote_client)
-#	    NEED_MARSHAL="yes"
+#           NEED_MARSHAL="yes"
 #     elif test "x$enableval" = "xstatic"; then
 #            AC_SUBST(REMOTE_CLIENT,remote_client)
 #            STATIC_PLUGIN_LIST="$STATIC_PLUGIN_LIST remote_client"
@@ -394,8 +387,8 @@ AC_ARG_ENABLE([simulator],
 
 #    [AC_SUBST(SIMULATOR,simulator)])
 
-dnl	[if test "x$have_fam" = "xyes"; then
-dnl    	AC_SUBST(SIMULATOR,simulator)
+dnl     [if test "x$have_fam" = "xyes"; then
+dnl     AC_SUBST(SIMULATOR,simulator)
 dnl     fi])
 
 dnl enable marshal library when needed
@@ -508,8 +501,8 @@ dnl OH_PLUGIN_PATH - Directory where plugin libraries live.
 dnl default is "$libdir/openhpir"
 PLUGINPATH=${PLUGINPATH:=${libdir}/${PACKAGE_NAME}}
 AC_ARG_WITH(pluginpath,
-	        [[  --with-pluginpath=PATH     use directory PATH to locate plugin libraries [default=LIBDIR/openhpi]]],
-		    [PLUGINPATH=$withval])
+                [[  --with-pluginpath=PATH     use directory PATH to locate plugin libraries [default=LIBDIR/openhpi]]],
+                    [PLUGINPATH=$withval])
 dnl create #define OH_PLUGIN_PATH in config.h
 AC_DEFINE_UNQUOTED(OH_PLUGIN_PATH,"$PLUGINPATH",[openhpi plugin path])
 
@@ -528,10 +521,10 @@ dnl test coverage support.
 AC_ARG_ENABLE([testcover],
     [  --enable-testcover      adds test coverage and profiling support [default=no]],
     [if test "x$enableval" = "xyes"; then
-	    CFLAGS=`echo $CFLAGS | sed -e 's/-O\w\?\>[ ]*//g'`
-	    CFLAGS="$CFLAGS -ftest-coverage -fprofile-arcs"
-	    COV_CFLAGS = "-ftest-coverage -fprofile-arcs"
-	    AC_SUBST(COV_CFLAGS)
+            CFLAGS=`echo $CFLAGS | sed -e 's/-O\w\?\>[ ]*//g'`
+            CFLAGS="$CFLAGS -ftest-coverage -fprofile-arcs"
+            COV_CFLAGS = "-ftest-coverage -fprofile-arcs"
+            AC_SUBST(COV_CFLAGS)
     fi]
     )
 
@@ -542,8 +535,8 @@ AC_ARG_ENABLE([debuggable],
     [  --enable-debuggable     adds -g flag and turns off optimization [default=no]],
     [if test "x$enableval" = "xyes"; then
             CFLAGS=`echo $CFLAGS | sed -e 's/-O\w\?\>[ ]*//g'`
-	    CFLAGS=`echo $CFLAGS | sed -e 's/^-g\w*[ ]*\| -g\w*//g'`
-	    CFLAGS="$CFLAGS -g3"
+            CFLAGS=`echo $CFLAGS | sed -e 's/^-g\w*[ ]*\| -g\w*//g'`
+            CFLAGS="$CFLAGS -g3"
     else
             CFLAGS=`echo $CFLAGS | sed -e 's/^-g\w*[ ]*\| -g\w*//g'`
     fi],
@@ -567,35 +560,35 @@ dnl different sets here
 CC_WARNINGS="\
         -Wall \
         -Wmissing-prototypes \
-	-Wmissing-declarations \
-	-Wstrict-prototypes \
-	-Wpointer-arith \
+        -Wmissing-declarations \
+        -Wstrict-prototypes \
+        -Wpointer-arith \
         -Wformat=2 \
         -Wformat-security \
         -Wformat-nonliteral \
-	-Wno-format-y2k \
-	-Wcast-qual \
-	-Wcast-align \
-	-Wno-strict-aliasing \
-	-Werror "
+        -Wno-format-y2k \
+        -Wcast-qual \
+        -Wcast-align \
+        -Wno-strict-aliasing \
+        -Werror "
 
 CXX_WARNINGS="\
         -Wall \
-   	-Wpointer-arith \
+        -Wpointer-arith \
         -Wformat=2 \
         -Wformat-security \
         -Wformat-nonliteral \
         -Wcast-qual \
-	-Wcast-align \
+        -Wcast-align \
         -Wshadow \
         -Wwrite-strings \
         -Wredundant-decls \
-	-Wno-strict-aliasing \
-	-Werror "
+        -Wno-strict-aliasing \
+        -Werror "
 
 if test -n "`gcc --version | grep ' 3.2'`" ; then
-	CC_WARNINGS=`echo $CC_WARNINGS | sed -e 's/-Wno-strict-aliasing//g'`
-	CXX_WARNINGS=`echo $CC_WARNINGS | sed -e 's/-Wno-strict-aliasing//g'`
+        CC_WARNINGS=`echo $CC_WARNINGS | sed -e 's/-Wno-strict-aliasing//g'`
+        CXX_WARNINGS=`echo $CC_WARNINGS | sed -e 's/-Wno-strict-aliasing//g'`
 fi
 
 dnl remerge the warnings into the FLAGS
@@ -636,48 +629,47 @@ AC_CONFIG_FILES([openhpi.spec
         utils/openhpiutils.pc
         utils/Makefile
         utils/t/Makefile
-	utils/t/epath/Makefile
-	utils/t/rpt/Makefile
-	utils/t/sahpi/Makefile
-	utils/t/el/Makefile
-	utils/t/uid/Makefile
-	utils/t/ann/Makefile
-	marshal/Makefile
-	marshal/t/Makefile
+        utils/t/epath/Makefile
+        utils/t/rpt/Makefile
+        utils/t/sahpi/Makefile
+        utils/t/el/Makefile
+        utils/t/uid/Makefile
+        utils/t/ann/Makefile
+        marshal/Makefile
+        marshal/t/Makefile
         plugins/Makefile
         plugins/dummy/Makefile
         plugins/watchdog/Makefile
         plugins/ipmi/Makefile
-	plugins/ipmi/t/Makefile
+        plugins/ipmi/t/Makefile
         plugins/snmp_bc/Makefile
         plugins/snmp_bc/t/Makefile
         plugins/sysfs/Makefile
         plugins/ipmidirect/Makefile
         plugins/ipmidirect/t/Makefile
         plugins/simulator/Makefile
-	plugins/simulator/t/Makefile
-	plugins/simulator/t1/Makefile
-	plugins/simulator/t1/rt-shell.sh
-	plugins/simulator/t2/Makefile
-	plugins/rtas/Makefile
-	scripts/Makefile
+        plugins/simulator/t/Makefile
+        plugins/simulator/t1/Makefile
+        plugins/simulator/t1/rt-shell.sh
+        plugins/simulator/t2/Makefile
+        plugins/rtas/Makefile
+        scripts/Makefile
+        scripts/test/Makefile
         snmp/Makefile
         src/Makefile
         src/plugin_static.c
         src/t/Makefile
         src/t/ohpi/Makefile
         src/t/ohpic/Makefile
-        test/Makefile
         docs/Makefile
         docs/hld/Makefile
-	openhpid2/Makefile
-	openhpid2/openhpid.sh
-	openhpid2/t/Makefile
-        examples/Makefile
-	hpi_ui_lib/Makefile
-	hpi_shell/Makefile
-	cpp/Makefile
-	cpp/t/Makefile
-	clients/Makefile])
+        openhpid2/Makefile
+        openhpid2/openhpid.sh
+        openhpid2/t/Makefile
+        hpi_ui_lib/Makefile
+        hpi_shell/Makefile
+        cpp/Makefile
+        cpp/t/Makefile
+        clients/Makefile])
 
 AC_OUTPUT
