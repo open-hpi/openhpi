@@ -31,6 +31,7 @@
 #
 
 
+dist_bin_SCRIPTS 	= openhpi-switcher
 
 EXTRA_DIST              = SaHpi2code.pl text2cstr.pl
 
@@ -38,3 +39,4 @@ SUBDIRS			= test
 
 MAINTAINERCLEANFILES	= Makefile.in
 
+CLEANFILES = $(dist_bin_SCRIPTS)

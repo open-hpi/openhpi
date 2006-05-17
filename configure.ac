@@ -623,8 +623,6 @@ AC_CONFIG_FILES([openhpi.spec
         openhpi.pc
         rt-env.sh
         Makefile
-        tools/Makefile
-        tools/openhpi-switcher
         utils/openhpiutils.pc
         utils/Makefile
         utils/t/Makefile
@@ -653,6 +651,7 @@ AC_CONFIG_FILES([openhpi.spec
         plugins/simulator/t2/Makefile
         plugins/rtas/Makefile
         scripts/Makefile
+        scripts/openhpi-switcher
         scripts/test/Makefile
         snmp/Makefile
         src/Makefile
