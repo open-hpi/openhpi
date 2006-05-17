@@ -20,7 +20,7 @@ REMOTE_LIB_SOURCES 	= openhpiclient.cpp \
 MOSTLYCLEANFILES 	= @TEST_CLEAN@ \
 			  $(REMOTE_LIB_SOURCES)
 
-INCLUDES		= @OPENHPI_INCLUDES@ -I$(top_srcdir)/openhpid2  -I$(top_srcdir)/marshal
+INCLUDES		= @OPENHPI_INCLUDES@ -I$(top_srcdir)/openhpid  -I$(top_srcdir)/marshal
 
 AM_CFLAGS		= @NOCFLAGS@ @COV_CFLAGS@
 
