@@ -9,8 +9,6 @@
 # full licensing terms.
 
 MAINTAINERCLEANFILES    = Makefile.in
-#EXTRA_DIST              =
+EXTRA_DIST              = ohpi_tests.txt
 
 SUBDIRS                 = ohpi ohpic
-
-DIST_SUBDIRS            = ohpi ohpic

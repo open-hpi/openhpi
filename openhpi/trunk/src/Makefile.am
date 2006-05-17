@@ -1,5 +1,6 @@
 #
 # Copyright (c) 2003, Intel Corporation
+# (C) Copyright IBM Corp 2003-2006
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or
@@ -38,7 +39,6 @@ EXTRA_DIST              = plugin_static.c.in hpi.sym
 INCLUDES                = @OPENHPI_INCLUDES@
 
 SUBDIRS                 = t
-DIST_SUBDIRS            = t
 
 AM_CFLAGS               = @CFLAGS@
 
