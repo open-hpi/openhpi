@@ -1,7 +1,7 @@
 MAINTAINERCLEANFILES = Makefile.in
 MOSTLYCLEANFILES        = @TEST_CLEAN@
 
-INCLUDES                = @OPENHPI_INCLUDES@ 
+INCLUDES                = @OPENHPI_INCLUDES@
 
 COMMONLIBS              = $(top_builddir)/src/libopenhpi.la @STATIC_PLUGIN_LIBS@ @STATIC_PLUGIN_EXTRA_LIBS@
 
@@ -19,12 +19,11 @@ bin_PROGRAMS = \
 	hpialarms \
 	hpireset \
 	hpiwdt \
-	hpipower2 \
 	hpithres \
 	hpitop   \
 	hpisettime \
 	hpidomainel
-	
+
 
 include_HEADERS         =
 
@@ -79,10 +78,6 @@ hpievents_LDFLAGS      =
 hpipower_SOURCES      = hpipower.c
 hpipower_LDADD        = $(COMMONLIBS)
 hpipower_LDFLAGS      =
-
-hpipower2_SOURCES      = hpipower2.c
-hpipower2_LDADD        = $(COMMONLIBS)
-hpipower2_LDFLAGS      =
 
 hpitree_SOURCES      = hpitree.c
 hpitree_LDADD        = $(COMMONLIBS)
