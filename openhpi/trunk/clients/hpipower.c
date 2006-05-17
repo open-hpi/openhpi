@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2004
+ * (C) Copyright IBM Corp. 2004-2006
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -17,14 +17,12 @@
 #include <stdlib.h>
 #include <glib.h>
 #include <getopt.h>
-#include <SaHpi.h> 
+#include <SaHpi.h>
 #include <oh_utils.h>
-
 
 
 char PrgVer[]="1.0";
 char PrgName[] = "hpipower";
-
 
 #define  PROGRAM_HEADER (printf("%s ver %s\n", PrgName,PrgVer))
 #define  MAX_MANAGED_SYSTEMS 80
@@ -35,39 +33,39 @@ typedef struct COMPUTER_DATA_
         SaHpiResourceIdT     ResID;
         SaHpiInt32T          number;     //Enumeration of which computer or blade
         SaHpiEntityLocationT Instance;
-        SaHpiRdrT            ResDataRec;  
+        SaHpiRdrT            ResDataRec;
         char                 NameStr[80];//Text Name for the computer or plade
 } COMPUTER_DATA;
 
 
-//Prototypes
+/* Prototypes */
 void UsageMessage(char *ProgramName);
 
-/*+**************************************
-*  main
-*  
-*  Hpi Power Utility Entry point routine
-*
-*  Parameters:
-*     int - argc, 
-*     char pointer pointer - argv
-*  Program Command line Arguments:
-*         'd' power down 
-*         'p' power up 
-*         'r' hard reset 
-*         'u' unattended  
-*         'b:n' Blade number
-*         '?' useage - help
-*         'x' debug messages 
-*       Reserved Platform Specific for future use:
-*         'c' 'o' 'n' 's'
-************************************************/
+/****************************************
+ *  main
+ *
+ *  Hpi Power Utility Entry point routine
+ *
+ *  Parameters:
+ *     int - argc,
+ *     char pointer pointer - argv
+ *  Program Command line Arguments:
+ *         'd' power down
+ *         'p' power up
+ *         'r' hard reset
+ *         'u' unattended
+ *         'b:n' Blade number
+ *         '?' useage - help
+ *         'x' debug messages
+ *       Reserved Platform Specific for future use:
+ *         'c' 'o' 'n' 's'
+ ************************************************/
 
 int main(int argc, char **argv)
 {
         SaHpiInt32T         ComputerNumber;  //0..n-1
         SaHpiInt32T         SelectedSystem;  //0..n-1
-        SaHpiPowerStateT    Action;         
+        SaHpiPowerStateT    Action;
         COMPUTER_DATA       *ComputerPtr;
         SaHpiBoolT          BladeSelected;
         SaHpiBoolT          MultipleBlades;
@@ -109,30 +107,31 @@ int main(int argc, char **argv)
                 option = getopt(argc, argv, "dpruxb:");
                 if ((option == EOF) || (PrintUsage == TRUE))
                 {
-                break;  //break out of the while loop
+                        break;  //break out of the while loop
                 }
+
                 switch (option)
                 {
-                case 'd':   
+                case 'd':
                         Action = SAHPI_POWER_OFF;
                         ActionSelected = TRUE;
-                break;
-                case 'p':   
+                        break;
+                case 'p':
                         Action = SAHPI_POWER_ON;
                         ActionSelected = TRUE;
                         break;
-                case 'r':   
+                case 'r':
                         Action = SAHPI_POWER_CYCLE;
                         ActionSelected = TRUE;
                         break;
-                case 'u':   
+                case 'u':
                         BladeSelected = TRUE;
                         ActionSelected = TRUE;
                         break;
-                case 'x':   
+                case 'x':
                         DebugPrints = TRUE;
                         break;
-                case 'b':   
+                case 'b':
                         if (*optarg == 0)
                         {
                                 PrintUsage = TRUE;
@@ -142,13 +141,13 @@ int main(int argc, char **argv)
                         if ((SelectedSystem > MAX_MANAGED_SYSTEMS) ||
                             (SelectedSystem < 0))
                         {
-                                //Argument is out of Range 
+                                //Argument is out of Range
                                 PrintUsage = TRUE;
                         }
                         BladeSelected = TRUE;
                         break;
-                default:    
-                        PrintUsage = TRUE;              
+                default:
+                        PrintUsage = TRUE;
                         break;
                 }  //end of switch statement
         } //end of argument parsing while loop
@@ -156,13 +155,12 @@ int main(int argc, char **argv)
         if (PrintUsage == TRUE)
         {
                 UsageMessage(PrgName);
-/*BUG:  what is the exit code for bad argument?*/
-                exit(0);   //When we exit here, there is nothing to clean up
+                exit(1);   //When we exit here, there is nothing to clean up
         }
 
         /* Initialize the first of a list of computers */
 
-        HPI_POWER_DEBUG_PRINT("1.0 Initializing the List Structure for the computers\n"); 
+        HPI_POWER_DEBUG_PRINT("1.0 Initializing the List Structure for the computers\n");
         Computer = g_slist_alloc();
         ComputerListHead = Computer;
         HPI_POWER_DEBUG_PRINT("1.1 Allocating space for the information on each computer\n");
@@ -171,11 +169,11 @@ int main(int argc, char **argv)
         Computer->data = (gpointer)ComputerPtr;
 
         /* Initialize HPI domain and session */
-	HPI_POWER_DEBUG_PRINT("2.1 Initalizing HPI Session\n");
-	Status = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID,
+        HPI_POWER_DEBUG_PRINT("2.1 Initalizing HPI Session\n");
+        Status = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID,
                                   &SessionId,
                                   NULL);
-       
+
         if (Status == SA_OK)
         {
                 /* Find all of the individual systems */
@@ -183,10 +181,10 @@ int main(int argc, char **argv)
                 HPI_POWER_DEBUG_PRINT("2.2 Hpi Discovery\n");
                 Status = saHpiDiscover(SessionId);
         } else {
-		printf("2.1 Initalizing HPI Session FAILED, code %s\n", oh_lookup_error(Status));
-		return -1;
-	}
-	
+                printf("2.1 Initalizing HPI Session FAILED, code %s\n", oh_lookup_error(Status));
+                return -1;
+        }
+
         HPI_POWER_DEBUG_PRINT("3.0 Walking through all of the Report Tables\n");
         while ((Status == SA_OK) && (RptEntry != SAHPI_LAST_ENTRY))
         {
@@ -200,7 +198,7 @@ int main(int argc, char **argv)
                 // Blades will have the first Element of the Entity Path set to SBC_BLADE
                 EntityElement = 0;
                 HPI_POWER_DEBUG_PRINT(".");
-                if (Report.ResourceEntity.Entry[EntityElement].EntityType == 
+                if (Report.ResourceEntity.Entry[EntityElement].EntityType ==
                     SAHPI_ENT_SBC_BLADE)
                 {
                         HPI_POWER_DEBUG_PRINT("#");
@@ -209,7 +207,7 @@ int main(int argc, char **argv)
                         /* enumerate this list as created */
                         ComputerPtr->number = ComputerNumber;
                         ComputerNumber++;
-                        ComputerPtr->Instance = 
+                        ComputerPtr->Instance =
                                 Report.ResourceEntity.Entry[EntityElement].EntityLocation;
                         // find a Name string for this blade
                         snprintf(ComputerPtr->NameStr, sizeof(ComputerPtr->NameStr),
@@ -228,7 +226,7 @@ int main(int argc, char **argv)
         }
 
         HPI_POWER_DEBUG_PRINT("\n4.0 Generating Listing of options to choose from:\n");
-        /* If parsed option does not select blade and 
+        /* If parsed option does not select blade and
        more than one is found */
         if ((MultipleBlades == TRUE) && (BladeSelected == FALSE) && (Status == SA_OK))
         {
@@ -252,13 +250,13 @@ int main(int argc, char **argv)
                                                             &PowerState);
                         if (Status != SA_OK)
                         {
-                                printf("%s does not support PowerStateGet", 
+                                printf("%s does not support PowerStateGet",
                                        ComputerPtr->NameStr);
                         }
 
                         /* Print out all of the systems */
-                        printf("%2d) %20s  - %s \n\r", (Index + 1), 
-                               ComputerPtr->NameStr, 
+                        printf("%2d) %20s  - %s \n\r", (Index + 1),
+                               ComputerPtr->NameStr,
                                PowerStateString[PowerState]);
                 }
                 /* Prompt user to select one */
@@ -282,16 +280,16 @@ int main(int argc, char **argv)
                 scanf("%d", &Index);
                 switch (Index)
                 {
-                case 0:    
+                case 0:
                         Action = SAHPI_POWER_OFF;
                         break;
-                case 1:     
+                case 1:
                         Action = SAHPI_POWER_ON;
                         break;
-                case 2:     
+                case 2:
                         Action = SAHPI_POWER_CYCLE;
                         break;
-                default:    
+                default:
                         Action = 255;  //Out of Range for "Status"
                         break;
                 }
@@ -315,11 +313,11 @@ int main(int argc, char **argv)
                         if (Status == SA_OK)
                         {
                                 printf("\n%s -- %20s has been successfully powered %s\n",
-                                       PrgName, 
-                                       ComputerPtr->NameStr, 
+                                       PrgName,
+                                       ComputerPtr->NameStr,
                                        PowerStateString[Action]);
                         }
-                } 
+                }
                 else   // Report Power status for the system
                 {
                         HPI_POWER_DEBUG_PRINT("5.2 Getting the Power Status\n\r");
@@ -330,13 +328,13 @@ int main(int argc, char **argv)
                                                             &PowerState);
                         if (Status != SA_OK)
                         {
-                                printf("%s does not support PowerStateGet", 
+                                printf("%s does not support PowerStateGet",
                                        ComputerPtr->NameStr);
                         }
 
                         /* Print out Status for this system */
-                        printf("%2d) %20s  - %s \n\r", (ComputerPtr->number + 1), 
-                               ComputerPtr->NameStr, 
+                        printf("%2d) %20s  - %s \n\r", (ComputerPtr->number + 1),
+                               ComputerPtr->NameStr,
                                PowerStateString[PowerState]);
                 }
         }
