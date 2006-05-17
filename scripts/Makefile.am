@@ -1,5 +1,6 @@
 #
 # Copyright (c) 2003, Intel Corporation
+# (C) Copyright IBM Corp 2003-2006
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or
@@ -33,5 +34,7 @@
 
 EXTRA_DIST              = SaHpi2code.pl text2cstr.pl
 
-MAINTAINERCLEANFILES = Makefile.in
+SUBDIRS			= test
+
+MAINTAINERCLEANFILES	= Makefile.in
 

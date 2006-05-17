@@ -1,16 +1,16 @@
 #!/usr/bin/perl
 
 #       $Id$
- 
-#  (C) Copyright IBM Corp. 2004
- 
+
+#  (C) Copyright IBM Corp. 2004-2006
+
 #  This program is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
 #  file and program are licensed under a BSD style license.  See
 #  the Copying file included with the OpenHPI distribution for
 #  full licensing terms.
- 
+
 #  Authors:
 #      Sean Dague <http://dague.net/sean>
 
@@ -18,7 +18,7 @@ use strict;
 use Cwd;
 use File::Basename;
 
-chdir("..");
+chdir("../../");
 
 my $start = cwd();
 
@@ -40,13 +40,13 @@ my %files = (
 #             "plugins/snmp_bc/snmp_bc.c" => "t",
 #             "plugins/snmp_bc/snmp_bc_control.c" => "t",
 #             "plugins/snmp_bc/snmp_bc_discover.c" => "t",
-#	     "plugins/snmp_bc/snmp_bc_event.c" => "t",
+#            "plugins/snmp_bc/snmp_bc_event.c" => "t",
 #             "plugins/snmp_bc/snmp_bc_hotswap.c" => "t",
-#	     "plugins/snmp_bc/snmp_bc_inventory.c" => "t",
+#            "plugins/snmp_bc/snmp_bc_inventory.c" => "t",
 #             "plugins/snmp_bc/snmp_bc_sel.c" => "t",
 #             "plugins/snmp_bc/snmp_bc_sensor.c" => "t",
 #             "plugins/snmp_bc/snmp_bc_session.c" => "t",
-#	     "plugins/snmp_bc/snmp_bc_time.c" => "t",
+#            "plugins/snmp_bc/snmp_bc_time.c" => "t",
 #             "plugins/snmp_bc/snmp_bc_utils.c" => "t",
 #             "plugins/snmp_bc/snmp_bc_watchdog.c" => "t",
 
@@ -54,13 +54,13 @@ my %files = (
 #             "plugins/snmp_bc/t/snmp_bc.c" => ".libs",
 #             "plugins/snmp_bc/t/snmp_bc_control.c" => ".libs",
 #             "plugins/snmp_bc/t/snmp_bc_discover.c" => ".libs",
-#	     "plugins/snmp_bc/t/snmp_bc_event.c" => ".libs",
+#            "plugins/snmp_bc/t/snmp_bc_event.c" => ".libs",
 #             "plugins/snmp_bc/t/snmp_bc_hotswap.c" => ".libs",
-#	     "plugins/snmp_bc/t/snmp_bc_inventory.c" => ".libs",
+#            "plugins/snmp_bc/t/snmp_bc_inventory.c" => ".libs",
 #             "plugins/snmp_bc/t/snmp_bc_sel.c" => ".libs",
 #             "plugins/snmp_bc/t/snmp_bc_sensor.c" => ".libs",
 #             "plugins/snmp_bc/t/snmp_bc_session.c" => ".libs",
-#	     "plugins/snmp_bc/t/snmp_bc_time.c" => ".libs",
+#            "plugins/snmp_bc/t/snmp_bc_time.c" => ".libs",
 #             "plugins/snmp_bc/t/snmp_bc_utils.c" => ".libs",
 #             "plugins/snmp_bc/t/snmp_bc_watchdog.c" => ".libs",
 #             "plugins/snmp_bc/t/snmp_util.c" => ".libs",
@@ -96,7 +96,7 @@ foreach my $fullfile (sort keys %files) {
         }
     }
     close(GCOV);
-    
+
     open(OUT,">$file.summary");
     print OUT $report, $header, $body;
     close(OUT);
