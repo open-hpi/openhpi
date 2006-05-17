@@ -17,7 +17,6 @@ bin_PROGRAMS = \
 	hpialarms \
 	hpifan \
 	hpireset \
-	hpireset2 \
 	hpiwdt \
 	hpipower2 \
 	hpievent \
@@ -49,10 +48,6 @@ hpitop_LDFLAGS          =
 hpireset_SOURCES        = hpireset.c
 hpireset_LDADD          = $(COMMONLIBS)
 hpireset_LDFLAGS        =
-
-hpireset2_SOURCES       = hpireset2.c
-hpireset2_LDADD         = $(COMMONLIBS)
-hpireset2_LDFLAGS       =
 
 hpiel_SOURCES           = hpiel.c
 hpiel_LDADD             = $(COMMONLIBS)
