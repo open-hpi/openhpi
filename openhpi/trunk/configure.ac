@@ -147,19 +147,19 @@ openhpid_static="no"
 AC_ARG_ENABLE([daemon],
     [  --enable-daemon         build HPI daemon and client library [default=yes]],
     [if test "x$enableval" = "xyes"; then
-        ENABLED_DIRS="$ENABLED_DIRS openhpid2"
+        ENABLED_DIRS="$ENABLED_DIRS openhpid"
         NEED_MARSHAL="yes"
      elif test "x$enableval" = "xstatic"; then
-        ENABLED_DIRS="$ENABLED_DIRS openhpid2"
+        ENABLED_DIRS="$ENABLED_DIRS openhpid"
         NEED_MARSHAL="yes"
         openhpid_static="yes"
     fi],
     [
-    ENABLED_DIRS="$ENABLED_DIRS openhpid2"
+    ENABLED_DIRS="$ENABLED_DIRS openhpid"
     NEED_MARSHAL="yes"
     openhpid_dinamic="yes"])
 
-dnl    [ENABLED_DIRS="$ENABLED_DIRS openhpid2"
+dnl    [ENABLED_DIRS="$ENABLED_DIRS openhpid"
 dnl     NEED_MARSHAL="yes"])
 
 AM_CONDITIONAL(OPENHPID_STATIC, test x$openhpid_static = xyes)
@@ -169,12 +169,12 @@ shell_client="no"
 AC_ARG_ENABLE([shell_client],
     [  --enable-shell_client         build HPI client library [default=no]],
     [if test "x$enableval" = "xyes"; then
-        ENABLED_DIRS="$ENABLED_DIRS openhpid2"
+        ENABLED_DIRS="$ENABLED_DIRS openhpid"
         NEED_MARSHAL="yes"
         shell_client="yes"
     fi])
 
-dnl    [ENABLED_DIRS="$ENABLED_DIRS openhpid2"
+dnl    [ENABLED_DIRS="$ENABLED_DIRS openhpid"
 dnl     NEED_MARSHAL="yes"])
 
 AM_CONDITIONAL(SHELL_CLIENT, test x$shell_client = xyes)
@@ -663,9 +663,9 @@ AC_CONFIG_FILES([openhpi.spec
         src/t/ohpic/Makefile
         docs/Makefile
         docs/hld/Makefile
-        openhpid2/Makefile
-        openhpid2/openhpid.sh
-        openhpid2/t/Makefile
+        openhpid/Makefile
+        openhpid/openhpid.sh
+        openhpid/t/Makefile
         hpi_ui_lib/Makefile
         hpi_shell/Makefile
         cpp/Makefile
