@@ -113,17 +113,15 @@ libosahpi_la_SOURCES	= oSaHpiAlarm.cpp oSaHpiAlarm.hpp \
                           oSaHpiResourceEvent.cpp oSaHpiResourceEvent.hpp \
                           oSaHpiResourceInfo.cpp oSaHpiResourceInfo.hpp \
                           oSaHpiRptEntry.cpp oSaHpiRptEntry.hpp \
-                          oSaHpiSensorDataFormat.cpp oSaHpiSensorDataFormat.hpp
-\
+                          oSaHpiSensorDataFormat.cpp oSaHpiSensorDataFormat.hpp \
                           oSaHpiSensorEnableChangeEvent.cpp
-oSaHpiSensorEnableChangeEvent.hpp \
+			  oSaHpiSensorEnableChangeEvent.hpp \
                           oSaHpiSensorEvent.cpp oSaHpiSensorEvent.hpp \
                           oSaHpiSensorRange.cpp oSaHpiSensorRange.hpp \
                           oSaHpiSensorReading.cpp oSaHpiSensorReading.hpp \
                           oSaHpiSensorRec.cpp oSaHpiSensorRec.hpp \
                           oSaHpiSensorThdDefn.cpp oSaHpiSensorThdDefn.hpp \
-                          oSaHpiSensorThresholds.cpp oSaHpiSensorThresholds.hpp
-\
+                          oSaHpiSensorThresholds.cpp oSaHpiSensorThresholds.hpp \
                           oSaHpiTextBuffer.cpp oSaHpiTextBuffer.hpp \
                           oSaHpiTypesEnums.cpp oSaHpiTypesEnums.hpp \
                           oSaHpiUserEvent.cpp oSaHpiUserEvent.hpp \
@@ -131,3 +129,4 @@ oSaHpiSensorEnableChangeEvent.hpp \
                           oSaHpiWatchdogEvent.cpp oSaHpiWatchdogEvent.hpp \
                           oSaHpiWatchdogRec.cpp oSaHpiWatchdogRec.hpp
 libosahpi_la_LDFLAGS	= -version-info @HPI_LIB_VERSION@
+
