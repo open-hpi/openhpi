@@ -55,7 +55,7 @@ MOSTLYCLEANFILES        = tags
 
 
 SUBDIRS                 = utils tools src hpi_ui_lib @SNMPDIR@ @MARSHALDIR@ plugins docs hpi_shell @ENABLED_DIRS@ man
-DIST_SUBDIRS            = utils tools src hpi_ui_lib snmp marshal plugins docs hpi_shell openhpid2 clients scripts man cpp
+DIST_SUBDIRS            = utils tools src hpi_ui_lib snmp marshal plugins docs hpi_shell openhpid clients scripts man cpp
 
 
 DISTCHECK_CONFIGURE_FLAGS = --with-initdir=prefix
@@ -67,7 +67,7 @@ ALLSOURCES = \
         -name '*.[chS]' -print | grep -v '/t/') \
         $(shell find $(top_srcdir)/utils -name .svn -o -name CVS -prune -o \
         -name '*.[chS]' -print | grep -v '/t/') \
-        $(shell find $(top_srcdir)/openhpid2 -name .svn -o -name CVS -prune -o \
+        $(shell find $(top_srcdir)/openhpid -name .svn -o -name CVS -prune -o \
         -name '*.[chS]' -print | grep -v '/t/') \
         $(shell find $(top_srcdir)/plugins -name .svn -o -name CVS -prune -o \
         -name '*.[chS]' -print | grep -v '/t/') \
