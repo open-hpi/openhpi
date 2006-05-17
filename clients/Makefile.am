@@ -21,7 +21,6 @@ bin_PROGRAMS = \
 	hpiwdt \
 	hpipower2 \
 	hpithres \
-	hpievent \
 	hpitop   \
 	hpisettime \
 	hpidomainel
