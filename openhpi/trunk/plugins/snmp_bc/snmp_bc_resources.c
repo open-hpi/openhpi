@@ -2204,45 +2204,6 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
  ***************************/
 
 struct snmp_bc_sensor snmp_bc_mgmnt_sensors[] = {
-	/* MM Network Link Availablity Sensor - event only */
-        {
-		.index = 1,
-                .sensor = {
-                        .Num = 1,
-                        .Type = SAHPI_CABLE_INTERCONNECT,
-                        .Category = SAHPI_EC_AVAILABILITY,
-			.EnableCtrl = SAHPI_FALSE,
-                        .EventCtrl = SAHPI_SEC_READ_ONLY,
-			.Events = SAHPI_ES_RUNNING | SAHPI_ES_OFF_LINE,
-                        .DataFormat = {
-                                .IsSupported = SAHPI_FALSE,
-                        },
-                        .ThresholdDefn = {
-                                .IsAccessible = SAHPI_FALSE,
-                        },
-                        .Oem = 0,
-                },
-                .sensor_info = {
-                        .cur_state = SAHPI_ES_RUNNING,
-                        .sensor_enabled = SAHPI_TRUE,
-                        .events_enabled = SAHPI_TRUE,
-			.assert_mask   = SAHPI_ES_OFF_LINE,
-			.deassert_mask = SAHPI_ES_OFF_LINE,
-                        .event_array = {
-                                {
-                                        .event = "00217000", /* EN_MM_NETWORK_LOSS */
-  					.event_assertion = SAHPI_TRUE,
-       					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_OFF_LINE,
-                                        .recovery_state = SAHPI_ES_RUNNING,
-                                },
-                                {},
-                        },
-   			.reading2event = {},
-                },
-                .comment = "MM Network Link Availablity Sensor",
-        },
 
         {} /* Terminate array with a null element */
 };
@@ -3269,7 +3230,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                 },
                 .comment = "Blade 12 Volt Sensor",
         },
-        /* Blade VRM Voltage Sensor */
+        /* Blade VRM 1 Voltage Sensor */
         {
 		.index = 11,
                 .sensor = {
@@ -3335,7 +3296,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         },
    			.reading2event = {},
 		},
-		.comment = "Blade VRM Voltage Sensor",
+		.comment = "Blade VRM 1 Voltage Sensor",
         },
         /* Blade Operational Status Sensor - event only */
         {

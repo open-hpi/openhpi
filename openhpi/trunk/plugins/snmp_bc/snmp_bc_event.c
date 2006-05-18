@@ -490,7 +490,7 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
            used with the OVR_RID option. Note: OVR_EXP messages always assumed to
            have a SOURCE field = BLADE_0x */
 	if (strhash_data->event_ovr & OVR_EXP ||
-	    strhash_data->event_ovr & OVR_MMACT ||
+	    strhash_data->event_ovr & OVR_VMM ||
 	    strhash_data->event_ovr & OVR_MM1 ||
 	    strhash_data->event_ovr & OVR_MM2) {
 
@@ -1250,7 +1250,7 @@ static SaErrorT snmp_bc_map2oem(SaHpiEventT *event,
  * @ovr_flags is used to indicate exception cases. The two case
  * supported are:
  *   - OVR_EXP    - indicates resource is an expansion card.
- *   - OVR_MMACT  - indicates resource is the active MM card.
+ *   - OVR_VMM    - indicates resource is Virtual MM
  *   - OVR_MM1    - indicates resource is the MM 1 card.
  *   - OVR_MM2    - indicates resource is the MM 2 card.
  *
@@ -1339,8 +1339,8 @@ static SaErrorT snmp_bc_logsrc2rid(struct oh_handler_state *handle,
 		/* Check for OVR_MMx overrides, if cannot find explict resource from error
                    logs "Source" field */
 
-		if (ovr_flags & OVR_MMACT || ovr_flags & OVR_MM1 || ovr_flags & OVR_MM2) {
-			if (ovr_flags & OVR_MMACT) {
+		if (ovr_flags & OVR_VMM || ovr_flags & OVR_MM1 || ovr_flags & OVR_MM2) {
+			if (ovr_flags & OVR_VMM) {
 				rpt_index = BC_RPT_ENTRY_VIRTUAL_MGMNT_MODULE; 
 				loc  = 0;
 				array_ptr = &snmp_bc_virtual_mgmnt_sensors[0];
