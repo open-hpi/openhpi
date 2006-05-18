@@ -73,7 +73,7 @@
 use strict;
 use Getopt::Long;
 
-sub check4dups($$$);
+sub check4dups($$);
 #sub print_h_file_header;
 #sub print_h_file_ending;
 sub print_c_file_header;
@@ -148,7 +148,7 @@ while ( <FILE_MAP> ) {
 
     my $line = $_;
 #    (my $hpidef_event, my $hpidef, my $def) = split/\|/,$line;
-    (my $event_name, my $event_hex, my $platforms, my $event_severity,
+    (my $event_name, my $event_hex, my $event_severity,
      my $override_flags, my $event_msg, my $rest) = split/\|/,$line;
 
 #    chomp($def);
@@ -165,7 +165,7 @@ while ( <FILE_MAP> ) {
 #	$defmap{$hpidef} = $def;
 #    }
 #    else {
-	if ($event_name eq "" || $event_hex eq "" || $platforms eq "" ||
+	if ($event_name eq "" || $event_hex eq "" || 
 	    $event_severity eq "" || $override_flags eq "" || $event_msg eq "") {
             print "Line is $_\n";
 	    print "*************************************************************\n";
@@ -175,18 +175,11 @@ while ( <FILE_MAP> ) {
 	    goto CLEANUP;
 	}
 	
-	# Tack platform on end of message string to make it unique 
-        # and put into internal hash.
-	while ($platforms ne "") {
-	    my $hash_msg = $event_msg;
-	    $hash_msg =~ s/\"$//;
-	    (my $plat, my $platrest) = split/,/,$platforms,2;
-	    ($plat) =~ s/^\s*(.*?)\s*$/$1/; # strip leading/trailing blanks
-	    $hash_msg = $hash_msg . "_HPIPLAT_" . $plat . "\"";
-	    check4dups($line, $hash_msg, $plat);
-	    $platforms = $platrest;
-	}
- #   }
+        # Put message string into internal hash.
+        my $hash_msg = $event_msg;
+        $hash_msg =~ s/\"$//;
+        check4dups($line, $hash_msg);
+#   }
 }
 
 ##############################
@@ -231,20 +224,18 @@ close FILE_C;
 exit ($err);
 
 ##################################################################
-# Check for duplicate event messages for a given platform.
+# Check for duplicate event messages.
 # Add _HPIDUP to both the internal hash_msg name and to the
 # external event_msg name. HPI code handles stripping the _HPIDUP
 # string from the external names.
 # The internal tables thus have hash keys that look like:
-#   - msg_HPIPLAT_XXX
-#   - msg_HPIPLAT_XXX_HPIDUPx
-# The platform infomation is used by this script to generate the
-# source code.
+#   - msg
+#   - msg_HPIDUPx
 ##################################################################
-sub check4dups($$$) {
+sub check4dups($$) {
 
-    my ($line, $hash_msg, $plat) = @_;
-    my ($event_name, $event_hex, $platforms, $event_severity,
+    my ($line, $hash_msg) = @_;
+    my ($event_name, $event_hex, $event_severity,
 	$override_flags, $event_msg, $rest) = split/\|/,$line;
 
     chomp($event_msg);
@@ -267,13 +258,13 @@ sub check4dups($$$) {
 	$hashdup = $hashdup  . "_HPIDUP" . $dups . "\"";
 	$msgdup  = $msgdup   . "_HPIDUP" . $dups . "\"";
 	$eventmap{$hashdup} =
-	    "0|$event_name|$event_hex|$plat|$event_severity|$override_flags|$msgdup|$rest";
-#	 print ("DUPS msg=$hashdup; 0|$event_name|$event_hex|$plat|$event_severity|$override_flags|$msgdup|$rest\n");
+	    "0|$event_name|$event_hex|$event_severity|$override_flags|$msgdup|$rest";
+#	 print ("DUPS msg=$hashdup; 0|$event_name|$event_hex|$event_severity|$override_flags|$msgdup|$rest\n");
     }
     else {
 	$eventmap{$hash_msg} =
-	    "0|$event_name|$event_hex|$plat|$event_severity|$override_flags|$event_msg|$rest";
-#	 print ("NonDUPS msg=$hash_msg; 0|$event_name|$event_hex|$plat|$event_severity|$override_flags|$event_msg|$rest\n");
+	    "0|$event_name|$event_hex|$event_severity|$override_flags|$event_msg|$rest";
+#	 print ("NonDUPS msg=$hash_msg; 0|$event_name|$event_hex|$event_severity|$override_flags|$event_msg|$rest\n");
     }
     
     return 0;
@@ -368,7 +359,7 @@ sub print_c_file_header {
     print FILE_C <<EOF;
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2004
+ * (C) Copyright IBM Corp. 2004, 2006
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -469,7 +460,7 @@ EOF
 sub print_c_file_hash_member($) {
     my ($event_message) = @_;
     
-    my ($event_count, $event_name, $event_hex, $event_platform, 
+    my ($event_count, $event_name, $event_hex,
 	$event_severity, $override_flags, $event_msg, $rest) = 
 	    split/\|/,$eventmap{$event_message};
 
@@ -479,29 +470,6 @@ sub print_c_file_hash_member($) {
     $event_hex_str =~ s/^\"0x/\"/;
 
     my $tab = "";
-    # No "ALL" in Event Map anymore, if need this for code optimization
-    # need to determine platforms based on #defines in resource.h and
-    # figure out when all platforms are defined.
-    if ($event_platform ne "ALL") {
-	$tab = "        ";
-#	$event_msg =~ s/_HPIPLAT_$event_platform_//;
-	if ($event_platform eq "BCT") {
-	    print FILE_C "\tif (custom_handle->platform == SNMP_BC_PLATFORM_BCT) {\n";
-	}
-	elsif ($event_platform eq "BC") {
-	    print FILE_C "\tif (custom_handle->platform == SNMP_BC_PLATFORM_BC) {\n";
-	}
-	elsif ($event_platform eq "RSA") {
-	    print FILE_C "\tif (custom_handle->platform == SNMP_BC_PLATFORM_RSA) {\n";
-	}
-	else {
-	    print "******************************************************\n";
-	    print "$0: Error! Unrecognized Platform Type=$event_platform.\n";
-	    print "Script may need to be updated.\n";
-	    print "******************************************************\n\n";
-	    return 1;
-	}
-    }	
 
     # Format override flags
     if ($override_flags ne "NO_OVR") { 
@@ -537,10 +505,6 @@ EOF
 #$tab		return -1;
 #$tab	}
 #EOF
-
-    if ($event_platform ne "ALL") {
-	print FILE_C "\t}\n";
-    }
 
     print FILE_C "\n";
 
@@ -632,7 +596,7 @@ EOF
 sub print_xml_file_hash_member($) {
     my ($event_message) = @_;
     
-    my ($event_count, $event_name, $event_hex, $event_platform,
+    my ($event_count, $event_name, $event_hex,
 	$event_severity, $override_flags, $event_msg, $rest) =
 	    split/\|/,$eventmap{$event_message};
     chomp($event_msg);
@@ -645,7 +609,7 @@ sub print_xml_file_hash_member($) {
     }
     
     print FILE_C <<EOF;
-<event name="$event_name" hex=$event_hex_str type="$event_platform"
+<event name="$event_name" hex=$event_hex_str 
        severity="$event_severity" override="$override_flags" dup="$event_count"
        msg=$event_msg />
 EOF

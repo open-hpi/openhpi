@@ -46,6 +46,36 @@ struct snmp_bc_data sim_resource_array[] = {
                 },
         },
         {
+                /* Chassis Type 
+                 *
+                 * This OID is used to determine if the chassis type. Only available on
+                 * newer levels of BladeCenter code.
+                 * If integer == 97 system is a BC; if integer = 98 system in BCT
+                 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.4.38.0",
+                .mib = {
+                        .type = ASN_INTEGER,
+                        .value = {
+                                .integer = 98,
+                        },
+                },
+        },
+        {
+                /* Chassis Subtype 
+                 *
+                 * This OID is used to determine if the chassis subtype. Only available on
+                 * newer levels of BladeCenter code.
+                 * If integer == 0, its the orignal system; 2 its the H models 
+                 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.4.39.0",
+                .mib = {
+                        .type = ASN_INTEGER,
+                        .value = {
+                                .integer = 0,
+                        },
+                },
+        },
+        {
                 /* RSA Health
                  *
                  * This OID is used to determine if the system is a RSA or not
@@ -368,7 +398,7 @@ struct snmp_bc_data sim_resource_array[] = {
                 .mib = {
                         .type = ASN_OCTET_STR,
                         .value = {
-                                .string = "  0000 0000 0000 0000 0000 0000 0000 0000 "
+                                .string = "0000 0000 0000 0000 0000 0000 0000 0000"
                         },
                 },
         },
