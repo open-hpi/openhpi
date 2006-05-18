@@ -214,8 +214,8 @@ static void event_start_element(GMarkupParseContext *context,
                         if (strstr(attribute_values[i], "OVR_EXP") != NULL) {
                                 working.event_ovr |= OVR_EXP;
                         }
-                        if (strstr(attribute_values[i], "OVR_MMACT") != NULL) {
-                                working.event_ovr |= OVR_MMACT;
+                        if (strstr(attribute_values[i], "OVR_VMM") != NULL) {
+                                working.event_ovr |= OVR_VMM;
                         }
                         if (strstr(attribute_values[i], "OVR_MM1") != NULL) {
                                 working.event_ovr |= OVR_MM1;
