@@ -329,7 +329,6 @@ sub check4dups($$) {
 #extern char *eventxml;
 #
 #struct errlog2event_hash_info {
-#        int platform;
 #	GHashTable *hashtable;
 #};
 #EOF
