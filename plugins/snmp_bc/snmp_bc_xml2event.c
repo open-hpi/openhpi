@@ -68,7 +68,6 @@ SaErrorT errlog2event_hash_init(struct snmp_bc_hnd *custom_handle) {
 	}
 	
 	/* Initialize user data used in parsing XML events */
-	user_data.platform = custom_handle->platform;
 	user_data.hashtable = errlog2event_hash;
 
         /* Initialize XML parser */
@@ -167,22 +166,6 @@ static void event_start_element(GMarkupParseContext *context,
                 if (strcmp(attribute_names[i], "name") == 0) {
                         /* Don't use this attribute so ignore it */
                 }
-                else if (strcmp(attribute_names[i], "type") == 0) {
-			/* See if event is for this platform */
-			switch (hash_info->platform) {
-			case SNMP_BC_PLATFORM_BCT:
-				if (!(strcmp(attribute_values[i], "BCT") == 0)) return;
-				break;
-			case SNMP_BC_PLATFORM_BC:
-				if (!(strcmp(attribute_values[i], "BC") == 0)) return;
-				break;
-			case SNMP_BC_PLATFORM_RSA:
-				if (!(strcmp(attribute_values[i], "RSA") == 0)) return;
-				break;
-			default:
-				return;
-			}
-		}
                 else if (strcmp(attribute_names[i], "msg") == 0) {
                         key = g_strdup(attribute_values[i]);
                         if (key == NULL) {

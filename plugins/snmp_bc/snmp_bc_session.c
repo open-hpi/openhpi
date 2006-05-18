@@ -225,43 +225,76 @@ void *snmp_bc_open(GHashTable *handler_config)
 
 	}
 
-	/* Determine platform type and daylight savings time */
+	/* Determine BladeCenter chassis type */
 	{
 		const char *oid;
 		struct snmp_value get_value;
 		SaErrorT err;
 		do {
-			err = snmp_bc_snmp_get(custom_handle, SNMP_BC_PLATFORM_OID_BCT, &get_value, SAHPI_FALSE);
+			err = snmp_bc_snmp_get(custom_handle, SNMP_BC_CHASSIS_TYPE_OID, &get_value, SAHPI_FALSE);
 			if (err == SA_OK) {
-				trace("Found BCT");
-				custom_handle->platform = SNMP_BC_PLATFORM_BCT;
-				break;
-			} 
-			
-			err = snmp_bc_snmp_get(custom_handle, SNMP_BC_PLATFORM_OID_BC, &get_value, SAHPI_FALSE);			 			
-		 	if (err == SA_OK) {
-				trace("Found BC");
-				custom_handle->platform = SNMP_BC_PLATFORM_BC;
-				break;
+			        int chassis_type, chassis_subtype;
+				
+				chassis_type = get_value.integer;
+				err = snmp_bc_snmp_get(custom_handle, SNMP_BC_CHASSIS_SUBTYPE_OID, &get_value, SAHPI_FALSE);
+				if (err) {
+					dbg("Cannot read model subtype");
+					return NULL;
+				}
+				chassis_subtype = get_value.integer;
+
+				if (chassis_type == SNMP_BC_CHASSIS_TYPE_BC &&
+				    chassis_subtype == SNMP_BC_CHASSIS_SUBTYPE_ORIG) {
+					trace("Found BC");
+					custom_handle->platform = SNMP_BC_PLATFORM_BC;
+					break;
+				}
+
+				if (chassis_type == SNMP_BC_CHASSIS_TYPE_BC &&
+				    chassis_subtype == SNMP_BC_CHASSIS_SUBTYPE_H) {
+					trace("Found BCH");
+					custom_handle->platform = SNMP_BC_PLATFORM_BCH;
+					break;
+				}
+				
+				if (chassis_type == SNMP_BC_CHASSIS_TYPE_BCT &&
+				    chassis_subtype == SNMP_BC_CHASSIS_SUBTYPE_ORIG) {
+					trace("Found BCT");
+					custom_handle->platform = SNMP_BC_PLATFORM_BCT;
+					break;
+				}
+
+				dbg("Unknown BladeCenter model");
+				return NULL;
 			}
-			
-			err = snmp_bc_snmp_get(custom_handle, SNMP_BC_PLATFORM_OID_RSA, &get_value, SAHPI_FALSE);
-			if (err == SA_OK) {
-				trace("Found RSA");
-				custom_handle->platform = SNMP_BC_PLATFORM_RSA;
-				break;
-			} 
-		
-			/* If we did not break in one of the 3 previous platform test, */
-			/* we are not talking to one of the support platform,          */
-			/* or communication to target is not possible                  */ 	
-			dbg("Cannot read model type=%s; Error=%d.",
-					      SNMP_BC_PLATFORM_OID_BCT, err);
-			return NULL;
-			
+			else {  /* Older MM software doesn't support chassis type and subtype OIDs */
+				err = snmp_bc_snmp_get(custom_handle, SNMP_BC_PLATFORM_OID_BCT, &get_value, SAHPI_FALSE);
+				if (err == SA_OK) {
+					trace("Found BCT");
+					custom_handle->platform = SNMP_BC_PLATFORM_BCT;
+					break;
+				} 
+				
+				err = snmp_bc_snmp_get(custom_handle, SNMP_BC_PLATFORM_OID_BC, &get_value, SAHPI_FALSE);
+				if (err == SA_OK) {
+					trace("Found BC");
+					custom_handle->platform = SNMP_BC_PLATFORM_BC;
+					break;
+				}
+				
+				err = snmp_bc_snmp_get(custom_handle, SNMP_BC_PLATFORM_OID_RSA, &get_value, SAHPI_FALSE);
+				if (err == SA_OK) {
+					trace("Found RSA");
+					custom_handle->platform = SNMP_BC_PLATFORM_RSA;
+					break;
+				} 
+				
+				dbg("Unknown BladeCenter model");
+				return NULL;
+			}
 		} while(0);
 		
-		/* DST */
+		/* Determine if daylight savings time (DST) is enabled */
 		if (custom_handle->platform == SNMP_BC_PLATFORM_RSA) { oid = SNMP_BC_DST_RSA; }
 		else { oid = SNMP_BC_DST; }
 

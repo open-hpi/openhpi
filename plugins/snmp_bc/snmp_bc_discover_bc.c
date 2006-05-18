@@ -636,17 +636,21 @@ SaErrorT snmp_bc_discover_chassis(struct oh_handler_state *handle,
 		SaHpiTextBufferT build_name;
 
 		oh_init_textbuffer(&build_name);
-		if (custom_handle->platform == SNMP_BC_PLATFORM_BC) {
+
+		switch (custom_handle->platform) {
+		case SNMP_BC_PLATFORM_BC:
+			oh_append_textbuffer(&build_name, "BladeCenter Chassis");
+			break;
+		case SNMP_BC_PLATFORM_BCH:
+			oh_append_textbuffer(&build_name, "BladeCenter H Chassis");
+			break;
+		case SNMP_BC_PLATFORM_BCT:
+			oh_append_textbuffer(&build_name, "BladeCenter T Chassis");
+			break;
+		default:	
 			oh_append_textbuffer(&build_name, "BladeCenter Chassis");
 		}
-		else {
-			if (custom_handle->platform == SNMP_BC_PLATFORM_BCT) {
-				oh_append_textbuffer(&build_name, "BladeCenter T Chassis");
-			}
-			else {
-				oh_append_textbuffer(&build_name, "BladeCenter Chassis");
-			}
-		}
+
 		snmp_bc_create_resourcetag(&(e->u.res_event.entry.ResourceTag),
 					   (char *)build_name.Data,
 					   ep_root->Entry[0].EntityLocation);

@@ -75,14 +75,22 @@
 #define SNMP_BC_MAX_OID_LENGTH 50
 
 /* OIDs to determine platform types */
-#define SNMP_BC_PLATFORM_OID_BC   ".1.3.6.1.4.1.2.3.51.2.2.7.1.0" /* BCI System Health */
-#define SNMP_BC_PLATFORM_OID_BCT  ".1.3.6.1.4.1.2.3.51.2.2.9.1.0" /* BCT System Health */
-#define SNMP_BC_PLATFORM_OID_RSA  ".1.3.6.1.4.1.2.3.51.1.2.7.1.0" /* RSA System Health */
+#define SNMP_BC_CHASSIS_TYPE_OID     ".1.3.6.1.4.1.2.3.51.2.22.4.38.0"
+#define SNMP_BC_CHASSIS_SUBTYPE_OID  ".1.3.6.1.4.1.2.3.51.2.22.4.39.0"
+#define SNMP_BC_CHASSIS_TYPE_BC      97
+#define SNMP_BC_CHASSIS_TYPE_BCT     98
+#define SNMP_BC_CHASSIS_SUBTYPE_ORIG 0   
+#define SNMP_BC_CHASSIS_SUBTYPE_H    2
+/* Original models don't have chassis type/subtype OIDs - just health OIDs */
+#define SNMP_BC_PLATFORM_OID_BC      ".1.3.6.1.4.1.2.3.51.2.2.7.1.0" /* BC System Health */
+#define SNMP_BC_PLATFORM_OID_BCT     ".1.3.6.1.4.1.2.3.51.2.2.9.1.0" /* BCT System Health */
+#define SNMP_BC_PLATFORM_OID_RSA     ".1.3.6.1.4.1.2.3.51.1.2.7.1.0" /* RSA System Health */
 
 /* Run-time variables to distinguish platform types */
 #define SNMP_BC_PLATFORM_BCT   0x0001
 #define SNMP_BC_PLATFORM_BC    0x0002
 #define SNMP_BC_PLATFORM_RSA   0x0004
+#define SNMP_BC_PLATFORM_BCH   0x0008
 #define SNMP_BC_PLATFORM_ALL   0xFFFF
 
 /* Resource indexes to snmp_rpt array in discovery */
