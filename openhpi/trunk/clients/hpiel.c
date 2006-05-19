@@ -1,244 +1,325 @@
 /* -*- linux-c -*-
  *
- * Copyright (c) 2003 Intel Corporation.
- * (C) Copyright IBM Corp 2004
+ * (C) Copyright IBM Corp 2006
  *
  * Author(s):
- *     Andy Cress  arcress@users.sourceforge.net
- *     Sean Dague <http://dague.net/sean>
+ *     Renier Morales <renierm@users.sf.net>
+ *
+ * hpiel - Displays HPI event log entries.
  *
  */
-/*
-Copyright (c) 2003, Intel Corporation
-All rights reserved.
 
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-
-  a.. Redistributions of source code must retain the above copyright notice,
-      this list of conditions and the following disclaimer.
-  b.. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
-  c.. Neither the name of Intel Corporation nor the names of its contributors
-      may be used to endorse or promote products derived from this software
-      without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
-ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
-
-#include <stdio.h>
 #include <stdlib.h>
-#include <getopt.h>
 #include <string.h>
-#include <unistd.h>
-#include <time.h>
+#include <getopt.h>
 
 #include <SaHpi.h>
+#include <oHpi.h>
 #include <oh_utils.h>
 
+#define OH_SVN_REV "$Revision$"
 
-char progver[] = "1.3 HPI B";
-int fdebug = 0;
-int fclear = 0;
-int frdr   = 0;
-int frpt   = 0;
+#define dbg(format, ...) \
+        do { \
+                if (opts.dbg) { \
+                        fprintf(stderr, format "\n", ## __VA_ARGS__); \
+                } \
+        } while(0)
+
+#define show_error_quit(msg) \
+        do { \
+                if (error) { \
+                        dbg(msg, oh_lookup_error(error)); \
+                        abort(); \
+                } \
+        } while(0)
+
+/* Globals */
+static struct hpiel_opts {
+        int  del;        /* Domain Event Log option. */
+        char *ep;       /* Resource Event Log option. */
+        int  clear;      /* Clear the event log before traversing it. */
+        int  resource;   /* Get resource along with event log entry. */
+        int  rdr;        /* Get RDR along with event log entry. */
+        int  dbg;        /* Display debug messages. */
+} opts = { 0, NULL, 0, 0, 0, 0 };
+
+/* Prototypes */
+SaErrorT parse_options(int argc, char ***argv, struct hpiel_opts *opts);
+SaErrorT harvest_sels(SaHpiSessionIdT sid, SaHpiDomainInfoT *dinfo, char *ep);
+SaErrorT display_el(SaHpiSessionIdT sid, SaHpiResourceIdT rid, SaHpiTextBufferT *tag);
 
 int main(int argc, char **argv)
 {
-        int c;
-	oh_big_textbuffer bigbuf2;
-        SaErrorT rv, rv_2;
-        SaHpiVersionT hpiVer;
-        SaHpiSessionIdT sessionid;
-        
-        /* Domain */
-        SaHpiDomainInfoT domainInfo;
+        SaHpiUint32T ohpi_major = oHpiVersionGet() >> 48;
+        SaHpiUint32T ohpi_minor = (oHpiVersionGet() << 16) >> 48;
+        SaHpiUint32T ohpi_patch = (oHpiVersionGet() << 32) >> 48;
+        SaHpiVersionT hpiver;
+        SaErrorT error = SA_OK;
+        SaHpiSessionIdT sid;
+        SaHpiDomainInfoT dinfo;
+        char *svn_rev = OH_SVN_REV;
 
-        SaHpiRptEntryT rptentry;
-        SaHpiEntryIdT rptentryid;
-        SaHpiEntryIdT nextrptentryid;
-        SaHpiResourceIdT resourceid;
-        SaHpiEventLogEntryIdT entryid;
-        SaHpiEventLogEntryIdT nextentryid;
-        SaHpiEventLogEntryIdT preventryid;
-        SaHpiEventLogInfoT info;
-        SaHpiEventLogEntryT  el;
-        SaHpiRdrT rdr, *rdrptr;
-	SaHpiRptEntryT rpt_2nd, *rptptr;
+        svn_rev[strlen(svn_rev)-2] = '\0';
+        printf("%s - This program came with OpenHPI %u.%u.%u (%s)\n",
+                argv[0], ohpi_major, ohpi_minor, ohpi_patch,
+                svn_rev + 11);
+        hpiver = saHpiVersionGet();
+        printf("HPI Version is %x.0%d.0%d\n",
+                (hpiver >> 16) + 9,
+                (hpiver & 0x0000FF00) >> 8,
+                hpiver & 0x000000FF);
 
-        int free = 50;
-
-        printf("%s: version %s\n",argv[0],progver);
-
-        while ( (c = getopt( argc, argv,"cdpx?")) != EOF )
-                switch(c) {
-                case 'c': fclear = 1; break;
-                case 'd': frdr   = 1; break;
-                case 'p': frpt   = 1; break;				
-                case 'x': fdebug = 1; break;
-                default:
-                        printf("\n\n\nUsage %s [-cdpx]\n",argv[0]);
-			printf("    Where                             \n");
-                        printf("        -c clears the event log\n");
-			printf("        -d also get RDR with the event log\n");
-			printf("        -p also get RPT with the event log\n");
-                        printf("        -x displays eXtra debug messages\n\n\n");
-                        exit(1);
-                }
-	
-	
-	/* 
-	 * House keeping:
-	 * 	-- get (check?) hpi implementation version
-	 *      -- open hpi session	
-	 */
-	if (fdebug) printf("saHpiVersionGet\n");
-	hpiVer = saHpiVersionGet();
-	printf("Hpi Version %d Implemented.\n", hpiVer);
-	
-        rv = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID,&sessionid,NULL);
-        if (rv != SA_OK) {
-                if (rv == SA_ERR_HPI_ERROR) 
-                        printf("saHpiSessionOpen: error %d, SpiLibd not running\n",rv);
-                else
-                        printf("saHpiSessionOpen: %s\n", oh_lookup_error(rv));
-                exit(-1);
+        if (parse_options(argc, &argv, &opts)) {
+                printf("There was an error parsing the options. Exiting.\n");
+                abort();
         }
 
-        rv = saHpiDiscover(sessionid);
-        if (fdebug) printf("saHpiResourcesDiscover %s\n", oh_lookup_error(rv));
-	
+        error = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID, &sid, NULL);
+        show_error_quit("saHpiSessionOpen() returned %s. Exiting.\n");
 
-        rv = saHpiDomainInfoGet(sessionid, &domainInfo);
+        error = saHpiDiscover(sid);
+        show_error_quit("saHpiDiscover() returned %s. Exiting.\n");
 
-        if (fdebug) printf("saHpiDomainInfoGet %s\n", oh_lookup_error(rv));
-        printf("DomainInfo: UpdateCount = %d, UpdateTime = %lx\n",
-               domainInfo.RptUpdateCount, (unsigned long)domainInfo.RptUpdateTimestamp);
+        error = saHpiDomainInfoGet(sid, &dinfo);
+        show_error_quit("saHpiDomainInfoGet() returned %s. Exiting.\n");
 
-        /* walk the RPT list */
-        rptentryid = SAHPI_FIRST_ENTRY;
-        while ((rv == SA_OK) && (rptentryid != SAHPI_LAST_ENTRY))
-	{
-		rv = saHpiRptEntryGet(sessionid,rptentryid,&nextrptentryid,&rptentry);
+        printf("Domain Info: UpdateCount = %d, UpdateTime = %lx\n",
+               dinfo.RptUpdateCount, (unsigned long)dinfo.RptUpdateTimestamp);
 
-		if (fdebug)
-			printf("saHpiRptEntryGet %s\n", oh_lookup_error(rv));
-			    
-		if (rv == SA_OK) {
-			resourceid = rptentry.ResourceId;
-				    
-			if (fdebug)
-				printf("RPT %d capabilities = %x\n", resourceid,
-						   rptentry.ResourceCapabilities);
-				    
-			if (!(rptentry.ResourceCapabilities & SAHPI_CAPABILITY_EVENT_LOG)) {
-					    
-				if (fdebug) printf("RPT doesn't have SEL\n");
-				rptentryid = nextrptentryid;
-				continue;  /* no SEL here, try next RPT */
-			}
-				    
-			rptentry.ResourceTag.Data[rptentry.ResourceTag.DataLength] = 0;
-	
-			rv_2 = oh_init_bigtext(&bigbuf2);
-			if (rv_2) return(rv_2);
-			rv  = oh_decode_entitypath(&rptentry.ResourceEntity, &bigbuf2);
-			printf("%s\n", bigbuf2.Data);
-			printf("rptentry[%d] tag: %s\n", resourceid,rptentry.ResourceTag.Data);
-				    
-			/* initialize structure */
-			info.Entries = 0;
-			info.Size = 0;
-			info.Enabled = 0;
-				    
-			rv_2 = saHpiEventLogInfoGet(sessionid,resourceid,&info);
-			
-			if (fdebug)
-				printf("saHpiEventLogInfoGet %s\n", oh_lookup_error(rv));
-			if (rv_2 == SA_OK) {
-				printf("EventLogInfo for %s, ResourceId %d\n",
-						rptentry.ResourceTag.Data, resourceid);
-				oh_print_eventloginfo(&info, 4);
-			} else { 
-				printf("saHpiEventLogInfoGet %s\n", oh_lookup_error(rv_2));
-			}
-				    
-			if (fclear) {
-				rv = saHpiEventLogClear(sessionid,resourceid);
-				if (rv == SA_OK)
-					printf("EventLog successfully cleared\n");
-				else
-					printf("EventLog clear, error = %d, %s\n", rv, oh_lookup_error(rv));
-				break;
-			}
-				    
-			if (info.Entries != 0){
-				entryid = SAHPI_OLDEST_ENTRY;
-				while ((rv == SA_OK) && (entryid != SAHPI_NO_MORE_ENTRIES))
-				{
-				
-					if (frdr) rdrptr = &rdr;
-						else rdrptr = NULL;
-					
-					if (frpt) rptptr = &rpt_2nd;
-						else rptptr = NULL;
-						
-						
-					if(fdebug) printf("rdrptr %p, rptptr %p\n", rdrptr, rptptr);
-					rv = saHpiEventLogEntryGet(sessionid,resourceid,
-								entryid,&preventryid,
-								&nextentryid, &el,rdrptr,rptptr);
-								
-					if (fdebug) printf("saHpiEventLogEntryGet %s\n",
-							    			oh_lookup_error(rv));
-								   
-					if (rv == SA_OK) {
-						oh_print_eventlogentry(&el, 6);
-						if (frdr) {
-							if (rdrptr->RdrType == SAHPI_NO_RECORD)
-								printf("            No RDR associated with EventType =  %s\n\n", 
-									 oh_lookup_eventtype(el.Event.EventType));
-							else	
-								oh_print_rdr(rdrptr, 12);
-						}
-						if (frpt) {
-							if (rptptr->ResourceCapabilities == 0)
-								printf("            No RPT associated with EventType =  %s\n\n", 
-									 oh_lookup_eventtype(el.Event.EventType));							
-							else 
-								oh_print_rptentry(rptptr, 10);
-						}
+        if (opts.ep) { /* Entity path specified */
+                error = harvest_sels(sid, &dinfo, opts.ep);
+        } else if (opts.del) { /* Domain event log specified */
+                error = display_el(sid, SAHPI_UNSPECIFIED_RESOURCE_ID, &dinfo.DomainTag);
+        } else { /* Else, show SELs of all supporting resources */
+                error = harvest_sels(sid, &dinfo, NULL);
+        }
 
-						preventryid = entryid;
-						entryid = nextentryid;
-					}
-				}
-				
-			} else
-				printf("\tSEL is empty.\n\n");
-				    
-			if (free < 6) {
-				printf("WARNING: Log free space is very low (%d records)\n",free);
-				printf("\tClear log with hpiel -c\n");
-			}
-		}		    
-		rptentryid = nextrptentryid;
-	}
-	
-	
-	printf("done.\n");
-        rv = saHpiSessionClose(sessionid);
-	return(0);
+        if (error) dbg("An error happened. Gathering event log entries returned %s",
+                       oh_lookup_error(error));
+
+        error = saHpiSessionClose(sid);
+        if (error) dbg("saHpiSessionClose() returned %s.",
+                       oh_lookup_error(error));
+
+        return error;
 }
 
+#define print_usage_quit() \
+        do { \
+                printf("\nUsage:\n" \
+                       "  hpiel - Displays HPI event log entries.\n\n" \
+                       "    --del, -d                        display domain event log entries\n" \
+                       "    --entitypath <arg>, -e <arg>     display resource event log entries\n" \
+                       "            (e.g. -e {SYSTEM_CHASSIS,2}{SBC_BLADE,5})\n" \
+                       "    --clear, -c                      clear log before reading event log entries\n" \
+                       "    --resource, -p                   pull resource info along with log entry\n" \
+                       "    --rdr, -r                        pull RDR info along with log entry\n" \
+                       "    --xml, -x                        print output in xml format (not implemented)\n" \
+                       "    --verbose, -v                    print debug messages\n" \
+                       "    --help, -h                       print this usage message\n" \
+                       "\n    If neither -d or -e <arg> are specified, event log entries will be shown\n" \
+                       "    for all supporting resources by default.\n\n"); \
+                exit(0); \
+        } while(0)
 
+SaErrorT parse_options(int argc, char ***argv, struct hpiel_opts *opts)
+{
+        static struct option long_options[] = {
+                {"del",        no_argument,       0, 'd'},
+                {"entitypath", required_argument, 0, 'e'},
+                {"clear",      no_argument,       0, 'c'},
+                {"resource",   no_argument,       0, 'p'},
+                {"rdr",        no_argument,       0, 'r'},
+                {"verbose",    no_argument,       0, 'v'},
+                {"help",       no_argument,       0, 'h'},
+                {0, 0, 0, 0}
+        };
+        int c, option_index = 0;
+
+        while ((c = getopt_long(argc, *argv, "de:cprvh", long_options, &option_index)) != -1) {
+                switch(c) {
+                        case 'd':
+                                opts->del = 1;
+                                break;
+                        case 'e':
+                                opts->ep = strdup(optarg);
+                                break;
+                        case 'c':
+                                opts->clear = 1;
+                                break;
+                        case 'p':
+                                opts->resource = 1;
+                                break;
+                        case 'r':
+                                opts->rdr = 1;
+                                break;
+                        case 'v':
+                                opts->dbg = 1;
+                                break;
+                        case 'h':
+                                print_usage_quit();
+                                break;
+                        case '?':
+                                printf("extraneous option found, %d\n", optopt);
+                                break;
+                        default:
+                                printf("Found bad option %d.\n", c);
+                                return -1;
+                }
+        }
+
+        return 0;
+}
+
+SaErrorT harvest_sels(SaHpiSessionIdT sid, SaHpiDomainInfoT *dinfo, char *ep)
+{
+        SaErrorT error = SA_OK;
+        SaHpiRptEntryT rptentry;
+        SaHpiEntryIdT entryid, nextentryid;
+        SaHpiResourceIdT rid;
+        oh_big_textbuffer bigbuf;
+        SaHpiEntityPathT entitypath;
+        SaHpiBoolT found_entry = SAHPI_FALSE;
+
+        if (!sid || !dinfo) {
+                dbg("Invalid parameters in havest_sels()\n");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        if (opts.ep && ep) {
+                error = oh_encode_entitypath(ep, &entitypath);
+                if (error) {
+                        dbg("oh_encode_entitypath() returned %s\n",
+                            oh_lookup_error(error));
+                        return error;
+                }
+        }
+
+        entryid = SAHPI_FIRST_ENTRY;
+        while (error == SA_OK && entryid != SAHPI_LAST_ENTRY) {
+                error = saHpiRptEntryGet(sid, entryid, &nextentryid, &rptentry);
+
+                dbg("saHpiRptEntryGet() returned %s\n", oh_lookup_error(error));
+                if (error == SA_OK) {
+                        if (opts.ep && ep) {
+                                if (!oh_cmp_ep(&entitypath, &rptentry.ResourceEntity)) {
+                                        entryid = nextentryid;
+                                        continue;
+                                }
+                        }
+
+                        if (rptentry.ResourceCapabilities & SAHPI_CAPABILITY_EVENT_LOG) {
+                                dbg("RPT doesn't have SEL\n");
+                                entryid = nextentryid;
+                                continue;  /* no SEL here, try next RPT */
+                        }
+                        found_entry = SAHPI_TRUE;
+
+                        rid = rptentry.ResourceId;
+                        dbg("RPT %d capabilities = %x\n",
+                            rid, rptentry.ResourceCapabilities);
+                        rptentry.ResourceTag.Data[rptentry.ResourceTag.DataLength] = 0;
+
+                        oh_init_bigtext(&bigbuf);
+                        error = oh_decode_entitypath(&rptentry.ResourceEntity, &bigbuf);
+                        printf("%s\n", bigbuf.Data);
+                        printf("rptentry[%d] tag: %s\n", rid, rptentry.ResourceTag.Data);
+
+                        error = display_el(sid, rid, &rptentry.ResourceTag);
+
+                        if (opts.ep && ep) return SA_OK;
+                }
+
+                entryid = nextentryid;
+        }
+
+        if (!found_entry) {
+                if (opts.ep && ep) {
+                        dbg("Could not find resource matching %s\n", ep);
+                } else {
+                        dbg("No resources supporting event logs were found.\n");
+                }
+        }
+
+        return error;
+}
+
+SaErrorT display_el(SaHpiSessionIdT sid, SaHpiResourceIdT rid, SaHpiTextBufferT *tag)
+{
+        SaErrorT error = SA_OK;
+        SaHpiEventLogEntryIdT entryid, nextentryid, preventryid;
+        SaHpiEventLogInfoT elinfo;
+        SaHpiEventLogEntryT elentry;
+        SaHpiRdrT rdr;
+        SaHpiRptEntryT res;
+
+        if (!sid || !rid) {
+                dbg("Invalid parameters in display_el()\n");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        error = saHpiEventLogInfoGet(sid, rid, &elinfo);
+        if (error) {
+                dbg("saHpiEventLogInfoGet() returned %s. Exiting\n",
+                    oh_lookup_error(error));
+                return error;
+        }
+
+        printf("EventLogInfo for %s, ResourceId %d\n",
+               tag->Data, rid);
+        oh_print_eventloginfo(&elinfo, 4);
+
+        if (elinfo.Entries == 0) {
+                printf("%s Resource %d has an empty event log.\n", tag->Data, rid);
+                return SA_OK;
+        }
+
+        if (opts.clear) {
+                error = saHpiEventLogClear(sid, rid);
+                if (error == SA_OK)
+                        printf("EventLog successfully cleared\n");
+                else {
+                        printf("saHpiEventLogClear() returned %s\n",
+                               oh_lookup_error(error));
+                        return error;
+                }
+
+        }
+
+        entryid = SAHPI_OLDEST_ENTRY;
+        while (entryid != SAHPI_NO_MORE_ENTRIES) {
+                error = saHpiEventLogEntryGet(sid, rid,
+                                              entryid, &preventryid,
+                                              &nextentryid, &elentry,
+                                              (opts.rdr) ? &rdr : NULL,
+                                              (opts.resource) ? &res : NULL);
+
+                dbg("saHpiEventLogEntryGet() returned %s\n", oh_lookup_error(error));
+                if (error == SA_OK) {
+                        oh_print_eventlogentry(&elentry, 6);
+                        if (opts.rdr) {
+                                if (rdr.RdrType == SAHPI_NO_RECORD)
+                                        printf("            No RDR associated with EventType =  %s\n\n",
+                                               oh_lookup_eventtype(elentry.Event.EventType));
+                                else
+                                        oh_print_rdr(&rdr, 12);
+                        }
+
+                        if (opts.resource) {
+                                if (res.ResourceCapabilities == 0)
+                                        printf("            No RPT associated with EventType =  %s\n\n",
+                                               oh_lookup_eventtype(elentry.Event.EventType));
+                                else
+                                        oh_print_rptentry(&res, 10);
+                        }
+
+                        preventryid = entryid;
+                        entryid = nextentryid;
+                } else {
+                        return error;
+                }
+        }
+
+        return SA_OK;
+}
