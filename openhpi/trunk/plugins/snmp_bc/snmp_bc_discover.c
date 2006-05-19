@@ -256,8 +256,8 @@ SaErrorT snmp_bc_discover_resources(void *hnd)
 		trace("snmp_bc_discover, Error %s when building elcache.\n", oh_lookup_error(err1));
 	}
 	
-	if (custom_handle->first_discovery_done == SAHPI_FALSE)
-	                                custom_handle->first_discovery_done = SAHPI_TRUE;
+	if (custom_handle->isFirstDiscovery == SAHPI_TRUE)
+	                                custom_handle->isFirstDiscovery = SAHPI_FALSE;
 
  CLEANUP:        
         g_slist_free(custom_handle->tmpqueue);
