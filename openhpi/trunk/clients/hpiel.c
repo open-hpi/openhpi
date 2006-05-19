@@ -115,15 +115,15 @@ int main(int argc, char **argv)
                 printf("\nUsage:\n" \
                        "  hpiel - Displays HPI event log entries.\n\n" \
                        "    --del, -d                        display domain event log entries\n" \
-                       "    --entitypath <arg>, -e <arg>     display resource event log entries\n" \
-                       "            (e.g. -e {SYSTEM_CHASSIS,2}{SBC_BLADE,5})\n" \
+                       "    --entitypath=\"<arg>\", -e \"<arg>\"     display resource event log entries\n" \
+                       "            (e.g. -e \"{SYSTEM_CHASSIS,2}{SBC_BLADE,5}\")\n" \
                        "    --clear, -c                      clear log before reading event log entries\n" \
                        "    --resource, -p                   pull resource info along with log entry\n" \
                        "    --rdr, -r                        pull RDR info along with log entry\n" \
                        "    --xml, -x                        print output in xml format (not implemented)\n" \
                        "    --verbose, -v                    print debug messages\n" \
                        "    --help, -h                       print this usage message\n" \
-                       "\n    If neither -d or -e <arg> are specified, event log entries will be shown\n" \
+                       "\n    If neither -d or -e \"<arg>\" are specified, event log entries will be shown\n" \
                        "    for all supporting resources by default.\n\n"); \
                 exit(0); \
         } while(0)
