@@ -124,14 +124,14 @@ typedef enum {
 #define BC_EL_MAX_SIZE 768 /* 512 */
 
 /* OID definitions for discovering resources.*/
-#define SNMP_BC_BLADE_VECTOR            ".1.3.6.1.4.1.2.3.51.2.2.5.2.49.0"
 #define SNMP_BC_BLADE_EXPANSION_VECTOR  ".1.3.6.1.4.1.2.3.51.2.22.1.5.1.1.14.x"
-#define SNMP_BC_FAN_VECTOR              ".1.3.6.1.4.1.2.3.51.2.2.5.2.73.0"
+#define SNMP_BC_BLADE_VECTOR            ".1.3.6.1.4.1.2.3.51.2.22.4.25.0"
+#define SNMP_BC_FAN_VECTOR              ".1.3.6.1.4.1.2.3.51.2.22.4.33.0"
+#define SNMP_BC_MEDIA_TRAY_EXISTS       ".1.3.6.1.4.1.2.3.51.2.22.4.32.0"
 #define SNMP_BC_MGMNT_VECTOR            ".1.3.6.1.4.1.2.3.51.2.22.4.30.0"
 #define SNMP_BC_MGMNT_ACTIVE            ".1.3.6.1.4.1.2.3.51.2.22.4.34.0"
-#define SNMP_BC_MEDIATRAY_EXISTS        ".1.3.6.1.4.1.2.3.51.2.2.5.2.74.0"
-#define SNMP_BC_POWER_VECTOR            ".1.3.6.1.4.1.2.3.51.2.2.5.2.89.0"
-#define SNMP_BC_SWITCH_VECTOR           ".1.3.6.1.4.1.2.3.51.2.2.5.2.113.0"
+#define SNMP_BC_POWER_VECTOR            ".1.3.6.1.4.1.2.3.51.2.22.4.31.0"
+#define SNMP_BC_SWITCH_VECTOR           ".1.3.6.1.4.1.2.3.51.2.22.4.29.0"
 #define SNMP_BC_DST                     ".1.3.6.1.4.1.2.3.51.2.4.4.2.0"
 
 #define SNMP_BC_DST_RSA                 ".1.3.6.1.4.1.2.3.51.1.4.4.2.0"
