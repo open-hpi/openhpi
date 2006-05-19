@@ -58,9 +58,12 @@ int main(int argc, char **argv)
         SaErrorT error = SA_OK;
         SaHpiSessionIdT sid;
         SaHpiDomainInfoT dinfo;
-        char *svn_rev = OH_SVN_REV;
+        char svn_rev[SAHPI_MAX_TEXT_BUFFER_LENGTH];
 
-        svn_rev[strlen(svn_rev)-2] = '\0';
+        /* Generating version strings */
+        memset(svn_rev, 0, sizeof(SAHPI_MAX_TEXT_BUFFER_LENGTH));
+        strncpy(svn_rev, OH_SVN_REV, SAHPI_MAX_TEXT_BUFFER_LENGTH);
+        svn_rev[strlen(OH_SVN_REV)-2] = '\0';
         printf("%s - This program came with OpenHPI %u.%u.%u (%s)\n",
                 argv[0], ohpi_major, ohpi_minor, ohpi_patch,
                 svn_rev + 11);
@@ -70,11 +73,13 @@ int main(int argc, char **argv)
                 (hpiver & 0x0000FF00) >> 8,
                 hpiver & 0x000000FF);
 
+        /* Parsing options */
         if (parse_options(argc, &argv, &opts)) {
                 printf("There was an error parsing the options. Exiting.\n");
                 abort();
         }
 
+        /* Program really begins here - all options parsed at this point */
         error = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID, &sid, NULL);
         show_error_quit("saHpiSessionOpen() returned %s. Exiting.\n");
 
@@ -190,8 +195,8 @@ SaErrorT harvest_sels(SaHpiSessionIdT sid, SaHpiDomainInfoT *dinfo, char *ep)
         if (opts.ep && ep) {
                 error = oh_encode_entitypath(ep, &entitypath);
                 if (error) {
-                        dbg("oh_encode_entitypath() returned %s\n",
-                            oh_lookup_error(error));
+                        dbg("oh_encode_entitypath() returned %s from %s\n",
+                            oh_lookup_error(error), ep);
                         return error;
                 }
         }
@@ -209,7 +214,7 @@ SaErrorT harvest_sels(SaHpiSessionIdT sid, SaHpiDomainInfoT *dinfo, char *ep)
                                 }
                         }
 
-                        if (rptentry.ResourceCapabilities & SAHPI_CAPABILITY_EVENT_LOG) {
+                        if (!(rptentry.ResourceCapabilities & SAHPI_CAPABILITY_EVENT_LOG)) {
                                 dbg("RPT doesn't have SEL\n");
                                 entryid = nextentryid;
                                 continue;  /* no SEL here, try next RPT */
