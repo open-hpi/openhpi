@@ -380,38 +380,59 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 	/**************************************************************
 	 * Fetch various resource installation vectors from BladeCenter
 	 **************************************************************/
+#if 0
 
+	/**
+	 ** Old code uses BIST OIDs to determnine installed mask 
+	 ** We are switching to using chassisTopology OIDs because
+	 ** chassisTopology OIDs are more correctly reflect installation state
+	 ** of chassis resources.  Keeping old code around until we finish with 
+	 ** regression of hotswap testcases. 
+	 **/
+	 
 	/* Fetch blade installed vector */
-	get_install_mask(SNMP_BC_BLADE_VECTOR, get_value_blade);
+	get_installed_mask(SNMP_BC_BLADE_VECTOR, get_value_blade);
 	
 	/* Fetch fan installed vector  */
-	get_install_mask(SNMP_BC_FAN_VECTOR, get_value_fan);
+	get_installed_mask(SNMP_BC_FAN_VECTOR, get_value_fan);
 
 	/* Fetch power module installed vector */
-	get_install_mask(SNMP_BC_POWER_VECTOR, get_value_power_module);
+	get_installed_mask(SNMP_BC_POWER_VECTOR, get_value_power_module);
 
 	/* Fetch switch installed vector */
-	get_install_mask(SNMP_BC_SWITCH_VECTOR, get_value_switch);		 
+	get_installed_mask(SNMP_BC_SWITCH_VECTOR, get_value_switch);		 
 
 	/* Fetch MM installed vector */
-	get_install_mask(SNMP_BC_MGMNT_VECTOR, get_value_mm);
+	get_installed_mask(SNMP_BC_MGMNT_VECTOR, get_value_mm);
 
 	/* Fetch media tray installed vector */
-	err = snmp_bc_snmp_get(custom_handle, SNMP_BC_MEDIA_TRAY_EXISTS, &get_value_media, SAHPI_TRUE);
-        if (err || get_value_media.type != ASN_INTEGER) {
-		dbg("Cannot get OID=%s; Received Type=%d; Error=%s.",
-		      SNMP_BC_MEDIA_TRAY_EXISTS, get_value_media.type, oh_lookup_error(err));
-		if (err) { return(err); }
-		else { return(SA_ERR_HPI_INTERNAL_ERROR); }
-        }
+	get_integer_object(SNMP_BC_MEDIATRAY_EXISTS, get_value_media); 
+#endif
 
+	/* Fetch blade installed vector */
+	get_installed_mask(SNMP_BC_PB_INSTALLED, get_value_blade);
+
+	/* Fetch switch installed vector */
+	get_installed_mask(SNMP_BC_SM_INSTALLED, get_value_switch);		 
+
+	/* Fetch MM installed vector */
+	get_installed_mask(SNMP_BC_MM_INSTALLED, get_value_mm);
+		
+	/* Fetch power module installed vector */
+	get_installed_mask(SNMP_BC_PM_INSTALLED, get_value_power_module);
+
+	/* Fetch media tray installed vector */
+	get_integer_object(SNMP_BC_MT_INSTALLED, get_value_media); 
 	
-	if (  (strncmp(get_value_blade.string, custom_handle->blade_mask, get_value_blade.str_len) == 0) &&
-		(strncmp(get_value_fan.string, custom_handle->fan_mask, get_value_fan.str_len) == 0) &&
-		(strncmp(get_value_power_module.string, custom_handle->powermodule_mask, get_value_power_module.str_len) == 0) &&
-		(strncmp(get_value_switch.string, custom_handle->switch_mask, get_value_switch.str_len) == 0) &&		
-		(strncmp(get_value_mm.string, custom_handle->mm_mask, get_value_mm.str_len) == 0) &&
-		(get_value_media.integer == custom_handle->mediatray_mask) ) {
+	/* Fetch fan installed vector  */
+	get_installed_mask(SNMP_BC_BLOWER_INSTALLED, get_value_fan);
+		
+	if (  (strncmp(get_value_blade.string, custom_handle->installed_pb_mask, get_value_blade.str_len) == 0) &&
+		(strncmp(get_value_fan.string, custom_handle->installed_blower_mask, get_value_fan.str_len) == 0) &&
+		(strncmp(get_value_power_module.string, custom_handle->installed_pm_mask, get_value_power_module.str_len) == 0) &&
+		(strncmp(get_value_switch.string, custom_handle->installed_sm_mask, get_value_switch.str_len) == 0) &&		
+		(strncmp(get_value_mm.string, custom_handle->installed_mm_mask, get_value_mm.str_len) == 0) &&
+		(get_value_media.integer == custom_handle->installed_mt_mask) ) {
 		
 		
 		/**************************************************** 
@@ -425,12 +446,15 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 		 * Use strcpy() instead of strncpy(), counting on snmp_utils.c
 		 * to NULL terminate strings read from snmp agent
 		 *************************************************************/
-		strcpy(custom_handle->blade_mask, get_value_blade.string);
-		strcpy(custom_handle->fan_mask, get_value_fan.string);
-		strcpy(custom_handle->powermodule_mask, get_value_power_module.string);
-		strcpy(custom_handle->switch_mask, get_value_switch.string);
-		strcpy(custom_handle->mm_mask, get_value_mm.string);
-		custom_handle->mediatray_mask = get_value_media.integer;
+		err = snmp_bc_update_chassis_topo(handle);
+		if (err != SA_OK) return (err);
+		
+		strcpy(custom_handle->installed_pb_mask, get_value_blade.string);
+		strcpy(custom_handle->installed_blower_mask, get_value_fan.string);
+		strcpy(custom_handle->installed_pm_mask, get_value_power_module.string);
+		strcpy(custom_handle->installed_sm_mask, get_value_switch.string);
+		strcpy(custom_handle->installed_mm_mask, get_value_mm.string);
+		custom_handle->installed_mt_mask = get_value_media.integer;
 	}
 															
 	/******************************
@@ -477,6 +501,63 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 
 	return(SA_OK);
 }
+
+/**
+ * snmp_bc_discover_media_tray:
+ * @handler: Pointer to handler's data.
+ * @ep_root: Pointer to chassis Root Entity Path which comes from openhpi.conf.
+ * @media_tray_installed: Bitmap vector of installed media trays.
+ *
+ * Discovers media tray resources and their RDRs.
+ *
+ * Return values:
+ * SA_OK - normal case.
+ * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_INVALID_PARAMS - Pointer parameters are NULL.
+ **/
+SaErrorT snmp_bc_update_chassis_topo(struct oh_handler_state *handle)
+{
+	SaErrorT err;
+	struct snmp_value get_value;
+	struct snmp_bc_hnd *custom_handle;
+
+	if (!handle) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+		
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
+	if (!custom_handle) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+	
+	if (custom_handle->isFirstDiscovery == SAHPI_TRUE) {
+	
+		get_integer_object(SNMP_BC_NOS_PB_SUPPORTED, get_value);
+		custom_handle->max_pb_supported = get_value.integer;		/* pb - processor blade */
+		
+		get_integer_object(SNMP_BC_NOS_SM_SUPPORTED, get_value);		
+		custom_handle->max_sm_supported = get_value.integer;		/* sm - switch module   */
+		
+		get_integer_object(SNMP_BC_NOS_MM_SUPPORTED, get_value);		
+		custom_handle->max_mm_supported = get_value.integer;		/* mm - management module */
+
+		get_integer_object(SNMP_BC_NOS_PM_SUPPORTED, get_value);
+		custom_handle->max_pm_supported = get_value.integer;		/* pm - power module    */
+		
+		get_integer_object(SNMP_BC_NOS_MT_SUPPORTED, get_value);		
+		custom_handle->max_mt_supported = get_value.integer;		/* mt - media tray        */
+																
+		get_integer_object(SNMP_BC_NOS_BLOWER_SUPPORTED, get_value);		
+		custom_handle->max_blower_supported = get_value.integer;	/* blower - fan/blower  */
+	 }
+	
+	err = SA_OK;
+	return(err);
+
+}
+
 
 /**
  * snmp_bc_discover_media_tray:
@@ -741,7 +822,7 @@ SaErrorT snmp_bc_discover_blade(struct oh_handler_state *handle,
 	res_info_ptr = NULL;	
 	for (i=0; i < strlen(blade_vector); i++) {
 	
-		if ((blade_vector[i] == '1') || (custom_handle->first_discovery_done == SAHPI_FALSE))
+		if ((blade_vector[i] == '1') || (custom_handle->isFirstDiscovery == SAHPI_TRUE))
 		{
 			e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
 			if (e == NULL) {
@@ -768,7 +849,7 @@ SaErrorT snmp_bc_discover_blade(struct oh_handler_state *handle,
 		}
 			
 		if ((blade_vector[i] == '0') && 
-		    (custom_handle->first_discovery_done == SAHPI_FALSE)) 
+		    (custom_handle->isFirstDiscovery == SAHPI_TRUE)) 
 		{
 			/* Make sure that we have static infomation 
 			 * for this **empty** blade slot in hash during HPI initialization
@@ -959,7 +1040,7 @@ SaErrorT snmp_bc_discover_fans(struct oh_handler_state *handle,
 	
 	for (i=0; i < strlen(fan_vector); i++) {
 	
-		if ((fan_vector[i] == '1') || (custom_handle->first_discovery_done == SAHPI_FALSE))
+		if ((fan_vector[i] == '1') || (custom_handle->isFirstDiscovery == SAHPI_TRUE))
 		{
 			e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
 			if (e == NULL) {
@@ -995,7 +1076,7 @@ SaErrorT snmp_bc_discover_fans(struct oh_handler_state *handle,
 			}
 		}
 		
-		if ((fan_vector[i] == '0') && (custom_handle->first_discovery_done == SAHPI_FALSE))
+		if ((fan_vector[i] == '0') && (custom_handle->isFirstDiscovery == SAHPI_TRUE))
 		{
 			res_info_ptr->cur_state = SAHPI_HS_STATE_NOT_PRESENT;
 			snmp_bc_discover_res_events(handle, &(e->u.res_event.entry.ResourceEntity), res_info_ptr);
@@ -1070,7 +1151,7 @@ SaErrorT snmp_bc_discover_power_module(struct oh_handler_state *handle,
 	
 	for (i=0; i < strlen(power_module_vector); i++) {
 
-		if ((power_module_vector[i] == '1') || (custom_handle->first_discovery_done == SAHPI_FALSE)) 
+		if ((power_module_vector[i] == '1') || (custom_handle->isFirstDiscovery == SAHPI_TRUE)) 
 		{
 			e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
 			if (e == NULL) {
@@ -1106,7 +1187,7 @@ SaErrorT snmp_bc_discover_power_module(struct oh_handler_state *handle,
 			}
 		}
 	
-		if ((power_module_vector[i] == '0') && (custom_handle->first_discovery_done == SAHPI_FALSE)) 
+		if ((power_module_vector[i] == '0') && (custom_handle->isFirstDiscovery == SAHPI_TRUE)) 
 		{
 			res_info_ptr->cur_state = SAHPI_HS_STATE_NOT_PRESENT;
 			snmp_bc_discover_res_events(handle, &(e->u.res_event.entry.ResourceEntity), res_info_ptr);
@@ -1181,7 +1262,7 @@ SaErrorT snmp_bc_discover_switch(struct oh_handler_state *handle,
 	
 	for (i=0; i < strlen(switch_vector); i++) {
 	
-		if ((switch_vector[i] == '1') || (custom_handle->first_discovery_done == SAHPI_FALSE))
+		if ((switch_vector[i] == '1') || (custom_handle->isFirstDiscovery == SAHPI_TRUE))
 		{
 			e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
 			if (e == NULL) {
@@ -1217,7 +1298,7 @@ SaErrorT snmp_bc_discover_switch(struct oh_handler_state *handle,
 			}
 		}
 		
-		if ((switch_vector[i] == '0') && (custom_handle->first_discovery_done == SAHPI_FALSE))
+		if ((switch_vector[i] == '0') && (custom_handle->isFirstDiscovery == SAHPI_TRUE))
 		{
 			res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
 			snmp_bc_discover_res_events(handle, &(e->u.res_event.entry.ResourceEntity), res_info_ptr);
@@ -1300,7 +1381,7 @@ SaErrorT snmp_bc_discover_mm(struct oh_handler_state *handle,
 	res_info_ptr = NULL;
 	
 	/* Discover Virtual MM at time T0 */
-	if (custom_handle->first_discovery_done == SAHPI_FALSE)
+	if (custom_handle->isFirstDiscovery == SAHPI_TRUE)
 	{			
 		e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
                 if (e == NULL) {
@@ -1355,7 +1436,7 @@ SaErrorT snmp_bc_discover_mm(struct oh_handler_state *handle,
 	/* Discover Physical MM */                				
 	for (i=0; i < strlen(mm_vector); i++) {
 		trace("Management Module installed bit map %s\n", get_value.string);
-		if ((mm_vector[i] == '1') || (custom_handle->first_discovery_done == SAHPI_FALSE))
+		if ((mm_vector[i] == '1') || (custom_handle->isFirstDiscovery == SAHPI_TRUE))
 		{
                 	e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
                 	if (e == NULL) {
@@ -1391,7 +1472,7 @@ SaErrorT snmp_bc_discover_mm(struct oh_handler_state *handle,
                 	}
 		}
 
-		if ((mm_vector[i] == '0') && (custom_handle->first_discovery_done == SAHPI_FALSE))
+		if ((mm_vector[i] == '0') && (custom_handle->isFirstDiscovery == SAHPI_TRUE))
 		{
 		        res_info_ptr->cur_state = SAHPI_HS_STATE_NOT_PRESENT;
 			snmp_bc_discover_res_events(handle, &(e->u.res_event.entry.ResourceEntity), res_info_ptr);
@@ -1821,47 +1902,47 @@ SaErrorT snmp_bc_rediscover(struct oh_handler_state *handle,
 		/* --------------------------------------------------------- */
 		/* Fetch various resource installation maps from BladeCenter */
 		/* --------------------------------------------------------- */	
-	
+
 		switch (hotswap_entitytype) {
 			case SAHPI_ENT_SBC_BLADE:
 				/* Fetch blade installed vector */
-				get_install_mask(SNMP_BC_BLADE_VECTOR, get_value);
-				strcpy(custom_handle->blade_mask, get_value.string);
+				// get_installed_mask(SNMP_BC_BLADE_VECTOR, get_value);
+				get_installed_mask(SNMP_BC_PB_INSTALLED, get_value);
+				strcpy(custom_handle->installed_pb_mask, get_value.string);
 				err = snmp_bc_discover_blade(handle, &ep_root,resource_mask);
 				break;
 			case SAHPI_ENT_FAN:
 				/* Fetch fan installed vector */
-				get_install_mask(SNMP_BC_FAN_VECTOR, get_value);
-				strcpy(custom_handle->fan_mask, get_value.string);
+				// get_installed_mask(SNMP_BC_FAN_VECTOR, get_value);
+				get_installed_mask(SNMP_BC_BLOWER_INSTALLED, get_value);
+				strcpy(custom_handle->installed_blower_mask, get_value.string);
 				err = snmp_bc_discover_fans(handle, &ep_root, resource_mask);
 				break;
 			case SAHPI_ENT_POWER_SUPPLY:
 				/* Fetch power module installed vector */
-				get_install_mask(SNMP_BC_POWER_VECTOR, get_value);
-				strcpy(custom_handle->powermodule_mask, get_value.string);
+				// get_installed_mask(SNMP_BC_POWER_VECTOR, get_value);
+				get_installed_mask(SNMP_BC_PM_INSTALLED, get_value);
+				strcpy(custom_handle->installed_pm_mask, get_value.string);
 				err = snmp_bc_discover_power_module(handle, &ep_root, resource_mask);
 				break;
 			case SAHPI_ENT_INTERCONNECT:
 				/* Fetch switch installed vector */
-				get_install_mask(SNMP_BC_SWITCH_VECTOR, get_value);		 
-				strcpy(custom_handle->switch_mask, get_value.string);
+				// get_installed_mask(SNMP_BC_SWITCH_VECTOR, get_value);
+				get_installed_mask(SNMP_BC_SM_INSTALLED, get_value);
+				strcpy(custom_handle->installed_sm_mask, get_value.string);
 				err = snmp_bc_discover_switch(handle, &ep_root, resource_mask);
 				break;
 			case SAHPI_ENT_SYS_MGMNT_MODULE:
 				/* Fetch MMs installed vector */
-				get_install_mask(SNMP_BC_MGMNT_VECTOR, get_value);
-				strcpy(custom_handle->mm_mask, get_value.string);
+				// get_installed_mask(SNMP_BC_MGMNT_VECTOR, get_value);
+				get_installed_mask(SNMP_BC_MM_INSTALLED, get_value);
+				strcpy(custom_handle->installed_mm_mask, get_value.string);
 				err = snmp_bc_discover_mm(handle, &ep_root, resource_mask);
 				break;
 			case SAHPI_ENT_PERIPHERAL_BAY:
-				err = snmp_bc_snmp_get(custom_handle, SNMP_BC_MEDIA_TRAY_EXISTS, &get_value, SAHPI_TRUE);
-        			if (err || get_value.type != ASN_INTEGER) {
-					dbg("Cannot get OID=%s; Received Type=%d; Error=%s.",
-		      				SNMP_BC_MEDIA_TRAY_EXISTS, get_value.type, oh_lookup_error(err));
-					if (err) { return(err); }
-					else { return(SA_ERR_HPI_INTERNAL_ERROR); }
-        			}
-				custom_handle->mediatray_mask = get_value.integer;
+				// get_integer_object(custom_handle,SNMP_BC_MEDIATRAY_EXISTS, get_value);
+				get_integer_object(SNMP_BC_MT_INSTALLED, get_value);
+				custom_handle->installed_mt_mask = get_value.integer;
 				err = snmp_bc_discover_media_tray(handle, &ep_root, hotswap_entitylocation);
 				break;
 			default: 
