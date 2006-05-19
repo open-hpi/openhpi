@@ -21,8 +21,7 @@ bin_PROGRAMS = \
 	hpiwdt \
 	hpithres \
 	hpitop   \
-	hpisettime \
-	hpidomainel
+	hpisettime
 
 
 include_HEADERS         =
@@ -50,10 +49,6 @@ hpireset_LDFLAGS        =
 hpiel_SOURCES           = hpiel.c
 hpiel_LDADD             = $(COMMONLIBS)
 hpiel_LDFLAGS           =
-
-hpidomainel_SOURCES     = hpidomainel.c
-hpidomainel_LDADD       = $(COMMONLIBS)
-hpidomainel_LDFLAGS     =
 
 hpisensor_SOURCES       = hpisensor.c
 hpisensor_LDADD         = $(COMMONLIBS)
