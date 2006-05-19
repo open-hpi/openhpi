@@ -404,7 +404,7 @@ SaErrorT snmp_bc_get_logical_sensors(void *hnd,
 	}
 	
 	/* Fetch MMs installed vector  */
-	get_install_mask(SNMP_BC_MGMNT_VECTOR, mm_install_mask);
+	get_installed_mask(SNMP_BC_MGMNT_VECTOR, mm_install_mask);
 	 
 	/* Fetch Active MM ID */
 	err = snmp_bc_snmp_get(custom_handle, SNMP_BC_MGMNT_ACTIVE, &active_mm_id, SAHPI_TRUE);
