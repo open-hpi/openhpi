@@ -34,23 +34,29 @@ struct snmp_bc_hnd {
 	void   *sessp;			/* Opaque pointer, not a pointer to struct snmp_session */
         struct snmp_session session;
         struct snmp_session *ss; 	/* SNMP Session pointer */
-	int    count_per_getbulk;       /* For performance, GETBULK is used with snmpV3. */
+	guint    count_per_getbulk;       /* For performance, GETBULK is used with snmpV3. */
 					/* This value indicates max OIDs per GETBULK request */
 	GHashTable *event2hpi_hash_ptr; /* Global "Event Number to HPI Event" hash table */
-	int   platform;
-	int   active_mm;                /* Used for duplicate event RID override */
-	SaHpiBoolT  first_discovery_done;
-	char  handler_timezone[10];
-        int   handler_retries;          /* Number of retries attempted on SNMP target (agent) */
+	guint   platform;
+	guint   active_mm;                /* Used for duplicate event RID override */
+	SaHpiBoolT isFirstDiscovery;
+	gchar  handler_timezone[10];
+        guint   handler_retries;          /* Number of retries attempted on SNMP target (agent) */
 	RPTable *tmpcache;
 	GSList *tmpqueue;
 	ohpi_bc_lock snmp_bc_hlock;
-	char blade_mask[SNMP_BC_MAX_RESOURCES_MASK];
-	char fan_mask[SNMP_BC_MAX_RESOURCES_MASK];
-	char powermodule_mask[SNMP_BC_MAX_RESOURCES_MASK];
-	char switch_mask[SNMP_BC_MAX_RESOURCES_MASK];
-	char mm_mask[SNMP_BC_MAX_RESOURCES_MASK];		
-        long mediatray_mask;
+	guint max_pb_supported;		/* pb - processor blade */
+	guint max_blower_supported;	/* blower - fan/blower  */
+	guint max_pm_supported;		/* pm - power module    */
+	guint max_sm_supported;		/* sm - switch module   */
+	guint max_mm_supported;		/* mm - management module */
+	guint max_mt_supported;		/* mt - media tray        */
+	gchar installed_pb_mask[SNMP_BC_MAX_RESOURCES_MASK];
+	gchar installed_blower_mask[SNMP_BC_MAX_RESOURCES_MASK];
+	gchar installed_pm_mask[SNMP_BC_MAX_RESOURCES_MASK];
+	gchar installed_sm_mask[SNMP_BC_MAX_RESOURCES_MASK];
+	gchar installed_mm_mask[SNMP_BC_MAX_RESOURCES_MASK];		
+        gulong installed_mt_mask;
 
 };
 
