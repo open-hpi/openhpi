@@ -412,7 +412,7 @@ SaErrorT snmp_bc_bulk_selcache(	struct oh_handler_state *handle,
 							isdst = sel_entry.time.tm_isdst;
 							snmp_bc_log2event(handle, logstring, &tmpevent, isdst, &logsrc2res);
 							err = oh_el_prepend(handle->elcache, &tmpevent, NULL, NULL);
-							if (custom_handle->first_discovery_done == SAHPI_TRUE)
+							if (custom_handle->isFirstDiscovery == SAHPI_FALSE)
 		             					err = snmp_bc_add_to_eventq(handle, &tmpevent, SAHPI_TRUE);							
 						}
                     			} else {
@@ -632,7 +632,7 @@ SaErrorT snmp_bc_selcache_sync(struct oh_handler_state *handle,
 				snmp_bc_log2event(handle, this_value->string, &tmpevent, isdst, &logsrc2res);
 
 				if ((tmpevent.EventType == SAHPI_ET_HOTSWAP) && 
-							(custom_handle->first_discovery_done == SAHPI_TRUE))
+							(custom_handle->isFirstDiscovery == SAHPI_FALSE))
 				{
 					err = snmp_bc_rediscover(handle, &tmpevent, &logsrc2res);
 				}
@@ -978,7 +978,7 @@ SaErrorT snmp_bc_add_entry_to_elcache(struct oh_handler_state *handle,
 	/*	  6. we repeat step 1 ... indefinite loop                 */   
 	
 	if (!err) {
-		if (custom_handle->first_discovery_done == SAHPI_TRUE)
+		if (custom_handle->isFirstDiscovery == SAHPI_FALSE)
 		             err = snmp_bc_add_to_eventq(handle, tmpevent, prepend);
 		if (err) 
 		 dbg("Cannot add el entry to eventq. Error=%s.", oh_lookup_error(err));
