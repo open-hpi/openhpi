@@ -21,7 +21,7 @@
 #define SNMP_BC_IPMI_TEMP_BLADE_OID ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.11.x"
 #define SNMP_BC_IPMI_VOLTAGE_BLADE_OID ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.14.x"
 
-#define get_install_mask(maskOID, getvalue) \
+#define get_installed_mask(maskOID, getvalue) \
 do { \
 	err = snmp_bc_snmp_get(custom_handle, maskOID, &getvalue, SAHPI_TRUE); \
         if (err || getvalue.type != ASN_OCTET_STR) { \
@@ -32,7 +32,16 @@ do { \
         } \
 } while(0)
 
-
+#define get_integer_object(maskOID, getintvalue) \
+do { \
+	err = snmp_bc_snmp_get(custom_handle, maskOID, &getintvalue, SAHPI_TRUE); \
+        if (err || getintvalue.type != ASN_INTEGER) { \
+		dbg("Cannot get OID=%s; Received Type=%d; Error=%s.", \
+		      		maskOID, getintvalue.type, oh_lookup_error(err)); \
+		if (err) { return(err); } \
+		else { return(SA_ERR_HPI_INTERNAL_ERROR); } \
+        } \
+} while(0)
 
 
 #endif
