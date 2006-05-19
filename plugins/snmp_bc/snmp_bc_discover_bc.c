@@ -397,10 +397,10 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 	get_install_mask(SNMP_BC_MGMNT_VECTOR, get_value_mm);
 
 	/* Fetch media tray installed vector */
-	err = snmp_bc_snmp_get(custom_handle, SNMP_BC_MEDIATRAY_EXISTS, &get_value_media, SAHPI_TRUE);
+	err = snmp_bc_snmp_get(custom_handle, SNMP_BC_MEDIA_TRAY_EXISTS, &get_value_media, SAHPI_TRUE);
         if (err || get_value_media.type != ASN_INTEGER) {
 		dbg("Cannot get OID=%s; Received Type=%d; Error=%s.",
-		      SNMP_BC_MEDIATRAY_EXISTS, get_value_media.type, oh_lookup_error(err));
+		      SNMP_BC_MEDIA_TRAY_EXISTS, get_value_media.type, oh_lookup_error(err));
 		if (err) { return(err); }
 		else { return(SA_ERR_HPI_INTERNAL_ERROR); }
         }
@@ -1854,10 +1854,10 @@ SaErrorT snmp_bc_rediscover(struct oh_handler_state *handle,
 				err = snmp_bc_discover_mm(handle, &ep_root, resource_mask);
 				break;
 			case SAHPI_ENT_PERIPHERAL_BAY:
-				err = snmp_bc_snmp_get(custom_handle, SNMP_BC_MEDIATRAY_EXISTS, &get_value, SAHPI_TRUE);
+				err = snmp_bc_snmp_get(custom_handle, SNMP_BC_MEDIA_TRAY_EXISTS, &get_value, SAHPI_TRUE);
         			if (err || get_value.type != ASN_INTEGER) {
 					dbg("Cannot get OID=%s; Received Type=%d; Error=%s.",
-		      				SNMP_BC_MEDIATRAY_EXISTS, get_value.type, oh_lookup_error(err));
+		      				SNMP_BC_MEDIA_TRAY_EXISTS, get_value.type, oh_lookup_error(err));
 					if (err) { return(err); }
 					else { return(SA_ERR_HPI_INTERNAL_ERROR); }
         			}

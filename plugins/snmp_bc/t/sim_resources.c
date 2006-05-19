@@ -304,7 +304,7 @@ struct snmp_bc_data sim_resource_array[] = {
         },
         {
                 /* SNMP_BC_BLADE_VECTOR */
-                .oid = ".1.3.6.1.4.1.2.3.51.2.2.5.2.49.0",
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.4.25.0",
                 .mib = {
                         .type = ASN_OCTET_STR,
                         .value = {
@@ -314,7 +314,7 @@ struct snmp_bc_data sim_resource_array[] = {
         },
         {
                 /* SNMP_BC_FAN_VECTOR */
-                .oid = ".1.3.6.1.4.1.2.3.51.2.2.5.2.73.0",
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.4.33.0",
                 .mib = {
                         .type = ASN_OCTET_STR,
                         .value = {
@@ -343,8 +343,8 @@ struct snmp_bc_data sim_resource_array[] = {
                 },
         },
         {
-                /* SNMP_BC_MEDIATRAY_EXISTS */
-                .oid = ".1.3.6.1.4.1.2.3.51.2.2.5.2.74.0",
+                /* SNMP_BC_MEDIA_TRAY_EXISTS */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.4.32.0",
                 .mib = {
                         .type = ASN_INTEGER,
                         .value = {
@@ -354,7 +354,7 @@ struct snmp_bc_data sim_resource_array[] = {
         },
         {
                 /* SNMP_BC_POWER_VECTOR */
-                .oid = ".1.3.6.1.4.1.2.3.51.2.2.5.2.89.0",
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.4.31.0",
                 .mib = {
                         .type = ASN_OCTET_STR,
                         .value = {
@@ -364,7 +364,7 @@ struct snmp_bc_data sim_resource_array[] = {
         },
         {
                 /* SNMP_BC_SWITCH_VECTOR */
-                .oid = ".1.3.6.1.4.1.2.3.51.2.2.5.2.113.0",
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.4.29.0",
                 .mib = {
                         .type = ASN_OCTET_STR,
                         .value = {
