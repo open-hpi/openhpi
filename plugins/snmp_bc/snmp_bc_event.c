@@ -605,7 +605,7 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 		rpt = oh_get_resource_by_id(handle->rptcache, event_rid);
 		resinfo2 = (struct ResourceInfo *)oh_get_resource_data(handle->rptcache, event_rid);
 
-		if ( (custom_handle->first_discovery_done == SAHPI_FALSE)||!rpt || !resinfo2) {
+		if ( (custom_handle->isFirstDiscovery == SAHPI_TRUE)||!rpt || !resinfo2) {
 			if (is_recovery_event != SAHPI_TRUE) {
 				snmp_bc_set_event_severity(handle, eventmap_info, &working, &event_severity);
 			}
@@ -661,7 +661,7 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 						dbg("Cannot add entry to cache. Error=%s.", oh_lookup_error(err));
 						return(err);
 					}
-					if (custom_handle->first_discovery_done == SAHPI_TRUE) {
+					if (custom_handle->isFirstDiscovery == SAHPI_FALSE) {
 						err = snmp_bc_add_to_eventq(handle, &autoevent, SAHPI_TRUE);
 						if (err) {
 							dbg("Cannot add entry to eventq. Error=%s.", oh_lookup_error(err));
@@ -1073,7 +1073,7 @@ static SaErrorT snmp_bc_set_cur_prev_event_states(struct oh_handler_state *handl
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
-	if ( (((struct snmp_bc_hnd *)handle->data)->first_discovery_done == SAHPI_FALSE) && 
+	if ( (((struct snmp_bc_hnd *)handle->data)->isFirstDiscovery == SAHPI_TRUE) && 
 	     (event->EventType == SAHPI_ET_HOTSWAP) )
 	{
 		/* This is HPI time zero processing */
