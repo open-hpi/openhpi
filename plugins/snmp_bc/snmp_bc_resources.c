@@ -3948,7 +3948,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 			.comment = "Blade CPU 4 Temperature Sensor",
 		},
 	},
-        /* Blade 1.25 Volt Sensor */
+        /* Blade 1.2 Volt Sensor */
         {
 		.ipmi_tag = "1.2V Sense",
 		.ipmi = {
@@ -4056,10 +4056,10 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				},
 				.reading2event = {},
 			},
-			.comment = "Blade 1.25 Volt Sensor",
+			.comment = "Blade 1.2 Volt Sensor",
 		},
         },
-        /* Blade Standby 1.25 Volt Sensor */
+        /* Blade Standby 1.2 Volt Sensor */
         {
 		.ipmi_tag = "1.2VSB Sense",
 		.ipmi = {
@@ -4148,7 +4148,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				},
 				.reading2event = {},
 			},
-			.comment = "Blade Standby 1.25 Volt Sensor",
+			.comment = "Blade Standby 1.2 Volt Sensor",
 		},
         },
 	/* Blade 1.5 Volt Sensor */
@@ -4465,13 +4465,105 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 			.comment = "Blade 1.8 Volt Sensor",
 		},
         },
-	/* Blade 2.5 Volt Sensor */
+        /* Blade Standby 1.8 Volt Sensor */
         {
-		.ipmi_tag = "2.5V Sense",
+		.ipmi_tag = "1.8VSB Sense",
 		.ipmi = {
 			.index = 10,
 			.sensor = {
 				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 10,
+				.Type = SAHPI_VOLTAGE,
+				.Category = SAHPI_EC_THRESHOLD,
+				.EnableCtrl = SAHPI_FALSE,
+				.EventCtrl = SAHPI_SEC_READ_ONLY,
+				.Events = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
+				.DataFormat = {
+					.IsSupported = SAHPI_TRUE,
+					.ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+					.BaseUnits = SAHPI_SU_VOLTS,
+					.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+					.ModifierUse = SAHPI_SMUU_NONE,
+					.Percentage = SAHPI_FALSE,
+					.Range = {
+						.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN | SAHPI_SRF_NOMINAL,
+						.Max = {
+							.IsSupported = SAHPI_TRUE,
+							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+							.Value = {
+								.SensorFloat64 = 4.4,
+							},
+						},
+						.Nominal = {
+							.IsSupported = SAHPI_TRUE,
+							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+							.Value = {
+								.SensorFloat64 = 1.8,
+							},
+						},
+						.Min = {
+							.IsSupported = SAHPI_TRUE,
+							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+							.Value = {
+								.SensorFloat64 = 0,
+							},
+						},
+					},
+				},
+				.ThresholdDefn = {
+					.IsAccessible = SAHPI_TRUE,
+					.ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
+					.WriteThold = 0,
+				},
+				.Oem = 0,
+			},
+			.sensor_info = {
+				.mib = {
+					.not_avail_indicator_num = 0,
+					.write_only = SAHPI_FALSE,
+					.oid = "discovered",
+					/* Default HDW thresholds: Warning 1.62<>1.89; Warning Reset 1.86<>1.74 */
+					.threshold_oids = {
+						.LowMajor = "discovered",
+						.UpMajor  = "discovered",
+					},
+					.threshold_write_oids = {},
+				},
+				.cur_state = SAHPI_ES_UNSPECIFIED,
+				.sensor_enabled = SAHPI_TRUE,
+				.events_enabled = SAHPI_TRUE,
+				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
+				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
+				.event_array = {
+					{
+						.event = "0A07BC02", /* EN_1_8VS_WARNING_HI */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_UPPER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
+					{
+						.event = "0A07AC02", /* EN_1_8VS_WARNING_LOW */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_LOWER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
+					{},
+				},
+				.reading2event = {},
+			},
+			.comment = "Blade Standby 1.8 Volt Sensor",
+		},
+        },
+	/* Blade 2.5 Volt Sensor */
+        {
+		.ipmi_tag = "2.5V Sense",
+		.ipmi = {
+			.index = 11,
+			.sensor = {
+				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 11,
 				.Type = SAHPI_VOLTAGE,
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
@@ -4580,9 +4672,9 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
         {
 		.ipmi_tag = "2.5VSB Sense",
 		.ipmi = {
-			.index = 11,
+			.index = 12,
 			.sensor = {
-				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 11,
+				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 12,
 				.Type = SAHPI_VOLTAGE,
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
@@ -4672,9 +4764,9 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
         {
 		.ipmi_tag = "3.3V Sense",
 		.ipmi = {
-			.index = 12,
+			.index = 13,
 			.sensor = {
-				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 12,
+				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 13,
 				.Type = SAHPI_VOLTAGE,
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
@@ -4783,9 +4875,9 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
         {
 		.ipmi_tag = "3.3VSB Sense",
 		.ipmi = {
-			.index = 13,
+			.index = 14,
 			.sensor = {
-				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 13,
+				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 14,
 				.Type = SAHPI_VOLTAGE,
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
@@ -4875,9 +4967,9 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
         {
 		.ipmi_tag = "5V Sense",
 		.ipmi = {
-			.index = 14,
+			.index = 15,
 			.sensor = {
-				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 14,
+				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 15,
 				.Type = SAHPI_VOLTAGE,
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
@@ -4986,9 +5078,9 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
         {
 		.ipmi_tag = "5VSB Sense",
 		.ipmi = {
-			.index = 15,
+			.index = 16,
 			.sensor = {
-				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 15,
+				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 16,
 				.Type = SAHPI_VOLTAGE,
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
@@ -5078,9 +5170,9 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
         {
 		.ipmi_tag = "-5V Sense",
 		.ipmi = {
-			.index = 16,
+			.index = 17,
 			.sensor = {
-				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 16,
+				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 17,
 				.Type = SAHPI_VOLTAGE,
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
@@ -5189,9 +5281,9 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
         {
 		.ipmi_tag = "12V Sense",
 		.ipmi = {
-			.index = 17,
+			.index = 18,
 			.sensor = {
-				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 17,
+				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 18,
 				.Type = SAHPI_VOLTAGE,
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
@@ -5300,9 +5392,9 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
         {
 		.ipmi_tag = "12VSB Sense",
 		.ipmi = {
-			.index = 18,
+			.index = 19,
 			.sensor = {
-				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 18,
+				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 19,
 				.Type = SAHPI_VOLTAGE,
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
@@ -5392,9 +5484,9 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
         {
 		.ipmi_tag = "CPU 1 VCore",
 		.ipmi = {
-			.index = 19,
+			.index = 20,
 			.sensor = {
-				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 19,
+				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 20,
 				.Type = SAHPI_VOLTAGE,
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
@@ -5477,9 +5569,9 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
         {
 		.ipmi_tag = "CPU 2 VCore",
 		.ipmi = {
-			.index = 20,
+			.index = 21,
 			.sensor = {
-				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 20,
+				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 21,
 				.Type = SAHPI_VOLTAGE,
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
@@ -5562,9 +5654,9 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
         {
 		.ipmi_tag = "VBATT Sense",
 		.ipmi = {
-			.index = 21,
+			.index = 22,
 			.sensor = {
-				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 21,
+				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 22,
 				.Type = SAHPI_VOLTAGE,
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,

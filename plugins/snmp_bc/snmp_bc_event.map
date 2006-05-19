@@ -248,7 +248,8 @@ EN_MAJOR_HI_FAULT_1_8V|0xFF07A500|SAHPI_MAJOR|OVR_SEV|"System is over recommende
 EN_MAJOR_LO_FAULT_1_8V|0xFF07A900|SAHPI_MAJOR|OVR_SEV|"System is under recommended voltage for 1.8V CPU"
 
 # Blade Standby 1.8 Volt Sensor
-# None
+EN_1_8VS_WARNING_HI|0x0A07BC02|SAHPI_MINOR|OVR_SEV|"1.8V standby over recommended voltage"
+EN_1_8VS_WARNING_LOW|0x0A07AC02|SAHPI_MINOR|OVR_SEV|"1.8V standby under recommended voltage"
 
 # Blade 2.5 Volt Sensor
 EN_IO_2_5V_WARNING_HI|0x0A031C00|SAHPI_CRITICAL|OVR_SEV|"IO Board +2.5V over recommended voltage."
