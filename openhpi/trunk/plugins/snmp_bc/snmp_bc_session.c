@@ -70,19 +70,26 @@ void *snmp_bc_open(GHashTable *handler_config)
 	custom_handle->snmp_bc_hlock.count = 0;
 	
         /* Initialize resource masks */
-	/* Set all mask to zero's    */
-	memset(&custom_handle->blade_mask, '\0', SNMP_BC_MAX_RESOURCES_MASK);
-	memset(&custom_handle->fan_mask, '\0', SNMP_BC_MAX_RESOURCES_MASK);
-	memset(&custom_handle->powermodule_mask, '\0', SNMP_BC_MAX_RESOURCES_MASK);
-	memset(&custom_handle->switch_mask, '\0', SNMP_BC_MAX_RESOURCES_MASK);
-	memset(&custom_handle->mm_mask, '\0', SNMP_BC_MAX_RESOURCES_MASK);
-	custom_handle->mediatray_mask = 0;
+	/* Set all masks and counts to zero's    */
+	custom_handle->max_pb_supported = 0;		/* pb - processor blade */
+	custom_handle->max_blower_supported = 0;	/* blower - fan/blower  */
+	custom_handle->max_pm_supported = 0;		/* pm - power module    */
+	custom_handle->max_sm_supported = 0;		/* sm - switch module   */
+	custom_handle->max_mm_supported = 0;		/* mm - management module */
+	custom_handle->max_mt_supported = 0;		/* mt - media tray        */
+	
+	memset(&custom_handle->installed_pb_mask, '\0', SNMP_BC_MAX_RESOURCES_MASK);
+	memset(&custom_handle->installed_blower_mask, '\0', SNMP_BC_MAX_RESOURCES_MASK);
+	memset(&custom_handle->installed_pm_mask, '\0', SNMP_BC_MAX_RESOURCES_MASK);
+	memset(&custom_handle->installed_sm_mask, '\0', SNMP_BC_MAX_RESOURCES_MASK);
+	memset(&custom_handle->installed_mm_mask, '\0', SNMP_BC_MAX_RESOURCES_MASK);
+	custom_handle->installed_mt_mask = 0;
 
-        /* Indicate the 1st discovery is not yet done */
+        /* Indicate this is the 1st discovery (T0 discovery) */
         /* Use to see if we need to create events for log entries.  */
 	/* Do not report any event from event log entries, for      */
 	/* entries that are created before this instance of OpenHPI */	
-	custom_handle->first_discovery_done = SAHPI_FALSE;
+	custom_handle->isFirstDiscovery = SAHPI_TRUE;
 	
         /* Initialize RPT cache */
         handle->rptcache = (RPTable *)g_malloc0(sizeof(RPTable));
