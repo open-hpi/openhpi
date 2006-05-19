@@ -33,7 +33,8 @@ void *snmp_bc_open(GHashTable *handler_config)
         struct snmp_bc_hnd *custom_handle;
         char *hostname, *version, *sec_level, 
 		*authtype, *user, *pass, *community, 
-		*context_name, *count_per_getbulk;
+		*context_name, *count_per_getbulk, 
+		*privacy_passwd, *privacy_protocol;
         char *root_tuple;
 
 	if (!handler_config) {
@@ -116,6 +117,9 @@ void *snmp_bc_open(GHashTable *handler_config)
 		community = (char *)g_hash_table_lookup(handle->config, "community");
 		context_name = (char *)g_hash_table_lookup(handle->config, "context_name");
 		count_per_getbulk = (char *)g_hash_table_lookup(handle->config, "count_per_getbulk");
+		privacy_passwd = (char *)g_hash_table_lookup(handle->config, "privacy_passwd");
+		privacy_protocol = (char *)g_hash_table_lookup(handle->config, "privacy_protocol");
+		
 		
 		/* Configure SNMP V3 session */
 		if (!strcmp(version, "3")) {
@@ -160,13 +164,19 @@ void *snmp_bc_open(GHashTable *handler_config)
 				}
 				
 				if (!strcmp(sec_level, "authPriv")) { /* if using encryption */
+				
+					if (!privacy_passwd) {
+						dbg("Cannot find \"privacy_passwd\" configuration parameter.");
+						return NULL;
+					}
+				
 					custom_handle->session.securityLevel = SNMP_SEC_LEVEL_AUTHPRIV;
 					custom_handle->session.securityPrivProto = usmDESPrivProtocol;
 					custom_handle->session.securityPrivProtoLen = USM_PRIV_PROTO_DES_LEN;
 					custom_handle->session.securityPrivKeyLen = USM_PRIV_KU_LEN;
 					if (generate_Ku(custom_handle->session.securityAuthProto,
 							custom_handle->session.securityAuthProtoLen,
-							(u_char *) pass, strlen(pass),
+							(u_char *) privacy_passwd, strlen(privacy_passwd),
 							custom_handle->session.securityPrivKey,
 							&(custom_handle->session.securityPrivKeyLen)) != SNMPERR_SUCCESS) {
 						snmp_perror("snmp_bc");
