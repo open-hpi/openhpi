@@ -123,13 +123,29 @@ typedef enum {
 /* Maximum entries in eventlog, approximate */
 #define BC_EL_MAX_SIZE 768 /* 512 */
 
+/* OIDs definitions for Blade Center Chassis Topology */
+#define SNMP_BC_NOS_FP_SUPPORTED  "1.3.6.1.4.1.2.3.51.2.22.4.18.0" /* mmblade.mib - chassisNoOfFPsSupported, FanPack */
+#define SNMP_BC_NOS_PB_SUPPORTED  "1.3.6.1.4.1.2.3.51.2.22.4.19.0" /* mmblade.mib - chassisNoOfPBsSupported, ProcessorBlade */
+#define SNMP_BC_NOS_SM_SUPPORTED  "1.3.6.1.4.1.2.3.51.2.22.4.20.0" /* mmblade.mib - chassisNoOfSMsSupported, SwitchModule */
+#define SNMP_BC_NOS_MM_SUPPORTED  "1.3.6.1.4.1.2.3.51.2.22.4.21.0" /* mmblade.mib - chassisNoOfMMsSupported, ManagementModule */
+#define SNMP_BC_NOS_PM_SUPPORTED  "1.3.6.1.4.1.2.3.51.2.22.4.22.0" /* mmblade.mib - chassisNoOfPMsSupported, PowerModule */
+#define SNMP_BC_NOS_MT_SUPPORTED  "1.3.6.1.4.1.2.3.51.2.22.4.23.0" /* mmblade.mib - chassisNoOfMTsSupported, MediaTray */
+#define SNMP_BC_NOS_BLOWER_SUPPORTED "1.3.6.1.4.1.2.3.51.2.22.4.24.0" 	/* mmblade.mib - chassisNoOfBlowersSupported, Blower */
+#define SNMP_BC_PB_INSTALLED  "1.3.6.1.4.1.2.3.51.2.22.4.25.0" 	/* mmblade.mib - chassisPBsInstalled, ProcessorBlade */
+#define SNMP_BC_SM_INSTALLED  "1.3.6.1.4.1.2.3.51.2.22.4.29.0" 	/* mmblade.mib - chassisSMsInstalled, SwitchModule */
+#define SNMP_BC_MM_INSTALLED  "1.3.6.1.4.1.2.3.51.2.22.4.30.0" 	/* mmblade.mib - chassisMMsInstalled, ManagementModule */
+#define SNMP_BC_PM_INSTALLED  "1.3.6.1.4.1.2.3.51.2.22.4.31.0" 	/* mmblade.mib - chassisPMsInstalled, PowerModule */
+#define SNMP_BC_MT_INSTALLED  "1.3.6.1.4.1.2.3.51.2.22.4.32.0" 	/* mmblade.mib - chassisMTsInstalled, MediaTray */
+#define SNMP_BC_BLOWER_INSTALLED "1.3.6.1.4.1.2.3.51.2.22.4.33.0" /* mmblade.mib - chassisBlowersInstalled, Blower */
+#define SNMP_BC_FP_INSTALLED  "1.3.6.1.4.1.2.3.51.2.22.4.37.0" 	/* mmblade.mib - chassisFPsinstalled, FanPack */
+
 /* OID definitions for discovering resources.*/
 #define SNMP_BC_BLADE_EXPANSION_VECTOR  ".1.3.6.1.4.1.2.3.51.2.22.1.5.1.1.14.x"
 #define SNMP_BC_BLADE_VECTOR            ".1.3.6.1.4.1.2.3.51.2.22.4.25.0"
 #define SNMP_BC_FAN_VECTOR              ".1.3.6.1.4.1.2.3.51.2.22.4.33.0"
 #define SNMP_BC_MEDIA_TRAY_EXISTS       ".1.3.6.1.4.1.2.3.51.2.22.4.32.0"
 #define SNMP_BC_MGMNT_VECTOR            ".1.3.6.1.4.1.2.3.51.2.22.4.30.0"
-#define SNMP_BC_MGMNT_ACTIVE            ".1.3.6.1.4.1.2.3.51.2.22.4.34.0"
+#define SNMP_BC_MGMNT_ACTIVE            ".1.3.6.1.4.1.2.3.51.2.22.4.34.0" /* mmblade.mib - chassisActiveMM */
 #define SNMP_BC_POWER_VECTOR            ".1.3.6.1.4.1.2.3.51.2.22.4.31.0"
 #define SNMP_BC_SWITCH_VECTOR           ".1.3.6.1.4.1.2.3.51.2.22.4.29.0"
 #define SNMP_BC_DST                     ".1.3.6.1.4.1.2.3.51.2.4.4.2.0"
@@ -174,6 +190,11 @@ struct ResourceMibInfo {
         const char *OidPowerState;
         const char *OidPowerOnOff;
 	const char *OidUuid;
+	const char *OidResourceWidth;	/* Oid specifying how many physical slots  */
+					/* this resource occupies. In a BladeCenter*/
+					/* it is meaningful for ProcessorBlades.   */
+					/* Other resources, for example Switch Module, */
+					/* only takes one slot.                    */ 
 };
 
 /* SNMP_BC_MAX_RESOURCE_EVENT_ARRAY_SIZE includes an ending NULL entry */
