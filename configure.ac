@@ -126,7 +126,7 @@ AC_CHECK_HEADERS([openssl/md2.h openssl/md5.h])
 dnl Extra goodies enablement stanzas
 
 AC_ARG_ENABLE([thread],
-    [  --enable-thread       make implementation thread-safe [default=yes]],
+    [  --enable-thread         make implementation thread-safe [default=yes]],
     [if test "x$enableval" = "xyes"; then
         THREAD_SAFE="yes"
     fi],
@@ -352,7 +352,7 @@ OH_CHECK_RTAS
 
 #Configure options for the RTAS plugin
 AC_ARG_ENABLE([rtas],
-    [  --enable-rtas        build rtas ppc plugin [default=no]],
+    [  --enable-rtas           build rtas ppc plugin [default=no]],
     [if test "x$enableval" = "xyes"; then
         if test "x$have_rtas_lib" = "xyes"; then
             AC_SUBST(RTAS,rtas)
