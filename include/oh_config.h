@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2003-2004
+ * (C) Copyright IBM Corp. 2003-2006
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -46,7 +46,6 @@ typedef enum {
         //OPENHPI_DEBUG,
         //OPENHPI_DEBUG_TRACE,
         //OPENHPI_DEBUG_LOCK,
-        OPENHPI_THREADED,
         OPENHPI_PATH,
         OPENHPI_VARPATH,
         OPENHPI_CONF
@@ -64,7 +63,6 @@ typedef union {
         //unsigned char dbg; /* 1 = YES, 0 = NO */
         //unsigned char dbg_trace; /* !0 = YES, 0 = NO */
         //unsigned char dbg_lock; /* !0 = YES, 0 = NO */
-        SaHpiBoolT threaded; /* !0 = YES, 0 = NO */
         char path[OH_MAX_TEXT_BUFFER_LENGTH];
         char varpath[OH_MAX_TEXT_BUFFER_LENGTH];
         char conf[OH_MAX_TEXT_BUFFER_LENGTH];
