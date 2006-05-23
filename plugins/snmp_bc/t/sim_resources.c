@@ -117,6 +117,150 @@ struct snmp_bc_data sim_resource_array[] = {
                         },
                 },
         },
+	
+		/* 
+		 * OIDs definitions for Blade Center Chassis Topology 
+		 */
+	{
+		/* SNMP_BC_NOS_FP_SUPPORTED mmblade.mib - chassisNoOfFPsSupported, FanPack */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.4.18.0",
+                .mib = {
+                        .type = ASN_INTEGER,
+                        .value = {
+                                .integer = 2,
+                        },
+                },
+        },
+	{ 
+		/* SNMP_BC_NOS_PB_SUPPORTED mmblade.mib - chassisNoOfPBsSupported, ProcessorBlade */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.4.19.0",
+                .mib = {
+                        .type = ASN_INTEGER,
+                        .value = {
+                                .integer = 14,
+                        },
+                },
+        },
+	{
+		/* SNMP_BC_NOS_SM_SUPPORTED mmblade.mib - chassisNoOfSMsSupported, SwitchModule */ 
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.4.20.0",
+                .mib = {
+                        .type = ASN_INTEGER,
+                        .value = {
+                                .integer = 4,
+                        },
+                },
+        },
+	{
+		/* SNMP_BC_NOS_MM_SUPPORTED mmblade.mib - chassisNoOfMMsSupported, ManagementModule */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.4.21.0",
+                .mib = {
+                        .type = ASN_INTEGER,
+                        .value = {
+                                .integer = 2,
+                        },
+                },
+        },
+	{
+		/* SNMP_BC_NOS_PM_SUPPORTED mmblade.mib - chassisNoOfPMsSupported, PowerModule */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.4.22.0",
+                .mib = {
+                        .type = ASN_INTEGER,
+                        .value = {
+                                .integer = 4,
+                        },
+                },
+        },
+	{
+		/* SNMP_BC_NOS_MT_SUPPORTED mmblade.mib - chassisNoOfMTsSupported, MediaTray */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.4.23.0", 
+                .mib = {
+                        .type = ASN_INTEGER,
+                        .value = {
+                                .integer = 1,
+                        },
+                },
+        },
+	{
+		/* SNMP_BC_NOS_BLOWER_SUPPORTED mmblade.mib - chassisNoOfBlowersSupported, Blower */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.4.24.0",
+                .mib = {
+                        .type = ASN_INTEGER,
+                        .value = {
+                                .integer = 4,
+                        },
+                },
+        },
+	{
+		/* SNMP_BC_PB_INSTALLED mmblade.mib - chassisPBsInstalled, ProcessorBlade */ 	
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.4.25.0",	
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "10101010101010",
+                        },
+                },
+        },
+	{
+		/* SNMP_BC_SM_INSTALLED mmblade.mib - chassisSMsInstalled, SwitchModule */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.4.29.0",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "1111",
+                        },
+                },
+        },
+	{
+		/* SNMP_BC_MM_INSTALLED mmblade.mib - chassisMMsInstalled, ManagementModule */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.4.30.0",	
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "11",
+                        },
+                },
+        },
+	{
+		/* SNMP_BC_PM_INSTALLED mmblade.mib - chassisPMsInstalled, PowerModule */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.4.31.0",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "1111",
+                        },
+                },
+        },
+	{
+		/* SNMP_BC_MT_INSTALLED mmblade.mib - chassisMTsInstalled, MediaTray */	
+		.oid = ",1.3.6.1.4.1.2.3.51.2.22.4.32.0",
+                .mib = {
+                        .type = ASN_INTEGER,
+                        .value = {
+                                .integer = 1,
+                        },
+                },
+        }, 
+	{
+		/* SNMP_BC_BLOWER_INSTALLED mmblade.mib - chassisBlowersInstalled, Blower */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.4.33.0",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "1111",
+                        },
+                },
+        },
+	{
+		/* SNMP_BC_FP_INSTALLED  mmblade.mib - chassisFPsinstalled, FanPack */ 
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.4.37.0",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "11",
+                        },
+                },
+        },	
         /* NOTE:: Must have one plus the END of Log Entry for each
            event in the simulator's event log */
         {
