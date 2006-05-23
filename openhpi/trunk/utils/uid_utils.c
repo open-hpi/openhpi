@@ -158,6 +158,7 @@ guint oh_uid_from_entity_path(SaHpiEntityPathT *ep)
         SaHpiEntityPathT entitypath;
 
         if (!ep) return 0;
+        if (!oh_uid_is_initialized()) return 0;
 
         oh_init_ep(&entitypath);
         oh_concat_ep(&entitypath,ep);
@@ -237,7 +238,9 @@ gint oh_uid_remove(guint uid)
         gpointer key;
         int rval;
 
-        /* check netry exist in oh_resource_id_table */
+        if (!oh_uid_is_initialized()) return -1;
+
+        /* check entry exist in oh_resource_id_table */
         key = (gpointer)&uid;
         uid_lock(&oh_uid_lock);
         ep_xref = (EP_XREF *)g_hash_table_lookup (oh_resource_id_table, key);
@@ -284,6 +287,7 @@ guint oh_uid_lookup(SaHpiEntityPathT *ep)
         gpointer key;
 
         if (!ep) return 0;
+        if (!oh_uid_is_initialized()) return 0;
 
         oh_init_ep(&entitypath);
         oh_concat_ep(&entitypath, ep);
@@ -319,6 +323,7 @@ gint oh_entity_path_lookup(guint *id, SaHpiEntityPathT *ep)
         gpointer key = id;
 
         if (!id || !ep) return -1;
+        if (!oh_uid_is_initialized()) return -1;
 
         /* check hash table for entry in oh_ep_table */
         uid_lock(&oh_uid_lock);
