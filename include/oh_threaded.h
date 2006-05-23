@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2005
+ * (C) Copyright IBM Corp. 2005-2006
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -24,7 +24,6 @@
 extern "C" {
 #endif
 
-gboolean oh_threaded_mode(void);
 int oh_threaded_init(void);
 int oh_threaded_start(void);
 int oh_threaded_final(void);

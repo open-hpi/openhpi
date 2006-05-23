@@ -823,7 +823,6 @@ static cMarshalType oHpiGlobalParamUnionTypeElements[] =
   dUnionElement( OHPI_DEL_SAVE,         SaHpiBoolType ),
   dUnionElement( OHPI_DAT_SIZE_LIMIT,   SaHpiUint32Type ),
   dUnionElement( OHPI_DAT_USER_LIMIT,   SaHpiUint32Type ),
-  dUnionElement( OHPI_THREADED,         SaHpiBoolType ),
   dUnionElement( OHPI_PATH,             GlobalParamPathArray ),
   dUnionElement( OHPI_VARPATH,          GlobalParamVarPathArray ),
   dUnionElement( OHPI_CONF,             GlobalParamConfArray ),

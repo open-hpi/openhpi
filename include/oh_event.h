@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2004
+ * (C) Copyright IBM Corp. 2004-2006
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -92,7 +92,6 @@ struct oh_event {
 extern GAsyncQueue *oh_process_q;
 
 /* function definitions */
-SaErrorT oh_get_events(void);
 SaErrorT oh_harvest_events(void);
 SaErrorT oh_process_events(void);
 
