@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2004
+ * (C) Copyright IBM Corp. 2004-2006
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -11,6 +11,7 @@
  *
  * Author(s):
  *      Renier Morales <renierm@users.sf.net>
+ *      David M Jukdkovics <dmjudkov@us.ibm.com>
  *
  */
 
@@ -22,7 +23,6 @@
 int _init(void) __attribute__((constructor));
 int _fini(void) __attribute__((destructor));
 
-//int _init2(void);
 int _initialize(int daemon);
 
 #endif /* __OH_INIT_H */

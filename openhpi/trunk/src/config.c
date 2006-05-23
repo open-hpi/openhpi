@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2003, 2005
+ * (C) Copyright IBM Corp. 2003-2006
  * Copyright (c) 2003 by Intel Corp.
  *
  * This program is distributed in the hope that it will be useful,
@@ -42,7 +42,6 @@ static const char *known_globals[] = {
         //"OPENHPI_DEBUG",
         //"OPENHPI_DEBUG_TRACE",
         //"OPENHPI_DEBUG_LOCK",
-        "OPENHPI_THREADED",
         "OPENHPI_PATH",
         "OPENHPI_VARPATH",
         "OPENHPI_CONF",
@@ -61,7 +60,6 @@ static struct {
         //unsigned char dbg;
         //unsigned char dbg_trace;
         //unsigned char dbg_lock;
-        SaHpiBoolT threaded;
         char path[OH_MAX_TEXT_BUFFER_LENGTH];
         char varpath[OH_MAX_TEXT_BUFFER_LENGTH];
         char conf[OH_MAX_TEXT_BUFFER_LENGTH];
@@ -79,7 +77,6 @@ static struct {
         //.dbg = 0,
         //.dbg_trace = 0,
         //.dbg_lock = 0,
-        .threaded = SAHPI_FALSE, /* Threaded mode off */
         .path = OH_PLUGIN_PATH,
         .varpath = VARPATH,
         .conf = OH_DEFAULT_CONF,
@@ -287,14 +284,6 @@ static void process_global_param(const char *name, char *value)
                         global_params.daemon_mode = 1;
                 } else {
                         global_params.daemon_mode = 0;
-                }
-                g_static_rec_mutex_unlock(&global_params.lock);
-        } else if (!strcmp("OPENHPI_THREADED", name)) {
-                g_static_rec_mutex_lock(&global_params.lock);
-                if (!strcmp("YES", value)) {
-                        global_params.threaded = 1;
-                } else {
-                        global_params.threaded = 0;
                 }
                 g_static_rec_mutex_unlock(&global_params.lock);
         } else if (!strcmp("OPENHPI_PATH", name)) {
@@ -778,9 +767,6 @@ int oh_get_global_param(struct oh_global_param *param)
                 //case OPENHPI_DEBUG_LOCK:
                 //        param->u.dbg_lock = global_params.dbg_lock;
                 //        break;
-                case OPENHPI_THREADED:
-                        param->u.threaded = global_params.threaded;
-                        break;
                 case OPENHPI_PATH:
                         g_static_rec_mutex_lock(&global_params.lock);
                         strncpy(param->u.path,
@@ -861,9 +847,6 @@ int oh_set_global_param(struct oh_global_param *param)
                 //case OPENHPI_DEBUG_LOCK:
                 //        global_params.dbg_lock = param->u.dbg_lock;
                 //        break;
-                case OPENHPI_THREADED:
-                        global_params.threaded = param->u.threaded;
-                        break;
                 case OPENHPI_PATH:
                         g_static_rec_mutex_lock(&global_params.lock);
                         memset(global_params.path, 0, OH_MAX_TEXT_BUFFER_LENGTH);
@@ -912,8 +895,6 @@ int oh_set_global_param(struct oh_global_param *param)
 //                        return global_params.dbg_trace;
 //                case OPENHPI_DEBUG_LOCK:
 //                        return global_params.dbg_lock;
-//                case OPENHPI_THREADED:
-//                        return global_params.threaded;
 //                default:
 //                        dbg("ERROR. Invalid global parameter type %d!", type);
 //                        return 0;

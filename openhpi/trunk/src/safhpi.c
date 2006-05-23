@@ -1,7 +1,7 @@
 /*      -*- linux-c -*-
  *
  * Copyright (c) 2003 by Intel Corp.
- * (C) Copyright IBM Corp. 2003, 2004, 2005
+ * (C) Copyright IBM Corp. 2003-2006
  * Copyright (c) 2004 by FORCE Computers.
  *
  * This program is distributed in the hope that it will be useful,
@@ -91,28 +91,14 @@ SaErrorT SAHPI_API saHpiDiscover(
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
 
-        if (oh_threaded_mode()) {
-                /* This will wake the discovery thread up
-                 * and wait until it does a round throughout the
-                 * plugin instances. If the thread is already running,
-                 * it will wait for it until it completes the round.
-                 */
-                oh_wake_discovery_thread(SAHPI_TRUE);
-                oh_wake_event_thread(SAHPI_TRUE);
-        } else {
-                error = oh_domain_resource_discovery(did);
-                if (error) {
-                        dbg("Error attempting to discover"
-                            " resources in Domain %d",did);
-                        return error;
-                }
-
-                error = oh_get_events();
-                if (error) {
-                        dbg("Error attempting to process"
-                            " resources in Domain %d",did);
-                }
-        }
+        
+        /* This will wake the discovery thread up
+         * and wait until it does a round throughout the
+         * plugin instances. If the thread is already running,
+         * it will wait for it until it completes the round.
+         */
+        oh_wake_discovery_thread(SAHPI_TRUE);
+        oh_wake_event_thread(SAHPI_TRUE);
 
         return error;
 }
@@ -1051,10 +1037,6 @@ SaErrorT SAHPI_API saHpiEventGet (
                    (Timeout != SAHPI_TIMEOUT_IMMEDIATE)) {
                 dbg("Timeout is not positive");
                 return SA_ERR_HPI_INVALID_PARAMS;
-        } else if (!oh_threaded_mode() &&
-                   Timeout != SAHPI_TIMEOUT_IMMEDIATE) {
-                dbg("Can not support timeouts in non-threaded mode");
-                return SA_ERR_HPI_INVALID_PARAMS;
         }
 
         error = oh_get_session_subscription(SessionId, &subscribed);
@@ -1071,12 +1053,7 @@ SaErrorT SAHPI_API saHpiEventGet (
                                          &e, &qstatus1);
 
         if (error) { /* If queue empty then fetch more events */
-                if (oh_threaded_mode()) {
-                        oh_wake_event_thread(SAHPI_TRUE);
-                } else { /* Non-threaded */
-                        error = oh_get_events();
-                        if (error) return error;
-                }
+                oh_wake_event_thread(SAHPI_TRUE);
                 /* Sent for more events. Ready to wait on queue. */
                 error = oh_dequeue_session_event(SessionId, Timeout,
                                                  &e, &qstatus2);
@@ -1148,15 +1125,7 @@ SaErrorT SAHPI_API saHpiEventAdd (
 
         g_async_queue_push(oh_process_q, g_memdup(&e, sizeof(struct oh_event)));
 
-        if (oh_threaded_mode()) {
-                oh_wake_event_thread(SAHPI_TRUE);
-        } else {
-                error = oh_get_events();
-                if (error) {
-                        dbg("Error attempting to process"
-                            " resources in Domain %d", did);
-                }
-        }
+        oh_wake_event_thread(SAHPI_TRUE);
 
         return error;
 }
@@ -3867,11 +3836,7 @@ SaErrorT SAHPI_API saHpiHotSwapActionRequest (
         rv = request_hotswap_action(h->hnd, ResourceId, Action);
         oh_release_handler(h);
 
-        if (oh_threaded_mode()) {
-                oh_wake_event_thread(SAHPI_TRUE);
-        } else {
-                oh_get_events();
-        }
+        oh_wake_event_thread(SAHPI_TRUE);
 
         return rv;
 }
