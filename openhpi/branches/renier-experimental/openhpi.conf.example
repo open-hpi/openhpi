@@ -9,7 +9,6 @@
 #OPENHPI_DEL_SAVE = "NO"
 #OPENHPI_DAT_SIZE_LIMIT = 0
 #OPENHPI_DAT_USER_LIMIT = 0
-#OPENHPI_THREADED = "NO"
 #OPENHPI_PATH = "/usr/local/lib/openhpi:/usr/lib/openhpi"
 #OPENHPI_VARPATH = "/usr/local/var/lib/openhpi"
 
@@ -37,8 +36,6 @@
 ## the alarm table. The default 0 means unlimited.
 ## OPENHPI_DAT_USER_LIMIT sets the maximum number of user type alarm entries
 ## allowed in the alarm table. The default 0 means unlimited.
-## OPENHPI_THREADED sets whether a thread is used for handling the event loop.
-## This thread will be looping around the plugin instances and fetching events.
 ## OPENHPI_PATH is a colon (:) delimited list of directories specifying
 ## the location of openhpi plugin libraries. The default is defined when the
 ## library is configured.

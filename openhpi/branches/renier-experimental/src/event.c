@@ -1,7 +1,7 @@
 /*      -*- linux-c -*-
  *
  * Copyright (c) 2003 by Intel Corp.
- * (C) Copyright IBM Corp. 2003, 2004, 2005
+ * (C) Copyright IBM Corp. 2003-2006
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -369,20 +369,3 @@ SaErrorT oh_process_events()
         return SA_OK;
 }
 
-SaErrorT oh_get_events()
-{
-        SaErrorT error = SA_OK;
-
-        if (oh_threaded_mode()) return error;
-
-        trace("Harvesting events synchronously");
-        error = oh_harvest_events();
-        if (error) dbg("Error on harvest of events.");
-
-        error = oh_process_events();
-        if (error) dbg("Error on processing of events, aborting");
-
-        process_hotswap_policy();
-
-        return error;
-}

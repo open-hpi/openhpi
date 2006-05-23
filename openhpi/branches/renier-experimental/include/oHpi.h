@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copright IBM Corp 2004
+ * (C) Copright IBM Corp 2004-2006
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -45,7 +45,6 @@ typedef enum {
         //OHPI_DEBUG,
         //OHPI_DEBUG_TRACE,
         //OHPI_DEBUG_LOCK,
-        OHPI_THREADED,
         OHPI_PATH,
         OHPI_VARPATH,
         OHPI_CONF
@@ -64,7 +63,6 @@ typedef union {
         //unsigned char Debug; /* 1 = YES, 0 = NO */
         //unsigned char DebugTrace; /* !0 = YES, 0 = NO */
         //unsigned char DebugLock; /* !0 = YES, 0 = NO */
-        SaHpiBoolT Threaded; /* !0 = YES, 0 = NO */
         char Path[OH_MAX_TEXT_BUFFER_LENGTH]; /* Dir path to openhpi plugins */
         char VarPath[OH_MAX_TEXT_BUFFER_LENGTH]; /* Dir path for openhpi data */
         char Conf[OH_MAX_TEXT_BUFFER_LENGTH]; /* File path of openhpi configuration */
