@@ -6234,7 +6234,7 @@ struct snmp_bc_sensor snmp_bc_fan_sensors[] = {
                 },
                 .comment = "Fan Operational Status Sensor",
         },
-        /* Fan Speed Percentage Sensor */
+        /* Fan Speed (Percent of Max) Sensor */
         {
 		.index = 2,
                 .sensor = {
@@ -6298,11 +6298,23 @@ struct snmp_bc_sensor snmp_bc_fan_sensors[] = {
                         },
    			.reading2event = {},
                 },
-                .comment = "Fan Speed Percentage Sensor",
+                .comment = "Fan Speed (Percent of Max) Sensor",
         },
 
         {} /* Terminate array with a null element */
 };
+
+#if 0
+.1.3.6.1.4.1.2.3.51.2.2.3.10.0 = 1     Blower Status
+.1.3.6.1.4.1.2.3.51.2.2.3.11.0 = 1
+.1.3.6.1.4.1.2.3.51.2.2.3.13.0 = 1
+.1.3.6.1.4.1.2.3.51.2.2.3.14.0 = 1
+.1.3.6.1.4.1.2.3.51.2.2.3.20.0 = "2992" BCH Blower RPM
+.1.3.6.1.4.1.2.3.51.2.2.3.21.0 = "2992"
+.1.3.6.1.4.1.2.3.51.2.2.3.30.0 = 0      BCH Blower Controller Status
+.1.3.6.1.4.1.2.3.51.2.2.3.31.0 = 0
+#endif
+
 
 /***************
  * Power Sensors
@@ -6442,6 +6454,135 @@ struct snmp_bc_sensor snmp_bc_power_sensors[] = {
    			.reading2event = {},
                 },
                 .comment = "Power Module Temperature Sensor",
+        },
+
+        {} /* Terminate array with a null element */
+};
+
+#define SNMP_BC_LAST_COMMON_POWER_MODULE_SENSOR 2
+
+/* BladeCenter H specific power module sensors */
+struct snmp_bc_sensor snmp_bc_power_sensors_bch[] = {
+        /* Power Module Fan Pack Average Speed (Percent of Max) Sensor */
+        {
+		.index = 1,
+                .sensor = {
+                        .Num = SNMP_BC_LAST_COMMON_POWER_MODULE_SENSOR + 1,
+                        .Type = SAHPI_FAN,
+                        .Category = SAHPI_EC_PRED_FAIL,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
+                        .Events = SAHPI_ES_PRED_FAILURE_ASSERT | SAHPI_ES_PRED_FAILURE_DEASSERT,
+                        .DataFormat = {
+                                .IsSupported = SAHPI_TRUE,
+                                .ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+                                .BaseUnits = SAHPI_SU_RPM,
+                                .ModifierUnits = SAHPI_SU_UNSPECIFIED,
+                                .ModifierUse = SAHPI_SMUU_NONE,
+                                .Percentage = SAHPI_TRUE,
+                                .Range = {
+                                        .Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
+                                        .Max = {
+  						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 100,
+                                                },
+                                        },
+                                        .Min = {
+						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 0,
+                                                },
+                                        },
+                                },
+                        },
+			.ThresholdDefn = {
+                                .IsAccessible = SAHPI_FALSE,
+                        },
+                        .Oem = 0,
+                },
+                .sensor_info = {
+                        .mib = {
+                                .not_avail_indicator_num = 0,
+                                .write_only = SAHPI_FALSE,
+                                .oid = ".1.3.6.1.4.1.2.3.51.2.2.6.1.1.5.x",
+                        },
+                        .cur_state = SAHPI_ES_UNSPECIFIED,
+                        .sensor_enabled = SAHPI_TRUE,
+                        .events_enabled = SAHPI_TRUE,
+			.assert_mask   = SAHPI_ES_PRED_FAILURE_ASSERT,
+			.deassert_mask = SAHPI_ES_PRED_FAILURE_ASSERT,
+                        .event_array = {
+
+/* FIXME:: Need to add events */
+                                {},
+                        },
+   			.reading2event = {},
+                },
+                .comment = "Power Module Fan Pack Average Speed (Percent of Max) Sensor",
+        },
+        /* Power Module Fan Pack Average RPM Speed Sensor */
+        {
+		.index = 2,
+                .sensor = {
+                        .Num = SNMP_BC_LAST_COMMON_POWER_MODULE_SENSOR + 2,
+                        .Type = SAHPI_FAN,
+                        .Category = SAHPI_EC_PRED_FAIL,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
+                        .Events = SAHPI_ES_PRED_FAILURE_ASSERT | SAHPI_ES_PRED_FAILURE_DEASSERT,
+                        .DataFormat = {
+                                .IsSupported = SAHPI_TRUE,
+                                .ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+                                .BaseUnits = SAHPI_SU_RPM,
+                                .ModifierUnits = SAHPI_SU_UNSPECIFIED,
+                                .ModifierUse = SAHPI_SMUU_NONE,
+                                .Percentage = SAHPI_FALSE,
+                                .Range = {
+                                        .Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
+                                        .Max = {
+  						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 13000,
+                                                },
+                                        },
+                                        .Min = {
+						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 0,
+                                                },
+                                        },
+                                },
+                        },
+			.ThresholdDefn = {
+                                .IsAccessible = SAHPI_FALSE,
+                        },
+                        .Oem = 0,
+                },
+                .sensor_info = {
+                        .mib = {
+                                .not_avail_indicator_num = 0,
+                                .write_only = SAHPI_FALSE,
+                                .oid = ".1.3.6.1.4.1.2.3.51.2.2.6.1.1.6.x",
+                        },
+                        .cur_state = SAHPI_ES_UNSPECIFIED,
+                        .sensor_enabled = SAHPI_TRUE,
+                        .events_enabled = SAHPI_TRUE,
+			.assert_mask   = SAHPI_ES_PRED_FAILURE_ASSERT,
+			.deassert_mask = SAHPI_ES_PRED_FAILURE_ASSERT,
+                        .event_array = {
+
+/* FIXME:: Need to add events */				
+
+                                {},
+                        },
+   			.reading2event = {},
+                },
+                .comment = "Power Module Fan Pack Average RPM Speed Sensor",
         },
 
         {} /* Terminate array with a null element */
