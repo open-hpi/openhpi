@@ -335,6 +335,56 @@ struct SensorMibInfo snmp_bc_ipmi_sensors_voltage[SNMP_BC_MAX_IPMI_VOLTAGE_SENSO
 		},
 		.threshold_write_oids = {},
 	},
+	{ /* Generic IPMI Voltage Sensor 26 */
+		.not_avail_indicator_num = 0,
+		.write_only = SAHPI_FALSE,
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.40.x",
+		.threshold_oids = {
+			.UpMajor  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.73.x",
+			.LowMajor = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.74.x",
+		},
+		.threshold_write_oids = {},
+	},
+	{ /* Generic IPMI Voltage Sensor 27 */
+		.not_avail_indicator_num = 0,
+		.write_only = SAHPI_FALSE,
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.41.x",
+		.threshold_oids = {
+			.UpMajor  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.75.x",
+			.LowMajor = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.76.x",
+		},
+		.threshold_write_oids = {},
+	},
+	{ /* Generic IPMI Voltage Sensor 28 */
+		.not_avail_indicator_num = 0,
+		.write_only = SAHPI_FALSE,
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.42.x",
+		.threshold_oids = {
+			.UpMajor  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.77.x",
+			.LowMajor = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.78.x",
+		},
+		.threshold_write_oids = {},
+	},
+	{ /* Generic IPMI Voltage Sensor 29 */
+		.not_avail_indicator_num = 0,
+		.write_only = SAHPI_FALSE,
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.43.x",
+		.threshold_oids = {
+			.UpMajor  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.79.x",
+			.LowMajor = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.80.x",
+		},
+		.threshold_write_oids = {},
+	},
+	{ /* Generic IPMI Voltage Sensor 30 */
+		.not_avail_indicator_num = 0,
+		.write_only = SAHPI_FALSE,
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.44.x",
+		.threshold_oids = {
+			.UpMajor  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.81.x",
+			.LowMajor = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.82.x",
+		},
+		.threshold_write_oids = {},
+	},
 };
 
 static SaErrorT snmp_bc_discover_ipmi_sensors(struct oh_handler_state *handle,
@@ -456,7 +506,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 		strcpy(custom_handle->installed_mm_mask, get_value_mm.string);
 		custom_handle->installed_mt_mask = get_value_media.integer;
 	}
-															
+		
 	/******************************
 	 * Discover BladeCenter Chassis
 	 ******************************/
@@ -548,7 +598,7 @@ SaErrorT snmp_bc_update_chassis_topo(struct oh_handler_state *handle)
 		
 		get_integer_object(SNMP_BC_NOS_MT_SUPPORTED, get_value);		
 		custom_handle->max_mt_supported = get_value.integer;		/* mt - media tray        */
-																
+
 		get_integer_object(SNMP_BC_NOS_BLOWER_SUPPORTED, get_value);		
 		custom_handle->max_blower_supported = get_value.integer;	/* blower - fan/blower  */
 	 }
@@ -557,7 +607,6 @@ SaErrorT snmp_bc_update_chassis_topo(struct oh_handler_state *handle)
 	return(err);
 
 }
-
 
 /**
  * snmp_bc_discover_media_tray:
@@ -659,6 +708,7 @@ SaErrorT snmp_bc_discover_media_tray(struct oh_handler_state *handle,
 	
 	return(SA_OK);
 }
+
 /**
  * snmp_bc_discover_chassis:
  * @handler: Pointer to handler's data.
@@ -670,7 +720,7 @@ SaErrorT snmp_bc_discover_media_tray(struct oh_handler_state *handle,
  * SA_OK - normal case.
  * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
-  **/
+ **/
 SaErrorT snmp_bc_discover_chassis(struct oh_handler_state *handle,
 			  SaHpiEntityPathT *ep_root)
 {
@@ -794,7 +844,7 @@ SaErrorT snmp_bc_discover_chassis(struct oh_handler_state *handle,
  * SA_OK - normal case.
  * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
-  **/
+ **/
 SaErrorT snmp_bc_discover_blade(struct oh_handler_state *handle,
 			  SaHpiEntityPathT *ep_root, char *blade_vector)
 {
@@ -1012,7 +1062,7 @@ SaErrorT snmp_bc_discover_blade(struct oh_handler_state *handle,
  * SA_OK - normal case.
  * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer paramter(s) NULL.
-  **/
+ **/
 SaErrorT snmp_bc_discover_fans(struct oh_handler_state *handle,
 			  SaHpiEntityPathT *ep_root, char *fan_vector)
 {
@@ -1123,7 +1173,7 @@ SaErrorT snmp_bc_discover_fans(struct oh_handler_state *handle,
  * SA_OK - normal case.
  * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
-  **/
+ **/
 SaErrorT snmp_bc_discover_power_module(struct oh_handler_state *handle,
 			  SaHpiEntityPathT *ep_root, char *power_module_vector)
 {
@@ -1233,7 +1283,7 @@ SaErrorT snmp_bc_discover_power_module(struct oh_handler_state *handle,
  * SA_OK - normal case.
  * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
-  **/
+ **/
 SaErrorT snmp_bc_discover_switch(struct oh_handler_state *handle,
 			  SaHpiEntityPathT *ep_root, char *switch_vector)
 {
@@ -1353,7 +1403,7 @@ SaErrorT snmp_bc_discover_switch(struct oh_handler_state *handle,
  * SA_OK - normal case.
  * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
-  **/
+ **/
 SaErrorT snmp_bc_discover_mm(struct oh_handler_state *handle,
 			  SaHpiEntityPathT *ep_root, char *mm_vector)
 {
@@ -1532,7 +1582,7 @@ SaErrorT snmp_bc_discover_mm(struct oh_handler_state *handle,
  * Return values:
  * Adds sensor RDRs to internal Infra-structure queues - normal case
  * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory
-  **/
+ **/
 static SaErrorT snmp_bc_discover_ipmi_sensors(struct oh_handler_state *handle,
 					      struct snmp_bc_ipmi_sensor *sensor_array,
 					      struct oh_event *res_oh_event)
@@ -1562,27 +1612,22 @@ static SaErrorT snmp_bc_discover_ipmi_sensors(struct oh_handler_state *handle,
 	/* Create an temporary hash table and populate with all of 
            the blade's active IPMI sensors */
 	ipmi_sensor_hash = g_hash_table_new(g_str_hash, g_str_equal);
+	
 	if (ipmi_sensor_hash == NULL) {
 		dbg("Out of memory.");
 		return(SA_ERR_HPI_OUT_OF_SPACE);
 	}
 
-	/* Search for all the defined IPMI sensors.
-         * Generic IPMI SNMP OID values are populated sequentially. There will not be any valid
-         * sensors after the first "Not Readable!", "(No temperature)", or "(No voltage)" reading.
-	 */
+	/***************************************** 
+	 * Search for all the defined IPMI sensors
+         *****************************************/
 
 	/* Find blade's defined temperature IPMI sensors */
 	for (i=0; i<SNMP_BC_MAX_IPMI_TEMP_SENSORS; i++) {
 		err = snmp_bc_oid_snmp_get(custom_handle,
 					   &(res_oh_event->u.res_event.entry.ResourceEntity),
 					   snmp_bc_ipmi_sensors_temp[i].oid, &get_value, SAHPI_FALSE);
-		if (err ||
-		    (strncmp(get_value.string, "(No temperature)", sizeof("(No temperature)")) == 0) ||
-		    (strncmp(get_value.string, "Not Readable!", sizeof("Not Readable!")) == 0)) {
-			break;
-		}
-		else {
+		if (!err) {
 			char *hash_existing_key, *hash_value;
 			gchar  **strparts = NULL;
 			gchar  *ipmi_tag;
@@ -1590,7 +1635,7 @@ static SaErrorT snmp_bc_discover_ipmi_sensors(struct oh_handler_state *handle,
 			/* Find IPMI tag in returned value */
 			strparts = g_strsplit(get_value.string, SNMP_BC_IPMI_STRING_DELIMITER, -1);
 			if (strparts == NULL || strparts[0] == '\0') {
-				dbg("Cannot split IPMI returned value=%s.", get_value.string);
+				dbg("Cannot split IPMI temp returned value=%s.", get_value.string);
 				g_strfreev(strparts);
 				continue;
 			}
@@ -1602,7 +1647,7 @@ static SaErrorT snmp_bc_discover_ipmi_sensors(struct oh_handler_state *handle,
 				continue;
 			}
 
-			trace("Found OID IPMI Sensor=%s", ipmi_tag);
+			trace("Found OID IPMI sensor=%s", ipmi_tag);
 
 			/* Insert tag and OID info in temporary hash */
 			if (!g_hash_table_lookup_extended(ipmi_sensor_hash,
@@ -1620,24 +1665,18 @@ static SaErrorT snmp_bc_discover_ipmi_sensors(struct oh_handler_state *handle,
 				g_hash_table_insert(ipmi_sensor_hash, ipmi_tag, mib_info);
 			}
 			else { /* Already exists */
-				dbg("IPMI OID ERROR=%s.", snmp_bc_ipmi_sensors_temp[i].oid);
+				dbg("Duplicate IPMI OID=%s.", snmp_bc_ipmi_sensors_temp[i].oid);
 				g_free(ipmi_tag);
 			}
 		}
 	}
 
-	/* FIXME:: Make voltage and temperature search into a single routine */
 	/* Find blade's voltage IPMI sensors */
 	for (i=0; i<SNMP_BC_MAX_IPMI_VOLTAGE_SENSORS; i++) {
 		err = snmp_bc_oid_snmp_get(custom_handle,
 					   &(res_oh_event->u.res_event.entry.ResourceEntity),
 					   snmp_bc_ipmi_sensors_voltage[i].oid, &get_value, SAHPI_FALSE);
-		if (err ||
-		    (strncmp(get_value.string, "(No voltage)", sizeof("(No voltage)")) == 0) ||
-		    (strncmp(get_value.string, "Not Readable!", sizeof("Not Readable!")) == 0)) {
-			break;
-		}
-		else {
+		if (!err) {
 			char *hash_existing_key, *hash_value;
 			gchar  **strparts = NULL;
 			gchar  *ipmi_tag;
@@ -1645,7 +1684,7 @@ static SaErrorT snmp_bc_discover_ipmi_sensors(struct oh_handler_state *handle,
 			/* Find IPMI tag in returned value */
 			strparts = g_strsplit(get_value.string, SNMP_BC_IPMI_STRING_DELIMITER, -1);
 			if (strparts == NULL || strparts[0] == '\0') {
-				dbg("Cannot split IPMI returned value=%s.", get_value.string);
+				dbg("Cannot split IPMI voltage returned value=%s.", get_value.string);
 				g_strfreev(strparts);
 				continue;
 			}
@@ -1657,7 +1696,7 @@ static SaErrorT snmp_bc_discover_ipmi_sensors(struct oh_handler_state *handle,
 				continue;
 			}
 
-			trace("Found OID IPMI Sensor=%s", ipmi_tag);
+			trace("Found OID IPMI sensor=%s", ipmi_tag);
 
 			/* Insert tag and OID info in temporary hash */
 			if (!g_hash_table_lookup_extended(ipmi_sensor_hash,
@@ -1675,7 +1714,7 @@ static SaErrorT snmp_bc_discover_ipmi_sensors(struct oh_handler_state *handle,
 				g_hash_table_insert(ipmi_sensor_hash, ipmi_tag, mib_info);
 			}
 			else { /* Already exists */
-				dbg("IPMI OID ERROR=%s.", snmp_bc_ipmi_sensors_voltage[i].oid);
+				dbg("Duplicate IPMI OID=%s.", snmp_bc_ipmi_sensors_voltage[i].oid);
 				g_free(ipmi_tag);
 			}
 		}
@@ -1703,6 +1742,8 @@ static SaErrorT snmp_bc_discover_ipmi_sensors(struct oh_handler_state *handle,
 			e->u.rdr_event.rdr.Entity = res_oh_event->u.res_event.entry.ResourceEntity;
 			err = snmp_bc_mod_sensor_ep(e, sensor_array, i);
 			e->u.rdr_event.rdr.RdrTypeUnion.SensorRec = sensor_array[i].ipmi.sensor;
+
+			trace("Blade Found IPMI Sensor=%s", sensor_array[i].ipmi.comment);
 
 			oh_init_textbuffer(&(e->u.rdr_event.rdr.IdString));
 			oh_append_textbuffer(&(e->u.rdr_event.rdr.IdString), sensor_array[i].ipmi.comment);
@@ -2083,6 +2124,4 @@ SaErrorT snmp_bc_rediscover(struct oh_handler_state *handle,
 		}
 	}	
 	return(SA_OK);
-	
 }
-

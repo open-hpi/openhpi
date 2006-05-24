@@ -4,8 +4,8 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
- * file and program are licensed under a BSD style license.  See
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. This
+ * file and program are licensed under a BSD style license. See
  * the Copying file included with the OpenHPI distribution for
  * full licensing terms.
  */
@@ -16,7 +16,7 @@
 #define SNMP_BC_IPMI_STRING_DELIMITER "="
 
 #define SNMP_BC_MAX_IPMI_TEMP_SENSORS 6
-#define SNMP_BC_MAX_IPMI_VOLTAGE_SENSORS 25
+#define SNMP_BC_MAX_IPMI_VOLTAGE_SENSORS 30
 
 #define SNMP_BC_IPMI_TEMP_BLADE_OID ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.11.x"
 #define SNMP_BC_IPMI_VOLTAGE_BLADE_OID ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.14.x"

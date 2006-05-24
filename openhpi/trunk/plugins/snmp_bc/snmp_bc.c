@@ -1,11 +1,11 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2003, 2005
+ * (C) Copyright IBM Corp. 2003, 2006
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
- * file and program are licensed under a BSD style license.  See
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. This
+ * file and program are licensed under a BSD style license. See
  * the Copying file included with the OpenHPI distribution for
  * full licensing terms.
  *
@@ -240,7 +240,6 @@ SaErrorT snmp_bc_control_parm(void *hnd, SaHpiResourceIdT rid, SaHpiParmActionT 
 		continue;                          \
 	}
 
-
 /**
  * snmp_bc_snmp_get:
  * @custom_handle:  Plugin's data pointer.
@@ -284,13 +283,22 @@ SaErrorT snmp_bc_snmp_get(struct snmp_bc_hnd *custom_handle,
         	} else {
                 	custom_handle->handler_retries = 0;
 			if ((err == SA_OK) && (value->type == ASN_OCTET_STR)) {
+#if 0
 				if ( (strncmp(value->string,"(No temperature)", sizeof("(No temperature)")) == 0) ||
 			     		(strncmp(value->string,"(No voltage)", sizeof("(No voltage)")) == 0) )
 				{
 					snmp_bc_internal_retry();
-				} else if (strncmp(value->string,"Not Readable!", sizeof("Not Readable!")) == 0) {
-                        		custom_handle->handler_retries = 0;
-					trace("Not Readable! reading from OID=%s.", objid);
+				}
+				else
+#endif
+				if ((strncmp(value->string,"Not Readable!", sizeof("Not Readable!")) == 0) ||
+				    (strncmp(value->string,"Not Readable", sizeof("Not Readable")) == 0) ||
+				    (strncmp(value->string,"(No temperature)", sizeof("(No temperature)")) == 0) ||
+				    (strncmp(value->string,"NO_TEMPERATURE", sizeof("NO_TEMPERATURE")) == 0) ||
+				    (!value->string) ||
+				    (value->string[0] == '\0')) {
+					custom_handle->handler_retries = 0;
+					trace("Not readable reading from OID=%s.", objid);
                         		err = SA_ERR_HPI_NO_RESPONSE;
 					break;
 				} else {
@@ -303,7 +311,6 @@ SaErrorT snmp_bc_snmp_get(struct snmp_bc_hnd *custom_handle,
 	
         return(err);
 }
-
 
 /**
  * snmp_bc_oid_snmp_get:
@@ -343,7 +350,6 @@ SaErrorT snmp_bc_oid_snmp_get(struct snmp_bc_hnd *custom_handle,
 	
 	return(rv);
 }
-
 
 /**
  * snmp_bc_snmp_set:
@@ -385,7 +391,6 @@ SaErrorT snmp_bc_snmp_set(struct snmp_bc_hnd *custom_handle,
 
         return(err);
 }
-
 
 /**
  * snmp_bc_oid_snmp_set:

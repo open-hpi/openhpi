@@ -3328,7 +3328,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         .Oem = 0,
                 },
                 .sensor_info = {
-                        .cur_state = SAHPI_ES_UNSPECIFIED,
+                        .cur_state = SAHPI_ES_RUNNING,
                         .sensor_enabled = SAHPI_TRUE,
                         .events_enabled = SAHPI_TRUE,
 			.assert_mask   = SAHPI_ES_DEGRADED | SAHPI_ES_OFF_LINE | SAHPI_ES_INSTALL_ERROR,
@@ -6166,7 +6166,7 @@ struct snmp_bc_sensor snmp_bc_mediatray_sensors[] = {
                         .Oem = 0,
                 },
                 .sensor_info = {
-                        .cur_state = SAHPI_ES_UNSPECIFIED,
+                        .cur_state = SAHPI_ES_RUNNING,
                         .sensor_enabled = SAHPI_TRUE,
                         .events_enabled = SAHPI_TRUE,
 			.assert_mask   = SAHPI_ES_DEGRADED,
@@ -6214,7 +6214,7 @@ struct snmp_bc_sensor snmp_bc_fan_sensors[] = {
                         .Oem = 0,
                 },
                 .sensor_info = {
-                        .cur_state = SAHPI_ES_UNSPECIFIED,
+                        .cur_state = SAHPI_ES_RUNNING,
                         .sensor_enabled = SAHPI_TRUE,
                         .events_enabled = SAHPI_TRUE,
 			.assert_mask   = SAHPI_ES_OFF_LINE,
@@ -6328,7 +6328,7 @@ struct snmp_bc_sensor snmp_bc_power_sensors[] = {
                         .Oem = 0,
                 },
                 .sensor_info = {
-                        .cur_state = SAHPI_ES_UNSPECIFIED,
+                        .cur_state = SAHPI_ES_RUNNING,
                         .sensor_enabled = SAHPI_TRUE,
                         .events_enabled = SAHPI_TRUE,
 			.assert_mask   = SAHPI_ES_OFF_LINE,
@@ -6472,7 +6472,7 @@ struct snmp_bc_sensor snmp_bc_switch_sensors[] = {
                         .Oem = 0,
                 },
                 .sensor_info = {
-                        .cur_state = SAHPI_ES_UNSPECIFIED,
+                        .cur_state = SAHPI_ES_RUNNING,
                         .sensor_enabled = SAHPI_TRUE,
                         .events_enabled = SAHPI_TRUE,
 			.assert_mask   = SAHPI_ES_DEGRADED | SAHPI_ES_INSTALL_ERROR,
