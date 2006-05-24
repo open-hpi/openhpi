@@ -1260,6 +1260,11 @@ SaErrorT snmp_bc_discover_power_module(struct oh_handler_state *handle,
 			/* Find resource's events, sensors, controls, etc. */
 			snmp_bc_discover_res_events(handle, &(e->u.res_event.entry.ResourceEntity), res_info_ptr);
 			snmp_bc_discover_sensors(handle, snmp_bc_power_sensors, e);
+
+			if (custom_handle->platform == SNMP_BC_PLATFORM_BCH) {
+				snmp_bc_discover_sensors(handle, snmp_bc_power_sensors_bch, e);	
+			}
+
 			snmp_bc_discover_controls(handle, snmp_bc_power_controls, e);
 			snmp_bc_discover_inventories(handle, snmp_bc_power_inventories, e);
 		}

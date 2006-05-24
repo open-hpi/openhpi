@@ -333,6 +333,7 @@ extern struct snmp_bc_sensor      snmp_bc_virtual_mgmnt_sensors[];
 extern struct snmp_bc_sensor      snmp_bc_mediatray_sensors[];
 extern struct snmp_bc_sensor      snmp_bc_fan_sensors[];
 extern struct snmp_bc_sensor      snmp_bc_power_sensors[];
+extern struct snmp_bc_sensor      snmp_bc_power_sensors_bch[];
 extern struct snmp_bc_sensor      snmp_bc_switch_sensors[];
 
 extern struct snmp_bc_sensor      snmp_bc_chassis_sensors_rsa[];
