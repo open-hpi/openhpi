@@ -924,19 +924,15 @@ SaErrorT snmp_bc_discover_blade(struct oh_handler_state *handle,
 				} else break;
 			}
 			
-					   	   	   
+			snmp_bc_create_resourcetag(&(e->u.res_event.entry.ResourceTag),
+						   snmp_bc_rpt_array[BC_RPT_ENTRY_BLADE].comment,
+						   i + SNMP_BC_HPI_LOCATION_BASE);
+			
+			/* Tack on MM's defined blade name */
 			if (!err && (get_blade_resourcetag.type == ASN_OCTET_STR)) {
-				snmp_bc_create_resourcetag(&(e->u.res_event.entry.ResourceTag),
-							   get_blade_resourcetag.string,
-							   SNMP_BC_NOT_VALID);
-			
-			} else {			
-				snmp_bc_create_resourcetag(&(e->u.res_event.entry.ResourceTag),
-							   snmp_bc_rpt_array[BC_RPT_ENTRY_BLADE].comment,
-							   i + SNMP_BC_HPI_LOCATION_BASE);
+				oh_append_textbuffer(&(e->u.res_event.entry.ResourceTag)," - ");
+				oh_append_textbuffer(&(e->u.res_event.entry.ResourceTag), get_blade_resourcetag.string);
 			}
-			
-
 
 			trace("Discovered resource=%s; ID=%d", 
 			      e->u.res_event.entry.ResourceTag.Data,
