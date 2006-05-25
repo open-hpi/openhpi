@@ -327,7 +327,8 @@ extern struct snmp_bc_sensor      snmp_bc_chassis_sensors[];
 extern struct snmp_bc_sensor      snmp_bc_chassis_sensors_bct[];
 extern struct snmp_bc_sensor      snmp_bc_blade_sensors[];
 extern struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[];
-extern struct snmp_bc_sensor      snmp_bc_blade_expansion_sensors[];
+extern struct snmp_bc_sensor      snmp_bc_bem_sensors[];
+extern struct snmp_bc_ipmi_sensor snmp_bc_bem_ipmi_sensors[];
 extern struct snmp_bc_sensor      snmp_bc_mgmnt_sensors[];
 extern struct snmp_bc_sensor      snmp_bc_virtual_mgmnt_sensors[];
 extern struct snmp_bc_sensor      snmp_bc_mediatray_sensors[];
@@ -376,7 +377,7 @@ struct snmp_bc_control {
 extern struct snmp_bc_control snmp_bc_chassis_controls_bc[];
 extern struct snmp_bc_control snmp_bc_chassis_controls_bct[];
 extern struct snmp_bc_control snmp_bc_blade_controls[];
-extern struct snmp_bc_control snmp_bc_blade_expansion_controls[];
+extern struct snmp_bc_control snmp_bc_bem_controls[];
 extern struct snmp_bc_control snmp_bc_mgmnt_controls[];
 extern struct snmp_bc_control snmp_bc_virtual_mgmnt_controls[];
 extern struct snmp_bc_control snmp_bc_mediatray_controls[];
@@ -428,7 +429,7 @@ extern struct snmp_bc_inventory snmp_bc_mgmnt_inventories[];
 extern struct snmp_bc_inventory snmp_bc_virtual_mgmnt_inventories[];
 extern struct snmp_bc_inventory snmp_bc_switch_inventories[];
 extern struct snmp_bc_inventory snmp_bc_blade_inventories[];
-extern struct snmp_bc_inventory snmp_bc_blade_expansion_inventories[];
+extern struct snmp_bc_inventory snmp_bc_bem_inventories[];
 extern struct snmp_bc_inventory snmp_bc_mediatray_inventories[];
 extern struct snmp_bc_inventory snmp_bc_power_inventories[];
 
