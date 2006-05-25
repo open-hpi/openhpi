@@ -1035,9 +1035,10 @@ SaErrorT snmp_bc_discover_blade(struct oh_handler_state *handle,
 			
 					/* Find resource's events, sensors, controls, etc. */
 					snmp_bc_discover_res_events(handle, &(e->u.res_event.entry.ResourceEntity), res_info_ptr);
-					snmp_bc_discover_sensors(handle, snmp_bc_blade_expansion_sensors, e);
-					snmp_bc_discover_controls(handle, snmp_bc_blade_expansion_controls, e);
-					snmp_bc_discover_inventories(handle, snmp_bc_blade_expansion_inventories, e);
+					snmp_bc_discover_sensors(handle, snmp_bc_bem_sensors, e);
+					snmp_bc_discover_ipmi_sensors(handle, snmp_bc_bem_ipmi_sensors, e);
+					snmp_bc_discover_controls(handle, snmp_bc_bem_controls, e);
+					snmp_bc_discover_inventories(handle, snmp_bc_bem_inventories, e);
 				}
 			}
 		}
