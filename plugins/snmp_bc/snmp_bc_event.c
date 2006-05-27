@@ -1321,7 +1321,7 @@ static SaErrorT snmp_bc_logsrc2rid(struct oh_handler_state *handle,
 		loc = strtoul(src_parts[1], &endptr, 10);
 		if (isexpansioncard == SAHPI_TRUE) {
 			rpt_index = BC_RPT_ENTRY_BLADE_EXPANSION_CARD;
-			array_ptr = &snmp_bc_blade_expansion_sensors[0];	
+			array_ptr = &snmp_bc_bem_sensors[0];	
 		}
 		else {
 			if (isblade == SAHPI_TRUE) { 
