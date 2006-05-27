@@ -124,30 +124,33 @@ typedef enum {
 #define BC_EL_MAX_SIZE 768 /* 512 */
 
 /* OIDs definitions for Blade Center Chassis Topology */
-#define SNMP_BC_NOS_FP_SUPPORTED  "1.3.6.1.4.1.2.3.51.2.22.4.18.0" /* mmblade.mib - chassisNoOfFPsSupported, FanPack */
-#define SNMP_BC_NOS_PB_SUPPORTED  "1.3.6.1.4.1.2.3.51.2.22.4.19.0" /* mmblade.mib - chassisNoOfPBsSupported, ProcessorBlade */
-#define SNMP_BC_NOS_SM_SUPPORTED  "1.3.6.1.4.1.2.3.51.2.22.4.20.0" /* mmblade.mib - chassisNoOfSMsSupported, SwitchModule */
-#define SNMP_BC_NOS_MM_SUPPORTED  "1.3.6.1.4.1.2.3.51.2.22.4.21.0" /* mmblade.mib - chassisNoOfMMsSupported, ManagementModule */
-#define SNMP_BC_NOS_PM_SUPPORTED  "1.3.6.1.4.1.2.3.51.2.22.4.22.0" /* mmblade.mib - chassisNoOfPMsSupported, PowerModule */
-#define SNMP_BC_NOS_MT_SUPPORTED  "1.3.6.1.4.1.2.3.51.2.22.4.23.0" /* mmblade.mib - chassisNoOfMTsSupported, MediaTray */
-#define SNMP_BC_NOS_BLOWER_SUPPORTED "1.3.6.1.4.1.2.3.51.2.22.4.24.0" 	/* mmblade.mib - chassisNoOfBlowersSupported, Blower */
-#define SNMP_BC_PB_INSTALLED  "1.3.6.1.4.1.2.3.51.2.22.4.25.0" 	/* mmblade.mib - chassisPBsInstalled, ProcessorBlade */
-#define SNMP_BC_SM_INSTALLED  "1.3.6.1.4.1.2.3.51.2.22.4.29.0" 	/* mmblade.mib - chassisSMsInstalled, SwitchModule */
-#define SNMP_BC_MM_INSTALLED  "1.3.6.1.4.1.2.3.51.2.22.4.30.0" 	/* mmblade.mib - chassisMMsInstalled, ManagementModule */
-#define SNMP_BC_PM_INSTALLED  "1.3.6.1.4.1.2.3.51.2.22.4.31.0" 	/* mmblade.mib - chassisPMsInstalled, PowerModule */
-#define SNMP_BC_MT_INSTALLED  "1.3.6.1.4.1.2.3.51.2.22.4.32.0" 	/* mmblade.mib - chassisMTsInstalled, MediaTray */
-#define SNMP_BC_BLOWER_INSTALLED "1.3.6.1.4.1.2.3.51.2.22.4.33.0" /* mmblade.mib - chassisBlowersInstalled, Blower */
-#define SNMP_BC_FP_INSTALLED  "1.3.6.1.4.1.2.3.51.2.22.4.37.0" 	/* mmblade.mib - chassisFPsinstalled, FanPack */
+#define SNMP_BC_NOS_FP_SUPPORTED  ".1.3.6.1.4.1.2.3.51.2.22.4.18.0" /* mmblade.mib - chassisNoOfFPsSupported, FanPack */
+#define SNMP_BC_NOS_PB_SUPPORTED  ".1.3.6.1.4.1.2.3.51.2.22.4.19.0" /* mmblade.mib - chassisNoOfPBsSupported, ProcessorBlade */
+#define SNMP_BC_NOS_SM_SUPPORTED  ".1.3.6.1.4.1.2.3.51.2.22.4.20.0" /* mmblade.mib - chassisNoOfSMsSupported, SwitchModule */
+#define SNMP_BC_NOS_MM_SUPPORTED  ".1.3.6.1.4.1.2.3.51.2.22.4.21.0" /* mmblade.mib - chassisNoOfMMsSupported, ManagementModule */
+#define SNMP_BC_NOS_PM_SUPPORTED  ".1.3.6.1.4.1.2.3.51.2.22.4.22.0" /* mmblade.mib - chassisNoOfPMsSupported, PowerModule */
+#define SNMP_BC_NOS_MT_SUPPORTED  ".1.3.6.1.4.1.2.3.51.2.22.4.23.0" /* mmblade.mib - chassisNoOfMTsSupported, MediaTray */
+#define SNMP_BC_NOS_BLOWER_SUPPORTED ".1.3.6.1.4.1.2.3.51.2.22.4.24.0" 	/* mmblade.mib - chassisNoOfBlowersSupported, Blower */
+#define SNMP_BC_PB_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.25.0" 	/* mmblade.mib - chassisPBsInstalled, ProcessorBlade */
+#define SNMP_BC_SM_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.29.0" 	/* mmblade.mib - chassisSMsInstalled, SwitchModule */
+#define SNMP_BC_MM_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.30.0" 	/* mmblade.mib - chassisMMsInstalled, ManagementModule */
+#define SNMP_BC_PM_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.31.0" 	/* mmblade.mib - chassisPMsInstalled, PowerModule */
+#define SNMP_BC_MT_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.32.0" 	/* mmblade.mib - chassisMTsInstalled, MediaTray */
+#define SNMP_BC_BLOWER_INSTALLED ".1.3.6.1.4.1.2.3.51.2.22.4.33.0" /* mmblade.mib - chassisBlowersInstalled, Blower */
+#define SNMP_BC_FP_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.37.0" 	/* mmblade.mib - chassisFPsinstalled, FanPack */
 
 /* OID definitions for discovering resources.*/
-#define SNMP_BC_BLADE_EXPANSION_VECTOR  ".1.3.6.1.4.1.2.3.51.2.22.1.5.1.1.14.x"
+#if 0
 #define SNMP_BC_BLADE_VECTOR            ".1.3.6.1.4.1.2.3.51.2.22.4.25.0"
 #define SNMP_BC_FAN_VECTOR              ".1.3.6.1.4.1.2.3.51.2.22.4.33.0"
 #define SNMP_BC_MEDIA_TRAY_EXISTS       ".1.3.6.1.4.1.2.3.51.2.22.4.32.0"
 #define SNMP_BC_MGMNT_VECTOR            ".1.3.6.1.4.1.2.3.51.2.22.4.30.0"
-#define SNMP_BC_MGMNT_ACTIVE            ".1.3.6.1.4.1.2.3.51.2.22.4.34.0" /* mmblade.mib - chassisActiveMM */
 #define SNMP_BC_POWER_VECTOR            ".1.3.6.1.4.1.2.3.51.2.22.4.31.0"
 #define SNMP_BC_SWITCH_VECTOR           ".1.3.6.1.4.1.2.3.51.2.22.4.29.0"
+#endif
+
+#define SNMP_BC_BLADE_EXPANSION_VECTOR  ".1.3.6.1.4.1.2.3.51.2.22.1.5.1.1.14.x"
+#define SNMP_BC_MGMNT_ACTIVE            ".1.3.6.1.4.1.2.3.51.2.22.4.34.0" /* mmblade.mib - chassisActiveMM */
 #define SNMP_BC_DST                     ".1.3.6.1.4.1.2.3.51.2.4.4.2.0"
 
 #define SNMP_BC_DST_RSA                 ".1.3.6.1.4.1.2.3.51.1.4.4.2.0"
@@ -324,12 +327,14 @@ extern struct snmp_bc_sensor      snmp_bc_chassis_sensors[];
 extern struct snmp_bc_sensor      snmp_bc_chassis_sensors_bct[];
 extern struct snmp_bc_sensor      snmp_bc_blade_sensors[];
 extern struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[];
-extern struct snmp_bc_sensor      snmp_bc_blade_expansion_sensors[];
+extern struct snmp_bc_sensor      snmp_bc_bem_sensors[];
+extern struct snmp_bc_ipmi_sensor snmp_bc_bem_ipmi_sensors[];
 extern struct snmp_bc_sensor      snmp_bc_mgmnt_sensors[];
 extern struct snmp_bc_sensor      snmp_bc_virtual_mgmnt_sensors[];
 extern struct snmp_bc_sensor      snmp_bc_mediatray_sensors[];
 extern struct snmp_bc_sensor      snmp_bc_fan_sensors[];
 extern struct snmp_bc_sensor      snmp_bc_power_sensors[];
+extern struct snmp_bc_sensor      snmp_bc_power_sensors_bch[];
 extern struct snmp_bc_sensor      snmp_bc_switch_sensors[];
 
 extern struct snmp_bc_sensor      snmp_bc_chassis_sensors_rsa[];
@@ -372,7 +377,7 @@ struct snmp_bc_control {
 extern struct snmp_bc_control snmp_bc_chassis_controls_bc[];
 extern struct snmp_bc_control snmp_bc_chassis_controls_bct[];
 extern struct snmp_bc_control snmp_bc_blade_controls[];
-extern struct snmp_bc_control snmp_bc_blade_expansion_controls[];
+extern struct snmp_bc_control snmp_bc_bem_controls[];
 extern struct snmp_bc_control snmp_bc_mgmnt_controls[];
 extern struct snmp_bc_control snmp_bc_virtual_mgmnt_controls[];
 extern struct snmp_bc_control snmp_bc_mediatray_controls[];
@@ -424,7 +429,7 @@ extern struct snmp_bc_inventory snmp_bc_mgmnt_inventories[];
 extern struct snmp_bc_inventory snmp_bc_virtual_mgmnt_inventories[];
 extern struct snmp_bc_inventory snmp_bc_switch_inventories[];
 extern struct snmp_bc_inventory snmp_bc_blade_inventories[];
-extern struct snmp_bc_inventory snmp_bc_blade_expansion_inventories[];
+extern struct snmp_bc_inventory snmp_bc_bem_inventories[];
 extern struct snmp_bc_inventory snmp_bc_mediatray_inventories[];
 extern struct snmp_bc_inventory snmp_bc_power_inventories[];
 
