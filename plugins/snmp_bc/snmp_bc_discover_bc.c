@@ -512,6 +512,16 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 	 ******************************/
 	err = snmp_bc_discover_chassis(handle, ep_root);
 	if (err != SA_OK) return(err);
+															
+	/******************************
+	 * Discover ALL BladeCenter Slots
+	 * Warning: 
+	 *   Discovery of Physical Slots must come **before** discovery of sloted resources.
+	 *   Discovery of slots sets Slot State Sensor to empty.
+	 *   Subsequent resource discovery changes state of Slot State Sensor accordingly.   
+	 ******************************/
+	err = snmp_bc_discover_all_slots(handle, ep_root);
+	if (err != SA_OK) return(err);
 				  
 	/***************** 
 	 * Discover Blades
@@ -626,7 +636,9 @@ SaErrorT snmp_bc_discover_media_tray(struct oh_handler_state *handle,
 {
 
 	SaErrorT err;
+	guint mt_width;
         struct oh_event *e;
+	struct snmp_value get_value;
 	struct ResourceInfo *res_info_ptr;
 	struct snmp_bc_hnd *custom_handle;
 
@@ -704,6 +716,18 @@ SaErrorT snmp_bc_discover_media_tray(struct oh_handler_state *handle,
 		snmp_bc_discover_sensors(handle, snmp_bc_mediatray_sensors, e);
 		snmp_bc_discover_controls(handle, snmp_bc_mediatray_controls, e);
 		snmp_bc_discover_inventories(handle, snmp_bc_mediatray_inventories, e);
+		
+		mt_width = 1;    /* Default to 1-wide */
+		if (res_info_ptr->mib.OidResourceWidth != NULL) {
+			err = snmp_bc_oid_snmp_get(custom_handle,  &(e->u.res_event.entry.ResourceEntity),
+				   		res_info_ptr->mib.OidResourceWidth, &get_value, SAHPI_TRUE);
+			if (!err && (get_value.type == ASN_INTEGER)) {
+					mt_width = get_value.integer;
+			}
+		}			
+
+		err = snmp_bc_set_resource_slot_state_sensor(handle, e, mt_width);
+		
 	}
 	
 	return(SA_OK);
@@ -851,6 +875,7 @@ SaErrorT snmp_bc_discover_blade(struct oh_handler_state *handle,
 
 	int i;
 	SaErrorT err;
+	guint blade_width;
         struct oh_event *e;
 	struct snmp_value get_value, get_blade_resourcetag;
 	struct ResourceInfo *res_info_ptr;
@@ -971,6 +996,16 @@ SaErrorT snmp_bc_discover_blade(struct oh_handler_state *handle,
 			snmp_bc_discover_controls(handle, snmp_bc_blade_controls, e);
 			snmp_bc_discover_inventories(handle, snmp_bc_blade_inventories, e);
 			
+			blade_width = 1;    /* Default to 1-wide blade */
+			if (res_info_ptr->mib.OidResourceWidth != NULL) {
+				err = snmp_bc_oid_snmp_get(custom_handle,  &(e->u.res_event.entry.ResourceEntity),
+				   		res_info_ptr->mib.OidResourceWidth, &get_value, SAHPI_TRUE);
+				if (!err && (get_value.type == ASN_INTEGER)) {
+					blade_width = get_value.integer;
+				}
+			}			
+
+			err = snmp_bc_set_resource_slot_state_sensor(handle, e, blade_width);
 			/********************************** 
 			 * Discover Blade Expansion Modules
 			 **********************************/
@@ -1064,9 +1099,11 @@ SaErrorT snmp_bc_discover_fans(struct oh_handler_state *handle,
 			  SaHpiEntityPathT *ep_root, char *fan_vector)
 {
 
-	int i;
+	guint i;
+	guint fan_width;
 	SaErrorT err;
         struct oh_event *e;
+	struct snmp_value get_value;
 	struct ResourceInfo *res_info_ptr;
 	struct snmp_bc_hnd *custom_handle;
 
@@ -1153,6 +1190,18 @@ SaErrorT snmp_bc_discover_fans(struct oh_handler_state *handle,
 			snmp_bc_discover_sensors(handle, snmp_bc_fan_sensors, e);
 			snmp_bc_discover_controls(handle, snmp_bc_fan_controls, e);
 			snmp_bc_discover_inventories(handle, snmp_bc_fan_inventories, e);
+			
+			fan_width = 1;    /* Default to 1-wide blade */
+			if (res_info_ptr->mib.OidResourceWidth != NULL) {
+				err = snmp_bc_oid_snmp_get(custom_handle,  &(e->u.res_event.entry.ResourceEntity),
+				   		res_info_ptr->mib.OidResourceWidth, &get_value, SAHPI_TRUE);
+				if (!err && (get_value.type == ASN_INTEGER)) {
+					fan_width = get_value.integer;
+				}
+			}			
+
+			err = snmp_bc_set_resource_slot_state_sensor(handle, e, fan_width);
+			
 		}
 	}
 	return(SA_OK);
@@ -1176,8 +1225,10 @@ SaErrorT snmp_bc_discover_power_module(struct oh_handler_state *handle,
 {
 
 	int i;
+	guint pm_width;
 	SaErrorT err;
         struct oh_event *e;
+	struct snmp_value get_value;
 	struct ResourceInfo *res_info_ptr;
 	struct snmp_bc_hnd *custom_handle;
 
@@ -1268,6 +1319,18 @@ SaErrorT snmp_bc_discover_power_module(struct oh_handler_state *handle,
 
 			snmp_bc_discover_controls(handle, snmp_bc_power_controls, e);
 			snmp_bc_discover_inventories(handle, snmp_bc_power_inventories, e);
+			
+			pm_width = 1;    /* Default to 1-wide */
+			if (res_info_ptr->mib.OidResourceWidth != NULL) {
+				err = snmp_bc_oid_snmp_get(custom_handle,  &(e->u.res_event.entry.ResourceEntity),
+				   		res_info_ptr->mib.OidResourceWidth, &get_value, SAHPI_TRUE);
+				if (!err && (get_value.type == ASN_INTEGER)) {
+					pm_width = get_value.integer;
+				}
+			}			
+
+			err = snmp_bc_set_resource_slot_state_sensor(handle, e, pm_width);
+					
 		}
 	}
 	return(SA_OK);
@@ -1291,6 +1354,7 @@ SaErrorT snmp_bc_discover_switch(struct oh_handler_state *handle,
 {
 
 	int i;
+	guint sw_width;
 	SaErrorT err;
         struct oh_event *e;
 	struct ResourceInfo *res_info_ptr;
@@ -1388,6 +1452,18 @@ SaErrorT snmp_bc_discover_switch(struct oh_handler_state *handle,
 			snmp_bc_discover_sensors(handle, snmp_bc_switch_sensors, e);
 			snmp_bc_discover_controls(handle, snmp_bc_switch_controls, e);
 			snmp_bc_discover_inventories(handle, snmp_bc_switch_inventories, e);
+
+			sw_width = 1;    /* Default to 1-wide */
+			if (res_info_ptr->mib.OidResourceWidth != NULL) {
+				err = snmp_bc_oid_snmp_get(custom_handle,  &(e->u.res_event.entry.ResourceEntity),
+				   		res_info_ptr->mib.OidResourceWidth, &get_value, SAHPI_TRUE);
+				if (!err && (get_value.type == ASN_INTEGER)) {
+					sw_width = get_value.integer;
+				}
+			}			
+
+			err = snmp_bc_set_resource_slot_state_sensor(handle, e, sw_width);
+								
 		}
 	}
 	return(SA_OK);
@@ -1411,6 +1487,7 @@ SaErrorT snmp_bc_discover_mm(struct oh_handler_state *handle,
 {
 
 	int i;
+	guint mm_width;
 	SaErrorT err;
         struct oh_event *e;
 	struct snmp_value get_value, get_active;
@@ -1482,7 +1559,7 @@ SaErrorT snmp_bc_discover_mm(struct oh_handler_state *handle,
                 snmp_bc_discover_res_events(handle, &(e->u.res_event.entry.ResourceEntity), res_info_ptr);
                 snmp_bc_discover_sensors(handle, snmp_bc_virtual_mgmnt_sensors, e);
                 snmp_bc_discover_controls(handle, snmp_bc_virtual_mgmnt_controls, e);
-                snmp_bc_discover_inventories(handle, snmp_bc_virtual_mgmnt_inventories, e);
+                snmp_bc_discover_inventories(handle, snmp_bc_virtual_mgmnt_inventories, e);		
 	}		
 			
 	/* Discover Physical MM */                				
@@ -1567,6 +1644,17 @@ SaErrorT snmp_bc_discover_mm(struct oh_handler_state *handle,
                 	snmp_bc_discover_sensors(handle, snmp_bc_mgmnt_sensors, e);
                 	snmp_bc_discover_controls(handle, snmp_bc_mgmnt_controls, e);
                 	snmp_bc_discover_inventories(handle, snmp_bc_mgmnt_inventories, e);
+
+			mm_width = 1;    /* Default to 1-wide */
+			if (res_info_ptr->mib.OidResourceWidth != NULL) {
+				err = snmp_bc_oid_snmp_get(custom_handle,  &(e->u.res_event.entry.ResourceEntity),
+					   		res_info_ptr->mib.OidResourceWidth, &get_value, SAHPI_TRUE);
+				if (!err && (get_value.type == ASN_INTEGER)) {
+					mm_width = get_value.integer;
+				}
+			}			
+			err = snmp_bc_set_resource_slot_state_sensor(handle, e, mm_width);
+						
 		}
 	}
 	return(SA_OK);
@@ -1878,6 +1966,7 @@ SaErrorT snmp_bc_rediscover(struct oh_handler_state *handle,
                         	handle->eventq = g_slist_append(handle->eventq, e);
                 	} else { dbg("Out of memory."); }
 
+			err = snnp_bc_reset_resource_slot_state_sensor(handle, res);
                 	oh_remove_resource(handle->rptcache, res->ResourceId);
                 
         	} else dbg("No valid resource at hand. Could not remove resource.");
@@ -2127,3 +2216,186 @@ SaErrorT snmp_bc_rediscover(struct oh_handler_state *handle,
 	}	
 	return(SA_OK);
 }
+
+/**
+ * snmp_bc_discover_all_slots
+ * @handler: Pointer to handler's data.
+ * @ep_root: Pointer to chassis Root Entity Path which comes from openhpi.conf.
+ *
+ * Discovers all BladeCenter physical slots.                 
+ *
+ * Return values:
+ * SA_OK - normal case.
+ * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
+  **/
+SaErrorT snmp_bc_discover_all_slots(struct oh_handler_state *handle,
+					SaHpiEntityPathT *ep_root)
+{
+
+	guint i;
+	SaErrorT err;
+	struct snmp_bc_hnd *custom_handle;
+
+	if (!handle || !ep_root) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+		
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
+	if (!custom_handle) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+
+	for (i = 0; i < custom_handle->max_pb_supported; i++) {
+		err = snmp_bc_discover_slot(handle, ep_root, SAHPI_ENT_PHYSICAL_SLOT,i); 
+	}							
+
+	for (i = 0; i < custom_handle->max_blower_supported; i++) {
+		err = snmp_bc_discover_slot(handle, ep_root, BLADECENTER_FAN_SLOT,i);
+	}							
+	for (i = 0; i < custom_handle->max_pm_supported; i++) {
+		err = snmp_bc_discover_slot(handle, ep_root, BLADECENTER_POWER_SUPPLY_SLOT,i);
+	}
+								
+	for (i = 0; i < custom_handle->max_sm_supported; i++) {
+		err = snmp_bc_discover_slot(handle, ep_root, BLADECENTER_INTERCONNECT_SLOT,i);
+	}
+								
+	for (i = 0; i < custom_handle->max_mm_supported; i++) {
+		err = snmp_bc_discover_slot(handle, ep_root, BLADECENTER_SYS_MGMNT_MODULE_SLOT,i);
+	}
+								
+	for (i = 0; i < custom_handle->max_mt_supported; i++) {
+		err = snmp_bc_discover_slot(handle, ep_root, BLADECENTER_PERIPHERAL_BAY_SLOT,i);
+	}
+	
+	return(SA_OK);							
+}
+
+/**
+ * snmp_bc_discovery_slot:
+ * @handler: Pointer to handler's data.
+ * @ep_root: Pointer to chassis Root Entity Path which comes from openhpi.conf.
+ * @entitytype: Resource type of the slot.
+ * @entitylocation: Slot location of the resource.
+ *
+ * Discovers slot resources and their RDRs.
+ *
+ * Return values:
+ * SA_OK - normal case.
+ * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
+  **/
+SaErrorT snmp_bc_discover_slot( struct oh_handler_state *handle,
+			         SaHpiEntityPathT *ep_root,
+				 SaHpiEntityTypeT entitytype,
+				 guint		  entitylocation) 
+{
+
+	SaErrorT err;
+	char *comment;
+        struct oh_event *e;
+	struct snmp_bc_hnd *custom_handle;
+	struct ResourceInfo *res_info_ptr;
+
+	if (!handle) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+		
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
+	if (!custom_handle) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+
+	e = NULL;
+	res_info_ptr = NULL;
+	
+	e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
+	if (e == NULL) {
+		dbg("Out of memory.");
+		return(SA_ERR_HPI_OUT_OF_SPACE);
+	}
+	
+	e->type = OH_ET_RESOURCE;
+	e->did = oh_get_default_domain_id();
+	e->u.res_event.entry = snmp_bc_rpt_array[BC_RPT_ENTRY_PHYSICAL_SLOT].rpt;
+	oh_concat_ep(&(e->u.res_event.entry.ResourceEntity), ep_root);
+	oh_set_ep_location(&(e->u.res_event.entry.ResourceEntity),
+			SAHPI_ENT_CHASSIS_SPECIFIC, entitylocation + SNMP_BC_HPI_LOCATION_BASE);
+			
+			
+	switch (entitytype) {
+		case SAHPI_ENT_PHYSICAL_SLOT:
+			e->u.res_event.entry.ResourceEntity.Entry[0].EntityType = SAHPI_ENT_PHYSICAL_SLOT;
+			comment = BC_PHYSICAL_SLOT;
+			break;
+			
+		case BLADECENTER_INTERCONNECT_SLOT:
+			e->u.res_event.entry.ResourceEntity.Entry[0].EntityType = BLADECENTER_INTERCONNECT_SLOT;
+			comment = BC_INTERCONNECT_SLOT;
+			break;
+			
+		case BLADECENTER_POWER_SUPPLY_SLOT:
+			e->u.res_event.entry.ResourceEntity.Entry[0].EntityType = BLADECENTER_POWER_SUPPLY_SLOT;
+			comment = BC_POWER_SUPPLY_SLOT;
+			break;
+			
+		case BLADECENTER_PERIPHERAL_BAY_SLOT:
+			e->u.res_event.entry.ResourceEntity.Entry[0].EntityType = BLADECENTER_PERIPHERAL_BAY_SLOT;
+			comment = BC_PERIPHERAL_BAY_SLOT;
+			break;
+			
+		case BLADECENTER_SYS_MGMNT_MODULE_SLOT:
+			e->u.res_event.entry.ResourceEntity.Entry[0].EntityType = BLADECENTER_SYS_MGMNT_MODULE_SLOT;
+			comment = BC_SYS_MGMNT_MODULE_SLOT;
+			break;
+			
+		case BLADECENTER_FAN_SLOT:
+			e->u.res_event.entry.ResourceEntity.Entry[0].EntityType = BLADECENTER_FAN_SLOT;
+			comment = BC_FAN_SLOT;
+			break;
+			
+		default:
+			dbg("Invalid slot resource type\n");
+			return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+	
+	
+	e->u.res_event.entry.ResourceId =
+		oh_uid_from_entity_path(&(e->u.res_event.entry.ResourceEntity));
+		
+	snmp_bc_create_resourcetag(&(e->u.res_event.entry.ResourceTag),
+				     comment,
+				     entitylocation + SNMP_BC_HPI_LOCATION_BASE);
+				     
+	res_info_ptr = g_memdup(&(snmp_bc_rpt_array[BC_RPT_ENTRY_PHYSICAL_SLOT].res_info),
+						sizeof(struct ResourceInfo));		
+	if (!res_info_ptr) {
+		dbg("Out of memory.");
+		g_free(e);
+		return(SA_ERR_HPI_OUT_OF_SPACE);
+	}
+	
+	err = oh_add_resource(custom_handle->tmpcache,
+				&(e->u.res_event.entry),
+				res_info_ptr, 0);
+	if (err) { 
+		dbg("Failed to add resource. Error=%s.", oh_lookup_error(err));
+		g_free(e);
+		return(err);
+	}
+	
+	custom_handle->tmpqueue = g_slist_append(custom_handle->tmpqueue, e);
+        snmp_bc_discover_res_events(handle, &(e->u.res_event.entry.ResourceEntity), res_info_ptr);
+        snmp_bc_discover_sensors(handle, snmp_bc_slot_sensors, e);
+        snmp_bc_discover_controls(handle, snmp_bc_slot_controls, e);
+        snmp_bc_discover_inventories(handle, snmp_bc_slot_inventories, e);
+			
+	return(SA_OK);
+}
+
+
