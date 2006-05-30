@@ -81,5 +81,14 @@ SaErrorT snmp_bc_discover_mm(struct oh_handler_state *handle,
 			  SaHpiEntityPathT *ep_root, char *mm_vector);
 
 SaErrorT snmp_bc_update_chassis_topo(struct oh_handler_state *handle);
+
+SaErrorT snmp_bc_discover_all_slots(struct oh_handler_state *handle,
+					SaHpiEntityPathT *ep_root);
+
+SaErrorT snmp_bc_discover_slot( struct oh_handler_state *handle,
+			         SaHpiEntityPathT *ep_root,
+				 SaHpiEntityTypeT entitytype,
+				 guint		  entitylocation); 
+
 				 				 
 #endif
