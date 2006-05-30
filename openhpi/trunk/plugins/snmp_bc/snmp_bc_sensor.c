@@ -2336,10 +2336,9 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 		
 	snprintf(oid, SNMP_BC_MAX_OID_LENGTH, "%s.%d", thisOID, oidIndex);
 			 
-	printf(" >>> Attempt to read OID %s\n", oid);			
 	err = snmp_bc_snmp_get(custom_handler, oid, &get_value, SAHPI_TRUE);
 	if (err != SA_OK) {
-		printf(" >>> not able to read OID %s\n", oid);
+		dbg(" >>> not able to read OID %s\n", oid);
 		 return(err); 
 	} else if ((err == SA_OK) && (get_value.type != ASN_OCTET_STR)) {
 		dbg("Cannot get Power Reading %s\n", oid);
