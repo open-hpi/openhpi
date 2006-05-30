@@ -105,7 +105,8 @@ typedef enum {
         BC_RPT_ENTRY_BLADE_EXPANSION_CARD,
         BC_RPT_ENTRY_MEDIA_TRAY,
         BC_RPT_ENTRY_BLOWER_MODULE,
-        BC_RPT_ENTRY_POWER_MODULE
+        BC_RPT_ENTRY_POWER_MODULE,
+	BC_RPT_ENTRY_PHYSICAL_SLOT
 } BCRptEntryT;
 
 typedef enum {
@@ -174,6 +175,29 @@ typedef enum {
 #define BLADECENTER_PERIPHERAL_BAY_SLOT    SAHPI_ENT_CHASSIS_SPECIFIC + 0x12
 #define BLADECENTER_SYS_MGMNT_MODULE_SLOT  SAHPI_ENT_CHASSIS_SPECIFIC + 0x13
 #define BLADECENTER_FAN_SLOT               SAHPI_ENT_CHASSIS_SPECIFIC + 0x14
+
+/* Sensor Numbers defined for Blade Center Physical Slot resource */
+#define BLADECENTER_SENSOR_NUM_SLOT_STATE  	(SaHpiSensorNumT) 0x1010
+#define BLADECENTER_SENSOR_NUM_MAX_POWER  	(SaHpiSensorNumT) 0x1012
+#define BLADECENTER_SENSOR_NUM_ASSIGNED_POWER  	(SaHpiSensorNumT) 0x1011
+#define BLADECENTER_SENSOR_NUM_MIN_POWER  	(SaHpiSensorNumT) 0x1013
+
+/* Slot ResourceTag */
+#define BC_PHYSICAL_SLOT  	 "Blade Center - Processor Blade Slot"
+#define BC_INTERCONNECT_SLOT 	 "Blade Center - Interconnect Slot"
+#define BC_POWER_SUPPLY_SLOT 	 "Blade Center - Power Supply Slot"
+#define BC_PERIPHERAL_BAY_SLOT   "Blade Center - Peripheral Bay Slot"
+#define BC_SYS_MGMNT_MODULE_SLOT "Blade Center - Management Module Slot"
+#define BC_FAN_SLOT 		 "Blade Center - Blower/Fan Slot"
+
+/* Slot Power OIDs  */
+#define SNMP_BC_PD1POWERCURRENT ".1.3.6.1.4.1.2.3.51.2.2.10.2.1.1.7" /* pd1ModuleAllocatedPowerCurrent */
+#define SNMP_BC_PD1POWERMAX	".1.3.6.1.4.1.2.3.51.2.2.10.2.1.1.8" /* pd1ModuleAllocatedPowerMax */ 
+#define SNMP_BC_PD1POWERMIN	".1.3.6.1.4.1.2.3.51.2.2.10.2.1.1.9" /* pd1ModuleAllocatedPowerMin */
+#define SNMP_BC_PD2POWERCURRENT	".1.3.6.1.4.1.2.3.51.2.2.10.3.1.1.7" /* pd2ModuleAllocatedPowerCurrent */
+#define SNMP_BC_PD2POWERMAX	".1.3.6.1.4.1.2.3.51.2.2.10.3.1.1.8" /* pd2ModuleAllocatedPowerMax */
+#define SNMP_BC_PD2POWERMIN	".1.3.6.1.4.1.2.3.51.2.2.10.3.1.1.9" /* pd2ModuleAllocatedPowerMin */
+
 
 /* Sensor and Control Numbers defined for Redundancy MM Implementation */
 #define BLADECENTER_SENSOR_NUM_MGMNT_REDUNDANCY  	(SaHpiSensorNumT) 0x1001
@@ -299,6 +323,7 @@ struct SensorInfo {
         struct SensorMibInfo mib;
         SaHpiEventStateT cur_state; /* This really records the last state read from the SEL */
 	                            /* Which may not be the current state of the sensor */
+	SaHpiResourceIdT cur_child_rid;				    
 	SaHpiBoolT sensor_enabled;
 	SaHpiBoolT events_enabled;
         SaHpiEventStateT assert_mask;
@@ -336,6 +361,7 @@ extern struct snmp_bc_sensor      snmp_bc_fan_sensors[];
 extern struct snmp_bc_sensor      snmp_bc_power_sensors[];
 extern struct snmp_bc_sensor      snmp_bc_power_sensors_bch[];
 extern struct snmp_bc_sensor      snmp_bc_switch_sensors[];
+extern struct snmp_bc_sensor      snmp_bc_slot_sensors[];
 
 extern struct snmp_bc_sensor      snmp_bc_chassis_sensors_rsa[];
 extern struct snmp_bc_sensor      snmp_bc_cpu_sensors_rsa[];
@@ -384,6 +410,7 @@ extern struct snmp_bc_control snmp_bc_mediatray_controls[];
 extern struct snmp_bc_control snmp_bc_fan_controls[];
 extern struct snmp_bc_control snmp_bc_power_controls[];
 extern struct snmp_bc_control snmp_bc_switch_controls[];
+extern struct snmp_bc_control snmp_bc_slot_controls[];
 
 extern struct snmp_bc_control snmp_bc_chassis_controls_rsa[];
 extern struct snmp_bc_control snmp_bc_cpu_controls_rsa[];
@@ -432,6 +459,7 @@ extern struct snmp_bc_inventory snmp_bc_blade_inventories[];
 extern struct snmp_bc_inventory snmp_bc_bem_inventories[];
 extern struct snmp_bc_inventory snmp_bc_mediatray_inventories[];
 extern struct snmp_bc_inventory snmp_bc_power_inventories[];
+extern struct snmp_bc_inventory snmp_bc_slot_inventories[];
 
 extern struct snmp_bc_inventory snmp_bc_chassis_inventories_rsa[];
 extern struct snmp_bc_inventory snmp_bc_cpu_inventories_rsa[];
