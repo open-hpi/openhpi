@@ -1,0 +1,210 @@
+The following is a usage case to use as a reference for our discussions
+about developing plugins for OpenHPI.
+
+The physical setup
+------------------
+
+We have three machines, each containing the following hardware components
+that we would like to represent as an entity in HPI:
+* one hard drive
+* two redundant hot-swappable power supplies
+* one temperature sensor
+
+All three machines are connected via a secure, local network, where one of
+the machines acts as the manager for the other two.  This means that we have
+an HPI application running on the one manager machine, with the other two
+machines 'plugged in' to the managers HPI view using the infamous remote
+plugin and associated openhpid daemons running on the two 'remote' machines.
+	   					  
+	   					  
+ +----------------------------+			  
+ |            +------+-------+|			  
+ | Manager    |      |       ||			  
+ |            | Disk | PS #1 |+--------+	  
+ |            |      |       || Network+----------|
+ | (HPI App)   ------+-------+|        |	  |
+ |            |      |       |+--------+	  |
+ |            | Temp | PS #2 ||	       		  |
+ |            |      |       ||	       		  |
+ |            +------+-------+|	       		  |
+ +----------------------------+	       		  |
+   	    			       		  |
+   	    			       		  |
+ +----------------------------+	       		  |
+ |            +------+-------+|	       		  |
+ | openhpid   |      |       ||	       		  |
+ |            | Disk | PS #1 ||	       		  |
+ |            |      |       |+---------+	  |
+ |            +------+-------+| Network |	  |
+ |            |      |       ||         +---------+
+ |            | Temp | PS #2 |+---------+	  |
+ |            |      |       ||	       		  |
+ |            +------+-------+|	       		  |
+ +----------------------------+	       		  |
+	   			       		  |
+	   			       		  |
+ +----------------------------+	       		  |
+ |            +------+-------+|	       		  |
+ | openhpid   |      |       ||	       		  |
+ |            | Disk | PS #1 ||	       		  |
+ |            |      |       |+----------+	  |
+ |            +------+-------+| Network  +--------+
+ |            |      |       ||          |
+ |            | Temp | PS #2 |+----------+
+ |            |      |       ||
+ |            +------+-------+|
+ +----------------------------+
+
+
+Ways this could be represented in HPI
+-------------------------------------
+
+I can imagine several ways this physical setup could be represented
+in HPI.  These include ==>
+
+NOTE:  The following diagrams represent what an application would see
+       in the RPT table by opening a session using the specified ID.
+
+Flat representation)
+
+SAHPI_DEFAULT_DOMAIN_ID
+         |
+	 |
+	 +------- Entity for hard disk
+	 |
+	 +------- Entity for hard disk
+	 |
+	 +------- Entity for hard disk
+	 |
+	 +------- Entity for PS
+	 |		       
+	 +------- Entity for PS
+	 |
+	 +------- Entity for PS
+	 |		       
+	 +------- Entity for PS
+	 |
+	 +------- Entity for PS
+	 |		       
+	 +------- Entity for PS
+	 |
+       	 +------- Entity for temp sensor
+	 |		       		
+	 +------- Entity for temp sensor
+	 |
+	 +------- Entity for temp sensor
+
+
+None of the entities above would have the SAHPI_CAPABILITY_DOMAIN flag
+set in their RPT table entry, which means that none of these entities are 
+domains.
+
+domain for each machine)
+
+SAHPI_DEFAULT_DOMAIN_ID
+         |
+	 |
+	 +------- Entity representing machine
+	 |
+	 +------- Entity representing machine
+	 |
+	 +------- Entity representing machine
+	 
+Each of these entities will have the SAHPI_CAPABILITY_DOMAIN flag set in
+their RPT table entry, indicating that another saHpiSessionOpen() can be
+called using the DomainId field of the RPT entry.
+
+When the application looks inside any of the three domains, it sees:
+
+the_domain_id_of_the_machine
+         |
+	 |
+	 +------- Entity for hard disk
+	 |
+	 +------- Entity for power supply
+	 |
+	 +------- Entity for power supply
+	 |
+	 +------- Entity for temp sensor
+
+
+domain for each type of device)
+
+SAHPI_DEFAULT_DOMAIN_ID
+         |
+	 |
+	 +------- Entity representing all hard drives
+	 |
+	 +------- Entity representing all power supplies
+	 |
+	 +------- Entity representing all temperature sensors
+
+Each of these entities will have the SAHPI_CAPABILITY_DOMAIN flag set in
+their RPT table entry, indicating that another saHpiSessionOpen() can be
+called using the DomainId field of the RPT entry.
+
+When the application looks inside the hard drive domain it sees:
+
+the_domain_id_for_hard_drives
+         |
+	 |
+	 +------- Entity for hard disk
+	 |
+	 +------- Entity for hard disk
+	 |
+	 +------- Entity for hard disk
+
+When the application looks inside the temp sensor domain it sees:
+
+the_domain_id_for_temp_sensors
+         |
+	 |
+	 +------- Entity for temp sensor
+	 |
+	 +------- Entity for temp sensor
+	 |
+	 +------- Entity for temp sensor
+
+When the application looks inside the power supply domain it sees:
+
+the_domain_id_for_power_supplies
+         |
+	 |
+	 +------- Entity for power supply
+	 |
+	 +------- Entity for power supply
+	 |
+	 +------- Entity for power supply
+	 |
+	 +------- Entity for power supply
+	 |
+	 +------- Entity for power supply
+	 |
+	 +------- Entity for power supply
+
+As you can see, there are many combinations, and the more hardware you
+start connecting to a given HPI view, the more combinations are possible.
+
+Also keep in mind that the specification allows a given device to be show up
+in multiple locations of an HPI view.  
+
+File system analogy:
+--------------------
+
+In a lot of ways, the above representations can be thought of like a 
+file system, where everything is a file, but some files are directories.
+A user can move files around in many combinations, and even links to allow
+a file to show up in multiple locations.
+
+The way an implementor chooses to lay out their files is refereed to a 
+schema.  So, for example, an LSB compliant Linux distribution could be
+said to follow the File System Hierarchy schema
+
+... OK, so the analogy is getting a little thin, but you get the idea
+
+The challenge
+-------------
+
+Ideally OpenHPI would enable a solution provider to represent the devices
+in their HPI view using any order they wish.  I think we do not yet know how
+possible that is, but try to target the maximum configurability.

@@ -1,0 +1,68 @@
+=head1 NAME
+
+openhpi-switcher - allows alternative openhpi library types to coexist
+
+=head1 SYNOPSIS
+
+openhpi-switcher --list
+
+openhpi-switcher --set standard
+
+openhpi-switcher --env client
+
+=head1 DESCRIPTION
+
+OpenHPI has 2 different connection libraries, a stand alone version
+suitable for most purposes, and a clien library which connects to an
+HPI service daemon, needed in more demanding environments.
+openhpi-switcher manages which one is the default on the system.
+
+=head1 OPTIONS SUMMARY
+
+    --list            - display available openhpi types
+    --show            - show default openhpi
+    --set=name        - set default openhpi type
+    --env=name        - return required environment stanza to set openhpi
+                        type for a single application
+    --help            - display this message
+
+=head1 OPTIONS
+
+=over 4
+
+=item B<--list>
+
+Displays all available OpenHPI types by name.  An B<*> will be
+presented in front of which ever is the default.
+
+=item B<--show>
+
+Show the name of the default OpenHPI type on the system.
+
+=item B<--set=name>
+
+Sets the default OpenHPI type on the system.  This involves
+manipulating symlinks in $prefix/lib in your installation, and thus
+requires root privledges to run.
+
+=item B<--env=name>
+
+Return a string suitable for export under bash that will set "name" as
+the default OpenHPI to be used in that shell only.  This is intended
+for applications which wish to run under a different OpenHPI than is
+provided by default in their environment.
+
+=back
+
+=head1 BUGS
+
+The openhpid still isn't aware enough to not try to use the client
+library itself, so a very whacky loop can occur.  This will be
+addressed before OpenHPI 2.2
+
+=head1 AUTHORS
+
+This man page writen by Sean Dague (http://dague.net/sean) and is made
+available under the terms of OpenHPI itself
+
+
