@@ -1932,6 +1932,7 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 	char oid[SNMP_BC_MAX_OID_LENGTH];
 	SaHpiRptEntryT  *res;
 	struct snmp_value get_value;
+	struct snmp_value pm3_state, pm4_state;
 	struct oh_handler_state *handler;
 	struct snmp_bc_hnd *custom_handler;
  		
@@ -2094,7 +2095,7 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 						oidIndex = 8;
 						break;					
 					default:
-						dbg("Not one of the valid BC H Switch Slots.\n");
+						dbg("Not one of the valid BC H MM Slots.\n");
 						return(SA_ERR_HPI_INTERNAL_ERROR);							
 						break;
 				}
@@ -2108,7 +2109,29 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 		
 		case BLADECENTER_FAN_SLOT:
 			if (custom_handler->platform == SNMP_BC_PLATFORM_BCT) {
-				 switch (slotnum) {
+			
+				if ( (slotnum == 3) || (slotnum == 4)) {
+					snprintf(oid, SNMP_BC_MAX_OID_LENGTH, "%s.%d", SNMP_BC_PMSTATE, 3);
+					err = snmp_bc_snmp_get(custom_handler, oid, &pm3_state, SAHPI_TRUE);
+					if (err != SA_OK) {
+						dbg("Not able to read OID %s\n", oid);
+		 				return(err); 
+					} else if ((err == SA_OK) && (pm3_state.type != ASN_INTEGER)) {
+						dbg("Cannot get Power Reading %s\n", oid);
+						return(SA_ERR_HPI_INTERNAL_ERROR);
+					}
+					snprintf(oid, SNMP_BC_MAX_OID_LENGTH, "%s.%d", SNMP_BC_PMSTATE, 4);
+					err = snmp_bc_snmp_get(custom_handler, oid, &pm4_state, SAHPI_TRUE);
+					if (err != SA_OK) {
+						dbg("Not able to read OID %s\n", oid);
+		 				return(err); 
+					} else if ((err == SA_OK) && (pm4_state.type != ASN_INTEGER)) {
+						dbg("Cannot get Power Reading %s\n", oid);
+						return(SA_ERR_HPI_INTERNAL_ERROR);
+					}					
+				}
+				
+				switch (slotnum) {
 				 	case 1:
 						oidIndex = 3;
 						break;
@@ -2116,11 +2139,19 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 						oidIndex = 4;
 						break;					
 					case 3:
-						oidIndex = 1;
+						if ((pm3_state.integer == 3) && 
+								(pm4_state.integer == 3))
+							oidIndex = 5;
+						else 	
+							oidIndex = 1;
 						break;					
 
 					case 4:
-						oidIndex = 2;
+						if ((pm3_state.integer == 3) && 
+								(pm4_state.integer == 3))
+							oidIndex = 6;
+						else 
+							oidIndex = 2;
 						break;					
 					default:
 						dbg("Not one of the valid BC-T Fan Slots.\n");
@@ -2131,7 +2162,10 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 				if ( slotnum < 3) {
 					usepowerdomain1;
 				} else {
-					usepowerdomain2;
+					if ((pm3_state.integer == 3) && 
+							(pm4_state.integer == 3))
+					     usepowerdomain1;
+					else usepowerdomain2;
 				}			
 				
 			} else if (custom_handler->platform == SNMP_BC_PLATFORM_BC) {
