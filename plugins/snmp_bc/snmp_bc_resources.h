@@ -197,7 +197,9 @@ typedef enum {
 #define SNMP_BC_PD2POWERCURRENT	".1.3.6.1.4.1.2.3.51.2.2.10.3.1.1.7" /* pd2ModuleAllocatedPowerCurrent */
 #define SNMP_BC_PD2POWERMAX	".1.3.6.1.4.1.2.3.51.2.2.10.3.1.1.8" /* pd2ModuleAllocatedPowerMax */
 #define SNMP_BC_PD2POWERMIN	".1.3.6.1.4.1.2.3.51.2.2.10.3.1.1.9" /* pd2ModuleAllocatedPowerMin */
-
+#define SNMP_BC_PD1STATE	".1.3.6.1.4.1.2.3.51.2.2.10.2.1.1.6" /* pd1ModuleState */
+#define SNMP_BC_PD2STATE	".1.3.6.1.4.1.2.3.51.2.2.10.3.1.1.6" /* pd2ModuleState: standby(0), on(1), notPresent(2),notApplicable(255)*/
+#define SNMP_BC_PMSTATE		".1.3.6.1.4.1.2.3.51.2.2.4.1.1.3"    /* powerModuleState: unknown(0), good(1), warning(2), not available(3) */
 
 /* Sensor and Control Numbers defined for Redundancy MM Implementation */
 #define BLADECENTER_SENSOR_NUM_MGMNT_REDUNDANCY  	(SaHpiSensorNumT) 0x1001
