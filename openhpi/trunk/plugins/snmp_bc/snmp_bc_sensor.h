@@ -1,11 +1,11 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2004
+ * (C) Copyright IBM Corp. 2004, 2006
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
- * file and program are licensed under a BSD style license.  See
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. This
+ * file and program are licensed under a BSD style license. See
  * the Copying file included with the OpenHPI distribution for
  * full licensing terms.
  *
@@ -84,33 +84,31 @@ SaErrorT snmp_bc_set_threshold_reading(void *hnd,
 				       const SaHpiSensorReadingT *reading);
 				       
 SaErrorT snmp_bc_get_logical_sensors(void *hnd,
-				       SaHpiResourceIdT rid,
-				       SaHpiSensorNumT sid,
-				       SaHpiSensorReadingT *reading);
+				     SaHpiResourceIdT rid,
+				     SaHpiSensorNumT sid,
+				     SaHpiSensorReadingT *reading);
 				       
 SaErrorT snmp_bc_set_slot_state_sensor(void *hnd, 
-					struct oh_event *e, 
-					SaHpiEntityPathT *slot_ep);
+				       struct oh_event *e, 
+				       SaHpiEntityPathT *slot_ep);
 					
 SaErrorT snmp_bc_reset_slot_state_sensor(void *hnd, 
-					SaHpiEntityPathT *slot_ep);
+					 SaHpiEntityPathT *slot_ep);
 					
 SaErrorT snmp_bc_set_resource_slot_state_sensor(void *hnd, 
-					struct oh_event *e,
-					guint resourcewidth);
+						struct oh_event *e,
+						guint resourcewidth);
 					
-SaErrorT snnp_bc_reset_resource_slot_state_sensor(void *hnd, 
-					SaHpiRptEntryT *res);					
+SaErrorT snmp_bc_reset_resource_slot_state_sensor(void *hnd, 
+						  SaHpiRptEntryT *res);					
 					
 SaErrorT snmp_bc_get_slot_state_sensor(void *hnd,
 				       SaHpiResourceIdT rid,
 				       SaHpiSensorNumT sid,
 				       SaHpiSensorReadingT *reading);
-																		       									       				       
+
 SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 				       SaHpiResourceIdT rid,
 				       SaHpiSensorNumT sid,
 				       SaHpiSensorReadingT *reading);
-
-				       				       
 #endif

@@ -219,11 +219,11 @@ struct ResourceMibInfo {
         const char *OidPowerState;
         const char *OidPowerOnOff;
 	const char *OidUuid;
-	const char *OidResourceWidth;	/* Oid specifying how many physical slots  */
-					/* this resource occupies. In a BladeCenter*/
-					/* it is meaningful for ProcessorBlades.   */
-					/* Other resources, for example Switch Module, */
-					/* only takes one slot.                    */ 
+	const char *OidResourceWidth;	/* Oid specifying how many physical slots   */
+					/* this resource occupies. In a BladeCenter */
+					/* it is meaningful for blades.             */
+					/* Other resources, (e.g. I/O Modules)      */
+					/* only take one slot.                      */ 
 };
 
 /* SNMP_BC_MAX_RESOURCE_EVENT_ARRAY_SIZE includes an ending NULL entry */
@@ -294,6 +294,7 @@ struct SensorMibInfo {
         unsigned int not_avail_indicator_num; /* 0 for none, n>0 otherwise */
         SaHpiBoolT write_only; /* TRUE - Write-only SNMP command */
         const char *oid;
+        SaHpiEntityLocationT loc_offset;
         struct SnmpSensorThresholdOids threshold_oids;
 	struct SnmpSensorWritableThresholdOids threshold_write_oids;
 };
@@ -360,6 +361,7 @@ extern struct snmp_bc_sensor      snmp_bc_mgmnt_sensors[];
 extern struct snmp_bc_sensor      snmp_bc_virtual_mgmnt_sensors[];
 extern struct snmp_bc_sensor      snmp_bc_mediatray_sensors[];
 extern struct snmp_bc_sensor      snmp_bc_fan_sensors[];
+extern struct snmp_bc_sensor      snmp_bc_fan_sensors_bch[];
 extern struct snmp_bc_sensor      snmp_bc_power_sensors[];
 extern struct snmp_bc_sensor      snmp_bc_power_sensors_bch[];
 extern struct snmp_bc_sensor      snmp_bc_switch_sensors[];
@@ -378,6 +380,7 @@ struct ControlMibInfo {
         unsigned int not_avail_indicator_num; /* 0 for none, n>0 otherwise */
         int write_only; /* Write-only SNMP command; 0 no; 1 yes */
         const char *oid;
+	SaHpiEntityLocationT loc_offset;
         int digitalmap[OH_MAX_CTRLSTATEDIGITAL];  /* Readable digital controls */
 	int digitalwmap[OH_MAX_CTRLSTATEDIGITAL]; /* Writable digital controls */
 	SaHpiBoolT isDigitalReadStateConstant;
