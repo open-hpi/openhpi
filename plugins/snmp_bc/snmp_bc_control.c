@@ -113,7 +113,8 @@ SaErrorT snmp_bc_get_control_state(void *hnd,
 		/* Find control's state */
 		working_state.Type = rdr->RdrTypeUnion.CtrlRec.Type;
 		
-		err = snmp_bc_oid_snmp_get(custom_handle, &(rdr->Entity), cinfo->mib.oid, &get_value, SAHPI_TRUE);
+		err = snmp_bc_oid_snmp_get(custom_handle, &(rdr->Entity), cinfo->mib.loc_offset,
+					   cinfo->mib.oid, &get_value, SAHPI_TRUE);
 		if (err  || get_value.type != ASN_INTEGER) {
 			dbg("Cannot read SNMP OID=%s; Type=%d.", cinfo->mib.oid, get_value.type);
 			snmp_bc_unlock_handler(custom_handle);
@@ -313,7 +314,8 @@ SaErrorT snmp_bc_set_control_state(void *hnd,
 			set_value.str_len = 1;
 			set_value.integer = value;
 			
-			err = snmp_bc_oid_snmp_set(custom_handle, &(rdr->Entity), cinfo->mib.oid, set_value);
+			err = snmp_bc_oid_snmp_set(custom_handle, &(rdr->Entity), cinfo->mib.loc_offset,
+						   cinfo->mib.oid, set_value);
 			if (err) {
 				dbg("Cannot set SNMP OID=%s; Value=%d.", 
 				    cinfo->mib.oid, (int)set_value.integer);
@@ -326,7 +328,8 @@ SaErrorT snmp_bc_set_control_state(void *hnd,
 			set_value.str_len = 1;
 			set_value.integer = state->StateUnion.Discrete;
 			
-			err = snmp_bc_oid_snmp_set(custom_handle, &(rdr->Entity), cinfo->mib.oid, set_value);
+			err = snmp_bc_oid_snmp_set(custom_handle, &(rdr->Entity), cinfo->mib.loc_offset,
+						   cinfo->mib.oid, set_value);
 			if (err) {
 				dbg("Cannot set SNMP OID=%s; Value=%d.", 
 				    cinfo->mib.oid, (int)set_value.integer);

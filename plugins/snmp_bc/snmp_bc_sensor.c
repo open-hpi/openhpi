@@ -1,11 +1,11 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2004, 2005
+ * (C) Copyright IBM Corp. 2004, 2006
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
- * file and program are licensed under a BSD style license.  See
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. This
+ * file and program are licensed under a BSD style license. See
  * the Copying file included with the OpenHPI distribution for
  * full licensing terms.
  *
@@ -971,7 +971,8 @@ SaErrorT snmp_bc_get_sensor_oid_reading(void *hnd,
 
 	/* Normalize and read sensor's raw SNMP OID */
 	err = snmp_bc_validate_ep(&(rdr->Entity), &valEntity);
-	err = snmp_bc_oid_snmp_get(custom_handle, &valEntity, raw_oid, &get_value, SAHPI_TRUE);
+	err = snmp_bc_oid_snmp_get(custom_handle, &valEntity, sinfo->mib.loc_offset,
+				   raw_oid, &get_value, SAHPI_TRUE);
 	if (err) {
 		dbg("SNMP cannot read sensor OID=%s. Type=%d", raw_oid, get_value.type);
 		return(err);
@@ -1066,7 +1067,8 @@ SaErrorT snmp_bc_set_threshold_reading(void *hnd,
 
 	/* Normalize and read sensor's raw SNMP OID */
 	err = snmp_bc_validate_ep(&(rdr->Entity), &valEntity);
-	err = snmp_bc_oid_snmp_set(custom_handle, &valEntity, raw_oid, set_value);
+	err = snmp_bc_oid_snmp_set(custom_handle, &valEntity, sinfo->mib.loc_offset,
+				   raw_oid, set_value);
 	if (err) {
 		dbg("SNMP cannot set sensor OID=%s.", raw_oid);
 		return(err);
@@ -1803,20 +1805,20 @@ SaErrorT snmp_bc_get_slot_state_sensor(void *hnd,
 }				    				       
 
 /**
- * snnp_bc_clear_resource_slot_state_sensor:
+ * snmp_bc_clear_resource_slot_state_sensor:
  * @hnd: Handler data pointer.
  * @rid: Resource ID.
  * @sid: Sensor ID.
  * @reading: Location of sensor's reading
  *
  *
+ *
  * Return values:
  * SA_OK - Normal case.
  * SA_ERR_HPI_INVALID_PARAMS - Resource doesn't have SAHPI_CAPABILITY_SENSOR.
- **/																		       									       				       
-SaErrorT snnp_bc_reset_resource_slot_state_sensor(void *hnd, SaHpiRptEntryT *res)
+ **/
+SaErrorT snmp_bc_reset_resource_slot_state_sensor(void *hnd, SaHpiRptEntryT *res)
 {
-
 	guint i, j;
 	SaErrorT err;
 	guint resourcewidth;
@@ -1825,10 +1827,8 @@ SaErrorT snnp_bc_reset_resource_slot_state_sensor(void *hnd, SaHpiRptEntryT *res
 	struct oh_handler_state *handler;
 	struct snmp_bc_hnd *custom_handler;
 	struct ResourceInfo *res_info_ptr;
- 
-		
-	if (!hnd || !res ) 
-		return(SA_ERR_HPI_INVALID_PARAMS);
+ 		
+	if (!hnd || !res ) return(SA_ERR_HPI_INVALID_PARAMS);
 
 	handler = (struct oh_handler_state *) hnd;
 	custom_handler = (struct snmp_bc_hnd *)handler->data;				
@@ -1837,8 +1837,8 @@ SaErrorT snnp_bc_reset_resource_slot_state_sensor(void *hnd, SaHpiRptEntryT *res
 	
 	resourcewidth = 1;
 	if (res_info_ptr->mib.OidResourceWidth != NULL) {
-		err = snmp_bc_oid_snmp_get(custom_handler,  &(res->ResourceEntity),
-			   		res_info_ptr->mib.OidResourceWidth, &get_value, SAHPI_TRUE);
+		err = snmp_bc_oid_snmp_get(custom_handler,  &(res->ResourceEntity), 0,
+					   res_info_ptr->mib.OidResourceWidth, &get_value, SAHPI_TRUE);
 		if (!err && (get_value.type == ASN_INTEGER)) {
 				resourcewidth = get_value.integer;
 		}
@@ -2506,5 +2506,3 @@ void * oh_set_sensor_event_masks (void *, SaHpiResourceIdT, SaHpiSensorNumT,
                                   SaHpiEventStateT,
                                   SaHpiEventStateT)
                 __attribute__ ((weak, alias("snmp_bc_set_sensor_event_masks")));
-
-
