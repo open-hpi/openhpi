@@ -1923,6 +1923,8 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 				       SaHpiSensorNumT sid,
 				       SaHpiSensorReadingT *reading)
 {
+
+#define totalPower 0xEE
 	guint slotnum;
 	guint oidIndex;
 	SaErrorT err;
@@ -1933,19 +1935,19 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 	SaHpiRptEntryT  *res;
 	struct snmp_value get_value;
 	struct snmp_value pm3_state, pm4_state;
-	struct oh_handler_state *handler;
-	struct snmp_bc_hnd *custom_handler;
+	struct oh_handler_state *handle;
+	struct snmp_bc_hnd *custom_handle;
  		
 	if (!hnd || !reading ) 
 		return(SA_ERR_HPI_INVALID_PARAMS);
 
-	handler = (struct oh_handler_state *) hnd;
-	custom_handler = (struct snmp_bc_hnd *)handler->data;				
+	handle = (struct oh_handler_state *) hnd;
+	custom_handle = (struct snmp_bc_hnd *)handle->data;				
 
-	res = oh_get_resource_by_id(handler->rptcache, rid);
+	res = oh_get_resource_by_id(handle->rptcache, rid);
 	slotnum = res->ResourceEntity.Entry[0].EntityLocation;	
 	
-        rdr = oh_get_rdr_by_type(handler->rptcache, rid, SAHPI_SENSOR_RDR, sid);
+        rdr = oh_get_rdr_by_type(handle->rptcache, rid, SAHPI_SENSOR_RDR, sid);
 	if (rdr == NULL) return(SA_ERR_HPI_NOT_PRESENT);
 	
 	oidIndex = SNMP_BC_NOT_VALID;
@@ -1959,7 +1961,7 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 			break;
 			
 		case BLADECENTER_INTERCONNECT_SLOT:
-			if (custom_handler->platform == SNMP_BC_PLATFORM_BCT) {
+			if (custom_handle->platform == SNMP_BC_PLATFORM_BCT) {
 				 switch (slotnum) {
 				 	case 1:
 						oidIndex = 9;
@@ -1982,7 +1984,7 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 				
 				usepowerdomain1;
 
-			} else if (custom_handler->platform == SNMP_BC_PLATFORM_BC) {
+			} else if (custom_handle->platform == SNMP_BC_PLATFORM_BC) {
 				 switch (slotnum) {
 				 	case 1:
 						oidIndex = 7;
@@ -2004,7 +2006,7 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 				}
 				
 				usepowerdomain1;
-			} else if (custom_handler->platform == SNMP_BC_PLATFORM_BCH) {
+			} else if (custom_handle->platform == SNMP_BC_PLATFORM_BCH) {
 				 switch (slotnum) {
 				 	case 1:
 						oidIndex = 9;
@@ -2054,7 +2056,7 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 			break;
 
 		case BLADECENTER_SYS_MGMNT_MODULE_SLOT:
-			if (custom_handler->platform == SNMP_BC_PLATFORM_BCT) {
+			if (custom_handle->platform == SNMP_BC_PLATFORM_BCT) {
 				 switch (slotnum) {
 				 	case 1:
 						oidIndex = 7;
@@ -2070,7 +2072,7 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 				
 				usepowerdomain1;
 				
-			} else if (custom_handler->platform == SNMP_BC_PLATFORM_BC) {
+			} else if (custom_handle->platform == SNMP_BC_PLATFORM_BC) {
 				 switch (slotnum) {
 				 	case 1:
 						oidIndex = 5;
@@ -2086,7 +2088,7 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 				
 				usepowerdomain1;
 				
-			} else if (custom_handler->platform == SNMP_BC_PLATFORM_BCH) {
+			} else if (custom_handle->platform == SNMP_BC_PLATFORM_BCH) {
 				 switch (slotnum) {
 				 	case 1:
 						oidIndex = 7;
@@ -2108,27 +2110,15 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 			break;
 		
 		case BLADECENTER_FAN_SLOT:
-			if (custom_handler->platform == SNMP_BC_PLATFORM_BCT) {
+			if (custom_handle->platform == SNMP_BC_PLATFORM_BCT) {
 			
 				if ( (slotnum == 3) || (slotnum == 4)) {
 					snprintf(oid, SNMP_BC_MAX_OID_LENGTH, "%s.%d", SNMP_BC_PMSTATE, 3);
-					err = snmp_bc_snmp_get(custom_handler, oid, &pm3_state, SAHPI_TRUE);
-					if (err != SA_OK) {
-						dbg("Not able to read OID %s\n", oid);
-		 				return(err); 
-					} else if ((err == SA_OK) && (pm3_state.type != ASN_INTEGER)) {
-						dbg("Cannot get Power Reading %s\n", oid);
-						return(SA_ERR_HPI_INTERNAL_ERROR);
-					}
+					get_integer_object(oid, pm3_state);
+					// getsnmpvalue(pm3_state);
 					snprintf(oid, SNMP_BC_MAX_OID_LENGTH, "%s.%d", SNMP_BC_PMSTATE, 4);
-					err = snmp_bc_snmp_get(custom_handler, oid, &pm4_state, SAHPI_TRUE);
-					if (err != SA_OK) {
-						dbg("Not able to read OID %s\n", oid);
-		 				return(err); 
-					} else if ((err == SA_OK) && (pm4_state.type != ASN_INTEGER)) {
-						dbg("Cannot get Power Reading %s\n", oid);
-						return(SA_ERR_HPI_INTERNAL_ERROR);
-					}					
+					get_integer_object(oid, pm4_state);
+					// getsnmpvalue(pm4_state);
 				}
 				
 				switch (slotnum) {
@@ -2168,7 +2158,7 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 					else usepowerdomain2;
 				}			
 				
-			} else if (custom_handler->platform == SNMP_BC_PLATFORM_BC) {
+			} else if (custom_handle->platform == SNMP_BC_PLATFORM_BC) {
 				 switch (slotnum) {
 				 	case 1:
 						oidIndex = 3;
@@ -2184,27 +2174,11 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 				
 				usepowerdomain1;
 				
-			} else if (custom_handler->platform == SNMP_BC_PLATFORM_BCH) {
-				 switch (slotnum) {
-				 	case 1:
-						oidIndex = 3;
-						break;
-					case 2:
-						oidIndex = 4;
-						break;					
-					case 3:
-						oidIndex = 5;
-						break;					
-
-					case 4:
-						oidIndex = 6;
-						break;					
-					default:
-						dbg("Not one of the valid BC H Fan Slots.\n");
-						return(SA_ERR_HPI_INTERNAL_ERROR);							
-						break;
-				}
-				usepowerdomain1;
+			} else if (custom_handle->platform == SNMP_BC_PLATFORM_BCH) {
+			
+				/* Reading is not supported on BC-H */
+				oidIndex = SNMP_BC_NOT_VALID;
+				thisOID = NULL;
 				
 			} else { 
 				dbg("Not one of the supported platform.\n");
@@ -2212,7 +2186,7 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 			}
 			break;		
 		case SAHPI_ENT_PHYSICAL_SLOT:
-			if (custom_handler->platform == SNMP_BC_PLATFORM_BCT) {
+			if (custom_handle->platform == SNMP_BC_PLATFORM_BCT) {
 				 switch (slotnum) {
 				 	case 1:
 						oidIndex = 13;
@@ -2251,7 +2225,7 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 					usepowerdomain2;
 				}			
 				
-			} else if (custom_handler->platform == SNMP_BC_PLATFORM_BC) {
+			} else if (custom_handle->platform == SNMP_BC_PLATFORM_BC) {
 				 switch (slotnum) {
 				 	case 1:
 						oidIndex = 11;
@@ -2308,7 +2282,7 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 				} else {
 					usepowerdomain2;
 				}			
-			} else if (custom_handler->platform == SNMP_BC_PLATFORM_BCH) {
+			} else if (custom_handle->platform == SNMP_BC_PLATFORM_BCH) {
 				 switch (slotnum) {
 				 	case 1:
 					case 8:
@@ -2355,7 +2329,55 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 				return(SA_ERR_HPI_INTERNAL_ERROR);		
 			}
 			break;		
-		case BLADECENTER_POWER_SUPPLY_SLOT:			
+		case BLADECENTER_POWER_SUPPLY_SLOT:
+			if ((custom_handle->platform == SNMP_BC_PLATFORM_BCT) || 
+					 (custom_handle->platform == SNMP_BC_PLATFORM_BC)) {
+				/* Reading is not supported on BC and BC-T */
+				oidIndex = SNMP_BC_NOT_VALID;
+				thisOID = NULL;
+							
+			} else if (custom_handle->platform == SNMP_BC_PLATFORM_BCH) {
+				 switch (slotnum) {
+				 	case 1:
+						oidIndex = 3;
+						break;
+					case 2:
+						oidIndex = 4;
+						break;					
+					case 3:
+						oidIndex = 5;
+						break;					
+
+					case 4:
+						oidIndex = 6;
+						break;					
+					default:
+						dbg("Not one of the valid BC H Power Module Slots.\n");
+						return(SA_ERR_HPI_INTERNAL_ERROR);							
+						break;
+				}
+				usepowerdomain1;
+			} else { 
+				dbg("Not one of the supported platform.\n");
+				return(SA_ERR_HPI_INTERNAL_ERROR);		
+			}
+			break;
+		case SAHPI_ENT_SYS_MGMNT_MODULE:
+			switch (slotnum) {
+				case 0:
+					oidIndex = 1;
+					break;
+				default:
+					dbg("Not one of the valid resources.\n");
+					return(SA_ERR_HPI_INTERNAL_ERROR);							
+					break;
+				}
+				usepowerdomain1;		
+			break;
+		case SAHPI_ENT_SYSTEM_CHASSIS:
+			usepowerdomain1;
+			oidIndex = totalPower;
+			break;
 		default:
 			thisOID = NULL;
 			oidIndex = SNMP_BC_NOT_VALID;
@@ -2366,34 +2388,70 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 	if ( (thisOID == NULL) || (oidIndex == SNMP_BC_NOT_VALID)) {
 		reading->IsSupported = SAHPI_FALSE;
 		return(SA_OK);
-	}		
+	} else if (oidIndex == totalPower) {
+		if (custom_handle->platform == SNMP_BC_PLATFORM_BCT) {
+			usepowerdomain1;
+			snprintf(oid, SNMP_BC_MAX_OID_LENGTH, "%s.%d", thisOID, 17);
+			get_string_object(oid, pm3_state);
 		
-	snprintf(oid, SNMP_BC_MAX_OID_LENGTH, "%s.%d", thisOID, oidIndex);
-			 
-	err = snmp_bc_snmp_get(custom_handler, oid, &get_value, SAHPI_TRUE);
-	if (err != SA_OK) {
-		dbg(" >>> not able to read OID %s\n", oid);
-		 return(err); 
-	} else if ((err == SA_OK) && (get_value.type != ASN_OCTET_STR)) {
-		dbg("Cannot get Power Reading %s\n", oid);
-		return(SA_ERR_HPI_INTERNAL_ERROR);
+			usepowerdomain2;
+			snprintf(oid, SNMP_BC_MAX_OID_LENGTH, "%s.%d", thisOID, 7);
+			get_string_object(oid, pm4_state);
+			
+		} else if (custom_handle->platform == SNMP_BC_PLATFORM_BC) {
+			usepowerdomain1;
+			snprintf(oid, SNMP_BC_MAX_OID_LENGTH, "%s.%d", thisOID, 17);
+			get_string_object(oid, pm3_state);
+		
+			usepowerdomain2;
+			snprintf(oid, SNMP_BC_MAX_OID_LENGTH, "%s.%d", thisOID, 9);
+			get_string_object(oid, pm4_state);
+										
+		} else if (custom_handle->platform == SNMP_BC_PLATFORM_BCH) {
+			usepowerdomain1;
+			snprintf(oid, SNMP_BC_MAX_OID_LENGTH, "%s.%d", thisOID, 24);
+			get_string_object(oid, pm3_state);
+		
+			usepowerdomain2;
+			snprintf(oid, SNMP_BC_MAX_OID_LENGTH, "%s.%d", thisOID, 24);
+			get_string_object(oid, pm4_state);
+		} else { 
+			dbg("Not one of the supported platform.\n");
+			return(SA_ERR_HPI_INTERNAL_ERROR);		
+		}
+		power_substrs = g_strsplit(pm3_state.string, " ", -1);
+		if (power_substrs[0] == NULL)
+			return(SA_ERR_HPI_INTERNAL_ERROR);
+			
+		reading->Value.SensorUint64 = g_strtod(power_substrs[0], NULL);
+				
+		power_substrs = g_strsplit(pm4_state.string, " ", -1);
+		if (power_substrs[0] == NULL)
+			return(SA_ERR_HPI_INTERNAL_ERROR);
+			
+		reading->Value.SensorUint64 = reading->Value.SensorUint64 + g_strtod(power_substrs[0], NULL);		
+		/* Set SensorReading structure  */																		
+      		reading->IsSupported = rdr->RdrTypeUnion.SensorRec.DataFormat.IsSupported;
+      		reading->Type = rdr->RdrTypeUnion.SensorRec.DataFormat.ReadingType;
+		return(SA_OK);		
 	}
 	
+	snprintf(oid, SNMP_BC_MAX_OID_LENGTH, "%s.%d", thisOID, oidIndex);
+	get_string_object(oid, get_value);			 			 
 
-	/* Set SensorReading structure  */																		
-      	reading->IsSupported = rdr->RdrTypeUnion.SensorRec.DataFormat.IsSupported;
-      	reading->Type = rdr->RdrTypeUnion.SensorRec.DataFormat.ReadingType;
-	
+	/* Set SensorReading structure  */	
 	if ( strncmp(get_value.string, "N/A", sizeof("N/A")) == 0) {
       		reading->Value.SensorUint64 = 0;
 	} else {
 		power_substrs = g_strsplit(get_value.string, " ", -1);
 		if (power_substrs[0] == NULL)
 			return(SA_ERR_HPI_INTERNAL_ERROR);
-		
-		
+			
 		reading->Value.SensorUint64 = g_strtod(power_substrs[0], NULL);
 	}
+	
+      	reading->IsSupported = rdr->RdrTypeUnion.SensorRec.DataFormat.IsSupported;
+      	reading->Type = rdr->RdrTypeUnion.SensorRec.DataFormat.ReadingType;
 	
 	return(SA_OK);
 }				    				       
