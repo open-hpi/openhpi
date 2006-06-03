@@ -1,11 +1,11 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2003, 2005
+ * (C) Copyright IBM Corp. 2003, 2006
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
- * file and program are licensed under a BSD style license.  See
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. This
+ * file and program are licensed under a BSD style license. See
  * the Copying file included with the OpenHPI distribution for
  * full licensing terms.
  *
@@ -59,9 +59,9 @@ SaErrorT snmp_bc_get_guid(struct snmp_bc_hnd *custom_handle,
 		goto CLEANUP;
 	}
         status = snmp_bc_oid_snmp_get(custom_handle, 
-					&(e->u.res_event.entry.ResourceEntity),
-					res_info_ptr->mib.OidUuid,            
-					&get_value, SAHPI_TRUE);
+				      &(e->u.res_event.entry.ResourceEntity), 0,
+				      res_info_ptr->mib.OidUuid,            
+				      &get_value, SAHPI_TRUE);
         if(( status != SA_OK) || (get_value.type != ASN_OCTET_STR)) {
                 dbg("Cannot get OID rc=%d; oid=%s type=%d.", 
                         status, res_info_ptr->mib.OidUuid, get_value.type);

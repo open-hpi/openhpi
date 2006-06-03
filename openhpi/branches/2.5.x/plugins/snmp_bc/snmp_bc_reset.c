@@ -1,11 +1,11 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2004, 2005
+ * (C) Copyright IBM Corp. 2004, 2006
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
- * file and program are licensed under a BSD style license.  See
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. This
+ * file and program are licensed under a BSD style license. See
  * the Copying file included with the OpenHPI distribution for
  * full licensing terms.
  *
@@ -148,8 +148,8 @@ SaErrorT snmp_bc_set_reset_state(void *hnd,
 		set_value.str_len = 1;
 		set_value.integer = 1;
 		
-		err = snmp_bc_oid_snmp_set(custom_handle, &(rpt->ResourceEntity),
-						 resinfo->mib.OidReset, set_value);
+		err = snmp_bc_oid_snmp_set(custom_handle, &(rpt->ResourceEntity), 0,
+					   resinfo->mib.OidReset, set_value);
 		if (err) {
 			dbg("Cannot set SNMP OID=%s; Type=%d.", resinfo->mib.OidReset, set_value.type);
 			snmp_bc_unlock_handler(custom_handle);

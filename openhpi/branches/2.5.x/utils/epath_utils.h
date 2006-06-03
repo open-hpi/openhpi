@@ -1,18 +1,17 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2003, 2004
+ * (C) Copyright IBM Corp. 2003, 2006
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
- * file and program are licensed under a BSD style license.  See
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. This
+ * file and program are licensed under a BSD style license. See
  * the Copying file included with the OpenHPI distribution for
  * full licensing terms.
  *
  * Author(s):
  *      Steve Sherman <stevees@us.ibm.com>
  *      Renier Morales <renierm@users.sf.net>
- *      Chris Chia <cchia@users.sf.net>
  */
 
 #ifndef __EPATH_UTILS_H
@@ -66,7 +65,7 @@ SaErrorT oh_set_ep_location(SaHpiEntityPathT *ep,
 
 SaHpiBoolT oh_valid_ep(const SaHpiEntityPathT *ep);
 
-gchar * oh_derive_string(SaHpiEntityPathT *ep, const gchar *str);
+gchar * oh_derive_string(SaHpiEntityPathT *ep, SaHpiEntityLocationT offset, const gchar *str);
 
 #ifdef __cplusplus
 }

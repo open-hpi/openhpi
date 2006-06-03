@@ -776,6 +776,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.1.5.1.0",
+				.loc_offset = 0,
                         },
                         .cur_state = SAHPI_ES_UNSPECIFIED,
 			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
@@ -1040,11 +1041,153 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                },
                 .comment = "Power Domain 2 Redundancy Sensor",
         },
+	{
+		.index = 6,
+                .sensor = {
+                        .Num = BLADECENTER_SENSOR_NUM_MAX_POWER,
+                        .Type = SAHPI_OTHER_UNITS_BASED_SENSOR,
+                        .Category = SAHPI_EC_THRESHOLD,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
+                        .Events = 0x00,				/* No event state */
+                        .DataFormat = {
+                                .IsSupported = SAHPI_TRUE,
+                                .ReadingType = SAHPI_SENSOR_READING_TYPE_UINT64,
+                                .BaseUnits = SAHPI_SU_WATTS,
+                                .ModifierUnits = SAHPI_SU_UNSPECIFIED,
+                                .ModifierUse = SAHPI_SMUU_NONE,
+                                .Percentage = SAHPI_FALSE,
+				.Range = {
+                                        .Flags = 0x00,
+                                },
+                        },
+                        .ThresholdDefn = {
+				.IsAccessible = SAHPI_FALSE,
+                        },
+                        .Oem = 0,
+                },
+		.sensor_info = {
+                        .mib = {
+                                .not_avail_indicator_num = 0,
+                                .write_only = SAHPI_FALSE,
+                                .oid = ".1.3.6.1.4.1.2.3.51.2.2.10.2.1.1.8.1", 
+                                .threshold_oids = {},
+				.threshold_write_oids = {},
+                        },
+                        .cur_state = SAHPI_ES_UNSPECIFIED,
+			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
+                        .sensor_enabled = SAHPI_TRUE,
+                        .events_enabled = SAHPI_FALSE,
+			.assert_mask   = 0x00,
+			.deassert_mask = 0x00,
+			.event_array = {
+                                {},
+                        },
+		        .reading2event = {},
+                },
+		.comment = "Maximum Power Capability",
+	},
+
+	{
+		.index = 7,
+                .sensor = {
+                        .Num = BLADECENTER_SENSOR_NUM_ASSIGNED_POWER,
+                        .Type = SAHPI_OTHER_UNITS_BASED_SENSOR,
+                        .Category = SAHPI_EC_THRESHOLD,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
+                        .Events = 0,
+                        .DataFormat = {
+                                .IsSupported = SAHPI_TRUE,
+                                .ReadingType = SAHPI_SENSOR_READING_TYPE_UINT64,
+                                .BaseUnits = SAHPI_SU_WATTS,
+                                .ModifierUnits = SAHPI_SU_UNSPECIFIED,
+                                .ModifierUse = SAHPI_SMUU_NONE,
+                                .Percentage = SAHPI_FALSE,
+				.Range = {
+                                        .Flags = 0x00,
+                                },
+                        },
+                        .ThresholdDefn = {
+				.IsAccessible = SAHPI_FALSE,
+                                .ReadThold = 0,
+                                .WriteThold = 0,
+                        },
+                        .Oem = 0,
+                },
+		.sensor_info = {
+                        .mib = {
+                                .not_avail_indicator_num = 0,
+                                .write_only = SAHPI_FALSE,
+                                .oid = ".1.3.6.1.4.1.2.3.51.2.2.10.2.1.1.7.1",
+                                .threshold_oids = {},			
+				.threshold_write_oids = {},
+                        },
+                        .cur_state = SAHPI_ES_UNSPECIFIED,
+			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
+                        .sensor_enabled = SAHPI_TRUE,
+                        .events_enabled = SAHPI_FALSE,
+			.assert_mask   = 0x00,
+			.deassert_mask = 0x00,
+			.event_array = {
+                                {},
+                        },
+		        .reading2event = {},
+                },
+		.comment = "Assigned Power Capability",
+	},
+
+	{
+		.index = 8,
+                .sensor = {
+                        .Num = BLADECENTER_SENSOR_NUM_MIN_POWER,
+                        .Type = SAHPI_OTHER_UNITS_BASED_SENSOR,
+                        .Category = SAHPI_EC_THRESHOLD,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
+                        .Events = 0,
+                        .DataFormat = {
+                                .IsSupported = SAHPI_TRUE,
+                                .ReadingType = SAHPI_SENSOR_READING_TYPE_UINT64,
+                                .BaseUnits = SAHPI_SU_WATTS,
+                                .ModifierUnits = SAHPI_SU_UNSPECIFIED,
+                                .ModifierUse = SAHPI_SMUU_NONE,
+                                .Percentage = SAHPI_FALSE,
+				.Range = {},
+                        },
+                        .ThresholdDefn = {
+				.IsAccessible = SAHPI_FALSE,
+                                .ReadThold = 0,
+                                .WriteThold = 0,
+                        },
+                        .Oem = 0,
+                },
+		.sensor_info = {
+                        .mib = {
+                                .not_avail_indicator_num = 0,
+                                .write_only = SAHPI_FALSE,
+                                .oid = ".1.3.6.1.4.1.2.3.51.2.2.10.2.1.1.9.1",
+                                .threshold_oids = {},
+				.threshold_write_oids = {},
+                        },
+                        .cur_state = SAHPI_ES_UNSPECIFIED,
+			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
+                        .sensor_enabled = SAHPI_TRUE,
+                        .events_enabled = SAHPI_FALSE,
+			.assert_mask   = 0,
+			.deassert_mask = 0,
+			.event_array = {
+                                {},
+                        },
+		        .reading2event = {},
+                },
+		.comment = "Minumum Power Capability",
+	},
 
         {} /* Terminate array with a null element */
 };
 
-#define SNMP_BC_MAX_COMMON_CHASSIS_SENSORS 5
+#define SNMP_BC_MAX_COMMON_CHASSIS_SENSORS 8
 
 struct snmp_bc_sensor snmp_bc_chassis_sensors_bct[] = {
         /* Chassis Filter Sensor - event only */
@@ -1178,6 +1321,7 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.1.1.2.0",
+				.loc_offset = 0,
                         },
                         .cur_state = SAHPI_ES_UNSPECIFIED,
 			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
@@ -1322,7 +1466,7 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.8.0",
-				/* Default HDW thresholds: Warning 1.62<>1.89; Warning Reset 1.86<>1.74 */
+				.loc_offset = 0,
                                 .threshold_oids = {
 					.LowMajor = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.6",
 					.UpMajor  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.6",
@@ -1426,8 +1570,6 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                                 .ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR |
 				             SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
                                 .WriteThold = 0,
-                                /* Default HDW thresholds:
-                                   Warning 2.25<>2.63; Warning Reset 2.58<>2.42 */
                         },
                         .Oem = 0,
                 },
@@ -1436,7 +1578,8 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.6.0",
-                                .threshold_oids = {
+ 				.loc_offset = 0,
+				.threshold_oids = {
 					.LowMajor = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.5",
 					.UpMajor  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.5",
 					.TotalPosThdHysteresis  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.7.5",
@@ -1539,8 +1682,6 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                                 .ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR |
 				             SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
                                 .WriteThold = 0,
-                                /* Default HDW thresholds:
-                                   Warning 3.00<>3.47; Warning Reset 3.40<>3.20 */
                         },
                         .Oem = 0,
                 },
@@ -1549,6 +1690,7 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.2.0",
+				.loc_offset = 0,
                                 .threshold_oids = {
 					.LowMajor = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.2",
 					.UpMajor  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.2",
@@ -1652,8 +1794,6 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                                 .ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR |
                                              SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
                                 .WriteThold = 0,
-                                /* Default HDW thresholds:
-                                   Warning 4.50<>5.25; Warning Reset 5.15<>4.85 */
                          },
                         .Oem = 0,
                 },
@@ -1662,7 +1802,8 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.1.0",
-                                .threshold_oids = {
+ 				.loc_offset = 0,
+				.threshold_oids = {
 					.LowMajor = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.1",
 					.UpMajor  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.1",
 					.TotalPosThdHysteresis  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.7.1",
@@ -1765,8 +1906,6 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                                 .ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR |
                                              SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
                                 .WriteThold = 0,
-                                /* Default HDW thresholds:
-                                   Warning -5.50<>-4.75; Warning Reset -4.85<>-5.15 */
                          },
                         .Oem = 0,
                 },
@@ -1775,6 +1914,7 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.5.0",
+				.loc_offset = 0,
                                 .threshold_oids = {
 					.LowMajor = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.4",
 					.UpMajor  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.4",
@@ -1878,8 +2018,6 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                                 .ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR |
                                              SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
                                 .WriteThold = 0,
-                                /* Default HDW thresholds:
-                                   Warning 10.80<>12.60; Warning Reset 12.34<>11.64 */
                         },
                         .Oem = 0,
                 },
@@ -1888,6 +2026,7 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.3.0",
+				.loc_offset = 0,
                                 .threshold_oids = {
 					.LowMajor = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.3",
 					.UpMajor  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.3",
@@ -2217,6 +2356,7 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.4.34.0",
+				.loc_offset = 0,
                         },
                         .cur_state = SAHPI_ES_UNSPECIFIED,
 			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
@@ -2261,6 +2401,7 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.4.34.0",
+				.loc_offset = 0,
                         },
                         .cur_state = SAHPI_ES_UNSPECIFIED,
 			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
@@ -2274,6 +2415,148 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                 },
                 .comment = "Standby MM Sensor",
         },
+	{
+		.index = 16,
+                .sensor = {
+                        .Num = BLADECENTER_SENSOR_NUM_MAX_POWER,
+                        .Type = SAHPI_OTHER_UNITS_BASED_SENSOR,
+                        .Category = SAHPI_EC_THRESHOLD,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
+                        .Events = 0x00,				/* No event state */
+                        .DataFormat = {
+                                .IsSupported = SAHPI_TRUE,
+                                .ReadingType = SAHPI_SENSOR_READING_TYPE_UINT64,
+                                .BaseUnits = SAHPI_SU_WATTS,
+                                .ModifierUnits = SAHPI_SU_UNSPECIFIED,
+                                .ModifierUse = SAHPI_SMUU_NONE,
+                                .Percentage = SAHPI_FALSE,
+				.Range = {
+                                        .Flags = 0x00,
+                                },
+                        },
+                        .ThresholdDefn = {
+				.IsAccessible = SAHPI_FALSE,
+                        },
+                        .Oem = 0,
+                },
+		.sensor_info = {
+                        .mib = {
+                                .not_avail_indicator_num = 0,
+                                .write_only = SAHPI_FALSE,
+                                .oid = ".1.3.6.1.4.1.2.3.51.2.2.10.2.1.1.8.1", 
+                                .threshold_oids = {},
+				.threshold_write_oids = {},
+                        },
+                        .cur_state = SAHPI_ES_UNSPECIFIED,
+			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
+                        .sensor_enabled = SAHPI_TRUE,
+                        .events_enabled = SAHPI_FALSE,
+			.assert_mask   = 0x00,
+			.deassert_mask = 0x00,
+			.event_array = {
+                                {},
+                        },
+		        .reading2event = {},
+                },
+		.comment = "Maximum Power Capability",
+	},
+
+	{
+		.index = 17,
+                .sensor = {
+                        .Num = BLADECENTER_SENSOR_NUM_ASSIGNED_POWER,
+                        .Type = SAHPI_OTHER_UNITS_BASED_SENSOR,
+                        .Category = SAHPI_EC_THRESHOLD,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
+                        .Events = 0,
+                        .DataFormat = {
+                                .IsSupported = SAHPI_TRUE,
+                                .ReadingType = SAHPI_SENSOR_READING_TYPE_UINT64,
+                                .BaseUnits = SAHPI_SU_WATTS,
+                                .ModifierUnits = SAHPI_SU_UNSPECIFIED,
+                                .ModifierUse = SAHPI_SMUU_NONE,
+                                .Percentage = SAHPI_FALSE,
+				.Range = {
+                                        .Flags = 0x00,
+                                },
+                        },
+                        .ThresholdDefn = {
+				.IsAccessible = SAHPI_FALSE,
+                                .ReadThold = 0,
+                                .WriteThold = 0,
+                        },
+                        .Oem = 0,
+                },
+		.sensor_info = {
+                        .mib = {
+                                .not_avail_indicator_num = 0,
+                                .write_only = SAHPI_FALSE,
+                                .oid = ".1.3.6.1.4.1.2.3.51.2.2.10.2.1.1.7.1",
+                                .threshold_oids = {},			
+				.threshold_write_oids = {},
+                        },
+                        .cur_state = SAHPI_ES_UNSPECIFIED,
+			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
+                        .sensor_enabled = SAHPI_TRUE,
+                        .events_enabled = SAHPI_FALSE,
+			.assert_mask   = 0x00,
+			.deassert_mask = 0x00,
+			.event_array = {
+                                {},
+                        },
+		        .reading2event = {},
+                },
+		.comment = "Assigned Power Capability",
+	},
+
+	{
+		.index = 18,
+                .sensor = {
+                        .Num = BLADECENTER_SENSOR_NUM_MIN_POWER,
+                        .Type = SAHPI_OTHER_UNITS_BASED_SENSOR,
+                        .Category = SAHPI_EC_THRESHOLD,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
+                        .Events = 0,
+                        .DataFormat = {
+                                .IsSupported = SAHPI_TRUE,
+                                .ReadingType = SAHPI_SENSOR_READING_TYPE_UINT64,
+                                .BaseUnits = SAHPI_SU_WATTS,
+                                .ModifierUnits = SAHPI_SU_UNSPECIFIED,
+                                .ModifierUse = SAHPI_SMUU_NONE,
+                                .Percentage = SAHPI_FALSE,
+				.Range = {},
+                        },
+                        .ThresholdDefn = {
+				.IsAccessible = SAHPI_FALSE,
+                                .ReadThold = 0,
+                                .WriteThold = 0,
+                        },
+                        .Oem = 0,
+                },
+		.sensor_info = {
+                        .mib = {
+                                .not_avail_indicator_num = 0,
+                                .write_only = SAHPI_FALSE,
+                                .oid = ".1.3.6.1.4.1.2.3.51.2.2.10.2.1.1.9.1",
+                                .threshold_oids = {},
+				.threshold_write_oids = {},
+                        },
+                        .cur_state = SAHPI_ES_UNSPECIFIED,
+			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
+                        .sensor_enabled = SAHPI_TRUE,
+                        .events_enabled = SAHPI_FALSE,
+			.assert_mask   = 0,
+			.deassert_mask = 0,
+			.event_array = {
+                                {},
+                        },
+		        .reading2event = {},
+                },
+		.comment = "Minumum Power Capability",
+	},
 
         {} /* Terminate array with a null element */
 };
@@ -2339,6 +2622,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.6.x",
+				.loc_offset = 0,
                                 .threshold_oids = {
 					.UpCritical = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.6.x",
 					.UpMajor    = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.7.x",
@@ -2437,6 +2721,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.7.x",
+				.loc_offset = 0,
                                 .threshold_oids = {
 					.UpCritical = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.9.x",
 					.UpMajor    = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.10.x",
@@ -2535,6 +2820,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.8.x",
+				.loc_offset = 0,
                                 .threshold_oids = {
 					.UpCritical = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.12.x",
 					.UpMajor    = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.13.x",
@@ -2633,6 +2919,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.9.x",
+				.loc_offset = 0,
                                 .threshold_oids = {
 					.UpCritical = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.15.x",
 					.UpMajor    = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.16.x",
@@ -2739,6 +3026,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.12.x",
+				.loc_offset = 0,
                                 .threshold_oids = {
 					.UpMajor  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.18.x",
 					.LowMajor = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.19.x",
@@ -2830,6 +3118,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.11.x",
+				.loc_offset = 0,
                                 .threshold_oids = {
 					.UpMajor  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.16.x",
 					.LowMajor = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.17.x",
@@ -2939,6 +3228,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.10.x",
+				.loc_offset = 0,
                                 .threshold_oids = {
 					.UpMajor  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.14.x",
 					.LowMajor = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.15.x",
@@ -3048,6 +3338,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.7.x",
+				.loc_offset = 0,
                                 .threshold_oids = {
 					.UpMajor  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.8.x",
 					.LowMajor = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.9.x",
@@ -3157,6 +3448,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.6.x",
+				.loc_offset = 0,
                                 .threshold_oids = {
 					.UpMajor  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.6.x",
 					.LowMajor = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.7.x",
@@ -3266,6 +3558,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.8.x",
+				.loc_offset = 0,
                                 .threshold_oids = {
 					.UpMajor  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.10.x",
 					.LowMajor = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.11.x",
@@ -3366,6 +3659,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.13.x",
+				.loc_offset = 0,
                         },
                         .cur_state = SAHPI_ES_UNSPECIFIED,
 			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
@@ -3686,6 +3980,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 					.not_avail_indicator_num = 0,
 					.write_only = SAHPI_FALSE,
 					.oid = "discovered",
+					.loc_offset = 0,
 					.threshold_oids = {
 						.UpCritical = "discovered",
 						.UpMajor    = "discovered",
@@ -3787,6 +4082,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 					.not_avail_indicator_num = 0,
 					.write_only = SAHPI_FALSE,
 					.oid = "discovered",
+					.loc_offset = 0,
 					.threshold_oids = {
 						.UpCritical = "discovered",
 						.UpMajor    = "discovered",
@@ -3888,6 +4184,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 					.not_avail_indicator_num = 0,
 					.write_only = SAHPI_FALSE,
 					.oid = "discovered",
+					.loc_offset = 0,
 					.threshold_oids = {
 						.UpCritical = "discovered",
 						.UpMajor    = "discovered",
@@ -3989,6 +4286,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 					.not_avail_indicator_num = 0,
 					.write_only = SAHPI_FALSE,
 					.oid = "discovered",
+					.loc_offset = 0,
 					.threshold_oids = {
 						.UpCritical = "discovered",
 						.UpMajor    = "discovered",
@@ -4099,6 +4397,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 					.not_avail_indicator_num = 0,
 					.write_only = SAHPI_FALSE,
 					.oid = "discovered",
+					.loc_offset = 0,
 					.threshold_oids = {
 						.UpMajor  = "discovered",
 						.LowMajor = "discovered",
@@ -4210,6 +4509,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 					.not_avail_indicator_num = 0,
 					.write_only = SAHPI_FALSE,
 					.oid = "discovered",
+					.loc_offset = 0,
 					.threshold_oids = {
 						.UpMajor  = "discovered",
 						.LowMajor = "discovered",
@@ -4304,6 +4604,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 					.not_avail_indicator_num = 0,
 					.write_only = SAHPI_FALSE,
 					.oid = "discovered",
+					.loc_offset = 0,
 					.threshold_oids = {
 						.UpMajor  = "discovered",
 						.LowMajor = "discovered",
@@ -4415,6 +4716,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 					.not_avail_indicator_num = 0,
 					.write_only = SAHPI_FALSE,
 					.oid = "discovered",
+					.loc_offset = 0,
 					.threshold_oids = {
 						.UpMajor  = "discovered",
 						.LowMajor = "discovered",
@@ -4508,7 +4810,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 					.not_avail_indicator_num = 0,
 					.write_only = SAHPI_FALSE,
 					.oid = "discovered",
-					/* Default HDW thresholds: Warning 1.62<>1.89; Warning Reset 1.86<>1.74 */
+					.loc_offset = 0,
 					.threshold_oids = {
 						.LowMajor = "discovered",
 						.UpMajor  = "discovered",
@@ -4619,7 +4921,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 					.not_avail_indicator_num = 0,
 					.write_only = SAHPI_FALSE,
 					.oid = "discovered",
-					/* Default HDW thresholds: Warning 1.62<>1.89; Warning Reset 1.86<>1.74 */
+					.loc_offset = 0,
 					.threshold_oids = {
 						.LowMajor = "discovered",
 						.UpMajor  = "discovered",
@@ -4714,6 +5016,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 					.not_avail_indicator_num = 0,
 					.write_only = SAHPI_FALSE,
 					.oid = "discovered",
+					.loc_offset = 0,
 					.threshold_oids = {
 						.UpMajor  = "discovered",
 						.LowMajor = "discovered",
@@ -4825,6 +5128,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 					.not_avail_indicator_num = 0,
 					.write_only = SAHPI_FALSE,
 					.oid = "discovered",
+					.loc_offset = 0,
 					.threshold_oids = {
 						.UpMajor  = "discovered",
 						.LowMajor = "discovered",
@@ -4919,6 +5223,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 					.not_avail_indicator_num = 0,
 					.write_only = SAHPI_FALSE,
 					.oid = "discovered",
+					.loc_offset = 0,
 					.threshold_oids = {
 						.UpMajor  = "discovered",
 						.LowMajor = "discovered",
@@ -5030,6 +5335,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 					.not_avail_indicator_num = 0,
 					.write_only = SAHPI_FALSE,
 					.oid = "discovered",
+					.loc_offset = 0,
 					.threshold_oids = {
 						.UpMajor  = "discovered",
 						.LowMajor = "discovered",
@@ -5124,6 +5430,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 					.not_avail_indicator_num = 0,
 					.write_only = SAHPI_FALSE,
 					.oid = "discovered",
+					.loc_offset = 0,
 					.threshold_oids = {
 						.UpMajor  = "discovered",
 						.LowMajor = "discovered",
@@ -5235,6 +5542,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 					.not_avail_indicator_num = 0,
 					.write_only = SAHPI_FALSE,
 					.oid = "discovered",
+					.loc_offset = 0,
 					.threshold_oids = {
 						.UpMajor  = "discovered",
 						.LowMajor = "discovered",
@@ -5329,6 +5637,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 					.not_avail_indicator_num = 0,
 					.write_only = SAHPI_FALSE,
 					.oid = "discovered",
+					.loc_offset = 0,
 					.threshold_oids = {
 						.UpMajor  = "discovered",
 						.LowMajor = "discovered",
@@ -5441,6 +5750,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 					.not_avail_indicator_num = 0,
 					.write_only = SAHPI_FALSE,
 					.oid = "discovered",
+					.loc_offset = 0,
 					.threshold_oids = {
 						.UpMajor  = "discovered",
 						.LowMajor = "discovered",
@@ -5552,6 +5862,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 					.not_avail_indicator_num = 0,
 					.write_only = SAHPI_FALSE,
 					.oid = "discovered",
+					.loc_offset = 0,
 					.threshold_oids = {
 						.UpMajor  = "discovered",
 						.LowMajor = "discovered",
@@ -5638,6 +5949,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 					.not_avail_indicator_num = 0,
 					.write_only = SAHPI_FALSE,
 					.oid = "discovered",
+					.loc_offset = 0,
 					.threshold_oids = {
 						.UpMajor  = "discovered",
 						.LowMajor = "discovered",
@@ -5724,6 +6036,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 					.not_avail_indicator_num = 0,
 					.write_only = SAHPI_FALSE,
 					.oid = "discovered",
+					.loc_offset = 0,
 					.threshold_oids = {
 						.UpMajor  = "discovered",
 						.LowMajor = "discovered",
@@ -5818,6 +6131,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 					.not_avail_indicator_num = 0,
 					.write_only = SAHPI_FALSE,
 					.oid = "discovered",
+					.loc_offset = 0,
 					.threshold_oids = {
 						.UpMajor  = "discovered",
 						.LowMajor = "discovered",
@@ -5896,6 +6210,7 @@ struct snmp_bc_sensor snmp_bc_bem_sensors[] = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.10.x",
+				.loc_offset = 0,
                                 .threshold_oids = {
 					.UpCritical  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.18.x",
 					.UpMajor = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.19.x",
@@ -6301,6 +6616,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_bem_ipmi_sensors[] = {
 					.not_avail_indicator_num = 0,
 					.write_only = SAHPI_FALSE,
 					.oid = "discovered",
+					.loc_offset = 0,
 					.threshold_oids = {
 						.UpCritical = "discovered",
 						.UpMajor    = "discovered",
@@ -6371,6 +6687,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_bem_ipmi_sensors[] = {
 					.not_avail_indicator_num = 0,
 					.write_only = SAHPI_FALSE,
 					.oid = "discovered",
+					.loc_offset = 0,
 					.threshold_oids = {
 						.UpCritical = "discovered",
 						.UpMajor    = "discovered",
@@ -6449,6 +6766,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_bem_ipmi_sensors[] = {
 					.not_avail_indicator_num = 0,
 					.write_only = SAHPI_FALSE,
 					.oid = "discovered",
+					.loc_offset = 0,
 					.threshold_oids = {
 						.UpMajor  = "discovered",
 						.LowMajor = "discovered",
@@ -6527,6 +6845,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_bem_ipmi_sensors[] = {
 					.not_avail_indicator_num = 0,
 					.write_only = SAHPI_FALSE,
 					.oid = "discovered",
+					.loc_offset = 0,
 					.threshold_oids = {
 						.UpMajor  = "discovered",
 						.LowMajor = "discovered",
@@ -6692,6 +7011,7 @@ struct snmp_bc_sensor snmp_bc_fan_sensors[] = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.3.x.0",
+				.loc_offset = 0,
                         },
                         .cur_state = SAHPI_ES_UNSPECIFIED,
 			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
@@ -6713,6 +7033,76 @@ struct snmp_bc_sensor snmp_bc_fan_sensors[] = {
    			.reading2event = {},
                 },
                 .comment = "Fan Speed (Percent of Max) Sensor",
+        },
+
+        {} /* Terminate array with a null element */
+};
+
+/* BladeCenter H specific fan sensors */
+#define SNMP_BC_LAST_COMMON_FAN_SENSOR 2
+struct snmp_bc_sensor snmp_bc_fan_sensors_bch[] = {
+        /* Fan RPM Speed Sensor */
+        {
+		.index = 1,
+                .sensor = {
+                        .Num = SNMP_BC_LAST_COMMON_FAN_SENSOR + 1,
+                        .Type = SAHPI_FAN,
+                        .Category = SAHPI_EC_PRED_FAIL,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
+                        .Events = SAHPI_ES_PRED_FAILURE_ASSERT | SAHPI_ES_PRED_FAILURE_DEASSERT,
+                        .DataFormat = {
+                                .IsSupported = SAHPI_TRUE,
+                                .ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+                                .BaseUnits = SAHPI_SU_RPM,
+                                .ModifierUnits = SAHPI_SU_UNSPECIFIED,
+                                .ModifierUse = SAHPI_SMUU_NONE,
+                                .Percentage = SAHPI_FALSE,
+                                .Range = {
+                                        .Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
+                                        .Max = {
+  						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 4000,
+                                                },
+                                        },
+                                        .Min = {
+						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 0,
+                                                },
+                                        },
+                                },
+                        },
+			.ThresholdDefn = {
+                                .IsAccessible = SAHPI_FALSE,
+                        },
+                        .Oem = 0,
+                },
+                .sensor_info = {
+                        .mib = {
+                                .not_avail_indicator_num = 0,
+                                .write_only = SAHPI_FALSE,
+                                .oid = ".1.3.6.1.4.1.2.3.51.2.2.3.x.0",
+				.loc_offset = (20 - 1),
+                        },
+                        .cur_state = SAHPI_ES_UNSPECIFIED,
+			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
+                        .sensor_enabled = SAHPI_TRUE,
+                        .events_enabled = SAHPI_TRUE,
+			.assert_mask   = SAHPI_ES_PRED_FAILURE_ASSERT,
+			.deassert_mask = SAHPI_ES_PRED_FAILURE_ASSERT,
+                        .event_array = {
+
+/* FIXME:: Need to add events */				
+
+                                {},
+                        },
+   			.reading2event = {},
+                },
+                .comment = "Fan RPM Speed Sensor",
         },
 
         {} /* Terminate array with a null element */
@@ -6924,6 +7314,7 @@ struct snmp_bc_sensor snmp_bc_power_sensors_bch[] = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.6.1.1.5.x",
+				.loc_offset = 0,
                         },
                         .cur_state = SAHPI_ES_UNSPECIFIED,
 			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
@@ -6985,6 +7376,7 @@ struct snmp_bc_sensor snmp_bc_power_sensors_bch[] = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.6.1.1.6.x",
+				.loc_offset = 0,
                         },
                         .cur_state = SAHPI_ES_UNSPECIFIED,
 			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
@@ -7172,8 +7564,9 @@ struct snmp_bc_sensor snmp_bc_slot_sensors[] = {
                 .sensor_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
-                                .write_only = SAHPI_FALSE,
-                                .oid = ".1.3.6.1.4.1.2.3.51.2.2.10.2.1.1.8.1",
+                                .write_only = SAHPI_FALSE,          
+                                .oid = ".1.3.6.1.4.1.2.3.51.2.2.10.2.1.1.8.1", /* Dummy OID to bypass test */
+				.loc_offset = 0,
                         },
                         .cur_state = SAHPI_ES_ABSENT,
 			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
@@ -7217,9 +7610,8 @@ struct snmp_bc_sensor snmp_bc_slot_sensors[] = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
-                                .oid = ".1.3.6.1.4.1.2.3.51.2.2.10.2.1.1.8.1",  /* pd1ModuleAllocatedPowerMax  .2.1.1.8
-									* pd2ModuleAllocatedPowerMax  .3.1.1.8
-									*/
+                                .oid = ".1.3.6.1.4.1.2.3.51.2.2.10.2.1.1.8.1",
+				.loc_offset = 0,
                                 .threshold_oids = {},
 				.threshold_write_oids = {},
                         },
@@ -7268,9 +7660,8 @@ struct snmp_bc_sensor snmp_bc_slot_sensors[] = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
-                                .oid = ".1.3.6.1.4.1.2.3.51.2.2.10.2.1.1.7.1",	/* pd1ModuleAllocatedPowerCurrent .2.1.1.7
-									 * pd2ModuleAllocatedPowerCurrent .3.1.1.7
-									 */
+                                .oid = ".1.3.6.1.4.1.2.3.51.2.2.10.2.1.1.7.1",
+				.loc_offset = 0,
                                 .threshold_oids = {},			
 				.threshold_write_oids = {},
                         },
@@ -7317,9 +7708,8 @@ struct snmp_bc_sensor snmp_bc_slot_sensors[] = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
-                                .oid = ".1.3.6.1.4.1.2.3.51.2.2.10.2.1.1.9.1",	/* pd1ModuleAllocatedPowerMin .2.1.1.9
-								 	 * pd2ModuleAllocatedPowerMin .3.1.1.9
-									 */
+                                .oid = ".1.3.6.1.4.1.2.3.51.2.2.10.2.1.1.9.1",
+				.loc_offset = 0,
                                 .threshold_oids = {},
 				.threshold_write_oids = {},
                         },
@@ -7381,6 +7771,7 @@ struct snmp_bc_control snmp_bc_chassis_controls_bc[] = {
                                 .not_avail_indicator_num = 3,
                                 .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.8.1.4.0",
+				.loc_offset = 0,
                         },
 			.cur_mode = SAHPI_CTRL_MODE_MANUAL,
                 },
@@ -7412,6 +7803,7 @@ struct snmp_bc_control snmp_bc_chassis_controls_bct[] = {
                                 .not_avail_indicator_num = 3,
                                 .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.8.3.4.0",
+				.loc_offset = 0,
                         },
 			.cur_mode = SAHPI_CTRL_MODE_MANUAL,
                 },
@@ -7447,6 +7839,7 @@ struct snmp_bc_control snmp_bc_blade_controls[] = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.8.2.1.1.11.x",
+				.loc_offset = 0,
                         },
  			.cur_mode = SAHPI_CTRL_MODE_MANUAL,
                },
@@ -7490,6 +7883,7 @@ struct snmp_bc_control snmp_bc_virtual_mgmnt_controls[] = {
 				.not_avail_indicator_num = 0,
 				.write_only = SAHPI_FALSE,
 				.oid = ".1.3.6.1.4.1.2.3.51.2.7.7.0",
+				.loc_offset = 0,
 				/* Read values */
 				.digitalmap[0] = -1, /* Always return SAHPI_CTRL_STATE_OFF */
 				.digitalmap[1] = -1, /* Always return SAHPI_CTRL_STATE_OFF */
@@ -7810,5 +8204,3 @@ struct snmp_bc_inventory snmp_bc_slot_inventories[] = {
 
         {} /* Terminate array with a null element */
 };
-
-

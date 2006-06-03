@@ -27,6 +27,21 @@ extern SaErrorT	decode_proc(int num, void *val, char *buf, int bufsize);
 extern SaErrorT	decode1_proc(int num, int val, char *buf, int bufsize);
 extern SaErrorT	thres_value(SaHpiSensorReadingT *item, char *buf, int size);
 
+static int is_ATCA(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid)
+{
+	SaHpiRptEntryT		rpt_entry;
+	SaHpiEntityPathT	*path;
+	int			i;
+
+	if (saHpiRptEntryGetByResourceId(sessionid, resourceid, &rpt_entry) != SA_OK)
+		return(0);
+	path = &(rpt_entry.ResourceEntity);
+	for (i = 0; i < SAHPI_MAX_ENTITY_PATH; i++)
+		if (path->Entry[i].EntityType == SAHPI_ENT_ADVANCEDTCA_CHASSIS)
+			return(1);
+	return(0);
+}
+
 SaErrorT sensor_list(SaHpiSessionIdT sessionid, hpi_ui_print_cb_t proc)
 {
 	SaErrorT		rv = SA_OK;
@@ -350,9 +365,15 @@ SaErrorT show_control_state(SaHpiSessionIdT sessionid, SaHpiResourceIdT resource
 			return SA_OK;
 		case SAHPI_CTRL_TYPE_OEM:
 			oem = &(state.StateUnion.Oem);
-			snprintf(buf, SHOW_BUF_SZ, "MId = %d  Body = ", oem->MId);
-			proc(buf);
 			str = (char *)(oem->Body);
+			if (is_ATCA(sessionid, resourceid) &&
+				(oem->MId == ATCAHPI_PICMG_MID))
+				snprintf(buf, SHOW_BUF_SZ,
+					"MId = %d  Color = %s  Body = ",
+					oem->MId, oh_lookup_atcahpiledcolor(str[2]));
+			else
+				snprintf(buf, SHOW_BUF_SZ, "MId = %d  Body = ", oem->MId);
+			proc(buf);
 			for (i = 0; i < oem->BodyLength; i++)
 				sprintf(buf + i * 3, "%2.2X ", (unsigned char)(str[i]));
 			strcat(buf, "\n");

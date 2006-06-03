@@ -719,8 +719,8 @@ SaErrorT snmp_bc_discover_media_tray(struct oh_handler_state *handle,
 		
 		mt_width = 1;    /* Default to 1-wide */
 		if (res_info_ptr->mib.OidResourceWidth != NULL) {
-			err = snmp_bc_oid_snmp_get(custom_handle,  &(e->u.res_event.entry.ResourceEntity),
-				   		res_info_ptr->mib.OidResourceWidth, &get_value, SAHPI_TRUE);
+			err = snmp_bc_oid_snmp_get(custom_handle,  &(e->u.res_event.entry.ResourceEntity), 0,
+						   res_info_ptr->mib.OidResourceWidth, &get_value, SAHPI_TRUE);
 			if (!err && (get_value.type == ASN_INTEGER)) {
 					mt_width = get_value.integer;
 			}
@@ -938,9 +938,9 @@ SaErrorT snmp_bc_discover_blade(struct oh_handler_state *handle,
 		
 			while(1) {
 		  	err = snmp_bc_oid_snmp_get(custom_handle,
-					   &(e->u.res_event.entry.ResourceEntity),
-					   snmp_bc_rpt_array[BC_RPT_ENTRY_BLADE].OidResourceTag,
-					   &get_blade_resourcetag, SAHPI_TRUE);
+						   &(e->u.res_event.entry.ResourceEntity), 0,
+						   snmp_bc_rpt_array[BC_RPT_ENTRY_BLADE].OidResourceTag,
+						   &get_blade_resourcetag, SAHPI_TRUE);
 				
 				if ( (get_blade_resourcetag.type == ASN_OCTET_STR) && 
 					( strncmp(get_blade_resourcetag.string, LOG_DISCOVERING, sizeof(LOG_DISCOVERING)) == 0 ) )
@@ -967,7 +967,7 @@ SaErrorT snmp_bc_discover_blade(struct oh_handler_state *handle,
 			res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;  /* Default to ACTIVE */
 			if (res_info_ptr->mib.OidPowerState != NULL) {
 				/* Read power state of resource */
-				err = snmp_bc_oid_snmp_get(custom_handle,  &(e->u.res_event.entry.ResourceEntity),
+				err = snmp_bc_oid_snmp_get(custom_handle, &(e->u.res_event.entry.ResourceEntity), 0,
 				   		res_info_ptr->mib.OidPowerState, &get_value, SAHPI_TRUE);
 				if (!err && (get_value.type == ASN_INTEGER)) {
 					if (get_value.integer == 0)   /*  state = SAHPI_POWER_OFF */
@@ -998,7 +998,7 @@ SaErrorT snmp_bc_discover_blade(struct oh_handler_state *handle,
 			
 			blade_width = 1;    /* Default to 1-wide blade */
 			if (res_info_ptr->mib.OidResourceWidth != NULL) {
-				err = snmp_bc_oid_snmp_get(custom_handle,  &(e->u.res_event.entry.ResourceEntity),
+				err = snmp_bc_oid_snmp_get(custom_handle,  &(e->u.res_event.entry.ResourceEntity), 0,
 				   		res_info_ptr->mib.OidResourceWidth, &get_value, SAHPI_TRUE);
 				if (!err && (get_value.type == ASN_INTEGER)) {
 					blade_width = get_value.integer;
@@ -1019,7 +1019,8 @@ SaErrorT snmp_bc_discover_blade(struct oh_handler_state *handle,
 				oh_set_ep_location(&ep, SAHPI_ENT_SBC_BLADE, i + SNMP_BC_HPI_LOCATION_BASE);
 
 
-				err = snmp_bc_oid_snmp_get(custom_handle, &ep, SNMP_BC_BLADE_EXPANSION_VECTOR, &get_value, SAHPI_TRUE);
+				err = snmp_bc_oid_snmp_get(custom_handle, &ep, 0,
+							   SNMP_BC_BLADE_EXPANSION_VECTOR, &get_value, SAHPI_TRUE);
 
 				if (!err && get_value.integer != 0) {
 
@@ -1188,12 +1189,15 @@ SaErrorT snmp_bc_discover_fans(struct oh_handler_state *handle,
 			/* Find resource's events, sensors, controls, etc. */
 			snmp_bc_discover_res_events(handle, &(e->u.res_event.entry.ResourceEntity), res_info_ptr);
 			snmp_bc_discover_sensors(handle, snmp_bc_fan_sensors, e);
+			if (custom_handle->platform == SNMP_BC_PLATFORM_BCH) {
+				snmp_bc_discover_sensors(handle, snmp_bc_fan_sensors_bch, e);	
+			}
 			snmp_bc_discover_controls(handle, snmp_bc_fan_controls, e);
 			snmp_bc_discover_inventories(handle, snmp_bc_fan_inventories, e);
 			
 			fan_width = 1;    /* Default to 1-wide blade */
 			if (res_info_ptr->mib.OidResourceWidth != NULL) {
-				err = snmp_bc_oid_snmp_get(custom_handle,  &(e->u.res_event.entry.ResourceEntity),
+				err = snmp_bc_oid_snmp_get(custom_handle,  &(e->u.res_event.entry.ResourceEntity), 0,
 				   		res_info_ptr->mib.OidResourceWidth, &get_value, SAHPI_TRUE);
 				if (!err && (get_value.type == ASN_INTEGER)) {
 					fan_width = get_value.integer;
@@ -1322,7 +1326,7 @@ SaErrorT snmp_bc_discover_power_module(struct oh_handler_state *handle,
 			
 			pm_width = 1;    /* Default to 1-wide */
 			if (res_info_ptr->mib.OidResourceWidth != NULL) {
-				err = snmp_bc_oid_snmp_get(custom_handle,  &(e->u.res_event.entry.ResourceEntity),
+				err = snmp_bc_oid_snmp_get(custom_handle,  &(e->u.res_event.entry.ResourceEntity), 0,
 				   		res_info_ptr->mib.OidResourceWidth, &get_value, SAHPI_TRUE);
 				if (!err && (get_value.type == ASN_INTEGER)) {
 					pm_width = get_value.integer;
@@ -1425,7 +1429,7 @@ SaErrorT snmp_bc_discover_switch(struct oh_handler_state *handle,
 			res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;  /* Default to ACTIVE */
 			if (res_info_ptr->mib.OidPowerState != NULL) {
 				/* Read power state of resource */
-				err = snmp_bc_oid_snmp_get(custom_handle,  &(e->u.res_event.entry.ResourceEntity),
+				err = snmp_bc_oid_snmp_get(custom_handle,  &(e->u.res_event.entry.ResourceEntity), 0,
 				   		res_info_ptr->mib.OidPowerState, &get_value, SAHPI_TRUE);
 				if (!err && (get_value.type == ASN_INTEGER)) {
 					if (get_value.integer == 0)   /*  state = SAHPI_POWER_OFF */
@@ -1455,7 +1459,7 @@ SaErrorT snmp_bc_discover_switch(struct oh_handler_state *handle,
 
 			sw_width = 1;    /* Default to 1-wide */
 			if (res_info_ptr->mib.OidResourceWidth != NULL) {
-				err = snmp_bc_oid_snmp_get(custom_handle,  &(e->u.res_event.entry.ResourceEntity),
+				err = snmp_bc_oid_snmp_get(custom_handle,  &(e->u.res_event.entry.ResourceEntity), 0,
 				   		res_info_ptr->mib.OidResourceWidth, &get_value, SAHPI_TRUE);
 				if (!err && (get_value.type == ASN_INTEGER)) {
 					sw_width = get_value.integer;
@@ -1647,7 +1651,7 @@ SaErrorT snmp_bc_discover_mm(struct oh_handler_state *handle,
 
 			mm_width = 1;    /* Default to 1-wide */
 			if (res_info_ptr->mib.OidResourceWidth != NULL) {
-				err = snmp_bc_oid_snmp_get(custom_handle,  &(e->u.res_event.entry.ResourceEntity),
+				err = snmp_bc_oid_snmp_get(custom_handle,  &(e->u.res_event.entry.ResourceEntity), 0,
 					   		res_info_ptr->mib.OidResourceWidth, &get_value, SAHPI_TRUE);
 				if (!err && (get_value.type == ASN_INTEGER)) {
 					mm_width = get_value.integer;
@@ -1688,7 +1692,7 @@ static SaErrorT snmp_bc_discover_ipmi_sensors(struct oh_handler_state *handle,
 
 	/* Check if this is an IPMI blade */
 	err = snmp_bc_oid_snmp_get(custom_handle,
-				   &(res_oh_event->u.res_event.entry.ResourceEntity),
+				   &(res_oh_event->u.res_event.entry.ResourceEntity), 0,
 				   SNMP_BC_IPMI_TEMP_BLADE_OID, &get_value, SAHPI_FALSE);
 				    
         if (err || get_value.type != ASN_INTEGER) {
@@ -1715,7 +1719,7 @@ static SaErrorT snmp_bc_discover_ipmi_sensors(struct oh_handler_state *handle,
 	/* Find blade's defined temperature IPMI sensors */
 	for (i=0; i<SNMP_BC_MAX_IPMI_TEMP_SENSORS; i++) {
 		err = snmp_bc_oid_snmp_get(custom_handle,
-					   &(res_oh_event->u.res_event.entry.ResourceEntity),
+					   &(res_oh_event->u.res_event.entry.ResourceEntity), 0,
 					   snmp_bc_ipmi_sensors_temp[i].oid, &get_value, SAHPI_FALSE);
 		if (!err) {
 			char *hash_existing_key, *hash_value;
@@ -1764,7 +1768,7 @@ static SaErrorT snmp_bc_discover_ipmi_sensors(struct oh_handler_state *handle,
 	/* Find blade's voltage IPMI sensors */
 	for (i=0; i<SNMP_BC_MAX_IPMI_VOLTAGE_SENSORS; i++) {
 		err = snmp_bc_oid_snmp_get(custom_handle,
-					   &(res_oh_event->u.res_event.entry.ResourceEntity),
+					   &(res_oh_event->u.res_event.entry.ResourceEntity), 0,
 					   snmp_bc_ipmi_sensors_voltage[i].oid, &get_value, SAHPI_FALSE);
 		if (!err) {
 			char *hash_existing_key, *hash_value;
@@ -1966,7 +1970,7 @@ SaErrorT snmp_bc_rediscover(struct oh_handler_state *handle,
                         	handle->eventq = g_slist_append(handle->eventq, e);
                 	} else { dbg("Out of memory."); }
 
-			err = snnp_bc_reset_resource_slot_state_sensor(handle, res);
+			err = snmp_bc_reset_resource_slot_state_sensor(handle, res);
                 	oh_remove_resource(handle->rptcache, res->ResourceId);
                 
         	} else dbg("No valid resource at hand. Could not remove resource.");
@@ -2397,5 +2401,3 @@ SaErrorT snmp_bc_discover_slot( struct oh_handler_state *handle,
 			
 	return(SA_OK);
 }
-
-

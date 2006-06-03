@@ -1,11 +1,11 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2004, 2005
+ * (C) Copyright IBM Corp. 2004, 2006
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
- * file and program are licensed under a BSD style license.  See
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. This
+ * file and program are licensed under a BSD style license. See
  * the Copying file included with the OpenHPI distribution for
  * full licensing terms.
  *
@@ -118,7 +118,7 @@ SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
 				   SAHPI_ENT_PROCESSOR, i + SNMP_BC_HPI_LOCATION_BASE);
 
 		/* See if CPU exists */
-		if (!rdr_exists(custom_handle, &(e->u.res_event.entry.ResourceEntity),
+		if (!rdr_exists(custom_handle, &(e->u.res_event.entry.ResourceEntity), 0,
 				SNMP_BC_CPU_OID_RSA, 0, 0 )) {
 			g_free(e);
 			continue;
@@ -183,7 +183,7 @@ SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
 				   SAHPI_ENT_DISK_BAY, i + SNMP_BC_HPI_LOCATION_BASE);
 
 		/* See if DASD exists */
-		if (!rdr_exists(custom_handle, &(e->u.res_event.entry.ResourceEntity),
+		if (!rdr_exists(custom_handle, &(e->u.res_event.entry.ResourceEntity), 0,
 				SNMP_BC_DASD_OID_RSA, 0, 0 )) {
 			g_free(e);
 			continue;
@@ -248,7 +248,7 @@ SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
 				   SAHPI_ENT_FAN, i + SNMP_BC_HPI_LOCATION_BASE);
 
 		/* See if fan exists */
-		if (!rdr_exists(custom_handle, &(e->u.res_event.entry.ResourceEntity),
+		if (!rdr_exists(custom_handle, &(e->u.res_event.entry.ResourceEntity), 0,
 				SNMP_BC_FAN_OID_RSA, 0, 0 )) {
 			g_free(e);
 			continue;

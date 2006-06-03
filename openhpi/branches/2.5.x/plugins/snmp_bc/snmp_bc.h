@@ -1,11 +1,11 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2003, 2005, 2006
+ * (C) Copyright IBM Corp. 2003, 2006
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
- * file and program are licensed under a BSD style license.  See
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. This
+ * file and program are licensed under a BSD style license. See
  * the Copying file included with the OpenHPI distribution for
  * full licensing terms.
  *
@@ -45,10 +45,10 @@ struct snmp_bc_hnd {
 	RPTable *tmpcache;
 	GSList *tmpqueue;
 	ohpi_bc_lock snmp_bc_hlock;
-	guint max_pb_supported;		/* pb - processor blade */
-	guint max_blower_supported;	/* blower - fan/blower  */
-	guint max_pm_supported;		/* pm - power module    */
-	guint max_sm_supported;		/* sm - switch module   */
+	guint max_pb_supported;		/* pb - processor blade   */
+	guint max_blower_supported;	/* blower - fan/blower    */
+	guint max_pm_supported;		/* pm - power module      */
+	guint max_sm_supported;		/* sm - i/o module        */
 	guint max_mm_supported;		/* mm - management module */
 	guint max_mt_supported;		/* mt - media tray        */
 	gchar installed_pb_mask[SNMP_BC_MAX_RESOURCES_MASK];
@@ -67,6 +67,7 @@ SaErrorT snmp_bc_snmp_get(struct snmp_bc_hnd *custom_handle,
 
 SaErrorT snmp_bc_oid_snmp_get(struct snmp_bc_hnd *custom_handle,
 			      SaHpiEntityPathT *ep,
+			      SaHpiEntityLocationT loc_offset,
 			      const gchar *oidstr,
 			      struct snmp_value *value,
 			      SaHpiBoolT retry);
@@ -77,6 +78,7 @@ SaErrorT snmp_bc_snmp_set(struct snmp_bc_hnd *custom_handle,
 			  
 SaErrorT snmp_bc_oid_snmp_set(struct snmp_bc_hnd *custom_handle,
 			      SaHpiEntityPathT *ep,
+			      SaHpiEntityLocationT loc_offset,
 			      const gchar *oidstr,
 			      struct snmp_value value);
 			  			  
@@ -88,12 +90,10 @@ SaErrorT snmp_bc_set_resource_tag(void *hnd,
 				  SaHpiTextBufferT *tag);
 				  
 SaErrorT snmp_bc_set_resource_severity(void *hnd,
-					SaHpiResourceIdT rid,
-					SaHpiSeverityT sev);
+				       SaHpiResourceIdT rid,
+				       SaHpiSeverityT sev);
 					
 SaErrorT snmp_bc_control_parm(void *hnd,
-				SaHpiResourceIdT rid,
-				SaHpiParmActionT act);
-
-			  
+			      SaHpiResourceIdT rid,
+			      SaHpiParmActionT act);
 #endif
