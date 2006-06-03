@@ -1,35 +1,33 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2003, 2005
+ * (C) Copyright IBM Corp. 2003, 2006
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
- * file and program are licensed under a BSD style license.  See
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. This
+ * file and program are licensed under a BSD style license. See
  * the Copying file included with the OpenHPI distribution for
  * full licensing terms.
  *
  * Author(s):
- *      peter d phan  <pdphan@sourceforge.net>
+ *      Peter Phan  <pdphan@sourceforge.net>
  *      Renier Morales <renierm@users.sf.net>
- *
- *	07/19/04 HPI-B Inventory   
  */
 
 #include <snmp_bc_plugin.h>
 
 static
 SaErrorT snmp_bc_build_idr( void *hnd,
-               SaHpiResourceIdT         ResourceId,
-               SaHpiIdrIdT              IdrId,
-               struct bc_inventory_record 	*i_record);
+			    SaHpiResourceIdT  ResourceId,
+			    SaHpiIdrIdT IdrId,
+			    struct bc_inventory_record *i_record);
 
 static	       
 SaErrorT snmp_bc_idr_build_field(struct snmp_bc_hnd *custom_handle,
-		SaHpiEntityPathT *ep,
-		const gchar *oidstr,
-		SaHpiIdrFieldT  *thisField,
-		struct bc_idr_area *thisInventoryArea);
+				 SaHpiEntityPathT *ep,
+				 const gchar *oidstr,
+				 SaHpiIdrFieldT  *thisField,
+				 struct bc_idr_area *thisInventoryArea);
 
 /************************************************************************/
 /* Inventory functions   						*/
@@ -70,7 +68,7 @@ SaErrorT snmp_bc_get_idr_info( void *hnd,
 	
 	i_record = (struct bc_inventory_record *)g_malloc0(sizeof(struct bc_inventory_record));
  	if (!i_record) {
-  		dbg("Cannot allocate working buffer memory");
+  		dbg("Cannot allocate memory.");
 		return(SA_ERR_HPI_OUT_OF_MEMORY);
 	}
 	
@@ -138,7 +136,7 @@ SaErrorT snmp_bc_get_idr_area_header( void *hnd,
 	
 	i_record = (struct bc_inventory_record *)g_malloc0(sizeof(struct bc_inventory_record));
  	if (!i_record) {
-  		dbg("Cannot allocate working buffer memory");
+  		dbg("Cannot allocate memory.");
 		return(SA_ERR_HPI_OUT_OF_MEMORY);
 	}
 	
@@ -257,7 +255,7 @@ SaErrorT snmp_bc_get_idr_field( void *hnd,
 	i_record = (struct bc_inventory_record *)g_malloc0(sizeof(struct bc_inventory_record));
 	
  	if (!i_record) {
-  		dbg("Cannot allocate working buffer memory");
+  		dbg("Cannot allocate memory.");
 		return(SA_ERR_HPI_OUT_OF_MEMORY);
 	}
 	
@@ -305,7 +303,6 @@ SaErrorT snmp_bc_get_idr_field( void *hnd,
 	return rv;
 }
 
-
 /**
  * snmp_bc_add_idr_field:
  * @hnd: Pointer to handler's data
@@ -326,7 +323,6 @@ SaErrorT snmp_bc_add_idr_field( void *hnd,
 	return SA_ERR_HPI_READ_ONLY;
 }
 
-
 /**
  * snmp_bc_set_idr_field:
  * @hnd: Pointer to handler's data
@@ -346,7 +342,6 @@ SaErrorT snmp_bc_set_idr_field( void *hnd,
 {
 	return SA_ERR_HPI_READ_ONLY;
 }
-
 
 /**
  * snmp_bc_del_idr_field:
@@ -383,7 +378,6 @@ SaErrorT snmp_bc_del_idr_field( void *hnd,
  * SA_OK - Normal
  * SA_ERR_HPI_INVALID_PARAMS - If any in pointer is NULL
  * SA_ERR_HPI_NOT_PRESENT - If Inventory RDR is not found in rptcache
- * 
  **/
 static
 SaErrorT snmp_bc_build_idr( void *hnd, 
@@ -442,13 +436,10 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 			rv = snmp_bc_idr_build_field(custom_handle, &valEntity,
 					s->mib.oid.OidChassisType, &thisField, &thisInventoryArea);
 			if (rv != SA_OK)
-				dbg("Having problem building Chassis Idr Field, continue to next field.\n");
+				dbg("Cannot build Chassis Idr Field, continue to next field.");
 			
 		}
 
-		/**
-		 *
-		 */
 		memset(thisField.Field.Data, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);		
 		thisField.FieldId = 2;
 		thisField.Type = SAHPI_IDR_FIELDTYPE_MFG_DATETIME;
@@ -460,26 +451,27 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 			strcpy((char *)thisField.Field.Data,"SAHPI_TIME_UNSPECIFIED");
 		
 		} else {
-                        rv = snmp_bc_oid_snmp_get(custom_handle, &valEntity,s->mib.oid.OidMfgDateTime, &get_value, SAHPI_TRUE);
+                        rv = snmp_bc_oid_snmp_get(custom_handle, &valEntity, 0,
+						  s->mib.oid.OidMfgDateTime, &get_value, SAHPI_TRUE);
                         if(rv != SA_OK) {
-                                dbg("SNMP could not read %s; Type=%d.\n",s->mib.oid.OidMfgDateTime,get_value.type);
+                                dbg("SNMP could not read %s; Type=%d.",
+				    s->mib.oid.OidMfgDateTime, get_value.type);
                                 return rv;
                         } else if((rv == SA_OK) && (get_value.type == ASN_OCTET_STR )) {
 				thisField.Field.DataLength = get_value.str_len;
 				thisField.Field.DataType = SAHPI_TL_TYPE_TEXT;
 				memcpy(thisField.Field.Data, get_value.string, get_value.str_len); 
                         } else 
-                                dbg("%s Invalid type for MfgDateTime inventory data\n",s->mib.oid.OidMfgDateTime);
+                                dbg("%s Invalid type for MfgDateTime inventory data",
+				    s->mib.oid.OidMfgDateTime);
         	}
 		
 		if (thisField.Field.DataLength != 0) {
-			memcpy(&thisInventoryArea.field[thisInventoryArea.idrareas.NumFields], &thisField, sizeof(SaHpiIdrFieldT));
+			memcpy(&thisInventoryArea.field[thisInventoryArea.idrareas.NumFields], 
+			       &thisField, sizeof(SaHpiIdrFieldT));
 			thisInventoryArea.idrareas.NumFields++;
 		}
 		
-		/**
-		 *
-		 */
 		thisField.FieldId = 3;
 		thisField.Type = SAHPI_IDR_FIELDTYPE_MANUFACTURER;
 
@@ -487,13 +479,9 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 			rv = snmp_bc_idr_build_field(custom_handle, &valEntity,
 					s->mib.oid.OidManufacturer, &thisField, &thisInventoryArea);
 			if (rv != SA_OK)
-				dbg("Having problem building ManufacturerId Idr Field, continue to next field.\n");
+				dbg("Cannot build ManufacturerId Idr Field, continue to next field.");
 		}
 			
-		/**
-		 *
-		 */
-
 		thisField.FieldId = 4;
 		thisField.Type = SAHPI_IDR_FIELDTYPE_PRODUCT_NAME;
 
@@ -501,13 +489,9 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 			rv = snmp_bc_idr_build_field(custom_handle, &valEntity,
 					s->mib.oid.OidProductName, &thisField, &thisInventoryArea);
 			if (rv != SA_OK)
-				dbg("Having problem building ProductName Idr Field, continue to next field.\n");
+				dbg("Cannot build ProductName Idr Field, continue to next field.");
 		}
 
-		/**
-		 *
-		 */
-		
 		thisField.FieldId = 5;
 		thisField.Type = SAHPI_IDR_FIELDTYPE_PRODUCT_VERSION;
 
@@ -515,13 +499,9 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 			rv = snmp_bc_idr_build_field(custom_handle, &valEntity,
 				s->mib.oid.OidProductVersion, &thisField, &thisInventoryArea);
 			if (rv != SA_OK)
-				dbg("Having problem building ProductVersion Idr Field, continue to next field.\n");
+				dbg("Cannot build ProductVersion Idr Field, continue to next field.");
 		}
 			
-		/**
-		 *
-		 */
-	
 		thisField.FieldId = 6;
 		thisField.Type = SAHPI_IDR_FIELDTYPE_SERIAL_NUMBER;
 
@@ -529,13 +509,9 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 			rv = snmp_bc_idr_build_field(custom_handle, &valEntity,
 				s->mib.oid.OidSerialNumber, &thisField, &thisInventoryArea);
 			if (rv != SA_OK)
-				dbg("Having problem building SerialNumber Idr Field, continue to next field.\n");
+				dbg("Cannot build SerialNumber Idr Field, continue to next field.");
 		}
 			
-		/**
-		 *
-		 */
-		
 		thisField.FieldId = 7;
 		thisField.Type = SAHPI_IDR_FIELDTYPE_PART_NUMBER;
 
@@ -543,12 +519,8 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 			rv = snmp_bc_idr_build_field(custom_handle, &valEntity,
 				s->mib.oid.OidPartNumber, &thisField, &thisInventoryArea);
 				if (rv != SA_OK)
-					dbg("Having problem building PartNumber Idr Field, continue to next field.\n");
+					dbg("Cannot build PartNumber Idr Field, continue to next field.");
 		}
-			
-		/**
-		 *
-		 */
 			
 		thisField.FieldId = 8;
 		thisField.Type = SAHPI_IDR_FIELDTYPE_FILE_ID;
@@ -557,13 +529,9 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 			rv = snmp_bc_idr_build_field(custom_handle, &valEntity,
 				s->mib.oid.OidFileId, &thisField, &thisInventoryArea);
 				if (rv != SA_OK)
-					dbg("Having problem building FileID Idr Field, continue to next field.\n");
+					dbg("Cannot build FileID Idr Field, continue to next field.");
 		}
 			
-		/**
-		 *
-		 */
-
 		thisField.FieldId = 9;
 		thisField.Type = SAHPI_IDR_FIELDTYPE_ASSET_TAG;
 
@@ -571,7 +539,7 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 			rv = snmp_bc_idr_build_field(custom_handle, &valEntity,
 				s->mib.oid.OidAssetTag, &thisField, &thisInventoryArea);
 				if (rv != SA_OK)
-					dbg("Having problem building AssetTag Idr Field, continue ...\n");
+					dbg("Cannot build AssetTag Idr Field, continue ...");
 		}
 			
 		memcpy( &(i_record->area[0]), &thisInventoryArea, sizeof(struct bc_idr_area));
@@ -596,7 +564,6 @@ SaErrorT snmp_bc_build_idr( void *hnd,
  * SA_OK - Normal
  * SA_ERR_HPI_INVALID_PARAMS - If any in pointer is NULL
  * SA_ERR_HPI_INTERNAL_ERROR - If can not process get_value.type from bc snmp agent
- * 
  **/
 
 static
@@ -613,15 +580,13 @@ SaErrorT snmp_bc_idr_build_field(struct snmp_bc_hnd *custom_handle,
 		return(SA_ERR_HPI_INVALID_PARAMS);
 		
 	rv = SA_OK;
-	/**
-	 *
-	 */
+
 	memset(thisField->Field.Data, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);		
 	thisField->Field.DataLength = 0; /* SaHpiUint8T  */	
 
-        rv = snmp_bc_oid_snmp_get(custom_handle, ep, oidstr, &get_value, SAHPI_TRUE);
+        rv = snmp_bc_oid_snmp_get(custom_handle, ep, 0, oidstr, &get_value, SAHPI_TRUE);
 	if(rv != SA_OK) {	
-		dbg("SNMP could not read %s; Type=%d.\n",oidstr ,get_value.type);		
+		dbg("SNMP could not read %s; Type=%d.", oidstr, get_value.type);		
                 return(rv);
 	} else {
 		if( get_value.type == ASN_OCTET_STR ) {
@@ -634,13 +599,13 @@ SaErrorT snmp_bc_idr_build_field(struct snmp_bc_hnd *custom_handle,
 			snprintf((char *)thisField->Field.Data, SAHPI_MAX_TEXT_BUFFER_LENGTH,
 				 "%ld",get_value.integer );
 		} else
-			dbg("%s Invalid data type for Chassis data\n",oidstr);
+			dbg("%s Invalid data type for Chassis data", oidstr);
 	}
 
 		
 	if (thisField->Field.DataLength != 0) {
 		memcpy(&thisInventoryArea->field[thisInventoryArea->idrareas.NumFields], 
-							thisField, sizeof(SaHpiIdrFieldT));
+		       thisField, sizeof(SaHpiIdrFieldT));
 		thisInventoryArea->idrareas.NumFields++;
 	}
 
@@ -678,5 +643,3 @@ void * oh_set_idr_field (void *, SaHpiResourceIdT, SaHpiIdrIdT, SaHpiIdrFieldT)
 void * oh_del_idr_field (void *, SaHpiResourceIdT, SaHpiIdrIdT, SaHpiEntryIdT,
                          SaHpiEntryIdT)
                 __attribute__ ((weak, alias("snmp_bc_del_idr_field")));
-
-

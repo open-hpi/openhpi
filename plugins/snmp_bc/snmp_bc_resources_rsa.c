@@ -1,11 +1,11 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2004
+ * (C) Copyright IBM Corp. 2004, 2006
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
- * file and program are licensed under a BSD style license.  See
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. This
+ * file and program are licensed under a BSD style license. See
  * the Copying file included with the OpenHPI distribution for
  * full licensing terms.
  *
@@ -231,6 +231,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors_rsa[] = {
 				.not_avail_indicator_num = 0,
 				.write_only = 0,
                                 .oid = ".1.3.6.1.4.1.2.3.51.1.2.20.1.1.1.1.3.1",
+				.loc_offset = 0,
 				.threshold_oids = {
 					.UpCritical = ".1.3.6.1.4.1.2.3.51.1.2.20.1.1.1.1.4.1",
 					.UpMajor    = ".1.3.6.1.4.1.2.3.51.1.2.20.1.1.1.1.6.1",
@@ -320,6 +321,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors_rsa[] = {
 				.not_avail_indicator_num = 0,
 				.write_only = 0,
                                 .oid = ".1.3.6.1.4.1.2.3.51.1.2.20.1.1.1.1.3.3",
+				.loc_offset = 0,
 				.threshold_oids = {
 					.UpCritical = ".1.3.6.1.4.1.2.3.51.1.2.20.1.1.1.1.4.3",
 					.UpMajor    = ".1.3.6.1.4.1.2.3.51.1.2.20.1.1.1.1.6.3",
@@ -401,6 +403,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors_rsa[] = {
 				.not_avail_indicator_num = 0,
 				.write_only = 0,
                                 .oid = ".1.3.6.1.4.1.2.3.51.1.2.20.1.1.1.1.3.4",
+				.loc_offset = 0,
 				.threshold_oids = {
 					.UpCritical = ".1.3.6.1.4.1.2.3.51.1.2.20.1.1.1.1.4.4",
 					.UpMajor    = ".1.3.6.1.4.1.2.3.51.1.2.20.1.1.1.1.6.4",
@@ -466,6 +469,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors_rsa[] = {
 				.not_avail_indicator_num = 0,
 				.write_only = 0,
                                 .oid = ".1.3.6.1.4.1.2.3.51.1.2.20.1.1.1.1.3.5",
+				.loc_offset = 0,
 				.threshold_oids = {
 					.UpCritical = ".1.3.6.1.4.1.2.3.51.1.2.20.1.1.1.1.4.5",
 					.UpMajor    = ".1.3.6.1.4.1.2.3.51.1.2.20.1.1.1.1.6.5",
@@ -579,6 +583,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors_rsa[] = {
 				.not_avail_indicator_num = 0,
 				.write_only = 0,
                                 .oid = ".1.3.6.1.4.1.2.3.51.1.2.20.1.1.1.1.3.6",
+				.loc_offset = 0,
 				.threshold_oids = {
 					.UpCritical = ".1.3.6.1.4.1.2.3.51.1.2.20.1.1.1.1.4.6",
 					.UpMajor    = ".1.3.6.1.4.1.2.3.51.1.2.20.1.1.1.1.6.6",
@@ -701,6 +706,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors_rsa[] = {
 				.not_avail_indicator_num = 0,
 				.write_only = 0,
 				.oid = ".1.3.6.1.4.1.2.3.51.1.2.20.2.1.1.3.1",
+				.loc_offset = 0,
 				.threshold_oids = {
 					.LowCritical = ".1.3.6.1.4.1.2.3.51.1.2.20.2.1.1.8.1",
 					.LowMajor    = ".1.3.6.1.4.1.2.3.51.1.2.20.2.1.1.10.1",
@@ -828,6 +834,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors_rsa[] = {
 				.not_avail_indicator_num = 0,
 				.write_only = 0,
 				.oid = ".1.3.6.1.4.1.2.3.51.1.2.20.2.1.1.3.2",
+				.loc_offset = 0,
 				.threshold_oids = {
 					.LowCritical = ".1.3.6.1.4.1.2.3.51.1.2.20.2.1.1.8.2",
 					.LowMajor    = ".1.3.6.1.4.1.2.3.51.1.2.20.2.1.1.10.2",
@@ -970,6 +977,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors_rsa[] = {
 				.not_avail_indicator_num = 0,
 				.write_only = 0,
 				.oid = ".1.3.6.1.4.1.2.3.51.1.2.20.2.1.1.3.3",
+				.loc_offset = 0,
 				.threshold_oids = {
 					.LowCritical = ".1.3.6.1.4.1.2.3.51.1.2.20.2.1.1.8.3",
 					.LowMajor    = ".1.3.6.1.4.1.2.3.51.1.2.20.2.1.1.10.3",
@@ -1081,6 +1089,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors_rsa[] = {
 				.not_avail_indicator_num = 0,
 				.write_only = 0,
 				.oid = ".1.3.6.1.4.1.2.3.51.1.2.20.2.1.1.3.4",
+				.loc_offset = 0,
 				.threshold_oids = {
 					.LowCritical = ".1.3.6.1.4.1.2.3.51.1.2.20.2.1.1.8.4",
 					.LowMajor    = ".1.3.6.1.4.1.2.3.51.1.2.20.2.1.1.10.4",
@@ -1192,6 +1201,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors_rsa[] = {
 				.not_avail_indicator_num = 0,
 				.write_only = 0,
 				.oid = ".1.3.6.1.4.1.2.3.51.1.2.20.2.1.1.3.5",
+				.loc_offset = 0,
 				.threshold_oids = {
 					.LowCritical = ".1.3.6.1.4.1.2.3.51.1.2.20.2.1.1.8.5",
 					.LowMajor    = ".1.3.6.1.4.1.2.3.51.1.2.20.2.1.1.10.5",
@@ -1297,6 +1307,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors_rsa[] = {
 				.not_avail_indicator_num = 0,
 				.write_only = 0,
 				.oid = ".1.3.6.1.4.1.2.3.51.1.2.20.2.1.1.3.6",
+				.loc_offset = 0,
 				.threshold_oids = {
 					.LowCritical = ".1.3.6.1.4.1.2.3.51.1.2.20.2.1.1.8.6",
 					.LowMajor    = ".1.3.6.1.4.1.2.3.51.1.2.20.2.1.1.10.6",
@@ -1408,6 +1419,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors_rsa[] = {
 				.not_avail_indicator_num = 0,
 				.write_only = 0,
 				.oid = ".1.3.6.1.4.1.2.3.51.1.2.20.2.1.1.3.7",
+				.loc_offset = 0,
 				.threshold_oids = {
 					.LowCritical = ".1.3.6.1.4.1.2.3.51.1.2.20.2.1.1.8.7",
 					.LowMajor    = ".1.3.6.1.4.1.2.3.51.1.2.20.2.1.1.10.7",
@@ -1519,6 +1531,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors_rsa[] = {
 				.not_avail_indicator_num = 0,
 				.write_only = 0,
 				.oid = ".1.3.6.1.4.1.2.3.51.1.2.20.2.1.1.3.8",
+				.loc_offset = 0,
 				.threshold_oids = {
 					.LowCritical = ".1.3.6.1.4.1.2.3.51.1.2.20.2.1.1.8.8",
 					.LowMajor    = ".1.3.6.1.4.1.2.3.51.1.2.20.2.1.1.10.8",
@@ -1630,6 +1643,7 @@ struct snmp_bc_sensor snmp_bc_cpu_sensors_rsa[] = {
 				.not_avail_indicator_num = 0,
 				.write_only = 0,
                                 .oid = ".1.3.6.1.4.1.2.3.51.1.2.20.1.5.1.1.3.x",
+				.loc_offset = 0,
 				.threshold_oids = {
 					.UpCritical = ".1.3.6.1.4.1.2.3.51.1.2.20.1.5.1.1.4.x",
 					.UpMajor    = ".1.3.6.1.4.1.2.3.51.1.2.20.1.5.1.1.6.x",
@@ -1739,6 +1753,7 @@ struct snmp_bc_sensor snmp_bc_dasd_sensors_rsa[] = {
 				.not_avail_indicator_num = 0,
 				.write_only = 0,
                                 .oid = ".1.3.6.1.4.1.2.3.51.1.2.20.1.6.1.1.3.x",
+				.loc_offset = 0,
 				.threshold_oids = {
 					.UpCritical = ".1.3.6.1.4.1.2.3.51.1.2.20.1.6.1.1.4.x",
 					.UpMajor    = ".1.3.6.1.4.1.2.3.51.1.2.20.1.6.1.1.6.x",
@@ -1828,6 +1843,7 @@ struct snmp_bc_sensor snmp_bc_fan_sensors_rsa[] = {
 				.not_avail_indicator_num = 0,
 				.write_only = 0,
 				.oid = ".1.3.6.1.4.1.2.3.51.1.2.3.x.0",
+				.loc_offset = 0,
 			},
 			.cur_state = SAHPI_ES_UNSPECIFIED,
                         .sensor_enabled = SAHPI_TRUE,

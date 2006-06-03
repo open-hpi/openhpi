@@ -197,7 +197,9 @@ typedef enum {
 #define SNMP_BC_PD2POWERCURRENT	".1.3.6.1.4.1.2.3.51.2.2.10.3.1.1.7" /* pd2ModuleAllocatedPowerCurrent */
 #define SNMP_BC_PD2POWERMAX	".1.3.6.1.4.1.2.3.51.2.2.10.3.1.1.8" /* pd2ModuleAllocatedPowerMax */
 #define SNMP_BC_PD2POWERMIN	".1.3.6.1.4.1.2.3.51.2.2.10.3.1.1.9" /* pd2ModuleAllocatedPowerMin */
-
+#define SNMP_BC_PD1STATE	".1.3.6.1.4.1.2.3.51.2.2.10.2.1.1.6" /* pd1ModuleState */
+#define SNMP_BC_PD2STATE	".1.3.6.1.4.1.2.3.51.2.2.10.3.1.1.6" /* pd2ModuleState: standby(0), on(1), notPresent(2),notApplicable(255)*/
+#define SNMP_BC_PMSTATE		".1.3.6.1.4.1.2.3.51.2.2.4.1.1.3"    /* powerModuleState: unknown(0), good(1), warning(2), not available(3) */
 
 /* Sensor and Control Numbers defined for Redundancy MM Implementation */
 #define BLADECENTER_SENSOR_NUM_MGMNT_REDUNDANCY  	(SaHpiSensorNumT) 0x1001
@@ -217,11 +219,11 @@ struct ResourceMibInfo {
         const char *OidPowerState;
         const char *OidPowerOnOff;
 	const char *OidUuid;
-	const char *OidResourceWidth;	/* Oid specifying how many physical slots  */
-					/* this resource occupies. In a BladeCenter*/
-					/* it is meaningful for ProcessorBlades.   */
-					/* Other resources, for example Switch Module, */
-					/* only takes one slot.                    */ 
+	const char *OidResourceWidth;	/* Oid specifying how many physical slots   */
+					/* this resource occupies. In a BladeCenter */
+					/* it is meaningful for blades.             */
+					/* Other resources, (e.g. I/O Modules)      */
+					/* only take one slot.                      */ 
 };
 
 /* SNMP_BC_MAX_RESOURCE_EVENT_ARRAY_SIZE includes an ending NULL entry */
@@ -292,6 +294,7 @@ struct SensorMibInfo {
         unsigned int not_avail_indicator_num; /* 0 for none, n>0 otherwise */
         SaHpiBoolT write_only; /* TRUE - Write-only SNMP command */
         const char *oid;
+        SaHpiEntityLocationT loc_offset;
         struct SnmpSensorThresholdOids threshold_oids;
 	struct SnmpSensorWritableThresholdOids threshold_write_oids;
 };
@@ -358,6 +361,7 @@ extern struct snmp_bc_sensor      snmp_bc_mgmnt_sensors[];
 extern struct snmp_bc_sensor      snmp_bc_virtual_mgmnt_sensors[];
 extern struct snmp_bc_sensor      snmp_bc_mediatray_sensors[];
 extern struct snmp_bc_sensor      snmp_bc_fan_sensors[];
+extern struct snmp_bc_sensor      snmp_bc_fan_sensors_bch[];
 extern struct snmp_bc_sensor      snmp_bc_power_sensors[];
 extern struct snmp_bc_sensor      snmp_bc_power_sensors_bch[];
 extern struct snmp_bc_sensor      snmp_bc_switch_sensors[];
@@ -376,6 +380,7 @@ struct ControlMibInfo {
         unsigned int not_avail_indicator_num; /* 0 for none, n>0 otherwise */
         int write_only; /* Write-only SNMP command; 0 no; 1 yes */
         const char *oid;
+	SaHpiEntityLocationT loc_offset;
         int digitalmap[OH_MAX_CTRLSTATEDIGITAL];  /* Readable digital controls */
 	int digitalwmap[OH_MAX_CTRLSTATEDIGITAL]; /* Writable digital controls */
 	SaHpiBoolT isDigitalReadStateConstant;

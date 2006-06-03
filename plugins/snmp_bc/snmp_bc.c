@@ -244,6 +244,7 @@ SaErrorT snmp_bc_control_parm(void *hnd, SaHpiResourceIdT rid, SaHpiParmActionT 
  * snmp_bc_snmp_get:
  * @custom_handle:  Plugin's data pointer.
  * @objid: SNMP OID.
+ * loc_offset: Offset to add to location in entity path
  * @value: Location to store returned SNMP value.
  * @retry: retry is requested on snmp timeout
  *
@@ -317,6 +318,7 @@ SaErrorT snmp_bc_snmp_get(struct snmp_bc_hnd *custom_handle,
  * @custom_handle:  Plugin's data pointer.
  * @ep: Entity path of the resource
  * @oidstr: raw SNMP OID.
+ * loc_offset: Offset to add to location in entity path
  * @value: Location to store returned SNMP value.
  * @retry: Retry requested on snmp timeout
  *
@@ -331,15 +333,17 @@ SaErrorT snmp_bc_snmp_get(struct snmp_bc_hnd *custom_handle,
  * SA_OK - Normal case.
  **/
 SaErrorT snmp_bc_oid_snmp_get(struct snmp_bc_hnd *custom_handle,
-				SaHpiEntityPathT *ep, const gchar *oidstr,
-				struct snmp_value *value, SaHpiBoolT retry)
+			      SaHpiEntityPathT *ep,
+			      SaHpiEntityLocationT loc_offset,
+			      const gchar *oidstr,
+			      struct snmp_value *value, SaHpiBoolT retry)
 {
 
 	SaErrorT rv;
 	gchar *oid;
 	
 	rv = SA_OK;
-	oid = oh_derive_string(ep, oidstr);
+	oid = oh_derive_string(ep, loc_offset, oidstr);
 	if (oid == NULL) {
 		dbg("Cannot derive %s.", oidstr); 
 		return(SA_ERR_HPI_INTERNAL_ERROR);
@@ -397,6 +401,7 @@ SaErrorT snmp_bc_snmp_set(struct snmp_bc_hnd *custom_handle,
  * @custom_handle:  Plugin's data pointer.
  * @ep: Entity path of the resource
  * @oidstr: raw SNMP OID.
+ * loc_offset: Offset to add to location in entity path
  * @value: SNMP value to set.
  *
  * Plugin wrapper for SNMP set call. If SNMP command times out,
@@ -410,14 +415,16 @@ SaErrorT snmp_bc_snmp_set(struct snmp_bc_hnd *custom_handle,
  * SA_OK - Normal case.
  **/
 SaErrorT snmp_bc_oid_snmp_set(struct snmp_bc_hnd *custom_handle,
-				SaHpiEntityPathT *ep, const gchar *oidstr,
-			  	struct snmp_value value)
+			      SaHpiEntityPathT *ep,
+			      SaHpiEntityLocationT loc_offset,
+			      const gchar *oidstr,
+			      struct snmp_value value)
 {
 	SaErrorT rv;
 	gchar *oid;
 
 	rv = SA_OK;
-	oid = oh_derive_string(ep , oidstr);
+	oid = oh_derive_string(ep, loc_offset, oidstr);
 	if (oid == NULL) {
 		dbg("NULL SNMP OID returned for %s.", oidstr);
 		return(SA_ERR_HPI_INTERNAL_ERROR);

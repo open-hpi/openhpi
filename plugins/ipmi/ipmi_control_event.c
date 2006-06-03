@@ -67,17 +67,17 @@ SaHpiUint8T ohoi_atca_led_to_hpi_color(int ipmi_color)
 {
 	switch (ipmi_color) {
 	case IPMI_CONTROL_COLOR_WHITE:
-		return ATCAHPI_LED_WHITE;
+		return ATCAHPI_LED_COLOR_WHITE;
 	case IPMI_CONTROL_COLOR_RED:
-		return ATCAHPI_LED_RED;
+		return ATCAHPI_LED_COLOR_RED;
 	case IPMI_CONTROL_COLOR_GREEN:
-		return ATCAHPI_LED_GREEN;
+		return ATCAHPI_LED_COLOR_GREEN;
 	case IPMI_CONTROL_COLOR_BLUE:
-		return ATCAHPI_LED_BLUE;
+		return ATCAHPI_LED_COLOR_BLUE;
 	case IPMI_CONTROL_COLOR_YELLOW:
-		return ATCAHPI_LED_AMBER;
+		return ATCAHPI_LED_COLOR_AMBER;
 	case IPMI_CONTROL_COLOR_ORANGE:
-		return ATCAHPI_LED_ORANGE;
+		return ATCAHPI_LED_COLOR_ORANGE;
 	default:
 		dbg("strange color %d, return WHITE", ipmi_color);
 		return ATCAHPI_LED_WHITE;
@@ -87,17 +87,17 @@ SaHpiUint8T ohoi_atca_led_to_hpi_color(int ipmi_color)
 int ohoi_atca_led_to_ipmi_color(SaHpiUint8T c)
 {
 	switch (c) {
-	case ATCAHPI_LED_WHITE:
+	case ATCAHPI_LED_COLOR_WHITE:
 		return IPMI_CONTROL_COLOR_WHITE;
-	case ATCAHPI_LED_ORANGE:
+	case ATCAHPI_LED_COLOR_ORANGE:
 		return IPMI_CONTROL_COLOR_ORANGE;
-	case ATCAHPI_LED_AMBER:
+	case ATCAHPI_LED_COLOR_AMBER:
 		return IPMI_CONTROL_COLOR_YELLOW;
-	case ATCAHPI_LED_GREEN:
+	case ATCAHPI_LED_COLOR_GREEN:
 		return IPMI_CONTROL_COLOR_GREEN;
-	case ATCAHPI_LED_RED:
+	case ATCAHPI_LED_COLOR_RED:
 		return IPMI_CONTROL_COLOR_RED;
-	case ATCAHPI_LED_BLUE:
+	case ATCAHPI_LED_COLOR_BLUE:
 		return IPMI_CONTROL_COLOR_BLUE;
 	default:
 		return 0;

@@ -32,6 +32,8 @@ do { \
         } \
 } while(0)
 
+#define  get_string_object(maskOID, getvalue)  get_installed_mask(maskOID, getvalue)
+
 #define get_integer_object(maskOID, getintvalue) \
 do { \
 	err = snmp_bc_snmp_get(custom_handle, maskOID, &getintvalue, SAHPI_TRUE); \
