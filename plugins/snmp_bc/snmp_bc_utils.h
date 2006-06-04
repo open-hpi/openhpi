@@ -22,5 +22,8 @@
 SaErrorT snmp_bc_get_guid(struct snmp_bc_hnd *custom_handle,
 			  struct oh_event *e,
 			  struct ResourceInfo *res_info_ptr);
+			  
+SaErrorT snmp_bc_extract_slot_ep(SaHpiEntityPathT *resource_ep,
+				 SaHpiEntityPathT *slot_ep);			  
 
 #endif

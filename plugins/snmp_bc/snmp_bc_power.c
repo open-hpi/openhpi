@@ -1,11 +1,11 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2004, 2005
+ * (C) Copyright IBM Corp. 2004, 2006
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
- * file and program are licensed under a BSD style license.  See
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. This
+ * file and program are licensed under a BSD style license. See
  * the Copying file included with the OpenHPI distribution for
  * full licensing terms.
  *
@@ -81,7 +81,7 @@ SaErrorT snmp_bc_get_power_state(void *hnd,
 	}
 
 	/* Read power state of resource */
-	err = snmp_bc_oid_snmp_get(custom_handle, &(rpt->ResourceEntity),
+	err = snmp_bc_oid_snmp_get(custom_handle, &(rpt->ResourceEntity), 0,
 				   resinfo->mib.OidPowerState, &get_value, SAHPI_TRUE);
 	if (!err && (get_value.type == ASN_INTEGER)) {
 		switch (get_value.integer) {
@@ -174,7 +174,7 @@ SaErrorT snmp_bc_set_power_state(void *hnd,
 	switch (state) {
 	case SAHPI_POWER_OFF:
 		set_value.integer = 0;
-		err = snmp_bc_oid_snmp_set(custom_handle, &(rpt->ResourceEntity),
+		err = snmp_bc_oid_snmp_set(custom_handle, &(rpt->ResourceEntity), 0,
 					 resinfo->mib.OidPowerOnOff, set_value);
 		if (err) {
 			dbg("Cannot set SNMP OID=%s; Type=%d.",
@@ -184,7 +184,7 @@ SaErrorT snmp_bc_set_power_state(void *hnd,
 		break;
 	case SAHPI_POWER_ON:
 		set_value.integer = 1;
-		err = snmp_bc_oid_snmp_set(custom_handle, &(rpt->ResourceEntity),
+		err = snmp_bc_oid_snmp_set(custom_handle, &(rpt->ResourceEntity), 0,
 						 resinfo->mib.OidPowerOnOff, set_value);
 		if (err) {
 			dbg("Cannot set SNMP OID=%s; Type=%d.",
@@ -213,5 +213,3 @@ void * oh_get_power_state (void *, SaHpiResourceIdT, SaHpiPowerStateT *)
 
 void * oh_set_power_state (void *, SaHpiResourceIdT, SaHpiPowerStateT)
                 __attribute__ ((weak, alias("snmp_bc_set_power_state")));
-
-

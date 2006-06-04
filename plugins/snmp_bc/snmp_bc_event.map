@@ -691,6 +691,10 @@ EN_FAULT_PS2_TEMP_WARN|0x0821C002|SAHPI_MAJOR|OVR_SEV,OVR_RID|"Power Supply 2 Te
 EN_FAULT_PS3_TEMP_WARN|0x0821C003|SAHPI_MAJOR|OVR_SEV,OVR_RID|"Power Supply 3 Temperature Warning"
 EN_FAULT_PS4_TEMP_WARN|0x0821C004|SAHPI_MAJOR|OVR_SEV,OVR_RID|"Power Supply 4 Temperature Warning"
 
+# Power Module Fan Pack Average Speed (Percent of Max) Sensor
+
+# Power Module Fan Pack Average RPM Speed Sensor
+
 ###########################################
 # Remote System Adapter (RSA) Unique Events
 ###########################################

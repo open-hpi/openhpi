@@ -310,6 +310,7 @@ SaErrorT snmp_bc_discover_sensors(struct oh_handler_state *handle,
 			if (sensor_array[i].sensor_info.mib.oid != NULL) {
 				valid_sensor = rdr_exists(custom_handle,
 							  &(res_oh_event->u.res_event.entry.ResourceEntity),
+							  sensor_array[i].sensor_info.mib.loc_offset,
 							  sensor_array[i].sensor_info.mib.oid, 
 							  sensor_array[i].sensor_info.mib.not_avail_indicator_num,
 							  sensor_array[i].sensor_info.mib.write_only);
@@ -395,6 +396,7 @@ SaErrorT snmp_bc_discover_controls(struct oh_handler_state *handle,
 
 		valid_control = rdr_exists(custom_handle,
 					   &(res_oh_event->u.res_event.entry.ResourceEntity),
+					   control_array[i].control_info.mib.loc_offset,
 					   control_array[i].control_info.mib.oid,
 					   control_array[i].control_info.mib.not_avail_indicator_num,
 					   control_array[i].control_info.mib.write_only);
@@ -468,9 +470,9 @@ SaErrorT snmp_bc_discover_inventories(struct oh_handler_state *handle,
 		}
 		
 		valid_idr = rdr_exists(custom_handle,
-					 &(res_oh_event->u.res_event.entry.ResourceEntity),
-					 inventory_array[i].inventory_info.mib.oid.OidManufacturer,
-					 0, 0);
+				       &(res_oh_event->u.res_event.entry.ResourceEntity), 0,
+				       inventory_array[i].inventory_info.mib.oid.OidManufacturer,
+				       0, 0);
 
 		/* Add inventory RDR, if inventory can be read */
 		if (valid_idr) {
@@ -559,8 +561,10 @@ SaErrorT snmp_bc_create_resourcetag(SaHpiTextBufferT *buffer, const char *str, S
 
 /**
  * rdr_exists:
- * @ss: Pointer to SNMP session.
- * @oid: SNMP OID string
+ * @custom_handle: Custom handler data pointer.
+ * @ep: Pointer to Entity Path
+ * @loc_offset: Entity Path location offset
+ * @oidstr: SNMP OID string
  * @na: Not available integer, if applicable
  * @write-only: SNMP OID write-only indicator
  *
@@ -572,17 +576,18 @@ SaErrorT snmp_bc_create_resourcetag(SaHpiTextBufferT *buffer, const char *str, S
  * SAHPI_FALSE - if OID's value cannot be read.
  **/
 SaHpiBoolT rdr_exists(struct snmp_bc_hnd *custom_handle,
-			SaHpiEntityPathT *ep,
-			const gchar *oidstr,
-			unsigned int na,
-			SaHpiBoolT write_only)
+		      SaHpiEntityPathT *ep,
+		      SaHpiEntityLocationT loc_offset,
+		      const gchar *oidstr,
+		      unsigned int na,
+		      SaHpiBoolT write_only)
 {
         SaErrorT err;
 	struct snmp_value get_value;
 
 	if (write_only == SAHPI_TRUE) { return(SAHPI_FALSE); }; /* Can't check it if its non-readable */
 
-        err = snmp_bc_oid_snmp_get(custom_handle, ep, oidstr, &get_value, SAHPI_TRUE);
+        err = snmp_bc_oid_snmp_get(custom_handle, ep, loc_offset, oidstr, &get_value, SAHPI_TRUE);
         if (err || (get_value.type == ASN_INTEGER && na && na == get_value.integer)) {
 		return(SAHPI_FALSE);
         }
@@ -739,5 +744,3 @@ SaErrorT snmp_bc_add_ep(struct oh_event *e, SaHpiEntityPathT *ep_add)
 
 void * oh_discover_resources (void *)
                 __attribute__ ((weak, alias("snmp_bc_discover_resources")));
-
-

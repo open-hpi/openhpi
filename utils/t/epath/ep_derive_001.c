@@ -49,7 +49,7 @@ int main(int argc, char **argv)
 	in_oid = "1.x.3.x";
 	expected_oid = "1.99.3.100";
 
-	oid = oh_derive_string(&ep, in_oid);
+	oid = oh_derive_string(&ep, 0, in_oid);
 	if (strcmp(expected_oid, oid)) {
 		g_free(oid);
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
@@ -58,11 +58,27 @@ int main(int argc, char **argv)
         }
         g_free(oid);
 
+
+	/* location offset testcase */
+	in_oid = "1.x.3.x";
+	expected_oid = "1.109.3.110";
+
+	oid = oh_derive_string(&ep, 10, in_oid);
+	if (strcmp(expected_oid, oid)) {
+		g_free(oid);
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received OID=%s; Expected OID=%s\n", oid, expected_oid);
+                return -1;
+        }
+
+        g_free(oid);
+
+
 	/* No expansion testcase */
 	in_oid = "1.99.3.100";
 	expected_oid = "1.99.3.100";
 
-	oid = oh_derive_string(&ep, in_oid);
+	oid = oh_derive_string(&ep, 0, in_oid);
 	if (strcmp(expected_oid, oid)) {
 		g_free(oid);
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
