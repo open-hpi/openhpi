@@ -1,11 +1,11 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2003, 2004
+ * (C) Copyright IBM Corp. 2003, 2006
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
- * file and program are licensed under a BSD style license.  See
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. This
+ * file and program are licensed under a BSD style license. See
  * the Copying file included with the OpenHPI distribution for
  * full licensing terms.
  *
@@ -13,7 +13,6 @@
  *      Steve Sherman <stevees@us.ibm.com>
  *      Renier Morales <renierm@users.sf.net>
  *      Thomas Kanngieser <thomas.kanngieser@fci.com>
- *      Chris Chia <cchia@users.sf.net.com>
  */
 
 #include <glib.h>
@@ -209,15 +208,6 @@ SaErrorT oh_decode_entitypath(const SaHpiEntityPathT *ep,
 
 	err = oh_init_bigtext(&tmpbuf);
 	if (err) return(err);
-
-#if 0
-	/* Turn off strict HPI EP validation, for IPMI Direct
-           numeric entity type support */
-	if (!oh_valid_ep(ep)) {
-		dbg("Invalid entity path");
-		return(SA_ERR_HPI_INVALID_DATA);
-	}
-#endif
 
 	locstr = (gchar *)g_malloc0(OH_MAX_LOCATION_DIGITS + 1);
 	if (locstr == NULL) {
@@ -521,6 +511,7 @@ SaErrorT oh_fprint_ep(FILE *stream, const SaHpiEntityPathT *ep, int offsets)
 /**********************************************************************
  * oh_derive_string:
  * @ep - Pointer to entity's HPI SaHpiEntityPathT.
+ * @offset - Offset to add to Entity Path location.
  * @str - Un-normalized character string.
  *
  * This function "normalizes" a string (such as an SNMP OID) 
@@ -534,6 +525,15 @@ SaErrorT oh_fprint_ep(FILE *stream, const SaHpiEntityPathT *ep, int offsets)
  *
  * Returns a normalized string of ".1.3.6.1.4.1.2.3.51.2.22.1.5.1.1.5.3".
  *
+ * An offset is also supported and is added to all substituted numbers.
+ * For example,
+ *
+ * offset = 3
+ * @str = ".1.3.6.1.4.1.2.3.x.2.22.1.5.1.1.5.x"
+ * @ep = {SAHPI_ENT_CHASSIS, 51}{SAHPI_ENT_SBC_BLADE, 3}
+ *
+ * Returns a normalized string of ".1.3.6.1.4.1.2.3.54.2.22.1.5.1.1.5.6".
+ *
  * If @str does not contain any 'x' characters, this routine still 
  * allocates memory and returns a "normalized" string. In this case,
  * the normalized string is identical to @str.
@@ -546,7 +546,7 @@ SaErrorT oh_fprint_ep(FILE *stream, const SaHpiEntityPathT *ep, int offsets)
  * Pointer to normalize string - Normal case.
  * NULL - Error.
  **********************************************************************/
-gchar * oh_derive_string(SaHpiEntityPathT *ep, const gchar *str)
+gchar * oh_derive_string(SaHpiEntityPathT *ep, SaHpiEntityLocationT offset, const gchar *str)
 {
         gchar *new_str = NULL, *str_walker = NULL;
         gchar **fragments = NULL, **str_nodes = NULL;
@@ -555,6 +555,11 @@ gchar * oh_derive_string(SaHpiEntityPathT *ep, const gchar *str)
 
 	if (!ep || !str) {
 		dbg("NULL parameter.");
+		return(NULL);
+	}
+
+	if (offset < 0) {
+		dbg("Invalid location offset.");
 		return(NULL);
 	}
 
@@ -575,7 +580,7 @@ gchar * oh_derive_string(SaHpiEntityPathT *ep, const gchar *str)
         }
         /* trace("Number of blanks in str: %d, %s", num_blanks, str); */
         if (num_blanks > num_epe) {
-                dbg("Number of replacments=%d > entity path elements=%d", num_blanks, num_epe);
+                dbg("Number of replacements=%d > entity path elements=%d", num_blanks, num_epe);
                 return(NULL);
         }
 
@@ -586,12 +591,13 @@ gchar * oh_derive_string(SaHpiEntityPathT *ep, const gchar *str)
         total_num_digits = 0;
         for (i=0; i<num_blanks; i++) {
                 work_location_num = ep->Entry[num_blanks-1-i].EntityLocation;
+		if (offset) { work_location_num = work_location_num + offset; }
                 for (num_digits = 1;
                      (work_location_num = work_location_num/10) > 0; num_digits++);
                 str_nodes[i] = g_malloc0((num_digits+1) * sizeof(gchar));
                 if (!str_nodes[i]) {dbg("Out of memory."); goto CLEANUP;}
                 snprintf(str_nodes[i], (num_digits + 1) * sizeof(gchar), "%d", 
-			 ep->Entry[num_blanks - 1 - i].EntityLocation);
+			 ep->Entry[num_blanks - 1 - i].EntityLocation + offset);
                 /* trace("Location number: %s", str_nodes[i]); */
                 total_num_digits = total_num_digits + num_digits;
         }

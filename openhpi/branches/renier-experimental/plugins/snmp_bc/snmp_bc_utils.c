@@ -1,11 +1,11 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2003, 2005
+ * (C) Copyright IBM Corp. 2003, 2006
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
- * file and program are licensed under a BSD style license.  See
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. This
+ * file and program are licensed under a BSD style license. See
  * the Copying file included with the OpenHPI distribution for
  * full licensing terms.
  *
@@ -59,9 +59,9 @@ SaErrorT snmp_bc_get_guid(struct snmp_bc_hnd *custom_handle,
 		goto CLEANUP;
 	}
         status = snmp_bc_oid_snmp_get(custom_handle, 
-					&(e->u.res_event.entry.ResourceEntity),
-					res_info_ptr->mib.OidUuid,            
-					&get_value, SAHPI_TRUE);
+				      &(e->u.res_event.entry.ResourceEntity), 0,
+				      res_info_ptr->mib.OidUuid,            
+				      &get_value, SAHPI_TRUE);
         if(( status != SA_OK) || (get_value.type != ASN_OCTET_STR)) {
                 dbg("Cannot get OID rc=%d; oid=%s type=%d.", 
                         status, res_info_ptr->mib.OidUuid, get_value.type);
@@ -170,4 +170,52 @@ SaErrorT snmp_bc_get_guid(struct snmp_bc_hnd *custom_handle,
                                                                                              
         /* trace("get_guid exit status %d.", status); */
         return(status);
+}
+
+
+/**
+ * snmp_bc_discover_resources:
+ * @resource_ep: Pointer to full FRU Resource Entity Path.
+ * @slot_ep    : Pointer to Slot Entity Path extracted from resource_ep
+ *
+ * Extract Slot Entity Path portion from the full FRU Entity Path
+ *
+ * Return values:
+ * Slot Entity Path - normal operation.
+ * SA_ERR_HPI_INVALID_PARAMS - Invalid input pointer or data
+ **/
+SaErrorT snmp_bc_extract_slot_ep(SaHpiEntityPathT *resource_ep, SaHpiEntityPathT *slot_ep) 
+{
+
+	guint i,j;
+
+	if (!resource_ep || !slot_ep) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+
+
+	for (i = 0; i < SAHPI_MAX_ENTITY_PATH ; i++) {
+		if (	(resource_ep->Entry[i].EntityType == SAHPI_ENT_PHYSICAL_SLOT) ||
+			(resource_ep->Entry[i].EntityType == BLADECENTER_INTERCONNECT_SLOT) ||
+			(resource_ep->Entry[i].EntityType == BLADECENTER_POWER_SUPPLY_SLOT) ||
+			(resource_ep->Entry[i].EntityType == BLADECENTER_PERIPHERAL_BAY_SLOT) ||
+			(resource_ep->Entry[i].EntityType == BLADECENTER_SYS_MGMNT_MODULE_SLOT) ||
+			(resource_ep->Entry[i].EntityType == BLADECENTER_FAN_SLOT) )
+			break;	
+	}
+	
+	/* There must alway be a SAHPI_ENT_ROOT, so xx_SLOT entry index must always be less than SAHPI_MAX_ENTITY_PATH */
+	if ( i == SAHPI_MAX_ENTITY_PATH) return(SA_ERR_HPI_INVALID_PARAMS);
+	
+	
+	for ( j = 0; i < SAHPI_MAX_ENTITY_PATH; i++) {
+		slot_ep->Entry[j].EntityType = resource_ep->Entry[i].EntityType;
+		slot_ep->Entry[j].EntityLocation = resource_ep->Entry[i].EntityLocation;
+		
+	 	if (resource_ep->Entry[i].EntityType == SAHPI_ENT_ROOT) break;
+		j++;
+	}
+	
+	return(SA_OK);
 }

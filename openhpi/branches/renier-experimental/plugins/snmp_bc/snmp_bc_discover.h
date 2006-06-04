@@ -1,11 +1,11 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2004, 2005, 2006
+ * (C) Copyright IBM Corp. 2004, 2006
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
- * file and program are licensed under a BSD style license.  See
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. This
+ * file and program are licensed under a BSD style license. See
  * the Copying file included with the OpenHPI distribution for
  * full licensing terms.
  *
@@ -25,8 +25,8 @@ SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
 			      SaHpiEntityPathT *ep_root);
 			      
 SaErrorT snmp_bc_rediscover(struct oh_handler_state *handle,
-			  	SaHpiEventT *event,
-				LogSource2ResourceT *logsrc2res);
+			    SaHpiEventT *event,
+			    LogSource2ResourceT *logsrc2res);
 
 SaErrorT snmp_bc_discover_sensors(struct oh_handler_state *handle,
 				  struct snmp_bc_sensor *sensor_array,
@@ -45,41 +45,51 @@ SaErrorT snmp_bc_create_resourcetag(SaHpiTextBufferT *buffer,
 				    SaHpiEntityLocationT location);
 
 SaHpiBoolT rdr_exists(struct snmp_bc_hnd *custom_handle,
-			SaHpiEntityPathT *ep,
-			const gchar *oidstr,
-		      	unsigned int na,
-		      	SaHpiBoolT write_only);
+		      SaHpiEntityPathT *ep,
+		      SaHpiEntityLocationT loc_offset,		      
+		      const gchar *oidstr,
+		      unsigned int na,
+		      SaHpiBoolT write_only);
 			
 SaErrorT snmp_bc_validate_ep(SaHpiEntityPathT *org_ep,
-				 SaHpiEntityPathT *val_ep);
+			     SaHpiEntityPathT *val_ep);
 				 
 SaErrorT snmp_bc_mod_sensor_ep(struct oh_event *e,
-				 void *sensor_array, 
-				 int index);
+			       void *sensor_array, 
+			       int index);
 				 
 SaErrorT snmp_bc_add_ep(struct oh_event *e, SaHpiEntityPathT *ep_add);	
 		
 SaErrorT snmp_bc_discover_media_tray(struct oh_handler_state *handle,
-			  SaHpiEntityPathT *ep_root, int  media_tray_installed);
+				     SaHpiEntityPathT *ep_root, int  media_tray_installed);
 			  
 SaErrorT snmp_bc_discover_chassis(struct oh_handler_state *handle,
-			  SaHpiEntityPathT *ep_root);
+				  SaHpiEntityPathT *ep_root);
 
 SaErrorT snmp_bc_discover_blade(struct oh_handler_state *handle,
-			  SaHpiEntityPathT *ep_root, char *blade_vector);
+				SaHpiEntityPathT *ep_root, char *blade_vector);
 
 SaErrorT snmp_bc_discover_fans(struct oh_handler_state *handle,
-			  SaHpiEntityPathT *ep_root, char *fan_vector);
+			       SaHpiEntityPathT *ep_root, char *fan_vector);
 
 SaErrorT snmp_bc_discover_power_module(struct oh_handler_state *handle,
-			  SaHpiEntityPathT *ep_root, char *power_module_vector);
+				       SaHpiEntityPathT *ep_root, char *power_module_vector);
 
 SaErrorT snmp_bc_discover_switch(struct oh_handler_state *handle,
-			  SaHpiEntityPathT *ep_root, char *switch_vector);
+				 SaHpiEntityPathT *ep_root, char *switch_vector);
 
 SaErrorT snmp_bc_discover_mm(struct oh_handler_state *handle,
-			  SaHpiEntityPathT *ep_root, char *mm_vector);
+			     SaHpiEntityPathT *ep_root, char *mm_vector);
 
 SaErrorT snmp_bc_update_chassis_topo(struct oh_handler_state *handle);
+
+SaErrorT snmp_bc_discover_all_slots(struct oh_handler_state *handle,
+					SaHpiEntityPathT *ep_root);
+
+SaErrorT snmp_bc_discover_slot(struct oh_handler_state *handle,
+			       SaHpiEntityPathT *ep_root,
+			       SaHpiEntityTypeT entitytype,
+			       guint entitylocation); 
+
 				 				 
 #endif
