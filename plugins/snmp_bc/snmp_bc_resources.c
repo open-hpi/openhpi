@@ -652,6 +652,15 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                                         .recovery_state = SAHPI_HS_STATE_ACTIVE,
  					.recovery_auto_state = 0,
 				},
+                                {
+                                        .event = "0821F00x", /* EN_FAULT_PSx_REMOVED_INFO */
+					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_HS_STATE_NOT_PRESENT,
+					.event_auto_state = 0,
+                                        .recovery_state = SAHPI_HS_STATE_ACTIVE,
+ 					.recovery_auto_state = 0,
+				},
                                 {},
                         },
                 },
