@@ -625,7 +625,7 @@ SaErrorT snmp_bc_selcache_sync(struct oh_handler_state *handle,
 				err = snmp_bc_parse_sel_entry(handle,this_value->string, &sel_entry);
 				if (err != SA_OK) return(err);
 		
-				if (strncmp(get_value.string, EVT_EN_LOG_FULL, sizeof(EVT_EN_LOG_FULL)) == 0 )
+				if (g_ascii_strncasecmp(get_value.string, EVT_EN_LOG_FULL, sizeof(EVT_EN_LOG_FULL)) == 0 )
 		 				handle->elcache->overflow = SAHPI_TRUE;
 		 
 				isdst = sel_entry.time.tm_isdst;
@@ -875,7 +875,7 @@ SaErrorT snmp_bc_sel_read_add (struct oh_handler_state *handle,
 	err = snmp_bc_parse_sel_entry(handle,get_value.string, &sel_entry);
 	if (err != SA_OK) return(err);
 		
-	if (strncmp(get_value.string, EVT_EN_LOG_FULL, sizeof(EVT_EN_LOG_FULL)) == 0 )
+	if (g_ascii_strncasecmp(get_value.string, EVT_EN_LOG_FULL, sizeof(EVT_EN_LOG_FULL)) == 0 )
 		 handle->elcache->overflow = SAHPI_TRUE;
 		 
 	isdst = sel_entry.time.tm_isdst;
@@ -1023,11 +1023,11 @@ SaErrorT snmp_bc_parse_sel_entry(struct oh_handler_state *handle, char *logstr, 
 	findit = strstr(logstr, "Severity:");
 	if (findit != NULL) {
         	if(sscanf(findit,"Severity:%7s",level)) {
-                	if(strcmp(level,"INFO") == 0) {
+                	if(g_ascii_strncasecmp(level,"INFO", sizeof("INFO")) == 0) {
                         	ent.sev = SAHPI_INFORMATIONAL;
-                	} else if(strcmp(level,"WARN") == 0) {
+                	} else if(g_ascii_strncasecmp(level,"WARN", sizeof("WARN")) == 0) {
                         	ent.sev = SAHPI_MINOR;
-                	} else if(strcmp(level,"ERR") == 0) {
+                	} else if(g_ascii_strncasecmp(level,"ERR", sizeof("ERR")) == 0) {
                         	ent.sev = SAHPI_CRITICAL;
                 	} else {
                         	ent.sev = SAHPI_DEBUG;

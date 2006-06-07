@@ -446,13 +446,13 @@ SaErrorT snmp_bc_get_logical_sensors(void *hnd,
 						mm_id = 1;
 						break;
 					default:
-						dbg("Internal Error .\n");
+						dbg("Internal Error.");
 						break;
 				}
 			}
 			break; 
 		default:
-			dbg("Should not be here. sid is not one of the special sensors.\n");
+			dbg("Should not be here. sid is not one of the special sensors.");
 			break;
 	}
 
@@ -1063,7 +1063,7 @@ SaErrorT snmp_bc_set_threshold_reading(void *hnd,
 
 	/* Copy string to SNMP structure */
 	set_value.type = ASN_OCTET_STR;
-	strncpy(set_value.string, (char *)buffer.Data, buffer.DataLength);
+	g_ascii_strncasecmp(set_value.string, (char *)buffer.Data, buffer.DataLength);
 
 	/* Normalize and read sensor's raw SNMP OID */
 	err = snmp_bc_validate_ep(&(rdr->Entity), &valEntity);
@@ -1343,7 +1343,7 @@ SaErrorT snmp_bc_set_sensor_event_enable(void *hnd,
 	
 	if (rdr->RdrTypeUnion.SensorRec.EventCtrl == SAHPI_SEC_PER_EVENT ||
 	    rdr->RdrTypeUnion.SensorRec.EventCtrl == SAHPI_SEC_READ_ONLY_MASKS) {
-		dbg("BladeCenter/RSA do not support snmp_bc_set_sensor_event_enable\n");    
+		dbg("BladeCenter/RSA do not support snmp_bc_set_sensor_event_enable.");    
 		sinfo = (struct SensorInfo *)oh_get_rdr_data(handle->rptcache, rid, rdr->RecordId);
 		if (sinfo == NULL) {
 			dbg("No sensor data. Sensor=%s", rdr->IdString.Data);
@@ -1880,7 +1880,7 @@ do { \
 			thisOID = SNMP_BC_PD1POWERMIN; \
 			break; \
 		default: \
-			dbg("Not one of the Slot Power Sensors.\n"); \
+			dbg("Not one of the Slot Power Sensors."); \
 			return(SA_ERR_HPI_INTERNAL_ERROR); \
 			break; \
 	} \
@@ -1900,7 +1900,7 @@ do { \
 			thisOID = SNMP_BC_PD2POWERMIN; \
 			break; \
 		default: \
-			dbg("Not one of the Slot Power Sensors.\n"); \
+			dbg("Not one of the Slot Power Sensors."); \
 			return(SA_ERR_HPI_INTERNAL_ERROR); \
 			break; \
 	} \
@@ -1917,7 +1917,7 @@ do { \
  * Return values:
  * SA_OK - Normal case.
  * SA_ERR_HPI_INVALID_PARAMS.
- **/																		       									       				       
+ **/
 SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 				       SaHpiResourceIdT rid,
 				       SaHpiSensorNumT sid,
@@ -1977,8 +1977,8 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 						oidIndex = 12;
 						break;					
 					default:
-						dbg("Not one of the valid BC-T Swich Slots.\n");
-						return(SA_ERR_HPI_INTERNAL_ERROR);							
+						dbg("Not one of the valid BC-T Swich Slots.");
+						return(SA_ERR_HPI_INTERNAL_ERROR);
 						break;
 				}
 				
@@ -2000,8 +2000,8 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 						oidIndex = 10;
 						break;					
 					default:
-						dbg("Not one of the valid BC Switch Slots.\n");
-						return(SA_ERR_HPI_INTERNAL_ERROR);							
+						dbg("Not one of the valid BC Switch Slots.");
+						return(SA_ERR_HPI_INTERNAL_ERROR);
 						break;
 				}
 				
@@ -2038,10 +2038,10 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 						break;
 					case 10:
 						oidIndex = 16;
-						break;																	
+						break;
 					default:
-						dbg("Not one of the valid BC H Switch Slots.\n");
-						return(SA_ERR_HPI_INTERNAL_ERROR);							
+						dbg("Not one of the valid BC H Switch Slots.");
+						return(SA_ERR_HPI_INTERNAL_ERROR);
 						break;
 				}
 				if ( (slotnum == 5) || (slotnum == 6)){
@@ -2050,7 +2050,7 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 					usepowerdomain1;
 				}										
 			} else { 
-				dbg("Not one of the supported platform.\n");
+				dbg("Not one of the supported platform.");
 				return(SA_ERR_HPI_INTERNAL_ERROR);		
 			}
 			break;
@@ -2065,8 +2065,8 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 						oidIndex = 8;
 						break;					
 					default:
-						dbg("Not one of the valid BC-T MM Slots.\n");
-						return(SA_ERR_HPI_INTERNAL_ERROR);							
+						dbg("Not one of the valid BC-T MM Slots.");
+						return(SA_ERR_HPI_INTERNAL_ERROR);
 						break;
 				}
 				
@@ -2081,8 +2081,8 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 						oidIndex = 6;
 						break;					
 					default:
-						dbg("Not one of the valid BC MM Slots.\n");
-						return(SA_ERR_HPI_INTERNAL_ERROR);							
+						dbg("Not one of the valid BC MM Slots.");
+						return(SA_ERR_HPI_INTERNAL_ERROR);
 						break;
 				}
 				
@@ -2097,14 +2097,14 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 						oidIndex = 8;
 						break;					
 					default:
-						dbg("Not one of the valid BC H MM Slots.\n");
-						return(SA_ERR_HPI_INTERNAL_ERROR);							
+						dbg("Not one of the valid BC H MM Slots.");
+						return(SA_ERR_HPI_INTERNAL_ERROR);
 						break;
 				}
 				
 				usepowerdomain1;
 			} else { 
-				dbg("Not one of the supported platform.\n");
+				dbg("Not one of the supported platform.");
 				return(SA_ERR_HPI_INTERNAL_ERROR);		
 			}
 			break;
@@ -2144,12 +2144,12 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 							oidIndex = 2;
 						break;					
 					default:
-						dbg("Not one of the valid BC-T Fan Slots.\n");
-						return(SA_ERR_HPI_INTERNAL_ERROR);							
+						dbg("Not one of the valid BC-T Fan Slots.");
+						return(SA_ERR_HPI_INTERNAL_ERROR);
 						break;
 				}
 				
-				if ( slotnum < 3) {
+				if (slotnum < 3) {
 					usepowerdomain1;
 				} else {
 					if ((pm3_state.integer == 3) && 
@@ -2167,8 +2167,8 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 						oidIndex = 4;
 						break;							
 					default:
-						dbg("Not one of the valid BC Fan Slots.\n");
-						return(SA_ERR_HPI_INTERNAL_ERROR);							
+						dbg("Not one of the valid BC Fan Slots.");
+						return(SA_ERR_HPI_INTERNAL_ERROR);
 						break;
 				}
 				
@@ -2181,7 +2181,7 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 				thisOID = NULL;
 				
 			} else { 
-				dbg("Not one of the supported platform.\n");
+				dbg("Not one of the supported platform.");
 				return(SA_ERR_HPI_INTERNAL_ERROR);		
 			}
 			break;		
@@ -2214,8 +2214,8 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 						oidIndex = 6;
 						break;
 					default:
-						dbg("Not one of the valid BC-T Blade Slots.\n");
-						return(SA_ERR_HPI_INTERNAL_ERROR);							
+						dbg("Not one of the valid BC-T Blade Slots.");
+						return(SA_ERR_HPI_INTERNAL_ERROR);
 						break;
 				}
 				
@@ -2269,10 +2269,10 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 						break;
 					case 14:
 						oidIndex = 8;
-						break;																													
+						break;
 					default:
-						dbg("Not one of the valid BC Blade Slots.\n");
-						return(SA_ERR_HPI_INTERNAL_ERROR);							
+						dbg("Not one of the valid BC Blade Slots.");
+						return(SA_ERR_HPI_INTERNAL_ERROR);
 						break;
 				}
 				
@@ -2312,10 +2312,10 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 					case 7:
 					case 14:
 						oidIndex = 23;
-						break;																									
+						break;
 					default:
-						dbg("Not one of the valid BC H Switch Slots.\n");
-						return(SA_ERR_HPI_INTERNAL_ERROR);							
+						dbg("Not one of the valid BC H Switch Slots.");
+						return(SA_ERR_HPI_INTERNAL_ERROR);
 						break;
 				}
 				if ( slotnum > 7){
@@ -2325,7 +2325,7 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 					usepowerdomain1;
 				}										
 			} else { 
-				dbg("Not one of the supported platform.\n");
+				dbg("Not one of the supported platform.");
 				return(SA_ERR_HPI_INTERNAL_ERROR);		
 			}
 			break;		
@@ -2352,13 +2352,13 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 						oidIndex = 6;
 						break;					
 					default:
-						dbg("Not one of the valid BC H Power Module Slots.\n");
-						return(SA_ERR_HPI_INTERNAL_ERROR);							
+						dbg("Not one of the valid BC H Power Module Slots.");
+						return(SA_ERR_HPI_INTERNAL_ERROR);
 						break;
 				}
 				usepowerdomain1;
 			} else { 
-				dbg("Not one of the supported platform.\n");
+				dbg("Not one of the supported platform.");
 				return(SA_ERR_HPI_INTERNAL_ERROR);		
 			}
 			break;
@@ -2368,8 +2368,8 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 					oidIndex = 1;
 					break;
 				default:
-					dbg("Not one of the valid resources.\n");
-					return(SA_ERR_HPI_INTERNAL_ERROR);							
+					dbg("Not one of the valid resources.");
+					return(SA_ERR_HPI_INTERNAL_ERROR);
 					break;
 				}
 				usepowerdomain1;		
@@ -2429,8 +2429,9 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 		if (power_substrs[0] == NULL)
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 			
-		reading->Value.SensorUint64 = reading->Value.SensorUint64 + g_strtod(power_substrs[0], NULL);		
-		/* Set SensorReading structure  */																		
+		reading->Value.SensorUint64 = reading->Value.SensorUint64 + g_strtod(power_substrs[0], NULL);
+		
+		/* Set SensorReading structure  */
       		reading->IsSupported = rdr->RdrTypeUnion.SensorRec.DataFormat.IsSupported;
       		reading->Type = rdr->RdrTypeUnion.SensorRec.DataFormat.ReadingType;
 		return(SA_OK);		
@@ -2440,7 +2441,7 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 	get_string_object(oid, get_value);			 			 
 
 	/* Set SensorReading structure  */	
-	if ( strncmp(get_value.string, "N/A", sizeof("N/A")) == 0) {
+	if (g_ascii_strncasecmp(get_value.string, "N/A", sizeof("N/A")) == 0) {
       		reading->Value.SensorUint64 = 0;
 	} else {
 		power_substrs = g_strsplit(get_value.string, " ", -1);
@@ -2455,7 +2456,6 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 	
 	return(SA_OK);
 }				    				       
-
 
 /** 
  *
