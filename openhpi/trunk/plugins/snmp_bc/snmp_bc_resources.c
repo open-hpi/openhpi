@@ -3937,6 +3937,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
         /* Blade CPU 1 Temperature Sensor */
         {
 		.ipmi_tag = "CPU1 TEMP",
+		.ipmi_tag_alias1 = "CPU 1 TEMP",
 		.ipmi = {
 			.index = 1,
 			.sensor = {
@@ -4039,6 +4040,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
         /* Blade CPU 2 Temperature Sensor */
         {
 		.ipmi_tag = "CPU2 TEMP",
+		.ipmi_tag_alias1 = "CPU 2 TEMP",
 		.ipmi = {
 			.index = 2,
 			.sensor = {
@@ -4141,6 +4143,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
         /* Blade CPU 3 Temperature Sensor */
         {
 		.ipmi_tag = "CPU3 TEMP",
+		.ipmi_tag_alias1 = "CPU 3 TEMP",
 		.ipmi = {
 			.index = 3,
 			.sensor = {
@@ -4243,6 +4246,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
         /* Blade CPU 4 Temperature Sensor */
         {
 		.ipmi_tag = "CPU4 TEMP",
+		.ipmi_tag_alias1 = "CPU 4 TEMP",
 		.ipmi = {
 			.index = 4,
 			.sensor = {
@@ -4345,6 +4349,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
         /* Blade 1.2 Volt Sensor */
         {
 		.ipmi_tag = "1.2V SENSE",
+		.ipmi_tag_alias1 = '\0',
 		.ipmi = {
 			.index = 5,
 			.sensor = {
@@ -4457,6 +4462,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
         /* Blade Standby 1.2 Volt Sensor */
         {
 		.ipmi_tag = "1.2VSB SENSE",
+		.ipmi_tag_alias1 = '\0',
 		.ipmi = {
 			.index = 6,
 			.sensor = {
@@ -4550,6 +4556,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 	/* Blade 1.5 Volt Sensor */
         {
 		.ipmi_tag = "1.5V SENSE",
+		.ipmi_tag_alias1 = '\0',
 		.ipmi = {
 			.index = 7,
 			.sensor = {
@@ -4662,6 +4669,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 	/* Blade Standby 1.5 Volt Sensor */
         {
 		.ipmi_tag = "1.5VSB SENSE",
+		.ipmi_tag_alias1 = '\0',
 		.ipmi = {
 			.index = 8,
 			.sensor = {
@@ -4755,6 +4763,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
         /* Blade 1.8 Volt Sensor */
         {
 		.ipmi_tag = "1.8V SENSE",
+		.ipmi_tag_alias1 = '\0',
 		.ipmi = {
 			.index = 9,
 			.sensor = {
@@ -4867,6 +4876,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
         /* Blade Standby 1.8 Volt Sensor */
         {
 		.ipmi_tag = "1.8VSB SENSE",
+		.ipmi_tag_alias1 = '\0',
 		.ipmi = {
 			.index = 10,
 			.sensor = {
@@ -4960,6 +4970,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 	/* Blade 2.5 Volt Sensor */
         {
 		.ipmi_tag = "2.5V SENSE",
+		.ipmi_tag_alias1 = '\0',
 		.ipmi = {
 			.index = 11,
 			.sensor = {
@@ -5072,6 +5083,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
         /* Blade Standby 2.5 Volt Sensor */
         {
 		.ipmi_tag = "2.5VSB SENSE",
+		.ipmi_tag_alias1 = '\0',
 		.ipmi = {
 			.index = 12,
 			.sensor = {
@@ -5165,6 +5177,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
         /* Blade 3.3 Volt Sensor */
         {
 		.ipmi_tag = "3.3V SENSE",
+		.ipmi_tag_alias1 = "PLANAR 3.3V",
 		.ipmi = {
 			.index = 13,
 			.sensor = {
@@ -5277,6 +5290,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
         /* Blade Standby 3.3 Volt Sensor */
         {
 		.ipmi_tag = "3.3VSB SENSE",
+		.ipmi_tag_alias1 = '\0',
 		.ipmi = {
 			.index = 14,
 			.sensor = {
@@ -5370,6 +5384,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
         /* Blade 5 Volt Sensor */
         {
 		.ipmi_tag = "5V SENSE",
+		.ipmi_tag_alias1 = "PLANAR 5V",
 		.ipmi = {
 			.index = 15,
 			.sensor = {
@@ -5482,6 +5497,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
         /* Blade Standby 5 Volt Sensor */
         {
 		.ipmi_tag = "5VSB SENSE",
+		.ipmi_tag_alias1 = '\0',
 		.ipmi = {
 			.index = 16,
 			.sensor = {
@@ -5575,6 +5591,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
         /* Blade -5 Volt Sensor */
         {
 		.ipmi_tag = "-5V SENSE",
+		.ipmi_tag_alias1 = '\0',
 		.ipmi = {
 			.index = 17,
 			.sensor = {
@@ -5687,6 +5704,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
         /* Blade 12 Voltage Sensor */
         {
 		.ipmi_tag = "12V SENSE",
+		.ipmi_tag_alias1 = "PLANAR 12V",
 		.ipmi = {
 			.index = 18,
 			.sensor = {
@@ -5799,6 +5817,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
         /* Blade Standby 12 Volt Sensor */
         {
 		.ipmi_tag = "12VSB SENSE",
+		.ipmi_tag_alias1 = '\0',
 		.ipmi = {
 			.index = 19,
 			.sensor = {
@@ -5892,6 +5911,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
         /* Blade CPU 1 Core Voltage Sensor */
         {
 		.ipmi_tag = "CPU 1 VCORE",
+		.ipmi_tag_alias1 = '\0',
 		.ipmi = {
 			.index = 20,
 			.sensor = {
@@ -5979,6 +5999,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
         /* Blade CPU 2 Core Voltage Sensor */
         {
 		.ipmi_tag = "CPU 2 VCORE",
+		.ipmi_tag_alias1 = '\0',
 		.ipmi = {
 			.index = 21,
 			.sensor = {
@@ -6066,6 +6087,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
         /* Blade Battery Voltage Sensor */
         {
 		.ipmi_tag = "VBATT SENSE",
+		.ipmi_tag_alias1 = "PLANAR VBAT",
 		.ipmi = {
 			.index = 22,
 			.sensor = {
@@ -6554,11 +6576,14 @@ struct snmp_bc_sensor snmp_bc_bem_sensors[] = {
 /* FIXME:: Add Events - can we delete the voltage sensor above */
 
 /* BEM IPMI Sensors */
+/* NOTE: Define IPMI Tags as uppercase */
+
 #define SNMP_BC_LAST_NON_IPMI_BEM_SENSOR 4
 struct snmp_bc_ipmi_sensor snmp_bc_bem_ipmi_sensors[] = {
 	/* PEU2 Temperature Sensor */
         {
 		.ipmi_tag = "PEU2 TEMP SENSE",
+		.ipmi_tag_alias1 = '\0',
 		.ipmi = {
 			.index = 1,
 			.sensor = {
@@ -6630,6 +6655,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_bem_ipmi_sensors[] = {
 	/* BSE Temperature Sensor */
         {
 		.ipmi_tag = "BSE TEMP SENSE",
+		.ipmi_tag_alias1 = '\0',
 		.ipmi = {
 			.index = 2,
 			.sensor = {
@@ -6701,6 +6727,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_bem_ipmi_sensors[] = {
 	/* BSE 1.5 Volt Sensor */
         {
 		.ipmi_tag = "BSE 1.5V SENSE",
+		.ipmi_tag_alias1 = '\0',
 		.ipmi = {
 			.index = 3,
 			.sensor = {
@@ -6779,6 +6806,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_bem_ipmi_sensors[] = {
 	/* BSE 12 Volt Sensor */
         {
 		.ipmi_tag = "BSE 12V SENSE",
+		.ipmi_tag_alias1 = '\0',
 		.ipmi = {
 			.index = 4,
 			.sensor = {
