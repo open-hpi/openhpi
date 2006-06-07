@@ -673,7 +673,7 @@ SaErrorT snmp_bc_mod_sensor_ep(struct oh_event *e,
 		 
 		for (j=0; j < 3; j++) {
 			if (sensor_array[index].sensor_info.mib.oid != NULL) {
-				if ((strncmp (sensor_array[index].sensor_info.mib.oid, 
+				if ((g_ascii_strncasecmp(sensor_array[index].sensor_info.mib.oid, 
 					snmp_bc_blade_sensors[j].sensor_info.mib.oid, 34) == 0)) {
 					
 					ep_add.Entry[0].EntityLocation = j + 1;

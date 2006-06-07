@@ -477,11 +477,11 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 	/* Fetch fan installed vector  */
 	get_installed_mask(SNMP_BC_BLOWER_INSTALLED, get_value_fan);
 		
-	if (  (strncmp(get_value_blade.string, custom_handle->installed_pb_mask, get_value_blade.str_len) == 0) &&
-		(strncmp(get_value_fan.string, custom_handle->installed_blower_mask, get_value_fan.str_len) == 0) &&
-		(strncmp(get_value_power_module.string, custom_handle->installed_pm_mask, get_value_power_module.str_len) == 0) &&
-		(strncmp(get_value_switch.string, custom_handle->installed_sm_mask, get_value_switch.str_len) == 0) &&		
-		(strncmp(get_value_mm.string, custom_handle->installed_mm_mask, get_value_mm.str_len) == 0) &&
+	if (  (g_ascii_strncasecmp(get_value_blade.string, custom_handle->installed_pb_mask, get_value_blade.str_len) == 0) &&
+		(g_ascii_strncasecmp(get_value_fan.string, custom_handle->installed_blower_mask, get_value_fan.str_len) == 0) &&
+		(g_ascii_strncasecmp(get_value_power_module.string, custom_handle->installed_pm_mask, get_value_power_module.str_len) == 0) &&
+		(g_ascii_strncasecmp(get_value_switch.string, custom_handle->installed_sm_mask, get_value_switch.str_len) == 0) &&		
+		(g_ascii_strncasecmp(get_value_mm.string, custom_handle->installed_mm_mask, get_value_mm.str_len) == 0) &&
 		(get_value_media.integer == custom_handle->installed_mt_mask) ) {
 		
 		
@@ -943,7 +943,7 @@ SaErrorT snmp_bc_discover_blade(struct oh_handler_state *handle,
 						   &get_blade_resourcetag, SAHPI_TRUE);
 				
 				if ( (get_blade_resourcetag.type == ASN_OCTET_STR) && 
-					( strncmp(get_blade_resourcetag.string, LOG_DISCOVERING, sizeof(LOG_DISCOVERING)) == 0 ) )
+					( g_ascii_strncasecmp(get_blade_resourcetag.string, LOG_DISCOVERING, sizeof(LOG_DISCOVERING)) == 0 ) )
 				{
 					sleep(3);
 				} else break;
@@ -1724,7 +1724,7 @@ static SaErrorT snmp_bc_discover_ipmi_sensors(struct oh_handler_state *handle,
 		if (!err) {
 			char *hash_existing_key, *hash_value;
 			gchar  **strparts = NULL;
-			gchar  *ipmi_tag;
+			gchar  *s, *ipmi_tag;
 			
 			/* Find IPMI tag in returned value */
 			strparts = g_strsplit(get_value.string, SNMP_BC_IPMI_STRING_DELIMITER, -1);
@@ -1740,7 +1740,10 @@ static SaErrorT snmp_bc_discover_ipmi_sensors(struct oh_handler_state *handle,
 				g_free(ipmi_tag);
 				continue;
 			}
-
+			
+			/* Change IPMI Tag to upper case */
+			for (s=ipmi_tag; *s; s++) { *s = g_ascii_toupper(*s); }
+			
 			trace("Found OID IPMI sensor=%s", ipmi_tag);
 
 			/* Insert tag and OID info in temporary hash */
@@ -1749,7 +1752,8 @@ static SaErrorT snmp_bc_discover_ipmi_sensors(struct oh_handler_state *handle,
 							  (gpointer)&hash_existing_key,
 							  (gpointer)&hash_value)) {
 
-				mib_info = g_memdup(&(snmp_bc_ipmi_sensors_temp[i]), sizeof(struct SensorMibInfo));
+				mib_info = g_memdup(&(snmp_bc_ipmi_sensors_temp[i]),
+						    sizeof(struct SensorMibInfo));
 				if (!mib_info) {
 					dbg("Out of memory.");
 					g_free(ipmi_tag);

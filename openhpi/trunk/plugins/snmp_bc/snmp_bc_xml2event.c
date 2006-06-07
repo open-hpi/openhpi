@@ -156,17 +156,17 @@ static void event_start_element(GMarkupParseContext *context,
 	hash_info = (struct errlog2event_hash_info *)user_data;
  
         /* Ignore all XML elements except the event tag */
-        if (strcmp(element_name, "event") != 0) {
+        if (g_ascii_strncasecmp(element_name, "event", sizeof("event")) != 0) {
                 /* This is normal - not an error condition! */
                 return;
         }
 
         /* Fetch XML element attributes and values. Build event info */
         while (attribute_names[i] != NULL) {
-                if (strcmp(attribute_names[i], "name") == 0) {
+                if (g_ascii_strncasecmp(attribute_names[i], "name", sizeof("name")) == 0) {
                         /* Don't use this attribute so ignore it */
                 }
-                else if (strcmp(attribute_names[i], "msg") == 0) {
+                else if (g_ascii_strncasecmp(attribute_names[i], "msg", sizeof("msg")) == 0) {
                         key = g_strdup(attribute_values[i]);
                         if (key == NULL) {
                                 g_set_error(error, G_MARKUP_ERROR, G_MARKUP_ERROR_PARSE,
@@ -174,7 +174,7 @@ static void event_start_element(GMarkupParseContext *context,
                                 return;
                         }
                 }
-                else if (strcmp(attribute_names[i], "hex") == 0) {
+                else if (g_ascii_strncasecmp(attribute_names[i], "hex", sizeof("hex")) == 0) {
                         working.event = g_strdup(attribute_values[i]);
                         if (working.event == NULL) {
                                 g_set_error(error, G_MARKUP_ERROR, G_MARKUP_ERROR_PARSE,
@@ -182,17 +182,17 @@ static void event_start_element(GMarkupParseContext *context,
                                 return;
                         }
                 }
-                else if (strcmp(attribute_names[i], "severity") == 0) {
-                        if (strcmp(attribute_values[i], "SAHPI_CRITICAL") == 0) {
+                else if (g_ascii_strncasecmp(attribute_names[i], "severity", sizeof("severity")) == 0) {
+                        if (g_ascii_strncasecmp(attribute_values[i], "SAHPI_CRITICAL", sizeof("SAHPI_CRITICAL")) == 0) {
                                 working.event_sev = SAHPI_CRITICAL;
                         }
-                        else if (strcmp(attribute_values[i], "SAHPI_MAJOR") == 0) {
+                        else if (g_ascii_strncasecmp(attribute_values[i], "SAHPI_MAJOR", sizeof("SAHPI_MAJOR")) == 0) {
                                 working.event_sev = SAHPI_MAJOR;
                         }
-                        else if (strcmp(attribute_values[i], "SAHPI_MINOR") == 0) {
+                        else if (g_ascii_strncasecmp(attribute_values[i], "SAHPI_MINOR", sizeof("SAHPI_MINOR")) == 0) {
                                 working.event_sev = SAHPI_MINOR;
                         }
-                        else if (strcmp(attribute_values[i], "SAHPI_INFORMATIONAL") == 0) {
+                        else if (g_ascii_strncasecmp(attribute_values[i], "SAHPI_INFORMATIONAL", sizeof("SAHPI_INFORMATIONAL")) == 0) {
                                 working.event_sev = SAHPI_INFORMATIONAL;
                         }
                         else {
@@ -203,7 +203,7 @@ static void event_start_element(GMarkupParseContext *context,
                                 return;
                         }
                 }
-                else if (strcmp(attribute_names[i], "override") == 0) {
+                else if (g_ascii_strncasecmp(attribute_names[i], "override", sizeof("override")) == 0) {
                         working.event_ovr |= NO_OVR;
                         if (strstr(attribute_values[i], "OVR_SEV") != NULL) {
                                 working.event_ovr |= OVR_SEV;
@@ -225,7 +225,7 @@ static void event_start_element(GMarkupParseContext *context,
                         }
                         /* Ignore any other values */
                 }
-                else if (strcmp(attribute_names[i], "dup") == 0) {
+                else if (g_ascii_strncasecmp(attribute_names[i], "dup", sizeof("dup")) == 0) {
                         working.event_dup = (short)atoi(attribute_values[i]);
                 }
                 else {

@@ -1,11 +1,11 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2003, 2004
+ * (C) Copyright IBM Corp. 2003, 2006
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
- * file and program are licensed under a BSD style license.  See
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. This
+ * file and program are licensed under a BSD style license. See
  * the Copying file included with the OpenHPI distribution for
  * full licensing terms.
  *
@@ -267,7 +267,7 @@ SaErrorT snmp_bc_set_dst(struct oh_handler_state *handle, struct tm *time) {
 			/* Daylight Saving Time info is not provided */
 		time->tm_isdst = -1;		
 	} else {
-		if (strcmp(zone_token[1],"yes") == 0) {
+		if (g_ascii_strncasecmp(zone_token[1], "yes", sizeof("yes")) == 0) {
 			/* Does the timestamp of this particular log */
 			/* fall within the observes DST period for this timezone? */
 			if (is_dst_in_effect(time, zone_token) == TRUE) 

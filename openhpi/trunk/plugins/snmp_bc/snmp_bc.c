@@ -285,17 +285,17 @@ SaErrorT snmp_bc_snmp_get(struct snmp_bc_hnd *custom_handle,
                 	custom_handle->handler_retries = 0;
 			if ((err == SA_OK) && (value->type == ASN_OCTET_STR)) {
 #if 0
-				if ( (strncmp(value->string,"(No temperature)", sizeof("(No temperature)")) == 0) ||
-			     		(strncmp(value->string,"(No voltage)", sizeof("(No voltage)")) == 0) )
+				if ( (g_ascii_strncasecmp(value->string,"(No temperature)", sizeof("(No temperature)")) == 0) ||
+			     		(g_ascii_strncasecmp(value->string,"(No voltage)", sizeof("(No voltage)")) == 0) )
 				{
 					snmp_bc_internal_retry();
 				}
 				else
 #endif
-				if ((strncmp(value->string,"Not Readable!", sizeof("Not Readable!")) == 0) ||
-				    (strncmp(value->string,"Not Readable", sizeof("Not Readable")) == 0) ||
-				    (strncmp(value->string,"(No temperature)", sizeof("(No temperature)")) == 0) ||
-				    (strncmp(value->string,"NO_TEMPERATURE", sizeof("NO_TEMPERATURE")) == 0) ||
+				if ((g_ascii_strncasecmp(value->string,"Not Readable!", sizeof("Not Readable!")) == 0) ||
+				    (g_ascii_strncasecmp(value->string,"Not Readable", sizeof("Not Readable")) == 0) ||
+				    (g_ascii_strncasecmp(value->string,"(No temperature)", sizeof("(No temperature)")) == 0) ||
+				    (g_ascii_strncasecmp(value->string,"NO_TEMPERATURE", sizeof("NO_TEMPERATURE")) == 0) ||
 				    (!value->string) ||
 				    (value->string[0] == '\0')) {
 					custom_handle->handler_retries = 0;

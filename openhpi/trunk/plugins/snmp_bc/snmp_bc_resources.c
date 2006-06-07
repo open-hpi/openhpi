@@ -831,7 +831,6 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
 
                                 {},
                         },
-			/* Default HDW thresholds: Warning=60; Warning Reset=55 */
                         .reading2event = {
 				{
 					.num = 1,
@@ -1376,7 +1375,6 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
 
                                 {},
                         },
-			/* Default HDW thresholds: Warning=60; Warning Reset=55 */
                         .reading2event = {
 				{
 					.num = 1,
@@ -3026,7 +3024,6 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
 				.IsAccessible = SAHPI_TRUE,
                                 .ReadThold  = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
                                 .WriteThold = 0,
-                                /* Default HDW thresholds: Warning 1.10<>1.4 */
                         },
                         .Oem = 0,
                 },
@@ -3118,7 +3115,6 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
 				.IsAccessible = SAHPI_TRUE,
                                 .ReadThold  = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
                                 .WriteThold = 0,
-                                /* Default HDW thresholds: Warning 1.32<>1.68 */
                         },
                         .Oem = 0,
                 },
@@ -3228,7 +3224,6 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
 				.IsAccessible = SAHPI_TRUE,
                                 .ReadThold  = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
                                 .WriteThold = 0,
-                                /* Default HDW thresholds: Warning 2.25<>2.75 */
                         },
                         .Oem = 0,
                 },
@@ -3338,7 +3333,6 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
 				.IsAccessible = SAHPI_TRUE,
                                 .ReadThold  = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
                                 .WriteThold = 0,
-                                /* Default HDW thresholds: Warning 2.97<>3.63 */
                         },
                         .Oem = 0,
                 },
@@ -3448,7 +3442,6 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
 				.IsAccessible = SAHPI_TRUE,
                                 .ReadThold  = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
                                 .WriteThold = 0,
-                                /* Default HDW thresholds: Warning 4.40<>5.50 */
                         },
                         .Oem = 0,
                 },
@@ -3558,7 +3551,6 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
 				.IsAccessible = SAHPI_TRUE,
                                 .ReadThold  = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
                                 .WriteThold = 0,
-                                /* Default HDW thresholds: Warning 10.8<>13.2 */
                         },
                         .Oem = 0,
                 },
@@ -3938,6 +3930,8 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
 
 
 /* Blade IPMI Sensors */
+/* NOTE: Define IPMI Tags as uppercase */
+
 #define SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR 14
 struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
         /* Blade CPU 1 Temperature Sensor */
@@ -4350,7 +4344,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 	},
         /* Blade 1.2 Volt Sensor */
         {
-		.ipmi_tag = "1.2V Sense",
+		.ipmi_tag = "1.2V SENSE",
 		.ipmi = {
 			.index = 5,
 			.sensor = {
@@ -4397,7 +4391,6 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 					.IsAccessible = SAHPI_TRUE,
 					.ReadThold  = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
 					.WriteThold = 0,
-					/* Default HDW thresholds: Warning 1.10<>1.4 */
 				},
 				.Oem = 0,
 			},
@@ -4463,7 +4456,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
         },
         /* Blade Standby 1.2 Volt Sensor */
         {
-		.ipmi_tag = "1.2VSB Sense",
+		.ipmi_tag = "1.2VSB SENSE",
 		.ipmi = {
 			.index = 6,
 			.sensor = {
@@ -4509,7 +4502,6 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 					.IsAccessible = SAHPI_TRUE,
 					.ReadThold  = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
 					.WriteThold = 0,
-					/* Default HDW thresholds: Warning 1.10<>1.4 */
 				},
 				.Oem = 0,
 			},
@@ -4557,7 +4549,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
         },
 	/* Blade 1.5 Volt Sensor */
         {
-		.ipmi_tag = "1.5V Sense",
+		.ipmi_tag = "1.5V SENSE",
 		.ipmi = {
 			.index = 7,
 			.sensor = {
@@ -4604,7 +4596,6 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 					.IsAccessible = SAHPI_TRUE,
 					.ReadThold  = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
 					.WriteThold = 0,
-					/* Default HDW thresholds: Warning 1.32<>1.68 */
 				},
 				.Oem = 0,
 			},
@@ -4670,7 +4661,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
         },
 	/* Blade Standby 1.5 Volt Sensor */
         {
-		.ipmi_tag = "1.5VSB Sense",
+		.ipmi_tag = "1.5VSB SENSE",
 		.ipmi = {
 			.index = 8,
 			.sensor = {
@@ -4716,7 +4707,6 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 					.IsAccessible = SAHPI_TRUE,
 					.ReadThold  = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
 					.WriteThold = 0,
-					/* Default HDW thresholds: Warning 1.32<>1.68 */
 				},
 				.Oem = 0,
 			},
@@ -4764,7 +4754,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
         },
         /* Blade 1.8 Volt Sensor */
         {
-		.ipmi_tag = "1.8V Sense",
+		.ipmi_tag = "1.8V SENSE",
 		.ipmi = {
 			.index = 9,
 			.sensor = {
@@ -4876,7 +4866,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
         },
         /* Blade Standby 1.8 Volt Sensor */
         {
-		.ipmi_tag = "1.8VSB Sense",
+		.ipmi_tag = "1.8VSB SENSE",
 		.ipmi = {
 			.index = 10,
 			.sensor = {
@@ -4969,7 +4959,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
         },
 	/* Blade 2.5 Volt Sensor */
         {
-		.ipmi_tag = "2.5V Sense",
+		.ipmi_tag = "2.5V SENSE",
 		.ipmi = {
 			.index = 11,
 			.sensor = {
@@ -5016,7 +5006,6 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 					.IsAccessible = SAHPI_TRUE,
 					.ReadThold  = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
 					.WriteThold = 0,
-					/* Default HDW thresholds: Warning 2.25<>2.75 */
 				},
 				.Oem = 0,
 			},
@@ -5082,7 +5071,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
         },
         /* Blade Standby 2.5 Volt Sensor */
         {
-		.ipmi_tag = "2.5VSB Sense",
+		.ipmi_tag = "2.5VSB SENSE",
 		.ipmi = {
 			.index = 12,
 			.sensor = {
@@ -5128,7 +5117,6 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 					.IsAccessible = SAHPI_TRUE,
 					.ReadThold  = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
 					.WriteThold = 0,
-					/* Default HDW thresholds: Warning 2.25<>2.75 */
 				},
 				.Oem = 0,
 			},
@@ -5176,7 +5164,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
         },
         /* Blade 3.3 Volt Sensor */
         {
-		.ipmi_tag = "3.3V Sense",
+		.ipmi_tag = "3.3V SENSE",
 		.ipmi = {
 			.index = 13,
 			.sensor = {
@@ -5223,7 +5211,6 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 					.IsAccessible = SAHPI_TRUE,
 					.ReadThold  = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
 					.WriteThold = 0,
-					/* Default HDW thresholds: Warning 2.97<>3.63 */
 				},
 				.Oem = 0,
 			},
@@ -5289,7 +5276,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
         },
         /* Blade Standby 3.3 Volt Sensor */
         {
-		.ipmi_tag = "3.3VSB Sense",
+		.ipmi_tag = "3.3VSB SENSE",
 		.ipmi = {
 			.index = 14,
 			.sensor = {
@@ -5335,7 +5322,6 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 					.IsAccessible = SAHPI_TRUE,
 					.ReadThold  = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
 					.WriteThold = 0,
-					/* Default HDW thresholds: Warning 2.97<>3.63 */
 				},
 				.Oem = 0,
 			},
@@ -5383,7 +5369,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
         },
         /* Blade 5 Volt Sensor */
         {
-		.ipmi_tag = "5V Sense",
+		.ipmi_tag = "5V SENSE",
 		.ipmi = {
 			.index = 15,
 			.sensor = {
@@ -5430,7 +5416,6 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 					.IsAccessible = SAHPI_TRUE,
 					.ReadThold  = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
 					.WriteThold = 0,
-					/* Default HDW thresholds: Warning 4.40<>5.50 */
 				},
 				.Oem = 0,
 			},
@@ -5496,7 +5481,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
         },
         /* Blade Standby 5 Volt Sensor */
         {
-		.ipmi_tag = "5VSB Sense",
+		.ipmi_tag = "5VSB SENSE",
 		.ipmi = {
 			.index = 16,
 			.sensor = {
@@ -5542,7 +5527,6 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 					.IsAccessible = SAHPI_TRUE,
 					.ReadThold  = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
 					.WriteThold = 0,
-					/* Default HDW thresholds: Warning 4.40<>5.50 */
 				},
 				.Oem = 0,
 			},
@@ -5590,7 +5574,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
         },
         /* Blade -5 Volt Sensor */
         {
-		.ipmi_tag = "-5V Sense",
+		.ipmi_tag = "-5V SENSE",
 		.ipmi = {
 			.index = 17,
 			.sensor = {
@@ -5637,7 +5621,6 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 					.IsAccessible = SAHPI_TRUE,
 					.ReadThold  = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
 					.WriteThold = 0,
-					/* Default HDW thresholds: Warning -4.85<>-5.15 */
 				},
 				.Oem = 0,
 			},
@@ -5703,7 +5686,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
         },
         /* Blade 12 Voltage Sensor */
         {
-		.ipmi_tag = "12V Sense",
+		.ipmi_tag = "12V SENSE",
 		.ipmi = {
 			.index = 18,
 			.sensor = {
@@ -5750,7 +5733,6 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 					.IsAccessible = SAHPI_TRUE,
 					.ReadThold  = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
 					.WriteThold = 0,
-					/* Default HDW thresholds: Warning 10.8<>13.2 */
 				},
 				.Oem = 0,
 			},
@@ -5816,7 +5798,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
         },
         /* Blade Standby 12 Volt Sensor */
         {
-		.ipmi_tag = "12VSB Sense",
+		.ipmi_tag = "12VSB SENSE",
 		.ipmi = {
 			.index = 19,
 			.sensor = {
@@ -5862,7 +5844,6 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 					.IsAccessible = SAHPI_TRUE,
 					.ReadThold  = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
 					.WriteThold = 0,
-					/* Default HDW thresholds: Warning 10.8<>13.2 */
 				},
 				.Oem = 0,
 			},
@@ -5910,7 +5891,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
         },
         /* Blade CPU 1 Core Voltage Sensor */
         {
-		.ipmi_tag = "CPU 1 VCore",
+		.ipmi_tag = "CPU 1 VCORE",
 		.ipmi = {
 			.index = 20,
 			.sensor = {
@@ -5997,7 +5978,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
         },
         /* Blade CPU 2 Core Voltage Sensor */
         {
-		.ipmi_tag = "CPU 2 VCore",
+		.ipmi_tag = "CPU 2 VCORE",
 		.ipmi = {
 			.index = 21,
 			.sensor = {
@@ -6084,7 +6065,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
         },
         /* Blade Battery Voltage Sensor */
         {
-		.ipmi_tag = "VBATT Sense",
+		.ipmi_tag = "VBATT SENSE",
 		.ipmi = {
 			.index = 22,
 			.sensor = {
@@ -6131,7 +6112,6 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 					.IsAccessible = SAHPI_TRUE,
 					.ReadThold  = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
 					.WriteThold = 0,
-					/* Default HDW thresholds: Warning 2.97<>3.63 */
 				},
 				.Oem = 0,
 			},
@@ -6578,7 +6558,7 @@ struct snmp_bc_sensor snmp_bc_bem_sensors[] = {
 struct snmp_bc_ipmi_sensor snmp_bc_bem_ipmi_sensors[] = {
 	/* PEU2 Temperature Sensor */
         {
-		.ipmi_tag = "PEU2 Temp Sense",
+		.ipmi_tag = "PEU2 TEMP SENSE",
 		.ipmi = {
 			.index = 1,
 			.sensor = {
@@ -6649,7 +6629,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_bem_ipmi_sensors[] = {
 	},
 	/* BSE Temperature Sensor */
         {
-		.ipmi_tag = "BSE Temp Sense",
+		.ipmi_tag = "BSE TEMP SENSE",
 		.ipmi = {
 			.index = 2,
 			.sensor = {
@@ -6720,7 +6700,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_bem_ipmi_sensors[] = {
 	},
 	/* BSE 1.5 Volt Sensor */
         {
-		.ipmi_tag = "BSE 1.5V Sense",
+		.ipmi_tag = "BSE 1.5V SENSE",
 		.ipmi = {
 			.index = 3,
 			.sensor = {
@@ -6766,7 +6746,6 @@ struct snmp_bc_ipmi_sensor snmp_bc_bem_ipmi_sensors[] = {
 					.IsAccessible = SAHPI_TRUE,
 					.ReadThold  = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
 					.WriteThold = 0,
-					/* Default HDW thresholds: Warning 1.32<>1.68 */
 				},
 				.Oem = 0,
 			},
@@ -6799,7 +6778,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_bem_ipmi_sensors[] = {
         },
 	/* BSE 12 Volt Sensor */
         {
-		.ipmi_tag = "BSE 12V Sense",
+		.ipmi_tag = "BSE 12V SENSE",
 		.ipmi = {
 			.index = 4,
 			.sensor = {
@@ -6845,7 +6824,6 @@ struct snmp_bc_ipmi_sensor snmp_bc_bem_ipmi_sensors[] = {
 					.IsAccessible = SAHPI_TRUE,
 					.ReadThold  = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
 					.WriteThold = 0,
-					/* Default HDW thresholds: Warning 1.32<>1.68 */
 				},
 				.Oem = 0,
 			},
@@ -6876,6 +6854,8 @@ struct snmp_bc_ipmi_sensor snmp_bc_bem_ipmi_sensors[] = {
 			.comment = "BSE 12 Volt Sensor",
 		},
         },
+
+
 
         {} /* Terminate array with a null element */
 };
@@ -7537,9 +7517,9 @@ struct snmp_bc_sensor snmp_bc_switch_sensors[] = {
         {} /* Terminate array with a null element */
 };
 
-/***************************
- * Blade Center Physical Slot Sensors
- ***************************/
+/***********************************
+ * BladeCenter Physical Slot Sensors
+ ***********************************/
 
 struct snmp_bc_sensor snmp_bc_slot_sensors[] = {
 
@@ -7588,8 +7568,8 @@ struct snmp_bc_sensor snmp_bc_slot_sensors[] = {
                         .reading2event = {},
                 },
                 .comment = "Slot State Sensor",
-        },	
-
+        },
+	/* Slot Maximum Power Capability Sensor */
 	{
 		.index = 2,
                 .sensor = {
@@ -7635,9 +7615,9 @@ struct snmp_bc_sensor snmp_bc_slot_sensors[] = {
                         },
 		        .reading2event = {},
                 },
-		.comment = "Maximum Power Capability",
+		.comment = "Slot Maximum Power Capability Sensor",
 	},
-
+	/* Slot Assigned Power Sensor */
 	{
 		.index = 3,
                 .sensor = {
@@ -7685,9 +7665,9 @@ struct snmp_bc_sensor snmp_bc_slot_sensors[] = {
                         },
 		        .reading2event = {},
                 },
-		.comment = "Assigned Power Capability",
+		.comment = "Slot Assigned Power Sensor",
 	},
-
+	/* Slot Minumum Power Capability Sensor */
 	{
 		.index = 4,
                 .sensor = {
@@ -7733,8 +7713,9 @@ struct snmp_bc_sensor snmp_bc_slot_sensors[] = {
                         },
 		        .reading2event = {},
                 },
-		.comment = "Minumum Power Capability",
+		.comment = "Slot Minumum Power Capability Sensor",
 	},
+
         {} /* Terminate array with a null element */
 };
 
@@ -7753,10 +7734,6 @@ struct snmp_bc_sensor snmp_bc_slot_sensors[] = {
 /******************
  * Chassis Controls
  ******************/
-
-/* Currently BC and BCT chassis controls are exclusive; if in the future
-   there are common chassis controls; change snmp_bc_discover_bc.c to 
-   discover the common controls */
 
 struct snmp_bc_control snmp_bc_chassis_controls_bc[] = {
         /* Chassis Location LED */

@@ -793,7 +793,7 @@ static ErrLog2EventInfoT *snmp_bc_findevent4dupstr(gchar *search_str,
 				normalized_event = oh_derive_string(&(logsrc2res->ep), 0,
 						   (logsrc2res->sensor_array_ptr + i)->sensor_info.event_array[j].event);
 				
-				if (!strcmp(dupstr_hash_data->event, normalized_event)) {
+				if (!g_ascii_strcasecmp(dupstr_hash_data->event, normalized_event)) {
 					g_free(normalized_event);
 					return(dupstr_hash_data);
 				}
@@ -805,7 +805,7 @@ static ErrLog2EventInfoT *snmp_bc_findevent4dupstr(gchar *search_str,
 		for (i=0; snmp_bc_rpt_array[logsrc2res->rpt].res_info.event_array[i].event != NULL; i++) {
 			normalized_event = oh_derive_string(&(logsrc2res->ep), 0,
 					   snmp_bc_rpt_array[logsrc2res->rpt].res_info.event_array[i].event);
-			if (!strcmp(dupstr_hash_data->event, normalized_event)) {
+			if (!g_ascii_strcasecmp(dupstr_hash_data->event, normalized_event)) {
 				g_free(normalized_event);
 				return(dupstr_hash_data);
 			}
@@ -1307,13 +1307,13 @@ static SaErrorT snmp_bc_logsrc2rid(struct oh_handler_state *handle,
 
 	/* See if resource is something other than the chassis */
 	isblade = isexpansioncard = isswitch = SAHPI_FALSE;
-	if (!strcmp(src_parts[0], "BLADE")) { 
+	if (!g_ascii_strncasecmp(src_parts[0], "BLADE", sizeof("BLADE"))) { 
 		/* All expansion card events are reported as blade events in the Error Log */
 		if (ovr_flags & OVR_EXP) { isexpansioncard = SAHPI_TRUE; }
 		else { isblade = SAHPI_TRUE; }
 	}
 	else {
-		if (!strcmp(src_parts[0], "SWITCH")) { isswitch = SAHPI_TRUE; }
+		if (!g_ascii_strncasecmp(src_parts[0], "SWITCH", sizeof("SWITCH"))) { isswitch = SAHPI_TRUE; }
 	}
 
 	/* If not the chassis, find the location value from last part of log's source string */
