@@ -1777,7 +1777,7 @@ static SaErrorT snmp_bc_discover_ipmi_sensors(struct oh_handler_state *handle,
 		if (!err) {
 			char *hash_existing_key, *hash_value;
 			gchar  **strparts = NULL;
-			gchar  *ipmi_tag;
+			gchar  *s, *ipmi_tag;
 			
 			/* Find IPMI tag in returned value */
 			strparts = g_strsplit(get_value.string, SNMP_BC_IPMI_STRING_DELIMITER, -1);
@@ -1794,6 +1794,9 @@ static SaErrorT snmp_bc_discover_ipmi_sensors(struct oh_handler_state *handle,
 				continue;
 			}
 
+			/* Change IPMI Tag to upper case */
+			for (s=ipmi_tag; *s; s++) { *s = g_ascii_toupper(*s); }
+			
 			trace("Found OID IPMI sensor=%s", ipmi_tag);
 
 			/* Insert tag and OID info in temporary hash */
