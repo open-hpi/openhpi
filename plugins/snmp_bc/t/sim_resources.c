@@ -4397,7 +4397,7 @@ struct snmp_bc_data sim_resource_array[] = {
                 .mib = {
                         .type = ASN_OCTET_STR,
                         .value = {
-                                .string = "CPU1 TeMP = +37.00 Centigrade",
+                                .string = "CPU 1 TeMP = +37.00 Centigrade",
                         },
                 },
         },

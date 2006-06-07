@@ -348,6 +348,7 @@ struct snmp_bc_sensor {
 
 struct snmp_bc_ipmi_sensor {
 	const char *ipmi_tag;
+	const char *ipmi_tag_alias1;
 	struct snmp_bc_sensor ipmi;
 };
 

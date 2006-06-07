@@ -1825,6 +1825,12 @@ static SaErrorT snmp_bc_discover_ipmi_sensors(struct oh_handler_state *handle,
 	   push up its RDR info to Infra-structure */
 	for (i=0; sensor_array[i].ipmi.index != 0; i++) {
 		mib_info = (struct SensorMibInfo *)g_hash_table_lookup(ipmi_sensor_hash, sensor_array[i].ipmi_tag);
+		
+		/* See if the tag has an alias */
+		if (!mib_info && (sensor_array[i].ipmi_tag_alias1 && sensor_array[i].ipmi_tag_alias1[0] != '\0')) {
+			mib_info = (struct SensorMibInfo *)g_hash_table_lookup(ipmi_sensor_hash, sensor_array[i].ipmi_tag_alias1);	
+		}
+
 		if (mib_info) {
 			struct oh_event *e;
 			struct SensorInfo *sinfo;
