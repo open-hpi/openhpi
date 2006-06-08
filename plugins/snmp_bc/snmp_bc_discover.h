@@ -69,8 +69,8 @@ SaErrorT snmp_bc_discover_chassis(struct oh_handler_state *handle,
 SaErrorT snmp_bc_discover_blade(struct oh_handler_state *handle,
 				SaHpiEntityPathT *ep_root, char *blade_vector);
 
-SaErrorT snmp_bc_discover_fans(struct oh_handler_state *handle,
-			       SaHpiEntityPathT *ep_root, char *fan_vector);
+SaErrorT snmp_bc_discover_blowers(struct oh_handler_state *handle,
+			       SaHpiEntityPathT *ep_root, char *blower_vector);
 
 SaErrorT snmp_bc_discover_power_module(struct oh_handler_state *handle,
 				       SaHpiEntityPathT *ep_root, char *power_module_vector);
@@ -91,5 +91,5 @@ SaErrorT snmp_bc_discover_slot(struct oh_handler_state *handle,
 			       SaHpiEntityTypeT entitytype,
 			       guint entitylocation); 
 
-				 				 
 #endif
+

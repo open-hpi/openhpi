@@ -194,20 +194,19 @@ SaErrorT snmp_bc_extract_slot_ep(SaHpiEntityPathT *resource_ep, SaHpiEntityPathT
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
-
 	for (i = 0; i < SAHPI_MAX_ENTITY_PATH ; i++) {
 		if (	(resource_ep->Entry[i].EntityType == SAHPI_ENT_PHYSICAL_SLOT) ||
 			(resource_ep->Entry[i].EntityType == BLADECENTER_INTERCONNECT_SLOT) ||
 			(resource_ep->Entry[i].EntityType == BLADECENTER_POWER_SUPPLY_SLOT) ||
 			(resource_ep->Entry[i].EntityType == BLADECENTER_PERIPHERAL_BAY_SLOT) ||
 			(resource_ep->Entry[i].EntityType == BLADECENTER_SYS_MGMNT_MODULE_SLOT) ||
-			(resource_ep->Entry[i].EntityType == BLADECENTER_FAN_SLOT) )
+			(resource_ep->Entry[i].EntityType == BLADECENTER_BLOWER_SLOT) )
 			break;	
 	}
 	
-	/* There must alway be a SAHPI_ENT_ROOT, so xx_SLOT entry index must always be less than SAHPI_MAX_ENTITY_PATH */
+	/* There must alway be a SAHPI_ENT_ROOT, so xx_SLOT entry index must 
+           always be less than SAHPI_MAX_ENTITY_PATH */
 	if ( i == SAHPI_MAX_ENTITY_PATH) return(SA_ERR_HPI_INVALID_PARAMS);
-	
 	
 	for ( j = 0; i < SAHPI_MAX_ENTITY_PATH; i++) {
 		slot_ep->Entry[j].EntityType = resource_ep->Entry[i].EntityType;
