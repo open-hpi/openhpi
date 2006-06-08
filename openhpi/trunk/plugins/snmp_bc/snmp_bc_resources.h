@@ -59,8 +59,8 @@
  * plugin at run-time during resource discovery.
  *************************************************************************/
 
-#ifndef __BC_RESOURCES_H
-#define __BC_RESOURCES_H
+#ifndef __SNMP_BC_RESOURCES_H
+#define __SNMP_BC_RESOURCES_H
 
 /* Start HPI location numbers from 1 */
 #define SNMP_BC_HPI_LOCATION_BASE 1
@@ -143,7 +143,7 @@ typedef enum {
 /* OID definitions for discovering resources.*/
 #if 0
 #define SNMP_BC_BLADE_VECTOR            ".1.3.6.1.4.1.2.3.51.2.22.4.25.0"
-#define SNMP_BC_FAN_VECTOR              ".1.3.6.1.4.1.2.3.51.2.22.4.33.0"
+#define SNMP_BC_BLOWER_VECTOR           ".1.3.6.1.4.1.2.3.51.2.22.4.33.0"
 #define SNMP_BC_MEDIA_TRAY_EXISTS       ".1.3.6.1.4.1.2.3.51.2.22.4.32.0"
 #define SNMP_BC_MGMNT_VECTOR            ".1.3.6.1.4.1.2.3.51.2.22.4.30.0"
 #define SNMP_BC_POWER_VECTOR            ".1.3.6.1.4.1.2.3.51.2.22.4.31.0"
@@ -169,26 +169,13 @@ typedef enum {
 #define SNMP_BC_SEL_CLEAR_OID           ".1.3.6.1.4.1.2.3.51.2.3.4.3.0"
 #define SNMP_BC_SEL_CLEAR_OID_RSA       ".1.3.6.1.4.1.2.3.51.1.3.4.3.0"
 
-/* Slot Numbers */
-#define BLADECENTER_INTERCONNECT_SLOT      SAHPI_ENT_CHASSIS_SPECIFIC + 0x10
-#define BLADECENTER_POWER_SUPPLY_SLOT      SAHPI_ENT_CHASSIS_SPECIFIC + 0x11
-#define BLADECENTER_PERIPHERAL_BAY_SLOT    SAHPI_ENT_CHASSIS_SPECIFIC + 0x12
-#define BLADECENTER_SYS_MGMNT_MODULE_SLOT  SAHPI_ENT_CHASSIS_SPECIFIC + 0x13
-#define BLADECENTER_FAN_SLOT               SAHPI_ENT_CHASSIS_SPECIFIC + 0x14
-
-/* Sensor Numbers defined for Blade Center Physical Slot resource */
-#define BLADECENTER_SENSOR_NUM_SLOT_STATE  	(SaHpiSensorNumT) 0x1010
-#define BLADECENTER_SENSOR_NUM_MAX_POWER  	(SaHpiSensorNumT) 0x1012
-#define BLADECENTER_SENSOR_NUM_ASSIGNED_POWER  	(SaHpiSensorNumT) 0x1011
-#define BLADECENTER_SENSOR_NUM_MIN_POWER  	(SaHpiSensorNumT) 0x1013
-
 /* Slot ResourceTag */
-#define BC_PHYSICAL_SLOT  	 "Blade Center - Processor Blade Slot"
-#define BC_INTERCONNECT_SLOT 	 "Blade Center - Interconnect Slot"
-#define BC_POWER_SUPPLY_SLOT 	 "Blade Center - Power Supply Slot"
-#define BC_PERIPHERAL_BAY_SLOT   "Blade Center - Peripheral Bay Slot"
-#define BC_SYS_MGMNT_MODULE_SLOT "Blade Center - Management Module Slot"
-#define BC_FAN_SLOT 		 "Blade Center - Blower/Fan Slot"
+#define SNMP_BC_PHYSICAL_SLOT  	      "Blade Slot"
+#define SNMP_BC_INTERCONNECT_SLOT     "I/O Module Slot"
+#define SNMP_BC_POWER_SUPPLY_SLOT     "Power Module Slot"
+#define SNMP_BC_PERIPHERAL_BAY_SLOT   "Media Tray Slot"
+#define SNMP_BC_SYS_MGMNT_MODULE_SLOT "Management Module Slot"
+#define SNMP_BC_BLOWER_SLOT 	      "Blower Slot"
 
 /* Slot Power OIDs  */
 #define SNMP_BC_PD1POWERCURRENT ".1.3.6.1.4.1.2.3.51.2.2.10.2.1.1.7" /* pd1ModuleAllocatedPowerCurrent */
@@ -361,8 +348,8 @@ extern struct snmp_bc_ipmi_sensor snmp_bc_bem_ipmi_sensors[];
 extern struct snmp_bc_sensor      snmp_bc_mgmnt_sensors[];
 extern struct snmp_bc_sensor      snmp_bc_virtual_mgmnt_sensors[];
 extern struct snmp_bc_sensor      snmp_bc_mediatray_sensors[];
-extern struct snmp_bc_sensor      snmp_bc_fan_sensors[];
-extern struct snmp_bc_sensor      snmp_bc_fan_sensors_bch[];
+extern struct snmp_bc_sensor      snmp_bc_blower_sensors[];
+extern struct snmp_bc_sensor      snmp_bc_blower_sensors_bch[];
 extern struct snmp_bc_sensor      snmp_bc_power_sensors[];
 extern struct snmp_bc_sensor      snmp_bc_power_sensors_bch[];
 extern struct snmp_bc_sensor      snmp_bc_switch_sensors[];
@@ -413,7 +400,7 @@ extern struct snmp_bc_control snmp_bc_bem_controls[];
 extern struct snmp_bc_control snmp_bc_mgmnt_controls[];
 extern struct snmp_bc_control snmp_bc_virtual_mgmnt_controls[];
 extern struct snmp_bc_control snmp_bc_mediatray_controls[];
-extern struct snmp_bc_control snmp_bc_fan_controls[];
+extern struct snmp_bc_control snmp_bc_blower_controls[];
 extern struct snmp_bc_control snmp_bc_power_controls[];
 extern struct snmp_bc_control snmp_bc_switch_controls[];
 extern struct snmp_bc_control snmp_bc_slot_controls[];
@@ -457,7 +444,7 @@ struct snmp_bc_inventory {
 };
 
 extern struct snmp_bc_inventory snmp_bc_chassis_inventories[];
-extern struct snmp_bc_inventory snmp_bc_fan_inventories[];
+extern struct snmp_bc_inventory snmp_bc_blower_inventories[];
 extern struct snmp_bc_inventory snmp_bc_mgmnt_inventories[];
 extern struct snmp_bc_inventory snmp_bc_virtual_mgmnt_inventories[];
 extern struct snmp_bc_inventory snmp_bc_switch_inventories[];

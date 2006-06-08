@@ -72,7 +72,7 @@ void *snmp_bc_open(GHashTable *handler_config)
         /* Initialize resource masks */
 	/* Set all masks and counts to zero's    */
 	custom_handle->max_pb_supported = 0;		/* pb - processor blade */
-	custom_handle->max_blower_supported = 0;	/* blower - fan/blower  */
+	custom_handle->max_blower_supported = 0;	/* blower - blower  */
 	custom_handle->max_pm_supported = 0;		/* pm - power module    */
 	custom_handle->max_sm_supported = 0;		/* sm - switch module   */
 	custom_handle->max_mm_supported = 0;		/* mm - management module */

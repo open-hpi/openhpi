@@ -2109,7 +2109,7 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 			}
 			break;
 		
-		case BLADECENTER_FAN_SLOT:
+		case BLADECENTER_BLOWER_SLOT:
 			if (custom_handle->platform == SNMP_BC_PLATFORM_BCT) {
 			
 				if ( (slotnum == 3) || (slotnum == 4)) {

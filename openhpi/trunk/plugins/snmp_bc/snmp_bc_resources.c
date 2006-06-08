@@ -550,7 +550,7 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                                         .EntityLocation = SNMP_BC_HPI_LOCATION_BASE,
                                 },
                                 {
-                                        .EntityType = BLADECENTER_FAN_SLOT,
+                                        .EntityType = BLADECENTER_BLOWER_SLOT,
                                         .EntityLocation = SNMP_BC_HPI_LOCATION_BASE,
                                 },
                                 {
@@ -8235,12 +8235,11 @@ struct snmp_bc_sensor snmp_bc_mediatray_sensors[] = {
         {} /* Terminate array with a null element */
 };
 
-/*************
- * Fan Sensors
- *************/
-
-struct snmp_bc_sensor snmp_bc_fan_sensors[] = {
-        /* Fan Operational Status Sensor - event-only */
+/****************
+ * Blower Sensors
+ ****************/
+struct snmp_bc_sensor snmp_bc_blower_sensors[] = {
+        /* Blower Operational Status Sensor - event-only */
         {
 		.index = 1,
                 .sensor = {
@@ -8278,9 +8277,9 @@ struct snmp_bc_sensor snmp_bc_fan_sensors[] = {
                         },
    			.reading2event = {},
                 },
-                .comment = "Fan Operational Status Sensor",
+                .comment = "Blower Operational Status Sensor",
         },
-        /* Fan Speed (Percent of Max) Sensor */
+        /* Blower Speed (Percent of Max) Sensor */
         {
 		.index = 2,
                 .sensor = {
@@ -8346,20 +8345,20 @@ struct snmp_bc_sensor snmp_bc_fan_sensors[] = {
                         },
    			.reading2event = {},
                 },
-                .comment = "Fan Speed (Percent of Max) Sensor",
+                .comment = "Blower Speed (Percent of Max) Sensor",
         },
 
         {} /* Terminate array with a null element */
 };
 
-/* BladeCenter H specific fan sensors */
-#define SNMP_BC_LAST_COMMON_FAN_SENSOR 2
-struct snmp_bc_sensor snmp_bc_fan_sensors_bch[] = {
-        /* Fan RPM Speed Sensor */
+/* BladeCenter H specific blower sensors */
+#define SNMP_BC_LAST_COMMON_BLOWER_SENSOR 2
+struct snmp_bc_sensor snmp_bc_blower_sensors_bch[] = {
+        /* Blower RPM Speed Sensor */
         {
 		.index = 1,
                 .sensor = {
-                        .Num = SNMP_BC_LAST_COMMON_FAN_SENSOR + 1,
+                        .Num = SNMP_BC_LAST_COMMON_BLOWER_SENSOR + 1,
                         .Type = SAHPI_FAN,
                         .Category = SAHPI_EC_PRED_FAIL,
 			.EnableCtrl = SAHPI_FALSE,
@@ -8416,23 +8415,11 @@ struct snmp_bc_sensor snmp_bc_fan_sensors_bch[] = {
                         },
    			.reading2event = {},
                 },
-                .comment = "Fan RPM Speed Sensor",
+                .comment = "Blower RPM Speed Sensor",
         },
 
         {} /* Terminate array with a null element */
 };
-
-#if 0
-.1.3.6.1.4.1.2.3.51.2.2.3.10.0 = 1     Blower Status
-.1.3.6.1.4.1.2.3.51.2.2.3.11.0 = 1
-.1.3.6.1.4.1.2.3.51.2.2.3.13.0 = 1
-.1.3.6.1.4.1.2.3.51.2.2.3.14.0 = 1
-.1.3.6.1.4.1.2.3.51.2.2.3.20.0 = "2992" BCH Blower RPM
-.1.3.6.1.4.1.2.3.51.2.2.3.21.0 = "2992"
-.1.3.6.1.4.1.2.3.51.2.2.3.30.0 = 0      BCH Blower Controller Status
-.1.3.6.1.4.1.2.3.51.2.2.3.31.0 = 0
-#endif
-
 
 /***************
  * Power Sensors
@@ -9239,7 +9226,7 @@ struct snmp_bc_control snmp_bc_mediatray_controls[] = {
  * Blower Controls
  *****************/
 
-struct snmp_bc_control snmp_bc_fan_controls[] = {
+struct snmp_bc_control snmp_bc_blower_controls[] = {
 
         {} /* Terminate array with a null element */
 };
@@ -9310,11 +9297,11 @@ struct snmp_bc_inventory snmp_bc_chassis_inventories[] = {
         {} /* Terminate array with a null element */
 };
 
-/*********
- * Fan VPD
- *********/
+/************
+ * Blower VPD
+ ************/
 
-struct snmp_bc_inventory snmp_bc_fan_inventories[] = {
+struct snmp_bc_inventory snmp_bc_blower_inventories[] = {
 
         {} /* Terminate array with a null element */
 };

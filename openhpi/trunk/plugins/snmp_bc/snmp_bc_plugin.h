@@ -18,6 +18,7 @@
 
 /* Order is important */
 #include <openhpi.h>
+#include <SaHpiBladeCenter.h>
 #include <snmp_utils.h>
 
 #include <snmp_bc.h>
