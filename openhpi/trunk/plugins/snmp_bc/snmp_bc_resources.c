@@ -4346,14 +4346,96 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 			.comment = "Blade CPU 4 Temperature Sensor",
 		},
 	},
-        /* Blade 1.2 Volt Sensor */
+        /* Blade 0.9 Volt Sensor */
         {
-		.ipmi_tag = "1.2V SENSE",
+		.ipmi_tag = "PLANAR 0.9V",
 		.ipmi_tag_alias1 = '\0',
 		.ipmi = {
 			.index = 5,
 			.sensor = {
 				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 5,
+				.Type = SAHPI_VOLTAGE,
+				.Category = SAHPI_EC_THRESHOLD,
+				.EnableCtrl = SAHPI_FALSE,
+				.EventCtrl = SAHPI_SEC_READ_ONLY,
+				.Events = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
+				          SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+				.DataFormat = {
+					.IsSupported = SAHPI_TRUE,
+					.ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+					.BaseUnits = SAHPI_SU_VOLTS,
+					.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+					.ModifierUse = SAHPI_SMUU_NONE,
+					.Percentage = SAHPI_FALSE,
+					.Range = {
+						.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN | SAHPI_SRF_NOMINAL,
+						.Max = {
+							.IsSupported = SAHPI_TRUE,
+							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+							.Value = {
+								.SensorFloat64 = 1.5,
+							},
+						},
+						.Nominal = {
+							.IsSupported = SAHPI_TRUE,
+							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+							.Value = {
+								.SensorFloat64 = 0.9,
+							},
+						},
+						.Min = {
+							.IsSupported = SAHPI_TRUE,
+							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+							.Value = {
+								.SensorFloat64 = 0,
+							},
+						},
+					},
+				},
+				.ThresholdDefn = {
+					.IsAccessible = SAHPI_TRUE,
+					.ReadThold  = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
+					.WriteThold = 0,
+				},
+				.Oem = 0,
+			},
+			.sensor_info = {
+				.mib = {
+					.not_avail_indicator_num = 0,
+					.write_only = SAHPI_FALSE,
+					.oid = "discovered",
+					.loc_offset = 0,
+					.threshold_oids = {
+						.UpMajor  = "discovered",
+						.LowMajor = "discovered",
+					},
+					.threshold_write_oids = {},
+				},
+				.cur_state = SAHPI_ES_UNSPECIFIED,
+				.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
+				.sensor_enabled = SAHPI_TRUE,
+				.events_enabled = SAHPI_TRUE,
+				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT | 
+			 	                 SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
+				                 SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+				.event_array = {
+					/* FIXME:: Add events */
+					{},
+				},
+				.reading2event = {},
+			},
+			.comment = "Blade 0.9 Volt Sensor",
+		},
+        },
+        /* Blade 1.2 Volt Sensor */
+        {
+		.ipmi_tag = "1.2V SENSE",
+		.ipmi_tag_alias1 = '\0',
+		.ipmi = {
+			.index = 6,
+			.sensor = {
+				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 6,
 				.Type = SAHPI_VOLTAGE,
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
@@ -4464,9 +4546,9 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 		.ipmi_tag = "1.2VSB SENSE",
 		.ipmi_tag_alias1 = '\0',
 		.ipmi = {
-			.index = 6,
+			.index = 7,
 			.sensor = {
-				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 6,
+				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 7,
 				.Type = SAHPI_VOLTAGE,
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
@@ -4558,9 +4640,9 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 		.ipmi_tag = "1.5V SENSE",
 		.ipmi_tag_alias1 = '\0',
 		.ipmi = {
-			.index = 7,
+			.index = 8,
 			.sensor = {
-				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 7,
+				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 8,
 				.Type = SAHPI_VOLTAGE,
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
@@ -4671,9 +4753,9 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 		.ipmi_tag = "1.5VSB SENSE",
 		.ipmi_tag_alias1 = '\0',
 		.ipmi = {
-			.index = 8,
+			.index = 9,
 			.sensor = {
-				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 8,
+				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 9,
 				.Type = SAHPI_VOLTAGE,
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
@@ -4765,9 +4847,9 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 		.ipmi_tag = "1.8V SENSE",
 		.ipmi_tag_alias1 = '\0',
 		.ipmi = {
-			.index = 9,
+			.index = 10,
 			.sensor = {
-				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 9,
+				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 10,
 				.Type = SAHPI_VOLTAGE,
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
@@ -4878,9 +4960,9 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 		.ipmi_tag = "1.8VSB SENSE",
 		.ipmi_tag_alias1 = '\0',
 		.ipmi = {
-			.index = 10,
+			.index = 11,
 			.sensor = {
-				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 10,
+				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 11,
 				.Type = SAHPI_VOLTAGE,
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
@@ -4972,9 +5054,9 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 		.ipmi_tag = "2.5V SENSE",
 		.ipmi_tag_alias1 = '\0',
 		.ipmi = {
-			.index = 11,
+			.index = 12,
 			.sensor = {
-				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 11,
+				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 12,
 				.Type = SAHPI_VOLTAGE,
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
@@ -5085,9 +5167,9 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 		.ipmi_tag = "2.5VSB SENSE",
 		.ipmi_tag_alias1 = '\0',
 		.ipmi = {
-			.index = 12,
+			.index = 13,
 			.sensor = {
-				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 12,
+				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 13,
 				.Type = SAHPI_VOLTAGE,
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
@@ -5179,9 +5261,9 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 		.ipmi_tag = "3.3V SENSE",
 		.ipmi_tag_alias1 = "PLANAR 3.3V",
 		.ipmi = {
-			.index = 13,
+			.index = 14,
 			.sensor = {
-				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 13,
+				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 14,
 				.Type = SAHPI_VOLTAGE,
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
@@ -5292,9 +5374,9 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 		.ipmi_tag = "3.3VSB SENSE",
 		.ipmi_tag_alias1 = '\0',
 		.ipmi = {
-			.index = 14,
+			.index = 15,
 			.sensor = {
-				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 14,
+				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 15,
 				.Type = SAHPI_VOLTAGE,
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
@@ -5386,9 +5468,9 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 		.ipmi_tag = "5V SENSE",
 		.ipmi_tag_alias1 = "PLANAR 5V",
 		.ipmi = {
-			.index = 15,
+			.index = 16,
 			.sensor = {
-				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 15,
+				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 16,
 				.Type = SAHPI_VOLTAGE,
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
@@ -5499,9 +5581,9 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 		.ipmi_tag = "5VSB SENSE",
 		.ipmi_tag_alias1 = '\0',
 		.ipmi = {
-			.index = 16,
+			.index = 17,
 			.sensor = {
-				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 16,
+				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 17,
 				.Type = SAHPI_VOLTAGE,
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
@@ -5593,9 +5675,9 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 		.ipmi_tag = "-5V SENSE",
 		.ipmi_tag_alias1 = '\0',
 		.ipmi = {
-			.index = 17,
+			.index = 18,
 			.sensor = {
-				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 17,
+				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 18,
 				.Type = SAHPI_VOLTAGE,
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
@@ -5706,9 +5788,9 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 		.ipmi_tag = "12V SENSE",
 		.ipmi_tag_alias1 = "PLANAR 12V",
 		.ipmi = {
-			.index = 18,
+			.index = 19,
 			.sensor = {
-				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 18,
+				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 19,
 				.Type = SAHPI_VOLTAGE,
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
@@ -5819,9 +5901,9 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 		.ipmi_tag = "12VSB SENSE",
 		.ipmi_tag_alias1 = '\0',
 		.ipmi = {
-			.index = 19,
+			.index = 20,
 			.sensor = {
-				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 19,
+				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 20,
 				.Type = SAHPI_VOLTAGE,
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
@@ -5913,9 +5995,9 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 		.ipmi_tag = "CPU 1 VCORE",
 		.ipmi_tag_alias1 = '\0',
 		.ipmi = {
-			.index = 20,
+			.index = 21,
 			.sensor = {
-				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 20,
+				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 21,
 				.Type = SAHPI_VOLTAGE,
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
@@ -6001,9 +6083,9 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 		.ipmi_tag = "CPU 2 VCORE",
 		.ipmi_tag_alias1 = '\0',
 		.ipmi = {
-			.index = 21,
+			.index = 22,
 			.sensor = {
-				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 21,
+				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 22,
 				.Type = SAHPI_VOLTAGE,
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
@@ -6084,14 +6166,160 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 			.comment = "Blade CPU 2 Core Voltage Sensor",
 		},
         },
+        /* Blade CPU 3 Core Voltage Sensor */
+        {
+		.ipmi_tag = "CPU 3 VCORE",
+		.ipmi_tag_alias1 = '\0',
+		.ipmi = {
+			.index = 23,
+			.sensor = {
+				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 23,
+				.Type = SAHPI_VOLTAGE,
+				.Category = SAHPI_EC_THRESHOLD,
+				.EnableCtrl = SAHPI_FALSE,
+				.EventCtrl = SAHPI_SEC_READ_ONLY,
+				.Events = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
+				.DataFormat = {
+					.IsSupported = SAHPI_TRUE,
+					.ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+					.BaseUnits = SAHPI_SU_VOLTS,
+					.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+					.ModifierUse = SAHPI_SMUU_NONE,
+					.Percentage = SAHPI_FALSE,
+					.Range = {
+						.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN | SAHPI_SRF_NOMINAL,
+						.Max = {
+							.IsSupported = SAHPI_TRUE,
+							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+							.Value = {
+								.SensorFloat64 = 3.67,
+							},
+						},
+						/* No nominal reading - depends on CPU versions and number */
+						.Min = {
+							.IsSupported = SAHPI_TRUE,
+							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+							.Value = {
+								.SensorFloat64 = 0,
+							},
+						},
+					},
+				},
+				.ThresholdDefn = {
+					.IsAccessible = SAHPI_TRUE,
+					.ReadThold  = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
+					.WriteThold = 0,
+				},
+				.Oem = 0,
+			},
+			.sensor_info = {
+				.mib = {
+					.not_avail_indicator_num = 0,
+					.write_only = SAHPI_FALSE,
+					.oid = "discovered",
+					.loc_offset = 0,
+					.threshold_oids = {
+						.UpMajor  = "discovered",
+						.LowMajor = "discovered",
+					},
+					.threshold_write_oids = {},
+				},
+				.cur_state = SAHPI_ES_UNSPECIFIED,
+				.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
+				.sensor_enabled = SAHPI_TRUE,
+				.events_enabled = SAHPI_TRUE,
+				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
+				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
+				.event_array = {
+					/* FIXME:: Add events */
+					{},
+				},
+				.reading2event = {},
+			},
+			.comment = "Blade CPU 3 Core Voltage Sensor",
+		},
+        },
+        /* Blade CPU 4 Core Voltage Sensor */
+        {
+		.ipmi_tag = "CPU 4 VCORE",
+		.ipmi_tag_alias1 = '\0',
+		.ipmi = {
+			.index = 24,
+			.sensor = {
+				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 24,
+				.Type = SAHPI_VOLTAGE,
+				.Category = SAHPI_EC_THRESHOLD,
+				.EnableCtrl = SAHPI_FALSE,
+				.EventCtrl = SAHPI_SEC_READ_ONLY,
+				.Events = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
+				.DataFormat = {
+					.IsSupported = SAHPI_TRUE,
+					.ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+					.BaseUnits = SAHPI_SU_VOLTS,
+					.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+					.ModifierUse = SAHPI_SMUU_NONE,
+					.Percentage = SAHPI_FALSE,
+					.Range = {
+						.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN | SAHPI_SRF_NOMINAL,
+						.Max = {
+							.IsSupported = SAHPI_TRUE,
+							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+							.Value = {
+								.SensorFloat64 = 3.67,
+							},
+						},
+						/* No nominal reading - depends on CPU versions and number */
+						.Min = {
+							.IsSupported = SAHPI_TRUE,
+							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+							.Value = {
+								.SensorFloat64 = 0,
+							},
+						},
+					},
+				},
+				.ThresholdDefn = {
+					.IsAccessible = SAHPI_TRUE,
+					.ReadThold  = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
+					.WriteThold = 0,
+				},
+				.Oem = 0,
+			},
+			.sensor_info = {
+				.mib = {
+					.not_avail_indicator_num = 0,
+					.write_only = SAHPI_FALSE,
+					.oid = "discovered",
+					.loc_offset = 0,
+					.threshold_oids = {
+						.UpMajor  = "discovered",
+						.LowMajor = "discovered",
+					},
+					.threshold_write_oids = {},
+				},
+				.cur_state = SAHPI_ES_UNSPECIFIED,
+				.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
+				.sensor_enabled = SAHPI_TRUE,
+				.events_enabled = SAHPI_TRUE,
+				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
+				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
+				.event_array = {
+					/* FIXME:: Add events */
+					{},
+				},
+				.reading2event = {},
+			},
+			.comment = "Blade CPU 4 Core Voltage Sensor",
+		},
+        },
         /* Blade Battery Voltage Sensor */
         {
 		.ipmi_tag = "VBATT SENSE",
 		.ipmi_tag_alias1 = "PLANAR VBAT",
 		.ipmi = {
-			.index = 22,
+			.index = 25,
 			.sensor = {
-				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 22,
+				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 25,
 				.Type = SAHPI_VOLTAGE,
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
@@ -6580,86 +6808,14 @@ struct snmp_bc_sensor snmp_bc_bem_sensors[] = {
 
 #define SNMP_BC_LAST_NON_IPMI_BEM_SENSOR 4
 struct snmp_bc_ipmi_sensor snmp_bc_bem_ipmi_sensors[] = {
-	/* PEU2 Temperature Sensor */
-        {
-		.ipmi_tag = "PEU2 TEMP SENSE",
-		.ipmi_tag_alias1 = '\0',
-		.ipmi = {
-			.index = 1,
-			.sensor = {
-				.Num = SNMP_BC_LAST_NON_IPMI_BEM_SENSOR + 1,
-				.Type = SAHPI_TEMPERATURE,
-				.Category = SAHPI_EC_THRESHOLD,
-				.EnableCtrl = SAHPI_FALSE,
-				.EventCtrl = SAHPI_SEC_READ_ONLY,
-				.Events = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-				.DataFormat = {
-					.IsSupported = SAHPI_TRUE,
-					.ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
-					.BaseUnits = SAHPI_SU_DEGREES_C,
-					.ModifierUnits = SAHPI_SU_UNSPECIFIED,
-					.ModifierUse = SAHPI_SMUU_NONE,
-					.Percentage = SAHPI_FALSE,
-					.Range = {
-						.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
-						.Max = {
-							.IsSupported = SAHPI_TRUE,
-							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
-							.Value = {
-								.SensorFloat64 = 125,
-							},
-						},
-						.Min = {
-							.IsSupported = SAHPI_TRUE,
-							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
-							.Value = {
-								.SensorFloat64 = 0,
-							},
-						},
-					},
-				},
-				.ThresholdDefn = {
-					.IsAccessible = SAHPI_TRUE,
-					.ReadThold  = SAHPI_STM_UP_MAJOR | SAHPI_STM_UP_CRIT,
-					.WriteThold = 0,
-				},
-				.Oem = 0,
-			},
-			.sensor_info = {
-				.mib = {
-					.not_avail_indicator_num = 0,
-					.write_only = SAHPI_FALSE,
-					.oid = "discovered",
-					.loc_offset = 0,
-					.threshold_oids = {
-						.UpCritical = "discovered",
-						.UpMajor    = "discovered",
-					},
-					.threshold_write_oids = {},
-				},
-				.cur_state = SAHPI_ES_UNSPECIFIED,
-				.sensor_enabled = SAHPI_TRUE,
-				.events_enabled = SAHPI_TRUE,
-				.assert_mask   = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-				.deassert_mask = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-				.event_array = {
-					/* FIXME:: Add events */
-
-					{},
-				},
-				.reading2event = {},
-			},
-			.comment = "PEU2 Temperature Sensor",
-		},
-	},
 	/* BSE Temperature Sensor */
         {
 		.ipmi_tag = "BSE TEMP SENSE",
 		.ipmi_tag_alias1 = '\0',
 		.ipmi = {
-			.index = 2,
+			.index = 1,
 			.sensor = {
-				.Num = SNMP_BC_LAST_NON_IPMI_BEM_SENSOR + 2,
+				.Num = SNMP_BC_LAST_NON_IPMI_BEM_SENSOR + 1,
 				.Type = SAHPI_TEMPERATURE,
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
@@ -6729,9 +6885,9 @@ struct snmp_bc_ipmi_sensor snmp_bc_bem_ipmi_sensors[] = {
 		.ipmi_tag = "BSE 1.5V SENSE",
 		.ipmi_tag_alias1 = '\0',
 		.ipmi = {
-			.index = 3,
+			.index = 2,
 			.sensor = {
-				.Num = SNMP_BC_LAST_NON_IPMI_BEM_SENSOR + 3,
+				.Num = SNMP_BC_LAST_NON_IPMI_BEM_SENSOR + 2,
 				.Type = SAHPI_VOLTAGE,
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
@@ -6808,9 +6964,9 @@ struct snmp_bc_ipmi_sensor snmp_bc_bem_ipmi_sensors[] = {
 		.ipmi_tag = "BSE 12V SENSE",
 		.ipmi_tag_alias1 = '\0',
 		.ipmi = {
-			.index = 4,
+			.index = 3,
 			.sensor = {
-				.Num = SNMP_BC_LAST_NON_IPMI_BEM_SENSOR + 4,
+				.Num = SNMP_BC_LAST_NON_IPMI_BEM_SENSOR + 3,
 				.Type = SAHPI_VOLTAGE,
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
@@ -6882,8 +7038,1149 @@ struct snmp_bc_ipmi_sensor snmp_bc_bem_ipmi_sensors[] = {
 			.comment = "BSE 12 Volt Sensor",
 		},
         },
+	/* PEU2 Temperature Sensor */
+        {
+		.ipmi_tag = "PEU2 TEMP SENSE",
+		.ipmi_tag_alias1 = '\0',
+		.ipmi = {
+			.index = 4,
+			.sensor = {
+				.Num = SNMP_BC_LAST_NON_IPMI_BEM_SENSOR + 4,
+				.Type = SAHPI_TEMPERATURE,
+				.Category = SAHPI_EC_THRESHOLD,
+				.EnableCtrl = SAHPI_FALSE,
+				.EventCtrl = SAHPI_SEC_READ_ONLY,
+				.Events = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+				.DataFormat = {
+					.IsSupported = SAHPI_TRUE,
+					.ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+					.BaseUnits = SAHPI_SU_DEGREES_C,
+					.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+					.ModifierUse = SAHPI_SMUU_NONE,
+					.Percentage = SAHPI_FALSE,
+					.Range = {
+						.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
+						.Max = {
+							.IsSupported = SAHPI_TRUE,
+							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+							.Value = {
+								.SensorFloat64 = 125,
+							},
+						},
+						.Min = {
+							.IsSupported = SAHPI_TRUE,
+							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+							.Value = {
+								.SensorFloat64 = 0,
+							},
+						},
+					},
+				},
+				.ThresholdDefn = {
+					.IsAccessible = SAHPI_TRUE,
+					.ReadThold  = SAHPI_STM_UP_MAJOR | SAHPI_STM_UP_CRIT,
+					.WriteThold = 0,
+				},
+				.Oem = 0,
+			},
+			.sensor_info = {
+				.mib = {
+					.not_avail_indicator_num = 0,
+					.write_only = SAHPI_FALSE,
+					.oid = "discovered",
+					.loc_offset = 0,
+					.threshold_oids = {
+						.UpCritical = "discovered",
+						.UpMajor    = "discovered",
+					},
+					.threshold_write_oids = {},
+				},
+				.cur_state = SAHPI_ES_UNSPECIFIED,
+				.sensor_enabled = SAHPI_TRUE,
+				.events_enabled = SAHPI_TRUE,
+				.assert_mask   = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+				.deassert_mask = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+				.event_array = {
+					/* FIXME:: Add events */
 
+					{},
+				},
+				.reading2event = {},
+			},
+			.comment = "PEU2 Temperature Sensor",
+		},
+	},
+	/* PEU2 1 Volt Sensor */
+        {
+		.ipmi_tag = "PEU2 1V SENSE",
+		.ipmi_tag_alias1 = '\0',
+		.ipmi = {
+			.index = 5,
+			.sensor = {
+				.Num = SNMP_BC_LAST_NON_IPMI_BEM_SENSOR + 5,
+				.Type = SAHPI_VOLTAGE,
+				.Category = SAHPI_EC_THRESHOLD,
+				.EnableCtrl = SAHPI_FALSE,
+				.EventCtrl = SAHPI_SEC_READ_ONLY,
+				.Events = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
+				.DataFormat = {
+					.IsSupported = SAHPI_TRUE,
+					.ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+					.BaseUnits = SAHPI_SU_VOLTS,
+					.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+					.ModifierUse = SAHPI_SMUU_NONE,
+					.Percentage = SAHPI_FALSE,
+					.Range = {
+						.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN | SAHPI_SRF_NOMINAL,
+						.Max = {
+							.IsSupported = SAHPI_TRUE,
+							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+							.Value = {
+								.SensorFloat64 = 2,
+							},
+						},
+						.Nominal = {
+							.IsSupported = SAHPI_TRUE,
+							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+							.Value = {
+								.SensorFloat64 = 1,
+							},
+						},
+						.Min = {
+							.IsSupported = SAHPI_TRUE,
+							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+							.Value = {
+								.SensorFloat64 = 0,
+							},
+						},
+					},
+				},
+				.ThresholdDefn = {
+					.IsAccessible = SAHPI_TRUE,
+					.ReadThold  = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
+					.WriteThold = 0,
+				},
+				.Oem = 0,
+			},
+			.sensor_info = {
+				.mib = {
+					.not_avail_indicator_num = 0,
+					.write_only = SAHPI_FALSE,
+					.oid = "discovered",
+					.loc_offset = 0,
+					.threshold_oids = {
+						.UpMajor  = "discovered",
+						.LowMajor = "discovered",
+					},
+					.threshold_write_oids = {},
+				},
+				.cur_state = SAHPI_ES_UNSPECIFIED,
+				.sensor_enabled = SAHPI_TRUE,
+				.events_enabled = SAHPI_TRUE,
+				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
+				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
+				.event_array = {
+					/* FIXME:: Add events */
+					
+					{},
+				},
+				.reading2event = {},
+			},
+			.comment = "PEU2 1 Volt Sensor",
+		},
+	},
+	/* PEU2 3.3 Volt Sensor */
+	{
+		.ipmi_tag = "PEU2 3.3V SENSE",
+		.ipmi_tag_alias1 = '\0',
+		.ipmi = {
+			.index = 6,
+			.sensor = {
+				.Num = SNMP_BC_LAST_NON_IPMI_BEM_SENSOR + 6,
+				.Type = SAHPI_VOLTAGE,
+				.Category = SAHPI_EC_THRESHOLD,
+				.EnableCtrl = SAHPI_FALSE,
+				.EventCtrl = SAHPI_SEC_READ_ONLY,
+				.Events = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
+				.DataFormat = {
+					.IsSupported = SAHPI_TRUE,
+					.ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+					.BaseUnits = SAHPI_SU_VOLTS,
+					.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+					.ModifierUse = SAHPI_SMUU_NONE,
+					.Percentage = SAHPI_FALSE,
+					.Range = {
+						.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN | SAHPI_SRF_NOMINAL,
+						.Max = {
+							.IsSupported = SAHPI_TRUE,
+							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+							.Value = {
+								.SensorFloat64 = 3.6,
+							},
+						},
+						.Nominal = {
+							.IsSupported = SAHPI_TRUE,
+							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+							.Value = {
+								.SensorFloat64 = 3.3,
+							},
+						},
+						.Min = {
+							.IsSupported = SAHPI_TRUE,
+							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+							.Value = {
+								.SensorFloat64 = 0,
+							},
+						},
+					},
+				},
+				.ThresholdDefn = {
+					.IsAccessible = SAHPI_TRUE,
+					.ReadThold  = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
+					.WriteThold = 0,
+				},
+				.Oem = 0,
+			},
+			.sensor_info = {
+				.mib = {
+					.not_avail_indicator_num = 0,
+					.write_only = SAHPI_FALSE,
+					.oid = "discovered",
+					.loc_offset = 0,
+					.threshold_oids = {
+						.UpMajor  = "discovered",
+						.LowMajor = "discovered",
+					},
+					.threshold_write_oids = {},
+				},
+				.cur_state = SAHPI_ES_UNSPECIFIED,
+				.sensor_enabled = SAHPI_TRUE,
+				.events_enabled = SAHPI_TRUE,
+				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
+				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
+				.event_array = {
+					/* FIXME:: Add events */
+					
+					{},
+				},
+				.reading2event = {},
+			},
+			.comment = "PEU2 3.3 Volt Sensor",
+		},
+	},
+	/* PEU2 5 Volt Sensor */
+	{
+		.ipmi_tag = "PEU2 5V SENSE",
+		.ipmi_tag_alias1 = '\0',
+		.ipmi = {
+			.index = 7,
+			.sensor = {
+				.Num = SNMP_BC_LAST_NON_IPMI_BEM_SENSOR + 7,
+				.Type = SAHPI_VOLTAGE,
+				.Category = SAHPI_EC_THRESHOLD,
+				.EnableCtrl = SAHPI_FALSE,
+				.EventCtrl = SAHPI_SEC_READ_ONLY,
+				.Events = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
+				.DataFormat = {
+					.IsSupported = SAHPI_TRUE,
+					.ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+					.BaseUnits = SAHPI_SU_VOLTS,
+					.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+					.ModifierUse = SAHPI_SMUU_NONE,
+					.Percentage = SAHPI_FALSE,
+					.Range = {
+						.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN | SAHPI_SRF_NOMINAL,
+						.Max = {
+							.IsSupported = SAHPI_TRUE,
+							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+							.Value = {
+								.SensorFloat64 = 6.7,
+							},
+						},
+						.Nominal = {
+							.IsSupported = SAHPI_TRUE,
+							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+							.Value = {
+								.SensorFloat64 = 5,
+							},
+						},
+						.Min = {
+							.IsSupported = SAHPI_TRUE,
+							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+							.Value = {
+								.SensorFloat64 = 0,
+							},
+						},
+					},
+				},
+				.ThresholdDefn = {
+					.IsAccessible = SAHPI_TRUE,
+					.ReadThold  = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
+					.WriteThold = 0,
+				},
+				.Oem = 0,
+			},
+			.sensor_info = {
+				.mib = {
+					.not_avail_indicator_num = 0,
+					.write_only = SAHPI_FALSE,
+					.oid = "discovered",
+					.loc_offset = 0,
+					.threshold_oids = {
+						.UpMajor  = "discovered",
+						.LowMajor = "discovered",
+					},
+					.threshold_write_oids = {},
+				},
+				.cur_state = SAHPI_ES_UNSPECIFIED,
+				.sensor_enabled = SAHPI_TRUE,
+				.events_enabled = SAHPI_TRUE,
+				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
+				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
+				.event_array = {
+					/* FIXME:: Add events */
+					
+					{},
+				},
+				.reading2event = {},
+			},
+			.comment = "PEU2 5 Volt Sensor",
+		},
+	},
+	/* PEU2 12 Volt Sensor */
+	{
+		.ipmi_tag = "PEU2 12V SENSE",
+		.ipmi_tag_alias1 = '\0',
+		.ipmi = {
+			.index = 8,
+			.sensor = {
+				.Num = SNMP_BC_LAST_NON_IPMI_BEM_SENSOR + 8,
+				.Type = SAHPI_VOLTAGE,
+				.Category = SAHPI_EC_THRESHOLD,
+				.EnableCtrl = SAHPI_FALSE,
+				.EventCtrl = SAHPI_SEC_READ_ONLY,
+				.Events = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
+				.DataFormat = {
+					.IsSupported = SAHPI_TRUE,
+					.ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+					.BaseUnits = SAHPI_SU_VOLTS,
+					.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+					.ModifierUse = SAHPI_SMUU_NONE,
+					.Percentage = SAHPI_FALSE,
+					.Range = {
+						.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN | SAHPI_SRF_NOMINAL,
+						.Max = {
+							.IsSupported = SAHPI_TRUE,
+							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+							.Value = {
+								.SensorFloat64 = 16,
+							},
+						},
+						.Nominal = {
+							.IsSupported = SAHPI_TRUE,
+							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+							.Value = {
+								.SensorFloat64 = 12,
+							},
+						},
+						.Min = {
+							.IsSupported = SAHPI_TRUE,
+							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+							.Value = {
+								.SensorFloat64 = 0,
+							},
+						},
+					},
+				},
+				.ThresholdDefn = {
+					.IsAccessible = SAHPI_TRUE,
+					.ReadThold  = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
+					.WriteThold = 0,
+				},
+				.Oem = 0,
+			},
+			.sensor_info = {
+				.mib = {
+					.not_avail_indicator_num = 0,
+					.write_only = SAHPI_FALSE,
+					.oid = "discovered",
+					.loc_offset = 0,
+					.threshold_oids = {
+						.UpMajor  = "discovered",
+						.LowMajor = "discovered",
+					},
+					.threshold_write_oids = {},
+				},
+				.cur_state = SAHPI_ES_UNSPECIFIED,
+				.sensor_enabled = SAHPI_TRUE,
+				.events_enabled = SAHPI_TRUE,
+				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
+				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
+				.event_array = {
+					/* FIXME:: Add events */
+					
+					{},
+				},
+				.reading2event = {},
+			},
+			.comment = "PEU2 12 Volt Sensor",
+		},
+	},
+	/* PEU2 Standby 12 Volt Sensor */
+	{
+		.ipmi_tag = "PEU2 12VSB SENSE",
+		.ipmi_tag_alias1 = '\0',
+		.ipmi = {
+			.index = 9,
+			.sensor = {
+				.Num = SNMP_BC_LAST_NON_IPMI_BEM_SENSOR + 9,
+				.Type = SAHPI_VOLTAGE,
+				.Category = SAHPI_EC_THRESHOLD,
+				.EnableCtrl = SAHPI_FALSE,
+				.EventCtrl = SAHPI_SEC_READ_ONLY,
+				.Events = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
+				.DataFormat = {
+					.IsSupported = SAHPI_TRUE,
+					.ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+					.BaseUnits = SAHPI_SU_VOLTS,
+					.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+					.ModifierUse = SAHPI_SMUU_NONE,
+					.Percentage = SAHPI_FALSE,
+					.Range = {
+						.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN | SAHPI_SRF_NOMINAL,
+						.Max = {
+							.IsSupported = SAHPI_TRUE,
+							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+							.Value = {
+								.SensorFloat64 = 16,
+							},
+						},
+						.Nominal = {
+							.IsSupported = SAHPI_TRUE,
+							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+							.Value = {
+								.SensorFloat64 = 12,
+							},
+						},
+						.Min = {
+							.IsSupported = SAHPI_TRUE,
+							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+							.Value = {
+								.SensorFloat64 = 0,
+							},
+						},
+					},
+				},
+				.ThresholdDefn = {
+					.IsAccessible = SAHPI_TRUE,
+					.ReadThold  = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
+					.WriteThold = 0,
+				},
+				.Oem = 0,
+			},
+			.sensor_info = {
+				.mib = {
+					.not_avail_indicator_num = 0,
+					.write_only = SAHPI_FALSE,
+					.oid = "discovered",
+					.loc_offset = 0,
+					.threshold_oids = {
+						.UpMajor  = "discovered",
+						.LowMajor = "discovered",
+					},
+					.threshold_write_oids = {},
+				},
+				.cur_state = SAHPI_ES_UNSPECIFIED,
+				.sensor_enabled = SAHPI_TRUE,
+				.events_enabled = SAHPI_TRUE,
+				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
+				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
+				.event_array = {
+					/* FIXME:: Add events */
+					
+					{},
+				},
+				.reading2event = {},
+			},
+			.comment = "PEU2 Standby 12 Volt Sensor",
+		},
+	},
+	/* BIE Temperature Sensor */
+        {
+		.ipmi_tag = "BIE LOCAL TEMP",
+		.ipmi_tag_alias1 = '\0',
+		.ipmi = {
+			.index = 10,
+			.sensor = {
+				.Num = SNMP_BC_LAST_NON_IPMI_BEM_SENSOR + 10,
+				.Type = SAHPI_TEMPERATURE,
+				.Category = SAHPI_EC_THRESHOLD,
+				.EnableCtrl = SAHPI_FALSE,
+				.EventCtrl = SAHPI_SEC_READ_ONLY,
+				.Events = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+				.DataFormat = {
+					.IsSupported = SAHPI_TRUE,
+					.ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+					.BaseUnits = SAHPI_SU_DEGREES_C,
+					.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+					.ModifierUse = SAHPI_SMUU_NONE,
+					.Percentage = SAHPI_FALSE,
+					.Range = {
+						.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
+						.Max = {
+							.IsSupported = SAHPI_TRUE,
+							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+							.Value = {
+								.SensorFloat64 = 125,
+							},
+						},
+						.Min = {
+							.IsSupported = SAHPI_TRUE,
+							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+							.Value = {
+								.SensorFloat64 = 0,
+							},
+						},
+					},
+				},
+				.ThresholdDefn = {
+					.IsAccessible = SAHPI_TRUE,
+					.ReadThold  = SAHPI_STM_UP_MAJOR | SAHPI_STM_UP_CRIT,
+					.WriteThold = 0,
+				},
+				.Oem = 0,
+			},
+			.sensor_info = {
+				.mib = {
+					.not_avail_indicator_num = 0,
+					.write_only = SAHPI_FALSE,
+					.oid = "discovered",
+					.loc_offset = 0,
+					.threshold_oids = {
+						.UpCritical = "discovered",
+						.UpMajor    = "discovered",
+					},
+					.threshold_write_oids = {},
+				},
+				.cur_state = SAHPI_ES_UNSPECIFIED,
+				.sensor_enabled = SAHPI_TRUE,
+				.events_enabled = SAHPI_TRUE,
+				.assert_mask   = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+				.deassert_mask = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+				.event_array = {
+					/* FIXME:: Add events */
 
+					{},
+				},
+				.reading2event = {},
+			},
+			.comment = "BIE Temperature Sensor",
+		},
+	},
+	/* BIE 1.5 Volt Sensor */
+        {
+		.ipmi_tag = "BIE 1.5V SENSE",
+		.ipmi_tag_alias1 = '\0',
+		.ipmi = {
+			.index = 11,
+			.sensor = {
+				.Num = SNMP_BC_LAST_NON_IPMI_BEM_SENSOR + 11,
+				.Type = SAHPI_VOLTAGE,
+				.Category = SAHPI_EC_THRESHOLD,
+				.EnableCtrl = SAHPI_FALSE,
+				.EventCtrl = SAHPI_SEC_READ_ONLY,
+				.Events = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
+				.DataFormat = {
+					.IsSupported = SAHPI_TRUE,
+					.ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+					.BaseUnits = SAHPI_SU_VOLTS,
+					.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+					.ModifierUse = SAHPI_SMUU_NONE,
+					.Percentage = SAHPI_FALSE,
+					.Range = {
+						.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN | SAHPI_SRF_NOMINAL,
+						.Max = {
+							.IsSupported = SAHPI_TRUE,
+							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+							.Value = {
+								.SensorFloat64 = 4.4,
+							},
+						},
+						.Nominal = {
+							.IsSupported = SAHPI_TRUE,
+							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+							.Value = {
+								.SensorFloat64 = 1.5,
+							},
+						},
+						.Min = {
+							.IsSupported = SAHPI_TRUE,
+							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+							.Value = {
+								.SensorFloat64 = 0,
+							},
+						},
+					},
+				},
+				.ThresholdDefn = {
+					.IsAccessible = SAHPI_TRUE,
+					.ReadThold  = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
+					.WriteThold = 0,
+				},
+				.Oem = 0,
+			},
+			.sensor_info = {
+				.mib = {
+					.not_avail_indicator_num = 0,
+					.write_only = SAHPI_FALSE,
+					.oid = "discovered",
+					.loc_offset = 0,
+					.threshold_oids = {
+						.UpMajor  = "discovered",
+						.LowMajor = "discovered",
+					},
+					.threshold_write_oids = {},
+				},
+				.cur_state = SAHPI_ES_UNSPECIFIED,
+				.sensor_enabled = SAHPI_TRUE,
+				.events_enabled = SAHPI_TRUE,
+				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
+				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
+				.event_array = {
+					/* FIXME:: Add events */
+					
+					{},
+				},
+				.reading2event = {},
+			},
+			.comment = "BIE 1.5 Volt Sensor",
+		},
+	},
+	/* BIE 3.3 Volt Sensor */
+	{
+		.ipmi_tag = "BIE 3.3V SENSE",
+		.ipmi_tag_alias1 = '\0',
+		.ipmi = {
+			.index = 12,
+			.sensor = {
+				.Num = SNMP_BC_LAST_NON_IPMI_BEM_SENSOR + 12,
+				.Type = SAHPI_VOLTAGE,
+				.Category = SAHPI_EC_THRESHOLD,
+				.EnableCtrl = SAHPI_FALSE,
+				.EventCtrl = SAHPI_SEC_READ_ONLY,
+				.Events = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
+				.DataFormat = {
+					.IsSupported = SAHPI_TRUE,
+					.ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+					.BaseUnits = SAHPI_SU_VOLTS,
+					.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+					.ModifierUse = SAHPI_SMUU_NONE,
+					.Percentage = SAHPI_FALSE,
+					.Range = {
+						.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN | SAHPI_SRF_NOMINAL,
+						.Max = {
+							.IsSupported = SAHPI_TRUE,
+							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+							.Value = {
+								.SensorFloat64 = 3.6,
+							},
+						},
+						.Nominal = {
+							.IsSupported = SAHPI_TRUE,
+							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+							.Value = {
+								.SensorFloat64 = 3.3,
+							},
+						},
+						.Min = {
+							.IsSupported = SAHPI_TRUE,
+							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+							.Value = {
+								.SensorFloat64 = 0,
+							},
+						},
+					},
+				},
+				.ThresholdDefn = {
+					.IsAccessible = SAHPI_TRUE,
+					.ReadThold  = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
+					.WriteThold = 0,
+				},
+				.Oem = 0,
+			},
+			.sensor_info = {
+				.mib = {
+					.not_avail_indicator_num = 0,
+					.write_only = SAHPI_FALSE,
+					.oid = "discovered",
+					.loc_offset = 0,
+					.threshold_oids = {
+						.UpMajor  = "discovered",
+						.LowMajor = "discovered",
+					},
+					.threshold_write_oids = {},
+				},
+				.cur_state = SAHPI_ES_UNSPECIFIED,
+				.sensor_enabled = SAHPI_TRUE,
+				.events_enabled = SAHPI_TRUE,
+				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
+				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
+				.event_array = {
+					/* FIXME:: Add events */
+					
+					{},
+				},
+				.reading2event = {},
+			},
+			.comment = "BIE 3.3 Volt Sensor",
+		},
+	},
+	/* BIE 5 Volt Sensor */
+	{
+		.ipmi_tag = "BIE 5V SENSE",
+		.ipmi_tag_alias1 = '\0',
+		.ipmi = {
+			.index = 13,
+			.sensor = {
+				.Num = SNMP_BC_LAST_NON_IPMI_BEM_SENSOR + 13,
+				.Type = SAHPI_VOLTAGE,
+				.Category = SAHPI_EC_THRESHOLD,
+				.EnableCtrl = SAHPI_FALSE,
+				.EventCtrl = SAHPI_SEC_READ_ONLY,
+				.Events = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
+				.DataFormat = {
+					.IsSupported = SAHPI_TRUE,
+					.ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+					.BaseUnits = SAHPI_SU_VOLTS,
+					.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+					.ModifierUse = SAHPI_SMUU_NONE,
+					.Percentage = SAHPI_FALSE,
+					.Range = {
+						.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN | SAHPI_SRF_NOMINAL,
+						.Max = {
+							.IsSupported = SAHPI_TRUE,
+							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+							.Value = {
+								.SensorFloat64 = 6.7,
+							},
+						},
+						.Nominal = {
+							.IsSupported = SAHPI_TRUE,
+							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+							.Value = {
+								.SensorFloat64 = 5,
+							},
+						},
+						.Min = {
+							.IsSupported = SAHPI_TRUE,
+							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+							.Value = {
+								.SensorFloat64 = 0,
+							},
+						},
+					},
+				},
+				.ThresholdDefn = {
+					.IsAccessible = SAHPI_TRUE,
+					.ReadThold  = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
+					.WriteThold = 0,
+				},
+				.Oem = 0,
+			},
+			.sensor_info = {
+				.mib = {
+					.not_avail_indicator_num = 0,
+					.write_only = SAHPI_FALSE,
+					.oid = "discovered",
+					.loc_offset = 0,
+					.threshold_oids = {
+						.UpMajor  = "discovered",
+						.LowMajor = "discovered",
+					},
+					.threshold_write_oids = {},
+				},
+				.cur_state = SAHPI_ES_UNSPECIFIED,
+				.sensor_enabled = SAHPI_TRUE,
+				.events_enabled = SAHPI_TRUE,
+				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
+				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
+				.event_array = {
+					/* FIXME:: Add events */
+					
+					{},
+				},
+				.reading2event = {},
+			},
+			.comment = "BIE 5 Volt Sensor",
+		},
+	},
+	/* BIE 12 Volt Sensor */
+	{
+		.ipmi_tag = "BIE 12V SENSE",
+		.ipmi_tag_alias1 = '\0',
+		.ipmi = {
+			.index = 14,
+			.sensor = {
+				.Num = SNMP_BC_LAST_NON_IPMI_BEM_SENSOR + 14,
+				.Type = SAHPI_VOLTAGE,
+				.Category = SAHPI_EC_THRESHOLD,
+				.EnableCtrl = SAHPI_FALSE,
+				.EventCtrl = SAHPI_SEC_READ_ONLY,
+				.Events = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
+				.DataFormat = {
+					.IsSupported = SAHPI_TRUE,
+					.ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+					.BaseUnits = SAHPI_SU_VOLTS,
+					.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+					.ModifierUse = SAHPI_SMUU_NONE,
+					.Percentage = SAHPI_FALSE,
+					.Range = {
+						.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN | SAHPI_SRF_NOMINAL,
+						.Max = {
+							.IsSupported = SAHPI_TRUE,
+							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+							.Value = {
+								.SensorFloat64 = 16,
+							},
+						},
+						.Nominal = {
+							.IsSupported = SAHPI_TRUE,
+							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+							.Value = {
+								.SensorFloat64 = 12,
+							},
+						},
+						.Min = {
+							.IsSupported = SAHPI_TRUE,
+							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+							.Value = {
+								.SensorFloat64 = 0,
+							},
+						},
+					},
+				},
+				.ThresholdDefn = {
+					.IsAccessible = SAHPI_TRUE,
+					.ReadThold  = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
+					.WriteThold = 0,
+				},
+				.Oem = 0,
+			},
+			.sensor_info = {
+				.mib = {
+					.not_avail_indicator_num = 0,
+					.write_only = SAHPI_FALSE,
+					.oid = "discovered",
+					.loc_offset = 0,
+					.threshold_oids = {
+						.UpMajor  = "discovered",
+						.LowMajor = "discovered",
+					},
+					.threshold_write_oids = {},
+				},
+				.cur_state = SAHPI_ES_UNSPECIFIED,
+				.sensor_enabled = SAHPI_TRUE,
+				.events_enabled = SAHPI_TRUE,
+				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
+				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
+				.event_array = {
+					/* FIXME:: Add events */
+					
+					{},
+				},
+				.reading2event = {},
+			},
+			.comment = "BIE 12 Volt Sensor",
+		},
+	},
+	/* BEM Memory Bank 1 Temperature Sensor */
+        {
+		.ipmi_tag = "BANK1 TEMP",
+		.ipmi_tag_alias1 = '\0',
+		.ipmi = {
+			.index = 15,
+			.sensor = {
+				.Num = SNMP_BC_LAST_NON_IPMI_BEM_SENSOR + 15,
+				.Type = SAHPI_TEMPERATURE,
+				.Category = SAHPI_EC_THRESHOLD,
+				.EnableCtrl = SAHPI_FALSE,
+				.EventCtrl = SAHPI_SEC_READ_ONLY,
+				.Events = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+				.DataFormat = {
+					.IsSupported = SAHPI_TRUE,
+					.ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+					.BaseUnits = SAHPI_SU_DEGREES_C,
+					.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+					.ModifierUse = SAHPI_SMUU_NONE,
+					.Percentage = SAHPI_FALSE,
+					.Range = {
+						.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
+						.Max = {
+							.IsSupported = SAHPI_TRUE,
+							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+							.Value = {
+								.SensorFloat64 = 125,
+							},
+						},
+						.Min = {
+							.IsSupported = SAHPI_TRUE,
+							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+							.Value = {
+								.SensorFloat64 = 0,
+							},
+						},
+					},
+				},
+				.ThresholdDefn = {
+					.IsAccessible = SAHPI_TRUE,
+					.ReadThold  = SAHPI_STM_UP_MAJOR | SAHPI_STM_UP_CRIT,
+					.WriteThold = 0,
+				},
+				.Oem = 0,
+			},
+			.sensor_info = {
+				.mib = {
+					.not_avail_indicator_num = 0,
+					.write_only = SAHPI_FALSE,
+					.oid = "discovered",
+					.loc_offset = 0,
+					.threshold_oids = {
+						.UpCritical = "discovered",
+						.UpMajor    = "discovered",
+					},
+					.threshold_write_oids = {},
+				},
+				.cur_state = SAHPI_ES_UNSPECIFIED,
+				.sensor_enabled = SAHPI_TRUE,
+				.events_enabled = SAHPI_TRUE,
+				.assert_mask   = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+				.deassert_mask = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+				.event_array = {
+					/* FIXME:: Add events */
+
+					{},
+				},
+				.reading2event = {},
+			},
+			.comment = "BEM Memory Bank 1 Temperature Sensor",
+		},
+	},
+	/* BEM Memory Bank 2 Temperature Sensor */
+        {
+		.ipmi_tag = "BANK2 TEMP",
+		.ipmi_tag_alias1 = '\0',
+		.ipmi = {
+			.index = 16,
+			.sensor = {
+				.Num = SNMP_BC_LAST_NON_IPMI_BEM_SENSOR + 16,
+				.Type = SAHPI_TEMPERATURE,
+				.Category = SAHPI_EC_THRESHOLD,
+				.EnableCtrl = SAHPI_FALSE,
+				.EventCtrl = SAHPI_SEC_READ_ONLY,
+				.Events = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+				.DataFormat = {
+					.IsSupported = SAHPI_TRUE,
+					.ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+					.BaseUnits = SAHPI_SU_DEGREES_C,
+					.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+					.ModifierUse = SAHPI_SMUU_NONE,
+					.Percentage = SAHPI_FALSE,
+					.Range = {
+						.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
+						.Max = {
+							.IsSupported = SAHPI_TRUE,
+							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+							.Value = {
+								.SensorFloat64 = 125,
+							},
+						},
+						.Min = {
+							.IsSupported = SAHPI_TRUE,
+							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+							.Value = {
+								.SensorFloat64 = 0,
+							},
+						},
+					},
+				},
+				.ThresholdDefn = {
+					.IsAccessible = SAHPI_TRUE,
+					.ReadThold  = SAHPI_STM_UP_MAJOR | SAHPI_STM_UP_CRIT,
+					.WriteThold = 0,
+				},
+				.Oem = 0,
+			},
+			.sensor_info = {
+				.mib = {
+					.not_avail_indicator_num = 0,
+					.write_only = SAHPI_FALSE,
+					.oid = "discovered",
+					.loc_offset = 0,
+					.threshold_oids = {
+						.UpCritical = "discovered",
+						.UpMajor    = "discovered",
+					},
+					.threshold_write_oids = {},
+				},
+				.cur_state = SAHPI_ES_UNSPECIFIED,
+				.sensor_enabled = SAHPI_TRUE,
+				.events_enabled = SAHPI_TRUE,
+				.assert_mask   = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+				.deassert_mask = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+				.event_array = {
+					/* FIXME:: Add events */
+
+					{},
+				},
+				.reading2event = {},
+			},
+			.comment = "BEM Memory Bank 2 Temperature Sensor",
+		},
+	},
+	/* BEM Memory Bank 3 Temperature Sensor */
+        {
+		.ipmi_tag = "BANK3 TEMP",
+		.ipmi_tag_alias1 = '\0',
+		.ipmi = {
+			.index = 17,
+			.sensor = {
+				.Num = SNMP_BC_LAST_NON_IPMI_BEM_SENSOR + 17,
+				.Type = SAHPI_TEMPERATURE,
+				.Category = SAHPI_EC_THRESHOLD,
+				.EnableCtrl = SAHPI_FALSE,
+				.EventCtrl = SAHPI_SEC_READ_ONLY,
+				.Events = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+				.DataFormat = {
+					.IsSupported = SAHPI_TRUE,
+					.ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+					.BaseUnits = SAHPI_SU_DEGREES_C,
+					.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+					.ModifierUse = SAHPI_SMUU_NONE,
+					.Percentage = SAHPI_FALSE,
+					.Range = {
+						.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
+						.Max = {
+							.IsSupported = SAHPI_TRUE,
+							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+							.Value = {
+								.SensorFloat64 = 125,
+							},
+						},
+						.Min = {
+							.IsSupported = SAHPI_TRUE,
+							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+							.Value = {
+								.SensorFloat64 = 0,
+							},
+						},
+					},
+				},
+				.ThresholdDefn = {
+					.IsAccessible = SAHPI_TRUE,
+					.ReadThold  = SAHPI_STM_UP_MAJOR | SAHPI_STM_UP_CRIT,
+					.WriteThold = 0,
+				},
+				.Oem = 0,
+			},
+			.sensor_info = {
+				.mib = {
+					.not_avail_indicator_num = 0,
+					.write_only = SAHPI_FALSE,
+					.oid = "discovered",
+					.loc_offset = 0,
+					.threshold_oids = {
+						.UpCritical = "discovered",
+						.UpMajor    = "discovered",
+					},
+					.threshold_write_oids = {},
+				},
+				.cur_state = SAHPI_ES_UNSPECIFIED,
+				.sensor_enabled = SAHPI_TRUE,
+				.events_enabled = SAHPI_TRUE,
+				.assert_mask   = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+				.deassert_mask = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+				.event_array = {
+					/* FIXME:: Add events */
+
+					{},
+				},
+				.reading2event = {},
+			},
+			.comment = "BEM Memory Bank 3 Temperature Sensor",
+		},
+	},
+	/* BEM Memory Bank 4 Temperature Sensor */
+        {
+		.ipmi_tag = "BANK4 TEMP",
+		.ipmi_tag_alias1 = '\0',
+		.ipmi = {
+			.index = 18,
+			.sensor = {
+				.Num = SNMP_BC_LAST_NON_IPMI_BEM_SENSOR + 18,
+				.Type = SAHPI_TEMPERATURE,
+				.Category = SAHPI_EC_THRESHOLD,
+				.EnableCtrl = SAHPI_FALSE,
+				.EventCtrl = SAHPI_SEC_READ_ONLY,
+				.Events = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+				.DataFormat = {
+					.IsSupported = SAHPI_TRUE,
+					.ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+					.BaseUnits = SAHPI_SU_DEGREES_C,
+					.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+					.ModifierUse = SAHPI_SMUU_NONE,
+					.Percentage = SAHPI_FALSE,
+					.Range = {
+						.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
+						.Max = {
+							.IsSupported = SAHPI_TRUE,
+							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+							.Value = {
+								.SensorFloat64 = 125,
+							},
+						},
+						.Min = {
+							.IsSupported = SAHPI_TRUE,
+							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+							.Value = {
+								.SensorFloat64 = 0,
+							},
+						},
+					},
+				},
+				.ThresholdDefn = {
+					.IsAccessible = SAHPI_TRUE,
+					.ReadThold  = SAHPI_STM_UP_MAJOR | SAHPI_STM_UP_CRIT,
+					.WriteThold = 0,
+				},
+				.Oem = 0,
+			},
+			.sensor_info = {
+				.mib = {
+					.not_avail_indicator_num = 0,
+					.write_only = SAHPI_FALSE,
+					.oid = "discovered",
+					.loc_offset = 0,
+					.threshold_oids = {
+						.UpCritical = "discovered",
+						.UpMajor    = "discovered",
+					},
+					.threshold_write_oids = {},
+				},
+				.cur_state = SAHPI_ES_UNSPECIFIED,
+				.sensor_enabled = SAHPI_TRUE,
+				.events_enabled = SAHPI_TRUE,
+				.assert_mask   = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+				.deassert_mask = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+				.event_array = {
+					/* FIXME:: Add events */
+
+					{},
+				},
+				.reading2event = {},
+			},
+			.comment = "BEM Memory Bank 4 Temperature Sensor",
+		},
+	},
 
         {} /* Terminate array with a null element */
 };
