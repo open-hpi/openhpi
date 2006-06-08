@@ -6393,6 +6393,294 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 			.comment = "Blade Battery Voltage Sensor",
 		},
         },
+	/* Blade Memory Bank 1 Temperature Sensor */
+        {
+		.ipmi_tag = "BANK1 TEMP",
+		.ipmi_tag_alias1 = '\0',
+		.ipmi = {
+			.index = 26,
+			.sensor = {
+				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 26,
+				.Type = SAHPI_TEMPERATURE,
+				.Category = SAHPI_EC_THRESHOLD,
+				.EnableCtrl = SAHPI_FALSE,
+				.EventCtrl = SAHPI_SEC_READ_ONLY,
+				.Events = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+				.DataFormat = {
+					.IsSupported = SAHPI_TRUE,
+					.ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+					.BaseUnits = SAHPI_SU_DEGREES_C,
+					.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+					.ModifierUse = SAHPI_SMUU_NONE,
+					.Percentage = SAHPI_FALSE,
+					.Range = {
+						.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
+						.Max = {
+							.IsSupported = SAHPI_TRUE,
+							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+							.Value = {
+								.SensorFloat64 = 125,
+							},
+						},
+						.Min = {
+							.IsSupported = SAHPI_TRUE,
+							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+							.Value = {
+								.SensorFloat64 = 0,
+							},
+						},
+					},
+				},
+				.ThresholdDefn = {
+					.IsAccessible = SAHPI_TRUE,
+					.ReadThold  = SAHPI_STM_UP_MAJOR | SAHPI_STM_UP_CRIT,
+					.WriteThold = 0,
+				},
+				.Oem = 0,
+			},
+			.sensor_info = {
+				.mib = {
+					.not_avail_indicator_num = 0,
+					.write_only = SAHPI_FALSE,
+					.oid = "discovered",
+					.loc_offset = 0,
+					.threshold_oids = {
+						.UpCritical = "discovered",
+						.UpMajor    = "discovered",
+					},
+					.threshold_write_oids = {},
+				},
+				.cur_state = SAHPI_ES_UNSPECIFIED,
+				.sensor_enabled = SAHPI_TRUE,
+				.events_enabled = SAHPI_TRUE,
+				.assert_mask   = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+				.deassert_mask = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+				.event_array = {
+					/* FIXME:: Add events */
+
+					{},
+				},
+				.reading2event = {},
+			},
+			.comment = "Blade Memory Bank 1 Temperature Sensor",
+		},
+	},
+	/* Blade Memory Bank 2 Temperature Sensor */
+        {
+		.ipmi_tag = "BANK2 TEMP",
+		.ipmi_tag_alias1 = '\0',
+		.ipmi = {
+			.index = 27,
+			.sensor = {
+				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 27,
+				.Type = SAHPI_TEMPERATURE,
+				.Category = SAHPI_EC_THRESHOLD,
+				.EnableCtrl = SAHPI_FALSE,
+				.EventCtrl = SAHPI_SEC_READ_ONLY,
+				.Events = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+				.DataFormat = {
+					.IsSupported = SAHPI_TRUE,
+					.ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+					.BaseUnits = SAHPI_SU_DEGREES_C,
+					.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+					.ModifierUse = SAHPI_SMUU_NONE,
+					.Percentage = SAHPI_FALSE,
+					.Range = {
+						.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
+						.Max = {
+							.IsSupported = SAHPI_TRUE,
+							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+							.Value = {
+								.SensorFloat64 = 125,
+							},
+						},
+						.Min = {
+							.IsSupported = SAHPI_TRUE,
+							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+							.Value = {
+								.SensorFloat64 = 0,
+							},
+						},
+					},
+				},
+				.ThresholdDefn = {
+					.IsAccessible = SAHPI_TRUE,
+					.ReadThold  = SAHPI_STM_UP_MAJOR | SAHPI_STM_UP_CRIT,
+					.WriteThold = 0,
+				},
+				.Oem = 0,
+			},
+			.sensor_info = {
+				.mib = {
+					.not_avail_indicator_num = 0,
+					.write_only = SAHPI_FALSE,
+					.oid = "discovered",
+					.loc_offset = 0,
+					.threshold_oids = {
+						.UpCritical = "discovered",
+						.UpMajor    = "discovered",
+					},
+					.threshold_write_oids = {},
+				},
+				.cur_state = SAHPI_ES_UNSPECIFIED,
+				.sensor_enabled = SAHPI_TRUE,
+				.events_enabled = SAHPI_TRUE,
+				.assert_mask   = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+				.deassert_mask = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+				.event_array = {
+					/* FIXME:: Add events */
+
+					{},
+				},
+				.reading2event = {},
+			},
+			.comment = "Blade Memory Bank 2 Temperature Sensor",
+		},
+	},
+	/* Blade Memory Bank 3 Temperature Sensor */
+        {
+		.ipmi_tag = "BANK3 TEMP",
+		.ipmi_tag_alias1 = '\0',
+		.ipmi = {
+			.index = 28,
+			.sensor = {
+				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 28,
+				.Type = SAHPI_TEMPERATURE,
+				.Category = SAHPI_EC_THRESHOLD,
+				.EnableCtrl = SAHPI_FALSE,
+				.EventCtrl = SAHPI_SEC_READ_ONLY,
+				.Events = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+				.DataFormat = {
+					.IsSupported = SAHPI_TRUE,
+					.ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+					.BaseUnits = SAHPI_SU_DEGREES_C,
+					.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+					.ModifierUse = SAHPI_SMUU_NONE,
+					.Percentage = SAHPI_FALSE,
+					.Range = {
+						.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
+						.Max = {
+							.IsSupported = SAHPI_TRUE,
+							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+							.Value = {
+								.SensorFloat64 = 125,
+							},
+						},
+						.Min = {
+							.IsSupported = SAHPI_TRUE,
+							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+							.Value = {
+								.SensorFloat64 = 0,
+							},
+						},
+					},
+				},
+				.ThresholdDefn = {
+					.IsAccessible = SAHPI_TRUE,
+					.ReadThold  = SAHPI_STM_UP_MAJOR | SAHPI_STM_UP_CRIT,
+					.WriteThold = 0,
+				},
+				.Oem = 0,
+			},
+			.sensor_info = {
+				.mib = {
+					.not_avail_indicator_num = 0,
+					.write_only = SAHPI_FALSE,
+					.oid = "discovered",
+					.loc_offset = 0,
+					.threshold_oids = {
+						.UpCritical = "discovered",
+						.UpMajor    = "discovered",
+					},
+					.threshold_write_oids = {},
+				},
+				.cur_state = SAHPI_ES_UNSPECIFIED,
+				.sensor_enabled = SAHPI_TRUE,
+				.events_enabled = SAHPI_TRUE,
+				.assert_mask   = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+				.deassert_mask = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+				.event_array = {
+					/* FIXME:: Add events */
+
+					{},
+				},
+				.reading2event = {},
+			},
+			.comment = "Blade Memory Bank 3 Temperature Sensor",
+		},
+	},
+	/* Blade Memory Bank 4 Temperature Sensor */
+        {
+		.ipmi_tag = "BANK4 TEMP",
+		.ipmi_tag_alias1 = '\0',
+		.ipmi = {
+			.index = 29,
+			.sensor = {
+				.Num = SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR + 29,
+				.Type = SAHPI_TEMPERATURE,
+				.Category = SAHPI_EC_THRESHOLD,
+				.EnableCtrl = SAHPI_FALSE,
+				.EventCtrl = SAHPI_SEC_READ_ONLY,
+				.Events = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+				.DataFormat = {
+					.IsSupported = SAHPI_TRUE,
+					.ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+					.BaseUnits = SAHPI_SU_DEGREES_C,
+					.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+					.ModifierUse = SAHPI_SMUU_NONE,
+					.Percentage = SAHPI_FALSE,
+					.Range = {
+						.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
+						.Max = {
+							.IsSupported = SAHPI_TRUE,
+							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+							.Value = {
+								.SensorFloat64 = 125,
+							},
+						},
+						.Min = {
+							.IsSupported = SAHPI_TRUE,
+							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+							.Value = {
+								.SensorFloat64 = 0,
+							},
+						},
+					},
+				},
+				.ThresholdDefn = {
+					.IsAccessible = SAHPI_TRUE,
+					.ReadThold  = SAHPI_STM_UP_MAJOR | SAHPI_STM_UP_CRIT,
+					.WriteThold = 0,
+				},
+				.Oem = 0,
+			},
+			.sensor_info = {
+				.mib = {
+					.not_avail_indicator_num = 0,
+					.write_only = SAHPI_FALSE,
+					.oid = "discovered",
+					.loc_offset = 0,
+					.threshold_oids = {
+						.UpCritical = "discovered",
+						.UpMajor    = "discovered",
+					},
+					.threshold_write_oids = {},
+				},
+				.cur_state = SAHPI_ES_UNSPECIFIED,
+				.sensor_enabled = SAHPI_TRUE,
+				.events_enabled = SAHPI_TRUE,
+				.assert_mask   = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+				.deassert_mask = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+				.event_array = {
+					/* FIXME:: Add events */
+
+					{},
+				},
+				.reading2event = {},
+			},
+			.comment = "Blade Memory Bank 4 Temperature Sensor",
+		},
+	},
 
         {} /* Terminate array with a null element */
 };
@@ -7893,298 +8181,9 @@ struct snmp_bc_ipmi_sensor snmp_bc_bem_ipmi_sensors[] = {
 			.comment = "BIE 12 Volt Sensor",
 		},
 	},
-	/* BEM Memory Bank 1 Temperature Sensor */
-        {
-		.ipmi_tag = "BANK1 TEMP",
-		.ipmi_tag_alias1 = '\0',
-		.ipmi = {
-			.index = 15,
-			.sensor = {
-				.Num = SNMP_BC_LAST_NON_IPMI_BEM_SENSOR + 15,
-				.Type = SAHPI_TEMPERATURE,
-				.Category = SAHPI_EC_THRESHOLD,
-				.EnableCtrl = SAHPI_FALSE,
-				.EventCtrl = SAHPI_SEC_READ_ONLY,
-				.Events = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-				.DataFormat = {
-					.IsSupported = SAHPI_TRUE,
-					.ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
-					.BaseUnits = SAHPI_SU_DEGREES_C,
-					.ModifierUnits = SAHPI_SU_UNSPECIFIED,
-					.ModifierUse = SAHPI_SMUU_NONE,
-					.Percentage = SAHPI_FALSE,
-					.Range = {
-						.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
-						.Max = {
-							.IsSupported = SAHPI_TRUE,
-							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
-							.Value = {
-								.SensorFloat64 = 125,
-							},
-						},
-						.Min = {
-							.IsSupported = SAHPI_TRUE,
-							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
-							.Value = {
-								.SensorFloat64 = 0,
-							},
-						},
-					},
-				},
-				.ThresholdDefn = {
-					.IsAccessible = SAHPI_TRUE,
-					.ReadThold  = SAHPI_STM_UP_MAJOR | SAHPI_STM_UP_CRIT,
-					.WriteThold = 0,
-				},
-				.Oem = 0,
-			},
-			.sensor_info = {
-				.mib = {
-					.not_avail_indicator_num = 0,
-					.write_only = SAHPI_FALSE,
-					.oid = "discovered",
-					.loc_offset = 0,
-					.threshold_oids = {
-						.UpCritical = "discovered",
-						.UpMajor    = "discovered",
-					},
-					.threshold_write_oids = {},
-				},
-				.cur_state = SAHPI_ES_UNSPECIFIED,
-				.sensor_enabled = SAHPI_TRUE,
-				.events_enabled = SAHPI_TRUE,
-				.assert_mask   = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-				.deassert_mask = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-				.event_array = {
-					/* FIXME:: Add events */
-
-					{},
-				},
-				.reading2event = {},
-			},
-			.comment = "BEM Memory Bank 1 Temperature Sensor",
-		},
-	},
-	/* BEM Memory Bank 2 Temperature Sensor */
-        {
-		.ipmi_tag = "BANK2 TEMP",
-		.ipmi_tag_alias1 = '\0',
-		.ipmi = {
-			.index = 16,
-			.sensor = {
-				.Num = SNMP_BC_LAST_NON_IPMI_BEM_SENSOR + 16,
-				.Type = SAHPI_TEMPERATURE,
-				.Category = SAHPI_EC_THRESHOLD,
-				.EnableCtrl = SAHPI_FALSE,
-				.EventCtrl = SAHPI_SEC_READ_ONLY,
-				.Events = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-				.DataFormat = {
-					.IsSupported = SAHPI_TRUE,
-					.ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
-					.BaseUnits = SAHPI_SU_DEGREES_C,
-					.ModifierUnits = SAHPI_SU_UNSPECIFIED,
-					.ModifierUse = SAHPI_SMUU_NONE,
-					.Percentage = SAHPI_FALSE,
-					.Range = {
-						.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
-						.Max = {
-							.IsSupported = SAHPI_TRUE,
-							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
-							.Value = {
-								.SensorFloat64 = 125,
-							},
-						},
-						.Min = {
-							.IsSupported = SAHPI_TRUE,
-							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
-							.Value = {
-								.SensorFloat64 = 0,
-							},
-						},
-					},
-				},
-				.ThresholdDefn = {
-					.IsAccessible = SAHPI_TRUE,
-					.ReadThold  = SAHPI_STM_UP_MAJOR | SAHPI_STM_UP_CRIT,
-					.WriteThold = 0,
-				},
-				.Oem = 0,
-			},
-			.sensor_info = {
-				.mib = {
-					.not_avail_indicator_num = 0,
-					.write_only = SAHPI_FALSE,
-					.oid = "discovered",
-					.loc_offset = 0,
-					.threshold_oids = {
-						.UpCritical = "discovered",
-						.UpMajor    = "discovered",
-					},
-					.threshold_write_oids = {},
-				},
-				.cur_state = SAHPI_ES_UNSPECIFIED,
-				.sensor_enabled = SAHPI_TRUE,
-				.events_enabled = SAHPI_TRUE,
-				.assert_mask   = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-				.deassert_mask = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-				.event_array = {
-					/* FIXME:: Add events */
-
-					{},
-				},
-				.reading2event = {},
-			},
-			.comment = "BEM Memory Bank 2 Temperature Sensor",
-		},
-	},
-	/* BEM Memory Bank 3 Temperature Sensor */
-        {
-		.ipmi_tag = "BANK3 TEMP",
-		.ipmi_tag_alias1 = '\0',
-		.ipmi = {
-			.index = 17,
-			.sensor = {
-				.Num = SNMP_BC_LAST_NON_IPMI_BEM_SENSOR + 17,
-				.Type = SAHPI_TEMPERATURE,
-				.Category = SAHPI_EC_THRESHOLD,
-				.EnableCtrl = SAHPI_FALSE,
-				.EventCtrl = SAHPI_SEC_READ_ONLY,
-				.Events = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-				.DataFormat = {
-					.IsSupported = SAHPI_TRUE,
-					.ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
-					.BaseUnits = SAHPI_SU_DEGREES_C,
-					.ModifierUnits = SAHPI_SU_UNSPECIFIED,
-					.ModifierUse = SAHPI_SMUU_NONE,
-					.Percentage = SAHPI_FALSE,
-					.Range = {
-						.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
-						.Max = {
-							.IsSupported = SAHPI_TRUE,
-							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
-							.Value = {
-								.SensorFloat64 = 125,
-							},
-						},
-						.Min = {
-							.IsSupported = SAHPI_TRUE,
-							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
-							.Value = {
-								.SensorFloat64 = 0,
-							},
-						},
-					},
-				},
-				.ThresholdDefn = {
-					.IsAccessible = SAHPI_TRUE,
-					.ReadThold  = SAHPI_STM_UP_MAJOR | SAHPI_STM_UP_CRIT,
-					.WriteThold = 0,
-				},
-				.Oem = 0,
-			},
-			.sensor_info = {
-				.mib = {
-					.not_avail_indicator_num = 0,
-					.write_only = SAHPI_FALSE,
-					.oid = "discovered",
-					.loc_offset = 0,
-					.threshold_oids = {
-						.UpCritical = "discovered",
-						.UpMajor    = "discovered",
-					},
-					.threshold_write_oids = {},
-				},
-				.cur_state = SAHPI_ES_UNSPECIFIED,
-				.sensor_enabled = SAHPI_TRUE,
-				.events_enabled = SAHPI_TRUE,
-				.assert_mask   = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-				.deassert_mask = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-				.event_array = {
-					/* FIXME:: Add events */
-
-					{},
-				},
-				.reading2event = {},
-			},
-			.comment = "BEM Memory Bank 3 Temperature Sensor",
-		},
-	},
-	/* BEM Memory Bank 4 Temperature Sensor */
-        {
-		.ipmi_tag = "BANK4 TEMP",
-		.ipmi_tag_alias1 = '\0',
-		.ipmi = {
-			.index = 18,
-			.sensor = {
-				.Num = SNMP_BC_LAST_NON_IPMI_BEM_SENSOR + 18,
-				.Type = SAHPI_TEMPERATURE,
-				.Category = SAHPI_EC_THRESHOLD,
-				.EnableCtrl = SAHPI_FALSE,
-				.EventCtrl = SAHPI_SEC_READ_ONLY,
-				.Events = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-				.DataFormat = {
-					.IsSupported = SAHPI_TRUE,
-					.ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
-					.BaseUnits = SAHPI_SU_DEGREES_C,
-					.ModifierUnits = SAHPI_SU_UNSPECIFIED,
-					.ModifierUse = SAHPI_SMUU_NONE,
-					.Percentage = SAHPI_FALSE,
-					.Range = {
-						.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
-						.Max = {
-							.IsSupported = SAHPI_TRUE,
-							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
-							.Value = {
-								.SensorFloat64 = 125,
-							},
-						},
-						.Min = {
-							.IsSupported = SAHPI_TRUE,
-							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
-							.Value = {
-								.SensorFloat64 = 0,
-							},
-						},
-					},
-				},
-				.ThresholdDefn = {
-					.IsAccessible = SAHPI_TRUE,
-					.ReadThold  = SAHPI_STM_UP_MAJOR | SAHPI_STM_UP_CRIT,
-					.WriteThold = 0,
-				},
-				.Oem = 0,
-			},
-			.sensor_info = {
-				.mib = {
-					.not_avail_indicator_num = 0,
-					.write_only = SAHPI_FALSE,
-					.oid = "discovered",
-					.loc_offset = 0,
-					.threshold_oids = {
-						.UpCritical = "discovered",
-						.UpMajor    = "discovered",
-					},
-					.threshold_write_oids = {},
-				},
-				.cur_state = SAHPI_ES_UNSPECIFIED,
-				.sensor_enabled = SAHPI_TRUE,
-				.events_enabled = SAHPI_TRUE,
-				.assert_mask   = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-				.deassert_mask = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-				.event_array = {
-					/* FIXME:: Add events */
-
-					{},
-				},
-				.reading2event = {},
-			},
-			.comment = "BEM Memory Bank 4 Temperature Sensor",
-		},
-	},
 
         {} /* Terminate array with a null element */
 };
-
 
 /********************
  * Media Tray Sensors
