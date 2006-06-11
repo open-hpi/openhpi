@@ -10,7 +10,7 @@
  * full licensing terms.
  *
  * Author(s):
- *	  Christina Hernandez <hernanc@us.ibm.com>
+ *        Christina Hernandez <hernanc@us.ibm.com>
  *        W. David Ashley <dashley@us.ibm.com>
  */
 
@@ -22,40 +22,40 @@
 static SaErrorT new_control(struct oh_handler_state * state,
                             SaHpiResourceIdT ResId,
                             struct sim_control *mycontrol) {
-	SaHpiRdrT res_rdr;
-	SaHpiRptEntryT *RptEntry;
+        SaHpiRdrT res_rdr;
+        SaHpiRptEntryT *RptEntry;
         struct sim_control_info *info;
 
-	// Copy information from rdr array to res_rdr
-	res_rdr.RdrType = SAHPI_CTRL_RDR;
-	memcpy(&res_rdr.RdrTypeUnion.CtrlRec, &mycontrol->control,
+        // Copy information from rdr array to res_rdr
+        res_rdr.RdrType = SAHPI_CTRL_RDR;
+        memcpy(&res_rdr.RdrTypeUnion.CtrlRec, &mycontrol->control,
                sizeof(SaHpiCtrlRecT));
 
-	oh_init_textbuffer(&res_rdr.IdString);
-	oh_append_textbuffer(&res_rdr.IdString, mycontrol->comment);
-	res_rdr.RecordId =
+        oh_init_textbuffer(&res_rdr.IdString);
+        oh_append_textbuffer(&res_rdr.IdString, mycontrol->comment);
+        res_rdr.RecordId =
                 get_rdr_uid(SAHPI_CTRL_RDR, res_rdr.RdrTypeUnion.CtrlRec.Num);
 
-	RptEntry = oh_get_resource_by_id(state->rptcache, ResId);
-	if (!RptEntry) {
-		dbg("NULL rpt pointer\n");
+        RptEntry = oh_get_resource_by_id(state->rptcache, ResId);
+        if (!RptEntry) {
+                dbg("NULL rpt pointer\n");
                 return SA_ERR_HPI_INVALID_RESOURCE;
-	}
-	memcpy(&res_rdr.Entity, &RptEntry->ResourceEntity,
+        }
+        memcpy(&res_rdr.Entity, &RptEntry->ResourceEntity,
                sizeof(SaHpiEntityPathT));
 
         //set up our private data
         info = (struct sim_control_info *)g_malloc(sizeof(struct sim_control_info));
-	if (!info) {
-		dbg("NULL rpt pointer\n");
+        if (!info) {
+                dbg("NULL rpt pointer\n");
                 return SA_ERR_HPI_OUT_OF_MEMORY;
-	}
+        }
         info->mode = mycontrol->mode;
 
         // everything ready so add the rdr and extra info to the rptcache
         sim_inject_rdr(state, ResId, &res_rdr, info);
 
-	return 0;
+        return 0;
 }
 
 
@@ -74,7 +74,7 @@ SaErrorT sim_discover_chassis_controls(struct oh_handler_state * state,
                 }
                 i++;
         }
-        dbg("%d of %d chassis controls injected", j, i);
+        trace("%d of %d chassis controls injected", j, i);
 
         return 0;
 }
@@ -95,7 +95,7 @@ SaErrorT sim_discover_cpu_controls(struct oh_handler_state * state,
                 }
                 i++;
         }
-        dbg("%d of %d cpu controls injected", j, i);
+        trace("%d of %d cpu controls injected", j, i);
 
         return 0;
 }
@@ -116,7 +116,7 @@ SaErrorT sim_discover_dasd_controls(struct oh_handler_state * state,
                 }
                 i++;
         }
-        dbg("%d of %d dasd controls injected", j, i);
+        trace("%d of %d dasd controls injected", j, i);
 
         return 0;
 }
@@ -137,7 +137,7 @@ SaErrorT sim_discover_hs_dasd_controls(struct oh_handler_state * state,
                 }
                 i++;
         }
-        dbg("%d of %d hs dasd controls injected", j, i);
+        trace("%d of %d hs dasd controls injected", j, i);
 
         return 0;
 }
@@ -158,7 +158,7 @@ SaErrorT sim_discover_fan_controls(struct oh_handler_state * state,
                 }
                 i++;
         }
-        dbg("%d of %d fan controls injected", j, i);
+        trace("%d of %d fan controls injected", j, i);
 
         return 0;
 }

@@ -10,7 +10,7 @@
  * full licensing terms.
  *
  * Author(s):
- *	  Christina Hernandez <hernanc@us.ibm.com>
+ *        Christina Hernandez <hernanc@us.ibm.com>
  *        W. David Ashley <dashley@us.ibm.com>
  */
 
@@ -87,7 +87,7 @@ SaErrorT sim_discover(void *hnd)
            one time for each handler instance. Subsequent calls should just
            return SA_OK for that instance.
          */
-	struct oh_handler_state *inst = (struct oh_handler_state *) hnd;
+        struct oh_handler_state *inst = (struct oh_handler_state *) hnd;
         int i;
         SaHpiRptEntryT res;
         GThread *service_thrd;
@@ -109,33 +109,33 @@ SaErrorT sim_discover(void *hnd)
         memcpy(&res, &sim_rpt_array[i].rpt, sizeof(SaHpiRptEntryT));
         sim_inject_resource(inst, &res, NULL,
                             sim_rpt_array[i].comment);
-	sim_discover_chassis_sensors(inst, res.ResourceId);
-	sim_discover_chassis_controls(inst, res.ResourceId);
-	sim_discover_chassis_annunciators(inst, res.ResourceId);
-	sim_discover_chassis_watchdogs(inst, res.ResourceId);
-	sim_discover_chassis_inventory(inst, res.ResourceId);
+        sim_discover_chassis_sensors(inst, res.ResourceId);
+        sim_discover_chassis_controls(inst, res.ResourceId);
+        sim_discover_chassis_annunciators(inst, res.ResourceId);
+        sim_discover_chassis_watchdogs(inst, res.ResourceId);
+        sim_discover_chassis_inventory(inst, res.ResourceId);
 
         /* discover cpu resources and RDRs */
         i = SIM_RPT_ENTRY_CPU - 1;
         memcpy(&res, &sim_rpt_array[i].rpt, sizeof(SaHpiRptEntryT));
         sim_inject_resource(inst, &res, NULL,
                             sim_rpt_array[i].comment);
-	sim_discover_cpu_sensors(inst, res.ResourceId);
-	sim_discover_cpu_controls(inst, res.ResourceId);
-	sim_discover_cpu_annunciators(inst, res.ResourceId);
-	sim_discover_cpu_watchdogs(inst, res.ResourceId);
-	sim_discover_cpu_inventory(inst, res.ResourceId);
+        sim_discover_cpu_sensors(inst, res.ResourceId);
+        sim_discover_cpu_controls(inst, res.ResourceId);
+        sim_discover_cpu_annunciators(inst, res.ResourceId);
+        sim_discover_cpu_watchdogs(inst, res.ResourceId);
+        sim_discover_cpu_inventory(inst, res.ResourceId);
 
         /* discover dasd resources and RDRs */
         i = SIM_RPT_ENTRY_DASD - 1;
         memcpy(&res, &sim_rpt_array[i].rpt, sizeof(SaHpiRptEntryT));
         sim_inject_resource(inst, &res, NULL,
                             sim_rpt_array[i].comment);
-	sim_discover_dasd_sensors(inst, res.ResourceId);
-	sim_discover_dasd_controls(inst, res.ResourceId);
-	sim_discover_dasd_annunciators(inst, res.ResourceId);
-	sim_discover_dasd_watchdogs(inst, res.ResourceId);
-	sim_discover_dasd_inventory(inst, res.ResourceId);
+        sim_discover_dasd_sensors(inst, res.ResourceId);
+        sim_discover_dasd_controls(inst, res.ResourceId);
+        sim_discover_dasd_annunciators(inst, res.ResourceId);
+        sim_discover_dasd_watchdogs(inst, res.ResourceId);
+        sim_discover_dasd_inventory(inst, res.ResourceId);
 
         /* discover hot swap dasd resources and RDRs */
         i = SIM_RPT_ENTRY_HS_DASD - 1;
@@ -153,23 +153,23 @@ SaErrorT sim_discover(void *hnd)
         memcpy(&res, &sim_rpt_array[i].rpt, sizeof(SaHpiRptEntryT));
         sim_inject_resource(inst, &res, NULL,
                             sim_rpt_array[i].comment);
-	sim_discover_fan_sensors(inst, res.ResourceId);
-	sim_discover_fan_controls(inst, res.ResourceId);
-	sim_discover_fan_annunciators(inst, res.ResourceId);
-	sim_discover_fan_watchdogs(inst, res.ResourceId);
-	sim_discover_fan_inventory(inst, res.ResourceId);
+        sim_discover_fan_sensors(inst, res.ResourceId);
+        sim_discover_fan_controls(inst, res.ResourceId);
+        sim_discover_fan_annunciators(inst, res.ResourceId);
+        sim_discover_fan_watchdogs(inst, res.ResourceId);
+        sim_discover_fan_inventory(inst, res.ResourceId);
 
         /* now start the message queue thread for reading events */
         service_thrd = start_injector_service_thread(NULL);
         if (service_thrd == NULL) {
-                trace("injector service thread not started");
+                dbg("injector service thread not started");
         }
 
         /* Let subsequent discovery invocations know that discovery has already
            been performed.
          */
         inst->data = (void *)1;
-	return SA_OK;
+        return SA_OK;
 }
 
 
@@ -181,19 +181,19 @@ SaErrorT sim_discover(void *hnd)
  */
 SaErrorT sim_get_event(void *hnd, struct oh_event *event)
 {
-	struct oh_handler_state *state = hnd;
-	struct oh_event *e = NULL;
+        struct oh_handler_state *state = hnd;
+        struct oh_event *e = NULL;
 
-	if ((e = g_async_queue_try_pop(state->eventq_async))) {
-		trace("retrieving sim event from async q");
-		memcpy(event, e, sizeof(*event));
-		event->did = oh_get_default_domain_id();
+        if ((e = g_async_queue_try_pop(state->eventq_async))) {
+                trace("retrieving sim event from async q");
+                memcpy(event, e, sizeof(*event));
+                event->did = oh_get_default_domain_id();
 
-//		g_free(e);
+//              g_free(e); /* FIXME: Why is this commented? */
 
-		return 1;
-	} else {
-		trace("no more events for sim instance");
+                return 1;
+        } else {
+                trace("no more events for sim instance");
         }
         return 0;
 }
@@ -201,7 +201,7 @@ SaErrorT sim_get_event(void *hnd, struct oh_event *event)
 
 SaErrorT sim_close(void *hnd)
 {
-	struct oh_handler_state *state = hnd;
+        struct oh_handler_state *state = hnd;
 
         /* TODO: we may need to do more here than just this! */
 //      g_free(state->rptcache);
