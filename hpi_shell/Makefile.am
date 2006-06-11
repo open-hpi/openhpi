@@ -10,7 +10,7 @@ EXTRA_DIST		= hpi_cmd.sh
 
 if SHELL_CLIENT
 INCLUDES 		= -I$(top_srcdir)/include -I$(top_srcdir)/utils \
-				-I$(top_srcdir)/openhpid2  -I$(top_srcdir)/marshal \
+				-I$(top_srcdir)/openhpid  -I$(top_srcdir)/marshal \
 				-DCLIENT
 COMMONLIBS		= $(top_builddir)/hpi_ui_lib/libopenhpiui.la \
 				$(top_builddir)/marshal/libohtcpconnx.la \
@@ -50,7 +50,7 @@ hpi_cmd: hpi_cmd.sh
 
 $(REMOTE_SOURCES):
 	if test ! -f $@ -a ! -L $@; then \
-		ln -s ../openhpid2/$@; \
+		ln -s ../openhpid/$@; \
 	fi
 
 clean-local:
