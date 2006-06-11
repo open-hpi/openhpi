@@ -42,7 +42,7 @@ static SaErrorT new_watchdog(struct oh_handler_state * state,
         }
 
         // set up our private info
-	info = (struct simWatchdogInfo *)g_malloc0(sizeof(struct simWatchdogInfo));
+        info = (struct simWatchdogInfo *)g_malloc0(sizeof(struct simWatchdogInfo));
         if(!info){
                 dbg("Out of memory creating watchdog info");
                 return SA_ERR_HPI_OUT_OF_MEMORY;
@@ -71,10 +71,10 @@ SaErrorT sim_discover_chassis_watchdogs(struct oh_handler_state * state,
                 }
                 i++;
         }
-        dbg("%d of %d chassis watchdogs injected", j, i);
+        trace("%d of %d chassis watchdogs injected", j, i);
 
 
-	return 0;
+        return 0;
 }
 
 
@@ -93,9 +93,9 @@ SaErrorT sim_discover_cpu_watchdogs(struct oh_handler_state * state,
                 }
                 i++;
         }
-        dbg("%d of %d cpu watchdogs injected", j, i);
+        trace("%d of %d cpu watchdogs injected", j, i);
 
-	return 0;
+        return 0;
 }
 
 
@@ -114,9 +114,9 @@ SaErrorT sim_discover_dasd_watchdogs(struct oh_handler_state * state,
                 }
                 i++;
         }
-        dbg("%d of %d dasd watchdogs injected", j, i);
+        trace("%d of %d dasd watchdogs injected", j, i);
 
-	return 0;
+        return 0;
 }
 
 
@@ -135,9 +135,9 @@ SaErrorT sim_discover_hs_dasd_watchdogs(struct oh_handler_state * state,
                 }
                 i++;
         }
-        dbg("%d of %d hs dasd watchdogs injected", j, i);
+        trace("%d of %d hs dasd watchdogs injected", j, i);
 
-	return 0;
+        return 0;
 }
 
 
@@ -156,33 +156,33 @@ SaErrorT sim_discover_fan_watchdogs(struct oh_handler_state * state,
                 }
                 i++;
         }
-        dbg("%d of %d fan watchdogs injected", j, i);
+        trace("%d of %d fan watchdogs injected", j, i);
 
-	return 0;
+        return 0;
 }
 
 SaErrorT sim_get_watchdog_info(void *hnd,
-				   SaHpiResourceIdT rid,
-				   SaHpiWatchdogNumT num,
-				   SaHpiWatchdogT *wdt)
+                                   SaHpiResourceIdT rid,
+                                   SaHpiWatchdogNumT num,
+                                   SaHpiWatchdogT *wdt)
 {
         struct simWatchdogInfo *info;
 
-	if (!hnd) {
-		dbg("Invalid parameter.");
-		return SA_ERR_HPI_INVALID_PARAMS;
-	}
+        if (!hnd) {
+                dbg("Invalid parameter.");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
 
         struct oh_handler_state *state = (struct oh_handler_state *)hnd;
 
-	/* Check if resource exists and has managed hotswap capabilities */
-	SaHpiRptEntryT *rpt = oh_get_resource_by_id(state->rptcache, rid);
+        /* Check if resource exists and has managed hotswap capabilities */
+        SaHpiRptEntryT *rpt = oh_get_resource_by_id(state->rptcache, rid);
         if (!rpt) {
-		return SA_ERR_HPI_INVALID_RESOURCE;
-	}
+                return SA_ERR_HPI_INVALID_RESOURCE;
+        }
         if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_WATCHDOG)) {
-		return SA_ERR_HPI_CAPABILITY;
-	}
+                return SA_ERR_HPI_CAPABILITY;
+        }
 
         /* get our private info */
         SaHpiRdrT *rdr = oh_get_rdr_by_type(state->rptcache, rid,
@@ -197,31 +197,31 @@ SaErrorT sim_get_watchdog_info(void *hnd,
         }
 
         memcpy(wdt, &info->watchdog, sizeof(SaHpiWatchdogT));
-	return SA_OK;
+        return SA_OK;
 }
 
 SaErrorT sim_set_watchdog_info(void *hnd,
-				   SaHpiResourceIdT rid,
-				   SaHpiWatchdogNumT num,
-				   SaHpiWatchdogT *wdt)
+                                   SaHpiResourceIdT rid,
+                                   SaHpiWatchdogNumT num,
+                                   SaHpiWatchdogT *wdt)
 {
         struct simWatchdogInfo *info;
 
-	if (!hnd) {
-		dbg("Invalid parameter.");
-		return SA_ERR_HPI_INVALID_PARAMS;
-	}
+        if (!hnd) {
+                dbg("Invalid parameter.");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
 
         struct oh_handler_state *state = (struct oh_handler_state *)hnd;
 
-	/* Check if resource exists and has managed hotswap capabilities */
-	SaHpiRptEntryT *rpt = oh_get_resource_by_id(state->rptcache, rid);
+        /* Check if resource exists and has managed hotswap capabilities */
+        SaHpiRptEntryT *rpt = oh_get_resource_by_id(state->rptcache, rid);
         if (!rpt) {
-		return SA_ERR_HPI_INVALID_RESOURCE;
-	}
+                return SA_ERR_HPI_INVALID_RESOURCE;
+        }
         if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_WATCHDOG)) {
-		return SA_ERR_HPI_CAPABILITY;
-	}
+                return SA_ERR_HPI_CAPABILITY;
+        }
 
         /* get our private info */
         SaHpiRdrT *rdr = oh_get_rdr_by_type(state->rptcache, rid,
@@ -236,31 +236,31 @@ SaErrorT sim_set_watchdog_info(void *hnd,
         }
 
         memcpy(&info->watchdog, wdt, sizeof(SaHpiWatchdogT));
-	return SA_OK;
+        return SA_OK;
 }
 
 SaErrorT sim_reset_watchdog(void *hnd,
-				SaHpiResourceIdT rid,
-				SaHpiWatchdogNumT num)
+                                SaHpiResourceIdT rid,
+                                SaHpiWatchdogNumT num)
 {
-	if (!hnd) {
-		dbg("Invalid parameter.");
-		return SA_ERR_HPI_INVALID_PARAMS;
-	}
+        if (!hnd) {
+                dbg("Invalid parameter.");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
 
         struct oh_handler_state *state = (struct oh_handler_state *)hnd;
 
-	/* Check if resource exists and has managed hotswap capabilities */
-	SaHpiRptEntryT *rpt = oh_get_resource_by_id(state->rptcache, rid);
+        /* Check if resource exists and has managed hotswap capabilities */
+        SaHpiRptEntryT *rpt = oh_get_resource_by_id(state->rptcache, rid);
         if (!rpt) {
-		return SA_ERR_HPI_INVALID_RESOURCE;
-	}
+                return SA_ERR_HPI_INVALID_RESOURCE;
+        }
         if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_WATCHDOG)) {
-		return SA_ERR_HPI_CAPABILITY;
-	}
+                return SA_ERR_HPI_CAPABILITY;
+        }
 
         // since no timer is actually running we can just do nothing here
-	return SA_OK;
+        return SA_OK;
 }
 
 

@@ -10,7 +10,7 @@
  * full licensing terms.
  *
  * Author(s):
- *	  Christina Hernandez <hernanc@us.ibm.com>
+ *        Christina Hernandez <hernanc@us.ibm.com>
  *        W. David Ashley <dashley@us.ibm.com>
  */
 
@@ -21,33 +21,33 @@
 
 static SaErrorT new_sensor(struct oh_handler_state * state,
                            SaHpiResourceIdT ResId, struct sim_sensor *mysensor) {
-	SaHpiRdrT res_rdr;
-	SaHpiRptEntryT *RptEntry;
-	struct SensorInfo *info;  // our extra info
+        SaHpiRdrT res_rdr;
+        SaHpiRptEntryT *RptEntry;
+        struct SensorInfo *info;  // our extra info
 
-	info = (struct SensorInfo *)g_malloc0(sizeof(struct SensorInfo));
+        info = (struct SensorInfo *)g_malloc0(sizeof(struct SensorInfo));
 
-	// set up res_rdr
+        // set up res_rdr
         res_rdr.RdrType = SAHPI_SENSOR_RDR;
         memcpy(&res_rdr.RdrTypeUnion.SensorRec, &mysensor->sensor, sizeof(SaHpiSensorRecT));
         res_rdr.IsFru = 1;
         res_rdr.RecordId = get_rdr_uid(res_rdr.RdrType,
                                        res_rdr.RdrTypeUnion.SensorRec.Num);
-	oh_init_textbuffer(&res_rdr.IdString);
-	oh_append_textbuffer(&res_rdr.IdString, mysensor->comment);
+        oh_init_textbuffer(&res_rdr.IdString);
+        oh_append_textbuffer(&res_rdr.IdString, mysensor->comment);
 
         // get the RptEntry
-	RptEntry = oh_get_resource_by_id(state->rptcache, ResId);
-	if (!RptEntry){
+        RptEntry = oh_get_resource_by_id(state->rptcache, ResId);
+        if (!RptEntry){
                 dbg("NULL rpt pointer during sensor add\n");
                 return SA_ERR_HPI_INVALID_RESOURCE;
-	} else {
+        } else {
                 res_rdr.Entity = RptEntry->ResourceEntity;
-	}
+        }
 
         // now set up our extra info for the sensor
         info->cur_state = mysensor->sensor_info.cur_state;
-	info->sensor_enabled = mysensor->sensor_info.sensor_enabled;
+        info->sensor_enabled = mysensor->sensor_info.sensor_enabled;
         info->assert_mask = mysensor->sensor_info.assert_mask;
         info->deassert_mask = mysensor->sensor_info.deassert_mask;
         memcpy(&info->event_array, &mysensor->sensor_info.event_array,
@@ -81,9 +81,9 @@ SaErrorT sim_discover_chassis_sensors(struct oh_handler_state * state,
                 }
                 i++;
         }
-        dbg("%d of %d chassis sensors injected", j, i);
+        trace("%d of %d chassis sensors injected", j, i);
 
-	return 0;
+        return 0;
 
 }
 
@@ -103,9 +103,9 @@ SaErrorT sim_discover_cpu_sensors(struct oh_handler_state * state,
                 }
                 i++;
         }
-        dbg("%d of %d cpu sensors injected", j, i);
+        trace("%d of %d cpu sensors injected", j, i);
 
-	return 0;
+        return 0;
 
 }
 
@@ -125,9 +125,9 @@ SaErrorT sim_discover_dasd_sensors(struct oh_handler_state * state,
                 }
                 i++;
         }
-        dbg("%d of %d dasd sensors injected", j, i);
+        trace("%d of %d dasd sensors injected", j, i);
 
-	return 0;
+        return 0;
 
 }
 
@@ -147,9 +147,9 @@ SaErrorT sim_discover_hs_dasd_sensors(struct oh_handler_state * state,
                 }
                 i++;
         }
-        dbg("%d of %d hs dasd sensors injected", j, i);
+        trace("%d of %d hs dasd sensors injected", j, i);
 
-	return 0;
+        return 0;
 
 }
 
@@ -169,9 +169,9 @@ SaErrorT sim_discover_fan_sensors(struct oh_handler_state * state,
                 }
                 i++;
         }
-        dbg("%d of %d fan sensors injected", j, i);
+        trace("%d of %d fan sensors injected", j, i);
 
-	return 0;
+        return 0;
 
 }
 
