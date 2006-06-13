@@ -15,7 +15,6 @@
  */
 
 #include <oh_domain.h>
-#include <oh_session.h>
 #include <oh_alarm.h>
 #include <oh_config.h>
 #include <oh_error.h>
@@ -189,7 +188,6 @@ static void __delete_domain(struct oh_domain *d)
         oh_el_close(d->del);
         oh_close_alarmtable(d);
         __free_drt_list(d->drt.list);
-        g_array_free(d->sessions, TRUE);
         g_static_rec_mutex_free(&d->lock);
         g_static_rec_mutex_free(&d->refcount_lock);
         /*oh_destroy_domain_sessions(d->id);*/ /* Not needed after all */
@@ -395,16 +393,12 @@ SaHpiDomainIdT oh_create_domain(SaHpiDomainCapabilitiesT capabilities,
         oh_get_global_param(&param);
 
         domain->del = oh_el_create(param.u.del_size_limit);
-        domain->sessions = g_array_sized_new(FALSE, TRUE,
-                                             sizeof(SaHpiSessionIdT),
-                                             OH_SESSION_PREALLOC);
 
         g_static_rec_mutex_init(&(domain->lock));
         g_static_rec_mutex_init(&(domain->refcount_lock));
 
-        if (!domain->del || !domain->sessions) {
+        if (!domain->del) {
                 g_free(domain->del);
-                g_array_free(domain->sessions, TRUE);
                 g_static_rec_mutex_free(&(domain->lock));
                 g_static_rec_mutex_free(&(domain->refcount_lock));
                 g_free(domain);

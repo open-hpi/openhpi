@@ -25,9 +25,6 @@ extern "C" {
 #include <glib.h>
 #include <oh_utils.h>
 
-/* Number of pre-alloced session slots for a domain. */
-#define OH_SESSION_PREALLOC 5
-
 /*
  *  Global table of all active domains (oh_domain).
  *  Encapsulated in a struct to store a lock alongside of it.
@@ -84,9 +81,6 @@ struct oh_domain {
         SaHpiBoolT        is_peer;
         SaHpiTextBufferT  tag;
         SaHpiGuidT        guid;
-
-        /* List of session ids */
-        GArray *sessions;
 
         /* Synchronization - used internally by domain interfaces below. */
         GStaticRecMutex lock;
