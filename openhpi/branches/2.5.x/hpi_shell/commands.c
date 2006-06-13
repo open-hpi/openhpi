@@ -1086,7 +1086,8 @@ static ret_code_t exec_proc(void)
                 strcat(buf, " ");
                 strcat(buf, term->term);
         };
-        system(buf);
+        if (system(buf) <  0)
+		return(HPI_SHELL_CMD_ERROR);
         return(HPI_SHELL_OK);
 }
 

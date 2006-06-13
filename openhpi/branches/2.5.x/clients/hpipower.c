@@ -263,7 +263,9 @@ int main(int argc, char **argv)
                 while ((Index >= ComputerNumber) || (Index < 0))
                 {
                         printf("\nEnter the number for the desired blade: ");
-                        scanf("%d",&Index);
+                        if (scanf("%d",&Index) == 0) {
+				printf("Incorrect number\n");
+			}
                         Index--; //normalize to 0..n-1
                         printf("\n");
                 }
@@ -277,7 +279,9 @@ int main(int argc, char **argv)
                 /* prompt user to select an action */
                 printf("\nSelect Action: 0 - Off; 1 - On; 2 - Reset; 3 - Status \n\r");
                 printf("Enter a number 0 to 3:  ");
-                scanf("%d", &Index);
+                if (scanf("%d", &Index) == 0) {
+			Index = -1;
+		}
                 switch (Index)
                 {
                 case 0:

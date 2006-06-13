@@ -322,7 +322,11 @@ SaErrorT oh_el_map_to_file(oh_el *el, char *filename)
 
         ellist = g_list_first(el->elentries);
         while (ellist != NULL) {
-                write(file, (void *)ellist->data, sizeof(oh_el_entry));
+                if (write(file, (void *)ellist->data, sizeof(oh_el_entry)) != sizeof(oh_el_entry)) {
+			dbg("Couldn't write to file '%s'.", filename);
+			close(file);
+                	return SA_ERR_HPI_ERROR;
+		}
                 ellist = g_list_next(ellist);
         }
 
