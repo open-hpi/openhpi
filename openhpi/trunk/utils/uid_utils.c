@@ -208,9 +208,17 @@ guint oh_uid_from_entity_path(SaHpiEntityPathT *ep)
         file = open(uid_map_file, O_WRONLY);
         if (file >= 0) {
                 lseek(file, 0, SEEK_END);
-                write(file,ep_xref, sizeof(EP_XREF));
+                if (write(file,ep_xref, sizeof(EP_XREF)) != sizeof(EP_XREF)) {
+			dbg("write ep_xref failed");
+			close(file);
+			return 0;
+		}
                 lseek(file, 0, SEEK_SET);
-                write(file, &resource_id, sizeof(resource_id));
+                if (write(file, &resource_id, sizeof(resource_id)) != sizeof(resource_id)) {
+			dbg("write resource_id failed");
+			close(file);
+			return 0;
+		}
         }
         close(file);
 
@@ -369,7 +377,11 @@ gint oh_uid_map_to_file(void)
         }
 
         /* write resource id */
-        write(file, (void *)&resource_id, sizeof(resource_id));
+        if (write(file, (void *)&resource_id, sizeof(resource_id)) != sizeof(resource_id)) {
+		dbg("write resource_id failed");
+		close(file);
+		return -1;
+	}
 
         /* write all EP_XREF data records */
         g_hash_table_foreach(oh_resource_id_table, write_ep_xref, &file);
@@ -394,7 +406,9 @@ gint oh_uid_map_to_file(void)
  */
 static void write_ep_xref(gpointer key, gpointer value, gpointer file)
 {
-        write(*(int *)file, value, sizeof(EP_XREF));
+        if (write(*(int *)file, value, sizeof(EP_XREF)) != sizeof(EP_XREF)) {
+		dbg("write EP_XREF failed");
+	}
 }
 
 

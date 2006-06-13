@@ -653,7 +653,7 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 					autoevent.EventDataUnion.HotSwapEvent.HotSwapState =
 						resinfo2->cur_state = hs_event_auto_state;
 					
-					/* oh_print_event(&autoevent, 0); */
+					/* oh_print_event(&autoevent, NULL, 0); */
 					
 					/* Add event to event cache and HPI event queue */
 					err = oh_el_prepend(handle->elcache, &autoevent, NULL, rpt);

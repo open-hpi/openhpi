@@ -114,7 +114,7 @@ install-data-local: openhpi.pc openhpi.conf.example
 	chmod 777 $(DESTDIR)$(VARPATH)
 	$(mkinstalldirs) $(DESTDIR)$(sysconfdir)/openhpi
 	if test ! -e  $(DESTDIR)$(sysconfdir)/openhpi/openhpi.conf; then \
-		$(INSTALL_DATA) openhpi.conf.example $(DESTDIR)$(sysconfdir)/openhpi/openhpi.conf; \
+		$(INSTALL_DATA) $(top_srcdir)/openhpi.conf.example $(DESTDIR)$(sysconfdir)/openhpi/openhpi.conf; \
 	fi
 
 uninstall-local:

@@ -94,7 +94,7 @@ int main(int argc, char **argv)
         }
         
         // Test 8 - invalid ascii6 (has a null)
-        memset(buffer.Data, sizeof(*buffer.Data), 0);
+        memset(buffer.Data, 0, sizeof(*buffer.Data));
         fill_text_buffer(buffer, ASCII6T, "abc");
         buffer.DataLength++;
         if(oh_valid_textbuffer(&buffer)) {
@@ -102,7 +102,7 @@ int main(int argc, char **argv)
         }
 
         // Test 9 - invalid bcdplus (has a null)
-        memset(buffer.Data, sizeof(*buffer.Data), 0);
+        memset(buffer.Data, 0, sizeof(*buffer.Data));
         fill_text_buffer(buffer, BCDPLUST, "1234");
         buffer.DataLength++;
         if(oh_valid_textbuffer(&buffer)) {

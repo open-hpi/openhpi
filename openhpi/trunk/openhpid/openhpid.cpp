@@ -68,7 +68,7 @@ static void hashtablefreeentry(gpointer key, gpointer value, gpointer data);
 
 }
 
-#define CLIENT_TIMEOUT 1800  // 30 minutes
+#define CLIENT_TIMEOUT 0  // Unlimited
 #define PID_FILE "/var/run/openhpid.pid"
 
 static bool stop_server = FALSE;

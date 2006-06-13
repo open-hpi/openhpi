@@ -53,32 +53,32 @@ static struct oh_event *eventdup(const struct oh_event *event)
 
 static SaErrorT sim_create_resourcetag(SaHpiTextBufferT *buffer, const char *str, SaHpiEntityLocationT loc)
 {
-	char *locstr;
-	SaErrorT err = SA_OK;
-	SaHpiTextBufferT working;
+        char *locstr;
+        SaErrorT err = SA_OK;
+        SaHpiTextBufferT working;
 
-	if (!buffer || loc < SIM_HPI_LOCATION_BASE ||
-	    loc > (pow(10, OH_MAX_LOCATION_DIGITS) - 1)) {
-		return(SA_ERR_HPI_INVALID_PARAMS);
-	}
+        if (!buffer || loc < SIM_HPI_LOCATION_BASE ||
+            loc > (pow(10, OH_MAX_LOCATION_DIGITS) - 1)) {
+                return(SA_ERR_HPI_INVALID_PARAMS);
+        }
 
-	err = oh_init_textbuffer(&working);
-	if (err) { return(err); }
+        err = oh_init_textbuffer(&working);
+        if (err) { return(err); }
 
-	locstr = (gchar *)g_malloc0(OH_MAX_LOCATION_DIGITS + 1);
-	if (locstr == NULL) {
-		dbg("Out of memory.");
-		return(SA_ERR_HPI_OUT_OF_SPACE);
-	}
-	snprintf(locstr, OH_MAX_LOCATION_DIGITS + 1, " %d", loc);
+        locstr = (gchar *)g_malloc0(OH_MAX_LOCATION_DIGITS + 1);
+        if (locstr == NULL) {
+                dbg("Out of memory.");
+                return(SA_ERR_HPI_OUT_OF_SPACE);
+        }
+        snprintf(locstr, OH_MAX_LOCATION_DIGITS + 1, " %d", loc);
 
-	if (str) { oh_append_textbuffer(&working, str); }
-	err = oh_append_textbuffer(&working, locstr);
-	if (!err) {
-		err = oh_copy_textbuffer(buffer, &working);
-	}
-	g_free(locstr);
-	return(err);
+        if (str) { oh_append_textbuffer(&working, str); }
+        err = oh_append_textbuffer(&working, locstr);
+        if (!err) {
+                err = oh_copy_textbuffer(buffer, &working);
+        }
+        g_free(locstr);
+        return(err);
 }
 
 
@@ -117,10 +117,10 @@ struct oh_handler_state *sim_get_handler_by_name(char *name)
 SaErrorT sim_inject_resource(struct oh_handler_state *state,
                              SaHpiRptEntryT *data, void *privdata,
                              const char * comment) {
-	SaHpiEntityPathT root_ep;
-	SaHpiRptEntryT *res;
-	char *entity_root;
-	struct oh_event event;
+        SaHpiEntityPathT root_ep;
+        SaHpiRptEntryT *res;
+        char *entity_root;
+        struct oh_event event;
         struct simResourceInfo *privinfo;
         SaErrorT rc;
 
@@ -130,8 +130,8 @@ SaErrorT sim_inject_resource(struct oh_handler_state *state,
         }
 
         /* get the entity root */
-	entity_root = (char *)g_hash_table_lookup(state->config,"entity_root");
-	oh_encode_entitypath (entity_root, &root_ep);
+        entity_root = (char *)g_hash_table_lookup(state->config,"entity_root");
+        oh_encode_entitypath (entity_root, &root_ep);
 
         /* set up the rpt entry */
         res = g_malloc(sizeof(SaHpiRptEntryT));
@@ -160,7 +160,7 @@ SaErrorT sim_inject_resource(struct oh_handler_state *state,
         }
 
         /* perform the injection */
-        dbg("Injecting ResourceId %d", res->ResourceId);
+        trace("Injecting ResourceId %d", res->ResourceId);
         rc = oh_add_resource(state->rptcache, res, privdata, FREE_RPT_DATA);
         if (rc) {
                 dbg("Error %d injecting ResourceId %d", rc, res->ResourceId);
@@ -189,7 +189,7 @@ SaErrorT sim_inject_resource(struct oh_handler_state *state,
 // - no checking of the data is performed
 SaErrorT sim_inject_rdr(struct oh_handler_state *state, SaHpiResourceIdT resid,
                         SaHpiRdrT *rdr, void * privinfo) {
-	struct oh_event event;
+        struct oh_event event;
         SaErrorT rc;
 
         /* check arguments */
@@ -198,8 +198,8 @@ SaErrorT sim_inject_rdr(struct oh_handler_state *state, SaHpiResourceIdT resid,
         }
 
         /* perform the injection */
-        dbg("Injecting rdr for ResourceId %d", resid);
-	rc = oh_add_rdr(state->rptcache, resid, rdr, privinfo, 0);
+        trace("Injecting rdr for ResourceId %d", resid);
+        rc = oh_add_rdr(state->rptcache, resid, rdr, privinfo, 0);
         if (rc) {
                 dbg("Error %d injecting rdr for ResourceId %d", rc, resid);
                 return rc;
@@ -228,8 +228,8 @@ SaErrorT sim_inject_event(struct oh_handler_state *state, struct oh_event *data)
         }
 
         /* perform the injection */
-        dbg("Injecting event");
-	g_async_queue_push(state->eventq_async, data);
+        trace("Injecting event");
+        g_async_queue_push(state->eventq_async, data);
         return SA_OK;
 }
 
@@ -262,47 +262,47 @@ static gpointer injector_service_thread(gpointer data) {
                 }
                 switch (buf.mtype) {
                 case SIM_MSG_SENSOR_EVENT:
-                    dbg("processing sensor event");
+                    trace("processing sensor event");
                     process_sensor_event_msg(&buf);
                     break;
                 case SIM_MSG_SENSOR_ENABLE_CHANGE_EVENT:
-                    dbg("processing sensor enable change event");
+                    trace("processing sensor enable change event");
                     process_sensor_enable_change_event_msg(&buf);
                     break;
                 case SIM_MSG_HOT_SWAP_EVENT:
-                    dbg("processing hot swap event");
+                    trace("processing hot swap event");
                     process_hot_swap_event_msg(&buf);
                     break;
                 case SIM_MSG_WATCHDOG_EVENT:
-                    dbg("processing watchdog event");
+                    trace("processing watchdog event");
                     process_watchdog_event_msg(&buf);
                     break;
                 case SIM_MSG_SW_EVENT:
-                    dbg("processing sw event");
+                    trace("processing sw event");
                     process_sw_event_msg(&buf);
                     break;
                 case SIM_MSG_OEM_EVENT:
-                    dbg("processing oem event");
+                    trace("processing oem event");
                     process_oem_event_msg(&buf);
                     break;
                 case SIM_MSG_USER_EVENT:
-                    dbg("processing user event");
+                    trace("processing user event");
                     process_user_event_msg(&buf);
                     break;
                 case SIM_MSG_RESOURCE_EVENT:
-                    dbg("processing resource event");
+                    trace("processing resource event");
                     process_resource_event_msg(&buf);
                     break;
                 case SIM_MSG_DOMAIN_EVENT:
-                    dbg("processing domain event");
+                    trace("processing domain event");
                     process_domain_event_msg(&buf);
                     break;
                 case SIM_MSG_RESOURCE_ADD_EVENT:
-                    dbg("processing resource add event");
+                    trace("processing resource add event");
                     process_resource_add_event_msg(&buf);
                     break;
                 case SIM_MSG_RDR_ADD_EVENT:
-                    dbg("processing rdr add event");
+                    trace("processing rdr add event");
                     process_rdr_add_event_msg(&buf);
                     break;
                 default:
@@ -368,7 +368,7 @@ static void process_sensor_event_msg(SIM_MSG_QUEUE_BUF *buf) {
         struct oh_event ohevent;
         char *value;
 
-        memset(&ohevent, sizeof(struct oh_event), 0);
+        memset(&ohevent, 0, sizeof(struct oh_event));
         ohevent.did = oh_get_default_domain_id();
         ohevent.type = OH_ET_HPI;
 
@@ -626,7 +626,7 @@ static void process_sensor_enable_change_event_msg(SIM_MSG_QUEUE_BUF *buf) {
         struct oh_event ohevent;
         char *value;
 
-        memset(&ohevent, sizeof(struct oh_event), 0);
+        memset(&ohevent, 0, sizeof(struct oh_event));
         ohevent.did = oh_get_default_domain_id();
         ohevent.type = OH_ET_HPI;
 
@@ -783,7 +783,7 @@ static void process_hot_swap_event_msg(SIM_MSG_QUEUE_BUF *buf) {
         struct oh_event ohevent;
         char *value;
 
-        memset(&ohevent, sizeof(struct oh_event), 0);
+        memset(&ohevent, 0, sizeof(struct oh_event));
         ohevent.did = oh_get_default_domain_id();
         ohevent.type = OH_ET_HPI;
 
@@ -872,7 +872,7 @@ static void process_watchdog_event_msg(SIM_MSG_QUEUE_BUF *buf) {
         struct oh_event ohevent;
         char *value;
 
-        memset(&ohevent, sizeof(struct oh_event), 0);
+        memset(&ohevent, 0, sizeof(struct oh_event));
         ohevent.did = oh_get_default_domain_id();
         ohevent.type = OH_ET_HPI;
 
@@ -984,7 +984,7 @@ static void process_sw_event_msg(SIM_MSG_QUEUE_BUF *buf) {
         struct oh_event ohevent;
         char *value;
 
-        memset(&ohevent, sizeof(struct oh_event), 0);
+        memset(&ohevent, 0, sizeof(struct oh_event));
         ohevent.did = oh_get_default_domain_id();
         ohevent.type = OH_ET_HPI;
 
@@ -1085,7 +1085,7 @@ static void process_oem_event_msg(SIM_MSG_QUEUE_BUF *buf) {
         struct oh_event ohevent;
         char *value;
 
-        memset(&ohevent, sizeof(struct oh_event), 0);
+        memset(&ohevent, 0, sizeof(struct oh_event));
         ohevent.did = oh_get_default_domain_id();
         ohevent.type = OH_ET_HPI;
 
@@ -1177,7 +1177,7 @@ static void process_user_event_msg(SIM_MSG_QUEUE_BUF *buf) {
         struct oh_event ohevent;
         char *value;
 
-        memset(&ohevent, sizeof(struct oh_event), 0);
+        memset(&ohevent, 0, sizeof(struct oh_event));
         ohevent.did = oh_get_default_domain_id();
         ohevent.type = OH_ET_HPI;
 
@@ -1260,7 +1260,7 @@ static void process_resource_event_msg(SIM_MSG_QUEUE_BUF *buf) {
         struct oh_event ohevent;
         char *value;
 
-        memset(&ohevent, sizeof(struct oh_event), 0);
+        memset(&ohevent, 0, sizeof(struct oh_event));
         ohevent.did = oh_get_default_domain_id();
         ohevent.type = OH_ET_HPI;
 
@@ -1337,7 +1337,7 @@ static void process_domain_event_msg(SIM_MSG_QUEUE_BUF *buf) {
         struct oh_event ohevent;
         char *value;
 
-        memset(&ohevent, sizeof(struct oh_event), 0);
+        memset(&ohevent, 0, sizeof(struct oh_event));
         ohevent.did = oh_get_default_domain_id();
         ohevent.type = OH_ET_HPI;
 
@@ -1404,7 +1404,7 @@ static void process_resource_add_event_msg(SIM_MSG_QUEUE_BUF *buf) {
         char *comment;
         SaErrorT rc;
 
-        memset(&data, sizeof(data), 0);
+        memset(&data, 0, sizeof(data));
 
         /* get the handler state */
         value = find_value(SIM_MSG_HANDLER_NAME, buf->mtext);
@@ -1424,7 +1424,7 @@ static void process_resource_add_event_msg(SIM_MSG_QUEUE_BUF *buf) {
                 dbg("invalid SIM_MSG_HANDLER_NAME");
                 return;
         }
-	rc = oh_encode_entitypath (value, &data.ResourceEntity);
+        rc = oh_encode_entitypath (value, &data.ResourceEntity);
         if (rc) {
                 dbg("bad return code %d from oh_encode_entitypath()", rc);
                 return;
@@ -1529,10 +1529,10 @@ static void process_rdr_add_event_msg(SIM_MSG_QUEUE_BUF *buf) {
         struct simWatchdogInfo *wdinfo = NULL;
         struct sim_inventory_info *idrinfo;
         struct sim_control_info *ctrlinfo;
-	struct SensorInfo *sinfo;  // our extra info
+        struct SensorInfo *sinfo;  // our extra info
         SaErrorT rc;
 
-        memset(&data, sizeof(data), 0);
+        memset(&data, 0, sizeof(data));
 
         /* get the handler state */
         value = find_value(SIM_MSG_HANDLER_NAME, buf->mtext);
@@ -1559,7 +1559,7 @@ static void process_rdr_add_event_msg(SIM_MSG_QUEUE_BUF *buf) {
                 dbg("invalid SIM_MSG_RDR_ENTITYPATH");
                 return;
         }
-	rc = oh_encode_entitypath (value, &data.Entity);
+        rc = oh_encode_entitypath (value, &data.Entity);
         if (rc) {
                 dbg("bad return code %d from oh_encode_entitypath()", rc);
                 return;

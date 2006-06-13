@@ -150,7 +150,9 @@ static void watchdog_close(void *hnd)
 
         wdt = tmp->data;
 	if (wdt->data.Running) {
-		write(wdt->fd, "V", 1);
+		if (write(wdt->fd, "V", 1) != 1) {
+                    dbg("write in watchdog failed");
+		}
 		close(wdt->fd);
 	}
 
@@ -242,13 +244,17 @@ static int watchdog_discover_resources(void *hnd)
                 /* before it is too late                           */
 		if ( -1 == ioctl(wdt->fd, WDIOC_SETTIMEOUT, &timeout)) {
 			dbg("unable to set watchdog timeout");
-			write(wdt->fd, "V", 1);
+			if (write(wdt->fd, "V", 1) != 1) {
+				dbg("write in watchdog failed");
+			}
 			close(wdt->fd);
 			return 0;
 		}
 		if ( -1 == ioctl(wdt->fd, WDIOC_GETTIMEOUT, &timeout)) {
 			dbg("unable to read watchdog timeout");
-			write(wdt->fd, "V", 1);
+			if (write(wdt->fd, "V", 1) != 1) {
+				dbg("write in watchdog failed");
+			}
 			close(wdt->fd);
 			return 0;
 		}

@@ -55,7 +55,7 @@ int main(int argc, char **argv)
         }
 
         /* print the event info */
-        oh_print_event(&event, 0);
+        oh_print_event(&event, &rdr.Entity, 0);
         oh_print_rptentry(&rpt, 0);
         oh_print_rdr(&rdr, 0);
         printf("\n\n");

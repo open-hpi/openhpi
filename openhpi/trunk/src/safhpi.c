@@ -69,6 +69,7 @@ SaErrorT SAHPI_API saHpiSessionOpen(
                 return SA_ERR_HPI_INVALID_DOMAIN;
         }
 
+        trace("Created session %d for domain %d", sid, did);
         *SessionId = sid;
 
         return SA_OK;
@@ -91,7 +92,7 @@ SaErrorT SAHPI_API saHpiDiscover(
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
 
-        
+
         /* This will wake the discovery thread up
          * and wait until it does a round throughout the
          * plugin instances. If the thread is already running,
@@ -441,8 +442,8 @@ SaErrorT SAHPI_API saHpiResourceIdGet(
         rptentry = oh_get_resource_by_ep(&(d->rpt), &ep_param.u.on_ep);
         if (!rptentry) {
                 oh_release_domain(d); /* Unlock domain */
-		dbg("Could not get resource id we are running in."
-		    "It is probably not set in openhpi.conf (OPENHPI_ON_EP).");
+                dbg("Could not get resource id we are running in."
+                    "It is probably not set in openhpi.conf (OPENHPI_ON_EP).");
                 return SA_ERR_HPI_UNKNOWN;
         }
 
@@ -1048,6 +1049,7 @@ SaErrorT SAHPI_API saHpiEventGet (
         }
 
         /* See if there is already an event in the queue */
+        trace("Getting event from session %d queue.", SessionId);
         error = oh_dequeue_session_event(SessionId,
                                          SAHPI_TIMEOUT_IMMEDIATE,
                                          &e, &qstatus1);
@@ -1055,11 +1057,16 @@ SaErrorT SAHPI_API saHpiEventGet (
         if (error) { /* If queue empty then fetch more events */
                 oh_wake_event_thread(SAHPI_TRUE);
                 /* Sent for more events. Ready to wait on queue. */
+                trace("Trying getting event again from session %d queue.", SessionId);
                 error = oh_dequeue_session_event(SessionId, Timeout,
                                                  &e, &qstatus2);
         }
         /* If no events after trying to fetch them, return error */
-        if (error) return error;
+        if (error) {
+                dbg("No events in session's %d queue: %s",
+                    SessionId, oh_lookup_error(error));
+                return error;
+        }
 
         /* If there was overflow before or after getting events, return it */
         if (EventQueueStatus)
@@ -1267,9 +1274,9 @@ SaErrorT SAHPI_API saHpiAlarmAdd(
         OH_CHECK_INIT_STATE(SessionId);
 
         if (!Alarm ||
-		!((Alarm->Severity == SAHPI_CRITICAL) ||
-		  (Alarm->Severity == SAHPI_MAJOR) ||
-		  (Alarm->Severity == SAHPI_MINOR)) ||
+                !((Alarm->Severity == SAHPI_CRITICAL) ||
+                  (Alarm->Severity == SAHPI_MAJOR) ||
+                  (Alarm->Severity == SAHPI_MINOR)) ||
             (Alarm->AlarmCond.Type != SAHPI_STATUS_COND_TYPE_USER))
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -2658,10 +2665,10 @@ SaErrorT SAHPI_API saHpiIdrFieldSet(
         } else if (Field->Type > SAHPI_IDR_FIELDTYPE_CUSTOM) {
                 dbg("Invalid Parameters in Field->Type");
                 return SA_ERR_HPI_INVALID_PARAMS;
-	} else if (!oh_valid_textbuffer(&Field->Field)) {
-		dbg("Invalid Text Buffer in field.");
-		return SA_ERR_HPI_INVALID_PARAMS;
-	}
+        } else if (!oh_valid_textbuffer(&Field->Field)) {
+                dbg("Invalid Text Buffer in field.");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
 
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
@@ -3104,9 +3111,9 @@ SaErrorT SAHPI_API saHpiAnnunciatorAdd(
         if (Announcement == NULL) return SA_ERR_HPI_INVALID_PARAMS;
 
         if (Announcement->Severity == SAHPI_ALL_SEVERITIES ||
-	    !oh_lookup_severity(Announcement->Severity) ||
+            !oh_lookup_severity(Announcement->Severity) ||
             !oh_valid_textbuffer(&Announcement->StatusCond.Data) ||
-	    !oh_lookup_statuscondtype(Announcement->StatusCond.Type))
+            !oh_lookup_statuscondtype(Announcement->StatusCond.Type))
                 return SA_ERR_HPI_INVALID_PARAMS;
 
         OH_CHECK_INIT_STATE(SessionId);
@@ -3417,7 +3424,7 @@ SaErrorT SAHPI_API saHpiHotSwapPolicyCancel (
         OH_HANDLER_GET(d, ResourceId, h);
         timeout = d->ai_timeout;
         oh_release_domain(d); /* Unlock domain */
-        
+
         hotswap_policy_cancel = h ? h->abi->hotswap_policy_cancel : NULL;
         if (hotswap_policy_cancel) {
                 rv = hotswap_policy_cancel(h->hnd, ResourceId, timeout);
@@ -3624,7 +3631,7 @@ SaErrorT SAHPI_API saHpiAutoInsertTimeoutSet(
         if (domain->capabilities & SAHPI_DOMAIN_CAP_AUTOINSERT_READ_ONLY) {
                 return SA_ERR_HPI_READ_ONLY;
         }
-        
+
         oh_getnext_handler_id(hid, &next_hid);
         while (next_hid) {
                 hid = next_hid;
@@ -3647,14 +3654,14 @@ SaErrorT SAHPI_API saHpiAutoInsertTimeoutSet(
                 }
                 oh_getnext_handler_id(hid, &next_hid);
         }
-        
+
         if (res != SA_OK) {
                 oh_release_domain(domain);
                 return res;
         }
-        
+
         set_hotswap_auto_insert_timeout(domain, Timeout);
-        
+
         oh_release_domain(domain);
 
         return SA_OK;
