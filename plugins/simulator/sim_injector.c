@@ -368,7 +368,7 @@ static void process_sensor_event_msg(SIM_MSG_QUEUE_BUF *buf) {
         struct oh_event ohevent;
         char *value;
 
-        memset(&ohevent, sizeof(struct oh_event), 0);
+        memset(&ohevent, 0, sizeof(struct oh_event));
         ohevent.did = oh_get_default_domain_id();
         ohevent.type = OH_ET_HPI;
 
@@ -626,7 +626,7 @@ static void process_sensor_enable_change_event_msg(SIM_MSG_QUEUE_BUF *buf) {
         struct oh_event ohevent;
         char *value;
 
-        memset(&ohevent, sizeof(struct oh_event), 0);
+        memset(&ohevent, 0, sizeof(struct oh_event));
         ohevent.did = oh_get_default_domain_id();
         ohevent.type = OH_ET_HPI;
 
@@ -783,7 +783,7 @@ static void process_hot_swap_event_msg(SIM_MSG_QUEUE_BUF *buf) {
         struct oh_event ohevent;
         char *value;
 
-        memset(&ohevent, sizeof(struct oh_event), 0);
+        memset(&ohevent, 0, sizeof(struct oh_event));
         ohevent.did = oh_get_default_domain_id();
         ohevent.type = OH_ET_HPI;
 
@@ -872,7 +872,7 @@ static void process_watchdog_event_msg(SIM_MSG_QUEUE_BUF *buf) {
         struct oh_event ohevent;
         char *value;
 
-        memset(&ohevent, sizeof(struct oh_event), 0);
+        memset(&ohevent, 0, sizeof(struct oh_event));
         ohevent.did = oh_get_default_domain_id();
         ohevent.type = OH_ET_HPI;
 
@@ -984,7 +984,7 @@ static void process_sw_event_msg(SIM_MSG_QUEUE_BUF *buf) {
         struct oh_event ohevent;
         char *value;
 
-        memset(&ohevent, sizeof(struct oh_event), 0);
+        memset(&ohevent, 0, sizeof(struct oh_event));
         ohevent.did = oh_get_default_domain_id();
         ohevent.type = OH_ET_HPI;
 
@@ -1085,7 +1085,7 @@ static void process_oem_event_msg(SIM_MSG_QUEUE_BUF *buf) {
         struct oh_event ohevent;
         char *value;
 
-        memset(&ohevent, sizeof(struct oh_event), 0);
+        memset(&ohevent, 0, sizeof(struct oh_event));
         ohevent.did = oh_get_default_domain_id();
         ohevent.type = OH_ET_HPI;
 
@@ -1177,7 +1177,7 @@ static void process_user_event_msg(SIM_MSG_QUEUE_BUF *buf) {
         struct oh_event ohevent;
         char *value;
 
-        memset(&ohevent, sizeof(struct oh_event), 0);
+        memset(&ohevent, 0, sizeof(struct oh_event));
         ohevent.did = oh_get_default_domain_id();
         ohevent.type = OH_ET_HPI;
 
@@ -1260,7 +1260,7 @@ static void process_resource_event_msg(SIM_MSG_QUEUE_BUF *buf) {
         struct oh_event ohevent;
         char *value;
 
-        memset(&ohevent, sizeof(struct oh_event), 0);
+        memset(&ohevent, 0, sizeof(struct oh_event));
         ohevent.did = oh_get_default_domain_id();
         ohevent.type = OH_ET_HPI;
 
@@ -1337,7 +1337,7 @@ static void process_domain_event_msg(SIM_MSG_QUEUE_BUF *buf) {
         struct oh_event ohevent;
         char *value;
 
-        memset(&ohevent, sizeof(struct oh_event), 0);
+        memset(&ohevent, 0, sizeof(struct oh_event));
         ohevent.did = oh_get_default_domain_id();
         ohevent.type = OH_ET_HPI;
 
@@ -1404,7 +1404,7 @@ static void process_resource_add_event_msg(SIM_MSG_QUEUE_BUF *buf) {
         char *comment;
         SaErrorT rc;
 
-        memset(&data, sizeof(data), 0);
+        memset(&data, 0, sizeof(data));
 
         /* get the handler state */
         value = find_value(SIM_MSG_HANDLER_NAME, buf->mtext);
@@ -1532,7 +1532,7 @@ static void process_rdr_add_event_msg(SIM_MSG_QUEUE_BUF *buf) {
         struct SensorInfo *sinfo;  // our extra info
         SaErrorT rc;
 
-        memset(&data, sizeof(data), 0);
+        memset(&data, 0, sizeof(data));
 
         /* get the handler state */
         value = find_value(SIM_MSG_HANDLER_NAME, buf->mtext);
