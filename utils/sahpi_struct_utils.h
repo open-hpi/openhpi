@@ -24,9 +24,9 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif 
+#endif
 
-/*********************** 
+/***********************
  * Text buffer utilities
  ***********************/
 SaErrorT oh_init_textbuffer(SaHpiTextBufferT *buffer);
@@ -39,11 +39,11 @@ SaErrorT oh_fprint_text(FILE *stream, const SaHpiTextBufferT *buffer);
 
 /* Same as SaHpiTextBufferT, only more Data */
 #define OH_MAX_TEXT_BUFFER_LENGTH 2048
-typedef struct {   
-	SaHpiTextTypeT  DataType;
-	SaHpiLanguageT  Language;
-	SaHpiUint16T    DataLength;
-	SaHpiUint8T     Data[OH_MAX_TEXT_BUFFER_LENGTH];
+typedef struct {
+        SaHpiTextTypeT  DataType;
+        SaHpiLanguageT  Language;
+        SaHpiUint16T    DataLength;
+        SaHpiUint8T     Data[OH_MAX_TEXT_BUFFER_LENGTH];
 } oh_big_textbuffer;
 
 SaErrorT oh_init_bigtext(oh_big_textbuffer *big_buffer);
@@ -54,50 +54,50 @@ SaErrorT oh_copy_bigtext(oh_big_textbuffer *dest, const oh_big_textbuffer *from)
 #define oh_print_bigtext(bigbuf_ptr) oh_fprint_bigtext(stdout, bigbuf_ptr)
 SaErrorT oh_fprint_bigtext(FILE *stream, const oh_big_textbuffer *big_buffer);
 
-/************************************ 
+/************************************
  * HPI structure to string conversion
  ************************************/
 SaErrorT oh_decode_manufacturerid(SaHpiManufacturerIdT value,
-				  SaHpiTextBufferT *buffer);
+                                  SaHpiTextBufferT *buffer);
 
 SaErrorT oh_decode_sensorreading(SaHpiSensorReadingT reading,
                                  SaHpiSensorDataFormatT format,
-				 SaHpiTextBufferT *buffer);
+                                 SaHpiTextBufferT *buffer);
 
 SaErrorT oh_encode_sensorreading(SaHpiTextBufferT *buffer,
-				 SaHpiSensorReadingTypeT type,
-				 SaHpiSensorReadingT *reading);
+                                 SaHpiSensorReadingTypeT type,
+                                 SaHpiSensorReadingT *reading);
 
 SaErrorT oh_decode_capabilities(SaHpiCapabilitiesT ResourceCapabilities,
-				SaHpiTextBufferT *buffer);
+                                SaHpiTextBufferT *buffer);
 
 SaErrorT oh_decode_hscapabilities(SaHpiHsCapabilitiesT HsCapabilities,
-				  SaHpiTextBufferT *buffer);
+                                  SaHpiTextBufferT *buffer);
 
 SaErrorT oh_decode_sensoroptionaldata(SaHpiSensorOptionalDataT sensor_opt_data,
-				      SaHpiTextBufferT *buffer);
+                                      SaHpiTextBufferT *buffer);
 
 SaErrorT oh_decode_sensorenableoptdata(SaHpiSensorEnableOptDataT sensor_enable_opt_data,
-				       SaHpiTextBufferT *buffer);
+                                       SaHpiTextBufferT *buffer);
 
-/************************* 
+/*************************
  * Validate HPI structures
  *************************/
 SaHpiBoolT oh_valid_textbuffer(SaHpiTextBufferT *buffer);
 
 SaErrorT oh_valid_thresholds(SaHpiSensorThresholdsT *thds,
-			     SaHpiRdrT *rdr);
+                             SaHpiRdrT *rdr);
 
 SaErrorT oh_valid_ctrl_state_mode(SaHpiCtrlRecT *ctrl_rdr,
-				  SaHpiCtrlModeT mode,
-				  SaHpiCtrlStateT *state);
+                                  SaHpiCtrlModeT mode,
+                                  SaHpiCtrlStateT *state);
 
-/************************ 
+/************************
  * Compare HPI structures
  ************************/
 int oh_compare_sensorreading(SaHpiSensorReadingTypeT type,
-			     SaHpiSensorReadingT *reading1,
-			     SaHpiSensorReadingT *reading2);
+                             SaHpiSensorReadingT *reading1,
+                             SaHpiSensorReadingT *reading2);
 
 /***************************
  * Print HPI data structures
@@ -106,9 +106,12 @@ int oh_compare_sensorreading(SaHpiSensorReadingTypeT type,
 
 SaErrorT oh_append_offset(oh_big_textbuffer *buffer, int offsets);
 
-#define oh_print_event(event_ptr, offsets) oh_fprint_event(stdout, event_ptr, offsets)
-SaErrorT oh_fprint_event(FILE *stream, const SaHpiEventT *event, int offsets);
-  
+#define oh_print_event(event_ptr, ep, offsets) oh_fprint_event(stdout, event_ptr, ep, offsets)
+SaErrorT oh_fprint_event(FILE *stream,
+                         const SaHpiEventT *event,
+                         const SaHpiEntityPathT *entitypath,
+                         int offsets);
+
 #define oh_print_idrfield(thisfield, offsets) oh_fprint_idrfield(stdout, thisfield, offsets)
 SaErrorT oh_fprint_idrfield(FILE *stream, const SaHpiIdrFieldT *thisfield, int offsets);
 
@@ -139,18 +142,21 @@ SaErrorT oh_fprint_watchdogrec(FILE *stream, const SaHpiWatchdogRecT *watchdog, 
 #define oh_print_eventloginfo(elinfo_ptr, offsets) oh_fprint_eventloginfo(stdout, elinfo_ptr, offsets)
 SaErrorT oh_fprint_eventloginfo(FILE *stream, const SaHpiEventLogInfoT *thiselinfo, int offsets);
 
-#define oh_print_eventlogentry(eventlog_ptr, offsets) oh_fprint_eventlogentry(stdout, eventlog_ptr, offsets)
-SaErrorT oh_fprint_eventlogentry(FILE *stream, const SaHpiEventLogEntryT *thiseventlog, int offsets);
+#define oh_print_eventlogentry(eventlog_ptr, ep, offsets) oh_fprint_eventlogentry(stdout, eventlog_ptr, ep, offsets)
+SaErrorT oh_fprint_eventlogentry(FILE *stream,
+                                 const SaHpiEventLogEntryT *thiseventlog,
+                                 const SaHpiEntityPathT *entitypath,
+                                 int offsets);
 
 #define oh_print_ctrlstate(ctrlstate_ptr, offsets) oh_fprint_ctrlstate(stdout, ctrlstate_ptr, offsets)
 SaErrorT oh_fprint_ctrlstate(FILE *stream, const SaHpiCtrlStateT *thisctrlstate, int offsets);
 
-SaErrorT oh_build_event(oh_big_textbuffer *buffer, const SaHpiEventT *event, int offsets);
+SaErrorT oh_build_event(oh_big_textbuffer *buffer, const SaHpiEventT *event, const SaHpiEntityPathT *entitypath, int offsets);
 SaErrorT oh_build_threshold_mask(oh_big_textbuffer *buffer, const SaHpiSensorThdMaskT tmask, int offsets);
 
 
 #ifdef __cplusplus
 }
 #endif
- 
+
 #endif

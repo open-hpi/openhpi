@@ -297,12 +297,12 @@ SaErrorT display_el(SaHpiSessionIdT sid, SaHpiResourceIdT rid, SaHpiTextBufferT 
                 error = saHpiEventLogEntryGet(sid, rid,
                                               entryid, &preventryid,
                                               &nextentryid, &elentry,
-                                              (opts.rdr) ? &rdr : NULL,
-                                              (opts.resource) ? &res : NULL);
+                                              &rdr,
+                                              &res);
 
                 dbg("saHpiEventLogEntryGet() returned %s\n", oh_lookup_error(error));
                 if (error == SA_OK) {
-                        oh_print_eventlogentry(&elentry, 6);
+                        oh_print_eventlogentry(&elentry, (rdr.RdrType != SAHPI_NO_RECORD) ? &rdr.Entity : NULL, 6);
                         if (opts.rdr) {
                                 if (rdr.RdrType == SAHPI_NO_RECORD)
                                         printf("            No RDR associated with EventType =  %s\n\n",

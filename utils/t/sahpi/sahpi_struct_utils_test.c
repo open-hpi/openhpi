@@ -926,7 +926,7 @@ int main(int argc, char **argv)
 		/* oh_print_event: Bad parameter testcase */
 		expected_err = SA_ERR_HPI_INVALID_PARAMS;
 
-		err = oh_print_event(0, 0);
+		err = oh_print_event(0, NULL, 0);
 		if (err != expected_err) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d; Expected error=%d\n", err, expected_err);
@@ -935,7 +935,7 @@ int main(int argc, char **argv)
 		
 		/* oh_print_event: Default event testcase */
 		printf("Default Event\n");
-		err = oh_print_event(&default_event, 1);
+		err = oh_print_event(&default_event, NULL, 1);
 		if (err) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
@@ -944,7 +944,7 @@ int main(int argc, char **argv)
 
 		/* oh_print_event: Normal sensor event testcase */
 		printf("Normal Sensor Event\n");
-		err = oh_print_event(&sensor_event, 1);
+		err = oh_print_event(&sensor_event, NULL, 1);
 		if (err) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
@@ -954,7 +954,7 @@ int main(int argc, char **argv)
 		/* oh_print_event: Normal sensor event - no optional sensor data testcase */
 		printf("Normal Sensor Event - no optional sensor data\n");
 		sensor_event.EventDataUnion.SensorEvent.OptionalDataPresent = 0;
-		err = oh_print_event(&sensor_event, 1);
+		err = oh_print_event(&sensor_event, NULL, 1);
 		if (err) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
@@ -974,7 +974,7 @@ int main(int argc, char **argv)
 
 			/*  oh_print_event: Zero resource event testcase */
 			printf("Default Resource Event - no data\n");
-			err = oh_print_event(&default_resource_event, 1);
+			err = oh_print_event(&default_resource_event, NULL, 1);
 			if (err) {
 				printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 				printf("  Received error=%d\n", err);
@@ -984,7 +984,7 @@ int main(int argc, char **argv)
 			/* oh_print_event: Normal resource event testcase */
 			default_resource_event.EventDataUnion.ResourceEvent.ResourceEventType = SAHPI_RESE_RESOURCE_RESTORED;
 			printf("Normal Resource Event\n");
-			err = oh_print_event(&default_resource_event, 1);
+			err = oh_print_event(&default_resource_event, NULL, 1);
 			if (err) {
 				printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 				printf("  Received error=%d\n", err);
@@ -1005,7 +1005,7 @@ int main(int argc, char **argv)
 
 			/*  oh_print_event: Zero domain event testcase */
 			printf("Default Domain Event - no data\n");
-			err = oh_print_event(&default_domain_event, 1);
+			err = oh_print_event(&default_domain_event, NULL, 1);
 			if (err) {
 				printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 				printf("  Received error=%d\n", err);
@@ -1016,7 +1016,7 @@ int main(int argc, char **argv)
 			default_domain_event.EventDataUnion.DomainEvent.Type = SAHPI_DOMAIN_REF_ADDED;
 			default_domain_event.EventDataUnion.DomainEvent.DomainId = 1;
 			printf("Normal Domain Event\n");
-			err = oh_print_event(&default_domain_event, 1);
+			err = oh_print_event(&default_domain_event, NULL, 1);
 			if (err) {
 				printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 				printf("  Received error=%d\n", err);
@@ -1037,7 +1037,7 @@ int main(int argc, char **argv)
 
 			/*  oh_print_event: Zero sensor enable event testcase */
 			printf("Default Sensor Enable Event - no data\n");
-			err = oh_print_event(&default_sensor_enable_event, 1);
+			err = oh_print_event(&default_sensor_enable_event, NULL, 1);
 			if (err) {
 				printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 				printf("  Received error=%d\n", err);
@@ -1058,7 +1058,7 @@ int main(int argc, char **argv)
 			default_sensor_enable_event.EventDataUnion.SensorEnableChangeEvent.CurrentState = SAHPI_ES_LOWER_MINOR;
 
 			printf("Normal sensor enable Event\n");
-			err = oh_print_event(&default_sensor_enable_event, 1);
+			err = oh_print_event(&default_sensor_enable_event, NULL, 1);
 			if (err) {
 				printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 				printf("  Received error=%d\n", err);
@@ -1079,7 +1079,7 @@ int main(int argc, char **argv)
 
 			/*  oh_print_event: Zero hotswap event testcase */
 			printf("Default Hotswap Event - no data\n");
-			err = oh_print_event(&default_hotswap_event, 1);
+			err = oh_print_event(&default_hotswap_event, NULL, 1);
 			if (err) {
 				printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 				printf("  Received error=%d\n", err);
@@ -1091,7 +1091,7 @@ int main(int argc, char **argv)
 			default_hotswap_event.EventDataUnion.HotSwapEvent.PreviousHotSwapState = SAHPI_HS_STATE_INSERTION_PENDING;
 
 			printf("Normal Hotswap Event\n");
-			err = oh_print_event(&default_hotswap_event, 1);
+			err = oh_print_event(&default_hotswap_event, NULL, 1);
 			if (err) {
 				printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 				printf("  Received error=%d\n", err);
@@ -1112,7 +1112,7 @@ int main(int argc, char **argv)
 
 			/*  oh_print_event: Zero watchdog event testcase */
 			printf("Default Watchdog Event - no data\n");
-			err = oh_print_event(&default_watchdog_event, 1);
+			err = oh_print_event(&default_watchdog_event, NULL, 1);
 			if (err) {
 				printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 				printf("  Received error=%d\n", err);
@@ -1126,7 +1126,7 @@ int main(int argc, char **argv)
 			default_watchdog_event.EventDataUnion.WatchdogEvent.WatchdogUse = SAHPI_WTU_OEM;
 
 			printf("Normal Watchdog Event\n");
-			err = oh_print_event(&default_watchdog_event, 1);
+			err = oh_print_event(&default_watchdog_event, NULL, 1);
 			if (err) {
 				printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 				printf("  Received error=%d\n", err);
@@ -1147,7 +1147,7 @@ int main(int argc, char **argv)
 
 			/*  oh_print_event: Zero HPI software event testcase */
 			printf("Default HPI Software Event - no data\n");
-			err = oh_print_event(&default_hpisw_event, 1);
+			err = oh_print_event(&default_hpisw_event, NULL, 1);
 			if (err) {
 				printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 				printf("  Received error=%d\n", err);
@@ -1165,7 +1165,7 @@ int main(int argc, char **argv)
 				strlen("HPI software event"));
 
 			printf("Normal HPI Sotware Event\n");
-			err = oh_print_event(&default_hpisw_event, 1);
+			err = oh_print_event(&default_hpisw_event, NULL, 1);
 			if (err) {
 				printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 				printf("  Received error=%d\n", err);
@@ -1186,7 +1186,7 @@ int main(int argc, char **argv)
 
 			/*  oh_print_event: Zero OEM event testcase */
 			printf("Default OEM Event - no data\n");
-			err = oh_print_event(&default_oem_event, 1);
+			err = oh_print_event(&default_oem_event, NULL, 1);
 			if (err) {
 				printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 				printf("  Received error=%d\n", err);
@@ -1203,7 +1203,7 @@ int main(int argc, char **argv)
 				strlen("OEM Event"));
 
 			printf("Normal OEM Event\n");
-			err = oh_print_event(&default_oem_event, 1);
+			err = oh_print_event(&default_oem_event, NULL, 1);
 			if (err) {
 				printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 				printf("  Received error=%d\n", err);
@@ -1224,7 +1224,7 @@ int main(int argc, char **argv)
 
 			/*  oh_print_event: Zero User event testcase */
 			printf("Default User Event - no data\n");
-			err = oh_print_event(&default_user_event, 1);
+			err = oh_print_event(&default_user_event, NULL, 1);
 			if (err) {
 				printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 				printf("  Received error=%d\n", err);
@@ -1240,7 +1240,7 @@ int main(int argc, char **argv)
 				strlen("User Event"));
 
 			printf("Normal User Event\n");
-			err = oh_print_event(&default_user_event, 1);
+			err = oh_print_event(&default_user_event, NULL, 1);
 			if (err) {
 				printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 				printf("  Received error=%d\n", err);
