@@ -110,7 +110,9 @@ int main(int argc, char **argv)
 
 	if (findate) {
 		if (fdebug) printf("New date to be set: %s\n",i_newdate);
-	        sscanf(i_newdate,"%2d/%2d/%4d", &month, &day, &year);
+	        if (sscanf(i_newdate,"%2d/%2d/%4d", &month, &day, &year) < 8) {
+			printf("%s: Invalid date\n", argv[0]);
+		}
 		/* check month, day and year for correctness */
 		if ((month < 1) || (month > 12)) {
 			printf("%s: Month out of range: (%d)\n", argv[0], month);
@@ -141,8 +143,10 @@ int main(int argc, char **argv)
 
 	if (fintime) {
 		if (fdebug)  printf("New time to be set:  %s\n",i_newtime);
-	        sscanf(i_newtime,"%2d:%2d:%2d",
-                  &new_tm_time.tm_hour, &new_tm_time.tm_min, &new_tm_time.tm_sec);
+	        if (sscanf(i_newtime,"%2d:%2d:%2d",
+                  &new_tm_time.tm_hour, &new_tm_time.tm_min, &new_tm_time.tm_sec) < 6) {
+			printf("%s: Invalid time\n", argv[0]);
+		}
 		/* check hours, minutes and seconds for correctness */
 		if ((new_tm_time.tm_hour < 0) || (new_tm_time.tm_hour > 24)) {
 			printf("%s: Hours out of range: (%d)\n", argv[0], new_tm_time.tm_hour);
