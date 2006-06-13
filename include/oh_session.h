@@ -29,6 +29,7 @@
  */
 struct oh_session_table {
         GHashTable *table;
+        GSList *list;
         GStaticRecMutex lock;
 };
 

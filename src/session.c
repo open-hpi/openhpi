@@ -92,7 +92,7 @@ SaHpiSessionIdT oh_create_session(SaHpiDomainIdT did)
         g_static_rec_mutex_lock(&oh_sessions.lock); /* Locked session table */
         session->id = id++;
         g_hash_table_insert(oh_sessions.table, &(session->id), session);
-        g_array_append_val(domain->sessions, session->id);
+        oh_sessions.list = g_slist_append(oh_sessions.list, session);
         g_static_rec_mutex_unlock(&oh_sessions.lock); /* Unlocked session table */
         oh_release_domain(domain);
 
@@ -142,7 +142,7 @@ GArray *oh_list_sessions(SaHpiDomainIdT did)
 {
         struct oh_domain *domain = NULL;
         GArray *session_ids = NULL;
-        guint i, length;
+        GSList *node = NULL;
 
         if (did < 1)
                 return NULL;
@@ -151,19 +151,15 @@ GArray *oh_list_sessions(SaHpiDomainIdT did)
         if (!domain)
                 return NULL;
 
-        length = domain->sessions->len;
-        session_ids = g_array_sized_new(FALSE, TRUE,
-                                        sizeof(SaHpiSessionIdT), length);
+        session_ids = g_array_new(FALSE, TRUE, sizeof(SaHpiSessionIdT));
 
-        /* compile error */
-//#undef g_array_index
-//#define g_array_index(a,t,i)      (((t*)(void *) ((a)->data)) [(i)])
-        for (i = 0; i < length; i++) {
-                g_array_append_val(session_ids,
-                                   g_array_index(domain->sessions,
-                                                 SaHpiSessionIdT, i)
-                    );
+        g_static_rec_mutex_lock(&oh_sessions.lock); /* Locked session table */
+        for (node = oh_sessions.list; node; node = node->next) {
+                struct oh_session *s = node->data;
+                if (s->did != did) continue;
+                g_array_append_val(session_ids, s->id);
         }
+        g_static_rec_mutex_unlock(&oh_sessions.lock); /* Unlocked session table */
         oh_release_domain(domain);
 
         return session_ids;
@@ -382,7 +378,6 @@ SaErrorT oh_dequeue_session_event(SaHpiSessionIdT sid,
 SaErrorT oh_destroy_session(SaHpiSessionIdT sid)
 {
         struct oh_session *session = NULL;
-        struct oh_domain *domain = NULL;
         SaHpiDomainIdT did;
         gpointer event = NULL;
         int i, len;
@@ -396,7 +391,7 @@ SaErrorT oh_destroy_session(SaHpiSessionIdT sid)
                 g_static_rec_mutex_unlock(&oh_sessions.lock);
                 return SA_ERR_HPI_INVALID_SESSION;
         }
-
+        oh_sessions.list = g_slist_remove(oh_sessions.list, session);
         g_hash_table_remove(oh_sessions.table, &(session->id));
         g_static_rec_mutex_unlock(&oh_sessions.lock); /* Unlocked session table */
         did = session->did;
@@ -413,21 +408,6 @@ SaErrorT oh_destroy_session(SaHpiSessionIdT sid)
         }
         g_async_queue_unref(session->eventq);
         g_free(session);
-
-        /* Update domain about session deletion. */
-        domain = oh_get_domain(did);
-        if (domain) {
-                len = domain->sessions->len;
-                for (i = 0; i < len; i++) {
-                        if (g_array_index
-                            (domain->sessions, SaHpiSessionIdT,
-                             i) == sid) {
-                                g_array_remove_index(domain->sessions, i);
-                                break;
-                        }
-                }
-                oh_release_domain(domain);
-        }
 
         return SA_OK;
 }
@@ -449,6 +429,7 @@ static void __delete_by_did(gpointer key, gpointer value,
                 return;
         }
 
+        oh_sessions.list = g_slist_remove(oh_sessions.list, session);
         g_hash_table_remove(oh_sessions.table, &(session->id));
 
         /* Neutralize event queue */
