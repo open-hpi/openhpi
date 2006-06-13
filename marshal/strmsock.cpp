@@ -353,7 +353,7 @@ bool sstrmsock::Create(
 	setsockopt(ss, SOL_SOCKET, SO_REUSEADDR, &so_reuseaddr,
 							sizeof(so_reuseaddr));
         // bind the server socket to a port
-	memset(&addr, sizeof (addr), 0);
+	memset(&addr, 0, sizeof (addr));
 	addr.sin_family = domain;
 	addr.sin_port = htons(Port);
 	addr.sin_addr.s_addr = INADDR_ANY;

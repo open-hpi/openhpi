@@ -10,7 +10,7 @@
  * full licensing terms.
  *
  * Author(s):
- *	  Christina Hernandez <hernanc@us.ibm.com>
+ *        Christina Hernandez <hernanc@us.ibm.com>
  *        W. David Ashley <dashley@us.ibm.com>
  */
 
@@ -87,9 +87,9 @@ SaErrorT sim_discover_chassis_annunciators(struct oh_handler_state * state,
                 }
                 i++;
         }
-        dbg("%d of %d chassis annunciators injected", j, i);
+        trace("%d of %d chassis annunciators injected", j, i);
 
-	return 0;
+        return 0;
 }
 
 
@@ -108,9 +108,9 @@ SaErrorT sim_discover_cpu_annunciators(struct oh_handler_state * state,
                 }
                 i++;
         }
-        dbg("%d of %d cpu annunciators injected", j, i);
+        trace("%d of %d cpu annunciators injected", j, i);
 
-	return 0;
+        return 0;
 }
 
 
@@ -129,9 +129,9 @@ SaErrorT sim_discover_dasd_annunciators(struct oh_handler_state * state,
                 }
                 i++;
         }
-        dbg("%d of %d dasd annunciators injected", j, i);
+        trace("%d of %d dasd annunciators injected", j, i);
 
-	return 0;
+        return 0;
 }
 
 
@@ -150,9 +150,9 @@ SaErrorT sim_discover_hs_dasd_annunciators(struct oh_handler_state * state,
                 }
                 i++;
         }
-        dbg("%d of %d hs dasd annunciators injected", j, i);
+        trace("%d of %d hs dasd annunciators injected", j, i);
 
-	return 0;
+        return 0;
 }
 
 
@@ -171,8 +171,8 @@ SaErrorT sim_discover_fan_annunciators(struct oh_handler_state * state,
                 }
                 i++;
         }
-        dbg("%d of %d fan annunciators injected", j, i);
+        trace("%d of %d fan annunciators injected", j, i);
 
-	return 0;
+        return 0;
 }
 

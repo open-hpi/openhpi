@@ -22,13 +22,13 @@ int main(int argc, char **argv)
 {
 	int                    testfail = 0;
 	SaErrorT               err, expected_err;
-	SaHpiHsIndicatorStateT hs_ind_state;
-	SaHpiHsStateT          hs_state;
+	SaHpiHsIndicatorStateT hs_ind_state = SAHPI_HS_INDICATOR_OFF;
+	SaHpiHsStateT          hs_state = SAHPI_HS_STATE_INACTIVE;
 	SaHpiHsActionT         act = 0;
 	SaHpiResourceIdT       id = 0;
 	SaHpiRptEntryT         rptentry;			
         SaHpiSessionIdT        sessionid;
-	SaHpiTimeoutT          timeout;
+	SaHpiTimeoutT          timeout = SAHPI_TIMEOUT_IMMEDIATE;
 
 	/*****************************************
 	 * Find a resource with hotswap capability

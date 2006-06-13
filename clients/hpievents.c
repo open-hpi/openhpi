@@ -188,7 +188,7 @@ int main(int argc, char **argv)
 			}
 			break;
 		} else {
-			oh_print_event(&event, 4);
+			oh_print_event(&event, &rdr.Entity, 4);
 		}
 	}
 

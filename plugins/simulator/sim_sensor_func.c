@@ -377,10 +377,6 @@ SaErrorT sim_get_sensor_event_masks(void *hnd,
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
-	if (!AssertEventMask || !DeassertEventMask) {
-		dbg("Invalid parameter");
-		return(SA_ERR_HPI_INVALID_PARAMS);
-	}
 
 	/* Check if resource exists and has sensor capabilities */
 	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
@@ -394,6 +390,10 @@ SaErrorT sim_get_sensor_event_masks(void *hnd,
 	if (rdr == NULL)
 		return(SA_ERR_HPI_NOT_PRESENT);
 
+	if (!AssertEventMask && !DeassertEventMask) {
+		return SA_OK;
+	}
+	
 	sinfo = (struct SensorInfo *)oh_get_rdr_data(handle->rptcache, rid,
                                                      rdr->RecordId);
  	if (sinfo == NULL) {
@@ -401,12 +401,15 @@ SaErrorT sim_get_sensor_event_masks(void *hnd,
 		return(SA_ERR_HPI_NOT_PRESENT);
 	}
 
-	*AssertEventMask = sinfo->assert_mask;
-	if (rpt->ResourceCapabilities & SAHPI_CAPABILITY_EVT_DEASSERTS) {
-		*DeassertEventMask = sinfo->assert_mask;
-	}
-	else {
-		*DeassertEventMask = sinfo->deassert_mask;
+	if (AssertEventMask) *AssertEventMask = sinfo->assert_mask;
+	
+	if (DeassertEventMask) {
+		if (rpt->ResourceCapabilities & SAHPI_CAPABILITY_EVT_DEASSERTS) {
+			*DeassertEventMask = sinfo->assert_mask;
+		}
+		else {
+			*DeassertEventMask = sinfo->deassert_mask;
+		}
 	}
 
         return(SA_OK);

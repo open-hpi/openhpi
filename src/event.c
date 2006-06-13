@@ -36,6 +36,7 @@
 
 extern GMutex *oh_event_thread_mutex;
 GAsyncQueue *oh_process_q = NULL;
+GQueue *postponed_q = NULL;
 
 /**
  * oh_new_oh_event
@@ -189,24 +190,39 @@ static int process_hpi_event(struct oh_event *full_event)
                 trace("Pushed hotswap event");
         }
 
-        trace("About to add to EL");
         oh_add_event_to_del(d->id, e);
         trace("Added event to EL");
 
         /*
-         * Here is where we need the SESSION MULTIPLEXING code
+         * Here is the SESSION MULTIPLEXING code
          */
 
-        trace("About to get session list");
         sessions = oh_list_sessions(full_event->did);
-        trace("process_hpi_event, done oh_list_sessions");
+        trace("Got session list for domain %d", full_event->did);
+
+        /* Temporarily postpone processing of event
+         * if there are no sessions open to receive it.
+         */
+        if (sessions->len < 1) {
+                g_array_free(sessions, TRUE);
+                oh_release_domain(d);
+                dbg("No sessions open for event's domain %d", full_event->did);
+                if (++full_event->times_requeued > 2) {
+                        dbg("Dropping hpi_event.");
+                        return 0;
+                } else { /* postpone processing */
+                        dbg("Processing of hpi_event postponed.");
+                        if (!postponed_q) postponed_q = g_queue_new();
+                        g_queue_push_head(postponed_q,
+                                          g_memdup(full_event,
+                                                   sizeof(struct oh_event)));
+                        return 0;
+                }
+        }
 
         /* multiplex event to the appropriate sessions */
         for(i = 0; i < sessions->len; i++) {
                 SaHpiBoolT is_subscribed = SAHPI_FALSE;
-	/* compile error */
-#undef g_array_index
-#define g_array_index(a,t,i)      (((t*)(void *) ((a)->data)) [(i)])
                 sid = g_array_index(sessions, SaHpiSessionIdT, i);
                 oh_get_session_subscription(sid, &is_subscribed);
                 if(is_subscribed) {
@@ -214,10 +230,10 @@ static int process_hpi_event(struct oh_event *full_event)
                 }
         }
         g_array_free(sessions, TRUE);
-        trace("process_hpi_event, done multiplex event => sessions");
+        trace("done multiplexing event into sessions");
 
         oh_release_domain(d);
-        trace("process_hpi_event, done oh_release_domain");
+        trace("done oh_release_domain");
 
         return 0;
 }
@@ -237,6 +253,7 @@ static int process_resource_event(struct oh_event *e)
         rpt = &(d->rpt);
 
         memset(&hpie, 0, sizeof(hpie));
+        hpie.type = OH_ET_HPI;
         if (e->type == OH_ET_RESOURCE_DEL) {
                 rv = oh_remove_resource(rpt,e->u.res_event.entry.ResourceId);
                 trace("Resource %d in Domain %d has been REMOVED.",
@@ -327,7 +344,6 @@ static int process_rdr_event(struct oh_event *e)
                             e->u.rdr_event.rdr.RecordId, rid, e->did);
                 }
         }
-
         oh_release_domain(d);
 
         return rv;
@@ -361,11 +377,18 @@ SaErrorT oh_process_events()
                         process_hpi_event(e);
                         break;
                 default:
-                        trace("Event Type = Unknown Event");
+                        dbg("Event Type = Unknown Event");
                 }
                 oh_detect_event_alarm(e);
                 g_free(e);
        }
-        return SA_OK;
+
+        if (postponed_q) {
+                while ((e = g_queue_pop_tail(postponed_q)) != NULL) {
+                        g_async_queue_push(oh_process_q, e);
+                }
+        }
+
+       return SA_OK;
 }
 
