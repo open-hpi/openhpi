@@ -115,7 +115,7 @@ static void* get_event(void *unused)
 				if (show_event_short)
 					show_short_event(&event, ui_print);
 				else
-					oh_print_event(&event, 1);
+					oh_print_event(&event, NULL, 1);
 			}
 		}/*the loop for retrieving event*/
 		sleep(1);

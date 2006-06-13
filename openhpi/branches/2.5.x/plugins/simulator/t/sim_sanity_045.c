@@ -51,7 +51,7 @@ int main(int argc, char **argv)
                            &status);
     
 	while (rc == SA_OK) {
-		oh_print_event(&event, 3);
+		oh_print_event(&event, &rdr.Entity, 3);
 		event_ctr++;
 		rc = saHpiEventGet(sid, SAHPI_TIMEOUT_IMMEDIATE, &event, &rdr, &rpt,
                                    &status);

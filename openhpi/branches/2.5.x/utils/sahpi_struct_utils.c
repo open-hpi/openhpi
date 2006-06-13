@@ -2125,6 +2125,7 @@ SaErrorT oh_fprint_eventloginfo(FILE *stream, const SaHpiEventLogInfoT *thiselin
  * oh_fprint_eventlogentry:
  * @stream: File handle.
  * @thiseventlog: Pointer to SaHpiEventLogEntryT to be printed.
+ * @entitypath: Pointer to entity path.
  * @offsets: Number of offsets to start printing structure.
  *
  * Prints the member data contained in SaHpiEventLogEntryT struct to a file.
@@ -2134,7 +2135,10 @@ SaErrorT oh_fprint_eventloginfo(FILE *stream, const SaHpiEventLogInfoT *thiselin
  * SA_OK - Normal operation.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) are NULL.
  **/
-SaErrorT oh_fprint_eventlogentry(FILE *stream, const SaHpiEventLogEntryT *thiseventlog, int offsets)
+SaErrorT oh_fprint_eventlogentry(FILE *stream,
+                                 const SaHpiEventLogEntryT *thiseventlog,
+                                 const SaHpiEntityPathT *entitypath,
+                                 int offsets)
 {
         SaErrorT err;
         oh_big_textbuffer mybuf, mybufX;
@@ -2160,7 +2164,7 @@ SaErrorT oh_fprint_eventlogentry(FILE *stream, const SaHpiEventLogEntryT *thisev
         oh_append_bigtext(&mybuf, str);
 
         oh_init_bigtext(&mybufX);
-        err = oh_build_event(&mybufX, &thiseventlog->Event, offsets);
+        err = oh_build_event(&mybufX, &thiseventlog->Event, entitypath, offsets);
         oh_append_bigtext(&mybuf, (char *)mybufX.Data);
 
         err = oh_fprint_bigtext(stream, &mybuf);
@@ -2171,6 +2175,7 @@ SaErrorT oh_fprint_eventlogentry(FILE *stream, const SaHpiEventLogEntryT *thisev
  * oh_fprint_event:
  * @stream: File handle.
  * @event: Pointer to SaHpiEventT to be printed.
+ * @entitypath: Pointer to entitypath.
  * @offsets: Number of offsets to start printing structure.
  *
  * Prints the member data contained in SaHpiEventT struct to a file.
@@ -2180,7 +2185,10 @@ SaErrorT oh_fprint_eventlogentry(FILE *stream, const SaHpiEventLogEntryT *thisev
  * SA_OK - Normal operation.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) are NULL.
  **/
-SaErrorT oh_fprint_event(FILE *stream, const SaHpiEventT *event, int offsets)
+SaErrorT oh_fprint_event(FILE *stream,
+                         const SaHpiEventT *event,
+                         const SaHpiEntityPathT *entitypath,
+                         int offsets)
 {
         SaErrorT err;
         oh_big_textbuffer buffer;
@@ -2192,7 +2200,7 @@ SaErrorT oh_fprint_event(FILE *stream, const SaHpiEventT *event, int offsets)
 
         oh_init_bigtext(&buffer);
 
-        err = oh_build_event(&buffer, event, offsets);
+        err = oh_build_event(&buffer, event, entitypath, offsets);
         if (err) { return(err); }
 
         err = oh_fprint_bigtext(stream, &buffer);
@@ -2213,7 +2221,10 @@ SaErrorT oh_fprint_event(FILE *stream, const SaHpiEventT *event, int offsets)
  * SA_OK - Normal operation.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) are NULL.
  **/
-SaErrorT oh_build_event(oh_big_textbuffer *buffer, const SaHpiEventT *event, int offsets)
+SaErrorT oh_build_event(oh_big_textbuffer *buffer,
+                        const SaHpiEventT *event,
+                        const SaHpiEntityPathT *entitypath,
+                        int offsets)
 {
         char str[SAHPI_MAX_TEXT_BUFFER_LENGTH];
         guint id;
@@ -2226,13 +2237,18 @@ SaErrorT oh_build_event(oh_big_textbuffer *buffer, const SaHpiEventT *event, int
         memset( tmpbuffer.Data, 0, sizeof( tmpbuffer.Data ) );
 
         id = event->Source;
-        err = oh_entity_path_lookup(&id, &ep);
-        if (err == SA_OK) { /* Only if we were able to get the entity path */
-                err  = oh_decode_entitypath(&ep, &bigbuf);
-        }
 
-        if (err) {
-                dbg("Could not determine entity path. We are probably in the client.");
+        if (entitypath) {
+                ep = *entitypath;
+                err  = oh_decode_entitypath(&ep, &bigbuf);
+        } else {
+                err = oh_entity_path_lookup(&id, &ep);
+                if (err) {
+                        dbg("Could not determine entity path.");
+                } else {
+                        /* Only if we were able to get the entity path */
+                        err  = oh_decode_entitypath(&ep, &bigbuf);
+                }
         }
 
         /* Event Type */
@@ -2242,7 +2258,8 @@ SaErrorT oh_build_event(oh_big_textbuffer *buffer, const SaHpiEventT *event, int
         oh_append_bigtext(buffer, str);
 
         /* Entity Path */
-        if (err == SA_OK) { /* Skip this if we failed to get entity path earlier */
+        if (err == SA_OK) {
+                /* Skip this if we failed to get/decode entity path earlier */
                 oh_append_offset(buffer, offsets);
                 snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH,
                          "From Resource: %s\n", bigbuf.Data);
