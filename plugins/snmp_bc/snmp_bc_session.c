@@ -72,7 +72,7 @@ void *snmp_bc_open(GHashTable *handler_config)
         /* Initialize resource masks */
 	/* Set all masks and counts to zero's    */
 	custom_handle->max_pb_supported = 0;		/* pb - processor blade */
-	custom_handle->max_blower_supported = 0;	/* blower - blower  */
+	custom_handle->max_blower_supported = 0;	/* blower - fan/blower  */
 	custom_handle->max_pm_supported = 0;		/* pm - power module    */
 	custom_handle->max_sm_supported = 0;		/* sm - switch module   */
 	custom_handle->max_mm_supported = 0;		/* mm - management module */
@@ -129,7 +129,7 @@ void *snmp_bc_open(GHashTable *handler_config)
 		
 		
 		/* Configure SNMP V3 session */
-		if (!g_ascii_strncasecmp(version, "3", sizeof("3"))) {
+		if (!strcmp(version, "3")) {
 			if (!user) {
 				dbg("Cannot find \"security_name\" configuration parameter.");
 				return NULL;
@@ -139,17 +139,17 @@ void *snmp_bc_open(GHashTable *handler_config)
 			custom_handle->session.securityNameLen = strlen(user);
 			custom_handle->session.securityLevel = SNMP_SEC_LEVEL_NOAUTH;
 			
-			if (!g_ascii_strncasecmp(sec_level, "auth", 4)) { /* If using password */
+			if (!strncmp(sec_level, "auth", 4)) { /* If using password */
 				if (!pass) {
 					dbg("Cannot find \"passphrase\" configuration parameter.");
 					return NULL;
 				}
 				
 				custom_handle->session.securityLevel = SNMP_SEC_LEVEL_AUTHNOPRIV;
-				if (!authtype || !g_ascii_strncasecmp(authtype, "MD5", sizeof("MD5"))) {
+				if (!authtype || !strcmp(authtype,"MD5")) {
 					custom_handle->session.securityAuthProto = usmHMACMD5AuthProtocol;
 					custom_handle->session.securityAuthProtoLen = USM_AUTH_PROTO_MD5_LEN;
-				} else if (!g_ascii_strncasecmp(authtype, "SHA", sizeof("SHA"))) {
+				} else if (!strcmp(authtype,"SHA")) {
 					custom_handle->session.securityAuthProto = usmHMACSHA1AuthProtocol;
 					custom_handle->session.securityAuthProtoLen = USM_AUTH_PROTO_SHA_LEN;
 				} else {
@@ -170,7 +170,7 @@ void *snmp_bc_open(GHashTable *handler_config)
 					return NULL;
 				}
 				
-				if (!g_ascii_strncasecmp(sec_level, "authPriv", sizeof("authPriv"))) { /* if using encryption */
+				if (!strcmp(sec_level, "authPriv")) { /* if using encryption */
 				
 					if (!privacy_passwd) {
 						dbg("Cannot find \"privacy_passwd\" configuration parameter.");
@@ -213,7 +213,7 @@ void *snmp_bc_open(GHashTable *handler_config)
 				}
 			}                                
                 /* Configure SNMP V1 session */
-		} else if (!g_ascii_strncasecmp(version, "1", sizeof("1"))) { 
+		} else if (!strcmp(version, "1")) { 
 			if (!community) {
 				dbg("Cannot find \"community\" configuration parameter.");
 				return NULL;

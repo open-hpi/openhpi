@@ -410,7 +410,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 {
 
 	SaErrorT err;
-	struct snmp_value get_value_blade, get_value_blower,
+	struct snmp_value get_value_blade, get_value_fan,
 			  get_value_power_module, get_value_switch,
 			  get_value_media, get_value_mm;
 	struct snmp_bc_hnd *custom_handle;
@@ -443,8 +443,8 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 	/* Fetch blade installed vector */
 	get_installed_mask(SNMP_BC_BLADE_VECTOR, get_value_blade);
 	
-	/* Fetch blower installed vector  */
-	get_installed_mask(SNMP_BC_BLOWER_VECTOR, get_value_blower);
+	/* Fetch fan installed vector  */
+	get_installed_mask(SNMP_BC_FAN_VECTOR, get_value_fan);
 
 	/* Fetch power module installed vector */
 	get_installed_mask(SNMP_BC_POWER_VECTOR, get_value_power_module);
@@ -474,14 +474,14 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 	/* Fetch media tray installed vector */
 	get_integer_object(SNMP_BC_MT_INSTALLED, get_value_media); 
 	
-	/* Fetch blower installed vector  */
-	get_installed_mask(SNMP_BC_BLOWER_INSTALLED, get_value_blower);
+	/* Fetch fan installed vector  */
+	get_installed_mask(SNMP_BC_BLOWER_INSTALLED, get_value_fan);
 		
-	if (  (g_ascii_strncasecmp(get_value_blade.string, custom_handle->installed_pb_mask, get_value_blade.str_len) == 0) &&
-		(g_ascii_strncasecmp(get_value_blower.string, custom_handle->installed_blower_mask, get_value_blower.str_len) == 0) &&
-		(g_ascii_strncasecmp(get_value_power_module.string, custom_handle->installed_pm_mask, get_value_power_module.str_len) == 0) &&
-		(g_ascii_strncasecmp(get_value_switch.string, custom_handle->installed_sm_mask, get_value_switch.str_len) == 0) &&		
-		(g_ascii_strncasecmp(get_value_mm.string, custom_handle->installed_mm_mask, get_value_mm.str_len) == 0) &&
+	if (  (strncmp(get_value_blade.string, custom_handle->installed_pb_mask, get_value_blade.str_len) == 0) &&
+		(strncmp(get_value_fan.string, custom_handle->installed_blower_mask, get_value_fan.str_len) == 0) &&
+		(strncmp(get_value_power_module.string, custom_handle->installed_pm_mask, get_value_power_module.str_len) == 0) &&
+		(strncmp(get_value_switch.string, custom_handle->installed_sm_mask, get_value_switch.str_len) == 0) &&		
+		(strncmp(get_value_mm.string, custom_handle->installed_mm_mask, get_value_mm.str_len) == 0) &&
 		(get_value_media.integer == custom_handle->installed_mt_mask) ) {
 		
 		
@@ -500,7 +500,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 		if (err != SA_OK) return (err);
 		
 		strcpy(custom_handle->installed_pb_mask, get_value_blade.string);
-		strcpy(custom_handle->installed_blower_mask, get_value_blower.string);
+		strcpy(custom_handle->installed_blower_mask, get_value_fan.string);
 		strcpy(custom_handle->installed_pm_mask, get_value_power_module.string);
 		strcpy(custom_handle->installed_sm_mask, get_value_switch.string);
 		strcpy(custom_handle->installed_mm_mask, get_value_mm.string);
@@ -529,10 +529,10 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 	err = snmp_bc_discover_blade(handle, ep_root,get_value_blade.string);
 	if (err != SA_OK) return(err);
 				  			
-        /******************
-	 * Discover Blowers
-	 ******************/
-	err = snmp_bc_discover_blowers(handle, ep_root, get_value_blower.string);
+        /*************** 
+	 * Discover Fans
+	 ***************/
+	err = snmp_bc_discover_fans(handle, ep_root, get_value_fan.string);
 	if (err != SA_OK) return(err);
 	
         /************************
@@ -610,11 +610,12 @@ SaErrorT snmp_bc_update_chassis_topo(struct oh_handler_state *handle)
 		custom_handle->max_mt_supported = get_value.integer;		/* mt - media tray        */
 
 		get_integer_object(SNMP_BC_NOS_BLOWER_SUPPORTED, get_value);		
-		custom_handle->max_blower_supported = get_value.integer;	/* blower - blower  */
+		custom_handle->max_blower_supported = get_value.integer;	/* blower - fan/blower  */
 	 }
 	
 	err = SA_OK;
 	return(err);
+
 }
 
 /**
@@ -942,7 +943,7 @@ SaErrorT snmp_bc_discover_blade(struct oh_handler_state *handle,
 						   &get_blade_resourcetag, SAHPI_TRUE);
 				
 				if ( (get_blade_resourcetag.type == ASN_OCTET_STR) && 
-					( g_ascii_strncasecmp(get_blade_resourcetag.string, LOG_DISCOVERING, sizeof(LOG_DISCOVERING)) == 0 ) )
+					( strncmp(get_blade_resourcetag.string, LOG_DISCOVERING, sizeof(LOG_DISCOVERING)) == 0 ) )
 				{
 					sleep(3);
 				} else break;
@@ -1083,24 +1084,24 @@ SaErrorT snmp_bc_discover_blade(struct oh_handler_state *handle,
 }
 
 /**
- * snmp_bc_discover_blowers:
+ * snmp_bc_discover_fans:
  * @handler: Pointer to handler's data.
  * @ep_root: Pointer to chassis Root Entity Path which comes from openhpi.conf.
- * @blower_vector: Bitmap vector of installed blowers.
+ * @fan_vector: Bitmap vector of installed fans.
  *
- * Discovers blower resources and their RDRs.
+ * Discovers fan resources and their RDRs.
  *
  * Return values:
  * SA_OK - normal case.
  * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer paramter(s) NULL.
  **/
-SaErrorT snmp_bc_discover_blowers(struct oh_handler_state *handle,
-			  SaHpiEntityPathT *ep_root, char *blower_vector)
+SaErrorT snmp_bc_discover_fans(struct oh_handler_state *handle,
+			  SaHpiEntityPathT *ep_root, char *fan_vector)
 {
 
 	guint i;
-	guint blower_width;
+	guint fan_width;
 	SaErrorT err;
         struct oh_event *e;
 	struct snmp_value get_value;
@@ -1108,7 +1109,7 @@ SaErrorT snmp_bc_discover_blowers(struct oh_handler_state *handle,
 	struct snmp_bc_hnd *custom_handle;
 
 
-	if (!handle || !blower_vector) {
+	if (!handle || !fan_vector) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
@@ -1122,9 +1123,9 @@ SaErrorT snmp_bc_discover_blowers(struct oh_handler_state *handle,
 	e= NULL;
 	res_info_ptr = NULL;
 	
-	for (i=0; i < strlen(blower_vector); i++) {
+	for (i=0; i < strlen(fan_vector); i++) {
 	
-		if ((blower_vector[i] == '1') || (custom_handle->isFirstDiscovery == SAHPI_TRUE))
+		if ((fan_vector[i] == '1') || (custom_handle->isFirstDiscovery == SAHPI_TRUE))
 		{
 			e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
 			if (e == NULL) {
@@ -1137,7 +1138,7 @@ SaErrorT snmp_bc_discover_blowers(struct oh_handler_state *handle,
 			e->u.res_event.entry = snmp_bc_rpt_array[BC_RPT_ENTRY_BLOWER_MODULE].rpt;
 			oh_concat_ep(&(e->u.res_event.entry.ResourceEntity), ep_root);
 			oh_set_ep_location(&(e->u.res_event.entry.ResourceEntity),
-					   BLADECENTER_BLOWER_SLOT, i + SNMP_BC_HPI_LOCATION_BASE);
+					   BLADECENTER_FAN_SLOT, i + SNMP_BC_HPI_LOCATION_BASE);
 			oh_set_ep_location(&(e->u.res_event.entry.ResourceEntity),
 					   SAHPI_ENT_FAN, i + SNMP_BC_HPI_LOCATION_BASE);
 			e->u.res_event.entry.ResourceId = 
@@ -1160,14 +1161,14 @@ SaErrorT snmp_bc_discover_blowers(struct oh_handler_state *handle,
 			}
 		}
 		
-		if ((blower_vector[i] == '0') && (custom_handle->isFirstDiscovery == SAHPI_TRUE))
+		if ((fan_vector[i] == '0') && (custom_handle->isFirstDiscovery == SAHPI_TRUE))
 		{
 			res_info_ptr->cur_state = SAHPI_HS_STATE_NOT_PRESENT;
 			snmp_bc_discover_res_events(handle, &(e->u.res_event.entry.ResourceEntity), res_info_ptr);
 			g_free(e);
 			g_free(res_info_ptr);
 			
-		} else if (blower_vector[i] == '1') {
+		} else if (fan_vector[i] == '1') {
 
 			res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
 
@@ -1187,23 +1188,23 @@ SaErrorT snmp_bc_discover_blowers(struct oh_handler_state *handle,
 			
 			/* Find resource's events, sensors, controls, etc. */
 			snmp_bc_discover_res_events(handle, &(e->u.res_event.entry.ResourceEntity), res_info_ptr);
-			snmp_bc_discover_sensors(handle, snmp_bc_blower_sensors, e);
+			snmp_bc_discover_sensors(handle, snmp_bc_fan_sensors, e);
 			if (custom_handle->platform == SNMP_BC_PLATFORM_BCH) {
-				snmp_bc_discover_sensors(handle, snmp_bc_blower_sensors_bch, e);	
+				snmp_bc_discover_sensors(handle, snmp_bc_fan_sensors_bch, e);	
 			}
-			snmp_bc_discover_controls(handle, snmp_bc_blower_controls, e);
-			snmp_bc_discover_inventories(handle, snmp_bc_blower_inventories, e);
+			snmp_bc_discover_controls(handle, snmp_bc_fan_controls, e);
+			snmp_bc_discover_inventories(handle, snmp_bc_fan_inventories, e);
 			
-			blower_width = 1;    /* Default to 1-wide blade */
+			fan_width = 1;    /* Default to 1-wide blade */
 			if (res_info_ptr->mib.OidResourceWidth != NULL) {
 				err = snmp_bc_oid_snmp_get(custom_handle,  &(e->u.res_event.entry.ResourceEntity), 0,
 				   		res_info_ptr->mib.OidResourceWidth, &get_value, SAHPI_TRUE);
 				if (!err && (get_value.type == ASN_INTEGER)) {
-					blower_width = get_value.integer;
+					fan_width = get_value.integer;
 				}
 			}			
 
-			err = snmp_bc_set_resource_slot_state_sensor(handle, e, blower_width);
+			err = snmp_bc_set_resource_slot_state_sensor(handle, e, fan_width);
 			
 		}
 	}
@@ -1723,7 +1724,7 @@ static SaErrorT snmp_bc_discover_ipmi_sensors(struct oh_handler_state *handle,
 		if (!err) {
 			char *hash_existing_key, *hash_value;
 			gchar  **strparts = NULL;
-			gchar  *s, *ipmi_tag;
+			gchar  *ipmi_tag;
 			
 			/* Find IPMI tag in returned value */
 			strparts = g_strsplit(get_value.string, SNMP_BC_IPMI_STRING_DELIMITER, -1);
@@ -1739,10 +1740,7 @@ static SaErrorT snmp_bc_discover_ipmi_sensors(struct oh_handler_state *handle,
 				g_free(ipmi_tag);
 				continue;
 			}
-			
-			/* Change IPMI Tag to upper case */
-			for (s=ipmi_tag; *s; s++) { *s = g_ascii_toupper(*s); }
-			
+
 			trace("Found OID IPMI sensor=%s", ipmi_tag);
 
 			/* Insert tag and OID info in temporary hash */
@@ -1751,8 +1749,7 @@ static SaErrorT snmp_bc_discover_ipmi_sensors(struct oh_handler_state *handle,
 							  (gpointer)&hash_existing_key,
 							  (gpointer)&hash_value)) {
 
-				mib_info = g_memdup(&(snmp_bc_ipmi_sensors_temp[i]),
-						    sizeof(struct SensorMibInfo));
+				mib_info = g_memdup(&(snmp_bc_ipmi_sensors_temp[i]), sizeof(struct SensorMibInfo));
 				if (!mib_info) {
 					dbg("Out of memory.");
 					g_free(ipmi_tag);
@@ -1776,7 +1773,7 @@ static SaErrorT snmp_bc_discover_ipmi_sensors(struct oh_handler_state *handle,
 		if (!err) {
 			char *hash_existing_key, *hash_value;
 			gchar  **strparts = NULL;
-			gchar  *s, *ipmi_tag;
+			gchar  *ipmi_tag;
 			
 			/* Find IPMI tag in returned value */
 			strparts = g_strsplit(get_value.string, SNMP_BC_IPMI_STRING_DELIMITER, -1);
@@ -1793,9 +1790,6 @@ static SaErrorT snmp_bc_discover_ipmi_sensors(struct oh_handler_state *handle,
 				continue;
 			}
 
-			/* Change IPMI Tag to upper case */
-			for (s=ipmi_tag; *s; s++) { *s = g_ascii_toupper(*s); }
-			
 			trace("Found OID IPMI sensor=%s", ipmi_tag);
 
 			/* Insert tag and OID info in temporary hash */
@@ -1824,12 +1818,6 @@ static SaErrorT snmp_bc_discover_ipmi_sensors(struct oh_handler_state *handle,
 	   push up its RDR info to Infra-structure */
 	for (i=0; sensor_array[i].ipmi.index != 0; i++) {
 		mib_info = (struct SensorMibInfo *)g_hash_table_lookup(ipmi_sensor_hash, sensor_array[i].ipmi_tag);
-		
-		/* See if the tag has an alias */
-		if (!mib_info && (sensor_array[i].ipmi_tag_alias1 && sensor_array[i].ipmi_tag_alias1[0] != '\0')) {
-			mib_info = (struct SensorMibInfo *)g_hash_table_lookup(ipmi_sensor_hash, sensor_array[i].ipmi_tag_alias1);	
-		}
-
 		if (mib_info) {
 			struct oh_event *e;
 			struct SensorInfo *sinfo;
@@ -2060,11 +2048,11 @@ SaErrorT snmp_bc_rediscover(struct oh_handler_state *handle,
 				err = snmp_bc_discover_blade(handle, &ep_root,resource_mask);
 				break;
 			case SAHPI_ENT_FAN:
-				/* Fetch blower installed vector */
-				// get_installed_mask(SNMP_BC_BLOWER_VECTOR, get_value);
+				/* Fetch fan installed vector */
+				// get_installed_mask(SNMP_BC_FAN_VECTOR, get_value);
 				get_installed_mask(SNMP_BC_BLOWER_INSTALLED, get_value);
 				strcpy(custom_handle->installed_blower_mask, get_value.string);
-				err = snmp_bc_discover_blowers(handle, &ep_root, resource_mask);
+				err = snmp_bc_discover_fans(handle, &ep_root, resource_mask);
 				break;
 			case SAHPI_ENT_POWER_SUPPLY:
 				/* Fetch power module installed vector */
@@ -2269,7 +2257,7 @@ SaErrorT snmp_bc_discover_all_slots(struct oh_handler_state *handle,
 	}							
 
 	for (i = 0; i < custom_handle->max_blower_supported; i++) {
-		err = snmp_bc_discover_slot(handle, ep_root, BLADECENTER_BLOWER_SLOT,i);
+		err = snmp_bc_discover_slot(handle, ep_root, BLADECENTER_FAN_SLOT,i);
 	}							
 	for (i = 0; i < custom_handle->max_pm_supported; i++) {
 		err = snmp_bc_discover_slot(handle, ep_root, BLADECENTER_POWER_SUPPLY_SLOT,i);
@@ -2347,32 +2335,32 @@ SaErrorT snmp_bc_discover_slot( struct oh_handler_state *handle,
 	switch (entitytype) {
 		case SAHPI_ENT_PHYSICAL_SLOT:
 			e->u.res_event.entry.ResourceEntity.Entry[0].EntityType = SAHPI_ENT_PHYSICAL_SLOT;
-			comment = SNMP_BC_PHYSICAL_SLOT;
+			comment = BC_PHYSICAL_SLOT;
 			break;
 			
 		case BLADECENTER_INTERCONNECT_SLOT:
 			e->u.res_event.entry.ResourceEntity.Entry[0].EntityType = BLADECENTER_INTERCONNECT_SLOT;
-			comment = SNMP_BC_INTERCONNECT_SLOT;
+			comment = BC_INTERCONNECT_SLOT;
 			break;
 			
 		case BLADECENTER_POWER_SUPPLY_SLOT:
 			e->u.res_event.entry.ResourceEntity.Entry[0].EntityType = BLADECENTER_POWER_SUPPLY_SLOT;
-			comment = SNMP_BC_POWER_SUPPLY_SLOT;
+			comment = BC_POWER_SUPPLY_SLOT;
 			break;
 			
 		case BLADECENTER_PERIPHERAL_BAY_SLOT:
 			e->u.res_event.entry.ResourceEntity.Entry[0].EntityType = BLADECENTER_PERIPHERAL_BAY_SLOT;
-			comment = SNMP_BC_PERIPHERAL_BAY_SLOT;
+			comment = BC_PERIPHERAL_BAY_SLOT;
 			break;
 			
 		case BLADECENTER_SYS_MGMNT_MODULE_SLOT:
 			e->u.res_event.entry.ResourceEntity.Entry[0].EntityType = BLADECENTER_SYS_MGMNT_MODULE_SLOT;
-			comment = SNMP_BC_SYS_MGMNT_MODULE_SLOT;
+			comment = BC_SYS_MGMNT_MODULE_SLOT;
 			break;
 			
-		case BLADECENTER_BLOWER_SLOT:
-			e->u.res_event.entry.ResourceEntity.Entry[0].EntityType = BLADECENTER_BLOWER_SLOT;
-			comment = SNMP_BC_BLOWER_SLOT;
+		case BLADECENTER_FAN_SLOT:
+			e->u.res_event.entry.ResourceEntity.Entry[0].EntityType = BLADECENTER_FAN_SLOT;
+			comment = BC_FAN_SLOT;
 			break;
 			
 		default:
