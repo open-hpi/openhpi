@@ -1,0 +1,186 @@
+#!/usr/bin/perl
+
+use strict;
+use File::Basename;
+use Getopt::Long;
+use File::Copy;
+
+my $LIBVERSION="@VERSION@";
+my $INSTALLPREFIX=$ENV{"DESTDIR"}."@libdir@";
+my $OHPREFIX=$INSTALLPREFIX."/@HPI_PKG@";
+my $PROGNAME="@HPI_PKG@-switcher";
+my $BASELIB="lib@HPI_PKG@.so.$LIBVERSION";
+
+
+my %opts = ();
+GetOptions(\%opts, 'list', 'help', 'show','set=s','env=s');
+
+# nothing specified
+if(!scalar(keys %opts) or (exists $opts{help})) {
+    help();
+}
+
+if(exists $opts{list}) {
+    list();
+    exit 0;
+}
+
+if(exists $opts{show}) {
+    my $name = show();
+    if($name) {
+        print "Default openhpi type: $name\n";
+        exit(0);
+    } else {
+        print "No default openhpi type found!\n";
+        exit(1);
+    }
+}
+
+if($opts{set}) {
+    if(setdefault($opts{set})) {
+        print "Set default openhpi to $opts{set}\n";
+        exit(0);
+    } else {
+        print "Failed to set default openhpi\n";
+        exit(1);
+    }
+}
+
+if($opts{env}) {
+    if(printenv($opts{env})) {
+        exit(0);
+    } else {
+        exit(1);
+    }
+}
+      
+
+sub help {
+   print <<EOF;
+Usage: $PROGNAME [--list] [--show] [--set=name] [--env=name] [--help]
+    --list            - display available openhpi types
+    --show            - show default openhpi
+    --set=name        - set default openhpi type
+    --env=name        - return required environment stanza to set openhpi
+                        type for a single application
+    --help            - display this message
+EOF
+   exit(1);
+}
+
+sub list {
+    my @types = ();
+    my $dir = $OHPREFIX;
+    opendir(DIR,$dir) or die "No openhpi libraries found in $dir";
+    while(my $entry = readdir(DIR)) {
+        if($entry =~ /^\./) {
+            next;
+        }
+        if(-e "$dir/$entry/$BASELIB") {
+            push @types, $entry;
+        }
+    }
+    closedir(DIR);
+    if(!scalar(@types)) {
+        die "No openhpi libraries found in $dir";
+    }
+    print "Available openhpi types:\n";
+    my $cur = show();
+    foreach my $line (@types) {
+        my $prefix = ($cur eq $line) ? " * " : "   ";
+        print "$prefix$line\n";
+    }
+}
+
+sub show {
+    my $return = "";
+    my $link = "$INSTALLPREFIX/$BASELIB";
+    if(-l $link) {
+        my $name = readlink($link);
+        if($name =~ m{/(\w+)/$BASELIB}) {
+            $return = $1;
+        }
+    }
+    return $return;
+}
+
+sub setdefault {
+    my $type = shift;
+    my $dir = "$OHPREFIX/$type";
+    if(-d "$OHPREFIX/$type" and
+       -e "$OHPREFIX/$type/$BASELIB") {
+        opendir(DIR,"$dir") or die "Couldn't open $OHPREFIX/$type";
+        !system("/sbin/ldconfig -n $dir") or die "Couldn't run ldconfig on $dir";
+        while(my $lib = readdir(DIR)) {
+            if($lib =~ /libopenhpi/) {
+                my $link = "$INSTALLPREFIX/$lib";
+                if(-e $link) {
+                    unlink($link) or die "Couldn't remove $link";
+                }
+                #symlink("$dir/$lib",$link) or 
+                symlink("@HPI_PKG@/$type/$lib",$link) or 
+                  die "Couldn't link $dir/lib -> $link";
+            }
+        }
+        close(DIR);
+        !system("/sbin/ldconfig -n $INSTALLPREFIX") or 
+          die "Couldn't run ldconfig on $INSTALLPREFIX";
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+sub printenv {
+    my $type = shift;
+    my $dir = "$OHPREFIX/$type";
+    if(-d "$OHPREFIX/$type" and
+       -e "$OHPREFIX/$type/$BASELIB") {
+        print "LD_PRELOAD=$OHPREFIX/$type/$BASELIB\n";
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+#list() {
+#   OPTIONS=`ls -d $INSTALLPREFIX/* 2>/dev/null`
+#   RETVAL=$?
+#   [ $RETVAL -ne 0 ] && echo "No openhpi libraries found" && exit 1
+#   echo "Available openhpi types:"
+#   for i in $OPTIONS; do
+#      OHTYPE=`basename $i`
+#      echo -e "  $OHTYPE"
+#   done
+#   return 1
+#}
+
+#show() {
+    
+#}
+
+#if [[ ! $1 ]]; then
+#    help
+#    exit 1
+#fi
+
+#case "$1" in
+#  --list)
+#        list
+#        ;;
+#  stop)
+#        stop
+#        ;;
+#  restart)
+#        restart
+#        ;;
+#  reload)
+#        reload
+#        ;;
+#  status)
+#        rhstatus
+#        ;;
+#  *)
+#        help
+#        exit 1
+#esac
