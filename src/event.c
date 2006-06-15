@@ -74,7 +74,7 @@ static SaErrorT harvest_events_for_handler(struct oh_handler *h)
         /*if (oh_get_global_param(&param))
                 param.u.evt_queue_limit = OH_MAX_EVT_QUEUE_LIMIT;*/
 
-        do {
+	do {
                 error = h->abi->get_event(h->hnd, &event);
                 if (error < 1) {
                         trace("Handler is out of Events");
