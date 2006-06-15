@@ -1049,7 +1049,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                },
                 .comment = "Power Domain 2 Redundancy Sensor",
         },
-	
+	/* Chassis Total Maximum Power Capability Sensor */
 	{
 		.index = 6,
                 .sensor = {
@@ -1094,9 +1094,9 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                         },
 		        .reading2event = {},
                 },
-		.comment = "Maximum Power Capability",
+		.comment = "Chassis Total Maximum Power Capability Sensor",
 	},
-
+	/* Chassis Total Assigned Power Sensor */
 	{
 		.index = 7,
                 .sensor = {
@@ -1143,9 +1143,9 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                         },
 		        .reading2event = {},
                 },
-		.comment = "Assigned Power Capability",
+		.comment = "Chassis Total Assigned Power Sensor",
 	},
-
+	/* Chassis Total Minumum Power Capability Sensor */
 	{
 		.index = 8,
                 .sensor = {
@@ -1190,7 +1190,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                         },
 		        .reading2event = {},
                 },
-		.comment = "Minumum Power Capability",
+		.comment = "Chassis Total Minumum Power Capability Sensor",
 	},
 
         {} /* Terminate array with a null element */
@@ -2423,6 +2423,7 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                 },
                 .comment = "Standby MM Sensor",
         },
+	/* Midplane Maximum Power Capability Sensor */
 	{
 		.index = 16,
                 .sensor = {
@@ -2467,9 +2468,9 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                         },
 		        .reading2event = {},
                 },
-		.comment = "Maximum Power Capability",
+		.comment = "Midplane Maximum Power Capability Sensor",
 	},
-
+	/* Midplane Assigned Power Sensor */
 	{
 		.index = 17,
                 .sensor = {
@@ -2516,9 +2517,9 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                         },
 		        .reading2event = {},
                 },
-		.comment = "Assigned Power Capability",
+		.comment = "Midplane Assigned Power Sensor",
 	},
-
+	/* Midplane Minumum Power Capability Sensor */
 	{
 		.index = 18,
                 .sensor = {
@@ -2563,7 +2564,7 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                         },
 		        .reading2event = {},
                 },
-		.comment = "Minumum Power Capability",
+		.comment = "Midplane Minumum Power Capability Sensor",
 	},
 
         {} /* Terminate array with a null element */
