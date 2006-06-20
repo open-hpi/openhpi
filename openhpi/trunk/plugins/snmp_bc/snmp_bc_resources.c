@@ -262,11 +262,16 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                 },
                 .res_info = {
                         .mib = {
+				
+				/*				
+                                .OidPowerState = ".1.3.6.1.4.1.2.3.51.2.22.3.1.1.1.7.x",
+                                .OidPowerOnOff = ".1.3.6.1.4.1.2.3.51.2.22.3.1.1.1.7.x",
+				 */			
                                 .OidHealth = '\0',
                                 .HealthyValue = 0,
                                 .OidReset = ".1.3.6.1.4.1.2.3.51.2.22.3.1.7.1.8.x",
-                                .OidPowerState = ".1.3.6.1.4.1.2.3.51.2.22.3.1.1.1.7.x",
-                                .OidPowerOnOff = ".1.3.6.1.4.1.2.3.51.2.22.3.1.1.1.7.x",
+                                .OidPowerState = ".1.3.6.1.4.1.2.3.51.2.22.3.2.1.1.1.1.4.x", /* smCurrentIPInfoPowerState */
+                                .OidPowerOnOff = ".1.3.6.1.4.1.2.3.51.2.22.3.1.7.1.7.x",     /* switchModulePowerOnOff */
 				.OidUuid = ".1.3.6.1.4.1.2.3.51.2.2.21.6.1.1.8.x",
 				.OidResourceWidth = '\0',
                         },
