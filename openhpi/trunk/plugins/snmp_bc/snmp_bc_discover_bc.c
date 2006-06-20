@@ -1419,7 +1419,7 @@ SaErrorT snmp_bc_discover_switch(struct oh_handler_state *handle,
 		
 		if ((switch_vector[i] == '0') && (custom_handle->isFirstDiscovery == SAHPI_TRUE))
 		{
-			res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
+			res_info_ptr->cur_state = SAHPI_HS_STATE_NOT_PRESENT;
 			snmp_bc_discover_res_events(handle, &(e->u.res_event.entry.ResourceEntity), res_info_ptr);
 			g_free(e);
 			g_free(res_info_ptr);
@@ -1971,7 +1971,9 @@ SaErrorT snmp_bc_rediscover(struct oh_handler_state *handle,
 	{
 	
 	if (rediscovertype == 2) {
-		res = oh_get_resource_by_id(handle->rptcache, event->Source);	
+		res = oh_get_resource_by_id(handle->rptcache, event->Source);
+		resinfo = (struct ResourceInfo *)oh_get_resource_data(handle->rptcache, event->Source);
+					
         	if (res)  {
 			/* Create remove resource event and add to event queue */
 			e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
@@ -1981,6 +1983,10 @@ SaErrorT snmp_bc_rediscover(struct oh_handler_state *handle,
                         	e->u.res_event.entry.ResourceId = res->ResourceId;
                         	handle->eventq = g_slist_append(handle->eventq, e);
                 	} else { dbg("Out of memory."); }
+
+			if (resinfo) {
+				resinfo->cur_state = SAHPI_HS_STATE_NOT_PRESENT;
+			}
 
 			err = snmp_bc_reset_resource_slot_state_sensor(handle, res);
                 	oh_remove_resource(handle->rptcache, res->ResourceId);
