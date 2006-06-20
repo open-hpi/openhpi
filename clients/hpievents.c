@@ -188,7 +188,10 @@ int main(int argc, char **argv)
 			}
 			break;
 		} else {
-			oh_print_event(&event, &rdr.Entity, 4);
+			if (rdr.RdrType == SAHPI_NO_RECORD)
+				oh_print_event(&event, NULL, 4);
+			else 
+				oh_print_event(&event, &rdr.Entity, 4);
 		}
 	}
 
