@@ -471,6 +471,7 @@ SaErrorT snmp_bc_get_logical_sensors(void *hnd,
 			
 		res_ep = snmp_bc_rpt_array[BC_RPT_ENTRY_MGMNT_MODULE].rpt.ResourceEntity;
 		oh_concat_ep(&res_ep, &ep_root);
+		oh_set_ep_location(&res_ep,  BLADECENTER_SYS_MGMNT_MODULE_SLOT, mm_id);			
 		oh_set_ep_location(&res_ep,  SAHPI_ENT_SYS_MGMNT_MODULE, mm_id);	
 		reading->Value.SensorUint64 = (SaHpiUint64T) oh_uid_from_entity_path(&res_ep);
 		
