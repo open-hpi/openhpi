@@ -1267,7 +1267,7 @@ static SaErrorT snmp_bc_logsrc2rid(struct oh_handler_state *handle,
 	guint loc;
 	gchar **src_parts, *endptr, *root_tuple;
 	SaErrorT err;
-	SaHpiBoolT isblade, isexpansioncard, isswitch;
+	SaHpiBoolT isblade, isexpansioncard, isswitch, ismm;
 	SaHpiEntityPathT ep, ep_root;
 	SaHpiEntityTypeT entity_type;
 	struct snmp_bc_sensor *array_ptr;
@@ -1306,7 +1306,7 @@ static SaErrorT snmp_bc_logsrc2rid(struct oh_handler_state *handle,
 	}
 
 	/* See if resource is something other than the chassis */
-	isblade = isexpansioncard = isswitch = SAHPI_FALSE;
+	isblade = isexpansioncard = isswitch = ismm = SAHPI_FALSE;
 	if (!g_ascii_strncasecmp(src_parts[0], "BLADE", sizeof("BLADE"))) { 
 		/* All expansion card events are reported as blade events in the Error Log */
 		if (ovr_flags & OVR_EXP) { isexpansioncard = SAHPI_TRUE; }
@@ -1346,6 +1346,7 @@ static SaErrorT snmp_bc_logsrc2rid(struct oh_handler_state *handle,
 				array_ptr = &snmp_bc_virtual_mgmnt_sensors[0];
 			}
 			else {
+				ismm = SAHPI_TRUE;
 				rpt_index = BC_RPT_ENTRY_MGMNT_MODULE;
 				if (ovr_flags & OVR_MM1) { loc = 1; }
 				else { loc = 2; }
@@ -1382,6 +1383,8 @@ static SaErrorT snmp_bc_logsrc2rid(struct oh_handler_state *handle,
 
 	if ((isblade == SAHPI_TRUE) || (isexpansioncard == SAHPI_TRUE)) {
 		err = oh_set_ep_location(&ep, SAHPI_ENT_PHYSICAL_SLOT, loc);	
+	} else if (ismm == SAHPI_TRUE) {
+		err = oh_set_ep_location(&ep, BLADECENTER_SYS_MGMNT_MODULE_SLOT, loc);	
 	}
 	
 	/* Special case - if Expansion Card set location of parent blade as well */
