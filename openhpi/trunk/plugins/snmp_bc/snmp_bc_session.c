@@ -17,6 +17,17 @@
 #include <snmp_bc_plugin.h>
 #include <sim_init.h>
 
+#define check_snmp_parm(input_parm) \
+do { \
+	if (input_parm != NULL) { \
+		if ( (strlen(input_parm) == 0) || \
+			( g_ascii_strncasecmp(input_parm, "NONE", 4) == 0 )) { \
+			input_parm = NULL; \
+		} \
+	} \
+} while(0)
+
+
 /**
  * snmp_bc_open:
  * @handler_config: Pointer to hash table (passed by infrastructure)
@@ -127,6 +138,19 @@ void *snmp_bc_open(GHashTable *handler_config)
 		privacy_passwd = (char *)g_hash_table_lookup(handle->config, "privacy_passwd");
 		privacy_protocol = (char *)g_hash_table_lookup(handle->config, "privacy_protocol");
 		
+		
+		/* Treating three (3) cases of non-declared parm the same  */
+		/* That is   Not-declared-parm, parm = "", parm ="none"    */
+		/* are the same to us                                      */   
+		check_snmp_parm(sec_level);
+		check_snmp_parm(authtype);
+		check_snmp_parm(user);
+		check_snmp_parm(pass);
+		check_snmp_parm(community);
+		check_snmp_parm(context_name);
+		check_snmp_parm(count_per_getbulk);
+		check_snmp_parm(privacy_passwd);
+		check_snmp_parm(privacy_protocol);
 		
 		/* Configure SNMP V3 session */
 		if (!g_ascii_strncasecmp(version, "3", sizeof("3"))) {
