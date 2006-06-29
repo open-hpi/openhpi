@@ -556,7 +556,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 	/*********************************** 
 	 * Discover Management Modules (MMs)
 	 ***********************************/
-	err = snmp_bc_discover_mm(handle, ep_root, get_value_mm.string);
+	err = snmp_bc_discover_mm(handle, ep_root, get_value_mm.string, SAHPI_TRUE);
 	if (err != SA_OK) return(err);
 
 	return(SA_OK);
@@ -1477,6 +1477,7 @@ SaErrorT snmp_bc_discover_switch(struct oh_handler_state *handle,
  * @handler: Pointer to handler's data.
  * @ep_root: Pointer to chassis Root Entity Path which comes from openhpi.conf.
  * @mm_vector: Bitmap vector of installed MMs.
+ * @global_discovery: Also include Virtual MM in the discovery
  *
  * Discovers management module (MM) resources and their RDRs.
  *
@@ -1486,7 +1487,7 @@ SaErrorT snmp_bc_discover_switch(struct oh_handler_state *handle,
  * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
  **/
 SaErrorT snmp_bc_discover_mm(struct oh_handler_state *handle,
-			  SaHpiEntityPathT *ep_root, char *mm_vector)
+			  SaHpiEntityPathT *ep_root, char *mm_vector, SaHpiBoolT global_discovery)
 {
 
 	int i;
@@ -1512,8 +1513,8 @@ SaErrorT snmp_bc_discover_mm(struct oh_handler_state *handle,
 	e = NULL;
 	res_info_ptr = NULL;
 	
-	/* Discover Virtual MM at time T0 */
-	if (custom_handle->isFirstDiscovery == SAHPI_TRUE)
+	/* Discover Virtual MM */
+	if (global_discovery == SAHPI_TRUE)
 	{			
 		e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
                 if (e == NULL) {
@@ -2091,7 +2092,7 @@ SaErrorT snmp_bc_rediscover(struct oh_handler_state *handle,
 				// get_installed_mask(SNMP_BC_MGMNT_VECTOR, get_value);
 				get_installed_mask(SNMP_BC_MM_INSTALLED, get_value);
 				strcpy(custom_handle->installed_mm_mask, get_value.string);
-				err = snmp_bc_discover_mm(handle, &ep_root, resource_mask);
+				err = snmp_bc_discover_mm(handle, &ep_root, resource_mask, SAHPI_FALSE);
 				break;
 			case SAHPI_ENT_PERIPHERAL_BAY:
 				// get_integer_object(custom_handle,SNMP_BC_MEDIATRAY_EXISTS, get_value);
