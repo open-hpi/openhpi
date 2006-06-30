@@ -433,7 +433,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 #if 0
 
 	/**
-	 ** Old code uses BIST OIDs to determnine installed mask 
+	 ** Old code uses BIST OIDs to determine installed mask 
 	 ** We are switching to using chassisTopology OIDs because
 	 ** chassisTopology OIDs are more correctly reflect installation state
 	 ** of chassis resources.  Keeping old code around until we finish with 
@@ -1694,7 +1694,7 @@ static SaErrorT snmp_bc_discover_ipmi_sensors(struct oh_handler_state *handle,
 	err = snmp_bc_oid_snmp_get(custom_handle,
 				   &(res_oh_event->u.res_event.entry.ResourceEntity), 0,
 				   SNMP_BC_IPMI_TEMP_BLADE_OID, &get_value, SAHPI_FALSE);
-				    
+				  
         if (err || get_value.type != ASN_INTEGER) {
 		dbg("Cannot get OID=%s; Received Type=%d; Error=%s.",
 		   SNMP_BC_IPMI_TEMP_BLADE_OID, get_value.type, oh_lookup_error(err));

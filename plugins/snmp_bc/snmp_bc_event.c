@@ -181,7 +181,7 @@ SaErrorT snmp_bc_discover_res_events(struct oh_handler_state *handle,
 		/* Normalized and convert event string */
 		normalized_str = oh_derive_string(ep, 0, resinfo->event_array[i].event);
 		if (normalized_str == NULL) {
-			dbg(">>>   Cannot derive %s.", resinfo->event_array[i].event);
+			dbg("Cannot derive %s.", resinfo->event_array[i].event);
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		} 
 
@@ -676,7 +676,6 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 			}
 
 			/* Normal hot swap event transitions */
-			/* FIXME:: SES Check valid state ???? - What not valid - do what ??? */
 			working.EventDataUnion.HotSwapEvent.PreviousHotSwapState =
 				resinfo2->prev_state = resinfo2->cur_state;
 
@@ -750,9 +749,9 @@ RESUME_TO_EXIT:
  * information. A NULL is returned if the information cannot be found.
  * 
  * There are several identical Error Log messages strings that are shared by
- * multiple resources. The off-line scripts that populate errlog2event_hash
+ * multiple resources. The scripts that populate errlog2event_hash
  * create unique entries for these duplicate strings by tacking on
- * an unique string (HPIDUP_STRING + duplicate number) to the error log message.
+ * an unique string (HPIDUP_duplicate_number) to the error log message.
  * This is then stored in errlog2event_hash. So there is a unique mapping
  * for each resource with a duplicate string.
  * 

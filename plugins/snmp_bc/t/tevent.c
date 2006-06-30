@@ -127,10 +127,93 @@ int main(int argc, char **argv)
         }
 
         /***************************************************************
-         * TestCase - Mapped MM Voltage Event (EN_CUTOFF_HI_FAULT_3_35V)
+         * TestCase - Blade 1 is defined as an IPMI blade in simulator.
+         * Test to see that a common event defined in blade_sensors
+         * (as opposed to blade_ipmi_sensors) are mapped to IPMI blade.
+         ***************************************************************/
+        logstr = "Severity:INFO  Source:BLADE_01  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:CPU 1 shut off due to over temperature";
+        memset(&logentry, 0 , sizeof(SaHpiEventLogEntryT));
+        strcpy(hash_value->value.string, logstr);
+        g_hash_table_insert(sim_hash, hash_key, hash_value);
+
+        err = saHpiEventLogEntryGet(sessionid, rid_eventlog, SAHPI_NEWEST_ENTRY,
+                                    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
+        if (err) {
+                printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                printf("  Received error=%s\n", oh_lookup_error(err));
+                return -1;
+        }
+
+        /* Check expected values */
+        if (!(!(logentry.Event.Source == rid_eventlog) &&
+              (logentry.Event.EventType == SAHPI_ET_SENSOR) &&
+              (logentry.Event.Severity == SAHPI_CRITICAL) &&
+              (logentry.Event.EventDataUnion.SensorEvent.SensorType == SAHPI_TEMPERATURE) &&
+              (logentry.Event.EventDataUnion.SensorEvent.Assertion == SAHPI_TRUE) &&
+              (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_CRIT) &&
+              (!(logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MAJOR)) &&
+              (!(logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MINOR)) &&
+              (logentry.Event.EventDataUnion.SensorEvent.PreviousState == SAHPI_ES_UNSPECIFIED) &&
+              (logentry.Event.EventDataUnion.SensorEvent.CurrentState == SAHPI_ES_UNSPECIFIED))) {
+                printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                oh_print_event(&(logentry.Event), (rdr.RdrType != SAHPI_NO_RECORD) ? &rdr.Entity : NULL, 1);
+                return -1;
+        }
+
+        err = saHpiEventLogClear(sessionid, rid_eventlog);
+        if (err) {
+                printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                printf("  Received error=%s\n", oh_lookup_error(err));
+                return -1;
+        }
+
+        /***************************************************************
+         * TestCase - Blade 1 is defined as an IPMI blade in simulator.
+         * Test to see that an IPMI unique event is mapped correctly.
+         ***************************************************************/
+        logstr = "Severity:INFO  Source:BLADE_01  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:1.8V standby over recommended voltage";
+        memset(&logentry, 0 , sizeof(SaHpiEventLogEntryT));
+        strcpy(hash_value->value.string, logstr);
+        g_hash_table_insert(sim_hash, hash_key, hash_value);
+
+        err = saHpiEventLogEntryGet(sessionid, rid_eventlog, SAHPI_NEWEST_ENTRY,
+                                    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
+        if (err) {
+                printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                printf("  Received error=%s\n", oh_lookup_error(err));
+                return -1;
+        }
+
+        /* Check expected values */
+	/* CurrentState == SAHPI_ES_UPPER_MAJOR since threshold read value not defined
+           in the simulator */
+        if (!(!(logentry.Event.Source == rid_eventlog) &&
+              (logentry.Event.EventType == SAHPI_ET_SENSOR) &&
+              (logentry.Event.Severity == SAHPI_MAJOR) &&
+              (logentry.Event.EventDataUnion.SensorEvent.SensorType == SAHPI_VOLTAGE) &&
+              (logentry.Event.EventDataUnion.SensorEvent.Assertion == SAHPI_TRUE) &&
+              (!(logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_CRIT)) &&
+              ((logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MAJOR)) &&
+              (!(logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MINOR)) &&
+              (logentry.Event.EventDataUnion.SensorEvent.PreviousState == SAHPI_ES_UNSPECIFIED) &&
+              (logentry.Event.EventDataUnion.SensorEvent.CurrentState == SAHPI_ES_UPPER_MAJOR))) {
+                printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                oh_print_event(&(logentry.Event), (rdr.RdrType != SAHPI_NO_RECORD) ? &rdr.Entity : NULL, 1);
+                return -1;
+        }
+
+        err = saHpiEventLogClear(sessionid, rid_eventlog);
+        if (err) {
+                printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                printf("  Received error=%s\n", oh_lookup_error(err));
+                return -1;
+        }
+
+        /***************************************************************
+         * TestCase - Mapped MM Voltage Event (EN_PFA_HI_FAULT_3_35V)
          * Event recovered in next testcase
          ***************************************************************/
-        logstr = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:System shutoff due to +3.3v over voltage. Read value 3.5. Threshold value 3.4";
+        logstr = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:System over recommended voltage on +3.3v. Read value 3.5. Threshold value 3.4";
         memset(&logentry, 0 , sizeof(SaHpiEventLogEntryT));
         strcpy(hash_value->value.string, logstr);
         g_hash_table_insert(sim_hash, hash_key, hash_value);
@@ -169,10 +252,10 @@ int main(int argc, char **argv)
         }
 
         /*****************************************************************
-         * TestCase - MM Voltage Recovery Event (EN_CUTOFF_HI_FAULT_3_35V)
+         * TestCase - MM Voltage Recovery Event (EN_PFA_HI_FAULT_3_35V)
          * Recover event in previous testcase.
          *****************************************************************/
-        logstr = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:Recovery System shutoff due to +3.3v over voltage. Read value 3.5 Threshold value 3.4";
+        logstr = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:Recovery System over recommended voltage on +3.3v. Read value 3.5 Threshold value 3.4";
         memset(&logentry, 0 , sizeof(SaHpiEventLogEntryT));
         strcpy(hash_value->value.string, logstr);
         g_hash_table_insert(sim_hash, hash_key, hash_value);
@@ -211,11 +294,11 @@ int main(int argc, char **argv)
         }
 
         /********************************************************
-         * TestCase - MM Voltage Event (EN_CUTOFF_HI_FAULT_3_35V)
-         * Change current sensor reading to a LOWER MAJOR value.
+         * TestCase - MM Voltage Event (EN_PFA_HI_FAULT_3_35V)
+         * Change current sensor reading to a LOWER CRITICAL value.
          * Previous state depends upon previous testcase.
          ********************************************************/
-        logstr = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:System shutoff due to +3.3v over voltage. Read value 3.5 Threshold value 3.4";
+        logstr = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:System over recommended voltage on +3.3v. Read value 3.5 Threshold value 3.4";
         memset(&logentry, 0 , sizeof(SaHpiEventLogEntryT));
         strcpy(hash_value->value.string, logstr);
         g_hash_table_insert(sim_hash, hash_key, hash_value);
@@ -247,8 +330,8 @@ int main(int argc, char **argv)
               (!(logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MAJOR)) &&
               (!(logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MINOR)) &&
               (logentry.Event.EventDataUnion.SensorEvent.PreviousState == SAHPI_ES_UNSPECIFIED) &&
-              (!(logentry.Event.EventDataUnion.SensorEvent.CurrentState & SAHPI_ES_LOWER_CRIT)) &&
-              (logentry.Event.EventDataUnion.SensorEvent.CurrentState & SAHPI_ES_LOWER_MAJOR) &&
+              ((logentry.Event.EventDataUnion.SensorEvent.CurrentState & SAHPI_ES_LOWER_CRIT)) &&
+              (!(logentry.Event.EventDataUnion.SensorEvent.CurrentState & SAHPI_ES_LOWER_MAJOR)) &&
               (!(logentry.Event.EventDataUnion.SensorEvent.CurrentState & SAHPI_ES_LOWER_MINOR)) &&
               (logentry.Event.EventDataUnion.SensorEvent.TriggerReading.Value.SensorFloat64 == (double)3.5) &&
               (logentry.Event.EventDataUnion.SensorEvent.TriggerThreshold.Value.SensorFloat64 == (double)3.4))) {
@@ -274,11 +357,11 @@ int main(int argc, char **argv)
         strcpy(hash_set_value->value.string, "3.3 Volts");
 
         /********************************************************
-         * TestCase - MM Voltage Event (EN_CUTOFF_HI_FAULT_3_35V)
-         * Change sensor reading to a UPPER MAJOR value.
+         * TestCase - MM Voltage Event (EN_PFA_HI_FAULT_3_35V)
+         * Change sensor reading to a UPPER CRITICAL value.
          * Previous state depends upon previous testcase.
          ********************************************************/
-        logstr = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:System shutoff due to +3.3v over voltage. Read value 3.5 Threshold value 3.4";
+        logstr = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:System over recommended voltage on +3.3v. Read value 3.5 Threshold value 3.4";
         memset(&logentry, 0 , sizeof(SaHpiEventLogEntryT));
         strcpy(hash_value->value.string, logstr);
         g_hash_table_insert(sim_hash, hash_key, hash_value);
@@ -309,11 +392,11 @@ int main(int argc, char **argv)
               (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_CRIT) &&
               (!(logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MAJOR)) &&
               (!(logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MINOR)) &&
-              (!(logentry.Event.EventDataUnion.SensorEvent.PreviousState & SAHPI_ES_LOWER_CRIT)) &&
-              (logentry.Event.EventDataUnion.SensorEvent.PreviousState & SAHPI_ES_LOWER_MAJOR) &&
+              ((logentry.Event.EventDataUnion.SensorEvent.PreviousState & SAHPI_ES_LOWER_CRIT)) &&
+              (!(logentry.Event.EventDataUnion.SensorEvent.PreviousState & SAHPI_ES_LOWER_MAJOR)) &&
               (!(logentry.Event.EventDataUnion.SensorEvent.PreviousState & SAHPI_ES_LOWER_MINOR)) &&
-              (!(logentry.Event.EventDataUnion.SensorEvent.CurrentState & SAHPI_ES_UPPER_CRIT)) &&
-              (logentry.Event.EventDataUnion.SensorEvent.CurrentState & SAHPI_ES_UPPER_MAJOR) &&
+              ((logentry.Event.EventDataUnion.SensorEvent.CurrentState & SAHPI_ES_UPPER_CRIT)) &&
+              (!(logentry.Event.EventDataUnion.SensorEvent.CurrentState & SAHPI_ES_UPPER_MAJOR)) &&
               (!(logentry.Event.EventDataUnion.SensorEvent.CurrentState & SAHPI_ES_UPPER_MINOR)) &&
               (logentry.Event.EventDataUnion.SensorEvent.TriggerReading.Value.SensorFloat64 == (double)3.5) &&
               (logentry.Event.EventDataUnion.SensorEvent.TriggerThreshold.Value.SensorFloat64 == (double)3.4))) {
@@ -338,53 +421,9 @@ int main(int argc, char **argv)
         }
         strcpy(hash_set_value->value.string, "3.3 Volts");
 
-        /***************************************************************
-         * TestCase - MM Voltage Duplicate Event (EN_PFA_HI_FAULT_3_35V)
-         * Previous state check depends on previous testcase!
-         ***************************************************************/
-        logstr = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:System over recommended voltage on +3.3v. Read value 3.5 Threshold value 3.4";
-        memset(&logentry, 0 , sizeof(SaHpiEventLogEntryT));
-        strcpy(hash_value->value.string, logstr);
-        g_hash_table_insert(sim_hash, hash_key, hash_value);
-
-        err = saHpiEventLogEntryGet(sessionid, rid_eventlog, SAHPI_NEWEST_ENTRY,
-                                    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
-        if (err) {
-                printf("  Error! Testcase failed. Line=%d\n", __LINE__);
-                printf("  Received error=%s\n", oh_lookup_error(err));
-                return -1;
-        }
-
-        /* Check expected values */
-        if (!((logentry.Event.Source == rid_eventlog) &&
-              (logentry.Event.EventType == SAHPI_ET_SENSOR) &&
-              (logentry.Event.Severity == SAHPI_MAJOR) &&
-              (logentry.Event.EventDataUnion.SensorEvent.SensorType == SAHPI_VOLTAGE) &&
-              (logentry.Event.EventDataUnion.SensorEvent.Assertion == SAHPI_TRUE) &&
-              (!(logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_CRIT)) &&
-              (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MAJOR) &&
-              (!(logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MINOR)) &&
-              (!(logentry.Event.EventDataUnion.SensorEvent.PreviousState & SAHPI_ES_UPPER_CRIT)) &&
-              (logentry.Event.EventDataUnion.SensorEvent.PreviousState & SAHPI_ES_UPPER_MAJOR) &&
-              (!(logentry.Event.EventDataUnion.SensorEvent.PreviousState & SAHPI_ES_UPPER_MINOR)) &&
-              (logentry.Event.EventDataUnion.SensorEvent.CurrentState == SAHPI_ES_UNSPECIFIED) &&
-              (logentry.Event.EventDataUnion.SensorEvent.TriggerReading.Value.SensorFloat64 == (double)3.5) &&
-              (logentry.Event.EventDataUnion.SensorEvent.TriggerThreshold.Value.SensorFloat64 == (double)3.4))) {
-                printf("  Error! Testcase failed. Line=%d\n", __LINE__);
-                oh_print_event(&(logentry.Event), (rdr.RdrType != SAHPI_NO_RECORD) ? &rdr.Entity : NULL, 1);
-                return -1;
-        }
-
-        err = saHpiEventLogClear(sessionid, rid_eventlog);
-        if (err) {
-                printf("  Error! Testcase failed. Line=%d\n", __LINE__);
-                printf("  Received error=%s\n", oh_lookup_error(err));
-                return -1;
-        }
-
         /**********************************************************
          * TestCase - Blade Duplicate Event (EN_PFA_HI_FAULT_3_35V)
-         * Same as previous testcase only for the blade not chassis
+         * Same as previous testcase only for the blade.
          **********************************************************/
         logstr = "Severity:INFO  Source:BLADE_11  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:System over recommended voltage on +3.3v. Read value 3.5 Threshold value 3.4";
         memset(&logentry, 0 , sizeof(SaHpiEventLogEntryT));
@@ -440,7 +479,7 @@ int main(int argc, char **argv)
                 printf("  Received Null hash value\n");
                 return -1;
         }
-        strcpy(hash_set_value->value.string, "60 Centigrade");
+        strcpy(hash_set_value->value.string, "39 Centigrade");
 
         err = saHpiEventLogEntryGet(sessionid, rid_eventlog, SAHPI_NEWEST_ENTRY,
                                     &prev_logid, &next_logid, &logentry, &rdr, &rpt);
@@ -652,9 +691,11 @@ int main(int argc, char **argv)
               (logentry.Event.Severity == SAHPI_CRITICAL) &&
               (logentry.Event.EventDataUnion.SensorEvent.SensorType == SAHPI_TEMPERATURE) &&
               (logentry.Event.EventDataUnion.SensorEvent.Assertion == SAHPI_TRUE) &&
-              (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_CRITICAL) &&
-              (logentry.Event.EventDataUnion.SensorEvent.PreviousState == SAHPI_ES_OK) &&
-              (logentry.Event.EventDataUnion.SensorEvent.CurrentState == SAHPI_ES_CRITICAL))) {
+              (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_CRIT) &&
+              (logentry.Event.EventDataUnion.SensorEvent.PreviousState == SAHPI_ES_UNSPECIFIED) &&
+              ((logentry.Event.EventDataUnion.SensorEvent.CurrentState & SAHPI_ES_UPPER_CRIT)) &&
+              (!(logentry.Event.EventDataUnion.SensorEvent.CurrentState & SAHPI_ES_UPPER_MAJOR)) &&
+              (!(logentry.Event.EventDataUnion.SensorEvent.CurrentState & SAHPI_ES_UPPER_MINOR)))) {
                 printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                 oh_print_event(&(logentry.Event), (rdr.RdrType != SAHPI_NO_RECORD) ? &rdr.Entity : NULL, 1);
                 return -1;
@@ -690,9 +731,15 @@ int main(int argc, char **argv)
               (logentry.Event.Severity == SAHPI_CRITICAL) &&
               (logentry.Event.EventDataUnion.SensorEvent.SensorType == SAHPI_TEMPERATURE) &&
               (logentry.Event.EventDataUnion.SensorEvent.Assertion == SAHPI_FALSE) &&
-              (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_CRITICAL) &&
-              (logentry.Event.EventDataUnion.SensorEvent.PreviousState == SAHPI_ES_CRITICAL) &&
-              (logentry.Event.EventDataUnion.SensorEvent.CurrentState == SAHPI_ES_MAJOR_FROM_LESS))) {
+              (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_CRIT) &&
+              (!(logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MAJOR)) &&
+              (!(logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MINOR)) &&
+              ((logentry.Event.EventDataUnion.SensorEvent.PreviousState & SAHPI_ES_UPPER_CRIT)) &&
+              (!(logentry.Event.EventDataUnion.SensorEvent.PreviousState & SAHPI_ES_UPPER_MAJOR)) &&
+              (!(logentry.Event.EventDataUnion.SensorEvent.PreviousState & SAHPI_ES_UPPER_MINOR)) &&
+              (!(logentry.Event.EventDataUnion.SensorEvent.CurrentState & SAHPI_ES_UPPER_CRIT)) &&
+              ((logentry.Event.EventDataUnion.SensorEvent.CurrentState & SAHPI_ES_UPPER_MAJOR)) &&
+              (!(logentry.Event.EventDataUnion.SensorEvent.CurrentState & SAHPI_ES_UPPER_MINOR)))) {
                 printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                 oh_print_event(&(logentry.Event), (rdr.RdrType != SAHPI_NO_RECORD) ? &rdr.Entity : NULL, 1);
                 return -1;

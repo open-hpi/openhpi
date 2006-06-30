@@ -7677,7 +7677,7 @@ struct snmp_bc_data sim_resource_array[] = {
                 .mib = {
                         .type = ASN_OCTET_STR,
                         .value = {
-                                .string = "(No voltage)",
+                                .string = "1.8VSB Sense",
                         },
                 },
         },
