@@ -23,6 +23,4 @@
 int _init(void) __attribute__((constructor));
 int _fini(void) __attribute__((destructor));
 
-int _initialize(int daemon);
-
 #endif /* __OH_INIT_H */

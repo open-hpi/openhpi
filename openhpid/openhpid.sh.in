@@ -74,6 +74,7 @@ print_outcome()
 }
 
 start() {
+        @prefix@/bin/openhpi-switcher --set=standard
         export `@prefix@/bin/openhpi-switcher --env=standard` || return 1
 	export OPENHPI_DAEMON_MODE="YES"
 	echo $"Starting $prog: "
@@ -97,6 +98,8 @@ start() {
 			;;
 			
 	esac
+        
+        @prefix@/bin/openhpi-switcher --set=client
 
 	print_outcome
 
