@@ -219,23 +219,25 @@ void *snmp_bc_open(GHashTable *handler_config)
 					
 				}
 				
-				if (count_per_getbulk != NULL) 
-				{
-					custom_handle->count_per_getbulk = atoi((char *)count_per_getbulk);
-					if (custom_handle->count_per_getbulk <= 10) {
-					 	custom_handle->count_per_getbulk = 10;
-					}
-							
-				} else { 
-					custom_handle->count_per_getbulk = SNMP_BC_BULK_DEFAULT;
-				}
 
 				if (context_name != NULL) 
 				{
 					custom_handle->session.contextName = (char *)context_name;
 					custom_handle->session.contextNameLen = strlen(context_name);
 				}
-			}                                
+			}
+			
+			if (count_per_getbulk != NULL) 
+			{
+				custom_handle->count_per_getbulk = atoi((char *)count_per_getbulk);
+				if (custom_handle->count_per_getbulk <= 10) {
+					 	custom_handle->count_per_getbulk = 10;
+				}
+							
+			} else { 
+					custom_handle->count_per_getbulk = SNMP_BC_BULK_DEFAULT;
+			}
+			                                
                 /* Configure SNMP V1 session */
 		} else if (!g_ascii_strncasecmp(version, "1", sizeof("1"))) { 
 			if (!community) {
