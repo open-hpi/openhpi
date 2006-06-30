@@ -116,7 +116,8 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                                 .Entry[0] =
                                 {
                                         .EntityType = SAHPI_ENT_SYS_MGMNT_MODULE,
-                                        .EntityLocation = 0, /* Must be zero(0) for Virtual resource */
+					/* Must be zero for a virtual resource */
+                                        .EntityLocation = 0,
                                 },
                                 {
                                         .EntityType = SAHPI_ENT_ROOT,
@@ -193,8 +194,6 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
 			.cur_state = SAHPI_HS_STATE_NOT_PRESENT,
 			.prev_state = SAHPI_HS_STATE_NOT_PRESENT,
                         .event_array = {
-				/* FIXME:: SES - Can MM be Managed Hot Swap? Else
-                                   kill the PENDING state */
                                 {
                                         .event = "0028200x", /* EN_MM_x_INSTALLED */
 					.event_res_failure = SAHPI_FALSE,
@@ -209,15 +208,6 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
 					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
                                         .event_state = SAHPI_HS_STATE_NOT_PRESENT,
-					.event_auto_state = 0,
-                                        .recovery_state = SAHPI_HS_STATE_ACTIVE,
-					.recovery_auto_state = 0,
-                                },
-                                {
-                                        .event = "0600020x", /* EN_MM_x_ISPRIME */
-					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_HS_STATE_ACTIVE,
 					.event_auto_state = 0,
                                         .recovery_state = SAHPI_HS_STATE_ACTIVE,
 					.recovery_auto_state = 0,
@@ -313,18 +303,7 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
   					.event_auto_state = 0,
                                         .recovery_state = 0,
  					.recovery_auto_state = 0,
-                              },
-				/* FIXME:: SES this should be a fault event - some aggregate
-                                   operational switch sensor */
-                                {
-                                        .event = "0EA0000x", /* EN_FAULT_SWITCH_x */
-					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_HS_STATE_NOT_PRESENT,
- 					.event_auto_state = 0,
-                                        .recovery_state = SAHPI_HS_STATE_ACTIVE,
-					.recovery_auto_state = 0,
-                                },
+				},
                                 {},
                         },
                 },
@@ -387,15 +366,6 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
 					.recovery_auto_state = 0,
                                 },
                                 {
-                                        .event = "1C000002",/* EN_BLADE_PWR_UP */
-					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_HS_STATE_ACTIVE,
- 					.event_auto_state = SAHPI_HS_STATE_INSERTION_PENDING,
-                                        .recovery_state = 0,
-					.recovery_auto_state = 0,
-                                },
-                                {
                                         .event = "1C000001", /* EN_BLADE_PWR_DWN */
 					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
@@ -404,6 +374,15 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                                         .recovery_state = 0,
  					.recovery_auto_state = 0,
 				},
+                                {
+                                        .event = "1C000002",/* EN_BLADE_PWR_UP */
+					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_HS_STATE_ACTIVE,
+ 					.event_auto_state = SAHPI_HS_STATE_INSERTION_PENDING,
+                                        .recovery_state = 0,
+					.recovery_auto_state = 0,
+                                },
                                 {
                                         .event = "06026080", /* EN_BLADE_PWR_DN_FAN_FAIL */
 					.event_res_failure = SAHPI_FALSE,
@@ -657,22 +636,12 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                                         .recovery_state = SAHPI_HS_STATE_ACTIVE,
  					.recovery_auto_state = 0,
 				},
-                                {
-                                        .event = "0821F00x", /* EN_FAULT_PSx_REMOVED_INFO */
-					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_HS_STATE_NOT_PRESENT,
-					.event_auto_state = 0,
-                                        .recovery_state = SAHPI_HS_STATE_ACTIVE,
- 					.recovery_auto_state = 0,
-				},
                                 {},
                         },
                 },
                 .comment = "Power Module",
         },
-	
-        /* Slot Resources */
+        /* Slot */
         {
                 .rpt = {
                         .ResourceInfo = {
@@ -681,7 +650,8 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                         .ResourceEntity = {
                                 .Entry[0] =
                                 {
-                                        .EntityType = SAHPI_ENT_CHASSIS_SPECIFIC,   /* dummy setting - set during discovery */
+					/* dummy setting - set during discovery */
+                                        .EntityType = SAHPI_ENT_CHASSIS_SPECIFIC,
                                         .EntityLocation = SNMP_BC_HPI_LOCATION_BASE,
                                 },
                                 {
@@ -712,7 +682,7 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                                 {},
                         },
                 },
-                .comment = "Slot Resource",
+                .comment = "Slot",
         },
 
         {} /* Terminate array with a null element */
@@ -724,8 +694,8 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
 
 /*************************************************************************
  * WARNING  -   WARNING  - WARNING  -  WARNING
- * Most of the .sensor.num are arbitrary assigned. 
- * There are 8 hardcoded, specifically assigned Sensor Numbers:
+ * Most of the .sensor.num are assigned sequentially. 
+ * There are 8 hardcoded, specifically assigned, sensor numbers:
  * 
  *   SAHPI_DEFAGSENS_OPER			(SaHpiSensorNumT)0x00000100 
  *   BLADECENTER_SENSOR_NUM_MGMNT_REDUNDANCY	(SaHpiSensorNumT) 0x1001
@@ -751,8 +721,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                         .Category = SAHPI_EC_THRESHOLD,
 			.EnableCtrl = SAHPI_FALSE,
                         .EventCtrl = SAHPI_SEC_READ_ONLY,
-                        .Events = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT |
-			          SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT,
+                        .Events = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                         .DataFormat = {
                                 .IsSupported = SAHPI_TRUE,
                                 .ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
@@ -796,20 +765,18 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
 			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
                         .sensor_enabled = SAHPI_TRUE,
                         .events_enabled = SAHPI_TRUE,
-                        .assert_mask   = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT |
-			                 SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT,
-                        .deassert_mask = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT |
-			                 SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT,
+                        .assert_mask   = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+                        .deassert_mask = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                         .event_array = {
-                                {
-                                        .event = "0001C480", /* EN_CUTOFF_HI_OVER_TEMP_AMBIENT */
-					.event_assertion = SAHPI_TRUE,
-					.event_res_failure = SAHPI_FALSE,
+				{
+                                        .event = "6F400000", /* EN_FAULT_CRT_AMBIENT */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
                                         .event_state = SAHPI_ES_UPPER_CRIT,
                                         .recovery_state = SAHPI_ES_UPPER_MAJOR,
                                 },
-                                {
+				{
                                         .event = "0001D500", /* EN_PFA_HI_OVER_TEMP_AMBIENT */
  					.event_assertion = SAHPI_TRUE,
 					.event_res_failure = SAHPI_FALSE,
@@ -817,23 +784,6 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
 					.event_state = SAHPI_ES_UPPER_MAJOR,
                                         .recovery_state = SAHPI_ES_UNSPECIFIED,
                                 },
-                                {
-                                        .event = "0001C800", /* EN_CUTOFF_LO_OVER_TEMP_AMBIENT */
-					.event_assertion = SAHPI_TRUE,
-					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_LOWER_CRIT,
-                                        .recovery_state = SAHPI_ES_LOWER_MAJOR,
-                                },
-                                {
-                                        .event = "0011C900", /* EN_MAJOR_LO_OVER_TEMP_AMBIENT */
- 					.event_assertion = SAHPI_TRUE,
-					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-					.event_state = SAHPI_ES_LOWER_MAJOR,
-                                        .recovery_state = SAHPI_ES_UNSPECIFIED,
-                                },
-
                                 {},
                         },
                         .reading2event = {
@@ -843,7 +793,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
 						.Flags = SAHPI_SRF_MIN,
 						.Min = {
 							.Value = {
-								.SensorFloat64 = 60.0,
+								.SensorFloat64 = 39.0,
 							},
 						},
 					},
@@ -855,7 +805,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
 						.Flags = SAHPI_SRF_MAX,
 						.Max = {
 							.Value = {
-								.SensorFloat64 = 60.0,
+								.SensorFloat64 = 39.0,
 							},
 						},
 					},
@@ -867,7 +817,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
 						.Flags = SAHPI_SRF_NOMINAL,
 						.Nominal = {
 							.Value = {
-								.SensorFloat64 = 60.0,
+								.SensorFloat64 = 39.0,
 							},
 						},
 					},
@@ -1063,7 +1013,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                         .Category = SAHPI_EC_THRESHOLD,
 			.EnableCtrl = SAHPI_FALSE,
                         .EventCtrl = SAHPI_SEC_READ_ONLY,
-                        .Events = 0x00,				/* No event state */
+                        .Events = 0,
                         .DataFormat = {
                                 .IsSupported = SAHPI_TRUE,
                                 .ReadingType = SAHPI_SENSOR_READING_TYPE_UINT64,
@@ -1071,9 +1021,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                                 .ModifierUnits = SAHPI_SU_UNSPECIFIED,
                                 .ModifierUse = SAHPI_SMUU_NONE,
                                 .Percentage = SAHPI_FALSE,
-				.Range = {
-                                        .Flags = 0x00,
-                                },
+				.Range = {},
                         },
                         .ThresholdDefn = {
 				.IsAccessible = SAHPI_FALSE,
@@ -1092,8 +1040,8 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
 			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
                         .sensor_enabled = SAHPI_TRUE,
                         .events_enabled = SAHPI_FALSE,
-			.assert_mask   = 0x00,
-			.deassert_mask = 0x00,
+			.assert_mask   = 0,
+			.deassert_mask = 0,
 			.event_array = {
                                 {},
                         },
@@ -1118,9 +1066,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                                 .ModifierUnits = SAHPI_SU_UNSPECIFIED,
                                 .ModifierUse = SAHPI_SMUU_NONE,
                                 .Percentage = SAHPI_FALSE,
-				.Range = {
-                                        .Flags = 0x00,
-                                },
+				.Range = {},
                         },
                         .ThresholdDefn = {
 				.IsAccessible = SAHPI_FALSE,
@@ -1141,8 +1087,8 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
 			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
                         .sensor_enabled = SAHPI_TRUE,
                         .events_enabled = SAHPI_FALSE,
-			.assert_mask   = 0x00,
-			.deassert_mask = 0x00,
+			.assert_mask   = 0,
+			.deassert_mask = 0,
 			.event_array = {
                                 {},
                         },
@@ -1209,11 +1155,12 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors_bct[] = {
 		.index = SNMP_BC_MAX_COMMON_CHASSIS_SENSORS + 1,
                 .sensor = {
                         .Num = SNMP_BC_MAX_COMMON_CHASSIS_SENSORS + 1,
-                        .Type = SAHPI_ENT_COOLING_DEVICE,
+                        .Type = SAHPI_TEMPERATURE,
                         .Category = SAHPI_EC_SEVERITY,
 			.EnableCtrl = SAHPI_FALSE,
                         .EventCtrl = SAHPI_SEC_READ_ONLY,
-                        .Events = SAHPI_ES_OK | SAHPI_ES_MINOR_FROM_OK | 
+                        .Events = SAHPI_ES_OK | SAHPI_ES_MINOR_FROM_OK |
+			          SAHPI_ES_INFORMATIONAL |
 			          SAHPI_ES_MAJOR_FROM_LESS | SAHPI_ES_CRITICAL,
                         .DataFormat = {
                                 .IsSupported = SAHPI_FALSE,
@@ -1228,9 +1175,11 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors_bct[] = {
 			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
                         .sensor_enabled = SAHPI_TRUE,
                         .events_enabled = SAHPI_TRUE,
-			.assert_mask   = SAHPI_ES_OK | SAHPI_ES_MINOR_FROM_OK | 
+			.assert_mask   = SAHPI_ES_OK | SAHPI_ES_MINOR_FROM_OK |
+			                 SAHPI_ES_INFORMATIONAL |
 			                 SAHPI_ES_MAJOR_FROM_LESS | SAHPI_ES_CRITICAL,
-			.deassert_mask = SAHPI_ES_OK | SAHPI_ES_MINOR_FROM_OK | 
+			.deassert_mask = SAHPI_ES_OK | SAHPI_ES_MINOR_FROM_OK |
+			                 SAHPI_ES_INFORMATIONAL |
 			                 SAHPI_ES_MAJOR_FROM_LESS | SAHPI_ES_CRITICAL,
                         .event_array = {
                                 {
@@ -1258,19 +1207,11 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors_bct[] = {
                                         .recovery_state = SAHPI_ES_OK,
                                 },
                                 {
-                                        .event = "6F400000", /* EN_FAULT_CRT_AMBIENT */
- 					.event_assertion = SAHPI_TRUE,
-      					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_CRITICAL,
-                                        .recovery_state = SAHPI_ES_MAJOR_FROM_LESS,
-                                },
-                                {
                                         .event = "6F500000", /* EN_FAULT_MNR_FILTER_SERVICE */
  					.event_assertion = SAHPI_TRUE,
       					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_MINOR_FROM_OK,
+                                        .event_state = SAHPI_ES_INFORMATIONAL,
                                         .recovery_state = SAHPI_ES_OK,
                                 },
                         },
@@ -1296,8 +1237,7 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                         .Category = SAHPI_EC_THRESHOLD,
 			.EnableCtrl = SAHPI_FALSE,
                         .EventCtrl = SAHPI_SEC_READ_ONLY,
-                        .Events = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT |
-			          SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT,
+                        .Events = SAHPI_ES_UPPER_MAJOR,
                         .DataFormat = {
                                 .IsSupported = SAHPI_TRUE,
                                 .ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
@@ -1341,19 +1281,9 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
 			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
                         .sensor_enabled = SAHPI_TRUE,
                         .events_enabled = SAHPI_TRUE,
-                        .assert_mask   = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT |
-			                 SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT,
-                        .deassert_mask = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT |
-			                 SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT,
+                        .assert_mask   = SAHPI_ES_UPPER_MAJOR,
+                        .deassert_mask = SAHPI_ES_UPPER_MAJOR,
                         .event_array = {
-				{
-                                        .event = "0001C500", /* EN_CUTOFF_HI_OVER_TEMP_SP_CARD */
-					.event_assertion = SAHPI_TRUE,
-					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_UPPER_CRIT,
-                                        .recovery_state = SAHPI_ES_UPPER_MAJOR,
-                                },
                                 {
                                         .event = "0001D400", /* EN_PFA_HI_OVER_TEMP_SP_CARD */
  					.event_assertion = SAHPI_TRUE,
@@ -1362,23 +1292,6 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
 					.event_state = SAHPI_ES_UPPER_MAJOR,
                                         .recovery_state = SAHPI_ES_UNSPECIFIED,
                                 },
-				{
-                                        .event = "0011C881", /* EN_CUTOFF_LO_OVER_TEMP_SP_CARD */
-					.event_assertion = SAHPI_TRUE,
-					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_LOWER_CRIT,
-                                        .recovery_state = SAHPI_ES_LOWER_MAJOR,
-                                },
-                                {
-                                        .event = "0011C901", /* EN_MAJOR_LO_OVER_TEMP_SP_CARD */
- 					.event_assertion = SAHPI_TRUE,
-					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-					.event_state = SAHPI_ES_UPPER_MAJOR,
-                                        .recovery_state = SAHPI_ES_UNSPECIFIED,
-                                },
-
                                 {},
                         },
                         .reading2event = {
@@ -1432,8 +1345,7 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                         .Category = SAHPI_EC_THRESHOLD,
 			.EnableCtrl = SAHPI_FALSE,
                         .EventCtrl = SAHPI_SEC_READ_ONLY,
-			.Events = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-                                  SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+			.Events = SAHPI_ES_LOWER_CRIT | SAHPI_ES_UPPER_CRIT,
                         .DataFormat = {
                                 .IsSupported = SAHPI_TRUE,
                                 .ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
@@ -1468,7 +1380,7 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                         },
                         .ThresholdDefn = {
 				.IsAccessible = SAHPI_TRUE,
-                                .ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR |
+                                .ReadThold = SAHPI_STM_LOW_CRIT | SAHPI_STM_UP_CRIT |
                                              SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
 				.WriteThold = 0,
                          },
@@ -1481,8 +1393,8 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.8.0",
 				.loc_offset = 0,
                                 .threshold_oids = {
-					.LowMajor = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.6",
-					.UpMajor  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.6",
+					.LowCritical = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.6",
+					.UpCritical  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.6",
 					.TotalPosThdHysteresis = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.7.6",
 					.TotalNegThdHysteresis = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.11.6",
                                 },
@@ -1492,41 +1404,23 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
 			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
                         .sensor_enabled = SAHPI_TRUE,
                         .events_enabled = SAHPI_TRUE,
-			.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-			                 SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-			.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-                                         SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+			.assert_mask   = SAHPI_ES_LOWER_CRIT | SAHPI_ES_UPPER_CRIT,
+			.deassert_mask = SAHPI_ES_LOWER_CRIT | SAHPI_ES_UPPER_CRIT,
                         .event_array = {
                                 {
-                                        .event = "0807A480", /* EN_CUTOFF_HI_FAULT_1_8V */
- 					.event_assertion = SAHPI_TRUE,
+                                        .event = "0807B401", /* EN_I2C_HI_FAULT_1_8V */
+					.event_assertion = SAHPI_TRUE,
 					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
                                         .event_state = SAHPI_ES_UPPER_CRIT,
-                                        .recovery_state = SAHPI_ES_UPPER_MAJOR,
+                                        .recovery_state = SAHPI_ES_UNSPECIFIED,
                                 },
                                 {
-                                        .event = "0807A880", /* EN_CUTOFF_LO_FAULT_1_8V */
+                                        .event = "0807B801", /* EN_I2C_LO_FAULT_1_8V */
 					.event_assertion = SAHPI_TRUE,
 					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
                                         .event_state = SAHPI_ES_LOWER_CRIT,
-                                        .recovery_state = SAHPI_ES_LOWER_MAJOR,
-                                },
-                                {
-                                        .event = "0807A500", /* EN_MAJOR_HI_FAULT_1_8V */
-					.event_assertion = SAHPI_TRUE,
-					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_UPPER_MAJOR,
-                                        .recovery_state = SAHPI_ES_UNSPECIFIED,
-                                },
-                                {
-                                        .event = "0807A900", /* EN_MAJOR_LO_FAULT_1_8V */
-					.event_assertion = SAHPI_TRUE,
-					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_LOWER_MAJOR,
                                         .recovery_state = SAHPI_ES_UNSPECIFIED,
                                 },
                                 {},
@@ -1544,8 +1438,7 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                         .Category = SAHPI_EC_THRESHOLD,
 			.EnableCtrl = SAHPI_FALSE,
                         .EventCtrl = SAHPI_SEC_READ_ONLY,
-                        .Events = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-                                  SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+                        .Events = SAHPI_ES_LOWER_CRIT | SAHPI_ES_UPPER_CRIT,
                         .DataFormat = {
                                 .IsSupported = SAHPI_TRUE,
                                 .ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
@@ -1580,7 +1473,7 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                         },
                         .ThresholdDefn = {
 				.IsAccessible = SAHPI_TRUE,
-                                .ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR |
+                                .ReadThold = SAHPI_STM_LOW_CRIT | SAHPI_STM_UP_CRIT |
 				             SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
                                 .WriteThold = 0,
                         },
@@ -1593,8 +1486,8 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.6.0",
  				.loc_offset = 0,
 				.threshold_oids = {
-					.LowMajor = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.5",
-					.UpMajor  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.5",
+					.LowCritical = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.5",
+					.UpCritical  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.5",
 					.TotalPosThdHysteresis  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.7.5",
 					.TotalNegThdHysteresis = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.11.5",
                                 },
@@ -1604,41 +1497,23 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
 			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
                         .sensor_enabled = SAHPI_TRUE,
                         .events_enabled = SAHPI_TRUE,
-			.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-			                 SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-			.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-                                         SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+			.assert_mask   = SAHPI_ES_LOWER_CRIT | SAHPI_ES_UPPER_CRIT,
+			.deassert_mask = SAHPI_ES_LOWER_CRIT | SAHPI_ES_UPPER_CRIT,
                         .event_array = {
                                 {
-                                        .event = "08030480", /* EN_CUTOFF_HI_FAULT_2_5V */
+                                        .event = "08031481", /* EN_I2C_HI_FAULT_2_5V */
 					.event_assertion = SAHPI_TRUE,
 					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
                                         .event_state = SAHPI_ES_UPPER_CRIT,
-                                        .recovery_state = SAHPI_ES_UPPER_MAJOR,
-                                },
-                                {
-                                        .event = "08030880", /* EN_CUTOFF_LO_FAULT_2_5V */
- 					.event_assertion = SAHPI_TRUE,
-					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-					.event_state = SAHPI_ES_LOWER_CRIT,
-                                        .recovery_state = SAHPI_ES_LOWER_MAJOR,
-                                },
-                                {
-                                        .event = "08031480", /* EN_PFA_HI_FAULT_2_5V */
-					.event_assertion = SAHPI_TRUE,
-					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_UPPER_MAJOR,
                                         .recovery_state = SAHPI_ES_UNSPECIFIED,
                                 },
                                 {
-                                        .event = "08031880", /* EN_PFA_LO_FAULT_2_5V */
+                                        .event = "08031881", /* EN_I2C_LO_FAULT_2_5V */
 					.event_assertion = SAHPI_TRUE,
 					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_LOWER_MAJOR,
+                                        .event_state = SAHPI_ES_LOWER_CRIT,
                                         .recovery_state = SAHPI_ES_UNSPECIFIED,
                                 },
                                 {},
@@ -1656,8 +1531,7 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                         .Category = SAHPI_EC_THRESHOLD,
 			.EnableCtrl = SAHPI_FALSE,
                         .EventCtrl = SAHPI_SEC_READ_ONLY,
-                        .Events = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-			          SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+                        .Events = SAHPI_ES_LOWER_CRIT | SAHPI_ES_UPPER_CRIT,
                         .DataFormat = {
                                 .IsSupported = SAHPI_TRUE,
                                 .ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
@@ -1692,7 +1566,7 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                         },
                         .ThresholdDefn = {
 				.IsAccessible = SAHPI_TRUE,
-                                .ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR |
+                                .ReadThold = SAHPI_STM_LOW_CRIT | SAHPI_STM_UP_CRIT |
 				             SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
                                 .WriteThold = 0,
                         },
@@ -1705,8 +1579,8 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.2.0",
 				.loc_offset = 0,
                                 .threshold_oids = {
-					.LowMajor = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.2",
-					.UpMajor  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.2",
+					.LowCritical = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.2",
+					.UpCritical  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.2",
 					.TotalPosThdHysteresis  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.7.2",
 					.TotalNegThdHysteresis = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.11.2",
                                 },
@@ -1716,41 +1590,24 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
 			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
                         .sensor_enabled = SAHPI_TRUE,
                         .events_enabled = SAHPI_TRUE,
-			.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-                                         SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-			.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-			                 SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+			.assert_mask   = SAHPI_ES_LOWER_CRIT | SAHPI_ES_UPPER_CRIT,
+			.deassert_mask = SAHPI_ES_LOWER_CRIT | SAHPI_ES_UPPER_CRIT,
 			.event_array = {
                                 {
-                                        .event = "08032480", /* EN_CUTOFF_HI_FAULT_3_35V */
-					.event_assertion = SAHPI_TRUE,
-					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_UPPER_CRIT,
-                                        .recovery_state = SAHPI_ES_UPPER_MAJOR,
-                                },
-                                {
-                                        .event = "08032880", /* EN_CUTOFF_LO_FAULT_3_35V */
-					.event_assertion = SAHPI_TRUE,
-					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_LOWER_CRIT,
-                                        .recovery_state = SAHPI_ES_LOWER_MAJOR,
-                                },
-                                {
-                                        .event = "08033480", /* EN_PFA_HI_FAULT_3_35V */
+                                        .event = "08033481", /* EN_I2C_HI_FAULT_3_35V */
  					.event_assertion = SAHPI_TRUE,
 					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
-					.event_state = SAHPI_ES_UPPER_MAJOR,
+					.event_state = SAHPI_ES_UPPER_CRIT,
                                         .recovery_state = SAHPI_ES_UNSPECIFIED,
                                 },
+				/* FIXME: Need right number from MM */
 				{
-                                        .event = "08032900", /* EN_MAJOR_LO_FAULT_3_35V */
+                                        .event = "FFFFFFF0", /* EN_I2C_LO_FAULT_3_35V */
  					.event_assertion = SAHPI_TRUE,
 					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
-					.event_state = SAHPI_ES_LOWER_MAJOR,
+					.event_state = SAHPI_ES_LOWER_CRIT,
                                         .recovery_state = SAHPI_ES_UNSPECIFIED,
                                 },
                                 {},
@@ -1768,8 +1625,7 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                         .Category = SAHPI_EC_THRESHOLD,
 			.EnableCtrl = SAHPI_FALSE,
                         .EventCtrl = SAHPI_SEC_READ_ONLY,
-                        .Events = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-                                  SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+                        .Events = SAHPI_ES_LOWER_CRIT | SAHPI_ES_UPPER_CRIT,
 			.DataFormat = {
                                 .IsSupported = SAHPI_TRUE,
                                 .ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
@@ -1804,7 +1660,7 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
 			},
                         .ThresholdDefn = {
                                 .IsAccessible = SAHPI_TRUE,
-                                .ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR |
+                                .ReadThold = SAHPI_STM_LOW_CRIT | SAHPI_STM_UP_CRIT |
                                              SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
                                 .WriteThold = 0,
                          },
@@ -1817,8 +1673,8 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.1.0",
  				.loc_offset = 0,
 				.threshold_oids = {
-					.LowMajor = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.1",
-					.UpMajor  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.1",
+					.LowCritical = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.1",
+					.UpCritical  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.1",
 					.TotalPosThdHysteresis  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.7.1",
 					.TotalNegThdHysteresis = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.11.1",
                                 },
@@ -1828,41 +1684,24 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
 			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
                         .sensor_enabled = SAHPI_TRUE,
                         .events_enabled = SAHPI_TRUE,
-                        .assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-                                         SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-			.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-                                         SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+                        .assert_mask   = SAHPI_ES_LOWER_CRIT | SAHPI_ES_UPPER_CRIT,
+			.deassert_mask = SAHPI_ES_LOWER_CRIT | SAHPI_ES_UPPER_CRIT,
                         .event_array = {
+				/* FIXME:: Need right number from MM */
                                 {
-                                        .event = "06034480", /* EN_CUTOFF_HI_FAULT_PLANAR_5V */
+                                        .event = "FFFFFFF1", /* EN_I2C_HI_FAULT_PLANAR_5V */
 					.event_assertion = SAHPI_TRUE,
 					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
                                         .event_state = SAHPI_ES_UPPER_CRIT,
-                                        .recovery_state = SAHPI_ES_UPPER_MAJOR,
+                                        .recovery_state = SAHPI_ES_UNSPECIFIED,
                                 },
                                 {
-                                        .event = "06034800", /* EN_CUTOFF_LO_FAULT_PLANAR_5V */
+                                        .event = "06035801", /* EN_I2C_LO_FAULT_PLANAR_5V */
 					.event_assertion = SAHPI_TRUE,
 					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
                                         .event_state = SAHPI_ES_LOWER_CRIT,
-                                        .recovery_state = SAHPI_ES_LOWER_MAJOR,
-                                },
-                                {
-                                        .event = "06034500", /* EN_MAJOR_HI_FAULT_PLANAR_5V */
-					.event_assertion = SAHPI_TRUE,
-					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_UPPER_MAJOR,
-                                        .recovery_state = SAHPI_ES_UNSPECIFIED,
-                                },
-                                {
-                                        .event = "06035800", /* EN_PFA_LO_FAULT_PLANAR_5V */
-					.event_assertion = SAHPI_TRUE,
-					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_LOWER_MAJOR,
                                         .recovery_state = SAHPI_ES_UNSPECIFIED,
                                 },
                                 {},
@@ -1880,8 +1719,7 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                         .Category = SAHPI_EC_THRESHOLD,
 			.EnableCtrl = SAHPI_FALSE,
                         .EventCtrl = SAHPI_SEC_READ_ONLY,
-                        .Events = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-                                  SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+                        .Events = SAHPI_ES_LOWER_CRIT | SAHPI_ES_UPPER_CRIT,
                         .DataFormat = {
                                 .IsSupported = SAHPI_TRUE,
                                 .ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
@@ -1916,7 +1754,7 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                         },
                         .ThresholdDefn = {
                                 .IsAccessible = SAHPI_TRUE,
-                                .ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR |
+                                .ReadThold = SAHPI_STM_LOW_CRIT | SAHPI_STM_UP_CRIT |
                                              SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
                                 .WriteThold = 0,
                          },
@@ -1929,8 +1767,8 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.5.0",
 				.loc_offset = 0,
                                 .threshold_oids = {
-					.LowMajor = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.4",
-					.UpMajor  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.4",
+					.LowCritical = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.4",
+					.UpCritical  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.4",
 					.TotalPosThdHysteresis  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.7.4",
 					.TotalNegThdHysteresis = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.11.4",
                                 },
@@ -1940,41 +1778,23 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
 			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
                         .sensor_enabled = SAHPI_TRUE,
                         .events_enabled = SAHPI_TRUE,
-			.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-                                         SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-			.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-                                         SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+			.assert_mask   = SAHPI_ES_LOWER_CRIT | SAHPI_ES_UPPER_CRIT,
+			.deassert_mask = SAHPI_ES_LOWER_CRIT | SAHPI_ES_UPPER_CRIT,
                         .event_array = {
                                 {
-                                        .event = "0803C480", /* EN_CUTOFF_HI_FAULT_N5V */
+                                        .event = "0803D501", /* EN_I2C_HI_FAULT_N5V */
 					.event_assertion = SAHPI_TRUE,
 					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
                                         .event_state = SAHPI_ES_UPPER_CRIT,
-                                        .recovery_state = SAHPI_ES_UPPER_MAJOR,
+                                        .recovery_state = SAHPI_ES_UNSPECIFIED,
                                 },
                                 {
-                                        .event = "0803C800", /* EN_CUTOFF_LO_FAULT_N5V */
+					.event = "0803D801", /* EN_I2C_LO_FAULT_N5V */
 					.event_assertion = SAHPI_TRUE,
 					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
                                         .event_state = SAHPI_ES_LOWER_CRIT,
-                                        .recovery_state = SAHPI_ES_LOWER_MAJOR,
-                                },
-                                {
-                                        .event = "0803D500", /* EN_PFA_HI_FAULT_N5V */
-					.event_assertion = SAHPI_TRUE,
-					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_UPPER_MAJOR,
-                                        .recovery_state = SAHPI_ES_UNSPECIFIED,
-                                },
-                                {
-					.event = "803C900", /* EN_MAJOR_LO_FAULT_N5V */
-					.event_assertion = SAHPI_TRUE,
-					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_LOWER_MAJOR,
                                         .recovery_state = SAHPI_ES_UNSPECIFIED,
                                 },
                                 {},
@@ -1992,8 +1812,7 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                         .Category = SAHPI_EC_THRESHOLD,
 			.EnableCtrl = SAHPI_FALSE,
                         .EventCtrl = SAHPI_SEC_READ_ONLY,
-                        .Events = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-                                  SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+                        .Events = SAHPI_ES_LOWER_CRIT | SAHPI_ES_UPPER_CRIT,
                         .DataFormat = {
                                 .IsSupported = SAHPI_TRUE,
                                 .ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
@@ -2028,7 +1847,7 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                         },
                         .ThresholdDefn = {
 				.IsAccessible = SAHPI_TRUE,
-                                .ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR |
+                                .ReadThold = SAHPI_STM_LOW_CRIT | SAHPI_STM_UP_CRIT |
                                              SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
                                 .WriteThold = 0,
                         },
@@ -2041,8 +1860,8 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.3.0",
 				.loc_offset = 0,
                                 .threshold_oids = {
-					.LowMajor = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.3",
-					.UpMajor  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.3",
+					.LowCritical = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.3",
+					.UpCritical  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.3",
 					.TotalPosThdHysteresis  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.7.3",
 					.TotalNegThdHysteresis = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.11.3",
                                 },
@@ -2052,41 +1871,23 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
 			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
                         .sensor_enabled = SAHPI_TRUE,
                         .events_enabled = SAHPI_TRUE,
-			.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-			                 SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-			.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-                                         SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+			.assert_mask   = SAHPI_ES_LOWER_CRIT | SAHPI_ES_UPPER_CRIT,
+			.deassert_mask = SAHPI_ES_LOWER_CRIT | SAHPI_ES_UPPER_CRIT,
                         .event_array = {
                                 {
-                                        .event = "06036480", /* EN_CUTOFF_HI_FAULT_12V_PLANAR */
+                                        .event = "06037503", /* EN_I2C_HI_FAULT_12V_PLANAR */
 					.event_assertion = SAHPI_TRUE,
  					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
 					.event_state = SAHPI_ES_UPPER_CRIT,
-                                        .recovery_state = SAHPI_ES_UPPER_MAJOR,
+                                        .recovery_state = SAHPI_ES_UNSPECIFIED,
                                 },
                                 {
-                                        .event = "06036800", /* EN_CUTOFF_LO_FAULT_12V_PLANAR */
+                                        .event = "06037801", /* EN_I2C_LO_FAULT_12V_PLANAR */
 					.event_assertion = SAHPI_TRUE,
  					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
                                         .event_state = SAHPI_ES_LOWER_CRIT,
-                                        .recovery_state = SAHPI_ES_LOWER_MAJOR,
-                                },
-                                {
-                                        .event = "06037500", /* EN_PFA_HI_FAULT_12V_PLANAR */
-					.event_assertion = SAHPI_TRUE,
- 					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-					.event_state = SAHPI_ES_UPPER_MAJOR,
-                                        .recovery_state = SAHPI_ES_UNSPECIFIED,
-                                },
-                                {
-                                        .event = "06037800", /* EN_PFA_LO_FAULT_12V_PLANAR */
-					.event_assertion = SAHPI_TRUE,
- 					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_LOWER_MAJOR,
                                         .recovery_state = SAHPI_ES_UNSPECIFIED,
                                 },
                                 {},
@@ -2095,7 +1896,7 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                 },
                 .comment = "System 12 Volt Sensor",
         },
-	/* General I2C Bus Operations Sensor - event only */
+	/* System Management Bus Operational State Sensor - event only */
         {
 		.index = 8,
                 .sensor = {
@@ -2104,7 +1905,7 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                         .Category = SAHPI_EC_AVAILABILITY,
 			.EnableCtrl = SAHPI_FALSE,
                         .EventCtrl = SAHPI_SEC_READ_ONLY,
-			.Events = SAHPI_ES_RUNNING | SAHPI_ES_OFF_LINE,
+			.Events = SAHPI_ES_RUNNING | SAHPI_ES_DEGRADED | SAHPI_ES_OFF_LINE,
                         .DataFormat = {
                                 .IsSupported = SAHPI_FALSE,
                         },
@@ -2118,9 +1919,17 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
 			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
                         .sensor_enabled = SAHPI_TRUE,
                         .events_enabled = SAHPI_TRUE,
-			.assert_mask   = SAHPI_ES_OFF_LINE,
-			.deassert_mask = SAHPI_ES_OFF_LINE,
+			.assert_mask   = SAHPI_ES_DEGRADED | SAHPI_ES_OFF_LINE,
+			.deassert_mask = SAHPI_ES_DEGRADED | SAHPI_ES_OFF_LINE,
                         .event_array = {
+                                {
+                                        .event = "00020000", /* EN_I2C_BUS_0_FAIL */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
                                 {
                                         .event = "00020001", /* EN_I2C_BUS_1_FAIL */
   					.event_assertion = SAHPI_TRUE,
@@ -2129,38 +1938,6 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                                         .event_state = SAHPI_ES_OFF_LINE,
                                         .recovery_state = SAHPI_ES_RUNNING,
                                 },
-                                {},
-                        },
-   			.reading2event = {},
-                },
-                .comment = "General I2C Bus Operations Sensor",
-        },
-	/* Blade I2C Bus Operations Sensor - event only */
-        {
-		.index = 9,
-                .sensor = {
-                        .Num = 9,
-                        .Type = SAHPI_OPERATIONAL,
-                        .Category = SAHPI_EC_AVAILABILITY,
-			.EnableCtrl = SAHPI_FALSE,
-                        .EventCtrl = SAHPI_SEC_READ_ONLY,
-			.Events = SAHPI_ES_RUNNING | SAHPI_ES_OFF_LINE,
-                        .DataFormat = {
-                                .IsSupported = SAHPI_FALSE,
-                        },
-                        .ThresholdDefn = {
-                                .IsAccessible = SAHPI_FALSE,
-                        },
-                        .Oem = 0,
-                },
-                .sensor_info = {
-                        .cur_state = SAHPI_ES_RUNNING,
-			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
-                        .sensor_enabled = SAHPI_TRUE,
-                        .events_enabled = SAHPI_TRUE,
-			.assert_mask   = SAHPI_ES_OFF_LINE,
-			.deassert_mask = SAHPI_ES_OFF_LINE,
-                        .event_array = {
                                 {
                                         .event = "00020002", /* EN_I2C_BUS_2_FAIL */
   					.event_assertion = SAHPI_TRUE,
@@ -2169,118 +1946,6 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                                         .event_state = SAHPI_ES_OFF_LINE,
                                         .recovery_state = SAHPI_ES_RUNNING,
                                 },
-                                {},
-                        },
-   			.reading2event = {},
-                },
-                .comment = "Blade I2C Bus Operations Sensor",
-        },
-	/* I/O Module I2C Bus Operations Sensor - event only */
-        {
-		.index = 10,
-                .sensor = {
-                        .Num = 10,
-                        .Type = SAHPI_OPERATIONAL,
-                        .Category = SAHPI_EC_AVAILABILITY,
-			.EnableCtrl = SAHPI_FALSE,
-                        .EventCtrl = SAHPI_SEC_READ_ONLY,
-			.Events = SAHPI_ES_RUNNING | SAHPI_ES_OFF_LINE,
-                        .DataFormat = {
-                                .IsSupported = SAHPI_FALSE,
-                        },
-                        .ThresholdDefn = {
-                                .IsAccessible = SAHPI_FALSE,
-                        },
-                        .Oem = 0,
-                },
-                .sensor_info = {
-                        .cur_state = SAHPI_ES_RUNNING,
-			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
-                        .sensor_enabled = SAHPI_TRUE,
-                        .events_enabled = SAHPI_TRUE,
-			.assert_mask   = SAHPI_ES_OFF_LINE,
-			.deassert_mask = SAHPI_ES_OFF_LINE,
-                        .event_array = {
-                                {
-                                        .event = "00020005", /* EN_I2C_BUS_5_FAIL */
-  					.event_assertion = SAHPI_TRUE,
-       					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_OFF_LINE,
-                                        .recovery_state = SAHPI_ES_RUNNING,
-                                },
-                                {},
-                        },
-   			.reading2event = {},
-                },
-                .comment = "I/O Module I2C Bus 0perations Sensor",
-        },
-	/* Media Tray I2C Bus Operations Sensor - event only */
-        {
-		.index = 11,
-                .sensor = {
-                        .Num = 11,
-                        .Type = SAHPI_OPERATIONAL,
-                        .Category = SAHPI_EC_AVAILABILITY,
-			.EnableCtrl = SAHPI_FALSE,
-                        .EventCtrl = SAHPI_SEC_READ_ONLY,
-			.Events = SAHPI_ES_RUNNING | SAHPI_ES_OFF_LINE,
-                        .DataFormat = {
-                                .IsSupported = SAHPI_FALSE,
-                        },
-                        .ThresholdDefn = {
-                                .IsAccessible = SAHPI_FALSE,
-                        },
-                        .Oem = 0,
-                },
-                .sensor_info = {
-                        .cur_state = SAHPI_ES_RUNNING,
-			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
-                        .sensor_enabled = SAHPI_TRUE,
-                        .events_enabled = SAHPI_TRUE,
-			.assert_mask   = SAHPI_ES_OFF_LINE,
-			.deassert_mask = SAHPI_ES_OFF_LINE,
-                        .event_array = {
-                                {
-                                        .event = "00020004", /* EN_I2C_BUS_4_FAIL */
-  					.event_assertion = SAHPI_TRUE,
-       					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_OFF_LINE,
-                                        .recovery_state = SAHPI_ES_RUNNING,
-                                },
-                                {},
-                        },
-   			.reading2event = {},
-                },
-                .comment = "Media Tray I2C Bus Operations Sensor",
-        },
-	/* Power Module I2C Bus Operations Sensor - event only */
-        {
-		.index = 12,
-                .sensor = {
-                        .Num = 12,
-                        .Type = SAHPI_OPERATIONAL,
-                        .Category = SAHPI_EC_AVAILABILITY,
-			.EnableCtrl = SAHPI_FALSE,
-                        .EventCtrl = SAHPI_SEC_READ_ONLY,
-			.Events = SAHPI_ES_RUNNING | SAHPI_ES_OFF_LINE,
-                        .DataFormat = {
-                                .IsSupported = SAHPI_FALSE,
-                        },
-                        .ThresholdDefn = {
-                                .IsAccessible = SAHPI_FALSE,
-                        },
-                        .Oem = 0,
-                },
-                .sensor_info = {
-                        .cur_state = SAHPI_ES_RUNNING,
-			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
-                        .sensor_enabled = SAHPI_TRUE,
-                        .events_enabled = SAHPI_TRUE,
-			.assert_mask   = SAHPI_ES_OFF_LINE,
-			.deassert_mask = SAHPI_ES_OFF_LINE,
-                        .event_array = {
                                 {
                                         .event = "00020003", /* EN_I2C_BUS_3_FAIL */
   					.event_assertion = SAHPI_TRUE,
@@ -2289,15 +1954,239 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                                         .event_state = SAHPI_ES_OFF_LINE,
                                         .recovery_state = SAHPI_ES_RUNNING,
                                 },
+                                {
+                                        .event = "00020004", /* EN_I2C_BUS_4_FAIL */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "00020005", /* EN_I2C_BUS_5_FAIL */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "00020006", /* EN_I2C_BUS_6_FAIL */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "00020007", /* EN_I2C_BUS_7_FAIL */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "00020008", /* EN_I2C_BUS_8_FAIL */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "00020009", /* EN_I2C_BUS_9_FAIL */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "0002000A", /* EN_I2C_BUS_10_FAIL */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "0002000B", /* EN_I2C_BUS_11_FAIL */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "0002000C", /* EN_I2C_BUS_12_FAIL */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "0002000D", /* EN_I2C_BUS_13_FAIL */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "0002000E", /* EN_I2C_BUS_14_FAIL */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "0002000F", /* EN_I2C_BUS_15_FAIL */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "00020010", /* EN_I2C_BUS_16_FAIL */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "00020011", /* EN_I2C_BUS_17_FAIL */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "00020012", /* EN_I2C_BUS_18_FAIL */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "00020013", /* EN_I2C_BUS_19_FAIL */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "00020014", /* EN_I2C_BUS_20_FAIL */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "00020015", /* EN_I2C_BUS_21_FAIL */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "00020016", /* EN_I2C_BUS_22_FAIL */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "00020017", /* EN_I2C_BUS_23_FAIL */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "00020018", /* EN_I2C_BUS_24_FAIL */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "00020019", /* EN_I2C_BUS_25_FAIL */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "0002001A", /* EN_I2C_BUS_26_FAIL */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "00216015", /* EN_SP_CTRL_OFFLINE */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "00216016", /* EN_SP_CTRL_UNAVAILABLE */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "00022014", /* EN_STCONN_FAIL_MIDPLANE */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "00216014", /* EN_SP_CTRL_DEGRADED */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "00216013", /* EN_SP_SENSOR_DEGRADED */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
                                 {},
                         },
    			.reading2event = {},
                 },
-                .comment = "Power Module I2C Bus Operations Sensor",
+                .comment = "System Management Bus Operational State Sensor",
         },
         /* MM Redundancy Sensor - event-only */
         {
-		.index = 13,
+		.index = 9,
                 .sensor = {
                         .Num = BLADECENTER_SENSOR_NUM_MGMNT_REDUNDANCY,
                         .Type = SAHPI_OPERATIONAL,
@@ -2340,7 +2229,7 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
         },
         /* Active MM Sensor */
         {
-		.index = 14,
+		.index = 10,
                 .sensor = {
                         .Num = BLADECENTER_SENSOR_NUM_MGMNT_ACTIVE,
                         .Type = SAHPI_ENTITY_PRESENCE,
@@ -2377,15 +2266,16 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                         .events_enabled = SAHPI_FALSE,
                         .assert_mask   = 0,
                         .deassert_mask = 0,
-                        .event_array = {},
-			
+                        .event_array = {
+                                {},
+			},
                         .reading2event = {},
                 },
                 .comment = "Active MM Sensor",
         },	
         /* Standby MM Sensor */
         {
-		.index = 15,
+		.index = 11,
                 .sensor = {
                         .Num = BLADECENTER_SENSOR_NUM_MGMNT_STANDBY,
                         .Type = SAHPI_ENTITY_PRESENCE,
@@ -2422,22 +2312,23 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                         .events_enabled = SAHPI_FALSE,
                         .assert_mask   = 0,
                         .deassert_mask = 0,
-                        .event_array = {},
-			
+                        .event_array = {
+                                {},
+			},
                         .reading2event = {},
                 },
                 .comment = "Standby MM Sensor",
         },
 	/* Midplane Maximum Power Capability Sensor */
 	{
-		.index = 16,
+		.index = 12,
                 .sensor = {
                         .Num = BLADECENTER_SENSOR_NUM_MAX_POWER,
                         .Type = SAHPI_OTHER_UNITS_BASED_SENSOR,
                         .Category = SAHPI_EC_THRESHOLD,
 			.EnableCtrl = SAHPI_FALSE,
                         .EventCtrl = SAHPI_SEC_READ_ONLY,
-                        .Events = 0x00,				/* No event state */
+                        .Events = 0,
                         .DataFormat = {
                                 .IsSupported = SAHPI_TRUE,
                                 .ReadingType = SAHPI_SENSOR_READING_TYPE_UINT64,
@@ -2445,9 +2336,7 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                                 .ModifierUnits = SAHPI_SU_UNSPECIFIED,
                                 .ModifierUse = SAHPI_SMUU_NONE,
                                 .Percentage = SAHPI_FALSE,
-				.Range = {
-                                        .Flags = 0x00,
-                                },
+				.Range = {},
                         },
                         .ThresholdDefn = {
 				.IsAccessible = SAHPI_FALSE,
@@ -2466,8 +2355,8 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
 			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
                         .sensor_enabled = SAHPI_TRUE,
                         .events_enabled = SAHPI_FALSE,
-			.assert_mask   = 0x00,
-			.deassert_mask = 0x00,
+			.assert_mask   = 0,
+			.deassert_mask = 0,
 			.event_array = {
                                 {},
                         },
@@ -2477,7 +2366,7 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
 	},
 	/* Midplane Assigned Power Sensor */
 	{
-		.index = 17,
+		.index = 13,
                 .sensor = {
                         .Num = BLADECENTER_SENSOR_NUM_ASSIGNED_POWER,
                         .Type = SAHPI_OTHER_UNITS_BASED_SENSOR,
@@ -2526,7 +2415,7 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
 	},
 	/* Midplane Minumum Power Capability Sensor */
 	{
-		.index = 18,
+		.index = 14,
                 .sensor = {
                         .Num = BLADECENTER_SENSOR_NUM_MIN_POWER,
                         .Type = SAHPI_OTHER_UNITS_BASED_SENSOR,
@@ -3084,8 +2973,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         .Category = SAHPI_EC_THRESHOLD,
 			.EnableCtrl = SAHPI_FALSE,
                         .EventCtrl = SAHPI_SEC_READ_ONLY,
-                        .Events = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-                                  SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+                        .Events = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
                         .DataFormat = {
                                 .IsSupported = SAHPI_TRUE,
                                 .ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
@@ -3141,44 +3029,42 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
 			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
                         .sensor_enabled = SAHPI_TRUE,
                         .events_enabled = SAHPI_TRUE,
-			.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-			                 SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-			.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-                                         SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+			.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
+			.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
                         .event_array = {
                                 {
                                         .event = "0A041C00", /* EN_IO_1_5V_WARNING_HI */
  					.event_assertion = SAHPI_TRUE,
     					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
-					.event_state = SAHPI_ES_UPPER_CRIT,
-                                        .recovery_state = SAHPI_ES_UPPER_MAJOR,
+					.event_state = SAHPI_ES_UPPER_MAJOR,
+                                        .recovery_state = SAHPI_ES_UNSPECIFIED,
                                 },
                                 {
                                         .event = "0A040C00", /* EN_IO_1_5V_WARNING_LOW */
  					.event_assertion = SAHPI_TRUE,
    					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
-					.event_state = SAHPI_ES_LOWER_CRIT,
-                                        .recovery_state = SAHPI_ES_LOWER_MAJOR,
+					.event_state = SAHPI_ES_LOWER_MAJOR,
+                                        .recovery_state = SAHPI_ES_UNSPECIFIED,
                                 },
-                                {
-                                        .event = "08041400", /* EN_PFA_HI_FAULT_1_5V */
- 					.event_assertion = SAHPI_TRUE,
-   					.event_res_failure = SAHPI_FALSE,
+				{
+					.event = "08041400", /* EN_PFA_HI_FAULT_1_5V */
+					.event_assertion = SAHPI_TRUE,
+					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
 					.event_state = SAHPI_ES_UPPER_MAJOR,
-                                        .recovery_state = SAHPI_ES_UNSPECIFIED,
-                                },
-                                {
-                                        .event = "08041800", /* EN_PFA_LO_FAULT_1_5V */
- 					.event_assertion = SAHPI_TRUE,
-  					.event_res_failure = SAHPI_FALSE,
+					.recovery_state = SAHPI_ES_UNSPECIFIED,
+				},
+				{
+					.event = "08041800", /* EN_PFA_LO_FAULT_1_5V */
+					.event_assertion = SAHPI_TRUE,
+					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_LOWER_MAJOR,
-                                        .recovery_state = SAHPI_ES_UNSPECIFIED,
-                                },
-                                {},
+					.event_state = SAHPI_ES_LOWER_MAJOR,
+					.recovery_state = SAHPI_ES_UNSPECIFIED,
+				},
+				{},
                         },
  			.reading2event = {},
                  },
@@ -3193,8 +3079,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         .Category = SAHPI_EC_THRESHOLD,
 			.EnableCtrl = SAHPI_FALSE,
                         .EventCtrl = SAHPI_SEC_READ_ONLY,
-                        .Events = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-                                  SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+                        .Events = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
                         .DataFormat = {
                                 .IsSupported = SAHPI_TRUE,
                                 .ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
@@ -3250,43 +3135,41 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
 			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
                         .sensor_enabled = SAHPI_TRUE,
                         .events_enabled = SAHPI_TRUE,
-			.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-                                         SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-			.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-                                         SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+			.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
+			.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
                         .event_array = {
                                 {
                                         .event = "0A031C00", /* EN_IO_2_5V_WARNING_HI */
  					.event_assertion = SAHPI_TRUE,
      					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_UPPER_CRIT,
-					.recovery_state = SAHPI_ES_UPPER_MAJOR,
+                                        .event_state = SAHPI_ES_UPPER_MAJOR,
+					.recovery_state = SAHPI_ES_UNSPECIFIED,
                                 },
                                 {
                                         .event = "0A030C00", /* EN_IO_2_5V_WARNING_LOW */
  					.event_assertion = SAHPI_TRUE,
      					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_LOWER_CRIT,
-                                        .recovery_state = SAHPI_ES_LOWER_MAJOR,
-                                },
-                                {
-                                        .event = "FF031480", /* EN_PFA_HI_FAULT_2_5V */
- 					.event_assertion = SAHPI_TRUE,
-     					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_UPPER_MAJOR,
-                                        .recovery_state = SAHPI_ES_UNSPECIFIED,
-                                },
-                                {
-                                        .event = "FF031880", /* EN_PFA_LO_FAULT_2_5V */
- 					.event_assertion = SAHPI_TRUE,
-     					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
                                         .event_state = SAHPI_ES_LOWER_MAJOR,
                                         .recovery_state = SAHPI_ES_UNSPECIFIED,
                                 },
+				{
+					.event = "08031480", /* EN_PFA_HI_FAULT_2_5V */
+					.event_assertion = SAHPI_TRUE,
+					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+					.event_state = SAHPI_ES_UPPER_MAJOR,
+					.recovery_state = SAHPI_ES_UNSPECIFIED,
+				},
+				{
+					.event = "08031880", /* EN_PFA_LO_FAULT_2_5V */
+					.event_assertion = SAHPI_TRUE,
+					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+					.event_state = SAHPI_ES_LOWER_MAJOR,
+					.recovery_state = SAHPI_ES_UNSPECIFIED,
+				},
                                 {},
                         },
   			.reading2event = {},
@@ -3302,8 +3185,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         .Category = SAHPI_EC_THRESHOLD,
 			.EnableCtrl = SAHPI_FALSE,
                         .EventCtrl = SAHPI_SEC_READ_ONLY,
-                        .Events = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-                                  SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+                        .Events = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
                         .DataFormat = {
                                 .IsSupported = SAHPI_TRUE,
                                 .ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
@@ -3359,29 +3241,11 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
 			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
                         .sensor_enabled = SAHPI_TRUE,
                         .events_enabled = SAHPI_TRUE,
-			.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-			                 SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-			.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-                                         SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+			.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
+			.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 			.event_array = {
                                 {
                                         .event = "0A02DC00", /* EN_IO_3_3V_WARNING_HI */
- 					.event_assertion = SAHPI_TRUE,
-      					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-					.event_state = SAHPI_ES_UPPER_CRIT,
-                                        .recovery_state = SAHPI_ES_UPPER_MAJOR,
-                                },
-                                {
-                                        .event = "0A02CC00", /* EN_IO_3_3V_WARNING_LOW */
- 					.event_assertion = SAHPI_TRUE,
-       					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-					.event_state = SAHPI_ES_LOWER_CRIT,
-                                        .recovery_state = SAHPI_ES_LOWER_MAJOR,
-                                },
-                                {
-                                        .event = "FF033480", /* EN_PFA_HI_FAULT_3_35V */
  					.event_assertion = SAHPI_TRUE,
       					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
@@ -3389,13 +3253,30 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                         .recovery_state = SAHPI_ES_UNSPECIFIED,
                                 },
                                 {
-					.event = "FF032900", /* EN_MAJOR_LO_FAULT_3_35V */
-					.event_assertion = SAHPI_TRUE,
-     					.event_res_failure = SAHPI_FALSE,
+                                        .event = "0A02CC00", /* EN_IO_3_3V_WARNING_LOW */
+ 					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_LOWER_MAJOR,
+					.event_state = SAHPI_ES_LOWER_MAJOR,
                                         .recovery_state = SAHPI_ES_UNSPECIFIED,
                                 },
+				{
+					.event = "08033480", /* EN_PFA_HI_FAULT_3_35V */
+					.event_assertion = SAHPI_TRUE,
+					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+					.event_state = SAHPI_ES_UPPER_MAJOR,
+					.recovery_state = SAHPI_ES_UNSPECIFIED,
+				},
+				/* FIXME:: New number when MM adds event */
+				{
+					.event = "FF032900", /* EN_MAJOR_LO_FAULT_3_35V */
+					.event_assertion = SAHPI_TRUE,
+					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+					.event_state = SAHPI_ES_LOWER_MAJOR,
+					.recovery_state = SAHPI_ES_UNSPECIFIED,
+				},
                                 {},
                         },
   			.reading2event = {},
@@ -3411,8 +3292,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         .Category = SAHPI_EC_THRESHOLD,
 			.EnableCtrl = SAHPI_FALSE,
                         .EventCtrl = SAHPI_SEC_READ_ONLY,
-                        .Events = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-                                  SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+                        .Events = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
                         .DataFormat = {
                                 .IsSupported = SAHPI_TRUE,
                                 .ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
@@ -3468,18 +3348,16 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
 			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
                         .sensor_enabled = SAHPI_TRUE,
                         .events_enabled = SAHPI_TRUE,
-			.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-                                         SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-			.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-                                         SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+			.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
+			.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
                         .event_array = {
                                 {
                                         .event = "0A035C00", /* EN_IO_5V_WARNING_HI */
  					.event_assertion = SAHPI_TRUE,
        					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
-					.event_state = SAHPI_ES_UPPER_CRIT,
-                                        .recovery_state = SAHPI_ES_UPPER_MAJOR,
+					.event_state = SAHPI_ES_UPPER_MAJOR,
+                                        .recovery_state = SAHPI_ES_UNSPECIFIED,
                                 },
                                 {
                                         .event = "0A034C00", /* EN_IO_5V_WARNING_LOW */
@@ -3487,7 +3365,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
       					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
                                         .event_state = SAHPI_ES_LOWER_CRIT,
-                                        .recovery_state = SAHPI_ES_LOWER_MAJOR,
+                                        .recovery_state = SAHPI_ES_UNSPECIFIED,
                                 },
                                 {
                                         .event = "08035500", /* EN_PFA_HI_FAULT_5V */
@@ -3520,8 +3398,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         .Category = SAHPI_EC_THRESHOLD,
 			.EnableCtrl = SAHPI_FALSE,
                         .EventCtrl = SAHPI_SEC_READ_ONLY,
-                        .Events = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-                                  SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+                        .Events = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
                         .DataFormat = {
                                 .IsSupported = SAHPI_TRUE,
                                 .ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
@@ -3577,29 +3454,11 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
 			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
                         .sensor_enabled = SAHPI_TRUE,
                         .events_enabled = SAHPI_TRUE,
-			.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-			                 SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-			.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-                                         SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+			.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
+			.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
                         .event_array = {
                                 {
                                         .event = "0A037C00", /* EN_IO_12V_WARNING_HI */
- 					.event_assertion = SAHPI_TRUE,
-      					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_UPPER_CRIT,
-                                        .recovery_state = SAHPI_ES_UPPER_MAJOR,
-                                },
-                                {
-                                        .event = "0A036C00", /* EN_IO_12V_WARNING_LOW */
- 					.event_assertion = SAHPI_TRUE,
-      					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_LOWER_CRIT,
-                                        .recovery_state = SAHPI_ES_LOWER_MAJOR,
-                                },
-                                {
-                                        .event = "FF037500", /* EN_PFA_HI_FAULT_12V_PLANAR */
  					.event_assertion = SAHPI_TRUE,
       					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
@@ -3607,7 +3466,23 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                         .recovery_state = SAHPI_ES_UNSPECIFIED,
                                 },
                                 {
-                                        .event = "FF037800", /* EN_PFA_LO_FAULT_12V_PLANAR */
+                                        .event = "0A036C00", /* EN_IO_12V_WARNING_LOW */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_LOWER_MAJOR,
+                                        .recovery_state = SAHPI_ES_UNSPECIFIED,
+                                },
+                                {
+                                        .event = "06037500", /* EN_PFA_HI_FAULT_12V_PLANAR */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_UPPER_MAJOR,
+                                        .recovery_state = SAHPI_ES_UNSPECIFIED,
+                                },
+                                {
+                                        .event = "06037800", /* EN_PFA_LO_FAULT_12V_PLANAR */
  					.event_assertion = SAHPI_TRUE,
        					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
@@ -3629,7 +3504,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         .Category = SAHPI_EC_THRESHOLD,
 			.EnableCtrl = SAHPI_FALSE,
                         .EventCtrl = SAHPI_SEC_READ_ONLY,
-                        .Events = SAHPI_ES_UPPER_CRIT,
+                        .Events = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
                         .DataFormat = {
                                 .IsSupported = SAHPI_TRUE,
                                 .ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
@@ -3673,15 +3548,23 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
 			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
                         .sensor_enabled = SAHPI_TRUE,
                         .events_enabled = SAHPI_TRUE,
-			.assert_mask   = SAHPI_ES_UPPER_CRIT,
-			.deassert_mask = SAHPI_ES_UPPER_CRIT,
+			.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
+			.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
                         .event_array = {
                                 {
-                                        .event = "04400481", /* EN_CUTOFF_HI_FAULT_VRM1 */
+                                        .event = "04401501", /* EN_PFA_HI_FAULT_VRM1 */
  					.event_assertion = SAHPI_TRUE,
       					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_UPPER_CRIT,
+                                        .event_state = SAHPI_ES_UPPER_MAJOR,
+                                        .recovery_state = SAHPI_ES_UNSPECIFIED,
+                                },
+                                {
+                                        .event = "04401801", /* EN_PFA_LO_FAULT_VRM1 */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_LOWER_MAJOR,
                                         .recovery_state = SAHPI_ES_UNSPECIFIED,
                                 },
                                 {},
@@ -3718,6 +3601,359 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
 			.deassert_mask = SAHPI_ES_DEGRADED | SAHPI_ES_OFF_LINE | SAHPI_ES_INSTALL_ERROR,
                         .event_array = {
                                 {
+                                        .event = "0E00A00x", /* EN_BLADE_x_INSUFFICIENT_PWR */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "0F00C00x", /* EN_BLADE_1_SHUTDOWN_OVER_PWR_BUDGET */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "0E01200x", /* EN_BLADE_2_UNIDENTIABLE_HW_DENY_POWER */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "0401A000", /* EN_CPU_BD_POWER_FAULT */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "04018000", /* EN_CPU_BD_VOLTAGE_FAULT */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "0401E000", /* EN_CPU_INVALID_CONFIG */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "04300201", /* EN_IERR_CPU1 */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "04300202", /* EN_IERR_CPU2 */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "04300203", /* EN_IERR_CPU3 */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "04300204", /* EN_IERR_CPU4 */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "0421C081", /* EN_OVER_TEMP_CPU1 */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "0421C082", /* EN_OVER_TEMP_CPU2 */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "0421C083", /* EN_OVER_TEMP_CPU3 */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "0421C084", /* EN_OVER_TEMP_CPU4 */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "00000069", /* EN_DASD */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "06016000", /* EN_IO_BD_FAULT */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                 {
+                                        .event = "0601A000", /* EN_IO_BD_POWER_FAULT */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "06018000", /* EN_IO_BD_VOLTAGE_FAULT */
+ 					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+					.event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "00028000", /* EN_FAULT_POWER_GOOD */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "00028001", /* EN_FAULT_SYS_POWER_GOOD */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "04428000", /* EN_FAULT_VRM_POWER_GOOD */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "04428001", /* EN_FAULT_VRM_POWER_GOOD_1 */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "04428002", /* EN_FAULT_VRM_POWER_GOOD_2 */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "04428003", /* EN_FAULT_VRM_POWER_GOOD_3 */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "04428004", /* EN_FAULT_VRM_POWER_GOOD_4 */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+				{
+                                        .event = "04000000", /* EN_AUTO_BIOS_ALERT */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+				{
+					.event = "0D01E000", /* EN_HSDC_FAULT */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "00216030", /* EN_IPMI_SM_INIT_FAIL */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "0021601C", /* EN_IPMI_SYS_BOARD_FAIL */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "0021603E", /* EN_IPMI_PCI_BUS_TIMEOUT */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "0021603F", /* EN_IPMI_BIOS_HALTED_UNSPEC */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "08016080", /* EN_PWR_CONTROLLER_TIMEOUT */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "05200000", /* EN_MEMORY_FAIL */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "0A000281", /* EN_UNCORRECT_DIMM_1_ERR */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+					.event = "0A000282", /* EN_UNCORRECT_DIMM_2_ERR */
+  					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+					.event = "0A000283", /* EN_UNCORRECT_DIMM_3_ERR */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+ 					.event = "0A000284", /* EN_UNCORRECT_DIMM_4_ERR */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+					.event = "0A000285", /* EN_UNCORRECT_DIMM_5_ERR */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+					.event = "0A000286", /* EN_UNCORRECT_DIMM_6_ERR */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+					.event = "0A000287", /* EN_UNCORRECT_DIMM_7_ERR */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+					.event = "0A000288", /* EN_UNCORRECT_DIMM_8_ERR */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "00216012", /* EN_IPMI_UNCORRECT_BUS_ERR */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "00216003", /* EN_IPMI_DIMM_ERR */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+
+                                {
+                                        .event = "06C16000", /* EN_MEM_MOD_BUS_UNCORR_ERR */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
                                         .event = "0E00E00x", /* EN_BLADE_x_NO_PWR_VPD */
  					.event_assertion = SAHPI_TRUE,
       					.event_res_failure = SAHPI_FALSE,
@@ -3742,55 +3978,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                         .recovery_state = SAHPI_ES_RUNNING,
                                 },
                                 {
-                                        .event = "0E00600x", /* EN_BLADE_x_CFG_FAIL */
- 					.event_assertion = SAHPI_TRUE,
-      					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_INSTALL_ERROR,
-                                        .recovery_state = SAHPI_ES_RUNNING,
-                                },
-                                {
-                                        .event = "0E00A00x", /* EN_BLADE_x_INSUFFICIENT_PWR */
- 					.event_assertion = SAHPI_TRUE,
-      					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_OFF_LINE,
-                                        .recovery_state = SAHPI_ES_RUNNING,
-                                },
-                                {
                                         .event = "0E00C00x", /* EN_BLADE_x_THROTTLED */
- 					.event_assertion = SAHPI_TRUE,
-      					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_DEGRADED,
-                                        .recovery_state = SAHPI_ES_RUNNING,
-                                },
-                                {
-                                        .event = "06018000", /* EN_IO_BD_VOLTAGE_FAULT */
- 					.event_assertion = SAHPI_TRUE,
-       					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-					.event_state = SAHPI_ES_DEGRADED,
-                                        .recovery_state = SAHPI_ES_RUNNING,
-                                },
-                                {
-                                        .event = "0601A000", /* EN_IO_BD_POWER_FAULT */
- 					.event_assertion = SAHPI_TRUE,
-      					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_DEGRADED,
-                                        .recovery_state = SAHPI_ES_RUNNING,
-                                },
-                                {
-                                        .event = "04018000", /* EN_CPU_BD_VOLTAGE_FAULT */
- 					.event_assertion = SAHPI_TRUE,
-      					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_DEGRADED,
-                                        .recovery_state = SAHPI_ES_RUNNING,
-                                },
-                                {
-                                        .event = "0000006F", /* EN_NC_VOLT */
  					.event_assertion = SAHPI_TRUE,
       					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
@@ -3806,23 +3994,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                         .recovery_state = SAHPI_ES_RUNNING,
                                 },
                                 {
-                                        .event = "00028001", /* EN_FAULT_SYS_POWER_GOOD */
- 					.event_assertion = SAHPI_TRUE,
-      					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_OFF_LINE,
-                                        .recovery_state = SAHPI_ES_RUNNING,
-                                },
-                                {
-                                        .event = "04428000", /* EN_FAULT_VRM_POWER_GOOD */
- 					.event_assertion = SAHPI_TRUE,
-      					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_OFF_LINE,
-                                        .recovery_state = SAHPI_ES_RUNNING,
-                                },
-                                {
-                                        .event = "0401A000", /* EN_CPU_BD_POWER_FAULT */
+                                        .event = "0A000000", /* EN_CKVM_FAULT */
  					.event_assertion = SAHPI_TRUE,
       					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
@@ -3830,7 +4002,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                         .recovery_state = SAHPI_ES_RUNNING,
                                 },
                                 {
-                                        .event = "00028000", /* EN_FAULT_POWER_GOOD */
+                                        .event = "04204001", /* EN_CPU_1_DISABLED */
  					.event_assertion = SAHPI_TRUE,
       					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
@@ -3838,11 +4010,155 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                         .recovery_state = SAHPI_ES_RUNNING,
                                 },
                                 {
-                                        .event = "00000069", /* EN_DASD */
+                                        .event = "04204002", /* EN_CPU_2_DISABLED */
  					.event_assertion = SAHPI_TRUE,
       					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
                                         .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "04204003", /* EN_CPU_3_DISABLED */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "04204004", /* EN_CPU_4_DISABLED */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "04306201", /* EN_IERR_CPU_RESTART1 */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "04306202", /* EN_IERR_CPU_RESTART2 */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "04306203", /* EN_IERR_CPU_RESTART3 */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "04306204", /* EN_IERR_CPU_RESTART4 */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "0000006F", /* EN_NC_VOLT */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "09025000", /* EN_FP_NP */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "0421D401", /* EN_CPU1_TEMP_WARN */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "0421D402", /* EN_CPU2_TEMP_WARN */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "0E00600x", /* EN_BLADE_x_CFG_FAIL */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_INSTALL_ERROR,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "0EC00001", /* EN_BEM_1_FAULT */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_INSTALL_ERROR,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "0EC00002", /* EN_BEM_2_FAULT */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_INSTALL_ERROR,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "08100080", /* EN_PWR_CONTROLLER_MISMATCH */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_INSTALL_ERROR,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "0D000281", /* EN_BSE_LEGACY_DC1_DONT_WORK */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_INSTALL_ERROR,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "0D000282", /* EN_BSE_LEGACY_DC2_DONT_WORK */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_INSTALL_ERROR,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "04000300", /* EN_POWER_JUMPER_NP */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_INSTALL_ERROR,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "04000280", /* EN_BLADE_INCOMPATIABLE */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_INSTALL_ERROR,
                                         .recovery_state = SAHPI_ES_RUNNING,
                                 },
                                 {},
@@ -3851,51 +4167,11 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                },
                 .comment = "Blade Operational Status Sensor",
         },
-	/* Blade Memory Status Sensor - event only */
+	/* Blade NMI Status Sensor */
         {
 		.index = 13,
                 .sensor = {
                         .Num = 13,
-                        .Type = SAHPI_OPERATIONAL,
-                        .Category = SAHPI_EC_AVAILABILITY,
-			.EnableCtrl = SAHPI_FALSE,
-                        .EventCtrl = SAHPI_SEC_READ_ONLY,
-                        .Events = SAHPI_ES_RUNNING | SAHPI_ES_DEGRADED,
-                        .DataFormat = {
-                                .IsSupported = SAHPI_FALSE,
-                        },
-                        .ThresholdDefn = {
-                                .IsAccessible = SAHPI_FALSE,
-                        },
-                        .Oem = 0,
-                },
-                .sensor_info = {
-                        .cur_state = SAHPI_ES_UNSPECIFIED,
-			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
-                        .sensor_enabled = SAHPI_TRUE,
-                        .events_enabled = SAHPI_TRUE,
-			.assert_mask   = SAHPI_ES_DEGRADED,
-			.deassert_mask = SAHPI_ES_DEGRADED,
-                        .event_array = {
-                                {
-                                        .event = "05200000", /* EN_MEMORY_FAIL */
- 					.event_assertion = SAHPI_TRUE,
-      					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_DEGRADED,
-                                        .recovery_state = SAHPI_ES_RUNNING,
-                                },
-                                {},
-                        },
-   			.reading2event = {},
-               },
-                .comment = "Blade Memory Status Sensor",
-        },
-	/* Blade NMI Status Sensor */
-        {
-		.index = 14,
-                .sensor = {
-                        .Num = 14,
                         .Type = SAHPI_CRITICAL_INTERRUPT,
                         .Category = SAHPI_EC_STATE,
 			.EnableCtrl = SAHPI_FALSE,
@@ -3931,14 +4207,52 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                },
                 .comment = "Blade NMI Status Sensor",
         },
+	/* Blade Management Bus Operational Status Sensor - event only */
+        {
+		.index = 14,
+                .sensor = {
+                        .Num = 14,
+                        .Type = SAHPI_OPERATIONAL,
+                        .Category = SAHPI_EC_AVAILABILITY,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
+			.Events = SAHPI_ES_RUNNING | SAHPI_ES_OFF_LINE,
+                        .DataFormat = {
+                                .IsSupported = SAHPI_FALSE,
+                        },
+                        .ThresholdDefn = {
+                                .IsAccessible = SAHPI_FALSE,
+                        },
+                        .Oem = 0,
+                },
+                .sensor_info = {
+                        .cur_state = SAHPI_ES_RUNNING,
+			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
+                        .sensor_enabled = SAHPI_TRUE,
+                        .events_enabled = SAHPI_TRUE,
+			.assert_mask   = SAHPI_ES_OFF_LINE,
+			.deassert_mask = SAHPI_ES_OFF_LINE,
+                        .event_array = {
+                                {
+                                        .event = "0E02200x", /* EN_STCONN_FAIL_BLADE_x */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {},
+                        },
+   			.reading2event = {},
+                },
+                .comment = "Blade Management Bus Operations Sensor",
+        },
 
         {} /* Terminate array with a null element */
 };
 
-
 /* Blade IPMI Sensors */
 /* NOTE: Define IPMI Tags as uppercase */
-
 #define SNMP_BC_LAST_NON_IPMI_BLADE_SENSOR 14
 struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
         /* Blade CPU 1 Temperature Sensor */
@@ -4005,38 +4319,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				.assert_mask   = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
 				.deassert_mask = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
 				.event_array = {
-					{
-						.event = "0421C401", /* EN_PROC_HOT_CPU1 */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_FALSE,
-						.event_res_failure_unexpected = SAHPI_FALSE,
-						.event_state = SAHPI_ES_UPPER_CRIT,
-						.recovery_state = SAHPI_ES_UPPER_MAJOR,
-					},
-					{
-						.event = "0421C481", /* EN_CUTOFF_HI_OVER_TEMP_CPU1 */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_FALSE,
-						.event_res_failure_unexpected = SAHPI_FALSE,
-						.event_state = SAHPI_ES_UPPER_CRIT,
-						.recovery_state = SAHPI_ES_UPPER_MAJOR,
-					},
-					{
-						.event = "0421D081", /* EN_THERM_TRIP_CPU1 */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_FALSE,
-						.event_res_failure_unexpected = SAHPI_FALSE,
-						.event_state = SAHPI_ES_UPPER_CRIT,
-						.recovery_state = SAHPI_ES_UPPER_MAJOR,
-					},
-					{
-						.event = "0421D501", /* EN_PFA_HI_OVER_TEMP_CPU1 */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_FALSE,
-						.event_res_failure_unexpected = SAHPI_FALSE,
-						.event_state = SAHPI_ES_UPPER_MAJOR,
-						.recovery_state = SAHPI_ES_UNSPECIFIED,
-					},
+					/* No IPMI unique events */
 					{},
 				},
 				.reading2event = {},
@@ -4108,38 +4391,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				.assert_mask   = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
 				.deassert_mask = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
 				.event_array = {
-					{
-						.event = "0421C402", /* EN_PROC_HOT_CPU2 */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_FALSE,
-						.event_res_failure_unexpected = SAHPI_FALSE,
-						.event_state = SAHPI_ES_UPPER_CRIT,
-						.recovery_state = SAHPI_ES_UPPER_MAJOR,
-					},
-					{
-						.event = "0421C482", /* EN_CUTOFF_HI_OVER_TEMP_CPU2 */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_FALSE,
-						.event_res_failure_unexpected = SAHPI_FALSE,
-						.event_state = SAHPI_ES_UPPER_CRIT,
-						.recovery_state = SAHPI_ES_UPPER_MAJOR,
-					},
-					{
-						.event = "0421D082", /* EN_THERM_TRIP_CPU2 */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_FALSE,
-						.event_res_failure_unexpected = SAHPI_FALSE,
-						.event_state = SAHPI_ES_UPPER_CRIT,
-						.recovery_state = SAHPI_ES_UPPER_MAJOR,
-					},
-					{
-						.event = "0421D502", /* EN_PFA_HI_OVER_TEMP_CPU2 */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_FALSE,
-						.event_res_failure_unexpected = SAHPI_FALSE,
-						.event_state = SAHPI_ES_UPPER_MAJOR,
-						.recovery_state = SAHPI_ES_UNSPECIFIED,
-					},
+					/* No IPMI unique events */
 					{},
 				},
 				.reading2event = {},
@@ -4211,38 +4463,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				.assert_mask   = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
 				.deassert_mask = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
 				.event_array = {
-					{
-						.event = "0421C403", /* EN_PROC_HOT_CPU3 */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_FALSE,
-						.event_res_failure_unexpected = SAHPI_FALSE,
-						.event_state = SAHPI_ES_UPPER_CRIT,
-						.recovery_state = SAHPI_ES_UPPER_MAJOR,
-					},
-					{
-						.event = "0421C483", /* EN_CUTOFF_HI_OVER_TEMP_CPU3 */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_FALSE,
-						.event_res_failure_unexpected = SAHPI_FALSE,
-						.event_state = SAHPI_ES_UPPER_CRIT,
-						.recovery_state = SAHPI_ES_UPPER_MAJOR,
-					},
-					{
-						.event = "0421D083", /* EN_THERM_TRIP_CPU3 */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_FALSE,
-						.event_res_failure_unexpected = SAHPI_FALSE,
-						.event_state = SAHPI_ES_UPPER_CRIT,
-						.recovery_state = SAHPI_ES_UPPER_MAJOR,
-					},
-					{
-						.event = "0421D503", /* EN_PFA_HI_OVER_TEMP_CPU3 */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_FALSE,
-						.event_res_failure_unexpected = SAHPI_FALSE,
-						.event_state = SAHPI_ES_UPPER_MAJOR,
-						.recovery_state = SAHPI_ES_UNSPECIFIED,
-					},
+					/* No IPMI unique events */
 					{},
 				},
 				.reading2event = {},
@@ -4314,38 +4535,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				.assert_mask   = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
 				.deassert_mask = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
 				.event_array = {
-					{
-						.event = "0421C404", /* EN_PROC_HOT_CPU4 */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_FALSE,
-						.event_res_failure_unexpected = SAHPI_FALSE,
-						.event_state = SAHPI_ES_UPPER_CRIT,
-						.recovery_state = SAHPI_ES_UPPER_MAJOR,
-					},
-					{
-						.event = "0421C484", /* EN_CUTOFF_HI_OVER_TEMP_CPU4 */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_FALSE,
-						.event_res_failure_unexpected = SAHPI_FALSE,
-						.event_state = SAHPI_ES_UPPER_CRIT,
-						.recovery_state = SAHPI_ES_UPPER_MAJOR,
-					},
-					{
-						.event = "0421D084", /* EN_THERM_TRIP_CPU4 */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_FALSE,
-						.event_res_failure_unexpected = SAHPI_FALSE,
-						.event_state = SAHPI_ES_UPPER_CRIT,
-						.recovery_state = SAHPI_ES_UPPER_MAJOR,
-					},
-					{
-						.event = "0421D504", /* EN_PFA_HI_OVER_TEMP_CPU4 */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_FALSE,
-						.event_res_failure_unexpected = SAHPI_FALSE,
-						.event_state = SAHPI_ES_UPPER_MAJOR,
-						.recovery_state = SAHPI_ES_UNSPECIFIED,
-					},
+					/* No IPMI unique events */
 					{},
 				},
 				.reading2event = {},
@@ -4438,7 +4628,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
         /* Blade 1.2 Volt Sensor */
         {
 		.ipmi_tag = "1.2V SENSE",
-		.ipmi_tag_alias1 = '\0',
+		.ipmi_tag_alias1 = "PLANAR 1.2V",
 		.ipmi = {
 			.index = 6,
 			.sensor = {
@@ -4447,8 +4637,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
 				.EventCtrl = SAHPI_SEC_READ_ONLY,
-				.Events = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-				          SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+				.Events = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.DataFormat = {
 					.IsSupported = SAHPI_TRUE,
 					.ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
@@ -4469,7 +4658,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 							.IsSupported = SAHPI_TRUE,
 							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 							.Value = {
-								.SensorFloat64 = 1.25,
+								.SensorFloat64 = 1.2,
 							},
 						},
 						.Min = {
@@ -4504,27 +4693,9 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
 				.sensor_enabled = SAHPI_TRUE,
 				.events_enabled = SAHPI_TRUE,
-				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT | 
-			 	                 SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-				                 SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
+				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.event_array = {
-					{
-						.event = "08000481", /* EN_CUTOFF_HI_FAULT_1_2V */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_FALSE,
-						.event_res_failure_unexpected = SAHPI_FALSE,
-						.event_state = SAHPI_ES_UPPER_CRIT,
-						.recovery_state = SAHPI_ES_UNSPECIFIED,
-					},
-					{
-						.event = "08000881", /* EN_CUTOFF_LO_FAULT_1_2V */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_FALSE,
-						.event_res_failure_unexpected = SAHPI_FALSE,
-						.event_state = SAHPI_ES_LOWER_CRIT,
-						.recovery_state = SAHPI_ES_UNSPECIFIED,
-					},
 					{
 						.event = "08001401", /* EN_PFA_HI_FAULT_1_2V */
 						.event_assertion = SAHPI_TRUE,
@@ -4551,7 +4722,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
         /* Blade Standby 1.2 Volt Sensor */
         {
 		.ipmi_tag = "1.2VSB SENSE",
-		.ipmi_tag_alias1 = '\0',
+		.ipmi_tag_alias1 = "PLANAR 1.2VSB",
 		.ipmi = {
 			.index = 7,
 			.sensor = {
@@ -4581,7 +4752,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 							.IsSupported = SAHPI_TRUE,
 							.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
 							.Value = {
-								.SensorFloat64 = 1.25,
+								.SensorFloat64 = 1.2,
 							},
 						},
 						.Min = {
@@ -4645,7 +4816,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 	/* Blade 1.5 Volt Sensor */
         {
 		.ipmi_tag = "1.5V SENSE",
-		.ipmi_tag_alias1 = '\0',
+		.ipmi_tag_alias1 = "PLANAR 1.5V",
 		.ipmi = {
 			.index = 8,
 			.sensor = {
@@ -4654,8 +4825,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
 				.EventCtrl = SAHPI_SEC_READ_ONLY,
-				.Events = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-				          SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+				.Events = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.DataFormat = {
 					.IsSupported = SAHPI_TRUE,
 					.ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
@@ -4711,43 +4881,10 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
 				.sensor_enabled = SAHPI_TRUE,
 				.events_enabled = SAHPI_TRUE,
-				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-				                 SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-				                 SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
+				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.event_array = {
-					{
-						.event = "0A041C00", /* EN_IO_1_5V_WARNING_HI */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_FALSE,
-						.event_res_failure_unexpected = SAHPI_FALSE,
-						.event_state = SAHPI_ES_UPPER_CRIT,
-						.recovery_state = SAHPI_ES_UPPER_MAJOR,
-					},
-					{
-						.event = "0A040C00", /* EN_IO_1_5V_WARNING_LOW */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_FALSE,
-						.event_res_failure_unexpected = SAHPI_FALSE,
-						.event_state = SAHPI_ES_LOWER_CRIT,
-						.recovery_state = SAHPI_ES_LOWER_MAJOR,
-					},
-					{
-						.event = "08041400", /* EN_PFA_HI_FAULT_1_5V */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_FALSE,
-						.event_res_failure_unexpected = SAHPI_FALSE,
-						.event_state = SAHPI_ES_UPPER_MAJOR,
-						.recovery_state = SAHPI_ES_UNSPECIFIED,
-					},
-					{
-						.event = "08041800", /* EN_PFA_LO_FAULT_1_5V */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_FALSE,
-						.event_res_failure_unexpected = SAHPI_FALSE,
-						.event_state = SAHPI_ES_LOWER_MAJOR,
-						.recovery_state = SAHPI_ES_UNSPECIFIED,
-					},
+					/*  No IPMI unique events */
 					{},
 				},
 				.reading2event = {},
@@ -4758,7 +4895,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 	/* Blade Standby 1.5 Volt Sensor */
         {
 		.ipmi_tag = "1.5VSB SENSE",
-		.ipmi_tag_alias1 = '\0',
+		.ipmi_tag_alias1 = "PLANAR 1.5VSB",
 		.ipmi = {
 			.index = 9,
 			.sensor = {
@@ -4852,7 +4989,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
         /* Blade 1.8 Volt Sensor */
         {
 		.ipmi_tag = "1.8V SENSE",
-		.ipmi_tag_alias1 = '\0',
+		.ipmi_tag_alias1 = "PLANAR 1.8V",
 		.ipmi = {
 			.index = 10,
 			.sensor = {
@@ -4861,8 +4998,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
 				.EventCtrl = SAHPI_SEC_READ_ONLY,
-				.Events = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-				          SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+				.Events = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.DataFormat = {
 					.IsSupported = SAHPI_TRUE,
 					.ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
@@ -4918,29 +5054,12 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
 				.sensor_enabled = SAHPI_TRUE,
 				.events_enabled = SAHPI_TRUE,
-				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-				                 SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-				                 SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
+				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.event_array = {
+#if 0
 					{
 						.event = "0A07BC00", /* EN_IO_1_8V_WARNING_HI */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_FALSE,
-						.event_res_failure_unexpected = SAHPI_FALSE,
-						.event_state = SAHPI_ES_UPPER_CRIT,
-						.recovery_state = SAHPI_ES_UPPER_MAJOR,
-					},
-					{
-						.event = "0A07AC00", /* EN_IO_1_8V_WARNING_LOW */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_FALSE,
-						.event_res_failure_unexpected = SAHPI_FALSE,
-						.event_state = SAHPI_ES_LOWER_CRIT,
-						.recovery_state = SAHPI_ES_LOWER_MAJOR,
-					},
-					{
-						.event = "FF07A500", /* EN_MAJOR_HI_FAULT_1_8V */
 						.event_assertion = SAHPI_TRUE,
 						.event_res_failure = SAHPI_FALSE,
 						.event_res_failure_unexpected = SAHPI_FALSE,
@@ -4948,7 +5067,24 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 						.recovery_state = SAHPI_ES_UNSPECIFIED,
 					},
 					{
-						.event = "FF07A900", /* EN_MAJOR_LO_FAULT_1_8V */
+						.event = "0A07AC00", /* EN_IO_1_8V_WARNING_LOW */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_LOWER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
+#endif
+					{
+						.event = "0807B400", /* EN_PFA_HI_FAULT_1_8V */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_UPPER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
+					{
+						.event = "0807B800", /* EN_PFA_LO_FAULT_1_8V */
 						.event_assertion = SAHPI_TRUE,
 						.event_res_failure = SAHPI_FALSE,
 						.event_res_failure_unexpected = SAHPI_FALSE,
@@ -4965,7 +5101,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
         /* Blade Standby 1.8 Volt Sensor */
         {
 		.ipmi_tag = "1.8VSB SENSE",
-		.ipmi_tag_alias1 = '\0',
+		.ipmi_tag_alias1 = "PLANAR 1.8VSB",
 		.ipmi = {
 			.index = 11,
 			.sensor = {
@@ -5059,7 +5195,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 	/* Blade 2.5 Volt Sensor */
         {
 		.ipmi_tag = "2.5V SENSE",
-		.ipmi_tag_alias1 = '\0',
+		.ipmi_tag_alias1 = "PLANAR 2.5V",
 		.ipmi = {
 			.index = 12,
 			.sensor = {
@@ -5068,8 +5204,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
 				.EventCtrl = SAHPI_SEC_READ_ONLY,
-				.Events = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-				          SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+				.Events = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.DataFormat = {
 					.IsSupported = SAHPI_TRUE,
 					.ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
@@ -5125,43 +5260,10 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
 				.sensor_enabled = SAHPI_TRUE,
 				.events_enabled = SAHPI_TRUE,
-				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-				                 SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-				                 SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
+				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.event_array = {
-					{
-						.event = "0A031C00", /* EN_IO_2_5V_WARNING_HI */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_FALSE,
-						.event_res_failure_unexpected = SAHPI_FALSE,
-						.event_state = SAHPI_ES_UPPER_CRIT,
-						.recovery_state = SAHPI_ES_UPPER_MAJOR,
-					},
-					{
-						.event = "0A030C00", /* EN_IO_2_5V_WARNING_LOW */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_FALSE,
-						.event_res_failure_unexpected = SAHPI_FALSE,
-						.event_state = SAHPI_ES_LOWER_CRIT,
-						.recovery_state = SAHPI_ES_LOWER_MAJOR,
-					},
-					{
-						.event = "FF031480", /* EN_PFA_HI_FAULT_2_5V */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_FALSE,
-						.event_res_failure_unexpected = SAHPI_FALSE,
-						.event_state = SAHPI_ES_UPPER_MAJOR,
-						.recovery_state = SAHPI_ES_UNSPECIFIED,
-					},
-					{
-						.event = "FF031880", /* EN_PFA_LO_FAULT_2_5V */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_FALSE,
-						.event_res_failure_unexpected = SAHPI_FALSE,
-						.event_state = SAHPI_ES_LOWER_MAJOR,
-						.recovery_state = SAHPI_ES_UNSPECIFIED,
-					},
+					/* No IPMI unique events */
 					{},
 				},
 				.reading2event = {},
@@ -5172,7 +5274,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
         /* Blade Standby 2.5 Volt Sensor */
         {
 		.ipmi_tag = "2.5VSB SENSE",
-		.ipmi_tag_alias1 = '\0',
+		.ipmi_tag_alias1 = "PLANAR 2.5VSB",
 		.ipmi = {
 			.index = 13,
 			.sensor = {
@@ -5240,6 +5342,24 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.event_array = {
+#if 0
+					{
+						.event = "0A031C01", /* EN_IO_2_5VS_WARNING_HI */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_UPPER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
+					{
+						.event = "0A030C01", /* EN_IO_2_5VS_WARNING_LO */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_UPPER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
+#endif
 					{
 						.event = "0A031C02", /* EN_2_5VS_WARNING_HI */
 						.event_assertion = SAHPI_TRUE,
@@ -5275,8 +5395,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
 				.EventCtrl = SAHPI_SEC_READ_ONLY,
-				.Events = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-				          SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+				.Events = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.DataFormat = {
 					.IsSupported = SAHPI_TRUE,
 					.ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
@@ -5332,43 +5451,10 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
 				.sensor_enabled = SAHPI_TRUE,
 				.events_enabled = SAHPI_TRUE,
-				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-				                 SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-				                 SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
+				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.event_array = {
-					{
-						.event = "0A02DC00", /* EN_IO_3_3V_WARNING_HI */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_FALSE,
-						.event_res_failure_unexpected = SAHPI_FALSE,
-						.event_state = SAHPI_ES_UPPER_CRIT,
-						.recovery_state = SAHPI_ES_UPPER_MAJOR,
-					},
-					{
-						.event = "0A02CC00", /* EN_IO_3_3V_WARNING_LOW */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_FALSE,
-						.event_res_failure_unexpected = SAHPI_FALSE,
-						.event_state = SAHPI_ES_LOWER_CRIT,
-						.recovery_state = SAHPI_ES_LOWER_MAJOR,
-					},
-					{
-						.event = "FF033480", /* EN_PFA_HI_FAULT_3_35V */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_FALSE,
-						.event_res_failure_unexpected = SAHPI_FALSE,
-						.event_state = SAHPI_ES_UPPER_MAJOR,
-						.recovery_state = SAHPI_ES_UNSPECIFIED,
-					},
-					{
-						.event = "FF032900", /* EN_MAJOR_LO_FAULT_3_35V */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_FALSE,
-						.event_res_failure_unexpected = SAHPI_FALSE,
-						.event_state = SAHPI_ES_LOWER_MAJOR,
-						.recovery_state = SAHPI_ES_UNSPECIFIED,
-					},
+					/* No IPMI unique events */
 					{},
 				},
 				.reading2event = {},
@@ -5379,7 +5465,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
         /* Blade Standby 3.3 Volt Sensor */
         {
 		.ipmi_tag = "3.3VSB SENSE",
-		.ipmi_tag_alias1 = '\0',
+		.ipmi_tag_alias1 = "PLANAR 3.3VSB",
 		.ipmi = {
 			.index = 15,
 			.sensor = {
@@ -5447,6 +5533,24 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.event_array = {
+#if 0
+					{
+						.event = "0A02DC01", /* EN_IO_3_3VS_WARNING_HI */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_UPPER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
+					{
+						.event = "0A02CC01", /*EN_IO_3_3VS_WARNING_LOW  */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_UPPER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
+#endif
 					{
 						.event = "0A02DC02", /* EN_3_3VS_WARNING_HI */
 						.event_assertion = SAHPI_TRUE,
@@ -5482,8 +5586,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
 				.EventCtrl = SAHPI_SEC_READ_ONLY,
-				.Events = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-				          SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+				.Events = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.DataFormat = {
 					.IsSupported = SAHPI_TRUE,
 					.ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
@@ -5539,43 +5642,10 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
 				.sensor_enabled = SAHPI_TRUE,
 				.events_enabled = SAHPI_TRUE,
-				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-				                 SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-				                 SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
+				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.event_array = {
-					{
-						.event = "0A035C00", /* EN_IO_5V_WARNING_HI */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_FALSE,
-						.event_res_failure_unexpected = SAHPI_FALSE,
-						.event_state = SAHPI_ES_UPPER_CRIT,
-						.recovery_state = SAHPI_ES_UPPER_MAJOR,
-					},
-					{
-						.event = "0A034C00", /* EN_IO_5V_WARNING_LOW */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_FALSE,
-						.event_res_failure_unexpected = SAHPI_FALSE,
-						.event_state = SAHPI_ES_LOWER_CRIT,
-						.recovery_state = SAHPI_ES_LOWER_MAJOR,
-					},
-					{
-						.event = "08035500", /* EN_PFA_HI_FAULT_5V */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_FALSE,
-						.event_res_failure_unexpected = SAHPI_FALSE,
-						.event_state = SAHPI_ES_UPPER_MAJOR,
-						.recovery_state = SAHPI_ES_UNSPECIFIED,
-					},
-					{
-						.event = "08035800", /* EN_PFA_LO_FAULT_5V */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_FALSE,
-						.event_res_failure_unexpected = SAHPI_FALSE,
-						.event_state = SAHPI_ES_LOWER_MAJOR,
-						.recovery_state = SAHPI_ES_UNSPECIFIED,
-					},
+					/* No IPMI unique events */
 					{},
 				},
 				.reading2event = {},
@@ -5586,7 +5656,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
         /* Blade Standby 5 Volt Sensor */
         {
 		.ipmi_tag = "5VSB SENSE",
-		.ipmi_tag_alias1 = '\0',
+		.ipmi_tag_alias1 = "PLANAR 5VSB",
 		.ipmi = {
 			.index = 17,
 			.sensor = {
@@ -5680,7 +5750,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
         /* Blade -5 Volt Sensor */
         {
 		.ipmi_tag = "-5V SENSE",
-		.ipmi_tag_alias1 = '\0',
+		.ipmi_tag_alias1 = "PLANAR -5V",
 		.ipmi = {
 			.index = 18,
 			.sensor = {
@@ -5689,8 +5759,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
 				.EventCtrl = SAHPI_SEC_READ_ONLY,
-				.Events = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-                                          SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+				.Events = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.DataFormat = {
 					.IsSupported = SAHPI_TRUE,
 					.ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
@@ -5746,27 +5815,27 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
 				.sensor_enabled = SAHPI_TRUE,
 				.events_enabled = SAHPI_TRUE,
-				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-				                 SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-				                 SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
+				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.event_array = {
+#if 0
 					{
-						.event = "0803C480", /* EN_CUTOFF_HI_FAULT_N5V */
+						.event = "0A03DC00", /* EN_IO_N5V_WARNING_HI */
 						.event_assertion = SAHPI_TRUE,
 						.event_res_failure = SAHPI_FALSE,
 						.event_res_failure_unexpected = SAHPI_FALSE,
-						.event_state = SAHPI_ES_UPPER_CRIT,
-						.recovery_state = SAHPI_ES_UPPER_MAJOR,
+						.event_state = SAHPI_ES_UPPER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
 					},
 					{
-						.event = "0803C800", /* EN_CUTOFF_LO_FAULT_N5V */
+						.event = "0A03CC00", /* EN_IO_N5V_WARNING_LOW */
 						.event_assertion = SAHPI_TRUE,
 						.event_res_failure = SAHPI_FALSE,
 						.event_res_failure_unexpected = SAHPI_FALSE,
-						.event_state = SAHPI_ES_LOWER_CRIT,
-						.recovery_state = SAHPI_ES_LOWER_MAJOR,
+						.event_state = SAHPI_ES_LOWER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
 					},
+#endif
 					{
 						.event = "0803D500", /* EN_PFA_HI_FAULT_N5V */
 						.event_assertion = SAHPI_TRUE,
@@ -5776,7 +5845,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 						.recovery_state = SAHPI_ES_UNSPECIFIED,
 					},
 					{
-						.event = "803C900", /* EN_MAJOR_LO_FAULT_N5V */
+						.event = "0803D800", /* EN_PFA_LO_FAULT_N5V */
 						.event_assertion = SAHPI_TRUE,
 						.event_res_failure = SAHPI_FALSE,
 						.event_res_failure_unexpected = SAHPI_FALSE,
@@ -5802,8 +5871,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
 				.EventCtrl = SAHPI_SEC_READ_ONLY,
-				.Events = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-				          SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+				.Events = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.DataFormat = {
 					.IsSupported = SAHPI_TRUE,
 					.ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
@@ -5859,43 +5927,10 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
 				.sensor_enabled = SAHPI_TRUE,
 				.events_enabled = SAHPI_TRUE,
-				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-				                 SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-				                 SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
+				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.event_array = {
-					{
-						.event = "0A037C00", /* EN_IO_12V_WARNING_HI */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_FALSE,
-						.event_res_failure_unexpected = SAHPI_FALSE,
-						.event_state = SAHPI_ES_UPPER_CRIT,
-						.recovery_state = SAHPI_ES_UPPER_MAJOR,
-					},
-					{
-						.event = "0A036C00", /* EN_IO_12V_WARNING_LOW */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_FALSE,
-						.event_res_failure_unexpected = SAHPI_FALSE,
-						.event_state = SAHPI_ES_LOWER_CRIT,
-						.recovery_state = SAHPI_ES_LOWER_MAJOR,
-					},
-					{
-						.event = "FF037500", /* EN_PFA_HI_FAULT_12V_PLANAR */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_FALSE,
-						.event_res_failure_unexpected = SAHPI_FALSE,
-						.event_state = SAHPI_ES_UPPER_MAJOR,
-						.recovery_state = SAHPI_ES_UNSPECIFIED,
-					},
-					{
-						.event = "FF037800", /* EN_PFA_LO_FAULT_12V_PLANAR */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_FALSE,
-						.event_res_failure_unexpected = SAHPI_FALSE,
-						.event_state = SAHPI_ES_LOWER_MAJOR,
-						.recovery_state = SAHPI_ES_UNSPECIFIED,
-					},
+					/* No IPMI unique events */
 					{},
 				},
 				.reading2event = {},
@@ -5906,7 +5941,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
         /* Blade Standby 12 Volt Sensor */
         {
 		.ipmi_tag = "12VSB SENSE",
-		.ipmi_tag_alias1 = '\0',
+		.ipmi_tag_alias1 = "PLANAR 12VSB",
 		.ipmi = {
 			.index = 20,
 			.sensor = {
@@ -5974,6 +6009,24 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.event_array = {
+#if 0
+					{
+						.event = "0A037C01", /* EN_IO_12VS_WARNING_HI */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_UPPER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
+					{
+						.event = "0A036C01", /* EN_IO_12VS_WARNING_LOW */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_UPPER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
+#endif
 					{
 						.event = "0A037C02", /* EN_12VS_WARNING_HI */
 						.event_assertion = SAHPI_TRUE,
@@ -6000,7 +6053,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
         /* Blade CPU 1 Core Voltage Sensor */
         {
 		.ipmi_tag = "CPU 1 VCORE",
-		.ipmi_tag_alias1 = '\0',
+		.ipmi_tag_alias1 = "CPU1 VCORE",
 		.ipmi = {
 			.index = 21,
 			.sensor = {
@@ -6062,22 +6115,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.event_array = {
-					{
-						.event = "04401501", /* EN_PFA_HI_FAULT_VRM1 */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_FALSE,
-						.event_res_failure_unexpected = SAHPI_FALSE,
-						.event_state = SAHPI_ES_UPPER_MAJOR,
-						.recovery_state = SAHPI_ES_UNSPECIFIED,
-					},
-					{
-						.event = "04401801", /* EN_PFA_LO_FAULT_VRM1 */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_FALSE,
-						.event_res_failure_unexpected = SAHPI_FALSE,
-						.event_state = SAHPI_ES_LOWER_MAJOR,
-						.recovery_state = SAHPI_ES_UNSPECIFIED,
-					},
+					/* FIXME:: Add events */
 					{},
 				},
 				.reading2event = {},
@@ -6088,7 +6126,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
         /* Blade CPU 2 Core Voltage Sensor */
         {
 		.ipmi_tag = "CPU 2 VCORE",
-		.ipmi_tag_alias1 = '\0',
+		.ipmi_tag_alias1 = "CPU2 VCORE",
 		.ipmi = {
 			.index = 22,
 			.sensor = {
@@ -6150,22 +6188,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.event_array = {
-					{
-						.event = "04401502", /* EN_PFA_HI_FAULT_VRM2 */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_FALSE,
-						.event_res_failure_unexpected = SAHPI_FALSE,
-						.event_state = SAHPI_ES_UPPER_MAJOR,
-						.recovery_state = SAHPI_ES_UNSPECIFIED,
-					},
-					{
-						.event = "04401802", /* EN_PFA_LO_FAULT_VRM2 */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_FALSE,
-						.event_res_failure_unexpected = SAHPI_FALSE,
-						.event_state = SAHPI_ES_LOWER_MAJOR,
-						.recovery_state = SAHPI_ES_UNSPECIFIED,
-					},
+					/* FIXME:: Add events */
 					{},
 				},
 				.reading2event = {},
@@ -6331,8 +6354,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
 				.EventCtrl = SAHPI_SEC_READ_ONLY,
-				.Events = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-				          SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+				.Events = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.DataFormat = {
 					.IsSupported = SAHPI_TRUE,
 					.ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
@@ -6388,10 +6410,8 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
 				.sensor_enabled = SAHPI_TRUE,
 				.events_enabled = SAHPI_TRUE,
-				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-				                 SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-				                 SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
+				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.event_array = {
 					{},
 				},
@@ -6403,7 +6423,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 	/* Blade Memory Bank 1 Temperature Sensor */
         {
 		.ipmi_tag = "BANK1 TEMP",
-		.ipmi_tag_alias1 = '\0',
+		.ipmi_tag_alias1 = "BANK 1 TEMP",
 		.ipmi = {
 			.index = 26,
 			.sensor = {
@@ -6475,7 +6495,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 	/* Blade Memory Bank 2 Temperature Sensor */
         {
 		.ipmi_tag = "BANK2 TEMP",
-		.ipmi_tag_alias1 = '\0',
+		.ipmi_tag_alias1 = "BANK 2 TEMP",
 		.ipmi = {
 			.index = 27,
 			.sensor = {
@@ -6547,7 +6567,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 	/* Blade Memory Bank 3 Temperature Sensor */
         {
 		.ipmi_tag = "BANK3 TEMP",
-		.ipmi_tag_alias1 = '\0',
+		.ipmi_tag_alias1 = "BANK 3 TEMP",
 		.ipmi = {
 			.index = 28,
 			.sensor = {
@@ -6619,7 +6639,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 	/* Blade Memory Bank 4 Temperature Sensor */
         {
 		.ipmi_tag = "BANK4 TEMP",
-		.ipmi_tag_alias1 = '\0',
+		.ipmi_tag_alias1 = "BANK 4 TEMP",
 		.ipmi = {
 			.index = 29,
 			.sensor = {
@@ -6697,7 +6717,8 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
  **************************************/
 
 struct snmp_bc_sensor snmp_bc_bem_sensors[] = {
-        /* BEM Temperature Sensor */
+#if 1
+        /* BSE Temperature Sensor */ /* Legacy Blades */
         {
 		.index = 1,
                 .sensor = {
@@ -6759,51 +6780,52 @@ struct snmp_bc_sensor snmp_bc_bem_sensors[] = {
 			.deassert_mask = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                         .event_array = {
 				{
-                                        .event = "0681C482", /* EN_CUTOFF_HI_OVER_TEMP_DASD1_2 */
- 					.event_assertion = SAHPI_TRUE,
-      					.event_res_failure = SAHPI_FALSE,
+					.event = "0621C481", /* EN_CUTOFF_HI_OVER_TEMP_BEM */
+					.event_assertion = SAHPI_TRUE,
+					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_UPPER_CRIT,
-                                        .recovery_state = SAHPI_ES_UPPER_MAJOR,
-                                },
-                                {
-                                        .event = "0621C481", /* EN_CUTOFF_HI_OVER_TEMP_BEM */
- 					.event_assertion = SAHPI_TRUE,
-      					.event_res_failure = SAHPI_FALSE,
+					.event_state = SAHPI_ES_UPPER_CRIT,
+					.recovery_state = SAHPI_ES_UPPER_MAJOR,
+				},
+				{
+					.event = "0681C482", /* EN_CUTOFF_HI_OVER_TEMP_DASD1_2 */
+					.event_assertion = SAHPI_TRUE,
+					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_UPPER_CRIT,
-                                        .recovery_state = SAHPI_ES_UPPER_MAJOR,
-                                },
-                                {
-                                        .event = "0621C081", /* EN_OVER_TEMP_BEM */
- 					.event_assertion = SAHPI_TRUE,
-      					.event_res_failure = SAHPI_FALSE,
+					.event_state = SAHPI_ES_UPPER_CRIT,
+					.recovery_state = SAHPI_ES_UPPER_MAJOR,
+				},
+				{
+					.event = "0681C483", /* EN_CUTOFF_HI_OVER_TEMP_DASD1_3 */
+					.event_assertion = SAHPI_TRUE, 
+					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_UPPER_CRIT,
-                                        .recovery_state = SAHPI_ES_UPPER_MAJOR,
-                                },
-                                {
-                                        .event = "0681C404", /* EN_PFA_HI_OVER_TEMP_DASD1_4 */
- 					.event_assertion = SAHPI_TRUE, 
-     					.event_res_failure = SAHPI_FALSE,
+					.event_state = SAHPI_ES_UPPER_CRIT,
+					.recovery_state = SAHPI_ES_UPPER_MAJOR,
+				},
+				{
+					.event = "0621C081", /* EN_OVER_TEMP_BEM */
+					.event_assertion = SAHPI_TRUE,
+					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_UPPER_MAJOR,
-                                        .recovery_state = SAHPI_ES_UNSPECIFIED,
-                                },
-                                {
-                                        .event = "0621D481", /* EN_PFA_HI_OVER_TEMP_BEM */
- 					.event_assertion = SAHPI_TRUE, 
-     					.event_res_failure = SAHPI_FALSE,
+					.event_state = SAHPI_ES_UPPER_CRIT,
+					.recovery_state = SAHPI_ES_UPPER_MAJOR,
+				},
+				{
+					.event = "0621D481", /* EN_PFA_HI_OVER_TEMP_BEM */
+					.event_assertion = SAHPI_TRUE, 
+					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_UPPER_MAJOR,
-                                        .recovery_state = SAHPI_ES_UNSPECIFIED,
-                                },
+					.event_state = SAHPI_ES_UPPER_MAJOR,
+					.recovery_state = SAHPI_ES_UNSPECIFIED,
+				},
                                 {},
-                        },
+			},
   			.reading2event = {},
                 },
-                .comment = "BEM Temperature Sensor",
+                .comment = "BSE Temperature Sensor",
         },
+#endif
         /* BEM Voltage Sensor - event only */
         {
 		.index = 2,
@@ -6839,7 +6861,7 @@ struct snmp_bc_sensor snmp_bc_bem_sensors[] = {
                                         .recovery_state = SAHPI_ES_OK,
                                 },
                                 {
-                                        .event = "0E840002", /* EN_BUST_1_5V_FAULT */
+                                        .event = "0E840002", /* EN_BEM_1_5V_FAULT */
  					.event_assertion = SAHPI_TRUE,
                                         .event_state = SAHPI_ES_CRITICAL,
       					.event_res_failure = SAHPI_FALSE,
@@ -6847,23 +6869,7 @@ struct snmp_bc_sensor snmp_bc_bem_sensors[] = {
                                         .recovery_state = SAHPI_ES_OK,
                                 },
                                 {
-                                        .event = "0E840402", /* EN_BUST_1_5V_WARNING_HI */
- 					.event_assertion = SAHPI_TRUE,
-                                        .event_state = SAHPI_ES_MAJOR_FROM_LESS,
-      					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .recovery_state = SAHPI_ES_OK,
-                                },
-                                {
-                                        .event = "0E840802", /* EN_BUST_1_5V_WARNING_LOW */
- 					.event_assertion = SAHPI_TRUE,
-      					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_MAJOR_FROM_LESS,
-                                        .recovery_state = SAHPI_ES_OK,
-                                },
-                                {
-                                        .event = "0E87A002", /* EN_BUST_1_8V_FAULT */
+                                        .event = "0E87A002", /* EN_BEM_1_8V_FAULT */
  					.event_assertion = SAHPI_TRUE,
                                         .event_state = SAHPI_ES_CRITICAL,
       					.event_res_failure = SAHPI_FALSE,
@@ -6871,7 +6877,7 @@ struct snmp_bc_sensor snmp_bc_bem_sensors[] = {
                                         .recovery_state = SAHPI_ES_OK,
                                 },
                                 {
-                                        .event = "0E87A402", /* EN_BUST_1_8V_WARNING_HI */
+                                        .event = "0E87A402", /* EN_BEM_1_8V_WARNING_HI */
  					.event_assertion = SAHPI_TRUE,
                                         .event_state = SAHPI_ES_MAJOR_FROM_LESS,
       					.event_res_failure = SAHPI_FALSE,
@@ -6879,7 +6885,7 @@ struct snmp_bc_sensor snmp_bc_bem_sensors[] = {
                                         .recovery_state = SAHPI_ES_OK,
                                 },
                                 {
-                                        .event = "0E87A802", /* EN_BUST_1_8V_WARNING_LOW */
+                                        .event = "0E87A802", /* EN_BEM_1_8V_WARNING_LOW */
  					.event_assertion = SAHPI_TRUE,
       					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
@@ -6887,7 +6893,7 @@ struct snmp_bc_sensor snmp_bc_bem_sensors[] = {
                                         .recovery_state = SAHPI_ES_OK,
                                 },
                                 {
-                                        .event = "0E830002", /* EN_BUST_2_5V_FAULT */
+                                        .event = "0E830002", /* EN_BEM_2_5V_FAULT */
  					.event_assertion = SAHPI_TRUE,
                                         .event_state = SAHPI_ES_CRITICAL,
       					.event_res_failure = SAHPI_FALSE,
@@ -6895,7 +6901,7 @@ struct snmp_bc_sensor snmp_bc_bem_sensors[] = {
                                         .recovery_state = SAHPI_ES_OK,
                                 },
 				{
-                                        .event = "0E830402", /* EN_BUST_2_5V_WARNING_HI */
+                                        .event = "0E830402", /* EN_BEM_2_5V_WARNING_HI */
  					.event_assertion = SAHPI_TRUE,
       					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
@@ -6903,15 +6909,39 @@ struct snmp_bc_sensor snmp_bc_bem_sensors[] = {
                                         .recovery_state = SAHPI_ES_OK,
                                 },
 				{
-                                        .event = "0E830802", /* EN_BUST_2_5V_WARNING_LOW */
+                                        .event = "0E830802", /* EN_BEM_2_5V_WARNING_LOW */
  					.event_assertion = SAHPI_TRUE,
       					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
                                         .event_state = SAHPI_ES_MAJOR_FROM_LESS,
                                         .recovery_state = SAHPI_ES_OK,
                                 },
+				{
+					.event = "0E832002", /* EN_BEM_3_3V_FAULT */
+					.event_assertion = SAHPI_TRUE,
+					.event_state = SAHPI_ES_CRITICAL,
+					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+					.recovery_state = SAHPI_ES_OK,
+				},
                                 {
-                                        .event = "0E832002", /* EN_BUST_3_3V_FAULT */
+                                        .event = "0E834002", /* EN_BEM_5V_FAULT */
+ 					.event_assertion = SAHPI_TRUE,
+                                        .event_state = SAHPI_ES_CRITICAL,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .recovery_state = SAHPI_ES_OK,
+                                },
+                                {
+                                        .event = "0E836002", /* EN_BEM_12V_FAULT */
+ 					.event_assertion = SAHPI_TRUE,
+                                        .event_state = SAHPI_ES_CRITICAL,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .recovery_state = SAHPI_ES_OK,
+                                },
+                                {
+                                        .event = "0E83C002", /* EN_BEM_18V_FAULT */
  					.event_assertion = SAHPI_TRUE,
                                         .event_state = SAHPI_ES_CRITICAL,
       					.event_res_failure = SAHPI_FALSE,
@@ -6919,79 +6949,7 @@ struct snmp_bc_sensor snmp_bc_bem_sensors[] = {
                                         .recovery_state = SAHPI_ES_OK,
                                 },
  				{
-					.event = "0E832402", /* EN_BUST_3_3V_WARNING_HI */
- 					.event_assertion = SAHPI_TRUE,
-      					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_MAJOR_FROM_LESS,
-                                        .recovery_state = SAHPI_ES_OK,
-                                },
-				{
-					.event = "0E832802", /* EN_BUST_3_3V_WARNING_LOW */
-  					.event_assertion = SAHPI_TRUE,
-      					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-					.event_state = SAHPI_ES_MAJOR_FROM_LESS,
-                                        .recovery_state = SAHPI_ES_OK,
-                                },
-                                {
-                                        .event = "0E834002", /* EN_BUST_5V_FAULT */
- 					.event_assertion = SAHPI_TRUE,
-                                        .event_state = SAHPI_ES_CRITICAL,
-      					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .recovery_state = SAHPI_ES_OK,
-                                },
- 				{
-					.event = "0E834402", /* EN_BUST_5V_WARNING_HI */
-  					.event_assertion = SAHPI_TRUE,
-      					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_MAJOR_FROM_LESS,
-                                        .recovery_state = SAHPI_ES_OK,
-                                },
-				{
-					.event = "0E834802", /* EN_BUST_5V_WARNING_LOW */
-  					.event_assertion = SAHPI_TRUE,
-      					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_MAJOR_FROM_LESS,
-                                        .recovery_state = SAHPI_ES_OK,
-                                },
-                                {
-                                        .event = "0E836002", /* EN_BUST_12V_FAULT */
- 					.event_assertion = SAHPI_TRUE,
-                                        .event_state = SAHPI_ES_CRITICAL,
-      					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .recovery_state = SAHPI_ES_OK,
-                                },
- 				{
-					.event = "0E836402", /* EN_BUST_12V_WARNING_HI */
-  					.event_assertion = SAHPI_TRUE,
-      					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_MAJOR_FROM_LESS,
-                                        .recovery_state = SAHPI_ES_OK,
-                                },
-				{
-					.event = "0E836802", /* EN_BUST_12V_WARNING_LOW */
-  					.event_assertion = SAHPI_TRUE,
-      					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_MAJOR_FROM_LESS,
-                                        .recovery_state = SAHPI_ES_OK,
-                                },
-                                {
-                                        .event = "0E83C002", /* EN_BUST_18V_FAULT */
- 					.event_assertion = SAHPI_TRUE,
-                                        .event_state = SAHPI_ES_CRITICAL,
-      					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .recovery_state = SAHPI_ES_OK,
-                                },
- 				{
-					.event = "0E83C402", /* EN_BUST_18V_WARNING_HI */
+					.event = "0E83C402", /* EN_BEM_18V_WARNING_HI */
   					.event_assertion = SAHPI_TRUE,
                                         .event_state = SAHPI_ES_MAJOR_FROM_LESS,
       					.event_res_failure = SAHPI_FALSE,
@@ -6999,7 +6957,7 @@ struct snmp_bc_sensor snmp_bc_bem_sensors[] = {
                                         .recovery_state = SAHPI_ES_OK,
                                 },
 				{
-					.event = "0E83C802", /* EN_BUST_18V_WARNING_LOW */
+					.event = "0E83C802", /* EN_BEM_18V_WARNING_LOW */
   					.event_assertion = SAHPI_TRUE,
       					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
@@ -7096,8 +7054,6 @@ struct snmp_bc_sensor snmp_bc_bem_sensors[] = {
         {} /* Terminate array with a null element */
 };
 
-/* FIXME:: Add Events - can we delete the voltage sensor above */
-
 /* BEM IPMI Sensors */
 /* NOTE: Define IPMI Tags as uppercase */
 
@@ -7167,7 +7123,6 @@ struct snmp_bc_ipmi_sensor snmp_bc_bem_ipmi_sensors[] = {
 				.deassert_mask = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
 				.event_array = {
 					/* FIXME:: Add events */
-
 					{},
 				},
 				.reading2event = {},
@@ -7324,8 +7279,22 @@ struct snmp_bc_ipmi_sensor snmp_bc_bem_ipmi_sensors[] = {
 				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.event_array = {
-					/* FIXME:: Add events */
-					
+					{
+						.event = "0E840402", /* EN_BEM_1_5V_WARNING_HI */
+						.event_assertion = SAHPI_TRUE,
+						.event_state = SAHPI_ES_UPPER_MAJOR,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
+					{
+						.event = "0E840802", /* EN_BEM_1_5V_WARNING_LOW */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_LOWER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
 					{},
 				},
 				.reading2event = {},
@@ -7403,8 +7372,22 @@ struct snmp_bc_ipmi_sensor snmp_bc_bem_ipmi_sensors[] = {
 				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.event_array = {
-					/* FIXME:: Add events */
-					
+					{
+						.event = "0E832402", /* EN_BEM_3_3V_WARNING_HI */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_UPPER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
+					{
+						.event = "0E832802", /* EN_BEM_3_3V_WARNING_LOW */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_LOWER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
 					{},
 				},
 				.reading2event = {},
@@ -7482,8 +7465,22 @@ struct snmp_bc_ipmi_sensor snmp_bc_bem_ipmi_sensors[] = {
 				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.event_array = {
-					/* FIXME:: Add events */
-					
+					{
+						.event = "0E834402", /* EN_BEM_5V_WARNING_HI */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_UPPER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
+					{
+						.event = "0E834802", /* EN_BEM_5V_WARNING_LOW */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_LOWER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
 					{},
 				},
 				.reading2event = {},
@@ -7561,8 +7558,22 @@ struct snmp_bc_ipmi_sensor snmp_bc_bem_ipmi_sensors[] = {
 				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.event_array = {
-					/* FIXME:: Add events */
-					
+					{
+						.event = "0E836402", /* EN_BEM_12V_WARNING_HI */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_UPPER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
+					{
+						.event = "0E836802", /* EN_BEM_12V_WARNING_LOW */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_LOWER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
 					{},
 				},
 				.reading2event = {},
@@ -8474,6 +8485,46 @@ struct snmp_bc_sensor snmp_bc_mediatray_sensors[] = {
                 },
                 .comment = "Media Tray Operational Status Sensor",
         },
+	/* Media Tray Management Bus Operational Status Sensor - event only */
+        {
+		.index = 2,
+                .sensor = {
+                        .Num = 2,
+                        .Type = SAHPI_OPERATIONAL,
+                        .Category = SAHPI_EC_AVAILABILITY,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
+			.Events = SAHPI_ES_RUNNING | SAHPI_ES_OFF_LINE,
+                        .DataFormat = {
+                                .IsSupported = SAHPI_FALSE,
+                        },
+                        .ThresholdDefn = {
+                                .IsAccessible = SAHPI_FALSE,
+                        },
+                        .Oem = 0,
+                },
+                .sensor_info = {
+                        .cur_state = SAHPI_ES_RUNNING,
+			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
+                        .sensor_enabled = SAHPI_TRUE,
+                        .events_enabled = SAHPI_TRUE,
+			.assert_mask   = SAHPI_ES_OFF_LINE,
+			.deassert_mask = SAHPI_ES_OFF_LINE,
+                        .event_array = {
+                                {
+                                        .event = "0002205B", /* EN_STCONN_FAIL_MEDIATRAY */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {},
+                        },
+   			.reading2event = {},
+                },
+                .comment = "Media Tray Management Bus Operational Status Sensor",
+        },
 
         {} /* Terminate array with a null element */
 };
@@ -8516,6 +8567,14 @@ struct snmp_bc_sensor snmp_bc_blower_sensors[] = {
 					.event_res_failure_unexpected = SAHPI_FALSE,
                                         .recovery_state = SAHPI_ES_RUNNING,
                                 },
+                                {
+                                        .event = "0B02600x", /* EN_UNREC_FANx */
+  					.event_assertion = SAHPI_TRUE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
                                 {},
                         },
    			.reading2event = {},
@@ -8528,10 +8587,10 @@ struct snmp_bc_sensor snmp_bc_blower_sensors[] = {
                 .sensor = {
                         .Num = 2,
                         .Type = SAHPI_FAN,
-                        .Category = SAHPI_EC_PRED_FAIL,
+                        .Category = SAHPI_EC_THRESHOLD,
 			.EnableCtrl = SAHPI_FALSE,
                         .EventCtrl = SAHPI_SEC_READ_ONLY,
-                        .Events = SAHPI_ES_PRED_FAILURE_ASSERT | SAHPI_ES_PRED_FAILURE_DEASSERT,
+                        .Events = SAHPI_ES_UPPER_MAJOR,
                         .DataFormat = {
                                 .IsSupported = SAHPI_TRUE,
                                 .ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
@@ -8559,6 +8618,8 @@ struct snmp_bc_sensor snmp_bc_blower_sensors[] = {
                         },
 			.ThresholdDefn = {
                                 .IsAccessible = SAHPI_FALSE,
+                                .ReadThold = 0,
+				.WriteThold = 0,
                         },
                         .Oem = 0,
                 },
@@ -8573,16 +8634,16 @@ struct snmp_bc_sensor snmp_bc_blower_sensors[] = {
 			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
                         .sensor_enabled = SAHPI_TRUE,
                         .events_enabled = SAHPI_TRUE,
-			.assert_mask   = SAHPI_ES_PRED_FAILURE_ASSERT,
-			.deassert_mask = SAHPI_ES_PRED_FAILURE_ASSERT,
+			.assert_mask   = SAHPI_ES_UPPER_MAJOR,
+			.deassert_mask = SAHPI_ES_UPPER_MAJOR,
                         .event_array = {
                                 {
                                         .event = "000A600x", /* EN_FAN1_PFA */
   					.event_assertion = SAHPI_TRUE,
        					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_PRED_FAILURE_ASSERT,
-                                        .recovery_state = SAHPI_ES_PRED_FAILURE_DEASSERT,
+                                        .event_state = SAHPI_ES_UPPER_MAJOR,
+                                        .recovery_state = SAHPI_ES_UNSPECIFIED,
                                 },
                                 {},
                         },
@@ -8590,12 +8651,52 @@ struct snmp_bc_sensor snmp_bc_blower_sensors[] = {
                 },
                 .comment = "Blower Speed (Percent of Max) Sensor",
         },
+	/* Blower Management Bus Operational Status Sensor - event only */
+        {
+		.index = 3,
+                .sensor = {
+                        .Num = 3,
+                        .Type = SAHPI_OPERATIONAL,
+                        .Category = SAHPI_EC_AVAILABILITY,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
+			.Events = SAHPI_ES_RUNNING | SAHPI_ES_OFF_LINE,
+                        .DataFormat = {
+                                .IsSupported = SAHPI_FALSE,
+                        },
+                        .ThresholdDefn = {
+                                .IsAccessible = SAHPI_FALSE,
+                        },
+                        .Oem = 0,
+                },
+                .sensor_info = {
+                        .cur_state = SAHPI_ES_RUNNING,
+			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
+                        .sensor_enabled = SAHPI_TRUE,
+                        .events_enabled = SAHPI_TRUE,
+			.assert_mask   = SAHPI_ES_OFF_LINE,
+			.deassert_mask = SAHPI_ES_OFF_LINE,
+                        .event_array = {
+                                {
+                                        .event = "000A200x", /* EN_STCONN_FAIL_BLOWER_x */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {},
+                        },
+   			.reading2event = {},
+                },
+                .comment = "Blower Management Bus Operational Status Sensor",
+        },
 
         {} /* Terminate array with a null element */
 };
 
 /* BladeCenter H specific blower sensors */
-#define SNMP_BC_LAST_COMMON_BLOWER_SENSOR 2
+#define SNMP_BC_LAST_COMMON_BLOWER_SENSOR 3
 struct snmp_bc_sensor snmp_bc_blower_sensors_bch[] = {
         /* Blower RPM Speed Sensor */
         {
@@ -8603,10 +8704,10 @@ struct snmp_bc_sensor snmp_bc_blower_sensors_bch[] = {
                 .sensor = {
                         .Num = SNMP_BC_LAST_COMMON_BLOWER_SENSOR + 1,
                         .Type = SAHPI_FAN,
-                        .Category = SAHPI_EC_PRED_FAIL,
+                        .Category = SAHPI_EC_UNSPECIFIED,
 			.EnableCtrl = SAHPI_FALSE,
                         .EventCtrl = SAHPI_SEC_READ_ONLY,
-                        .Events = SAHPI_ES_PRED_FAILURE_ASSERT | SAHPI_ES_PRED_FAILURE_DEASSERT,
+                        .Events = 0x00,
                         .DataFormat = {
                                 .IsSupported = SAHPI_TRUE,
                                 .ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
@@ -8648,12 +8749,9 @@ struct snmp_bc_sensor snmp_bc_blower_sensors_bch[] = {
 			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
                         .sensor_enabled = SAHPI_TRUE,
                         .events_enabled = SAHPI_TRUE,
-			.assert_mask   = SAHPI_ES_PRED_FAILURE_ASSERT,
-			.deassert_mask = SAHPI_ES_PRED_FAILURE_ASSERT,
+			.assert_mask   = 0x00,
+			.deassert_mask = 0x00,
                         .event_array = {
-
-/* FIXME:: Need to add events */				
-
                                 {},
                         },
    			.reading2event = {},
@@ -8678,7 +8776,7 @@ struct snmp_bc_sensor snmp_bc_power_sensors[] = {
                         .Category = SAHPI_EC_AVAILABILITY,
 			.EnableCtrl = SAHPI_FALSE,
                         .EventCtrl = SAHPI_SEC_READ_ONLY,
-			.Events = SAHPI_ES_RUNNING | SAHPI_ES_OFF_LINE,
+			.Events = SAHPI_ES_RUNNING | SAHPI_ES_DEGRADED | SAHPI_ES_OFF_LINE,
                         .DataFormat = {
                                 .IsSupported = SAHPI_FALSE,
                         },
@@ -8692,8 +8790,8 @@ struct snmp_bc_sensor snmp_bc_power_sensors[] = {
 			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
                         .sensor_enabled = SAHPI_TRUE,
                         .events_enabled = SAHPI_TRUE,
-			.assert_mask   = SAHPI_ES_OFF_LINE,
-			.deassert_mask = SAHPI_ES_OFF_LINE,
+			.assert_mask   = SAHPI_ES_DEGRADED | SAHPI_ES_OFF_LINE,
+			.deassert_mask = SAHPI_ES_DEGRADED | SAHPI_ES_OFF_LINE,
                         .event_array = {
                                 {
                                         .event = "0820000x", /* EN_FAULT_PSx */
@@ -8705,14 +8803,6 @@ struct snmp_bc_sensor snmp_bc_power_sensors[] = {
                                 },
                                 {
                                         .event = "0823600x", /* EN_FAULT_PSx_12V_OVR_CUR */
-  					.event_assertion = SAHPI_TRUE,
-       					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_OFF_LINE,
-                                        .recovery_state = SAHPI_ES_RUNNING,
-                                },
-                                {
-                                        .event = "0821A00x", /* EN_FAULT_PSx_CUR_FAIL */
   					.event_assertion = SAHPI_TRUE,
        					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
@@ -8751,6 +8841,14 @@ struct snmp_bc_sensor snmp_bc_power_sensors[] = {
                                         .event_state = SAHPI_ES_OFF_LINE,
                                         .recovery_state = SAHPI_ES_RUNNING,
                                 },
+                                {
+                                        .event = "0821A00x", /* EN_FAULT_PSx_CUR_FAIL */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
                                 {},
                         },
    			.reading2event = {},
@@ -8763,41 +8861,43 @@ struct snmp_bc_sensor snmp_bc_power_sensors[] = {
                 .sensor = {
                         .Num = 2,
                         .Type = SAHPI_TEMPERATURE,
-                        .Category = SAHPI_EC_SEVERITY,
+                        .Category = SAHPI_EC_THRESHOLD,
  			.EnableCtrl = SAHPI_FALSE,
                         .EventCtrl = SAHPI_SEC_READ_ONLY,
-                        .Events = SAHPI_ES_OK | SAHPI_ES_MAJOR_FROM_LESS | SAHPI_ES_CRITICAL,
-                         .DataFormat = {
-                                 .IsSupported = SAHPI_FALSE,
+                        .Events = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+			.DataFormat = {
+				.IsSupported = SAHPI_FALSE,
                         },
                         .ThresholdDefn = {
                                 .IsAccessible = SAHPI_FALSE,
+                                .ReadThold = 0,
+				.WriteThold = 0,
                         },
                         .Oem = 0,
                 },
                 .sensor_info = {
-                        .cur_state = SAHPI_ES_OK,
+                        .cur_state = SAHPI_ES_UNSPECIFIED,
 			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
                         .sensor_enabled = SAHPI_TRUE,
                         .events_enabled = SAHPI_TRUE,
-			.assert_mask   = SAHPI_ES_MAJOR_FROM_LESS | SAHPI_ES_CRITICAL,
-			.deassert_mask = SAHPI_ES_MAJOR_FROM_LESS | SAHPI_ES_CRITICAL,
+			.assert_mask   = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+			.deassert_mask = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                         .event_array = {
                                 {
                                         .event = "0821C08x", /* EN_FAULT_PSx_OVR_TEMP */
   					.event_assertion = SAHPI_TRUE,
        					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_CRITICAL,
-                                        .recovery_state = SAHPI_ES_MAJOR_FROM_LESS,
+                                        .event_state = SAHPI_ES_UPPER_CRIT,
+                                        .recovery_state = SAHPI_ES_UPPER_MAJOR,
                                 },
                                 {
                                         .event = "0821C00x", /* EN_FAULT_PS1_TEMP_WARN */
   					.event_assertion = SAHPI_TRUE,
        					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_MAJOR_FROM_LESS,
-                                        .recovery_state = SAHPI_ES_OK,
+                                        .event_state = SAHPI_ES_UPPER_MAJOR,
+                                        .recovery_state = SAHPI_ES_UNSPECIFIED,
                                 },
                                 {},
                         },
@@ -8805,24 +8905,112 @@ struct snmp_bc_sensor snmp_bc_power_sensors[] = {
                 },
                 .comment = "Power Module Temperature Sensor",
         },
+	/* Power Module Management Bus Operational Status Sensor - event only */
+        {
+		.index = 3,
+                .sensor = {
+                        .Num = 3,
+                        .Type = SAHPI_OPERATIONAL,
+                        .Category = SAHPI_EC_AVAILABILITY,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
+			.Events = SAHPI_ES_RUNNING | SAHPI_ES_OFF_LINE,
+                        .DataFormat = {
+                                .IsSupported = SAHPI_FALSE,
+                        },
+                        .ThresholdDefn = {
+                                .IsAccessible = SAHPI_FALSE,
+                        },
+                        .Oem = 0,
+                },
+                .sensor_info = {
+                        .cur_state = SAHPI_ES_RUNNING,
+			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
+                        .sensor_enabled = SAHPI_TRUE,
+                        .events_enabled = SAHPI_TRUE,
+			.assert_mask   = SAHPI_ES_OFF_LINE,
+			.deassert_mask = SAHPI_ES_OFF_LINE,
+                        .event_array = {
+                                {
+                                        .event = "0822200x", /* EN_STCONN_FAIL_POWER_x */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {},
+                        },
+   			.reading2event = {},
+                },
+                .comment = "Power Module Management Bus Operational Status Sensor",
+        },
 
         {} /* Terminate array with a null element */
 };
 
-#define SNMP_BC_LAST_COMMON_POWER_MODULE_SENSOR 2
+#define SNMP_BC_LAST_COMMON_POWER_MODULE_SENSOR 3
 
 /* BladeCenter H specific power module sensors */
 struct snmp_bc_sensor snmp_bc_power_sensors_bch[] = {
-        /* Power Module Fan Pack Average Speed (Percent of Max) Sensor */
+        /* Power Module Fan Pack Operational Status Sensor - event-only */
         {
 		.index = 1,
                 .sensor = {
                         .Num = SNMP_BC_LAST_COMMON_POWER_MODULE_SENSOR + 1,
-                        .Type = SAHPI_FAN,
-                        .Category = SAHPI_EC_PRED_FAIL,
+                        .Type = SAHPI_OPERATIONAL,
+                        .Category = SAHPI_EC_AVAILABILITY,
 			.EnableCtrl = SAHPI_FALSE,
                         .EventCtrl = SAHPI_SEC_READ_ONLY,
-                        .Events = SAHPI_ES_PRED_FAILURE_ASSERT | SAHPI_ES_PRED_FAILURE_DEASSERT,
+			.Events = SAHPI_ES_RUNNING | SAHPI_ES_OFF_LINE,
+                        .DataFormat = {
+                                .IsSupported = SAHPI_FALSE,
+                        },
+                        .ThresholdDefn = {
+                                .IsAccessible = SAHPI_FALSE,
+                        },
+                        .Oem = 0,
+                },
+                .sensor_info = {
+                        .cur_state = SAHPI_ES_RUNNING,
+			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
+                        .sensor_enabled = SAHPI_TRUE,
+                        .events_enabled = SAHPI_TRUE,
+			.assert_mask   = SAHPI_ES_OFF_LINE,
+			.deassert_mask = SAHPI_ES_OFF_LINE,
+                        .event_array = {
+                                {
+                                        .event = "0003680x", /* EN_FAN_PACKx_SPEED */
+					.event_assertion = SAHPI_TRUE,
+					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "000A7001", /* EN_FAN_PACK1_NOT_PRESENT */
+					.event_assertion = SAHPI_TRUE,
+					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {},
+                        },
+   			.reading2event = {},
+                },
+                .comment = "Power Module Fan Pack Operational Status Sensor",
+        },
+        /* Power Module Fan Pack Average Speed (Percent of Max) Sensor */
+        {
+		.index = 2,
+                .sensor = {
+                        .Num = SNMP_BC_LAST_COMMON_POWER_MODULE_SENSOR + 2,
+                        .Type = SAHPI_FAN,
+                        .Category = SAHPI_EC_THRESHOLD,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
+                        .Events = SAHPI_ES_UPPER_MAJOR,
                         .DataFormat = {
                                 .IsSupported = SAHPI_TRUE,
                                 .ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
@@ -8850,6 +9038,8 @@ struct snmp_bc_sensor snmp_bc_power_sensors_bch[] = {
                         },
 			.ThresholdDefn = {
                                 .IsAccessible = SAHPI_FALSE,
+                                .ReadThold = 0,
+				.WriteThold = 0,
                         },
                         .Oem = 0,
                 },
@@ -8864,11 +9054,17 @@ struct snmp_bc_sensor snmp_bc_power_sensors_bch[] = {
 			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
                         .sensor_enabled = SAHPI_TRUE,
                         .events_enabled = SAHPI_TRUE,
-			.assert_mask   = SAHPI_ES_PRED_FAILURE_ASSERT,
-			.deassert_mask = SAHPI_ES_PRED_FAILURE_ASSERT,
+			.assert_mask   = SAHPI_ES_UPPER_MAJOR,
+			.deassert_mask = SAHPI_ES_UPPER_MAJOR,
                         .event_array = {
-
-/* FIXME:: Need to add events */
+                                {
+                                        .event = "000B600x", /* EN_FAN_PACKx_PFA */
+ 					.event_assertion = SAHPI_TRUE,
+					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+					.event_state = SAHPI_ES_UPPER_MAJOR,
+                                        .recovery_state = SAHPI_ES_UNSPECIFIED,
+                                },
                                 {},
                         },
    			.reading2event = {},
@@ -8877,14 +9073,14 @@ struct snmp_bc_sensor snmp_bc_power_sensors_bch[] = {
         },
         /* Power Module Fan Pack Average RPM Speed Sensor */
         {
-		.index = 2,
+		.index = 3,
                 .sensor = {
-                        .Num = SNMP_BC_LAST_COMMON_POWER_MODULE_SENSOR + 2,
+                        .Num = SNMP_BC_LAST_COMMON_POWER_MODULE_SENSOR + 3,
                         .Type = SAHPI_FAN,
-                        .Category = SAHPI_EC_PRED_FAIL,
+                        .Category = SAHPI_EC_UNSPECIFIED,
 			.EnableCtrl = SAHPI_FALSE,
                         .EventCtrl = SAHPI_SEC_READ_ONLY,
-                        .Events = SAHPI_ES_PRED_FAILURE_ASSERT | SAHPI_ES_PRED_FAILURE_DEASSERT,
+                        .Events = 0x00,
                         .DataFormat = {
                                 .IsSupported = SAHPI_TRUE,
                                 .ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
@@ -8926,12 +9122,9 @@ struct snmp_bc_sensor snmp_bc_power_sensors_bch[] = {
 			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
                         .sensor_enabled = SAHPI_TRUE,
                         .events_enabled = SAHPI_TRUE,
-			.assert_mask   = SAHPI_ES_PRED_FAILURE_ASSERT,
-			.deassert_mask = SAHPI_ES_PRED_FAILURE_ASSERT,
+			.assert_mask   = 0x00,
+			.deassert_mask = 0x00,
                         .event_array = {
-
-/* FIXME:: Need to add events */				
-
                                 {},
                         },
    			.reading2event = {},
@@ -8971,9 +9164,17 @@ struct snmp_bc_sensor snmp_bc_switch_sensors[] = {
 			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
                         .sensor_enabled = SAHPI_TRUE,
                         .events_enabled = SAHPI_TRUE,
-			.assert_mask   = SAHPI_ES_DEGRADED | SAHPI_ES_INSTALL_ERROR,
-			.deassert_mask = SAHPI_ES_DEGRADED | SAHPI_ES_INSTALL_ERROR,
+			.assert_mask   = SAHPI_ES_DEGRADED | SAHPI_ES_OFF_LINE | SAHPI_ES_INSTALL_ERROR,
+			.deassert_mask = SAHPI_ES_DEGRADED | SAHPI_ES_OFF_LINE | SAHPI_ES_INSTALL_ERROR,
                         .event_array = {
+                                {
+                                        .event = "0EA0000x", /* EN_FAULT_SWITCH_x */
+					.event_assertion = SAHPI_TRUE,
+					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
                                 {
                                         .event = "0E00B00x", /* EN_SWITCH_x_INSUFFICIENT_PWR */
    					.event_assertion = SAHPI_TRUE,
@@ -8982,7 +9183,7 @@ struct snmp_bc_sensor snmp_bc_switch_sensors[] = {
 					.event_state = SAHPI_ES_OFF_LINE,
                                         .recovery_state = SAHPI_ES_RUNNING,
                                 },
-                                 {
+				{
                                         .event = "0EA0C00x", /* EN_SWITCH_x_CFG_ERROR */
    					.event_assertion = SAHPI_TRUE,
        					.event_res_failure = SAHPI_FALSE,
@@ -9026,11 +9227,61 @@ struct snmp_bc_sensor snmp_bc_switch_sensors[] = {
                 .sensor = {
                         .Num = 2,
                         .Type = SAHPI_TEMPERATURE,
-                        .Category = SAHPI_EC_SEVERITY,
+                        .Category = SAHPI_EC_THRESHOLD,
 			.EnableCtrl = SAHPI_FALSE,
                         .EventCtrl = SAHPI_SEC_READ_ONLY,
-			.Events = SAHPI_ES_OK | SAHPI_ES_MAJOR_FROM_LESS | SAHPI_ES_CRITICAL,
+			.Events = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
 			.DataFormat = {
+                                .IsSupported = SAHPI_FALSE,
+                        },
+                        .ThresholdDefn = {
+                                .IsAccessible = SAHPI_FALSE,
+				.ReadThold = 0,
+				.WriteThold = 0,
+                       },
+                        .Oem = 0,
+                },
+                .sensor_info = {
+                        .cur_state = SAHPI_ES_UNSPECIFIED,
+			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
+                        .sensor_enabled = SAHPI_TRUE,
+                        .events_enabled = SAHPI_TRUE,
+			.assert_mask   = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+			.deassert_mask = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+                        .event_array = {
+                                {
+                                        .event = "0EA1C40x", /* EN_OVER_TEMP_SWITCH_x */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_UPPER_CRIT,
+                                        .recovery_state = SAHPI_ES_UPPER_MAJOR,
+                                },
+                                {
+                                        .event = "0EA1D40x", /* EN_OVER_TEMP_WARN_SWITCH_x */
+  					.event_assertion = SAHPI_TRUE,
+					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_UPPER_MAJOR,
+					.recovery_state = SAHPI_ES_UNSPECIFIED,
+                                },
+                                {},
+                        },
+   			.reading2event = {},
+                },
+                .comment = "I/O Module Temperature Sensor",
+        },
+	/* I/O Module Management Bus Operational Status  Sensor - event only */
+        {
+		.index = 3,
+                .sensor = {
+                        .Num = 3,
+                        .Type = SAHPI_OPERATIONAL,
+                        .Category = SAHPI_EC_AVAILABILITY,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
+			.Events = SAHPI_ES_RUNNING | SAHPI_ES_OFF_LINE,
+                        .DataFormat = {
                                 .IsSupported = SAHPI_FALSE,
                         },
                         .ThresholdDefn = {
@@ -9039,34 +9290,26 @@ struct snmp_bc_sensor snmp_bc_switch_sensors[] = {
                         .Oem = 0,
                 },
                 .sensor_info = {
-                        .cur_state = SAHPI_ES_OK,
+                        .cur_state = SAHPI_ES_RUNNING,
 			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
                         .sensor_enabled = SAHPI_TRUE,
                         .events_enabled = SAHPI_TRUE,
-			.assert_mask   = SAHPI_ES_MAJOR_FROM_LESS | SAHPI_ES_CRITICAL,
-			.deassert_mask = SAHPI_ES_MAJOR_FROM_LESS | SAHPI_ES_CRITICAL,
+			.assert_mask   = SAHPI_ES_OFF_LINE,
+			.deassert_mask = SAHPI_ES_OFF_LINE,
                         .event_array = {
                                 {
-                                        .event = "0EA1C40x", /* EN_OVER_TEMP_SWITCH_x */
+                                        .event = "0EA2200x", /* EN_STCONN_FAIL_SWITCH_x */
   					.event_assertion = SAHPI_TRUE,
        					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_CRITICAL,
-                                        .recovery_state = SAHPI_ES_MAJOR_FROM_LESS,
-                                },
-                                {
-                                        .event = "0EA1D40x", /* EN_OVER_TEMP_WARN_SWITCH_x */
-  					.event_assertion = SAHPI_TRUE,
-					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_MAJOR_FROM_LESS,
-                                       .recovery_state = SAHPI_ES_OK,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
                                 },
                                 {},
                         },
    			.reading2event = {},
                 },
-                .comment = "I/O Module Temperature Sensor",
+                .comment = "I/O Module Management Bus 0perations Sensor",
         },
 
         {} /* Terminate array with a null element */
@@ -9117,8 +9360,9 @@ struct snmp_bc_sensor snmp_bc_slot_sensors[] = {
                         .events_enabled = SAHPI_FALSE,
                         .assert_mask   = 0,
                         .deassert_mask = 0,
-                        .event_array = {},
-			
+                        .event_array = {
+                                {},
+			},
                         .reading2event = {},
                 },
                 .comment = "Slot State Sensor",
@@ -9273,15 +9517,14 @@ struct snmp_bc_sensor snmp_bc_slot_sensors[] = {
         {} /* Terminate array with a null element */
 };
 
-
 /*************************************************************************
  *                   Control Definitions
  *************************************************************************/
 
 /*************************************************************************
  * WARNING  -   WARNING  - WARNING  -  WARNING 
- * Most of the .control.num are arbitrary assigned.   
- * There is 1 hardcoded Control Number:
+ * Most of the .control.num are assigned sequentially.   
+ * There is 1 hardcoded control number:
  *        BLADECENTER_CTRL_NUM_MGMNT_FAILOVER 
  *************************************************************************/
  
