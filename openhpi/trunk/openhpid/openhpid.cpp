@@ -35,8 +35,7 @@ extern "C"
 #include <oh_error.h>
 #include <oh_threaded.h>
 
-
-#include <oh_init.h>
+#include <oh_initialize.h>
 }
 
 #include "strmsock.h"
@@ -68,7 +67,7 @@ static void hashtablefreeentry(gpointer key, gpointer value, gpointer data);
 
 }
 
-#define CLIENT_TIMEOUT 0  // Unlimited
+#define CLIENT_TIMEOUT 1800  // Unlimited
 #define PID_FILE "/var/run/openhpid.pid"
 
 static bool stop_server = FALSE;
@@ -270,8 +269,9 @@ int main (int argc, char *argv[])
 
         // become a daemon
         if (!morph2daemon()) {
-		exit(8);
-	}
+		        exit(8);
+	    }
+
 
         _initialize(TRUE);
 

@@ -16,6 +16,7 @@
  */
 
 #include <oh_init.h>
+#include <oh_initialize.h>
 #include <oh_config.h>
 #include <oh_plugin.h>
 #include <oh_domain.h>
@@ -91,11 +92,10 @@ int _init(void)
          * besides zero, The runtime stuff depends on zero being returned here
          * in order for the shared library to be completely initialized.
          */
-
         return 0;
 }
 
-
+#if 0
 /**
  * _initialize
  *
@@ -184,6 +184,7 @@ int _initialize(int daemon)
         return 0;
 
 }
+#endif
 
 /**
  * _fini
