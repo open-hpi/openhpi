@@ -512,6 +512,7 @@ SaErrorT oh_fprint_ep(FILE *stream, const SaHpiEntityPathT *ep, int offsets)
  * oh_derive_string:
  * @ep - Pointer to entity's HPI SaHpiEntityPathT.
  * @offset - Offset to add to Entity Path location.
+ * @base - Base for numeric conversion and display.
  * @str - Un-normalized character string.
  *
  * This function "normalizes" a string (such as an SNMP OID) 
@@ -525,14 +526,29 @@ SaErrorT oh_fprint_ep(FILE *stream, const SaHpiEntityPathT *ep, int offsets)
  *
  * Returns a normalized string of ".1.3.6.1.4.1.2.3.51.2.22.1.5.1.1.5.3".
  *
- * An offset is also supported and is added to all substituted numbers.
+ * An @offset is supported and is added to all substituted numbers.
  * For example,
  *
- * offset = 3
+ * @offset = 3
  * @str = ".1.3.6.1.4.1.2.3.x.2.22.1.5.1.1.5.x"
  * @ep = {SAHPI_ENT_CHASSIS, 51}{SAHPI_ENT_SBC_BLADE, 3}
  *
  * Returns a normalized string of ".1.3.6.1.4.1.2.3.54.2.22.1.5.1.1.5.6".
+ *
+ * A @base parameter is also supported to allow hex and decimal connversions.
+ * For example,
+
+ * @base = 10
+ * @str = "123x"
+ * @ep = {SAHPI_ENT_CHASSIS, 51}{SAHPI_ENT_SBC_BLADE, 11}
+ *
+ * Returns a normalized string of "12311".
+ *
+ * @base = 16
+ * @str = "123x"
+ * @ep = {SAHPI_ENT_CHASSIS, 51}{SAHPI_ENT_SBC_BLADE, 11}
+ *
+ * Returns a normalized string of "123B".
  *
  * If @str does not contain any 'x' characters, this routine still 
  * allocates memory and returns a "normalized" string. In this case,
@@ -546,7 +562,7 @@ SaErrorT oh_fprint_ep(FILE *stream, const SaHpiEntityPathT *ep, int offsets)
  * Pointer to normalize string - Normal case.
  * NULL - Error.
  **********************************************************************/
-gchar * oh_derive_string(SaHpiEntityPathT *ep, SaHpiEntityLocationT offset, const gchar *str)
+gchar * oh_derive_string(SaHpiEntityPathT *ep, SaHpiEntityLocationT offset, int base, const gchar *str)
 {
         gchar *new_str = NULL, *str_walker = NULL;
         gchar **fragments = NULL, **str_nodes = NULL;
@@ -560,6 +576,11 @@ gchar * oh_derive_string(SaHpiEntityPathT *ep, SaHpiEntityLocationT offset, cons
 
 	if (offset < 0) {
 		dbg("Invalid location offset.");
+		return(NULL);
+	}
+
+	if (!(base == 10 || base == 16)) {
+		dbg("Invalid base.");
 		return(NULL);
 	}
 
@@ -592,12 +613,20 @@ gchar * oh_derive_string(SaHpiEntityPathT *ep, SaHpiEntityLocationT offset, cons
         for (i=0; i<num_blanks; i++) {
                 work_location_num = ep->Entry[num_blanks-1-i].EntityLocation;
 		if (offset) { work_location_num = work_location_num + offset; }
+
                 for (num_digits = 1;
-                     (work_location_num = work_location_num/10) > 0; num_digits++);
+                     (work_location_num = work_location_num/base) > 0; num_digits++);
                 str_nodes[i] = g_malloc0((num_digits+1) * sizeof(gchar));
                 if (!str_nodes[i]) {dbg("Out of memory."); goto CLEANUP;}
-                snprintf(str_nodes[i], (num_digits + 1) * sizeof(gchar), "%d", 
-			 ep->Entry[num_blanks - 1 - i].EntityLocation + offset);
+		if (base == 10) {
+			snprintf(str_nodes[i], (num_digits + 1) * sizeof(gchar), "%d", 
+				 ep->Entry[num_blanks - 1 - i].EntityLocation + offset);
+		}
+		else { /* Base 16 */
+			snprintf(str_nodes[i], (num_digits + 1) * sizeof(gchar), "%X", 
+				 ep->Entry[num_blanks - 1 - i].EntityLocation + offset);
+		}
+
                 /* trace("Location number: %s", str_nodes[i]); */
                 total_num_digits = total_num_digits + num_digits;
         }
