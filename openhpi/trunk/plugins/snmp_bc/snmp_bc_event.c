@@ -363,7 +363,7 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 			   LogSource2ResourceT *ret_logsrc2res)
 {
 	sel_entry           log_entry;
-	gchar               *recovery_str, *login_str;
+	gchar               *recovery_str, *login_str, *post_str;
 	gchar               root_str[SNMP_BC_MAX_SEL_ENTRY_LENGTH];
 	gchar               search_str[SNMP_BC_MAX_SEL_ENTRY_LENGTH];
 	EventMapInfoT       *eventmap_info;
@@ -429,6 +429,14 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 			strncpy(search_str, log_entry.text, (id_str - log_entry.text));
 			search_str[(id_str - log_entry.text)] = '\0';
 		}
+	}
+
+	/* Adjust "POST" event strings - strip post results */
+	post_str = strstr(log_entry.text, LOG_POST_STRING);
+	if (post_str) {
+		memset(search_str, 0, SNMP_BC_MAX_SEL_ENTRY_LENGTH);
+		strncpy(search_str, log_entry.text, (post_str - log_entry.text));
+		search_str[(post_str - log_entry.text - 1)] = '\0';
 	}
 
 	/* Adjust "threshold" event strings */
