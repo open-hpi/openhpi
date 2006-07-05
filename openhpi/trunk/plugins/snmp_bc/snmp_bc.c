@@ -343,7 +343,7 @@ SaErrorT snmp_bc_oid_snmp_get(struct snmp_bc_hnd *custom_handle,
 	gchar *oid;
 	
 	rv = SA_OK;
-	oid = oh_derive_string(ep, loc_offset, oidstr);
+	oid = oh_derive_string(ep, loc_offset, 10, oidstr);
 	if (oid == NULL) {
 		dbg("Cannot derive %s.", oidstr); 
 		return(SA_ERR_HPI_INTERNAL_ERROR);
@@ -424,7 +424,7 @@ SaErrorT snmp_bc_oid_snmp_set(struct snmp_bc_hnd *custom_handle,
 	gchar *oid;
 
 	rv = SA_OK;
-	oid = oh_derive_string(ep, loc_offset, oidstr);
+	oid = oh_derive_string(ep, loc_offset, 10, oidstr);
 	if (oid == NULL) {
 		dbg("NULL SNMP OID returned for %s.", oidstr);
 		return(SA_ERR_HPI_INTERNAL_ERROR);

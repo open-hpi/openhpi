@@ -179,7 +179,7 @@ SaErrorT snmp_bc_discover_res_events(struct oh_handler_state *handle,
 	max = SNMP_BC_MAX_RESOURCE_EVENT_ARRAY_SIZE;
 	for (i=0; resinfo->event_array[i].event != NULL && i < max; i++) {
 		/* Normalized and convert event string */
-		normalized_str = oh_derive_string(ep, 0, resinfo->event_array[i].event);
+		normalized_str = oh_derive_string(ep, 0, 16, resinfo->event_array[i].event);
 		if (normalized_str == NULL) {
 			dbg("Cannot derive %s.", resinfo->event_array[i].event);
 			return(SA_ERR_HPI_INTERNAL_ERROR);
@@ -276,7 +276,7 @@ SaErrorT snmp_bc_discover_sensor_events(struct oh_handler_state *handle,
 		
 	for (i=0; sinfo->sensor_info.event_array[i].event != NULL && i < max; i++) {
 		/* Normalized and convert event string */
-		normalized_str = oh_derive_string(ep, 0, sinfo->sensor_info.event_array[i].event);
+		normalized_str = oh_derive_string(ep, 0, 16, sinfo->sensor_info.event_array[i].event);
 		if (normalized_str == NULL) {
 			dbg("Cannot derive %s.", sinfo->sensor_info.event_array[i].event);
 			return(SA_ERR_HPI_INTERNAL_ERROR);
@@ -789,7 +789,7 @@ static ErrLog2EventInfoT *snmp_bc_findevent4dupstr(gchar *search_str,
 		/* Search entire sensor array for the duplicate string's event */
 		for (i=0; (logsrc2res->sensor_array_ptr + i)->sensor.Num != 0; i++) {
 			for (j=0; (logsrc2res->sensor_array_ptr + i)->sensor_info.event_array[j].event != NULL; j++) {
-				normalized_event = oh_derive_string(&(logsrc2res->ep), 0,
+				normalized_event = oh_derive_string(&(logsrc2res->ep), 0, 16,
 						   (logsrc2res->sensor_array_ptr + i)->sensor_info.event_array[j].event);
 				
 				if (!g_ascii_strcasecmp(dupstr_hash_data->event, normalized_event)) {
@@ -802,7 +802,7 @@ static ErrLog2EventInfoT *snmp_bc_findevent4dupstr(gchar *search_str,
 		
 		/* Search resource array for the duplicate string's event */
 		for (i=0; snmp_bc_rpt_array[logsrc2res->rpt].res_info.event_array[i].event != NULL; i++) {
-			normalized_event = oh_derive_string(&(logsrc2res->ep), 0,
+			normalized_event = oh_derive_string(&(logsrc2res->ep), 0, 16,
 					   snmp_bc_rpt_array[logsrc2res->rpt].res_info.event_array[i].event);
 			if (!g_ascii_strcasecmp(dupstr_hash_data->event, normalized_event)) {
 				g_free(normalized_event);
