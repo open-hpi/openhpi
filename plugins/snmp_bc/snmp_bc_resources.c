@@ -9628,6 +9628,33 @@ struct snmp_bc_control snmp_bc_blade_controls[] = {
                },
                 .comment = "Blade Location LED",
         },
+	/* Blade BMC Reset */
+	/* 1 = reset */
+        {
+		.index = 2,
+                .control = {
+                        .Num = 2,
+                        .OutputType = SAHPI_CTRL_GENERIC,
+                        .Type = SAHPI_CTRL_TYPE_DISCRETE,
+                        .TypeUnion.Discrete.Default = 1,
+ 			.DefaultMode = {
+				.Mode = SAHPI_CTRL_MODE_MANUAL,
+				.ReadOnly = SAHPI_TRUE,
+			},
+			.WriteOnly = SAHPI_TRUE,
+                       .Oem = 0,
+                },
+                .control_info = {
+                        .mib = {
+                                .not_avail_indicator_num = 0,
+                                .write_only = SAHPI_FALSE,
+                                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.6.1.1.9.x",
+				.loc_offset = 0,
+                        },
+ 			.cur_mode = SAHPI_CTRL_MODE_MANUAL,
+               },
+                .comment = "Blade BMC Reset",
+        },
 
         {} /* Terminate array with a null element */
 };
