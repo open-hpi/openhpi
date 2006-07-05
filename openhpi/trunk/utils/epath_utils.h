@@ -65,7 +65,10 @@ SaErrorT oh_set_ep_location(SaHpiEntityPathT *ep,
 
 SaHpiBoolT oh_valid_ep(const SaHpiEntityPathT *ep);
 
-gchar * oh_derive_string(SaHpiEntityPathT *ep, SaHpiEntityLocationT offset, const gchar *str);
+gchar * oh_derive_string(SaHpiEntityPathT *ep,
+			 SaHpiEntityLocationT offset,
+			 int base,
+			 const gchar *str);
 
 #ifdef __cplusplus
 }
