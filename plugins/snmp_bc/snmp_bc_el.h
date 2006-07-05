@@ -4,8 +4,8 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
- * file and program are licensed under a BSD style license.  See
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. This
+ * file and program are licensed under a BSD style license. See
  * the Copying file included with the OpenHPI distribution for
  * full licensing terms.
  */
@@ -14,6 +14,7 @@
 #define __EL_H
 
 #define LOG_LOGIN_STRING "Login ID:"
+#define LOG_POST_STRING "(POST Status:"
 #define EVT_RECOVERY "Recovery "
 #define LOG_THRESHOLD_VALUE_STRING "Threshold value"
 #define EVT_EN_LOG_FULL "System error log full"
