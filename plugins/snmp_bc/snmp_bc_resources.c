@@ -3573,7 +3573,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
 		},
 		.comment = "Blade VRM 1 Voltage Sensor",
         },
-        /* Blade Operational Status Sensor - event only */
+        /* Blade Operational Status Sensor */
         {
 		.index = 12,
                 .sensor = {
@@ -3585,7 +3585,29 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         .Events = SAHPI_ES_RUNNING | SAHPI_ES_OFF_LINE |
                                   SAHPI_ES_DEGRADED | SAHPI_ES_INSTALL_ERROR,
                         .DataFormat = {
-                                .IsSupported = SAHPI_FALSE,
+				.IsSupported = SAHPI_TRUE,
+				.ReadingType = SAHPI_SENSOR_READING_TYPE_INT64,
+				.BaseUnits = SAHPI_SU_UNSPECIFIED,
+				.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+				.ModifierUse = SAHPI_SMUU_NONE,
+				.Percentage = SAHPI_FALSE,
+				.Range = {
+					.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
+					.Max = {
+						.IsSupported = SAHPI_TRUE,
+						.Type = SAHPI_SENSOR_READING_TYPE_INT64,
+						.Value = {
+							.SensorInt64 = 9,
+						},
+					},
+					.Min = {
+						.IsSupported = SAHPI_TRUE,
+						.Type = SAHPI_SENSOR_READING_TYPE_INT64,
+						.Value = {
+							.SensorInt64 = 0,
+						},
+					},
+				},
                         },
                         .ThresholdDefn = {
                                 .IsAccessible = SAHPI_FALSE,
@@ -3593,6 +3615,12 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         .Oem = 0,
                 },
                 .sensor_info = {
+                        .mib = {
+                                .not_avail_indicator_num = 0,
+                                .write_only = SAHPI_FALSE,
+                                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.1.1.5.x",
+				.loc_offset = 0,
+                        },
                         .cur_state = SAHPI_ES_RUNNING,
 			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
                         .sensor_enabled = SAHPI_TRUE,
@@ -3728,7 +3756,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                         .event_state = SAHPI_ES_OFF_LINE,
                                         .recovery_state = SAHPI_ES_RUNNING,
                                 },
-                                 {
+				{
                                         .event = "0601A000", /* EN_IO_BD_POWER_FAULT */
  					.event_assertion = SAHPI_TRUE,
       					.event_res_failure = SAHPI_FALSE,
@@ -3944,7 +3972,6 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                         .event_state = SAHPI_ES_OFF_LINE,
                                         .recovery_state = SAHPI_ES_RUNNING,
                                 },
-
                                 {
                                         .event = "06C16000", /* EN_MEM_MOD_BUS_UNCORR_ERR */
  					.event_assertion = SAHPI_TRUE,
@@ -4163,8 +4190,81 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 },
                                 {},
                         },
-   			.reading2event = {},
-               },
+   			.reading2event = {
+				/* 0 = unknown */
+				{
+					.num = 1,
+                                        .rangemap = {
+						.Flags = SAHPI_SRF_MIN,
+						.Min = {
+							.Value = {
+								.SensorInt64 = 1,
+							},
+						},
+					},
+					.state = SAHPI_ES_UNSPECIFIED,
+                                },
+				/* 1 = good */
+				{
+					.num = 2,
+                                        .rangemap = {
+						.Flags = SAHPI_SRF_NOMINAL,
+						.Nominal = {
+							.Value = {
+								.SensorInt64 = 1, 
+							},
+						},
+					},
+					.state = SAHPI_ES_RUNNING,
+				},
+				/* 2 = warning */
+ 				{
+					.num = 3,
+                                        .rangemap = {
+						.Flags = SAHPI_SRF_NOMINAL,
+						.Nominal = {
+							.Value = {
+								.SensorInt64 = 2,
+							},
+						},
+					},
+					.state = SAHPI_ES_DEGRADED,
+                                },
+				/* 3 = bad, 4 = kernelMode, 5 = discovering, 6 = commError
+				   7 = noPower, 8 = flashing */
+ 				{
+					.num = 4,
+                                        .rangemap = {
+						.Flags = SAHPI_SRF_MIN | SAHPI_SRF_MAX,
+						.Min = {
+							.Value = {
+								.SensorInt64 = 3,
+							},
+						},
+						.Max = {
+							.Value = {
+								.SensorInt64 = 8,
+							},
+						},
+
+					},
+					.state = SAHPI_ES_OFF_LINE,
+                                },
+				/* 9 = initFailure */	
+ 				{
+					.num = 5,
+                                        .rangemap = {
+						.Flags = SAHPI_SRF_NOMINAL,
+						.Nominal = {
+							.Value = {
+								.SensorInt64 = 9,
+							},
+						},
+					},
+					.state = SAHPI_ES_INSTALL_ERROR,
+                                },
+			},
+		},
                 .comment = "Blade Operational Status Sensor",
         },
 	/* Blade NMI Status Sensor */
@@ -8533,7 +8633,7 @@ struct snmp_bc_sensor snmp_bc_mediatray_sensors[] = {
  * Blower Sensors
  ****************/
 struct snmp_bc_sensor snmp_bc_blower_sensors[] = {
-        /* Blower Operational Status Sensor - event-only */
+        /* Blower Operational Status Sensor */
         {
 		.index = 1,
                 .sensor = {
@@ -8544,7 +8644,29 @@ struct snmp_bc_sensor snmp_bc_blower_sensors[] = {
                         .EventCtrl = SAHPI_SEC_READ_ONLY,
                         .Events = SAHPI_ES_RUNNING | SAHPI_ES_OFF_LINE,
                         .DataFormat = {
-                                .IsSupported = SAHPI_FALSE,
+                                .IsSupported = SAHPI_TRUE,
+				.ReadingType = SAHPI_SENSOR_READING_TYPE_INT64,
+				.BaseUnits = SAHPI_SU_UNSPECIFIED,
+				.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+				.ModifierUse = SAHPI_SMUU_NONE,
+				.Percentage = SAHPI_FALSE,
+				.Range = {
+					.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
+					.Max = {
+						.IsSupported = SAHPI_TRUE,
+						.Type = SAHPI_SENSOR_READING_TYPE_INT64,
+						.Value = {
+							.SensorInt64 = 3,
+						},
+					},
+					.Min = {
+						.IsSupported = SAHPI_TRUE,
+						.Type = SAHPI_SENSOR_READING_TYPE_INT64,
+						.Value = {
+							.SensorInt64 = 0,
+						},
+					},
+				},
                         },
                         .ThresholdDefn = {
                                 .IsAccessible = SAHPI_FALSE,
@@ -8552,6 +8674,12 @@ struct snmp_bc_sensor snmp_bc_blower_sensors[] = {
                         .Oem = 0,
                 },
                 .sensor_info = {
+                        .mib = {
+                                .not_avail_indicator_num = 0,
+                                .write_only = SAHPI_FALSE,
+                                .oid = ".1.3.6.1.4.1.2.3.51.2.2.3.x.0",
+				.loc_offset = (10 - 1),
+                        },
                         .cur_state = SAHPI_ES_RUNNING,
 			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
                         .sensor_enabled = SAHPI_TRUE,
@@ -8577,7 +8705,60 @@ struct snmp_bc_sensor snmp_bc_blower_sensors[] = {
                                 },
                                 {},
                         },
-   			.reading2event = {},
+   			.reading2event = {
+				/* 0 = unknown */
+				{
+					.num = 1,
+                                        .rangemap = {
+						.Flags = SAHPI_SRF_MIN,
+						.Min = {
+							.Value = {
+								.SensorInt64 = 1,
+							},
+						},
+					},
+					.state = SAHPI_ES_UNSPECIFIED,
+                                },
+				/* 1 = good */
+				{
+					.num = 2,
+                                        .rangemap = {
+						.Flags = SAHPI_SRF_NOMINAL,
+						.Nominal = {
+							.Value = {
+								.SensorInt64 = 1, 
+							},
+						},
+					},
+					.state = SAHPI_ES_RUNNING,
+				},
+				/* 2 = warning */
+ 				{
+					.num = 3,
+                                        .rangemap = {
+						.Flags = SAHPI_SRF_NOMINAL,
+						.Nominal = {
+							.Value = {
+								.SensorInt64 = 2,
+							},
+						},
+					},
+					.state = SAHPI_ES_DEGRADED,
+                                },
+				/* 3 = bad */
+ 				{
+					.num = 4,
+                                        .rangemap = {
+						.Flags = SAHPI_SRF_NOMINAL,
+						.Nominal = {
+							.Value = {
+								.SensorInt64 = 3,
+							},
+						},
+					},
+					.state = SAHPI_ES_OFF_LINE,
+                                },
+			},
                 },
                 .comment = "Blower Operational Status Sensor",
         },
@@ -8767,7 +8948,7 @@ struct snmp_bc_sensor snmp_bc_blower_sensors_bch[] = {
  ***************/
 
 struct snmp_bc_sensor snmp_bc_power_sensors[] = {
-        /* Power Module Operational Status Sensor - event-only */
+        /* Power Module Operational Status Sensor */
         {
 		.index = 1,
                 .sensor = {
@@ -8778,7 +8959,29 @@ struct snmp_bc_sensor snmp_bc_power_sensors[] = {
                         .EventCtrl = SAHPI_SEC_READ_ONLY,
 			.Events = SAHPI_ES_RUNNING | SAHPI_ES_DEGRADED | SAHPI_ES_OFF_LINE,
                         .DataFormat = {
-                                .IsSupported = SAHPI_FALSE,
+                                .IsSupported = SAHPI_TRUE,
+				.ReadingType = SAHPI_SENSOR_READING_TYPE_INT64,
+				.BaseUnits = SAHPI_SU_UNSPECIFIED,
+				.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+				.ModifierUse = SAHPI_SMUU_NONE,
+				.Percentage = SAHPI_FALSE,
+				.Range = {
+					.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
+					.Max = {
+						.IsSupported = SAHPI_TRUE,
+						.Type = SAHPI_SENSOR_READING_TYPE_INT64,
+						.Value = {
+							.SensorInt64 = 3,
+						},
+					},
+					.Min = {
+						.IsSupported = SAHPI_TRUE,
+						.Type = SAHPI_SENSOR_READING_TYPE_INT64,
+						.Value = {
+							.SensorInt64 = 0,
+						},
+					},
+				},
                         },
                         .ThresholdDefn = {
                                 .IsAccessible = SAHPI_FALSE,
@@ -8786,6 +8989,12 @@ struct snmp_bc_sensor snmp_bc_power_sensors[] = {
                         .Oem = 0,
                 },
                 .sensor_info = {
+                        .mib = {
+                                .not_avail_indicator_num = 0,
+                                .write_only = SAHPI_FALSE,
+                                .oid = ".1.3.6.1.4.1.2.3.51.2.2.4.1.1.3.x",
+				.loc_offset = 0,
+                        },
                         .cur_state = SAHPI_ES_RUNNING,
 			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
                         .sensor_enabled = SAHPI_TRUE,
@@ -8851,7 +9060,60 @@ struct snmp_bc_sensor snmp_bc_power_sensors[] = {
                                 },
                                 {},
                         },
-   			.reading2event = {},
+   			.reading2event = {
+				/* 0 = unknown */
+				{
+					.num = 1,
+                                        .rangemap = {
+						.Flags = SAHPI_SRF_MIN,
+						.Min = {
+							.Value = {
+								.SensorInt64 = 1,
+							},
+						},
+					},
+					.state = SAHPI_ES_UNSPECIFIED,
+                                },
+				/* 1 = good */
+				{
+					.num = 2,
+                                        .rangemap = {
+						.Flags = SAHPI_SRF_NOMINAL,
+						.Nominal = {
+							.Value = {
+								.SensorInt64 = 1, 
+							},
+						},
+					},
+					.state = SAHPI_ES_RUNNING,
+				},
+				/* 2 = warning */
+ 				{
+					.num = 3,
+                                        .rangemap = {
+						.Flags = SAHPI_SRF_NOMINAL,
+						.Nominal = {
+							.Value = {
+								.SensorInt64 = 2,
+							},
+						},
+					},
+					.state = SAHPI_ES_DEGRADED,
+                                },
+				/* 3 = bad */
+ 				{
+					.num = 4,
+                                        .rangemap = {
+						.Flags = SAHPI_SRF_NOMINAL,
+						.Nominal = {
+							.Value = {
+								.SensorInt64 = 3,
+							},
+						},
+					},
+					.state = SAHPI_ES_OFF_LINE,
+                                },
+			},
                 },
                 .comment = "Power Module Operational Status Sensor",
         },
@@ -8953,7 +9215,7 @@ struct snmp_bc_sensor snmp_bc_power_sensors[] = {
 
 /* BladeCenter H specific power module sensors */
 struct snmp_bc_sensor snmp_bc_power_sensors_bch[] = {
-        /* Power Module Fan Pack Operational Status Sensor - event-only */
+        /* Power Module Fan Pack Operational Status Sensor */
         {
 		.index = 1,
                 .sensor = {
@@ -8964,7 +9226,29 @@ struct snmp_bc_sensor snmp_bc_power_sensors_bch[] = {
                         .EventCtrl = SAHPI_SEC_READ_ONLY,
 			.Events = SAHPI_ES_RUNNING | SAHPI_ES_OFF_LINE,
                         .DataFormat = {
-                                .IsSupported = SAHPI_FALSE,
+                                .IsSupported = SAHPI_TRUE,
+				.ReadingType = SAHPI_SENSOR_READING_TYPE_INT64,
+				.BaseUnits = SAHPI_SU_UNSPECIFIED,
+				.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+				.ModifierUse = SAHPI_SMUU_NONE,
+				.Percentage = SAHPI_FALSE,
+				.Range = {
+					.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
+					.Max = {
+						.IsSupported = SAHPI_TRUE,
+						.Type = SAHPI_SENSOR_READING_TYPE_INT64,
+						.Value = {
+							.SensorInt64 = 3,
+						},
+					},
+					.Min = {
+						.IsSupported = SAHPI_TRUE,
+						.Type = SAHPI_SENSOR_READING_TYPE_INT64,
+						.Value = {
+							.SensorInt64 = 0,
+						},
+					},
+				},
                         },
                         .ThresholdDefn = {
                                 .IsAccessible = SAHPI_FALSE,
@@ -8972,6 +9256,12 @@ struct snmp_bc_sensor snmp_bc_power_sensors_bch[] = {
                         .Oem = 0,
                 },
                 .sensor_info = {
+                        .mib = {
+                                .not_avail_indicator_num = 0,
+                                .write_only = SAHPI_FALSE,
+                                .oid = ".1.3.6.1.4.1.2.3.51.2.2.6.1.1.3.x",
+				.loc_offset = 0,
+                        },
                         .cur_state = SAHPI_ES_RUNNING,
 			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
                         .sensor_enabled = SAHPI_TRUE,
@@ -8997,7 +9287,60 @@ struct snmp_bc_sensor snmp_bc_power_sensors_bch[] = {
                                 },
                                 {},
                         },
-   			.reading2event = {},
+   			.reading2event = {
+				/* 0 = unknown */
+				{
+					.num = 1,
+                                        .rangemap = {
+						.Flags = SAHPI_SRF_MIN,
+						.Min = {
+							.Value = {
+								.SensorInt64 = 1,
+							},
+						},
+					},
+					.state = SAHPI_ES_UNSPECIFIED,
+                                },
+				/* 1 = good */
+				{
+					.num = 2,
+                                        .rangemap = {
+						.Flags = SAHPI_SRF_NOMINAL,
+						.Nominal = {
+							.Value = {
+								.SensorInt64 = 1, 
+							},
+						},
+					},
+					.state = SAHPI_ES_RUNNING,
+				},
+				/* 2 = warning */
+ 				{
+					.num = 3,
+                                        .rangemap = {
+						.Flags = SAHPI_SRF_NOMINAL,
+						.Nominal = {
+							.Value = {
+								.SensorInt64 = 2,
+							},
+						},
+					},
+					.state = SAHPI_ES_DEGRADED,
+                                },
+				/* 3 = bad */
+ 				{
+					.num = 4,
+                                        .rangemap = {
+						.Flags = SAHPI_SRF_NOMINAL,
+						.Nominal = {
+							.Value = {
+								.SensorInt64 = 3,
+							},
+						},
+					},
+					.state = SAHPI_ES_OFF_LINE,
+                                },
+			},
                 },
                 .comment = "Power Module Fan Pack Operational Status Sensor",
         },
@@ -9140,7 +9483,7 @@ struct snmp_bc_sensor snmp_bc_power_sensors_bch[] = {
  ********************/
 
 struct snmp_bc_sensor snmp_bc_switch_sensors[] = {
-        /* I/O Module Operational Status Sensor - event only */
+        /* I/O Module Operational Status Sensor */
         {
 		.index = 1,
                 .sensor = {
@@ -9152,7 +9495,29 @@ struct snmp_bc_sensor snmp_bc_switch_sensors[] = {
                         .Events = SAHPI_ES_RUNNING | SAHPI_ES_OFF_LINE | 
 			          SAHPI_ES_DEGRADED | SAHPI_ES_INSTALL_ERROR,
                         .DataFormat = {
-                                .IsSupported = SAHPI_FALSE,
+				.IsSupported = SAHPI_TRUE,
+				.ReadingType = SAHPI_SENSOR_READING_TYPE_INT64,
+				.BaseUnits = SAHPI_SU_UNSPECIFIED,
+				.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+				.ModifierUse = SAHPI_SMUU_NONE,
+				.Percentage = SAHPI_FALSE,
+				.Range = {
+					.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
+					.Max = {
+						.IsSupported = SAHPI_TRUE,
+						.Type = SAHPI_SENSOR_READING_TYPE_INT64,
+						.Value = {
+							.SensorInt64 = 3,
+						},
+					},
+					.Min = {
+						.IsSupported = SAHPI_TRUE,
+						.Type = SAHPI_SENSOR_READING_TYPE_INT64,
+						.Value = {
+							.SensorInt64 = 0,
+						},
+					},
+				},
                         },
                         .ThresholdDefn = {
                                 .IsAccessible = SAHPI_FALSE,
@@ -9160,6 +9525,12 @@ struct snmp_bc_sensor snmp_bc_switch_sensors[] = {
                         .Oem = 0,
                 },
                 .sensor_info = {
+                        .mib = {
+                                .not_avail_indicator_num = 0,
+                                .write_only = SAHPI_FALSE,
+                                .oid = ".1.3.6.1.4.1.2.3.51.2.22.3.1.1.1.15.x",
+				.loc_offset = 0,
+                        },
                         .cur_state = SAHPI_ES_RUNNING,
 			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
                         .sensor_enabled = SAHPI_TRUE,
@@ -9217,9 +9588,62 @@ struct snmp_bc_sensor snmp_bc_switch_sensors[] = {
                                 },
                                 {},
                         },
-   			.reading2event = {},
+   			.reading2event = {
+				/* 0 = unknown */
+				{
+					.num = 1,
+                                        .rangemap = {
+						.Flags = SAHPI_SRF_MIN,
+						.Min = {
+							.Value = {
+								.SensorInt64 = 1,
+							},
+						},
+					},
+					.state = SAHPI_ES_UNSPECIFIED,
+                                },
+				/* 1 = good */
+				{
+					.num = 2,
+                                        .rangemap = {
+						.Flags = SAHPI_SRF_NOMINAL,
+						.Nominal = {
+							.Value = {
+								.SensorInt64 = 1, 
+							},
+						},
+					},
+					.state = SAHPI_ES_RUNNING,
+				},
+				/* 2 = warning */
+ 				{
+					.num = 3,
+                                        .rangemap = {
+						.Flags = SAHPI_SRF_NOMINAL,
+						.Nominal = {
+							.Value = {
+								.SensorInt64 = 2,
+							},
+						},
+					},
+					.state = SAHPI_ES_DEGRADED,
+                                },
+				/* 3 = bad */
+ 				{
+					.num = 4,
+                                        .rangemap = {
+						.Flags = SAHPI_SRF_NOMINAL,
+						.Nominal = {
+							.Value = {
+								.SensorInt64 = 3,
+							},
+						},
+					},
+					.state = SAHPI_ES_OFF_LINE,
+                                },
+			},
                 },
-                .comment = "I/O Operational Status Sensor",
+                .comment = "I/O Module Operational Status Sensor",
         },
         /* I/O Module Temperature Sensor - event-only */
         {
