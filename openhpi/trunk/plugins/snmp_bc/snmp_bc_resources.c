@@ -847,7 +847,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                         .Oem = 0,
                 },
                 .sensor_info = {
-                        .cur_state = SAHPI_ES_UNSPECIFIED,
+                        .cur_state = SAHPI_ES_FULLY_REDUNDANT,
 			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
                         .sensor_enabled = SAHPI_TRUE,
                         .events_enabled = SAHPI_TRUE,
@@ -887,7 +887,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                         .Oem = 0,
                 },
                 .sensor_info = {
-                        .cur_state = SAHPI_ES_UNSPECIFIED,
+                        .cur_state = SAHPI_ES_FULLY_REDUNDANT,
 			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
                         .sensor_enabled = SAHPI_TRUE,
                         .events_enabled = SAHPI_TRUE,
@@ -943,7 +943,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                         .Oem = 0,
                 },
                 .sensor_info = {
-                        .cur_state = SAHPI_ES_UNSPECIFIED,
+                        .cur_state = SAHPI_ES_FULLY_REDUNDANT,
 			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
                         .sensor_enabled = SAHPI_TRUE,
                         .events_enabled = SAHPI_TRUE,
@@ -983,7 +983,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                         .Oem = 0,
                 },
                 .sensor_info = {
-                        .cur_state = SAHPI_ES_UNSPECIFIED,
+                        .cur_state = SAHPI_ES_FULLY_REDUNDANT,
 			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
                         .sensor_enabled = SAHPI_TRUE,
                         .events_enabled = SAHPI_TRUE,
@@ -2260,7 +2260,7 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.4.34.0",
 				.loc_offset = 0,
                         },
-                        .cur_state = SAHPI_ES_UNSPECIFIED,
+                        .cur_state = SAHPI_ES_PRESENT,
 			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
                         .sensor_enabled = SAHPI_TRUE,
                         .events_enabled = SAHPI_FALSE,
