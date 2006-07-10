@@ -951,6 +951,14 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
 			.deassert_mask = SAHPI_ES_REDUNDANCY_LOST,
                         .event_array = {
                                 {
+                                        .event = "08008401", /* EN_PWR_DOMAIN_1_OVER_SUBSCRIP */
+ 					.event_assertion = SAHPI_TRUE,
+ 					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+					.event_state = SAHPI_ES_REDUNDANCY_LOST,
+                                        .recovery_state = SAHPI_ES_FULLY_REDUNDANT,
+                                },
+                                {
                                         .event = "08008401", /* EN_PWR_DOMAIN_1_OVER_SUBSCRIP_NONREC */
  					.event_assertion = SAHPI_TRUE,
  					.event_res_failure = SAHPI_FALSE,
@@ -7684,7 +7692,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_bem_ipmi_sensors[] = {
 	/* PEU2 Temperature Sensor */
         {
 		.ipmi_tag = "PEU2 TEMP SENSE",
-		.ipmi_tag_alias1 = '\0',
+		.ipmi_tag_alias1 = "PEU2 LOCAL TEMP",
 		.ipmi = {
 			.index = 7,
 			.sensor = {

@@ -65,11 +65,19 @@ EN_NR_PWR_SUPPLY_DOM_2|0x08081002|SAHPI_MINOR|OVR_SEV|"Power modules are nonredu
 
 # Power Domain 1 Redundancy Sensor - event-only
 # This string necessary since Recovery string is truncated
+EN_PWR_DOMAIN_1_OVER_SUBSCRIP|0x08009401|SAHPI_INFORMATIONAL|OVR_SEV|"Demand exceeds a single power module. Throttling can occur in domain 1 if redundancy is lo"
+EN_PWR_DOMAIN_1_OVER_SUBSCRIP|0x08009401|SAHPI_INFORMATIONAL|OVR_SEV|"Demand exceeds a single power module. Throttling can occur in domain 1 if redundancy is lost."
+EN_PWR_DOMAIN_1_OVER_SUBSCRIP|0x08009401|SAHPI_INFORMATIONAL|OVR_SEV|"Blades in domain 1 will throttle if a single Power Module fails."
+# This string necessary since Recovery string is truncated
 EN_PWR_DOMAIN_1_OVER_SUBSCRIP_NONREC|0x08008401|SAHPI_MINOR|OVR_SEV|"Demand exceeds a single power module. Immediate shutdown in domain 1 may occur if module f"
 EN_PWR_DOMAIN_1_OVER_SUBSCRIP_NONREC|0x08008401|SAHPI_MINOR|OVR_SEV|"Demand exceeds a single power module. Immediate shutdown in domain 1 may occur if module fails."
 EN_PWR_DOMAIN_1_OVER_SUBSCRIP_NONREC|0x08008401|SAHPI_MINOR|OVR_SEV|"The budgeted power is more than a what a single Power Module can provide in domain 1"
 
 # Power Domain 2 Redundancy Sensor - event-only
+# This string necessary since Recovery string is truncated
+EN_PWR_DOMAIN_2_OVER_SUBSCRIP|0x08009402|SAHPI_INFORMATIONAL|OVR_SEV|"Demand exceeds a single power module. Throttling can occur in domain 2 if redundancy is lo"
+EN_PWR_DOMAIN_2_OVER_SUBSCRIP|0x08009402|SAHPI_INFORMATIONAL|OVR_SEV|"Demand exceeds a single power module. Throttling can occur in domain 2 if redundancy is lost."
+EN_PWR_DOMAIN_2_OVER_SUBSCRIP|0x08009402|SAHPI_INFORMATIONAL|OVR_SEV|"Blades in domain 2 will throttle if a single Power Module fails."
 # This string necessary since Recovery string is truncated
 EN_PWR_DOMAIN_2_OVER_SUBSCRIP_NONREC|0x08008402|SAHPI_MINOR|OVR_SEV|"Demand exceeds a single power module. Immediate shutdown in domain 2 may occur if module f"
 EN_PWR_DOMAIN_2_OVER_SUBSCRIP_NONREC|0x08008402|SAHPI_MINOR|OVR_SEV|"Demand exceeds a single power module. Immediate shutdown in domain 2 may occur if module fails."
@@ -1838,6 +1846,7 @@ EN_FAN_8_NOT_PRESENT|0x06026008|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Fan 8 not detect
 # recovered? 
 ##EN_SYSTEM_BATTERY_FAILURE|0x06000000|SAHPI_INFORMATIONAL|OVR_SEV|"The real time clock battery in the MM needs service."
 
+# FIXME:: Why are these MINOR? Old ones were mostly ERRORs (e.g. CRITICAL or MAJOR)
 ##EN_THRESH_HI_CRIT_TEMP|0x80010901|SAHPI_MINOR|OVR_SEV|"%s %s (%s) %s critical %s."
 ##EN_THRESH_LO_NONRECOV_VOLT|0x80010402|SAHPI_MINOR|OVR_SEV|"%s %s (%s) %s non-recoverable %s fault."
 ##EN_THRESH_LO_WARN_VOLT|0x80010002|SAHPI_MINOR|OVR_SEV|"%s %s (%s) %s recommended %s."
@@ -1896,6 +1905,3 @@ EN_FAN_8_NOT_PRESENT|0x06026008|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Fan 8 not detect
 #EN_TCPAPPS_SSL_CMD_MODE_DISABLED|0x00016005|SAHPI_INFORMATIONAL|OVR_SEV|"Secure TCP Command Mode disabled."
 #EN_TCPAPPS_SSL_CMD_MODE_PORT|0x00016006|SAHPI_INFORMATIONAL|OVR_SEV|"Secure TCP Command Mode port number changed.  New port number: "
 #EN_TCPAPPS_CMD_MODE_PORT|0x00016007|SAHPI_INFORMATIONAL|OVR_SEV|"TCP Command Mode port number changed.  New port number: "
-
-#EN_PWR_DOMAIN_1_OVER_SUBSCRIP|0x08009401|SAHPI_INFORMATIONAL|OVR_SEV|"Blades in domain 1 will throttle if a single Power Module fails."
-#EN_PWR_DOMAIN_2_OVER_SUBSCRIP|0x08009402|SAHPI_INFORMATIONAL|OVR_SEV|"Blades in domain 2 will throttle if a single Power Module fails."
