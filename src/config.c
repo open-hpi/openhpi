@@ -38,6 +38,7 @@ static const char *known_globals[] = {
         "OPENHPI_DEL_SAVE",
         "OPENHPI_DAT_SIZE_LIMIT",
         "OPENHPI_DAT_USER_LIMIT",
+        "OPENHPI_DAT_SAVE",
         "OPENHPI_DAEMON_MODE",
         //"OPENHPI_DEBUG",
         //"OPENHPI_DEBUG_TRACE",
@@ -56,6 +57,7 @@ static struct {
         SaHpiBoolT del_save;
         SaHpiUint32T dat_size_limit;
         SaHpiUint32T dat_user_limit;
+        SaHpiBoolT dat_save;
         SaHpiUint32T daemon_mode;
         //unsigned char dbg;
         //unsigned char dbg_trace;
@@ -73,6 +75,7 @@ static struct {
         .del_save = SAHPI_FALSE,
         .dat_size_limit = 0, /* Unlimited size */
         .dat_user_limit = 0, /* Unlimited size */
+        .dat_save = SAHPI_FALSE,
         .daemon_mode = 0, /* Are we a daemon if yes this is '1' */
         //.dbg = 0,
         //.dbg_trace = 0,
@@ -260,6 +263,12 @@ static void process_global_param(const char *name, char *value)
                 global_params.dat_size_limit = atoi(value);
         } else if (!strcmp("OPENHPI_DAT_USER_LIMIT", name)) {
                 global_params.dat_user_limit = atoi(value);
+        } else if (!strcmp("OPENHPI_DAT_SAVE", name)) {
+                if (!strcmp("YES", value)) {
+                        global_params.dat_save = SAHPI_TRUE;
+                } else {
+                        global_params.dat_save = SAHPI_FALSE;
+                }
         //} else if (!strcmp("OPENHPI_DEBUG", name)) {
         //        if (!strcmp("YES", value)) {
         //                global_params.dbg = 1;
@@ -755,6 +764,9 @@ int oh_get_global_param(struct oh_global_param *param)
                 case OPENHPI_DAT_USER_LIMIT:
                         param->u.dat_user_limit = global_params.dat_user_limit;
                         break;
+                case OPENHPI_DAT_SAVE:
+                        param->u.dat_save = global_params.dat_save;
+                        break;
                 case OPENHPI_DAEMON_MODE:
                         param->u.daemon_mode = global_params.daemon_mode;
                         break;
@@ -834,6 +846,9 @@ int oh_set_global_param(struct oh_global_param *param)
                         break;
                 case OPENHPI_DAT_USER_LIMIT:
                         global_params.dat_user_limit = param->u.dat_user_limit;
+                        break;
+                case OPENHPI_DAT_SAVE:
+                        global_params.dat_save = param->u.dat_save;
                         break;
                 case OPENHPI_DAEMON_MODE:
                         global_params.daemon_mode = param->u.daemon_mode;

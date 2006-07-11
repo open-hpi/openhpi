@@ -9,6 +9,7 @@
 #OPENHPI_DEL_SAVE = "NO"
 #OPENHPI_DAT_SIZE_LIMIT = 0
 #OPENHPI_DAT_USER_LIMIT = 0
+#OPENHPI_DAT_SAVE = "NO"
 #OPENHPI_PATH = "/usr/local/lib/openhpi:/usr/lib/openhpi"
 #OPENHPI_VARPATH = "/usr/local/var/lib/openhpi"
 
@@ -36,13 +37,15 @@
 ## the alarm table. The default 0 means unlimited.
 ## OPENHPI_DAT_USER_LIMIT sets the maximum number of user type alarm entries
 ## allowed in the alarm table. The default 0 means unlimited.
+## OPENHPI_DAT_SAVE sets wether the domain alarm table will be persisted to disk or
+## not. The alarm table is written to OPENHPI_VARPATH value.
 ## OPENHPI_PATH is a colon (:) delimited list of directories specifying
 ## the location of openhpi plugin libraries. The default is defined when the
 ## library is configured.
 ## OPENHPI_VARPATH is a directory to which certain openhpi data will be saved to.
-## The DEL (Domain Event Log) and UID (Unique IDs used for resources) mappings
-## are saved to this directory. The default is set at compile time through the
-## ./configure options.
+## The DEL (Domain Event Log), DAT (Domain Alarm Table), and UID (Unique IDs used
+## for resources) mappings are saved to this directory. The default is set at
+## compile time through the ./configure options.
 
 ## Second section, declare plugin to use. For example:
 ## plugin plugin-name

@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2004
+ * (C) Copyright IBM Corp. 2004-2006
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -14,8 +14,13 @@
  *
  */
 
-#include <string.h>
 #include <sys/time.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <string.h>
+
 #include <oh_alarm.h>
 #include <oh_config.h>
 #include <oh_error.h>
@@ -107,10 +112,11 @@ static SaHpiUint32T __count_alarms(struct oh_domain *d,
 
 /**
  * oh_add_alarm
- * @d:
- * @alarm:
+ * @d: pointer to domain
+ * @alarm: alarm to be added
  *
- * Return value:
+ * Return value: reference to newly added alarm or NULL if there was
+ * an error
  **/
 SaHpiAlarmT *oh_add_alarm(struct oh_domain *d, SaHpiAlarmT *alarm)
 {
@@ -146,13 +152,9 @@ SaHpiAlarmT *oh_add_alarm(struct oh_domain *d, SaHpiAlarmT *alarm)
         }
 
         a = g_new0(SaHpiAlarmT, 1);
-        /* Is this 'if' below needed? g_new will stop program
-         * on a failed malloc anyway. Just in case...
-         */
-        if (!a) return NULL;
-
-        if (alarm) /* Copy contents of optional alarm reference */
+        if (alarm) { /* Copy contents of optional alarm reference */
                 memcpy(a, alarm, sizeof(SaHpiAlarmT));
+	}
         a->AlarmId = ++(d->dat.next_id);
         gettimeofday(&tv1, NULL);
         a->Timestamp = (SaHpiTimeT) tv1.tv_sec * 1000000000 + tv1.tv_usec * 1000;
@@ -167,24 +169,35 @@ SaHpiAlarmT *oh_add_alarm(struct oh_domain *d, SaHpiAlarmT *alarm)
         }
 
         __update_dat(d);
+	param.type = OPENHPI_DAT_SAVE;
+	oh_get_global_param(&param);
+	if (param.u.dat_save) {
+		char dat_filepath[SAHPI_MAX_TEXT_BUFFER_LENGTH*2];
+		param.type = OPENHPI_VARPATH;
+		oh_get_global_param(&param);
+		snprintf(dat_filepath, SAHPI_MAX_TEXT_BUFFER_LENGTH*2,
+			 "%s/dat.%u", param.u.varpath, d->id);
+		oh_alarms_to_file(&d->dat, dat_filepath);
+	}
 
         return a;
 }
 
 /**
  * oh_get_alarm
- * @d:
- * @aid:
- * @severity:
- * @type:
- * @rid:
- * @mid:
- * @num:
- * @state:
- * @unacknowledged:
- * @get_next:
+ * @d: pointer to domain
+ * @aid: Optional. alarm id for alarm to get
+ * @severity: Optional. Severity of alarm to get
+ * @type: Optional. Type of alarm to get
+ * @rid: Optional. Resource Id of alarm to get
+ * @mid: Optional. Manufacturer Id of alarm to get
+ * @num: Optional. Sensor number of alarm to get
+ * @state: Optional. Event State of alarm to get
+ * @unacknowledged: If True, only gets unacknowledged.
+ * @get_next: Instead of getting the exact @aid, get the next alarm
+ * after that one
  *
- * Return value:
+ * Return value: pointer to SaHpiAlarmT that matched, or NULL of none found.
  **/
 SaHpiAlarmT *oh_get_alarm(struct oh_domain *d,
                           SaHpiAlarmIdT *aid,
@@ -210,17 +223,18 @@ SaHpiAlarmT *oh_get_alarm(struct oh_domain *d,
 
 /**
  * oh_remove_alarm
- * @d:
- * @severity:
- * @type:
- * @rid:
- * @mid:
- * @num:
- * @state:
- * @deassert_mask:
- * @multi:
+ * @d: pointer to domain
+ * @severity: Optional. Severity of alarm to remove
+ * @type: Optional. Type of alarm to remove
+ * @rid: Optional. Resource Id of alarm to remove
+ * @mid: Optional. Manufacturer Id of alarm to remove
+ * @num: Optional. Sensor Number of alarm to remove
+ * @state: Optional. Event state of alarm to remove
+ * @deassert_mask: Optional. Deassert Mask. Matches on a bit AND operation.
+ * @multi: If True, does operation for all matching alarms, otherwise,
+ * just the first matching one.
  *
- * Return value:
+ * Return value: SA_OK on success
  **/
 SaErrorT oh_remove_alarm(struct oh_domain *d,
                          SaHpiSeverityT *severity,
@@ -266,9 +280,11 @@ SaErrorT oh_remove_alarm(struct oh_domain *d,
 
 /**
  * oh_close_alarmtable
- * @d:
+ * @d: pointer to domain
  *
- * Return value:
+ * Frees all memory held by alarm table.
+ *
+ * Return value: SA_OK on success
  **/
 SaErrorT oh_close_alarmtable(struct oh_domain *d)
 {
@@ -287,10 +303,13 @@ SaErrorT oh_close_alarmtable(struct oh_domain *d)
 
 /**
  * oh_count_alarms
- * @d:
- * @sev:
+ * @d: pointer to domain
+ * @sev: Severity of alarms to count
  *
- * Return value:
+ * Counts alarms in the domain table. You can count alarms of a specific
+ * severity, or for all severities (SAHPI_ALL_SEVERITIES).
+ * 
+ * Return value: Number of alarms counted.
  **/
 SaHpiUint32T oh_count_alarms(struct oh_domain *d, SaHpiSeverityT sev)
 {
@@ -458,10 +477,11 @@ done:
 
 /**
  * oh_detect_event_alarm
- * @d:
- * @e:
+ * @e: pointer to event
  *
- * Return value:
+ * Study event and determine if alarms need to be removed.
+ *
+ * Return value: SA_OK on success
  **/
 SaErrorT oh_detect_event_alarm(struct oh_event *e)
 {
@@ -490,11 +510,14 @@ SaErrorT oh_detect_event_alarm(struct oh_event *e)
 
 /**
  * oh_detect_res_sev_alarm
- * @d:
- * @res:
- * @new_sev:
+ * @did: domain id
+ * @res: resource id
+ * @new_sev: severity being set in resource
  *
- * Return value:
+ * Detect if severity on resource change makes any alarms invalid.
+ * If so, remove such alarms.
+ * 
+ * Return value: SA_OK on success
  **/
 SaErrorT oh_detect_res_sev_alarm(SaHpiDomainIdT did,
                                  SaHpiResourceIdT rid,
@@ -524,12 +547,15 @@ SaErrorT oh_detect_res_sev_alarm(SaHpiDomainIdT did,
 
 /**
  * oh_detect_sensor_alarm
- * @d:
- * @rid:
- * @num:
- * @enable:
+ * @did: domain id
+ * @rid: resource id
+ * @num: sensor number
+ * @enable: sensor enable flag
  *
- * Return value:
+ * This will detect if a sensor related alarm needs to be removed,
+ * and if so, will remove it accordingly.
+ *
+ * Return value: SA_OK on success
  **/
 SaErrorT oh_detect_sensor_enable_alarm(SaHpiDomainIdT did,
                                        SaHpiResourceIdT rid,
@@ -558,14 +584,16 @@ SaErrorT oh_detect_sensor_enable_alarm(SaHpiDomainIdT did,
 
 /**
  * oh_detect_sensor_mask_alarm
- * @d
- * @rid
- * @num
- * @action
- * @deassert_mask
+ * @did: domain id
+ * @rid: resource id
+ * @num: sensor number
+ * @action: event mask action
+ * @deassert_mask: deassert mask
  *
- *
- * Return value:
+ * This will detect if a sensor related alarm needs to be removed,
+ * and if so, will remove it accordingly.
+ * 
+ * Return value: SA_OK on success
  **/
 SaErrorT oh_detect_sensor_mask_alarm(SaHpiDomainIdT did,
                                      SaHpiResourceIdT rid,
@@ -598,3 +626,88 @@ SaErrorT oh_detect_sensor_mask_alarm(SaHpiDomainIdT did,
         oh_release_domain(d);
         return error;
 }
+
+/**
+ * oh_alarms_to_file
+ * 
+ * @at: pointer to alarm table. alarms in this table will be saved to a file
+ * @filename: file to which alarms will be saved.
+ *
+ * Return value: SA_OK on success.
+ **/
+SaErrorT oh_alarms_to_file(struct oh_dat *at, char *filename)
+{
+	GSList *alarms = NULL;
+	int file;
+		
+	if (!at || !filename) {
+		dbg("Invalid Parameters");
+		return SA_ERR_HPI_INVALID_PARAMS;
+	}
+
+	file = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0660 );
+	if (file < 0) {
+		dbg("File '%s' could not be opened", filename);
+		return SA_ERR_HPI_ERROR;
+	}
+
+	for (alarms = at->list; alarms; alarms = alarms->next) {
+		int bytes_written = 0;
+		bytes_written = write(file, (void *)alarms->data, sizeof(SaHpiAlarmT));
+		if (bytes_written != sizeof(SaHpiAlarmT)) {
+			dbg("Couldn't write to file '%s'.", filename);
+                        close(file);
+                        return SA_ERR_HPI_ERROR;
+		}
+	}
+
+	if (close(file) != 0) {
+        	dbg("Couldn't close file '%s'.", filename);
+		return SA_ERR_HPI_ERROR;
+	}
+	
+	return SA_OK;
+}
+
+/**
+ * oh_alarms_from_file
+ *
+ * @d: pointer to domain. alarm table in this domain will receive
+ * the alarms stored in @filename.
+ * @filename: filename where alarms will be read from
+ *
+ * Return value: SA_OK on success
+ **/
+SaErrorT oh_alarms_from_file(struct oh_domain *d, char *filename)
+{
+	int file;
+	SaHpiAlarmT alarm;
+	
+	if (!d || !filename) {
+		dbg("Invalid Parameters");
+		return SA_ERR_HPI_ERROR;
+	}
+
+	file = open(filename, O_RDONLY);
+        if (file < 0) {
+                dbg("File '%s' could not be opened", filename);
+                return SA_ERR_HPI_ERROR;
+        }
+
+	while (read(file, &alarm, sizeof(SaHpiAlarmT)) == sizeof(SaHpiAlarmT)) {
+		SaHpiAlarmT *a = oh_add_alarm(d, &alarm);
+		if (!a) {
+			close(file);
+			dbg("Error adding alarm read from file.");
+			return SA_ERR_HPI_ERROR;
+		}
+	}
+
+	if (close(file) != 0) {
+        	dbg("Couldn't close file '%s'.", filename);
+        	return SA_ERR_HPI_ERROR;
+	}
+
+	return SA_OK;
+}
+

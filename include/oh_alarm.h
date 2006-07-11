@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2004
+ * (C) Copyright IBM Corp. 2004-2006
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -62,6 +62,10 @@ SaErrorT oh_detect_sensor_mask_alarm(SaHpiDomainIdT did,
                                      SaHpiSensorNumT num,
                                      SaHpiSensorEventMaskActionT action,
                                      SaHpiEventStateT deassert_mask);
+
+/* Persistency */
+SaErrorT oh_alarms_to_file(struct oh_dat *at, char *filename);
+SaErrorT oh_alarms_from_file(struct oh_domain *d, char *filename);
 
 #endif /* __OH_ALARM_H */
 

@@ -42,6 +42,7 @@ typedef enum {
         OPENHPI_DEL_SAVE,
         OPENHPI_DAT_SIZE_LIMIT,
         OPENHPI_DAT_USER_LIMIT,
+	OPENHPI_DAT_SAVE,
         OPENHPI_DAEMON_MODE,
         //OPENHPI_DEBUG,
         //OPENHPI_DEBUG_TRACE,
@@ -59,6 +60,7 @@ typedef union {
         SaHpiBoolT del_save;
         SaHpiUint32T dat_size_limit;
         SaHpiUint32T dat_user_limit;
+	SaHpiBoolT dat_save;
         SaHpiUint32T daemon_mode;
         //unsigned char dbg; /* 1 = YES, 0 = NO */
         //unsigned char dbg_trace; /* !0 = YES, 0 = NO */

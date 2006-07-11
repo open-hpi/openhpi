@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2004, 2005
+ * (C) Copyright IBM Corp. 2004-2006
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -377,7 +377,7 @@ SaHpiDomainIdT oh_create_domain(SaHpiDomainCapabilitiesT capabilities,
         struct oh_domain *domain = NULL;
         static SaHpiDomainIdT id = OH_FIRST_DOMAIN; /* domain ids will start at 1 */
         struct oh_global_param param = { .type = OPENHPI_DEL_SIZE_LIMIT };
-        char del_filepath[SAHPI_MAX_TEXT_BUFFER_LENGTH*2];
+        char filepath[SAHPI_MAX_TEXT_BUFFER_LENGTH*2];
 
         domain = g_new0(struct oh_domain,1);
         if (!domain) return 0;
@@ -413,11 +413,22 @@ SaHpiDomainIdT oh_create_domain(SaHpiDomainCapabilitiesT capabilities,
         if (param.u.del_save) {
                 param.type = OPENHPI_VARPATH;
                 oh_get_global_param(&param);
-                snprintf(del_filepath,
+                snprintf(filepath,
                          SAHPI_MAX_TEXT_BUFFER_LENGTH*2,
                          "%s/del.%u", param.u.varpath, domain->id);
-                oh_el_map_from_file(domain->del, del_filepath);
+                oh_el_map_from_file(domain->del, filepath);
         }
+	param.type = OPENHPI_DAT_SAVE;
+	oh_get_global_param(&param);
+	if (param.u.dat_save) {
+		param.type = OPENHPI_VARPATH;
+		oh_get_global_param(&param);
+		memset(filepath, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH*2);
+		snprintf(filepath,
+			 SAHPI_MAX_TEXT_BUFFER_LENGTH*2,
+			 "%s/dat.%u", param.u.varpath, domain->id);
+		oh_alarms_from_file(domain, filepath);
+	}
         g_hash_table_insert(oh_domains.table, &(domain->id), domain);
         g_static_rec_mutex_unlock(&(oh_domains.lock));  /* Unlocked domain table */
 
