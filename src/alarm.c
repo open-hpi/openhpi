@@ -73,7 +73,7 @@ static GSList *__get_alarm_node(struct oh_domain *d,
                     (num ? alarm->AlarmCond.SensorNum == *num : 1) &&
                     (state ? alarm->AlarmCond.EventState == *state : 1) &&
                     (unacknowledged ? !alarm->Acknowledged : 1)) {
-                        return alarms;
+			return alarms;
                 }
         }
 
@@ -234,27 +234,22 @@ SaErrorT oh_remove_alarm(struct oh_domain *d,
 {
         GSList *alarm_node = NULL;
         SaHpiAlarmT *alarm = NULL;
-	SaHpiAlarmIdT saw_aid = SAHPI_FIRST_ENTRY; /* Set to zero */
+	SaHpiAlarmIdT aid = SAHPI_FIRST_ENTRY; /* Set to zero */
         struct oh_global_param param = { .type = OPENHPI_DAT_SIZE_LIMIT };
 
         if (!d) return SA_ERR_HPI_INVALID_PARAMS;
 
         do {
-                alarm_node = __get_alarm_node(d, NULL, severity, type, rid, mid,
-                                              num, state, 0, 0);
+                alarm_node = __get_alarm_node(d, &aid, severity, type, rid, mid,
+                                              num, state, 0, 1);
                 if (alarm_node) alarm = alarm_node->data;
 		else break;
 
-		if (alarm->AlarmId == saw_aid) break; /* Avoid infinite loop case */
-
-		saw_aid = alarm->AlarmId;
-
-                if (alarm &&
-                    (deassert_mask ? *deassert_mask & alarm->AlarmCond.EventState : 1)) {
+		aid = alarm->AlarmId;
+                if (deassert_mask ? *deassert_mask & alarm->AlarmCond.EventState : 1) {
                         d->dat.list = g_slist_delete_link(d->dat.list, alarm_node);
                         g_free(alarm);
                 }
-
                 alarm_node = NULL;
                 alarm = NULL;
         } while (multi);
