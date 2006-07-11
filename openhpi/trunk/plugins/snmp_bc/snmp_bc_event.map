@@ -302,6 +302,10 @@ EN_THERM_TRIP_CPU1|0x0421D081|SAHPI_CRITICAL|OVR_SEV|"CPU 1 Over Temperature"
 EN_THERM_TRIP_CPU1|0x0421D081|SAHPI_CRITICAL|OVR_SEV|"CPU 1 over temperature"
 EN_PFA_HI_OVER_TEMP_CPU1|0x0421D501|SAHPI_MAJOR|OVR_SEV|"System over temperature for CPU 1."
 EN_PFA_HI_OVER_TEMP_CPU1|0x0421D501|SAHPI_MAJOR|OVR_SEV|"CPU 1 over recommended temperature"
+EN_GENERIC_HI_CRIT_TEMP|0xFFFFFF1C|SAHPI_CRITICAL|OVR_SEV|"processor 1 (CPU 1 Temp) over critical temperature."
+EN_GENERIC_HI_CRIT_TEMP|0xFFFFFF1C|SAHPI_CRITICAL|OVR_SEV|"processor 1 (CPU1 TEMP) over critical temperature."
+EN_GENERIC_HI_WARN_TEMP|0xFFFFFF1D|SAHPI_MAJOR|OVR_SEV|"processor 1 (CPU 1 Temp) over recommended temperature."
+EN_GENERIC_HI_WARN_TEMP|0xFFFFFF1D|SAHPI_MAJOR|OVR_SEV|"processor 1 (CPU 1 TEMP) over recommended temperature."
 
 # Blade CPU 2 Temperature Sensor
 EN_PROC_HOT_CPU2|0x0421C402|SAHPI_CRITICAL|OVR_SEV|"CPU 2 shut off due to over temperature"
@@ -311,6 +315,10 @@ EN_THERM_TRIP_CPU2|0x0421D082|SAHPI_CRITICAL|OVR_SEV|"CPU 2 Over Temperature"
 EN_THERM_TRIP_CPU2|0x0421D082|SAHPI_CRITICAL|OVR_SEV|"CPU 2 over temperature"
 EN_PFA_HI_OVER_TEMP_CPU2|0x0421D502|SAHPI_MAJOR|OVR_SEV|"System over temperature for CPU 2."
 EN_PFA_HI_OVER_TEMP_CPU2|0x0421D502|SAHPI_MAJOR|OVR_SEV|"CPU 2 over recommended temperature"
+EN_GENERIC_HI_CRIT_TEMP|0xFFFFFF20|SAHPI_CRITICAL|OVR_SEV|"processor 2 (CPU 2 Temp) over critical temperature."
+EN_GENERIC_HI_CRIT_TEMP|0xFFFFFF20|SAHPI_CRITICAL|OVR_SEV|"processor 2 (CPU2 TEMP) over critical temperature."
+EN_GENERIC_HI_WARN_TEMP|0xFFFFFF21|SAHPI_MAJOR|OVR_SEV|"processor 2 (CPU 2 Temp) over recommended temperature."
+EN_GENERIC_HI_WARN_TEMP|0xFFFFFF21|SAHPI_MAJOR|OVR_SEV|"processor 2 (CPU 2 TEMP) over recommended temperature."
 
 # Blade CPU 3 Temperature Sensor
 EN_PROC_HOT_CPU3|0x0421C403|SAHPI_CRITICAL|OVR_SEV|"CPU 3 shut off due to over temperature"
@@ -320,6 +328,10 @@ EN_THERM_TRIP_CPU3|0x0421D083|SAHPI_CRITICAL|OVR_SEV|"CPU 3 Over Temperature"
 EN_THERM_TRIP_CPU3|0x0421D083|SAHPI_CRITICAL|OVR_SEV|"CPU 3 over temperature"
 EN_PFA_HI_OVER_TEMP_CPU3|0x0421D503|SAHPI_MAJOR|OVR_SEV|"System over temperature for CPU 3."
 EN_PFA_HI_OVER_TEMP_CPU3|0x0421D503|SAHPI_MAJOR|OVR_SEV|"CPU 3 over recommended temperature"
+EN_GENERIC_HI_CRIT_TEMP|0xFFFFFF22|SAHPI_CRITICAL|OVR_SEV|"processor 3 (CPU 3 Temp) over critical temperature."
+EN_GENERIC_HI_CRIT_TEMP|0xFFFFFF22|SAHPI_CRITICAL|OVR_SEV|"processor 3 (CPU3 TEMP) over critical temperature."
+EN_GENERIC_HI_WARN_TEMP|0xFFFFFF23|SAHPI_MAJOR|OVR_SEV|"processor 3 (CPU 3 Temp) over recommended temperature."
+EN_GENERIC_HI_WARN_TEMP|0xFFFFFF23|SAHPI_MAJOR|OVR_SEV|"processor 3 (CPU 3 TEMP) over recommended temperature."
 
 # Blade CPU 4 Temperature Sensor
 EN_PROC_HOT_CPU4|0x0421C404|SAHPI_CRITICAL|OVR_SEV|"CPU 4 shut off due to over temperature"
@@ -329,6 +341,38 @@ EN_THERM_TRIP_CPU4|0x0421D084|SAHPI_CRITICAL|OVR_SEV|"CPU 4 Over Temperature"
 EN_THERM_TRIP_CPU4|0x0421D084|SAHPI_CRITICAL|OVR_SEV|"CPU 4 over temperature"
 EN_PFA_HI_OVER_TEMP_CPU4|0x0421D504|SAHPI_MAJOR|OVR_SEV|"System over temperature for CPU 4."
 EN_PFA_HI_OVER_TEMP_CPU4|0x0421D504|SAHPI_MAJOR|OVR_SEV|"CPU 4 over recommended temperature"
+EN_GENERIC_HI_CRIT_TEMP|0xFFFFFF24|SAHPI_CRITICAL|OVR_SEV|"processor 4 (CPU 4 Temp) over critical temperature."
+EN_GENERIC_HI_CRIT_TEMP|0xFFFFFF24|SAHPI_CRITICAL|OVR_SEV|"processor 4 (CPU4 TEMP) over critical temperature."
+EN_GENERIC_HI_WARN_TEMP|0xFFFFFF25|SAHPI_MAJOR|OVR_SEV|"processor 4 (CPU 4 Temp) over recommended temperature."
+EN_GENERIC_HI_WARN_TEMP|0xFFFFFF25|SAHPI_MAJOR|OVR_SEV|"processor 4 (CPU 4 TEMP) over recommended temperature."
+
+# Blade Memory Bank 1 Temperature Sensor
+EN_GENERIC_HI_CRIT_TEMP|0xFFFFFF14|SAHPI_CRITICAL|OVR_SEV|"memory bank 1 (BANK1 TEMP) over critical temperature."
+EN_GENERIC_HI_CRIT_TEMP|0xFFFFFF14|SAHPI_CRITICAL|OVR_SEV|"memory bank 1 (BANK 1 Temp) over critical temperature."
+EN_GENERIC_HI_WARN_TEMP|0xFFFFFF15|SAHPI_MAJOR|OVR_SEV|"memory bank 1 (BANK1 TEMP) over recommended temperature."
+EN_GENERIC_HI_WARN_TEMP|0xFFFFFF15|SAHPI_MAJOR|OVR_SEV|"memory bank 1 (BANK 1 Temp) over recommended temperature."
+
+# Blade Memory Bank 2 Temperature Sensor
+EN_GENERIC_HI_CRIT_TEMP|0xFFFFFF16|SAHPI_CRITICAL|OVR_SEV|"memory bank 2 (BANK2 TEMP) over critical temperature."
+EN_GENERIC_HI_CRIT_TEMP|0xFFFFFF16|SAHPI_CRITICAL|OVR_SEV|"memory bank 2 (BANK 2 Temp) over critical temperature."
+EN_GENERIC_HI_WARN_TEMP|0xFFFFFF17|SAHPI_MAJOR|OVR_SEV|"memory bank 2 (BANK2 TEMP) over recommended temperature."
+EN_GENERIC_HI_WARN_TEMP|0xFFFFFF17|SAHPI_MAJOR|OVR_SEV|"memory bank 2 (BANK 2 Temp) over recommended temperature."
+
+# Blade Memory Bank 3 Temperature Sensor
+EN_GENERIC_HI_CRIT_TEMP|0xFFFFFF18|SAHPI_CRITICAL|OVR_SEV|"memory bank 3 (BANK3 TEMP) over critical temperature."
+EN_GENERIC_HI_CRIT_TEMP|0xFFFFFF18|SAHPI_CRITICAL|OVR_SEV|"memory bank 3 (BANK 3 Temp) over critical temperature."
+EN_GENERIC_HI_WARN_TEMP|0xFFFFFF19|SAHPI_MAJOR|OVR_SEV|"memory bank 3 (BANK3 TEMP) over recommended temperature."
+EN_GENERIC_HI_WARN_TEMP|0xFFFFFF19|SAHPI_MAJOR|OVR_SEV|"memory bank 3 (BANK 3 Temp) over recommended temperature."
+
+# Blade Memory Bank 4 Temperature Sensor
+EN_GENERIC_HI_CRIT_TEMP|0xFFFFFF1A|SAHPI_CRITICAL|OVR_SEV|"memory bank 4 (BANK4 TEMP) over critical temperature."
+EN_GENERIC_HI_CRIT_TEMP|0xFFFFFF1A|SAHPI_CRITICAL|OVR_SEV|"memory bank 4 (BANK 4 Temp) over critical temperature."
+EN_GENERIC_HI_WARN_TEMP|0xFFFFFF1B|SAHPI_MAJOR|OVR_SEV|"memory bank 4 (BANK4 TEMP) over recommended temperature."
+EN_GENERIC_HI_WARN_TEMP|0xFFFFFF1B|SAHPI_MAJOR|OVR_SEV|"memory bank 4 (BANK 4 Temp) over recommended temperature."
+
+# Blade 0.9 Volt Sensor
+EN_GENERIC_UPPER_WARN_VOLT|0xFFFFFFF1|SAHPI_MAJOR|OVR_SEV|"system board 1 (Planar 0.9V) over recommended voltage."
+EN_GENERIC_LOWER_WARN_VOLT|0xFFFFFFF2|SAHPI_MAJOR|OVR_SEV|"system board 1 (Planar 0.9V) under recommended voltage."
 
 # Blade 1.2 Volt Sensor
 EN_PFA_HI_FAULT_1_2V|0x08001401|SAHPI_MAJOR|OVR_SEV|"System over recommended voltage on +1.2v."
@@ -408,6 +452,10 @@ EN_PFA_HI_FAULT_3_35V|0x08033480|SAHPI_MAJOR|OVR_SEV|"System over recommended vo
 EN_PFA_HI_FAULT_3_35V|0x08033480|SAHPI_MAJOR|OVR_SEV|"Blade 3.3V over recommended voltage"
 # FIXME:: MM Bug: Need a Blade 3.3V over recommended voltage event; Replace FF EN_MAJOR_LO_FAULT_3_35V
 EN_MAJOR_LO_FAULT_3_35V|0xFF032900|SAHPI_MAJOR|OVR_SEV|"System under recommended voltage on +3.3v."
+EN_GENERIC_UPPER_WARN_VOLT|0xFFFFFFF3|SAHPI_MAJOR|OVR_SEV|"system board 1 (Planar 3.3V) over recommended voltage."
+EN_GENERIC_UPPER_WARN_VOLT|0xFFFFFFF3|SAHPI_MAJOR|OVR_SEV|"system board 1 (3.3V Sense) over recommended voltage."
+EN_GENERIC_LOWER_WARN_VOLT|0xFFFFFFF4|SAHPI_MAJOR|OVR_SEV|"system board 1 (Planar 3.3V) under recommended voltage."
+EN_GENERIC_LOWER_WARN_VOLT|0xFFFFFFF4|SAHPI_MAJOR|OVR_SEV|"system board 1 (3.3V Sense) under recommended voltage."
 
 # Blade Standby 3.3 Volt Sensor
 #FIXME: MM: I/O guys McCarren only? No SNMP OID to read McCarren 3.3VSB sensor
@@ -427,6 +475,11 @@ EN_PFA_HI_FAULT_5V|0x08035500|SAHPI_MAJOR|OVR_SEV|"System over recommended 5V Fa
 EN_PFA_HI_FAULT_5V|0x08035500|SAHPI_MAJOR|OVR_SEV|"Blade 5V over fault."
 EN_PFA_LO_FAULT_5V|0x08035800|SAHPI_MAJOR|OVR_SEV|"System under recommended 5V Fault."
 EN_PFA_LO_FAULT_5V|0x08035800|SAHPI_MAJOR|NO_SEV|"Blade 5V under recommended voltage"
+# FIXME:: Why is Lewis instance 2 not 1?
+EN_GENERIC_UPPER_WARN_VOLT|0xFFFFFFF5|SAHPI_MAJOR|OVR_SEV|"system board 1 (Planar 5V) over recommended voltage."
+EN_GENERIC_UPPER_WARN_VOLT|0xFFFFFFF5|SAHPI_MAJOR|OVR_SEV|"system board 2 (5V Sense) over recommended voltage."
+EN_GENERIC_LOWER_WARN_VOLT|0xFFFFFFF6|SAHPI_MAJOR|OVR_SEV|"system board 1 (Planar 5V) under recommended voltage."
+EN_GENERIC_LOWER_WARN_VOLT|0xFFFFFFF6|SAHPI_MAJOR|OVR_SEV|"system board 2 (5V Sense) under recommended voltage."
 
 # Blade Standby 5 Volt Sensor
 EN_5VS_WARNING_HI|0x0A035C02|SAHPI_MAJOR|OVR_SEV|"Standby +5V over recommended voltage."
@@ -450,6 +503,11 @@ EN_PFA_HI_FAULT_12V_PLANAR|0x06037500|SAHPI_MAJOR|OVR_SEV|"System over recommend
 EN_PFA_HI_FAULT_12V_PLANAR|0x06037500|SAHPI_MAJOR|OVR_SEV|"Blade 12V over recommended voltage."
 EN_PFA_LO_FAULT_12V_PLANAR|0x06037800|SAHPI_MAJOR|OVR_SEV|"System under recommended voltage for +12v."
 EN_PFA_LO_FAULT_12V_PLANAR|0x06037800|SAHPI_MAJOR|OVR_SEV|"Blade 12V under recommended voltage"
+# FIXME:: Why is Lewis instance 3 not 1?
+EN_GENERIC_UPPER_WARN_VOLT|0xFFFFFFF7|SAHPI_MAJOR|OVR_SEV|"system board 1 (Planar 12V) over recommended voltage."
+EN_GENERIC_UPPER_WARN_VOLT|0xFFFFFFF7|SAHPI_MAJOR|OVR_SEV|"system board 3 (12V Sense) over recommended voltage."
+EN_GENERIC_LOWER_WARN_VOLT|0xFFFFFFF8|SAHPI_MAJOR|OVR_SEV|"system board 1 (Planar 12V) under recommended voltage."
+EN_GENERIC_LOWER_WARN_VOLT|0xFFFFFFF8|SAHPI_MAJOR|OVR_SEV|"system board 3 (12V Sense) under recommended voltage."
 
 # Blade Standby 12 Volt Sensor
 # FIXME:: MM: I/O guys McCarren? No SNMP OID to read Blade 12 VSB
@@ -468,6 +526,28 @@ EN_PFA_LO_FAULT_VRM1|0x04401801|SAHPI_MAJOR|OVR_SEV|"System is under recommended
 ##EN_PFA_HI_FAULT_VRM2|0x04401502|SAHPI_MAJOR|OVR_SEV|"System is over recommended voltage on VRM 2."
 ##EN_PFA_LO_FAULT_VRM2|0x04401802|SAHPI_MAJOR|OVR_SEV|"System is under recommended voltage on VRM 2."
  
+# Blade CPU 1 Core Voltage Sensor
+EN_GENERIC_UPPER_WARN_VOLT|0xFFFFFFF9|SAHPI_MAJOR|OVR_SEV|"processor 1 (CPU 1 VCore) over recommended voltage."
+EN_GENERIC_LOWER_WARN_VOLT|0xFFFFFFFA|SAHPI_MAJOR|OVR_SEV|"processor 1 (CPU 1 VCore) under recommended voltage."
+
+# Blade CPU 2 Core Voltage Sensor
+EN_GENERIC_UPPER_WARN_VOLT|0xFFFFFFFB|SAHPI_MAJOR|OVR_SEV|"processor 2 (CPU 2 VCore) over recommended voltage."
+EN_GENERIC_LOWER_WARN_VOLT|0xFFFFFFFC|SAHPI_MAJOR|OVR_SEV|"processor 2 (CPU 2 VCore) under recommended voltage."
+
+# Blade CPU 3 Core Voltage Sensor
+EN_GENERIC_UPPER_WARN_VOLT|0xFFFFFFFD|SAHPI_MAJOR|OVR_SEV|"processor 3 (CPU 3 VCore) over recommended voltage."
+EN_GENERIC_LOWER_WARN_VOLT|0xFFFFFFFE|SAHPI_MAJOR|OVR_SEV|"processor 3 (CPU 3 VCore) under recommended voltage."
+
+# Blade CPU 4 Core Voltage Sensor
+EN_GENERIC_UPPER_WARN_VOLT|0xFFFFFF10|SAHPI_MAJOR|OVR_SEV|"processor 4 (CPU 4 VCore) over recommended voltage."
+EN_GENERIC_LOWER_WARN_VOLT|0xFFFFFF11|SAHPI_MAJOR|OVR_SEV|"processor 4 (CPU 4 VCore) under recommended voltage."
+
+# Blade Battery Voltage Sensor
+EN_GENERIC_UPPER_WARN_VOLT|0xFFFFFF12|SAHPI_MAJOR|OVR_SEV|"battery 1 (Planar VBAT) over recommended voltage."
+EN_GENERIC_UPPER_WARN_VOLT|0xFFFFFF12|SAHPI_MAJOR|OVR_SEV|"battery 1 (VBATT Sense) over recommended voltage."
+EN_GENERIC_LOWER_WARN_VOLT|0xFFFFFF13|SAHPI_MAJOR|OVR_SEV|"battery 1 (Planar VBAT) under recommended voltage."
+EN_GENERIC_LOWER_WARN_VOLT|0xFFFFFF13|SAHPI_MAJOR|OVR_SEV|"battery 1 (VBATT Sense) under recommended voltage."
+
 # Blade Operational Status Sensor
 #### Mapped to Off-line Operational State
 EN_BLADE_1_INSUFFICIENT_PWR|0x0E00A001|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blade 1 is not allowed to power on because of insufficient power."
@@ -838,6 +918,9 @@ EN_FAULT_DASD1_SCSI_ID_3|0x06801003|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"Hard Drive F
 # BSE Vcc Sensor
 # FIXME:: MM: Don't see any events for this sensor - 8843 only?
 
+##EN_BEM_1V_WARNING_HI|0x0E850402|SAHPI_MINOR|OVR_SEV,OVR_EXP|"BEM 1V over recommended voltage"
+##EN_BEM_1V_WARNING_LOW|0x0E850802|SAHPI_MINOR|OVR_SEV,OVR_EXP|"BEM 1V under recommended voltage"
+
 # BSE 1.5 Volt Sensor
 EN_BUST_1_5V_FAULT|0x0E840002|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"BEM +1.5V Fault."
 EN_BEM_1_5V_WARNING_HI|0x0E840402|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM +1.5V over recommended voltage."
@@ -879,6 +962,9 @@ EN_BEM_12V_WARNING_LOW|0x0E836802|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM 12V under rec
 ##EN_BEM_2_5V_WARNING_LOW|0x0E830802|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM +2.5V under recommended voltage."
 ##EN_BEM_2_5V_WARNING_LOW|0x0E830802|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM 2.5V under recommended voltage"
 
+##EN_BEM_12VSB_WARNING_HI|0x0E860402|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM 12V standby over recommended voltage"
+##EN_BEM_12VSB_WARNING_LOW|0x0E860802|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM 12V standby under recommended voltage"
+
 ##EN_BUST_18V_FAULT|0x0E83C002|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"BEM +18V Fault."
 ##EN_BEM_18V_WARNING_HI|0x0E83C402|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM +18V over recommended voltage."
 ##EN_BEM_18V_WARNING_HI|0x0E83C402|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM 18V over recommended voltage"
@@ -890,20 +976,54 @@ EN_BEM_12V_WARNING_LOW|0x0E836802|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM 12V under rec
 #############################
 
 # PEU2 Temperature Sensor
+EN_GENERIC_HI_CRIT_TEMP|0xFFFFFF26|SAHPI_CRITICAL|OVR_SEV|"expansion board 3 (PEU2 Local Temp) over critical temperature."
+EN_GENERIC_HI_CRIT_TEMP|0xFFFFFF26|SAHPI_CRITICAL|OVR_SEV|"expansion board 2 (PEU2 Local Temp) over critical temperature."
+EN_GENERIC_HI_WARN_TEMP|0xFFFFFF27|SAHPI_MAJOR|OVR_SEV|"expansion board 3 (PEU2 Local Temp) over recommended temperature."
+EN_GENERIC_HI_WARN_TEMP|0xFFFFFF27|SAHPI_MAJOR|OVR_SEV|"expansion board 2 (PEU2 Local Temp) over recommended temperature."
 
 # PEU2 1 Volt Sensor
-##EN_BEM_1V_WARNING_HI|0x0E850402|SAHPI_MINOR|OVR_SEV,OVR_EXP|"BEM 1V over recommended voltage"
-##EN_BEM_1V_WARNING_LOW|0x0E850802|SAHPI_MINOR|OVR_SEV,OVR_EXP|"BEM 1V under recommended voltage"
+EN_GENERIC_UPPER_WARN_VOLT|0xFFFFFF28|SAHPI_MAJOR|OVR_SEV|"expansion board 3 (PEU2 1V Sense) over recommended voltage."
+EN_GENERIC_LOWER_WARN_VOLT|0xFFFFFF29|SAHPI_MAJOR|OVR_SEV|"expansion board 3 (PEU2 1V Sense) under recommended voltage."
 
 # PEU2 3.3 Volt Sensor
+EN_GENERIC_UPPER_WARN_VOLT|0xFFFFFF2A|SAHPI_MAJOR|OVR_SEV|"expansion board 3 (PEU2 3.3V Sense) over recommended voltage."
+EN_GENERIC_LOWER_WARN_VOLT|0xFFFFFF2B|SAHPI_MAJOR|OVR_SEV|"expansion board 3 (PEU2 3.3V Sense) under recommended voltage."
 
 # PEU2 5 Volt Sensor
+EN_GENERIC_UPPER_WARN_VOLT|0xFFFFFF2C|SAHPI_MAJOR|OVR_SEV|"expansion board 3 (PEU2 5V Sense) over recommended voltage."
+EN_GENERIC_LOWER_WARN_VOLT|0xFFFFFF2D|SAHPI_MAJOR|OVR_SEV|"expansion board 3 (PEU2 5V Sense) under recommended voltage."
 
 # PEU2 12 Volt Sensor
+EN_GENERIC_UPPER_WARN_VOLT|0xFFFFFF30|SAHPI_MAJOR|OVR_SEV|"expansion board 3 (PEU2 12V Sense) over recommended voltage."
+EN_GENERIC_LOWER_WARN_VOLT|0xFFFFFF31|SAHPI_MAJOR|OVR_SEV|"expansion board 3 (PEU2 12V Sense) under recommended voltage."
 
 # PEU2 Standby 12 Volt Sensor
-##EN_BEM_12VSB_WARNING_HI|0x0E860402|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM 12V standby over recommended voltage"
-##EN_BEM_12VSB_WARNING_LOW|0x0E860802|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM 12V standby under recommended voltage"
+EN_GENERIC_UPPER_WARN_VOLT|0xFFFFFF32|SAHPI_MAJOR|OVR_SEV|"expansion board 3 (PEU2 12VSB Sense) over recommended voltage."
+EN_GENERIC_LOWER_WARN_VOLT|0xFFFFFF33|SAHPI_MAJOR|OVR_SEV|"expansion board 3 (PEU2 12VSB Sense) under recommended voltage."
+
+##################################
+# BIE (Blade I/O Expansion) Module
+##################################
+
+# BIE Temperature Sensor
+EN_GENERIC_HI_CRIT_TEMP|0xFFFFFF34|SAHPI_CRITICAL|OVR_SEV|"expansion board 1 (BIE Local Temp) over critical temperature."
+EN_GENERIC_HI_WARN_TEMP|0xFFFFFF35|SAHPI_MAJOR|OVR_SEV|"expansion board 1 (BIE Local Temp) over recommended temperature."
+
+# BIE 1.5 Volt Sensor
+EN_GENERIC_UPPER_WARN_VOLT|0xFFFFFF36|SAHPI_MAJOR|OVR_SEV|"expansion board 1 (BIE 1.5V Sense) over recommended voltage."
+EN_GENERIC_LOWER_WARN_VOLT|0xFFFFFF37|SAHPI_MAJOR|OVR_SEV|"expansion board 1 (BIE 1.5V Sense) under recommended voltage."
+
+# BIE 3.3 Volt Sensor
+EN_GENERIC_UPPER_WARN_VOLT|0xFFFFFF38|SAHPI_MAJOR|OVR_SEV|"expansion board 1 (BIE 3.3V Sense) over recommended voltage."
+EN_GENERIC_LOWER_WARN_VOLT|0xFFFFFF39|SAHPI_MAJOR|OVR_SEV|"expansion board 1 (BIE 3.3V Sense) under recommended voltage."
+
+# BIE 5 Volt Sensor
+EN_GENERIC_UPPER_WARN_VOLT|0xFFFFFF3A|SAHPI_MAJOR|OVR_SEV|"expansion board 1 (BIE 5V Sense) over recommended voltage."
+EN_GENERIC_LOWER_WARN_VOLT|0xFFFFFF3B|SAHPI_MAJOR|OVR_SEV|"expansion board 1 (BIE 5V Sense) under recommended voltage."
+
+# BIE 12 Volt Sensor
+EN_GENERIC_UPPER_WARN_VOLT|0xFFFFFF3C|SAHPI_MAJOR|OVR_SEV|"expansion board 1 (BIE 12V Sense) over recommended voltage."
+EN_GENERIC_LOWER_WARN_VOLT|0xFFFFFF3D|SAHPI_MAJOR|OVR_SEV|"expansion board 1 (BIE 12V Sense) under recommended voltage."
 
 #####################
 # Media Tray Resource
@@ -921,6 +1041,7 @@ EN_MEDIA_TRAY_REMOVED|0x06A1E001|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Media Tray
 
 # Media Tray Operational Status Sensor - event only
 EN_FAULT_FP_R|0x09020000|SAHPI_MINOR|OVR_SEV,OVR_RID|"System front panel controller not responding."
+EN_FRONT_PANEL_TEMP_FAIL|0x06A2E001|SAHPI_MAJOR|OVR_SEV,OVR_RID|"Front panel temperature is unavailable. Cooling capacity set to maximum"
 
 # Media Tray Management Bus Operational Status Sensor - event only
 EN_STCONN_FAIL_MEDIATRAY|0x0002205B|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Connectivity status mediatray communication failed."
@@ -1702,20 +1823,6 @@ EN_FAN_8_NOT_PRESENT|0x06026008|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Fan 8 not detect
 # MMV2_20 Events
 ################
 
-# FIXME:: MM: Why 8 (instead of 4) of these and not other CPUx event messages
-##EN_OVER_TEMP_CPU5|0x0421C085|SAHPI_CRITICAL|OVR_SEV|"CPU 5 over temperature"
-##EN_OVER_TEMP_CPU6|0x0421C086|SAHPI_CRITICAL|OVR_SEV|"CPU 6 over temperature"
-##EN_OVER_TEMP_CPU7|0x0421C087|SAHPI_CRITICAL|OVR_SEV|"CPU 7 over temperature"
-##EN_OVER_TEMP_CPU8|0x0421C088|SAHPI_CRITICAL|OVR_SEV|"CPU 8 over temperature"
-##EN_CPU_5_DISABLED|0x04204005|SAHPI_MAJOR|OVR_SEV|"CPU 5 disabled"
-##EN_CPU_6_DISABLED|0x04204006|SAHPI_MAJOR|OVR_SEV|"CPU 6 disabled"
-##EN_CPU_7_DISABLED|0x04204007|SAHPI_MAJOR|OVR_SEV|"CPU 7 disabled"
-##EN_CPU_8_DISABLED|0x04204008|SAHPI_MAJOR|OVR_SEV|"CPU 8 disabled"
-##EN_IERR_CPU_RESTART5|0x04306205|SAHPI_MAJOR|OVR_SEV|"CPU 5 halted"
-##EN_IERR_CPU_RESTART6|0x04306206|SAHPI_MAJOR|OVR_SEV|"CPU 6 halted"
-##EN_IERR_CPU_RESTART7|0x04306207|SAHPI_MAJOR|OVR_SEV|"CPU 7 halted"
-##EN_IERR_CPU_RESTART8|0x04306208|SAHPI_MAJOR|OVR_SEV|"CPU 8 halted"
-
 # FIXME: When are these raised? Can I map to a blade operational state - or are there other events
 # (i.e. blade won't power on if  this happens - get this event plus no power event?
 ##EN_BLADE_NO_DC_FAULT|0x00029402|SAHPI_MINOR|OVR_SEV|"Power module 3 or 4 is required to power blades 5 to 8."
@@ -1734,8 +1841,6 @@ EN_FAN_8_NOT_PRESENT|0x06026008|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Fan 8 not detect
 # FIXME:: What are these for - blade? Media Tray? Just warnings or is USB dead?
 ##EN_FAULT_OC_USB_HUB|0x00014034|SAHPI_MAJOR|OVR_SEV|"USB hub over-current failure"
 ##EN_FAULT_OC_USB_PORT|0x00014033|SAHPI_MAJOR|OVR_SEV|"USB port over-current failure"
-# FIXME:: When does this occur? - bus error?
-##EN_FRONT_PANEL_TEMP_FAIL|0x06A2E001|SAHPI_MAJOR|OVR_SEV|"Front panel temperature is unavailable. Cooling capacity set to maximum"
 
 # FIXME:: MM Are these used?
 ##EN_IPMI_BLD_RESET|0x00216018|SAHPI_INFORMATIONAL|OVR_SEV|"Blade reset."
@@ -1780,8 +1885,6 @@ EN_FAN_8_NOT_PRESENT|0x06026008|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Fan 8 not detect
 ##EN_IPMI_VIDEO_INIT_FAIL|0x0021602E|SAHPI_MAJOR|OVR_SEV|"Failure during video initialization."
 ##EN_IPMI_WAKEUP_VECTOR_FAIL|0x00216037|SAHPI_MAJOR|OVR_SEV|"Failure calling OS wakeup vector."
 
-##EN_MFAN|0x00000067|SAHPI_CRITICAL|OVR_SEV|"Multiple blower failures"
-
 # FIXME:: 485? I2C? System level?
 ##EN_MGMT_BUS_FAULT|0x00103000|SAHPI_MAJOR|OVR_SEV|"Management bus communication fault."
 ##EN_UNABLE_ISLOATE_BUS|0x00101007|SAHPI_MAJOR|OVR_SEV|"Unable to isolate bus fault - bus was not recovered."
@@ -1789,15 +1892,13 @@ EN_FAN_8_NOT_PRESENT|0x06026008|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Fan 8 not detect
 # FIXME:: What happens here - other events?
 ##EN_MM_MISMATCHED|0x00282005|SAHPI_CRITICAL|OVR_SEV|"Configuration of mismatched management modules is not supported"
 
+# FIXME:: When is this generated?
 ##EN_MM_NON_REDUNDANT|0x00284000|SAHPI_MINOR|OVR_SEV|"No standby Management Module in chassis"
-
-##EN_OS_WD|0x00000073|SAHPI_MINOR|OVR_SEV|"OS Watchdog Triggered"
-##EN_POST_WD|0x00000072|SAHPI_MINOR|OVR_SEV|"POST Watchdog Triggered"
-##EN_LOAD_WD|0x00000078|SAHPI_MINOR|OVR_SEV|"Loader Watchdog Triggered"
 
 # FIXME:: blade error?
 ##EN_PERR|0x06500000|SAHPI_INFORMATIONAL|OVR_SEV|"Parity Error PCI Bus"
 
+# FIXME:: Groucho SDR doesn't assert this.
 ##EN_PFA_HI_EXCEDED_CUR_12V_A_MAX|0x0801B402|SAHPI_MINOR|OVR_SEV|"Blade 12V over recommended current."
 
 # FIXME:: What happens when this occurs?
@@ -1843,7 +1944,7 @@ EN_FAN_8_NOT_PRESENT|0x06026008|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Fan 8 not detect
 ##EN_STCONN_FAIL_OTHERMM|0x0002201E|SAHPI_CRITICAL|OVR_SEV|"Connectivity status alternate MM communication failed."
 
 # FIXME:: Assume this is "active" MM; be nice if could tell which MM - since this is a real physical thing. Ever
-# recovered? 
+# recovered? Groucho sends this as well - Need 2 different events...
 ##EN_SYSTEM_BATTERY_FAILURE|0x06000000|SAHPI_INFORMATIONAL|OVR_SEV|"The real time clock battery in the MM needs service."
 
 # FIXME:: Why are these MINOR? Old ones were mostly ERRORs (e.g. CRITICAL or MAJOR)
@@ -1861,6 +1962,10 @@ EN_FAN_8_NOT_PRESENT|0x06026008|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Fan 8 not detect
 
 #EN_BLADE_REBOOT|0x00000081|SAHPI_INFORMATIONAL|OVR_SEV|"System Reboot"
 #EN_COD_BLADE_ACTIVATED|0x04001001|SAHPI_MINOR|OVR_SEV|"Blade standby capacity activated"
+
+#EN_OS_WD|0x00000073|SAHPI_MINOR|OVR_SEV|"OS Watchdog Triggered"
+#EN_POST_WD|0x00000072|SAHPI_MINOR|OVR_SEV|"POST Watchdog Triggered"
+#EN_LOAD_WD|0x00000078|SAHPI_MINOR|OVR_SEV|"Loader Watchdog Triggered"
 
 #EN_MM_1_ISPRIME|0x06000201|SAHPI_INFORMATIONAL|OVR_SEV,OVR_MM1|"Management Module in bay 1 is Active."
 #EN_MM_1_ISPRIME|0x06000201|SAHPI_INFORMATIONAL|OVR_SEV,OVR_MM1|"Management Module in bay 1 is active."
@@ -1899,9 +2004,12 @@ EN_FAN_8_NOT_PRESENT|0x06026008|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Fan 8 not detect
 #EN_SWITCH_9_NAT_ACTIVATE|0x0EA0F009|SAHPI_INFORMATIONAL|OVR_SEV|"I/O module 9 NAT table is activated."
 #EN_SWITCH_10_NAT_ACTIVATE|0x0EA0F00A|SAHPI_INFORMATIONAL|OVR_SEV|"I/O module 10 NAT table is activated."
 
+#EN_MFAN|0x00000067|SAHPI_CRITICAL|OVR_SEV|"Multiple blower failures"
+
 #EN_TCPAPPS_CMD_MODE_ENABLED|0x00016002|SAHPI_INFORMATIONAL|OVR_SEV|"TCP Command Mode enabled."
 #EN_TCPAPPS_CMD_MODE_DISABLED|0x00016003|SAHPI_INFORMATIONAL|OVR_SEV|"TCP Command Mode disabled."
 #EN_TCPAPPS_SSL_CMD_MODE_ENABLED|0x00016004|SAHPI_INFORMATIONAL|OVR_SEV|"Secure TCP Command Mode enabled."
 #EN_TCPAPPS_SSL_CMD_MODE_DISABLED|0x00016005|SAHPI_INFORMATIONAL|OVR_SEV|"Secure TCP Command Mode disabled."
 #EN_TCPAPPS_SSL_CMD_MODE_PORT|0x00016006|SAHPI_INFORMATIONAL|OVR_SEV|"Secure TCP Command Mode port number changed.  New port number: "
 #EN_TCPAPPS_CMD_MODE_PORT|0x00016007|SAHPI_INFORMATIONAL|OVR_SEV|"TCP Command Mode port number changed.  New port number: "
+

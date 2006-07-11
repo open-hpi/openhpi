@@ -4427,7 +4427,22 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				.assert_mask   = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
 				.deassert_mask = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
 				.event_array = {
-					/* No IPMI unique events */
+					{
+						.event = "FFFFFF1C", /* EN_GENERIC_HI_CRIT_TEMP */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_UPPER_CRIT,
+						.recovery_state = SAHPI_ES_UPPER_MAJOR,
+					},
+					{
+						.event = "FFFFFF1D", /* EN_GENERIC_HI_WARN_TEMP */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_UPPER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
 					{},
 				},
 				.reading2event = {},
@@ -4499,7 +4514,22 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				.assert_mask   = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
 				.deassert_mask = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
 				.event_array = {
-					/* No IPMI unique events */
+					{
+						.event = "FFFFFF20", /* EN_GENERIC_HI_CRIT_TEMP */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_UPPER_CRIT,
+						.recovery_state = SAHPI_ES_UPPER_MAJOR,
+					},
+					{
+						.event = "FFFFFF21", /* EN_GENERIC_HI_WARN_TEMP */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_UPPER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
 					{},
 				},
 				.reading2event = {},
@@ -4571,7 +4601,22 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				.assert_mask   = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
 				.deassert_mask = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
 				.event_array = {
-					/* No IPMI unique events */
+					{
+						.event = "FFFFFF22", /* EN_GENERIC_HI_CRIT_TEMP */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_UPPER_CRIT,
+						.recovery_state = SAHPI_ES_UPPER_MAJOR,
+					},
+					{
+						.event = "FFFFFF23", /* EN_GENERIC_HI_WARN_TEMP */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_UPPER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
 					{},
 				},
 				.reading2event = {},
@@ -4643,7 +4688,22 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				.assert_mask   = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
 				.deassert_mask = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
 				.event_array = {
-					/* No IPMI unique events */
+					{
+						.event = "FFFFFF24", /* EN_GENERIC_HI_CRIT_TEMP */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_UPPER_CRIT,
+						.recovery_state = SAHPI_ES_UPPER_MAJOR,
+					},
+					{
+						.event = "FFFFFF25", /* EN_GENERIC_HI_WARN_TEMP */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_UPPER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
 					{},
 				},
 				.reading2event = {},
@@ -4663,8 +4723,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				.Category = SAHPI_EC_THRESHOLD,
 				.EnableCtrl = SAHPI_FALSE,
 				.EventCtrl = SAHPI_SEC_READ_ONLY,
-				.Events = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-				          SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+				.Events = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.DataFormat = {
 					.IsSupported = SAHPI_TRUE,
 					.ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
@@ -4720,12 +4779,25 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
 				.sensor_enabled = SAHPI_TRUE,
 				.events_enabled = SAHPI_TRUE,
-				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT | 
-			 	                 SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-				                 SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
+				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.event_array = {
-					/* FIXME:: Add events */
+					{
+						.event = "FFFFFFF1", /* EN_GENERIC_UPPER_WARN_VOLT */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_UPPER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
+					{
+						.event = "FFFFFFF2", /* EN_GENERIC_LOWER_WARN_VOLT */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_LOWER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
 					{},
 				},
 				.reading2event = {},
@@ -5562,7 +5634,22 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.event_array = {
-					/* No IPMI unique events */
+					{
+						.event = "FFFFFFF3", /* EN_GENERIC_UPPER_WARN_VOLT */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_UPPER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
+					{
+						.event = "FFFFFFF4", /* EN_GENERIC_UPPER_WARN_VOLT */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_LOWER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
 					{},
 				},
 				.reading2event = {},
@@ -5753,7 +5840,22 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.event_array = {
-					/* No IPMI unique events */
+					{
+						.event = "FFFFFFF5", /* EN_GENERIC_UPPER_WARN_VOLT */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_UPPER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
+					{
+						.event = "FFFFFFF6", /* EN_GENERIC_UPPER_WARN_VOLT */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_LOWER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
 					{},
 				},
 				.reading2event = {},
@@ -6038,7 +6140,22 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.event_array = {
-					/* No IPMI unique events */
+					{
+						.event = "FFFFFFF7", /* EN_GENERIC_UPPER_WARN_VOLT */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_UPPER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
+					{
+						.event = "FFFFFFF8", /* EN_GENERIC_UPPER_WARN_VOLT */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_LOWER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
 					{},
 				},
 				.reading2event = {},
@@ -6223,7 +6340,22 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.event_array = {
-					/* FIXME:: Add events */
+					{
+						.event = "FFFFFFF9", /* EN_GENERIC_UPPER_WARN_VOLT */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_UPPER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
+					{
+						.event = "FFFFFFFA", /* EN_GENERIC_UPPER_WARN_VOLT */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_LOWER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
 					{},
 				},
 				.reading2event = {},
@@ -6296,7 +6428,22 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.event_array = {
-					/* FIXME:: Add events */
+					{
+						.event = "FFFFFFFB", /* EN_GENERIC_UPPER_WARN_VOLT */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_UPPER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
+					{
+						.event = "FFFFFFFC", /* EN_GENERIC_UPPER_WARN_VOLT */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_LOWER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
 					{},
 				},
 				.reading2event = {},
@@ -6369,7 +6516,22 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.event_array = {
-					/* FIXME:: Add events */
+					{
+						.event = "FFFFFFFD", /* EN_GENERIC_UPPER_WARN_VOLT */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_UPPER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
+					{
+						.event = "FFFFFFFE", /* EN_GENERIC_UPPER_WARN_VOLT */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_LOWER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
 					{},
 				},
 				.reading2event = {},
@@ -6442,7 +6604,22 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.event_array = {
-					/* FIXME:: Add events */
+					{
+						.event = "FFFFFF10", /* EN_GENERIC_UPPER_WARN_VOLT */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_UPPER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
+					{
+						.event = "FFFFFF11", /* EN_GENERIC_UPPER_WARN_VOLT */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_LOWER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
 					{},
 				},
 				.reading2event = {},
@@ -6521,6 +6698,22 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.event_array = {
+					{
+						.event = "FFFFFF12", /* EN_GENERIC_UPPER_WARN_VOLT */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_UPPER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
+					{
+						.event = "FFFFFF13", /* EN_GENERIC_UPPER_WARN_VOLT */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_LOWER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
 					{},
 				},
 				.reading2event = {},
@@ -6591,8 +6784,22 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				.assert_mask   = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
 				.deassert_mask = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
 				.event_array = {
-					/* FIXME:: Add events */
-
+					{
+						.event = "FFFFFF14", /* EN_GENERIC_HI_CRIT_TEMP */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_UPPER_CRIT,
+						.recovery_state = SAHPI_ES_UPPER_MAJOR,
+					},
+					{
+						.event = "FFFFFF15", /* EN_GENERIC_HI_WARN_TEMP */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_UPPER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
 					{},
 				},
 				.reading2event = {},
@@ -6663,8 +6870,22 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				.assert_mask   = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
 				.deassert_mask = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
 				.event_array = {
-					/* FIXME:: Add events */
-
+					{
+						.event = "FFFFFF16", /* EN_GENERIC_HI_CRIT_TEMP */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_UPPER_CRIT,
+						.recovery_state = SAHPI_ES_UPPER_MAJOR,
+					},
+					{
+						.event = "FFFFFF17", /* EN_GENERIC_HI_WARN_TEMP */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_UPPER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
 					{},
 				},
 				.reading2event = {},
@@ -6735,8 +6956,22 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				.assert_mask   = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
 				.deassert_mask = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
 				.event_array = {
-					/* FIXME:: Add events */
-
+					{
+						.event = "FFFFFF18", /* EN_GENERIC_HI_CRIT_TEMP */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_UPPER_CRIT,
+						.recovery_state = SAHPI_ES_UPPER_MAJOR,
+					},
+					{
+						.event = "FFFFFF19", /* EN_GENERIC_HI_WARN_TEMP */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_UPPER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
 					{},
 				},
 				.reading2event = {},
@@ -6807,8 +7042,22 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				.assert_mask   = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
 				.deassert_mask = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
 				.event_array = {
-					/* FIXME:: Add events */
-
+					{
+						.event = "FFFFFF1A", /* EN_GENERIC_HI_CRIT_TEMP */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_UPPER_CRIT,
+						.recovery_state = SAHPI_ES_UPPER_MAJOR,
+					},
+					{
+						.event = "FFFFFF1B", /* EN_GENERIC_HI_WARN_TEMP */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_UPPER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
 					{},
 				},
 				.reading2event = {},
@@ -7752,8 +8001,22 @@ struct snmp_bc_ipmi_sensor snmp_bc_bem_ipmi_sensors[] = {
 				.assert_mask   = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
 				.deassert_mask = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
 				.event_array = {
-					/* FIXME:: Add events */
-
+					{
+						.event = "FFFFFF26", /* EN_GENERIC_HI_CRIT_TEMP */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_UPPER_CRIT,
+						.recovery_state = SAHPI_ES_UPPER_MAJOR,
+					},
+					{
+						.event = "FFFFFF27", /* EN_GENERIC_HI_WARN_TEMP */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_UPPER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
 					{},
 				},
 				.reading2event = {},
@@ -7831,8 +8094,22 @@ struct snmp_bc_ipmi_sensor snmp_bc_bem_ipmi_sensors[] = {
 				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.event_array = {
-					/* FIXME:: Add events */
-					
+					{
+						.event = "FFFFFF28", /* EN_GENERIC_UPPER_WARN_VOLT */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_UPPER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
+					{
+						.event = "FFFFFF29", /* EN_GENERIC_LOWER_WARN_VOLT */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_LOWER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
 					{},
 				},
 				.reading2event = {},
@@ -7910,8 +8187,22 @@ struct snmp_bc_ipmi_sensor snmp_bc_bem_ipmi_sensors[] = {
 				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.event_array = {
-					/* FIXME:: Add events */
-					
+					{
+						.event = "FFFFFF2A", /* EN_GENERIC_UPPER_WARN_VOLT */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_UPPER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
+					{
+						.event = "FFFFFF2B", /* EN_GENERIC_LOWER_WARN_VOLT */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_LOWER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
 					{},
 				},
 				.reading2event = {},
@@ -7989,8 +8280,22 @@ struct snmp_bc_ipmi_sensor snmp_bc_bem_ipmi_sensors[] = {
 				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.event_array = {
-					/* FIXME:: Add events */
-					
+					{
+						.event = "FFFFFF2C", /* EN_GENERIC_UPPER_WARN_VOLT */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_UPPER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
+					{
+						.event = "FFFFFF2D", /* EN_GENERIC_LOWER_WARN_VOLT */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_LOWER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
 					{},
 				},
 				.reading2event = {},
@@ -8068,8 +8373,22 @@ struct snmp_bc_ipmi_sensor snmp_bc_bem_ipmi_sensors[] = {
 				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.event_array = {
-					/* FIXME:: Add events */
-					
+					{
+						.event = "FFFFFF30", /* EN_GENERIC_UPPER_WARN_VOLT */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_UPPER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
+					{
+						.event = "FFFFFF31", /* EN_GENERIC_LOWER_WARN_VOLT */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_LOWER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
 					{},
 				},
 				.reading2event = {},
@@ -8147,8 +8466,22 @@ struct snmp_bc_ipmi_sensor snmp_bc_bem_ipmi_sensors[] = {
 				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.event_array = {
-					/* FIXME:: Add events */
-					
+					{
+						.event = "FFFFFF32", /* EN_GENERIC_UPPER_WARN_VOLT */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_UPPER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
+					{
+						.event = "FFFFFF33", /* EN_GENERIC_LOWER_WARN_VOLT */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_LOWER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
 					{},
 				},
 				.reading2event = {},
@@ -8219,8 +8552,22 @@ struct snmp_bc_ipmi_sensor snmp_bc_bem_ipmi_sensors[] = {
 				.assert_mask   = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
 				.deassert_mask = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
 				.event_array = {
-					/* FIXME:: Add events */
-
+					{
+						.event = "FFFFFF34", /* EN_GENERIC_HI_CRIT_TEMP */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_UPPER_CRIT,
+						.recovery_state = SAHPI_ES_UPPER_MAJOR,
+					},
+					{
+						.event = "FFFFFF35", /* EN_GENERIC_HI_WARN_TEMP */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_UPPER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
 					{},
 				},
 				.reading2event = {},
@@ -8298,8 +8645,22 @@ struct snmp_bc_ipmi_sensor snmp_bc_bem_ipmi_sensors[] = {
 				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.event_array = {
-					/* FIXME:: Add events */
-					
+					{
+						.event = "FFFFFF36", /* EN_GENERIC_UPPER_WARN_VOLT */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_UPPER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
+					{
+						.event = "FFFFFF37", /* EN_GENERIC_LOWER_WARN_VOLT */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_LOWER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
 					{},
 				},
 				.reading2event = {},
@@ -8377,8 +8738,22 @@ struct snmp_bc_ipmi_sensor snmp_bc_bem_ipmi_sensors[] = {
 				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.event_array = {
-					/* FIXME:: Add events */
-					
+					{
+						.event = "FFFFFF38", /* EN_GENERIC_UPPER_WARN_VOLT */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_UPPER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
+					{
+						.event = "FFFFFF39", /* EN_GENERIC_LOWER_WARN_VOLT */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_LOWER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
 					{},
 				},
 				.reading2event = {},
@@ -8456,8 +8831,22 @@ struct snmp_bc_ipmi_sensor snmp_bc_bem_ipmi_sensors[] = {
 				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.event_array = {
-					/* FIXME:: Add events */
-					
+					{
+						.event = "FFFFFF3A", /* EN_GENERIC_UPPER_WARN_VOLT */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_UPPER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
+					{
+						.event = "FFFFFF3B", /* EN_GENERIC_LOWER_WARN_VOLT */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_LOWER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
 					{},
 				},
 				.reading2event = {},
@@ -8535,8 +8924,22 @@ struct snmp_bc_ipmi_sensor snmp_bc_bem_ipmi_sensors[] = {
 				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.event_array = {
-					/* FIXME:: Add events */
-					
+					{
+						.event = "FFFFFF3C", /* EN_GENERIC_UPPER_WARN_VOLT */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_UPPER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
+					{
+						.event = "FFFFFF3D", /* EN_GENERIC_LOWER_WARN_VOLT */
+						.event_assertion = SAHPI_TRUE,
+						.event_res_failure = SAHPI_FALSE,
+						.event_res_failure_unexpected = SAHPI_FALSE,
+						.event_state = SAHPI_ES_LOWER_MAJOR,
+						.recovery_state = SAHPI_ES_UNSPECIFIED,
+					},
 					{},
 				},
 				.reading2event = {},
@@ -8581,6 +8984,14 @@ struct snmp_bc_sensor snmp_bc_mediatray_sensors[] = {
                         .event_array = {
                                 {
                                         .event = "09020000", /* EN_FAULT_FP_R */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+					.event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "06A2E001", /* EN_FRONT_PANEL_TEMP_FAIL */
   					.event_assertion = SAHPI_TRUE,
        					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
