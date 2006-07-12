@@ -1284,7 +1284,7 @@ SaErrorT SAHPI_API saHpiAlarmAdd(
         OH_GET_DOMAIN(did, d); /* Lock domain */
 
         /* Add new alarm */
-        a = oh_add_alarm(d, Alarm);
+        a = oh_add_alarm(d, Alarm, 0);
 
         oh_release_domain(d);
 

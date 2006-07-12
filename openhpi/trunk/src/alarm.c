@@ -114,11 +114,14 @@ static SaHpiUint32T __count_alarms(struct oh_domain *d,
  * oh_add_alarm
  * @d: pointer to domain
  * @alarm: alarm to be added
+ * @fromfile: if True will preserve alarm's id, timestamp, and
+ * acknowledge flag. Also, it will not save immediatedly to disk,
+ * if OPENHPI_DAT_SAVE is set.
  *
  * Return value: reference to newly added alarm or NULL if there was
  * an error
  **/
-SaHpiAlarmT *oh_add_alarm(struct oh_domain *d, SaHpiAlarmT *alarm)
+SaHpiAlarmT *oh_add_alarm(struct oh_domain *d, SaHpiAlarmT *alarm, int fromfile)
 {
         struct timeval tv1;
         SaHpiAlarmT *a = NULL;
@@ -155,12 +158,20 @@ SaHpiAlarmT *oh_add_alarm(struct oh_domain *d, SaHpiAlarmT *alarm)
         if (alarm) { /* Copy contents of optional alarm reference */
                 memcpy(a, alarm, sizeof(SaHpiAlarmT));
 	}
-        a->AlarmId = ++(d->dat.next_id);
-        gettimeofday(&tv1, NULL);
-        a->Timestamp = (SaHpiTimeT) tv1.tv_sec * 1000000000 + tv1.tv_usec * 1000;
-        a->AlarmCond.DomainId = d->id;
-	a->Acknowledged = SAHPI_FALSE;
-        d->dat.list = g_slist_append(d->dat.list, a);
+
+	if (fromfile) {
+		if (a->AlarmId > d->dat.next_id) {
+			d->dat.next_id = a->AlarmId;
+		}
+	} else {
+		a->AlarmId = ++(d->dat.next_id);
+        	gettimeofday(&tv1, NULL);
+        	a->Timestamp =
+			(SaHpiTimeT) tv1.tv_sec * 1000000000 + tv1.tv_usec * 1000;
+		a->Acknowledged = SAHPI_FALSE;
+	}
+	a->AlarmCond.DomainId = d->id;
+	d->dat.list = g_slist_append(d->dat.list, a);
 
         /* Set alarm id and timestamp info in alarm reference */
         if (alarm) {
@@ -168,16 +179,18 @@ SaHpiAlarmT *oh_add_alarm(struct oh_domain *d, SaHpiAlarmT *alarm)
                 alarm->Timestamp = a->Timestamp;
         }
 
-        __update_dat(d);
-	param.type = OPENHPI_DAT_SAVE;
-	oh_get_global_param(&param);
-	if (param.u.dat_save) {
-		char dat_filepath[SAHPI_MAX_TEXT_BUFFER_LENGTH*2];
-		param.type = OPENHPI_VARPATH;
+	if (!fromfile) {
+		__update_dat(d);
+		param.type = OPENHPI_DAT_SAVE;
 		oh_get_global_param(&param);
-		snprintf(dat_filepath, SAHPI_MAX_TEXT_BUFFER_LENGTH*2,
-			 "%s/dat.%u", param.u.varpath, d->id);
-		oh_alarms_to_file(&d->dat, dat_filepath);
+		if (param.u.dat_save) {
+			char dat_filepath[SAHPI_MAX_TEXT_BUFFER_LENGTH*2];
+			param.type = OPENHPI_VARPATH;
+			oh_get_global_param(&param);
+			snprintf(dat_filepath, SAHPI_MAX_TEXT_BUFFER_LENGTH*2,
+					"%s/dat.%u", param.u.varpath, d->id);
+			oh_alarms_to_file(&d->dat, dat_filepath);
+		}
 	}
 
         return a;
@@ -308,7 +321,7 @@ SaErrorT oh_close_alarmtable(struct oh_domain *d)
  *
  * Counts alarms in the domain table. You can count alarms of a specific
  * severity, or for all severities (SAHPI_ALL_SEVERITIES).
- * 
+ *
  * Return value: Number of alarms counted.
  **/
 SaHpiUint32T oh_count_alarms(struct oh_domain *d, SaHpiSeverityT sev)
@@ -336,7 +349,7 @@ static void oh_detect_oem_event_alarm(struct oh_domain *d, SaHpiEventT *event)
         }
 
         /* Severity is "alarming". Add/Create OEM alarm */
-        a = oh_add_alarm(d, NULL);
+        a = oh_add_alarm(d, NULL, 0);
         if (!a) goto done;
         a->Severity = event->Severity;
         a->AlarmCond.Type = SAHPI_STATUS_COND_TYPE_OEM;
@@ -366,7 +379,7 @@ static void oh_detect_resource_event_alarm(struct oh_domain *d, SaHpiEventT *eve
 
         /* Failed resource. Add/Create resource alarm if severity is "alarming" */
         if (event->Severity <= SAHPI_MINOR) {
-                a = oh_add_alarm(d, NULL);
+                a = oh_add_alarm(d, NULL, 0);
                 if (!a) goto done;
                 a->Severity = event->Severity;
                 a->AlarmCond.Type = SAHPI_STATUS_COND_TYPE_RESOURCE;
@@ -395,7 +408,7 @@ static void oh_detect_sensor_event_alarm(struct oh_domain *d, SaHpiEventT *event
                    event->EventDataUnion.SensorEvent.Assertion) {
                 /* Add sensor alarm to dat, since event is severe
                    enough and is asserted. */
-                a = oh_add_alarm(d, NULL);
+                a = oh_add_alarm(d, NULL, 0);
                 if (!a) goto done;
                 a->Severity = event->Severity;
                 a->AlarmCond.Type = SAHPI_STATUS_COND_TYPE_SENSOR;
@@ -462,7 +475,7 @@ static void oh_detect_resource_alarm(struct oh_domain *d, SaHpiRptEntryT *res)
                                 NULL, NULL, NULL, 1);
         } else if (res->ResourceSeverity <= SAHPI_MINOR && res->ResourceFailed) {
                 /* Otherwise, if sev is "alarming" and resource failed, create alarm. */
-                a = oh_add_alarm(d, NULL);
+                a = oh_add_alarm(d, NULL, 0);
                 if (!a) goto done;
                 a->Severity = res->ResourceSeverity;
                 a->AlarmCond.Type = SAHPI_STATUS_COND_TYPE_RESOURCE;
@@ -516,7 +529,7 @@ SaErrorT oh_detect_event_alarm(struct oh_event *e)
  *
  * Detect if severity on resource change makes any alarms invalid.
  * If so, remove such alarms.
- * 
+ *
  * Return value: SA_OK on success
  **/
 SaErrorT oh_detect_res_sev_alarm(SaHpiDomainIdT did,
@@ -592,7 +605,7 @@ SaErrorT oh_detect_sensor_enable_alarm(SaHpiDomainIdT did,
  *
  * This will detect if a sensor related alarm needs to be removed,
  * and if so, will remove it accordingly.
- * 
+ *
  * Return value: SA_OK on success
  **/
 SaErrorT oh_detect_sensor_mask_alarm(SaHpiDomainIdT did,
@@ -629,7 +642,7 @@ SaErrorT oh_detect_sensor_mask_alarm(SaHpiDomainIdT did,
 
 /**
  * oh_alarms_to_file
- * 
+ *
  * @at: pointer to alarm table. alarms in this table will be saved to a file
  * @filename: file to which alarms will be saved.
  *
@@ -639,7 +652,7 @@ SaErrorT oh_alarms_to_file(struct oh_dat *at, char *filename)
 {
 	GSList *alarms = NULL;
 	int file;
-		
+
 	if (!at || !filename) {
 		dbg("Invalid Parameters");
 		return SA_ERR_HPI_INVALID_PARAMS;
@@ -665,7 +678,7 @@ SaErrorT oh_alarms_to_file(struct oh_dat *at, char *filename)
         	dbg("Couldn't close file '%s'.", filename);
 		return SA_ERR_HPI_ERROR;
 	}
-	
+
 	return SA_OK;
 }
 
@@ -682,7 +695,7 @@ SaErrorT oh_alarms_from_file(struct oh_domain *d, char *filename)
 {
 	int file;
 	SaHpiAlarmT alarm;
-	
+
 	if (!d || !filename) {
 		dbg("Invalid Parameters");
 		return SA_ERR_HPI_ERROR;
@@ -695,7 +708,7 @@ SaErrorT oh_alarms_from_file(struct oh_domain *d, char *filename)
         }
 
 	while (read(file, &alarm, sizeof(SaHpiAlarmT)) == sizeof(SaHpiAlarmT)) {
-		SaHpiAlarmT *a = oh_add_alarm(d, &alarm);
+		SaHpiAlarmT *a = oh_add_alarm(d, &alarm, 1);
 		if (!a) {
 			close(file);
 			dbg("Error adding alarm read from file.");

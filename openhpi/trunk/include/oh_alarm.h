@@ -25,7 +25,9 @@
 #define OH_MAX_DAT_USER_LIMIT 0
 
 /* Alarm Handling */
-SaHpiAlarmT *oh_add_alarm(struct oh_domain *d, SaHpiAlarmT *alarm);
+SaHpiAlarmT *oh_add_alarm(struct oh_domain *d,
+			  SaHpiAlarmT *alarm,
+			  int fromfile);
 SaHpiAlarmT *oh_get_alarm(struct oh_domain *d,
                           SaHpiAlarmIdT *aid,
                           SaHpiSeverityT *severity,
