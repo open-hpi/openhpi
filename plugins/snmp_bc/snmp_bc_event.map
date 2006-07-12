@@ -16,6 +16,8 @@
 # This file serves as input to eventmap2code.pl.
 #
 # NOTES:
+# - MM's generic threshold event strings are assigned event numbers
+#   starting with FFFF.
 # - Cannot have duplicate events with the chassis and any other resource
 #   that cannot be explicitly derived from the event log's Source field.
 # - Add FF to beginning of event numbers for duplicate events
@@ -26,7 +28,7 @@
 #   takeover events.
 # - OVR_VMM is for entities assigned to the virtual MM resource.
 # - OVR_EXP is used to assign BEM events to the add-in card resource.
-#   They are reported by the event log's Source field as blade events. 
+#   They are reported by the SNMP event log's Source field as blade events. 
 ###########################################################################
 
 # Test event - used to unit test code
@@ -474,7 +476,7 @@ EN_IO_5V_WARNING_LOW|0x0A034C00|SAHPI_MAJOR|OVR_SEV|"I/O board 5V under recommen
 EN_PFA_HI_FAULT_5V|0x08035500|SAHPI_MAJOR|OVR_SEV|"System over recommended 5V Fault."
 EN_PFA_HI_FAULT_5V|0x08035500|SAHPI_MAJOR|OVR_SEV|"Blade 5V over fault."
 EN_PFA_LO_FAULT_5V|0x08035800|SAHPI_MAJOR|OVR_SEV|"System under recommended 5V Fault."
-EN_PFA_LO_FAULT_5V|0x08035800|SAHPI_MAJOR|NO_SEV|"Blade 5V under recommended voltage"
+EN_PFA_LO_FAULT_5V|0x08035800|SAHPI_MAJOR|OVR_SEV|"Blade 5V under recommended voltage"
 # FIXME:: Why is Lewis instance 2 not 1?
 EN_GENERIC_UPPER_WARN_VOLT|0xFFFFFFF5|SAHPI_MAJOR|OVR_SEV|"system board 1 (Planar 5V) over recommended voltage."
 EN_GENERIC_UPPER_WARN_VOLT|0xFFFFFFF5|SAHPI_MAJOR|OVR_SEV|"system board 2 (5V Sense) over recommended voltage."
@@ -791,6 +793,7 @@ EN_NC_VOLT|0x0000006F|SAHPI_MAJOR|OVR_SEV|"Blade voltage outside of recommended 
 EN_FP_NP|0x09025000|SAHPI_MAJOR|OVR_SEV|"Front panel cable is not connected to system board"
 EN_CPU1_TEMP_WARN|0x0421D401|SAHPI_MAJOR|OVR_SEV|"CPU 1 temperature warning"
 EN_CPU2_TEMP_WARN|0x0421D402|SAHPI_MAJOR|OVR_SEV|"CPU 2 temperature warning"
+EN_PFA_HI_EXCEDED_CUR_12V_A_MAX|0x0801B402|SAHPI_MAJOR|OVR_SEV|"Blade 12V over recommended current."
 
 #### Mapped to Install Error Operational State
 # FIXME:: Why is this INFO but EN_SWITCH_1_CFG_ERROR is MINOR.
@@ -864,21 +867,12 @@ EN_SYSERR_LED_ONLY|0x0000007E|SAHPI_CRITICAL|OVR_SEV|"Critical Interrupt - Front
 # Blade Storage Expansion (BSE) Module
 ######################################
 
-# FIXME:: MM: BEM event strings must uniquely identify the BEM. Assume new blades will use
-# generic threshold message format for BEM thresholds and IPMI tag will be in that string.
-# Problem is between McCarren(/Laurel?) and Groucho. Must be unique events to distinguish between
-# Legacy and IPMI BSE temperature/voltage events.
-
-# FIXME:: For non-threshold events, need event messages like "BEM3 Fault" or "PEU2 Fault" Don't see these
-# type of strings in code. What events are being generated for a BEM failure and how do you
-# determine which BEM it is? SNMP only exposes the event message string.
-
-# FIXME:: MM: SNMP has no way to determine the Operational status of a BEM or an individual BEM?
+# FIXME:: Does this sensor make sense; when are these generated?
 # BSE Operational Sensor - event only
 EN_FAULT_DASD|0x06800000|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"BEM Option failure"
 EN_FAULT_DASD|0x06800000|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"BEM failure"
 
-# BSE Temperature Sensor
+# BSE Temperature Sensor - event only
 # FIXME:: Does blade shutdown if BSE too hot? Different shutdown event for the blade vs BSE?
 EN_CUTOFF_HI_OVER_TEMP_BEM|0x0621C481|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"System shutoff due to BEM Option temperature."
 EN_CUTOFF_HI_OVER_TEMP_BEM|0x0621C481|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"BEM temperature fault."
@@ -886,9 +880,44 @@ EN_CUTOFF_HI_OVER_TEMP_DASD1_2|0x0681C482|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"System
 #EN_CUTOFF_HI_OVER_TEMP_DASD1_3|0x0681C483|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"System shutoff due to DASD Option temperature."
 EN_OVER_TEMP_BEM|0x0621C081|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"BEM 1 Over Temperature"
 EN_PFA_HI_OVER_TEMP_BEM|0x0621D481|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM over recommended temperature."
-EN_PFA_HI_OVER_TEMP_BEM|0x0681D481|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"DASD Option over recommended temperature."
 EN_PFA_HI_OVER_TEMP_BEM|0x0621D481|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM Option over recommended temperature."
+EN_PFA_HI_OVER_TEMP_BEM|0x0681D481|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"DASD Option over recommended temperature."
 
+# BEM Voltage Sensor - event only
+EN_BEM_1V_WARNING_HI|0x0E850402|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM 1V over recommended voltage"
+EN_BEM_1V_WARNING_LOW|0x0E850802|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM 1V under recommended voltage"
+EN_BEM_1_5V_WARNING_HI|0x0E840402|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM +1.5V over recommended voltage."
+EN_BEM_1_5V_WARNING_HI|0x0E840402|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM 1.5V over recommended voltage"
+EN_BEM_1_5V_WARNING_LOW|0x0E840802|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM +1.5V under recommended voltage."
+EN_BEM_1_5V_WARNING_LOW|0x0E840802|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM 1.5V under recommended voltage"
+EN_BEM_1_8V_WARNING_HI|0x0E87A402|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM +1.8V over recommended voltage."
+EN_BEM_1_8V_WARNING_HI|0x0E87A402|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM 1.8V over recommended voltage"
+EN_BEM_1_8V_WARNING_LOW|0x0E87A802|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM +1.8V under recommended voltage."
+EN_BEM_1_8V_WARNING_LOW|0x0E87A802|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM 1.8V under recommended voltage"
+EN_BEM_2_5V_WARNING_HI|0x0E830402|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM +2.5V over recommended voltage."
+EN_BEM_2_5V_WARNING_HI|0x0E830402|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM 2.5V over recommended voltage"
+EN_BEM_2_5V_WARNING_LOW|0x0E830802|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM +2.5V under recommended voltage."
+EN_BEM_2_5V_WARNING_LOW|0x0E830802|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM 2.5V under recommended voltage"
+EN_BEM_3_3V_WARNING_HI|0x0E832402|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM +3.3V over recommended voltage."
+EN_BEM_3_3V_WARNING_HI|0x0E832402|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM 3.3V over recommended voltage"
+EN_BEM_3_3V_WARNING_LOW|0x0E832802|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM +3.3V under recommended voltage."
+EN_BEM_3_3V_WARNING_LOW|0x0E832802|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM 3.3V under recommended voltage"
+EN_BEM_5V_WARNING_HI|0x0E834402|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM +5V over recommended voltage."
+EN_BEM_5V_WARNING_HI|0x0E834402|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM 5V over recommended voltage"
+EN_BEM_5V_WARNING_LOW|0x0E834802|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM +5V under recommended voltage."
+EN_BEM_5V_WARNING_LOW|0x0E834802|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM 5V under recommended voltage"
+EN_BEM_12V_WARNING_HI|0x0E836402|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM +12V over recommended voltage."
+EN_BEM_12V_WARNING_HI|0x0E836402|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM 12V over recommended voltage"
+EN_BEM_12V_WARNING_LOW|0x0E836802|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM +12V under recommended voltage."
+EN_BEM_12V_WARNING_LOW|0x0E836802|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM 12V under recommended voltage"
+EN_BEM_12VSB_WARNING_HI|0x0E860402|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM 12V standby over recommended voltage"
+EN_BEM_12VSB_WARNING_LOW|0x0E860802|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM 12V standby under recommended voltage"
+EN_BEM_18V_WARNING_HI|0x0E83C402|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM +18V over recommended voltage."
+EN_BEM_18V_WARNING_HI|0x0E83C402|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM 18V over recommended voltage"
+EN_BEM_18V_WARNING_LOW|0x0E83C802|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM +18V under recommended voltage."
+EN_BEM_18V_WARNING_LOW|0x0E83C802|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM 18V under recommended voltage"
+
+# FIXME:: Move these to blade resource? Else how tell events from BEM vs storage blades?
 # BSE DASD 0 Operational Sensor - event only
 ##EN_DASD1_REMOVED_DRIVE_0|0x0681E000|SAHPI_INFORMATIONAL|OVR_SEV|"Hard drive 0 removal detected."
 ##EN_FAULT_DASD1_HARD_DRIVE_0|0x06802000|SAHPI_CRITICAL|OVR_SEV|"Hard drive 0 fault"
@@ -914,62 +943,6 @@ EN_FAULT_DASD1_SCSI_ID_3|0x06801003|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"Hard Drive F
 # BSE DASD 5 Operational Sensor - event only
 ##EN_DASD1_REMOVED_DRIVE_5|0x0681E005|SAHPI_INFORMATIONAL|OVR_SEV|"Hard drive 5 removal detected."
 ##EN_FAULT_DASD1_HARD_DRIVE_5|0x06800005|SAHPI_CRITICAL|OVR_SEV|"Hard drive 5 fault"
-
-# BSE Vcc Sensor
-# FIXME:: MM: Don't see any events for this sensor - 8843 only?
-
-##EN_BEM_1V_WARNING_HI|0x0E850402|SAHPI_MINOR|OVR_SEV,OVR_EXP|"BEM 1V over recommended voltage"
-##EN_BEM_1V_WARNING_LOW|0x0E850802|SAHPI_MINOR|OVR_SEV,OVR_EXP|"BEM 1V under recommended voltage"
-
-# BSE 1.5 Volt Sensor
-EN_BUST_1_5V_FAULT|0x0E840002|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"BEM +1.5V Fault."
-EN_BEM_1_5V_WARNING_HI|0x0E840402|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM +1.5V over recommended voltage."
-EN_BEM_1_5V_WARNING_HI|0x0E840402|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM 1.5V over recommended voltage"
-EN_BEM_1_5V_WARNING_LOW|0x0E840802|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM +1.5V under recommended voltage."
-EN_BEM_1_5V_WARNING_LOW|0x0E840802|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM 1.5V under recommended voltage"
-
-# BSE 3.3 Volt Sensor
-EN_BUST_3_3V_FAULT|0x0E832002|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"BEM +3.3V Fault."
-EN_BEM_3_3V_WARNING_HI|0x0E832402|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM +3.3V over recommended voltage."
-EN_BEM_3_3V_WARNING_HI|0x0E832402|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM 3.3V over recommended voltage"
-EN_BEM_3_3V_WARNING_LOW|0x0E832802|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM +3.3V under recommended voltage."
-EN_BEM_3_3V_WARNING_LOW|0x0E832802|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM 3.3V under recommended voltage"
-
-# BSE 5 Volt Sensor
-EN_BUST_5V_FAULT|0x0E834002|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"BEM +5V Fault."
-EN_BEM_5V_WARNING_HI|0x0E834402|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM +5V over recommended voltage."
-EN_BEM_5V_WARNING_HI|0x0E834402|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM 5V over recommended voltage"
-EN_BEM_5V_WARNING_LOW|0x0E834802|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM +5V under recommended voltage."
-EN_BEM_5V_WARNING_LOW|0x0E834802|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM 5V under recommended voltage"
-
-# BSE 12 Volt Sensor
-EN_BUST_12V_FAULT|0x0E836002|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"BEM +12V Fault."
-EN_BEM_12V_WARNING_HI|0x0E836402|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM +12V over recommended voltage."
-EN_BEM_12V_WARNING_HI|0x0E836402|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM 12V over recommended voltage"
-EN_BEM_12V_WARNING_LOW|0x0E836802|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM +12V under recommended voltage."
-EN_BEM_12V_WARNING_LOW|0x0E836802|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM 12V under recommended voltage"
-
-# FIXME:: MM: What are these - don't see any IPMI sensors for them.
-##EN_BUST_1_8V_FAULT|0x0E87A002|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"BEM +1.8V Fault."
-##EN_BEM_1_8V_WARNING_HI|0x0E87A402|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM +1.8V over recommended voltage."
-##EN_BEM_1_8V_WARNING_HI|0x0E87A402|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM 1.8V over recommended voltage"
-##EN_BEM_1_8V_WARNING_LOW|0x0E87A802|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM +1.8V under recommended voltage."
-##EN_BEM_1_8V_WARNING_LOW|0x0E87A802|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM 1.8V under recommended voltage"
-
-##EN_BUST_2_5V_FAULT|0x0E830002|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"BEM +2.5V Fault."
-##EN_BEM_2_5V_WARNING_HI|0x0E830402|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM +2.5V over recommended voltage."
-##EN_BEM_2_5V_WARNING_HI|0x0E830402|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM 2.5V over recommended voltage"
-##EN_BEM_2_5V_WARNING_LOW|0x0E830802|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM +2.5V under recommended voltage."
-##EN_BEM_2_5V_WARNING_LOW|0x0E830802|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM 2.5V under recommended voltage"
-
-##EN_BEM_12VSB_WARNING_HI|0x0E860402|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM 12V standby over recommended voltage"
-##EN_BEM_12VSB_WARNING_LOW|0x0E860802|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM 12V standby under recommended voltage"
-
-##EN_BUST_18V_FAULT|0x0E83C002|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"BEM +18V Fault."
-##EN_BEM_18V_WARNING_HI|0x0E83C402|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM +18V over recommended voltage."
-##EN_BEM_18V_WARNING_HI|0x0E83C402|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM 18V over recommended voltage"
-##EN_BEM_18V_WARNING_LOW|0x0E83C802|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM +18V under recommended voltage."
-##EN_BEM_18V_WARNING_LOW|0x0E83C802|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM 18V under recommended voltage"
 
 #############################
 # PCI Expansion (PEU2) Module
@@ -1823,22 +1796,11 @@ EN_FAN_8_NOT_PRESENT|0x06026008|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Fan 8 not detect
 # MMV2_20 Events
 ################
 
-# FIXME: When are these raised? Can I map to a blade operational state - or are there other events
-# (i.e. blade won't power on if  this happens - get this event plus no power event?
-##EN_BLADE_NO_DC_FAULT|0x00029402|SAHPI_MINOR|OVR_SEV|"Power module 3 or 4 is required to power blades 5 to 8."
-##EN_BLADE_NO_DC_FAULT_BCT|0x00029402|SAHPI_MINOR|NO_OVR|"Power module 3 or 4 is required to power blades in power domain 2."
-##EN_BLADE_NO_DC_FAULT_DOM1|0x00029401|SAHPI_INFORMATIONAL|OVR_SEV|"Power module 1 or 2 is required to power blades in power domain 1."
-##EN_BLADE_NO_DC_FAULT_DOM1|0x00029401|SAHPI_MINOR|OVR_SEV|"Power module 1 or 2 is required to power blades 1 to 4."
-
-# FIXME:: How to map to correct BEM? Are these recovered?
+# FIXME:: How to map to correct BEM? Are these recovered? MINOR severity?
 ##EN_BSE_RAID_BATTERY_FAILURE|0x0EE18000|SAHPI_MINOR|OVR_SEV|"BSE RAID battery failure"
 ##EN_BSE_RAID_FAULT|0x0EE00000|SAHPI_MINOR|OVR_SEV|"BSE RAID fault"
 
-# FIXME: Are these every recovered - don't see an EVENT_OFF for them?
-##EN_ENTRY_FAULT|0x08200009|SAHPI_MAJOR|OVR_SEV|"System Intrusion Detected"
-##EN_FIVE_LOGIN_FAILURES|0x0001600A|SAHPI_MINOR|OVR_SEV|"LAN:  Web Server tamper delay triggered. Possible break in attempt."
-
-# FIXME:: What are these for - blade? Media Tray? Just warnings or is USB dead?
+# FIXME:: MM errors.
 ##EN_FAULT_OC_USB_HUB|0x00014034|SAHPI_MAJOR|OVR_SEV|"USB hub over-current failure"
 ##EN_FAULT_OC_USB_PORT|0x00014033|SAHPI_MAJOR|OVR_SEV|"USB port over-current failure"
 
@@ -1885,29 +1847,19 @@ EN_FAN_8_NOT_PRESENT|0x06026008|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Fan 8 not detect
 ##EN_IPMI_VIDEO_INIT_FAIL|0x0021602E|SAHPI_MAJOR|OVR_SEV|"Failure during video initialization."
 ##EN_IPMI_WAKEUP_VECTOR_FAIL|0x00216037|SAHPI_MAJOR|OVR_SEV|"Failure calling OS wakeup vector."
 
-# FIXME:: 485? I2C? System level?
+# FIXME:: I2C short - cause failover (00103000); but no recovery.
 ##EN_MGMT_BUS_FAULT|0x00103000|SAHPI_MAJOR|OVR_SEV|"Management bus communication fault."
+# Blade cannot be removed from 485 bus..
 ##EN_UNABLE_ISLOATE_BUS|0x00101007|SAHPI_MAJOR|OVR_SEV|"Unable to isolate bus fault - bus was not recovered."
 
-# FIXME:: What happens here - other events?
+# FIXME:: MM2 primary; put in MM1 as standby; remove it get recovery.  
 ##EN_MM_MISMATCHED|0x00282005|SAHPI_CRITICAL|OVR_SEV|"Configuration of mismatched management modules is not supported"
 
-# FIXME:: When is this generated?
-##EN_MM_NON_REDUNDANT|0x00284000|SAHPI_MINOR|OVR_SEV|"No standby Management Module in chassis"
-
-# FIXME:: blade error?
-##EN_PERR|0x06500000|SAHPI_INFORMATIONAL|OVR_SEV|"Parity Error PCI Bus"
-
-# FIXME:: Groucho SDR doesn't assert this.
-##EN_PFA_HI_EXCEDED_CUR_12V_A_MAX|0x0801B402|SAHPI_MINOR|OVR_SEV|"Blade 12V over recommended current."
-
-# FIXME:: What happens when this occurs?
+# FIXME:: What happens when this occurs? Yes - Degraded operations.
 ##EN_PWR_DOMAIN_1_MISMATCHED_PS|0x08006001|SAHPI_MINOR|OVR_SEV|"Mismatched Power Modules in power domain 1"
 ##EN_PWR_DOMAIN_2_MISMATCHED_PS|0x08006002|SAHPI_MINOR|OVR_SEV|"Mismatched Power Modules in power domain 2"
 
-# FIXME:: MM: When are these sent Is MM dead with these faults?
-# HOW DO THESE COMPARE WITH THE SNMP mmHealthState values? mmHealthState seems more physical not if
-# the MM is primary or not.
+# FIXME:: MM is OK but degraded. Can force failover to standby with BIST - should be ok but degraded.
 ##EN_OTHER_I2C|0x00222000|SAHPI_CRITICAL|OVR_SEV|"Standby MM failure on system management bus, check devices"
 ##EN_STBIST_FAIL_R_BOOT_ROM|0x0002201B|SAHPI_MAJOR|OVR_SEV|"BIST standby MM bootrom failed."
 ##EN_STBIST_FAIL_R_CORE_1|0x00022052|SAHPI_MAJOR|OVR_SEV|"BIST standby MM primary core Failed."
@@ -1930,8 +1882,8 @@ EN_FAN_8_NOT_PRESENT|0x06026008|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Fan 8 not detect
 ##EN_STBIST_FAIL_I2C|0x00022004|SAHPI_CRITICAL|OVR_SEV|"BIST primary MM local management bus failed."
 ##EN_STBIST_FAIL_I2C_DEVICE|0x00022009|SAHPI_CRITICAL|OVR_SEV|"BIST primary MM external management bus failed."
 ##EN_STBIST_FAIL_PRI_FS|0x00022005|SAHPI_MAJOR|OVR_SEV|"BIST primary MM primary file system failed."
-##EN_STBIST_FAIL_R485_1|0x00022001|SAHPI_CRITICAL|NO_OVR|"BIST blade management bus 1 failed."
-##EN_STBIST_FAIL_R485_2|0x00022002|SAHPI_CRITICAL|NO_OVR|"BIST blade management bus 2 failed."
+##EN_STBIST_FAIL_R485_1|0x00022001|SAHPI_CRITICAL|OVR_SEV|"BIST blade management bus 1 failed."
+##EN_STBIST_FAIL_R485_2|0x00022002|SAHPI_CRITICAL|OVR_SEV|"BIST blade management bus 2 failed."
 ##EN_STBIST_FAIL_RPSERV|0x00022013|SAHPI_MAJOR|OVR_SEV|"BIST primary MM remote control firmware failed."
 ##EN_STBIST_FAIL_RTC|0x00022003|SAHPI_MAJOR|OVR_SEV|"BIST primary MM realtime clock failed."
 ##EN_STBIST_FAIL_SEC_FS|0x00022006|SAHPI_MAJOR|OVR_SEV|"BIST primary MM secondary file system failed."
@@ -1940,17 +1892,11 @@ EN_FAN_8_NOT_PRESENT|0x06026008|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Fan 8 not detect
 ##EN_STBIST_FAIL_USB_I2C_1|0x00022054|SAHPI_MAJOR|OVR_SEV|"BIST primary MM USB keyboard/mouse firmware failed."
 ##EN_STBIST_FAIL_USB_I2C_2|0x00022055|SAHPI_MAJOR|OVR_SEV|"BIST primary MM USB mass storage firmware failed."
 
-# FIXME:: Is this a standby message?
+# FIXME:: Standby MM's logical EN connection not working
 ##EN_STCONN_FAIL_OTHERMM|0x0002201E|SAHPI_CRITICAL|OVR_SEV|"Connectivity status alternate MM communication failed."
 
-# FIXME:: Assume this is "active" MM; be nice if could tell which MM - since this is a real physical thing. Ever
-# recovered? Groucho sends this as well - Need 2 different events...
+# FIXME:: Can get for blades and MM - bad string text; note this is a duplicate
 ##EN_SYSTEM_BATTERY_FAILURE|0x06000000|SAHPI_INFORMATIONAL|OVR_SEV|"The real time clock battery in the MM needs service."
-
-# FIXME:: Why are these MINOR? Old ones were mostly ERRORs (e.g. CRITICAL or MAJOR)
-##EN_THRESH_HI_CRIT_TEMP|0x80010901|SAHPI_MINOR|OVR_SEV|"%s %s (%s) %s critical %s."
-##EN_THRESH_LO_NONRECOV_VOLT|0x80010402|SAHPI_MINOR|OVR_SEV|"%s %s (%s) %s non-recoverable %s fault."
-##EN_THRESH_LO_WARN_VOLT|0x80010002|SAHPI_MINOR|OVR_SEV|"%s %s (%s) %s recommended %s."
 
 ############
 # OEM Events
@@ -1971,6 +1917,7 @@ EN_FAN_8_NOT_PRESENT|0x06026008|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Fan 8 not detect
 #EN_MM_1_ISPRIME|0x06000201|SAHPI_INFORMATIONAL|OVR_SEV,OVR_MM1|"Management Module in bay 1 is active."
 #EN_MM_2_ISPRIME|0x06000202|SAHPI_INFORMATIONAL|OVR_SEV,OVR_MM2|"Management Module in bay 2 is Active."
 #EN_MM_2_ISPRIME|0x06000202|SAHPI_INFORMATIONAL|OVR_SEV,OVR_MM2|"Management Module in bay 2 is active."
+#EN_MM_NON_REDUNDANT|0x00284000|SAHPI_MINOR|OVR_SEV|"No standby Management Module in chassis"
 
 #EN_RAT_LOGIN|0x0000007A|SAHPI_INFORMATIONAL|OVR_SEV|"Remote login successful for user "
 #EN_READ_THE_LOG|0x0000007F|SAHPI_INFORMATIONAL|OVR_SEV|"Read the event log"
@@ -1978,6 +1925,9 @@ EN_FAN_8_NOT_PRESENT|0x06026008|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Fan 8 not detect
 #EN_LOG_CLEARED|0x0001600B|SAHPI_INFORMATIONAL|OVR_SEV|"Event log cleared"
 #EN_LOG_FULL|0x0000006B|SAHPI_CRITICAL|OVR_SEV|"Event log full"
 #EN_SP_EVT_FULL|0x00216017|SAHPI_INFORMATIONAL|OVR_SEV|"Service processor event log is full."
+
+#EN_ENTRY_FAULT|0x08200009|SAHPI_MAJOR|OVR_SEV|"System Intrusion Detected"
+#EN_FIVE_LOGIN_FAILURES|0x0001600A|SAHPI_MINOR|OVR_SEV|"LAN:  Web Server tamper delay triggered. Possible break in attempt."
 
 #EN_MM_NETWORK_INIT_CMPLT|0x00016001|SAHPI_INFORMATIONAL|OVR_SEV|"Management Module network initialization complete"
 #EN_MM_NETWORK_LOSS|0x00217000|SAHPI_MINOR|OVR_SEV,OVR_VMM|"Management Module external network link lost."
@@ -2012,4 +1962,12 @@ EN_FAN_8_NOT_PRESENT|0x06026008|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Fan 8 not detect
 #EN_TCPAPPS_SSL_CMD_MODE_DISABLED|0x00016005|SAHPI_INFORMATIONAL|OVR_SEV|"Secure TCP Command Mode disabled."
 #EN_TCPAPPS_SSL_CMD_MODE_PORT|0x00016006|SAHPI_INFORMATIONAL|OVR_SEV|"Secure TCP Command Mode port number changed.  New port number: "
 #EN_TCPAPPS_CMD_MODE_PORT|0x00016007|SAHPI_INFORMATIONAL|OVR_SEV|"TCP Command Mode port number changed.  New port number: "
+
+#EN_BLADE_NO_DC_FAULT|0x00029402|SAHPI_MINOR|OVR_SEV|"Power module 3 or 4 is required to power blades 5 to 8."
+#EN_BLADE_NO_DC_FAULT_BCT|0x00029402|SAHPI_MINOR|OVR_SEV|"Power module 3 or 4 is required to power blades in power domain 2."
+#EN_BLADE_NO_DC_FAULT_DOM1|0x00029401|SAHPI_INFORMATIONAL|OVR_SEV|"Power module 1 or 2 is required to power blades in power domain 1."
+#EN_BLADE_NO_DC_FAULT_DOM1|0x00029401|SAHPI_MINOR|OVR_SEV|"Power module 1 or 2 is required to power blades 1 to 4."
+
+#EN_PERR|0x06500000|SAHPI_INFORMATIONAL|OVR_SEV|"Parity Error PCI Bus"
+
 
