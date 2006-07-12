@@ -67,7 +67,7 @@ static void hashtablefreeentry(gpointer key, gpointer value, gpointer data);
 
 }
 
-#define CLIENT_TIMEOUT 1800  // Unlimited
+#define CLIENT_TIMEOUT 0  // Unlimited
 #define PID_FILE "/var/run/openhpid.pid"
 
 static bool stop_server = FALSE;
@@ -481,8 +481,13 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht,
         hm = HpiMarshalFind(thrdinst->header.m_id);
         
         // init reply header
+        flags_save = thrdinst->header.m_flags;
+
         thrdinst->MessageHeaderInit((tMessageType) thrdinst->header.m_type, 0,
                                         thrdinst->header.m_id, hm->m_reply_len );
+
+
+        thrdinst->header.m_flags = flags_save;
 
         switch( thrdinst->header.m_id ) {
                 case eFsaHpiVersionGet: {
