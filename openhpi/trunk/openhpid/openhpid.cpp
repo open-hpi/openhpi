@@ -479,15 +479,15 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht,
         gpointer thrdid = g_thread_self();
         
         hm = HpiMarshalFind(thrdinst->header.m_id);
-        
-        // init reply header
-        flags_save = thrdinst->header.m_flags;
 
+
+        // init reply header
+        unsigned char m_flags;
+        m_flags = thrdinst->header.m_flags;
         thrdinst->MessageHeaderInit((tMessageType) thrdinst->header.m_type, 0,
                                         thrdinst->header.m_id, hm->m_reply_len );
+        thrdinst->header.m_flags = m_flags;
 
-
-        thrdinst->header.m_flags = flags_save;
 
         switch( thrdinst->header.m_id ) {
                 case eFsaHpiVersionGet: {
