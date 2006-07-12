@@ -621,9 +621,7 @@ int main(int argc, char **argv)
               (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MAJOR) &&
               (!(logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MINOR)) &&
               (logentry.Event.EventDataUnion.SensorEvent.PreviousState == SAHPI_ES_UNSPECIFIED) &&
-              (logentry.Event.EventDataUnion.SensorEvent.CurrentState == SAHPI_ES_UNSPECIFIED) &&
-              (logentry.Event.EventDataUnion.SensorEvent.TriggerReading.Value.SensorFloat64 == (double)87) &&
-              (logentry.Event.EventDataUnion.SensorEvent.TriggerThreshold.Value.SensorFloat64 == (double)75))) {
+              (logentry.Event.EventDataUnion.SensorEvent.CurrentState & SAHPI_ES_UPPER_MAJOR))) {
                 printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                 oh_print_event(&(logentry.Event), (rdr.RdrType != SAHPI_NO_RECORD) ? &rdr.Entity : NULL, 1);
                 return -1;

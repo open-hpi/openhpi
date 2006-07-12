@@ -578,7 +578,7 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 		err = snmp_bc_set_cur_prev_event_states(handle, eventmap_info, 
 							&working, is_recovery_event);
 		
-		/* Set optional event threshold triSaHpiRptEntryT *rptgger values */
+		/* Set optional event threshold values */
 		if (is_threshold_event == SAHPI_TRUE) {
 			if (oh_encode_sensorreading(&thresh_read_value,
 						    working.EventDataUnion.SensorEvent.TriggerReading.Type,
