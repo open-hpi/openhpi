@@ -28,12 +28,12 @@
 #include <glib.h>
 #include <errno.h>
 #include <getopt.h>
+
 extern "C"
 {
 #include <SaHpi.h>
 #include <oHpi.h>
 #include <oh_error.h>
-#include <oh_threaded.h>
 
 #include <oh_initialize.h>
 }
