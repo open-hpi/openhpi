@@ -132,9 +132,6 @@ static gpointer oh_event_thread_loop(gpointer data)
                 error = oh_process_events();
                 if (error != SA_OK) dbg("Error on processing of events.");
 
-                trace("Thread processing hotswap policy");
-                process_hotswap_policy();
-
                 /* Let oh_wake_event_thread know this thread is done */
                 g_cond_broadcast(oh_event_thread_wait);
                 g_get_current_time(&time);

@@ -1,7 +1,7 @@
 /*      -*- linux-c -*-
  *
  * Copyright (c) 2003 by Intel Corp.
- * (C) Copright IBM Corp 2003, 2004, 2005
+ * (C) Copright IBM Corp 2003-2006
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -138,11 +138,6 @@ struct oh_handler_state {
         0xee, 0x77, 0x8a, 0x5f, 0x32, 0xcf, 0x45, 0x3b,
         0xa6, 0x50, 0x51, 0x88, 0x14, 0xdc, 0x95, 0x6c
 };
-
-static const uuid_t UUID_OH_ABI_V2 = {
-        0x13, 0xad, 0xfc, 0xc7, 0xd7, 0x88, 0x4a, 0xaf,
-        0xb9, 0x66, 0x5c, 0xd3, 0x0b, 0xdc, 0xd8, 0x08
-};
 */
 
 /* 13adfcc7-d788-4aaf-b966-5cd30bdcd808 */
@@ -167,7 +162,7 @@ static const uuid_t UUID_OH_ABI_V2 = {
 
 
 struct oh_abi_v2 {
-        /**
+        /***
          * The function create an instance
          * @return the handler of the instance, this can be recognised
          * as a domain in upper layer
@@ -175,344 +170,484 @@ struct oh_abi_v2 {
          * for example, "snmp" for SNMP, "smi" for IPMI SMI
          * @param addr the interface name.
          * for example, "ipaddr:port" for SNMP, "if_num" for IPMI SMI
-         */
+         **/
         void *(*open)(GHashTable *handler_config);
 
         void (*close)(void *hnd);
-        /**
-         * The function wait for event.
-         *
+
+	/********************************************************************
+	 * PLUGIN HPI ABIs - These plugin functions implement a large part of
+	 * the HPI APIs from the specification.
+	 ********************************************************************/
+
+        /***
+         * saHpiEventGet - passed down to plugin
          *
          * @remark at the start-up, plugins must send out res/rdr event for all
          * resources and rdrs so as to OpenHPI can build up RPT/RDR.
          * @return >0 if an event is returned; 0 if timeout; otherwise an error
          * occur.
          * @param event if existing, plugin store the event.
-         */
+         **/
         SaErrorT (*get_event)(void *hnd, struct oh_event *event);
 
-        /**
-         * prompt plug-in to search for new resources
-         */
+        /***
+         * saHpiDiscover, passed down to plugin
+         **/
         SaErrorT (*discover_resources)(void *hnd);
         SaErrorT (*discover_domain_resources)(void *hnd, SaHpiDomainIdT did);
 
-        /**
-         * set resource tag, this is passed down so the device has
+        /***
+         * saHpiResourceTagSet, this is passed down so the device has
          * a chance to set it in nv storage if it likes
-         */
-        SaErrorT (*set_resource_tag)(void *hnd, SaHpiResourceIdT id, SaHpiTextBufferT *tag);
+         **/
+        SaErrorT (*set_resource_tag)(void *hnd,
+				     SaHpiResourceIdT id,
+				     SaHpiTextBufferT *tag);
 
-        /**
-         * set resource severity is pushed down so the device has
+        /***
+         * saHpiResourceSeveritySet is pushed down so the device has
          * a chance to set it in nv storage
-         */
-        SaErrorT (*set_resource_severity)(void *hnd, SaHpiResourceIdT id, SaHpiSeverityT sev);
+         **/
+        SaErrorT (*set_resource_severity)(void *hnd,
+					  SaHpiResourceIdT id,
+					  SaHpiSeverityT sev);
 
-        /******************************************************
-         *
-         *  Event Log functions
-         *
-         *****************************************************/
+        /*****************
+         * EVENT LOG ABIs
+         *****************/
 
-        /**
-         * get info from EL
-         */
-        SaErrorT (*get_el_info)(void *hnd, SaHpiResourceIdT id, SaHpiEventLogInfoT *info);
+        /***
+         * saHpiEventLogInfoGet
+         **/
+        SaErrorT (*get_el_info)(void *hnd,
+				SaHpiResourceIdT id,
+				SaHpiEventLogInfoT *info);
 
-        /**
-         * set time to EL
-         */
-        SaErrorT (*set_el_time)(void *hnd, SaHpiResourceIdT id, SaHpiTimeT time);
+        /***
+         * saHpiEventLogTimeSet
+         **/
+        SaErrorT (*set_el_time)(void *hnd,
+				SaHpiResourceIdT id,
+				SaHpiTimeT time);
 
-        /**
-         * add entry to EL
-         */
-        SaErrorT (*add_el_entry)(void *hnd, SaHpiResourceIdT id, const SaHpiEventT *Event);
+        /***
+         * saHpiEventLogEntryAdd
+         **/
+        SaErrorT (*add_el_entry)(void *hnd,
+				 SaHpiResourceIdT id,
+				 const SaHpiEventT *Event);
 
-        /**
-         * get entry in EL
-         */
-        SaErrorT (*get_el_entry)(void *hnd, SaHpiResourceIdT id,
-                                            SaHpiEventLogEntryIdT current,
-                                            SaHpiEventLogEntryIdT *prev,
-                                            SaHpiEventLogEntryIdT *next,
-                                            SaHpiEventLogEntryT *entry,
-                                            SaHpiRdrT  *rdr,
-                                            SaHpiRptEntryT  *rptentry);
+        /***
+         * saHpiEventLogEntryGet
+         **/
+        SaErrorT (*get_el_entry)(void *hnd,
+				 SaHpiResourceIdT id,
+				 SaHpiEventLogEntryIdT current,
+				 SaHpiEventLogEntryIdT *prev,
+				 SaHpiEventLogEntryIdT *next,
+				 SaHpiEventLogEntryT *entry,
+				 SaHpiRdrT *rdr,
+				 SaHpiRptEntryT *rptentry);
 
-        /**
-         * clear EL
-         */
+        /***
+         * saHpiEventLogClear
+         **/
         SaErrorT (*clear_el)(void *hnd, SaHpiResourceIdT id);
 
-        /**
-         * set the EL state (enabled/disabled)
-         */
+        /***
+         * saHpiEventLogStateSet
+         **/
         SaErrorT (*set_el_state)(void *hnd, SaHpiResourceIdT id, SaHpiBoolT e);
 
-        /**
-         * reset EL overflow
-         */
+        /***
+         * saHpiEventLogOverflowReset
+         **/
         SaErrorT (*reset_el_overflow)(void *hnd, SaHpiResourceIdT id);
 
-        /* end of EL functions */
+	/**************
+	 * SENSOR ABIs
+	 **************/
 
-        /**
-         * get sensor reading
-        */
-        SaErrorT (*get_sensor_reading)(void *hnd, SaHpiResourceIdT id,
+        /***
+         * saHpiSensorReadingGet
+         **/
+        SaErrorT (*get_sensor_reading)(void *hnd,
+				       SaHpiResourceIdT id,
                                        SaHpiSensorNumT num,
                                        SaHpiSensorReadingT *reading,
                                        SaHpiEventStateT *state);
-        /**
-         * get sensor thresholds
-         */
-        SaErrorT (*get_sensor_thresholds)(void *hnd, SaHpiResourceIdT id,
-                                     SaHpiSensorNumT num,
-                                     SaHpiSensorThresholdsT *thres);
+        /***
+         * saHpiSensorThresholdsGet
+         **/
+        SaErrorT (*get_sensor_thresholds)(void *hnd,
+					  SaHpiResourceIdT id,
+					  SaHpiSensorNumT num,
+					  SaHpiSensorThresholdsT *thres);
 
-        /**
-         * set sensor thresholds
-         */
-        SaErrorT (*set_sensor_thresholds)(void *hnd, SaHpiResourceIdT id,
-                                     SaHpiSensorNumT num,
-                                     const SaHpiSensorThresholdsT *thres);
+        /***
+         * saHpiSensorThresholdsSet
+         **/
+        SaErrorT (*set_sensor_thresholds)(void *hnd,
+					  SaHpiResourceIdT id,
+					  SaHpiSensorNumT num,
+					  const SaHpiSensorThresholdsT *thres);
 
-        /**
-         * get sensor enable
-        */
+        /***
+         * saHpiSensorEnableGet
+         **/
+        SaErrorT (*get_sensor_enable)(void *hnd,
+				      SaHpiResourceIdT id,
+                                      SaHpiSensorNumT num,
+                                      SaHpiBoolT *enable);
 
-        SaErrorT (*get_sensor_enable)(void *hnd, SaHpiResourceIdT id,
-                                             SaHpiSensorNumT num,
-                                             SaHpiBoolT *enable);
-
-        /**
-         * set sensor enable
-        */
-
-        SaErrorT (*set_sensor_enable)(void *hnd, SaHpiResourceIdT id,
+        /***
+         * saHpiSensorEnableSet
+         **/
+        SaErrorT (*set_sensor_enable)(void *hnd,
+				      SaHpiResourceIdT id,
                                       SaHpiSensorNumT num,
                                       SaHpiBoolT enable);
 
-        /**
-         * get sensor event enables
-         */
-        SaErrorT (*get_sensor_event_enables)(void *hnd, SaHpiResourceIdT id,
-                                        SaHpiSensorNumT num,
-                                        SaHpiBoolT *enables);
+        /***
+         * saHpiSensorEventEnableGet
+         **/
+        SaErrorT (*get_sensor_event_enables)(void *hnd,
+					     SaHpiResourceIdT id,
+					     SaHpiSensorNumT num,
+					     SaHpiBoolT *enables);
 
-        /**
-         * set sensor event enables
-         */
-        SaErrorT (*set_sensor_event_enables)(void *hnd, SaHpiResourceIdT id,
-                                    SaHpiSensorNumT num,
-                                    const SaHpiBoolT enables);
+        /***
+         * saHpiSensorEventEnableSet
+         **/
+        SaErrorT (*set_sensor_event_enables)(void *hnd,
+					     SaHpiResourceIdT id,
+                                    	     SaHpiSensorNumT num,
+                                    	     const SaHpiBoolT enables);
 
-        /**
-         * get sensor event masks
-         */
-        SaErrorT (*get_sensor_event_masks)(void *hnd, SaHpiResourceIdT id,
-                                           SaHpiSensorNumT  num,
+        /***
+         * saHpiSensorEventMasksGet
+         **/
+        SaErrorT (*get_sensor_event_masks)(void *hnd,
+					   SaHpiResourceIdT id,
+                                           SaHpiSensorNumT num,
                                            SaHpiEventStateT *AssertEventMask,
                                            SaHpiEventStateT *DeassertEventMask);
-        /**
-         * set sensor event masks
-         */
+
+	/***
+         * saHpiSensorEventMasksSet
+         **/
         SaErrorT (*set_sensor_event_masks)(void *hnd, SaHpiResourceIdT id,
                                            SaHpiSensorNumT num,
                                            SaHpiSensorEventMaskActionT act,
                                            SaHpiEventStateT AssertEventMask,
                                            SaHpiEventStateT DeassertEventMask);
 
+	/***************
+	 * CONTROL ABIs
+	 ***************/
 
-        /* SLD - 6/8/2004 we might want to change the names of these calls
-           as control calls also get mode now */
+        /***
+         * saHpiControlGet
+         **/
+        SaErrorT (*get_control_state)(void *hnd,
+				      SaHpiResourceIdT id,
+				      SaHpiCtrlNumT num,
+				      SaHpiCtrlModeT *mode,
+				      SaHpiCtrlStateT *state);
 
-        /**
-         * get control state
-         */
-        SaErrorT (*get_control_state)(void *hnd, SaHpiResourceIdT id,
-                                  SaHpiCtrlNumT num,
-                                  SaHpiCtrlModeT *mode,
-                                  SaHpiCtrlStateT *state);
+        /***
+         * saHpiControlSet
+         **/
+        SaErrorT (*set_control_state)(void *hnd,
+				      SaHpiResourceIdT id,
+                                      SaHpiCtrlNumT num,
+                                      SaHpiCtrlModeT mode,
+                                      SaHpiCtrlStateT *state);
 
-        /**
-         * set control state
-         */
-        SaErrorT (*set_control_state)(void *hnd, SaHpiResourceIdT id,
-                                  SaHpiCtrlNumT num,
-                                  SaHpiCtrlModeT mode,
-                                  SaHpiCtrlStateT *state);
+	/*****************
+	 * INVENTORY ABIs
+	 *****************/
 
-        /**
-         * get Inventory Data Record
-         */
-        SaErrorT (*get_idr_info)(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid, SaHpiIdrInfoT *idrinfo);
+	/***
+         * saHpiIdrInfoGet
+         **/
+        SaErrorT (*get_idr_info)(void *hnd,
+				 SaHpiResourceIdT rid,
+				 SaHpiIdrIdT idrid,
+				 SaHpiIdrInfoT *idrinfo);
 
-        /**
-         * get Inventory Data Area Header
-         */
-        SaErrorT (*get_idr_area_header)(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid, SaHpiIdrAreaTypeT areatype,
-                              SaHpiEntryIdT areaid,  SaHpiEntryIdT *nextareaid, SaHpiIdrAreaHeaderT *header);
+        /***
+         * saHpiIdrAreaHeaderGet
+         **/
+        SaErrorT (*get_idr_area_header)(void *hnd,
+					SaHpiResourceIdT rid,
+					SaHpiIdrIdT idrid,
+					SaHpiIdrAreaTypeT areatype,
+                              		SaHpiEntryIdT areaid,
+					SaHpiEntryIdT *nextareaid,
+					SaHpiIdrAreaHeaderT *header);
 
-        /**
-         * add Inventory Data Area
-         */
-        SaErrorT (*add_idr_area)(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid, SaHpiIdrAreaTypeT areatype, SaHpiEntryIdT *areaid);
+        /***
+         * saHpiIdrAreaAdd
+         **/
+        SaErrorT (*add_idr_area)(void *hnd,
+				 SaHpiResourceIdT rid,
+				 SaHpiIdrIdT idrid,
+				 SaHpiIdrAreaTypeT areatype,
+				 SaHpiEntryIdT *areaid);
 
-        /**
-         * delete Inventory Data Area
-         */
-        SaErrorT (*del_idr_area)(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid, SaHpiEntryIdT areaid);
+        /***
+         * saHpiIdrAreaDelete
+         **/
+        SaErrorT (*del_idr_area)(void *hnd,
+				 SaHpiResourceIdT rid,
+				 SaHpiIdrIdT idrid,
+				 SaHpiEntryIdT areaid);
 
-        /**
-         * get Inventory Data Field
-         */
-        SaErrorT (*get_idr_field)(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid,
-                             SaHpiEntryIdT areaid, SaHpiIdrFieldTypeT fieldtype, SaHpiEntryIdT fieldid,
-                             SaHpiEntryIdT *nextfieldid, SaHpiIdrFieldT *field);
+        /***
+         * saHpiIdrFieldGet
+         **/
+        SaErrorT (*get_idr_field)(void *hnd,
+				  SaHpiResourceIdT rid,
+				  SaHpiIdrIdT idrid,
+				  SaHpiEntryIdT areaid,
+				  SaHpiIdrFieldTypeT fieldtype,
+				  SaHpiEntryIdT fieldid,
+                             	  SaHpiEntryIdT *nextfieldid,
+				  SaHpiIdrFieldT *field);
 
-        /**
-         * add Inventory Data Field
-         */
-        SaErrorT (*add_idr_field)(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid, SaHpiIdrFieldT *field );
+        /***
+         * saHpiIdrFieldAdd
+         **/
+        SaErrorT (*add_idr_field)(void *hnd,
+				  SaHpiResourceIdT rid,
+				  SaHpiIdrIdT idrid,
+				  SaHpiIdrFieldT *field);
 
-        /**
-         * set Inventory Data Field
-         */
-        SaErrorT (*set_idr_field)(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid, SaHpiIdrFieldT *field );
+        /***
+         * saHpiIdrFieldSet
+         **/
+        SaErrorT (*set_idr_field)(void *hnd,
+				  SaHpiResourceIdT rid,
+				  SaHpiIdrIdT idrid,
+				  SaHpiIdrFieldT *field);
 
-        /**
-         * delete Inventory Data Field
-         */
-        SaErrorT (*del_idr_field)(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid, SaHpiEntryIdT areaid, SaHpiEntryIdT fieldid);
+        /***
+         * saHpiIdrFieldDelete
+         **/
+        SaErrorT (*del_idr_field)(void *hnd,
+				  SaHpiResourceIdT rid,
+				  SaHpiIdrIdT idrid,
+				  SaHpiEntryIdT areaid,
+				  SaHpiEntryIdT fieldid);
 
-        /**
-         * get watchdog timer info
-         */
-        SaErrorT (*get_watchdog_info)(void *hnd, SaHpiResourceIdT id,
-                                 SaHpiWatchdogNumT num,
-                                 SaHpiWatchdogT *wdt);
+        /***
+         * saHpiWatchdogTimerGet
+         **/
+        SaErrorT (*get_watchdog_info)(void *hnd,
+				      SaHpiResourceIdT id,
+                                      SaHpiWatchdogNumT num,
+                                      SaHpiWatchdogT *wdt);
 
-        /**
-         * set watchdog timer info
-         */
-        SaErrorT (*set_watchdog_info)(void *hnd, SaHpiResourceIdT id,
-                                 SaHpiWatchdogNumT num,
-                                 SaHpiWatchdogT *wdt);
+        /***
+         * saHpiWatchdogTimerSet
+         **/
+        SaErrorT (*set_watchdog_info)(void *hnd,
+				      SaHpiResourceIdT id,
+                                      SaHpiWatchdogNumT num,
+                                      SaHpiWatchdogT *wdt);
 
-        /**
-         * reset watchdog timer info
-         */
-        SaErrorT (*reset_watchdog)(void *hnd, SaHpiResourceIdT id,
-                              SaHpiWatchdogNumT num);
+        /***
+         * saHpiWatchdogTimerReset
+         **/
+        SaErrorT (*reset_watchdog)(void *hnd,
+				   SaHpiResourceIdT id,
+                              	   SaHpiWatchdogNumT num);
 
-        /**********************************************************************
-         * Annuciator Functions
-         *
-         *********************************************************************/
+        /******************
+         * ANNUCIATOR ABIs
+         ******************/
 
         /* the first 5 Annunciator functions are really operating on
            a single Annunciator and doing things to the announcements
            that it contains.  For this reason the functions are named
            _announce */
-        SaErrorT (*get_next_announce)(void *, SaHpiResourceIdT,
-                                      SaHpiAnnunciatorNumT, SaHpiSeverityT,
-                                      SaHpiBoolT, SaHpiAnnouncementT *);
+	/***
+	 * saHpiAnnunciatorGetNext
+	 **/
+        SaErrorT (*get_next_announce)(void *hnd,
+				      SaHpiResourceIdT id,
+                                      SaHpiAnnunciatorNumT num,
+				      SaHpiSeverityT sev,
+                                      SaHpiBoolT ack,
+				      SaHpiAnnouncementT *ann);
 
-        SaErrorT (*get_announce)(void *, SaHpiResourceIdT,
-                                 SaHpiAnnunciatorNumT, SaHpiEntryIdT, SaHpiAnnouncementT *);
+	/***
+	 * saHpiAnnunciatorGet
+	 **/
+        SaErrorT (*get_announce)(void *hnd,
+				 SaHpiResourceIdT id,
+                                 SaHpiAnnunciatorNumT num,
+				 SaHpiEntryIdT annid,
+				 SaHpiAnnouncementT *ann);
 
-        SaErrorT (*ack_announce)(void *, SaHpiResourceIdT,
-                             SaHpiAnnunciatorNumT, SaHpiEntryIdT, SaHpiSeverityT);
+	/***
+	 * saHpiAnnunciatorAcknowledge
+	 **/
+	SaErrorT (*ack_announce)(void *hnd,
+				 SaHpiResourceIdT id,
+                                 SaHpiAnnunciatorNumT num,
+				 SaHpiEntryIdT annid,
+				 SaHpiSeverityT sev);
 
-        SaErrorT (*add_announce)(void *, SaHpiResourceIdT,
-                             SaHpiAnnunciatorNumT, SaHpiAnnouncementT *);
+	/***
+	 * saHpiAnnunciatorAdd
+	 **/
+        SaErrorT (*add_announce)(void *hnd,
+				 SaHpiResourceIdT id,
+                                 SaHpiAnnunciatorNumT num,
+				 SaHpiAnnouncementT *ann);
 
-        SaErrorT (*del_announce)(void *, SaHpiResourceIdT,
-                             SaHpiAnnunciatorNumT, SaHpiEntryIdT, SaHpiSeverityT);
+	/***
+	 * saHpiAnnunciatorDelete
+	 **/
+        SaErrorT (*del_announce)(void *hnd,
+				 SaHpiResourceIdT id,
+                             	 SaHpiAnnunciatorNumT num,
+				 SaHpiEntryIdT annid,
+				 SaHpiSeverityT sev);
 
         /* the last 2 functions deal with Annunciator mode setting */
 
-        SaErrorT (*get_annunc_mode)(void *hnd, SaHpiResourceIdT id,
-                                    SaHpiAnnunciatorNumT num, SaHpiAnnunciatorModeT *mode);
-        SaErrorT (*set_annunc_mode)(void *hnd, SaHpiResourceIdT id,
-                                    SaHpiAnnunciatorNumT num, SaHpiAnnunciatorModeT mode);
+	/***
+	 * saHpiAnnunciatorModeGet
+	 **/
+        SaErrorT (*get_annunc_mode)(void *hnd,
+				    SaHpiResourceIdT id,
+                                    SaHpiAnnunciatorNumT num,
+				    SaHpiAnnunciatorModeT *mode);
 
+	/***
+	 * saHpiAnnunciatorModeSet
+	 **/
+	SaErrorT (*set_annunc_mode)(void *hnd,
+				    SaHpiResourceIdT id,
+                                    SaHpiAnnunciatorNumT num,
+				    SaHpiAnnunciatorModeT mode);
 
-                                   
-                                    
-        /**
-         * hotswap policy cancel
-         */
-        SaErrorT (*hotswap_policy_cancel)(void *hnd, SaHpiResourceIdT id,
-                                 SaHpiTimeoutT timeout);
+	/***************
+	 * HOTSWAP ABIs
+	 ***************/
 
-        /**
-         * set autoinsert timeout
-         */
-        SaErrorT (*set_autoinsert_timeout)(void *hnd, SaHpiTimeoutT timeout);
+	/***
+         * saHpiHotSwapPolycyCancel
+         **/
+        SaErrorT (*hotswap_policy_cancel)(void *hnd,
+					  SaHpiResourceIdT id,
+                                 	  SaHpiTimeoutT timeout);
 
-        
-        /**
-         * get hotswap state
-         */
-        SaErrorT (*get_hotswap_state)(void *hnd, SaHpiResourceIdT id,
-                                 SaHpiHsStateT *state);
+        /***
+         * saHpiAutoInsertTimeoutSet
+         **/
+        SaErrorT (*set_autoinsert_timeout)(void *hnd,
+					   SaHpiTimeoutT timeout);
 
-        /**
-         * set hotswap state
-         */
-        SaErrorT (*set_hotswap_state)(void *hnd, SaHpiResourceIdT id,
-                                 SaHpiHsStateT state);
+	/***
+	 * saHpiAutoExtractTimeoutGet
+	 **/
+	SaErrorT (*get_autoextract_timeout)(void *hnd,
+					    SaHpiResourceIdT id,
+					    SaHpiTimeoutT *timeout);
 
-        /**
-         * request hotswap state
-         */
-        SaErrorT (*request_hotswap_action)(void *hnd, SaHpiResourceIdT id,
-                                      SaHpiHsActionT act);
+	/***
+	 * saHpiAutoExtractTimeoutSet
+	 **/
+	SaErrorT (*set_autoextract_timeout)(void *hnd,
+					    SaHpiResourceIdT id,
+					    SaHpiTimeoutT timeout);
 
-        /**
-         * get power state
-         */
-        SaErrorT (*get_power_state)(void *hnd, SaHpiResourceIdT id,
-                               SaHpiPowerStateT *state);
+        /***
+         * saHpiHotSwapStateGet
+         **/
+        SaErrorT (*get_hotswap_state)(void *hnd,
+				      SaHpiResourceIdT id,
+                                      SaHpiHsStateT *state);
 
-        /**
-         * set power state
-         */
-        SaErrorT (*set_power_state)(void *hnd, SaHpiResourceIdT id,
-                               SaHpiPowerStateT state);
+        /***
+         * saHpiHotSwapStateSet
+         **/
+        SaErrorT (*set_hotswap_state)(void *hnd,
+				      SaHpiResourceIdT id,
+                                      SaHpiHsStateT state);
 
-        /**
-         * get indicator state
-         */
-        SaErrorT (*get_indicator_state)(void *hnd, SaHpiResourceIdT id,
-                                   SaHpiHsIndicatorStateT *state);
+        /***
+	 * saHpiHotSwapActionRequest
+         **/
+        SaErrorT (*request_hotswap_action)(void *hnd,
+					   SaHpiResourceIdT id,
+                                           SaHpiHsActionT act);
 
-        /**
-         * set indicator state
-         */
-        SaErrorT (*set_indicator_state)(void *hnd, SaHpiResourceIdT id,
-                                   SaHpiHsIndicatorStateT state);
+	/***
+	 * saHpiHotSwapIndicatorStateGet
+         **/
+        SaErrorT (*get_indicator_state)(void *hnd,
+					SaHpiResourceIdT id,
+                                        SaHpiHsIndicatorStateT *state);
 
-        /**
-         * control parameter
-         */
-        SaErrorT (*control_parm)(void *hnd, SaHpiResourceIdT id, SaHpiParmActionT act);
+        /***
+	 * saHpiHotSwapIndicatorStateSet
+         **/
+        SaErrorT (*set_indicator_state)(void *hnd,
+					SaHpiResourceIdT id,
+                                        SaHpiHsIndicatorStateT state);
 
-        /**
-         * get reset state
-         */
-        SaErrorT (*get_reset_state)(void *hnd, SaHpiResourceIdT id,
-                               SaHpiResetActionT *act);
+	/*************
+	 * POWER ABIs
+	 *************/
 
-        /**
-         * set_reset state
-         */
-        SaErrorT (*set_reset_state)(void *hnd, SaHpiResourceIdT id,
-                               SaHpiResetActionT act);
+        /***
+         * saHpiResourcePowerStateGet
+         **/
+        SaErrorT (*get_power_state)(void *hnd,
+				    SaHpiResourceIdT id,
+                               	    SaHpiPowerStateT *state);
+
+        /***
+         * saHpiResourcePowerStateSet
+         **/
+        SaErrorT (*set_power_state)(void *hnd,
+				    SaHpiResourceIdT id,
+                               	    SaHpiPowerStateT state);
+
+	/****************
+	 * PARAMETER ABIs
+	 *****************/
+
+	/***
+         * saHpiParmControl
+         **/
+        SaErrorT (*control_parm)(void *hnd,
+				 SaHpiResourceIdT id,
+				 SaHpiParmActionT act);
+
+	/*************
+	 * RESET ABIs
+	 *************/
+
+        /***
+         * saHpiResourceResetStateGet
+         **/
+        SaErrorT (*get_reset_state)(void *hnd,
+				    SaHpiResourceIdT id,
+                               	    SaHpiResetActionT *act);
+
+        /***
+         * saHpiResourceResetStateSet
+         **/
+        SaErrorT (*set_reset_state)(void *hnd,
+				    SaHpiResourceIdT id,
+                               	    SaHpiResetActionT act);
 
 
 };
