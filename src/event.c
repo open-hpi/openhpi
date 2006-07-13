@@ -184,12 +184,6 @@ static int process_hpi_event(struct oh_event *full_event)
                 e->rdr.RdrType = SAHPI_NO_RECORD;
         }
 
-        if (e->res.ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP
-            && e->event.EventType == SAHPI_ET_HOTSWAP) {
-                hotswap_push_event(&hs_eq, full_event);
-                trace("Pushed hotswap event");
-        }
-
         oh_add_event_to_del(d->id, e);
         trace("Added event to EL");
 
@@ -246,14 +240,16 @@ static int process_resource_event(struct oh_event *e)
         struct oh_event hpie;
 
         d = oh_get_domain(e->did);
-        if(!d) {
+        if (!d) {
                 dbg("Domain %d doesn't exist", e->did);
                 return -1;
         }
-        rpt = &(d->rpt);
+
+	rpt = &(d->rpt);
 
         memset(&hpie, 0, sizeof(hpie));
         hpie.type = OH_ET_HPI;
+
         if (e->type == OH_ET_RESOURCE_DEL) {
                 rv = oh_remove_resource(rpt,e->u.res_event.entry.ResourceId);
                 trace("Resource %d in Domain %d has been REMOVED.",
@@ -271,19 +267,11 @@ static int process_resource_event(struct oh_event *e)
                         hpie.u.hpi_event.event.Timestamp = SAHPI_TIME_UNSPECIFIED;
 
         } else {
-                struct oh_resource_data *rd = g_malloc0(sizeof(struct oh_resource_data));
+                unsigned int *hid = g_malloc0(sizeof(unsigned int));
 
-                if (!rd) {
-                        oh_release_domain(d);
-                        dbg("Couldn't allocate resource data");
-                        return SA_ERR_HPI_OUT_OF_MEMORY;
-                }
+                *hid = e->hid;
 
-                rd->hid = e->hid;
-                rd->controlled = 0;
-                rd->auto_extract_timeout = get_default_hotswap_auto_extract_timeout();
-
-                rv = oh_add_resource(rpt,&(e->u.res_event.entry),rd,0);
+                rv = oh_add_resource(rpt, &(e->u.res_event.entry), hid, 0);
                 trace("Resource %d in Domain %d has been ADDED.",
                       e->u.res_event.entry.ResourceId,
                       e->did);

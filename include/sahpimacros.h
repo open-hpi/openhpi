@@ -70,14 +70,14 @@
  */
 #define OH_HANDLER_GET(d, rid, h) \
         do { \
-                struct oh_resource_data *rd; \
-                rd = oh_get_resource_data(&(d->rpt), rid); \
-                if(!rd || !rd->hid) { \
+                unsigned int *hid = NULL; \
+                hid = oh_get_resource_data(&(d->rpt), rid); \
+                if (!hid) { \
                         dbg("Can't find handler for Resource %d in Domain %d", rid, d->id); \
                         oh_release_domain(d); \
                         return SA_ERR_HPI_INVALID_RESOURCE; \
                 } \
-                h = oh_get_handler(rd->hid); \
+                h = oh_get_handler(*hid); \
         } while (0)
 
 /*

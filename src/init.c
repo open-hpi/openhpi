@@ -37,7 +37,7 @@
 int _init(void)
 {
         SaErrorT rval;
-        SaHpiDomainCapabilitiesT capabilities = 0x00000000;
+        SaHpiDomainCapabilitiesT capabilities = 0X00000001;
         SaHpiTextBufferT tag;
 
         data_access_lock();

@@ -37,9 +37,9 @@
 int init(void)
 {
         SaErrorT rval;
-        SaHpiDomainCapabilitiesT capabilities = 0x00000000;
+        SaHpiDomainCapabilitiesT capabilities = 0X00000001;
         SaHpiTextBufferT tag;
-        
+
         data_access_lock();
 
         printf("************ oh_threaded_init init() **********\n");
@@ -88,7 +88,7 @@ int init(void)
         */
         struct timespec waittime = { .tv_sec = 1, .tv_nsec = 1000L};
         nanosleep(&waittime, NULL);
-            
+
         /* Do not use SA_OK here in case it is ever changed to something
          * besides zero, The runtime stuff depends on zero being returned here
          * in order for the shared library to be completely initialized.
@@ -149,7 +149,7 @@ int _initialize(int daemon)
 
                 /* Load plugins and create handlers*/
                 oh_process_config(&config);
-            
+
                 /*
                 * Wipes away configuration lists (plugin_names and handler_configs).
                 * global_params is not touched.
@@ -180,7 +180,7 @@ int _initialize(int daemon)
                 dbg("Set init state");
 
                 /* infrastructure initialization has completed at this point */
- 
+
                 /* Check if there are any handlers loaded */
                 if (config.handlers_defined == 0) {
                         dbg("*Warning*: No handler definitions found in config file."
@@ -194,7 +194,7 @@ int _initialize(int daemon)
                     my_global_param.u.daemon_mode, daemon);
 
         }
-            
+
         /* Do not use SA_OK here in case it is ever changed to something
         * besides zero, The runtime stuff depends on zero being returned here
         * in order for the shared library to be completely initialized.
