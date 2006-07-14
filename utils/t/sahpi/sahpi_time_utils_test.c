@@ -97,6 +97,11 @@ int main(int argc, char **argv)
 			printf("  Not receiving expected string SAHPI_TIME_UNSPECIFIED\n");
 			return -1;
 		}
+		if (buffer.DataLength < strlen("SAHPI_TIME_UNSPECIFIED")) {
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  DataLength was not set to correct number");
+			return -1;
+		}
 
 	}
 	
