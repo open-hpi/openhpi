@@ -967,6 +967,10 @@ int oh_load_plugin_functions(struct oh_plugin *plugin, struct oh_abi_v2 **abi)
                                                 "oh_set_hotswap_state");
         (*abi)->request_hotswap_action    = lt_dlsym(plugin->dl_handle,
                                                 "oh_request_hotswap_action");
+	(*abi)->get_autoextract_timeout   = lt_dlsym(plugin->dl_handle,
+                                                "oh_get_autoextract_timeout");
+	(*abi)->set_autoextract_timeout   = lt_dlsym(plugin->dl_handle,
+                                                "oh_set_autoextract_timeout");
         (*abi)->get_power_state           = lt_dlsym(plugin->dl_handle,
                                                 "oh_get_power_state");
         (*abi)->set_power_state           = lt_dlsym(plugin->dl_handle,
