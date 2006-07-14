@@ -60,7 +60,7 @@ SaErrorT oh_decode_time(SaHpiTimeT time, SaHpiTextBufferT *buffer)
                 strcpy((char *)working.Data,"SAHPI_TIME_UNSPECIFIED     ");
 		count = sizeof("SAHPI_TIME_UNSPECIFIED     ");
         } else if (time > SAHPI_TIME_UNSPECIFIED) { /*invalid time*/
-                strcpy((char *)working.Data,"invalid time     ");
+                strcpy((char *)working.Data,"Invalid time     ");
 		count = sizeof("Invalid time     ");
         } else {   /*relative time*/
                 tt = time / 1000000000;
@@ -70,6 +70,7 @@ SaErrorT oh_decode_time(SaHpiTimeT time, SaHpiTextBufferT *buffer)
         }
 
         if (count == 0) { return(SA_ERR_HPI_INTERNAL_ERROR); }
+	else working.DataLength = count;
 	
 	err = oh_copy_textbuffer(buffer, &working);
 	if (err != SA_OK) { return(err); }
