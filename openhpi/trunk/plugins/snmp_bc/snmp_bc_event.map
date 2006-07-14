@@ -58,9 +58,6 @@ EN_SWITCH_NON_REDUNDANT|0x0EA16000|SAHPI_MINOR|OVR_SEV|"Chassis Running Nonredun
 EN_SWITCH_NON_REDUNDANT|0x0EA16000|SAHPI_MINOR|OVR_SEV|"Chassis running with nonredundant I/O modules"
 
 # Power Module Redundancy Sensor - event-only
-# FIXME:: Last 2 are missing from MMv2.- Are there replacements or were they never asserted?
-# Shouldn't last two be mapped to power domain x sensors?
-# Do we need this and the power domain x sensors?. When is EN_NR_PWR_SUPPLY raised?
 EN_NR_PWR_SUPPLY|0x08080001|SAHPI_MINOR|OVR_SEV|"Insufficient chassis power to support redundancy"
 EN_NR_PWR_SUPPLY_DOM_1|0x08081001|SAHPI_MINOR|OVR_SEV|"Power modules are nonredundant in domain 1"
 EN_NR_PWR_SUPPLY_DOM_2|0x08081002|SAHPI_MINOR|OVR_SEV|"Power modules are nonredundant in domain 2"
@@ -131,14 +128,14 @@ EN_I2C_HI_FAULT_3_35V|0x08033481|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"System over rec
 EN_I2C_HI_FAULT_3_35V|0x08033481|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"Chassis 3.3V over recommended voltage"
 # FIXME:: MM BUG: - had EN_PFA_HI_FAULT_3_35V (blade severity but chassis string)
 # need to add EN_I2C_LO_FAULT_3_35V with right severity
-EN_I2C_LO_FAULT_3_35V|0xFFFFFFF0|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"System under recommended voltage on +3.3v."
-EN_I2C_LO_FAULT_3_35V|0xFFFFFFF0|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"Chassis 3.3V under recommended voltage"
+EN_I2C_LO_FAULT_3_35V|0xFF000000|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"System under recommended voltage on +3.3v."
+EN_I2C_LO_FAULT_3_35V|0xFF000000|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"Chassis 3.3V under recommended voltage"
 
 # System 5 Volt Sensor
 # FIXME:: MM BUG: EN_PFA_HI_FAULT_PLANAR_5V(warning) and EN_MAJOR_HI_FAULT_PLANAR_5V (crit) have same 
 # Chassis string MAJOR should be I2C; other should be blade string
-EN_I2C_HI_FAULT_PLANAR_5V|0xFFFFFFF1|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"System over recommended voltage for +5v."
-EN_I2C_HI_FAULT_PLANAR_5V|0xFFFFFFF1|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"Chassis 5V over recommended voltage"
+EN_I2C_HI_FAULT_PLANAR_5V|0xFF000001|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"System over recommended voltage for +5v."
+EN_I2C_HI_FAULT_PLANAR_5V|0xFF000001|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"Chassis 5V over recommended voltage"
 EN_I2C_LO_FAULT_PLANAR_5V|0x06035801|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"System under recommended voltage for +5v."
 EN_I2C_LO_FAULT_PLANAR_5V|0x06035801|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"Chassis 5V under recommended voltage"
 
@@ -477,7 +474,7 @@ EN_PFA_HI_FAULT_5V|0x08035500|SAHPI_MAJOR|OVR_SEV|"System over recommended 5V Fa
 EN_PFA_HI_FAULT_5V|0x08035500|SAHPI_MAJOR|OVR_SEV|"Blade 5V over fault."
 EN_PFA_LO_FAULT_5V|0x08035800|SAHPI_MAJOR|OVR_SEV|"System under recommended 5V Fault."
 EN_PFA_LO_FAULT_5V|0x08035800|SAHPI_MAJOR|OVR_SEV|"Blade 5V under recommended voltage"
-# FIXME:: Why is Lewis instance 2 not 1?
+# FIXME:: MM: Why is Lewis instance 2 not 1?
 EN_GENERIC_UPPER_WARN_VOLT|0xFFFFFFF5|SAHPI_MAJOR|OVR_SEV|"system board 1 (Planar 5V) over recommended voltage."
 EN_GENERIC_UPPER_WARN_VOLT|0xFFFFFFF5|SAHPI_MAJOR|OVR_SEV|"system board 2 (5V Sense) over recommended voltage."
 EN_GENERIC_LOWER_WARN_VOLT|0xFFFFFFF6|SAHPI_MAJOR|OVR_SEV|"system board 1 (Planar 5V) under recommended voltage."
@@ -520,13 +517,11 @@ EN_12VS_WARNING_HI|0x0A037C02|SAHPI_MAJOR|OVR_SEV|"12V standby over recommended 
 EN_12VS_WARNING_LOW|0x0A036C02|SAHPI_MAJOR|OVR_SEV|"Standby +12V under recommended voltage."
 EN_12VS_WARNING_LOW|0x0A036C02|SAHPI_MAJOR|OVR_SEV|"12V standby under recommended voltage"
 
-# Blade VRM 1 Volt Sensor
+# Blade VRM Volt Sensor
 EN_PFA_HI_FAULT_VRM1|0x04401501|SAHPI_MAJOR|OVR_SEV|"System is over recommended voltage on VRM 1."
 EN_PFA_LO_FAULT_VRM1|0x04401801|SAHPI_MAJOR|OVR_SEV|"System is under recommended voltage on VRM 1."
-
-# FIXME:: MM: What blade generates this?
-##EN_PFA_HI_FAULT_VRM2|0x04401502|SAHPI_MAJOR|OVR_SEV|"System is over recommended voltage on VRM 2."
-##EN_PFA_LO_FAULT_VRM2|0x04401802|SAHPI_MAJOR|OVR_SEV|"System is under recommended voltage on VRM 2."
+EN_PFA_HI_FAULT_VRM2|0x04401502|SAHPI_MAJOR|OVR_SEV|"System is over recommended voltage on VRM 2."
+EN_PFA_LO_FAULT_VRM2|0x04401802|SAHPI_MAJOR|OVR_SEV|"System is under recommended voltage on VRM 2."
  
 # Blade CPU 1 Core Voltage Sensor
 EN_GENERIC_UPPER_WARN_VOLT|0xFFFFFFF9|SAHPI_MAJOR|OVR_SEV|"processor 1 (CPU 1 VCore) over recommended voltage."
@@ -794,6 +789,9 @@ EN_FP_NP|0x09025000|SAHPI_MAJOR|OVR_SEV|"Front panel cable is not connected to s
 EN_CPU1_TEMP_WARN|0x0421D401|SAHPI_MAJOR|OVR_SEV|"CPU 1 temperature warning"
 EN_CPU2_TEMP_WARN|0x0421D402|SAHPI_MAJOR|OVR_SEV|"CPU 2 temperature warning"
 EN_PFA_HI_EXCEDED_CUR_12V_A_MAX|0x0801B402|SAHPI_MAJOR|OVR_SEV|"Blade 12V over recommended current."
+# FIXME:: MM needs way to tell number of blade DASD drives installed on blade
+EN_FAULT_DASD1_HARD_DRIVE_0|0x06802000|SAHPI_CRITICAL|OVR_SEV|"Hard drive 0 fault"
+EN_FAULT_DASD1_HARD_DRIVE_1|0x06800001|SAHPI_CRITICAL|OVR_SEV|"Hard drive 1 fault"
 
 #### Mapped to Install Error Operational State
 # FIXME:: Why is this INFO but EN_SWITCH_1_CFG_ERROR is MINOR.
@@ -852,6 +850,7 @@ EN_STCONN_FAIL_BLADE_13|0x0E02200D|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Connectivity 
 EN_STCONN_FAIL_BLADE_14|0x0E02200E|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Connectivity status blade 14 communication failed."
 
 # Blade NMI Status Sensor
+# FIXME:: Is this ever deasserted? Recovered?
 EN_SYSERR_LED_ONLY|0x0000007E|SAHPI_CRITICAL|OVR_SEV|"Critical Interrupt - Front panel NMI"
 
 #################################
@@ -859,21 +858,31 @@ EN_SYSERR_LED_ONLY|0x0000007E|SAHPI_CRITICAL|OVR_SEV|"Critical Interrupt - Front
 #################################
 # None
 
+####################
+# BEM DASD Resources
+####################
+# First two are for DASD on blades, which aren't currently generated
+#EN_DASD1_REMOVED_DRIVE_0|0x0681E000|SAHPI_INFORMATIONAL|OVR_SEV,OVR_EXP|"Hard drive 0 removal detected."
+#EN_DASD1_REMOVED_DRIVE_1|0x0681E001|SAHPI_INFORMATIONAL|OVR_SEV,OVR_EXP|"Hard drive 1 removal detected."
+EN_DASD1_REMOVED_DRIVE_2|0x0681E002|SAHPI_INFORMATIONAL|OVR_SEV,OVR_EXP|"Hard drive 2 removal detected."
+EN_DASD1_REMOVED_DRIVE_3|0x0681E003|SAHPI_INFORMATIONAL|OVR_SEV,OVR_EXP|"Hard drive 3 removal detected."
+EN_DASD1_REMOVED_DRIVE_4|0x0681E004|SAHPI_INFORMATIONAL|OVR_SEV,OVR_EXP|"Hard drive 4 removal detected."
+EN_DASD1_REMOVED_DRIVE_5|0x0681E005|SAHPI_INFORMATIONAL|OVR_SEV,OVR_EXP|"Hard drive 5 removal detected."
+
 ################################
 # Blade Expansion Module Sensors
 ################################
+# BEM Operational Sensor - event only
+# FIXME:: MM  Needs to add an readable operational Health OIDs for BEM
+# FIXME:: MM needs to add PEU type explicitly - PEUx, BSEx, etc
+EN_FAULT_DASD|0x06800000|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"BEM Option failure"
+EN_FAULT_DASD|0x06800000|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"BEM failure"
 
 ######################################
 # Blade Storage Expansion (BSE) Module
 ######################################
 
-# FIXME:: Does this sensor make sense; when are these generated?
-# BSE Operational Sensor - event only
-EN_FAULT_DASD|0x06800000|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"BEM Option failure"
-EN_FAULT_DASD|0x06800000|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"BEM failure"
-
-# BSE Temperature Sensor - event only
-# FIXME:: Does blade shutdown if BSE too hot? Different shutdown event for the blade vs BSE?
+# BEM Temperature Sensor - event only
 EN_CUTOFF_HI_OVER_TEMP_BEM|0x0621C481|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"System shutoff due to BEM Option temperature."
 EN_CUTOFF_HI_OVER_TEMP_BEM|0x0621C481|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"BEM temperature fault."
 EN_CUTOFF_HI_OVER_TEMP_DASD1_2|0x0681C482|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"System shutoff due to DASD Option temperature."
@@ -917,32 +926,19 @@ EN_BEM_18V_WARNING_HI|0x0E83C402|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM 18V over recom
 EN_BEM_18V_WARNING_LOW|0x0E83C802|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM +18V under recommended voltage."
 EN_BEM_18V_WARNING_LOW|0x0E83C802|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM 18V under recommended voltage"
 
-# FIXME:: Move these to blade resource? Else how tell events from BEM vs storage blades?
-# BSE DASD 0 Operational Sensor - event only
-##EN_DASD1_REMOVED_DRIVE_0|0x0681E000|SAHPI_INFORMATIONAL|OVR_SEV|"Hard drive 0 removal detected."
-##EN_FAULT_DASD1_HARD_DRIVE_0|0x06802000|SAHPI_CRITICAL|OVR_SEV|"Hard drive 0 fault"
+# BEM DASD 1 Operational Sensor - event only
 EN_FAULT_DASD1_SCSI_ID_2|0x06801002|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"Hard Drive Fault (SCSI ID 2)"
+EN_FAULT_DASD1_HARD_DRIVE_2|0x06800002|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"Hard drive 2 fault"
 
-# BSE DASD 1 Operational Sensor - event only
-##EN_DASD1_REMOVED_DRIVE_1|0x0681E001|SAHPI_INFORMATIONAL|OVR_SEV|"Hard drive 1 removal detected."
-##EN_FAULT_DASD1_HARD_DRIVE_1|0x06800001|SAHPI_CRITICAL|OVR_SEV|"Hard drive 1 fault"
+# BEM DASD 2 Operational Sensor - event only
 EN_FAULT_DASD1_SCSI_ID_3|0x06801003|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"Hard Drive Fault (SCSI ID 3)"
+EN_FAULT_DASD1_HARD_DRIVE_3|0x06800003|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"Hard drive 3 fault"
 
-# BSE DASD 2 Operational Sensor - event only
-##EN_DASD1_REMOVED_DRIVE_2|0x0681E002|SAHPI_INFORMATIONAL|OVR_SEV|"Hard drive 2 removal detected."
-##EN_FAULT_DASD1_HARD_DRIVE_2|0x06800002|SAHPI_CRITICAL|OVR_SEV|"Hard drive 2 fault"
+# BEM DASD 3 Operational Sensor - event only
+EN_FAULT_DASD1_HARD_DRIVE_4|0x06800004|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"Hard drive 4 fault"
 
-# BSE DASD 3 Operational Sensor - event only
-##EN_DASD1_REMOVED_DRIVE_3|0x0681E003|SAHPI_INFORMATIONAL|OVR_SEV|"Hard drive 3 removal detected."
-##EN_FAULT_DASD1_HARD_DRIVE_3|0x06800003|SAHPI_CRITICAL|OVR_SEV|"Hard drive 3 fault"
-
-# BSE DASD 4 Operational Sensor - event only
-##EN_DASD1_REMOVED_DRIVE_4|0x0681E004|SAHPI_INFORMATIONAL|OVR_SEV|"Hard drive 4 removal detected."
-##EN_FAULT_DASD1_HARD_DRIVE_4|0x06800004|SAHPI_CRITICAL|OVR_SEV|"Hard drive 4 fault"
-
-# BSE DASD 5 Operational Sensor - event only
-##EN_DASD1_REMOVED_DRIVE_5|0x0681E005|SAHPI_INFORMATIONAL|OVR_SEV|"Hard drive 5 removal detected."
-##EN_FAULT_DASD1_HARD_DRIVE_5|0x06800005|SAHPI_CRITICAL|OVR_SEV|"Hard drive 5 fault"
+# Currently not generated - Only 2 DASDs on blade (0 and 1), 3 on BEMs (2,3,4)
+#EN_FAULT_DASD1_HARD_DRIVE_5|0x06800005|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"Hard drive 5 fault"
 
 #############################
 # PCI Expansion (PEU2) Module
@@ -1013,6 +1009,7 @@ EN_MEDIA_TRAY_REMOVED|0x06A1E001|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Media Tray
 ####################
 
 # Media Tray Operational Status Sensor - event only
+# FIXME:: MM needs to add a readable Health State for Media Tray
 EN_FAULT_FP_R|0x09020000|SAHPI_MINOR|OVR_SEV,OVR_RID|"System front panel controller not responding."
 EN_FRONT_PANEL_TEMP_FAIL|0x06A2E001|SAHPI_MAJOR|OVR_SEV,OVR_RID|"Front panel temperature is unavailable. Cooling capacity set to maximum"
 
@@ -1110,7 +1107,6 @@ EN_SWITCH_10_POWERED_ON|0x0EA0800A|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"I/O modu
 ####################
 
 # I/O Module Operational Status Sensor
-
 EN_FAULT_SWITCH_1|0x0EA00001|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"I/O module 1 Fault"
 EN_FAULT_SWITCH_1|0x0EA00001|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"I/O Module 1 fault"
 EN_FAULT_SWITCH_1|0x0EA00001|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"I/O module 1 Fault Multiple I/O module failures"
@@ -1155,7 +1151,7 @@ EN_SWITCH_8_INSUFFICIENT_PWR|0x0E00B008|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"I/O Modu
 EN_SWITCH_9_INSUFFICIENT_PWR|0x0E00B009|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"I/O Module 9 is not allowed to power on due to insufficient power."
 EN_SWITCH_10_INSUFFICIENT_PWR|0x0E00B00A|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"I/O Module 10 is not allowed to power on due to insufficient power."
 
-# In old MM code, this condition caused the I/O module not to be powered up. In newer MM code this condition is
+# In old MM code, this condition caused the I/O module not to be powered up. In newer MM code, this condition is
 # just a warning and the I/O module powers on.
 EN_SWITCH_1_CFG_ERROR|0x0EA0C001|SAHPI_MINOR|OVR_SEV,OVR_RID|"I/O module 1 is incompatible with Blade Server configuration."
 EN_SWITCH_1_CFG_ERROR|0x0EA0C001|SAHPI_MINOR|OVR_SEV,OVR_RID|"I/O Module 1 incompatible with blade configuration"
