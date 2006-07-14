@@ -856,7 +856,7 @@ SaErrorT snmp_bc_discover_chassis(struct oh_handler_state *handle,
 }
 
 /**
- * snmp_bc_discover_blades:
+ * snmp_bc_discover_blade:
  * @handler: Pointer to handler's data.
  * @ep_root: Pointer to chassis Root Entity Path which comes from openhpi.conf.
  * @blade_vector: Bitmap vector of installed blades.
@@ -1005,6 +1005,7 @@ SaErrorT snmp_bc_discover_blade(struct oh_handler_state *handle,
 			}			
 
 			err = snmp_bc_set_resource_slot_state_sensor(handle, e, blade_width);
+
 			/********************************** 
 			 * Discover Blade Expansion Modules
 			 **********************************/

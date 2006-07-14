@@ -684,6 +684,69 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                 },
                 .comment = "Slot",
         },
+        /* BEM DASD */
+        {
+                .rpt = {
+                        .ResourceInfo = {
+                                .ManufacturerId = IBM_MANUFACTURING_ID,
+                        },
+                        .ResourceEntity = {
+                                .Entry[0] =
+				{
+                                        .EntityType = SAHPI_ENT_DISK_DRIVE,
+                                        .EntityLocation = SNMP_BC_HPI_LOCATION_BASE,
+                                },
+				{
+                                        .EntityType = SAHPI_ENT_SYS_EXPANSION_BOARD,
+                                        .EntityLocation = SNMP_BC_HPI_LOCATION_BASE,
+                                },
+                                {
+                                        .EntityType = SAHPI_ENT_SBC_BLADE,
+                                        .EntityLocation = SNMP_BC_HPI_LOCATION_BASE,
+                                },
+                                {
+                                        .EntityType = SAHPI_ENT_PHYSICAL_SLOT,
+                                        .EntityLocation = SNMP_BC_HPI_LOCATION_BASE,
+                                },
+                                {
+                                        .EntityType = SAHPI_ENT_ROOT,
+                                        .EntityLocation = 0,
+                                }
+                         },
+                        .ResourceCapabilities = SAHPI_CAPABILITY_FRU |
+                                                SAHPI_CAPABILITY_RDR |
+                                                SAHPI_CAPABILITY_RESOURCE |
+                                                SAHPI_CAPABILITY_SENSOR,
+                        .ResourceSeverity = SAHPI_MAJOR,
+			.ResourceFailed = SAHPI_FALSE,
+                },
+                .res_info = {
+                        .mib = {
+                                .OidHealth = '\0',
+                                .HealthyValue = 0,
+                                .OidReset = '\0',
+                                .OidPowerState = '\0',
+                                .OidPowerOnOff = '\0',
+				.OidUuid = '\0',
+				.OidResourceWidth = '\0',
+                        },
+  			.cur_state = SAHPI_HS_STATE_ACTIVE,
+			.prev_state = SAHPI_HS_STATE_ACTIVE,
+                        .event_array = {
+                                {
+                                        .event = "0681E00x", /* EN_DASD1_REMOVED_DRIVE_x */
+					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_HS_STATE_NOT_PRESENT,
+					.event_auto_state = 0,
+                                        .recovery_state = SAHPI_HS_STATE_ACTIVE,
+					.recovery_auto_state = 0,
+                                },
+                                {},
+                        },
+                },
+                .comment = "BEM DASD",
+        },
 
         {} /* Terminate array with a null element */
 };
@@ -1609,9 +1672,8 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
 					.event_state = SAHPI_ES_UPPER_CRIT,
                                         .recovery_state = SAHPI_ES_UNSPECIFIED,
                                 },
-				/* FIXME: Need right number from MM */
 				{
-                                        .event = "FFFFFFF0", /* EN_I2C_LO_FAULT_3_35V */
+                                        .event = "FF000000", /* EN_I2C_LO_FAULT_3_35V */
  					.event_assertion = SAHPI_TRUE,
 					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
@@ -1695,9 +1757,8 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                         .assert_mask   = SAHPI_ES_LOWER_CRIT | SAHPI_ES_UPPER_CRIT,
 			.deassert_mask = SAHPI_ES_LOWER_CRIT | SAHPI_ES_UPPER_CRIT,
                         .event_array = {
-				/* FIXME:: Need right number from MM */
                                 {
-                                        .event = "FFFFFFF1", /* EN_I2C_HI_FAULT_PLANAR_5V */
+                                        .event = "FF000001", /* EN_I2C_HI_FAULT_PLANAR_5V */
 					.event_assertion = SAHPI_TRUE,
 					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
@@ -3503,7 +3564,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                 },
                 .comment = "Blade 12 Volt Sensor",
         },
-        /* Blade VRM 1 Voltage Sensor */
+        /* Blade VRM Voltage Sensor */
         {
 		.index = 11,
                 .sensor = {
@@ -3575,11 +3636,27 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                         .event_state = SAHPI_ES_LOWER_MAJOR,
                                         .recovery_state = SAHPI_ES_UNSPECIFIED,
                                 },
+                                {
+                                        .event = "04401502", /* EN_PFA_HI_FAULT_VRM2 */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_UPPER_MAJOR,
+                                        .recovery_state = SAHPI_ES_UNSPECIFIED,
+                                },
+                                {
+                                        .event = "04401802", /* EN_PFA_LO_FAULT_VRM2 */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_LOWER_MAJOR,
+                                        .recovery_state = SAHPI_ES_UNSPECIFIED,
+                                },
                                 {},
                         },
    			.reading2event = {},
 		},
-		.comment = "Blade VRM 1 Voltage Sensor",
+		.comment = "Blade VRM Voltage Sensor",
         },
         /* Blade Operational Status Sensor */
         {
@@ -4134,6 +4211,22 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 },
                                 {
                                         .event = "0801B402", /* EN_PFA_HI_EXCEDED_CUR_12V_A_MAX */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "06802000", /* EN_FAULT_DASD1_HARD_DRIVE_0 */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "06800001", /* EN_FAULT_DASD1_HARD_DRIVE_1 */
  					.event_assertion = SAHPI_TRUE,
       					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
@@ -7080,13 +7173,53 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 /**************************************
  * Blade Expansion Module (BEM) Sensors
  **************************************/
-
 struct snmp_bc_sensor snmp_bc_bem_sensors[] = {
-        /* BSE Temperature Sensor - event only */
+        /* Legacy Blade BEM support - newer blades use IPMI sensors */
+        /* BEM Operational Status Sensor - event only */
         {
 		.index = 1,
                 .sensor = {
                         .Num = 1,
+                        .Type = SAHPI_OPERATIONAL,
+                        .Category = SAHPI_EC_AVAILABILITY,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
+                        .Events = SAHPI_ES_RUNNING | SAHPI_ES_OFF_LINE,
+                        .DataFormat = {
+                                .IsSupported = SAHPI_FALSE,
+                        },
+                        .ThresholdDefn = {
+                                .IsAccessible = SAHPI_FALSE,
+                        },
+                        .Oem = 0,
+                },
+                .sensor_info = {
+                        .cur_state = SAHPI_ES_RUNNING,
+			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
+                        .sensor_enabled = SAHPI_TRUE,
+                        .events_enabled = SAHPI_TRUE,
+			.assert_mask   = SAHPI_ES_OFF_LINE,
+			.deassert_mask = SAHPI_ES_OFF_LINE,
+                        .event_array = {
+                                {
+                                        .event = "06800000", /* EN_FAULT_DASD */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+					.event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {},
+                        },
+   			.reading2event = {},
+                },
+                .comment = "BEM Operational Status Sensor",
+        },
+        /* BEM Temperature Sensor - event only */
+        {
+		.index = 2,
+                .sensor = {
+                        .Num = 2,
                         .Type = SAHPI_TEMPERATURE,
                         .Category = SAHPI_EC_THRESHOLD,
 			.EnableCtrl = SAHPI_FALSE,
@@ -7144,13 +7277,13 @@ struct snmp_bc_sensor snmp_bc_bem_sensors[] = {
 			},
   			.reading2event = {},
                 },
-                .comment = "BSE Temperature Sensor",
+                .comment = "BEM Temperature Sensor",
         },
         /* BEM Voltage Sensor - event only */
         {
-		.index = 2,
+		.index = 3,
                 .sensor = {
-                        .Num = 2,
+                        .Num = 3,
                         .Type = SAHPI_VOLTAGE,
                         .Category = SAHPI_EC_THRESHOLD,
 			.EnableCtrl = SAHPI_FALSE,
@@ -7322,226 +7455,14 @@ struct snmp_bc_sensor snmp_bc_bem_sensors[] = {
                  },
                 .comment = "BEM Voltage Sensor",
         },
-	/* BEM DASD 0 Operational Sensor - event only */
-        {
-		.index = 3,
-                .sensor = {
-                        .Num = 3,
-                        .Type = SAHPI_OPERATIONAL,
-                        .Category = SAHPI_EC_AVAILABILITY,
-			.EnableCtrl = SAHPI_FALSE,
-                        .EventCtrl = SAHPI_SEC_READ_ONLY,
-			.Events = SAHPI_ES_RUNNING | SAHPI_ES_OFF_LINE,
-                        .DataFormat = {
-                                .IsSupported = SAHPI_FALSE,
-                        },
-                        .ThresholdDefn = {
-                                .IsAccessible = SAHPI_FALSE,
-                        },
-                        .Oem = 0,
-                },
-                .sensor_info = {
-                        .cur_state = SAHPI_ES_RUNNING,
-			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
-                        .sensor_enabled = SAHPI_TRUE,
-                        .events_enabled = SAHPI_TRUE,
-			.assert_mask   = SAHPI_ES_OFF_LINE,
-			.deassert_mask = SAHPI_ES_OFF_LINE,
-                        .event_array = {
-                                {
-                                        .event = "06801002", /* EN_FAULT_DASD1_SCSI_ID_2 */
-  					.event_assertion = SAHPI_TRUE,
-       					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_OFF_LINE,
-                                        .recovery_state = SAHPI_ES_RUNNING,
-                                },
-                                {},
-                        },
-   			.reading2event = {},
-                },
-                .comment = "BEM DASD 0 Operational Sensor",
-        },
-	/* BEM DASD 1 Operational Sensor - event only */
-        {
-		.index = 4,
-                .sensor = {
-                        .Num = 4,
-                        .Type = SAHPI_OPERATIONAL,
-                        .Category = SAHPI_EC_AVAILABILITY,
-			.EnableCtrl = SAHPI_FALSE,
-                        .EventCtrl = SAHPI_SEC_READ_ONLY,
-			.Events = SAHPI_ES_RUNNING | SAHPI_ES_OFF_LINE,
-                        .DataFormat = {
-                                .IsSupported = SAHPI_FALSE,
-                        },
-                        .ThresholdDefn = {
-                                .IsAccessible = SAHPI_FALSE,
-                        },
-                        .Oem = 0,
-                },
-                .sensor_info = {
-                        .cur_state = SAHPI_ES_RUNNING,
-			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
-                        .sensor_enabled = SAHPI_TRUE,
-                        .events_enabled = SAHPI_TRUE,
-			.assert_mask   = SAHPI_ES_OFF_LINE,
-			.deassert_mask = SAHPI_ES_OFF_LINE,
-                        .event_array = {
-                                {
-                                        .event = "06801003", /* EN_FAULT_DASD1_SCSI_ID_3 */
-  					.event_assertion = SAHPI_TRUE,
-       					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_OFF_LINE,
-                                        .recovery_state = SAHPI_ES_RUNNING,
-                                },
-                                {},
-                        },
-   			.reading2event = {},
-                },
-                .comment = "BEM DASD 1 Operational Sensor",
-        },
-	/* BEM DASD 2 Operational Sensor - event only */
-        {
-		.index = 5,
-                .sensor = {
-                        .Num = 5,
-                        .Type = SAHPI_OPERATIONAL,
-                        .Category = SAHPI_EC_AVAILABILITY,
-			.EnableCtrl = SAHPI_FALSE,
-                        .EventCtrl = SAHPI_SEC_READ_ONLY,
-			.Events = SAHPI_ES_RUNNING | SAHPI_ES_OFF_LINE,
-                        .DataFormat = {
-                                .IsSupported = SAHPI_FALSE,
-                        },
-                        .ThresholdDefn = {
-                                .IsAccessible = SAHPI_FALSE,
-                        },
-                        .Oem = 0,
-                },
-                .sensor_info = {
-                        .cur_state = SAHPI_ES_RUNNING,
-			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
-                        .sensor_enabled = SAHPI_TRUE,
-                        .events_enabled = SAHPI_TRUE,
-			.assert_mask   = SAHPI_ES_OFF_LINE,
-			.deassert_mask = SAHPI_ES_OFF_LINE,
-                        .event_array = {
-/* FIXME:: Add events */
-                                {},
-                        },
-   			.reading2event = {},
-                },
-                .comment = "BEM DASD 2 Operational Sensor",
-        },
-	/* BEM DASD 3 Operational Sensor - event only */
-        {
-		.index = 6,
-                .sensor = {
-                        .Num = 6,
-                        .Type = SAHPI_OPERATIONAL,
-                        .Category = SAHPI_EC_AVAILABILITY,
-			.EnableCtrl = SAHPI_FALSE,
-                        .EventCtrl = SAHPI_SEC_READ_ONLY,
-			.Events = SAHPI_ES_RUNNING | SAHPI_ES_OFF_LINE,
-                        .DataFormat = {
-                                .IsSupported = SAHPI_FALSE,
-                        },
-                        .ThresholdDefn = {
-                                .IsAccessible = SAHPI_FALSE,
-                        },
-                        .Oem = 0,
-                },
-                .sensor_info = {
-                        .cur_state = SAHPI_ES_RUNNING,
-			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
-                        .sensor_enabled = SAHPI_TRUE,
-                        .events_enabled = SAHPI_TRUE,
-			.assert_mask   = SAHPI_ES_OFF_LINE,
-			.deassert_mask = SAHPI_ES_OFF_LINE,
-                        .event_array = {
-				/* FIXME:: Add events */
-                                {},
-                        },
-   			.reading2event = {},
-                },
-                .comment = "BEM DASD 3 Operational Sensor",
-        },
-	/* BEM DASD 4 Operational Sensor - event only */
-        {
-		.index = 7,
-                .sensor = {
-                        .Num = 7,
-                        .Type = SAHPI_OPERATIONAL,
-                        .Category = SAHPI_EC_AVAILABILITY,
-			.EnableCtrl = SAHPI_FALSE,
-                        .EventCtrl = SAHPI_SEC_READ_ONLY,
-			.Events = SAHPI_ES_RUNNING | SAHPI_ES_OFF_LINE,
-                        .DataFormat = {
-                                .IsSupported = SAHPI_FALSE,
-                        },
-                        .ThresholdDefn = {
-                                .IsAccessible = SAHPI_FALSE,
-                        },
-                        .Oem = 0,
-                },
-                .sensor_info = {
-                        .cur_state = SAHPI_ES_RUNNING,
-			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
-                        .sensor_enabled = SAHPI_TRUE,
-                        .events_enabled = SAHPI_TRUE,
-			.assert_mask   = SAHPI_ES_OFF_LINE,
-			.deassert_mask = SAHPI_ES_OFF_LINE,
-                        .event_array = {
-				/* FIXME:: Add events */
-                                {},
-                        },
-   			.reading2event = {},
-                },
-                .comment = "BEM DASD 4 Operational Sensor",
-        },
-	/* BEM DASD 5 Operational Sensor - event only */
-        {
-		.index = 8,
-                .sensor = {
-                        .Num = 8,
-                        .Type = SAHPI_OPERATIONAL,
-                        .Category = SAHPI_EC_AVAILABILITY,
-			.EnableCtrl = SAHPI_FALSE,
-                        .EventCtrl = SAHPI_SEC_READ_ONLY,
-			.Events = SAHPI_ES_RUNNING | SAHPI_ES_OFF_LINE,
-                        .DataFormat = {
-                                .IsSupported = SAHPI_FALSE,
-                        },
-                        .ThresholdDefn = {
-                                .IsAccessible = SAHPI_FALSE,
-                        },
-                        .Oem = 0,
-                },
-                .sensor_info = {
-                        .cur_state = SAHPI_ES_RUNNING,
-			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
-                        .sensor_enabled = SAHPI_TRUE,
-                        .events_enabled = SAHPI_TRUE,
-			.assert_mask   = SAHPI_ES_OFF_LINE,
-			.deassert_mask = SAHPI_ES_OFF_LINE,
-                        .event_array = {
-				/* FIXME:: Add events */
-                                {},
-                        },
-   			.reading2event = {},
-                },
-                .comment = "BEM DASD 5 Operational Sensor",
-        },
 
         {} /* Terminate array with a null element */
 };
 
-/* BEM IPMI Sensors */
-/* NOTE: Define IPMI Tags as uppercase */
+#define SNMP_BC_LAST_NON_IPMI_BEM_SENSOR 3
 
-#define SNMP_BC_LAST_NON_IPMI_BEM_SENSOR 4
+/* BEM IPMI Sensors */
+/* NOTE: Define IPMI tags as uppercase */
 struct snmp_bc_ipmi_sensor snmp_bc_bem_ipmi_sensors[] = {
 	/* PEU2 Temperature Sensor */
         {
@@ -8552,6 +8473,153 @@ struct snmp_bc_ipmi_sensor snmp_bc_bem_ipmi_sensors[] = {
 			.comment = "BIE 12 Volt Sensor",
 		},
 	},
+
+        {} /* Terminate array with a null element */
+};
+
+/* BEM DASD Sensors */
+struct snmp_bc_sensor snmp_bc_bse_dasd_sensors[] = {
+	/* BEM DASD 1 Operational Sensor - event only */
+        {
+		.index = 1,
+                .sensor = {
+                        .Num = 1,
+                        .Type = SAHPI_OPERATIONAL,
+                        .Category = SAHPI_EC_AVAILABILITY,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
+			.Events = SAHPI_ES_RUNNING | SAHPI_ES_OFF_LINE,
+                        .DataFormat = {
+                                .IsSupported = SAHPI_FALSE,
+                        },
+                        .ThresholdDefn = {
+                                .IsAccessible = SAHPI_FALSE,
+                        },
+                        .Oem = 0,
+                },
+                .sensor_info = {
+                        .cur_state = SAHPI_ES_RUNNING,
+			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
+                        .sensor_enabled = SAHPI_TRUE,
+                        .events_enabled = SAHPI_TRUE,
+			.assert_mask   = SAHPI_ES_OFF_LINE,
+			.deassert_mask = SAHPI_ES_OFF_LINE,
+                        .event_array = {
+                                {
+                                        .event = "06801002", /* EN_FAULT_DASD1_SCSI_ID_2 */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "06800002", /* EN_FAULT_DASD1_HARD_DRIVE_2 */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {},
+                        },
+   			.reading2event = {},
+                },
+                .comment = "BEM DASD 1 Operational Sensor",
+        },
+	/* BEM DASD 2 Operational Sensor - event only */
+        {
+		.index = 2,
+                .sensor = {
+                        .Num = 2,
+                        .Type = SAHPI_OPERATIONAL,
+                        .Category = SAHPI_EC_AVAILABILITY,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
+			.Events = SAHPI_ES_RUNNING | SAHPI_ES_OFF_LINE,
+                        .DataFormat = {
+                                .IsSupported = SAHPI_FALSE,
+                        },
+                        .ThresholdDefn = {
+                                .IsAccessible = SAHPI_FALSE,
+                        },
+                        .Oem = 0,
+                },
+                .sensor_info = {
+                        .cur_state = SAHPI_ES_RUNNING,
+			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
+                        .sensor_enabled = SAHPI_TRUE,
+                        .events_enabled = SAHPI_TRUE,
+			.assert_mask   = SAHPI_ES_OFF_LINE,
+			.deassert_mask = SAHPI_ES_OFF_LINE,
+                        .event_array = {
+                                {
+                                        .event = "06801003", /* EN_FAULT_DASD1_SCSI_ID_3 */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "06800003", /* EN_FAULT_DASD1_HARD_DRIVE_3 */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {},
+                        },
+   			.reading2event = {},
+                },
+                .comment = "BEM DASD 2 Operational Sensor",
+        },
+
+        {} /* Terminate array with a null element */
+};
+
+struct snmp_bc_sensor snmp_bc_bse3_dasd_sensors[] = {
+	/* BEM DASD 3 Operational Sensor - event only */
+        {
+		.index = 1,
+                .sensor = {
+                        .Num = 3,
+                        .Type = SAHPI_OPERATIONAL,
+                        .Category = SAHPI_EC_AVAILABILITY,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
+			.Events = SAHPI_ES_RUNNING | SAHPI_ES_OFF_LINE,
+                        .DataFormat = {
+                                .IsSupported = SAHPI_FALSE,
+                        },
+                        .ThresholdDefn = {
+                                .IsAccessible = SAHPI_FALSE,
+                        },
+                        .Oem = 0,
+                },
+                .sensor_info = {
+                        .cur_state = SAHPI_ES_RUNNING,
+			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
+                        .sensor_enabled = SAHPI_TRUE,
+                        .events_enabled = SAHPI_TRUE,
+			.assert_mask   = SAHPI_ES_OFF_LINE,
+			.deassert_mask = SAHPI_ES_OFF_LINE,
+                        .event_array = {
+                                {
+                                        .event = "06800004", /* EN_FAULT_DASD1_HARD_DRIVE_4 */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {},
+                        },
+   			.reading2event = {},
+                },
+                .comment = "BEM DASD 3 Operational Sensor",
+        },
 
         {} /* Terminate array with a null element */
 };
