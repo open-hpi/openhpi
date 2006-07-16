@@ -375,6 +375,81 @@ SaErrorT snmp_bc_set_indicator_state(void *hnd,
 	return(SA_ERR_HPI_INTERNAL_ERROR);
 }
 
+/**
+ * snmp_bc_set_autoinsert_timeout:
+ * @hnd: Handler data pointer.
+ * @rid: Resource ID.
+ * @timeout: timeout to set.
+ *
+ * Set hotswap autoinsert timeout.
+ * 
+ * Return values:
+ * SA_ERR_HPI_READ_ONLY - Normal case.
+ * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) are NULL.
+ **/
+SaErrorT snmp_bc_set_autoinsert_timeout(void *hnd,
+				     SaHpiTimeoutT Timeout)
+{
+	if (!hnd) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+
+	return(SA_ERR_HPI_READ_ONLY);
+
+}
+
+/**
+ * snmp_bc_get_autoextract_timeout:
+ * @hnd: Handler data pointer.
+ * @rid: Resource ID.
+ * @timeout: Storage for returned timeout value.
+ *
+ * Get a resource's hotswap autoextract timeout.
+ * 
+ * Return values:
+ * SA_OK - Normal case.
+ * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) are NULL.
+ **/
+SaErrorT snmp_bc_get_autoextract_timeout(void *hnd,
+				     SaHpiResourceIdT rid, 
+				     SaHpiTimeoutT *Timeout)
+{
+	if (!hnd || !Timeout) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+
+	*Timeout = SAHPI_TIMEOUT_IMMEDIATE;
+	return(SA_OK);
+
+}
+
+/**
+ * snmp_bc_set_autoextract_timeout:
+ * @hnd: Handler data pointer.
+ * @rid: Resource ID.
+ * @timeout: timeout to set.
+ *
+ * Set a resource hotswap autoextract timeout.
+ * 
+ * Return values:
+ * SA_ERR_HPI_READ_ONLY - Normal case.
+ * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) are NULL.
+ **/
+SaErrorT snmp_bc_set_autoextract_timeout(void *hnd,
+				     SaHpiResourceIdT rid, 
+				     SaHpiTimeoutT Timeout)
+{
+	if (!hnd) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+
+	return(SA_ERR_HPI_READ_ONLY);
+
+}
+
 void * oh_get_hotswap_state (void *, SaHpiResourceIdT, SaHpiHsStateT *)
                 __attribute__ ((weak, alias("snmp_bc_get_hotswap_state")));
 
@@ -389,5 +464,16 @@ void * oh_set_indicator_state (void *, SaHpiResourceIdT, SaHpiHsIndicatorStateT)
 		
 void * oh_get_indicator_state (void *, SaHpiResourceIdT, SaHpiHsIndicatorStateT)
                 __attribute__ ((weak, alias("snmp_bc_get_indicator_state")));
+
+void * oh_set_autoinsert_timeout (void *, SaHpiTimeoutT)
+                __attribute__ ((weak, alias("snmp_bc_set_autoinsert_timeout")));				
+		
+void * oh_get_autoextract_timeout (void *, SaHpiResourceIdT, SaHpiTimeoutT *)
+                __attribute__ ((weak, alias("snmp_bc_get_autoextract_timeout")));
+				
+void * oh_set_autoextract_timeout (void *, SaHpiResourceIdT, SaHpiTimeoutT)
+                __attribute__ ((weak, alias("snmp_bc_set_autoextract_timeout")));		
+		
+		
 
 
