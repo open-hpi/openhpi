@@ -36,4 +36,16 @@ SaErrorT snmp_bc_set_indicator_state(void *hnd,
 				     SaHpiResourceIdT rid,
 				     SaHpiHsIndicatorStateT state);
 
+SaErrorT snmp_bc_set_autoinsert_timeout(void *hnd,
+				     SaHpiTimeoutT Timeout);
+				     
+SaErrorT snmp_bc_get_autoextract_timeout(void *hnd,
+				     SaHpiResourceIdT rid, 
+				     SaHpiTimeoutT *Timeout);
+				     
+SaErrorT snmp_bc_set_autoextract_timeout(void *hnd,
+				     SaHpiResourceIdT rid, 
+				     SaHpiTimeoutT Timeout);				     
+				     				     
+
 #endif
