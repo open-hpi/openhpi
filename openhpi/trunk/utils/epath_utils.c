@@ -23,6 +23,13 @@
 #include <oh_utils.h>
 #include <oh_error.h>
 
+/* Defines to create canonical entity path strings */
+#define ELEMENTS_IN_SaHpiEntityT 2
+#define EPATHSTRING_START_DELIMITER "{"
+#define EPATHSTRING_START_DELIMITER_CHAR '{'
+#define EPATHSTRING_END_DELIMITER "}"
+#define EPATHSTRING_VALUE_DELIMITER ","
+
 /**
  * oh_encode_entitypath:
  * @epstr: Pointer to canonical entity path string.
