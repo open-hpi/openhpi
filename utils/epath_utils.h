@@ -31,13 +31,6 @@
 /* Max number of digits an enitity instance has */
 #define OH_MAX_LOCATION_DIGITS 6
 
-/* Defines to create canonical entity path strings */
-#define ELEMENTS_IN_SaHpiEntityT 2
-#define EPATHSTRING_START_DELIMITER "{"
-#define EPATHSTRING_START_DELIMITER_CHAR '{'
-#define EPATHSTRING_END_DELIMITER "}"
-#define EPATHSTRING_VALUE_DELIMITER ","
-
 #ifdef __cplusplus
 extern "C" {
 #endif 

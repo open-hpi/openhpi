@@ -40,20 +40,6 @@ typedef struct {
         GHashTable *rptable; /* Contains RPTEntrys for fast EntryId lookups */
 } RPTable;
 
-typedef struct {
-        SaHpiRptEntryT rpt_entry;
-        int owndata;
-        void *data; /* private data for the owner of the RPTable */
-        GSList *rdrlist; /* Contains RDRecords for sequence lookups */
-        GHashTable *rdrtable; /* Contains RDRecords for fast RecordId lookups */
-} RPTEntry;
-
-typedef struct {
-       SaHpiRdrT rdr;
-       int owndata;
-       void *data; /* private data for the owner of the rpt entry. */
-} RDRecord;
-
 
 /* General RPT calls */
 SaErrorT oh_init_rpt(RPTable *table);

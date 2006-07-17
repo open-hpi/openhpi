@@ -19,6 +19,21 @@
 #include <oh_utils.h>
 #include <oh_error.h>
 
+typedef struct {
+        SaHpiRptEntryT rpt_entry;
+        int owndata;
+        void *data; /* private data for the owner of the RPTable */
+        GSList *rdrlist; /* Contains RDRecords for sequence lookups */
+        GHashTable *rdrtable; /* Contains RDRecords for fast RecordId lookups */
+} RPTEntry;
+
+typedef struct {
+       SaHpiRdrT rdr;
+       int owndata;
+       void *data; /* private data for the owner of the rpt entry. */
+} RDRecord;
+
+
 static RPTEntry *get_rptentry_by_rid(RPTable *table, SaHpiResourceIdT rid)
 {
         GSList *rptnode = NULL;
