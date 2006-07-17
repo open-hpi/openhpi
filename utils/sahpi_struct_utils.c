@@ -2242,7 +2242,7 @@ SaErrorT oh_build_event(oh_big_textbuffer *buffer,
                 ep = *entitypath;
                 err  = oh_decode_entitypath(&ep, &bigbuf);
         } else {
-                err = oh_entity_path_lookup(&id, &ep);
+                err = oh_entity_path_lookup(id, &ep);
                 if (err) {
                         dbg("Could not determine entity path.");
                 } else {

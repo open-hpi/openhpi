@@ -353,7 +353,7 @@ static void oh_detect_oem_event_alarm(struct oh_domain *d, SaHpiEventT *event)
         if (!a) goto done;
         a->Severity = event->Severity;
         a->AlarmCond.Type = SAHPI_STATUS_COND_TYPE_OEM;
-        oh_entity_path_lookup(&event->Source, &a->AlarmCond.Entity);
+        oh_entity_path_lookup(event->Source, &a->AlarmCond.Entity);
         a->AlarmCond.ResourceId = event->Source;
         a->AlarmCond.Mid = event->EventDataUnion.OemEvent.MId;
         memcpy(&a->AlarmCond.Data,
@@ -383,7 +383,7 @@ static void oh_detect_resource_event_alarm(struct oh_domain *d, SaHpiEventT *eve
                 if (!a) goto done;
                 a->Severity = event->Severity;
                 a->AlarmCond.Type = SAHPI_STATUS_COND_TYPE_RESOURCE;
-                oh_entity_path_lookup(&event->Source, &a->AlarmCond.Entity);
+                oh_entity_path_lookup(event->Source, &a->AlarmCond.Entity);
                 a->AlarmCond.ResourceId = event->Source;
         }
 done:
@@ -412,7 +412,7 @@ static void oh_detect_sensor_event_alarm(struct oh_domain *d, SaHpiEventT *event
                 if (!a) goto done;
                 a->Severity = event->Severity;
                 a->AlarmCond.Type = SAHPI_STATUS_COND_TYPE_SENSOR;
-                oh_entity_path_lookup(&event->Source, &a->AlarmCond.Entity);
+                oh_entity_path_lookup(event->Source, &a->AlarmCond.Entity);
                 a->AlarmCond.ResourceId = event->Source;
                 a->AlarmCond.SensorNum = event->EventDataUnion.SensorEvent.SensorNum;
                 a->AlarmCond.EventState = event->EventDataUnion.SensorEvent.EventState;
@@ -479,7 +479,7 @@ static void oh_detect_resource_alarm(struct oh_domain *d, SaHpiRptEntryT *res)
                 if (!a) goto done;
                 a->Severity = res->ResourceSeverity;
                 a->AlarmCond.Type = SAHPI_STATUS_COND_TYPE_RESOURCE;
-                oh_entity_path_lookup(&res->ResourceId, &a->AlarmCond.Entity);
+                oh_entity_path_lookup(res->ResourceId, &a->AlarmCond.Entity);
                 a->AlarmCond.ResourceId = res->ResourceId;
                 a->AlarmCond.Mid = res->ResourceInfo.ManufacturerId;
                 memcpy(&a->AlarmCond.Data, &res->ResourceTag, sizeof(SaHpiTextBufferT));

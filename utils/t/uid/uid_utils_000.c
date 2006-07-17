@@ -19,7 +19,7 @@
 #include <oh_utils.h>
 
 /**
- * main: Get a new unique id. Use id to lookup original entity path. 
+ * main: Get a new unique id. Use id to lookup original entity path.
  * Passes if returned entity path is equal to original entity path,
  * otherwise fails.
  *
@@ -32,14 +32,14 @@ int main(int argc, char **argv)
 
 	if (oh_uid_initialize())
 		return 1;
-	
+
 	oh_init_ep(&ep);
 
 	id = oh_uid_from_entity_path(&ep);
 
-	if (oh_entity_path_lookup(&id, &rep))
+	if (oh_entity_path_lookup(id, &rep))
 		return 1;
-	
+
 	if (!oh_cmp_ep(&ep, &rep))
 		return 1;
 

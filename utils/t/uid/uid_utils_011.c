@@ -19,7 +19,7 @@
 #include <oh_utils.h>
 
 /**
- * main: Calls oh_entity_path_lookup using a NULL id.
+ * main: Calls oh_entity_path_lookup using a 0 id.
  * Passes if it returns -1,
  * otherwise fails.
  *
@@ -37,7 +37,7 @@ int main(int argc, char **argv)
         if (!oh_uid_from_entity_path(&ep))
                 return 1;
 
-        if (!oh_entity_path_lookup(NULL, &rep))
+        if (!oh_entity_path_lookup(0, &rep))
                 return 1;
 
         return 0;

@@ -46,10 +46,10 @@ int main(int argc, char **argv)
         if (oh_uid_remove(id[3]))
                 return 1;
 
-        if (!oh_entity_path_lookup(id+8,&rep))
+        if (!oh_entity_path_lookup(id[8],&rep))
                 return 1;
 
-        if (!oh_entity_path_lookup(id+3,&rep))
+        if (!oh_entity_path_lookup(id[3],&rep))
                 return 1;
 
 	return 0;
