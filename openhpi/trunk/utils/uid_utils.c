@@ -22,10 +22,42 @@
 #include <string.h>
 #include <unistd.h>
 
-#include <SaHpi.h>
 #include <config.h>
 #include <oh_utils.h>
 #include <oh_error.h>
+
+#ifdef DBG_MSGS
+#define dbg_uid_lock(format, ...) \
+        do { \
+                if (getenv("OPENHPI_DBG_UID_LOCK") && !strcmp("YES",getenv("OPENHPI_DBG_UID_LOCK"))){ \
+                        fprintf(stderr, "        UID_LOCK: %s:%d:%s: ", __FILE__, __LINE__, __func__); \
+                        fprintf(stderr, format "\n", ## __VA_ARGS__); \
+                } \
+        } while(0)
+#else
+#define dbg_uid_lock(format, ...)
+#endif
+
+#define uid_lock(uidmutex) \
+        do { \
+                dbg_uid_lock("Locking UID mutex..."); \
+                g_static_mutex_lock(uidmutex); \
+                dbg_uid_lock("OK. UID mutex locked."); \
+        } while (0)
+
+#define uid_unlock(uidmutex) \
+        do { \
+                dbg_uid_lock("Unlocking UID mutex..."); \
+                g_static_mutex_unlock(uidmutex); \
+                dbg_uid_lock("OK. UID mutex unlocked."); \
+        } while (0)
+
+
+/* uid to entity path cross reference (xref) data structure */
+typedef struct {
+        SaHpiResourceIdT resource_id;
+        SaHpiEntityPathT entity_path;
+} EP_XREF;
 
 static GStaticMutex oh_uid_lock = G_STATIC_MUTEX_INIT;
 static GHashTable *oh_ep_table;
@@ -100,7 +132,7 @@ gboolean oh_entity_path_equal(gconstpointer a, gconstpointer b)
  **/
 SaErrorT oh_uid_initialize(void)
 {
-        int rval;
+        SaErrorT rval;
 
         uid_lock(&oh_uid_lock);
         if(!initialized) {
@@ -144,7 +176,7 @@ SaHpiBoolT oh_uid_is_initialized()
  *
  * Returns: positive unsigned int, failure is 0.
  **/
-guint oh_uid_from_entity_path(SaHpiEntityPathT *ep)
+SaHpiUint32T oh_uid_from_entity_path(SaHpiEntityPathT *ep)
 {
         gpointer key;
         gpointer value;
@@ -240,13 +272,12 @@ guint oh_uid_from_entity_path(SaHpiEntityPathT *ep)
  *
  * Returns: success 0, failure -1.
  **/
-gint oh_uid_remove(guint uid)
+SaErrorT oh_uid_remove(SaHpiUint32T uid)
 {
         EP_XREF *ep_xref;
         gpointer key;
-        int rval;
 
-        if (!oh_uid_is_initialized()) return -1;
+        if (!oh_uid_is_initialized()) return SA_ERR_HPI_ERROR;
 
         /* check entry exist in oh_resource_id_table */
         key = (gpointer)&uid;
@@ -255,7 +286,7 @@ gint oh_uid_remove(guint uid)
         if(!ep_xref) {
                 dbg("error freeing oh_resource_id_table");
                 uid_unlock(&oh_uid_lock);
-                return -1;
+                return SA_ERR_HPI_ERROR;
         }
 
         /* check netry exist in oh_resource_id_table */
@@ -264,7 +295,7 @@ gint oh_uid_remove(guint uid)
         if(!ep_xref) {
                 dbg("error freeing oh_resource_id_table");
                 uid_unlock(&oh_uid_lock);
-                return -1;
+                return SA_ERR_HPI_ERROR;
         }
 
         g_hash_table_remove(oh_resource_id_table, &ep_xref->resource_id);
@@ -274,9 +305,7 @@ gint oh_uid_remove(guint uid)
 
         uid_unlock(&oh_uid_lock);
 
-        rval = oh_uid_map_to_file();
-
-        return rval;
+        return oh_uid_map_to_file();
 }
 
 /**
@@ -287,7 +316,7 @@ gint oh_uid_remove(guint uid)
  *
  * Returns: success returns resourceID/uid, failure is 0.
  **/
-guint oh_uid_lookup(SaHpiEntityPathT *ep)
+SaHpiUint32T oh_uid_lookup(SaHpiEntityPathT *ep)
 {
         EP_XREF *ep_xref;
         SaHpiEntityPathT entitypath;
@@ -318,20 +347,20 @@ guint oh_uid_lookup(SaHpiEntityPathT *ep)
 
 /**
  * oh_entity_path_lookup
- * @id: pointer to resource_id/uid identifying entity path
+ * @id: resource_id/uid identifying entity path
  * @ep: pointer to memory to fill in with entity path
  *
  * Fetches entity path based upon resource id, @id.
  *
  * Returns: success 0, failed -1.
  **/
-gint oh_entity_path_lookup(guint *id, SaHpiEntityPathT *ep)
+SaErrorT oh_entity_path_lookup(SaHpiUint32T id, SaHpiEntityPathT *ep)
 {
         EP_XREF *ep_xref;
-        gpointer key = id;
+        gpointer key = &id;
 
-        if (!id || !ep) return -1;
-        if (!oh_uid_is_initialized()) return -1;
+        if (!id || !ep) return SA_ERR_HPI_ERROR;
+        if (!oh_uid_is_initialized()) return SA_ERR_HPI_ERROR;
 
         /* check hash table for entry in oh_ep_table */
         uid_lock(&oh_uid_lock);
@@ -339,14 +368,14 @@ gint oh_entity_path_lookup(guint *id, SaHpiEntityPathT *ep)
         if(!ep_xref) {
                 dbg("error looking up EP to get uid");
                 uid_unlock(&oh_uid_lock);
-                return -1 ;
+                return SA_ERR_HPI_ERROR ;
         }
 
         memcpy(ep, &ep_xref->entity_path, sizeof(SaHpiEntityPathT));
 
         uid_unlock(&oh_uid_lock);
 
-        return 0;
+        return SA_OK;
 }
 
 /**
@@ -356,7 +385,7 @@ gint oh_entity_path_lookup(guint *id, SaHpiEntityPathT *ep)
  *
  * Return value: success 0, failed -1.
  **/
-gint oh_uid_map_to_file(void)
+SaErrorT oh_uid_map_to_file(void)
 {
         char *uid_map_file;
         int file;
@@ -373,14 +402,14 @@ gint oh_uid_map_to_file(void)
         if(file < 0) {
                 dbg("Configuration file '%s' could not be opened", uid_map_file);
                 uid_unlock(&oh_uid_lock);
-                return -1;
+                return SA_ERR_HPI_ERROR;
         }
 
         /* write resource id */
         if (write(file, (void *)&resource_id, sizeof(resource_id)) != sizeof(resource_id)) {
 		dbg("write resource_id failed");
 		close(file);
-		return -1;
+		return SA_ERR_HPI_ERROR;
 	}
 
         /* write all EP_XREF data records */
@@ -389,12 +418,12 @@ gint oh_uid_map_to_file(void)
         if(close(file) != 0) {
                 dbg("Couldn't close file '%s'.", uid_map_file);
                 uid_unlock(&oh_uid_lock);
-                return -1;
+                return SA_ERR_HPI_ERROR;
         }
 
         uid_unlock(&oh_uid_lock);
 
-        return 0;
+        return SA_OK;
 }
 
 

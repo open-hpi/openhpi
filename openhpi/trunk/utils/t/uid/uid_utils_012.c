@@ -39,7 +39,7 @@ int main(int argc, char **argv)
         if (!id)
                 return 1;
 
-        if (!oh_entity_path_lookup(&id, NULL))
+        if (!oh_entity_path_lookup(id, NULL))
                 return 1;
 
         return 0;
