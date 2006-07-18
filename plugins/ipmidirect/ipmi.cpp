@@ -442,6 +442,11 @@ IpmiDiscoverDomainResources( void *hnd, SaHpiDomainIdT did )
 {
   cIpmi *ipmi = VerifyIpmi( hnd );
 
+  if ( !ipmi )
+     {
+       return SA_ERR_HPI_INTERNAL_ERROR;
+     }
+
   stdlog << "Dedicated discovery let's go " << hnd << " " << did << "\n";
 
   SaErrorT rv = ipmi->IfDiscoverResources();
@@ -1160,6 +1165,88 @@ IpmiClearSel( void *hnd, SaHpiResourceIdT id )
   return rv;
 }
 
+static SaErrorT
+IpmiHotswapPolicyCancel( void *, SaHpiResourceIdT,
+                         SaHpiTimeoutT ) __attribute__((used));
+
+static SaErrorT
+IpmiHotswapPolicyCancel( void *hnd, SaHpiResourceIdT id,
+                         SaHpiTimeoutT timeout)
+{
+  cIpmi *ipmi = 0;
+  cIpmiResource *res = VerifyResourceAndEnter( hnd, id, ipmi );
+
+  if ( !res )
+       return SA_ERR_HPI_NOT_PRESENT;
+
+  SaErrorT rv = ipmi->IfHotswapPolicyCancel( res, timeout );
+
+  ipmi->IfLeave();
+
+  return rv;
+}
+
+static SaErrorT
+IpmiSetAutoInsertTimeout( void *, SaHpiTimeoutT ) __attribute__((used));
+
+static SaErrorT
+IpmiSetAutoInsertTimeout( void *hnd, SaHpiTimeoutT  timeout)
+{
+  cIpmi *ipmi = VerifyIpmi( hnd );
+
+  if ( !ipmi )
+     {
+       return SA_ERR_HPI_INTERNAL_ERROR;
+     }
+
+  SaErrorT rv = ipmi->IfSetAutoInsertTimeout( timeout );
+
+  ipmi->IfLeave();
+
+  return rv;
+}
+
+static SaErrorT
+IpmiGetAutoExtractTimeout( void *, SaHpiResourceIdT,
+                           SaHpiTimeoutT * ) __attribute__((used));
+
+static SaErrorT
+IpmiGetAutoExtractTimeout( void *hnd, SaHpiResourceIdT id,
+                           SaHpiTimeoutT *timeout )
+{
+  cIpmi *ipmi = 0;
+  cIpmiResource *res = VerifyResourceAndEnter( hnd, id, ipmi );
+
+  if ( !res )
+       return SA_ERR_HPI_NOT_PRESENT;
+
+  SaErrorT rv = ipmi->IfGetAutoExtractTimeout( res, *timeout );
+
+  ipmi->IfLeave();
+
+  return rv;
+}
+
+static SaErrorT
+IpmiSetAutoExtractTimeout( void *, SaHpiResourceIdT,
+                           SaHpiTimeoutT ) __attribute__((used));
+
+static SaErrorT
+IpmiSetAutoExtractTimeout( void *hnd, SaHpiResourceIdT id,
+                           SaHpiTimeoutT timeout )
+{
+  cIpmi *ipmi = 0;
+  cIpmiResource *res = VerifyResourceAndEnter( hnd, id, ipmi );
+
+  if ( !res )
+       return SA_ERR_HPI_NOT_PRESENT;
+
+  SaErrorT rv = ipmi->IfSetAutoExtractTimeout( res, timeout );
+
+  ipmi->IfLeave();
+
+  return rv;
+}
 
 static SaErrorT
 IpmiGetHotswapState( void *, SaHpiResourceIdT ,
@@ -1507,6 +1594,18 @@ void * oh_del_idr_field (void *, SaHpiResourceIdT, SaHpiIdrIdT, SaHpiEntryIdT,
                          SaHpiEntryIdT)
                 __attribute__ ((weak, alias("IpmiDelIdrField")));
 
+void * oh_hotswap_policy_cancel (void *, SaHpiResourceIdT, SaHpiTimeoutT)
+                __attribute__ ((weak, alias("IpmiHotswapPolicyCancel")));
+
+void * oh_set_autoinsert_timeout (void *, SaHpiTimeoutT)
+                __attribute__ ((weak, alias("IpmiSetAutoInsertTimeout")));
+
+void * oh_get_autoextract_timeout (void *, SaHpiResourceIdT, SaHpiTimeoutT *)
+                __attribute__ ((weak, alias("IpmiGetAutoExtractTimeout")));
+
+void * oh_set_autoextract_timeout (void *, SaHpiResourceIdT, SaHpiTimeoutT)
+                __attribute__ ((weak, alias("IpmiSetAutoExtractTimeout")));
+
 void * oh_get_hotswap_state (void *, SaHpiResourceIdT, SaHpiHsStateT *)
                 __attribute__ ((weak, alias("IpmiGetHotswapState")));
 
@@ -1556,6 +1655,27 @@ GetIntNotNull( GHashTable *handler_config, const char *str, unsigned int def = 0
        return def;
 
   return v;
+}
+
+static SaHpiTimeoutT
+GetTimeout( GHashTable *handler_config, const char *str, SaHpiTimeoutT def )
+{
+  const char *value = (const char *)g_hash_table_lookup(handler_config, str );
+
+  if ( !value )
+       return def;
+
+  int v = strtol( value, 0, 0 );
+
+  if ( v == 0 )
+       return SAHPI_TIMEOUT_IMMEDIATE;
+
+  if ( v == -1 )
+       return SAHPI_TIMEOUT_BLOCK;
+
+  SaHpiTimeoutT timeout = v * 1000000000;
+
+  return timeout;
 }
 
 
@@ -1694,6 +1814,9 @@ cIpmi::AllocConnection( GHashTable *handler_config )
           }
       }
   }
+
+  m_insert_timeout = GetTimeout( handler_config, "InsertTimeout", SAHPI_TIMEOUT_IMMEDIATE );
+  m_extract_timeout = GetTimeout( handler_config, "ExtractTimeout", SAHPI_TIMEOUT_IMMEDIATE );
 
   const char *name = (const char *)g_hash_table_lookup(handler_config, "name");
 

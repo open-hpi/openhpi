@@ -40,7 +40,6 @@ cIpmiDomain::cIpmiDomain()
   cIpmiMcVendorFactory::InitFactory();
 
   m_did = oh_get_default_domain_id();
-
   m_own_domain = false;
 
   for( int i = 0; i < 256; i++ )
@@ -224,7 +223,9 @@ cIpmiDomain::Init( cIpmiCon *con )
   if ( m_own_domain == true )
   {
     SaHpiTextBufferT buf = m_domain_tag;
-    m_did = oh_request_new_domain(m_handler_id, &buf, 0, 0, 0);
+    m_did = oh_request_new_domain_aitimeout(m_handler_id, &buf,
+                                            0,
+                                            m_insert_timeout, 0, 0);
 
     if ( m_did == 0 )
     {
@@ -234,6 +235,7 @@ cIpmiDomain::Init( cIpmiCon *con )
   }
   else
   {
+    m_insert_timeout = SAHPI_TIMEOUT_IMMEDIATE;
     m_did = oh_get_default_domain_id();
   }
 
