@@ -77,6 +77,10 @@ public:
   virtual SaErrorT IfGetHotswapState( cIpmiResource *res, SaHpiHsStateT &state );
   virtual SaErrorT IfSetHotswapState( cIpmiResource *res, SaHpiHsStateT state );
   virtual SaErrorT IfRequestHotswapAction( cIpmiResource *res, SaHpiHsActionT act );
+  virtual SaErrorT IfHotswapPolicyCancel( cIpmiResource *res, SaHpiTimeoutT timeout );
+  virtual SaErrorT IfSetAutoInsertTimeout( SaHpiTimeoutT  timeout);
+  virtual SaErrorT IfGetAutoExtractTimeout( cIpmiResource *res, SaHpiTimeoutT  &timeout);
+  virtual SaErrorT IfSetAutoExtractTimeout( cIpmiResource *res, SaHpiTimeoutT  timeout);
 
   virtual SaErrorT IfGetPowerState    ( cIpmiResource *res, SaHpiPowerStateT &state );
   virtual SaErrorT IfSetPowerState    ( cIpmiResource *res, SaHpiPowerStateT state );

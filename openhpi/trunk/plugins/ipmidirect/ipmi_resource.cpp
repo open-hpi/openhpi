@@ -29,9 +29,12 @@ cIpmiResource::cIpmiResource( cIpmiMc *mc, unsigned int fru_id )
     m_is_fru( false ),
     m_hotswap_sensor( 0 ),
     m_fru_state( eIpmiFruStateNotInstalled ),
+    m_policy_canceled( true ),
     m_oem( 0 ), m_current_control_id( 0 ),
     m_populate( false )
 {
+  m_extract_timeout = Domain()->ExtractTimeout();
+
   for( int i = 0; i < 256; i++ )
        m_sensor_num[i] = -1;
 }
@@ -389,4 +392,56 @@ cIpmiResource::Populate()
      }
 
   return true;
+}
+
+void
+cIpmiResource::Activate()
+{
+    cIpmiMsg msg( eIpmiNetfnPicmg, eIpmiCmdSetFruActivation );
+    msg.m_data_len = 3;
+    msg.m_data[0]  = dIpmiPicMgId;
+    msg.m_data[1]  = FruId();
+    msg.m_data[2] = dIpmiActivateFru;
+
+    cIpmiMsg rsp;
+
+    SaErrorT rv = SendCommand( msg, rsp );
+
+    if ( rv != SA_OK )
+    {
+        stdlog << "Activate: could not send set FRU Activation: " << rv << " !\n";
+    }
+    else if ( rsp.m_data_len < 2
+            || rsp.m_data[0] != eIpmiCcOk
+            || rsp.m_data[1] != dIpmiPicMgId )
+    {
+        stdlog << "Activate: IPMI error set FRU Activation: "
+                    << rsp.m_data[0] << " !\n";
+    }
+}
+
+void
+cIpmiResource::Deactivate()
+{
+    cIpmiMsg msg( eIpmiNetfnPicmg, eIpmiCmdSetFruActivation );
+    msg.m_data_len = 3;
+    msg.m_data[0]  = dIpmiPicMgId;
+    msg.m_data[1]  = FruId();
+    msg.m_data[2] = dIpmiDeactivateFru;
+
+    cIpmiMsg rsp;
+
+    SaErrorT rv = SendCommand( msg, rsp );
+
+    if ( rv != SA_OK )
+    {
+        stdlog << "Deactivate: could not send set FRU deactivation: " << rv << " !\n";
+    }
+    else if ( rsp.m_data_len < 2
+            || rsp.m_data[0] != eIpmiCcOk
+            || rsp.m_data[1] != dIpmiPicMgId )
+    {
+        stdlog << "Deactivate: IPMI error set FRU deactivation: "
+                    << rsp.m_data[0] << " !\n";
+    }
 }

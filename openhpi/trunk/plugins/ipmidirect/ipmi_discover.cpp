@@ -541,10 +541,12 @@ cIpmiMcThread::HandleHotswapEvent( cIpmiSensorHotswap *sensor,
   sensor->Resource()->FruState() = current_state;
   sensor->HandleEvent( event );
 
-  // We care only if it's the MC itself
-  if (( current_state == eIpmiFruStateNotInstalled )
-      && ( sensor->Resource()->FruId() == 0 ))
-     {
+  switch (current_state)
+  {
+  case eIpmiFruStateNotInstalled:
+    // We care only if it's the MC itself
+    if ( sensor->Resource()->FruId() == 0 )
+    {
        // remove mc
        WriteLock();
 
@@ -554,7 +556,34 @@ cIpmiMcThread::HandleHotswapEvent( cIpmiSensorHotswap *sensor,
        WriteUnlock();
 
        m_mc = 0;
-     }
+    }
+    break;
+
+  case eIpmiFruStateActivationRequest:
+    if (sensor->Resource()->Domain()->InsertTimeout() == SAHPI_TIMEOUT_IMMEDIATE)
+    {
+        sensor->Resource()->Activate();
+    }
+    else
+    {
+        sensor->Resource()->PolicyCanceled() = false;
+    }
+    break;
+
+  case eIpmiFruStateDeactivationRequest:
+    if (sensor->Resource()->ExtractTimeout() == SAHPI_TIMEOUT_IMMEDIATE)
+    {
+        sensor->Resource()->Deactivate();
+    }
+    else
+    {
+        sensor->Resource()->PolicyCanceled() = false;
+    }
+    break;
+
+  default:
+    break;
+  }
 
   if ( m_mc == 0 && m_sel )
      {

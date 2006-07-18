@@ -75,6 +75,11 @@ cIpmi::IfSetHotswapState( cIpmiResource *res, SaHpiHsStateT state )
        return SA_ERR_HPI_INVALID_CMD;
      }
 
+  if (res->PolicyCanceled() != true)
+  {
+    return SA_ERR_HPI_INVALID_REQUEST;
+  }
+
   cIpmiMsg msg( eIpmiNetfnPicmg, eIpmiCmdSetFruActivation );
   msg.m_data_len = 3;
   msg.m_data[0]  = dIpmiPicMgId;
@@ -186,6 +191,62 @@ cIpmi::IfRequestHotswapAction( cIpmiResource *res,
   return SA_OK;
 }
 
+SaErrorT
+cIpmi::IfHotswapPolicyCancel( cIpmiResource *res,
+                               SaHpiTimeoutT timeout )
+{
+  if ( !m_is_atca )
+     {
+       stdlog << "ATCA not supported by SI !\n";
+       return SA_ERR_HPI_INVALID_REQUEST;
+     }
+
+  res->PolicyCanceled() = true;
+
+  return SA_OK;
+}
+
+SaErrorT
+cIpmi::IfSetAutoInsertTimeout( SaHpiTimeoutT timeout )
+{
+  if ( !m_is_atca )
+     {
+       stdlog << "ATCA not supported by SI !\n";
+       return SA_ERR_HPI_INVALID_REQUEST;
+     }
+
+  InsertTimeout() = timeout;
+
+  return SA_OK;
+}
+
+SaErrorT
+cIpmi::IfGetAutoExtractTimeout( cIpmiResource *res, SaHpiTimeoutT &timeout )
+{
+  if ( !m_is_atca )
+     {
+       stdlog << "ATCA not supported by SI !\n";
+       return SA_ERR_HPI_INVALID_REQUEST;
+     }
+
+  timeout = res->ExtractTimeout();
+
+  return SA_OK;
+}
+
+SaErrorT
+cIpmi::IfSetAutoExtractTimeout( cIpmiResource *res, SaHpiTimeoutT timeout )
+{
+  if ( !m_is_atca )
+     {
+       stdlog << "ATCA not supported by SI !\n";
+       return SA_ERR_HPI_INVALID_REQUEST;
+     }
+
+  res->ExtractTimeout() = timeout;
+
+  return SA_OK;
+}
 
 SaErrorT
 cIpmi::IfGetPowerState( cIpmiResource *res, SaHpiPowerStateT &state )

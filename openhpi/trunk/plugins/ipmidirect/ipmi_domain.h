@@ -102,11 +102,15 @@ protected:
 
   SaHpiDomainIdT m_did;
   cIpmiTextBuffer m_domain_tag;
+  SaHpiTimeoutT   m_insert_timeout;
+  SaHpiTimeoutT   m_extract_timeout;
   bool m_own_domain;
   int m_handler_id;
 
 public:
   SaHpiDomainIdT DomainId() { return m_did; }
+  SaHpiTimeoutT &InsertTimeout() { return m_insert_timeout; }
+  SaHpiTimeoutT &ExtractTimeout() { return m_extract_timeout; }
   int HandlerId() { return m_handler_id; }
 
   bool ConLogLevel( int v )
