@@ -58,6 +58,7 @@
 #include <net-snmp/library/transform_oids.h>
 
 #define MAX_ASN_STR_LEN 300
+#define SNMP_BC_MM_BULK_MAX 45
 #define SNMP_BC_BULK_DEFAULT 32
 #define SNMP_BC_BULK_MIN 16
 
