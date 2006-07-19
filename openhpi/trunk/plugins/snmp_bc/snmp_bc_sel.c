@@ -690,39 +690,12 @@ SaErrorT snmp_bc_build_selcache(struct oh_handler_state *handle, SaHpiResourceId
 	err = SA_OK;
 	custom_handle = (struct snmp_bc_hnd *)handle->data;
 
-#if 0
-	/* ------------------------------------------------------------------ */
-	/*  This code block is disabled because we no longer reading EventLog */
-	/*  backward for BladeCenter and forward for RSA.  Rather, we read    */
-	/*  EventLog forward and re-order them by timestamps accordingly.     */
-	/*  Just leave code it here for documentation purposes.               */
-	/* ------------------------------------------------------------------ */  
-	int current;
-	current = snmp_bc_get_sel_size_from_hardware(custom_handle);
-
-	if (current > 0) {
-		for (i=1; i<=current; i++) {
-			err = snmp_bc_sel_read_add(handle, id, i, SAHPI_TRUE);
-			if ( (err == SA_ERR_HPI_OUT_OF_SPACE) || (err == SA_ERR_HPI_INVALID_PARAMS)) {
-				/* Either of these 2 errors prevent us from doing anything meaningful */
-				return(err);
-			} else if (err != SA_OK) {
-				/* other errors (mainly HPI_INTERNAL_ERROR or HPI_BUSY) means */
-				/* only this record has problem. record error then go to next */
-				dbg("Error, %s, encountered with EventLog entry %d\n", 
-				    oh_lookup_error(err), i);
-			}
-		}
-	}
-#endif
-	/*  End-of-obsolete code                                              */
-	/* ------------------------------------------------------------------ */
-
 	/* ------------------------------------------------------------------- */
 	/* If user has configured for snmpV3, then use GETBULK for performance */
 	/* Else, stay with individual GETs                                     */
 	/* ------------------------------------------------------------------- */   
-	if (custom_handle->session.version == SNMP_VERSION_3)
+	if ((custom_handle->session.version == SNMP_VERSION_3) && 
+				(custom_handle->count_per_getbulk != 0))
 	{
 	
 		/* ------------------------------------------------- */
@@ -736,7 +709,8 @@ SaErrorT snmp_bc_build_selcache(struct oh_handler_state *handle, SaHpiResourceId
 		/* -- works OK with with multiple handlers           */
 		/*	gcc (GCC) 4.0.1 (4.0.1-5mdk  Mandriva 2006)  */
 		/* -- works OK with all gcc vers for single handler  */
-		trace(">>>>>> bulk build selcache %p.\n", handle);
+		trace(">>>>>> bulk build selcache %p. count_per_getbulk %d\n", 
+					handle,custom_handle->count_per_getbulk);
 		/* ------------------------------------------------- */
 				
 		err = snmp_bc_bulk_selcache(handle, id);
