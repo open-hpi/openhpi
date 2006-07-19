@@ -230,8 +230,12 @@ void *snmp_bc_open(GHashTable *handler_config)
 			if (count_per_getbulk != NULL) 
 			{
 				custom_handle->count_per_getbulk = atoi((char *)count_per_getbulk);
-				if (custom_handle->count_per_getbulk <= SNMP_BC_BULK_MIN) {
+				if (custom_handle->count_per_getbulk != 0) { 
+						
+					if (custom_handle->count_per_getbulk <= SNMP_BC_BULK_MIN)
 					 	custom_handle->count_per_getbulk = SNMP_BC_BULK_MIN;
+					else if (custom_handle->count_per_getbulk > SNMP_BC_MM_BULK_MAX)
+						custom_handle->count_per_getbulk = SNMP_BC_MM_BULK_MAX;
 				}
 							
 			} else { 
