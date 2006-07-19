@@ -1548,7 +1548,6 @@ SaErrorT snmp_bc_discover_mm(struct oh_handler_state *handle,
                         return(SA_ERR_HPI_OUT_OF_SPACE);
                 }
 
-
                 /* Add resource to temporary event cache/queue */
                 err = oh_add_resource(custom_handle->tmpcache,
                         	        &(e->u.res_event.entry),
@@ -1569,7 +1568,7 @@ SaErrorT snmp_bc_discover_mm(struct oh_handler_state *handle,
 			
 	/* Discover Physical MM */                				
 	for (i=0; i < strlen(mm_vector); i++) {
-		trace("Management Module installed bit map %s\n", get_value.string);
+		trace("Management Module installed bit map %s", get_value.string);
 		if ((mm_vector[i] == '1') || (custom_handle->isFirstDiscovery == SAHPI_TRUE))
 		{
                 	e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
@@ -1646,7 +1645,21 @@ SaErrorT snmp_bc_discover_mm(struct oh_handler_state *handle,
                 
                 	/* Find resource's events, sensors, controls, etc. */
                 	snmp_bc_discover_res_events(handle, &(e->u.res_event.entry.ResourceEntity), res_info_ptr);
-                	snmp_bc_discover_sensors(handle, snmp_bc_mgmnt_sensors, e);
+			
+			/* See if mmHeathState OID is supported; If it is a readable Operational State sensor
+                           is supported; else the Operational State sensor is event only */
+			{
+				struct snmp_value value;
+
+				err = snmp_bc_snmp_get(custom_handle, SNMP_BC_MM_HEALTH_OID, &value, SAHPI_TRUE);
+				if (err) {  
+					snmp_bc_discover_sensors(handle, snmp_bc_mgmnt_sensors, e);
+				}
+				else { 
+					snmp_bc_discover_sensors(handle, snmp_bc_mgmnt_health_sensors, e);
+				}
+			}
+
                 	snmp_bc_discover_controls(handle, snmp_bc_mgmnt_controls, e);
                 	snmp_bc_discover_inventories(handle, snmp_bc_mgmnt_inventories, e);
 
@@ -1659,11 +1672,9 @@ SaErrorT snmp_bc_discover_mm(struct oh_handler_state *handle,
 				}
 			}			
 			err = snmp_bc_set_resource_slot_state_sensor(handle, e, mm_width);
-						
 		}
 	}
 	return(SA_OK);
-
 }
 
 /**

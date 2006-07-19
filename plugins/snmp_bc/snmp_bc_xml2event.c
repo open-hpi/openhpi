@@ -223,6 +223,12 @@ static void event_start_element(GMarkupParseContext *context,
                         if (strstr(attribute_values[i], "OVR_MM2") != NULL) {
                                 working.event_ovr |= OVR_MM2;
                         }
+                        if (strstr(attribute_values[i], "OVR_MM_STBY") != NULL) {
+                                working.event_ovr |= OVR_MM_STBY;
+                        }
+                        if (strstr(attribute_values[i], "OVR_MM_PRIME") != NULL) {
+                                working.event_ovr |= OVR_MM_PRIME;
+                        }
                         /* Ignore any other values */
                 }
                 else if (g_ascii_strncasecmp(attribute_names[i], "dup", sizeof("dup")) == 0) {
@@ -255,9 +261,8 @@ static void event_start_element(GMarkupParseContext *context,
 
 	/* Insert event into hash table */
         g_hash_table_insert(hash_info->hashtable, key, xmlinfo);
-	trace("Inserted event=%s into hash table. Sev=%s, OVR=%x, Dup=%d",
+	trace("Inserted event=%s into hash table. Sev=%s, OVR=%lld, Dup=%d",
 	      xmlinfo->event, oh_lookup_severity(xmlinfo->event_sev),
 	      xmlinfo->event_ovr, xmlinfo->event_dup);
-
         return;
 }
