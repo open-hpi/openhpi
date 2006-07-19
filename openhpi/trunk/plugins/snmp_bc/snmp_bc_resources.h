@@ -26,15 +26,15 @@
  *      |
  *      +-- {SYS_MGMNT_MODULE,[1-2]}    (Management Module)
  *      |
- *      +-- {INTERCONNECT,[1-4]}        (Switch Module)
+ *      +-- {INTERCONNECT,[1-4]}        (I/O Module)
  *      |
  *      +-- {SBC_BLADE,[1-14]}          (Blade)
  *      |   |
- *      |   +-- {EXPANSION_CARD,[1-14]} (Blade expansion card (BSE card))
- *      |                               (Expansion card number match's)
- *      |                               (it's parent blade's number)
+ *      |   +-- {EXPANSION_CARD,[1-14]} (Blade expansion modules (BEMs) (e.g. BSE))
+ *      |       |
+ *      |       +-- {DISK_DRIVE,[1-3]}  (Blade expansion module DASD)
  *      |
- *      +-- {PERIPHERAL_BAY,1}          (Control Panel/Media Tray)
+ *      +-- {PERIPHERAL_BAY,1}          (Media Tray)
  *      |
  *      +-- {POWER_SUPPLY,[1-4]}        (Power Module)
  *      |
@@ -169,6 +169,9 @@ typedef enum {
 #define SNMP_BC_SEL_ENTRY_OID_RSA       ".1.3.6.1.4.1.2.3.51.1.3.4.2.1.2"
 #define SNMP_BC_SEL_CLEAR_OID           ".1.3.6.1.4.1.2.3.51.2.3.4.3.0"
 #define SNMP_BC_SEL_CLEAR_OID_RSA       ".1.3.6.1.4.1.2.3.51.1.3.4.3.0"
+
+/* mmHeathState OID */
+#define SNMP_BC_MM_HEALTH_OID           ".1.3.6.1.4.1.2.3.51.2.22.5.1.1.5.1"
 
 /* Slot ResourceTag */
 #define SNMP_BC_PHYSICAL_SLOT  	      "Blade Slot"
@@ -346,7 +349,10 @@ extern struct snmp_bc_sensor      snmp_bc_blade_sensors[];
 extern struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[];
 extern struct snmp_bc_sensor      snmp_bc_bem_sensors[];
 extern struct snmp_bc_ipmi_sensor snmp_bc_bem_ipmi_sensors[];
+extern struct snmp_bc_sensor      snmp_bc_bse_dasd_sensors[];
+extern struct snmp_bc_sensor      snmp_bc_bse3_dasd_sensors[];
 extern struct snmp_bc_sensor      snmp_bc_mgmnt_sensors[];
+extern struct snmp_bc_sensor      snmp_bc_mgmnt_health_sensors[];
 extern struct snmp_bc_sensor      snmp_bc_virtual_mgmnt_sensors[];
 extern struct snmp_bc_sensor      snmp_bc_mediatray_sensors[];
 extern struct snmp_bc_sensor      snmp_bc_blower_sensors[];
@@ -405,6 +411,7 @@ extern struct snmp_bc_control snmp_bc_blower_controls[];
 extern struct snmp_bc_control snmp_bc_power_controls[];
 extern struct snmp_bc_control snmp_bc_switch_controls[];
 extern struct snmp_bc_control snmp_bc_slot_controls[];
+extern struct snmp_bc_control snmp_bc_bem_dasd_controls[];
 
 extern struct snmp_bc_control snmp_bc_chassis_controls_rsa[];
 extern struct snmp_bc_control snmp_bc_cpu_controls_rsa[];
@@ -454,6 +461,7 @@ extern struct snmp_bc_inventory snmp_bc_bem_inventories[];
 extern struct snmp_bc_inventory snmp_bc_mediatray_inventories[];
 extern struct snmp_bc_inventory snmp_bc_power_inventories[];
 extern struct snmp_bc_inventory snmp_bc_slot_inventories[];
+extern struct snmp_bc_inventory snmp_bc_bem_dasd_inventories[];
 
 extern struct snmp_bc_inventory snmp_bc_chassis_inventories_rsa[];
 extern struct snmp_bc_inventory snmp_bc_cpu_inventories_rsa[];

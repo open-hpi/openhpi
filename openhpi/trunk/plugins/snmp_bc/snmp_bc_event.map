@@ -108,51 +108,6 @@ EN_MM_2_REMOVED|0x00284002|SAHPI_INFORMATIONAL|OVR_SEV,OVR_MM2|"Management Modul
 # Virtual Management Module Sensors
 ###################################
 
-# MM Air Temperature Sensor
-EN_PFA_HI_OVER_TEMP_SP_CARD|0x0001D400|SAHPI_MAJOR|OVR_SEV,OVR_VMM|"Management Module is over recommended temperature."
-
-# System 1.8 Volt Sensor
-EN_I2C_HI_FAULT_1_8V|0x0807B401|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"System is over recommended voltage for 1.8V CPU"
-EN_I2C_HI_FAULT_1_8V|0x0807B401|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"Chassis 1.8V over recommended voltage."
-EN_I2C_LO_FAULT_1_8V|0x0807B801|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"System is under recommended voltage for 1.8V CPU"
-EN_I2C_LO_FAULT_1_8V|0x0807B801|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"Chassis 1.8V under recommended voltage."
-
-# System 2.5 Volt Sensor
-EN_I2C_HI_FAULT_2_5V|0x08031481|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"System over recommended voltage on +2.5v."
-EN_I2C_HI_FAULT_2_5V|0x08031481|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"Chassis 2.5V over recommended voltage"
-EN_I2C_LO_FAULT_2_5V|0x08031881|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"System under recommended voltage on +2.5v."
-EN_I2C_LO_FAULT_2_5V|0x08031881|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"Chassis 2.5V under recommended voltage"
-
-# System 3.3 Volt Sensor
-EN_I2C_HI_FAULT_3_35V|0x08033481|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"System over recommended voltage on +3.3v."
-EN_I2C_HI_FAULT_3_35V|0x08033481|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"Chassis 3.3V over recommended voltage"
-# FIXME:: MM BUG: - had EN_PFA_HI_FAULT_3_35V (blade severity but chassis string)
-# need to add EN_I2C_LO_FAULT_3_35V with right severity
-EN_I2C_LO_FAULT_3_35V|0xFF000000|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"System under recommended voltage on +3.3v."
-EN_I2C_LO_FAULT_3_35V|0xFF000000|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"Chassis 3.3V under recommended voltage"
-
-# System 5 Volt Sensor
-# FIXME:: MM BUG: EN_PFA_HI_FAULT_PLANAR_5V(warning) and EN_MAJOR_HI_FAULT_PLANAR_5V (crit) have same 
-# Chassis string MAJOR should be I2C; other should be blade string
-EN_I2C_HI_FAULT_PLANAR_5V|0xFF000001|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"System over recommended voltage for +5v."
-EN_I2C_HI_FAULT_PLANAR_5V|0xFF000001|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"Chassis 5V over recommended voltage"
-EN_I2C_LO_FAULT_PLANAR_5V|0x06035801|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"System under recommended voltage for +5v."
-EN_I2C_LO_FAULT_PLANAR_5V|0x06035801|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"Chassis 5V under recommended voltage"
-
-# System -5 Volt Sensor
-# FIXME:: MM Bug - MM needs to change EN_I2C_HI_FAULT_N5V "Chassis -5V over voltage fault to
-# "Chassis -5V over recommended voltage"
-EN_I2C_HI_FAULT_N5V|0x0803D501|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"System over recommended voltage for -5v."
-EN_I2C_HI_FAULT_N5V|0x0803D501|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"Chassis -5V over recommended voltage"
-EN_I2C_LO_FAULT_N5V|0x0803D801|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"System under recommended voltage for -5v."
-EN_I2C_LO_FAULT_N5V|0x0803D801|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"Chassis -5V under recommended voltage"
-
-# System 12 Volt Sensor
-EN_I2C_HI_FAULT_12V_PLANAR|0x06037503|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"System over recommended voltage for +12v."
-EN_I2C_HI_FAULT_12V_PLANAR|0x06037503|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"Chassis 12V over recommended voltage."
-EN_I2C_LO_FAULT_12V_PLANAR|0x06037801|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"System under recommended voltage for +12v."
-EN_I2C_LO_FAULT_12V_PLANAR|0x06037801|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"Chassis 12V under recommended voltage"
-
 # System Management Bus Operational State Sensor - event only
 #### Mapped to Off-line Operational State
 EN_I2C_BUS_0_FAIL|0x00020000|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"Failure reading I2C device. Check devices on bus 0."
@@ -210,13 +165,107 @@ EN_I2C_BUS_25_FAIL|0x00020019|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"Failure reading I2
 EN_I2C_BUS_26_FAIL|0x0002001A|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"Failure reading I2C device. Check devices on bus 26."
 EN_I2C_BUS_26_FAIL|0x0002001A|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"Failure reading device on system management bus 26."
 # FIXME:: MM Why are the next two MINOR but the ones above CRITICAL?
-EN_SP_CTRL_OFFLINE|0x00216015|SAHPI_MINOR|OVR_SEV,OVR_VMM|"Service processor controller access off-line."
-EN_SP_CTRL_UNAVAILABLE|0x00216016|SAHPI_MINOR|OVR_SEV,OVR_VMM|"Service processor controller access unavailable."
+EN_SP_CTRL_OFFLINE|0x00216015|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"Service processor controller access off-line."
+EN_SP_CTRL_UNAVAILABLE|0x00216016|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"Service processor controller access unavailable."
 EN_STCONN_FAIL_MIDPLANE|0x00022014|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"Connectivity status midplane communication failed."
 
 #### Mapped to Degraded Operational State
 EN_SP_CTRL_DEGRADED|0x00216014|SAHPI_MINOR|OVR_SEV,OVR_VMM|"Service processor controller access degraded."
 EN_SP_SENSOR_DEGRADED|0x00216013|SAHPI_MINOR|OVR_SEV,OVR_VMM|"Service processor sensor access degraded."
+
+# MM Air Temperature Sensor
+EN_PFA_HI_OVER_TEMP_SP_CARD|0x0001D400|SAHPI_MAJOR|OVR_SEV,OVR_VMM|"Management Module is over recommended temperature."
+
+# System 1.8 Volt Sensor
+EN_I2C_HI_FAULT_1_8V|0x0807B401|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"System is over recommended voltage for 1.8V CPU"
+EN_I2C_HI_FAULT_1_8V|0x0807B401|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"Chassis 1.8V over recommended voltage."
+EN_I2C_LO_FAULT_1_8V|0x0807B801|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"System is under recommended voltage for 1.8V CPU"
+EN_I2C_LO_FAULT_1_8V|0x0807B801|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"Chassis 1.8V under recommended voltage."
+
+# System 2.5 Volt Sensor
+EN_I2C_HI_FAULT_2_5V|0x08031481|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"System over recommended voltage on +2.5v."
+EN_I2C_HI_FAULT_2_5V|0x08031481|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"Chassis 2.5V over recommended voltage"
+EN_I2C_LO_FAULT_2_5V|0x08031881|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"System under recommended voltage on +2.5v."
+EN_I2C_LO_FAULT_2_5V|0x08031881|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"Chassis 2.5V under recommended voltage"
+
+# System 3.3 Volt Sensor
+EN_I2C_HI_FAULT_3_35V|0x08033481|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"System over recommended voltage on +3.3v."
+EN_I2C_HI_FAULT_3_35V|0x08033481|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"Chassis 3.3V over recommended voltage"
+# FIXME:: MM BUG: - had EN_PFA_HI_FAULT_3_35V (blade severity but chassis string)
+# need to add EN_I2C_LO_FAULT_3_35V with right severity
+EN_I2C_LO_FAULT_3_35V|0xFF000000|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"System under recommended voltage on +3.3v."
+EN_I2C_LO_FAULT_3_35V|0xFF000000|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"Chassis 3.3V under recommended voltage"
+
+# System 5 Volt Sensor
+# FIXME:: MM BUG: EN_PFA_HI_FAULT_PLANAR_5V(warning) and EN_MAJOR_HI_FAULT_PLANAR_5V (crit) have same 
+# Chassis string MAJOR should be I2C; other should be blade string
+EN_I2C_HI_FAULT_PLANAR_5V|0xFF000001|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"System over recommended voltage for +5v."
+EN_I2C_HI_FAULT_PLANAR_5V|0xFF000001|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"Chassis 5V over recommended voltage"
+EN_I2C_LO_FAULT_PLANAR_5V|0x06035801|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"System under recommended voltage for +5v."
+EN_I2C_LO_FAULT_PLANAR_5V|0x06035801|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"Chassis 5V under recommended voltage"
+
+# System -5 Volt Sensor
+# FIXME:: MM Bug - MM needs to change EN_I2C_HI_FAULT_N5V "Chassis -5V over voltage fault to
+# "Chassis -5V over recommended voltage"
+EN_I2C_HI_FAULT_N5V|0x0803D501|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"System over recommended voltage for -5v."
+EN_I2C_HI_FAULT_N5V|0x0803D501|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"Chassis -5V over recommended voltage"
+EN_I2C_LO_FAULT_N5V|0x0803D801|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"System under recommended voltage for -5v."
+EN_I2C_LO_FAULT_N5V|0x0803D801|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"Chassis -5V under recommended voltage"
+
+# System 12 Volt Sensor
+EN_I2C_HI_FAULT_12V_PLANAR|0x06037503|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"System over recommended voltage for +12v."
+EN_I2C_HI_FAULT_12V_PLANAR|0x06037503|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"Chassis 12V over recommended voltage."
+EN_I2C_LO_FAULT_12V_PLANAR|0x06037801|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"System under recommended voltage for +12v."
+EN_I2C_LO_FAULT_12V_PLANAR|0x06037801|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"Chassis 12V under recommended voltage"
+
+#####################
+# Physical MM Sensors
+#####################
+
+# MM Operational Status Sensor
+
+#### Mapped to Off-line Operational State
+EN_OTHER_I2C|0x00222000|SAHPI_CRITICAL|OVR_SEV,OVR_MM_STBY|"Standby MM failure on system management bus, check devices"
+EN_STCONN_FAIL_OTHERMM|0x0002201E|SAHPI_CRITICAL|OVR_SEV,OVR_MM_STBY|"Connectivity status alternate MM communication failed."
+
+#### Mapped to Degraded Operational State
+EN_STBIST_FAIL_R_BOOT_ROM|0x0002201B|SAHPI_MAJOR|OVR_SEV,OVR_MM_STBY|"BIST standby MM bootrom failed."
+EN_STBIST_FAIL_R_CORE_1|0x00022052|SAHPI_MAJOR|OVR_SEV,OVR_MM_STBY|"BIST standby MM primary core Failed."
+EN_STBIST_FAIL_R_CORE_2|0x00022053|SAHPI_MAJOR|OVR_SEV,OVR_MM_STBY|"BIST standby MM backup core Failed."
+EN_STBIST_FAIL_R_CPLD|0x00022019|SAHPI_MAJOR|OVR_SEV,OVR_MM_STBY|"BIST standby MM internal I/O expander failed."
+EN_STBIST_FAIL_R_ENET_PORT|0x0002201C|SAHPI_MAJOR|OVR_SEV,OVR_MM_STBY|"BIST standby MM ethernet port 0 failed."
+EN_STBIST_FAIL_R_ENET_SWITCH|0x0002201D|SAHPI_MAJOR|OVR_SEV,OVR_MM_STBY|"BIST standby MM internal ethernet switch failed."
+EN_STBIST_FAIL_R_I2C|0x00022016|SAHPI_MAJOR|OVR_SEV,OVR_MM_STBY|"BIST standby MM local management bus failed."
+EN_STBIST_FAIL_R_PRI_FS|0x00022017|SAHPI_MAJOR|OVR_SEV,OVR_MM_STBY|"BIST standby MM primary file system failed."
+EN_STBIST_FAIL_R_RTC|0x00022015|SAHPI_MAJOR|OVR_SEV,OVR_MM_STBY|"BIST standby MM realtime clock failed."
+EN_STBIST_FAIL_R_SEC_FS|0x00022018|SAHPI_MAJOR|OVR_SEV,OVR_MM_STBY|"BIST standby MM secondary file system failed."
+
+# FIXME:: MM Why have critical events if MM is still operational?
+EN_FAULT_OC_USB_HUB|0x00014034|SAHPI_MAJOR|OVR_SEV,OVR_MM_PRIME|"USB hub over-current failure"
+EN_FAULT_OC_USB_PORT|0x00014033|SAHPI_MAJOR|OVR_SEV,OVR_MM_PRIME|"USB port over-current failure"
+EN_STBIST_FAIL_ADC|0x0002200B|SAHPI_MAJOR|OVR_SEV,OVR_MM_PRIME|"BIST primary MM video capture failed."
+EN_STBIST_FAIL_BOOT_ROM|0x00022007|SAHPI_MAJOR|OVR_SEV,OVR_MM_PRIME|"BIST primary MM bootrom failed."
+EN_STBIST_FAIL_CORE_1|0x00022058|SAHPI_MAJOR|OVR_SEV,OVR_MM_PRIME|"BIST primary MM primary core failed."
+EN_STBIST_FAIL_CORE_2|0x00022059|SAHPI_MAJOR|OVR_SEV,OVR_MM_PRIME|"BIST primary MM backup core failed."
+EN_STBIST_FAIL_CPLD|0x0002205A|SAHPI_CRITICAL|OVR_SEV,OVR_MM_PRIME|"BIST primary MM internal I/O expander failed."
+EN_STBIST_FAIL_ENET_PORT|0x00022008|SAHPI_MAJOR|OVR_SEV,OVR_MM_PRIME|"BIST primary MM ethernet port 0 failed."
+EN_STBIST_FAIL_ENET_SWITCH|0x0002200A|SAHPI_CRITICAL|OVR_SEV,OVR_MM_PRIME|"BIST primary MM internal ethernet switch failed."
+EN_STBIST_FAIL_I2C|0x00022004|SAHPI_CRITICAL|OVR_SEV,OVR_MM_PRIME|"BIST primary MM local management bus failed."
+EN_STBIST_FAIL_I2C_DEVICE|0x00022009|SAHPI_CRITICAL|OVR_SEV,OVR_MM_PRIME|"BIST primary MM external management bus failed."
+EN_STBIST_FAIL_PRI_FS|0x00022005|SAHPI_MAJOR|OVR_SEV,OVR_MM_PRIME|"BIST primary MM primary file system failed."
+EN_STBIST_FAIL_R485_1|0x00022001|SAHPI_CRITICAL|OVR_SEV,OVR_MM_PRIME|"BIST blade management bus 1 failed."
+EN_STBIST_FAIL_R485_2|0x00022002|SAHPI_CRITICAL|OVR_SEV,OVR_MM_PRIME|"BIST blade management bus 2 failed."
+EN_STBIST_FAIL_RPSERV|0x00022013|SAHPI_MAJOR|OVR_SEV,OVR_MM_PRIME|"BIST primary MM remote control firmware failed."
+EN_STBIST_FAIL_RTC|0x00022003|SAHPI_MAJOR|OVR_SEV,OVR_MM_PRIME|"BIST primary MM realtime clock failed."
+EN_STBIST_FAIL_SEC_FS|0x00022006|SAHPI_MAJOR|OVR_SEV,OVR_MM_PRIME|"BIST primary MM secondary file system failed."
+EN_STBIST_FAIL_USB_1|0x00022011|SAHPI_MAJOR|OVR_SEV,OVR_MM_PRIME|"BIST primary MM USB keyboard/mouse emulation failed."
+EN_STBIST_FAIL_USB_2|0x00022012|SAHPI_MAJOR|OVR_SEV,OVR_MM_PRIME|"BIST primary MM USB mass storage emulation failed."
+EN_STBIST_FAIL_USB_I2C_1|0x00022054|SAHPI_MAJOR|OVR_SEV,OVR_MM_PRIME|"BIST primary MM USB keyboard/mouse firmware failed."
+EN_STBIST_FAIL_USB_I2C_2|0x00022055|SAHPI_MAJOR|OVR_SEV,OVR_MM_PRIME|"BIST primary MM USB mass storage firmware failed."
+EN_SYSTEM_BATTERY_FAILURE|0x06000000|SAHPI_INFORMATIONAL|OVR_SEV,OVR_MM_PRIME|"The real time clock battery in the MM needs service."
+
+#### Mapped to Install Error Operational State
+EN_MM_MISMATCHED|0x00282005|SAHPI_CRITICAL|OVR_SEV,OVR_MM_PRIME|"Configuration of mismatched management modules is not supported"
 
 ################
 # Blade Resource
@@ -1796,10 +1845,6 @@ EN_FAN_8_NOT_PRESENT|0x06026008|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Fan 8 not detect
 ##EN_BSE_RAID_BATTERY_FAILURE|0x0EE18000|SAHPI_MINOR|OVR_SEV|"BSE RAID battery failure"
 ##EN_BSE_RAID_FAULT|0x0EE00000|SAHPI_MINOR|OVR_SEV|"BSE RAID fault"
 
-# FIXME:: MM errors.
-##EN_FAULT_OC_USB_HUB|0x00014034|SAHPI_MAJOR|OVR_SEV|"USB hub over-current failure"
-##EN_FAULT_OC_USB_PORT|0x00014033|SAHPI_MAJOR|OVR_SEV|"USB port over-current failure"
-
 # FIXME:: MM Are these used?
 ##EN_IPMI_BLD_RESET|0x00216018|SAHPI_INFORMATIONAL|OVR_SEV|"Blade reset."
 ##EN_IPMI_BMC_COMM_FAIL|0x00216000|SAHPI_MINOR|OVR_SEV|"Problem communicating with BMC."
@@ -1843,56 +1888,15 @@ EN_FAN_8_NOT_PRESENT|0x06026008|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Fan 8 not detect
 ##EN_IPMI_VIDEO_INIT_FAIL|0x0021602E|SAHPI_MAJOR|OVR_SEV|"Failure during video initialization."
 ##EN_IPMI_WAKEUP_VECTOR_FAIL|0x00216037|SAHPI_MAJOR|OVR_SEV|"Failure calling OS wakeup vector."
 
-# FIXME:: I2C short - cause failover (00103000); but no recovery.
+# FIXME:: I2C short - cause failover (00103000); but no recovery - VMM Management bus. Check not Blade..
 ##EN_MGMT_BUS_FAULT|0x00103000|SAHPI_MAJOR|OVR_SEV|"Management bus communication fault."
-# Blade cannot be removed from 485 bus..
-##EN_UNABLE_ISLOATE_BUS|0x00101007|SAHPI_MAJOR|OVR_SEV|"Unable to isolate bus fault - bus was not recovered."
 
-# FIXME:: MM2 primary; put in MM1 as standby; remove it get recovery.  
-##EN_MM_MISMATCHED|0x00282005|SAHPI_CRITICAL|OVR_SEV|"Configuration of mismatched management modules is not supported"
+# Blade cannot be removed from 485 bus. Blade Operational sensor
+##EN_UNABLE_ISLOATE_BUS|0x00101007|SAHPI_MAJOR|OVR_SEV|"Unable to isolate bus fault - bus was not recovered."
 
 # FIXME:: What happens when this occurs? Yes - Degraded operations.
 ##EN_PWR_DOMAIN_1_MISMATCHED_PS|0x08006001|SAHPI_MINOR|OVR_SEV|"Mismatched Power Modules in power domain 1"
 ##EN_PWR_DOMAIN_2_MISMATCHED_PS|0x08006002|SAHPI_MINOR|OVR_SEV|"Mismatched Power Modules in power domain 2"
-
-# FIXME:: MM is OK but degraded. Can force failover to standby with BIST - should be ok but degraded.
-##EN_OTHER_I2C|0x00222000|SAHPI_CRITICAL|OVR_SEV|"Standby MM failure on system management bus, check devices"
-##EN_STBIST_FAIL_R_BOOT_ROM|0x0002201B|SAHPI_MAJOR|OVR_SEV|"BIST standby MM bootrom failed."
-##EN_STBIST_FAIL_R_CORE_1|0x00022052|SAHPI_MAJOR|OVR_SEV|"BIST standby MM primary core Failed."
-##EN_STBIST_FAIL_R_CORE_2|0x00022053|SAHPI_MAJOR|OVR_SEV|"BIST standby MM backup core Failed."
-##EN_STBIST_FAIL_R_CPLD|0x00022019|SAHPI_MAJOR|OVR_SEV|"BIST standby MM internal I/O expander failed."
-##EN_STBIST_FAIL_R_ENET_PORT|0x0002201C|SAHPI_MAJOR|OVR_SEV|"BIST standby MM ethernet port 0 failed."
-##EN_STBIST_FAIL_R_ENET_SWITCH|0x0002201D|SAHPI_MAJOR|OVR_SEV|"BIST standby MM internal ethernet switch failed."
-##EN_STBIST_FAIL_R_I2C|0x00022016|SAHPI_MAJOR|OVR_SEV|"BIST standby MM local management bus failed."
-##EN_STBIST_FAIL_R_PRI_FS|0x00022017|SAHPI_MAJOR|OVR_SEV|"BIST standby MM primary file system failed."
-##EN_STBIST_FAIL_R_RTC|0x00022015|SAHPI_MAJOR|OVR_SEV|"BIST standby MM realtime clock failed."
-##EN_STBIST_FAIL_R_SEC_FS|0x00022018|SAHPI_MAJOR|OVR_SEV|"BIST standby MM secondary file system failed."
-
-##EN_STBIST_FAIL_ADC|0x0002200B|SAHPI_MAJOR|OVR_SEV|"BIST primary MM video capture failed."
-##EN_STBIST_FAIL_BOOT_ROM|0x00022007|SAHPI_MAJOR|OVR_SEV|"BIST primary MM bootrom failed."
-##EN_STBIST_FAIL_CORE_1|0x00022058|SAHPI_MAJOR|OVR_SEV|"BIST primary MM primary core failed."
-##EN_STBIST_FAIL_CORE_2|0x00022059|SAHPI_MAJOR|OVR_SEV|"BIST primary MM backup core failed."
-##EN_STBIST_FAIL_CPLD|0x0002205A|SAHPI_CRITICAL|OVR_SEV|"BIST primary MM internal I/O expander failed."
-##EN_STBIST_FAIL_ENET_PORT|0x00022008|SAHPI_MAJOR|OVR_SEV|"BIST primary MM ethernet port 0 failed."
-##EN_STBIST_FAIL_ENET_SWITCH|0x0002200A|SAHPI_CRITICAL|OVR_SEV|"BIST primary MM internal ethernet switch failed."
-##EN_STBIST_FAIL_I2C|0x00022004|SAHPI_CRITICAL|OVR_SEV|"BIST primary MM local management bus failed."
-##EN_STBIST_FAIL_I2C_DEVICE|0x00022009|SAHPI_CRITICAL|OVR_SEV|"BIST primary MM external management bus failed."
-##EN_STBIST_FAIL_PRI_FS|0x00022005|SAHPI_MAJOR|OVR_SEV|"BIST primary MM primary file system failed."
-##EN_STBIST_FAIL_R485_1|0x00022001|SAHPI_CRITICAL|OVR_SEV|"BIST blade management bus 1 failed."
-##EN_STBIST_FAIL_R485_2|0x00022002|SAHPI_CRITICAL|OVR_SEV|"BIST blade management bus 2 failed."
-##EN_STBIST_FAIL_RPSERV|0x00022013|SAHPI_MAJOR|OVR_SEV|"BIST primary MM remote control firmware failed."
-##EN_STBIST_FAIL_RTC|0x00022003|SAHPI_MAJOR|OVR_SEV|"BIST primary MM realtime clock failed."
-##EN_STBIST_FAIL_SEC_FS|0x00022006|SAHPI_MAJOR|OVR_SEV|"BIST primary MM secondary file system failed."
-##EN_STBIST_FAIL_USB_1|0x00022011|SAHPI_MAJOR|OVR_SEV|"BIST primary MM USB keyboard/mouse emulation failed."
-##EN_STBIST_FAIL_USB_2|0x00022012|SAHPI_MAJOR|OVR_SEV|"BIST primary MM USB mass storage emulation failed."
-##EN_STBIST_FAIL_USB_I2C_1|0x00022054|SAHPI_MAJOR|OVR_SEV|"BIST primary MM USB keyboard/mouse firmware failed."
-##EN_STBIST_FAIL_USB_I2C_2|0x00022055|SAHPI_MAJOR|OVR_SEV|"BIST primary MM USB mass storage firmware failed."
-
-# FIXME:: Standby MM's logical EN connection not working
-##EN_STCONN_FAIL_OTHERMM|0x0002201E|SAHPI_CRITICAL|OVR_SEV|"Connectivity status alternate MM communication failed."
-
-# FIXME:: Can get for blades and MM - bad string text; note this is a duplicate
-##EN_SYSTEM_BATTERY_FAILURE|0x06000000|SAHPI_INFORMATIONAL|OVR_SEV|"The real time clock battery in the MM needs service."
 
 ############
 # OEM Events
