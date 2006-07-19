@@ -115,28 +115,32 @@ handler libdummy {
 #       password = "blow"
 #}
 
-## Section for snmp_bc plugin:
-## The root entry can be omitted in 'entity_root',
-## but *not* the chassis entry.
+## Section for BladeCenter snmp_bc plugin:
+
 #handler libsnmp_bc {
-#        entity_root = "{SYSTEM_CHASSIS,4}" # Required
-#        host = "bc.ibm.com" # Required
-#        community = "community" # Version 1 Required.
-#        version = "1" # Required. SNMP protocol version (1|3)
-#        security_name = "snmpv3_user" # Version 3 Required.
-#        passphrase = "opensesame" # Version 3. Required if security_level is authNoPriv or authPriv.
-#        auth_type = "MD5" # Version 3. Passphrase encoding (MD5|SHA)
-#        security_level = "noAuthNoPriv" # Version 3. (noAuthNoPriv|authNoPriv|authPriv)
-#        context_name  = "context_name"  # Version 3 only.  Optional for snmp agent that requires context_name 
-#        count_per_getbulk = "xx"        # Version 3 Optional. With Version 3, we use SNMP_MSG_GETBULK for performance.
-#				         # This variable sets the MAX OIDs per MSG_GETBULK.
-#                                        # Lower limit is set by OpenHPI/snmp_bc at 10.
-#				         # Upper limit is set by target snmp agent. Depends on BladeCenter 
-#				         # Management Module code load, this upper limit is either 32 or 96.
-#	privacy_passwd   = "privacy_key" # Version 3 - Required if security_level is authPriv
-#	privacy_protocol = "DES"         # Version 3 - Optional if security_level is authPriv. 
-#                                        #  If security_level is authPriv, code defaults privacy_protocol to DES
-#                                        #  because there is no other privacy protocol choice.
+#        entity_root = "{SYSTEM_CHASSIS,4}" # Required. BladeCenter chassis Entity Path.
+#        host = "192.168.70.125"            # Required. BladeCenter Management Module IP address.
+#        version = "1"                      # Required. SNMP protocol version (1|3).
+#        community = "public"               # SNMP V1: Required. SNMP V1 community name.
+#        security_name = "snmpv3_user"      # SNMP V3: Required. SNMP V3 user Login ID.
+#        context_name  = ""                 # SNMP V3: Optional. Must match MM's "Context name" field, if defined.
+#        security_level = "noAuthNoPriv"    # SNMP V3: Required. Security level (noAuthNoPriv|authNoPriv|authPriv).
+#        passphrase = ""                    # SNMP V3: Authentication password. Required if security_level
+#                                           # is authNoPriv or authPriv.
+#        auth_type = ""                     # SNMP V3: Authentication password encoding (MD5|SHA). Required if 
+#                                           # security_level is authNoPriv or authPriv.
+#	 privacy_passwd = ""                # SNMP V3: Privacy password. Required if security_level is authPriv.
+#	 privacy_protocol = ""              # SNMP V3: Privacy password encoding (DES).
+#                                           # Required if security_level is authPriv.
+#                                           # If security_level is authPriv, DES encoding is assumed since there
+#                                           # currently is no other privacy password encoding choice.
+#        count_per_getbulk = "32"           # SNMP V3: Optional. SNMP_MSG_GETBULK commands can be used to increase
+#                                           # performance. This variable sets the maximum OIDs allowable per 
+#                                           # MSG_GETBULK command.
+#                                           # Positive values less than 16 default to "16", since values less than
+#                                           # 16 don't necessarily increase performance. Too high of a value (> 40)
+#                                           # can cause SNMP commands to BladeCenter to timeout. The default is "32".
+#                                           # A value of "0" disables the use of the SNMP_MSG_GETBULK SNMP command.
 #}
 
 ## Section for static dummy plugin:
