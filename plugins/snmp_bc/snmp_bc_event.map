@@ -18,6 +18,7 @@
 # NOTES:
 # - MM's generic threshold event strings are assigned event numbers
 #   starting with FFFF.
+# - BIOS events start with BBBB. 
 # - Cannot have duplicate events with the chassis and any other resource
 #   that cannot be explicitly derived from the event log's Source field.
 # - Add FF to beginning of event numbers for duplicate events
@@ -164,7 +165,6 @@ EN_I2C_BUS_25_FAIL|0x00020019|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"Failure reading de
 EN_I2C_BUS_25_FAIL|0x00020019|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"Failure reading I2C device. Check devices on bus 25."
 EN_I2C_BUS_26_FAIL|0x0002001A|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"Failure reading I2C device. Check devices on bus 26."
 EN_I2C_BUS_26_FAIL|0x0002001A|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"Failure reading device on system management bus 26."
-# FIXME:: MM Why are the next two MINOR but the ones above CRITICAL?
 EN_SP_CTRL_OFFLINE|0x00216015|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"Service processor controller access off-line."
 EN_SP_CTRL_UNAVAILABLE|0x00216016|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"Service processor controller access unavailable."
 EN_STCONN_FAIL_MIDPLANE|0x00022014|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"Connectivity status midplane communication failed."
@@ -172,6 +172,9 @@ EN_STCONN_FAIL_MIDPLANE|0x00022014|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"Connectivity 
 #### Mapped to Degraded Operational State
 EN_SP_CTRL_DEGRADED|0x00216014|SAHPI_MINOR|OVR_SEV,OVR_VMM|"Service processor controller access degraded."
 EN_SP_SENSOR_DEGRADED|0x00216013|SAHPI_MINOR|OVR_SEV,OVR_VMM|"Service processor sensor access degraded."
+EN_IPMI_BMC_COMM_FAIL|0x00216000|SAHPI_MINOR|OVR_SEV,OVR_VMM|"Problem communicating with BMC."
+EN_UNABLE_ISLOATE_BUS|0x00101007|SAHPI_MAJOR|OVR_SEV,OVR_VMM|"Unable to isolate bus fault - bus was not recovered."
+EN_MGMT_BUS_FAULT|0x00103000|SAHPI_MAJOR|OVR_SEV,OVR_VMM|"Management bus communication fault."
 
 # MM Air Temperature Sensor
 EN_PFA_HI_OVER_TEMP_SP_CARD|0x0001D400|SAHPI_MAJOR|OVR_SEV,OVR_VMM|"Management Module is over recommended temperature."
@@ -191,22 +194,16 @@ EN_I2C_LO_FAULT_2_5V|0x08031881|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"Chassis 2.5V und
 # System 3.3 Volt Sensor
 EN_I2C_HI_FAULT_3_35V|0x08033481|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"System over recommended voltage on +3.3v."
 EN_I2C_HI_FAULT_3_35V|0x08033481|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"Chassis 3.3V over recommended voltage"
-# FIXME:: MM BUG: - had EN_PFA_HI_FAULT_3_35V (blade severity but chassis string)
-# need to add EN_I2C_LO_FAULT_3_35V with right severity
 EN_I2C_LO_FAULT_3_35V|0xFF000000|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"System under recommended voltage on +3.3v."
 EN_I2C_LO_FAULT_3_35V|0xFF000000|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"Chassis 3.3V under recommended voltage"
 
 # System 5 Volt Sensor
-# FIXME:: MM BUG: EN_PFA_HI_FAULT_PLANAR_5V(warning) and EN_MAJOR_HI_FAULT_PLANAR_5V (crit) have same 
-# Chassis string MAJOR should be I2C; other should be blade string
 EN_I2C_HI_FAULT_PLANAR_5V|0xFF000001|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"System over recommended voltage for +5v."
 EN_I2C_HI_FAULT_PLANAR_5V|0xFF000001|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"Chassis 5V over recommended voltage"
 EN_I2C_LO_FAULT_PLANAR_5V|0x06035801|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"System under recommended voltage for +5v."
 EN_I2C_LO_FAULT_PLANAR_5V|0x06035801|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"Chassis 5V under recommended voltage"
 
 # System -5 Volt Sensor
-# FIXME:: MM Bug - MM needs to change EN_I2C_HI_FAULT_N5V "Chassis -5V over voltage fault to
-# "Chassis -5V over recommended voltage"
 EN_I2C_HI_FAULT_N5V|0x0803D501|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"System over recommended voltage for -5v."
 EN_I2C_HI_FAULT_N5V|0x0803D501|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"Chassis -5V over recommended voltage"
 EN_I2C_LO_FAULT_N5V|0x0803D801|SAHPI_CRITICAL|OVR_SEV,OVR_VMM|"System under recommended voltage for -5v."
@@ -240,7 +237,6 @@ EN_STBIST_FAIL_R_PRI_FS|0x00022017|SAHPI_MAJOR|OVR_SEV,OVR_MM_STBY|"BIST standby
 EN_STBIST_FAIL_R_RTC|0x00022015|SAHPI_MAJOR|OVR_SEV,OVR_MM_STBY|"BIST standby MM realtime clock failed."
 EN_STBIST_FAIL_R_SEC_FS|0x00022018|SAHPI_MAJOR|OVR_SEV,OVR_MM_STBY|"BIST standby MM secondary file system failed."
 
-# FIXME:: MM Why have critical events if MM is still operational?
 EN_FAULT_OC_USB_HUB|0x00014034|SAHPI_MAJOR|OVR_SEV,OVR_MM_PRIME|"USB hub over-current failure"
 EN_FAULT_OC_USB_PORT|0x00014033|SAHPI_MAJOR|OVR_SEV,OVR_MM_PRIME|"USB port over-current failure"
 EN_STBIST_FAIL_ADC|0x0002200B|SAHPI_MAJOR|OVR_SEV,OVR_MM_PRIME|"BIST primary MM video capture failed."
@@ -435,7 +431,6 @@ EN_1_2VS_WARNING_LOW|0x0A00AC02|SAHPI_MAJOR|OVR_SEV|"Standby +1.2V under recomme
 EN_1_2VS_WARNING_LOW|0x0A00AC02|SAHPI_MAJOR|OVR_SEV|"1.2V standby under recommended voltage"
 
 # Blade 1.25 Volt Sensor
-# FIXME:: MM should change EN_PFA_LO_FAULT_1_25V to "Blade 1.25V over ..."; I've already added it
 EN_PFA_HI_FAULT_1_25V|0x08001400|SAHPI_MAJOR|OVR_SEV|"System over recommended voltage on +1.25v."
 EN_PFA_HI_FAULT_1_25V|0x08001400|SAHPI_MAJOR|OVR_SEV|"Blade 1.25V over recommended voltage"
 EN_PFA_LO_FAULT_1_25V|0x08001800|SAHPI_MAJOR|OVR_SEV|"System under recommended voltage on +1.25v."
@@ -458,11 +453,6 @@ EN_1_5VS_WARNING_LOW|0x0A040C02|SAHPI_MAJOR|OVR_SEV|"Standby +1.5V under recomme
 EN_1_5VS_WARNING_LOW|0x0A040C02|SAHPI_MAJOR|OVR_SEV|"1.5V standby under recommended voltage"
 
 # Blade 1.8 Volt Sensor
-# FIXME:: MM: EN_IO guys McCarren/pre-IPMI blades?; No SNMP OID to read non-IPMI blade 1.8V thresholds
-#EN_IO_1_8V_WARNING_HI|0x0A07BC00|SAHPI_MAJOR|OVR_SEV|"IO Board +1.8V over recommended voltage."
-#EN_IO_1_8V_WARNING_HI|0x0A07BC00|SAHPI_MAJOR|OVR_SEV|"I/O board 1.8V over recommended voltage"
-#EN_IO_1_8V_WARNING_LOW|0x0A07AC00|SAHPI_MAJOR|OVR_SEV|"IO Board +1.8V under recommended voltage."
-#EN_IO_1_8V_WARNING_LOW|0x0A07AC00|SAHPI_MAJOR|OVR_SEV|"I/O board 1.8V under recommended voltage"
 EN_PFA_HI_FAULT_1_8V|0x0807B400|SAHPI_MAJOR|OVR_SEV|"System is over recommended voltage for 1.8V CPU"
 EN_PFA_HI_FAULT_1_8V|0x0807B400|SAHPI_MAJOR|OVR_SEV|"Blade 1.8V over recommended voltage."
 EN_PFA_LO_FAULT_1_8V|0x0807B800|SAHPI_MAJOR|OVR_SEV|"System is under recommended voltage for 1.8V CPU"
@@ -483,9 +473,6 @@ EN_PFA_LO_FAULT_2_5V|0x08031880|SAHPI_MAJOR|OVR_SEV|"System under recommended vo
 EN_PFA_LO_FAULT_2_5V|0x08031880|SAHPI_MAJOR|OVR_SEV|"Blade 2.5V under recommended voltage"
 
 # Blade Standby 2.5 Volt Sensor
-# FIXME:: MM: EN_IO guys McCarren/pre-IPMI blades?; No SNMP OID to read a non-IPMI 2.5VSB threshold
-#EN_IO_2_5VS_WARNING_HI|0x0A031C01|SAHPI_MAJOR|OVR_SEV|"I/O board 2.5V standby over recommended voltage"
-#EN_IO_2_5VS_WARNING_LOW|0x0A030C01|SAHPI_MAJOR|OVR_SEV|"I/O board 2.5V standby under recommended voltage"
 EN_2_5VS_WARNING_HI|0x0A031C02|SAHPI_MAJOR|OVR_SEV|"Standby +2.5V over recommended voltage."
 EN_2_5VS_WARNING_HI|0x0A031C02|SAHPI_MAJOR|OVR_SEV|"2.5V standby over recommended voltage"
 EN_2_5VS_WARNING_LOW|0x0A030C02|SAHPI_MAJOR|OVR_SEV|"Standby +2.5V under recommended voltage."
@@ -498,7 +485,6 @@ EN_IO_3_3V_WARNING_LOW|0x0A02CC00|SAHPI_MAJOR|OVR_SEV|"IO Board +3.3V under reco
 EN_IO_3_3V_WARNING_LOW|0x0A02CC00|SAHPI_MAJOR|OVR_SEV|"I/O board 3.3V under recommended voltage"
 EN_PFA_HI_FAULT_3_35V|0x08033480|SAHPI_MAJOR|OVR_SEV|"System over recommended voltage on +3.3v."
 EN_PFA_HI_FAULT_3_35V|0x08033480|SAHPI_MAJOR|OVR_SEV|"Blade 3.3V over recommended voltage"
-# FIXME:: MM Bug: Need a Blade 3.3V over recommended voltage event; Replace FF EN_MAJOR_LO_FAULT_3_35V
 EN_MAJOR_LO_FAULT_3_35V|0xFF032900|SAHPI_MAJOR|OVR_SEV|"System under recommended voltage on +3.3v."
 EN_GENERIC_UPPER_WARN_VOLT|0xFFFFFFF3|SAHPI_MAJOR|OVR_SEV|"system board 1 (Planar 3.3V) over recommended voltage."
 EN_GENERIC_UPPER_WARN_VOLT|0xFFFFFFF3|SAHPI_MAJOR|OVR_SEV|"system board 1 (3.3V Sense) over recommended voltage."
@@ -506,9 +492,6 @@ EN_GENERIC_LOWER_WARN_VOLT|0xFFFFFFF4|SAHPI_MAJOR|OVR_SEV|"system board 1 (Plana
 EN_GENERIC_LOWER_WARN_VOLT|0xFFFFFFF4|SAHPI_MAJOR|OVR_SEV|"system board 1 (3.3V Sense) under recommended voltage."
 
 # Blade Standby 3.3 Volt Sensor
-#FIXME: MM: I/O guys McCarren only? No SNMP OID to read McCarren 3.3VSB sensor
-#EN_IO_3_3VS_WARNING_HI|0x0A02DC01|SAHPI_MAJOR|OVR_SEV|"I/O board 3.3V standby over recommended voltage"
-#EN_IO_3_3VS_WARNING_LOW|0x0A02CC01|SAHPI_MAJOR|OVR_SEV|"I/O board 3.3V standby under recommended voltage"
 EN_3_3VS_WARNING_HI|0x0A02DC02|SAHPI_MAJOR|OVR_SEV|"Standby +3.3V over recommended voltage."
 EN_3_3VS_WARNING_HI|0x0A02DC02|SAHPI_MAJOR|OVR_SEV|"3.3V standby over recommended voltage"
 EN_3_3VS_WARNING_LOW|0x0A02CC02|SAHPI_MAJOR|OVR_SEV|"Standby +3.3V under recommended voltage."
@@ -523,11 +506,12 @@ EN_PFA_HI_FAULT_5V|0x08035500|SAHPI_MAJOR|OVR_SEV|"System over recommended 5V Fa
 EN_PFA_HI_FAULT_5V|0x08035500|SAHPI_MAJOR|OVR_SEV|"Blade 5V over fault."
 EN_PFA_LO_FAULT_5V|0x08035800|SAHPI_MAJOR|OVR_SEV|"System under recommended 5V Fault."
 EN_PFA_LO_FAULT_5V|0x08035800|SAHPI_MAJOR|OVR_SEV|"Blade 5V under recommended voltage"
-# FIXME:: MM: Why is Lewis instance 2 not 1?
 EN_GENERIC_UPPER_WARN_VOLT|0xFFFFFFF5|SAHPI_MAJOR|OVR_SEV|"system board 1 (Planar 5V) over recommended voltage."
 EN_GENERIC_UPPER_WARN_VOLT|0xFFFFFFF5|SAHPI_MAJOR|OVR_SEV|"system board 2 (5V Sense) over recommended voltage."
+EN_GENERIC_UPPER_WARN_VOLT|0xFFFFFFF5|SAHPI_MAJOR|OVR_SEV|"system board 1 (5V Sense) over recommended voltage."
 EN_GENERIC_LOWER_WARN_VOLT|0xFFFFFFF6|SAHPI_MAJOR|OVR_SEV|"system board 1 (Planar 5V) under recommended voltage."
 EN_GENERIC_LOWER_WARN_VOLT|0xFFFFFFF6|SAHPI_MAJOR|OVR_SEV|"system board 2 (5V Sense) under recommended voltage."
+EN_GENERIC_LOWER_WARN_VOLT|0xFFFFFFF6|SAHPI_MAJOR|OVR_SEV|"system board 1 (5V Sense) under recommended voltage."
 
 # Blade Standby 5 Volt Sensor
 EN_5VS_WARNING_HI|0x0A035C02|SAHPI_MAJOR|OVR_SEV|"Standby +5V over recommended voltage."
@@ -536,9 +520,6 @@ EN_5VS_WARNING_LOW|0x0A034C02|SAHPI_MAJOR|OVR_SEV|"Standby +5V under recommended
 EN_5VS_WARNING_LOW|0x0A034C02|SAHPI_MAJOR|OVR_SEV|"5V standby under recommended voltage"
 
 # Blade -5 Volt Sensor
-# FIXME:: MM: I/O guys McCarren? No SNMP OID to read Blade -5V
-#EN_IO_N5V_WARNING_HI|0x0A03DC00|SAHPI_MAJOR|OVR_SEV|"I/O board -5V over recommended voltage"
-#EN_IO_N5V_WARNING_LOW|0x0A03CC00|SAHPI_MAJOR|OVR_SEV|"I/O board -5V under recommended voltage"
 EN_PFA_HI_FAULT_N5V|0x0803D500|SAHPI_MAJOR|OVR_SEV|"Blade -5V over voltage fault"
 EN_PFA_LO_FAULT_N5V|0x0803D800|SAHPI_MAJOR|OVR_SEV|"Blade -5V under recommended voltage"
 
@@ -551,16 +532,14 @@ EN_PFA_HI_FAULT_12V_PLANAR|0x06037500|SAHPI_MAJOR|OVR_SEV|"System over recommend
 EN_PFA_HI_FAULT_12V_PLANAR|0x06037500|SAHPI_MAJOR|OVR_SEV|"Blade 12V over recommended voltage."
 EN_PFA_LO_FAULT_12V_PLANAR|0x06037800|SAHPI_MAJOR|OVR_SEV|"System under recommended voltage for +12v."
 EN_PFA_LO_FAULT_12V_PLANAR|0x06037800|SAHPI_MAJOR|OVR_SEV|"Blade 12V under recommended voltage"
-# FIXME:: Why is Lewis instance 3 not 1?
 EN_GENERIC_UPPER_WARN_VOLT|0xFFFFFFF7|SAHPI_MAJOR|OVR_SEV|"system board 1 (Planar 12V) over recommended voltage."
 EN_GENERIC_UPPER_WARN_VOLT|0xFFFFFFF7|SAHPI_MAJOR|OVR_SEV|"system board 3 (12V Sense) over recommended voltage."
+EN_GENERIC_UPPER_WARN_VOLT|0xFFFFFFF7|SAHPI_MAJOR|OVR_SEV|"system board 1 (12V Sense) over recommended voltage."
 EN_GENERIC_LOWER_WARN_VOLT|0xFFFFFFF8|SAHPI_MAJOR|OVR_SEV|"system board 1 (Planar 12V) under recommended voltage."
 EN_GENERIC_LOWER_WARN_VOLT|0xFFFFFFF8|SAHPI_MAJOR|OVR_SEV|"system board 3 (12V Sense) under recommended voltage."
+EN_GENERIC_LOWER_WARN_VOLT|0xFFFFFFF8|SAHPI_MAJOR|OVR_SEV|"system board 1 (12V Sense) under recommended voltage."
 
 # Blade Standby 12 Volt Sensor
-# FIXME:: MM: I/O guys McCarren? No SNMP OID to read Blade 12 VSB
-#EN_IO_12VS_WARNING_HI|0x0A037C01|SAHPI_MAJOR|OVR_SEV|"I/O board 12V standby over recommended voltage"
-#EN_IO_12VS_WARNING_LOW|0x0A036C01|SAHPI_MAJOR|OVR_SEV|"I/O board 12V standby under recommended voltage"
 EN_12VS_WARNING_HI|0x0A037C02|SAHPI_MAJOR|OVR_SEV|"Standby +12V over recommended voltage."
 EN_12VS_WARNING_HI|0x0A037C02|SAHPI_MAJOR|OVR_SEV|"12V standby over recommended voltage"
 EN_12VS_WARNING_LOW|0x0A036C02|SAHPI_MAJOR|OVR_SEV|"Standby +12V under recommended voltage."
@@ -640,7 +619,6 @@ EN_BLADE_12_SHUTDOWN_OVER_PWR_BUDGET|0x0F00C00C|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"
 EN_BLADE_13_SHUTDOWN_OVER_PWR_BUDGET|0x0F00C00D|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blade 13 not allowed to power on; constrained by power budget."
 EN_BLADE_14_SHUTDOWN_OVER_PWR_BUDGET|0x0F00C00E|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blade 14 not allowed to power on; constrained by power budget."
 
-# FIXME:: MM: These send a EN_PWR_MGMT_ALERT (non-critical). Why not like send EN_HW_CONFIG_ALERT like ones above
 EN_BLADE_1_UNIDENTIABLE_HW_DENY_POWER|0x0E012001|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Power denied to blade 1 because it has unidentified hardware"
 EN_BLADE_2_UNIDENTIABLE_HW_DENY_POWER|0x0E012002|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Power denied to blade 2 because it has unidentified hardware"
 EN_BLADE_3_UNIDENTIABLE_HW_DENY_POWER|0x0E012003|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Power denied to blade 3 because it has unidentified hardware"
@@ -741,9 +719,6 @@ EN_BLADE_D_NO_PWR_VPD|0x0E00E00D|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blade 13 VPD ca
 EN_BLADE_E_NO_PWR_VPD|0x0E00E00E|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Can not read power-on VPD for blade 14."
 EN_BLADE_E_NO_PWR_VPD|0x0E00E00E|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Blade 14 VPD cannot be read"
 
-# FIXME: MM:  These have same string as above ("Blade %d VPD cannot be read") but 
-# EN_BLADE_X_NO_PWR_VPD sends a EN_HW_CONFIG_ALERT and EN_BLADE_X_NO_MGT_VPD sends a
-# EN_GENERIC_CRIT_ALERT. Need different strings? Are these different cases?
 EN_BLADE_1_NO_MGT_VPD|0x0E010001|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Can not read VPD for blade 1 management."
 EN_BLADE_2_NO_MGT_VPD|0x0E010002|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Can not read VPD for blade 2 management."
 EN_BLADE_3_NO_MGT_VPD|0x0E010003|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Can not read VPD for blade 3 management."
@@ -759,7 +734,6 @@ EN_BLADE_C_NO_MGT_VPD|0x0E01000C|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Can not read VP
 EN_BLADE_D_NO_MGT_VPD|0x0E01000D|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Can not read VPD for blade 13 management."
 EN_BLADE_E_NO_MGT_VPD|0x0E01000E|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Can not read VPD for blade 14 management."
 
-# FIXME: Move to a blade MGMT Bus Operational Sensor?
 # If this error occurs while blade is up, blade continues to operate; if this error occurs 
 # on power up/restart blade is not allowed to power on 
 EN_BLADE_1_COMM_FAIL|0x0E008001|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"SP Communications Failure on Blade 1."
@@ -838,13 +812,51 @@ EN_FP_NP|0x09025000|SAHPI_MAJOR|OVR_SEV|"Front panel cable is not connected to s
 EN_CPU1_TEMP_WARN|0x0421D401|SAHPI_MAJOR|OVR_SEV|"CPU 1 temperature warning"
 EN_CPU2_TEMP_WARN|0x0421D402|SAHPI_MAJOR|OVR_SEV|"CPU 2 temperature warning"
 EN_PFA_HI_EXCEDED_CUR_12V_A_MAX|0x0801B402|SAHPI_MAJOR|OVR_SEV|"Blade 12V over recommended current."
-# FIXME:: MM needs way to tell number of blade DASD drives installed on blade
 EN_FAULT_DASD1_HARD_DRIVE_0|0x06802000|SAHPI_CRITICAL|OVR_SEV|"Hard drive 0 fault"
 EN_FAULT_DASD1_HARD_DRIVE_1|0x06800001|SAHPI_CRITICAL|OVR_SEV|"Hard drive 1 fault"
 
+# 8839 side board voltage events but these cannot be read through SNMP
+EN_IO_1_8V_WARNING_HI|0x0A07BC00|SAHPI_MAJOR|OVR_SEV|"IO Board +1.8V over recommended voltage."
+EN_IO_1_8V_WARNING_HI|0x0A07BC00|SAHPI_MAJOR|OVR_SEV|"I/O board 1.8V over recommended voltage"
+EN_IO_1_8V_WARNING_LOW|0x0A07AC00|SAHPI_MAJOR|OVR_SEV|"IO Board +1.8V under recommended voltage."
+EN_IO_1_8V_WARNING_LOW|0x0A07AC00|SAHPI_MAJOR|OVR_SEV|"I/O board 1.8V under recommended voltage"
+EN_IO_2_5VS_WARNING_HI|0x0A031C01|SAHPI_MAJOR|OVR_SEV|"I/O board 2.5V standby over recommended voltage"
+EN_IO_2_5VS_WARNING_LOW|0x0A030C01|SAHPI_MAJOR|OVR_SEV|"I/O board 2.5V standby under recommended voltage"
+EN_IO_3_3VS_WARNING_HI|0x0A02DC01|SAHPI_MAJOR|OVR_SEV|"I/O board 3.3V standby over recommended voltage"
+EN_IO_3_3VS_WARNING_LOW|0x0A02CC01|SAHPI_MAJOR|OVR_SEV|"I/O board 3.3V standby under recommended voltage"
+EN_IO_12VS_WARNING_HI|0x0A037C01|SAHPI_MAJOR|OVR_SEV|"I/O board 12V standby over recommended voltage"
+EN_IO_12VS_WARNING_LOW|0x0A036C01|SAHPI_MAJOR|OVR_SEV|"I/O board 12V standby under recommended voltage"
+EN_IO_N5V_WARNING_HI|0x0A03DC00|SAHPI_MAJOR|OVR_SEV|"I/O board -5V over recommended voltage"
+EN_IO_N5V_WARNING_LOW|0x0A03CC00|SAHPI_MAJOR|OVR_SEV|"I/O board -5V under recommended voltage"
+
+# IPMI events
+EN_IPMI_CPU_SPEED_FAIL|0x00216025|SAHPI_MAJOR|OVR_SEV|"CPU speed failure."
+EN_IPMI_CPU_VOLT_MISMATCH|0x00216024|SAHPI_MAJOR|OVR_SEV|"CPU voltage mismatch."
+EN_IPMI_PROC_INIT_FAIL|0x0021603D|SAHPI_MAJOR|OVR_SEV|"Failure during processor initialization."
+EN_IPMI_SP2_INIT_FAIL|0x00216028|SAHPI_MAJOR|OVR_SEV|"Failure during secondary processor initialization."
+EN_IPMI_BOARD_INIT_FAIL|0x00216039|SAHPI_MAJOR|OVR_SEV|"Failure during board initialization."
+EN_IPMI_BOOT_MEDIA_MISSING|0x00216020|SAHPI_MAJOR|OVR_SEV|"Removable boot media missing."
+EN_IPMI_CACHE_INIT_FAIL|0x0021602F|SAHPI_MAJOR|OVR_SEV|"Failure during cache initialization."
+EN_IPMI_DISK_CTRL_FAIL|0x0021601E|SAHPI_MAJOR|OVR_SEV|"Hard disk controller failure."
+EN_IPMI_DRIVE_INIT_FAIL|0x00216027|SAHPI_MAJOR|OVR_SEV|"Failure during hard drive initialization."
+EN_IPMI_FW_ROM_CORRUPT|0x00216023|SAHPI_MAJOR|OVR_SEV|"Firmware ROM corruption."
+EN_IPMI_MEM_FAILED|0x0021601A|SAHPI_MAJOR|OVR_SEV|"All memory has failed."
+EN_IPMI_MEM_INIT_FAIL|0x00216026|SAHPI_MAJOR|OVR_SEV|"Failure during memory initialization."
+EN_IPMI_MGMT_CTRL_INIT_FAIL|0x00216032|SAHPI_MAJOR|OVR_SEV|"Failure during management controller initialization."
+EN_IPMI_NO_MEM|0x00216019|SAHPI_MAJOR|OVR_SEV|"No memory installed."
+EN_IPMI_OS_BOOT_FAIL|0x00216038|SAHPI_MAJOR|OVR_SEV|"Failure starting OS boot process."
+EN_IPMI_PCI_CONF_FAIL|0x0021602B|SAHPI_MAJOR|OVR_SEV|"Failure during PCI configuration."
+EN_IPMI_PCI_SERR|0x00216011|SAHPI_MAJOR|OVR_SEV|"PCI SERR: system error."
+EN_IPMI_ROM_INIT_FAIL|0x0021602D|SAHPI_MAJOR|OVR_SEV|"Failure during option ROM initialization."
+EN_IPMI_STORAGE_DEV_FAIL|0x0021601B|SAHPI_MAJOR|OVR_SEV|"Storage device failure."
+EN_IPMI_USB_CONF_FAIL|0x0021602C|SAHPI_MAJOR|OVR_SEV|"Failure during USB configuration."
+EN_WAKEUP_VECTOR_FAIL|0x00216037|SAHPI_MAJOR|OVR_SEV|"Failure calling OS wakeup vector."
+
+EN_BIOS_RTC|0xBBBB0001|SAHPI_MAJOR|OVR_SEV|"The System real time clock battery is no longer reliable"
+
 #### Mapped to Install Error Operational State
-# FIXME:: Why is this INFO but EN_SWITCH_1_CFG_ERROR is MINOR.
-# On old MMs doesn't the blade fail to come up if incompatible switch already installed?
+# On old MMs doesn't the blade fails to come up if an incompatible switch is already installed
+# On newer MM2, the blade is allowed to power up.
 EN_BLADE_1_CFG_FAIL|0x0E006001|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Blade Server 1 is incompatible with I/O module configuration."
 EN_BLADE_1_CFG_FAIL|0x0E006001|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Blade 1 incompatible with I/O module configuration"
 EN_BLADE_2_CFG_FAIL|0x0E006002|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Blade Server 2 is incompatible with I/O module configuration."
@@ -899,7 +911,6 @@ EN_STCONN_FAIL_BLADE_13|0x0E02200D|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Connectivity 
 EN_STCONN_FAIL_BLADE_14|0x0E02200E|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Connectivity status blade 14 communication failed."
 
 # Blade NMI Status Sensor
-# FIXME:: Is this ever deasserted? Recovered?
 EN_SYSERR_LED_ONLY|0x0000007E|SAHPI_CRITICAL|OVR_SEV|"Critical Interrupt - Front panel NMI"
 
 #################################
@@ -907,25 +918,27 @@ EN_SYSERR_LED_ONLY|0x0000007E|SAHPI_CRITICAL|OVR_SEV|"Critical Interrupt - Front
 #################################
 # None
 
-####################
-# BEM DASD Resources
-####################
-# First two are for DASD on blades, which aren't currently generated
+################################
+# Blade Expansion Module Sensors
+################################
+
+# BEM Operational Sensor - event only
+EN_FAULT_DASD|0x06800000|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"BEM Option failure"
+EN_FAULT_DASD|0x06800000|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"BEM failure"
+EN_BSE_RAID_BATTERY_FAILURE|0x0EE18000|SAHPI_MINOR|OVR_SEV,OVR_EXP|"BSE RAID battery failure"
+EN_BSE_RAID_FAULT|0x0EE00000|SAHPI_MINOR|OVR_SEV,OVR_EXP|"BSE RAID fault"
+
+# First two events are for DASD on blades and aren't currently generated
 #EN_DASD1_REMOVED_DRIVE_0|0x0681E000|SAHPI_INFORMATIONAL|OVR_SEV,OVR_EXP|"Hard drive 0 removal detected."
 #EN_DASD1_REMOVED_DRIVE_1|0x0681E001|SAHPI_INFORMATIONAL|OVR_SEV,OVR_EXP|"Hard drive 1 removal detected."
 EN_DASD1_REMOVED_DRIVE_2|0x0681E002|SAHPI_INFORMATIONAL|OVR_SEV,OVR_EXP|"Hard drive 2 removal detected."
 EN_DASD1_REMOVED_DRIVE_3|0x0681E003|SAHPI_INFORMATIONAL|OVR_SEV,OVR_EXP|"Hard drive 3 removal detected."
 EN_DASD1_REMOVED_DRIVE_4|0x0681E004|SAHPI_INFORMATIONAL|OVR_SEV,OVR_EXP|"Hard drive 4 removal detected."
-EN_DASD1_REMOVED_DRIVE_5|0x0681E005|SAHPI_INFORMATIONAL|OVR_SEV,OVR_EXP|"Hard drive 5 removal detected."
-
-################################
-# Blade Expansion Module Sensors
-################################
-# BEM Operational Sensor - event only
-# FIXME:: MM  Needs to add an readable operational Health OIDs for BEM
-# FIXME:: MM needs to add PEU type explicitly - PEUx, BSEx, etc
-EN_FAULT_DASD|0x06800000|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"BEM Option failure"
-EN_FAULT_DASD|0x06800000|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"BEM failure"
+EN_FAULT_DASD1_SCSI_ID_2|0x06801002|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"Hard Drive Fault (SCSI ID 2)"
+EN_FAULT_DASD1_HARD_DRIVE_2|0x06800002|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"Hard drive 2 fault"
+EN_FAULT_DASD1_SCSI_ID_3|0x06801003|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"Hard Drive Fault (SCSI ID 3)"
+EN_FAULT_DASD1_HARD_DRIVE_3|0x06800003|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"Hard drive 3 fault"
+EN_FAULT_DASD1_HARD_DRIVE_4|0x06800004|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"Hard drive 4 fault"
 
 ######################################
 # Blade Storage Expansion (BSE) Module
@@ -974,20 +987,6 @@ EN_BEM_18V_WARNING_HI|0x0E83C402|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM +18V over reco
 EN_BEM_18V_WARNING_HI|0x0E83C402|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM 18V over recommended voltage"
 EN_BEM_18V_WARNING_LOW|0x0E83C802|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM +18V under recommended voltage."
 EN_BEM_18V_WARNING_LOW|0x0E83C802|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM 18V under recommended voltage"
-
-# BEM DASD 1 Operational Sensor - event only
-EN_FAULT_DASD1_SCSI_ID_2|0x06801002|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"Hard Drive Fault (SCSI ID 2)"
-EN_FAULT_DASD1_HARD_DRIVE_2|0x06800002|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"Hard drive 2 fault"
-
-# BEM DASD 2 Operational Sensor - event only
-EN_FAULT_DASD1_SCSI_ID_3|0x06801003|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"Hard Drive Fault (SCSI ID 3)"
-EN_FAULT_DASD1_HARD_DRIVE_3|0x06800003|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"Hard drive 3 fault"
-
-# BEM DASD 3 Operational Sensor - event only
-EN_FAULT_DASD1_HARD_DRIVE_4|0x06800004|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"Hard drive 4 fault"
-
-# Currently not generated - Only 2 DASDs on blade (0 and 1), 3 on BEMs (2,3,4)
-#EN_FAULT_DASD1_HARD_DRIVE_5|0x06800005|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"Hard drive 5 fault"
 
 #############################
 # PCI Expansion (PEU2) Module
@@ -1049,7 +1048,6 @@ EN_GENERIC_LOWER_WARN_VOLT|0xFFFFFF3D|SAHPI_MAJOR|OVR_SEV|"expansion board 1 (BI
 
 # There are not separate hot-swap installed/removed events for media trays.
 # These events represent a media tray removal; the recovery of this event represents an install.
-
 EN_MEDIA_TRAY_REMOVED|0x06A1E001|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"The media tray was removed."
 EN_MEDIA_TRAY_REMOVED|0x06A1E001|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Media Tray removed"
 
@@ -1058,7 +1056,6 @@ EN_MEDIA_TRAY_REMOVED|0x06A1E001|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Media Tray
 ####################
 
 # Media Tray Operational Status Sensor - event only
-# FIXME:: MM needs to add a readable Health State for Media Tray
 EN_FAULT_FP_R|0x09020000|SAHPI_MINOR|OVR_SEV,OVR_RID|"System front panel controller not responding."
 EN_FRONT_PANEL_TEMP_FAIL|0x06A2E001|SAHPI_MAJOR|OVR_SEV,OVR_RID|"Front panel temperature is unavailable. Cooling capacity set to maximum"
 
@@ -1200,7 +1197,7 @@ EN_SWITCH_8_INSUFFICIENT_PWR|0x0E00B008|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"I/O Modu
 EN_SWITCH_9_INSUFFICIENT_PWR|0x0E00B009|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"I/O Module 9 is not allowed to power on due to insufficient power."
 EN_SWITCH_10_INSUFFICIENT_PWR|0x0E00B00A|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"I/O Module 10 is not allowed to power on due to insufficient power."
 
-# In old MM code, this condition caused the I/O module not to be powered up. In newer MM code, this condition is
+# In old MM code, this condition caused the I/O module not to be powered up. In newer MM2 code, this condition is
 # just a warning and the I/O module powers on.
 EN_SWITCH_1_CFG_ERROR|0x0EA0C001|SAHPI_MINOR|OVR_SEV,OVR_RID|"I/O module 1 is incompatible with Blade Server configuration."
 EN_SWITCH_1_CFG_ERROR|0x0EA0C001|SAHPI_MINOR|OVR_SEV,OVR_RID|"I/O Module 1 incompatible with blade configuration"
@@ -1488,9 +1485,6 @@ EN_FAULT_PS4_REMOVED|0x0821E004|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Power Modul
 ######################
 
 # Power Module Operational Status Sensor
-# FIXME:: Should EN_FAULT_PSx mapped to the Power Module Mgt bus sensor? Is PM dead or we
-# just can't talk to it.
-
 #### Mapped to Off-line Operational State
 EN_FAULT_PS1|0x08200001|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Power Supply 1 Fault"
 EN_FAULT_PS1|0x08200001|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Power Module 1 communication failure"
@@ -1837,67 +1831,6 @@ EN_FAN_7_NOT_PRESENT|0x06026007|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Fan 7 not detect
 EN_FAN_8_NOT_PRESENT|0x06026008|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Fan 8 not detected Multiple fan failures"
 EN_FAN_8_NOT_PRESENT|0x06026008|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Fan 8 not detected Single fan failure"
 
-################
-# MMV2_20 Events
-################
-
-# FIXME:: How to map to correct BEM? Are these recovered? MINOR severity?
-##EN_BSE_RAID_BATTERY_FAILURE|0x0EE18000|SAHPI_MINOR|OVR_SEV|"BSE RAID battery failure"
-##EN_BSE_RAID_FAULT|0x0EE00000|SAHPI_MINOR|OVR_SEV|"BSE RAID fault"
-
-# FIXME:: MM Are these used?
-##EN_IPMI_BLD_RESET|0x00216018|SAHPI_INFORMATIONAL|OVR_SEV|"Blade reset."
-##EN_IPMI_BMC_COMM_FAIL|0x00216000|SAHPI_MINOR|OVR_SEV|"Problem communicating with BMC."
-##EN_IPMI_BMC_RESET|0x00216002|SAHPI_INFORMATIONAL|OVR_SEV|"Blade service processor reset"
-##EN_IPMI_BMC_RESET_NOT_SUPPORTED|0x00216001|SAHPI_INFORMATIONAL|OVR_SEV|"BMC reset not supported."
-##EN_IPMI_BOARD_INIT_FAIL|0x00216039|SAHPI_MAJOR|OVR_SEV|"Failure during board initialization."
-##EN_IPMI_BOOT_MEDIA_MISSING|0x00216020|SAHPI_MAJOR|OVR_SEV|"Removable boot media missing."
-##EN_IPMI_CACHE_INIT_FAIL|0x0021602F|SAHPI_MAJOR|OVR_SEV|"Failure during cache initialization."
-##EN_IPMI_CPU_SPEED_FAIL|0x00216025|SAHPI_MAJOR|OVR_SEV|"CPU speed failure."
-##EN_IPMI_CPU_VOLT_MISMATCH|0x00216024|SAHPI_MAJOR|OVR_SEV|"CPU voltage mismatch."
-##EN_IPMI_DISK_CTRL_FAIL|0x0021601E|SAHPI_MAJOR|OVR_SEV|"Hard disk controller failure."
-##EN_IPMI_DISK_FAIL|0x0021601D|SAHPI_MAJOR|OVR_SEV|"Diskette subsystem failure."
-##EN_IPMI_DOCK_ATTACHMENT_FAIL|0x00216033|SAHPI_MAJOR|OVR_SEV|"Failure during docking station attachment."
-##EN_IPMI_DOCK_DISABLE_FAIL|0x00216036|SAHPI_MAJOR|OVR_SEV|"Failure disabling docking station."
-##EN_IPMI_DOCK_EJECTION_FAIL|0x00216035|SAHPI_MAJOR|OVR_SEV|"Failure during docking station ejection."
-##EN_IPMI_DOCK_ENABLE_FAIL|0x00216034|SAHPI_MAJOR|OVR_SEV|"Failure enabling docking station."
-##EN_IPMI_DRIVE_INIT_FAIL|0x00216027|SAHPI_MAJOR|OVR_SEV|"Failure during hard drive initialization."
-##EN_IPMI_FLOPPY_INIT_FAIL|0x0021603A|SAHPI_MAJOR|OVR_SEV|"Failure during floppy initialization."
-##EN_IPMI_FW_ROM_CORRUPT|0x00216023|SAHPI_MAJOR|OVR_SEV|"Firmware ROM corruption."
-##EN_IPMI_KEY_FAIL|0x0021601F|SAHPI_MAJOR|OVR_SEV|"Keyboard failure."
-##EN_IPMI_KEY_INIT_FAIL|0x00216031|SAHPI_MAJOR|OVR_SEV|"Failure during keyboard controller initialization."
-##EN_IPMI_KEY_TEST_FAIL|0x0021603B|SAHPI_MAJOR|OVR_SEV|"Failure during keyboard test."
-##EN_IPMI_MEM_FAILED|0x0021601A|SAHPI_MAJOR|OVR_SEV|"All memory has failed."
-##EN_IPMI_MEM_INIT_FAIL|0x00216026|SAHPI_MAJOR|OVR_SEV|"Failure during memory initialization."
-##EN_IPMI_MGMT_CTRL_INIT_FAIL|0x00216032|SAHPI_MAJOR|OVR_SEV|"Failure during management controller initialization."
-##EN_IPMI_NO_MEM|0x00216019|SAHPI_MAJOR|OVR_SEV|"No memory installed."
-##EN_IPMI_NO_VIDEO|0x00216022|SAHPI_MAJOR|OVR_SEV|"No video device detected."
-##EN_IPMI_OS_BOOT_FAIL|0x00216038|SAHPI_MAJOR|OVR_SEV|"Failure starting OS boot process."
-##EN_IPMI_OUT_OF_DATE_SDR_BMC|0x10016000|SAHPI_INFORMATIONAL|OVR_SEV|"Blade sensor data records updated"
-##EN_IPMI_PCI_CONF_FAIL|0x0021602B|SAHPI_MAJOR|OVR_SEV|"Failure during PCI configuration."
-##EN_IPMI_PCI_SERR|0x00216011|SAHPI_MAJOR|OVR_SEV|"PCI SERR: system error."
-##EN_IPMI_POINT_TEST_FAIL|0x0021603C|SAHPI_MAJOR|OVR_SEV|"Failure during pointing device test."
-##EN_IPMI_PROC_INIT_FAIL|0x0021603D|SAHPI_MAJOR|OVR_SEV|"Failure during processor initialization."
-##EN_IPMI_ROM_INIT_FAIL|0x0021602D|SAHPI_MAJOR|OVR_SEV|"Failure during option ROM initialization."
-##EN_IPMI_SP2_INIT_FAIL|0x00216028|SAHPI_MAJOR|OVR_SEV|"Failure during secondary processor initialization."
-##EN_IPMI_STORAGE_DEV_FAIL|0x0021601B|SAHPI_MAJOR|OVR_SEV|"Storage device failure."
-##EN_IPMI_USB_CONF_FAIL|0x0021602C|SAHPI_MAJOR|OVR_SEV|"Failure during USB configuration."
-##EN_IPMI_USER_AUTH_FAIL|0x00216029|SAHPI_MAJOR|OVR_SEV|"Failure during user authentication."
-##EN_IPMI_USER_SETUP_FAIL|0x0021602A|SAHPI_MAJOR|OVR_SEV|"Failure during user setup."
-##EN_IPMI_VIDEO_CTRL_FAIL|0x00216021|SAHPI_MAJOR|OVR_SEV|"Video controller failure."
-##EN_IPMI_VIDEO_INIT_FAIL|0x0021602E|SAHPI_MAJOR|OVR_SEV|"Failure during video initialization."
-##EN_IPMI_WAKEUP_VECTOR_FAIL|0x00216037|SAHPI_MAJOR|OVR_SEV|"Failure calling OS wakeup vector."
-
-# FIXME:: I2C short - cause failover (00103000); but no recovery - VMM Management bus. Check not Blade..
-##EN_MGMT_BUS_FAULT|0x00103000|SAHPI_MAJOR|OVR_SEV|"Management bus communication fault."
-
-# Blade cannot be removed from 485 bus. Blade Operational sensor
-##EN_UNABLE_ISLOATE_BUS|0x00101007|SAHPI_MAJOR|OVR_SEV|"Unable to isolate bus fault - bus was not recovered."
-
-# FIXME:: What happens when this occurs? Yes - Degraded operations.
-##EN_PWR_DOMAIN_1_MISMATCHED_PS|0x08006001|SAHPI_MINOR|OVR_SEV|"Mismatched Power Modules in power domain 1"
-##EN_PWR_DOMAIN_2_MISMATCHED_PS|0x08006002|SAHPI_MINOR|OVR_SEV|"Mismatched Power Modules in power domain 2"
-
 ############
 # OEM Events
 ############
@@ -1908,6 +1841,26 @@ EN_FAN_8_NOT_PRESENT|0x06026008|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Fan 8 not detect
 
 #EN_BLADE_REBOOT|0x00000081|SAHPI_INFORMATIONAL|OVR_SEV|"System Reboot"
 #EN_COD_BLADE_ACTIVATED|0x04001001|SAHPI_MINOR|OVR_SEV|"Blade standby capacity activated"
+
+#EN_IPMI_BLD_RESET|0x00216018|SAHPI_INFORMATIONAL|OVR_SEV|"Blade reset."
+#EN_IPMI_BMC_RESET|0x00216002|SAHPI_INFORMATIONAL|OVR_SEV|"Blade service processor reset"
+#EN_IPMI_BMC_RESET_NOT_SUPPORTED|0x00216001|SAHPI_INFORMATIONAL|OVR_SEV|"BMC reset not supported."
+#EN_IPMI_DOCK_ATTACHMENT_FAIL|0x00216033|SAHPI_MAJOR|OVR_SEV|"Failure during docking station attachment."
+#EN_IPMI_DOCK_DISABLE_FAIL|0x00216036|SAHPI_MAJOR|OVR_SEV|"Failure disabling docking station."
+#EN_IPMI_DOCK_EJECTION_FAIL|0x00216035|SAHPI_MAJOR|OVR_SEV|"Failure during docking station ejection."
+#EN_IPMI_DOCK_ENABLE_FAIL|0x00216034|SAHPI_MAJOR|OVR_SEV|"Failure enabling docking station."
+#EN_IPMI_DISK_FAIL|0x0021601D|SAHPI_MAJOR|OVR_SEV|"Diskette subsystem failure."
+#EN_IPMI_FLOPPY_INIT_FAIL|0x0021603A|SAHPI_MAJOR|OVR_SEV|"Failure during floppy initialization."
+#EN_IPMI_KEY_FAIL|0x0021601F|SAHPI_MAJOR|OVR_SEV|"Keyboard failure."
+#EN_IPMI_KEY_INIT_FAIL|0x00216031|SAHPI_MAJOR|OVR_SEV|"Failure during keyboard controller initialization."
+#EN_IPMI_KEY_TEST_FAIL|0x0021603B|SAHPI_MAJOR|OVR_SEV|"Failure during keyboard test."
+#EN_IPMI_NO_VIDEO|0x00216022|SAHPI_MAJOR|OVR_SEV|"No video device detected."
+#EN_IPMI_POINT_TEST_FAIL|0x0021603C|SAHPI_MAJOR|OVR_SEV|"Failure during pointing device test."
+#EN_IPMI_USER_AUTH_FAIL|0x00216029|SAHPI_MAJOR|OVR_SEV|"Failure during user authentication."
+#EN_IPMI_USER_SETUP_FAIL|0x0021602A|SAHPI_MAJOR|OVR_SEV|"Failure during user setup."
+#EN_IPMI_VIDEO_CTRL_FAIL|0x00216021|SAHPI_MAJOR|OVR_SEV|"Video controller failure."
+#EN_IPMI_VIDEO_INIT_FAIL|0x0021602E|SAHPI_MAJOR|OVR_SEV|"Failure during video initialization."
+#EN_IPMI_OUT_OF_DATE_SDR_BMC|0x10016000|SAHPI_INFORMATIONAL|OVR_SEV|"Blade sensor data records updated"
 
 #EN_OS_WD|0x00000073|SAHPI_MINOR|OVR_SEV|"OS Watchdog Triggered"
 #EN_POST_WD|0x00000072|SAHPI_MINOR|OVR_SEV|"POST Watchdog Triggered"
@@ -1931,6 +1884,9 @@ EN_FAN_8_NOT_PRESENT|0x06026008|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Fan 8 not detect
 
 #EN_MM_NETWORK_INIT_CMPLT|0x00016001|SAHPI_INFORMATIONAL|OVR_SEV|"Management Module network initialization complete"
 #EN_MM_NETWORK_LOSS|0x00217000|SAHPI_MINOR|OVR_SEV,OVR_VMM|"Management Module external network link lost."
+
+#EN_PWR_DOMAIN_1_MISMATCHED_PS|0x08006001|SAHPI_MINOR|OVR_SEV|"Mismatched Power Modules in power domain 1"
+#EN_PWR_DOMAIN_2_MISMATCHED_PS|0x08006002|SAHPI_MINOR|OVR_SEV|"Mismatched Power Modules in power domain 2"
 
 #EN_SWITCH_1_IP_CFG_CHANGE|0x0EA0A001|SAHPI_INFORMATIONAL|OVR_SEV|"I/O module 1 IP configuration was changed."
 #EN_SWITCH_2_IP_CFG_CHANGE|0x0EA0A002|SAHPI_INFORMATIONAL|OVR_SEV|"I/O module 2 IP configuration was changed."

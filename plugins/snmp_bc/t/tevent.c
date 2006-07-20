@@ -126,11 +126,11 @@ int main(int argc, char **argv)
                 return -1;
         }
 
-        /***************************************************************
+        /**************************************************************
          * TestCase - Blade 1 is defined as an IPMI blade in simulator.
          * Test to see that a common event defined in blade_sensors
          * (as opposed to blade_ipmi_sensors) are mapped to IPMI blade.
-         ***************************************************************/
+         **************************************************************/
         logstr = "Severity:INFO  Source:BLADE_01  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:CPU 1 shut off due to over temperature";
         memset(&logentry, 0 , sizeof(SaHpiEventLogEntryT));
         strcpy(hash_value->value.string, logstr);
@@ -185,8 +185,6 @@ int main(int argc, char **argv)
         }
 
         /* Check expected values */
-	/* CurrentState == SAHPI_ES_UPPER_MAJOR since threshold read value not defined
-           in the simulator */
         if (!(!(logentry.Event.Source == rid_eventlog) &&
               (logentry.Event.EventType == SAHPI_ET_SENSOR) &&
               (logentry.Event.Severity == SAHPI_MAJOR) &&
@@ -196,7 +194,81 @@ int main(int argc, char **argv)
               ((logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MAJOR)) &&
               (!(logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MINOR)) &&
               (logentry.Event.EventDataUnion.SensorEvent.PreviousState == SAHPI_ES_UNSPECIFIED) &&
-              (logentry.Event.EventDataUnion.SensorEvent.CurrentState == SAHPI_ES_UPPER_MAJOR))) {
+              (logentry.Event.EventDataUnion.SensorEvent.CurrentState & SAHPI_ES_UPPER_MAJOR))) {
+                printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                oh_print_event(&(logentry.Event), (rdr.RdrType != SAHPI_NO_RECORD) ? &rdr.Entity : NULL, 1);
+                return -1;
+        }
+
+        err = saHpiEventLogClear(sessionid, rid_eventlog);
+        if (err) {
+                printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                printf("  Received error=%s\n", oh_lookup_error(err));
+                return -1;
+        }
+
+        /************************************************************
+         * TestCase - Mapped OVR_MM_PRIME Event (EN_FAULT_OC_USB_HUB)
+         ************************************************************/
+        logstr = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:USB hub over-current failure";
+        memset(&logentry, 0 , sizeof(SaHpiEventLogEntryT));
+        strcpy(hash_value->value.string, logstr);
+        g_hash_table_insert(sim_hash, hash_key, hash_value);
+
+        err = saHpiEventLogEntryGet(sessionid, rid_eventlog, SAHPI_NEWEST_ENTRY,
+                                    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
+        if (err) {
+                printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                printf("  Received error=%s\n", oh_lookup_error(err));
+                return -1;
+        }
+
+        /* Check expected values */
+        if (!(!(logentry.Event.Source == rid_eventlog) &&
+              (logentry.Event.EventType == SAHPI_ET_SENSOR) &&
+              (logentry.Event.Severity == SAHPI_MAJOR) &&
+              (logentry.Event.EventDataUnion.SensorEvent.SensorType == SAHPI_OPERATIONAL) &&
+              (logentry.Event.EventDataUnion.SensorEvent.Assertion == SAHPI_TRUE) &&
+              (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_DEGRADED) &&
+              (logentry.Event.EventDataUnion.SensorEvent.PreviousState & SAHPI_ES_RUNNING) &&
+              (logentry.Event.EventDataUnion.SensorEvent.CurrentState & SAHPI_ES_DEGRADED))) {
+                printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                oh_print_event(&(logentry.Event), (rdr.RdrType != SAHPI_NO_RECORD) ? &rdr.Entity : NULL, 1);
+                return -1;
+        }
+
+        err = saHpiEventLogClear(sessionid, rid_eventlog);
+        if (err) {
+                printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                printf("  Received error=%s\n", oh_lookup_error(err));
+                return -1;
+        }
+
+        /*****************************************************************
+         * TestCase - Mapped OVR_MM_STBY Event (EN_STBIST_FAIL_R_BOOT_ROM)
+         *****************************************************************/
+        logstr = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:BIST standby MM bootrom failed.";
+        memset(&logentry, 0 , sizeof(SaHpiEventLogEntryT));
+        strcpy(hash_value->value.string, logstr);
+        g_hash_table_insert(sim_hash, hash_key, hash_value);
+
+        err = saHpiEventLogEntryGet(sessionid, rid_eventlog, SAHPI_NEWEST_ENTRY,
+                                    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
+        if (err) {
+                printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                printf("  Received error=%s\n", oh_lookup_error(err));
+                return -1;
+        }
+
+        /* Check expected values */
+        if (!(!(logentry.Event.Source == rid_eventlog) &&
+              (logentry.Event.EventType == SAHPI_ET_SENSOR) &&
+              (logentry.Event.Severity == SAHPI_MAJOR) &&
+              (logentry.Event.EventDataUnion.SensorEvent.SensorType == SAHPI_OPERATIONAL) &&
+              (logentry.Event.EventDataUnion.SensorEvent.Assertion == SAHPI_TRUE) &&
+              (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_DEGRADED) &&
+              (logentry.Event.EventDataUnion.SensorEvent.PreviousState & SAHPI_ES_RUNNING) &&
+              (logentry.Event.EventDataUnion.SensorEvent.CurrentState & SAHPI_ES_DEGRADED))) {
                 printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                 oh_print_event(&(logentry.Event), (rdr.RdrType != SAHPI_NO_RECORD) ? &rdr.Entity : NULL, 1);
                 return -1;

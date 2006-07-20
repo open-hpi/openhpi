@@ -223,6 +223,8 @@ SaErrorT snmp_bc_get_sel_entry(void *hnd,
                 return(SA_ERR_HPI_INVALID_PARAMS);
         }
 	       
+	memset(entry, 0, sizeof(SaHpiEventLogEntryT));
+
 	err = SA_OK;
 	tmpentryptr = &tmpentry; 
 	handle = (struct oh_handler_state *)hnd;
@@ -236,7 +238,7 @@ SaErrorT snmp_bc_get_sel_entry(void *hnd,
                 if (err) {
                         dbg("Event Log cache sync failed %s\n", oh_lookup_error(err));
                         /* --------------------------------------------------------------- */
-                        /* If an error is encounterred during building of snmp_bc elcache, */
+                        /* If an error is encountered during building of snmp_bc elcache,  */
                         /* only log the error.  Do not do any recovery because log entries */
                         /* are still kept in bc mm.  We'll pick them up during synch.      */
                         /* --------------------------------------------------------------- */
