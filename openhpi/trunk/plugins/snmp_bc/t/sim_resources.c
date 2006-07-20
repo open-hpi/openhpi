@@ -1,11 +1,11 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2003, 2005
+ * (C) Copyright IBM Corp. 2003, 2006
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
- * file and program are licensed under a BSD style license.  See
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. This
+ * file and program are licensed under a BSD style license. See
  * the Copying file included with the OpenHPI distribution for
  * full licensing terms.
  *
@@ -335,7 +335,7 @@ struct snmp_bc_data sim_resource_array[] = {
                 .mib = {
                         .type = ASN_OCTET_STR,
 			.value = {
-				.string = "Severity:ERR  Source:BLADE_01  Name:SN#ZJ1R6G5932JX  Date:11/19/05  Time:14:13:15  Text:CPU 3 shut off due to over temperature ",
+				.string = "Severity:ERR  Source:BLADE_01  Name:SN#ZJ1R6G5932JX  Date:11/19/05  Time:14:13:15  Text:CPU 3 ",
 			},
 		},
         },
@@ -482,7 +482,7 @@ struct snmp_bc_data sim_resource_array[] = {
                 .mib = {
                         .type = ASN_INTEGER,
                         .value = {
-                                .integer = 1, /* number of active MM; 0 if none ??? */
+                                .integer = 1, /* number of active MM */
                         },
                 },
         },
@@ -6512,8 +6512,8 @@ struct snmp_bc_data sim_resource_array[] = {
                 },
         },
         {
-                /* Blade IPMI Voltage Sensor 1 Up Major - Blade 3 */
-                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.23.3",
+                /* Blade IPMI Voltage Sensor 1 Up Major - Blade 1 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.23.1",
                 .mib = {
                         .type = ASN_OCTET_STR,
                         .value = {
@@ -6522,12 +6522,12 @@ struct snmp_bc_data sim_resource_array[] = {
                 },
         },
         {
-                /* Blade IPMI Voltage Sensor 1 Low Major - Blade 3 */
-                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.24.3",
+                /* Blade IPMI Voltage Sensor 1 Low Major - Blade 1 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.24.1",
                 .mib = {
                         .type = ASN_OCTET_STR,
                         .value = {
-                                .string = "+ 2.00 Volts",
+                                .string = "+ 1.6 Volts",
                         },
                 },
         },
@@ -7677,7 +7677,7 @@ struct snmp_bc_data sim_resource_array[] = {
                 .mib = {
                         .type = ASN_OCTET_STR,
                         .value = {
-                                .string = "1.8VSB Sense",
+                                .string = "1.8VSB Sense = +3.2 Volts",
                         },
                 },
         },

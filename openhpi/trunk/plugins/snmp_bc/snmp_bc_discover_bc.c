@@ -954,7 +954,7 @@ SaErrorT snmp_bc_discover_blade(struct oh_handler_state *handle,
 			
 			/* Tack on MM's defined blade name */
 			if (!err && (get_blade_resourcetag.type == ASN_OCTET_STR)) {
-				oh_append_textbuffer(&(e->u.res_event.entry.ResourceTag)," - ");
+				oh_append_textbuffer(&(e->u.res_event.entry.ResourceTag), " - ");
 				oh_append_textbuffer(&(e->u.res_event.entry.ResourceTag), get_blade_resourcetag.string);
 			}
 
@@ -1018,9 +1018,13 @@ SaErrorT snmp_bc_discover_blade(struct oh_handler_state *handle,
 				oh_set_ep_location(&ep, SAHPI_ENT_PHYSICAL_SLOT, i + SNMP_BC_HPI_LOCATION_BASE);
 				oh_set_ep_location(&ep, SAHPI_ENT_SBC_BLADE, i + SNMP_BC_HPI_LOCATION_BASE);
 
-
 				err = snmp_bc_oid_snmp_get(custom_handle, &ep, 0,
 							   SNMP_BC_BLADE_EXPANSION_VECTOR, &get_value, SAHPI_TRUE);
+
+				/* FIXME:: Need to discover multiple BEMs/blade - fix BEM location */
+				/* Need to do this after snmp_bc_oid_snmp_get to get SNMP_BC_BLADE_EXPANSION_VECTOR
+                                   to be derived correctly */
+				oh_set_ep_location(&ep, SAHPI_ENT_SYS_EXPANSION_BOARD, SNMP_BC_HPI_LOCATION_BASE);
 
 				if (!err && get_value.integer != 0) {
 
@@ -1036,9 +1040,18 @@ SaErrorT snmp_bc_discover_blade(struct oh_handler_state *handle,
 					e->u.res_event.entry = snmp_bc_rpt_array[BC_RPT_ENTRY_BLADE_EXPANSION_CARD].rpt;
 					e->u.res_event.entry.ResourceEntity = ep;
 					e->u.res_event.entry.ResourceId = oh_uid_from_entity_path(&ep);
-					snmp_bc_create_resourcetag(&(e->u.res_event.entry.ResourceTag),
-								   snmp_bc_rpt_array[BC_RPT_ENTRY_BLADE_EXPANSION_CARD].comment,
-								   i + SNMP_BC_HPI_LOCATION_BASE);
+					/* FIXME:: Need to discover multiple BEMs/blade - fix BEM location */
+					{
+						SaHpiTextBufferT  working, working2;
+						snmp_bc_create_resourcetag(&working, "Blade", i + SNMP_BC_HPI_LOCATION_BASE);
+						snmp_bc_create_resourcetag(&working2,
+									   snmp_bc_rpt_array[BC_RPT_ENTRY_BLADE_EXPANSION_CARD].comment,
+									   SNMP_BC_HPI_LOCATION_BASE);
+						oh_init_textbuffer(&(e->u.res_event.entry.ResourceTag));
+						oh_append_textbuffer(&(e->u.res_event.entry.ResourceTag), working.Data);
+						oh_append_textbuffer(&(e->u.res_event.entry.ResourceTag), " ");
+						oh_append_textbuffer(&(e->u.res_event.entry.ResourceTag), working2.Data);
+					}
 
 					trace("Discovered resource=%s; ID=%d",
 					      e->u.res_event.entry.ResourceTag.Data,

@@ -463,7 +463,7 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                                 {},
                         },
                 },
-                .comment = "Blade Expansion Module",
+                .comment = "Expansion Module",
         },
         /* Media Tray */
         {
@@ -684,6 +684,7 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                 },
                 .comment = "Slot",
         },
+#if 0
         /* BEM DASD */
         {
                 .rpt = {
@@ -733,6 +734,7 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
   			.cur_state = SAHPI_HS_STATE_ACTIVE,
 			.prev_state = SAHPI_HS_STATE_ACTIVE,
                         .event_array = {
+				/* remove from BEM Operational Sensor, if DASD becomes a resource */
                                 {
                                         .event = "0681E00x", /* EN_DASD1_REMOVED_DRIVE_x */
 					.event_res_failure = SAHPI_FALSE,
@@ -747,6 +749,7 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                 },
                 .comment = "BEM DASD",
         },
+#endif
 
         {} /* Terminate array with a null element */
 };
@@ -2241,6 +2244,30 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                                 },
                                 {
                                         .event = "00216013", /* EN_SP_SENSOR_DEGRADED */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "00216000", /* EN_IPMI_BMC_COMM_FAIL */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "00101007", /* EN_UNABLE_ISLOATE_BUS */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "00103000", /* EN_MGMT_BUS_FAULT */
   					.event_assertion = SAHPI_TRUE,
        					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
@@ -4049,7 +4076,6 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
 					.event_state = SAHPI_ES_UPPER_MAJOR,
 					.recovery_state = SAHPI_ES_UNSPECIFIED,
 				},
-				/* FIXME:: New number when MM adds event */
 				{
 					.event = "FF032900", /* EN_MAJOR_LO_FAULT_3_35V */
 					.event_assertion = SAHPI_TRUE,
@@ -4939,6 +4965,262 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 },
                                 {
                                         .event = "06800001", /* EN_FAULT_DASD1_HARD_DRIVE_1 */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "0A07BC00", /* EN_IO_1_8V_WARNING_HI */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "0A07AC00", /* EN_IO_1_8V_WARNING_LOW */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "0A031C01", /* EN_IO_2_5VS_WARNING_HI */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "0A030C01", /* EN_IO_2_5VS_WARNING_LOW */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "0A02DC01", /* EN_IO_3_3VS_WARNING_HI */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "0A02CC01", /* EN_IO_3_3VS_WARNING_LOW */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "0A037C01", /* EN_IO_12VS_WARNING_HI */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "0A036C01", /* EN_IO_12VS_WARNING_LOW */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "0A03DC00", /* EN_IO_N5V_WARNING_HI */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "0A03CC00", /* EN_IO_N5V_WARNING_LOW */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "00216025", /* EN_IPMI_CPU_SPEED_FAIL */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "00216024", /* EN_IPMI_CPU_VOLT_MISMATCH */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "0021603D", /* EN_IPMI_PROC_INIT_FAIL */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "00216028", /* EN_IPMI_SP2_INIT_FAIL */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "00216039", /* EN_IPMI_BOARD_INIT_FAIL */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "00216020", /* EN_IPMI_BOOT_MEDIA_MISSING */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "0021602F", /* EN_IPMI_CACHE_INIT_FAIL */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "0021601E", /* EN_IPMI_DISK_CTRL_FAIL */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "00216027", /* EN_IPMI_DRIVE_INIT_FAIL */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "00216023", /* EN_IPMI_FW_ROM_CORRUPT */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "0021601A", /* EN_IPMI_MEM_FAILED */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "00216026", /* EN_IPMI_MEM_INIT_FAIL */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "00216032", /* EN_IPMI_MGMT_CTRL_INIT_FAIL */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "00216019", /* EN_IPMI_NO_MEM */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "00216038", /* EN_IPMI_OS_BOOT_FAIL */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "0021602B", /* EN_IPMI_PCI_CONF_FAIL */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "00216011", /* EN_IPMI_PCI_SERR */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "0021602D", /* EN_IPMI_ROM_INIT_FAIL */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "0021601B", /* EN_IPMI_STORAGE_DEV_FAIL */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "0021602C", /* EN_IPMI_USB_CONF_FAIL */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "00216037", /* EN_IPMI_WAKEUP_VECTOR_FAIL */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "BBBB0001", /* EN_BIOS_RTC */
  					.event_assertion = SAHPI_TRUE,
       					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
@@ -6050,24 +6332,6 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.event_array = {
-#if 0
-					{
-						.event = "0A07BC00", /* EN_IO_1_8V_WARNING_HI */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_FALSE,
-						.event_res_failure_unexpected = SAHPI_FALSE,
-						.event_state = SAHPI_ES_UPPER_MAJOR,
-						.recovery_state = SAHPI_ES_UNSPECIFIED,
-					},
-					{
-						.event = "0A07AC00", /* EN_IO_1_8V_WARNING_LOW */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_FALSE,
-						.event_res_failure_unexpected = SAHPI_FALSE,
-						.event_state = SAHPI_ES_LOWER_MAJOR,
-						.recovery_state = SAHPI_ES_UNSPECIFIED,
-					},
-#endif
 					{
 						.event = "0807B400", /* EN_PFA_HI_FAULT_1_8V */
 						.event_assertion = SAHPI_TRUE,
@@ -6335,24 +6599,6 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.event_array = {
-#if 0
-					{
-						.event = "0A031C01", /* EN_IO_2_5VS_WARNING_HI */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_FALSE,
-						.event_res_failure_unexpected = SAHPI_FALSE,
-						.event_state = SAHPI_ES_UPPER_MAJOR,
-						.recovery_state = SAHPI_ES_UNSPECIFIED,
-					},
-					{
-						.event = "0A030C01", /* EN_IO_2_5VS_WARNING_LO */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_FALSE,
-						.event_res_failure_unexpected = SAHPI_FALSE,
-						.event_state = SAHPI_ES_UPPER_MAJOR,
-						.recovery_state = SAHPI_ES_UNSPECIFIED,
-					},
-#endif
 					{
 						.event = "0A031C02", /* EN_2_5VS_WARNING_HI */
 						.event_assertion = SAHPI_TRUE,
@@ -6541,24 +6787,6 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.event_array = {
-#if 0
-					{
-						.event = "0A02DC01", /* EN_IO_3_3VS_WARNING_HI */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_FALSE,
-						.event_res_failure_unexpected = SAHPI_FALSE,
-						.event_state = SAHPI_ES_UPPER_MAJOR,
-						.recovery_state = SAHPI_ES_UNSPECIFIED,
-					},
-					{
-						.event = "0A02CC01", /*EN_IO_3_3VS_WARNING_LOW  */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_FALSE,
-						.event_res_failure_unexpected = SAHPI_FALSE,
-						.event_state = SAHPI_ES_UPPER_MAJOR,
-						.recovery_state = SAHPI_ES_UNSPECIFIED,
-					},
-#endif
 					{
 						.event = "0A02DC02", /* EN_3_3VS_WARNING_HI */
 						.event_assertion = SAHPI_TRUE,
@@ -6841,24 +7069,6 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.event_array = {
-#if 0
-					{
-						.event = "0A03DC00", /* EN_IO_N5V_WARNING_HI */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_FALSE,
-						.event_res_failure_unexpected = SAHPI_FALSE,
-						.event_state = SAHPI_ES_UPPER_MAJOR,
-						.recovery_state = SAHPI_ES_UNSPECIFIED,
-					},
-					{
-						.event = "0A03CC00", /* EN_IO_N5V_WARNING_LOW */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_FALSE,
-						.event_res_failure_unexpected = SAHPI_FALSE,
-						.event_state = SAHPI_ES_LOWER_MAJOR,
-						.recovery_state = SAHPI_ES_UNSPECIFIED,
-					},
-#endif
 					{
 						.event = "0803D500", /* EN_PFA_HI_FAULT_N5V */
 						.event_assertion = SAHPI_TRUE,
@@ -7047,24 +7257,6 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
 				.assert_mask   = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.deassert_mask = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_UPPER_MAJOR,
 				.event_array = {
-#if 0
-					{
-						.event = "0A037C01", /* EN_IO_12VS_WARNING_HI */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_FALSE,
-						.event_res_failure_unexpected = SAHPI_FALSE,
-						.event_state = SAHPI_ES_UPPER_MAJOR,
-						.recovery_state = SAHPI_ES_UNSPECIFIED,
-					},
-					{
-						.event = "0A036C01", /* EN_IO_12VS_WARNING_LOW */
-						.event_assertion = SAHPI_TRUE,
-						.event_res_failure = SAHPI_FALSE,
-						.event_res_failure_unexpected = SAHPI_FALSE,
-						.event_state = SAHPI_ES_UPPER_MAJOR,
-						.recovery_state = SAHPI_ES_UNSPECIFIED,
-					},
-#endif
 					{
 						.event = "0A037C02", /* EN_12VS_WARNING_HI */
 						.event_assertion = SAHPI_TRUE,
@@ -7886,7 +8078,6 @@ struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[] = {
  * Blade Expansion Module (BEM) Sensors
  **************************************/
 struct snmp_bc_sensor snmp_bc_bem_sensors[] = {
-        /* Legacy Blade BEM support - newer blades use IPMI sensors */
         /* BEM Operational Status Sensor - event only */
         {
 		.index = 1,
@@ -7896,7 +8087,7 @@ struct snmp_bc_sensor snmp_bc_bem_sensors[] = {
                         .Category = SAHPI_EC_AVAILABILITY,
 			.EnableCtrl = SAHPI_FALSE,
                         .EventCtrl = SAHPI_SEC_READ_ONLY,
-                        .Events = SAHPI_ES_RUNNING | SAHPI_ES_OFF_LINE,
+                        .Events = SAHPI_ES_RUNNING | SAHPI_ES_DEGRADED | SAHPI_ES_OFF_LINE,
                         .DataFormat = {
                                 .IsSupported = SAHPI_FALSE,
                         },
@@ -7910,8 +8101,8 @@ struct snmp_bc_sensor snmp_bc_bem_sensors[] = {
 			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
                         .sensor_enabled = SAHPI_TRUE,
                         .events_enabled = SAHPI_TRUE,
-			.assert_mask   = SAHPI_ES_OFF_LINE,
-			.deassert_mask = SAHPI_ES_OFF_LINE,
+			.assert_mask   = SAHPI_ES_DEGRADED | SAHPI_ES_OFF_LINE,
+			.deassert_mask = SAHPI_ES_DEGRADED | SAHPI_ES_OFF_LINE,
                         .event_array = {
                                 {
                                         .event = "06800000", /* EN_FAULT_DASD */
@@ -7919,6 +8110,86 @@ struct snmp_bc_sensor snmp_bc_bem_sensors[] = {
        					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
 					.event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "0681E002", /* EN_DASD1_REMOVED_DRIVE_2 */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+					.event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "0681E003", /* EN_DASD1_REMOVED_DRIVE_3 */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+					.event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "0681E004", /* EN_DASD1_REMOVED_DRIVE_4 */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+					.event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "06801002", /* EN_FAULT_DASD1_SCSI_ID_2 */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+					.event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "06800002", /* EN_FAULT_DASD1_HARD_DRIVE_2 */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+					.event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "06801003", /* EN_FAULT_DASD1_SCSI_ID_3 */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+					.event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "06800003", /* EN_FAULT_DASD1_HARD_DRIVE_3 */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+					.event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "06800004", /* EN_FAULT_DASD1_HARD_DRIVE_4 */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+					.event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "0EE18000", /* EN_BSE_RAID_BATTERY_FAILURE */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+					.event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "0EE00000", /* EN_BSE_RAID_FAULT */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+					.event_state = SAHPI_ES_DEGRADED,
                                         .recovery_state = SAHPI_ES_RUNNING,
                                 },
                                 {},
@@ -9189,6 +9460,7 @@ struct snmp_bc_ipmi_sensor snmp_bc_bem_ipmi_sensors[] = {
         {} /* Terminate array with a null element */
 };
 
+#if 0
 /* BEM DASD Sensors */
 struct snmp_bc_sensor snmp_bc_bse_dasd_sensors[] = {
 	/* BEM DASD 1 Operational Sensor - event only */
@@ -9335,6 +9607,7 @@ struct snmp_bc_sensor snmp_bc_bse3_dasd_sensors[] = {
 
         {} /* Terminate array with a null element */
 };
+#endif
 
 /********************
  * Media Tray Sensors

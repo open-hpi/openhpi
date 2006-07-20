@@ -29,7 +29,7 @@ static SaErrorT snmp_bc_parse_threshold_str(gchar *str,
 static SaErrorT snmp_bc_logsrc2rid(struct oh_handler_state *handle,
 				   gchar *src,
 				   LogSource2ResourceT *logsrc2res,
-				   unsigned int ovr_flags);
+				   unsigned long long ovr_flags);
 
 static SaErrorT snmp_bc_set_cur_prev_event_states(struct oh_handler_state *handle,
 						  EventMapInfoT *eventmap_info,
@@ -48,7 +48,6 @@ static SaErrorT snmp_bc_map2oem(SaHpiEventT *event,
 static ErrLog2EventInfoT *snmp_bc_findevent4dupstr(gchar *search_str,
 						     ErrLog2EventInfoT *dupstrhash_data,
 						     LogSource2ResourceT *logsrc2res);
-
 /**
  * event2hpi_hash_init:
  * @handle: Pointer to handler's data.
@@ -82,7 +81,6 @@ SaErrorT event2hpi_hash_init(struct oh_handler_state *handle)
 	return(SA_OK);
 }
 
-
 /**
  * free_hash_data:
  * @key
@@ -96,8 +94,6 @@ static void free_hash_data(gpointer key, gpointer value, gpointer user_data)
         g_free(key); /* Memory was created for these during normalization process */
         g_free(value);
 }
-
-
 
 /**
  * event2hpi_hash_free:
@@ -500,7 +496,9 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 	if (strhash_data->event_ovr & OVR_EXP ||
 	    strhash_data->event_ovr & OVR_VMM ||
 	    strhash_data->event_ovr & OVR_MM1 ||
-	    strhash_data->event_ovr & OVR_MM2) {
+	    strhash_data->event_ovr & OVR_MM2 ||
+	    strhash_data->event_ovr & OVR_MM_PRIME ||
+	    strhash_data->event_ovr & OVR_MM_STBY) {
 
 		err = snmp_bc_logsrc2rid(handle, log_entry.source, &logsrc2res,
 					 strhash_data->event_ovr);
@@ -590,7 +588,7 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 			working.EventDataUnion.SensorEvent.OptionalDataPresent =
 				working.EventDataUnion.SensorEvent.OptionalDataPresent |
 				SAHPI_SOD_TRIGGER_READING;
-			
+
 			if (oh_encode_sensorreading(&thresh_trigger_value,
 						    working.EventDataUnion.SensorEvent.TriggerThreshold.Type,
 						    &working.EventDataUnion.SensorEvent.TriggerThreshold)) {
@@ -715,7 +713,6 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 	 * Check to see if need to mark resource as failed.
 	 **************************************************/
 
-	/* FIXME:: SES this is garbage */
 RESUME_TO_EXIT:
 	if (eventmap_info->event_res_failure) {
 		SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, event->Source);
@@ -1139,12 +1136,12 @@ static SaErrorT snmp_bc_set_cur_prev_event_states(struct oh_handler_state *handl
 #if 0
 		{       /* Debug section */
 			SaHpiTextBufferT buffer;
-			
+
 			dbg("Event for Sensor=%s", rdr->IdString.Data);
 			oh_decode_eventstate(prev_state, event->EventDataUnion.SensorEvent.EventCategory, &buffer);
 			dbg("  Previous Event State: %s.", buffer.Data);
 			oh_decode_eventstate(cur_state, event->EventDataUnion.SensorEvent.EventCategory, &buffer);
-			dbg("  Current Event State: %s\n", buffer.Data);
+			dbg("  Current Event State: %s", buffer.Data);
 		}
 #endif
 		
@@ -1256,10 +1253,12 @@ static SaErrorT snmp_bc_map2oem(SaHpiEventT *event,
  *
  * @ovr_flags is used to indicate exception cases. The two case
  * supported are:
- *   - OVR_EXP    - indicates resource is an expansion card.
- *   - OVR_VMM    - indicates resource is Virtual MM
- *   - OVR_MM1    - indicates resource is the MM 1 card.
- *   - OVR_MM2    - indicates resource is the MM 2 card.
+ *   - OVR_EXP      - indicates resource is an expansion card.
+ *   - OVR_VMM      - indicates resource is Virtual MM
+ *   - OVR_MM1      - indicates resource is the MM 1 card.
+ *   - OVR_MM2      - indicates resource is the MM 2 card.
+ *   - OVR_MM_PRIME - indicates resource is the physical MM of primary MM.
+ *   - OVR_MM_STBY  - indicates resource is the physical MM of the standby MM.
  *
  * Return values:
  * SA_OK - Normal case.
@@ -1268,10 +1267,10 @@ static SaErrorT snmp_bc_map2oem(SaHpiEventT *event,
 static SaErrorT snmp_bc_logsrc2rid(struct oh_handler_state *handle,
 				   gchar *src,
 				   LogSource2ResourceT *logsrc2res,
-				   unsigned int ovr_flags)
+				   unsigned long long ovr_flags)
 {
 	int rpt_index;
-	guint loc;
+	guint src_loc;
 	gchar **src_parts, *endptr, *root_tuple;
 	SaErrorT err;
 	SaHpiBoolT isblade, isexpansioncard, isswitch, ismm;
@@ -1284,7 +1283,7 @@ static SaErrorT snmp_bc_logsrc2rid(struct oh_handler_state *handle,
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
-		
+
 	src_parts = NULL;
 	endptr = NULL;
 	
@@ -1301,7 +1300,7 @@ static SaErrorT snmp_bc_logsrc2rid(struct oh_handler_state *handle,
         oh_encode_entitypath(root_tuple, &ep_root);
         
         /* Assume chassis location/type unless another resource type is discovered */
-	loc = ep_root.Entry[0].EntityLocation;
+	src_loc = ep_root.Entry[0].EntityLocation;
 	entity_type = ep_root.Entry[0].EntityType;
 
 	/* Break down "Source" text string to find source's RPT index and location */
@@ -1323,9 +1322,9 @@ static SaErrorT snmp_bc_logsrc2rid(struct oh_handler_state *handle,
 		if (!g_ascii_strncasecmp(src_parts[0], "SWITCH", sizeof("SWITCH"))) { isswitch = SAHPI_TRUE; }
 	}
 
-	/* If not the chassis, find the location value from last part of log's source string */
+	/* Find the location value from last part of log's source string */
 	if (isexpansioncard == SAHPI_TRUE || isblade == SAHPI_TRUE || isswitch == SAHPI_TRUE) {
-		loc = strtoul(src_parts[1], &endptr, 10);
+		src_loc = strtoul(src_parts[1], &endptr, 10);
 		if (isexpansioncard == SAHPI_TRUE) {
 			rpt_index = BC_RPT_ENTRY_BLADE_EXPANSION_CARD;
 			array_ptr = &snmp_bc_bem_sensors[0];	
@@ -1345,23 +1344,42 @@ static SaErrorT snmp_bc_logsrc2rid(struct oh_handler_state *handle,
 	else {
 		/* Check for OVR_MMx overrides, if cannot find explict resource from error
                    logs "Source" field */
-
-		if (ovr_flags & OVR_VMM || ovr_flags & OVR_MM1 || ovr_flags & OVR_MM2) {
+		if (ovr_flags & OVR_VMM || 
+		    ovr_flags & OVR_MM1 || ovr_flags & OVR_MM2 || 
+		    ovr_flags & OVR_MM_PRIME || ovr_flags & OVR_MM_STBY) {
 			if (ovr_flags & OVR_VMM) {
 				rpt_index = BC_RPT_ENTRY_VIRTUAL_MGMNT_MODULE; 
-				loc  = 0;
+				src_loc = 0;
 				array_ptr = &snmp_bc_virtual_mgmnt_sensors[0];
 			}
 			else {
 				ismm = SAHPI_TRUE;
 				rpt_index = BC_RPT_ENTRY_MGMNT_MODULE;
-				if (ovr_flags & OVR_MM1) { loc = 1; }
-				else { loc = 2; }
 				array_ptr = &snmp_bc_mgmnt_sensors[0];
+				
+				if (ovr_flags & OVR_MM1 || ovr_flags & OVR_MM2) {
+					if (ovr_flags & OVR_MM1) { src_loc = 1; }
+					else { src_loc = 2; }
+				}
+				else { 	/* Assign primary/standby events to physical MM */
+					struct snmp_value value;
+					int primary, standby;
+
+					err = snmp_bc_snmp_get(custom_handle, SNMP_BC_MGMNT_ACTIVE, &value, SAHPI_TRUE);
+					if (err) {
+						dbg("Cannot get OID=%s.",  SNMP_BC_MGMNT_ACTIVE);
+						return(SA_ERR_HPI_INTERNAL_ERROR);
+					}
+
+					primary = value.integer;
+					if (value.integer == 1) { standby = 2; }
+					else { standby = 1; }
+					
+					if (ovr_flags & OVR_MM_PRIME) { src_loc = primary; }
+					else { src_loc = standby; } /* Standby override */
+				}
 			}
-			
 			entity_type = snmp_bc_rpt_array[rpt_index].rpt.ResourceEntity.Entry[0].EntityType;
-			
 		}
 		else {
 			rpt_index = BC_RPT_ENTRY_CHASSIS;
@@ -1381,25 +1399,33 @@ static SaErrorT snmp_bc_logsrc2rid(struct oh_handler_state *handle,
 		dbg("Cannot concat Entity Path. Error=%s.", oh_lookup_error(err));
 		return(SA_ERR_HPI_INTERNAL_ERROR);
 	}
-	err = oh_set_ep_location(&ep, entity_type, loc);
+	/* FIXME:: Need to rewrite this section when discover multiple BEMs/blade */
+	/* Also switches aren't currently supported with the Source field - can remove this logic */
+	if ((isexpansioncard == SAHPI_TRUE)) {
+		err = oh_set_ep_location(&ep, entity_type, 1);
+	}
+	else {
+		err = oh_set_ep_location(&ep, entity_type, src_loc);
+	}
+
 	if (err) {
 		dbg("Cannot set location. Type=%s; Location=%d; Error=%s.",
-		    oh_lookup_entitytype(entity_type), loc, oh_lookup_error(err));
+		    oh_lookup_entitytype(entity_type), src_loc, oh_lookup_error(err));
 		return(SA_ERR_HPI_INTERNAL_ERROR);
 	}
 
 	if ((isblade == SAHPI_TRUE) || (isexpansioncard == SAHPI_TRUE)) {
-		err = oh_set_ep_location(&ep, SAHPI_ENT_PHYSICAL_SLOT, loc);	
+		err = oh_set_ep_location(&ep, SAHPI_ENT_PHYSICAL_SLOT, src_loc);	
 	} else if (ismm == SAHPI_TRUE) {
-		err = oh_set_ep_location(&ep, BLADECENTER_SYS_MGMNT_MODULE_SLOT, loc);	
+		err = oh_set_ep_location(&ep, BLADECENTER_SYS_MGMNT_MODULE_SLOT, src_loc);	
 	}
 	
 	/* Special case - if Expansion Card set location of parent blade as well */
 	if (isexpansioncard == SAHPI_TRUE) {
-		err = oh_set_ep_location(&ep, SAHPI_ENT_SBC_BLADE, loc);
+		err = oh_set_ep_location(&ep, SAHPI_ENT_SBC_BLADE, src_loc);
 		if (err) {
 			dbg("Cannot set location. Type=%s; Location=%d; Error=%s.",
-			    oh_lookup_entitytype(SAHPI_ENT_SBC_BLADE), loc, oh_lookup_error(err));  
+			    oh_lookup_entitytype(SAHPI_ENT_SBC_BLADE), src_loc, oh_lookup_error(err));  
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		}
 	}
@@ -1418,10 +1444,6 @@ static SaErrorT snmp_bc_logsrc2rid(struct oh_handler_state *handle,
          * number to an unique entity path. User app needs to worry about if resource 
          * is actually in the chassis - just as they do for hot swapped resources.
          **********************************************************************************/
-	
-	/* FIXME:: SES Is this required anymore? - should always get a valid RID if Peter discovers
-           all possible values. Can't find a RID implies and error */
-
 	if (logsrc2res->rid == 0) {
 		logsrc2res->rid = oh_uid_from_entity_path(&ep);
 		if (logsrc2res->rid == 0) {
