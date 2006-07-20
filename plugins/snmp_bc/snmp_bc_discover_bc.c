@@ -1048,9 +1048,9 @@ SaErrorT snmp_bc_discover_blade(struct oh_handler_state *handle,
 									   snmp_bc_rpt_array[BC_RPT_ENTRY_BLADE_EXPANSION_CARD].comment,
 									   SNMP_BC_HPI_LOCATION_BASE);
 						oh_init_textbuffer(&(e->u.res_event.entry.ResourceTag));
-						oh_append_textbuffer(&(e->u.res_event.entry.ResourceTag), working.Data);
+						oh_append_textbuffer(&(e->u.res_event.entry.ResourceTag), (char *)working.Data);
 						oh_append_textbuffer(&(e->u.res_event.entry.ResourceTag), " ");
-						oh_append_textbuffer(&(e->u.res_event.entry.ResourceTag), working2.Data);
+						oh_append_textbuffer(&(e->u.res_event.entry.ResourceTag), (char *)working2.Data);
 					}
 
 					trace("Discovered resource=%s; ID=%d",
