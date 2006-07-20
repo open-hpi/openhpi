@@ -639,7 +639,7 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
   		 ********************************************************************/
 		if (hs_event_state == resinfo2->cur_state) {
 			working.EventDataUnion.HotSwapEvent.HotSwapState = resinfo2->cur_state;
-			working.EventDataUnion.HotSwapEvent.PreviousHotSwapState = resinfo2->prev_state;
+			working.EventDataUnion.HotSwapEvent.PreviousHotSwapState = resinfo2->cur_state;
 			event_severity = SAHPI_INFORMATIONAL;
 		}
 		else {
