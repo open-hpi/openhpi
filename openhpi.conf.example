@@ -55,6 +55,7 @@ plugin libdummy
 ## Depends on openipmi to be installed on this system:
 #plugin libipmi
 
+## BladeCenter Plugin
 ## Depends on net-snmp being installed on the system:
 #plugin libsnmp_bc
 
