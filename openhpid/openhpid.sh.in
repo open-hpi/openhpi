@@ -48,7 +48,7 @@ print_outcome()
    			;;
 
 		suse)
- 			rc_status @prefix@/sbin/openhpid
+ 			rc_status -v
 			;;
 
 		lsb)
@@ -74,7 +74,7 @@ print_outcome()
 }
 
 start() {
-        @prefix@/bin/openhpi-switcher --set=standard
+        @prefix@/bin/openhpi-switcher --set=standard > /dev/null
         export `@prefix@/bin/openhpi-switcher --env=standard` || return 1
 	export OPENHPI_DAEMON_MODE="YES"
 	echo $"Starting $prog: "
@@ -99,9 +99,9 @@ start() {
 			
 	esac
         
-        @prefix@/bin/openhpi-switcher --set=client
-
 	print_outcome
+        
+	@prefix@/bin/openhpi-switcher --set=client > /dev/null
 
 }
 
