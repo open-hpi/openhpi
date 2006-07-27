@@ -35,7 +35,7 @@ extern "C"
 #include <oHpi.h>
 #include <oh_error.h>
 
-#include <oh_initialize.h>
+#include <oh_init.h>
 }
 
 #include "strmsock.h"
@@ -194,8 +194,8 @@ int main (int argc, char *argv[])
         }
 
         if (optind < argc) {
-                printf("Error: Unknown command line option specified .\n");
-                printf("       Aborting execution.\n\n");
+                dbg("Error: Unknown command line option specified .\n");
+                dbg("       Aborting execution.\n\n");
 		display_help();
                 exit(-1);
         }
@@ -210,8 +210,8 @@ int main (int argc, char *argv[])
                         unlink(pid_file);
                 } else {
                         // there is already a server running
-                        printf("Error: There is already a server running .\n");
-                        printf("       Aborting execution.\n");
+                        dbg("Error: There is already a server running .\n");
+                        dbg("       Aborting execution.\n");
                         exit(1);
                 }
         }
@@ -221,10 +221,9 @@ int main (int argc, char *argv[])
         if((version & 0x000000000000ffff) != 0) {
                 // we're trying to run against the client lib
                 // danger will robinson!
-                printf("Error: Trying to run with the OpenHPI client library.\n");
-                printf("You DON'T WANT THIS!!!\n");
-                printf("Read openhpi-switcher man page to set the environment\n");
-                printf("for the daemon to use the standard lib\n");
+                dbg("Error: Trying to run with the OpenHPI client library.\n");
+                dbg("You DON'T WANT THIS!!!\n");
+                dbg("Rebuild OpenHPI with the daemon enabled\n");
                 exit(1);
         }
 
@@ -232,8 +231,8 @@ int main (int argc, char *argv[])
         pfile = open(pid_file, O_WRONLY | O_CREAT, 0640);
         if (pfile == -1) {
                 // there is already a server running
-                printf("Error: Cannot open PID file .\n");
-                printf("       Aborting execution.\n\n");
+                dbg("Error: Cannot open PID file .\n");
+                dbg("       Aborting execution.\n\n");
                 display_help();
                 exit(1);
         }
@@ -244,14 +243,14 @@ int main (int argc, char *argv[])
         // see if we have a valid configuration file
         char *cfgfile = getenv("OPENHPI_CONF");
         if (cfgfile == NULL) {
-                printf("Error: Configuration file not specified .\n");
-                printf("       Aborting execution.\n\n");
+                dbg("Error: Configuration file not specified .\n");
+                dbg("       Aborting execution.\n\n");
 		display_help();
                 exit(-1);
         }
         if (!g_file_test(cfgfile, G_FILE_TEST_EXISTS)) {
-                printf("Error: Configuration file does not exist.\n");
-                printf("       Aborting execution.\n\n");
+                dbg("Error: Configuration file does not exist.\n");
+                dbg("       Aborting execution.\n\n");
 		display_help();
                 exit(-1);
         }
@@ -269,35 +268,35 @@ int main (int argc, char *argv[])
 
         // become a daemon
         if (!morph2daemon()) {
-		        exit(8);
-	    }
+		exit(8);
+	}
 
-
-        _initialize(TRUE);
 
         // as a daemon we do NOT inherit the environment!
         setenv("OPENHPI_CONF", configfile, 1);
 
-        // create the thread pool
         if (!g_thread_supported()) {
                 g_thread_init(NULL);
         }
 
-	thrdpool = g_thread_pool_new(service_thread, NULL, max_threads, FALSE, NULL);
+	initialize(); // Initialize OpenHPI
+
+	// create the thread pool
+        thrdpool = g_thread_pool_new(service_thread, NULL, max_threads, FALSE, NULL);
 
         // create the server socket
 	psstrmsock servinst = new sstrmsock;
 	if (servinst->Create(port)) {
-		printf("Error creating server socket.\n");
+		dbg("Error creating server socket.\n");
 		g_thread_pool_free(thrdpool, FALSE, TRUE);
                 	delete servinst;
 		return 8;
 	}
 
         // announce ourselves
-        printf("%s started.\n", argv[0]);
-        printf("OPENHPI_CONF = %s\n", configfile);
-        printf("OPENHPI_DAEMON_PORT = %d\n\n", port);
+        trace("%s started.\n", argv[0]);
+        trace("OPENHPI_CONF = %s\n", configfile);
+        trace("OPENHPI_DAEMON_PORT = %d\n\n", port);
 
         // wait for a connection and then service the connection
 	while (TRUE) {

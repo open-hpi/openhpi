@@ -20,7 +20,12 @@
 
 #include <SaHpi.h>
 
+#ifdef OH_DAEMON_ENABLED
+int initialize(void);
+int finalize(void);
+#else
 int _init(void) __attribute__((constructor));
 int _fini(void) __attribute__((destructor));
+#endif
 
 #endif /* __OH_INIT_H */

@@ -20,6 +20,7 @@
 #include <SaHpi.h>
 #include "strmsock.h"
 
+int _init(void) __attribute__((constructor));
 
 // default prefix for function names
 #ifndef dOpenHpiClientFunction
