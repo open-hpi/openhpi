@@ -50,8 +50,6 @@
 ## Second section, declare plugin to use. For example:
 ## plugin plugin-name
 
-plugin libdummy
-
 ## Depends on openipmi to be installed on this system:
 #plugin libipmi
 
@@ -59,13 +57,13 @@ plugin libdummy
 ## Depends on net-snmp being installed on the system:
 #plugin libsnmp_bc
 
-## Depends openhpi being configured
-## (e.g "configure --enable-dummy=static")
-#plugin dummy
-
 #plugin libipmidirect
 
-#plugin libsimulator
+plugin libsimulator
+
+## Depends openhpi being configured
+## (e.g "configure --enable-simulator=static")
+#plugin simulator
 
 #############################################################################
 ##**WARNING** System administrators have to make sure that entity paths are
@@ -75,25 +73,14 @@ plugin libdummy
 ## Third section is a handler (instance) declaration with arguments understood by plugin
 ## Strings are enclosed by "", numbers are not.
 
-handler libdummy {
-        entity_root = "{SYSTEM_CHASSIS,1}"
-        name = "test"
-        addr =  0
-}
-
-## Dummy allows you open second virtual by addr 1
-#handler libdummy {
-#       addr =  1
-#}
-
 ## Section for the simulator plugin
 ## You can load multiple copies of the simulator plugin but each
 ## copy must have a unique name.
 
-#handler libsimulator {
-#        entity_root = "{SYSTEM_CHASSIS,1}"
-#        name = "simulator"
-#}
+handler libsimulator {
+        entity_root = "{SYSTEM_CHASSIS,1}"
+        name = "simulator"
+}
 
 ## Section for ipmi plugin using SMI -- local interface
 
@@ -144,16 +131,15 @@ handler libdummy {
 #                                           # A value of "0" disables the use of the SNMP_MSG_GETBULK SNMP command.
 #}
 
-## Section for static dummy plugin:
+## Section for static simulator plugin:
 ## If openhpi configured with
-## configure --enable-dummy=static
+## configure --enable-simulator=static
 ## the dummy plugin is compiled in.
-## It is possible to use dummy and libdummy
+## It is possible to use simulator and libsimulator
 ## at the same time.
-#handler dummy {
+#handler simulator {
 #        entity_root = "{SYSTEMk_CHASSIS,5}"
 #        name = "test"
-#        addr = 2
 #}
 
 ## Section for ipmidirect plugin using SMI -- local interface
