@@ -35,7 +35,7 @@ extern "C"
 #include "openhpiclient.h"
 
 #define dClientDebugErr
-// #define dClientDebug
+//#define dClientDebug
 
 #ifndef dClientDebug
 #define cdebug_out(cmd, str)
@@ -94,7 +94,6 @@ extern "C"
 
 static GHashTable *sessions = NULL;
 static GStaticRecMutex sessions_sem = G_STATIC_REC_MUTEX_INIT;
-static bool thrd_init = FALSE;
 
 
 /*----------------------------------------------------------------------------*/
@@ -110,6 +109,30 @@ static pcstrmsock GetConnx(SaHpiSessionIdT);
 static SaErrorT oHpiHandlerCreateInit(void);
 static void oHpiHandlerCreateAddTEntry(gpointer key, gpointer value, gpointer data);
 
+static void __destroy_table(gpointer data)
+{
+        GHashTable *table = (GHashTable *)data;
+
+        g_hash_table_destroy(table);
+}
+
+int _init(void)
+{
+        // Initialize GLIB thread engine
+	if (!g_thread_supported()) {
+        	g_thread_init(NULL);
+        }
+        
+        // Create session table.
+	if (!sessions) {
+		sessions = g_hash_table_new_full(g_int_hash, 
+                                         	 g_int_equal,
+                                        	 g_free, 
+                                         	 __destroy_table);
+	}
+
+	return 0;
+}
 
 /*----------------------------------------------------------------------------*/
 /* CreateConnx                                                                */
@@ -168,13 +191,6 @@ static void DeleteConnx(pcstrmsock pinst)
 /*----------------------------------------------------------------------------*/
 /* InsertConnx - with helper functions: __destroy_table, __delete_connx       */
 /*----------------------------------------------------------------------------*/
-static void __destroy_table(gpointer data)
-{
-        GHashTable *table = (GHashTable *)data;
-
-        g_hash_table_destroy(table);
-}
-
 static void __delete_connx(gpointer data)
 {
         pcstrmsock pinst = (pcstrmsock)data;
@@ -193,17 +209,6 @@ static bool InsertConnx(SaHpiSessionIdT SessionId, pcstrmsock pinst)
 		return TRUE;
 
         g_static_rec_mutex_lock(&sessions_sem);
-        // Create session table if it doesn't exist.
-        if (thrd_init == FALSE && sessions == NULL) {
-                if (!g_thread_supported()) {
-                         g_thread_init(NULL); // just to make sure, ignore any error
-                }
-                thrd_init = TRUE;
-                sessions = g_hash_table_new_full(g_int_hash, 
-                                                 g_int_equal,
-                                                 g_free, 
-                                                 __destroy_table);
-        }
         // Create connections table for new session.
         conns = g_hash_table_new_full(g_int_hash, 
                                       g_int_equal,

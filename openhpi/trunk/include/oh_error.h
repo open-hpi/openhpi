@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2004
+ * (C) Copyright IBM Corp. 2004-2006
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -34,29 +34,41 @@ extern "C" {
 #endif
 
 #ifdef DBG_MSGS
+#ifndef OH_DAEMON_ENABLED
 #define dbg(format, ...) \
         do { \
                 if (getenv("OPENHPI_DEBUG") && !strcmp("YES",getenv("OPENHPI_DEBUG"))) { \
                         fprintf(stderr, " %s:%d:%s: ", __FILE__, __LINE__, __func__); \
                         fprintf(stderr, format "\n", ## __VA_ARGS__); \
-                        syslog(3, "%s: %d: %s: "format, __FILE__, __LINE__, __func__,## __VA_ARGS__); \
                 } \
         } while(0)
+#else
+#define dbg(format, ...) \
+	do { \
+		syslog(3, "DEBUG (%s:%d:%s) > "format, __FILE__, __LINE__, __func__,## __VA_ARGS__); \
+		fprintf(stderr, format"\n",## __VA_ARGS__); \
+	} while(0)
+#endif
 #else
 #define dbg(format, ...)
 #endif
 
-
-
 #ifdef DBG_MSGS
+#ifndef OH_DAEMON_ENABLED
 #define trace(format, ...) \
         do { \
                 if (getenv("OPENHPI_DEBUG_TRACE") && !strcmp("YES",getenv("OPENHPI_DEBUG_TRACE"))) { \
                         fprintf(stderr, " %s:%d:%s: ", __FILE__, __LINE__, __func__); \
                         fprintf(stderr, format "\n", ## __VA_ARGS__); \
-                        syslog(3, "%s: %d: %s: "format, __FILE__, __LINE__, __func__,## __VA_ARGS__); \
                 } \
         } while(0)
+#else
+#define trace(format, ...) \
+	do { \
+		syslog(5, "INFO (%s:%d:%s) > "format, __FILE__, __LINE__, __func__,## __VA_ARGS__); \
+		fprintf(stderr, format"\n",## __VA_ARGS__); \
+	} while(0)
+#endif
 #else
 #define trace(format, ...)
 #endif

@@ -42,7 +42,11 @@ SUBDIRS                 = t
 
 AM_CFLAGS               = @CFLAGS@
 
+if OH_DAEMON_ENABLED
+noinst_LTLIBRARIES	= libopenhpi.la
+else
 lib_LTLIBRARIES         = libopenhpi.la
+endif
 
 libopenhpi_la_SOURCES   = \
                            config.c \
@@ -55,7 +59,6 @@ libopenhpi_la_SOURCES   = \
                            plugin.c \
                            plugin_static.c \
                            init.c \
-                           initialize.c \
                            safhpi.c \
                            session.c \
                            ohpi.c
@@ -66,20 +69,4 @@ libopenhpi_la_DEPENDENCIES = @STATIC_PLUGIN_LIBS@ $(top_srcdir)/src/hpi.sym
 
 $(top_builddir)/utils/libopenhpiutils.la:
 	make -C $(top_builddir)/utils libopenhpiutils.la
-
-#uninstall-am: uninstall-info-am uninstall-libLTLIBRARIES uninstall-data-local
-
-uninstall-local:
-	@list='$(lib_LTLIBRARIES)'; for p in $$list; do \
-		p="`echo $$p | sed -e 's|^.*/||'`"; \
-		echo " $(LIBTOOL) --mode=uninstall rm -f '$(DESTDIR)$(pkglibdir)/standard/$$p'"; \
-	$(LIBTOOL) --mode=uninstall rm -f "$(DESTDIR)$(pkglibdir)/standard/$$p"; \
-	done
-
-
-install-data-local:
-	mkdir -p $(DESTDIR)$(pkglibdir)/standard/
-	rm -f $(DESTDIR)$(pkglibdir)/standard/libopenhpi.*
-	mv $(DESTDIR)$(libdir)/libopenhpi.* $(DESTDIR)$(pkglibdir)/standard/
-	$(DESTDIR)$(bindir)/@HPI_PKG@-switcher --set=standard
 

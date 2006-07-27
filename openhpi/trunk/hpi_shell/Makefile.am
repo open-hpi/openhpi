@@ -8,7 +8,7 @@ REMOTE_SOURCES		= openhpiclient.cpp openhpiclient.h
 
 EXTRA_DIST		= hpi_cmd.sh
 
-if SHELL_CLIENT
+if OH_DAEMON_ENABLED
 INCLUDES 		= -I$(top_srcdir)/include -I$(top_srcdir)/utils \
 				-I$(top_srcdir)/openhpid  -I$(top_srcdir)/marshal \
 				-DCLIENT
@@ -37,7 +37,7 @@ HS_SOURCES		= \
 	sensor.c \
 	session.c
 
-if SHELL_CLIENT
+if OH_DAEMON_ENABLED
 hpi_shell_SOURCES = $(HS_SOURCES) $(REMOTE_SOURCES)
 else
 hpi_shell_SOURCES = $(HS_SOURCES)

@@ -12,8 +12,6 @@
 #    W. David Ashley <dashley@us.ibm.com>
 #
 
-pkglibdir = $(libdir)/openhpi/client
-
 .NOTPARALLEL:
 
 SUBDIRS			= t
@@ -33,28 +31,41 @@ INCLUDES 		= @OPENHPI_INCLUDES@  -I $(top_srcdir)/marshal
 sbin_PROGRAMS            = openhpid
 
 openhpid_SOURCES        = \
-	openhpid.cpp
+	openhpid.cpp \
+	$(top_srcdir)/src/config.c \
+        $(top_srcdir)/src/domain.c \
+        $(top_srcdir)/src/event.c \
+        $(top_srcdir)/src/threaded.c \
+        $(top_srcdir)/src/alarm.c \
+        $(top_srcdir)/src/hotswap.c \
+        $(top_srcdir)/src/lock.c \
+        $(top_srcdir)/src/plugin.c \
+        $(top_srcdir)/src/plugin_static.c \
+        $(top_srcdir)/src/init.c \
+        $(top_srcdir)/src/safhpi.c \
+        $(top_srcdir)/src/session.c \
+        $(top_srcdir)/src/ohpi.c	
 
 # this is defined with ./configure --enable-daemon=static
 if OPENHPID_STATIC
-openhpid_LDADD          = $(top_builddir)/src/libopenhpi.la \
+openhpid_LDADD          = $(top_builddir)/utils/libopenhpiutils.la \
 	$(top_builddir)/marshal/libohtcpconnx.la
 openhpid_LDFLAGS        = -static
 else
-openhpid_LDADD          = $(top_builddir)/src/libopenhpi.la \
+openhpid_LDADD          = $(top_builddir)/utils/libopenhpiutils.la \
 	$(top_builddir)/marshal/libohtcpconnx.la \
 	-lstdc++
 openhpid_LDFLAGS        =
 endif
 
 
-pkglib_LTLIBRARIES	        = libopenhpi.la
+lib_LTLIBRARIES	        = libopenhpi.la
 
 libopenhpi_la_SOURCES = \
 	openhpiclient.cpp \
 	openhpiclient.h
 
-libopenhpi_la_LDFLAGS = -version-info @HPI_LIB_VERSION@
+libopenhpi_la_LDFLAGS = -version-info @HPI_LIB_VERSION@ -Xcompiler -nostartfiles
 libopenhpi_la_LIBADD  = $(top_builddir)/marshal/libohtcpconnx.la -lstdc++ \
                         $(top_builddir)/utils/libopenhpiutils.la
 
