@@ -22,6 +22,8 @@
 #include <string.h>
 #include <syslog.h>
 
+#include <config.h>
+
 /* this is put here intentionally as there are too many instances
  * of unqualified sprintf calls in plugin code. Use snprintf instead
  * to ensure there are no buffer overruns 
@@ -33,7 +35,7 @@
 extern "C" {
 #endif
 
-#ifdef DBG_MSGS
+#ifdef OH_DBG_MSGS
 #ifndef OH_DAEMON_ENABLED
 #define dbg(format, ...) \
         do { \
@@ -53,7 +55,7 @@ extern "C" {
 #define dbg(format, ...)
 #endif
 
-#ifdef DBG_MSGS
+#ifdef OH_DBG_MSGS
 #ifndef OH_DAEMON_ENABLED
 #define trace(format, ...) \
         do { \

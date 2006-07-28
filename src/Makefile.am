@@ -42,10 +42,14 @@ SUBDIRS                 = t
 
 AM_CFLAGS               = @CFLAGS@
 
+
+noinst_LTLIBRARIES =
+lib_LTLIBRARIES =
+
 if OH_DAEMON_ENABLED
-noinst_LTLIBRARIES	= libopenhpi.la
+noinst_LTLIBRARIES	+= libopenhpi.la
 else
-lib_LTLIBRARIES         = libopenhpi.la
+lib_LTLIBRARIES         += libopenhpi.la
 endif
 
 libopenhpi_la_SOURCES   = \

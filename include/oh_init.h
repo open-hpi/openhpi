@@ -19,6 +19,7 @@
 #define __OH_INIT_H
 
 #include <SaHpi.h>
+#include <config.h>
 
 #ifdef OH_DAEMON_ENABLED
 int initialize(void);
