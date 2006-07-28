@@ -148,17 +148,17 @@ AC_ARG_ENABLE([daemon],
     [  --enable-daemon         build HPI daemon and client library [default=yes]],
     [if test "x$enableval" = "xyes"; then
         ENABLED_DIRS="$ENABLED_DIRS openhpid"
-	CFLAGS="$CFLAGS -DOH_DAEMON_ENABLED"
+	AC_DEFINE([OH_DAEMON_ENABLED],[1],[Build daemon and client libs])
 	oh_daemon_enabled="yes"
      elif test "x$enableval" = "xstatic"; then
         ENABLED_DIRS="$ENABLED_DIRS openhpid"
         openhpid_static="yes"
-	CFLAGS="$CFLAGS -DOH_DAEMON_ENABLED"
+	AC_DEFINE([OH_DAEMON_ENABLED],[1],[Build daemon and client libs])
 	oh_daemon_enabled="yes"
     fi],
     [
     ENABLED_DIRS="$ENABLED_DIRS openhpid"
-    CFLAGS="$CFLAGS -DOH_DAEMON_ENABLED"
+    AC_DEFINE([OH_DAEMON_ENABLED],[1],[Build daemon and client libs])
     oh_daemon_enabled="yes"
     openhpid_dinamic="yes"])
 
@@ -226,15 +226,15 @@ dnl    [if test "x$have_netsnmp" = "xyes"; then
 dnl        AC_SUBST(SNMP_CLIENT,snmp_client)
 dnl     fi])
 
-AC_ARG_ENABLE([dummy],
-    [  --enable-dummy          build dummy plugin [default=no]],
-    [if test "x$enableval" = "xyes"; then
-        AC_SUBST(DUMMY,dummy)
-     elif test "x$enableval" = "xstatic"; then
-        AC_SUBST(DUMMY,dummy)
-        STATIC_PLUGIN_LIST="$STATIC_PLUGIN_LIST dummy"
-        STATIC_PLUGIN_EXTRA_LIBS="$STATIC_PLUGIN_EXTRA_LIBS -luuid"
-    fi])
+#AC_ARG_ENABLE([dummy],
+#    [  --enable-dummy          build dummy plugin [default=no]],
+#    [if test "x$enableval" = "xyes"; then
+#        AC_SUBST(DUMMY,dummy)
+#     elif test "x$enableval" = "xstatic"; then
+#        AC_SUBST(DUMMY,dummy)
+#        STATIC_PLUGIN_LIST="$STATIC_PLUGIN_LIST dummy"
+#        STATIC_PLUGIN_EXTRA_LIBS="$STATIC_PLUGIN_EXTRA_LIBS -luuid"
+#    fi])
 
 AC_ARG_ENABLE([watchdog],
     [  --enable-watchdog       build watchdog plugin [default=yes]],
@@ -535,9 +535,9 @@ dnl to use dbg/trace messages.
 AC_ARG_ENABLE([debug-msgs],
     [  --enable-debug-msgs     enables dynamic debug messages [default=yes]],
     [if test "x$enableval" = "xyes"; then
-            CFLAGS="$CFLAGS -DDBG_MSGS"
+            AC_DEFINE([OH_DBG_MSGS],[1],[Enables dynamic debug messages])
     fi],
-    [CFLAGS="$CFLAGS -DDBG_MSGS"]
+    [AC_DEFINE([OH_DBG_MSGS],[1],[Enables dynamic debug messages])]
     )
 
 dnl Now we throw in a bunch of warnings.  C and C++ need

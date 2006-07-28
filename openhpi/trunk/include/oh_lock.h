@@ -1,7 +1,7 @@
 /*      -*- linux-c -*-
  *
  * Copyright (c) 2003 by Intel Corp.
- * (C) Copyright IBM Corp. 2003
+ * (C) Copyright IBM Corp. 2003, 2006
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -24,7 +24,7 @@ extern int oh_will_block;
 
 int data_access_block_times(void);
 
-#ifdef DBG_MSGS
+#ifdef OH_DBG_MSGS
 /*
 #define dbg_lock(format, ...) \
         do { \
