@@ -9,18 +9,19 @@ REMOTE_SOURCES		= openhpiclient.cpp openhpiclient.h
 EXTRA_DIST		= hpi_cmd.sh
 
 INCLUDES		= -I$(top_srcdir)/include -I$(top_srcdir)/utils
+COMMONLIBS		=
 
 if OH_DAEMON_ENABLED
 INCLUDES 		+= -I$(top_srcdir)/openhpid \
 			   -I$(top_srcdir)/marshal \
 			   -DCLIENT
-COMMONLIBS		= $(top_builddir)/hpi_ui_lib/libopenhpiui.la \
-			  $(top_builddir)/marshal/libohtcpconnx.la \
-			  -L$(top_builddir)/utils/.libs -lopenhpiutils
+COMMONLIBS		+= $(top_builddir)/hpi_ui_lib/libopenhpiui.la \
+			   $(top_builddir)/marshal/libohtcpconnx.la \
+			   $(top_builddir)/utils/libopenhpiutils.la
 else
-COMMONLIBS		= $(top_builddir)/src/libopenhpi.la \
-			  $(top_builddir)/hpi_ui_lib/libopenhpiui.la \
-			  @STATIC_PLUGIN_LIBS@ @STATIC_PLUGIN_EXTRA_LIBS@
+COMMONLIBS		+= $(top_builddir)/src/libopenhpi.la \
+			   $(top_builddir)/hpi_ui_lib/libopenhpiui.la \
+			   @STATIC_PLUGIN_LIBS@ @STATIC_PLUGIN_EXTRA_LIBS@
 endif
 
 AM_CFLAGS 		= @CFLAGS@ -D_REENTRANT
@@ -38,11 +39,12 @@ HS_SOURCES		= \
 	sensor.c \
 	session.c
 
-if OH_DAEMON_ENABLED
-hpi_shell_SOURCES = $(HS_SOURCES) $(REMOTE_SOURCES)
-else
 hpi_shell_SOURCES = $(HS_SOURCES)
+
+if OH_DAEMON_ENABLED
+hpi_shell_SOURCES += $(REMOTE_SOURCES)
 endif
+
 hpi_shell_LDADD        = $(COMMONLIBS)
 hpi_shell_LDFLAGS      =
 
