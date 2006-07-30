@@ -13,6 +13,7 @@
 #include <string.h>
 #include <getopt.h>
 
+
 #include <SaHpi.h>
 #include <oHpi.h>
 #include <oh_utils.h>
@@ -302,7 +303,15 @@ SaErrorT display_el(SaHpiSessionIdT sid, SaHpiResourceIdT rid, SaHpiTextBufferT 
 
                 dbg("saHpiEventLogEntryGet() returned %s\n", oh_lookup_error(error));
                 if (error == SA_OK) {
-                        oh_print_eventlogentry(&elentry, (rdr.RdrType != SAHPI_NO_RECORD) ? &rdr.Entity : NULL, 6);
+                	SaHpiEntityPathT *ep = NULL;
+                	/* Get a reference to the entity path for this log entry */
+                	if (res.ResourceCapabilities) {
+                		ep = &res.ResourceEntity;
+                	} else if (rdr.RdrType != SAHPI_NO_RECORD) {
+                		ep = &rdr.Entity;
+                	}
+                	/* Print the event log entry */
+                        oh_print_eventlogentry(&elentry, ep, 6);
                         if (opts.rdr) {
                                 if (rdr.RdrType == SAHPI_NO_RECORD)
                                         printf("            No RDR associated with EventType =  %s\n\n",
