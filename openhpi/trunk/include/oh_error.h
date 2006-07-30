@@ -31,6 +31,9 @@
 #undef sprintf
 #pragma GCC poison sprintf
 
+#define OH_DBG "OPENHPI_DEBUG"
+#define OH_TRACE "OPENHPI_DEBUG_TRACE"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -39,7 +42,7 @@ extern "C" {
 #ifndef OH_DAEMON_ENABLED
 #define dbg(format, ...) \
         do { \
-                if (getenv("OPENHPI_DEBUG") && !strcmp("YES",getenv("OPENHPI_DEBUG"))) { \
+                if (getenv(OH_DBG) && !strcmp("YES", getenv(OH_DBG))) { \
                         fprintf(stderr, " %s:%d:%s: ", __FILE__, __LINE__, __func__); \
                         fprintf(stderr, format "\n", ## __VA_ARGS__); \
                 } \
@@ -47,8 +50,10 @@ extern "C" {
 #else
 #define dbg(format, ...) \
 	do { \
-		syslog(3, "DEBUG (%s:%d:%s) > "format, __FILE__, __LINE__, __func__,## __VA_ARGS__); \
-		fprintf(stderr, format"\n",## __VA_ARGS__); \
+		syslog(3, "DEBUG: (%s, %d, "format")", __FILE__, __LINE__,## __VA_ARGS__); \
+		if (getenv(OH_DBG) && !strcmp("YES", getenv(OH_DBG))) { \
+			fprintf(stderr, "%s:%d ("format")\n", __FILE__, __LINE__, ## __VA_ARGS__); \
+		} \
 	} while(0)
 #endif
 #else
@@ -56,21 +61,13 @@ extern "C" {
 #endif
 
 #ifdef OH_DBG_MSGS
-#ifndef OH_DAEMON_ENABLED
 #define trace(format, ...) \
         do { \
-                if (getenv("OPENHPI_DEBUG_TRACE") && !strcmp("YES",getenv("OPENHPI_DEBUG_TRACE"))) { \
+                if (getenv(OH_TRACE) && !strcmp("YES", getenv(OH_TRACE))) { \
                         fprintf(stderr, " %s:%d:%s: ", __FILE__, __LINE__, __func__); \
                         fprintf(stderr, format "\n", ## __VA_ARGS__); \
                 } \
         } while(0)
-#else
-#define trace(format, ...) \
-	do { \
-		syslog(5, "INFO (%s:%d:%s) > "format, __FILE__, __LINE__, __func__,## __VA_ARGS__); \
-		fprintf(stderr, format"\n",## __VA_ARGS__); \
-	} while(0)
-#endif
 #else
 #define trace(format, ...)
 #endif

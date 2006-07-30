@@ -152,11 +152,14 @@ bool strmsock::ReadMsg(char *data)
 
 	if (len < 0) {
                 errcode = errno;
+                printf("Reading from socket returned and error: %d\n", errcode); // Debug
 		return true;
 	} else if (len == 0) {	//connection has been aborted by the peer
 		Close();
+		printf("Connection has been aborted\n"); // Debug
 		return true;
 	} else if (len < (int)sizeof(cMessageHeader)) {
+		printf("Got corrupted header?\n"); // Debug
 		return true;
 	}
 	memcpy(&header, &data[0], sizeof(cMessageHeader));
@@ -167,6 +170,7 @@ bool strmsock::ReadMsg(char *data)
 	}
 
 	if ( (header.m_flags >> 4) != dMhVersion ) {
+		printf("Wrong version?\n"); // Debug
 		return true;
 	}
 //      printf("Read buffer (%d bytes) is\n", len);
