@@ -26,7 +26,7 @@
 #include <oh_utils.h>
 #include <oh_error.h>
 
-#ifdef DBG_MSGS
+#ifdef OH_DBG_MSGS
 #define dbg_uid_lock(format, ...) \
         do { \
                 if (getenv("OPENHPI_DBG_UID_LOCK") && !strcmp("YES",getenv("OPENHPI_DBG_UID_LOCK"))){ \

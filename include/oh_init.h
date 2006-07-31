@@ -20,7 +20,7 @@
 
 #include <SaHpi.h>
 
-int _init(void) __attribute__((constructor));
-int _fini(void) __attribute__((destructor));
+int oh_init(void);
+int oh_finit(void);
 
 #endif /* __OH_INIT_H */

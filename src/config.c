@@ -39,7 +39,6 @@ static const char *known_globals[] = {
         "OPENHPI_DAT_SIZE_LIMIT",
         "OPENHPI_DAT_USER_LIMIT",
         "OPENHPI_DAT_SAVE",
-        "OPENHPI_DAEMON_MODE",
         //"OPENHPI_DEBUG",
         //"OPENHPI_DEBUG_TRACE",
         //"OPENHPI_DEBUG_LOCK",
@@ -58,7 +57,6 @@ static struct {
         SaHpiUint32T dat_size_limit;
         SaHpiUint32T dat_user_limit;
         SaHpiBoolT dat_save;
-        SaHpiUint32T daemon_mode;
         //unsigned char dbg;
         //unsigned char dbg_trace;
         //unsigned char dbg_lock;
@@ -76,7 +74,6 @@ static struct {
         .dat_size_limit = 0, /* Unlimited size */
         .dat_user_limit = 0, /* Unlimited size */
         .dat_save = SAHPI_FALSE,
-        .daemon_mode = 0, /* Are we a daemon if yes this is '1' */
         //.dbg = 0,
         //.dbg_trace = 0,
         //.dbg_lock = 0,
@@ -287,14 +284,6 @@ static void process_global_param(const char *name, char *value)
         //        } else {
         //                global_params.dbg_lock = 0;
         //        }
-        } else if (!strcmp("OPENHPI_DAEMON_MODE", name)) {
-                g_static_rec_mutex_lock(&global_params.lock);
-                if (!strcmp("YES", value)) {
-                        global_params.daemon_mode = 1;
-                } else {
-                        global_params.daemon_mode = 0;
-                }
-                g_static_rec_mutex_unlock(&global_params.lock);
         } else if (!strcmp("OPENHPI_PATH", name)) {
                 g_static_rec_mutex_lock(&global_params.lock);
                 memset(global_params.path, 0, OH_MAX_TEXT_BUFFER_LENGTH);
@@ -767,9 +756,6 @@ int oh_get_global_param(struct oh_global_param *param)
                 case OPENHPI_DAT_SAVE:
                         param->u.dat_save = global_params.dat_save;
                         break;
-                case OPENHPI_DAEMON_MODE:
-                        param->u.daemon_mode = global_params.daemon_mode;
-                        break;
                 //case OPENHPI_DEBUG:
                 //        param->u.dbg = global_params.dbg;
                 //        break;
@@ -849,9 +835,6 @@ int oh_set_global_param(struct oh_global_param *param)
                         break;
                 case OPENHPI_DAT_SAVE:
                         global_params.dat_save = param->u.dat_save;
-                        break;
-                case OPENHPI_DAEMON_MODE:
-                        global_params.daemon_mode = param->u.daemon_mode;
                         break;
                 //case OPENHPI_DEBUG:
                 //        global_params.dbg = param->u.dbg;

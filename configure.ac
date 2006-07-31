@@ -141,43 +141,30 @@ AC_SUBST(LIST_RESOURCES_THREADED)
 
 dnl Enable the marshal directory only when needed by
 dnl the deamon or remote_client plugin
-NEED_MARSHAL=
 openhpid_static="no"
+oh_daemon_enabled="no"
 
 AC_ARG_ENABLE([daemon],
     [  --enable-daemon         build HPI daemon and client library [default=yes]],
     [if test "x$enableval" = "xyes"; then
         ENABLED_DIRS="$ENABLED_DIRS openhpid"
-        NEED_MARSHAL="yes"
+	AC_DEFINE([OH_DAEMON_ENABLED],[1],[Build daemon and client libs])
+	oh_daemon_enabled="yes"
      elif test "x$enableval" = "xstatic"; then
         ENABLED_DIRS="$ENABLED_DIRS openhpid"
-        NEED_MARSHAL="yes"
         openhpid_static="yes"
+	AC_DEFINE([OH_DAEMON_ENABLED],[1],[Build daemon and client libs])
+	oh_daemon_enabled="yes"
     fi],
     [
     ENABLED_DIRS="$ENABLED_DIRS openhpid"
-    NEED_MARSHAL="yes"
+    AC_DEFINE([OH_DAEMON_ENABLED],[1],[Build daemon and client libs])
+    oh_daemon_enabled="yes"
     openhpid_dinamic="yes"])
 
-dnl    [ENABLED_DIRS="$ENABLED_DIRS openhpid"
-dnl     NEED_MARSHAL="yes"])
-
+AM_CONDITIONAL(OH_DAEMON_ENABLED, test x$oh_daemon_enabled = xyes)
 AM_CONDITIONAL(OPENHPID_STATIC, test x$openhpid_static = xyes)
 
-
-shell_client="no"
-AC_ARG_ENABLE([shell_client],
-    [  --enable-shell_client         build HPI client library [default=no]],
-    [if test "x$enableval" = "xyes"; then
-        ENABLED_DIRS="$ENABLED_DIRS openhpid"
-        NEED_MARSHAL="yes"
-        shell_client="yes"
-    fi])
-
-dnl    [ENABLED_DIRS="$ENABLED_DIRS openhpid"
-dnl     NEED_MARSHAL="yes"])
-
-AM_CONDITIONAL(SHELL_CLIENT, test x$shell_client = xyes)
 
 AC_ARG_ENABLE([clients],
     [  --enable-clients        build HPI client programs [default=yes]],
@@ -239,15 +226,15 @@ dnl    [if test "x$have_netsnmp" = "xyes"; then
 dnl        AC_SUBST(SNMP_CLIENT,snmp_client)
 dnl     fi])
 
-AC_ARG_ENABLE([dummy],
-    [  --enable-dummy          build dummy plugin [default=no]],
-    [if test "x$enableval" = "xyes"; then
-        AC_SUBST(DUMMY,dummy)
-     elif test "x$enableval" = "xstatic"; then
-        AC_SUBST(DUMMY,dummy)
-        STATIC_PLUGIN_LIST="$STATIC_PLUGIN_LIST dummy"
-        STATIC_PLUGIN_EXTRA_LIBS="$STATIC_PLUGIN_EXTRA_LIBS -luuid"
-    fi])
+#AC_ARG_ENABLE([dummy],
+#    [  --enable-dummy          build dummy plugin [default=no]],
+#    [if test "x$enableval" = "xyes"; then
+#        AC_SUBST(DUMMY,dummy)
+#     elif test "x$enableval" = "xstatic"; then
+#        AC_SUBST(DUMMY,dummy)
+#        STATIC_PLUGIN_LIST="$STATIC_PLUGIN_LIST dummy"
+#        STATIC_PLUGIN_EXTRA_LIBS="$STATIC_PLUGIN_EXTRA_LIBS -luuid"
+#    fi])
 
 AC_ARG_ENABLE([watchdog],
     [  --enable-watchdog       build watchdog plugin [default=yes]],
@@ -377,7 +364,6 @@ AC_ARG_ENABLE([rtas],
 dnl    [AC_SUBST(REMOTE_CLIENT,remote_client)
 dnl     NEED_MARSHAL="yes"])
 
-OH_CHECK_FAM
 AC_ARG_ENABLE([simulator],
     [  --enable-simulator      build simulator plugin [default=yes]],
     [if test "x$enableval" = "xyes"; then
@@ -392,7 +378,7 @@ dnl     AC_SUBST(SIMULATOR,simulator)
 dnl     fi])
 
 dnl enable marshal library when needed
-if test "x$NEED_MARSHAL" = "xyes"; then
+if test "x$oh_daemon_enabled" = "xyes"; then
         AC_SUBST(MARSHALDIR,marshal)
 fi
 
@@ -549,9 +535,9 @@ dnl to use dbg/trace messages.
 AC_ARG_ENABLE([debug-msgs],
     [  --enable-debug-msgs     enables dynamic debug messages [default=yes]],
     [if test "x$enableval" = "xyes"; then
-            CFLAGS="$CFLAGS -DDBG_MSGS"
+            AC_DEFINE([OH_DBG_MSGS],[1],[Enables dynamic debug messages])
     fi],
-    [CFLAGS="$CFLAGS -DDBG_MSGS"]
+    [AC_DEFINE([OH_DBG_MSGS],[1],[Enables dynamic debug messages])]
     )
 
 dnl Now we throw in a bunch of warnings.  C and C++ need
@@ -651,7 +637,6 @@ AC_CONFIG_FILES([openhpi.spec
         plugins/simulator/t2/Makefile
         plugins/rtas/Makefile
         scripts/Makefile
-        scripts/openhpi-switcher
         scripts/test/Makefile
         snmp/Makefile
         src/Makefile

@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2004-2005 by IBM Corporation.
+# Copyright (c) 2004-2006 by IBM Corporation.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -10,45 +10,53 @@
 #
 # Authors:
 #    W. David Ashley <dashley@us.ibm.com>
+#    Renier Morales <renierm@users.sf.net>
 #
-
-pkglibdir = $(libdir)/openhpi/client
 
 .NOTPARALLEL:
 
 SUBDIRS			= t
-DIST_SUBDIRS 		= t
 
 MAINTAINERCLEANFILES 	= Makefile.in *~
 
+REMOTE_SOURCES		= \
+		config.c \
+        	domain.c \
+	        event.c \
+        	threaded.c \
+	        alarm.c \
+        	hotswap.c \
+        	lock.c \
+        	plugin.c \
+        	plugin_static.c \
+        	init.c \
+        	safhpi.c \
+        	session.c \
+        	ohpi.c
+
 AM_CFLAGS		= @CFLAGS@
-INCLUDES 		= @OPENHPI_INCLUDES@  -I $(top_srcdir)/marshal
+INCLUDES 		= @OPENHPI_INCLUDES@  -I$(top_srcdir)/marshal
 
-#EXTRA_DIST              = README openhpid.conf openhpid.sh
-
-#pkgconfigdir            = $(libdir)/pkgconfig
-#pkgconfig_DATA          =
+EXTRA_DIST		= README openhpid.sh.in
 
 # daemon
-sbin_PROGRAMS            = openhpid
+sbin_PROGRAMS           = openhpid
 
-openhpid_SOURCES        = \
-	openhpid.cpp
+openhpid_SOURCES        = openhpid.cpp $(REMOTE_SOURCES)
+
+openhpid_LDADD		= $(top_builddir)/utils/libopenhpiutils.la \
+			  $(top_builddir)/marshal/libohtcpconnx.la
+openhpid_LDFLAGS        =
 
 # this is defined with ./configure --enable-daemon=static
 if OPENHPID_STATIC
-openhpid_LDADD          = $(top_builddir)/src/libopenhpi.la \
-	$(top_builddir)/marshal/libohtcpconnx.la
-openhpid_LDFLAGS        = -static
+openhpid_LDFLAGS        += -static
 else
-openhpid_LDADD          = $(top_builddir)/src/libopenhpi.la \
-	$(top_builddir)/marshal/libohtcpconnx.la \
-	-lstdc++
-openhpid_LDFLAGS        =
+openhpid_LDADD          += -lstdc++
 endif
 
 
-pkglib_LTLIBRARIES	        = libopenhpi.la
+lib_LTLIBRARIES	        = libopenhpi.la
 
 libopenhpi_la_SOURCES = \
 	openhpiclient.cpp \
@@ -59,6 +67,11 @@ libopenhpi_la_LIBADD  = $(top_builddir)/marshal/libohtcpconnx.la -lstdc++ \
                         $(top_builddir)/utils/libopenhpiutils.la
 
 
+$(REMOTE_SOURCES):
+	if test ! -f $@ -a ! -L $@; then \
+		ln -s $(top_srcdir)/src/$@; \
+	fi
+
 install-data-local:
 	install -D -m 0755 openhpid.sh $(DESTDIR)$(sysconfdir)/init.d/openhpid
 
@@ -66,4 +79,4 @@ uninstall-local:
 	rm -f $(DESTDIR)$(sysconfdir)/init.d/openhpid
 	
 clean-local:
-	rm -f *~ core core.*
+	rm -f *~ core core.* $(REMOTE_SOURCES)

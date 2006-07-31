@@ -57,6 +57,9 @@ SaErrorT SAHPI_API saHpiSessionOpen(
                 dbg("SecurityParams must be NULL");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
+        
+        /* Initialize Library */
+        oh_init(); /* This will only run once */
 
         if (DomainId == SAHPI_UNSPECIFIED_DOMAIN_ID)
                 did = oh_get_default_domain_id();

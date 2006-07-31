@@ -34,8 +34,8 @@
                 SaHpiBoolT state; \
                 SaErrorT init_error; \
                 if ((init_error = oh_get_session_subscription(sid,&state)) != SA_OK) { \
-                        dbg("Session %d is not valid", sid); \
-                        return SA_ERR_HPI_INVALID_SESSION; \
+                        dbg("Init state check failed! (%s, %d)", oh_lookup_error(init_error), sid); \
+                        return init_error; \
                 } \
         } while (0)
 
