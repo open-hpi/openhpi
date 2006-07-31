@@ -63,6 +63,8 @@ SaErrorT oHpiPluginLoad(char *name)
                 dbg("Invalid parameters.");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
+        
+        if (oh_init()) return SA_ERR_HPI_INTERNAL_ERROR;
 
         if (oh_load_plugin(name))
                 return SA_ERR_HPI_ERROR;
@@ -86,6 +88,8 @@ SaErrorT oHpiPluginUnload(char *name)
                 dbg("Invalid parameters.");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
+        
+        if (oh_init()) return SA_ERR_HPI_INTERNAL_ERROR;
 
         if (oh_unload_plugin(name))
                 return SA_ERR_HPI_ERROR;
@@ -112,6 +116,8 @@ SaErrorT oHpiPluginInfo(char *name, oHpiPluginInfoT *info)
                 dbg("Invalid parameters.");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
+        
+        if (oh_init()) return SA_ERR_HPI_INTERNAL_ERROR;
 
         p = oh_get_plugin(name);
         if (!p) {
@@ -144,6 +150,8 @@ SaErrorT oHpiPluginGetNext(char *name, char *next_name, int size)
                 dbg("Invalid parameters.");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
+        
+        if (oh_init()) return SA_ERR_HPI_INTERNAL_ERROR;
 
         if (oh_getnext_plugin_name(name, next_name, size))
                 return SA_ERR_HPI_NOT_PRESENT;
@@ -175,6 +183,8 @@ SaErrorT oHpiHandlerCreate(GHashTable *config,
                 dbg("Invalid parameters.");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
+        
+        if (oh_init()) return SA_ERR_HPI_INTERNAL_ERROR;
 
         if (!(hid = oh_create_handler(config))) {
              *id = 0;
@@ -198,6 +208,8 @@ SaErrorT oHpiHandlerDestroy(oHpiHandlerIdT id)
 {
         if (!id)
                 return SA_ERR_HPI_INVALID_PARAMS;
+                
+        if (oh_init()) return SA_ERR_HPI_INTERNAL_ERROR;
 
         if (oh_destroy_handler(id))
                 return SA_ERR_HPI_ERROR;
@@ -220,6 +232,8 @@ SaErrorT oHpiHandlerInfo(oHpiHandlerIdT id, oHpiHandlerInfoT *info)
 
         if (!id || !info)
                return SA_ERR_HPI_INVALID_PARAMS;
+
+	if (oh_init()) return SA_ERR_HPI_INTERNAL_ERROR;
 
         h = oh_get_handler(id);
         if (!h) {
@@ -251,6 +265,8 @@ SaErrorT oHpiHandlerGetNext(oHpiHandlerIdT id, oHpiHandlerIdT *next_id)
                 dbg("Invalid parameters.");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
+        
+        if (oh_init()) return SA_ERR_HPI_INTERNAL_ERROR;
 
         if (oh_getnext_handler_id(id, next_id))
                 return SA_ERR_HPI_NOT_PRESENT;
@@ -276,6 +292,8 @@ SaErrorT oHpiGlobalParamGet(oHpiGlobalParamT *param)
                 dbg("Invalid parameters. oHpiGlobalParamGet()");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
+        
+        if (oh_init()) return SA_ERR_HPI_INTERNAL_ERROR;
 
         p.type = param->Type;
 
@@ -304,6 +322,8 @@ SaErrorT oHpiGlobalParamSet(oHpiGlobalParamT *param)
                 dbg("Invalid parameters. oHpiGlobalParamSet()");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
+        
+        if (oh_init()) return SA_ERR_HPI_INTERNAL_ERROR;
 
         p.type = param->Type;
         memcpy(&p.u, &param->u, sizeof(oh_global_param_union));
