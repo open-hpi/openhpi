@@ -390,6 +390,14 @@ struct SensorMibInfo snmp_bc_ipmi_sensors_voltage[SNMP_BC_MAX_IPMI_VOLTAGE_SENSO
 static SaErrorT snmp_bc_discover_ipmi_sensors(struct oh_handler_state *handle,
 					      struct snmp_bc_ipmi_sensor *sensor_array,
 					      struct oh_event *res_oh_event);
+/* Matching mmblade.mib definitions */		
+/*	storageExpansion(1),        */
+/* 	pciExpansion(2)             */
+char *bladeexpansiondesc[] = {
+		"Blade Expansion Module, BEM",
+		"Blade Storage Expansion, BSE",
+		"Blade PCI I/O Expansion, PEU"
+};		
 
 /**
  * snmp_bc_discover:
@@ -430,34 +438,6 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 	/**************************************************************
 	 * Fetch various resource installation vectors from BladeCenter
 	 **************************************************************/
-#if 0
-
-	/**
-	 ** Old code uses BIST OIDs to determine installed mask 
-	 ** We are switching to using chassisTopology OIDs because
-	 ** chassisTopology OIDs are more correctly reflect installation state
-	 ** of chassis resources.  Keeping old code around until we finish with 
-	 ** regression of hotswap testcases. 
-	 **/
-	 
-	/* Fetch blade installed vector */
-	get_installed_mask(SNMP_BC_BLADE_VECTOR, get_value_blade);
-	
-	/* Fetch blower installed vector  */
-	get_installed_mask(SNMP_BC_BLOWER_VECTOR, get_value_blower);
-
-	/* Fetch power module installed vector */
-	get_installed_mask(SNMP_BC_POWER_VECTOR, get_value_power_module);
-
-	/* Fetch switch installed vector */
-	get_installed_mask(SNMP_BC_SWITCH_VECTOR, get_value_switch);		 
-
-	/* Fetch MM installed vector */
-	get_installed_mask(SNMP_BC_MGMNT_VECTOR, get_value_mm);
-
-	/* Fetch media tray installed vector */
-	get_integer_object(SNMP_BC_MEDIATRAY_EXISTS, get_value_media); 
-#endif
 
 	/* Fetch blade installed vector */
 	get_installed_mask(SNMP_BC_PB_INSTALLED, get_value_blade);
@@ -872,7 +852,7 @@ SaErrorT snmp_bc_discover_blade(struct oh_handler_state *handle,
 			  SaHpiEntityPathT *ep_root, char *blade_vector)
 {
 
-	int i;
+	gint i;
 	SaErrorT err;
 	guint blade_width;
         struct oh_event *e;
@@ -1010,85 +990,9 @@ SaErrorT snmp_bc_discover_blade(struct oh_handler_state *handle,
 			 * Discover Blade Expansion Modules
 			 **********************************/
 			{
-				SaHpiEntityPathT ep;
-
-				ep = snmp_bc_rpt_array[BC_RPT_ENTRY_BLADE_EXPANSION_CARD].rpt.ResourceEntity;
-				oh_concat_ep(&ep, ep_root);
-				oh_set_ep_location(&ep, SAHPI_ENT_SYS_EXPANSION_BOARD, i + SNMP_BC_HPI_LOCATION_BASE);
-				oh_set_ep_location(&ep, SAHPI_ENT_PHYSICAL_SLOT, i + SNMP_BC_HPI_LOCATION_BASE);
-				oh_set_ep_location(&ep, SAHPI_ENT_SBC_BLADE, i + SNMP_BC_HPI_LOCATION_BASE);
-
-				err = snmp_bc_oid_snmp_get(custom_handle, &ep, 0,
-							   SNMP_BC_BLADE_EXPANSION_VECTOR, &get_value, SAHPI_TRUE);
-
-				/* FIXME:: Need to discover multiple BEMs/blade - fix BEM location */
-				/* Need to do this after snmp_bc_oid_snmp_get to get SNMP_BC_BLADE_EXPANSION_VECTOR
-                                   to be derived correctly */
-				oh_set_ep_location(&ep, SAHPI_ENT_SYS_EXPANSION_BOARD, SNMP_BC_HPI_LOCATION_BASE);
-
-				if (!err && get_value.integer != 0) {
-
-					/* Found an expansion module */
-					e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
-					if (e == NULL) {
-						dbg("Out of memory.");
-						return(SA_ERR_HPI_OUT_OF_SPACE);
-					}
-	
-					e->type = OH_ET_RESOURCE;
-					e->did = oh_get_default_domain_id();
-					e->u.res_event.entry = snmp_bc_rpt_array[BC_RPT_ENTRY_BLADE_EXPANSION_CARD].rpt;
-					e->u.res_event.entry.ResourceEntity = ep;
-					e->u.res_event.entry.ResourceId = oh_uid_from_entity_path(&ep);
-					/* FIXME:: Need to discover multiple BEMs/blade - fix BEM location */
-					{
-						SaHpiTextBufferT  working, working2;
-						snmp_bc_create_resourcetag(&working, "Blade", i + SNMP_BC_HPI_LOCATION_BASE);
-						snmp_bc_create_resourcetag(&working2,
-									   snmp_bc_rpt_array[BC_RPT_ENTRY_BLADE_EXPANSION_CARD].comment,
-									   SNMP_BC_HPI_LOCATION_BASE);
-						oh_init_textbuffer(&(e->u.res_event.entry.ResourceTag));
-						oh_append_textbuffer(&(e->u.res_event.entry.ResourceTag), (char *)working.Data);
-						oh_append_textbuffer(&(e->u.res_event.entry.ResourceTag), " ");
-						oh_append_textbuffer(&(e->u.res_event.entry.ResourceTag), (char *)working2.Data);
-					}
-
-					trace("Discovered resource=%s; ID=%d",
-					      e->u.res_event.entry.ResourceTag.Data,
-					      e->u.res_event.entry.ResourceId);
-
-					/* Create platform-specific info space to add to infra-structure */
-					res_info_ptr = g_memdup(&(snmp_bc_rpt_array[BC_RPT_ENTRY_BLADE_EXPANSION_CARD].res_info),
-								sizeof(struct ResourceInfo));
-					if (!res_info_ptr) {
-						dbg("Out of memory.");
-						g_free(e);
-						return(SA_ERR_HPI_OUT_OF_SPACE);
-					}
-
-					res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
-
-                                        /* Get UUID and convert to GUID */
-                                        err = snmp_bc_get_guid(custom_handle, e, res_info_ptr);
-
-					/* Add resource to temporary event cache/queue */
-					err = oh_add_resource(custom_handle->tmpcache, 
-							      &(e->u.res_event.entry),
-							      res_info_ptr, 0);
-					if (err) {
-						dbg("Failed to add resource. Error=%s.", oh_lookup_error(err));
-						g_free(e);
-						return(err);
-					}
-					custom_handle->tmpqueue = g_slist_append(custom_handle->tmpqueue, e);
 			
-					/* Find resource's events, sensors, controls, etc. */
-					snmp_bc_discover_res_events(handle, &(e->u.res_event.entry.ResourceEntity), res_info_ptr);
-					snmp_bc_discover_sensors(handle, snmp_bc_bem_sensors, e);
-					snmp_bc_discover_ipmi_sensors(handle, snmp_bc_bem_ipmi_sensors, e);
-					snmp_bc_discover_controls(handle, snmp_bc_bem_controls, e);
-					snmp_bc_discover_inventories(handle, snmp_bc_bem_inventories, e);
-				}
+				err = snmp_bc_discover_blade_expansion(handle, ep_root, i);
+
 			}
 		}
 	}
@@ -1096,6 +1000,234 @@ SaErrorT snmp_bc_discover_blade(struct oh_handler_state *handle,
 	return(SA_OK);
 }
 
+
+/**
+ * snmp_bc_discover_blade_expansion:
+ * @handler: Pointer to handler's data.
+ * @ep_root: Pointer to chassis Root Entity Path which comes from openhpi.conf.
+ * @blade_index: Index of the main blade 
+ *
+ * Discovers blade expansion resources and their RDRs, if any.
+ *
+ * Return values:
+ * SA_OK - normal case.
+ * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
+ **/
+SaErrorT snmp_bc_discover_blade_expansion(struct oh_handler_state *handle,
+			  SaHpiEntityPathT *ep_root, guint blade_index)
+{
+
+	SaErrorT err;
+	gint i, j;
+	SaHpiEntityPathT ep;
+	struct snmp_value get_value;
+	BCExpansionTypeT expansionType;
+	struct snmp_bc_hnd *custom_handle;
+
+
+	if (!handle) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+		
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
+	if (!custom_handle) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+	
+
+	ep = snmp_bc_rpt_array[BC_RPT_ENTRY_BLADE_EXPANSION_CARD].rpt.ResourceEntity;
+	oh_concat_ep(&ep, ep_root);
+	oh_set_ep_location(&ep, SAHPI_ENT_PHYSICAL_SLOT, blade_index + SNMP_BC_HPI_LOCATION_BASE);
+	oh_set_ep_location(&ep, SAHPI_ENT_SBC_BLADE, blade_index + SNMP_BC_HPI_LOCATION_BASE);
+
+	/* Determine which scheme to detect blade expansion */
+	
+	/* Set entity_path index to the first entry (SNMP_BC_HPI_LOCATION_BASE) in table */
+	oh_set_ep_location(&ep, SAHPI_ENT_SYS_EXPANSION_BOARD, SNMP_BC_HPI_LOCATION_BASE);
+	/* Go get value at (SNMP_BC_HPI_LOCATION_BASE + offset 0) */	
+	err = snmp_bc_oid_snmp_get(custom_handle, &ep, 0,
+				   SNMP_BC_BLADE_EXP_BLADE_BAY, &get_value, SAHPI_TRUE);
+
+	j = 0;
+	if (err ==  SA_ERR_HPI_NOT_PRESENT) {
+		
+		/* No object exists with SNMP_BC_BLADE_EXP_BLADE_BAY oid */
+		/* Ether the target is running with older MM mib version,*/
+		/* or there is no expansion board at all in system.      */
+		/* Use old scheme to discover BladeExpandion resource.   */
+		
+		/* Set entity_path index to the desired entry  */
+		/* (blade_index + SNMP_BC_HPI_LOCATION_BASE) in table */	   	
+		oh_set_ep_location(&ep, SAHPI_ENT_SYS_EXPANSION_BOARD, 
+							blade_index + SNMP_BC_HPI_LOCATION_BASE);
+		/* Go get value at (SNMP_BC_HPI_LOCATION_BASE + offset 0) */								
+		err = snmp_bc_oid_snmp_get(custom_handle, &ep, 0,
+					SNMP_BC_BLADE_EXPANSION_VECTOR, &get_value, SAHPI_TRUE);
+
+		/* With the old scheme, we can only detect one of the blade expansion board */ 
+                /* For example, if a blade has BSE and PEU, we see only one with this scheme*/
+		oh_set_ep_location(&ep, SAHPI_ENT_SYS_EXPANSION_BOARD, j + SNMP_BC_HPI_LOCATION_BASE);
+
+		if (!err && get_value.integer != 0) {
+			err = snmp_bc_add_blade_expansion_resource(handle, &ep, blade_index,
+				 DEFAULT_BLADE_EXPANSION_CARD_TYPE, j);
+		}
+	} else if(err ==  SA_OK) {
+	
+		/* New scheme; i == index for Processor Blade, j == index for Blade Expansion for each Processor Blade  */
+		for (i=0; i < (custom_handle->max_pb_supported ); i++) {
+
+			/* Set entity_path index to the first entry (SNMP_BC_HPI_LOCATION_BASE) in table */
+			oh_set_ep_location(&ep, SAHPI_ENT_SYS_EXPANSION_BOARD, 
+							    SNMP_BC_HPI_LOCATION_BASE);
+
+			/* Go get value at (SNMP_BC_HPI_LOCATION_BASE + offset i) */
+			err = snmp_bc_oid_snmp_get(custom_handle, &ep, i,
+				   SNMP_BC_BLADE_EXP_BLADE_BAY, &get_value, SAHPI_TRUE);
+				   
+			if (err == SA_OK) {
+				if (get_value.type != ASN_OCTET_STR) continue;
+				
+
+				if ( atoi(get_value.string) == (blade_index + SNMP_BC_HPI_LOCATION_BASE)) {
+				
+					/* Go get value at (SNMP_BC_HPI_LOCATION_BASE + offset i) */
+					err = snmp_bc_oid_snmp_get(custom_handle, &ep, i,
+				   			SNMP_BC_BLADE_EXP_TYPE, &get_value, SAHPI_TRUE);
+					
+					if ((err == SA_OK) && (get_value.type == ASN_INTEGER)) {
+						/*		
+						storageExpansion(1),
+                    				pciExpansion(2)
+						*/	
+						expansionType = get_value.integer;
+					} else 	{
+						dbg(" Error reading Expansion Board Type\n");
+						expansionType = DEFAULT_BLADE_EXPANSION_CARD_TYPE;
+					}
+					
+					
+					oh_set_ep_location(&ep, SAHPI_ENT_SYS_EXPANSION_BOARD, 
+										j + SNMP_BC_HPI_LOCATION_BASE);
+																
+				 	err = snmp_bc_add_blade_expansion_resource(handle, &ep, blade_index, expansionType, j);
+					j++;
+			
+				}
+			}
+		
+		} /* end for custom_handle->max_pb_supported */
+	} 
+
+	return(SA_OK);
+}
+
+
+/**
+ * snmp_bc_add_blade_expansion_resource:
+ * @handler: Pointer to handler's data.
+ * @ep_root: Pointer to chassis Root Entity Path which comes from openhpi.conf.
+ * @blade_index: Index of the main blade 
+ *
+ * Discovers blade expansion resources and their RDRs, if any.
+ *
+ * Return values:
+ * SA_OK - normal case.
+ * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
+ **/
+SaErrorT snmp_bc_add_blade_expansion_resource(struct oh_handler_state *handle,
+			  				SaHpiEntityPathT *ep, 
+							guint blade_index,
+							BCExpansionTypeT expansionType,
+							guint expansionindex)
+{
+
+	SaErrorT err;
+	struct oh_event *e;
+	struct ResourceInfo *res_info_ptr;
+	struct snmp_bc_hnd *custom_handle;
+
+
+	if (!handle) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+		
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
+	if (!custom_handle) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+	
+	{
+		e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
+		if (e == NULL) {
+			dbg("Out of memory.");
+			return(SA_ERR_HPI_OUT_OF_SPACE);
+		}
+	
+		e->type = OH_ET_RESOURCE;
+		e->did = oh_get_default_domain_id();
+		e->u.res_event.entry = snmp_bc_rpt_array[BC_RPT_ENTRY_BLADE_EXPANSION_CARD].rpt;
+		e->u.res_event.entry.ResourceEntity = *ep;
+		e->u.res_event.entry.ResourceId = oh_uid_from_entity_path(ep);
+			
+		{
+		SaHpiTextBufferT  working, working2;
+		snmp_bc_create_resourcetag(&working, "Blade", blade_index + SNMP_BC_HPI_LOCATION_BASE);
+		snmp_bc_create_resourcetag(&working2,
+				 	bladeexpansiondesc[expansionType],
+				 	SNMP_BC_HPI_LOCATION_BASE + expansionindex);
+		oh_init_textbuffer(&(e->u.res_event.entry.ResourceTag));
+		oh_append_textbuffer(&(e->u.res_event.entry.ResourceTag), (char *)working.Data);
+		oh_append_textbuffer(&(e->u.res_event.entry.ResourceTag), " ");
+		oh_append_textbuffer(&(e->u.res_event.entry.ResourceTag), (char *)working2.Data);
+		}
+
+		trace("Discovered resource=%s; ID=%d",
+			e->u.res_event.entry.ResourceTag.Data,
+			e->u.res_event.entry.ResourceId);
+
+		/* Create platform-specific info space to add to infra-structure */
+		res_info_ptr = g_memdup(&(snmp_bc_rpt_array[BC_RPT_ENTRY_BLADE_EXPANSION_CARD].res_info),
+						sizeof(struct ResourceInfo));
+		if (!res_info_ptr) {
+			dbg("Out of memory.");
+			g_free(e);
+			return(SA_ERR_HPI_OUT_OF_SPACE);
+		}
+
+		res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
+
+                /* Get UUID and convert to GUID */
+                err = snmp_bc_get_guid(custom_handle, e, res_info_ptr);
+
+		/* Add resource to temporary event cache/queue */
+		err = oh_add_resource(custom_handle->tmpcache, 
+					&(e->u.res_event.entry),
+					res_info_ptr, 0);
+		if (err) {
+			dbg("Failed to add resource. Error=%s.", oh_lookup_error(err));
+			g_free(e);
+			return(err);
+		}
+		custom_handle->tmpqueue = g_slist_append(custom_handle->tmpqueue, e);
+			
+		/* Find resource's events, sensors, controls, etc. */
+		snmp_bc_discover_res_events(handle, &(e->u.res_event.entry.ResourceEntity), res_info_ptr);
+		snmp_bc_discover_sensors(handle, snmp_bc_bem_sensors, e);
+		snmp_bc_discover_ipmi_sensors(handle, snmp_bc_bem_ipmi_sensors, e);
+		snmp_bc_discover_controls(handle, snmp_bc_bem_controls, e);
+		snmp_bc_discover_inventories(handle, snmp_bc_bem_inventories, e);
+	}
+			
+	return(SA_OK);
+
+}						
 /**
  * snmp_bc_discover_blowers:
  * @handler: Pointer to handler's data.
