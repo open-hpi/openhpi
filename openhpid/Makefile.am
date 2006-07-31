@@ -62,7 +62,7 @@ libopenhpi_la_SOURCES = \
 	openhpiclient.cpp \
 	openhpiclient.h
 
-libopenhpi_la_LDFLAGS = -version-info @HPI_LIB_VERSION@ -Xcompiler -nostartfiles
+libopenhpi_la_LDFLAGS = -version-info @HPI_LIB_VERSION@
 libopenhpi_la_LIBADD  = $(top_builddir)/marshal/libohtcpconnx.la -lstdc++ \
                         $(top_builddir)/utils/libopenhpiutils.la
 

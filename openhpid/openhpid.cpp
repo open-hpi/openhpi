@@ -123,7 +123,6 @@ void display_help(void)
         printf("   ./openhpid -c /etc/openhpi/openhpi.conf\n\n");
 }
 
-//static int initialized = FALSE;
 /*--------------------------------------------------------------------*/
 /* Function: main                                                     */
 /*--------------------------------------------------------------------*/
@@ -279,7 +278,7 @@ int main (int argc, char *argv[])
                 g_thread_init(NULL);
         }
 
-	initialize(); // Initialize OpenHPI
+	oh_init(); // Initialize OpenHPI
 
 	// create the thread pool
         thrdpool = g_thread_pool_new(service_thread, NULL, max_threads, FALSE, NULL);

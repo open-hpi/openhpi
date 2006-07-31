@@ -116,7 +116,7 @@ static void __destroy_table(gpointer data)
         g_hash_table_destroy(table);
 }
 
-int _init(void)
+static int init(void)
 {
         // Initialize GLIB thread engine
 	if (!g_thread_supported()) {
@@ -155,6 +155,8 @@ static pcstrmsock CreateConnx(void)
         else {
                 port =  atoi(portstr);
         }
+        
+        init(); /* Initialize library - Will run only once */
 
         g_static_rec_mutex_lock(&sessions_sem);
 	pinst = new cstrmsock;
@@ -282,6 +284,8 @@ static pcstrmsock GetConnx(SaHpiSessionIdT SessionId)
 
 	if (SessionId == 0)
 		return FALSE;
+		
+	init(); /* Initialize library - Will run only once */
 
         // Look up connection table. If it exists, look up connection.
         // if there is not connection, create one on-the-fly.
@@ -294,11 +298,13 @@ static pcstrmsock GetConnx(SaHpiSessionIdT SessionId)
                 if (!pinst) {
                         pinst = CreateConnx();
                         if (pinst) {
-                            g_hash_table_insert(conns, 
-                                                g_memdup(&thread_id,
-                                                sizeof(pthread_t)),
-                                                pinst);
-printf(" we are inserting a new connection in conns table\n");
+                        	g_hash_table_insert(conns, 
+                                		    g_memdup(&thread_id,
+                                		    sizeof(pthread_t)),
+                                		    pinst);
+				cdebug_out("GetConnx",
+					   "we are inserting a new connection"
+					   " in conns table");
                         }
                 }
 
@@ -1643,7 +1649,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AlarmAdd)
 
         pinst->header.m_len = HpiMarshalRequest2(hm, request, &SessionId, Alarm);
 
- SendRecv(SessionId, cmd);
+	SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, Alarm);
 
