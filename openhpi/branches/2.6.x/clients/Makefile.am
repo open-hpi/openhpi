@@ -3,7 +3,13 @@ MOSTLYCLEANFILES        = @TEST_CLEAN@
 
 INCLUDES                = @OPENHPI_INCLUDES@
 
-COMMONLIBS              = $(top_builddir)/src/libopenhpi.la @STATIC_PLUGIN_LIBS@ @STATIC_PLUGIN_EXTRA_LIBS@
+COMMONLIBS = @STATIC_PLUGIN_LIBS@ @STATIC_PLUGIN_EXTRA_LIBS@
+
+if OH_DAEMON_ENABLED
+COMMONLIBS		+= $(top_builddir)/openhpid/libopenhpi.la
+else
+COMMONLIBS              += $(top_builddir)/src/libopenhpi.la
+endif
 
 AM_CFLAGS               = @CFLAGS@
 

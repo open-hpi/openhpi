@@ -87,7 +87,6 @@ include_HEADERS = $(top_srcdir)/include/SaHpi.h \
                   $(top_srcdir)/include/SaHpiAtca.h \
 		  $(top_srcdir)/include/SaHpiBladeCenter.h \
                   $(top_srcdir)/include/oHpi.h \
-                  $(top_srcdir)/include/oh_initialize.h \
                   $(top_srcdir)/utils/oh_utils.h \
                   $(top_srcdir)/utils/announcement_utils.h \
                   $(top_srcdir)/utils/rpt_utils.h \
@@ -117,7 +116,6 @@ install-data-local: openhpi.pc openhpi.conf.example
 	if test ! -e  $(DESTDIR)$(sysconfdir)/openhpi/openhpi.conf; then \
 		$(INSTALL_DATA) $(top_srcdir)/openhpi.conf.example $(DESTDIR)$(sysconfdir)/openhpi/openhpi.conf; \
 	fi
-	$(DESTDIR)$(bindir)/@HPI_PKG@-switcher --set=client
 
 uninstall-local:
 	rm -f $(DESTDIR)$(libdir)/pkgconfig/openhpi.pc

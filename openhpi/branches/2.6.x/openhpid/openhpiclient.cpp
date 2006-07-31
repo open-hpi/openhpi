@@ -35,7 +35,7 @@ extern "C"
 #include "openhpiclient.h"
 
 #define dClientDebugErr
-// #define dClientDebug
+//#define dClientDebug
 
 #ifndef dClientDebug
 #define cdebug_out(cmd, str)
@@ -94,7 +94,6 @@ extern "C"
 
 static GHashTable *sessions = NULL;
 static GStaticRecMutex sessions_sem = G_STATIC_REC_MUTEX_INIT;
-static bool thrd_init = FALSE;
 
 
 /*----------------------------------------------------------------------------*/
@@ -110,6 +109,30 @@ static pcstrmsock GetConnx(SaHpiSessionIdT);
 static SaErrorT oHpiHandlerCreateInit(void);
 static void oHpiHandlerCreateAddTEntry(gpointer key, gpointer value, gpointer data);
 
+static void __destroy_table(gpointer data)
+{
+        GHashTable *table = (GHashTable *)data;
+
+        g_hash_table_destroy(table);
+}
+
+static int init(void)
+{
+        // Initialize GLIB thread engine
+	if (!g_thread_supported()) {
+        	g_thread_init(NULL);
+        }
+        
+        // Create session table.
+	if (!sessions) {
+		sessions = g_hash_table_new_full(g_int_hash, 
+                                         	 g_int_equal,
+                                        	 g_free, 
+                                         	 __destroy_table);
+	}
+
+	return 0;
+}
 
 /*----------------------------------------------------------------------------*/
 /* CreateConnx                                                                */
@@ -132,6 +155,8 @@ static pcstrmsock CreateConnx(void)
         else {
                 port =  atoi(portstr);
         }
+        
+        init(); /* Initialize library - Will run only once */
 
         g_static_rec_mutex_lock(&sessions_sem);
 	pinst = new cstrmsock;
@@ -168,13 +193,6 @@ static void DeleteConnx(pcstrmsock pinst)
 /*----------------------------------------------------------------------------*/
 /* InsertConnx - with helper functions: __destroy_table, __delete_connx       */
 /*----------------------------------------------------------------------------*/
-static void __destroy_table(gpointer data)
-{
-        GHashTable *table = (GHashTable *)data;
-
-        g_hash_table_destroy(table);
-}
-
 static void __delete_connx(gpointer data)
 {
         pcstrmsock pinst = (pcstrmsock)data;
@@ -193,17 +211,6 @@ static bool InsertConnx(SaHpiSessionIdT SessionId, pcstrmsock pinst)
 		return TRUE;
 
         g_static_rec_mutex_lock(&sessions_sem);
-        // Create session table if it doesn't exist.
-        if (thrd_init == FALSE && sessions == NULL) {
-                if (!g_thread_supported()) {
-                         g_thread_init(NULL); // just to make sure, ignore any error
-                }
-                thrd_init = TRUE;
-                sessions = g_hash_table_new_full(g_int_hash, 
-                                                 g_int_equal,
-                                                 g_free, 
-                                                 __destroy_table);
-        }
         // Create connections table for new session.
         conns = g_hash_table_new_full(g_int_hash, 
                                       g_int_equal,
@@ -277,6 +284,8 @@ static pcstrmsock GetConnx(SaHpiSessionIdT SessionId)
 
 	if (SessionId == 0)
 		return FALSE;
+		
+	init(); /* Initialize library - Will run only once */
 
         // Look up connection table. If it exists, look up connection.
         // if there is not connection, create one on-the-fly.
@@ -289,11 +298,13 @@ static pcstrmsock GetConnx(SaHpiSessionIdT SessionId)
                 if (!pinst) {
                         pinst = CreateConnx();
                         if (pinst) {
-                            g_hash_table_insert(conns, 
-                                                g_memdup(&thread_id,
-                                                sizeof(pthread_t)),
-                                                pinst);
-printf(" we are inserting a new connection in conns table\n");
+                        	g_hash_table_insert(conns, 
+                                		    g_memdup(&thread_id,
+                                		    sizeof(pthread_t)),
+                                		    pinst);
+				cdebug_out("GetConnx",
+					   "we are inserting a new connection"
+					   " in conns table");
                         }
                 }
 
@@ -1638,7 +1649,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AlarmAdd)
 
         pinst->header.m_len = HpiMarshalRequest2(hm, request, &SessionId, Alarm);
 
- SendRecv(SessionId, cmd);
+	SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, Alarm);
 

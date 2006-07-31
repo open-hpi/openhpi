@@ -20,7 +20,6 @@
 #include <SaHpi.h>
 #include "strmsock.h"
 
-
 // default prefix for function names
 #ifndef dOpenHpiClientFunction
 #define dOpenHpiClientFunction(name) saHpi##name

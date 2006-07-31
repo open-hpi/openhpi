@@ -74,9 +74,6 @@ print_outcome()
 }
 
 start() {
-        @prefix@/bin/openhpi-switcher --set=standard > /dev/null
-        export `@prefix@/bin/openhpi-switcher --env=standard` || return 1
-	export OPENHPI_DAEMON_MODE="YES"
 	echo $"Starting $prog: "
 	case "${lsbtype}" in
 		
@@ -100,8 +97,6 @@ start() {
 	esac
         
 	print_outcome
-        
-	@prefix@/bin/openhpi-switcher --set=client > /dev/null
 
 }
 

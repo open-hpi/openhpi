@@ -11,12 +11,10 @@
  *
  * Author(s):
  *      Renier Morales <renierm@users.sf.net>
- *      David Judkovics <djudkovi@us.ibm.com>
  *
  */
 
 #include <oh_init.h>
-#include <oh_initialize.h>
 #include <oh_config.h>
 #include <oh_plugin.h>
 #include <oh_domain.h>
@@ -26,24 +24,40 @@
 #include <oh_lock.h>
 #include <oh_utils.h>
 
-#include <oh_config.h>
-
 
 /**
- * _init
+ * oh_init
  *
  * Returns: 0 on success otherwise an error code
  **/
-int _init(void)
+int oh_init(void)
 {
+        static int initialized = 0;
+        struct oh_parsed_config config = {NULL, NULL, 0, 0, 0, 0};
+        struct oh_global_param config_param = { .type = OPENHPI_CONF };
         SaErrorT rval;
         SaHpiDomainCapabilitiesT capabilities = 0X00000001;
         SaHpiTextBufferT tag;
 
         data_access_lock();
+        if (initialized) { /* Don't initialize more than once */
+        	data_access_unlock();
+        	return 0;
+        }
 
         /* Initialize thread engine */
         oh_threaded_init();
+
+        /* Set openhpi configuration file location */
+        oh_get_global_param(&config_param);
+
+        rval = oh_load_config(config_param.u.conf, &config);
+        /* Don't error out if there is no conf file */
+        if (rval < 0 && rval != -4) {
+                dbg("Can not load config.");
+                data_access_unlock();
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
 
         /* Initialize uid_utils */
         rval = oh_uid_initialize();
@@ -76,15 +90,48 @@ int _init(void)
         oh_sessions.table = g_hash_table_new(g_int_hash, g_int_equal);
         trace("Initialized session table");
 
-        /* load plugins and start discovery threads if not a daemon */
-        if ( _initialize(FALSE) == SA_ERR_HPI_ERROR) return SA_ERR_HPI_ERROR;
-
-        data_access_unlock();
+        /* Load plugins and create handlers*/
+        oh_process_config(&config);
 
         /*
-        * HACK: Wait a second before returning
-        * to give the threads time to populate the RPT
-        */
+         * Wipes away configuration lists (plugin_names and handler_configs).
+         * global_params is not touched.
+         */
+        oh_clean_config(&config);
+
+        /*
+         * If any handlers were defined in the config file AND
+         * all of them failed to load, Then return with an error.
+         */
+        if (config.handlers_defined > 0 && config.handlers_loaded == 0) {
+                data_access_unlock();
+                dbg("Error: Handlers were defined, but none loaded.");
+                return SA_ERR_HPI_ERROR;
+        } else if (config.handlers_defined > 0 &&
+                   config.handlers_loaded < config.handlers_defined) {
+                dbg("*Warning*: Not all handlers defined loaded."
+                    " Check previous messages.");
+        }
+
+        /* this only does something if the config says to */
+        oh_threaded_start();
+
+        trace("Set init state");
+        initialized = 1;
+        data_access_unlock();
+        /* infrastructure initialization has completed at this point */
+
+        /* Check if there are any handlers loaded */
+        if (config.handlers_defined == 0) {
+                dbg("*Warning*: No handler definitions found in config file."
+                    " Check configuration file %s and previous messages",
+                    config_param.u.conf);
+        }
+
+        /*
+         * HACK: wait a second before returning
+         * to give the threads time to populate the RPT
+         */
         struct timespec waittime = { .tv_sec = 1, .tv_nsec = 1000L};
         nanosleep(&waittime, NULL);
 
@@ -96,13 +143,12 @@ int _init(void)
 }
 
 /**
- * _fini
+ * oh_finit
  *
  * Returns: always returns 0
  **/
-int _fini(void)
+int oh_finit(void)
 {
-
         data_access_lock();
 
         oh_close_handlers();
@@ -110,6 +156,5 @@ int _fini(void)
         data_access_unlock();
 
         return 0;
-
 }
 
