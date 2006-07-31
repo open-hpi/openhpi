@@ -90,6 +90,20 @@ SaErrorT snmp_bc_discover_slot(struct oh_handler_state *handle,
 			       SaHpiEntityPathT *ep_root,
 			       SaHpiEntityTypeT entitytype,
 			       guint entitylocation); 
+			       
+SaErrorT snmp_bc_discover_blade_expansion(struct oh_handler_state *handle,
+			  			SaHpiEntityPathT *ep_root, 
+						guint blade_index);
+						
+SaErrorT snmp_bc_add_blade_expansion_resource(struct oh_handler_state *handle,
+			  			SaHpiEntityPathT *ep, 
+						guint blade_index,
+						BCExpansionTypeT expansionType,
+						guint expansionindex);
+						
+						
+						
+			       
 
 #endif
 
