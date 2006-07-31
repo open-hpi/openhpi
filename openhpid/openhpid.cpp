@@ -278,7 +278,10 @@ int main (int argc, char *argv[])
                 g_thread_init(NULL);
         }
 
-	oh_init(); // Initialize OpenHPI
+	if (oh_init()) { // Initialize OpenHPI
+		dbg("There was an error initializing OpenHPI");
+		return 8;
+	}
 
 	// create the thread pool
         thrdpool = g_thread_pool_new(service_thread, NULL, max_threads, FALSE, NULL);
@@ -288,7 +291,7 @@ int main (int argc, char *argv[])
 	if (servinst->Create(port)) {
 		dbg("Error creating server socket.\n");
 		g_thread_pool_free(thrdpool, FALSE, TRUE);
-                	delete servinst;
+                delete servinst;
 		return 8;
 	}
 

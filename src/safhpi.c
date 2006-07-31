@@ -58,8 +58,8 @@ SaErrorT SAHPI_API saHpiSessionOpen(
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
         
-        /* Initialize Library */
-        oh_init(); /* This will only run once */
+        /* Initialize Library - This will only run once */
+        if (oh_init()) return SA_ERR_HPI_INTERNAL_ERROR;
 
         if (DomainId == SAHPI_UNSPECIFIED_DOMAIN_ID)
                 did = oh_get_default_domain_id();
