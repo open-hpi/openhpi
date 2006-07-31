@@ -684,7 +684,7 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                 },
                 .comment = "Slot",
         },
-#if 0
+
         /* BEM DASD */
         {
                 .rpt = {
@@ -749,7 +749,6 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                 },
                 .comment = "BEM DASD",
         },
-#endif
 
         {} /* Terminate array with a null element */
 };
@@ -11534,3 +11533,5 @@ struct snmp_bc_inventory snmp_bc_bem_dasd_inventories[] = {
 
         {} /* Terminate array with a null element */
 };
+
+
