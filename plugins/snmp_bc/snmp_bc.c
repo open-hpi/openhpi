@@ -279,7 +279,7 @@ SaErrorT snmp_bc_snmp_get(struct snmp_bc_hnd *custom_handle,
 				break;
                 	} else {
 				trace("HPI_TIMEOUT %s", objid);
-				snmp_bc_internal_retry();			
+				snmp_bc_internal_retry();  /* l_retry got incremented here */			
 			}
         	} else {
                 	custom_handle->handler_retries = 0;
@@ -344,6 +344,7 @@ SaErrorT snmp_bc_oid_snmp_get(struct snmp_bc_hnd *custom_handle,
 	
 	rv = SA_OK;
 	oid = oh_derive_string(ep, loc_offset, 10, oidstr);
+	
 	if (oid == NULL) {
 		dbg("Cannot derive %s.", oidstr); 
 		return(SA_ERR_HPI_INTERNAL_ERROR);
