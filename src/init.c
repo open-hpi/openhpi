@@ -117,6 +117,7 @@ int oh_init(void)
         oh_threaded_start();
 
         trace("Set init state");
+        initialized = 1;
         data_access_unlock();
         /* infrastructure initialization has completed at this point */
 
@@ -138,8 +139,6 @@ int oh_init(void)
          * besides zero, The runtime stuff depends on zero being returned here
          * in order for the shared library to be completely initialized.
          */
-         
-        initialized = 1;
         return 0;
 }
 
