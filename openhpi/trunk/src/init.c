@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2004, 2005
+ * (C) Copyright IBM Corp. 2004-2006
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,16 +26,13 @@
 
 
 /**
- * _init
+ * oh_init
  *
  * Returns: 0 on success otherwise an error code
  **/
-#ifdef OH_DAEMON_ENABLED
-int initialize(void)
-#else
-int _init(void)
-#endif
+int oh_init(void)
 {
+        static int initialized = 0;
         struct oh_parsed_config config = {NULL, NULL, 0, 0, 0, 0};
         struct oh_global_param config_param = { .type = OPENHPI_CONF };
         SaErrorT rval;
@@ -43,6 +40,10 @@ int _init(void)
         SaHpiTextBufferT tag;
 
         data_access_lock();
+        if (initialized) { /* Don't initialize more than once */
+        	data_access_unlock();
+        	return 0;
+        }
 
         /* Initialize thread engine */
         oh_threaded_init();
@@ -137,19 +138,17 @@ int _init(void)
          * besides zero, The runtime stuff depends on zero being returned here
          * in order for the shared library to be completely initialized.
          */
+         
+        initialized = 1;
         return 0;
 }
 
 /**
- * _fini
+ * oh_finit
  *
  * Returns: always returns 0
  **/
-#ifdef OH_DAEMON_ENABLED
-int finalize(void)
-#else
-int _fini(void)
-#endif
+int oh_finit(void)
 {
         data_access_lock();
 
