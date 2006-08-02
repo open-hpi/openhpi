@@ -43,7 +43,7 @@ int snmp_get(void *sessp, const char *objid, struct snmp_value *value)
 	}
 	else {
 		dbg("No value in sim_hash for OID = %s\n", objid);
-		return -1;
+		return SA_ERR_HPI_NOT_PRESENT;
 	}
 
 	return 0;
@@ -71,7 +71,7 @@ int snmp_set(void *sessp, char *objid, struct snmp_value value)
 	}
 	else {
 		dbg("No value in sim_hash for OID = %s\n", objid);
-		return -1;
+		return SA_ERR_HPI_NOT_PRESENT;
 	}
 
 	return 0;
