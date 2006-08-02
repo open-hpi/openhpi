@@ -40,15 +40,11 @@ int main(int argc, char **argv)
 	// env variable OPENHPI_SIMTEST_FILE is now defined in Makefile.am
 	// setenv("OPENHPI_SIMTEST_FILE","./sim_test_file", 1);
 	// create hash table based on input file
-	if (sim_file() != SA_OK) {
+	err = sim_file();
+	if (err != SA_OK) {
 	  printf(" Error! sim_file failed\n");
 	  return -1;
 	} 
-	//printf("test hash table has %d entries\n", g_hash_table_size(sim_hash));
-	if (g_hash_table_size(sim_hash) != 2) {
-	  printf(" Error! sim_file test failed!\n");
-	  return -1;
-	}
 
 	/****************** 
 	 * End of testcases 
