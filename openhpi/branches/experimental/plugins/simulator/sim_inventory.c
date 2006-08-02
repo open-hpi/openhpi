@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2005
+ * (C) Copyright IBM Corp. 2005, 2006
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -11,61 +11,57 @@
  *
  * Author(s):
  *      W. David Ashley <dashley@us.ibm.com>
+ *	Renier Morales <renierm@users.sourceforge.net>
  *
  */
 
 #include <sim_init.h>
 
 
-static SaErrorT new_inventory(struct oh_handler_state * state,
-                              SaHpiResourceIdT ResId,
+static SaErrorT new_inventory(struct oh_handler_state *state,
+                              struct oh_event *e,
                               struct sim_inventory *myinv) {
-        SaHpiRdrT res_rdr;
-        SaHpiRptEntryT *RptEntry;
+        SaHpiRdrT *rdr;
         struct sim_inventory_info *info;
+	SaErrorT error = SA_OK;
 
+        rdr = (SaHpiRdrT *)g_malloc0(sizeof(SaHpiRdrT));
         // Copy information from rdr array to res_rdr
-        res_rdr.RdrType = SAHPI_INVENTORY_RDR;
-        memcpy(&res_rdr.RdrTypeUnion.InventoryRec, &myinv->invrec,
+        rdr->RdrType = SAHPI_INVENTORY_RDR;
+        memcpy(&rdr->RdrTypeUnion.InventoryRec, &myinv->invrec,
                sizeof(SaHpiInventoryRecT));
 
-        oh_init_textbuffer(&res_rdr.IdString);
-        oh_append_textbuffer(&res_rdr.IdString, myinv->comment);
-        res_rdr.RecordId =
-                get_rdr_uid(SAHPI_INVENTORY_RDR, res_rdr.RdrTypeUnion.InventoryRec.IdrId);
+        oh_init_textbuffer(&rdr->IdString);
+        oh_append_textbuffer(&rdr->IdString, myinv->comment);
+        rdr->RecordId =
+                get_rdr_uid(SAHPI_INVENTORY_RDR, rdr->RdrTypeUnion.InventoryRec.IdrId);
 
 
-        RptEntry = oh_get_resource_by_id(state->rptcache, ResId);
-        if (!RptEntry) {
-                dbg("NULL rpt pointer\n");
-                return SA_ERR_HPI_INVALID_RESOURCE;
-        }
-        memcpy(&res_rdr.Entity, &RptEntry->ResourceEntity,
-               sizeof(SaHpiEntityPathT));
+	rdr->Entity = e->resource.ResourceEntity;
 
         //set up our private data
         info = (struct sim_inventory_info *)g_malloc(sizeof(struct sim_inventory_info));
-        if (!info) {
-                dbg("NULL rpt pointer\n");
-                return SA_ERR_HPI_OUT_OF_MEMORY;
-        }
         memcpy(info, &myinv->info, sizeof(struct sim_inventory_info));
 
         // everything ready so add the rdr and extra info to the rptcache
-        sim_inject_rdr(state, ResId, &res_rdr, info);
+	error = sim_inject_rdr(state, e, rdr, info);
+        if (error) {
+                g_free(rdr);
+                g_free(info);
+        }
 
-        return 0;
+        return error;
 }
 
 
-SaErrorT sim_discover_chassis_inventory(struct oh_handler_state * state,
-                                        SaHpiResourceIdT resid) {
+SaErrorT sim_discover_chassis_inventory(struct oh_handler_state *state,
+                                        struct oh_event *e) {
         SaErrorT rc;
         int i = 0;
         int j = 0;
 
         while (sim_chassis_inventory[i].invrec.IdrId != 0) {
-                rc = new_inventory(state, resid, &sim_chassis_inventory[i]);
+                rc = new_inventory(state, e, &sim_chassis_inventory[i]);
                 if (rc) {
                         dbg("Error %d returned when adding chassis inventory", rc);
                 } else {
@@ -79,14 +75,14 @@ SaErrorT sim_discover_chassis_inventory(struct oh_handler_state * state,
 }
 
 
-SaErrorT sim_discover_cpu_inventory(struct oh_handler_state * state,
-                                    SaHpiResourceIdT resid) {
+SaErrorT sim_discover_cpu_inventory(struct oh_handler_state *state,
+                                    struct oh_event *e) {
         SaErrorT rc;
         int i = 0;
         int j = 0;
 
         while (sim_cpu_inventory[i].invrec.IdrId != 0) {
-                rc = new_inventory(state, resid, &sim_cpu_inventory[i]);
+                rc = new_inventory(state, e, &sim_cpu_inventory[i]);
                 if (rc) {
                         dbg("Error %d returned when adding cpu inventory", rc);
                 } else {
@@ -100,14 +96,14 @@ SaErrorT sim_discover_cpu_inventory(struct oh_handler_state * state,
 }
 
 
-SaErrorT sim_discover_dasd_inventory(struct oh_handler_state * state,
-                                     SaHpiResourceIdT resid) {
+SaErrorT sim_discover_dasd_inventory(struct oh_handler_state *state,
+                                     struct oh_event *e) {
         SaErrorT rc;
         int i = 0;
         int j = 0;
 
         while (sim_dasd_inventory[i].invrec.IdrId != 0) {
-                rc = new_inventory(state, resid, &sim_dasd_inventory[i]);
+                rc = new_inventory(state, e, &sim_dasd_inventory[i]);
                 if (rc) {
                         dbg("Error %d returned when adding dasd inventory", rc);
                 } else {
@@ -121,14 +117,14 @@ SaErrorT sim_discover_dasd_inventory(struct oh_handler_state * state,
 }
 
 
-SaErrorT sim_discover_hs_dasd_inventory(struct oh_handler_state * state,
-                                        SaHpiResourceIdT resid) {
+SaErrorT sim_discover_hs_dasd_inventory(struct oh_handler_state *state,
+                                        struct oh_event *e) {
         SaErrorT rc;
         int i = 0;
         int j = 0;
 
         while (sim_hs_dasd_inventory[i].invrec.IdrId != 0) {
-                rc = new_inventory(state, resid, &sim_hs_dasd_inventory[i]);
+                rc = new_inventory(state, e, &sim_hs_dasd_inventory[i]);
                 if (rc) {
                         dbg("Error %d returned when adding hs dasd inventory", rc);
                 } else {
@@ -142,14 +138,14 @@ SaErrorT sim_discover_hs_dasd_inventory(struct oh_handler_state * state,
 }
 
 
-SaErrorT sim_discover_fan_inventory(struct oh_handler_state * state,
-                                    SaHpiResourceIdT resid) {
+SaErrorT sim_discover_fan_inventory(struct oh_handler_state *state,
+                                    struct oh_event *e) {
         SaErrorT rc;
         int i = 0;
         int j = 0;
 
         while (sim_fan_inventory[i].invrec.IdrId != 0) {
-                rc = new_inventory(state, resid, &sim_fan_inventory[i]);
+                rc = new_inventory(state, e, &sim_fan_inventory[i]);
                 if (rc) {
                         dbg("Error %d returned when adding fan inventory", rc);
                 } else {

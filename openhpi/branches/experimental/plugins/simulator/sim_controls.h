@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2005
+ * (C) Copyright IBM Corp. 2005, 2006
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -12,6 +12,7 @@
  * Author(s):
  *	  Christina Hernandez <hernanc@us.ibm.com>
  *        W. David Ashley <dashley@us.ibm.com>
+ *	  Renier Morales <renierm@users.sourceforge.net>
  */
 
 
@@ -40,16 +41,16 @@ extern struct sim_control sim_dasd_controls[];
 extern struct sim_control sim_hs_dasd_controls[];
 extern struct sim_control sim_fan_controls[];
 
-SaErrorT sim_discover_chassis_controls(struct oh_handler_state * state,
-                                       SaHpiResourceIdT resid);
-SaErrorT sim_discover_cpu_controls(struct oh_handler_state * state,
-                                   SaHpiResourceIdT resid);
-SaErrorT sim_discover_dasd_controls(struct oh_handler_state * state,
-                                    SaHpiResourceIdT resid);
-SaErrorT sim_discover_hs_dasd_controls(struct oh_handler_state * state,
-                                       SaHpiResourceIdT resid);
-SaErrorT sim_discover_fan_controls(struct oh_handler_state * state,
-                                   SaHpiResourceIdT resid);
+SaErrorT sim_discover_chassis_controls(struct oh_handler_state *state,
+                                       struct oh_event *e);
+SaErrorT sim_discover_cpu_controls(struct oh_handler_state *state,
+                                   struct oh_event *e);
+SaErrorT sim_discover_dasd_controls(struct oh_handler_state *state,
+                                    struct oh_event *e);
+SaErrorT sim_discover_hs_dasd_controls(struct oh_handler_state *state,
+                                       struct oh_event *e);
+SaErrorT sim_discover_fan_controls(struct oh_handler_state *state,
+                                   struct oh_event *e);
 
 #endif
 

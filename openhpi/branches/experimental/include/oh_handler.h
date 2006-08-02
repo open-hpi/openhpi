@@ -649,6 +649,17 @@ struct oh_abi_v2 {
 				    SaHpiResourceIdT id,
                                	    SaHpiResetActionT act);
 
+	/**********************************
+	 * INJECTOR ABIs - OpenHPI specific
+	 **********************************/
+
+	 /***
+	  * oHpiInjectEvent
+	  **/
+	  SaErrorT (*inject_event)(void *hnd,
+                            	   SaHpiEventT *event,
+                            	   SaHpiRptEntryT *rpte,
+                            	   GSList *rdrs);
 
 };
 

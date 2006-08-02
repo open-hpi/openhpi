@@ -37,8 +37,6 @@
 extern "C" {
 #endif
 
-#define oh_session_event oh_hpi_event
-
 #ifdef __cplusplus
 }
 #endif

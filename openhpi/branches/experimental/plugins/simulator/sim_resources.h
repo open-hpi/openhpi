@@ -18,6 +18,8 @@
 #ifndef __SIM_RESOURCES_H
 #define __SIM_RESOURCES_H
 
+#include <SaHpi.h>
+
 /* Start HPI location numbers from 0 */
 #define SIM_HPI_LOCATION_BASE 1
 

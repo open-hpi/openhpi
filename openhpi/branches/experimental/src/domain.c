@@ -66,27 +66,25 @@ static void generate_domain_event(SaHpiDomainIdT pid,
                                   SaHpiDomainIdT did,
                                   SaHpiDomainEventTypeT type)
 {
-        struct oh_event *event = NULL;
+        struct oh_event *e = NULL;
         struct timeval tv1;
 
-        event = g_new0(struct oh_event, 1);
-        event->type = OH_ET_HPI;
-        event->did = pid;
-        event->hid = 0;
-        event->u.hpi_event.res.ResourceId= SAHPI_UNSPECIFIED_RESOURCE_ID;
-        event->u.hpi_event.rdr.RecordId = SAHPI_ENTRY_UNSPECIFIED;
-        event->u.hpi_event.event.Source = SAHPI_UNSPECIFIED_RESOURCE_ID;
-        event->u.hpi_event.event.EventType = SAHPI_ET_DOMAIN;
-        event->u.hpi_event.event.Severity = SAHPI_INFORMATIONAL;
-        event->u.hpi_event.event.EventDataUnion.DomainEvent.Type = type;
-        event->u.hpi_event.event.EventDataUnion.DomainEvent.DomainId = did;
+        e = g_new0(struct oh_event, 1);
+        e->did = pid;
+        e->hid = 0;
+        e->resource.ResourceId = SAHPI_UNSPECIFIED_RESOURCE_ID;
+        e->event.Source = SAHPI_UNSPECIFIED_RESOURCE_ID;
+        e->event.EventType = SAHPI_ET_DOMAIN;
+        e->event.Severity = SAHPI_INFORMATIONAL;
+        e->event.EventDataUnion.DomainEvent.Type = type;
+        e->event.EventDataUnion.DomainEvent.DomainId = did;
         gettimeofday(&tv1, NULL);
-        event->u.hpi_event.event.Timestamp = (SaHpiTimeT) tv1.tv_sec *
+        e->event.Timestamp = (SaHpiTimeT) tv1.tv_sec *
                                 1000000000 + tv1.tv_usec * 1000;
         trace("domain %d %s domain %d", did,
                 type == SAHPI_DOMAIN_REF_ADDED ?
                 "added to" : "removed from", pid);
-        g_async_queue_push(oh_process_q, event);
+        g_async_queue_push(oh_process_q, e);
 }
 
 static int disconnect_parent(struct oh_domain *child)
