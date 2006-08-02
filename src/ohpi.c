@@ -334,3 +334,61 @@ SaErrorT oHpiGlobalParamSet(oHpiGlobalParamT *param)
         return SA_OK;
 }
 
+/**
+ * oHpiInjectEvent
+ * @id: id of handler into which the event will be injected.
+ * @event: pointer to the event to be injected.
+ * @rpte: pointer to the resource to be injected.
+ * @rdrs: pointer to the list of RDRs to be injected along with @resoruce
+ *
+ * @id and @event are required parameters. @rpte is only required if the event
+ * is of RESOURCE type or HOTSWAP type. @rdrs is an optional argument in all
+ * cases and can be NULL. If @rdrs is passed, it will be copied. It is the
+ * responsibility of the caller to clean up the RDRs list once it is used here.
+ *
+ * Returns: SA_OK on success. This call will set the event.Source, rpte.ResourceId,
+ * rpte.ResourceEntity so that the caller knows what the final assigned values were.
+ * For rpte.ResourceEntity, the entity_root configuration parameter for the plugin
+ * is used to complete it. In addition, for each rdr in @rdrs, a Num, RecordId,
+ * and Entity will be assigned. This will also be reflected in the passed @rdrs
+ * list so that the caller can know what the assigned values were.
+ **/
+SaErrorT oHpiInjectEvent(oHpiHandlerIdT id,
+			 SaHpiEventT *event,
+			 SaHpiRptEntryT *rpte,
+			 GSList *rdrs)
+{
+	SaErrorT (*inject_event)(void *hnd,
+                            	 SaHpiEventT *evt,
+                            	 SaHpiRptEntryT *rpte,
+                            	 GSList *rdrs);
+
+	struct oh_handler *h = NULL;
+	SaErrorT error = SA_OK;
+
+	if (!id) {
+		dbg("Invalid handler id %d passed",id);
+		return SA_ERR_HPI_INVALID_PARAMS;
+	} else if (!event) {
+		dbg("Invalid NULL event passed");
+		return SA_ERR_HPI_INVALID_PARAMS;
+	}
+
+	if (oh_init()) return SA_ERR_HPI_INTERNAL_ERROR;
+
+	h = oh_get_handler(id);
+	inject_event = h ? h->abi->inject_event : NULL;
+        if (!inject_event) {
+                oh_release_handler(h);
+                return SA_ERR_HPI_INVALID_CMD;
+        }
+
+	error = inject_event(h->hnd, event, rpte, rdrs);
+        if (error) {
+                dbg("Event injection into handler %d failed", id);
+        }
+
+        oh_release_handler(h);
+        return error;
+}
+

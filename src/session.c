@@ -29,33 +29,26 @@ struct oh_session_table oh_sessions = {
 
 static struct oh_event *oh_generate_hpi_event(void)
 {
-        struct oh_event *event = NULL;
+        struct oh_event *e = NULL;
+        char *msg = "This session is being destroyed now!";
 
-        event = g_new0(struct oh_event, 1);
-        event->type = OH_ET_HPI;
-        event->u.hpi_event.res.ResourceId = SAHPI_UNSPECIFIED_RESOURCE_ID;
-        event->u.hpi_event.rdr.RecordId = SAHPI_ENTRY_UNSPECIFIED;
-        event->u.hpi_event.event.Source = SAHPI_UNSPECIFIED_RESOURCE_ID;
-        event->u.hpi_event.event.EventType = SAHPI_ET_HPI_SW;
-        event->u.hpi_event.event.Timestamp = SAHPI_TIME_UNSPECIFIED;
-        event->u.hpi_event.event.Severity = SAHPI_CRITICAL;
-        event->u.hpi_event.event.EventDataUnion.HpiSwEvent.MId =
-            SAHPI_MANUFACTURER_ID_UNSPECIFIED;
-        event->u.hpi_event.event.EventDataUnion.HpiSwEvent.Type =
-            SAHPI_HPIE_OTHER;
-        event->u.hpi_event.event.EventDataUnion.HpiSwEvent.EventData.
-            DataType = SAHPI_TL_TYPE_TEXT;
-        event->u.hpi_event.event.EventDataUnion.HpiSwEvent.EventData.
-            Language = SAHPI_TL_TYPE_TEXT;
-        strcpy((char *) (event->u.hpi_event.event.EventDataUnion.
-                         HpiSwEvent.EventData.Data),
-               "This session is being destroyed now!");
-        event->u.hpi_event.event.EventDataUnion.HpiSwEvent.EventData.
-            DataLength =
-            strlen((char *) (event->u.hpi_event.event.EventDataUnion.
-                             HpiSwEvent.EventData.Data));
+        e = g_new0(struct oh_event, 1);
+        e->event.EventType = SAHPI_ET_HPI_SW;
+        e->event.Source = SAHPI_UNSPECIFIED_RESOURCE_ID;
+        e->event.Timestamp = SAHPI_TIME_UNSPECIFIED;
+        e->event.Severity = SAHPI_CRITICAL;
+        e->event.EventDataUnion.HpiSwEvent.MId =
+		SAHPI_MANUFACTURER_ID_UNSPECIFIED;
+        e->event.EventDataUnion.HpiSwEvent.Type =
+		SAHPI_HPIE_OTHER;
+        e->event.EventDataUnion.HpiSwEvent.EventData.DataType =
+        	SAHPI_TL_TYPE_TEXT;
+        e->event.EventDataUnion.HpiSwEvent.EventData.Language =
+        	SAHPI_TL_TYPE_TEXT;
+        strcpy((char *)e->event.EventDataUnion.HpiSwEvent.EventData.Data, msg);
+        e->event.EventDataUnion.HpiSwEvent.EventData.DataLength	= strlen(msg);
 
-        return event;
+        return e;
 }
 
 /**
@@ -231,7 +224,9 @@ SaErrorT oh_set_session_subscription(SaHpiSessionIdT sid, SaHpiBoolT state)
         if (state == SAHPI_FALSE) {
                 while (oh_dequeue_session_event(sid,
                                                 SAHPI_TIMEOUT_IMMEDIATE,
-                                                &e, NULL) == SA_OK);
+                                                &e, NULL) == SA_OK) {
+			oh_event_free(&e, TRUE);
+		}
         }
         return SA_OK;
 }
@@ -255,7 +250,7 @@ SaErrorT oh_queue_session_event(SaHpiSessionIdT sid,
         if (sid < 1 || !event)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
-        qevent = g_memdup(event, sizeof(struct oh_event));
+        qevent = oh_dup_event(event);
         if (!qevent)
                 return SA_ERR_HPI_OUT_OF_MEMORY;
 
@@ -266,7 +261,7 @@ SaErrorT oh_queue_session_event(SaHpiSessionIdT sid,
         session = g_hash_table_lookup(oh_sessions.table, &sid);
         if (!session) {
                 g_static_rec_mutex_unlock(&oh_sessions.lock);
-                g_free(qevent);
+                oh_event_free(qevent, FALSE);
                 return SA_ERR_HPI_INVALID_SESSION;
         }
 
@@ -277,7 +272,7 @@ SaErrorT oh_queue_session_event(SaHpiSessionIdT sid,
                         /* Don't proceed with event push if queue is overflowed */
                         session->eventq_status = SAHPI_EVT_QUEUE_OVERFLOW;
                         g_static_rec_mutex_unlock(&oh_sessions.lock);
-                        g_free(qevent);
+                        oh_event_free(qevent, FALSE);
                         dbg("Session %d's queue is out of space; "
                             "# of events is %d; Max is %d",
                             tmp_sid, qlength, param.u.evt_queue_limit);
@@ -344,7 +339,7 @@ SaErrorT oh_dequeue_session_event(SaHpiSessionIdT sid,
                         /* Is the session still open? or still subscribed? */
                         if (invalid || !subscribed) {
                                 g_async_queue_unref(eventq);
-                                g_free(devent);
+                                oh_event_free(devent, FALSE);
                                 return invalid ? SA_ERR_HPI_INVALID_SESSION
                                     : SA_ERR_HPI_INVALID_REQUEST;
                         }
@@ -356,7 +351,7 @@ SaErrorT oh_dequeue_session_event(SaHpiSessionIdT sid,
                 invalid = oh_get_session_subscription(sid, &subscribed);
                 if (invalid || !subscribed) {
                         g_async_queue_unref(eventq);
-                        g_free(devent);
+                        oh_event_free(devent, FALSE);
                         return invalid ? SA_ERR_HPI_INVALID_SESSION :
                             SA_ERR_HPI_INVALID_REQUEST;
                 }
@@ -408,7 +403,7 @@ SaErrorT oh_destroy_session(SaHpiSessionIdT sid)
                 for (i = 0; i < len; i++) {
                         event = g_async_queue_try_pop(session->eventq);
                         if (event)
-                                g_free(event);
+                                oh_event_free(event, FALSE);
                         event = NULL;
                 }
         }
@@ -449,7 +444,7 @@ static void __delete_by_did(gpointer key, gpointer value,
                 for (i = 0; i < len; i++) {
                         event = g_async_queue_try_pop(session->eventq);
                         if (event)
-                                g_free(event);
+                                oh_event_free(event, FALSE);
                         event = NULL;
                 }
         }

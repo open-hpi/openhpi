@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2005
+ * (C) Copyright IBM Corp. 2005, 2006
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -11,59 +11,54 @@
  *
  * Author(s):
  *      W. David Ashley <dashley@us.ibm.com>
+ *	Renier Morales <renierm@users.sourceforge.net>
  */
 
 
 #include <sim_init.h>
 
 
-static SaErrorT new_watchdog(struct oh_handler_state * state,
-                             SaHpiResourceIdT ResId,
+static SaErrorT new_watchdog(struct oh_handler_state *state,
+                             struct oh_event *e,
                              struct sim_watchdog *mywatchdog) {
-        SaHpiRdrT res_rdr;
-        SaHpiRptEntryT *RptEntry;
+        SaHpiRdrT *rdr = NULL;
         struct simWatchdogInfo *info = NULL;
+	SaErrorT error = SA_OK;
 
-        // set up res_rdr
-        res_rdr.RdrType = SAHPI_WATCHDOG_RDR;
-        memcpy(&res_rdr.RdrTypeUnion.WatchdogRec,
+        rdr = (SaHpiRdrT *)g_malloc0(sizeof(SaHpiRdrT));
+        // set up rdr
+        rdr->RdrType = SAHPI_WATCHDOG_RDR;
+        memcpy(&rdr->RdrTypeUnion.WatchdogRec,
                &mywatchdog->watchdogrec, sizeof(SaHpiWatchdogRecT));
-        oh_init_textbuffer(&res_rdr.IdString);
-        oh_append_textbuffer(&res_rdr.IdString, mywatchdog->comment);
+        oh_init_textbuffer(&rdr->IdString);
+        oh_append_textbuffer(&rdr->IdString, mywatchdog->comment);
 
         // get the RptEntry
-        RptEntry = oh_get_resource_by_id(state->rptcache, ResId);
-        if(!RptEntry){
-                dbg("NULL rpt pointer\n");
-                return SA_ERR_HPI_INVALID_RESOURCE;
-        }
-        else {
-                res_rdr.Entity = RptEntry->ResourceEntity;
-        }
+	rdr->Entity = e->resource.ResourceEntity;
 
         // set up our private info
         info = (struct simWatchdogInfo *)g_malloc0(sizeof(struct simWatchdogInfo));
-        if(!info){
-                dbg("Out of memory creating watchdog info");
-                return SA_ERR_HPI_OUT_OF_MEMORY;
-        }
         memcpy(&info->watchdog,&mywatchdog->wd, sizeof(SaHpiWatchdogT));
 
         /* everything ready so inject the rdr */
-        sim_inject_rdr(state, ResId, &res_rdr, info);
+	error = sim_inject_rdr(state, e, rdr, info);
+        if (error) {
+                g_free(rdr);
+                g_free(info);
+        }
 
-        return 0;
+        return error;
 }
 
 
-SaErrorT sim_discover_chassis_watchdogs(struct oh_handler_state * state,
-                                        SaHpiResourceIdT resid) {
+SaErrorT sim_discover_chassis_watchdogs(struct oh_handler_state *state,
+                                        struct oh_event *e) {
         SaErrorT rc;
         int i = 0;
         int j = 0;
 
         while (sim_chassis_watchdogs[i].watchdogrec.WatchdogNum != 0) {
-                rc = new_watchdog(state, resid, &sim_chassis_watchdogs[i]);
+                rc = new_watchdog(state, e, &sim_chassis_watchdogs[i]);
                 if (rc) {
                         dbg("Error %d returned when adding chassis watchdog", rc);
                 } else {
@@ -78,14 +73,14 @@ SaErrorT sim_discover_chassis_watchdogs(struct oh_handler_state * state,
 }
 
 
-SaErrorT sim_discover_cpu_watchdogs(struct oh_handler_state * state,
-                                    SaHpiResourceIdT resid) {
+SaErrorT sim_discover_cpu_watchdogs(struct oh_handler_state *state,
+                                    struct oh_event *e) {
         SaErrorT rc;
         int i = 0;
         int j = 0;
 
         while (sim_cpu_watchdogs[i].watchdogrec.WatchdogNum != 0) {
-                rc = new_watchdog(state, resid, &sim_cpu_watchdogs[i]);
+                rc = new_watchdog(state, e, &sim_cpu_watchdogs[i]);
                 if (rc) {
                         dbg("Error %d returned when adding cpu watchdog", rc);
                 } else {
@@ -99,14 +94,14 @@ SaErrorT sim_discover_cpu_watchdogs(struct oh_handler_state * state,
 }
 
 
-SaErrorT sim_discover_dasd_watchdogs(struct oh_handler_state * state,
-                                     SaHpiResourceIdT resid) {
+SaErrorT sim_discover_dasd_watchdogs(struct oh_handler_state *state,
+                                     struct oh_event *e) {
         SaErrorT rc;
         int i = 0;
         int j = 0;
 
         while (sim_dasd_watchdogs[i].watchdogrec.WatchdogNum != 0) {
-                rc = new_watchdog(state, resid, &sim_dasd_watchdogs[i]);
+                rc = new_watchdog(state, e, &sim_dasd_watchdogs[i]);
                 if (rc) {
                         dbg("Error %d returned when adding dasd watchdog", rc);
                 } else {
@@ -120,14 +115,14 @@ SaErrorT sim_discover_dasd_watchdogs(struct oh_handler_state * state,
 }
 
 
-SaErrorT sim_discover_hs_dasd_watchdogs(struct oh_handler_state * state,
-                                        SaHpiResourceIdT resid) {
+SaErrorT sim_discover_hs_dasd_watchdogs(struct oh_handler_state *state,
+                                        struct oh_event *e) {
         SaErrorT rc;
         int i = 0;
         int j = 0;
 
         while (sim_hs_dasd_watchdogs[i].watchdogrec.WatchdogNum != 0) {
-                rc = new_watchdog(state, resid, &sim_hs_dasd_watchdogs[i]);
+                rc = new_watchdog(state, e, &sim_hs_dasd_watchdogs[i]);
                 if (rc) {
                         dbg("Error %d returned when adding hs dasd watchdog", rc);
                 } else {
@@ -141,14 +136,14 @@ SaErrorT sim_discover_hs_dasd_watchdogs(struct oh_handler_state * state,
 }
 
 
-SaErrorT sim_discover_fan_watchdogs(struct oh_handler_state * state,
-                                    SaHpiResourceIdT resid) {
+SaErrorT sim_discover_fan_watchdogs(struct oh_handler_state *state,
+                                    struct oh_event *e) {
         SaErrorT rc;
         int i = 0;
         int j = 0;
 
         while (sim_fan_watchdogs[i].watchdogrec.WatchdogNum != 0) {
-                rc = new_watchdog(state, resid, &sim_fan_watchdogs[i]);
+                rc = new_watchdog(state, e, &sim_fan_watchdogs[i]);
                 if (rc) {
                         dbg("Error %d returned when adding fan watchdog", rc);
                 } else {

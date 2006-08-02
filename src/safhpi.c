@@ -1076,12 +1076,19 @@ SaErrorT SAHPI_API saHpiEventGet (
                 *EventQueueStatus = qstatus1 ? qstatus1 : qstatus2;
 
         /* Return event, resource and rdr */
-        *Event = e.u.hpi_event.event;
+        *Event = e.event;
 
-        if (RptEntry) *RptEntry = e.u.hpi_event.res;
+        if (RptEntry) *RptEntry = e.resource;
 
-        if (Rdr) *Rdr = e.u.hpi_event.rdr;
+        if (Rdr) {
+        	if (e.rdrs) {
+        		memcpy(Rdr, e.rdrs->data, sizeof(SaHpiRdrT));
+        	} else {
+        		Rdr->RdrType = SAHPI_NO_RECORD;
+        	}
+        }
 
+	oh_event_free(&e, TRUE);
         return SA_OK;
 }
 
@@ -1120,18 +1127,18 @@ SaErrorT SAHPI_API saHpiEventAdd (
 
         e.did = did;
         e.hid = 0;
-        e.type = OH_ET_HPI;
         /* Timestamp the incoming user event */
         gettimeofday(&tv1, NULL);
         EvtEntry->Timestamp =
                 (SaHpiTimeT) tv1.tv_sec * 1000000000 + tv1.tv_usec * 1000;
         /* Copy SaHpiEventT into oh_event struct */
-        e.u.hpi_event.event = *EvtEntry;
+        e.event = *EvtEntry;
         /* indicate there is no rdr or resource */
-        e.u.hpi_event.rdr.RdrType = SAHPI_NO_RECORD;
-        e.u.hpi_event.res.ResourceId = SAHPI_UNSPECIFIED_RESOURCE_ID;
+        e.rdrs = NULL;
+        e.resource.ResourceId = SAHPI_UNSPECIFIED_RESOURCE_ID;
+        e.resource.ResourceCapabilities = 0;
         /* indicate this is a user-added event */
-        e.u.hpi_event.res.ResourceSeverity = SAHPI_INFORMATIONAL;
+        e.resource.ResourceSeverity = SAHPI_INFORMATIONAL;
 
         g_async_queue_push(oh_process_q, g_memdup(&e, sizeof(struct oh_event)));
 
