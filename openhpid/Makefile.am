@@ -46,7 +46,7 @@ openhpid_SOURCES        = openhpid.cpp $(REMOTE_SOURCES)
 
 openhpid_LDADD		= $(top_builddir)/utils/libopenhpiutils.la \
 			  $(top_builddir)/marshal/libohtcpconnx.la
-openhpid_LDFLAGS        =
+openhpid_LDFLAGS        = -export-dynamic
 
 # this is defined with ./configure --enable-daemon=static
 if OPENHPID_STATIC

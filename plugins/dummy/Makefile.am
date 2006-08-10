@@ -39,10 +39,6 @@ pkglib_LTLIBRARIES	= libdummy.la
 #libdummy2.la
 
 libdummy_la_SOURCES	= dummy.c 
-libdummy_la_LIBADD	= -luuid $(top_builddir)/src/libopenhpi.la $(top_builddir)/utils/libopenhpiutils.la
-libdummy_la_LDFLAGS	= -module -avoid-version -export-dynamic
-
-#libdummy2_la_SOURCES    = dummy_init.c dummy_annunce.c
-#libdummy2_la_LIBADD      = -luuid
-#libdummy2_la_LDFLAGS     = -module -avoid-version -export-dynamic
+libdummy_la_LIBADD	= -luuid $(top_builddir)/utils/libopenhpiutils.la
+libdummy_la_LDFLAGS	= -module -avoid-version
 
