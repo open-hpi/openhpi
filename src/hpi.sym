@@ -92,6 +92,9 @@ oHpiHandlerInfo
 oHpiHandlerGetNext
 oHpiGlobalParamGet
 oHpiGlobalParamSet
+oh_load_config
+oh_process_config
+oh_clean_config
 oh_get_default_domain_id
 oh_request_new_domain
 oh_request_new_domain_aitimeout
