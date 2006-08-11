@@ -9,18 +9,16 @@ REMOTE_SOURCES		= openhpiclient.cpp openhpiclient.h
 EXTRA_DIST		= hpi_cmd.sh
 
 INCLUDES		= -I$(top_srcdir)/include -I$(top_srcdir)/utils
-COMMONLIBS		=
+COMMONLIBS		= $(top_builddir)/hpi_ui_lib/libopenhpiui.la
 
 if OH_DAEMON_ENABLED
 INCLUDES 		+= -I$(top_srcdir)/openhpid \
 			   -I$(top_srcdir)/marshal \
 			   -DCLIENT
-COMMONLIBS		+= $(top_builddir)/hpi_ui_lib/libopenhpiui.la \
-			   $(top_builddir)/marshal/libohtcpconnx.la \
+COMMONLIBS		+= $(top_builddir)/marshal/libohtcpconnx.la \
 			   $(top_builddir)/utils/libopenhpiutils.la
 else
 COMMONLIBS		+= $(top_builddir)/src/libopenhpi.la \
-			   $(top_builddir)/hpi_ui_lib/libopenhpiui.la \
 			   @STATIC_PLUGIN_LIBS@ @STATIC_PLUGIN_EXTRA_LIBS@
 endif
 

@@ -19,13 +19,15 @@
 #ifndef __SIM_SENSORS_H
 #define __SIM_SENSORS_H
 
+#include <oh_event.h>
+#include <oh_handler.h>
+
 #define SIM_MAX_EVENTS_PER_SENSOR 24
 #define SIM_MAX_READING_MAPS_PER_SENSOR 3
 
 /* Includes an ending NULL entry */
 #define SIM_MAX_SENSOR_EVENT_ARRAY_SIZE  (SIM_MAX_EVENTS_PER_SENSOR + 1)
 #define SIM_MAX_SENSOR_READING_MAP_ARRAY_SIZE (SIM_MAX_READING_MAPS_PER_SENSOR + 1)
-
 
 /********************
  * Sensor Definitions
