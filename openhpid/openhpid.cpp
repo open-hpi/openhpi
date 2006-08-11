@@ -135,7 +135,6 @@ int main (int argc, char *argv[])
         char * configfile = NULL;
         char pid_buf[256];
         int pfile, len, pid = 0;
-        SaHpiUint64T version = 0;
 
         /* get the command line options */
         while (1) {
@@ -215,17 +214,6 @@ int main (int argc, char *argv[])
                 }
         }
 
-        // see if we are trying to use the wrong library
-        version = oHpiVersionGet();
-        if((version & 0x000000000000ffff) != 0) {
-                // we're trying to run against the client lib
-                // danger will robinson!
-                dbg("Error: Trying to run with the OpenHPI client library.\n");
-                dbg("You DON'T WANT THIS!!!\n");
-                dbg("Rebuild OpenHPI with the daemon enabled\n");
-                exit(1);
-        }
-
         // write the pid file
         pfile = open(pid_file, O_WRONLY | O_CREAT, 0640);
         if (pfile == -1) {
@@ -269,10 +257,6 @@ int main (int argc, char *argv[])
         if (!morph2daemon()) {
 		exit(8);
 	}
-
-
-        // as a daemon we do NOT inherit the environment!
-        setenv("OPENHPI_CONF", configfile, 1);
 
         if (!g_thread_supported()) {
                 g_thread_init(NULL);
@@ -366,15 +350,15 @@ static bool morph2daemon(void)
 			exit(0);
 		}
 
-        // create the pid file (overwrite of old pid file is ok)
-        unlink(pid_file);
-        pfile = open(pid_file, O_WRONLY | O_CREAT, 0640);
-        snprintf(pid_buf, sizeof(pid_buf), "%d\n", (int)getpid());
-        write(pfile, pid_buf, strlen(pid_buf));
-        close(pfile);
+       	// create the pid file (overwrite of old pid file is ok)
+        	unlink(pid_file);
+        	pfile = open(pid_file, O_WRONLY | O_CREAT, 0640);
+        	snprintf(pid_buf, sizeof(pid_buf), "%d\n", (int)getpid());
+        	write(pfile, pid_buf, strlen(pid_buf));
+        	close(pfile);
 
         // housekeeping
-		chdir("/");
+		//chdir("/");
 		umask(0);
 		for(int i = 0; i < 1024; i++) {
 			close(i);

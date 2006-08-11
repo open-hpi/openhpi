@@ -162,15 +162,16 @@ bool strmsock::ReadMsg(char *data)
 		printf("Got corrupted header?\n"); // Debug
 		return true;
 	}
-	memcpy(&header, &data[0], sizeof(cMessageHeader));
+	memcpy(&header, data, sizeof(cMessageHeader));
         // swap id and len if nessesary in the reply header
 	if ((header.m_flags & dMhEndianBit) != MarshalByteOrder()) {
 		header.m_id  = bswap_32(header.m_id);
 		header.m_len = bswap_32(header.m_len);
 	}
+	//printf("header.m_flags: 0x%x\n", header.m_flags);
 
 	if ( (header.m_flags >> 4) != dMhVersion ) {
-		printf("Wrong version?\n"); // Debug
+		printf("Wrong version? 0x%x != 0x%x\n", header.m_flags, dMhVersion); // Debug
 		return true;
 	}
 //      printf("Read buffer (%d bytes) is\n", len);
