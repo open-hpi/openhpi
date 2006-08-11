@@ -81,8 +81,8 @@ libsnmp_bc_la_SOURCES = \
 			snmp_bc_watchdog.c \
 			snmp_bc_xml2event.c
 
-libsnmp_bc_la_LIBADD = -luuid @SNMPLIBS@ $(SNMPUTILBDIR)/libopenhpi_snmp.la $(top_builddir)/src/libopenhpi.la $(top_builddir)/utils/libopenhpiutils.la
-libsnmp_bc_la_LDFLAGS = -avoid-version
+libsnmp_bc_la_LIBADD = -luuid @SNMPLIBS@ $(SNMPUTILBDIR)/libopenhpi_snmp.la $(top_builddir)/utils/libopenhpiutils.la
+libsnmp_bc_la_LDFLAGS = -module -avoid-version
 
 # Note same rules and files are generated in the t sub-directory - Make sure
 # you change the t/Makefile.am, if you change these
