@@ -28,7 +28,6 @@ int	debug_flag = 0;
 int main(int argc, char **argv)
 {
 	int	c, eflag = 0;
-	char	*val;
 
 	while ( (c = getopt( argc, argv,"c:ef:x?")) != EOF )
 		switch(c)  {
