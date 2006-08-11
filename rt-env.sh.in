@@ -11,5 +11,10 @@ OPENHPI_PATH=${OPENHPI_PLUGIN_ROOT}/dummy:${OPENHPI_PLUGIN_ROOT}/ipmi:${OPENHPI_
 OPENHPI_DAEMON_HOST=localhost
 OPENHPI_DAEMON_PORT=4743
 
+if [ ! -f @abs_top_srcdir@/openhpi.conf ]; then
+        cp @abs_top_srcdir@/openhpi.conf.example @abs_top_srcdir@/openhpi.conf
+fi
+
+
 export OPENHPI_DEBUG OPENHPI_DEBUG_TRACE OPENHPI_UID_MAP OPENHPI_CONF OPENHPI_PATH
 export OPENHPI_DAEMON_HOST OPENHPI_DAEMON_PORT
