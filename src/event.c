@@ -228,7 +228,8 @@ static int process_hpi_event(struct oh_event *full_event)
                 } else { /* postpone processing */
                         dbg("Processing of hpi_event postponed.");
                         if (!postponed_q) postponed_q = g_queue_new();
-                        g_queue_push_head(postponed_q, oh_dup_event(full_event));
+                        g_queue_push_head(postponed_q,
+                        		  oh_dup_event(full_event));
                         return 0;
                 }
         }
@@ -258,7 +259,7 @@ static int process_resource_event(struct oh_event *e)
         SaHpiRptEntryT *exists = NULL;
         unsigned int *hidp = NULL;
         SaErrorT error = SA_OK;
-        SaHpiResourceEventTypeT *retype = NULL;
+        SaHpiResourceEventTypeT *rtype = NULL;
         SaHpiHsStateT state;
         SaHpiBoolT process_hpi = TRUE;
 
@@ -272,15 +273,16 @@ static int process_resource_event(struct oh_event *e)
 
 	rpt = &(d->rpt);
 	exists = oh_get_resource_by_id(rpt, e->resource.ResourceId);
+	if (!exists)
+		exists = oh_get_resource_by_id(rpt, e->event.Source);
 
 	if (e->event.EventType == SAHPI_ET_RESOURCE) {
-		retype = &e->event.EventDataUnion.ResourceEvent.ResourceEventType;
-		if (*retype != SAHPI_RESE_RESOURCE_FAILURE) {
+		rtype =&e->event.EventDataUnion.ResourceEvent.ResourceEventType;
+		if (*rtype != SAHPI_RESE_RESOURCE_FAILURE) {
 			/* If previously failed, set EventT to RESTORED */
 			if (exists && exists->ResourceFailed) {
-				*retype = SAHPI_RESE_RESOURCE_RESTORED;
-			} else if (exists &&
-				   !exists->ResourceFailed &&
+				*rtype = SAHPI_RESE_RESOURCE_RESTORED;
+			} else if (exists && !exists->ResourceFailed &&
 				   e->times_requeued < 1) {
 				process_hpi = FALSE;
 			}
@@ -332,12 +334,7 @@ SaErrorT oh_process_events()
                 switch (e->event.EventType) {
                 case SAHPI_ET_RESOURCE:
                         trace("Event Type = Resource");
-                        if (e->resource.ResourceCapabilities
-                            & SAHPI_CAPABILITY_FRU) {
-				dbg("Invalid event. Dropping.");
-			} else {
-                        	process_resource_event(e);
-			}
+                        process_resource_event(e);
                         break;
                 case SAHPI_ET_HOTSWAP:
                         trace("Event Type = Hotswap");
