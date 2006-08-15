@@ -1,0 +1,127 @@
+=head1 NAME
+
+openhpi - an implementation of the SA Forum's Hardware Platform Interface
+
+=head1 DESCRIPTION
+
+OpenHPI is an implementation of the SA Forum's Hardware Platform
+Interface, which provides a standard C library interface to manage,
+monitor, and control hardware (both local and remote).
+
+OpenHPI 1.x implements the HPI A.01.01 specification.  Both that spec
+and OpenHPI 1.x are deprecated, and users should use HPI B.01.01 and
+OpenHPI 2.x.
+
+OpenHPI 2.x implements the HPI B.01.01 specification.
+
+=head1 ENVIRONMENTAL VARIABLES
+
+Some of OpenHPI's functioning can be changed by setting environment
+variables.  This documents all known environmental settings and how
+they affect OpenHPI.
+
+=over 4
+
+=item B<OPENHPI_THREADED>=YES
+
+Turns on threading engine in OpenHPI, which spawns a thread to handle
+event harvesting and processing.  This is off by default, as it isn't
+strictly needed for many uses of HPI.  However the BLOCK and TIMED
+wait on the I<saHpiEventGet> function can only be supported if this is
+set.
+
+=item B<OPENHPI_UID_MAP>=FILENAME
+
+The map file to use for persistant entitypath to resource id
+database.  By default /var/lib/openhpi/uid_map is used.  This allows
+you to override that at run time.
+
+=item B<OPENHPI_DEBUG>=YES
+
+Turns on debugging messages.  This will print additional text when any
+error conditions arise.  If a problem is happening with OpenHPI, it
+is good to turn on debugging to see if that shows more information.
+
+=item B<OPENHPI_CONF>=FILENAME
+
+Location of openhpi.conf file.  Default location is
+/etc/openhpi/openhpi.conf.
+
+=back
+
+=head1 HARDWARE SUPPORT
+
+OpenHPI provides a number of plugins that talk to different hardware
+types.  The following is a list of tested plugins in OpenHPI 2.x.
+
+=over 4
+
+=item B<ipmi>
+
+An IPMI plugin that can talk locally (via smi interface and OpenIPMI
+device driver) or remotely (via IPMI over LAN).  It supports IPMI 1.5
+for standard rackmount servers, and some of IPMI 2.0 for support of
+ATCA chassis.
+
+IPMI plugin depends on libOpenIPMI version 1.4.x.
+
+=item B<ipmidirect>
+
+An IPMI plugin designed specifically for ATCA chassis.  It implements
+IPMI commands directly in the plugin.
+
+=item B<snmp_bc>
+
+An SNMP based plugin that can communicate with IBM BladeCenter, as
+well as IBM xSeries servers with RSA 1 adapters.
+
+SNMP_BC plugin depends on net-snmp > 5.0.7.
+
+=item B<sysfs>
+
+Current status??
+
+=item B<watchdog>
+
+Current status??
+
+=back
+
+=head1 OTHER DOCUMENTATION
+
+The definitive guide to HPI is the SA Forum specification at
+http://saforum.org.
+
+More info on OpenHPI can be found at our webpage
+(http://openhpi.sf.net) and our wiki (http://wiki.openhpi.org).
+
+=head1 SEE ALSO
+
+The following man pages may also be of interest
+
+=over 4
+
+=item B<sahpi>
+
+Info on the SA HPI interface
+
+=item B<openhpi.conf>
+
+Info on the openhpi.conf configuration file
+
+=item B<openhpi-switcher>
+
+The command to set default openhpi library on a system.
+
+=item B<openhpid>
+
+The openhpi daemon, providing OpenHPI data as a system service.
+
+=back
+
+=head1 AUTHORS
+
+Authors of this man page:
+
+ Sean Dague (http://dague.net/sean)
+
