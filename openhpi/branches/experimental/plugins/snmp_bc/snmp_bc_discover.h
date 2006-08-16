@@ -54,11 +54,11 @@ SaHpiBoolT rdr_exists(struct snmp_bc_hnd *custom_handle,
 SaErrorT snmp_bc_validate_ep(SaHpiEntityPathT *org_ep,
 			     SaHpiEntityPathT *val_ep);
 				 
-SaErrorT snmp_bc_mod_sensor_ep(struct oh_event *e,
+SaErrorT snmp_bc_mod_sensor_ep(SaHpiRdrT *rdrptr,
 			       void *sensor_array, 
 			       int index);
 				 
-SaErrorT snmp_bc_add_ep(struct oh_event *e, SaHpiEntityPathT *ep_add);	
+SaErrorT snmp_bc_add_ep(SaHpiRdrT *rdrptr, SaHpiEntityPathT *ep_add);	
 		
 SaErrorT snmp_bc_discover_media_tray(struct oh_handler_state *handle,
 				     SaHpiEntityPathT *ep_root, int  media_tray_installed);
