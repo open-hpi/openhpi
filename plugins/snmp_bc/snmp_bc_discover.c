@@ -34,19 +34,7 @@ SaErrorT snmp_bc_discover_resources(void *hnd)
 {
         char *root_tuple;
 	SaErrorT err, err1;
-        SaHpiEntityPathT ep_root;
-	SaHpiEntityPathT valEntity;	 
-        GSList *res_new,
-		 *rdr_new,
-		 *res_gone,
-		 *rdr_gone;
-        GSList *node;
-        guint rdr_data_size;
-        GSList *tmpnode;
-        SaHpiRdrT *rdr;
-        SaHpiRptEntryT *res;
-        struct oh_event *e;
-        gpointer data;
+        SaHpiEntityPathT ep_root;	
 
         struct oh_handler_state *handle;		
         struct snmp_bc_hnd *custom_handle;
@@ -82,16 +70,20 @@ SaErrorT snmp_bc_discover_resources(void *hnd)
                 return(SA_ERR_HPI_INTERNAL_ERROR);
         }
 
-	/* Allocate space for temporary RPT cache */
-        custom_handle->tmpcache = (RPTable *)g_malloc0(sizeof(RPTable));
-        if (custom_handle->tmpcache == NULL) {
-                dbg("Out of memory.");
-                snmp_bc_unlock_handler(custom_handle);
-                return(SA_ERR_HPI_OUT_OF_SPACE);
-	}
-
-	/* Initialize tmpqueue */
-	custom_handle->tmpqueue = NULL;
+	/* ---------------------------------------------------------------  */
+	/* tmpcache and tmpqueue are no longer used in snmp_bc plugin,      */
+	/* pdphan 08/16/06                                                  */
+	/*                                                                  */
+	/* Allocate space for temporary RPT cache                           */
+        /* custom_handle->tmpcache = (RPTable *)g_malloc0(sizeof(RPTable)); */
+        /* if (custom_handle->tmpcache == NULL) {			    */
+        /*        dbg("Out of memory.");                                    */
+        /*        snmp_bc_unlock_handler(custom_handle);                    */
+        /*        return(SA_ERR_HPI_OUT_OF_SPACE);                          */
+	/*}                                                                 */
+	/* Initialize tmpqueue                                              */
+	/* custom_handle->tmpqueue = NULL;                                  */
+	/* ---------------------------------------------------------------- */	
 
 	/* Individual platform discovery */
 	if (custom_handle->platform == SNMP_BC_PLATFORM_RSA) {
@@ -115,125 +107,6 @@ SaErrorT snmp_bc_discover_resources(void *hnd)
 		goto CLEANUP;
 	}
 	
-	
-	/**********************************************************************
-	 * Rediscovery:
-	 * Get difference between current rptcache and custom_handle->tmpcache.
-	 * Delete obsolete items from rptcache and add new items in.
-	 **********************************************************************/
-        res_new = NULL;
-	rdr_new = NULL;
-	res_gone = NULL;
-	rdr_gone = NULL;
-        node = NULL;
-        
-       	rpt_diff(handle->rptcache, custom_handle->tmpcache, &res_new, &rdr_new, &res_gone, &rdr_gone);
-	trace("%d resources have gone away.", g_slist_length(res_gone));
-	trace("%d resources are new or have changed", g_slist_length(res_new));
-
-        for (node = rdr_gone; node != NULL; node = node->next) {
-                rdr = (SaHpiRdrT *)node->data;
-		snmp_bc_validate_ep(&(rdr->Entity), &valEntity);
-                res = oh_get_resource_by_ep(handle->rptcache, &(valEntity));
-		
-                /* Create remove RDR event and add to event queue */
-                e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
-                if (e) {
-			e->did = oh_get_default_domain_id();
-                        e->type = OH_ET_RDR_DEL;
-                        e->u.rdr_event.parent = res->ResourceId;			
-			memcpy(&(e->u.rdr_event.rdr), rdr, sizeof(SaHpiRdrT));
-                        handle->eventq = g_slist_append(handle->eventq, e);
-                } 
-		else { dbg("Out of memory."); }
-                /* Remove RDR from plugin's RPT cache */
-                if (rdr && res)
-                        oh_remove_rdr(handle->rptcache, res->ResourceId, rdr->RecordId);
-                else { dbg("No valid resource or rdr at hand. Could not remove rdr."); }
-        }
-
-        g_slist_free(rdr_gone);
-
-        for (node = res_gone; node != NULL; node = node->next) {
-                res = (SaHpiRptEntryT *)node->data;
-		/* Create remove resource event and add to event queue */
-		e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
-                if (e) {
-			e->did = oh_get_default_domain_id();
-                        e->type = OH_ET_RESOURCE_DEL;
-
-                        e->u.res_event.entry.ResourceId = res->ResourceId;
-                        handle->eventq = g_slist_append(handle->eventq, e);
-                } else { dbg("Out of memory."); }
-		/* Remove resource from plugin's RPT cache */
-                if (res)
-                        oh_remove_resource(handle->rptcache, res->ResourceId);
-                else dbg("No valid resource at hand. Could not remove resource.");
-        }
-
-        g_slist_free(res_gone);
-
-        for (node = res_new; node != NULL; node = node->next) {
-                tmpnode = NULL;
-                res = (SaHpiRptEntryT *)node->data;
-                if (!res) {
-                        dbg("No valid resource at hand. Could not process new resource.");
-                        continue;
-                }
-                data = oh_get_resource_data(custom_handle->tmpcache, res->ResourceId);
-		if (data) {
-                	oh_add_resource(handle->rptcache, res, g_memdup(data, sizeof(struct snmp_rpt)),0);
-                	/* Add new/changed resources to the event queue */
-                	for (tmpnode = custom_handle->tmpqueue; tmpnode != NULL; tmpnode = tmpnode->next) {
-                        	struct oh_event *e = (struct oh_event *)tmpnode->data;
-                        	if (e->type == OH_ET_RESOURCE &&
-                           	 e->u.res_event.entry.ResourceId == res->ResourceId) {
-                                	handle->eventq = g_slist_append(handle->eventq, e);
-                                	custom_handle->tmpqueue = g_slist_remove_link(custom_handle->tmpqueue, tmpnode);
-					g_slist_free_1(tmpnode);
-                                	break;
-                        	}
-                	}
-
-                } else {
-		       dbg(" NULL data pointer for ResourceID %d \n", res->ResourceId);
-                }
-        }
-        g_slist_free(res_new);
-        
-        for (node = rdr_new; node != NULL; node = node->next) {
-                rdr_data_size = 0;
-                tmpnode = NULL;
-                rdr = (SaHpiRdrT *)node->data;
-		snmp_bc_validate_ep(&(rdr->Entity), &valEntity);
-                res = oh_get_resource_by_ep(handle->rptcache, &(valEntity));
-                if (!res || !rdr) {
-                        dbg("No valid resource or rdr at hand. Could not process new rdr.");
-                        continue;
-                }
-                data = oh_get_rdr_data(custom_handle->tmpcache, res->ResourceId, rdr->RecordId);
-                /* Need to figure out the size of the data associated with the rdr */
-                if (rdr->RdrType == SAHPI_SENSOR_RDR) rdr_data_size = sizeof(struct SensorInfo);
-                else if (rdr->RdrType == SAHPI_CTRL_RDR)
-                        rdr_data_size = sizeof(struct ControlInfo);
-                else if (rdr->RdrType == SAHPI_INVENTORY_RDR)
-                        rdr_data_size = sizeof(struct InventoryInfo);
-                oh_add_rdr(handle->rptcache, res->ResourceId, rdr, g_memdup(data, rdr_data_size),0);
-                /* Add new/changed rdrs to the event queue */
-                for (tmpnode = custom_handle->tmpqueue; tmpnode != NULL; tmpnode = tmpnode->next) {
-                        struct oh_event *e = (struct oh_event *)tmpnode->data;
-                        if (e->type == OH_ET_RDR &&
-                            oh_cmp_ep(&(e->u.rdr_event.rdr.Entity),&(rdr->Entity)) &&
-                            e->u.rdr_event.rdr.RecordId == rdr->RecordId) {
-                                handle->eventq = g_slist_append(handle->eventq, e);
-                                custom_handle->tmpqueue = g_slist_remove_link(custom_handle->tmpqueue, tmpnode);
-				g_slist_free_1(tmpnode);
-                                break;
-                        }
-                }
-        }        
-        g_slist_free(rdr_new);
-
 
 	/* Build cache copy of SEL. RID == 1 (2nd parm) is a dummy id */
 	/**
@@ -257,12 +130,9 @@ SaErrorT snmp_bc_discover_resources(void *hnd)
 	}
 	
 	if (custom_handle->isFirstDiscovery == SAHPI_TRUE)
-	                                custom_handle->isFirstDiscovery = SAHPI_FALSE;
+	                          custom_handle->isFirstDiscovery = SAHPI_FALSE;
 
  CLEANUP:        
-        g_slist_free(custom_handle->tmpqueue);
-        oh_flush_rpt(custom_handle->tmpcache);  
-        g_free(custom_handle->tmpcache);
         snmp_bc_unlock_handler(custom_handle);
 
         return(err);
@@ -288,15 +158,15 @@ SaErrorT snmp_bc_discover_sensors(struct oh_handler_state *handle,
 	int i;
 	SaErrorT err;
 	SaHpiBoolT valid_sensor;
-	struct oh_event *e;
+	SaHpiRdrT *rdrptr;
 	struct snmp_bc_hnd *custom_handle;
 	struct SensorInfo *sensor_info_ptr;
 	
 	custom_handle = (struct snmp_bc_hnd *)handle->data;
 	
 	for (i=0; sensor_array[i].index != 0; i++) {
-		e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
-		if (e == NULL) {
+		rdrptr = (SaHpiRdrT *)g_malloc0(sizeof(SaHpiRdrT));
+		if (rdrptr == NULL) {
 			dbg("Out of memory.");
 			return(SA_ERR_HPI_OUT_OF_SPACE);
 		}
@@ -309,7 +179,7 @@ SaErrorT snmp_bc_discover_sensors(struct oh_handler_state *handle,
 		else {
 			if (sensor_array[i].sensor_info.mib.oid != NULL) {
 				valid_sensor = rdr_exists(custom_handle,
-							  &(res_oh_event->u.res_event.entry.ResourceEntity),
+							  &(res_oh_event->resource.ResourceEntity),
 							  sensor_array[i].sensor_info.mib.loc_offset,
 							  sensor_array[i].sensor_info.mib.oid, 
 							  sensor_array[i].sensor_info.mib.not_avail_indicator_num,
@@ -317,45 +187,42 @@ SaErrorT snmp_bc_discover_sensors(struct oh_handler_state *handle,
 			}
 			else {
 				dbg("Sensor %s cannot be read.", sensor_array[i].comment);
-				g_free(e);
+				g_free(rdrptr);
 				return(SA_ERR_HPI_INTERNAL_ERROR);
 			}
 		}
 
 		/* Add sensor RDR, if sensor is event-only or can be read */
 		if (valid_sensor) {
-			e->type = OH_ET_RDR;
-			e->did = oh_get_default_domain_id();
-			e->u.rdr_event.parent = res_oh_event->u.res_event.entry.ResourceId;
-			e->u.rdr_event.rdr.RdrType = SAHPI_SENSOR_RDR;
-			e->u.rdr_event.rdr.Entity = res_oh_event->u.res_event.entry.ResourceEntity;
-			err = snmp_bc_mod_sensor_ep(e, sensor_array, i);
-			e->u.rdr_event.rdr.RdrTypeUnion.SensorRec = sensor_array[i].sensor;
+			rdrptr->RdrType = SAHPI_SENSOR_RDR;
+			rdrptr->Entity = res_oh_event->resource.ResourceEntity;
+			err = snmp_bc_mod_sensor_ep(rdrptr, sensor_array, i);
+			rdrptr->RdrTypeUnion.SensorRec = sensor_array[i].sensor;
 
-			oh_init_textbuffer(&(e->u.rdr_event.rdr.IdString));
-			oh_append_textbuffer(&(e->u.rdr_event.rdr.IdString), sensor_array[i].comment);
+			oh_init_textbuffer(&(rdrptr->IdString));
+			oh_append_textbuffer(&(rdrptr->IdString), sensor_array[i].comment);
 
-			trace("Discovered sensor: %s.", e->u.rdr_event.rdr.IdString.Data);
+			trace("Discovered sensor: %s.", rdrptr->IdString.Data);
 
 			sensor_info_ptr = g_memdup(&(sensor_array[i].sensor_info), sizeof(struct SensorInfo));
-			err = oh_add_rdr(custom_handle->tmpcache,
-					 res_oh_event->u.res_event.entry.ResourceId,
-					 &(e->u.rdr_event.rdr),
+			err = oh_add_rdr(handle->rptcache,
+					 res_oh_event->resource.ResourceId,
+					 rdrptr,
 					 sensor_info_ptr, 0);
 			if (err) {
 				dbg("Cannot add RDR. Error=%s.", oh_lookup_error(err));
-				g_free(e);
+				g_free(rdrptr);
 			}
 			else {
-				custom_handle->tmpqueue = g_slist_append(custom_handle->tmpqueue, e);
+				res_oh_event->rdrs = g_slist_append(res_oh_event->rdrs, rdrptr);	
 				snmp_bc_discover_sensor_events(handle,
-							       &(res_oh_event->u.res_event.entry.ResourceEntity),
+							       &(res_oh_event->resource.ResourceEntity),
 							       sensor_array[i].sensor.Num,
 							       &(sensor_array[i]));
 			}
 		}
 		else {
-			g_free(e);
+			g_free(rdrptr);
 		}
 	}
 	
@@ -381,21 +248,21 @@ SaErrorT snmp_bc_discover_controls(struct oh_handler_state *handle,
 	int i;
 	SaErrorT err;
 	SaHpiBoolT valid_control;
-	struct oh_event *e;
+	SaHpiRdrT *rdrptr;
 	struct snmp_bc_hnd *custom_handle;
 	struct ControlInfo *control_info_ptr;
 	
 	custom_handle = (struct snmp_bc_hnd *)handle->data;
 	
 	for (i=0; control_array[i].index != 0; i++) {
-		e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
-		if (e == NULL) {
+		rdrptr = (SaHpiRdrT *)g_malloc0(sizeof(SaHpiRdrT));
+		if (rdrptr == NULL) {
 			dbg("Out of memory.");
 			return(SA_ERR_HPI_OUT_OF_SPACE);
 		}
 
 		valid_control = rdr_exists(custom_handle,
-					   &(res_oh_event->u.res_event.entry.ResourceEntity),
+					   &(res_oh_event->resource.ResourceEntity),
 					   control_array[i].control_info.mib.loc_offset,
 					   control_array[i].control_info.mib.oid,
 					   control_array[i].control_info.mib.not_avail_indicator_num,
@@ -403,33 +270,30 @@ SaErrorT snmp_bc_discover_controls(struct oh_handler_state *handle,
 
 		/* Add control RDR, if control can be read */
 		if (valid_control) {
-			e->type = OH_ET_RDR;
-			e->did = oh_get_default_domain_id();
-			e->u.rdr_event.parent = res_oh_event->u.res_event.entry.ResourceId;
-			e->u.rdr_event.rdr.RdrType = SAHPI_CTRL_RDR;
-			e->u.rdr_event.rdr.Entity = res_oh_event->u.res_event.entry.ResourceEntity;
-			e->u.rdr_event.rdr.RdrTypeUnion.CtrlRec = control_array[i].control;
+			rdrptr->RdrType = SAHPI_CTRL_RDR;
+			rdrptr->Entity = res_oh_event->resource.ResourceEntity;
+			rdrptr->RdrTypeUnion.CtrlRec = control_array[i].control;
 
-			oh_init_textbuffer(&(e->u.rdr_event.rdr.IdString));
-			oh_append_textbuffer(&(e->u.rdr_event.rdr.IdString), control_array[i].comment);
+			oh_init_textbuffer(&(rdrptr->IdString));
+			oh_append_textbuffer(&(rdrptr->IdString), control_array[i].comment);
 
-			trace("Discovered control: %s.", e->u.rdr_event.rdr.IdString.Data);
+			trace("Discovered control: %s.", rdrptr->IdString.Data);
 
 			control_info_ptr = g_memdup(&(control_array[i].control_info), sizeof(struct ControlInfo));
-			err = oh_add_rdr(custom_handle->tmpcache,
-					 res_oh_event->u.res_event.entry.ResourceId,
-					 &(e->u.rdr_event.rdr),
+			err = oh_add_rdr(handle->rptcache,
+					 res_oh_event->resource.ResourceId,
+					 rdrptr,
 					 control_info_ptr, 0);
 			if (err) {
 				dbg("Cannot add RDR. Error=%s.", oh_lookup_error(err));
-				g_free(e);
+				g_free(rdrptr);
 			}
 			else {
-				custom_handle->tmpqueue = g_slist_append(custom_handle->tmpqueue, e);
+				res_oh_event->rdrs = g_slist_append(res_oh_event->rdrs, rdrptr);
 			}
 		}
 		else {
-			g_free(e);
+			g_free(rdrptr);
 		}
 	}
 	
@@ -455,7 +319,7 @@ SaErrorT snmp_bc_discover_inventories(struct oh_handler_state *handle,
 	int i;
 	SaHpiBoolT valid_idr;
 	SaErrorT err;
-	struct oh_event *e;
+	SaHpiRdrT *rdrptr;
 	struct snmp_bc_hnd *custom_handle;
 	struct InventoryInfo *inventory_info_ptr;
 
@@ -463,46 +327,43 @@ SaErrorT snmp_bc_discover_inventories(struct oh_handler_state *handle,
 
 	/* Assumming OidManufacturer is defined and determines readable of other VPD */
 	for (i=0; inventory_array[i].inventory_info.mib.oid.OidManufacturer != NULL; i++) {
-		e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
-		if (e == NULL) {
+		rdrptr = (SaHpiRdrT *)g_malloc0(sizeof(SaHpiRdrT));
+		if (rdrptr == NULL) {
 			dbg("Out of memory.");
 			return(SA_ERR_HPI_OUT_OF_SPACE);
 		}
 		
 		valid_idr = rdr_exists(custom_handle,
-				       &(res_oh_event->u.res_event.entry.ResourceEntity), 0,
+				       &(res_oh_event->resource.ResourceEntity), 0,
 				       inventory_array[i].inventory_info.mib.oid.OidManufacturer,
 				       0, 0);
 
 		/* Add inventory RDR, if inventory can be read */
 		if (valid_idr) {
-			e->type = OH_ET_RDR;
-			e->did = oh_get_default_domain_id();
-			e->u.rdr_event.parent = res_oh_event->u.res_event.entry.ResourceId;
-			e->u.rdr_event.rdr.RdrType = SAHPI_INVENTORY_RDR;
-			e->u.rdr_event.rdr.Entity = res_oh_event->u.res_event.entry.ResourceEntity;
-			e->u.rdr_event.rdr.RdrTypeUnion.InventoryRec = inventory_array[i].inventory;
+			rdrptr->RdrType = SAHPI_INVENTORY_RDR;
+			rdrptr->Entity = res_oh_event->resource.ResourceEntity;
+			rdrptr->RdrTypeUnion.InventoryRec = inventory_array[i].inventory;
 
-			oh_init_textbuffer(&(e->u.rdr_event.rdr.IdString));
-			oh_append_textbuffer(&(e->u.rdr_event.rdr.IdString), inventory_array[i].comment);
+			oh_init_textbuffer(&(rdrptr->IdString));
+			oh_append_textbuffer(&(rdrptr->IdString), inventory_array[i].comment);
 
-			trace("Discovered inventory: %s.", e->u.rdr_event.rdr.IdString.Data);
+			trace("Discovered inventory: %s.", rdrptr->IdString.Data);
 
 			inventory_info_ptr = g_memdup(&(inventory_array[i].inventory_info), sizeof(struct InventoryInfo));
-			err = oh_add_rdr(custom_handle->tmpcache,
-					 res_oh_event->u.res_event.entry.ResourceId,
-					 &(e->u.rdr_event.rdr),
+			err = oh_add_rdr(handle->rptcache,
+					 res_oh_event->resource.ResourceId,
+					 rdrptr,
 					 inventory_info_ptr, 0);
 			if (err) {
 				dbg("Cannot add RDR. Error=%s.", oh_lookup_error(err));
-				g_free(e);
+				g_free(rdrptr);
 			}
 			else {
-				custom_handle->tmpqueue = g_slist_append(custom_handle->tmpqueue, e);
+				res_oh_event->rdrs = g_slist_append(res_oh_event->rdrs, rdrptr);
 			}
 		}
 		else {
-			g_free(e);
+			g_free(rdrptr);
 		}
 	}
 	
@@ -645,7 +506,7 @@ SaErrorT snmp_bc_validate_ep(SaHpiEntityPathT *org_ep, SaHpiEntityPathT *val_ep)
  * SA_OK - normal operations.
  * SA_ERR_HPI_INVALID_PARAMS - @e or @sensor is NULL.
  **/
-SaErrorT snmp_bc_mod_sensor_ep(struct oh_event *e,
+SaErrorT snmp_bc_mod_sensor_ep(SaHpiRdrT *rdrptr,
 				 void *sensor_array_in, 
 				 int index)
 {
@@ -664,7 +525,7 @@ SaErrorT snmp_bc_mod_sensor_ep(struct oh_event *e,
 	sensor_array = (struct snmp_bc_sensor *)sensor_array_in;
 	sensor_array_ipmi = (struct snmp_bc_ipmi_sensor *)sensor_array_in;
 
-        if (!e || !sensor_array) {
+        if (!rdrptr || !sensor_array) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
@@ -677,7 +538,7 @@ SaErrorT snmp_bc_mod_sensor_ep(struct oh_event *e,
 					snmp_bc_blade_sensors[j].sensor_info.mib.oid, 34) == 0)) {
 					
 					ep_add.Entry[0].EntityLocation = j + 1;
-					snmp_bc_add_ep(e, &ep_add);
+					snmp_bc_add_ep(rdrptr, &ep_add);
 					break;
 				} 
 			} 
@@ -686,7 +547,7 @@ SaErrorT snmp_bc_mod_sensor_ep(struct oh_event *e,
  
 		if ( (pch = strstr(sensor_array_ipmi[index].ipmi_tag, "CPU")) != NULL) { 
 			ep_add.Entry[0].EntityLocation = atoi(&pch[3]);
-			snmp_bc_add_ep(e,&ep_add);
+			snmp_bc_add_ep(rdrptr,&ep_add);
 		}
 	
 	} else {
@@ -710,27 +571,27 @@ SaErrorT snmp_bc_mod_sensor_ep(struct oh_event *e,
  * SA_OK - normal operations.
  * SA_ERR_HPI_INVALID_PARAMS - @e or @ep_add is NULL.
  **/
-SaErrorT snmp_bc_add_ep(struct oh_event *e, SaHpiEntityPathT *ep_add)
+SaErrorT snmp_bc_add_ep(SaHpiRdrT *rdrptr, SaHpiEntityPathT *ep_add)
 {
 
 	int i;
 	
-	if ( !e || !ep_add) {
+	if ( !rdrptr || !ep_add) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);	
 	}
 	
 	for (i=0; i<SAHPI_MAX_ENTITY_PATH; i++) {
         	ep_add->Entry[i+1].EntityLocation = 
-				e->u.rdr_event.rdr.Entity.Entry[i].EntityLocation;
+				rdrptr->Entity.Entry[i].EntityLocation;
                 ep_add->Entry[i+1].EntityType = 
-				e->u.rdr_event.rdr.Entity.Entry[i].EntityType;
-                if (e->u.rdr_event.rdr.Entity.Entry[i].EntityType == SAHPI_ENT_ROOT) break;
+				rdrptr->Entity.Entry[i].EntityType;
+                if (rdrptr->Entity.Entry[i].EntityType == SAHPI_ENT_ROOT) break;
        	}
 
         for (i=0; i<SAHPI_MAX_ENTITY_PATH; i++) {
-                e->u.rdr_event.rdr.Entity.Entry[i].EntityLocation = ep_add->Entry[i].EntityLocation;
-                e->u.rdr_event.rdr.Entity.Entry[i].EntityType = ep_add->Entry[i].EntityType;
+                rdrptr->Entity.Entry[i].EntityLocation = ep_add->Entry[i].EntityLocation;
+                rdrptr->Entity.Entry[i].EntityType = ep_add->Entry[i].EntityType;
                 if (ep_add->Entry[i].EntityType == SAHPI_ENT_ROOT) break;
        	 }
 
@@ -744,3 +605,4 @@ SaErrorT snmp_bc_add_ep(struct oh_event *e, SaHpiEntityPathT *ep_add)
 
 void * oh_discover_resources (void *)
                 __attribute__ ((weak, alias("snmp_bc_discover_resources")));
+
