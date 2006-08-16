@@ -59,7 +59,7 @@ SaErrorT snmp_bc_get_guid(struct snmp_bc_hnd *custom_handle,
 		goto CLEANUP;
 	}
         status = snmp_bc_oid_snmp_get(custom_handle, 
-				      &(e->u.res_event.entry.ResourceEntity), 0,
+				      &(e->resource.ResourceEntity), 0,
 				      res_info_ptr->mib.OidUuid,            
 				      &get_value, SAHPI_TRUE);
         if(( status != SA_OK) || (get_value.type != ASN_OCTET_STR)) {
@@ -162,7 +162,7 @@ SaErrorT snmp_bc_get_guid(struct snmp_bc_hnd *custom_handle,
         }
 
   CLEANUP:
-  	memmove(e->u.res_event.entry.ResourceInfo.Guid, guid, sizeof(SaHpiGuidT));
+  	memmove(e->resource.ResourceInfo.Guid, guid, sizeof(SaHpiGuidT));
   CLEANUP2:
         g_free(UUID);
         g_free(BC_UUID);
@@ -218,3 +218,108 @@ SaErrorT snmp_bc_extract_slot_ep(SaHpiEntityPathT *resource_ep, SaHpiEntityPathT
 	
 	return(SA_OK);
 }
+
+/**
+ * snmp_bc_copy_oh_event:
+ * @new_event: Pointer to new oh_event.
+ * @old_event: Pointer to old oh_event.
+ *
+ * Allocate and create a duplicate copy of old_event
+ *
+ * Return values:
+ **/
+SaErrorT snmp_bc_copy_oh_event(struct oh_event *new_event, struct oh_event *old_event)
+{
+
+	if (!new_event || !old_event) return(SA_ERR_HPI_INVALID_PARAMS);
+
+	GSList *node = NULL;
+	*new_event = *old_event;
+	new_event->rdrs = NULL;
+	for (node = old_event->rdrs; node; node = node->next) {
+		new_event->rdrs = g_slist_append(new_event->rdrs, g_memdup(node->data,
+							   sizeof(SaHpiRdrT)));
+	}
+
+	return(SA_OK);
+}
+
+
+/**
+ * snmp_bc_alloc_oh_event:
+ *
+ * Allocate and create a  copy of oh_event with default data
+ *
+ * Return values:
+ * NULL - No space or invalid parm
+ * (oh_event *) - Normal
+ **/
+struct oh_event *snmp_bc_alloc_oh_event()
+{
+	struct oh_event *e = NULL;
+
+	e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
+	if (e == NULL) return(e); 
+	
+	e->did = oh_get_default_domain_id();
+	e->rdrs = NULL;
+
+	return e;
+}
+
+/**
+ * snmp_bc_free_oh_event:
+ * @event: Pointer to oh_event.
+ *
+ * Free oh_event space
+ *
+ * Return values:
+ * NULL - No space or invalid parm
+ * (oh_event *) - Normal
+ **/
+void snmp_bc_free_oh_event(struct oh_event *e)
+{
+	if (!e) return;
+	
+	g_slist_free(e->rdrs);	
+	g_free(e);
+	return;
+}
+
+
+/**
+ * snmp_bc_set_resource_add_oh_event:
+ * @e: Pointer to oh_event.
+ * @res_info_ptr
+ *
+ * Initialize (oh_event *).event to default value for resource_add
+ * e->resource must be initialized prior to using this util.
+ *
+ * Return values:
+ * NULL - No space or invalid parm
+ * (oh_event *) - Normal
+ **/
+SaErrorT snmp_bc_set_resource_add_oh_event(struct oh_event *e, 
+					struct ResourceInfo *res_info_ptr)
+{
+	if (!e || !res_info_ptr) return(SA_ERR_HPI_INVALID_PARAMS);
+	
+	e->event.Severity = e->resource.ResourceSeverity;
+	e->event.Source =   e->resource.ResourceId;	
+	if (oh_gettimeofday(&e->event.Timestamp) != SA_OK)
+		                    e->event.Timestamp = SAHPI_TIME_UNSPECIFIED;
+
+	if (e->resource.ResourceCapabilities & SAHPI_CAPABILITY_FRU) {
+		e->event.EventType = SAHPI_ET_HOTSWAP;
+		e->event.EventDataUnion.HotSwapEvent.HotSwapState = 
+			e->event.EventDataUnion.HotSwapEvent.HotSwapState = 
+						res_info_ptr->cur_state;
+		
+	} else {
+		e->event.EventType = SAHPI_ET_RESOURCE;
+		e->event.EventDataUnion.ResourceEvent.ResourceEventType = SAHPI_RESE_RESOURCE_ADDED;			
+	} 				    
+	return(SA_OK);
+}
+
+
