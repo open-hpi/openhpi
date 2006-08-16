@@ -418,6 +418,10 @@ void snmp_bc_close(void *hnd)
 	if (errlog2event_hash_use_count == 0) {
 		errlog2event_hash_free();
 	}
+	
+        oh_flush_rpt(handle->rptcache);  
+        g_free(handle->rptcache);
+	
 }
 
 void * oh_open (GHashTable *) __attribute__ ((weak, alias("snmp_bc_open")));
