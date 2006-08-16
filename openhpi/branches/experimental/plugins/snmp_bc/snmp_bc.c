@@ -55,8 +55,8 @@ SaErrorT snmp_bc_get_event(void *hnd, struct oh_event *event)
 	}
 
         if (g_slist_length(handle->eventq) > 0) {
-                memcpy(event, handle->eventq->data, sizeof(*event));
-                free(handle->eventq->data);
+                snmp_bc_copy_oh_event(event, handle->eventq->data);
+                snmp_bc_free_oh_event(handle->eventq->data);
                 handle->eventq = g_slist_remove_link(handle->eventq, handle->eventq);
                 snmp_bc_unlock_handler(custom_handle);
                 return(1);
@@ -88,6 +88,7 @@ SaErrorT snmp_bc_set_resource_tag(void *hnd, SaHpiResourceIdT rid, SaHpiTextBuff
         struct oh_event *e;
         struct oh_handler_state *handle;
 	struct snmp_bc_hnd *custom_handle;
+	struct ResourceInfo *res_info_ptr;
 
 	if (!oh_valid_textbuffer(tag) || !hnd) {
 		dbg("Invalid parameter");
@@ -105,6 +106,14 @@ SaErrorT snmp_bc_set_resource_tag(void *hnd, SaHpiResourceIdT rid, SaHpiTextBuff
                 return(SA_ERR_HPI_INVALID_RESOURCE);
         }
 
+	res_info_ptr =  (struct ResourceInfo *)oh_get_resource_data(
+						handle->rptcache, rpt->ResourceId);
+        if (!res_info_ptr) {
+		snmp_bc_unlock_handler(custom_handle);
+		dbg("No resource information.");
+                return(SA_ERR_HPI_INVALID_RESOURCE);
+        }	
+						
 	err = oh_copy_textbuffer(&(rpt->ResourceTag), tag);
 	if (err) {
 		snmp_bc_unlock_handler(custom_handle);
@@ -113,15 +122,23 @@ SaErrorT snmp_bc_set_resource_tag(void *hnd, SaHpiResourceIdT rid, SaHpiTextBuff
 	}
 
         /* Add changed resource to event queue */
-        e = g_malloc0(sizeof(struct oh_event));
+        e = snmp_bc_alloc_oh_event();
 	if (e == NULL) {
 		snmp_bc_unlock_handler(custom_handle);
 		dbg("Out of memory.");
 		return(SA_ERR_HPI_OUT_OF_SPACE);
 	}
+			
+        e->resource = *rpt;
+	
+	/* ---------------------------------------- */
+	/* Construct .event of struct oh_event      */	
+	/* ---------------------------------------- */
+	snmp_bc_set_resource_add_oh_event(e, res_info_ptr);
 
-        e->type = OH_ET_RESOURCE;
-        e->u.res_event.entry = *rpt;
+	/* ---------------------------------------- */
+	/* Prime event to evenq                     */
+	/* ---------------------------------------- */			
         handle->eventq = g_slist_append(handle->eventq, e);
         snmp_bc_unlock_handler(custom_handle);
         return(SA_OK);
@@ -146,6 +163,7 @@ SaErrorT snmp_bc_set_resource_severity(void *hnd, SaHpiResourceIdT rid, SaHpiSev
         struct oh_handler_state *handle;
 	struct snmp_bc_hnd *custom_handle;
         struct oh_event *e;
+	struct ResourceInfo *res_info_ptr;
 
 	if (oh_lookup_severity(sev) == NULL) {
 		dbg("Invalid parameter");
@@ -163,18 +181,36 @@ SaErrorT snmp_bc_set_resource_severity(void *hnd, SaHpiResourceIdT rid, SaHpiSev
                 return(SA_ERR_HPI_INVALID_RESOURCE);
         }
 
+	res_info_ptr =  (struct ResourceInfo *)oh_get_resource_data(
+						handle->rptcache, rpt->ResourceId);
+        if (!res_info_ptr) {
+		snmp_bc_unlock_handler(custom_handle);
+		dbg("No resource information.");
+                return(SA_ERR_HPI_INVALID_RESOURCE);
+        }	
+
         rpt->ResourceSeverity = sev;
 
         /* Add changed resource to event queue */
-        e = g_malloc0(sizeof(struct oh_event));
+
+        /* Add changed resource to event queue */
+        e = snmp_bc_alloc_oh_event();
 	if (e == NULL) {
 		snmp_bc_unlock_handler(custom_handle);
 		dbg("Out of memory.");
 		return(SA_ERR_HPI_OUT_OF_SPACE);
 	}
+			
+        e->resource = *rpt;
 	
-        e->type = OH_ET_RESOURCE;
-        e->u.res_event.entry = *rpt;
+	/* ---------------------------------------- */
+	/* Construct .event of struct oh_event      */	
+	/* ---------------------------------------- */
+	snmp_bc_set_resource_add_oh_event(e, res_info_ptr);
+
+	/* ---------------------------------------- */
+	/* Prime event to evenq                     */
+	/* ---------------------------------------- */		
         handle->eventq = g_slist_append(handle->eventq, e);
 	snmp_bc_unlock_handler(custom_handle);
 
