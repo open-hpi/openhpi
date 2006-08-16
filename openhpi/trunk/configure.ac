@@ -126,7 +126,7 @@ AC_CHECK_HEADERS([openssl/md2.h openssl/md5.h])
 dnl Extra goodies enablement stanzas
 
 AC_ARG_ENABLE([thread],
-    [  --enable-thread         make implementation thread-safe [default=yes]],
+    [  --enable-thread         make implementation thread-safe [[default=yes]]],
     [if test "x$enableval" = "xyes"; then
         THREAD_SAFE="yes"
     fi],
@@ -145,7 +145,7 @@ openhpid_static="no"
 oh_daemon_enabled="no"
 
 AC_ARG_ENABLE([daemon],
-    [  --enable-daemon         build HPI daemon and client library [default=yes]],
+    [  --enable-daemon         build HPI daemon and client library [[default=yes]]],
     [if test "x$enableval" = "xyes"; then
         ENABLED_DIRS="$ENABLED_DIRS openhpid"
 	AC_DEFINE([OH_DAEMON_ENABLED],[1],[Build daemon and client libs])
@@ -167,14 +167,14 @@ AM_CONDITIONAL(OPENHPID_STATIC, test x$openhpid_static = xyes)
 
 
 AC_ARG_ENABLE([clients],
-    [  --enable-clients        build HPI client programs [default=yes]],
+    [  --enable-clients        build HPI client programs [[default=yes]]],
     [if test "x$enableval" = "xyes"; then
         ENABLED_DIRS="$ENABLED_DIRS clients"
     fi],
     [ENABLED_DIRS="$ENABLED_DIRS clients"])
 
 AC_ARG_ENABLE([cpp_wrappers],
-    [  --enable-cpp_wrappers   build SaHpi C++ wrapper objects [default=no]],
+    [  --enable-cpp_wrappers   build SaHpi C++ wrapper objects [[default=no]]],
     [if test "x$enableval" = "xyes"; then
         ENABLED_DIRS="$ENABLED_DIRS cpp"
     fi])
@@ -201,7 +201,7 @@ STATIC_PLUGIN_LIST=
 STATIC_PLUGIN_EXTRA_LIBS=
 
 AC_ARG_ENABLE([snmp_client],
-    [  --enable-snmp_client          build snmp_client plugin [default=no]],
+    [  --enable-snmp_client          build snmp_client plugin [[default=no]]],
     [if test "x$enableval" = "xyes"; then
         if test "x$have_netsnmp" = "xyes"; then
             AC_SUBST(SNMP_CLIENT,snmp_client)
@@ -237,7 +237,7 @@ dnl     fi])
 #    fi])
 
 AC_ARG_ENABLE([watchdog],
-    [  --enable-watchdog       build watchdog plugin [default=yes]],
+    [  --enable-watchdog       build watchdog plugin [[default=yes]]],
     [if test "x$enableval" = "xyes"; then
         AC_SUBST(WATCHDOG,watchdog)
     else
@@ -259,7 +259,7 @@ if PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/local/lib/pkgconfig pkg-config --atleas
 fi
 
 AC_ARG_ENABLE([ipmi],
-    [  --enable-ipmi           build openipmi plugin [default=yes if OpenIPMI exists]],
+    [  --enable-ipmi           build openipmi plugin [[default=yes if OpenIPMI exists]]],
     [if test "x$enableval" = "xyes"; then
         if test "x$have_openipmi" = "xyes"; then
             AC_SUBST(IPMI,ipmi)
@@ -283,7 +283,7 @@ AC_ARG_ENABLE([ipmi],
     ])
 
 AC_ARG_ENABLE([sysfs],
-    [  --enable-sysfs          build sysfs plugin [default=yes if libsysfs exists]],
+    [  --enable-sysfs          build sysfs plugin [[default=yes if libsysfs exists]]],
     [if test "x$enableval" = "xyes"; then
         if test "x$have_sysfs" = "xyes"; then
             AC_SUBST(SYSFS,sysfs)
@@ -298,7 +298,7 @@ AC_ARG_ENABLE([sysfs],
     ])
 
 AC_ARG_ENABLE([snmp_bc],
-    [  --enable-snmp_bc        build IBM Blade Center plugin [default=yes if net-snmp is installed]],
+    [  --enable-snmp_bc        build IBM Blade Center plugin [[default=yes if net-snmp is installed]]],
     [if test "x$enableval" = "xyes"; then
         if test "x$have_netsnmp" = "xyes"; then
             AC_SUBST(SNMP_BC,snmp_bc)
@@ -315,7 +315,7 @@ AC_ARG_ENABLE([snmp_bc],
     )
 
 AC_ARG_ENABLE([ipmidirect],
-    [  --enable-ipmidirect     build direct ipmi plugin [default=yes]],
+    [  --enable-ipmidirect     build direct ipmi plugin [[default=yes]]],
     [if test "x$enableval" = "xyes"; then
             AC_SUBST(IPMIDIRECT,ipmidirect)
      elif test "x$enableval" = "xstatic"; then
@@ -339,7 +339,7 @@ OH_CHECK_RTAS
 
 #Configure options for the RTAS plugin
 AC_ARG_ENABLE([rtas],
-    [  --enable-rtas           build rtas ppc plugin [default=no]],
+    [  --enable-rtas           build rtas ppc plugin [[default=no]]],
     [if test "x$enableval" = "xyes"; then
         if test "x$have_rtas_lib" = "xyes"; then
             AC_SUBST(RTAS,rtas)
@@ -350,7 +350,7 @@ AC_ARG_ENABLE([rtas],
     fi])
 
 #AC_ARG_iENABLE([remote_client],
-#    [  --enable-remote_client     build remote client plugin [default=yes]],
+#    [  --enable-remote_client     build remote client plugin [[default=yes]]],
 #    [if test "x$enableval" = "xyes"; then
 #            AC_SUBST(REMOTE_CLIENT,remote_client)
 #           NEED_MARSHAL="yes"
@@ -365,7 +365,7 @@ dnl    [AC_SUBST(REMOTE_CLIENT,remote_client)
 dnl     NEED_MARSHAL="yes"])
 
 AC_ARG_ENABLE([simulator],
-    [  --enable-simulator      build simulator plugin [default=yes]],
+    [  --enable-simulator      build simulator plugin [[default=yes]]],
     [if test "x$enableval" = "xyes"; then
         AC_SUBST(SIMULATOR,simulator)
     fi],
@@ -505,7 +505,7 @@ dnl next we have to do transformations to either turn on
 dnl test coverage support.
 
 AC_ARG_ENABLE([testcover],
-    [  --enable-testcover      adds test coverage and profiling support [default=no]],
+    [  --enable-testcover      adds test coverage and profiling support [[default=no]]],
     [if test "x$enableval" = "xyes"; then
             CFLAGS=`echo $CFLAGS | sed -e 's/-O\w\?\>[ ]*//g'`
             CFLAGS="$CFLAGS -ftest-coverage -fprofile-arcs"
@@ -518,7 +518,7 @@ dnl This makes libopenhpi debugger friendly
 dnl by eliminating optimizations and adding the -g flag
 
 AC_ARG_ENABLE([debuggable],
-    [  --enable-debuggable     adds -g flag and turns off optimization [default=no]],
+    [  --enable-debuggable     adds -g flag and turns off optimization [[default=no]]],
     [if test "x$enableval" = "xyes"; then
             CFLAGS=`echo $CFLAGS | sed -e 's/-O\w\?\>[ ]*//g'`
             CFLAGS=`echo $CFLAGS | sed -e 's/^-g\w*[ ]*\| -g\w*//g'`
@@ -533,7 +533,7 @@ dnl This will let the user decide whether he wants
 dnl to use dbg/trace messages.
 
 AC_ARG_ENABLE([debug-msgs],
-    [  --enable-debug-msgs     enables dynamic debug messages [default=yes]],
+    [  --enable-debug-msgs     enables dynamic debug messages [[default=yes]]],
     [if test "x$enableval" = "xyes"; then
             AC_DEFINE([OH_DBG_MSGS],[1],[Enables dynamic debug messages])
     fi],
