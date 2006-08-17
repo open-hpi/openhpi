@@ -63,8 +63,8 @@ SaErrorT sim_get_control_state(void *hnd,
         }
 
         if (state) {
-                if (state->Type == SAHPI_CTRL_TYPE_TEXT) {
-                        if (state->StateUnion.Text.Line != SAHPI_TLN_ALL_LINES ||
+                if (rdr->RdrTypeUnion.CtrlRec.Type == SAHPI_CTRL_TYPE_TEXT) {
+                        if (state->StateUnion.Text.Line != SAHPI_TLN_ALL_LINES &&
                             state->StateUnion.Text.Line > rdr->RdrTypeUnion.CtrlRec.TypeUnion.Text.MaxLines) {
                                 return(SA_ERR_HPI_INVALID_DATA);
                         }
