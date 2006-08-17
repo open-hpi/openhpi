@@ -2384,6 +2384,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ControlSet)
         SaErrorT err;
 	char cmd[] = "saHpiControlSet";
         pcstrmsock pinst;
+        SaHpiCtrlStateT mystate, *pmystate = NULL;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
@@ -2397,16 +2398,23 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ControlSet)
             (State && State->Type == SAHPI_CTRL_TYPE_STREAM &&
              State->StateUnion.Stream.StreamLength > SAHPI_CTRL_MAX_STREAM_LENGTH))
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (State && oh_lookup_ctrltype(State->Type) == NULL)
-                return SA_ERR_HPI_INVALID_DATA;
 
+        memset(&mystate, 0, sizeof(SaHpiCtrlStateT));
+        if (Mode == SAHPI_CTRL_MODE_AUTO) {
+		pmystate = &mystate;        
+        } else if (State && !oh_lookup_ctrltype(State->Type)) {
+        	return SA_ERR_HPI_INVALID_DATA;        	
+        } else {
+        	pmystate = State;
+        }
+        
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiControlSet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiControlSet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest5(hm, request, &SessionId, &ResourceId, &CtrlNum, &Mode, State);
+        pinst->header.m_len = HpiMarshalRequest5(hm, request, &SessionId, &ResourceId, &CtrlNum, &Mode, pmystate);
 
- SendRecv(SessionId, cmd);
+	SendRecv(SessionId, cmd);
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 

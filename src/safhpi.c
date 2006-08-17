@@ -2186,6 +2186,20 @@ SaErrorT SAHPI_API saHpiControlGet (
                 oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_INVALID_CMD;
         }
+	
+	if (CtrlMode == NULL && CtrlState == NULL) {
+		oh_release_domain(d);
+		return SA_OK;
+	} else if (CtrlState &&
+		    rdr->RdrTypeUnion.CtrlRec.Type == SAHPI_CTRL_TYPE_TEXT) {
+		if (CtrlState->StateUnion.Text.Line != SAHPI_TLN_ALL_LINES &&
+		    CtrlState->StateUnion.Text.Line >
+		    rdr->RdrTypeUnion.CtrlRec.TypeUnion.Text.MaxLines) {
+			oh_release_domain(d);
+			return SA_ERR_HPI_INVALID_DATA;
+		}
+	}
+	
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
 
@@ -2212,22 +2226,23 @@ SaErrorT SAHPI_API saHpiControlSet (
         SaErrorT (*set_func)(void *, SaHpiResourceIdT, SaHpiCtrlNumT, SaHpiCtrlModeT, SaHpiCtrlStateT *);
 
         SaHpiRptEntryT *res;
-        SaHpiRdrT *rdr;
+        SaHpiRdrT *rdr;        
         struct oh_handler *h;
         SaHpiDomainIdT did;
         struct oh_domain *d = NULL;
-
+	
         if (!oh_lookup_ctrlmode(CtrlMode) ||
-            (CtrlMode != SAHPI_CTRL_MODE_AUTO && !CtrlState)) {
-                return SA_ERR_HPI_INVALID_PARAMS;
-        } else if (CtrlMode != SAHPI_CTRL_MODE_AUTO &&
-                   ((CtrlState->Type == SAHPI_CTRL_TYPE_DIGITAL &&
-                    !oh_lookup_ctrlstatedigital(CtrlState->StateUnion.Digital)) ||
-                    (CtrlState->Type == SAHPI_CTRL_TYPE_STREAM &&
-                     CtrlState->StateUnion.Stream.StreamLength
-                      > SAHPI_CTRL_MAX_STREAM_LENGTH) ||
-                    (CtrlState->Type == SAHPI_CTRL_TYPE_TEXT &&
-                     !oh_valid_textbuffer(&(CtrlState->StateUnion.Text.Text))))) {
+            (CtrlMode != SAHPI_CTRL_MODE_AUTO && !CtrlState)) {            	
+		return SA_ERR_HPI_INVALID_PARAMS;
+	}
+	if (CtrlMode != SAHPI_CTRL_MODE_AUTO &&
+            ((CtrlState->Type == SAHPI_CTRL_TYPE_DIGITAL &&
+              !oh_lookup_ctrlstatedigital(CtrlState->StateUnion.Digital)) ||
+             (CtrlState->Type == SAHPI_CTRL_TYPE_STREAM &&
+              CtrlState->StateUnion.Stream.StreamLength
+              > SAHPI_CTRL_MAX_STREAM_LENGTH) ||
+             (CtrlState->Type == SAHPI_CTRL_TYPE_TEXT &&
+              !oh_valid_textbuffer(&CtrlState->StateUnion.Text.Text)))) {
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
@@ -2237,21 +2252,22 @@ SaErrorT SAHPI_API saHpiControlSet (
         OH_RESOURCE_GET_CHECK(d, ResourceId, res);
 
         if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_CONTROL)) {
+        	oh_release_domain(d); /* Unlock domain */
                 dbg("Resource %d in Domain %d doesn't have controls",
-                    ResourceId, did);
-                oh_release_domain(d); /* Unlock domain */
+                    ResourceId, did);                
                 return SA_ERR_HPI_CAPABILITY;
         }
 
         rdr = oh_get_rdr_by_type(&d->rpt, ResourceId, SAHPI_CTRL_RDR, CtrlNum);
-        if (!rdr) {
+        if (!rdr || rdr->RdrType != SAHPI_CTRL_RDR) {
                 oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_NOT_PRESENT;
-        };
+        }
+
         /* Check CtrlMode and CtrlState */
         rv = oh_valid_ctrl_state_mode(&rdr->RdrTypeUnion.CtrlRec,
-                                      CtrlMode, CtrlState);
-        if (rv != SA_OK) {
+        			      CtrlMode, CtrlState);
+        if (rv != SA_OK) {        	
                 oh_release_domain(d);
                 return rv;
         }
