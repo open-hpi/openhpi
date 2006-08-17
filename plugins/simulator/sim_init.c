@@ -227,8 +227,20 @@ SaErrorT sim_set_resource_tag(void *hnd, SaHpiResourceIdT id, SaHpiTextBufferT *
         return SA_OK;
 }
 
-
-
+SaErrorT sim_set_resource_severity(void *hnd, SaHpiResourceIdT rid, SaHpiSeverityT sev)
+{
+	struct oh_handler_state *h = hnd;
+	SaHpiRptEntryT *resource = NULL;
+	
+	resource = oh_get_resource_by_id(h->rptcache, rid);
+	if (!resource) {
+		return SA_ERR_HPI_NOT_PRESENT;
+	}
+	
+	resource->ResourceSeverity = sev;
+	
+	return SA_OK;
+}
 
 /*
  * Simulator plugin interface
@@ -247,4 +259,8 @@ void * oh_discover_resources (void *)
 
 void * oh_set_resource_tag (void *, SaHpiResourceIdT, SaHpiTextBufferT *)
                 __attribute__ ((weak, alias("sim_set_resource_tag")));
+                
+void * oh_set_resource_severity (void *, SaHpiResourceIdT, SaHpiSeverityT)
+		__attribute__ ((weak, alias("sim_set_resource_severity")));
+
 
