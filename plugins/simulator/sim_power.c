@@ -36,9 +36,11 @@ SaErrorT sim_get_power_state(void *hnd,
         if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_POWER)) {
 		return SA_ERR_HPI_CAPABILITY;
 	}
+	
+	struct simResourceInfo *sim_rinfo = oh_get_resource_data(state->rptcache, rid);
+	if (!sim_rinfo) return SA_ERR_HPI_NOT_PRESENT;
 
-	/* for the simulator the power state is always on */
-        *pwrstate = SAHPI_POWER_ON;
+        *pwrstate = sim_rinfo->cur_powerstate;
         return SA_OK;
 }
 
@@ -64,11 +66,12 @@ SaErrorT sim_set_power_state(void *hnd,
 		return SA_ERR_HPI_CAPABILITY;
 	}
 
-	/* for the simulator the power state cannot be turned off */
-        if (pwrstate == SAHPI_POWER_ON) {
-                return SA_OK;
-        }
-        return SA_ERR_HPI_CAPABILITY;
+	struct simResourceInfo *sim_rinfo = oh_get_resource_data(state->rptcache, rid);
+	if (!sim_rinfo) return SA_ERR_HPI_NOT_PRESENT;
+	
+	sim_rinfo->cur_powerstate = pwrstate;
+
+        return SA_OK;
 }
 
 
