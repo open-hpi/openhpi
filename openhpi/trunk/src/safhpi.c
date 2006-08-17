@@ -344,9 +344,9 @@ SaErrorT SAHPI_API saHpiResourceSeveritySet(
         }
 
         if ((error = set_res_sev(h->hnd, ResourceId, Severity)) != SA_OK) {
+        	oh_release_handler(h);
                 dbg("Setting severity failed for ResourceId %d in Domain %d",
-                    ResourceId, did);
-                oh_release_handler(h);
+                    ResourceId, did);                
                 return error;
         }
         oh_release_handler(h);
@@ -360,9 +360,9 @@ SaErrorT SAHPI_API saHpiResourceSeveritySet(
         OH_GET_DOMAIN(did, d); /* Lock domain */
         rptentry = oh_get_resource_by_id(&(d->rpt), ResourceId);
         if (!rptentry) {
-                dbg("Tag set failed: No Resource %d in Domain %d",
-                    ResourceId, did);
-                oh_release_domain(d); /* Unlock domain */
+        	oh_release_domain(d); /* Unlock domain */
+                dbg("Severity set failed: No Resource %d in Domain %d",
+                    ResourceId, did);                
                 return SA_ERR_HPI_NOT_PRESENT;
         }
         rptentry->ResourceSeverity = Severity;

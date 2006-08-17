@@ -54,6 +54,7 @@ typedef enum {
 struct simResourceInfo {
         SaHpiHsStateT cur_hsstate;
         SaHpiHsIndicatorStateT cur_indicator_hsstate;
+        SaHpiPowerStateT cur_powerstate;
 };
 
 struct sim_rpt {
