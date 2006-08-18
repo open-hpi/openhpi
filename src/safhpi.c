@@ -3207,7 +3207,8 @@ SaErrorT SAHPI_API saHpiAnnunciatorDelete(
         struct oh_domain *d = NULL;
 
         if ((EntryId == SAHPI_ENTRY_UNSPECIFIED) && !oh_lookup_severity(Severity)) {
-                 return SA_ERR_HPI_INVALID_PARAMS;
+        	dbg("Bad Severity %d passed in.", Severity);
+                return SA_ERR_HPI_INVALID_PARAMS;
         }
 
         OH_CHECK_INIT_STATE(SessionId);
@@ -3216,9 +3217,9 @@ SaErrorT SAHPI_API saHpiAnnunciatorDelete(
         OH_RESOURCE_GET_CHECK(d, ResourceId, res);
 
         if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_ANNUNCIATOR)) {
+        	oh_release_domain(d); /* Unlock domain */
                 dbg("Resource %d in Domain %d doesn't have annunciators",
-                    ResourceId, did);
-                oh_release_domain(d); /* Unlock domain */
+                    ResourceId, did);                
                 return SA_ERR_HPI_CAPABILITY;
         }
 
@@ -3228,9 +3229,9 @@ SaErrorT SAHPI_API saHpiAnnunciatorDelete(
                                  AnnunciatorNum);
 
         if (!rdr) {
+        	oh_release_domain(d); /* Unlock domain */
                 dbg("No Annunciator num %d found for Resource %d in Domain %d",
-                    AnnunciatorNum, ResourceId, did);
-                oh_release_domain(d); /* Unlock domain */
+                    AnnunciatorNum, ResourceId, did);                
                 return SA_ERR_HPI_NOT_PRESENT;
         }
 
