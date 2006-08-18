@@ -2355,7 +2355,7 @@ static SaErrorT snmp_bc_discover_ipmi_sensors(struct oh_handler_state *handle,
 				g_hash_table_insert(ipmi_sensor_hash, ipmi_tag, mib_info);
 			}
 			else { /* Already exists */
-				dbg("Duplicate IPMI OID=%s.", snmp_bc_ipmi_sensors_voltage[i].oid);
+				trace("Duplicate IPMI OID=%s.", snmp_bc_ipmi_sensors_voltage[i].oid);
 				g_free(ipmi_tag);
 			}
 		}
