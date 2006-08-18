@@ -83,7 +83,7 @@ SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
         err = snmp_bc_get_guid(custom_handle, e, res_info_ptr);
 
 	/* Add resource to temporary event cache/queue */
-	err = oh_add_resource(custom_handle->tmpcache, 
+	err = oh_add_resource(handle->rptcache, 
 			      &(e->u.res_event.entry), 
 			      res_info_ptr, 0);
 	if (err) {
@@ -91,7 +91,7 @@ SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
 		g_free(e);
 		return(err);
 	}
-	custom_handle->tmpqueue = g_slist_append(custom_handle->tmpqueue, e);
+	handle->eventq = g_slist_append(handle->eventq, e);
 
 	/* Find resource's events, sensors, controls, etc. */
 	snmp_bc_discover_res_events(handle, &(e->u.res_event.entry.ResourceEntity), res_info_ptr);
@@ -147,7 +147,7 @@ SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
                 err = snmp_bc_get_guid(custom_handle, e, res_info_ptr);
 		
 		/* Add resource to temporary event cache/queue */
-		err = oh_add_resource(custom_handle->tmpcache,
+		err = oh_add_resource(handle->rptcache,
 				      &(e->u.res_event.entry), 
 				      res_info_ptr, 0);
 		if (err) {
@@ -155,7 +155,7 @@ SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
 			g_free(e);
 			return(err);
 		}
-		custom_handle->tmpqueue = g_slist_append(custom_handle->tmpqueue, e);
+		handle->eventq = g_slist_append(handle->eventq, e);
 		
 		/* Find resource's events, sensors, controls, etc. */
 		snmp_bc_discover_res_events(handle, &(e->u.res_event.entry.ResourceEntity), res_info_ptr);
@@ -212,7 +212,7 @@ SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
                 err = snmp_bc_get_guid(custom_handle, e, res_info_ptr);
 		
 		/* Add resource to temporary event cache/queue */
-		err = oh_add_resource(custom_handle->tmpcache,
+		err = oh_add_resource(handle->rptcache,
 				      &(e->u.res_event.entry), 
 				      res_info_ptr, 0);
 		if (err) {
@@ -220,7 +220,7 @@ SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
 			g_free(e);
 			return(err);
 		}
-		custom_handle->tmpqueue = g_slist_append(custom_handle->tmpqueue, e);
+		handle->eventq = g_slist_append(handle->eventq, e);
 		
 		/* Find resource's events, sensors, controls, etc. */
 		snmp_bc_discover_res_events(handle, &(e->u.res_event.entry.ResourceEntity), res_info_ptr);
@@ -277,7 +277,7 @@ SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
                 err = snmp_bc_get_guid(custom_handle, e, res_info_ptr);
 		
 		/* Add resource to temporary event cache/queue */
-		err = oh_add_resource(custom_handle->tmpcache,
+		err = oh_add_resource(handle->rptcache,
 				      &(e->u.res_event.entry), 
 				      res_info_ptr, 0);
 		if (err) {
@@ -285,7 +285,7 @@ SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
 			g_free(e);
 			return(err);
 		}
-		custom_handle->tmpqueue = g_slist_append(custom_handle->tmpqueue, e);
+		handle->eventq = g_slist_append(handle->eventq, e);
 		
 		/* Find resource's events, sensors, controls, etc. */
 		snmp_bc_discover_res_events(handle, &(e->u.res_event.entry.ResourceEntity), res_info_ptr);
