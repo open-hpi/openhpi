@@ -1620,49 +1620,31 @@ SaErrorT snmp_bc_set_slot_state_sensor(void *hnd, struct oh_event *e, SaHpiEntit
 	handle = (struct oh_handler_state *) hnd;
 	custom_handle = (struct snmp_bc_hnd *)handle->data;
 					
-	if (custom_handle->isFirstDiscovery == SAHPI_TRUE) 
-		res = oh_get_resource_by_ep(custom_handle->tmpcache, slot_ep);
-	else 
-		res = oh_get_resource_by_ep(handle->rptcache, slot_ep);
+	res = oh_get_resource_by_ep(handle->rptcache, slot_ep);
 	
         if (!res) {
 		dbg("No valid resource or rdr at hand. Could not process new rdr.");
                 return(SA_ERR_HPI_INVALID_DATA);
 	}
 
-	if (custom_handle->isFirstDiscovery == SAHPI_TRUE)
-		 rdr = oh_get_rdr_next(custom_handle->tmpcache, res->ResourceId, SAHPI_FIRST_ENTRY);
-        else
-		rdr = oh_get_rdr_next(handle->rptcache, res->ResourceId, SAHPI_FIRST_ENTRY);
+	rdr = oh_get_rdr_next(handle->rptcache, res->ResourceId, SAHPI_FIRST_ENTRY);
 		
 	while (rdr) {
 		if ((rdr->RdrType == SAHPI_SENSOR_RDR) && 
 		               (rdr->RdrTypeUnion.SensorRec.Num == BLADECENTER_SENSOR_NUM_SLOT_STATE))
 		{
-			if (custom_handle->isFirstDiscovery == SAHPI_TRUE)
-				 sinfo = (struct SensorInfo *)oh_get_rdr_data(custom_handle->tmpcache, res->ResourceId, rdr->RecordId);
-			else
-				sinfo = (struct SensorInfo *)oh_get_rdr_data(handle->rptcache, res->ResourceId, rdr->RecordId);
+			sinfo = (struct SensorInfo *)oh_get_rdr_data(handle->rptcache, res->ResourceId, rdr->RecordId);
 			sinfo->cur_state = SAHPI_ES_PRESENT;
 			sinfo->cur_child_rid = 	e->u.res_event.entry.ResourceId;
 			
-			if (custom_handle->isFirstDiscovery == SAHPI_TRUE)
-				err = oh_add_rdr(custom_handle->tmpcache,
-					 res->ResourceId,
-					 rdr,
-				 	 sinfo, 0);
-			else
-				err = oh_add_rdr(handle->rptcache,
+			err = oh_add_rdr(handle->rptcache,
 					 res->ResourceId,
 					 rdr,
 				 	 sinfo, 0);				
 		
 			break;
 		}
-		if (custom_handle->isFirstDiscovery == SAHPI_TRUE)
-			rdr = oh_get_rdr_next(custom_handle->tmpcache, res->ResourceId, rdr->RecordId);
-		else
-			rdr = oh_get_rdr_next(handle->rptcache, res->ResourceId, rdr->RecordId);
+		rdr = oh_get_rdr_next(handle->rptcache, res->ResourceId, rdr->RecordId);
 	}
 
 			
