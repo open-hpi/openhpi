@@ -634,7 +634,7 @@ SaErrorT snmp_bc_selcache_sync(struct oh_handler_state *handle,
 				snmp_bc_log2event(handle, this_value->string, &tmpevent, isdst, &logsrc2res);
 
 				if ((tmpevent.EventType == SAHPI_ET_HOTSWAP) && 
-							(custom_handle->isFirstDiscovery == SAHPI_FALSE))
+						(custom_handle->isFirstDiscovery == SAHPI_FALSE))
 				{
 					err = snmp_bc_rediscover(handle, &tmpevent, &logsrc2res);
 				}
