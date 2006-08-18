@@ -42,8 +42,6 @@ struct snmp_bc_hnd {
 	SaHpiBoolT isFirstDiscovery;
 	gchar  handler_timezone[10];
         guint   handler_retries;          /* Number of retries attempted on SNMP target (agent) */
-	RPTable *tmpcache;
-	GSList *tmpqueue;
 	ohpi_bc_lock snmp_bc_hlock;
 	guint max_pb_supported;		/* pb - processor blade   */
 	guint max_blower_supported;	/* blower - fan/blower    */
