@@ -35,18 +35,6 @@ SaErrorT snmp_bc_discover_resources(void *hnd)
         char *root_tuple;
 	SaErrorT err, err1;
         SaHpiEntityPathT ep_root;
-	SaHpiEntityPathT valEntity;	 
-        GSList *res_new,
-		 *rdr_new,
-		 *res_gone,
-		 *rdr_gone;
-        GSList *node;
-        guint rdr_data_size;
-        GSList *tmpnode;
-        SaHpiRdrT *rdr;
-        SaHpiRptEntryT *res;
-        struct oh_event *e;
-        gpointer data;
 
         struct oh_handler_state *handle;		
         struct snmp_bc_hnd *custom_handle;
@@ -82,16 +70,19 @@ SaErrorT snmp_bc_discover_resources(void *hnd)
                 return(SA_ERR_HPI_INTERNAL_ERROR);
         }
 
-	/* Allocate space for temporary RPT cache */
-        custom_handle->tmpcache = (RPTable *)g_malloc0(sizeof(RPTable));
-        if (custom_handle->tmpcache == NULL) {
-                dbg("Out of memory.");
-                snmp_bc_unlock_handler(custom_handle);
-                return(SA_ERR_HPI_OUT_OF_SPACE);
-	}
-
-	/* Initialize tmpqueue */
-	custom_handle->tmpqueue = NULL;
+	/* --------------------------------------------------------------- */
+	/* tmpcache and tmpqueue are no longer used. pdphan 08/16/06       */
+	/* Allocate space for temporary RPT cache                          */
+        /*custom_handle->tmpcache = (RPTable *)g_malloc0(sizeof(RPTable)); */
+        /*if (custom_handle->tmpcache == NULL) {                           */
+        /*        dbg("Out of memory.");                                   */
+        /*        snmp_bc_unlock_handler(custom_handle);                   */
+        /*        return(SA_ERR_HPI_OUT_OF_SPACE);                         */
+	/*}                                                                */
+	/*                                                                 */
+	/* Initialize tmpqueue                                             */
+	/*custom_handle->tmpqueue = NULL;                                  */
+	/* --------------------------------------------------------------- */
 
 	/* Individual platform discovery */
 	if (custom_handle->platform == SNMP_BC_PLATFORM_RSA) {
@@ -115,125 +106,6 @@ SaErrorT snmp_bc_discover_resources(void *hnd)
 		goto CLEANUP;
 	}
 	
-	
-	/**********************************************************************
-	 * Rediscovery:
-	 * Get difference between current rptcache and custom_handle->tmpcache.
-	 * Delete obsolete items from rptcache and add new items in.
-	 **********************************************************************/
-        res_new = NULL;
-	rdr_new = NULL;
-	res_gone = NULL;
-	rdr_gone = NULL;
-        node = NULL;
-        
-       	rpt_diff(handle->rptcache, custom_handle->tmpcache, &res_new, &rdr_new, &res_gone, &rdr_gone);
-	trace("%d resources have gone away.", g_slist_length(res_gone));
-	trace("%d resources are new or have changed", g_slist_length(res_new));
-
-        for (node = rdr_gone; node != NULL; node = node->next) {
-                rdr = (SaHpiRdrT *)node->data;
-		snmp_bc_validate_ep(&(rdr->Entity), &valEntity);
-                res = oh_get_resource_by_ep(handle->rptcache, &(valEntity));
-		
-                /* Create remove RDR event and add to event queue */
-                e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
-                if (e) {
-			e->did = oh_get_default_domain_id();
-                        e->type = OH_ET_RDR_DEL;
-                        e->u.rdr_event.parent = res->ResourceId;			
-			memcpy(&(e->u.rdr_event.rdr), rdr, sizeof(SaHpiRdrT));
-                        handle->eventq = g_slist_append(handle->eventq, e);
-                } 
-		else { dbg("Out of memory."); }
-                /* Remove RDR from plugin's RPT cache */
-                if (rdr && res)
-                        oh_remove_rdr(handle->rptcache, res->ResourceId, rdr->RecordId);
-                else { dbg("No valid resource or rdr at hand. Could not remove rdr."); }
-        }
-
-        g_slist_free(rdr_gone);
-
-        for (node = res_gone; node != NULL; node = node->next) {
-                res = (SaHpiRptEntryT *)node->data;
-		/* Create remove resource event and add to event queue */
-		e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
-                if (e) {
-			e->did = oh_get_default_domain_id();
-                        e->type = OH_ET_RESOURCE_DEL;
-
-                        e->u.res_event.entry.ResourceId = res->ResourceId;
-                        handle->eventq = g_slist_append(handle->eventq, e);
-                } else { dbg("Out of memory."); }
-		/* Remove resource from plugin's RPT cache */
-                if (res)
-                        oh_remove_resource(handle->rptcache, res->ResourceId);
-                else dbg("No valid resource at hand. Could not remove resource.");
-        }
-
-        g_slist_free(res_gone);
-
-        for (node = res_new; node != NULL; node = node->next) {
-                tmpnode = NULL;
-                res = (SaHpiRptEntryT *)node->data;
-                if (!res) {
-                        dbg("No valid resource at hand. Could not process new resource.");
-                        continue;
-                }
-                data = oh_get_resource_data(custom_handle->tmpcache, res->ResourceId);
-		if (data) {
-                	oh_add_resource(handle->rptcache, res, g_memdup(data, sizeof(struct snmp_rpt)),0);
-                	/* Add new/changed resources to the event queue */
-                	for (tmpnode = custom_handle->tmpqueue; tmpnode != NULL; tmpnode = tmpnode->next) {
-                        	struct oh_event *e = (struct oh_event *)tmpnode->data;
-                        	if (e->type == OH_ET_RESOURCE &&
-                           	 e->u.res_event.entry.ResourceId == res->ResourceId) {
-                                	handle->eventq = g_slist_append(handle->eventq, e);
-                                	custom_handle->tmpqueue = g_slist_remove_link(custom_handle->tmpqueue, tmpnode);
-					g_slist_free_1(tmpnode);
-                                	break;
-                        	}
-                	}
-
-                } else {
-		       dbg(" NULL data pointer for ResourceID %d \n", res->ResourceId);
-                }
-        }
-        g_slist_free(res_new);
-        
-        for (node = rdr_new; node != NULL; node = node->next) {
-                rdr_data_size = 0;
-                tmpnode = NULL;
-                rdr = (SaHpiRdrT *)node->data;
-		snmp_bc_validate_ep(&(rdr->Entity), &valEntity);
-                res = oh_get_resource_by_ep(handle->rptcache, &(valEntity));
-                if (!res || !rdr) {
-                        dbg("No valid resource or rdr at hand. Could not process new rdr.");
-                        continue;
-                }
-                data = oh_get_rdr_data(custom_handle->tmpcache, res->ResourceId, rdr->RecordId);
-                /* Need to figure out the size of the data associated with the rdr */
-                if (rdr->RdrType == SAHPI_SENSOR_RDR) rdr_data_size = sizeof(struct SensorInfo);
-                else if (rdr->RdrType == SAHPI_CTRL_RDR)
-                        rdr_data_size = sizeof(struct ControlInfo);
-                else if (rdr->RdrType == SAHPI_INVENTORY_RDR)
-                        rdr_data_size = sizeof(struct InventoryInfo);
-                oh_add_rdr(handle->rptcache, res->ResourceId, rdr, g_memdup(data, rdr_data_size),0);
-                /* Add new/changed rdrs to the event queue */
-                for (tmpnode = custom_handle->tmpqueue; tmpnode != NULL; tmpnode = tmpnode->next) {
-                        struct oh_event *e = (struct oh_event *)tmpnode->data;
-                        if (e->type == OH_ET_RDR &&
-                            oh_cmp_ep(&(e->u.rdr_event.rdr.Entity),&(rdr->Entity)) &&
-                            e->u.rdr_event.rdr.RecordId == rdr->RecordId) {
-                                handle->eventq = g_slist_append(handle->eventq, e);
-                                custom_handle->tmpqueue = g_slist_remove_link(custom_handle->tmpqueue, tmpnode);
-				g_slist_free_1(tmpnode);
-                                break;
-                        }
-                }
-        }        
-        g_slist_free(rdr_new);
-
 
 	/* Build cache copy of SEL. RID == 1 (2nd parm) is a dummy id */
 	/**
@@ -260,11 +132,7 @@ SaErrorT snmp_bc_discover_resources(void *hnd)
 	                                custom_handle->isFirstDiscovery = SAHPI_FALSE;
 
  CLEANUP:        
-        g_slist_free(custom_handle->tmpqueue);
-        oh_flush_rpt(custom_handle->tmpcache);  
-        g_free(custom_handle->tmpcache);
         snmp_bc_unlock_handler(custom_handle);
-
         return(err);
 }
 
@@ -338,7 +206,7 @@ SaErrorT snmp_bc_discover_sensors(struct oh_handler_state *handle,
 			trace("Discovered sensor: %s.", e->u.rdr_event.rdr.IdString.Data);
 
 			sensor_info_ptr = g_memdup(&(sensor_array[i].sensor_info), sizeof(struct SensorInfo));
-			err = oh_add_rdr(custom_handle->tmpcache,
+			err = oh_add_rdr(handle->rptcache,
 					 res_oh_event->u.res_event.entry.ResourceId,
 					 &(e->u.rdr_event.rdr),
 					 sensor_info_ptr, 0);
@@ -347,7 +215,7 @@ SaErrorT snmp_bc_discover_sensors(struct oh_handler_state *handle,
 				g_free(e);
 			}
 			else {
-				custom_handle->tmpqueue = g_slist_append(custom_handle->tmpqueue, e);
+				handle->eventq = g_slist_append(handle->eventq, e);
 				snmp_bc_discover_sensor_events(handle,
 							       &(res_oh_event->u.res_event.entry.ResourceEntity),
 							       sensor_array[i].sensor.Num,
@@ -416,7 +284,7 @@ SaErrorT snmp_bc_discover_controls(struct oh_handler_state *handle,
 			trace("Discovered control: %s.", e->u.rdr_event.rdr.IdString.Data);
 
 			control_info_ptr = g_memdup(&(control_array[i].control_info), sizeof(struct ControlInfo));
-			err = oh_add_rdr(custom_handle->tmpcache,
+			err = oh_add_rdr(handle->rptcache,
 					 res_oh_event->u.res_event.entry.ResourceId,
 					 &(e->u.rdr_event.rdr),
 					 control_info_ptr, 0);
@@ -425,7 +293,7 @@ SaErrorT snmp_bc_discover_controls(struct oh_handler_state *handle,
 				g_free(e);
 			}
 			else {
-				custom_handle->tmpqueue = g_slist_append(custom_handle->tmpqueue, e);
+				handle->eventq = g_slist_append(handle->eventq, e);
 			}
 		}
 		else {
@@ -489,7 +357,7 @@ SaErrorT snmp_bc_discover_inventories(struct oh_handler_state *handle,
 			trace("Discovered inventory: %s.", e->u.rdr_event.rdr.IdString.Data);
 
 			inventory_info_ptr = g_memdup(&(inventory_array[i].inventory_info), sizeof(struct InventoryInfo));
-			err = oh_add_rdr(custom_handle->tmpcache,
+			err = oh_add_rdr(handle->rptcache,
 					 res_oh_event->u.res_event.entry.ResourceId,
 					 &(e->u.rdr_event.rdr),
 					 inventory_info_ptr, 0);
@@ -498,7 +366,7 @@ SaErrorT snmp_bc_discover_inventories(struct oh_handler_state *handle,
 				g_free(e);
 			}
 			else {
-				custom_handle->tmpqueue = g_slist_append(custom_handle->tmpqueue, e);
+				handle->eventq = g_slist_append(handle->eventq, e);
 			}
 		}
 		else {
