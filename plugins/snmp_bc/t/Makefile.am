@@ -69,7 +69,8 @@ libsnmp_bc_la_SOURCES = \
 		tsetup.c
 
 libsnmp_bc_la_LIBADD = -luuid @SNMPLIBS@
-libsnmp_bc_la_LDFLAGS = -version 0:0:0
+libsnmp_bc_la_LDFLAGS = -module -version-info @HPI_LIB_VERSION@
+# libsnmp_bc_la_LDFLAGS = -version 0:0:0
 
 libsnmp_bc.la: $(libsnmp_bc_la_OBJECTS) $(libsnmp_bc_la_DEPENDENCIES)
 	$(LINK) -rpath $(pkglibdir) $(libsnmp_bc_la_LDFLAGS) $(libsnmp_bc_la_OBJECTS) $(libsnmp_bc_la_LIBADD) $(LIBS)
