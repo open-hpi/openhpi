@@ -230,7 +230,7 @@ SaErrorT oh_announcement_ack(oh_announcement *ann, SaHpiEntryIdT srchid,
 
         /* EntryId not specified, so ack announcements which have the specified severity */
         annlist = g_list_first(ann->annentries);
-        if (annlist == NULL) return SA_ERR_HPI_NOT_PRESENT;
+        if (annlist == NULL) return SA_OK;
         
         while (annlist != NULL) {
                 myentry = (oh_ann_entry *) annlist->data;
@@ -272,7 +272,7 @@ SaErrorT oh_announcement_del(oh_announcement *ann, SaHpiEntryIdT srchid,
 
         /* remove all announcements with a specified severity */
         annlist = g_list_first(ann->annentries);
-        if (annlist == NULL) return SA_ERR_HPI_NOT_PRESENT;
+        if (annlist == NULL) return SA_OK;
         
         while (annlist != NULL) {
                 myentry = (oh_ann_entry *) annlist->data;
