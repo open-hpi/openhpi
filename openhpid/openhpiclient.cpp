@@ -2652,7 +2652,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(IdrFieldGet)
 		return SA_ERR_HPI_INVALID_SESSION;
         
         if (!Field ||
-            !oh_lookup_idrfieldtype(Field->Type) ||
+            !oh_lookup_idrfieldtype(FieldType) ||
             AreaId == SAHPI_LAST_ENTRY ||
             FieldId == SAHPI_LAST_ENTRY ||
             !NextId)    {

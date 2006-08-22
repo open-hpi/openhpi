@@ -2552,7 +2552,7 @@ SaErrorT SAHPI_API saHpiIdrFieldGet(
                              SaHpiEntryIdT *, SaHpiIdrFieldT * );
 
         if (!Field ||
-            !oh_lookup_idrfieldtype(Field->Type) ||
+            !oh_lookup_idrfieldtype(FieldType) ||
             AreaId == SAHPI_LAST_ENTRY ||
             FieldId == SAHPI_LAST_ENTRY ||
             !NextFieldId)    {
