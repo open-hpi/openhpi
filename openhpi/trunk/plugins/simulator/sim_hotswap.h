@@ -40,4 +40,8 @@ SaErrorT sim_get_autoextract_timeout(void *hnd,
 				     SaHpiResourceIdT rid,
 				     SaHpiTimeoutT *timeout);
 
+SaErrorT sim_set_autoextract_timeout(void *hnd,
+				     SaHpiResourceIdT rid,
+				     SaHpiTimeoutT timeout);
+
 #endif
