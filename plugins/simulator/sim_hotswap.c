@@ -329,6 +329,46 @@ SaErrorT sim_get_autoextract_timeout(void *hnd,
 	*timeout = privinfo->ae_timeout;
 	
 	return SA_OK;
+}
+
+SaErrorT sim_set_autoextract_timeout(void *hnd,
+				     SaHpiResourceIdT rid,
+				     SaHpiTimeoutT timeout)
+{
+	struct simResourceInfo *privinfo;
+	
+	if (!hnd) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+	
+	struct oh_handler_state *state = (struct oh_handler_state *)hnd;
+	
+	/* Check if resource exists and has managed hotswap capabilities */
+	SaHpiRptEntryT *rpt = oh_get_resource_by_id(state->rptcache, rid);
+        if (!rpt) {
+		return SA_ERR_HPI_INVALID_RESOURCE;
+	}
+
+        /* if not simplified HS then return an error */
+        if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
+		return SA_ERR_HPI_CAPABILITY;
+	}
+	
+	if (rpt->HotSwapCapabilities & SAHPI_HS_CAPABILITY_AUTOEXTRACT_READ_ONLY) {
+		return SA_ERR_HPI_READ_ONLY;
+	}
+
+        /* get our private state data */
+	privinfo = (struct simResourceInfo *)oh_get_resource_data(state->rptcache, rid);
+ 	if (privinfo == NULL) {
+		dbg("No resource data. ResourceId=%d", rid);
+		return SA_ERR_HPI_INVALID_RESOURCE;
+	}
+	
+	privinfo->ae_timeout = timeout;
+	
+	return SA_OK;
 }				   
 
 
@@ -350,4 +390,6 @@ void * oh_get_indicator_state (void *, SaHpiResourceIdT, SaHpiHsIndicatorStateT)
 void * oh_get_autoextract_timeout (void *, SaHpiResourceIdT, SaHpiTimeoutT *)
                 __attribute__ ((weak, alias("sim_get_autoextract_timeout")));
 
+void * oh_set_autoextract_timeout (void *, SaHpiResourceIdT, SaHpiTimeoutT)
+                __attribute__ ((weak, alias("sim_set_autoextract_timeout")));
 
