@@ -2431,15 +2431,11 @@ SaErrorT SAHPI_API saHpiIdrAreaAdd(
         SaErrorT (*set_func)(void *, SaHpiResourceIdT, SaHpiIdrIdT, SaHpiIdrAreaTypeT,
                                 SaHpiEntryIdT *);
 
-        if ( ((AreaType < SAHPI_IDR_AREATYPE_INTERNAL_USE) ||
-             ((AreaType > SAHPI_IDR_AREATYPE_PRODUCT_INFO) &&
-             (AreaType != SAHPI_IDR_AREATYPE_UNSPECIFIED)  &&
-             (AreaType != SAHPI_IDR_AREATYPE_OEM)) ||
-             (AreaId == NULL)))   {
+        if (!oh_lookup_idrareatype(AreaType) ||
+            AreaId == NULL)   {
                 dbg("Invalid Parameters");
                 return SA_ERR_HPI_INVALID_PARAMS;
-        }
-        if (AreaType == SAHPI_IDR_AREATYPE_UNSPECIFIED) {
+        } else if (AreaType == SAHPI_IDR_AREATYPE_UNSPECIFIED) {
                 dbg("AreaType == SAHPI_IDR_AREATYPE_UNSPECIFIED");
                 return SA_ERR_HPI_INVALID_DATA;
         }
@@ -2555,12 +2551,11 @@ SaErrorT SAHPI_API saHpiIdrFieldGet(
                              SaHpiEntryIdT, SaHpiIdrFieldTypeT, SaHpiEntryIdT,
                              SaHpiEntryIdT *, SaHpiIdrFieldT * );
 
-        if ((((FieldType > SAHPI_IDR_FIELDTYPE_CUSTOM) &&
-             (FieldType != SAHPI_IDR_FIELDTYPE_UNSPECIFIED)) ||
-             (AreaId == SAHPI_LAST_ENTRY) ||
-             (FieldId == SAHPI_LAST_ENTRY) ||
-             (NextFieldId == NULL) ||
-             (Field == NULL)))    {
+        if (!Field ||
+            !oh_lookup_idrfieldtype(Field->Type) ||
+            AreaId == SAHPI_LAST_ENTRY ||
+            FieldId == SAHPI_LAST_ENTRY ||
+            !NextFieldId)    {
                 dbg("Invalid Parameters");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
@@ -2581,6 +2576,7 @@ SaErrorT SAHPI_API saHpiIdrFieldGet(
         rdr = oh_get_rdr_by_type(&(d->rpt), ResourceId, SAHPI_INVENTORY_RDR, IdrId);
         if (!rdr) {
                 oh_release_domain(d); /* Unlock domain */
+                dbg("Inventory RDR was not found.");
                 return SA_ERR_HPI_NOT_PRESENT;
         }
         OH_HANDLER_GET(d, ResourceId, h);
@@ -2619,11 +2615,13 @@ SaErrorT SAHPI_API saHpiIdrFieldAdd(
         if (!Field)   {
                 dbg("Invalid Parameter: Field is NULL ");
                 return SA_ERR_HPI_INVALID_PARAMS;
-        } else if (Field->Type > SAHPI_IDR_FIELDTYPE_CUSTOM) {
-                dbg("Invalid Parameters in Field->Type");
+        } else if (!oh_lookup_idrfieldtype(Field->Type)) {
+                dbg("Invalid Parameter in Field->Type");
                 return SA_ERR_HPI_INVALID_PARAMS;
-        }
-        if (oh_valid_textbuffer(&Field->Field) != SAHPI_TRUE) {
+        } else if (Field->Type == SAHPI_IDR_FIELDTYPE_UNSPECIFIED) {
+        	dbg("Invalid unspecified type");
+        	return SA_ERR_HPI_INVALID_PARAMS;
+        } else if (oh_valid_textbuffer(&Field->Field) != SAHPI_TRUE) {
                 dbg("invalid text buffer");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
@@ -2644,6 +2642,7 @@ SaErrorT SAHPI_API saHpiIdrFieldAdd(
         rdr = oh_get_rdr_by_type(&(d->rpt), ResourceId, SAHPI_INVENTORY_RDR, IdrId);
         if (!rdr) {
                 oh_release_domain(d); /* Unlock domain */
+                dbg("Could not find inventory rdr");
                 return SA_ERR_HPI_NOT_PRESENT;
         }
         OH_HANDLER_GET(d, ResourceId, h);
@@ -2845,10 +2844,14 @@ SaErrorT SAHPI_API saHpiWatchdogTimerSet (
         SaHpiDomainIdT did;
 
         if (!Watchdog ||
-            (Watchdog && (!oh_lookup_watchdogtimeruse(Watchdog->TimerUse) ||
-                          !oh_lookup_watchdogaction(Watchdog->TimerAction) ||
-                          !oh_lookup_watchdogpretimerinterrupt(Watchdog->PretimerInterrupt)))) {
+            !oh_lookup_watchdogtimeruse(Watchdog->TimerUse) ||
+            !oh_lookup_watchdogaction(Watchdog->TimerAction) ||
+            !oh_lookup_watchdogpretimerinterrupt(Watchdog->PretimerInterrupt)) {
                 return SA_ERR_HPI_INVALID_PARAMS;
+        }
+        
+        if (Watchdog->PreTimeoutInterval > Watchdog->InitialCount) {
+        	return SA_ERR_HPI_INVALID_DATA;
         }
 
         OH_CHECK_INIT_STATE(SessionId);

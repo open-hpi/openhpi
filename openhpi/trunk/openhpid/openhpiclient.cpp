@@ -2183,17 +2183,18 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SensorEventMasksGet)
         SaErrorT err;
 	char cmd[] = "saHpiSensorEventMasksGet";
         pcstrmsock pinst;
+        SaHpiEventStateT myassert = 0, mydeassert = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
-        if (!Assert)
-                return SA_ERR_HPI_INVALID_PARAMS;
-        if (!Deassert)
-                return SA_ERR_HPI_INVALID_PARAMS;
-
+		
+	if (!Assert) Assert = &myassert;
+	if (!Deassert) Deassert = &mydeassert;
+	
+        
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiSensorEventMasksGet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiSensorEventMasksGet, hm->m_request_len);
         request = malloc(hm->m_request_len);
@@ -2550,12 +2551,13 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(IdrAreaAdd)
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
-        if ( ((AreaType < SAHPI_IDR_AREATYPE_INTERNAL_USE) ||
-             ((AreaType > SAHPI_IDR_AREATYPE_PRODUCT_INFO) &&
-             (AreaType != SAHPI_IDR_AREATYPE_UNSPECIFIED)  &&
-             (AreaType != SAHPI_IDR_AREATYPE_OEM)) ||
-             (AreaId == NULL)))
+        
+        if (!oh_lookup_idrareatype(AreaType) ||
+            AreaId == NULL)   {
                 return SA_ERR_HPI_INVALID_PARAMS;
+        } else if (AreaType == SAHPI_IDR_AREATYPE_UNSPECIFIED) {
+                return SA_ERR_HPI_INVALID_DATA;
+        }
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiIdrAreaAdd);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiIdrAreaAdd, hm->m_request_len);
@@ -2648,13 +2650,15 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(IdrFieldGet)
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
-        if ((((FieldType > SAHPI_IDR_FIELDTYPE_CUSTOM) &&
-             (FieldType != SAHPI_IDR_FIELDTYPE_UNSPECIFIED)) ||
-             (AreaId == SAHPI_LAST_ENTRY) ||
-             (FieldId == SAHPI_LAST_ENTRY) ||
-             (NextId == NULL) ||
-             (Field == NULL)))
+        
+        if (!Field ||
+            !oh_lookup_idrfieldtype(Field->Type) ||
+            AreaId == SAHPI_LAST_ENTRY ||
+            FieldId == SAHPI_LAST_ENTRY ||
+            !NextId)    {
+                cdebug_err("saHpiIdrFieldGet", "Invalid Parameters");
                 return SA_ERR_HPI_INVALID_PARAMS;
+        }
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiIdrFieldGet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiIdrFieldGet, hm->m_request_len);
@@ -2698,10 +2702,20 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(IdrFieldAdd)
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
-        if (!Field)
+        
+        if (!Field)   {
+        	cdebug_err("saHpiIdrFieldAdd", "Null Field")
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (Field->Type > SAHPI_IDR_FIELDTYPE_CUSTOM)
+        } else if (!oh_lookup_idrfieldtype(Field->Type)) {
+        	cdebug_err("saHpiIdrFieldAdd", "Bad Field Type")
                 return SA_ERR_HPI_INVALID_PARAMS;
+        } else if (Field->Type == SAHPI_IDR_FIELDTYPE_UNSPECIFIED) {
+        	cdebug_err("saHpiIdrFieldAdd", "Unspecified Field Type")
+        	return SA_ERR_HPI_INVALID_PARAMS;
+        } else if (oh_valid_textbuffer(&Field->Field) != SAHPI_TRUE) {
+        	cdebug_err("saHpiIdrFieldAdd", "Bad Text Buffer in Field")
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiIdrFieldAdd);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiIdrFieldAdd, hm->m_request_len);
@@ -2883,11 +2897,16 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(WatchdogTimerSet)
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
+        
         if (!Watchdog ||
-            (Watchdog && (!oh_lookup_watchdogtimeruse(Watchdog->TimerUse) ||
-                          !oh_lookup_watchdogaction(Watchdog->TimerAction) ||
-                          !oh_lookup_watchdogpretimerinterrupt(Watchdog->PretimerInterrupt)))) {
+            !oh_lookup_watchdogtimeruse(Watchdog->TimerUse) ||
+            !oh_lookup_watchdogaction(Watchdog->TimerAction) ||
+            !oh_lookup_watchdogpretimerinterrupt(Watchdog->PretimerInterrupt)) {
                 return SA_ERR_HPI_INVALID_PARAMS;
+        }
+        
+        if (Watchdog->PreTimeoutInterval > Watchdog->InitialCount) {
+        	return SA_ERR_HPI_INVALID_DATA;
         }
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiWatchdogTimerSet);

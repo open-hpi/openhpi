@@ -35,4 +35,4 @@ libsnmp_client_la_SOURCES	= \
 				  sc_sensor_data.c
 				  
 libsnmp_client_la_LIBADD	= -luuid $(top_builddir)/utils/libopenhpiutils.la @SNMPLIBS@ $(SNMPUTILSDIR)/libopenhpi_snmp.la
-libsnmp_client_la_LDFLAGS	= -module -avoid-version
+libsnmp_client_la_LDFLAGS	= -module -version-info @HPI_LIB_VERSION@
