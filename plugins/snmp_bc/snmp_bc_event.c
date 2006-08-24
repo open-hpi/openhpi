@@ -668,11 +668,13 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 					/* oh_print_event(&autoevent, NULL, 0); */
 					
 					/* Add event to event cache and HPI event queue */
-					err = oh_el_prepend(handle->elcache, &autoevent, NULL, rpt);
-					if (err) {
-						dbg("Cannot add entry to cache. Error=%s.", oh_lookup_error(err));
-						return(err);
-					}
+					//err = oh_el_prepend(handle->elcache, &autoevent, NULL, rpt);
+					//if (err) {
+					//	dbg("Cannot add entry to cache. Error=%s.", oh_lookup_error(err));
+					//	return(err);
+					//}
+					
+					
 					if (custom_handle->isFirstDiscovery == SAHPI_FALSE) {
 						err = snmp_bc_add_to_eventq(handle, &autoevent, SAHPI_TRUE);
 						if (err) {
