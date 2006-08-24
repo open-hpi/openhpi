@@ -57,47 +57,6 @@ static int snmp_bc_get_sel_size(struct oh_handler_state *handle, SaHpiResourceId
 }
 
 /**
- * snmp_bc_get_sel_size_from_hardware:
- * @ss: Pointer to SNMP session data.
- * 
- * Unfortunately, hardware SNMP support does not provide access to the number 
- * of entries in the event log. This routine finds the number by sequentially 
- * reading the entire log index and counting the number of entries.
- *
- * Notice that this routine always reads one past the max event number's OID. 
- * It relies on a non-zero return code from SNMP to determine when there are 
- * no more entries.
- *
- * Return values:
- * Number of event log entries - normal case.
- **/
- /* ------------------------------------------------------------------------------------- */
- /* This routine is no longer needed. Keep it here (with #if 0) for documentation purpose */
-#if 0
-static int snmp_bc_get_sel_size_from_hardware(struct snmp_bc_hnd *custom_handle)
-{
-        struct snmp_value run_value;
-        char oid[SNMP_BC_MAX_OID_LENGTH];
-        int i;
-
-	i = 1;
-        do {
-		if (custom_handle->platform == SNMP_BC_PLATFORM_RSA) {
-			snprintf(oid, SNMP_BC_MAX_OID_LENGTH, "%s.%d", SNMP_BC_SEL_INDEX_OID_RSA, i);
-		}
-		else {
-			snprintf(oid, SNMP_BC_MAX_OID_LENGTH, "%s.%d", SNMP_BC_SEL_INDEX_OID, i);
-		}
-                i++;
-        } while(snmp_bc_snmp_get(custom_handle, oid, &run_value, SAHPI_TRUE) == 0);
-        
-        /* Think about it, and it makes sense */
-        i -= 2;
-        return i;
-}
-
-#endif
-/**
  * snmp_bc_get_sel_info:
  * @hnd: Pointer to handler's data.
  * @id: Resource ID that owns the Event Log.
@@ -621,7 +580,6 @@ SaErrorT snmp_bc_selcache_sync(struct oh_handler_state *handle,
 		if (cacheupdate) {
 			GList *proc_log = NULL;
 			proc_log = g_list_first(sync_log);
-
 			while(proc_log != NULL) {
 				this_value = (struct snmp_value *)proc_log->data;
 				err = snmp_bc_parse_sel_entry(handle,this_value->string, &sel_entry);
@@ -633,16 +591,10 @@ SaErrorT snmp_bc_selcache_sync(struct oh_handler_state *handle,
 				isdst = sel_entry.time.tm_isdst;
 				snmp_bc_log2event(handle, this_value->string, &tmpevent, isdst, &logsrc2res);
 
-				if ((tmpevent.EventType == SAHPI_ET_HOTSWAP) && 
-						(custom_handle->isFirstDiscovery == SAHPI_FALSE))
-				{
-					err = snmp_bc_rediscover(handle, &tmpevent, &logsrc2res);
-				}
-
 				/*  append to end-of-elcache and end-of-eventq   */
 				err = snmp_bc_add_entry_to_elcache(handle, &tmpevent, SAHPI_FALSE);
 				proc_log = g_list_next(proc_log);
-			
+
 			}
 			
 		} else {
