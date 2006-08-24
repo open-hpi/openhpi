@@ -617,7 +617,13 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 			}
 			snmp_bc_set_cur_prev_event_states(handle, eventmap_info,
 							  &working, is_recovery_event);
+							  
+			if (custom_handle->isFirstDiscovery == SAHPI_FALSE) {
+				/* Call rediscover() here to discover newly installed resource */
+				err = snmp_bc_rediscover(handle, &working, &logsrc2res);
+			}						  
 			
+						
 			goto RESUME_TO_EXIT;
 			// return(SA_ERR_HPI_INTERNAL_ERROR);
 		}
@@ -739,7 +745,7 @@ RESUME_TO_EXIT:
 	working.Timestamp = event_time;
 	working.Severity = event_severity;
 	memcpy((void *)event, (void *)&working, sizeof(SaHpiEventT));
-	memcpy(ret_logsrc2res, &logsrc2res, sizeof(LogSource2ResourceT));
+	memcpy(ret_logsrc2res, &logsrc2res, sizeof(LogSource2ResourceT));	
 
 	return(SA_OK);
 }
@@ -1165,7 +1171,7 @@ static SaErrorT snmp_bc_set_cur_prev_event_states(struct oh_handler_state *handl
 			/* this resource either did not exist at HPI time 0, or    */
 			/* has previously been removed from system.                */
 			/* It is safe to assume that it is being Hotswap-Installed */
-			dbg("No resource data. RID=%x", event->Source);
+			trace("No resource data. RID=%x", event->Source);
 			event->EventDataUnion.HotSwapEvent.PreviousHotSwapState	= SAHPI_HS_STATE_NOT_PRESENT;
 			event->EventDataUnion.HotSwapEvent.HotSwapState =  SAHPI_HS_STATE_INACTIVE;			
 			return(SA_OK);
@@ -1469,10 +1475,13 @@ static SaErrorT snmp_bc_logsrc2rid(struct oh_handler_state *handle,
 SaErrorT snmp_bc_add_to_eventq(struct oh_handler_state *handle, SaHpiEventT *thisEvent, SaHpiBoolT prepend)
 {
 	SaHpiEntryIdT rdrid;
+	SaErrorT err;
         struct oh_event working;
         struct oh_event *e = NULL;
 	SaHpiRptEntryT *thisRpt;
 	SaHpiRdrT      *thisRdr;
+	LogSource2ResourceT logsrc2res;
+	guint blade_loc, i;	
 	
 	rdrid = 0;
         memset(&working, 0, sizeof(struct oh_event));
@@ -1487,8 +1496,34 @@ SaErrorT snmp_bc_add_to_eventq(struct oh_handler_state *handle, SaHpiEventT *thi
 
 	/* Setting RDR ID to event struct */	
 	switch (thisEvent->EventType) {
-	case SAHPI_ET_OEM:
 	case SAHPI_ET_HOTSWAP:
+		blade_loc = SNMP_BC_NOT_VALID;
+		if (thisRpt) {
+ 			for (i=0; thisRpt->ResourceEntity.Entry[i].EntityType != SAHPI_ENT_SYSTEM_CHASSIS; i++)
+			{
+				if (thisRpt->ResourceEntity.Entry[i].EntityType == SAHPI_ENT_SBC_BLADE) {
+    					blade_loc = thisRpt->ResourceEntity.Entry[i].EntityLocation;					
+					break;
+				}			
+			}
+				
+			if (blade_loc != SNMP_BC_NOT_VALID) 
+				err = snmp_bc_create_bem_event(handle, thisEvent, blade_loc);
+		
+			
+			if (snmp_bc_isrediscover(thisEvent) == SNMP_BC_RESOURCE_REMOVED) {
+				/* Call rediscovery to remove rpt and rdrs from rptcache */
+				logsrc2res.ep = thisRpt->ResourceEntity;
+				err = snmp_bc_rediscover(handle, thisEvent, &logsrc2res);
+			}
+		}
+	
+		/* There is no RDR associated to Hotswap event */
+		/* Set RDR Type to SAHPI_NO_RECORD, spec B-01.01 */		
+		memset(&working.u.hpi_event.rdr, 0, sizeof(SaHpiRdrT));
+		working.u.hpi_event.rdr.RdrType = SAHPI_NO_RECORD;
+		break;			           	
+	case SAHPI_ET_OEM:
 	case SAHPI_ET_USER:
 		/* There is no RDR associated to OEM event */
 		memset(&working.u.hpi_event.rdr, 0, sizeof(SaHpiRdrT));
