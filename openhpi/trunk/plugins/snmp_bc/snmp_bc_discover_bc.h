@@ -21,6 +21,10 @@
 #define SNMP_BC_IPMI_TEMP_BLADE_OID ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.11.x"
 #define SNMP_BC_IPMI_VOLTAGE_BLADE_OID ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.14.x"
 
+#define SNMP_BC_RESOURCE_INSTALLED 1
+#define SNMP_BC_RESOURCE_REMOVED   2
+
+
 #define get_installed_mask(maskOID, getvalue) \
 do { \
 	err = snmp_bc_snmp_get(custom_handle, maskOID, &getvalue, SAHPI_TRUE); \
@@ -45,6 +49,7 @@ do { \
         } \
 } while(0)
 
+guint snmp_bc_isrediscover(SaHpiEventT *working_event);
 
 
 #endif
