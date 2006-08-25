@@ -134,7 +134,7 @@ SaErrorT snmp_bc_set_resource_tag(void *hnd, SaHpiResourceIdT rid, SaHpiTextBuff
 	/* ---------------------------------------- */
 	/* Construct .event of struct oh_event      */	
 	/* ---------------------------------------- */
-	snmp_bc_set_resource_add_oh_event(e, res_info_ptr);
+	snmp_bc_set_resource_add_oh_event(custom_handle, e, res_info_ptr);
 
 	/* ---------------------------------------- */
 	/* Prime event to evenq                     */
@@ -206,7 +206,7 @@ SaErrorT snmp_bc_set_resource_severity(void *hnd, SaHpiResourceIdT rid, SaHpiSev
 	/* ---------------------------------------- */
 	/* Construct .event of struct oh_event      */	
 	/* ---------------------------------------- */
-	snmp_bc_set_resource_add_oh_event(e, res_info_ptr);
+	snmp_bc_set_resource_add_oh_event(custom_handle, e, res_info_ptr);
 
 	/* ---------------------------------------- */
 	/* Prime event to evenq                     */
