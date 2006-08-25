@@ -299,11 +299,12 @@ void snmp_bc_free_oh_event(struct oh_event *e)
  * NULL - No space or invalid parm
  * (oh_event *) - Normal
  **/
-SaErrorT snmp_bc_set_resource_add_oh_event(struct oh_event *e, 
+SaErrorT snmp_bc_set_resource_add_oh_event(struct snmp_bc_hnd *custom_handle,
+					struct oh_event *e,
 					struct ResourceInfo *res_info_ptr)
 {
-	if (!e || !res_info_ptr) return(SA_ERR_HPI_INVALID_PARAMS);
-	
+	if (!custom_handle || !e || !res_info_ptr) return(SA_ERR_HPI_INVALID_PARAMS);
+		
 	e->event.Severity = e->resource.ResourceSeverity;
 	e->event.Source =   e->resource.ResourceId;	
 	if (oh_gettimeofday(&e->event.Timestamp) != SA_OK)
@@ -311,10 +312,20 @@ SaErrorT snmp_bc_set_resource_add_oh_event(struct oh_event *e,
 
 	if (e->resource.ResourceCapabilities & SAHPI_CAPABILITY_FRU) {
 		e->event.EventType = SAHPI_ET_HOTSWAP;
-		e->event.EventDataUnion.HotSwapEvent.HotSwapState = 
-			e->event.EventDataUnion.HotSwapEvent.HotSwapState = 
-						res_info_ptr->cur_state;
+		e->event.EventDataUnion.HotSwapEvent.HotSwapState = res_info_ptr->cur_state;
 		
+		if (custom_handle->isFirstDiscovery == SAHPI_FALSE) {
+			/* If this is a RE-discovery,   */
+			/* then previous state must be  */ 
+			/* SAHPI_HS_STATE_NOT_PRESENT   */		
+			e->event.EventDataUnion.HotSwapEvent.PreviousHotSwapState = 
+						res_info_ptr->prev_state = SAHPI_HS_STATE_NOT_PRESENT;
+		} else {
+			/* else, keep the pre-defined   */
+			/* value from bc_resources.c    */ 
+			e->event.EventDataUnion.HotSwapEvent.PreviousHotSwapState = 
+								res_info_ptr->prev_state;		
+		} 		
 	} else {
 		e->event.EventType = SAHPI_ET_RESOURCE;
 		e->event.EventDataUnion.ResourceEvent.ResourceEventType = SAHPI_RESE_RESOURCE_ADDED;			
