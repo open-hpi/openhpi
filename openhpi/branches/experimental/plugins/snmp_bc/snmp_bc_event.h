@@ -61,4 +61,10 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 SaErrorT snmp_bc_add_to_eventq(struct oh_handler_state *handle,
 			       SaHpiEventT *thisEvent, 
 			       SaHpiBoolT prepend);
+			       
+					       				  		       
+SaErrorT snmp_bc_create_bem_event(struct oh_handler_state *handle,
+			  	  SaHpiEventT *blade_event,
+				  guint blade_location);
+			       
 #endif
