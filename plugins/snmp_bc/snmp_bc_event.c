@@ -462,7 +462,7 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 		}
 	}
 
-	trace("Event search string=%s", search_str);
+	trace("Event search string=%s\n", search_str);
 
 	/* Set dynamic event fields with default values from the log string.
 	   These may be overwritten in the code below */
@@ -619,7 +619,7 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 			snmp_bc_set_cur_prev_event_states(handle, eventmap_info,
 							  &working, is_recovery_event);
 							  
-			if (custom_handle->isFirstDiscovery == SAHPI_FALSE) {
+			if (custom_handle->isFirstDiscovery == SAHPI_FALSE) {				
 				/* Call rediscover() here to discover newly installed resource */
 				err = snmp_bc_rediscover(handle, &working, &logsrc2res);
 			}						  
@@ -1494,6 +1494,7 @@ SaErrorT snmp_bc_add_to_eventq(struct oh_handler_state *handle, SaHpiEventT *thi
 	SaHpiRdrT      *thisRdr;
 	LogSource2ResourceT logsrc2res;
 	SaErrorT err;
+	guint blade_loc, i;
 
         /* Insert entry to eventq for processing */
         e = snmp_bc_alloc_oh_event();
@@ -1509,6 +1510,21 @@ SaErrorT snmp_bc_add_to_eventq(struct oh_handler_state *handle, SaHpiEventT *thi
 	/* Setting RDR ID to event struct */	
 	switch (thisEvent->EventType) {
 	case SAHPI_ET_HOTSWAP:
+	
+		blade_loc = SNMP_BC_NOT_VALID;
+		if (thisRpt) {
+ 			for (i=0; thisRpt->ResourceEntity.Entry[i].EntityType != SAHPI_ENT_SYSTEM_CHASSIS; i++)
+			{
+				if (thisRpt->ResourceEntity.Entry[i].EntityType == SAHPI_ENT_SBC_BLADE) {
+    					blade_loc = thisRpt->ResourceEntity.Entry[i].EntityLocation;					
+					break;
+				}			
+			}
+				
+			if (blade_loc != SNMP_BC_NOT_VALID) 
+				err = snmp_bc_create_bem_event(handle, thisEvent, blade_loc);
+		}
+	
 		if (snmp_bc_isrediscover(thisEvent) == SNMP_BC_RESOURCE_INSTALLED) {
     			for (thisRdr = oh_get_rdr_by_id(handle->rptcache, thisEvent->Source, SAHPI_FIRST_ENTRY);
                      	     thisRdr != NULL;
@@ -1567,3 +1583,136 @@ SaErrorT snmp_bc_add_to_eventq(struct oh_handler_state *handle, SaHpiEventT *thi
 	
         return(SA_OK);
 }
+
+/**
+ * snmp_bc_create_bem_event
+ * @handler: Pointer to handler's data.
+ * @blade_event: Pointer to the event of the **main** blade resource.
+ * @blade_location: slot location of the **main** blade 
+ *
+ * See if we have any BEM resource for the associated blade.
+ * Duplicate blade event for the BEM.
+ *
+ * Return values:
+ * SA_OK - normal case.
+ * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
+ **/
+SaErrorT snmp_bc_create_bem_event(struct oh_handler_state *handle,
+			  	  SaHpiEventT *blade_event, 
+				  guint blade_location)
+
+{
+	guint j;
+	SaErrorT err; 
+	guint rediscovertype;
+	SaHpiEventT bem_event;
+	SaHpiEntityPathT ep;
+	char *root_tuple;
+	SaHpiEntityPathT ep_root;
+	struct oh_event *e;
+        SaHpiRptEntryT *res;	
+	struct ResourceInfo *resinfo;
+	SaHpiResourceIdT bem_rid;
+	struct snmp_bc_hnd *custom_handle;
+
+	if (!handle || !blade_event) return(SA_ERR_HPI_INVALID_PARAMS);
+
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
+	if (!custom_handle) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+	
+	/* Check blade event. Only handle Hotswap events */
+	rediscovertype = 0; /* Default - do nothing */
+	if (blade_event->EventType == SAHPI_ET_HOTSWAP) {
+		if (blade_event->EventDataUnion.HotSwapEvent.PreviousHotSwapState == SAHPI_HS_STATE_NOT_PRESENT)
+		{
+			if (blade_event->EventDataUnion.HotSwapEvent.HotSwapState == SAHPI_HS_STATE_NOT_PRESENT)
+				dbg("Sanity check FAILED! PreviousHotSwapState = HotSwapState == SAHPI_HS_STATE_NOT_PRESENT\n");
+			rediscovertype = SNMP_BC_RESOURCE_INSTALLED;  /* New resource is installed  */			
+		}
+		else if (blade_event->EventDataUnion.HotSwapEvent.HotSwapState == SAHPI_HS_STATE_NOT_PRESENT)
+		{ 
+			if (blade_event->EventDataUnion.HotSwapEvent.PreviousHotSwapState == SAHPI_HS_STATE_NOT_PRESENT)
+				dbg("Sanity check FAILED! PreviousHotSwapState = HotSwapState == SAHPI_HS_STATE_NOT_PRESENT\n");
+			rediscovertype = SNMP_BC_RESOURCE_REMOVED;  /* resource is removed  */					
+		} 
+	 } else {
+	 	trace("This module only duplicate Hotswap events.\n");
+		return(SA_OK);
+	}
+	
+	res = NULL;
+	resinfo = NULL;
+	
+	/* Construct the entitypath (ep) for blade_expansion */
+	oh_init_ep(&ep_root);
+	root_tuple = (gchar *)g_hash_table_lookup(handle->config, "entity_root");
+        oh_encode_entitypath(root_tuple, &ep_root);
+	
+	ep = snmp_bc_rpt_array[BC_RPT_ENTRY_BLADE_EXPANSION_CARD].rpt.ResourceEntity;
+	oh_concat_ep(&ep, &ep_root);
+	oh_set_ep_location(&ep, SAHPI_ENT_PHYSICAL_SLOT, blade_location);
+	oh_set_ep_location(&ep, SAHPI_ENT_SBC_BLADE, blade_location);
+	
+	for (j = 0; j <(custom_handle->max_pb_supported ) ; j++) {
+		/* Set entity_path index to the first entry  */
+		/*  (SNMP_BC_HPI_LOCATION_BASE) in table     */
+		oh_set_ep_location(&ep, SAHPI_ENT_SYS_EXPANSION_BOARD, 
+						j + SNMP_BC_HPI_LOCATION_BASE);
+	
+		bem_rid = oh_uid_from_entity_path(&ep);
+
+		res = oh_get_resource_by_id(handle->rptcache, bem_rid);
+		/* If resource is not found in rpt table, then we are done here */
+		if (res == NULL) {
+			return (SA_OK);
+	
+		}
+		resinfo = (struct ResourceInfo *)oh_get_resource_data(handle->rptcache, bem_rid);
+	
+		/* Copy blade hotswap-remove event as base for the BEM hotswap event */
+		memcpy(&bem_event, blade_event, sizeof(SaHpiEventT));
+		bem_event.Source = bem_rid;
+		
+		/* If this is a Hotswap-Install event, rediscovery will */
+		/* have all the correct events sent.  No need to create any here */
+		if ((custom_handle->isFirstDiscovery == SAHPI_FALSE) &&
+				(rediscovertype != SNMP_BC_RESOURCE_INSTALLED))
+		{
+
+			/* ---------------------------------------------------------- */			
+			/* Do **not** use snmp_bc_add_to_eventq() here                */
+			/* because add_to_eventq() call create_bem_event()            */
+			/* We do not want an indefinite loop ...                      */  
+			/* add_to_eventq() - create_bem_event() - add_to_eventq() ... */ 
+			/* ---------------------------------------------------------- */			
+        		e = g_malloc0(sizeof(struct oh_event));
+        		if (!e) {
+                		dbg("Out of memory.");
+                		return(SA_ERR_HPI_OUT_OF_SPACE);
+        		}
+			e->did = oh_get_default_domain_id();
+        		e->resource = *res;
+        		memcpy(&e->event, &bem_event, sizeof(SaHpiEventT));
+			/* There is no RDR associated to Hotswap event */
+			/* Set RDR Type to SAHPI_NO_RECORD, spec B-01.01 */		
+			e->rdrs = NULL;
+			handle->eventq = g_slist_append(handle->eventq, e);
+			
+			if (rediscovertype == SNMP_BC_RESOURCE_REMOVED) {
+				if (resinfo) 
+					resinfo->cur_state = SAHPI_HS_STATE_NOT_PRESENT;
+
+				err = snmp_bc_reset_resource_slot_state_sensor(handle, res);
+                		oh_remove_resource(handle->rptcache, res->ResourceId);
+			
+			}
+		}
+	
+	}
+	return(SA_OK);
+}
+
