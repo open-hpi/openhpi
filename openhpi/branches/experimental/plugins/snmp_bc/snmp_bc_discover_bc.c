@@ -673,14 +673,15 @@ SaErrorT snmp_bc_discover_media_tray(struct oh_handler_state *handle,
 
 
 	if (!media_tray_installed) {
+		res_info_ptr->prev_state = 
 		res_info_ptr->cur_state = SAHPI_HS_STATE_NOT_PRESENT;
 		snmp_bc_discover_res_events(handle, &(e->resource.ResourceEntity), res_info_ptr);
 		snmp_bc_free_oh_event(e);
 		g_free(res_info_ptr);
 
 	} else if (media_tray_installed) {
-		res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
-
+		
+		res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;		
                 /* Get UUID and convert to GUID */
                 err = snmp_bc_get_guid(custom_handle, e, res_info_ptr);
 		
@@ -719,7 +720,7 @@ SaErrorT snmp_bc_discover_media_tray(struct oh_handler_state *handle,
 		/* ---------------------------------------- */
 		/* Construct .event of struct oh_event      */	
 		/* ---------------------------------------- */
-		snmp_bc_set_resource_add_oh_event(e, res_info_ptr);
+		snmp_bc_set_resource_add_oh_event(custom_handle, e, res_info_ptr);
 		
 		/* ---------------------------------------- */
 		/* Place the event in tmpqueue              */
@@ -862,7 +863,7 @@ SaErrorT snmp_bc_discover_chassis(struct oh_handler_state *handle,
 	/* ---------------------------------------- */
 	/* Construct .event of struct oh_event      */	
 	/* ---------------------------------------- */
-	snmp_bc_set_resource_add_oh_event(e, res_info_ptr);
+	snmp_bc_set_resource_add_oh_event(custom_handle, e, res_info_ptr);
 
 	/* ---------------------------------------- */
 	/* Place the event in queue                 */
@@ -940,6 +941,7 @@ SaErrorT snmp_bc_discover_blade(struct oh_handler_state *handle,
 			/* Make sure that we have static infomation 
 			 * for this **empty** blade slot in hash during HPI initialization
 			 */ 
+			res_info_ptr->prev_state = 
 			res_info_ptr->cur_state = SAHPI_HS_STATE_NOT_PRESENT;
 			snmp_bc_discover_res_events(handle, &(e->resource.ResourceEntity), res_info_ptr);
 			snmp_bc_free_oh_event(e);
@@ -952,7 +954,7 @@ SaErrorT snmp_bc_discover_blade(struct oh_handler_state *handle,
 				/* ---------------------------------------- */
 				/* Construct .event of struct oh_event      */	
 				/* ---------------------------------------- */
-				snmp_bc_set_resource_add_oh_event(e, res_info_ptr);
+				snmp_bc_set_resource_add_oh_event(custom_handle, e, res_info_ptr);
 			
 				/* ---------------------------------------- */
 				/* Place the event in tmpqueue              */
@@ -1082,7 +1084,7 @@ SaErrorT snmp_bc_discover_blade_expansion(struct oh_handler_state *handle,
 					
 					
 					oh_set_ep_location(&ep, SAHPI_ENT_SYS_EXPANSION_BOARD, 
-										j + SNMP_BC_HPI_LOCATION_BASE);
+									j + SNMP_BC_HPI_LOCATION_BASE);
 																
 				 	err = snmp_bc_add_blade_expansion_resource(handle, &ep, blade_index, expansionType, j);
 					j++;
@@ -1120,7 +1122,13 @@ SaErrorT snmp_bc_add_blade_expansion_resource(struct oh_handler_state *handle,
 	SaErrorT err;
 	struct oh_event *e;
 	struct ResourceInfo *res_info_ptr;
+	struct ResourceInfo *blade_res_info_ptr;
 	struct snmp_bc_hnd *custom_handle;
+	SaHpiRptEntryT blade_rpt;
+        char *root_tuple;
+	struct snmp_value get_value;
+        SaHpiEntityPathT ep_root;	
+	
 
 
 	if (!handle) {
@@ -1168,13 +1176,50 @@ SaErrorT snmp_bc_add_blade_expansion_resource(struct oh_handler_state *handle,
 		/* Create platform-specific info space to add to infra-structure */
 		res_info_ptr = g_memdup(&(snmp_bc_rpt_array[BC_RPT_ENTRY_BLADE_EXPANSION_CARD].res_info),
 						sizeof(struct ResourceInfo));
-		if (!res_info_ptr) {
+
+
+		/* ---------------------------------------------------- */
+		/* Take a peek at the state of the parent blade         */
+		/* blade_rpt and blade_res_info_ptr are for the parent  */
+		/* Set BladeExpansionModule state to that of parent     */
+		/* ---------------------------------------------------- */                  
+		blade_rpt = snmp_bc_rpt_array[BC_RPT_ENTRY_BLADE].rpt;
+		blade_res_info_ptr = g_memdup(&(snmp_bc_rpt_array[BC_RPT_ENTRY_BLADE].res_info),
+						sizeof(struct ResourceInfo));
+		if ( (!res_info_ptr) || (!blade_res_info_ptr)) {
 			dbg("Out of memory.");
 			snmp_bc_free_oh_event(e);
 			return(SA_ERR_HPI_OUT_OF_SPACE);
 		}
+		
+		/* Find root Entity Path */
+		root_tuple = (char *)g_hash_table_lookup(handle->config, "entity_root");
+        	if (root_tuple == NULL) {
+                	dbg("Cannot find configuration parameter.");
+			snmp_bc_free_oh_event(e);
+                	return(SA_ERR_HPI_INTERNAL_ERROR);
+        	}
+        	err = oh_encode_entitypath(root_tuple, &ep_root);
+		
+		oh_concat_ep(&(blade_rpt.ResourceEntity), &ep_root);
+		oh_set_ep_location(&(blade_rpt.ResourceEntity),
+			  SAHPI_ENT_PHYSICAL_SLOT, blade_index + SNMP_BC_HPI_LOCATION_BASE);
+		oh_set_ep_location(&(blade_rpt.ResourceEntity),
+			   SAHPI_ENT_SBC_BLADE, blade_index + SNMP_BC_HPI_LOCATION_BASE);
 
-		res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
+		res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;						
+		if (blade_res_info_ptr->mib.OidPowerState != NULL) {
+			/* Read power state of resource */
+			err = snmp_bc_oid_snmp_get(custom_handle, &(blade_rpt.ResourceEntity), 0,
+				   	blade_res_info_ptr->mib.OidPowerState, &get_value, SAHPI_TRUE);
+			if (!err && (get_value.type == ASN_INTEGER)) {
+				if (get_value.integer == 0) /*  state = SAHPI_POWER_OFF */
+					res_info_ptr->cur_state = SAHPI_HS_STATE_INACTIVE;
+			}
+		}
+		
+		g_free(blade_res_info_ptr);										
+
 
                 /* Get UUID and convert to GUID */
                 err = snmp_bc_get_guid(custom_handle, e, res_info_ptr);
@@ -1202,7 +1247,7 @@ SaErrorT snmp_bc_add_blade_expansion_resource(struct oh_handler_state *handle,
 		/* ---------------------------------------- */
 		/* Construct .event of struct oh_event      */	
 		/* ---------------------------------------- */
-		snmp_bc_set_resource_add_oh_event(e, res_info_ptr);
+		snmp_bc_set_resource_add_oh_event(custom_handle, e, res_info_ptr);
 
 		/* ---------------------------------------- */
 		/* Place the event in queue                 */
@@ -1288,7 +1333,7 @@ SaErrorT snmp_bc_discover_blowers(struct oh_handler_state *handle,
 				/* ---------------------------------------- */
 				/* Construct .event of struct oh_event      */	
 				/* ---------------------------------------- */
-				snmp_bc_set_resource_add_oh_event(e, res_info_ptr);
+				snmp_bc_set_resource_add_oh_event(custom_handle, e, res_info_ptr);
 
 				/* ---------------------------------------- */
 				/* Place the event in tmpqueue              */
@@ -1376,7 +1421,7 @@ SaErrorT snmp_bc_discover_power_module(struct oh_handler_state *handle,
 				/* ---------------------------------------- */
 				/* Construct .event of struct oh_event      */	
 				/* ---------------------------------------- */
-				snmp_bc_set_resource_add_oh_event(e, res_info_ptr);
+				snmp_bc_set_resource_add_oh_event(custom_handle, e, res_info_ptr);
 
 				/* ---------------------------------------- */
 				/* Place the event in tmpqueue              */
@@ -1463,7 +1508,7 @@ SaErrorT snmp_bc_discover_switch(struct oh_handler_state *handle,
 				/* ---------------------------------------- */
 				/* Construct .event of struct oh_event      */	
 				/* ---------------------------------------- */
-				snmp_bc_set_resource_add_oh_event(e, res_info_ptr);
+				snmp_bc_set_resource_add_oh_event(custom_handle, e, res_info_ptr);
 
 				/* ---------------------------------------- */
 				/* Place the event in tmpqueue              */
@@ -1574,7 +1619,7 @@ SaErrorT snmp_bc_discover_mm(struct oh_handler_state *handle,
 		/* ---------------------------------------- */
 		/* Construct .event of struct oh_event      */	
 		/* ---------------------------------------- */
-		snmp_bc_set_resource_add_oh_event(e, res_info_ptr);
+		snmp_bc_set_resource_add_oh_event(custom_handle, e, res_info_ptr);
 
 		/* ---------------------------------------- */
 		/* Place the event in tmpqueue              */
@@ -1619,7 +1664,7 @@ SaErrorT snmp_bc_discover_mm(struct oh_handler_state *handle,
 				/* ---------------------------------------- */
 				/* Construct .event of struct oh_event      */	
 				/* ---------------------------------------- */
-				snmp_bc_set_resource_add_oh_event(e, res_info_ptr);
+				snmp_bc_set_resource_add_oh_event(custom_handle, e, res_info_ptr);
 
 				/* ---------------------------------------- */
 				/* Place the event in tmpqueue              */
@@ -1976,6 +2021,7 @@ SaErrorT snmp_bc_rediscover(struct oh_handler_state *handle,
 				/* Fetch blade installed vector */
 					get_installed_mask(SNMP_BC_PB_INSTALLED, get_value);
 					strcpy(custom_handle->installed_pb_mask, get_value.string);
+					err = snmp_bc_create_bem_event(handle, working_event, hotswap_entitylocation);					
 					break;
 				case SAHPI_ENT_FAN:
 				/* Fetch blower installed vector */
@@ -2313,7 +2359,7 @@ SaErrorT snmp_bc_discover_slot( struct oh_handler_state *handle,
 	/* ---------------------------------------- */
 	/* Construct .event of struct oh_event      */	
 	/* ---------------------------------------- */
-	snmp_bc_set_resource_add_oh_event(e, res_info_ptr);
+	snmp_bc_set_resource_add_oh_event(custom_handle, e, res_info_ptr);
 
 	/* ---------------------------------------- */
 	/* Place the event in event queue           */
@@ -2664,8 +2710,10 @@ SaErrorT snmp_bc_add_blade_rptcache(struct oh_handler_state *handle,
 			      e->resource.ResourceTag.Data,
 			      e->resource.ResourceId);
 
-	/* Create platform-specific info space to add to infra-structure */			
-	res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;  /* Default to ACTIVE */
+	/* Create platform-specific info space to add to infra-structure */
+	/* Default cur_state to ACTIVE */
+	res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;		
+
 	if (res_info_ptr->mib.OidPowerState != NULL) {
 		/* Read power state of resource */
 		err = snmp_bc_oid_snmp_get(custom_handle, &(e->resource.ResourceEntity), 0,
@@ -2757,7 +2805,7 @@ SaErrorT snmp_bc_add_blower_rptcache(struct oh_handler_state *handle,
 	}
 
 	trace("Discovering blower %d resource.\n", blower_index);
-	res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
+	res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;					
 
         /* Get UUID and convert to GUID */
         err = snmp_bc_get_guid(custom_handle, e, res_info_ptr);
@@ -2833,9 +2881,7 @@ SaErrorT snmp_bc_add_pm_rptcache(struct oh_handler_state *handle,
 
 	trace("Discovering power module %d resource.\n", pm_index);
 
-
-	res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
-
+	res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;		
         /* Get UUID and convert to GUID */
         err = snmp_bc_get_guid(custom_handle, e, res_info_ptr);
 
@@ -2911,8 +2957,9 @@ SaErrorT snmp_bc_add_switch_rptcache(struct oh_handler_state *handle,
 	}
 
 	trace("Discovering switch module %d resource.\n", switch_index);
+	 /* Default cur_state to ACTIVE */
+	res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;						
 
-	res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;  /* Default to ACTIVE */
 	if (res_info_ptr->mib.OidPowerState != NULL) {
 		/* Read power state of resource */
 		err = snmp_bc_oid_snmp_get(custom_handle,  &(e->resource.ResourceEntity), 0,
@@ -3008,7 +3055,8 @@ SaErrorT snmp_bc_add_mm_rptcache(struct oh_handler_state *handle,
               	res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
 	else 
 		res_info_ptr->cur_state = SAHPI_HS_STATE_INACTIVE;
-				
+
+								
         /* Get UUID and convert to GUID */
         err = snmp_bc_get_guid(custom_handle, e, res_info_ptr);
 
