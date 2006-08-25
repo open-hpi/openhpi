@@ -1568,6 +1568,7 @@ SaErrorT SAHPI_API saHpiSensorThresholdsGet (
                               SaHpiSensorThresholdsT *);
         SaHpiRptEntryT *res;
         SaHpiRdrT *rdr_cur;
+	SaHpiSensorThdDefnT *thd;
         struct oh_handler *h;
         SaHpiDomainIdT did;
         struct oh_domain *d = NULL;
@@ -1580,9 +1581,9 @@ SaErrorT SAHPI_API saHpiSensorThresholdsGet (
         OH_RESOURCE_GET_CHECK(d, ResourceId, res);
 
         if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)) {
+                oh_release_domain(d); /* Unlock domain */
                 dbg("Resource %d in Domain %d doesn't have sensors",
                     ResourceId, did);
-                oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_CAPABILITY;
         }
 
@@ -1592,11 +1593,19 @@ SaErrorT SAHPI_API saHpiSensorThresholdsGet (
                                      SensorNum);
 
         if (rdr_cur == NULL) {
+                oh_release_domain(d); /* Unlock domain */
                 dbg("Requested RDR, Domain[%d]->Resource[%d]->RDR[%d,%d], is not present",
                     did, ResourceId, SAHPI_SENSOR_RDR, SensorNum);
-                oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_NOT_PRESENT;
         }
+
+	thd = &rdr_cur->RdrTypeUnion.SensorRec.ThresholdDefn;
+	if (thd->IsAccessible == SAHPI_FALSE ||
+	    thd->ReadThold == 0) {
+        	oh_release_domain(d); /* Unlock domain */
+		dbg("Sensor has no readable thresholds.");
+		return SA_ERR_HPI_INVALID_CMD;
+	}
 
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
