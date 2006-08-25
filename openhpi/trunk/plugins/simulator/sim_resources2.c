@@ -262,7 +262,7 @@ struct sim_sensor sim_chassis_sensors[] = {
                         .Oem = 0,
                 },
 		.sensor_info = {
-			.cur_state = SAHPI_ES_UNSPECIFIED,
+			.cur_state = SAHPI_ES_UPPER_MINOR,
                         .sensor_enabled = SAHPI_TRUE,
                         .events_enabled = SAHPI_TRUE,
                         .assert_mask   = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
@@ -426,7 +426,7 @@ struct sim_sensor sim_chassis_sensors[] = {
                         .Oem = 0,
                 },
 		.sensor_info = {
-			.cur_state = SAHPI_ES_UNSPECIFIED,
+			.cur_state = SAHPI_ES_UPPER_MINOR,
                         .sensor_enabled = SAHPI_TRUE,
                         .events_enabled = SAHPI_TRUE,
                         .assert_mask   = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
@@ -547,7 +547,7 @@ struct sim_sensor sim_cpu_sensors[] = {
                         .Oem = 0,
                 },
 		.sensor_info = {
-			.cur_state = SAHPI_ES_UNSPECIFIED,
+			.cur_state = SAHPI_ES_UPPER_MINOR,
                         .sensor_enabled = SAHPI_TRUE,
                         .events_enabled = SAHPI_TRUE,
                         .assert_mask   = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
@@ -677,7 +677,7 @@ struct sim_sensor sim_dasd_sensors[] = {
                         .Oem = 0,
                 },
 		.sensor_info = {
-			.cur_state = SAHPI_ES_UNSPECIFIED,
+			.cur_state = SAHPI_ES_UPPER_MINOR,
                         .sensor_enabled = SAHPI_TRUE,
                         .events_enabled = SAHPI_TRUE,
                         .assert_mask   = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
@@ -816,7 +816,7 @@ struct sim_sensor sim_hs_dasd_sensors[] = {
                         .Oem = 0,
                 },
 		.sensor_info = {
-			.cur_state = SAHPI_ES_UNSPECIFIED,
+			.cur_state = SAHPI_ES_UPPER_MINOR,
                         .sensor_enabled = SAHPI_TRUE,
                         .events_enabled = SAHPI_TRUE,
                         .assert_mask   = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
@@ -980,7 +980,7 @@ struct sim_sensor sim_hs_dasd_sensors[] = {
                         .Oem = 0,
                 },
 		.sensor_info = {
-			.cur_state = SAHPI_ES_UNSPECIFIED,
+			.cur_state = SAHPI_ES_UPPER_MINOR,
                         .sensor_enabled = SAHPI_TRUE,
                         .events_enabled = SAHPI_TRUE,
                         .assert_mask   = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
@@ -1098,7 +1098,7 @@ struct sim_sensor sim_fan_sensors[] = {
                         .Oem = 0,
                 },
 		.sensor_info = {
-			.cur_state = SAHPI_ES_UNSPECIFIED,
+			.cur_state = SAHPI_ES_PRED_FAILURE_DEASSERT,
                         .sensor_enabled = SAHPI_TRUE,
                         .events_enabled = SAHPI_TRUE,
 			.assert_mask   = SAHPI_ES_PRED_FAILURE_ASSERT,

@@ -27,7 +27,7 @@ SaErrorT sim_get_sensor_reading(void *hnd,
         struct SensorInfo *sinfo;
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
 
-        if (!hnd || !data || !state) {
+        if (!hnd) {
                 dbg("Invalid parameter.");
                 return(SA_ERR_HPI_INVALID_PARAMS);
         }
@@ -55,7 +55,13 @@ SaErrorT sim_get_sensor_reading(void *hnd,
         if (sinfo->sensor_enabled == SAHPI_FALSE) {
                 return(SA_ERR_HPI_INVALID_REQUEST);
         } else {
-		memcpy(data, &sinfo->reading, sizeof(SaHpiSensorReadingT));
+        	if (data) {
+        		*data = sinfo->reading;
+        	}
+        	
+        	if (state) {
+        		*state = sinfo->cur_state;
+        	}		
         }
 
         return(SA_OK);
@@ -112,10 +118,13 @@ SaErrorT sim_get_sensor_thresholds(void *hnd,
         struct SensorInfo *sinfo;
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
 
-        if (!hnd || !rid || !sid) {
+        if (!hnd || !thres) {
                 dbg("Invalid parameter.");
                 return(SA_ERR_HPI_INVALID_PARAMS);
         }
+        
+        if (!rid) return SA_ERR_HPI_INVALID_RESOURCE;
+        if (!sid) return SA_ERR_HPI_NOT_PRESENT;
 
         /* Check if resource exists and has sensor capabilities */
         SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
@@ -140,7 +149,7 @@ SaErrorT sim_get_sensor_thresholds(void *hnd,
         if (sinfo->sensor_enabled == SAHPI_FALSE){
                 return(SA_ERR_HPI_INVALID_REQUEST);
         } else {
-                memcpy(thres, &sinfo->thres, sizeof(SaHpiSensorThresholdsT));
+        	*thres = sinfo->thres;
 	}
 
 	return(SA_OK);
