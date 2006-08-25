@@ -162,15 +162,16 @@ void
 cIpmiLog::Output( const char *str )
 {
   int l = strlen( str );
+  size_t fwrote;
 
   if ( m_fd )
-       fwrite( str, l, 1, m_fd );
+       fwrote = fwrite( str, l, 1, m_fd );
 
   if ( m_std_out )
-       fwrite( str, l, 1, stdout );
+       fwrote = fwrite( str, l, 1, stdout );
 
   if ( m_std_err )
-       fwrite( str, l, 1, stderr );
+       fwrote = fwrite( str, l, 1, stderr );
 }
 
 
