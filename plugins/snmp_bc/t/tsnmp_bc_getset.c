@@ -24,7 +24,7 @@ int main(int argc, char **argv)
 	/* ************************
 	 * Local variables
 	 * ***********************/	 
-	gchar *BUSY_OID = ".1.3.6.1.4.1.2.3.51.2.4.4.1.7777";
+//	gchar *BUSY_OID = ".1.3.6.1.4.1.2.3.51.2.4.4.1.7777";
 
 	int testfail = 0;
 	SaErrorT          err;
@@ -60,18 +60,18 @@ int main(int argc, char **argv)
 	 * Test 1: Test Busy Status
 	 * Under simulation it is ok for custom_handle == NULL
 	 **************************/
-	expected_err = SA_ERR_HPI_BUSY;
-	err = snmp_bc_snmp_get(&custom_handle, BUSY_OID, &value, SAHPI_FALSE); 
-	checkstatus(err, expected_err, testfail);
+//	expected_err = SA_ERR_HPI_BUSY;
+//	err = snmp_bc_snmp_get(&custom_handle, BUSY_OID, &value, SAHPI_FALSE); 
+//	checkstatus(err, expected_err, testfail);
 	
 	/************************** 
 	 * Test 2: Test Timeout Status
 	 **************************/
-	custom_handle.handler_retries = SNMP_BC_MAX_SNMP_RETRY_ATTEMPTED;
-	expected_err = SA_ERR_HPI_NO_RESPONSE;
+//	custom_handle.handler_retries = SNMP_BC_MAX_SNMP_RETRY_ATTEMPTED;
+//	expected_err = SA_ERR_HPI_NO_RESPONSE;
 
-	err = snmp_bc_snmp_get(&custom_handle, BUSY_OID, &value, SAHPI_TRUE); 
-	checkstatus(err, expected_err, testfail);
+//	err = snmp_bc_snmp_get(&custom_handle, BUSY_OID, &value, SAHPI_TRUE); 
+//	checkstatus(err, expected_err, testfail);
 	
 	/************************** 
 	 * Test 3: Valid case
@@ -92,18 +92,18 @@ int main(int argc, char **argv)
 	/************************** 
 	 * Test 5: Test Busy Status, snmp_set
 	 **************************/
-	expected_err = SA_ERR_HPI_BUSY;
-	err = snmp_bc_snmp_set(&custom_handle, BUSY_OID, value); 
-	checkstatus(err, expected_err, testfail);
+//	expected_err = SA_ERR_HPI_BUSY;
+//	err = snmp_bc_snmp_set(&custom_handle, BUSY_OID, value); 
+//	checkstatus(err, expected_err, testfail);
 	
 	/************************** 
 	 * Test 6: Test Timeout Status, snmp_set
 	 **************************/
-	custom_handle.handler_retries = SNMP_BC_MAX_SNMP_RETRY_ATTEMPTED;
-	expected_err = SA_ERR_HPI_NO_RESPONSE;
+//	custom_handle.handler_retries = SNMP_BC_MAX_SNMP_RETRY_ATTEMPTED;
+//	expected_err = SA_ERR_HPI_NO_RESPONSE;
 
-	err = snmp_bc_snmp_set(&custom_handle, BUSY_OID, value); 
-	checkstatus(err, expected_err, testfail);
+//	err = snmp_bc_snmp_set(&custom_handle, BUSY_OID, value); 
+//	checkstatus(err, expected_err, testfail);
 	
 	/************************** 
 	 * Test 7: Valid case

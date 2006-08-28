@@ -57,5 +57,6 @@ SaErrorT sim_discover(void *hnd);
 SaErrorT sim_get_event(void *hnd, struct oh_event *event);
 SaErrorT sim_close(void *hnd);
 SaErrorT sim_set_resource_tag(void *hnd, SaHpiResourceIdT id, SaHpiTextBufferT *tag);
+SaErrorT sim_set_resource_severity(void *hnd, SaHpiResourceIdT rid, SaHpiSeverityT sev);
 
 #endif

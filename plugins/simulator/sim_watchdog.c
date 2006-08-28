@@ -243,6 +243,8 @@ SaErrorT sim_reset_watchdog(void *hnd,
                                 SaHpiResourceIdT rid,
                                 SaHpiWatchdogNumT num)
 {
+        SaHpiRdrT *rdr;
+        
         if (!hnd) {
                 dbg("Invalid parameter.");
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -255,9 +257,15 @@ SaErrorT sim_reset_watchdog(void *hnd,
         if (!rpt) {
                 return SA_ERR_HPI_INVALID_RESOURCE;
         }
+        
         if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_WATCHDOG)) {
                 return SA_ERR_HPI_CAPABILITY;
         }
+        
+	rdr = oh_get_rdr_by_type(state->rptcache, rid,
+                                            SAHPI_WATCHDOG_RDR, num);
+        if (rdr == NULL)
+                return SA_ERR_HPI_NOT_PRESENT;
 
         // since no timer is actually running we can just do nothing here
         return SA_OK;

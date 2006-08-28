@@ -39,5 +39,5 @@ AM_CFLAGS		= @CFLAGS@
 pkglib_LTLIBRARIES		= libsysfs2hpi.la
 
 libsysfs2hpi_la_SOURCES	= sysfs2hpi.c 
-libsysfs2hpi_la_LIBADD	= -lsysfs -luuid
-libsysfs2hpi_la_LDFLAGS	= -version-info @HPI_LIB_VERSION@
+libsysfs2hpi_la_LIBADD	= -lsysfs -luuid $(top_builddir)/utils/libopenhpiutils.la
+libsysfs2hpi_la_LDFLAGS	= -module -version-info @HPI_LIB_VERSION@

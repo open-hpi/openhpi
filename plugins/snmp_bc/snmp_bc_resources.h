@@ -110,6 +110,16 @@ typedef enum {
 	BC_RPT_ENTRY_BEM_DASD
 } BCRptEntryT;
 
+
+/* Matching mmblade.mib definitions */		
+/*	storageExpansion(1),        */
+/* 	pciExpansion(2)             */
+typedef enum {
+        DEFAULT_BLADE_EXPANSION_CARD_TYPE = 0,
+	BLADE_STORAGE_EXPANSION,
+	BLADE_PCI_EXPANSION
+} BCExpansionTypeT;
+
 typedef enum {
 	RSA_RPT_ENTRY_CHASSIS = 0,
 	RSA_RPT_ENTRY_CPU,
@@ -152,7 +162,9 @@ typedef enum {
 #endif
 
 #define SNMP_BC_BLADE_EXPANSION_VECTOR  ".1.3.6.1.4.1.2.3.51.2.22.1.5.1.1.14.x"
-#define SNMP_BC_MGMNT_ACTIVE            ".1.3.6.1.4.1.2.3.51.2.22.4.34.0" /* mmblade.mib - chassisActiveMM */
+#define SNMP_BC_BLADE_EXP_BLADE_BAY	".1.3.6.1.4.1.2.3.51.2.2.21.4.3.1.19.x" /* bladeExpBoardVpdBladeBayNumber */
+#define SNMP_BC_BLADE_EXP_TYPE		".1.3.6.1.4.1.2.3.51.2.2.21.4.3.1.20.x" /* bladeExpBoardVpdCardType */
+#define SNMP_BC_MGMNT_ACTIVE            ".1.3.6.1.4.1.2.3.51.2.22.4.34.0" 	/* chassisActiveMM */
 #define SNMP_BC_DST                     ".1.3.6.1.4.1.2.3.51.2.4.4.2.0"
 
 #define SNMP_BC_DST_RSA                 ".1.3.6.1.4.1.2.3.51.1.4.4.2.0"
@@ -220,6 +232,8 @@ struct ResourceMibInfo {
 /* SNMP_BC_MAX_RESOURCE_EVENT_ARRAY_SIZE includes an ending NULL entry */
 #define SNMP_BC_MAX_EVENTS_PER_RESOURCE 10
 #define SNMP_BC_MAX_RESOURCE_EVENT_ARRAY_SIZE (SNMP_BC_MAX_EVENTS_PER_RESOURCE + 1)
+
+
 
 /* For BladeCenter resources, some managed hot swap state events
   (e.g. INSERTION_PENDING and EXTRACTION_PENDING) are automatically generated.

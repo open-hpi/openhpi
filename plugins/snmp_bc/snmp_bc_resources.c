@@ -442,6 +442,8 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                                 }
                         },
                         .ResourceCapabilities = SAHPI_CAPABILITY_RDR |
+						SAHPI_CAPABILITY_FRU |
+						SAHPI_CAPABILITY_MANAGED_HOTSWAP |
                                                 SAHPI_CAPABILITY_RESOURCE |
 			                        SAHPI_CAPABILITY_SENSOR,
                         .ResourceSeverity = SAHPI_MAJOR,
@@ -684,7 +686,7 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                 },
                 .comment = "Slot",
         },
-#if 0
+
         /* BEM DASD */
         {
                 .rpt = {
@@ -749,7 +751,6 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                 },
                 .comment = "BEM DASD",
         },
-#endif
 
         {} /* Terminate array with a null element */
 };
@@ -11534,3 +11535,5 @@ struct snmp_bc_inventory snmp_bc_bem_dasd_inventories[] = {
 
         {} /* Terminate array with a null element */
 };
+
+

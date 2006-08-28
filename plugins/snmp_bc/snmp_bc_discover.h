@@ -90,6 +90,72 @@ SaErrorT snmp_bc_discover_slot(struct oh_handler_state *handle,
 			       SaHpiEntityPathT *ep_root,
 			       SaHpiEntityTypeT entitytype,
 			       guint entitylocation); 
+			       
+SaErrorT snmp_bc_discover_blade_expansion(struct oh_handler_state *handle,
+			  			SaHpiEntityPathT *ep_root, 
+						guint blade_index);
+						
+SaErrorT snmp_bc_add_blade_expansion_resource(struct oh_handler_state *handle,
+			  			SaHpiEntityPathT *ep, 
+						guint blade_index,
+						BCExpansionTypeT expansionType,
+						guint expansionindex);
+
+SaErrorT snmp_bc_discover_blade_i(struct oh_handler_state *handle,
+			  	  struct ResourceInfo *res_info_ptr, 
+				  struct oh_event *e,
+				  SaHpiEntityPathT *ep_root, 
+				  guint blade_index);
+			
+SaErrorT snmp_bc_discover_blower_i(struct oh_handler_state *handle,
+			  	  struct ResourceInfo *res_info_ptr, 
+				  struct oh_event *e, 
+				  guint blower_index);
+				  
+SaErrorT snmp_bc_discover_pm_i(struct oh_handler_state *handle,
+			  	  struct ResourceInfo *res_info_ptr, 
+				  struct oh_event *e, 
+				  guint pm_index);
+				  
+SaErrorT snmp_bc_discover_switch_i(struct oh_handler_state *handle,
+			  	  struct ResourceInfo *res_info_ptr, 
+				  struct oh_event *e, 
+				  guint sm_index);
+				  
+SaErrorT snmp_bc_discover_mm_i(struct oh_handler_state *handle,
+			  	  struct ResourceInfo *res_info_ptr, 
+				  struct oh_event *e, 
+				  guint mm_index);
+				  
+SaErrorT snmp_bc_construct_blade_res(struct oh_event **e,
+			  	     struct ResourceInfo **res_info_ptr,
+				     SaHpiEntityPathT *ep_root, 
+				     guint blade_index);
+				     
+SaErrorT snmp_bc_construct_blower_res(struct oh_event **e,
+			  	     struct ResourceInfo **res_info_ptr,
+				     SaHpiEntityPathT *ep_root, 
+				     guint blower_index);
+				   
+				  
+SaErrorT snmp_bc_construct_pm_res(struct oh_event **e,
+			  	     struct ResourceInfo **res_info_ptr,
+				     SaHpiEntityPathT *ep_root, 
+				     guint pm_index);
+
+SaErrorT snmp_bc_construct_sm_res(struct oh_event **e,
+			  	  struct ResourceInfo **res_info_ptr,
+				  SaHpiEntityPathT *ep_root, 
+				  guint sm_index);
+				  
+SaErrorT snmp_bc_construct_mm_res(struct oh_event **e,
+			  	  struct ResourceInfo **res_info_ptr,
+				  SaHpiEntityPathT *ep_root, 
+				  guint mm_index);
+					       				  		       
+SaErrorT snmp_bc_create_bem_event(struct oh_handler_state *handle,
+			  	  SaHpiEventT *blade_event,
+				  guint blade_location);
 
 #endif
 

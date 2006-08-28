@@ -156,6 +156,12 @@ SaErrorT sim_inject_resource(struct oh_handler_state *state,
                         privinfo->cur_hsstate = SAHPI_HS_STATE_ACTIVE;
                         privinfo->cur_indicator_hsstate = SAHPI_HS_INDICATOR_ON;
                 }
+                if (res->ResourceCapabilities & SAHPI_CAPABILITY_POWER) {
+                	privinfo->cur_powerstate = SAHPI_POWER_ON;
+                }
+                if (res->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP) {
+                	privinfo->ae_timeout = SAHPI_TIMEOUT_IMMEDIATE;
+                }
                 privdata = (void *)privinfo;
         }
 

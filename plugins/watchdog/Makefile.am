@@ -39,5 +39,5 @@ AM_CFLAGS		= @CFLAGS@
 pkglib_LTLIBRARIES	= libwatchdog.la
 
 libwatchdog_la_SOURCES  = watchdog.c
-libwatchdog_la_LIBADD   = -luuid
-libwatchdog_la_LDFLAGS  = -version-info @HPI_LIB_VERSION@
+libwatchdog_la_LIBADD   = -luuid $(top_builddir)/utils/libopenhpiutils.la
+libwatchdog_la_LDFLAGS  = -module -version-info @HPI_LIB_VERSION@

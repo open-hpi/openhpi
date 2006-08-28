@@ -56,6 +56,24 @@ SaErrorT sim_banner(struct snmp_bc_hnd *custom_handle)
 
 SaErrorT sim_init() 
 {
+
+	/* ------------------------------------------------ */
+	/* snmpwalk-based simulator uses                    */
+	/*        sim_file() and file sim_test_file         */
+	/* sim_test_file is the output of snmpwalk command  */
+	/* snmpwalk $host -On .1  (option -On is important) */
+	/* ------------------------------------------------ */
+	sim_file();
+	
+	/* ------------------------------------------------ */
+	/* Old snmp_bc simulator uses                       */
+	/*        followed code and file sim_resources.c    */
+	/* If old method is desired,                        */
+	/*    1) comment out sim_file() above               */
+	/*    2) remove #if 0/#endif below                  */
+	/* ------------------------------------------------ */	
+	
+#if 0
 	int i;
 
 	sim_hash = g_hash_table_new(g_str_hash, g_str_equal);
@@ -106,7 +124,7 @@ SaErrorT sim_init()
 			dbg("Oid %s is defined twice", sim_resource_array[i].oid);
 		}
 	}
-
+#endif
 	return(SA_OK);
 }
 

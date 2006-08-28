@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2004
+ * (C) Copyright IBM Corp. 2004,2006
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -11,6 +11,7 @@
  *
  * Author(s):
  *      Steve Sherman <stevees@us.ibm.com>
+ *	Renier Morales <renierm@users.sf.net>
  */
 
 #ifndef __SAHPI_STRUCT_UTILS_H
@@ -150,6 +151,12 @@ SaErrorT oh_fprint_eventlogentry(FILE *stream,
 
 #define oh_print_ctrlstate(ctrlstate_ptr, offsets) oh_fprint_ctrlstate(stdout, ctrlstate_ptr, offsets)
 SaErrorT oh_fprint_ctrlstate(FILE *stream, const SaHpiCtrlStateT *thisctrlstate, int offsets);
+
+#define oh_print_thresholds(thresholds, format, offsets) oh_fprint_thresholds(stdout, thresholds, format, offsets)
+SaErrorT oh_fprint_thresholds(FILE *stream,
+			      const SaHpiSensorThresholdsT *thresholds,
+			      const SaHpiSensorDataFormatT *format,
+			      int offsets);
 
 SaErrorT oh_build_event(oh_big_textbuffer *buffer, const SaHpiEventT *event, const SaHpiEntityPathT *entitypath, int offsets);
 SaErrorT oh_build_threshold_mask(oh_big_textbuffer *buffer, const SaHpiSensorThdMaskT tmask, int offsets);
