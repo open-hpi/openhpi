@@ -36,4 +36,12 @@ SaErrorT sim_set_indicator_state(void *hnd,
 				 SaHpiResourceIdT rid,
 				 SaHpiHsIndicatorStateT state);
 
+SaErrorT sim_get_autoextract_timeout(void *hnd,
+				     SaHpiResourceIdT rid,
+				     SaHpiTimeoutT *timeout);
+
+SaErrorT sim_set_autoextract_timeout(void *hnd,
+				     SaHpiResourceIdT rid,
+				     SaHpiTimeoutT timeout);
+
 #endif

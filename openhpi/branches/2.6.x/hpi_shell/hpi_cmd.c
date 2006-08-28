@@ -28,7 +28,6 @@ int	debug_flag = 0;
 int main(int argc, char **argv)
 {
 	int	c, eflag = 0;
-	char	*val;
 
 	while ( (c = getopt( argc, argv,"c:ef:x?")) != EOF )
 		switch(c)  {
@@ -52,10 +51,6 @@ int main(int argc, char **argv)
 				return(1);
 		}
 
-	val = getenv("OPENHPI_THREADED");
-	if ((val == (char *)NULL) || (strcmp(val, "YES") != 0)) {
-		printf("Please, set OPENHPI_THREADED environment!\n");
-	};
 	domainlist = (GSList *)NULL;
 	if (open_session(eflag) == -1)
 		return(1);

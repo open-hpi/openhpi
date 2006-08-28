@@ -9466,15 +9466,27 @@ struct snmp_bc_data sim_resource_array[] = {
         },
 	/* Used to determine if expansion card attached to blade */
         {
-                /* BladeServerExpansion - Blade Add-on 1 */
-                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.1.1.14.1",
+                /* BladeServerExpansion - bladeExpBoardVpdBladeBayNumber */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.3.1.19.1",
                 .mib = {
                         .type = ASN_INTEGER,
                         .value = {
-                                .integer = 1,
+                                .integer = SA_ERR_SNMP_NOSUCHOBJECT,
+                                /* .integer = 255, BCT */
                         },
                 },
-        },
+        },	
+        {
+                /* BladeServerExpansion - bladeExpBoardVpdCardType */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.3.1.20.1",
+                .mib = {
+                        .type = ASN_INTEGER,
+                        .value = {
+                                .integer = SA_ERR_SNMP_NOSUCHOBJECT,
+                                /* .integer = 255, BCT */
+                        },
+                },
+        },	
         {
                 /* BladeServerExpansion - Blade Add-on 2 */
                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.1.1.14.2",

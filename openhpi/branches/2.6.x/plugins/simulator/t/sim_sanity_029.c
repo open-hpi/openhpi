@@ -66,14 +66,14 @@ int main(int argc, char **argv)
 
         rc = saHpiResourcePowerStateSet(sid, resid, SAHPI_POWER_ON);
         if (rc != SA_OK) {
-		dbg("Couldn't set power state");
+		dbg("Couldn't set power state to on");
 		dbg("Error %s",oh_lookup_error(rc));
                 return -1;
 	}
 
         rc = saHpiResourcePowerStateSet(sid, resid, SAHPI_POWER_OFF);
-        if (rc == SA_OK) {
-		dbg("Able to set invalid power state");
+        if (rc != SA_OK) {
+		dbg("Couldn't set power state to off");
 		dbg("Error %s",oh_lookup_error(rc));
                 return -1;
 	}

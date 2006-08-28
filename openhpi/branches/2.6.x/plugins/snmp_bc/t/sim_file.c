@@ -65,7 +65,7 @@ SaErrorT sim_file()
 	#define   STD_TOKEN_CNT   4
 	FILE     *file;
         char     *file_in;
-        char      file_std[] = "./test_file";
+        char      file_std[] = "./sim_test_file";
 	char	  str_in[MAX_STR_LEN];
 	gchar	  OID_HDR[] =     ".1.3.6.1.4.1.2.3.51.?";
 	gchar	  BC_OID_HDR[] =  ".1.3.6.1.4.1.2.3.51.2";
@@ -75,12 +75,15 @@ SaErrorT sim_file()
 	gchar	**tokens = NULL;
 	gchar	 *tmpstr = NULL;
         const     gchar  *str_delimiter = " ";
-	int	  valid=0, invalid=0, total=0, token_cnt=0, ii=0;
-	int	  rc=0;
+	int	  valid, invalid, total, token_cnt, ii;
+	int	  rc;
 	gboolean  found_plat = FALSE;
 	gchar    *key = NULL;
 	gchar    *key_exists = NULL;
 	SnmpMibInfoT *mibinfo;
+
+
+	rc = valid = invalid = total = token_cnt = ii = 0;
 
         file_in = getenv("OPENHPI_SIMTEST_FILE");
         if (!file_in)  file_in = file_std; 
@@ -103,7 +106,7 @@ SaErrorT sim_file()
 		trace("xxx--- hash table size %d ---xxx\n", g_hash_table_size(sim_hash));
 		//g_hash_table_foreach (sim_hash, print_entry, NULL);
 		if (fgets(str_in, MAX_STR_LEN, file) == NULL)
-			trace("xxx--- Experience problem, check env OPENHPI_SIMTEST_FILE or ./test_file ---xxx\n");
+			trace("xxx--- Experience problem, check env OPENHPI_SIMTEST_FILE or ./sim_test_file ---xxx\n");
 		//trace("%s", str_in);
 		g_strstrip(str_in);
 		if (str_in[0] == '\0') {
@@ -155,7 +158,7 @@ SaErrorT sim_file()
 		//trace("key = %s\n", key);
 		key_exists = g_hash_table_lookup(sim_hash, key);
                 if (key_exists) {  // key already processed, skip this line
-			printf ("=== oid %s already processed ===\n", key);
+			trace ("=== oid %s already processed ===\n", key);
 			g_free(key);
                 	g_strfreev(tokens);
 			invalid++;
@@ -192,7 +195,7 @@ SaErrorT sim_file()
         		valid++;
         	}
         	else {
-        		//trace("not a valid type %s\n", tokens[2]);
+        		trace("not a valid type %s\n", tokens[2]);
 			g_free(key);
                 	g_strfreev(tokens);
 			g_free(mibinfo);
