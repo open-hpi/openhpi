@@ -1457,8 +1457,9 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventAdd)
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
-        if (!Event)
-                return SA_ERR_HPI_INVALID_PARAMS;
+        
+	err = oh_valid_addevent(Event);
+	if (err != SA_OK) return err;
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiEventAdd);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiEventAdd, hm->m_request_len);
