@@ -47,6 +47,9 @@ SaErrorT SAHPI_API saHpiSessionOpen(
         SaHpiSessionIdT sid;
         SaHpiDomainIdT did;
 
+
+        dbg("saHpiSessionOpen DomainId [%d]", DomainId);
+
         if (SessionId == NULL) {
                 dbg("Invalid Session Id pointer");
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -61,12 +64,14 @@ SaErrorT SAHPI_API saHpiSessionOpen(
         /* Initialize Library - This will only run once */
         if (oh_init()) return SA_ERR_HPI_INTERNAL_ERROR;
 
-        if (DomainId == SAHPI_UNSPECIFIED_DOMAIN_ID)
+        if (DomainId == SAHPI_UNSPECIFIED_DOMAIN_ID) {
                 did = oh_get_default_domain_id();
-        else
+        } else{
                 did = DomainId;
+        }
 
         sid = oh_create_session(did);
+
         if(!sid) {
                 dbg("Domain %d does not exist or unable to create session!", did);
                 return SA_ERR_HPI_INVALID_DOMAIN;
@@ -505,8 +510,8 @@ SaErrorT SAHPI_API saHpiEventLogInfoGet (
         get_func = h ? h->abi->get_el_info : NULL;
 
         if (!get_func) {
-                return SA_ERR_HPI_INVALID_CMD;
                 oh_release_handler(h);
+                return SA_ERR_HPI_INVALID_CMD;
         }
 
         rv = get_func(h->hnd, ResourceId, Info);
@@ -806,6 +811,7 @@ SaErrorT SAHPI_API saHpiEventLogTimeSet (
         }
         if (Time == SAHPI_TIME_UNSPECIFIED) {
                 dbg("Time SAHPI_TIME_UNSPECIFIED");
+                oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
