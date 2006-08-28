@@ -387,6 +387,9 @@ SaHpiDomainIdT oh_create_domain(SaHpiDomainCapabilitiesT capabilities,
         domain->is_peer = SAHPI_FALSE;
         oh_init_rpt(&(domain->rpt));
 
+        /* initialize the timestamp to a valid value */
+        domain->drt.update_timestamp = SAHPI_TIME_UNSPECIFIED;
+
         if (tag)
                 memcpy(&(domain->tag), tag, sizeof(SaHpiTextBufferT));
 
