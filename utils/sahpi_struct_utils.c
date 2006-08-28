@@ -3186,7 +3186,7 @@ SaHpiBoolT oh_valid_textbuffer(SaHpiTextBufferT *buffer)
 do { \
 if (thds->thdname.IsSupported) { \
         if (!(writable_thds & thdmask)) return(SA_ERR_HPI_INVALID_CMD); \
-        if (format.ReadingType != thds->thdname.Type) return(SA_ERR_HPI_INVALID_CMD); \
+        if (format.ReadingType != thds->thdname.Type) return(SA_ERR_HPI_INVALID_DATA); \
         switch (format.ReadingType) { \
         case SAHPI_SENSOR_READING_TYPE_INT64: \
                 if (format.Range.Flags & SAHPI_SRF_MAX) { \
@@ -3379,6 +3379,110 @@ SaErrorT oh_valid_thresholds(SaHpiSensorThresholdsT *thds, SaHpiRdrT *rdr)
         }
 
         return(SA_OK);
+}
+
+/**
+ * oh_fprint_thresholds
+ * @stream: file handle
+ * @thresholds: sensor thresholds to be printed
+ * @format: data format for corresponding sensor
+ * @offsets: indentation for printing structure
+ *
+ *
+ * Returns:
+ * SA_ERR_HPI_INVALID_PARAMS - one or more of the parameters is NULL.
+ * SA_ERR_HPI_INVALID_DATA - a value is not one of the enumerated values for the type.
+ * SA_OK - Normal operation.
+ **/
+SaErrorT oh_fprint_thresholds(FILE *stream,
+			      const SaHpiSensorThresholdsT *thresholds,
+			      const SaHpiSensorDataFormatT *format,
+			      int offsets)
+{
+	oh_big_textbuffer bigbuf;
+
+        if (!stream || !thresholds || !format) {
+                dbg("Invalid parameter.");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        oh_init_bigtext(&bigbuf);
+        oh_append_offset(&bigbuf, offsets);        
+        
+        if (thresholds->LowCritical.IsSupported) {
+        	SaHpiTextBufferT smallbuf;
+        	memset(&smallbuf, 0, sizeof(SaHpiTextBufferT));
+        	oh_append_bigtext(&bigbuf, "Low Critical: ");
+        	oh_decode_sensorreading(thresholds->LowCritical, *format, &smallbuf);
+        	oh_append_bigtext(&bigbuf, (char *)smallbuf.Data);
+        	oh_append_bigtext(&bigbuf, "\n");
+        	oh_append_offset(&bigbuf, offsets);
+        }
+        if (thresholds->LowMajor.IsSupported) {
+        	SaHpiTextBufferT smallbuf;
+        	memset(&smallbuf, 0, sizeof(SaHpiTextBufferT));
+        	oh_append_bigtext(&bigbuf, "Low Major: ");
+        	oh_decode_sensorreading(thresholds->LowMajor, *format, &smallbuf);
+        	oh_append_bigtext(&bigbuf, (char *)smallbuf.Data);
+        	oh_append_bigtext(&bigbuf, "\n");
+        	oh_append_offset(&bigbuf, offsets);
+        }
+        if (thresholds->LowMinor.IsSupported) {
+        	SaHpiTextBufferT smallbuf;
+        	memset(&smallbuf, 0, sizeof(SaHpiTextBufferT));
+        	oh_append_bigtext(&bigbuf, "Low Minor: ");
+        	oh_decode_sensorreading(thresholds->LowMinor, *format, &smallbuf);
+        	oh_append_bigtext(&bigbuf, (char *)smallbuf.Data);
+        	oh_append_bigtext(&bigbuf, "\n");
+        	oh_append_offset(&bigbuf, offsets);
+        }
+        if (thresholds->UpCritical.IsSupported) {
+        	SaHpiTextBufferT smallbuf;
+        	memset(&smallbuf, 0, sizeof(SaHpiTextBufferT));
+        	oh_append_bigtext(&bigbuf, "Up Critical: ");
+        	oh_decode_sensorreading(thresholds->UpCritical, *format, &smallbuf);
+        	oh_append_bigtext(&bigbuf, (char *)smallbuf.Data);
+        	oh_append_bigtext(&bigbuf, "\n");
+        	oh_append_offset(&bigbuf, offsets);
+        }
+        if (thresholds->UpMajor.IsSupported) {
+        	SaHpiTextBufferT smallbuf;
+        	memset(&smallbuf, 0, sizeof(SaHpiTextBufferT));
+        	oh_append_bigtext(&bigbuf, "Up Major: ");
+        	oh_decode_sensorreading(thresholds->UpMajor, *format, &smallbuf);
+        	oh_append_bigtext(&bigbuf, (char *)smallbuf.Data);
+        	oh_append_bigtext(&bigbuf, "\n");
+        	oh_append_offset(&bigbuf, offsets);
+        }
+        if (thresholds->UpMinor.IsSupported) {
+        	SaHpiTextBufferT smallbuf;
+        	memset(&smallbuf, 0, sizeof(SaHpiTextBufferT));
+        	oh_append_bigtext(&bigbuf, "Up Minor: ");
+        	oh_decode_sensorreading(thresholds->UpMinor, *format, &smallbuf);
+        	oh_append_bigtext(&bigbuf, (char *)smallbuf.Data);
+        	oh_append_bigtext(&bigbuf, "\n");
+        	oh_append_offset(&bigbuf, offsets);
+        }
+        if (thresholds->PosThdHysteresis.IsSupported) {
+        	SaHpiTextBufferT smallbuf;
+        	memset(&smallbuf, 0, sizeof(SaHpiTextBufferT));
+        	oh_append_bigtext(&bigbuf, "Positive Hysteresis: ");
+        	oh_decode_sensorreading(thresholds->PosThdHysteresis, *format, &smallbuf);
+        	oh_append_bigtext(&bigbuf, (char *)smallbuf.Data);
+        	oh_append_bigtext(&bigbuf, "\n");
+        	oh_append_offset(&bigbuf, offsets);
+        }
+        if (thresholds->NegThdHysteresis.IsSupported) {
+        	SaHpiTextBufferT smallbuf;
+        	memset(&smallbuf, 0, sizeof(SaHpiTextBufferT));
+        	oh_append_bigtext(&bigbuf, "Negative Hysteresis: ");
+        	oh_decode_sensorreading(thresholds->NegThdHysteresis, *format, &smallbuf);
+        	oh_append_bigtext(&bigbuf, (char *)smallbuf.Data);
+        	oh_append_bigtext(&bigbuf, "\n");
+        	oh_append_offset(&bigbuf, offsets);
+        }
+
+	return oh_fprint_bigtext(stream, &bigbuf);
 }
 
 /**
