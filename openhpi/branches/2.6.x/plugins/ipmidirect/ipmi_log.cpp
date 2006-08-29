@@ -187,9 +187,9 @@ cIpmiLog::Start()
             struct timeval tv;
             gettimeofday( &tv, 0 );
 
-	    char b[dTimeStringSize+5];
-            IpmiTimeToString( tv.tv_sec, b );
-	    sprintf( b + dTimeStringSize - 1, ".%03ld ", tv.tv_usec / 1000 );
+	    char b[dDateTimeStringSize+5];
+            IpmiDateTimeToString( tv.tv_sec, b );
+	    sprintf( b + dDateTimeStringSize - 1, ".%03ld ", tv.tv_usec / 1000 );
 
 	    Output( b );
 	  }
