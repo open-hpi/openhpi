@@ -48,7 +48,7 @@ SaErrorT SAHPI_API saHpiSessionOpen(
         SaHpiDomainIdT did;
 
 
-        dbg("saHpiSessionOpen DomainId [%d]", DomainId);
+        trace("saHpiSessionOpen DomainId [%d]", DomainId);
 
         if (SessionId == NULL) {
                 dbg("Invalid Session Id pointer");
