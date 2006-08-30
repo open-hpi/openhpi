@@ -32,6 +32,29 @@ SaErrorT sim_el_get_info(void *hnd, SaHpiResourceIdT id,
         return err;
 }
 
+SaErrorT sim_el_set_state(void *hnd, SaHpiResourceIdT id, SaHpiBoolT state)
+{
+	struct oh_handler_state *h = (struct oh_handler_state *)hnd;
+	
+	if (!hnd || !id)
+		return SA_ERR_HPI_INVALID_PARAMS;
+	
+	h->elcache->enabled = state;
+	
+	return SA_OK;
+}
+
+SaErrorT sim_el_get_state(void *hnd, SaHpiResourceIdT id, SaHpiBoolT *state)
+{
+	struct oh_handler_state *h = (struct oh_handler_state *)hnd;
+	
+	if (!hnd || !id)
+		return SA_ERR_HPI_INVALID_PARAMS;
+	
+	*state = h->elcache->enabled;
+	
+	return SA_OK;
+}
 
 SaErrorT sim_el_set_time(void *hnd, SaHpiResourceIdT id, SaHpiTimeT time)
 {
@@ -146,6 +169,12 @@ SaErrorT sim_el_overflow(void *hnd, SaHpiResourceIdT id)
 void * oh_get_el_info (void *, SaHpiResourceIdT, SaHpiEventLogInfoT *)
                 __attribute__ ((weak, alias("sim_el_get_info")));
 
+void * oh_set_el_state (void *, SaHpiResourceIdT, SaHpiBoolT)
+		__attribute__ ((weak, alias("sim_el_set_state")));
+
+void * oh_get_el_state (void *, SaHpiResourceIdT, SaHpiBoolT *)
+		__attribute__ ((weak, alias("sim_el_get_state")));
+
 void * oh_set_el_time (void *, SaHpiResourceIdT, const SaHpiEventT *)
                 __attribute__ ((weak, alias("sim_el_set_time")));
 
@@ -162,5 +191,3 @@ void * oh_clear_el (void *, SaHpiResourceIdT)
 
 void * oh_reset_el_overflow (void *, SaHpiResourceIdT)
                 __attribute__ ((weak, alias("sim_el_overflow")));
-
-

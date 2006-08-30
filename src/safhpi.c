@@ -897,7 +897,7 @@ SaErrorT SAHPI_API saHpiEventLogStateSet (
 
         if (!set_el_state) {
                 oh_release_handler(h);
-                return SA_ERR_HPI_UNSUPPORTED_API;
+                return SA_ERR_HPI_INVALID_CMD;
         }
 
         rv = set_el_state(h->hnd, ResourceId, Enable);
