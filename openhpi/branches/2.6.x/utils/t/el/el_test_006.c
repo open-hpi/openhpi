@@ -70,8 +70,7 @@ int main(int argc, char **argv)
         	event.EventType = SAHPI_ET_USER;
         	event.Timestamp = SAHPI_TIME_UNSPECIFIED;
         	event.Severity = SAHPI_DEBUG;
-		strcpy((char *) &event.EventDataUnion.UserEvent.UserEventData.Data, data[x]);
-
+		strcpy((char *)event.EventDataUnion.UserEvent.UserEventData.Data, data[x]);
 
         	retc = oh_el_append(el, &event, NULL, NULL);
         	if (retc != SA_OK) {
@@ -102,8 +101,7 @@ int main(int argc, char **argv)
         	event.EventType = SAHPI_ET_USER;
         	event.Timestamp = SAHPI_TIME_UNSPECIFIED;
         	event.Severity = SAHPI_DEBUG;
-		strcpy((char *) &event.EventDataUnion.UserEvent.UserEventData.Data, data[x]);
-
+		strcpy((char *)event.EventDataUnion.UserEvent.UserEventData.Data, data[x]);
 
         	retc = oh_el_append(el, &event, NULL, NULL);
         	if (retc != SA_OK) {
@@ -118,8 +116,7 @@ int main(int argc, char **argv)
         	event.EventType = SAHPI_ET_USER;
         	event.Timestamp = SAHPI_TIME_UNSPECIFIED;
         	event.Severity = SAHPI_DEBUG;
-		strcpy((char *) &event.EventDataUnion.UserEvent.UserEventData.Data, data[x]);
-
+		strcpy((char *)event.EventDataUnion.UserEvent.UserEventData.Data, data[x]);
 
         	retc = oh_el_append(el2, &event, NULL, NULL);
         	if (retc != SA_OK) {
@@ -130,24 +127,22 @@ int main(int argc, char **argv)
 
 
 	/* verify number of entries in el and el2 is 10 */
-        if(g_list_length(el->elentries) != 10) {
-                 dbg("ERROR: el->elentries does not have the correct number of entries");
+        if(g_list_length(el->list) != 10) {
+                 dbg("ERROR: el->list does not have the correct number of entries");
                  return 1;
          }
 
-        if(g_list_length(el2->elentries) != 10) {
-                 dbg("ERROR: el2->elentries does not have the correct number of entries");
+        if(g_list_length(el2->list) != 10) {
+                 dbg("ERROR: el2->list does not have the correct number of entries");
                  return 1;
          }
  
-
 	/* compare entry contents of el and el2 */
 	retc = el_compare(el,el2);
 	if (retc != SA_OK){
   		dbg("ERROR: el and el2 do not have matching entries.");
 		return 1;
 	}
- 
 
         /* close el */
         retc1 = oh_el_close(el);
@@ -156,7 +151,6 @@ int main(int argc, char **argv)
                 return 1;
         }
 
-
         /* close el2 */
         retc2 = oh_el_close(el2);
         if (retc2 != SA_OK) {
@@ -164,12 +158,6 @@ int main(int argc, char **argv)
                 return 1;
         }
 
-
         return 0;
 }
-
-
-
-
-
 

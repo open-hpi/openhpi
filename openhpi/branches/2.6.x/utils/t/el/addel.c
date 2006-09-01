@@ -54,7 +54,7 @@ int add_event(oh_el *el, int idx) {
         oh_el_entry *entry, *fetchentry;
         SaHpiEventT event;
         SaErrorT retc;
-        SaHpiEventLogEntryIdT oldId = el->nextId, next, prev;
+        SaHpiEventLogEntryIdT oldId = el->nextid, next, prev;
 
         if (idx >= sizeof(data) / sizeof(char *)) {
                 dbg("ERROR: idx invalid.");
@@ -74,9 +74,9 @@ int add_event(oh_el *el, int idx) {
                 return 1;
         }
 	
-	entry = (oh_el_entry *)(g_list_last(el->elentries)->data);
+	entry = (oh_el_entry *)(g_list_last(el->list)->data);
         /* check correct id */
-        if (entry->event.EntryId != el->nextId - 1) {
+        if (entry->event.EntryId != el->nextid - 1) {
                 dbg("ERROR: entry.EntryId invalid.");
                 return 1;
         }
@@ -87,8 +87,8 @@ int add_event(oh_el *el, int idx) {
         }
 
         /* inspect oh_el struct values */
-        if(el->enabled != TRUE) {
-                dbg("ERROR: el->enabled invalid.");
+        if(el->info.Enabled != TRUE) {
+                dbg("ERROR: el->info.Enabled invalid.");
                 return 1;
         }
 
@@ -97,23 +97,23 @@ int add_event(oh_el *el, int idx) {
 //              return 1;
 //      }
 
-        if(el->lastUpdate != entry->event.Timestamp) {
-                dbg("ERROR: el->lastUpdate invalid.");
+        if(el->info.UpdateTimestamp != entry->event.Timestamp) {
+                dbg("ERROR: el->info.UpdateTimestamp invalid.");
                 return 1;
         }
 
-        if(el->offset != 0) {
-                dbg("ERROR: el->offset invalid.");
+        if(el->basetime != 0) {
+                dbg("ERROR: el->basetime invalid.");
                 return 1;
         }
 
-        if(el->nextId != oldId + 1) {
-                dbg("ERROR: el->nextId invalid.");
+        if(el->nextid != oldId + 1) {
+                dbg("ERROR: el->nextid invalid.");
                 return 1;
         }
 
-        if(el->elentries == NULL) {
-                dbg("ERROR: el->elentries == NULL.");
+        if(el->list == NULL) {
+                dbg("ERROR: el->list == NULL.");
                 return 1;
         }
 

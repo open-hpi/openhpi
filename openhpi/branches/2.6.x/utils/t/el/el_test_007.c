@@ -30,7 +30,7 @@
 /**
  * main: EL test
  *
- * This test modifies the timestamp offset. 
+ * This test modifies the timestamp basetime. 
  * It then adds a new entry and examines the 
  * timestamp to verify accuracy.
  *
@@ -44,8 +44,7 @@ int main(int argc, char **argv)
         SaErrorT retc;
 	SaHpiEventLogInfoT info;
 	SaHpiEventT event;
-	SaHpiTimeT timestamp;
-	struct timeval tv;
+	SaHpiTimeT timestamp = 1000000000LL;
 	static char *data[1] = {
         	"Test data"
 	};
@@ -59,17 +58,15 @@ int main(int argc, char **argv)
 	event.Timestamp = SAHPI_TIME_UNSPECIFIED;
 	event.Severity = SAHPI_DEBUG;
 
-        strcpy((char *) &event.EventDataUnion.UserEvent.UserEventData.Data, data[0]);
+        strcpy((char *)event.EventDataUnion.UserEvent.UserEventData.Data, data[0]);
 
-	/* modifies the timestamp offset */
-	retc = oh_el_timeset(el, 1000000000);
+	/* modifies the timestamp basetime */
+	retc = oh_el_timeset(el, timestamp);
 	if (retc != SA_OK){
 		dbg("ERROR: timeset failed");
 		return 1;
 	} 
 
-        gettimeofday(&tv, NULL);
-	timestamp = (SaHpiTimeT) tv.tv_sec * 1000000000 + tv.tv_usec * 1000;
 	retc = oh_el_append(el, &event, NULL, NULL);
         if (retc != SA_OK) {
         	dbg("ERROR: oh_el_append failed.");
@@ -83,9 +80,9 @@ int main(int argc, char **argv)
                 return 1;
         }
 									
-	/* Verifies timestamp offset worked */
-	if ((info.UpdateTimestamp - timestamp) < 1000000000){
-		dbg("ERROR: Timestamp offset failed");
+	/* Verifies timestamp basetime worked */
+	if (info.UpdateTimestamp < timestamp){
+		dbg("ERROR: Timestamp basetime failed");
 		return 1;
 	}    
 
