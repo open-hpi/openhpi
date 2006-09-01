@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2005
+ * (C) Copyright IBM Corp. 2005,2006
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -16,6 +16,8 @@
 
 SaErrorT sim_el_get_info(void *hnd, SaHpiResourceIdT id,
                          SaHpiEventLogInfoT *info);
+SaErrorT sim_el_set_state(void *hnd, SaHpiResourceIdT id, SaHpiBoolT state);
+SaErrorT sim_el_get_state(void *hnd, SaHpiResourceIdT id, SaHpiBoolT *state);
 SaErrorT sim_el_set_time(void *hnd, SaHpiResourceIdT id, SaHpiTimeT time);
 SaErrorT sim_el_add_entry(void *hnd, SaHpiResourceIdT id,
                           const SaHpiEventT *Event);
@@ -27,4 +29,3 @@ SaErrorT sim_el_get_entry(void *hnd, SaHpiResourceIdT id,
                           SaHpiRptEntryT *rptentry);
 SaErrorT sim_el_clear(void *hnd, SaHpiResourceIdT id);
 SaErrorT sim_el_overflow(void *hnd, SaHpiResourceIdT id);
-

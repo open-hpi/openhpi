@@ -30,7 +30,7 @@
 /**
  * main: EL test
  *
- * This test creates an EL and resets overflow (oh_el_overflowreset)
+ * This test creates an EL and resets info.OverflowFlag (oh_el_overflowreset)
  * Return value: 0 on success, 1 on failure
  **/
 
@@ -50,7 +50,7 @@ int main(int argc, char **argv)
 
 	retc = oh_el_overflowreset(el);
         if (retc != SA_OK) {
-                dbg("ERROR: el overflowreset failed.");
+                dbg("ERROR: el info.OverflowFlagreset failed.");
                 return 1;
         }
 

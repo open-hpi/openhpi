@@ -30,7 +30,7 @@
 /**
  * main: EL test
  *
- * This test verifies the failure of oh_el_map_from_file el->enabled == SAHPI_FALSE
+ * This test verifies the failure of oh_el_map_from_file el->info.Enabled == SAHPI_FALSE
  *
  * Return value: 0 on success, 1 on failure
  **/
@@ -41,10 +41,10 @@ int main(int argc, char **argv)
         oh_el *el;
         SaErrorT retc;
 
-	/* test failure of oh_el_map_from_file with el->enabled == SAHPI_FALSE */
+	/* test failure of oh_el_map_from_file with el->info.Enabled == SAHPI_FALSE */
 
 	el = oh_el_create(20);
-	el->enabled = SAHPI_FALSE;
+	el->info.Enabled = SAHPI_FALSE;
 
         retc = oh_el_map_from_file(el, "./elTest.data");
         if (retc == SA_OK) {

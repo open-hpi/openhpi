@@ -37,6 +37,7 @@ static int snmp_bc_get_sel_size(struct oh_handler_state *handle, SaHpiResourceId
 {
         int i;
 	SaErrorT err;
+	SaHpiEventLogInfoT elinfo;
 	
 	i = 1;
 	err = SA_OK;
@@ -52,7 +53,8 @@ static int snmp_bc_get_sel_size(struct oh_handler_state *handle, SaHpiResourceId
 		dbg("snmp_bc_discover, Error %s when building elcache.\n", oh_lookup_error(err));
 
 	/* Return the entry count */
-        i = g_list_length(handle->elcache->elentries);
+	oh_el_info(handle->elcache, &elinfo);
+        i = elinfo.Entries;
         return i;
 }
 
@@ -78,7 +80,7 @@ SaErrorT snmp_bc_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiEventLogInfoT
         struct tm curtime;
         sel_entry sel_entry;
     	struct snmp_bc_hnd *custom_handle;
-        SaHpiEventLogInfoT sel;
+        SaHpiEventLogInfoT sel, elinfo;
 	
         if (!hnd || !info) {
                 dbg("Invalid parameter.");
@@ -142,7 +144,8 @@ SaErrorT snmp_bc_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiEventLogInfoT
 
 
         sel.Entries = snmp_bc_get_sel_size(handle, id);
-	sel.OverflowFlag = handle->elcache->overflow;
+	oh_el_info(handle->elcache, &elinfo);
+	sel.OverflowFlag = elinfo.OverflowFlag;
         *info = sel;
         snmp_bc_unlock_handler(custom_handle);
         return(SA_OK);
@@ -437,6 +440,7 @@ SaErrorT snmp_bc_check_selcache(struct oh_handler_state *handle,
 				SaHpiEventLogEntryIdT entryId)
 {
 	SaErrorT err;
+	SaHpiEventLogInfoT elinfo;
 	
 	if (!handle) {
 		dbg("Invalid parameter.");
@@ -445,8 +449,9 @@ SaErrorT snmp_bc_check_selcache(struct oh_handler_state *handle,
 	
 	err = SA_OK;
 
-	if ((g_list_length(handle->elcache->elentries) == 0) && 
-	     !(is_simulator())) {
+	oh_el_info(handle->elcache, &elinfo);
+	if (elinfo.Entries == 0 && 
+	    !(is_simulator())) {
 		/* err = snmp_bc_build_selcache(handle, id); */
 		trace("elcache sync called before discovery?\n");
 	} else {
@@ -586,7 +591,7 @@ SaErrorT snmp_bc_selcache_sync(struct oh_handler_state *handle,
 				if (err != SA_OK) return(err);
 		
 				if (g_ascii_strncasecmp(get_value.string, EVT_EN_LOG_FULL, sizeof(EVT_EN_LOG_FULL)) == 0 )
-		 				handle->elcache->overflow = SAHPI_TRUE;
+						oh_el_overflowset(handle->elcache, SAHPI_TRUE);
 		 
 				isdst = sel_entry.time.tm_isdst;
 				snmp_bc_log2event(handle, this_value->string, &tmpevent, isdst, &logsrc2res);
@@ -804,7 +809,7 @@ SaErrorT snmp_bc_sel_read_add (struct oh_handler_state *handle,
 	if (err != SA_OK) return(err);
 		
 	if (g_ascii_strncasecmp(get_value.string, EVT_EN_LOG_FULL, sizeof(EVT_EN_LOG_FULL)) == 0 )
-		 handle->elcache->overflow = SAHPI_TRUE;
+		oh_el_overflowset(handle->elcache, SAHPI_TRUE);
 		 
 	isdst = sel_entry.time.tm_isdst;
 	snmp_bc_log2event(handle, get_value.string, &tmpevent, isdst, &logsrc2res);

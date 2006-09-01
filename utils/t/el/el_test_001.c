@@ -44,38 +44,38 @@ int main(int argc, char **argv)
                 return 1;
         }
 
-        if(el->enabled != TRUE) {
-                dbg("ERROR: el->enabled invalid.");
+        if(el->info.Enabled != TRUE) {
+                dbg("ERROR: el->info.Enabled invalid.");
                 return 1;
         }
 
-        if(el->overflow != FALSE) {
-                dbg("ERROR: el->overflow invalid.");
+        if(el->info.OverflowFlag != FALSE) {
+                dbg("ERROR: el->info.OverflowFlag invalid.");
                 return 1;
         }
 
-        if(el->lastUpdate != SAHPI_TIME_UNSPECIFIED) {
-                dbg("ERROR: el->lastUpdate invalid.");
+        if(el->info.UpdateTimestamp != SAHPI_TIME_UNSPECIFIED) {
+                dbg("ERROR: el->info.UpdateTimestamp invalid.");
                 return 1;
         }
 
-        if(el->offset != 0) {
-                dbg("ERROR: el->offset invalid.");
+        if(el->basetime != 0) {
+                dbg("ERROR: el->basetime invalid.");
                 return 1;
         }
 
-        if(el->nextId != SAHPI_OLDEST_ENTRY + 1) {
-                dbg("ERROR: el->nextId invalid.");
+        if(el->nextid != SAHPI_OLDEST_ENTRY + 1) {
+                dbg("ERROR: el->nextid invalid.");
                 return 1;
         }
 
-        if(el->maxsize != 5) {
-                dbg("ERROR: el->maxsize invalid.");
+        if(el->info.Size != 5) {
+                dbg("ERROR: el->info.Size invalid.");
                 return 1;
         }
 
-        if(el->elentries != NULL) {
-                dbg("ERROR: el->elentries invalid.");
+        if(el->list != NULL) {
+                dbg("ERROR: el->list invalid.");
                 return 1;
         }
 
