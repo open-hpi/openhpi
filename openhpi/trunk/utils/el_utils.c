@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2003, 2004
+ * (C) Copyright IBM Corp. 2003, 2004, 2006
  * Copyright (c) 2003 by Intel Corp.
  *
  * This program is distributed in the hope that it will be useful,
@@ -15,12 +15,11 @@
  *      Renier Morales <renierm@users.sf.net>
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <glib.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <fcntl.h>
-#include <string.h>
 #include <unistd.h>
+#include <string.h>
 #include <sys/time.h>
 
 #include <SaHpi.h>
@@ -34,14 +33,22 @@ oh_el *oh_el_create(SaHpiUint32T size)
 
         el = (oh_el *) g_malloc0(sizeof(oh_el));
         if (el != NULL) {
-                el->enabled = TRUE;
-                el->overflow = FALSE;
-                el->gentimestamp = TRUE;
-                el->lastUpdate = SAHPI_TIME_UNSPECIFIED;
-                el->offset = 0;
-                el->maxsize = size;
-                el->nextId = SAHPI_OLDEST_ENTRY + 1; // always start at 1
-                el->elentries = NULL;
+		el->basetime = 0;
+		el->sysbasetime = 0;
+		el->nextid = SAHPI_OLDEST_ENTRY + 1;
+		el->gentimestamp = SAHPI_TRUE;
+		
+		el->info.Entries = 0;
+		el->info.Size = size;
+		el->info.UserEventMaxSize = SAHPI_MAX_TEXT_BUFFER_LENGTH;
+		el->info.UpdateTimestamp = SAHPI_TIME_UNSPECIFIED;
+		el->info.CurrentTime = SAHPI_TIME_UNSPECIFIED;
+                el->info.Enabled = SAHPI_TRUE;
+                el->info.OverflowFlag = SAHPI_FALSE;
+		el->info.OverflowResetable = SAHPI_TRUE;
+        	el->info.OverflowAction = SAHPI_EL_OVERFLOW_OVERWRITE;
+		
+                el->list = NULL;
         }
         return el;
 }
@@ -50,130 +57,139 @@ oh_el *oh_el_create(SaHpiUint32T size)
 /* close and free all memory associated with an EL */
 SaErrorT oh_el_close(oh_el *el)
 {
+        if (el == NULL) return SA_ERR_HPI_INVALID_PARAMS;
 
-        if (el == NULL) {
-                return SA_ERR_HPI_INVALID_PARAMS;
-        }
-
-        oh_el_clear(el);
-        free(el);
+	oh_el_clear(el);	
+        g_free(el);
+	
         return SA_OK;
 }
 
 
 /* append a new entry to the EL */
-SaErrorT oh_el_append(oh_el *el, const SaHpiEventT *event, const SaHpiRdrT *rdr,
-                      const SaHpiRptEntryT *res)
+SaErrorT oh_el_append(oh_el *el,
+		       const SaHpiEventT *event,
+		       const SaHpiRdrT *rdr,
+		       const SaHpiRptEntryT *res)
 {
         oh_el_entry *entry;
         struct timeval tv;
-        GList *temp;
+	SaHpiTimeT cursystime;
 
         /* check for valid el params and state */
         if (el == NULL || event == NULL) {
                 return SA_ERR_HPI_INVALID_PARAMS;
-        }
-        if ((el->enabled == FALSE) && (event->EventType != SAHPI_ET_USER)) {
+        } else if (el->info.Enabled == FALSE &&
+		    event->EventType != SAHPI_ET_USER) {
                 return SA_ERR_HPI_INVALID_REQUEST;
         }
 
         /* alloc the new entry */
         entry = (oh_el_entry *) g_malloc0(sizeof(oh_el_entry));
         if (entry == NULL) {
-                el->overflow = TRUE;
+                el->info.OverflowFlag = TRUE;
                 return SA_ERR_HPI_OUT_OF_SPACE;
         }
-        if (rdr != NULL) {
-                memcpy(&(entry->rdr), rdr, sizeof(SaHpiRdrT));
-        }
-        if (res != NULL) {
-                memcpy(&(entry->res), res, sizeof(SaHpiRptEntryT));
-        }
+	
+        if (rdr) entry->rdr = *rdr;
+        if (res) entry->res = *res;
 
         /* if necessary, wrap the el entries */
-        if (el->maxsize != OH_EL_MAX_SIZE && g_list_length(el->elentries) == el->maxsize) {
-                gpointer tempdata;
-                temp = g_list_first(el->elentries);
-                tempdata = temp->data;
-                el->elentries = g_list_remove(el->elentries, temp->data);
-                g_free(tempdata);
-                el->overflow = SAHPI_TRUE;
+        if (el->info.Size != OH_EL_MAX_SIZE &&
+	    g_list_length(el->list) == el->info.Size) {
+		g_free(el->list->data);
+                el->list = g_list_delete_link(el->list, el->list);
+                el->info.OverflowFlag = SAHPI_TRUE;
         }
 
-        /* append the new entry */
-        entry->event.EntryId = el->nextId;
-        el->nextId++;
-        if (el->gentimestamp) {
-                gettimeofday(&tv, NULL);
-                el->lastUpdate = ((SaHpiTimeT) tv.tv_sec * 1000000000 + tv.tv_usec * 1000) + el->offset;
-        } else {
-                el->lastUpdate = event->Timestamp;
-        }
-        entry->event.Timestamp = el->lastUpdate;
-        memcpy(&(entry->event.Event), event, sizeof(SaHpiEventT));
-        el->elentries = g_list_append(el->elentries, entry);
+        /* Set the event log entry id and timestamp */
+        entry->event.EntryId = el->nextid++;
+	if (el->gentimestamp) {
+        	gettimeofday(&tv, NULL);
+		cursystime = (SaHpiTimeT) tv.tv_sec * 1000000000 + tv.tv_usec * 1000;
+        	el->info.UpdateTimestamp =
+			el->basetime + (cursystime - el->sysbasetime);
+	} else {
+		el->info.UpdateTimestamp = event->Timestamp;
+		/* Setting time based on the event to have some sense of what
+		 * the current time is going to be when providing the el info.
+		 */
+		oh_el_timeset(el, event->Timestamp);
+	}
+	entry->event.Timestamp = el->info.UpdateTimestamp;
+
+	/* append the new entry */
+	entry->event.Event = *event;
+        el->list = g_list_append(el->list, entry);
+	
         return SA_OK;
 }
 
 
 /* prepend a new entry to the EL */
-SaErrorT oh_el_prepend(oh_el *el, const SaHpiEventT *event, const SaHpiRdrT *rdr,
-                       const SaHpiRptEntryT *res)
+SaErrorT oh_el_prepend(oh_el *el,
+			const SaHpiEventT *event,
+			const SaHpiRdrT *rdr,
+			const SaHpiRptEntryT *res)
 {
-        oh_el_entry *entry, *tmpentry;
-        SaHpiEventLogEntryT *tmplog;
+        GList *node = NULL;
+	oh_el_entry *entry;        
         struct timeval tv;
-        GList *ellist;
+	SaHpiTimeT cursystime;
 
         /* check for valid el params and state */
         if (el == NULL || event == NULL) {
                 return SA_ERR_HPI_INVALID_PARAMS;
-        }
-        if (el->enabled == FALSE) {
+        } else if (el->info.Enabled == FALSE &&
+		    event->EventType != SAHPI_ET_USER) {
                 return SA_ERR_HPI_INVALID_REQUEST;
         }
 
         /* see if el is full */
-        if (el->maxsize != OH_EL_MAX_SIZE && g_list_length(el->elentries) == el->maxsize) {
+        if (el->info.Size != OH_EL_MAX_SIZE &&
+	    g_list_length(el->list) == el->info.Size) {
                 return SA_ERR_HPI_OUT_OF_SPACE;
         }
 
         /* alloc the new entry */
         entry = (oh_el_entry *) g_malloc0(sizeof(oh_el_entry));
         if (entry == NULL) {
-                el->overflow = TRUE;
+                el->info.OverflowFlag = TRUE;
                 return SA_ERR_HPI_OUT_OF_SPACE;
         }
-        if (rdr != NULL) {
-                memcpy(&(entry->rdr), rdr, sizeof(SaHpiRdrT));
-        }
-        if (res != NULL) {
-                memcpy(&(entry->res), res, sizeof(SaHpiRptEntryT));
-        }
+        
+	if (rdr) entry->rdr = *rdr;
+        if (res) entry->res = *res;
 
         /* since we are adding entries in reverse order we have to renumber
          * existing entries
-         */
-        ellist = g_list_first(el->elentries);
-        while (ellist != NULL) {
-                tmpentry = (oh_el_entry *) ellist->data;
-                tmplog = (SaHpiEventLogEntryT *) &(tmpentry->event);
-                tmplog->EntryId++;
-                ellist = g_list_next(ellist);
+         */        
+	for (node = el->list; node; node = node->next) {
+                oh_el_entry *tmpentry = (oh_el_entry *)node->data;
+		tmpentry->event.EntryId++;
         }
+	el->nextid++;
 
-        /* prepend the new entry */
-        entry->event.EntryId = 1;
-        el->nextId++;
-        if (el->gentimestamp) {
-                gettimeofday(&tv, NULL);
-                el->lastUpdate = ((SaHpiTimeT) tv.tv_sec * 1000000000 + tv.tv_usec * 1000) + el->offset;
-        } else {
-                el->lastUpdate = event->Timestamp;
-        }
-        entry->event.Timestamp = el->lastUpdate;
-        memcpy(&(entry->event.Event), event, sizeof(SaHpiEventT));
-        el->elentries = g_list_prepend(el->elentries, entry);
+        /* prepare & prepend the new entry */
+        entry->event.EntryId = SAHPI_OLDEST_ENTRY + 1;
+	if (el->gentimestamp) {
+        	gettimeofday(&tv, NULL);
+		cursystime = (SaHpiTimeT) tv.tv_sec * 1000000000 + tv.tv_usec * 1000;
+        	el->info.UpdateTimestamp =
+			el->basetime + (cursystime - el->sysbasetime);
+	} else {
+		el->info.UpdateTimestamp = event->Timestamp;
+		/* Setting time based on the event to have some sense of what
+		 * the current time is going to be when providing the el info.
+		 */
+		oh_el_timeset(el, event->Timestamp);
+	}
+        entry->event.Timestamp = el->info.UpdateTimestamp;
+	
+	/* prepend the new entry to the list */
+	entry->event.Event = *event;
+        el->list = g_list_prepend(el->list, entry);
+	
         return SA_OK;
 }
 
@@ -181,89 +197,89 @@ SaErrorT oh_el_prepend(oh_el *el, const SaHpiEventT *event, const SaHpiRdrT *rdr
 /* clear all EL entries */
 SaErrorT oh_el_clear(oh_el *el)
 {
-        GList *temp;
+        GList *node;
 
-        if (el == NULL) {
-                return SA_ERR_HPI_INVALID_PARAMS;
-        }
+        if (el == NULL) return SA_ERR_HPI_INVALID_PARAMS;
 
-        /* free the list data elements */
-        temp = g_list_first(el->elentries);
-        while (temp != NULL) {
-                g_free(temp->data);
-                temp = g_list_next(temp);
+        /* free the data for every element in the list */
+	for (node = el->list; node; node = node->next) {        
+                g_free(node->data);
         }
+	
         /* free the list nodes */
-        g_list_free(el->elentries);
-        /* reset the control structure */
-        el->overflow = FALSE;
-        el->lastUpdate = SAHPI_TIME_UNSPECIFIED;
-        el->nextId = SAHPI_OLDEST_ENTRY + 1; // always start at 1
-        el->elentries = NULL;
+        g_list_free(el->list);
+        
+	/* reset the control structure */
+        el->info.OverflowFlag = SAHPI_FALSE;
+        el->info.UpdateTimestamp = SAHPI_TIME_UNSPECIFIED;
+	el->info.Entries = 0;
+        el->nextid = SAHPI_OLDEST_ENTRY + 1; // always start at 1
+        el->list = NULL;
 
         return SA_OK;
 }
 
 
 /* get an EL entry */
-SaErrorT oh_el_get(oh_el *el, SaHpiEventLogEntryIdT entryid, SaHpiEventLogEntryIdT *prev,
-                    SaHpiEventLogEntryIdT *next, oh_el_entry **entry)
+SaErrorT oh_el_get(oh_el *el,
+		   SaHpiEventLogEntryIdT entryid,
+		   SaHpiEventLogEntryIdT *prev,
+                   SaHpiEventLogEntryIdT *next,
+		   oh_el_entry **entry)
 {
-        oh_el_entry *myentry;
-        GList *ellist;
-        SaHpiEventLogEntryIdT srchentryid, firstid, lastid;
-
-        if (el == NULL || prev == NULL || next == NULL || entry == NULL) {
+        SaHpiEventLogEntryIdT eid;
+	GList *node = NULL;
+	oh_el_entry *elentry = NULL;	
+	
+	if (!el || !prev || !next || !entry ||
+	    entryid == SAHPI_NO_MORE_ENTRIES) {
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
-        if (g_list_length(el->elentries) == 0) {
+	
+        if (g_list_length(el->list) == 0) {
                 return SA_ERR_HPI_NOT_PRESENT;
         }
+	
+	/* FIXME: There is a bug here because this does not take into account
+	 * the case when oh_el_prepend would have been used. In such case the
+	 * OLDEST entry would technically not be the first one in the list.
+	 * To be continued...
+	 * 	-- Renier Morales (08/30/06)
+	 */
+        if (entryid == SAHPI_OLDEST_ENTRY) {
+		node = g_list_first(el->list);
+	} else if (entryid == SAHPI_NEWEST_ENTRY) {
+		node = g_list_last(el->list);
+	}
 
-        /* get the first and last entry ids for possible translation */
-        ellist = g_list_last(el->elentries);
-        myentry = (oh_el_entry *)ellist->data;
-        lastid = myentry->event.EntryId;
-        ellist = g_list_first(el->elentries);
-        myentry = (oh_el_entry *)ellist->data;
-        firstid = myentry->event.EntryId;
-        if (entryid == SAHPI_NEWEST_ENTRY) {
-                srchentryid = lastid;
-        }
-        else if (entryid == SAHPI_OLDEST_ENTRY) {
-                srchentryid = firstid;
-        }
-        else {
-                srchentryid = entryid;
-        }
+	if (node) {
+		elentry = (oh_el_entry *)node->data;
+		eid = elentry->event.EntryId;
+	} else {
+		eid = entryid;
+	}
+	
+	for (node = el->list; node; node = node->next) {
+		elentry = (oh_el_entry *)node->data;
+		if (eid == elentry->event.EntryId) {
+			*entry = elentry;
+			if (node->prev) {
+				elentry = (oh_el_entry *)node->prev->data;
+				*prev = elentry->event.EntryId;
+			} else {
+				*prev = SAHPI_NO_MORE_ENTRIES;
+			}
+			if (node->next) {
+				elentry = (oh_el_entry *)node->next->data;
+				*next = elentry->event.EntryId;
+			} else {
+				*next = SAHPI_NO_MORE_ENTRIES;
+			}
+			return SA_OK;
+		}
+	}
 
-        ellist = g_list_first(el->elentries);
-        while (ellist != NULL) {
-                myentry = (oh_el_entry *) ellist->data;
-                if (srchentryid == myentry->event.EntryId) {
-                        *entry = myentry;
-                        /* is this the first entry? */
-                        if (myentry->event.EntryId == firstid) {
-                                *prev = SAHPI_NO_MORE_ENTRIES;
-                        }
-                        else {
-                                *prev = myentry->event.EntryId - 1;
-                        }
-                        /* is this the last entry? */
-                        if (myentry->event.EntryId == lastid) {
-                                *next = SAHPI_NO_MORE_ENTRIES;
-                        }
-                        else {
-                                *next = myentry->event.EntryId + 1;
-                        }
-                        return SA_OK;
-                }
-                else if (entryid < myentry->event.EntryId) {
-                        return SA_ERR_HPI_NOT_PRESENT;
-                }
-                ellist = g_list_next(ellist);
-        }
-        return SA_ERR_HPI_NOT_PRESENT;
+	return SA_ERR_HPI_NOT_PRESENT;
 }
 
 
@@ -271,22 +287,18 @@ SaErrorT oh_el_get(oh_el *el, SaHpiEventLogEntryIdT entryid, SaHpiEventLogEntryI
 SaErrorT oh_el_info(oh_el *el, SaHpiEventLogInfoT *info)
 {
         struct timeval tv;
+	SaHpiTimeT cursystime;
 
         if (el == NULL || info == NULL) {
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
-
-        info->Entries = g_list_length(el->elentries);
-        info->Size = el->maxsize;
-        info->UserEventMaxSize  = SAHPI_MAX_TEXT_BUFFER_LENGTH;
-        info->UpdateTimestamp = el->lastUpdate;
+        
+        *info = el->info;
+	info->Entries = g_list_length(el->list);
         gettimeofday(&tv, NULL);
-        info->CurrentTime = ((SaHpiTimeT) tv.tv_sec * 1000000000 + tv.tv_usec * 1000) + el->offset;
-        info->Enabled = el->enabled;
-        info->OverflowFlag = el->overflow;
-        info->OverflowResetable = SAHPI_TRUE;
-        info->OverflowAction = SAHPI_EL_OVERFLOW_OVERWRITE;
-        info->UserEventMaxSize = SAHPI_MAX_TEXT_BUFFER_LENGTH;
+	cursystime = (SaHpiTimeT) tv.tv_sec * 1000000000 + tv.tv_usec * 1000;	
+        info->CurrentTime = el->basetime + (cursystime - el->sysbasetime);
+        
         return SA_OK;
 }
 
@@ -294,13 +306,23 @@ SaErrorT oh_el_info(oh_el *el, SaHpiEventLogInfoT *info)
 /* reset EL overflowflag */
 SaErrorT oh_el_overflowreset(oh_el *el)
 {
+        if (el == NULL) return SA_ERR_HPI_INVALID_PARAMS;
 
+	if (el->info.OverflowResetable) {
+        	el->info.OverflowFlag = SAHPI_FALSE;
+		return SA_OK;
+	} else {
+		return SA_ERR_HPI_INVALID_CMD;
+	}
+}
 
-        if (el == NULL)
-                return SA_ERR_HPI_INVALID_PARAMS;
-
-        el->overflow = SAHPI_FALSE;
-        return SA_OK;
+SaErrorT oh_el_overflowset(oh_el *el, SaHpiBoolT flag)
+{
+	if (!el) return SA_ERR_HPI_INVALID_PARAMS;
+	
+	el->info.OverflowFlag = flag;
+	
+	return SA_OK;
 }
 
 
@@ -308,7 +330,7 @@ SaErrorT oh_el_overflowreset(oh_el *el)
 SaErrorT oh_el_map_to_file(oh_el *el, char *filename)
 {
         int file;
-        GList *ellist;
+        GList *node = NULL;
 
         if (el == NULL || filename == NULL) {
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -319,18 +341,16 @@ SaErrorT oh_el_map_to_file(oh_el *el, char *filename)
                 dbg("EL file '%s' could not be opened", filename);
                 return SA_ERR_HPI_ERROR;
         }
-
-        ellist = g_list_first(el->elentries);
-        while (ellist != NULL) {
-                if (write(file, (void *)ellist->data, sizeof(oh_el_entry)) != sizeof(oh_el_entry)) {
+        
+	for (node = el->list; node; node = node->next) {
+                if (write(file, (void *)node->data, sizeof(oh_el_entry)) != sizeof(oh_el_entry)) {
 			dbg("Couldn't write to file '%s'.", filename);
 			close(file);
                 	return SA_ERR_HPI_ERROR;
 		}
-                ellist = g_list_next(ellist);
         }
 
-        if(close(file) != 0) {
+        if (close(file) != 0) {
                 dbg("Couldn't close file '%s'.", filename);
                 return SA_ERR_HPI_ERROR;
         }
@@ -344,13 +364,11 @@ SaErrorT oh_el_map_from_file(oh_el *el, char *filename)
 {
         int file;
         oh_el_entry entry;
-        SaErrorT retc;
 
         /* check el params and state */
         if (el == NULL || filename == NULL) {
                 return SA_ERR_HPI_INVALID_PARAMS;
-        }
-        if (el->enabled == FALSE) {
+        } else if (el->info.Enabled == FALSE) {
                 return SA_ERR_HPI_INVALID_REQUEST;
         }
 
@@ -362,19 +380,14 @@ SaErrorT oh_el_map_from_file(oh_el *el, char *filename)
 
         oh_el_clear(el); // ensure list is empty
         while (read(file, &entry, sizeof(oh_el_entry)) == sizeof(oh_el_entry)) {
-                el->nextId = entry.event.EntryId;
-                /* Need a way to preserve the original entry's timestamp
-                 * if that is of use. -- RM
-                 */
-                retc = oh_el_append(el, &(entry.event.Event), &(entry.rdr),
-                                    &(entry.res));
-                if (retc) {
-                        close(file);
-                        return retc;
-                }
+		oh_el_entry *elentry = (oh_el_entry *)g_malloc0(sizeof(oh_el_entry));
+		el->nextid = entry.event.EntryId;
+		el->nextid++;
+		*elentry = entry;
+		el->list = g_list_append(el->list, elentry);
         }
 
-        if(close(file) != 0) {
+        if (close(file) != 0) {
                 dbg("Couldn't close file '%s'.", filename);
                 return SA_ERR_HPI_ERROR;
         }
@@ -386,21 +399,18 @@ SaErrorT oh_el_map_from_file(oh_el *el, char *filename)
 /* set the EL timestamp offset */
 SaErrorT oh_el_timeset(oh_el *el, SaHpiTimeT timestamp)
 {
-        if (el == NULL || timestamp == SAHPI_TIME_UNSPECIFIED) {
+        struct timeval tv;
+	
+	if (el == NULL || timestamp == SAHPI_TIME_UNSPECIFIED) {
                 return SA_ERR_HPI_INVALID_PARAMS;
-        } else if (timestamp > SAHPI_TIME_MAX_RELATIVE) {
-                /* We accept absolute timestamp here to be
-                   compliant with the spec. But we set it to zero
-                   anyway because we use gettimeofday() to get the current
-                   time (absolute) to stamp new entries with.
-                */
-                timestamp = 0;
         }
+	
+	gettimeofday(&tv, NULL);
+	el->sysbasetime = (SaHpiTimeT) tv.tv_sec * 1000000000 + tv.tv_usec * 1000;
+	el->basetime = timestamp;
 
-        el->offset = timestamp;
         return SA_OK;
 }
-
 
 /* set the timestamp generate flag */
 SaErrorT oh_el_setgentimestampflag(oh_el *el, SaHpiBoolT flag)
@@ -411,4 +421,13 @@ SaErrorT oh_el_setgentimestampflag(oh_el *el, SaHpiBoolT flag)
 
         el->gentimestamp = flag;
         return SA_OK;
+}
+
+SaErrorT oh_el_enableset(oh_el *el, SaHpiBoolT flag)
+{
+	if (!el) return SA_ERR_HPI_INVALID_PARAMS;
+
+	el->info.Enabled = flag;
+	
+	return SA_OK;
 }

@@ -30,7 +30,7 @@
 /**
  * main: EL test
  *
- * This test verifies failure of oh_el_append when el->enabled == SAHPI_FALSE &&
+ * This test verifies failure of oh_el_append when el->info.Enabled == SAHPI_FALSE &&
  * event->EventType != SAHPI_ET_USER
  *
  * Return value: 0 on success, 1 on failure
@@ -46,12 +46,12 @@ int main(int argc, char **argv)
         	"Test data one"
 	};
 
-	/*test oh_el_append with el->enabled == SAHPI_FALSE &&
+	/*test oh_el_append with el->info.Enabled == SAHPI_FALSE &&
         event->EventType != SAHPI_ET_USER */
 	
 	el = oh_el_create(20);
 
-	el->enabled = FALSE;
+	el->info.Enabled = FALSE;
         event.Source = 1;
         event.EventType = SAHPI_ET_DOMAIN;
         event.Timestamp = SAHPI_TIME_UNSPECIFIED;

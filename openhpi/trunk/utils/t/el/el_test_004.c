@@ -86,8 +86,8 @@ int main(int argc, char **argv)
         }
 
 
-        if(g_list_length(el->elentries) != g_list_length(el2->elentries)) {
-                 dbg("ERROR: el->elentries != el2->elentries.");
+        if(g_list_length(el->list) != g_list_length(el2->list)) {
+                 dbg("ERROR: el->list != el2->list.");
                  return 1;
          }
 

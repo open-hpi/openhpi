@@ -713,6 +713,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht,
                 
                         memset( &rdr, 0, sizeof( SaHpiRdrT ) );
                         memset( &rpt_entry, 0, sizeof( SaHpiRptEntryT ) );
+			memset( &event_log_entry, 0, sizeof( SaHpiEventLogEntryT ) );
                 
                         if ( HpiDemarshalRequest3( request_mFlags & dMhEndianBit,
                                                         hm, pReq, &session_id, &resource_id,
