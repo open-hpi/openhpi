@@ -70,7 +70,7 @@ int main(int argc, char **argv)
         	}       
 	}
 	
-        if(g_list_length(el->elentries) != 5){
+        if(g_list_length(el->list) != 5){
         	dbg("ERROR: g_list_length does not hold the correct number of entries.");
         	return 1;
 	}

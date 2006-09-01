@@ -30,7 +30,7 @@
 /**
  * main: EL test
  *
- * This test verifies failure of oh_el_prepend when el->enabled == SAHPI_FALSE
+ * This test verifies failure of oh_el_prepend when el->info.Enabled == SAHPI_FALSE
  *
  * Return value: 0 on success, 1 on failure
  **/
@@ -40,21 +40,15 @@ int main(int argc, char **argv)
         oh_el *el;
         SaErrorT retc;
 	SaHpiEventT event;
-	static char *data[1] = {
-        	"Test data one"
 
-	};
-
-	/*test oh_el_prepend with el->enabled == SAHPI_FALSE*/
+	/*test oh_el_prepend with el->info.Enabled == SAHPI_FALSE*/
 	el = oh_el_create(20);
 
-	el->enabled = SAHPI_FALSE;
+	el->info.Enabled = SAHPI_FALSE;
         event.Source = 1;
-        event.EventType = SAHPI_ET_USER;
+        event.EventType = SAHPI_ET_RESOURCE;
         event.Timestamp = SAHPI_TIME_UNSPECIFIED;
         event.Severity = SAHPI_DEBUG;
-
-        strcpy((char *) &event.EventDataUnion.UserEvent.UserEventData.Data, data[0]);
 
         retc = oh_el_prepend(el, &event, NULL, NULL);
         if (retc == SA_OK) {

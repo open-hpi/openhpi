@@ -955,7 +955,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogEntryGet)
 	char cmd[] = "saHpiEventLogEntryGet";
         SaHpiRdrT tmp_rdr;
         SaHpiRptEntryT tmp_rpt;
-        pcstrmsock pinst;
+        pcstrmsock pinst;	
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
@@ -1022,6 +1022,8 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogEntryAdd)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (!oh_lookup_severity(EvtEntry->Severity))
                 return SA_ERR_HPI_INVALID_PARAMS;
+	if (!oh_valid_textbuffer(&EvtEntry->EventDataUnion.UserEvent.UserEventData))
+		return SA_ERR_HPI_INVALID_PARAMS;
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiEventLogEntryAdd);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiEventLogEntryAdd, hm->m_request_len);

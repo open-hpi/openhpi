@@ -50,7 +50,7 @@ int main(int argc, char **argv)
                 return 1;
         }
 
-	entry = (oh_el_entry *)(g_list_first(el->elentries)->data);
+	entry = (oh_el_entry *)(g_list_first(el->list)->data);
 
         retc = oh_el_get(el, SAHPI_NEWEST_ENTRY, &prev, &next, &entry);
         if (retc != SA_OK) {

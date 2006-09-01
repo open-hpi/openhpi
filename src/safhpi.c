@@ -602,7 +602,7 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
         oh_release_handler(h);
 
         if(rv != SA_OK)
-                dbg("EL entry get failed\n");
+                dbg("EL entry get failed");
 
         return rv;
 }
@@ -610,7 +610,7 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
 SaErrorT SAHPI_API saHpiEventLogEntryAdd (
         SAHPI_IN SaHpiSessionIdT  SessionId,
         SAHPI_IN SaHpiResourceIdT ResourceId,
-        SAHPI_IN SaHpiEventT      *EvtEntry)
+        SAHPI_IN SaHpiEventT       *EvtEntry)
 {
         SaErrorT rv;
         SaHpiEventLogInfoT info;
@@ -627,17 +627,17 @@ SaErrorT SAHPI_API saHpiEventLogEntryAdd (
         if (EvtEntry == NULL) {
                 dbg("Error: Event Log Entry is NULL");
                 return SA_ERR_HPI_INVALID_PARAMS;
-        }
-        if (EvtEntry->EventType != SAHPI_ET_USER) {
+        } else if (EvtEntry->EventType != SAHPI_ET_USER) {
                 dbg("Error: Event Log Entry is not USER");
                 return SA_ERR_HPI_INVALID_PARAMS;
-        }
-        if (!oh_lookup_severity(EvtEntry->Severity)) {
+        } else if (EvtEntry->Source != SAHPI_UNSPECIFIED_RESOURCE_ID) {
+		dbg("Error: Event.Source not what it should be");
+		return SA_ERR_HPI_INVALID_PARAMS;
+	} else if (!oh_lookup_severity(EvtEntry->Severity)) {
                 dbg("Error: Event Log Entry Severity %s is invalid",
                     oh_lookup_severity(EvtEntry->Severity));
                 return SA_ERR_HPI_INVALID_PARAMS;
-        }
-        if(!oh_valid_textbuffer(&(EvtEntry->EventDataUnion.UserEvent.UserEventData))) {
+        } else if (!oh_valid_textbuffer(&EvtEntry->EventDataUnion.UserEvent.UserEventData)) {
                 dbg("Error: Event Log UserData is invalid");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
@@ -647,11 +647,12 @@ SaErrorT SAHPI_API saHpiEventLogEntryAdd (
                 dbg("couldn't get loginfo");
                 return rv;
         }
-        if (EvtEntry->EventDataUnion.UserEvent.UserEventData.DataLength >
-                        info.UserEventMaxSize) {
+	
+	if (EvtEntry->EventDataUnion.UserEvent.UserEventData.DataLength >
+            info.UserEventMaxSize) {
                 dbg("DataLength(%d) > info.UserEventMaxSize(%d)",
-                        EvtEntry->EventDataUnion.UserEvent.UserEventData.DataLength,
-                        info.UserEventMaxSize);
+                    EvtEntry->EventDataUnion.UserEvent.UserEventData.DataLength,
+                    info.UserEventMaxSize);
                 return SA_ERR_HPI_INVALID_DATA;
         }
 
@@ -695,11 +696,8 @@ SaErrorT SAHPI_API saHpiEventLogEntryAdd (
         }
 
         rv = add_el_entry(h->hnd, ResourceId, EvtEntry);
-        if (rv != SA_OK) {
-                oh_release_handler(h);
-                dbg("EL add entry failed");
-                return rv;
-        }
+        if (rv != SA_OK) dbg("EL add entry failed");
+		
         oh_release_handler(h);
 
         return rv;
@@ -877,7 +875,7 @@ SaErrorT SAHPI_API saHpiEventLogStateSet (
 
         /* test for special domain case */
         if (ResourceId == SAHPI_UNSPECIFIED_RESOURCE_ID) {
-                d->del->enabled = Enable;
+		oh_el_enableset(d->del, Enable);
                 oh_release_domain(d); /* Unlock domain */
                 return SA_OK;
         }

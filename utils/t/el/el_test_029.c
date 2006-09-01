@@ -51,7 +51,7 @@ int main(int argc, char **argv)
                 return 1;
         }
 
-	entry = (oh_el_entry *)(g_list_first(el->elentries)->data);
+	entry = (oh_el_entry *)(g_list_first(el->list)->data);
 	myentry = entry->event.EntryId--;
 	
 

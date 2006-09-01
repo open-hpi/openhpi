@@ -35,6 +35,7 @@ SaErrorT snmp_bc_discover_resources(void *hnd)
         char *root_tuple;
 	SaErrorT err, err1;
         SaHpiEntityPathT ep_root;
+	SaHpiEventLogInfoT elinfo;
 
         struct oh_handler_state *handle;		
         struct snmp_bc_hnd *custom_handle;
@@ -117,7 +118,8 @@ SaErrorT snmp_bc_discover_resources(void *hnd)
 	 * So, if the cache copy of the Event Log is empty, this is the first invocation of OpenHPI/snmp_bc.
 	 * Otherwise, only processes newer entries for (re) discovery.
 	 **/
-	if (g_list_length(handle->elcache->elentries) == 0) err1 = snmp_bc_build_selcache(handle, 1);
+	oh_el_info(handle->elcache, &elinfo);
+	if (elinfo.Entries == 0) err1 = snmp_bc_build_selcache(handle, 1);
 	else err1 = snmp_bc_check_selcache(handle, 1, SAHPI_NEWEST_ENTRY);
 	if (err1) {
 		/* --------------------------------------------------------------- */

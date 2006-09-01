@@ -30,8 +30,8 @@
 /**
  * main: EL test
  *
- * This test verifies failure of oh_el_append when el->maxsize !=
- * OH_EL_MAX_SIZE && g_list_length(el->elentries) == el->maxsize
+ * This test verifies failure of oh_el_append when el->info.Size !=
+ * OH_EL_MAX_SIZE && g_list_length(el->list) == el->info.Size
  *
  * Return value: 0 on success, 1 on failure
  **/
@@ -48,10 +48,10 @@ int main(int argc, char **argv)
 		
 			
 	
-	/*test oh_el_append with el->maxsize != OH_EL_MAX_SIZE && g_list_length(el->elentries) == el->maxsize */
+	/*test oh_el_append with el->info.Size != OH_EL_MAX_SIZE && g_list_length(el->list) == el->info.Size */
 	
 	el = oh_el_create(20);
-	el->maxsize = g_list_length(el->elentries);
+	el->info.Size = g_list_length(el->list);
         event.Source = 1;
         event.EventType = SAHPI_ET_USER;
         event.Timestamp = SAHPI_TIME_UNSPECIFIED;

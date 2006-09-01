@@ -34,24 +34,24 @@ SaErrorT sim_el_get_info(void *hnd, SaHpiResourceIdT id,
 
 SaErrorT sim_el_set_state(void *hnd, SaHpiResourceIdT id, SaHpiBoolT state)
 {
-	struct oh_handler_state *h = (struct oh_handler_state *)hnd;
+	struct oh_handler_state *h = (struct oh_handler_state *)hnd;	
 	
 	if (!hnd || !id)
 		return SA_ERR_HPI_INVALID_PARAMS;
 	
-	h->elcache->enabled = state;
-	
-	return SA_OK;
+	return oh_el_enableset(h->elcache, state);
 }
 
 SaErrorT sim_el_get_state(void *hnd, SaHpiResourceIdT id, SaHpiBoolT *state)
 {
 	struct oh_handler_state *h = (struct oh_handler_state *)hnd;
+	SaHpiEventLogInfoT elinfo;
 	
 	if (!hnd || !id)
 		return SA_ERR_HPI_INVALID_PARAMS;
 	
-	*state = h->elcache->enabled;
+	oh_el_info(h->elcache, &elinfo);
+	*state = elinfo.Enabled;
 	
 	return SA_OK;
 }
@@ -65,9 +65,9 @@ SaErrorT sim_el_set_time(void *hnd, SaHpiResourceIdT id, SaHpiTimeT time)
 		dbg("Invalid parameter.");
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
+	
         state = (struct oh_handler_state *)hnd;
-
-	err = oh_el_timeset(state->elcache, 0);
+	err = oh_el_timeset(state->elcache, time);
         if (err) {
 		dbg("Cannot set time. Error=%s.", oh_lookup_error(err));
 		return SA_ERR_HPI_INTERNAL_ERROR;

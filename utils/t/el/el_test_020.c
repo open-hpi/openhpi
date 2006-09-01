@@ -31,7 +31,7 @@
  * main: EL test
  *
  * This test verifies failure of oh_el_prepend with log 
- * overflow
+ * info.OverflowFlag
  *
  * Return value: 0 on success, 1 on failure
  **/
@@ -46,7 +46,7 @@ int main(int argc, char **argv)
 		"Test data two"
 	};
 
-	/*test oh_el_prepend with event log overflow */
+	/*test oh_el_prepend with event log info.OverflowFlag */
 	el = oh_el_create(1);
         event.Source = 1;
         event.EventType = SAHPI_ET_USER;

@@ -97,14 +97,12 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
-
         /* close el */
         retc1 = oh_el_close(el);
         if (retc1 != SA_OK) {
                 dbg("ERROR: oh_el_close on el failed.");
                 return 1;
         }
-
 
         /* close el2 */
         retc2 = oh_el_close(el2);

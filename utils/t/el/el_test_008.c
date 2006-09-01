@@ -82,7 +82,7 @@ int main(int argc, char **argv)
         }
 
 	/* verify el list nodes are cleared */
-	if(el->elentries != NULL){
+	if(el->list != NULL){
 		dbg("ERROR: el clear failed.");
 		return 1;
 	}

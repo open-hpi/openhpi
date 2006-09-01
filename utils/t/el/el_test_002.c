@@ -69,9 +69,9 @@ int main(int argc, char **argv)
                 return 1;
         } 
 
-	entry = (oh_el_entry *)(g_list_first(el->elentries)->data);
+	entry = (oh_el_entry *)(g_list_first(el->list)->data);
 	
-        if(g_list_length(el->elentries) != 1){
+        if(g_list_length(el->list) != 1){
                  dbg("ERROR: g_list_length does not return the correct number of entries.");
                  return 1;
          }
