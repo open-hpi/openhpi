@@ -1549,7 +1549,7 @@ int main(int argc, char **argv)
 		test_rdr.RdrTypeUnion.SensorRec.DataFormat = default_format_int64;
 		test_thresholds_int64 = default_thresholds_int64;
 		
-		expected_err = SA_ERR_HPI_INVALID_CMD;
+		expected_err = SA_ERR_HPI_INVALID_DATA;
 		test_thresholds_int64.LowCritical.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64;
 		
 		err = oh_valid_thresholds(&test_thresholds_int64, &test_rdr);
@@ -1564,7 +1564,7 @@ int main(int argc, char **argv)
 		test_rdr.RdrTypeUnion.SensorRec.DataFormat = default_format_int64;		
 		test_thresholds_int64 = default_thresholds_int64;
 		
-		expected_err = SA_ERR_HPI_INVALID_CMD;
+		expected_err = SA_ERR_HPI_INVALID_DATA;
 		test_thresholds_int64.LowCritical.Type = SAHPI_SENSOR_READING_TYPE_BUFFER;
 		
 		err = oh_valid_thresholds(&test_thresholds_int64, &test_rdr);
@@ -1581,6 +1581,12 @@ int main(int argc, char **argv)
 		
 		expected_err = SA_ERR_HPI_INVALID_DATA;
 		test_thresholds_int64.PosThdHysteresis.Value.SensorInt64 = -1;
+		test_rdr.RdrTypeUnion.SensorRec.DataFormat.Range.Flags = 
+			test_rdr.RdrTypeUnion.SensorRec.DataFormat.Range.Flags &
+			~SAHPI_SRF_MAX;
+		test_rdr.RdrTypeUnion.SensorRec.DataFormat.Range.Flags = 
+			test_rdr.RdrTypeUnion.SensorRec.DataFormat.Range.Flags &
+			~SAHPI_SRF_MIN;
 		
 		err = oh_valid_thresholds(&test_thresholds_int64, &test_rdr);
 		if (err != expected_err) {	
