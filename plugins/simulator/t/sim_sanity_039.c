@@ -67,7 +67,7 @@ int main(int argc, char **argv)
 
         rc = saHpiIdrAreaAdd(sid, resid, 1, SAHPI_IDR_AREATYPE_PRODUCT_INFO,
                              &newid);
-        if (rc != SA_OK) {
+        if (rc != SA_OK && rc != SA_ERR_HPI_READ_ONLY) {
 		dbg("Couldn't add new area");
 		dbg("Error %s",oh_lookup_error(rc));
                 return -1;
