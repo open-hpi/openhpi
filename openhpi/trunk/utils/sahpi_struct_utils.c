@@ -3197,11 +3197,8 @@ if (thds->thdname.IsSupported) { \
                         if (thds->thdname.Value.SensorInt64 < format.Range.Min.Value.SensorInt64) \
                                 return(SA_ERR_HPI_INVALID_CMD); \
                 } \
-                if (thds->PosThdHysteresis.IsSupported) { \
-                        if (thds->PosThdHysteresis.Value.SensorInt64 < 0) return(SA_ERR_HPI_INVALID_DATA); \
-                } \
-                if (thds->NegThdHysteresis.IsSupported) { \
-                        if (thds->NegThdHysteresis.Value.SensorInt64 < 0) return(SA_ERR_HPI_INVALID_DATA); \
+                if (thdmask == SAHPI_STM_UP_HYSTERESIS || thdmask == SAHPI_STM_LOW_HYSTERESIS) { \
+                        if (thds->thdname.Value.SensorInt64 < 0) return(SA_ERR_HPI_INVALID_DATA); \
                 } \
                 break; \
         case SAHPI_SENSOR_READING_TYPE_FLOAT64: \
@@ -3213,11 +3210,8 @@ if (thds->thdname.IsSupported) { \
                         if (thds->thdname.Value.SensorFloat64 < format.Range.Min.Value.SensorFloat64) \
                                 return(SA_ERR_HPI_INVALID_CMD); \
                 } \
-                if (thds->PosThdHysteresis.IsSupported) { \
-                        if (thds->PosThdHysteresis.Value.SensorFloat64 < 0) return(SA_ERR_HPI_INVALID_DATA); \
-                } \
-                if (thds->NegThdHysteresis.IsSupported) { \
-                        if (thds->NegThdHysteresis.Value.SensorFloat64 < 0) return(SA_ERR_HPI_INVALID_DATA); \
+		if (thdmask == SAHPI_STM_UP_HYSTERESIS || thdmask == SAHPI_STM_LOW_HYSTERESIS) { \
+                        if (thds->thdname.Value.SensorFloat64 < 0) return(SA_ERR_HPI_INVALID_DATA); \
                 } \
                 break; \
         case SAHPI_SENSOR_READING_TYPE_UINT64: \
@@ -3231,6 +3225,7 @@ if (thds->thdname.IsSupported) { \
                 } \
                 break; \
         case SAHPI_SENSOR_READING_TYPE_BUFFER: \
+		break; \
         default: \
                 dbg("Invalid threshold reading type."); \
                 return(SA_ERR_HPI_INVALID_CMD); \
@@ -3373,6 +3368,7 @@ SaErrorT oh_valid_thresholds(SaHpiSensorThresholdsT *thds, SaHpiRdrT *rdr)
                 validate_threshold_order(SensorUint64);
                 break;
         case SAHPI_SENSOR_READING_TYPE_BUFFER:
+		break;
         default:
                 dbg("Invalid threshold reading type.");
                 return(SA_ERR_HPI_INVALID_CMD);

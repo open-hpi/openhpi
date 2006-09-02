@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2004-2005
+ * (C) Copyright IBM Corp. 2004-2006
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -132,6 +132,65 @@ static int init(void)
 	}
 
 	return 0;
+}
+
+static SaErrorT clean_reading(SaHpiSensorReadingT *read_in,
+				SaHpiSensorReadingT *read_out)
+{
+	/* This is a workaround against unknown bugs in the marshal code */
+	if (!read_in || !read_out) return SA_ERR_HPI_INVALID_PARAMS;	
+	
+	if (!oh_lookup_sensorreadingtype(read_in->Type)) {
+		//printf("Invalid reading type: %d\n", read_in->Type);
+		return SA_ERR_HPI_INVALID_DATA;
+	}
+		
+	memset(read_out, 0, sizeof(SaHpiSensorReadingT));
+	
+	read_out->IsSupported = read_in->IsSupported;
+	read_out->Type = read_in->Type;
+
+	if (read_in->Type == SAHPI_SENSOR_READING_TYPE_INT64) {
+		read_out->Value.SensorInt64 = read_in->Value.SensorInt64;
+	} else if (read_in->Type == SAHPI_SENSOR_READING_TYPE_UINT64) {
+		read_out->Value.SensorUint64 = read_in->Value.SensorUint64;
+	} else if (read_in->Type == SAHPI_SENSOR_READING_TYPE_FLOAT64) {
+		read_out->Value.SensorFloat64 = read_in->Value.SensorFloat64;
+	} else if (read_in->Type == SAHPI_SENSOR_READING_TYPE_BUFFER) {
+		memcpy(read_out->Value.SensorBuffer,
+		       read_in->Value.SensorBuffer,
+		       SAHPI_SENSOR_BUFFER_LENGTH);
+	}
+
+	return SA_OK;
+}
+
+static SaErrorT clean_thresholds(SaHpiSensorThresholdsT *thrds_in,
+				   SaHpiSensorThresholdsT *thrds_out)
+{
+	/* This is a workaround against unknown bugs in the marshal code */
+	SaErrorT err = SA_OK;
+	if (!thrds_in || !thrds_out) return SA_ERR_HPI_INVALID_PARAMS;
+
+	err = clean_reading(&thrds_in->LowCritical, &thrds_out->LowCritical);
+	if (err) return err;
+	err = clean_reading(&thrds_in->LowMajor, &thrds_out->LowMajor);
+	if (err) return err;
+	err = clean_reading(&thrds_in->LowMinor, &thrds_out->LowMinor);
+	if (err) return err;
+	err = clean_reading(&thrds_in->UpCritical, &thrds_out->UpCritical);
+	if (err) return err;
+	err = clean_reading(&thrds_in->UpMajor, &thrds_out->UpMajor);
+	if (err) return err;
+	err = clean_reading(&thrds_in->UpMinor, &thrds_out->UpMinor);
+	if (err) return err;
+	err = clean_reading(&thrds_in->PosThdHysteresis,
+			    &thrds_out->PosThdHysteresis);
+	if (err) return err;
+	err = clean_reading(&thrds_in->NegThdHysteresis,
+			    &thrds_out->NegThdHysteresis);
+
+	return err;
 }
 
 /*----------------------------------------------------------------------------*/
@@ -1915,9 +1974,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SensorThresholdsSet)
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiSensorThresholdsSet";
         pcstrmsock pinst;
+	SaHpiSensorThresholdsT tmpthrds;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
@@ -1927,11 +1987,14 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SensorThresholdsSet)
         if (!Thresholds)
                 return SA_ERR_HPI_INVALID_DATA;
 
+	err = clean_thresholds(Thresholds, &tmpthrds);
+	if (err) return err;
+
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiSensorThresholdsSet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiSensorThresholdsSet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest4(hm, request, &SessionId, &ResourceId, &SensorNum, Thresholds);
+        pinst->header.m_len = HpiMarshalRequest4(hm, request, &SessionId, &ResourceId, &SensorNum, &tmpthrds);
 
         SendRecv(SessionId, cmd);
 
