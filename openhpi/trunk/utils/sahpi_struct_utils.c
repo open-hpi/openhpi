@@ -3189,6 +3189,9 @@ if (thds->thdname.IsSupported) { \
         if (format.ReadingType != thds->thdname.Type) return(SA_ERR_HPI_INVALID_DATA); \
         switch (format.ReadingType) { \
         case SAHPI_SENSOR_READING_TYPE_INT64: \
+                if (thdmask == SAHPI_STM_UP_HYSTERESIS || thdmask == SAHPI_STM_LOW_HYSTERESIS) { \
+                        if (thds->thdname.Value.SensorInt64 < 0) return(SA_ERR_HPI_INVALID_DATA); \
+                } \
                 if (format.Range.Flags & SAHPI_SRF_MAX) { \
                         if (thds->thdname.Value.SensorInt64 > format.Range.Max.Value.SensorInt64) \
                                 return(SA_ERR_HPI_INVALID_CMD); \
@@ -3197,11 +3200,11 @@ if (thds->thdname.IsSupported) { \
                         if (thds->thdname.Value.SensorInt64 < format.Range.Min.Value.SensorInt64) \
                                 return(SA_ERR_HPI_INVALID_CMD); \
                 } \
-                if (thdmask == SAHPI_STM_UP_HYSTERESIS || thdmask == SAHPI_STM_LOW_HYSTERESIS) { \
-                        if (thds->thdname.Value.SensorInt64 < 0) return(SA_ERR_HPI_INVALID_DATA); \
-                } \
                 break; \
         case SAHPI_SENSOR_READING_TYPE_FLOAT64: \
+                if (thdmask == SAHPI_STM_UP_HYSTERESIS || thdmask == SAHPI_STM_LOW_HYSTERESIS) { \
+                        if (thds->thdname.Value.SensorFloat64 < 0) return(SA_ERR_HPI_INVALID_DATA); \
+                } \
                 if (format.Range.Flags & SAHPI_SRF_MAX) { \
                         if (thds->thdname.Value.SensorFloat64 > format.Range.Max.Value.SensorFloat64) \
                                 return(SA_ERR_HPI_INVALID_CMD); \
@@ -3209,9 +3212,6 @@ if (thds->thdname.IsSupported) { \
                 if (format.Range.Flags & SAHPI_SRF_MIN) { \
                         if (thds->thdname.Value.SensorFloat64 < format.Range.Min.Value.SensorFloat64) \
                                 return(SA_ERR_HPI_INVALID_CMD); \
-                } \
-		if (thdmask == SAHPI_STM_UP_HYSTERESIS || thdmask == SAHPI_STM_LOW_HYSTERESIS) { \
-                        if (thds->thdname.Value.SensorFloat64 < 0) return(SA_ERR_HPI_INVALID_DATA); \
                 } \
                 break; \
         case SAHPI_SENSOR_READING_TYPE_UINT64: \
