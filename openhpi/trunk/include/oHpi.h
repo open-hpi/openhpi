@@ -96,4 +96,10 @@ SaErrorT oHpiHandlerGetNext(oHpiHandlerIdT id, oHpiHandlerIdT *next_id);
 SaErrorT oHpiGlobalParamGet(oHpiGlobalParamT *param);
 SaErrorT oHpiGlobalParamSet(oHpiGlobalParamT *param);
 
+/* Injector */
+SaErrorT oHpiInjectEvent(oHpiHandlerIdT id,
+			 SaHpiEventT *event,
+			 SaHpiRptEntryT *rpte,
+			 GSList *rdrs);
+
 #endif /*__OHPI_H*/

@@ -18,16 +18,12 @@
 #ifndef _SIM_INIT_H
 #define _SIM_INIT_H
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <sys/time.h>
 #include <uuid/uuid.h>
 #include <unistd.h>
-#include <math.h>
 
 #include <SaHpi.h>
-#include <openhpi.h>
 #include <oh_handler.h>
 #include <oh_domain.h>
 #include <oh_utils.h>

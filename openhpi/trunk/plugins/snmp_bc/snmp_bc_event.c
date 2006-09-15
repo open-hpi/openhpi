@@ -543,6 +543,7 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 	eventmap_info = (EventMapInfoT *)g_hash_table_lookup(custom_handle->event2hpi_hash_ptr, 
 							     strhash_data->event);
 	if (!eventmap_info) {
+		
 		if (snmp_bc_map2oem(&working, &log_entry, EVENT_NOT_MAPPED)) {
 			dbg("Cannot map to OEM Event %s.", log_entry.text);
 			return(SA_ERR_HPI_INTERNAL_ERROR);
@@ -550,7 +551,7 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 		goto DONE;
 	}
 
-	/* Set static event data defined during resource discovery */
+	/* Set static event data defined during resource discovery */	
 	working = eventmap_info->hpievent;
 	logsrc2res.ep = eventmap_info->ep;
 	logsrc2res.rid = eventmap_info->hpievent.Source;
@@ -710,6 +711,14 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 			else {
 				event_severity = SAHPI_INFORMATIONAL;
 			}
+			
+			/* Call rediscover() here to do cleanup for hotswap-remove event */
+			/* cleanup = removing rpt and rdrs from plugin handle->rptcache  */
+			/* rpt and rdrs will be remove in snmp_bc_add_to_eventq() becasue*/
+			/* the new oh_event requires rpt present, else infrastructure    */
+			/* drops the event.  We have to wait to the very last min to     */
+			/* remove rpt from rptcache.                                     */
+  			/* err = snmp_bc_rediscover(handle, &working, &logsrc2res);      */	
 		}
 	}
 	else {
@@ -729,14 +738,20 @@ RESUME_TO_EXIT:
 			if (rpt->ResourceFailed == SAHPI_FALSE) {
 				rpt->ResourceFailed = SAHPI_TRUE;
 				/* Add changed resource to event queue */
-				e = g_malloc0(sizeof(struct oh_event));
+				e = snmp_bc_alloc_oh_event();
 				if (e == NULL) {
 					dbg("Out of memory.");
 					return(SA_ERR_HPI_OUT_OF_SPACE);
 				}
-				e->did = oh_get_default_domain_id();						
-				e->type = OH_ET_RESOURCE;
-				e->u.res_event.entry = *rpt;
+				
+				e->resource = *rpt;
+				e->event.Severity = e->resource.ResourceSeverity;
+				e->event.Source =   e->resource.ResourceId;
+				e->event.EventType = SAHPI_ET_RESOURCE;
+				e->event.EventDataUnion.ResourceEvent.ResourceEventType 
+									= SAHPI_RESE_RESOURCE_FAILURE;
+				if (oh_gettimeofday(&e->event.Timestamp) != SA_OK)
+		                		    e->event.Timestamp = SAHPI_TIME_UNSPECIFIED;
 				handle->eventq = g_slist_append(handle->eventq, e);
 			}
 		}
@@ -1477,59 +1492,43 @@ static SaErrorT snmp_bc_logsrc2rid(struct oh_handler_state *handle,
 SaErrorT snmp_bc_add_to_eventq(struct oh_handler_state *handle, SaHpiEventT *thisEvent, SaHpiBoolT prepend)
 {
 	SaHpiEntryIdT rdrid;
-	SaErrorT err;
-        struct oh_event working;
         struct oh_event *e = NULL;
 	SaHpiRptEntryT *thisRpt;
 	SaHpiRdrT      *thisRdr;
 	LogSource2ResourceT logsrc2res;
-	guint blade_loc, i;	
-	
-	rdrid = 0;
-        memset(&working, 0, sizeof(struct oh_event));
+	SaErrorT err;
 
-	working.did = oh_get_default_domain_id();
-	working.type = OH_ET_HPI;
-	
+        /* Insert entry to eventq for processing */
+        e = snmp_bc_alloc_oh_event();
+        if (!e) {
+                dbg("Out of memory.");
+                return(SA_ERR_HPI_OUT_OF_SPACE);
+        }
+				
 	thisRpt = oh_get_resource_by_id(handle->rptcache, thisEvent->Source);
-        if (thisRpt) working.u.hpi_event.res = *thisRpt;
-	else dbg("NULL Rpt pointer for rid %d\n", thisEvent->Source);
-        memcpy(&working.u.hpi_event.event, thisEvent, sizeof(SaHpiEventT));
+        if (thisRpt) e->resource = *thisRpt;
+        memcpy(&e->event, thisEvent, sizeof(SaHpiEventT));
 
 	/* Setting RDR ID to event struct */	
 	switch (thisEvent->EventType) {
 	case SAHPI_ET_HOTSWAP:
-		blade_loc = SNMP_BC_NOT_VALID;
-		if (thisRpt) {
- 			for (i=0; thisRpt->ResourceEntity.Entry[i].EntityType != SAHPI_ENT_SYSTEM_CHASSIS; i++)
+		if (snmp_bc_isrediscover(thisEvent) == SNMP_BC_RESOURCE_INSTALLED) {
+    			for (thisRdr = oh_get_rdr_by_id(handle->rptcache, thisEvent->Source, SAHPI_FIRST_ENTRY);
+                     	     thisRdr != NULL;
+                             thisRdr = oh_get_rdr_next(handle->rptcache, thisEvent->Source, thisRdr->RecordId)) 
 			{
-				if (thisRpt->ResourceEntity.Entry[i].EntityType == SAHPI_ENT_SBC_BLADE) {
-    					blade_loc = thisRpt->ResourceEntity.Entry[i].EntityLocation;					
-					break;
-				}			
-			}
-				
-			if (blade_loc != SNMP_BC_NOT_VALID) 
-				err = snmp_bc_create_bem_event(handle, thisEvent, blade_loc);
-		
-			
-			if (snmp_bc_isrediscover(thisEvent) == SNMP_BC_RESOURCE_REMOVED) {
-				/* Call rediscovery to remove rpt and rdrs from rptcache */
-				logsrc2res.ep = thisRpt->ResourceEntity;
-				err = snmp_bc_rediscover(handle, thisEvent, &logsrc2res);
-			}
+                                e->rdrs = g_slist_append(e->rdrs, (gpointer)thisRdr);
+                	}
+		} else if (snmp_bc_isrediscover(thisEvent) == SNMP_BC_RESOURCE_REMOVED) {
+			/* Call rediscovery to remove rpt and rdrs from rptcache */
+			if (thisRpt) logsrc2res.ep = thisRpt->ResourceEntity;
+			err = snmp_bc_rediscover(handle, thisEvent, &logsrc2res);
 		}
-	
-		/* There is no RDR associated to Hotswap event */
-		/* Set RDR Type to SAHPI_NO_RECORD, spec B-01.01 */		
-		memset(&working.u.hpi_event.rdr, 0, sizeof(SaHpiRdrT));
-		working.u.hpi_event.rdr.RdrType = SAHPI_NO_RECORD;
-		break;			           	
+		break;
 	case SAHPI_ET_OEM:
 	case SAHPI_ET_USER:
 		/* There is no RDR associated to OEM event */
-		memset(&working.u.hpi_event.rdr, 0, sizeof(SaHpiRdrT));
-		working.u.hpi_event.rdr.RdrType = SAHPI_NO_RECORD;
+		e->rdrs = NULL;
 		/* Set RDR Type to SAHPI_NO_RECORD, spec B-01.01 */
 		/* It is redundant because SAHPI_NO_RECORD == 0, Put code here for clarity */
 		break;			           
@@ -1538,7 +1537,7 @@ SaErrorT snmp_bc_add_to_eventq(struct oh_handler_state *handle, SaHpiEventT *thi
 				    thisEvent->EventDataUnion.SensorEvent.SensorNum);
 		thisRdr =  oh_get_rdr_by_id(handle->rptcache, thisEvent->Source, rdrid);
 		if (thisRdr) 
-			working.u.hpi_event.rdr = *thisRdr;
+			e->rdrs = g_slist_append(e->rdrs, g_memdup(thisRdr, sizeof(SaHpiRdrT)));
 		else 
 			dbg("Rdr not found for rid %d, rdrid %d\n",thisEvent->Source, rdrid);
 		break;
@@ -1547,7 +1546,7 @@ SaErrorT snmp_bc_add_to_eventq(struct oh_handler_state *handle, SaHpiEventT *thi
 				    thisEvent->EventDataUnion.WatchdogEvent.WatchdogNum);
 		thisRdr =  oh_get_rdr_by_id(handle->rptcache, thisEvent->Source, rdrid);
 		if (thisRdr) 
-			working.u.hpi_event.rdr = *thisRdr;
+			e->rdrs = g_slist_append(e->rdrs, g_memdup(thisRdr, sizeof(SaHpiRdrT)));
 		else 
 			dbg("Rdr not found for rid %d, rdrid %d\n",thisEvent->Source, rdrid);
 
@@ -1562,13 +1561,6 @@ SaErrorT snmp_bc_add_to_eventq(struct oh_handler_state *handle, SaHpiEventT *thi
 		break;
 	} 
 	
-        /* Insert entry to eventq for processing */
-        e = g_malloc0(sizeof(struct oh_event));
-        if (!e) {
-                dbg("Out of memory.");
-                return(SA_ERR_HPI_OUT_OF_SPACE);
-        }
-        memcpy(e, &working, sizeof(struct oh_event));
 
 	if (prepend == SAHPI_TRUE) { 
        		handle->eventq = g_slist_prepend(handle->eventq, e);

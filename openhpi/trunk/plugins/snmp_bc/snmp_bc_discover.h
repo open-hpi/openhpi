@@ -54,11 +54,11 @@ SaHpiBoolT rdr_exists(struct snmp_bc_hnd *custom_handle,
 SaErrorT snmp_bc_validate_ep(SaHpiEntityPathT *org_ep,
 			     SaHpiEntityPathT *val_ep);
 				 
-SaErrorT snmp_bc_mod_sensor_ep(struct oh_event *e,
+SaErrorT snmp_bc_mod_sensor_ep(SaHpiRdrT *rdrptr,
 			       void *sensor_array, 
 			       int index);
 				 
-SaErrorT snmp_bc_add_ep(struct oh_event *e, SaHpiEntityPathT *ep_add);	
+SaErrorT snmp_bc_add_ep(SaHpiRdrT *rdrptr, SaHpiEntityPathT *ep_add);	
 		
 SaErrorT snmp_bc_discover_media_tray(struct oh_handler_state *handle,
 				     SaHpiEntityPathT *ep_root, int  media_tray_installed);
@@ -100,62 +100,6 @@ SaErrorT snmp_bc_add_blade_expansion_resource(struct oh_handler_state *handle,
 						guint blade_index,
 						BCExpansionTypeT expansionType,
 						guint expansionindex);
-
-SaErrorT snmp_bc_discover_blade_i(struct oh_handler_state *handle,
-			  	  struct ResourceInfo *res_info_ptr, 
-				  struct oh_event *e,
-				  SaHpiEntityPathT *ep_root, 
-				  guint blade_index);
-			
-SaErrorT snmp_bc_discover_blower_i(struct oh_handler_state *handle,
-			  	  struct ResourceInfo *res_info_ptr, 
-				  struct oh_event *e, 
-				  guint blower_index);
-				  
-SaErrorT snmp_bc_discover_pm_i(struct oh_handler_state *handle,
-			  	  struct ResourceInfo *res_info_ptr, 
-				  struct oh_event *e, 
-				  guint pm_index);
-				  
-SaErrorT snmp_bc_discover_switch_i(struct oh_handler_state *handle,
-			  	  struct ResourceInfo *res_info_ptr, 
-				  struct oh_event *e, 
-				  guint sm_index);
-				  
-SaErrorT snmp_bc_discover_mm_i(struct oh_handler_state *handle,
-			  	  struct ResourceInfo *res_info_ptr, 
-				  struct oh_event *e, 
-				  guint mm_index);
-				  
-SaErrorT snmp_bc_construct_blade_res(struct oh_event **e,
-			  	     struct ResourceInfo **res_info_ptr,
-				     SaHpiEntityPathT *ep_root, 
-				     guint blade_index);
-				     
-SaErrorT snmp_bc_construct_blower_res(struct oh_event **e,
-			  	     struct ResourceInfo **res_info_ptr,
-				     SaHpiEntityPathT *ep_root, 
-				     guint blower_index);
-				   
-				  
-SaErrorT snmp_bc_construct_pm_res(struct oh_event **e,
-			  	     struct ResourceInfo **res_info_ptr,
-				     SaHpiEntityPathT *ep_root, 
-				     guint pm_index);
-
-SaErrorT snmp_bc_construct_sm_res(struct oh_event **e,
-			  	  struct ResourceInfo **res_info_ptr,
-				  SaHpiEntityPathT *ep_root, 
-				  guint sm_index);
-				  
-SaErrorT snmp_bc_construct_mm_res(struct oh_event **e,
-			  	  struct ResourceInfo **res_info_ptr,
-				  SaHpiEntityPathT *ep_root, 
-				  guint mm_index);
-					       				  		       
-SaErrorT snmp_bc_create_bem_event(struct oh_handler_state *handle,
-			  	  SaHpiEventT *blade_event,
-				  guint blade_location);
 
 #endif
 

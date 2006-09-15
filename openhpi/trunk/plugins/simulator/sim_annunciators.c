@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2005
+ * (C) Copyright IBM Corp. 2005, 2006
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -12,44 +12,36 @@
  * Author(s):
  *        Christina Hernandez <hernanc@us.ibm.com>
  *        W. David Ashley <dashley@us.ibm.com>
+ *	  Renier Morales <renierm@users.sourceforge.net>
  */
 
 #include <sim_init.h>
 #include <rpt_utils.h>
 
 
-static SaErrorT new_annunciator(struct oh_handler_state * state,
-                                SaHpiResourceIdT ResId,
+static SaErrorT new_annunciator(struct oh_handler_state *state,
+                                struct oh_event *e,
                                 struct sim_annunciator * myannun) {
-        SaHpiRdrT res_rdr;
-        SaHpiRptEntryT *RptEntry;
+        SaHpiRdrT *rdr;
         struct simAnnunciatorInfo *info = NULL;
+        int i;
+	SaErrorT error = SA_OK;
 
+        rdr = (SaHpiRdrT *)g_malloc0(sizeof(SaHpiRdrT));
         // set up res_rdr
-        res_rdr.RdrType = SAHPI_ANNUNCIATOR_RDR;
-        memcpy(&res_rdr.RdrTypeUnion.AnnunciatorRec,
+        rdr->RdrType = SAHPI_ANNUNCIATOR_RDR;
+        memcpy(&rdr->RdrTypeUnion.AnnunciatorRec,
                &myannun->annun, sizeof(SaHpiAnnunciatorRecT));
-        oh_init_textbuffer(&res_rdr.IdString);
-        oh_append_textbuffer(&res_rdr.IdString, myannun->comment);
+        oh_init_textbuffer(&rdr->IdString);
+        oh_append_textbuffer(&rdr->IdString, myannun->comment);
 
-        // get the RptEntry
-        RptEntry = oh_get_resource_by_id(state->rptcache, ResId);
-        if(!RptEntry){
-                dbg("NULL rpt pointer\n");
-                return SA_ERR_HPI_INVALID_RESOURCE;
-        }
-        else {
-                res_rdr.Entity = RptEntry->ResourceEntity;
-        }
+        // get the entity path
+        rdr->Entity = e->resource.ResourceEntity;
 
         // save the announcements for the annunciator
-        int i = 0;
-        while (myannun->announs[i].EntryId != 0) {
+        for (i = 0; myannun->announs[i].EntryId != 0; i++) {
                 if (info == NULL) {
-                        info = (struct simAnnunciatorInfo *)g_malloc(sizeof(struct simAnnunciatorInfo *));
-                        if (info == NULL) {
-                                return SA_ERR_HPI_OUT_OF_SPACE;
-                        }
+                        info = (struct simAnnunciatorInfo *)g_malloc0(sizeof(struct simAnnunciatorInfo));
                         // set the default mode value
                         info->mode = SAHPI_ANNUNCIATOR_MODE_SHARED;
                         // set up the announcement list
@@ -59,27 +51,30 @@ static SaErrorT new_annunciator(struct oh_handler_state * state,
                         }
                 }
                 /* fix the resource id for the announcement */
-                myannun->announs[i].StatusCond.ResourceId = ResId;
+                myannun->announs[i].StatusCond.ResourceId = e->resource.ResourceId;
 
                 oh_announcement_append(info->announs, &myannun->announs[i]);
-                i++;
         }
 
         /* everything ready so inject the rdr */
-        sim_inject_rdr(state, ResId, &res_rdr, info);
+	error = sim_inject_rdr(state, e, rdr, info);
+        if (error) {
+                g_free(rdr);
+                g_free(info);
+        }
 
-        return 0;
+        return error;
 }
 
 
-SaErrorT sim_discover_chassis_annunciators(struct oh_handler_state * state,
-                                           SaHpiResourceIdT resid) {
+SaErrorT sim_discover_chassis_annunciators(struct oh_handler_state *state,
+                                           struct oh_event *e) {
         SaErrorT rc;
         int i = 0;
         int j = 0;
 
         while (sim_chassis_annunciators[i].index != 0) {
-                rc = new_annunciator(state, resid, &sim_chassis_annunciators[i]);
+                rc = new_annunciator(state, e, &sim_chassis_annunciators[i]);
                 if (rc) {
                         dbg("Error %d returned when adding chassis annunciator", rc);
                 } else {
@@ -93,14 +88,14 @@ SaErrorT sim_discover_chassis_annunciators(struct oh_handler_state * state,
 }
 
 
-SaErrorT sim_discover_cpu_annunciators(struct oh_handler_state * state,
-                                       SaHpiResourceIdT resid) {
+SaErrorT sim_discover_cpu_annunciators(struct oh_handler_state *state,
+                                       struct oh_event *e) {
         SaErrorT rc;
         int i = 0;
         int j = 0;
 
         while (sim_cpu_annunciators[i].index != 0) {
-                rc = new_annunciator(state, resid, &sim_cpu_annunciators[i]);
+                rc = new_annunciator(state, e, &sim_cpu_annunciators[i]);
                 if (rc) {
                         dbg("Error %d returned when adding cpu annunciator", rc);
                 } else {
@@ -114,14 +109,14 @@ SaErrorT sim_discover_cpu_annunciators(struct oh_handler_state * state,
 }
 
 
-SaErrorT sim_discover_dasd_annunciators(struct oh_handler_state * state,
-                                        SaHpiResourceIdT resid) {
+SaErrorT sim_discover_dasd_annunciators(struct oh_handler_state *state,
+                                        struct oh_event *e) {
         SaErrorT rc;
         int i = 0;
         int j = 0;
 
         while (sim_dasd_annunciators[i].index != 0) {
-                rc = new_annunciator(state, resid, &sim_dasd_annunciators[i]);
+                rc = new_annunciator(state, e, &sim_dasd_annunciators[i]);
                 if (rc) {
                         dbg("Error %d returned when adding dasd annunciator", rc);
                 } else {
@@ -135,14 +130,14 @@ SaErrorT sim_discover_dasd_annunciators(struct oh_handler_state * state,
 }
 
 
-SaErrorT sim_discover_hs_dasd_annunciators(struct oh_handler_state * state,
-                                           SaHpiResourceIdT resid) {
+SaErrorT sim_discover_hs_dasd_annunciators(struct oh_handler_state *state,
+                                           struct oh_event *e) {
         SaErrorT rc;
         int i = 0;
         int j = 0;
 
         while (sim_hs_dasd_annunciators[i].index != 0) {
-                rc = new_annunciator(state, resid, &sim_hs_dasd_annunciators[i]);
+                rc = new_annunciator(state, e, &sim_hs_dasd_annunciators[i]);
                 if (rc) {
                         dbg("Error %d returned when adding hs dasd annunciator", rc);
                 } else {
@@ -156,14 +151,14 @@ SaErrorT sim_discover_hs_dasd_annunciators(struct oh_handler_state * state,
 }
 
 
-SaErrorT sim_discover_fan_annunciators(struct oh_handler_state * state,
-                                       SaHpiResourceIdT resid) {
+SaErrorT sim_discover_fan_annunciators(struct oh_handler_state *state,
+                                       struct oh_event *e) {
         SaErrorT rc;
         int i = 0;
         int j = 0;
 
         while (sim_fan_annunciators[i].index != 0) {
-                rc = new_annunciator(state, resid, &sim_fan_annunciators[i]);
+                rc = new_annunciator(state, e, &sim_fan_annunciators[i]);
                 if (rc) {
                         dbg("Error %d returned when adding fan annunciator", rc);
                 } else {
