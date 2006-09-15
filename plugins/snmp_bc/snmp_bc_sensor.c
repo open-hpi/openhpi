@@ -1603,7 +1603,9 @@ SaErrorT snmp_bc_set_sensor_event_masks(void *hnd,
  * SA_OK - Normal case.
  * SA_ERR_HPI_INVALID_PARAMS - Resource doesn't have SAHPI_CAPABILITY_SENSOR.
  **/
-SaErrorT snmp_bc_set_slot_state_sensor(void *hnd, struct oh_event *e, SaHpiEntityPathT *slot_ep)
+SaErrorT snmp_bc_set_slot_state_sensor(void *hnd, 
+					struct oh_event *e, 
+					SaHpiEntityPathT *slot_ep)
 {
 
 	SaErrorT err;
@@ -1633,9 +1635,10 @@ SaErrorT snmp_bc_set_slot_state_sensor(void *hnd, struct oh_event *e, SaHpiEntit
 		if ((rdr->RdrType == SAHPI_SENSOR_RDR) && 
 		               (rdr->RdrTypeUnion.SensorRec.Num == BLADECENTER_SENSOR_NUM_SLOT_STATE))
 		{
-			sinfo = (struct SensorInfo *)oh_get_rdr_data(handle->rptcache, res->ResourceId, rdr->RecordId);
+			sinfo = (struct SensorInfo *)oh_get_rdr_data(handle->rptcache, 
+								res->ResourceId, rdr->RecordId);
 			sinfo->cur_state = SAHPI_ES_PRESENT;
-			sinfo->cur_child_rid = 	e->u.res_event.entry.ResourceId;
+			sinfo->cur_child_rid = 	e->resource.ResourceId;
 			
 			err = oh_add_rdr(handle->rptcache,
 					 res->ResourceId,
@@ -1731,12 +1734,12 @@ SaErrorT snmp_bc_set_resource_slot_state_sensor(void *hnd, struct oh_event *e, g
 	struct oh_handler_state *handle;
 	struct snmp_bc_hnd *custom_handle;
 		
-	if (!e || (e->type != OH_ET_RESOURCE) ) 
+	if (!e) 
 		return(SA_ERR_HPI_INVALID_PARAMS);
 
 	handle = (struct oh_handler_state *) hnd;
 	custom_handle = (struct snmp_bc_hnd *)handle->data;				
-	err = snmp_bc_extract_slot_ep( &(e->u.res_event.entry.ResourceEntity), &slot_ep);
+	err = snmp_bc_extract_slot_ep( &(e->resource.ResourceEntity), &slot_ep);
 
 	j = slot_ep.Entry[0].EntityLocation;
 	if ( (custom_handle->platform == SNMP_BC_PLATFORM_BC) || (custom_handle->platform == SNMP_BC_PLATFORM_BCH))

@@ -1,6 +1,6 @@
 #      -*- linux-c -*-
 #
-# (C) Copyright IBM Corp. 2005
+# (C) Copyright IBM Corp. 2005, 2006
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -12,18 +12,16 @@
 # Author(s):
 #        Christina Hernandez <hernanc@us.ibm.com>
 #        W. David Ashley <dashley@us.ibm.com>
+#	 Renier Morales <renierm@users.sourceforge.net>
 #
 
 SUBDIRS = t
-DIST_SUBDIRS = t t1 t2
 
 MAINTAINERCLEANFILES 	= Makefile.in
 
 INCLUDES		= @OPENHPI_INCLUDES@
 
 AM_CFLAGS		= @CFLAGS@
-
-include_HEADERS		= sim_injector_ext.h
 
 pkglib_LTLIBRARIES	= libsimulator.la
 
