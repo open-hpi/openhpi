@@ -140,15 +140,23 @@ static SaErrorT clean_reading(SaHpiSensorReadingT *read_in,
 	/* This is a workaround against unknown bugs in the marshal code */
 	if (!read_in || !read_out) return SA_ERR_HPI_INVALID_PARAMS;	
 	
-	if (!oh_lookup_sensorreadingtype(read_in->Type)) {
-		//printf("Invalid reading type: %d\n", read_in->Type);
-		return SA_ERR_HPI_INVALID_DATA;
-	}
-		
 	memset(read_out, 0, sizeof(SaHpiSensorReadingT));
 	
 	read_out->IsSupported = read_in->IsSupported;
-	read_out->Type = read_in->Type;
+
+        if (read_in->IsSupported == SAHPI_TRUE) {
+            if (!oh_lookup_sensorreadingtype(read_in->Type)) {
+                //printf("Invalid reading type: %d\n", read_in->Type);
+                return SA_ERR_HPI_INVALID_DATA;
+            }
+            read_out->Type = read_in->Type;
+        }
+        else {
+            /* Do we need to set dummy & reading type just to keep marshalling happy? */
+            read_out->Type = SAHPI_SENSOR_READING_TYPE_INT64;
+            read_out->Value.SensorInt64 = 0;
+            return SA_OK;
+        }               
 
 	if (read_in->Type == SAHPI_SENSOR_READING_TYPE_INT64) {
 		read_out->Value.SensorInt64 = read_in->Value.SensorInt64;
@@ -2387,9 +2395,11 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ControlGet)
 	char reply[dMaxMessageLength];
         SaErrorT err;
 	char cmd[] = "saHpiControlGet";
-        SaHpiCtrlModeT tmp_mode;
+        SaHpiCtrlModeT tmp_mode = SAHPI_CTRL_MODE_AUTO;
         SaHpiCtrlStateT tmp_state;
         pcstrmsock pinst;
+
+	memset(&tmp_state, 0, sizeof(SaHpiCtrlStateT));
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
