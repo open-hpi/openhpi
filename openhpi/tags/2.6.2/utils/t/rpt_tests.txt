@@ -1,0 +1,147 @@
+Unit tests we should have for rpt_utils.
+_____________________________________________________
+Note:
+To find the file where the test is implemented,
+find its number and prepend it with "rpt_utils_"
+and append it with ".c" so that it looks something
+like "rpt_utils_024.c".
+_____________________________________________________
+
+The possitive tests:
+Start with empty RPTable
+    - add 1 resource
+          - fetch by id, compare (000)
+          - fetch by ep, compare (001)
+    - add 1 resource w/data, fetch data, compare (002)
+    - add 10 resources, in random order
+          - fetch by id, compare (003)
+          - fetch by ep, compare (004)
+    - add 10 resources w/data, fetch data in random order, compare (005)
+    - add 10 resources, start at beginning, call next on each one, compare ResourceId (006)
+    - add 10 resources, start at beginning, call next on each one, compare RPTentry (007)
+    - add 10 resources, start at random resource, call next to get to the end,
+      compare rid (008)
+
+Start with 10 resources
+    - add 1 rdr to first resource
+          - fetch by id, compare (009)
+          - fetch by type, compare (010)
+    - add 1 rdr
+        - resource must have SAHPI_CAPABILITY_AGGREGATE_STATUS capability,
+          sensor num should be between SAHPI_STANDARD_SENSOR_MIN and
+          SAHPI_STANDARD_SENSOR_MAX and less than SENSOR_AGGREGATE_MAX.
+    - add 5 rdrs to first resource, in random order
+          - fetch by id, compare (011)
+          - fetch by type, compare (012)
+          - fetch by next, compare (013)
+    - add 5 rdrs of for each of these types:
+        - Control (079)
+        - Inventory (080)
+        - Watchdog (081)
+        - Annunciator (082)
+
+Start with 10 resources, multiple rdrs on some resources
+    - remove resource
+             - search for resource by id (014)
+             - search for resource by ep (015)
+             - call next through chain, make sure things are right (016)
+    - remove rdr
+             - search for rdr by id (017)
+             - search for rdr by type (018)
+             - call next through chain, make sure things are right (019)
+    - flush rpt - check to see if there are no resources left in the table (062)
+
+Check rpt info
+    - add a resource, and check that rpt info has been modified. (068)
+
+Start with two tables using rpt_diff
+    - One empty (current table) and one with 10 resources with an rdr each
+      (new table). Get the difference. Expect 10 new resources and 10 rdrs.
+    - Same as above, but the current table will have the resources. The new
+      table will be empty. Expect 10 gone resources and rdrs.
+    - Current table and new table with 10 resources in each. 5 resources in
+      the new table should be new and the other 5 should be updates from the
+      current table. Expect 10 new resources and rdrs in total and 5
+      resources/rdrs in the gone lists.
+
+The negative tests:
+    oh_add_resource
+        - RPTable == NULL (020)
+        - resource == NULL (021)
+        - rid == special value (like SAHPI_FIRST_ENTRY = 0) (022)
+        - rid == special value (like SAHPI_DOMAIN_CONTROLLER_ID) (066)
+        - both == NULL (023)
+        - epath not valid (need to sanity check epath) (036)
+    oh_remove_resource
+        - RPTable == NULL (024)
+        - rid not there (025)
+        - rid == special value (026)
+    oh_resource_get_data
+        - RPTable == NULL (027)
+        - rid not there (028)
+        - rid == special value (029)
+        - data == NULL (030)
+    oh_get_resource_by_id
+        - RPTable == NULL (031)
+        - rid not there (032)
+        - rid == special value (033)
+    oh_get_resource_by_ep
+        - RPTable == NULL (034)
+        - epath not there (035)
+    oh_get_resource_next
+        - RPTable == NULL (037)
+        - rid not there (038)
+        - rid == special value (039)
+        - rid == last RPTenty (040)
+    oh_add_rdr
+        - RPTable == NULL (041)
+        - rid not there (042)
+        - rdr == NULL (043)
+        - RPTable == rdr == NULL (044)
+        - rdr with an out of range instrument id (067)
+        - resource must NOT have SAHPI_CAPABILITY_AGGREGATE_STATUS capability,
+          sensor num should be between SAHPI_STANDARD_SENSOR_MIN and
+          SAHPI_STANDARD_SENSOR_MAX and less than SENSOR_AGGREGATE_MAX. (078)
+    oh_remove_rdr
+        - RPTable == NULL (045)
+        - rid not there (046)
+        - rdrid not there (047)
+        - rdrid == special value (063)
+    oh_get_rdr_data
+        - RPTable == NULL (048)
+        - rid not there (049)
+        - rdrid not there (050)
+        - rdrid == special value (064)
+    oh_get_rdr_by_id
+        - RPTable == NULL (051)
+        - rid not there (052)
+        - rdrid not there (053)
+        - rdrid == special value (065)
+    oh_get_rdr_by_type
+        - RPTable == NULL (054)
+        - rid not there (055)
+    oh_get_rdr_next
+        - RPTable == NULL (056)
+        - rid not there (057)
+        - rdrid not there (058)
+        - rdrid == special value (059)
+        - rdrid == last rdr (060)
+    rpt_info
+        - add same resource twice and check that the update count
+          is stays the same on the second addition. (069)
+    oh_flush_rpt
+        - RPTable == NULL (061)
+    oh_get_rpt_info
+        - table == NULL (070)
+    oh_init_rpt
+        - table == NULL (071)
+    rpt_diff
+        - cur_rpt == NULL (072)
+        - new_rpt == NULL (073)
+        - res_new == NULL (074)
+        - rdr_new == NULL (075)
+        - res_gone == NULL (076)
+        - rdr_gone == NULL (077)
+
+Speed Tests:
+    - Add 10,000 resources. Time how long it takes to fetch last one. (1000)

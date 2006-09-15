@@ -1,0 +1,365 @@
+                          OpenHPI Simulator Plugin Low Level Design
+
+1  OpenHPI Simulator Plugin Software Architeture
+
+
+
+           ----------------------------------------------- Plugin Interface
+                       +--------------------+      
+                       |      Resource      |  
+                       |     Management     |      
+                       +--------------------+             Simulator  Plugin
+                       /         |           \
+                      /          |            \
++--------------------+   +----------------+   +-------------------+
+|     FHS Event      |   |      FHS       |   |       Timer       |
+|    Notification    |   |     Parser     |   |     Management    |
++--------------------+   +----------------+   +-------------------+
+                  |           |
+           -----------------------------------------------   FHS Interface
+                  |           |
+               +------------------+
+               |       FHS        |
+               +------------------+
+     
+     Resource Management     Manage RDR and RPT, map them to FHS files
+     FHS Event Notification  Monitor given FHS file
+     FHS Parser              Paser FHS file to internal data structure
+     Timer Management        Provide timer service for watchdog and hotswap
+     FHS(File Hierarchy Structure)  the emualted h/w is represented as a 
+          hiberarchy of directory in filesystem. Each function (such as sensor)
+          in HPI has its attributes files in corrresponding directory
+
+2  Resource Management
+
+2.1 Data Structure
+                                                           
+         +---------------------------+             +-------------------------+
+         |      Simulator Handler    |             |         RPTable         |
+         +---------------------------+             +-------------------------+
+         |  rptcache : *RPTable      |-------------| rpt_info: SaHpiRptInfoT |
+         |  eventq   : *GSList       |-------+     | rptable : *GSList       |
+     +---|  config   : *GHashTable   |       |     +-------------------------+
+     |   |  data     : *void         |       |                   |
+     |   +---------------------------+     +----------+          |
+     |                                     | oh_event |          |
+     |                                     +----------+          |
+   +--------------------+                         +---------------------------+
+   | plugin     : *char |                         |             RPT           |
+   | name       : *char |                         +---------------------------+
+   | entity_root: *char |                         | id      : SaHpiResourceIdT|
+   | root_path  : *char |             +-----------| rdr_list: *GSList         |
+   +--------------------+             |           | index   : uint32          |
+                   +-------------------------+    | fe_id   : uint            |
+                   |           RDR           |    | tm_id   : uint            |
+                   +-------------------------+    +---------------------------+
+                   | num  : SaHpiUint8T      |
+                   | fe_id: uint             |
+                   | tm_id: uint             |
+                   +-------------------------+
+                  
+2.2  Map IDs to file name
+2.2.1  Map Resource Id to file name
+       The name format of resource directory is
+       'root_path/resources/resource_index'.
+       root_path can be retrieved in config in simulator handler.
+       resource_index can be retrieved from RPT by resource id.
+2.2.2  Map Resource Id and Sensor Num to file name
+       The name format of sensor directory is 
+       'root_path/resources/resource_index/rdr_num/sensor'
+       root_path can be retrieved in config in simulator handler.
+       resource_index can be retrieved from RPT by resource id.
+2.2.3  Map Resource Id and Control Num to file name
+       The name format of control file is 
+       'root_path/resources/resource_index/rdr_num/control'
+       root_path can be retrieved in config in simulator handler.
+       resource_index can be retrieved from RPT by resource id.
+2.2.4  Map Resource Id and Inventory id to file name
+       The name format of inventory file is 
+       'root_path/resources/resource_index/rdr_num/inventory'
+       root_path can be retrieved in config in simulator handler.
+       resource_index can be retrieved from RPT by resource id.
+2.2.5  Map Resource Id Watchdog Num to file name
+       The name format of watchdog file is 
+       'root_path/resources/resource_index/rdr_num/watchdog'
+       root_path can be retrieved in config in simulator handler.
+       resource_index can be retrieved from RPT by resource id.
+2.2.6  Map Resource Id and Sel Entry Id to file name
+       The name format of eventlog file is 
+       'root_path/resources/resource_index/eventlog/sel_index'
+       root_path can be retrieved in config in simulator handler.
+       resource_index can be retrieved from RPT by resource id.
+2.3 Functions
+2.3.1 Add RDR
+      int add_rdr(void *hnd, SaHpiResourceIdT res_id, SaHpiUint8T num)
+2.3.2 Remove RDR
+      int remove_rdr(void *hnd, SaHpiResourceIdT res_id)
+      Comments: Remove all the rdrs which relate to the resource.
+2.3.3 Add RPT
+      int add_rpt(void *hnd, SaHpiResourceIdT res_id, uint32 index)
+2.3.4 Remove RPT
+      int remove_rpt(void *hnd, uint32 index)
+2.3.5 Update RPT and RDR
+      void update_resource(void* hnd)
+      This function search the resources directory and updates the resource 
+      information including RDR and RPT.
+      
+3  FHS Parser Module
+3.1 Data Structure
+    struct fhs_node{
+       char* name,
+       enum{
+          SIM_STRING,
+          SIM_SEQ,
+          SIM_ARRAY
+       }type
+       union{
+          char*   str,
+          GSList* seq,
+          GSList* array,
+       }value,
+    }
+3.2 Parser
+3.2.1 String Parser
+      Text:
+         sensor_status = "0x80"
+      Data Structure:
+      +------------------------+     
+      | name("sensor_status")  |
+      | type(SIM_STRING)       |
+      | value("0x80")          |
+      +------------------------+
+3.2.2 Array Parser
+      Text:
+          data = {"1", "2", "3", "4"}
+      Data Structure:
+      +-------------------+     
+      | name("data")      |
+      | type(SIM_ARRAY)   |   +-----+  +-----+  +-----+  +-----+
+      | value             |-- | "1" |--| "2" |--| "3" |--| "4" |
+      +-------------------+   +-----+  +-----+  +-----+  +-----+           
+3.2.3 Sequence Parser
+      Text:
+          info = {
+             resource_rev = "1"
+             spcific_ver = "1"
+             device_support = "1"
+          }
+      Data Structure:
+      +----------------+   +---------------------+   +-----------------------+
+      | name("info")   |   | name("resource_rev")|   |name("device_support") |
+      | type(SIM_SEQ)  |   | type(SIM_STRING)    |   |type(SIM_STRING)       |
+      | value          |---| value("1")          |---|value("1")             |
+      +----------------+   +---------------------+   +-----------------------+
+
+4 FHS Event Notification
+4.1 Data Structure
+    typedef void (*fe_cbf)(uint fe_id, source src)
+    struct source{
+         oh_handler_state  *handler;
+         SaHpiResourceIdT  res_id;
+         SaHpiUint8T       rdr_num;
+    }
+
+    struct fe_node{
+        int    fd;
+        source src;
+        fe_cbf fun;
+    }
+    
+    +--------------------+   +-------------------+   +-------------------+
+    |  next : *GSList    |---| next : *GSList    |---| next : *GSList    |     
+    |  gpointer: data    |   | gpointer: data    |   | gpointer: data    |
+    +--------------------+   +-------------------+   +-------------------+ 
+                   |                      |                        |
+    +--------------------+   +-------------------+   +-------------------+
+    |  fd   : int        |   | fd   : int        |   | fd   : int        |     
+    |  src  : source     |   | src  : source     |   | src  : source     |
+    |  fun  : fe_cbf     |   | fun  : fe_cbf     |   | fun  : fe_cbf     |
+    +--------------------+   +-------------------+   +-------------------+
+    
+4.2 FHS Event Notification Users
+      If fns event is registered and the file is updated, the callback function
+      is called with fe_id and data parameter.
+4.2.1 Resource
+      The resources directory is registered. If resource is added or removed 
+      from the resources directory, the resource is updated.
+4.2.2 OEM or User Event
+      Every resource directory is registered. If simulated OEM or user event is
+      added into the resource directory, the event is parsered and added into 
+      eventq in simulator handler.
+4.2.3 Sensor Event
+      Reading, thresholds in sensor directory is registered. If reading or 
+      thresholds is updated, alarm may be generated.
+4.3 Functions
+4.3.1 int  fhs_event_int()
+4.3.2 uint fhs_event_register(int fd, source src, fe_cbf fun)
+4.3.3 void fhs_event_unregister(uint fe_id)
+4.3.4 void fhs_event_finish()
+
+5  Timer Management
+5.1 Data Structure 
+
+    typedef void (*tm_cbf)(uint tm_id, source src)
+    struct tm_node{
+        ulong timeout;
+        ulong count;
+        source src;
+        tm_cbf fun;
+    }
+    
+    +---------------------+   +---------------------+   +---------------------+
+    |  next : *GSList     |---| next : *GSList      |---| next : *GSList      |     |  gpointer: data     |   | gpointer: data      |   | gpointer: data      |
+    +---------------------+   +---------------------+   +---------------------+ 
+                  |                        |                          |
+    +---------------------+   +---------------------+   +---------------------+
+    | timeout: ulong      |   | timeout: ulong      |   | timeout: ulong      |
+    | count  : ulong      |   | count  : ulong      |   | count  : ulong      |
+    | src    : source     |   | src    : source     |   | src    : source     |
+    | fun    : tm_cbf     |   | fun    : tm_cbf     |   | fun    : tm_cbf     |
+    +---------------------+   +---------------------+   +---------------------+
+ 
+5.2 Timer Management Users
+    The queue of timer service is empty after timer service is initialized. If
+    timer service is added into the queue after registering the service. The 
+    service monitors timeout event. If the timeout event happens, the callback
+    function is called.
+5.2.1 Watchdog Timer
+
+5.2.2 Hotswap Timer
+
+5.3 Functions
+5.3.1  void timer_init()
+5.3.2  uint timer_register(ulong timeout, source src, tm_cbf fun)
+5.3.3  void timer_unregister(uint tm_id);
+5.3.4  void timer_finish()
+
+6  Appendix(Plugin Interface)
+6.1  open
+     prototype:  void *(*open)(GHashTable *handler_config)
+6.2  close
+     prototype:  void (*close)(void *hnd)
+6.3  get_event
+     prototype:  SaErrorT (*get_event)(void *hnd, struct oh_event *event, 
+                                       struct timeval *timeout)
+6.4  discover_resources    
+     prototype:  SaErrorT (*discover_resources)(void *hnd)
+6.5  set_resource_tag
+     prototype:  SaErrorT (*set_resource_tag)(void *hnd, SaHpiResourceIdT id,
+                                              SaHpiTextBufferT *tag)
+6.6  set_resource_severity
+     prototype:  SaErrorT (*set_resource_severity)(void *hnd, 
+                                       SaHpiResourceIdT id, SaHpiSeverityT sev)
+6.7  get_self_id
+     prototype:  SaErrorT (*get_self_id)(void *hnd, SaHpiResourceIdT id)
+6.8  get_sel_info
+     prototype:  SaErrorT (*get_sel_info)(void *hnd, SaHpiResourceIdT id, 
+                                          SaHpiSelInfoT *info)
+6.9  set_sel_time
+     prototype:  SaErrorT (*set_sel_time)(void *hnd, SaHpiResourceIdT id,
+                                          SaHpiTimeT time)
+6.10  add_sel_entry
+      prototype:  SaErrorT (*add_sel_entry)(void *hnd, SaHpiResourceIdT id, 
+                                            const SaHpiSelEntryT *Event);
+6.11  del_sel_entry
+      prototype:  SaErrorT (*del_sel_entry)(void *hnd, SaHpiResourceIdT id,
+                                            SaHpiSelEntryIdT sid);
+6.12  get_sel_entry
+      prototype:  SaErrorT (*get_sel_entry)(void *hnd, SaHpiResourceIdT id,
+                                            SaHpiSelEntryIdT current,
+                                            SaHpiSelEntryIdT *prev,
+                                            SaHpiSelEntryIdT *next,
+                                            SaHpiSelEntryT *entry);                        
+6.13  clear_sel
+      prototype:  SaErrorT (*clear_sel)(void *hnd, SaHpiResourceIdT id)
+6.14  get_sensor_data
+      prototype:  SaErrorT (*get_sensor_data)(void *hnd, SaHpiResourceIdT id,
+                                             SaHpiSensorNumT num,
+                                             SaHpiSensorReadingT *data)               
+6.15  get_sensor_thresholds
+      prototype:  SaErrorT (*get_sensor_thresholds)(void *hnd,
+                                                    SaHpiResourceIdT id,
+                                                    SaHpiSensorNumT num,
+                                                 SaHpiSensorThresholdsT *thres)                    
+6.16  set_sensor_thresholds
+      prototype:  SaErrorT (*set_sensor_thresholds)(void *hnd,
+                                                    SaHpiResourceIdT id,
+                                                    SaHpiSensorNumT num,
+                                           const SaHpiSensorThresholdsT *thres)                                                                                  
+6.17  get_sensor_event_enables
+      prototype:  SaErrorT (*get_sensor_event_enables)(void *hnd,
+                                                       SaHpiResourceIdT id,
+                                                       SaHpiSensorNumT num,
+                                               SaHpiSensorEvtEnablesT *enables)
+6.18  set_sensor_event_enables
+      prototype:  SaErrorT (*set_sensor_event_enables)(void *hnd,
+                                                       SaHpiResourceIdT id,
+                                                       SaHpiSensorNumT num,
+                                         const SaHpiSensorEvtEnablesT *enables)
+6.19  get_control_state
+      prototype:  SaErrorT (*get_control_state)(void *hnd, SaHpiResourceIdT id,
+                                                SaHpiCtrlNumT num,
+                                                SaHpiCtrlStateT *state)
+6.20  set_control_state
+      prototype:  SaErrorT (*set_control_state)(void *hnd, SaHpiResourceIdT id,
+                                                SaHpiCtrlNumT num,
+                                                SaHpiCtrlStateT *state)
+6.21  get_inventory_size
+      prototype:  SaErrorT (*get_inventory_size)(void *hnd,
+                                                 SaHpiResourceIdT id,
+                                                 SaHpiEirIdT num, 
+                                                 size_t *size)
+6.22  get_inventory_info
+      prototype:  SaErrorT (*get_inventory_info)(void *hnd,
+                                                 SaHpiResourceIdT id,
+                                                 SaHpiEirIdT num,
+                                                 SaHpiInventoryDataT *data)
+6.23  set_inventory_info
+      prototype:  SaErrorT (*set_inventory_info)(void *hnd,
+                                                 SaHpiResourceIdT id,
+                                                 SaHpiEirIdT num,
+                                               const SaHpiInventoryDataT *data)
+6.24  get_watchdog_info
+      prototype:  SaErrorT (*get_watchdog_info)(void *hnd, SaHpiResourceIdT id,
+                                                SaHpiWatchdogNumT num,
+                                                SaHpiWatchdogT *wdt)
+6.25  set_watchdog_info
+      prototype:  SaErrorT (*set_watchdog_info)(void *hnd, SaHpiResourceIdT id,
+                                                SaHpiWatchdogNumT num,
+                                                SaHpiWatchdogT *wdt)
+6.26  reset_watchdog
+      prototype:  SaErrorT (*reset_watchdog)(void *hnd, SaHpiResourceIdT id,
+                                             SaHpiWatchdogNumT num)
+6.27  get_hotswap_state
+      prototype:  SaErrorT (*get_hotswap_state)(void *hnd, SaHpiResourceIdT id, 
+				                SaHpiHsStateT *state)
+6.28  set_hotswap_state
+      prototype:  SaErrorT (*set_hotswap_state)(void *hnd, SaHpiResourceIdT id, 
+				                SaHpiHsStateT state)
+6.29  request_hotswap_action
+      prototype:  SaErrorT (*request_hotswap_action)(void *hnd,
+                                                     SaHpiResourceIdT id, 
+				                     SaHpiHsActionT act)
+6.30  get_power_state
+      prototype:  SaErrorT (*get_power_state)(void *hnd, SaHpiResourceIdT id, 
+			                      SaHpiHsPowerStateT *state)
+6.31  set_power_state
+      prototype:  SaErrorT (*set_power_state)(void *hnd, SaHpiResourceIdT id, 
+			       SaHpiHsPowerStateT state);	
+6.32  get_indicator_state
+      prototype:  SaErrorT (*get_indicator_state)(void *hnd,
+                                                  SaHpiResourceIdT id,
+				                 SaHpiHsIndicatorStateT *state)
+6.33  set_indicator_state
+      prototype:  SaErrorT (*set_indicator_state)(void *hnd,
+                                                  SaHpiResourceIdT id,
+				                  SaHpiHsIndicatorStateT state)
+6.34  control_parm
+      prototype:  SaErrorT (*control_parm)(void *hnd, SaHpiResourceIdT id,
+                                           SaHpiParmActionT act);
+6.35  get_reset_state
+      prototype:  SaErrorT (*get_reset_state)(void *hnd, SaHpiResourceIdT id, 
+			                      SaHpiResetActionT *act)			       
+6.36  set_reset_state
+      prototype:  SaErrorT (*set_reset_state)(void *hnd, SaHpiResourceIdT id,
+			                      SaHpiResetActionT act)
