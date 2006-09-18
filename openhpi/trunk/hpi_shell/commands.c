@@ -26,6 +26,7 @@
 #include <time.h>
 #include <ctype.h>
 #include <unistd.h>
+#include <config.h>
 #include <oh_config.h>
 #include <hpi_ui.h>
 #include "hpi_cmd.h"
@@ -112,7 +113,7 @@ static ret_code_t help_cmd(void)
 
 static ret_code_t add_config(void)
 {
-#ifndef CLIENT
+#ifndef OH_DAEMON_ENABLED
         SaErrorT        rv;
         term_def_t      *term;
         struct oh_parsed_config config = {NULL, NULL, 0, 0, 0, 0};
