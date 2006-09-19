@@ -259,7 +259,7 @@ static int process_resource_event(struct oh_event *e)
         unsigned int *hidp = NULL;
         SaErrorT error = SA_OK;
         SaHpiResourceEventTypeT *retype = NULL;
-        SaHpiHsStateT state;
+        SaHpiHsStateT state = SAHPI_HS_STATE_NOT_PRESENT;
         SaHpiBoolT process_hpi = TRUE;
 
         if (!e) { dbg("Got NULL event"); return -1; }
