@@ -4480,7 +4480,7 @@ SaErrorT oHpiGlobalParamSet(oHpiGlobalParamT *param)
 SaErrorT oHpiInjectEvent(oHpiHandlerIdT id,
                          SaHpiEventT *event,
                          SaHpiRptEntryT *rpte,
-                         SaHpiRdrT *rdrs)
+                         oHpiRdrArrayT *rdrs)
 {
         void *request;
         char reply[dMaxMessageLength];
