@@ -356,12 +356,12 @@ SaErrorT oHpiGlobalParamSet(oHpiGlobalParamT *param)
 SaErrorT oHpiInjectEvent(oHpiHandlerIdT id,
 			 SaHpiEventT *event,
 			 SaHpiRptEntryT *rpte,
-			 SaHpiRdrT *rdrs)
+			 oHpiRdrArrayT *rdrs)
 {
 	SaErrorT (*inject_event)(void *hnd,
                             	 SaHpiEventT *evt,
                             	 SaHpiRptEntryT *rpte,
-                            	 GSList *rdrs); //DMJ TODO needs to be some array of rdrs, hardcode null for now
+                            	 oHpiRdrArrayT *rdrs); //DMJ TODO needs to be some array of rdrs, hardcode null for now
 
 	struct oh_handler *h = NULL;
 	SaErrorT error = SA_OK;
@@ -383,7 +383,7 @@ SaErrorT oHpiInjectEvent(oHpiHandlerIdT id,
                 return SA_ERR_HPI_INVALID_CMD;
         }
 
-	error = inject_event(h->hnd, event, rpte, NULL);
+	error = inject_event(h->hnd, event, rpte, rdrs);
         if (error) {
                 dbg("Event injection into handler %d failed", id);
         }
