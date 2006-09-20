@@ -27,6 +27,7 @@
 #include <SaHpi.h>
 #include <oh_event.h>
 #include <oh_utils.h>
+#include <oHpi.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -659,7 +660,7 @@ struct oh_abi_v2 {
 	  SaErrorT (*inject_event)(void *hnd,
                             	   SaHpiEventT *event,
                             	   SaHpiRptEntryT *rpte,
-                            	   GSList *rdrs);
+                            	   oHpiRdrArrayT *rdrs);
 
 };
 
