@@ -985,8 +985,8 @@ int oh_load_plugin_functions(struct oh_plugin *plugin, struct oh_abi_v2 **abi)
                                                 "oh_get_reset_state");
         (*abi)->set_reset_state           = lt_dlsym(plugin->dl_handle,
                                                 "oh_set_reset_state");
-	(*abi)->inject_event		  = lt_dlsym(plugin->dl_handle,
-						"oh_inject_event");
+        (*abi)->inject_event            = lt_dlsym(plugin->dl_handle,
+                                                   "oh_inject_event");
 
         return 0;
 
