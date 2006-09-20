@@ -1428,7 +1428,7 @@ static const cMarshalType *oHpiInjectEventIn[] =
   &oHpiHandlerIdType, // global param
   &SaHpiEventType,
   &SaHpiRptEntryType,
-  &SaHpiRdrType,  //DMJ TODO....needs to be an arrary...not sure what to do
+  &oHpiRdrArrayType,  //DMJ TODO....needs to be an arrary...not sure what to do
   0
 };
 
