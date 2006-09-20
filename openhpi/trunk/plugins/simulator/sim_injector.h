@@ -35,6 +35,6 @@ SaErrorT sim_inject_event(struct oh_handler_state *state, struct oh_event *ohe);
 SaErrorT sim_inject_ext_event(void *hnd,
 			      SaHpiEventT *event,
 			      SaHpiRptEntryT *rpte,
-			      GSList *rdrs);
+			      oHpiRdrArrayT *rdrs);
 
 #endif /*__SIM_INJECTOR_H*/
