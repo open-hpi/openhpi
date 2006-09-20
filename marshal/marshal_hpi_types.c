@@ -72,7 +72,6 @@ static cMarshalType SaHpiEntityPathElements[] =
 
 cMarshalType SaHpiEntityPathType = dStruct( SaHpiEntityPathT, SaHpiEntityPathElements );
 
-
 // sensors
 static cMarshalType SaHpiSensorInterpretedUnionBufferArray = dArray( SaHpiUint8Type, SAHPI_SENSOR_BUFFER_LENGTH );
 
@@ -531,6 +530,20 @@ static cMarshalType SaHpiRdrElements[] =
 };
 
 cMarshalType SaHpiRdrType = dStruct( SaHpiRdrT, SaHpiRdrElements );
+
+
+// rdr array
+static cMarshalType oHpiRdrArrayEntryArray = dArray( SaHpiRdrType, MAX_RDR_ARRAY_LENGTH );
+
+
+static cMarshalType oHpiRdrArrayElements[] =
+{
+  dStructElement( oHpiRdrArrayT, Entry, oHpiRdrArrayEntryArray ),
+  dStructElementEnd()
+};
+
+cMarshalType oHpiRdrArrayType = dStruct( oHpiRdrArrayT, oHpiRdrArrayElements );
+
 
 
 // events part 2
