@@ -126,6 +126,7 @@ typedef enum
   eFoHpiHandlerGetNext,
   eFoHpiGlobalParamGet,
   eFoHpiGlobalParamSet,
+  eFoHpiInjectEvent,
 } tHpiFucntionId;
 
 

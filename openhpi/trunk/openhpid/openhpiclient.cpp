@@ -4475,6 +4475,55 @@ SaErrorT oHpiGlobalParamSet(oHpiGlobalParamT *param)
 
 
 /*----------------------------------------------------------------------------*/
+/* oHpiInjectEvent                                                            */
+/*----------------------------------------------------------------------------*/
+SaErrorT oHpiInjectEvent(oHpiHandlerIdT id,
+                         SaHpiEventT *event,
+                         SaHpiRptEntryT *rpte,
+                         SaHpiRdrT *rdrs)
+{
+        void *request;
+        char reply[dMaxMessageLength];
+        SaErrorT err = SA_OK;
+        char cmd[] = "oHpiInjectEvent";  
+        pcstrmsock pinst = CreateConnx();
+
+        if (!id) {
+                return SA_ERR_HPI_INVALID_PARAMS;
+        } else if (!event) {
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        cHpiMarshal *hm = HpiMarshalFind(eFoHpiInjectEvent);
+        pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiInjectEvent, hm->m_request_len);
+        request = malloc(hm->m_request_len);
+
+        pinst->header.m_len = HpiMarshalRequest4(hm, request, &id, event, rpte, rdrs);
+
+        SendRecv(0, cmd);
+
+        int mr = HpiDemarshalReply4(pinst->header.m_flags & dMhEndianBit, 
+                                    hm, 
+                                    reply + sizeof(cMessageHeader),
+                                    &err, 
+                                    &id, 
+                                    event, 
+                                    rpte, 
+                                    rdrs);
+
+        DeleteConnx(pinst);
+
+        if (request)
+                free(request);
+
+        if (mr < 0)
+                return SA_ERR_HPI_INVALID_PARAMS;
+
+        return err;
+}
+
+
+/*----------------------------------------------------------------------------*/
 /* oHpiHandlerCreateInit                                                      */
 /*----------------------------------------------------------------------------*/
 

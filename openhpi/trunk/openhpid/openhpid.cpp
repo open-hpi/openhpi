@@ -2207,7 +2207,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht,
                                 return eResultError;
 
 
-                        ret = oHpiInjectEvent(id, &event, &rpte, NULL);
+                        ret = oHpiInjectEvent(id, &event, &rpte, &rdrs);
 
                         thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
 

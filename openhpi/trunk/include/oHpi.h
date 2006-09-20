@@ -98,8 +98,8 @@ SaErrorT oHpiGlobalParamSet(oHpiGlobalParamT *param);
 
 /* Injector */
 SaErrorT oHpiInjectEvent(oHpiHandlerIdT id,
-			 SaHpiEventT *event,
-			 SaHpiRptEntryT *rpte,
-			 GSList *rdrs);
+                         SaHpiEventT    *event,
+                         SaHpiRptEntryT *rpte,
+                         SaHpiRdrT      *rdrs);
 
 #endif /*__OHPI_H*/
