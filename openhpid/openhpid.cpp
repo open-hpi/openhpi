@@ -2189,10 +2189,14 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht,
                 break;
 
                 case eFoHpiInjectEvent: {
-                        oHpiHandlerIdT  id;
+                        oHpiHandlerIdT  id = 0;
                         SaHpiEventT     event;
                         SaHpiRptEntryT  rpte;
-                        SaHpiRdrT       rdrs;
+                        oHpiRdrArrayT   rdrs;
+
+                        memset(&event, 0, sizeof(SaHpiEventT));
+                        memset(&rpte,  0, sizeof(SaHpiRptEntryT));
+                        memset(&rdrs,  0, sizeof(oHpiRdrArrayT));
 
                 
                         PVERBOSE1("%p Processing oHpiInjectEvent.\n", thrdid);
