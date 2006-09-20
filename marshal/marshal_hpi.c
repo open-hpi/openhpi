@@ -1423,6 +1423,22 @@ static const cMarshalType *oHpiGlobalParamSetOut[] =
 };
 
 
+static const cMarshalType *oHpiInjectEventIn[] =
+{
+  &oHpiHandlerIdType, // global param
+  &SaHpiEventType,
+  &SaHpiRptEntryType,
+  &SaHpiRdrType,  //DMJ TODO....needs to be an arrary...not sure what to do
+  0
+};
+
+static const cMarshalType *oHpiInjectEventOut[] =
+{
+  &SaErrorType, // result (SaErrorT)
+  0
+};
+
+
 static cHpiMarshal hpi_marshal[] =
 {
   dHpiMarshalEntry( saHpiVersionGet ),
@@ -1516,6 +1532,7 @@ static cHpiMarshal hpi_marshal[] =
   dHpiMarshalEntry( oHpiHandlerGetNext ),
   dHpiMarshalEntry( oHpiGlobalParamGet ),
   dHpiMarshalEntry( oHpiGlobalParamSet ),
+  dHpiMarshalEntry( oHpiInjectEvent ),
 };
 
 

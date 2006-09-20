@@ -18,6 +18,7 @@ EXTRA_DIST		= hpifan.c
 bin_PROGRAMS = \
 	hpievents \
         hpiinv \
+        hpiinjector \
 	hpiel \
 	hpisensor \
         hpipower \
@@ -67,6 +68,10 @@ hpiwdt_LDFLAGS          =
 hpiinv_SOURCES          = hpiinv.c
 hpiinv_LDADD            = $(COMMONLIBS)
 hpiinv_LDFLAGS          =
+
+hpiinjector_SOURCES     = hpiinjector.c
+hpiinjector_LDADD       = $(COMMONLIBS)
+hpiinjector_LDFLAGS     =
 
 hpisettime_SOURCES      = hpisettime.c
 hpisettime_LDADD        = $(COMMONLIBS)
