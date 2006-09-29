@@ -1425,10 +1425,10 @@ static const cMarshalType *oHpiGlobalParamSetOut[] =
 
 static const cMarshalType *oHpiInjectEventIn[] =
 {
-  &oHpiHandlerIdType, // global param
+  &oHpiHandlerIdType,   // global param
   &SaHpiEventType,
   &SaHpiRptEntryType,
-  &oHpiRdrArrayType,  //DMJ TODO....needs to be an arrary...not sure what to do
+  &SaHpiRdrType,        //TODO....needs to be an arrary...not sure what to do
   0
 };
 
