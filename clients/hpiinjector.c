@@ -137,11 +137,11 @@ main(int argc, char **argv)
 
     SaHpiEventT event;
     SaHpiRptEntryT rpte;
-    oHpiRdrArrayT rdrs;
+//    oHpiRdrArrayT rdrs;
 
     memset(&event, 0, sizeof(SaHpiEventT));
     memset(&rpte, 0, sizeof(SaHpiRptEntryT));
-    memset(&rdrs, 0, sizeof(oHpiRdrArrayT));
+//    memset(&rdrs, 0, sizeof(oHpiRdrArrayT));
 
     SaHpiRdrT  rdr;
     memset(&rdr, 0, sizeof(SaHpiRdrT));
@@ -176,10 +176,10 @@ printf("##############################################\n");
     rdr.IdString.Data[254] = (unsigned char)10;
     rdr.IdString.DataLength = sizeof(TOKEN);
 
-    int i = 0;
-    for(i = 0; i < MAX_RDR_ARRAY_LENGTH; i++) {
-            rdrs.Entry[i] = rdr;
-    }
+//    int i = 0;
+//    for(i = 0; i < MAX_RDR_ARRAY_LENGTH; i++) {
+//            rdrs.Entry[i] = rdr;
+//    }
 
     event.EventType=SAHPI_ET_HOTSWAP;
     event.Severity=SAHPI_CRITICAL;
@@ -191,7 +191,7 @@ printf("##############################################\n");
     rv = oHpiInjectEvent(sessionid,
                          &event,
                          &rpte,
-                         &rdrs);
+                         &rdr);
 
     printf("called injector");
 
