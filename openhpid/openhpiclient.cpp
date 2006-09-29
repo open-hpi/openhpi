@@ -4480,7 +4480,7 @@ SaErrorT oHpiGlobalParamSet(oHpiGlobalParamT *param)
 SaErrorT oHpiInjectEvent(oHpiHandlerIdT id,
                          SaHpiEventT *event,
                          SaHpiRptEntryT *rpte,
-                         oHpiRdrArrayT *rdrs)
+                         SaHpiRdrT *rdr)
 {
         void *request;
         char reply[dMaxMessageLength];
@@ -4498,7 +4498,7 @@ SaErrorT oHpiInjectEvent(oHpiHandlerIdT id,
         pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiInjectEvent, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest4(hm, request, &id, event, rpte, rdrs);
+        pinst->header.m_len = HpiMarshalRequest4(hm, request, &id, event, rpte, rdr);
 
         SendRecv(0, cmd);
 
@@ -4509,7 +4509,7 @@ SaErrorT oHpiInjectEvent(oHpiHandlerIdT id,
                                     &id, 
                                     event, 
                                     rpte, 
-                                    rdrs);
+                                    rdr);
 
         DeleteConnx(pinst);
 
