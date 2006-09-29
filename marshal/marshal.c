@@ -16,11 +16,13 @@
  */
 
 #include <stdlib.h>
-// #include <stdio.h>
+#include <stdio.h>
 #include <assert.h>
 #include <endian.h>
 #include <byteswap.h>
 #include "marshal.h"
+#include <SaHpi.h>
+#include <oHpi.h>
 
 
 cMarshalType Marshal_VoidType =
@@ -100,26 +102,60 @@ IsSimpleType( tMarshalType type )
             assert( type != eMtUnknown );
             return 0;
 
-       case eMtVoid:
+          case eMtVoid:
+              printf("\teMtVoid");
+              return 1;
        case eMtUint8:
+               printf("\teMtUint8");
+               return 1;
        case eMtUint16:
+               printf("\teMtUint16");
+               return 1;
        case eMtUint32:
+               printf("\teMtUint32");
+               return 1;
        case eMtUint64:
+               printf("\teMtUint64");
+               return 1;
        case eMtInt8:
+               printf("\teMtInt8");
+               return 1;
        case eMtInt16:
+               printf("\teMtInt16");
+               return 1;
        case eMtInt32:
+               printf("\teMtInt32");
+               return 1;
        case eMtInt64:
+               printf("\teMtInt64");
+               return 1;
        case eMtFloat32:
+               printf("\teMtFloat32");
+               return 1;
        case eMtFloat64:
+               printf("\teMtFloat64");
             return 1;
 
        case eMtArray:
+               printf("\teMtArray\n");
+               return 0;
        case eMtVarArray:
+               printf("\teMtVarArray\n");
+               return 0;
        case eMtStruct:
+               printf("\teMtStruct\n");
+               return 0;
        case eMtStructElement:
+               printf("\teMtStructElement\n");
+               return 0;
        case eMtUnion:
+               printf("\teMtUnion\n");
+               return 0;
        case eMtUnionElement:
+               printf("\teMtUnionElement\n");
+               return 0;
        case eMtUserDefined:
+               printf("\teMtUserDefined\n");
             return 0;
      }
 
@@ -273,6 +309,7 @@ MarshalSimpleTypes( tMarshalType type, const void *data,
               tUint8 v = *(const tUint8 *)data;
               *(tUint8 *)buffer = v;
             }
+            printf("\t\t[%u]\n", *(const unsigned char *)data);
 
             return sizeof( tUint8 );
 
@@ -282,6 +319,7 @@ MarshalSimpleTypes( tMarshalType type, const void *data,
               tUint16 v = *(const tUint16 *)data;
               *(tUint16 *)buffer = v;
             }
+            printf("\t\t[%u]\n", *(const int *)data);
 
             return sizeof( tUint16 );
 
@@ -291,6 +329,7 @@ MarshalSimpleTypes( tMarshalType type, const void *data,
               tUint32 v = *(const tUint32 *)data;
               *(tUint32 *)buffer = v;
             }
+            printf("\t\t[%u]\n", *(const int *)data);
 
             return sizeof( tUint32 );
 
@@ -300,6 +339,7 @@ MarshalSimpleTypes( tMarshalType type, const void *data,
               tUint64 v = *(const tUint64 *)data;
               *(tUint64 *)buffer = v;
             }
+            printf("\t\t[%u]\n", *(const int *)data);
 
             return sizeof( tUint64 );
 
@@ -429,28 +469,41 @@ Marshal( const cMarshalType *type, const void *d, void *b )
   switch( type->m_type )
      {
        case eMtArray:
+printf("Marshal: eMtArray\n");
             {
               int i;
 
               //assert( IsSimpleType( type->m_u.m_array.m_type->m_type ) );
 
-              for( i = 0; i < type->m_u.m_array.m_size; i++ )
-                 {
-                   int s = Marshal( type->m_u.m_array.m_type, data, buffer );
+              for( i = 0; i < type->m_u.m_array.m_size; i++ ) {
 
-		   if ( s < 0 ) {
-                           assert( 0 );
-                           return -1;
-                   }
+if (type->m_u.m_array.m_size == 32) {
+        printf("type->m_u.m_array.m_size = 32\n");
+}
+                      int s = Marshal( type->m_u.m_array.m_type, data, buffer );
 
-                   data   += s;
-                   buffer += s;
-                   size   += s;
-                 }
+printf("s [%d], ", s);
+
+//if (type->m_u.m_array.m_size == 32) {
+//        s = 720;
+//}
+
+
+                      if ( s < 0 ) {
+                              assert( 0 );
+                              return -1;
+                      }
+
+                      data   += s;
+                      buffer += s;
+                      size   += s;
+printf("size [%d]\n", size);
+              }
             }
             break;
 
        case eMtStruct:
+printf("Marshal: eMtStruct\n");
 	    {
 	      int i;
  
@@ -487,6 +540,7 @@ Marshal( const cMarshalType *type, const void *d, void *b )
                       }
                    else if ( st_type->m_type == eMtVarArray )
                       {
+printf("Marshal: eMtVarArray\n");
                         // the array size must be before this entry.
                         // this is a limitation of demarshaling of var arrays
                         assert( st_type->m_u.m_var_array.m_size < i );
@@ -500,31 +554,30 @@ Marshal( const cMarshalType *type, const void *d, void *b )
                         const unsigned char *dd = data + struct_element->m_u.m_struct_element.m_offset;
                         tUint32 j;
 
-                        for( j = 0; j < array_size; j++ )
-                           {
-                             int si = Marshal( st_type->m_u.m_var_array.m_type,
-					       dd, bb );
+                        for( j = 0; j < array_size; j++ ) {
 
-			     if ( si < 0 ) {
-                                     assert( 0 );
-                                     return -1;
-                             }
+                                int si = Marshal( st_type->m_u.m_var_array.m_type,
+                                                  dd, bb );
 
-                             bb += si;
-                             dd += si;
-                             s  += si;
-                           }
-                      }
-                   else
-		      {
-                        s = Marshal( st_type, data + struct_element->m_u.m_struct_element.m_offset,
+                                if ( si < 0 ) {
+                                        assert( 0 );
+                                        return -1;
+                                }
+
+                                bb += si;
+                                dd += si;
+                                s  += si;
+                        }
+                   } else {
+                           s = Marshal( st_type, data + struct_element->m_u.m_struct_element.m_offset,
                                      buffer );
 
-                        if ( s < 0 ) {
-                                assert( 0 );
-                                return -1;
-                        }
-		      }
+                           if ( s < 0 ) {
+                                   assert( 0 );
+                                   return -1;
+                           }
+                   }
+
 
 		   buffer += s;
                    size   += s;
@@ -533,15 +586,18 @@ Marshal( const cMarshalType *type, const void *d, void *b )
 	    break;
 
        case eMtUnion:
+printf("Marshal: eMtUnion\n");
             assert( 0 );
 	    return -1;
 
        case eMtUserDefined:
+printf("Marshal: eMtUserDefined\n");
 	    assert( type->m_u.m_user_defined.m_marshal );
 	    size = type->m_u.m_user_defined.m_marshal( type, d, b, type->m_u.m_user_defined.m_user_data );
 	    break;
 
        default:
+printf("Marshal: default\n");
             assert( 0 );
             return -1;
      }
@@ -560,6 +616,14 @@ MarshalArray( const cMarshalType **types,
 
   for( i = 0; types[i]; i++ )
      {
+
+printf("marshalArray i [%d]\n",i);
+
+if (i == 3) {
+        const oHpiRdrArrayT *rdr = (const oHpiRdrArrayT *)data[i];
+        printf("rdr type [%d]\n", rdr->Entry[0].RdrType); 
+}
+
        int s = Marshal( types[i], data[i], buffer );
 
        if ( s < 0 ) {
