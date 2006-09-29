@@ -2192,11 +2192,11 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht,
                         oHpiHandlerIdT  id = 0;
                         SaHpiEventT     event;
                         SaHpiRptEntryT  rpte;
-                        oHpiRdrArrayT   rdrs;
+                        SaHpiRdrT       rdr;
 
                         memset(&event, 0, sizeof(SaHpiEventT));
                         memset(&rpte,  0, sizeof(SaHpiRptEntryT));
-                        memset(&rdrs,  0, sizeof(oHpiRdrArrayT));
+                        memset(&rdr,   0, sizeof(SaHpiRdrT));
 
                 
                         PVERBOSE1("%p Processing oHpiInjectEvent.\n", thrdid);
@@ -2207,11 +2207,11 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht,
                                                    &id, 
                                                    &event,
                                                    &rpte, 
-                                                   &rdrs ) < 0 )
+                                                   &rdr ) < 0 )
                                 return eResultError;
 
 
-                        ret = oHpiInjectEvent(id, &event, &rpte, &rdrs);
+                        ret = oHpiInjectEvent(id, &event, &rpte, &rdr);
 
                         thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
 
