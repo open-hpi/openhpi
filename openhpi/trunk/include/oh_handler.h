@@ -660,7 +660,7 @@ struct oh_abi_v2 {
 	  SaErrorT (*inject_event)(void *hnd,
                             	   SaHpiEventT *event,
                             	   SaHpiRptEntryT *rpte,
-                            	   oHpiRdrArrayT *rdrs);
+                            	   SaHpiRdrT *rdr);
 
 };
 
