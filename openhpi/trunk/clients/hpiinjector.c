@@ -196,7 +196,16 @@ main(int argc, char **argv)
     SaHpiRdrT  rdr;
     memset(&rdr, 0, sizeof(SaHpiRdrT));
 
-    rdr.RecordId = 777;
+printf("##############################################\n");
+printf("###  SaHpiEventT [%d]                      ###\n", sizeof(SaHpiEventT));
+printf("###  SaHpiRptEntryT [%d ]                  ###\n", sizeof(SaHpiRptEntryT));
+printf("###  SaHpiRdrT [%d ]                       ###\n", sizeof(SaHpiRdrT));
+printf("###  oHpiRdrArrayT [%d]                    ###\n", sizeof(oHpiRdrArrayT));
+printf("##############################################\n");
+
+
+
+    rdr.RecordId = 333;
     rdr.RdrType = SAHPI_WATCHDOG_RDR;
 
     int n = 0;
