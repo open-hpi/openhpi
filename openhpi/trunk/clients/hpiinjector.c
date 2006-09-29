@@ -31,7 +31,7 @@
 #include <oHpi.h> 
 #include <oh_utils.h>
 
-#define TOKEN "Impeach Bush"
+#define TOKEN "Hello America"
 #define all_resources 255
 
 /* 
