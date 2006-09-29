@@ -21,6 +21,8 @@
 #include <assert.h>
 #include <stdlib.h>
 
+#include <oHpi.h>
+
 
 // text buffer
 static cMarshalType SaHpiTextBufferDataArray = dArray( SaHpiUint8Type, SAHPI_MAX_TEXT_BUFFER_LENGTH );
