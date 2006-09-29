@@ -105,6 +105,6 @@ SaErrorT oHpiGlobalParamSet(oHpiGlobalParamT *param);
 SaErrorT oHpiInjectEvent(oHpiHandlerIdT id,
                          SaHpiEventT    *event,
                          SaHpiRptEntryT *rpte,
-                         oHpiRdrArrayT *rdrs);
+                         SaHpiRdrT *rdr);
 
 #endif /*__OHPI_H*/
