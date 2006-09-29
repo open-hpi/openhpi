@@ -214,9 +214,9 @@ SaErrorT sim_inject_event(struct oh_handler_state *state, struct oh_event *ohe) 
 }
 
 SaErrorT sim_inject_ext_event(void *hnd,
-			      SaHpiEventT *event,
-			      SaHpiRptEntryT *rpte,
-			      oHpiRdrArrayT *rdrs_array)
+                              SaHpiEventT *event,
+                              SaHpiRptEntryT *rpte,
+                              SaHpiRdrT *rdre)
 {
 	struct oh_handler_state *state = hnd;
 	GSList *node = NULL;
@@ -235,7 +235,7 @@ SaErrorT sim_inject_ext_event(void *hnd,
 	static unsigned int watchdog_num = 1000;
 	static unsigned int ann_num 	 = 1000;
 
-	if (!hnd || !event || !rpte || !rdrs_array) return SA_ERR_HPI_INVALID_PARAMS;
+	if (!hnd || !event || !rpte || !rdre) return SA_ERR_HPI_INVALID_PARAMS;
 
 	trace("Injecting external event");
 	memset(&e, 0, sizeof(struct oh_event));
@@ -247,13 +247,16 @@ SaErrorT sim_inject_ext_event(void *hnd,
 		event->Source = SAHPI_UNSPECIFIED_RESOURCE_ID;
 	}
 
+printf("\n\n\n ***** INJECTING EVENT ****\n\n\n");
+
 
     /* add incoming rdrs to Glist */
-    int c = 0;
-    for( c = 0; c < MAX_RDR_ARRAY_LENGTH; c++) {
-            rdrs = g_slist_append(rdrs, &rdrs_array->Entry[c]);
-    }
+//    int c = 0;
+//    for( c = 0; c < MAX_RDR_ARRAY_LENGTH; c++) {
+//            rdrs = g_slist_append(rdrs, &rdrs_array->Entry[c]);
+//    }
 
+    rdrs = g_slist_append(rdrs, rdre);
 
 	for (node = rdrs; node; node = node->next) {
 		SaHpiRdrT *rdr = (SaHpiRdrT *)node->data;
@@ -310,7 +313,7 @@ SaErrorT sim_inject_ext_event(void *hnd,
 	return SA_OK;
 }
 
-void * oh_inject_event (void *, SaHpiEventT *, SaHpiRptEntryT *, oHpiRdrArrayT *)
+void * oh_inject_event (void *, SaHpiEventT *, SaHpiRptEntryT *, SaHpiRdrT *)
                 __attribute__ ((weak, alias("sim_inject_ext_event")));
 
 
