@@ -287,12 +287,11 @@ static int sysfs2hpi_setup_rdr(SaHpiSensorTypeT type,
 
 	r->sensors = g_slist_append(r->sensors, s);
 
-	e = (struct oh_event *)malloc(sizeof(*e));
+	e = (struct oh_event *)g_malloc0(sizeof(*e));
 	if (!e) {
 		dbg("unable to allocate event");
 		return SA_ERR_HPI_OUT_OF_SPACE;
 	}
-	memset(e, '\0', sizeof(*e));
 	e->type = OH_ET_RDR;
 
 	e->u.rdr_event.rdr.RecordId = num_sensors;

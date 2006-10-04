@@ -2222,10 +2222,14 @@ cIpmi::IfSetResourceTag( cIpmiResource *ent, SaHpiTextBufferT *tag )
      }
 
   memset( e, 0, sizeof( struct oh_event ) );
-  e->type               = OH_ET_RESOURCE;
-  e->u.res_event.entry = *rptentry;
+  e->event.EventType = SAHPI_ET_RESOURCE;
+  e->event.Source = rptentry->ResourceId;
+  oh_gettimeofday(&e->event.Timestamp);
+  e->event.Severity = rptentry->ResourceSeverity;
+  e->event.EventDataUnion.ResourceEvent.ResourceEventType = SAHPI_RESE_RESOURCE_ADDED;
+  e->resource = *rptentry;
 
-  stdlog << "IfSetResourceTag OH_ET_RESOURCE Event resource " << ent->m_resource_id << "\n";
+  stdlog << "IfSetResourceTag SAHPI_ET_RESOURCE Event resource " << ent->m_resource_id << "\n";
   AddHpiEvent( e );
 
   return SA_OK;
@@ -2256,8 +2260,12 @@ cIpmi::IfSetResourceSeverity( cIpmiResource *ent, SaHpiSeverityT sev )
      }
 
   memset( e, 0, sizeof( struct oh_event ) );
-  e->type               = OH_ET_RESOURCE;
-  e->u.res_event.entry = *rptentry;
+  e->event.EventType = SAHPI_ET_RESOURCE;
+  e->event.Source = rptentry->ResourceId;
+  oh_gettimeofday(&e->event.Timestamp);
+  e->event.Severity = rptentry->ResourceSeverity;
+  e->event.EventDataUnion.ResourceEvent.ResourceEventType = SAHPI_RESE_RESOURCE_ADDED;
+  e->resource = *rptentry;
 
   stdlog << "IfSetResourceSeverity OH_ET_RESOURCE Event resource " << ent->m_resource_id << "\n";
   AddHpiEvent( e );

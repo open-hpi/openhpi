@@ -37,7 +37,7 @@ extern int __ipmi_debug_malloc;
 extern int ipmicmd_mv(struct ohoi_handler *ipmi_handler,
                uchar cmd, uchar netfn, uchar lun, uchar *pdata,
                uchar sdata, uchar *presp, int sresp, int *rlen);
-	       
+
 FILE *trace_msg_file = NULL;
 
 /**
@@ -141,7 +141,7 @@ static void *ipmi_open(GHashTable *handler_config)
                 return NULL;
         }
 	memset(ipmi_handler, 0, sizeof(struct ohoi_handler));
-	
+
         handler->rptcache = (RPTable *)malloc(sizeof(RPTable));
 	if (handler->rptcache == NULL) {
 		dbg("Out of memory");
@@ -153,7 +153,7 @@ static void *ipmi_open(GHashTable *handler_config)
 
         handler->data = ipmi_handler;
         handler->config = handler_config;
-	
+
         g_static_rec_mutex_init(&(ipmi_handler->ohoih_lock));
 
         snprintf(domain_name, 24, "%s %s", name, addr);
@@ -670,11 +670,6 @@ int ipmi_discover_resources(void *hnd)
 			return SA_ERR_HPI_OUT_OF_MEMORY;
 		}
                 memset(event, 0, sizeof(*event));
-                event->type = res_info->presence ?
-                        OH_ET_RESOURCE : OH_ET_RESOURCE_DEL;
-                memcpy(&event->u.res_event.entry, rpt_entry,
-                        sizeof(SaHpiRptEntryT));
-                handler->eventq = g_slist_append(handler->eventq, event);
 
                 if (res_info->presence == 1) {
                         /* Add all RDRs of this RPTe */
@@ -682,28 +677,44 @@ int ipmi_discover_resources(void *hnd)
                                                         rpt_entry->ResourceId,
                                                         SAHPI_FIRST_ENTRY);
                         while (rdr_entry) {
-                                event = malloc(sizeof(*event));
-				if (event == NULL) {
-					dbg("Out of memory");
-        				g_static_rec_mutex_unlock(
-						&ipmi_handler->ohoih_lock);
-					return SA_ERR_HPI_OUT_OF_MEMORY;
-				}
-                                memset(event, 0, sizeof(*event));
-                                event->type = OH_ET_RDR;
-                                event->u.rdr_event.parent =
-                                        rpt_entry->ResourceId;
-
-                                memcpy(&event->u.rdr_event.rdr, rdr_entry,
-                                        sizeof(SaHpiRdrT));
-                                handler->eventq =
-                                        g_slist_append(handler->eventq, event);
-
+                                event->rdrs = g_slist_append(event->rdrs,
+                                	g_memdup(rdr_entry, sizeof(SaHpiRdrT)));
                                 rdr_entry = oh_get_rdr_next(handler->rptcache,
                                         rpt_entry->ResourceId,
                                         rdr_entry->RecordId);
                         }
                 }
+
+		SaHpiEventUnionT *u = &event->event.EventDataUnion;
+		if (rpt_entry->ResourceCapabilities & SAHPI_CAPABILITY_FRU) {
+			event->event.EventType = SAHPI_ET_HOTSWAP;
+			if (res_info->presence) {
+				u->HotSwapEvent.HotSwapState =
+					SAHPI_HS_STATE_ACTIVE;
+				u->HotSwapEvent.PreviousHotSwapState =
+					SAHPI_HS_STATE_ACTIVE;
+			} else {
+				u->HotSwapEvent.HotSwapState =
+					SAHPI_HS_STATE_NOT_PRESENT;
+				u->HotSwapEvent.PreviousHotSwapState =
+					SAHPI_HS_STATE_ACTIVE;
+			}
+		} else {
+			event->event.EventType = SAHPI_ET_RESOURCE;
+			if (res_info->presence) {
+				u->ResourceEvent.ResourceEventType =
+					SAHPI_RESE_RESOURCE_ADDED;
+			} else {
+				u->ResourceEvent.ResourceEventType =
+					SAHPI_RESE_RESOURCE_FAILURE;
+			}
+		}
+		event->event.Source = rpt_entry->ResourceId;
+		oh_gettimeofday(&event->event.Timestamp);
+		event->event.Severity = rpt_entry->ResourceSeverity;
+		event->resource = *rpt_entry;
+                handler->eventq = g_slist_append(handler->eventq, event);
+
                 res_info->updated = 0;
                 rpt_entry = oh_get_resource_next(handler->rptcache,
                         rpt_entry->ResourceId);
@@ -979,24 +990,23 @@ static int ipmi_get_el_entry(void *hnd, SaHpiResourceIdT id,
                 myrpt = ohoi_get_resource_by_entityid(handler->rptcache, &et);
 		if (myrpt == NULL) {
 			goto no_rpt;
-		} 
+		}
                 myrdr = ohoi_get_rdr_by_data(handler->rptcache,
                                  myrpt->ResourceId, SAHPI_SENSOR_RDR, &sid);
-                e->u.hpi_event.event.Source = myrpt->ResourceId;
+                e->event.Source = myrpt->ResourceId;
                 if (rptentry) {
                         memcpy(rptentry, myrpt, sizeof (*myrpt));
                 }
                 if (myrdr) {
-                        e->u.hpi_event.event.EventDataUnion.SensorEvent.SensorNum =
-                                             myrdr->RdrTypeUnion.SensorRec.Num;
+                        e->event.EventDataUnion.SensorEvent.SensorNum =
+                        	myrdr->RdrTypeUnion.SensorRec.Num;
 			if (rdr) {
                         	memcpy(rdr, myrdr, sizeof (*myrdr));
 			}
                 }
 no_rpt:
-                memcpy(&entry->Event, &e->u.hpi_event.event,
-                                                   sizeof (SaHpiEventT));
-                free(e);
+                memcpy(&entry->Event, &e->event, sizeof (SaHpiEventT));
+                oh_event_free(e, FALSE);
                 entry->Event.EventType = SAHPI_ET_SENSOR;
                 entry->Timestamp = ipmi_event_get_timestamp(event);
                 return SA_OK;
@@ -1159,7 +1169,8 @@ static int ipmi_set_sensor_event_enable(void *hnd,
         struct oh_handler_state	*handler = (struct oh_handler_state *)hnd;
         struct ohoi_sensor_info	*sensor_info;
         struct oh_event		*e;
-        SaHpiRdrT		*rdr;
+        SaHpiRdrT		*rdr = NULL;
+        SaHpiRptEntryT		*rpte = NULL;
         SaHpiSensorEnableChangeEventT	*sen_evt;
 
         SENSOR_CHECK(handler, sensor_info, id, num);
@@ -1181,21 +1192,26 @@ static int ipmi_set_sensor_event_enable(void *hnd,
                 dbg("Out of space");
                 return IPMI_EVENT_NOT_HANDLED;
         }
+        memset(e, 0, sizeof(*e));
+
+        rpte = oh_get_resource_by_id(handler->rptcache, id);
+        if (rpte) {
+        	e->resource = *rpte;
+        }
 
         rdr = oh_get_rdr_by_type(handler->rptcache, id, SAHPI_SENSOR_RDR, num);
-
         if (!rdr) {
                 dbg("no rdr");
                 return SA_ERR_HPI_NOT_PRESENT;
-        };
-        memset(e, 0, sizeof(*e));
-        e->type = OH_ET_HPI;
-        e->u.hpi_event.event.Source = id;
-        e->u.hpi_event.event.EventType = SAHPI_ET_SENSOR_ENABLE_CHANGE;
-        e->u.hpi_event.event.Severity = SAHPI_INFORMATIONAL;
-        oh_gettimeofday(&e->u.hpi_event.event.Timestamp);
+        }
+
+        e->event.Source = id;
+        e->event.EventType = SAHPI_ET_SENSOR_ENABLE_CHANGE;
+        e->event.Severity = SAHPI_INFORMATIONAL;
+        oh_gettimeofday(&e->event.Timestamp);
+        e->rdrs = g_slist_append(e->rdrs, g_memdup(rdr, sizeof(SaHpiRdrT)));
 //      e->u.hpi_event.event.Timestamp = SAHPI_TIME_UNSPECIFIED;
-        sen_evt = &(e->u.hpi_event.event.EventDataUnion.SensorEnableChangeEvent);
+        sen_evt = &(e->event.EventDataUnion.SensorEnableChangeEvent);
         sen_evt->SensorNum = num;
         sen_evt->SensorType = rdr->RdrTypeUnion.SensorRec.Type;
         sen_evt->EventCategory = rdr->RdrTypeUnion.SensorRec.Category;
@@ -1389,7 +1405,7 @@ static int ipmi_get_sensor_event_masks(void *hnd,
         if (rv)
                 return rv;
 
-        
+
 	if (sensor_info->sen_enabled) {
 		sensor_info->enable = t_enable;
         	sensor_info->assert = t_assert;
@@ -1414,7 +1430,8 @@ static int ipmi_set_sensor_event_masks(void *hnd, SaHpiResourceIdT id,
         SaHpiEventStateT	t_assert;
         SaHpiEventStateT	t_deassert;
         struct oh_event 	*e;
-        SaHpiRdrT		*rdr;
+        SaHpiRptEntryT		*rpte = NULL;
+        SaHpiRdrT		*rdr = NULL;
         SaHpiSensorEnableChangeEventT	*sen_evt;
 
         SENSOR_CHECK(handler, sensor_info, id, num);
@@ -1446,21 +1463,26 @@ static int ipmi_set_sensor_event_masks(void *hnd, SaHpiResourceIdT id,
                 dbg("Out of space");
                 return IPMI_EVENT_NOT_HANDLED;
         }
+        memset(e, 0, sizeof(*e));
+
+	rpte = oh_get_resource_by_id(handler->rptcache, id);
+	if (rpte) {
+		e->resource = *rpte;
+	}
 
         rdr = oh_get_rdr_by_type(handler->rptcache, id, SAHPI_SENSOR_RDR, num);
-
         if (!rdr) {
                 dbg("no rdr");
                 return SA_ERR_HPI_NOT_PRESENT;
-        };
-        memset(e, 0, sizeof(*e));
-        e->type = OH_ET_HPI;
-        e->u.hpi_event.event.Source = id;
-        e->u.hpi_event.event.EventType = SAHPI_ET_SENSOR_ENABLE_CHANGE;
-        e->u.hpi_event.event.Severity = SAHPI_INFORMATIONAL;
-        oh_gettimeofday(&e->u.hpi_event.event.Timestamp);
+        }
+
+        e->event.Source = id;
+        e->event.EventType = SAHPI_ET_SENSOR_ENABLE_CHANGE;
+        e->event.Severity = SAHPI_INFORMATIONAL;
+        oh_gettimeofday(&e->event.Timestamp);
+        e->rdrs = g_slist_append(e->rdrs, g_memdup(rdr, sizeof(SaHpiRdrT)));
 //      e->u.hpi_event.event.Timestamp = SAHPI_TIME_UNSPECIFIED;
-        sen_evt = &(e->u.hpi_event.event.EventDataUnion.SensorEnableChangeEvent);
+        sen_evt = &(e->event.EventDataUnion.SensorEnableChangeEvent);
         sen_evt->SensorNum = num;
         sen_evt->SensorType = rdr->RdrTypeUnion.SensorRec.Type;
         sen_evt->EventCategory = rdr->RdrTypeUnion.SensorRec.Category;
@@ -1761,7 +1783,7 @@ static int ipmi_reset_watchdog(void *hnd,
         rv = ipmicmd_mv(ipmi_handler, WATCHDOG_RESET, NETFN_APP, 0,
 		NULL, 0, response, rlen, &rlen);
         if (rv != 0) return(rv);
-	
+
         rv = response[0];  /*completion code*/
 		if (rv != 0) {
 		dbg("wdog_set response: %02x", rv);

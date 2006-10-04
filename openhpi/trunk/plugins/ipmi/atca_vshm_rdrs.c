@@ -13,19 +13,19 @@
  *     Vadim Revyakin <vadim.a.revyakin@intel.com>
  */
 
- 
+
 
 #include "ipmi.h"
-#include <oh_utils.h> 
- 
- 
- 
- 
+#include <oh_utils.h>
+
+
+
+
  		//     Virtual Shelf Manager Redundancy Sensor
-		
 
 
- 
+
+
 
 void ohoi_send_vshmgr_redundancy_sensor_event(
                                       struct oh_handler_state *handler,
@@ -62,7 +62,7 @@ void ohoi_send_vshmgr_redundancy_sensor_event(
 		return;
 	}
 	num = ipmi_handler->shmc_present_num;
-	
+
 	if (num == 1) {
 		if (!(s_info->assert &
 			SAHPI_ES_NON_REDUNDANT_SUFFICIENT_RESOURCES)) {
@@ -105,13 +105,12 @@ void ohoi_send_vshmgr_redundancy_sensor_event(
         }
 
         memset(e, 0, sizeof(*e));
-        e->type = OH_ET_HPI;
-        e->u.hpi_event.event.Source = ipmi_handler->atca_vshm_id;
-        e->u.hpi_event.event.EventType = SAHPI_ET_SENSOR;
-        e->u.hpi_event.event.Severity = SAHPI_MAJOR;
-        oh_gettimeofday(&e->u.hpi_event.event.Timestamp);
+        e->event.Source = ipmi_handler->atca_vshm_id;
+        e->event.EventType = SAHPI_ET_SENSOR;
+        e->event.Severity = SAHPI_MAJOR;
+        oh_gettimeofday(&e->event.Timestamp);
 
-        sen_evt = &(e->u.hpi_event.event.EventDataUnion.SensorEvent);
+        sen_evt = &(e->event.EventDataUnion.SensorEvent);
         sen_evt->SensorNum = ATCAHPI_SENSOR_NUM_SHMGR_REDUNDANCY;
         sen_evt->SensorType = SAHPI_OPERATIONAL;
         sen_evt->EventCategory = SAHPI_EC_REDUNDANCY;
@@ -121,9 +120,14 @@ void ohoi_send_vshmgr_redundancy_sensor_event(
 					 SAHPI_SOD_CURRENT_STATE;
         sen_evt->CurrentState = cur;
         sen_evt->PreviousState = prev;
+        SaHpiRdrT *rdr = oh_get_rdr_by_type(handler->rptcache,
+        				    ipmi_handler->atca_vshm_id,
+        				    SAHPI_SENSOR_RDR,
+        				    ATCAHPI_SENSOR_NUM_SHMGR_REDUNDANCY);
+	if (rdr) e->rdrs = g_slist_append(e->rdrs, g_memdup(rdr, sizeof(SaHpiRdrT)));
 
         handler->eventq = g_slist_append(handler->eventq, e);
-}          
+}
 
 static SaErrorT get_vshmgr_redundancy_sensor_event_enable(
 					    struct oh_handler_state *hnd,
@@ -154,8 +158,8 @@ static SaErrorT set_vshmgr_redundancy_sensor_event_enable(
 		return SA_ERR_HPI_INVALID_DATA;
 	}
 	if ((assert & ~(SAHPI_ES_FULLY_REDUNDANT |
-			SAHPI_ES_NON_REDUNDANT_SUFFICIENT_RESOURCES | 
-			 SAHPI_ES_NON_REDUNDANT_INSUFFICIENT_RESOURCES))) { 
+			SAHPI_ES_NON_REDUNDANT_SUFFICIENT_RESOURCES |
+			 SAHPI_ES_NON_REDUNDANT_INSUFFICIENT_RESOURCES))) {
 		dbg("assert(0x%x)", assert);
 		return SA_ERR_HPI_INVALID_DATA;
 	}
@@ -174,7 +178,7 @@ static SaErrorT get_vshmgr_redundancy_sensor_reading(
 {
 	struct ohoi_handler *ipmi_handler = hnd->data;
 	int num = ipmi_handler->shmc_present_num;
-	
+
 	if (reading != NULL) {
 		reading->IsSupported = SAHPI_FALSE;
 	}
@@ -280,7 +284,7 @@ static SaHpiRdrT *create_vshmgr_redundancy_sensor(
 		set_vshmgr_redundancy_sensor_thresholds;
 
 	*sensor_info = s_info;
-	
+
 	return rdr;
 }
 
@@ -314,7 +318,7 @@ void create_atca_virt_shmgr_rdrs(struct oh_handler_state *hnd)
 	}
 	res_info = oh_get_resource_data(hnd->rptcache,
 					ipmi_handler->atca_vshm_id);
-					
+
 
 
 	// Create Power On Sequence Commit Status sensor

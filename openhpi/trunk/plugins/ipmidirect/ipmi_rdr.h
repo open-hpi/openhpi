@@ -84,7 +84,7 @@ private:
   bool m_populate;
 
 public:
-  virtual bool Populate();
+  virtual bool Populate(GSList **);
 };
 
 
