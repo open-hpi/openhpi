@@ -1,0 +1,118 @@
+                       OpenHPI(IPMI plugin) Test Manual
+
+1 Enviorment
+  Hardware: 
+      hardware supports IPMI
+  Software: 
+      a) Linux kernel supports IPMI
+      b) IPMI library   
+  
+2 Enable IPMI
+2.1 Kernel must support IPMI
+2.1.1 IPMI is build in kernel    **OR**
+2.1.2 IPMI is build as module
+      insert the following modules to enable ipmi
+         ipmi_devintf         
+         ipmi_watchdog         
+         ipmi_kcs_drv         
+         ipmi_msghandler       
+
+2.2 make ipmi device
+    mknod /dev/ipmi0 c 254 0
+
+2.3 build and install ipmi library
+2.3.1 download source code from SourceForge
+      cvs -d:pserver:anonymous@proxy01.fm.intel.com:24022/cvsroot/openipmi co
+    OpenIPMI
+2.3.2 configure and install
+2.3.2.1 configure
+        libtoolize --copy --force --automake
+        aclocal
+        autoheader
+        automake --add-missing --copy --foreign
+        autoconf
+        ./configure
+2.3.2.2 install
+        make
+        make install
+
+3 install openhpi and its test suits
+3.1 openhpi
+
+3.1.1 download
+      download openhpi-0.4.tar.gz from 
+      http://sourceforge.net/project/showfiles.php?group_id=71730
+    &package_id=71373&release_id=203261
+3.1.2 install
+      tar xzvf openhpi-0.4.tar.gz
+      cd openhpi-0.4
+      ./configure( or ./configure --prefix=/usr/)
+      make
+      make install
+      
+3.2 ipmi plugin configuration
+    The config file is '/etc/openhpi/openhpi.conf'
+    The OpenHPI IPMI plug-in supports both "SMI" and "LAN" access methods to
+  IPMI hardware. 
+    Below is an example "SMI" configuration stanza: 
+       plugin libipmi
+
+       handler libipmi {
+	   name="smi"
+	   addr="0"
+	   entity_root = "{ROOT,0}{SYSTEM_CHASSIS,0}"
+       }
+   And this is an example "LAN" configuration stanza: 
+       plugin libipmi
+    
+       handler libipmi {
+	   name = lan
+	   addr = "IP.ADDRESS.HERE"
+	   port = "IPMI LAN PORT NUMBER"
+	   auth_type = "STRAIGHT, MD2 or MD5"
+	   auth_level= "USER, OPERATOR or ADMIN"
+	   username = "YOUR_USER_NAME"
+	   password = "YOUR_PASSWORD"
+	   entity_root = "{SYSTEM_CHASSIS,0}"
+      }
+   For other plugins, pls refer to 
+ http://openhpi.sourceforge.net/manual/c309.html
+
+3.3 library path configuration
+    If you use ./configure in step 3.2, make sure that 'usr/local/lib' is in
+  '/etc/ld.so.conf'.
+    If you use ./configure --prefix=/usr in step 3.2, make sure that 'usr/lib'
+  is in '/etc/ld.so.conf'.
+    If the above state is not true, you can add 'usr/local/lib' or 'usr/lib'
+  in the '/etc/ld.so.conf', then run 'ldconfig'
+
+4  test
+4.1 settings
+    Test cases loads plugins library by $OPENHPI_PATH.
+    If you don't set $OPENHPI_PATH, the default path is 
+  '/usr/local/lib/openhpi:/usr/lib/openhpi'
+    Make sure that you set $OPENHPI_PATH correctly
+
+4.2 hpi conformance test(hpitest)
+     download hpitest through
+     cvs -d:pserver:anonymous@proxy01.fm.intel.com:24022/cvsroot/openhpi co
+   hpitest
+
+4.3 hpi functional test(hpifun)
+    download hpifun through
+    cvs -d:pserver:anonymous@proxy01.fm.intel.com:24022/cvsroot/openhpi co
+  hpifun
+    
+4.4  run test cases
+     For hpi conformance test(hpitest), run './run_tests all' under the 
+   'hpitest/v1/1.0' directory
+     For hpi functional test(hpifun),  run './run_tests all' under the 
+   'hpifun/v1/1.0' directory
+   
+   
+   
+   
+
+
+
+      
