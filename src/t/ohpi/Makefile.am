@@ -64,7 +64,8 @@ TESTS = ohpi_000 \
         ohpi_037 \
         ohpi_038 \
         ohpi_039 \
-	ohpi_version
+	ohpi_version \
+	hpiinjector
 
 check_PROGRAMS = $(TESTS)
 
@@ -190,4 +191,7 @@ ohpi_039_LDADD   = $(TDEPLIB)
 
 ohpi_version_SOURCES = ohpi_version.c
 ohpi_version_LDADD   = $(TDEPLIB)
+
+hpiinjector_SOURCES = hpiinjector.c
+hpiinjector_LDADD   = $(TDEPLIB)
 

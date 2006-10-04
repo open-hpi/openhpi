@@ -171,17 +171,24 @@ cIpmiInventory::CreateRdr( SaHpiRptEntryT &resource, SaHpiRdrT &rdr )
 
        struct oh_event *e = (struct oh_event *)g_malloc0( sizeof( struct oh_event ) );
 
-       if ( !e )
-          {
-            stdlog << "out of space !\n";
-            return false;
-          }
+       if (resource.ResourceCapabilities & SAHPI_CAPABILITY_FRU)
+       {
+           e->event.EventType = SAHPI_ET_RESOURCE;
+           e->event.EventDataUnion.ResourceEvent.ResourceEventType = SAHPI_RESE_RESOURCE_ADDED;
+           stdlog << "cIpmiInventory::CreateRdr SAHPI_ET_RESOURCE Event resource " << resource.ResourceId << "\n";
+       }
+       else
+       {
+           e->event.EventType = SAHPI_ET_HOTSWAP;
+           e->event.EventDataUnion.HotSwapEvent.HotSwapState = SAHPI_HS_STATE_ACTIVE;
+           e->event.EventDataUnion.HotSwapEvent.PreviousHotSwapState = SAHPI_HS_STATE_ACTIVE;
+           stdlog << "cIpmiInventory::CreateRdr SAHPI_ET_HOTSWAP Event resource " << resource.ResourceId << "\n";
+       }
+       e->resource = resource;
+       e->event.Source = resource.ResourceId;
+       oh_gettimeofday(&e->event.Timestamp);
+       e->event.Severity = resource.ResourceSeverity;
 
-       memset( e, 0, sizeof( struct oh_event ) );
-       e->type               = OH_ET_RESOURCE;
-       e->u.res_event.entry = resource;
-
-       stdlog << "cIpmiInventory::CreateRdr OH_ET_RESOURCE Event resource " << resource.ResourceId << "\n";
        m_mc->Domain()->AddHpiEvent( e );
      }
 

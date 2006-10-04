@@ -41,7 +41,7 @@ static void init_power_on_sequence_data_cb(ipmi_entity_t *entity,
 	ohoi_atca_pwonseq_dsk_t *dscp = NULL;
 	int i;
 	int rv;
-	
+
 	g_slist_foreach(ipmi_handler->atca_pwonseq_recs, (GFunc)g_free, NULL);
 	g_slist_free(ipmi_handler->atca_pwonseq_recs);
 	g_slist_foreach(ipmi_handler->atca_pwonseq_desk, (GFunc)g_free, NULL);
@@ -49,7 +49,7 @@ static void init_power_on_sequence_data_cb(ipmi_entity_t *entity,
 	ipmi_handler->atca_pwonseq_recs = NULL;
 	ipmi_handler->atca_pwonseq_desk = NULL;
 	ipmi_handler->atca_pwonseq_updated = 0;
-	
+
 	r_num = ipmi_entity_get_num_multi_records(entity);
 	for (num = 0; num < r_num; num++) {
 		len = 256;
@@ -91,11 +91,11 @@ static void init_power_on_sequence_data_cb(ipmi_entity_t *entity,
 			dbg("MId = 0x%x", data[0] | (data[1] << 8) | (data[2] << 16));
 			continue;
 		}
-		
+
 		if (data[3] != 0x12) {
 			continue;
 		}
-		
+
 		if (len < 7) {
 			dbg("Record #%d too short(%d)", num, len);
 			broken = 1;
@@ -136,7 +136,7 @@ static void init_power_on_sequence_data_cb(ipmi_entity_t *entity,
 			}
 		}
 	}
-	
+
 	if (broken) {
 		// XXX delete all alloced memory
 	}
@@ -148,7 +148,7 @@ static void init_power_on_sequence_data_cb(ipmi_entity_t *entity,
          *      Chassis status control
 	 */
 
-	 
+
 struct atca_chassis_status_control_s {
 	SaHpiCtrlStateOemT *state;
 	int done;
@@ -176,12 +176,12 @@ static int get_atca_chassis_status_control_states_cb(
 	struct atca_chassis_status_control_s *info = rspi->data1;
 	ipmi_msg_t *msg = &rspi->msg;
 	int rv = msg->data[0];
-	
-	
+
+
 	dbg("get chassis response(%d): %02x %02x %02x %02x %02x\n",
 		msg->data_len, msg->data[0], msg->data[1], msg->data[2],
 		msg->data[3], msg->data[4]);
-		
+
 	if (domain == NULL) {
 		info->rv = SA_ERR_HPI_INVALID_PARAMS;
 		info->done = 1;
@@ -246,7 +246,7 @@ static SaHpiRdrT *create_atca_chassis_status_control(
 	SaHpiCtrlStateOemT states;
 	SaErrorT rv;
 	struct atca_chassis_status_control_s info;
-	
+
 	info.state = &states;
 	info.done = 0;
 	info.rv = SA_OK;
@@ -302,18 +302,18 @@ static SaHpiRdrT *create_atca_chassis_status_control(
 	rdr->RdrTypeUnion.CtrlRec.TypeUnion.Oem.Default.Body[1] =
 			states.Body[1];
 	rdr->RdrTypeUnion.CtrlRec.TypeUnion.Oem.Default.Body[2] =
-			states.Body[2];		
+			states.Body[2];
 	rdr->RdrTypeUnion.CtrlRec.TypeUnion.Oem.Default.Body[3] =
 			states.Body[3];
 	rdr->RdrTypeUnion.CtrlRec.TypeUnion.Oem.Default.MId =
 						ATCAHPI_PICMG_MID;
 	rdr->RdrTypeUnion.CtrlRec.TypeUnion.Oem.MId = ATCAHPI_PICMG_MID;
-	
+
 	c_info->ohoii.get_control_state = get_atca_chassis_status_control_state;
 	c_info->ohoii.set_control_state = set_atca_chassis_status_control_state;
 	c_info->mode = SAHPI_CTRL_MODE_AUTO;
 	*ctrl_info = c_info;
-		
+
 	return rdr;
 }
 
@@ -328,7 +328,7 @@ SaErrorT get_atca_chassis_status_control_state(
 	struct atca_chassis_status_control_s info;
 	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)hnd->data;
 	SaErrorT rv;
-	
+
 	if (state == NULL) {
 		goto no_state;
 	}
@@ -409,7 +409,7 @@ static int set_shelf_address_control_msg_data(SaHpiTextTypeT type,
 		case SAHPI_TL_TYPE_BINARY:
 			data[1] |= (text->DataLength & 0x1f);
 			break;
-		} 
+		}
 		return 0;
 	}
 	if ((type != SAHPI_TL_TYPE_ASCII6) || (text->DataType != SAHPI_TL_TYPE_TEXT)) {
@@ -463,11 +463,11 @@ static int set_atca_shelf_address_control_states_cb(
 	struct atca_shelf_address_control_s *info = rspi->data1;
 	ipmi_msg_t *msg = &rspi->msg;
 	int rv = msg->data[0];
-	
-	
+
+
 	dbg("set shelf address response(%d): %02x %02x\n",
 		msg->data_len, msg->data[0], msg->data[1]);
-		
+
 	if (domain == NULL) {
 		info->rv = SA_ERR_HPI_INVALID_PARAMS;
 		info->done = 1;
@@ -502,7 +502,7 @@ static void set_atca_shelf_address_control_states(
 		return;
 	}
 	dbg("set addr control: 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x",
-		data[0], data[1], data[2], data[3], data[4], data[5]); 
+		data[0], data[1], data[2], data[3], data[4], data[5]);
 	rv = ipmicmd_send(domain,
 		0x2c, 0x03, 0, IPMI_BMC_CHANNEL, data, 32,
 		set_atca_shelf_address_control_states_cb,
@@ -579,12 +579,12 @@ static int get_atca_shelf_address_control_states_cb(
 	int rv = msg->data[0];
 	int len;
 	int i;
-	
-	
+
+
 	dbg("get shelf address response(%d): %02x %02x %02x %02x %02x\n",
 		msg->data_len, msg->data[0], msg->data[1], msg->data[2],
 		msg->data[3], msg->data[4]);
-		
+
 	if (domain == NULL) {
 		info->rv = SA_ERR_HPI_INVALID_PARAMS;
 		info->done = 1;
@@ -601,7 +601,7 @@ static int get_atca_shelf_address_control_states_cb(
 		info->done = 1;
 		return IPMI_MSG_ITEM_NOT_USED;
 	}
-	
+
 	info->text->Line = 1;
 	info->text->Text.DataType = (msg->data[2] & 0xc0) >> 6;
 	len = (msg->data[2] & 0x0f);
@@ -643,7 +643,7 @@ static int get_atca_shelf_address_control_states_cb(
 		break;
 	}
 	info->text->Text.DataLength = len;
-		
+
 	info->done = 1;
 	return IPMI_MSG_ITEM_NOT_USED;
 };
@@ -668,7 +668,7 @@ static void get_atca_shelf_address_control_states(
 	}
 	return;
 }
- 
+
 static SaErrorT get_atca_shelf_address_control_state(
                                       struct oh_handler_state *hnd,
                                       struct ohoi_control_info *c,
@@ -679,7 +679,7 @@ static SaErrorT get_atca_shelf_address_control_state(
 	struct atca_shelf_address_control_s info;
 	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)hnd->data;
 	SaErrorT rv;
-	
+
 	if (state == NULL) {
 		goto no_state;
 	}
@@ -720,7 +720,7 @@ no_state:
 		*mode = c->mode;
 	}
 	return SA_OK;
-} 
+}
 
 
 
@@ -737,8 +737,8 @@ static SaHpiRdrT *create_atca_shelf_address_control(
 	SaHpiCtrlStateTextT text;
 	SaErrorT rv;
 	struct atca_shelf_address_control_s info;
-	
-	
+
+
 	info.text = &text;
 	info.done = 0;
 	info.rv = SA_OK;
@@ -773,7 +773,7 @@ static SaHpiRdrT *create_atca_shelf_address_control(
 
 	memset(rdr, 0, sizeof (*rdr));
 	memset(c_info, 0, sizeof (*c_info));
-	
+
 	rdr->RdrType = SAHPI_CTRL_RDR;
 	rdr->IsFru = SAHPI_FALSE;
 	rdr->Entity = rpt->ResourceEntity;
@@ -803,7 +803,7 @@ static SaHpiRdrT *create_atca_shelf_address_control(
 	c_info->ohoii.set_control_state = set_atca_shelf_address_control_state;
 	c_info->mode = SAHPI_CTRL_MODE_MANUAL;
 	*ctrl_info = c_info;
-		
+
 	return rdr;
 }
 
@@ -827,7 +827,7 @@ static SaErrorT set_atca_shelf_ip_address_control_state(
                                       SaHpiCtrlModeT mode,
                                       SaHpiCtrlStateT *state);
 
-   
+
 
 static SaHpiRdrT *create_atca_shelf_ip_address_control(
 			struct oh_handler_state *handler,
@@ -887,7 +887,7 @@ static SaHpiRdrT *create_atca_shelf_ip_address_control(
 	c_info->ohoii.get_control_state = get_atca_shelf_ip_address_control_state;
 	c_info->ohoii.set_control_state = set_atca_shelf_ip_address_control_state;
 	*ctrl_info = c_info;
-	
+
 	return rdr;
 }
 
@@ -971,15 +971,15 @@ static void get_atca_shelf_ip_address_control_state_cb(ipmi_entity_t *ent,
 	unsigned int len = 256;
 	unsigned int num_rec;
 	unsigned char ver;
-	
-	
-	
+
+
+
 	info->rv = get_shelf_ip_address_record(ent, buf, &len, &ver, &num_rec);
 	if (info->rv != SA_OK) {
 		return;
 	}
-		
-	
+
+
 	info->text->Text.DataType = SAHPI_TL_TYPE_BINARY;
 	info->text->Text.Language = SAHPI_LANG_UNDEF;
 	switch (info->text->Line) {
@@ -1006,8 +1006,8 @@ static void get_atca_shelf_ip_address_control_state_cb(ipmi_entity_t *ent,
 	}
 }
 
-	
-	
+
+
 
 SaErrorT get_atca_shelf_ip_address_control_state(
                                       struct oh_handler_state *handler,
@@ -1020,7 +1020,7 @@ SaErrorT get_atca_shelf_ip_address_control_state(
 	struct ohoi_handler *ohoi_handler = handler->data;
 	int rv;
 	struct atca_shelf_ip_address_control_state info;
-	
+
 	if (state == NULL) {
 		goto no_state;
 	}
@@ -1065,7 +1065,7 @@ no_state:
 
 
 
- 
+
 static void set_atca_shelf_ip_address_control_state_cb(ipmi_entity_t *ent,
                                                 void *cb_data)
 {
@@ -1077,12 +1077,12 @@ static void set_atca_shelf_ip_address_control_state_cb(ipmi_entity_t *ent,
 	SaErrorT rv;
 	ipmi_fru_t *fru = ipmi_entity_get_fru(ent);
 //	struct ohoi_handler *ohoi_handler = info->hnd->data;
-	
+
 	info->rv = get_shelf_ip_address_record(ent, buf, &len, &ver, &num_rec);
 	if (info->rv != SA_OK) {
 		info->done = 1;
 		return;
-	}  
+	}
 	switch (info->text->Line) {
 	case 1:		// Shelf Manager IP Address
 		memcpy(buf + 5, info->text->Text.Data, 4);
@@ -1167,7 +1167,7 @@ SaErrorT set_atca_shelf_ip_address_control_state(
 	info.text = text;
 	info.done = 0;
 	info.rv = SA_OK;
-	
+
 	g_mutex_lock(res_info->fru->mutex);
 	rv = ipmi_entity_pointer_cb(res_info->u.entity.entity_id,
 		set_atca_shelf_ip_address_control_state_cb, &info);
@@ -1202,7 +1202,7 @@ SaErrorT set_atca_shelf_ip_address_control_state(
          *      FRU Power On Sequence Commit Status Sensor
 	 */
 
- 
+
 
 static void send_pwronseq_commit_status_sensor_event(
                                       struct oh_handler_state *handler,
@@ -1248,22 +1248,19 @@ static void send_pwronseq_commit_status_sensor_event(
                 dbg("Out of space");
                 return;
         }
-/*
-        rdr = oh_get_rdr_by_type(handler->rptcache, id, SAHPI_SENSOR_RDR, num);
 
-        if (!rdr) {
-                dbg("no rdr");
-                return SA_ERR_HPI_NOT_PRESENT;
-        };
-*/
+        SaHpiRdrT *rdr = oh_get_rdr_by_type(handler->rptcache,
+        				    ipmi_handler->atca_shelf_id,
+        				    SAHPI_SENSOR_RDR,
+        				    ATCAHPI_SENSOR_NUM_PWRONSEQ_COMMIT_STATUS);
+
         memset(e, 0, sizeof(*e));
-        e->type = OH_ET_HPI;
-        e->u.hpi_event.event.Source = ipmi_handler->atca_shelf_id;
-        e->u.hpi_event.event.EventType = SAHPI_ET_SENSOR;
-        e->u.hpi_event.event.Severity = SAHPI_INFORMATIONAL;
-        oh_gettimeofday(&e->u.hpi_event.event.Timestamp);
+        e->event.Source = ipmi_handler->atca_shelf_id;
+        e->event.EventType = SAHPI_ET_SENSOR;
+        e->event.Severity = SAHPI_INFORMATIONAL;
+        oh_gettimeofday(&e->event.Timestamp);
 
-        sen_evt = &(e->u.hpi_event.event.EventDataUnion.SensorEvent);
+        sen_evt = &(e->event.EventDataUnion.SensorEvent);
         sen_evt->SensorNum = ATCAHPI_SENSOR_NUM_PWRONSEQ_COMMIT_STATUS;
         sen_evt->SensorType = SAHPI_OEM_SENSOR;
         sen_evt->EventCategory = SAHPI_EC_SENSOR_SPECIFIC;
@@ -1274,8 +1271,10 @@ static void send_pwronseq_commit_status_sensor_event(
         sen_evt->CurrentState = updated ? SAHPI_ES_STATE_01 : SAHPI_ES_STATE_00;
         sen_evt->PreviousState = updated ? SAHPI_ES_STATE_00 : SAHPI_ES_STATE_01;
 
+        if (rdr) e->rdrs = g_slist_append(e->rdrs, g_memdup(rdr, sizeof(SaHpiRdrT)));
+
         handler->eventq = g_slist_append(handler->eventq, e);
-}          
+}
 
 static SaErrorT get_pwronseq_commit_status_sensor_event_enable(
 					    struct oh_handler_state *hnd,
@@ -1305,7 +1304,7 @@ static SaErrorT set_pwronseq_commit_status_sensor_event_enable(
 		dbg("deassert(0x%x) != 0", deassert);
 		return SA_ERR_HPI_INVALID_DATA;
 	}
-	if ((assert & ~(SAHPI_ES_STATE_00 | SAHPI_ES_STATE_01))) { 
+	if ((assert & ~(SAHPI_ES_STATE_00 | SAHPI_ES_STATE_01))) {
 		dbg("assert(0x%x)", assert);
 		return SA_ERR_HPI_INVALID_DATA;
 	}
@@ -1424,7 +1423,7 @@ static SaHpiRdrT *create_fru_power_on_sequence_commit_status_sensor(
 		set_pwronseq_commit_status_sensor_thresholds;
 
 	*sensor_info = s_info;
-	
+
 	return rdr;
 }
 
@@ -1434,7 +1433,7 @@ static SaHpiRdrT *create_fru_power_on_sequence_commit_status_sensor(
 	/*
          *      FRU Power On Sequence Controls
 	 */
-	 
+
 static SaErrorT get_atca_fru_pwronseq_control_state(
                                       struct oh_handler_state *hnd,
                                       struct ohoi_control_info *c,
@@ -1451,8 +1450,8 @@ static SaErrorT set_atca_fru_pwronseq_control_state(
                                       SaHpiCtrlStateT *state);
 
 
-	
- 
+
+
 
 static SaHpiRdrT *create_fru_power_on_sequence_control(
 			struct oh_handler_state *handler,
@@ -1532,7 +1531,7 @@ static SaErrorT get_atca_fru_pwronseq_control_state(
 	}
 
 	state->Type = SAHPI_CTRL_TYPE_DISCRETE;
-	g_static_rec_mutex_lock(&ipmi_handler->ohoih_lock);	
+	g_static_rec_mutex_lock(&ipmi_handler->ohoih_lock);
 	node = g_slist_nth(ipmi_handler->atca_pwonseq_desk, num);
 	if (node == NULL) {
 		g_static_rec_mutex_unlock(&ipmi_handler->ohoih_lock);
@@ -1541,7 +1540,7 @@ static SaErrorT get_atca_fru_pwronseq_control_state(
 	}
 	dsk = (ohoi_atca_pwonseq_dsk_t *)node->data;
 	state->StateUnion.Discrete = dsk->slotid;
-	g_static_rec_mutex_unlock(&ipmi_handler->ohoih_lock);	
+	g_static_rec_mutex_unlock(&ipmi_handler->ohoih_lock);
 no_state :
 	if (mode) {
 		*mode = c->mode;
@@ -1569,7 +1568,7 @@ static SaErrorT set_atca_fru_pwronseq_control_state(
 	int minid, maxid;
 	int beg, len;
 	int i;
-	
+
 
 	if (mode == SAHPI_CTRL_MODE_AUTO) {
 		c->mode = mode;
@@ -1595,7 +1594,7 @@ static SaErrorT set_atca_fru_pwronseq_control_state(
 		return SA_ERR_HPI_INVALID_DATA;
 	}
 	ctrl = &rdr->RdrTypeUnion.CtrlRec;
-	
+
 	// find out descriptor with required slotid
 	oldid = 0;
 	for (oldid = 0; oldid < g_slist_length(
@@ -1614,7 +1613,7 @@ static SaErrorT set_atca_fru_pwronseq_control_state(
 		dbg("No descriptor for slotid %d", slotid);
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
-	
+
 	newid = ctrl->Num - ATCAHPI_CTRL_NUM_FRU_POWER_ON_SEQUENCE;
 	c->mode = mode;
 	if (newid == oldid) {
@@ -1628,7 +1627,7 @@ static SaErrorT set_atca_fru_pwronseq_control_state(
 				ipmi_handler->atca_pwonseq_desk, dscp);
 	ipmi_handler->atca_pwonseq_desk = g_slist_insert(
 		ipmi_handler->atca_pwonseq_desk, dscp, newid);
-	
+
 	// Which records are affected and mark them as updated
 	oldid--;
 	maxid = (newid > oldid) ? newid : oldid;
@@ -1646,17 +1645,17 @@ static SaErrorT set_atca_fru_pwronseq_control_state(
 			recp->updated = 1;
 		}
 	}
-	
+
 	if (ipmi_handler->atca_pwonseq_updated) {
 		// was updated before. nothing to do more
 		g_static_rec_mutex_unlock(&ipmi_handler->ohoih_lock);
 		return SA_OK;
 	}
 	ipmi_handler->atca_pwonseq_updated = 1;
-	
+
 	send_pwronseq_commit_status_sensor_event(handler, 1);
-	
-	return SA_OK; 
+
+	return SA_OK;
 }
 
 
@@ -1733,7 +1732,7 @@ static SaHpiRdrT *create_fru_power_on_sequence_commit_control(
 	c_info->ohoii.set_control_state =
 				set_atca_fru_pwronseq_commit_control_state;
 	*ctrl_info = c_info;
-	
+
 	return rdr;
 }
 
@@ -1771,7 +1770,7 @@ static void write_power_on_sequence_data_cb(ipmi_entity_t *ent, void *cb_data)
 	struct fru_pwronseq_commit_control_s *info = cb_data;
 	ipmi_fru_t *fru = ipmi_entity_get_fru(ent);
 	int rv;
-	
+
 	rv = ipmi_fru_set_multi_record(fru, info->num, 0xC0, 0x0,
 							info->buf, info->len);
 	if (rv != 0) {
@@ -1800,13 +1799,13 @@ static SaErrorT set_atca_fru_pwronseq_commit_control_state(
 	unsigned char buf[256];
 	unsigned int len;
 	struct fru_pwronseq_commit_control_s info;
-	
+
 	if (mode == SAHPI_CTRL_MODE_AUTO) {
 		return SA_ERR_HPI_READ_ONLY;
 	}
 
 	value = state->StateUnion.Digital;
-	
+
 	if (value != SAHPI_CTRL_STATE_PULSE_ON) {
 		dbg("wrong discrete value %d", value);
 		return SA_ERR_HPI_INVALID_REQUEST;
@@ -1828,9 +1827,9 @@ static SaErrorT set_atca_fru_pwronseq_commit_control_state(
 		g_static_rec_mutex_lock(&ipmi_handler->ohoih_lock);
 		return SA_OK;
 	}
-	
+
 	// SAHPI_CTRL_STATE_PULSE_ON operation
-	
+
 		// at first check the correctness of the lists
 	num = 0;
 	for (i = 0; ; i++) {
@@ -1847,7 +1846,7 @@ static SaErrorT set_atca_fru_pwronseq_commit_control_state(
 		g_static_rec_mutex_unlock(&ipmi_handler->ohoih_lock);
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
-	
+
 	di = 0;
 	for (i = 0; ; i++) {
 		recp = (ohoi_atca_pwonseq_rec_t *)g_slist_nth_data(
@@ -1874,7 +1873,7 @@ static SaErrorT set_atca_fru_pwronseq_commit_control_state(
 		}
 #if 0
 printf("RECORD: 0x%02x%02x%02x%02x%02x%02x%02x\n", buf[0], buf[1], buf[2], buf[3], buf[4], buf[5], buf[6]);
-for (j = 0; j < recp->head[6]; j++) 
+for (j = 0; j < recp->head[6]; j++)
 printf("%02x%02x%02x%02x%02x\n", buf[7 + 5 * j + 0], buf[7 + 5 * j + 1], buf[7 + 5 * j + 2], buf[7 + 5 * j + 3], buf[7 + 5 * j + 4]);
 #endif
 		info.ipmi_handler = ipmi_handler;
@@ -1891,7 +1890,7 @@ printf("%02x%02x%02x%02x%02x\n", buf[7 + 5 * j + 0], buf[7 + 5 * j + 1], buf[7 +
 			g_static_rec_mutex_unlock(&ipmi_handler->ohoih_lock);
 			return info.rv;
 		}
-		recp->updated = 0; 
+		recp->updated = 0;
 	}
 	ipmi_handler->atca_pwonseq_updated = 0;
 	// XXX  Call real write fru
@@ -1906,7 +1905,7 @@ printf("%02x%02x%02x%02x%02x\n", buf[7 + 5 * j + 0], buf[7 + 5 * j + 1], buf[7 +
 	/*
 	 *       Creating Virtual Shelf RDRs after domain fully up
 	 */
-	 
+
 
 
 struct create_pwonseq {
@@ -1961,13 +1960,13 @@ void ohoi_atca_create_shelf_virtual_rdrs(struct oh_handler_state *hnd)
 	}
 	res_info = oh_get_resource_data(hnd->rptcache,
 					ipmi_handler->atca_shelf_id);
-					
+
 
 	// init data for Power On Sequence RDRs
 	ipmi_entity_pointer_cb(res_info->u.entity.entity_id,
 				init_power_on_sequence_data_cb, ipmi_handler);
-	
-	
+
+
 	// Create Shelf Address control
 	rdr = create_atca_shelf_address_control(ipmi_handler, rpt, &c_info);
 	if (rdr != NULL && (oh_add_rdr(hnd->rptcache,
@@ -2068,8 +2067,8 @@ void ohoi_atca_create_shelf_virtual_rdrs(struct oh_handler_state *hnd)
 	entity_rpt_set_updated(res_info, ipmi_handler);
 	g_static_rec_mutex_unlock(&ipmi_handler->ohoih_lock);
 }
-	 
-	
-	
+
+
+
 
 

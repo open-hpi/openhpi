@@ -19,7 +19,7 @@
 #include <string.h>
 
 
-static 
+static
 SaHpiHsStateT _ipmi_to_hpi_state_conv(enum ipmi_hot_swap_states ipmi_state)
 {
         SaHpiHsStateT state = 0;
@@ -49,11 +49,11 @@ SaHpiHsStateT _ipmi_to_hpi_state_conv(enum ipmi_hot_swap_states ipmi_state)
 #endif
                 default:
                         dbg("Unknown state: %d", ipmi_state);
-        }        
+        }
         return state;
 }
 
-static 
+static
 enum ipmi_hot_swap_states _hpi_to_ipmi_state_conv(SaHpiHsStateT hpi_state)
 {
         enum ipmi_hot_swap_states state = 0;
@@ -64,7 +64,7 @@ enum ipmi_hot_swap_states _hpi_to_ipmi_state_conv(SaHpiHsStateT hpi_state)
                 case SAHPI_HS_STATE_INACTIVE:
                         state = IPMI_HOT_SWAP_INACTIVE;
                         break;
-                case SAHPI_HS_STATE_INSERTION_PENDING: 
+                case SAHPI_HS_STATE_INSERTION_PENDING:
                         state = IPMI_HOT_SWAP_ACTIVATION_IN_PROGRESS;
                         break;
                 case SAHPI_HS_STATE_ACTIVE:
@@ -75,7 +75,7 @@ enum ipmi_hot_swap_states _hpi_to_ipmi_state_conv(SaHpiHsStateT hpi_state)
                         break;
                 default:
                         dbg("Unknown state: %d", hpi_state);
-        }        
+        }
         return state;
 }
 
@@ -87,7 +87,7 @@ static SaHpiSeverityT get_severity(enum ipmi_hot_swap_states prev,
 				   struct ohoi_resource_info   *res_info)
 {
 	unsigned char hs_mark = 0;
-	
+
 	if (res_info) {
 		hs_mark = res_info->hs_mark;
 		res_info->hs_mark = 0;
@@ -106,7 +106,7 @@ static SaHpiSeverityT get_severity(enum ipmi_hot_swap_states prev,
 	}
 	return SAHPI_INFORMATIONAL;
 }
-	
+
 
 static unsigned char _ipmi_to_hpi_cause_of_change_conv(unsigned char cause)
 {
@@ -156,11 +156,11 @@ printf("\n");
 #endif
 
 
-	
+
 	if (getenv("OHOI_TRACE_HOTSWAP") || IHOI_TRACE_ALL) {
 		printf(" *** Hotswap HANDLER for entity %d,%d,%d,%d "
 			"(%s). states 0x%x -> 0x%x.    entity = %p\n",
-			ipmi_entity_get_entity_id(ent), 
+			ipmi_entity_get_entity_id(ent),
 			ipmi_entity_get_entity_instance(ent),
 			ipmi_entity_get_device_channel(ent),
 			ipmi_entity_get_device_address(ent),
@@ -170,7 +170,7 @@ printf("\n");
 	trace_ipmi("HotSwap Handler called");
 
 	entity_id = ipmi_entity_convert_to_id(ent);
-	
+
 	rpt_entry = ohoi_get_resource_by_entityid(handler->rptcache, &entity_id);
 
 	if (!rpt_entry) {
@@ -190,21 +190,20 @@ printf("\n");
 		dbg("Out of space");
 		return IPMI_EVENT_HANDLED;
 	}
-	
+
 	memset(e, 0, sizeof(*e));
-	e->type = OH_ET_HPI;
-	e->u.hpi_event.event.Source = rpt_entry->ResourceId;
-	if ((curr_state == IPMI_HOT_SWAP_OUT_OF_CON) && 
+	e->event.Source = rpt_entry->ResourceId;
+	if ((curr_state == IPMI_HOT_SWAP_OUT_OF_CON) &&
 			(last_state != IPMI_HOT_SWAP_NOT_PRESENT)) {
 		// special case. connection to entity lost
 		rpt_entry->ResourceFailed = SAHPI_TRUE;
-		e->type = OH_ET_HPI;
-		e->u.hpi_event.event.EventType = SAHPI_ET_RESOURCE;
-		e->u.hpi_event.event.Severity = rpt_entry->ResourceSeverity;
-		oh_gettimeofday(&e->u.hpi_event.event.Timestamp);
-		e->u.hpi_event.event.Source = rpt_entry->ResourceId;
-		e->u.hpi_event.event.EventDataUnion.ResourceEvent.
-				ResourceEventType = SAHPI_RESE_RESOURCE_FAILURE;
+		e->event.EventType = SAHPI_ET_RESOURCE;
+		e->event.Severity = rpt_entry->ResourceSeverity;
+		oh_gettimeofday(&e->event.Timestamp);
+		e->event.Source = rpt_entry->ResourceId;
+		e->event.EventDataUnion.ResourceEvent.
+			ResourceEventType = SAHPI_RESE_RESOURCE_FAILURE;
+		e->resource = *rpt_entry;
 		handler->eventq = g_slist_append(handler->eventq, e);
 		if (!IS_ATCA(ipmi_handler->d_type)) {
 			return IPMI_EVENT_HANDLED;
@@ -219,20 +218,20 @@ printf("\n");
 		}
 		return IPMI_EVENT_HANDLED;
 	}
-	
+
 	if ((curr_state != IPMI_HOT_SWAP_OUT_OF_CON) &&
 			rpt_entry->ResourceFailed) {
 		// special case
 		rpt_entry->ResourceFailed = SAHPI_FALSE;
 		if (curr_state != IPMI_HOT_SWAP_NOT_PRESENT) {
 			// connection to entity restored
-			e->type = OH_ET_HPI;
-			e->u.hpi_event.event.EventType = SAHPI_ET_RESOURCE;
-			e->u.hpi_event.event.Severity = rpt_entry->ResourceSeverity;
-			oh_gettimeofday(&e->u.hpi_event.event.Timestamp);
-			e->u.hpi_event.event.Source = rpt_entry->ResourceId;
-			e->u.hpi_event.event.EventDataUnion.ResourceEvent.
+			e->event.EventType = SAHPI_ET_RESOURCE;
+			e->event.Severity = rpt_entry->ResourceSeverity;
+			oh_gettimeofday(&e->event.Timestamp);
+			e->event.Source = rpt_entry->ResourceId;
+			e->event.EventDataUnion.ResourceEvent.
 				ResourceEventType = SAHPI_RESE_RESOURCE_RESTORED;
+			e->resource = *rpt_entry;
 			handler->eventq = g_slist_append(handler->eventq, e);
 			if (!IS_ATCA(ipmi_handler->d_type)) {
 				return IPMI_EVENT_HANDLED;
@@ -250,48 +249,47 @@ printf("\n");
 		// XXX here must be handled M7->M0 transition
 	}
 
-	e->type = OH_ET_HPI;
-	e->u.hpi_event.event.Source = rpt_entry->ResourceId;
-	e->u.hpi_event.event.EventType = SAHPI_ET_HOTSWAP;
-	e->u.hpi_event.event.Severity = get_severity(last_state, curr_state,
-						rpt_entry, res_info);
+	e->event.Source = rpt_entry->ResourceId;
+	e->event.EventType = SAHPI_ET_HOTSWAP;
+	e->event.Severity = get_severity(last_state, curr_state,
+					rpt_entry, res_info);
 
 
 	if (event != NULL) {
-	      	e->u.hpi_event.event.Timestamp =
+	      	e->event.Timestamp =
 		    (SaHpiTimeT)ipmi_event_get_timestamp(event);
 	} else {
-	      	e->u.hpi_event.event.Timestamp = SAHPI_TIME_UNSPECIFIED;
+	      	e->event.Timestamp = SAHPI_TIME_UNSPECIFIED;
 	}
-	if (e->u.hpi_event.event.Timestamp == SAHPI_TIME_UNSPECIFIED) {
-		oh_gettimeofday(&e->u.hpi_event.event.Timestamp);
+	if (e->event.Timestamp == SAHPI_TIME_UNSPECIFIED) {
+		oh_gettimeofday(&e->event.Timestamp);
 	}
-	      	
-	
-	e->u.hpi_event.event.EventDataUnion.HotSwapEvent.HotSwapState
+
+
+	e->event.EventDataUnion.HotSwapEvent.HotSwapState
 			= _ipmi_to_hpi_state_conv(curr_state);
-	e->u.hpi_event.event.EventDataUnion.HotSwapEvent.PreviousHotSwapState 
+	e->event.EventDataUnion.HotSwapEvent.PreviousHotSwapState
 			= _ipmi_to_hpi_state_conv(last_state);
 
-			
-			
-	if (e->u.hpi_event.event.EventDataUnion.HotSwapEvent.PreviousHotSwapState ==
-		e->u.hpi_event.event.EventDataUnion.HotSwapEvent.HotSwapState) {
+	e->resource = *rpt_entry;
+
+	if (e->event.EventDataUnion.HotSwapEvent.PreviousHotSwapState ==
+		e->event.EventDataUnion.HotSwapEvent.HotSwapState) {
 		free(e);
 		return IPMI_EVENT_HANDLED;
 	}
-	if (e->u.hpi_event.event.EventDataUnion.HotSwapEvent.HotSwapState ==
+	if (e->event.EventDataUnion.HotSwapEvent.HotSwapState ==
 					SAHPI_HS_STATE_INSERTION_PENDING) {
-		res_info->hs_inspen_time = e->u.hpi_event.event.Timestamp;
+		res_info->hs_inspen_time = e->event.Timestamp;
 	} else {
 		res_info->hs_inspen_time = SAHPI_TIME_UNSPECIFIED;
 	}
-	if (e->u.hpi_event.event.EventDataUnion.HotSwapEvent.HotSwapState ==
+	if (e->event.EventDataUnion.HotSwapEvent.HotSwapState ==
 	    					SAHPI_HS_STATE_NOT_PRESENT) {
 		trace_ipmi("HS_STATE NOT PRESENT, removing RPT");
 	  	handler->eventq = g_slist_append(handler->eventq,e);
-	}else if (e->u.hpi_event.event.EventDataUnion.HotSwapEvent
-		  	.HotSwapState == SAHPI_HS_STATE_ACTIVE) {
+	}else if (e->event.EventDataUnion.HotSwapEvent.HotSwapState ==
+			SAHPI_HS_STATE_ACTIVE) {
 		trace_ipmi("HS_STATE ACTIVE");
 		handler->eventq = g_slist_append(handler->eventq, e);
 	}else {
@@ -318,31 +316,30 @@ printf("\n");
 	}
 	memset(e, 0, sizeof(*e));
 
-	e->type = OH_ET_HPI;
-	e->u.hpi_event.event.Source = rpt_entry->ResourceId;
-	e->u.hpi_event.event.Timestamp =
+	e->resource = *rpt_entry;
+	e->event.Source = rpt_entry->ResourceId;
+	e->event.Timestamp =
 		    (SaHpiTimeT)ipmi_event_get_timestamp(event);
-	e->u.hpi_event.event.Severity = SAHPI_INFORMATIONAL;
-	e->u.hpi_event.event.EventType = SAHPI_ET_OEM;
-	e->u.hpi_event.event.EventDataUnion.OemEvent.MId =
-						ATCAHPI_PICMG_MID;
-	e->u.hpi_event.event.EventDataUnion.OemEvent.OemEventData.DataType =
+	e->event.Severity = SAHPI_INFORMATIONAL;
+	e->event.EventType = SAHPI_ET_OEM;
+	e->event.EventDataUnion.OemEvent.MId = ATCAHPI_PICMG_MID;
+	e->event.EventDataUnion.OemEvent.OemEventData.DataType =
 					SAHPI_TL_TYPE_TEXT;
-	e->u.hpi_event.event.EventDataUnion.OemEvent.OemEventData.Language =
+	e->event.EventDataUnion.OemEvent.OemEventData.Language =
 					SAHPI_LANG_UNDEF;
-	e->u.hpi_event.event.EventDataUnion.OemEvent.OemEventData.DataLength =
-									 3;
-	e->u.hpi_event.event.EventDataUnion.OemEvent.OemEventData.Data[0] =
+	e->event.EventDataUnion.OemEvent.OemEventData.DataLength =
+					 3;
+	e->event.EventDataUnion.OemEvent.OemEventData.Data[0] =
 					_ipmi_to_hpi_state_conv(curr_state);
-	e->u.hpi_event.event.EventDataUnion.OemEvent.OemEventData.Data[1] =
+	e->event.EventDataUnion.OemEvent.OemEventData.Data[1] =
 					_ipmi_to_hpi_state_conv(last_state);
-	e->u.hpi_event.event.EventDataUnion.OemEvent.OemEventData.Data[3] =
+	e->event.EventDataUnion.OemEvent.OemEventData.Data[3] =
 			_ipmi_to_hpi_cause_of_change_conv(data[11] >> 4);
 
 	handler->eventq = g_slist_append(handler->eventq, e);
 
 	return IPMI_EVENT_HANDLED;
-	
+
 }
 
 
@@ -373,7 +370,7 @@ void _get_hotswap_state(ipmi_entity_t             *ent,
 	info->done = 1;
 }
 
-SaErrorT ohoi_get_hotswap_state(void *hnd, SaHpiResourceIdT id, 
+SaErrorT ohoi_get_hotswap_state(void *hnd, SaHpiResourceIdT id,
                                 SaHpiHsStateT *state)
 {
         struct oh_handler_state         *handler;
@@ -388,12 +385,12 @@ SaErrorT ohoi_get_hotswap_state(void *hnd, SaHpiResourceIdT id,
                 dbg("BUG: try to get sel in unsupported resource");
                 return SA_ERR_HPI_INVALID_CMD;
         }
-        
+
 	info.done = 0;
 	info.err = SA_OK;
         rv = ipmi_entity_id_get_hot_swap_state(ohoi_res_info->u.entity.entity_id,
                                                _get_hotswap_state,
-                                               &info);       
+                                               &info);
         if (rv) {
                 dbg("Unable to get hotswap state: %d", rv);
                 return SA_ERR_HPI_INVALID_CMD;
@@ -408,7 +405,7 @@ SaErrorT ohoi_get_hotswap_state(void *hnd, SaHpiResourceIdT id,
 		dbg("info.err = %d", info.err);
 		return info.err;
 	}
-        *state = _ipmi_to_hpi_state_conv(info.ipmi_state);        
+        *state = _ipmi_to_hpi_state_conv(info.ipmi_state);
         return SA_OK;
 }
 
@@ -427,7 +424,7 @@ static void _hotswap_done(ipmi_entity_t *ent,
                           void          *cb_data)
 {
 	struct hs_done_s *info = cb_data;
-	
+
 	if (err) {
 		dbg("err = 0x%x", err);
 	}
@@ -435,7 +432,7 @@ static void _hotswap_done(ipmi_entity_t *ent,
 	info->done = 1;
 }
 
-SaErrorT ohoi_set_hotswap_state(void *hnd, SaHpiResourceIdT id, 
+SaErrorT ohoi_set_hotswap_state(void *hnd, SaHpiResourceIdT id,
                                 SaHpiHsStateT state)
 {
         struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
@@ -469,7 +466,7 @@ SaErrorT ohoi_set_hotswap_state(void *hnd, SaHpiResourceIdT id,
                          dbg("Unable set hotswap state: %d", state);
                          return SA_ERR_HPI_INVALID_CMD;
         }
-                
+
         rv = ohoi_loop(&info.done, ipmi_handler);
 	if (rv != SA_OK) {
 		return rv;
@@ -484,8 +481,8 @@ SaErrorT ohoi_set_hotswap_state(void *hnd, SaHpiResourceIdT id,
 
 		/*    REQUEST HOTSWAP ACTION */
 
-	
-		
+
+
 static void activation_request(ipmi_entity_t *ent, void *cb_data)
 {
 	int rv;
@@ -518,9 +515,9 @@ static void deactivation_request(ipmi_entity_t *ent, void *cb_data)
 		info->done = 1;
 		info->err = -1;
 	}
-}		
-		
-SaErrorT ohoi_request_hotswap_action(void *hnd, SaHpiResourceIdT id, 
+}
+
+SaErrorT ohoi_request_hotswap_action(void *hnd, SaHpiResourceIdT id,
                                      SaHpiHsActionT act)
 {
        struct oh_handler_state         *handler;
@@ -540,7 +537,7 @@ SaErrorT ohoi_request_hotswap_action(void *hnd, SaHpiResourceIdT id,
 
 	info.done = 0;
 	info.err = 0;
-	
+
 	switch (act) {
 	case SAHPI_HS_ACTION_INSERTION:
 		rv = ipmi_entity_pointer_cb(ohoi_res_info->u.entity.entity_id,
@@ -562,7 +559,7 @@ SaErrorT ohoi_request_hotswap_action(void *hnd, SaHpiResourceIdT id,
 	default :
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
-	
+
 	rv = ohoi_loop(&info.done, ipmi_handler);
 	if (rv != SA_OK) {
 		return rv;
@@ -576,7 +573,7 @@ SaErrorT ohoi_request_hotswap_action(void *hnd, SaHpiResourceIdT id,
 
 
 #if 0
-SaErrorT ohoi_get_indicator_state(void *hnd, SaHpiResourceIdT id, 
+SaErrorT ohoi_get_indicator_state(void *hnd, SaHpiResourceIdT id,
                                   SaHpiHsIndicatorStateT *state)
 {
         struct oh_handler_state         *handler;
@@ -590,7 +587,7 @@ SaErrorT ohoi_get_indicator_state(void *hnd, SaHpiResourceIdT id,
                 dbg("BUG: try to get HS in unsupported resource");
                 return SA_ERR_HPI_INVALID_CMD;
         }
-	
+
 	rv = ohoi_get_control_state(hnd, id, ohoi_res_info->hotswapind,
 			NULL, &c_state);
 	if (rv != SA_OK) {
@@ -604,9 +601,9 @@ SaErrorT ohoi_get_indicator_state(void *hnd, SaHpiResourceIdT id,
 	}
 	return SA_OK;
 }
- 
 
-SaErrorT ohoi_set_indicator_state(void *hnd, SaHpiResourceIdT id, 
+
+SaErrorT ohoi_set_indicator_state(void *hnd, SaHpiResourceIdT id,
 				  SaHpiHsIndicatorStateT state)
 {
         struct oh_handler_state         *handler;
@@ -614,7 +611,7 @@ SaErrorT ohoi_set_indicator_state(void *hnd, SaHpiResourceIdT id,
 	SaErrorT rv;
 	SaHpiCtrlStateT c_state;
 	SaHpiCtrlModeT mode;
-        
+
         handler = (struct oh_handler_state *)hnd;
         ohoi_res_info = oh_get_resource_data(handler->rptcache, id);
         if (!(ohoi_res_info->type & OHOI_RESOURCE_ENTITY)) {
@@ -635,14 +632,14 @@ SaErrorT ohoi_set_indicator_state(void *hnd, SaHpiResourceIdT id,
 	} else {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
-	
+
 	rv = ohoi_set_control_state(hnd, id, ohoi_res_info->hotswapind,
 			SAHPI_CTRL_MODE_MANUAL, &c_state);
 	if ((rv == SA_OK) && (mode == SAHPI_CTRL_MODE_AUTO)) {
 		ohoi_set_control_state(hnd, id, ohoi_res_info->hotswapind,
 			SAHPI_CTRL_MODE_AUTO, NULL);
 	}
-	
+
 	return rv;
 }
 
@@ -657,7 +654,7 @@ struct ohoi_indicator_state {
 	int err;
 };
 
-static 
+static
 void _get_indicator_state(ipmi_entity_t *ent,
                           int           err,
                           int           val,
@@ -665,7 +662,7 @@ void _get_indicator_state(ipmi_entity_t *ent,
 {
         struct ohoi_indicator_state *state;
         state = cb_data;
-        
+
         if (state->err) {
 		dbg("err = 0x%x", err);
 	}
@@ -673,15 +670,15 @@ void _get_indicator_state(ipmi_entity_t *ent,
 	state->done = 1;
         state->val  = val;
 }
-	
-SaErrorT ohoi_set_indicator_state(void *hnd, SaHpiResourceIdT id, 
+
+SaErrorT ohoi_set_indicator_state(void *hnd, SaHpiResourceIdT id,
 				  SaHpiHsIndicatorStateT state)
 {
         struct oh_handler_state         *handler;
         const struct ohoi_resource_info   *ohoi_res_info;
 	struct hs_done_s info;
 	SaErrorT rv;
-        
+
         handler = (struct oh_handler_state *)hnd;
 		struct ohoi_handler *ipmi_handler = handler->data;
 
@@ -706,13 +703,13 @@ SaErrorT ohoi_set_indicator_state(void *hnd, SaHpiResourceIdT id,
 }
 
 
-SaErrorT ohoi_get_indicator_state(void *hnd, SaHpiResourceIdT id, 
+SaErrorT ohoi_get_indicator_state(void *hnd, SaHpiResourceIdT id,
                                   SaHpiHsIndicatorStateT *state)
 {
         struct oh_handler_state         *handler;
         const struct ohoi_resource_info   *ohoi_res_info;
         struct ohoi_indicator_state     ipmi_state;
-	SaErrorT rv;	
+	SaErrorT rv;
 
         handler = (struct oh_handler_state *)hnd;
 		struct ohoi_handler *ipmi_handler = handler->data;
@@ -761,9 +758,9 @@ SaErrorT ohoi_hotswap_policy_cancel(void *hnd, SaHpiResourceIdT rid,
         	dbg("No rpt for id = %d", rid);
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
-	
+
 	// get parent (slot) rpt
-	
+
 	prid = ohoi_get_parent_id(rpt);
         rv = ohoi_get_rdr_data(hnd, prid, SAHPI_CTRL_RDR,
 		ATCAHPI_CTRL_NUM_FRU_ACTIVATION, (void *)&ctrl_info);
