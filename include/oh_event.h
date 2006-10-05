@@ -92,7 +92,6 @@ extern "C" {
 struct oh_event {
         SaHpiDomainIdT did; /* domain id for the event */
         unsigned int hid; /* handler id for the event */
-        unsigned int times_requeued; /* Not to be modified by plugin */
         SaHpiEventT event;
         /* If no resource, ResourceCapabilities must be 0 */
         SaHpiRptEntryT resource;
