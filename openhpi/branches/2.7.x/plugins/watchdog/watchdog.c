@@ -49,6 +49,7 @@
 
 #include <SaHpi.h>
 #include <oh_handler.h>
+#include <oh_domain.h>
 #include <oh_utils.h>
 #include <oh_error.h>
 
@@ -190,6 +191,7 @@ static int watchdog_get_event(void *hnd, struct oh_event *event)
 		struct oh_event *e = (struct oh_event *)i->data;
 		if (e) {
 			memcpy(event, e, sizeof(*e));
+                        event->did = oh_get_default_domain_id();
 			tmp->eventq = g_slist_remove_link(tmp->eventq, i);
 			g_slist_free(i);
 			free(e);
