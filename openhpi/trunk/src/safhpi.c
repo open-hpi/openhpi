@@ -331,7 +331,8 @@ SaErrorT SAHPI_API saHpiResourceSeveritySet(
         if (ResourceId == SAHPI_UNSPECIFIED_RESOURCE_ID) {
                 dbg("Invalid resource id, SAHPI_UNSPECIFIED_RESOURCE_ID passed.");
                 return SA_ERR_HPI_INVALID_PARAMS;
-        } else if (!oh_lookup_severity(Severity)) {
+        } else if (!oh_lookup_severity(Severity) ||
+		   Severity == SAHPI_ALL_SEVERITIES) {
                 dbg("Invalid severity %d passed.", Severity);
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
