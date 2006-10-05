@@ -30,11 +30,8 @@
 #include <oh_utils.h>
 #include <oh_error.h>
 
-#define MAX_TIMES_REQUEUED 2
-
 extern GMutex *oh_event_thread_mutex;
 GAsyncQueue *oh_process_q = NULL;
-GQueue *postponed_q = NULL;
 
 void oh_event_free(struct oh_event *e, int only_rdrs)
 {
@@ -215,22 +212,14 @@ static int process_hpi_event(struct oh_event *full_event)
         sessions = oh_list_sessions(full_event->did);
         trace("Got session list for domain %d", full_event->did);
 
-        /* Temporarily postpone processing of event
-         * if there are no sessions open to receive it.
+        /* Drop events if there are no sessions open to receive them.
          */
         if (sessions->len < 1) {
                 g_array_free(sessions, TRUE);
                 oh_release_domain(d);
                 dbg("No sessions open for event's domain %d", full_event->did);
-                if (++full_event->times_requeued > MAX_TIMES_REQUEUED) {
-                        dbg("Dropping hpi_event.");
-                        return 0;
-                } else { /* postpone processing */
-                        dbg("Processing of hpi_event postponed.");
-                        if (!postponed_q) postponed_q = g_queue_new();
-                        g_queue_push_head(postponed_q, oh_dup_event(full_event));
-                        return 0;
-                }
+                dbg("Dropping hpi_event.");
+                return 0;
         }
 
         /* multiplex event to the appropriate sessions */
@@ -238,7 +227,7 @@ static int process_hpi_event(struct oh_event *full_event)
                 SaHpiBoolT is_subscribed = SAHPI_FALSE;
                 sid = g_array_index(sessions, SaHpiSessionIdT, i);
                 oh_get_session_subscription(sid, &is_subscribed);
-                if(is_subscribed) {
+                if (is_subscribed) {
                         oh_queue_session_event(sid, full_event);
                 }
         }
@@ -280,8 +269,7 @@ static int process_resource_event(struct oh_event *e)
 			if (exists && exists->ResourceFailed) {
 				*retype = SAHPI_RESE_RESOURCE_RESTORED;
 			} else if (exists &&
-				   !exists->ResourceFailed &&
-				   e->times_requeued < 1) {
+				   !exists->ResourceFailed) {
 				process_hpi = FALSE;
 			}
 			e->resource.ResourceFailed = SAHPI_FALSE;
@@ -299,10 +287,9 @@ static int process_resource_event(struct oh_event *e)
 		return -1;
 	}
 
-	if ((e->event.EventType == SAHPI_ET_RESOURCE ||
+	if (e->event.EventType == SAHPI_ET_RESOURCE ||
 	    (e->event.EventType == SAHPI_ET_HOTSWAP &&
-	     state != SAHPI_HS_STATE_NOT_PRESENT)) &&
-	    e->times_requeued < 1) {
+	     state != SAHPI_HS_STATE_NOT_PRESENT)) {
         	hidp = g_malloc0(sizeof(unsigned int));
 		*hidp = e->hid;
 		error = oh_add_resource(rpt, &e->resource,
@@ -334,7 +321,8 @@ SaErrorT oh_process_events()
                         trace("Event Type = Resource");
                         if (e->resource.ResourceCapabilities
                             & SAHPI_CAPABILITY_FRU) {
-				dbg("Invalid event. Dropping.");
+				dbg("Invalid event. Resource in resource event "
+				    "has FRU capability. Dropping.");
 			} else {
                         	process_resource_event(e);
 			}
@@ -343,7 +331,8 @@ SaErrorT oh_process_events()
                         trace("Event Type = Hotswap");
                         if (!(e->resource.ResourceCapabilities
                             & SAHPI_CAPABILITY_FRU)) {
-				dbg("Invalid event. Dropping.");
+				dbg("Invalid event. Resource in hotswap event "
+				    "has no FRU capability. Dropping.");
 			} else {
                         	process_resource_event(e);
 			}
@@ -364,14 +353,8 @@ SaErrorT oh_process_events()
                 }
                 oh_detect_event_alarm(e);
                 oh_event_free(e, FALSE);
-       }
+	}
 
-        if (postponed_q) {
-                while ((e = g_queue_pop_tail(postponed_q)) != NULL) {
-                        g_async_queue_push(oh_process_q, e);
-                }
-        }
-
-       return SA_OK;
+	return SA_OK;
 }
 
