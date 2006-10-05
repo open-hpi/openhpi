@@ -140,7 +140,7 @@ AC_SUBST(LIST_RESOURCES_THREADED)
 
 
 dnl Enable the marshal directory only when needed by
-dnl the deamon or remote_client plugin
+dnl the deamon
 openhpid_static="no"
 oh_daemon_enabled="no"
 
@@ -199,42 +199,6 @@ dnl plugin enablement stanzas
 dnl list of static plugins
 STATIC_PLUGIN_LIST=
 STATIC_PLUGIN_EXTRA_LIBS=
-
-AC_ARG_ENABLE([snmp_client],
-    [  --enable-snmp_client          build snmp_client plugin [[default=no]]],
-    [if test "x$enableval" = "xyes"; then
-        if test "x$have_netsnmp" = "xyes"; then
-            AC_SUBST(SNMP_CLIENT,snmp_client)
-            SNMPDIR=snmp
-        else
-            OH_CHECK_FAIL(net-snmp,net-snmp-devel,http://net-snmp.sourceforge.net/,
-                Can not build SNMP client support without net-snmp)
-        fi
-     elif test "x$enableval" = "xstatic"; then
-        if test "x$have_netsnmp" = "xyes"; then
-            AC_SUBST(SNMP_CLIENT,snmp_client)
-            STATIC_PLUGIN_LIST="$STATIC_PLUGIN_LIST snmp_client"
-            STATIC_PLUGIN_EXTRA_LIBS="$STATIC_PLUGIN_EXTRA_LIBS -luuid"
-            SNMPDIR=snmp
-        else
-            OH_CHECK_FAIL(net-snmp,net-snmp-devel,http://net-snmp.sourceforge.net/,
-                Can not build SNMP client support without net-snmp)
-        fi
-    fi])
-
-dnl    [if test "x$have_netsnmp" = "xyes"; then
-dnl        AC_SUBST(SNMP_CLIENT,snmp_client)
-dnl     fi])
-
-#AC_ARG_ENABLE([dummy],
-#    [  --enable-dummy          build dummy plugin [default=no]],
-#    [if test "x$enableval" = "xyes"; then
-#        AC_SUBST(DUMMY,dummy)
-#     elif test "x$enableval" = "xstatic"; then
-#        AC_SUBST(DUMMY,dummy)
-#        STATIC_PLUGIN_LIST="$STATIC_PLUGIN_LIST dummy"
-#        STATIC_PLUGIN_EXTRA_LIBS="$STATIC_PLUGIN_EXTRA_LIBS -luuid"
-#    fi])
 
 AC_ARG_ENABLE([watchdog],
     [  --enable-watchdog       build watchdog plugin [[default=yes]]],
@@ -348,21 +312,6 @@ AC_ARG_ENABLE([rtas],
                 Cannot build RTAS plugin without the librtas library)
         fi
     fi])
-
-#AC_ARG_iENABLE([remote_client],
-#    [  --enable-remote_client     build remote client plugin [[default=yes]]],
-#    [if test "x$enableval" = "xyes"; then
-#            AC_SUBST(REMOTE_CLIENT,remote_client)
-#           NEED_MARSHAL="yes"
-#     elif test "x$enableval" = "xstatic"; then
-#            AC_SUBST(REMOTE_CLIENT,remote_client)
-#            STATIC_PLUGIN_LIST="$STATIC_PLUGIN_LIST remote_client"
-#            STATIC_PLUGIN_EXTRA_LIBS="$STATIC_PLUGIN_EXTRA_LIBS \$(top_builddir)/marshal/libopenhpimarshal.la -luuid"
-#            NEED_MARSHAL="yes"
-#     fi])
-
-dnl    [AC_SUBST(REMOTE_CLIENT,remote_client)
-dnl     NEED_MARSHAL="yes"])
 
 AC_ARG_ENABLE([simulator],
     [  --enable-simulator      build simulator plugin [[default=yes]]],
