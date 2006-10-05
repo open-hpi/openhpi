@@ -19,9 +19,9 @@ INCLUDES		= @OPENHPI_INCLUDES@
 
 AM_CFLAGS		= @CFLAGS@
 
-pkglib_LTLIBRARIES	= librtas.la 
+pkglib_LTLIBRARIES	= librtas2hpi.la 
 
-librtas_la_SOURCES	=  rtas.c \
+librtas2hpi_la_SOURCES	=  rtas.c \
 			   rtas_annunciator.c \
 			   rtas_discover.c \
 			   rtas_control.c \
@@ -37,6 +37,6 @@ librtas_la_SOURCES	=  rtas.c \
 			   rtas_utils.c \
 			   rtas_watchdog.c
 			   
-librtas_la_LIBADD	= -luuid -lrtas -lrtasevent $(top_builddir)/utils/libopenhpiutils.la
-librtas_la_LDFLAGS	= -module -version-info @HPI_LIB_VERSION@
+librtas2hpi_la_LIBADD	= -luuid -lrtas -lrtasevent $(top_builddir)/utils/libopenhpiutils.la
+librtas2hpi_la_LDFLAGS	= -module -version-info @HPI_LIB_VERSION@
 
