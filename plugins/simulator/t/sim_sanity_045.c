@@ -13,11 +13,9 @@
 *     W. David Ashley <dashley@us.ibm.com>
 */
 
-#include <stdlib.h>
 #include <SaHpi.h>
 #include <oh_utils.h>
 #include <oh_error.h>
-#include <sahpi_struct_utils.h>
 
 /**
  * Run a series of sanity tests on the simulator
@@ -29,10 +27,10 @@ int main(int argc, char **argv)
 	SaHpiSessionIdT sid = 0;
 	SaErrorT rc = SA_OK;
 	int event_ctr = 0;
-	SaHpiEventT event;
+	SaHpiEventLogEntryT ele;
 	SaHpiRdrT rdr;
-	SaHpiRptEntryT rpt;
-	SaHpiEvtQueueStatusT status;
+	SaHpiRptEntryT rpte;
+	SaHpiEventLogEntryIdT eleid, neleid, peleid;
 
 	rc = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID, &sid, NULL);
 	if(rc != SA_OK)
@@ -47,18 +45,24 @@ int main(int argc, char **argv)
 		return -1;
 
 	/* count discovery events */
-	rc = saHpiEventGet(sid, SAHPI_TIMEOUT_IMMEDIATE, &event, &rdr, &rpt,
-                           &status);
-    
-	while (rc == SA_OK) {
-		oh_print_event(&event, &rdr.Entity, 3);
-		event_ctr++;
-		rc = saHpiEventGet(sid, SAHPI_TIMEOUT_IMMEDIATE, &event, &rdr, &rpt,
-                                   &status);
+	eleid = neleid = SAHPI_OLDEST_ENTRY;
+	while (rc == SA_OK && neleid != SAHPI_NO_MORE_ENTRIES) {
+		rc = saHpiEventLogEntryGet(sid,
+					   SAHPI_UNSPECIFIED_RESOURCE_ID,
+					   eleid,
+					   &peleid,
+					   &neleid,
+					   &ele,
+					   &rdr,
+					   &rpte);
+		if (ele.Event.EventType == SAHPI_ET_RESOURCE)
+			event_ctr++;
+
+		eleid = neleid;
 	}
 	
-	if (rc != SA_ERR_HPI_TIMEOUT) {
-		printf("SaHpiEventGet returned %d.\n", rc);
+	if (rc != SA_OK) {
+		printf("SaHpiEventLogEntryGet returned %d.\n", rc);
 		return -1;
 	}
 	/* A FRU device does NOT generate an ADD event. So our Hot Swap Disk
