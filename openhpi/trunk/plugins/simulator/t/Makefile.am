@@ -257,4 +257,5 @@ sim_sanity_044_LDFLAGS = -export-dynamic
 
 sim_sanity_045_SOURCES = sim_sanity_045.c
 sim_sanity_045_LDADD = $(TDEPLIB)
+sim_sanity_045_LDFLAGS = -export-dynamic
 
