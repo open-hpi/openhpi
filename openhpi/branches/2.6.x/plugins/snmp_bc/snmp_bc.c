@@ -120,6 +120,7 @@ SaErrorT snmp_bc_set_resource_tag(void *hnd, SaHpiResourceIdT rid, SaHpiTextBuff
 		return(SA_ERR_HPI_OUT_OF_SPACE);
 	}
 
+	e->did = oh_get_default_domain_id();
         e->type = OH_ET_RESOURCE;
         e->u.res_event.entry = *rpt;
         handle->eventq = g_slist_append(handle->eventq, e);
@@ -172,7 +173,8 @@ SaErrorT snmp_bc_set_resource_severity(void *hnd, SaHpiResourceIdT rid, SaHpiSev
 		dbg("Out of memory.");
 		return(SA_ERR_HPI_OUT_OF_SPACE);
 	}
-	
+
+	e->did = oh_get_default_domain_id();		
         e->type = OH_ET_RESOURCE;
         e->u.res_event.entry = *rpt;
         handle->eventq = g_slist_append(handle->eventq, e);
