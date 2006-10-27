@@ -27,6 +27,7 @@ bin_PROGRAMS = \
 	hpiwdt \
 	hpithres \
 	hpitop   \
+	hpionIBMblade \
 	hpisettime
 
 
@@ -83,6 +84,10 @@ hpipower_LDFLAGS      =
 hpitree_SOURCES      = hpitree.c
 hpitree_LDADD        = $(COMMONLIBS)
 hpitree_LDFLAGS      =
+
+hpionIBMblade_SOURCES      = hpionIBMblade.c
+hpionIBMblade_LDADD        = $(COMMONLIBS)
+hpionIBMblade_LDFLAGS      =
 
 clean-local:
 	rm -f *~ *.o
