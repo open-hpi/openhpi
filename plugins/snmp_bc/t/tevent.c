@@ -1,6 +1,6 @@
 /* -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2004, 2005
+ * (C) Copyright IBM Corp. 2004, 2006
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -283,9 +283,10 @@ int main(int argc, char **argv)
 
         /***************************************************************
          * TestCase - Mapped MM Voltage Event (EN_PFA_HI_FAULT_3_35V)
-         * Event recovered in next testcase
+         * Event recovered in next testcase.
+         * Also tests double space handling in text
          ***************************************************************/
-        logstr = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:System over recommended voltage on +3.3v. Read value 3.5. Threshold value 3.4";
+        logstr = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:System  over   recommended   voltage   on +3.3v. Read value 3.5. Threshold value 3.4";
         memset(&logentry, 0 , sizeof(SaHpiEventLogEntryT));
         strcpy(hash_value->value.string, logstr);
         g_hash_table_insert(sim_hash, hash_key, hash_value);
@@ -326,8 +327,9 @@ int main(int argc, char **argv)
         /*****************************************************************
          * TestCase - MM Voltage Recovery Event (EN_PFA_HI_FAULT_3_35V)
          * Recover event in previous testcase.
+         * Also test BladeCenter alternate threshold format
          *****************************************************************/
-        logstr = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:Recovery System over recommended voltage on +3.3v. Read value 3.5 Threshold value 3.4";
+        logstr = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:Recovery System over recommended voltage on +3.3v. Reading: 3.5, Threshold: 3.4.";
         memset(&logentry, 0 , sizeof(SaHpiEventLogEntryT));
         strcpy(hash_value->value.string, logstr);
         g_hash_table_insert(sim_hash, hash_key, hash_value);
@@ -369,8 +371,9 @@ int main(int argc, char **argv)
          * TestCase - MM Voltage Event (EN_PFA_HI_FAULT_3_35V)
          * Change current sensor reading to a LOWER CRITICAL value.
          * Previous state depends upon previous testcase.
+         * Test some possible grammer changes in read/threshold values.
          ********************************************************/
-        logstr = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:System over recommended voltage on +3.3v. Read value 3.5 Threshold value 3.4";
+        logstr = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:System over recommended voltage on +3.3v. Reading: 3.5; Threshold: 3.4.";
         memset(&logentry, 0 , sizeof(SaHpiEventLogEntryT));
         strcpy(hash_value->value.string, logstr);
         g_hash_table_insert(sim_hash, hash_key, hash_value);

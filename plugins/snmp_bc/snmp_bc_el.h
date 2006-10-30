@@ -17,9 +17,11 @@
 #define LOG_POST_STRING "(POST Status:"
 #define EVT_RECOVERY "Recovery "
 #define LOG_THRESHOLD_VALUE_STRING "Threshold value"
+#define LOG_THRESHOLD_STRING "Threshold:"
 #define EVT_EN_LOG_FULL "System error log full"
 #define ER_STR_POST_LOG_CLEARED "System log cleared."
 #define LOG_READ_VALUE_STRING "Read value"
+#define LOG_READ_STRING "Reading:"
 #define LOG_LOGIN_CHAR "'"
 #define LOG_DISCOVERING "Discovering"
 

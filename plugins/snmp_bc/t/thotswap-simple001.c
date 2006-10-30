@@ -89,6 +89,7 @@ int main(int argc, char **argv)
 	err = saHpiAutoExtractTimeoutGet(sessionid, id, &timeout);
 	checkstatus(err, expected_err, testfail);
 
+	timeout = SAHPI_TIMEOUT_IMMEDIATE;
 	err = saHpiAutoExtractTimeoutSet(sessionid, id, timeout);
 	checkstatus(err, expected_err, testfail);
 
