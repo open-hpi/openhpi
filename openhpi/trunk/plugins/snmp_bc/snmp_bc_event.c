@@ -390,6 +390,7 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 	memset(&working, 0, sizeof(SaHpiEventT));
 	is_recovery_event = is_threshold_event = SAHPI_FALSE;
 
+	printf("Original event string = %s\n", logstr);
 	trace("Original event string = %s", logstr);
 
         /* Parse hardware log entry into its various components */
@@ -413,7 +414,8 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 	if (recovery_str && (recovery_str == search_str)) {
 		is_recovery_event = SAHPI_TRUE;
 		memset(search_str, 0, SNMP_BC_MAX_SEL_ENTRY_LENGTH);
-		strncpy(search_str, (log_entry.text + strlen(EVT_RECOVERY)), SNMP_BC_MAX_SEL_ENTRY_LENGTH);
+		strncpy(search_str, (log_entry.text + strlen(EVT_RECOVERY)),
+			SNMP_BC_MAX_SEL_ENTRY_LENGTH - strlen(EVT_RECOVERY));
 	}
 
 	/* Adjust "login" event strings - strip username */
@@ -435,8 +437,28 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 		search_str[(post_str - log_entry.text - 1)] = '\0';
 	}
 
+        /* Replace internal double blanks with a single blank */
+	{
+		gchar *double_blanks;
+		double_blanks = strstr(log_entry.text, "  ");
+		if (double_blanks) {
+			gchar *tmp_str;
+			int len;
+			tmp_str = log_entry.text;
+			memset(search_str, 0, SNMP_BC_MAX_SEL_ENTRY_LENGTH);
+			do {
+				strncat(search_str, tmp_str, (double_blanks - tmp_str));
+				tmp_str = double_blanks + 1;
+				len = strlen(tmp_str);
+				double_blanks = strstr(tmp_str, "  ");
+			} while (double_blanks);
+			strncat(search_str, tmp_str, len);
+		}
+	}
+
 	/* Adjust "threshold" event strings */
-	if (strstr(log_entry.text, LOG_THRESHOLD_VALUE_STRING)) {
+	if (strstr(log_entry.text, LOG_THRESHOLD_VALUE_STRING) ||
+	    strstr(log_entry.text, LOG_THRESHOLD_STRING)) {
 		is_threshold_event = SAHPI_TRUE;
 		oh_init_textbuffer(&thresh_read_value);
 		oh_init_textbuffer(&thresh_trigger_value);
@@ -461,7 +483,9 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		}
 	}
+	/* Strip trailing period */
 
+	printf("Event search string=%s\n", search_str);
 	trace("Event search string=%s", search_str);
 
 	/* Set dynamic event fields with default values from the log string.
@@ -898,9 +922,16 @@ static SaErrorT snmp_bc_parse_threshold_str(gchar *str,
 	thresh_substrs = NULL;
 	err = SA_OK;
 	
-	event_substrs = g_strsplit(str, LOG_READ_VALUE_STRING, -1);
-	thresh_substrs = g_strsplit(event_substrs[1], LOG_THRESHOLD_VALUE_STRING, -1);
-
+	/* Handle BladeCenter's two basic threshold event formats */
+	if (strstr(str, LOG_READ_VALUE_STRING)) {
+		event_substrs = g_strsplit(str, LOG_READ_VALUE_STRING, -1);
+		thresh_substrs = g_strsplit(event_substrs[1], LOG_THRESHOLD_VALUE_STRING, -1);
+	}
+	else {
+		event_substrs = g_strsplit(str, LOG_READ_STRING, -1);
+		thresh_substrs = g_strsplit(event_substrs[1], LOG_THRESHOLD_STRING, -1);
+	}
+   
 	if (thresh_substrs == NULL ||
 	    (thresh_substrs[0] == NULL || thresh_substrs[0][0] == '\0') ||
 	    (thresh_substrs[1] == NULL || thresh_substrs[1][0] == '\0') ||
@@ -925,11 +956,11 @@ static SaErrorT snmp_bc_parse_threshold_str(gchar *str,
 	/* Change any leading period to a blank.
            This put here because MM code added a period after the 
            Threadhold Value string and before the threshold value 
-           (e.g. "Threshold value." 23.0 */
+           (e.g. "Threshold value. 23.0") */
 	if (thresh_substrs[0][0] == '.') thresh_substrs[0][0] = ' ';
 	if (thresh_substrs[1][0] == '.') thresh_substrs[1][0] = ' ';
 
-	/* Strip any leading/trailing blanks - do again after any period conversion */
+	/* Strip any leading/trailing blanks - in case of leading period */
 	thresh_substrs[0] = g_strstrip(thresh_substrs[0]);
 	thresh_substrs[1] = g_strstrip(thresh_substrs[1]);
 	if ((event_substrs[0] == NULL || event_substrs[0] == '\0') ||
@@ -940,10 +971,16 @@ static SaErrorT snmp_bc_parse_threshold_str(gchar *str,
 		goto CLEANUP;
 	}
 
-	/* Strip any ending periods */
-	if (thresh_substrs[0][strlen(thresh_substrs[0]) - 1] == '.')
+	/* Strip any ending periods, commas, colons, or semicolons */
+	if ((thresh_substrs[0][strlen(thresh_substrs[0]) - 1] == '.') ||
+	    (thresh_substrs[0][strlen(thresh_substrs[0]) - 1] == ',') ||
+	    (thresh_substrs[0][strlen(thresh_substrs[0]) - 1] == ':') ||
+	    (thresh_substrs[0][strlen(thresh_substrs[0]) - 1] == ';'))
 		thresh_substrs[0][strlen(thresh_substrs[0]) - 1] = '\0';
-	if (thresh_substrs[1][strlen(thresh_substrs[1]) - 1]  == '.')
+	if ((thresh_substrs[1][strlen(thresh_substrs[1]) - 1]  == '.') ||
+	    (thresh_substrs[1][strlen(thresh_substrs[1]) - 1]  == ',') ||
+	    (thresh_substrs[1][strlen(thresh_substrs[1]) - 1]  == ':') ||
+	    (thresh_substrs[1][strlen(thresh_substrs[1]) - 1]  == ';'))
 		thresh_substrs[1][strlen(thresh_substrs[1]) - 1] = '\0';
 
 	/* Check for valid length */
@@ -954,7 +991,8 @@ static SaErrorT snmp_bc_parse_threshold_str(gchar *str,
 		goto CLEANUP;
 	}
 
-	trace("Threshold strings: %s; %s", thresh_substrs[0], thresh_substrs[1]);
+	printf("THRESHOLD STRINGS: %s and %s\n", thresh_substrs[0], thresh_substrs[1]);
+	trace("Threshold strings: %s and %s", thresh_substrs[0], thresh_substrs[1]);
 	
 	strcpy(root_str, event_substrs[0]);
 	oh_append_textbuffer(read_value_str, thresh_substrs[0]);
