@@ -27,9 +27,11 @@ bin_PROGRAMS = \
 	hpiwdt \
 	hpithres \
 	hpitop   \
-	hpionIBMblade \
 	hpisettime
 
+if !OH_DAEMON_ENABLED
+bin_PROGRAMS += hpionIBMblade 
+endif
 
 include_HEADERS         =
 
@@ -85,9 +87,11 @@ hpitree_SOURCES      = hpitree.c
 hpitree_LDADD        = $(COMMONLIBS)
 hpitree_LDFLAGS      =
 
+if !OH_DAEMON_ENABLED
 hpionIBMblade_SOURCES      = hpionIBMblade.c
 hpionIBMblade_LDADD        = $(COMMONLIBS)
 hpionIBMblade_LDFLAGS      =
+endif
 
 clean-local:
 	rm -f *~ *.o
