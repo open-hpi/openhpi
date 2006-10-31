@@ -44,7 +44,15 @@ SaErrorT sim_banner(struct snmp_bc_hnd *custom_handle)
 	if (custom_handle->platform == SNMP_BC_PLATFORM_BCT) {
 		printf("********** BladeCenter T ***********\n");
 	}
-	
+
+	if (custom_handle->platform == SNMP_BC_PLATFORM_BCH) {
+		printf("********** BladeCenter H ***********\n");
+	}
+
+	if (custom_handle->platform == SNMP_BC_PLATFORM_BCHT) {
+		printf("********** BladeCenter HT ***********\n");
+	}
+				
 	if (custom_handle->platform == SNMP_BC_PLATFORM_RSA) {
 		printf("*************** RSA ****************\n");
 	}
