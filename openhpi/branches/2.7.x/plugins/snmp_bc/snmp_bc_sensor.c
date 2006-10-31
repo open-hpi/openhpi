@@ -1742,7 +1742,8 @@ SaErrorT snmp_bc_set_resource_slot_state_sensor(void *hnd, struct oh_event *e, g
 	err = snmp_bc_extract_slot_ep( &(e->resource.ResourceEntity), &slot_ep);
 
 	j = slot_ep.Entry[0].EntityLocation;
-	if ( (custom_handle->platform == SNMP_BC_PLATFORM_BC) || (custom_handle->platform == SNMP_BC_PLATFORM_BCH))
+	if ( (custom_handle->platform == SNMP_BC_PLATFORM_BC) || 
+			(custom_handle->platform == SNMP_BC_PLATFORM_BCH))
 	{
 		for (i = 0; i < resourcewidth; i++) {
 			oh_set_ep_location(&slot_ep,
@@ -1750,7 +1751,8 @@ SaErrorT snmp_bc_set_resource_slot_state_sensor(void *hnd, struct oh_event *e, g
 	
 			err = snmp_bc_set_slot_state_sensor(handle, e, &slot_ep);
 		}
-	} else if (custom_handle->platform == SNMP_BC_PLATFORM_BCT){
+	} else if ( (custom_handle->platform == SNMP_BC_PLATFORM_BCT) || 
+			(custom_handle->platform == SNMP_BC_PLATFORM_BCHT) ){
 		for (i = 0; i < resourcewidth; i++) {
 			oh_set_ep_location(&slot_ep,
 				   slot_ep.Entry[0].EntityType, j - i);
@@ -1846,7 +1848,8 @@ SaErrorT snmp_bc_reset_resource_slot_state_sensor(void *hnd, SaHpiRptEntryT *res
 	}			
 
 	j = slot_ep.Entry[0].EntityLocation;
-	if ( (custom_handler->platform == SNMP_BC_PLATFORM_BC) || (custom_handler->platform == SNMP_BC_PLATFORM_BCH))
+	if ( (custom_handler->platform == SNMP_BC_PLATFORM_BC) || 
+		(custom_handler->platform == SNMP_BC_PLATFORM_BCH))
 	{
 		for (i = 0; i < resourcewidth; i++) {
 			oh_set_ep_location(&slot_ep,
@@ -1854,7 +1857,8 @@ SaErrorT snmp_bc_reset_resource_slot_state_sensor(void *hnd, SaHpiRptEntryT *res
 	
 			err = snmp_bc_reset_slot_state_sensor(handler, &slot_ep);
 		}
-	} else if (custom_handler->platform == SNMP_BC_PLATFORM_BCT){
+	} else if ( (custom_handler->platform == SNMP_BC_PLATFORM_BCT) || 
+			(custom_handler->platform == SNMP_BC_PLATFORM_BCHT) ) {
 		for (i = 0; i < resourcewidth; i++) {
 			oh_set_ep_location(&slot_ep,
 				   slot_ep.Entry[0].EntityType, j - i);
@@ -1962,7 +1966,8 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 			break;
 			
 		case BLADECENTER_INTERCONNECT_SLOT:
-			if (custom_handle->platform == SNMP_BC_PLATFORM_BCT) {
+			if ((custom_handle->platform == SNMP_BC_PLATFORM_BCT) || 
+				(custom_handle->platform == SNMP_BC_PLATFORM_BCHT)) {
 				 switch (slotnum) {
 				 	case 1:
 						oidIndex = 9;
@@ -2057,7 +2062,8 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 			break;
 
 		case BLADECENTER_SYS_MGMNT_MODULE_SLOT:
-			if (custom_handle->platform == SNMP_BC_PLATFORM_BCT) {
+			if ((custom_handle->platform == SNMP_BC_PLATFORM_BCT) ||
+				(custom_handle->platform == SNMP_BC_PLATFORM_BCHT)) {
 				 switch (slotnum) {
 				 	case 1:
 						oidIndex = 7;
@@ -2111,7 +2117,8 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 			break;
 		
 		case BLADECENTER_BLOWER_SLOT:
-			if (custom_handle->platform == SNMP_BC_PLATFORM_BCT) {
+			if ((custom_handle->platform == SNMP_BC_PLATFORM_BCT) ||
+				(custom_handle->platform == SNMP_BC_PLATFORM_BCHT)){
 			
 				if ( (slotnum == 3) || (slotnum == 4)) {
 					snprintf(oid, SNMP_BC_MAX_OID_LENGTH, "%s.%d", SNMP_BC_PMSTATE, 3);
@@ -2187,7 +2194,8 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 			}
 			break;		
 		case SAHPI_ENT_PHYSICAL_SLOT:
-			if (custom_handle->platform == SNMP_BC_PLATFORM_BCT) {
+			if ((custom_handle->platform == SNMP_BC_PLATFORM_BCT) ||
+				(custom_handle->platform == SNMP_BC_PLATFORM_BCHT)){
 				 switch (slotnum) {
 				 	case 1:
 						oidIndex = 13;
@@ -2332,7 +2340,8 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 			break;		
 		case BLADECENTER_POWER_SUPPLY_SLOT:
 			if ((custom_handle->platform == SNMP_BC_PLATFORM_BCT) || 
-					 (custom_handle->platform == SNMP_BC_PLATFORM_BC)) {
+					 (custom_handle->platform == SNMP_BC_PLATFORM_BC) ||
+					 (custom_handle->platform == SNMP_BC_PLATFORM_BCHT)) {
 				/* Reading is not supported on BC and BC-T */
 				oidIndex = SNMP_BC_NOT_VALID;
 				thisOID = NULL;
@@ -2390,7 +2399,8 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 		reading->IsSupported = SAHPI_FALSE;
 		return(SA_OK);
 	} else if (oidIndex == totalPower) {
-		if (custom_handle->platform == SNMP_BC_PLATFORM_BCT) {
+		if ((custom_handle->platform == SNMP_BC_PLATFORM_BCT) || 
+			(custom_handle->platform == SNMP_BC_PLATFORM_BCHT)){
 			usepowerdomain1;
 			snprintf(oid, SNMP_BC_MAX_OID_LENGTH, "%s.%d", thisOID, 17);
 			get_string_object(oid, pm3_state);
