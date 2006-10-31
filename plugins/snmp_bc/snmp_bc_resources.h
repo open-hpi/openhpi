@@ -91,6 +91,7 @@
 #define SNMP_BC_PLATFORM_BC    0x0002
 #define SNMP_BC_PLATFORM_RSA   0x0004
 #define SNMP_BC_PLATFORM_BCH   0x0008
+#define SNMP_BC_PLATFORM_BCHT  0x0009
 #define SNMP_BC_PLATFORM_ALL   0xFFFF
 
 /* Resource indexes to snmp_rpt array in discovery */
