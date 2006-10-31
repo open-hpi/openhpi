@@ -390,7 +390,6 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 	memset(&working, 0, sizeof(SaHpiEventT));
 	is_recovery_event = is_threshold_event = SAHPI_FALSE;
 
-	printf("Original event string = %s\n", logstr);
 	trace("Original event string = %s", logstr);
 
         /* Parse hardware log entry into its various components */
@@ -485,7 +484,6 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 	}
 	/* Strip trailing period */
 
-	printf("Event search string=%s\n", search_str);
 	trace("Event search string=%s", search_str);
 
 	/* Set dynamic event fields with default values from the log string.
@@ -991,7 +989,6 @@ static SaErrorT snmp_bc_parse_threshold_str(gchar *str,
 		goto CLEANUP;
 	}
 
-	printf("THRESHOLD STRINGS: %s and %s\n", thresh_substrs[0], thresh_substrs[1]);
 	trace("Threshold strings: %s and %s", thresh_substrs[0], thresh_substrs[1]);
 	
 	strcpy(root_str, event_substrs[0]);
