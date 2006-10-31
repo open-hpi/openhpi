@@ -774,10 +774,15 @@ SaErrorT snmp_bc_discover_chassis(struct oh_handler_state *handle,
 		return(SA_ERR_HPI_OUT_OF_SPACE);
 	}
 
-	if (custom_handle->platform == SNMP_BC_PLATFORM_BCT) {
+	if ( (custom_handle->platform == SNMP_BC_PLATFORM_BCT)  || 
+		 (custom_handle->platform == SNMP_BC_PLATFORM_BCHT) ){
 		e->resource = snmp_bc_rpt_array_bct[BCT_RPT_ENTRY_CHASSIS].rpt;
-	} else {
+	} else if ( (custom_handle->platform == SNMP_BC_PLATFORM_BC)  || 
+		 (custom_handle->platform == SNMP_BC_PLATFORM_BCH) ){
 		e->resource = snmp_bc_rpt_array[BC_RPT_ENTRY_CHASSIS].rpt;	
+	} else {
+		dbg("Invalid BladeCenter Platform set in custom_handle->platform.\n");
+		return(SA_ERR_HPI_INTERNAL_ERROR);
 	}
 
 
@@ -802,6 +807,9 @@ SaErrorT snmp_bc_discover_chassis(struct oh_handler_state *handle,
 		case SNMP_BC_PLATFORM_BCT:
 			oh_append_textbuffer(&build_name, "BladeCenter T Chassis");
 			break;
+		case SNMP_BC_PLATFORM_BCHT:
+			oh_append_textbuffer(&build_name, "BladeCenter HT Chassis");
+			break;						
 		default:	
 			oh_append_textbuffer(&build_name, "BladeCenter Chassis");
 		}
@@ -848,11 +856,13 @@ SaErrorT snmp_bc_discover_chassis(struct oh_handler_state *handle,
 	/* ---------------------------------------- */		
 	/* Find resource's rdrs: sensors, controls, etc. */
 	snmp_bc_discover_sensors(handle, snmp_bc_chassis_sensors, e);
-	if (custom_handle->platform == SNMP_BC_PLATFORM_BCT) {
+	if ( (custom_handle->platform == SNMP_BC_PLATFORM_BCT) || 
+		(custom_handle->platform == SNMP_BC_PLATFORM_BCHT) ){
 		snmp_bc_discover_sensors(handle, snmp_bc_chassis_sensors_bct, e);
 		snmp_bc_discover_controls(handle, snmp_bc_chassis_controls_bct, e);
 	}
-	else {
+	else if ( (custom_handle->platform == SNMP_BC_PLATFORM_BC) || 
+		  (custom_handle->platform == SNMP_BC_PLATFORM_BCH) ) {
 		snmp_bc_discover_controls(handle, snmp_bc_chassis_controls_bc, e);
 	}
 
