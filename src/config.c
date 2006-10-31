@@ -101,8 +101,8 @@ static GSList *handler_configs = NULL;
  ******************************************************************************/
 
 enum {
-        HPI_CONF_TOKEN_HANDLER = G_TOKEN_LAST,
-        HPI_CONF_TOKEN_PLUGIN
+        HPI_CONF_TOKEN_HANDLER = G_TOKEN_LAST
+        /*HPI_CONF_TOKEN_PLUGIN*/
 } hpiConfType;
 
 struct tokens {
@@ -114,11 +114,11 @@ static struct tokens oh_conf_tokens[] = {
         {
                 .name = "handler",
                 .token = HPI_CONF_TOKEN_HANDLER
-        },
+        }/*,
         {
                 .name = "plugin",
                 .token = HPI_CONF_TOKEN_PLUGIN
-        }
+        }*/
 
 };
 
@@ -197,36 +197,24 @@ static int seen_plugin(char *plugin_name)
  *
  * Return value:
  **/
-static int process_plugin_token (GScanner *oh_scanner)
+static int process_plugin_token (char *plugin_name)
 {
-        guint my_token;
         int seen = 0;
+
+        if (!plugin_name) return -1;
 
         data_access_lock();
 
-        my_token = g_scanner_get_next_token(oh_scanner);
-        if (my_token != HPI_CONF_TOKEN_PLUGIN) {
-                dbg("Token is not what I was promissed");
-                data_access_unlock();
-                return -1;
-        }
-        my_token = g_scanner_get_next_token(oh_scanner);
-        if (my_token != G_TOKEN_STRING) {
-                dbg("Where the heck is my string!");
-                data_access_unlock();
-                return -1;
-        }
-
-        seen = seen_plugin(oh_scanner->value.v_string);
+        seen = seen_plugin(plugin_name);
 
         if (!seen) {
                 plugin_names = g_slist_append(
                         plugin_names,
-                        (gpointer) g_strdup(oh_scanner->value.v_string)
+                        (gpointer) g_strdup(plugin_name)
                         );
         } else {
-                dbg("Plugin name %s was found more than once. Ignoring.",
-                    oh_scanner->value.v_string);
+                dbg("Plugin name %s was already found. Ignoring.",
+                    plugin_name);
         }
 
         data_access_unlock();
@@ -357,18 +345,11 @@ static int process_handler_token (GScanner* oh_scanner)
                 handler_stanza = g_hash_table_new_full(g_str_hash, g_str_equal,
                                                        g_free, g_free);
                 tablekey = g_strdup("plugin");
-                if (!tablekey) {
-                        dbg("Processing handler: Unable to allocate memory");
-                        goto free_table;
-                }
                 tablevalue = g_strdup(oh_scanner->value.v_string);
-                if (!tablevalue) {
-                        dbg("Processing handler: Unable to allocate memory");
-                        goto free_table_and_key;
-                }
                 g_hash_table_insert(handler_stanza,
                                     (gpointer) tablekey,
                                     (gpointer) tablevalue);
+                process_plugin_token(tablevalue);
         }
 
         /* Check for Left Brace token type. If we have it, then continue parsing. */
@@ -384,10 +365,6 @@ static int process_handler_token (GScanner* oh_scanner)
                         goto free_table;
                 } else {
                         tablekey = g_strdup(oh_scanner->value.v_string);
-                        if (!tablekey) {
-                                dbg("Processing handler: Unable to allocate memory");
-                                goto free_table;
-                        }
                 }
 
                 /* Check for the equal sign next. If we have it, continue parsing */
@@ -406,18 +383,18 @@ static int process_handler_token (GScanner* oh_scanner)
                         dbg("Processing handler: Expected string, integer, or float token.");
                         goto free_table_and_key;
                 } else { /* The type of token tells us how to fetch the value from oh_scanner */
-                        gpointer value;
+                        gpointer value = NULL;
                         int current_token = g_scanner_get_next_token(oh_scanner);
 
                         if (current_token == G_TOKEN_INT) {
                                 gulong *value_int =
                                         (gulong *)g_malloc(sizeof(gulong));
-                                if (value_int != NULL) *value_int = oh_scanner->value.v_int;
+                                *value_int = oh_scanner->value.v_int;
                                 value = (gpointer)value_int;
                         } else if (current_token == G_TOKEN_FLOAT) {
                                 gdouble *value_float =
                                         (gdouble *)g_malloc(sizeof(gdouble));
-                                if (value_float != NULL) *value_float = oh_scanner->value.v_float;
+                                *value_float = oh_scanner->value.v_float;
                                 value = (gpointer)value_float;
                         } else {
                                 gchar *value_string =
@@ -597,8 +574,10 @@ int oh_load_config (char *filename, struct oh_parsed_config *config)
         g_scanner_input_file(oh_scanner, oh_conf_file);
 
         for (i = 0; i < num_tokens; i++) {
-                g_scanner_scope_add_symbol(oh_scanner, 0, oh_conf_tokens[i].name,
-                                           (void *)((unsigned long)oh_conf_tokens[i].token));
+                g_scanner_scope_add_symbol(
+                        oh_scanner, 0,
+                        oh_conf_tokens[i].name,
+                        (void *)((unsigned long)oh_conf_tokens[i].token));
         }
 
         while (!done) {
@@ -613,9 +592,9 @@ int oh_load_config (char *filename, struct oh_parsed_config *config)
                 case HPI_CONF_TOKEN_HANDLER:
                         process_handler_token(oh_scanner);
                         break;
-                case HPI_CONF_TOKEN_PLUGIN:
+                /*case HPI_CONF_TOKEN_PLUGIN:
                         process_plugin_token(oh_scanner);
-                        break;
+                        break;*/ /* IN PROGRESS */
                 case G_TOKEN_STRING:
                         process_global_token(oh_scanner);
                         break;
@@ -623,7 +602,7 @@ int oh_load_config (char *filename, struct oh_parsed_config *config)
                         /* need to advance it */
                         my_token = g_scanner_get_next_token(oh_scanner);
                         g_scanner_unexp_token(oh_scanner, G_TOKEN_SYMBOL,
-                                              NULL, "\"handle\" or \"plugin\"", NULL, NULL, 1);
+                                              NULL, "\"handle\" or \"global\"", NULL, NULL, 1);
                         break;
                 }
         }
