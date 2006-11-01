@@ -482,7 +482,10 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		}
 	}
-	/* Strip trailing period */
+
+	/* Strip any trailing period */
+	if (search_str[strlen(search_str) - 1] == '.')
+		search_str[strlen(search_str) - 1] = '\0';
 
 	trace("Event search string=%s", search_str);
 
