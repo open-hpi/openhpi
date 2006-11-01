@@ -1966,8 +1966,8 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 			break;
 			
 		case BLADECENTER_INTERCONNECT_SLOT:
-			if ((custom_handle->platform == SNMP_BC_PLATFORM_BCT) || 
-				(custom_handle->platform == SNMP_BC_PLATFORM_BCHT)) {
+			if (custom_handle->platform == SNMP_BC_PLATFORM_BCT)  
+			{
 				 switch (slotnum) {
 				 	case 1:
 						oidIndex = 9;
@@ -2054,7 +2054,49 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 					usepowerdomain2;
 				} else {
 					usepowerdomain1;
-				}										
+				}
+			} else if (custom_handle->platform == SNMP_BC_PLATFORM_BCHT) {
+				 switch (slotnum) {
+				 	case 1:
+						oidIndex = 19;
+						break;
+					case 2:
+						oidIndex = 20;
+						break;					
+					case 3:
+						oidIndex = 21;
+						break;					
+					case 4:
+						oidIndex = 22;
+						break;
+					case 5:
+					case 6:
+						/* Reading is not supported on BC-HT*/
+						oidIndex = SNMP_BC_NOT_VALID;
+						thisOID = NULL;
+						break;										
+					case 7:
+						oidIndex = 9;
+						break;
+					case 8:
+						oidIndex = 10;
+						break;
+					case 9:
+						oidIndex = 11;
+						break;
+					case 10:
+						oidIndex = 12;
+						break;
+					default:
+						dbg("Not one of the valid BC HT Switch Slots.");
+						return(SA_ERR_HPI_INTERNAL_ERROR);
+						break;
+				}
+				if (slotnum > 6){
+					usepowerdomain2;
+				} else if (slotnum < 5) {
+					usepowerdomain1;
+				}														
 			} else { 
 				dbg("Not one of the supported platform.");
 				return(SA_ERR_HPI_INTERNAL_ERROR);		
@@ -2062,8 +2104,7 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 			break;
 
 		case BLADECENTER_SYS_MGMNT_MODULE_SLOT:
-			if ((custom_handle->platform == SNMP_BC_PLATFORM_BCT) ||
-				(custom_handle->platform == SNMP_BC_PLATFORM_BCHT)) {
+			if (custom_handle->platform == SNMP_BC_PLATFORM_BCT) {
 				 switch (slotnum) {
 				 	case 1:
 						oidIndex = 7;
@@ -2110,6 +2151,22 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 				}
 				
 				usepowerdomain1;
+			} else if (custom_handle->platform == SNMP_BC_PLATFORM_BCHT) {
+				 switch (slotnum) {
+				 	case 1:
+						oidIndex = 17;
+						break;
+					case 2:
+						oidIndex = 18;
+						break;					
+					default:
+						dbg("Not one of the valid BC HT MM Slots.");
+						return(SA_ERR_HPI_INTERNAL_ERROR);
+						break;
+				}
+				
+				usepowerdomain1;
+			
 			} else { 
 				dbg("Not one of the supported platform.");
 				return(SA_ERR_HPI_INTERNAL_ERROR);		
@@ -2117,8 +2174,7 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 			break;
 		
 		case BLADECENTER_BLOWER_SLOT:
-			if ((custom_handle->platform == SNMP_BC_PLATFORM_BCT) ||
-				(custom_handle->platform == SNMP_BC_PLATFORM_BCHT)){
+			if (custom_handle->platform == SNMP_BC_PLATFORM_BCT) {
 			
 				if ( (slotnum == 3) || (slotnum == 4)) {
 					snprintf(oid, SNMP_BC_MAX_OID_LENGTH, "%s.%d", SNMP_BC_PMSTATE, 3);
@@ -2187,15 +2243,17 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 				/* Reading is not supported on BC-H */
 				oidIndex = SNMP_BC_NOT_VALID;
 				thisOID = NULL;
-				
+			} else if (custom_handle->platform == SNMP_BC_PLATFORM_BCHT) {
+				/* pdp - FIX ME - Reading is not supported on BC-H */
+				oidIndex = SNMP_BC_NOT_VALID;
+				thisOID = NULL;			
 			} else { 
 				dbg("Not one of the supported platform.");
 				return(SA_ERR_HPI_INTERNAL_ERROR);		
 			}
 			break;		
 		case SAHPI_ENT_PHYSICAL_SLOT:
-			if ((custom_handle->platform == SNMP_BC_PLATFORM_BCT) ||
-				(custom_handle->platform == SNMP_BC_PLATFORM_BCHT)){
+			if (custom_handle->platform == SNMP_BC_PLATFORM_BCT) {
 				 switch (slotnum) {
 				 	case 1:
 						oidIndex = 13;
@@ -2332,7 +2390,56 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 					usepowerdomain2;
 				} else {
 					usepowerdomain1;
-				}										
+				}
+			} else if (custom_handle->platform == SNMP_BC_PLATFORM_BCHT) {
+				 switch (slotnum) {
+				 	case 1:
+						oidIndex = 23;
+						break;
+					case 2:
+						oidIndex = 24;
+						break;					
+					case 3:
+						oidIndex = 25;
+						break;					
+
+					case 4:
+						oidIndex = 26;
+						break;					
+					case 5:
+						oidIndex = 27;
+						break;					
+					case 6:
+						oidIndex = 28;
+						break;					
+					case 7:
+						oidIndex = 13;
+						break;
+					case 8:
+						oidIndex = 14;
+						break;
+					case 9:
+						oidIndex = 15;
+						break;
+					case 10:
+						oidIndex = 16;
+						break;
+					case 11:
+						oidIndex = 17;
+						break;
+					case 12:
+						oidIndex = 18;
+						break;												
+					default:
+						dbg("Not one of the valid BC H Switch Slots.");
+						return(SA_ERR_HPI_INTERNAL_ERROR);
+						break;
+				}
+				if ( slotnum > 6){		
+					usepowerdomain2;
+				} else {
+					usepowerdomain1;
+				}			
 			} else { 
 				dbg("Not one of the supported platform.");
 				return(SA_ERR_HPI_INTERNAL_ERROR);		
@@ -2342,7 +2449,7 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 			if ((custom_handle->platform == SNMP_BC_PLATFORM_BCT) || 
 					 (custom_handle->platform == SNMP_BC_PLATFORM_BC) ||
 					 (custom_handle->platform == SNMP_BC_PLATFORM_BCHT)) {
-				/* Reading is not supported on BC and BC-T */
+				/* Reading is not supported on BC, BC-T and BC-HT*/
 				oidIndex = SNMP_BC_NOT_VALID;
 				thisOID = NULL;
 							
@@ -2373,6 +2480,7 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 			}
 			break;
 		case SAHPI_ENT_SYS_MGMNT_MODULE:
+			/* Assign Midplane Power reading to Virtual management module */
 			switch (slotnum) {
 				case 0:
 					oidIndex = 1;
@@ -2399,8 +2507,7 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 		reading->IsSupported = SAHPI_FALSE;
 		return(SA_OK);
 	} else if (oidIndex == totalPower) {
-		if ((custom_handle->platform == SNMP_BC_PLATFORM_BCT) || 
-			(custom_handle->platform == SNMP_BC_PLATFORM_BCHT)){
+		if (custom_handle->platform == SNMP_BC_PLATFORM_BCT) {
 			usepowerdomain1;
 			snprintf(oid, SNMP_BC_MAX_OID_LENGTH, "%s.%d", thisOID, 17);
 			get_string_object(oid, pm3_state);
@@ -2426,6 +2533,14 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 			usepowerdomain2;
 			snprintf(oid, SNMP_BC_MAX_OID_LENGTH, "%s.%d", thisOID, 24);
 			get_string_object(oid, pm4_state);
+		} else if (custom_handle->platform == SNMP_BC_PLATFORM_BCHT) {
+			usepowerdomain1;
+			snprintf(oid, SNMP_BC_MAX_OID_LENGTH, "%s.%d", thisOID, 29);
+			get_string_object(oid, pm3_state);
+		
+			usepowerdomain2;
+			snprintf(oid, SNMP_BC_MAX_OID_LENGTH, "%s.%d", thisOID, 19);
+			get_string_object(oid, pm4_state);		
 		} else { 
 			dbg("Not one of the supported platform.\n");
 			return(SA_ERR_HPI_INTERNAL_ERROR);		
