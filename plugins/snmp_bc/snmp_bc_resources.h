@@ -148,8 +148,8 @@ typedef enum {
 #define SNMP_BC_SM_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.29.0" 	/* mmblade.mib - chassisSMsInstalled, SwitchModule */
 #define SNMP_BC_MM_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.30.0" 	/* mmblade.mib - chassisMMsInstalled, ManagementModule */
 #define SNMP_BC_PM_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.31.0" 	/* mmblade.mib - chassisPMsInstalled, PowerModule */
-#define SNMP_BC_MT_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.32.0" 	/* mmblade.mib - chassisMTsInstalled, MediaTray */
-#define SNMP_BC_BLOWER_INSTALLED ".1.3.6.1.4.1.2.3.51.2.22.4.33.0" /* mmblade.mib - chassisBlowersInstalled, Blower */
+#define SNMP_BC_MT_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.32.0" 	/* mmblade.mib - chassisMTInstalled, MediaTray */
+#define SNMP_BC_BLOWER_INSTALLED ".1.3.6.1.4.1.2.3.51.2.22.4.33.0" 	/* mmblade.mib - chassisBlowersInstalled, Blower */
 #define SNMP_BC_FP_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.37.0" 	/* mmblade.mib - chassisFPsinstalled, FanPack */
 
 /* OID definitions for discovering resources.*/
