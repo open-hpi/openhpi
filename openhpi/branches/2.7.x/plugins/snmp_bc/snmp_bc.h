@@ -53,9 +53,8 @@ struct snmp_bc_hnd {
 	gchar installed_blower_mask[SNMP_BC_MAX_RESOURCES_MASK];
 	gchar installed_pm_mask[SNMP_BC_MAX_RESOURCES_MASK];
 	gchar installed_sm_mask[SNMP_BC_MAX_RESOURCES_MASK];
-	gchar installed_mm_mask[SNMP_BC_MAX_RESOURCES_MASK];		
-        gulong installed_mt_mask;
-
+	gchar installed_mm_mask[SNMP_BC_MAX_RESOURCES_MASK];	
+        gulong installed_mt_mask; 
 };
 
 SaErrorT snmp_bc_snmp_get(struct snmp_bc_hnd *custom_handle,
