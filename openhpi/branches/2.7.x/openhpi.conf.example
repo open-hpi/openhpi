@@ -47,24 +47,6 @@
 ## for resources) mappings are saved to this directory. The default is set at
 ## compile time through the ./configure options.
 
-## Second section, declare plugin to use. For example:
-## plugin plugin-name
-
-## Depends on openipmi to be installed on this system:
-#plugin libipmi
-
-## BladeCenter Plugin
-## Depends on net-snmp being installed on the system:
-#plugin libsnmp_bc
-
-#plugin libipmidirect
-
-plugin libsimulator
-
-## Depends openhpi being configured
-## (e.g "configure --enable-simulator=static")
-#plugin simulator
-
 #############################################################################
 ##**WARNING** System administrators have to make sure that entity paths are
 ## unique in a domain. To avoid entity paths conflicting among handlers, make
