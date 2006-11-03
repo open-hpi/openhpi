@@ -822,7 +822,9 @@ SaErrorT snmp_bc_discover_media_tray(struct oh_handler_state *handle,
 			/* ---------------------------------------- */
 			/* Place the event in tmpqueue              */
 			/* ---------------------------------------- */	
-			handle->eventq = g_slist_append(handle->eventq, e);
+			/*handle->eventq = g_slist_append(handle->eventq, e);*/
+			e->hid = handle->hid;
+	                oh_evt_queue_push(handle->eventq, e);
 		
 		}
 	
