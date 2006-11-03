@@ -30,8 +30,36 @@
 #include <oh_utils.h>
 #include <oh_error.h>
 
+struct _oh_evt_queue {
+        GAsyncQueue *q;
+};
+oh_evt_queue oh_process_q = { .q = NULL };
+
 extern GMutex *oh_event_thread_mutex;
-GAsyncQueue *oh_process_q = NULL;
+
+/*
+ *  The following is required to set up the thread state for
+ *  the use of event async queues.  This is true even if we aren't
+ *  using live threads.
+ */
+int oh_event_init()
+{
+        trace("Setting up event processing queue");
+        if (!oh_process_q.q) oh_process_q.q = g_async_queue_new();
+        if (oh_process_q.q) {
+                trace("Set up processing queue");
+                return 1;
+        } else {
+                dbg("Failed to allocate processing queue");
+                return 0;
+        }
+}
+
+void oh_evt_queue_push(oh_evt_queue *equeue, gpointer data)
+{
+        g_async_queue_push(equeue->q, data);
+        return;
+}
 
 void oh_event_free(struct oh_event *e, int only_rdrs)
 {
@@ -75,15 +103,13 @@ struct oh_event *oh_dup_event(struct oh_event *old_event)
 
 static SaErrorT harvest_events_for_handler(struct oh_handler *h)
 {
-        struct oh_event event, *e = NULL;
-
         SaErrorT error = SA_OK;
 
         do {
-                error = h->abi->get_event(h->hnd, &event);
+                error = h->abi->get_event(h->hnd);
                 if (error < 1) {
                         trace("Handler is out of Events");
-                } else if (!oh_domain_served_by_handler(h->id, event.did)) {
+                }/* else if (!oh_domain_served_by_handler(h->id, event.did)) {
                         dbg("Handler %d sends event %s to wrong domain %d",
                             h->id,
                             oh_lookup_eventtype(event.event.EventType),
@@ -94,8 +120,8 @@ static SaErrorT harvest_events_for_handler(struct oh_handler *h)
                         e = oh_dup_event(&event);
 			oh_event_free(&event, TRUE);
                         e->hid = h->id;
-                        g_async_queue_push(oh_process_q, e);
-                }
+                        g_async_queue_push(oh_process_q.q, e);
+                }*/
         } while (error > 0);
 
         return SA_OK;
@@ -314,7 +340,7 @@ SaErrorT oh_process_events()
 {
         struct oh_event *e;
 
-        while ((e = g_async_queue_try_pop(oh_process_q)) != NULL) {
+        while ((e = g_async_queue_pop(oh_process_q.q)) != NULL) {
 
                 switch (e->event.EventType) {
                 case SAHPI_ET_RESOURCE:
@@ -354,7 +380,7 @@ SaErrorT oh_process_events()
                 oh_detect_event_alarm(e);
                 oh_event_free(e, FALSE);
 	}
-
-	return SA_OK;
+        /* Should never get here */
+	return SA_ERR_HPI_ERROR;
 }
 

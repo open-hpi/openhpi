@@ -29,7 +29,7 @@ pkgconfig (may be called pkg-config depending on distro)
 The follow libraries are needed to build certain plugins
 
 ipmi plugin
-  OpenIPMI >= 1.4.16 (http://openipmi.sf.net)
+  OpenIPMI >= 1.4.20 (http://openipmi.sf.net)
 
 sysfs plugin
   libsysfs =< 1.3

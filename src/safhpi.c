@@ -1145,7 +1145,7 @@ SaErrorT SAHPI_API saHpiEventAdd (
         /* indicate this is a user-added event */
         e.resource.ResourceSeverity = SAHPI_INFORMATIONAL;
 
-        g_async_queue_push(oh_process_q, g_memdup(&e, sizeof(struct oh_event)));
+        oh_evt_queue_push(&oh_process_q, g_memdup(&e, sizeof(struct oh_event)));
 
         oh_wake_event_thread(SAHPI_TRUE);
 

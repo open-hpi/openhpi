@@ -92,6 +92,7 @@ oHpiHandlerInfo
 oHpiHandlerGetNext
 oHpiGlobalParamGet
 oHpiGlobalParamSet
+oh_evt_queue_push
 oh_load_config
 oh_process_config
 oh_clean_config

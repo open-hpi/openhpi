@@ -270,7 +270,9 @@ static int sensor_discrete_event(ipmi_sensor_t	*sensor,
 		return IPMI_EVENT_HANDLED;
 	}
 	set_event_sensor_num(sensor, e, handler);
-	handler->eventq = g_slist_append(handler->eventq, e);
+	e->hid = handler->hid;
+        e->did = ipmi_handler->did;
+        oh_evt_queue_push(handler->eventq, e);
 
 	return IPMI_EVENT_HANDLED;
 }
@@ -458,6 +460,7 @@ static int sensor_threshold_event(ipmi_sensor_t		*sensor,
 {
 	struct oh_event		*e = NULL;
 	struct oh_handler_state *handler = cb_data;
+        struct ohoi_handler *ipmi_handler = handler->data;
 
 	e = sensor_threshold_map_event(dir, threshold, high_low,
 			value_present, raw_value, value, event);
@@ -465,7 +468,9 @@ static int sensor_threshold_event(ipmi_sensor_t		*sensor,
 		return IPMI_EVENT_HANDLED;
 	}
 	set_event_sensor_num(sensor, e, handler);
-	handler->eventq = g_slist_append(handler->eventq, e);
+	e->hid = handler->hid;
+        e->did = ipmi_handler->did;
+        oh_evt_queue_push(handler->eventq, e);
 
 	return IPMI_EVENT_HANDLED;
 }

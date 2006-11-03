@@ -28,14 +28,14 @@
  * SA_OK - No events to be processed.
  * SA_ERR_HPI_INVALID_PARAMS - @event is NULL.
  **/
-SaErrorT snmp_bc_get_event(void *hnd, struct oh_event *event)
+SaErrorT snmp_bc_get_event(void *hnd)
 {
 
         SaErrorT err;
         struct oh_handler_state *handle;
         struct snmp_bc_hnd *custom_handle;
 	
-        if (!event || !hnd) {
+        if (!hnd) {
                 dbg("Invalid parameter");
                 return(SA_ERR_HPI_INVALID_PARAMS);
         }
@@ -54,10 +54,12 @@ SaErrorT snmp_bc_get_event(void *hnd, struct oh_event *event)
 		/* return(err); */
 	}
 
-        if (g_slist_length(handle->eventq) > 0) {
-                snmp_bc_copy_oh_event(event, handle->eventq->data);
-                snmp_bc_free_oh_event(handle->eventq->data);
-                handle->eventq = g_slist_remove_link(handle->eventq, handle->eventq);
+        if (g_slist_length(custom_handle->eventq) > 0) {
+                struct oh_event *e = custom_handle->eventq->data;
+                e->hid = handle->hid;
+                e->did = oh_get_default_domain_id();
+                oh_evt_queue_push(handle->eventq, e);
+                custom_handle->eventq = g_slist_remove_link(custom_handle->eventq, custom_handle->eventq);
                 snmp_bc_unlock_handler(custom_handle);
                 return(1);
         } 
@@ -138,8 +140,9 @@ SaErrorT snmp_bc_set_resource_tag(void *hnd, SaHpiResourceIdT rid, SaHpiTextBuff
 
 	/* ---------------------------------------- */
 	/* Prime event to evenq                     */
-	/* ---------------------------------------- */			
-        handle->eventq = g_slist_append(handle->eventq, e);
+	/* ---------------------------------------- */
+        e->hid = handle->hid;
+        oh_evt_queue_push(handle->eventq, e);
         snmp_bc_unlock_handler(custom_handle);
         return(SA_OK);
 }
@@ -211,7 +214,8 @@ SaErrorT snmp_bc_set_resource_severity(void *hnd, SaHpiResourceIdT rid, SaHpiSev
 	/* ---------------------------------------- */
 	/* Prime event to evenq                     */
 	/* ---------------------------------------- */		
-        handle->eventq = g_slist_append(handle->eventq, e);
+        e->hid = handle->hid;
+        oh_evt_queue_push(handle->eventq, e);
 	snmp_bc_unlock_handler(custom_handle);
 
         return(SA_OK);
@@ -472,7 +476,7 @@ SaErrorT snmp_bc_oid_snmp_set(struct snmp_bc_hnd *custom_handle,
 }
 
 
-void * oh_get_event (void *, struct oh_event *) 
+void * oh_get_event (void *) 
                 __attribute__ ((weak, alias("snmp_bc_get_event")));
 						
 void * oh_set_resource_tag (void *, SaHpiResourceIdT, SaHpiTextBufferT *) 

@@ -240,10 +240,10 @@ extern "C" {
 // ABI Interface functions
 
 static void *
-IpmiOpen( GHashTable * ) __attribute__((used));
+IpmiOpen( GHashTable *, unsigned int, oh_evt_queue * ) __attribute__((used));
 
 static void *
-IpmiOpen( GHashTable *handler_config )
+IpmiOpen( GHashTable *handler_config, unsigned int hid, oh_evt_queue *eventq )
 {
   // open log
   const char *logfile = 0;
@@ -324,6 +324,8 @@ IpmiOpen( GHashTable *handler_config )
      }
 
   handler->config   = handler_config;
+  handler->hid = hid;
+  handler->eventq = eventq;
 
   ipmi->SetHandler( handler );
 
@@ -393,12 +395,13 @@ IpmiClose( void *hnd )
 
 
 static SaErrorT
-IpmiGetEvent( void *, struct oh_event * ) __attribute__((used));
+IpmiGetEvent( void * ) __attribute__((used));
 
 static SaErrorT
-IpmiGetEvent( void *hnd, struct oh_event *event )
+IpmiGetEvent( void *hnd )
 {
   cIpmi *ipmi = VerifyIpmi( hnd );
+  struct oh_event event;
 
   if ( !ipmi )
      {
@@ -407,7 +410,7 @@ IpmiGetEvent( void *hnd, struct oh_event *event )
 
   // there is no need to get a lock because
   // the event queue has its own lock
-  SaErrorT rv = ipmi->IfGetEvent( event );
+  SaErrorT rv = ipmi->IfGetEvent( &event );
 
   return rv;
 }
@@ -1475,11 +1478,11 @@ IpmiSetResetState( void *hnd,
 
 extern "C" {
 
-void * oh_open (GHashTable *) __attribute__ ((weak, alias("IpmiOpen")));
+void * oh_open (GHashTable *, unsigned int, oh_evt_queue *) __attribute__ ((weak, alias("IpmiOpen")));
 
 void * oh_close (void *) __attribute__ ((weak, alias("IpmiClose")));
 
-void * oh_get_event (void *, struct oh_event *)
+void * oh_get_event (void *)
                 __attribute__ ((weak, alias("IpmiGetEvent")));
 
 void * oh_discover_resources (void *)
@@ -1974,7 +1977,8 @@ cIpmi::AddHpiEvent( oh_event *event )
 
   if ( m_handler )
   {
-    m_handler->eventq = g_slist_append( m_handler->eventq, event );
+    event->hid = m_handler->hid;
+    oh_evt_queue_push(m_handler->eventq, event);
 
     oh_wake_event_thread(SAHPI_FALSE);
   }
@@ -2162,14 +2166,6 @@ cIpmi::IfGetEvent( oh_event *event )
   int rv = 0;
 
   m_event_lock.Lock();
-
-  if ( g_slist_length( m_handler->eventq ) > 0 )
-     {
-       memcpy( event, m_handler->eventq->data, sizeof( oh_event ) );
-       g_free( m_handler->eventq->data );
-       m_handler->eventq = g_slist_remove_link( m_handler->eventq, m_handler->eventq );
-       rv = 1;
-     }
 
   m_event_lock.Unlock();
 
