@@ -95,7 +95,7 @@ public:
   cThreadLock m_event_lock;
 
   virtual void AddHpiEvent( oh_event *event );
-  virtual GSList *GetHpiEventList() { return m_handler->eventq; }
+  virtual oh_evt_queue *GetHpiEventList() { return m_handler->eventq; }
 
   cIpmi();
   ~cIpmi();

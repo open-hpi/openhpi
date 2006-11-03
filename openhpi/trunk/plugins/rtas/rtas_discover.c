@@ -74,6 +74,7 @@ SaErrorT rtas_discover_resources(void *hnd)
                 struct oh_event *e =
                         (struct oh_event *)g_malloc0(sizeof(struct oh_event));
                 e->did = oh_get_default_domain_id();
+                e->hid = h->hid;
                 e->event.EventType = SAHPI_ET_RESOURCE;
                 e->resource = lone_res;
                 e->event.Source = lone_res.ResourceId;
@@ -84,7 +85,7 @@ SaErrorT rtas_discover_resources(void *hnd)
                 error = rtas_discover_sensors(h, e);
                 // Discover Inventory
                 error = rtas_discover_inventory(h, e);
-                h->eventq = g_slist_append(h->eventq, e);
+                oh_evt_queue_push(h->eventq, e);
         } else {
                 dbg("Error adding resource. %s", oh_lookup_error(error));
                 return error;

@@ -228,7 +228,7 @@ public:
   cIpmiInventory *VerifyInventory( cIpmiInventory *i );
 
   virtual void AddHpiEvent( oh_event *event ) = 0;
-  virtual GSList *GetHpiEventList() = 0;
+  virtual oh_evt_queue *GetHpiEventList() = 0;
 
   virtual const cIpmiEntityPath &EntityRoot() = 0;
   virtual oh_handler_state *GetHandler() = 0;
