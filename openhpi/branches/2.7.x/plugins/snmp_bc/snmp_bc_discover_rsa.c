@@ -101,7 +101,8 @@ SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
 	/* ---------------------------------------- */
 	snmp_bc_set_resource_add_oh_event(e, res_info_ptr);
 
-	handle->eventq = g_slist_append(handle->eventq, e);
+	e->hid = handle->hid;
+        oh_evt_queue_push(handle->eventq, e);
 	
         /***************
 	 * Discover CPUs
@@ -170,7 +171,8 @@ SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
 		/* ---------------------------------------- */
 		snmp_bc_set_resource_add_oh_event(e, res_info_ptr);
 				
-		handle->eventq = g_slist_append(handle->eventq, e);		
+		e->hid = handle->hid;
+                oh_evt_queue_push(handle->eventq, e);
 	}
 
         /****************
@@ -238,7 +240,8 @@ SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
 		/* ---------------------------------------- */
 		snmp_bc_set_resource_add_oh_event(e, res_info_ptr);
 		
-		handle->eventq = g_slist_append(handle->eventq, e);
+		e->hid = handle->hid;
+                oh_evt_queue_push(handle->eventq, e);
 	}
 
         /***************
@@ -306,7 +309,8 @@ SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
 		/* ---------------------------------------- */
 		snmp_bc_set_resource_add_oh_event(e, res_info_ptr);
 		
-		handle->eventq = g_slist_append(handle->eventq, e);		
+		e->hid = handle->hid;
+                oh_evt_queue_push(handle->eventq, e);
 	}
 
   return(SA_OK);

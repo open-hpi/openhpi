@@ -73,7 +73,9 @@ static inline void reading_int64_set(SaHpiSensorReadingT *reading, int value)
  * mechanism's name and address, respectively, are N/A
  * for a sysfs plugin.
  **/
-static void *sysfs2hpi_open(GHashTable *handler_config)
+static void *sysfs2hpi_open(GHashTable *handler_config,
+                            unsigned int hid,
+                            oh_evt_queue *eventq)
 {
         struct oh_handler_state *hnd;
 	struct sysfsitems *sys;
@@ -102,6 +104,8 @@ static void *sysfs2hpi_open(GHashTable *handler_config)
 
 	/* assign config to handler_config and initialize rptcache */
         hnd->config = handler_config;
+        hnd->hid = hid;
+        hnd->eventq = eventq;
 
         hnd->rptcache = (RPTable *)g_malloc0(sizeof(RPTable));
 
@@ -145,9 +149,6 @@ static void sysfs2hpi_close(void *hnd)
 	sys = inst->data;
 	sysfs_close_bus(sys->bus);
 
-	/* Free unused events */
-	g_slist_free(inst->eventq);
-
 	/* Free resources and their sensors */
 	if (g_slist_length(sys->resources) != 0) {
 		g_slist_for_each(tmp, sys->resources) {
@@ -163,33 +164,14 @@ static void sysfs2hpi_close(void *hnd)
 /**
  * sysfs2hpi_get_event:
  * @hnd: pointer to handler instance
- * @event: pointer to oh_event
- * @timeout: struct timeval
  *
  * This function gets a sysfs event from the sysfs event table
- * in instance.events.  It copies the event to memory and then
- * deletes it from the instance.events table.
+ * in instance.events.
  *
  * Return value: 0 if times out, > 0 is event is returned.
  **/
-static int sysfs2hpi_get_event(void *hnd, struct oh_event *event)
+static int sysfs2hpi_get_event(void *hnd)
 {
-	struct oh_handler_state *inst = (struct oh_handler_state *)hnd;
-	GSList	*tmp;
-	
-	if (g_slist_length(inst->eventq) != 0) {
-		g_slist_for_each(tmp, inst->eventq) {
-			struct oh_event *e;
-			e = tmp->data;
-			memcpy(event, e, sizeof(*event));
-                        event->did = oh_get_default_domain_id();
-			inst->eventq = g_slist_remove_link(inst->eventq, tmp);
-			g_slist_free(tmp);
-			free(e);
-			return 1;
-		}
-	}
-
 	return 0;
 }
 
@@ -515,7 +497,8 @@ static int sysfs2hpi_assign_resource(struct sysfs_device* d,
 		return SA_ERR_HPI_OUT_OF_SPACE;
 	}
         memset(e, '\0', sizeof(struct oh_event));
-        
+        e->did = oh_get_default_domain_id();
+        e->hid = inst->hid;
         oh_concat_ep( &(r->path), &g_epbase);
 	e->resource.ResourceId = oh_uid_from_entity_path(&(r->path));
 	e->resource.EntryId = e->resource.ResourceId; /* EntryId = ResourceId */
@@ -544,7 +527,7 @@ static int sysfs2hpi_assign_resource(struct sysfs_device* d,
         sysfs2hpi_assign_rdrs(d, r, inst, e);
         
 	/* add event */
-	inst->eventq = g_slist_append(inst->eventq, e);
+	oh_evt_queue_push(inst->eventq, e);
 
 	return 0;
 }
@@ -1030,11 +1013,11 @@ static int sysfs2hpi_set_sensor_event_enables(void *hnd,
 	return 0;
 }
 
-void * oh_open (GHashTable *) __attribute__ ((weak, alias("sysfs2hpi_open")));
+void * oh_open (GHashTable *, unsigned int, oh_evt_queue *) __attribute__ ((weak, alias("sysfs2hpi_open")));
 
 void * oh_close (void *) __attribute__ ((weak, alias("sysfs2hpi_close")));
 
-void * oh_get_event (void *, struct oh_event *) 
+void * oh_get_event (void *) 
             __attribute__ ((weak, alias("sysfs2hpi_get_event")));
 		
 void * oh_discover_resources (void *) 

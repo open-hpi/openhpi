@@ -84,7 +84,7 @@ static void generate_domain_event(SaHpiDomainIdT pid,
         trace("domain %d %s domain %d", did,
                 type == SAHPI_DOMAIN_REF_ADDED ?
                 "added to" : "removed from", pid);
-        g_async_queue_push(oh_process_q, e);
+        oh_evt_queue_push(&oh_process_q, e);
 }
 
 static int disconnect_parent(struct oh_domain *child)

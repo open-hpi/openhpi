@@ -22,7 +22,7 @@
 #include <oh_utils.h>
 #include <oh_error.h>
 
-void *rtas_open(GHashTable *handler_config);
+void *rtas_open(GHashTable *handler_config, unsigned int hid, oh_evt_queue *eventq);
 
 void rtas_close(void *hnd);
 		

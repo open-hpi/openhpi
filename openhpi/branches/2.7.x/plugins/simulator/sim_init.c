@@ -25,13 +25,21 @@
 GSList *sim_handler_states = NULL;
 
 
-void *sim_open(GHashTable *handler_config)
+void *sim_open(GHashTable *handler_config,
+               unsigned int hid,
+               oh_evt_queue *eventq)
 {
         struct oh_handler_state *state = NULL;
         char *tok = NULL;
 
         if (!handler_config) {
                 dbg("GHashTable *handler_config is NULL!");
+                return NULL;
+        } else if (!hid) {
+                dbg("Bad handler id passed.");
+                return NULL;
+        } else if (!eventq) {
+                dbg("No event queue was passed.");
                 return NULL;
         }
         /* check for required hash table entries */
@@ -60,18 +68,15 @@ void *sim_open(GHashTable *handler_config)
                 return NULL;
         }
 
-        /* initialize the async event queue */
-        if (!(state->eventq_async = g_async_queue_new())) {
-                dbg("Async event log creation failed");
-                g_free(state->rptcache);
-                oh_el_close(state->elcache);
-                g_free(state);
-                return NULL;
-        }
-
         /* save the handler config hash table, it holds  */
         /* the openhpi.conf file config info             */
         state->config = handler_config;
+
+        /* Store reference to event queue */
+        state->eventq = eventq;
+
+        /* Store id of this handler */
+        state->hid = hid;
 
         /* save the handler state to our list */
         sim_handler_states = g_slist_append(sim_handler_states, state);
@@ -182,15 +187,15 @@ SaErrorT sim_discover(void *hnd)
  * Return values:
  * 1 - events to be processed.
  * SA_OK - No events to be processed.
- * SA_ERR_HPI_INVALID_PARAMS - @event is NULL.
+ * SA_ERR_HPI_INVALID_PARAMS - @hnd is NULL.
  */
-SaErrorT sim_get_event(void *hnd, struct oh_event *event)
+SaErrorT sim_get_event(void *hnd)
 {
-        struct oh_handler_state *state = hnd;
-        struct oh_event *e = NULL;
+        /*struct oh_handler_state *state = hnd;
+        struct oh_event *e = NULL;*/
 
-        if (!hnd || !event) return SA_ERR_HPI_INVALID_PARAMS;
-
+        if (!hnd) return SA_ERR_HPI_INVALID_PARAMS;
+        /*
 	e = g_async_queue_try_pop(state->eventq_async);
         if (e) {
                 trace("retrieving sim event from async q");
@@ -201,7 +206,8 @@ SaErrorT sim_get_event(void *hnd, struct oh_event *event)
         } else {
                 trace("no more events for sim instance");
                 return 0;
-        }
+        }*/
+        return SA_OK;
 }
 
 
@@ -253,11 +259,11 @@ SaErrorT sim_set_resource_severity(void *hnd, SaHpiResourceIdT rid, SaHpiSeverit
  *
  */
 
-void * oh_open (GHashTable *) __attribute__ ((weak, alias("sim_open")));
+void * oh_open (GHashTable *, unsigned int, oh_evt_queue *) __attribute__ ((weak, alias("sim_open")));
 
 void * oh_close (void *) __attribute__ ((weak, alias("sim_close")));
 
-void * oh_get_event (void *, struct oh_event *)
+void * oh_get_event (void *)
                 __attribute__ ((weak, alias("sim_get_event")));
 
 void * oh_discover_resources (void *)

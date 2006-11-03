@@ -36,6 +36,7 @@ struct snmp_bc_hnd {
         struct snmp_session *ss; 	/* SNMP Session pointer */
 	guint    count_per_getbulk;       /* For performance, GETBULK is used with snmpV3. */
 					/* This value indicates max OIDs per GETBULK request */
+        GSList *eventq;                 /* Event queue cache */
 	GHashTable *event2hpi_hash_ptr; /* Global "Event Number to HPI Event" hash table */
 	guint   platform;
 	guint   active_mm;                /* Used for duplicate event RID override */
@@ -79,8 +80,7 @@ SaErrorT snmp_bc_oid_snmp_set(struct snmp_bc_hnd *custom_handle,
 			      const gchar *oidstr,
 			      struct snmp_value value);
 			  			  
-SaErrorT snmp_bc_get_event(void *hnd,
-			   struct oh_event *event);
+SaErrorT snmp_bc_get_event(void *hnd);
 			   
 SaErrorT snmp_bc_set_resource_tag(void *hnd,
 				  SaHpiResourceIdT rid,

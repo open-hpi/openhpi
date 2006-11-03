@@ -48,11 +48,17 @@
 extern GSList *sim_handler_states;
 
 
-void *sim_open(GHashTable *handler_config);
+void *sim_open(GHashTable *handler_config,
+               unsigned int hid,
+               oh_evt_queue *eventq);
 SaErrorT sim_discover(void *hnd);
-SaErrorT sim_get_event(void *hnd, struct oh_event *event);
+SaErrorT sim_get_event(void *hnd);
 SaErrorT sim_close(void *hnd);
-SaErrorT sim_set_resource_tag(void *hnd, SaHpiResourceIdT id, SaHpiTextBufferT *tag);
-SaErrorT sim_set_resource_severity(void *hnd, SaHpiResourceIdT rid, SaHpiSeverityT sev);
+SaErrorT sim_set_resource_tag(void *hnd,
+                              SaHpiResourceIdT id,
+                              SaHpiTextBufferT *tag);
+SaErrorT sim_set_resource_severity(void *hnd,
+                                   SaHpiResourceIdT rid,
+                                   SaHpiSeverityT sev);
 
 #endif

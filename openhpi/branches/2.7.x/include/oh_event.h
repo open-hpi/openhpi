@@ -98,7 +98,9 @@ struct oh_event {
         GSList *rdrs;
 };
 
-extern GAsyncQueue *oh_process_q;
+typedef struct _oh_evt_queue oh_evt_queue;
+
+extern oh_evt_queue oh_process_q;
 
 /* Event utility macros */
 #define oh_new_event() g_new0(struct oh_event, 1)
@@ -108,6 +110,8 @@ extern GAsyncQueue *oh_process_q;
 #define sahpi_copy_event(dest, src) memcpy(dest, src, sizeof(SaHpiEventT))
 
 /* function definitions */
+int oh_event_init(void);
+void oh_evt_queue_push(oh_evt_queue *equeue, gpointer data);
 SaErrorT oh_harvest_events(void);
 SaErrorT oh_process_events(void);
 void oh_event_free(struct oh_event *e, int only_rdrs);
