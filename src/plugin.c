@@ -635,7 +635,9 @@ unsigned int oh_create_handler (GHashTable *handler_config)
                             &(handler->id),
                             g_slist_last(oh_handlers.list));
 
-        handler->hnd = handler->abi->open(handler->config);
+        handler->hnd = handler->abi->open(handler->config,
+                                          new_hid,
+                                          &oh_process_q);
         if (!handler->hnd) {
                 g_hash_table_remove(oh_handlers.table, &handler->id);
                 oh_handlers.list = g_slist_remove(oh_handlers.list, &(handler->id));

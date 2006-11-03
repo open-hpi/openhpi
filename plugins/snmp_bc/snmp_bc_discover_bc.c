@@ -724,7 +724,9 @@ SaErrorT snmp_bc_discover_media_tray(struct oh_handler_state *handle,
 		/* ---------------------------------------- */
 		/* Place the event in tmpqueue              */
 		/* ---------------------------------------- */	
-		handle->eventq = g_slist_append(handle->eventq, e);
+		/*custom_handle->eventq = g_slist_append(custom_handle->eventq, e);*/
+                e->hid = handle->hid;
+                oh_evt_queue_push(handle->eventq, e);
 		
 	}
 	/* ---------------------------------------- */
@@ -877,7 +879,9 @@ SaErrorT snmp_bc_discover_chassis(struct oh_handler_state *handle,
 	/* ---------------------------------------- */
 	/* Place the event in queue                 */
 	/* ---------------------------------------- */	
-	handle->eventq = g_slist_append(handle->eventq, e);
+	/*custom_handle->eventq = g_slist_append(custom_handle->eventq, e);*/
+        e->hid = handle->hid;
+        oh_evt_queue_push(handle->eventq, e);
 	
 	/* ---------------------------------------- */
 	/* ---------------------------------------- */
@@ -958,7 +962,7 @@ SaErrorT snmp_bc_discover_blade(struct oh_handler_state *handle,
 		} else if (blade_vector[i] == '1') {
 		
 			err = snmp_bc_add_blade_rptcache(handle, e, res_info_ptr, i);
-			if ( err == SA_OK) {
+			if (err == SA_OK) {
 				/* ---------------------------------------- */
 				/* Construct .event of struct oh_event      */	
 				/* ---------------------------------------- */
@@ -967,14 +971,17 @@ SaErrorT snmp_bc_discover_blade(struct oh_handler_state *handle,
 				/* ---------------------------------------- */
 				/* Place the event in tmpqueue              */
 				/* ---------------------------------------- */					
-				handle->eventq = g_slist_append(handle->eventq, e);
+				/*custom_handle->eventq = g_slist_append(custom_handle->eventq, e);*/
+                                if (e) e->hid = handle->hid;
+                                oh_evt_queue_push(handle->eventq, e);
 				/********************************** 
 	 			 * Discover Blade Expansion Modules
 	 			 **********************************/
 				err = snmp_bc_discover_blade_expansion(handle, ep_root, i);
 				
-			}else 
+			} else {
 				snmp_bc_free_oh_event(e);
+                        }
 		}
 	}
 
@@ -1217,7 +1224,9 @@ SaErrorT snmp_bc_add_blade_expansion_resource(struct oh_handler_state *handle,
 		/* ---------------------------------------- */
 		/* Place the event in queue                 */
 		/* ---------------------------------------- */					
-		handle->eventq = g_slist_append(handle->eventq, e);
+		/*custom_handle->eventq = g_slist_append(custom_handle->eventq, e);*/
+                e->hid = handle->hid;
+                oh_evt_queue_push(handle->eventq, e);
 		
 	}
 			
@@ -1303,10 +1312,12 @@ SaErrorT snmp_bc_discover_blowers(struct oh_handler_state *handle,
 				/* ---------------------------------------- */
 				/* Place the event in tmpqueue              */
 				/* ---------------------------------------- */					
-				handle->eventq = g_slist_append(handle->eventq, e);
-			}else 
+				/*custom_handle->eventq = g_slist_append(custom_handle->eventq, e);*/
+                                if (e) e->hid = handle->hid;
+                                oh_evt_queue_push(handle->eventq, e);
+			} else {
 				snmp_bc_free_oh_event(e);
-			
+			}
 		}
 	}
 	return(SA_OK);
@@ -1391,9 +1402,12 @@ SaErrorT snmp_bc_discover_power_module(struct oh_handler_state *handle,
 				/* ---------------------------------------- */
 				/* Place the event in tmpqueue              */
 				/* ---------------------------------------- */					
-				handle->eventq = g_slist_append(handle->eventq, e);
-			}else 
-				snmp_bc_free_oh_event(e);	
+				/*custom_handle->eventq = g_slist_append(custom_handle->eventq, e);*/
+                                e->hid = handle->hid;
+                                oh_evt_queue_push(handle->eventq, e);
+			} else {
+				snmp_bc_free_oh_event(e);
+                        }
 		}
 	}
 	return(SA_OK);
@@ -1469,7 +1483,7 @@ SaErrorT snmp_bc_discover_switch(struct oh_handler_state *handle,
 		} else if (switch_vector[i] == '1') {
 			err = snmp_bc_add_switch_rptcache(handle, e, res_info_ptr, i); 
 			
-			if ( err == SA_OK) {
+			if (err == SA_OK) {
 				/* ---------------------------------------- */
 				/* Construct .event of struct oh_event      */	
 				/* ---------------------------------------- */
@@ -1478,9 +1492,12 @@ SaErrorT snmp_bc_discover_switch(struct oh_handler_state *handle,
 				/* ---------------------------------------- */
 				/* Place the event in tmpqueue              */
 				/* ---------------------------------------- */					
-				handle->eventq = g_slist_append(handle->eventq, e);
-			} else 
+				/*custom_handle->eventq = g_slist_append(custom_handle->eventq, e);*/
+                                if (e) e->hid = handle->hid;
+                                oh_evt_queue_push(handle->eventq, e);
+			} else {
 				snmp_bc_free_oh_event(e);
+                        }
 		}
 	}
 	return(SA_OK);
@@ -1589,7 +1606,9 @@ SaErrorT snmp_bc_discover_mm(struct oh_handler_state *handle,
 		/* ---------------------------------------- */
 		/* Place the event in tmpqueue              */
 		/* ---------------------------------------- */					
-		handle->eventq = g_slist_append(handle->eventq, e);
+		/*custom_handle->eventq = g_slist_append(custom_handle->eventq, e);*/
+                e->hid = handle->hid;
+                oh_evt_queue_push(handle->eventq, e);
 				
 	}		
 			
@@ -1634,7 +1653,9 @@ SaErrorT snmp_bc_discover_mm(struct oh_handler_state *handle,
 				/* ---------------------------------------- */
 				/* Place the event in tmpqueue              */
 				/* ---------------------------------------- */					
-				handle->eventq = g_slist_append(handle->eventq, e);
+				/*custom_handle->eventq = g_slist_append(custom_handle->eventq, e);*/
+                                if (e) e->hid = handle->hid;
+                                oh_evt_queue_push(handle->eventq, e);
 			} else 
 				snmp_bc_free_oh_event(e);
 			
@@ -2328,7 +2349,9 @@ SaErrorT snmp_bc_discover_slot( struct oh_handler_state *handle,
 	/* ---------------------------------------- */
 	/* Place the event in event queue           */
 	/* ---------------------------------------- */		
-	handle->eventq = g_slist_append(handle->eventq, e);
+	/*custom_handle->eventq = g_slist_append(custom_handle->eventq, e);*/
+        e->hid = handle->hid;
+        oh_evt_queue_push(handle->eventq, e);
 
 	/* ---------------------------------------- */
 	/* ---------------------------------------- */												

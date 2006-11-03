@@ -377,7 +377,7 @@ SaErrorT snmp_bc_bulk_selcache(	struct oh_handler_state *handle,
 							snmp_bc_log2event(handle, logstring, &tmpevent, isdst, &logsrc2res);
 							err = oh_el_prepend(handle->elcache, &tmpevent, NULL, NULL);
 							if (custom_handle->isFirstDiscovery == SAHPI_FALSE)
-		             					err = snmp_bc_add_to_eventq(handle, &tmpevent, SAHPI_TRUE);							
+		             					err = snmp_bc_add_to_eventq(handle, &tmpevent, SAHPI_TRUE);
 						}
                     			} else {
                         			/* Stop on an exception value */

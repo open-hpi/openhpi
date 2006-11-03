@@ -38,7 +38,9 @@ do { \
  * Plugin handle - normal operation.
  * NULL - on error.
  **/
-void *snmp_bc_open(GHashTable *handler_config)
+void *snmp_bc_open(GHashTable *handler_config,
+                   unsigned int hid,
+                   oh_evt_queue *eventq)
 {
         struct oh_handler_state *handle;
         struct snmp_bc_hnd *custom_handle;
@@ -51,7 +53,13 @@ void *snmp_bc_open(GHashTable *handler_config)
 	if (!handler_config) {
                 dbg("INVALID PARM - NULL handler_config pointer.");
                 return NULL;	
-	}
+	} else if (!hid) {
+                dbg("Bad handler id passed.");
+                return NULL;
+        } else if (!eventq) {
+                dbg("No event queue was passed.");
+                return NULL;
+        }
 
         root_tuple = (char *)g_hash_table_lookup(handler_config, "entity_root");
         if (!root_tuple) {
@@ -74,6 +82,8 @@ void *snmp_bc_open(GHashTable *handler_config)
 
         handle->data = custom_handle;
         handle->config = handler_config;
+        handle->hid = hid;
+        handle->eventq = eventq;
 
         /* Initialize the lock */
         /* g_static_rec_mutex_init(&handle->handler_lock); */
@@ -432,5 +442,5 @@ void snmp_bc_close(void *hnd)
 	
 }
 
-void * oh_open (GHashTable *) __attribute__ ((weak, alias("snmp_bc_open")));
+void * oh_open (GHashTable *, unsigned int, oh_evt_queue *) __attribute__ ((weak, alias("snmp_bc_open")));
 void * oh_close (void *) __attribute__ ((weak, alias("snmp_bc_close")));

@@ -125,8 +125,9 @@ void ohoi_send_vshmgr_redundancy_sensor_event(
         				    SAHPI_SENSOR_RDR,
         				    ATCAHPI_SENSOR_NUM_SHMGR_REDUNDANCY);
 	if (rdr) e->rdrs = g_slist_append(e->rdrs, g_memdup(rdr, sizeof(SaHpiRdrT)));
-
-        handler->eventq = g_slist_append(handler->eventq, e);
+        e->hid = handler->hid;
+        e->did = ipmi_handler->did;
+        oh_evt_queue_push(handler->eventq, e);
 }
 
 static SaErrorT get_vshmgr_redundancy_sensor_event_enable(

@@ -208,7 +208,8 @@ SaErrorT sim_inject_event(struct oh_handler_state *state, struct oh_event *ohe) 
         /* perform the injection */
         trace("Injecting event");
         ohe->did = oh_get_default_domain_id();
-        g_async_queue_push(state->eventq_async, ohe);
+        ohe->hid = state->hid;
+        oh_evt_queue_push(state->eventq, ohe);
 
         return SA_OK;
 }
@@ -308,7 +309,8 @@ printf("\n\n\n ***** INJECTING EVENT ****\n\n\n");
 	if (rpte) e.resource = *rpte;
 	e.rdrs = rdrs;
 	e.did = oh_get_default_domain_id();
-	g_async_queue_push(state->eventq_async, oh_dup_event(&e));
+        e.hid = state->hid;
+	oh_evt_queue_push(state->eventq, oh_dup_event(&e));
 
 	return SA_OK;
 }

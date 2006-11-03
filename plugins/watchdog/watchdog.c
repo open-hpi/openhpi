@@ -82,7 +82,9 @@ struct wdtitems {
  * addr corresponds to the location of the watchdog device
  **/
 
-static void *watchdog_open(GHashTable *handler_config)
+static void *watchdog_open(GHashTable *handler_config,
+                           unsigned int hid,
+                           oh_evt_queue *eventq)
 {
         struct oh_handler_state *hnd;
         struct wdtitems *wdt;
@@ -90,6 +92,12 @@ static void *watchdog_open(GHashTable *handler_config)
 
         if (!handler_config) {
                 dbg("empty handler_config");
+                return NULL;
+        } else if (!hid) {
+                dbg("Bad handler id passed.");
+                return NULL;
+        } else if (!eventq) {
+                dbg("No event queue was passed.");
                 return NULL;
         }
 
@@ -113,6 +121,9 @@ static void *watchdog_open(GHashTable *handler_config)
         hnd->config = handler_config;
 
         hnd->rptcache = (RPTable *)g_malloc0(sizeof(RPTable));
+
+        hnd->hid = hid;
+        hnd->eventq = eventq;
 
         wdt = malloc(sizeof(*wdt));
         if (!wdt) {
@@ -157,9 +168,6 @@ static void watchdog_close(void *hnd)
 		close(wdt->fd);
 	}
 
-        /* Free unused events */
-        g_slist_free(tmp->eventq);
-
 	free(tmp);
 
 	return;
@@ -168,37 +176,21 @@ static void watchdog_close(void *hnd)
 /**
  * watchdog_get_event:
  * @hnd: pointer to handler instance
- * @event: pointer to oh_event
- * @timeout: struct timeval
  *
  * This function gets a watchdog event from the watchdog event table
- * in instance.events.  It copies the event to memory and then
- * deletes it from the instance.events table.
+ * in instance.events.
  *
  * Return value: 0 if times out, > 0 is event is returned.
  **/
-static int watchdog_get_event(void *hnd, struct oh_event *event)
+static int watchdog_get_event(void *hnd)
 {
 	struct oh_handler_state *tmp = (struct oh_handler_state *) hnd;
-	GSList *i;
 	
 	if (!tmp) {
 		dbg("no handler given");
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
 
-	g_slist_for_each(i, tmp->eventq) {
-		struct oh_event *e = (struct oh_event *)i->data;
-		if (e) {
-			memcpy(event, e, sizeof(*e));
-                        event->did = oh_get_default_domain_id();
-			tmp->eventq = g_slist_remove_link(tmp->eventq, i);
-			g_slist_free(i);
-			free(e);
-
-			return 1;
-		}
-	}
 	return 0;
 }
 
@@ -300,6 +292,8 @@ static int watchdog_discover_resources(void *hnd)
 			return SA_ERR_HPI_OUT_OF_SPACE;
 		}
 		memset(e, '\0', sizeof(struct oh_event));
+                e->did = oh_get_default_domain_id();
+                e->hid = tmp->hid;
 		e->event.EventType = SAHPI_ET_RESOURCE;
 		/* Note:  .res_event.entry.ResourceInfo currently unassigned */
 		e->resource.ResourceEntity.Entry[0].EntityType = SAHPI_ENT_SYSTEM_BOARD;
@@ -359,7 +353,7 @@ static int watchdog_discover_resources(void *hnd)
 		e->rdrs = g_slist_append(e->rdrs, tmprdr);
 
 		/* add event to our event queue */
-		tmp->eventq = g_slist_append(tmp->eventq, e);
+		oh_evt_queue_push(tmp->eventq, e);
 
 	}
 	
@@ -606,11 +600,11 @@ static int watchdog_reset_watchdog(void *hnd, SaHpiResourceIdT id,
 	return 0;
 }
 
-void * oh_open (GHashTable *) __attribute__ ((weak, alias("watchdog_open")));
+void * oh_open (GHashTable *, unsigned int, oh_evt_queue *) __attribute__ ((weak, alias("watchdog_open")));
 
 void * oh_close (void *) __attribute__ ((weak, alias("watchdog_close")));
 
-void * oh_get_event (void *, struct oh_event *) 
+void * oh_get_event (void *) 
                 __attribute__ ((weak, alias("watchdog_get_event")));
 		
 void * oh_discover_resources (void *) 

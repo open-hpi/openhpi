@@ -22,7 +22,9 @@
  * stored in the handle along with config file data.
  **/
 
-void *snmp_bc_open(GHashTable *handler_config);
+void *snmp_bc_open(GHashTable *handler_config,
+                   unsigned int hid,
+                   oh_evt_queue *eventq);
 void snmp_bc_close(void *hnd);
 
 #endif

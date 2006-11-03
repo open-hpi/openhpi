@@ -777,7 +777,7 @@ RESUME_TO_EXIT:
 									= SAHPI_RESE_RESOURCE_FAILURE;
 				if (oh_gettimeofday(&e->event.Timestamp) != SA_OK)
 		                		    e->event.Timestamp = SAHPI_TIME_UNSPECIFIED;
-				handle->eventq = g_slist_append(handle->eventq, e);
+				custom_handle->eventq = g_slist_append(custom_handle->eventq, e);
 			}
 		}
 	}
@@ -1535,6 +1535,7 @@ SaErrorT snmp_bc_add_to_eventq(struct oh_handler_state *handle, SaHpiEventT *thi
 	SaHpiRdrT      *thisRdr;
 	LogSource2ResourceT logsrc2res;
 	SaErrorT err;
+        struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 
         /* Insert entry to eventq for processing */
         e = snmp_bc_alloc_oh_event();
@@ -1601,9 +1602,9 @@ SaErrorT snmp_bc_add_to_eventq(struct oh_handler_state *handle, SaHpiEventT *thi
 	
 
 	if (prepend == SAHPI_TRUE) { 
-       		handle->eventq = g_slist_prepend(handle->eventq, e);
+       		custom_handle->eventq = g_slist_prepend(custom_handle->eventq, e);
 	} else {
-		handle->eventq = g_slist_append(handle->eventq, e);
+		custom_handle->eventq = g_slist_append(custom_handle->eventq, e);
 	}
 	
         return(SA_OK);

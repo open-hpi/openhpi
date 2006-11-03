@@ -208,7 +208,9 @@ int entity_presence(ipmi_entity_t		*entity,
 					SAHPI_RESE_RESOURCE_FAILURE;
 			}
 
-                	handler->eventq = g_slist_append(handler->eventq, e);
+                	e->hid = handler->hid;
+                        e->did = ipmi_handler->did;
+                        oh_evt_queue_push(handler->eventq, e);
 		} else {
 			dbg("Out of memory");
 		}
@@ -706,6 +708,7 @@ void ohoi_remove_entity(struct oh_handler_state *handler,
       	struct oh_event *e = NULL;
 	struct ohoi_resource_info *res_info = NULL;
 	SaHpiRptEntryT *rpte = NULL;
+        struct ohoi_handler *ipmi_handler = handler->data;
 
 	res_info = oh_get_resource_data(handler->rptcache, res_id);
 	rpte = oh_get_resource_by_id(handler->rptcache, res_id);
@@ -738,7 +741,9 @@ void ohoi_remove_entity(struct oh_handler_state *handler,
 	e->event.Severity = rpte->ResourceSeverity;
 	oh_gettimeofday(&e->event.Timestamp);
 
-	handler->eventq = g_slist_append(handler->eventq, e);
+	e->hid = handler->hid;
+        e->did = ipmi_handler->did;
+        oh_evt_queue_push(handler->eventq, e);
 	entity_rpt_set_updated(res_info, handler->data);
 }
 
@@ -808,6 +813,7 @@ static void delete_entity(struct oh_handler_state	*handler,
 	ipmi_entity_id_t entity_id = ipmi_entity_convert_to_id(entity);
 	SaHpiRptEntryT	*rpt;
 	struct ohoi_resource_info *res_info;
+        struct ohoi_handler *ipmi_handler = handler->data;
 
 	rpt = ohoi_get_resource_by_entityid(handler->rptcache, &entity_id);
 	if (rpt == NULL) {
@@ -832,7 +838,9 @@ static void delete_entity(struct oh_handler_state	*handler,
                 e->event.Source = rpt->ResourceId;
                 e->event.Severity = rpt->ResourceSeverity;
                 oh_gettimeofday(&e->event.Timestamp);
-                handler->eventq = g_slist_append(handler->eventq, e);
+                e->hid = handler->hid;
+                e->did = ipmi_handler->did;
+                oh_evt_queue_push(handler->eventq, e);
 	} else {
 		dbg("Out of memory");
 	}

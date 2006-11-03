@@ -91,7 +91,9 @@ static void ipmi_domain_fully_up(ipmi_domain_t *domain,
  * could be SMI (local) or LAN.
  *
  **/
-static void *ipmi_open(GHashTable *handler_config)
+static void *ipmi_open(GHashTable *handler_config,
+                       unsigned int hid,
+                       oh_evt_queue *eventq)
 {
         struct oh_handler_state *handler = NULL;
         struct ohoi_handler *ipmi_handler = NULL;
@@ -104,7 +106,6 @@ static void *ipmi_open(GHashTable *handler_config)
         const char *scan_time;
         const char *real_write_fru;
         int rv = 0;
-        int *hid;
         char *multi_domains;
 	char *trace_file_name;
 
@@ -117,6 +118,12 @@ static void *ipmi_open(GHashTable *handler_config)
         if (!handler_config) {
                 dbg("No config file provided.....ooops!");
                 return(NULL);
+        } else if (!hid) {
+                dbg("Bad handler id passed.");
+                return NULL;
+        } else if (!eventq) {
+                dbg("No event queue was passed.");
+                return NULL;
         }
 
         name = g_hash_table_lookup(handler_config, "name");
@@ -153,6 +160,8 @@ static void *ipmi_open(GHashTable *handler_config)
 
         handler->data = ipmi_handler;
         handler->config = handler_config;
+        handler->hid = hid;
+        handler->eventq = eventq;
 
         g_static_rec_mutex_init(&(ipmi_handler->ohoih_lock));
 
@@ -175,14 +184,13 @@ static void *ipmi_open(GHashTable *handler_config)
 
         multi_domains = g_hash_table_lookup(handler_config, "MultipleDomains");
         if (multi_domains != (char *)NULL) {
-                hid = g_hash_table_lookup(handler_config, "handler-id");
                 if (domain_tag != NULL) {
                         oh_append_textbuffer(&buf, domain_tag);
                 } else {
                         oh_append_textbuffer(&buf, "IPMI Domain");
                 }
 
-                ipmi_handler->did = oh_request_new_domain_aitimeout(*hid, &buf,
+                ipmi_handler->did = oh_request_new_domain_aitimeout(hid, &buf,
                         SAHPI_DOMAIN_CAP_AUTOINSERT_READ_ONLY,
                         SAHPI_TIMEOUT_BLOCK, 0, 0);
         } else
@@ -472,7 +480,7 @@ free_and_out:
 /**
  * ipmi_close: close this instance of ipmi plug-in
  * @hnd: pointer to handler
- *
+ 
  * This functions closes connection with OpenIPMI and frees
  * all allocated events and sensors
  *
@@ -503,9 +511,6 @@ static void ipmi_close(void *hnd)
         oh_flush_rpt(handler->rptcache);
         free(handler->rptcache);
 
-        g_slist_foreach(handler->eventq, (GFunc)free, NULL);
-        g_slist_free(handler->eventq);
-
         free(ipmi_handler);
         free(handler);
 }
@@ -513,28 +518,16 @@ static void ipmi_close(void *hnd)
 /**
  * ipmi_get_event: get events populated earlier by OpenIPMI
  * @hnd: pointer to handler
- * @event: pointer to an openhpi event structure
- * @timeout: time to block
- *
- *
  *
  * Return value: 1 or 0
  **/
-static int ipmi_get_event(void *hnd, struct oh_event *event)
+static int ipmi_get_event(void *hnd)
 {
         struct oh_handler_state *handler = hnd;
         struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
         int sel_select_done = 0;
 
         for (;;) {
-                if(g_slist_length(handler->eventq)>0) {
-                        memcpy(event, handler->eventq->data, sizeof(*event));
-                        event->did = ipmi_handler->did;
-                        g_free(handler->eventq->data);
-                        handler->eventq = g_slist_remove_link(handler->eventq,
-                                        handler->eventq);
-                        return 1;
-                };
 
                 if (sel_select_done) {
                         break;
@@ -713,7 +706,9 @@ int ipmi_discover_resources(void *hnd)
 		oh_gettimeofday(&event->event.Timestamp);
 		event->event.Severity = rpt_entry->ResourceSeverity;
 		event->resource = *rpt_entry;
-                handler->eventq = g_slist_append(handler->eventq, event);
+                event->hid = handler->hid;
+                event->did = ipmi_handler->did;
+                oh_evt_queue_push(handler->eventq, event);
 
                 res_info->updated = 0;
                 rpt_entry = oh_get_resource_next(handler->rptcache,
@@ -1167,6 +1162,7 @@ static int ipmi_set_sensor_event_enable(void *hnd,
 
         SaErrorT		rv;
         struct oh_handler_state	*handler = (struct oh_handler_state *)hnd;
+        struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
         struct ohoi_sensor_info	*sensor_info;
         struct oh_event		*e;
         SaHpiRdrT		*rdr = NULL;
@@ -1219,8 +1215,9 @@ static int ipmi_set_sensor_event_enable(void *hnd,
         sen_evt->SensorEventEnable = sensor_info->enable;
         sen_evt->AssertEventMask = sensor_info->assert;
         sen_evt->DeassertEventMask = sensor_info->deassert;
-
-        handler->eventq = g_slist_append(handler->eventq, e);
+        e->hid = handler->hid;
+        e->did = ipmi_handler->did;
+        oh_evt_queue_push(handler->eventq, e);
         return SA_OK;
 
 }
@@ -1426,6 +1423,7 @@ static int ipmi_set_sensor_event_masks(void *hnd, SaHpiResourceIdT id,
 {
         SaErrorT		rv;
         struct oh_handler_state	*handler = (struct oh_handler_state *)hnd;
+        struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
         struct ohoi_sensor_info	*sensor_info;
         SaHpiEventStateT	t_assert;
         SaHpiEventStateT	t_deassert;
@@ -1490,8 +1488,9 @@ static int ipmi_set_sensor_event_masks(void *hnd, SaHpiResourceIdT id,
         sen_evt->SensorEventEnable = sensor_info->enable;
         sen_evt->AssertEventMask = sensor_info->assert;
         sen_evt->DeassertEventMask = sensor_info->deassert;
-
-        handler->eventq = g_slist_append(handler->eventq, e);
+        e->hid = handler->hid;
+        e->did = ipmi_handler->did;
+        oh_evt_queue_push(handler->eventq, e);
         return SA_OK;
 }
 
@@ -1880,11 +1879,11 @@ static SaErrorT ipmi_set_res_sev(void                   *hnd,
 }
 
 
-void * oh_open (GHashTable *) __attribute__ ((weak, alias("ipmi_open")));
+void * oh_open (GHashTable *, unsigned int, oh_evt_queue *) __attribute__ ((weak, alias("ipmi_open")));
 
 void * oh_close (void *) __attribute__ ((weak, alias("ipmi_close")));
 
-void * oh_get_event (void *, struct oh_event *)
+void * oh_get_event (void *)
                 __attribute__ ((weak, alias("ipmi_get_event")));
 
 void * oh_discover_resources (void *)
