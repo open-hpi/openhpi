@@ -460,7 +460,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 	get_installed_mask(SNMP_BC_PM_INSTALLED, get_value_power_module);
 
 	/* Fetch media tray installed vector */
-	get_integer_object(SNMP_BC_MT_INSTALLED, get_value_media); 
+	get_dualmode_object(SNMP_BC_MT_INSTALLED, get_value_media);
 	
 	/* Fetch blower installed vector  */
 	get_installed_mask(SNMP_BC_BLOWER_INSTALLED, get_value_blower);
@@ -672,13 +672,13 @@ SaErrorT snmp_bc_discover_media_tray(struct oh_handler_state *handle,
 	}
 
 
-	if (!media_tray_installed) {
+	if (media_tray_installed < 10) {
 		res_info_ptr->cur_state = SAHPI_HS_STATE_NOT_PRESENT;
 		snmp_bc_discover_res_events(handle, &(e->resource.ResourceEntity), res_info_ptr);
 		snmp_bc_free_oh_event(e);
 		g_free(res_info_ptr);
 
-	} else if (media_tray_installed) {
+	} else if (media_tray_installed  >= 10 ) {
 		res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
 
                 /* Get UUID and convert to GUID */
@@ -704,7 +704,7 @@ SaErrorT snmp_bc_discover_media_tray(struct oh_handler_state *handle,
 		snmp_bc_discover_sensors(handle, snmp_bc_mediatray_sensors, e);
 		snmp_bc_discover_controls(handle, snmp_bc_mediatray_controls, e);
 		snmp_bc_discover_inventories(handle, snmp_bc_mediatray_inventories, e);
-		
+
 		mt_width = 1;    /* Default to 1-wide */
 		if (res_info_ptr->mib.OidResourceWidth != NULL) {
 			err = snmp_bc_oid_snmp_get(custom_handle,  &(e->resource.ResourceEntity), 0,
@@ -729,6 +729,107 @@ SaErrorT snmp_bc_discover_media_tray(struct oh_handler_state *handle,
                 oh_evt_queue_push(handle->eventq, e);
 		
 	}
+
+	/* ------------------------------------------------ */
+	/* For BC-HT, we have to examine the 2nd media tray */
+	/* ------------------------------------------------ */
+	if (custom_handle->platform == SNMP_BC_PLATFORM_BCHT)
+	{	
+		e = snmp_bc_alloc_oh_event();
+		if (e == NULL) {
+			dbg("Out of memory.");
+			return(SA_ERR_HPI_OUT_OF_SPACE);
+		}
+	
+		/* ---------------------------------------- */
+		/* Construct .resource of struct oh_event   */
+		/* ---------------------------------------- */		
+		e->resource = snmp_bc_rpt_array[BC_RPT_ENTRY_MEDIA_TRAY_2].rpt;
+		oh_concat_ep(&(e->resource.ResourceEntity), ep_root);
+		oh_set_ep_location(&(e->resource.ResourceEntity),
+				BLADECENTER_PERIPHERAL_BAY_SLOT, SNMP_BC_HPI_LOCATION_BASE+1);
+		oh_set_ep_location(&(e->resource.ResourceEntity),
+				SAHPI_ENT_PERIPHERAL_BAY, SNMP_BC_HPI_LOCATION_BASE + 1);
+		e->resource.ResourceId = 
+			oh_uid_from_entity_path(&(e->resource.ResourceEntity));
+		snmp_bc_create_resourcetag(&(e->resource.ResourceTag),
+				   snmp_bc_rpt_array[BC_RPT_ENTRY_MEDIA_TRAY_2].comment,
+				   SNMP_BC_HPI_LOCATION_BASE + 1);
+
+		trace("Discovered resource=%s; ID=%d",
+	       			e->resource.ResourceTag.Data,
+		      		e->resource.ResourceId);
+
+		/* Create platform-specific info space to add to infra-structure */
+		res_info_ptr = g_memdup(&(snmp_bc_rpt_array[BC_RPT_ENTRY_MEDIA_TRAY_2].res_info),
+						sizeof(struct ResourceInfo));
+		if (!res_info_ptr) {
+			dbg("Out of memory.");
+			snmp_bc_free_oh_event(e);
+			return(SA_ERR_HPI_OUT_OF_SPACE);
+		}
+
+
+		if ((media_tray_installed != 01) && (media_tray_installed != 11)) {
+			res_info_ptr->cur_state = SAHPI_HS_STATE_NOT_PRESENT;
+			snmp_bc_discover_res_events(handle, &(e->resource.ResourceEntity), res_info_ptr);
+			snmp_bc_free_oh_event(e);
+			g_free(res_info_ptr);
+
+		} else {
+			res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
+
+                	/* Get UUID and convert to GUID */
+                	err = snmp_bc_get_guid(custom_handle, e, res_info_ptr);
+		
+			/* Add resource to resource */
+			err = oh_add_resource(handle->rptcache, 
+					      &(e->resource),
+					      res_info_ptr, 0);
+			if (err) {
+				dbg("Failed to add resource. Error=%s.", oh_lookup_error(err));
+				snmp_bc_free_oh_event(e);
+				return(err);
+			}
+		
+			/* Add resource event entries to event2hpi_hash table */
+			snmp_bc_discover_res_events(handle, &(e->resource.ResourceEntity), res_info_ptr);
+
+			/* --------------------------------------------- */
+			/*      Construct .rdrs of struct oh_event       */
+			/* --------------------------------------------- */		
+			/* Find resource's rdrs: sensors, controls, etc. */		
+			snmp_bc_discover_sensors(handle, snmp_bc_mediatray2_sensors, e);
+			snmp_bc_discover_controls(handle, snmp_bc_mediatray2_controls, e);
+			snmp_bc_discover_inventories(handle, snmp_bc_mediatray2_inventories, e);
+
+			mt_width = 1;    /* Default to 1-wide */
+			if (res_info_ptr->mib.OidResourceWidth != NULL) {
+				err = snmp_bc_oid_snmp_get(custom_handle,  &(e->resource.ResourceEntity), 0,
+							   res_info_ptr->mib.OidResourceWidth, &get_value, SAHPI_TRUE);
+				if (!err && (get_value.type == ASN_INTEGER)) {
+						mt_width = get_value.integer;
+				}
+			}			
+
+			err = snmp_bc_set_resource_slot_state_sensor(handle, e, mt_width);
+	
+			/* ---------------------------------------- */
+			/* Construct .event of struct oh_event      */	
+			/* ---------------------------------------- */
+			snmp_bc_set_resource_add_oh_event(e, res_info_ptr);
+		
+			/* ---------------------------------------- */
+			/* Place the event in tmpqueue              */
+			/* ---------------------------------------- */	
+			/*handle->eventq = g_slist_append(handle->eventq, e);*/
+			e->hid = handle->hid;
+	                oh_evt_queue_push(handle->eventq, e);
+		
+		}
+	
+	}
+
 	/* ---------------------------------------- */
 	/* ---------------------------------------- */	
 	return(SA_OK);
@@ -811,7 +912,7 @@ SaErrorT snmp_bc_discover_chassis(struct oh_handler_state *handle,
 			break;
 		case SNMP_BC_PLATFORM_BCHT:
 			oh_append_textbuffer(&build_name, "BladeCenter HT Chassis");
-			break;						
+			break;
 		default:	
 			oh_append_textbuffer(&build_name, "BladeCenter Chassis");
 		}
@@ -2029,7 +2130,7 @@ SaErrorT snmp_bc_rediscover(struct oh_handler_state *handle,
 					strcpy(custom_handle->installed_mm_mask, get_value.string);
 					break;
 				case SAHPI_ENT_PERIPHERAL_BAY:
-					get_integer_object(SNMP_BC_MT_INSTALLED, get_value);
+					get_dualmode_object(SNMP_BC_MT_INSTALLED, get_value);
 					custom_handle->installed_mt_mask = get_value.integer;
 					break;
 				default: 
@@ -2119,9 +2220,20 @@ SaErrorT snmp_bc_rediscover(struct oh_handler_state *handle,
 				break;
 			case SAHPI_ENT_PERIPHERAL_BAY:
 				// get_integer_object(custom_handle,SNMP_BC_MEDIATRAY_EXISTS, get_value);
-				get_integer_object(SNMP_BC_MT_INSTALLED, get_value);
+				get_dualmode_object(SNMP_BC_MT_INSTALLED, get_value);
 				custom_handle->installed_mt_mask = get_value.integer;
-				err = snmp_bc_discover_media_tray(handle, &ep_root, hotswap_entitylocation);
+				switch (hotswap_entitylocation)
+				{
+					case 1:
+						err = snmp_bc_discover_media_tray(handle, &ep_root, 10);
+						break;
+					case 2:
+						err = snmp_bc_discover_media_tray(handle, &ep_root, 01);
+						break;					
+					default:
+						break;
+				}
+
 				break;
 			default: 
 				dbg("Unrecognize Hotswap Entity %d\n", hotswap_entitytype);
