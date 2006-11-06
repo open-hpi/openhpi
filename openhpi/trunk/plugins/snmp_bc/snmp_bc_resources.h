@@ -105,6 +105,7 @@ typedef enum {
         BC_RPT_ENTRY_BLADE,
         BC_RPT_ENTRY_BLADE_EXPANSION_CARD,
         BC_RPT_ENTRY_MEDIA_TRAY,
+	BC_RPT_ENTRY_MEDIA_TRAY_2,	
         BC_RPT_ENTRY_BLOWER_MODULE,
         BC_RPT_ENTRY_POWER_MODULE,
 	BC_RPT_ENTRY_PHYSICAL_SLOT,
@@ -148,7 +149,7 @@ typedef enum {
 #define SNMP_BC_SM_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.29.0" 	/* mmblade.mib - chassisSMsInstalled, SwitchModule */
 #define SNMP_BC_MM_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.30.0" 	/* mmblade.mib - chassisMMsInstalled, ManagementModule */
 #define SNMP_BC_PM_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.31.0" 	/* mmblade.mib - chassisPMsInstalled, PowerModule */
-#define SNMP_BC_MT_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.32.0" 	/* mmblade.mib - chassisMTsInstalled, MediaTray */
+#define SNMP_BC_MT_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.32.0" 	/* mmblade.mib - chassisMTInstalled, MediaTray */
 #define SNMP_BC_BLOWER_INSTALLED ".1.3.6.1.4.1.2.3.51.2.22.4.33.0" /* mmblade.mib - chassisBlowersInstalled, Blower */
 #define SNMP_BC_FP_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.37.0" 	/* mmblade.mib - chassisFPsinstalled, FanPack */
 
@@ -370,6 +371,7 @@ extern struct snmp_bc_sensor      snmp_bc_mgmnt_sensors[];
 extern struct snmp_bc_sensor      snmp_bc_mgmnt_health_sensors[];
 extern struct snmp_bc_sensor      snmp_bc_virtual_mgmnt_sensors[];
 extern struct snmp_bc_sensor      snmp_bc_mediatray_sensors[];
+extern struct snmp_bc_sensor      snmp_bc_mediatray2_sensors[];
 extern struct snmp_bc_sensor      snmp_bc_blower_sensors[];
 extern struct snmp_bc_sensor      snmp_bc_blower_sensors_bch[];
 extern struct snmp_bc_sensor      snmp_bc_power_sensors[];
@@ -422,6 +424,7 @@ extern struct snmp_bc_control snmp_bc_bem_controls[];
 extern struct snmp_bc_control snmp_bc_mgmnt_controls[];
 extern struct snmp_bc_control snmp_bc_virtual_mgmnt_controls[];
 extern struct snmp_bc_control snmp_bc_mediatray_controls[];
+extern struct snmp_bc_control snmp_bc_mediatray2_controls[];
 extern struct snmp_bc_control snmp_bc_blower_controls[];
 extern struct snmp_bc_control snmp_bc_power_controls[];
 extern struct snmp_bc_control snmp_bc_switch_controls[];
@@ -474,6 +477,7 @@ extern struct snmp_bc_inventory snmp_bc_switch_inventories[];
 extern struct snmp_bc_inventory snmp_bc_blade_inventories[];
 extern struct snmp_bc_inventory snmp_bc_bem_inventories[];
 extern struct snmp_bc_inventory snmp_bc_mediatray_inventories[];
+extern struct snmp_bc_inventory snmp_bc_mediatray2_inventories[];
 extern struct snmp_bc_inventory snmp_bc_power_inventories[];
 extern struct snmp_bc_inventory snmp_bc_slot_inventories[];
 extern struct snmp_bc_inventory snmp_bc_bem_dasd_inventories[];
