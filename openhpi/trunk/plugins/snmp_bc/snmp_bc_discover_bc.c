@@ -1787,6 +1787,8 @@ static SaErrorT snmp_bc_discover_ipmi_sensors(struct oh_handler_state *handle,
 	struct SensorMibInfo *mib_info;
 	struct snmp_bc_hnd *custom_handle;
 	struct snmp_value get_value;
+	SaHpiRdrT *rdrptr;
+	struct SensorInfo *sinfo;
 	
 	custom_handle = (struct snmp_bc_hnd *)handle->data;
 
@@ -1932,8 +1934,6 @@ static SaErrorT snmp_bc_discover_ipmi_sensors(struct oh_handler_state *handle,
 		}
 
 		if (mib_info) {
-			SaHpiRdrT *rdrptr;;
-			struct SensorInfo *sinfo;
 
 			rdrptr = (SaHpiRdrT *)g_malloc0(sizeof(SaHpiRdrT));
 			if (rdrptr == NULL) {
