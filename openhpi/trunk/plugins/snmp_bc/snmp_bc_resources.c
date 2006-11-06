@@ -523,6 +523,62 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                 },
                 .comment = "Media Tray",
         },
+        /* Media Tray 2*/
+        {
+                .rpt = {
+                        .ResourceInfo = {
+                                .ManufacturerId = IBM_MANUFACTURING_ID,
+                        },
+                        .ResourceEntity = {
+                                .Entry[0] =
+                                {
+                                        .EntityType = SAHPI_ENT_PERIPHERAL_BAY,
+                                        .EntityLocation = SNMP_BC_HPI_LOCATION_BASE,
+                                },
+                                {
+                                        .EntityType = BLADECENTER_PERIPHERAL_BAY_SLOT,
+                                        .EntityLocation = SNMP_BC_HPI_LOCATION_BASE,
+                                },
+                                {
+                                        .EntityType = SAHPI_ENT_ROOT,
+                                        .EntityLocation = 0,
+                                }
+                        },
+                        .ResourceCapabilities = SAHPI_CAPABILITY_FRU |
+			                        SAHPI_CAPABILITY_INVENTORY_DATA |
+                                                SAHPI_CAPABILITY_RDR |
+                                                SAHPI_CAPABILITY_RESOURCE |
+                                                SAHPI_CAPABILITY_SENSOR,
+                        .ResourceSeverity = SAHPI_MAJOR,
+			.ResourceFailed = SAHPI_FALSE,
+                },
+                .res_info = {
+                        .mib = {
+                                .OidHealth = '\0',
+                                .HealthyValue = 0,
+                                .OidReset = '\0',
+                                .OidPowerState = '\0',
+                                .OidPowerOnOff = '\0',
+				.OidUuid = ".1.3.6.1.4.1.2.3.51.2.2.21.10.8.0",
+				.OidResourceWidth = '\0',
+                        },
+  			.cur_state = SAHPI_HS_STATE_NOT_PRESENT,
+			.prev_state = SAHPI_HS_STATE_NOT_PRESENT,
+                        .event_array = {
+                                {
+                                        .event = "06A1E001", /* EN_MEDIA_TRAY_REMOVED */
+					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_HS_STATE_NOT_PRESENT,
+					.event_auto_state = 0,
+                                        .recovery_state = SAHPI_HS_STATE_ACTIVE,
+					.recovery_auto_state = 0,
+                                },
+                                {},
+                        },
+                },
+                .comment = "Media Tray 2",
+        },	
         /* Blower Module */
         {
                 .rpt = {
@@ -9707,6 +9763,13 @@ struct snmp_bc_sensor snmp_bc_mediatray_sensors[] = {
         {} /* Terminate array with a null element */
 };
 
+
+struct snmp_bc_sensor snmp_bc_mediatray2_sensors[] = {
+        /* Media Tray Operational Status Sensor - event only */
+
+        {} /* Terminate array with a null element */
+};
+
 /****************
  * Blower Sensors
  ****************/
@@ -11236,6 +11299,11 @@ struct snmp_bc_control snmp_bc_mediatray_controls[] = {
         {} /* Terminate array with a null element */
 };
 
+struct snmp_bc_control snmp_bc_mediatray2_controls[] = {
+
+        {} /* Terminate array with a null element */
+};
+
 /*****************
  * Blower Controls
  *****************/
@@ -11480,6 +11548,38 @@ struct snmp_bc_inventory snmp_bc_mediatray_inventories[] = {
                 },
                 .comment = "Media Tray VPD",
         },
+
+        {} /* Terminate array with a null element */
+};
+
+struct snmp_bc_inventory snmp_bc_mediatray2_inventories[] = {	
+	{
+                .inventory = {
+                        .IdrId = 82,
+                        .Oem = 0,
+                },
+                .inventory_info = {
+                        .mib = {
+                                .not_avail_indicator_num = 0,
+                                .write_only = SAHPI_FALSE,
+                                .area_type = SAHPI_IDR_AREATYPE_BOARD_INFO,
+                                .oid = {
+                                        .OidChassisType = '\0',
+                                        .OidMfgDateTime = '\0',   /* Set to SAHPI_TIME_UNSPECIFIED */
+                                        .OidManufacturer = ".1.3.6.1.4.1.2.3.51.2.2.21.10.3.0",
+                                        .OidProductName = '\0',
+                                        .OidProductVersion = ".1.3.6.1.4.1.2.3.51.2.2.21.10.5.0",
+                                        .OidSerialNumber = '\0',
+                                        .OidPartNumber = ".1.3.6.1.4.1.2.3.51.2.2.21.10.4.0",
+                                        .OidFileId = '\0',
+                                        .OidAssetTag = '\0',
+                                }
+                        },
+                },
+                .comment = "Media Tray 2 VPD",
+        },
+
+	
 
         {} /* Terminate array with a null element */
 };
