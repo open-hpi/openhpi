@@ -48,6 +48,21 @@ do { \
         } \
 } while(0)
 
+#define get_dualmode_object(maskOID, getintvalue) \
+do { \
+	err = snmp_bc_snmp_get(custom_handle, maskOID, &getintvalue, SAHPI_TRUE); \
+        if (err) { \
+		dbg("Cannot get OID=%s; Received Type=%d; Error=%s.", \
+		      		maskOID, getintvalue.type, oh_lookup_error(err)); \
+		if (err) { return(err); } \
+		else { return(SA_ERR_HPI_INTERNAL_ERROR); } \
+        } else if (getintvalue.type == ASN_OCTET_STR) { \
+		getintvalue.integer = atoi(getintvalue.string); \
+        } else if (getintvalue.type == ASN_INTEGER) { \
+		if (getintvalue.integer == 1) getintvalue.integer = 10;  \
+	} \
+} while(0)
+
 #define pdp_debug(string) \
 do { \
 	err = snmp_bc_snmp_get(custom_handle, maskOID, &getintvalue, SAHPI_TRUE); \
