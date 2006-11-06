@@ -231,9 +231,10 @@ SaErrorT snmp_bc_extract_slot_ep(SaHpiEntityPathT *resource_ep, SaHpiEntityPathT
 SaErrorT snmp_bc_copy_oh_event(struct oh_event *new_event, struct oh_event *old_event)
 {
 
+	GSList *node;
 	if (!new_event || !old_event) return(SA_ERR_HPI_INVALID_PARAMS);
 
-	GSList *node = NULL;
+	node = NULL;
 	*new_event = *old_event;
 	new_event->rdrs = NULL;
 	for (node = old_event->rdrs; node; node = node->next) {
