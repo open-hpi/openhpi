@@ -96,6 +96,11 @@ SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
  	snmp_bc_discover_controls(handle, snmp_bc_chassis_controls_rsa, e);
 	snmp_bc_discover_inventories(handle, snmp_bc_chassis_inventories_rsa, e);
 
+	/* ---------------------------------------- */
+	/* Construct .event of struct oh_event      */	
+	/* ---------------------------------------- */
+	snmp_bc_set_resource_add_oh_event(e, res_info_ptr);		
+
 	e->hid = handle->hid;
         oh_evt_queue_push(handle->eventq, e);
 	
@@ -160,7 +165,12 @@ SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
 		snmp_bc_discover_sensors(handle, snmp_bc_cpu_sensors_rsa, e);
 		snmp_bc_discover_controls(handle, snmp_bc_cpu_controls_rsa, e);
 		snmp_bc_discover_inventories(handle, snmp_bc_cpu_inventories_rsa, e);
-		
+
+		/* ---------------------------------------- */
+		/* Construct .event of struct oh_event      */	
+		/* ---------------------------------------- */
+		snmp_bc_set_resource_add_oh_event(e, res_info_ptr);
+				
 		e->hid = handle->hid;
                 oh_evt_queue_push(handle->eventq, e);
 	}
@@ -226,6 +236,11 @@ SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
 		snmp_bc_discover_controls(handle, snmp_bc_dasd_controls_rsa, e);
 		snmp_bc_discover_inventories(handle, snmp_bc_dasd_inventories_rsa, e);
 		
+		/* ---------------------------------------- */
+		/* Construct .event of struct oh_event      */	
+		/* ---------------------------------------- */
+		snmp_bc_set_resource_add_oh_event(e, res_info_ptr);
+		
 		e->hid = handle->hid;
                 oh_evt_queue_push(handle->eventq, e);
 	}
@@ -290,7 +305,12 @@ SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
 		snmp_bc_discover_sensors(handle, snmp_bc_fan_sensors_rsa, e);
 		snmp_bc_discover_controls(handle, snmp_bc_fan_controls_rsa, e);
 		snmp_bc_discover_inventories(handle, snmp_bc_fan_inventories_rsa, e);
-		
+
+		/* ---------------------------------------- */
+		/* Construct .event of struct oh_event      */	
+		/* ---------------------------------------- */
+		snmp_bc_set_resource_add_oh_event(e, res_info_ptr);
+				
 		e->hid = handle->hid;
                 oh_evt_queue_push(handle->eventq, e);
 	}
