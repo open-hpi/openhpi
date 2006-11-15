@@ -140,6 +140,10 @@ protected:
                           cIpmiSdrs *sdrs );
 
 public:
+  // create watchdogs
+  virtual bool CreateWatchdogs( cIpmiDomain *domain, cIpmiMc *mc );
+
+public:
   // create SEL
   virtual bool CreateSels( cIpmiDomain *domain, cIpmiMc *source_mc, cIpmiSdrs *sdrs );
 };

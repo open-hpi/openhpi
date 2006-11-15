@@ -13,6 +13,7 @@
  * Authors:
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
  *     Pierre Sangouard  <psangouard@eso-tech.com>
+ *     Andy Cress        <arcress@users.sourceforge.net>
  */
 
 #include <netdb.h>
@@ -127,6 +128,44 @@ VerifyControlAndEnter( void *hnd, SaHpiResourceIdT rid, SaHpiCtrlNumT num,
      }
 
   return control;
+}
+
+static cIpmiWatchdog *
+VerifyWatchdogAndEnter( void *hnd, SaHpiResourceIdT rid, SaHpiWatchdogNumT num,
+                        cIpmi *&ipmi )
+{
+  ipmi = VerifyIpmi( hnd );
+
+  if ( !ipmi )
+     {
+       return 0;
+     }
+
+  ipmi->IfEnter();
+
+  SaHpiRdrT *rdr = oh_get_rdr_by_type( ipmi->GetHandler()->rptcache,
+                                       rid, SAHPI_WATCHDOG_RDR, num );
+  if ( !rdr )
+     {
+       ipmi->IfLeave();
+       return 0;
+     }
+
+  cIpmiWatchdog *watchdog = (cIpmiWatchdog *)oh_get_rdr_data( ipmi->GetHandler()->rptcache,
+                                                              rid, rdr->RecordId );
+  if ( !watchdog )
+     {
+       ipmi->IfLeave();
+       return 0;
+     }
+
+  if ( !ipmi->VerifyWatchdog( watchdog ) )
+     {
+       ipmi->IfLeave();
+       return 0;
+     }
+
+  return watchdog;
 }
 
 static cIpmiInventory *
@@ -1471,6 +1510,68 @@ IpmiSetResetState( void *hnd,
   return rv;
 }
 
+static SaErrorT
+IpmiGetWatchdogInfo(void *,
+                    SaHpiResourceIdT,
+                    SaHpiWatchdogNumT,
+                    SaHpiWatchdogT *) __attribute__((used));
+
+static SaErrorT
+IpmiGetWatchdogInfo(void *hnd,
+                    SaHpiResourceIdT  id,
+                    SaHpiWatchdogNumT num,
+                    SaHpiWatchdogT    *watchdog)
+{
+  cIpmi *ipmi = 0;
+  cIpmiWatchdog *wd = VerifyWatchdogAndEnter( hnd, id, num, ipmi );
+  if ( !wd ) return SA_ERR_HPI_NOT_PRESENT;
+
+  SaErrorT rv = wd->GetWatchdogInfo( *watchdog );
+  ipmi->IfLeave();
+  return rv; 
+}
+
+static SaErrorT
+IpmiSetWatchdogInfo(void *,
+                    SaHpiResourceIdT,
+                    SaHpiWatchdogNumT,
+                    SaHpiWatchdogT *) __attribute__((used));
+
+static SaErrorT
+IpmiSetWatchdogInfo(void *hnd,
+                    SaHpiResourceIdT  id,
+                    SaHpiWatchdogNumT num,
+                    SaHpiWatchdogT    *watchdog)
+{
+  cIpmi *ipmi = 0;
+  cIpmiWatchdog *wd = VerifyWatchdogAndEnter( hnd, id, num, ipmi );
+  if ( !wd ) return SA_ERR_HPI_NOT_PRESENT;
+
+  SaErrorT rv = wd->SetWatchdogInfo( *watchdog );
+  ipmi->IfLeave();
+  return rv; 
+}
+
+static SaErrorT
+IpmiResetWatchdog(void *,
+                  SaHpiResourceIdT,
+                  SaHpiWatchdogNumT) __attribute__((used));
+
+static SaErrorT
+IpmiResetWatchdog(void *hnd,
+                  SaHpiResourceIdT  id,
+                  SaHpiWatchdogNumT num)
+{
+  cIpmi *ipmi = 0;
+  cIpmiWatchdog *wd = VerifyWatchdogAndEnter( hnd, id, num, ipmi );
+  if ( !wd ) return SA_ERR_HPI_NOT_PRESENT;
+
+  SaErrorT rv = wd->ResetWatchdog();
+  ipmi->IfLeave();
+  return rv; 
+}
+
+
 } // new plugin_loader
 
 extern "C" {
@@ -1638,6 +1739,14 @@ void * oh_get_reset_state (void *, SaHpiResourceIdT, SaHpiResetActionT *)
 void * oh_set_reset_state (void *, SaHpiResourceIdT, SaHpiResetActionT)
                 __attribute__ ((weak, alias("IpmiSetResetState")));
 
+void * oh_get_watchdog_info (void *, SaHpiResourceIdT, SaHpiWatchdogNumT,
+                             SaHpiWatchdogT *)
+                __attribute__ ((weak, alias("IpmiGetWatchdogInfo")));
+void * oh_set_watchdog_info (void *, SaHpiResourceIdT, SaHpiWatchdogNumT,
+                             SaHpiWatchdogT *)
+                __attribute__ ((weak, alias("IpmiSetWatchdogInfo")));
+void * oh_reset_watchdog (void *, SaHpiResourceIdT , SaHpiWatchdogNumT )
+                __attribute__ ((weak, alias("IpmiResetWatchdog")));
 }
 
 

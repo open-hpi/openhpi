@@ -60,6 +60,10 @@ extern "C" {
 #include "ipmi_control.h"
 #endif
 
+#ifndef dIpmiWatchdog_h
+#include "ipmi_watchdog.h"
+#endif
+
 #ifndef dIpmiDiscover_h
 #include "ipmi_discover.h"
 #endif
@@ -225,6 +229,7 @@ public:
   cIpmiRdr       *VerifyRdr( cIpmiRdr *rdr );
   cIpmiSensor    *VerifySensor( cIpmiSensor *s );
   cIpmiControl   *VerifyControl( cIpmiControl *c );
+  cIpmiWatchdog  *VerifyWatchdog( cIpmiWatchdog *c );
   cIpmiInventory *VerifyInventory( cIpmiInventory *i );
 
   virtual void AddHpiEvent( oh_event *event ) = 0;
