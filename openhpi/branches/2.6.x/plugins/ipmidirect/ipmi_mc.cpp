@@ -19,6 +19,7 @@
  * Authors:
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
  *     Pierre Sangouard  <psangouard@eso-tech.com>
+ *     Andy Cress        <arcress@user.sourceforge.net>
  */
 
 #include <stdio.h>
@@ -228,7 +229,8 @@ cIpmiMc::HandleNew()
 
   m_active = true;
 
-  if ( m_provides_device_sdrs )
+  /* fix for SdrRep also - ARCress 09/21/06 */
+  if ( m_provides_device_sdrs ||  m_sdr_repository_support  )
      {
        rv = m_sdrs->Fetch();
 
@@ -264,10 +266,11 @@ cIpmiMc::HandleNew()
 
        m_sel->m_fetched = false;
 
-       rv = m_sel->ClearSel();
-
-       if ( rv != SA_OK )
-            return rv;
+       if (IsAtcaBoard()) {   /* ARCress */
+           rv = m_sel->ClearSel();
+           if ( rv != SA_OK )
+               return rv;
+       }
 
        // read old events
        GList *list = m_sel->GetEvents();
@@ -286,12 +289,14 @@ cIpmiMc::HandleNew()
        if ( er )
             event_rcvr = er->GetAddress();
      }
-  else if ( m_sel_device_support )
+  else if ( m_sel_device_support && m_provides_device_sdrs) {  
        // If it is an SEL device and not an event receiver, then
-       // set it's event receiver to itself.
-       event_rcvr = GetAddress();
+       // may want to set its event receiver to itself.
+       event_rcvr = GetAddress();   
+       stdlog << "New mc, event_rcvr " << GetAddress() << "\n";
+  }
 
-  if ( event_rcvr )
+  if ( event_rcvr && IsAtcaBoard())  
      {
        // This is a re-arm of all sensors of the MC
        // => each sensor sends the pending events again.
@@ -322,7 +327,7 @@ cIpmiMc::DeviceDataCompares( const cIpmiMsg &rsp ) const
        return false;
     
   if ( m_provides_device_sdrs != ((rsp_data[2] & 0x80) == 0x80) )
-       return false;
+       ;   /* dont  return false;   ARCress */
 
   if ( m_device_available != ((rsp_data[3] & 0x80) == 0x80) )
        return false;

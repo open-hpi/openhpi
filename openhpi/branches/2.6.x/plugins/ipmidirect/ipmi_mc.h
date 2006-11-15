@@ -178,6 +178,7 @@ public:
   }
 
   bool ProvidesDeviceSdrs() const { return m_provides_device_sdrs; }
+  void SetProvidesDeviceSdrs(bool val) { m_provides_device_sdrs = val; }
 
   bool &SdrRepositorySupport() { return m_sdr_repository_support; }
   bool SelDeviceSupport() const { return m_sel_device_support; }
