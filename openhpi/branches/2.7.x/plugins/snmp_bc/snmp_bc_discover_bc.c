@@ -887,7 +887,6 @@ SaErrorT snmp_bc_discover_chassis(struct oh_handler_state *handle,
 		return(SA_ERR_HPI_INTERNAL_ERROR);
 	}
 
-
 	/* ---------------------------------------- */
 	/* Construct .resource of struct oh_event   */
 	/* ---------------------------------------- */	
@@ -2055,7 +2054,7 @@ SaErrorT snmp_bc_rediscover(struct oh_handler_state *handle,
 			case SAHPI_ENT_SBC_BLADE: 
 			case SAHPI_ENT_FAN: 
 			case SAHPI_ENT_POWER_SUPPLY: 
-			case SAHPI_ENT_INTERCONNECT: 
+			case SAHPI_ENT_SWITCH: 
 			case SAHPI_ENT_SYS_MGMNT_MODULE:
 			case SAHPI_ENT_PERIPHERAL_BAY:
 				foundit = SAHPI_TRUE;
@@ -2118,7 +2117,7 @@ SaErrorT snmp_bc_rediscover(struct oh_handler_state *handle,
 					get_installed_mask(SNMP_BC_PM_INSTALLED, get_value);
 					strcpy(custom_handle->installed_pm_mask, get_value.string);
 					break;
-				case SAHPI_ENT_INTERCONNECT:
+				case SAHPI_ENT_SWITCH:
 				/* Fetch switch installed vector */
 					get_installed_mask(SNMP_BC_SM_INSTALLED, get_value);
 					strcpy(custom_handle->installed_sm_mask, get_value.string);
@@ -2193,7 +2192,7 @@ SaErrorT snmp_bc_rediscover(struct oh_handler_state *handle,
 				}								
 				strcpy(custom_handle->installed_pm_mask, get_value.string);
 				break;
-			case SAHPI_ENT_INTERCONNECT:
+			case SAHPI_ENT_SWITCH:
 				/* Fetch switch installed vector */
 				// get_installed_mask(SNMP_BC_SWITCH_VECTOR, get_value);
 				get_installed_mask(SNMP_BC_SM_INSTALLED, get_value);
@@ -2313,7 +2312,7 @@ SaErrorT snmp_bc_discover_all_slots(struct oh_handler_state *handle,
 	}
 								
 	for (i = 0; i < custom_handle->max_sm_supported; i++) {
-		err = snmp_bc_discover_slot(handle, ep_root, BLADECENTER_INTERCONNECT_SLOT,i);
+		err = snmp_bc_discover_slot(handle, ep_root, BLADECENTER_SWITCH_SLOT,i);
 	}
 								
 	for (i = 0; i < custom_handle->max_mm_supported; i++) {
@@ -2388,9 +2387,9 @@ SaErrorT snmp_bc_discover_slot( struct oh_handler_state *handle,
 			comment = SNMP_BC_PHYSICAL_SLOT;
 			break;
 			
-		case BLADECENTER_INTERCONNECT_SLOT:
-			e->resource.ResourceEntity.Entry[0].EntityType = BLADECENTER_INTERCONNECT_SLOT;
-			comment = SNMP_BC_INTERCONNECT_SLOT;
+		case BLADECENTER_SWITCH_SLOT:
+			e->resource.ResourceEntity.Entry[0].EntityType = BLADECENTER_SWITCH_SLOT;
+			comment = SNMP_BC_SWITCH_SLOT;
 			break;
 			
 		case BLADECENTER_POWER_SUPPLY_SLOT:
@@ -2668,9 +2667,9 @@ SaErrorT snmp_bc_construct_sm_rpt(struct oh_event *e,
 	e->resource = snmp_bc_rpt_array[BC_RPT_ENTRY_SWITCH_MODULE].rpt;
 	oh_concat_ep(&(e->resource.ResourceEntity), ep_root);
 	oh_set_ep_location(&(e->resource.ResourceEntity),
-		   BLADECENTER_INTERCONNECT_SLOT, sm_index + SNMP_BC_HPI_LOCATION_BASE);
+		   BLADECENTER_SWITCH_SLOT, sm_index + SNMP_BC_HPI_LOCATION_BASE);
 	oh_set_ep_location(&(e->resource.ResourceEntity),
-			   SAHPI_ENT_INTERCONNECT, sm_index + SNMP_BC_HPI_LOCATION_BASE);
+			   SAHPI_ENT_SWITCH, sm_index + SNMP_BC_HPI_LOCATION_BASE);
 	e->resource.ResourceId = 
 		oh_uid_from_entity_path(&(e->resource.ResourceEntity));
 	snmp_bc_create_resourcetag(&(e->resource.ResourceTag),

@@ -196,7 +196,7 @@ SaErrorT snmp_bc_extract_slot_ep(SaHpiEntityPathT *resource_ep, SaHpiEntityPathT
 
 	for (i = 0; i < SAHPI_MAX_ENTITY_PATH ; i++) {
 		if (	(resource_ep->Entry[i].EntityType == SAHPI_ENT_PHYSICAL_SLOT) ||
-			(resource_ep->Entry[i].EntityType == BLADECENTER_INTERCONNECT_SLOT) ||
+			(resource_ep->Entry[i].EntityType == BLADECENTER_SWITCH_SLOT) ||
 			(resource_ep->Entry[i].EntityType == BLADECENTER_POWER_SUPPLY_SLOT) ||
 			(resource_ep->Entry[i].EntityType == BLADECENTER_PERIPHERAL_BAY_SLOT) ||
 			(resource_ep->Entry[i].EntityType == BLADECENTER_SYS_MGMNT_MODULE_SLOT) ||

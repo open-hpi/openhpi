@@ -15,46 +15,11 @@
  *      Steve Sherman <stevees@us.ibm.com>
  */
 
-/**************************************************************************
+/*************************************************************************
  * This header file stubs resource and RDR static infomation that are used
- * in constructing RPTs and RDRs for IBM's BladeCenter, BladeCenter T, and
+ * in constructing RPTs and RDRs for IBM  BladeCenter chassis and 
  * RSA (Integrated and separate adapter models).
- *
- * BladeCenter has the following entity hierarchy:
- *
- *  {CHASSIS,X}
- *      |
- *      +-- {SYS_MGMNT_MODULE,[1-2]}    (Management Module)
- *      |
- *      +-- {INTERCONNECT,[1-4]}        (I/O Module)
- *      |
- *      +-- {SBC_BLADE,[1-14]}          (Blade)
- *      |   |
- *      |   +-- {EXPANSION_CARD,[1-14]} (Blade expansion modules (BEMs) (e.g. BSE))
- *      |       |
- *      |       +-- {DISK_DRIVE,[1-3]}  (Blade expansion module DASD)
- *      |
- *      +-- {PERIPHERAL_BAY,1}          (Media Tray)
- *      |
- *      +-- {POWER_SUPPLY,[1-4]}        (Power Module)
- *      |
- *      +-- {FAN,[1-2]}                 (Blower Module)
- *
- * BladeCenter T has the same hierarchy and number of devices except:
- *
- *   - BCT supports 4 blower modules (instead of 2)
- *   - BCT supports 8 blades (instead of 14)
- *
- * The RSA Integrated model has the following entity hierarchy:
- *
- *  {CHASSIS,X}
- *      |
- *      +-- {PROCESSOR,[1-8]} (CPUs)
- *      |
- *      +-- {DISK_BAY,[1-4]}  (DASDs)
- *      |
- *      +-- {FAN,[1-8]}       (Fans)
- *
+ * 
  * Differences between the models are discovered dynamically by this
  * plugin at run-time during resource discovery.
  *************************************************************************/
@@ -109,7 +74,13 @@ typedef enum {
         BC_RPT_ENTRY_BLOWER_MODULE,
         BC_RPT_ENTRY_POWER_MODULE,
 	BC_RPT_ENTRY_PHYSICAL_SLOT,
-	BC_RPT_ENTRY_BEM_DASD
+	BC_RPT_ENTRY_BEM_DASD,
+	BC_RPT_ENTRY_ALARM_PANEL,
+	BC_RPT_ENTRY_MUX_MODULE,
+	BC_RPT_ENTRY_CLOCK_MODULE,
+	BC_RPT_ENTRY_AIR_FILTER,
+	BC_RPT_ENTRY_INTERPOSER_SWITCH,
+	BC_RPT_ENTRY_INTERPOSER_MM
 } BCRptEntryT;
 
 
@@ -138,20 +109,20 @@ typedef enum {
 #define BC_EL_MAX_SIZE 768 /* 512 */
 
 /* OIDs definitions for Blade Center Chassis Topology */
-#define SNMP_BC_NOS_FP_SUPPORTED  ".1.3.6.1.4.1.2.3.51.2.22.4.18.0" /* mmblade.mib - chassisNoOfFPsSupported, FanPack */
-#define SNMP_BC_NOS_PB_SUPPORTED  ".1.3.6.1.4.1.2.3.51.2.22.4.19.0" /* mmblade.mib - chassisNoOfPBsSupported, ProcessorBlade */
-#define SNMP_BC_NOS_SM_SUPPORTED  ".1.3.6.1.4.1.2.3.51.2.22.4.20.0" /* mmblade.mib - chassisNoOfSMsSupported, SwitchModule */
-#define SNMP_BC_NOS_MM_SUPPORTED  ".1.3.6.1.4.1.2.3.51.2.22.4.21.0" /* mmblade.mib - chassisNoOfMMsSupported, ManagementModule */
-#define SNMP_BC_NOS_PM_SUPPORTED  ".1.3.6.1.4.1.2.3.51.2.22.4.22.0" /* mmblade.mib - chassisNoOfPMsSupported, PowerModule */
-#define SNMP_BC_NOS_MT_SUPPORTED  ".1.3.6.1.4.1.2.3.51.2.22.4.23.0" /* mmblade.mib - chassisNoOfMTsSupported, MediaTray */
-#define SNMP_BC_NOS_BLOWER_SUPPORTED ".1.3.6.1.4.1.2.3.51.2.22.4.24.0" 	/* mmblade.mib - chassisNoOfBlowersSupported, Blower */
-#define SNMP_BC_PB_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.25.0" 	/* mmblade.mib - chassisPBsInstalled, ProcessorBlade */
-#define SNMP_BC_SM_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.29.0" 	/* mmblade.mib - chassisSMsInstalled, SwitchModule */
-#define SNMP_BC_MM_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.30.0" 	/* mmblade.mib - chassisMMsInstalled, ManagementModule */
-#define SNMP_BC_PM_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.31.0" 	/* mmblade.mib - chassisPMsInstalled, PowerModule */
-#define SNMP_BC_MT_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.32.0" 	/* mmblade.mib - chassisMTInstalled, MediaTray */
-#define SNMP_BC_BLOWER_INSTALLED ".1.3.6.1.4.1.2.3.51.2.22.4.33.0" 	/* mmblade.mib - chassisBlowersInstalled, Blower */
-#define SNMP_BC_FP_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.37.0" 	/* mmblade.mib - chassisFPsinstalled, FanPack */
+#define SNMP_BC_NOS_FP_SUPPORTED  ".1.3.6.1.4.1.2.3.51.2.22.4.18.0" /* chassisNoOfFPsSupported, FanPack */
+#define SNMP_BC_NOS_PB_SUPPORTED  ".1.3.6.1.4.1.2.3.51.2.22.4.19.0" /* chassisNoOfPBsSupported, ProcessorBlade */
+#define SNMP_BC_NOS_SM_SUPPORTED  ".1.3.6.1.4.1.2.3.51.2.22.4.20.0" /* chassisNoOfSMsSupported, SwitchModule */
+#define SNMP_BC_NOS_MM_SUPPORTED  ".1.3.6.1.4.1.2.3.51.2.22.4.21.0" /* chassisNoOfMMsSupported, ManagementModule */
+#define SNMP_BC_NOS_PM_SUPPORTED  ".1.3.6.1.4.1.2.3.51.2.22.4.22.0" /* chassisNoOfPMsSupported, PowerModule */
+#define SNMP_BC_NOS_MT_SUPPORTED  ".1.3.6.1.4.1.2.3.51.2.22.4.23.0" /* chassisNoOfMTsSupported, MediaTray */
+#define SNMP_BC_NOS_BLOWER_SUPPORTED ".1.3.6.1.4.1.2.3.51.2.22.4.24.0" 	/* chassisNoOfBlowersSupported, Blower */
+#define SNMP_BC_PB_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.25.0" 	/* chassisPBsInstalled, ProcessorBlade */
+#define SNMP_BC_SM_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.29.0" 	/* chassisSMsInstalled, SwitchModule */
+#define SNMP_BC_MM_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.30.0" 	/* chassisMMsInstalled, ManagementModule */
+#define SNMP_BC_PM_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.31.0" 	/* chassisPMsInstalled, PowerModule */
+#define SNMP_BC_MT_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.32.0" 	/* chassisMTInstalled, MediaTray */
+#define SNMP_BC_BLOWER_INSTALLED ".1.3.6.1.4.1.2.3.51.2.22.4.33.0" 	/* chassisBlowersInstalled, Blower */
+#define SNMP_BC_FP_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.37.0" 	/* chassisFPsinstalled, FanPack */
 
 /* OID definitions for discovering resources.*/
 #if 0
@@ -189,11 +160,14 @@ typedef enum {
 
 /* Slot ResourceTag */
 #define SNMP_BC_PHYSICAL_SLOT  	      "Blade Slot"
-#define SNMP_BC_INTERCONNECT_SLOT     "I/O Module Slot"
+#define SNMP_BC_SWITCH_SLOT           "I/O Module Slot"
 #define SNMP_BC_POWER_SUPPLY_SLOT     "Power Module Slot"
 #define SNMP_BC_PERIPHERAL_BAY_SLOT   "Media Tray Slot"
 #define SNMP_BC_SYS_MGMNT_MODULE_SLOT "Management Module Slot"
 #define SNMP_BC_BLOWER_SLOT 	      "Blower Slot"
+#define SNMP_BC_ALARM_PANEL_SLOT      "Alarm Panel Slot"
+#define SNMP_BC_MUX_SLOT              "Multiplexer Expansion Module Slot"
+#define SNMP_BC_CLOCK_SLOT            "Network Clock Module Slot"
 
 /* Slot Power OIDs  */
 #define SNMP_BC_PD1POWERCURRENT ".1.3.6.1.4.1.2.3.51.2.2.10.2.1.1.7" /* pd1ModuleAllocatedPowerCurrent */
@@ -224,18 +198,12 @@ struct ResourceMibInfo {
         const char *OidPowerState;
         const char *OidPowerOnOff;
 	const char *OidUuid;
-	const char *OidResourceWidth;	/* Oid specifying how many physical slots   */
-					/* this resource occupies. In a BladeCenter */
-					/* it is meaningful for blades.             */
-					/* Other resources, (e.g. I/O Modules)      */
-					/* only take one slot.                      */ 
+	const char *OidResourceWidth; /* OID specifying how many physical slots a blade occupies */
 };
 
 /* SNMP_BC_MAX_RESOURCE_EVENT_ARRAY_SIZE includes an ending NULL entry */
 #define SNMP_BC_MAX_EVENTS_PER_RESOURCE 10
 #define SNMP_BC_MAX_RESOURCE_EVENT_ARRAY_SIZE (SNMP_BC_MAX_EVENTS_PER_RESOURCE + 1)
-
-
 
 /* For BladeCenter resources, some managed hot swap state events
   (e.g. INSERTION_PENDING and EXTRACTION_PENDING) are automatically generated.
@@ -378,6 +346,10 @@ extern struct snmp_bc_sensor      snmp_bc_power_sensors[];
 extern struct snmp_bc_sensor      snmp_bc_power_sensors_bch[];
 extern struct snmp_bc_sensor      snmp_bc_switch_sensors[];
 extern struct snmp_bc_sensor      snmp_bc_slot_sensors[];
+extern struct snmp_bc_sensor      snmp_bc_alarm_sensors[];
+extern struct snmp_bc_sensor      snmp_bc_mux_sensors[];
+extern struct snmp_bc_sensor      snmp_bc_clock_sensors[];
+extern struct snmp_bc_sensor      snmp_bc_filter_sensors[];
 
 extern struct snmp_bc_sensor      snmp_bc_chassis_sensors_rsa[];
 extern struct snmp_bc_sensor      snmp_bc_cpu_sensors_rsa[];
@@ -430,6 +402,10 @@ extern struct snmp_bc_control snmp_bc_power_controls[];
 extern struct snmp_bc_control snmp_bc_switch_controls[];
 extern struct snmp_bc_control snmp_bc_slot_controls[];
 extern struct snmp_bc_control snmp_bc_bem_dasd_controls[];
+extern struct snmp_bc_control snmp_bc_alarm_controls[];
+extern struct snmp_bc_control snmp_bc_mux_controls[];
+extern struct snmp_bc_control snmp_bc_clock_controls[];
+extern struct snmp_bc_control snmp_bc_filter_controls[];
 
 extern struct snmp_bc_control snmp_bc_chassis_controls_rsa[];
 extern struct snmp_bc_control snmp_bc_cpu_controls_rsa[];
@@ -481,6 +457,12 @@ extern struct snmp_bc_inventory snmp_bc_mediatray2_inventories[];
 extern struct snmp_bc_inventory snmp_bc_power_inventories[];
 extern struct snmp_bc_inventory snmp_bc_slot_inventories[];
 extern struct snmp_bc_inventory snmp_bc_bem_dasd_inventories[];
+extern struct snmp_bc_inventory snmp_bc_alarm_inventories[];
+extern struct snmp_bc_inventory snmp_bc_mux_inventories[];
+extern struct snmp_bc_inventory snmp_bc_clock_inventories[];
+extern struct snmp_bc_inventory snmp_bc_filter_inventories[];
+extern struct snmp_bc_inventory snmp_bc_interposer_switch_inventories[];
+extern struct snmp_bc_inventory snmp_bc_interposer_mm_inventories[];
 
 extern struct snmp_bc_inventory snmp_bc_chassis_inventories_rsa[];
 extern struct snmp_bc_inventory snmp_bc_cpu_inventories_rsa[];

@@ -1965,7 +1965,7 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 			usepowerdomain1;			
 			break;
 			
-		case BLADECENTER_INTERCONNECT_SLOT:
+		case BLADECENTER_SWITCH_SLOT:
 			if (custom_handle->platform == SNMP_BC_PLATFORM_BCT)  
 			{
 				 switch (slotnum) {

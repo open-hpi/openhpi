@@ -226,11 +226,11 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                         .ResourceEntity = {
                                 .Entry[0] =
                                 {
-                                        .EntityType = SAHPI_ENT_INTERCONNECT,
+                                        .EntityType = SAHPI_ENT_SWITCH,
                                         .EntityLocation = SNMP_BC_HPI_LOCATION_BASE,
                                 },
                                 {
-                                        .EntityType = BLADECENTER_INTERCONNECT_SLOT,
+                                        .EntityType = BLADECENTER_SWITCH_SLOT,
                                         .EntityLocation = SNMP_BC_HPI_LOCATION_BASE,
                                 },
                                 {
@@ -523,7 +523,7 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                 },
                 .comment = "Media Tray",
         },
-        /* Media Tray 2*/
+        /* Media Tray 2 */
         {
                 .rpt = {
                         .ResourceInfo = {
@@ -743,7 +743,6 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                 },
                 .comment = "Slot",
         },
-
         /* BEM DASD */
         {
                 .rpt = {
@@ -808,6 +807,294 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                 },
                 .comment = "BEM DASD",
         },
+        /* Alarm Panel */
+        {
+                .rpt = {
+                        .ResourceInfo = {
+                                .ManufacturerId = IBM_MANUFACTURING_ID,
+                        },
+                        .ResourceEntity = {
+                                .Entry[0] =
+                                {
+                                        .EntityType = SAHPI_ENT_DISPLAY_PANEL,
+                                        .EntityLocation = SNMP_BC_HPI_LOCATION_BASE,
+                                },
+                                {
+                                        .EntityType = BLADECENTER_ALARM_PANEL_SLOT,
+                                        .EntityLocation = SNMP_BC_HPI_LOCATION_BASE,
+                                },
+                                {
+                                        .EntityType = SAHPI_ENT_ROOT,
+                                        .EntityLocation = 0,
+                                }
+                         },
+                        .ResourceCapabilities = SAHPI_CAPABILITY_FRU |
+                                                SAHPI_CAPABILITY_INVENTORY_DATA |
+                                                SAHPI_CAPABILITY_RDR |
+                                                SAHPI_CAPABILITY_RESOURCE,
+/* FIXME:: SAHPI_CAPABILITY_SENSOR, */
+                        .ResourceSeverity = SAHPI_MAJOR,
+			.ResourceFailed = SAHPI_FALSE,
+                },
+                .res_info = {
+                        .mib = {
+                                .OidHealth = '\0', /* FIXME::*/
+                                .HealthyValue = 0,
+                                .OidReset = '\0',
+                                .OidPowerState = '\0',
+                                .OidPowerOnOff = '\0',
+				.OidUuid = '\0', /* FIXME::*/
+				.OidResourceWidth = '\0',
+                        },
+  			.cur_state = SAHPI_HS_STATE_ACTIVE,
+			.prev_state = SAHPI_HS_STATE_ACTIVE,
+                        .event_array = {
+                                {
+					/* FIXME: */
+                                },
+                                {},
+                        },
+                },
+                .comment = "Alarm Panel",
+        },
+        /* Multiplexer Expansion Module */
+        {
+                .rpt = {
+                        .ResourceInfo = {
+                                .ManufacturerId = IBM_MANUFACTURING_ID,
+                        },
+                        .ResourceEntity = {
+                                .Entry[0] =
+                                {
+                                        .EntityType = SAHPI_ENT_OTHER_CHASSIS_BOARD,
+                                        .EntityLocation = SNMP_BC_HPI_LOCATION_BASE,
+                                },
+                                {
+                                        .EntityType = BLADECENTER_MUX_SLOT,
+                                        .EntityLocation = SNMP_BC_HPI_LOCATION_BASE,
+                                },
+                                {
+                                        .EntityType = SAHPI_ENT_ROOT,
+                                        .EntityLocation = 0,
+                                }
+                         },
+                        .ResourceCapabilities = SAHPI_CAPABILITY_FRU |
+                                                SAHPI_CAPABILITY_INVENTORY_DATA |
+                                                SAHPI_CAPABILITY_RDR |
+                                                SAHPI_CAPABILITY_RESOURCE,
+/* FIXME: | SAHPI_CAPABILITY_SENSOR, */
+                        .ResourceSeverity = SAHPI_MAJOR,
+			.ResourceFailed = SAHPI_FALSE,
+                },
+                .res_info = {
+                        .mib = {
+                                .OidHealth = '\0', /* FIXME:: */
+                                .HealthyValue = 0,
+                                .OidReset = '\0',
+                                .OidPowerState = '\0',
+                                .OidPowerOnOff = '\0',
+				.OidUuid = '\0', /* FIXME::*/
+				.OidResourceWidth = '\0',
+                        },
+  			.cur_state = SAHPI_HS_STATE_ACTIVE,
+			.prev_state = SAHPI_HS_STATE_ACTIVE,
+                        .event_array = {
+                                {
+					/* FIXME:: */	
+                                },
+                                {},
+                        },
+                },
+                .comment = "Multiplexer Expansion Module",
+        },
+        /* Network Clock Module */
+        {
+                .rpt = {
+                        .ResourceInfo = {
+                                .ManufacturerId = IBM_MANUFACTURING_ID,
+                        },
+                        .ResourceEntity = {
+                                .Entry[0] =
+                                {
+					/* FIXME:: SAHPI_ENT_CLOCK */
+                                        .EntityType = SAHPI_ENT_BATTERY + 13, 
+                                        .EntityLocation = SNMP_BC_HPI_LOCATION_BASE,
+                                },
+                                {
+                                        .EntityType = BLADECENTER_CLOCK_SLOT,
+                                        .EntityLocation = SNMP_BC_HPI_LOCATION_BASE,
+                                },
+                                {
+                                        .EntityType = SAHPI_ENT_ROOT,
+                                        .EntityLocation = 0,
+                                }
+                         },
+                        .ResourceCapabilities = SAHPI_CAPABILITY_FRU |
+                                                SAHPI_CAPABILITY_INVENTORY_DATA |
+                                                SAHPI_CAPABILITY_RDR |
+                                                SAHPI_CAPABILITY_RESOURCE,
+/* FIXME:: | SAHPI_CAPABILITY_SENSOR, */
+                        .ResourceSeverity = SAHPI_MAJOR,
+			.ResourceFailed = SAHPI_FALSE,
+                },
+                .res_info = {
+                        .mib = {
+                                .OidHealth = '\0', /* FIXME::*/
+                                .HealthyValue = 0,
+                                .OidReset = '\0',
+                                .OidPowerState = '\0',
+                                .OidPowerOnOff = '\0',
+				.OidUuid = '\0', /* FIXME:: */
+				.OidResourceWidth = '\0',
+                        },
+  			.cur_state = SAHPI_HS_STATE_ACTIVE,
+			.prev_state = SAHPI_HS_STATE_ACTIVE,
+                        .event_array = {
+                                {
+					/* FIXME:: */
+                                },
+                                {},
+                        },
+                },
+                .comment = "Network Clock Module",
+        },
+        /* Air Filter */
+        {
+                .rpt = {
+                        .ResourceInfo = {
+                                .ManufacturerId = IBM_MANUFACTURING_ID,
+                        },
+                        .ResourceEntity = {
+                                .Entry[0] =
+                                {
+					/* FIXME:: SAHPI_ENT_FILTRATION_UNIT */
+                                        .EntityType = SAHPI_ENT_PHYSICAL_SLOT + 16,
+                                        .EntityLocation = SNMP_BC_HPI_LOCATION_BASE,
+                                },
+                                {
+                                        .EntityType = SAHPI_ENT_ROOT,
+                                        .EntityLocation = 0,
+                                }
+                         },
+                        .ResourceCapabilities = SAHPI_CAPABILITY_FRU |
+			                        SAHPI_CAPABILITY_RDR |
+			                        SAHPI_CAPABILITY_RESOURCE,
+/* FIXME:: | SAHPI_CAPABILITY_SENSOR, */
+                        .ResourceSeverity = SAHPI_MAJOR,
+			.ResourceFailed = SAHPI_FALSE,
+                },
+                .res_info = {
+                        .mib = {
+                                .OidHealth = '\0',
+                                .HealthyValue = 0,
+                                .OidReset = '\0',
+                                .OidPowerState = '\0',
+                                .OidPowerOnOff = '\0',
+				.OidUuid = '\0',
+				.OidResourceWidth = '\0',
+                        },
+  			.cur_state = SAHPI_HS_STATE_ACTIVE,
+			.prev_state = SAHPI_HS_STATE_ACTIVE,
+                        .event_array = {
+                                {
+					/* FIXME:: */
+                                },
+                                {},
+                        },
+                },
+                .comment = "Air Filter",
+        },
+        /* Switch Interposer */
+        {
+                .rpt = {
+                        .ResourceInfo = {
+                                .ManufacturerId = IBM_MANUFACTURING_ID,
+                        },
+                        .ResourceEntity = {
+                                .Entry[0] =
+                                {
+                                        .EntityType = SAHPI_ENT_INTERCONNECT,
+                                        .EntityLocation = SNMP_BC_HPI_LOCATION_BASE,
+                                },
+                                {
+                                        .EntityType = BLADECENTER_SWITCH_SLOT,
+                                        .EntityLocation = SNMP_BC_HPI_LOCATION_BASE,
+                                },
+                                {
+                                        .EntityType = SAHPI_ENT_ROOT,
+                                        .EntityLocation = 0,
+                                }
+                         },
+                        .ResourceCapabilities = SAHPI_CAPABILITY_INVENTORY_DATA |
+                                                SAHPI_CAPABILITY_RDR |
+                                                SAHPI_CAPABILITY_RESOURCE,
+                        .ResourceSeverity = SAHPI_MAJOR,
+			.ResourceFailed = SAHPI_FALSE,
+                },
+                .res_info = {
+                        .mib = {
+                                .OidHealth = '\0',
+                                .HealthyValue = 0,
+                                .OidReset = '\0',
+                                .OidPowerState = '\0',
+                                .OidPowerOnOff = '\0',
+				.OidUuid = '\0',
+				.OidResourceWidth = '\0',
+                        },
+  			.cur_state = SAHPI_HS_STATE_ACTIVE,
+			.prev_state = SAHPI_HS_STATE_ACTIVE,
+                        .event_array = {
+                                {},
+                        },
+                },
+                .comment = "Switch Interposer",
+        },
+        /* Management Module Interposer */
+        {
+                .rpt = {
+                        .ResourceInfo = {
+                                .ManufacturerId = IBM_MANUFACTURING_ID,
+                        },
+                        .ResourceEntity = {
+                                .Entry[0] =
+                                {
+                                        .EntityType = SAHPI_ENT_INTERCONNECT,
+                                        .EntityLocation = SNMP_BC_HPI_LOCATION_BASE,
+                                },
+                                {
+                                        .EntityType = BLADECENTER_SYS_MGMNT_MODULE_SLOT,
+                                        .EntityLocation = SNMP_BC_HPI_LOCATION_BASE,
+                                },
+                                {
+                                        .EntityType = SAHPI_ENT_ROOT,
+                                        .EntityLocation = 0,
+                                }
+                         },
+                        .ResourceCapabilities = SAHPI_CAPABILITY_INVENTORY_DATA |
+                                                SAHPI_CAPABILITY_RDR |
+                                                SAHPI_CAPABILITY_RESOURCE,
+                        .ResourceSeverity = SAHPI_MAJOR,
+			.ResourceFailed = SAHPI_FALSE,
+                },
+                .res_info = {
+                        .mib = {
+                                .OidHealth = '\0',
+                                .HealthyValue = 0,
+                                .OidReset = '\0',
+                                .OidPowerState = '\0',
+                                .OidPowerOnOff = '\0',
+				.OidUuid = '\0',
+				.OidResourceWidth = '\0',
+                        },
+  			.cur_state = SAHPI_HS_STATE_ACTIVE,
+			.prev_state = SAHPI_HS_STATE_ACTIVE,
+                        .event_array = {
+                                {},
+                        },
+                },
+                .comment = "Management Module Interposer",
+        },
+
         {} /* Terminate array with a null element */
 };
 
@@ -11081,6 +11368,38 @@ struct snmp_bc_sensor snmp_bc_slot_sensors[] = {
         {} /* Terminate array with a null element */
 };
 
+/*********************
+ * Alarm Panel Sensors
+ *********************/
+struct snmp_bc_sensor snmp_bc_alarm_sensors[] = {
+
+        {} /* Terminate array with a null element */
+};
+
+/**************************************
+ * Multiplexer Expansion Module Sensors
+ **************************************/
+struct snmp_bc_sensor snmp_bc_mux_sensors[] = {
+
+        {} /* Terminate array with a null element */
+};
+
+/******************************
+ * Network Clock Module Sensors
+ ******************************/
+struct snmp_bc_sensor snmp_bc_clock_sensors[] = {
+
+        {} /* Terminate array with a null element */
+};
+
+/********************
+ * Air Filter Sensors
+ ********************/
+struct snmp_bc_sensor snmp_bc_filter_sensors[] = {
+
+        {} /* Terminate array with a null element */
+};
+
 /*************************************************************************
  *                   Control Definitions
  *************************************************************************/
@@ -11346,6 +11665,38 @@ struct snmp_bc_control snmp_bc_slot_controls[] = {
  *******************/
 
 struct snmp_bc_control snmp_bc_bem_dasd_controls[] = {
+
+        {} /* Terminate array with a null element */
+};
+
+/**********************
+ * Alarm Panel Controls
+ **********************/
+struct snmp_bc_control snmp_bc_alarm_controls[] = {
+
+        {} /* Terminate array with a null element */
+};
+
+/***************************************
+ * Multiplexer Expansion Module Controls
+ ***************************************/
+struct snmp_bc_control snmp_bc_mux_controls[] = {
+
+        {} /* Terminate array with a null element */
+};
+
+/*******************************
+ * Network Clock Module Controls
+ *******************************/
+struct snmp_bc_control snmp_bc_clock_controls[] = {
+
+        {} /* Terminate array with a null element */
+};
+
+/*********************
+ * Air Filter Controls
+ *********************/
+struct snmp_bc_control snmp_bc_filter_controls[] = {
 
         {} /* Terminate array with a null element */
 };
@@ -11635,4 +11986,50 @@ struct snmp_bc_inventory snmp_bc_bem_dasd_inventories[] = {
         {} /* Terminate array with a null element */
 };
 
+/*****************
+ * Alarm Panel VPD
+ *****************/
+struct snmp_bc_inventory snmp_bc_alarm_inventories[] = {
 
+        {} /* Terminate array with a null element */
+};
+
+/**********************************
+ * Multiplexer Expansion Module VPD
+ **********************************/
+struct snmp_bc_inventory snmp_bc_mux_inventories[] = {
+
+        {} /* Terminate array with a null element */
+};
+
+/**************************
+ * Network Clock Module VPD
+ **************************/
+struct snmp_bc_inventory snmp_bc_clock_inventories[] = {
+
+        {} /* Terminate array with a null element */
+};
+
+/****************
+ * Air Filter VPD
+ ****************/
+struct snmp_bc_inventory snmp_bc_filter_inventories[] = {
+
+        {} /* Terminate array with a null element */
+};
+
+/***********************
+ * Switch Interposer VPD
+ ***********************/
+struct snmp_bc_inventory snmp_bc_interposer_switch_inventories[] = {
+
+        {} /* Terminate array with a null element */
+};
+
+/*******************
+ * MM Interposer VPD
+ *******************/
+struct snmp_bc_inventory snmp_bc_interposer_mm_inventories[] = {
+
+        {} /* Terminate array with a null element */
+};
