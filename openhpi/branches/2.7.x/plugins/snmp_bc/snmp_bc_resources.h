@@ -40,15 +40,15 @@
 #define SNMP_BC_MAX_OID_LENGTH 50
 
 /* OIDs to determine platform types */
-#define SNMP_BC_CHASSIS_TYPE_OID     ".1.3.6.1.4.1.2.3.51.2.22.4.38.0"
-#define SNMP_BC_CHASSIS_SUBTYPE_OID  ".1.3.6.1.4.1.2.3.51.2.22.4.39.0"
+#define SNMP_BC_CHASSIS_TYPE_OID     ".1.3.6.1.4.1.2.3.51.2.22.4.38.0"  /* chassisType    */
+#define SNMP_BC_CHASSIS_SUBTYPE_OID  ".1.3.6.1.4.1.2.3.51.2.22.4.39.0"  /* chassisSubtype */
 #define SNMP_BC_CHASSIS_TYPE_BC      97
 #define SNMP_BC_CHASSIS_TYPE_BCT     98
 #define SNMP_BC_CHASSIS_SUBTYPE_ORIG 0   
 #define SNMP_BC_CHASSIS_SUBTYPE_H    2
 /* Original models don't have chassis type/subtype OIDs - just health OIDs */
-#define SNMP_BC_PLATFORM_OID_BC      ".1.3.6.1.4.1.2.3.51.2.2.7.1.0" /* BC System Health */
-#define SNMP_BC_PLATFORM_OID_BCT     ".1.3.6.1.4.1.2.3.51.2.2.9.1.0" /* BCT System Health */
+#define SNMP_BC_PLATFORM_OID_BC      ".1.3.6.1.4.1.2.3.51.2.2.7.1.0" /* systemHealthStat, BC System Health */
+#define SNMP_BC_PLATFORM_OID_BCT     ".1.3.6.1.4.1.2.3.51.2.2.9.1.0" /* telcoSystemHealthStat, BCT System Health */
 #define SNMP_BC_PLATFORM_OID_RSA     ".1.3.6.1.4.1.2.3.51.1.2.7.1.0" /* RSA System Health */
 
 /* Run-time variables to distinguish platform types */
@@ -116,6 +116,11 @@ typedef enum {
 #define SNMP_BC_NOS_PM_SUPPORTED  ".1.3.6.1.4.1.2.3.51.2.22.4.22.0" /* chassisNoOfPMsSupported, PowerModule */
 #define SNMP_BC_NOS_MT_SUPPORTED  ".1.3.6.1.4.1.2.3.51.2.22.4.23.0" /* chassisNoOfMTsSupported, MediaTray */
 #define SNMP_BC_NOS_BLOWER_SUPPORTED ".1.3.6.1.4.1.2.3.51.2.22.4.24.0" 	/* chassisNoOfBlowersSupported, Blower */
+#define SNMP_BC_NOS_AP_SUPPORTED  ".1.3.6.1.4.1.2.3.51.2.22.4.41.0" /* chassisNoOfAPsSupported, AlarmPanel */
+#define SNMP_BC_NOS_NC_SUPPORTED  ".1.3.6.1.4.1.2.3.51.2.22.4.42.0" /* chassisNoOfNCsSupported, NetworkClock Card */
+#define SNMP_BC_NOS_MX_SUPPORTED  ".1.3.6.1.4.1.2.3.51.2.22.4.43.0" /* chassisNoOfMXsSupported, Muiltiplexer Expansion Mod */
+#define SNMP_BC_NOS_SMI_SUPPORTED ".1.3.6.1.4.1.2.3.51.2.22.4.45.0" /* chassisNoOfSMIsSupported, Interposer */
+
 #define SNMP_BC_PB_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.25.0" 	/* chassisPBsInstalled, ProcessorBlade */
 #define SNMP_BC_SM_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.29.0" 	/* chassisSMsInstalled, SwitchModule */
 #define SNMP_BC_MM_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.30.0" 	/* chassisMMsInstalled, ManagementModule */
@@ -123,22 +128,16 @@ typedef enum {
 #define SNMP_BC_MT_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.32.0" 	/* chassisMTInstalled, MediaTray */
 #define SNMP_BC_BLOWER_INSTALLED ".1.3.6.1.4.1.2.3.51.2.22.4.33.0" 	/* chassisBlowersInstalled, Blower */
 #define SNMP_BC_FP_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.37.0" 	/* chassisFPsinstalled, FanPack */
+#define SNMP_BC_AP_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.47.0" /* chassisNoOfAPsInstalled, AlarmPanel */
+#define SNMP_BC_NC_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.48.0" /* chassisNoOfNCsInstalled, NetworkClock Card */
+#define SNMP_BC_MX_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.49.0" /* chassisNoOfMXsInstalled, Muiltiplexer Expansion Mod */
+#define SNMP_BC_SMI_INSTALLED ".1.3.6.1.4.1.2.3.51.2.22.4.51.0" /* chassisNoOfSMIsInstalled, Interposer */
 
-/* OID definitions for discovering resources.*/
-#if 0
-#define SNMP_BC_BLADE_VECTOR            ".1.3.6.1.4.1.2.3.51.2.22.4.25.0"
-#define SNMP_BC_BLOWER_VECTOR           ".1.3.6.1.4.1.2.3.51.2.22.4.33.0"
-#define SNMP_BC_MEDIA_TRAY_EXISTS       ".1.3.6.1.4.1.2.3.51.2.22.4.32.0"
-#define SNMP_BC_MGMNT_VECTOR            ".1.3.6.1.4.1.2.3.51.2.22.4.30.0"
-#define SNMP_BC_POWER_VECTOR            ".1.3.6.1.4.1.2.3.51.2.22.4.31.0"
-#define SNMP_BC_SWITCH_VECTOR           ".1.3.6.1.4.1.2.3.51.2.22.4.29.0"
-#endif
-
-#define SNMP_BC_BLADE_EXPANSION_VECTOR  ".1.3.6.1.4.1.2.3.51.2.22.1.5.1.1.14.x"
+#define SNMP_BC_BLADE_EXPANSION_VECTOR  ".1.3.6.1.4.1.2.3.51.2.22.1.5.1.1.14.x" /* bladeServerExpansion */
 #define SNMP_BC_BLADE_EXP_BLADE_BAY	".1.3.6.1.4.1.2.3.51.2.2.21.4.3.1.19.x" /* bladeExpBoardVpdBladeBayNumber */
 #define SNMP_BC_BLADE_EXP_TYPE		".1.3.6.1.4.1.2.3.51.2.2.21.4.3.1.20.x" /* bladeExpBoardVpdCardType */
 #define SNMP_BC_MGMNT_ACTIVE            ".1.3.6.1.4.1.2.3.51.2.22.4.34.0" 	/* chassisActiveMM */
-#define SNMP_BC_DST                     ".1.3.6.1.4.1.2.3.51.2.4.4.2.0"
+#define SNMP_BC_DST                     ".1.3.6.1.4.1.2.3.51.2.4.4.2.0"         /* spClockTimezoneSetting */
 
 #define SNMP_BC_DST_RSA                 ".1.3.6.1.4.1.2.3.51.1.4.4.2.0"
 #define SNMP_BC_CPU_OID_RSA             ".1.3.6.1.4.1.2.3.51.1.2.20.1.5.1.1.3.x"
@@ -146,17 +145,17 @@ typedef enum {
 #define SNMP_BC_FAN_OID_RSA             ".1.3.6.1.4.1.2.3.51.1.2.3.x.0"
 
 /* OID definitions for System Event Log */
-#define SNMP_BC_DATETIME_OID            ".1.3.6.1.4.1.2.3.51.2.4.4.1.0"
-#define SNMP_BC_DATETIME_OID_RSA        ".1.3.6.1.4.1.2.3.51.1.4.4.1.0"
-#define SNMP_BC_SEL_INDEX_OID           ".1.3.6.1.4.1.2.3.51.2.3.4.2.1.1"
+#define SNMP_BC_DATETIME_OID            ".1.3.6.1.4.1.2.3.51.2.4.4.1.0"    /* spClockDateAndTimeSetting */
+#define SNMP_BC_DATETIME_OID_RSA        ".1.3.6.1.4.1.2.3.51.1.4.4.1.0"    
+#define SNMP_BC_SEL_INDEX_OID           ".1.3.6.1.4.1.2.3.51.2.3.4.2.1.1"  /* readEventLogIndex */
 #define SNMP_BC_SEL_INDEX_OID_RSA       ".1.3.6.1.4.1.2.3.51.1.3.4.2.1.1"
-#define SNMP_BC_SEL_ENTRY_OID           ".1.3.6.1.4.1.2.3.51.2.3.4.2.1.2"
+#define SNMP_BC_SEL_ENTRY_OID           ".1.3.6.1.4.1.2.3.51.2.3.4.2.1.2"  /* readEventLogString */
 #define SNMP_BC_SEL_ENTRY_OID_RSA       ".1.3.6.1.4.1.2.3.51.1.3.4.2.1.2"
-#define SNMP_BC_SEL_CLEAR_OID           ".1.3.6.1.4.1.2.3.51.2.3.4.3.0"
+#define SNMP_BC_SEL_CLEAR_OID           ".1.3.6.1.4.1.2.3.51.2.3.4.3.0"    /* clearEventLog */
 #define SNMP_BC_SEL_CLEAR_OID_RSA       ".1.3.6.1.4.1.2.3.51.1.3.4.3.0"
 
 /* mmHeathState OID */
-#define SNMP_BC_MM_HEALTH_OID           ".1.3.6.1.4.1.2.3.51.2.22.5.1.1.5.1"
+#define SNMP_BC_MM_HEALTH_OID           ".1.3.6.1.4.1.2.3.51.2.22.5.1.1.5.1" /* mmHealthState */
 
 /* Slot ResourceTag */
 #define SNMP_BC_PHYSICAL_SLOT  	      "Blade Slot"
