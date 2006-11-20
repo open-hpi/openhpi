@@ -60,8 +60,6 @@
 #define SNMP_BC_PLATFORM_ALL   0xFFFF
 
 /* Resource indexes to snmp_rpt array in discovery */
-#define BCT_RPT_ENTRY_CHASSIS 0
-
 typedef enum {
         BC_RPT_ENTRY_CHASSIS = 0,
 	BC_RPT_ENTRY_VIRTUAL_MGMNT_MODULE,
@@ -193,8 +191,6 @@ typedef enum {
  **********************/
 
 struct ResourceMibInfo {
-        const char *OidHealth;
-        int   HealthyValue;
         const char *OidReset;
         const char *OidPowerState;
         const char *OidPowerOnOff;
@@ -235,7 +231,6 @@ struct snmp_rpt {
 };
 
 extern struct snmp_rpt snmp_bc_rpt_array[];
-extern struct snmp_rpt snmp_bc_rpt_array_bct[];
 extern struct snmp_rpt snmp_bc_rpt_array_rsa[];
 
 /********************

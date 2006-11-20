@@ -20,52 +20,6 @@
 /**************************************************************************
  *                        Resource Definitions
  **************************************************************************/
-
-/* BCT has different OID for System Health */
-struct snmp_rpt snmp_bc_rpt_array_bct[] = {
-        /* BladeCenter Chassis */
-        {
-                .rpt = {
-                        .ResourceInfo = {
-                                .ManufacturerId = IBM_MANUFACTURING_ID,
-                        },
-                        .ResourceEntity = {
-                                .Entry[0] =
-                                {
-                                        .EntityType = SAHPI_ENT_ROOT,
-                                        .EntityLocation = 0,
-                                }
-                        },
-                        .ResourceCapabilities = SAHPI_CAPABILITY_CONTROL |
-                                                SAHPI_CAPABILITY_INVENTORY_DATA |
-                                                SAHPI_CAPABILITY_RDR |
-                                                SAHPI_CAPABILITY_RESOURCE |
-                                                SAHPI_CAPABILITY_SENSOR,
-                        .ResourceSeverity = SAHPI_CRITICAL,
-			.ResourceFailed = SAHPI_FALSE,
-                },
-                .res_info = {
-                        .mib = {
-                                .OidHealth = ".1.3.6.1.4.1.2.3.51.2.2.9.1.0",
-                                .HealthyValue = 255,
-                                .OidReset = '\0',
-                                .OidPowerState = '\0',
-                                .OidPowerOnOff = '\0',
-				.OidUuid = ".1.3.6.1.4.1.2.3.51.2.2.21.1.1.4.0",
-				.OidResourceWidth = '\0',
-                        },
-			.cur_state = 0,
-			.prev_state = 0,
-                        .event_array = {
-                                {},
-                        },
-                },
-                .comment = "BladeCenter Chassis",
-        },
-
-        {} /* Terminate array with a null element */	
-};
-
 struct snmp_rpt snmp_bc_rpt_array[] = {
         /* BladeCenter Chassis */
         {
@@ -90,8 +44,6 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                 },
                 .res_info = {
                         .mib = {
-                                .OidHealth = ".1.3.6.1.4.1.2.3.51.2.2.7.1.0",
-                                .HealthyValue = 255,
                                 .OidReset = '\0',
                                 .OidPowerState = '\0',
                                 .OidPowerOnOff = '\0',
@@ -134,8 +86,6 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                 },
                 .res_info = {
                         .mib = {
-                                .OidHealth = '\0',
-                                .HealthyValue = 0,
                                 .OidReset = '\0',
                                 .OidPowerState = '\0',
                                 .OidPowerOnOff = '\0',
@@ -183,8 +133,6 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                 },
                 .res_info = {
                         .mib = {
-                                .OidHealth = '\0',
-                                .HealthyValue = 0,
                                 .OidReset = ".1.3.6.1.4.1.2.3.51.2.7.4.0",
                                 .OidPowerState = '\0',
                                 .OidPowerOnOff = '\0',
@@ -257,8 +205,6 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                                 .OidPowerState = ".1.3.6.1.4.1.2.3.51.2.22.3.1.1.1.7.x",
                                 .OidPowerOnOff = ".1.3.6.1.4.1.2.3.51.2.22.3.1.1.1.7.x",
 				 */			
-                                .OidHealth = '\0',
-                                .HealthyValue = 0,
                                 .OidReset = ".1.3.6.1.4.1.2.3.51.2.22.3.1.7.1.8.x",
                                 .OidPowerState = ".1.3.6.1.4.1.2.3.51.2.22.3.2.1.1.1.1.4.x", /* smCurrentIPInfoPowerState */
                                 .OidPowerOnOff = ".1.3.6.1.4.1.2.3.51.2.22.3.1.7.1.7.x",     /* switchModulePowerOnOff */
@@ -345,8 +291,6 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                 },
                 .res_info = {
                         .mib = {
-                                .OidHealth = ".1.3.6.1.4.1.2.3.51.2.22.1.5.1.1.5.x",
-                                .HealthyValue = 1,
                                 .OidReset = ".1.3.6.1.4.1.2.3.51.2.22.1.6.1.1.8.x",
                                 .OidPowerState = ".1.3.6.1.4.1.2.3.51.2.22.1.6.1.1.4.x",
                                 .OidPowerOnOff = ".1.3.6.1.4.1.2.3.51.2.22.1.6.1.1.7.x",
@@ -451,8 +395,6 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                 },
                 .res_info = {
                         .mib = {
-                                .OidHealth = '\0',
-                                .HealthyValue = 0,
                                 .OidReset = '\0',
                                 .OidPowerState = '\0',
                                 .OidPowerOnOff = '\0',
@@ -498,8 +440,6 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                 },
                 .res_info = {
                         .mib = {
-                                .OidHealth = '\0',
-                                .HealthyValue = 0,
                                 .OidReset = '\0',
                                 .OidPowerState = '\0',
                                 .OidPowerOnOff = '\0',
@@ -554,8 +494,6 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                 },
                 .res_info = {
                         .mib = {
-                                .OidHealth = '\0',
-                                .HealthyValue = 0,
                                 .OidReset = '\0',
                                 .OidPowerState = '\0',
                                 .OidPowerOnOff = '\0',
@@ -610,8 +548,6 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                  },
                 .res_info = {
                         .mib = {
-                                .OidHealth = '\0',
-                                .HealthyValue = 0,
                                 .OidReset = '\0',
                                 .OidPowerState = '\0',
                                 .OidPowerOnOff = '\0',
@@ -666,8 +602,6 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                  },
                 .res_info = {
                         .mib = {
-                                .OidHealth = '\0',
-                                .HealthyValue = 0,
                                 .OidReset = '\0',
                                 .OidPowerState = '\0',
                                 .OidPowerOnOff = '\0',
@@ -727,8 +661,6 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                  },
                 .res_info = {
                         .mib = {
-                                .OidHealth = '\0',
-                                .HealthyValue = 0,
                                 .OidReset = '\0',
                                 .OidPowerState = '\0',
                                 .OidPowerOnOff = '\0',
@@ -781,8 +713,6 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                 },
                 .res_info = {
                         .mib = {
-                                .OidHealth = '\0',
-                                .HealthyValue = 0,
                                 .OidReset = '\0',
                                 .OidPowerState = '\0',
                                 .OidPowerOnOff = '\0',
@@ -838,12 +768,10 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                 },
                 .res_info = {
                         .mib = {
-                                .OidHealth = '\0', /* FIXME::*/
-                                .HealthyValue = 0,
                                 .OidReset = '\0',
                                 .OidPowerState = '\0',
                                 .OidPowerOnOff = '\0',
-				.OidUuid = '\0', /* FIXME::*/
+				.OidUuid = ".1.3.6.1.4.1.2.3.51.2.2.21.15.8", /* tapHardwareVpdUuid */
 				.OidResourceWidth = '\0',
                         },
   			.cur_state = SAHPI_HS_STATE_ACTIVE,
@@ -888,12 +816,10 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                 },
                 .res_info = {
                         .mib = {
-                                .OidHealth = '\0', /* FIXME:: */
-                                .HealthyValue = 0,
                                 .OidReset = '\0',
                                 .OidPowerState = '\0',
                                 .OidPowerOnOff = '\0',
-				.OidUuid = '\0', /* FIXME::*/
+				.OidUuid = ".1.3.6.1.4.1.2.3.51.2.2.21.17.1.1.8", /* mxHardwareVpdUuid */
 				.OidResourceWidth = '\0',
                         },
   			.cur_state = SAHPI_HS_STATE_ACTIVE,
@@ -939,12 +865,10 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                 },
                 .res_info = {
                         .mib = {
-                                .OidHealth = '\0', /* FIXME::*/
-                                .HealthyValue = 0,
                                 .OidReset = '\0',
                                 .OidPowerState = '\0',
                                 .OidPowerOnOff = '\0',
-				.OidUuid = '\0', /* FIXME:: */
+				.OidUuid = ".1.3.6.1.4.1.2.3.51.2.2.21.16.1.1.8", /* ncHardwareVpdUuid */
 				.OidResourceWidth = '\0',
                         },
   			.cur_state = SAHPI_HS_STATE_ACTIVE,
@@ -985,8 +909,6 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                 },
                 .res_info = {
                         .mib = {
-                                .OidHealth = '\0',
-                                .HealthyValue = 0,
                                 .OidReset = '\0',
                                 .OidPowerState = '\0',
                                 .OidPowerOnOff = '\0',
@@ -1033,12 +955,10 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                 },
                 .res_info = {
                         .mib = {
-                                .OidHealth = '\0',
-                                .HealthyValue = 0,
                                 .OidReset = '\0',
                                 .OidPowerState = '\0',
                                 .OidPowerOnOff = '\0',
-				.OidUuid = '\0',
+				.OidUuid = ".1.3.6.1.4.1.2.3.51.2.2.21.6.2.1.8", /* smInpHardwareVpdUuid */
 				.OidResourceWidth = '\0',
                         },
   			.cur_state = SAHPI_HS_STATE_ACTIVE,
@@ -1078,12 +998,10 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                 },
                 .res_info = {
                         .mib = {
-                                .OidHealth = '\0',
-                                .HealthyValue = 0,
                                 .OidReset = '\0',
                                 .OidPowerState = '\0',
                                 .OidPowerOnOff = '\0',
-				.OidUuid = '\0',
+				.OidUuid = ".1.3.6.1.4.1.2.3.51.2.2.21.2.2.1.6", /* mmInpHardwareVpdUuid */
 				.OidResourceWidth = '\0',
                         },
   			.cur_state = SAHPI_HS_STATE_ACTIVE,
