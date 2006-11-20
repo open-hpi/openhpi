@@ -116,6 +116,7 @@ typedef enum {
 #define SNMP_BC_NOS_PM_SUPPORTED  ".1.3.6.1.4.1.2.3.51.2.22.4.22.0" /* chassisNoOfPMsSupported, PowerModule */
 #define SNMP_BC_NOS_MT_SUPPORTED  ".1.3.6.1.4.1.2.3.51.2.22.4.23.0" /* chassisNoOfMTsSupported, MediaTray */
 #define SNMP_BC_NOS_BLOWER_SUPPORTED ".1.3.6.1.4.1.2.3.51.2.22.4.24.0" 	/* chassisNoOfBlowersSupported, Blower */
+#define SNMP_BC_NOS_FILTER_SUPPORTED ".1.3.6.1.4.1.2.3.51.2.22.4.40.0"  /* chassisNoOfFBsSupported, Front Bezel */
 #define SNMP_BC_NOS_AP_SUPPORTED  ".1.3.6.1.4.1.2.3.51.2.22.4.41.0" /* chassisNoOfAPsSupported, AlarmPanel */
 #define SNMP_BC_NOS_NC_SUPPORTED  ".1.3.6.1.4.1.2.3.51.2.22.4.42.0" /* chassisNoOfNCsSupported, NetworkClock Card */
 #define SNMP_BC_NOS_MX_SUPPORTED  ".1.3.6.1.4.1.2.3.51.2.22.4.43.0" /* chassisNoOfMXsSupported, Muiltiplexer Expansion Mod */
@@ -128,6 +129,7 @@ typedef enum {
 #define SNMP_BC_MT_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.32.0" 	/* chassisMTInstalled, MediaTray */
 #define SNMP_BC_BLOWER_INSTALLED ".1.3.6.1.4.1.2.3.51.2.22.4.33.0" 	/* chassisBlowersInstalled, Blower */
 #define SNMP_BC_FP_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.37.0" 	/* chassisFPsinstalled, FanPack */
+#define SNMP_BC_FILTER_INSTALLED ".1.3.6.1.4.1.2.3.51.2.22.4.46.0"      /* chassisNoOfFBsInstalled, FrontBezel (Filter) */
 #define SNMP_BC_AP_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.47.0" /* chassisNoOfAPsInstalled, AlarmPanel */
 #define SNMP_BC_NC_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.48.0" /* chassisNoOfNCsInstalled, NetworkClock Card */
 #define SNMP_BC_MX_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.49.0" /* chassisNoOfMXsInstalled, Muiltiplexer Expansion Mod */
