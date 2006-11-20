@@ -875,18 +875,8 @@ SaErrorT snmp_bc_discover_chassis(struct oh_handler_state *handle,
 		dbg("Out of memory.");
 		return(SA_ERR_HPI_OUT_OF_SPACE);
 	}
-
-	if ( (custom_handle->platform == SNMP_BC_PLATFORM_BCT)  || 
-		 (custom_handle->platform == SNMP_BC_PLATFORM_BCHT) ){
-		e->resource = snmp_bc_rpt_array_bct[BCT_RPT_ENTRY_CHASSIS].rpt;
-	} else if ( (custom_handle->platform == SNMP_BC_PLATFORM_BC)  || 
-		 (custom_handle->platform == SNMP_BC_PLATFORM_BCH) ){
-		e->resource = snmp_bc_rpt_array[BC_RPT_ENTRY_CHASSIS].rpt;	
-	} else {
-		dbg("Invalid BladeCenter Platform set in custom_handle->platform.\n");
-		return(SA_ERR_HPI_INTERNAL_ERROR);
-	}
-
+	e->resource = snmp_bc_rpt_array[BC_RPT_ENTRY_CHASSIS].rpt;
+	
 	/* ---------------------------------------- */
 	/* Construct .resource of struct oh_event   */
 	/* ---------------------------------------- */	
