@@ -34,10 +34,6 @@
 
 cIpmiSensorHotswap::cIpmiSensorHotswap( cIpmiMc *mc )
   : cIpmiSensorDiscrete( mc )
-#ifdef FAKE_ECN_BEHAVIOR
-  ,m_deactivation_locked( 1 ),
-  m_fake_deactivation_locked( false )
-#endif
 {
 }
 
@@ -52,11 +48,6 @@ cIpmiSensorHotswap::GetDataFromSdr( cIpmiMc *mc, cIpmiSdr *sdr )
 {
   if ( !cIpmiSensorDiscrete::GetDataFromSdr( mc, sdr ) )
        return false;
-
-#ifdef FAKE_ECN_BEHAVIOR
-  if ( mc->IsNotEcn() )
-      m_fake_deactivation_locked = true;
-#endif
 
   return true;
 }
@@ -162,13 +153,6 @@ cIpmiSensorHotswap::CreateEvent( cIpmiEvent *event, SaHpiEventT &h )
   if (he.HotSwapState == he.PreviousHotSwapState)
       return SA_ERR_HPI_DUPLICATE;
 
-#ifdef FAKE_ECN_BEHAVIOR
-  if (he.HotSwapState == SAHPI_HS_STATE_ACTIVE)
-      m_deactivation_locked = 1;
-  else
-      m_deactivation_locked = 0;
-#endif
-
   return SA_OK;
 }
 
@@ -223,11 +207,5 @@ cIpmiSensorHotswap::GetState( SaHpiHsStateT &state )
 
   state = ConvertIpmiToHpiHotswapState( fs );
 
-#ifdef FAKE_ECN_BEHAVIOR
-  if (( state == SAHPI_HS_STATE_ACTIVE )
-      && ( m_fake_deactivation_locked )
-      && ( m_deactivation_locked == 0 ))
-                state = SAHPI_HS_STATE_EXTRACTION_PENDING;
-#endif
   return SA_OK;
 }

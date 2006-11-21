@@ -21,6 +21,9 @@
 #include "ipmi_domain.h" 
 // #include <errno.h>
 
+#define  HSC_SA    0xc0  /*slave address of HSC mc*/
+int g_enableHSC = 0;     /* flag to detect whether an HSC is present */
+
 /*---------------------------------------
  *  cIpmiMcVendorIntelBmc object 
  *---------------------------------------*/
@@ -38,16 +41,8 @@ cIpmiMcVendorIntelBmc::~cIpmiMcVendorIntelBmc()
 bool
 cIpmiMcVendorIntelBmc::InitMc( cIpmiMc *mc, const cIpmiMsg &devid )
 {
-  stdlog << "Intel BMC Init[" << mc->ManufacturerId() << "," 
-         << mc->ProductId() << "]: Setting DevSdrs=0\n"; 
-  /* 
-   * If here, the MC has (manuf_id == 0x000157) Intel, and  
-   * product_id == one of these: { 0x000C, 0x001B, 0x0022, 0x4311, 
-   *			           0x0100, 0x0026, 0x0028, 0x0811 }; 
-   * These return GetDeviceID with ProvidesDeviceSdrs() == true, and
-   * use the SDR Repository. 
-   */
-  mc->SetProvidesDeviceSdrs(false); 
+  stdlog << "Intel InitMc[" << mc->ManufacturerId() << "," 
+         << mc->ProductId() << "]: addr = " << mc->GetAddress() << "\n"; 
 
   /* Set the m_busid for Leds */
   switch(mc->ProductId())
@@ -58,9 +53,24 @@ cIpmiMcVendorIntelBmc::InitMc( cIpmiMc *mc, const cIpmiMsg &devid )
      case 0x0026:
      case 0x0028:
      case 0x0811: m_busid = PRIVATE_BUS_ID7; break;   /*TIGW1U*/
+     case 0x0900:   /*TIGPR2U HSC*/
+     case 0x0911:   /*TIGI2U HSC*/
+     case 0x0A0C:   /*TIGW1U HSC*/
      default: 
               m_busid = PRIVATE_BUS_ID; break;  
   }
+
+  if (mc->IsAtcaBoard()) return true;
+  /* 
+   * If here, the MC has (manuf_id == 0x000157) Intel, and  
+   * product_id == one of these: { 0x000C, 0x001B, 0x0022, 0x4311, 
+   *			           0x0100, 0x0026, 0x0028, 0x0811 }; 
+   * These return GetDeviceID with ProvidesDeviceSdrs() == true, and
+   * use the SDR Repository. 
+   */
+  mc->SetProvidesDeviceSdrs(false);
+  mc->IsRmsBoard() = true;
+
   /*
    * The FRUSDR should be set at the factory, so don't change it here.
    * Don't clear the SEL here either. 
@@ -69,38 +79,45 @@ cIpmiMcVendorIntelBmc::InitMc( cIpmiMc *mc, const cIpmiMsg &devid )
 }
 
 
-
 bool
-cIpmiMcVendorIntelBmc::CreateControls(cIpmiDomain *dom,  cIpmiMc * mc,
+cIpmiMcVendorIntelBmc::CreateControls(cIpmiDomain *dom,  cIpmiMc * mc, 
                                          cIpmiSdrs * sdrs )
 {
   const char *name;
   char dstr[80];
   int i;
 
-  // find resource
-  cIpmiResource *res  = mc->GetResource( 0 );
-  if (!res) { return false; }
-  /* Note that the RPT has not been Populated yet */
+  if (mc->IsAtcaBoard()) return true;
 
-  /* Create the alarm LED rdrs */
-  for (i = 0; i <= LED_IDENT; i++) 
+  for ( int j = 0; j < mc->NumResources(); j++ )
   {
-      cIpmiControlLed *led = new cIpmiControlLed( mc, i);
-      led->EntityPath() = res->EntityPath();
-      switch (i) { 
-         case LED_POWER:  name = "Power Alarm LED"; break;
-         case LED_CRIT:  name = "Critical Alarm LED"; break;
-         case LED_MAJOR:  name = "Major Alarm LED"; break;
-         case LED_MINOR:  name = "Minor Alarm LED"; break;
-         case LED_IDENT:  name = "Chassis Identify LED"; break;
-         default: snprintf(dstr,sizeof(dstr),"Control LED %d",i);
-                  name = dstr;  
-                  break;
+    cIpmiResource *res  = mc->GetResource( j );
+    if ( res == 0 ) continue;
+    /* Note that the RPT has not been Populated yet */
+
+    if (res->FruId() == 0) 
+    {
+      /* Create the alarm LED RDRs for the baseboard */
+      for (i = 0; i <= LED_IDENT; i++) 
+      {
+        cIpmiControlLed *led = new cIpmiControlLed( mc, i);
+        led->EntityPath() = res->EntityPath();
+        switch (i) { 
+           case LED_POWER:  name = "Power Alarm LED"; break;
+           case LED_CRIT:  name = "Critical Alarm LED"; break;
+           case LED_MAJOR:  name = "Major Alarm LED"; break;
+           case LED_MINOR:  name = "Minor Alarm LED"; break;
+           case LED_IDENT:  name = "Chassis Identify LED"; break;
+           default: snprintf(dstr,sizeof(dstr),"Control LED %d",i);
+                    name = dstr;  
+                    break;
+        }
+        led->IdString().SetAscii(name, SAHPI_TL_TYPE_TEXT, SAHPI_LANG_ENGLISH);
+        res->AddRdr( led );
+        led->m_busid = m_busid;
       }
-      led->IdString().SetAscii( name, SAHPI_TL_TYPE_TEXT, SAHPI_LANG_ENGLISH );
-      res->AddRdr( led );
-      led->m_busid = m_busid;
+      break;
+    }
   }
 
   return true;
@@ -115,25 +132,11 @@ cIpmiMcVendorIntelBmc::ProcessSdr( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdrs *
   }
   stdlog << "Intel MC " << mc->GetAddress() << ", ProcessSdr\n";
 
-  /* 
-   * Enable Watchdog in the RPT 
-   * by checking for a Watchdog sensor
-   */
-  cIpmiResource *res  = mc->GetResource( 0 );
-  if (res) {
-     SaHpiRptEntryT *rpt = domain->FindResource( res->m_resource_id );
-     if (rpt) {
-        stdlog << "Enabling Watchdog\n";
-        rpt->ResourceCapabilities |=  SAHPI_CAPABILITY_RDR;
-        rpt->ResourceCapabilities |=  SAHPI_CAPABILITY_CONTROL;
-        rpt->ResourceCapabilities |=  SAHPI_CAPABILITY_WATCHDOG;
-     } 
-  } 
+  /* Cannot enable Watchdog here because RPT is not built yet. */
   
   /* 
-   * If the SDR DLR points to slave address 0xc0 (HSC) or 0x28 (IPMB Bridge), 
-   * this plugin makes assumptions that those devices can't support, 
-   * so use BMC instead at 0x20 for now. 
+   * Sort through the SDR DeviceLocatorRecords and handle them.
+   * e.g.: slave address 0xc0 (HSC) or 0x28 (IPMB Bridge), 
    */
   for( unsigned int i = 0; i < sdrs->NumSdrs(); i++ )
      {
@@ -143,7 +146,7 @@ cIpmiMcVendorIntelBmc::ProcessSdr( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdrs *
           {
             case eSdrTypeMcDeviceLocatorRecord:
 		 stdlog << "Intel SDR[" << i << "] Locator " << sdr->m_data[5] << "\n";
-                 // sdr->m_data[5] = 0x20; /* mc->GetAddress() == 0x20 */
+                 if (sdr->m_data[5] = HSC_SA) g_enableHSC = 1;
                  break;
 
             default:
@@ -151,6 +154,33 @@ cIpmiMcVendorIntelBmc::ProcessSdr( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdrs *
           }
      }
 
+  return true;
+}
+
+bool
+cIpmiMcVendorIntelBmc::ProcessFru( cIpmiInventory *inv, cIpmiMc *mc, unsigned int sa, SaHpiEntityTypeT type )
+{
+  stdlog << "ProcessFru: Intel MC " << sa << " enableHSC " 
+	   << g_enableHSC << "\n";
+
+  if (mc->IsAtcaBoard()) return true;
+
+  if (type == SAHPI_ENT_SYSTEM_BOARD) {
+      cIpmiResource *res  = inv->Resource();
+      stdlog << "ProcessFru: found " << inv->IdString() << 
+             " id " << res->m_resource_id << "\n"; 
+      /* RPTs are not built yet, so we can't enable RESET here */
+      /* see ipmi_resource.cpp for that. */
+  } 
+  else if ((sa != mc->GetAddress()) && (type != SAHPI_ENT_SYSTEM_BOARD)) 
+  {
+      /* g_enableHSC == 1 */
+      stdlog << "ProcessFru: " << inv->IdString() <<
+              " setting addr " << mc->GetAddress() << " to "
+                  << sa << " type " << type << "\n";
+      cIpmiAddr addr(eIpmiAddrTypeIpmb,mc->GetChannel(),0,sa);
+      inv->SetAddr(addr);
+  }
   return true;
 }
 

@@ -155,12 +155,22 @@ cIpmiResource::Create( SaHpiRptEntryT &entry )
                 info.AuxFirmwareRev   = (SaHpiUint8T)m_mc->AuxFwRevision( 0 );
             }
 
-        // Reset supported on ATCA FRUs - Don't allow it on the active ShMC
-        if ( Domain()->IsAtca()
-            && ( m_mc->GetAddress() != dIpmiBmcSlaveAddr) )
-            {
+        // Reset supported on ATCA FRUs - Don't allow it on fru #0 of the active ShMC
+        if ( m_mc->IsAtcaBoard() )
+           {
+                if (!( (m_mc->GetAddress() == dIpmiBmcSlaveAddr) && (m_fru_id == 0) ))
+                {
+                    entry.ResourceCapabilities |= SAHPI_CAPABILITY_RESET;
+                }
+           }
+        else if ( m_mc->IsRmsBoard() ) { /*Rms enabling - 11/09/06 ARCress */
+            SaHpiEntityTypeT type = cIpmiEntityPath(m_entity_path).GetEntryType(0);
+            if (type == SAHPI_ENT_SYSTEM_BOARD)  {
+               stdlog << "Enabling Reset on RMS type " << type << "\n";
                 entry.ResourceCapabilities |= SAHPI_CAPABILITY_RESET;
-            }
+                entry.ResourceCapabilities |= SAHPI_CAPABILITY_POWER;
+           }
+        }
     }
 
   entry.HotSwapCapabilities = 0;

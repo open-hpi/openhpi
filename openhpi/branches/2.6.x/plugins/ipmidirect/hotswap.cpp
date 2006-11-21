@@ -88,16 +88,6 @@ cIpmi::IfSetHotswapState( cIpmiResource *res, SaHpiHsStateT state )
   if ( state == SAHPI_HS_STATE_ACTIVE )
   {
       msg.m_data[2] = dIpmiActivateFru;
-
-#ifdef FAKE_ECN_BEHAVIOR
-      // get hotswap sensor
-      cIpmiSensorHotswap *hs = res->GetHotswapSensor();
-      if ( hs &&
-          ( hs->FakeDeactLocked() == true ))
-      {
-            hs->SetDeactLocked(1);
-      }
-#endif
   }
   else
   {
@@ -156,17 +146,6 @@ cIpmi::IfRequestHotswapAction( cIpmiResource *res,
      {
        msg.m_data[2]  = 2; // M4->M5 lock bit
        msg.m_data[3]  = 0; // clear lock bit M4->M5
-
-#ifdef FAKE_ECN_BEHAVIOR
-       // get hotswap sensor
-       cIpmiSensorHotswap *hs = res->GetHotswapSensor();
-       if ( hs &&
-           ( hs->FakeDeactLocked() == true ))
-       {
-            hs->SetDeactLocked(0);
-            return SA_OK;
-       }
-#endif
      }
 
   cIpmiMsg  rsp;
@@ -251,6 +230,24 @@ cIpmi::IfSetAutoExtractTimeout( cIpmiResource *res, SaHpiTimeoutT timeout )
 SaErrorT
 cIpmi::IfGetPowerState( cIpmiResource *res, SaHpiPowerStateT &state )
 {
+  if (res->Mc()->IsRmsBoard()) {
+     cIpmiMsg msg( eIpmiNetfnChassis, eIpmiCmdGetChassisStatus );
+     cIpmiMsg rsp;
+     msg.m_data_len = 0;
+     SaErrorT rv = res->SendCommandReadLock( msg, rsp );
+     if (rv != SA_OK) {
+        stdlog << "IfGetPowerState:  error " << rv << "\n";
+     } else if (rsp.m_data[0] != eIpmiCcOk) {
+        stdlog << "IfGetPowerState:  ccode " << rsp.m_data[0] << "\n";
+        return (SA_ERR_HPI_INVALID_DATA);
+     } else {
+        if (rsp.m_data[1] & 0x01) state = SAHPI_POWER_ON;
+        else   state = SAHPI_POWER_OFF;
+        // if ((rsp.mdata[1] & 0x1E) != 0) /*power fault*/;
+     }
+     return rv;
+  }
+
   // get power level
   cIpmiMsg msg( eIpmiNetfnPicmg, eIpmiCmdGetPowerLevel );
   cIpmiMsg rsp;
@@ -314,6 +311,24 @@ cIpmi::IfSetPowerState( cIpmiResource *res, SaHpiPowerStateT state )
 {
   SaErrorT rv;
   unsigned int power_level = 0;
+
+  if (res->Mc()->IsRmsBoard()) {
+     unsigned char power_state = 0;
+     switch (state) {
+        case SAHPI_POWER_CYCLE:  power_state = 0x02; break;
+        case SAHPI_POWER_ON:     power_state = 0x01; break;
+        case SAHPI_POWER_OFF:    power_state = 0x00; break;
+        default:  power_state = 0x02; break;
+     }
+     cIpmiMsg msg( eIpmiNetfnChassis, eIpmiCmdChassisControl );
+     msg.m_data[0]  = power_state;
+     msg.m_data_len = 1;
+     cIpmiMsg rsp;
+     rv = res->SendCommandReadLock( msg, rsp );
+     if (rv != SA_OK)
+        stdlog << "IfSetPowerState: state " << power_state << " error " << rv << "\n";
+     return rv;
+  }
 
   cIpmiMsg msg( eIpmiNetfnPicmg, eIpmiCmdGetPowerLevel );
   msg.m_data[0] = dIpmiPicMgId;
@@ -528,17 +543,20 @@ SaErrorT
 cIpmi::IfSetResetState( cIpmiResource *res, SaHpiResetActionT state )
 {
   unsigned char reset_state;
+  unsigned char chassis_state;
 
   switch( state )
      {
        case SAHPI_COLD_RESET:
             reset_state = 0x00;
+            chassis_state = 0x02;
             break;
 
        case SAHPI_WARM_RESET:
             // There is no way to know whether an ATCA FRU supports
             // warm reset -> Let's use cold reset all the time for now
             reset_state = 0x00;
+            chassis_state = 0x03; 
             break;
 
        case SAHPI_RESET_DEASSERT:
@@ -549,6 +567,17 @@ cIpmi::IfSetResetState( cIpmiResource *res, SaHpiResetActionT state )
             stdlog << "IfSetResetState: unsupported state " << state << " !\n";
             return SA_ERR_HPI_INVALID_CMD;
      }
+
+  if (res->Mc()->IsRmsBoard()) {
+     cIpmiMsg msg( eIpmiNetfnChassis, eIpmiCmdChassisControl );
+     msg.m_data[0]  = chassis_state;
+     msg.m_data_len = 1;
+     cIpmiMsg rsp;
+     SaErrorT rv = res->SendCommandReadLock( msg, rsp );
+     if (rv != SA_OK)
+        stdlog << "IfSetResetState: could not send Chassis Reset: " << rv << "\n";
+     return rv;
+  }
 
   cIpmiMsg msg( eIpmiNetfnPicmg, eIpmiCmdFruControl );
   msg.m_data[0]  = dIpmiPicMgId;
