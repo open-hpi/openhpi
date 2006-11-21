@@ -96,7 +96,7 @@ results = [True, True, True, True, True, True, False, False, True, True, True,
 
 header = """/* -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2005
+ * (C) Copyright IBM Corp. 2006
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -125,7 +125,7 @@ header = """/* -*- linux-c -*-
  **/
 int main(int argc, char **argv)
 {
-"""
+""" % sys.argv[0]
 
 footer = """
         return 0;
@@ -162,6 +162,6 @@ for e in entitypaths:
                 if results[m]: match = 'SAHPI_TRUE'
                 else: match = 'SAHPI_FALSE'
                 vals = {'e': e, 'p': p, 'm': match}
-                testfile.write((header % sys.argv[0])+(body % vals)+footer)
+                testfile.write(header+(body % vals)+footer)
                 testfile.close()
                 m += 1
