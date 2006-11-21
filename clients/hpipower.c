@@ -198,8 +198,10 @@ int main(int argc, char **argv)
                 // Blades will have the first Element of the Entity Path set to SBC_BLADE
                 EntityElement = 0;
                 HPI_POWER_DEBUG_PRINT(".");
-                if (Report.ResourceEntity.Entry[EntityElement].EntityType ==
-                    SAHPI_ENT_SBC_BLADE)
+                if ((Report.ResourceEntity.Entry[EntityElement].EntityType ==
+                    SAHPI_ENT_SBC_BLADE) ||
+                   (Report.ResourceEntity.Entry[EntityElement].EntityType ==
+                    SAHPI_ENT_SYSTEM_BOARD))
                 {
                         HPI_POWER_DEBUG_PRINT("#");
                         // We have found a Blade
