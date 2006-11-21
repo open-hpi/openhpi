@@ -100,7 +100,7 @@ cIpmiMcVendorIntelBmc::CreateControls(cIpmiDomain *dom,  cIpmiMc * mc,
       /* Create the alarm LED RDRs for the baseboard */
       for (i = 0; i <= LED_IDENT; i++) 
       {
-        cIpmiControlLed *led = new cIpmiControlLed( mc, i);
+        cIpmiControlIntelRmsLed *led = new cIpmiControlIntelRmsLed( mc, i);
         led->EntityPath() = res->EntityPath();
         switch (i) { 
            case LED_POWER:  name = "Power Alarm LED"; break;
@@ -185,21 +185,21 @@ cIpmiMcVendorIntelBmc::ProcessFru( cIpmiInventory *inv, cIpmiMc *mc, unsigned in
 }
 
 /*---------------------------------------
- *  cIpmiControlLed object 
+ *  cIpmiControlIntelRmsLed object 
  *---------------------------------------*/
 
-cIpmiControlLed::cIpmiControlLed( cIpmiMc *mc,
+cIpmiControlIntelRmsLed::cIpmiControlIntelRmsLed( cIpmiMc *mc,
                                   unsigned int num)
      : cIpmiControl( mc, num, SAHPI_CTRL_LED, SAHPI_CTRL_TYPE_DIGITAL )
 {
 }
 
-cIpmiControlLed::~cIpmiControlLed()
+cIpmiControlIntelRmsLed::~cIpmiControlIntelRmsLed()
 {
 }
 
 bool
-cIpmiControlLed::CreateRdr( SaHpiRptEntryT &resource, SaHpiRdrT &rdr )
+cIpmiControlIntelRmsLed::CreateRdr( SaHpiRptEntryT &resource, SaHpiRdrT &rdr )
 {
   int n;
   if ( cIpmiControl::CreateRdr( resource, rdr ) == false )
@@ -220,7 +220,7 @@ cIpmiControlLed::CreateRdr( SaHpiRptEntryT &resource, SaHpiRdrT &rdr )
 }
 
 SaErrorT
-cIpmiControlLed::GetState( SaHpiCtrlModeT &mode, SaHpiCtrlStateT &state )
+cIpmiControlIntelRmsLed::GetState( SaHpiCtrlModeT &mode, SaHpiCtrlStateT &state )
 {
   unsigned char mask = 0x01;
   int i;
@@ -248,7 +248,7 @@ cIpmiControlLed::GetState( SaHpiCtrlModeT &mode, SaHpiCtrlStateT &state )
 }
 
 SaErrorT
-cIpmiControlLed::SetState( const SaHpiCtrlModeT &mode, const SaHpiCtrlStateT &state )
+cIpmiControlIntelRmsLed::SetState( const SaHpiCtrlModeT &mode, const SaHpiCtrlStateT &state )
 {
   static unsigned char id_time = 20;  /*id_time = 20 seconds*/
   unsigned char mask = 0x01;
@@ -277,14 +277,14 @@ cIpmiControlLed::SetState( const SaHpiCtrlModeT &mode, const SaHpiCtrlStateT &st
 }
 
 void
-cIpmiControlLed::Dump( cIpmiLog &dump, const char *name ) const
+cIpmiControlIntelRmsLed::Dump( cIpmiLog &dump, const char *name ) const
 {
   dump.Begin( "LedControl", name );
   dump.End();
 }
 
 unsigned char
-cIpmiControlLed::GetAlarms( void )
+cIpmiControlIntelRmsLed::GetAlarms( void )
 {
   cIpmiMsg msg( eIpmiNetfnApp, eIpmiCmdMasterReadWrite );
   msg.m_data[0] = m_busid;
@@ -300,7 +300,7 @@ cIpmiControlLed::GetAlarms( void )
 }
 
 unsigned char
-cIpmiControlLed::GetAlarmsPicmg( unsigned char picmg_id, unsigned char fruid)
+cIpmiControlIntelRmsLed::GetAlarmsPicmg( unsigned char picmg_id, unsigned char fruid)
 {
   cIpmiMsg msg( eIpmiNetfnPicmg, eIpmiCmdGetFruLedState );
   cIpmiMsg rsp;
@@ -318,7 +318,7 @@ cIpmiControlLed::GetAlarmsPicmg( unsigned char picmg_id, unsigned char fruid)
 }
 
 int
-cIpmiControlLed::SetAlarmsPicmg( unsigned char picmg_id, unsigned char fruid,
+cIpmiControlIntelRmsLed::SetAlarmsPicmg( unsigned char picmg_id, unsigned char fruid,
                                  unsigned char val)
 {
   cIpmiMsg msg( eIpmiNetfnPicmg, eIpmiCmdSetFruLedState );
@@ -337,7 +337,7 @@ cIpmiControlLed::SetAlarmsPicmg( unsigned char picmg_id, unsigned char fruid,
 }
 
 int
-cIpmiControlLed::SetAlarms( unsigned char value)
+cIpmiControlIntelRmsLed::SetAlarms( unsigned char value)
 {
   cIpmiMsg msg( eIpmiNetfnApp, eIpmiCmdMasterReadWrite );
   msg.m_data[0] = m_busid;
@@ -354,7 +354,7 @@ cIpmiControlLed::SetAlarms( unsigned char value)
 }
 
 int
-cIpmiControlLed::SetIdentify( unsigned char tval)
+cIpmiControlIntelRmsLed::SetIdentify( unsigned char tval)
 {
   cIpmiMsg msg( eIpmiNetfnChassis, eIpmiCmdChassisIdentify );
   msg.m_data[0] = tval; /*num seconds*/

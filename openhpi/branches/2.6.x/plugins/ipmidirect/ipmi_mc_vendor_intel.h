@@ -47,14 +47,14 @@
 #define PICMG_GET_LED_STATE       0x08
  
 
-class cIpmiControlLed : public cIpmiControl
+class cIpmiControlIntelRmsLed : public cIpmiControl
 {
 protected:
 
 public:
-  cIpmiControlLed( cIpmiMc *mc,
+  cIpmiControlIntelRmsLed( cIpmiMc *mc,
                    unsigned int num );
-  virtual ~cIpmiControlLed();
+  virtual ~cIpmiControlIntelRmsLed();
   virtual bool CreateRdr( SaHpiRptEntryT &resource, SaHpiRdrT &rdr );
   virtual SaErrorT GetState( SaHpiCtrlModeT &mode, SaHpiCtrlStateT &state );
   virtual SaErrorT SetState( const SaHpiCtrlModeT &mode, const SaHpiCtrlStateT &state );
