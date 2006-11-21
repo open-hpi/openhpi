@@ -123,7 +123,7 @@ public:
   }
 
   // true => ATCA
-  int           m_is_atca;
+  bool           m_is_atca;
 
 public:
   bool IsAtca() { return m_is_atca; }

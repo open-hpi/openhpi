@@ -324,7 +324,8 @@ cIpmiMcThread::Discover( cIpmiMsg *get_device_id_rsp )
        return;
      }
 
-  // ATCA board: Need exact PICMG version
+  m_mc->CheckAtca();
+
   if ( m_domain->IsAtca() )
   {
       // If board is not ATCA, just give up

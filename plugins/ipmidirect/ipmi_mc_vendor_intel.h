@@ -76,6 +76,8 @@ public:
 
   virtual bool InitMc( cIpmiMc *mc, const cIpmiMsg &devid );
   bool ProcessSdr( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdrs *sdrs );
+  bool ProcessFru( cIpmiInventory *inv, cIpmiMc *mc, unsigned int sa,
+                        SaHpiEntityTypeT type);
   bool CreateControls( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdrs *sdrs );
   unsigned char m_busid;
 private:

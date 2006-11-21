@@ -49,7 +49,7 @@ cIpmiMc::cIpmiMc( cIpmiDomain *domain, const cIpmiAddr &addr )
     m_sdr_repository_support( false ), m_sensor_device_support( false ),
     m_major_fw_revision( 0 ), m_minor_fw_revision( 0 ),
     m_major_version( 0 ), m_minor_version( 0 ),
-    m_manufacturer_id( 0 ), m_product_id( 0 )
+    m_manufacturer_id( 0 ), m_product_id( 0 ), m_is_atca_board( false ), m_is_rms_board( false )
 {
   stdlog << "adding MC: " << addr.m_channel << " " << addr.m_slave_addr << "\n";
 
@@ -266,7 +266,7 @@ cIpmiMc::HandleNew()
 
        m_sel->m_fetched = false;
 
-       if (IsAtcaBoard()) {   /* ARCress */
+       if (IsAtcaBoard()) {
            rv = m_sel->ClearSel();
            if ( rv != SA_OK )
                return rv;
@@ -393,8 +393,8 @@ cIpmiMc::DeviceDataCompares( const cIpmiMsg &rsp ) const
   return true;
 }
 
-bool
-cIpmiMc::IsAtcaBoard()
+void
+cIpmiMc::CheckAtca()
 {
     cIpmiMsg msg( eIpmiNetfnPicmg, eIpmiCmdGetPicMgProperties );
     msg.m_data_len = 1;
@@ -403,7 +403,7 @@ cIpmiMc::IsAtcaBoard()
     cIpmiMsg rsp;
     SaErrorT rv;
 
-    m_is_not_ecn = true;
+    m_is_atca_board = false;
     m_picmg_major = 0;
     m_picmg_minor = 0;
 
@@ -412,7 +412,7 @@ cIpmiMc::IsAtcaBoard()
     if ( rv != SA_OK || rsp.m_data[0] || rsp.m_data[1] != dIpmiPicMgId )
     {
         stdlog << "WARNING: MC " << m_addr.m_slave_addr << " is not an ATCA board !!!\n";
-        return false;
+        return;
     }
 
     m_picmg_minor = (rsp.m_data[2] >> 4) & 0x0f;
@@ -420,23 +420,12 @@ cIpmiMc::IsAtcaBoard()
 
     if ( m_picmg_major == 2 )
     {
-        stdlog << "MC " << m_addr.m_slave_addr << " is an ATCA board, PicMg version " << (int)m_picmg_major << "." << (int)m_picmg_minor << "\n";
-
-        if  ( m_picmg_minor == 0 )
-        {
-           stdlog << "ECN is NOT implemented\n";
-        }
-        else
-        {
-            m_is_not_ecn = false;
-            stdlog << "ECN is implemented\n";
-        }
-
-        return true;
+        stdlog << "MC " << m_addr.m_slave_addr << " is an ATCA board, PICMG Extension version " << (int)m_picmg_major << "." << (int)m_picmg_minor << "\n";
+        m_is_atca_board = true;
     }
 
     stdlog << "WARNING: MC " << m_addr.m_slave_addr << " is not an ATCA board !!!\n";
-    return false;
+    return;
 }
 
 int
@@ -653,7 +642,7 @@ cIpmiMc::AtcaPowerFru( int fru_id )
      }
 
   if (    rsp.m_data_len < 3
-       || rsp.m_data[0] != eIpmiCcOk 
+       || rsp.m_data[0] != eIpmiCcOk
        || rsp.m_data[1] != dIpmiPicMgId )
      {
        stdlog << "cannot get power level: " << rsp.m_data[0] << " !\n";

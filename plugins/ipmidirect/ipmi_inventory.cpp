@@ -30,7 +30,8 @@
 cIpmiInventory::cIpmiInventory( cIpmiMc *mc, unsigned int fru_device_id )
   : cIpmiRdr( mc, SAHPI_INVENTORY_RDR ), m_fru_device_id( fru_device_id ),
     m_access( eInventoryAccessModeByte ), m_size( 0 ),
-    m_oem( 0 )
+    m_oem( 0 ),
+    m_addr(eIpmiAddrTypeIpmb, mc->GetChannel(), 0,mc->GetAddress())
 {
 }
 
@@ -39,6 +40,13 @@ cIpmiInventory::~cIpmiInventory()
 {
 }
 
+
+bool
+cIpmiInventory::SetAddr(cIpmiAddr addr)
+{
+   m_addr = addr;
+   return true;
+}
 
 SaErrorT
 cIpmiInventory::GetFruInventoryAreaInfo( unsigned int &size,
@@ -50,7 +58,7 @@ cIpmiInventory::GetFruInventoryAreaInfo( unsigned int &size,
 
   cIpmiMsg rsp;
 
-  SaErrorT rv = SendCommand( msg, rsp );
+  SaErrorT rv = Domain()->SendCommand( m_addr, msg, rsp );
 
   if ( rv != SA_OK )
      {
@@ -84,7 +92,7 @@ cIpmiInventory::ReadFruData( unsigned short offset, unsigned int num, unsigned i
 
   cIpmiMsg rsp;
 
-  SaErrorT rv = SendCommand( msg, rsp );
+  SaErrorT rv = Domain()->SendCommand( m_addr, msg, rsp );
 
   if ( rv != SA_OK )
      {
@@ -113,7 +121,6 @@ cIpmiInventory::ReadFruData( unsigned short offset, unsigned int num, unsigned i
 
   return SA_OK;
 }
-
 
 SaErrorT
 cIpmiInventory::Fetch()
