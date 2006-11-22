@@ -65,8 +65,8 @@ SaHpiSessionIdT oh_create_session(SaHpiDomainIdT did)
         struct oh_domain *domain = NULL;
         static SaHpiSessionIdT id = 1;        /* Session ids will start at 1 */
 
-        if (did < 1)
-                return 0;
+        if (did == SAHPI_UNSPECIFIED_DOMAIN_ID)
+                did = OH_DEFAULT_DOMAIN_ID;
 
         session = g_new0(struct oh_session, 1);
         if (!session)
@@ -98,7 +98,7 @@ SaHpiSessionIdT oh_create_session(SaHpiDomainIdT did)
  *
  *
  *
- * Returns:
+ * Returns: SAHPI_UNSPECIFIED_DOMAIN_ID if domain id was not found.
  **/
 SaHpiDomainIdT oh_get_session_domain(SaHpiSessionIdT sid)
 {
@@ -106,13 +106,13 @@ SaHpiDomainIdT oh_get_session_domain(SaHpiSessionIdT sid)
         SaHpiDomainIdT did;
 
         if (sid < 1)
-                return 0;
+                return SAHPI_UNSPECIFIED_DOMAIN_ID;
 
         g_static_rec_mutex_lock(&oh_sessions.lock); /* Locked session table */
         session = g_hash_table_lookup(oh_sessions.table, &sid);
         if (!session) {
                 g_static_rec_mutex_unlock(&oh_sessions.lock);
-                return 0;
+                return SAHPI_UNSPECIFIED_DOMAIN_ID;
         }
 
         did = session->did;
@@ -137,8 +137,8 @@ GArray *oh_list_sessions(SaHpiDomainIdT did)
         GArray *session_ids = NULL;
         GSList *node = NULL;
 
-        if (did < 1)
-                return NULL;
+        if (did == SAHPI_UNSPECIFIED_DOMAIN_ID)
+                did = OH_DEFAULT_DOMAIN_ID;
 
         domain = oh_get_domain(did);
         if (!domain)
@@ -454,8 +454,8 @@ static void __delete_by_did(gpointer key, gpointer value,
 
 SaErrorT oh_destroy_domain_sessions(SaHpiDomainIdT did)
 {
-        if (did < 1)
-                return SA_ERR_HPI_INVALID_PARAMS;
+        if (did == SAHPI_UNSPECIFIED_DOMAIN_ID)
+                did = OH_DEFAULT_DOMAIN_ID;
 
         g_static_rec_mutex_lock(&oh_sessions.lock);
         g_hash_table_foreach(oh_sessions.table, __delete_by_did, &did);

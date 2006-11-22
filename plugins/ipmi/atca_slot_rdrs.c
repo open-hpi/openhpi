@@ -223,7 +223,6 @@ void atca_slot_state_sensor_event_send(struct oh_handler_state *handler,
 	SaHpiSensorEventT		*sen_evt;
 	SaHpiRdrT			*rdr;
 	struct ohoi_sensor_info		*sensor_info;
-        struct ohoi_handler *ipmi_handler = handler->data;
 
 	if (!dev_entry) {
 		return;
@@ -280,7 +279,6 @@ void atca_slot_state_sensor_event_send(struct oh_handler_state *handler,
 	sen_evt->PreviousState = present ? SAHPI_ES_ABSENT : SAHPI_ES_PRESENT;
 
         e->hid = handler->hid;
-        e->did = ipmi_handler->did;
         oh_evt_queue_push(handler->eventq, e);
 }
 

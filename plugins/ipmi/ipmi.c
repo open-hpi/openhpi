@@ -106,13 +106,12 @@ static void *ipmi_open(GHashTable *handler_config,
         const char *scan_time;
         const char *real_write_fru;
         int rv = 0;
-        char *multi_domains;
 	char *trace_file_name;
-
+	/*
         SaHpiTextBufferT        buf = {
                                         .DataType = SAHPI_TL_TYPE_TEXT,
                                         .Language = SAHPI_LANG_ENGLISH,
-                                };
+                                };*/
 
         trace_ipmi("ipmi_open");
         if (!handler_config) {
@@ -182,7 +181,9 @@ static void *ipmi_open(GHashTable *handler_config,
         ipmi_handler->openipmi_scan_time = 0;
         ipmi_handler->real_write_fru = 0;
 
-        multi_domains = g_hash_table_lookup(handler_config, "MultipleDomains");
+        /** This code has been commented due to the multi domain changes
+	 ** in the infrastructure. (Renier Morales 11/21/06)
+	multi_domains = g_hash_table_lookup(handler_config, "MultipleDomains");
         if (multi_domains != (char *)NULL) {
                 if (domain_tag != NULL) {
                         oh_append_textbuffer(&buf, domain_tag);
@@ -195,6 +196,7 @@ static void *ipmi_open(GHashTable *handler_config,
                         SAHPI_TIMEOUT_BLOCK, 0, 0);
         } else
                 ipmi_handler->did = oh_get_default_domain_id();
+	*/
 
         if (timeout != NULL) {
                 ipmi_handler->fullup_timeout = (time_t)strtol(timeout,
@@ -707,7 +709,6 @@ int ipmi_discover_resources(void *hnd)
 		event->event.Severity = rpt_entry->ResourceSeverity;
 		event->resource = *rpt_entry;
                 event->hid = handler->hid;
-                event->did = ipmi_handler->did;
                 oh_evt_queue_push(handler->eventq, event);
 
                 res_info->updated = 0;
@@ -1162,7 +1163,6 @@ static int ipmi_set_sensor_event_enable(void *hnd,
 
         SaErrorT		rv;
         struct oh_handler_state	*handler = (struct oh_handler_state *)hnd;
-        struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
         struct ohoi_sensor_info	*sensor_info;
         struct oh_event		*e;
         SaHpiRdrT		*rdr = NULL;
@@ -1216,7 +1216,6 @@ static int ipmi_set_sensor_event_enable(void *hnd,
         sen_evt->AssertEventMask = sensor_info->assert;
         sen_evt->DeassertEventMask = sensor_info->deassert;
         e->hid = handler->hid;
-        e->did = ipmi_handler->did;
         oh_evt_queue_push(handler->eventq, e);
         return SA_OK;
 
@@ -1423,7 +1422,6 @@ static int ipmi_set_sensor_event_masks(void *hnd, SaHpiResourceIdT id,
 {
         SaErrorT		rv;
         struct oh_handler_state	*handler = (struct oh_handler_state *)hnd;
-        struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
         struct ohoi_sensor_info	*sensor_info;
         SaHpiEventStateT	t_assert;
         SaHpiEventStateT	t_deassert;
@@ -1489,7 +1487,6 @@ static int ipmi_set_sensor_event_masks(void *hnd, SaHpiResourceIdT id,
         sen_evt->AssertEventMask = sensor_info->assert;
         sen_evt->DeassertEventMask = sensor_info->deassert;
         e->hid = handler->hid;
-        e->did = ipmi_handler->did;
         oh_evt_queue_push(handler->eventq, e);
         return SA_OK;
 }

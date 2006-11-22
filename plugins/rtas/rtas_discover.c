@@ -73,7 +73,6 @@ SaErrorT rtas_discover_resources(void *hnd)
         if (!error) {
                 struct oh_event *e =
                         (struct oh_event *)g_malloc0(sizeof(struct oh_event));
-                e->did = oh_get_default_domain_id();
                 e->hid = h->hid;
                 e->event.EventType = SAHPI_ET_RESOURCE;
                 e->resource = lone_res;
@@ -93,11 +92,6 @@ SaErrorT rtas_discover_resources(void *hnd)
 
         if (!error) did_discovery = 1;
         return error;
-}
-
-SaErrorT rtas_discover_domain_resources(void *hnd, SaHpiDomainIdT did)
-{
-        return rtas_discover_resources(hnd);
 }
 
 /**
@@ -712,6 +706,4 @@ SaErrorT rtas_discover_inventory(struct oh_handler_state *h,
 
 void * oh_discover_resources (void *)
         __attribute__ ((weak, alias("rtas_discover_resources")));
-void * oh_discover_domain_resource (void *, SaHpiDomainIdT)
-        __attribute__ ((weak, alias("rtas_discover_domain_resources")));
 

@@ -24,7 +24,8 @@
 #include <string.h>
 #include <sys/time.h>
 
-#define OH_FIRST_DOMAIN 1
+#define domains_lock() g_static_rec_mutex_lock(&oh_domains.lock)
+#define domains_unlock() g_static_rec_mutex_unlock(&oh_domains.lock)
 
 struct oh_domain_table oh_domains = {
         .table = NULL,
@@ -62,355 +63,358 @@ static void __free_drt_list(GSList *drt_list)
         return;
 }
 
-static void generate_domain_event(SaHpiDomainIdT pid,
-                                  SaHpiDomainIdT did,
-                                  SaHpiDomainEventTypeT type)
-{
-        struct oh_event *e = NULL;
-        struct timeval tv1;
-
-        e = g_new0(struct oh_event, 1);
-        e->did = pid;
-        e->hid = 0;
-        e->resource.ResourceId = SAHPI_UNSPECIFIED_RESOURCE_ID;
-        e->event.Source = SAHPI_UNSPECIFIED_RESOURCE_ID;
-        e->event.EventType = SAHPI_ET_DOMAIN;
-        e->event.Severity = SAHPI_INFORMATIONAL;
-        e->event.EventDataUnion.DomainEvent.Type = type;
-        e->event.EventDataUnion.DomainEvent.DomainId = did;
-        gettimeofday(&tv1, NULL);
-        e->event.Timestamp = (SaHpiTimeT) tv1.tv_sec *
-                                1000000000 + tv1.tv_usec * 1000;
-        trace("domain %d %s domain %d", did,
-                type == SAHPI_DOMAIN_REF_ADDED ?
-                "added to" : "removed from", pid);
-        oh_evt_queue_push(&oh_process_q, e);
-}
-
-static int disconnect_parent(struct oh_domain *child)
-{
-        GSList *node = NULL;
-        struct oh_domain *parent = NULL;
-        struct timeval tv;
-
-        parent = oh_get_domain(child->pdid);
-        if (!parent) return -1;
-
-        for (node = parent->drt.list; node; node = node->next) {
-                SaHpiDrtEntryT *curdrt = node->data;
-                if (curdrt->DomainId == child->id) {
-                        g_free(node->data);
-                        parent->drt.list =
-                                g_slist_delete_link(parent->drt.list, node);
-                        gettimeofday(&tv, NULL);
-                        parent->drt.update_timestamp =
-                                (SaHpiTimeT)tv.tv_sec * 1000000000 +
-                                        tv.tv_usec * 1000;
-                        parent->drt.update_count++;
-                        oh_release_domain(parent);
-                        generate_domain_event(child->pdid, child->id,
-                                              SAHPI_DOMAIN_REF_REMOVED);
-                        child->pdid = 0;
-                        return 0;
-                }
-        }
-        oh_release_domain(parent);
-
-        dbg("BUG. Domain %d doesn't have child domain %d",
-            parent->id, child->id);
-        /* FIXME: Scan all domains and remove all parent links to this domain? */
-        return -2;
-}
-
-static int disconnect_peers(struct oh_domain *domain)
-{
-        GSList *node = NULL;
-
-        for (node = domain->drt.list; node; node = node->next) {
-                struct oh_domain *peer_domain = NULL;
-                SaHpiDrtEntryT *curdrt = (SaHpiDrtEntryT *)node->data;
-                GSList *peer_node = NULL;
-
-                if (!curdrt->IsPeer) {
-                        continue;
-                }
-
-                peer_domain = oh_get_domain(curdrt->DomainId);
-                if (!peer_domain) {
-                        dbg("BUG. Can't find out peer %d for domain %d",
-                            curdrt->DomainId, domain->id);
-                        continue;
-                }
-
-                for (peer_node = peer_domain->drt.list;
-                     peer_node;
-                     peer_node = peer_node->next) {
-                        curdrt = (SaHpiDrtEntryT *)peer_node->data;
-                        if (curdrt->IsPeer && curdrt->DomainId == domain->id) {
-                                g_free(peer_node->data);
-                                peer_domain->drt.list =
-                                    g_slist_delete_link(peer_domain->drt.list,
-                                                        peer_node);
-                                peer_domain->is_peer = FALSE;
-                                generate_domain_event(peer_domain->id,
-                                                      domain->id,
-                                                      SAHPI_DOMAIN_REF_REMOVED);
-                                break;
-                        }
-                }
-                oh_release_domain(peer_domain);
-                g_free(node->data);
-                node->data = NULL;
-        }
-
-        for (node = domain->drt.list; node;) {
-                if (node->data == NULL) {
-                        GSList *nodenext = node->next;
-                        domain->drt.list = g_slist_delete_link(domain->drt.list, node);
-                        node = nodenext;
-                }
-                node = node->next;
-        }
-
-        domain->is_peer = FALSE;
-
-        return 0;
-}
-
 static void __delete_domain(struct oh_domain *d)
 {
-        disconnect_parent(d); /* Remove drt entry from parent */
-        disconnect_peers(d); /* Remove drt entry from brothers */
-
         oh_flush_rpt(&d->rpt);
         oh_el_close(d->del);
         oh_close_alarmtable(d);
         __free_drt_list(d->drt.list);
         g_static_rec_mutex_free(&d->lock);
         g_static_rec_mutex_free(&d->refcount_lock);
-        /*oh_destroy_domain_sessions(d->id);*/ /* Not needed after all */
         g_free(d);
 }
 
-static void collect_domain_ids(gpointer key, gpointer value, gpointer user_data)
+static void __query_domains(gpointer key, gpointer value, gpointer user_data)
 {
-        struct oh_domain *domain = (struct oh_domain *)value;
+        oh_domain_result dr;
+        GList *node = (GList *)value;
+        struct oh_domain *domain = (struct oh_domain *)node->data;
         GArray *data = (GArray *)user_data;
 
-        g_array_append_val(data, domain->id);
+        dr.id = domain->id;
+        dr.entity_pattern = domain->entity_pattern;
+        dr.tag = domain->tag;
+
+        g_array_append_val(data, dr);
 }
 
-static int add_drtentry(struct oh_domain *domain,
-                        SaHpiDomainIdT did,
-                        SaHpiBoolT is_peer)
+static GList *__get_domain(SaHpiDomainIdT did)
 {
-        SaHpiDrtEntryT *drtentry;
-        struct timeval tv1;
+        GList *node = NULL;
+        struct oh_domain *domain = NULL;
 
-        drtentry = g_new0(SaHpiDrtEntryT, 1);
-        if (!drtentry) {
-                dbg("Could not allocate a drt entry");
-                return -1;
+        if (did == SAHPI_UNSPECIFIED_DOMAIN_ID) {
+                did = OH_DEFAULT_DOMAIN_ID;
         }
 
-        drtentry->DomainId = did;
-        drtentry->EntryId = ++(domain->drt.next_id);
-        drtentry->IsPeer = is_peer;
+        domains_lock();
+        node = (GList *)g_hash_table_lookup(oh_domains.table, &did);
+        if (!node) {
+                domains_unlock();
+                return NULL;
+        }
 
+        domain = (struct oh_domain *)node->data;
 
-        gettimeofday(&tv1, NULL);
-        domain->drt.update_timestamp = (SaHpiTimeT) tv1.tv_sec *
-                                       1000000000 + tv1.tv_usec * 1000;
-        domain->drt.update_count++;
-        domain->drt.list = g_slist_append(domain->drt.list, drtentry);
-        return 0;
+        /* Punch in */
+        __inc_domain_refcount(domain);
+        /* Unlock domain table */
+        domains_unlock();
+        /* Wait to get domain lock */
+        g_static_rec_mutex_lock(&domain->lock);
+
+        return node;
 }
 
-static int connect_parent(SaHpiDomainIdT did, SaHpiDomainIdT pdid)
+static void gen_domain_event(SaHpiDomainIdT target_id,
+                             SaHpiDomainIdT subject_id,
+                             SaHpiBoolT addition)
+{
+        struct oh_event *e = NULL;
+        struct timeval tv1;
+        SaHpiDomainEventTypeT type =
+                (addition) ? SAHPI_DOMAIN_REF_ADDED : SAHPI_DOMAIN_REF_REMOVED;
+
+        e = g_new0(struct oh_event, 1);
+        e->resource.ResourceId = SAHPI_UNSPECIFIED_RESOURCE_ID;
+        e->event.Source = target_id;
+        e->event.EventType = SAHPI_ET_DOMAIN;
+        e->event.Severity = SAHPI_INFORMATIONAL;
+        e->event.EventDataUnion.DomainEvent.Type = type;
+        e->event.EventDataUnion.DomainEvent.DomainId = subject_id;
+        gettimeofday(&tv1, NULL);
+        e->event.Timestamp = (SaHpiTimeT) tv1.tv_sec *
+                        1000000000 + tv1.tv_usec * 1000;
+        trace("domain %d %s domain %d", subject_id,
+              type == SAHPI_DOMAIN_REF_ADDED ? "added to" : "removed from",
+              target_id);
+        oh_evt_queue_push(&oh_process_q, e);
+}
+
+static void update_drt(SaHpiDomainIdT target_id,
+                       SaHpiDomainIdT subject_id,
+                       SaHpiBoolT subject_is_peer,
+                       SaHpiBoolT addition)
+{
+        struct oh_domain *domain = NULL;
+        SaHpiDrtEntryT *drtentry = NULL;
+        struct timeval tv1;
+        int found = 0;
+
+        domain = oh_get_domain(target_id);
+        if (!domain) {
+                dbg("Warning. Could not update DRT. Domain %u not found.",
+                    target_id);
+                return;
+        }
+
+        if (addition) {
+                drtentry = g_new0(SaHpiDrtEntryT, 1);
+                drtentry->DomainId = subject_id;
+                drtentry->EntryId = ++(domain->drt.next_id);
+                drtentry->IsPeer = subject_is_peer;
+                domain->drt.list = g_slist_append(domain->drt.list, drtentry);
+                domain->state |= (subject_is_peer) ? OH_DOMAIN_PEER : OH_DOMAIN_PARENT;
+                gen_domain_event(target_id, subject_id, SAHPI_TRUE);
+        } else {
+                GSList *node = NULL, *savenode = NULL;
+                int child_count = 0, peer_count = 0, is_peer = 0;
+                
+                for (node = domain->drt.list;
+                     node || savenode;
+                     node = (node) ? node->next : savenode) {
+                        drtentry = (SaHpiDrtEntryT *)node->data;
+                        savenode = NULL;
+
+                        if (drtentry->IsPeer) peer_count++;
+                        else child_count++;
+                        
+                        if (drtentry->DomainId == subject_id && !found) {
+                                is_peer = drtentry->IsPeer;
+                                savenode = node->next;
+                                domain->drt.list =
+                                        g_slist_delete_link(domain->drt.list,
+                                                            node);
+                                g_free(node->data);
+                                gen_domain_event(target_id, subject_id, SAHPI_FALSE);
+                                found = 1;
+                                node = NULL;
+                        }
+                }
+
+                if (is_peer) {
+                        /* Remove peer state */
+                        if (peer_count == 1) domain->state &= 0x03;
+                } else {
+                        /* Remove parent state */
+                        if (child_count == 1) domain->state &= 0x05;
+                }
+        }
+
+        if (addition || found) {
+                gettimeofday(&tv1, NULL);
+                domain->drt.update_timestamp = (SaHpiTimeT) tv1.tv_sec *
+                                1000000000 + tv1.tv_usec * 1000;
+                domain->drt.update_count++;
+        }
+        oh_release_domain(domain);
+}
+#define add_drtentry(target_id, subject_id, subject_is_peer) \
+        update_drt(target_id, subject_id, subject_is_peer, SAHPI_TRUE);
+#define del_drtentry(target_id, subject_id) \
+        update_drt(target_id, subject_id, SAHPI_FALSE, SAHPI_FALSE);
+
+static int connect2parent(struct oh_domain *domain, SaHpiDomainIdT parent_id)
 {
         struct oh_domain *parent = NULL;
-        struct oh_domain *child = NULL;
 
-        if (did < 1 || pdid < 1) return 0; /* Don't return error here */
+        if (!domain) return -1;
+        if (parent_id == SAHPI_UNSPECIFIED_DOMAIN_ID) return -2;
 
-        parent = oh_get_domain(pdid);
-        if (!parent) return -1;
-
-        if (add_drtentry(parent, did, SAHPI_FALSE) != 0) {
-                dbg("Could not add drtentry for domain %d to domain %d",
-                    did, pdid);
-                oh_release_domain(parent);
-                return -2;
-        }
-        oh_release_domain(parent);
-        generate_domain_event(pdid, did, SAHPI_DOMAIN_REF_ADDED);
-
-        child = oh_get_domain(did);
-        if (!child) return -3;
-
-        child->pdid = parent->id;
-        oh_release_domain(child);
-
-        return 0;
-}
-
-static SaErrorT connect_peers(SaHpiDomainIdT did, SaHpiDomainIdT bdid)
-{
-        struct oh_domain *d = NULL, *peer = NULL;
-        GSList *node = NULL, *drtlist = NULL, *node2 = NULL;
-
-        if (did < 1 || bdid < 1) return 0; /* Don't return error here */
-
-        /* Create a new drt that is the sum of the drts of both peers */
-        d = oh_get_domain(did);
-        if (d == NULL) {
-                dbg("Couldn't get domain %d", did);
-                return -1;
-        }
-        drtlist = g_slist_copy(d->drt.list);
-        for (node = drtlist; node; node = node->next) {
-                node->data = g_memdup(node->data, sizeof(SaHpiDrtEntryT));
-        }
-        oh_release_domain(d);
-
-        peer = oh_get_domain(bdid);
-        if (peer == NULL) {
-                dbg("Couldn't get peer domain %d", bdid);
-                return -2;
-        }
-        for (node = peer->drt.list; node; node = node->next) {
-                drtlist = g_slist_append(drtlist,
-                                         g_memdup(node->data,
-                                                  sizeof(SaHpiDrtEntryT)));
-        }
-        oh_release_domain(peer);
-
-        /* Now add new drt list to both peers */
-        d = oh_get_domain(did);
-        if (!d) {
-                dbg("Could not add new drt to peer domain %d", did);
+        parent = oh_get_domain(parent_id);
+        if (!parent) {
+                dbg("Couldn't get domain %d", parent_id);
                 return -3;
         }
-        d->is_peer = SAHPI_TRUE;
-        for (node = drtlist; node; node = node->next) { // generate events
-                int found = 0;
-                SaHpiDrtEntryT *drtentry = node->data;
-                for (node2 = d->drt.list; node2; node2 = node2->next) {
-                        SaHpiDrtEntryT *drtentry2 = node->data;
-                        if (drtentry->DomainId == drtentry2->DomainId) {
-                                found = 1;
-                                break;
+
+        /* Add child drt to peers of parent domain */
+        if (parent->state & OH_DOMAIN_PEER) {
+                GSList *node = NULL;
+                for (node = parent->drt.list; node; node = node->next) {
+                        SaHpiDrtEntryT *drte = (SaHpiDrtEntryT *)node->data;
+                        if (drte->IsPeer) {
+                                add_drtentry(drte->DomainId, domain->id,
+                                             SAHPI_FALSE);
                         }
                 }
-                if (found) continue;
-                generate_domain_event(d->id, drtentry->DomainId, SAHPI_DOMAIN_REF_ADDED);
         }
-        __free_drt_list(d->drt.list);
-        for (node = drtlist; node; node = node->next) { // Add new drt
-                SaHpiDrtEntryT *drtentry = node->data;
-                if (drtentry->DomainId == d->id) continue; // Don't add self ref
-                d->drt.list = g_slist_append(d->drt.list,
-                                             g_memdup(node->data,
-                                                      sizeof(SaHpiDrtEntryT)));
-        }
-        oh_release_domain(d);
+        oh_release_domain(parent);
 
-        peer = oh_get_domain(bdid);
-        if (!peer) {
-                dbg("Could not add new drt to peer domain %d", bdid);
-                return -4;
-        }
-        peer->is_peer = SAHPI_TRUE;
-        for (node = drtlist; node; node = node->next) { // generate events
-                int found = 0;
-                SaHpiDrtEntryT *drtentry = node->data;
-                for (node2 = peer->drt.list; node2; node2 = node2->next) {
-                        SaHpiDrtEntryT *drtentry2 = node->data;
-                        if (drtentry->DomainId == drtentry2->DomainId) {
-                                found = 1;
-                                break;
-                        }
-                }
-                if (found) continue;
-                generate_domain_event(peer->id, drtentry->DomainId, SAHPI_DOMAIN_REF_ADDED);
-        }
-        __free_drt_list(peer->drt.list);
-        for (node = drtlist; node; node = node->next) { // Add new drt
-                SaHpiDrtEntryT *drtentry = node->data;
-                if (drtentry->DomainId == peer->id) continue; // Don't add self ref
-                peer->drt.list = g_slist_append(peer->drt.list,
-                                                g_memdup(node->data,
-                                                         sizeof(SaHpiDrtEntryT)));
-        }
-        oh_release_domain(peer);
+        /* Add child drt to parent domain */
+        add_drtentry(parent_id, domain->id, SAHPI_FALSE);
+        domain->state |= OH_DOMAIN_CHILD; /* set child state */
+        domain->drt.parent_id = parent_id;
 
-        __free_drt_list(drtlist);
         return 0;
 }
 
-/**
- * oh_get_default_domain_id
- *
- * Returns:
- **/
-SaHpiDomainIdT oh_get_default_domain_id()
+static int connect2peer(struct oh_domain *domain, SaHpiDomainIdT peer_id)
 {
-        return (SaHpiDomainIdT)OH_FIRST_DOMAIN;
+        struct oh_domain *peer = NULL;
+        GSList *node = NULL;
+
+        if (!domain) return -1;
+        if (peer_id == SAHPI_UNSPECIFIED_DOMAIN_ID) return -2;
+
+        peer = oh_get_domain(peer_id);
+        if (!peer) {
+                dbg("Couldn't get domain %d", peer_id);
+                return -3;
+        }
+
+        /* Copy entitypath pattern. Peers contain the same resources */
+        domain->entity_pattern = peer->entity_pattern;
+        /* Copy drt list from target peer.
+         * Also, add self drt to peers of target peer. */
+        for (node = peer->drt.list; node; node = node->next) {
+                SaHpiDrtEntryT *drtentry = (SaHpiDrtEntryT *)node->data;
+                add_drtentry(domain->id,
+                             drtentry->DomainId,
+                             drtentry->IsPeer);
+                if (drtentry->IsPeer) {
+                        add_drtentry(drtentry->DomainId,
+                                     domain->id,
+                                     SAHPI_TRUE);
+                }
+        }
+        oh_release_domain(peer);
+        /* Add each others drts to domain and domain's peer */
+        add_drtentry(domain->id, peer_id, SAHPI_TRUE);
+        add_drtentry(peer_id, domain->id, SAHPI_TRUE);
+        domain->state |= OH_DOMAIN_PEER;
+
+        return 0;
+}
+
+static int disconnect_parent(struct oh_domain *child)
+{
+        GSList *node = NULL;
+        struct oh_domain *parent = NULL;
+
+        if (!child) return -1;
+        if (!(child->state & OH_DOMAIN_CHILD)) return -2;
+        
+        parent = oh_get_domain(child->drt.parent_id);
+        if (!parent) return -3;
+        /* Remove child drt from peers of the parent */
+        for (node = parent->drt.list; node; node = node->next) {
+                SaHpiDrtEntryT *drte = (SaHpiDrtEntryT *)node->data;
+                if (drte->IsPeer) {
+                        del_drtentry(drte->DomainId, child->id);
+                }
+        }
+        oh_release_domain(parent);
+        /* Finally, remove child drt from the parent */
+        del_drtentry(child->drt.parent_id, child->id);
+        child->state = child->state & 0x06; /* Unset child state */
+
+        return 0;
+}
+
+static int disconnect_peers(struct oh_domain *domain)
+{
+        GSList *node = NULL;
+
+        if (!domain) return -1;
+        if (!(domain->state & OH_DOMAIN_PEER)) return -2;
+
+        /* Remove drt from peers */
+        for (node = domain->drt.list; node; node = node->next) {
+                SaHpiDrtEntryT *drte = (SaHpiDrtEntryT *)node->data;
+                if (drte->IsPeer) {
+                        del_drtentry(drte->DomainId, domain->id);
+                }
+        }
+
+        domain->state = domain->state & 0x03; /* Unset peer state */
+
+        return 0;
 }
 
 /**
  * oh_create_domain
+ * @id: Required. 0 or SAHPI_UNSPECIFIED_DOMAIN_ID means default.
+ * @entity_pattern: Required.
+ * @nametag: Optional.
+ * @tier_of: Optional. SAHPI_UNSPECIFIED_DOMAIN_ID means none.
+ * @peer_of: Optional. SAHPI_UNSPECIFIED_DOMAIN_ID means none.
  * @capabilities:
- * @isPeer:
- * @tag:
+ * @ai_timeout:
  *
+ * 
  *
- *
- * Returns: Domain id of newly created domain, or 0 if failed to create.
+ * Returns: SA_OK if domain was created successfully.
  **/
-SaHpiDomainIdT oh_create_domain(SaHpiDomainCapabilitiesT capabilities,
-                                SaHpiTimeoutT   aitimeout,
-                                SaHpiTextBufferT *tag)
+SaErrorT oh_create_domain(SaHpiDomainIdT id,
+                          oh_entitypath_pattern *entity_pattern,
+                          char *tag,
+                          SaHpiDomainIdT child_of,
+                          SaHpiDomainIdT peer_of,
+                          SaHpiDomainCapabilitiesT capabilities,
+                          SaHpiTimeoutT ai_timeout)
 {
-        struct oh_domain *domain = NULL;
-        static SaHpiDomainIdT id = OH_FIRST_DOMAIN; /* domain ids will start at 1 */
+        struct oh_domain *domain = g_new0(struct oh_domain,1);
         struct oh_global_param param = { .type = OPENHPI_DEL_SIZE_LIMIT };
         char filepath[SAHPI_MAX_TEXT_BUFFER_LENGTH*2];
 
-        domain = g_new0(struct oh_domain,1);
-        if (!domain) return 0;
+        /* Fix id to int capable value */
+        if (id == SAHPI_UNSPECIFIED_DOMAIN_ID)
+                id = OH_DEFAULT_DOMAIN_ID;
 
-        domain->capabilities = capabilities;
-        domain->ai_timeout = aitimeout;
-        domain->is_peer = SAHPI_FALSE;
-        oh_init_rpt(&(domain->rpt));
-
-        /* initialize the timestamp to a valid value */
-        domain->drt.update_timestamp = SAHPI_TIME_UNSPECIFIED;
-
-        if (tag)
-                memcpy(&(domain->tag), tag, sizeof(SaHpiTextBufferT));
-
-        oh_get_global_param(&param);
-
-        domain->del = oh_el_create(param.u.del_size_limit);
-
-        g_static_rec_mutex_init(&(domain->lock));
-        g_static_rec_mutex_init(&(domain->refcount_lock));
-
-        if (!domain->del) {
-                g_free(domain->del);
-                g_static_rec_mutex_free(&(domain->lock));
-                g_static_rec_mutex_free(&(domain->refcount_lock));
+        /* Input validation */
+        if (!entity_pattern && peer_of == SAHPI_UNSPECIFIED_DOMAIN_ID)
+                return SA_ERR_HPI_INVALID_PARAMS;
+        else if (peer_of == id || child_of == id ||
+                 (child_of == peer_of && child_of != SAHPI_UNSPECIFIED_DOMAIN_ID))
+                return SA_ERR_HPI_INVALID_PARAMS;
+        
+        /* Check to see if domain id is already taken */
+        domains_lock();
+        if (g_hash_table_lookup(oh_domains.table, &id)) {
+                domains_unlock();
                 g_free(domain);
-                return 0;
+                dbg("Domain %u already exists; not creating twice.", id);
+                return SA_ERR_HPI_INVALID_DOMAIN;
         }
 
+        domain->id = id; /* Set domain id */
+        if (entity_pattern) { /* Set entity pattern */
+                memcpy(&domain->entity_pattern,
+                       entity_pattern,
+                       sizeof(oh_entitypath_pattern));
+        }
+        
+        if (tag) { /* Set domain tag */
+                oh_init_textbuffer(&domain->tag);
+                oh_append_textbuffer(&domain->tag, tag);
+        }
+        domain->capabilities = capabilities;
+        domain->ai_timeout = ai_timeout;
+
+        /* Initialize Resource Precense Table */
+        oh_init_rpt(&(domain->rpt));
+
+        /* Initialize domain reference table timestamp to a valid value */
+        domain->drt.update_timestamp = SAHPI_TIME_UNSPECIFIED;
+
+        oh_get_global_param(&param); /* Get domain event log size limit */
+        /* Initialize domain event log */
+        domain->del = oh_el_create(param.u.del_size_limit);
+
+        if (!domain->del) {
+                domains_unlock();
+                g_free(domain->del);
+                g_free(domain);
+                return SA_ERR_HPI_ERROR;
+        }
+
+        g_static_rec_mutex_init(&domain->lock);
+        g_static_rec_mutex_init(&domain->refcount_lock);
+
+        /* Get option for saving domain event log or not */
         param.type = OPENHPI_DEL_SAVE;
         oh_get_global_param(&param);
 
-        g_static_rec_mutex_lock(&(oh_domains.lock)); /* Locked domain table */
-        domain->id = id++;
         if (param.u.del_save) {
                 param.type = OPENHPI_VARPATH;
                 oh_get_global_param(&param);
@@ -430,10 +434,84 @@ SaHpiDomainIdT oh_create_domain(SaHpiDomainCapabilitiesT capabilities,
 			 "%s/dat.%u", param.u.varpath, domain->id);
 		oh_alarms_from_file(domain, filepath);
 	}
-        g_hash_table_insert(oh_domains.table, &(domain->id), domain);
-        g_static_rec_mutex_unlock(&(oh_domains.lock));  /* Unlocked domain table */
 
-        return domain->id;
+        /* Need to put new domain in table before relating to other domains. */
+        oh_domains.list = g_list_append(oh_domains.list, domain);
+        g_hash_table_insert(oh_domains.table,
+                            &domain->id,
+                            g_list_last(oh_domains.list));
+
+        /* Establish child-parent relationship */
+        if (child_of != SAHPI_UNSPECIFIED_DOMAIN_ID &&
+            connect2parent(domain, child_of)) {
+                dbg("Error connecting domain %u to parent %u",
+                    domain->id, child_of);
+        }
+
+        /* Establish peer relationships */
+        if (peer_of != SAHPI_UNSPECIFIED_DOMAIN_ID &&
+            connect2peer(domain, peer_of)) {
+                dbg("Error connection domain %u to peer %u",
+                    domain->id, peer_of);
+        }
+        
+        domains_unlock();
+
+        trace("Domain %u has been created.", id);
+
+        return SA_OK;
+}
+
+SaErrorT oh_create_domain_from_table(GHashTable *table)
+{
+        SaHpiDomainIdT *id = NULL, *child_of = NULL, *peer_of = NULL;
+        char *entity_pattern = NULL, *tag = NULL;
+        oh_entitypath_pattern epp;
+        SaHpiTimeT ai_timeout = SAHPI_TIMEOUT_IMMEDIATE, *ait = NULL;
+        unsigned int *ai_readonly = NULL;
+        SaHpiDomainCapabilitiesT capabilities =
+                SAHPI_DOMAIN_CAP_AUTOINSERT_READ_ONLY;
+
+        if (!table) return SA_ERR_HPI_INVALID_PARAMS;
+
+        id = (SaHpiDomainIdT *)g_hash_table_lookup(table, "id");
+        child_of = (SaHpiDomainIdT *)g_hash_table_lookup(table, "child_of");
+        peer_of = (SaHpiDomainIdT *)g_hash_table_lookup(table, "peer_of");
+        entity_pattern = (char *)g_hash_table_lookup(table, "entity_pattern");
+        tag = (char *)g_hash_table_lookup(table, "tag");
+        ait = (SaHpiTimeT *)g_hash_table_lookup(table, "ai_timeout");
+        ai_readonly = (unsigned int *)g_hash_table_lookup(table, "ai_readonly");
+
+        if (!id) {
+                dbg("Error creating a domain from configuration."
+                    " No domain id was given.");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        } else if (*id == 0) {
+                dbg("Error creating domain. Configured domains"
+                    " cannot have an id of 0.");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        if (peer_of && entity_pattern) {
+                dbg("Warning creating domain %u. Entity pattern will be"
+                    " disregarded since a peer was specified.",
+                    *id);
+        } else if (!peer_of &&
+                   oh_compile_entitypath_pattern(entity_pattern, &epp)) {
+                dbg("Error creating domain %u. "
+                    "Invalid entity pattern given.", *id);
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        if (ait) ai_timeout = *ait * 1000000000;
+
+        if (ai_readonly && *ai_readonly == 0)
+                capabilities = 0;
+
+        return oh_create_domain(*id, (peer_of) ? NULL : &epp, tag,
+                                (child_of) ? *child_of : SAHPI_UNSPECIFIED_DOMAIN_ID,
+                                (peer_of) ? *peer_of : SAHPI_UNSPECIFIED_DOMAIN_ID,
+                                capabilities, ai_timeout);
 }
 
 /**
@@ -446,28 +524,30 @@ SaHpiDomainIdT oh_create_domain(SaHpiDomainCapabilitiesT capabilities,
  **/
 SaErrorT oh_destroy_domain(SaHpiDomainIdT did)
 {
-        struct oh_domain *domain = NULL;
-        GSList *node = NULL;
-
-        if (did < 1) return SA_ERR_HPI_INVALID_PARAMS;
-        if (did == oh_get_default_domain_id())
+	struct oh_domain *domain = NULL;
+        GList *node = NULL;
+        
+        if (did == OH_DEFAULT_DOMAIN_ID ||
+            did == SAHPI_UNSPECIFIED_DOMAIN_ID)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
-        domain = oh_get_domain(did);
-        if (!domain) return SA_ERR_HPI_NOT_PRESENT;
-
-        /* If the domain is a parent of other domains, then cancel the destroy. */
-        for (node = domain->drt.list; node; node = node->next) {
-                SaHpiDrtEntryT *curdrt = node->data;
-                if (!curdrt->IsPeer) {
-                        oh_release_domain(domain);
-                        return SA_ERR_HPI_BUSY;
-                }
+        node = __get_domain(did);
+        if (!node) {
+                return SA_ERR_HPI_NOT_PRESENT;
         }
 
-        g_static_rec_mutex_lock(&oh_domains.lock);
-        g_hash_table_remove(oh_domains.table, &(domain->id));
-        g_static_rec_mutex_unlock(&oh_domains.lock);
+        domain = (struct oh_domain *)node->data;
+
+        if (domain->state & OH_DOMAIN_CHILD)
+                disconnect_parent(domain);
+
+        if (domain->state & OH_DOMAIN_PEER)
+                disconnect_peers(domain);
+        
+        domains_lock();
+        g_hash_table_remove(oh_domains.table, &domain->id);
+        oh_domains.list = g_list_delete_link(oh_domains.list, node);
+        domains_unlock();
 
         __dec_domain_refcount(domain);
         if (domain->refcount < 1)
@@ -488,27 +568,15 @@ SaErrorT oh_destroy_domain(SaHpiDomainIdT did)
  **/
 struct oh_domain *oh_get_domain(SaHpiDomainIdT did)
 {
+        GList *node = NULL;
         struct oh_domain *domain = NULL;
-
-        if (did < 1) return NULL;
-
-        if (did == SAHPI_UNSPECIFIED_DOMAIN_ID) {
-                did = oh_get_default_domain_id();
-        }
-
-        g_static_rec_mutex_lock(&(oh_domains.lock)); /* Locked domain table */
-        domain = g_hash_table_lookup(oh_domains.table, &did);
-        if (!domain) {
-                g_static_rec_mutex_unlock(&(oh_domains.lock));
+        
+        node = __get_domain(did);
+        if (!node) {
                 return NULL;
         }
-
-        /* Punch in */
-        __inc_domain_refcount(domain);
-        /* Unlock domain table */
-        g_static_rec_mutex_unlock(&(oh_domains.lock));
-        /* Wait to get domain lock */
-        g_static_rec_mutex_lock(&(domain->lock));
+        
+        domain = (struct oh_domain *)node->data;
 
         return domain;
 }
@@ -539,125 +607,22 @@ SaErrorT oh_release_domain(struct oh_domain *domain)
 }
 
 /**
- * oh_list_domains
+ * oh_query_domains
  *
+ * Fetches information on all present domains
  *
- *
- * Returns:
+ * Returns: a GArray of oh_domain_result types.
  **/
-GArray *oh_list_domains()
+GArray *oh_query_domains()
 {
-        trace("Entering list_domains");
-        GArray *domain_ids = NULL;
+        GArray *domain_results =
+                g_array_new(FALSE, TRUE, sizeof(oh_domain_result));
 
-        domain_ids = g_array_new(FALSE, TRUE, sizeof(SaHpiDomainIdT));
-        if (!domain_ids) return NULL;
-        trace("setup domain ids");
-        g_static_rec_mutex_lock(&(oh_domains.lock));
-        g_hash_table_foreach(oh_domains.table, collect_domain_ids, domain_ids);
-        trace("Looping through table");
-        g_static_rec_mutex_unlock(&(oh_domains.lock));
+        domains_lock();
+        g_hash_table_foreach(oh_domains.table, __query_domains, domain_results);
+        domains_unlock();
 
-        return domain_ids;
-}
-
-
-SaHpiDomainIdT oh_request_new_domain(unsigned int hid,
-                                     SaHpiTextBufferT *tag,
-                                     SaHpiDomainCapabilitiesT capabilities,
-                                     SaHpiDomainIdT pdid,
-                                     SaHpiDomainIdT bdid)
-{
-         return oh_request_new_domain_aitimeout(hid, tag, capabilities,
-                           SAHPI_TIMEOUT_IMMEDIATE, pdid, bdid);
-}
-
-/**
- * oh_request_new_domain
- * @hid: a handler id that is requesting the domain
- * @tag: a tag to put in the domain being requested
- * @capabilities: capabilities of the requested domain
- * @pdid: make new domain with this parent? if so, has to be > 0.
- * @bdid: make new domain with this peer/brother? if so, has to be > 0.
- *
- * Creates a new domain and adds it to the list of domains
- * that the handler (@handler_id) can report events/resources on.
- *
- * Returns: domain id of new domain requested, or 0 if an error ocurred.
- **/
-SaHpiDomainIdT oh_request_new_domain_aitimeout(
-                                    unsigned int hid,
-                                    SaHpiTextBufferT *tag,
-                                    SaHpiDomainCapabilitiesT capabilities,
-                                    SaHpiTimeoutT aitimeout,
-                                    SaHpiDomainIdT pdid,
-                                    SaHpiDomainIdT bdid)
-
-{
-        SaHpiDomainIdT did = 0;
-
-        if (hid < 1) {
-                dbg("Warning - invalid handler id parameter passed.");
-                return 0;
-        }
-
-        if (pdid == 0) {
-                pdid = oh_get_default_domain_id();
-        }
-
-        did = oh_create_domain(capabilities, aitimeout, tag);
-        if (did == 0) {
-                dbg("New domain request failed.");
-                return 0;
-        }
-        oh_add_domain_to_handler(hid, did);
-
-        /* Connect new domain as a child of pdid domain */
-        if (connect_parent(did, pdid)) {
-                oh_destroy_domain(did);
-                dbg("Operation failed."
-                    " Could not connect new domain to parent %d.", pdid);
-                return 0;
-        }
-
-        /* Connect new domain as a brother of bdid domain */
-        if (connect_peers(did, bdid)) {
-                oh_destroy_domain(did);
-                dbg("Operation failed."
-                    " Could not make new domain peer of domain %d.", bdid);
-                return 0;
-        }
-
-        return did;
-}
-
-/**
- * oh_request_domain_delete
- * @handler_id: a handler id
- * @did: a domain id
- *
- * This is an extended version of oh_destroy_domain which
- * deletes the domain from the list of domains that @handler_id
- * has registered in.
- *
- * Returns: SA_OK on success, otherwise and error.
- **/
-SaErrorT oh_request_domain_delete(unsigned int hid,
-                                  SaHpiDomainIdT did)
-{
-        SaErrorT error;
-
-        if (did == oh_get_default_domain_id() || hid < 1 || did < 1) {
-                return SA_ERR_HPI_INVALID_PARAMS;
-        }
-
-        if (oh_remove_domain_from_handler(hid, did))
-                return SA_ERR_HPI_INTERNAL_ERROR;
-
-        error = oh_destroy_domain(did);
-        if (error != SA_OK) return error;
-
-        return SA_OK;
+        return domain_results;
 }
 
 /**

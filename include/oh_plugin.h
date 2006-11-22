@@ -91,12 +91,7 @@ void oh_release_handler(struct oh_handler *handler);
 int oh_getnext_handler_id(unsigned int hid, unsigned int *next_hid);
 unsigned int oh_create_handler(GHashTable *handler_config);
 int oh_destroy_handler(unsigned int hid);
-
-/* Domain-related functions centered around the use of handlers */
-int oh_domain_served_by_handler(unsigned int hid, SaHpiDomainIdT did);
-int oh_add_domain_to_handler(unsigned int hid, SaHpiDomainIdT did);
-int oh_remove_domain_from_handler(unsigned int hid, SaHpiDomainIdT did);
-int oh_domain_resource_discovery(SaHpiDomainIdT did);
+SaErrorT oh_discovery(void);
 
 /* Bind abi functions into plugin */
 int oh_load_plugin_functions(struct oh_plugin *plugin, struct oh_abi_v2 **abi);

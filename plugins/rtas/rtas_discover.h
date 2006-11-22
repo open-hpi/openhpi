@@ -58,8 +58,6 @@ typedef enum rtasSensorTokenEnum {
 /* Function Protos */
 SaErrorT rtas_discover_resources(void *hnd);
 
-SaErrorT rtas_discover_domain_resources(void *hnd, SaHpiDomainIdT did);
-
 SaErrorT rtas_discover_sensors(struct oh_handler_state *handle,
                                struct oh_event *res_oh_event);
 
