@@ -86,6 +86,9 @@ SaErrorT snmp_bc_discover_nc(struct oh_handler_state *handle,
 SaErrorT snmp_bc_discover_mx(struct oh_handler_state *handle,
 			       SaHpiEntityPathT *ep_root, char *mx_vector);
 
+SaErrorT snmp_bc_discover_smi(struct oh_handler_state *handle,
+			       SaHpiEntityPathT *ep_root, char *smi_vector);
+
 SaErrorT snmp_bc_discover_power_module(struct oh_handler_state *handle,
 				       SaHpiEntityPathT *ep_root, char *power_module_vector);
 
