@@ -422,6 +422,7 @@ cIpmiMc::CheckAtca()
     {
         stdlog << "MC " << m_addr.m_slave_addr << " is an ATCA board, PICMG Extension version " << (int)m_picmg_major << "." << (int)m_picmg_minor << "\n";
         m_is_atca_board = true;
+        return;
     }
 
     stdlog << "WARNING: MC " << m_addr.m_slave_addr << " is not an ATCA board !!!\n";
