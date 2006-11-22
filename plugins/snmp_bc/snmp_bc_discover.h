@@ -61,8 +61,13 @@ SaErrorT snmp_bc_mod_sensor_ep(SaHpiRdrT *rdrptr,
 SaErrorT snmp_bc_add_ep(SaHpiRdrT *rdrptr, SaHpiEntityPathT *ep_add);	
 		
 SaErrorT snmp_bc_discover_media_tray(struct oh_handler_state *handle,
-				     SaHpiEntityPathT *ep_root, int  media_tray_installed);
-			  
+				     SaHpiEntityPathT *ep_root, 
+				     int  media_tray_installed);
+		
+SaErrorT snmp_bc_discover_filter(struct oh_handler_state *handle,
+				     SaHpiEntityPathT *ep_root, 
+				     int  filter_installed);
+				     			  
 SaErrorT snmp_bc_discover_chassis(struct oh_handler_state *handle,
 				  SaHpiEntityPathT *ep_root);
 
@@ -71,6 +76,15 @@ SaErrorT snmp_bc_discover_blade(struct oh_handler_state *handle,
 
 SaErrorT snmp_bc_discover_blowers(struct oh_handler_state *handle,
 			       SaHpiEntityPathT *ep_root, char *blower_vector);
+
+SaErrorT snmp_bc_discover_tap(struct oh_handler_state *handle,
+			       SaHpiEntityPathT *ep_root, char *tap_vector);
+
+SaErrorT snmp_bc_discover_nc(struct oh_handler_state *handle,
+			       SaHpiEntityPathT *ep_root, char *nc_vector);
+
+SaErrorT snmp_bc_discover_mx(struct oh_handler_state *handle,
+			       SaHpiEntityPathT *ep_root, char *mx_vector);
 
 SaErrorT snmp_bc_discover_power_module(struct oh_handler_state *handle,
 				       SaHpiEntityPathT *ep_root, char *power_module_vector);
