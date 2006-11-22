@@ -50,12 +50,22 @@ struct snmp_bc_hnd {
 	guint max_sm_supported;		/* sm - i/o module        */
 	guint max_mm_supported;		/* mm - management module */
 	guint max_mt_supported;		/* mt - media tray        */
+	guint max_filter_supported;	/* filter - front bezel   */
+	guint max_tap_supported;	/* tap - telco alarm panel*/
+	guint max_nc_supported;		/* nc - network clock     */
+	guint max_mx_supported;		/* mx - multiplex card    */
+	guint max_smi_supported;	/* smi - interposer       */
 	gchar installed_pb_mask[SNMP_BC_MAX_RESOURCES_MASK];
 	gchar installed_blower_mask[SNMP_BC_MAX_RESOURCES_MASK];
 	gchar installed_pm_mask[SNMP_BC_MAX_RESOURCES_MASK];
 	gchar installed_sm_mask[SNMP_BC_MAX_RESOURCES_MASK];
-	gchar installed_mm_mask[SNMP_BC_MAX_RESOURCES_MASK];	
-        gulong installed_mt_mask; 
+	gchar installed_mm_mask[SNMP_BC_MAX_RESOURCES_MASK];
+	gchar installed_tap_mask[SNMP_BC_MAX_RESOURCES_MASK];
+	gchar installed_nc_mask[SNMP_BC_MAX_RESOURCES_MASK];
+	gchar installed_mx_mask[SNMP_BC_MAX_RESOURCES_MASK];
+	gchar installed_smi_mask[SNMP_BC_MAX_RESOURCES_MASK];
+        gulong installed_mt_mask;
+	gulong installed_filter_mask; 
 };
 
 SaErrorT snmp_bc_snmp_get(struct snmp_bc_hnd *custom_handle,
