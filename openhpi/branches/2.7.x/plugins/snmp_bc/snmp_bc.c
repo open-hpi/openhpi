@@ -239,9 +239,12 @@ SaErrorT snmp_bc_control_parm(void *hnd, SaHpiResourceIdT rid, SaHpiParmActionT 
 	struct oh_handler_state *handle;
 	struct snmp_bc_hnd *custom_handle;
 
-	if (!hnd) return(SA_ERR_HPI_INVALID_PARAMS);	
+	if (!hnd) {
+		printf("Invalid parameter - hnd");
+		return(SA_ERR_HPI_INVALID_PARAMS);	
+	}
 	if (oh_lookup_parmaction(act) == NULL) {
-		dbg("Invalid parameter");
+		printf("Invalid parameter - act");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 	
