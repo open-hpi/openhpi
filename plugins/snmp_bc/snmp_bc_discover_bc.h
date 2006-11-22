@@ -30,7 +30,10 @@ do { \
         if (err || getvalue.type != ASN_OCTET_STR) { \
 		dbg("Cannot get OID=%s; Received Type=%d; Error=%s.", \
 		      		maskOID, getvalue.type, oh_lookup_error(err)); \
-		if (err) { return(err); } \
+		if (err != SA_ERR_HPI_NOT_PRESENT) { return(err); } \
+		else if (err == SA_ERR_HPI_NOT_PRESENT) {getvalue.type = ASN_OCTET_STR; \
+		                                            memset(&getvalue.string, '0', SNMP_BC_MAX_RESOURCES_MASK); \
+		                                            getvalue.string[SNMP_BC_MAX_RESOURCES_MASK -1] = '\0';} \
 		else { return(SA_ERR_HPI_INTERNAL_ERROR); } \
         } \
 } while(0)
@@ -43,7 +46,8 @@ do { \
         if (err || getintvalue.type != ASN_INTEGER) { \
 		dbg("Cannot get OID=%s; Received Type=%d; Error=%s.", \
 		      		maskOID, getintvalue.type, oh_lookup_error(err)); \
-		if (err) { return(err); } \
+		if (err != SA_ERR_HPI_NOT_PRESENT) { return(err); } \
+		else if (err == SA_ERR_HPI_NOT_PRESENT) {getintvalue.type = ASN_INTEGER; getintvalue.integer = 0;} \
 		else { return(SA_ERR_HPI_INTERNAL_ERROR); } \
         } \
 } while(0)
@@ -51,27 +55,19 @@ do { \
 #define get_dualmode_object(maskOID, getintvalue) \
 do { \
 	err = snmp_bc_snmp_get(custom_handle, maskOID, &getintvalue, SAHPI_TRUE); \
-        if (err) { \
+	if (err == SA_ERR_HPI_NOT_PRESENT) {getintvalue.type = ASN_INTEGER; getintvalue.integer = 0;} \
+        else if (err != SA_OK) { \
 		dbg("Cannot get OID=%s; Received Type=%d; Error=%s.", \
 		      		maskOID, getintvalue.type, oh_lookup_error(err)); \
 		if (err) { return(err); } \
 		else { return(SA_ERR_HPI_INTERNAL_ERROR); } \
-        } else if (getintvalue.type == ASN_OCTET_STR) { \
-		getintvalue.integer = atoi(getintvalue.string); \
-        } else if (getintvalue.type == ASN_INTEGER) { \
-		if (getintvalue.integer == 1) getintvalue.integer = 10;  \
+	} else { \
+        	if (getintvalue.type == ASN_OCTET_STR) { \
+			getintvalue.integer = atoi(getintvalue.string); \
+        	} else if (getintvalue.type == ASN_INTEGER) { \
+			if (getintvalue.integer == 1) getintvalue.integer = 10;  \
+		} \
 	} \
-} while(0)
-
-#define pdp_debug(string) \
-do { \
-	err = snmp_bc_snmp_get(custom_handle, maskOID, &getintvalue, SAHPI_TRUE); \
-        if (err || getintvalue.type != ASN_INTEGER) { \
-		dbg("Cannot get OID=%s; Received Type=%d; Error=%s.", \
-		      		maskOID, getintvalue.type, oh_lookup_error(err)); \
-		if (err) { return(err); } \
-		else { return(SA_ERR_HPI_INTERNAL_ERROR); } \
-        } \
 } while(0)
 
 guint snmp_bc_isrediscover(SaHpiEventT *working_event);
@@ -101,6 +97,21 @@ SaErrorT snmp_bc_construct_mm_rpt(struct oh_event *e,
 				  SaHpiEntityPathT *ep_root, 
 				  guint mm_index);
 				  
+SaErrorT snmp_bc_construct_tap_rpt(struct oh_event *e, 
+				  struct ResourceInfo **res_info_ptr,
+				  SaHpiEntityPathT *ep_root, 
+				  guint tap_index);
+				  
+SaErrorT snmp_bc_construct_nc_rpt(struct oh_event *e, 
+				  struct ResourceInfo **res_info_ptr,
+				  SaHpiEntityPathT *ep_root, 
+				  guint nc_index);
+				  
+SaErrorT snmp_bc_construct_mx_rpt(struct oh_event *e, 
+				  struct ResourceInfo **res_info_ptr,
+				  SaHpiEntityPathT *ep_root, 
+				  guint mx_index);
+				  				  				  				  
 SaErrorT snmp_bc_add_blade_rptcache(struct oh_handler_state *handle, 
 				  struct oh_event *e, 
 				  struct ResourceInfo *res_info_ptr,
@@ -126,6 +137,21 @@ SaErrorT snmp_bc_add_mm_rptcache(struct oh_handler_state *handle,
 				  struct ResourceInfo *res_info_ptr,
 				  guint mm_index);
 				  
+SaErrorT snmp_bc_add_tap_rptcache(struct oh_handler_state *handle, 
+				  struct oh_event *e, 
+				  struct ResourceInfo *res_info_ptr,
+				  guint  tap_index);
+				  
+SaErrorT snmp_bc_add_nc_rptcache(struct oh_handler_state *handle, 
+				  struct oh_event *e, 
+				  struct ResourceInfo *res_info_ptr,
+				  guint  nc_index);
+				  
+SaErrorT snmp_bc_add_mx_rptcache(struct  oh_handler_state *handle, 
+				  struct oh_event *e, 
+				  struct ResourceInfo *res_info_ptr,
+				  guint  mx_index);
+				  
 SaErrorT snmp_bc_discover_blade_i(struct oh_handler_state *handle,
 			  	  SaHpiEntityPathT *ep_root, 
 				  guint blade_index);
@@ -145,7 +171,19 @@ SaErrorT snmp_bc_discover_switch_i(struct oh_handler_state *handle,
 SaErrorT snmp_bc_discover_mm_i(struct oh_handler_state *handle,
 			  	SaHpiEntityPathT *ep_root, 
 				guint mm_index);
-
+				   
+SaErrorT snmp_bc_discover_tap_i(struct oh_handler_state *handle,
+			  	SaHpiEntityPathT *ep_root, 
+				guint tap_index);
+				   
+SaErrorT snmp_bc_discover_nc_i(struct oh_handler_state *handle,
+			  	SaHpiEntityPathT *ep_root, 
+				guint nc_index);
+				   
+SaErrorT snmp_bc_discover_mx_i(struct oh_handler_state *handle,
+			  	SaHpiEntityPathT *ep_root, 
+				guint mx_index);
+												
 #endif
 
 
