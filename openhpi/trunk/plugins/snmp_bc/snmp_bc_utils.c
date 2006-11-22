@@ -262,7 +262,6 @@ struct oh_event *snmp_bc_alloc_oh_event()
 	e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
 	if (e == NULL) return(e); 
 	
-	e->did = oh_get_default_domain_id();
 	e->rdrs = NULL;
 
 	return e;

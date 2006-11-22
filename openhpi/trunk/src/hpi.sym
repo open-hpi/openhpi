@@ -92,13 +92,10 @@ oHpiHandlerInfo
 oHpiHandlerGetNext
 oHpiGlobalParamGet
 oHpiGlobalParamSet
+oHpiInjectEvent
 oh_evt_queue_push
 oh_load_config
 oh_process_config
 oh_clean_config
-oh_get_default_domain_id
-oh_request_new_domain
-oh_request_new_domain_aitimeout
-oh_request_domain_delete
 data_access_block_times
 oh_wake_event_thread

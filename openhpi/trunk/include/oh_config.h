@@ -24,14 +24,17 @@ extern "C" {
 #include <glib.h>
 #include <SaHpi.h>
 #include <oh_utils.h>
-
+	
 struct oh_parsed_config {
         GSList *plugin_names;
         GSList *handler_configs;
+	GSList *domain_configs;
         guint plugins_defined;
         guint plugins_loaded;
         guint handlers_defined;
         guint handlers_loaded;
+        guint domains_defined;
+        guint domains_loaded;
 };
 
 typedef enum {

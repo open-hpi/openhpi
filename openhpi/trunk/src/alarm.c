@@ -494,21 +494,19 @@ done:
 
 /**
  * oh_detect_event_alarm
+ * @d: pointer to domain
  * @e: pointer to event
  *
  * Study event and determine if alarms need to be removed.
  *
  * Return value: SA_OK on success
  **/
-SaErrorT oh_detect_event_alarm(struct oh_event *e)
+SaErrorT oh_detect_event_alarm(struct oh_domain *d,
+                               struct oh_event *e)
 {
-        struct oh_domain *d = NULL;
         SaHpiEventTypeT etype;
 
-        if (!e) return SA_ERR_HPI_INVALID_PARAMS;
-
-        d = oh_get_domain(e->did);
-        if (!d) return SA_ERR_HPI_INVALID_DOMAIN;
+        if (!d || !e) return SA_ERR_HPI_INVALID_PARAMS;
 
         etype = e->event.EventType;
         if (etype == SAHPI_ET_RESOURCE) {
@@ -528,7 +526,6 @@ SaErrorT oh_detect_event_alarm(struct oh_event *e)
         	oh_detect_hpi_alarm(d, &e->event);
         }
 
-        oh_release_domain(d);
         return SA_OK;
 }
 

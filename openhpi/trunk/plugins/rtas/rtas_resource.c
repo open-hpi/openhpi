@@ -38,7 +38,6 @@ SaErrorT rtas_set_resource_tag(void *hnd,
         if (error) return error;
 
         e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
-        e->did = oh_get_default_domain_id();
         e->hid = h->hid;
         e->event.EventType = SAHPI_ET_RESOURCE;
         e->event.Source = rptentry->ResourceId;
@@ -67,7 +66,6 @@ SaErrorT rtas_set_resource_severity(void *hnd,
         rptentry->ResourceSeverity = sev;
 
         e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
-        e->did = oh_get_default_domain_id();
         e->event.EventType = SAHPI_ET_RESOURCE;
         e->event.Source = rptentry->ResourceId;
         e->event.Severity = rptentry->ResourceSeverity;

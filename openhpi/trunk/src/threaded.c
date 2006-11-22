@@ -71,7 +71,7 @@ static gpointer oh_discovery_thread_loop(gpointer data)
         g_mutex_lock(oh_discovery_thread_mutex);
         while (1) {
                 trace("Doing threaded discovery on all handlers");
-                error = oh_domain_resource_discovery(0);
+                error = oh_discovery();
                 if (error) {
                         trace("Got error on threaded discovery return.");
                 }
