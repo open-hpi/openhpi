@@ -111,6 +111,11 @@ SaErrorT snmp_bc_construct_mx_rpt(struct oh_event *e,
 				  struct ResourceInfo **res_info_ptr,
 				  SaHpiEntityPathT *ep_root, 
 				  guint mx_index);
+
+SaErrorT snmp_bc_construct_smi_rpt(struct oh_event *e, 
+				  struct ResourceInfo **res_info_ptr,
+				  SaHpiEntityPathT *ep_root, 
+				  guint smi_index);
 				  				  				  				  
 SaErrorT snmp_bc_add_blade_rptcache(struct oh_handler_state *handle, 
 				  struct oh_event *e, 
@@ -152,6 +157,11 @@ SaErrorT snmp_bc_add_mx_rptcache(struct  oh_handler_state *handle,
 				  struct ResourceInfo *res_info_ptr,
 				  guint  mx_index);
 				  
+SaErrorT snmp_bc_add_smi_rptcache(struct  oh_handler_state *handle, 
+				  struct oh_event *e, 
+				  struct ResourceInfo *res_info_ptr,
+				  guint  smi_index);
+				  				  
 SaErrorT snmp_bc_discover_blade_i(struct oh_handler_state *handle,
 			  	  SaHpiEntityPathT *ep_root, 
 				  guint blade_index);
