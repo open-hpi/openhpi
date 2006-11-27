@@ -12041,7 +12041,36 @@ struct snmp_bc_inventory snmp_bc_bem_dasd_inventories[] = {
  * Alarm Panel VPD
  *****************/
 struct snmp_bc_inventory snmp_bc_alarm_inventories[] = {
-
+	{
+                .inventory = {
+                        .IdrId = 14,
+                        .Oem = 0,
+                },
+                .inventory_info = {
+                        .mib = {
+                                .not_avail_indicator_num = 0,
+                                .write_only = SAHPI_FALSE,
+                                .area_type = SAHPI_IDR_AREATYPE_BOARD_INFO,
+                                .oid = {
+                                        .OidChassisType = '\0',
+                                        .OidMfgDateTime = '\0', /* Set to SAHPI_TIME_UNSPECIFIED */
+					/* tapHardwareVpdManufacturingId */
+                                        .OidManufacturer = ".1.3.6.1.4.1.2.3.51.2.2.21.15.3.x",
+                                        .OidProductName = '\0',
+					/* tapHardwareVpdHardwareRevision */
+                                        .OidProductVersion = ".1.3.6.1.4.1.2.3.51.2.2.21.15.5.x",
+					/* tapHardwareVpdFruSerial */
+                                        .OidSerialNumber = ".1.3.6.1.4.1.2.3.51.2.2.21.15.11.x",
+					/* tapHardwareVpdFruNumber */
+                                        .OidPartNumber = ".1.3.6.1.4.1.2.3.51.2.2.21.15.4.x",
+                                        .OidFileId = '\0',
+                                        .OidAssetTag = '\0',
+                                }
+                        },
+                },
+                .comment = "Alarm Panel VPD",
+	},
+		
         {} /* Terminate array with a null element */
 };
 
@@ -12049,6 +12078,35 @@ struct snmp_bc_inventory snmp_bc_alarm_inventories[] = {
  * Multiplexer Expansion Module VPD
  **********************************/
 struct snmp_bc_inventory snmp_bc_mux_inventories[] = {
+	{
+                .inventory = {
+                        .IdrId = 15,
+                        .Oem = 0,
+                },
+                .inventory_info = {
+                        .mib = {
+                                .not_avail_indicator_num = 0,
+                                .write_only = SAHPI_FALSE,
+                                .area_type = SAHPI_IDR_AREATYPE_BOARD_INFO,
+                                .oid = {
+                                        .OidChassisType = '\0',
+                                        .OidMfgDateTime = '\0', /* Set to SAHPI_TIME_UNSPECIFIED */
+					/* mxHardwareVpdManufacturingId */
+                                        .OidManufacturer = ".1.3.6.1.4.1.2.3.51.2.2.21.17.1.1.3.x",
+                                        .OidProductName = '\0',
+					/* mxHardwareVpdHardwareRevision */
+                                        .OidProductVersion = ".1.3.6.1.4.1.2.3.51.2.2.21.17.1.1.5.x",
+					/* mxHardwareVpdFruSerial */
+                                        .OidSerialNumber = ".1.3.6.1.4.1.2.3.51.2.2.21.17.1.1.11.x",
+					/* mxHardwareVpdFruNumber */
+                                        .OidPartNumber = ".1.3.6.1.4.1.2.3.51.2.2.21.17.1.1.4.x",
+                                        .OidFileId = '\0',
+                                        .OidAssetTag = '\0',
+                                }
+                        },
+                },
+                .comment = "Multiplexer Expansion Module VPD",
+        },
 
         {} /* Terminate array with a null element */
 };
@@ -12057,6 +12115,35 @@ struct snmp_bc_inventory snmp_bc_mux_inventories[] = {
  * Network Clock Module VPD
  **************************/
 struct snmp_bc_inventory snmp_bc_clock_inventories[] = {
+	{
+                .inventory = {
+                        .IdrId = 16,
+                        .Oem = 0,
+                },
+                .inventory_info = {
+                        .mib = {
+                                .not_avail_indicator_num = 0,
+                                .write_only = SAHPI_FALSE,
+                                .area_type = SAHPI_IDR_AREATYPE_BOARD_INFO,
+                                .oid = {
+                                        .OidChassisType = '\0',
+                                        .OidMfgDateTime = '\0', /* Set to SAHPI_TIME_UNSPECIFIED */
+					/* ncHardwareVpdManufacturingId */
+                                        .OidManufacturer = ".1.3.6.1.4.1.2.3.51.2.2.21.16.1.1.3.x",
+                                        .OidProductName = '\0',
+					/* ncHardwareVpdHardwareRevision */
+                                        .OidProductVersion = ".1.3.6.1.4.1.2.3.51.2.2.21.16.1.1.5.x",
+					/* ncHardwareVpdFruSerial */
+                                        .OidSerialNumber = ".1.3.6.1.4.1.2.3.51.2.2.21.16.1.1.11.x",
+					/* ncHardwareVpdFruNumber */
+                                        .OidPartNumber = ".1.3.6.1.4.1.2.3.51.2.2.21.16.1.1.4.x",
+                                        .OidFileId = '\0',
+                                        .OidAssetTag = '\0',
+                                }
+                        },
+                },
+                .comment = "Network Clock Module VPD",
+        },
 
         {} /* Terminate array with a null element */
 };
@@ -12073,6 +12160,35 @@ struct snmp_bc_inventory snmp_bc_filter_inventories[] = {
  * Switch Interposer VPD
  ***********************/
 struct snmp_bc_inventory snmp_bc_interposer_switch_inventories[] = {
+	{
+                .inventory = {
+                        .IdrId = 18,
+                        .Oem = 0,
+                },
+                .inventory_info = {
+                        .mib = {
+                                .not_avail_indicator_num = 0,
+                                .write_only = SAHPI_FALSE,
+                                .area_type = SAHPI_IDR_AREATYPE_BOARD_INFO,
+                                .oid = {
+                                        .OidChassisType = '\0',
+                                        .OidMfgDateTime = '\0', /* Set to SAHPI_TIME_UNSPECIFIED */
+					/* smInpHardwareVpdManufacturingId */
+                                        .OidManufacturer = ".1.3.6.1.4.1.2.3.51.2.2.21.6.2.1.3.x",
+                                        .OidProductName = '\0',
+					/* smInpHardwareVpdHardwareRevision */
+                                        .OidProductVersion = ".1.3.6.1.4.1.2.3.51.2.2.21.6.2.1.5.x",
+					/* smInpHardwareVpdFruSerial */
+                                        .OidSerialNumber = ".1.3.6.1.4.1.2.3.51.2.2.21.6.2.1.11.x",
+					/* smInpHardwareVpdFruNumber */
+                                        .OidPartNumber = ".1.3.6.1.4.1.2.3.51.2.2.21.6.2.1.4.x",
+                                        .OidFileId = '\0',
+                                        .OidAssetTag = '\0',
+                                }
+                        },
+                },
+                .comment = "Switch Interposer VPD",
+        },
 
         {} /* Terminate array with a null element */
 };
@@ -12081,6 +12197,36 @@ struct snmp_bc_inventory snmp_bc_interposer_switch_inventories[] = {
  * MM Interposer VPD
  *******************/
 struct snmp_bc_inventory snmp_bc_interposer_mm_inventories[] = {
+	{
+                .inventory = {
+                        .IdrId = 19,
+                        .Oem = 0,
+                },
+                .inventory_info = {
+                        .mib = {
+                                .not_avail_indicator_num = 0,
+                                .write_only = SAHPI_FALSE,
+                                .area_type = SAHPI_IDR_AREATYPE_BOARD_INFO,
+                                .oid = {
+                                        .OidChassisType = '\0',
+                                        .OidMfgDateTime = '\0', /* Set to SAHPI_TIME_UNSPECIFIED */
+					/* mmInpHardwareVpdManufacturingId */
+                                        .OidManufacturer = ".1.3.6.1.4.1.2.3.51.2.2.21.2.2.1.3.x",
+                                        .OidProductName = '\0',
+					/* mmInpHardwareVpdHardwareRevision */
+                                        .OidProductVersion = ".1.3.6.1.4.1.2.3.51.2.2.21.2.2.1.5.x",
+					/* mmInpHardwareVpdFruSerial */
+                                        .OidSerialNumber = ".1.3.6.1.4.1.2.3.51.2.2.21.2.2.1.9.x",
+					/* mmInpHardwareVpdFruNumber */
+                                        .OidPartNumber = ".1.3.6.1.4.1.2.3.51.2.2.21.2.2.1.4.x",
+                                        .OidFileId = '\0',
+                                        .OidAssetTag = '\0',
+                                }
+                        },
+                },
+                .comment = "Management Module Interposer VPD",
+        },
+
 
         {} /* Terminate array with a null element */
 };
