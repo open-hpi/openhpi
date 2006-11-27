@@ -131,7 +131,11 @@ typedef enum {
 #define SNMP_BC_AP_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.47.0" /* chassisNoOfAPsInstalled, AlarmPanel */
 #define SNMP_BC_NC_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.48.0" /* chassisNoOfNCsInstalled, NetworkClock Card */
 #define SNMP_BC_MX_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.49.0" /* chassisNoOfMXsInstalled, Muiltiplexer Expansion Mod */
-#define SNMP_BC_SMI_INSTALLED ".1.3.6.1.4.1.2.3.51.2.22.4.51.0" /* chassisNoOfSMIsInstalled, Interposer */
+#define SNMP_BC_SMI_INSTALLED ".1.3.6.1.4.1.2.3.51.2.22.4.51.0" /* chassisNoOfSMIsInstalled, Switch Interposer */
+
+#define SNMP_BC_NC_VPD_BAY_NUMBER ".1.3.6.1.4.1.2.3.51.2.2.21.16.1.1.2.x" /* ncHardwareVpdBayNumber, */
+#define SNMP_BC_MX_VPD_BAY_NUMBER ".1.3.6.1.4.1.2.3.51.2.2.21.17.1.1.2.x" /* mxHardwareVpdBayNumber,  */
+#define SNMP_BC_SMI_VPD_BAY_NUMBER ".1.3.6.1.4.1.2.3.51.2.2.21.6.2.1.2.x" /* smInpHardwareVpdBayNumber, Switch Interposer VpsBayNumber */ 
 
 #define SNMP_BC_BLADE_EXPANSION_VECTOR  ".1.3.6.1.4.1.2.3.51.2.22.1.5.1.1.14.x" /* bladeServerExpansion */
 #define SNMP_BC_BLADE_EXP_BLADE_BAY	".1.3.6.1.4.1.2.3.51.2.2.21.4.3.1.19.x" /* bladeExpBoardVpdBladeBayNumber */
