@@ -114,7 +114,7 @@ public:
   SaHpiResourceIdT m_resource_id;
 
   virtual bool Create( SaHpiRptEntryT &entry );
-  virtual bool Destroy();
+  virtual void Destroy();
 
   SaErrorT SendCommand( const cIpmiMsg &msg, cIpmiMsg &rsp,
                         unsigned int lun = 0, int retries = dIpmiDefaultRetries );

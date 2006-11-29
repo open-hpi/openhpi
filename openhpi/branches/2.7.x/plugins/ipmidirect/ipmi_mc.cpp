@@ -256,25 +256,32 @@ cIpmiMc::HandleNew()
        rv = m_sel->GetInfo();
 
        if ( rv != SA_OK )
-            return rv;
-
-       SaHpiTimeT sel_time;
-
-       oh_gettimeofday( &sel_time );
-
-       m_sel->SetSelTime( sel_time );
-
-       m_sel->m_fetched = false;
-
-       if (IsAtcaBoard()) {
-           rv = m_sel->ClearSel();
-           if ( rv != SA_OK )
-               return rv;
+       {
+            m_sel_device_support = false;
        }
+       else
+       {
+           SaHpiTimeT sel_time;
 
-       // read old events
-       GList *list = m_sel->GetEvents();
-       m_sel->ClearList( list );
+           oh_gettimeofday( &sel_time );
+
+           m_sel->SetSelTime( sel_time );
+
+           m_sel->m_fetched = false;
+
+           if (IsAtcaBoard()) {
+               rv = m_sel->ClearSel();
+               if ( rv != SA_OK )
+                   m_sel_device_support = false;
+           }
+
+           if ( m_sel_device_support )
+           {
+                // read old events
+                GList *list = m_sel->GetEvents();
+                m_sel->ClearList( list );
+           }
+       }
      }
 
   // We set the event receiver here, so that we know all the SDRs
