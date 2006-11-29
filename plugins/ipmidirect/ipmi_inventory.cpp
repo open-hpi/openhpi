@@ -30,7 +30,8 @@
 cIpmiInventory::cIpmiInventory( cIpmiMc *mc, unsigned int fru_device_id )
   : cIpmiRdr( mc, SAHPI_INVENTORY_RDR ), m_fru_device_id( fru_device_id ),
     m_access( eInventoryAccessModeByte ), m_size( 0 ),
-    m_oem( 0 )
+    m_oem( 0 ),
+    m_addr(eIpmiAddrTypeIpmb, mc->GetChannel(), 0,mc->GetAddress())
 {
 }
 
@@ -39,6 +40,13 @@ cIpmiInventory::~cIpmiInventory()
 {
 }
 
+
+bool
+cIpmiInventory::SetAddr(cIpmiAddr addr)
+{
+   m_addr = addr;
+   return true;
+}
 
 SaErrorT
 cIpmiInventory::GetFruInventoryAreaInfo( unsigned int &size,
@@ -50,7 +58,7 @@ cIpmiInventory::GetFruInventoryAreaInfo( unsigned int &size,
 
   cIpmiMsg rsp;
 
-  SaErrorT rv = SendCommand( msg, rsp );
+  SaErrorT rv = Domain()->SendCommand( m_addr, msg, rsp );
 
   if ( rv != SA_OK )
      {
@@ -84,7 +92,7 @@ cIpmiInventory::ReadFruData( unsigned short offset, unsigned int num, unsigned i
 
   cIpmiMsg rsp;
 
-  SaErrorT rv = SendCommand( msg, rsp );
+  SaErrorT rv = Domain()->SendCommand( m_addr, msg, rsp );
 
   if ( rv != SA_OK )
      {
@@ -113,7 +121,6 @@ cIpmiInventory::ReadFruData( unsigned short offset, unsigned int num, unsigned i
 
   return SA_OK;
 }
-
 
 SaErrorT
 cIpmiInventory::Fetch()
@@ -164,33 +171,8 @@ cIpmiInventory::CreateRdr( SaHpiRptEntryT &resource, SaHpiRdrT &rdr )
   if ( cIpmiRdr::CreateRdr( resource, rdr ) == false )
        return false;
 
-  if ( !(resource.ResourceCapabilities & SAHPI_CAPABILITY_INVENTORY_DATA ) )
-     {
-       // update resource
-       resource.ResourceCapabilities |= SAHPI_CAPABILITY_RDR|SAHPI_CAPABILITY_INVENTORY_DATA;
-
-       struct oh_event *e = (struct oh_event *)g_malloc0( sizeof( struct oh_event ) );
-
-       if (resource.ResourceCapabilities & SAHPI_CAPABILITY_FRU)
-       {
-           e->event.EventType = SAHPI_ET_RESOURCE;
-           e->event.EventDataUnion.ResourceEvent.ResourceEventType = SAHPI_RESE_RESOURCE_ADDED;
-           stdlog << "cIpmiInventory::CreateRdr SAHPI_ET_RESOURCE Event resource " << resource.ResourceId << "\n";
-       }
-       else
-       {
-           e->event.EventType = SAHPI_ET_HOTSWAP;
-           e->event.EventDataUnion.HotSwapEvent.HotSwapState = SAHPI_HS_STATE_ACTIVE;
-           e->event.EventDataUnion.HotSwapEvent.PreviousHotSwapState = SAHPI_HS_STATE_ACTIVE;
-           stdlog << "cIpmiInventory::CreateRdr SAHPI_ET_HOTSWAP Event resource " << resource.ResourceId << "\n";
-       }
-       e->resource = resource;
-       e->event.Source = resource.ResourceId;
-       oh_gettimeofday(&e->event.Timestamp);
-       e->event.Severity = resource.ResourceSeverity;
-
-       m_mc->Domain()->AddHpiEvent( e );
-     }
+  // update resource
+  resource.ResourceCapabilities |= SAHPI_CAPABILITY_RDR|SAHPI_CAPABILITY_INVENTORY_DATA;
 
   // control record
   SaHpiInventoryRecT &rec = rdr.RdrTypeUnion.InventoryRec;
