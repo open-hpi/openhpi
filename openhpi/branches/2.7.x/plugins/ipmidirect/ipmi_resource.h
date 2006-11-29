@@ -62,8 +62,8 @@ protected:
   cIpmiSensorHotswap *m_hotswap_sensor;
 
   // state only to create state change Mx -> M0
-  // where Mx is m_fru_state
-  tIpmiFruState       m_fru_state;
+  // where Mx is m_picmg_fru_state
+  tIpmiFruState       m_picmg_fru_state;
   bool                m_policy_canceled;
   SaHpiTimeoutT       m_extract_timeout;
 
@@ -78,7 +78,7 @@ public:
 public:
   cIpmiMc *Mc() const { return m_mc; }
   unsigned int FruId() const { return m_fru_id; }
-  tIpmiFruState &FruState() { return m_fru_state; }
+  tIpmiFruState &PicmgFruState() { return m_picmg_fru_state; }
   bool &PolicyCanceled() { return m_policy_canceled; }
   SaHpiTimeoutT &ExtractTimeout() { return m_extract_timeout; }
   cIpmiDomain *Domain() const;
@@ -126,10 +126,9 @@ public:
 
   void Activate();
   void Deactivate();
+  SaHpiHsStateT GetHpiState();
 
 private:
-  bool PopulateSel();
-
   bool m_populate;
 
 public:

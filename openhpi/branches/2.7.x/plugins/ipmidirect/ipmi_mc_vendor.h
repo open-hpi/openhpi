@@ -36,6 +36,9 @@
 #include "ipmi_fru_info.h"
 #endif
 
+#ifndef dIpmiInventory_h
+#include "ipmi_inventory.h"
+#endif
 
 class cIpmiMc;
 
@@ -68,6 +71,9 @@ public:
 
   // give vendors a chance to modify the sdrs
   virtual bool ProcessSdr( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdrs *sdrs );
+
+  virtual bool ProcessFru( cIpmiInventory *inv, cIpmiMc *mc, unsigned int sa,
+			SaHpiEntityTypeT type);
 
   // called after reading an SDR to create sensors, controls, frus, sel
   virtual bool CreateRdrs( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdrs *sdrs );
@@ -138,6 +144,10 @@ public:
 protected:
   virtual bool CreateInv( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdr *sdr,
                           cIpmiSdrs *sdrs );
+
+public:
+  // create watchdogs
+  virtual bool CreateWatchdogs( cIpmiDomain *domain, cIpmiMc *mc );
 
 public:
   // create SEL

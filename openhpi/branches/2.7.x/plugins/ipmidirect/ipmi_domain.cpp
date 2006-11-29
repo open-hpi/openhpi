@@ -771,6 +771,20 @@ cIpmiDomain::VerifyControl( cIpmiControl *c )
   return 0;
 }
 
+cIpmiWatchdog *
+cIpmiDomain::VerifyWatchdog ( cIpmiWatchdog *c )
+{
+  for( int i = 0; i < m_mcs.Num(); i++ )
+     {
+       cIpmiMc *mc = m_mcs[i];
+
+       if ( mc->FindRdr( c ) )
+            return c;
+     }
+
+  return 0;
+}
+
 
 cIpmiInventory *
 cIpmiDomain::VerifyInventory( cIpmiInventory *inv )
@@ -952,15 +966,4 @@ cIpmiDomain::Dump( cIpmiLog &dump ) const
      }
 
   dump.End();
-}
-
-
-bool
-cIpmiDomain::Populate()
-{
-  for( int i = 0; i < m_mcs.Num(); i++ )
-       if ( m_mcs[i]->Populate() == false )
-            return false;
-
-  return true;
 }

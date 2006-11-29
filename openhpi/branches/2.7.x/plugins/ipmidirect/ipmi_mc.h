@@ -91,7 +91,6 @@ protected:
   // PICMG version for ATCA boards
   unsigned char m_picmg_major;
   unsigned char m_picmg_minor;
-  bool m_is_not_ecn;
 
   // The rest is the actual data from the get device id and SDRs.
   unsigned char  m_device_id;
@@ -121,6 +120,9 @@ protected:
   unsigned short m_product_id;
 
   unsigned char  m_aux_fw_revision[4];
+
+  bool           m_is_atca_board;
+  bool           m_is_rms_board;
 
   SaErrorT SendSetEventRcvr( unsigned int addr );
 
@@ -159,9 +161,11 @@ public:
 
   const cIpmiAddr &Addr() { return m_addr; }
 
-  bool IsAtcaBoard();
+  void CheckAtca();
 
-  bool IsNotEcn() const { return m_is_not_ecn; }
+  bool IsAtcaBoard() { return m_is_atca_board; }
+
+  bool &IsRmsBoard() { return m_is_rms_board; }
 
   void SetSel( bool sel ) { m_sel_device_support = sel; }
 
@@ -178,6 +182,7 @@ public:
   }
 
   bool ProvidesDeviceSdrs() const { return m_provides_device_sdrs; }
+  void SetProvidesDeviceSdrs(bool val) { m_provides_device_sdrs = val; }
 
   bool &SdrRepositorySupport() { return m_sdr_repository_support; }
   bool SelDeviceSupport() const { return m_sel_device_support; }
@@ -199,8 +204,6 @@ public:
   cIpmiSensor *FindSensor( unsigned int lun, unsigned int sensor_id );
   cIpmiRdr *FindRdr( cIpmiRdr *r );
 
-  SaErrorT AtcaPowerFru( int fru_id );
-
   void SetVendor( cIpmiMcVendor *mv )
   {
     if ( mv )
@@ -217,10 +220,6 @@ public:
 
   // create and populate resources and rdrs
   virtual bool Populate();
-
-  // get hotswap state for all resources which has a hotswap sensor.
-  // must be called with read lock m_domain.m_lock held.
-  SaErrorT GetHotswapStates();
 };
 
 

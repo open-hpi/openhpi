@@ -31,10 +31,6 @@
 
 class cIpmiSensorHotswap : public cIpmiSensorDiscrete
 {
-#ifdef FAKE_ECN_BEHAVIOR
-  char  m_deactivation_locked;
-  bool  m_fake_deactivation_locked;
-#endif
 public:
   static SaHpiHsStateT ConvertIpmiToHpiHotswapState( tIpmiFruState h );
 
@@ -52,13 +48,8 @@ public:
   virtual bool CreateRdr( SaHpiRptEntryT &resource, SaHpiRdrT &rdr );
 
   // read hotswap state
-  SaErrorT GetState( tIpmiFruState &state );
-  SaErrorT GetState( SaHpiHsStateT &state );
-
-#ifdef FAKE_ECN_BEHAVIOR
-  void SetDeactLocked( char locked ) { m_deactivation_locked = locked; }
-  bool FakeDeactLocked() const {return m_fake_deactivation_locked; }
-#endif
+  SaErrorT GetPicmgState( tIpmiFruState &state );
+  SaErrorT GetHpiState( SaHpiHsStateT &state );
 };
 
 
