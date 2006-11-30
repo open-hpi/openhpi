@@ -90,12 +90,14 @@ SaErrorT snmp_bc_construct_pm_rpt(struct oh_event *e,
 SaErrorT snmp_bc_construct_sm_rpt(struct oh_event *e, 
 				  struct ResourceInfo **res_info_ptr,
 				  SaHpiEntityPathT *ep_root, 
-				  guint sm_index);
+				  guint sm_index,
+				  char *interposer_install_mask);
 				  
 SaErrorT snmp_bc_construct_mm_rpt(struct oh_event *e, 
 				  struct ResourceInfo **res_info_ptr,
 				  SaHpiEntityPathT *ep_root, 
-				  guint mm_index);
+				  guint mm_index,
+				  char *interposer_install_mask);
 				  
 SaErrorT snmp_bc_construct_tap_rpt(struct oh_event *e, 
 				  struct ResourceInfo **res_info_ptr,
@@ -116,7 +118,12 @@ SaErrorT snmp_bc_construct_smi_rpt(struct oh_event *e,
 				  struct ResourceInfo **res_info_ptr,
 				  SaHpiEntityPathT *ep_root, 
 				  guint smi_index);
-				  				  				  				  
+
+SaErrorT snmp_bc_construct_mmi_rpt(struct oh_event *e, 
+				  struct ResourceInfo **res_info_ptr,
+				  SaHpiEntityPathT *ep_root, 
+				  guint mmi_index);
+				  				  				  				  				  
 SaErrorT snmp_bc_add_blade_rptcache(struct oh_handler_state *handle, 
 				  struct oh_event *e, 
 				  struct ResourceInfo *res_info_ptr,
@@ -161,7 +168,12 @@ SaErrorT snmp_bc_add_smi_rptcache(struct  oh_handler_state *handle,
 				  struct oh_event *e, 
 				  struct ResourceInfo *res_info_ptr,
 				  guint  smi_index);
-				  				  
+				  
+SaErrorT snmp_bc_add_mmi_rptcache(struct  oh_handler_state *handle, 
+				  struct oh_event *e, 
+				  struct ResourceInfo *res_info_ptr,
+				  guint  mmi_index);
+				  				  				  
 SaErrorT snmp_bc_discover_blade_i(struct oh_handler_state *handle,
 			  	  SaHpiEntityPathT *ep_root, 
 				  guint blade_index);
