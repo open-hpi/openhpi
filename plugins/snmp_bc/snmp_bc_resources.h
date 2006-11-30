@@ -117,8 +117,9 @@ typedef enum {
 #define SNMP_BC_NOS_FILTER_SUPPORTED ".1.3.6.1.4.1.2.3.51.2.22.4.40.0"  /* chassisNoOfFBsSupported, Front Bezel */
 #define SNMP_BC_NOS_AP_SUPPORTED  ".1.3.6.1.4.1.2.3.51.2.22.4.41.0" /* chassisNoOfAPsSupported, AlarmPanel */
 #define SNMP_BC_NOS_NC_SUPPORTED  ".1.3.6.1.4.1.2.3.51.2.22.4.42.0" /* chassisNoOfNCsSupported, NetworkClock Card */
-#define SNMP_BC_NOS_MX_SUPPORTED  ".1.3.6.1.4.1.2.3.51.2.22.4.43.0" /* chassisNoOfMXsSupported, Muiltiplexer Expansion Mod */
-#define SNMP_BC_NOS_SMI_SUPPORTED ".1.3.6.1.4.1.2.3.51.2.22.4.45.0" /* chassisNoOfSMIsSupported, Interposer */
+#define SNMP_BC_NOS_MX_SUPPORTED  ".1.3.6.1.4.1.2.3.51.2.22.4.43.0" /* chassisNoOfMXsSupported, Multiplexer Expansion Mod */
+#define SNMP_BC_NOS_MMI_SUPPORTED ".1.3.6.1.4.1.2.3.51.2.22.4.44.0" /* chassisNoOfMMIsSupported, MM Interposer */
+#define SNMP_BC_NOS_SMI_SUPPORTED ".1.3.6.1.4.1.2.3.51.2.22.4.45.0" /* chassisNoOfSMIsSupported, Switch Interposer */
 
 #define SNMP_BC_PB_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.25.0" 	/* chassisPBsInstalled, ProcessorBlade */
 #define SNMP_BC_SM_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.29.0" 	/* chassisSMsInstalled, SwitchModule */
@@ -130,7 +131,8 @@ typedef enum {
 #define SNMP_BC_FILTER_INSTALLED ".1.3.6.1.4.1.2.3.51.2.22.4.46.0"      /* chassisNoOfFBsInstalled, FrontBezel (Filter) */
 #define SNMP_BC_AP_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.47.0" /* chassisNoOfAPsInstalled, AlarmPanel */
 #define SNMP_BC_NC_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.48.0" /* chassisNoOfNCsInstalled, NetworkClock Card */
-#define SNMP_BC_MX_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.49.0" /* chassisNoOfMXsInstalled, Muiltiplexer Expansion Mod */
+#define SNMP_BC_MX_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.49.0" /* chassisNoOfMXsInstalled, Multiplexer Expansion Mod */
+#define SNMP_BC_MMI_INSTALLED ".1.3.6.1.4.1.2.3.51.2.22.4.50.0" /* chassisNoOfMMIsInstalled. MM Interposer*/
 #define SNMP_BC_SMI_INSTALLED ".1.3.6.1.4.1.2.3.51.2.22.4.51.0" /* chassisNoOfSMIsInstalled, Switch Interposer */
 
 #define SNMP_BC_NC_VPD_BAY_NUMBER ".1.3.6.1.4.1.2.3.51.2.2.21.16.1.1.2.x" /* ncHardwareVpdBayNumber, */
