@@ -324,3 +324,48 @@ SaErrorT snmp_bc_set_resource_add_oh_event(struct oh_event *e,
 }
 
 
+/**
+ * snmp_bc_extend_ep:
+ * @e: Pointer to oh_event.
+ * @resource_index: 
+ * @interposer_installed_mask: 
+ *
+ * If there is an interposer installed in this resource slot, 
+ * insert interposer into entitypath between physical slot and resource entity.
+ * 
+ * Currently there are 2 types of interposer cards, Switch (smi) and Management Module (mmi)
+ * interposers. 
+ *
+ * Return values:
+ * 
+ * SA_OK - Normal
+ **/
+SaErrorT snmp_bc_extend_ep(struct oh_event *e,
+			   guint resource_index, 
+			   gchar *interposer_install_mask) 
+{
+	guint i;
+
+	if (interposer_install_mask[resource_index] == '1') {
+        	for (i=0; i<SAHPI_MAX_ENTITY_PATH; i++) {
+                	if (e->resource.ResourceEntity.Entry[i].EntityType == SAHPI_ENT_ROOT) break;
+       	 	}
+
+		do { 
+			e->resource.ResourceEntity.Entry[i+1].EntityType = 
+						e->resource.ResourceEntity.Entry[i].EntityType;
+			e->resource.ResourceEntity.Entry[i+1].EntityLocation = 
+						e->resource.ResourceEntity.Entry[i].EntityLocation;
+			i--;
+		} while (i > 0);
+
+		/* i == 0 at this point; setting ep Entry[1] */
+		e->resource.ResourceEntity.Entry[i+1].EntityType = SAHPI_ENT_INTERCONNECT;
+		e->resource.ResourceEntity.Entry[i+1].EntityLocation = SNMP_BC_HPI_LOCATION_BASE;
+
+		/* Entry[0] remains untouched */
+	}
+	
+	return(SA_OK);
+}
+
