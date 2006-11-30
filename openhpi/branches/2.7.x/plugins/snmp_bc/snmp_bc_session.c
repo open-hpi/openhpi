@@ -102,7 +102,8 @@ void *snmp_bc_open(GHashTable *handler_config,
 	custom_handle->max_tap_supported = 0;		/* tap-telco alarm panel  */
 	custom_handle->max_nc_supported = 0;		/* nc - network clock card*/
 	custom_handle->max_mx_supported = 0;		/* mx - multiplex card    */
-	custom_handle->max_smi_supported = 0;		/* smi- interposer        */
+	custom_handle->max_mmi_supported = 0;		/* mmi- mm interposer     */	
+	custom_handle->max_smi_supported = 0;		/* smi- switch interposer */
 	
 	memset(&custom_handle->installed_pb_mask, '\0', SNMP_BC_MAX_RESOURCES_MASK);
 	memset(&custom_handle->installed_blower_mask, '\0', SNMP_BC_MAX_RESOURCES_MASK);
@@ -111,7 +112,8 @@ void *snmp_bc_open(GHashTable *handler_config,
 	memset(&custom_handle->installed_mm_mask, '\0', SNMP_BC_MAX_RESOURCES_MASK);
 	memset(&custom_handle->installed_tap_mask, '\0', SNMP_BC_MAX_RESOURCES_MASK);
 	memset(&custom_handle->installed_nc_mask, '\0', SNMP_BC_MAX_RESOURCES_MASK);
-	memset(&custom_handle->installed_mx_mask, '\0', SNMP_BC_MAX_RESOURCES_MASK);
+	memset(&custom_handle->installed_mx_mask, '\0', SNMP_BC_MAX_RESOURCES_MASK);	
+	memset(&custom_handle->installed_mmi_mask, '\0', SNMP_BC_MAX_RESOURCES_MASK);	
 	memset(&custom_handle->installed_smi_mask, '\0', SNMP_BC_MAX_RESOURCES_MASK);
 	custom_handle->installed_mt_mask = 0;
 	custom_handle->installed_filter_mask = 0;
