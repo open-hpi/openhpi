@@ -423,7 +423,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 			  get_value_media, get_value_mm, 
 			  get_value_tap, get_value_nc, 
 			  get_value_mx, get_value_smi,
-			  get_value_filter;
+			  get_value_filter, get_value_mmi;
 	struct snmp_bc_hnd *custom_handle;
 
 
@@ -480,8 +480,11 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 	/* Fetch mux-card installed vector  */
 	get_installed_mask(SNMP_BC_MX_INSTALLED, get_value_mx);
 	
-	/* Fetch interposer-card installed vector  */
+	/* Fetch switch interposer-card installed vector  */
 	get_installed_mask(SNMP_BC_SMI_INSTALLED, get_value_smi);
+	
+	/* Fetch mm interposer-card installed vector  */
+	get_installed_mask(SNMP_BC_MMI_INSTALLED, get_value_mmi);	
 						
 	if (  (g_ascii_strncasecmp(get_value_blade.string, custom_handle->installed_pb_mask, get_value_blade.str_len) == 0) &&
 		(g_ascii_strncasecmp(get_value_blower.string, custom_handle->installed_blower_mask, get_value_blower.str_len) == 0) &&
@@ -513,12 +516,13 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 		strcpy(custom_handle->installed_pb_mask, get_value_blade.string);
 		strcpy(custom_handle->installed_blower_mask, get_value_blower.string);
 		strcpy(custom_handle->installed_pm_mask, get_value_power_module.string);
+		strcpy(custom_handle->installed_smi_mask, get_value_smi.string);
 		strcpy(custom_handle->installed_sm_mask, get_value_switch.string);
+		strcpy(custom_handle->installed_mmi_mask, get_value_mmi.string);		
 		strcpy(custom_handle->installed_mm_mask, get_value_mm.string);
 		strcpy(custom_handle->installed_tap_mask, get_value_tap.string);
 		strcpy(custom_handle->installed_nc_mask, get_value_nc.string);
 		strcpy(custom_handle->installed_mx_mask, get_value_mx.string);
-		strcpy(custom_handle->installed_smi_mask, get_value_smi.string);
 		custom_handle->installed_mt_mask = get_value_media.integer;
 		custom_handle->installed_filter_mask = get_value_filter.integer;		
 	}
@@ -556,7 +560,15 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 	 ************************/
 	err = snmp_bc_discover_power_module(handle, ep_root, get_value_power_module.string);
 	if (err != SA_OK) return(err);
-	
+
+	/*********************************** 
+	 * Discover Switch Module Interposers (smi)
+	 * It is **important** to update custom_handle->installed_smi_mask
+	 *   **prior** to switch discovery (discover_sm)
+	 ***********************************/		
+	err = snmp_bc_discover_smi(handle, ep_root, get_value_smi.string);
+	if (err != SA_OK) return(err);
+		
 	/******************* 
 	 * Discover Switches
 	 *******************/
@@ -575,6 +587,14 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 	err = snmp_bc_discover_filter(handle, ep_root, get_value_filter.integer);
 	if (err != SA_OK) return(err);
 	
+	/*********************************** 
+	 * Discover Management Module Interposers (mmi)
+	 * It is **important** to update custom_handle->installed_mmi_mask
+	 *   **prior** to mm discovery (discover_mm)
+	 ***********************************/		
+	err = snmp_bc_discover_mmi(handle, ep_root, get_value_mmi.string);
+	if (err != SA_OK) return(err);
+		
 	/*********************************** 
 	 * Discover Management Modules (MMs)
 	 ***********************************/
@@ -599,11 +619,6 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 	err = snmp_bc_discover_mx(handle, ep_root, get_value_mx.string);
 	if (err != SA_OK) return(err);
 
-	/*********************************** 
-	 * Discover Switch Module Interposers (smi)
-	 ***********************************/		
-	err = snmp_bc_discover_smi(handle, ep_root, get_value_smi.string);
-	if (err != SA_OK) return(err);
 
 	return(SA_OK);
 }
@@ -638,10 +653,16 @@ SaErrorT snmp_bc_update_chassis_topo(struct oh_handler_state *handle)
 	
 		get_integer_object(SNMP_BC_NOS_PB_SUPPORTED, get_value);
 		custom_handle->max_pb_supported = get_value.integer;		/* pb - processor blade   */
+
+		get_integer_object(SNMP_BC_NOS_SMI_SUPPORTED, get_value);		
+		custom_handle->max_smi_supported = get_value.integer;	        /* smi - switch interposer */
 		
 		get_integer_object(SNMP_BC_NOS_SM_SUPPORTED, get_value);		
 		custom_handle->max_sm_supported = get_value.integer;		/* sm - switch module     */
-		
+
+		get_integer_object(SNMP_BC_NOS_MMI_SUPPORTED, get_value);		
+		custom_handle->max_mmi_supported = get_value.integer;	        /* mmi - mm interposer    */
+				
 		get_integer_object(SNMP_BC_NOS_MM_SUPPORTED, get_value);		
 		custom_handle->max_mm_supported = get_value.integer;		/* mm - management module */
 
@@ -665,9 +686,6 @@ SaErrorT snmp_bc_update_chassis_topo(struct oh_handler_state *handle)
 
 		get_integer_object(SNMP_BC_NOS_MX_SUPPORTED, get_value);		
 		custom_handle->max_mx_supported = get_value.integer;	        /* mx - multiplex (mux)   */
-
-		get_integer_object(SNMP_BC_NOS_SMI_SUPPORTED, get_value);		
-		custom_handle->max_smi_supported = get_value.integer;	        /* smi - interposer       */
 				
 	 }
 	
@@ -1699,7 +1717,7 @@ SaErrorT snmp_bc_discover_tap(struct oh_handler_state *handle,
  * @e: Pointer to oh_event struct.
  * @res_info_ptr: Pointer to pointer of res_info_ptr
  * @ep_root: Pointer to chassis Root Entity Path which comes from openhpi.conf.
- * @blower_index: Index of discovered tap.
+ * @tap_index: Index of discovered tap.
  *
  * Build rpt structure for a blade resource using model data 
  *
@@ -1749,7 +1767,7 @@ SaErrorT snmp_bc_construct_tap_rpt(struct oh_event* e,
  * @handle: Pointer to hpi handle
  * @e: Pointer to oh_event struct.
  * @res_info_ptr: Pointer to pointer of res_info_ptr
- * @blower_index: Index of discovered tap.
+ * @tap_index: Index of discovered tap.
  *
  * Build rpt and rdrs for a tap (Telco Alarm Panel) then add to rptcache 
  *
@@ -1822,7 +1840,7 @@ SaErrorT snmp_bc_add_tap_rptcache(struct oh_handler_state *handle,
  * snmp_bc_discover_tap_i:
  * @handle: Pointer to hpi handle
  * @ep_root: Pointer to .
- * @blower_index: Index of discovered tap.
+ * @tap_index: Index of discovered tap.
  *
  * Discover a particular Telco Alarm Card at index tap_index.
  * This routine is used to rediscover a Telco Alarm Panel (tap). 
@@ -1881,7 +1899,7 @@ SaErrorT snmp_bc_discover_tap_i(struct oh_handler_state *handle,
  * snmp_bc_discover_smi:
  * @handler: Pointer to handler's data.
  * @ep_root: Pointer to chassis Root Entity Path which comes from openhpi.conf.
- * @blower_vector: Bitmap vector of installed Switch Module Interposers (smi).
+ * @smi_vector: Bitmap vector of installed Switch Module Interposers (smi).
  *
  * Discovers Switch Module Interposers resources and their RDRs.
  *
@@ -1971,7 +1989,7 @@ SaErrorT snmp_bc_discover_smi(struct oh_handler_state *handle,
  * @e: Pointer to oh_event struct.
  * @res_info_ptr: Pointer to pointer of res_info_ptr
  * @ep_root: Pointer to chassis Root Entity Path which comes from openhpi.conf.
- * @blower_index: Index of discovered smi.
+ * @smi_index: Index of discovered smi.
  *
  * Build rpt structure for a blade resource using model data 
  *
@@ -2021,7 +2039,7 @@ SaErrorT snmp_bc_construct_smi_rpt(struct oh_event* e,
  * @handle: Pointer to hpi handle
  * @e: Pointer to oh_event struct.
  * @res_info_ptr: Pointer to pointer of res_info_ptr
- * @blower_index: Index of discovered smi.
+ * @smi_index: Index of discovered smi.
  *
  * Build rpt and rdrs for a smi (Switch Module interposer) then add to rptcache 
  *
@@ -2074,6 +2092,208 @@ SaErrorT snmp_bc_add_smi_rptcache(struct oh_handler_state *handle,
 	//snmp_bc_discover_sensors(handle, snmp_bc_alarm_sensors, e);
 	//snmp_bc_discover_controls(handle, snmp_bc_alarm_controls, e);
 	snmp_bc_discover_inventories(handle, snmp_bc_interposer_switch_inventories, e);
+
+	return(err);
+}
+
+/**
+ * snmp_bc_discover_mmi:
+ * @handler: Pointer to handler's data.
+ * @ep_root: Pointer to chassis Root Entity Path which comes from openhpi.conf.
+ * @mmi_vector: Bitmap vector of installed Management Module Interposers (mmi).
+ *
+ * Discovers Management Module Interposers resources and their RDRs.
+ *
+ * Return values:
+ * SA_OK - normal case.
+ * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_INVALID_PARAMS - Pointer paramter(s) NULL.
+ **/
+SaErrorT snmp_bc_discover_mmi(struct oh_handler_state *handle,
+			      SaHpiEntityPathT *ep_root, 
+			      char *mmi_vector)
+{
+
+	guint i;
+	SaErrorT err;
+        struct oh_event *e;
+	struct ResourceInfo *res_info_ptr;
+	struct snmp_bc_hnd *custom_handle;
+
+
+	if (!handle || !mmi_vector) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+		
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
+	if (!custom_handle) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+	
+	e= NULL;
+	res_info_ptr = NULL;
+	
+	for (i=0; i < strlen(mmi_vector); i++) {
+	
+		if ((mmi_vector[i] == '1') || (custom_handle->isFirstDiscovery == SAHPI_TRUE))
+		{
+			e = snmp_bc_alloc_oh_event();
+			if (e == NULL) {
+				dbg("Out of memory.");
+				return(SA_ERR_HPI_OUT_OF_SPACE);
+			}
+									
+			/* ---------------------------------------- */
+			/* Construct .resource of struct oh_event   */
+			/* ---------------------------------------- */	
+			err = snmp_bc_construct_mmi_rpt(e, &res_info_ptr, ep_root, i);
+			if (err) {
+				snmp_bc_free_oh_event(e);
+				return(err);
+			}
+		}
+		
+		if ((mmi_vector[i] == '0') && (custom_handle->isFirstDiscovery == SAHPI_TRUE))
+		{
+			res_info_ptr->cur_state = SAHPI_HS_STATE_NOT_PRESENT;
+			snmp_bc_discover_res_events(handle, &(e->resource.ResourceEntity), res_info_ptr);
+			snmp_bc_free_oh_event(e);
+			g_free(res_info_ptr);
+			
+		} else if (mmi_vector[i] == '1') {
+
+			err = snmp_bc_add_mmi_rptcache(handle, e, res_info_ptr, i); 
+			
+			if (err == SA_OK) {			
+				/* ---------------------------------------- */
+				/* Construct .event of struct oh_event      */	
+				/* ---------------------------------------- */
+				snmp_bc_set_resource_add_oh_event(e, res_info_ptr);
+
+				/* ---------------------------------------- */
+				/* Place the event in tmpqueue              */
+				/* ---------------------------------------- */					
+				/*custom_handle->eventq = g_slist_append(custom_handle->eventq, e);*/
+                                if (e) e->hid = handle->hid;
+                                oh_evt_queue_push(handle->eventq, e);
+			} else {
+				snmp_bc_free_oh_event(e);
+			}
+		}
+	}
+	return(SA_OK);
+}
+
+/**
+ * snmp_bc_construct_mmi_rpt:
+ * @e: Pointer to oh_event struct.
+ * @res_info_ptr: Pointer to pointer of res_info_ptr
+ * @ep_root: Pointer to chassis Root Entity Path which comes from openhpi.conf.
+ * @mmi_index: Index of discovered mmi.
+ *
+ * Build rpt structure for a blade resource using model data 
+ *
+ * Return values:
+ * SA_OK - normal case.
+ * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
+ **/
+SaErrorT snmp_bc_construct_mmi_rpt(struct oh_event* e, 
+				      struct ResourceInfo **res_info_ptr,
+				      SaHpiEntityPathT *ep_root, 
+				      guint mmi_index)
+{
+
+	if (!e || !res_info_ptr) return (SA_ERR_HPI_INVALID_PARAMS);
+	
+	e->resource = snmp_bc_rpt_array[BC_RPT_ENTRY_INTERPOSER_MM].rpt;
+	oh_concat_ep(&(e->resource.ResourceEntity), ep_root);
+	oh_set_ep_location(&(e->resource.ResourceEntity),
+			   BLADECENTER_SYS_MGMNT_MODULE_SLOT, mmi_index + SNMP_BC_HPI_LOCATION_BASE);
+	oh_set_ep_location(&(e->resource.ResourceEntity),
+			   SAHPI_ENT_INTERCONNECT, mmi_index + SNMP_BC_HPI_LOCATION_BASE);
+	e->resource.ResourceId = 
+		oh_uid_from_entity_path(&(e->resource.ResourceEntity));
+	snmp_bc_create_resourcetag(&(e->resource.ResourceTag),
+				   snmp_bc_rpt_array[BC_RPT_ENTRY_INTERPOSER_MM].comment,
+				   mmi_index + SNMP_BC_HPI_LOCATION_BASE);
+
+	trace("Discovered resource=%s; ID=%d",
+	 		e->resource.ResourceTag.Data,
+	      		e->resource.ResourceId);
+
+	/* Create platform-specific info space to add to infra-structure */
+	*res_info_ptr = g_memdup(&(snmp_bc_rpt_array[BC_RPT_ENTRY_INTERPOSER_MM].res_info),
+						sizeof(struct ResourceInfo));
+	if (!(*res_info_ptr)) {
+		dbg("Out of memory.");
+		return(SA_ERR_HPI_OUT_OF_SPACE);
+	}
+	
+	return(SA_OK);
+
+}
+
+/**
+ * snmp_bc_add_mmi_rptcache:
+ * @handle: Pointer to hpi handle
+ * @e: Pointer to oh_event struct.
+ * @res_info_ptr: Pointer to pointer of res_info_ptr
+ * @mmi_index: Index of discovered mmi.
+ *
+ * Build rpt and rdrs for a mmi (Management Module interposer) then add to rptcache 
+ *
+ * Return values:
+ * SA_OK - normal case.
+ * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
+ **/
+SaErrorT snmp_bc_add_mmi_rptcache(struct oh_handler_state *handle, 
+				  struct oh_event *e, 
+				  struct ResourceInfo *res_info_ptr,
+				  guint mmi_index) 
+
+{
+	SaErrorT err;
+	struct snmp_bc_hnd *custom_handle;
+
+
+	if (!handle || !e || !res_info_ptr) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+		
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
+	if (!custom_handle) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+
+	trace("Discovering Management Module Interposer %d resource.\n", mmi_index);
+	res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
+
+        /* Get UUID and convert to GUID */
+        err = snmp_bc_get_guid(custom_handle, e, res_info_ptr);
+
+	/* Add resource to temporary event cache/queue */
+	err = oh_add_resource(handle->rptcache, 
+				      &(e->resource),
+				      res_info_ptr, 0);
+	if (err) {
+		dbg("Failed to add resource. Error=%s.", oh_lookup_error(err));
+		return(err);
+	}
+			
+	/* ---------------------------------------- */
+	/* Construct .rdrs of struct oh_event       */
+	/* ---------------------------------------- */								
+	/* Find resource's events, sensors, controls, etc. */
+	//snmp_bc_discover_res_events(handle, &(e->resource.ResourceEntity), res_info_ptr);
+	//snmp_bc_discover_sensors(handle, snmp_bc_alarm_sensors, e);
+	//snmp_bc_discover_controls(handle, snmp_bc_alarm_controls, e);
+	snmp_bc_discover_inventories(handle, snmp_bc_interposer_mm_inventories, e);
 
 	return(err);
 }
@@ -2763,7 +2983,7 @@ SaErrorT snmp_bc_discover_switch(struct oh_handler_state *handle,
 			/* ---------------------------------------- */
 			/* Construct .resource of struct oh_event   */
 			/* ---------------------------------------- */	
-			err = snmp_bc_construct_sm_rpt(e, &res_info_ptr, ep_root, i);
+			err = snmp_bc_construct_sm_rpt(e, &res_info_ptr, ep_root, i, custom_handle->installed_smi_mask);
 			if (err) {
 				snmp_bc_free_oh_event(e);
 				return(err);
@@ -2925,7 +3145,7 @@ SaErrorT snmp_bc_discover_mm(struct oh_handler_state *handle,
 			/* ---------------------------------------- */
 			/* Construct .resource of struct oh_event   */
 			/* ---------------------------------------- */
-			err = snmp_bc_construct_mm_rpt(e, &res_info_ptr, ep_root, i);
+			err = snmp_bc_construct_mm_rpt(e, &res_info_ptr, ep_root, i, custom_handle->installed_mmi_mask);
 			if (err) {
 				snmp_bc_free_oh_event(e);
 				return(err);
@@ -3953,15 +4173,24 @@ SaErrorT snmp_bc_construct_pm_rpt(struct oh_event *e,
 SaErrorT snmp_bc_construct_sm_rpt(struct oh_event *e, 
 				  struct ResourceInfo **res_info_ptr,
 				  SaHpiEntityPathT *ep_root, 
-				  guint sm_index)
+				  guint sm_index, 
+				  char *interposer_install_mask)
 {
 	if (!e || !res_info_ptr) return(SA_ERR_HPI_INVALID_PARAMS);
 	 
 
 	e->resource = snmp_bc_rpt_array[BC_RPT_ENTRY_SWITCH_MODULE].rpt;
+	/* Adjust entity path, if there is a switch interposer installed in this slot */
+	snmp_bc_extend_ep(e, sm_index, interposer_install_mask);
+	
+	/*    Setting entity path for this instance        */
+	/* oh_set_ep_location() does nothing if it can not */
+	/* find the specified entity type in ep structure  */
 	oh_concat_ep(&(e->resource.ResourceEntity), ep_root);
 	oh_set_ep_location(&(e->resource.ResourceEntity),
-		   BLADECENTER_SWITCH_SLOT, sm_index + SNMP_BC_HPI_LOCATION_BASE);
+		           BLADECENTER_SWITCH_SLOT, sm_index + SNMP_BC_HPI_LOCATION_BASE);
+	oh_set_ep_location(&(e->resource.ResourceEntity),
+			   SAHPI_ENT_INTERCONNECT, sm_index + SNMP_BC_HPI_LOCATION_BASE);
 	oh_set_ep_location(&(e->resource.ResourceEntity),
 			   SAHPI_ENT_SWITCH, sm_index + SNMP_BC_HPI_LOCATION_BASE);
 	e->resource.ResourceId = 
@@ -4002,14 +4231,23 @@ SaErrorT snmp_bc_construct_sm_rpt(struct oh_event *e,
 SaErrorT snmp_bc_construct_mm_rpt(struct oh_event *e, 
 				  struct ResourceInfo **res_info_ptr,
 				  SaHpiEntityPathT *ep_root, 
-				  guint mm_index)
+				  guint mm_index, 
+				  char *interposer_install_mask)
 {
 	if (!e || !res_info_ptr) return(SA_ERR_HPI_INVALID_PARAMS);
 				
         e->resource = snmp_bc_rpt_array[BC_RPT_ENTRY_MGMNT_MODULE].rpt;
+	/* Adjust entity path, if there is a switch interposer installed in this slot */
+	snmp_bc_extend_ep(e, mm_index, interposer_install_mask);
+	
+	/*    Setting entity path for this instance        */
+	/* oh_set_ep_location() does nothing if it can not */
+	/* find the specified entity type in ep structure  */	
         oh_concat_ep(&(e->resource.ResourceEntity), ep_root);
         oh_set_ep_location(&(e->resource.ResourceEntity),
                 BLADECENTER_SYS_MGMNT_MODULE_SLOT, mm_index + SNMP_BC_HPI_LOCATION_BASE);
+	oh_set_ep_location(&(e->resource.ResourceEntity),
+			   SAHPI_ENT_INTERCONNECT, mm_index + SNMP_BC_HPI_LOCATION_BASE);		
         oh_set_ep_location(&(e->resource.ResourceEntity),
                        SAHPI_ENT_SYS_MGMNT_MODULE, mm_index + SNMP_BC_HPI_LOCATION_BASE);
         e->resource.ResourceId =
@@ -4700,8 +4938,15 @@ SaErrorT snmp_bc_discover_switch_i(struct oh_handler_state *handle,
 	SaErrorT err;
         struct oh_event *e;
 	struct ResourceInfo *res_info_ptr;
-
+	struct snmp_bc_hnd *custom_handle;
+	
 	if (!handle) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
+	if (!custom_handle) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
@@ -4718,7 +4963,7 @@ SaErrorT snmp_bc_discover_switch_i(struct oh_handler_state *handle,
 	/* ---------------------------------------- */
 	/* Construct .resource of struct oh_event   */
 	/* ---------------------------------------- */	
-	err = snmp_bc_construct_sm_rpt(e, &res_info_ptr, ep_root, sm_index);
+	err = snmp_bc_construct_sm_rpt(e, &res_info_ptr, ep_root, sm_index, custom_handle->installed_smi_mask);
 	if (err) {
 		snmp_bc_free_oh_event(e);
 		return(err);
@@ -4758,12 +5003,19 @@ SaErrorT snmp_bc_discover_mm_i(struct oh_handler_state *handle,
 	SaErrorT err;
         struct oh_event *e;
 	struct ResourceInfo *res_info_ptr;
+	struct snmp_bc_hnd *custom_handle;	
 
 	if (!handle) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
-	
+
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
+	if (!custom_handle) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+		
 	e = NULL;
 	res_info_ptr = NULL;
 	e = snmp_bc_alloc_oh_event();
@@ -4775,7 +5027,7 @@ SaErrorT snmp_bc_discover_mm_i(struct oh_handler_state *handle,
 	/* ---------------------------------------- */
 	/* Construct .resource of struct oh_event   */
 	/* ---------------------------------------- */
-	err = snmp_bc_construct_mm_rpt(e, &res_info_ptr, ep_root, mm_index);
+	err = snmp_bc_construct_mm_rpt(e, &res_info_ptr, ep_root, mm_index, custom_handle->installed_mmi_mask);
 	if (err) {
 		snmp_bc_free_oh_event(e);
 		return(err);
