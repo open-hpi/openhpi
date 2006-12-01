@@ -29,7 +29,7 @@ int main(int argc, char **argv)
         
         setenv("OPENHPI_CONF","./noconfig", 1);
         
-        if (saHpiSessionOpen(1, &sid, NULL)) {
+        if (saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID, &sid, NULL)) {
 		printf("Failed to open a session.");
                 return -1;
 	}
