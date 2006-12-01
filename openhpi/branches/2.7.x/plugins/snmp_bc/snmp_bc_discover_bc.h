@@ -205,7 +205,14 @@ SaErrorT snmp_bc_discover_nc_i(struct oh_handler_state *handle,
 SaErrorT snmp_bc_discover_mx_i(struct oh_handler_state *handle,
 			  	SaHpiEntityPathT *ep_root, 
 				guint mx_index);
-												
+								   
+SaErrorT snmp_bc_discover_mmi_i(struct oh_handler_state *handle,
+			  	SaHpiEntityPathT *ep_root, 
+				guint mmi_index);
+				   
+SaErrorT snmp_bc_discover_smi_i(struct oh_handler_state *handle,
+			  	SaHpiEntityPathT *ep_root, 
+				guint smi_index);																						
 #endif
 
 
