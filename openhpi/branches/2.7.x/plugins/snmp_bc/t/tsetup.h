@@ -38,13 +38,33 @@ SaErrorT tcleanup(SaHpiSessionIdT *sessionid_ptr);
 
  
 #define checkstatus(err, expected_err, testfail) 				\
-{										\
+do {										\
     if (err != expected_err) {							\
 	printf("Error! Test fails: File=%s, Line=%d\n", __FILE__, __LINE__);	\
 	printf("Returned err=%s, expected=%s\n",				\
 		oh_lookup_error(err), oh_lookup_error(expected_err));		\
 	testfail = -1;								\
     }										\
-}
+} while(0)
+
+#define DECLARE_HANDLE()                 \
+do {                                     \
+        SaHpiSessionIdT sessionid;       \
+        SaHpiDomainIdT did;              \
+        struct oh_handler *h = NULL;     \
+        struct oh_domain *d = NULL;      \
+        unsigned int *hid = NULL;        \
+	struct oh_handler_state *handle; \
+} while(0)
+
+#define INIT_HANDLE(did, d, hid, h, handle)                                \
+do {                                                    \
+	did = oh_get_session_domain(sessionid);      \
+	d = oh_get_domain(did);                      \
+        hid = oh_get_resource_data(&(d->rpt), id);   \
+        h = oh_get_handler(*hid);                    \
+	handle = (struct oh_handler_state *) h->hnd; \
+} while(0)
+
 
 #endif
