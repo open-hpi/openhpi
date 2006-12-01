@@ -494,6 +494,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 		(g_ascii_strncasecmp(get_value_tap.string, custom_handle->installed_tap_mask, get_value_tap.str_len) == 0) &&
 		(g_ascii_strncasecmp(get_value_nc.string, custom_handle->installed_nc_mask, get_value_nc.str_len) == 0) &&
 		(g_ascii_strncasecmp(get_value_mx.string, custom_handle->installed_mx_mask, get_value_mx.str_len) == 0) &&
+		(g_ascii_strncasecmp(get_value_mmi.string, custom_handle->installed_mmi_mask, get_value_smi.str_len) == 0) &&
 		(g_ascii_strncasecmp(get_value_smi.string, custom_handle->installed_smi_mask, get_value_smi.str_len) == 0) &&
 		(get_value_filter.integer == custom_handle->installed_filter_mask) &&
 		(get_value_media.integer == custom_handle->installed_mt_mask) ) {
@@ -2097,6 +2098,65 @@ SaErrorT snmp_bc_add_smi_rptcache(struct oh_handler_state *handle,
 }
 
 /**
+ * snmp_bc_discover_smi_i:
+ * @handle: Pointer to hpi handle
+ * @ep_root: Pointer to .
+ * @smi_index: Index of discovered smi.
+ *
+ * Discover a Switch Module Interposer card at index mmi_index.
+ * This routine is used to rediscover a Network Clock card (nc). 
+ * Blower rpt and rdrs will be added to rptcache.
+ * No event will be generated.  The event is handled separately in log2event.
+ *
+ * Return values:
+ * SA_OK - normal case.
+ * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
+ **/
+SaErrorT snmp_bc_discover_smi_i(struct oh_handler_state *handle,
+			  	   SaHpiEntityPathT *ep_root, 
+				   guint smi_index)
+{
+
+	SaErrorT err;
+        struct oh_event *e;
+	struct ResourceInfo *res_info_ptr;
+
+	if (!handle) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+		
+	e= NULL;
+	res_info_ptr = NULL;
+	
+	e = snmp_bc_alloc_oh_event();
+	if (e == NULL) {
+		dbg("Out of memory.");
+		return(SA_ERR_HPI_OUT_OF_SPACE);
+	}
+									
+	/* ---------------------------------------- */
+	/* Construct .resource of struct oh_event   */
+	/* ---------------------------------------- */	
+	err = snmp_bc_construct_smi_rpt(e, &res_info_ptr, ep_root, smi_index);
+	if (err) {
+		snmp_bc_free_oh_event(e);
+		return(err);
+	}
+	
+	/* ---------------------------------------- */
+	/* Discover rdrs.                           */
+	/* Add rpt and rdrs to rptcache.            */
+	/* ---------------------------------------- */				
+	err = snmp_bc_add_smi_rptcache(handle, e, res_info_ptr, smi_index); 
+			
+	snmp_bc_free_oh_event(e);
+			
+	return(SA_OK);
+}
+
+/**
  * snmp_bc_discover_mmi:
  * @handler: Pointer to handler's data.
  * @ep_root: Pointer to chassis Root Entity Path which comes from openhpi.conf.
@@ -2299,10 +2359,69 @@ SaErrorT snmp_bc_add_mmi_rptcache(struct oh_handler_state *handle,
 }
 
 /**
+ * snmp_bc_discover_mmi_i:
+ * @handle: Pointer to hpi handle
+ * @ep_root: Pointer to .
+ * @mmi_index: Index of discovered mmi.
+ *
+ * Discover a Management Module Interposer card at index mmi_index.
+ * This routine is used to rediscover a Network Clock card (nc). 
+ * Blower rpt and rdrs will be added to rptcache.
+ * No event will be generated.  The event is handled separately in log2event.
+ *
+ * Return values:
+ * SA_OK - normal case.
+ * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
+ **/
+SaErrorT snmp_bc_discover_mmi_i(struct oh_handler_state *handle,
+			  	   SaHpiEntityPathT *ep_root, 
+				   guint mmi_index)
+{
+
+	SaErrorT err;
+        struct oh_event *e;
+	struct ResourceInfo *res_info_ptr;
+
+	if (!handle) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+		
+	e= NULL;
+	res_info_ptr = NULL;
+	
+	e = snmp_bc_alloc_oh_event();
+	if (e == NULL) {
+		dbg("Out of memory.");
+		return(SA_ERR_HPI_OUT_OF_SPACE);
+	}
+									
+	/* ---------------------------------------- */
+	/* Construct .resource of struct oh_event   */
+	/* ---------------------------------------- */	
+	err = snmp_bc_construct_mmi_rpt(e, &res_info_ptr, ep_root, mmi_index);
+	if (err) {
+		snmp_bc_free_oh_event(e);
+		return(err);
+	}
+	
+	/* ---------------------------------------- */
+	/* Discover rdrs.                           */
+	/* Add rpt and rdrs to rptcache.            */
+	/* ---------------------------------------- */				
+	err = snmp_bc_add_mmi_rptcache(handle, e, res_info_ptr, mmi_index); 
+			
+	snmp_bc_free_oh_event(e);
+			
+	return(SA_OK);
+}
+
+/**
  * snmp_bc_discover_nc:
  * @handler: Pointer to handler's data.
  * @ep_root: Pointer to chassis Root Entity Path which comes from openhpi.conf.
- * @blower_vector: Bitmap vector of installed Network Clock (nc) cards.
+ * @nc_vector: Bitmap vector of installed Network Clock (nc) cards.
  *
  * Discovers Network Clock Card resources and their RDRs.
  *
@@ -2392,7 +2511,7 @@ SaErrorT snmp_bc_discover_nc(struct oh_handler_state *handle,
  * @e: Pointer to oh_event struct.
  * @res_info_ptr: Pointer to pointer of res_info_ptr
  * @ep_root: Pointer to chassis Root Entity Path which comes from openhpi.conf.
- * @blower_index: Index of discovered tap.
+ * @nc_index: Index of discovered nc.
  *
  * Build rpt structure for a blade resource using model data 
  *
@@ -2442,7 +2561,7 @@ SaErrorT snmp_bc_construct_nc_rpt(struct oh_event* e,
  * @handle: Pointer to hpi handle
  * @e: Pointer to oh_event struct.
  * @res_info_ptr: Pointer to pointer of res_info_ptr
- * @blower_index: Index of discovered nc.
+ * @nc_index: Index of discovered nc.
  *
  * Build rpt and rdrs for a nc (Network Clock Card) then add to rptcache 
  *
@@ -2515,7 +2634,7 @@ SaErrorT snmp_bc_add_nc_rptcache(struct oh_handler_state *handle,
  * snmp_bc_discover_nc_i:
  * @handle: Pointer to hpi handle
  * @ep_root: Pointer to .
- * @blower_index: Index of discovered nc.
+ * @nc_index: Index of discovered nc.
  *
  * Discover a Network Clock card at index nc_index.
  * This routine is used to rediscover a Network Clock card (nc). 
@@ -3718,7 +3837,25 @@ SaErrorT snmp_bc_rediscover(struct oh_handler_state *handle,
 				custom_handle->installed_filter_mask = get_value.integer;		
 				break;
 			case SAHPI_ENT_INTERCONNECT:
-				dbg("Interposers are **not** hotswap-abled. Check mapping of EntityType\n");
+				/* Fetch Switch Module Interposer installed vector  */
+				get_installed_mask(SNMP_BC_SMI_INSTALLED, get_value);
+				for (i=0; i < strlen(get_value.string); i++) {
+					if ( custom_handle->installed_smi_mask[i] != 
+								get_value.string[i] ) {
+						err = snmp_bc_discover_smi_i(handle, &ep_root,i);
+					}
+				}				
+				strcpy(custom_handle->installed_smi_mask, get_value.string);
+				
+				/* Fetch Management Module Interposer installed vector  */
+				get_installed_mask(SNMP_BC_MMI_INSTALLED, get_value);
+				for (i=0; i < strlen(get_value.string); i++) {
+					if ( custom_handle->installed_mmi_mask[i] != 
+								get_value.string[i] ) {
+						err = snmp_bc_discover_mmi_i(handle, &ep_root,i);
+					}
+				}				
+				strcpy(custom_handle->installed_mmi_mask, get_value.string);				
 				break;
 			default: 
 				dbg("Unrecognize Hotswap Entity %d\n", hotswap_entitytype);
