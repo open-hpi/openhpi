@@ -29,7 +29,7 @@ int main(int argc, char **argv)
         SaHpiSessionIdT sid = 0;
         oHpiGlobalParamT onep_param = { .Type = OHPI_ON_EP };
                 
-	if (saHpiSessionOpen(1, &sid, NULL)) {
+	if (saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID, &sid, NULL)) {
 		printf("Could not open session\n");
                 return -1;
 	}

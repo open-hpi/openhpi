@@ -30,7 +30,7 @@ int main(int argc, char **argv)
         /* Set config file env variable */
         setenv("OPENHPI_CONF","./openhpi.conf", 1);
         
-        if (saHpiSessionOpen(1, &sid, NULL))
+        if (saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID, &sid, NULL))
                 return -1;
                 
         if (!oHpiGlobalParamGet(NULL))
