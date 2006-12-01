@@ -146,7 +146,7 @@ cIpmiMcVendorIntelBmc::ProcessSdr( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdrs *
           {
             case eSdrTypeMcDeviceLocatorRecord:
 		 stdlog << "Intel SDR[" << i << "] Locator " << sdr->m_data[5] << "\n";
-                 if (sdr->m_data[5] = HSC_SA) g_enableHSC = 1;
+                 if (sdr->m_data[5] == HSC_SA) g_enableHSC = 1;
                  break;
 
             default:
