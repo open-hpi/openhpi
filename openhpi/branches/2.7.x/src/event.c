@@ -109,19 +109,7 @@ static SaErrorT harvest_events_for_handler(struct oh_handler *h)
                 error = h->abi->get_event(h->hnd);
                 if (error < 1) {
                         trace("Handler is out of Events");
-                }/* else if (!oh_domain_served_by_handler(h->id, event.did)) {
-                        dbg("Handler %d sends event %s to wrong domain %d",
-                            h->id,
-                            oh_lookup_eventtype(event.event.EventType),
-                            event.did);
-                        return SA_ERR_HPI_INTERNAL_ERROR;
-                } else {
-                        trace("Found event for handler %u", h->id);
-                        e = oh_dup_event(&event);
-			oh_event_free(&event, TRUE);
-                        e->hid = h->id;
-                        g_async_queue_push(oh_process_q.q, e);
-                }*/
+                }
         } while (error > 0);
 
         return SA_OK;
@@ -159,12 +147,13 @@ SaErrorT oh_harvest_events()
         return error;
 }
 
-static SaErrorT oh_add_event_to_del(SaHpiDomainIdT did, struct oh_event *e)
+static int oh_add_event_to_del(struct oh_domain *d, struct oh_event *e)
 {
         struct oh_global_param param = { .type = OPENHPI_LOG_ON_SEV };
-        struct oh_domain *d = NULL;
-        SaErrorT rv = SA_OK;
         char del_filepath[SAHPI_MAX_TEXT_BUFFER_LENGTH*2];
+        int error;
+
+        if (!d || !e) return -1;
 
         oh_get_global_param(&param);
 
@@ -173,78 +162,64 @@ static SaErrorT oh_add_event_to_del(SaHpiDomainIdT did, struct oh_event *e)
             e->event.Severity <= param.u.log_on_sev) {
                 param.type = OPENHPI_DEL_SAVE;
                 oh_get_global_param(&param);
-                d = oh_get_domain(did);
 
-                if (d) {
-                	SaHpiRdrT *rdr = (e->rdrs) ? e->rdrs->data : NULL;
-                	SaHpiRptEntryT *rpte =
-                		(e->resource.ResourceCapabilities) ?
-                			&e->resource : NULL;
-                        rv = oh_el_append(d->del, &e->event, rdr, rpte);
-                        if (param.u.del_save) {
-                                param.type = OPENHPI_VARPATH;
-                                oh_get_global_param(&param);
-                                snprintf(del_filepath,
-                                         SAHPI_MAX_TEXT_BUFFER_LENGTH*2,
-                                         "%s/del.%u", param.u.varpath, did);
-                                oh_el_map_to_file(d->del, del_filepath);
-                        }
-                        oh_release_domain(d);
-                } else {
-                        rv = SA_ERR_HPI_ERROR;
+                SaHpiRdrT *rdr = (e->rdrs) ? (SaHpiRdrT *)e->rdrs->data : NULL;
+                SaHpiRptEntryT *rpte =
+                        (e->resource.ResourceCapabilities) ?
+                                &e->resource : NULL;
+                error = oh_el_append(d->del, &e->event, rdr, rpte);
+                if (param.u.del_save) {
+                        param.type = OPENHPI_VARPATH;
+                        oh_get_global_param(&param);
+                        snprintf(del_filepath,
+                                 SAHPI_MAX_TEXT_BUFFER_LENGTH*2,
+                                 "%s/del.%u", param.u.varpath, d->id);
+                        oh_el_map_to_file(d->del, del_filepath);
                 }
         }
-        return rv;
+
+        return error;
 }
 
-static int process_hpi_event(struct oh_event *full_event)
+static int process_hpi_event(struct oh_domain *d, struct oh_event *e)
 {
         int i;
         GArray *sessions = NULL;
         SaHpiSessionIdT sid;
-        struct oh_domain *d = NULL;
         SaHpiEventT *event = NULL;
         SaHpiRptEntryT *resource = NULL;
         SaHpiRdrT *rdr = NULL;
 
-        if (!full_event) {
-        	dbg("Event to process is NULL!");
-        	return -1;
-        }
+        if (!d || !e) return -1;
 
-        event = &full_event->event;
-        resource = &full_event->resource;
-        rdr = (full_event->rdrs) ? full_event->rdrs->data : NULL;
-
-        /* We take the domain lock for the whole function here */
-        d = oh_get_domain(full_event->did);
-        if (!d) {
-                dbg("Domain %d doesn't exist", full_event->did);
-                return -1;
-        }
+        event = &e->event;
+        resource = &e->resource;
+        rdr = (e->rdrs) ? (SaHpiRdrT *)e->rdrs->data : NULL;
 
         if (event->EventType == SAHPI_ET_USER) {
                 resource->ResourceCapabilities = 0;
                 if (rdr) rdr->RdrType = SAHPI_NO_RECORD;
         }
 
-        oh_add_event_to_del(d->id, full_event);
+        oh_add_event_to_del(d, e);
         trace("Added event to EL");
 
         /*
          * Here is the SESSION MULTIPLEXING code
          */
-
-        sessions = oh_list_sessions(full_event->did);
-        trace("Got session list for domain %d", full_event->did);
+        sessions = oh_list_sessions(d->id);
+        if (!sessions) {
+                dbg("Error: Got an empty session list on domain id %u", d->id);
+                return -2;
+        }
+        trace("Got session list for domain %u", d->id);
 
         /* Drop events if there are no sessions open to receive them.
          */
         if (sessions->len < 1) {
                 g_array_free(sessions, TRUE);
-                oh_release_domain(d);
-                dbg("No sessions open for event's domain %d", full_event->did);
-                dbg("Dropping hpi_event.");
+                dbg("No sessions open for event's domain %u. "
+                    "Dropping hpi_event", d->id);
                 return 0;
         }
 
@@ -254,22 +229,18 @@ static int process_hpi_event(struct oh_event *full_event)
                 sid = g_array_index(sessions, SaHpiSessionIdT, i);
                 oh_get_session_subscription(sid, &is_subscribed);
                 if (is_subscribed) {
-                        oh_queue_session_event(sid, full_event);
+                        oh_queue_session_event(sid, e);
                 }
         }
         g_array_free(sessions, TRUE);
         trace("done multiplexing event into sessions");
 
-        oh_release_domain(d);
-        trace("done oh_release_domain");
-
         return 0;
 }
 
-static int process_resource_event(struct oh_event *e)
+static int process_resource_event(struct oh_domain *d, struct oh_event *e)
 {
         RPTable *rpt = NULL;
-        struct oh_domain *d = NULL;
         SaHpiRptEntryT *exists = NULL;
         unsigned int *hidp = NULL;
         SaErrorT error = SA_OK;
@@ -277,13 +248,7 @@ static int process_resource_event(struct oh_event *e)
         SaHpiHsStateT state = SAHPI_HS_STATE_NOT_PRESENT;
         SaHpiBoolT process_hpi = TRUE;
 
-        if (!e) { dbg("Got NULL event"); return -1; }
-
-        d = oh_get_domain(e->did);
-        if (!d) {
-                dbg("Domain %d doesn't exist", e->did);
-                return -1;
-        }
+        if (!d || !e) return -1;
 
 	rpt = &(d->rpt);
 	exists = oh_get_resource_by_id(rpt, e->resource.ResourceId);
@@ -309,7 +274,6 @@ static int process_resource_event(struct oh_event *e)
 		}
 	} else {
 		dbg("Expected a resource or hotswap event.");
-		oh_release_domain(d);
 		return -1;
 	}
 
@@ -323,14 +287,73 @@ static int process_resource_event(struct oh_event *e)
 		if (error == SA_OK && !exists) {
 			GSList *node = NULL;
 			for (node = e->rdrs; node; node = node->next) {
-				SaHpiRdrT *rdr = node->data;
+                                SaHpiRdrT *rdr = (SaHpiRdrT *)node->data;
 				oh_add_rdr(rpt, e->resource.ResourceId,
 					   rdr, NULL, 0);
 			}
 		}
 	}
 
-	if (process_hpi) process_hpi_event(e);
+	if (process_hpi) process_hpi_event(d, e);
+
+        return 0;
+}
+
+static int process_event(SaHpiDomainIdT did,
+                         struct oh_event *e)
+{
+        struct oh_domain *d = NULL;
+
+        if (!e) return -1;
+
+        d = oh_get_domain(did);
+        if (!d) return -2;
+
+        trace("Processing event for domain %u", d->id);
+
+        switch (e->event.EventType) {
+        case SAHPI_ET_RESOURCE:
+                if (!e->hid) {
+                        dbg("Resource event with invalid handler id! Dropping.");
+                        break;
+                } else if (!(e->resource.ResourceCapabilities &
+                             SAHPI_CAPABILITY_RESOURCE)) {
+                        dbg("Resource event with invalid capabilities. Dropping.");
+                        break;
+                } else if (e->resource.ResourceCapabilities
+                           & SAHPI_CAPABILITY_FRU) {
+                        dbg("Invalid event. Resource in resource event "
+                                "has FRU capability. Dropping.");
+                } else {
+                        process_resource_event(d, e);
+                }
+                break;
+        case SAHPI_ET_HOTSWAP:
+                if (!e->hid) {
+                        dbg("Hotswap event with invalid handler id! Dropping.");
+                        break;
+                } else if (!(e->resource.ResourceCapabilities &
+                             SAHPI_CAPABILITY_RESOURCE)) {
+                        dbg("Hotswap event with invalid capabilities. Dropping.");
+                        break;
+                } else if (!(e->resource.ResourceCapabilities
+                             & SAHPI_CAPABILITY_FRU)) {
+                        dbg("Invalid event. Resource in hotswap event "
+                                "has no FRU capability. Dropping.");
+                } else {
+                        process_resource_event(d, e);
+                }
+                break;
+        case SAHPI_ET_SENSOR:
+        case SAHPI_ET_SENSOR_ENABLE_CHANGE:
+        case SAHPI_ET_WATCHDOG:
+        case SAHPI_ET_OEM:
+                process_hpi_event(d, e);
+                break;
+        default:
+                ;
+        }
+        oh_detect_event_alarm(d, e);
         oh_release_domain(d);
 
         return 0;
@@ -339,48 +362,56 @@ static int process_resource_event(struct oh_event *e)
 SaErrorT oh_process_events()
 {
         struct oh_event *e;
+        GArray *domain_results = NULL;
+        SaHpiEntityPathT epath;
+        SaHpiDomainIdT tmp_did;
+        char *et;
+        int i;
+
+        domain_results = oh_query_domains();
 
         while ((e = g_async_queue_pop(oh_process_q.q)) != NULL) {
+                et = oh_lookup_eventtype(e->event.EventType);
+                trace("Event Type = %s", (et) ? et : "<Unknown>");
+                
+                /* 1. Take care of special cases: user and domain type events */
+                if (e->event.EventType == SAHPI_ET_DOMAIN) {
+                        tmp_did = e->event.Source;
+                        e->event.Source = SAHPI_UNSPECIFIED_RESOURCE_ID;
+                        process_event(tmp_did, e);
+                        goto free_event;
+                } else if (e->event.EventType == SAHPI_ET_USER) {
+                        tmp_did = e->resource.ResourceId;
+                        e->resource.ResourceId = SAHPI_UNSPECIFIED_RESOURCE_ID;
+                        process_event(tmp_did, e);
+                        goto free_event;
+                } /* TODO: Include HPI_SW event type in special case */
+                
+                /* 2. Determine proper domains to handle this event */
+                if (!oh_entity_path_lookup(e->event.Source, &epath)) {
+                        /* Convert the event's source id to an entitypath */
+                        for (i = 0; i < domain_results->len; i++) {
+                                /* Process event in each domain matching
+                                 * the event's entity path.
+                                 */
+                                oh_domain_result dr =
+                                        g_array_index(domain_results, oh_domain_result, i);
+                                /* Skip default domain here. Will be processed there later. */
+                                if (dr.id == OH_DEFAULT_DOMAIN_ID) continue;
 
-                switch (e->event.EventType) {
-                case SAHPI_ET_RESOURCE:
-                        trace("Event Type = Resource");
-                        if (e->resource.ResourceCapabilities
-                            & SAHPI_CAPABILITY_FRU) {
-				dbg("Invalid event. Resource in resource event "
-				    "has FRU capability. Dropping.");
-			} else {
-                        	process_resource_event(e);
-			}
-                        break;
-                case SAHPI_ET_HOTSWAP:
-                        trace("Event Type = Hotswap");
-                        if (!(e->resource.ResourceCapabilities
-                            & SAHPI_CAPABILITY_FRU)) {
-				dbg("Invalid event. Resource in hotswap event "
-				    "has no FRU capability. Dropping.");
-			} else {
-                        	process_resource_event(e);
-			}
-                        break;
-                case SAHPI_ET_SENSOR:
-                case SAHPI_ET_SENSOR_ENABLE_CHANGE:
-                case SAHPI_ET_WATCHDOG:
-                case SAHPI_ET_OEM:
-                case SAHPI_ET_USER:
-                case SAHPI_ET_HPI_SW:
-                case SAHPI_ET_DOMAIN:
-                        trace("Event Type = %s",
-                              oh_lookup_eventtype(e->event.EventType));
-                        process_hpi_event(e);
-                        break;
-                default:
-                        dbg("Event Type = Unknown Event");
+                                if (oh_match_entitypath_pattern(&dr.entity_pattern, &epath))
+                                        process_event(dr.id, e);
+                        }
+                        
                 }
-                oh_detect_event_alarm(e);
+                /* All events get processed in the default domain regardless. */
+                process_event(OH_DEFAULT_DOMAIN_ID, e);
+                
+free_event:
                 oh_event_free(e, FALSE);
 	}
         /* Should never get here */
-	return SA_ERR_HPI_ERROR;
+        g_array_free(domain_results, TRUE);
+	return SA_ERR_HPI_INTERNAL_ERROR;
 }
 

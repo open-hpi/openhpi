@@ -198,7 +198,6 @@ struct oh_abi_v2 {
          * saHpiDiscover, passed down to plugin
          **/
         SaErrorT (*discover_resources)(void *hnd);
-        SaErrorT (*discover_domain_resources)(void *hnd, SaHpiDomainIdT did);
 
         /***
          * saHpiResourceTagSet, this is passed down so the device has

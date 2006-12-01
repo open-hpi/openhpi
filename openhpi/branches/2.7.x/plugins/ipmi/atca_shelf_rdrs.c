@@ -1274,7 +1274,6 @@ static void send_pwronseq_commit_status_sensor_event(
         if (rdr) e->rdrs = g_slist_append(e->rdrs, g_memdup(rdr, sizeof(SaHpiRdrT)));
 
         e->hid = handler->hid;
-        e->did = ipmi_handler->did;
         oh_evt_queue_push(handler->eventq, e);
 }
 

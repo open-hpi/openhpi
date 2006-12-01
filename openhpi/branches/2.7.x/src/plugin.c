@@ -690,162 +690,36 @@ int oh_destroy_handler(unsigned int hid)
         return 0;
 }
 
-
 /**
- * oh_domain_served_by_handler
- * @hid: A handler id.
- * @did: A domain id.
+ * oh_discover_resources
  *
- * Checks to see whether @did is a valid domain for @hid.
- * The default domain is always a valid domain for any handler.
- *
- * Returns: FALSE on a failed check, otherwise TRUE.
+ * Returns: SA_OK on success.
  **/
-int oh_domain_served_by_handler(unsigned int hid, SaHpiDomainIdT did)
-{
-        GSList *node = NULL;
-        struct oh_handler *h = NULL;
-
-        if (hid < 1 || did < 1) {
-                dbg("Warning - Invalid parameters passed");
-                return 0;
-        }
-
-        if (did == oh_get_default_domain_id())
-                return 1;
-
-        h = oh_get_handler(hid);
-        if (h == NULL) return 0;
-
-        for (node = h->dids; node; node = node->next) {
-                SaHpiDomainIdT cur_did = *((SaHpiDomainIdT *)node->data);
-                if (cur_did == did) {
-                        oh_release_handler(h);
-                        return 1;
-                }
-        }
-        oh_release_handler(h);
-
-        return 0;
-}
-
-/**
- * oh_add_domain_to_handler
- * @hid: A handler id.
- * @did: A domain id.
- *
- * Adds a domain to a handler, indicating that the handler
- * can serve events/resources in said domain.
- *
- * Returns: 0 on success, otherwise an error ocurred.
- **/
-int oh_add_domain_to_handler(unsigned int hid, SaHpiDomainIdT did)
-{
-        struct oh_handler *h;
-
-        if (hid < 1 || did < 1) {
-                dbg("Warning - Invalid parameters passed");
-                return -1;
-        }
-
-        h = oh_get_handler(hid);
-        if (h == NULL) {
-                return -2;
-        }
-
-        h->dids = g_slist_append(h->dids,
-                                 g_memdup(&did, sizeof(SaHpiDomainIdT)));
-        oh_release_handler(h);
-
-        return 0;
-}
-
-/**
- * oh_remove_domain_from_handler
- * @hid: A handler id.
- * @did: A domain id.
- *
- * Removes a domain from a handler, indicating that the handler
- * cannot serve events/resources in that domain.
- *
- * Returns: 0 on success, otherwise an error ocurred.
- **/
-int oh_remove_domain_from_handler(unsigned int hid, SaHpiDomainIdT did)
-{
-        struct oh_handler *h;
-        GSList *node = NULL;
-
-        if (hid < 1) return -1; /* Invalid handler id */
-        if (did < 1) return -2; /* Invalid domain id */
-        /* Cannot remove default domain from handler */
-        if (did == oh_get_default_domain_id()) return -3;
-
-
-        h = oh_get_handler(hid);
-        if (h == NULL) {
-                return -4; /* Handler not found */
-        }
-
-        for (node = h->dids; node; node = node->next) {
-                SaHpiDomainIdT cur_did = *((SaHpiDomainIdT *)node->data);
-                if (did == cur_did) {
-                        g_free(node->data);
-                        h->dids = g_slist_delete_link(h->dids, node);
-                        oh_release_handler(h);
-                        return 0;
-                }
-        }
-        oh_release_handler(h);
-
-        return -5; /* Domain id not found in the handler */
-}
-
-/**
- * oh_domain_resource_discovery
- * @did: A domain ID.
- *
- * @did of 0 means perform discovery on all domains. Otherwise,
- * will only perform discovery in domain specified. This call will
- * undestand SAHPI_UNSPECIFIED_DOMAIN_ID as the default domain.
- *
- * Returns: SA_ERR_HPI_ERROR if all handlers return error on discovery.
- * Success (SA_OK) if at least one handler returned SA_OK on discovery.
- **/
-SaErrorT oh_domain_resource_discovery(SaHpiDomainIdT did)
+SaErrorT oh_discovery(void)
 {
         unsigned int hid = 0, next_hid;
         struct oh_handler *h = NULL;
         SaErrorT error = SA_ERR_HPI_ERROR;
 
-        if (did == SAHPI_UNSPECIFIED_DOMAIN_ID)
-                did = oh_get_default_domain_id();
-
         oh_getnext_handler_id(hid, &next_hid);
         while (next_hid) {
                 hid = next_hid;
 
-                if (did == 0 || oh_domain_served_by_handler(hid, did)) {
-                        SaErrorT cur_error;
+                SaErrorT cur_error;
 
-                        h = oh_get_handler(hid);
-                        if (!h) {
-                                dbg("No such handler %d", hid);
-                                break;
-                        }
-
-                        if (h->abi->discover_domain_resources != NULL && did != 0) {
-                                cur_error = h->abi->discover_domain_resources(h->hnd, did);
-                                if (cur_error == SA_OK && error) {
-                                        error = cur_error;
-                                }
-                        } else if (h->abi->discover_resources != NULL) {
-                                cur_error = h->abi->discover_resources(h->hnd);
-                                if (cur_error == SA_OK && error) {
-                                        error = cur_error;
-                                }
-                        }
-                        oh_release_handler(h);
+                h = oh_get_handler(hid);
+                if (!h) {
+                        dbg("No such handler %d", hid);
+                        break;
                 }
+
+                if (h->abi->discover_resources != NULL) {
+                        cur_error = h->abi->discover_resources(h->hnd);
+                        if (cur_error == SA_OK && error) {
+                                error = cur_error;
+                        }
+                }
+                oh_release_handler(h);
                 oh_getnext_handler_id(hid, &next_hid);
         }
 
@@ -881,8 +755,6 @@ int oh_load_plugin_functions(struct oh_plugin *plugin, struct oh_abi_v2 **abi)
                                                 "oh_get_event");
         (*abi)->discover_resources        = lt_dlsym(plugin->dl_handle,
                                                 "oh_discover_resources");
-        (*abi)->discover_domain_resources = lt_dlsym(plugin->dl_handle,
-                                                "oh_discover_domain_resource");
         (*abi)->set_resource_tag          = lt_dlsym(plugin->dl_handle,
                                                 "oh_set_resource_tag");
         (*abi)->set_resource_severity     = lt_dlsym(plugin->dl_handle,

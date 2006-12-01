@@ -33,7 +33,7 @@ extern "C" {
  * oh_event is primarily used by the plugins to report HPI events.
  *
  * Required Fields:
- * .did, .event
+ * .hid, .event
  *
  * Optional Fields:
  * .resource, .rdrs
@@ -51,9 +51,9 @@ extern "C" {
  * that it should remove it from the RPT.
  * Hotswap events must have their accompaining resource set its capability bit
  * for FRU to 1 or it will be dropped by the infrastructure.
- * The .resource.ResourceId field can be zero. If so, the RPT will not be updated,
- * but the SaHpiEventT will be passed on to the session queues and domain event log
- * normally.
+ * The .resource.ResourceId field can be zero. If so, the RPT will not be
+ * updated, but the SaHpiEventT will be passed on to the session queues and
+ * domain event log normally.
  *
  * Non-FRU Resource oh_events:
  * For adding or updating Non-FRU resources, the .event should be a resource
@@ -61,36 +61,34 @@ extern "C" {
  * RESOURCE_RESTORED. The resource itself should have its capability bit for
  * FRU set to zero or the event will be dropped by the infrastructure.
  * Removing Non-FRU resource from the RPT is not supported anymore as this is
- * not spec compliant. The Non-FRU resource are always there, but they are either
- * working or failed. If a resource is failed, then the oh_event should have a
- * resource event type with the resource state as RESOURCE_FAILED. The .resource
- * field should have the resource in question. This is used by the infrastructure
- * to update the RPT and mark the resource as failed (ResourceFailed == True).
- * The .resource.ResourceId field can be zero. If so, the RPT will not be updated,
- * but the SaHpiEventT will be passed on to the session queues and domain event log
- * normally.
+ * not spec compliant. The Non-FRU resource are always there, but they are
+ * either working or failed. If a resource is failed, then the oh_event should
+ * have a resource event type with the resource state as RESOURCE_FAILED.
+ * The .resource field should have the resource in question. This is used by
+ * the infrastructure to update the RPT and mark the resource as failed
+ * (ResourceFailed == True). The .resource.ResourceId field can be zero. If so,
+ * the RPT will not be updated, but the SaHpiEventT will be passed on to the
+ * session queues and domain event log normally.
  *
  * RDRs:
- * If the event is for a resource, be it FRU or Non-FRU, and the resource did not
- * previously exist in the RPT for the domain (indicated by .did), then
- * the .rdrs field is scanned for valid SaHpiRdrTs (RdrType != SAHPI_NO_RECORD)
- * objects and each one is added as an rdr for the resource to the RPT.
- * If the resource is already in the RPT, then the rdrs field will be ignored.
- * This is to avoid changes to the RDR repository of a resource once the resource
- * has already been added as this is not spec compliant.
+ * If the event is for a resource, be it FRU or Non-FRU, and the resource did
+ * not previously exist in the RPT for the domain, then the .rdrs field is
+ * scanned for valid SaHpiRdrTs (RdrType != SAHPI_NO_RECORD) objects and each
+ * one is added as an rdr for the resource to the RPT. If the resource is
+ * already in the RPT, then the rdrs field will be ignored.
+ * This is to avoid changes to the RDR repository of a resource once the
+ * resource has already been added as this is not spec compliant.
  *
  * Other event types:
  * If the event is of type SENSOR, SENSOR_ENABLE_CHANGE, WATCHDOG, or OEM, then
- * The .resource field is scanned for a valid resource to use as reference for the
- * domain event log. Also, the .rdrs field is scanned for exactly one SaHpiRdrT to
- * be used as reference for the domain event log. This infrastructure behaviour is
- * in addition to what was described for HOTSWAP and RESOURCE events above.
- * The oh_event itself is pushed onto the session queues which encapsulates the
- * .event field plus the .resource and .rdrs (with one rdr).
+ * The .resource field is scanned for a valid resource to use as reference for
+ * the domain event log. Also, the .rdrs field is scanned for exactly one
+ * SaHpiRdrT to be used as reference for the domain event log and session event
+ * queue. If multiple rdrs are passed for these event types, only the first one
+ * will be used.
  **/
 
 struct oh_event {
-        SaHpiDomainIdT did; /* domain id for the event */
         unsigned int hid; /* handler id for the event */
         SaHpiEventT event;
         /* If no resource, ResourceCapabilities must be 0 */
@@ -99,7 +97,6 @@ struct oh_event {
 };
 
 typedef struct _oh_evt_queue oh_evt_queue;
-
 extern oh_evt_queue oh_process_q;
 
 /* Event utility macros */

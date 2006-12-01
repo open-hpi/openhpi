@@ -23,6 +23,7 @@
 #include <unistd.h>
 #include <oh_config.h>
 #include <oh_plugin.h>
+#include <oh_domain.h>
 #include <oh_error.h>
 #include <oh_lock.h>
 #include <config.h>
@@ -95,14 +96,18 @@ static GSList *plugin_names = NULL;
  */
 static GSList *handler_configs = NULL;
 
+
+/* List of domain configurations. Domains are later created from this list. */
+static GSList *domain_configs = NULL;
+
 /*******************************************************************************
  *  In order to use the glib lexical parser we need to define token
  *  types which we want to switch on
  ******************************************************************************/
 
 enum {
-        HPI_CONF_TOKEN_HANDLER = G_TOKEN_LAST
-        /*HPI_CONF_TOKEN_PLUGIN*/
+        HPI_CONF_TOKEN_HANDLER = G_TOKEN_LAST,
+        HPI_CONF_TOKEN_DOMAIN
 } hpiConfType;
 
 struct tokens {
@@ -114,11 +119,11 @@ static struct tokens oh_conf_tokens[] = {
         {
                 .name = "handler",
                 .token = HPI_CONF_TOKEN_HANDLER
-        }/*,
+        },
         {
-                .name = "plugin",
-                .token = HPI_CONF_TOKEN_PLUGIN
-        }*/
+                .name = "domain",
+                .token = HPI_CONF_TOKEN_DOMAIN
+        }
 
 };
 
@@ -191,7 +196,7 @@ static int seen_plugin(char *plugin_name)
 
 /**
  * process_plugin_token:
- * @oh_scanner:
+ * @plugin_name:
  *
  *
  *
@@ -213,8 +218,8 @@ static int process_plugin_token (char *plugin_name)
                         (gpointer) g_strdup(plugin_name)
                         );
         } else {
-                dbg("Plugin name %s was already found. Ignoring.",
-                    plugin_name);
+                trace("Plugin name %s was already found. Ignoring.",
+                      plugin_name);
         }
 
         data_access_unlock();
@@ -513,6 +518,162 @@ quit:
 }
 
 /**
+ * process_domain_token
+ * @scanner: Object parser
+ * 
+ * Returns: 0 on success.
+ **/
+static int process_domain_token(GScanner *scanner)
+{
+	GHashTable *domain_stanza = NULL;
+        char *tablekey, *tablevalue;
+        int found_right_curly = 0;
+
+        data_access_lock();
+
+        if (g_scanner_get_next_token(scanner) != HPI_CONF_TOKEN_DOMAIN) {
+                dbg("Processing domain: Unexpected token.");
+                data_access_unlock();
+                return -1;
+        }
+
+        /* Get the domain id and store in Hash Table */
+        if (g_scanner_get_next_token(scanner) != G_TOKEN_INT) {
+                dbg("Processing handler: Expected domain id.");
+                data_access_unlock();
+                return -1;
+        } else {
+                if (scanner->value.v_int == 0 ||
+                    (SaHpiDomainIdT)scanner->value.v_int == SAHPI_UNSPECIFIED_DOMAIN_ID) {
+                        dbg("Processing domain: value for id cannot be 0 or 4294967295.");
+                        return -1;
+                }
+                SaHpiDomainIdT *id = (SaHpiDomainIdT *)g_malloc0(sizeof(SaHpiDomainIdT));
+                *id = (SaHpiDomainIdT)scanner->value.v_int;
+                domain_stanza = g_hash_table_new_full(g_str_hash, g_str_equal,
+                                                      g_free, g_free);
+                tablekey = g_strdup("id");
+                tablevalue = (gpointer)id;
+                g_hash_table_insert(domain_stanza,
+                                    (gpointer)tablekey,
+                                    (gpointer)tablevalue);
+        }
+
+        /* Check for Left Brace token type. If we have it, then continue parsing. */
+        if (g_scanner_get_next_token(scanner) != G_TOKEN_LEFT_CURLY) {
+                dbg("Processing domain: Expected left curly token.");
+                goto free_table;
+        }
+
+        while (!found_right_curly) {
+                int current_token;
+                /* get key token in key\value pair set (e.g. key = value) */
+                if (g_scanner_get_next_token(scanner) != G_TOKEN_STRING) {
+                        dbg("Processing domain: Expected string token.");
+                        goto free_table;
+                } else {
+                        tablekey = g_strdup(scanner->value.v_string);
+                }
+
+                /* Check for the equal sign next. If we have it, continue parsing */
+                if (g_scanner_get_next_token(scanner) != G_TOKEN_EQUAL_SIGN) {
+                        dbg("Processing domain: Expected equal sign token.");
+                        goto free_table_and_key;
+                }
+
+                /*
+                 * Now check for the value token in the key\value set.
+                 * Store the key\value value pair in the hash table and continue on.
+                 */
+                current_token = g_scanner_get_next_token(scanner);
+                if (strcmp("entity_pattern", tablekey) == 0 || /* Required */
+                    strcmp("tag", tablekey) == 0) { /* Optional */
+                        if (current_token != G_TOKEN_STRING) {
+                                dbg("Processing domain: value for %s is not a string!", tablekey);
+                                goto free_table_and_key;
+                        }
+                } else if (strcmp("child_of", tablekey) == 0 || /* Optional. 0 means default domain. */
+                           strcmp("peer_of", tablekey) == 0 || /* Optional. 0 means default domain. */
+                           strcmp("ai_readonly", tablekey) == 0) { /* Optional. 1 (default) means yes, 0 means no */
+                        if (current_token != G_TOKEN_INT) {
+                                dbg("Processing domain: value for %s is not a valid integer!", tablekey);
+                                goto free_table_and_key;
+                        }
+                } else if (strcmp("ai_timeout", tablekey) == 0) { /* Optional. 0 (default) is IMMEDIATE. -1 is BLOCK. In seconds. */
+                        if (current_token != G_TOKEN_INT &&
+                            current_token != G_TOKEN_FLOAT) {
+                                dbg("Processing domain: Invalid value for %s!", tablekey);
+                                goto free_table_and_key;
+                        }
+                } else {
+                        trace("Dropping unknown name/value pair. going on to next.");
+                        g_free(tablekey);
+                        goto find_right_curly;
+                }
+
+                /* The type of token tells us how to fetch the value from scanner */
+                gpointer value = NULL;
+                if (current_token == G_TOKEN_INT) {
+                        gulong *value_int =
+                                (gulong *)g_malloc(sizeof(gulong));
+                        *value_int = (gulong)scanner->value.v_int;
+                        value = (gpointer)value_int;
+                } else if (current_token == G_TOKEN_FLOAT) {
+                        gdouble *value_double =
+                                (gdouble *)g_malloc(sizeof(gdouble));
+                        *value_double = (gdouble)scanner->value.v_float;
+                        value = (gpointer)value_double;
+                } else if (current_token == G_TOKEN_STRING) {
+                        gchar *value_string =
+                                        g_strdup(scanner->value.v_string);
+                        value = (gpointer)value_string;
+                }
+
+                if (!value) {
+                        dbg("Processing domain:"
+                            " Unable to extract value."
+                            " Token Type: %d",
+                            current_token);
+                        goto free_table_and_key;
+                } else {
+                        g_hash_table_insert(domain_stanza,
+                                            (gpointer)tablekey,
+                                            value);
+                }
+                
+find_right_curly:
+                if (g_scanner_peek_next_token(scanner) == G_TOKEN_RIGHT_CURLY) {
+                        g_scanner_get_next_token(scanner);
+                        found_right_curly = 1;
+                }
+        } /* end of while(!found_right_curly) */
+
+        /* Attach table describing handler stanza to the global linked list of handlers */
+        if (domain_stanza != NULL) {
+                domain_configs = g_slist_append(
+                        domain_configs,
+                        (gpointer)domain_stanza);
+        }
+
+        data_access_unlock();
+
+        return 0;
+
+free_table_and_key:
+        g_free(tablekey);
+free_table:
+        /**
+        There was an error reading a token so we need to error out,
+        but not before cleaning up. Destroy the table.
+        */
+        g_hash_table_destroy(domain_stanza);
+
+        data_access_unlock();
+
+        return -1;
+}
+
+/**
  * scanner_msg_handler: a reference of this function is passed into the GScanner.
  * Used by the GScanner object to output messages that come up during parsing.
  *
@@ -527,8 +688,8 @@ static void scanner_msg_handler (GScanner *scanner, gchar *message, gboolean is_
         g_return_if_fail (scanner != NULL);
 
         dbg("%s:%d: %s%s\n",
-                scanner->input_name ? scanner->input_name : "<memory>",
-                scanner->line, is_error ? "error: " : "", message );
+            scanner->input_name ? scanner->input_name : "<memory>",
+            scanner->line, is_error ? "error: " : "", message );
 }
 
 /**
@@ -592,9 +753,9 @@ int oh_load_config (char *filename, struct oh_parsed_config *config)
                 case HPI_CONF_TOKEN_HANDLER:
                         process_handler_token(oh_scanner);
                         break;
-                /*case HPI_CONF_TOKEN_PLUGIN:
-                        process_plugin_token(oh_scanner);
-                        break;*/ /* IN PROGRESS */
+                case HPI_CONF_TOKEN_DOMAIN:
+                        process_domain_token(oh_scanner);
+                        break;
                 case G_TOKEN_STRING:
                         process_global_token(oh_scanner);
                         break;
@@ -602,7 +763,7 @@ int oh_load_config (char *filename, struct oh_parsed_config *config)
                         /* need to advance it */
                         my_token = g_scanner_get_next_token(oh_scanner);
                         g_scanner_unexp_token(oh_scanner, G_TOKEN_SYMBOL,
-                                              NULL, "\"handle\" or \"global\"", NULL, NULL, 1);
+                                              NULL, "\"handle\" or \"domain\"", NULL, NULL, 1);
                         break;
                 }
         }
@@ -623,9 +784,11 @@ int oh_load_config (char *filename, struct oh_parsed_config *config)
 
         config->plugin_names = plugin_names;
         config->handler_configs = handler_configs;
+	config->domain_configs = domain_configs;
 
         plugin_names = NULL;
         handler_configs = NULL;
+	domain_configs = NULL;
 
         return 0;
 }
@@ -673,6 +836,20 @@ SaErrorT oh_process_config(struct oh_parsed_config *config)
                 config->handlers_defined++;
         }
 
+        /* Initialize domains */
+        for (node = config->domain_configs; node; node = node->next) {
+                GHashTable *domain_config = (GHashTable *)node->data;
+                SaHpiDomainIdT *did =
+                        (SaHpiDomainIdT *)g_hash_table_lookup(domain_config, "id");
+                if (!oh_create_domain_from_table(domain_config)) {
+                        trace("Created domain %u", *did);
+                        config->domains_loaded++;
+                } else {
+                        dbg("Couldn't load domain %u", (did) ? *did : 999999);
+                }
+                config->domains_defined++;
+        }
+
         return SA_OK;
 }
 
@@ -683,6 +860,13 @@ void oh_clean_config(struct oh_parsed_config *config)
 
         /* Free list of handler configuration blocks */
         g_slist_free(config->handler_configs);
+
+        /* Free list of domain configuration blocks */
+        GSList *node = NULL;
+        for (node = config->domain_configs; node; node = node->next) {
+                g_hash_table_destroy((GHashTable *)node->data);
+        }
+        g_slist_free(config->domain_configs);
 }
 
 /**

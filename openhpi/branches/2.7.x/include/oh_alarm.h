@@ -51,7 +51,8 @@ SaErrorT oh_close_alarmtable(struct oh_domain *d);
 SaHpiUint32T oh_count_alarms(struct oh_domain *d, SaHpiSeverityT sev);
 
 /* Alarm Triggers */
-SaErrorT oh_detect_event_alarm(struct oh_event *e);
+SaErrorT oh_detect_event_alarm(struct oh_domain *d,
+                               struct oh_event *e);
 SaErrorT oh_detect_res_sev_alarm(SaHpiDomainIdT did,
                                  SaHpiResourceIdT rid,
                                  SaHpiSeverityT new_sev);

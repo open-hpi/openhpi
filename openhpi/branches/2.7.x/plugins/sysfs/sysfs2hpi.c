@@ -497,7 +497,6 @@ static int sysfs2hpi_assign_resource(struct sysfs_device* d,
 		return SA_ERR_HPI_OUT_OF_SPACE;
 	}
         memset(e, '\0', sizeof(struct oh_event));
-        e->did = oh_get_default_domain_id();
         e->hid = inst->hid;
         oh_concat_ep( &(r->path), &g_epbase);
 	e->resource.ResourceId = oh_uid_from_entity_path(&(r->path));

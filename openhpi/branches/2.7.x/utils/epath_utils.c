@@ -28,7 +28,11 @@
 #define EPATHSTRING_START_DELIMITER "{"
 #define EPATHSTRING_START_DELIMITER_CHAR '{'
 #define EPATHSTRING_END_DELIMITER "}"
+#define EPATHSTRING_END_DELIMITER_CHAR '}'
 #define EPATHSTRING_VALUE_DELIMITER ","
+#define EPATHSTRING_VALUE_DELIMITER_CHAR ','
+#define EPATHPATTERN_SPLAT '*'
+#define EPATHPATTERN_DOT '.'
 
 /**
  * oh_encode_entitypath:
@@ -569,7 +573,10 @@ SaErrorT oh_fprint_ep(FILE *stream, const SaHpiEntityPathT *ep, int offsets)
  * Pointer to normalize string - Normal case.
  * NULL - Error.
  **********************************************************************/
-gchar * oh_derive_string(SaHpiEntityPathT *ep, SaHpiEntityLocationT offset, int base, const gchar *str)
+gchar * oh_derive_string(SaHpiEntityPathT *ep,
+                         SaHpiEntityLocationT offset,
+                         int base,
+                         const gchar *str)
 {
         gchar *new_str = NULL, *str_walker = NULL;
         gchar **fragments = NULL, **str_nodes = NULL;
@@ -657,4 +664,218 @@ CLEANUP:
         g_strfreev(str_nodes);
 
         return(new_str);
+}
+
+/**
+ * oh_compile_entitypath_pattern
+ * @epp_str: entity path pattern string
+ * @epp: place where to put the compiled entity path pattern
+ *
+ * Returns: SA_OK on success.
+ **/
+SaErrorT oh_compile_entitypath_pattern(const char *epp_str,
+                                       oh_entitypath_pattern *epp)
+{
+        int i, j, len, in_tuple = 0, in_entity = 0, start = -1;
+        oh_entitypath_pattern pattern;
+
+        if (!epp_str || !epp) {
+                dbg("Got null parameters.");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+        memset(&pattern, 0, sizeof(oh_entitypath_pattern));
+
+        len = strlen(epp_str);
+        for (i = 0, j = 0; i < len; i++) {
+                if (in_tuple) { /* We are scanning inside a tuple */
+                        if (in_entity) { /* Scanning inside the entity type */
+                                if (epp_str[i] == EPATHSTRING_VALUE_DELIMITER_CHAR) {
+                                        if (start == -1 || i-start > SAHPI_MAX_ENTITY_PATH) {
+                                                return SA_ERR_HPI_ERROR;
+                                        } else {
+                                                SaHpiTextBufferT buf;
+                                                SaHpiEntityTypeT etype;
+                                                oh_init_textbuffer(&buf);
+                                                strncpy((char *)buf.Data, epp_str + start, i-start);
+                                                buf.DataLength = strlen((char *)buf.Data);
+                                                if (oh_encode_entitytype(&buf, &etype))
+                                                        return SA_ERR_HPI_ERROR;
+                                                pattern.epattern[j].etp.type = etype;
+                                                in_entity = 0;
+                                                start = -1;
+                                        }
+                                } else if (epp_str[i] == EPATHSTRING_END_DELIMITER_CHAR ||
+                                           epp_str[i] == EPATHSTRING_START_DELIMITER_CHAR) {
+                                        return SA_ERR_HPI_ERROR;
+                                } else if (epp_str[i] == EPATHPATTERN_DOT) {
+                                        pattern.epattern[j].is_splat = SAHPI_FALSE;
+                                        pattern.epattern[j].etp.is_dot = SAHPI_TRUE;
+                                        in_entity = 0;
+                                        if (epp_str[i+1] != EPATHSTRING_VALUE_DELIMITER_CHAR) {
+                                                return SA_ERR_HPI_ERROR;
+                                        }
+                                        i++;
+                                } else {
+                                        if (start == -1) start = i;
+                                }
+                        } else { /* Scanning inside the location number */
+                                if (epp_str[i] == EPATHSTRING_VALUE_DELIMITER_CHAR) {
+                                        return SA_ERR_HPI_ERROR;
+                                } else if (epp_str[i] == EPATHSTRING_START_DELIMITER_CHAR) {
+                                        return SA_ERR_HPI_ERROR;
+                                } else if (epp_str[i] == EPATHSTRING_END_DELIMITER_CHAR) {
+                                        if (start == -1 || i-start > OH_MAX_LOCATION_DIGITS) {
+                                                return SA_ERR_HPI_ERROR;
+                                        } else {
+                                                char buf[OH_MAX_LOCATION_DIGITS+1], *endptr = NULL;
+                                                SaHpiEntityLocationT loc;
+                                                memset(buf, 0, OH_MAX_LOCATION_DIGITS+1);
+                                                strncpy(buf, epp_str + start, i-start);
+                                                loc = (SaHpiEntityLocationT)strtoul(buf, &endptr, 10);
+                                                if (endptr && endptr[0] != '\0') return SA_ERR_HPI_ERROR;
+                                                pattern.epattern[j].elp.location = loc;
+                                                in_tuple = 0;
+                                                start = -1;
+                                                j++;
+                                        }
+                                } else if (epp_str[i] == EPATHPATTERN_DOT) {
+                                        pattern.epattern[j].elp.is_dot = SAHPI_TRUE;
+                                        j++;
+                                        in_tuple = 0;
+                                        if (epp_str[i+1] != EPATHSTRING_END_DELIMITER_CHAR) {
+                                                return SA_ERR_HPI_ERROR;
+                                        }
+                                        i++;
+                                } else {
+                                        if (start == -1) start = i;
+                                }
+                        }
+                } else { /* We are not yet inside a tuple. Could find a splat here. */
+                        if (epp_str[i] == EPATHSTRING_START_DELIMITER_CHAR) {
+                                in_tuple = 1;
+                                in_entity = 1;
+                        } else if (epp_str[i] == EPATHPATTERN_SPLAT) {
+                                if (epp_str[i+1] == EPATHPATTERN_SPLAT) return SA_ERR_HPI_ERROR;
+                                pattern.epattern[j].is_splat = SAHPI_TRUE;
+                                j++;
+                        } else {
+                                return SA_ERR_HPI_ERROR;
+                        }
+                }
+        }
+
+        memset(epp, 0, sizeof(oh_entitypath_pattern));
+        for (i = 0, j--; j > -1; j--, i++) {
+                memcpy(epp->epattern + i, pattern.epattern + j, sizeof(oh_entity_pattern));
+        }
+        epp->epattern[i].etp.type = SAHPI_ENT_ROOT;
+
+        return SA_OK;
+}
+
+static int ep_ended(SaHpiEntityPathT *ep, int i)
+{
+        if (!ep || i < 0) return 1;
+
+        if (i >= SAHPI_MAX_ENTITY_PATH) return 1;
+
+        if (ep->Entry[i].EntityType == SAHPI_ENT_ROOT)
+                return 1;
+        else
+                return 0;
+}
+
+static int epp_ended(oh_entitypath_pattern *epp, int j)
+{
+        if (!epp || j < 0) return 1;
+
+        if (j >= SAHPI_MAX_ENTITY_PATH) return 1;
+
+        if (!epp->epattern[j].is_splat &&
+             epp->epattern[j].etp.type == SAHPI_ENT_ROOT)
+                return 1;
+        else
+                return 0;
+}
+
+static int matches(oh_entity_pattern *ep, SaHpiEntityT *e)
+{
+        if (!ep || !e) return 0;
+
+        if (ep->is_splat) return 1;
+
+        if (!ep->etp.is_dot && ep->etp.type != e->EntityType)
+                return 0;
+        else if (!ep->elp.is_dot && ep->elp.location != e->EntityLocation)
+                return 0;
+        else
+                return 1;
+}
+
+/**
+ * oh_match_entitipath_pattern
+ * @epp: entity path pattern
+ * @ep: entity path
+ *
+ * This will match an entity path pattern to an entity path.
+ *
+ * Returns: SAHPI_TRUE if its a match, SAHPI_FALSE if its not.
+ **/
+SaHpiBoolT oh_match_entitypath_pattern(oh_entitypath_pattern *epp,
+                                       SaHpiEntityPathT *ep)
+{
+        int i = 0, j = 0, splatmode = 0;
+        
+        if (!epp || !ep) return SAHPI_FALSE;
+
+        if (ep->Entry[0].EntityType == SAHPI_ENT_ROOT) {
+                return SAHPI_FALSE;
+        } else if (!epp->epattern[0].is_splat &&
+                    epp->epattern[0].etp.type == SAHPI_ENT_ROOT) {
+                return SAHPI_FALSE;
+        }
+
+        while (i < SAHPI_MAX_ENTITY_PATH) {
+                if (epp->epattern[j].is_splat) {
+                        splatmode = 1;
+                        j++; /* next item in pattern */
+                        if (epp_ended(epp, j)) break;
+                } else {
+                        /* If we saw a splat then non-matches are ok.
+                         * Otherwise, they are not ok.
+                         */
+                        if (matches(&epp->epattern[j], &ep->Entry[i])) {
+                                if (epp_ended(epp, j+1) && ep_ended(ep, i+1)) {
+                                        break;
+                                } else if (epp_ended(epp, j+1) && !ep_ended(ep, i+1)) {
+                                        if (epp->epattern[j].etp.is_dot &&
+                                            epp->epattern[j].elp.is_dot &&
+                                            splatmode) {
+                                                i++;
+                                                continue;
+                                        } else {
+                                                return SAHPI_FALSE;
+                                        }
+                                } else if (ep_ended(ep, i+1) && !epp_ended(epp, j+1)) {
+                                        if (epp->epattern[j+1].is_splat && epp_ended(epp, j+2))
+                                                break;
+                                        else
+                                                return SAHPI_FALSE;
+                                }
+                                if (splatmode &&
+                                    !(epp->epattern[j].etp.is_dot &&
+                                      epp->epattern[j].elp.is_dot)) splatmode = 0;
+                                i++; /* next tuple in entitypath */
+                                j++; /* next item in pattern */
+                        } else {
+                                if (splatmode)
+                                        i++; /* next tuple in entitypath */
+
+                                if (!splatmode || ep_ended(ep, i))
+                                        return SAHPI_FALSE;
+                        }
+                } 
+        }
+
+        return SAHPI_TRUE;
 }

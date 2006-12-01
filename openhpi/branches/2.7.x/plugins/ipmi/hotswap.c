@@ -205,7 +205,6 @@ printf("\n");
 			ResourceEventType = SAHPI_RESE_RESOURCE_FAILURE;
 		e->resource = *rpt_entry;
                 e->hid = handler->hid;
-                e->did = ipmi_handler->did;
                 oh_evt_queue_push(handler->eventq, e);
 		if (!IS_ATCA(ipmi_handler->d_type)) {
 			return IPMI_EVENT_HANDLED;
@@ -235,7 +234,6 @@ printf("\n");
 				ResourceEventType = SAHPI_RESE_RESOURCE_RESTORED;
 			e->resource = *rpt_entry;
 			e->hid = handler->hid;
-                        e->did = ipmi_handler->did;
                         oh_evt_queue_push(handler->eventq, e);
 			if (!IS_ATCA(ipmi_handler->d_type)) {
 				return IPMI_EVENT_HANDLED;
@@ -292,17 +290,14 @@ printf("\n");
 	    					SAHPI_HS_STATE_NOT_PRESENT) {
 		trace_ipmi("HS_STATE NOT PRESENT, removing RPT");
 	  	e->hid = handler->hid;
-                e->did = ipmi_handler->did;
                 oh_evt_queue_push(handler->eventq, e);
 	}else if (e->event.EventDataUnion.HotSwapEvent.HotSwapState ==
 			SAHPI_HS_STATE_ACTIVE) {
 		trace_ipmi("HS_STATE ACTIVE");
 		e->hid = handler->hid;
-                e->did = ipmi_handler->did;
                 oh_evt_queue_push(handler->eventq, e);
 	}else {
 	  	e->hid = handler->hid;
-                e->did = ipmi_handler->did;
                 oh_evt_queue_push(handler->eventq, e);
 	}
 //	oh_wake_event_thread(0);
@@ -347,7 +342,6 @@ printf("\n");
 			_ipmi_to_hpi_cause_of_change_conv(data[11] >> 4);
 
 	e->hid = handler->hid;
-        e->did = ipmi_handler->did;
         oh_evt_queue_push(handler->eventq, e);
 
 	return IPMI_EVENT_HANDLED;
