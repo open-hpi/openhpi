@@ -1,7 +1,7 @@
 /*      -*- linux-c -*-
  *
  * Copyright (c) 2003 by Intel Corp.
- * (C) Copyright IBM Corp. 2004
+ * (C) Copyright IBM Corp. 2004,2006
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -11,14 +11,16 @@
  * full licensing terms.
  *
  * Authors:
- *     Peter D. Phan <pdphan@users.sourceforge.net>
- *     Tariq Shureih <tariq.shureih@intel.com>
+ *	Peter D. Phan <pdphan@users.sourceforge.net>
+ *	Tariq Shureih <tariq.shureih@intel.com>
+ *	David Judkovics <dmjudkov@us.ibm.com>
+ *	Renier Morales <renier@openhpi.org>
  *
- * Log: 
- *     Copied from hpifru.c and modified for general use
  *
  * Changes:
  *     11/03/2004  kouzmich   Fixed Bug #1057934
+ *     djudkovi Copied from hpifru.c and modified for general use
+ *     11/30/2006  renierm  Suppressed unneeded output from test
  *
  */
 
@@ -63,7 +65,6 @@ main(int argc, char **argv)
 
 	int c;
 	    
-	printf("\n\n%s ver %s\n",argv[0],progver);
 	while ( (c = getopt( argc, argv,"adrsoiwcn:x?")) != EOF ) {
 		switch(c) {
 			case 'a': f_listall = 1; break;
@@ -109,7 +110,6 @@ main(int argc, char **argv)
 	 */
 	if (fdebug) printf("saHpiVersionGet\n");
 	hpiVer = saHpiVersionGet();
-	printf("Hpi Version %d hpiinjector  Implemented.\n", hpiVer);
 
 	if (fdebug) printf("saHpiSessionOpen\n");
         rv = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID,&sessionid,NULL);
@@ -130,10 +130,6 @@ main(int argc, char **argv)
 		exit(-1);
 	}
 
-	printf("Discovery done\n");
-//	list_resources(sessionid, resourceid);
-
-	printf("list_resources done\n");
 
     SaHpiEventT event;
     SaHpiRptEntryT rpte;
@@ -145,15 +141,6 @@ main(int argc, char **argv)
 
     SaHpiRdrT  rdr;
     memset(&rdr, 0, sizeof(SaHpiRdrT));
-
-printf("##############################################\n");
-printf("###  SaHpiEventT [%d]                      ###\n", sizeof(SaHpiEventT));
-printf("###  SaHpiRptEntryT [%d ]                  ###\n", sizeof(SaHpiRptEntryT));
-printf("###  SaHpiRdrT [%d ]                       ###\n", sizeof(SaHpiRdrT));
-printf("###  oHpiRdrArrayT [%d]                    ###\n", sizeof(oHpiRdrArrayT));
-printf("##############################################\n");
-
-
 
     rdr.RecordId = 333;
     rdr.RdrType = SAHPI_WATCHDOG_RDR;
@@ -193,7 +180,6 @@ printf("##############################################\n");
                          &rpte,
                          &rdr);
 
-    printf("called injector");
 
 	rv = saHpiSessionClose(sessionid);
 	

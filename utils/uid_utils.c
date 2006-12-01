@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2003, 2004
+ * (C) Copyright IBM Corp. 2003, 2004, 2006
  * Copyright (c) 2003 by Intel Corp.
  *
  * This program is distributed in the hope that it will be useful,
@@ -15,13 +15,15 @@
  *      Renier Morales <renierm@users.sf.net>
  */
 
-#include <stdio.h>
 #include <stdlib.h>
-#include <glib.h>
+#include <stdio.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <fcntl.h>
 #include <string.h>
 #include <unistd.h>
 
+#include <glib.h>
 #include <config.h>
 #include <oh_utils.h>
 #include <oh_error.h>
