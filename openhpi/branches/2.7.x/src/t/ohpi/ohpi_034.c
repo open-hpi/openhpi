@@ -33,7 +33,7 @@ int main(int argc, char **argv)
         
         setenv("OPENHPI_CONF","./noconfig", 1);
         
-        if (saHpiSessionOpen(1, &sid, NULL))
+        if (saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID, &sid, NULL))
                 return -1;
                 
         if (oHpiPluginLoad("libsimulator"))
