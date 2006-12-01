@@ -401,7 +401,9 @@ IpmiClose( void *hnd )
      {
        return;
      }
-
+/** Commenting this code block due to the multi-domain changes
+ ** in the infrastructure.
+ ** (Renier Morales 11/21/06)
   if ( ipmi->DomainId() != oh_get_default_domain_id() )
   {
       stdlog << "Releasing domain id " << ipmi->DomainId() << "\n";
@@ -410,7 +412,7 @@ IpmiClose( void *hnd )
 
       if ( rv != SA_OK )
           stdlog << "oh_request_domain_delete error " << rv << "\n";
-  }
+  }*/
 
   ipmi->IfClose();
 
@@ -469,27 +471,6 @@ IpmiDiscoverResources( void *hnd )
      }
 
   stdlog << "Simple discovery let's go " << hnd << "\n";
-
-  SaErrorT rv = ipmi->IfDiscoverResources();
-
-  return rv;
-}
-
-
-static SaErrorT
-IpmiDiscoverDomainResources( void *, SaHpiDomainIdT ) __attribute__((used));
-
-static SaErrorT
-IpmiDiscoverDomainResources( void *hnd, SaHpiDomainIdT did )
-{
-  cIpmi *ipmi = VerifyIpmi( hnd );
-
-  if ( !ipmi )
-     {
-       return SA_ERR_HPI_INTERNAL_ERROR;
-     }
-
-  stdlog << "Dedicated discovery let's go " << hnd << " " << did << "\n";
 
   SaErrorT rv = ipmi->IfDiscoverResources();
 
@@ -1589,9 +1570,6 @@ void * oh_get_event (void *)
 void * oh_discover_resources (void *)
                 __attribute__ ((weak, alias("IpmiDiscoverResources")));
 
-void * oh_discover_domain_resource (void *)
-                __attribute__ ((weak, alias("IpmiDiscoverDomainResources")));
-
 void * oh_set_resource_tag (void *, SaHpiResourceIdT, SaHpiTextBufferT *)
                 __attribute__ ((weak, alias("IpmiSetResourceTag")));
 
@@ -1906,6 +1884,9 @@ cIpmi::AllocConnection( GHashTable *handler_config )
      }
 
   m_own_domain = false;
+  /** This code block has been commented out due to the
+   ** multi-domain changes in the infrastructure.
+   ** (Renier Morales 11/21/06)
   const char *create_own_domain = (const char *)g_hash_table_lookup(handler_config, "MultipleDomains");
   if ((create_own_domain != (char *)NULL)
       && ((strcmp(create_own_domain, "YES") == 0)
@@ -1925,7 +1906,7 @@ cIpmi::AllocConnection( GHashTable *handler_config )
               m_domain_tag.SetAscii(domain_tag, SAHPI_TL_TYPE_TEXT, SAHPI_LANG_ENGLISH);
           }
       }
-  }
+  }*/
 
   m_insert_timeout = GetTimeout( handler_config, "InsertTimeout", SAHPI_TIMEOUT_IMMEDIATE );
   m_extract_timeout = GetTimeout( handler_config, "ExtractTimeout", SAHPI_TIMEOUT_IMMEDIATE );
@@ -2081,8 +2062,6 @@ void
 cIpmi::AddHpiEvent( oh_event *event )
 {
   m_event_lock.Lock();
-
-  event->did = m_did;
 
   if ( m_handler )
   {

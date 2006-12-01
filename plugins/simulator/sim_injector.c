@@ -207,7 +207,6 @@ SaErrorT sim_inject_event(struct oh_handler_state *state, struct oh_event *ohe) 
 
         /* perform the injection */
         trace("Injecting event");
-        ohe->did = oh_get_default_domain_id();
         ohe->hid = state->hid;
         oh_evt_queue_push(state->eventq, ohe);
 
@@ -248,16 +247,7 @@ SaErrorT sim_inject_ext_event(void *hnd,
 		event->Source = SAHPI_UNSPECIFIED_RESOURCE_ID;
 	}
 
-printf("\n\n\n ***** INJECTING EVENT ****\n\n\n");
-
-
-    /* add incoming rdrs to Glist */
-//    int c = 0;
-//    for( c = 0; c < MAX_RDR_ARRAY_LENGTH; c++) {
-//            rdrs = g_slist_append(rdrs, &rdrs_array->Entry[c]);
-//    }
-
-    rdrs = g_slist_append(rdrs, rdre);
+	rdrs = g_slist_append(rdrs, rdre);
 
 	for (node = rdrs; node; node = node->next) {
 		SaHpiRdrT *rdr = (SaHpiRdrT *)node->data;
@@ -308,7 +298,6 @@ printf("\n\n\n ***** INJECTING EVENT ****\n\n\n");
 	e.event = *event;
 	if (rpte) e.resource = *rpte;
 	e.rdrs = rdrs;
-	e.did = oh_get_default_domain_id();
         e.hid = state->hid;
 	oh_evt_queue_push(state->eventq, oh_dup_event(&e));
 

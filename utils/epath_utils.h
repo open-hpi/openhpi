@@ -31,6 +31,27 @@
 /* Max number of digits an enitity instance has */
 #define OH_MAX_LOCATION_DIGITS 6
 
+/* Definitions for describing entity path patterns */
+typedef struct {
+        SaHpiBoolT is_dot;
+        SaHpiEntityTypeT type;
+} oh_entity_type_pattern;
+
+typedef struct {
+        SaHpiBoolT is_dot;
+        SaHpiEntityLocationT location;
+} oh_entity_location_pattern;
+
+typedef struct {
+        SaHpiBoolT is_splat;
+        oh_entity_type_pattern etp;
+        oh_entity_location_pattern elp;
+} oh_entity_pattern;
+
+typedef struct {
+        oh_entity_pattern epattern[SAHPI_MAX_ENTITY_PATH];
+} oh_entitypath_pattern;
+
 #ifdef __cplusplus
 extern "C" {
 #endif 
@@ -62,6 +83,11 @@ gchar * oh_derive_string(SaHpiEntityPathT *ep,
 			 SaHpiEntityLocationT offset,
 			 int base,
 			 const gchar *str);
+                     
+SaErrorT oh_compile_entitypath_pattern(const char *epp_str,
+                                       oh_entitypath_pattern *epp);
+SaHpiBoolT oh_match_entitypath_pattern(oh_entitypath_pattern *epp,
+                                       SaHpiEntityPathT *ep);
 
 #ifdef __cplusplus
 }

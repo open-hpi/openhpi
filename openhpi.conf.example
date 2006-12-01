@@ -1,6 +1,7 @@
-## File format is outlined here and examples are given
+### OpenHPI configuration example file ###
 
-## First section, declare global parameters like the following.
+#######
+## FIRST section: declaration of global parameters like the following.
 
 #OPENHPI_LOG_ON_SEV = "MINOR"
 #OPENHPI_ON_EP = "{SYSTEM_CHASSIS,1}"
@@ -46,26 +47,29 @@
 ## The DEL (Domain Event Log), DAT (Domain Alarm Table), and UID (Unique IDs used
 ## for resources) mappings are saved to this directory. The default is set at
 ## compile time through the ./configure options.
+#######
+
+#######
+## SECOND section: handler (instance) declaration with arguments understood by the plugin.
 
 #############################################################################
-##**WARNING** System administrators have to make sure that entity paths are
+##**CAUTION** System administrators have to make sure that entity paths are
 ## unique in a domain. To avoid entity paths conflicting among handlers, make
-## sure the "entity_root" is unique for each handler definition.
+## sure the "entity_root" is unique for each handler definition, unless the
+## plugin documentation says otherwise.
 #############################################################################
-## Third section is a handler (instance) declaration with arguments understood by plugin
+
 ## Strings are enclosed by "", numbers are not.
 
 ## Section for the simulator plugin
 ## You can load multiple copies of the simulator plugin but each
 ## copy must have a unique name.
-
 handler libsimulator {
         entity_root = "{SYSTEM_CHASSIS,1}"
         name = "simulator"
 }
 
 ## Section for ipmi plugin using SMI -- local interface
-
 #handler libipmi        {
 #       entity_root = "{SYSTEM_CHASSIS,2}"
 #       name = "smi"
@@ -73,7 +77,6 @@ handler libsimulator {
 #}
 
 ## Section for ipmi plugin based on OpenIPMI:
-
 #handler libipmi {
 #       entity_root = "{SYSTEM_CHASSIS,3}"
 #       name = "lan"
@@ -86,7 +89,6 @@ handler libsimulator {
 #}
 
 ## Section for BladeCenter snmp_bc plugin:
-
 #handler libsnmp_bc {
 #        entity_root = "{SYSTEM_CHASSIS,4}" # Required. BladeCenter chassis Entity Path.
 #        host = "192.168.70.125"            # Required. BladeCenter Management Module IP address.
@@ -151,3 +153,59 @@ handler libsimulator {
 #        # if #logfile_max reached replace the oldest one
 #        logfile_max = "10"
 #}
+
+#######
+## THIRD Section: Domains (Optional).
+##
+## Events are processed in domains that match the entity path of said event
+## (see SaHpiEntityPathT in SaHpi.h). This is done by associating an entity
+## path pattern (below) to a domain declaration and using that to match
+## against the event's entity path.
+## All events are still processed in the default domain, regardless of
+## entitypath.
+##
+## The '.' in the entity path patterns can be placed anywhere you would
+## put an entity type or an entity location number in the entity path
+## (an entity path in canonical form looks like this:
+## "{GROUP,4}{RACK,1}{SYSTEM_CHASSIS,5}{SBC_BLADE,6}").
+## Depending on where you put the '.', it means any entity type or any entity
+## location number. You can also place a '*' where you would put a tuple (a
+## tuple is an entity type/entity location pair: {RACK,8}).
+## It means 0 or more tuples with any entity type and any location number.
+## NOTE: entity types come from the SaHpiEntityTypeT enum defined in SaHpi.h
+## without the SAHPI_ENT prefix.
+##
+## Example entity path patterns:
+##
+## {.,.} will match {RACK,4}, but not {RACK,4}{GROUP,2}
+##
+## {RACK,4}* will match {RACK,4}{GROUP,2} 
+##
+## {RACK,.}* will match {RACK,4}{GROUP,2} also.
+##
+## {RACK,.}{GROUP,.} will match {RACK,4}{GROUP,2} also.
+##
+## *{SBC_BLADE,1} will not match {SYSTEM_CHASSIS,4}{SBC_BLADE,4}
+##
+## * will match anything.
+##
+## Example domain declarations:
+#domain 1 {
+#	# Required if peer_of is not used.
+#	entity_root = "{SYSTEM_CHASSIS,1}*{SBC_BLADE,.}"
+#	tag = "Blades on first chassis" # Optional
+#	ai_timeout = 0 # Optional. -1 means BLOCK. 0 is the default.
+#	ai_readonly = 1 # Optional. 1 means yes (default), 0 means no.
+#}
+
+#domain 2 {
+#	entity_root = "*{SBC_BLADE,.}{FAN,.}"
+#	tag = "All Blade Fans" # Optional
+#	child_of = 1 # Optional. 0 means the default domain.
+#}
+
+#domain 3 {
+#	tag = "All Blade Fans (Peer)"
+#	peer_of = 2 # Optional. 0 means the default domain.
+#}
+

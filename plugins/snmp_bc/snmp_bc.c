@@ -57,7 +57,6 @@ SaErrorT snmp_bc_get_event(void *hnd)
         if (g_slist_length(custom_handle->eventq) > 0) {
                 struct oh_event *e = custom_handle->eventq->data;
                 e->hid = handle->hid;
-                e->did = oh_get_default_domain_id();
                 oh_evt_queue_push(handle->eventq, e);
                 custom_handle->eventq = g_slist_remove_link(custom_handle->eventq, custom_handle->eventq);
                 snmp_bc_unlock_handler(custom_handle);

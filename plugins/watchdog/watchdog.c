@@ -292,7 +292,6 @@ static int watchdog_discover_resources(void *hnd)
 			return SA_ERR_HPI_OUT_OF_SPACE;
 		}
 		memset(e, '\0', sizeof(struct oh_event));
-                e->did = oh_get_default_domain_id();
                 e->hid = tmp->hid;
 		e->event.EventType = SAHPI_ET_RESOURCE;
 		/* Note:  .res_event.entry.ResourceInfo currently unassigned */

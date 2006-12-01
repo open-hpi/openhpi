@@ -35,9 +35,8 @@ int oh_init(void)
         static int initialized = 0;
         struct oh_parsed_config config = {NULL, NULL, 0, 0, 0, 0};
         struct oh_global_param config_param = { .type = OPENHPI_CONF };
+        oh_entitypath_pattern epp;
         SaErrorT rval;
-        SaHpiDomainCapabilitiesT capabilities = 0X00000001;
-        SaHpiTextBufferT tag;
 
         data_access_lock();
         if (initialized) { /* Don't initialize more than once */
@@ -76,15 +75,24 @@ int oh_init(void)
         oh_domains.table = g_hash_table_new(g_int_hash, g_int_equal);
         trace("Initialized domain table");
 
-        /* Create first domain */
-        oh_init_textbuffer(&tag);
-        oh_append_textbuffer(&tag,"First Domain");
-        if (!oh_create_domain(capabilities, SAHPI_TIMEOUT_IMMEDIATE, &tag)) {
+        /* Create default domain */
+        if (oh_compile_entitypath_pattern("*", &epp)) {
+                data_access_unlock();
+                dbg("Could not compile entitypath pattern.");
+                return SA_ERR_HPI_ERROR;
+        }
+        
+        if (oh_create_domain(OH_DEFAULT_DOMAIN_ID,
+                             &epp, "DEFAULT",
+                             SAHPI_UNSPECIFIED_DOMAIN_ID,
+                             SAHPI_UNSPECIFIED_DOMAIN_ID,
+                             SAHPI_DOMAIN_CAP_AUTOINSERT_READ_ONLY,
+                             SAHPI_TIMEOUT_IMMEDIATE)) {
                 data_access_unlock();
                 dbg("Could not create first domain!");
                 return SA_ERR_HPI_ERROR;
         }
-        trace("Created first domain");
+        trace("Created DEFAULT domain");
 
         /* Initialize session table */
         oh_sessions.table = g_hash_table_new(g_int_hash, g_int_equal);
@@ -110,6 +118,11 @@ int oh_init(void)
         } else if (config.handlers_defined > 0 &&
                    config.handlers_loaded < config.handlers_defined) {
                 dbg("*Warning*: Not all handlers defined loaded."
+                    " Check previous messages.");
+        }
+
+        if (config.domains_defined != config.domains_loaded) {
+                dbg("*Warning*: Not all domains defined where created."
                     " Check previous messages.");
         }
 
