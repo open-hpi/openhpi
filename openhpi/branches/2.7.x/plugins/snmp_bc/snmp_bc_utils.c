@@ -63,7 +63,7 @@ SaErrorT snmp_bc_get_guid(struct snmp_bc_hnd *custom_handle,
 				      res_info_ptr->mib.OidUuid,            
 				      &get_value, SAHPI_TRUE);
         if(( status != SA_OK) || (get_value.type != ASN_OCTET_STR)) {
-                dbg("Cannot get OID rc=%d; oid=%s type=%d.", 
+                trace("Cannot get OID rc=%d; oid=%s type=%d.", 
                         status, res_info_ptr->mib.OidUuid, get_value.type);
                 if ( status != SA_ERR_HPI_BUSY)  status = SA_ERR_HPI_NO_RESPONSE;
                 goto CLEANUP;
