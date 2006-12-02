@@ -192,14 +192,14 @@ handler libsimulator {
 ## Example domain declarations:
 #domain 1 {
 #	# Required if peer_of is not used.
-#	entity_root = "{SYSTEM_CHASSIS,1}*{SBC_BLADE,.}"
+#	entity_pattern = "{SYSTEM_CHASSIS,1}*{SBC_BLADE,.}"
 #	tag = "Blades on first chassis" # Optional
 #	ai_timeout = 0 # Optional. -1 means BLOCK. 0 is the default.
 #	ai_readonly = 1 # Optional. 1 means yes (default), 0 means no.
 #}
 
 #domain 2 {
-#	entity_root = "*{SBC_BLADE,.}{FAN,.}"
+#	entity_pattern = "*{SBC_BLADE,.}{FAN,.}"
 #	tag = "All Blade Fans" # Optional
 #	child_of = 1 # Optional. 0 means the default domain.
 #}
