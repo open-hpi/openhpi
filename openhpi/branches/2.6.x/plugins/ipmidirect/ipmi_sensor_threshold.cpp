@@ -371,8 +371,12 @@ cIpmiSensorThreshold::GetDataFromSdr( cIpmiMc *mc, cIpmiSdr *sdr )
   m_negative_going_threshold_hysteresis = sdr->m_data[43];
   m_current_negative_hysteresis = m_negative_going_threshold_hysteresis;
 
-  if (( m_sensor_factors->Linearization() == eIpmiLinearization1OverX )
-      || ( m_sensor_factors->Linearization() == eIpmiLinearization1OverCube ))
+  double d1, d2;
+
+  m_sensor_factors->ConvertFromRaw( 1, d1, false );
+  m_sensor_factors->ConvertFromRaw( 2, d2, false );
+
+  if (d2 < d1)
       m_swap_thresholds = true;
   else
       m_swap_thresholds = false;
@@ -718,7 +722,8 @@ cIpmiSensorThreshold::ConvertFromInterpreted( const SaHpiSensorReadingT r,
   if ( !m_sensor_factors->ConvertToRaw( cIpmiSensorFactors::eRoundNormal, 
                                         (double)r.Value.SensorFloat64,
                                         raw,
-                                        is_hysteresis ) )
+                                        is_hysteresis,
+                                        SwapThresholds() ) )
        return SA_ERR_HPI_INVALID_DATA;
 
   v = (unsigned char)raw;
