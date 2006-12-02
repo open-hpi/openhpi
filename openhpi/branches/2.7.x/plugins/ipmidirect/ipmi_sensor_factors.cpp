@@ -262,6 +262,11 @@ cIpmiSensorFactors::ConvertFromRaw( unsigned int val,
 
   if ( is_hysteresis == true )
   {
+      if ( val == 0 )
+      {
+          result = 0;
+          return true;
+      }
       // For hysteresis : no offset + abs value
       b = 0;
       if ( m < 0 )
@@ -300,11 +305,18 @@ bool
 cIpmiSensorFactors::ConvertToRaw( tIpmiRound    rounding,
                                   double        val,
                                   unsigned int &result,
-                                  bool        is_hysteresis ) const
+                                  bool        is_hysteresis,
+                                  bool        swap_thresholds ) const
 {
   bool rv;
+  bool swap;
   double cval;
   int    lowraw, highraw, raw, maxraw, minraw, next_raw;
+
+  if (is_hysteresis == true)
+    swap = false;
+  else
+    swap = swap_thresholds;
 
   switch( m_analog_data_format )
      {
@@ -346,7 +358,11 @@ cIpmiSensorFactors::ConvertToRaw( tIpmiRound    rounding,
        if ( !rv )
 	    return false;
 
-       if ( cval < val )
+       // If swap == true, when raw value increases
+       // the corresponding interpreted value decreases
+       // so we have to take that into account when searching
+       if ((( swap == false) && ( cval < val ))
+            || (( swap == true) && ( cval > val )))
           {
 	    next_raw = ((highraw - raw) / 2) + raw;
 	    lowraw = raw;
@@ -364,7 +380,11 @@ cIpmiSensorFactors::ConvertToRaw( tIpmiRound    rounding,
   switch( rounding )
      {
        case eRoundNormal:
-	    if ( val > cval )
+            // If swap == true, when raw value increases
+            // the corresponding interpreted value decreases
+            // so we have to take that into account when searching
+            if ((( swap == false ) && ( val > cval ))
+                || (( swap == true ) && ( val < cval )))
                {
                  if ( raw < maxraw )
                     {
@@ -375,7 +395,8 @@ cIpmiSensorFactors::ConvertToRaw( tIpmiRound    rounding,
                            return false;
 
                       nval = cval + ((nval - cval) / 2.0);
-                      if ( val >= nval )
+                      if ((( swap == false ) && ( val >= nval ))
+                            || (( swap == true ) && ( val <= nval )))
                            raw++;
                     }
                }
@@ -389,21 +410,36 @@ cIpmiSensorFactors::ConvertToRaw( tIpmiRound    rounding,
                            return false;
 
                       pval = pval + ((cval - pval) / 2.0);
-                      if ( val < pval )
+                      if ((( swap == false ) && ( val < pval ))
+                            || (( swap == true ) && ( val > pval )))
                            raw--;
                     }
                }
 	    break;
 
        case eRoundUp:
-	    if ((val > cval) && (raw < maxraw))
-                 raw++;
+            // If swap == true, when raw value increases
+            // the corresponding interpreted value decreases
+            // so we have to take that into account when searching
+            if ( swap == false )
+               if ((val > cval) && (raw < maxraw))
+                    raw++;
+            else
+               if ((val < cval) && (raw < maxraw))
+                    raw++;
 
 	    break;
 
        case eRoundDown:
-	    if ( ( val < cval) && (raw > minraw ) )
-                 raw--;
+            // If swap == true, when raw value increases
+            // the corresponding interpreted value decreases
+            // so we have to take that into account when searching
+            if ( swap == false )
+                if ( ( val < cval) && (raw > minraw ) )
+                    raw--;
+            else
+                if ( ( val > cval) && (raw > minraw ) )
+                    raw--;
 
 	    break;
      }
