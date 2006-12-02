@@ -19,6 +19,7 @@
  * Authors:
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
  *     Pierre Sangouard  <psangouard@eso-tech.com>
+ *     Andy Cress        <arcress@user.sourceforge.net>
  */
 
 #include <stdio.h>
@@ -48,7 +49,7 @@ cIpmiMc::cIpmiMc( cIpmiDomain *domain, const cIpmiAddr &addr )
     m_sdr_repository_support( false ), m_sensor_device_support( false ),
     m_major_fw_revision( 0 ), m_minor_fw_revision( 0 ),
     m_major_version( 0 ), m_minor_version( 0 ),
-    m_manufacturer_id( 0 ), m_product_id( 0 )
+    m_manufacturer_id( 0 ), m_product_id( 0 ), m_is_atca_board( false ), m_is_rms_board( false )
 {
   stdlog << "adding MC: " << addr.m_channel << " " << addr.m_slave_addr << "\n";
 
@@ -228,7 +229,8 @@ cIpmiMc::HandleNew()
 
   m_active = true;
 
-  if ( m_provides_device_sdrs )
+  /* fix for SdrRep also - ARCress 09/21/06 */
+  if ( m_provides_device_sdrs ||  m_sdr_repository_support  )
      {
        rv = m_sdrs->Fetch();
 
@@ -254,24 +256,32 @@ cIpmiMc::HandleNew()
        rv = m_sel->GetInfo();
 
        if ( rv != SA_OK )
-            return rv;
+       {
+            m_sel_device_support = false;
+       }
+       else
+       {
+           SaHpiTimeT sel_time;
 
-       SaHpiTimeT sel_time;
+           oh_gettimeofday( &sel_time );
 
-       oh_gettimeofday( &sel_time );
+           m_sel->SetSelTime( sel_time );
 
-       m_sel->SetSelTime( sel_time );
+           m_sel->m_fetched = false;
 
-       m_sel->m_fetched = false;
+           if (IsAtcaBoard()) {
+               rv = m_sel->ClearSel();
+               if ( rv != SA_OK )
+                   m_sel_device_support = false;
+           }
 
-       rv = m_sel->ClearSel();
-
-       if ( rv != SA_OK )
-            return rv;
-
-       // read old events
-       GList *list = m_sel->GetEvents();
-       m_sel->ClearList( list );
+           if ( m_sel_device_support )
+           {
+                // read old events
+                GList *list = m_sel->GetEvents();
+                m_sel->ClearList( list );
+           }
+       }
      }
 
   // We set the event receiver here, so that we know all the SDRs
@@ -286,12 +296,14 @@ cIpmiMc::HandleNew()
        if ( er )
             event_rcvr = er->GetAddress();
      }
-  else if ( m_sel_device_support )
+  else if ( m_sel_device_support && m_provides_device_sdrs) {  
        // If it is an SEL device and not an event receiver, then
-       // set it's event receiver to itself.
-       event_rcvr = GetAddress();
+       // may want to set its event receiver to itself.
+       event_rcvr = GetAddress();   
+       stdlog << "New mc, event_rcvr " << GetAddress() << "\n";
+  }
 
-  if ( event_rcvr )
+  if ( event_rcvr && IsAtcaBoard())  
      {
        // This is a re-arm of all sensors of the MC
        // => each sensor sends the pending events again.
@@ -322,7 +334,7 @@ cIpmiMc::DeviceDataCompares( const cIpmiMsg &rsp ) const
        return false;
     
   if ( m_provides_device_sdrs != ((rsp_data[2] & 0x80) == 0x80) )
-       return false;
+       ;   /* dont  return false;   ARCress */
 
   if ( m_device_available != ((rsp_data[3] & 0x80) == 0x80) )
        return false;
@@ -388,8 +400,8 @@ cIpmiMc::DeviceDataCompares( const cIpmiMsg &rsp ) const
   return true;
 }
 
-bool
-cIpmiMc::IsAtcaBoard()
+void
+cIpmiMc::CheckAtca()
 {
     cIpmiMsg msg( eIpmiNetfnPicmg, eIpmiCmdGetPicMgProperties );
     msg.m_data_len = 1;
@@ -398,7 +410,7 @@ cIpmiMc::IsAtcaBoard()
     cIpmiMsg rsp;
     SaErrorT rv;
 
-    m_is_not_ecn = true;
+    m_is_atca_board = false;
     m_picmg_major = 0;
     m_picmg_minor = 0;
 
@@ -407,7 +419,7 @@ cIpmiMc::IsAtcaBoard()
     if ( rv != SA_OK || rsp.m_data[0] || rsp.m_data[1] != dIpmiPicMgId )
     {
         stdlog << "WARNING: MC " << m_addr.m_slave_addr << " is not an ATCA board !!!\n";
-        return false;
+        return;
     }
 
     m_picmg_minor = (rsp.m_data[2] >> 4) & 0x0f;
@@ -415,23 +427,13 @@ cIpmiMc::IsAtcaBoard()
 
     if ( m_picmg_major == 2 )
     {
-        stdlog << "MC " << m_addr.m_slave_addr << " is an ATCA board, PicMg version " << (int)m_picmg_major << "." << (int)m_picmg_minor << "\n";
-
-        if  ( m_picmg_minor == 0 )
-        {
-           stdlog << "ECN is NOT implemented\n";
-        }
-        else
-        {
-            m_is_not_ecn = false;
-            stdlog << "ECN is implemented\n";
-        }
-
-        return true;
+        stdlog << "MC " << m_addr.m_slave_addr << " is an ATCA board, PICMG Extension version " << (int)m_picmg_major << "." << (int)m_picmg_minor << "\n";
+        m_is_atca_board = true;
+        return;
     }
 
     stdlog << "WARNING: MC " << m_addr.m_slave_addr << " is not an ATCA board !!!\n";
-    return false;
+    return;
 }
 
 int
@@ -626,63 +628,6 @@ cIpmiMc::FindHotswapSensor()
   return 0;
 }
 
-
-SaErrorT
-cIpmiMc::AtcaPowerFru( int fru_id )
-{
-  // get power level
-  cIpmiMsg msg( eIpmiNetfnPicmg, eIpmiCmdGetPowerLevel );
-  cIpmiMsg rsp;
-
-  msg.m_data[0] = dIpmiPicMgId;
-  msg.m_data[1] = fru_id; // FRU id
-  msg.m_data[2] = 0x01; // desired steady power
-  msg.m_data_len = 3;
-
-  SaErrorT rv = SendCommand( msg, rsp );
-
-  if ( rv != SA_OK )
-     {
-       stdlog << "cannot send get power level: " << rv << " !\n";
-       return rv;
-     }
-
-  if (    rsp.m_data_len < 3
-       || rsp.m_data[0] != eIpmiCcOk 
-       || rsp.m_data[1] != dIpmiPicMgId )
-     {
-       stdlog << "cannot get power level: " << rsp.m_data[0] << " !\n";
-       return SA_ERR_HPI_INVALID_DATA;
-     }
-
-  unsigned char power_level = rsp.m_data[2] & 0x1f;
-
-  // set power level
-  msg.m_netfn = eIpmiNetfnPicmg;
-  msg.m_cmd   = eIpmiCmdSetPowerLevel;
-  msg.m_data[0] = dIpmiPicMgId;
-  msg.m_data[1] = 0; // FRU id
-  msg.m_data[2] = power_level;
-  msg.m_data[3] = 0x01; // copy desierd level to present level
-  msg.m_data_len = 4;
-
-  rv = SendCommand( msg, rsp );
-
-  if ( rv != SA_OK )
-     {
-       stdlog << "cannot send set power level: " << rv << " !\n";
-       return rv;
-     }
-
-  if (    rsp.m_data_len != 2
-       || rsp.m_data[0] != eIpmiCcOk
-       || rsp.m_data[1] != dIpmiPicMgId )
-       stdlog << "cannot set power level: " << rsp.m_data[0] << " !\n";
-
-  return SA_OK;
-}
-
-
 bool
 cIpmiMc::DumpControls( cIpmiLog &dump, const char *name ) const
 {
@@ -831,30 +776,4 @@ cIpmiMc::Populate()
      }
 
   return true;
-}
-
-
-SaErrorT
-cIpmiMc::GetHotswapStates()
-{
-  for( int i = 0; i < Num(); i++ )
-     {
-       cIpmiResource *res = operator[]( i );
-
-       cIpmiSensorHotswap *hs = res->GetHotswapSensor();
-
-       if ( hs == 0 )
-            continue;
-
-       tIpmiFruState state;
-
-       SaErrorT rv = hs->GetState( state );
-
-       if ( rv != SA_OK )
-            return rv;
-
-       res->FruState() = state;
-     }
-
-  return SA_OK;
 }

@@ -14,15 +14,18 @@
  * Authors:
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
  *     Pierre Sangouard  <psangouard@eso-tech.com>
+ *     Andy Cress        <arcress@user.sourceforge.net> 
  */
 
 #include <assert.h>
 
 #include "ipmi_mc_vendor.h"
 #include "ipmi_mc_vendor_force.h"
+#include "ipmi_mc_vendor_intel.h"
 #include "ipmi_mc_vendor_fix_sdr.h"
 #include "ipmi_domain.h"
 #include "ipmi_control_fan.h"
+#include "ipmi_watchdog.h"
 
 
 cIpmiMcVendorFactory *cIpmiMcVendorFactory::m_factory = 0;
@@ -63,6 +66,18 @@ cIpmiMcVendorFactory::InitFactory()
        // Force ShMC specific stuff
        m_factory->Register( new cIpmiMcVendorForceShMc( 0x1011 ) );
        m_factory->Register( new cIpmiMcVendorForceShMc( 0x1080 ) );
+       // Intel BMC specific stuff
+       m_factory->Register( new cIpmiMcVendorIntelBmc( 0x000C ) );
+       m_factory->Register( new cIpmiMcVendorIntelBmc( 0x001B ) );
+       m_factory->Register( new cIpmiMcVendorIntelBmc( 0x0022 ) );
+       m_factory->Register( new cIpmiMcVendorIntelBmc( 0x0026 ) );
+       m_factory->Register( new cIpmiMcVendorIntelBmc( 0x0028 ) );
+       m_factory->Register( new cIpmiMcVendorIntelBmc( 0x0100 ) );
+       m_factory->Register( new cIpmiMcVendorIntelBmc( 0x4311 ) );
+       m_factory->Register( new cIpmiMcVendorIntelBmc( 0x0811 ) );
+       m_factory->Register( new cIpmiMcVendorIntelBmc( 0x0900 ) ); /*HSC*/
+       m_factory->Register( new cIpmiMcVendorIntelBmc( 0x0911 ) ); /*HSC*/
+       m_factory->Register( new cIpmiMcVendorIntelBmc( 0x0A0C ) ); /*HSC*/
 
        // Enabling this code will fix badly formed SDR
        // found on various boards tested with the plugin
@@ -203,6 +218,13 @@ cIpmiMcVendor::ProcessSdr( cIpmiDomain * /*domain*/, cIpmiMc * /*mc*/, cIpmiSdrs
   return true;
 }
 
+bool
+cIpmiMcVendor::ProcessFru( cIpmiInventory * /*inv*/, cIpmiMc * /*mc*/,
+                       unsigned int /*sa*/, SaHpiEntityTypeT /*type*/)
+{
+  return true;
+}
+
 
 bool
 cIpmiMcVendor::CreateRdrs( cIpmiDomain *domain, cIpmiMc *source_mc, cIpmiSdrs *sdrs )
@@ -220,6 +242,9 @@ cIpmiMcVendor::CreateRdrs( cIpmiDomain *domain, cIpmiMc *source_mc, cIpmiSdrs *s
        return false;
 
   if ( CreateInvs( domain, source_mc, sdrs ) == false )
+       return false;
+
+  if ( CreateWatchdogs( domain, source_mc ) == false )
        return false;
 
   return true;
@@ -830,10 +855,60 @@ cIpmiMcVendor::CreateControls( cIpmiDomain *domain, cIpmiMc *source_mc,
   if ( source_mc == 0 )
        return true;
 
-  if ( domain->IsAtca() )
+  if ( source_mc->IsAtcaBoard() )
      {
        return CreateControlsAtca( domain, source_mc, sdrs );
      }
+
+  return true;
+}
+
+
+bool
+cIpmiMcVendor::CreateWatchdogs( cIpmiDomain *domain, cIpmiMc *mc )
+{
+  cIpmiResource *res;
+
+  for ( int i = 0; i < mc->NumResources(); i++ )
+  {
+      res = mc->GetResource ( i );
+
+      if ( res == 0 )
+          continue;
+
+      stdlog << "CreateWatchdogs: addr " << mc->GetAddress() << " FruId " <<
+                  res->FruId() << "\n";
+
+      if (res->FruId() == 0) 
+      {
+          cIpmiMsg  msg( eIpmiNetfnApp, eIpmiCmdGetWatchdogTimer );
+          cIpmiMsg  rsp;
+
+          if (mc->IsRmsBoard() && 
+              res->EntityPath().GetEntryType(0) != SAHPI_ENT_SYSTEM_BOARD) 
+              continue;
+
+          /* Do an IPMI GetWatchdogTimer command to verify this feature. */
+          msg.m_data_len = 0;
+          SaErrorT rv = res->SendCommand( msg, rsp );
+          if (rv != 0 ||  rsp.m_data[0] != 0) {
+              stdlog << "CreateWatchdogs: IPMI error " << rv << " ccode " <<
+                         rsp.m_data[0] << "\n";
+              continue;
+          }
+
+          /* Everything is valid, create the Watchdog RDR */
+          stdlog << "CreateWatchdogs Resource type " << res->EntityPath().GetEntryType(0) << " instance " << res->EntityPath().GetEntryInstance(0) << "\n";
+        
+          cIpmiRdr *wd = new cIpmiWatchdog::cIpmiWatchdog( mc, SAHPI_DEFAULT_WATCHDOG_NUM, 0 );
+        
+          wd->EntityPath() = res->EntityPath();
+        
+          wd->IdString().SetAscii( "Watchdog", SAHPI_TL_TYPE_TEXT, SAHPI_LANG_ENGLISH );
+        
+          res->AddRdr( wd );
+      }
+  }
 
   return true;
 }
@@ -903,7 +978,6 @@ cIpmiMcVendor::CreateControlAtcaFan( cIpmiDomain *domain, cIpmiResource *res,
   return true;
 }
 
-
 bool
 cIpmiMcVendor::CreateInvs( cIpmiDomain *domain, cIpmiMc *source_mc, cIpmiSdrs *sdrs )
 {
@@ -932,16 +1006,21 @@ cIpmiMcVendor::CreateInv( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdr *sdr, cIpmi
 {
   unsigned int fru_id;
   unsigned int lun;
+  unsigned int sa = mc->GetAddress();
+  SaHpiEntityTypeT     type;
 
   if ( sdr->m_type == eSdrTypeMcDeviceLocatorRecord )
      {
        fru_id = 0;
        lun    = 0;
+       sa     = sdr->m_data[5];
+       type   = (SaHpiEntityTypeT)sdr->m_data[12];
      }
   else
      {
        fru_id = sdr->m_data[6];
        lun    = (sdr->m_data[7] >> 3) & 3;
+       type     = SAHPI_ENT_UNKNOWN;
      }
 
   cIpmiMc *m = mc;
@@ -963,6 +1042,7 @@ cIpmiMcVendor::CreateInv( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdr *sdr, cIpmi
        inv->Oem() = sdr->m_data[14];
 
        inv->Resource() = res;
+       ProcessFru(inv, m, sa, type); 
        need_add = true;
      }
 

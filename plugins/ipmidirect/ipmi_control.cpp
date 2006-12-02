@@ -42,34 +42,8 @@ cIpmiControl::CreateRdr( SaHpiRptEntryT &resource, SaHpiRdrT &rdr )
   if ( cIpmiRdr::CreateRdr( resource, rdr ) == false )
        return false;
 
-  if (    !(resource.ResourceCapabilities & SAHPI_CAPABILITY_RDR)
-       || !(resource.ResourceCapabilities & SAHPI_CAPABILITY_CONTROL ) )
-     {
-       // update resource
-       resource.ResourceCapabilities |= SAHPI_CAPABILITY_RDR|SAHPI_CAPABILITY_CONTROL;
-
-       struct oh_event *e = (struct oh_event *)g_malloc0( sizeof( struct oh_event ) );
-
-       if (resource.ResourceCapabilities & SAHPI_CAPABILITY_FRU)
-       {
-           e->event.EventType = SAHPI_ET_RESOURCE;
-           e->event.EventDataUnion.ResourceEvent.ResourceEventType = SAHPI_RESE_RESOURCE_ADDED;
-           stdlog << "cIpmiControl::CreateRdr SAHPI_ET_RESOURCE Event resource " << resource.ResourceId << "\n";
-       }
-       else
-       {
-           e->event.EventType = SAHPI_ET_HOTSWAP;
-	   e->event.EventDataUnion.HotSwapEvent.HotSwapState = SAHPI_HS_STATE_ACTIVE;
-	   e->event.EventDataUnion.HotSwapEvent.PreviousHotSwapState = SAHPI_HS_STATE_ACTIVE;
-           stdlog << "cIpmiControl::CreateRdr SAHPI_ET_HOTSWAP Event resource " << resource.ResourceId << "\n";
-       }
-       e->resource = resource;
-       e->event.Source = resource.ResourceId;
-       oh_gettimeofday(&e->event.Timestamp);
-       e->event.Severity = resource.ResourceSeverity;
-
-       m_mc->Domain()->AddHpiEvent( e );       
-     }
+  // update resource
+  resource.ResourceCapabilities |= SAHPI_CAPABILITY_RDR|SAHPI_CAPABILITY_CONTROL;
 
   // control record
   SaHpiCtrlRecT &rec = rdr.RdrTypeUnion.CtrlRec;
