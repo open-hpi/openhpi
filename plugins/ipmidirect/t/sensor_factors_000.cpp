@@ -96,7 +96,7 @@ main( int /*argc*/, char * /*argv*/[] )
        unsigned int r;
 
        Test( s->ConvertFromRaw( i, d, false ) );
-       Test( s->ConvertToRaw( cIpmiSensorFactors::eRoundNormal, d, r, false ) );
+       Test( s->ConvertToRaw( cIpmiSensorFactors::eRoundNormal, d, r, false, false ) );
        Test( r == i );
      }
 
