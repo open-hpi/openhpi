@@ -45,9 +45,9 @@ public:
   // create an RDR sensor record
   bool CreateRdr( SaHpiRptEntryT &resource, SaHpiRdrT &rdr );
 
-  SaErrorT cIpmiWatchdog::GetWatchdogInfo( SaHpiWatchdogT &watchdog);
-  SaErrorT cIpmiWatchdog::SetWatchdogInfo( SaHpiWatchdogT &watchdog);
-  SaErrorT cIpmiWatchdog::ResetWatchdog();
+  SaErrorT GetWatchdogInfo( SaHpiWatchdogT &watchdog);
+  SaErrorT SetWatchdogInfo( SaHpiWatchdogT &watchdog);
+  SaErrorT ResetWatchdog();
 };
 
 
