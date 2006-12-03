@@ -1,3 +1,4 @@
+
 /* -*- linux-c -*-
  * 
  * (C) Copyright IBM Corp. 2004, 2005
@@ -31,9 +32,16 @@ int main(int argc, char **argv)
 	SaErrorT          err;
 	SaErrorT expected_err;
 	SaHpiTextBufferT tag;
-        SaHpiRptEntryT rptentry;	
-        SaHpiSessionIdT sessionid;
-	 
+        SaHpiRptEntryT rptentry;
+
+//	DECLARE_HANDLE();		
+        SaHpiSessionIdT sessionid;			
+        SaHpiDomainIdT did;
+        struct oh_handler *h = NULL;
+        struct oh_domain *d = NULL;
+        unsigned int *hid = NULL;
+	struct oh_handler_state *handle;	
+	 	 
 	/* ************************	 	 
 	 * Find a resource with Control type rdr
 	 * ***********************/
@@ -52,19 +60,17 @@ int main(int argc, char **argv)
 	}
 
 	id = rptentry.ResourceId;
+	INIT_HANDLE(did, d, hid, h, handle);
+		
 	oh_init_textbuffer(&tag);
 	
-#if 0	
-	struct oh_handler_state handle;
-	memset(&handle, 0, sizeof(struct oh_handler_state));
-
 
 	/************************** 
 	 * Test 1: Invalid Tag 
 	 **************************/
 	tag.Language = SAHPI_LANG_NONSENSE;
 	expected_err = SA_ERR_HPI_INVALID_PARAMS;
-	err = snmp_bc_set_resource_tag(&handle, id, &tag);
+	err = snmp_bc_set_resource_tag(handle, id, &tag);
 	checkstatus(err, expected_err, testfail);
 	
 	/************************** 
@@ -73,9 +79,8 @@ int main(int argc, char **argv)
 	oh_init_textbuffer(&tag);
 	expected_err = SA_ERR_HPI_INVALID_RESOURCE;
 
-	err = snmp_bc_set_resource_tag(&handle, 5000, &tag);
+	err = snmp_bc_set_resource_tag(handle, 5000, &tag);
 	checkstatus(err, expected_err, testfail);
-#endif	
 
 	/************************** 
 	 * Test 3: Valid case
@@ -95,3 +100,4 @@ int main(int argc, char **argv)
 }
 
 #include <tsetup.c>
+
