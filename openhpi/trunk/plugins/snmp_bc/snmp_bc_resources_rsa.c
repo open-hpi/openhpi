@@ -45,8 +45,6 @@ struct snmp_rpt snmp_bc_rpt_array_rsa[] = {
                 },
 		.res_info = {
                         .mib = {
-                                .OidHealth = ".1.3.6.1.4.1.2.3.51.1.2.7.1.0",
-                                .HealthyValue = 255,
                                 .OidReset = '\0',
                                 .OidPowerState = '\0',
                                 .OidPowerOnOff = '\0',
@@ -82,8 +80,6 @@ struct snmp_rpt snmp_bc_rpt_array_rsa[] = {
                  },
 		.res_info = {
                         .mib = {
-                                .OidHealth = '\0',
-                                .HealthyValue = 0,
                                 .OidReset = '\0',
                                 .OidPowerState = '\0',
                                 .OidPowerOnOff = '\0',
@@ -119,8 +115,6 @@ struct snmp_rpt snmp_bc_rpt_array_rsa[] = {
                 },
 		.res_info = {
                         .mib = {
-                                .OidHealth = '\0',
-                                .HealthyValue = 0,
                                 .OidReset = '\0',
                                 .OidPowerState = '\0',
                                 .OidPowerOnOff = '\0',
@@ -156,8 +150,6 @@ struct snmp_rpt snmp_bc_rpt_array_rsa[] = {
                 },
 		.res_info = {
 			.mib = {
-				.OidHealth = '\0',
-				.HealthyValue = 0,
 				.OidReset = '\0',
 				.OidPowerState = '\0',
 				.OidPowerOnOff = '\0',
@@ -1999,3 +1991,4 @@ struct snmp_bc_inventory snmp_bc_fan_inventories_rsa[] = {
 
         {} /* Terminate array with a null element */
 };
+
