@@ -45,10 +45,12 @@ SNMPUTILSDIR = $(top_srcdir)/$(SNMPDIR)
 INCLUDES = \
 		@OPENHPI_INCLUDES@ \
 		-I$(top_srcdir)/snmp \
+		-I$(top_srcdir)/include \
 		-I$(SNMPUTILSDIR) \
                 -I$(top_srcdir)/plugins/snmp_bc
 
 AM_CFLAGS = @NOCFLAGS@ @SNMPFLAGS@ @COV_CFLAGS@
+# AM_CFLAGS = @CFLAGS@ -I$(top_srcdir)/include @SNMPFLAGS@ @COV_CFLAGS@
 
 EXTRA_DIST = sim_resources.h openhpi.conf tsetup.h sim_test_file
 
@@ -68,8 +70,11 @@ libsnmp_bc_la_SOURCES = \
 		snmp_utils.c \
 		tsetup.c
 
-libsnmp_bc_la_LIBADD = -luuid @SNMPLIBS@
-libsnmp_bc_la_LDFLAGS = -module -version-info @HPI_LIB_VERSION@
+# libopenhpi_la_LIBADD    = @STATIC_PLUGIN_LIBS@ @STATIC_PLUGIN_EXTRA_LIBS@ $(top_builddir)/utils/libopenhpiutils.la
+# libopenhpi_la_LDFLAGS   = -L$(top_builddir)/utils -version-info @HPI_LIB_VERSION@ -export-symbols $(top_srcdir)/src/hpi.sym
+
+libsnmp_bc_la_LIBADD = -luuid @SNMPLIBS@ $(top_builddir)/utils/libopenhpiutils.la
+libsnmp_bc_la_LDFLAGS = -L$(top_builddir)/utils -module -version-info @HPI_LIB_VERSION@
 # libsnmp_bc_la_LDFLAGS = -version 0:0:0
 
 libsnmp_bc.la: $(libsnmp_bc_la_OBJECTS) $(libsnmp_bc_la_DEPENDENCIES)
@@ -597,3 +602,4 @@ tcontrolfailover_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
 #tsnmp_bc_get_guid_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
 #		 $(top_builddir)/src/libopenhpi.la \
 #		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la
+
