@@ -29,15 +29,19 @@ int main(int argc, char **argv)
 	SaErrorT          err;
 	SaErrorT expected_err;
 	SaHpiSeverityT sev;
-        SaHpiSessionIdT sessionid;
         SaHpiRptEntryT rptentry;
+	 
+//	DECLARE_HANDLE();		
+        SaHpiSessionIdT sessionid;			
+        SaHpiDomainIdT did;
+        struct oh_handler *h = NULL;
+        struct oh_domain *d = NULL;
+        unsigned int *hid = NULL;
+	struct oh_handler_state *handle;	
 	 
 	/* ************************	 	 
 	 * Find a resource with Control type rdr
-	 * ***********************/
-	struct oh_handler_state handle;
-	memset(&handle, 0, sizeof(struct oh_handler_state));
-		
+	 * ***********************/		
 	err = tsetup(&sessionid);
 	if (err != SA_OK) {
 		printf("Error! Can not open session for test environment\n");
@@ -53,13 +57,14 @@ int main(int argc, char **argv)
 	}
 
 	id = rptentry.ResourceId;
-#if 0
+	INIT_HANDLE(did, d, hid, h, handle);	
+
 	/************************** 
 	 * Test 1: Invalid severity 
 	 **************************/
 	sev = 0xFE;
 	expected_err = SA_ERR_HPI_INVALID_PARAMS;
-	err = snmp_bc_set_resource_severity(&handle, id, sev);
+	err = snmp_bc_set_resource_severity(handle, id, sev);
 	checkstatus(err, expected_err, testfail);
 	
 	/************************** 
@@ -68,9 +73,9 @@ int main(int argc, char **argv)
 	sev = SAHPI_INFORMATIONAL;
 	expected_err = SA_ERR_HPI_INVALID_RESOURCE;
 
-	err = snmp_bc_set_resource_severity(&handle, 5000, sev);
+	err = snmp_bc_set_resource_severity(handle, 5000, sev);
 	checkstatus(err, expected_err, testfail);
-#endif	
+	
 	/************************** 
 	 * Test 3: Valid case
 	 **************************/
@@ -90,3 +95,4 @@ int main(int argc, char **argv)
 }
 
 #include <tsetup.c>
+
