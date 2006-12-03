@@ -20,52 +20,6 @@
 /**************************************************************************
  *                        Resource Definitions
  **************************************************************************/
-
-/* BCT has different OID for System Health */
-struct snmp_rpt snmp_bc_rpt_array_bct[] = {
-        /* BladeCenter Chassis */
-        {
-                .rpt = {
-                        .ResourceInfo = {
-                                .ManufacturerId = IBM_MANUFACTURING_ID,
-                        },
-                        .ResourceEntity = {
-                                .Entry[0] =
-                                {
-                                        .EntityType = SAHPI_ENT_ROOT,
-                                        .EntityLocation = 0,
-                                }
-                        },
-                        .ResourceCapabilities = SAHPI_CAPABILITY_CONTROL |
-                                                SAHPI_CAPABILITY_INVENTORY_DATA |
-                                                SAHPI_CAPABILITY_RDR |
-                                                SAHPI_CAPABILITY_RESOURCE |
-                                                SAHPI_CAPABILITY_SENSOR,
-                        .ResourceSeverity = SAHPI_CRITICAL,
-			.ResourceFailed = SAHPI_FALSE,
-                },
-                .res_info = {
-                        .mib = {
-                                .OidHealth = ".1.3.6.1.4.1.2.3.51.2.2.9.1.0",
-                                .HealthyValue = 255,
-                                .OidReset = '\0',
-                                .OidPowerState = '\0',
-                                .OidPowerOnOff = '\0',
-				.OidUuid = ".1.3.6.1.4.1.2.3.51.2.2.21.1.1.4.0",
-				.OidResourceWidth = '\0',
-                        },
-			.cur_state = 0,
-			.prev_state = 0,
-                        .event_array = {
-                                {},
-                        },
-                },
-                .comment = "BladeCenter Chassis",
-        },
-
-        {} /* Terminate array with a null element */	
-};
-
 struct snmp_rpt snmp_bc_rpt_array[] = {
         /* BladeCenter Chassis */
         {
@@ -90,11 +44,10 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                 },
                 .res_info = {
                         .mib = {
-                                .OidHealth = ".1.3.6.1.4.1.2.3.51.2.2.7.1.0",
-                                .HealthyValue = 255,
                                 .OidReset = '\0',
                                 .OidPowerState = '\0',
                                 .OidPowerOnOff = '\0',
+				/* bladeCenterUUID */
 				.OidUuid = ".1.3.6.1.4.1.2.3.51.2.2.21.1.1.4.0",
 				.OidResourceWidth = '\0',
                         },
@@ -134,8 +87,6 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                 },
                 .res_info = {
                         .mib = {
-                                .OidHealth = '\0',
-                                .HealthyValue = 0,
                                 .OidReset = '\0',
                                 .OidPowerState = '\0',
                                 .OidPowerOnOff = '\0',
@@ -183,11 +134,11 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                 },
                 .res_info = {
                         .mib = {
-                                .OidHealth = '\0',
-                                .HealthyValue = 0,
+				/* restartSPImmediately */
                                 .OidReset = ".1.3.6.1.4.1.2.3.51.2.7.4.0",
                                 .OidPowerState = '\0',
                                 .OidPowerOnOff = '\0',
+				/* mmHardwareVpdUuid */ 
 				.OidUuid = ".1.3.6.1.4.1.2.3.51.2.2.21.2.1.1.6.x",
 				.OidResourceWidth = '\0',
                         },
@@ -226,11 +177,11 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                         .ResourceEntity = {
                                 .Entry[0] =
                                 {
-                                        .EntityType = SAHPI_ENT_INTERCONNECT,
+                                        .EntityType = SAHPI_ENT_SWITCH,
                                         .EntityLocation = SNMP_BC_HPI_LOCATION_BASE,
                                 },
                                 {
-                                        .EntityType = BLADECENTER_INTERCONNECT_SLOT,
+                                        .EntityType = BLADECENTER_SWITCH_SLOT,
                                         .EntityLocation = SNMP_BC_HPI_LOCATION_BASE,
                                 },
                                 {
@@ -252,16 +203,13 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                 },
                 .res_info = {
                         .mib = {
-				
-				/*				
-                                .OidPowerState = ".1.3.6.1.4.1.2.3.51.2.22.3.1.1.1.7.x",
-                                .OidPowerOnOff = ".1.3.6.1.4.1.2.3.51.2.22.3.1.1.1.7.x",
-				 */			
-                                .OidHealth = '\0',
-                                .HealthyValue = 0,
+				/* smReset */
                                 .OidReset = ".1.3.6.1.4.1.2.3.51.2.22.3.1.7.1.8.x",
-                                .OidPowerState = ".1.3.6.1.4.1.2.3.51.2.22.3.2.1.1.1.1.4.x", /* smCurrentIPInfoPowerState */
-                                .OidPowerOnOff = ".1.3.6.1.4.1.2.3.51.2.22.3.1.7.1.7.x",     /* switchModulePowerOnOff */
+				/* smCurrentIPInfoPowerState */
+                                .OidPowerState = ".1.3.6.1.4.1.2.3.51.2.22.3.2.1.1.1.1.4.x",
+				/* switchModulePowerOnOff */
+                                .OidPowerOnOff = ".1.3.6.1.4.1.2.3.51.2.22.3.1.7.1.7.x",
+				/* smHardwareVpdUuid */ 
 				.OidUuid = ".1.3.6.1.4.1.2.3.51.2.2.21.6.1.1.8.x",
 				.OidResourceWidth = '\0',
                         },
@@ -345,12 +293,15 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                 },
                 .res_info = {
                         .mib = {
-                                .OidHealth = ".1.3.6.1.4.1.2.3.51.2.22.1.5.1.1.5.x",
-                                .HealthyValue = 1,
+				/* restartBlade */
                                 .OidReset = ".1.3.6.1.4.1.2.3.51.2.22.1.6.1.1.8.x",
+				/* powerRestartBladePowerState */
                                 .OidPowerState = ".1.3.6.1.4.1.2.3.51.2.22.1.6.1.1.4.x",
+				/* powerOnOffBlade */
                                 .OidPowerOnOff = ".1.3.6.1.4.1.2.3.51.2.22.1.6.1.1.7.x",
+				/* bladeHardwareVpdUuid */
 				.OidUuid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.8.x",
+				/* bladeWidth */
 				.OidResourceWidth = ".1.3.6.1.4.1.2.3.51.2.22.1.5.1.1.15.x",
                         },
   			.cur_state = SAHPI_HS_STATE_NOT_PRESENT,
@@ -414,6 +365,7 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                         },
                 },
                 .comment = "Blade",
+		/* ledBladeName */
 		.OidResourceTag = ".1.3.6.1.4.1.2.3.51.2.2.8.2.1.1.6.x"
         },
         /* Blade Expansion Module (BEM) */
@@ -451,12 +403,11 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                 },
                 .res_info = {
                         .mib = {
-                                .OidHealth = '\0',
-                                .HealthyValue = 0,
                                 .OidReset = '\0',
                                 .OidPowerState = '\0',
                                 .OidPowerOnOff = '\0',
-				.OidUuid = '\0',
+				/* bladeExpBoardVpdUuid */
+				.OidUuid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.3.1.8.x",
 				.OidResourceWidth = '\0',
                         },
   			.cur_state = 0,
@@ -498,11 +449,10 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                 },
                 .res_info = {
                         .mib = {
-                                .OidHealth = '\0',
-                                .HealthyValue = 0,
                                 .OidReset = '\0',
                                 .OidPowerState = '\0',
                                 .OidPowerOnOff = '\0',
+				/* mtHardwareVpdUuid */
 				.OidUuid = ".1.3.6.1.4.1.2.3.51.2.2.21.9.8.0",
 				.OidResourceWidth = '\0',
                         },
@@ -523,7 +473,7 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                 },
                 .comment = "Media Tray",
         },
-        /* Media Tray 2*/
+        /* Media Tray 2 */
         {
                 .rpt = {
                         .ResourceInfo = {
@@ -554,11 +504,10 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                 },
                 .res_info = {
                         .mib = {
-                                .OidHealth = '\0',
-                                .HealthyValue = 0,
                                 .OidReset = '\0',
                                 .OidPowerState = '\0',
                                 .OidPowerOnOff = '\0',
+				/* mt2HardwareVpdUuid */
 				.OidUuid = ".1.3.6.1.4.1.2.3.51.2.2.21.10.8.0",
 				.OidResourceWidth = '\0',
                         },
@@ -578,7 +527,7 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                         },
                 },
                 .comment = "Media Tray 2",
-        },	
+        },
         /* Blower Module */
         {
                 .rpt = {
@@ -609,12 +558,11 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                  },
                 .res_info = {
                         .mib = {
-                                .OidHealth = '\0',
-                                .HealthyValue = 0,
                                 .OidReset = '\0',
                                 .OidPowerState = '\0',
                                 .OidPowerOnOff = '\0',
-				.OidUuid = '\0',
+				/* blowerHardwareVpdUuid */ 
+				.OidUuid = ".1.3.6.1.4.1.2.3.51.2.2.21.13.1.1.8.x",
 				.OidResourceWidth = '\0',
                         },
   			.cur_state = SAHPI_HS_STATE_NOT_PRESENT,
@@ -665,11 +613,10 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                  },
                 .res_info = {
                         .mib = {
-                                .OidHealth = '\0',
-                                .HealthyValue = 0,
                                 .OidReset = '\0',
                                 .OidPowerState = '\0',
                                 .OidPowerOnOff = '\0',
+				/* pmHardwareVpdUuid */
 				.OidUuid = ".1.3.6.1.4.1.2.3.51.2.2.21.8.1.1.8.x",
 				.OidResourceWidth = '\0',
                         },
@@ -726,8 +673,6 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                  },
                 .res_info = {
                         .mib = {
-                                .OidHealth = '\0',
-                                .HealthyValue = 0,
                                 .OidReset = '\0',
                                 .OidPowerState = '\0',
                                 .OidPowerOnOff = '\0',
@@ -742,7 +687,6 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                 },
                 .comment = "Slot",
         },
-
         /* BEM DASD */
         {
                 .rpt = {
@@ -781,8 +725,6 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                 },
                 .res_info = {
                         .mib = {
-                                .OidHealth = '\0',
-                                .HealthyValue = 0,
                                 .OidReset = '\0',
                                 .OidPowerState = '\0',
                                 .OidPowerOnOff = '\0',
@@ -806,6 +748,286 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                         },
                 },
                 .comment = "BEM DASD",
+        },
+        /* Alarm Panel */
+        {
+                .rpt = {
+                        .ResourceInfo = {
+                                .ManufacturerId = IBM_MANUFACTURING_ID,
+                        },
+                        .ResourceEntity = {
+                                .Entry[0] =
+                                {
+                                        .EntityType = SAHPI_ENT_DISPLAY_PANEL,
+                                        .EntityLocation = SNMP_BC_HPI_LOCATION_BASE,
+                                },
+                                {
+                                        .EntityType = BLADECENTER_ALARM_PANEL_SLOT,
+                                        .EntityLocation = SNMP_BC_HPI_LOCATION_BASE,
+                                },
+                                {
+                                        .EntityType = SAHPI_ENT_ROOT,
+                                        .EntityLocation = 0,
+                                }
+                         },
+                        .ResourceCapabilities = SAHPI_CAPABILITY_FRU |
+                                                SAHPI_CAPABILITY_INVENTORY_DATA |
+                                                SAHPI_CAPABILITY_RDR |
+                                                SAHPI_CAPABILITY_RESOURCE |
+			                        SAHPI_CAPABILITY_SENSOR,
+                        .ResourceSeverity = SAHPI_MAJOR,
+			.ResourceFailed = SAHPI_FALSE,
+                },
+                .res_info = {
+                        .mib = {
+                                .OidReset = '\0',
+                                .OidPowerState = '\0',
+                                .OidPowerOnOff = '\0',
+				/* tapHardwareVpdUuid */
+				.OidUuid = ".1.3.6.1.4.1.2.3.51.2.2.21.15.8.0",
+				.OidResourceWidth = '\0',
+                        },
+  			.cur_state = SAHPI_HS_STATE_ACTIVE,
+			.prev_state = SAHPI_HS_STATE_ACTIVE,
+                        .event_array = {
+                                {
+					/* FIXME: */
+                                },
+                                {},
+                        },
+                },
+                .comment = "Alarm Panel",
+        },
+        /* Multiplexer Expansion Module */
+        {
+                .rpt = {
+                        .ResourceInfo = {
+                                .ManufacturerId = IBM_MANUFACTURING_ID,
+                        },
+                        .ResourceEntity = {
+                                .Entry[0] =
+                                {
+                                        .EntityType = SAHPI_ENT_OTHER_CHASSIS_BOARD,
+                                        .EntityLocation = SNMP_BC_HPI_LOCATION_BASE,
+                                },
+                                {
+                                        .EntityType = BLADECENTER_MUX_SLOT,
+                                        .EntityLocation = SNMP_BC_HPI_LOCATION_BASE,
+                                },
+                                {
+                                        .EntityType = SAHPI_ENT_ROOT,
+                                        .EntityLocation = 0,
+                                }
+                         },
+                        .ResourceCapabilities = SAHPI_CAPABILITY_FRU |
+                                                SAHPI_CAPABILITY_INVENTORY_DATA |
+                                                SAHPI_CAPABILITY_RDR |
+                                                SAHPI_CAPABILITY_RESOURCE |
+			                        SAHPI_CAPABILITY_SENSOR,
+                        .ResourceSeverity = SAHPI_MAJOR,
+			.ResourceFailed = SAHPI_FALSE,
+                },
+                .res_info = {
+                        .mib = {
+                                .OidReset = '\0',
+                                .OidPowerState = '\0',
+                                .OidPowerOnOff = '\0',
+				/* mxHardwareVpdUuid */
+				.OidUuid = ".1.3.6.1.4.1.2.3.51.2.2.21.17.1.1.8.x",
+				.OidResourceWidth = '\0',
+                        },
+  			.cur_state = SAHPI_HS_STATE_ACTIVE,
+			.prev_state = SAHPI_HS_STATE_ACTIVE,
+                        .event_array = {
+                                {
+					/* FIXME:: */	
+                                },
+                                {},
+                        },
+                },
+                .comment = "Multiplexer Expansion Module",
+        },
+        /* Network Clock Module */
+        {
+                .rpt = {
+                        .ResourceInfo = {
+                                .ManufacturerId = IBM_MANUFACTURING_ID,
+                        },
+                        .ResourceEntity = {
+                                .Entry[0] =
+                                {
+					/* FIXME:: SAHPI_ENT_CLOCK */
+                                        .EntityType = SAHPI_ENT_BATTERY + 13, 
+                                        .EntityLocation = SNMP_BC_HPI_LOCATION_BASE,
+                                },
+                                {
+                                        .EntityType = BLADECENTER_CLOCK_SLOT,
+                                        .EntityLocation = SNMP_BC_HPI_LOCATION_BASE,
+                                },
+                                {
+                                        .EntityType = SAHPI_ENT_ROOT,
+                                        .EntityLocation = 0,
+                                }
+                         },
+                        .ResourceCapabilities = SAHPI_CAPABILITY_FRU |
+                                                SAHPI_CAPABILITY_INVENTORY_DATA |
+                                                SAHPI_CAPABILITY_RDR |
+                                                SAHPI_CAPABILITY_RESOURCE |
+			                        SAHPI_CAPABILITY_SENSOR,
+                        .ResourceSeverity = SAHPI_MAJOR,
+			.ResourceFailed = SAHPI_FALSE,
+                },
+                .res_info = {
+                        .mib = {
+                                .OidReset = '\0',
+                                .OidPowerState = '\0',
+                                .OidPowerOnOff = '\0',
+				/* ncHardwareVpdUuid */
+				.OidUuid = ".1.3.6.1.4.1.2.3.51.2.2.21.16.1.1.8.x",
+				.OidResourceWidth = '\0',
+                        },
+  			.cur_state = SAHPI_HS_STATE_ACTIVE,
+			.prev_state = SAHPI_HS_STATE_ACTIVE,
+                        .event_array = {
+                                {
+					/* FIXME:: */
+                                },
+                                {},
+                        },
+                },
+                .comment = "Network Clock Module",
+        },
+        /* Air Filter */
+        {
+                .rpt = {
+                        .ResourceInfo = {
+                                .ManufacturerId = IBM_MANUFACTURING_ID,
+                        },
+                        .ResourceEntity = {
+                                .Entry[0] =
+                                {
+					/* FIXME:: SAHPI_ENT_FILTRATION_UNIT */
+                                        .EntityType = SAHPI_ENT_PHYSICAL_SLOT + 16,
+                                        .EntityLocation = SNMP_BC_HPI_LOCATION_BASE,
+                                },
+                                {
+                                        .EntityType = SAHPI_ENT_ROOT,
+                                        .EntityLocation = 0,
+                                }
+                         },
+                        .ResourceCapabilities = SAHPI_CAPABILITY_FRU |
+			                        SAHPI_CAPABILITY_RDR |
+			                        SAHPI_CAPABILITY_RESOURCE |
+			                        SAHPI_CAPABILITY_SENSOR,
+                        .ResourceSeverity = SAHPI_MAJOR,
+			.ResourceFailed = SAHPI_FALSE,
+                },
+                .res_info = {
+                        .mib = {
+                                .OidReset = '\0',
+                                .OidPowerState = '\0',
+                                .OidPowerOnOff = '\0',
+				.OidUuid = '\0',
+				.OidResourceWidth = '\0',
+                        },
+  			.cur_state = SAHPI_HS_STATE_ACTIVE,
+			.prev_state = SAHPI_HS_STATE_ACTIVE,
+                        .event_array = {
+                                {
+					/* FIXME:: */
+                                },
+                                {},
+                        },
+                },
+                .comment = "Air Filter",
+        },
+        /* Switch Interposer */
+        {
+                .rpt = {
+                        .ResourceInfo = {
+                                .ManufacturerId = IBM_MANUFACTURING_ID,
+                        },
+                        .ResourceEntity = {
+                                .Entry[0] =
+                                {
+                                        .EntityType = SAHPI_ENT_INTERCONNECT,
+                                        .EntityLocation = SNMP_BC_HPI_LOCATION_BASE,
+                                },
+                                {
+                                        .EntityType = BLADECENTER_SWITCH_SLOT,
+                                        .EntityLocation = SNMP_BC_HPI_LOCATION_BASE,
+                                },
+                                {
+                                        .EntityType = SAHPI_ENT_ROOT,
+                                        .EntityLocation = 0,
+                                }
+                         },
+                        .ResourceCapabilities = SAHPI_CAPABILITY_INVENTORY_DATA |
+                                                SAHPI_CAPABILITY_RDR |
+                                                SAHPI_CAPABILITY_RESOURCE,
+                        .ResourceSeverity = SAHPI_MAJOR,
+			.ResourceFailed = SAHPI_FALSE,
+                },
+                .res_info = {
+                        .mib = {
+                                .OidReset = '\0',
+                                .OidPowerState = '\0',
+                                .OidPowerOnOff = '\0',
+				/* smInpHardwareVpdUuid */
+				.OidUuid = ".1.3.6.1.4.1.2.3.51.2.2.21.6.2.1.8.x",
+				.OidResourceWidth = '\0',
+                        },
+  			.cur_state = SAHPI_HS_STATE_ACTIVE,
+			.prev_state = SAHPI_HS_STATE_ACTIVE,
+                        .event_array = {
+                                {},
+                        },
+                },
+                .comment = "Switch Interposer",
+        },
+        /* Management Module Interposer */
+        {
+                .rpt = {
+                        .ResourceInfo = {
+                                .ManufacturerId = IBM_MANUFACTURING_ID,
+                        },
+                        .ResourceEntity = {
+                                .Entry[0] =
+                                {
+                                        .EntityType = SAHPI_ENT_INTERCONNECT,
+                                        .EntityLocation = SNMP_BC_HPI_LOCATION_BASE,
+                                },
+                                {
+                                        .EntityType = BLADECENTER_SYS_MGMNT_MODULE_SLOT,
+                                        .EntityLocation = SNMP_BC_HPI_LOCATION_BASE,
+                                },
+                                {
+                                        .EntityType = SAHPI_ENT_ROOT,
+                                        .EntityLocation = 0,
+                                }
+                         },
+                        .ResourceCapabilities = SAHPI_CAPABILITY_INVENTORY_DATA |
+                                                SAHPI_CAPABILITY_RDR |
+                                                SAHPI_CAPABILITY_RESOURCE,
+                        .ResourceSeverity = SAHPI_MAJOR,
+			.ResourceFailed = SAHPI_FALSE,
+                },
+                .res_info = {
+                        .mib = {
+                                .OidReset = '\0',
+                                .OidPowerState = '\0',
+                                .OidPowerOnOff = '\0',
+				/* mmInpHardwareVpdUuid */
+				.OidUuid = ".1.3.6.1.4.1.2.3.51.2.2.21.2.2.1.6.x",
+				.OidResourceWidth = '\0',
+                        },
+  			.cur_state = SAHPI_HS_STATE_ACTIVE,
+			.prev_state = SAHPI_HS_STATE_ACTIVE,
+                        .event_array = {
+                                {},
+                        },
+                },
+                .comment = "Management Module Interposer",
         },
 
         {} /* Terminate array with a null element */
@@ -881,6 +1103,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
+				/* frontPanelTemp */
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.1.5.1.0",
 				.loc_offset = 0,
                         },
@@ -1163,7 +1386,8 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
-                                .oid = ".1.3.6.1.4.1.2.3.51.2.2.10.2.1.1.8.1", 
+				/* pd1ModuleAllocatedPowerMax */
+                                .oid = ".1.3.6.1.4.1.2.3.51.2.2.10.2.1.1.8.1",
                                 .threshold_oids = {},
 				.threshold_write_oids = {},
                         },
@@ -1210,6 +1434,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
+				/* pd1ModuleAllocatedPowerCurrent */
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.10.2.1.1.7.1",
                                 .threshold_oids = {},			
 				.threshold_write_oids = {},
@@ -1257,6 +1482,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
+				/* pd1ModuleAllocatedPowerMin */
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.10.2.1.1.9.1",
                                 .threshold_oids = {},
 				.threshold_write_oids = {},
@@ -1405,6 +1631,7 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
+				/* mmTemp */
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.1.1.2.0",
 				.loc_offset = 0,
                         },
@@ -1521,12 +1748,17 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
+				/* plus1Pt8Volt */
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.8.0",
 				.loc_offset = 0,
                                 .threshold_oids = {
+					/* voltageThresholdEntryWarningLowValue */
 					.LowCritical = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.6",
+					/* voltageThresholdEntryWarningHighValue */
 					.UpCritical  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.6",
+					/* voltageThresholdEntryWarningResetHighValue */
 					.TotalPosThdHysteresis = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.7.6",
+					/* voltageThresholdEntryWarningResetLowValue */
 					.TotalNegThdHysteresis = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.11.6",
                                 },
 				.threshold_write_oids = {},
@@ -1614,12 +1846,17 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
+				/* plus2Pt5Volt */
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.6.0",
  				.loc_offset = 0,
 				.threshold_oids = {
+					/* voltageThresholdEntryWarningLowValue */
 					.LowCritical = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.5",
+					/* voltageThresholdEntryWarningHighValue */
 					.UpCritical  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.5",
+					/* voltageThresholdEntryWarningResetHighValue */
 					.TotalPosThdHysteresis  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.7.5",
+					/* voltageThresholdEntryWarningResetLowValue */
 					.TotalNegThdHysteresis = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.11.5",
                                 },
 				.threshold_write_oids = {},
@@ -1707,12 +1944,17 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
+                                /* plus3Pt3Volt */
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.2.0",
 				.loc_offset = 0,
                                 .threshold_oids = {
+					/* voltageThresholdEntryWarningLowValue */
 					.LowCritical = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.2",
+					/* voltageThresholdEntryWarningHighValue */
 					.UpCritical  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.2",
+					/* voltageThresholdEntryWarningResetHighValue */
 					.TotalPosThdHysteresis  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.7.2",
+					/* voltageThresholdEntryWarningResetLowValue */
 					.TotalNegThdHysteresis = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.11.2",
                                 },
 				.threshold_write_oids = {},
@@ -1800,12 +2042,17 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
+				/* plus5Volt */
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.1.0",
  				.loc_offset = 0,
 				.threshold_oids = {
+					/* voltageThresholdEntryWarningLowValue */
 					.LowCritical = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.1",
+					/* voltageThresholdEntryWarningHighValue */
 					.UpCritical  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.1",
+					/* voltageThresholdEntryWarningResetHighValue */
 					.TotalPosThdHysteresis  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.7.1",
+					/* voltageThresholdEntryWarningResetLowValue */
 					.TotalNegThdHysteresis = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.11.1",
                                 },
 				.threshold_write_oids = {},
@@ -1893,12 +2140,17 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
+				/*  minus5Volt  */
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.5.0",
 				.loc_offset = 0,
                                 .threshold_oids = {
+					/* voltageThresholdEntryWarningLowValue */
 					.LowCritical = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.4",
+					/* voltageThresholdEntryWarningHighValue */
 					.UpCritical  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.4",
+					/* voltageThresholdEntryWarningResetHighValue */
 					.TotalPosThdHysteresis  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.7.4",
+					/* voltageThresholdEntryWarningResetLowValue */
 					.TotalNegThdHysteresis = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.11.4",
                                 },
 				.threshold_write_oids = {},
@@ -1986,12 +2238,17 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
+				/* plus12Volt */
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.3.0",
 				.loc_offset = 0,
                                 .threshold_oids = {
+					/* voltageThresholdEntryWarningLowValue */
 					.LowCritical = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.3",
+					/* voltageThresholdEntryWarningHighValue */
 					.UpCritical  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.3",
+					/* voltageThresholdEntryWarningResetHighValue */
 					.TotalPosThdHysteresis  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.7.3",
+					/* voltageThresholdEntryWarningResetLowValue */
 					.TotalNegThdHysteresis = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.11.3",
                                 },
 				.threshold_write_oids = {},
@@ -2410,6 +2667,7 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
+				/* chassisActiveMM */
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.4.34.0",
 				.loc_offset = 0,
                         },
@@ -2456,6 +2714,7 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
+				/* chassisActiveMM */
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.4.34.0",
 				.loc_offset = 0,
                         },
@@ -2500,6 +2759,7 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
+				/* pd1ModuleAllocatedPowerMax */
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.10.2.1.1.8.1", 
                                 .threshold_oids = {},
 				.threshold_write_oids = {},
@@ -2549,6 +2809,7 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
+				/* pd1ModuleAllocatedPowerCurrent */
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.10.2.1.1.7.1",
                                 .threshold_oids = {},			
 				.threshold_write_oids = {},
@@ -2596,7 +2857,8 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
-                                .oid = ".1.3.6.1.4.1.2.3.51.2.2.10.2.1.1.9.1",
+ 				/* pd1ModuleAllocatedPowerMin */
+				.oid = ".1.3.6.1.4.1.2.3.51.2.2.10.2.1.1.9.1",
                                 .threshold_oids = {},
 				.threshold_write_oids = {},
                         },
@@ -2940,7 +3202,7 @@ struct snmp_bc_sensor snmp_bc_mgmnt_sensors[] = {
 };
 
 struct snmp_bc_sensor snmp_bc_mgmnt_health_sensors[] = {
-        /* MM Operational Status Sensor */
+        /* MM Operational Status Sensor for platforms supporting MM Health OID */
         {
 		.index = 1,
                 .sensor = {
@@ -2985,6 +3247,7 @@ struct snmp_bc_sensor snmp_bc_mgmnt_health_sensors[] = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
+				/* mmHealthState */
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.5.1.1.5.x",
 				.loc_offset = 0,
                         },
@@ -3389,10 +3652,13 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
+				/* temperatureCPU1 */
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.6.x",
 				.loc_offset = 0,
                                 .threshold_oids = {
+					/* temperatureCPU1HardShutdown */
 					.UpCritical = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.6.x",
+					/* temperatureCPU1Warning */
 					.UpMajor    = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.7.x",
                                 },
 				.threshold_write_oids = {},
@@ -3488,10 +3754,13 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
+				/* temperatureCPU2 */
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.7.x",
 				.loc_offset = 0,
                                 .threshold_oids = {
+					/* temperatureCPU2HardShutdown */
 					.UpCritical = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.9.x",
+					/* temperatureCPU2Warning */
 					.UpMajor    = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.10.x",
                                 },
 				.threshold_write_oids = {},
@@ -3587,10 +3856,13 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
+				/* temperatureCPU3 */
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.8.x",
 				.loc_offset = 0,
                                 .threshold_oids = {
+					/* temperatureCPU3HardShutdown */
 					.UpCritical = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.12.x",
+					/* temperatureCPU3Warning */
 					.UpMajor    = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.13.x",
                                 },
 				.threshold_write_oids = {},
@@ -3686,10 +3958,13 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
+				/* temperatureCPU4 */
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.9.x",
 				.loc_offset = 0,
                                 .threshold_oids = {
+					/* temperatureCPU4HardShutdown */
 					.UpCritical = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.15.x",
+					/* temperatureCPU4Warning */
 					.UpMajor    = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.16.x",
                                 },
 				.threshold_write_oids = {},
@@ -3792,10 +4067,13 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
+				/* bladePlus1pt25Volt */
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.12.x",
 				.loc_offset = 0,
                                 .threshold_oids = {
+					/* bladePlus1pt25VoltHighWarning */
 					.UpMajor  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.18.x",
+					/* bladePlus1pt25VoltLowWarning */
 					.LowMajor = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.19.x",
                                 },
 				.threshold_write_oids = {},
@@ -3882,10 +4160,13 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
+				/* bladePlus1pt5Volt */
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.11.x",
 				.loc_offset = 0,
                                 .threshold_oids = {
+					/* bladePlus1pt5VoltHighWarning */
 					.UpMajor  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.16.x",
+					/*bladePlus1pt5VoltLowWarning */ 
 					.LowMajor = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.17.x",
                                 },
 				.threshold_write_oids = {},
@@ -3988,10 +4269,13 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
+				/* bladePlus2pt5Volt */
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.10.x",
 				.loc_offset = 0,
                                 .threshold_oids = {
+					/* bladePlus2pt5VoltHighWarning */
 					.UpMajor  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.14.x",
+					/* bladePlus2pt5VoltLowWarning */
 					.LowMajor = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.15.x",
                                 },
 				.threshold_write_oids = {},
@@ -4094,10 +4378,13 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
+				/* bladePlus3pt3Volt */
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.7.x",
 				.loc_offset = 0,
                                 .threshold_oids = {
+					/* bladePlus3pt3VoltHighWarning */
 					.UpMajor  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.8.x",
+					/* bladePlus3pt3VoltLowWarning */
 					.LowMajor = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.9.x",
                                 },
 				.threshold_write_oids = {},
@@ -4200,10 +4487,13 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
+				/* bladePlus5Volt */
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.6.x",
 				.loc_offset = 0,
                                 .threshold_oids = {
+					/* bladePlus5VoltHighWarning */
 					.UpMajor  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.6.x",
+					/* bladePlus5VoltLowWarning */
 					.LowMajor = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.7.x",
                                 },
 				.threshold_write_oids = {},
@@ -4306,10 +4596,13 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
+				/* bladePlus12Volt */
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.8.x",
 				.loc_offset = 0,
                                 .threshold_oids = {
+					/* bladePlus12VoltHighWarning */
 					.UpMajor  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.10.x",
+					/*bladePlus12VoltLowWarning */
 					.LowMajor = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.11.x",
                                 },
 				.threshold_write_oids = {},
@@ -4405,6 +4698,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
+				/* bladeVRM1Volt */
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.13.x",
 				.loc_offset = 0,
                         },
@@ -4498,6 +4792,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
+                                /* bladeHealthState */
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.1.1.5.x",
 				.loc_offset = 0,
                         },
@@ -9763,7 +10058,6 @@ struct snmp_bc_sensor snmp_bc_mediatray_sensors[] = {
         {} /* Terminate array with a null element */
 };
 
-
 struct snmp_bc_sensor snmp_bc_mediatray2_sensors[] = {
         /* Media Tray Operational Status Sensor - event only */
 
@@ -9818,6 +10112,7 @@ struct snmp_bc_sensor snmp_bc_blower_sensors[] = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
+				/* blower1State - blower4State */
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.3.x.0",
 				.loc_offset = (10 - 1),
                         },
@@ -9949,6 +10244,7 @@ struct snmp_bc_sensor snmp_bc_blower_sensors[] = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
+				/* blower1speed - blower4speed */
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.3.x.0",
 				.loc_offset = 0,
                         },
@@ -10064,6 +10360,7 @@ struct snmp_bc_sensor snmp_bc_blower_sensors_bch[] = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
+				/* blower1speedRPM - blower2speedRPM */
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.3.x.0",
 				.loc_offset = (20 - 1),
                         },
@@ -10133,6 +10430,7 @@ struct snmp_bc_sensor snmp_bc_power_sensors[] = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
+				/* powerModuleState */
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.4.1.1.3.x",
 				.loc_offset = 0,
                         },
@@ -10400,6 +10698,7 @@ struct snmp_bc_sensor snmp_bc_power_sensors_bch[] = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
+				/* fanPackState */
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.6.1.1.3.x",
 				.loc_offset = 0,
                         },
@@ -10531,6 +10830,7 @@ struct snmp_bc_sensor snmp_bc_power_sensors_bch[] = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
+				/* fanPackAverageSpeed */
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.6.1.1.5.x",
 				.loc_offset = 0,
                         },
@@ -10599,6 +10899,7 @@ struct snmp_bc_sensor snmp_bc_power_sensors_bch[] = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
+				/* fanPackAverageSpeedRPM */
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.6.1.1.6.x",
 				.loc_offset = 0,
                         },
@@ -10669,6 +10970,7 @@ struct snmp_bc_sensor snmp_bc_switch_sensors[] = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
+				/* smHealthState */
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.3.1.1.1.15.x",
 				.loc_offset = 0,
                         },
@@ -10916,7 +11218,8 @@ struct snmp_bc_sensor snmp_bc_slot_sensors[] = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,          
-                                .oid = ".1.3.6.1.4.1.2.3.51.2.2.10.2.1.1.8.1", /* Dummy OID to bypass test */
+				/* Dummy OID to bypass test */
+                                .oid = ".1.3.6.1.4.1.2.3.51.2.2.10.2.1.1.8.1",
 				.loc_offset = 0,
                         },
                         .cur_state = SAHPI_ES_ABSENT,
@@ -10941,7 +11244,7 @@ struct snmp_bc_sensor snmp_bc_slot_sensors[] = {
                         .Category = SAHPI_EC_THRESHOLD,
 			.EnableCtrl = SAHPI_FALSE,
                         .EventCtrl = SAHPI_SEC_READ_ONLY,
-                        .Events = 0x00,				/* No event state */
+                        .Events = 0x00, /* No event state */
                         .DataFormat = {
                                 .IsSupported = SAHPI_TRUE,
                                 .ReadingType = SAHPI_SENSOR_READING_TYPE_UINT64,
@@ -10962,6 +11265,7 @@ struct snmp_bc_sensor snmp_bc_slot_sensors[] = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
+				/* pd1ModuleAllocatedPowerMax */
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.10.2.1.1.8.1",
 				.loc_offset = 0,
                                 .threshold_oids = {},
@@ -11012,6 +11316,7 @@ struct snmp_bc_sensor snmp_bc_slot_sensors[] = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
+				/* pd1ModuleAllocatedPowerCurrent */
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.10.2.1.1.7.1",
 				.loc_offset = 0,
                                 .threshold_oids = {},			
@@ -11060,6 +11365,7 @@ struct snmp_bc_sensor snmp_bc_slot_sensors[] = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
+				/* pd1ModuleAllocatedPowerMin */
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.10.2.1.1.9.1",
 				.loc_offset = 0,
                                 .threshold_oids = {},
@@ -11078,6 +11384,38 @@ struct snmp_bc_sensor snmp_bc_slot_sensors[] = {
                 },
 		.comment = "Slot Minumum Power Capability Sensor",
 	},
+
+        {} /* Terminate array with a null element */
+};
+
+/*********************
+ * Alarm Panel Sensors
+ *********************/
+struct snmp_bc_sensor snmp_bc_alarm_sensors[] = {
+
+        {} /* Terminate array with a null element */
+};
+
+/**************************************
+ * Multiplexer Expansion Module Sensors
+ **************************************/
+struct snmp_bc_sensor snmp_bc_mux_sensors[] = {
+
+        {} /* Terminate array with a null element */
+};
+
+/******************************
+ * Network Clock Module Sensors
+ ******************************/
+struct snmp_bc_sensor snmp_bc_clock_sensors[] = {
+
+        {} /* Terminate array with a null element */
+};
+
+/********************
+ * Air Filter Sensors
+ ********************/
+struct snmp_bc_sensor snmp_bc_filter_sensors[] = {
 
         {} /* Terminate array with a null element */
 };
@@ -11118,6 +11456,7 @@ struct snmp_bc_control snmp_bc_chassis_controls_bc[] = {
                         .mib = {
                                 .not_avail_indicator_num = 3,
                                 .write_only = SAHPI_FALSE,
+				/* identityLED */
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.8.1.4.0",
 				.loc_offset = 0,
                         },
@@ -11150,6 +11489,7 @@ struct snmp_bc_control snmp_bc_chassis_controls_bct[] = {
                         .mib = {
                                 .not_avail_indicator_num = 3,
                                 .write_only = SAHPI_FALSE,
+				/* identityLED */
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.8.3.4.0",
 				.loc_offset = 0,
                         },
@@ -11186,6 +11526,7 @@ struct snmp_bc_control snmp_bc_blade_controls[] = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
+				/* ledBladeIdentity */
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.8.2.1.1.11.x",
 				.loc_offset = 0,
                         },
@@ -11213,6 +11554,7 @@ struct snmp_bc_control snmp_bc_blade_controls[] = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
+				/*restartBladeSMP */
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.6.1.1.9.x",
 				.loc_offset = 0,
                         },
@@ -11257,6 +11599,7 @@ struct snmp_bc_control snmp_bc_virtual_mgmnt_controls[] = {
 			.mib = {
 				.not_avail_indicator_num = 0,
 				.write_only = SAHPI_FALSE,
+				/* switchOverRedundantMM */
 				.oid = ".1.3.6.1.4.1.2.3.51.2.7.7.0",
 				.loc_offset = 0,
 				/* Read values */
@@ -11351,6 +11694,38 @@ struct snmp_bc_control snmp_bc_bem_dasd_controls[] = {
         {} /* Terminate array with a null element */
 };
 
+/**********************
+ * Alarm Panel Controls
+ **********************/
+struct snmp_bc_control snmp_bc_alarm_controls[] = {
+
+        {} /* Terminate array with a null element */
+};
+
+/***************************************
+ * Multiplexer Expansion Module Controls
+ ***************************************/
+struct snmp_bc_control snmp_bc_mux_controls[] = {
+
+        {} /* Terminate array with a null element */
+};
+
+/*******************************
+ * Network Clock Module Controls
+ *******************************/
+struct snmp_bc_control snmp_bc_clock_controls[] = {
+
+        {} /* Terminate array with a null element */
+};
+
+/*********************
+ * Air Filter Controls
+ *********************/
+struct snmp_bc_control snmp_bc_filter_controls[] = {
+
+        {} /* Terminate array with a null element */
+};
+
 /*************************************************************************
  *                   Inventory Definitions
  *************************************************************************/
@@ -11371,12 +11746,18 @@ struct snmp_bc_inventory snmp_bc_chassis_inventories[] = {
                                 .write_only = SAHPI_FALSE,
                                 .area_type = SAHPI_IDR_AREATYPE_CHASSIS_INFO,
                                 .oid = {
+					/* bladeCenterVpdMachineModel */
                                         .OidChassisType = ".1.3.6.1.4.1.2.3.51.2.2.21.1.1.2.0",
-                                        .OidMfgDateTime = '\0',   /* Set to SAHPI_TIME_UNSPECIFIED */
+                                        .OidMfgDateTime = '\0', /* Set to SAHPI_TIME_UNSPECIFIED */
+					/* bladeCenterManufacturingId */
                                         .OidManufacturer = ".1.3.6.1.4.1.2.3.51.2.2.21.1.1.5.0",
+					/* bladeCenterVpdMachineType */
                                         .OidProductName = ".1.3.6.1.4.1.2.3.51.2.2.21.1.1.1.0",
+					/* bladeCenterHardwareRevision */
                                         .OidProductVersion = ".1.3.6.1.4.1.2.3.51.2.2.21.1.1.6.0",
+					/* bladeCenterSerialNumber */
                                         .OidSerialNumber = ".1.3.6.1.4.1.2.3.51.2.2.21.1.1.3.0",
+					/* bladeCenterFruNumber */
                                         .OidPartNumber = ".1.3.6.1.4.1.2.3.51.2.2.21.1.1.7.0",
                                         .OidFileId = '\0',
                                         .OidAssetTag = '\0',
@@ -11424,11 +11805,14 @@ struct snmp_bc_inventory snmp_bc_mgmnt_inventories[] = {
                                 .area_type = SAHPI_IDR_AREATYPE_BOARD_INFO,
                                 .oid = {
                                         .OidChassisType = '\0',
-                                        .OidMfgDateTime = '\0',   /* Set to SAHPI_TIME_UNSPECIFIED */
+                                        .OidMfgDateTime = '\0', /* Set to SAHPI_TIME_UNSPECIFIED */
+					/* mmHardwareVpdManufacturingId */
                                         .OidManufacturer = ".1.3.6.1.4.1.2.3.51.2.2.21.2.1.1.3.x",
                                         .OidProductName = '\0',
+					/* mmHardwareVpdHardwareRevision */
                                         .OidProductVersion = ".1.3.6.1.4.1.2.3.51.2.2.21.2.1.1.5.x",
                                         .OidSerialNumber = '\0',
+					/* mmHardwareVpdFruNumber */
                                         .OidPartNumber = ".1.3.6.1.4.1.2.3.51.2.2.21.2.1.1.4.x",
                                         .OidFileId = '\0',
                                         .OidAssetTag = '\0',
@@ -11458,11 +11842,14 @@ struct snmp_bc_inventory snmp_bc_switch_inventories[] = {
                                 .area_type = SAHPI_IDR_AREATYPE_BOARD_INFO,
                                 .oid = {
                                         .OidChassisType = '\0',
-                                        .OidMfgDateTime = '\0',   /* Set to SAHPI_TIME_UNSPECIFIED */
+                                        .OidMfgDateTime = '\0', /* Set to SAHPI_TIME_UNSPECIFIED */
+					/* smHardwareVpdManufacturingId */
                                         .OidManufacturer = ".1.3.6.1.4.1.2.3.51.2.2.21.6.1.1.3.x",
                                         .OidProductName = '\0',
+					/* smHardwareVpdHardwareRevision */
                                         .OidProductVersion = ".1.3.6.1.4.1.2.3.51.2.2.21.6.1.1.5.x",
                                         .OidSerialNumber = '\0',
+					/* smHardwareVpdFruNumber */
                                         .OidPartNumber = ".1.3.6.1.4.1.2.3.51.2.2.21.6.1.1.4.x",
                                         .OidFileId = '\0',
                                         .OidAssetTag = '\0',
@@ -11492,11 +11879,16 @@ struct snmp_bc_inventory snmp_bc_blade_inventories[] = {
                                 .area_type = SAHPI_IDR_AREATYPE_BOARD_INFO,
                                 .oid = {
                                         .OidChassisType = '\0',
-                                        .OidMfgDateTime = '\0',   /* Set to SAHPI_TIME_UNSPECIFIED */
+                                        .OidMfgDateTime = '\0', /* Set to SAHPI_TIME_UNSPECIFIED */
+					/* bladeHardwareVpdManufacturingId */
                                         .OidManufacturer = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.3.x",
+					/* bladeHardwareVpdMachineType */
                                         .OidProductName = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.7.x",
+					/* bladeHardwareVpdHardwareRevision */
                                         .OidProductVersion = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.5.x",
+					/* bladeHardwareVpdSerialNumber */
                                         .OidSerialNumber = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.6.x",
+					/* bladeHardwareVpdFruNumber */
                                         .OidPartNumber = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.4.x",
                                         .OidFileId = '\0',
                                         .OidAssetTag = '\0',
@@ -11535,11 +11927,14 @@ struct snmp_bc_inventory snmp_bc_mediatray_inventories[] = {
                                 .area_type = SAHPI_IDR_AREATYPE_BOARD_INFO,
                                 .oid = {
                                         .OidChassisType = '\0',
-                                        .OidMfgDateTime = '\0',   /* Set to SAHPI_TIME_UNSPECIFIED */
+                                        .OidMfgDateTime = '\0', /* Set to SAHPI_TIME_UNSPECIFIED */
+					/* mtHardwareVpdManufacturingId */
                                         .OidManufacturer = ".1.3.6.1.4.1.2.3.51.2.2.21.9.3.0",
                                         .OidProductName = '\0',
+					/* mtHardwareVpdHardwareRevision */
                                         .OidProductVersion = ".1.3.6.1.4.1.2.3.51.2.2.21.9.5.0",
                                         .OidSerialNumber = '\0',
+					/* mtHardwareVpdFruNumber */
                                         .OidPartNumber = ".1.3.6.1.4.1.2.3.51.2.2.21.9.4.0",
                                         .OidFileId = '\0',
                                         .OidAssetTag = '\0',
@@ -11547,8 +11942,8 @@ struct snmp_bc_inventory snmp_bc_mediatray_inventories[] = {
                         },
                 },
                 .comment = "Media Tray VPD",
-        },
-
+        },        
+	
         {} /* Terminate array with a null element */
 };
 
@@ -11565,11 +11960,14 @@ struct snmp_bc_inventory snmp_bc_mediatray2_inventories[] = {
                                 .area_type = SAHPI_IDR_AREATYPE_BOARD_INFO,
                                 .oid = {
                                         .OidChassisType = '\0',
-                                        .OidMfgDateTime = '\0',   /* Set to SAHPI_TIME_UNSPECIFIED */
+                                        .OidMfgDateTime = '\0', /* Set to SAHPI_TIME_UNSPECIFIED */
+					/* mt2HardwareVpdManufacturingId */
                                         .OidManufacturer = ".1.3.6.1.4.1.2.3.51.2.2.21.10.3.0",
                                         .OidProductName = '\0',
+					/* mt2HardwareVpdHardwareRevision */
                                         .OidProductVersion = ".1.3.6.1.4.1.2.3.51.2.2.21.10.5.0",
                                         .OidSerialNumber = '\0',
+					/* mt2HardwareVpdFruNumber */
                                         .OidPartNumber = ".1.3.6.1.4.1.2.3.51.2.2.21.10.4.0",
                                         .OidFileId = '\0',
                                         .OidAssetTag = '\0',
@@ -11591,7 +11989,7 @@ struct snmp_bc_inventory snmp_bc_mediatray2_inventories[] = {
 struct snmp_bc_inventory snmp_bc_power_inventories[] = {
         {
                 .inventory = {
-                        .IdrId = 9,
+                        .IdrId = 10,
                         .Oem = 0,
                 },
                 .inventory_info = {
@@ -11601,11 +11999,14 @@ struct snmp_bc_inventory snmp_bc_power_inventories[] = {
                                 .area_type = SAHPI_IDR_AREATYPE_BOARD_INFO,
                                 .oid = {
                                         .OidChassisType = '\0',
-                                        .OidMfgDateTime = '\0',   /* Set to SAHPI_TIME_UNSPECIFIED */
+                                        .OidMfgDateTime = '\0', /* Set to SAHPI_TIME_UNSPECIFIED */
+					/* pmHardwareVpdManufacturingId */
                                         .OidManufacturer = ".1.3.6.1.4.1.2.3.51.2.2.21.8.1.1.3.x",
                                         .OidProductName = '\0',
+					/* pmHardwareVpdHardwareRevision */
                                         .OidProductVersion = ".1.3.6.1.4.1.2.3.51.2.2.21.8.1.1.5.x",
                                         .OidSerialNumber = '\0',
+					/* pmHardwareVpdFruNumber */
                                         .OidPartNumber = ".1.3.6.1.4.1.2.3.51.2.2.21.8.1.1.4.x",
                                         .OidFileId = '\0',
                                         .OidAssetTag = '\0',
@@ -11632,6 +12033,200 @@ struct snmp_bc_inventory snmp_bc_slot_inventories[] = {
  **************/
 
 struct snmp_bc_inventory snmp_bc_bem_dasd_inventories[] = {
+
+        {} /* Terminate array with a null element */
+};
+
+/*****************
+ * Alarm Panel VPD
+ *****************/
+struct snmp_bc_inventory snmp_bc_alarm_inventories[] = {
+	{
+                .inventory = {
+                        .IdrId = 14,
+                        .Oem = 0,
+                },
+                .inventory_info = {
+                        .mib = {
+                                .not_avail_indicator_num = 0,
+                                .write_only = SAHPI_FALSE,
+                                .area_type = SAHPI_IDR_AREATYPE_BOARD_INFO,
+                                .oid = {
+                                        .OidChassisType = '\0',
+                                        .OidMfgDateTime = '\0', /* Set to SAHPI_TIME_UNSPECIFIED */
+					/* tapHardwareVpdManufacturingId */
+                                        .OidManufacturer = ".1.3.6.1.4.1.2.3.51.2.2.21.15.3.x",
+                                        .OidProductName = '\0',
+					/* tapHardwareVpdHardwareRevision */
+                                        .OidProductVersion = ".1.3.6.1.4.1.2.3.51.2.2.21.15.5.x",
+					/* tapHardwareVpdFruSerial */
+                                        .OidSerialNumber = ".1.3.6.1.4.1.2.3.51.2.2.21.15.11.x",
+					/* tapHardwareVpdFruNumber */
+                                        .OidPartNumber = ".1.3.6.1.4.1.2.3.51.2.2.21.15.4.x",
+                                        .OidFileId = '\0',
+                                        .OidAssetTag = '\0',
+                                }
+                        },
+                },
+                .comment = "Alarm Panel VPD",
+	},
+		
+        {} /* Terminate array with a null element */
+};
+
+/**********************************
+ * Multiplexer Expansion Module VPD
+ **********************************/
+struct snmp_bc_inventory snmp_bc_mux_inventories[] = {
+	{
+                .inventory = {
+                        .IdrId = 15,
+                        .Oem = 0,
+                },
+                .inventory_info = {
+                        .mib = {
+                                .not_avail_indicator_num = 0,
+                                .write_only = SAHPI_FALSE,
+                                .area_type = SAHPI_IDR_AREATYPE_BOARD_INFO,
+                                .oid = {
+                                        .OidChassisType = '\0',
+                                        .OidMfgDateTime = '\0', /* Set to SAHPI_TIME_UNSPECIFIED */
+					/* mxHardwareVpdManufacturingId */
+                                        .OidManufacturer = ".1.3.6.1.4.1.2.3.51.2.2.21.17.1.1.3.x",
+                                        .OidProductName = '\0',
+					/* mxHardwareVpdHardwareRevision */
+                                        .OidProductVersion = ".1.3.6.1.4.1.2.3.51.2.2.21.17.1.1.5.x",
+					/* mxHardwareVpdFruSerial */
+                                        .OidSerialNumber = ".1.3.6.1.4.1.2.3.51.2.2.21.17.1.1.11.x",
+					/* mxHardwareVpdFruNumber */
+                                        .OidPartNumber = ".1.3.6.1.4.1.2.3.51.2.2.21.17.1.1.4.x",
+                                        .OidFileId = '\0',
+                                        .OidAssetTag = '\0',
+                                }
+                        },
+                },
+                .comment = "Multiplexer Expansion Module VPD",
+        },
+
+        {} /* Terminate array with a null element */
+};
+
+/**************************
+ * Network Clock Module VPD
+ **************************/
+struct snmp_bc_inventory snmp_bc_clock_inventories[] = {
+	{
+                .inventory = {
+                        .IdrId = 16,
+                        .Oem = 0,
+                },
+                .inventory_info = {
+                        .mib = {
+                                .not_avail_indicator_num = 0,
+                                .write_only = SAHPI_FALSE,
+                                .area_type = SAHPI_IDR_AREATYPE_BOARD_INFO,
+                                .oid = {
+                                        .OidChassisType = '\0',
+                                        .OidMfgDateTime = '\0', /* Set to SAHPI_TIME_UNSPECIFIED */
+					/* ncHardwareVpdManufacturingId */
+                                        .OidManufacturer = ".1.3.6.1.4.1.2.3.51.2.2.21.16.1.1.3.x",
+                                        .OidProductName = '\0',
+					/* ncHardwareVpdHardwareRevision */
+                                        .OidProductVersion = ".1.3.6.1.4.1.2.3.51.2.2.21.16.1.1.5.x",
+					/* ncHardwareVpdFruSerial */
+                                        .OidSerialNumber = ".1.3.6.1.4.1.2.3.51.2.2.21.16.1.1.11.x",
+					/* ncHardwareVpdFruNumber */
+                                        .OidPartNumber = ".1.3.6.1.4.1.2.3.51.2.2.21.16.1.1.4.x",
+                                        .OidFileId = '\0',
+                                        .OidAssetTag = '\0',
+                                }
+                        },
+                },
+                .comment = "Network Clock Module VPD",
+        },
+
+        {} /* Terminate array with a null element */
+};
+
+/****************
+ * Air Filter VPD
+ ****************/
+struct snmp_bc_inventory snmp_bc_filter_inventories[] = {
+
+        {} /* Terminate array with a null element */
+};
+
+/***********************
+ * Switch Interposer VPD
+ ***********************/
+struct snmp_bc_inventory snmp_bc_interposer_switch_inventories[] = {
+	{
+                .inventory = {
+                        .IdrId = 18,
+                        .Oem = 0,
+                },
+                .inventory_info = {
+                        .mib = {
+                                .not_avail_indicator_num = 0,
+                                .write_only = SAHPI_FALSE,
+                                .area_type = SAHPI_IDR_AREATYPE_BOARD_INFO,
+                                .oid = {
+                                        .OidChassisType = '\0',
+                                        .OidMfgDateTime = '\0', /* Set to SAHPI_TIME_UNSPECIFIED */
+					/* smInpHardwareVpdManufacturingId */
+                                        .OidManufacturer = ".1.3.6.1.4.1.2.3.51.2.2.21.6.2.1.3.x",
+                                        .OidProductName = '\0',
+					/* smInpHardwareVpdHardwareRevision */
+                                        .OidProductVersion = ".1.3.6.1.4.1.2.3.51.2.2.21.6.2.1.5.x",
+					/* smInpHardwareVpdFruSerial */
+                                        .OidSerialNumber = ".1.3.6.1.4.1.2.3.51.2.2.21.6.2.1.11.x",
+					/* smInpHardwareVpdFruNumber */
+                                        .OidPartNumber = ".1.3.6.1.4.1.2.3.51.2.2.21.6.2.1.4.x",
+                                        .OidFileId = '\0',
+                                        .OidAssetTag = '\0',
+                                }
+                        },
+                },
+                .comment = "Switch Interposer VPD",
+        },
+
+        {} /* Terminate array with a null element */
+};
+
+/*******************
+ * MM Interposer VPD
+ *******************/
+struct snmp_bc_inventory snmp_bc_interposer_mm_inventories[] = {
+	{
+                .inventory = {
+                        .IdrId = 19,
+                        .Oem = 0,
+                },
+                .inventory_info = {
+                        .mib = {
+                                .not_avail_indicator_num = 0,
+                                .write_only = SAHPI_FALSE,
+                                .area_type = SAHPI_IDR_AREATYPE_BOARD_INFO,
+                                .oid = {
+                                        .OidChassisType = '\0',
+                                        .OidMfgDateTime = '\0', /* Set to SAHPI_TIME_UNSPECIFIED */
+					/* mmInpHardwareVpdManufacturingId */
+                                        .OidManufacturer = ".1.3.6.1.4.1.2.3.51.2.2.21.2.2.1.3.x",
+                                        .OidProductName = '\0',
+					/* mmInpHardwareVpdHardwareRevision */
+                                        .OidProductVersion = ".1.3.6.1.4.1.2.3.51.2.2.21.2.2.1.5.x",
+					/* mmInpHardwareVpdFruSerial */
+                                        .OidSerialNumber = ".1.3.6.1.4.1.2.3.51.2.2.21.2.2.1.9.x",
+					/* mmInpHardwareVpdFruNumber */
+                                        .OidPartNumber = ".1.3.6.1.4.1.2.3.51.2.2.21.2.2.1.4.x",
+                                        .OidFileId = '\0',
+                                        .OidAssetTag = '\0',
+                                }
+                        },
+                },
+                .comment = "Management Module Interposer VPD",
+        },
+
 
         {} /* Terminate array with a null element */
 };
