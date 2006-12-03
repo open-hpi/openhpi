@@ -1752,8 +1752,7 @@ SaErrorT snmp_bc_set_resource_slot_state_sensor(void *hnd, struct oh_event *e, g
 			err = snmp_bc_set_slot_state_sensor(handle, e, &slot_ep);
 		}
 	} else if ( (custom_handle->platform == SNMP_BC_PLATFORM_BCT) || 
-			(custom_handle->platform == SNMP_BC_PLATFORM_BCHT) )
-	{
+			(custom_handle->platform == SNMP_BC_PLATFORM_BCHT) ){
 		for (i = 0; i < resourcewidth; i++) {
 			oh_set_ep_location(&slot_ep,
 				   slot_ep.Entry[0].EntityType, j - i);
@@ -1850,7 +1849,7 @@ SaErrorT snmp_bc_reset_resource_slot_state_sensor(void *hnd, SaHpiRptEntryT *res
 
 	j = slot_ep.Entry[0].EntityLocation;
 	if ( (custom_handler->platform == SNMP_BC_PLATFORM_BC) || 
-			(custom_handler->platform == SNMP_BC_PLATFORM_BCH))
+		(custom_handler->platform == SNMP_BC_PLATFORM_BCH))
 	{
 		for (i = 0; i < resourcewidth; i++) {
 			oh_set_ep_location(&slot_ep,
@@ -1859,8 +1858,7 @@ SaErrorT snmp_bc_reset_resource_slot_state_sensor(void *hnd, SaHpiRptEntryT *res
 			err = snmp_bc_reset_slot_state_sensor(handler, &slot_ep);
 		}
 	} else if ( (custom_handler->platform == SNMP_BC_PLATFORM_BCT) || 
-			(custom_handler->platform == SNMP_BC_PLATFORM_BCHT) ) 
-	{
+			(custom_handler->platform == SNMP_BC_PLATFORM_BCHT) ) {
 		for (i = 0; i < resourcewidth; i++) {
 			oh_set_ep_location(&slot_ep,
 				   slot_ep.Entry[0].EntityType, j - i);
@@ -1967,8 +1965,8 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 			usepowerdomain1;			
 			break;
 			
-		case BLADECENTER_INTERCONNECT_SLOT:
-			if (custom_handle->platform == SNMP_BC_PLATFORM_BCT)
+		case BLADECENTER_SWITCH_SLOT:
+			if (custom_handle->platform == SNMP_BC_PLATFORM_BCT)  
 			{
 				 switch (slotnum) {
 				 	case 1:
@@ -2106,8 +2104,7 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 			break;
 
 		case BLADECENTER_SYS_MGMNT_MODULE_SLOT:
-			if (custom_handle->platform == SNMP_BC_PLATFORM_BCT)
-			{		
+			if (custom_handle->platform == SNMP_BC_PLATFORM_BCT) {
 				 switch (slotnum) {
 				 	case 1:
 						oidIndex = 7;
@@ -2169,7 +2166,7 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 				}
 				
 				usepowerdomain1;
-				
+			
 			} else { 
 				dbg("Not one of the supported platform.");
 				return(SA_ERR_HPI_INTERNAL_ERROR);		
@@ -2177,8 +2174,7 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 			break;
 		
 		case BLADECENTER_BLOWER_SLOT:
-			if (custom_handle->platform == SNMP_BC_PLATFORM_BCT)
-			{
+			if (custom_handle->platform == SNMP_BC_PLATFORM_BCT) {
 			
 				if ( (slotnum == 3) || (slotnum == 4)) {
 					snprintf(oid, SNMP_BC_MAX_OID_LENGTH, "%s.%d", SNMP_BC_PMSTATE, 3);
@@ -2251,15 +2247,13 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 				/* pdp - FIX ME - Reading is not supported on BC-H */
 				oidIndex = SNMP_BC_NOT_VALID;
 				thisOID = NULL;			
-				
 			} else { 
 				dbg("Not one of the supported platform.");
 				return(SA_ERR_HPI_INTERNAL_ERROR);		
 			}
 			break;		
 		case SAHPI_ENT_PHYSICAL_SLOT:
-			if (custom_handle->platform == SNMP_BC_PLATFORM_BCT)
-			{
+			if (custom_handle->platform == SNMP_BC_PLATFORM_BCT) {
 				 switch (slotnum) {
 				 	case 1:
 						oidIndex = 13;
@@ -2446,7 +2440,6 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 				} else {
 					usepowerdomain1;
 				}			
-														
 			} else { 
 				dbg("Not one of the supported platform.");
 				return(SA_ERR_HPI_INTERNAL_ERROR);		
@@ -2454,10 +2447,9 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 			break;		
 		case BLADECENTER_POWER_SUPPLY_SLOT:
 			if ((custom_handle->platform == SNMP_BC_PLATFORM_BCT) || 
-				(custom_handle->platform == SNMP_BC_PLATFORM_BC) ||
-				(custom_handle->platform == SNMP_BC_PLATFORM_BCHT))
-			{
-				/* Reading is not supported on BC and BC-T */
+					 (custom_handle->platform == SNMP_BC_PLATFORM_BC) ||
+					 (custom_handle->platform == SNMP_BC_PLATFORM_BCHT)) {
+				/* Reading is not supported on BC, BC-T and BC-HT*/
 				oidIndex = SNMP_BC_NOT_VALID;
 				thisOID = NULL;
 							
@@ -2488,7 +2480,7 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 			}
 			break;
 		case SAHPI_ENT_SYS_MGMNT_MODULE:
-			/* Assign Midplane Power reading to Virtual management module */		
+			/* Assign Midplane Power reading to Virtual management module */
 			switch (slotnum) {
 				case 0:
 					oidIndex = 1;
@@ -2515,8 +2507,7 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 		reading->IsSupported = SAHPI_FALSE;
 		return(SA_OK);
 	} else if (oidIndex == totalPower) {
-		if (custom_handle->platform == SNMP_BC_PLATFORM_BCT)
-		{
+		if (custom_handle->platform == SNMP_BC_PLATFORM_BCT) {
 			usepowerdomain1;
 			snprintf(oid, SNMP_BC_MAX_OID_LENGTH, "%s.%d", thisOID, 17);
 			get_string_object(oid, pm3_state);
@@ -2549,7 +2540,7 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 		
 			usepowerdomain2;
 			snprintf(oid, SNMP_BC_MAX_OID_LENGTH, "%s.%d", thisOID, 19);
-			get_string_object(oid, pm4_state);	
+			get_string_object(oid, pm4_state);		
 		} else { 
 			dbg("Not one of the supported platform.\n");
 			return(SA_ERR_HPI_INTERNAL_ERROR);		
@@ -2641,3 +2632,4 @@ void * oh_set_sensor_event_masks (void *, SaHpiResourceIdT, SaHpiSensorNumT,
                                   SaHpiEventStateT,
                                   SaHpiEventStateT)
                 __attribute__ ((weak, alias("snmp_bc_set_sensor_event_masks")));
+
