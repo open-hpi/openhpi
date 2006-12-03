@@ -92,19 +92,31 @@ void *snmp_bc_open(GHashTable *handler_config,
 	
         /* Initialize resource masks */
 	/* Set all masks and counts to zero's    */
-	custom_handle->max_pb_supported = 0;		/* pb - processor blade */
-	custom_handle->max_blower_supported = 0;	/* blower - blower  */
-	custom_handle->max_pm_supported = 0;		/* pm - power module    */
-	custom_handle->max_sm_supported = 0;		/* sm - switch module   */
+	custom_handle->max_pb_supported = 0;		/* pb - processor blade   */
+	custom_handle->max_blower_supported = 0;	/* blower - blower        */
+	custom_handle->max_pm_supported = 0;		/* pm - power module      */
+	custom_handle->max_sm_supported = 0;		/* sm - switch module     */
 	custom_handle->max_mm_supported = 0;		/* mm - management module */
 	custom_handle->max_mt_supported = 0;		/* mt - media tray        */
+	custom_handle->max_filter_supported = 0;	/* filter - front bezel   */
+	custom_handle->max_tap_supported = 0;		/* tap-telco alarm panel  */
+	custom_handle->max_nc_supported = 0;		/* nc - network clock card*/
+	custom_handle->max_mx_supported = 0;		/* mx - multiplex card    */
+	custom_handle->max_mmi_supported = 0;		/* mmi- mm interposer     */	
+	custom_handle->max_smi_supported = 0;		/* smi- switch interposer */
 	
 	memset(&custom_handle->installed_pb_mask, '\0', SNMP_BC_MAX_RESOURCES_MASK);
 	memset(&custom_handle->installed_blower_mask, '\0', SNMP_BC_MAX_RESOURCES_MASK);
 	memset(&custom_handle->installed_pm_mask, '\0', SNMP_BC_MAX_RESOURCES_MASK);
 	memset(&custom_handle->installed_sm_mask, '\0', SNMP_BC_MAX_RESOURCES_MASK);
 	memset(&custom_handle->installed_mm_mask, '\0', SNMP_BC_MAX_RESOURCES_MASK);
+	memset(&custom_handle->installed_tap_mask, '\0', SNMP_BC_MAX_RESOURCES_MASK);
+	memset(&custom_handle->installed_nc_mask, '\0', SNMP_BC_MAX_RESOURCES_MASK);
+	memset(&custom_handle->installed_mx_mask, '\0', SNMP_BC_MAX_RESOURCES_MASK);	
+	memset(&custom_handle->installed_mmi_mask, '\0', SNMP_BC_MAX_RESOURCES_MASK);	
+	memset(&custom_handle->installed_smi_mask, '\0', SNMP_BC_MAX_RESOURCES_MASK);
 	custom_handle->installed_mt_mask = 0;
+	custom_handle->installed_filter_mask = 0;
 
         /* Indicate this is the 1st discovery (T0 discovery) */
         /* Use to see if we need to create events for log entries.  */
@@ -300,6 +312,7 @@ void *snmp_bc_open(GHashTable *handler_config,
 				} else {
 					chassis_subtype = get_value.integer;
 				}
+				
 
 				if (chassis_type == SNMP_BC_CHASSIS_TYPE_BC &&
 				    chassis_subtype == SNMP_BC_CHASSIS_SUBTYPE_ORIG) {
@@ -322,13 +335,14 @@ void *snmp_bc_open(GHashTable *handler_config,
 					break;
 				}
 
+								
 				if (chassis_type == SNMP_BC_CHASSIS_TYPE_BCT &&
 				    chassis_subtype == SNMP_BC_CHASSIS_SUBTYPE_H) {
 					trace("Found BCHT");
 					custom_handle->platform = SNMP_BC_PLATFORM_BCHT;
 					break;
 				}
-
+				
 				dbg("Unknown BladeCenter model");
 				return NULL;
 			}
@@ -444,3 +458,4 @@ void snmp_bc_close(void *hnd)
 
 void * oh_open (GHashTable *, unsigned int, oh_evt_queue *) __attribute__ ((weak, alias("snmp_bc_open")));
 void * oh_close (void *) __attribute__ ((weak, alias("snmp_bc_close")));
+
