@@ -63,7 +63,7 @@ SaErrorT snmp_bc_get_guid(struct snmp_bc_hnd *custom_handle,
 				      res_info_ptr->mib.OidUuid,            
 				      &get_value, SAHPI_TRUE);
         if(( status != SA_OK) || (get_value.type != ASN_OCTET_STR)) {
-                dbg("Cannot get OID rc=%d; oid=%s type=%d.", 
+                trace("Cannot get OID rc=%d; oid=%s type=%d.", 
                         status, res_info_ptr->mib.OidUuid, get_value.type);
                 if ( status != SA_ERR_HPI_BUSY)  status = SA_ERR_HPI_NO_RESPONSE;
                 goto CLEANUP;
@@ -196,7 +196,7 @@ SaErrorT snmp_bc_extract_slot_ep(SaHpiEntityPathT *resource_ep, SaHpiEntityPathT
 
 	for (i = 0; i < SAHPI_MAX_ENTITY_PATH ; i++) {
 		if (	(resource_ep->Entry[i].EntityType == SAHPI_ENT_PHYSICAL_SLOT) ||
-			(resource_ep->Entry[i].EntityType == BLADECENTER_INTERCONNECT_SLOT) ||
+			(resource_ep->Entry[i].EntityType == BLADECENTER_SWITCH_SLOT) ||
 			(resource_ep->Entry[i].EntityType == BLADECENTER_POWER_SUPPLY_SLOT) ||
 			(resource_ep->Entry[i].EntityType == BLADECENTER_PERIPHERAL_BAY_SLOT) ||
 			(resource_ep->Entry[i].EntityType == BLADECENTER_SYS_MGMNT_MODULE_SLOT) ||
@@ -319,6 +319,52 @@ SaErrorT snmp_bc_set_resource_add_oh_event(struct oh_event *e,
 		e->event.EventType = SAHPI_ET_RESOURCE;
 		e->event.EventDataUnion.ResourceEvent.ResourceEventType = SAHPI_RESE_RESOURCE_ADDED;			
 	} 				    
+	return(SA_OK);
+}
+
+
+/**
+ * snmp_bc_extend_ep:
+ * @e: Pointer to oh_event.
+ * @resource_index: 
+ * @interposer_installed_mask: 
+ *
+ * If there is an interposer installed in this resource slot, 
+ * insert interposer into entitypath between physical slot and resource entity.
+ * 
+ * Currently there are 2 types of interposer cards, Switch (smi) and Management Module (mmi)
+ * interposers. 
+ *
+ * Return values:
+ * 
+ * SA_OK - Normal
+ **/
+SaErrorT snmp_bc_extend_ep(struct oh_event *e,
+			   guint resource_index, 
+			   gchar *interposer_install_mask) 
+{
+	guint i;
+
+	if (interposer_install_mask[resource_index] == '1') {
+        	for (i=0; i<SAHPI_MAX_ENTITY_PATH; i++) {
+                	if (e->resource.ResourceEntity.Entry[i].EntityType == SAHPI_ENT_ROOT) break;
+       	 	}
+
+		do { 
+			e->resource.ResourceEntity.Entry[i+1].EntityType = 
+						e->resource.ResourceEntity.Entry[i].EntityType;
+			e->resource.ResourceEntity.Entry[i+1].EntityLocation = 
+						e->resource.ResourceEntity.Entry[i].EntityLocation;
+			i--;
+		} while (i > 0);
+
+		/* i == 0 at this point; setting ep Entry[1] */
+		e->resource.ResourceEntity.Entry[i+1].EntityType = SAHPI_ENT_INTERCONNECT;
+		e->resource.ResourceEntity.Entry[i+1].EntityLocation = SNMP_BC_HPI_LOCATION_BASE;
+
+		/* Entry[0] remains untouched */
+	}
+	
 	return(SA_OK);
 }
 
