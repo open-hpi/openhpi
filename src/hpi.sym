@@ -99,3 +99,6 @@ oh_process_config
 oh_clean_config
 data_access_block_times
 oh_wake_event_thread
+oh_get_session_domain
+oh_get_domain
+oh_get_handler
