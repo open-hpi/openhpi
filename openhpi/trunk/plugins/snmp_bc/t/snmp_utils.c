@@ -59,10 +59,12 @@ int snmp_set(void *sessp, char *objid, struct snmp_value value)
 		case ASN_INTEGER:
 		        dbg("Setting oid=%s with value=%d\n", objid, (int)hash_data->value.integer);
 			if (hash_data->value.integer == SNMP_FORCE_TIMEOUT) {return SA_ERR_HPI_TIMEOUT;}
+			hash_data->value.integer = value.integer;
 			break;
 			
 		case ASN_OCTET_STR:
 			dbg("Setting oid=%s with value=%s\n", objid, hash_data->value.string);
+			strcpy(hash_data->value.string, value.string);
 			break;
 		default:
 			dbg("Unknown SNMP type=%d for oid=%s\n", hash_data->type, objid);
@@ -87,3 +89,4 @@ int snmp_getn_bulk( void *sessp,
 	return 0;
 
 }
+
