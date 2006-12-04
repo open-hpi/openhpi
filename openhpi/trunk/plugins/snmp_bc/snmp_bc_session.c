@@ -379,7 +379,7 @@ void *snmp_bc_open(GHashTable *handler_config,
 
 		err = snmp_bc_snmp_get(custom_handle, oid, &get_value, SAHPI_TRUE);
 		if (err == SA_OK) {
-			strcpy(custom_handle->handler_timezone, get_value.string);
+			strncpy(custom_handle->handler_timezone, get_value.string,9);
 		}
 		else {
 			dbg("Cannot read DST=%s; Error=%d.", oid, get_value.type);
