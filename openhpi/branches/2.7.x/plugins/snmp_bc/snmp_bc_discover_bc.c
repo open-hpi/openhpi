@@ -514,16 +514,16 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 		err = snmp_bc_update_chassis_topo(handle);
 		if (err != SA_OK) return (err);
 		
-		strcpy(custom_handle->installed_pb_mask, get_value_blade.string);
-		strcpy(custom_handle->installed_blower_mask, get_value_blower.string);
-		strcpy(custom_handle->installed_pm_mask, get_value_power_module.string);
-		strcpy(custom_handle->installed_smi_mask, get_value_smi.string);
-		strcpy(custom_handle->installed_sm_mask, get_value_switch.string);
-		strcpy(custom_handle->installed_mmi_mask, get_value_mmi.string);		
-		strcpy(custom_handle->installed_mm_mask, get_value_mm.string);
-		strcpy(custom_handle->installed_tap_mask, get_value_tap.string);
-		strcpy(custom_handle->installed_nc_mask, get_value_nc.string);
-		strcpy(custom_handle->installed_mx_mask, get_value_mx.string);
+		strncpy(custom_handle->installed_pb_mask, get_value_blade.string, SNMP_BC_MAX_RESOURCES_MASK);
+		strncpy(custom_handle->installed_blower_mask, get_value_blower.string, SNMP_BC_MAX_RESOURCES_MASK);
+		strncpy(custom_handle->installed_pm_mask, get_value_power_module.string, SNMP_BC_MAX_RESOURCES_MASK);
+		strncpy(custom_handle->installed_smi_mask, get_value_smi.string, SNMP_BC_MAX_RESOURCES_MASK);
+		strncpy(custom_handle->installed_sm_mask, get_value_switch.string, SNMP_BC_MAX_RESOURCES_MASK);
+		strncpy(custom_handle->installed_mmi_mask, get_value_mmi.string, SNMP_BC_MAX_RESOURCES_MASK);		
+		strncpy(custom_handle->installed_mm_mask, get_value_mm.string, SNMP_BC_MAX_RESOURCES_MASK);
+		strncpy(custom_handle->installed_tap_mask, get_value_tap.string, SNMP_BC_MAX_RESOURCES_MASK);
+		strncpy(custom_handle->installed_nc_mask, get_value_nc.string, SNMP_BC_MAX_RESOURCES_MASK);
+		strncpy(custom_handle->installed_mx_mask, get_value_mx.string, SNMP_BC_MAX_RESOURCES_MASK);
 		custom_handle->installed_mt_mask = get_value_media.integer;
 		custom_handle->installed_filter_mask = get_value_filter.integer;		
 	}
@@ -3649,27 +3649,27 @@ SaErrorT snmp_bc_rediscover(struct oh_handler_state *handle,
 				case SAHPI_ENT_SBC_BLADE:
 					/* Fetch blade installed vector */
 					get_installed_mask(SNMP_BC_PB_INSTALLED, get_value);
-					strcpy(custom_handle->installed_pb_mask, get_value.string);
+					strncpy(custom_handle->installed_pb_mask, get_value.string, SNMP_BC_MAX_RESOURCES_MASK);
 					break;
 				case SAHPI_ENT_FAN:
 					/* Fetch blower installed vector */
 					get_installed_mask(SNMP_BC_BLOWER_INSTALLED, get_value);
-					strcpy(custom_handle->installed_blower_mask, get_value.string);
+					strncpy(custom_handle->installed_blower_mask, get_value.string, SNMP_BC_MAX_RESOURCES_MASK);
 					break;
 				case SAHPI_ENT_POWER_SUPPLY:
 					/* Fetch power module installed vector */
 					get_installed_mask(SNMP_BC_PM_INSTALLED, get_value);
-					strcpy(custom_handle->installed_pm_mask, get_value.string);
+					strncpy(custom_handle->installed_pm_mask, get_value.string, SNMP_BC_MAX_RESOURCES_MASK);
 					break;
 				case SAHPI_ENT_SWITCH:
 					/* Fetch switch installed vector */
 					get_installed_mask(SNMP_BC_SM_INSTALLED, get_value);
-					strcpy(custom_handle->installed_sm_mask, get_value.string);
+					strncpy(custom_handle->installed_sm_mask, get_value.string, SNMP_BC_MAX_RESOURCES_MASK);
 					break;
 				case SAHPI_ENT_SYS_MGMNT_MODULE:
 					/* Fetch MMs installed vector */
 					get_installed_mask(SNMP_BC_MM_INSTALLED, get_value);
-					strcpy(custom_handle->installed_mm_mask, get_value.string);
+					strncpy(custom_handle->installed_mm_mask, get_value.string, SNMP_BC_MAX_RESOURCES_MASK);
 					break;
 				case SAHPI_ENT_PERIPHERAL_BAY:
 					get_dualmode_object(SNMP_BC_MT_INSTALLED, get_value);
@@ -3683,22 +3683,22 @@ SaErrorT snmp_bc_rediscover(struct oh_handler_state *handle,
 				case SAHPI_ENT_DISPLAY_PANEL:				
 					/* Fetch telco-alarm-panel installed vector  */
 					get_installed_mask(SNMP_BC_AP_INSTALLED, get_value);
-					strcpy(custom_handle->installed_tap_mask, get_value.string);
+					strncpy(custom_handle->installed_tap_mask, get_value.string, SNMP_BC_MAX_RESOURCES_MASK);
 					break;
 				case (SAHPI_ENT_BATTERY + 13):
 					/* Fetch network-clock-card installed vector  */
 					get_installed_mask(SNMP_BC_NC_INSTALLED, get_value);
-					strcpy(custom_handle->installed_nc_mask, get_value.string);
+					strncpy(custom_handle->installed_nc_mask, get_value.string, SNMP_BC_MAX_RESOURCES_MASK);
 					break;
 				case SAHPI_ENT_OTHER_CHASSIS_BOARD:
 					/* Fetch mux-card installed vector  */
 					get_installed_mask(SNMP_BC_MX_INSTALLED, get_value);
-					strcpy(custom_handle->installed_mx_mask, get_value.string);
+					strncpy(custom_handle->installed_mx_mask, get_value.string, SNMP_BC_MAX_RESOURCES_MASK);
 					break;
 				case SAHPI_ENT_INTERCONNECT:
 					/* Fetch interposer-card installed vector  */
 					get_installed_mask(SNMP_BC_SMI_INSTALLED, get_value);
-					strcpy(custom_handle->installed_smi_mask, get_value.string);
+					strncpy(custom_handle->installed_smi_mask, get_value.string, SNMP_BC_MAX_RESOURCES_MASK);
 					break;
 										
 				default: 
@@ -3735,7 +3735,7 @@ SaErrorT snmp_bc_rediscover(struct oh_handler_state *handle,
 						err = snmp_bc_discover_blade_i(handle, &ep_root,i);								
 					}		
 				}
-				strcpy(custom_handle->installed_pb_mask, get_value.string);
+				strncpy(custom_handle->installed_pb_mask, get_value.string, SNMP_BC_MAX_RESOURCES_MASK);
 				break;
 			case SAHPI_ENT_FAN:
 				/* Fetch blower installed vector */
@@ -3746,7 +3746,7 @@ SaErrorT snmp_bc_rediscover(struct oh_handler_state *handle,
 						err = snmp_bc_discover_blower_i(handle, &ep_root,i);								
 					}		
 				}				
-				strcpy(custom_handle->installed_blower_mask, get_value.string);
+				strncpy(custom_handle->installed_blower_mask, get_value.string, SNMP_BC_MAX_RESOURCES_MASK);
 				break;
 			case SAHPI_ENT_POWER_SUPPLY:
 				/* Fetch power module installed vector */
@@ -3757,7 +3757,7 @@ SaErrorT snmp_bc_rediscover(struct oh_handler_state *handle,
 						err = snmp_bc_discover_pm_i(handle, &ep_root,i);								
 					}		
 				}								
-				strcpy(custom_handle->installed_pm_mask, get_value.string);
+				strncpy(custom_handle->installed_pm_mask, get_value.string, SNMP_BC_MAX_RESOURCES_MASK);
 				break;
 			case SAHPI_ENT_SWITCH:
 				/* Fetch switch installed vector */
@@ -3768,7 +3768,7 @@ SaErrorT snmp_bc_rediscover(struct oh_handler_state *handle,
 						err = snmp_bc_discover_switch_i(handle, &ep_root,i);								
 					}		
 				}												
-				strcpy(custom_handle->installed_sm_mask, get_value.string);
+				strncpy(custom_handle->installed_sm_mask, get_value.string, SNMP_BC_MAX_RESOURCES_MASK);
 				break;
 			case SAHPI_ENT_SYS_MGMNT_MODULE:
 				/* Fetch MMs installed vector */
@@ -3779,7 +3779,7 @@ SaErrorT snmp_bc_rediscover(struct oh_handler_state *handle,
 						err = snmp_bc_discover_mm_i(handle, &ep_root,i);
 					}
 				}
-				strcpy(custom_handle->installed_mm_mask, get_value.string);
+				strncpy(custom_handle->installed_mm_mask, get_value.string, SNMP_BC_MAX_RESOURCES_MASK);
 				break;
 			case SAHPI_ENT_PERIPHERAL_BAY:
 				// get_integer_object(custom_handle,SNMP_BC_MEDIATRAY_EXISTS, get_value);
@@ -3806,7 +3806,7 @@ SaErrorT snmp_bc_rediscover(struct oh_handler_state *handle,
 						err = snmp_bc_discover_tap_i(handle, &ep_root,i);
 					}
 				}
-				strcpy(custom_handle->installed_tap_mask, get_value.string);
+				strncpy(custom_handle->installed_tap_mask, get_value.string, SNMP_BC_MAX_RESOURCES_MASK);
 				break;
 			case SAHPI_ENT_OTHER_CHASSIS_BOARD:			
 				/* Fetch mux-card installed vector  */
@@ -3817,7 +3817,7 @@ SaErrorT snmp_bc_rediscover(struct oh_handler_state *handle,
 						err = snmp_bc_discover_mx_i(handle, &ep_root,i);
 					}
 				}
-				strcpy(custom_handle->installed_mx_mask, get_value.string);
+				strncpy(custom_handle->installed_mx_mask, get_value.string, SNMP_BC_MAX_RESOURCES_MASK);
 				break;
 			case (SAHPI_ENT_BATTERY + 13):
 				/* Fetch network-clock-card installed vector  */
@@ -3828,7 +3828,7 @@ SaErrorT snmp_bc_rediscover(struct oh_handler_state *handle,
 						err = snmp_bc_discover_nc_i(handle, &ep_root,i);
 					}
 				}				
-				strcpy(custom_handle->installed_nc_mask, get_value.string);
+				strncpy(custom_handle->installed_nc_mask, get_value.string, SNMP_BC_MAX_RESOURCES_MASK);
 				break;
 			case (SAHPI_ENT_PHYSICAL_SLOT + 16):
 				/* Fetch filter (front bezel) installed vector */
@@ -3845,7 +3845,7 @@ SaErrorT snmp_bc_rediscover(struct oh_handler_state *handle,
 						err = snmp_bc_discover_smi_i(handle, &ep_root,i);
 					}
 				}				
-				strcpy(custom_handle->installed_smi_mask, get_value.string);
+				strncpy(custom_handle->installed_smi_mask, get_value.string, SNMP_BC_MAX_RESOURCES_MASK);
 				
 				/* Fetch Management Module Interposer installed vector  */
 				get_installed_mask(SNMP_BC_MMI_INSTALLED, get_value);
@@ -3855,7 +3855,7 @@ SaErrorT snmp_bc_rediscover(struct oh_handler_state *handle,
 						err = snmp_bc_discover_mmi_i(handle, &ep_root,i);
 					}
 				}				
-				strcpy(custom_handle->installed_mmi_mask, get_value.string);				
+				strncpy(custom_handle->installed_mmi_mask, get_value.string, SNMP_BC_MAX_RESOURCES_MASK);		
 				break;
 			default: 
 				dbg("Unrecognize Hotswap Entity %d\n", hotswap_entitytype);
