@@ -448,7 +448,7 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 		if(s->mib.oid.OidMfgDateTime == NULL){
 			thisField.Field.DataLength = sizeof("SAHPI_TIME_UNSPECIFIED"); /* SaHpiUint8T  */	
 			thisField.Field.DataType = SAHPI_TL_TYPE_TEXT; /* SaHpiTextTypeT */
-			strcpy((char *)thisField.Field.Data,"SAHPI_TIME_UNSPECIFIED");
+			strncpy((char *)thisField.Field.Data,"SAHPI_TIME_UNSPECIFIED", sizeof("SAHPI_TIME_UNSPECIFIED"));
 		
 		} else {
                         rv = snmp_bc_oid_snmp_get(custom_handle, &valEntity, 0,
