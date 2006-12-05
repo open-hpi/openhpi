@@ -218,7 +218,7 @@ static int process_hpi_event(struct oh_domain *d, struct oh_event *e)
          */
         if (sessions->len < 1) {
                 g_array_free(sessions, TRUE);
-                dbg("No sessions open for event's domain %u. "
+                trace("No sessions open for event's domain %u. "
                     "Dropping hpi_event", d->id);
                 return 0;
         }
