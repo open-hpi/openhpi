@@ -360,7 +360,7 @@ SaErrorT snmp_bc_extend_ep(struct oh_event *e,
 
 		/* i == 0 at this point; setting ep Entry[1] */
 		e->resource.ResourceEntity.Entry[i+1].EntityType = SAHPI_ENT_INTERCONNECT;
-		e->resource.ResourceEntity.Entry[i+1].EntityLocation = SNMP_BC_HPI_LOCATION_BASE;
+		e->resource.ResourceEntity.Entry[i+1].EntityLocation = SNMP_BC_HPI_LOCATION_BASE + resource_index;
 
 		/* Entry[0] remains untouched */
 	}
