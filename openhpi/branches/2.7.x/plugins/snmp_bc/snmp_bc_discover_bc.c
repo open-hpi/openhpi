@@ -5076,6 +5076,7 @@ SaErrorT snmp_bc_discover_switch_i(struct oh_handler_state *handle,
         struct oh_event *e;
 	struct ResourceInfo *res_info_ptr;
 	struct snmp_bc_hnd *custom_handle;
+	struct snmp_value get_value;
 	
 	if (!handle) {
 		dbg("Invalid parameter.");
@@ -5099,8 +5100,13 @@ SaErrorT snmp_bc_discover_switch_i(struct oh_handler_state *handle,
 								
 	/* ---------------------------------------- */
 	/* Construct .resource of struct oh_event   */
-	/* ---------------------------------------- */	
-	err = snmp_bc_construct_sm_rpt(e, &res_info_ptr, ep_root, sm_index, custom_handle->installed_smi_mask);
+	/* ---------------------------------------- */
+	
+	/* Fetch switch interposer-card installed vector  */
+	/* Have to fetch from hardware in case we have yet to rediscover the SMI */	
+	get_installed_mask(SNMP_BC_SMI_INSTALLED, get_value);
+	
+	err = snmp_bc_construct_sm_rpt(e, &res_info_ptr, ep_root, sm_index, get_value.string);
 	if (err) {
 		snmp_bc_free_oh_event(e);
 		return(err);
@@ -5140,7 +5146,8 @@ SaErrorT snmp_bc_discover_mm_i(struct oh_handler_state *handle,
 	SaErrorT err;
         struct oh_event *e;
 	struct ResourceInfo *res_info_ptr;
-	struct snmp_bc_hnd *custom_handle;	
+	struct snmp_bc_hnd *custom_handle;
+	struct snmp_value get_value;	
 
 	if (!handle) {
 		dbg("Invalid parameter.");
@@ -5164,7 +5171,12 @@ SaErrorT snmp_bc_discover_mm_i(struct oh_handler_state *handle,
 	/* ---------------------------------------- */
 	/* Construct .resource of struct oh_event   */
 	/* ---------------------------------------- */
-	err = snmp_bc_construct_mm_rpt(e, &res_info_ptr, ep_root, mm_index, custom_handle->installed_mmi_mask);
+	
+	/* Fetch mm interposer-card installed vector  */
+	/* Have to fetch from hardware in case we have yet to rediscover the MMI */
+	get_installed_mask(SNMP_BC_MMI_INSTALLED, get_value);
+
+	err = snmp_bc_construct_mm_rpt(e, &res_info_ptr, ep_root, mm_index, get_value.string);
 	if (err) {
 		snmp_bc_free_oh_event(e);
 		return(err);
