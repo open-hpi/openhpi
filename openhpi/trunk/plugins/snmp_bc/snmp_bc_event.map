@@ -1063,6 +1063,11 @@ EN_FRONT_PANEL_TEMP_FAIL|0x06A2E001|SAHPI_MAJOR|OVR_SEV,OVR_RID|"Front panel tem
 # Media Tray Management Bus Operational Status Sensor - event only
 EN_STCONN_FAIL_MEDIATRAY|0x0002205B|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Connectivity status mediatray communication failed"
 
+# FIXME: ADD to Media Tray
+# Need Readable LED for BCHT ...
+# EN_MT_1_HW_FAILURE|0x6F60C001|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Media Tray module 1 hardware failure"
+# EN_MT_2_HW_FAILURE|0x6F60C002|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Media Tray module 2 hardware failure"
+
 #####################
 # I/O Module Resource
 #####################
@@ -1590,6 +1595,111 @@ EN_FAN_PACK3_PFA|0x000B6003|SAHPI_MAJOR|OVR_SEV,OVR_RID|"Fan pack 3 outside reco
 EN_FAN_PACK4_PFA|0x000B6004|SAHPI_MAJOR|OVR_SEV,OVR_RID|"Fan pack 4 outside recommended speed"
 
 # Power Module Fan Pack Average RPM Speed Sensor
+# None
+
+#############################
+# Alarm Panel Module Resource
+#############################
+
+EN_AP_INSTALLED|0x6F60A001|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Alarm Panel module installed"
+EN_AP_REMOVED|0x6F60A002|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Alarm Panel module removed"
+
+############################
+# Alarm Panel Module Sensors
+############################
+
+# Alarm Panel Module Operational Status Sensor
+# EN_AP_HW_FAILURE|0x6F60A101|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Alarm Panel hardware failure"
+
+#####################
+# Mux Module Resource
+#####################
+
+EN_MX_1_INSTALLED|0x6F608001|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Multiplexer Expansion Module 1 installed"
+EN_MX_2_INSTALLED|0x6F608002|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Multiplexer Expansion Module 2 installed"
+EN_MX_1_REMOVED|0x6F609001|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Multiplexer Expansion Module 1 removed"
+EN_MX_2_REMOVED|0x6F609002|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Multiplexer Expansion Module 2 removed"
+
+####################
+# Mux Module Sensors
+####################
+
+# Mux Module Operational Status Sensor
+# EN_MX_1_HW_FAILURE|0x6F60D001|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Connectivity to the active Multiplexer Expansion module 1 failed"
+# EN_MX_2_HW_FAILURE|0x6F60D002|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Connectivity to the active Multiplexer Expansion module 2 failed"
+ 
+###############################
+# Network Clock Module Resource
+###############################
+
+EN_NC_1_INSTALLED|0x6F606001|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Network Clock module 1 installed"
+EN_NC_2_INSTALLED|0x6F606002|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Network Clock module 2 installed"
+EN_NC_1_REMOVED|0x6F607001|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Network Clock module 1 removed"
+EN_NC_2_REMOVED|0x6F607002|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Network Clock module 2 removed"
+
+##############################
+# Network Clock Module Sensors
+##############################
+
+# Network Clock Module Operational Status Sensor
+# EN_NC_1_HW_FAILURE|0x6F607101|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Network Clock module 1 hardware failure"
+# EN_NC_2_HW_FAILURE|0x6F607102|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Network Clock module 2 hardware failure"
+
+######################
+# Front Bezel Resource
+######################
+
+EN_FB_INSTALLED|0x6F60B001|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Front Bezel installed"
+EN_FB_REMOVED|0x6F60B101|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Front Bezel removed"
+
+#####################
+# Front Bezel Sensors
+#####################
+
+# FIXME:: ADD filer sensor events here for BCHT only
+
+########################
+# MM Interposer Resource
+########################
+
+EN_MM_INP_1_INSTALLED|0x6F600001|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Management Module Interposer 1 installed"
+EN_MM_INP_2_INSTALLED|0x6F600002|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Management Module Interposer 2 installed"
+EN_MM_INP_1_REMOVED|0x6F601001|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Management Module Interposer 1 removed"
+EN_MM_INP_2_REMOVED|0x6F601002|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Management Module Interposer 2 removed"
+
+#######################
+# MM Interposer Sensors
+#######################
+# None
+
+#########################
+# I/O Interposer Resource
+#########################
+
+EN_IO_INP_1_INSTALLED|0x6F602001|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"I/O Module Interposer 1 installed"
+EN_IO_INP_2_INSTALLED|0x6F602002|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"I/O Module Interposer 2 installed"
+EN_IO_INP_3_INSTALLED|0x6F602003|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"I/O Module Interposer 3 installed"
+EN_IO_INP_4_INSTALLED|0x6F602004|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"I/O Module Interposer 4 installed"
+EN_IO_INP_5_INSTALLED|0x6F602005|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"I/O Module Interposer 5 installed"
+EN_IO_INP_6_INSTALLED|0x6F602006|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"I/O Module Interposer 6 installed"
+EN_IO_INP_7_INSTALLED|0x6F602007|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"I/O Module Interposer 7 installed"
+EN_IO_INP_8_INSTALLED|0x6F602008|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"I/O Module Interposer 8 installed"
+EN_IO_INP_9_INSTALLED|0x6F602009|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"I/O Module Interposer 9 installed"
+EN_IO_INP_10_INSTALLED|0x6F60200A|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"I/O Module Interposer 10 installed"
+EN_IO_INP_1_REMOVED|0x6F603001|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"I/O Module Interposer 1 removed"
+EN_IO_INP_2_REMOVED|0x6F603002|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"I/O Module Interposer 2 removed"
+EN_IO_INP_3_REMOVED|0x6F603003|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"I/O Module Interposer 3 removed"
+EN_IO_INP_4_REMOVED|0x6F603004|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"I/O Module Interposer 4 removed"
+EN_IO_INP_5_REMOVED|0x6F603005|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"I/O Module Interposer 5 removed"
+EN_IO_INP_6_REMOVED|0x6F603006|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"I/O Module Interposer 6 removed"
+EN_IO_INP_7_REMOVED|0x6F603007|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"I/O Module Interposer 7 removed"
+EN_IO_INP_8_REMOVED|0x6F603008|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"I/O Module Interposer 8 removed"
+EN_IO_INP_9_REMOVED|0x6F603009|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"I/O Module Interposer 9 removed"
+EN_IO_INP_10_REMOVED|0x6F60300A|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"I/O Module Interposer 10 removed"
+
+########################
+# I/O Interposer Sensors
+########################
 # None
 
 ###########################################
