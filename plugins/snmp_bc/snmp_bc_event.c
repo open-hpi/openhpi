@@ -1385,7 +1385,7 @@ static SaErrorT snmp_bc_logsrc2rid(struct oh_handler_state *handle,
 
 	/* Find the location value from last part of log's source string */
 	if (isexpansioncard == SAHPI_TRUE || isblade == SAHPI_TRUE || isswitch == SAHPI_TRUE) {
-		src_loc = strtoul(src_parts[1], &endptr, 10);
+		if(src_parts[1]) src_loc = strtoul(src_parts[1], &endptr, 10);
 		if (isexpansioncard == SAHPI_TRUE) {
 			rpt_index = BC_RPT_ENTRY_BLADE_EXPANSION_CARD;
 			array_ptr = &snmp_bc_bem_sensors[0];	
