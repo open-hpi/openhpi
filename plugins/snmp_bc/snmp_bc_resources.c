@@ -393,9 +393,9 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                                         .EntityLocation = 0,
                                 }
                         },
-                        .ResourceCapabilities = SAHPI_CAPABILITY_RDR |
-						SAHPI_CAPABILITY_FRU |
+                        .ResourceCapabilities = SAHPI_CAPABILITY_FRU |
 						SAHPI_CAPABILITY_MANAGED_HOTSWAP |
+			                        SAHPI_CAPABILITY_RDR |
                                                 SAHPI_CAPABILITY_RESOURCE |
 			                        SAHPI_CAPABILITY_SENSOR,
                         .ResourceSeverity = SAHPI_MAJOR,
@@ -749,7 +749,7 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                 },
                 .comment = "BEM DASD",
         },
-        /* Alarm Panel */
+        /* Alarm Panel Module */
         {
                 .rpt = {
                         .ResourceInfo = {
@@ -790,13 +790,28 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
   			.cur_state = SAHPI_HS_STATE_ACTIVE,
 			.prev_state = SAHPI_HS_STATE_ACTIVE,
                         .event_array = {
-                                {
-					/* FIXME: */
+                                 {
+                                        .event = "6F60A001", /* EN_AP_INSTALLED */
+					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_HS_STATE_ACTIVE,
+					.event_auto_state = 0,
+                                        .recovery_state = SAHPI_HS_STATE_NOT_PRESENT,
+					.recovery_auto_state = 0,
                                 },
+                                {
+                                        .event = "6F60A002", /* EN_AP_REMOVED */
+					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_HS_STATE_NOT_PRESENT,
+					.event_auto_state = 0,
+                                        .recovery_state = SAHPI_HS_STATE_ACTIVE,
+ 					.recovery_auto_state = 0,
+				},
                                 {},
                         },
                 },
-                .comment = "Alarm Panel",
+                .comment = "Alarm Panel Module",
         },
         /* Multiplexer Expansion Module */
         {
@@ -839,9 +854,24 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
   			.cur_state = SAHPI_HS_STATE_ACTIVE,
 			.prev_state = SAHPI_HS_STATE_ACTIVE,
                         .event_array = {
-                                {
-					/* FIXME:: */	
+                                 {
+                                        .event = "6F60800x", /* EN_MX_x_INSTALLED */
+					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_HS_STATE_ACTIVE,
+					.event_auto_state = 0,
+                                        .recovery_state = SAHPI_HS_STATE_NOT_PRESENT,
+					.recovery_auto_state = 0,
                                 },
+                                {
+                                        .event = "6F60900x", /* EN_MX_x_REMOVED */
+					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_HS_STATE_NOT_PRESENT,
+					.event_auto_state = 0,
+                                        .recovery_state = SAHPI_HS_STATE_ACTIVE,
+ 					.recovery_auto_state = 0,
+				},
                                 {},
                         },
                 },
@@ -889,15 +919,30 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
   			.cur_state = SAHPI_HS_STATE_ACTIVE,
 			.prev_state = SAHPI_HS_STATE_ACTIVE,
                         .event_array = {
-                                {
-					/* FIXME:: */
+                                 {
+                                        .event = "6F60600x", /* EN_NC_x_INSTALLED */
+					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_HS_STATE_ACTIVE,
+					.event_auto_state = 0,
+                                        .recovery_state = SAHPI_HS_STATE_NOT_PRESENT,
+					.recovery_auto_state = 0,
                                 },
+                                {
+                                        .event = "6F60700x", /* EN_NC_x_REMOVED */
+					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_HS_STATE_NOT_PRESENT,
+					.event_auto_state = 0,
+                                        .recovery_state = SAHPI_HS_STATE_ACTIVE,
+ 					.recovery_auto_state = 0,
+				},
                                 {},
                         },
                 },
                 .comment = "Network Clock Module",
         },
-        /* Air Filter */
+        /* Front Bezel */
         {
                 .rpt = {
                         .ResourceInfo = {
@@ -933,15 +978,30 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
   			.cur_state = SAHPI_HS_STATE_ACTIVE,
 			.prev_state = SAHPI_HS_STATE_ACTIVE,
                         .event_array = {
-                                {
-					/* FIXME:: */
+				{
+                                        .event = "6F60B001", /* EN_FB_INSTALLED */
+					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_HS_STATE_ACTIVE,
+					.event_auto_state = 0,
+                                        .recovery_state = SAHPI_HS_STATE_NOT_PRESENT,
+					.recovery_auto_state = 0,
                                 },
+                                {
+                                        .event = "6F60B101", /* EN_FB_REMOVED */
+					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_HS_STATE_NOT_PRESENT,
+					.event_auto_state = 0,
+                                        .recovery_state = SAHPI_HS_STATE_ACTIVE,
+ 					.recovery_auto_state = 0,
+				},
                                 {},
                         },
                 },
-                .comment = "Air Filter",
+                .comment = "Front Bezel",
         },
-        /* Switch Interposer */
+        /* I/O Module Interposer */
         {
                 .rpt = {
                         .ResourceInfo = {
@@ -980,10 +1040,28 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
   			.cur_state = SAHPI_HS_STATE_ACTIVE,
 			.prev_state = SAHPI_HS_STATE_ACTIVE,
                         .event_array = {
-                                {},
+ 				{
+                                        .event = "6F60200x", /* EN_IO_INP_x_INSTALLED */
+					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_HS_STATE_ACTIVE,
+					.event_auto_state = 0,
+                                        .recovery_state = SAHPI_HS_STATE_NOT_PRESENT,
+					.recovery_auto_state = 0,
+                                },
+                                {
+                                        .event = "6F60300x", /* EN_IO_INP_x_REMOVED */
+					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_HS_STATE_NOT_PRESENT,
+					.event_auto_state = 0,
+                                        .recovery_state = SAHPI_HS_STATE_ACTIVE,
+ 					.recovery_auto_state = 0,
+				},
+				{},
                         },
                 },
-                .comment = "Switch Interposer",
+                .comment = "I/O Module Interposer",
         },
         /* Management Module Interposer */
         {
@@ -1006,7 +1084,8 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                                         .EntityLocation = 0,
                                 }
                          },
-                        .ResourceCapabilities = SAHPI_CAPABILITY_INVENTORY_DATA |
+                        .ResourceCapabilities = SAHPI_CAPABILITY_FRU |
+			                        SAHPI_CAPABILITY_INVENTORY_DATA |
                                                 SAHPI_CAPABILITY_RDR |
                                                 SAHPI_CAPABILITY_RESOURCE,
                         .ResourceSeverity = SAHPI_MAJOR,
@@ -1024,6 +1103,24 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
   			.cur_state = SAHPI_HS_STATE_ACTIVE,
 			.prev_state = SAHPI_HS_STATE_ACTIVE,
                         .event_array = {
+				{
+                                        .event = "6F60000x", /* EN_MM_INP_x_INSTALLED */
+					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_HS_STATE_ACTIVE,
+					.event_auto_state = 0,
+                                        .recovery_state = SAHPI_HS_STATE_NOT_PRESENT,
+					.recovery_auto_state = 0,
+                                },
+                                {
+                                        .event = "6F60100x", /* EN_MM_INP_x_REMOVED */
+					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_HS_STATE_NOT_PRESENT,
+					.event_auto_state = 0,
+                                        .recovery_state = SAHPI_HS_STATE_ACTIVE,
+ 					.recovery_auto_state = 0,
+				},
                                 {},
                         },
                 },
@@ -12230,5 +12327,3 @@ struct snmp_bc_inventory snmp_bc_interposer_mm_inventories[] = {
 
         {} /* Terminate array with a null element */
 };
-
-
