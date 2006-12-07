@@ -330,7 +330,7 @@ struct snmp_bc_ipmi_sensor {
 };
 
 extern struct snmp_bc_sensor      snmp_bc_chassis_sensors[];
-extern struct snmp_bc_sensor      snmp_bc_chassis_sensors_bct[];
+extern struct snmp_bc_sensor      snmp_bc_chassis_sensors_bct_filter[];
 extern struct snmp_bc_sensor      snmp_bc_blade_sensors[];
 extern struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[];
 extern struct snmp_bc_sensor      snmp_bc_bem_sensors[];
@@ -341,6 +341,8 @@ extern struct snmp_bc_sensor      snmp_bc_mgmnt_sensors[];
 extern struct snmp_bc_sensor      snmp_bc_mgmnt_health_sensors[];
 extern struct snmp_bc_sensor      snmp_bc_virtual_mgmnt_sensors[];
 extern struct snmp_bc_sensor      snmp_bc_mediatray_sensors[];
+extern struct snmp_bc_sensor      snmp_bc_mediatray_sensors_faultled[];
+extern struct snmp_bc_sensor      snmp_bc_mediatray_sensors_nofaultled[];
 extern struct snmp_bc_sensor      snmp_bc_mediatray2_sensors[];
 extern struct snmp_bc_sensor      snmp_bc_blower_sensors[];
 extern struct snmp_bc_sensor      snmp_bc_blower_sensors_bch[];
@@ -363,7 +365,7 @@ extern struct snmp_bc_sensor      snmp_bc_fan_sensors_rsa[];
  *********************/
 
 struct ControlMibInfo {
-        unsigned int not_avail_indicator_num; /* 0 for none, n>0 otherwise */
+         unsigned int not_avail_indicator_num; /* 0 for none, n>0 otherwise */
         int write_only; /* Write-only SNMP command; 0 no; 1 yes */
         const char *oid;
 	SaHpiEntityLocationT loc_offset;

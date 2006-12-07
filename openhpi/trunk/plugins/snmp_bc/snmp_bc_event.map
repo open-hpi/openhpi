@@ -1047,26 +1047,33 @@ EN_GENERIC_LOWER_WARN_VOLT|0xFFFFFF3D|SAHPI_MAJOR|OVR_SEV|"expansion board 1 (BI
 # Media Tray Resource
 #####################
 
-# There are not separate hot-swap installed/removed events for media trays.
-# These events represent a media tray removal; the recovery of this event represents an install.
+# For non-AMM systems, the recovery of the removed event represents an install.
 EN_MEDIA_TRAY_REMOVED|0x06A1E001|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"The media tray was removed"
 EN_MEDIA_TRAY_REMOVED|0x06A1E001|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Media Tray removed"
+
+# FIXME:: MM is supposed to change the string to 1 and 2
+EN_MEDIA_TRAY_REMOVED|0x06A1E001|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Media Tray A removed"
+EN_MEDIA_TRAY_2_REMOVED|0x06A1E002|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Media Tray B removed"
+
+# FIXME:: Add Media Tray installed messages when MM adds to code
+# Also add to snmp_bc_resources.c
 
 ####################
 # Media Tray Sensors
 ####################
 
-# Media Tray Operational Status Sensor - event only
-EN_FAULT_FP_R|0x09020000|SAHPI_MINOR|OVR_SEV,OVR_RID|"System front panel controller not responding"
-EN_FRONT_PANEL_TEMP_FAIL|0x06A2E001|SAHPI_MAJOR|OVR_SEV,OVR_RID|"Front panel temperature is unavailable. Cooling capacity set to maximum"
+# Media Tray Operational Status Sensor - event only (except for BCHT, which supports a readable Fault LED)
+# EN_FAULT_FP_R|0x09020000|SAHPI_MINOR|OVR_SEV,OVR_RID|"System front panel controller not responding"
+# FIXME:: MM is supposed to change these strings
+EN_FRONT_PANEL_TEMP_FAIL|0x06A2E001|SAHPI_MAJOR|OVR_SEV,OVR_RID|"Front panel A temperature is unavailable. Cooling capacity set to maximum"
+EN_FRONT_PANEL_B_TEMP_FAIL|0x06A2E002|SAHPI_MAJOR|OVR_SEV,OVR_RID|"Front panel B temperature is unavailable. Cooling capacity set to maximum"
+EN_MT_1_HW_FAILURE|0x6F60C001|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Media Tray module 1 hardware failure"
+EN_MT_2_HW_FAILURE|0x6F60C002|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Media Tray module 2 hardware failure"
 
 # Media Tray Management Bus Operational Status Sensor - event only
+# FIXME:: MM is supposed to change these strings
 EN_STCONN_FAIL_MEDIATRAY|0x0002205B|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Connectivity status mediatray communication failed"
-
-# FIXME: ADD to Media Tray
-# Need Readable LED for BCHT ...
-# EN_MT_1_HW_FAILURE|0x6F60C001|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Media Tray module 1 hardware failure"
-# EN_MT_2_HW_FAILURE|0x6F60C002|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Media Tray module 2 hardware failure"
+EN_STCONN_FAIL_MEDIATRAYB|0x0002205C|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Connectivity status mediatray B communication failed"
 
 #####################
 # I/O Module Resource
@@ -1402,6 +1409,25 @@ EN_FAULT_FAN4|0x0A026004|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Blower 4 Fault Mul
 EN_FAULT_FAN4|0x0A026004|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Blower 4 Fault Single blower failure"
 EN_FAULT_FAN4|0x0A026004|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Blower 4 Fault"
 
+# For newer AMM code levels there are installed/removed events
+EN_FAULT_FAN1|0x0A026001|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Blower 1 removed Multiple blower failures"
+EN_FAULT_FAN1|0x0A026001|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Blower 1 removed Single blower failure"
+EN_FAULT_FAN1|0x0A026001|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Blower 1 removed"
+EN_FAULT_FAN2|0x0A026002|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Blower 2 removed Multiple blower failures"
+EN_FAULT_FAN2|0x0A026002|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Blower 2 removed Single blower failure"
+EN_FAULT_FAN2|0x0A026002|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Blower 2 removed"
+EN_FAULT_FAN3|0x0A026003|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Blower 3 removed Multiple blower failures"
+EN_FAULT_FAN3|0x0A026003|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Blower 3 removed Single blower failure"
+EN_FAULT_FAN3|0x0A026003|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Blower 3 removed"
+EN_FAULT_FAN4|0x0A026004|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Blower 4 removed Multiple blower failures"
+EN_FAULT_FAN4|0x0A026004|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Blower 4 removed Single blower failure"
+EN_FAULT_FAN4|0x0A026004|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Blower 4 removed"
+
+EN_FAN_1_INSTALLED|0x0A002001|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Blower 1 installed"
+EN_FAN_2_INSTALLED|0x0A002002|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Blower 2 installed"
+EN_FAN_3_INSTALLED|0x0A002003|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Blower 3 installed"
+EN_FAN_4_INSTALLED|0x0A002004|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Blower 4 installed"
+
 #######################
 # Blower Module Sensors
 #######################
@@ -1609,7 +1635,7 @@ EN_AP_REMOVED|0x6F60A002|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Alarm Panel module
 ############################
 
 # Alarm Panel Module Operational Status Sensor
-# EN_AP_HW_FAILURE|0x6F60A101|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Alarm Panel hardware failure"
+EN_AP_HW_FAILURE|0x6F60A101|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Alarm Panel hardware failure"
 
 #####################
 # Mux Module Resource
@@ -1625,8 +1651,8 @@ EN_MX_2_REMOVED|0x6F609002|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Multiplexer Expa
 ####################
 
 # Mux Module Operational Status Sensor
-# EN_MX_1_HW_FAILURE|0x6F60D001|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Connectivity to the active Multiplexer Expansion module 1 failed"
-# EN_MX_2_HW_FAILURE|0x6F60D002|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Connectivity to the active Multiplexer Expansion module 2 failed"
+EN_MX_1_HW_FAILURE|0x6F60D001|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Connectivity to the active Multiplexer Expansion module 1 failed"
+EN_MX_2_HW_FAILURE|0x6F60D002|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Connectivity to the active Multiplexer Expansion module 2 failed"
  
 ###############################
 # Network Clock Module Resource
@@ -1642,8 +1668,8 @@ EN_NC_2_REMOVED|0x6F607002|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Network Clock mo
 ##############################
 
 # Network Clock Module Operational Status Sensor
-# EN_NC_1_HW_FAILURE|0x6F607101|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Network Clock module 1 hardware failure"
-# EN_NC_2_HW_FAILURE|0x6F607102|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Network Clock module 2 hardware failure"
+EN_NC_1_HW_FAILURE|0x6F607101|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Network Clock module 1 hardware failure"
+EN_NC_2_HW_FAILURE|0x6F607102|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Network Clock module 2 hardware failure"
 
 ######################
 # Front Bezel Resource
@@ -1656,7 +1682,7 @@ EN_FB_REMOVED|0x6F60B101|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Front Bezel remove
 # Front Bezel Sensors
 #####################
 
-# FIXME:: ADD filer sensor events here for BCHT only
+# FIXME:: ADD filter sensor events here for BCHT only
 
 ########################
 # MM Interposer Resource
