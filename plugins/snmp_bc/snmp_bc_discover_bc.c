@@ -793,7 +793,13 @@ SaErrorT snmp_bc_discover_media_tray(struct oh_handler_state *handle,
 		/* ---------------------------------------- */
 		/* Construct .rdrs of struct oh_event       */
 		/* ---------------------------------------- */		
-		/* Find resource's rdrs: sensors, controls, etc. */		
+		/* Find resource's rdrs: sensors, controls, etc. */
+		if (custom_handle->platform == SNMP_BC_PLATFORM_BCHT) {
+			snmp_bc_discover_sensors(handle, snmp_bc_mediatray_sensors_faultled, e);	
+		}
+		else {
+			snmp_bc_discover_sensors(handle, snmp_bc_mediatray_sensors_nofaultled, e);	
+		}
 		snmp_bc_discover_sensors(handle, snmp_bc_mediatray_sensors, e);
 		snmp_bc_discover_controls(handle, snmp_bc_mediatray_controls, e);
 		snmp_bc_discover_inventories(handle, snmp_bc_mediatray_inventories, e);
@@ -891,7 +897,7 @@ SaErrorT snmp_bc_discover_media_tray(struct oh_handler_state *handle,
 			/* --------------------------------------------- */
 			/*      Construct .rdrs of struct oh_event       */
 			/* --------------------------------------------- */		
-			/* Find resource's rdrs: sensors, controls, etc. */		
+			/* Find resource's rdrs: sensors, controls, etc. */
 			snmp_bc_discover_sensors(handle, snmp_bc_mediatray2_sensors, e);
 			snmp_bc_discover_controls(handle, snmp_bc_mediatray2_controls, e);
 			snmp_bc_discover_inventories(handle, snmp_bc_mediatray2_inventories, e);
@@ -1150,7 +1156,6 @@ SaErrorT snmp_bc_discover_chassis(struct oh_handler_state *handle,
 		return(err);
 	}
 	
-
 	/* Add resource event entries to event2hpi_hash table */
 	snmp_bc_discover_res_events(handle, &(e->resource.ResourceEntity), res_info_ptr);
 		
@@ -1159,9 +1164,11 @@ SaErrorT snmp_bc_discover_chassis(struct oh_handler_state *handle,
 	/* ---------------------------------------- */		
 	/* Find resource's rdrs: sensors, controls, etc. */
 	snmp_bc_discover_sensors(handle, snmp_bc_chassis_sensors, e);
+	if ( (custom_handle->platform == SNMP_BC_PLATFORM_BCT) ) {
+		snmp_bc_discover_sensors(handle, snmp_bc_chassis_sensors_bct_filter, e);
+	}
 	if ( (custom_handle->platform == SNMP_BC_PLATFORM_BCT) || 
-		(custom_handle->platform == SNMP_BC_PLATFORM_BCHT) ){
-		snmp_bc_discover_sensors(handle, snmp_bc_chassis_sensors_bct, e);
+	     (custom_handle->platform == SNMP_BC_PLATFORM_BCHT) ){
 		snmp_bc_discover_controls(handle, snmp_bc_chassis_controls_bct, e);
 	}
 	else if ( (custom_handle->platform == SNMP_BC_PLATFORM_BC) || 
@@ -4590,7 +4597,8 @@ SaErrorT snmp_bc_add_blower_rptcache(struct oh_handler_state *handle,
 	/* Find resource's events, sensors, controls, etc. */
 	snmp_bc_discover_res_events(handle, &(e->resource.ResourceEntity), res_info_ptr);
 	snmp_bc_discover_sensors(handle, snmp_bc_blower_sensors, e);
-	if (custom_handle->platform == SNMP_BC_PLATFORM_BCH) {
+	if ( (custom_handle->platform == SNMP_BC_PLATFORM_BCH) ||
+	     (custom_handle->platform == SNMP_BC_PLATFORM_BCHT) ){
 		snmp_bc_discover_sensors(handle, snmp_bc_blower_sensors_bch, e);	
 	}
 	snmp_bc_discover_controls(handle, snmp_bc_blower_controls, e);
@@ -4667,7 +4675,8 @@ SaErrorT snmp_bc_add_pm_rptcache(struct oh_handler_state *handle,
 	snmp_bc_discover_res_events(handle, &(e->resource.ResourceEntity), res_info_ptr);
 	snmp_bc_discover_sensors(handle, snmp_bc_power_sensors, e);
 
-	if (custom_handle->platform == SNMP_BC_PLATFORM_BCH) {
+	if ( (custom_handle->platform == SNMP_BC_PLATFORM_BCH) ||
+	     (custom_handle->platform == SNMP_BC_PLATFORM_BCHT) ){
 		snmp_bc_discover_sensors(handle, snmp_bc_power_sensors_bch, e);	
 	}
 
