@@ -1,0 +1,72 @@
+New OpenHPI Daemon Model:
+======================
+The Default build and installation configuration for OpenHPI has been 
+move to the Daemon model.  This results in several operational and 
+usage changes.
+
+Three Methods for using the Daemon:
+==========================
+There are three methods for starting the daemon at this point; manually 
+calling the installed 'init script',  manually starting the daemon in 
+the foreground,  or installing the 'init script' in one of the system 
+run levels and letting the system manage the daemon's execution.  
+
+Manually Calling Init Script:
+-----------------------------------
+You can START and STOP the Daemon with the 'openhpid' init script.  This 
+scriptstarts the daemon.  An HPI consumer application is now ready to  link 
+to 'libopenhpi' and begin interacting with the daemon.  
+
+This script can be found in '/usr/local/etc/init.d/openhpid' or 
+alternately if installed in one of the system run levels in 
+'/etc/init.d/openhpid'. 
+
+Example To Start:
+$sudo /usr/local/etc/init.d/openhpid start
+Starting openhpid:			[  OK  ]
+$
+
+Example To Stop:
+$sudo /usr/local/etc/init.d/openhpid stop
+Stopping openhpid:			[  OK  ]
+$
+
+Installing Daemon into a Run Level:
+--------------------------------------------
+By using the installation script 'install_initd' the run script 'openhpid' 
+can be installed in one the system run levels.  This configuration most 
+closely matches a production machine.
+
+Manually Starting Daemon (Running Daemon in Sandbox):
+-----------------------------------------------------------------------
+After performing 'make install' the 'openhpid' init script will reside 
+in '<DESTDIR>/etc/init.d/openhpid' and the binary daemon 'openhpid' 
+will reside in '<DESTDIR>/sbin/openhpid'. 
+
+If the 'openhpid' init scritp is not used it will be necessary to manually 
+
+1 .  start daemon 'openhpid [options] [-c <path to openhpi.conf>]'  
+
+To start the daemon in the forground use the '-n' option.  For more info 
+'openhpid -h'.
+
+Example: '>openhpid -n -c/etc/openhpi/openhpi.conf'
+
+This method will allow you to run the daemon in the foreground.  See 
+'http://wiki.openhpi.org/OpenHPI/Manual/OpenHPIDaemon'.
+
+Example:
+From Daemon Shell
+>sudo  openhpid -n -c/etc/openhpi/openhpi.conf
+openhpid started.
+OPENHPI_CONF = /etc/openhpi/openhpi.conf
+OPENHPI_DAEMON_PORT = 4743
+
+Note: if you desire debugging info 
+>export OPENHPI_DEBUG=YES
+>export OPENHPI_DEBUG_TRACE=YES
+warning: All debug data will be sent to '/var/log/messages' as well.  Depending on volume 
+you storage may become completely consumed.
+
+From Client shell
+> [Run your client Application Now]
