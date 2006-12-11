@@ -1556,7 +1556,8 @@ SaErrorT snmp_bc_add_to_eventq(struct oh_handler_state *handle, SaHpiEventT *thi
                      	     thisRdr != NULL;
                              thisRdr = oh_get_rdr_next(handle->rptcache, thisEvent->Source, thisRdr->RecordId)) 
 			{
-                                e->rdrs = g_slist_append(e->rdrs, (gpointer)thisRdr);
+				e->rdrs = g_slist_append(e->rdrs, g_memdup(thisRdr, sizeof(SaHpiRdrT)));
+
                 	}
 		} else if (snmp_bc_isrediscover(thisEvent) == SNMP_BC_RESOURCE_REMOVED) {
 			/* Call rediscovery to remove rpt and rdrs from rptcache */
