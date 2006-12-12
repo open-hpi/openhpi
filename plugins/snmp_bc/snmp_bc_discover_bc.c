@@ -2089,7 +2089,7 @@ SaErrorT snmp_bc_add_smi_rptcache(struct oh_handler_state *handle,
 	/* Construct .rdrs of struct oh_event       */
 	/* ---------------------------------------- */								
 	/* Find resource's events, sensors, controls, etc. */
-	//snmp_bc_discover_res_events(handle, &(e->resource.ResourceEntity), res_info_ptr);
+	snmp_bc_discover_res_events(handle, &(e->resource.ResourceEntity), res_info_ptr);
 	//snmp_bc_discover_sensors(handle, snmp_bc_alarm_sensors, e);
 	//snmp_bc_discover_controls(handle, snmp_bc_alarm_controls, e);
 	snmp_bc_discover_inventories(handle, snmp_bc_interposer_switch_inventories, e);
@@ -2350,7 +2350,7 @@ SaErrorT snmp_bc_add_mmi_rptcache(struct oh_handler_state *handle,
 	/* Construct .rdrs of struct oh_event       */
 	/* ---------------------------------------- */								
 	/* Find resource's events, sensors, controls, etc. */
-	//snmp_bc_discover_res_events(handle, &(e->resource.ResourceEntity), res_info_ptr);
+	snmp_bc_discover_res_events(handle, &(e->resource.ResourceEntity), res_info_ptr);
 	//snmp_bc_discover_sensors(handle, snmp_bc_alarm_sensors, e);
 	//snmp_bc_discover_controls(handle, snmp_bc_alarm_controls, e);
 	snmp_bc_discover_inventories(handle, snmp_bc_interposer_mm_inventories, e);
