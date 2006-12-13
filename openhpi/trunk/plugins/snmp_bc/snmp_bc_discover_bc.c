@@ -468,7 +468,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 	
 
 	/* Fetch filter (front bezel) installed vector */
-	get_installed_mask(SNMP_BC_FILTER_INSTALLED, get_value_filter);
+	get_dualmode_object(SNMP_BC_FILTER_INSTALLED, get_value_filter);
 		
 	/* Fetch blower installed vector  */
 	get_installed_mask(SNMP_BC_BLOWER_INSTALLED, get_value_blower);
@@ -3694,7 +3694,7 @@ SaErrorT snmp_bc_rediscover(struct oh_handler_state *handle,
 					break;
 				case (SAHPI_ENT_PHYSICAL_SLOT + 16):
 					/* Fetch filter (front bezel) installed vector */
-					get_installed_mask(SNMP_BC_FILTER_INSTALLED, get_value);
+					get_dualmode_object(SNMP_BC_FILTER_INSTALLED, get_value);
 					custom_handle->installed_filter_mask = get_value.integer;		
 					break;
 				case SAHPI_ENT_DISPLAY_PANEL:				
@@ -3854,7 +3854,7 @@ SaErrorT snmp_bc_rediscover(struct oh_handler_state *handle,
 				break;
 			case (SAHPI_ENT_PHYSICAL_SLOT + 16):
 				/* Fetch filter (front bezel) installed vector */
-				get_installed_mask(SNMP_BC_FILTER_INSTALLED, get_value);
+				get_dualmode_object(SNMP_BC_FILTER_INSTALLED, get_value);
 				err = snmp_bc_discover_filter(handle, &ep_root, get_value.integer);
 				custom_handle->installed_filter_mask = get_value.integer;		
 				break;
