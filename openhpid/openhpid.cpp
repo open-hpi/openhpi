@@ -713,7 +713,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht,
                 
                         memset( &rdr, 0, sizeof( SaHpiRdrT ) );
                         memset( &rpt_entry, 0, sizeof( SaHpiRptEntryT ) );
-                        memset( &event_log_entry, 0, sizeof( SaHpiEventLogEntryT ) );
+			memset( &event_log_entry, 0, sizeof( SaHpiEventLogEntryT ) );
                 
                         if ( HpiDemarshalRequest3( request_mFlags & dMhEndianBit,
                                                         hm, pReq, &session_id, &resource_id,
@@ -2184,37 +2184,6 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht,
                         ret = oHpiGlobalParamSet(&param);
                 
                         thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
-                        result = eResultClose;
-                }
-                break;
-
-                case eFoHpiInjectEvent: {
-                        oHpiHandlerIdT  id = 0;
-                        SaHpiEventT     event;
-                        SaHpiRptEntryT  rpte;
-                        SaHpiRdrT       rdr;
-
-                        memset(&event, 0, sizeof(SaHpiEventT));
-                        memset(&rpte,  0, sizeof(SaHpiRptEntryT));
-                        memset(&rdr,   0, sizeof(SaHpiRdrT));
-
-                
-                        PVERBOSE1("%p Processing oHpiInjectEvent.\n", thrdid);
-                
-                        if ( HpiDemarshalRequest4( request_mFlags & dMhEndianBit,
-                                                   hm, 
-                                                   pReq, 
-                                                   &id, 
-                                                   &event,
-                                                   &rpte, 
-                                                   &rdr ) < 0 )
-                                return eResultError;
-
-
-                        ret = oHpiInjectEvent(id, &event, &rpte, &rdr);
-
-                        thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
-
                         result = eResultClose;
                 }
                 break;

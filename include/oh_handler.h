@@ -27,7 +27,6 @@
 #include <SaHpi.h>
 #include <oh_event.h>
 #include <oh_utils.h>
-#include <oHpi.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -119,12 +118,12 @@ void oh_wake_event_thread(SaHpiBoolT);
  */
 
 struct oh_handler_state {
-        unsigned int    hid;
-        oh_evt_queue    *eventq;
-        GHashTable      *config;
         RPTable         *rptcache;
         oh_el           *elcache;
+        GSList          *eventq;
+        GAsyncQueue     *eventq_async;
         GThread         *thread_handle;
+        GHashTable      *config;
         void            *data;
 };
 
@@ -164,18 +163,15 @@ static const uuid_t UUID_OH_ABI_V2 = {
 
 struct oh_abi_v2 {
         /***
-         * open
-         * handler_config: instance's configuration data.
-         * hid: id of this intance.
-         * eventq: pointer to queue to place events in.
-         *
-         * The function creates a pluing instance.
-         *
-         * Returns: pointer to the handler of the instance
+         * The function create an instance
+         * @return the handler of the instance, this can be recognised
+         * as a domain in upper layer
+         * @param name the mechanism's name.
+         * for example, "snmp" for SNMP, "smi" for IPMI SMI
+         * @param addr the interface name.
+         * for example, "ipaddr:port" for SNMP, "if_num" for IPMI SMI
          **/
-        void *(*open)(GHashTable *handler_config,
-                      unsigned int hid,
-                      oh_evt_queue *eventq);
+        void *(*open)(GHashTable *handler_config);
 
         void (*close)(void *hnd);
 
@@ -191,13 +187,15 @@ struct oh_abi_v2 {
          * resources and rdrs so as to OpenHPI can build up RPT/RDR.
          * @return >0 if an event is returned; 0 if timeout; otherwise an error
          * occur.
+         * @param event if existing, plugin store the event.
          **/
-        SaErrorT (*get_event)(void *hnd);
+        SaErrorT (*get_event)(void *hnd, struct oh_event *event);
 
         /***
          * saHpiDiscover, passed down to plugin
          **/
         SaErrorT (*discover_resources)(void *hnd);
+        SaErrorT (*discover_domain_resources)(void *hnd, SaHpiDomainIdT did);
 
         /***
          * saHpiResourceTagSet, this is passed down so the device has
@@ -651,17 +649,6 @@ struct oh_abi_v2 {
 				    SaHpiResourceIdT id,
                                	    SaHpiResetActionT act);
 
-	/**********************************
-	 * INJECTOR ABIs - OpenHPI specific
-	 **********************************/
-
-	 /***
-	  * oHpiInjectEvent
-	  **/
-	  SaErrorT (*inject_event)(void *hnd,
-                            	   SaHpiEventT *event,
-                            	   SaHpiRptEntryT *rpte,
-                            	   SaHpiRdrT *rdr);
 
 };
 

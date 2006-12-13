@@ -313,24 +313,17 @@ cIpmiSensor::CreateRdr( SaHpiRptEntryT &resource, SaHpiRdrT &rdr )
 
        struct oh_event *e = (struct oh_event *)g_malloc0( sizeof( struct oh_event ) );
 
-       if (resource.ResourceCapabilities & SAHPI_CAPABILITY_FRU)
-       {
-           e->event.EventType = SAHPI_ET_RESOURCE;
-           e->event.EventDataUnion.ResourceEvent.ResourceEventType = SAHPI_RESE_RESOURCE_ADDED;
-           stdlog << "cIpmiSensor::CreateRdr SAHPI_ET_RESOURCE Event resource " << resource.ResourceId << "\n";
-       }
-       else
-       {
-           e->event.EventType = SAHPI_ET_HOTSWAP;
-           e->event.EventDataUnion.HotSwapEvent.HotSwapState = SAHPI_HS_STATE_ACTIVE;
-           e->event.EventDataUnion.HotSwapEvent.PreviousHotSwapState = SAHPI_HS_STATE_ACTIVE;
-           stdlog << "cIpmiSensor::CreateRdr SAHPI_ET_HOTSWAP Event resource " << resource.ResourceId << "\n";
-       }
-       e->resource = resource;
-       e->event.Source = resource.ResourceId;
-       oh_gettimeofday(&e->event.Timestamp);
-       e->event.Severity = resource.ResourceSeverity;
-       
+       if ( !e )
+          {
+            stdlog << "out of space !\n";
+            return false;
+          }
+
+       memset( e, 0, sizeof( struct oh_event ) );
+       e->type              = OH_ET_RESOURCE;
+       e->u.res_event.entry = resource;
+
+       stdlog << "cIpmiSensor::CreateRdr OH_ET_RESOURCE Event resource " << resource.ResourceId << "\n";
        m_mc->Domain()->AddHpiEvent( e );
      }
 
@@ -704,38 +697,49 @@ cIpmiSensor::CreateEnableChangeEvent()
      }
 
   oh_event *e = (oh_event *)g_malloc0( sizeof( struct oh_event ) );
+  if ( !e )
+     {
+       stdlog << "CreateEnableChangeEvent: out of space !\n";
+       return;
+     }
+
+  memset( e, 0, sizeof( struct oh_event ) );
   
-  e->event.EventType = SAHPI_ET_SENSOR_ENABLE_CHANGE;
+  e->type = OH_ET_HPI;
+
+  oh_hpi_event &ohpi_event = e->u.hpi_event;
 
   SaHpiRptEntryT *rptentry = oh_get_resource_by_id( res->Domain()->GetHandler()->rptcache, res->m_resource_id );
   SaHpiRdrT *rdrentry = oh_get_rdr_by_id( res->Domain()->GetHandler()->rptcache, res->m_resource_id, m_record_id );
 
   if ( rptentry )
-      e->resource = *rptentry;
+      ohpi_event.res = *rptentry;
   else
-      e->resource.ResourceCapabilities = 0;
+      ohpi_event.res.ResourceCapabilities = 0;
 
   if ( rdrentry )
-      e->rdrs = g_slist_append(e->rdrs, g_memdup(rdrentry, sizeof(SaHpiRdrT)));
+      ohpi_event.rdr = *rdrentry;
   else
-      e->rdrs = NULL;
+      ohpi_event.rdr.RdrType = SAHPI_NO_RECORD;
 
   // hpi event
-  e->event.Source    = res->m_resource_id;
-  e->event.EventType = SAHPI_ET_SENSOR_ENABLE_CHANGE;
-  e->event.Severity  = SAHPI_INFORMATIONAL;
+  SaHpiEventT &hpie = ohpi_event.event;
+
+  hpie.Source    = res->m_resource_id;
+  hpie.EventType = SAHPI_ET_SENSOR_ENABLE_CHANGE;
+  hpie.Severity  = SAHPI_INFORMATIONAL;
   
-  oh_gettimeofday(&e->event.Timestamp);
+  oh_gettimeofday(&hpie.Timestamp);
   
   // sensor enable event
-  SaHpiSensorEnableChangeEventT *se = &e->event.EventDataUnion.SensorEnableChangeEvent;
-  se->SensorNum     = m_num;
-  se->SensorType    = HpiSensorType(SensorType());
-  se->EventCategory = HpiEventCategory(EventReadingType());
-  se->SensorEnable  = m_enabled;
-  se->SensorEventEnable = m_events_enabled;
-  se->AssertEventMask   = m_current_hpi_assert_mask;
-  se->DeassertEventMask = m_current_hpi_deassert_mask;
+  SaHpiSensorEnableChangeEventT &se = hpie.EventDataUnion.SensorEnableChangeEvent;
+  se.SensorNum     = m_num;
+  se.SensorType    = HpiSensorType(SensorType());
+  se.EventCategory = HpiEventCategory(EventReadingType());
+  se.SensorEnable  = m_enabled;
+  se.SensorEventEnable = m_events_enabled;
+  se.AssertEventMask   = m_current_hpi_assert_mask;
+  se.DeassertEventMask = m_current_hpi_deassert_mask;
   
   stdlog << "cIpmiSensor::CreateEnableChangeEvent OH_ET_HPI Event enable change resource " << res->m_resource_id << "\n";
   m_mc->Domain()->AddHpiEvent( e );
@@ -802,23 +806,33 @@ cIpmiSensor::HandleEvent( cIpmiEvent *event )
   stdlog << "reading event.\n";
 
   oh_event *e = (oh_event *)g_malloc0( sizeof( struct oh_event ) );
+  if ( !e )
+     {
+       stdlog << "out of space !\n";
+       return;
+     }
+
+  memset( e, 0, sizeof( struct oh_event ) );
+  e->type = OH_ET_HPI;
+
+  oh_hpi_event &hpi_event = e->u.hpi_event;
 
   rptentry = oh_get_resource_by_id( res->Domain()->GetHandler()->rptcache, res->m_resource_id );
   rdrentry = oh_get_rdr_by_id( res->Domain()->GetHandler()->rptcache, res->m_resource_id, m_record_id );
 
   if ( rptentry )
-      e->resource = *rptentry;
+      hpi_event.res = *rptentry;
   else
-      e->resource.ResourceCapabilities = 0;
+      hpi_event.res.ResourceCapabilities = 0;
 
   if ( rdrentry )
-      e->rdrs = g_slist_append(e->rdrs, g_memdup(rdrentry, sizeof(SaHpiRdrT)));
+      hpi_event.rdr = *rdrentry;
   else
-      e->rdrs = NULL;
+      hpi_event.rdr.RdrType = SAHPI_NO_RECORD;
 
   // hpi event
+  SaHpiEventT &he = hpi_event.event;
 
-  SaHpiEventT &he = e->event;
   int rv = CreateEvent( event, he );
 
   if ( rv != SA_OK )

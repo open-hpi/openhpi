@@ -34,10 +34,6 @@
 
 cIpmiSensorHotswap::cIpmiSensorHotswap( cIpmiMc *mc )
   : cIpmiSensorDiscrete( mc )
-#ifdef FAKE_ECN_BEHAVIOR
-  ,m_deactivation_locked( 1 ),
-  m_fake_deactivation_locked( false )
-#endif
 {
 }
 
@@ -52,11 +48,6 @@ cIpmiSensorHotswap::GetDataFromSdr( cIpmiMc *mc, cIpmiSdr *sdr )
 {
   if ( !cIpmiSensorDiscrete::GetDataFromSdr( mc, sdr ) )
        return false;
-
-#ifdef FAKE_ECN_BEHAVIOR
-  if ( mc->IsNotEcn() )
-      m_fake_deactivation_locked = true;
-#endif
 
   return true;
 }
@@ -77,15 +68,17 @@ cIpmiSensorHotswap::CreateRdr( SaHpiRptEntryT &resource,
 
        struct oh_event *e = (struct oh_event *)g_malloc0( sizeof( struct oh_event ) );
 
-       e->event.EventType = SAHPI_ET_HOTSWAP;
-       e->event.EventDataUnion.HotSwapEvent.HotSwapState = SAHPI_HS_STATE_ACTIVE;
-       e->event.EventDataUnion.HotSwapEvent.PreviousHotSwapState = SAHPI_HS_STATE_ACTIVE;
-       e->resource = resource;
-       e->event.Source = resource.ResourceId;
-       oh_gettimeofday(&e->event.Timestamp);
-       e->event.Severity = resource.ResourceSeverity;
+       if ( !e )
+          {
+            stdlog << "out of space !\n";
+            return false;
+          }
 
-       stdlog << "cIpmiSensorHotswap::CreateRdr SAHPI_ET_RESOURCE Event resource " << resource.ResourceId << "\n";
+       memset( e, 0, sizeof( struct oh_event ) );
+       e->type               = OH_ET_RESOURCE;
+       e->u.res_event.entry = resource;
+
+       stdlog << "cIpmiSensorHotswap::CreateRdr OH_ET_RESOURCE Event resource " << resource.ResourceId << "\n";
        m_mc->Domain()->AddHpiEvent( e );
      }
 
@@ -160,13 +153,6 @@ cIpmiSensorHotswap::CreateEvent( cIpmiEvent *event, SaHpiEventT &h )
   if (he.HotSwapState == he.PreviousHotSwapState)
       return SA_ERR_HPI_DUPLICATE;
 
-#ifdef FAKE_ECN_BEHAVIOR
-  if (he.HotSwapState == SAHPI_HS_STATE_ACTIVE)
-      m_deactivation_locked = 1;
-  else
-      m_deactivation_locked = 0;
-#endif
-
   return SA_OK;
 }
 
@@ -221,11 +207,5 @@ cIpmiSensorHotswap::GetState( SaHpiHsStateT &state )
 
   state = ConvertIpmiToHpiHotswapState( fs );
 
-#ifdef FAKE_ECN_BEHAVIOR
-  if (( state == SAHPI_HS_STATE_ACTIVE )
-      && ( m_fake_deactivation_locked )
-      && ( m_deactivation_locked == 0 ))
-                state = SAHPI_HS_STATE_EXTRACTION_PENDING;
-#endif
   return SA_OK;
 }

@@ -76,11 +76,6 @@ typedef struct {
 #define OHVERSION_CLIENT 0x0001
 #define OHVERSION_STANDARD 0x0000
 
-#define MAX_RDR_ARRAY_LENGTH 32
-typedef struct {
-        SaHpiRdrT Entry[MAX_RDR_ARRAY_LENGTH];
-} oHpiRdrArrayT;
-
 /* Version function */
 SaHpiUint64T oHpiVersionGet(void);
 
@@ -100,11 +95,5 @@ SaErrorT oHpiHandlerGetNext(oHpiHandlerIdT id, oHpiHandlerIdT *next_id);
 /* Global parameters */
 SaErrorT oHpiGlobalParamGet(oHpiGlobalParamT *param);
 SaErrorT oHpiGlobalParamSet(oHpiGlobalParamT *param);
-
-/* Injector */
-SaErrorT oHpiInjectEvent(oHpiHandlerIdT id,
-                         SaHpiEventT    *event,
-                         SaHpiRptEntryT *rpte,
-                         SaHpiRdrT *rdr);
 
 #endif /*__OHPI_H*/

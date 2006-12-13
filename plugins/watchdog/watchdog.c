@@ -49,7 +49,6 @@
 
 #include <SaHpi.h>
 #include <oh_handler.h>
-#include <oh_domain.h>
 #include <oh_utils.h>
 #include <oh_error.h>
 
@@ -82,9 +81,7 @@ struct wdtitems {
  * addr corresponds to the location of the watchdog device
  **/
 
-static void *watchdog_open(GHashTable *handler_config,
-                           unsigned int hid,
-                           oh_evt_queue *eventq)
+static void *watchdog_open(GHashTable *handler_config)
 {
         struct oh_handler_state *hnd;
         struct wdtitems *wdt;
@@ -92,12 +89,6 @@ static void *watchdog_open(GHashTable *handler_config,
 
         if (!handler_config) {
                 dbg("empty handler_config");
-                return NULL;
-        } else if (!hid) {
-                dbg("Bad handler id passed.");
-                return NULL;
-        } else if (!eventq) {
-                dbg("No event queue was passed.");
                 return NULL;
         }
 
@@ -121,9 +112,6 @@ static void *watchdog_open(GHashTable *handler_config,
         hnd->config = handler_config;
 
         hnd->rptcache = (RPTable *)g_malloc0(sizeof(RPTable));
-
-        hnd->hid = hid;
-        hnd->eventq = eventq;
 
         wdt = malloc(sizeof(*wdt));
         if (!wdt) {
@@ -168,6 +156,9 @@ static void watchdog_close(void *hnd)
 		close(wdt->fd);
 	}
 
+        /* Free unused events */
+        g_slist_free(tmp->eventq);
+
 	free(tmp);
 
 	return;
@@ -176,21 +167,36 @@ static void watchdog_close(void *hnd)
 /**
  * watchdog_get_event:
  * @hnd: pointer to handler instance
+ * @event: pointer to oh_event
+ * @timeout: struct timeval
  *
  * This function gets a watchdog event from the watchdog event table
- * in instance.events.
+ * in instance.events.  It copies the event to memory and then
+ * deletes it from the instance.events table.
  *
  * Return value: 0 if times out, > 0 is event is returned.
  **/
-static int watchdog_get_event(void *hnd)
+static int watchdog_get_event(void *hnd, struct oh_event *event)
 {
 	struct oh_handler_state *tmp = (struct oh_handler_state *) hnd;
+	GSList *i;
 	
 	if (!tmp) {
 		dbg("no handler given");
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
 
+	g_slist_for_each(i, tmp->eventq) {
+		struct oh_event *e = (struct oh_event *)i->data;
+		if (e) {
+			memcpy(event, e, sizeof(*e));
+			tmp->eventq = g_slist_remove_link(tmp->eventq, i);
+			g_slist_free(i);
+			free(e);
+
+			return 1;
+		}
+	}
 	return 0;
 }
 
@@ -292,68 +298,63 @@ static int watchdog_discover_resources(void *hnd)
 			return SA_ERR_HPI_OUT_OF_SPACE;
 		}
 		memset(e, '\0', sizeof(struct oh_event));
-                e->hid = tmp->hid;
-		e->event.EventType = SAHPI_ET_RESOURCE;
+		e->type = OH_ET_RESOURCE;
 		/* Note:  .res_event.entry.ResourceInfo currently unassigned */
-		e->resource.ResourceEntity.Entry[0].EntityType = SAHPI_ENT_SYSTEM_BOARD;
-		e->resource.ResourceEntity.Entry[0].EntityLocation = 0;
-		oh_concat_ep( &(e->resource.ResourceEntity), &g_epbase);
-		puid = oh_uid_from_entity_path(&(e->resource.ResourceEntity));
-		e->resource.ResourceId = puid;
-		e->event.Source = puid;
-		e->resource.EntryId = puid;
-		e->resource.ResourceCapabilities = WD_CAPS;
-		e->resource.ResourceSeverity = SAHPI_CRITICAL;
+		e->u.res_event.entry.ResourceEntity.Entry[0].EntityType = SAHPI_ENT_SYSTEM_BOARD;
+		e->u.res_event.entry.ResourceEntity.Entry[0].EntityLocation = 0;
+		oh_concat_ep( &(e->u.res_event.entry.ResourceEntity), &g_epbase);
+		puid = oh_uid_from_entity_path(&(e->u.res_event.entry.ResourceEntity));
+		e->u.res_event.entry.ResourceId = puid;
+		e->u.res_event.entry.EntryId = puid;
+		e->u.res_event.entry.ResourceCapabilities = WD_CAPS;
+		e->u.res_event.entry.ResourceSeverity = SAHPI_CRITICAL;
 		/* Note e->u.res_event.entry.DomainId as well as  e->u.res_event.domainid.ptr not set */
-		e->resource.ResourceTag.DataType = SAHPI_TL_TYPE_ASCII6;
-		e->resource.ResourceTag.Language = SAHPI_LANG_ENGLISH;
-		e->resource.ResourceTag.DataLength = 12;
-		strcpy((char *)e->resource.ResourceTag.Data, "System-Board");
-		e->event.Timestamp = SAHPI_TIME_UNSPECIFIED;
-		e->event.Severity = e->resource.ResourceSeverity;
-		e->event.EventDataUnion.ResourceEvent.ResourceEventType = SAHPI_RESE_RESOURCE_ADDED;
-				
+		e->u.res_event.entry.ResourceTag.DataType = SAHPI_TL_TYPE_ASCII6;
+		e->u.res_event.entry.ResourceTag.Language = SAHPI_LANG_ENGLISH;
+		e->u.res_event.entry.ResourceTag.DataLength = 12;
+		strcpy((char *)e->u.res_event.entry.ResourceTag.Data, "System-Board");
+		
 		/* add resource */
-		if (0 != oh_add_resource(tmp->rptcache, &(e->resource), NULL, 0)) {
+		if (0 != oh_add_resource(tmp->rptcache, &(e->u.res_event.entry), NULL, 0)) {
 			dbg("unable to add resource to RPT");
 			return SA_ERR_HPI_ERROR;
 		}
+
+		/* add event */
+		tmp->eventq = g_slist_append(tmp->eventq, e);
 
 		/* 
 		 * create RDR creation event
 		 */	
 		/* note:  reusing e; okay so long as we don't do a free(e) before */
-		SaHpiRdrT *tmprdr = (SaHpiRdrT *)malloc(sizeof(SaHpiRdrT));
-		if (!tmprdr) {
+		e = (struct oh_event *)malloc(sizeof(*e));
+		if (!e) {
 			dbg("unable to allocate event");
 			return SA_ERR_HPI_OUT_OF_SPACE;
 		}
-		memset(tmprdr, '\0', sizeof(*tmprdr));
-		tmprdr->RecordId = 0; /* set to 0 b/c first -- and only -- RDR*/
-		tmprdr->RdrType = SAHPI_WATCHDOG_RDR;
-		tmprdr->RdrTypeUnion.WatchdogRec.WatchdogNum = 
+		memset(e, '\0', sizeof(*e));
+		e->type = OH_ET_RDR;
+		e->u.rdr_event.rdr.RecordId = 0; /* set to 0 b/c first -- and only -- RDR*/
+		e->u.rdr_event.rdr.RdrType = SAHPI_WATCHDOG_RDR;
+		e->u.rdr_event.rdr.RdrTypeUnion.WatchdogRec.WatchdogNum = 
 			SAHPI_DEFAULT_WATCHDOG_NUM; /* set to default b/c only wdt */
-		tmprdr->RdrTypeUnion.WatchdogRec.Oem = 0; /* n/a */
-		tmprdr->Entity.Entry[0].EntityType = SAHPI_ENT_SYSTEM_BOARD;
-		tmprdr->Entity.Entry[0].EntityLocation = 0;
-		oh_concat_ep( &(tmprdr->Entity), &g_epbase);
-		tmprdr->IdString.DataType = SAHPI_TL_TYPE_ASCII6;
-		tmprdr->IdString.Language = SAHPI_LANG_ENGLISH;
-		tmprdr->IdString.DataLength = 8;
-		strcpy((char *)tmprdr->IdString.Data, "Watchdog");
+		e->u.rdr_event.rdr.RdrTypeUnion.WatchdogRec.Oem = 0; /* n/a */
+		e->u.rdr_event.rdr.Entity.Entry[0].EntityType = SAHPI_ENT_SYSTEM_BOARD;
+		e->u.rdr_event.rdr.Entity.Entry[0].EntityLocation = 0;
+		oh_concat_ep( &(e->u.rdr_event.rdr.Entity), &g_epbase);
+		e->u.rdr_event.rdr.IdString.DataType = SAHPI_TL_TYPE_ASCII6;
+		e->u.rdr_event.rdr.IdString.Language = SAHPI_LANG_ENGLISH;
+		e->u.rdr_event.rdr.IdString.DataLength = 8;
+		strcpy((char *)e->u.rdr_event.rdr.IdString.Data, "Watchdog");
+
+		/* add event */
+		tmp->eventq = g_slist_append(tmp->eventq, e);
 
 		/* add RDR */
-        	if (oh_add_rdr(tmp->rptcache, puid, tmprdr, NULL, 0)) {
+        	if (oh_add_rdr(tmp->rptcache, puid, &e->u.rdr_event.rdr, NULL, 0)) {
                 	dbg("unable to add RDR to RPT");
                 	return SA_ERR_HPI_ERROR;
 		}
-
-		/* Add rdr to event */
-		e->rdrs = g_slist_append(e->rdrs, tmprdr);
-
-		/* add event to our event queue */
-		oh_evt_queue_push(tmp->eventq, e);
-
 	}
 	
 	return 0;
@@ -599,11 +600,11 @@ static int watchdog_reset_watchdog(void *hnd, SaHpiResourceIdT id,
 	return 0;
 }
 
-void * oh_open (GHashTable *, unsigned int, oh_evt_queue *) __attribute__ ((weak, alias("watchdog_open")));
+void * oh_open (GHashTable *) __attribute__ ((weak, alias("watchdog_open")));
 
 void * oh_close (void *) __attribute__ ((weak, alias("watchdog_close")));
 
-void * oh_get_event (void *) 
+void * oh_get_event (void *, struct oh_event *) 
                 __attribute__ ((weak, alias("watchdog_get_event")));
 		
 void * oh_discover_resources (void *) 

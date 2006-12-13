@@ -13,6 +13,7 @@
  * Authors:
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
  *     Pierre Sangouard  <psangouard@eso-tech.com>
+ *     Andy Cress        <arcress@users.sourceforge.net>
  */
 
 #include <netdb.h>
@@ -129,6 +130,44 @@ VerifyControlAndEnter( void *hnd, SaHpiResourceIdT rid, SaHpiCtrlNumT num,
   return control;
 }
 
+static cIpmiWatchdog *
+VerifyWatchdogAndEnter( void *hnd, SaHpiResourceIdT rid, SaHpiWatchdogNumT num,
+                        cIpmi *&ipmi )
+{
+  ipmi = VerifyIpmi( hnd );
+
+  if ( !ipmi )
+     {
+       return 0;
+     }
+
+  ipmi->IfEnter();
+
+  SaHpiRdrT *rdr = oh_get_rdr_by_type( ipmi->GetHandler()->rptcache,
+                                       rid, SAHPI_WATCHDOG_RDR, num );
+  if ( !rdr )
+     {
+       ipmi->IfLeave();
+       return 0;
+     }
+
+  cIpmiWatchdog *watchdog = (cIpmiWatchdog *)oh_get_rdr_data( ipmi->GetHandler()->rptcache,
+                                                              rid, rdr->RecordId );
+  if ( !watchdog )
+     {
+       ipmi->IfLeave();
+       return 0;
+     }
+
+  if ( !ipmi->VerifyWatchdog( watchdog ) )
+     {
+       ipmi->IfLeave();
+       return 0;
+     }
+
+  return watchdog;
+}
+
 static cIpmiInventory *
 VerifyInventoryAndEnter( void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid,
                          cIpmi *&ipmi )
@@ -240,10 +279,10 @@ extern "C" {
 // ABI Interface functions
 
 static void *
-IpmiOpen( GHashTable *, unsigned int, oh_evt_queue * ) __attribute__((used));
+IpmiOpen( GHashTable * ) __attribute__((used));
 
 static void *
-IpmiOpen( GHashTable *handler_config, unsigned int hid, oh_evt_queue *eventq )
+IpmiOpen( GHashTable *handler_config )
 {
   // open log
   const char *logfile = 0;
@@ -324,8 +363,6 @@ IpmiOpen( GHashTable *handler_config, unsigned int hid, oh_evt_queue *eventq )
      }
 
   handler->config   = handler_config;
-  handler->hid = hid;
-  handler->eventq = eventq;
 
   ipmi->SetHandler( handler );
 
@@ -362,9 +399,7 @@ IpmiClose( void *hnd )
      {
        return;
      }
-/** Commenting this code block due to the multi-domain changes
- ** in the infrastructure.
- ** (Renier Morales 11/21/06)
+
   if ( ipmi->DomainId() != oh_get_default_domain_id() )
   {
       stdlog << "Releasing domain id " << ipmi->DomainId() << "\n";
@@ -373,7 +408,7 @@ IpmiClose( void *hnd )
 
       if ( rv != SA_OK )
           stdlog << "oh_request_domain_delete error " << rv << "\n";
-  }*/
+  }
 
   ipmi->IfClose();
 
@@ -397,13 +432,12 @@ IpmiClose( void *hnd )
 
 
 static SaErrorT
-IpmiGetEvent( void * ) __attribute__((used));
+IpmiGetEvent( void *, struct oh_event * ) __attribute__((used));
 
 static SaErrorT
-IpmiGetEvent( void *hnd )
+IpmiGetEvent( void *hnd, struct oh_event *event )
 {
   cIpmi *ipmi = VerifyIpmi( hnd );
-  struct oh_event event;
 
   if ( !ipmi )
      {
@@ -412,7 +446,7 @@ IpmiGetEvent( void *hnd )
 
   // there is no need to get a lock because
   // the event queue has its own lock
-  SaErrorT rv = ipmi->IfGetEvent( &event );
+  SaErrorT rv = ipmi->IfGetEvent( event );
 
   return rv;
 }
@@ -432,6 +466,27 @@ IpmiDiscoverResources( void *hnd )
      }
 
   stdlog << "Simple discovery let's go " << hnd << "\n";
+
+  SaErrorT rv = ipmi->IfDiscoverResources();
+
+  return rv;
+}
+
+
+static SaErrorT
+IpmiDiscoverDomainResources( void *, SaHpiDomainIdT ) __attribute__((used));
+
+static SaErrorT
+IpmiDiscoverDomainResources( void *hnd, SaHpiDomainIdT did )
+{
+  cIpmi *ipmi = VerifyIpmi( hnd );
+
+  if ( !ipmi )
+     {
+       return SA_ERR_HPI_INTERNAL_ERROR;
+     }
+
+  stdlog << "Dedicated discovery let's go " << hnd << " " << did << "\n";
 
   SaErrorT rv = ipmi->IfDiscoverResources();
 
@@ -1455,19 +1510,84 @@ IpmiSetResetState( void *hnd,
   return rv;
 }
 
+static SaErrorT
+IpmiGetWatchdogInfo(void *,
+                    SaHpiResourceIdT,
+                    SaHpiWatchdogNumT,
+                    SaHpiWatchdogT *) __attribute__((used));
+
+static SaErrorT
+IpmiGetWatchdogInfo(void *hnd,
+                    SaHpiResourceIdT  id,
+                    SaHpiWatchdogNumT num,
+                    SaHpiWatchdogT    *watchdog)
+{
+  cIpmi *ipmi = 0;
+  cIpmiWatchdog *wd = VerifyWatchdogAndEnter( hnd, id, num, ipmi );
+  if ( !wd ) return SA_ERR_HPI_NOT_PRESENT;
+
+  SaErrorT rv = wd->GetWatchdogInfo( *watchdog );
+  ipmi->IfLeave();
+  return rv; 
+}
+
+static SaErrorT
+IpmiSetWatchdogInfo(void *,
+                    SaHpiResourceIdT,
+                    SaHpiWatchdogNumT,
+                    SaHpiWatchdogT *) __attribute__((used));
+
+static SaErrorT
+IpmiSetWatchdogInfo(void *hnd,
+                    SaHpiResourceIdT  id,
+                    SaHpiWatchdogNumT num,
+                    SaHpiWatchdogT    *watchdog)
+{
+  cIpmi *ipmi = 0;
+  cIpmiWatchdog *wd = VerifyWatchdogAndEnter( hnd, id, num, ipmi );
+  if ( !wd ) return SA_ERR_HPI_NOT_PRESENT;
+
+  SaErrorT rv = wd->SetWatchdogInfo( *watchdog );
+  ipmi->IfLeave();
+  return rv; 
+}
+
+static SaErrorT
+IpmiResetWatchdog(void *,
+                  SaHpiResourceIdT,
+                  SaHpiWatchdogNumT) __attribute__((used));
+
+static SaErrorT
+IpmiResetWatchdog(void *hnd,
+                  SaHpiResourceIdT  id,
+                  SaHpiWatchdogNumT num)
+{
+  cIpmi *ipmi = 0;
+  cIpmiWatchdog *wd = VerifyWatchdogAndEnter( hnd, id, num, ipmi );
+  if ( !wd ) return SA_ERR_HPI_NOT_PRESENT;
+
+  SaErrorT rv = wd->ResetWatchdog();
+  ipmi->IfLeave();
+  return rv; 
+}
+
+
 } // new plugin_loader
 
 extern "C" {
 
-void * oh_open (GHashTable *, unsigned int, oh_evt_queue *) __attribute__ ((weak, alias("IpmiOpen")));
+void * oh_open (GHashTable *) __attribute__ ((weak, alias("IpmiOpen")));
 
 void * oh_close (void *) __attribute__ ((weak, alias("IpmiClose")));
 
-void * oh_get_event (void *)
+void * oh_get_event (void *, struct oh_event *)
                 __attribute__ ((weak, alias("IpmiGetEvent")));
 
 void * oh_discover_resources (void *)
                 __attribute__ ((weak, alias("IpmiDiscoverResources")));
+
+void * oh_discover_domain_resource (void *)
+                __attribute__ ((weak, alias("IpmiDiscoverDomainResources")));
 
 void * oh_set_resource_tag (void *, SaHpiResourceIdT, SaHpiTextBufferT *)
                 __attribute__ ((weak, alias("IpmiSetResourceTag")));
@@ -1619,6 +1739,14 @@ void * oh_get_reset_state (void *, SaHpiResourceIdT, SaHpiResetActionT *)
 void * oh_set_reset_state (void *, SaHpiResourceIdT, SaHpiResetActionT)
                 __attribute__ ((weak, alias("IpmiSetResetState")));
 
+void * oh_get_watchdog_info (void *, SaHpiResourceIdT, SaHpiWatchdogNumT,
+                             SaHpiWatchdogT *)
+                __attribute__ ((weak, alias("IpmiGetWatchdogInfo")));
+void * oh_set_watchdog_info (void *, SaHpiResourceIdT, SaHpiWatchdogNumT,
+                             SaHpiWatchdogT *)
+                __attribute__ ((weak, alias("IpmiSetWatchdogInfo")));
+void * oh_reset_watchdog (void *, SaHpiResourceIdT , SaHpiWatchdogNumT )
+                __attribute__ ((weak, alias("IpmiResetWatchdog")));
 }
 
 
@@ -1775,9 +1903,6 @@ cIpmi::AllocConnection( GHashTable *handler_config )
      }
 
   m_own_domain = false;
-  /** This code block has been commented out due to the
-   ** multi-domain changes in the infrastructure.
-   ** (Renier Morales 11/21/06)
   const char *create_own_domain = (const char *)g_hash_table_lookup(handler_config, "MultipleDomains");
   if ((create_own_domain != (char *)NULL)
       && ((strcmp(create_own_domain, "YES") == 0)
@@ -1797,7 +1922,7 @@ cIpmi::AllocConnection( GHashTable *handler_config )
               m_domain_tag.SetAscii(domain_tag, SAHPI_TL_TYPE_TEXT, SAHPI_LANG_ENGLISH);
           }
       }
-  }*/
+  }
 
   m_insert_timeout = GetTimeout( handler_config, "InsertTimeout", SAHPI_TIMEOUT_IMMEDIATE );
   m_extract_timeout = GetTimeout( handler_config, "ExtractTimeout", SAHPI_TIMEOUT_IMMEDIATE );
@@ -1954,10 +2079,11 @@ cIpmi::AddHpiEvent( oh_event *event )
 {
   m_event_lock.Lock();
 
+  event->did = m_did;
+
   if ( m_handler )
   {
-    event->hid = m_handler->hid;
-    oh_evt_queue_push(m_handler->eventq, event);
+    m_handler->eventq = g_slist_append( m_handler->eventq, event );
 
     oh_wake_event_thread(SAHPI_FALSE);
   }
@@ -2146,6 +2272,14 @@ cIpmi::IfGetEvent( oh_event *event )
 
   m_event_lock.Lock();
 
+  if ( g_slist_length( m_handler->eventq ) > 0 )
+     {
+       memcpy( event, m_handler->eventq->data, sizeof( oh_event ) );
+       g_free( m_handler->eventq->data );
+       m_handler->eventq = g_slist_remove_link( m_handler->eventq, m_handler->eventq );
+       rv = 1;
+     }
+
   m_event_lock.Unlock();
 
   return rv;
@@ -2197,14 +2331,10 @@ cIpmi::IfSetResourceTag( cIpmiResource *ent, SaHpiTextBufferT *tag )
      }
 
   memset( e, 0, sizeof( struct oh_event ) );
-  e->event.EventType = SAHPI_ET_RESOURCE;
-  e->event.Source = rptentry->ResourceId;
-  oh_gettimeofday(&e->event.Timestamp);
-  e->event.Severity = rptentry->ResourceSeverity;
-  e->event.EventDataUnion.ResourceEvent.ResourceEventType = SAHPI_RESE_RESOURCE_ADDED;
-  e->resource = *rptentry;
+  e->type               = OH_ET_RESOURCE;
+  e->u.res_event.entry = *rptentry;
 
-  stdlog << "IfSetResourceTag SAHPI_ET_RESOURCE Event resource " << ent->m_resource_id << "\n";
+  stdlog << "IfSetResourceTag OH_ET_RESOURCE Event resource " << ent->m_resource_id << "\n";
   AddHpiEvent( e );
 
   return SA_OK;
@@ -2235,12 +2365,8 @@ cIpmi::IfSetResourceSeverity( cIpmiResource *ent, SaHpiSeverityT sev )
      }
 
   memset( e, 0, sizeof( struct oh_event ) );
-  e->event.EventType = SAHPI_ET_RESOURCE;
-  e->event.Source = rptentry->ResourceId;
-  oh_gettimeofday(&e->event.Timestamp);
-  e->event.Severity = rptentry->ResourceSeverity;
-  e->event.EventDataUnion.ResourceEvent.ResourceEventType = SAHPI_RESE_RESOURCE_ADDED;
-  e->resource = *rptentry;
+  e->type               = OH_ET_RESOURCE;
+  e->u.res_event.entry = *rptentry;
 
   stdlog << "IfSetResourceSeverity OH_ET_RESOURCE Event resource " << ent->m_resource_id << "\n";
   AddHpiEvent( e );

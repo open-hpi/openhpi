@@ -175,9 +175,6 @@ extern cMarshalType SaHpiAnnunciatorRecType;
 #define SaHpiRdrTypeType SaHpiUint32Type
 extern cMarshalType SaHpiRdrType;
 
-//rdr array
-extern cMarshalType oHpiRdrArrayType;
-
 // hot swap
 #define SaHpiHsIndicatorStateType SaHpiUint32Type
 #define SaHpiHsActionType SaHpiUint32Type

@@ -59,11 +59,11 @@ SaErrorT snmp_bc_get_guid(struct snmp_bc_hnd *custom_handle,
 		goto CLEANUP;
 	}
         status = snmp_bc_oid_snmp_get(custom_handle, 
-				      &(e->resource.ResourceEntity), 0,
+				      &(e->u.res_event.entry.ResourceEntity), 0,
 				      res_info_ptr->mib.OidUuid,            
 				      &get_value, SAHPI_TRUE);
         if(( status != SA_OK) || (get_value.type != ASN_OCTET_STR)) {
-                trace("Cannot get OID rc=%d; oid=%s type=%d.", 
+                dbg("Cannot get OID rc=%d; oid=%s type=%d.", 
                         status, res_info_ptr->mib.OidUuid, get_value.type);
                 if ( status != SA_ERR_HPI_BUSY)  status = SA_ERR_HPI_NO_RESPONSE;
                 goto CLEANUP;
@@ -162,7 +162,7 @@ SaErrorT snmp_bc_get_guid(struct snmp_bc_hnd *custom_handle,
         }
 
   CLEANUP:
-  	memmove(e->resource.ResourceInfo.Guid, guid, sizeof(SaHpiGuidT));
+  	memmove(e->u.res_event.entry.ResourceInfo.Guid, guid, sizeof(SaHpiGuidT));
   CLEANUP2:
         g_free(UUID);
         g_free(BC_UUID);
@@ -196,7 +196,7 @@ SaErrorT snmp_bc_extract_slot_ep(SaHpiEntityPathT *resource_ep, SaHpiEntityPathT
 
 	for (i = 0; i < SAHPI_MAX_ENTITY_PATH ; i++) {
 		if (	(resource_ep->Entry[i].EntityType == SAHPI_ENT_PHYSICAL_SLOT) ||
-			(resource_ep->Entry[i].EntityType == BLADECENTER_SWITCH_SLOT) ||
+			(resource_ep->Entry[i].EntityType == BLADECENTER_INTERCONNECT_SLOT) ||
 			(resource_ep->Entry[i].EntityType == BLADECENTER_POWER_SUPPLY_SLOT) ||
 			(resource_ep->Entry[i].EntityType == BLADECENTER_PERIPHERAL_BAY_SLOT) ||
 			(resource_ep->Entry[i].EntityType == BLADECENTER_SYS_MGMNT_MODULE_SLOT) ||
@@ -218,154 +218,3 @@ SaErrorT snmp_bc_extract_slot_ep(SaHpiEntityPathT *resource_ep, SaHpiEntityPathT
 	
 	return(SA_OK);
 }
-
-/**
- * snmp_bc_copy_oh_event:
- * @new_event: Pointer to new oh_event.
- * @old_event: Pointer to old oh_event.
- *
- * Allocate and create a duplicate copy of old_event
- *
- * Return values:
- **/
-SaErrorT snmp_bc_copy_oh_event(struct oh_event *new_event, struct oh_event *old_event)
-{
-
-	GSList *node;
-	if (!new_event || !old_event) return(SA_ERR_HPI_INVALID_PARAMS);
-
-	node = NULL;
-	*new_event = *old_event;
-	new_event->rdrs = NULL;
-	for (node = old_event->rdrs; node; node = node->next) {
-		new_event->rdrs = g_slist_append(new_event->rdrs, g_memdup(node->data,
-							   sizeof(SaHpiRdrT)));
-	}
-
-	return(SA_OK);
-}
-
-
-/**
- * snmp_bc_alloc_oh_event:
- *
- * Allocate and create a  copy of oh_event with default data
- *
- * Return values:
- * NULL - No space or invalid parm
- * (oh_event *) - Normal
- **/
-struct oh_event *snmp_bc_alloc_oh_event()
-{
-	struct oh_event *e = NULL;
-
-	e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
-	if (e == NULL) return(e); 
-	
-	e->rdrs = NULL;
-
-	return e;
-}
-
-/**
- * snmp_bc_free_oh_event:
- * @event: Pointer to oh_event.
- *
- * Free oh_event space
- *
- * Return values:
- * NULL - No space or invalid parm
- * (oh_event *) - Normal
- **/
-void snmp_bc_free_oh_event(struct oh_event *e)
-{
-	if (!e) return;
-	
-	g_slist_free(e->rdrs);	
-	g_free(e);
-	return;
-}
-
-
-/**
- * snmp_bc_set_resource_add_oh_event:
- * @e: Pointer to oh_event.
- * @res_info_ptr
- *
- * Initialize (oh_event *).event to default value for resource_add
- * e->resource must be initialized prior to using this util.
- *
- * Return values:
- * NULL - No space or invalid parm
- * (oh_event *) - Normal
- **/
-SaErrorT snmp_bc_set_resource_add_oh_event(struct oh_event *e, 
-					struct ResourceInfo *res_info_ptr)
-{
-	if (!e || !res_info_ptr) return(SA_ERR_HPI_INVALID_PARAMS);
-	
-	e->event.Severity = e->resource.ResourceSeverity;
-	e->event.Source =   e->resource.ResourceId;	
-	if (oh_gettimeofday(&e->event.Timestamp) != SA_OK)
-		                    e->event.Timestamp = SAHPI_TIME_UNSPECIFIED;
-
-	if (e->resource.ResourceCapabilities & SAHPI_CAPABILITY_FRU) {
-		e->event.EventType = SAHPI_ET_HOTSWAP;
-		e->event.EventDataUnion.HotSwapEvent.HotSwapState = 
-			e->event.EventDataUnion.HotSwapEvent.HotSwapState = 
-						res_info_ptr->cur_state;
-		
-	} else {
-		e->event.EventType = SAHPI_ET_RESOURCE;
-		e->event.EventDataUnion.ResourceEvent.ResourceEventType = SAHPI_RESE_RESOURCE_ADDED;			
-	} 				    
-	return(SA_OK);
-}
-
-
-/**
- * snmp_bc_extend_ep:
- * @e: Pointer to oh_event.
- * @resource_index: 
- * @interposer_installed_mask: 
- *
- * If there is an interposer installed in this resource slot, 
- * insert interposer into entitypath between physical slot and resource entity.
- * 
- * Currently there are 2 types of interposer cards, Switch (smi) and Management Module (mmi)
- * interposers. 
- *
- * Return values:
- * 
- * SA_OK - Normal
- **/
-SaErrorT snmp_bc_extend_ep(struct oh_event *e,
-			   guint resource_index, 
-			   gchar *interposer_install_mask) 
-{
-	guint i;
-
-	if (interposer_install_mask[resource_index] == '1') {
-        	for (i=0; i<SAHPI_MAX_ENTITY_PATH; i++) {
-                	if (e->resource.ResourceEntity.Entry[i].EntityType == SAHPI_ENT_ROOT) break;
-       	 	}
-
-		do { 
-			e->resource.ResourceEntity.Entry[i+1].EntityType = 
-						e->resource.ResourceEntity.Entry[i].EntityType;
-			e->resource.ResourceEntity.Entry[i+1].EntityLocation = 
-						e->resource.ResourceEntity.Entry[i].EntityLocation;
-			i--;
-		} while (i > 0);
-
-		/* i == 0 at this point; setting ep Entry[1] */
-		e->resource.ResourceEntity.Entry[i+1].EntityType = SAHPI_ENT_INTERCONNECT;
-		e->resource.ResourceEntity.Entry[i+1].EntityLocation = SNMP_BC_HPI_LOCATION_BASE + resource_index;
-
-		/* Entry[0] remains untouched */
-	}
-	
-	return(SA_OK);
-}
-
-

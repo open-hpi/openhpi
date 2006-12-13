@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2005, 2006
+ * (C) Copyright IBM Corp. 2005
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -12,7 +12,6 @@
  * Author(s):
  *        Christina Hernandez <hernanc@us.ibm.com>
  *        W. David Ashley <dashley@us.ibm.com>
- *	  Renier Morales <renierm@users.sourceforge.net>
  */
 
 #include <sim_init.h>
@@ -25,21 +24,13 @@
 GSList *sim_handler_states = NULL;
 
 
-void *sim_open(GHashTable *handler_config,
-               unsigned int hid,
-               oh_evt_queue *eventq)
+void *sim_open(GHashTable *handler_config)
 {
         struct oh_handler_state *state = NULL;
         char *tok = NULL;
 
         if (!handler_config) {
                 dbg("GHashTable *handler_config is NULL!");
-                return NULL;
-        } else if (!hid) {
-                dbg("Bad handler id passed.");
-                return NULL;
-        } else if (!eventq) {
-                dbg("No event queue was passed.");
                 return NULL;
         }
         /* check for required hash table entries */
@@ -68,15 +59,18 @@ void *sim_open(GHashTable *handler_config,
                 return NULL;
         }
 
+        /* initialize the async event queue */
+        if (!(state->eventq_async = g_async_queue_new())) {
+                dbg("Async event log creation failed");
+                g_free(state->rptcache);
+                oh_el_close(state->elcache);
+                g_free(state);
+                return NULL;
+        }
+
         /* save the handler config hash table, it holds  */
         /* the openhpi.conf file config info             */
         state->config = handler_config;
-
-        /* Store reference to event queue */
-        state->eventq = eventq;
-
-        /* Store id of this handler */
-        state->hid = hid;
 
         /* save the handler state to our list */
         sim_handler_states = g_slist_append(sim_handler_states, state);
@@ -93,10 +87,10 @@ SaErrorT sim_discover(void *hnd)
            one time for each handler instance. Subsequent calls should just
            return SA_OK for that instance.
          */
-        struct oh_handler_state *inst = (struct oh_handler_state *)hnd;
+        struct oh_handler_state *inst = (struct oh_handler_state *) hnd;
         int i;
-        struct oh_event *e = NULL;
-        SaErrorT error = SA_OK;
+        SaHpiRptEntryT res;
+        GThread *service_thrd;
 
         /* We use the inst->data variable to store the initial discovery state
            for an instance of the handler.
@@ -112,68 +106,64 @@ SaErrorT sim_discover(void *hnd)
 
         /* discover chassis resources and RDRs */
         i = SIM_RPT_ENTRY_CHASSIS - 1;
-        error = sim_inject_resource(inst, &sim_rpt_array[i], NULL, &e);
-        if (!error) {
-		sim_discover_chassis_sensors(inst, e);
-		sim_discover_chassis_controls(inst, e);
-		sim_discover_chassis_annunciators(inst, e);
-		sim_discover_chassis_watchdogs(inst, e);
-		sim_discover_chassis_inventory(inst, e);
-		sim_inject_event(inst, e);
-		e = NULL;
-        } else dbg("Error discovering chassis");
+        memcpy(&res, &sim_rpt_array[i].rpt, sizeof(SaHpiRptEntryT));
+        sim_inject_resource(inst, &res, NULL,
+                            sim_rpt_array[i].comment);
+        sim_discover_chassis_sensors(inst, res.ResourceId);
+        sim_discover_chassis_controls(inst, res.ResourceId);
+        sim_discover_chassis_annunciators(inst, res.ResourceId);
+        sim_discover_chassis_watchdogs(inst, res.ResourceId);
+        sim_discover_chassis_inventory(inst, res.ResourceId);
 
         /* discover cpu resources and RDRs */
         i = SIM_RPT_ENTRY_CPU - 1;
-        error = sim_inject_resource(inst, &sim_rpt_array[i], NULL, &e);
-        if (!error) {
-        	sim_discover_cpu_sensors(inst, e);
-        	sim_discover_cpu_controls(inst, e);
-        	sim_discover_cpu_annunciators(inst, e);
-        	sim_discover_cpu_watchdogs(inst, e);
-        	sim_discover_cpu_inventory(inst, e);
-		sim_inject_event(inst, e);
-        	e = NULL;
-	} else dbg("Error discovering CPU");
+        memcpy(&res, &sim_rpt_array[i].rpt, sizeof(SaHpiRptEntryT));
+        sim_inject_resource(inst, &res, NULL,
+                            sim_rpt_array[i].comment);
+        sim_discover_cpu_sensors(inst, res.ResourceId);
+        sim_discover_cpu_controls(inst, res.ResourceId);
+        sim_discover_cpu_annunciators(inst, res.ResourceId);
+        sim_discover_cpu_watchdogs(inst, res.ResourceId);
+        sim_discover_cpu_inventory(inst, res.ResourceId);
 
         /* discover dasd resources and RDRs */
         i = SIM_RPT_ENTRY_DASD - 1;
-	error = sim_inject_resource(inst, &sim_rpt_array[i], NULL, &e);
-	if (!error) {
-		sim_discover_dasd_sensors(inst, e);
-		sim_discover_dasd_controls(inst, e);
-		sim_discover_dasd_annunciators(inst, e);
-		sim_discover_dasd_watchdogs(inst, e);
-		sim_discover_dasd_inventory(inst, e);
-		sim_inject_event(inst, e);
-		e = NULL;
-        } else dbg("Error discovering DASD");
+        memcpy(&res, &sim_rpt_array[i].rpt, sizeof(SaHpiRptEntryT));
+        sim_inject_resource(inst, &res, NULL,
+                            sim_rpt_array[i].comment);
+        sim_discover_dasd_sensors(inst, res.ResourceId);
+        sim_discover_dasd_controls(inst, res.ResourceId);
+        sim_discover_dasd_annunciators(inst, res.ResourceId);
+        sim_discover_dasd_watchdogs(inst, res.ResourceId);
+        sim_discover_dasd_inventory(inst, res.ResourceId);
 
         /* discover hot swap dasd resources and RDRs */
         i = SIM_RPT_ENTRY_HS_DASD - 1;
-	error = sim_inject_resource(inst, &sim_rpt_array[i], NULL, &e);
-	if (!error) {
-		sim_discover_hs_dasd_sensors(inst, e);
-		sim_discover_hs_dasd_controls(inst, e);
-		sim_discover_hs_dasd_annunciators(inst, e);
-		sim_discover_hs_dasd_watchdogs(inst, e);
-		sim_discover_hs_dasd_inventory(inst, e);
-		sim_inject_event(inst, e);
-		e = NULL;
-        } else dbg("Error discovering HS DASD");
+        memcpy(&res, &sim_rpt_array[i].rpt, sizeof(SaHpiRptEntryT));
+        sim_inject_resource(inst, &res, NULL,
+                            sim_rpt_array[i].comment);
+        sim_discover_hs_dasd_sensors(inst, res.ResourceId);
+        sim_discover_hs_dasd_controls(inst, res.ResourceId);
+        sim_discover_hs_dasd_annunciators(inst, res.ResourceId);
+        sim_discover_hs_dasd_watchdogs(inst, res.ResourceId);
+        sim_discover_hs_dasd_inventory(inst, res.ResourceId);
 
         /* discover fan resources and RDRs */
         i = SIM_RPT_ENTRY_FAN - 1;
-	error = sim_inject_resource(inst, &sim_rpt_array[i], NULL, &e);
-	if (!error) {
-		sim_discover_fan_sensors(inst, e);
-		sim_discover_fan_controls(inst, e);
-		sim_discover_fan_annunciators(inst, e);
-		sim_discover_fan_watchdogs(inst, e);
-		sim_discover_fan_inventory(inst, e);
-		sim_inject_event(inst, e);
-		e = NULL;
-        } else dbg("Error discovering FAN");
+        memcpy(&res, &sim_rpt_array[i].rpt, sizeof(SaHpiRptEntryT));
+        sim_inject_resource(inst, &res, NULL,
+                            sim_rpt_array[i].comment);
+        sim_discover_fan_sensors(inst, res.ResourceId);
+        sim_discover_fan_controls(inst, res.ResourceId);
+        sim_discover_fan_annunciators(inst, res.ResourceId);
+        sim_discover_fan_watchdogs(inst, res.ResourceId);
+        sim_discover_fan_inventory(inst, res.ResourceId);
+
+        /* now start the message queue thread for reading events */
+        service_thrd = start_injector_service_thread(NULL);
+        if (service_thrd == NULL) {
+                dbg("injector service thread not started");
+        }
 
         /* Let subsequent discovery invocations know that discovery has already
            been performed.
@@ -187,27 +177,25 @@ SaErrorT sim_discover(void *hnd)
  * Return values:
  * 1 - events to be processed.
  * SA_OK - No events to be processed.
- * SA_ERR_HPI_INVALID_PARAMS - @hnd is NULL.
+ * SA_ERR_HPI_INVALID_PARAMS - @event is NULL.
  */
-SaErrorT sim_get_event(void *hnd)
+SaErrorT sim_get_event(void *hnd, struct oh_event *event)
 {
-        /*struct oh_handler_state *state = hnd;
-        struct oh_event *e = NULL;*/
+        struct oh_handler_state *state = hnd;
+        struct oh_event *e = NULL;
 
-        if (!hnd) return SA_ERR_HPI_INVALID_PARAMS;
-        /*
-	e = g_async_queue_try_pop(state->eventq_async);
-        if (e) {
+        if ((e = g_async_queue_try_pop(state->eventq_async))) {
                 trace("retrieving sim event from async q");
-                *event = *e;
-                g_free(e);
+                memcpy(event, e, sizeof(*event));
+                event->did = oh_get_default_domain_id();
+
+//              g_free(e); /* FIXME: Why is this commented? */
 
                 return 1;
         } else {
                 trace("no more events for sim instance");
-                return 0;
-        }*/
-        return SA_OK;
+        }
+        return 0;
 }
 
 
@@ -259,11 +247,11 @@ SaErrorT sim_set_resource_severity(void *hnd, SaHpiResourceIdT rid, SaHpiSeverit
  *
  */
 
-void * oh_open (GHashTable *, unsigned int, oh_evt_queue *) __attribute__ ((weak, alias("sim_open")));
+void * oh_open (GHashTable *) __attribute__ ((weak, alias("sim_open")));
 
 void * oh_close (void *) __attribute__ ((weak, alias("sim_close")));
 
-void * oh_get_event (void *)
+void * oh_get_event (void *, struct oh_event *)
                 __attribute__ ((weak, alias("sim_get_event")));
 
 void * oh_discover_resources (void *)

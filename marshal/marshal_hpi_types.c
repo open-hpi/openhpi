@@ -21,8 +21,6 @@
 #include <assert.h>
 #include <stdlib.h>
 
-#include <oHpi.h>
-
 
 // text buffer
 static cMarshalType SaHpiTextBufferDataArray = dArray( SaHpiUint8Type, SAHPI_MAX_TEXT_BUFFER_LENGTH );
@@ -73,6 +71,7 @@ static cMarshalType SaHpiEntityPathElements[] =
 };
 
 cMarshalType SaHpiEntityPathType = dStruct( SaHpiEntityPathT, SaHpiEntityPathElements );
+
 
 // sensors
 static cMarshalType SaHpiSensorInterpretedUnionBufferArray = dArray( SaHpiUint8Type, SAHPI_SENSOR_BUFFER_LENGTH );
@@ -532,20 +531,6 @@ static cMarshalType SaHpiRdrElements[] =
 };
 
 cMarshalType SaHpiRdrType = dStruct( SaHpiRdrT, SaHpiRdrElements );
-
-
-// rdr array
-static cMarshalType oHpiRdrArrayEntryArray = dArray( SaHpiRdrType, MAX_RDR_ARRAY_LENGTH );
-
-
-static cMarshalType oHpiRdrArrayElements[] =
-{
-  dStructElement( oHpiRdrArrayT, Entry, oHpiRdrArrayEntryArray ),
-  dStructElementEnd()
-};
-
-cMarshalType oHpiRdrArrayType = dStruct( oHpiRdrArrayT, oHpiRdrArrayElements );
-
 
 
 // events part 2

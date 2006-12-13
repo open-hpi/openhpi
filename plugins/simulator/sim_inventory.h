@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2005, 2006
+ * (C) Copyright IBM Corp. 2005
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -11,7 +11,6 @@
  *
  * Author(s):
  *	W. David Ashley <dashley@us.ibm.com>
- *	Renier Morales <renierm@users.sourceforge.net>
  */
 
 #ifndef __SIM_INVENTORY_H
@@ -42,16 +41,16 @@ struct sim_inventory {
 };
 
 
-SaErrorT sim_discover_chassis_inventory(struct oh_handler_state *state,
-                                        struct oh_event *e);
-SaErrorT sim_discover_cpu_inventory(struct oh_handler_state *state,
-                                    struct oh_event *e);
-SaErrorT sim_discover_dasd_inventory(struct oh_handler_state *state,
-                                     struct oh_event *e);
-SaErrorT sim_discover_hs_dasd_inventory(struct oh_handler_state *state,
-                                        struct oh_event *e);
-SaErrorT sim_discover_fan_inventory(struct oh_handler_state *state,
-                                    struct oh_event *e);
+SaErrorT sim_discover_chassis_inventory(struct oh_handler_state * state,
+                                        SaHpiResourceIdT resid);
+SaErrorT sim_discover_cpu_inventory(struct oh_handler_state * state,
+                                    SaHpiResourceIdT resid);
+SaErrorT sim_discover_dasd_inventory(struct oh_handler_state * state,
+                                     SaHpiResourceIdT resid);
+SaErrorT sim_discover_hs_dasd_inventory(struct oh_handler_state * state,
+                                        SaHpiResourceIdT resid);
+SaErrorT sim_discover_fan_inventory(struct oh_handler_state * state,
+                                    SaHpiResourceIdT resid);
 
 SaErrorT sim_get_idr_info(void *hnd,
 		          SaHpiResourceIdT        ResourceId,

@@ -34,18 +34,14 @@ SaErrorT rtas_set_resource_tag(void *hnd,
         rptentry = oh_get_resource_by_id(h->rptcache, id);
         if (!rptentry) return SA_ERR_HPI_NOT_PRESENT;
 
-        error = oh_append_textbuffer(&rptentry->ResourceTag, (char *)tag->Data);
+        error = oh_append_textbuffer(&rptentry->ResourceTag, tag->Data);
         if (error) return error;
 
         e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
-        e->hid = h->hid;
-        e->event.EventType = SAHPI_ET_RESOURCE;
-        e->event.Source = rptentry->ResourceId;
-        e->event.Severity = rptentry->ResourceSeverity;
-        e->event.Timestamp = SAHPI_TIME_UNSPECIFIED;
-        e->event.EventDataUnion.ResourceEvent.ResourceEventType = SAHPI_RESE_RESOURCE_ADDED;
-        e->resource = *rptentry;
-        oh_evt_queue_push(h->eventq, e);
+        e->did = oh_get_default_domain_id();
+        e->type = OH_ET_RESOURCE;
+        e->u.res_event.entry = *rptentry;
+        h->eventq = g_slist_append(h->eventq, e);
 
         return SA_OK;
 }
@@ -66,13 +62,10 @@ SaErrorT rtas_set_resource_severity(void *hnd,
         rptentry->ResourceSeverity = sev;
 
         e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
-        e->event.EventType = SAHPI_ET_RESOURCE;
-        e->event.Source = rptentry->ResourceId;
-        e->event.Severity = rptentry->ResourceSeverity;
-        e->event.Timestamp = SAHPI_TIME_UNSPECIFIED;
-        e->event.EventDataUnion.ResourceEvent.ResourceEventType = SAHPI_RESE_RESOURCE_ADDED;
-        e->resource = *rptentry;
-        oh_evt_queue_push(h->eventq, e);
+        e->did = oh_get_default_domain_id();
+        e->type = OH_ET_RESOURCE;
+        e->u.res_event.entry = *rptentry;
+        h->eventq = g_slist_append(h->eventq, e);
 
         return SA_OK;
 }

@@ -12,9 +12,9 @@
  * Authors:
  *     Denis Sadykov <sadden@mail.ru>
  */
+ 
 
-
-
+ 
 #include "ipmi.h"
 
 #define uchar  unsigned char
@@ -261,13 +261,12 @@ void atca_slot_state_sensor_event_send(struct oh_handler_state *handler,
 		return;
 	}
 	memset(e, 0, sizeof(*e));
-	e->resource = *dev_entry;
-	e->rdrs = g_slist_append(e->rdrs, g_memdup(rdr, sizeof(SaHpiRdrT)));
-	e->event.Source = rid;
-	e->event.EventType = SAHPI_ET_SENSOR;
-	e->event.Severity = SAHPI_INFORMATIONAL;
-	oh_gettimeofday(&e->event.Timestamp);
-	sen_evt = &(e->event.EventDataUnion.SensorEvent);
+	e->type = OH_ET_HPI;
+	e->u.hpi_event.event.Source = rid;
+	e->u.hpi_event.event.EventType = SAHPI_ET_SENSOR;
+	e->u.hpi_event.event.Severity = SAHPI_INFORMATIONAL;
+	oh_gettimeofday(&e->u.hpi_event.event.Timestamp);
+	sen_evt = &(e->u.hpi_event.event.EventDataUnion.SensorEvent);
 	sen_evt->SensorNum = ATCAHPI_SENSOR_NUM_SLOT_STATE;
 	sen_evt->SensorType = SAHPI_OEM_SENSOR;
 	sen_evt->EventCategory = SAHPI_EC_PRESENCE;
@@ -277,9 +276,7 @@ void atca_slot_state_sensor_event_send(struct oh_handler_state *handler,
 					 	SAHPI_SOD_CURRENT_STATE;
 	sen_evt->CurrentState = present ? SAHPI_ES_PRESENT : SAHPI_ES_ABSENT;
 	sen_evt->PreviousState = present ? SAHPI_ES_ABSENT : SAHPI_ES_PRESENT;
-
-        e->hid = handler->hid;
-        oh_evt_queue_push(handler->eventq, e);
+	handler->eventq = g_slist_append(handler->eventq, e);
 }
 
 static SaHpiRdrT *atca_create_slot_state_sensor(
@@ -392,7 +389,7 @@ static SaErrorT get_atca_fru_activation_control_state(
 	info.rv = 0;
 	info.addr = slot_info->u.slot.addr;
 	info.devid = slot_info->u.slot.devid;
-
+	
 	rv = ipmi_entity_pointer_cb(shelf_info->u.entity.entity_id,
 			get_atca_fru_pwr_desc_cb, &info);
 	if (rv) {
@@ -402,7 +399,7 @@ static SaErrorT get_atca_fru_activation_control_state(
 	if (rv != SA_OK) {
 		return rv;
 	}
-
+	
 	if (info.len == 0) {
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
@@ -415,7 +412,7 @@ static SaErrorT get_atca_fru_activation_control_state(
 			*mode = c_info->mode = SAHPI_CTRL_MODE_MANUAL;
 		}
 	}
-
+	
 	if (state == NULL) {
 		return SA_OK;
 	}
@@ -510,7 +507,7 @@ static SaErrorT set_atca_fru_activation_control_state(
 	ctrl_state.mode = mode;
 	ctrl_state.state = state->StateUnion.Analog;
 	info.info = &ctrl_state;
-
+	
 	rv = ipmi_entity_pointer_cb(shelf_info->u.entity.entity_id,
 			set_atca_fru_activation_control_state_cb, &info);
 	if (rv) {
@@ -856,7 +853,7 @@ static SaErrorT atca_get_max_pwr_capability_reading(
 	info.rv = 0;
 	info.addr = slot_info->u.slot.addr;
 	info.devid = slot_info->u.slot.devid;
-
+	
 	rv = ipmi_entity_pointer_cb(shelf_info->u.entity.entity_id,
 				    get_atca_fru_pwr_desc_cb, &info);
 	if (rv) {
@@ -866,7 +863,7 @@ static SaErrorT atca_get_max_pwr_capability_reading(
 	if (rv != SA_OK) {
 		return rv;
 	}
-
+	
 	if (info.len == 0) {
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
@@ -987,7 +984,7 @@ void atca_create_slot_rdrs(struct oh_handler_state *handler,
 			dbg("couldn't add sensor rdr");
 			free(s_info);
 		} else {
-			rpt->ResourceCapabilities |=
+			rpt->ResourceCapabilities |= 
 					SAHPI_CAPABILITY_SENSOR |
 						SAHPI_CAPABILITY_RDR;
 			s_info->info.atcamap_sensor_info.rid = rid;
@@ -1002,7 +999,7 @@ void atca_create_slot_rdrs(struct oh_handler_state *handler,
 			dbg("couldn't add control rdr");
 			free(c_info);
 		} else {
-			rpt->ResourceCapabilities |=
+			rpt->ResourceCapabilities |= 
 					SAHPI_CAPABILITY_CONTROL |
 						SAHPI_CAPABILITY_RDR;
 			c_info->info.atcamap_ctrl_info.rid = rid;
@@ -1017,7 +1014,7 @@ void atca_create_slot_rdrs(struct oh_handler_state *handler,
 			dbg("couldn't add sensor rdr");
 			free(s_info);
 		} else {
-			rpt->ResourceCapabilities |=
+			rpt->ResourceCapabilities |= 
 					SAHPI_CAPABILITY_SENSOR |
 						SAHPI_CAPABILITY_RDR;
 			s_info->info.atcamap_sensor_info.rid = rid;
@@ -1032,7 +1029,7 @@ void atca_create_slot_rdrs(struct oh_handler_state *handler,
 			dbg("couldn't add sensor rdr");
 			free(s_info);
 		} else {
-			rpt->ResourceCapabilities |=
+			rpt->ResourceCapabilities |= 
 					SAHPI_CAPABILITY_SENSOR |
 						SAHPI_CAPABILITY_RDR;
 			s_info->info.atcamap_sensor_info.rid = rid;

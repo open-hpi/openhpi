@@ -60,6 +60,10 @@ extern "C" {
 #include "ipmi_control.h"
 #endif
 
+#ifndef dIpmiWatchdog_h
+#include "ipmi_watchdog.h"
+#endif
+
 #ifndef dIpmiDiscover_h
 #include "ipmi_discover.h"
 #endif
@@ -119,7 +123,7 @@ public:
   }
 
   // true => ATCA
-  int           m_is_atca;
+  bool           m_is_atca;
 
 public:
   bool IsAtca() { return m_is_atca; }
@@ -225,10 +229,11 @@ public:
   cIpmiRdr       *VerifyRdr( cIpmiRdr *rdr );
   cIpmiSensor    *VerifySensor( cIpmiSensor *s );
   cIpmiControl   *VerifyControl( cIpmiControl *c );
+  cIpmiWatchdog  *VerifyWatchdog( cIpmiWatchdog *c );
   cIpmiInventory *VerifyInventory( cIpmiInventory *i );
 
   virtual void AddHpiEvent( oh_event *event ) = 0;
-  virtual oh_evt_queue *GetHpiEventList() = 0;
+  virtual GSList *GetHpiEventList() = 0;
 
   virtual const cIpmiEntityPath &EntityRoot() = 0;
   virtual oh_handler_state *GetHandler() = 0;

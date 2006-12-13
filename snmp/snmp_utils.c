@@ -99,7 +99,7 @@ SaErrorT snmp_get( void *sessp,
                 value->type = (u_char)0x00; 
 		session = snmp_sess_session(sessp);
                 snmp_sess_perror("snmpget", session);
-		trace("OID=%s", objid);
+		dbg("OID=%s", objid);
 		returncode = snmpstat2hpi(status);
         }
 
@@ -248,7 +248,7 @@ SaErrorT snmp_get2(void *sessp,
 			} else if ( !(CHECK_END(vars->type)) ) {
 				/* This is one of the exception condition */
 				returncode = SA_ERR_HPI_NOT_PRESENT;
-				trace("snmp exception %d \n",vars->type);
+				dbg("snmp exception %d \n",vars->type);
 
                     	} else if ( (vars->type == ASN_INTEGER) || 
 				    (vars->type == ASN_COUNTER) || 
@@ -534,4 +534,3 @@ SaErrorT snmpstat2hpi(int snmpstat)
 	return(hpicode);
 
 }
-

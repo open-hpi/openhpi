@@ -24,16 +24,14 @@
 #define SNMP_BC_RESOURCE_INSTALLED 1
 #define SNMP_BC_RESOURCE_REMOVED   2
 
+
 #define get_installed_mask(maskOID, getvalue) \
 do { \
 	err = snmp_bc_snmp_get(custom_handle, maskOID, &getvalue, SAHPI_TRUE); \
         if (err || getvalue.type != ASN_OCTET_STR) { \
-		trace("Cannot get OID=%s; Received Type=%d; Error=%s.", \
+		dbg("Cannot get OID=%s; Received Type=%d; Error=%s.", \
 		      		maskOID, getvalue.type, oh_lookup_error(err)); \
-		if (err != SA_ERR_HPI_NOT_PRESENT) { return(err); } \
-		else if (err == SA_ERR_HPI_NOT_PRESENT) {getvalue.type = ASN_OCTET_STR; \
-		                                            memset(&getvalue.string, '0', SNMP_BC_MAX_RESOURCES_MASK); \
-		                                            getvalue.string[SNMP_BC_MAX_RESOURCES_MASK -1] = '\0';} \
+		if (err) { return(err); } \
 		else { return(SA_ERR_HPI_INTERNAL_ERROR); } \
         } \
 } while(0)
@@ -44,177 +42,16 @@ do { \
 do { \
 	err = snmp_bc_snmp_get(custom_handle, maskOID, &getintvalue, SAHPI_TRUE); \
         if (err || getintvalue.type != ASN_INTEGER) { \
-		trace("Cannot get OID=%s; Received Type=%d; Error=%s.", \
+		dbg("Cannot get OID=%s; Received Type=%d; Error=%s.", \
 		      		maskOID, getintvalue.type, oh_lookup_error(err)); \
-		if (err != SA_ERR_HPI_NOT_PRESENT) { return(err); } \
-		else if (err == SA_ERR_HPI_NOT_PRESENT) {getintvalue.type = ASN_INTEGER; getintvalue.integer = 0;} \
+		if (err) { return(err); } \
 		else { return(SA_ERR_HPI_INTERNAL_ERROR); } \
         } \
 } while(0)
 
-#define get_dualmode_object(maskOID, getintvalue) \
-do { \
-	err = snmp_bc_snmp_get(custom_handle, maskOID, &getintvalue, SAHPI_TRUE); \
-	if (err == SA_ERR_HPI_NOT_PRESENT) {getintvalue.type = ASN_INTEGER; getintvalue.integer = 0;} \
-        else if (err != SA_OK) { \
-		trace("Cannot get OID=%s; Received Type=%d; Error=%s.", \
-		      		maskOID, getintvalue.type, oh_lookup_error(err)); \
-		if (err) { return(err); } \
-		else { return(SA_ERR_HPI_INTERNAL_ERROR); } \
-	} else { \
-        	if (getintvalue.type == ASN_OCTET_STR) { \
-			getintvalue.integer = atoi(getintvalue.string); \
-        	} else if (getintvalue.type == ASN_INTEGER) { \
-			if (getintvalue.integer == 1) getintvalue.integer = 10;  \
-		} \
-	} \
-} while(0)
-
 guint snmp_bc_isrediscover(SaHpiEventT *working_event);
 
-SaErrorT snmp_bc_construct_blade_rpt(struct oh_event *e, 
-				     struct ResourceInfo **res_info_ptr,
-				     SaHpiEntityPathT *ep_root, 
-				     guint blade_index);
-				     
-SaErrorT snmp_bc_construct_blower_rpt(struct oh_event* e, 
-				      struct ResourceInfo **res_info_ptr,
-				      SaHpiEntityPathT *ep_root, 
-				      guint blower_index);
-				      
-SaErrorT snmp_bc_construct_pm_rpt(struct oh_event *e, 
-				  struct ResourceInfo **res_info_ptr, 
-				  SaHpiEntityPathT *ep_root,
-				  guint pm_index);
-				  
-SaErrorT snmp_bc_construct_sm_rpt(struct oh_event *e, 
-				  struct ResourceInfo **res_info_ptr,
-				  SaHpiEntityPathT *ep_root, 
-				  guint sm_index,
-				  char *interposer_install_mask);
-				  
-SaErrorT snmp_bc_construct_mm_rpt(struct oh_event *e, 
-				  struct ResourceInfo **res_info_ptr,
-				  SaHpiEntityPathT *ep_root, 
-				  guint mm_index,
-				  char *interposer_install_mask);
-				  
-SaErrorT snmp_bc_construct_tap_rpt(struct oh_event *e, 
-				  struct ResourceInfo **res_info_ptr,
-				  SaHpiEntityPathT *ep_root, 
-				  guint tap_index);
-				  
-SaErrorT snmp_bc_construct_nc_rpt(struct oh_event *e, 
-				  struct ResourceInfo **res_info_ptr,
-				  SaHpiEntityPathT *ep_root, 
-				  guint nc_index);
-				  
-SaErrorT snmp_bc_construct_mx_rpt(struct oh_event *e, 
-				  struct ResourceInfo **res_info_ptr,
-				  SaHpiEntityPathT *ep_root, 
-				  guint mx_index);
 
-SaErrorT snmp_bc_construct_smi_rpt(struct oh_event *e, 
-				  struct ResourceInfo **res_info_ptr,
-				  SaHpiEntityPathT *ep_root, 
-				  guint smi_index);
-
-SaErrorT snmp_bc_construct_mmi_rpt(struct oh_event *e, 
-				  struct ResourceInfo **res_info_ptr,
-				  SaHpiEntityPathT *ep_root, 
-				  guint mmi_index);
-				  				  				  				  				  
-SaErrorT snmp_bc_add_blade_rptcache(struct oh_handler_state *handle, 
-				  struct oh_event *e, 
-				  struct ResourceInfo *res_info_ptr,
-				  guint blade_index);
-				  
-SaErrorT snmp_bc_add_blower_rptcache(struct oh_handler_state *handle, 
-				  struct oh_event *e, 
-				  struct ResourceInfo *res_info_ptr,
-				  guint blower_index);
-				  
-SaErrorT snmp_bc_add_pm_rptcache(struct oh_handler_state *handle, 
-				  struct oh_event *e, 
-				  struct ResourceInfo *res_info_ptr,
-				  guint pm_index);
-				  
-SaErrorT snmp_bc_add_switch_rptcache(struct oh_handler_state *handle, 
-				  struct oh_event *e, 
-				  struct ResourceInfo *res_info_ptr,
-				  guint switch_index);
-				  
-SaErrorT snmp_bc_add_mm_rptcache(struct oh_handler_state *handle, 
-				  struct oh_event *e, 
-				  struct ResourceInfo *res_info_ptr,
-				  guint mm_index);
-				  
-SaErrorT snmp_bc_add_tap_rptcache(struct oh_handler_state *handle, 
-				  struct oh_event *e, 
-				  struct ResourceInfo *res_info_ptr,
-				  guint  tap_index);
-				  
-SaErrorT snmp_bc_add_nc_rptcache(struct oh_handler_state *handle, 
-				  struct oh_event *e, 
-				  struct ResourceInfo *res_info_ptr,
-				  guint  nc_index);
-				  
-SaErrorT snmp_bc_add_mx_rptcache(struct  oh_handler_state *handle, 
-				  struct oh_event *e, 
-				  struct ResourceInfo *res_info_ptr,
-				  guint  mx_index);
-				  
-SaErrorT snmp_bc_add_smi_rptcache(struct  oh_handler_state *handle, 
-				  struct oh_event *e, 
-				  struct ResourceInfo *res_info_ptr,
-				  guint  smi_index);
-				  
-SaErrorT snmp_bc_add_mmi_rptcache(struct  oh_handler_state *handle, 
-				  struct oh_event *e, 
-				  struct ResourceInfo *res_info_ptr,
-				  guint  mmi_index);
-				  				  				  
-SaErrorT snmp_bc_discover_blade_i(struct oh_handler_state *handle,
-			  	  SaHpiEntityPathT *ep_root, 
-				  guint blade_index);
-				  
-SaErrorT snmp_bc_discover_blower_i(struct oh_handler_state *handle,
-			  	   SaHpiEntityPathT *ep_root, 
-				   guint blower_index);
-				   
-SaErrorT snmp_bc_discover_pm_i(struct oh_handler_state *handle,
-			       SaHpiEntityPathT *ep_root, 
-			       guint pm_index);
-			       
-SaErrorT snmp_bc_discover_switch_i(struct oh_handler_state *handle,
-			  	   SaHpiEntityPathT *ep_root, 
-				   guint sm_index);
-				   
-SaErrorT snmp_bc_discover_mm_i(struct oh_handler_state *handle,
-			  	SaHpiEntityPathT *ep_root, 
-				guint mm_index);
-				   
-SaErrorT snmp_bc_discover_tap_i(struct oh_handler_state *handle,
-			  	SaHpiEntityPathT *ep_root, 
-				guint tap_index);
-				   
-SaErrorT snmp_bc_discover_nc_i(struct oh_handler_state *handle,
-			  	SaHpiEntityPathT *ep_root, 
-				guint nc_index);
-				   
-SaErrorT snmp_bc_discover_mx_i(struct oh_handler_state *handle,
-			  	SaHpiEntityPathT *ep_root, 
-				guint mx_index);
-								   
-SaErrorT snmp_bc_discover_mmi_i(struct oh_handler_state *handle,
-			  	SaHpiEntityPathT *ep_root, 
-				guint mmi_index);
-				   
-SaErrorT snmp_bc_discover_smi_i(struct oh_handler_state *handle,
-			  	SaHpiEntityPathT *ep_root, 
-				guint smi_index);
-				
-SaErrorT snmp_bc_fetch_MT_install_mask(struct oh_handler_state *handle, 
-			               struct snmp_value *getintvalue);
 #endif
+
 

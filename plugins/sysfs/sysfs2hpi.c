@@ -23,7 +23,6 @@
 #include <SaHpi.h>
 #include <oh_utils.h>
 #include <oh_handler.h>
-#include <oh_domain.h>
 #include <oh_error.h>
 
 #define SYSFS2HPI_ERROR -700
@@ -73,9 +72,7 @@ static inline void reading_int64_set(SaHpiSensorReadingT *reading, int value)
  * mechanism's name and address, respectively, are N/A
  * for a sysfs plugin.
  **/
-static void *sysfs2hpi_open(GHashTable *handler_config,
-                            unsigned int hid,
-                            oh_evt_queue *eventq)
+static void *sysfs2hpi_open(GHashTable *handler_config)
 {
         struct oh_handler_state *hnd;
 	struct sysfsitems *sys;
@@ -104,8 +101,6 @@ static void *sysfs2hpi_open(GHashTable *handler_config,
 
 	/* assign config to handler_config and initialize rptcache */
         hnd->config = handler_config;
-        hnd->hid = hid;
-        hnd->eventq = eventq;
 
         hnd->rptcache = (RPTable *)g_malloc0(sizeof(RPTable));
 
@@ -149,6 +144,9 @@ static void sysfs2hpi_close(void *hnd)
 	sys = inst->data;
 	sysfs_close_bus(sys->bus);
 
+	/* Free unused events */
+	g_slist_free(inst->eventq);
+
 	/* Free resources and their sensors */
 	if (g_slist_length(sys->resources) != 0) {
 		g_slist_for_each(tmp, sys->resources) {
@@ -164,14 +162,32 @@ static void sysfs2hpi_close(void *hnd)
 /**
  * sysfs2hpi_get_event:
  * @hnd: pointer to handler instance
+ * @event: pointer to oh_event
+ * @timeout: struct timeval
  *
  * This function gets a sysfs event from the sysfs event table
- * in instance.events.
+ * in instance.events.  It copies the event to memory and then
+ * deletes it from the instance.events table.
  *
  * Return value: 0 if times out, > 0 is event is returned.
  **/
-static int sysfs2hpi_get_event(void *hnd)
+static int sysfs2hpi_get_event(void *hnd, struct oh_event *event)
 {
+	struct oh_handler_state *inst = (struct oh_handler_state *)hnd;
+	GSList	*tmp;
+	
+	if (g_slist_length(inst->eventq) != 0) {
+		g_slist_for_each(tmp, inst->eventq) {
+			struct oh_event *e;
+			e = tmp->data;
+			memcpy(event, e, sizeof(*event));
+			inst->eventq = g_slist_remove_link(inst->eventq, tmp);
+			g_slist_free(tmp);
+			free(e);
+			return 1;
+		}
+	}
+
 	return 0;
 }
 
@@ -191,16 +207,15 @@ static int sysfs2hpi_get_event(void *hnd)
  * Return value: 0 for success | Error code.
  **/
 static int sysfs2hpi_setup_rdr(SaHpiSensorTypeT type,
-                               const char* str, int num_sensors,
-                               struct sysfs_device* d, struct resource* r,
-                               struct oh_handler_state* inst,
-                               struct oh_event *e)
+		const char* str, int num_sensors,
+		struct sysfs_device* d, struct resource* r,
+		struct oh_handler_state* inst)
 {
 	struct sensor *s;
+	struct oh_event *e;
 	unsigned char strinput[SYSFS_NAME_LEN];
 	int puid;
         SaHpiSensorDataFormatT *frmt;
-        SaHpiRdrT *tmprdr;
 
 	if ((type != SAHPI_TEMPERATURE) && (type != SAHPI_VOLTAGE) &&
        		(type != SAHPI_CURRENT) && (type != SAHPI_FAN))	{
@@ -272,21 +287,26 @@ static int sysfs2hpi_setup_rdr(SaHpiSensorTypeT type,
 
 	r->sensors = g_slist_append(r->sensors, s);
 
-        tmprdr = (SaHpiRdrT *)malloc(sizeof(SaHpiRdrT));
-        if (!tmprdr) return SA_ERR_HPI_OUT_OF_SPACE;
+	e = (struct oh_event *)malloc(sizeof(*e));
+	if (!e) {
+		dbg("unable to allocate event");
+		return SA_ERR_HPI_OUT_OF_SPACE;
+	}
+	memset(e, '\0', sizeof(*e));
+	e->type = OH_ET_RDR;
 
-	tmprdr->RecordId = num_sensors;
-	tmprdr->RdrType = SAHPI_SENSOR_RDR;
-	tmprdr->Entity.Entry[0].EntityType = SAHPI_ENT_SYS_MGMNT_SOFTWARE;
-	tmprdr->Entity.Entry[0].EntityLocation = g_num_resources;
-	tmprdr->Entity.Entry[1].EntityType = SAHPI_ENT_OTHER_SYSTEM_BOARD;
-	tmprdr->Entity.Entry[1].EntityLocation = 0; /* 0 b/c only 1 board */
-        oh_concat_ep( &tmprdr->Entity, &g_epbase);
-	tmprdr->RdrTypeUnion.SensorRec.Num = num_sensors;
-	tmprdr->RdrTypeUnion.SensorRec.Type = type;
+	e->u.rdr_event.rdr.RecordId = num_sensors;
+	e->u.rdr_event.rdr.RdrType = SAHPI_SENSOR_RDR;
+	e->u.rdr_event.rdr.Entity.Entry[0].EntityType = SAHPI_ENT_SYS_MGMNT_SOFTWARE;
+	e->u.rdr_event.rdr.Entity.Entry[0].EntityLocation = g_num_resources;
+	e->u.rdr_event.rdr.Entity.Entry[1].EntityType = SAHPI_ENT_OTHER_SYSTEM_BOARD;
+	e->u.rdr_event.rdr.Entity.Entry[1].EntityLocation = 0; /* 0 b/c only 1 board */
+        oh_concat_ep( &e->u.rdr_event.rdr.Entity, &g_epbase);
+	e->u.rdr_event.rdr.RdrTypeUnion.SensorRec.Num = num_sensors;
+	e->u.rdr_event.rdr.RdrTypeUnion.SensorRec.Type = type;
 
 	/* Ignoring .Category, .EventCtrl, and .Events b/c sysfs has no events */
-        frmt = &tmprdr->RdrTypeUnion.SensorRec.DataFormat;
+        frmt = &e->u.rdr_event.rdr.RdrTypeUnion.SensorRec.DataFormat;
         frmt->IsSupported = SAHPI_TRUE;
         frmt->ReadingType = SAHPI_SENSOR_READING_TYPE_INT64;
 
@@ -357,18 +377,18 @@ static int sysfs2hpi_setup_rdr(SaHpiSensorTypeT type,
 	strcpy(e->u.rdr_event.rdr.IdString.Data, s->name);
 #endif
 
-	puid = oh_uid_lookup(&tmprdr->Entity);
+	inst->eventq = g_slist_append(inst->eventq, e);
+
+	puid = oh_uid_lookup(&e->u.rdr_event.rdr.Entity);
 	if (puid < 0) {
 		dbg("could not find correct parent");
 		return SA_ERR_HPI_ERROR;
 	}
 
-	if (oh_add_rdr(inst->rptcache, puid, tmprdr, (void *)s, 0)) {
+	if (oh_add_rdr(inst->rptcache, puid, &e->u.rdr_event.rdr, (void *)s, 0)) {
 		dbg("unable to add RDR to RPT");
 		return SA_ERR_HPI_ERROR;
 	}
-
-        e->rdrs = g_slist_append(e->rdrs, tmprdr); /* Append RDR to event */
 
 	return 0;
 }
@@ -392,9 +412,7 @@ static int sysfs2hpi_setup_rdr(SaHpiSensorTypeT type,
  * Return value: 
  **/
 static int sysfs2hpi_assign_rdrs(struct sysfs_device* d,
-                                 struct resource* r,
-                                 struct oh_handler_state* inst,
-                                 struct oh_event *e)
+		struct resource* r, struct oh_handler_state* inst)
 {
 	int num_sensors = 0;
 	char str[2];
@@ -414,7 +432,7 @@ static int sysfs2hpi_assign_rdrs(struct sysfs_device* d,
 		i++;
 		snprintf(str, sizeof(str), "%d", i);
 		if (sysfs2hpi_setup_rdr(SAHPI_CURRENT, str, 
-                                        ++num_sensors, d, r, inst, e) != 0) {
+				++num_sensors, d, r, inst) != 0) {
 			i=-1; /* keep going until we get an error returned */
 			num_sensors--;
 		}
@@ -424,7 +442,7 @@ static int sysfs2hpi_assign_rdrs(struct sysfs_device* d,
 	for (i=1;i<=fanmax;i++) {
 		snprintf(str, sizeof(str), "%d", i);
 		if (sysfs2hpi_setup_rdr(SAHPI_FAN, str, 
-                                        ++num_sensors, d, r, inst, e) != 0) {
+				++num_sensors, d, r, inst) != 0) {
 			num_sensors--;
 		}
 	}
@@ -433,7 +451,7 @@ static int sysfs2hpi_assign_rdrs(struct sysfs_device* d,
 	for (i=0;i<=voltagemax;i++) {
 		snprintf(str, sizeof(str), "%d", i);
 		if (sysfs2hpi_setup_rdr(SAHPI_VOLTAGE, str, 
-                                        ++num_sensors, d, r, inst, e) != 0) {
+				++num_sensors, d, r, inst) != 0) {
 			num_sensors--;
 		}
 	}
@@ -442,7 +460,7 @@ static int sysfs2hpi_assign_rdrs(struct sysfs_device* d,
 	for (i=1;i<=tempmax;i++) {
 		snprintf(str, sizeof(str), "%d", i);
 		if (sysfs2hpi_setup_rdr(SAHPI_TEMPERATURE, str, 
-                                        ++num_sensors, d, r, inst, e) != 0) {
+				++num_sensors, d, r, inst) != 0) {
 			num_sensors--;
 		}
 	}
@@ -496,37 +514,30 @@ static int sysfs2hpi_assign_resource(struct sysfs_device* d,
 		dbg("unable to allocate event");
 		return SA_ERR_HPI_OUT_OF_SPACE;
 	}
-        memset(e, '\0', sizeof(struct oh_event));
-        e->hid = inst->hid;
+	memset(e, '\0', sizeof(struct oh_event));
+	e->type = OH_ET_RESOURCE;
         oh_concat_ep( &(r->path), &g_epbase);
-	e->resource.ResourceId = oh_uid_from_entity_path(&(r->path));
-	e->resource.EntryId = e->resource.ResourceId; /* EntryId = ResourceId */
+	e->u.res_event.entry.ResourceId = oh_uid_from_entity_path(&(r->path));
+	e->u.res_event.entry.EntryId = e->u.res_event.entry.ResourceId; /* EntryId = ResourceId */
 	/* Note:  .res_event.entry.ResourceInfo currently unassigned */
-	memcpy(&(e->resource.ResourceEntity),&(r->path),sizeof(SaHpiEntityPathT));
-	e->resource.ResourceCapabilities = SAHPI_CAPABILITY_RESOURCE|SAHPI_CAPABILITY_RDR|SAHPI_CAPABILITY_SENSOR;
-	e->resource.ResourceSeverity = SAHPI_CRITICAL; /* sysfs data always critical */
-	e->resource.ResourceTag.DataType = SAHPI_TL_TYPE_ASCII6;
-	e->resource.ResourceTag.Language = SAHPI_LANG_ENGLISH;
-	e->resource.ResourceTag.DataLength = strlen(r->name);
-	strcpy((char*)e->resource.ResourceTag.Data, r->name);
-
-        e->event.Source = e->resource.ResourceId;
-        e->event.Timestamp = SAHPI_TIME_UNSPECIFIED;
-        e->event.Severity = e->resource.ResourceSeverity;
-        e->event.EventType = SAHPI_ET_RESOURCE;
-        e->event.EventDataUnion.ResourceEvent.ResourceEventType = SAHPI_RESE_RESOURCE_ADDED;
+	memcpy(&(e->u.res_event.entry.ResourceEntity),&(r->path),sizeof(SaHpiEntityPathT));
+	e->u.res_event.entry.ResourceCapabilities = SAHPI_CAPABILITY_RESOURCE|SAHPI_CAPABILITY_RDR|SAHPI_CAPABILITY_SENSOR;
+	e->u.res_event.entry.ResourceSeverity = SAHPI_CRITICAL; /* sysfs data always critical */
+	e->u.res_event.entry.ResourceTag.DataType = SAHPI_TL_TYPE_ASCII6;
+	e->u.res_event.entry.ResourceTag.Language = SAHPI_LANG_ENGLISH;
+	e->u.res_event.entry.ResourceTag.DataLength = strlen(r->name);
+	strcpy((char*)e->u.res_event.entry.ResourceTag.Data, r->name);
 	
 	/* add resource */
-	if (0 != oh_add_resource(inst->rptcache, &(e->resource), NULL, 0)) {
+	if (0 != oh_add_resource(inst->rptcache, &(e->u.res_event.entry), NULL, 0)) {
 		dbg("unable to add resource to RPT");
 		return SA_ERR_HPI_ERROR;
 	}
-
-        /* Assign RDRs to this resource */
-        sysfs2hpi_assign_rdrs(d, r, inst, e);
-        
 	/* add event */
-	oh_evt_queue_push(inst->eventq, e);
+	inst->eventq = g_slist_append(inst->eventq, e);
+
+	/* Assign RDRs to this resource */
+	sysfs2hpi_assign_rdrs(d, r, inst);
 
 	return 0;
 }
@@ -1012,11 +1023,11 @@ static int sysfs2hpi_set_sensor_event_enables(void *hnd,
 	return 0;
 }
 
-void * oh_open (GHashTable *, unsigned int, oh_evt_queue *) __attribute__ ((weak, alias("sysfs2hpi_open")));
+void * oh_open (GHashTable *) __attribute__ ((weak, alias("sysfs2hpi_open")));
 
 void * oh_close (void *) __attribute__ ((weak, alias("sysfs2hpi_close")));
 
-void * oh_get_event (void *) 
+void * oh_get_event (void *, struct oh_event *) 
             __attribute__ ((weak, alias("sysfs2hpi_get_event")));
 		
 void * oh_discover_resources (void *) 

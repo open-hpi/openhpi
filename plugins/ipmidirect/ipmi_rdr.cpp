@@ -63,7 +63,7 @@ cIpmiRdr::SendCommand( const cIpmiMsg &msg, cIpmiMsg &rsp,
 
 
 bool
-cIpmiRdr::Populate(GSList **list)
+cIpmiRdr::Populate()
 {
   if ( m_populate )
        return true;
@@ -77,28 +77,43 @@ cIpmiRdr::Populate(GSList **list)
        return false;
      }
 
+  // create event
+  struct oh_event *e;
+
+  e = (oh_event *)g_malloc0( sizeof( struct oh_event ) );
+
+  if ( !e )
+     {
+       stdlog << "out of space !\n";
+       return false;
+     }
+
+  memset( e, 0, sizeof( struct oh_event ) );
+
+  e->type               = OH_ET_RDR;
+  e->u.rdr_event.parent = resource->ResourceId;
+
   // create rdr
-  SaHpiRdrT *rdr = (SaHpiRdrT *)g_malloc0(sizeof(SaHpiRdrT));
-  CreateRdr( *resource, *rdr );
+  CreateRdr( *resource, e->u.rdr_event.rdr );
 
   int rv = oh_add_rdr( Domain()->GetHandler()->rptcache,
                        resource->ResourceId,
-                       rdr, this, 1 );
+                       &e->u.rdr_event.rdr, this, 1 );
 
   if ( rv != 0 )
   {
        stdlog << "Can't add RDR to plugin cache !\n";
-       g_free( rdr );
+       g_free( e );
        return false;
   }
 
   // assign the hpi record id to sensor, so we can find
   // the rdr for a given sensor.
   // the id comes from oh_add_rdr.
-  RecordId() = rdr->RecordId;
+  RecordId() = e->u.rdr_event.rdr.RecordId;
 
-  stdlog << "cIpmiRdr::Populate RDR for resource " << resource->ResourceId << " RDR " << RecordId() << "\n";
-  *list = g_slist_append(*list, rdr);
+  stdlog << "cIpmiRdr::Populate OH_ET_RDR Event resource " << resource->ResourceId << " RDR " << RecordId() << "\n";
+  Domain()->AddHpiEvent( e );
 
   m_populate = true;
 

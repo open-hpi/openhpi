@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2005, 2006
+ * (C) Copyright IBM Corp. 2005
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -11,7 +11,6 @@
  *
  * Author(s):
  *      W. David Ashley <dashley@us.ibm.com>
- *	Renier Morales <renierm@users.sourceforge.net>
  *
  */
 
@@ -19,22 +18,17 @@
 #ifndef __SIM_INJECTOR_H
 #define __SIM_INJECTOR_H
 
-#include <sim_resources.h>
-#include <oh_event.h>
+
+#define MSG_QUEUE_KEY 'I'
+
 
 struct oh_handler_state *sim_get_handler_by_name(char *name);
 SaErrorT sim_inject_resource(struct oh_handler_state *state,
-                             struct sim_rpt *rpt_tmpl,
-                             void *data,
-                             struct oh_event **ohe);
-SaErrorT sim_inject_rdr(struct oh_handler_state *state,
-			struct oh_event *ohe,
-                        SaHpiRdrT *rdr,
-                        void *data);
-SaErrorT sim_inject_event(struct oh_handler_state *state, struct oh_event *ohe);
-SaErrorT sim_inject_ext_event(void *hnd,
-			      SaHpiEventT *event,
-			      SaHpiRptEntryT *rpte,
-			      SaHpiRdrT *rdr);
+                             SaHpiRptEntryT *data, void *privdata,
+                             const char * comment);
+SaErrorT sim_inject_rdr(struct oh_handler_state *state, SaHpiResourceIdT resid,
+                        SaHpiRdrT *rdr, void * privinfo);
+SaErrorT sim_inject_event(struct oh_handler_state *state, struct oh_event *data);
+GThread *start_injector_service_thread(gpointer data);
 
 #endif /*__SIM_INJECTOR_H*/

@@ -45,7 +45,7 @@ SaErrorT SAHPI_API saHpiSessionOpen(
         SAHPI_IN  void            *SecurityParams)
 {
         SaHpiSessionIdT sid;
-        SaHpiDomainIdT did = DomainId;
+        SaHpiDomainIdT did;
 
 
         trace("saHpiSessionOpen DomainId [%d]", DomainId);
@@ -63,6 +63,12 @@ SaErrorT SAHPI_API saHpiSessionOpen(
         
         /* Initialize Library - This will only run once */
         if (oh_init()) return SA_ERR_HPI_INTERNAL_ERROR;
+
+        if (DomainId == SAHPI_UNSPECIFIED_DOMAIN_ID) {
+                did = oh_get_default_domain_id();
+        } else{
+                did = DomainId;
+        }
 
         sid = oh_create_session(did);
 
@@ -88,7 +94,12 @@ SaErrorT SAHPI_API saHpiSessionClose(
 SaErrorT SAHPI_API saHpiDiscover(
         SAHPI_IN SaHpiSessionIdT SessionId)
 {
+        SaHpiDomainIdT did;
+        SaErrorT error = SA_OK;
+
         OH_CHECK_INIT_STATE(SessionId);
+        OH_GET_DID(SessionId, did);
+
 
         /* This will wake the discovery thread up
          * and wait until it does a round throughout the
@@ -98,7 +109,7 @@ SaErrorT SAHPI_API saHpiDiscover(
         oh_wake_discovery_thread(SAHPI_TRUE);
         oh_wake_event_thread(SAHPI_TRUE);
 
-        return SA_OK;
+        return error;
 }
 
 
@@ -125,7 +136,7 @@ SaErrorT SAHPI_API saHpiDomainInfoGet (
         /* General */
         DomainInfo->DomainId = d->id;
         DomainInfo->DomainCapabilities = d->capabilities;
-        DomainInfo->IsPeer = d->state & OH_DOMAIN_PEER;
+        DomainInfo->IsPeer = d->is_peer;
         /* DRT */
         DomainInfo->DrtUpdateCount = d->drt.update_count;
         DomainInfo->DrtUpdateTimestamp = d->drt.update_timestamp;
@@ -320,8 +331,7 @@ SaErrorT SAHPI_API saHpiResourceSeveritySet(
         if (ResourceId == SAHPI_UNSPECIFIED_RESOURCE_ID) {
                 dbg("Invalid resource id, SAHPI_UNSPECIFIED_RESOURCE_ID passed.");
                 return SA_ERR_HPI_INVALID_PARAMS;
-        } else if (!oh_lookup_severity(Severity) ||
-		   Severity == SAHPI_ALL_SEVERITIES) {
+        } else if (!oh_lookup_severity(Severity)) {
                 dbg("Invalid severity %d passed.", Severity);
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
@@ -1070,19 +1080,12 @@ SaErrorT SAHPI_API saHpiEventGet (
                 *EventQueueStatus = qstatus1 ? qstatus1 : qstatus2;
 
         /* Return event, resource and rdr */
-        *Event = e.event;
+        *Event = e.u.hpi_event.event;
 
-        if (RptEntry) *RptEntry = e.resource;
+        if (RptEntry) *RptEntry = e.u.hpi_event.res;
 
-        if (Rdr) {
-        	if (e.rdrs) {
-        		memcpy(Rdr, e.rdrs->data, sizeof(SaHpiRdrT));
-        	} else {
-        		Rdr->RdrType = SAHPI_NO_RECORD;
-        	}
-        }
+        if (Rdr) *Rdr = e.u.hpi_event.rdr;
 
-	oh_event_free(&e, TRUE);
         return SA_OK;
 }
 
@@ -1119,21 +1122,22 @@ SaErrorT SAHPI_API saHpiEventAdd (
                 return SA_ERR_HPI_INVALID_DATA;
         }
 
+        e.did = did;
         e.hid = 0;
+        e.type = OH_ET_HPI;
         /* Timestamp the incoming user event */
         gettimeofday(&tv1, NULL);
         EvtEntry->Timestamp =
                 (SaHpiTimeT) tv1.tv_sec * 1000000000 + tv1.tv_usec * 1000;
         /* Copy SaHpiEventT into oh_event struct */
-        e.event = *EvtEntry;
+        e.u.hpi_event.event = *EvtEntry;
         /* indicate there is no rdr or resource */
-        e.rdrs = NULL;
-        e.resource.ResourceId = did;
-        e.resource.ResourceCapabilities = 0;
+        e.u.hpi_event.rdr.RdrType = SAHPI_NO_RECORD;
+        e.u.hpi_event.res.ResourceId = SAHPI_UNSPECIFIED_RESOURCE_ID;
         /* indicate this is a user-added event */
-        e.resource.ResourceSeverity = SAHPI_INFORMATIONAL;
+        e.u.hpi_event.res.ResourceSeverity = SAHPI_INFORMATIONAL;
 
-        oh_evt_queue_push(&oh_process_q, g_memdup(&e, sizeof(struct oh_event)));
+        g_async_queue_push(oh_process_q, g_memdup(&e, sizeof(struct oh_event)));
 
         oh_wake_event_thread(SAHPI_TRUE);
 
@@ -3598,12 +3602,10 @@ SaErrorT SAHPI_API saHpiAutoInsertTimeoutSet(
         SAHPI_IN SaHpiTimeoutT   Timeout)
 {
         SaHpiDomainIdT did;
-        struct oh_domain *domain = NULL;
+        struct oh_domain *domain;
+        unsigned int hid = 0, next_hid;
+        struct oh_handler *h = NULL;
         SaErrorT error = SA_OK;
-        SaHpiRptEntryT *rpte = NULL;
-        RPTable *rpt;
-        GArray *hids = NULL;
-        int i;
 
         if (Timeout != SAHPI_TIMEOUT_IMMEDIATE &&
             Timeout != SAHPI_TIMEOUT_BLOCK &&
@@ -3619,54 +3621,38 @@ SaErrorT SAHPI_API saHpiAutoInsertTimeoutSet(
                 return SA_ERR_HPI_READ_ONLY;
         }
 
-        set_hotswap_auto_insert_timeout(domain, Timeout);
-        rpt = &domain->rpt;
-        /* 1. Get a list of unique handler ids where the resources in this
-         *    domain came from.
-         */
-        hids = g_array_new(FALSE, TRUE, sizeof(guint));
-        for (rpte = oh_get_resource_by_id(rpt, SAHPI_FIRST_ENTRY);
-             rpte;
-             rpte = oh_get_resource_next(rpt, rpte->ResourceId)) {
-                guint *hidp =
-                        (guint *)oh_get_resource_data(rpt, rpte->ResourceId);
-                if (hidp) {
-                        int found_hid = 0;
-                        /* Store id if we don't have it in the list already */
-                        for (i = 0; i < hids->len; i++) {
-                                if (g_array_index(hids, guint, i) == *hidp) {
-                                        found_hid = 1;
-                                        break;
-                                }
+	set_hotswap_auto_insert_timeout(domain, Timeout);
+	oh_getnext_handler_id(hid, &next_hid);
+        while (next_hid) {
+                hid = next_hid;
+
+                if (oh_domain_served_by_handler(hid, did)) {
+                        h = oh_get_handler(hid);
+                        if (!h) {
+                                dbg("No such handler %d", hid);
+				error = SA_ERR_HPI_INTERNAL_ERROR;
+                                break;
                         }
-                        if (!found_hid)
-                                g_array_append_val(hids, *hidp);
+                        if (h->abi->set_autoinsert_timeout != NULL) {
+				error = h->abi->set_autoinsert_timeout(
+                                                             h->hnd, Timeout);
+                        }
+                        oh_release_handler(h);
+			if (error != SA_OK) {
+                                break;
+                        }
                 }
+                oh_getnext_handler_id(hid, &next_hid);
         }
-        oh_release_domain(domain); /* Unlock domain */
 
-        if (!hids->len) dbg("Did not find any handlers for domain resources?!");
-        /* 2. Use list to push down autoInsertTimeoutSet() to those handlers.
-         */
-        for (i = 0; i < hids->len; i++) {
-                guint hid = g_array_index(hids, guint, i);
-                struct oh_handler *h = oh_get_handler(hid);
-                if (!h) {
-                        dbg("No such handler %u", hid);
-                        error = SA_ERR_HPI_INTERNAL_ERROR;
-                        break;
-                }
-
-                if (h->abi->set_autoinsert_timeout) {
-                        error = h->abi->set_autoinsert_timeout(h->hnd, Timeout);
-                }
-                oh_release_handler(h);
-
-                if (error) break;
+	if (error != SA_OK) {
+                oh_release_domain(domain);
+		return error; /* Unlock domain */
         }
-        g_array_free(hids, TRUE);
 
-        return error;
+	oh_release_domain(domain); /* Unlock domain */
+
+        return SA_OK;
 }
 
 SaErrorT SAHPI_API saHpiAutoExtractTimeoutGet(

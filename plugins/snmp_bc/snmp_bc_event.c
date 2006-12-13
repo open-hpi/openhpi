@@ -413,8 +413,7 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 	if (recovery_str && (recovery_str == search_str)) {
 		is_recovery_event = SAHPI_TRUE;
 		memset(search_str, 0, SNMP_BC_MAX_SEL_ENTRY_LENGTH);
-		strncpy(search_str, (log_entry.text + strlen(EVT_RECOVERY)),
-			SNMP_BC_MAX_SEL_ENTRY_LENGTH - strlen(EVT_RECOVERY));
+		strncpy(search_str, (log_entry.text + strlen(EVT_RECOVERY)), SNMP_BC_MAX_SEL_ENTRY_LENGTH);
 	}
 
 	/* Adjust "login" event strings - strip username */
@@ -436,28 +435,8 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 		search_str[(post_str - log_entry.text - 1)] = '\0';
 	}
 
-        /* Replace internal double blanks with a single blank */
-	{
-		gchar *double_blanks;
-		double_blanks = strstr(log_entry.text, "  ");
-		if (double_blanks) {
-			gchar *tmp_str;
-			int len;
-			tmp_str = log_entry.text;
-			memset(search_str, 0, SNMP_BC_MAX_SEL_ENTRY_LENGTH);
-			do {
-				strncat(search_str, tmp_str, (double_blanks - tmp_str));
-				tmp_str = double_blanks + 1;
-				len = strlen(tmp_str);
-				double_blanks = strstr(tmp_str, "  ");
-			} while (double_blanks);
-			strncat(search_str, tmp_str, len);
-		}
-	}
-
 	/* Adjust "threshold" event strings */
-	if (strstr(log_entry.text, LOG_THRESHOLD_VALUE_STRING) ||
-	    strstr(log_entry.text, LOG_THRESHOLD_STRING)) {
+	if (strstr(log_entry.text, LOG_THRESHOLD_VALUE_STRING)) {
 		is_threshold_event = SAHPI_TRUE;
 		oh_init_textbuffer(&thresh_read_value);
 		oh_init_textbuffer(&thresh_trigger_value);
@@ -482,10 +461,6 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		}
 	}
-
-	/* Strip any trailing period */
-	if (search_str[strlen(search_str) - 1] == '.')
-		search_str[strlen(search_str) - 1] = '\0';
 
 	trace("Event search string=%s", search_str);
 
@@ -568,7 +543,6 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 	eventmap_info = (EventMapInfoT *)g_hash_table_lookup(custom_handle->event2hpi_hash_ptr, 
 							     strhash_data->event);
 	if (!eventmap_info) {
-		
 		if (snmp_bc_map2oem(&working, &log_entry, EVENT_NOT_MAPPED)) {
 			dbg("Cannot map to OEM Event %s.", log_entry.text);
 			return(SA_ERR_HPI_INTERNAL_ERROR);
@@ -576,7 +550,7 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 		goto DONE;
 	}
 
-	/* Set static event data defined during resource discovery */	
+	/* Set static event data defined during resource discovery */
 	working = eventmap_info->hpievent;
 	logsrc2res.ep = eventmap_info->ep;
 	logsrc2res.rid = eventmap_info->hpievent.Source;
@@ -736,14 +710,6 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 			else {
 				event_severity = SAHPI_INFORMATIONAL;
 			}
-			
-			/* Call rediscover() here to do cleanup for hotswap-remove event */
-			/* cleanup = removing rpt and rdrs from plugin handle->rptcache  */
-			/* rpt and rdrs will be remove in snmp_bc_add_to_eventq() becasue*/
-			/* the new oh_event requires rpt present, else infrastructure    */
-			/* drops the event.  We have to wait to the very last min to     */
-			/* remove rpt from rptcache.                                     */
-  			/* err = snmp_bc_rediscover(handle, &working, &logsrc2res);      */	
 		}
 	}
 	else {
@@ -763,21 +729,15 @@ RESUME_TO_EXIT:
 			if (rpt->ResourceFailed == SAHPI_FALSE) {
 				rpt->ResourceFailed = SAHPI_TRUE;
 				/* Add changed resource to event queue */
-				e = snmp_bc_alloc_oh_event();
+				e = g_malloc0(sizeof(struct oh_event));
 				if (e == NULL) {
 					dbg("Out of memory.");
 					return(SA_ERR_HPI_OUT_OF_SPACE);
 				}
-				
-				e->resource = *rpt;
-				e->event.Severity = e->resource.ResourceSeverity;
-				e->event.Source =   e->resource.ResourceId;
-				e->event.EventType = SAHPI_ET_RESOURCE;
-				e->event.EventDataUnion.ResourceEvent.ResourceEventType 
-									= SAHPI_RESE_RESOURCE_FAILURE;
-				if (oh_gettimeofday(&e->event.Timestamp) != SA_OK)
-		                		    e->event.Timestamp = SAHPI_TIME_UNSPECIFIED;
-				custom_handle->eventq = g_slist_append(custom_handle->eventq, e);
+				e->did = oh_get_default_domain_id();						
+				e->type = OH_ET_RESOURCE;
+				e->u.res_event.entry = *rpt;
+				handle->eventq = g_slist_append(handle->eventq, e);
 			}
 		}
 	}
@@ -923,16 +883,9 @@ static SaErrorT snmp_bc_parse_threshold_str(gchar *str,
 	thresh_substrs = NULL;
 	err = SA_OK;
 	
-	/* Handle BladeCenter's two basic threshold event formats */
-	if (strstr(str, LOG_READ_VALUE_STRING)) {
-		event_substrs = g_strsplit(str, LOG_READ_VALUE_STRING, -1);
-		thresh_substrs = g_strsplit(event_substrs[1], LOG_THRESHOLD_VALUE_STRING, -1);
-	}
-	else {
-		event_substrs = g_strsplit(str, LOG_READ_STRING, -1);
-		thresh_substrs = g_strsplit(event_substrs[1], LOG_THRESHOLD_STRING, -1);
-	}
-   
+	event_substrs = g_strsplit(str, LOG_READ_VALUE_STRING, -1);
+	thresh_substrs = g_strsplit(event_substrs[1], LOG_THRESHOLD_VALUE_STRING, -1);
+
 	if (thresh_substrs == NULL ||
 	    (thresh_substrs[0] == NULL || thresh_substrs[0][0] == '\0') ||
 	    (thresh_substrs[1] == NULL || thresh_substrs[1][0] == '\0') ||
@@ -957,11 +910,11 @@ static SaErrorT snmp_bc_parse_threshold_str(gchar *str,
 	/* Change any leading period to a blank.
            This put here because MM code added a period after the 
            Threadhold Value string and before the threshold value 
-           (e.g. "Threshold value. 23.0") */
+           (e.g. "Threshold value." 23.0 */
 	if (thresh_substrs[0][0] == '.') thresh_substrs[0][0] = ' ';
 	if (thresh_substrs[1][0] == '.') thresh_substrs[1][0] = ' ';
 
-	/* Strip any leading/trailing blanks - in case of leading period */
+	/* Strip any leading/trailing blanks - do again after any period conversion */
 	thresh_substrs[0] = g_strstrip(thresh_substrs[0]);
 	thresh_substrs[1] = g_strstrip(thresh_substrs[1]);
 	if ((event_substrs[0] == NULL || event_substrs[0] == '\0') ||
@@ -972,16 +925,10 @@ static SaErrorT snmp_bc_parse_threshold_str(gchar *str,
 		goto CLEANUP;
 	}
 
-	/* Strip any ending periods, commas, colons, or semicolons */
-	if ((thresh_substrs[0][strlen(thresh_substrs[0]) - 1] == '.') ||
-	    (thresh_substrs[0][strlen(thresh_substrs[0]) - 1] == ',') ||
-	    (thresh_substrs[0][strlen(thresh_substrs[0]) - 1] == ':') ||
-	    (thresh_substrs[0][strlen(thresh_substrs[0]) - 1] == ';'))
+	/* Strip any ending periods */
+	if (thresh_substrs[0][strlen(thresh_substrs[0]) - 1] == '.')
 		thresh_substrs[0][strlen(thresh_substrs[0]) - 1] = '\0';
-	if ((thresh_substrs[1][strlen(thresh_substrs[1]) - 1]  == '.') ||
-	    (thresh_substrs[1][strlen(thresh_substrs[1]) - 1]  == ',') ||
-	    (thresh_substrs[1][strlen(thresh_substrs[1]) - 1]  == ':') ||
-	    (thresh_substrs[1][strlen(thresh_substrs[1]) - 1]  == ';'))
+	if (thresh_substrs[1][strlen(thresh_substrs[1]) - 1]  == '.')
 		thresh_substrs[1][strlen(thresh_substrs[1]) - 1] = '\0';
 
 	/* Check for valid length */
@@ -992,7 +939,7 @@ static SaErrorT snmp_bc_parse_threshold_str(gchar *str,
 		goto CLEANUP;
 	}
 
-	trace("Threshold strings: %s and %s", thresh_substrs[0], thresh_substrs[1]);
+	trace("Threshold strings: %s; %s", thresh_substrs[0], thresh_substrs[1]);
 	
 	strcpy(root_str, event_substrs[0]);
 	oh_append_textbuffer(read_value_str, thresh_substrs[0]);
@@ -1385,7 +1332,7 @@ static SaErrorT snmp_bc_logsrc2rid(struct oh_handler_state *handle,
 
 	/* Find the location value from last part of log's source string */
 	if (isexpansioncard == SAHPI_TRUE || isblade == SAHPI_TRUE || isswitch == SAHPI_TRUE) {
-		if (src_parts[1]) src_loc = strtoul(src_parts[1], &endptr, 10);
+		src_loc = strtoul(src_parts[1], &endptr, 10);
 		if (isexpansioncard == SAHPI_TRUE) {
 			rpt_index = BC_RPT_ENTRY_BLADE_EXPANSION_CARD;
 			array_ptr = &snmp_bc_bem_sensors[0];	
@@ -1530,45 +1477,59 @@ static SaErrorT snmp_bc_logsrc2rid(struct oh_handler_state *handle,
 SaErrorT snmp_bc_add_to_eventq(struct oh_handler_state *handle, SaHpiEventT *thisEvent, SaHpiBoolT prepend)
 {
 	SaHpiEntryIdT rdrid;
+	SaErrorT err;
+        struct oh_event working;
         struct oh_event *e = NULL;
 	SaHpiRptEntryT *thisRpt;
 	SaHpiRdrT      *thisRdr;
 	LogSource2ResourceT logsrc2res;
-	SaErrorT err;
-        struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
+	guint blade_loc, i;	
+	
+	rdrid = 0;
+        memset(&working, 0, sizeof(struct oh_event));
 
-        /* Insert entry to eventq for processing */
-        e = snmp_bc_alloc_oh_event();
-        if (!e) {
-                dbg("Out of memory.");
-                return(SA_ERR_HPI_OUT_OF_SPACE);
-        }
-				
+	working.did = oh_get_default_domain_id();
+	working.type = OH_ET_HPI;
+	
 	thisRpt = oh_get_resource_by_id(handle->rptcache, thisEvent->Source);
-        if (thisRpt) e->resource = *thisRpt;
-        memcpy(&e->event, thisEvent, sizeof(SaHpiEventT));
+        if (thisRpt) working.u.hpi_event.res = *thisRpt;
+	else dbg("NULL Rpt pointer for rid %d\n", thisEvent->Source);
+        memcpy(&working.u.hpi_event.event, thisEvent, sizeof(SaHpiEventT));
 
 	/* Setting RDR ID to event struct */	
 	switch (thisEvent->EventType) {
 	case SAHPI_ET_HOTSWAP:
-		if (snmp_bc_isrediscover(thisEvent) == SNMP_BC_RESOURCE_INSTALLED) {
-    			for (thisRdr = oh_get_rdr_by_id(handle->rptcache, thisEvent->Source, SAHPI_FIRST_ENTRY);
-                     	     thisRdr != NULL;
-                             thisRdr = oh_get_rdr_next(handle->rptcache, thisEvent->Source, thisRdr->RecordId)) 
+		blade_loc = SNMP_BC_NOT_VALID;
+		if (thisRpt) {
+ 			for (i=0; thisRpt->ResourceEntity.Entry[i].EntityType != SAHPI_ENT_SYSTEM_CHASSIS; i++)
 			{
-				e->rdrs = g_slist_append(e->rdrs, g_memdup(thisRdr, sizeof(SaHpiRdrT)));
-
-                	}
-		} else if (snmp_bc_isrediscover(thisEvent) == SNMP_BC_RESOURCE_REMOVED) {
-			/* Call rediscovery to remove rpt and rdrs from rptcache */
-			if (thisRpt) logsrc2res.ep = thisRpt->ResourceEntity;
-			err = snmp_bc_rediscover(handle, thisEvent, &logsrc2res);
+				if (thisRpt->ResourceEntity.Entry[i].EntityType == SAHPI_ENT_SBC_BLADE) {
+    					blade_loc = thisRpt->ResourceEntity.Entry[i].EntityLocation;					
+					break;
+				}			
+			}
+				
+			if (blade_loc != SNMP_BC_NOT_VALID) 
+				err = snmp_bc_create_bem_event(handle, thisEvent, blade_loc);
+		
+			
+			if (snmp_bc_isrediscover(thisEvent) == SNMP_BC_RESOURCE_REMOVED) {
+				/* Call rediscovery to remove rpt and rdrs from rptcache */
+				logsrc2res.ep = thisRpt->ResourceEntity;
+				err = snmp_bc_rediscover(handle, thisEvent, &logsrc2res);
+			}
 		}
-		break;
+	
+		/* There is no RDR associated to Hotswap event */
+		/* Set RDR Type to SAHPI_NO_RECORD, spec B-01.01 */		
+		memset(&working.u.hpi_event.rdr, 0, sizeof(SaHpiRdrT));
+		working.u.hpi_event.rdr.RdrType = SAHPI_NO_RECORD;
+		break;			           	
 	case SAHPI_ET_OEM:
 	case SAHPI_ET_USER:
 		/* There is no RDR associated to OEM event */
-		e->rdrs = NULL;
+		memset(&working.u.hpi_event.rdr, 0, sizeof(SaHpiRdrT));
+		working.u.hpi_event.rdr.RdrType = SAHPI_NO_RECORD;
 		/* Set RDR Type to SAHPI_NO_RECORD, spec B-01.01 */
 		/* It is redundant because SAHPI_NO_RECORD == 0, Put code here for clarity */
 		break;			           
@@ -1577,7 +1538,7 @@ SaErrorT snmp_bc_add_to_eventq(struct oh_handler_state *handle, SaHpiEventT *thi
 				    thisEvent->EventDataUnion.SensorEvent.SensorNum);
 		thisRdr =  oh_get_rdr_by_id(handle->rptcache, thisEvent->Source, rdrid);
 		if (thisRdr) 
-			e->rdrs = g_slist_append(e->rdrs, g_memdup(thisRdr, sizeof(SaHpiRdrT)));
+			working.u.hpi_event.rdr = *thisRdr;
 		else 
 			dbg("Rdr not found for rid %d, rdrid %d\n",thisEvent->Source, rdrid);
 		break;
@@ -1586,7 +1547,7 @@ SaErrorT snmp_bc_add_to_eventq(struct oh_handler_state *handle, SaHpiEventT *thi
 				    thisEvent->EventDataUnion.WatchdogEvent.WatchdogNum);
 		thisRdr =  oh_get_rdr_by_id(handle->rptcache, thisEvent->Source, rdrid);
 		if (thisRdr) 
-			e->rdrs = g_slist_append(e->rdrs, g_memdup(thisRdr, sizeof(SaHpiRdrT)));
+			working.u.hpi_event.rdr = *thisRdr;
 		else 
 			dbg("Rdr not found for rid %d, rdrid %d\n",thisEvent->Source, rdrid);
 
@@ -1601,11 +1562,18 @@ SaErrorT snmp_bc_add_to_eventq(struct oh_handler_state *handle, SaHpiEventT *thi
 		break;
 	} 
 	
+        /* Insert entry to eventq for processing */
+        e = g_malloc0(sizeof(struct oh_event));
+        if (!e) {
+                dbg("Out of memory.");
+                return(SA_ERR_HPI_OUT_OF_SPACE);
+        }
+        memcpy(e, &working, sizeof(struct oh_event));
 
 	if (prepend == SAHPI_TRUE) { 
-       		custom_handle->eventq = g_slist_prepend(custom_handle->eventq, e);
+       		handle->eventq = g_slist_prepend(handle->eventq, e);
 	} else {
-		custom_handle->eventq = g_slist_append(custom_handle->eventq, e);
+		handle->eventq = g_slist_append(handle->eventq, e);
 	}
 	
         return(SA_OK);

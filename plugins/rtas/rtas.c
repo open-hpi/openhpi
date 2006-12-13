@@ -15,23 +15,11 @@
 
 #include <rtas.h>
 
-void *rtas_open(GHashTable *handler_config, unsigned int hid, oh_evt_queue *eventq)
+void *rtas_open(GHashTable *handler_config)
 {
         struct oh_handler_state *h = NULL;
-	char *entity_root = NULL;
-
-        if (!handler_config) {
-                dbg("No configuration passed.");
-                return NULL;
-        } else if (!hid) {
-                dbg("Bad handler id passed.");
-                return NULL;
-        } else if (!eventq) {
-                dbg("No event queue was passed.");
-                return NULL;
-        }
-
-        entity_root = (char *)g_hash_table_lookup(handler_config, "entity_root");
+	char *entity_root = (char *)g_hash_table_lookup(handler_config, "entity_root");
+	
 	if (!entity_root) {
 	        dbg("Cannot find \"entity_root\" configuration parameter.");
 		return NULL;
@@ -46,9 +34,6 @@ void *rtas_open(GHashTable *handler_config, unsigned int hid, oh_evt_queue *even
         h->elcache = oh_el_create(0);
         h->elcache->gentimestamp = FALSE;
 
-        h->hid = hid;
-        h->eventq = eventq;
-
         return h;
 }
 
@@ -59,5 +44,5 @@ void rtas_close(void *hnd)
 
 				  			
 /* Function ABI aliases */
-void * oh_open (GHashTable *, unsigned int, oh_evt_queue *) __attribute__ ((weak, alias("rtas_open")));
+void * oh_open (GHashTable *) __attribute__ ((weak, alias("rtas_open")));
 void * oh_close (void *) __attribute__ ((weak, alias("rtas_close")));

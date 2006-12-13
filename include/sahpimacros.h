@@ -46,8 +46,7 @@
  */
 #define OH_GET_DID(sid, did) \
         do { \
-                did = oh_get_session_domain(sid); \
-                if (did == SAHPI_UNSPECIFIED_DOMAIN_ID) { \
+                if (!(did = oh_get_session_domain(sid))) { \
                         dbg("No domain for session id %d",sid); \
                         return SA_ERR_HPI_INVALID_SESSION; \
                 } \

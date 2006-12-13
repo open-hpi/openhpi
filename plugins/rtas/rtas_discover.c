@@ -73,18 +73,13 @@ SaErrorT rtas_discover_resources(void *hnd)
         if (!error) {
                 struct oh_event *e =
                         (struct oh_event *)g_malloc0(sizeof(struct oh_event));
-                e->hid = h->hid;
-                e->event.EventType = SAHPI_ET_RESOURCE;
-                e->resource = lone_res;
-                e->event.Source = lone_res.ResourceId;
-                e->event.Severity = lone_res.ResourceSeverity;
-                e->event.Timestamp = SAHPI_TIME_UNSPECIFIED;
-                e->event.EventDataUnion.ResourceEvent.ResourceEventType = SAHPI_RESE_RESOURCE_ADDED;
-                // Discover sensors
-                error = rtas_discover_sensors(h, e);
+                e->did = oh_get_default_domain_id();
+                e->type = OH_ET_RESOURCE;
+                e->u.res_event.entry = lone_res;
+                h->eventq = g_slist_append(h->eventq, e);
+                error = rtas_discover_sensors(h, e); // Discover sensors
                 // Discover Inventory
                 error = rtas_discover_inventory(h, e);
-                oh_evt_queue_push(h->eventq, e);
         } else {
                 dbg("Error adding resource. %s", oh_lookup_error(error));
                 return error;
@@ -94,10 +89,15 @@ SaErrorT rtas_discover_resources(void *hnd)
         return error;
 }
 
+SaErrorT rtas_discover_domain_resources(void *hnd, SaHpiDomainIdT did)
+{
+        return rtas_discover_resources(hnd);
+}
+
 /**
  * rtas_discover_sensors:
- * @h: Pointer to handler's data.
- * @e: Pointer to resource's event structure.
+ * @handler: Pointer to handler's data.
+ * @parent_res_event: Pointer to resource's event structure.
  *
  * Discovers resource's available sensors and its events.
  *
@@ -106,8 +106,8 @@ SaErrorT rtas_discover_resources(void *hnd)
  * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
  * SA_ERR_HPI_INVALID_PARAMS - incoming parameters are NULL.
  **/
-SaErrorT rtas_discover_sensors(struct oh_handler_state *h,
-                               struct oh_event *e)
+SaErrorT rtas_discover_sensors(struct oh_handler_state *handle,
+                               struct oh_event *parent_res_event)
 
 {
         FILE *file = NULL;
@@ -121,7 +121,9 @@ SaErrorT rtas_discover_sensors(struct oh_handler_state *h,
         SaHpiInt32T val, state;
         struct SensorInfo *sensor_info;
 
-        if (!h || !e)
+        struct oh_event * event;
+
+        if (!handle || !parent_res_event)
         {
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
@@ -173,16 +175,20 @@ SaErrorT rtas_discover_sensors(struct oh_handler_state *h,
 
                                 if (state != -3) {
 
-                                        SaHpiRdrT *rdr = (SaHpiRdrT *)g_malloc0(sizeof(SaHpiRdrT));
+                                        event = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
                                         sensor_info = (struct SensorInfo*)g_malloc0(sizeof(struct SensorInfo));
 
-                                        if (!rdr || !sensor_info) {
+                                        if (!event || !sensor_info) {
                                                 dbg("Out of memory.");
                                                 return SA_ERR_HPI_OUT_OF_SPACE;
                                         }
 
-                                        rdr->RdrType = SAHPI_SENSOR_RDR;
-                                        rdr->Entity  = e->resource.ResourceEntity;
+                                        event->type = OH_ET_RDR;
+                                        event->did  = oh_get_default_domain_id();
+
+                                        event->u.rdr_event.parent      = parent_res_event->u.res_event.entry.ResourceId;
+                                        event->u.rdr_event.rdr.RdrType = SAHPI_SENSOR_RDR;
+                                        event->u.rdr_event.rdr.Entity  = parent_res_event->u.res_event.entry.ResourceEntity;
 
                                         /* Do entity path business */
                                         //rtas_modify_sensor_ep(); //needs more research
@@ -191,15 +197,15 @@ SaErrorT rtas_discover_sensors(struct oh_handler_state *h,
                                          * create an RPT for each sensor type (and fill in the RDRs that consist of
                                          * the sensor type), then the num will need to be reset.
                                          */
-                                        rdr->RdrTypeUnion.SensorRec.Num = sensor_num++;
+                                        event->u.rdr_event.rdr.RdrTypeUnion.SensorRec.Num = sensor_num++;
 
-                                        populate_rtas_sensor_rec_info(token, &(rdr->RdrTypeUnion.SensorRec));
+                                        populate_rtas_sensor_rec_info(token, &(event->u.rdr_event.rdr.RdrTypeUnion.SensorRec));
 
-                                        rdr->RdrTypeUnion.SensorRec.Category = SAHPI_EC_THRESHOLD | SAHPI_EC_SEVERITY;
-                                        rdr->RdrTypeUnion.SensorRec.EventCtrl = SAHPI_SEC_READ_ONLY;
-                                        rdr->RdrTypeUnion.SensorRec.Events = SAHPI_ES_OK | SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_CRIT | SAHPI_ES_UPPER_MINOR |SAHPI_ES_UPPER_CRIT;
+                                        event->u.rdr_event.rdr.RdrTypeUnion.SensorRec.Category   = SAHPI_EC_THRESHOLD | SAHPI_EC_SEVERITY;
+                                        event->u.rdr_event.rdr.RdrTypeUnion.SensorRec.EventCtrl  = SAHPI_SEC_READ_ONLY;
+                                        event->u.rdr_event.rdr.RdrTypeUnion.SensorRec.Events     = SAHPI_ES_OK | SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_CRIT | SAHPI_ES_UPPER_MINOR |SAHPI_ES_UPPER_CRIT;
 
-                                        rdr->RdrTypeUnion.SensorRec.ThresholdDefn.IsAccessible = SAHPI_FALSE;
+                                        event->u.rdr_event.rdr.RdrTypeUnion.SensorRec.ThresholdDefn.IsAccessible = SAHPI_FALSE;
 
                                         sensor_info->token = token;
                                         sensor_info->index = index;
@@ -249,9 +255,9 @@ SaErrorT rtas_discover_sensors(struct oh_handler_state *h,
 
                                         rtas_get_sensor_location_code(token, index, sensor_info->sensor_location);
 
-                                        oh_add_rdr(h->rptcache, e->resource.ResourceId,
-                                                   rdr, sensor_info, 0);
-                                        e->rdrs = g_slist_append(e->rdrs, rdr);
+                                        oh_add_rdr(handle->rptcache, parent_res_event->u.res_event.entry.ResourceId,
+                                                   &(event->u.rdr_event.rdr), sensor_info, 0);
+                                        handle->eventq = g_slist_append(handle->eventq, event);
                                 }
                         }
                 }
@@ -603,8 +609,8 @@ void populate_rtas_sensor_rec_info(int token, SaHpiSensorRecT *sensor_info)
 
 /**
  * rtas_discover_inventory:
- * @h: Pointer to handler's data.
- * @e: Pointer to resource's event structure.
+ * @handler: Pointer to handler's data.
+ * @parent_res_event: Pointer to resource's event structure.
  *
  * Discovers resource's available inventory fields.
  *
@@ -613,17 +619,18 @@ void populate_rtas_sensor_rec_info(int token, SaHpiSensorRecT *sensor_info)
  * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
  * SA_ERR_HPI_INVALID_PARAMS - incoming parameters are NULL.
  **/
-SaErrorT rtas_discover_inventory(struct oh_handler_state *h,
-                                 struct oh_event *e)
+SaErrorT rtas_discover_inventory(struct oh_handler_state *handle,
+                                 struct oh_event *parent_res_event)
 {
         const int MAXLINE = 64;
         char line[MAXLINE];
         FILE *file = NULL;
+        struct oh_event *event;
         SaHpiInventoryRecT irec;
         struct oh_rtas_idr oh_idr;
         struct oh_rtas_idr_area *oh_area = NULL;
 
-        if (!h || !e) {
+        if (!handle || !parent_res_event) {
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
@@ -688,22 +695,27 @@ SaErrorT rtas_discover_inventory(struct oh_handler_state *h,
 
         /* Publish IDR headers: */
         /* Memdup idr_info, add as data to idr_rec (add idr_rec to rptcache). Create rdr event. */
-        SaHpiRdrT *rdr = (SaHpiRdrT *)g_malloc0(sizeof(SaHpiRdrT));
-        rdr->RdrType = SAHPI_INVENTORY_RDR;
-        rdr->Entity = e->resource.ResourceEntity;
-        oh_init_textbuffer(&rdr->IdString);
-        oh_append_textbuffer(&rdr->IdString, LSVPD_CMD);
-        rdr->RdrTypeUnion.InventoryRec = irec;
-        oh_add_rdr(h->rptcache,
-                   e->resource.ResourceId,
-                   rdr,
+        event = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
+        event->type = OH_ET_RDR;
+        event->did  = oh_get_default_domain_id();
+        event->u.rdr_event.parent = parent_res_event->u.res_event.entry.ResourceId;
+        event->u.rdr_event.rdr.RdrType = SAHPI_INVENTORY_RDR;
+        event->u.rdr_event.rdr.Entity = parent_res_event->u.res_event.entry.ResourceEntity;
+        oh_init_textbuffer(&event->u.rdr_event.rdr.IdString);
+        oh_append_textbuffer(&event->u.rdr_event.rdr.IdString, LSVPD_CMD);
+        event->u.rdr_event.rdr.RdrTypeUnion.InventoryRec = irec;
+        oh_add_rdr(handle->rptcache,
+                   parent_res_event->u.res_event.entry.ResourceId,
+                   &(event->u.rdr_event.rdr),
                    g_memdup(&oh_idr, sizeof(struct oh_rtas_idr)),
                    0);
-        e->rdrs = g_slist_append(e->rdrs, rdr);
+        handle->eventq = g_slist_append(handle->eventq, event);
 
         return SA_OK;
 }
 
 void * oh_discover_resources (void *)
         __attribute__ ((weak, alias("rtas_discover_resources")));
+void * oh_discover_domain_resource (void *, SaHpiDomainIdT)
+        __attribute__ ((weak, alias("rtas_discover_domain_resources")));
 

@@ -370,19 +370,14 @@ static void oh_detect_resource_event_alarm(struct oh_domain *d, SaHpiEventT *eve
 
         if (!d || !event) return;
 
-        if (event->EventType != SAHPI_ET_RESOURCE) return;
-
-        /* Search for possible clearance of resource alarm,
-           if event is not a resource failure */
-        if (event->EventDataUnion.ResourceEvent.ResourceEventType !=
-            SAHPI_RESE_RESOURCE_FAILURE) {
+        /* Search for possible resource alarm, if event is not a resource failure */
+        if (event->EventDataUnion.ResourceEvent.ResourceEventType != SAHPI_RESE_RESOURCE_FAILURE) {
                 oh_remove_alarm(d, NULL, &type, &event->Source, NULL,
                                 NULL, NULL, NULL, 1);
                 return;
         }
 
-        /* Failed resource.
-           Add/Create resource alarm if severity is "alarming" */
+        /* Failed resource. Add/Create resource alarm if severity is "alarming" */
         if (event->Severity <= SAHPI_MINOR) {
                 a = oh_add_alarm(d, NULL, 0);
                 if (!a) goto done;
@@ -457,6 +452,7 @@ static void oh_detect_hpi_alarm(struct oh_domain *d, SaHpiEventT *event)
                 case SAHPI_ET_RESOURCE:
                         oh_detect_resource_event_alarm(d, event);
                         break;
+                case SAHPI_ET_SENSOR_ENABLE_CHANGE:
                 case SAHPI_ET_SENSOR:
                         oh_detect_sensor_event_alarm(d, event);
                         break;
@@ -494,38 +490,34 @@ done:
 
 /**
  * oh_detect_event_alarm
- * @d: pointer to domain
  * @e: pointer to event
  *
  * Study event and determine if alarms need to be removed.
  *
  * Return value: SA_OK on success
  **/
-SaErrorT oh_detect_event_alarm(struct oh_domain *d,
-                               struct oh_event *e)
+SaErrorT oh_detect_event_alarm(struct oh_event *e)
 {
-        SaHpiEventTypeT etype;
+        struct oh_domain *d = NULL;
 
-        if (!d || !e) return SA_ERR_HPI_INVALID_PARAMS;
+        if (!e || !e->did) return SA_ERR_HPI_INVALID_PARAMS;
 
-        etype = e->event.EventType;
-        if (etype == SAHPI_ET_RESOURCE) {
-		if (e->resource.ResourceId) {
-	        	oh_detect_resource_alarm(d, &e->resource);
-		} else {
-			oh_detect_resource_event_alarm(d, &e->event);
-		}
-        } else if (etype == SAHPI_ET_HOTSWAP) {
-        	if (e->event.EventDataUnion.HotSwapEvent.HotSwapState ==
-		    SAHPI_HS_STATE_NOT_PRESENT) {
-		    	SaHpiResourceIdT rid = e->resource.ResourceId;
-		    	if (!rid) rid = e->event.Source;
-		    	oh_remove_resource_alarms(d, rid, 1);
-		}
-        } else {
-        	oh_detect_hpi_alarm(d, &e->event);
+        d = oh_get_domain(e->did);
+        if (!d) return SA_ERR_HPI_INVALID_DOMAIN;
+
+        switch (e->type) {
+                case OH_ET_HPI:
+                        oh_detect_hpi_alarm(d, &e->u.hpi_event.event);
+                        break;
+                case OH_ET_RESOURCE:
+                        oh_detect_resource_alarm(d, &e->u.res_event.entry);
+                        break;
+                case OH_ET_RESOURCE_DEL:
+                        oh_remove_resource_alarms(d, e->u.res_event.entry.ResourceId, 1);
+                        break;
+                default:;
         }
-
+        oh_release_domain(d);
         return SA_OK;
 }
 

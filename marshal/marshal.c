@@ -467,6 +467,7 @@ Marshal( const cMarshalType *type, const void *d, void *b )
                       {
                         // the mod must be before this entry.
                         // this is a limitation of demarshaling of unions
+//                      printf("offset = %d, i = %d\n", st_type->m_u.m_union.m_offset, i);
                         assert( st_type->m_u.m_union.m_offset < i );
 			const cMarshalType *mod = FindUnionModifierType( type, st_type, data );
 

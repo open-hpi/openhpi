@@ -13,7 +13,6 @@
  *      Steve Sherman <stevees@us.ibm.com>
  */
 
-
 #ifndef __SNMP_BC_DISCOVER_H
 #define __SNMP_BC_DISCOVER_H
 
@@ -55,20 +54,15 @@ SaHpiBoolT rdr_exists(struct snmp_bc_hnd *custom_handle,
 SaErrorT snmp_bc_validate_ep(SaHpiEntityPathT *org_ep,
 			     SaHpiEntityPathT *val_ep);
 				 
-SaErrorT snmp_bc_mod_sensor_ep(SaHpiRdrT *rdrptr,
+SaErrorT snmp_bc_mod_sensor_ep(struct oh_event *e,
 			       void *sensor_array, 
 			       int index);
 				 
-SaErrorT snmp_bc_add_ep(SaHpiRdrT *rdrptr, SaHpiEntityPathT *ep_add);	
+SaErrorT snmp_bc_add_ep(struct oh_event *e, SaHpiEntityPathT *ep_add);	
 		
 SaErrorT snmp_bc_discover_media_tray(struct oh_handler_state *handle,
-				     SaHpiEntityPathT *ep_root, 
-				     int  media_tray_installed);
-		
-SaErrorT snmp_bc_discover_filter(struct oh_handler_state *handle,
-				     SaHpiEntityPathT *ep_root, 
-				     int  filter_installed);
-				     			  
+				     SaHpiEntityPathT *ep_root, int  media_tray_installed);
+			  
 SaErrorT snmp_bc_discover_chassis(struct oh_handler_state *handle,
 				  SaHpiEntityPathT *ep_root);
 
@@ -78,21 +72,6 @@ SaErrorT snmp_bc_discover_blade(struct oh_handler_state *handle,
 SaErrorT snmp_bc_discover_blowers(struct oh_handler_state *handle,
 			       SaHpiEntityPathT *ep_root, char *blower_vector);
 
-SaErrorT snmp_bc_discover_tap(struct oh_handler_state *handle,
-			       SaHpiEntityPathT *ep_root, char *tap_vector);
-
-SaErrorT snmp_bc_discover_nc(struct oh_handler_state *handle,
-			       SaHpiEntityPathT *ep_root, char *nc_vector);
-
-SaErrorT snmp_bc_discover_mx(struct oh_handler_state *handle,
-			       SaHpiEntityPathT *ep_root, char *mx_vector);
-
-SaErrorT snmp_bc_discover_smi(struct oh_handler_state *handle,
-			       SaHpiEntityPathT *ep_root, char *smi_vector);
-
-SaErrorT snmp_bc_discover_mmi(struct oh_handler_state *handle,
-			       SaHpiEntityPathT *ep_root, char *mmi_vector);
-			       
 SaErrorT snmp_bc_discover_power_module(struct oh_handler_state *handle,
 				       SaHpiEntityPathT *ep_root, char *power_module_vector);
 
@@ -121,6 +100,62 @@ SaErrorT snmp_bc_add_blade_expansion_resource(struct oh_handler_state *handle,
 						guint blade_index,
 						BCExpansionTypeT expansionType,
 						guint expansionindex);
+
+SaErrorT snmp_bc_discover_blade_i(struct oh_handler_state *handle,
+			  	  struct ResourceInfo *res_info_ptr, 
+				  struct oh_event *e,
+				  SaHpiEntityPathT *ep_root, 
+				  guint blade_index);
+			
+SaErrorT snmp_bc_discover_blower_i(struct oh_handler_state *handle,
+			  	  struct ResourceInfo *res_info_ptr, 
+				  struct oh_event *e, 
+				  guint blower_index);
+				  
+SaErrorT snmp_bc_discover_pm_i(struct oh_handler_state *handle,
+			  	  struct ResourceInfo *res_info_ptr, 
+				  struct oh_event *e, 
+				  guint pm_index);
+				  
+SaErrorT snmp_bc_discover_switch_i(struct oh_handler_state *handle,
+			  	  struct ResourceInfo *res_info_ptr, 
+				  struct oh_event *e, 
+				  guint sm_index);
+				  
+SaErrorT snmp_bc_discover_mm_i(struct oh_handler_state *handle,
+			  	  struct ResourceInfo *res_info_ptr, 
+				  struct oh_event *e, 
+				  guint mm_index);
+				  
+SaErrorT snmp_bc_construct_blade_res(struct oh_event **e,
+			  	     struct ResourceInfo **res_info_ptr,
+				     SaHpiEntityPathT *ep_root, 
+				     guint blade_index);
+				     
+SaErrorT snmp_bc_construct_blower_res(struct oh_event **e,
+			  	     struct ResourceInfo **res_info_ptr,
+				     SaHpiEntityPathT *ep_root, 
+				     guint blower_index);
+				   
+				  
+SaErrorT snmp_bc_construct_pm_res(struct oh_event **e,
+			  	     struct ResourceInfo **res_info_ptr,
+				     SaHpiEntityPathT *ep_root, 
+				     guint pm_index);
+
+SaErrorT snmp_bc_construct_sm_res(struct oh_event **e,
+			  	  struct ResourceInfo **res_info_ptr,
+				  SaHpiEntityPathT *ep_root, 
+				  guint sm_index);
+				  
+SaErrorT snmp_bc_construct_mm_res(struct oh_event **e,
+			  	  struct ResourceInfo **res_info_ptr,
+				  SaHpiEntityPathT *ep_root, 
+				  guint mm_index);
+					       				  		       
+SaErrorT snmp_bc_create_bem_event(struct oh_handler_state *handle,
+			  	  SaHpiEventT *blade_event,
+				  guint blade_location);
 
 #endif
 

@@ -37,7 +37,7 @@ int main(int argc, char **argv)
         
         setenv("OPENHPI_CONF","./noconfig", 1);
         
-        if (saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID, &sid, NULL))
+        if (saHpiSessionOpen(1, &sid, NULL))
                 return -1;
                     
         /* Load plugins */
