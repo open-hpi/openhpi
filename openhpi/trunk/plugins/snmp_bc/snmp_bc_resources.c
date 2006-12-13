@@ -2752,9 +2752,7 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                         .Type = SAHPI_ENTITY_PRESENCE,
                         .Category = SAHPI_EC_PRESENCE,
 			.EnableCtrl = SAHPI_FALSE,
-                        .EventCtrl = SAHPI_SEC_READ_ONLY |
-				     SAHPI_SEC_READ_ONLY_MASKS |
-				     SAHPI_SEC_PER_EVENT,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
                         .Events = SAHPI_ES_PRESENT | SAHPI_ES_ABSENT, 
                         .DataFormat = {
                                 .IsSupported = SAHPI_TRUE,
@@ -2799,9 +2797,7 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                         .Type = SAHPI_ENTITY_PRESENCE,
                         .Category = SAHPI_EC_PRESENCE,
 			.EnableCtrl = SAHPI_FALSE,
-                        .EventCtrl = SAHPI_SEC_READ_ONLY |
-				     SAHPI_SEC_READ_ONLY_MASKS |
-				     SAHPI_SEC_PER_EVENT,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
                         .Events = SAHPI_ES_PRESENT | SAHPI_ES_ABSENT, 
                         .DataFormat = {
                                 .IsSupported = SAHPI_TRUE,
@@ -11552,6 +11548,7 @@ struct snmp_bc_sensor snmp_bc_switch_sensors[] = {
  ***********************************/
 
 struct snmp_bc_sensor snmp_bc_slot_sensors[] = {
+	/* Slot State Sensor */
         {
 		.index = 1,
                 .sensor = {
@@ -11559,9 +11556,7 @@ struct snmp_bc_sensor snmp_bc_slot_sensors[] = {
                         .Type = SAHPI_ENTITY_PRESENCE,
                         .Category = SAHPI_EC_PRESENCE,
 			.EnableCtrl = SAHPI_FALSE,
-                        .EventCtrl = SAHPI_SEC_READ_ONLY |
-				     SAHPI_SEC_READ_ONLY_MASKS |
-				     SAHPI_SEC_PER_EVENT,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
                         .Events = SAHPI_ES_PRESENT | SAHPI_ES_ABSENT, 
                         .DataFormat = {
                                 .IsSupported = SAHPI_TRUE,
