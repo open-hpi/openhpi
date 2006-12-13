@@ -126,6 +126,7 @@ typedef enum {
 #define SNMP_BC_MM_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.30.0" 	/* chassisMMsInstalled, ManagementModule */
 #define SNMP_BC_PM_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.31.0" 	/* chassisPMsInstalled, PowerModule */
 #define SNMP_BC_MT_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.32.0" 	/* chassisMTInstalled, MediaTray */
+#define SNMP_BC_NOS_MT_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.52.0" 	/* chassisNoOfMTsInstalled, MediaTray */
 #define SNMP_BC_BLOWER_INSTALLED ".1.3.6.1.4.1.2.3.51.2.22.4.33.0" 	/* chassisBlowersInstalled, Blower */
 #define SNMP_BC_FP_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.37.0" 	/* chassisFPsinstalled, FanPack */
 #define SNMP_BC_FILTER_INSTALLED ".1.3.6.1.4.1.2.3.51.2.22.4.46.0"      /* chassisNoOfFBsInstalled, FrontBezel (Filter) */
