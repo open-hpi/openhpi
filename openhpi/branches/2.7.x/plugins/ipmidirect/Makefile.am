@@ -59,6 +59,8 @@ libipmidirect_la_SOURCES= \
 		ipmi_con_smi.cpp \
 		ipmi_control.h \
 		ipmi_control.cpp \
+		ipmi_control_atca_led.h \
+		ipmi_control_atca_led.cpp \
 		ipmi_control_fan.h \
 		ipmi_control_fan.cpp \
 		ipmi_discover.h \
