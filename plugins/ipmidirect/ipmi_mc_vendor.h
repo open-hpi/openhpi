@@ -2,7 +2,7 @@
  * ipmi_mc_vendor.h
  *
  * Copyright (c) 2004 by FORCE Computers
- * Copyright (c) 2005 by ESO Technologies.
+ * Copyright (c) 2005-2006 by ESO Technologies.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -136,6 +136,7 @@ public:
 protected:
   virtual bool CreateControlsAtca( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdrs *sdrs );
   virtual bool CreateControlAtcaFan( cIpmiDomain *domain, cIpmiResource *res, cIpmiSdrs *sdrs );
+  virtual bool CreateControlAtcaLed( cIpmiDomain *domain, cIpmiResource *res, cIpmiSdrs *sdrs );
 
 public:
   // create inventory
