@@ -3549,10 +3549,10 @@ SaErrorT snmp_bc_rediscover(struct oh_handler_state *handle,
 					LogSource2ResourceT *logsrc2res)
 {
 	SaErrorT err;
-	gint i;
+	gint i, j;
         SaHpiRptEntryT *res;
 	guint rediscovertype;
-	SaHpiBoolT foundit;
+	SaHpiBoolT foundit, isSMI;
 	struct snmp_value get_value;	
 	struct snmp_bc_hnd *custom_handle;
 	char *root_tuple;
@@ -3604,12 +3604,18 @@ SaErrorT snmp_bc_rediscover(struct oh_handler_state *handle,
 				foundit = SAHPI_TRUE;
 				hotswap_entitytype = logsrc2res->ep.Entry[i].EntityType;
  				hotswap_entitylocation = logsrc2res->ep.Entry[i].EntityLocation;
-				for (i=0; i < SNMP_BC_MAX_RESOURCES_MASK; i++) {
-					if (  i != (hotswap_entitylocation - 1) ) 
-							resource_mask[i] = '0';
-					else resource_mask[i] = '1';
+				for (j=0; j < SNMP_BC_MAX_RESOURCES_MASK; j++) {
+					if (  j != (hotswap_entitylocation - 1) ) 
+							resource_mask[j] = '0';
+					else resource_mask[j] = '1';
 				}
-					
+                                isSMI = SAHPI_TRUE;
+                                if ( logsrc2res->ep.Entry[i].EntityType == SAHPI_ENT_INTERCONNECT) {
+                                        if (logsrc2res->ep.Entry[i+1].EntityType == BLADECENTER_SYS_MGMNT_MODULE_SLOT) {
+                                                isSMI = SAHPI_FALSE;
+                                        }
+                                }
+
 				break;
 			default:
 				break;
@@ -3696,10 +3702,15 @@ SaErrorT snmp_bc_rediscover(struct oh_handler_state *handle,
 					strncpy(custom_handle->installed_mx_mask, get_value.string, SNMP_BC_MAX_RESOURCES_MASK);
 					break;
 				case SAHPI_ENT_INTERCONNECT:
-					/* Fetch interposer-card installed vector  */
-					get_installed_mask(SNMP_BC_SMI_INSTALLED, get_value);
-					strncpy(custom_handle->installed_smi_mask, get_value.string, SNMP_BC_MAX_RESOURCES_MASK);
-					break;
+                                        /* Fetch interposer-card installed vector  */
+                                        if(isSMI) {
+                                                get_installed_mask(SNMP_BC_SMI_INSTALLED, get_value);
+                                                strncpy(custom_handle->installed_smi_mask, get_value.string, SNMP_BC_MAX_RESOURCES_MASK);
+                                        } else {
+                                                get_installed_mask(SNMP_BC_MMI_INSTALLED, get_value);
+                                                strncpy(custom_handle->installed_mmi_mask, get_value.string, SNMP_BC_MAX_RESOURCES_MASK);
+                                        }
+                                        break;
 										
 				default: 
 					dbg("Unrecognize Hotswap Entity %d\n", hotswap_entitytype);
@@ -3837,26 +3848,29 @@ SaErrorT snmp_bc_rediscover(struct oh_handler_state *handle,
 				custom_handle->installed_filter_mask = get_value.integer;		
 				break;
 			case SAHPI_ENT_INTERCONNECT:
-				/* Fetch Switch Module Interposer installed vector  */
-				get_installed_mask(SNMP_BC_SMI_INSTALLED, get_value);
-				for (i=0; i < strlen(get_value.string); i++) {
-					if ( custom_handle->installed_smi_mask[i] != 
-								get_value.string[i] ) {
-						err = snmp_bc_discover_smi_i(handle, &ep_root,i);
-					}
-				}				
-				strncpy(custom_handle->installed_smi_mask, get_value.string, SNMP_BC_MAX_RESOURCES_MASK);
-				
-				/* Fetch Management Module Interposer installed vector  */
-				get_installed_mask(SNMP_BC_MMI_INSTALLED, get_value);
-				for (i=0; i < strlen(get_value.string); i++) {
-					if ( custom_handle->installed_mmi_mask[i] != 
-								get_value.string[i] ) {
-						err = snmp_bc_discover_mmi_i(handle, &ep_root,i);
-					}
-				}				
-				strncpy(custom_handle->installed_mmi_mask, get_value.string, SNMP_BC_MAX_RESOURCES_MASK);		
-				break;
+                                if (isSMI) {
+                                        /* Fetch Switch Module Interposer installed vector  */
+                                        get_installed_mask(SNMP_BC_SMI_INSTALLED, get_value);
+                                        for (i=0; i < strlen(get_value.string); i++) {
+                                                if ( custom_handle->installed_smi_mask[i] !=
+                                                                get_value.string[i] ) {
+                                                        err = snmp_bc_discover_smi_i(handle, &ep_root,i);
+                                                }
+                                        }
+                                        strncpy(custom_handle->installed_smi_mask, get_value.string, SNMP_BC_MAX_RESOURCES_MASK);
+
+                                } else {
+                                        /* Fetch Management Module Interposer installed vector  */
+                                        get_installed_mask(SNMP_BC_MMI_INSTALLED, get_value);
+                                        for (i=0; i < strlen(get_value.string); i++) {
+                                                if ( custom_handle->installed_mmi_mask[i] !=
+                                                                get_value.string[i] ) {
+                                                        err = snmp_bc_discover_mmi_i(handle, &ep_root,i);
+                                                }
+                                        }
+                                        strncpy(custom_handle->installed_mmi_mask, get_value.string, SNMP_BC_MAX_RESOURCES_MASK);
+                                }
+                                break;
 			default: 
 				dbg("Unrecognize Hotswap Entity %d\n", hotswap_entitytype);
 				break;
