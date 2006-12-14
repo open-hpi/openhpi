@@ -961,7 +961,7 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                                 .Entry[0] =
                                 {
 					/* FIXME:: SAHPI_ENT_FILTRATION_UNIT */
-                                        .EntityType = SAHPI_ENT_PHYSICAL_SLOT + 16,
+                                        .EntityType = SAHPI_ENT_PHYSICAL_SLOT + 3,
                                         .EntityLocation = SNMP_BC_HPI_LOCATION_BASE,
                                 },
                                 {
