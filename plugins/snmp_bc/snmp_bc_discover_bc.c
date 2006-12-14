@@ -463,7 +463,9 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 	get_installed_mask(SNMP_BC_PM_INSTALLED, get_value_power_module);
 
 	/* Fetch media tray installed vector */
-	get_dualmode_object(SNMP_BC_MT_INSTALLED, get_value_media);
+	/* get_dualmode_object(SNMP_BC_MT_INSTALLED, get_value_media); */
+	snmp_bc_fetch_MT_install_mask(handle, &get_value_media);
+	
 
 	/* Fetch filter (front bezel) installed vector */
 	get_dualmode_object(SNMP_BC_FILTER_INSTALLED, get_value_filter);
@@ -793,7 +795,13 @@ SaErrorT snmp_bc_discover_media_tray(struct oh_handler_state *handle,
 		/* ---------------------------------------- */
 		/* Construct .rdrs of struct oh_event       */
 		/* ---------------------------------------- */		
-		/* Find resource's rdrs: sensors, controls, etc. */		
+		/* Find resource's rdrs: sensors, controls, etc. */
+		if (custom_handle->platform == SNMP_BC_PLATFORM_BCHT) {
+			snmp_bc_discover_sensors(handle, snmp_bc_mediatray_sensors_faultled, e);	
+		}
+		else {
+			snmp_bc_discover_sensors(handle, snmp_bc_mediatray_sensors_nofaultled, e);	
+		}
 		snmp_bc_discover_sensors(handle, snmp_bc_mediatray_sensors, e);
 		snmp_bc_discover_controls(handle, snmp_bc_mediatray_controls, e);
 		snmp_bc_discover_inventories(handle, snmp_bc_mediatray_inventories, e);
@@ -891,7 +899,7 @@ SaErrorT snmp_bc_discover_media_tray(struct oh_handler_state *handle,
 			/* --------------------------------------------- */
 			/*      Construct .rdrs of struct oh_event       */
 			/* --------------------------------------------- */		
-			/* Find resource's rdrs: sensors, controls, etc. */		
+			/* Find resource's rdrs: sensors, controls, etc. */
 			snmp_bc_discover_sensors(handle, snmp_bc_mediatray2_sensors, e);
 			snmp_bc_discover_controls(handle, snmp_bc_mediatray2_controls, e);
 			snmp_bc_discover_inventories(handle, snmp_bc_mediatray2_inventories, e);
@@ -1150,7 +1158,6 @@ SaErrorT snmp_bc_discover_chassis(struct oh_handler_state *handle,
 		return(err);
 	}
 	
-
 	/* Add resource event entries to event2hpi_hash table */
 	snmp_bc_discover_res_events(handle, &(e->resource.ResourceEntity), res_info_ptr);
 		
@@ -1159,9 +1166,11 @@ SaErrorT snmp_bc_discover_chassis(struct oh_handler_state *handle,
 	/* ---------------------------------------- */		
 	/* Find resource's rdrs: sensors, controls, etc. */
 	snmp_bc_discover_sensors(handle, snmp_bc_chassis_sensors, e);
+	if ( (custom_handle->platform == SNMP_BC_PLATFORM_BCT) ) {
+		snmp_bc_discover_sensors(handle, snmp_bc_chassis_sensors_bct_filter, e);
+	}
 	if ( (custom_handle->platform == SNMP_BC_PLATFORM_BCT) || 
-		(custom_handle->platform == SNMP_BC_PLATFORM_BCHT) ){
-		snmp_bc_discover_sensors(handle, snmp_bc_chassis_sensors_bct, e);
+	     (custom_handle->platform == SNMP_BC_PLATFORM_BCHT) ){
 		snmp_bc_discover_controls(handle, snmp_bc_chassis_controls_bct, e);
 	}
 	else if ( (custom_handle->platform == SNMP_BC_PLATFORM_BC) || 
@@ -2382,6 +2391,7 @@ SaErrorT snmp_bc_discover_mmi_i(struct oh_handler_state *handle,
 	SaErrorT err;
         struct oh_event *e;
 	struct ResourceInfo *res_info_ptr;
+	
 
 	if (!handle) {
 		dbg("Invalid parameter.");
@@ -3609,13 +3619,13 @@ SaErrorT snmp_bc_rediscover(struct oh_handler_state *handle,
 							resource_mask[j] = '0';
 					else resource_mask[j] = '1';
 				}
+				
                                 isSMI = SAHPI_TRUE;
                                 if ( logsrc2res->ep.Entry[i].EntityType == SAHPI_ENT_INTERCONNECT) {
                                         if (logsrc2res->ep.Entry[i+1].EntityType == BLADECENTER_SYS_MGMNT_MODULE_SLOT) {
                                                 isSMI = SAHPI_FALSE;
                                         }
-                                }
-
+                                }		
 				break;
 			default:
 				break;
@@ -3678,7 +3688,8 @@ SaErrorT snmp_bc_rediscover(struct oh_handler_state *handle,
 					strncpy(custom_handle->installed_mm_mask, get_value.string, SNMP_BC_MAX_RESOURCES_MASK);
 					break;
 				case SAHPI_ENT_PERIPHERAL_BAY:
-					get_dualmode_object(SNMP_BC_MT_INSTALLED, get_value);
+					/* get_dualmode_object(SNMP_BC_MT_INSTALLED, get_value); */
+					snmp_bc_fetch_MT_install_mask(handle, &get_value);
 					custom_handle->installed_mt_mask = get_value.integer;
 					break;
 				case (SAHPI_ENT_PHYSICAL_SLOT + 16):
@@ -3702,7 +3713,7 @@ SaErrorT snmp_bc_rediscover(struct oh_handler_state *handle,
 					strncpy(custom_handle->installed_mx_mask, get_value.string, SNMP_BC_MAX_RESOURCES_MASK);
 					break;
 				case SAHPI_ENT_INTERCONNECT:
-                                        /* Fetch interposer-card installed vector  */
+                                        /* Fetch new interposer-card installed vector  */
                                         if(isSMI) {
                                                 get_installed_mask(SNMP_BC_SMI_INSTALLED, get_value);
                                                 strncpy(custom_handle->installed_smi_mask, get_value.string, SNMP_BC_MAX_RESOURCES_MASK);
@@ -3793,8 +3804,8 @@ SaErrorT snmp_bc_rediscover(struct oh_handler_state *handle,
 				strncpy(custom_handle->installed_mm_mask, get_value.string, SNMP_BC_MAX_RESOURCES_MASK);
 				break;
 			case SAHPI_ENT_PERIPHERAL_BAY:
-				// get_integer_object(custom_handle,SNMP_BC_MEDIATRAY_EXISTS, get_value);
-				get_dualmode_object(SNMP_BC_MT_INSTALLED, get_value);
+				/* get_dualmode_object(SNMP_BC_MT_INSTALLED, get_value); */
+				snmp_bc_fetch_MT_install_mask(handle, &get_value);
 				custom_handle->installed_mt_mask = get_value.integer;
 				switch (hotswap_entitylocation)
 				{
@@ -4603,7 +4614,8 @@ SaErrorT snmp_bc_add_blower_rptcache(struct oh_handler_state *handle,
 	/* Find resource's events, sensors, controls, etc. */
 	snmp_bc_discover_res_events(handle, &(e->resource.ResourceEntity), res_info_ptr);
 	snmp_bc_discover_sensors(handle, snmp_bc_blower_sensors, e);
-	if (custom_handle->platform == SNMP_BC_PLATFORM_BCH) {
+	if ( (custom_handle->platform == SNMP_BC_PLATFORM_BCH) ||
+	     (custom_handle->platform == SNMP_BC_PLATFORM_BCHT) ){
 		snmp_bc_discover_sensors(handle, snmp_bc_blower_sensors_bch, e);	
 	}
 	snmp_bc_discover_controls(handle, snmp_bc_blower_controls, e);
@@ -4680,7 +4692,8 @@ SaErrorT snmp_bc_add_pm_rptcache(struct oh_handler_state *handle,
 	snmp_bc_discover_res_events(handle, &(e->resource.ResourceEntity), res_info_ptr);
 	snmp_bc_discover_sensors(handle, snmp_bc_power_sensors, e);
 
-	if (custom_handle->platform == SNMP_BC_PLATFORM_BCH) {
+	if ( (custom_handle->platform == SNMP_BC_PLATFORM_BCH) ||
+	     (custom_handle->platform == SNMP_BC_PLATFORM_BCHT) ){
 		snmp_bc_discover_sensors(handle, snmp_bc_power_sensors_bch, e);	
 	}
 
@@ -5090,7 +5103,7 @@ SaErrorT snmp_bc_discover_switch_i(struct oh_handler_state *handle,
         struct oh_event *e;
 	struct ResourceInfo *res_info_ptr;
 	struct snmp_bc_hnd *custom_handle;
-	struct snmp_value get_value;
+	struct snmp_value get_value;	
 	
 	if (!handle) {
 		dbg("Invalid parameter.");
@@ -5114,13 +5127,14 @@ SaErrorT snmp_bc_discover_switch_i(struct oh_handler_state *handle,
 								
 	/* ---------------------------------------- */
 	/* Construct .resource of struct oh_event   */
-	/* ---------------------------------------- */
+	/* ---------------------------------------- */	
 	
 	/* Fetch switch interposer-card installed vector  */
 	/* Have to fetch from hardware in case we have yet to rediscover the SMI */	
 	get_installed_mask(SNMP_BC_SMI_INSTALLED, get_value);
 	
 	err = snmp_bc_construct_sm_rpt(e, &res_info_ptr, ep_root, sm_index, get_value.string);
+
 	if (err) {
 		snmp_bc_free_oh_event(e);
 		return(err);
@@ -5160,9 +5174,9 @@ SaErrorT snmp_bc_discover_mm_i(struct oh_handler_state *handle,
 	SaErrorT err;
         struct oh_event *e;
 	struct ResourceInfo *res_info_ptr;
-	struct snmp_bc_hnd *custom_handle;
-	struct snmp_value get_value;	
-
+	struct snmp_bc_hnd *custom_handle;	
+	struct snmp_value get_value;
+	
 	if (!handle) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
@@ -5186,11 +5200,13 @@ SaErrorT snmp_bc_discover_mm_i(struct oh_handler_state *handle,
 	/* Construct .resource of struct oh_event   */
 	/* ---------------------------------------- */
 	
+	
 	/* Fetch mm interposer-card installed vector  */
 	/* Have to fetch from hardware in case we have yet to rediscover the MMI */
 	get_installed_mask(SNMP_BC_MMI_INSTALLED, get_value);
 
 	err = snmp_bc_construct_mm_rpt(e, &res_info_ptr, ep_root, mm_index, get_value.string);
+
 	if (err) {
 		snmp_bc_free_oh_event(e);
 		return(err);
@@ -5204,6 +5220,86 @@ SaErrorT snmp_bc_discover_mm_i(struct oh_handler_state *handle,
 
 	snmp_bc_free_oh_event(e);
 	return(SA_OK);
+}
+
+/**
+ * snmp_bc_fetch_MT_install_mask:
+ * @handle: Pointer to hpi handle
+ * @getintvalue: Pointer to a struct snmp_value
+ *
+ * The MM presents MediaTray Installed Mask in three different ways, 
+ * depending on the code level.  
+ *
+ * Older code: chassisMTInstalled is an integer.
+ *             It is either 0 (no media tray) or 1 (one media tray)
+ *
+ * Intermediate Code: chassisMTInstalled is an OCT_STR bitmap of installed mediatray
+ *
+ * Later Code: chassisMTInstalled is an integer. 0 (no media tray), 1(yes media tray)
+ *  		chassisMTInstalled is qualified by chassisNoOfMTsInstalled, a media tray installed bitmap
+ *
+ * This module is designed to work with any of the Media Tray repesentation above
+ *
+ * Return values:
+ * SA_OK - normal case.
+ * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
+ **/
+SaErrorT snmp_bc_fetch_MT_install_mask(struct oh_handler_state *handle, 
+			               struct snmp_value *getintvalue)
+{
+
+	SaErrorT err; 	
+	struct snmp_value get_value, get_value2;
+	struct snmp_bc_hnd *custom_handle;	
+	
+	if (!handle) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+
+	custom_handle = (struct snmp_bc_hnd *)handle->data;
+	if (!custom_handle) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+	
+	
+	err = SA_OK;
+	getintvalue->type = ASN_INTEGER;
+	
+	err = snmp_bc_snmp_get(custom_handle, SNMP_BC_MT_INSTALLED, &get_value, SAHPI_TRUE);
+	if (err == SA_ERR_HPI_NOT_PRESENT) {getintvalue->type = ASN_INTEGER; getintvalue->integer = 0;}
+	
+        else if (err != SA_OK) {
+		trace("Cannot get OID=%s; Received Type=%d; Error=%s.",
+		      		SNMP_BC_MT_INSTALLED, get_value.type, oh_lookup_error(err));
+		if (err) { return(err); }
+		else { return(SA_ERR_HPI_INTERNAL_ERROR); }
+	} else { 
+        	if (get_value.type == ASN_OCTET_STR) {
+			getintvalue->integer = atoi(get_value.string);
+        	} else if (get_value.type == ASN_INTEGER) {
+			if (get_value.integer == 0) { 
+				getintvalue->integer = 0;
+			} else {
+				err = snmp_bc_snmp_get(custom_handle, SNMP_BC_NOS_MT_INSTALLED, &get_value2, SAHPI_TRUE);
+				if (err == SA_ERR_HPI_NOT_PRESENT) { 
+					getintvalue->integer = get_value.integer;
+					if (getintvalue->integer == 1) getintvalue->integer = 10;
+				} else if (err != SA_OK) {
+					if (err) { return(err); }
+					else { return(SA_ERR_HPI_INTERNAL_ERROR); }
+				} else {
+					if (get_value2.type == ASN_OCTET_STR) 
+					     getintvalue->integer = atoi(get_value2.string);
+					else 
+					     getintvalue->integer = 0;
+				}				
+			}
+			
+		}
+	}
+	return(err);
 }
 
 
