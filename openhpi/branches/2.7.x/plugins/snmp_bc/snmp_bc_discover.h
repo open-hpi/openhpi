@@ -13,6 +13,7 @@
  *      Steve Sherman <stevees@us.ibm.com>
  */
 
+
 #ifndef __SNMP_BC_DISCOVER_H
 #define __SNMP_BC_DISCOVER_H
 
@@ -122,4 +123,5 @@ SaErrorT snmp_bc_add_blade_expansion_resource(struct oh_handler_state *handle,
 						guint expansionindex);
 
 #endif
+
 
