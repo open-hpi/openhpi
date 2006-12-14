@@ -126,6 +126,7 @@ typedef enum {
 #define SNMP_BC_MM_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.30.0" 	/* chassisMMsInstalled, ManagementModule */
 #define SNMP_BC_PM_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.31.0" 	/* chassisPMsInstalled, PowerModule */
 #define SNMP_BC_MT_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.32.0" 	/* chassisMTInstalled, MediaTray */
+#define SNMP_BC_NOS_MT_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.52.0" 	/* chassisNoOfMTsInstalled, MediaTray */
 #define SNMP_BC_BLOWER_INSTALLED ".1.3.6.1.4.1.2.3.51.2.22.4.33.0" 	/* chassisBlowersInstalled, Blower */
 #define SNMP_BC_FP_INSTALLED  ".1.3.6.1.4.1.2.3.51.2.22.4.37.0" 	/* chassisFPsinstalled, FanPack */
 #define SNMP_BC_FILTER_INSTALLED ".1.3.6.1.4.1.2.3.51.2.22.4.46.0"      /* chassisNoOfFBsInstalled, FrontBezel (Filter) */
@@ -330,7 +331,7 @@ struct snmp_bc_ipmi_sensor {
 };
 
 extern struct snmp_bc_sensor      snmp_bc_chassis_sensors[];
-extern struct snmp_bc_sensor      snmp_bc_chassis_sensors_bct[];
+extern struct snmp_bc_sensor      snmp_bc_chassis_sensors_bct_filter[];
 extern struct snmp_bc_sensor      snmp_bc_blade_sensors[];
 extern struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[];
 extern struct snmp_bc_sensor      snmp_bc_bem_sensors[];
@@ -341,6 +342,8 @@ extern struct snmp_bc_sensor      snmp_bc_mgmnt_sensors[];
 extern struct snmp_bc_sensor      snmp_bc_mgmnt_health_sensors[];
 extern struct snmp_bc_sensor      snmp_bc_virtual_mgmnt_sensors[];
 extern struct snmp_bc_sensor      snmp_bc_mediatray_sensors[];
+extern struct snmp_bc_sensor      snmp_bc_mediatray_sensors_faultled[];
+extern struct snmp_bc_sensor      snmp_bc_mediatray_sensors_nofaultled[];
 extern struct snmp_bc_sensor      snmp_bc_mediatray2_sensors[];
 extern struct snmp_bc_sensor      snmp_bc_blower_sensors[];
 extern struct snmp_bc_sensor      snmp_bc_blower_sensors_bch[];
@@ -363,7 +366,7 @@ extern struct snmp_bc_sensor      snmp_bc_fan_sensors_rsa[];
  *********************/
 
 struct ControlMibInfo {
-        unsigned int not_avail_indicator_num; /* 0 for none, n>0 otherwise */
+         unsigned int not_avail_indicator_num; /* 0 for none, n>0 otherwise */
         int write_only; /* Write-only SNMP command; 0 no; 1 yes */
         const char *oid;
 	SaHpiEntityLocationT loc_offset;
@@ -472,3 +475,5 @@ extern struct snmp_bc_inventory snmp_bc_dasd_inventories_rsa[];
 extern struct snmp_bc_inventory snmp_bc_fan_inventories_rsa[];
 
 #endif
+
+
