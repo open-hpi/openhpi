@@ -526,7 +526,7 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                                 {},
                         },
                 },
-                .comment = "Media Tray 2",
+                .comment = "Media Tray",
         },
         /* Blower Module */
         {
