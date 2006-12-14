@@ -212,7 +212,10 @@ SaErrorT snmp_bc_discover_mmi_i(struct oh_handler_state *handle,
 				   
 SaErrorT snmp_bc_discover_smi_i(struct oh_handler_state *handle,
 			  	SaHpiEntityPathT *ep_root, 
-				guint smi_index);																						
+				guint smi_index);
+				
+SaErrorT snmp_bc_fetch_MT_install_mask(struct oh_handler_state *handle, 
+			               struct snmp_value *getintvalue);
 #endif
 
 
