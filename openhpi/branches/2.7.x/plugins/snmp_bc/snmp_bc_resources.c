@@ -515,7 +515,7 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
 			.prev_state = SAHPI_HS_STATE_NOT_PRESENT,
                         .event_array = {
                                 {
-                                        .event = "06A1E001", /* EN_MEDIA_TRAY_REMOVED */
+                                        .event = "06A1E002", /* EN_MEDIA_TRAY_2_REMOVED */
 					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
                                         .event_state = SAHPI_HS_STATE_NOT_PRESENT,
@@ -526,7 +526,7 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                                 {},
                         },
                 },
-                .comment = "Media Tray 2",
+                .comment = "Media Tray",
         },
         /* Blower Module */
         {
@@ -568,6 +568,15 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
   			.cur_state = SAHPI_HS_STATE_NOT_PRESENT,
 			.prev_state = SAHPI_HS_STATE_NOT_PRESENT,
                         .event_array = {
+				{
+                                        .event = "0A00200x", /* EN_FAN_x_INSTALLED */
+					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_HS_STATE_ACTIVE,
+ 					.event_auto_state = 0,
+					.recovery_state = SAHPI_HS_STATE_NOT_PRESENT,
+ 					.recovery_auto_state = 0,
+				},
 				{
                                         .event = "0A02600x", /* EN_FAULT_FANx */
 					.event_res_failure = SAHPI_FALSE,
@@ -1022,7 +1031,8 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                                         .EntityLocation = 0,
                                 }
                          },
-                        .ResourceCapabilities = SAHPI_CAPABILITY_INVENTORY_DATA |
+                        .ResourceCapabilities = SAHPI_CAPABILITY_FRU |
+			                        SAHPI_CAPABILITY_INVENTORY_DATA |
                                                 SAHPI_CAPABILITY_RDR |
                                                 SAHPI_CAPABILITY_RESOURCE,
                         .ResourceSeverity = SAHPI_MAJOR,
@@ -1603,7 +1613,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
 
 #define SNMP_BC_MAX_COMMON_CHASSIS_SENSORS 8
 
-struct snmp_bc_sensor snmp_bc_chassis_sensors_bct[] = {
+struct snmp_bc_sensor snmp_bc_chassis_sensors_bct_filter[] = {
         /* Chassis Filter Sensor - event only */
         {
 		.index = SNMP_BC_MAX_COMMON_CHASSIS_SENSORS + 1,
@@ -2742,9 +2752,7 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                         .Type = SAHPI_ENTITY_PRESENCE,
                         .Category = SAHPI_EC_PRESENCE,
 			.EnableCtrl = SAHPI_FALSE,
-                        .EventCtrl = SAHPI_SEC_READ_ONLY |
-				     SAHPI_SEC_READ_ONLY_MASKS |
-				     SAHPI_SEC_PER_EVENT,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
                         .Events = SAHPI_ES_PRESENT | SAHPI_ES_ABSENT, 
                         .DataFormat = {
                                 .IsSupported = SAHPI_TRUE,
@@ -2789,9 +2797,7 @@ struct snmp_bc_sensor snmp_bc_virtual_mgmnt_sensors[] = {
                         .Type = SAHPI_ENTITY_PRESENCE,
                         .Category = SAHPI_EC_PRESENCE,
 			.EnableCtrl = SAHPI_FALSE,
-                        .EventCtrl = SAHPI_SEC_READ_ONLY |
-				     SAHPI_SEC_READ_ONLY_MASKS |
-				     SAHPI_SEC_PER_EVENT,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
                         .Events = SAHPI_ES_PRESENT | SAHPI_ES_ABSENT, 
                         .DataFormat = {
                                 .IsSupported = SAHPI_TRUE,
@@ -10061,8 +10067,118 @@ struct snmp_bc_sensor snmp_bc_bse3_dasd_sensors[] = {
 /********************
  * Media Tray Sensors
  ********************/
+struct snmp_bc_sensor snmp_bc_mediatray_sensors_faultled[] = {
+	/* Media Tray Operational Status Sensor - Readable Fault LED (BCHT) */
+	/* Media Trays without readable Fault LED are supported in 
+           snmp_bc_mediatray_sensors_nofaultled as an event-only sensor */
+        {
+		.index = 1,
+                .sensor = {
+                        .Num = 1,
+                        .Type = SAHPI_OPERATIONAL,
+                        .Category = SAHPI_EC_AVAILABILITY,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
+                        .Events = SAHPI_ES_RUNNING | SAHPI_ES_OFF_LINE,
+                        .DataFormat = {
+				.IsSupported = SAHPI_TRUE,
+				.ReadingType = SAHPI_SENSOR_READING_TYPE_INT64,
+				.BaseUnits = SAHPI_SU_UNSPECIFIED,
+				.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+				.ModifierUse = SAHPI_SMUU_NONE,
+				.Percentage = SAHPI_FALSE,
+				.Range = {
+					.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
+					.Max = {
+						.IsSupported = SAHPI_TRUE,
+						.Type = SAHPI_SENSOR_READING_TYPE_INT64,
+						.Value = {
+							.SensorInt64 = 1,
+						},
+					},
+					.Min = {
+						.IsSupported = SAHPI_TRUE,
+						.Type = SAHPI_SENSOR_READING_TYPE_INT64,
+						.Value = {
+							.SensorInt64 = 0,
+						},
+					},
+				},
+                        },
+                        .ThresholdDefn = {
+                                .IsAccessible = SAHPI_FALSE,
+                        },
+                        .Oem = 0,
+                },
+                .sensor_info = {
+                        .mib = {
+                                .not_avail_indicator_num = 0,
+                                .write_only = SAHPI_FALSE,
+				/* ledMediaTrayFault for Media Tray 1 */
+                                .oid = ".1.3.6.1.4.1.2.3.51.2.2.8.7.1.1.5.1",
+				.loc_offset = 0,
+                        },
+                        .cur_state = SAHPI_ES_RUNNING,
+			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
+                        .sensor_enabled = SAHPI_TRUE,
+                        .events_enabled = SAHPI_TRUE,
+			.assert_mask   = SAHPI_ES_OFF_LINE,
+			.deassert_mask = SAHPI_ES_OFF_LINE,
+                        .event_array = {
+                                {
+                                        .event = "6F60C001", /* EN_MT_1_HW_FAILURE */
+  					.event_assertion = SAHPI_TRUE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+				{
+                                        .event = "06A2E001", /* EN_FRONT_PANEL_TEMP_FAIL */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+					.event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+				{},
+                        },
+   			.reading2event = {
+				/* 0 = Fault LED is off - ok */
+				{
+					.num = 1,
+                                        .rangemap = {
+						.Flags = SAHPI_SRF_NOMINAL,
+						.Min = {
+							.Value = {
+								.SensorInt64 = 0,
+							},
+						},
+					},
+					.state = SAHPI_ES_RUNNING,
+                                },
+				/* 1 = Fault LED is on - fault */
+				{
+					.num = 2,
+                                        .rangemap = {
+						.Flags = SAHPI_SRF_NOMINAL,
+						.Nominal = {
+							.Value = {
+								.SensorInt64 = 1, 
+							},
+						},
+					},
+					.state = SAHPI_ES_OFF_LINE,
+				},
+			},
+                },
+                .comment = "Media Tray Operational Status Sensor",
+        },
 
-struct snmp_bc_sensor snmp_bc_mediatray_sensors[] = {
+        {} /* Terminate array with a null element */
+};
+
+struct snmp_bc_sensor snmp_bc_mediatray_sensors_nofaultled[] = {
         /* Media Tray Operational Status Sensor - event only */
         {
 		.index = 1,
@@ -10072,7 +10188,7 @@ struct snmp_bc_sensor snmp_bc_mediatray_sensors[] = {
                         .Category = SAHPI_EC_AVAILABILITY,
 			.EnableCtrl = SAHPI_FALSE,
                         .EventCtrl = SAHPI_SEC_READ_ONLY,
-                        .Events = SAHPI_ES_RUNNING | SAHPI_ES_DEGRADED,
+                        .Events = SAHPI_ES_RUNNING | SAHPI_ES_OFF_LINE,
                         .DataFormat = {
                                 .IsSupported = SAHPI_FALSE,
                         },
@@ -10086,15 +10202,15 @@ struct snmp_bc_sensor snmp_bc_mediatray_sensors[] = {
 			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
                         .sensor_enabled = SAHPI_TRUE,
                         .events_enabled = SAHPI_TRUE,
-			.assert_mask   = SAHPI_ES_DEGRADED,
-			.deassert_mask = SAHPI_ES_DEGRADED,
+			.assert_mask   = SAHPI_ES_OFF_LINE,
+			.deassert_mask = SAHPI_ES_OFF_LINE,
                         .event_array = {
                                 {
-                                        .event = "09020000", /* EN_FAULT_FP_R */
+                                        .event = "6F60C001", /* EN_MT_1_HW_FAILURE */
   					.event_assertion = SAHPI_TRUE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
        					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
-					.event_state = SAHPI_ES_DEGRADED,
                                         .recovery_state = SAHPI_ES_RUNNING,
                                 },
                                 {
@@ -10102,7 +10218,7 @@ struct snmp_bc_sensor snmp_bc_mediatray_sensors[] = {
   					.event_assertion = SAHPI_TRUE,
        					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
-					.event_state = SAHPI_ES_DEGRADED,
+					.event_state = SAHPI_ES_OFF_LINE,
                                         .recovery_state = SAHPI_ES_RUNNING,
                                 },
                                 {},
@@ -10111,9 +10227,14 @@ struct snmp_bc_sensor snmp_bc_mediatray_sensors[] = {
                 },
                 .comment = "Media Tray Operational Status Sensor",
         },
+        {} /* Terminate array with a null element */
+};
+
+/* This structure is for all common Media Tray 1 (all types) sensors */
+struct snmp_bc_sensor snmp_bc_mediatray_sensors[] = {
 	/* Media Tray Management Bus Operational Status Sensor - event only */
         {
-		.index = 2,
+		.index = 2, /* Sensor 1 is the Operational Status Sensor above */
                 .sensor = {
                         .Num = 2,
                         .Type = SAHPI_OPERATIONAL,
@@ -10156,7 +10277,150 @@ struct snmp_bc_sensor snmp_bc_mediatray_sensors[] = {
 };
 
 struct snmp_bc_sensor snmp_bc_mediatray2_sensors[] = {
-        /* Media Tray Operational Status Sensor - event only */
+	/* Media Tray Operational Status Sensor - Readable Fault LED (BCHT) */
+        {
+		.index = 1,
+                .sensor = {
+                        .Num = 1,
+                        .Type = SAHPI_OPERATIONAL,
+                        .Category = SAHPI_EC_AVAILABILITY,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
+                        .Events = SAHPI_ES_RUNNING | SAHPI_ES_OFF_LINE,
+                        .DataFormat = {
+				.IsSupported = SAHPI_TRUE,
+				.ReadingType = SAHPI_SENSOR_READING_TYPE_INT64,
+				.BaseUnits = SAHPI_SU_UNSPECIFIED,
+				.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+				.ModifierUse = SAHPI_SMUU_NONE,
+				.Percentage = SAHPI_FALSE,
+				.Range = {
+					.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
+					.Max = {
+						.IsSupported = SAHPI_TRUE,
+						.Type = SAHPI_SENSOR_READING_TYPE_INT64,
+						.Value = {
+							.SensorInt64 = 1,
+						},
+					},
+					.Min = {
+						.IsSupported = SAHPI_TRUE,
+						.Type = SAHPI_SENSOR_READING_TYPE_INT64,
+						.Value = {
+							.SensorInt64 = 0,
+						},
+					},
+				},
+                        },
+                        .ThresholdDefn = {
+                                .IsAccessible = SAHPI_FALSE,
+                        },
+                        .Oem = 0,
+                },
+                .sensor_info = {
+                        .mib = {
+                                .not_avail_indicator_num = 0,
+                                .write_only = SAHPI_FALSE,
+				/* ledMediaTrayFault for Media Tray 2 */
+                                .oid = ".1.3.6.1.4.1.2.3.51.2.2.8.7.1.1.5.2",
+				.loc_offset = 0,
+                        },
+                        .cur_state = SAHPI_ES_RUNNING,
+			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
+                        .sensor_enabled = SAHPI_TRUE,
+                        .events_enabled = SAHPI_TRUE,
+			.assert_mask   = SAHPI_ES_OFF_LINE,
+			.deassert_mask = SAHPI_ES_OFF_LINE,
+                        .event_array = {
+                                {
+                                        .event = "6F60C002", /* EN_MT_2_HW_FAILURE */
+  					.event_assertion = SAHPI_TRUE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+				{
+                                        .event = "06A2E002", /* EN_FRONT_PANEL_B_TEMP_FAIL */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+					.event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+				{},
+                        },
+   			.reading2event = {
+				/* 0 = Fault LED is off - ok */
+				{
+					.num = 1,
+                                        .rangemap = {
+						.Flags = SAHPI_SRF_NOMINAL,
+						.Min = {
+							.Value = {
+								.SensorInt64 = 0,
+							},
+						},
+					},
+					.state = SAHPI_ES_RUNNING,
+                                },
+				/* 1 = Fault LED is on - fault */
+				{
+					.num = 2,
+                                        .rangemap = {
+						.Flags = SAHPI_SRF_NOMINAL,
+						.Nominal = {
+							.Value = {
+								.SensorInt64 = 1, 
+							},
+						},
+					},
+					.state = SAHPI_ES_OFF_LINE,
+				},
+			},
+                },
+                .comment = "Media Tray Operational Status Sensor",
+        },
+	/* Media Tray Management Bus Operational Status Sensor - event only */
+        {
+		.index = 2, /* Sensor 1 is the Operational Status Sensor above */
+                .sensor = {
+                        .Num = 2,
+                        .Type = SAHPI_OPERATIONAL,
+                        .Category = SAHPI_EC_AVAILABILITY,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
+			.Events = SAHPI_ES_RUNNING | SAHPI_ES_OFF_LINE,
+                        .DataFormat = {
+                                .IsSupported = SAHPI_FALSE,
+                        },
+                        .ThresholdDefn = {
+                                .IsAccessible = SAHPI_FALSE,
+                        },
+                        .Oem = 0,
+                },
+                .sensor_info = {
+                        .cur_state = SAHPI_ES_RUNNING,
+			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
+                        .sensor_enabled = SAHPI_TRUE,
+                        .events_enabled = SAHPI_TRUE,
+			.assert_mask   = SAHPI_ES_OFF_LINE,
+			.deassert_mask = SAHPI_ES_OFF_LINE,
+                        .event_array = {
+                                {
+                                        .event = "0002205C", /* EN_STCONN_FAIL_MEDIATRAYB */
+  					.event_assertion = SAHPI_TRUE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {},
+                        },
+   			.reading2event = {},
+                },
+                .comment = "Media Tray Management Bus Operational Status Sensor",
+        },
 
         {} /* Terminate array with a null element */
 };
@@ -11284,6 +11548,7 @@ struct snmp_bc_sensor snmp_bc_switch_sensors[] = {
  ***********************************/
 
 struct snmp_bc_sensor snmp_bc_slot_sensors[] = {
+	/* Slot State Sensor */
         {
 		.index = 1,
                 .sensor = {
@@ -11291,9 +11556,7 @@ struct snmp_bc_sensor snmp_bc_slot_sensors[] = {
                         .Type = SAHPI_ENTITY_PRESENCE,
                         .Category = SAHPI_EC_PRESENCE,
 			.EnableCtrl = SAHPI_FALSE,
-                        .EventCtrl = SAHPI_SEC_READ_ONLY |
-				     SAHPI_SEC_READ_ONLY_MASKS |
-				     SAHPI_SEC_PER_EVENT,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
                         .Events = SAHPI_ES_PRESENT | SAHPI_ES_ABSENT, 
                         .DataFormat = {
                                 .IsSupported = SAHPI_TRUE,
@@ -11489,14 +11752,204 @@ struct snmp_bc_sensor snmp_bc_slot_sensors[] = {
  * Alarm Panel Sensors
  *********************/
 struct snmp_bc_sensor snmp_bc_alarm_sensors[] = {
-
+        /* Alarm Panel Operational Status Sensor */
+        {
+		.index = 1,
+                .sensor = {
+                        .Num = 1,
+                        .Type = SAHPI_OPERATIONAL,
+                        .Category = SAHPI_EC_AVAILABILITY,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
+                        .Events = SAHPI_ES_RUNNING | SAHPI_ES_OFF_LINE,
+                        .DataFormat = {
+				.IsSupported = SAHPI_TRUE,
+				.ReadingType = SAHPI_SENSOR_READING_TYPE_INT64,
+				.BaseUnits = SAHPI_SU_UNSPECIFIED,
+				.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+				.ModifierUse = SAHPI_SMUU_NONE,
+				.Percentage = SAHPI_FALSE,
+				.Range = {
+					.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
+					.Max = {
+						.IsSupported = SAHPI_TRUE,
+						.Type = SAHPI_SENSOR_READING_TYPE_INT64,
+						.Value = {
+							.SensorInt64 = 1,
+						},
+					},
+					.Min = {
+						.IsSupported = SAHPI_TRUE,
+						.Type = SAHPI_SENSOR_READING_TYPE_INT64,
+						.Value = {
+							.SensorInt64 = 0,
+						},
+					},
+				},
+                        },
+                        .ThresholdDefn = {
+                                .IsAccessible = SAHPI_FALSE,
+                        },
+                        .Oem = 0,
+                },
+                .sensor_info = {
+                        .mib = {
+                                .not_avail_indicator_num = 0,
+                                .write_only = SAHPI_FALSE,
+				/* tapFaultLED */
+                                .oid = ".1.3.6.1.4.1.2.3.51.2.2.8.8.5.0",
+				.loc_offset = 0,
+                        },
+                        .cur_state = SAHPI_ES_RUNNING,
+			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
+                        .sensor_enabled = SAHPI_TRUE,
+                        .events_enabled = SAHPI_TRUE,
+			.assert_mask   = SAHPI_ES_OFF_LINE,
+			.deassert_mask = SAHPI_ES_OFF_LINE,
+                        .event_array = {
+                                {
+                                        .event = "6F60A101", /* EN_AP_HW_FAILURE */
+  					.event_assertion = SAHPI_TRUE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {},
+                        },
+   			.reading2event = {
+				/* 0 = Fault LED is off - ok */
+				{
+					.num = 1,
+                                        .rangemap = {
+						.Flags = SAHPI_SRF_NOMINAL,
+						.Min = {
+							.Value = {
+								.SensorInt64 = 0,
+							},
+						},
+					},
+					.state = SAHPI_ES_RUNNING,
+                                },
+				/* 1 = Fault LED is on - fault */
+				{
+					.num = 2,
+                                        .rangemap = {
+						.Flags = SAHPI_SRF_NOMINAL,
+						.Nominal = {
+							.Value = {
+								.SensorInt64 = 1, 
+							},
+						},
+					},
+					.state = SAHPI_ES_OFF_LINE,
+				},
+			},
+                },
+                .comment = "Alarm Panel Operational Status Sensor",
+        },
         {} /* Terminate array with a null element */
 };
 
-/**************************************
- * Multiplexer Expansion Module Sensors
- **************************************/
+/********************************************
+ * Multiplexer Expansion Module (Mux) Sensors
+ ********************************************/
 struct snmp_bc_sensor snmp_bc_mux_sensors[] = {
+        {
+		.index = 1,
+                .sensor = {
+                        .Num = 1,
+                        .Type = SAHPI_OPERATIONAL,
+                        .Category = SAHPI_EC_AVAILABILITY,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
+                        .Events = SAHPI_ES_RUNNING | SAHPI_ES_OFF_LINE,
+                        .DataFormat = {
+				.IsSupported = SAHPI_TRUE,
+				.ReadingType = SAHPI_SENSOR_READING_TYPE_INT64,
+				.BaseUnits = SAHPI_SU_UNSPECIFIED,
+				.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+				.ModifierUse = SAHPI_SMUU_NONE,
+				.Percentage = SAHPI_FALSE,
+				.Range = {
+					.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
+					.Max = {
+						.IsSupported = SAHPI_TRUE,
+						.Type = SAHPI_SENSOR_READING_TYPE_INT64,
+						.Value = {
+							.SensorInt64 = 1,
+						},
+					},
+					.Min = {
+						.IsSupported = SAHPI_TRUE,
+						.Type = SAHPI_SENSOR_READING_TYPE_INT64,
+						.Value = {
+							.SensorInt64 = 0,
+						},
+					},
+				},
+                        },
+                        .ThresholdDefn = {
+                                .IsAccessible = SAHPI_FALSE,
+                        },
+                        .Oem = 0,
+                },
+                .sensor_info = {
+                        .mib = {
+                                .not_avail_indicator_num = 0,
+                                .write_only = SAHPI_FALSE,
+				/*  ledMuxFault */
+                                .oid = ".1.3.6.1.4.1.2.3.51.2.2.8.10.1.1.5.x",
+				.loc_offset = 0,
+                        },
+                        .cur_state = SAHPI_ES_RUNNING,
+			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
+                        .sensor_enabled = SAHPI_TRUE,
+                        .events_enabled = SAHPI_TRUE,
+			.assert_mask   = SAHPI_ES_OFF_LINE,
+			.deassert_mask = SAHPI_ES_OFF_LINE,
+                        .event_array = {
+                                {
+                                        .event = "6F60D00x", /* EN_MX_1_HW_FAILURE */
+  					.event_assertion = SAHPI_TRUE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {},
+                        },
+   			.reading2event = {
+				/* 0 = Fault LED is off - ok */
+				{
+					.num = 1,
+                                        .rangemap = {
+						.Flags = SAHPI_SRF_NOMINAL,
+						.Min = {
+							.Value = {
+								.SensorInt64 = 0,
+							},
+						},
+					},
+					.state = SAHPI_ES_RUNNING,
+                                },
+				/* 1 = Fault LED is on - fault */
+				{
+					.num = 2,
+                                        .rangemap = {
+						.Flags = SAHPI_SRF_NOMINAL,
+						.Nominal = {
+							.Value = {
+								.SensorInt64 = 1, 
+							},
+						},
+					},
+					.state = SAHPI_ES_OFF_LINE,
+				},
+			},
+                },
+                .comment = "Mux Module Operational Status Sensor",
+        },
 
         {} /* Terminate array with a null element */
 };
@@ -11505,16 +11958,180 @@ struct snmp_bc_sensor snmp_bc_mux_sensors[] = {
  * Network Clock Module Sensors
  ******************************/
 struct snmp_bc_sensor snmp_bc_clock_sensors[] = {
+        {
+		.index = 1,
+                .sensor = {
+                        .Num = 1,
+                        .Type = SAHPI_OPERATIONAL,
+                        .Category = SAHPI_EC_AVAILABILITY,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
+                        .Events = SAHPI_ES_RUNNING | SAHPI_ES_OFF_LINE,
+                        .DataFormat = {
+				.IsSupported = SAHPI_TRUE,
+				.ReadingType = SAHPI_SENSOR_READING_TYPE_INT64,
+				.BaseUnits = SAHPI_SU_UNSPECIFIED,
+				.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+				.ModifierUse = SAHPI_SMUU_NONE,
+				.Percentage = SAHPI_FALSE,
+				.Range = {
+					.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
+					.Max = {
+						.IsSupported = SAHPI_TRUE,
+						.Type = SAHPI_SENSOR_READING_TYPE_INT64,
+						.Value = {
+							.SensorInt64 = 1,
+						},
+					},
+					.Min = {
+						.IsSupported = SAHPI_TRUE,
+						.Type = SAHPI_SENSOR_READING_TYPE_INT64,
+						.Value = {
+							.SensorInt64 = 0,
+						},
+					},
+				},
+                        },
+                        .ThresholdDefn = {
+                                .IsAccessible = SAHPI_FALSE,
+                        },
+                        .Oem = 0,
+                },
+                .sensor_info = {
+                        .mib = {
+                                .not_avail_indicator_num = 0,
+                                .write_only = SAHPI_FALSE,
+				/* ledNetworkClockFault */
+                                .oid = ".1.3.6.1.4.1.2.3.51.2.2.8.9.1.1.5.x",
+				.loc_offset = 0,
+                        },
+                        .cur_state = SAHPI_ES_RUNNING,
+			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
+                        .sensor_enabled = SAHPI_TRUE,
+                        .events_enabled = SAHPI_TRUE,
+			.assert_mask   = SAHPI_ES_OFF_LINE,
+			.deassert_mask = SAHPI_ES_OFF_LINE,
+                        .event_array = {
+                                {
+                                        .event = "6F60710x", /* EN_NC_x_HW_FAILURE */
+  					.event_assertion = SAHPI_TRUE,
+                                        .event_state = SAHPI_ES_OFF_LINE,
+       					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {},
+                        },
+   			.reading2event = {
+				/* 0 = Fault LED is off - ok */
+				{
+					.num = 1,
+                                        .rangemap = {
+						.Flags = SAHPI_SRF_NOMINAL,
+						.Min = {
+							.Value = {
+								.SensorInt64 = 0,
+							},
+						},
+					},
+					.state = SAHPI_ES_RUNNING,
+                                },
+				/* 1 = Fault LED is on - fault */
+				{
+					.num = 2,
+                                        .rangemap = {
+						.Flags = SAHPI_SRF_NOMINAL,
+						.Nominal = {
+							.Value = {
+								.SensorInt64 = 1, 
+							},
+						},
+					},
+					.state = SAHPI_ES_OFF_LINE,
+				},
+			},
+                },
+                .comment = "Alarm Panel Operational Status Sensor",
+        },
 
         {} /* Terminate array with a null element */
 };
 
-/********************
- * Air Filter Sensors
- ********************/
+/****************************
+ * Front Bezel Filter Sensors
+ ****************************/
 struct snmp_bc_sensor snmp_bc_filter_sensors[] = {
+        /* Front Bezel Filter Sensor - event only */
+        {
+		.index = 1,
+                .sensor = {
+                        .Num = 1,
+                        .Type = SAHPI_TEMPERATURE,
+                        .Category = SAHPI_EC_SEVERITY,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
+                        .Events = SAHPI_ES_OK | SAHPI_ES_MINOR_FROM_OK |
+			          SAHPI_ES_INFORMATIONAL |
+			          SAHPI_ES_MAJOR_FROM_LESS | SAHPI_ES_CRITICAL,
+                        .DataFormat = {
+                                .IsSupported = SAHPI_FALSE,
+                        },
+                        .ThresholdDefn = {
+                                .IsAccessible = SAHPI_FALSE,
+                        },
+                        .Oem = 0,
+                },
+                .sensor_info = {
+                        .cur_state = SAHPI_ES_OK,
+			.cur_child_rid = SAHPI_UNSPECIFIED_RESOURCE_ID,
+                        .sensor_enabled = SAHPI_TRUE,
+                        .events_enabled = SAHPI_TRUE,
+			.assert_mask   = SAHPI_ES_OK | SAHPI_ES_MINOR_FROM_OK |
+			                 SAHPI_ES_INFORMATIONAL |
+			                 SAHPI_ES_MAJOR_FROM_LESS | SAHPI_ES_CRITICAL,
+			.deassert_mask = SAHPI_ES_OK | SAHPI_ES_MINOR_FROM_OK |
+			                 SAHPI_ES_INFORMATIONAL |
+			                 SAHPI_ES_MAJOR_FROM_LESS | SAHPI_ES_CRITICAL,
+                        .event_array = {
+                                {
+                                        .event = "6F100000", /* EN_FAULT_CRT_FILTER */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_CRITICAL,
+                                        .recovery_state = SAHPI_ES_MAJOR_FROM_LESS,
+                                },
+                                {
+                                        .event = "6F200000", /* EN_FAULT_MJR_FILTER */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_MAJOR_FROM_LESS,
+                                        .recovery_state = SAHPI_ES_MINOR_FROM_OK,
+                                },
+                                {
+                                        .event = "6F300000", /* EN_FAULT_MNR_FILTER */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_MINOR_FROM_OK,
+                                        .recovery_state = SAHPI_ES_OK,
+                                },
+                                {
+                                        .event = "6F500000", /* EN_FAULT_MNR_FILTER_SERVICE */
+ 					.event_assertion = SAHPI_TRUE,
+      					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_INFORMATIONAL,
+                                        .recovery_state = SAHPI_ES_OK,
+                                },
+                        },
+   			.reading2event = {},
+               },
+                .comment = "Front Bezel Filter Sensor",
+        },
 
-        {} /* Terminate array with a null element */
+       {} /* Terminate array with a null element */
 };
 
 /*************************************************************************
@@ -11586,7 +12203,7 @@ struct snmp_bc_control snmp_bc_chassis_controls_bct[] = {
                         .mib = {
                                 .not_avail_indicator_num = 3,
                                 .write_only = SAHPI_FALSE,
-				/* identityLED */
+				/* telcoIdentityLED */
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.8.3.4.0",
 				.loc_offset = 0,
                         },
@@ -12327,3 +12944,4 @@ struct snmp_bc_inventory snmp_bc_interposer_mm_inventories[] = {
 
         {} /* Terminate array with a null element */
 };
+
