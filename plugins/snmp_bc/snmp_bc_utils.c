@@ -186,7 +186,6 @@ SaErrorT snmp_bc_get_guid(struct snmp_bc_hnd *custom_handle,
  **/
 SaErrorT snmp_bc_extract_slot_ep(SaHpiEntityPathT *resource_ep, SaHpiEntityPathT *slot_ep) 
 {
-
 	guint i,j;
 
 	if (!resource_ep || !slot_ep) {
@@ -200,6 +199,9 @@ SaErrorT snmp_bc_extract_slot_ep(SaHpiEntityPathT *resource_ep, SaHpiEntityPathT
 			(resource_ep->Entry[i].EntityType == BLADECENTER_POWER_SUPPLY_SLOT) ||
 			(resource_ep->Entry[i].EntityType == BLADECENTER_PERIPHERAL_BAY_SLOT) ||
 			(resource_ep->Entry[i].EntityType == BLADECENTER_SYS_MGMNT_MODULE_SLOT) ||
+			(resource_ep->Entry[i].EntityType == BLADECENTER_ALARM_PANEL_SLOT) ||
+			(resource_ep->Entry[i].EntityType == BLADECENTER_MUX_SLOT) ||
+			(resource_ep->Entry[i].EntityType == BLADECENTER_CLOCK_SLOT) ||
 			(resource_ep->Entry[i].EntityType == BLADECENTER_BLOWER_SLOT) )
 			break;	
 	}
@@ -367,4 +369,6 @@ SaErrorT snmp_bc_extend_ep(struct oh_event *e,
 	
 	return(SA_OK);
 }
+
+
 
