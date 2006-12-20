@@ -82,14 +82,12 @@ saHpiResourceResetStateSet
 saHpiResourcePowerStateGet
 saHpiResourcePowerStateSet
 oHpiVersionGet
-oHpiPluginLoad
-oHpiPluginUnload
-oHpiPluginInfo
-oHpiPluginGetNext
 oHpiHandlerCreate
 oHpiHandlerDestroy
 oHpiHandlerInfo
 oHpiHandlerGetNext
+oHpiHandlerFind
+oHpiHandlerRetry
 oHpiGlobalParamGet
 oHpiGlobalParamSet
 oHpiInjectEvent

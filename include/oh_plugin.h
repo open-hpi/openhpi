@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copright IBM Corp 2004, 2005
+ * (C) Copright IBM Corp 2004-2006
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -10,7 +10,7 @@
  * full licensing terms.
  *
  * Authors:
- *     Renier Morales <renierm@users.sourceforge.net>
+ *     Renier Morales <renier@users.sourceforge.net>
  */
 
 #ifndef __OH_PLUGIN_H
@@ -56,7 +56,6 @@ struct oh_handler {
         char *plugin_name;
         GHashTable *config; /* pointer to handler configuration */
         struct oh_abi_v2 *abi; /* pointer to associated plugin interface */
-        GSList *dids; /* handler serves resources in these domains */
         /*
          * private pointer used by plugin implementations to distinguish
          * between different instances
@@ -89,7 +88,7 @@ int oh_unload_plugin(char *plugin_name);
 struct oh_handler *oh_get_handler(unsigned int hid);
 void oh_release_handler(struct oh_handler *handler);
 int oh_getnext_handler_id(unsigned int hid, unsigned int *next_hid);
-unsigned int oh_create_handler(GHashTable *handler_config);
+SaErrorT oh_create_handler(GHashTable *handler_config, unsigned int *hid);
 int oh_destroy_handler(unsigned int hid);
 SaErrorT oh_discovery(void);
 

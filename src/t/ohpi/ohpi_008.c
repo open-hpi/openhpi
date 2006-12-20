@@ -40,13 +40,6 @@ int main(int argc, char **argv)
         if (saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID, &sid, NULL))
                 return -1;
                     
-        /* Load plugins */
-        if (oHpiPluginLoad("libsimulator"))
-                return -1;
-                
-        if (oHpiPluginLoad("libwatchdog"))
-                return -1;
-                
         /* Set configuration for handlers and create them. */
         g_hash_table_insert(h0, "plugin", "libsimulator");
         g_hash_table_insert(h0, "entity_root", "{SYSTEM_CHASSIS,1}");
@@ -78,10 +71,6 @@ int main(int argc, char **argv)
                 
         if (oHpiHandlerDestroy(hid2) || oHpiHandlerDestroy(hid3))
                 return -1;
-                
-        if (oHpiPluginUnload("libsimulator") || oHpiPluginUnload("libwatchdog"))
-                return -1;
-                
         
         return 0;
 }

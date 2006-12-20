@@ -1260,60 +1260,6 @@ static const cMarshalType *saHpiResourcePowerStateSetOut[] =
   0
 };
 
-static const cMarshalType *oHpiPluginLoadIn[] =
-{
-  &oHpiTextBufferType, // plugin name
-  0
-};
-
-
-static const cMarshalType *oHpiPluginLoadOut[] =
-{
-  &SaErrorType, // result (SaErrorT)
-  0
-};
-
-static const cMarshalType *oHpiPluginUnloadIn[] =
-{
-  &oHpiTextBufferType, // plugin name
-  0
-};
-
-
-static const cMarshalType *oHpiPluginUnloadOut[] =
-{
-  &SaErrorType, // result (SaErrorT)
-  0
-};
-
-static const cMarshalType *oHpiPluginInfoIn[] =
-{
-  &oHpiTextBufferType, // plugin name
-  0
-};
-
-
-static const cMarshalType *oHpiPluginInfoOut[] =
-{
-  &SaErrorType, // result (SaErrorT)
-  &oHpiPluginInfoType,
-  0
-};
-
-static const cMarshalType *oHpiPluginGetNextIn[] =
-{
-  &oHpiTextBufferType, // plugin name
-  0
-};
-
-static const cMarshalType *oHpiPluginGetNextOut[] =
-{
-  &SaErrorType, // result (SaErrorT)
-  &oHpiTextBufferType, // next plugin name (SaHpiTextBufferT)
-  0
-};
-
-
 static const cMarshalType *oHpiHandlerCreateInitIn[] =
 {
   &SaErrorType, // dummy entry
@@ -1393,6 +1339,32 @@ static const cMarshalType *oHpiHandlerGetNextOut[] =
   &SaErrorType, // result (SaErrorT)
   &oHpiHandlerIdType, // handler id
   0
+};
+
+static const cMarshalType *oHpiHandlerFindIn[] =
+{
+	&SaHpiSessionIdType, // session id
+	&SaHpiResourceIdType, // resource id
+	0
+};
+
+static const cMarshalType *oHpiHandlerFindOut[] =
+{
+	&SaErrorType, // result (SaErrorT)
+	&oHpiHandlerIdType, // handler id
+	0
+};
+
+static const cMarshalType *oHpiHandlerRetryIn[] =
+{
+	&oHpiHandlerIdType, // handler id
+	0
+};
+
+static const cMarshalType *oHpiHandlerRetryOut[] =
+{
+	&SaErrorType, // result (SaErrorT)
+	0
 };
 
 
@@ -1520,16 +1492,14 @@ static cHpiMarshal hpi_marshal[] =
   dHpiMarshalEntry( saHpiResourceResetStateSet ),
   dHpiMarshalEntry( saHpiResourcePowerStateGet ),
   dHpiMarshalEntry( saHpiResourcePowerStateSet ),
-  dHpiMarshalEntry( oHpiPluginLoad ),
-  dHpiMarshalEntry( oHpiPluginUnload ),
-  dHpiMarshalEntry( oHpiPluginInfo ),
-  dHpiMarshalEntry( oHpiPluginGetNext ),
   dHpiMarshalEntry( oHpiHandlerCreateInit ),
   dHpiMarshalEntry( oHpiHandlerCreateAddTEntry ),
   dHpiMarshalEntry( oHpiHandlerCreate ),
   dHpiMarshalEntry( oHpiHandlerDestroy ),
   dHpiMarshalEntry( oHpiHandlerInfo ),
   dHpiMarshalEntry( oHpiHandlerGetNext ),
+  dHpiMarshalEntry( oHpiHandlerFind ),
+  dHpiMarshalEntry( oHpiHandlerRetry ),
   dHpiMarshalEntry( oHpiGlobalParamGet ),
   dHpiMarshalEntry( oHpiGlobalParamSet ),
   dHpiMarshalEntry( oHpiInjectEvent ),

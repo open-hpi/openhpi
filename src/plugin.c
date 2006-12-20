@@ -307,9 +307,9 @@ int oh_load_plugin(char *plugin_name)
         plugin = oh_get_plugin(plugin_name);
         if (plugin) {
                 oh_release_plugin(plugin);
-                dbg("Warning. Plugin %s already loaded. Not loading twice.",
-                    plugin_name);
-                return -1;
+                trace("Plugin %s already loaded. Not loading twice.",
+                      plugin_name);
+                return 0;
         }
 
         plugin = (struct oh_plugin *)g_malloc0(sizeof(struct oh_plugin));
@@ -423,7 +423,6 @@ static void __dec_handler_refcount(struct oh_handler *h)
 
 static void __delete_handler(struct oh_handler *h)
 {
-        GSList *node = NULL;
         struct oh_plugin *plugin = NULL;
 
         if (!h) return;
@@ -439,10 +438,6 @@ static void __delete_handler(struct oh_handler *h)
 
         /* Free the oh_handler members first, then the handler. */
         /* FIXME: Where/When should the handler config table be freed? */
-        for (node = h->dids; node; node = node->next) {
-                g_free(node->data);
-        }
-        g_slist_free(h->dids);
         g_static_rec_mutex_free(&h->lock);
         g_static_rec_mutex_free(&h->refcount_lock);
         g_free(h);
@@ -546,41 +541,41 @@ static struct oh_handler *new_handler(GHashTable *handler_config)
 {       /* Return a new oh_handler instance */
         struct oh_plugin *plugin = NULL;
         struct oh_handler *handler = NULL;
+	char *plugin_name = NULL;
         static unsigned int handler_id = 1;
         unsigned int *hidp;
-        char *hid_strp;
 
         if (!handler_config) {
                 dbg("ERROR creating new handler. Invalid parameter.");
                 return NULL;
         }
 
+	plugin_name = (char *)g_hash_table_lookup(handler_config, "plugin");
+	if (!plugin_name) {
+		dbg("ERROR creating new handler. No plugin name received.");
+		return NULL;
+	}
+
         handler = (struct oh_handler *)g_malloc0(sizeof(struct oh_handler));
-        if (!handler) {
-                dbg("Out of Memory!");
-                return NULL;
+        hidp = (unsigned int *)g_malloc0(sizeof(unsigned int));
+
+        plugin = oh_get_plugin(plugin_name);
+        if(!plugin) { /* Attempt to load plugin here once */
+		int rc = oh_load_plugin(plugin_name);
+		if (rc) {
+                	dbg("Could not create handler. Plugin %s not loaded",
+                    	    plugin_name);
+                	goto cleanexit;
+		}
+
+		plugin = oh_get_plugin(plugin_name);
+		if (!plugin) {
+			dbg("Tried but could not get a plugin to "
+			    "create this handler.");
+			goto cleanexit;
+		}
         }
 
-        hidp = (unsigned int *)g_malloc(sizeof(unsigned int));
-        if (!hidp) {
-                dbg("Out of Memory!");
-                g_free(handler);
-                return NULL;
-        }
-        hid_strp = strdup("handler-id");
-        if (!hid_strp) {
-                dbg("Out of Memory!");
-                g_free(handler);
-                g_free(hidp);
-                return NULL;
-        }
-
-        plugin = oh_get_plugin((char *)g_hash_table_lookup(handler_config, "plugin"));
-        if(!plugin) {
-                dbg("Attempt to create handler for unknown plugin %s",
-                    (char *)g_hash_table_lookup(handler_config, "plugin"));
-                goto cleanexit;
-        }
         /* Initialize handler */
         handler->abi = plugin->abi;
         plugin->handler_count++; /* Increment # of handlers using the plugin */
@@ -589,10 +584,8 @@ static struct oh_handler *new_handler(GHashTable *handler_config)
         handler->id = handler_id++;
         g_static_rec_mutex_unlock(&oh_handlers.lock);
         *hidp = handler->id;
-        g_hash_table_insert(handler_config, (gpointer)hid_strp,(gpointer)hidp);
         handler->plugin_name = (char *)g_hash_table_lookup(handler_config, "plugin");
         handler->config = handler_config;
-        handler->dids = NULL;
         handler->refcount = 0;
         g_static_rec_mutex_init(&handler->lock);
         g_static_rec_mutex_init(&handler->refcount_lock);
@@ -600,7 +593,6 @@ static struct oh_handler *new_handler(GHashTable *handler_config)
         return handler;
 cleanexit:
         g_free(hidp);
-        g_free(hid_strp);
         g_free(handler);
         return NULL;
 }
@@ -609,26 +601,27 @@ cleanexit:
  * oh_create_handler
  * @handler_config: Hash table containing the configuration for a handler
  * read from the configuration file.
+ * @hid: pointer where hid of newly created handler will be stored.
  *
- * Returns: 0 on Failure, otherwise the handler id (id > 0) of
- * the newly created handler
+ * Returns: SA_OK on success. If handler failed to open, then @hid will
+ * contain a valid handler id, but SA_ERR_HPI_INTERNAL_ERROR will be
+ * returned.
  **/
-unsigned int oh_create_handler (GHashTable *handler_config)
+SaErrorT oh_create_handler (GHashTable *handler_config, unsigned int *hid)
 {
-        struct oh_handler *handler;
-        unsigned int new_hid = 0;
+        struct oh_handler *handler = NULL;
 
-        if (!handler_config) {
-                dbg("ERROR loading handler. Invalid handler configuration passed.");
-                return 0;
+        if (!handler_config || !hid) {
+                dbg("ERROR creating handler. Invalid parameters.");
+                return SA_ERR_HPI_INVALID_PARAMS;
         }
+
+	*hid = 0;
 
         handler = new_handler(handler_config);
-        if (handler == NULL) {
-                return 0;
-        }
+        if (!handler) return SA_ERR_HPI_ERROR;
 
-        new_hid = handler->id;
+        *hid = handler->id;
         g_static_rec_mutex_lock(&oh_handlers.lock);
         oh_handlers.list = g_slist_append(oh_handlers.list, handler);
         g_hash_table_insert(oh_handlers.table,
@@ -636,20 +629,17 @@ unsigned int oh_create_handler (GHashTable *handler_config)
                             g_slist_last(oh_handlers.list));
 
         handler->hnd = handler->abi->open(handler->config,
-                                          new_hid,
+                                          handler->id,
                                           &oh_process_q);
         if (!handler->hnd) {
-                g_hash_table_remove(oh_handlers.table, &handler->id);
-                oh_handlers.list = g_slist_remove(oh_handlers.list, &(handler->id));
-                g_static_rec_mutex_unlock(&oh_handlers.lock);
                 dbg("A handler #%d on the %s plugin could not be opened.",
                     handler->id, handler->plugin_name);
-                __delete_handler(handler);
-                return 0;
+		g_static_rec_mutex_unlock(&oh_handlers.lock);
+		return SA_ERR_HPI_INTERNAL_ERROR;
         }
         g_static_rec_mutex_unlock(&oh_handlers.lock);
 
-        return new_hid;
+        return SA_OK;
 }
 
 /**

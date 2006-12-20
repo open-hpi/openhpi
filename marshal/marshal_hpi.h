@@ -124,6 +124,8 @@ typedef enum
   eFoHpiHandlerDestroy,
   eFoHpiHandlerInfo,
   eFoHpiHandlerGetNext,
+  eFoHpiHandlerFind,
+  eFoHpiHandlerRetry,
   eFoHpiGlobalParamGet,
   eFoHpiGlobalParamSet,
   eFoHpiInjectEvent,

@@ -79,6 +79,10 @@
                         return SA_ERR_HPI_INVALID_RESOURCE; \
                 } \
                 h = oh_get_handler(*hid); \
+		if (h && !h->hnd) { \
+			oh_release_handler(h); \
+			h = NULL; \
+		} \
         } while (0)
 
 /*

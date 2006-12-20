@@ -534,20 +534,6 @@ static cMarshalType SaHpiRdrElements[] =
 cMarshalType SaHpiRdrType = dStruct( SaHpiRdrT, SaHpiRdrElements );
 
 
-// rdr array
-static cMarshalType oHpiRdrArrayEntryArray = dArray( SaHpiRdrType, MAX_RDR_ARRAY_LENGTH );
-
-
-static cMarshalType oHpiRdrArrayElements[] =
-{
-  dStructElement( oHpiRdrArrayT, Entry, oHpiRdrArrayEntryArray ),
-  dStructElementEnd()
-};
-
-cMarshalType oHpiRdrArrayType = dStruct( oHpiRdrArrayT, oHpiRdrArrayElements );
-
-
-
 // events part 2
 
 static cMarshalType SaHpiResourceEventTypeElements[] =
@@ -802,22 +788,15 @@ static cMarshalType SaHpiEventLogEntryElements[] =
 cMarshalType SaHpiEventLogEntryType = dStruct( SaHpiEventLogEntryT, SaHpiEventLogEntryElements );
 
 
-// plugin info
-static cMarshalType oHpiPluginInfoElements[] =
-{
-  dStructElement( oHpiPluginInfoT, refcount, refcountType ),
-  dStructElementEnd()
-};
-
-cMarshalType oHpiPluginInfoType = dStruct( oHpiPluginInfoT, oHpiPluginInfoElements );
-
-
 // handler info
 static cMarshalType plugin_nameBufferArray = dArray( SaHpiUint8Type, MAX_PLUGIN_NAME_LENGTH );
 
 static cMarshalType oHpiHandlerInfoElements[] =
 {
+  dStructElement( oHpiHandlerInfoT, id, oHpiHandlerIdType),
   dStructElement( oHpiHandlerInfoT, plugin_name, plugin_nameBufferArray ),
+  dStructElement( oHpiHandlerInfoT, entity_root, SaHpiEntityPathType ),
+  dStructElement( oHpiHandlerInfoT, load_failed, SaHpiInt32Type ),
   dStructElementEnd()
 };
 
