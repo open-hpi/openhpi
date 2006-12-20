@@ -105,6 +105,8 @@ static SaErrorT harvest_events_for_handler(struct oh_handler *h)
 {
         SaErrorT error = SA_OK;
 
+	if (!h->hnd) return SA_OK;
+
         do {
                 error = h->abi->get_event(h->hnd);
                 if (error < 1) {

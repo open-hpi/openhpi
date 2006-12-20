@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copright IBM Corp 2004
+ * (C) Copright IBM Corp 2004,2006
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -17,10 +17,15 @@
 #include <oh_config.h>
 #include <oh_init.h>
 #include <oh_plugin.h>
+#include <oh_event.h>
+#include <oh_domain.h>
+#include <oh_session.h>
+#include <oh_utils.h>
 #include <oh_error.h>
 #include <oh_lock.h>
+#include <sahpimacros.h>
 #include <config.h>
-/* Version Call */
+
 
 /**
  * oHpiVersionGet
@@ -47,119 +52,6 @@ SaHpiUint64T oHpiVersionGet()
         return v;
 }
 
-/* Plugin operations */
-
-/**
- * oHpiPluginLoad
- * @name: IN. String. name of plugin to load (e.g. "libdummy")
- *
- * Loads plugin into library creating a plugin object.
- *
- * Returns: SA_OK on success. Minus SA_OK on error.
- **/
-SaErrorT oHpiPluginLoad(char *name)
-{
-        if (!name) {
-                dbg("Invalid parameters.");
-                return SA_ERR_HPI_INVALID_PARAMS;
-        }
-        
-        if (oh_init()) return SA_ERR_HPI_INTERNAL_ERROR;
-
-        if (oh_load_plugin(name))
-                return SA_ERR_HPI_ERROR;
-
-        return SA_OK;
-}
-
-/**
- * oHpiPluginUnload
- * @name: IN. String. name of plugin to unload (e.g. "libdummy")
- *
- * Unload plugin from library, destroying the plugin object.
- * This will return an error if there are any handlers referencing
- * the plugin (e.g. refcount > 1).
- *
- * Returns: SA_OK on success. Minus SA_OK on error.
- **/
-SaErrorT oHpiPluginUnload(char *name)
-{
-        if (!name) {
-                dbg("Invalid parameters.");
-                return SA_ERR_HPI_INVALID_PARAMS;
-        }
-        
-        if (oh_init()) return SA_ERR_HPI_INTERNAL_ERROR;
-
-        if (oh_unload_plugin(name))
-                return SA_ERR_HPI_ERROR;
-
-        return SA_OK;
-}
-
-/**
- * oHpiPluginInfo
- * @name: IN. String. name of plugin to query (e.g. "libdummy")
- * @info: IN/OUT. Reference to information structure on the plugin.
- *
- * Fetches the information associated with the plugin and puts it
- * in @info. As of yet, @info only contains the refcount for the
- * plugin.
- *
- * Returns: SA_OK on success. Minus SA_OK on error.
- **/
-SaErrorT oHpiPluginInfo(char *name, oHpiPluginInfoT *info)
-{
-        struct oh_plugin *p = NULL;
-
-        if (!name || !info) {
-                dbg("Invalid parameters.");
-                return SA_ERR_HPI_INVALID_PARAMS;
-        }
-        
-        if (oh_init()) return SA_ERR_HPI_INTERNAL_ERROR;
-
-        p = oh_get_plugin(name);
-        if (!p) {
-                dbg("Plugin %s not found.", name);
-                return SA_ERR_HPI_NOT_PRESENT;
-        }
-
-        info->refcount = p->handler_count;
-        oh_release_plugin(p);
-
-        return SA_OK;
-}
-
-/**
- * oHpiPluginGetNext
- * @name: IN. String. name of plugin to search for (e.g. "libdummy")
- * @next_name: IN/OUT. Next plugin after @name will be placed here.
- * @size: IN. Size in bytes of the @next_name buffer.
- *
- * Searches for the specified plugin and returns the next plugin name
- * after that one in the list. If you pass NULL in @name, you will get
- * the name of the first plugin in @next_name. Used to iterate through
- * all loaded plugins.
- *
- * Returns: SA_OK on success. Minus SA_OK on error.
- **/
-SaErrorT oHpiPluginGetNext(char *name, char *next_name, int size)
-{
-        if (!next_name) {
-                dbg("Invalid parameters.");
-                return SA_ERR_HPI_INVALID_PARAMS;
-        }
-        
-        if (oh_init()) return SA_ERR_HPI_INTERNAL_ERROR;
-
-        if (oh_getnext_plugin_name(name, next_name, size))
-                return SA_ERR_HPI_NOT_PRESENT;
-
-        return SA_OK;
-}
-
-
 /* Handler operations */
 
 /**
@@ -172,28 +64,25 @@ SaErrorT oHpiPluginGetNext(char *name, char *next_name, int size)
  * @config needs to have an entry for "plugin" in order to know for which
  * plugin the handler is being created.
  *
- * Returns: SA_OK on success. Minus SA_OK on error.
+ * Returns: SA_OK on success. SA_ERR_HPI_INTERNAL_ERROR if a handler is
+ * created, but failed to open. oHpiHandlerRetry can be used to retry
+ * opening the handler.
  **/
 SaErrorT oHpiHandlerCreate(GHashTable *config,
                            oHpiHandlerIdT *id)
 {
-        oHpiHandlerIdT hid = 0;
+	SaErrorT error = SA_OK;
 
         if (!config || !id) {
                 dbg("Invalid parameters.");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
         
-        if (oh_init()) return SA_ERR_HPI_INTERNAL_ERROR;
+        if (oh_init()) return SA_ERR_HPI_ERROR;
 
-        if (!(hid = oh_create_handler(config))) {
-             *id = 0;
-             return SA_ERR_HPI_ERROR;
-        }
+	error = oh_create_handler(config, id);
 
-        *id = hid;
-
-        return SA_OK;
+	return error;
 }
 
 /**
@@ -241,7 +130,14 @@ SaErrorT oHpiHandlerInfo(oHpiHandlerIdT id, oHpiHandlerInfoT *info)
                 return SA_ERR_HPI_NOT_PRESENT;
         }
 
+	info->id = id;
         strncpy(info->plugin_name, h->plugin_name, MAX_PLUGIN_NAME_LENGTH);
+	oh_encode_entitypath((const char *)g_hash_table_lookup(h->config, "entity_root"),
+			     &info->entity_root);
+	
+	if (!h->hnd) info->load_failed = 1;
+	else info->load_failed = 0;
+
         oh_release_handler(h);
 
         return SA_OK;
@@ -272,6 +168,79 @@ SaErrorT oHpiHandlerGetNext(oHpiHandlerIdT id, oHpiHandlerIdT *next_id)
                 return SA_ERR_HPI_NOT_PRESENT;
 
         return SA_OK;
+}
+
+/**
+ * oHpiHandlerFind
+ * @sid: a valid session id
+ * @rid: resource id
+ * @id: pointer where handler id found will be placed.
+ *
+ * Inputs are the @sid and @rid. @rid corresponds to some resource available
+ * in that session. The function then will return the handler that served such
+ * resource.
+ *
+ * Returns: SA_OK if handler was found.
+ **/
+SaErrorT oHpiHandlerFind(SaHpiSessionIdT sid,
+			 SaHpiResourceIdT rid,
+			 oHpiHandlerIdT *id)
+{
+	SaHpiDomainIdT did;
+        struct oh_domain *d = NULL;
+        unsigned int *hid = NULL;
+
+        OH_CHECK_INIT_STATE(sid);
+        OH_GET_DID(sid, did);
+
+        if (sid == 0 || rid == 0 || !id) {
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        OH_GET_DOMAIN(did, d); /* Lock domain */
+
+        hid = (unsigned int *)oh_get_resource_data(&d->rpt, rid);
+
+        if (hid == NULL) {
+                dbg("No such Resource Id %d in Domain %d", rid, did);
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_INVALID_RESOURCE;
+        }
+
+        *id = *hid;
+        oh_release_domain(d); /* Unlock domain */
+
+        return SA_OK;
+}
+
+/**
+ * oHpiHandlerRetry
+ * @id: handler id
+ *
+ * Returns: SA_OK if handler opens successfully.
+ **/
+SaErrorT oHpiHandlerRetry(oHpiHandlerIdT id)
+{
+	struct oh_handler *h = NULL;
+	SaErrorT error = SA_OK;
+
+	if (id == 0) return SA_ERR_HPI_INVALID_PARAMS;
+
+	h = oh_get_handler(id);
+	if (!h) return SA_ERR_HPI_NOT_PRESENT;
+
+	if (h->hnd != NULL) {
+		oh_release_handler(h);
+		return SA_OK;
+	}
+
+	h->hnd = h->abi->open(h->config, h->id, &oh_process_q);
+	if (h->hnd == NULL) error = SA_ERR_HPI_INTERNAL_ERROR;
+	else error = SA_OK;
+
+	oh_release_handler(h);
+
+	return error;
 }
 
 /* Global parameters */
@@ -361,7 +330,7 @@ SaErrorT oHpiInjectEvent(oHpiHandlerIdT id,
 	SaErrorT (*inject_event)(void *hnd,
                             	 SaHpiEventT *evt,
                             	 SaHpiRptEntryT *rpte,
-                            	 SaHpiRdrT *rdr); //DMJ TODO needs to be some array of rdrs, hardcode null for now
+                                 SaHpiRdrT *rdr); /* TODO: Allow for an array/list of RDRs */
 
 	struct oh_handler *h = NULL;
 	SaErrorT error = SA_OK;
