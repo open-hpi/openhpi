@@ -28,6 +28,10 @@
 #include "ipmi_inventory_parser.h"
 #endif
 
+#ifndef dIpmiAddr_h
+#include "ipmi_addr.h"
+#endif
+
 enum tInventoryAccessMode
 {
   eInventoryAccessModeByte = 0,
@@ -47,6 +51,7 @@ protected:
   bool           m_fetched;
 
   unsigned int   m_oem;
+  cIpmiAddr      m_addr;
 
   SaErrorT GetFruInventoryAreaInfo( unsigned int &size, tInventoryAccessMode &byte_access );
   SaErrorT ReadFruData( unsigned short offset, unsigned int num, unsigned int &n, unsigned char *data );
@@ -57,6 +62,7 @@ public:
 
   SaErrorT Fetch();
 
+  bool SetAddr( cIpmiAddr addr );
   virtual unsigned int Num() const { return m_fru_device_id; }
   unsigned int &Oem() { return m_oem; }
 

@@ -602,4 +602,3 @@ tcontrolfailover_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
 #tsnmp_bc_get_guid_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
 #		 $(top_builddir)/src/libopenhpi.la \
 #		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la
-

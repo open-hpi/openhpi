@@ -1,4 +1,3 @@
-
 /* -*- linux-c -*-
  * 
  * (C) Copyright IBM Corp. 2004, 2005
@@ -100,4 +99,3 @@ int main(int argc, char **argv)
 }
 
 #include <tsetup.c>
-

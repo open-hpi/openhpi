@@ -106,4 +106,3 @@ SaErrorT snmp_bc_control_parm(void *hnd,
 			      SaHpiResourceIdT rid,
 			      SaHpiParmActionT act);
 #endif
-

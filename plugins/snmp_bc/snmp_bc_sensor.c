@@ -2632,4 +2632,3 @@ void * oh_set_sensor_event_masks (void *, SaHpiResourceIdT, SaHpiSensorNumT,
                                   SaHpiEventStateT,
                                   SaHpiEventStateT)
                 __attribute__ ((weak, alias("snmp_bc_set_sensor_event_masks")));
-

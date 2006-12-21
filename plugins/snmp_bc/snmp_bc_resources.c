@@ -12944,3 +12944,4 @@ struct snmp_bc_inventory snmp_bc_interposer_mm_inventories[] = {
 
         {} /* Terminate array with a null element */
 };
+

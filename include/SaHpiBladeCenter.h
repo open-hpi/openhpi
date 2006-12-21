@@ -33,4 +33,3 @@
 #define BLADECENTER_SENSOR_NUM_MIN_POWER  	(SaHpiSensorNumT) 0x1013
 
 #endif
-

@@ -534,4 +534,3 @@ SaErrorT snmpstat2hpi(int snmpstat)
 	return(hpicode);
 
 }
-

@@ -1991,4 +1991,3 @@ struct snmp_bc_inventory snmp_bc_fan_inventories_rsa[] = {
 
         {} /* Terminate array with a null element */
 };
-

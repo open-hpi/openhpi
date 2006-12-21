@@ -89,4 +89,3 @@ int snmp_getn_bulk( void *sessp,
 	return 0;
 
 }
-

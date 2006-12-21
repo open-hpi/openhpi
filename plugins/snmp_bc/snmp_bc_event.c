@@ -1385,7 +1385,7 @@ static SaErrorT snmp_bc_logsrc2rid(struct oh_handler_state *handle,
 
 	/* Find the location value from last part of log's source string */
 	if (isexpansioncard == SAHPI_TRUE || isblade == SAHPI_TRUE || isswitch == SAHPI_TRUE) {
-		if (src_parts[1]) src_loc = strtoul(src_parts[1], &endptr, 10);
+		if(src_parts[1]) src_loc = strtoul(src_parts[1], &endptr, 10);
 		if (isexpansioncard == SAHPI_TRUE) {
 			rpt_index = BC_RPT_ENTRY_BLADE_EXPANSION_CARD;
 			array_ptr = &snmp_bc_bem_sensors[0];	
@@ -1556,8 +1556,7 @@ SaErrorT snmp_bc_add_to_eventq(struct oh_handler_state *handle, SaHpiEventT *thi
                      	     thisRdr != NULL;
                              thisRdr = oh_get_rdr_next(handle->rptcache, thisEvent->Source, thisRdr->RecordId)) 
 			{
-				e->rdrs = g_slist_append(e->rdrs, g_memdup(thisRdr, sizeof(SaHpiRdrT)));
-
+                                e->rdrs = g_slist_append(e->rdrs, g_memdup(thisRdr, sizeof(SaHpiRdrT)));
                 	}
 		} else if (snmp_bc_isrediscover(thisEvent) == SNMP_BC_RESOURCE_REMOVED) {
 			/* Call rediscovery to remove rpt and rdrs from rptcache */

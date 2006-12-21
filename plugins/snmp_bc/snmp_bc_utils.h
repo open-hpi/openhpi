@@ -37,6 +37,6 @@ void snmp_bc_free_oh_event(struct oh_event *e);
 SaErrorT snmp_bc_set_resource_add_oh_event(struct oh_event *e, 
 					struct ResourceInfo *res_info_ptr);
 
-SaErrorT snmp_bc_copy_oh_event(struct oh_event *new_event, struct oh_event *old_event);						  			  
+SaErrorT snmp_bc_copy_oh_event(struct oh_event *new_event, struct oh_event *old_event);							  			  
 
 #endif

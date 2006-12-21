@@ -1,6 +1,6 @@
 /* -*- linux-c -*-
  * 
- * (C) Copyright IBM Corp. 2004, 2005, 2006
+ * (C) Copyright IBM Corp. 2004, 2005
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -118,4 +118,3 @@ int main(int argc, char **argv)
 }
 
 #include <tsetup.c>
-

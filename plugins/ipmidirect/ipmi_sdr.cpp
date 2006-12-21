@@ -20,6 +20,7 @@
  * Authors:
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
  *     Pierre Sangouard  <psangouard@eso-tech.com>
+ *     Andy Cress        <arcress@user.sourceforge.net> 
  */
 
 #include <stdlib.h>
@@ -1010,8 +1011,8 @@ cIpmiSdrs::Fetch()
 
   if ( m_device_sdr )
      {
-       if ( !m_mc->ProvidesDeviceSdrs() )
-            return SA_ERR_HPI_NOT_PRESENT;
+       m_device_sdr = m_mc->ProvidesDeviceSdrs();  /* added ARCress 09/21/06 */
+       // if ( !m_mc->ProvidesDeviceSdrs() ) return SA_ERR_HPI_NOT_PRESENT;
      }
   else if ( !m_mc->SdrRepositorySupport() )
        return SA_ERR_HPI_NOT_PRESENT;

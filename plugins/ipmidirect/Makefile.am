@@ -59,6 +59,8 @@ libipmidirect_la_SOURCES= \
 		ipmi_con_smi.cpp \
 		ipmi_control.h \
 		ipmi_control.cpp \
+		ipmi_control_atca_led.h \
+		ipmi_control_atca_led.cpp \
 		ipmi_control_fan.h \
 		ipmi_control_fan.cpp \
 		ipmi_discover.h \
@@ -83,6 +85,8 @@ libipmidirect_la_SOURCES= \
 		ipmi_mc_vendor.cpp \
 		ipmi_mc_vendor_force.h \
 		ipmi_mc_vendor_force.cpp \
+		ipmi_mc_vendor_intel.h \
+		ipmi_mc_vendor_intel.cpp \
 		ipmi_mc_vendor_fix_sdr.h \
 		ipmi_mc_vendor_fix_sdr.cpp \
 		ipmi_msg.h \
@@ -109,6 +113,8 @@ libipmidirect_la_SOURCES= \
 		ipmi_text_buffer.cpp \
 		ipmi_utils.h \
 		ipmi_utils.cpp \
+		ipmi_watchdog.h \
+		ipmi_watchdog.cpp \
 		thread.h \
 		thread.cpp
 
