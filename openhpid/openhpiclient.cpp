@@ -234,7 +234,8 @@ static pcstrmsock CreateConnx(void)
         g_static_rec_mutex_unlock(&sessions_sem);
         
 	if (pinst->Open(host, port)) {
-		cdebug_err("CreateConnx", "Could not open client socket");
+		cdebug_err("CreateConnx", "Could not open client socket"
+			   "\nPossibly, the OpenHPI daemon has not been started.");
                 delete pinst;
 		return NULL;
 	}
@@ -4093,172 +4094,6 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ResourcePowerStateSet)
 	return err;
 }
 
-
-/*----------------------------------------------------------------------------*/
-/* oHpiPluginLoad                                                             */
-/*----------------------------------------------------------------------------*/
-
-SaErrorT oHpiPluginLoad(char *name)
-{
-        oHpiTextBufferT buf;
-        void *request;
-	char reply[dMaxMessageLength];
-        SaErrorT err;
-	char cmd[] = "oHpiPluginLoad";
-        pcstrmsock pinst = CreateConnx();
-
-        buf.DataLength = strlen(name);
-        strcpy((char *)buf.Data, name);
-
-        cHpiMarshal *hm = HpiMarshalFind(eFoHpiPluginLoad);
-        pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiPluginLoad, hm->m_request_len);
-        request = malloc(hm->m_request_len);
-
-        pinst->header.m_len = HpiMarshalRequest1(hm, request, &buf);
-
-        SendRecv(0, cmd);
-
-        int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
-
-        DeleteConnx(pinst);
-        if (request)
-                free(request);
-        if (pinst->header.m_type == eMhError)
-                return SA_ERR_HPI_INVALID_PARAMS;
-        if (mr < 0)
-                return SA_ERR_HPI_INVALID_PARAMS;
-
-	return err;
-}
-
-
-/*----------------------------------------------------------------------------*/
-/* oHpiPluginUnload                                                           */
-/*----------------------------------------------------------------------------*/
-
-SaErrorT oHpiPluginUnload(char *name)
-{
-        oHpiTextBufferT buf;
-        void *request;
-	char reply[dMaxMessageLength];
-        SaErrorT err;
-	char cmd[] = "oHpiPluginUnload";
-        pcstrmsock pinst = CreateConnx();
-
-        // the real data
-        buf.DataLength = strlen(name);
-        strcpy((char *)buf.Data, name);
-
-        cHpiMarshal *hm = HpiMarshalFind(eFoHpiPluginUnload);
-        pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiPluginUnload, hm->m_request_len);
-        request = malloc(hm->m_request_len);
-
-        pinst->header.m_len = HpiMarshalRequest1(hm, request, &buf);
-
-        SendRecv(0, cmd);
-
-        int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
-
-        DeleteConnx(pinst);
-        if (request)
-                free(request);
-        if (pinst->header.m_type == eMhError)
-                return SA_ERR_HPI_INVALID_PARAMS;
-        if (mr < 0)
-                return SA_ERR_HPI_INVALID_PARAMS;
-
-	return err;
-}
-
-
-/*----------------------------------------------------------------------------*/
-/* oHpiPluginInfo                                                             */
-/*----------------------------------------------------------------------------*/
-
-SaErrorT oHpiPluginInfo(char *name, oHpiPluginInfoT *info)
-{
-        oHpiTextBufferT buf;
-        void *request;
-	char reply[dMaxMessageLength];
-        SaErrorT err;
-	char cmd[] = "oHpiPluginInfo";
-        pcstrmsock pinst = CreateConnx();
-
-        buf.DataLength = strlen(name);
-        strcpy((char *)buf.Data, name);
-
-        cHpiMarshal *hm = HpiMarshalFind(eFoHpiPluginInfo);
-        pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiPluginInfo, hm->m_request_len);
-        request = malloc(hm->m_request_len);
-
-        pinst->header.m_len = HpiMarshalRequest1(hm, request, &buf);
-
-        SendRecv(0, cmd);
-
-        int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, info);
-
-        DeleteConnx(pinst);
-        if (request)
-                free(request);
-        if (pinst->header.m_type == eMhError)
-                return SA_ERR_HPI_INVALID_PARAMS;
-        if (mr < 0)
-                return SA_ERR_HPI_INVALID_PARAMS;
-
-	return err;
-}
-
-
-/*----------------------------------------------------------------------------*/
-/* oHpiPluginGetNext                                                          */
-/*----------------------------------------------------------------------------*/
-
-SaErrorT oHpiPluginGetNext(char *name, char *next_name, int size)
-{
-        oHpiTextBufferT buf, retbuf;
-        void *request;
-	char reply[dMaxMessageLength];
-        SaErrorT err;
-	char cmd[] = "oHpiPluginUnload";
-        pcstrmsock pinst = CreateConnx();
-
-        if (strlen(name) + 1 > OH_MAX_TEXT_BUFFER_LENGTH) {
-                return SA_ERR_HPI_INVALID_PARAMS;
-        }
-
-        buf.DataLength = strlen(name);
-        strcpy((char *)buf.Data, name);
-
-        cHpiMarshal *hm = HpiMarshalFind(eFoHpiPluginGetNext);
-        pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiPluginGetNext, hm->m_request_len);
-        request = malloc(hm->m_request_len);
-
-        pinst->header.m_len = HpiMarshalRequest1(hm, request, &buf);
-
-        SendRecv(0, cmd);
-
-        int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, &retbuf);
-
-        DeleteConnx(pinst);
-        if (request)
-                free(request);
-        if (pinst->header.m_type == eMhError)
-                return SA_ERR_HPI_INVALID_PARAMS;
-        if (mr < 0)
-                return SA_ERR_HPI_INVALID_PARAMS;
-
-        if (size - 1 > retbuf.DataLength) {
-                strncpy(next_name, (char *)retbuf.Data, size - 1);
-                next_name[size - 1] = '\0';
-        } else {
-                strncpy(next_name, (char *)retbuf.Data, retbuf.DataLength);
-                next_name[retbuf.DataLength] = '\0';
-        }
-
-	return err;
-}
-
-
 /*----------------------------------------------------------------------------*/
 /* oHpiHandlerCreate                                                          */
 /*----------------------------------------------------------------------------*/
@@ -4295,8 +4130,7 @@ SaErrorT oHpiHandlerCreate(GHashTable *config,
         DeleteConnx(pinst);
         if (request)
                 free(request);
-        if (pinst->header.m_type == eMhError)
-                return SA_ERR_HPI_INVALID_PARAMS;
+
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -4329,8 +4163,7 @@ SaErrorT oHpiHandlerDestroy(oHpiHandlerIdT id)
         DeleteConnx(pinst);
         if (request)
                 free(request);
-        if (pinst->header.m_type == eMhError)
-                return SA_ERR_HPI_INVALID_PARAMS;
+
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -4363,8 +4196,7 @@ SaErrorT oHpiHandlerInfo(oHpiHandlerIdT id, oHpiHandlerInfoT *info)
         DeleteConnx(pinst);
         if (request)
                 free(request);
-        if (pinst->header.m_type == eMhError)
-                return SA_ERR_HPI_INVALID_PARAMS;
+
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -4397,12 +4229,92 @@ SaErrorT oHpiHandlerGetNext(oHpiHandlerIdT id, oHpiHandlerIdT *next_id)
         DeleteConnx(pinst);
         if (request)
                 free(request);
-        if (pinst->header.m_type == eMhError)
-                return SA_ERR_HPI_INVALID_PARAMS;
+
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
 	return err;
+}
+
+/*----------------------------------------------------------------------------*/
+/* oHpiHandlerFind                                                            */
+/*----------------------------------------------------------------------------*/
+SaErrorT oHpiHandlerFind(SaHpiSessionIdT sid,
+			 SaHpiResourceIdT rid,
+			 oHpiHandlerIdT *id)
+{
+        void *request;
+        char reply[dMaxMessageLength];
+        SaErrorT err = SA_OK;
+        char cmd[] = "oHpiHandlerFind";  
+        pcstrmsock pinst = CreateConnx();
+
+        if (!id || !sid || !rid) {
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+	*id = 0; //Initialize output var
+	
+        cHpiMarshal *hm = HpiMarshalFind(eFoHpiHandlerFind);
+        pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiHandlerFind, hm->m_request_len);
+        request = malloc(hm->m_request_len);
+        pinst->header.m_len = HpiMarshalRequest2(hm, request, &sid, &rid);
+
+        SendRecv(0, cmd);
+
+        int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit,
+                                    hm, 
+                                    reply + sizeof(cMessageHeader),
+                                    &err, 
+                                    id);
+
+        DeleteConnx(pinst);
+
+        if (request)
+                free(request);
+
+        if (mr < 0)
+                return SA_ERR_HPI_INVALID_PARAMS;
+
+        return err;
+}
+
+/*----------------------------------------------------------------------------*/
+/* oHpiHandlerRetry                                                           */
+/*----------------------------------------------------------------------------*/
+SaErrorT oHpiHandlerRetry(oHpiHandlerIdT id)
+{
+        void *request;
+        char reply[dMaxMessageLength];
+        SaErrorT err = SA_OK;
+        char cmd[] = "oHpiHandlerRetry";  
+        pcstrmsock pinst = CreateConnx();
+
+        if (!id) {
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        cHpiMarshal *hm = HpiMarshalFind(eFoHpiHandlerRetry);
+        pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiHandlerRetry, hm->m_request_len);
+        request = malloc(hm->m_request_len);
+
+        pinst->header.m_len = HpiMarshalRequest1(hm, request, &id);
+
+        SendRecv(0, cmd);
+
+        int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit,
+                                    hm, 
+                                    reply + sizeof(cMessageHeader),
+                                    &err);
+
+        DeleteConnx(pinst);
+
+        if (request)
+                free(request);
+
+        if (mr < 0)
+                return SA_ERR_HPI_INVALID_PARAMS;
+
+        return err;
 }
 
 
@@ -4431,8 +4343,7 @@ SaErrorT oHpiGlobalParamGet(oHpiGlobalParamT *param)
         DeleteConnx(pinst);
         if (request)
                 free(request);
-        if (pinst->header.m_type == eMhError)
-                return SA_ERR_HPI_INVALID_PARAMS;
+
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -4465,8 +4376,7 @@ SaErrorT oHpiGlobalParamSet(oHpiGlobalParamT *param)
         DeleteConnx(pinst);
         if (request)
                 free(request);
-        if (pinst->header.m_type == eMhError)
-                return SA_ERR_HPI_INVALID_PARAMS;
+
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -4522,7 +4432,6 @@ SaErrorT oHpiInjectEvent(oHpiHandlerIdT id,
         return err;
 }
 
-
 /*----------------------------------------------------------------------------*/
 /* oHpiHandlerCreateInit                                                      */
 /*----------------------------------------------------------------------------*/
@@ -4548,8 +4457,7 @@ static SaErrorT oHpiHandlerCreateInit(void)
         DeleteConnx(pinst);
         if (request)
                 free(request);
-        if (pinst->header.m_type == eMhError)
-                return SA_ERR_HPI_INVALID_PARAMS;
+
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 

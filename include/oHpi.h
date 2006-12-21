@@ -24,13 +24,10 @@ typedef SaHpiUint32T oHpiHandlerIdT;
 #define MAX_PLUGIN_NAME_LENGTH 32
 
 typedef struct {
-        int refcount; /* refcount - 1 = # of handlers using it. */
-        /* More to come later... */
-} oHpiPluginInfoT;
-
-typedef struct {
+        oHpiHandlerIdT id;
         char plugin_name[MAX_PLUGIN_NAME_LENGTH];
-        /* More to come later... */
+        SaHpiEntityPathT entity_root;
+        int load_failed;
 } oHpiHandlerInfoT;
 
 typedef enum {
@@ -76,26 +73,19 @@ typedef struct {
 #define OHVERSION_CLIENT 0x0001
 #define OHVERSION_STANDARD 0x0000
 
-#define MAX_RDR_ARRAY_LENGTH 32
-typedef struct {
-        SaHpiRdrT Entry[MAX_RDR_ARRAY_LENGTH];
-} oHpiRdrArrayT;
-
 /* Version function */
 SaHpiUint64T oHpiVersionGet(void);
 
-/* Exported OpenHPI plugin prototypes */
-SaErrorT oHpiPluginLoad(char *name);
-SaErrorT oHpiPluginUnload(char *name);
-SaErrorT oHpiPluginInfo(char *name, oHpiPluginInfoT *info);
-SaErrorT oHpiPluginGetNext(char *name, char *next_name, int size);
-
-/* Exported OpenHPI handler (plugin instance) prototypes */
+/* Exported OpenHPI handler (plugin instance) calls */
 SaErrorT oHpiHandlerCreate(GHashTable *config,
                            oHpiHandlerIdT *id);
 SaErrorT oHpiHandlerDestroy(oHpiHandlerIdT id);
 SaErrorT oHpiHandlerInfo(oHpiHandlerIdT id, oHpiHandlerInfoT *info);
 SaErrorT oHpiHandlerGetNext(oHpiHandlerIdT id, oHpiHandlerIdT *next_id);
+SaErrorT oHpiHandlerFind(SaHpiSessionIdT sid,
+			 SaHpiResourceIdT rid,
+			 oHpiHandlerIdT *id);
+SaErrorT oHpiHandlerRetry(oHpiHandlerIdT id);
 
 /* Global parameters */
 SaErrorT oHpiGlobalParamGet(oHpiGlobalParamT *param);

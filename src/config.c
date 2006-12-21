@@ -86,11 +86,6 @@ static struct {
 };
 
 /*
- * List of plugin names specified in configuration file.
- */
-static GSList *plugin_names = NULL;
-
-/*
  *  List of handler configs (parameter tables).  This list is
  *  populated during config file parse, and used to build the handler_table
  */
@@ -177,55 +172,6 @@ static GScannerConfig oh_scanner_config =
                 TRUE                    /* symbol_2_token */,
                 FALSE                   /* scope_0_fallback */,
         };
-
-static int seen_plugin(char *plugin_name)
-{
-        int seen = 0;
-        GSList *node = NULL;
-
-        for (node = plugin_names; node; node = node->next) {
-                char *p_name = (char *)node->data;
-                if (strcmp(plugin_name, p_name) == 0) {
-                        seen = 1;
-                        break;
-                }
-        }
-
-        return seen;
-}
-
-/**
- * process_plugin_token:
- * @plugin_name:
- *
- *
- *
- * Return value:
- **/
-static int process_plugin_token (char *plugin_name)
-{
-        int seen = 0;
-
-        if (!plugin_name) return -1;
-
-        data_access_lock();
-
-        seen = seen_plugin(plugin_name);
-
-        if (!seen) {
-                plugin_names = g_slist_append(
-                        plugin_names,
-                        (gpointer) g_strdup(plugin_name)
-                        );
-        } else {
-                trace("Plugin name %s was already found. Ignoring.",
-                      plugin_name);
-        }
-
-        data_access_unlock();
-
-        return 0;
-}
 
 static void process_global_param(const char *name, char *value)
 {
@@ -354,7 +300,7 @@ static int process_handler_token (GScanner* oh_scanner)
                 g_hash_table_insert(handler_stanza,
                                     (gpointer) tablekey,
                                     (gpointer) tablevalue);
-                process_plugin_token(tablevalue);
+                oh_load_plugin(tablevalue);
         }
 
         /* Check for Left Brace token type. If we have it, then continue parsing. */
@@ -714,7 +660,6 @@ int oh_load_config (char *filename, struct oh_parsed_config *config)
                 return -1;
         }
 
-        plugin_names = NULL;
         handler_configs = NULL;
         oh_scanner = g_scanner_new(&oh_scanner_config);
         if (!oh_scanner) {
@@ -782,11 +727,9 @@ int oh_load_config (char *filename, struct oh_parsed_config *config)
 
         trace("Done processing conf file.\nNumber of parse errors:%d", done);
 
-        config->plugin_names = plugin_names;
         config->handler_configs = handler_configs;
 	config->domain_configs = domain_configs;
 
-        plugin_names = NULL;
         handler_configs = NULL;
 	domain_configs = NULL;
 
@@ -808,30 +751,21 @@ SaErrorT oh_process_config(struct oh_parsed_config *config)
 
         if (!config) return SA_ERR_HPI_INVALID_PARAMS;
 
-        /* Initialize plugins */
-        for (node = config->plugin_names; node; node = node->next) {
-                char *plugin_name = (char *)node->data;
-                if (oh_load_plugin(plugin_name) == 0) {
-                        trace("Loaded plugin %s", plugin_name);
-                        config->plugins_loaded++;
-                } else {
-                        dbg("Couldn't load plugin %s", plugin_name);
-                        g_free(plugin_name);
-                }
-                config->plugins_defined++;
-        }
-
         /* Initialize handlers */
         for (node = config->handler_configs; node; node = node->next) {
                 GHashTable *handler_config = (GHashTable *)node->data;
-                if(oh_create_handler(handler_config) > 0) {
+		unsigned int hid = 0;
+		SaErrorT error = SA_OK;
+
+		error = oh_create_handler(handler_config, &hid);
+                if (error == SA_OK) {
                         trace("Loaded handler for plugin %s",
                               (char *)g_hash_table_lookup(handler_config, "plugin"));
                         config->handlers_loaded++;
                 } else {
                         dbg("Couldn't load handler for plugin %s",
                             (char *)g_hash_table_lookup(handler_config, "plugin"));
-                        g_hash_table_destroy(handler_config);
+                        if (hid == 0) g_hash_table_destroy(handler_config);
                 }
                 config->handlers_defined++;
         }
@@ -855,9 +789,6 @@ SaErrorT oh_process_config(struct oh_parsed_config *config)
 
 void oh_clean_config(struct oh_parsed_config *config)
 {
-        /* Free list of plugin names read from configuration file. */
-        g_slist_free(config->plugin_names);
-
         /* Free list of handler configuration blocks */
         g_slist_free(config->handler_configs);
 

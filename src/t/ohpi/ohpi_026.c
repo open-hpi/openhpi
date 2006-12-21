@@ -18,7 +18,7 @@
 #include <oHpi.h>
 
 /**
- * Create handler for non-loaded plugin.
+ * Create handler for non-existant plugin.
  * Pass on error, otherwise test failed.
  **/
  
@@ -34,7 +34,7 @@ int main(int argc, char **argv)
                 return -1;
                                
         /* Set configuration. */
-        g_hash_table_insert(config, "plugin", "libsimulator");
+        g_hash_table_insert(config, "plugin", "libnoplugin");
         g_hash_table_insert(config, "entity_root", "{SYSTEM_CHASSIS,1}");
         g_hash_table_insert(config, "name", "test");
         g_hash_table_insert(config, "addr", "0");
