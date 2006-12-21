@@ -1966,78 +1966,6 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht,
                 }
                 break;
                 
-                case eFoHpiPluginLoad: {
-                        oHpiTextBufferT buf;
-                
-                        PVERBOSE1("%p Processing oHpiPluginLoad.", thrdid);
-                
-                        if ( HpiDemarshalRequest1( request_mFlags & dMhEndianBit,
-                                                        hm, pReq, &buf ) < 0 )
-                                return eResultError;
-                
-                        buf.Data[buf.DataLength] = '\0'; // insurance
-                        ret = oHpiPluginLoad( (char *)buf.Data );
-                
-                        thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
-                        result = eResultClose;
-                }
-                break;
-                
-                case eFoHpiPluginUnload: {
-                        oHpiTextBufferT buf;
-                
-                        PVERBOSE1("%p Processing oHpiPluginUnload.", thrdid);
-                
-                        if ( HpiDemarshalRequest1( request_mFlags & dMhEndianBit,
-                                                        hm, pReq, &buf ) < 0 )
-                                return eResultError;
-                
-                        buf.Data[buf.DataLength] = '\0'; // insurance
-                        ret = oHpiPluginUnload( (char *)buf.Data );
-                
-                        thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
-                        result = eResultClose;
-                }
-                break;
-                
-                case eFoHpiPluginInfo: {
-                        oHpiTextBufferT buf;
-                        oHpiPluginInfoT info;
-                
-                        PVERBOSE1("%p Processing oHpiPluginInfo.", thrdid);
-                
-                        if ( HpiDemarshalRequest1( request_mFlags & dMhEndianBit,
-                                                        hm, pReq, &buf ) < 0 )
-                                return eResultError;
-                
-                        buf.Data[buf.DataLength] = '\0'; // insurance
-                        ret = oHpiPluginInfo( (char *)buf.Data, &info );
-                
-                        thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &info );
-                        result = eResultClose;
-                }
-                break;
-                
-                case eFoHpiPluginGetNext: {
-                        oHpiTextBufferT buf, retbuf;
-                
-                        PVERBOSE1("%p Processing oHpiPluginGetNext.", thrdid);
-                
-                        if ( HpiDemarshalRequest1( request_mFlags & dMhEndianBit,
-                                                        hm, pReq, &buf ) < 0 )
-                                return eResultError;
-                
-                        buf.Data[buf.DataLength] = '\0'; // insurance
-                        ret = oHpiPluginGetNext( (char *)buf.Data, (char *)retbuf.Data,
-                                                SAHPI_MAX_TEXT_BUFFER_LENGTH );
-                
-                        retbuf.DataLength = strlen((char *)retbuf.Data);
-                
-                        thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &retbuf );
-                        result = eResultClose;
-                }
-                break;
-                
                 case eFoHpiHandlerCreateInit: {
                 
                         PVERBOSE1("%p Processing oHpiHandlerCreateInit.", thrdid);
@@ -2152,6 +2080,40 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht,
                         ret = oHpiHandlerGetNext(id, &next_id);
                 
                         thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &next_id );
+                        result = eResultClose;
+                }
+                break;
+
+		case eFoHpiHandlerFind: {
+                        SaHpiSessionIdT session_id;
+			SaHpiResourceIdT rid;
+			oHpiHandlerIdT hid;
+                
+                        PVERBOSE1("%p Processing oHpiHandlerFind.", thrdid);
+                
+                        if ( HpiDemarshalRequest2( request_mFlags & dMhEndianBit,
+						   hm, pReq, &session_id, &rid ) < 0 )
+                                return eResultError;
+                
+                        ret = oHpiHandlerFind(session_id, rid, &hid);
+                
+                        thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &hid );
+                        result = eResultClose;
+                }
+                break;
+
+		case eFoHpiHandlerRetry: {
+			oHpiHandlerIdT hid;
+                
+                        PVERBOSE1("%p Processing oHpiHandlerRetry.", thrdid);
+                
+                        if ( HpiDemarshalRequest1( request_mFlags & dMhEndianBit,
+						   hm, pReq, &hid ) < 0 )
+                                return eResultError;
+                
+                        ret = oHpiHandlerRetry(hid);
+                
+                        thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
                         result = eResultClose;
                 }
                 break;

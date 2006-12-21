@@ -33,9 +33,6 @@ int main(int argc, char **argv)
         if (saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID, &sid, NULL))
                 return -1;
                 
-        if (oHpiPluginLoad("libsimulator"))
-                return -1;
-                
         /* Set configuration. */
         g_hash_table_insert(config, "entity_root", "{SYSTEM_CHASSIS,1}");
         g_hash_table_insert(config, "name", "test");

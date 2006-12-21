@@ -3651,7 +3651,7 @@ SaErrorT SAHPI_API saHpiAutoInsertTimeoutSet(
         for (i = 0; i < hids->len; i++) {
                 guint hid = g_array_index(hids, guint, i);
                 struct oh_handler *h = oh_get_handler(hid);
-                if (!h) {
+                if (!h || !h->hnd) {
                         dbg("No such handler %u", hid);
                         error = SA_ERR_HPI_INTERNAL_ERROR;
                         break;

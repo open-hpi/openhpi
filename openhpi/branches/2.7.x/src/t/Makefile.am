@@ -11,4 +11,4 @@
 MAINTAINERCLEANFILES    = Makefile.in
 EXTRA_DIST              = ohpi_tests.txt
 
-SUBDIRS                 = ohpi ohpic
+SUBDIRS                 = ohpi

@@ -30,9 +30,6 @@ int main(int argc, char **argv)
         
         if (saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID, &sid, NULL))
                 return -1;
-                
-        if (oHpiPluginLoad("libsimulator"))
-                return -1;
         
         if (!oHpiHandlerCreate(NULL, NULL))
                 return -1;
