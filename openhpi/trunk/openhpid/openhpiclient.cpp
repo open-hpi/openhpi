@@ -4253,14 +4253,11 @@ SaErrorT oHpiHandlerFind(SaHpiSessionIdT sid,
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 	*id = 0; //Initialize output var
-	printf("Before finding function\n");
+	
         cHpiMarshal *hm = HpiMarshalFind(eFoHpiHandlerFind);
-	printf("Before initializing header\n");
         pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiHandlerFind, hm->m_request_len);
         request = malloc(hm->m_request_len);
-	printf("Before marshaling\n");
         pinst->header.m_len = HpiMarshalRequest2(hm, request, &sid, &rid);
-	printf("After marshaling\n");
 
         SendRecv(0, cmd);
 
