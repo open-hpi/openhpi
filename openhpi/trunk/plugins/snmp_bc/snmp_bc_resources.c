@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2003, 2006
+ * (C) Copyright IBM Corp. 2003, 2007
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -460,11 +460,21 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
 			.prev_state = SAHPI_HS_STATE_NOT_PRESENT,
                         .event_array = {
                                 {
+                                        .event = "06A02001", /* EN_MEDIA_TRAY_INSTALLED */
+					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_HS_STATE_INACTIVE,
+ 					.event_auto_state = 0,
+                                        .recovery_state = 0,
+					.recovery_auto_state = 0,
+                                },
+                                {
                                         .event = "06A1E001", /* EN_MEDIA_TRAY_REMOVED */
 					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
                                         .event_state = SAHPI_HS_STATE_NOT_PRESENT,
 					.event_auto_state = 0,
+                                        /* still needed for old Recovery Media Tray removed messages */
                                         .recovery_state = SAHPI_HS_STATE_ACTIVE,
 					.recovery_auto_state = 0,
                                 },
@@ -515,12 +525,21 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
 			.prev_state = SAHPI_HS_STATE_NOT_PRESENT,
                         .event_array = {
                                 {
+                                        .event = "06A02002", /* EN_MEDIA_TRAY_2_INSTALLED */
+					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_HS_STATE_INACTIVE,
+ 					.event_auto_state = 0,
+                                        .recovery_state = 0,
+					.recovery_auto_state = 0,
+                                },
+                                {
                                         .event = "06A1E002", /* EN_MEDIA_TRAY_2_REMOVED */
 					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
                                         .event_state = SAHPI_HS_STATE_NOT_PRESENT,
 					.event_auto_state = 0,
-                                        .recovery_state = SAHPI_HS_STATE_ACTIVE,
+                                        .recovery_state = 0,
 					.recovery_auto_state = 0,
                                 },
                                 {},
@@ -574,7 +593,7 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
 					.event_res_failure_unexpected = SAHPI_FALSE,
                                         .event_state = SAHPI_HS_STATE_ACTIVE,
  					.event_auto_state = 0,
-					.recovery_state = SAHPI_HS_STATE_NOT_PRESENT,
+					.recovery_state = 0,
  					.recovery_auto_state = 0,
 				},
 				{
@@ -583,6 +602,7 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
 					.event_res_failure_unexpected = SAHPI_FALSE,
                                         .event_state = SAHPI_HS_STATE_NOT_PRESENT,
  					.event_auto_state = 0,
+					/* still needed for old Recovery Blower %d Fault messages */
 					.recovery_state = SAHPI_HS_STATE_ACTIVE,
  					.recovery_auto_state = 0,
 				},
@@ -10383,7 +10403,7 @@ struct snmp_bc_sensor snmp_bc_mediatray2_sensors[] = {
         },
 	/* Media Tray Management Bus Operational Status Sensor - event only */
         {
-		.index = 2, /* Sensor 1 is the Operational Status Sensor above */
+		.index = 2,
                 .sensor = {
                         .Num = 2,
                         .Type = SAHPI_OPERATIONAL,
