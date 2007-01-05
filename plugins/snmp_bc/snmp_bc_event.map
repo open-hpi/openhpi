@@ -1,5 +1,5 @@
 ########################################################################
-# (C) Copyright IBM Corp. 2004, 2006
+# (C) Copyright IBM Corp. 2004, 2007
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -1056,12 +1056,12 @@ EN_GENERIC_LOWER_WARN_VOLT|0xFFFFFF3D|SAHPI_MAJOR|OVR_SEV|"expansion board 1 (BI
 EN_MEDIA_TRAY_REMOVED|0x06A1E001|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"The media tray was removed"
 EN_MEDIA_TRAY_REMOVED|0x06A1E001|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Media Tray removed"
 
-# FIXME:: MM is supposed to change the string to 1 and 2
-EN_MEDIA_TRAY_REMOVED|0x06A1E001|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Media Tray A removed"
-EN_MEDIA_TRAY_2_REMOVED|0x06A1E002|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Media Tray B removed"
+# For AMM, there are separate install/removed events
+EN_MEDIA_TRAY_INSTALLED|0x06A02001|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Media Tray 1 installed"
+EN_MEDIA_TRAY_2_INSTALLED|0x06A02002|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Media Tray 2 installed"
 
-# FIXME:: Add Media Tray installed messages when MM adds to code
-# Also add to snmp_bc_resources.c
+EN_MEDIA_TRAY_REMOVED|0x06A1E001|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Media Tray 1 removed"
+EN_MEDIA_TRAY_2_REMOVED|0x06A1E002|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Media Tray 2 removed"
 
 ####################
 # Media Tray Sensors
@@ -1069,16 +1069,15 @@ EN_MEDIA_TRAY_2_REMOVED|0x06A1E002|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Media Tr
 
 # Media Tray Operational Status Sensor - event only (except for BCHT, which supports a readable Fault LED)
 # EN_FAULT_FP_R|0x09020000|SAHPI_MINOR|OVR_SEV,OVR_RID|"System front panel controller not responding"
-# FIXME:: MM is supposed to change these strings
-EN_FRONT_PANEL_TEMP_FAIL|0x06A2E001|SAHPI_MAJOR|OVR_SEV,OVR_RID|"Front panel A temperature is unavailable. Cooling capacity set to maximum"
-EN_FRONT_PANEL_B_TEMP_FAIL|0x06A2E002|SAHPI_MAJOR|OVR_SEV,OVR_RID|"Front panel B temperature is unavailable. Cooling capacity set to maximum"
+EN_FRONT_PANEL_TEMP_FAIL|0x06A2E001|SAHPI_MAJOR|OVR_SEV,OVR_RID|"Media Tray 1 temperature is unavailable. Cooling capacity set to maximum"
+EN_FRONT_PANEL_B_TEMP_FAIL|0x06A2E002|SAHPI_MAJOR|OVR_SEV,OVR_RID|"Media Tray 2 temperature is unavailable. Cooling capacity set to maximum"
 EN_MT_1_HW_FAILURE|0x6F60C001|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Media Tray module 1 hardware failure"
 EN_MT_2_HW_FAILURE|0x6F60C002|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Media Tray module 2 hardware failure"
 
 # Media Tray Management Bus Operational Status Sensor - event only
-# FIXME:: MM is supposed to change these strings
 EN_STCONN_FAIL_MEDIATRAY|0x0002205B|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Connectivity status mediatray communication failed"
-EN_STCONN_FAIL_MEDIATRAYB|0x0002205C|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Connectivity status mediatray B communication failed"
+EN_STCONN_FAIL_MEDIATRAY|0x0002205B|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Connectivity status Media Tray 1 communication failed"
+EN_STCONN_FAIL_MEDIATRAYB|0x0002205C|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Connectivity status Media Tray 2 communication failed"
 
 #####################
 # I/O Module Resource
