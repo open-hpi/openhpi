@@ -3592,6 +3592,7 @@ SaErrorT snmp_bc_rediscover(struct oh_handler_state *handle,
 	/* Parse EntityPath to find out the type of resource being hotswapped */
 	/* ------------------------------------------------------------------ */
 	memset(resource_mask, '\0', SNMP_BC_MAX_RESOURCES_MASK);
+	isSMI   = SAHPI_FALSE;
 	foundit = SAHPI_FALSE;
 	hotswap_entitytype = SAHPI_ENT_UNKNOWN;
 	hotswap_entitylocation = SNMP_BC_NOT_VALID;   /* Invalid location                   */
