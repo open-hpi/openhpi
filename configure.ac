@@ -505,6 +505,7 @@ CC_WARNINGS="\
         -Wcast-qual \
         -Wcast-align \
         -Wno-strict-aliasing \
+	-Wno-unused-value \
         -Werror "
 
 CXX_WARNINGS="\
@@ -519,6 +520,7 @@ CXX_WARNINGS="\
         -Wwrite-strings \
         -Wredundant-decls \
         -Wno-strict-aliasing \
+	-Wno-unused-value \
         -Werror "
 
 if test -n "`gcc --version | grep ' 3.2'`" ; then
