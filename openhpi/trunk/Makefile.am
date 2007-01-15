@@ -32,18 +32,16 @@
 
 #AUTOMAKE_OPTIONS        = 1.8
 
-RPMREL                  = @RPMREL@
-RPM                     = @RPM@
-RPMFLAGS                = -ta
-TARFILE                 = $(distdir).tar.gz
+TARFILE                 = $(PACKAGE_NAME)-$(VERSION).tar.gz
 
 DESTDIR                 =
-RPMDIR                  =$(HOME)/rpms
-RPMSRC  =$(DESTDIR)$(RPMDIR)/SRPMS/$(PACKAGE)-$(VERSION)-$(RPMREL).src.rpm
-RPM386  =$(DESTDIR)$(RPMDIR)/RPMS/i386/$(PACKAGE)-$(VERSION)-$(RPMREL).i386.rpm
+
+RPM                     = @RPM@
+RPMFLAGS                = -ba
 
 EXTRA_DIST              = openhpi.spec \
 	openhpi.conf.example \
+	README.daemon \
         $(shell find $(srcdir)/include -name '*.h')
 
 AUTOMAKE_OPTIONS        = foreign
@@ -81,7 +79,6 @@ ALLSOURCES = \
         -name '*.[chS]' -print | grep -v '/t/')
 
 includedir=$(base_includedir)/openhpi
-
 # These are the only headers that users should have any access to
 include_HEADERS = $(top_srcdir)/include/SaHpi.h \
                   $(top_srcdir)/include/SaHpiAtca.h \
@@ -100,6 +97,8 @@ include_HEADERS = $(top_srcdir)/include/SaHpi.h \
                   $(top_srcdir)/utils/epath_utils.h \
                   $(top_srcdir)/utils/el_utils.h
 
+docsdir=$(datadir)/doc/$(PACKAGE_NAME)-$(VERSION)
+docs_DATA = README.daemon
 
 $(top_srcdir)/utils/sahpi_enum_utils.h:
 	make -C $(top_builddir)/utils sahpi_enum_utils.h
@@ -127,7 +126,12 @@ uninstall-local:
 
 
 rpm: dist
-	$(RPM) $(RPMFLAGS) $(TARFILE) </dev/null;
+	rm -rf $(top_srcdir)/rpm
+	mkdir -p $(top_srcdir)/rpm/RPMS
+	mkdir $(top_srcdir)/rpm/SRPMS
+	mkdir $(top_srcdir)/rpm/BUILD
+	mkdir $(top_srcdir)/rpm/INSTALL
+	$(RPM) $(RPMFLAGS) $(PACKAGE_NAME).spec </dev/null;
 
 documentation:
 	$(MAKE) -C docs
@@ -136,6 +140,7 @@ clean-local: am_config_clean-local
 
 am_config_clean-local:
 	rm -fr $(PACKAGE)-*.tar.gz
+	rm -rf rpm
 
 report:
 	$(MAKE) -C scripts/test report

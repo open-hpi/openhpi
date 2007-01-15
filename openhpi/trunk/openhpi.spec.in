@@ -1,59 +1,136 @@
-%define prefix /usr
+%define _topdir @abs_top_srcdir@
+%define _tmpdir /tmp
+%define _rpmtopdir %{_topdir}/rpm
+%define _builddir %{_rpmtopdir}/BUILD
+%define _rpmdir %{_rpmtopdir}/RPMS
+%define _sourcedir %{_topdir}
+%define _specdir %{_topdir}
+%define _srcrpmdir %{_rpmtopdir}/SRPMS
 
 Name: @HPI_PKG@
-Summary: @HPI_PKG@ - implementation of SAForum Hardware Platform Interface 
 Version: @VERSION@
-Release: 1
+Release: 2
+Summary: Open implementation of the SAF Hardware Platform Interface
 License: BSD
-URL: http://openhpi.sourceforge.net
+URL: http://www.openhpi.org
 Group: Utilities
 Vendor: OpenHPI Project
-Packager: TariqX
+Packager: renier@openhpi.org
 Source: @HPI_PKG@-@VERSION@.tar.gz
-Buildroot: /var/tmp/@HPI_PKG@-root
-BuildRequires: pkgconfig glib2-devel
-BuildRequires: docbook-utils docbook-utils-pdf docbook-dtd41-sgml
-Summary: Library that provides SAForum's HPI
+Buildroot: %{_rpmtopdir}/INSTALL
+BuildRequires: pkgconfig glib2-devel automake autoconf libtool
 Group: Utilities
 AutoReq: yes
-Requires: libc.so.6 libglib-2.0.so.0 libpthread.so.0
+Requires: libc.so.6 libglib-2.0.so.0 libpthread.so.0 e2fsprogs-devel
 
 %package devel
-Summary: Development files for HPI
+Summary: OpenHPI and SAF header files 
 Group: Utilities
 AutoReq: yes
 Requires: openhpi = @VERSION@
 Requires: pkgconfig
 
 %package clients
-Summary: HPI command line applications
+Summary: OpenHPI command-line utilities
 Group: Utilities
 AutoReq: yes
 Requires: openhpi = @VERSION@
 
-%package daemon
-Summary: HPI remote daemon
+%package ipmi
+Summary: OpenHPI plugin for OpenIPMI
 Group: Utilities
-Autoreq: yes
+AutoReq: yes
+Requires: openhpi = @VERSION@
+Requires: libOpenIPMI.so
+BuildRequires: OpenIPMI-devel
+
+%package ipmidirect
+Summary: OpenHPI plugin for IPMI-enabled systems
+Group: Utilities
+AutoReq: yes
 Requires: openhpi = @VERSION@
 
+%ifarch ppc
+%package rtas
+Summary: OpenHPI plugin for IBM PPC systems
+Group: Utilities
+AutoReq: yes
+Requires: openhpi= @VERSION@ librtas.so
+%endif
+
+%package simulator
+Summary: OpenHPI plugin for testing the core library
+Group: Utilities
+AutoReq: yes
+Requires: openhpi = @VERSION@
+
+%package bladecenter
+Summary: OpenHPI plugin for the IBM Blade Center
+Group: Utilities
+AutoReq: yes
+Requires: openhpi = @VERSION@ net-snmp > 5.0
+BuildRequires: net-snmp-devel
+
+%package sysfs
+Summary: OpenHPI plugin for sysfs
+Group: Utilities
+AutoReq: yes
+Requires: openhpi = @VERSION@
+Requires: libsysfs.so.1
+BuildRequires: libsysfs1-devel
+
+%package watchdog
+Summary: OpenHPI plugin for Linux software watchdog support
+Group: Utilities
+AutoReq: yes
+Requires: openhpi = @VERSION@
+
+
 %description 
-This package contains an implementation of Service Availability Forum's 
-HPI specification.  It includes support for multiple different types of
+An open implementation of the Service Availability Forum (SAF)
+Hardware Platform Interface (HPI). It includes support for multiple types of
 hardware including: IPMI, IBM Blade Center (via SNMP), Linux Watchdog devices,
 and Sysfs based systems.
 
 %description devel
-Contains additional files need for a developer to create applications
-and/or middleware that depends uses the Service Availability Forum's
-HPI specification
+Contains header and other include files needed by developers
+to build application that use the OpenHPI library.
 
 %description clients
-This package contains hpi command line utilities 
+These command-line applications serve as HPI utilities that you can use
+for looking at: sensor readings, vpd data, power machines on/off, etc.
+They lso serve as examples to developers of HPI API usage.
 
-%description daemon
-This package contains hpi daemon implementing a simple text remote protocol
-for exchanging HPI data between applications.  This is an EXPERIMENTAL package
+%description ipmi
+This OpenHPI plugin uses OpenIPMI to connect to IPMI-enabled hardware
+locally or over the network. Its focus is wide, created to support
+any generic hardware topology that uses IPMI.
+
+%description ipmidirect
+This OpenHPI plugin connects directly to IPMI-enabled hardware
+locally or over the network. Its focus is to support ATCA-type chassis.
+
+%ifarch ppc
+%description rtas
+OpenHPI plugin for reading sensor and vpd information
+from IBM PPC systems.
+%endif
+
+%description simulator
+OpenHPI plugin that reports fakes hardware used for
+testing the core library.
+
+%description bladecenter
+OpenHPI plugin supporting the IBM BladeCenter. It also supports
+RSA-enabled IBM systems, in addition to all types of BladeCenters.
+This plugin uses snmp to connect to and gather information from all systems.
+
+%description sysfs
+OpenHPI plugin that reads system information from sysfs.
+
+%description watchdog
+OpenHPI plugin that uses the Linux software watchdog support
+provided by the kernel.
 
 ###################################################
 %prep
@@ -67,10 +144,10 @@ for exchanging HPI data between applications.  This is an EXPERIMENTAL package
 %build
 ###################################################
 ./configure @ac_configure_args@ --sysconfdir=/etc \
-    --localstatedir=/var --prefix=%{prefix}
+    --with-varpath=/var/lib/@HPI_PKG@ --prefix=/usr
 make
-make -C docs/hld pdf-am
-make -C docs/hld openhpi-manual/book1.html
+#make -C docs/hld pdf-am
+#make -C docs/hld openhpi-manual/book1.html
 
 ###################################################
 %install
@@ -83,54 +160,78 @@ fi
 make DESTDIR=$RPM_BUILD_ROOT install
 mkdir -p $RPM_BUILD_ROOT/etc/@HPI_PKG@
 mkdir -p $RPM_BUILD_ROOT/var/lib/@HPI_PKG@
-install -m 644 examples/openhpi.conf.example $RPM_BUILD_ROOT/etc/@HPI_PKG@/@HPI_PKG@.conf
+install -m 644 openhpi.conf.example $RPM_BUILD_ROOT/etc/@HPI_PKG@/@HPI_PKG@.conf
 %post
 
 ###################################################
 %files
 ###################################################
 %defattr(-,root,root)
-%doc README COPYING 
-%doc docs/hld/*pdf
-%doc docs/hld/openhpi-manual
+%doc README README.daemon COPYING
+#%doc docs/hld/*pdf
+#%doc docs/hld/openhpi-manual
 %config /etc/@HPI_PKG@/*
 %dir /var/lib/@HPI_PKG@
-%{prefix}/lib/libopen*
-%{prefix}/lib/@HPI_PKG@/standard/libopen*
-%{prefix}/lib/@HPI_PKG@/client/libopen*
-%{prefix}/lib/@HPI_PKG@/lib*
-%{prefix}/bin/@HPI_PKG@-switcher
-%{prefix}/man/man1/@HPI_PKG@-switcher.1.gz
-%{prefix}/man/man7/@HPI_PKG@.7.gz
-# dummy*
-#%{prefix}/lib/@HPI_PKG@/libsysfs*#
-#%{prefix}/lib/@HPI_PKG@/libsnmp_bc*
-#%{prefix}/lib/@HPI_PKG@/libwatchdog*
-#%{prefix}/lib/@HPI_PKG@/libipmi*
+%{_prefix}/lib/libopenhpi*
+%{_prefix}/lib/liboh*connx*
+%{_datadir}/man/man7/@HPI_PKG@.7.bz2
+%{_prefix}/sbin/openhpid
+%{_sysconfdir}/init.d/openhpid
+%{_sysconfdir}/@HPI_PKG@/@HPI_PKG@.conf
 
 ###################################################
 %files devel
 ###################################################
 %defattr(-,root,root)
-%dir %{prefix}/include/@HPI_PKG@
-%{prefix}/include/@HPI_PKG@/*h
-%{prefix}/include/@HPI_PKG@/*hpp
-%{prefix}/lib/pkgconfig/openhpi.pc
-%{prefix}/lib/pkgconfig/openhpiutils.pc
+%dir %{_prefix}/include/@HPI_PKG@
+%{_prefix}/include/@HPI_PKG@/*h
+#%{_prefix}/include/@HPI_PKG@/*hpp
+%{_prefix}/lib/pkgconfig/openhpi.pc
+%{_prefix}/lib/pkgconfig/openhpiutils.pc
 
 
 ###################################################
 %files clients
 ###################################################
 %defattr(-,root,root)
-%{prefix}/bin/hpi*
+%{_prefix}/bin/hpi*
 
 ###################################################
-%files daemon
+%files ipmi
 ###################################################
-%defattr(-,root,root)
-%{prefix}/bin/openhpid
-%{prefix}/lib/liboh*
+%{_prefix}/lib/@HPI_PKG@/libipmi.*
+
+###################################################
+%files ipmidirect
+###################################################
+%{_prefix}/lib/@HPI_PKG@/libipmidirect.*
+
+###################################################
+%ifarch ppc
+%files rtas
+###################################################
+%{_prefix}/lib/@HPI_PKG@/librtas2hpi.*
+%endif
+
+###################################################
+%files simulator
+###################################################
+%{_prefix}/lib/@HPI_PKG@/libsimulator.*
+
+###################################################
+%files bladecenter
+###################################################
+%{_prefix}/lib/@HPI_PKG@/libsnmp_bc.*
+
+###################################################
+%files sysfs
+###################################################
+%{_prefix}/lib/@HPI_PKG@/libsysfs2hpi.*
+
+###################################################
+%files watchdog
+###################################################
+%{_prefix}/lib/@HPI_PKG@/libwatchdog.*
 
 ###################################################
 %clean

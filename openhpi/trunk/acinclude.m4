@@ -2,10 +2,11 @@
 #
 #  OpenHPI Macros
 #
-#  Copyright (C) IBM Corp 2003
+#  Copyright (C) IBM Corp 2003-2006
 #
 #  Author(s):
 #      Sean Dague <http://dague.net/sean>
+#      Renier Morales <renier@openhpi.org>
 #
 #  This file is licensed under the same terms as OpenHPI itself.
 #  See the COPYING file in the top level of OpenHPI for more info.
@@ -191,17 +192,20 @@ AC_DEFUN([OH_CHECK_RTAS],
     [
     AC_MSG_CHECKING(for RTAS libary)
     AC_TRY_COMPILE(
-    [
-	#include <stdio.h>
-	#include <librtas.h>
-    ],    
-    [
-        int main (void) { rtas_activate_firmware(); }
-    ],
-    [
-        have_rtas_lib=yes
-        AC_MSG_RESULT(yes)
-    ],
-    [AC_MSG_RESULT(no)])
-])
-
+        [
+	    #include <stdio.h>
+	    #include <librtas.h>
+        ],    
+        [
+            int main (void) { rtas_activate_firmware(); }
+        ],
+        [
+	    if test -f "/usr/bin/lsvpd"; then
+		    have_rtas_lib=yes
+        	    AC_MSG_RESULT(yes)
+	    else
+		    AC_MSG_RESULT(no)
+	    fi
+       ],
+       [AC_MSG_RESULT(no)]
+    )])
