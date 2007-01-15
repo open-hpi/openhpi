@@ -714,7 +714,7 @@ SaErrorT snmp_bc_set_sel_time(void *hnd, SaHpiResourceIdT id, SaHpiTimeT time)
 	struct oh_handler_state *handle;
         struct snmp_bc_hnd *custom_handle;
 
-	if (!hnd) {
+	if ( (!hnd) || (time == SAHPI_TIME_UNSPECIFIED)) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);    
 	}
@@ -723,9 +723,21 @@ SaErrorT snmp_bc_set_sel_time(void *hnd, SaHpiResourceIdT id, SaHpiTimeT time)
 	custom_handle = (struct snmp_bc_hnd *)handle->data;
 	
 	snmp_bc_lock_handler(custom_handle);
-        tt = time / 1000000000;
+
+	tt = time / 1000000000;
         localtime_r(&tt, &tv);
 	
+	if ( time < SAHPI_TIME_MAX_RELATIVE ) {
+		trace("Time input is relative time. Make it absolute.\n");
+		/* c time utilities have base epoch of 00:00:00 UTC, January 1, 1970 */
+		/* Bladecenter code has base epoch year 1999.                        */
+		/* So if the user chooses relative time, then                        */
+		/* we just adjust the year to the BladeCenter based year 1999.       */
+		/* (1) tv.tm_year has (year - 1900)                                  */
+		/* (2) which is (year - 1900 - 70) from year zero                    */  
+		tv.tm_year = tv.tm_year - 70 + 99; 
+	}
+		
 	err = snmp_bc_set_sp_time(custom_handle, &tv);
         if (err) {
 		snmp_bc_unlock_handler(custom_handle);
