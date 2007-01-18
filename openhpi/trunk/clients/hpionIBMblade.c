@@ -68,6 +68,7 @@
 #include <SaHpi.h>
 #include <oh_utils.h>
 #include <oh_config.h>
+#include <oHpi.h>
 
 #define READ_BUF_SIZE	1024
 #define MAX_BYTE_COUNT 128
@@ -132,9 +133,6 @@ Commands_def_t	Coms[] = {
 Rpt_t	*Rpts;
 int	nrpts = 0;
 long int blade_slot = 0;
-char *root_tuple_ipmi;
-char *root_tuple_snmp_bc;
-
 
 int	fdebug = 0;
 char	progver[] = "0.1";
@@ -221,33 +219,30 @@ static int select_ep(Rpt_t *Rpt)
 {
 	SaErrorT rv;
 	unsigned int i;
-	oh_big_textbuffer bigbuf1, bigbuf2;
-	rv = oh_init_bigtext(&bigbuf1);
-	if (rv) return(rv);
-	rv = oh_init_bigtext(&bigbuf2);
-	if (rv) return(rv);
-	SaHpiEntityPathT ipmi_root_ep, snmp_bc_root_ep;
-	SaHpiEntityPathT want_root_ep;
+	oHpiHandlerIdT this_handler_id;
+	oHpiHandlerInfoT handler_info;
+
+	rv = oHpiHandlerFind(sessionid,
+			     Rpt->Rpt.ResourceId,
+			     &this_handler_id);
+	if (rv) {
+		if (fdebug) printf("oHpiHandlerFind returns %s\n", oh_lookup_error(rv)); 
+		return(0);
+	}
 	
-	rv = oh_encode_entitypath(root_tuple_ipmi, &ipmi_root_ep);
-	rv = oh_encode_entitypath(root_tuple_snmp_bc, &snmp_bc_root_ep);
-	oh_init_ep(&want_root_ep);	
-
-        /* Find resource (rpt) that belongs to ipmi handler  */
-        for (i=0; i<SAHPI_MAX_ENTITY_PATH; i++) {
-                if (Rpt->Rpt.ResourceEntity.Entry[i].EntityType == SAHPI_ENT_SYSTEM_CHASSIS) {
-                            break;
-                }
-        }
-
-	want_root_ep.Entry[0].EntityType = Rpt->Rpt.ResourceEntity.Entry[i].EntityType;
-	want_root_ep.Entry[0].EntityLocation = Rpt->Rpt.ResourceEntity.Entry[i].EntityLocation;
-	if ( oh_cmp_ep(&ipmi_root_ep, &want_root_ep) == SAHPI_TRUE) {
-			return 1;
-	} else if ( oh_cmp_ep(&snmp_bc_root_ep, &want_root_ep) == SAHPI_TRUE) {
-
+	rv = oHpiHandlerInfo(this_handler_id, &handler_info);
+	if (rv) {
+		if (fdebug) printf("oHpiHandlerInfo returns %s\n", oh_lookup_error(rv));
+		return(0);
+	}
+	
+	/* If this resource belongs to the ipmi handler, then display it*/
+	if (strcmp(handler_info.plugin_name, "libipmi") == 0) {
+		return(1);
+	} else if(strcmp(handler_info.plugin_name, "libsnmp_bc") == 0) {
         	for (i=0; i<SAHPI_MAX_ENTITY_PATH; i++) {
-                	if ((Rpt->Rpt.ResourceEntity.Entry[i].EntityType == SAHPI_ENT_PHYSICAL_SLOT) && (Rpt->Rpt.ResourceEntity.Entry[i].EntityLocation == blade_slot)) 
+                	if ((Rpt->Rpt.ResourceEntity.Entry[i].EntityType == SAHPI_ENT_PHYSICAL_SLOT) 
+			&& (Rpt->Rpt.ResourceEntity.Entry[i].EntityLocation == blade_slot)) 
                             return(1);
                 }
         }
@@ -722,55 +717,7 @@ static int parse_command(char *Str)
 	};
 	return(0);
 }
-
-static SaErrorT hpiIBMspecial_check_environment(void) 
-{
-
-        SaErrorT        rv;
-        char *config_file = NULL;
-        GSList *node = NULL;
-	char *plugin_name;	
-        struct oh_parsed_config config = {NULL, NULL, 0, 0, 0, 0};	
-
-	/* Load in config file */
-        if ((config_file = getenv("OPENHPI_CONF")) == NULL) {
-		config_file = "/etc/openhpi/openhpi.conf";
-	}
-
-        rv = oh_load_config(config_file, &config);
-        if (rv != SA_OK) {
-		printf("Can not load OPENHPI_CONF file.\n");
-		return(SA_ERR_HPI_ERROR);
-	}
-
-        /* Search handler cofigureation for the 2 root tupples */
-        for (node = config.handler_configs; node; node = node->next) {
-                GHashTable *handler_config = (GHashTable *)node->data;
-                plugin_name = (char *)g_hash_table_lookup(handler_config, "plugin");
-		if (strcmp(plugin_name, "libipmi") == 0) {
-        		root_tuple_ipmi = (char *)g_hash_table_lookup(handler_config, "entity_root");
-        		if (!root_tuple_ipmi) {
-                		printf("Cannot find \"entity_root\" for ipmi plugin.");
-                		return SA_ERR_HPI_ERROR;
-			}
-		} else if(strcmp(plugin_name, "libsnmp_bc") == 0) {
-        		root_tuple_snmp_bc = (char *)g_hash_table_lookup(handler_config, "entity_root");
-        		if (!root_tuple_snmp_bc) {
-                		printf("Cannot find \"entity_root\" for snmp_bc plugin.");
-                		return(SA_ERR_HPI_ERROR);
-			}		
-		}
 		
-                config.handlers_defined++;
-        }
-	
-	if (config.handlers_defined != 2) {
-		printf("Configuration error: we do not have exactly 2 handlers defined.\n");
-		return(SA_ERR_HPI_ERROR);
-	}			
-	return(SA_OK);	
-}
-	
 static SaErrorT hpiIBMspecial_find_blade_slot(void)
 {
 
@@ -869,12 +816,6 @@ int main(int argc, char **argv)
 				printf("   -x  Display debug messages\n");
 				return(1);
 		}
-
-	rv = hpiIBMspecial_check_environment();
-	if (rv != SA_OK) {
-		printf("%s is not invoked in its special setup environment\n", argv[0]);
-		return(-1);
-	}
 
 	rv = hpiIBMspecial_find_blade_slot();
 	if (rv != SA_OK) {
