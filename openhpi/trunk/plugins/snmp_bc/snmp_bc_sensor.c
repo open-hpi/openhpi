@@ -288,7 +288,10 @@ SaErrorT snmp_bc_get_sensor_eventstate(void *hnd,
 		}
 		
 	} else if (rdr->RdrTypeUnion.SensorRec.Category == SAHPI_EC_PRESENCE) {
-		*state = SAHPI_ES_PRESENT;
+		if (sid == BLADECENTER_SENSOR_NUM_SLOT_STATE)
+			*state = sinfo->cur_state;
+		else
+			*state = SAHPI_ES_PRESENT;
 		
 	} else {		
 	
