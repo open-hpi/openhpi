@@ -827,7 +827,7 @@ static int sysfs2hpi_set_sensor_reading(SaHpiRdrT *rdr,
         char tmp[SCRATCHSIZE];
 
         if (reading.Type == SAHPI_SENSOR_READING_TYPE_INT64) {
-		snprintf(tmp, SYSFS_NAME_LEN, "%lld", reading.Value.SensorInt64);
+		snprintf(tmp, SCRATCHSIZE, "%lld", reading.Value.SensorInt64);
 		if (sysfs_write_attribute(attr,tmp,SCRATCHSIZE)) {
 			dbg("error attempting to write value");
 			return SA_ERR_HPI_INVALID_DATA;
