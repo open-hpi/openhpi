@@ -324,7 +324,8 @@ cIpmiMcThread::Discover( cIpmiMsg *get_device_id_rsp )
        return;
      }
 
-  // ATCA board: Need exact PICMG version
+  m_mc->CheckAtca();
+
   if ( m_domain->IsAtca() )
   {
       // If board is not ATCA, just give up
@@ -375,15 +376,6 @@ cIpmiMcThread::Discover( cIpmiMsg *get_device_id_rsp )
   m_domain->AddMc( m_mc );
   m_mc->Populate();
   WriteUnlock();
-
-  if ( m_properties & dIpmiMcThreadInitialDiscover )
-     {
-       // read the hotswap state for
-       // all resource
-       m_domain->ReadLock();
-       m_mc->GetHotswapStates();
-       m_domain->ReadUnlock();
-     }
 
   if ( m_mc->SelDeviceSupport() )
      {
@@ -538,7 +530,7 @@ cIpmiMcThread::HandleHotswapEvent( cIpmiSensorHotswap *sensor,
   stdlog << "hot swap event at MC " << m_addr << " M" << (int)prev_state << " -> M" 
          << (int)current_state << ".\n";
 
-  sensor->Resource()->FruState() = current_state;
+  sensor->Resource()->PicmgFruState() = current_state;
   sensor->HandleEvent( event );
 
   switch (current_state)
@@ -652,7 +644,7 @@ cIpmiMcThread::PollAddr( void *userdata )
                       event->m_data[8]  = hs->Num();
                       event->m_data[9]  = 0; // assertion
                       event->m_data[10] = 0; // M0
-                      event->m_data[11] = hs->Resource()->FruState() | (7 << 4); // communication lost
+                      event->m_data[11] = hs->Resource()->PicmgFruState() | (7 << 4); // communication lost
                       event->m_data[12] = 0;
 
                       // this is because HandleHotswapEvent first removes the PollAddr task

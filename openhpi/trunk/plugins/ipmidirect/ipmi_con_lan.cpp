@@ -1063,6 +1063,7 @@ cIpmiConLan::ReadResponse( int &seq, cIpmiAddr &addr, cIpmiMsg &msg )
             msg.m_cmd      = m_outstanding[seq]->m_msg.m_cmd;
             msg.m_data[0]  = tmsg[6];
             msg.m_data_len = 1;
+            stdlog << "Read sent message " << tmsg[0] << " error " << tmsg[6] << ".\n";
 	  }
        else
 	  {

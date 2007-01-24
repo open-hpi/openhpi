@@ -28,7 +28,7 @@ cIpmiResource::cIpmiResource( cIpmiMc *mc, unsigned int fru_id )
   : m_sel( false ), m_mc( mc ), m_fru_id( fru_id ),
     m_is_fru( false ),
     m_hotswap_sensor( 0 ),
-    m_fru_state( eIpmiFruStateNotInstalled ),
+    m_picmg_fru_state( eIpmiFruStateNotInstalled ),
     m_policy_canceled( true ),
     m_oem( 0 ), m_current_control_id( 0 ),
     m_populate( false )
@@ -140,6 +140,10 @@ cIpmiResource::Create( SaHpiRptEntryT &entry )
   entry.ResourceId     = oh_uid_from_entity_path( &entry.ResourceEntity );
 
   entry.ResourceCapabilities = SAHPI_CAPABILITY_RESOURCE;
+
+  if ( m_sel )
+    entry.ResourceCapabilities |= SAHPI_CAPABILITY_EVENT_LOG;
+
   if ( m_is_fru == true )
     {
         entry.ResourceCapabilities |= SAHPI_CAPABILITY_FRU;
@@ -155,12 +159,22 @@ cIpmiResource::Create( SaHpiRptEntryT &entry )
                 info.AuxFirmwareRev   = (SaHpiUint8T)m_mc->AuxFwRevision( 0 );
             }
 
-        // Reset supported on ATCA FRUs - Don't allow it on the active ShMC
-        if ( Domain()->IsAtca()
-            && ( m_mc->GetAddress() != dIpmiBmcSlaveAddr) )
-            {
+        // Reset supported on ATCA FRUs - Don't allow it on fru #0 of the active ShMC
+        if ( m_mc->IsAtcaBoard() )
+           {
+                if (!( (m_mc->GetAddress() == dIpmiBmcSlaveAddr) && (m_fru_id == 0) ))
+                {
+                    entry.ResourceCapabilities |= SAHPI_CAPABILITY_RESET;
+                }
+           }
+        else if ( m_mc->IsRmsBoard() ) { /*Rms enabling - 11/09/06 ARCress */
+            SaHpiEntityTypeT type = cIpmiEntityPath(m_entity_path).GetEntryType(0);
+            if (type == SAHPI_ENT_SYSTEM_BOARD)  {
+               stdlog << "Enabling Reset on RMS type " << type << "\n";
                 entry.ResourceCapabilities |= SAHPI_CAPABILITY_RESET;
-            }
+                entry.ResourceCapabilities |= SAHPI_CAPABILITY_POWER;
+           }
+        }
     }
 
   entry.HotSwapCapabilities = 0;
@@ -172,7 +186,7 @@ cIpmiResource::Create( SaHpiRptEntryT &entry )
 }
 
 
-bool
+void
 cIpmiResource::Destroy()
 {
   SaHpiRptEntryT *rptentry;
@@ -189,47 +203,53 @@ cIpmiResource::Destroy()
   if ( !rptentry )
   {
        stdlog << "Can't find resource in plugin cache !\n";
-       return false;
-  }
-
-  // create remove event
-  oh_event *e = (oh_event *)g_malloc0( sizeof( oh_event ) );
-  
-  // remove sensors only if resource is FRU
-  if ( rptentry->ResourceCapabilities & SAHPI_CAPABILITY_FRU )
-  {
-       e->event.EventType = SAHPI_ET_HOTSWAP;
-       e->event.EventDataUnion.HotSwapEvent.HotSwapState = SAHPI_HS_STATE_NOT_PRESENT;
-       e->event.EventDataUnion.HotSwapEvent.PreviousHotSwapState = SAHPI_HS_STATE_ACTIVE;
   }
   else
   {
-       e->event.EventType = SAHPI_ET_RESOURCE;
-       e->event.EventDataUnion.ResourceEvent.ResourceEventType = SAHPI_RESE_RESOURCE_FAILURE;
-       rptentry->ResourceFailed = SAHPI_TRUE;
-  }
+      // create remove event
+      oh_event *e = (oh_event *)g_malloc0( sizeof( oh_event ) );
   
-  e->event.Source = rptentry->ResourceId;
-  oh_gettimeofday(&e->event.Timestamp);
-  e->event.Severity = rptentry->ResourceSeverity;
-  e->resource = *rptentry;
-  stdlog << "cIpmiResource::Destroy OH_ET_RESOURCE_DEL Event resource " << m_resource_id << "\n";
-  Domain()->AddHpiEvent( e );
+      // remove sensors only if resource is FRU
+      if ( rptentry->ResourceCapabilities & SAHPI_CAPABILITY_FRU )
+      {
+           e->event.EventType = SAHPI_ET_HOTSWAP;
+           if (e->resource.ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)
+           {
+               e->event.EventDataUnion.HotSwapEvent.HotSwapState = SAHPI_HS_STATE_NOT_PRESENT;
+               e->event.EventDataUnion.HotSwapEvent.PreviousHotSwapState = SAHPI_HS_STATE_NOT_PRESENT;
+           }
+           else
+           {
+               e->event.EventDataUnion.HotSwapEvent.HotSwapState = SAHPI_HS_STATE_NOT_PRESENT;
+               e->event.EventDataUnion.HotSwapEvent.PreviousHotSwapState = SAHPI_HS_STATE_ACTIVE;
+           }
+      }
+      else
+      {
+           e->event.EventType = SAHPI_ET_RESOURCE;
+           e->event.EventDataUnion.ResourceEvent.ResourceEventType = SAHPI_RESE_RESOURCE_FAILURE;
+           rptentry->ResourceFailed = SAHPI_TRUE;
+      }
+  
+      e->event.Source = rptentry->ResourceId;
+      oh_gettimeofday(&e->event.Timestamp);
+      e->event.Severity = rptentry->ResourceSeverity;
+      e->resource = *rptentry;
+      stdlog << "cIpmiResource::Destroy OH_ET_RESOURCE_DEL Event resource " << m_resource_id << "\n";
+      Domain()->AddHpiEvent( e );
 
-  // remove resource from local cache
-  int rv = oh_remove_resource( Domain()->GetHandler()->rptcache, m_resource_id );
+      // remove resource from local cache
+      int rv = oh_remove_resource( Domain()->GetHandler()->rptcache, m_resource_id );
 
-  if ( rv != 0 )
-  {
-      stdlog << "Can't remove resource from plugin cache !\n";
-      return false;
+      if ( rv != 0 )
+      {
+          stdlog << "Can't remove resource from plugin cache !\n";
+      }
   }
   
   m_mc->RemResource( this );
 
   delete this;
-
-  return true;
 }
 
 
@@ -302,44 +322,6 @@ cIpmiResource::RemRdr( cIpmiRdr *rdr )
 
 
 bool
-cIpmiResource::PopulateSel()
-{
-   // find resource
-  SaHpiRptEntryT *resource = Domain()->FindResource( m_resource_id );
-
-  if ( !resource )
-     {
-       stdlog << "Can't find resource !\n";
-       return false;
-     }
-
-  if ( resource->ResourceCapabilities & SAHPI_CAPABILITY_EVENT_LOG )
-     {
-       stdlog << "EventLog capabilities already set !\n";
-       return false;
-     }
-
-  // update resource
-  resource->ResourceCapabilities |= SAHPI_CAPABILITY_EVENT_LOG;
-
-  struct oh_event *e = (struct oh_event *)g_malloc0( sizeof( struct oh_event ) );
-
-  e->event.EventType = SAHPI_ET_RESOURCE;
-  e->event.EventDataUnion.ResourceEvent.ResourceEventType =
-      SAHPI_RESE_RESOURCE_ADDED;
-  e->resource = *resource;
-  e->event.Source = resource->ResourceId;
-  oh_gettimeofday(&e->event.Timestamp);
-  e->event.Severity = resource->ResourceSeverity;
-
-  stdlog << "cIpmiResource::Populate OH_ET_RESOURCE Event resource " << resource->ResourceId << "\n";
-  Domain()->AddHpiEvent( e );
-
-  return true;
-}
-
-
-bool
 cIpmiResource::Populate()
 {
   if ( m_populate == false )
@@ -354,25 +336,6 @@ cIpmiResource::Populate()
             g_free( e );
             return false;
           }
-
-       if (!(e->resource.ResourceCapabilities & SAHPI_CAPABILITY_FRU))
-       {
-           e->event.EventType = SAHPI_ET_RESOURCE;
-           e->event.EventDataUnion.ResourceEvent.ResourceEventType =
-               SAHPI_RESE_RESOURCE_ADDED;
-           stdlog << "cIpmiResource::Populate SAHPI_ET_RESOURCE Event resource " << m_resource_id << "\n";
-       }
-       else
-       {
-           e->event.EventType = SAHPI_ET_HOTSWAP;
-	   e->event.EventDataUnion.HotSwapEvent.HotSwapState = SAHPI_HS_STATE_ACTIVE;
-	   e->event.EventDataUnion.HotSwapEvent.PreviousHotSwapState =
-	       SAHPI_HS_STATE_ACTIVE;
-           stdlog << "cIpmiResource::Populate SAHPI_ET_HOTSWAP Event resource " << m_resource_id << "\n";
-       }
-       e->event.Source = e->resource.ResourceId;
-       e->event.Severity = e->resource.ResourceSeverity;
-       oh_gettimeofday(&e->event.Timestamp);
 
        // assign the hpi resource id to ent, so we can find
        // the resource for a given entity
@@ -397,11 +360,48 @@ cIpmiResource::Populate()
 	       return false;
        }
 
+       // find updated resource in plugin cache
+       SaHpiRptEntryT *resource = oh_get_resource_by_id( Domain()->GetHandler()->rptcache,
+                                                            m_resource_id );
+
+       if (!resource)
+            return false;
+
+       // Update resource in event accordingly
+       memcpy(&e->resource, resource, sizeof (SaHpiRptEntryT));
+
+       if (e->resource.ResourceCapabilities & SAHPI_CAPABILITY_FRU)
+       {
+           e->event.EventType = SAHPI_ET_HOTSWAP;
+
+           if (e->resource.ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)
+           {
+               SaHpiHsStateT hpi_state = GetHpiState();
+               e->event.EventDataUnion.HotSwapEvent.HotSwapState = hpi_state;
+               e->event.EventDataUnion.HotSwapEvent.PreviousHotSwapState = hpi_state;
+               stdlog << "cIpmiResource::Populate SAHPI_ET_HOTSWAP Managed FRU Event resource " << m_resource_id << " State " << hpi_state << "\n";
+           }
+           else
+           {
+               e->event.EventDataUnion.HotSwapEvent.HotSwapState = SAHPI_HS_STATE_ACTIVE;
+               e->event.EventDataUnion.HotSwapEvent.PreviousHotSwapState = SAHPI_HS_STATE_ACTIVE;
+               stdlog << "cIpmiResource::Populate SAHPI_ET_HOTSWAP FRU Event resource " << m_resource_id << "\n";
+           }
+       }
+       else
+       {
+           e->event.EventType = SAHPI_ET_RESOURCE;
+           e->event.EventDataUnion.ResourceEvent.ResourceEventType =
+               SAHPI_RESE_RESOURCE_ADDED;
+           stdlog << "cIpmiResource::Populate SAHPI_ET_RESOURCE Event resource " << m_resource_id << "\n";
+       }
+
+       e->event.Source = e->resource.ResourceId;
+       e->event.Severity = e->resource.ResourceSeverity;
+       oh_gettimeofday(&e->event.Timestamp);
+
        Domain()->AddHpiEvent( e );
   
-       if ( m_sel )
-            PopulateSel();
-
        m_populate = true;
      }
 
@@ -458,4 +458,31 @@ cIpmiResource::Deactivate()
         stdlog << "Deactivate: IPMI error set FRU deactivation: "
                     << rsp.m_data[0] << " !\n";
     }
+}
+
+SaHpiHsStateT
+cIpmiResource::GetHpiState()
+{
+    cIpmiSensorHotswap *hs = GetHotswapSensor();
+
+    if ( hs == 0 )
+        return SAHPI_HS_STATE_NOT_PRESENT;
+
+    tIpmiFruState picmg_state;
+
+    SaErrorT rv = hs->GetPicmgState( picmg_state );
+
+    if ( rv != SA_OK )
+        return SAHPI_HS_STATE_NOT_PRESENT;
+
+    PicmgFruState() = picmg_state;
+
+    SaHpiHsStateT hpi_state;
+
+    rv = hs->GetHpiState( hpi_state );
+
+    if ( rv != SA_OK )
+        return SAHPI_HS_STATE_NOT_PRESENT;
+
+    return hpi_state;
 }

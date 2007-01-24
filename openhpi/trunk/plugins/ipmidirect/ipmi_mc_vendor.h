@@ -2,7 +2,7 @@
  * ipmi_mc_vendor.h
  *
  * Copyright (c) 2004 by FORCE Computers
- * Copyright (c) 2005 by ESO Technologies.
+ * Copyright (c) 2005-2006 by ESO Technologies.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -36,6 +36,9 @@
 #include "ipmi_fru_info.h"
 #endif
 
+#ifndef dIpmiInventory_h
+#include "ipmi_inventory.h"
+#endif
 
 class cIpmiMc;
 
@@ -68,6 +71,9 @@ public:
 
   // give vendors a chance to modify the sdrs
   virtual bool ProcessSdr( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdrs *sdrs );
+
+  virtual bool ProcessFru( cIpmiInventory *inv, cIpmiMc *mc, unsigned int sa,
+			SaHpiEntityTypeT type);
 
   // called after reading an SDR to create sensors, controls, frus, sel
   virtual bool CreateRdrs( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdrs *sdrs );
@@ -130,6 +136,7 @@ public:
 protected:
   virtual bool CreateControlsAtca( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdrs *sdrs );
   virtual bool CreateControlAtcaFan( cIpmiDomain *domain, cIpmiResource *res, cIpmiSdrs *sdrs );
+  virtual bool CreateControlAtcaLed( cIpmiDomain *domain, cIpmiResource *res, cIpmiSdrs *sdrs );
 
 public:
   // create inventory
@@ -138,6 +145,10 @@ public:
 protected:
   virtual bool CreateInv( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdr *sdr,
                           cIpmiSdrs *sdrs );
+
+public:
+  // create watchdogs
+  virtual bool CreateWatchdogs( cIpmiDomain *domain, cIpmiMc *mc );
 
 public:
   // create SEL
