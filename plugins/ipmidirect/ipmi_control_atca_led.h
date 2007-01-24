@@ -55,7 +55,7 @@ public:
   virtual void Dump( cIpmiLog &dump, const char *name ) const;
 
 protected:
-  bool cIpmiControlAtcaLed::IsSupportedColor(AtcaHpiLedColorT hpi_color);
+  bool IsSupportedColor(AtcaHpiLedColorT hpi_color);
 };
 
 
