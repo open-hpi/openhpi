@@ -34,10 +34,6 @@
 
 cIpmiSensorHotswap::cIpmiSensorHotswap( cIpmiMc *mc )
   : cIpmiSensorDiscrete( mc )
-#ifdef FAKE_ECN_BEHAVIOR
-  ,m_deactivation_locked( 1 ),
-  m_fake_deactivation_locked( false )
-#endif
 {
 }
 
@@ -53,11 +49,6 @@ cIpmiSensorHotswap::GetDataFromSdr( cIpmiMc *mc, cIpmiSdr *sdr )
   if ( !cIpmiSensorDiscrete::GetDataFromSdr( mc, sdr ) )
        return false;
 
-#ifdef FAKE_ECN_BEHAVIOR
-  if ( mc->IsNotEcn() )
-      m_fake_deactivation_locked = true;
-#endif
-
   return true;
 }
 
@@ -69,25 +60,9 @@ cIpmiSensorHotswap::CreateRdr( SaHpiRptEntryT &resource,
   if ( cIpmiSensorDiscrete::CreateRdr( resource, rdr ) == false )
        return false;
 
-  if ( !(resource.ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP) )
-     {
-       // update resource capabilities
-       resource.ResourceCapabilities |= SAHPI_CAPABILITY_MANAGED_HOTSWAP;
-       resource.HotSwapCapabilities = SAHPI_HS_CAPABILITY_INDICATOR_SUPPORTED;
-
-       struct oh_event *e = (struct oh_event *)g_malloc0( sizeof( struct oh_event ) );
-
-       e->event.EventType = SAHPI_ET_HOTSWAP;
-       e->event.EventDataUnion.HotSwapEvent.HotSwapState = SAHPI_HS_STATE_ACTIVE;
-       e->event.EventDataUnion.HotSwapEvent.PreviousHotSwapState = SAHPI_HS_STATE_ACTIVE;
-       e->resource = resource;
-       e->event.Source = resource.ResourceId;
-       oh_gettimeofday(&e->event.Timestamp);
-       e->event.Severity = resource.ResourceSeverity;
-
-       stdlog << "cIpmiSensorHotswap::CreateRdr SAHPI_ET_RESOURCE Event resource " << resource.ResourceId << "\n";
-       m_mc->Domain()->AddHpiEvent( e );
-     }
+  // update resource capabilities
+  resource.ResourceCapabilities |= SAHPI_CAPABILITY_MANAGED_HOTSWAP;
+  resource.HotSwapCapabilities  |= SAHPI_HS_CAPABILITY_INDICATOR_SUPPORTED;
 
   return true;
 }
@@ -160,19 +135,12 @@ cIpmiSensorHotswap::CreateEvent( cIpmiEvent *event, SaHpiEventT &h )
   if (he.HotSwapState == he.PreviousHotSwapState)
       return SA_ERR_HPI_DUPLICATE;
 
-#ifdef FAKE_ECN_BEHAVIOR
-  if (he.HotSwapState == SAHPI_HS_STATE_ACTIVE)
-      m_deactivation_locked = 1;
-  else
-      m_deactivation_locked = 0;
-#endif
-
   return SA_OK;
 }
 
 
 SaErrorT
-cIpmiSensorHotswap::GetState( tIpmiFruState &state )
+cIpmiSensorHotswap::GetPicmgState( tIpmiFruState &state )
 {
   // read hotswap state
   cIpmiMsg rsp;
@@ -211,21 +179,15 @@ cIpmiSensorHotswap::GetState( tIpmiFruState &state )
 
 
 SaErrorT
-cIpmiSensorHotswap::GetState( SaHpiHsStateT &state )
+cIpmiSensorHotswap::GetHpiState( SaHpiHsStateT &state )
 {
   tIpmiFruState fs;
-  SaErrorT rv = GetState( fs );
+  SaErrorT rv = GetPicmgState( fs );
 
   if ( rv != SA_OK )
        return rv;
 
   state = ConvertIpmiToHpiHotswapState( fs );
 
-#ifdef FAKE_ECN_BEHAVIOR
-  if (( state == SAHPI_HS_STATE_ACTIVE )
-      && ( m_fake_deactivation_locked )
-      && ( m_deactivation_locked == 0 ))
-                state = SAHPI_HS_STATE_EXTRACTION_PENDING;
-#endif
   return SA_OK;
 }

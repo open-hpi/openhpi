@@ -109,7 +109,7 @@ public:
   };
 
   bool ConvertFromRaw( unsigned int val, double &result, bool is_hysteresis ) const;
-  bool ConvertToRaw( tIpmiRound rounding, double val, unsigned int &result, bool is_hysteresis ) const;
+  bool ConvertToRaw( tIpmiRound rounding, double val, unsigned int &result, bool is_hysteresis, bool swap_thresholds ) const;
 };
 
 
