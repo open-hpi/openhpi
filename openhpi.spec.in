@@ -7,10 +7,10 @@
 %define _specdir %{_topdir}
 %define _srcrpmdir %{_rpmtopdir}/SRPMS
 
-%define with_ipmi @IPMI@
-%define with_bladecenter @SNMP_BC@
-%define with_rtas @RTAS@
-%define with_sysfs @SYSFS@
+%define with_ipmi @WITH_IPMI@
+%define with_bladecenter @WITH_SNMP_BC@
+%define with_rtas @WITH_RTAS@
+%define with_sysfs @WITH_SYSFS@
 
 
 Name: @HPI_PKG@
@@ -161,8 +161,8 @@ provided by the kernel.
 ###################################################
 ./configure @ac_configure_args@ --sysconfdir=/etc --prefix=/usr --with-varpath=/var/lib/%{name}
 %{__make}
-#make -C docs/hld pdf-am
-#make -C docs/hld openhpi-manual/book1.html
+make -C docs/hld pdf-am
+make -C docs/hld openhpi-manual/book1.html
 
 ###################################################
 %install
@@ -178,8 +178,8 @@ make DESTDIR=%{buildroot} install
 ###################################################
 %defattr(-,root,root)
 %doc README README.daemon COPYING
-#%doc docs/hld/*pdf
-#%doc docs/hld/openhpi-manual
+%doc docs/hld/*pdf
+%doc docs/hld/openhpi-manual
 %dir %{_sysconfdir}/%{name}/
 %config(noreplace) %attr(0640,root,root) %{_sysconfdir}/%{name}/%{name}.conf
 %dir %{_libdir}/%{name}

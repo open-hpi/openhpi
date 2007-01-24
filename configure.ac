@@ -227,6 +227,7 @@ AC_ARG_ENABLE([ipmi],
     [if test "x$enableval" = "xyes"; then
         if test "x$have_openipmi" = "xyes"; then
             AC_SUBST(IPMI,ipmi)
+	    AC_SUBST(WITH_IPMI,1)
         else
             OH_CHECK_FAIL(OpenIPMI,libOpenIPMI-devel,http://openipmi.sf.net,
                          Can not build IPMI support without OpenIPMI >= 1.4.20)
@@ -234,15 +235,21 @@ AC_ARG_ENABLE([ipmi],
     elif test "x$enableval" = "xstatic"; then
         if test "x$have_openipmi" = "xyes"; then
             AC_SUBST(IPMI,ipmi)
+	    AC_SUBST(WITH_IPMI,1)
             STATIC_PLUGIN_LIST="$STATIC_PLUGIN_LIST ipmi"
             STATIC_PLUGIN_EXTRA_LIBS="$STATIC_PLUGIN_EXTRA_LIBS"
         else
             OH_CHECK_FAIL(OpenIPMI,libOpenIPMI-devel,http://openipmi.sf.net,
                          Can not build IPMI support without OpenIPMI >= 1.4.20)
         fi
+    else
+	    AC_SUBST(WITH_IPMI,0)
     fi],
     [if test "x$have_openipmi" = "xyes"; then
             AC_SUBST(IPMI,ipmi)
+	    AC_SUBST(WITH_IPMI,1)
+     else
+	    AC_SUBST(WITH_IPMI,0) 
      fi
     ])
 
@@ -251,13 +258,19 @@ AC_ARG_ENABLE([sysfs],
     [if test "x$enableval" = "xyes"; then
         if test "x$have_sysfs" = "xyes"; then
             AC_SUBST(SYSFS,sysfs)
+	    AC_SUBST(WITH_SYSFS,1)
         else
             OH_CHECK_FAIL(libsysfs,,http://linux-diag.sf.net,
                 Can not build sysfs support without libsysfs)
         fi
+    else
+	    AC_SUBST(WITH_SYSFS,0)
     fi],
     [if test "x$have_sysfs" = "xyes"; then
             AC_SUBST(SYSFS,sysfs)
+	    AC_SUBST(WITH_SYSFS,1)
+     else
+	    AC_SUBST(WITH_SYSFS,0)
      fi
     ])
 
@@ -266,15 +279,21 @@ AC_ARG_ENABLE([snmp_bc],
     [if test "x$enableval" = "xyes"; then
         if test "x$have_netsnmp" = "xyes"; then
             AC_SUBST(SNMP_BC,snmp_bc)
+	    AC_SUBST(WITH_SNMP_BC,1)
             SNMPDIR=snmp
         else
             OH_CHECK_FAIL(net-snmp,net-snmp-devel,http://net-snmp.sourceforge.net/,
                 Can not build IBM Blade Center support without net-snmp)
         fi
+    else
+	    AC_SUBST(WITH_SNMP_BC,0)
     fi],
     [if test "x$have_netsnmp" = "xyes"; then
             AC_SUBST(SNMP_BC,snmp_bc)
+	    AC_SUBST(WITH_SNMP_BC,1)
             SNMPDIR=snmp
+    else
+	    AC_SUBST(WITH_SNMP_BC,0)
     fi]
     )
 
@@ -307,11 +326,15 @@ AC_ARG_ENABLE([rtas],
     [if test "x$enableval" = "xyes"; then
         if test "x$have_rtas_lib" = "xyes"; then
             AC_SUBST(RTAS,rtas)
+	    AC_SUBST(WITH_RTAS,1)
         else
             OH_CHECK_FAIL(librtas, librtas-devel, http://librtas.ozlabs.org/,
                 Cannot build RTAS plugin without the librtas library)
         fi
-    fi])
+    else
+	    AC_SUBST(WITH_RTAS,0)
+    fi],
+    [AC_SUBST(WITH_RTAS,0)])
 
 AC_ARG_ENABLE([simulator],
     [  --enable-simulator      build simulator plugin [[default=yes]]],
@@ -319,12 +342,6 @@ AC_ARG_ENABLE([simulator],
         AC_SUBST(SIMULATOR,simulator)
     fi],
     [AC_SUBST(SIMULATOR,simulator)])
-
-#    [AC_SUBST(SIMULATOR,simulator)])
-
-dnl     [if test "x$have_fam" = "xyes"; then
-dnl     AC_SUBST(SIMULATOR,simulator)
-dnl     fi])
 
 dnl enable marshal library when needed
 if test "x$oh_daemon_enabled" = "xyes"; then
