@@ -2067,8 +2067,6 @@ cIpmi::AddHpiEvent( oh_event *event )
   {
     event->hid = m_handler->hid;
     oh_evt_queue_push(m_handler->eventq, event);
-
-    oh_wake_event_thread(SAHPI_FALSE);
   }
 
   m_event_lock.Unlock();
