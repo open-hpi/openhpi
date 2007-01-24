@@ -153,7 +153,7 @@ static int oh_add_event_to_del(struct oh_domain *d, struct oh_event *e)
 {
         struct oh_global_param param = { .type = OPENHPI_LOG_ON_SEV };
         char del_filepath[SAHPI_MAX_TEXT_BUFFER_LENGTH*2];
-        int error = 0;
+        int error;
 
         if (!d || !e) return -1;
 

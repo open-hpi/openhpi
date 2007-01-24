@@ -21,13 +21,13 @@
 
 <!doctype book PUBLIC "-//OASIS//DTD DocBook V4.1//EN" [
 
-<!ENTITY % legal SYSTEM "legal.dtd">
+<!ENTITY % legal PUBLIC "-//OASIS//DTD DocBook V4.1//EN" "legal.dtd">
 %legal;
 
-<!ENTITY % authors SYSTEM "authors.dtd">
+<!ENTITY % authors PUBLIC "-//OASIS//DTD DocBook V4.1//EN" "authors.dtd">
 %authors;
 
-<!ENTITY % revisions SYSTEM "revisions.dtd">
+<!ENTITY % revisions PUBLIC "-//OASIS//DTD DocBook V4.1//EN" "revisions.dtd">
 %revisions;
 
 <!ENTITY chapter1 SYSTEM "bookinfo.sgml">
