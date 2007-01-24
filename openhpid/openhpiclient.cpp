@@ -4107,6 +4107,9 @@ SaErrorT oHpiHandlerCreate(GHashTable *config,
 	char cmd[] = "oHpiHandlerCreate";
         pcstrmsock pinst = CreateConnx();
 
+        if (pinst == NULL )
+                return SA_ERR_HPI_INVALID_SESSION;
+
         // initialize the daemon GHashTable
         err = oHpiHandlerCreateInit();
         if (err) {
@@ -4150,6 +4153,9 @@ SaErrorT oHpiHandlerDestroy(oHpiHandlerIdT id)
 	char cmd[] = "oHpiHandlerDestroy";
         pcstrmsock pinst = CreateConnx();
 
+        if (pinst == NULL )
+                return SA_ERR_HPI_INVALID_SESSION;
+
         cHpiMarshal *hm = HpiMarshalFind(eFoHpiHandlerDestroy);
         pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiHandlerDestroy, hm->m_request_len);
         request = malloc(hm->m_request_len);
@@ -4182,6 +4188,9 @@ SaErrorT oHpiHandlerInfo(oHpiHandlerIdT id, oHpiHandlerInfoT *info)
         SaErrorT err;
 	char cmd[] = "oHpiHandlerInfo";
         pcstrmsock pinst = CreateConnx();
+
+        if (pinst == NULL )
+                return SA_ERR_HPI_INVALID_SESSION;
 
         cHpiMarshal *hm = HpiMarshalFind(eFoHpiHandlerInfo);
         pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiHandlerInfo, hm->m_request_len);
@@ -4216,6 +4225,9 @@ SaErrorT oHpiHandlerGetNext(oHpiHandlerIdT id, oHpiHandlerIdT *next_id)
 	char cmd[] = "oHpiHandlerGetNext";
         pcstrmsock pinst = CreateConnx();
 
+        if (pinst == NULL )
+                return SA_ERR_HPI_INVALID_SESSION;
+
         cHpiMarshal *hm = HpiMarshalFind(eFoHpiHandlerGetNext);
         pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiHandlerGetNext, hm->m_request_len);
         request = malloc(hm->m_request_len);
@@ -4248,6 +4260,9 @@ SaErrorT oHpiHandlerFind(SaHpiSessionIdT sid,
         SaErrorT err = SA_OK;
         char cmd[] = "oHpiHandlerFind";  
         pcstrmsock pinst = CreateConnx();
+
+        if (pinst == NULL )
+                return SA_ERR_HPI_INVALID_SESSION;
 
         if (!id || !sid || !rid) {
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -4288,6 +4303,9 @@ SaErrorT oHpiHandlerRetry(oHpiHandlerIdT id)
         SaErrorT err = SA_OK;
         char cmd[] = "oHpiHandlerRetry";  
         pcstrmsock pinst = CreateConnx();
+
+        if (pinst == NULL )
+                return SA_ERR_HPI_INVALID_SESSION;
 
         if (!id) {
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -4330,6 +4348,9 @@ SaErrorT oHpiGlobalParamGet(oHpiGlobalParamT *param)
 	char cmd[] = "oHpiGlobalParamGet";
         pcstrmsock pinst = CreateConnx();
 
+        if (pinst == NULL )
+                return SA_ERR_HPI_INVALID_SESSION;
+
         cHpiMarshal *hm = HpiMarshalFind(eFoHpiGlobalParamGet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiGlobalParamGet, hm->m_request_len);
         request = malloc(hm->m_request_len);
@@ -4362,6 +4383,9 @@ SaErrorT oHpiGlobalParamSet(oHpiGlobalParamT *param)
         SaErrorT err;
 	char cmd[] = "oHpiGlobalParamSet";
         pcstrmsock pinst = CreateConnx();
+
+        if (pinst == NULL )
+                return SA_ERR_HPI_INVALID_SESSION;
 
         cHpiMarshal *hm = HpiMarshalFind(eFoHpiGlobalParamSet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiGlobalParamSet, hm->m_request_len);
@@ -4397,6 +4421,9 @@ SaErrorT oHpiInjectEvent(oHpiHandlerIdT id,
         SaErrorT err = SA_OK;
         char cmd[] = "oHpiInjectEvent";  
         pcstrmsock pinst = CreateConnx();
+
+        if (pinst == NULL )
+                return SA_ERR_HPI_INVALID_SESSION;
 
         if (!id) {
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -4444,6 +4471,9 @@ static SaErrorT oHpiHandlerCreateInit(void)
 	char cmd[] = "oHpiHandlerCreateInit";
         pcstrmsock pinst = CreateConnx();
 
+        if (pinst == NULL )
+                return SA_ERR_HPI_INVALID_SESSION;
+
         cHpiMarshal *hm = HpiMarshalFind(eFoHpiHandlerCreateInit);
         pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiHandlerCreateInit, hm->m_request_len);
         request = malloc(hm->m_request_len);
@@ -4477,6 +4507,9 @@ static void oHpiHandlerCreateAddTEntry(gpointer key, gpointer value, gpointer da
         SaErrorT err = 0;
 	char cmd[] = "oHpiHandlerCreateInit";
         pcstrmsock pinst = CreateConnx();
+
+        if (pinst == NULL )
+                return;
 
         newkey.DataLength = strlen((char *)key);
         strcpy((char *)newkey.Data, (char *)key);
