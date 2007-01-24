@@ -3174,6 +3174,8 @@ SaErrorT snmp_bc_discover_mm(struct oh_handler_state *handle,
 	SaErrorT err;
         struct oh_event *e;
 	struct snmp_value get_value;
+	SaHpiRdrT *rdr;
+	struct SensorInfo *sinfo;
 	struct ResourceInfo *res_info_ptr;
 	struct snmp_bc_hnd *custom_handle;
 
@@ -3246,6 +3248,29 @@ SaErrorT snmp_bc_discover_mm(struct oh_handler_state *handle,
                 snmp_bc_discover_controls(handle, snmp_bc_virtual_mgmnt_controls, e);
                 snmp_bc_discover_inventories(handle, snmp_bc_virtual_mgmnt_inventories, e);
 		
+		/* -------------------------------------------- */
+		/* Adjust initial state of VMM Redudancy Sensor */
+		/* -------------------------------------------- */
+		rdr =  oh_get_rdr_by_type(handle->rptcache, e->resource.ResourceId,
+                              		   SAHPI_SENSOR_RDR, 
+					   BLADECENTER_SENSOR_NUM_MGMNT_REDUNDANCY);
+		
+		if (rdr) { 
+			sinfo = (struct SensorInfo *)oh_get_rdr_data(handle->rptcache, 
+								e->resource.ResourceId, rdr->RecordId);
+			if ((strncmp(mm_vector, "11", 2) == 0)) {
+				sinfo->cur_state = SAHPI_ES_FULLY_REDUNDANT;
+			} else {
+				sinfo->cur_state = SAHPI_ES_NON_REDUNDANT_INSUFFICIENT_RESOURCES;
+			}
+			sinfo->cur_child_rid = 	e->resource.ResourceId;
+			
+			err = oh_add_rdr(handle->rptcache,
+					 e->resource.ResourceId,
+					 rdr,
+				 	 sinfo, 0);				
+		}
+
 		/* ---------------------------------------- */
 		/* Construct .event of struct oh_event      */	
 		/* ---------------------------------------- */
