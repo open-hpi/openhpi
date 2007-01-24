@@ -197,6 +197,8 @@ SaErrorT oHpiHandlerFind(SaHpiSessionIdT sid,
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
+        if (oh_init()) return SA_ERR_HPI_INTERNAL_ERROR;
+
         OH_GET_DOMAIN(did, d); /* Lock domain */
 
         hid = (unsigned int *)oh_get_resource_data(&d->rpt, rid);
@@ -225,6 +227,8 @@ SaErrorT oHpiHandlerRetry(oHpiHandlerIdT id)
 	SaErrorT error = SA_OK;
 
 	if (id == 0) return SA_ERR_HPI_INVALID_PARAMS;
+
+        if (oh_init()) return SA_ERR_HPI_INTERNAL_ERROR;
 
 	h = oh_get_handler(id);
 	if (!h) return SA_ERR_HPI_NOT_PRESENT;
