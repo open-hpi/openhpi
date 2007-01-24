@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2003, 2004
+ * (C) Copyright IBM Corp. 2003, 2004, 2007
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -12,6 +12,7 @@
  * Author(s):
  *      Peter D Phan <pdphan@us.ibm.com>
  *      Steve Sherman <stevees@us.ibm.com>
+ *	Renier Morales <renier@openhpi.org>
  *
  *     10/13/2004 kouzmich  changed -t option for infinite wait
  *			    added -d option for call saHpiDiscover after saHpiSubscribe
