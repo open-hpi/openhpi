@@ -16,34 +16,34 @@
 
 ## The default values for each have been selected in the example above (except
 ## for OPENHPI_PATH and OPENHPI_CONF. See below).
-## No need to specify any one of them because the default will be used
-## automatically. The library will also look for these as environment variables.
-## Environment variables found that match a global parameter will override the
+## No need to specify any one of them because the defaults is used
+## automatically. The library also looks for these as environment variables.
+## Environment variables found that match a global parameter override the
 ## corresponding parameter set in this configuration file.
 ##
 ## OPENHPI_LOG_SEV sets the lowest severity level an event must meet to be
 ## logged in the domain event log. Possible values are (highest to lowest):
 ## "CRITICAL", "MAJOR", "MINOR", "INFORMATIONAL", "OK", and "DEBUG".
-## OPENHPI_ON_EP sets the entity path on wich the application is running. This
-## entity path will be returned when SaHpiResourceIdGet() is called.
+## OPENHPI_ON_EP sets the entity path on which the application is running. This
+## entity path is returned when SaHpiResourceIdGet() is called.
 ## OPENHPI_EVT_QUEUE_LIMIT sets the maximum number of events that are allowed
 ## in the session's event queue. Default is 10000 events. Setting it to 0 means
 ## unlimited.
 ## OPENHPI_DEL_SIZE_LIMIT sets the maximum size (in number of event log entries)
 ## for the domain event log. Default is 10000 log entries. Setting it to 0
 ## means unlimited.
-## OPENHPI_DEL_SAVE sets wether the domain event log will be persisted to disk or
+## OPENHPI_DEL_SAVE sets whether the domain event log is persisted to disk or
 ## not. The event log is written to OPENHPI_VARPATH value.
 ## OPENHPI_DAT_SIZE_LIMIT sets the maximum size (in number of alarm entries) for
 ## the alarm table. The default 0 means unlimited.
 ## OPENHPI_DAT_USER_LIMIT sets the maximum number of user type alarm entries
 ## allowed in the alarm table. The default 0 means unlimited.
-## OPENHPI_DAT_SAVE sets wether the domain alarm table will be persisted to disk or
+## OPENHPI_DAT_SAVE sets wether the domain alarm table is persisted to disk or
 ## not. The alarm table is written to OPENHPI_VARPATH value.
 ## OPENHPI_PATH is a colon (:) delimited list of directories specifying
 ## the location of openhpi plugin libraries. The default is defined when the
 ## library is configured.
-## OPENHPI_VARPATH is a directory to which certain openhpi data will be saved to.
+## OPENHPI_VARPATH is a directory to which certain openhpi data is saved to.
 ## The DEL (Domain Event Log), DAT (Domain Alarm Table), and UID (Unique IDs used
 ## for resources) mappings are saved to this directory. The default is set at
 ## compile time through the ./configure options.
@@ -177,17 +177,17 @@ handler libsimulator {
 ##
 ## Example entity path patterns:
 ##
-## {.,.} will match {RACK,4}, but not {RACK,4}{GROUP,2}
+## {.,.} matches {RACK,4}, but not {RACK,4}{GROUP,2}
 ##
-## {RACK,4}* will match {RACK,4}{GROUP,2} 
+## {RACK,4}* matches {RACK,4}{GROUP,2} 
 ##
-## {RACK,.}* will match {RACK,4}{GROUP,2} also.
+## {RACK,.}* matches {RACK,4}{GROUP,2} also.
 ##
-## {RACK,.}{GROUP,.} will match {RACK,4}{GROUP,2} also.
+## {RACK,.}{GROUP,.} matches {RACK,4}{GROUP,2} also.
 ##
-## *{SBC_BLADE,1} will not match {SYSTEM_CHASSIS,4}{SBC_BLADE,4}
+## *{SBC_BLADE,1} does not match {SYSTEM_CHASSIS,4}{SBC_BLADE,4}
 ##
-## * will match anything.
+## * matches anything.
 ##
 ## Example domain declarations:
 #domain 1 {
