@@ -3271,6 +3271,26 @@ SaErrorT snmp_bc_discover_mm(struct oh_handler_state *handle,
 				 	 sinfo, 0);				
 		}
 
+		rdr =  oh_get_rdr_by_type(handle->rptcache, e->resource.ResourceId,
+                              		   SAHPI_SENSOR_RDR, 
+					   BLADECENTER_SENSOR_NUM_MGMNT_STANDBY);
+		
+		if (rdr) { 
+			sinfo = (struct SensorInfo *)oh_get_rdr_data(handle->rptcache, 
+								e->resource.ResourceId, rdr->RecordId);
+			if ((strncmp(mm_vector, "11", 2) == 0)) {
+				sinfo->cur_state = SAHPI_ES_PRESENT;
+			} else {
+				sinfo->cur_state = SAHPI_ES_ABSENT;
+			}
+			sinfo->cur_child_rid = 	e->resource.ResourceId;
+			
+			err = oh_add_rdr(handle->rptcache,
+					 e->resource.ResourceId,
+					 rdr,
+				 	 sinfo, 0);				
+		}
+
 		/* ---------------------------------------- */
 		/* Construct .event of struct oh_event      */	
 		/* ---------------------------------------- */
