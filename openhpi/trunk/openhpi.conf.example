@@ -38,7 +38,7 @@
 ## the alarm table. The default 0 means unlimited.
 ## OPENHPI_DAT_USER_LIMIT sets the maximum number of user type alarm entries
 ## allowed in the alarm table. The default 0 means unlimited.
-## OPENHPI_DAT_SAVE sets wether the domain alarm table is persisted to disk or
+## OPENHPI_DAT_SAVE sets whether the domain alarm table is persisted to disk or
 ## not. The alarm table is written to OPENHPI_VARPATH value.
 ## OPENHPI_PATH is a colon (:) delimited list of directories specifying
 ## the location of openhpi plugin libraries. The default is defined when the
