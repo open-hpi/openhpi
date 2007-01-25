@@ -39,14 +39,15 @@
 ## OPENHPI_DAT_USER_LIMIT sets the maximum number of user type alarm entries
 ## allowed in the alarm table. The default 0 means unlimited.
 ## OPENHPI_DAT_SAVE sets whether the domain alarm table is persisted to disk or
-## not. The alarm table is written to OPENHPI_VARPATH value.
+## not. The alarm table is written to the directory where OPENHPI_VARPATH
+## points to.
 ## OPENHPI_PATH is a colon (:) delimited list of directories specifying
 ## the location of openhpi plugin libraries. The default is defined when the
 ## library is configured.
 ## OPENHPI_VARPATH is a directory to which certain openhpi data is saved to.
-## The DEL (Domain Event Log), DAT (Domain Alarm Table), and UID (Unique IDs used
-## for resources) mappings are saved to this directory. The default is set at
-## compile time through the ./configure options.
+## The DEL (Domain Event Log), DAT (Domain Alarm Table), and UID (Unique IDs
+## used for resources) mappings are saved to this directory. The default is set
+## at compile time through the ./configure options.
 #######
 
 #######
