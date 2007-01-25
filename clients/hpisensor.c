@@ -31,6 +31,7 @@ char progver[] = "1.1";
 int fdebug = 0;
 int fshowthr = 0;
 int fshowrange = 0;
+int fshowstate = 0;
 
 static void ShowSensor(SaHpiSessionIdT sessionid,
                        SaHpiResourceIdT resourceid,
@@ -50,16 +51,25 @@ static void ShowSensor(SaHpiSessionIdT sessionid,
                 return;
         }
         
-        if (!reading.IsSupported ) {
-                printf("= not supported\n");
-                return;
+        if (reading.IsSupported ) {        
+        	if((rv = oh_decode_sensorreading(reading, sensorrec->DataFormat, &text)) == SA_OK) {
+                	printf("= %s\n", text.Data);
+        	} else {
+                	printf("= FAILED, %s\n", oh_lookup_error(rv));
+        	}
+	} else {
+                printf("\n                Sensor reading is not supported\n");
         }
-        
-        if((rv = oh_decode_sensorreading(reading, sensorrec->DataFormat, &text)) == SA_OK) {
-                printf("= %s\n", text.Data);
-        } else {
-                printf("= FAILED, %s\n", oh_lookup_error(rv));
-        }
+	
+	if (fshowstate) {
+        	if ((rv = oh_decode_eventstate(events, sensorrec->Category, &text)) == SA_OK) {
+                	printf("                Current Sensor State = %s\n", text.Data);
+        	} else {
+			printf("                Can not decode Sensor EventState value %d\n", (int) events);
+		}
+	}
+	
+	
                 
         if (fshowrange) { // show ranges
                 printf("\t    Ranges::\n");
@@ -200,10 +210,11 @@ int main(int argc, char **argv)
                 
 	printf("%s: version %s\n",argv[0],progver); 
         
-        while ( (c = getopt( argc, argv,"rte:x?")) != EOF )
+        while ( (c = getopt( argc, argv,"rtse:x?")) != EOF )
                 switch(c) {
                 case 't': fshowthr = 1; break;
                 case 'r': fshowrange = 1; break;
+                case 's': fshowstate = 1; break;		
                 case 'x': fdebug = 1; break;
                 case 'e':
                         if (optarg) {
@@ -215,6 +226,7 @@ int main(int argc, char **argv)
                         printf("Usage %s [-t -r -x -e]\n",argv[0]);
                         printf("where -t = show Thresholds also\n");
                         printf("      -r = show Range values also\n");
+                        printf("      -s = show EventState also\n");			
                         printf("      -e entity path = limit to a single entity\n");
                         printf("      -x = show eXtra debug messages\n");
                         exit(1);
@@ -271,13 +283,9 @@ int main(int argc, char **argv)
                                            printf("   RDR[%6d]: Sensor[%3d] %s   \t",
                                                rdr.RecordId,
 					       rdr.RdrTypeUnion.SensorRec.Num,
-                                               rdr.IdString.Data);
-                                           if(rdr.RdrTypeUnion.SensorRec.DataFormat.IsSupported) {	
+                                               rdr.IdString.Data);	
                                                    ShowSensor(sessionid,resourceid,
                                                                &rdr.RdrTypeUnion.SensorRec);
-                                           } else {
-                                                   printf("reading not supported\n");
-                                           }
                                         } else {
                                            printf("   RDR[%6d]: %s %s\n",
                                                rdr.RecordId,
