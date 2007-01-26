@@ -55,7 +55,7 @@ extern "C" {
 #define SaHpiBoolType    SaHpiUint8Type
 #define SaHpiManufacturerIdType SaHpiUint32Type
 #define SaHpiVersionType SaHpiUint32Type
-#define SaErrorType SaHpiUint32Type
+#define SaErrorType SaHpiInt32Type
 
 #define SaHpiDomainIdType   SaHpiUint32Type
 #define SaHpiSessionIdType  SaHpiUint32Type
