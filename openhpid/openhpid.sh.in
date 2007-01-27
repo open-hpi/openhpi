@@ -74,7 +74,7 @@ print_outcome()
 }
 
 start() {
-	echo $"Starting $prog: "
+	echo -n $"Starting $prog: "
 	case "${lsbtype}" in
 		
 		rh) 
@@ -101,7 +101,7 @@ start() {
 }
 
 stop() {
-	echo $"Stopping $prog: "
+	echo -n $"Stopping $prog: "
 	
 	case "${lsbtype}" in
 		
