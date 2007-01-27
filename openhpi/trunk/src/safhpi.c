@@ -623,9 +623,11 @@ SaErrorT SAHPI_API saHpiEventLogEntryAdd (
         } else if (EvtEntry->Source != SAHPI_UNSPECIFIED_RESOURCE_ID) {
 		dbg("Error: Event.Source not what it should be");
 		return SA_ERR_HPI_INVALID_PARAMS;
+	} else if (EvtEntry->Severity == SAHPI_ALL_SEVERITIES) {
+		dbg("Error: SAHPI_ALL_SEVERITIES is not a valid here.");
+		return SA_ERR_HPI_INVALID_PARAMS;
 	} else if (!oh_lookup_severity(EvtEntry->Severity)) {
-                dbg("Error: Event Log Entry Severity %s is invalid",
-                    oh_lookup_severity(EvtEntry->Severity));
+                dbg("Error: Event Log Entry Severity is invalid");
                 return SA_ERR_HPI_INVALID_PARAMS;
         } else if (!oh_valid_textbuffer(&EvtEntry->EventDataUnion.UserEvent.UserEventData)) {
                 dbg("Error: Event Log UserData is invalid");
@@ -1094,7 +1096,6 @@ SaErrorT SAHPI_API saHpiEventAdd (
         struct oh_event e;
         SaHpiEventLogInfoT info;
         SaErrorT error = SA_OK;
-        struct timeval tv1;
 
         error = oh_valid_addevent(EvtEntry);
         if (error) {
@@ -1120,10 +1121,15 @@ SaErrorT SAHPI_API saHpiEventAdd (
         }
 
         e.hid = 0;
-        /* Timestamp the incoming user event */
-        gettimeofday(&tv1, NULL);
-        EvtEntry->Timestamp =
-                (SaHpiTimeT) tv1.tv_sec * 1000000000 + tv1.tv_usec * 1000;
+        /* Timestamp the incoming user event
+	 * only if it is SAHPI_TIME_UNSPECIFIED */
+	if (EvtEntry->Timestamp == SAHPI_TIME_UNSPECIFIED) {
+        	struct timeval tv1;
+	        gettimeofday(&tv1, NULL);
+        	EvtEntry->Timestamp =
+                	(SaHpiTimeT) tv1.tv_sec * 1000000000 +
+			tv1.tv_usec * 1000;
+	}
         /* Copy SaHpiEventT into oh_event struct */
         e.event = *EvtEntry;
         /* indicate there is no rdr or resource */
