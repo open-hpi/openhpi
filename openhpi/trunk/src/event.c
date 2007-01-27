@@ -164,12 +164,17 @@ static int oh_add_event_to_del(struct oh_domain *d, struct oh_event *e)
             e->event.Severity <= param.u.log_on_sev) {
                 param.type = OPENHPI_DEL_SAVE;
                 oh_get_global_param(&param);
+		SaHpiEventLogInfoT elinfo;
 
                 SaHpiRdrT *rdr = (e->rdrs) ? (SaHpiRdrT *)e->rdrs->data : NULL;
                 SaHpiRptEntryT *rpte =
                         (e->resource.ResourceCapabilities) ?
                                 &e->resource : NULL;
-                error = oh_el_append(d->del, &e->event, rdr, rpte);
+		error = oh_el_info(d->del, &elinfo);
+		if (error == SA_OK && elinfo.Enabled) {
+                	error = oh_el_append(d->del, &e->event, rdr, rpte);
+		}
+
                 if (param.u.del_save) {
                         param.type = OPENHPI_VARPATH;
                         oh_get_global_param(&param);
