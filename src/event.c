@@ -311,7 +311,10 @@ static int process_event(SaHpiDomainIdT did,
 {
         struct oh_domain *d = NULL;
 
-        if (!e) return -1;
+        if (!e) {
+		dbg("Got NULL event");
+		return -1;
+	}
 
         d = oh_get_domain(did);
         if (!d) return -2;
@@ -355,10 +358,12 @@ static int process_event(SaHpiDomainIdT did,
         case SAHPI_ET_SENSOR_ENABLE_CHANGE:
         case SAHPI_ET_WATCHDOG:
         case SAHPI_ET_OEM:
+	case SAHPI_ET_DOMAIN:
+	case SAHPI_ET_USER:
                 process_hpi_event(d, e);
                 break;
         default:
-                ;
+		dbg("Don't know what to do for event type  %d", e->event.EventType);
         }
         oh_detect_event_alarm(d, e);
         oh_release_domain(d);
