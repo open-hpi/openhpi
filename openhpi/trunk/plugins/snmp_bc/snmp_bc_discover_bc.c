@@ -409,7 +409,7 @@ char *bladeexpansiondesc[] = {
  * Return values:
  * SA_OK - normal case
  * SA_ERR_HPI_DUPLICATE - There is no changes to BladeCenter resource masks; normal case for re-discovery.
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_OUT_OF_MEMORY - Cannot allocate space for internal memory.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
  **/
 
@@ -705,7 +705,7 @@ SaErrorT snmp_bc_update_chassis_topo(struct oh_handler_state *handle)
  *
  * Return values:
  * SA_OK - normal case.
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_OUT_OF_MEMORY - Cannot allocate space for internal memory.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer parameters are NULL.
  **/
 SaErrorT snmp_bc_discover_media_tray(struct oh_handler_state *handle,
@@ -735,7 +735,7 @@ SaErrorT snmp_bc_discover_media_tray(struct oh_handler_state *handle,
 	e = snmp_bc_alloc_oh_event();
 	if (e == NULL) {
 		dbg("Out of memory.");
-		return(SA_ERR_HPI_OUT_OF_SPACE);
+		return(SA_ERR_HPI_OUT_OF_MEMORY);
 	}
 	
 	/* ---------------------------------------- */
@@ -763,7 +763,7 @@ SaErrorT snmp_bc_discover_media_tray(struct oh_handler_state *handle,
 	if (!res_info_ptr) {
 		dbg("Out of memory.");
 		snmp_bc_free_oh_event(e);
-		return(SA_ERR_HPI_OUT_OF_SPACE);
+		return(SA_ERR_HPI_OUT_OF_MEMORY);
 	}
 
 
@@ -839,7 +839,7 @@ SaErrorT snmp_bc_discover_media_tray(struct oh_handler_state *handle,
 		e = snmp_bc_alloc_oh_event();
 		if (e == NULL) {
 			dbg("Out of memory.");
-			return(SA_ERR_HPI_OUT_OF_SPACE);
+			return(SA_ERR_HPI_OUT_OF_MEMORY);
 		}
 	
 		/* ---------------------------------------- */
@@ -867,7 +867,7 @@ SaErrorT snmp_bc_discover_media_tray(struct oh_handler_state *handle,
 		if (!res_info_ptr) {
 			dbg("Out of memory.");
 			snmp_bc_free_oh_event(e);
-			return(SA_ERR_HPI_OUT_OF_SPACE);
+			return(SA_ERR_HPI_OUT_OF_MEMORY);
 		}
 
 
@@ -945,7 +945,7 @@ SaErrorT snmp_bc_discover_media_tray(struct oh_handler_state *handle,
  *
  * Return values:
  * SA_OK - normal case.
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_OUT_OF_MEMORY - Cannot allocate space for internal memory.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer parameters are NULL.
  **/
 SaErrorT snmp_bc_discover_filter(struct oh_handler_state *handle,
@@ -973,7 +973,7 @@ SaErrorT snmp_bc_discover_filter(struct oh_handler_state *handle,
 	e = snmp_bc_alloc_oh_event();
 	if (e == NULL) {
 		dbg("Out of memory.");
-		return(SA_ERR_HPI_OUT_OF_SPACE);
+		return(SA_ERR_HPI_OUT_OF_MEMORY);
 	}
 	
 	/* ---------------------------------------- */
@@ -999,7 +999,7 @@ SaErrorT snmp_bc_discover_filter(struct oh_handler_state *handle,
 	if (!res_info_ptr) {
 		dbg("Out of memory.");
 		snmp_bc_free_oh_event(e);
-		return(SA_ERR_HPI_OUT_OF_SPACE);
+		return(SA_ERR_HPI_OUT_OF_MEMORY);
 	}
 
 
@@ -1063,7 +1063,7 @@ SaErrorT snmp_bc_discover_filter(struct oh_handler_state *handle,
  *
  * Return values:
  * SA_OK - normal case.
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_OUT_OF_MEMORY - Cannot allocate space for internal memory.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
  **/
 SaErrorT snmp_bc_discover_chassis(struct oh_handler_state *handle,
@@ -1093,7 +1093,7 @@ SaErrorT snmp_bc_discover_chassis(struct oh_handler_state *handle,
 	e = snmp_bc_alloc_oh_event();
 	if (e == NULL) {
 		dbg("Out of memory.");
-		return(SA_ERR_HPI_OUT_OF_SPACE);
+		return(SA_ERR_HPI_OUT_OF_MEMORY);
 	}
 	e->resource = snmp_bc_rpt_array[BC_RPT_ENTRY_CHASSIS].rpt;
 	
@@ -1140,7 +1140,7 @@ SaErrorT snmp_bc_discover_chassis(struct oh_handler_state *handle,
 	if (!res_info_ptr) {
 		dbg("Out of memory.");
 		snmp_bc_free_oh_event(e);
-		return(SA_ERR_HPI_OUT_OF_SPACE);
+		return(SA_ERR_HPI_OUT_OF_MEMORY);
 	}
 
 	res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
@@ -1210,7 +1210,7 @@ SaErrorT snmp_bc_discover_chassis(struct oh_handler_state *handle,
  *
  * Return values:
  * SA_OK - normal case.
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_OUT_OF_MEMORY - Cannot allocate space for internal memory.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
  **/
 SaErrorT snmp_bc_discover_blade(struct oh_handler_state *handle,
@@ -1244,7 +1244,7 @@ SaErrorT snmp_bc_discover_blade(struct oh_handler_state *handle,
 			e = snmp_bc_alloc_oh_event();
 			if (e == NULL) {
 				dbg("Out of memory.");
-				return(SA_ERR_HPI_OUT_OF_SPACE);
+				return(SA_ERR_HPI_OUT_OF_MEMORY);
 			}
 									
 			/* ---------------------------------------- */
@@ -1309,7 +1309,7 @@ SaErrorT snmp_bc_discover_blade(struct oh_handler_state *handle,
  *
  * Return values:
  * SA_OK - normal case.
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_OUT_OF_MEMORY - Cannot allocate space for internal memory.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
  **/
 SaErrorT snmp_bc_discover_blade_expansion(struct oh_handler_state *handle,
@@ -1434,7 +1434,7 @@ SaErrorT snmp_bc_discover_blade_expansion(struct oh_handler_state *handle,
  *
  * Return values:
  * SA_OK - normal case.
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_OUT_OF_MEMORY - Cannot allocate space for internal memory.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
  **/
 SaErrorT snmp_bc_add_blade_expansion_resource(struct oh_handler_state *handle,
@@ -1465,7 +1465,7 @@ SaErrorT snmp_bc_add_blade_expansion_resource(struct oh_handler_state *handle,
 		e = snmp_bc_alloc_oh_event();
 		if (e == NULL) {
 			dbg("Out of memory.");
-			return(SA_ERR_HPI_OUT_OF_SPACE);
+			return(SA_ERR_HPI_OUT_OF_MEMORY);
 		}
 
 									
@@ -1498,7 +1498,7 @@ SaErrorT snmp_bc_add_blade_expansion_resource(struct oh_handler_state *handle,
 		if (!res_info_ptr) {
 			dbg("Out of memory.");
 			snmp_bc_free_oh_event(e);
-			return(SA_ERR_HPI_OUT_OF_SPACE);
+			return(SA_ERR_HPI_OUT_OF_MEMORY);
 		}
 
 		res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
@@ -1554,7 +1554,7 @@ SaErrorT snmp_bc_add_blade_expansion_resource(struct oh_handler_state *handle,
  *
  * Return values:
  * SA_OK - normal case.
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_OUT_OF_MEMORY - Cannot allocate space for internal memory.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer paramter(s) NULL.
  **/
 SaErrorT snmp_bc_discover_blowers(struct oh_handler_state *handle,
@@ -1589,7 +1589,7 @@ SaErrorT snmp_bc_discover_blowers(struct oh_handler_state *handle,
 			e = snmp_bc_alloc_oh_event();
 			if (e == NULL) {
 				dbg("Out of memory.");
-				return(SA_ERR_HPI_OUT_OF_SPACE);
+				return(SA_ERR_HPI_OUT_OF_MEMORY);
 			}
 									
 			/* ---------------------------------------- */
@@ -1643,7 +1643,7 @@ SaErrorT snmp_bc_discover_blowers(struct oh_handler_state *handle,
  *
  * Return values:
  * SA_OK - normal case.
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_OUT_OF_MEMORY - Cannot allocate space for internal memory.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer paramter(s) NULL.
  **/
 SaErrorT snmp_bc_discover_tap(struct oh_handler_state *handle,
@@ -1678,7 +1678,7 @@ SaErrorT snmp_bc_discover_tap(struct oh_handler_state *handle,
 			e = snmp_bc_alloc_oh_event();
 			if (e == NULL) {
 				dbg("Out of memory.");
-				return(SA_ERR_HPI_OUT_OF_SPACE);
+				return(SA_ERR_HPI_OUT_OF_MEMORY);
 			}
 									
 			/* ---------------------------------------- */
@@ -1733,7 +1733,7 @@ SaErrorT snmp_bc_discover_tap(struct oh_handler_state *handle,
  *
  * Return values:
  * SA_OK - normal case.
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_OUT_OF_MEMORY - Cannot allocate space for internal memory.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
  **/
 SaErrorT snmp_bc_construct_tap_rpt(struct oh_event* e, 
@@ -1765,7 +1765,7 @@ SaErrorT snmp_bc_construct_tap_rpt(struct oh_event* e,
 						sizeof(struct ResourceInfo));
 	if (!(*res_info_ptr)) {
 		dbg("Out of memory.");
-		return(SA_ERR_HPI_OUT_OF_SPACE);
+		return(SA_ERR_HPI_OUT_OF_MEMORY);
 	}
 	
 	return(SA_OK);
@@ -1783,7 +1783,7 @@ SaErrorT snmp_bc_construct_tap_rpt(struct oh_event* e,
  *
  * Return values:
  * SA_OK - normal case.
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_OUT_OF_MEMORY - Cannot allocate space for internal memory.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
  **/
 SaErrorT snmp_bc_add_tap_rptcache(struct oh_handler_state *handle, 
@@ -1859,7 +1859,7 @@ SaErrorT snmp_bc_add_tap_rptcache(struct oh_handler_state *handle,
  *
  * Return values:
  * SA_OK - normal case.
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_OUT_OF_MEMORY - Cannot allocate space for internal memory.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
  **/
 SaErrorT snmp_bc_discover_tap_i(struct oh_handler_state *handle,
@@ -1882,7 +1882,7 @@ SaErrorT snmp_bc_discover_tap_i(struct oh_handler_state *handle,
 	e = snmp_bc_alloc_oh_event();
 	if (e == NULL) {
 		dbg("Out of memory.");
-		return(SA_ERR_HPI_OUT_OF_SPACE);
+		return(SA_ERR_HPI_OUT_OF_MEMORY);
 	}
 									
 	/* ---------------------------------------- */
@@ -1915,7 +1915,7 @@ SaErrorT snmp_bc_discover_tap_i(struct oh_handler_state *handle,
  *
  * Return values:
  * SA_OK - normal case.
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_OUT_OF_MEMORY - Cannot allocate space for internal memory.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer paramter(s) NULL.
  **/
 SaErrorT snmp_bc_discover_smi(struct oh_handler_state *handle,
@@ -1950,7 +1950,7 @@ SaErrorT snmp_bc_discover_smi(struct oh_handler_state *handle,
 			e = snmp_bc_alloc_oh_event();
 			if (e == NULL) {
 				dbg("Out of memory.");
-				return(SA_ERR_HPI_OUT_OF_SPACE);
+				return(SA_ERR_HPI_OUT_OF_MEMORY);
 			}
 									
 			/* ---------------------------------------- */
@@ -2005,7 +2005,7 @@ SaErrorT snmp_bc_discover_smi(struct oh_handler_state *handle,
  *
  * Return values:
  * SA_OK - normal case.
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_OUT_OF_MEMORY - Cannot allocate space for internal memory.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
  **/
 SaErrorT snmp_bc_construct_smi_rpt(struct oh_event* e, 
@@ -2037,7 +2037,7 @@ SaErrorT snmp_bc_construct_smi_rpt(struct oh_event* e,
 						sizeof(struct ResourceInfo));
 	if (!(*res_info_ptr)) {
 		dbg("Out of memory.");
-		return(SA_ERR_HPI_OUT_OF_SPACE);
+		return(SA_ERR_HPI_OUT_OF_MEMORY);
 	}
 	
 	return(SA_OK);
@@ -2055,7 +2055,7 @@ SaErrorT snmp_bc_construct_smi_rpt(struct oh_event* e,
  *
  * Return values:
  * SA_OK - normal case.
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_OUT_OF_MEMORY - Cannot allocate space for internal memory.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
  **/
 SaErrorT snmp_bc_add_smi_rptcache(struct oh_handler_state *handle, 
@@ -2119,7 +2119,7 @@ SaErrorT snmp_bc_add_smi_rptcache(struct oh_handler_state *handle,
  *
  * Return values:
  * SA_OK - normal case.
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_OUT_OF_MEMORY - Cannot allocate space for internal memory.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
  **/
 SaErrorT snmp_bc_discover_smi_i(struct oh_handler_state *handle,
@@ -2142,7 +2142,7 @@ SaErrorT snmp_bc_discover_smi_i(struct oh_handler_state *handle,
 	e = snmp_bc_alloc_oh_event();
 	if (e == NULL) {
 		dbg("Out of memory.");
-		return(SA_ERR_HPI_OUT_OF_SPACE);
+		return(SA_ERR_HPI_OUT_OF_MEMORY);
 	}
 									
 	/* ---------------------------------------- */
@@ -2175,7 +2175,7 @@ SaErrorT snmp_bc_discover_smi_i(struct oh_handler_state *handle,
  *
  * Return values:
  * SA_OK - normal case.
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_OUT_OF_MEMORY - Cannot allocate space for internal memory.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer paramter(s) NULL.
  **/
 SaErrorT snmp_bc_discover_mmi(struct oh_handler_state *handle,
@@ -2211,7 +2211,7 @@ SaErrorT snmp_bc_discover_mmi(struct oh_handler_state *handle,
 			e = snmp_bc_alloc_oh_event();
 			if (e == NULL) {
 				dbg("Out of memory.");
-				return(SA_ERR_HPI_OUT_OF_SPACE);
+				return(SA_ERR_HPI_OUT_OF_MEMORY);
 			}
 									
 			/* ---------------------------------------- */
@@ -2266,7 +2266,7 @@ SaErrorT snmp_bc_discover_mmi(struct oh_handler_state *handle,
  *
  * Return values:
  * SA_OK - normal case.
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_OUT_OF_MEMORY - Cannot allocate space for internal memory.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
  **/
 SaErrorT snmp_bc_construct_mmi_rpt(struct oh_event* e, 
@@ -2298,7 +2298,7 @@ SaErrorT snmp_bc_construct_mmi_rpt(struct oh_event* e,
 						sizeof(struct ResourceInfo));
 	if (!(*res_info_ptr)) {
 		dbg("Out of memory.");
-		return(SA_ERR_HPI_OUT_OF_SPACE);
+		return(SA_ERR_HPI_OUT_OF_MEMORY);
 	}
 	
 	return(SA_OK);
@@ -2316,7 +2316,7 @@ SaErrorT snmp_bc_construct_mmi_rpt(struct oh_event* e,
  *
  * Return values:
  * SA_OK - normal case.
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_OUT_OF_MEMORY - Cannot allocate space for internal memory.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
  **/
 SaErrorT snmp_bc_add_mmi_rptcache(struct oh_handler_state *handle, 
@@ -2380,7 +2380,7 @@ SaErrorT snmp_bc_add_mmi_rptcache(struct oh_handler_state *handle,
  *
  * Return values:
  * SA_OK - normal case.
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_OUT_OF_MEMORY - Cannot allocate space for internal memory.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
  **/
 SaErrorT snmp_bc_discover_mmi_i(struct oh_handler_state *handle,
@@ -2404,7 +2404,7 @@ SaErrorT snmp_bc_discover_mmi_i(struct oh_handler_state *handle,
 	e = snmp_bc_alloc_oh_event();
 	if (e == NULL) {
 		dbg("Out of memory.");
-		return(SA_ERR_HPI_OUT_OF_SPACE);
+		return(SA_ERR_HPI_OUT_OF_MEMORY);
 	}
 									
 	/* ---------------------------------------- */
@@ -2437,7 +2437,7 @@ SaErrorT snmp_bc_discover_mmi_i(struct oh_handler_state *handle,
  *
  * Return values:
  * SA_OK - normal case.
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_OUT_OF_MEMORY - Cannot allocate space for internal memory.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer paramter(s) NULL.
  **/
 SaErrorT snmp_bc_discover_nc(struct oh_handler_state *handle,
@@ -2472,7 +2472,7 @@ SaErrorT snmp_bc_discover_nc(struct oh_handler_state *handle,
 			e = snmp_bc_alloc_oh_event();
 			if (e == NULL) {
 				dbg("Out of memory.");
-				return(SA_ERR_HPI_OUT_OF_SPACE);
+				return(SA_ERR_HPI_OUT_OF_MEMORY);
 			}
 									
 			/* ---------------------------------------- */
@@ -2527,7 +2527,7 @@ SaErrorT snmp_bc_discover_nc(struct oh_handler_state *handle,
  *
  * Return values:
  * SA_OK - normal case.
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_OUT_OF_MEMORY - Cannot allocate space for internal memory.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
  **/
 SaErrorT snmp_bc_construct_nc_rpt(struct oh_event* e, 
@@ -2559,7 +2559,7 @@ SaErrorT snmp_bc_construct_nc_rpt(struct oh_event* e,
 						sizeof(struct ResourceInfo));
 	if (!(*res_info_ptr)) {
 		dbg("Out of memory.");
-		return(SA_ERR_HPI_OUT_OF_SPACE);
+		return(SA_ERR_HPI_OUT_OF_MEMORY);
 	}
 	
 	return(SA_OK);
@@ -2577,7 +2577,7 @@ SaErrorT snmp_bc_construct_nc_rpt(struct oh_event* e,
  *
  * Return values:
  * SA_OK - normal case.
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_OUT_OF_MEMORY - Cannot allocate space for internal memory.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
  **/
 SaErrorT snmp_bc_add_nc_rptcache(struct oh_handler_state *handle, 
@@ -2653,7 +2653,7 @@ SaErrorT snmp_bc_add_nc_rptcache(struct oh_handler_state *handle,
  *
  * Return values:
  * SA_OK - normal case.
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_OUT_OF_MEMORY - Cannot allocate space for internal memory.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
  **/
 SaErrorT snmp_bc_discover_nc_i(struct oh_handler_state *handle,
@@ -2676,7 +2676,7 @@ SaErrorT snmp_bc_discover_nc_i(struct oh_handler_state *handle,
 	e = snmp_bc_alloc_oh_event();
 	if (e == NULL) {
 		dbg("Out of memory.");
-		return(SA_ERR_HPI_OUT_OF_SPACE);
+		return(SA_ERR_HPI_OUT_OF_MEMORY);
 	}
 									
 	/* ---------------------------------------- */
@@ -2709,7 +2709,7 @@ SaErrorT snmp_bc_discover_nc_i(struct oh_handler_state *handle,
  *
  * Return values:
  * SA_OK - normal case.
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_OUT_OF_MEMORY - Cannot allocate space for internal memory.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer paramter(s) NULL.
  **/
 SaErrorT snmp_bc_discover_mx(struct oh_handler_state *handle,
@@ -2744,7 +2744,7 @@ SaErrorT snmp_bc_discover_mx(struct oh_handler_state *handle,
 			e = snmp_bc_alloc_oh_event();
 			if (e == NULL) {
 				dbg("Out of memory.");
-				return(SA_ERR_HPI_OUT_OF_SPACE);
+				return(SA_ERR_HPI_OUT_OF_MEMORY);
 			}
 									
 			/* ---------------------------------------- */
@@ -2799,7 +2799,7 @@ SaErrorT snmp_bc_discover_mx(struct oh_handler_state *handle,
  *
  * Return values:
  * SA_OK - normal case.
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_OUT_OF_MEMORY - Cannot allocate space for internal memory.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
  **/
 SaErrorT snmp_bc_construct_mx_rpt(struct oh_event* e, 
@@ -2831,7 +2831,7 @@ SaErrorT snmp_bc_construct_mx_rpt(struct oh_event* e,
 						sizeof(struct ResourceInfo));
 	if (!(*res_info_ptr)) {
 		dbg("Out of memory.");
-		return(SA_ERR_HPI_OUT_OF_SPACE);
+		return(SA_ERR_HPI_OUT_OF_MEMORY);
 	}
 	
 	return(SA_OK);
@@ -2849,7 +2849,7 @@ SaErrorT snmp_bc_construct_mx_rpt(struct oh_event* e,
  *
  * Return values:
  * SA_OK - normal case.
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_OUT_OF_MEMORY - Cannot allocate space for internal memory.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
  **/
 SaErrorT snmp_bc_add_mx_rptcache(struct oh_handler_state *handle, 
@@ -2925,7 +2925,7 @@ SaErrorT snmp_bc_add_mx_rptcache(struct oh_handler_state *handle,
  *
  * Return values:
  * SA_OK - normal case.
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_OUT_OF_MEMORY - Cannot allocate space for internal memory.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
  **/
 SaErrorT snmp_bc_discover_mx_i(struct oh_handler_state *handle,
@@ -2948,7 +2948,7 @@ SaErrorT snmp_bc_discover_mx_i(struct oh_handler_state *handle,
 	e = snmp_bc_alloc_oh_event();
 	if (e == NULL) {
 		dbg("Out of memory.");
-		return(SA_ERR_HPI_OUT_OF_SPACE);
+		return(SA_ERR_HPI_OUT_OF_MEMORY);
 	}
 									
 	/* ---------------------------------------- */
@@ -2981,7 +2981,7 @@ SaErrorT snmp_bc_discover_mx_i(struct oh_handler_state *handle,
  *
  * Return values:
  * SA_OK - normal case.
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_OUT_OF_MEMORY - Cannot allocate space for internal memory.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
  **/
 SaErrorT snmp_bc_discover_power_module(struct oh_handler_state *handle,
@@ -3016,7 +3016,7 @@ SaErrorT snmp_bc_discover_power_module(struct oh_handler_state *handle,
 			e = snmp_bc_alloc_oh_event();
 			if (e == NULL) {
 				dbg("Out of memory.");
-				return(SA_ERR_HPI_OUT_OF_SPACE);
+				return(SA_ERR_HPI_OUT_OF_MEMORY);
 			}
 
 									
@@ -3070,7 +3070,7 @@ SaErrorT snmp_bc_discover_power_module(struct oh_handler_state *handle,
  *
  * Return values:
  * SA_OK - normal case.
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_OUT_OF_MEMORY - Cannot allocate space for internal memory.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
  **/
 SaErrorT snmp_bc_discover_switch(struct oh_handler_state *handle,
@@ -3105,7 +3105,7 @@ SaErrorT snmp_bc_discover_switch(struct oh_handler_state *handle,
 			e = snmp_bc_alloc_oh_event();
 			if (e == NULL) {
 				dbg("Out of memory.");
-				return(SA_ERR_HPI_OUT_OF_SPACE);
+				return(SA_ERR_HPI_OUT_OF_MEMORY);
 			}
 
 									
@@ -3162,7 +3162,7 @@ SaErrorT snmp_bc_discover_switch(struct oh_handler_state *handle,
  *
  * Return values:
  * SA_OK - normal case.
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_OUT_OF_MEMORY - Cannot allocate space for internal memory.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
  **/
 SaErrorT snmp_bc_discover_mm(struct oh_handler_state *handle,
@@ -3200,7 +3200,7 @@ SaErrorT snmp_bc_discover_mm(struct oh_handler_state *handle,
 		e = snmp_bc_alloc_oh_event();
 		if (e == NULL) {
 			dbg("Out of memory.");
-			return(SA_ERR_HPI_OUT_OF_SPACE);
+			return(SA_ERR_HPI_OUT_OF_MEMORY);
 		}
 
 									
@@ -3227,7 +3227,7 @@ SaErrorT snmp_bc_discover_mm(struct oh_handler_state *handle,
                 if (!res_info_ptr) {
                         dbg("Out of memory.");
                         snmp_bc_free_oh_event(e);
-                        return(SA_ERR_HPI_OUT_OF_SPACE);
+                        return(SA_ERR_HPI_OUT_OF_MEMORY);
                 }
 
                 /* Add resource to resource cache */
@@ -3313,7 +3313,7 @@ SaErrorT snmp_bc_discover_mm(struct oh_handler_state *handle,
 			e = snmp_bc_alloc_oh_event();
 			if (e == NULL) {
 				dbg("Out of memory.");
-				return(SA_ERR_HPI_OUT_OF_SPACE);
+				return(SA_ERR_HPI_OUT_OF_MEMORY);
 			}
 									
 			/* ---------------------------------------- */
@@ -3367,7 +3367,7 @@ SaErrorT snmp_bc_discover_mm(struct oh_handler_state *handle,
  *
  * Return values:
  * Adds sensor RDRs to internal Infra-structure queues - normal case
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory
+ * SA_ERR_HPI_OUT_OF_MEMORY - Cannot allocate space for internal memory
  **/
 static SaErrorT snmp_bc_discover_ipmi_sensors(struct oh_handler_state *handle,
 					      struct snmp_bc_ipmi_sensor *sensor_array,
@@ -3403,7 +3403,7 @@ static SaErrorT snmp_bc_discover_ipmi_sensors(struct oh_handler_state *handle,
 	
 	if (ipmi_sensor_hash == NULL) {
 		dbg("Out of memory.");
-		return(SA_ERR_HPI_OUT_OF_SPACE);
+		return(SA_ERR_HPI_OUT_OF_MEMORY);
 	}
 
 	/***************************************** 
@@ -3451,7 +3451,7 @@ static SaErrorT snmp_bc_discover_ipmi_sensors(struct oh_handler_state *handle,
 				if (!mib_info) {
 					dbg("Out of memory.");
 					g_free(ipmi_tag);
-					rtn_code = SA_ERR_HPI_OUT_OF_SPACE;
+					rtn_code = SA_ERR_HPI_OUT_OF_MEMORY;
 					goto CLEANUP;
 				}
 				g_hash_table_insert(ipmi_sensor_hash, ipmi_tag, mib_info);
@@ -3503,7 +3503,7 @@ static SaErrorT snmp_bc_discover_ipmi_sensors(struct oh_handler_state *handle,
 				if (!mib_info) {
 					dbg("Out of memory.");
 					g_free(ipmi_tag);
-					rtn_code = SA_ERR_HPI_OUT_OF_SPACE;
+					rtn_code = SA_ERR_HPI_OUT_OF_MEMORY;
 					goto CLEANUP;
 				}
 				g_hash_table_insert(ipmi_sensor_hash, ipmi_tag, mib_info);
@@ -3530,7 +3530,7 @@ static SaErrorT snmp_bc_discover_ipmi_sensors(struct oh_handler_state *handle,
 			rdrptr = (SaHpiRdrT *)g_malloc0(sizeof(SaHpiRdrT));
 			if (rdrptr == NULL) {
 				dbg("Out of memory.");
-				rtn_code = SA_ERR_HPI_OUT_OF_SPACE;
+				rtn_code = SA_ERR_HPI_OUT_OF_MEMORY;
 				goto CLEANUP;
 			}
 
@@ -3547,7 +3547,7 @@ static SaErrorT snmp_bc_discover_ipmi_sensors(struct oh_handler_state *handle,
 			sinfo = g_memdup(&(sensor_array[i].ipmi.sensor_info), sizeof(struct SensorInfo));
 			if (!sinfo) {
 				dbg("Out of memory.");
-				rtn_code = SA_ERR_HPI_OUT_OF_SPACE;
+				rtn_code = SA_ERR_HPI_OUT_OF_MEMORY;
 				g_free(rdrptr);
 				goto CLEANUP;
 			}
@@ -3973,7 +3973,7 @@ SaErrorT snmp_bc_rediscover(struct oh_handler_state *handle,
  *
  * Return values:
  * SA_OK - normal case.
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_OUT_OF_MEMORY - Cannot allocate space for internal memory.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
   **/
 SaErrorT snmp_bc_discover_all_slots(struct oh_handler_state *handle,
@@ -4044,7 +4044,7 @@ SaErrorT snmp_bc_discover_all_slots(struct oh_handler_state *handle,
  *
  * Return values:
  * SA_OK - normal case.
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_OUT_OF_MEMORY - Cannot allocate space for internal memory.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
   **/
 SaErrorT snmp_bc_discover_slot( struct oh_handler_state *handle,
@@ -4076,7 +4076,7 @@ SaErrorT snmp_bc_discover_slot( struct oh_handler_state *handle,
 	e = snmp_bc_alloc_oh_event();
 	if (e == NULL) {
 		dbg("Out of memory.");
-		return(SA_ERR_HPI_OUT_OF_SPACE);
+		return(SA_ERR_HPI_OUT_OF_MEMORY);
 	}
 		
 	/* ---------------------------------------- */
@@ -4152,7 +4152,7 @@ SaErrorT snmp_bc_discover_slot( struct oh_handler_state *handle,
 	if (!res_info_ptr) {
 		dbg("Out of memory.");
 		g_free(e);
-		return(SA_ERR_HPI_OUT_OF_SPACE);
+		return(SA_ERR_HPI_OUT_OF_MEMORY);
 	}
 	
 	err = oh_add_resource(handle->rptcache,
@@ -4235,7 +4235,7 @@ guint snmp_bc_isrediscover(SaHpiEventT *working_event)
  *
  * Return values:
  * SA_OK - normal case.
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_OUT_OF_MEMORY - Cannot allocate space for internal memory.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
  **/
 SaErrorT snmp_bc_construct_blade_rpt(struct oh_event *e, 
@@ -4258,7 +4258,7 @@ SaErrorT snmp_bc_construct_blade_rpt(struct oh_event *e,
 						sizeof(struct ResourceInfo));
 	if (!(*res_info_ptr)) {
 		dbg("Out of memory.");
-		return(SA_ERR_HPI_OUT_OF_SPACE);
+		return(SA_ERR_HPI_OUT_OF_MEMORY);
 	}
 	
 	return(SA_OK);	
@@ -4276,7 +4276,7 @@ SaErrorT snmp_bc_construct_blade_rpt(struct oh_event *e,
  *
  * Return values:
  * SA_OK - normal case.
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_OUT_OF_MEMORY - Cannot allocate space for internal memory.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
  **/
 SaErrorT snmp_bc_construct_blower_rpt(struct oh_event* e, 
@@ -4308,7 +4308,7 @@ SaErrorT snmp_bc_construct_blower_rpt(struct oh_event* e,
 						sizeof(struct ResourceInfo));
 	if (!(*res_info_ptr)) {
 		dbg("Out of memory.");
-		return(SA_ERR_HPI_OUT_OF_SPACE);
+		return(SA_ERR_HPI_OUT_OF_MEMORY);
 	}
 	
 	return(SA_OK);
@@ -4327,7 +4327,7 @@ SaErrorT snmp_bc_construct_blower_rpt(struct oh_event* e,
  *
  * Return values:
  * SA_OK - normal case.
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_OUT_OF_MEMORY - Cannot allocate space for internal memory.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
  **/
 SaErrorT snmp_bc_construct_pm_rpt(struct oh_event *e, 
@@ -4359,7 +4359,7 @@ SaErrorT snmp_bc_construct_pm_rpt(struct oh_event *e,
 						sizeof(struct ResourceInfo));
 	if (!(*res_info_ptr)) {
 		dbg("Out of memory.");
-		return(SA_ERR_HPI_OUT_OF_SPACE);
+		return(SA_ERR_HPI_OUT_OF_MEMORY);
 	}
 	
 	return(SA_OK);
@@ -4375,7 +4375,7 @@ SaErrorT snmp_bc_construct_pm_rpt(struct oh_event *e,
  *
  * Return values:
  * SA_OK - normal case.
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_OUT_OF_MEMORY - Cannot allocate space for internal memory.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
  **/
 SaErrorT snmp_bc_construct_sm_rpt(struct oh_event *e, 
@@ -4416,7 +4416,7 @@ SaErrorT snmp_bc_construct_sm_rpt(struct oh_event *e,
 						sizeof(struct ResourceInfo));
 	if (!(*res_info_ptr)) {
 		dbg("Out of memory.");
-		return(SA_ERR_HPI_OUT_OF_SPACE);
+		return(SA_ERR_HPI_OUT_OF_MEMORY);
 	}
 	
 	return(SA_OK);
@@ -4433,7 +4433,7 @@ SaErrorT snmp_bc_construct_sm_rpt(struct oh_event *e,
  *
  * Return values:
  * SA_OK - normal case.
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_OUT_OF_MEMORY - Cannot allocate space for internal memory.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
  **/
 SaErrorT snmp_bc_construct_mm_rpt(struct oh_event *e, 
@@ -4473,7 +4473,7 @@ SaErrorT snmp_bc_construct_mm_rpt(struct oh_event *e,
                         	                sizeof(struct ResourceInfo));
         if (!(*res_info_ptr)) {
         	dbg("Out of memory.");
-                return(SA_ERR_HPI_OUT_OF_SPACE);
+                return(SA_ERR_HPI_OUT_OF_MEMORY);
         }
 	
 	return(SA_OK);
@@ -4492,7 +4492,7 @@ SaErrorT snmp_bc_construct_mm_rpt(struct oh_event *e,
  *
  * Return values:
  * SA_OK - normal case.
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_OUT_OF_MEMORY - Cannot allocate space for internal memory.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
  **/
 SaErrorT snmp_bc_add_blade_rptcache(struct oh_handler_state *handle, 
@@ -4613,7 +4613,7 @@ SaErrorT snmp_bc_add_blade_rptcache(struct oh_handler_state *handle,
  *
  * Return values:
  * SA_OK - normal case.
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_OUT_OF_MEMORY - Cannot allocate space for internal memory.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
  **/
 SaErrorT snmp_bc_add_blower_rptcache(struct oh_handler_state *handle, 
@@ -4691,7 +4691,7 @@ SaErrorT snmp_bc_add_blower_rptcache(struct oh_handler_state *handle,
  *
  * Return values:
  * SA_OK - normal case.
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_OUT_OF_MEMORY - Cannot allocate space for internal memory.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
  **/
 SaErrorT snmp_bc_add_pm_rptcache(struct oh_handler_state *handle, 
@@ -4771,7 +4771,7 @@ SaErrorT snmp_bc_add_pm_rptcache(struct oh_handler_state *handle,
  *
  * Return values:
  * SA_OK - normal case.
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_OUT_OF_MEMORY - Cannot allocate space for internal memory.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
  **/
 SaErrorT snmp_bc_add_switch_rptcache(struct oh_handler_state *handle, 
@@ -4853,7 +4853,7 @@ SaErrorT snmp_bc_add_switch_rptcache(struct oh_handler_state *handle,
  *
  * Return values:
  * SA_OK - normal case.
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_OUT_OF_MEMORY - Cannot allocate space for internal memory.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
  **/
 SaErrorT snmp_bc_add_mm_rptcache(struct oh_handler_state *handle, 
@@ -4955,7 +4955,7 @@ SaErrorT snmp_bc_add_mm_rptcache(struct oh_handler_state *handle,
  *
  * Return values:
  * SA_OK - normal case.
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_OUT_OF_MEMORY - Cannot allocate space for internal memory.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
  **/
 SaErrorT snmp_bc_discover_blade_i(struct oh_handler_state *handle,
@@ -4978,7 +4978,7 @@ SaErrorT snmp_bc_discover_blade_i(struct oh_handler_state *handle,
 	e = snmp_bc_alloc_oh_event();
 	if (e == NULL) {
 		dbg("Out of memory.");
-		return(SA_ERR_HPI_OUT_OF_SPACE);
+		return(SA_ERR_HPI_OUT_OF_MEMORY);
 	}
 									
 	/* ---------------------------------------- */
@@ -5018,7 +5018,7 @@ SaErrorT snmp_bc_discover_blade_i(struct oh_handler_state *handle,
  *
  * Return values:
  * SA_OK - normal case.
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_OUT_OF_MEMORY - Cannot allocate space for internal memory.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
  **/
 SaErrorT snmp_bc_discover_blower_i(struct oh_handler_state *handle,
@@ -5041,7 +5041,7 @@ SaErrorT snmp_bc_discover_blower_i(struct oh_handler_state *handle,
 	e = snmp_bc_alloc_oh_event();
 	if (e == NULL) {
 		dbg("Out of memory.");
-		return(SA_ERR_HPI_OUT_OF_SPACE);
+		return(SA_ERR_HPI_OUT_OF_MEMORY);
 	}
 									
 	/* ---------------------------------------- */
@@ -5077,7 +5077,7 @@ SaErrorT snmp_bc_discover_blower_i(struct oh_handler_state *handle,
  *
  * Return values:
  * SA_OK - normal case.
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_OUT_OF_MEMORY - Cannot allocate space for internal memory.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
  **/
 SaErrorT snmp_bc_discover_pm_i(struct oh_handler_state *handle,
@@ -5101,7 +5101,7 @@ SaErrorT snmp_bc_discover_pm_i(struct oh_handler_state *handle,
 	e = snmp_bc_alloc_oh_event();
 	if (e == NULL) {
 		dbg("Out of memory.");
-		return(SA_ERR_HPI_OUT_OF_SPACE);
+		return(SA_ERR_HPI_OUT_OF_MEMORY);
 	}
 
 									
@@ -5137,7 +5137,7 @@ SaErrorT snmp_bc_discover_pm_i(struct oh_handler_state *handle,
  *
  * Return values:
  * SA_OK - normal case.
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_OUT_OF_MEMORY - Cannot allocate space for internal memory.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
  **/
 SaErrorT snmp_bc_discover_switch_i(struct oh_handler_state *handle,
@@ -5168,7 +5168,7 @@ SaErrorT snmp_bc_discover_switch_i(struct oh_handler_state *handle,
 	e = snmp_bc_alloc_oh_event();
 	if (e == NULL) {
 		dbg("Out of memory.");
-		return(SA_ERR_HPI_OUT_OF_SPACE);
+		return(SA_ERR_HPI_OUT_OF_MEMORY);
 	}
 								
 	/* ---------------------------------------- */
@@ -5209,7 +5209,7 @@ SaErrorT snmp_bc_discover_switch_i(struct oh_handler_state *handle,
  *
  * Return values:
  * SA_OK - normal case.
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_OUT_OF_MEMORY - Cannot allocate space for internal memory.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) NULL.
  **/
 SaErrorT snmp_bc_discover_mm_i(struct oh_handler_state *handle,
@@ -5239,7 +5239,7 @@ SaErrorT snmp_bc_discover_mm_i(struct oh_handler_state *handle,
 	e = snmp_bc_alloc_oh_event();
 	if (e == NULL) {
 		dbg("Out of memory.");
-		return(SA_ERR_HPI_OUT_OF_SPACE);
+		return(SA_ERR_HPI_OUT_OF_MEMORY);
 	}
 									
 	/* ---------------------------------------- */
