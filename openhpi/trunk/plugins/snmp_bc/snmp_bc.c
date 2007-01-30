@@ -79,7 +79,7 @@ SaErrorT snmp_bc_get_event(void *hnd)
  * Return values:
  * SA_OK - Normal case.
  * SA_ERR_HPI_INVALID_PARAMS - @tag is NULL or invalid.
- * SA_ERR_HPI_OUT_OF_SPACE - No memory to allocate event.
+ * SA_ERR_HPI_OUT_OF_MEMORY - No memory to allocate event.
  **/
 SaErrorT snmp_bc_set_resource_tag(void *hnd, SaHpiResourceIdT rid, SaHpiTextBufferT *tag)
 {
@@ -127,7 +127,7 @@ SaErrorT snmp_bc_set_resource_tag(void *hnd, SaHpiResourceIdT rid, SaHpiTextBuff
 	if (e == NULL) {
 		snmp_bc_unlock_handler(custom_handle);
 		dbg("Out of memory.");
-		return(SA_ERR_HPI_OUT_OF_SPACE);
+		return(SA_ERR_HPI_OUT_OF_MEMORY);
 	}
 			
         e->resource = *rpt;
@@ -157,7 +157,7 @@ SaErrorT snmp_bc_set_resource_tag(void *hnd, SaHpiResourceIdT rid, SaHpiTextBuff
  * Return values:
  * SA_OK - Normal case.
  * SA_ERR_HPI_INVALID_PARAMS - @sev is invalid.
- * SA_ERR_HPI_OUT_OF_SPACE - No memory to allocate event.
+ * SA_ERR_HPI_OUT_OF_MEMORY - No memory to allocate event.
  **/
 SaErrorT snmp_bc_set_resource_severity(void *hnd, SaHpiResourceIdT rid, SaHpiSeverityT sev)
 {
@@ -200,7 +200,7 @@ SaErrorT snmp_bc_set_resource_severity(void *hnd, SaHpiResourceIdT rid, SaHpiSev
 	if (e == NULL) {
 		snmp_bc_unlock_handler(custom_handle);
 		dbg("Out of memory.");
-		return(SA_ERR_HPI_OUT_OF_SPACE);
+		return(SA_ERR_HPI_OUT_OF_MEMORY);
 	}
 			
         e->resource = *rpt;
