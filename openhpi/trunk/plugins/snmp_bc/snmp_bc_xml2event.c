@@ -43,7 +43,7 @@ static void event_start_element(GMarkupParseContext *context,
  *
  * Returns:
  * SA_OK - Normal operation.
- * SA_ERR_HPI_OUT_OF_SPACE - No memory to allocate hash table structures.
+ * SA_ERR_HPI_OUT_OF_MEMORY - No memory to allocate hash table structures.
  * SA_ERR_HPI_INVALID_PARAMS - @custom_handle NULL
  **********************************************************************/
 SaErrorT errlog2event_hash_init(struct snmp_bc_hnd *custom_handle) {
@@ -64,7 +64,7 @@ SaErrorT errlog2event_hash_init(struct snmp_bc_hnd *custom_handle) {
         if (errlog2event_hash == NULL) {
                 dbg("No memory.");
                 snmp_bc_unlock(snmp_bc_plock);
-                return(SA_ERR_HPI_OUT_OF_SPACE);
+                return(SA_ERR_HPI_OUT_OF_MEMORY);
 	}
 	
 	/* Initialize user data used in parsing XML events */
@@ -77,7 +77,7 @@ SaErrorT errlog2event_hash_init(struct snmp_bc_hnd *custom_handle) {
         if (pcontext == NULL) {
 		dbg("No memory.");
                 snmp_bc_unlock(snmp_bc_plock);
-		return(SA_ERR_HPI_OUT_OF_SPACE);
+		return(SA_ERR_HPI_OUT_OF_MEMORY);
         }
 
         /* Parse XML events */
