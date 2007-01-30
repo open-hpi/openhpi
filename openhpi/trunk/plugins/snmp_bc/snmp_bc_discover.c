@@ -28,7 +28,7 @@
  *
  * Return values:
  * Builds/updates internal RPT cache - normal operation.
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory
+ * SA_ERR_HPI_OUT_OF_MEMORY - Cannot allocate space for internal memory
  **/
 SaErrorT snmp_bc_discover_resources(void *hnd)
 {
@@ -78,7 +78,7 @@ SaErrorT snmp_bc_discover_resources(void *hnd)
         /*if (custom_handle->tmpcache == NULL) {                           */
         /*        dbg("Out of memory.");                                   */
         /*        snmp_bc_unlock_handler(custom_handle);                   */
-        /*        return(SA_ERR_HPI_OUT_OF_SPACE);                         */
+        /*        return(SA_ERR_HPI_OUT_OF_MEMORY);                         */
 	/*}                                                                */
 	/*                                                                 */
 	/* Initialize tmpqueue                                             */
@@ -149,7 +149,7 @@ SaErrorT snmp_bc_discover_resources(void *hnd)
  *
  * Return values:
  * Adds sensor RDRs to internal Infra-structure queues - normal case
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory
+ * SA_ERR_HPI_OUT_OF_MEMORY - Cannot allocate space for internal memory
  **/
 SaErrorT snmp_bc_discover_sensors(struct oh_handler_state *handle,
 				  struct snmp_bc_sensor *sensor_array,
@@ -168,7 +168,7 @@ SaErrorT snmp_bc_discover_sensors(struct oh_handler_state *handle,
 		rdrptr = (SaHpiRdrT *)g_malloc0(sizeof(SaHpiRdrT));
 		if (rdrptr == NULL) {
 			dbg("Out of memory.");
-			return(SA_ERR_HPI_OUT_OF_SPACE);
+			return(SA_ERR_HPI_OUT_OF_MEMORY);
 		}
 
 		valid_sensor = SAHPI_FALSE;
@@ -239,7 +239,7 @@ SaErrorT snmp_bc_discover_sensors(struct oh_handler_state *handle,
  *
  * Return values:
  * Adds control RDRs to internal Infra-structure queues - normal case
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory
+ * SA_ERR_HPI_OUT_OF_MEMORY - Cannot allocate space for internal memory
   **/
 SaErrorT snmp_bc_discover_controls(struct oh_handler_state *handle,
 				   struct snmp_bc_control *control_array,
@@ -258,7 +258,7 @@ SaErrorT snmp_bc_discover_controls(struct oh_handler_state *handle,
 		rdrptr = (SaHpiRdrT *)g_malloc0(sizeof(SaHpiRdrT));
 		if (rdrptr == NULL) {
 			dbg("Out of memory.");
-			return(SA_ERR_HPI_OUT_OF_SPACE);
+			return(SA_ERR_HPI_OUT_OF_MEMORY);
 		}
 
 		valid_control = rdr_exists(custom_handle,
@@ -310,7 +310,7 @@ SaErrorT snmp_bc_discover_controls(struct oh_handler_state *handle,
  *
  * Return values:
  * Adds inventory RDRs to internal Infra-structure queues - normal case
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory
+ * SA_ERR_HPI_OUT_OF_MEMORY - Cannot allocate space for internal memory
   **/
 SaErrorT snmp_bc_discover_inventories(struct oh_handler_state *handle,
 				      struct snmp_bc_inventory *inventory_array,
@@ -330,7 +330,7 @@ SaErrorT snmp_bc_discover_inventories(struct oh_handler_state *handle,
 		rdrptr = (SaHpiRdrT *)g_malloc0(sizeof(SaHpiRdrT));
 		if (rdrptr == NULL) {
 			dbg("Out of memory.");
-			return(SA_ERR_HPI_OUT_OF_SPACE);
+			return(SA_ERR_HPI_OUT_OF_MEMORY);
 		}
 		
 		valid_idr = rdr_exists(custom_handle,
@@ -383,7 +383,7 @@ SaErrorT snmp_bc_discover_inventories(struct oh_handler_state *handle,
  * Return values:
  * SaHpiTextBufferT - normal operation.
  * SA_ERR_HPI_INVALID_PARAMS - @buffer is NULL; or @loc not valid
- * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ * SA_ERR_HPI_OUT_OF_MEMORY - Cannot allocate space for internal memory.
  **/
 SaErrorT snmp_bc_create_resourcetag(SaHpiTextBufferT *buffer, const char *str, SaHpiEntityLocationT loc)
 {
@@ -405,7 +405,7 @@ SaErrorT snmp_bc_create_resourcetag(SaHpiTextBufferT *buffer, const char *str, S
 		locstr = (gchar *)g_malloc0(OH_MAX_LOCATION_DIGITS + 1);
 		if (locstr == NULL) {
 			dbg("Out of memory.");
-			return(SA_ERR_HPI_OUT_OF_SPACE);
+			return(SA_ERR_HPI_OUT_OF_MEMORY);
 		}
 		if (loc != SNMP_BC_NOT_VALID) {
 			snprintf(locstr, OH_MAX_LOCATION_DIGITS + 1, " %d", loc);
