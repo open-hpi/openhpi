@@ -607,7 +607,7 @@ SaErrorT snmp_bc_selcache_sync(struct oh_handler_state *handle,
 			if (err != SA_OK)
 				dbg("Invalid elcache pointer or mode, err %s\n", oh_lookup_error(err));
 			err =snmp_bc_build_selcache(handle, id);
-			if ( (err == SA_ERR_HPI_OUT_OF_SPACE) || (err == SA_ERR_HPI_INVALID_PARAMS)) {
+			if ( (err == SA_ERR_HPI_OUT_OF_MEMORY) || (err == SA_ERR_HPI_INVALID_PARAMS)) {
 				/* either of these 2 errors prevent us from doing anything meaningful */
 				/* tell user about them                                               */
 				return(err);
@@ -677,7 +677,7 @@ SaErrorT snmp_bc_build_selcache(struct oh_handler_state *handle, SaHpiResourceId
 		i = 1;
 		while(1) {
 			err = snmp_bc_sel_read_add(handle, id, i, SAHPI_TRUE);
-			if ( (err == SA_ERR_HPI_OUT_OF_SPACE) || (err == SA_ERR_HPI_INVALID_PARAMS)) {
+			if ( (err == SA_ERR_HPI_OUT_OF_MEMORY) || (err == SA_ERR_HPI_INVALID_PARAMS)) {
 				/* Either of these 2 errors prevent us from doing anything meaningful */
 				return(err);
 			} else if (err != SA_OK) {
