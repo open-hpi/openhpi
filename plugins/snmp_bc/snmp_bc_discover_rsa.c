@@ -52,7 +52,7 @@ SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
 	e = snmp_bc_alloc_oh_event();
 	if (e == NULL) {
 		dbg("Out of memory.");
-		return(SA_ERR_HPI_OUT_OF_SPACE);
+		return(SA_ERR_HPI_OUT_OF_MEMORY);
 	}
 
 	e->resource = snmp_bc_rpt_array_rsa[RSA_RPT_ENTRY_CHASSIS].rpt;
@@ -72,7 +72,7 @@ SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
 	if (!res_info_ptr) {
 		dbg("Out of memory.");
 		g_free(e);
-		return(SA_ERR_HPI_OUT_OF_SPACE);
+		return(SA_ERR_HPI_OUT_OF_MEMORY);
 	}
 
 	res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
@@ -111,7 +111,7 @@ SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
 		e = snmp_bc_alloc_oh_event();
 		if (e == NULL) {
 			dbg("Out of memory.");
-			return(SA_ERR_HPI_OUT_OF_SPACE);
+			return(SA_ERR_HPI_OUT_OF_MEMORY);
 		}
 		
 		e->resource = snmp_bc_rpt_array_rsa[RSA_RPT_ENTRY_CPU].rpt;
@@ -141,7 +141,7 @@ SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
 		if (!res_info_ptr) {
 			dbg("Out of memory.");
 			snmp_bc_free_oh_event(e);
-			return(SA_ERR_HPI_OUT_OF_SPACE);
+			return(SA_ERR_HPI_OUT_OF_MEMORY);
 		}
 
 		res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
@@ -182,7 +182,7 @@ SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
 		e = snmp_bc_alloc_oh_event();
 		if (e == NULL) {
 			dbg("Out of memory.");
-			return(SA_ERR_HPI_OUT_OF_SPACE);
+			return(SA_ERR_HPI_OUT_OF_MEMORY);
 		}
 		
 		e->resource = snmp_bc_rpt_array_rsa[RSA_RPT_ENTRY_DASD].rpt;
@@ -212,7 +212,7 @@ SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
 		if (!res_info_ptr) {
 			dbg("Out of memory.");
 			snmp_bc_free_oh_event(e);
-			return(SA_ERR_HPI_OUT_OF_SPACE);
+			return(SA_ERR_HPI_OUT_OF_MEMORY);
 		}
 
 		res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
@@ -252,7 +252,7 @@ SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
 		e = snmp_bc_alloc_oh_event();
 		if (e == NULL) {
 			dbg("Out of memory.");
-			return(SA_ERR_HPI_OUT_OF_SPACE);
+			return(SA_ERR_HPI_OUT_OF_MEMORY);
 		}
 		
 		e->resource = snmp_bc_rpt_array_rsa[RSA_RPT_ENTRY_FAN].rpt;
@@ -282,7 +282,7 @@ SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
 		if (!res_info_ptr) {
 			dbg("Out of memory.");
 			snmp_bc_free_oh_event(e);
-			return(SA_ERR_HPI_OUT_OF_SPACE);
+			return(SA_ERR_HPI_OUT_OF_MEMORY);
 		}
 
 		res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
