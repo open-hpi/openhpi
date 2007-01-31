@@ -477,6 +477,7 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 		gchar *tmp_str;
 		tmp_str = g_strstrip(g_strdup(search_str));
 		strncpy(search_str, tmp_str, SNMP_BC_MAX_SEL_ENTRY_LENGTH);
+		g_free(tmp_str);
 		if ((search_str == NULL || search_str[0] == '\0')) {
 			dbg("Search string is NULL for log string=%s", log_entry.text);
 			return(SA_ERR_HPI_INTERNAL_ERROR);
