@@ -498,12 +498,17 @@ SaErrorT snmp_bc_selcache_sync(struct oh_handler_state *handle,
 	int isdst;
         SaHpiEventT tmpevent;
 	LogSource2ResourceT logsrc2res;
+	GList *sync_log, *proc_log;	
 
 	if (!handle) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
-			
+	
+	err = SA_OK;
+	sync_log = NULL;
+	proc_log = NULL;
+						
 	fetchentry = &tmpentry; 
 	cacheupdate = 0;
 	custom_handle = (struct snmp_bc_hnd *)handle->data;
@@ -544,7 +549,7 @@ SaErrorT snmp_bc_selcache_sync(struct oh_handler_state *handle,
 
 	new_timestamp = (SaHpiTimeT)mktime(&sel_entry.time) * 1000000000;
 	if (fetchentry->event.Event.Timestamp != new_timestamp) {
-		GList *sync_log = NULL;
+
 		this_value = g_memdup(&get_value, sizeof(get_value));
 		if (this_value != NULL) 
 			sync_log = g_list_prepend(sync_log, this_value);
@@ -559,10 +564,11 @@ SaErrorT snmp_bc_selcache_sync(struct oh_handler_state *handle,
 					 SNMP_BC_SEL_ENTRY_OID, current);
 			}
 			err = snmp_bc_snmp_get(custom_handle,oid,&get_value, SAHPI_TRUE);
-			if (err == 0) {
+			if (err == SA_OK) {
 				if (snmp_bc_parse_sel_entry(handle, get_value.string, &sel_entry) < 0) {
 					dbg("Cannot parse SEL entry.");
-					return(SA_ERR_HPI_INTERNAL_ERROR);
+					err = SA_ERR_HPI_INTERNAL_ERROR;
+					goto out;
 				}
 				
 				if ((fetchentry->event.Event.Timestamp == 
@@ -583,12 +589,12 @@ SaErrorT snmp_bc_selcache_sync(struct oh_handler_state *handle,
 		
 		
 		if (cacheupdate) {
-			GList *proc_log = NULL;
+
 			proc_log = g_list_first(sync_log);
 			while(proc_log != NULL) {
 				this_value = (struct snmp_value *)proc_log->data;
 				err = snmp_bc_parse_sel_entry(handle,this_value->string, &sel_entry);
-				if (err != SA_OK) return(err);
+				if (err != SA_OK) goto out;
 		
 				if (g_ascii_strncasecmp(get_value.string, EVT_EN_LOG_FULL, sizeof(EVT_EN_LOG_FULL)) == 0 )
 						oh_el_overflowset(handle->elcache, SAHPI_TRUE);
@@ -610,15 +616,27 @@ SaErrorT snmp_bc_selcache_sync(struct oh_handler_state *handle,
 			if ( (err == SA_ERR_HPI_OUT_OF_SPACE) || (err == SA_ERR_HPI_INVALID_PARAMS)) {
 				/* either of these 2 errors prevent us from doing anything meaningful */
 				/* tell user about them                                               */
-				return(err);
+				goto out;
 			}
 		}
-		g_list_free(sync_log);
 	} else {
 		trace("EL Sync: there are no new entry indicated.\n");
 	}
 	
-	return(SA_OK);  
+	out:
+	if (sync_log) {
+		proc_log = g_list_first(sync_log);
+		while (proc_log){
+			if ( (this_value = (struct snmp_value *) proc_log->data)) {
+				g_free(this_value);
+			}
+			proc_log = g_list_next(proc_log);
+		}
+		g_list_free(sync_log);
+	}
+	return(err);
+	
+
 }
 
 /**
