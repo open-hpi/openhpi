@@ -225,6 +225,7 @@ struct res_event_map {
 
 struct ResourceInfo {
         struct ResourceMibInfo mib;
+	unsigned int resourcewidth;
         SaHpiHsStateT cur_state;
 	SaHpiHsStateT prev_state; /* Needed to handle events that re-announce current hot swap state */
         struct res_event_map event_array[SNMP_BC_MAX_RESOURCE_EVENT_ARRAY_SIZE];
@@ -366,7 +367,7 @@ extern struct snmp_bc_sensor      snmp_bc_fan_sensors_rsa[];
  *********************/
 
 struct ControlMibInfo {
-         unsigned int not_avail_indicator_num; /* 0 for none, n>0 otherwise */
+        unsigned int not_avail_indicator_num; /* 0 for none, n>0 otherwise */
         int write_only; /* Write-only SNMP command; 0 no; 1 yes */
         const char *oid;
 	SaHpiEntityLocationT loc_offset;
