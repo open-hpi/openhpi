@@ -141,6 +141,8 @@ SaErrorT oh_encode_entitypath(const gchar *epstr, SaHpiEntityPathT *ep)
 			epath_list = g_slist_prepend(epath_list, (gpointer)entityptr);
 		}
 		num_entities++;
+		g_strfreev(epathvalues);
+		epathvalues = NULL;
 	}
   
 	/* Initialize and write HPI entity path structure */
@@ -166,7 +168,7 @@ SaErrorT oh_encode_entitypath(const gchar *epstr, SaHpiEntityPathT *ep)
  CLEANUP:
 	g_free(gstr);
 	g_strfreev(epathdefs);
-	g_strfreev(epathvalues);
+	if (epathvalues) g_strfreev(epathvalues);
 	lst = epath_list;
         while (lst != NULL) {
                free(lst->data);
