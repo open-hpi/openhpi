@@ -225,6 +225,7 @@ struct res_event_map {
 
 struct ResourceInfo {
         struct ResourceMibInfo mib;
+	unsigned int resourcewidth;
         SaHpiHsStateT cur_state;
 	SaHpiHsStateT prev_state; /* Needed to handle events that re-announce current hot swap state */
         struct res_event_map event_array[SNMP_BC_MAX_RESOURCE_EVENT_ARRAY_SIZE];
