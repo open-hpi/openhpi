@@ -112,9 +112,7 @@ int oh_init(void)
          * all of them failed to load, Then return with an error.
          */
         if (config.handlers_defined > 0 && config.handlers_loaded == 0) {
-                data_access_unlock();
-                dbg("Error: Handlers were defined, but none loaded.");
-                return SA_ERR_HPI_ERROR;
+                dbg("Warning: Handlers were defined, but none loaded.");
         } else if (config.handlers_defined > 0 &&
                    config.handlers_loaded < config.handlers_defined) {
                 dbg("*Warning*: Not all handlers defined loaded."
