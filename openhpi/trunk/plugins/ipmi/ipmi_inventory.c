@@ -321,7 +321,7 @@ struct ohoi_area_layout {
 struct ohoi_fru_layout {
 	unsigned int len;
 	unsigned int free_len;
-	struct ohoi_area_layout areas[IPMI_FRU_FTR_NUMBER - 1];
+	struct ohoi_area_layout areas[IPMI_FRU_FTR_NUMBER];
 };
 
 
