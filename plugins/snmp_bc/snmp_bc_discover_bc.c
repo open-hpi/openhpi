@@ -815,6 +815,7 @@ SaErrorT snmp_bc_discover_media_tray(struct oh_handler_state *handle,
 			}
 		}			
 
+		res_info_ptr->resourcewidth = mt_width;
 		err = snmp_bc_set_resource_slot_state_sensor(handle, e, mt_width);
 	
 		/* ---------------------------------------- */
@@ -913,6 +914,7 @@ SaErrorT snmp_bc_discover_media_tray(struct oh_handler_state *handle,
 				}
 			}			
 
+			res_info_ptr->resourcewidth = mt_width;
 			err = snmp_bc_set_resource_slot_state_sensor(handle, e, mt_width);
 	
 			/* ---------------------------------------- */
@@ -1841,7 +1843,8 @@ SaErrorT snmp_bc_add_tap_rptcache(struct oh_handler_state *handle,
 			tap_width = get_value.integer;
 		}
 	}			
-
+	
+	res_info_ptr->resourcewidth = tap_width;
 	err = snmp_bc_set_resource_slot_state_sensor(handle, e, tap_width);
 	return(err);
 }
@@ -2636,6 +2639,7 @@ SaErrorT snmp_bc_add_nc_rptcache(struct oh_handler_state *handle,
 		}
 	}			
 
+	res_info_ptr->resourcewidth = nc_width;
 	err = snmp_bc_set_resource_slot_state_sensor(handle, e, nc_width);
 	return(err);
 }
@@ -2908,6 +2912,7 @@ SaErrorT snmp_bc_add_mx_rptcache(struct oh_handler_state *handle,
 		}
 	}			
 
+	res_info_ptr->resourcewidth = mx_width;
 	err = snmp_bc_set_resource_slot_state_sensor(handle, e, mx_width);
 	return(err);
 }
@@ -4590,6 +4595,7 @@ SaErrorT snmp_bc_add_blade_rptcache(struct oh_handler_state *handle,
 		}
 	}			
 
+	res_info_ptr->resourcewidth = blade_width;
 	err = snmp_bc_set_resource_slot_state_sensor(handle, e, blade_width);
 
 	/********************************** 
@@ -4676,6 +4682,7 @@ SaErrorT snmp_bc_add_blower_rptcache(struct oh_handler_state *handle,
 		}
 	}			
 
+	res_info_ptr->resourcewidth = blower_width;
 	err = snmp_bc_set_resource_slot_state_sensor(handle, e, blower_width);
 	return(err);
 }
@@ -4755,7 +4762,7 @@ SaErrorT snmp_bc_add_pm_rptcache(struct oh_handler_state *handle,
 		}
 	}			
 
-
+	res_info_ptr->resourcewidth = pm_width;
 	err = snmp_bc_set_resource_slot_state_sensor(handle, e, pm_width);
 	return(err);
 }
@@ -4838,6 +4845,7 @@ SaErrorT snmp_bc_add_switch_rptcache(struct oh_handler_state *handle,
 		}
 	}			
 
+	res_info_ptr->resourcewidth = sw_width;
 	err = snmp_bc_set_resource_slot_state_sensor(handle, e, sw_width);
 	return(err);			
 }
@@ -4937,7 +4945,9 @@ SaErrorT snmp_bc_add_mm_rptcache(struct oh_handler_state *handle,
 		if (!err && (get_value.type == ASN_INTEGER)) {
 			mm_width = get_value.integer;
 		}
-	}			
+	}
+	
+	res_info_ptr->resourcewidth = mm_width;							
 	err = snmp_bc_set_resource_slot_state_sensor(handle, e, mm_width);
 	return(err);
 }					
