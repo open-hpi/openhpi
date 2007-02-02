@@ -375,6 +375,8 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
         struct snmp_bc_hnd *custom_handle;
 	int dupovrovr;
 	struct oh_event *e;
+	SaHpiHsStateT sav_cur_state;
+	
 
 	if (!handle || !logstr || !event || !ret_logsrc2res) {
 		dbg("Invalid parameter.");
@@ -690,17 +692,7 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 					autoevent.EventDataUnion.HotSwapEvent.PreviousHotSwapState =
 						resinfo2->prev_state = resinfo2->cur_state;
 					autoevent.EventDataUnion.HotSwapEvent.HotSwapState =
-						resinfo2->cur_state = hs_event_auto_state;
-					
-					/* oh_print_event(&autoevent, NULL, 0); */
-					
-					/* Add event to event cache and HPI event queue */
-					//err = oh_el_prepend(handle->elcache, &autoevent, NULL, rpt);
-					//if (err) {
-					//	dbg("Cannot add entry to cache. Error=%s.", oh_lookup_error(err));
-					//	return(err);
-					//}
-					
+						resinfo2->cur_state = hs_event_auto_state;				
 					
 					if (custom_handle->isFirstDiscovery == SAHPI_FALSE) {
 						err = snmp_bc_add_to_eventq(handle, &autoevent, SAHPI_TRUE);
@@ -717,9 +709,8 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 			}
 
 			/* Normal hot swap event transitions */
-			working.EventDataUnion.HotSwapEvent.PreviousHotSwapState =
-				resinfo2->prev_state = resinfo2->cur_state;
 
+			sav_cur_state = resinfo2->cur_state;
 			if (is_recovery_event)
 				working.EventDataUnion.HotSwapEvent.HotSwapState =
 				resinfo2->cur_state = 
@@ -728,6 +719,16 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 				working.EventDataUnion.HotSwapEvent.HotSwapState =
 				resinfo2->cur_state = 
 				eventmap_info->hpievent.EventDataUnion.HotSwapEvent.HotSwapState;
+			
+			if ( (rpt->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP) && 
+							(resinfo2->cur_state == SAHPI_HS_STATE_NOT_PRESENT)){
+				working.EventDataUnion.HotSwapEvent.PreviousHotSwapState = sav_cur_state;
+				resinfo2->prev_state = SAHPI_HS_STATE_EXTRACTION_PENDING;			
+			} else {
+				working.EventDataUnion.HotSwapEvent.PreviousHotSwapState =
+							resinfo2->prev_state = sav_cur_state;
+						
+			}
 			
 			/* Determine severity */
 			if (resinfo2->cur_state == SAHPI_HS_STATE_NOT_PRESENT &&
