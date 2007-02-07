@@ -721,28 +721,60 @@ static int parse_command(char *Str)
 static SaErrorT hpiIBMspecial_find_blade_slot(void)
 {
 
+#define NETFN		"0x2e"			// IPMI OEM command
+#define CMD_READ_VPD	"0x0a"         		// Read Legacy Format VPD command
+#define CMD_WRITE_VPD	"0x09"			// Write Legacy Format VPD command
+#define IANA		"0xd0 0x51 0x00"	// x-Series IANA
+#define IANA_OLD	"0x02 0x00 0x00"	// IBM IANA used by some older blades (e.g. 8843)
+#define DEV_ID		"0x10"			//
+#define OFFSET_BLOCK2	"0xca 0x00"		// VPD block 2 offset in VPD block 0
+
+
+						// (contains the number of the most recent log entry)
+
         char shell_command[MAX_BYTE_COUNT];
         char VPD_DATA[MAX_BYTE_COUNT];
-        char str[2];
+        char str2[3];
+        char str[5];
         int sys_rv = 0;
         FILE *Fp = NULL;
-
-        unsigned long int CH_SLOT = 0, 
-			  OFFSET = 0, 
-			  OFFSET_LSB = 0,
-			  OFFSET_MSB = 0;
+	
+        unsigned long int CH_SLOT = 0,
+			  BLOCK2_BASE = 0,
+			  ENTRY_NUM = 0,
+			  ENTRY_NUM_BASE = 0,
+			  LOG_BASE = 0,
+			  ENTRY_BASE = 0, 
+			  ENTRY_BASE_LSB = 0,
+			  ENTRY_BASE_MSB = 0, 
+			  ENTRY_NUM_BASE_LSB = 0,
+			  ENTRY_NUM_BASE_MSB = 0;
 
         int  byte_count;
         char BYTE_READ;
+	char *USE_IANA;
+
+	memset(str2, '\0', 3);
+	memset(str, '\0',5);	
         /*
         printf("Find offset to VPD Block 2.\n");
         */
+	USE_IANA = IANA;
         snprintf(shell_command, MAX_BYTE_COUNT,
-                "ipmitool raw 0x2e 0x0a 0x02 0x00 0x00 0x07 0x09 0x10 0x01 > /tmp/hpiS01\n");
+                "ipmitool raw %s %s %s %s %s 0x02 > /tmp/hpiS01\n", 
+		  NETFN, CMD_READ_VPD, USE_IANA, OFFSET_BLOCK2, DEV_ID);
         sys_rv = system(shell_command);
         if (sys_rv != 0) {
-                printf("\"Finding offset to VPD Block 2\" has FAILED.\n");
-                return(-1);
+		USE_IANA = IANA_OLD;
+        	snprintf(shell_command, MAX_BYTE_COUNT,
+                	"ipmitool raw %s %s %s %s %s 0x02 > /tmp/hpiS01\n", 
+		  	NETFN, CMD_READ_VPD, USE_IANA, OFFSET_BLOCK2, DEV_ID);
+        		sys_rv = system(shell_command);		
+			
+		if (sys_rv != 0) {
+                	printf("\"Finding offset to VPD Block 2\" has FAILED.\n");
+                	return(-1);
+		}
         }
 
 
@@ -754,27 +786,41 @@ static SaErrorT hpiIBMspecial_find_blade_slot(void)
         }
         fclose(Fp);
 
-        memcpy(&str, &VPD_DATA[6], 2);
-        if (byte_count >= 3) OFFSET = strtol(str,NULL, 16);
+	if (byte_count >= 3)  {
+        	memcpy(&str, &VPD_DATA[6], 4);
+        	BLOCK2_BASE = strtol(str,NULL, 16);
+	} else {
+		printf("Can not find BLOCK2_BASE.\n");
+		return(-1);
+	}
 
-        OFFSET = OFFSET * 0x1A;
-        OFFSET = OFFSET + 0x0908;
-        /*
-        OFFSET_LSB=$(($OFFSET&0x00FF))
-        OFFSET_MSB=$(($OFFSET&0xFF00))
-        OFFSET_MSB=$(($OFFSET_MSB>>8))
-        */
-        OFFSET_LSB = OFFSET&0x00FF;
-        OFFSET_MSB = OFFSET&0xFF00;
-        OFFSET_MSB = OFFSET_MSB >> 8;
+	/* 
+	 Find offsets to History Log and History Log Entry Pointer in Block 2
+	 #define OFFSET_LOG	"108"			// History Log offset in VPD block 2
+	 #define OFFSET_LOG_ENTRY_NUM	"107"		// History Log Entry Pointer offset in VPD block 2
+	*/
+	LOG_BASE = BLOCK2_BASE + 0x108;
+	ENTRY_NUM_BASE = BLOCK2_BASE + 0x107;
 
-        //X=`ipmitool raw 0x2e 0x0a 0x02 0x00 0x00 $OFFSET_LSB $OFFSET_MSB 0x10 0x1A`
+	/*
+	# Find most recent entry in History Log
+	# Convert log entry offset to LSB and MSB for Little Endian
+	*/ 
+	ENTRY_NUM_BASE_LSB = (ENTRY_NUM_BASE & 0x00FF);
+	ENTRY_NUM_BASE_MSB = (ENTRY_NUM_BASE & 0xFF00);
+	ENTRY_NUM_BASE_MSB = (ENTRY_NUM_BASE_MSB >> 8);
+	
+	/*
+	X=`ipmitool raw $NETFN $CMD_READ_VPD $IANA $ENTRY_NUM_BASE_LSB $ENTRY_NUM_BASE_MSB $DEV_ID 0x
+01`
+	*/
         snprintf(shell_command, MAX_BYTE_COUNT,
-               "ipmitool raw 0x2e 0x0a 0x02 0x00 0x00 0x%x 0x%x 0x10 0x1A > /tmp/hpiS02\n",
-                 (unsigned int)OFFSET_LSB, (unsigned int)OFFSET_MSB);
+	       "ipmitool raw %s %s %s 0x%x 0x%x %s 0x01  > /tmp/hpiS02\n",
+               NETFN, CMD_READ_VPD, USE_IANA,  (unsigned int)ENTRY_NUM_BASE_LSB, 
+	                                     (unsigned int)ENTRY_NUM_BASE_MSB, DEV_ID);
         sys_rv = system(shell_command);
         if (sys_rv != 0) {
-                printf("\"Finding offset to VPD Block 2\" has FAILED.\n");
+                printf("\"Find most recent entry\" has FAILED.\n");
                 return(-1);
         }
 
@@ -786,12 +832,58 @@ static SaErrorT hpiIBMspecial_find_blade_slot(void)
         }
         fclose(Fp);
 
-        memcpy(&str, &VPD_DATA[39], 2);
-        if (byte_count >= 3) CH_SLOT= strtol(str,NULL, 16);
+	if (byte_count >= 3)  {
+        	memcpy(&str2, &VPD_DATA[6], 2);
+        	ENTRY_NUM= strtol(str2,NULL,16);
+	}
+	
+	/*
+	# Find Entry Offset - Each entry is 26 bytes
+	*/
+	ENTRY_BASE = LOG_BASE + (ENTRY_NUM * 0x1A);
+	
+	/*
+	# Read Most recent log entry and parse out information
+	*/
+	ENTRY_BASE_LSB = (ENTRY_BASE & 0x00FF);
+	ENTRY_BASE_MSB = (ENTRY_BASE & 0xFF00);
+	ENTRY_BASE_MSB = (ENTRY_BASE_MSB >> 8);
+	
+	/*
+	X=`ipmitool raw $NETFN $CMD_READ_VPD $IANA $ENTRY_BASE_LSB $ENTRY_BASE_MSB $DEV_ID 0x1a`
+	*/
+        snprintf(shell_command, MAX_BYTE_COUNT,
+	       "ipmitool raw %s %s %s 0x%x 0x%x %s 0x1a  > /tmp/hpiS02\n",
+               NETFN, CMD_READ_VPD, USE_IANA,  (unsigned int)ENTRY_BASE_LSB, 
+	                                     (unsigned int)ENTRY_BASE_MSB, DEV_ID);
+        sys_rv = system(shell_command);
+        if (sys_rv != 0) {
+                printf("\"Read Most recent log entry\" has FAILED.\n");
+                return(-1);
+        }
+	
 
+        Fp  = fopen("/tmp/hpiS02", "r");
+        byte_count = 0;
+        while(fscanf(Fp, "%c", &BYTE_READ) != -1){
+                if (BYTE_READ != 0x20)
+                        VPD_DATA[byte_count++]=BYTE_READ;
+        }
+        fclose(Fp);
+
+			
         /*
           CH_SLOT=`echo $X | gawk '{i=20; x=x $i; print x}'`
         */
+	if (byte_count >= 3)  {
+        	memcpy(&str2, &VPD_DATA[39], 2);
+        	CH_SLOT= strtol(str2,NULL, 16);
+	} else {
+		CH_SLOT= 0;
+		printf("\"Read Most recent log entry\" has FAILED.\n");
+                return(-1);
+	}
+	 	
         printf("Blade is installed in slot number %d.\n", (int)CH_SLOT);
 	blade_slot = CH_SLOT;
 	return(SA_OK);
