@@ -15,7 +15,7 @@
  * Authors:
  *     Andy Cress <arcress@users.sourceforge.net>
  *     Peter D. Phan <pdphan@users.sourceforge.net>
- *     Renier Morales <renierm@users.sf.net>
+ *     Renier Morales <renier@openhpi.org>
  *     Tariq Shureih <tariq.shureih@intel.com>
  *     Racing Guo <racing.guo@intel.com>
  *

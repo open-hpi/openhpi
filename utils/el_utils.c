@@ -12,7 +12,7 @@
  *
  * Authors:
  *      David Ashley <dashley@us.ibm.com>
- *      Renier Morales <renierm@users.sf.net>
+ *      Renier Morales <renier@openhpi.org>
  */
 
 #include <sys/types.h>

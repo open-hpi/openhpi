@@ -12,7 +12,7 @@
  *
  * Author(s):
  *     Andy Cress <arcress@users.sourceforge.net>
- *     Renier Morales <renierm@users.sf.net>
+ *     Renier Morales <renier@openhpi.org>
  *	
  * ChangeLog:
  *	09/08/04 pdphan@users.sf.net Add sensor number to the display.

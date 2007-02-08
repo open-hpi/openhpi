@@ -11,7 +11,7 @@
  *
  * Authors:
  *      David Ashley <dashley@us.ibm.com>
- *      Renier Morales <renierm@users.sf.net>
+ *      Renier Morales <renier@openhpi.org>
  */
 
 #ifndef __ANNOUNCEMENT_UTILS_H

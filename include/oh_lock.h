@@ -12,7 +12,7 @@
  *
  * Authors:
  *     Louis Zhuang <louis.zhuang@linux.intel.com>
- *     Renier Morales <renierm@users.sf.net>
+ *     Renier Morales <renier@openhpi.org>
  */
 
 #ifndef __OH_LOCK_H

@@ -10,7 +10,7 @@
  * full licensing terms.
  *
  * Author(s):
- *        Renier Morales <renierm@users.sf.net>
+ *        Renier Morales <renier@openhpi.org>
  *        Daniel de Araujo <ddearauj@us.ibm.com>
  */
 

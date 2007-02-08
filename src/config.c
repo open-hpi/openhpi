@@ -15,7 +15,7 @@
  *     Louis Zhuang <louis.zhuang@linux.intel.com>
  *     David Judkovics <djudkovi@us.ibm.com>
  *     Thomas Kangieser <Thomas.Kanngieser@fci.com>
- *     Renier Morales <renierm@users.sf.net>
+ *     Renier Morales <renier@openhpi.org>
  */
 
 #include <string.h>

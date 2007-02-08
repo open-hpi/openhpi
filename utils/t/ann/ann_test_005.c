@@ -11,7 +11,7 @@
  *
  * Authors:
  *      W. David Ashley <dashley@us.ibm.com>
- *      Renier Morales <renierm@users.sf.net>
+ *      Renier Morales <renier@openhpi.org>
  */
 
 #include <stdio.h>

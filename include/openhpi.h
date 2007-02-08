@@ -14,7 +14,7 @@
  *     Louis Zhuang <louis.zhuang@linux.intel.com>
  *     Sean Dague <http://dague.net/sean>
  *     Rusty Lynch
- *     Renier Morales <renierm@users.sf.net>
+ *     Renier Morales <renier@openhpi.org>
  */
 
 #ifndef __OPENHPI_H

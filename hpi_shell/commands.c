@@ -15,7 +15,7 @@
  * Changes:
  *      11.30.2004 - Kouzmich < Mikhail.V.Kouzmich@intel.com >:
  *                      porting to HPI-B
- *      09.07.2005 - Renier Morales <renierm@users.sf.net>:
+ *      09.07.2005 - Renier Morales <renier@openhpi.org>:
  *                      Changes due to move of oh_add_config_file to config.c
  *
  *
