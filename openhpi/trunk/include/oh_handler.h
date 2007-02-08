@@ -13,7 +13,7 @@
  * Authors:
  *     Louis Zhuang <louis.zhuang@linux.intel.com>
  *     Sean Dague <http://dague.net/sean>
- *     Renier Morales <renierm@users.sourceforge.net>
+ *     Renier Morales <renier@openhpi.org>
  *     Racing Guo <racing.guo@intel.com>
  */
 

@@ -11,7 +11,7 @@
  *
  * Author(s):
  *	W. David Ashley <dashley@us.ibm.com>
- *	Renier Morales <renierm@users.sourceforge.net>
+ *	Renier Morales <renier@openhpi.org>
  */
 
 #ifndef __SIM_INVENTORY_H

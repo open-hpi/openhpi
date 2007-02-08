@@ -3,7 +3,7 @@
  * (C) Copyright IBM Corp 2006
  *
  * Author(s):
- *     Renier Morales <renierm@users.sf.net>
+ *     Renier Morales <renier@openhpi.org>
  *
  * hpiel - Displays HPI event log entries.
  *

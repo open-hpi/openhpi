@@ -14,7 +14,7 @@
  *     Louis Zhuang <louis.zhuang@linux.intel.com>
  *     Sean Dague <http://dague.net/sean>
  *     David Judkovics <djudkovi@us.ibm.com>
- *     Renier Morales <renierm@users.sourceforge.net>
+ *     Renier Morales <renier@openhpi.org>
  */
 
 #include <string.h>

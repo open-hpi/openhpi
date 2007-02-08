@@ -11,7 +11,7 @@
  *
  * Author(s):
  *      Steve Sherman <stevees@us.ibm.com>
- *	Renier Morales <renierm@users.sf.net>
+ *	Renier Morales <renier@openhpi.org>
  */
 
 #ifndef __SAHPI_STRUCT_UTILS_H

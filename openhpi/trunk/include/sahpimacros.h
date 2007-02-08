@@ -11,7 +11,7 @@
  *
  * Authors:
  *     Sean Dague <sdague@users.sf.net>
- *     Renier Morales <renierm@users.sf.net>
+ *     Renier Morales <renier@openhpi.org>
  */
 
 #ifndef __SAHPIMACROS_H

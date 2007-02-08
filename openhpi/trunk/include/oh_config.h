@@ -11,7 +11,7 @@
  *
  * Authors:
  *     Sean Dague <http://dague.net/sean>
- *     Renier Morales <renierm@users.sf.net>
+ *     Renier Morales <renier@openhpi.org>
  */
 
 #ifndef __OH_CONFIG_H

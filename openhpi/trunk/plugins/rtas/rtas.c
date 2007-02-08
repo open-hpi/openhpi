@@ -10,7 +10,7 @@
  * full licensing terms.
  *
  * Author(s):
- *        Renier Morales <renierm@users.sf.net>
+ *        Renier Morales <renier@openhpi.org>
  */
 
 #include <rtas.h>

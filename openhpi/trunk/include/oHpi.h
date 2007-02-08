@@ -10,7 +10,7 @@
  * full licensing terms.
  *
  * Authors:
- *     Renier Morales <renierm@users.sourceforge.net>
+ *     Renier Morales <renier@openhpi.org>
  */
 
 #ifndef __OHPI_H
