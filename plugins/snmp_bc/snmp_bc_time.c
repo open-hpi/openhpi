@@ -55,8 +55,8 @@ const DST_ENTRY DST_TABLE[] =
         *   Alaskan, Pacific, Mountain, Central, Eastern,
         *   Atlantic, Newfoundland
         */
-        { 2,  0, FIRST_WEEK,  SUNDAY,    APRIL,
-          2,  0, LAST_WEEK,   SUNDAY,    OCTOBER   },
+        { 2,  0, SECOND_WEEK,  SUNDAY,    MARCH,
+          2,  0, FIRST_WEEK,   SUNDAY,   NOVEMBER   },
         /*                                                           
          * DST_ESA:
          *   E. South America
