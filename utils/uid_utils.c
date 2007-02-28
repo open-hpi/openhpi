@@ -12,7 +12,7 @@
  *
  * Author(s):
  *      David Judkovics <djudkovi@us.ibm.com>
- *      Renier Morales <renier@openhpi.org>
+ *      Renier Morales <renierm@users.sf.net>
  */
 
 #include <stdlib.h>

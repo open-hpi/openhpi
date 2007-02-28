@@ -11,7 +11,7 @@
  *
  * Author(s):
  *	Peter Phan  <pdphan@sourceforge.net>
- *      Renier Morales <renier@openhpi.org>
+ *      Renier Morales <renierm@users.sf.net>
  */
 
 #ifndef __SNMP_BC_INVENTORY_H

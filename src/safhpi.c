@@ -17,7 +17,7 @@
  *     Rusty Lynch
  *     David Judkovics <djudkovi@us.ibm.com>
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
- *     Renier Morales <renier@openhpi.org>
+ *     Renier Morales <renierm@users.sf.net>
  *     Racing Guo <racing.guo@intel.com>
  */
 

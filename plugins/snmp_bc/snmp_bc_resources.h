@@ -11,7 +11,7 @@
  *
  * Author(s):
  *      Sean Dague <http://dague.net/sean>
- *      Renier Morales <renier@openhpi.org>
+ *      Renier Morales <renierm@users.sf.net>
  *      Steve Sherman <stevees@us.ibm.com>
  */
 
@@ -367,7 +367,7 @@ extern struct snmp_bc_sensor      snmp_bc_fan_sensors_rsa[];
  *********************/
 
 struct ControlMibInfo {
-        unsigned int not_avail_indicator_num; /* 0 for none, n>0 otherwise */
+         unsigned int not_avail_indicator_num; /* 0 for none, n>0 otherwise */
         int write_only; /* Write-only SNMP command; 0 no; 1 yes */
         const char *oid;
 	SaHpiEntityLocationT loc_offset;

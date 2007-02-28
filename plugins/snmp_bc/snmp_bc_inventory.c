@@ -11,7 +11,7 @@
  *
  * Author(s):
  *      Peter Phan  <pdphan@sourceforge.net>
- *      Renier Morales <renier@openhpi.org>
+ *      Renier Morales <renierm@users.sf.net>
  */
 
 #include <snmp_bc_plugin.h>

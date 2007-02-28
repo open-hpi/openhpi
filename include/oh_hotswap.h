@@ -12,7 +12,7 @@
  *
  * Authors:
  *     Racing Guo <racing.guo@intel.com>
- *     Renier Morales <renier@openhpi.org>
+ *     Renier Morales <renierm@users.sf.net>
  */
 
 #ifndef __OH_HOTSWAP_H

@@ -13,7 +13,7 @@
  *      Sean Dague <sdague@users.sf.net>
  *      Steve Sherman <stevees@us.ibm.com>
  *      Racing Guo <racing.guo@intel.com>
- *      Renier Morales <renier@openhpi.org>
+ *      Renier Morales <renierm@users.sf.net>
  */
 
 #include <glib.h>

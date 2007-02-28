@@ -11,7 +11,7 @@
  *
  * Author(s):
  *        Daniel de Araujo <ddearauj@us.ibm.com>
- *        Renier Morales <renier@openhpi.org>
+ *        Renier Morales <renierm@users.sf.net>
  *
  */
  

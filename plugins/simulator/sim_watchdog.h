@@ -11,7 +11,7 @@
  *
  * Author(s):
  *      W. David Ashley <dashley@us.ibm.com>
- *	Renier Morales <renier@openhpi.org>
+ *	Renier Morales <renierm@users.sourceforge.net>
  */
 
 #ifndef __SIM_WATCHDOG_H

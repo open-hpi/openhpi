@@ -11,7 +11,7 @@
  *
  * Author(s):
  *      Steve Sherman <stevees@us.ibm.com>
- *      Renier Morales <renier@openhpi.org>
+ *      Renier Morales <renierm@users.sf.net>
  *      Thomas Kanngieser <thomas.kanngieser@fci.com>
  */
 

@@ -1830,7 +1830,6 @@ SaErrorT snmp_bc_reset_resource_slot_state_sensor(void *hnd, SaHpiRptEntryT *res
 	SaErrorT err;
 	guint resourcewidth;
 	SaHpiEntityPathT slot_ep;
-
 	struct oh_handler_state *handler;
 	struct snmp_bc_hnd *custom_handler;
 	struct ResourceInfo *res_info_ptr;
@@ -1844,7 +1843,7 @@ SaErrorT snmp_bc_reset_resource_slot_state_sensor(void *hnd, SaHpiRptEntryT *res
 	
 	resourcewidth = res_info_ptr->resourcewidth;
 	res_info_ptr->resourcewidth = 1;
-	
+
 	j = slot_ep.Entry[0].EntityLocation;
 	if ( (custom_handler->platform == SNMP_BC_PLATFORM_BC) || 
 		(custom_handler->platform == SNMP_BC_PLATFORM_BCH))

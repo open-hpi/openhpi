@@ -10,7 +10,7 @@
 #
 # Authors:
 #    W. David Ashley <dashley@us.ibm.com>
-#    Renier Morales <renier@openhpi.org>
+#    Renier Morales <renierm@users.sf.net>
 #
 
 .NOTPARALLEL:

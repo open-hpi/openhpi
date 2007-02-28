@@ -55,7 +55,7 @@ static ErrLog2EventInfoT *snmp_bc_findevent4dupstr(gchar *search_str,
  * Return values:
  * SA_OK - Normal case.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) or event2hpi_hash_ptr are NULL.
- * SA_ERR_HPI_OUT_OF_MEMORY   - Can not malloc space
+ * SA_ERR_HPI_OUT_OF_SPACE   - Can not malloc space
  **/
 SaErrorT event2hpi_hash_init(struct oh_handler_state *handle)
 {
@@ -75,7 +75,7 @@ SaErrorT event2hpi_hash_init(struct oh_handler_state *handle)
 	custom_handle->event2hpi_hash_ptr = g_hash_table_new(g_str_hash, g_str_equal);
 	if (custom_handle->event2hpi_hash_ptr == NULL) {
 		dbg("Out of memory.");
-		return(SA_ERR_HPI_OUT_OF_MEMORY);
+		return(SA_ERR_HPI_OUT_OF_SPACE);
 	}
 	
 	return(SA_OK);
@@ -191,7 +191,7 @@ SaErrorT snmp_bc_discover_res_events(struct oh_handler_state *handle,
 			if (!eventmap_info) {
 				dbg("Out of memory.");
 				g_free(normalized_str);
-				return(SA_ERR_HPI_OUT_OF_MEMORY);
+				return(SA_ERR_HPI_OUT_OF_SPACE);
 			}
 
 			eventmap_info->hpievent.Source = rid;
@@ -288,7 +288,7 @@ SaErrorT snmp_bc_discover_sensor_events(struct oh_handler_state *handle,
 			if (!eventmap_info) {
 				dbg("Out of memory.");
 				g_free(normalized_str);
-				return(SA_ERR_HPI_OUT_OF_MEMORY);
+				return(SA_ERR_HPI_OUT_OF_SPACE);
 			}
 
 			/* Set default values */
@@ -376,6 +376,7 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 	int dupovrovr;
 	struct oh_event *e;
 	SaHpiHsStateT sav_cur_state;
+	
 
 	if (!handle || !logstr || !event || !ret_logsrc2res) {
 		dbg("Invalid parameter.");
@@ -651,9 +652,9 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 				err = snmp_bc_rediscover(handle, &working, &logsrc2res);
 			}						  
 			
-					
+						
 			goto RESUME_TO_EXIT;
-
+			// return(SA_ERR_HPI_INTERNAL_ERROR);
 		}
 
 		/* Find hot swap state and any defined hot swap events to generate */
@@ -691,8 +692,8 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 					autoevent.EventDataUnion.HotSwapEvent.PreviousHotSwapState =
 						resinfo2->prev_state = resinfo2->cur_state;
 					autoevent.EventDataUnion.HotSwapEvent.HotSwapState =
-						resinfo2->cur_state = hs_event_auto_state;
-										
+						resinfo2->cur_state = hs_event_auto_state;				
+					
 					if (custom_handle->isFirstDiscovery == SAHPI_FALSE) {
 						err = snmp_bc_add_to_eventq(handle, &autoevent, SAHPI_TRUE);
 						if (err) {
@@ -729,7 +730,6 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 						
 			}
 			
-			  
 			/* Determine severity */
 			if (resinfo2->cur_state == SAHPI_HS_STATE_NOT_PRESENT &&
 			    resinfo2->prev_state != SAHPI_HS_STATE_INACTIVE) {
@@ -768,7 +768,7 @@ RESUME_TO_EXIT:
 				e = snmp_bc_alloc_oh_event();
 				if (e == NULL) {
 					dbg("Out of memory.");
-					return(SA_ERR_HPI_OUT_OF_MEMORY);
+					return(SA_ERR_HPI_OUT_OF_SPACE);
 				}
 				
 				e->resource = *rpt;
@@ -1543,7 +1543,7 @@ SaErrorT snmp_bc_add_to_eventq(struct oh_handler_state *handle, SaHpiEventT *thi
         e = snmp_bc_alloc_oh_event();
         if (!e) {
                 dbg("Out of memory.");
-                return(SA_ERR_HPI_OUT_OF_MEMORY);
+                return(SA_ERR_HPI_OUT_OF_SPACE);
         }
 				
 	thisRpt = oh_get_resource_by_id(handle->rptcache, thisEvent->Source);

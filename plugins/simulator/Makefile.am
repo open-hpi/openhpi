@@ -12,7 +12,7 @@
 # Author(s):
 #        Christina Hernandez <hernanc@us.ibm.com>
 #        W. David Ashley <dashley@us.ibm.com>
-#	 Renier Morales <renier@openhpi.org>
+#	 Renier Morales <renierm@users.sourceforge.net>
 #
 
 SUBDIRS = t

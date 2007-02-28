@@ -11,7 +11,7 @@
  *
  * Author(s):
  *      Sean Dague <sdague@users.sf.net>
- *	Renier Morales <renier@openhpi.org>
+ *	Renier Morales <renierm@users.sourceforge.net>
  *
  */
 
