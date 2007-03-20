@@ -703,7 +703,7 @@ SaErrorT oh_discovery(void)
                         break;
                 }
 
-                if (h->abi->discover_resources != NULL) {
+		if (h->abi->discover_resources && h->hnd) {
                         cur_error = h->abi->discover_resources(h->hnd);
                         if (cur_error == SA_OK && error) {
                                 error = cur_error;
