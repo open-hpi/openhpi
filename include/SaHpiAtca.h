@@ -1,5 +1,4 @@
-/***********************************************************************
-********
+/*******************************************************************************
 **
 ** FILE:
 **   SaHpiAtca.h
@@ -8,8 +7,7 @@
 **   This file provides the C language binding for the Service 
 **   Availability(TM) Forum HPI-to-AdvancedTCA Mapping Specification.
 **   It contains all of the prototypes and type definitions. Note, this 
-**   file was generated from the HPI-to-AdvancedTCA mapping 
-specification 
+**   file was generated from the HPI-to-AdvancedTCA mapping specification 
 **   document.
 **   
 ** SPECIFICATION VERSION:
@@ -21,24 +19,28 @@ specification
 ** LEGAL:
 **   OWNERSHIP OF SPECIFICATION AND COPYRIGHTS. 
 **   The Specification and all worldwide copyrights therein are
-**   the exclusive property of Licensor.  You may not remove, obscure, 
-or
-**   alter any copyright or other proprietary rights notices that are in 
-or
-**   on the copy of the Specification you download.  You must reproduce 
-all
+**   the exclusive property of Licensor.  You may not remove, obscure, or
+**   alter any copyright or other proprietary rights notices that are in or
+**   on the copy of the Specification you download.  You must reproduce all
 **   such notices on all copies of the Specification you make.  Licensor
-**   may make changes to the Specification, or to items referenced 
-therein,
-**   at any time without notice.  Licensor is not obligated to support 
-or
+**   may make changes to the Specification, or to items referenced therein,
+**   at any time without notice.  Licensor is not obligated to support or
 **   update the Specification. 
 **   
-**   Copyright(c) 2005, Service Availability(TM) Forum. All rights
-**   reserved. 
+**   Copyright 2004 by the Service Availability Forum. All rights reserved.
 **
-************************************************************************
-*******/
+**   Permission to use, copy, modify, and distribute this software for any
+**   purpose without fee is hereby granted, provided that this entire notice
+**   is included in all copies of any software which is or includes a copy
+**   or modification of this software and in all copies of the supporting
+**   documentation for such software.
+**
+**   THIS SOFTWARE IS BEING PROVIDED "AS IS", WITHOUT ANY EXPRESS OR IMPLIED
+**   WARRANTY.  IN PARTICULAR, THE SERVICE AVAILABILITY FORUM DOES NOT MAKE ANY
+**   REPRESENTATION OR WARRANTY OF ANY KIND CONCERNING THE MERCHANTABILITY
+**   OF THIS SOFTWARE OR ITS FITNESS FOR ANY PARTICULAR PURPOSE.
+**
+*******************************************************************************/
 
 #ifndef __SAHPIATCA_H
 #define __SAHPIATCA_H
