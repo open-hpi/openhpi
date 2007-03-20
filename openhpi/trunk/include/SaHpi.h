@@ -26,8 +26,18 @@
 **   at any time without notice.  Licensor is not obligated to support or
 **   update the Specification. 
 **   
-**   Copyright(c) 2004, Service Availability(TM) Forum. All rights
-**   reserved. 
+**   Copyright 2004 by the Service Availability Forum. All rights reserved.
+**
+**   Permission to use, copy, modify, and distribute this software for any
+**   purpose without fee is hereby granted, provided that this entire notice
+**   is included in all copies of any software which is or includes a copy
+**   or modification of this software and in all copies of the supporting
+**   documentation for such software.
+**
+**   THIS SOFTWARE IS BEING PROVIDED "AS IS", WITHOUT ANY EXPRESS OR IMPLIED
+**   WARRANTY.  IN PARTICULAR, THE SERVICE AVAILABILITY FORUM DOES NOT MAKE ANY
+**   REPRESENTATION OR WARRANTY OF ANY KIND CONCERNING THE MERCHANTABILITY
+**   OF THIS SOFTWARE OR ITS FITNESS FOR ANY PARTICULAR PURPOSE.
 **
 *******************************************************************************/
 
