@@ -8,44 +8,28 @@ OpenHPI is an implementation of the SA Forum's Hardware Platform
 Interface, which provides a standard C library interface to manage,
 monitor, and control hardware (both local and remote).
 
-OpenHPI 1.x implements the HPI A.01.01 specification.  Both that spec
-and OpenHPI 1.x are deprecated, and users should use HPI B.01.01 and
-OpenHPI 2.x.
-
 OpenHPI 2.x implements the HPI B.01.01 specification.
+
+The OpenHPI client library (libopenhpi) provides all the connection
+functionality needed by the client application to connect to the OpenHPI
+daemon running on the local or remote server.
 
 =head1 ENVIRONMENTAL VARIABLES
 
 Some of OpenHPI's functioning can be changed by setting environment
-variables.  This documents all known environmental settings and how
-they affect OpenHPI.
+variables.  This documents all client environmental settings.
 
-=over 4
+=over 2
 
-=item B<OPENHPI_THREADED>=YES
+=item B<OPENHPI_DAEMON_HOST>=URL
 
-Turns on threading engine in OpenHPI, which spawns a thread to handle
-event harvesting and processing.  This is off by default, as it isn't
-strictly needed for many uses of HPI.  However the BLOCK and TIMED
-wait on the I<saHpiEventGet> function can only be supported if this is
-set.
+URL for the host running the daemon. This can be "localhost" (default)
+if the daemon is running on the local host or an ip address. 
 
-=item B<OPENHPI_UID_MAP>=FILENAME
+=item B<OPENHPI_DAEMON_PORT>=PORT_NUMBER
 
-The map file to use for persistant entitypath to resource id
-database.  By default /var/lib/openhpi/uid_map is used.  This allows
-you to override that at run time.
-
-=item B<OPENHPI_DEBUG>=YES
-
-Turns on debugging messages.  This will print additional text when any
-error conditions arise.  If a problem is happening with OpenHPI, it
-is good to turn on debugging to see if that shows more information.
-
-=item B<OPENHPI_CONF>=FILENAME
-
-Location of openhpi.conf file.  Default location is
-/etc/openhpi/openhpi.conf.
+The port number the host is listening on for clent connections.
+Default port is 4743.
 
 =back
 
@@ -93,25 +77,13 @@ The definitive guide to HPI is the SA Forum specification at
 http://saforum.org.
 
 More info on OpenHPI can be found at our webpage
-(http://openhpi.sf.net) and our wiki (http://wiki.openhpi.org).
+(http://openhpi.org).
 
 =head1 SEE ALSO
 
 The following man pages may also be of interest
 
-=over 4
-
-=item B<sahpi>
-
-Info on the SA HPI interface
-
-=item B<openhpi.conf>
-
-Info on the openhpi.conf configuration file
-
-=item B<openhpi-switcher>
-
-The command to set default openhpi library on a system.
+=over 1
 
 =item B<openhpid>
 
@@ -124,4 +96,5 @@ The openhpi daemon, providing OpenHPI data as a system service.
 Authors of this man page:
 
  Sean Dague (http://dague.net/sean)
+ Renier Morales (renier@openhpi.org)
 
