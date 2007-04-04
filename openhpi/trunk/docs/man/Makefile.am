@@ -29,7 +29,7 @@
 
 MAINTAINERCLEANFILES 	= Makefile.in
 
-EXTRA_DIST		= openhpi.pod.7
+EXTRA_DIST		= openhpi.pod.7 openhpid.pod.8
 
 %.1: %.pod.1
 	pod2man --release=$(VERSION) --name=`echo $@ | sed 's/.1//'` \
@@ -47,14 +47,18 @@ EXTRA_DIST		= openhpi.pod.7
 	pod2man --release=$(VERSION) --name=`echo $@ | sed 's/.7//'` \
 		-s 7 -c "OpenHPI" $< $@
 
+%.8: %.pod.8
+	pod2man --release=$(VERSION) --name=`echo $@ | sed 's/.8//'` \
+		-s 8 -c "OpenHPI" $< $@
+
 mandir = $(datadir)/man
-man_MANS = openhpi.7
+man_MANS = openhpi.7 openhpid.8
 
 clean-local: am_config_clean-local
 
 am_config_clean-local:
 	rm -f *~
-	find . -name \*\.[1357] | grep -v pod | xargs rm -f
+	find . -name \*\.[13578] | grep -v pod | xargs rm -f
 
 
 .PHONY: FORCE
