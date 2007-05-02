@@ -35,7 +35,9 @@ do { \
 		                                            memset(&getvalue.string, '0', SNMP_BC_MAX_RESOURCES_MASK); \
 		                                            getvalue.string[SNMP_BC_MAX_RESOURCES_MASK -1] = '\0';} \
 		else { return(SA_ERR_HPI_INTERNAL_ERROR); } \
-        } \
+        } else if (getvalue.str_len == 0) {getvalue.type = ASN_OCTET_STR; \
+		                           memset(&getvalue.string, '0', SNMP_BC_MAX_RESOURCES_MASK); \
+		                           getvalue.string[SNMP_BC_MAX_RESOURCES_MASK -1] = '\0';} \
 } while(0)
 
 #define  get_string_object(maskOID, getvalue)  get_installed_mask(maskOID, getvalue)
@@ -63,9 +65,11 @@ do { \
 		else { return(SA_ERR_HPI_INTERNAL_ERROR); } \
 	} else { \
         	if (getintvalue.type == ASN_OCTET_STR) { \
-			getintvalue.integer = atoi(getintvalue.string); \
+		        if (getintvalue.str_len == 0) getintvalue.integer = 0; \
+			else getintvalue.integer = atoi(getintvalue.string); \
         	} else if (getintvalue.type == ASN_INTEGER) { \
-			if (getintvalue.integer == 1) getintvalue.integer = 10;  \
+			if (getintvalue.str_len == 0) { getintvalue.integer = 0; \
+			} else if (getintvalue.integer == 1) getintvalue.integer = 10;  \
 		} \
 	} \
 } while(0)
