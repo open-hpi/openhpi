@@ -4978,9 +4978,11 @@ SaErrorT SAHPI_API saHpiUnsubscribe (
 **      saHpiSessionOpen().
 **   Timeout - [in] The number of nanoseconds to wait for an event to arrive.
 **      Reserved time out values:
-**      SAHPI_TIMEOUT_IMMEDIATE	Time out immediately if there are no events
-**      available (non-blocking call).
-**      SAHPI_TIMEOUT_BLOCK	Call should not return until an event is retrieved.
+**      SAHPI_TIMEOUT_IMMEDIATE
+**         Time out immediately if there are no events available (non-blocking
+**         call).
+**      SAHPI_TIMEOUT_BLOCK
+**         Call should not return until an event is retrieved.
 **   Event - [out] Pointer to the next available event.
 **   Rdr - [in/out] Pointer to structure to receive the resource data associated
 **      with the event.  If NULL, no RDR is returned.
@@ -5408,9 +5410,9 @@ SaErrorT SAHPI_API saHpiAlarmDelete(
 **   ResourceId - [in] Resource identified for this operation.
 **   EntryId - [in] Identifier of the RDR entry to retrieve. Reserved EntryId
 **      values:
-**      SAHPI_FIRST_ENTRY	Get first entry.
-**      SAHPI_LAST_ENTRY	Reserved as delimiter for end of list. Not a valid
-**         entry identifier.
+**      SAHPI_FIRST_ENTRY    Get first entry.
+**      SAHPI_LAST_ENTRY     Reserved as delimiter for end of list.
+**                           Not a valid entry identifier.
 **   NextEntryId - [out] Pointer to location to store EntryId of next entry in
 **      RDR repository.
 **   Rdr - [out] Pointer to the structure to receive the requested resource data
@@ -6287,9 +6289,9 @@ SaErrorT SAHPI_API saHpiIdrInfoGet(
 **   AreaType - [in] Type of Inventory Data Area.
 **   AreaId - [in] Identifier of Area entry to retrieve from the IDR.  Reserved
 **      AreaId values:
-**      SAHPI_FIRST_ENTRY	Get first entry.
-**      SAHPI_LAST_ENTRY	Reserved as a delimiter for end of list. Not a valid
-**      AreaId.
+**      SAHPI_FIRST_ENTRY    Get first entry.
+**      SAHPI_LAST_ENTRY     Reserved as a delimiter for end of list.
+**                           Not a valid AreaId.
 **   NextAreaId - [out] Pointer to location to store the AreaId of next area of
 **      the requested type within the IDR.
 **   Header - [out] Pointer to Inventory Data Area Header into which the header
@@ -6531,9 +6533,9 @@ SaErrorT SAHPI_API saHpiIdrAreaDelete(
 **   FieldType - [in] Type of Inventory Data Field.
 **   FieldId - [in] Identifier of Field to retrieve from the IDA.  Reserved
 **      FieldId values:
-**      SAHPI_FIRST_ENTRY	Get first entry.
-**      SAHPI_LAST_ENTRY	Reserved as a delimiter for end of list. Not a valid
-**      FieldId.
+**      SAHPI_FIRST_ENTRY   Get first entry.
+**      SAHPI_LAST_ENTRY    Reserved as a delimiter for end of list.
+**                          Not a valid FieldId.
 **   NextFieldId - [out] Pointer to location to store the FieldId of next field
 **      of the requested type in the IDA.
 **   Field - [out] Pointer to Inventory Data Field into which the field
