@@ -151,14 +151,6 @@ SaErrorT SAHPI_API saHpiDomainInfoGet (
         return SA_OK;
 }
 
-/***********************************************************
- *
- *  For OpenHPI 2.0 this is always going to return
- *  NOT_PRESENT unless it is called invalidly.  True
- *  DRT support won't be there until 2.2.
- *
- **********************************************************/
-
 SaErrorT SAHPI_API saHpiDrtEntryGet (
         SAHPI_IN  SaHpiSessionIdT     SessionId,
         SAHPI_IN  SaHpiEntryIdT       EntryId,
