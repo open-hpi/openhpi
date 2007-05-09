@@ -641,10 +641,9 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 	
 	if (rdr != NULL) {
 
-		rv = snmp_bc_validate_ep(&(rdr->Entity), &valEntity);
-				
 		struct InventoryInfo *s =
                         (struct InventoryInfo *)oh_get_rdr_data(handle->rptcache, ResourceId, rdr->RecordId);
+		rv = snmp_bc_validate_ep(&(rdr->Entity), &valEntity);
 		
 		i_record->idrinfo.IdrId = IdrId;
 		i_record->idrinfo.UpdateCount = 0;
