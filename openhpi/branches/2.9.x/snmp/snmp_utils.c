@@ -84,9 +84,11 @@ SaErrorT snmp_get( void *sessp,
                         	value->str_len = vars->val_len;
                         	if (value->str_len >= MAX_ASN_STR_LEN)
                                 		value->str_len = MAX_ASN_STR_LEN;
-                        	else value->string[value->str_len] = '\0';
-
-                        	memcpy(value->string, vars->val.string, value->str_len);
+				if (value->str_len > 0)
+                        	    memcpy(value->string, vars->val.string, value->str_len);						
+						
+                        	value->string[value->str_len] = '\0'; /* guarantee NULL terminated string */
+				
                 	}
 
 		} else {

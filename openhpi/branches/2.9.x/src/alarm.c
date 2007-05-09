@@ -78,7 +78,7 @@ static GSList *__get_alarm_node(struct oh_domain *d,
                     (num ? alarm->AlarmCond.SensorNum == *num : 1) &&
                     (state ? alarm->AlarmCond.EventState == *state : 1) &&
                     (unacknowledged ? !alarm->Acknowledged : 1)) {
-			return alarms;
+                        return alarms;
                 }
         }
 
@@ -157,21 +157,21 @@ SaHpiAlarmT *oh_add_alarm(struct oh_domain *d, SaHpiAlarmT *alarm, int fromfile)
         a = g_new0(SaHpiAlarmT, 1);
         if (alarm) { /* Copy contents of optional alarm reference */
                 memcpy(a, alarm, sizeof(SaHpiAlarmT));
-	}
+        }
 
-	if (fromfile) {
-		if (a->AlarmId > d->dat.next_id) {
-			d->dat.next_id = a->AlarmId;
-		}
-	} else {
-		a->AlarmId = ++(d->dat.next_id);
-        	gettimeofday(&tv1, NULL);
-        	a->Timestamp =
-			(SaHpiTimeT) tv1.tv_sec * 1000000000 + tv1.tv_usec * 1000;
-		a->Acknowledged = SAHPI_FALSE;
-	}
-	a->AlarmCond.DomainId = d->id;
-	d->dat.list = g_slist_append(d->dat.list, a);
+        if (fromfile) {
+                if (a->AlarmId > d->dat.next_id) {
+                        d->dat.next_id = a->AlarmId;
+                }
+        } else {
+                a->AlarmId = ++(d->dat.next_id);
+                gettimeofday(&tv1, NULL);
+                a->Timestamp =
+                        (SaHpiTimeT) tv1.tv_sec * 1000000000 + tv1.tv_usec * 1000;
+                a->Acknowledged = SAHPI_FALSE;
+        }
+        a->AlarmCond.DomainId = d->id;
+        d->dat.list = g_slist_append(d->dat.list, a);
 
         /* Set alarm id and timestamp info in alarm reference */
         if (alarm) {
@@ -179,19 +179,19 @@ SaHpiAlarmT *oh_add_alarm(struct oh_domain *d, SaHpiAlarmT *alarm, int fromfile)
                 alarm->Timestamp = a->Timestamp;
         }
 
-	if (!fromfile) {
-		__update_dat(d);
-		param.type = OPENHPI_DAT_SAVE;
-		oh_get_global_param(&param);
-		if (param.u.dat_save) {
-			char dat_filepath[SAHPI_MAX_TEXT_BUFFER_LENGTH*2];
-			param.type = OPENHPI_VARPATH;
-			oh_get_global_param(&param);
-			snprintf(dat_filepath, SAHPI_MAX_TEXT_BUFFER_LENGTH*2,
-					"%s/dat.%u", param.u.varpath, d->id);
-			oh_alarms_to_file(&d->dat, dat_filepath);
-		}
-	}
+        if (!fromfile) {
+                __update_dat(d);
+                param.type = OPENHPI_DAT_SAVE;
+                oh_get_global_param(&param);
+                if (param.u.dat_save) {
+                        char dat_filepath[SAHPI_MAX_TEXT_BUFFER_LENGTH*2];
+                        param.type = OPENHPI_VARPATH;
+                        oh_get_global_param(&param);
+                        snprintf(dat_filepath, SAHPI_MAX_TEXT_BUFFER_LENGTH*2,
+                                        "%s/dat.%u", param.u.varpath, d->id);
+                        oh_alarms_to_file(&d->dat, dat_filepath);
+                }
+        }
 
         return a;
 }
@@ -261,7 +261,7 @@ SaErrorT oh_remove_alarm(struct oh_domain *d,
 {
         GSList *alarm_node = NULL;
         SaHpiAlarmT *alarm = NULL;
-	SaHpiAlarmIdT aid = SAHPI_FIRST_ENTRY; /* Set to zero */
+        SaHpiAlarmIdT aid = SAHPI_FIRST_ENTRY; /* Set to zero */
         struct oh_global_param param = { .type = OPENHPI_DAT_SIZE_LIMIT };
 
         if (!d) return SA_ERR_HPI_INVALID_PARAMS;
@@ -270,9 +270,9 @@ SaErrorT oh_remove_alarm(struct oh_domain *d,
                 alarm_node = __get_alarm_node(d, &aid, severity, type, rid, mid,
                                               num, state, 0, 1);
                 if (alarm_node) alarm = alarm_node->data;
-		else break;
+                else break;
 
-		aid = alarm->AlarmId;
+                aid = alarm->AlarmId;
                 if (deassert_mask ? *deassert_mask & alarm->AlarmCond.EventState : 1) {
                         d->dat.list = g_slist_delete_link(d->dat.list, alarm_node);
                         g_free(alarm);
@@ -426,6 +426,22 @@ done:
         return;
 }
 
+static void oh_detect_sensor_enable_change_alarm(struct oh_domain *d,
+                                                 SaHpiEventT *event)
+{
+        SaHpiStatusCondTypeT type = SAHPI_STATUS_COND_TYPE_SENSOR;
+
+        if (!d || !event) return;
+
+        if (!event->EventDataUnion.SensorEnableChangeEvent.SensorEnable ||
+            !event->EventDataUnion.SensorEnableChangeEvent.SensorEventEnable) {
+                oh_remove_alarm(d, NULL, &type, &event->Source, NULL,
+                                &event->EventDataUnion.SensorEnableChangeEvent.SensorNum,
+                                NULL, NULL, 1);
+        }
+
+}
+
 static void oh_remove_resource_alarms(struct oh_domain *d, SaHpiResourceIdT rid, int all)
 {
         SaHpiStatusCondTypeT type = SAHPI_STATUS_COND_TYPE_RESOURCE;
@@ -459,6 +475,9 @@ static void oh_detect_hpi_alarm(struct oh_domain *d, SaHpiEventT *event)
                         break;
                 case SAHPI_ET_SENSOR:
                         oh_detect_sensor_event_alarm(d, event);
+                        break;
+                case SAHPI_ET_SENSOR_ENABLE_CHANGE:
+                        oh_detect_sensor_enable_change_alarm(d, event);
                         break;
                 default:;
         }
@@ -510,20 +529,20 @@ SaErrorT oh_detect_event_alarm(struct oh_domain *d,
 
         etype = e->event.EventType;
         if (etype == SAHPI_ET_RESOURCE) {
-		if (e->resource.ResourceId) {
-	        	oh_detect_resource_alarm(d, &e->resource);
-		} else {
-			oh_detect_resource_event_alarm(d, &e->event);
-		}
+                if (e->resource.ResourceId) {
+                        oh_detect_resource_alarm(d, &e->resource);
+                } else {
+                        oh_detect_resource_event_alarm(d, &e->event);
+                }
         } else if (etype == SAHPI_ET_HOTSWAP) {
-        	if (e->event.EventDataUnion.HotSwapEvent.HotSwapState ==
-		    SAHPI_HS_STATE_NOT_PRESENT) {
-		    	SaHpiResourceIdT rid = e->resource.ResourceId;
-		    	if (!rid) rid = e->event.Source;
-		    	oh_remove_resource_alarms(d, rid, 1);
-		}
+                if (e->event.EventDataUnion.HotSwapEvent.HotSwapState ==
+                    SAHPI_HS_STATE_NOT_PRESENT) {
+                            SaHpiResourceIdT rid = e->resource.ResourceId;
+                            if (!rid) rid = e->event.Source;
+                            oh_remove_resource_alarms(d, rid, 1);
+                }
         } else {
-        	oh_detect_hpi_alarm(d, &e->event);
+                oh_detect_hpi_alarm(d, &e->event);
         }
 
         return SA_OK;
@@ -658,36 +677,36 @@ SaErrorT oh_detect_sensor_mask_alarm(SaHpiDomainIdT did,
  **/
 SaErrorT oh_alarms_to_file(struct oh_dat *at, char *filename)
 {
-	GSList *alarms = NULL;
-	int file;
+        GSList *alarms = NULL;
+        int file;
 
-	if (!at || !filename) {
-		dbg("Invalid Parameters");
-		return SA_ERR_HPI_INVALID_PARAMS;
-	}
+        if (!at || !filename) {
+                dbg("Invalid Parameters");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
 
-	file = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0660 );
-	if (file < 0) {
-		dbg("File '%s' could not be opened", filename);
-		return SA_ERR_HPI_ERROR;
-	}
+        file = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0660 );
+        if (file < 0) {
+                dbg("File '%s' could not be opened", filename);
+                return SA_ERR_HPI_ERROR;
+        }
 
-	for (alarms = at->list; alarms; alarms = alarms->next) {
-		int bytes_written = 0;
-		bytes_written = write(file, (void *)alarms->data, sizeof(SaHpiAlarmT));
-		if (bytes_written != sizeof(SaHpiAlarmT)) {
-			dbg("Couldn't write to file '%s'.", filename);
+        for (alarms = at->list; alarms; alarms = alarms->next) {
+                int bytes_written = 0;
+                bytes_written = write(file, (void *)alarms->data, sizeof(SaHpiAlarmT));
+                if (bytes_written != sizeof(SaHpiAlarmT)) {
+                        dbg("Couldn't write to file '%s'.", filename);
                         close(file);
                         return SA_ERR_HPI_ERROR;
-		}
-	}
+                }
+        }
 
-	if (close(file) != 0) {
-        	dbg("Couldn't close file '%s'.", filename);
-		return SA_ERR_HPI_ERROR;
-	}
+        if (close(file) != 0) {
+                dbg("Couldn't close file '%s'.", filename);
+                return SA_ERR_HPI_ERROR;
+        }
 
-	return SA_OK;
+        return SA_OK;
 }
 
 /**
@@ -701,34 +720,34 @@ SaErrorT oh_alarms_to_file(struct oh_dat *at, char *filename)
  **/
 SaErrorT oh_alarms_from_file(struct oh_domain *d, char *filename)
 {
-	int file;
-	SaHpiAlarmT alarm;
+        int file;
+        SaHpiAlarmT alarm;
 
-	if (!d || !filename) {
-		dbg("Invalid Parameters");
-		return SA_ERR_HPI_ERROR;
-	}
+        if (!d || !filename) {
+                dbg("Invalid Parameters");
+                return SA_ERR_HPI_ERROR;
+        }
 
-	file = open(filename, O_RDONLY);
+        file = open(filename, O_RDONLY);
         if (file < 0) {
                 dbg("File '%s' could not be opened", filename);
                 return SA_ERR_HPI_ERROR;
         }
 
-	while (read(file, &alarm, sizeof(SaHpiAlarmT)) == sizeof(SaHpiAlarmT)) {
-		SaHpiAlarmT *a = oh_add_alarm(d, &alarm, 1);
-		if (!a) {
-			close(file);
-			dbg("Error adding alarm read from file.");
-			return SA_ERR_HPI_ERROR;
-		}
-	}
+        while (read(file, &alarm, sizeof(SaHpiAlarmT)) == sizeof(SaHpiAlarmT)) {
+                SaHpiAlarmT *a = oh_add_alarm(d, &alarm, 1);
+                if (!a) {
+                        close(file);
+                        dbg("Error adding alarm read from file.");
+                        return SA_ERR_HPI_ERROR;
+                }
+        }
 
-	if (close(file) != 0) {
-        	dbg("Couldn't close file '%s'.", filename);
-        	return SA_ERR_HPI_ERROR;
-	}
+        if (close(file) != 0) {
+                dbg("Couldn't close file '%s'.", filename);
+                return SA_ERR_HPI_ERROR;
+        }
 
-	return SA_OK;
+        return SA_OK;
 }
 

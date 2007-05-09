@@ -338,8 +338,8 @@ SaErrorT snmp_bc_snmp_get(struct snmp_bc_hnd *custom_handle,
 				    (g_ascii_strncasecmp(value->string,"Not Readable", sizeof("Not Readable")) == 0) ||
 				    (g_ascii_strncasecmp(value->string,"(No temperature)", sizeof("(No temperature)")) == 0) ||
 				    (g_ascii_strncasecmp(value->string,"NO_TEMPERATURE", sizeof("NO_TEMPERATURE")) == 0) ||
-				    (!value->string) ||
-				    (value->string[0] == '\0')) {
+				    (!value->string) ) /*||
+				    (value->string[0] == '\0'))*/ {
 					custom_handle->handler_retries = 0;
 					trace("Not readable reading from OID=%s.", objid);
                         		err = SA_ERR_HPI_NO_RESPONSE;
