@@ -65,7 +65,7 @@ int main(int argc, char **argv)
                 return -1;
 	}
 
-        rc = saHpiAnnunciatorGet(sid, resid, 1, SAHPI_FIRST_ENTRY, &announ);
+        rc = saHpiAnnunciatorGet(sid, resid, 1, 1, &announ);
         if (rc != SA_OK) {
 		dbg("Couldn't get annunciator");
 		dbg("Error %s",oh_lookup_error(rc));
