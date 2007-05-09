@@ -63,7 +63,7 @@ int main(int argc, char **argv)
 	/************************** 
 	 * Test: Invalid pointer   
 	 **************************/
-	expected_err = SA_ERR_HPI_INVALID_DATA;
+	expected_err = SA_ERR_HPI_INVALID_PARAMS;
 	err = saHpiSensorThresholdsSet(sessionid, id, sid, NULL);
 	checkstatus(err, expected_err, testfail);
 

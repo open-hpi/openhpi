@@ -60,7 +60,7 @@ SaErrorT SAHPI_API saHpiSessionOpen(
                 dbg("SecurityParams must be NULL");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
-        
+
         /* Initialize Library - This will only run once */
         if (oh_init()) return SA_ERR_HPI_INTERNAL_ERROR;
 
@@ -150,14 +150,6 @@ SaErrorT SAHPI_API saHpiDomainInfoGet (
 
         return SA_OK;
 }
-
-/***********************************************************
- *
- *  For OpenHPI 2.0 this is always going to return
- *  NOT_PRESENT unless it is called invalidly.  True
- *  DRT support won't be there until 2.2.
- *
- **********************************************************/
 
 SaErrorT SAHPI_API saHpiDrtEntryGet (
         SAHPI_IN  SaHpiSessionIdT     SessionId,
@@ -321,7 +313,7 @@ SaErrorT SAHPI_API saHpiResourceSeveritySet(
                 dbg("Invalid resource id, SAHPI_UNSPECIFIED_RESOURCE_ID passed.");
                 return SA_ERR_HPI_INVALID_PARAMS;
         } else if (!oh_lookup_severity(Severity) ||
-		   Severity == SAHPI_ALL_SEVERITIES) {
+                   Severity == SAHPI_ALL_SEVERITIES) {
                 dbg("Invalid severity %d passed.", Severity);
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
@@ -339,9 +331,9 @@ SaErrorT SAHPI_API saHpiResourceSeveritySet(
         }
 
         if ((error = set_res_sev(h->hnd, ResourceId, Severity)) != SA_OK) {
-        	oh_release_handler(h);
+                oh_release_handler(h);
                 dbg("Setting severity failed for ResourceId %d in Domain %d",
-                    ResourceId, did);                
+                    ResourceId, did);
                 return error;
         }
         oh_release_handler(h);
@@ -355,9 +347,9 @@ SaErrorT SAHPI_API saHpiResourceSeveritySet(
         OH_GET_DOMAIN(did, d); /* Lock domain */
         rptentry = oh_get_resource_by_id(&(d->rpt), ResourceId);
         if (!rptentry) {
-        	oh_release_domain(d); /* Unlock domain */
+                oh_release_domain(d); /* Unlock domain */
                 dbg("Severity set failed: No Resource %d in Domain %d",
-                    ResourceId, did);                
+                    ResourceId, did);
                 return SA_ERR_HPI_NOT_PRESENT;
         }
         rptentry->ResourceSeverity = Severity;
@@ -621,12 +613,12 @@ SaErrorT SAHPI_API saHpiEventLogEntryAdd (
                 dbg("Error: Event Log Entry is not USER");
                 return SA_ERR_HPI_INVALID_PARAMS;
         } else if (EvtEntry->Source != SAHPI_UNSPECIFIED_RESOURCE_ID) {
-		dbg("Error: Event.Source not what it should be");
-		return SA_ERR_HPI_INVALID_PARAMS;
-	} else if (EvtEntry->Severity == SAHPI_ALL_SEVERITIES) {
-		dbg("Error: SAHPI_ALL_SEVERITIES is not a valid here.");
-		return SA_ERR_HPI_INVALID_PARAMS;
-	} else if (!oh_lookup_severity(EvtEntry->Severity)) {
+                dbg("Error: Event.Source not what it should be");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        } else if (EvtEntry->Severity == SAHPI_ALL_SEVERITIES) {
+                dbg("Error: SAHPI_ALL_SEVERITIES is not a valid here.");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        } else if (!oh_lookup_severity(EvtEntry->Severity)) {
                 dbg("Error: Event Log Entry Severity is invalid");
                 return SA_ERR_HPI_INVALID_PARAMS;
         } else if (!oh_valid_textbuffer(&EvtEntry->EventDataUnion.UserEvent.UserEventData)) {
@@ -639,8 +631,8 @@ SaErrorT SAHPI_API saHpiEventLogEntryAdd (
                 dbg("couldn't get loginfo");
                 return rv;
         }
-	
-	if (EvtEntry->EventDataUnion.UserEvent.UserEventData.DataLength >
+
+        if (EvtEntry->EventDataUnion.UserEvent.UserEventData.DataLength >
             info.UserEventMaxSize) {
                 dbg("DataLength(%d) > info.UserEventMaxSize(%d)",
                     EvtEntry->EventDataUnion.UserEvent.UserEventData.DataLength,
@@ -689,7 +681,7 @@ SaErrorT SAHPI_API saHpiEventLogEntryAdd (
 
         rv = add_el_entry(h->hnd, ResourceId, EvtEntry);
         if (rv != SA_OK) dbg("EL add entry failed");
-		
+
         oh_release_handler(h);
 
         return rv;
@@ -867,7 +859,7 @@ SaErrorT SAHPI_API saHpiEventLogStateSet (
 
         /* test for special domain case */
         if (ResourceId == SAHPI_UNSPECIFIED_RESOURCE_ID) {
-		oh_el_enableset(d->del, Enable);
+                oh_el_enableset(d->del, Enable);
                 oh_release_domain(d); /* Unlock domain */
                 return SA_OK;
         }
@@ -1077,14 +1069,14 @@ SaErrorT SAHPI_API saHpiEventGet (
         if (RptEntry) *RptEntry = e.resource;
 
         if (Rdr) {
-        	if (e.rdrs) {
-        		memcpy(Rdr, e.rdrs->data, sizeof(SaHpiRdrT));
-        	} else {
-        		Rdr->RdrType = SAHPI_NO_RECORD;
-        	}
+                if (e.rdrs) {
+                        memcpy(Rdr, e.rdrs->data, sizeof(SaHpiRdrT));
+                } else {
+                        Rdr->RdrType = SAHPI_NO_RECORD;
+                }
         }
 
-	oh_event_free(&e, TRUE);
+        oh_event_free(&e, TRUE);
         return SA_OK;
 }
 
@@ -1122,14 +1114,14 @@ SaErrorT SAHPI_API saHpiEventAdd (
 
         e.hid = 0;
         /* Timestamp the incoming user event
-	 * only if it is SAHPI_TIME_UNSPECIFIED */
-	if (EvtEntry->Timestamp == SAHPI_TIME_UNSPECIFIED) {
-        	struct timeval tv1;
-	        gettimeofday(&tv1, NULL);
-        	EvtEntry->Timestamp =
-                	(SaHpiTimeT) tv1.tv_sec * 1000000000 +
-			tv1.tv_usec * 1000;
-	}
+         * only if it is SAHPI_TIME_UNSPECIFIED */
+        if (EvtEntry->Timestamp == SAHPI_TIME_UNSPECIFIED) {
+                struct timeval tv1;
+                gettimeofday(&tv1, NULL);
+                EvtEntry->Timestamp =
+                        (SaHpiTimeT) tv1.tv_sec * 1000000000 +
+                        tv1.tv_usec * 1000;
+        }
         /* Copy SaHpiEventT into oh_event struct */
         e.event = *EvtEntry;
         /* indicate there is no rdr or resource */
@@ -1210,7 +1202,10 @@ SaErrorT SAHPI_API saHpiAlarmGet(
 
         OH_CHECK_INIT_STATE(SessionId);
 
-        if (!Alarm) return SA_ERR_HPI_INVALID_PARAMS;
+        if (!Alarm ||
+            AlarmId == SAHPI_FIRST_ENTRY ||
+            AlarmId == SAHPI_LAST_ENTRY)
+                return SA_ERR_HPI_INVALID_PARAMS;
 
         OH_GET_DID(SessionId, did);
         OH_GET_DOMAIN(did, d); /* Lock domain */
@@ -1286,7 +1281,8 @@ SaErrorT SAHPI_API saHpiAlarmAdd(
                 !((Alarm->Severity == SAHPI_CRITICAL) ||
                   (Alarm->Severity == SAHPI_MAJOR) ||
                   (Alarm->Severity == SAHPI_MINOR)) ||
-            (Alarm->AlarmCond.Type != SAHPI_STATUS_COND_TYPE_USER))
+            (Alarm->AlarmCond.Type != SAHPI_STATUS_COND_TYPE_USER)||
+            !oh_valid_textbuffer(&Alarm->AlarmCond.Data))
                 return SA_ERR_HPI_INVALID_PARAMS;
 
         OH_GET_DID(SessionId, did);
@@ -1574,7 +1570,7 @@ SaErrorT SAHPI_API saHpiSensorThresholdsGet (
                               SaHpiSensorThresholdsT *);
         SaHpiRptEntryT *res;
         SaHpiRdrT *rdr_cur;
-	SaHpiSensorThdDefnT *thd;
+        SaHpiSensorThdDefnT *thd;
         struct oh_handler *h;
         SaHpiDomainIdT did;
         struct oh_domain *d = NULL;
@@ -1605,13 +1601,13 @@ SaErrorT SAHPI_API saHpiSensorThresholdsGet (
                 return SA_ERR_HPI_NOT_PRESENT;
         }
 
-	thd = &rdr_cur->RdrTypeUnion.SensorRec.ThresholdDefn;
-	if (thd->IsAccessible == SAHPI_FALSE ||
-	    thd->ReadThold == 0) {
-        	oh_release_domain(d); /* Unlock domain */
-		dbg("Sensor has no readable thresholds.");
-		return SA_ERR_HPI_INVALID_CMD;
-	}
+        thd = &rdr_cur->RdrTypeUnion.SensorRec.ThresholdDefn;
+        if (thd->IsAccessible == SAHPI_FALSE ||
+            thd->ReadThold == 0) {
+                oh_release_domain(d); /* Unlock domain */
+                dbg("Sensor has no readable thresholds.");
+                return SA_ERR_HPI_INVALID_CMD;
+        }
 
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
@@ -1644,7 +1640,7 @@ SaErrorT SAHPI_API saHpiSensorThresholdsSet (
         SaHpiDomainIdT did;
         struct oh_domain *d = NULL;
 
-        if (!SensorThresholds) return SA_ERR_HPI_INVALID_DATA;
+        if (!SensorThresholds) return SA_ERR_HPI_INVALID_PARAMS;
 
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
@@ -2062,6 +2058,10 @@ SaErrorT SAHPI_API saHpiSensorEventMasksSet (
         SaHpiSensorEventCtrlT sec;
 
         OH_CHECK_INIT_STATE(SessionId);
+
+        if (!oh_lookup_sensoreventmaskaction(Action))
+                return SA_ERR_HPI_INVALID_PARAMS;
+
         OH_GET_DID(SessionId, did);
         OH_GET_DOMAIN(did, d); /* Lock domain */
         OH_RESOURCE_GET(d, ResourceId, res);
@@ -2201,20 +2201,20 @@ SaErrorT SAHPI_API saHpiControlGet (
                 oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_INVALID_CMD;
         }
-	
-	if (CtrlMode == NULL && CtrlState == NULL) {
-		oh_release_domain(d);
-		return SA_OK;
-	} else if (CtrlState &&
-		    rdr->RdrTypeUnion.CtrlRec.Type == SAHPI_CTRL_TYPE_TEXT) {
-		if (CtrlState->StateUnion.Text.Line != SAHPI_TLN_ALL_LINES &&
-		    CtrlState->StateUnion.Text.Line >
-		    rdr->RdrTypeUnion.CtrlRec.TypeUnion.Text.MaxLines) {
-			oh_release_domain(d);
-			return SA_ERR_HPI_INVALID_DATA;
-		}
-	}
-	
+
+        if (CtrlMode == NULL && CtrlState == NULL) {
+                oh_release_domain(d);
+                return SA_OK;
+        } else if (CtrlState &&
+                    rdr->RdrTypeUnion.CtrlRec.Type == SAHPI_CTRL_TYPE_TEXT) {
+                if (CtrlState->StateUnion.Text.Line != SAHPI_TLN_ALL_LINES &&
+                    CtrlState->StateUnion.Text.Line >
+                    rdr->RdrTypeUnion.CtrlRec.TypeUnion.Text.MaxLines) {
+                        oh_release_domain(d);
+                        return SA_ERR_HPI_INVALID_DATA;
+                }
+        }
+
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
 
@@ -2241,16 +2241,16 @@ SaErrorT SAHPI_API saHpiControlSet (
         SaErrorT (*set_func)(void *, SaHpiResourceIdT, SaHpiCtrlNumT, SaHpiCtrlModeT, SaHpiCtrlStateT *);
 
         SaHpiRptEntryT *res;
-        SaHpiRdrT *rdr;        
+        SaHpiRdrT *rdr;
         struct oh_handler *h;
         SaHpiDomainIdT did;
         struct oh_domain *d = NULL;
-	
+
         if (!oh_lookup_ctrlmode(CtrlMode) ||
-            (CtrlMode != SAHPI_CTRL_MODE_AUTO && !CtrlState)) {            	
-		return SA_ERR_HPI_INVALID_PARAMS;
-	}
-	if (CtrlMode != SAHPI_CTRL_MODE_AUTO &&
+            (CtrlMode != SAHPI_CTRL_MODE_AUTO && !CtrlState)) {
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+        if (CtrlMode != SAHPI_CTRL_MODE_AUTO &&
             ((CtrlState->Type == SAHPI_CTRL_TYPE_DIGITAL &&
               !oh_lookup_ctrlstatedigital(CtrlState->StateUnion.Digital)) ||
              (CtrlState->Type == SAHPI_CTRL_TYPE_STREAM &&
@@ -2267,9 +2267,9 @@ SaErrorT SAHPI_API saHpiControlSet (
         OH_RESOURCE_GET_CHECK(d, ResourceId, res);
 
         if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_CONTROL)) {
-        	oh_release_domain(d); /* Unlock domain */
+                oh_release_domain(d); /* Unlock domain */
                 dbg("Resource %d in Domain %d doesn't have controls",
-                    ResourceId, did);                
+                    ResourceId, did);
                 return SA_ERR_HPI_CAPABILITY;
         }
 
@@ -2281,8 +2281,8 @@ SaErrorT SAHPI_API saHpiControlSet (
 
         /* Check CtrlMode and CtrlState */
         rv = oh_valid_ctrl_state_mode(&rdr->RdrTypeUnion.CtrlRec,
-        			      CtrlMode, CtrlState);
-        if (rv != SA_OK) {        	
+                                      CtrlMode, CtrlState);
+        if (rv != SA_OK) {
                 oh_release_domain(d);
                 return rv;
         }
@@ -2634,8 +2634,8 @@ SaErrorT SAHPI_API saHpiIdrFieldAdd(
                 dbg("Invalid Parameter in Field->Type");
                 return SA_ERR_HPI_INVALID_PARAMS;
         } else if (Field->Type == SAHPI_IDR_FIELDTYPE_UNSPECIFIED) {
-        	dbg("Invalid unspecified type");
-        	return SA_ERR_HPI_INVALID_PARAMS;
+                dbg("Invalid unspecified type");
+                return SA_ERR_HPI_INVALID_PARAMS;
         } else if (oh_valid_textbuffer(&Field->Field) != SAHPI_TRUE) {
                 dbg("invalid text buffer");
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -2864,9 +2864,9 @@ SaErrorT SAHPI_API saHpiWatchdogTimerSet (
             !oh_lookup_watchdogpretimerinterrupt(Watchdog->PretimerInterrupt)) {
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
-        
+
         if (Watchdog->PreTimeoutInterval > Watchdog->InitialCount) {
-        	return SA_ERR_HPI_INVALID_DATA;
+                return SA_ERR_HPI_INVALID_DATA;
         }
 
         OH_CHECK_INIT_STATE(SessionId);
@@ -3023,7 +3023,10 @@ SaErrorT SAHPI_API saHpiAnnunciatorGet(
         struct oh_handler *h;
         struct oh_domain *d = NULL;
 
-        if (Announcement == NULL) return SA_ERR_HPI_INVALID_PARAMS;
+        if (Announcement == NULL ||
+            EntryId == SAHPI_FIRST_ENTRY ||
+            EntryId == SAHPI_LAST_ENTRY)
+                return SA_ERR_HPI_INVALID_PARAMS;
 
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
@@ -3150,7 +3153,8 @@ SaErrorT SAHPI_API saHpiAnnunciatorAdd(
         if (Announcement->Severity == SAHPI_ALL_SEVERITIES ||
             !oh_lookup_severity(Announcement->Severity) ||
             !oh_valid_textbuffer(&Announcement->StatusCond.Data) ||
-            !oh_lookup_statuscondtype(Announcement->StatusCond.Type))
+            !oh_lookup_statuscondtype(Announcement->StatusCond.Type)||
+            Announcement->StatusCond.Name.Length > SA_HPI_MAX_NAME_LENGTH)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
         OH_CHECK_INIT_STATE(SessionId);
@@ -3225,7 +3229,7 @@ SaErrorT SAHPI_API saHpiAnnunciatorDelete(
         struct oh_domain *d = NULL;
 
         if ((EntryId == SAHPI_ENTRY_UNSPECIFIED) && !oh_lookup_severity(Severity)) {
-        	dbg("Bad Severity %d passed in.", Severity);
+                dbg("Bad Severity %d passed in.", Severity);
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
@@ -3235,9 +3239,9 @@ SaErrorT SAHPI_API saHpiAnnunciatorDelete(
         OH_RESOURCE_GET_CHECK(d, ResourceId, res);
 
         if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_ANNUNCIATOR)) {
-        	oh_release_domain(d); /* Unlock domain */
+                oh_release_domain(d); /* Unlock domain */
                 dbg("Resource %d in Domain %d doesn't have annunciators",
-                    ResourceId, did);                
+                    ResourceId, did);
                 return SA_ERR_HPI_CAPABILITY;
         }
 
@@ -3247,9 +3251,9 @@ SaErrorT SAHPI_API saHpiAnnunciatorDelete(
                                  AnnunciatorNum);
 
         if (!rdr) {
-        	oh_release_domain(d); /* Unlock domain */
+                oh_release_domain(d); /* Unlock domain */
                 dbg("No Annunciator num %d found for Resource %d in Domain %d",
-                    AnnunciatorNum, ResourceId, did);                
+                    AnnunciatorNum, ResourceId, did);
                 return SA_ERR_HPI_NOT_PRESENT;
         }
 
@@ -3439,14 +3443,14 @@ SaErrorT SAHPI_API saHpiHotSwapPolicyCancel (
         }
 
         /* per spec, we only allow a cancel from certain states */
-	error = saHpiHotSwapStateGet(SessionId, ResourceId, &currentstate);
+        error = saHpiHotSwapStateGet(SessionId, ResourceId, &currentstate);
         if (error != SA_OK) {
                 dbg("Failed to determine current HS state of Resource %d", ResourceId);
                 oh_release_domain(d); /* Unlock domain */
-		return error;
+                return error;
         }
 
-	if ((currentstate != SAHPI_HS_STATE_INSERTION_PENDING) &&
+        if ((currentstate != SAHPI_HS_STATE_INSERTION_PENDING) &&
            (currentstate != SAHPI_HS_STATE_EXTRACTION_PENDING)) {
                 dbg("Invalid cancel from state %s",oh_lookup_hsstate(currentstate));
                 oh_release_domain(d);
@@ -3459,13 +3463,13 @@ SaErrorT SAHPI_API saHpiHotSwapPolicyCancel (
 
         hotswap_policy_cancel = h ? h->abi->hotswap_policy_cancel : NULL;
         if (hotswap_policy_cancel) {
-		error = hotswap_policy_cancel(h->hnd, ResourceId, timeout);
+                error = hotswap_policy_cancel(h->hnd, ResourceId, timeout);
         } else {
-		error = SA_OK;
+                error = SA_OK;
         }
 
         oh_release_handler(h);
-	return error;
+        return error;
 }
 
 SaErrorT SAHPI_API saHpiResourceActiveSet (
@@ -3492,11 +3496,11 @@ SaErrorT SAHPI_API saHpiResourceActiveSet (
                 return SA_ERR_HPI_CAPABILITY;
         }
 
-	error = saHpiHotSwapStateGet(SessionId, ResourceId, &from);
-	if (error != SA_OK) {
+        error = saHpiHotSwapStateGet(SessionId, ResourceId, &from);
+        if (error != SA_OK) {
                 dbg("Failed to determine current HS state of Resource %d", ResourceId);
                 oh_release_domain(d); /* Unlock domain */
-		return error;
+                return error;
         }
 
         if (!oh_allowed_hotswap_transition(from, SAHPI_HS_STATE_ACTIVE)) {
@@ -3516,11 +3520,11 @@ SaErrorT SAHPI_API saHpiResourceActiveSet (
                 return SA_ERR_HPI_INVALID_CMD;
         }
 
-	error = set_hotswap_state(h->hnd, ResourceId, SAHPI_HS_STATE_ACTIVE);
+        error = set_hotswap_state(h->hnd, ResourceId, SAHPI_HS_STATE_ACTIVE);
         oh_release_handler(h);
 
 
-	return error;
+        return error;
 }
 
 SaErrorT SAHPI_API saHpiResourceInactiveSet (
@@ -3546,11 +3550,11 @@ SaErrorT SAHPI_API saHpiResourceInactiveSet (
                 return SA_ERR_HPI_CAPABILITY;
         }
 
-	error = saHpiHotSwapStateGet(SessionId, ResourceId, &from);
-	if (error != SA_OK) {
+        error = saHpiHotSwapStateGet(SessionId, ResourceId, &from);
+        if (error != SA_OK) {
                 dbg("Failed to determine current HS state of Resource %d", ResourceId);
                 oh_release_domain(d); /* Unlock domain */
-		return error;
+                return error;
         }
 
         if (!oh_allowed_hotswap_transition(from, SAHPI_HS_STATE_INACTIVE)) {
@@ -3570,10 +3574,10 @@ SaErrorT SAHPI_API saHpiResourceInactiveSet (
                 return SA_ERR_HPI_INVALID_CMD;
         }
 
-	error = set_hotswap_state(h->hnd, ResourceId, SAHPI_HS_STATE_INACTIVE);
+        error = set_hotswap_state(h->hnd, ResourceId, SAHPI_HS_STATE_INACTIVE);
         oh_release_handler(h);
 
-	return error;
+        return error;
 }
 
 SaErrorT SAHPI_API saHpiAutoInsertTimeoutGet(
@@ -3590,11 +3594,11 @@ SaErrorT SAHPI_API saHpiAutoInsertTimeoutGet(
 
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
-	OH_GET_DOMAIN(did, domain); /* Lock domain */
+        OH_GET_DOMAIN(did, domain); /* Lock domain */
 
         *Timeout = get_hotswap_auto_insert_timeout(domain);
 
-	oh_release_domain(domain); /* Unlock domain */
+        oh_release_domain(domain); /* Unlock domain */
 
         return SA_OK;
 }
@@ -3618,10 +3622,10 @@ SaErrorT SAHPI_API saHpiAutoInsertTimeoutSet(
 
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
-	OH_GET_DOMAIN(did, domain); /* Lock domain */
+        OH_GET_DOMAIN(did, domain); /* Lock domain */
 
         if (domain->capabilities & SAHPI_DOMAIN_CAP_AUTOINSERT_READ_ONLY) {
-		oh_release_domain(domain); /* Unlock domain */
+                oh_release_domain(domain); /* Unlock domain */
                 return SA_ERR_HPI_READ_ONLY;
         }
 
@@ -3680,15 +3684,15 @@ SaErrorT SAHPI_API saHpiAutoExtractTimeoutGet(
         SAHPI_IN  SaHpiResourceIdT ResourceId,
         SAHPI_OUT SaHpiTimeoutT    *Timeout)
 {
-	SaErrorT (*get_autoextract_timeout)(void *hnd,
-					    SaHpiResourceIdT id,
-					    SaHpiTimeoutT *timeout);
+        SaErrorT (*get_autoextract_timeout)(void *hnd,
+                                            SaHpiResourceIdT id,
+                                            SaHpiTimeoutT *timeout);
 
-	SaHpiRptEntryT *res;
+        SaHpiRptEntryT *res;
         SaHpiDomainIdT did;
         struct oh_domain *d = NULL;
-	struct oh_handler *h = NULL;
-	SaErrorT error = SA_OK;
+        struct oh_handler *h = NULL;
+        SaErrorT error = SA_OK;
 
         if (!Timeout) {
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -3704,17 +3708,17 @@ SaErrorT SAHPI_API saHpiAutoExtractTimeoutGet(
                 return SA_ERR_HPI_CAPABILITY;
         }
 
-	OH_HANDLER_GET(d, ResourceId, h);
-	oh_release_domain(d); /* Unlock Domain */
+        OH_HANDLER_GET(d, ResourceId, h);
+        oh_release_domain(d); /* Unlock Domain */
 
-	get_autoextract_timeout = h ? h->abi->get_autoextract_timeout : NULL;
-	if (!get_autoextract_timeout) {
-		oh_release_handler(h);
-		return SA_ERR_HPI_INVALID_CMD;
-	}
+        get_autoextract_timeout = h ? h->abi->get_autoextract_timeout : NULL;
+        if (!get_autoextract_timeout) {
+                oh_release_handler(h);
+                return SA_ERR_HPI_INVALID_CMD;
+        }
 
-	error = get_autoextract_timeout(h->hnd, ResourceId, Timeout);
-	oh_release_handler(h);
+        error = get_autoextract_timeout(h->hnd, ResourceId, Timeout);
+        oh_release_handler(h);
 
         return error;
 }
@@ -3724,15 +3728,15 @@ SaErrorT SAHPI_API saHpiAutoExtractTimeoutSet(
         SAHPI_IN SaHpiResourceIdT ResourceId,
         SAHPI_IN SaHpiTimeoutT    Timeout)
 {
-	SaErrorT (*set_autoextract_timeout)(void *hnd,
-					    SaHpiResourceIdT id,
-					    SaHpiTimeoutT timeout);
+        SaErrorT (*set_autoextract_timeout)(void *hnd,
+                                            SaHpiResourceIdT id,
+                                            SaHpiTimeoutT timeout);
 
         SaHpiRptEntryT *res;
         SaHpiDomainIdT did;
         struct oh_domain *d = NULL;
         struct oh_handler *h = NULL;
-	SaErrorT error = SA_OK;
+        SaErrorT error = SA_OK;
 
         if (Timeout != SAHPI_TIMEOUT_IMMEDIATE &&
             Timeout != SAHPI_TIMEOUT_BLOCK &&
@@ -3749,17 +3753,17 @@ SaErrorT SAHPI_API saHpiAutoExtractTimeoutSet(
                 return SA_ERR_HPI_CAPABILITY;
         }
 
-	OH_HANDLER_GET(d, ResourceId, h);
-	oh_release_domain(d); /* Unlock Domain */
+        OH_HANDLER_GET(d, ResourceId, h);
+        oh_release_domain(d); /* Unlock Domain */
 
-	set_autoextract_timeout = h ? h->abi->set_autoextract_timeout : NULL;
-	if (!set_autoextract_timeout) {
-		oh_release_handler(h);
-		return SA_ERR_HPI_INVALID_CMD;
-	}
+        set_autoextract_timeout = h ? h->abi->set_autoextract_timeout : NULL;
+        if (!set_autoextract_timeout) {
+                oh_release_handler(h);
+                return SA_ERR_HPI_INVALID_CMD;
+        }
 
-	error = set_autoextract_timeout(h->hnd, ResourceId, Timeout);
-	oh_release_handler(h);
+        error = set_autoextract_timeout(h->hnd, ResourceId, Timeout);
+        oh_release_handler(h);
 
         return error;
 }
