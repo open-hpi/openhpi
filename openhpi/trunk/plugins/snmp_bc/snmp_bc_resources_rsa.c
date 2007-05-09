@@ -1954,7 +1954,7 @@ struct snmp_bc_inventory snmp_bc_chassis_inventories_rsa[] = {
                         .Oem = 0,
                 },
 		.inventory_info = {		
-			.mib = {
+			.hardware_mib = {
 				.not_avail_indicator_num = 0,
 				.write_only = SAHPI_FALSE,
 				.area_type = SAHPI_IDR_AREATYPE_CHASSIS_INFO,
@@ -1970,6 +1970,22 @@ struct snmp_bc_inventory snmp_bc_chassis_inventories_rsa[] = {
                                         .OidAssetTag = '\0',
 				}
 			},
+			.firmware_mib = {
+				.not_avail_indicator_num = 0,
+				.write_only = SAHPI_FALSE,
+				.area_type = SAHPI_IDR_AREATYPE_PRODUCT_INFO,
+				.oid = {
+					.OidChassisType = '\0',
+                                        .OidMfgDateTime = '\0',   /* Set to SAHPI_TIME_UNSPECIFIED */
+                                        .OidManufacturer = '\0',
+                                        .OidProductName = '\0',
+                                        .OidProductVersion = '\0',
+                                        .OidSerialNumber = '\0',
+                                        .OidPartNumber = '\0',
+                                        .OidFileId = '\0',
+                                        .OidAssetTag = '\0',
+				}
+			},			
 		},
                 .comment = "RSA VPD",
         },
