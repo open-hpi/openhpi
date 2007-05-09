@@ -442,7 +442,8 @@ struct InventoryMibInfo {
 };
 
 struct InventoryInfo {
-        struct InventoryMibInfo mib;
+        struct InventoryMibInfo hardware_mib;
+	struct InventoryMibInfo firmware_mib;
 };
 
 struct snmp_bc_inventory {
