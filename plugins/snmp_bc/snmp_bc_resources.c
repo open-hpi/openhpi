@@ -12475,7 +12475,7 @@ struct snmp_bc_inventory snmp_bc_chassis_inventories[] = {
                         .Oem = 0,
                 },
                 .inventory_info = {
-                        .mib = {
+                        .hardware_mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
                                 .area_type = SAHPI_IDR_AREATYPE_CHASSIS_INFO,
@@ -12497,6 +12497,22 @@ struct snmp_bc_inventory snmp_bc_chassis_inventories[] = {
                                         .OidAssetTag = '\0',
                                 }
                         },
+                        .firmware_mib = {
+                                .not_avail_indicator_num = 0,
+                                .write_only = SAHPI_FALSE,
+                                .area_type = SAHPI_IDR_AREATYPE_PRODUCT_INFO,
+                                .oid = {
+                                        .OidChassisType = '\0',
+                                        .OidMfgDateTime = '\0', /* Set to SAHPI_TIME_UNSPECIFIED */
+                                        .OidManufacturer = '\0',
+                                        .OidProductName = '\0',
+                                        .OidProductVersion = '\0',
+                                        .OidSerialNumber = '\0',
+                                        .OidPartNumber = '\0',
+                                        .OidFileId = '\0',
+                                        .OidAssetTag = '\0',
+                                }
+                        },			
                 },
                 .comment = "Chassis VPD",
         },
@@ -12509,6 +12525,52 @@ struct snmp_bc_inventory snmp_bc_chassis_inventories[] = {
  ************/
 
 struct snmp_bc_inventory snmp_bc_blower_inventories[] = {
+        {
+                .inventory = {
+                        .IdrId = 6,
+                        .Oem = 0,
+                },
+                .inventory_info = {
+                        .hardware_mib = {
+                                .not_avail_indicator_num = 0,
+                                .write_only = SAHPI_FALSE,
+                                .area_type = SAHPI_IDR_AREATYPE_BOARD_INFO,
+                                .oid = {
+                                        .OidChassisType = '\0',
+                                        .OidMfgDateTime = '\0', /* Set to SAHPI_TIME_UNSPECIFIED */
+					/* blowerHardwareVpdManufacturingId */
+                                        .OidManufacturer = ".1.3.6.1.4.1.2.3.51.2.2.21.13.1.1.3.x",
+					/* blowerHardwareVpdMachineType */
+                                        .OidProductName = "\0",
+					/* blowerHardwareVpdHardwareRevision */
+                                        .OidProductVersion = ".1.3.6.1.4.1.2.3.51.2.2.21.13.1.1.5.x",
+					/* blowerHardwareVpdFruSerial */
+                                        .OidSerialNumber = ".1.3.6.1.4.1.2.3.51.2.2.21.13.1.1.11.x",
+					/* blowerHardwareVpdFruNumber */
+                                        .OidPartNumber = ".1.3.6.1.4.1.2.3.51.2.2.21.13.1.1.4.x",
+                                        .OidFileId = '\0',
+                                        .OidAssetTag = '\0',
+                                }
+                        },
+                        .firmware_mib = {
+                                .not_avail_indicator_num = 0,
+                                .write_only = SAHPI_FALSE,
+                                .area_type = SAHPI_IDR_AREATYPE_PRODUCT_INFO,
+                                .oid = {
+                                        .OidChassisType = '\0',
+                                        .OidMfgDateTime = '\0', /* Set to SAHPI_TIME_UNSPECIFIED */
+                                        .OidManufacturer = '\0',
+                                        .OidProductName = '\0',
+                                        .OidProductVersion = '\0',
+                                        .OidSerialNumber = '\0',
+                                        .OidPartNumber = '\0',
+                                        .OidFileId = '\0',
+                                        .OidAssetTag = '\0',
+                                }
+                        },			
+                },
+                .comment = "Blower VPD",
+        },
 
         {} /* Terminate array with a null element */
 };
@@ -12533,7 +12595,7 @@ struct snmp_bc_inventory snmp_bc_mgmnt_inventories[] = {
                         .Oem = 0,
                 },
                 .inventory_info = {
-                        .mib = {
+                        .hardware_mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
                                 .area_type = SAHPI_IDR_AREATYPE_BOARD_INFO,
@@ -12552,7 +12614,27 @@ struct snmp_bc_inventory snmp_bc_mgmnt_inventories[] = {
                                         .OidAssetTag = '\0',
                                 }
                         },
-                },
+                        .firmware_mib = {
+                                .not_avail_indicator_num = 0,
+                                .write_only = SAHPI_FALSE,
+                                .area_type = SAHPI_IDR_AREATYPE_PRODUCT_INFO,
+                                .oid = {
+                                        .OidChassisType = '\0',
+					/* mmMainApplVpdBuildDate */
+                                        .OidMfgDateTime = ".1.3.6.1.4.1.2.3.51.2.2.21.3.1.1.6.x",
+                                        .OidManufacturer = '\0',
+                                        .OidProductName = '\0',
+					/* mmMainApplVpdBuildId */
+                                        .OidProductVersion = ".1.3.6.1.4.1.2.3.51.2.2.21.3.1.1.3.x",
+                                        .OidSerialNumber = '\0',
+                                        .OidPartNumber = '\0',
+					/* mmMainApplVpdFilename */
+                                        .OidFileId = ".1.3.6.1.4.1.2.3.51.2.2.21.3.1.1.5.x",
+					/* mmMainApplVpdName  */
+                                        .OidAssetTag = ".1.3.6.1.4.1.2.3.51.2.2.21.3.1.1.2.x",
+                                }
+                        },			                
+		},
                 .comment = "MM VPD",
         },
 
@@ -12570,7 +12652,7 @@ struct snmp_bc_inventory snmp_bc_switch_inventories[] = {
                         .Oem = 0,
                 },
                 .inventory_info = {
-                        .mib = {
+                        .hardware_mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
                                 .area_type = SAHPI_IDR_AREATYPE_BOARD_INFO,
@@ -12589,6 +12671,25 @@ struct snmp_bc_inventory snmp_bc_switch_inventories[] = {
                                         .OidAssetTag = '\0',
                                 }
                         },
+                        .firmware_mib = {
+                                .not_avail_indicator_num = 0,
+                                .write_only = SAHPI_FALSE,
+                                .area_type = SAHPI_IDR_AREATYPE_PRODUCT_INFO,
+                                .oid = {
+                                        .OidChassisType = '\0',
+					/* smBootRomVpdBuildDate */
+                                        .OidMfgDateTime = ".1.3.6.1.4.1.2.3.51.2.2.21.7.2.1.6.x",
+                                        .OidManufacturer = '\0',
+					/* smMainApp1VpdBuildId */
+                                        .OidProductName = ".1.3.6.1.4.1.2.3.51.2.2.21.7.1.1.5.x",
+					/* smMainApp1VpdRevisionNumber */
+                                        .OidProductVersion = ".1.3.6.1.4.1.2.3.51.2.2.21.7.1.1.7.x",
+                                        .OidSerialNumber = '\0',
+                                        .OidPartNumber = '\0',
+                                        .OidFileId = '\0',
+                                        .OidAssetTag = '\0',
+                                }
+                        },			
                 },
                 .comment = "I/O Module VPD",
         },
@@ -12607,7 +12708,7 @@ struct snmp_bc_inventory snmp_bc_blade_inventories[] = {
                         .Oem = 0,
                 },
                 .inventory_info = {
-                        .mib = {
+                        .hardware_mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
                                 .area_type = SAHPI_IDR_AREATYPE_BOARD_INFO,
@@ -12628,6 +12729,25 @@ struct snmp_bc_inventory snmp_bc_blade_inventories[] = {
                                         .OidAssetTag = '\0',
                                 }
                         },
+                        .firmware_mib = {
+                                .not_avail_indicator_num = 0,
+                                .write_only = SAHPI_FALSE,
+                                .area_type = SAHPI_IDR_AREATYPE_PRODUCT_INFO,
+                                .oid = {
+                                        .OidChassisType = '\0',
+					/* bladeBiosVpdDate */
+                                        .OidMfgDateTime = ".1.3.6.1.4.1.2.3.51.2.2.21.5.1.1.8.x",
+                                        .OidManufacturer = '\0',
+					/* bladeBiosVpdBuildId */
+                                        .OidProductName = ".1.3.6.1.4.1.2.3.51.2.2.21.5.1.1.6.x",
+					/* bladeBiosVpdRevision */
+                                        .OidProductVersion = ".1.3.6.1.4.1.2.3.51.2.2.21.5.1.1.7.x",
+                                        .OidSerialNumber = '\0',
+                                        .OidPartNumber = '\0',
+                                        .OidFileId = '\0',
+                                        .OidAssetTag = '\0',
+                                }
+                        },			
                 },
                 .comment = "Blade VPD",
         },
@@ -12655,7 +12775,7 @@ struct snmp_bc_inventory snmp_bc_mediatray_inventories[] = {
                         .Oem = 0,
                 },
                 .inventory_info = {
-                        .mib = {
+                        .hardware_mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
                                 .area_type = SAHPI_IDR_AREATYPE_BOARD_INFO,
@@ -12674,6 +12794,22 @@ struct snmp_bc_inventory snmp_bc_mediatray_inventories[] = {
                                         .OidAssetTag = '\0',
                                 }
                         },
+                        .firmware_mib = {
+                                .not_avail_indicator_num = 0,
+                                .write_only = SAHPI_FALSE,
+                                .area_type = SAHPI_IDR_AREATYPE_PRODUCT_INFO,
+                                .oid = {
+                                        .OidChassisType = '\0',
+                                        .OidMfgDateTime = '\0', /* Set to SAHPI_TIME_UNSPECIFIED */
+                                        .OidManufacturer = '\0',
+                                        .OidProductName = '\0',
+                                        .OidProductVersion = '\0',
+                                        .OidSerialNumber = '\0',
+                                        .OidPartNumber = '\0',
+                                        .OidFileId = '\0',
+                                        .OidAssetTag = '\0',
+                                }
+                        },			
                 },
                 .comment = "Media Tray VPD",
         },        
@@ -12688,7 +12824,7 @@ struct snmp_bc_inventory snmp_bc_mediatray2_inventories[] = {
                         .Oem = 0,
                 },
                 .inventory_info = {
-                        .mib = {
+                        .hardware_mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
                                 .area_type = SAHPI_IDR_AREATYPE_BOARD_INFO,
@@ -12707,6 +12843,22 @@ struct snmp_bc_inventory snmp_bc_mediatray2_inventories[] = {
                                         .OidAssetTag = '\0',
                                 }
                         },
+                        .firmware_mib = {
+                                .not_avail_indicator_num = 0,
+                                .write_only = SAHPI_FALSE,
+                                .area_type = SAHPI_IDR_AREATYPE_PRODUCT_INFO,
+                                .oid = {
+                                        .OidChassisType = '\0',
+                                        .OidMfgDateTime = '\0', /* Set to SAHPI_TIME_UNSPECIFIED */
+                                        .OidManufacturer = '\0',
+                                        .OidProductName = '\0',
+                                        .OidProductVersion = '\0',
+                                        .OidSerialNumber = '\0',
+                                        .OidPartNumber = '\0',
+                                        .OidFileId = '\0',
+                                        .OidAssetTag = '\0',
+                                }
+                        },			
                 },
                 .comment = "Media Tray 2 VPD",
         },
@@ -12727,7 +12879,7 @@ struct snmp_bc_inventory snmp_bc_power_inventories[] = {
                         .Oem = 0,
                 },
                 .inventory_info = {
-                        .mib = {
+                        .hardware_mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
                                 .area_type = SAHPI_IDR_AREATYPE_BOARD_INFO,
@@ -12746,6 +12898,22 @@ struct snmp_bc_inventory snmp_bc_power_inventories[] = {
                                         .OidAssetTag = '\0',
                                 }
                         },
+                        .firmware_mib = {
+                                .not_avail_indicator_num = 0,
+                                .write_only = SAHPI_FALSE,
+                                .area_type = SAHPI_IDR_AREATYPE_PRODUCT_INFO,
+                                .oid = {
+                                        .OidChassisType = '\0',
+                                        .OidMfgDateTime = '\0', /* Set to SAHPI_TIME_UNSPECIFIED */
+                                        .OidManufacturer = '\0',
+                                        .OidProductName = '\0',
+                                        .OidProductVersion = '\0',
+                                        .OidSerialNumber = '\0',
+                                        .OidPartNumber = '\0',
+                                        .OidFileId = '\0',
+                                        .OidAssetTag = '\0',
+                                }
+                        },			
                 },
                 .comment = "Power Module VPD",
         },
@@ -12781,7 +12949,7 @@ struct snmp_bc_inventory snmp_bc_alarm_inventories[] = {
                         .Oem = 0,
                 },
                 .inventory_info = {
-                        .mib = {
+                        .hardware_mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
                                 .area_type = SAHPI_IDR_AREATYPE_BOARD_INFO,
@@ -12789,18 +12957,34 @@ struct snmp_bc_inventory snmp_bc_alarm_inventories[] = {
                                         .OidChassisType = '\0',
                                         .OidMfgDateTime = '\0', /* Set to SAHPI_TIME_UNSPECIFIED */
 					/* tapHardwareVpdManufacturingId */
-                                        .OidManufacturer = ".1.3.6.1.4.1.2.3.51.2.2.21.15.3.x",
+                                        .OidManufacturer = ".1.3.6.1.4.1.2.3.51.2.2.21.15.3.0",
                                         .OidProductName = '\0',
 					/* tapHardwareVpdHardwareRevision */
-                                        .OidProductVersion = ".1.3.6.1.4.1.2.3.51.2.2.21.15.5.x",
+                                        .OidProductVersion = ".1.3.6.1.4.1.2.3.51.2.2.21.15.5.0",
 					/* tapHardwareVpdFruSerial */
-                                        .OidSerialNumber = ".1.3.6.1.4.1.2.3.51.2.2.21.15.11.x",
+                                        .OidSerialNumber = ".1.3.6.1.4.1.2.3.51.2.2.21.15.11.0",
 					/* tapHardwareVpdFruNumber */
-                                        .OidPartNumber = ".1.3.6.1.4.1.2.3.51.2.2.21.15.4.x",
+                                        .OidPartNumber = ".1.3.6.1.4.1.2.3.51.2.2.21.15.4.0",
                                         .OidFileId = '\0',
                                         .OidAssetTag = '\0',
                                 }
                         },
+                        .firmware_mib = {
+                                .not_avail_indicator_num = 0,
+                                .write_only = SAHPI_FALSE,
+                                .area_type = SAHPI_IDR_AREATYPE_PRODUCT_INFO,
+                                .oid = {
+                                        .OidChassisType = '\0',
+                                        .OidMfgDateTime = '\0', 
+                                        .OidManufacturer = '\0',
+                                        .OidProductName = '\0',
+                                        .OidProductVersion = '\0',
+                                        .OidSerialNumber = '\0',
+                                        .OidPartNumber = '\0',
+                                        .OidFileId = '\0',
+                                        .OidAssetTag = '\0',
+                                }
+                        },			
                 },
                 .comment = "Alarm Panel VPD",
 	},
@@ -12818,7 +13002,7 @@ struct snmp_bc_inventory snmp_bc_mux_inventories[] = {
                         .Oem = 0,
                 },
                 .inventory_info = {
-                        .mib = {
+                        .hardware_mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
                                 .area_type = SAHPI_IDR_AREATYPE_BOARD_INFO,
@@ -12838,6 +13022,22 @@ struct snmp_bc_inventory snmp_bc_mux_inventories[] = {
                                         .OidAssetTag = '\0',
                                 }
                         },
+                        .firmware_mib = {
+                                .not_avail_indicator_num = 0,
+                                .write_only = SAHPI_FALSE,
+                                .area_type = SAHPI_IDR_AREATYPE_PRODUCT_INFO,
+                                .oid = {
+                                        .OidChassisType = '\0',
+                                        .OidMfgDateTime = '\0', /* Set to SAHPI_TIME_UNSPECIFIED */
+                                        .OidManufacturer = '\0',
+                                        .OidProductName = '\0',
+                                        .OidProductVersion = '\0',
+                                        .OidSerialNumber = '\0',
+                                        .OidPartNumber = '\0',
+                                        .OidFileId = '\0',
+                                        .OidAssetTag = '\0',
+                                }
+                        },			
                 },
                 .comment = "Multiplexer Expansion Module VPD",
         },
@@ -12855,7 +13055,7 @@ struct snmp_bc_inventory snmp_bc_clock_inventories[] = {
                         .Oem = 0,
                 },
                 .inventory_info = {
-                        .mib = {
+                        .hardware_mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
                                 .area_type = SAHPI_IDR_AREATYPE_BOARD_INFO,
@@ -12875,6 +13075,22 @@ struct snmp_bc_inventory snmp_bc_clock_inventories[] = {
                                         .OidAssetTag = '\0',
                                 }
                         },
+                        .firmware_mib = {
+                                .not_avail_indicator_num = 0,
+                                .write_only = SAHPI_FALSE,
+                                .area_type = SAHPI_IDR_AREATYPE_PRODUCT_INFO,
+                                .oid = {
+                                        .OidChassisType = '\0',
+                                        .OidMfgDateTime = '\0', /* Set to SAHPI_TIME_UNSPECIFIED */
+                                        .OidManufacturer = '\0',
+                                        .OidProductName = '\0',
+                                        .OidProductVersion = '\0',
+                                        .OidSerialNumber = '\0',
+                                        .OidPartNumber = '\0',
+                                        .OidFileId = '\0',
+                                        .OidAssetTag = '\0',
+                                }
+                        },			
                 },
                 .comment = "Network Clock Module VPD",
         },
@@ -12900,7 +13116,7 @@ struct snmp_bc_inventory snmp_bc_interposer_switch_inventories[] = {
                         .Oem = 0,
                 },
                 .inventory_info = {
-                        .mib = {
+                        .hardware_mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
                                 .area_type = SAHPI_IDR_AREATYPE_BOARD_INFO,
@@ -12920,6 +13136,22 @@ struct snmp_bc_inventory snmp_bc_interposer_switch_inventories[] = {
                                         .OidAssetTag = '\0',
                                 }
                         },
+                        .firmware_mib = {
+                                .not_avail_indicator_num = 0,
+                                .write_only = SAHPI_FALSE,
+                                .area_type = SAHPI_IDR_AREATYPE_PRODUCT_INFO,
+                                .oid = {
+                                        .OidChassisType = '\0',
+                                        .OidMfgDateTime = '\0', /* Set to SAHPI_TIME_UNSPECIFIED */
+                                        .OidManufacturer = '\0',
+                                        .OidProductName = '\0',
+                                        .OidProductVersion = '\0',
+                                        .OidSerialNumber = '\0',
+                                        .OidPartNumber = '\0',
+                                        .OidFileId = '\0',
+                                        .OidAssetTag = '\0',
+                                }
+                        },			
                 },
                 .comment = "Switch Interposer VPD",
         },
@@ -12937,7 +13169,7 @@ struct snmp_bc_inventory snmp_bc_interposer_mm_inventories[] = {
                         .Oem = 0,
                 },
                 .inventory_info = {
-                        .mib = {
+                        .hardware_mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
                                 .area_type = SAHPI_IDR_AREATYPE_BOARD_INFO,
@@ -12957,6 +13189,22 @@ struct snmp_bc_inventory snmp_bc_interposer_mm_inventories[] = {
                                         .OidAssetTag = '\0',
                                 }
                         },
+                        .firmware_mib = {
+                                .not_avail_indicator_num = 0,
+                                .write_only = SAHPI_FALSE,
+                                .area_type = SAHPI_IDR_AREATYPE_PRODUCT_INFO,
+                                .oid = {
+                                        .OidChassisType = '\0',
+                                        .OidMfgDateTime = '\0', /* Set to SAHPI_TIME_UNSPECIFIED */
+                                        .OidManufacturer = '\0',
+                                        .OidProductName = '\0',
+                                        .OidProductVersion = '\0',
+                                        .OidSerialNumber = '\0',
+                                        .OidPartNumber = '\0',
+                                        .OidFileId = '\0',
+                                        .OidAssetTag = '\0',
+                                }
+                        },			
                 },
                 .comment = "Management Module Interposer VPD",
         },
