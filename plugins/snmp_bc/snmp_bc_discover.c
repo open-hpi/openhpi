@@ -326,7 +326,7 @@ SaErrorT snmp_bc_discover_inventories(struct oh_handler_state *handle,
 	custom_handle = (struct snmp_bc_hnd *)handle->data;
 
 	/* Assumming OidManufacturer is defined and determines readable of other VPD */
-	for (i=0; inventory_array[i].inventory_info.mib.oid.OidManufacturer != NULL; i++) {
+	for (i=0; inventory_array[i].inventory_info.hardware_mib.oid.OidManufacturer != NULL; i++) {
 		rdrptr = (SaHpiRdrT *)g_malloc0(sizeof(SaHpiRdrT));
 		if (rdrptr == NULL) {
 			dbg("Out of memory.");
@@ -335,9 +335,9 @@ SaErrorT snmp_bc_discover_inventories(struct oh_handler_state *handle,
 		
 		valid_idr = rdr_exists(custom_handle,
 				       &(res_oh_event->resource.ResourceEntity), 0,
-				       inventory_array[i].inventory_info.mib.oid.OidManufacturer,
+				       inventory_array[i].inventory_info.hardware_mib.oid.OidManufacturer,
 				       0, 0);
-
+	
 		/* Add inventory RDR, if inventory can be read */
 		if (valid_idr) {
 			rdrptr->RdrType = SAHPI_INVENTORY_RDR;
@@ -449,6 +449,7 @@ SaHpiBoolT rdr_exists(struct snmp_bc_hnd *custom_handle,
 	if (write_only == SAHPI_TRUE) { return(SAHPI_FALSE); }; /* Can't check it if its non-readable */
 
         err = snmp_bc_oid_snmp_get(custom_handle, ep, loc_offset, oidstr, &get_value, SAHPI_TRUE);
+	
         if (err || (get_value.type == ASN_INTEGER && na && na == get_value.integer)) {
 		return(SAHPI_FALSE);
         }
