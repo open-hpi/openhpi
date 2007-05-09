@@ -31,7 +31,7 @@ struct  bc_idr_area {
 
 struct bc_inventory_record {
         SaHpiIdrInfoT   idrinfo;
-        struct bc_idr_area area[2];
+        struct bc_idr_area area[3];
 };
 
 /* 
@@ -150,5 +150,12 @@ SaErrorT snmp_bc_del_idr_field( void *hnd,
 		SaHpiIdrIdT              IdrId,
 		SaHpiEntryIdT            AreaId,
 		SaHpiEntryIdT            FieldId);
-	
+
+/**
+ * vpd_exists:           
+ * @thisMib:
+ *
+ * Return value:
+ **/	
+SaHpiBoolT vpd_exists(struct InventoryMibInfo *thisMib);			
 #endif
