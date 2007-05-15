@@ -4503,6 +4503,7 @@ SaErrorT snmp_bc_add_blade_rptcache(struct oh_handler_state *handle,
 {
 	SaErrorT err;
 	guint blade_width;
+	guint local_retry;
 	struct snmp_value get_value, get_blade_resourcetag;
 	struct snmp_bc_hnd *custom_handle;
 
@@ -4517,7 +4518,8 @@ SaErrorT snmp_bc_add_blade_rptcache(struct oh_handler_state *handle,
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
-
+	
+        local_retry = 0;
 	while(1) {
 		err = snmp_bc_oid_snmp_get(custom_handle,
 					    &(e->resource.ResourceEntity), 0,
@@ -4530,6 +4532,11 @@ SaErrorT snmp_bc_add_blade_rptcache(struct oh_handler_state *handle,
 			( g_ascii_strncasecmp(get_blade_resourcetag.string, LOG_DISCOVERING, 
 								sizeof(LOG_DISCOVERING)) == 0 ) )
 		{
+			/* Give the AMM 12 sec max to discover this resource */
+			/* Give up on this resource if AMM can not find it after 12 sec */
+			if (local_retry < 4) local_retry++;
+			else break;
+			
 			sleep(3);
 		} else break;
 	}
