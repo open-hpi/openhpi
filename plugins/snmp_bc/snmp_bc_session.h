@@ -27,4 +27,6 @@ void *snmp_bc_open(GHashTable *handler_config,
                    oh_evt_queue *eventq);
 void snmp_bc_close(void *hnd);
 
+SaErrorT snmp_bc_manage_snmp_open(struct snmp_bc_hnd *custom_handle, SaHpiBoolT recovery_requested);
+SaErrorT snmp_bc_recover_snmp_session(struct snmp_bc_hnd *custom_handle);
 #endif
