@@ -49,6 +49,7 @@ void *snmp_bc_open(GHashTable *handler_config,
 		*context_name, *count_per_getbulk, 
 		*privacy_passwd, *privacy_protocol;
         char *root_tuple;
+	SaErrorT rv;
 
 	if (!handler_config) {
                 dbg("INVALID PARM - NULL handler_config pointer.");
@@ -118,6 +119,9 @@ void *snmp_bc_open(GHashTable *handler_config,
 	custom_handle->installed_mt_mask = 0;
 	custom_handle->installed_filter_mask = 0;
 
+	custom_handle->host             = NULL;
+	custom_handle->host_alternate   = NULL;
+
         /* Indicate this is the 1st discovery (T0 discovery) */
         /* Use to see if we need to create events for log entries.  */
 	/* Do not report any event from event log entries, for      */
@@ -142,9 +146,14 @@ void *snmp_bc_open(GHashTable *handler_config,
 		init_snmp("oh_snmp_bc");
 		snmp_sess_init(&(custom_handle->session));
 		custom_handle->session.peername = hostname;
+		custom_handle->host             = hostname;
+		custom_handle->host_alternate    = 
+				((char *)g_hash_table_lookup(handle->config, "host_alternate"));
+			 
+		
 		/* Set retries/timeouts - based on testing with BC/BCT MM SNMP V3 agent */
 		custom_handle->session.retries = 3;
-		custom_handle->session.timeout = 5000000; /* in microseconds */  
+		custom_handle->session.timeout = 5000000; /* 5000000 in microseconds */  
 		version = (char *)g_hash_table_lookup(handle->config, "version");
 		if (!version) {
 			dbg("Cannot find \"version\" configuration parameter.");
@@ -277,21 +286,9 @@ void *snmp_bc_open(GHashTable *handler_config,
 			dbg("Unrecognized SNMP version=%s.", version);
 			return NULL;
 		}
-                
-		/* Windows32 specific net-snmp initialization (noop on unix) */
-		SOCK_STARTUP;
 
-		custom_handle->sessp = snmp_sess_open(&(custom_handle->session));
-		
-		if (!custom_handle->sessp) {
-			snmp_perror("ack");
-			snmp_log(LOG_ERR, "Something horrible happened!!!\n");
-		 	dbg("Unable to open SNMP session.");
-			return NULL;
-		}
-		
-		custom_handle->ss    = snmp_sess_session(custom_handle->sessp);
-
+		rv = snmp_bc_manage_snmp_open(custom_handle, SAHPI_TRUE);                
+		if (rv != SA_OK) return NULL;
 	}
 
 	/* Determine BladeCenter chassis type */
@@ -456,6 +453,85 @@ void snmp_bc_close(void *hnd)
 	
 }
 
+/**
+ * snmp_bc_manage_snmp_open: 
+ * @hnd: Pointer to handler structure.
+ * 
+ * .
+ *
+ * Returns:
+ * SA_OK  - able to open a snmp session
+ **/
+SaErrorT snmp_bc_manage_snmp_open(struct snmp_bc_hnd *custom_handle, SaHpiBoolT recovery_requested)
+{
+
+	SaErrorT rv;
+	
+	rv = SA_OK;
+	
+	/* Windows32 specific net-snmp initialization (noop on unix) */
+	SOCK_STARTUP;
+
+	custom_handle->sessp = snmp_sess_open(&(custom_handle->session));
+	
+	if (custom_handle->sessp == NULL) {
+		// snmp_perror("ack");
+		// snmp_log(LOG_ERR, "Something horrible happened!!!\n");
+		if (recovery_requested) {
+			rv = snmp_bc_recover_snmp_session(custom_handle);
+		} else {
+			rv = SA_ERR_HPI_NO_RESPONSE;
+		}
+	}
+		
+	if (rv == SA_OK) 
+		custom_handle->ss    = snmp_sess_session(custom_handle->sessp);
+	
+	return(rv);
+}
+
+
+/**
+ * snmp_bc_recover_snmp_session: 
+ * @hnd: Pointer to handler structure.
+ * 
+ * .
+ *
+ * Returns:
+ * SA_OK  - able to open a snmp session
+ **/
+SaErrorT snmp_bc_recover_snmp_session(struct snmp_bc_hnd *custom_handle)
+{
+
+	SaErrorT rv;	
+	rv = SA_OK;
+	
+	if (custom_handle->host_alternate != NULL) {
+		/* This openhpi.conf stanza has 2 different hosts defined */
+		if (!custom_handle->sessp) {
+			snmp_sess_close(custom_handle->sessp);
+			/* Windows32 specific net-snmp cleanup (noop on unix) */
+			SOCK_CLEANUP;		
+		}
+		
+		if ( strcmp(custom_handle->host, custom_handle->session.peername) == 0 ) {
+			trace("Attemp recovery with custom_handle->host_alternate %s\n", custom_handle->host_alternate);
+			custom_handle->session.peername = custom_handle->host_alternate;
+		} else {
+			trace("Attemp recovery with custom_handle->host %s\n", custom_handle->host);		 
+			custom_handle->session.peername = custom_handle->host;
+		}
+		rv = snmp_bc_manage_snmp_open(custom_handle, SAHPI_FALSE);
+		
+	} else {
+		trace("No host_alternate defined in openhpi.conf. No recovery on host_alternate.\n");
+		rv = SA_ERR_HPI_NO_RESPONSE;
+	}
+
+	return(rv);
+}
+/**
+ **/
 void * oh_open (GHashTable *, unsigned int, oh_evt_queue *) __attribute__ ((weak, alias("snmp_bc_open")));
 void * oh_close (void *) __attribute__ ((weak, alias("snmp_bc_close")));
 
