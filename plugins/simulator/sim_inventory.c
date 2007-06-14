@@ -34,7 +34,7 @@ static SaErrorT new_inventory(struct oh_handler_state *state,
         oh_init_textbuffer(&rdr->IdString);
         oh_append_textbuffer(&rdr->IdString, myinv->comment);
         rdr->RecordId =
-                get_rdr_uid(SAHPI_INVENTORY_RDR, rdr->RdrTypeUnion.InventoryRec.IdrId);
+                oh_get_rdr_uid(SAHPI_INVENTORY_RDR, rdr->RdrTypeUnion.InventoryRec.IdrId);
 
 
 	rdr->Entity = e->resource.ResourceEntity;

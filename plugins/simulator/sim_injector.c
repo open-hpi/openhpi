@@ -255,34 +255,34 @@ SaErrorT sim_inject_ext_event(void *hnd,
 		case SAHPI_CTRL_RDR:
 			rdr->RdrTypeUnion.CtrlRec.Num = ctrl_num++;
 			rdr->RecordId =
-			 get_rdr_uid(rdr->RdrType,
+			 oh_get_rdr_uid(rdr->RdrType,
 				rdr->RdrTypeUnion.CtrlRec.Num);
 			break;
 		case SAHPI_SENSOR_RDR:
 			rdr->RdrTypeUnion.SensorRec.Num = sensor_num++;
 			rdr->RecordId =
-			 get_rdr_uid(rdr->RdrType,
+			 oh_get_rdr_uid(rdr->RdrType,
                                	rdr->RdrTypeUnion.SensorRec.Num);
 			break;
 		case SAHPI_INVENTORY_RDR:
 			rdr->RdrTypeUnion.InventoryRec.IdrId =
 				inv_num++;
 			rdr->RecordId =
-			 get_rdr_uid(rdr->RdrType,
+			 oh_get_rdr_uid(rdr->RdrType,
                                	rdr->RdrTypeUnion.InventoryRec.IdrId);
 			break;
 		case SAHPI_WATCHDOG_RDR:
 			rdr->RdrTypeUnion.WatchdogRec.WatchdogNum =
 				watchdog_num++;
 			rdr->RecordId =
-			 get_rdr_uid(rdr->RdrType,
+			 oh_get_rdr_uid(rdr->RdrType,
                            rdr->RdrTypeUnion.WatchdogRec.WatchdogNum);
 			break;
 		case SAHPI_ANNUNCIATOR_RDR:
 			rdr->RdrTypeUnion.AnnunciatorRec.AnnunciatorNum
 				= ann_num++;
 			rdr->RecordId =
-			 get_rdr_uid(rdr->RdrType,
+			 oh_get_rdr_uid(rdr->RdrType,
                            rdr->RdrTypeUnion.AnnunciatorRec.AnnunciatorNum);
 			break;
 		default:

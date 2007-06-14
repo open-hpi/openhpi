@@ -897,12 +897,12 @@ SaErrorT snmp_bc_add_entry_to_elcache(struct oh_handler_state *handle,
 
 			break;		  
 		case SAHPI_ET_SENSOR:
-			rdrid = get_rdr_uid(SAHPI_SENSOR_RDR,
+			rdrid = oh_get_rdr_uid(SAHPI_SENSOR_RDR,
 					    tmpevent->EventDataUnion.SensorEvent.SensorNum); 
 			rdr_ptr = oh_get_rdr_by_id(handle->rptcache, tmpevent->Source, rdrid);
 			break;
 		case SAHPI_ET_WATCHDOG:
-			rdrid = get_rdr_uid(SAHPI_WATCHDOG_RDR,
+			rdrid = oh_get_rdr_uid(SAHPI_WATCHDOG_RDR,
 					    tmpevent->EventDataUnion.WatchdogEvent.WatchdogNum);
 			rdr_ptr = oh_get_rdr_by_id(handle->rptcache, tmpevent->Source, rdrid);
 			break;

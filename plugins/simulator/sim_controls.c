@@ -38,7 +38,7 @@ static SaErrorT new_control(struct oh_handler_state *state,
         oh_init_textbuffer(&rdr->IdString);
         oh_append_textbuffer(&rdr->IdString, mycontrol->comment);
         rdr->RecordId =
-                get_rdr_uid(SAHPI_CTRL_RDR, rdr->RdrTypeUnion.CtrlRec.Num);
+                oh_get_rdr_uid(SAHPI_CTRL_RDR, rdr->RdrTypeUnion.CtrlRec.Num);
 
 	rdr->Entity = e->resource.ResourceEntity;
 
