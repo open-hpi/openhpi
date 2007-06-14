@@ -46,7 +46,7 @@ int main(int argc, char **argv)
         }
         
         record_id =
-                get_rdr_uid(sensors[0].RdrType, sensors[0].RdrTypeUnion.SensorRec.Num);
+                oh_get_rdr_uid(sensors[0].RdrType, sensors[0].RdrTypeUnion.SensorRec.Num);
         sensors[0].RecordId = record_id;        
                         
         tmprdr = oh_get_rdr_by_id(rptable, SAHPI_FIRST_ENTRY, record_id);
