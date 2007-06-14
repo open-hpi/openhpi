@@ -845,12 +845,16 @@ int oh_load_plugin_functions(struct oh_plugin *plugin, struct oh_abi_v2 **abi)
                                                 "oh_set_indicator_state");
         (*abi)->control_parm              = lt_dlsym(plugin->dl_handle,
                                                 "oh_control_parm");
+        (*abi)->load_id_get               = lt_dlsym(plugin->dl_handle,
+                                                "oh_load_id_get");
+        (*abi)->load_id_set               = lt_dlsym(plugin->dl_handle,
+                                                "oh_load_id_set");
         (*abi)->get_reset_state           = lt_dlsym(plugin->dl_handle,
                                                 "oh_get_reset_state");
         (*abi)->set_reset_state           = lt_dlsym(plugin->dl_handle,
                                                 "oh_set_reset_state");
         (*abi)->inject_event            = lt_dlsym(plugin->dl_handle,
-                                                   "oh_inject_event");
+                                                "oh_inject_event");
 
         return 0;
 

@@ -622,17 +622,35 @@ struct oh_abi_v2 {
 				    SaHpiResourceIdT id,
                                	    SaHpiPowerStateT state);
 
-	/****************
+	/*****************
 	 * PARAMETER ABIs
 	 *****************/
 
-	/***
+        /***
          * saHpiParmControl
          **/
         SaErrorT (*control_parm)(void *hnd,
 				 SaHpiResourceIdT id,
 				 SaHpiParmActionT act);
 
+        /***********************
+         * Load Management ABIs
+         ***********************/
+     
+        /***
+         * saHpiResourceLoadIdGet
+         **/
+        SaErrorT (*load_id_get)(void *hnd,
+                                SaHpiResourceIdT rid,
+                                SaHpiLoadIdT *load_id);
+
+        /***
+         * saHpiResourceLoadIdSet
+         **/
+        SaErrorT (*load_id_set)(void *hnd,
+                                SaHpiResourceIdT rid,
+                                SaHpiLoadIdT *load_id);
+                                
 	/*************
 	 * RESET ABIs
 	 *************/
