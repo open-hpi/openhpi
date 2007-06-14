@@ -202,7 +202,7 @@ static void update_rptable(RPTable *table) {
 }
 
 /**
- * get_rdr_uid
+ * oh_get_rdr_uid
  * @type: type of rdr
  * @num: id number of the RDR unique withing the RDR type for that resource
  *
@@ -210,7 +210,7 @@ static void update_rptable(RPTable *table) {
  *
  * Returns: a derived Record Id used to identify RDRs within Resources
  */
-SaHpiEntryIdT get_rdr_uid(SaHpiRdrTypeT type, SaHpiInstrumentIdT num)
+SaHpiEntryIdT oh_get_rdr_uid(SaHpiRdrTypeT type, SaHpiInstrumentIdT num)
 {
         SaHpiEntryIdT uid;
 
@@ -218,6 +218,10 @@ SaHpiEntryIdT get_rdr_uid(SaHpiRdrTypeT type, SaHpiInstrumentIdT num)
         uid = uid + (SaHpiEntryIdT)num;
 
         return uid;
+}
+
+SaHpiInstrumentIdT oh_get_rdr_num(SaHpiEntryIdT rdrid) {
+        return rdrid & 0x0000ffff;
 }
 
 /**
@@ -674,7 +678,7 @@ SaErrorT oh_add_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiRdrT *rdr, void *
         type_num = get_rdr_type_num(rdr);
 
         /* Form correct RecordId. */
-        rdr->RecordId = get_rdr_uid(rdr->RdrType, type_num);
+        rdr->RecordId = oh_get_rdr_uid(rdr->RdrType, type_num);
         /* Check if record exists */
         rdrecord = get_rdrecord_by_id(rptentry, rdr->RecordId);
         /* If not, create new rdr */
@@ -841,8 +845,8 @@ SaHpiRdrT *oh_get_rdr_by_id(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT 
 SaHpiRdrT *oh_get_rdr_by_type(RPTable *table, SaHpiResourceIdT rid,
                               SaHpiRdrTypeT type, SaHpiInstrumentIdT num)
 {
-        RPTEntry *rptentry;
-        RDRecord *rdrecord;
+        RPTEntry *rptentry = NULL;
+        RDRecord *rdrecord = NULL;
         SaHpiEntryIdT rdr_uid;
 
         rptentry = get_rptentry_by_rid(table, rid);
@@ -850,16 +854,16 @@ SaHpiRdrT *oh_get_rdr_by_type(RPTable *table, SaHpiResourceIdT rid,
                 dbg("Warning: RPT entry not found. Cannot find RDR.");
                 return NULL; /* No resource found by that id */
         }
-
+        
         /* Get rdr_uid from type/num combination */
-        rdr_uid = get_rdr_uid(type, num);
+        rdr_uid = oh_get_rdr_uid(type, num);
         rdrecord = get_rdrecord_by_id(rptentry, rdr_uid);
         if (!rdrecord) {
                 /*dbg("Warning: RDR not found. Returning NULL.");*/
                 return NULL;
         }
 
-        return &(rdrecord->rdr);
+        return &(rdrecord->rdr);        
 }
 
 /**
@@ -902,4 +906,59 @@ SaHpiRdrT *oh_get_rdr_next(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT r
         }
 
         return rdrecord ? &(rdrecord->rdr) : NULL;
+}
+
+SaHpiRdrT *oh_get_rdr_by_type_first(RPTable *table, SaHpiResourceIdT rid,
+                                    SaHpiRdrTypeT type)
+{
+        RPTEntry *rptentry = NULL;
+        RDRecord *rdrecord = NULL;
+        GSList *node = NULL;
+
+        rptentry = get_rptentry_by_rid(table, rid);
+        if (!rptentry) {
+                dbg("Warning: RPT entry not found. Cannot find RDR.");
+                return NULL; /* No resource found by that id */
+        }
+        
+        /* Get first RDR matching the type */
+        for (node = rptentry->rdrlist; node; node = node->next) {
+                RDRecord *temp = (RDRecord *)node->data;
+                if (temp->rdr.RdrType == type) {
+                        rdrecord = temp;
+                        break;
+                }
+        }                
+        if (!rdrecord) return NULL;
+
+        return &(rdrecord->rdr);
+}
+
+SaHpiRdrT *oh_get_rdr_by_type_next(RPTable *table, SaHpiResourceIdT rid,
+                                   SaHpiRdrTypeT type, SaHpiInstrumentIdT num)
+{
+        RPTEntry *rptentry = NULL;
+        RDRecord *rdrecord = NULL;
+        GSList *node = NULL;
+
+        rptentry = get_rptentry_by_rid(table, rid);
+        if (!rptentry) {
+                dbg("Warning: RPT entry not found. Cannot find RDR.");
+                return NULL; /* No resource found by that id */
+        }
+        
+        /* Get rdr_uid from type/num combination */
+        node = get_rdrnode_by_id(rptentry, oh_get_rdr_uid(type, num));
+        if (!node) return NULL;
+        
+        for (node = node->next; node; node = node->next) {
+                RDRecord *temp = (RDRecord *)node->data;
+                if (temp->rdr.RdrType == type) {
+                        rdrecord = temp;
+                        break;
+                }
+        }
+        if (!rdrecord) return NULL;
+
+        return &(rdrecord->rdr);
 }
