@@ -56,7 +56,7 @@ int main(int argc, char **argv)
                 tmpnode = g_slist_nth(records, k);
                 randrdr = (SaHpiRdrT *)tmpnode->data;
                 randrdr->RecordId =
-                        get_rdr_uid(randrdr->RdrType,
+                        oh_get_rdr_uid(randrdr->RdrType,
                                     randrdr->RdrTypeUnion.SensorRec.Num);
 
                 tmprdr = oh_get_rdr_by_id(rptable, SAHPI_FIRST_ENTRY,
