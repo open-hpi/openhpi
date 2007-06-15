@@ -191,23 +191,10 @@ SaErrorT sim_discover(void *hnd)
  */
 SaErrorT sim_get_event(void *hnd)
 {
-        /*struct oh_handler_state *state = hnd;
-        struct oh_event *e = NULL;*/
 
         if (!hnd) return SA_ERR_HPI_INVALID_PARAMS;
-        /*
-	e = g_async_queue_try_pop(state->eventq_async);
-        if (e) {
-                trace("retrieving sim event from async q");
-                *event = *e;
-                g_free(e);
-
-                return 1;
-        } else {
-                trace("no more events for sim instance");
-                return 0;
-        }*/
-        return SA_OK;
+        
+	return SA_OK;
 }
 
 
