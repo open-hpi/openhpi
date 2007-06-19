@@ -531,7 +531,10 @@ SaErrorT SAHPI_API saHpiGetChildEntityPath (
         
         /* Check to see the parent entity path exists */
         rpte = oh_get_resource_by_ep(&d->rpt, &ParentEntityPath);
-        if (rpte == NULL) return SA_ERR_HPI_INVALID_DATA;
+        if (rpte == NULL) {
+                oh_release_domain(d);
+                return SA_ERR_HPI_INVALID_DATA;
+        }
         rpte = NULL;
         
         /* Create an entity path pattern from the parent entity path
@@ -587,6 +590,73 @@ SaErrorT SAHPI_API saHpiGetChildEntityPath (
         
         oh_release_domain(d);
 	return error;
+}
+
+SaErrorT SAHPI_API saHpiResourceFailedRemove (
+    SAHPI_IN    SaHpiSessionIdT        SessionId,
+    SAHPI_IN    SaHpiResourceIdT       ResourceId)
+{
+        SaErrorT error;
+        struct oh_domain *d = NULL;
+        struct oh_handler *h = NULL;
+        unsigned int hid;
+        SaHpiDomainIdT did;
+        SaHpiRptEntryT *rpte = NULL;
+        SaHpiRptEntryT saved_res;
+        struct oh_event *e = NULL;
+        SaHpiHsStateT hsstate;
+        SaErrorT (*get_hotswap_state)(void *hnd, SaHpiResourceIdT rid,
+                                      SaHpiHsStateT *state);
+
+        OH_CHECK_INIT_STATE(SessionId);
+        OH_GET_DID(SessionId, did);
+        OH_GET_DOMAIN(did, d); /* Lock domain */
+        
+        rpte = oh_get_resource_by_id(&d->rpt, ResourceId);
+        if (rpte == NULL) {
+                oh_release_domain(d);
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+        
+        if (!rpte->ResourceFailed) {
+                oh_release_domain(d);
+                return SA_ERR_HPI_INVALID_REQUEST;
+        }
+        
+        if (!(rpte->ResourceCapabilities & SAHPI_CAPABILITY_FRU)) {
+                oh_release_domain(d);
+                return SA_ERR_HPI_INVALID_CMD;
+        }
+        
+        saved_res = *rpte;
+        OH_HANDLER_GET(d, ResourceId, h);        
+        oh_release_domain(d);
+        get_hotswap_state = h ? h->abi->get_hotswap_state : NULL;
+        if (!get_hotswap_state) {
+                oh_release_handler(h);
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
+        
+        error = get_hotswap_state(h->hnd, ResourceId, &hsstate);
+        hid = h->id;
+        oh_release_handler(h);
+        if (error) return error;
+        
+        e = g_malloc0(sizeof(struct oh_event));
+        e->hid = hid;
+        e->resource = saved_res;
+        e->event.Source = ResourceId;
+        e->event.Severity = saved_res.ResourceSeverity;
+        oh_gettimeofday(&e->event.Timestamp);
+        e->event.EventType = SAHPI_ET_HOTSWAP;
+        e->event.EventDataUnion.HotSwapEvent.PreviousHotSwapState = hsstate;
+        e->event.EventDataUnion.HotSwapEvent.HotSwapState =
+                SAHPI_HS_STATE_NOT_PRESENT;
+        e->event.EventDataUnion.HotSwapEvent.CauseOfStateChange =
+                SAHPI_HS_CAUSE_USER_UPDATE;
+        oh_evt_queue_push(&oh_process_q, e);
+        
+        return SA_OK;
 }
 
 /*********************************************************************
