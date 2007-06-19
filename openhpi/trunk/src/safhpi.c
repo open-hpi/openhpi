@@ -514,6 +514,11 @@ SaErrorT SAHPI_API saHpiGetChildEntityPath (
 {
         struct oh_domain *d = NULL;
         SaHpiDomainIdT did;
+        oh_entitypath_pattern epp;
+        SaHpiRptEntryT *rpte = NULL;
+        SaHpiBoolT found_match = SAHPI_FALSE;
+        SaErrorT error;
+        int i, j = 1;      
         
         if (InstanceId == NULL || *InstanceId == SAHPI_LAST_ENTRY ||
             RptUpdateCount == NULL) {
@@ -524,8 +529,64 @@ SaErrorT SAHPI_API saHpiGetChildEntityPath (
         OH_GET_DID(SessionId, did);
         OH_GET_DOMAIN(did, d); /* Lock domain */
         
+        /* Check to see the parent entity path exists */
+        rpte = oh_get_resource_by_ep(&d->rpt, &ParentEntityPath);
+        if (rpte == NULL) return SA_ERR_HPI_INVALID_DATA;
+        rpte = NULL;
+        
+        /* Create an entity path pattern from the parent entity path
+         * that looks like the following: <ParentEntityPath>{.,.}
+         * This will match direct childs of ParentEntityPath.
+         **/
+        memset(&epp, 0, sizeof(oh_entitypath_pattern));
+        epp.epattern[0].etp.is_dot = 1;
+        epp.epattern[0].elp.is_dot = 1;
+        for(i = 0; i < SAHPI_MAX_ENTITY_PATH; i++) {
+                epp.epattern[j].etp.type =
+                        ParentEntityPath.Entry[i].EntityType;
+                epp.epattern[j].elp.location =
+                        ParentEntityPath.Entry[i].EntityLocation;
+                j++;
+        }
+        epp.epattern[j].etp.type = SAHPI_ENT_ROOT;
+        
+        /* Find a matching child */
+        for (rpte = oh_get_resource_by_id(&d->rpt, *InstanceId);
+             rpte;
+             rpte = oh_get_resource_next(&d->rpt, rpte->ResourceId)) {
+                if (oh_match_entitypath_pattern(&epp, &rpte->ResourceEntity)) {
+                        found_match = SAHPI_TRUE;
+                        break;
+                }
+                if (*InstanceId != SAHPI_FIRST_ENTRY) break;
+        }
+                
+        if (found_match) { /* Found matching InstanceId */
+                /* Now look next matching InstanceId */
+                SaHpiRptEntryT *nrpte = NULL;
+                found_match = SAHPI_FALSE;
+                for (nrpte = oh_get_resource_next(&d->rpt, rpte->ResourceId);
+                     nrpte;
+                     nrpte = oh_get_resource_next(&d->rpt, nrpte->ResourceId)) {
+                        if (oh_match_entitypath_pattern(&epp,
+                                        &nrpte->ResourceEntity)) {
+                                found_match = SAHPI_TRUE;
+                                break;
+                        }
+                }
+                *InstanceId = SAHPI_LAST_ENTRY;
+                if (found_match) {
+                        *InstanceId = nrpte->ResourceId;
+                }                
+                *ChildEntityPath = rpte->ResourceEntity;
+                *RptUpdateCount = d->rpt.update_count;
+                error = SA_OK;
+        } else {
+                error = SA_ERR_HPI_NOT_PRESENT;
+        }
+        
         oh_release_domain(d);
-	return SA_OK;
+	return error;
 }
 
 /*********************************************************************
