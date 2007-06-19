@@ -706,6 +706,7 @@ SaErrorT oh_compile_entitypath_pattern(const char *epp_str,
 
         len = strlen(epp_str);
         for (i = 0, j = 0; i < len; i++) {
+                if (j >= OH_MAX_EP_TUPLES) return SA_ERR_HPI_ERROR;
                 if (in_tuple) { /* We are scanning inside a tuple */
                         if (in_entity) { /* Scanning inside the entity type */
                                 if (epp_str[i] == EPATHSTRING_VALUE_DELIMITER_CHAR) {
@@ -808,7 +809,7 @@ static int epp_ended(oh_entitypath_pattern *epp, int j)
 {
         if (!epp || j < 0) return 1;
 
-        if (j >= SAHPI_MAX_ENTITY_PATH) return 1;
+        if (j >= OH_MAX_EP_TUPLES) return 1;
 
         if (!epp->epattern[j].is_splat &&
              epp->epattern[j].etp.type == SAHPI_ENT_ROOT)
