@@ -751,6 +751,8 @@ int oh_load_plugin_functions(struct oh_plugin *plugin, struct oh_abi_v2 **abi)
                                                 "oh_set_resource_severity");
         (*abi)->get_el_info               = lt_dlsym(plugin->dl_handle,
                                                 "oh_get_el_info");
+        (*abi)->get_el_caps               = lt_dlsym(plugin->dl_handle,
+                                                "oh_get_el_caps");
         (*abi)->set_el_time               = lt_dlsym(plugin->dl_handle,
                                                 "oh_set_el_time");
         (*abi)->add_el_entry              = lt_dlsym(plugin->dl_handle,
