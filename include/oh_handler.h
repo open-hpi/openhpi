@@ -227,6 +227,13 @@ struct oh_abi_v2 {
 				SaHpiEventLogInfoT *info);
 
         /***
+         * saHpiEventLogCapabilitiesGet
+         **/
+        SaErrorT (*get_el_caps)(void *hnd,
+                                SaHpiResourceIdT id,
+                                SaHpiEventLogCapabilitiesT *caps);
+
+        /***
          * saHpiEventLogTimeSet
          **/
         SaErrorT (*set_el_time)(void *hnd,

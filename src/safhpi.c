@@ -722,6 +722,59 @@ SaErrorT SAHPI_API saHpiEventLogInfoGet (
         return rv;
 }
 
+SaErrorT SAHPI_API saHpiEventLogCapabilitiesGet (
+    SAHPI_IN  SaHpiSessionIdT     SessionId,
+    SAHPI_IN  SaHpiResourceIdT    ResourceId,
+    SAHPI_OUT SaHpiEventLogCapabilitiesT  *EventLogCapabilities)
+{
+        SaErrorT error;
+        SaErrorT (*get_el_caps) (void *, SaHpiResourceIdT,
+                                 SaHpiEventLogCapabilitiesT *);
+        SaHpiRptEntryT *rpte = NULL;
+        struct oh_handler *h = NULL;
+        struct oh_domain *d = NULL;
+        SaHpiDomainIdT did;
+        
+        if (EventLogCapabilities == NULL)
+                return SA_ERR_HPI_INVALID_PARAMS;
+        
+        OH_CHECK_INIT_STATE(SessionId);
+        OH_GET_DID(SessionId, did);        
+        
+        if (ResourceId == SAHPI_UNSPECIFIED_RESOURCE_ID) {
+                *EventLogCapabilities = SAHPI_EVTLOG_CAPABILITY_ENTRY_ADD |
+                        SAHPI_EVTLOG_CAPABILITY_CLEAR |
+                        SAHPI_EVTLOG_CAPABILITY_TIME_SET |
+                        SAHPI_EVTLOG_CAPABILITY_STATE_SET |
+                        SAHPI_EVTLOG_CAPABILITY_OVERFLOW_RESET;
+                
+                return SA_OK;
+        }
+        
+        OH_GET_DOMAIN(did, d); /* Lock domain */
+        OH_RESOURCE_GET_CHECK(d, ResourceId, rpte);
+        if(!(rpte->ResourceCapabilities & SAHPI_CAPABILITY_EVENT_LOG)) {                
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_CAPABILITY;
+        }
+        
+        OH_HANDLER_GET(d, ResourceId, h);
+        oh_release_domain(d); /* Unlock domain */
+
+        get_el_caps = h ? h->abi->get_el_caps : NULL;
+
+        if (!get_el_caps) {                
+                oh_release_handler(h);
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
+
+        error = get_el_caps(h->hnd, ResourceId,
+                            EventLogCapabilities);
+        oh_release_handler(h);        
+
+        return error;
+}
+
 SaErrorT SAHPI_API saHpiEventLogEntryGet (
         SAHPI_IN    SaHpiSessionIdT       SessionId,
         SAHPI_IN    SaHpiResourceIdT      ResourceId,
