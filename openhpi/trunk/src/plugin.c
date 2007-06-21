@@ -793,12 +793,16 @@ int oh_load_plugin_functions(struct oh_plugin *plugin, struct oh_abi_v2 **abi)
                                                 "oh_get_idr_area_header");
         (*abi)->add_idr_area              = lt_dlsym(plugin->dl_handle,
                                                 "oh_add_idr_area");
+        (*abi)->add_idr_area_id           = lt_dlsym(plugin->dl_handle,
+                                                "oh_add_idr_area_id");
         (*abi)->del_idr_area              = lt_dlsym(plugin->dl_handle,
                                                 "oh_del_idr_area");
         (*abi)->get_idr_field             = lt_dlsym(plugin->dl_handle,
                                                 "oh_get_idr_field");
         (*abi)->add_idr_field             = lt_dlsym(plugin->dl_handle,
                                                 "oh_add_idr_field");
+        (*abi)->add_idr_field_id          = lt_dlsym(plugin->dl_handle,
+                                                "oh_add_idr_field_id");
         (*abi)->set_idr_field             = lt_dlsym(plugin->dl_handle,
                                                 "oh_set_idr_field");
         (*abi)->del_idr_field             = lt_dlsym(plugin->dl_handle,

@@ -2760,6 +2760,105 @@ SaErrorT SAHPI_API saHpiIdrAreaAdd(
         return rv;
 }
 
+SaErrorT SAHPI_API saHpiIdrAreaAddById(
+    SAHPI_IN SaHpiSessionIdT    SessionId,
+    SAHPI_IN SaHpiResourceIdT   ResourceId,
+    SAHPI_IN SaHpiIdrIdT        IdrId,
+    SAHPI_IN SaHpiIdrAreaTypeT  AreaType,
+    SAHPI_IN SaHpiEntryIdT      AreaId)
+{
+        SaHpiRptEntryT *rpte;
+        SaHpiRdrT *rdr;
+        SaErrorT error = SA_OK;
+        SaHpiDomainIdT did;
+        struct oh_domain *d = NULL;
+        struct oh_handler *h = NULL;
+        SaHpiIdrInfoT info;
+        SaHpiIdrAreaHeaderT header;
+        SaHpiEntryIdT next;
+        SaErrorT (*add_idr_area_id)(void *,
+                                    SaHpiResourceIdT,
+                                    SaHpiIdrIdT,
+                                    SaHpiIdrAreaTypeT,
+                                    SaHpiEntryIdT);
+        SaErrorT (*get_idr_info)(void *hnd,
+                                 SaHpiResourceIdT rid,
+                                 SaHpiIdrIdT idrid,
+                                 SaHpiIdrInfoT *idrinfo);
+        SaErrorT (*get_idr_area_header)(void *hnd,
+                                        SaHpiResourceIdT rid,
+                                        SaHpiIdrIdT idrid,
+                                        SaHpiIdrAreaTypeT areatype,
+                                        SaHpiEntryIdT areaid,
+                                        SaHpiEntryIdT *nextareaid,
+                                        SaHpiIdrAreaHeaderT *header);
+
+        if (!oh_lookup_idrareatype(AreaType) ||
+            AreaId == SAHPI_LAST_ENTRY)   {                
+                return SA_ERR_HPI_INVALID_PARAMS;
+        } else if (AreaType == SAHPI_IDR_AREATYPE_UNSPECIFIED) {                
+                return SA_ERR_HPI_INVALID_DATA;
+        }
+
+        OH_CHECK_INIT_STATE(SessionId);
+        OH_GET_DID(SessionId, did);
+        OH_GET_DOMAIN(did, d); /* Lock domain */
+        OH_RESOURCE_GET(d, ResourceId, rpte);
+
+        /* Interface and conformance checking */
+        if(!(rpte->ResourceCapabilities & SAHPI_CAPABILITY_INVENTORY_DATA)) {                
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_CAPABILITY;
+        }
+
+        rdr = oh_get_rdr_by_type(&(d->rpt), ResourceId,
+                                 SAHPI_INVENTORY_RDR, IdrId);
+        if (!rdr) {
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+        OH_HANDLER_GET(d, ResourceId, h);
+        oh_release_domain(d); /* Unlock domain */
+        
+        /* Check if IDR is read-only */
+        get_idr_info = h ? h->abi->get_idr_info : NULL;
+        if (!get_idr_info) {
+                oh_release_handler(h);
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
+        error = get_idr_info(h->hnd, ResourceId, IdrId, &info);
+        if (error != SA_OK) {
+                oh_release_handler(h);
+                return SA_ERR_HPI_NOT_PRESENT;
+        } else if (info.ReadOnly) {
+                oh_release_handler(h);
+                return SA_ERR_HPI_READ_ONLY;
+        }
+
+        /* Check if the AreaId requested already exists */
+        get_idr_area_header = h ? h->abi->get_idr_area_header : NULL;
+        if (!get_idr_area_header) {
+                oh_release_handler(h);
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
+        error = get_idr_area_header(h->hnd, ResourceId, IdrId, AreaType,
+                                    AreaId, &next, &header);
+        if (error == SA_OK) {
+                oh_release_handler(h);
+                return SA_ERR_HPI_DUPLICATE;
+        }
+
+        add_idr_area_id = h ? h->abi->add_idr_area_id : NULL;
+        if (!add_idr_area_id) {
+                oh_release_handler(h);
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
+        error = add_idr_area_id(h->hnd, ResourceId, IdrId, AreaType, AreaId);
+        oh_release_handler(h);
+
+        return error;
+}
+
 SaErrorT SAHPI_API saHpiIdrAreaDelete(
         SAHPI_IN SaHpiSessionIdT  SessionId,
         SAHPI_IN SaHpiResourceIdT ResourceId,
@@ -2772,7 +2871,7 @@ SaErrorT SAHPI_API saHpiIdrAreaDelete(
         SaHpiDomainIdT did;
         struct oh_domain *d = NULL;
         struct oh_handler *h;
-        SaErrorT (*set_func)(void *, SaHpiResourceIdT, SaHpiIdrIdT, SaHpiEntryIdT );
+        SaErrorT (*set_func)(void *, SaHpiResourceIdT, SaHpiIdrIdT, SaHpiEntryIdT);
 
         if (AreaId == SAHPI_LAST_ENTRY)   {
                 dbg("Invalid Parameters");
@@ -2945,6 +3044,116 @@ SaErrorT SAHPI_API saHpiIdrFieldAdd(
         oh_release_handler(h);
 
         return rv;
+}
+
+SaErrorT SAHPI_API saHpiIdrFieldAddById( 
+        SAHPI_IN SaHpiSessionIdT          SessionId,
+        SAHPI_IN SaHpiResourceIdT         ResourceId,
+        SAHPI_IN SaHpiIdrIdT              IdrId,
+        SAHPI_INOUT SaHpiIdrFieldT        *Field)
+{
+        SaHpiRptEntryT *rpte;
+        SaHpiRdrT *rdr;
+        SaErrorT error = SA_OK;
+        SaHpiDomainIdT did;
+        struct oh_domain *d = NULL;
+        struct oh_handler *h = NULL;
+        SaHpiEntryIdT nextid;
+        SaHpiIdrAreaHeaderT header;
+        SaHpiIdrFieldT field;
+        SaErrorT (*add_idr_field_id)(void *,
+                                     SaHpiResourceIdT,
+                                     SaHpiIdrIdT,
+                                     SaHpiIdrFieldT *);
+        SaErrorT (*get_idr_area_header)(void *hnd,
+                                        SaHpiResourceIdT rid,
+                                        SaHpiIdrIdT idrid,
+                                        SaHpiIdrAreaTypeT areatype,
+                                        SaHpiEntryIdT areaid,
+                                        SaHpiEntryIdT *nextareaid,
+                                        SaHpiIdrAreaHeaderT *header);
+        SaErrorT (*get_idr_field)(void *hnd,
+                                  SaHpiResourceIdT rid,
+                                  SaHpiIdrIdT idrid,
+                                  SaHpiEntryIdT areaid,
+                                  SaHpiIdrFieldTypeT fieldtype,
+                                  SaHpiEntryIdT fieldid,
+                                  SaHpiEntryIdT *nextfieldid,
+                                  SaHpiIdrFieldT *field);
+
+        if (!Field)   {                
+                return SA_ERR_HPI_INVALID_PARAMS;
+        } else if (!oh_lookup_idrfieldtype(Field->Type)) {                
+                return SA_ERR_HPI_INVALID_PARAMS;
+        } else if (Field->Type == SAHPI_IDR_FIELDTYPE_UNSPECIFIED) {                
+                return SA_ERR_HPI_INVALID_PARAMS;
+        } else if (oh_valid_textbuffer(&Field->Field) != SAHPI_TRUE) {                
+                return SA_ERR_HPI_INVALID_PARAMS;
+        } else if (Field->AreaId == SAHPI_LAST_ENTRY ||
+                   Field->FieldId == SAHPI_LAST_ENTRY) {
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        OH_CHECK_INIT_STATE(SessionId);
+        OH_GET_DID(SessionId, did);
+        OH_GET_DOMAIN(did, d); /* Lock domain */
+        OH_RESOURCE_GET(d, ResourceId, rpte);
+
+        /* Interface and conformance checking */
+        if(!(rpte->ResourceCapabilities & SAHPI_CAPABILITY_INVENTORY_DATA)) {                
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_CAPABILITY;
+        }
+
+        rdr = oh_get_rdr_by_type(&(d->rpt), ResourceId, SAHPI_INVENTORY_RDR, IdrId);
+        if (!rdr) {
+                oh_release_domain(d); /* Unlock domain */                
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+        
+        OH_HANDLER_GET(d, ResourceId, h);
+        oh_release_domain(d); /* Unlock domain */
+        
+        /* Check if AreaId specified in Field exists */
+        get_idr_area_header = h ? h->abi->get_idr_area_header : NULL;
+        if (!get_idr_area_header) {
+                oh_release_handler(h);
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
+        error = get_idr_area_header(h->hnd, ResourceId, IdrId,
+                                    SAHPI_IDR_AREATYPE_UNSPECIFIED,
+                                    Field->AreaId,
+                                    &nextid, &header);
+        if (error != SA_OK) {
+                oh_release_handler(h);
+                return SA_ERR_HPI_NOT_PRESENT;
+        } else if (header.ReadOnly) {
+                oh_release_handler(h);
+                return SA_ERR_HPI_READ_ONLY;
+        }
+        /* Check if FieldId requested does not already exists */
+        get_idr_field = h ? h->abi->get_idr_field : NULL;
+        if (!get_idr_field) {
+                oh_release_handler(h);
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
+        error = get_idr_field(h->hnd, ResourceId, IdrId, Field->AreaId,
+                              SAHPI_IDR_FIELDTYPE_UNSPECIFIED,
+                              Field->FieldId, &nextid, &field);
+        if (error == SA_OK) {
+                oh_release_handler(h);
+                return SA_ERR_HPI_DUPLICATE;
+        }        
+        /* All checks done. Pass call down to plugin */
+        add_idr_field_id = h ? h->abi->add_idr_field_id : NULL;
+        if (!add_idr_field_id) {
+                oh_release_handler(h);                
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }                
+        error = add_idr_field_id(h->hnd, ResourceId, IdrId, Field);
+        oh_release_handler(h);
+
+        return error;
 }
 
 SaErrorT SAHPI_API saHpiIdrFieldSet(

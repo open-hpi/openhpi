@@ -405,6 +405,15 @@ struct oh_abi_v2 {
 				 SaHpiIdrIdT idrid,
 				 SaHpiIdrAreaTypeT areatype,
 				 SaHpiEntryIdT *areaid);
+                                 
+        /***
+         * saHpiIdrAreaAddById
+         **/
+        SaErrorT (*add_idr_area_id)(void *,
+                                    SaHpiResourceIdT,
+                                    SaHpiIdrIdT,
+                                    SaHpiIdrAreaTypeT,
+                                    SaHpiEntryIdT);
 
         /***
          * saHpiIdrAreaDelete
@@ -433,6 +442,14 @@ struct oh_abi_v2 {
 				  SaHpiResourceIdT rid,
 				  SaHpiIdrIdT idrid,
 				  SaHpiIdrFieldT *field);
+
+        /***
+         * saHpiIdrFieldAddById
+         **/
+        SaErrorT (*add_idr_field_id)(void *hnd,
+                                     SaHpiResourceIdT rid,
+                                     SaHpiIdrIdT idrid,
+                                     SaHpiIdrFieldT *field);
 
         /***
          * saHpiIdrFieldSet
