@@ -486,10 +486,12 @@ SaErrorT oh_create_domain_from_table(GHashTable *table)
                 dbg("Error creating a domain from configuration."
                     " No domain id was given.");
                 return SA_ERR_HPI_INVALID_PARAMS;
-        } else if (*id == 0) {
-                dbg("Error creating domain. Configured domains"
-                    " cannot have an id of 0.");
-                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        if (id == 0) { /* ID == 0 is the default domain */
+                /* Default domain cannot be a peer or child of anyone */
+                child_of = NULL;
+                peer_of = NULL;
         }
 
         if (peer_of && entity_pattern) {
