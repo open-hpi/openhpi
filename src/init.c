@@ -33,7 +33,7 @@
 int oh_init(void)
 {
         static int initialized = 0;
-        struct oh_parsed_config config = {NULL, NULL, 0, 0, 0, 0};
+        struct oh_parsed_config config = { NULL, NULL, 0, 0, 0, 0, FALSE };
         struct oh_global_param config_param = { .type = OPENHPI_CONF };
         oh_entitypath_pattern epp;
         SaErrorT rval;
@@ -75,31 +75,33 @@ int oh_init(void)
         oh_domains.table = g_hash_table_new(g_int_hash, g_int_equal);
         trace("Initialized domain table");
 
-        /* Create default domain */
-        if (oh_compile_entitypath_pattern("*", &epp)) {
-                data_access_unlock();
-                dbg("Could not compile entitypath pattern.");
-                return SA_ERR_HPI_ERROR;
-        }
-        
-        if (oh_create_domain(OH_DEFAULT_DOMAIN_ID,
-                             &epp, "DEFAULT",
-                             SAHPI_UNSPECIFIED_DOMAIN_ID,
-                             SAHPI_UNSPECIFIED_DOMAIN_ID,
-                             SAHPI_DOMAIN_CAP_AUTOINSERT_READ_ONLY,
-                             SAHPI_TIMEOUT_IMMEDIATE)) {
-                data_access_unlock();
-                dbg("Could not create first domain!");
-                return SA_ERR_HPI_ERROR;
-        }
-        trace("Created DEFAULT domain");
-
         /* Initialize session table */
         oh_sessions.table = g_hash_table_new(g_int_hash, g_int_equal);
         trace("Initialized session table");
 
-        /* Load plugins and create handlers*/
+        /* Load plugins, create handlers and domains */
         oh_process_config(&config);
+
+        /* Create default domain if it does not exist yet. */
+        if (!config.default_domain) {
+                if (oh_compile_entitypath_pattern("*", &epp)) {
+                        data_access_unlock();
+                        dbg("Could not compile entitypath pattern.");
+                        return SA_ERR_HPI_ERROR;
+                }
+        
+                if (oh_create_domain(OH_DEFAULT_DOMAIN_ID,
+                                     &epp, "DEFAULT",
+                                     SAHPI_UNSPECIFIED_DOMAIN_ID,
+                                     SAHPI_UNSPECIFIED_DOMAIN_ID,
+                                     SAHPI_DOMAIN_CAP_AUTOINSERT_READ_ONLY,
+                                     SAHPI_TIMEOUT_IMMEDIATE)) {
+                        data_access_unlock();
+                        dbg("Could not create first domain!");
+                        return SA_ERR_HPI_ERROR;
+                }
+                trace("Created DEFAULT domain");
+        }
 
         /*
          * Wipes away configuration lists (plugin_names and handler_configs).

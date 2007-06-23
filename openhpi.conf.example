@@ -168,7 +168,8 @@ handler libsimulator {
 ## path pattern (below) to a domain declaration and using that to match
 ## against the event's entity path.
 ## All events are still processed in the default domain, regardless of
-## entitypath.
+## entitypath, unless the default domain is overriden here (with a domain
+## number/id of 0).
 ##
 ## The '.' in the entity path patterns can be placed anywhere you would
 ## put an entity type or an entity location number in the entity path

@@ -489,9 +489,8 @@ static int process_domain_token(GScanner *scanner)
                 data_access_unlock();
                 return -1;
         } else {
-                if (scanner->value.v_int == 0 ||
-                    (SaHpiDomainIdT)scanner->value.v_int == SAHPI_UNSPECIFIED_DOMAIN_ID) {
-                        dbg("Processing domain: value for id cannot be 0 or 4294967295.");
+                if ((SaHpiDomainIdT)scanner->value.v_int == SAHPI_UNSPECIFIED_DOMAIN_ID) {
+                        dbg("Processing domain: value for id cannot be SAHPI_UNSPECIFIED_DOMAIN_ID (4294967295).");
                         return -1;
                 }
                 SaHpiDomainIdT *id = (SaHpiDomainIdT *)g_malloc0(sizeof(SaHpiDomainIdT));
@@ -775,6 +774,7 @@ SaErrorT oh_process_config(struct oh_parsed_config *config)
                 GHashTable *domain_config = (GHashTable *)node->data;
                 SaHpiDomainIdT *did =
                         (SaHpiDomainIdT *)g_hash_table_lookup(domain_config, "id");
+                if (*did == 0) config->default_domain = TRUE;
                 if (!oh_create_domain_from_table(domain_config)) {
                         trace("Created domain %u", *did);
                         config->domains_loaded++;
