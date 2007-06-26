@@ -612,7 +612,6 @@ AC_CONFIG_FILES([openhpi.spec
         docs/man/Makefile
         openhpid/Makefile
         openhpid/openhpid.sh
-        openhpid/t/Makefile
         hpi_ui_lib/Makefile
         hpi_shell/Makefile
         cpp/Makefile
