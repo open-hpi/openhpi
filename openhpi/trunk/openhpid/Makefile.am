@@ -15,7 +15,7 @@
 
 .NOTPARALLEL:
 
-SUBDIRS			= t
+#SUBDIRS			= t
 
 MAINTAINERCLEANFILES 	= Makefile.in *~
 
