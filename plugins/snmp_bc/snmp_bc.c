@@ -239,11 +239,11 @@ SaErrorT snmp_bc_control_parm(void *hnd, SaHpiResourceIdT rid, SaHpiParmActionT 
 	struct snmp_bc_hnd *custom_handle;
 
 	if (!hnd) {
-		printf("Invalid parameter - hnd");
+		trace("Invalid parameter - hnd");
 		return(SA_ERR_HPI_INVALID_PARAMS);	
 	}
 	if (oh_lookup_parmaction(act) == NULL) {
-		printf("Invalid parameter - act");
+		trace("Invalid parameter - act");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 	
@@ -273,12 +273,11 @@ SaErrorT snmp_bc_control_parm(void *hnd, SaHpiResourceIdT rid, SaHpiParmActionT 
 
 #define snmp_bc_internal_retry()                   \
 	if (l_retry >= 2) {                        \
-        	custom_handle->handler_retries++;  \
+        	custom_handle->handler_retries = SNMP_BC_MAX_SNMP_RETRY_ATTEMPTED;  \
 		err = SA_ERR_HPI_BUSY;             \
 		break;                             \
 	} else {                                   \
 		l_retry++;                         \
-		trace("Retrying OID=%s.", objid);  \
 		continue;                          \
 	}
 
@@ -314,11 +313,19 @@ SaErrorT snmp_bc_snmp_get(struct snmp_bc_hnd *custom_handle,
 	
 	do {	
         	err = snmp_get(custom_handle->sessp, objid, value);
-        	if (err == SA_ERR_HPI_TIMEOUT) {
-                	if (custom_handle->handler_retries == SNMP_BC_MAX_SNMP_RETRY_ATTEMPTED) {
-                        	custom_handle->handler_retries = 0;
-                        	err = SA_ERR_HPI_NO_RESPONSE;
-				break;
+	        if ((err == SA_ERR_HPI_TIMEOUT) || (err == SA_ERR_HPI_ERROR)) {
+                	if ( (err == SA_ERR_HPI_ERROR) || 
+				(custom_handle->handler_retries == SNMP_BC_MAX_SNMP_RETRY_ATTEMPTED)) {
+				err = snmp_bc_recover_snmp_session(custom_handle);
+				if (err) {
+                        		custom_handle->handler_retries = 0;
+                        		err = SA_ERR_HPI_NO_RESPONSE;
+					break;
+				} else {
+					if (retry) l_retry = 0;
+					else l_retry = 2;
+					custom_handle->handler_retries = 0;
+				}
                 	} else {
 				trace("HPI_TIMEOUT %s", objid);
 				snmp_bc_internal_retry();  /* l_retry got incremented here */			
@@ -326,14 +333,6 @@ SaErrorT snmp_bc_snmp_get(struct snmp_bc_hnd *custom_handle,
         	} else {
                 	custom_handle->handler_retries = 0;
 			if ((err == SA_OK) && (value->type == ASN_OCTET_STR)) {
-#if 0
-				if ( (g_ascii_strncasecmp(value->string,"(No temperature)", sizeof("(No temperature)")) == 0) ||
-			     		(g_ascii_strncasecmp(value->string,"(No voltage)", sizeof("(No voltage)")) == 0) )
-				{
-					snmp_bc_internal_retry();
-				}
-				else
-#endif
 				if ((g_ascii_strncasecmp(value->string,"Not Readable!", sizeof("Not Readable!")) == 0) ||
 				    (g_ascii_strncasecmp(value->string,"Not Readable", sizeof("Not Readable")) == 0) ||
 				    (g_ascii_strncasecmp(value->string,"(No temperature)", sizeof("(No temperature)")) == 0) ||

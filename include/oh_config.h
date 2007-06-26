@@ -32,6 +32,7 @@ struct oh_parsed_config {
         guint handlers_loaded;
         guint domains_defined;
         guint domains_loaded;
+        gboolean default_domain;
 };
 
 typedef enum {

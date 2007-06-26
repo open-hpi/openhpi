@@ -52,7 +52,8 @@ SaErrorT oh_get_rpt_info(RPTable *table,
                          SaHpiTimeT *update_timestamp);
 
 /* Resource calls */
-SaErrorT oh_add_resource(RPTable *table, SaHpiRptEntryT *entry, void *data, int owndata);
+SaErrorT oh_add_resource(RPTable *table, SaHpiRptEntryT *entry,
+                         void *data, int owndata);
 
 SaErrorT oh_remove_resource(RPTable *table, SaHpiResourceIdT rid);
 
@@ -62,16 +63,26 @@ SaHpiRptEntryT *oh_get_resource_by_ep(RPTable *table, SaHpiEntityPathT *ep);
 SaHpiRptEntryT *oh_get_resource_next(RPTable *table, SaHpiResourceIdT rid_prev);
 
 /* RDR calls */
-SaErrorT oh_add_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiRdrT *rdr, void *data, int owndata);
+SaErrorT oh_add_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiRdrT *rdr,
+                    void *data, int owndata);
 
-SaErrorT oh_remove_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT rdrid);
+SaErrorT oh_remove_rdr(RPTable *table, SaHpiResourceIdT rid,
+                       SaHpiEntryIdT rdrid);
 
-void *oh_get_rdr_data(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT rdrid);
-SaHpiRdrT *oh_get_rdr_by_id(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT rdrid);
+void *oh_get_rdr_data(RPTable *table, SaHpiResourceIdT rid,
+                      SaHpiEntryIdT rdrid);
+SaHpiRdrT *oh_get_rdr_by_id(RPTable *table, SaHpiResourceIdT rid,
+                            SaHpiEntryIdT rdrid);
 SaHpiRdrT *oh_get_rdr_by_type(RPTable *table, SaHpiResourceIdT rid,
                               SaHpiRdrTypeT type, SaHpiInstrumentIdT num);
-SaHpiRdrT *oh_get_rdr_next(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT rdrid_prev);
-SaHpiUint32T get_rdr_uid(SaHpiRdrTypeT type, SaHpiInstrumentIdT num);
+SaHpiRdrT *oh_get_rdr_next(RPTable *table, SaHpiResourceIdT rid,
+                           SaHpiEntryIdT rdrid_prev);
+SaHpiRdrT *oh_get_rdr_by_type_first(RPTable *table, SaHpiResourceIdT rid,
+                                    SaHpiRdrTypeT type);
+SaHpiRdrT *oh_get_rdr_by_type_next(RPTable *table, SaHpiResourceIdT rid,
+                                   SaHpiRdrTypeT type, SaHpiInstrumentIdT num);
+SaHpiUint32T oh_get_rdr_uid(SaHpiRdrTypeT type, SaHpiInstrumentIdT num);
+SaHpiInstrumentIdT oh_get_rdr_num(SaHpiEntryIdT rdrid);
 
 
 #ifdef __cplusplus

@@ -227,6 +227,13 @@ struct oh_abi_v2 {
 				SaHpiEventLogInfoT *info);
 
         /***
+         * saHpiEventLogCapabilitiesGet
+         **/
+        SaErrorT (*get_el_caps)(void *hnd,
+                                SaHpiResourceIdT id,
+                                SaHpiEventLogCapabilitiesT *caps);
+
+        /***
          * saHpiEventLogTimeSet
          **/
         SaErrorT (*set_el_time)(void *hnd,
@@ -398,6 +405,15 @@ struct oh_abi_v2 {
 				 SaHpiIdrIdT idrid,
 				 SaHpiIdrAreaTypeT areatype,
 				 SaHpiEntryIdT *areaid);
+                                 
+        /***
+         * saHpiIdrAreaAddById
+         **/
+        SaErrorT (*add_idr_area_id)(void *,
+                                    SaHpiResourceIdT,
+                                    SaHpiIdrIdT,
+                                    SaHpiIdrAreaTypeT,
+                                    SaHpiEntryIdT);
 
         /***
          * saHpiIdrAreaDelete
@@ -426,6 +442,14 @@ struct oh_abi_v2 {
 				  SaHpiResourceIdT rid,
 				  SaHpiIdrIdT idrid,
 				  SaHpiIdrFieldT *field);
+
+        /***
+         * saHpiIdrFieldAddById
+         **/
+        SaErrorT (*add_idr_field_id)(void *hnd,
+                                     SaHpiResourceIdT rid,
+                                     SaHpiIdrIdT idrid,
+                                     SaHpiIdrFieldT *field);
 
         /***
          * saHpiIdrFieldSet
@@ -622,17 +646,35 @@ struct oh_abi_v2 {
 				    SaHpiResourceIdT id,
                                	    SaHpiPowerStateT state);
 
-	/****************
+	/*****************
 	 * PARAMETER ABIs
 	 *****************/
 
-	/***
+        /***
          * saHpiParmControl
          **/
         SaErrorT (*control_parm)(void *hnd,
 				 SaHpiResourceIdT id,
 				 SaHpiParmActionT act);
 
+        /***********************
+         * Load Management ABIs
+         ***********************/
+     
+        /***
+         * saHpiResourceLoadIdGet
+         **/
+        SaErrorT (*load_id_get)(void *hnd,
+                                SaHpiResourceIdT rid,
+                                SaHpiLoadIdT *load_id);
+
+        /***
+         * saHpiResourceLoadIdSet
+         **/
+        SaErrorT (*load_id_set)(void *hnd,
+                                SaHpiResourceIdT rid,
+                                SaHpiLoadIdT *load_id);
+                                
 	/*************
 	 * RESET ABIs
 	 *************/

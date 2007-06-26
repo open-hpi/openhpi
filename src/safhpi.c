@@ -1,7 +1,7 @@
 /*      -*- linux-c -*-
  *
  * Copyright (c) 2003 by Intel Corp.
- * (C) Copyright IBM Corp. 2003-2006
+ * (C) Copyright IBM Corp. 2003-2007
  * Copyright (c) 2004 by FORCE Computers.
  *
  * This program is distributed in the hope that it will be useful,
@@ -443,6 +443,222 @@ SaErrorT SAHPI_API saHpiResourceIdGet(
         return SA_OK;
 }
 
+SaErrorT SAHPI_API saHpiGetIdByEntityPath (
+        SAHPI_IN        SaHpiSessionIdT         SessionId,
+        SAHPI_IN        SaHpiEntityPathT        EntityPath,
+        SAHPI_IN        SaHpiRdrTypeT           InstrumentType,
+        SAHPI_INOUT     SaHpiUint32T            *InstanceId,
+        SAHPI_OUT       SaHpiResourceIdT        *ResourceId,
+        SAHPI_OUT       SaHpiInstrumentIdT      *InstrumentId,
+        SAHPI_OUT       SaHpiUint32T            *RptUpdateCount)
+{
+        struct oh_domain *d = NULL;
+        SaHpiDomainIdT did;
+        SaHpiResourceIdT rid = 0;
+        SaHpiRdrT *rdr = NULL;
+        
+        if (InstanceId == NULL || ResourceId == NULL ||
+            *InstanceId == SAHPI_LAST_ENTRY ||
+            (InstrumentId == NULL && InstrumentType != SAHPI_NO_RECORD) ||
+            RptUpdateCount == NULL) {
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+        
+        OH_CHECK_INIT_STATE(SessionId);
+        OH_GET_DID(SessionId, did);        
+        
+        rid = oh_uid_lookup(&EntityPath);
+        if (rid == 0) {
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+        
+        OH_GET_DOMAIN(did, d); /* Lock domain */
+        *ResourceId = rid;
+        *RptUpdateCount = d->rpt.update_count;        
+        if (InstrumentType == SAHPI_NO_RECORD) {
+                oh_release_domain(d);                
+                return SA_OK;
+        }        
+
+        /* Get Rdr indicated by InstanceId (Num) and Type */
+        if (*InstanceId == SAHPI_FIRST_ENTRY) {
+                rdr = oh_get_rdr_by_type_first(&d->rpt, rid, InstrumentType);
+        } else {
+                rdr = oh_get_rdr_by_type(&d->rpt, rid,
+                                         InstrumentType, *InstanceId);
+        }
+        
+        if (rdr == NULL) {
+                oh_release_domain(d);
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+        
+        rdr = oh_get_rdr_by_type_next(&d->rpt, rid, InstrumentType,
+                                      oh_get_rdr_num(rdr->RecordId));
+        if (rdr == NULL) {
+                *InstanceId = SAHPI_LAST_ENTRY;
+        } else {
+                *InstanceId == oh_get_rdr_num(rdr->RecordId);
+        }                
+        
+        oh_release_domain(d);
+        return SA_OK;
+}
+
+SaErrorT SAHPI_API saHpiGetChildEntityPath (
+    SAHPI_IN    SaHpiSessionIdT         SessionId,
+    SAHPI_IN    SaHpiEntityPathT        ParentEntityPath,
+    SAHPI_INOUT SaHpiUint32T            *InstanceId,
+    SAHPI_OUT   SaHpiEntityPathT        *ChildEntityPath,
+    SAHPI_OUT   SaHpiUint32T            *RptUpdateCount)
+{
+        struct oh_domain *d = NULL;
+        SaHpiDomainIdT did;
+        oh_entitypath_pattern epp;
+        SaHpiRptEntryT *rpte = NULL;
+        SaHpiBoolT found_match = SAHPI_FALSE;
+        SaErrorT error;
+        int i, j = 1;      
+        
+        if (InstanceId == NULL || *InstanceId == SAHPI_LAST_ENTRY ||
+            RptUpdateCount == NULL) {
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+        
+        OH_CHECK_INIT_STATE(SessionId);
+        OH_GET_DID(SessionId, did);
+        OH_GET_DOMAIN(did, d); /* Lock domain */
+        
+        /* Check to see the parent entity path exists */
+        rpte = oh_get_resource_by_ep(&d->rpt, &ParentEntityPath);
+        if (rpte == NULL) {
+                oh_release_domain(d);
+                return SA_ERR_HPI_INVALID_DATA;
+        }
+        rpte = NULL;
+        
+        /* Create an entity path pattern from the parent entity path
+         * that looks like the following: <ParentEntityPath>{.,.}
+         * This will match direct childs of ParentEntityPath.
+         **/
+        memset(&epp, 0, sizeof(oh_entitypath_pattern));
+        epp.epattern[0].etp.is_dot = 1;
+        epp.epattern[0].elp.is_dot = 1;
+        for(i = 0; i < SAHPI_MAX_ENTITY_PATH; i++) {
+                epp.epattern[j].etp.type =
+                        ParentEntityPath.Entry[i].EntityType;
+                epp.epattern[j].elp.location =
+                        ParentEntityPath.Entry[i].EntityLocation;
+                j++;
+        }
+        epp.epattern[j].etp.type = SAHPI_ENT_ROOT;
+        
+        /* Find a matching child */
+        for (rpte = oh_get_resource_by_id(&d->rpt, *InstanceId);
+             rpte;
+             rpte = oh_get_resource_next(&d->rpt, rpte->ResourceId)) {
+                if (oh_match_entitypath_pattern(&epp, &rpte->ResourceEntity)) {
+                        found_match = SAHPI_TRUE;
+                        break;
+                }
+                if (*InstanceId != SAHPI_FIRST_ENTRY) break;
+        }
+                
+        if (found_match) { /* Found matching InstanceId */
+                /* Now look next matching InstanceId */
+                SaHpiRptEntryT *nrpte = NULL;
+                found_match = SAHPI_FALSE;
+                for (nrpte = oh_get_resource_next(&d->rpt, rpte->ResourceId);
+                     nrpte;
+                     nrpte = oh_get_resource_next(&d->rpt, nrpte->ResourceId)) {
+                        if (oh_match_entitypath_pattern(&epp,
+                                        &nrpte->ResourceEntity)) {
+                                found_match = SAHPI_TRUE;
+                                break;
+                        }
+                }
+                *InstanceId = SAHPI_LAST_ENTRY;
+                if (found_match) {
+                        *InstanceId = nrpte->ResourceId;
+                }                
+                *ChildEntityPath = rpte->ResourceEntity;
+                *RptUpdateCount = d->rpt.update_count;
+                error = SA_OK;
+        } else {
+                error = SA_ERR_HPI_NOT_PRESENT;
+        }
+        
+        oh_release_domain(d);
+	return error;
+}
+
+SaErrorT SAHPI_API saHpiResourceFailedRemove (
+    SAHPI_IN    SaHpiSessionIdT        SessionId,
+    SAHPI_IN    SaHpiResourceIdT       ResourceId)
+{
+        SaErrorT error;
+        struct oh_domain *d = NULL;
+        struct oh_handler *h = NULL;
+        unsigned int hid;
+        SaHpiDomainIdT did;
+        SaHpiRptEntryT *rpte = NULL;
+        SaHpiRptEntryT saved_res;
+        struct oh_event *e = NULL;
+        SaHpiHsStateT hsstate;
+        SaErrorT (*get_hotswap_state)(void *hnd, SaHpiResourceIdT rid,
+                                      SaHpiHsStateT *state);
+
+        OH_CHECK_INIT_STATE(SessionId);
+        OH_GET_DID(SessionId, did);
+        OH_GET_DOMAIN(did, d); /* Lock domain */
+        
+        rpte = oh_get_resource_by_id(&d->rpt, ResourceId);
+        if (rpte == NULL) {
+                oh_release_domain(d);
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+        
+        if (!rpte->ResourceFailed) {
+                oh_release_domain(d);
+                return SA_ERR_HPI_INVALID_REQUEST;
+        }
+        
+        if (!(rpte->ResourceCapabilities & SAHPI_CAPABILITY_FRU)) {
+                oh_release_domain(d);
+                return SA_ERR_HPI_INVALID_CMD;
+        }
+        
+        saved_res = *rpte;
+        OH_HANDLER_GET(d, ResourceId, h);        
+        oh_release_domain(d);
+        get_hotswap_state = h ? h->abi->get_hotswap_state : NULL;
+        if (!get_hotswap_state) {
+                oh_release_handler(h);
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
+        
+        error = get_hotswap_state(h->hnd, ResourceId, &hsstate);
+        hid = h->id;
+        oh_release_handler(h);
+        if (error) return error;
+        
+        e = g_malloc0(sizeof(struct oh_event));
+        e->hid = hid;
+        e->resource = saved_res;
+        e->event.Source = ResourceId;
+        e->event.Severity = saved_res.ResourceSeverity;
+        oh_gettimeofday(&e->event.Timestamp);
+        e->event.EventType = SAHPI_ET_HOTSWAP;
+        e->event.EventDataUnion.HotSwapEvent.PreviousHotSwapState = hsstate;
+        e->event.EventDataUnion.HotSwapEvent.HotSwapState =
+                SAHPI_HS_STATE_NOT_PRESENT;
+        e->event.EventDataUnion.HotSwapEvent.CauseOfStateChange =
+                SAHPI_HS_CAUSE_USER_UPDATE;
+        oh_evt_queue_push(&oh_process_q, e);
+        
+        return SA_OK;
+}
+
 /*********************************************************************
  *
  *  Event Log Functions
@@ -504,6 +720,59 @@ SaErrorT SAHPI_API saHpiEventLogInfoGet (
         }
 
         return rv;
+}
+
+SaErrorT SAHPI_API saHpiEventLogCapabilitiesGet (
+    SAHPI_IN  SaHpiSessionIdT     SessionId,
+    SAHPI_IN  SaHpiResourceIdT    ResourceId,
+    SAHPI_OUT SaHpiEventLogCapabilitiesT  *EventLogCapabilities)
+{
+        SaErrorT error;
+        SaErrorT (*get_el_caps) (void *, SaHpiResourceIdT,
+                                 SaHpiEventLogCapabilitiesT *);
+        SaHpiRptEntryT *rpte = NULL;
+        struct oh_handler *h = NULL;
+        struct oh_domain *d = NULL;
+        SaHpiDomainIdT did;
+        
+        if (EventLogCapabilities == NULL)
+                return SA_ERR_HPI_INVALID_PARAMS;
+        
+        OH_CHECK_INIT_STATE(SessionId);
+        OH_GET_DID(SessionId, did);        
+        
+        if (ResourceId == SAHPI_UNSPECIFIED_RESOURCE_ID) {
+                *EventLogCapabilities = SAHPI_EVTLOG_CAPABILITY_ENTRY_ADD |
+                        SAHPI_EVTLOG_CAPABILITY_CLEAR |
+                        SAHPI_EVTLOG_CAPABILITY_TIME_SET |
+                        SAHPI_EVTLOG_CAPABILITY_STATE_SET |
+                        SAHPI_EVTLOG_CAPABILITY_OVERFLOW_RESET;
+                
+                return SA_OK;
+        }
+        
+        OH_GET_DOMAIN(did, d); /* Lock domain */
+        OH_RESOURCE_GET_CHECK(d, ResourceId, rpte);
+        if(!(rpte->ResourceCapabilities & SAHPI_CAPABILITY_EVENT_LOG)) {                
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_CAPABILITY;
+        }
+        
+        OH_HANDLER_GET(d, ResourceId, h);
+        oh_release_domain(d); /* Unlock domain */
+
+        get_el_caps = h ? h->abi->get_el_caps : NULL;
+
+        if (!get_el_caps) {                
+                oh_release_handler(h);
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
+
+        error = get_el_caps(h->hnd, ResourceId,
+                            EventLogCapabilities);
+        oh_release_handler(h);        
+
+        return error;
 }
 
 SaErrorT SAHPI_API saHpiEventLogEntryGet (
@@ -2491,6 +2760,105 @@ SaErrorT SAHPI_API saHpiIdrAreaAdd(
         return rv;
 }
 
+SaErrorT SAHPI_API saHpiIdrAreaAddById(
+    SAHPI_IN SaHpiSessionIdT    SessionId,
+    SAHPI_IN SaHpiResourceIdT   ResourceId,
+    SAHPI_IN SaHpiIdrIdT        IdrId,
+    SAHPI_IN SaHpiIdrAreaTypeT  AreaType,
+    SAHPI_IN SaHpiEntryIdT      AreaId)
+{
+        SaHpiRptEntryT *rpte;
+        SaHpiRdrT *rdr;
+        SaErrorT error = SA_OK;
+        SaHpiDomainIdT did;
+        struct oh_domain *d = NULL;
+        struct oh_handler *h = NULL;
+        SaHpiIdrInfoT info;
+        SaHpiIdrAreaHeaderT header;
+        SaHpiEntryIdT next;
+        SaErrorT (*add_idr_area_id)(void *,
+                                    SaHpiResourceIdT,
+                                    SaHpiIdrIdT,
+                                    SaHpiIdrAreaTypeT,
+                                    SaHpiEntryIdT);
+        SaErrorT (*get_idr_info)(void *hnd,
+                                 SaHpiResourceIdT rid,
+                                 SaHpiIdrIdT idrid,
+                                 SaHpiIdrInfoT *idrinfo);
+        SaErrorT (*get_idr_area_header)(void *hnd,
+                                        SaHpiResourceIdT rid,
+                                        SaHpiIdrIdT idrid,
+                                        SaHpiIdrAreaTypeT areatype,
+                                        SaHpiEntryIdT areaid,
+                                        SaHpiEntryIdT *nextareaid,
+                                        SaHpiIdrAreaHeaderT *header);
+
+        if (!oh_lookup_idrareatype(AreaType) ||
+            AreaId == SAHPI_LAST_ENTRY)   {                
+                return SA_ERR_HPI_INVALID_PARAMS;
+        } else if (AreaType == SAHPI_IDR_AREATYPE_UNSPECIFIED) {                
+                return SA_ERR_HPI_INVALID_DATA;
+        }
+
+        OH_CHECK_INIT_STATE(SessionId);
+        OH_GET_DID(SessionId, did);
+        OH_GET_DOMAIN(did, d); /* Lock domain */
+        OH_RESOURCE_GET(d, ResourceId, rpte);
+
+        /* Interface and conformance checking */
+        if(!(rpte->ResourceCapabilities & SAHPI_CAPABILITY_INVENTORY_DATA)) {                
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_CAPABILITY;
+        }
+
+        rdr = oh_get_rdr_by_type(&(d->rpt), ResourceId,
+                                 SAHPI_INVENTORY_RDR, IdrId);
+        if (!rdr) {
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+        OH_HANDLER_GET(d, ResourceId, h);
+        oh_release_domain(d); /* Unlock domain */
+        
+        /* Check if IDR is read-only */
+        get_idr_info = h ? h->abi->get_idr_info : NULL;
+        if (!get_idr_info) {
+                oh_release_handler(h);
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
+        error = get_idr_info(h->hnd, ResourceId, IdrId, &info);
+        if (error != SA_OK) {
+                oh_release_handler(h);
+                return SA_ERR_HPI_NOT_PRESENT;
+        } else if (info.ReadOnly) {
+                oh_release_handler(h);
+                return SA_ERR_HPI_READ_ONLY;
+        }
+
+        /* Check if the AreaId requested already exists */
+        get_idr_area_header = h ? h->abi->get_idr_area_header : NULL;
+        if (!get_idr_area_header) {
+                oh_release_handler(h);
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
+        error = get_idr_area_header(h->hnd, ResourceId, IdrId, AreaType,
+                                    AreaId, &next, &header);
+        if (error == SA_OK) {
+                oh_release_handler(h);
+                return SA_ERR_HPI_DUPLICATE;
+        }
+
+        add_idr_area_id = h ? h->abi->add_idr_area_id : NULL;
+        if (!add_idr_area_id) {
+                oh_release_handler(h);
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
+        error = add_idr_area_id(h->hnd, ResourceId, IdrId, AreaType, AreaId);
+        oh_release_handler(h);
+
+        return error;
+}
+
 SaErrorT SAHPI_API saHpiIdrAreaDelete(
         SAHPI_IN SaHpiSessionIdT  SessionId,
         SAHPI_IN SaHpiResourceIdT ResourceId,
@@ -2503,7 +2871,7 @@ SaErrorT SAHPI_API saHpiIdrAreaDelete(
         SaHpiDomainIdT did;
         struct oh_domain *d = NULL;
         struct oh_handler *h;
-        SaErrorT (*set_func)(void *, SaHpiResourceIdT, SaHpiIdrIdT, SaHpiEntryIdT );
+        SaErrorT (*set_func)(void *, SaHpiResourceIdT, SaHpiIdrIdT, SaHpiEntryIdT);
 
         if (AreaId == SAHPI_LAST_ENTRY)   {
                 dbg("Invalid Parameters");
@@ -2676,6 +3044,116 @@ SaErrorT SAHPI_API saHpiIdrFieldAdd(
         oh_release_handler(h);
 
         return rv;
+}
+
+SaErrorT SAHPI_API saHpiIdrFieldAddById( 
+        SAHPI_IN SaHpiSessionIdT          SessionId,
+        SAHPI_IN SaHpiResourceIdT         ResourceId,
+        SAHPI_IN SaHpiIdrIdT              IdrId,
+        SAHPI_INOUT SaHpiIdrFieldT        *Field)
+{
+        SaHpiRptEntryT *rpte;
+        SaHpiRdrT *rdr;
+        SaErrorT error = SA_OK;
+        SaHpiDomainIdT did;
+        struct oh_domain *d = NULL;
+        struct oh_handler *h = NULL;
+        SaHpiEntryIdT nextid;
+        SaHpiIdrAreaHeaderT header;
+        SaHpiIdrFieldT field;
+        SaErrorT (*add_idr_field_id)(void *,
+                                     SaHpiResourceIdT,
+                                     SaHpiIdrIdT,
+                                     SaHpiIdrFieldT *);
+        SaErrorT (*get_idr_area_header)(void *hnd,
+                                        SaHpiResourceIdT rid,
+                                        SaHpiIdrIdT idrid,
+                                        SaHpiIdrAreaTypeT areatype,
+                                        SaHpiEntryIdT areaid,
+                                        SaHpiEntryIdT *nextareaid,
+                                        SaHpiIdrAreaHeaderT *header);
+        SaErrorT (*get_idr_field)(void *hnd,
+                                  SaHpiResourceIdT rid,
+                                  SaHpiIdrIdT idrid,
+                                  SaHpiEntryIdT areaid,
+                                  SaHpiIdrFieldTypeT fieldtype,
+                                  SaHpiEntryIdT fieldid,
+                                  SaHpiEntryIdT *nextfieldid,
+                                  SaHpiIdrFieldT *field);
+
+        if (!Field)   {                
+                return SA_ERR_HPI_INVALID_PARAMS;
+        } else if (!oh_lookup_idrfieldtype(Field->Type)) {                
+                return SA_ERR_HPI_INVALID_PARAMS;
+        } else if (Field->Type == SAHPI_IDR_FIELDTYPE_UNSPECIFIED) {                
+                return SA_ERR_HPI_INVALID_PARAMS;
+        } else if (oh_valid_textbuffer(&Field->Field) != SAHPI_TRUE) {                
+                return SA_ERR_HPI_INVALID_PARAMS;
+        } else if (Field->AreaId == SAHPI_LAST_ENTRY ||
+                   Field->FieldId == SAHPI_LAST_ENTRY) {
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        OH_CHECK_INIT_STATE(SessionId);
+        OH_GET_DID(SessionId, did);
+        OH_GET_DOMAIN(did, d); /* Lock domain */
+        OH_RESOURCE_GET(d, ResourceId, rpte);
+
+        /* Interface and conformance checking */
+        if(!(rpte->ResourceCapabilities & SAHPI_CAPABILITY_INVENTORY_DATA)) {                
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_CAPABILITY;
+        }
+
+        rdr = oh_get_rdr_by_type(&(d->rpt), ResourceId, SAHPI_INVENTORY_RDR, IdrId);
+        if (!rdr) {
+                oh_release_domain(d); /* Unlock domain */                
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+        
+        OH_HANDLER_GET(d, ResourceId, h);
+        oh_release_domain(d); /* Unlock domain */
+        
+        /* Check if AreaId specified in Field exists */
+        get_idr_area_header = h ? h->abi->get_idr_area_header : NULL;
+        if (!get_idr_area_header) {
+                oh_release_handler(h);
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
+        error = get_idr_area_header(h->hnd, ResourceId, IdrId,
+                                    SAHPI_IDR_AREATYPE_UNSPECIFIED,
+                                    Field->AreaId,
+                                    &nextid, &header);
+        if (error != SA_OK) {
+                oh_release_handler(h);
+                return SA_ERR_HPI_NOT_PRESENT;
+        } else if (header.ReadOnly) {
+                oh_release_handler(h);
+                return SA_ERR_HPI_READ_ONLY;
+        }
+        /* Check if FieldId requested does not already exists */
+        get_idr_field = h ? h->abi->get_idr_field : NULL;
+        if (!get_idr_field) {
+                oh_release_handler(h);
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
+        error = get_idr_field(h->hnd, ResourceId, IdrId, Field->AreaId,
+                              SAHPI_IDR_FIELDTYPE_UNSPECIFIED,
+                              Field->FieldId, &nextid, &field);
+        if (error == SA_OK) {
+                oh_release_handler(h);
+                return SA_ERR_HPI_DUPLICATE;
+        }        
+        /* All checks done. Pass call down to plugin */
+        add_idr_field_id = h ? h->abi->add_idr_field_id : NULL;
+        if (!add_idr_field_id) {
+                oh_release_handler(h);                
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }                
+        error = add_idr_field_id(h->hnd, ResourceId, IdrId, Field);
+        oh_release_handler(h);
+
+        return error;
 }
 
 SaErrorT SAHPI_API saHpiIdrFieldSet(
@@ -4013,6 +4491,97 @@ SaErrorT SAHPI_API saHpiParmControl (
         oh_release_handler(h);
 
         return rv;
+}
+
+/*******************************************************************************
+ *
+ *  Load Management
+ * 
+ ******************************************************************************/
+
+SaErrorT SAHPI_API saHpiResourceLoadIdGet (
+    SAHPI_IN  SaHpiSessionIdT       SessionId,
+    SAHPI_IN  SaHpiResourceIdT      ResourceId,
+    SAHPI_OUT SaHpiLoadIdT         *LoadId)
+{
+        SaErrorT error;
+        SaErrorT (*load_id_get)(void *, SaHpiResourceIdT, SaHpiLoadIdT *);
+        SaHpiRptEntryT *rpte;
+        struct oh_handler *h = NULL;
+        SaHpiDomainIdT did;
+        struct oh_domain *d = NULL;
+
+        if (LoadId == NULL) {
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        OH_CHECK_INIT_STATE(SessionId);
+        OH_GET_DID(SessionId, did);
+        OH_GET_DOMAIN(did, d); /* Lock domain */
+        OH_RESOURCE_GET_CHECK(d, ResourceId, rpte);
+
+        if (!(rpte->ResourceCapabilities & SAHPI_CAPABILITY_LOAD_ID)) {
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_CAPABILITY;
+        }
+
+        OH_HANDLER_GET(d, ResourceId, h);
+        oh_release_domain(d); /* Unlock domain */
+        
+        load_id_get = h ? h->abi->load_id_get : NULL;
+        if (!load_id_get) {
+                oh_release_handler(h);
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
+
+        error = load_id_get(h->hnd, ResourceId, LoadId);
+        
+        oh_release_handler(h);
+        
+        return error;
+}
+
+SaErrorT SAHPI_API saHpiResourceLoadIdSet (
+    SAHPI_IN  SaHpiSessionIdT       SessionId,
+    SAHPI_IN  SaHpiResourceIdT      ResourceId,
+    SAHPI_IN  SaHpiLoadIdT         *LoadId) 
+{
+        SaErrorT error;
+        SaErrorT (*load_id_set)(void *, SaHpiResourceIdT, SaHpiLoadIdT *);
+        SaHpiRptEntryT *rpte;
+        struct oh_handler *h = NULL;
+        SaHpiDomainIdT did;
+        struct oh_domain *d = NULL;
+
+        if (LoadId == NULL) {
+                /* Spec doesn't say what to return in this case */
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        OH_CHECK_INIT_STATE(SessionId);
+        OH_GET_DID(SessionId, did);
+        OH_GET_DOMAIN(did, d); /* Lock domain */
+        OH_RESOURCE_GET_CHECK(d, ResourceId, rpte);
+
+        if (!(rpte->ResourceCapabilities & SAHPI_CAPABILITY_LOAD_ID)) {
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_CAPABILITY;
+        }
+
+        OH_HANDLER_GET(d, ResourceId, h);
+        oh_release_domain(d); /* Unlock domain */
+        
+        load_id_set = h ? h->abi->load_id_set : NULL;
+        if (!load_id_set) {
+                oh_release_handler(h);
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
+
+        error = load_id_set(h->hnd, ResourceId, LoadId);
+        
+        oh_release_handler(h);
+        
+        return error;
 }
 
 /*******************************************************************************
