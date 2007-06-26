@@ -17,7 +17,7 @@
 #ifndef __SNMP_BC_H
 #define __SNMP_BC_H
 
-#define SNMP_BC_MAX_SNMP_RETRY_ATTEMPTED  5
+#define SNMP_BC_MAX_SNMP_RETRY_ATTEMPTED  3
 #define SNMP_BC_MAX_RESOURCES_MASK        16 /* 15-char long plus NULL terminated */
 
 #include <stdlib.h>
@@ -40,6 +40,8 @@ struct snmp_bc_hnd {
 	GHashTable *event2hpi_hash_ptr; /* Global "Event Number to HPI Event" hash table */
 	guint   platform;
 	guint   active_mm;                /* Used for duplicate event RID override */
+	char   *host;
+	char   *host_alternate;
 	SaHpiBoolT isFirstDiscovery;
 	gchar  handler_timezone[10];
         guint   handler_retries;          /* Number of retries attempted on SNMP target (agent) */

@@ -32,7 +32,7 @@ static SaErrorT new_sensor(struct oh_handler_state *state,
         rdr->RdrType = SAHPI_SENSOR_RDR;
         rdr->RdrTypeUnion.SensorRec = mysensor->sensor;
         rdr->IsFru = 1;
-        rdr->RecordId = get_rdr_uid(rdr->RdrType,
+        rdr->RecordId = oh_get_rdr_uid(rdr->RdrType,
                                     rdr->RdrTypeUnion.SensorRec.Num);
         oh_init_textbuffer(&rdr->IdString);
         oh_append_textbuffer(&rdr->IdString, mysensor->comment);

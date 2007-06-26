@@ -101,7 +101,7 @@ SaErrorT snmp_get( void *sessp,
                 value->type = (u_char)0x00; 
 		session = snmp_sess_session(sessp);
                 snmp_sess_perror("snmpget", session);
-		trace("OID=%s", objid);
+                trace("OID %s, error status: %d\n",objid, status);
 		returncode = snmpstat2hpi(status);
         }
 
@@ -529,7 +529,7 @@ SaErrorT snmpstat2hpi(int snmpstat)
 			break;
 		case STAT_ERROR:
 		default:
-			hpicode = SA_ERR_HPI_UNKNOWN;
+			hpicode = SA_ERR_HPI_ERROR;
 			break;
 	}
 	

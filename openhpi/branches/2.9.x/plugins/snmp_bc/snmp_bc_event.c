@@ -1575,7 +1575,7 @@ SaErrorT snmp_bc_add_to_eventq(struct oh_handler_state *handle, SaHpiEventT *thi
 		/* It is redundant because SAHPI_NO_RECORD == 0, Put code here for clarity */
 		break;			           
 	case SAHPI_ET_SENSOR:
-		rdrid = get_rdr_uid(SAHPI_SENSOR_RDR,
+		rdrid = oh_get_rdr_uid(SAHPI_SENSOR_RDR,
 				    thisEvent->EventDataUnion.SensorEvent.SensorNum);
 		thisRdr =  oh_get_rdr_by_id(handle->rptcache, thisEvent->Source, rdrid);
 		if (thisRdr) 
@@ -1584,7 +1584,7 @@ SaErrorT snmp_bc_add_to_eventq(struct oh_handler_state *handle, SaHpiEventT *thi
 			dbg("Rdr not found for rid %d, rdrid %d\n",thisEvent->Source, rdrid);
 		break;
 	case SAHPI_ET_WATCHDOG:
-		rdrid = get_rdr_uid(SAHPI_WATCHDOG_RDR,
+		rdrid = oh_get_rdr_uid(SAHPI_WATCHDOG_RDR,
 				    thisEvent->EventDataUnion.WatchdogEvent.WatchdogNum);
 		thisRdr =  oh_get_rdr_by_id(handle->rptcache, thisEvent->Source, rdrid);
 		if (thisRdr) 

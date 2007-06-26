@@ -673,6 +673,23 @@ CLEANUP:
  * @epp_str: entity path pattern string
  * @epp: place where to put the compiled entity path pattern
  *
+ * This will create an entitypath pattern structure out of an entity path
+ * pattern string.
+ * 
+ * Entity paths are in this format:
+ * {type0,number0}{type1,number1}{type2,number2}...{typen,numbern}
+ * Each {typex,numberx} is refered to as a tuple in the entity path. The number
+ * part of the tuple is also refered to as the location. The type part is an
+ * entity type based on the SaHpiEntityTypeT types defined in SaHpi.h, with the
+ * SAHPI_ENT prefix cut out.
+ * 
+ * An entity path pattern is defined as:
+ * <*|{<type|.>,<number|.>}>
+ * A splat (*) can take the place of a tuple. It means 0 or more tuples of any
+ * type and any number.
+ * A dot (.) can take the place of a type and also the place of a number within
+ * the tuple. It means any type or any number depending of where it is used. 
+ * 
  * Returns: SA_OK on success.
  **/
 SaErrorT oh_compile_entitypath_pattern(const char *epp_str,
@@ -689,6 +706,7 @@ SaErrorT oh_compile_entitypath_pattern(const char *epp_str,
 
         len = strlen(epp_str);
         for (i = 0, j = 0; i < len; i++) {
+                if (j >= OH_MAX_EP_TUPLES) return SA_ERR_HPI_ERROR;
                 if (in_tuple) { /* We are scanning inside a tuple */
                         if (in_entity) { /* Scanning inside the entity type */
                                 if (epp_str[i] == EPATHSTRING_VALUE_DELIMITER_CHAR) {
@@ -791,7 +809,7 @@ static int epp_ended(oh_entitypath_pattern *epp, int j)
 {
         if (!epp || j < 0) return 1;
 
-        if (j >= SAHPI_MAX_ENTITY_PATH) return 1;
+        if (j >= OH_MAX_EP_TUPLES) return 1;
 
         if (!epp->epattern[j].is_splat &&
              epp->epattern[j].etp.type == SAHPI_ENT_ROOT)

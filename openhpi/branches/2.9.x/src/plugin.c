@@ -751,6 +751,8 @@ int oh_load_plugin_functions(struct oh_plugin *plugin, struct oh_abi_v2 **abi)
                                                 "oh_set_resource_severity");
         (*abi)->get_el_info               = lt_dlsym(plugin->dl_handle,
                                                 "oh_get_el_info");
+        (*abi)->get_el_caps               = lt_dlsym(plugin->dl_handle,
+                                                "oh_get_el_caps");
         (*abi)->set_el_time               = lt_dlsym(plugin->dl_handle,
                                                 "oh_set_el_time");
         (*abi)->add_el_entry              = lt_dlsym(plugin->dl_handle,
@@ -791,12 +793,16 @@ int oh_load_plugin_functions(struct oh_plugin *plugin, struct oh_abi_v2 **abi)
                                                 "oh_get_idr_area_header");
         (*abi)->add_idr_area              = lt_dlsym(plugin->dl_handle,
                                                 "oh_add_idr_area");
+        (*abi)->add_idr_area_id           = lt_dlsym(plugin->dl_handle,
+                                                "oh_add_idr_area_id");
         (*abi)->del_idr_area              = lt_dlsym(plugin->dl_handle,
                                                 "oh_del_idr_area");
         (*abi)->get_idr_field             = lt_dlsym(plugin->dl_handle,
                                                 "oh_get_idr_field");
         (*abi)->add_idr_field             = lt_dlsym(plugin->dl_handle,
                                                 "oh_add_idr_field");
+        (*abi)->add_idr_field_id          = lt_dlsym(plugin->dl_handle,
+                                                "oh_add_idr_field_id");
         (*abi)->set_idr_field             = lt_dlsym(plugin->dl_handle,
                                                 "oh_set_idr_field");
         (*abi)->del_idr_field             = lt_dlsym(plugin->dl_handle,
@@ -845,12 +851,16 @@ int oh_load_plugin_functions(struct oh_plugin *plugin, struct oh_abi_v2 **abi)
                                                 "oh_set_indicator_state");
         (*abi)->control_parm              = lt_dlsym(plugin->dl_handle,
                                                 "oh_control_parm");
+        (*abi)->load_id_get               = lt_dlsym(plugin->dl_handle,
+                                                "oh_load_id_get");
+        (*abi)->load_id_set               = lt_dlsym(plugin->dl_handle,
+                                                "oh_load_id_set");
         (*abi)->get_reset_state           = lt_dlsym(plugin->dl_handle,
                                                 "oh_get_reset_state");
         (*abi)->set_reset_state           = lt_dlsym(plugin->dl_handle,
                                                 "oh_set_reset_state");
         (*abi)->inject_event            = lt_dlsym(plugin->dl_handle,
-                                                   "oh_inject_event");
+                                                "oh_inject_event");
 
         return 0;
 

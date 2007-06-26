@@ -45,7 +45,7 @@ int main(int argc, char **argv)
                 return 1;
 
         record_id =
-                get_rdr_uid(sensors[0].RdrType, sensors[0].RdrTypeUnion.SensorRec.Num);
+                oh_get_rdr_uid(sensors[0].RdrType, sensors[0].RdrTypeUnion.SensorRec.Num);
         sensors[0].RecordId = record_id;
 
         tmprdr =
