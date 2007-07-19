@@ -709,6 +709,15 @@ static cMarshalType SaHpiRptEntryElements[] =
 cMarshalType SaHpiRptEntryType = dStruct( SaHpiRptEntryT, SaHpiRptEntryElements );
 
 
+static cMarshalType SaHpiLoadIdElements[] =
+{
+        dStructElement( SaHpiLoadIdT, LoadNumber, SaHpiLoadNumberType ),
+        dStructElement( SaHpiLoadIdT, LoadName, SaHpiTextBufferType ),
+        dStructElementEnd()
+};
+
+cMarshalType SaHpiLoadIdType = dStruct( SaHpiLoadIdT, SaHpiLoadIdElements );
+
 // domains
 
 static cMarshalType SaHpiDomainInfoTElements[] =
