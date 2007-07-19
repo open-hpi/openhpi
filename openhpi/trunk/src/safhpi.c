@@ -476,6 +476,7 @@ SaErrorT SAHPI_API saHpiGetIdByEntityPath (
         *ResourceId = rid;
         *RptUpdateCount = d->rpt.update_count;        
         if (InstrumentType == SAHPI_NO_RECORD) {
+                *InstanceId = SAHPI_LAST_ENTRY;
                 oh_release_domain(d);                
                 return SA_OK;
         }        
