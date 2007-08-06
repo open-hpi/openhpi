@@ -543,6 +543,44 @@ static void _set_atca_led(ipmi_control_t *control,
 	}
 }
 
+/**
+ * is_supported_color
+ * @hpi_color: HPI Color to test if supported
+ * @rdr: RDR object containing control record for LED.
+ *
+ * Check if hpi_color is supported by the LED associated with rdr.
+ *
+ * Return value: 0 if color is supported, 1 otherwise.
+ **/
+static int is_supported_color(AtcaHpiLedColorT hpi_color, 
+			      SaHpiRdrT *rdr)
+{
+	AtcaHpiColorCapabilitiesT supported_colors = rdr->RdrTypeUnion.CtrlRec.TypeUnion.Oem.ConfigData[0];
+
+	switch(hpi_color)
+	{
+		case ATCAHPI_LED_COLOR_BLUE:
+			return ((supported_colors & ATCAHPI_LED_BLUE) != 0);
+		case ATCAHPI_LED_COLOR_RED:
+			return ((supported_colors & ATCAHPI_LED_RED) != 0);
+		case ATCAHPI_LED_COLOR_GREEN:
+			return ((supported_colors & ATCAHPI_LED_GREEN) != 0);
+		case ATCAHPI_LED_COLOR_AMBER:
+			return ((supported_colors & ATCAHPI_LED_AMBER) != 0);
+		case ATCAHPI_LED_COLOR_ORANGE:
+			return ((supported_colors & ATCAHPI_LED_ORANGE) != 0);
+		case ATCAHPI_LED_COLOR_WHITE:
+			return ((supported_colors & ATCAHPI_LED_WHITE) != 0);
+		case ATCAHPI_LED_COLOR_NO_CHANGE:
+			return 1;
+		case ATCAHPI_LED_COLOR_USE_DEFAULT:
+			return 1;
+		case ATCAHPI_LED_COLOR_RESERVED:
+			return 0;
+	}
+
+	return 0;
+}
 
 SaErrorT orig_set_control_state(struct oh_handler_state *handler,
                                 struct ohoi_control_info *c,
@@ -577,7 +615,7 @@ SaErrorT orig_set_control_state(struct oh_handler_state *handler,
 				/* exactly one color must be set */
 				return SA_ERR_HPI_INVALID_DATA;
 			}
-			if (!(body[2] & rdr->RdrTypeUnion.CtrlRec.TypeUnion.Oem.ConfigData[0])) {
+			if (!is_supported_color(body[2], rdr)) {
 				/* LED doesn't support this color */
 				return SA_ERR_HPI_INVALID_DATA;
 			}
