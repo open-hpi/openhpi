@@ -170,7 +170,6 @@ static void __get_atca_led(ipmi_control_t *control,
 	}
 	state->StateUnion.Oem.Body[4] = 0;
 	state->StateUnion.Oem.Body[5] = 0;
-	state->StateUnion.Oem.Body[6] = 0;
 	state->StateUnion.Oem.MId = ATCAHPI_PICMG_MID;
 	state->StateUnion.Oem.BodyLength = 6;
 	state->Type = SAHPI_CTRL_TYPE_OEM;
@@ -568,8 +567,8 @@ SaErrorT orig_set_control_state(struct oh_handler_state *handler,
 				dbg("state->StateUnion.Mid isn't ATCAHPI_PICMG_MID");
 				return SA_ERR_HPI_INVALID_DATA;
 			}
-			if (state->StateUnion.Oem.BodyLength != 7) {
-				dbg("state->StateUnion.Oem.BodyLength(%d) != 7",
+			if (state->StateUnion.Oem.BodyLength != 6) {
+				dbg("state->StateUnion.Oem.BodyLength(%d) != 6",
 					state->StateUnion.Oem.BodyLength);
 				return SA_ERR_HPI_INVALID_DATA;
 			}
