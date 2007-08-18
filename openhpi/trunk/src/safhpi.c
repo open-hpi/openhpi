@@ -3893,6 +3893,82 @@ SaErrorT SAHPI_API saHpiAnnunciatorModeSet(
 
 /*******************************************************************************
  *
+ * DIMI Functions
+ *
+ ******************************************************************************/
+
+SaErrorT SAHPI_API saHpiDimiInfoGet (
+    SAHPI_IN    SaHpiSessionIdT     SessionId,
+    SAHPI_IN    SaHpiResourceIdT    ResourceId,
+    SAHPI_IN    SaHpiDimiNumT       DimiNum,
+    SAHPI_OUT   SaHpiDimiInfoT      *DimiInfo)
+{
+        return SAHPI_FALSE;
+}
+
+SaErrorT SAHPI_API saHpiDimiTestInfoGet (
+    SAHPI_IN    SaHpiSessionIdT      SessionId,
+    SAHPI_IN    SaHpiResourceIdT     ResourceId,
+    SAHPI_IN    SaHpiDimiNumT        DimiNum,
+    SAHPI_IN    SaHpiDimiTestNumT    TestNum,
+    SAHPI_OUT   SaHpiDimiTestT       *DimiTest)
+{
+        return SAHPI_FALSE;
+}
+
+SaErrorT SAHPI_API saHpiDimiTestReadinessGet (
+    SAHPI_IN    SaHpiSessionIdT      SessionId,
+    SAHPI_IN    SaHpiResourceIdT     ResourceId,
+    SAHPI_IN    SaHpiDimiNumT        DimiNum,
+    SAHPI_IN    SaHpiDimiTestNumT    TestNum,
+    SAHPI_OUT   SaHpiDimiReadyT      *DimiReady)
+{
+        return SAHPI_FALSE;
+}
+
+SaErrorT SAHPI_API saHpiDimiTestStart (
+    SAHPI_IN    SaHpiSessionIdT                SessionId,
+    SAHPI_IN    SaHpiResourceIdT               ResourceId,
+    SAHPI_IN    SaHpiDimiNumT                  DimiNum,
+    SAHPI_IN    SaHpiDimiTestNumT              TestNum,
+    SAHPI_IN    SaHpiUint8T                    NumberOfParams,
+    SAHPI_IN    SaHpiDimiTestVariableParamsT   *ParamsList)
+{
+        return SAHPI_FALSE;
+}
+
+SaErrorT SAHPI_API saHpiDimiTestCancel (
+    SAHPI_IN    SaHpiSessionIdT      SessionId,
+    SAHPI_IN    SaHpiResourceIdT     ResourceId,
+    SAHPI_IN    SaHpiDimiNumT        DimiNum,
+    SAHPI_IN    SaHpiDimiTestNumT    TestNum)
+{
+        return SAHPI_FALSE;
+}
+
+SaErrorT SAHPI_API saHpiDimiTestStatusGet (
+    SAHPI_IN    SaHpiSessionIdT                   SessionId,
+    SAHPI_IN    SaHpiResourceIdT                  ResourceId,
+    SAHPI_IN    SaHpiDimiNumT                     DimiNum,
+    SAHPI_IN    SaHpiDimiTestNumT                 TestNum,
+    SAHPI_OUT   SaHpiDimiTestPercentCompletedT    *PercentCompleted,
+    SAHPI_OUT   SaHpiDimiTestRunStatusT           *RunStatus)
+{
+        return SAHPI_FALSE;
+}
+
+SaErrorT SAHPI_API saHpiDimiTestResultsGet (
+    SAHPI_IN    SaHpiSessionIdT          SessionId,
+    SAHPI_IN    SaHpiResourceIdT         ResourceId,
+    SAHPI_IN    SaHpiDimiNumT            DimiNum,
+    SAHPI_IN    SaHpiDimiTestNumT        TestNum,
+    SAHPI_OUT   SaHpiDimiTestResultsT    *TestResults)
+{
+        return SAHPI_FALSE;
+}
+
+/*******************************************************************************
+ *
  *  Hotswap Functions
  *
  ******************************************************************************/
