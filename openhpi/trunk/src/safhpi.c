@@ -1932,7 +1932,45 @@ SaErrorT SAHPI_API saHpiSensorThresholdsSet (
                 return SA_ERR_HPI_NOT_PRESENT;
         }
 
-        rv = oh_valid_thresholds(SensorThresholds, rdr);
+
+        SaHpiSensorThresholdsT tmp;
+
+        rv = saHpiSensorThresholdsGet( SessionId, ResourceId, SensorNum, &tmp );
+
+        if (rv != SA_OK) {
+            dbg("Can't get sensor thresholds. Sensor %d, ResourceId %d, Domain %d",
+            SensorNum, ResourceId, did);
+            oh_release_domain(d);
+            return rv;
+        }
+
+        /* Merging thresholds*/
+        if (SensorThresholds->UpCritical.IsSupported == SAHPI_TRUE) {
+                tmp.UpCritical = SensorThresholds->UpCritical;
+        }
+        if (SensorThresholds->UpMajor.IsSupported == SAHPI_TRUE) {
+                tmp.UpMajor = SensorThresholds->UpMajor;
+        }
+        if (SensorThresholds->UpMinor.IsSupported == SAHPI_TRUE) {
+                tmp.UpMinor = SensorThresholds->UpMinor;
+        }
+        if (SensorThresholds->LowCritical.IsSupported == SAHPI_TRUE) {
+                tmp.LowCritical = SensorThresholds->LowCritical;
+        }
+        if (SensorThresholds->LowMajor.IsSupported == SAHPI_TRUE) {
+                tmp.LowMajor = SensorThresholds->LowMajor;
+        }
+        if (SensorThresholds->LowMinor.IsSupported == SAHPI_TRUE) {
+                tmp.LowMinor = SensorThresholds->LowMinor;
+        }
+        if (SensorThresholds->PosThdHysteresis.IsSupported == SAHPI_TRUE) {
+                tmp.PosThdHysteresis = SensorThresholds->PosThdHysteresis;
+        }
+        if (SensorThresholds->NegThdHysteresis.IsSupported == SAHPI_TRUE) {
+                tmp.NegThdHysteresis = SensorThresholds->NegThdHysteresis;
+        }
+
+        rv = oh_valid_thresholds(&tmp, rdr);
         if (rv != SA_OK) { /* Invalid sensor threshold */
                 dbg("Invalid sensor threshold.");
                 oh_release_domain(d);
