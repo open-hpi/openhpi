@@ -2397,6 +2397,23 @@ SaErrorT SAHPI_API saHpiSensorEventMasksSet (
                 oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_READ_ONLY;
         }
+        
+        if (Action == SAHPI_SENS_ADD_EVENTS_TO_MASKS) {
+        	if (AssertEventMask != SAHPI_ALL_EVENT_STATES &&
+        	    (rdr_cur->RdrTypeUnion.SensorRec.Events | AssertEventMask) !=
+        	    rdr_cur->RdrTypeUnion.SensorRec.Events) {
+        		oh_release_domain(d);
+        		return SA_ERR_HPI_INVALID_DATA;        		
+        	}
+        	
+        	if ((!res->ResourceCapabilities & SAHPI_CAPABILITY_EVT_DEASSERTS) &&
+        	    DeassertEventMask != SAHPI_ALL_EVENT_STATES &&
+        	    (rdr_cur->RdrTypeUnion.SensorRec.Events | DeassertEventMask) !=
+        	    rdr_cur->RdrTypeUnion.SensorRec.Events) {
+        		oh_release_domain(d);
+        		return SA_ERR_HPI_INVALID_DATA;
+        	}
+        }
 
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
