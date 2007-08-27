@@ -505,6 +505,17 @@ static cMarshalType SaHpiAnnunciatorRecElements[] =
 cMarshalType SaHpiAnnunciatorRecType = dStruct( SaHpiAnnunciatorRecT, SaHpiAnnunciatorRecElements );
 
 
+//DIMIs
+
+static cMarshalType SaHpiDimiInfoElements[] =
+{
+	dStructElement( SaHpiDimiInfoT, NumberOfTests, SaHpiDimiTotalTestsType ),
+	dStructElement( SaHpiDimiInfoT, TestNumUpdateCounter, SaHpiUint32Type ),
+	dStructElementEnd()
+};
+
+cMarshalType SaHpiDimiInfoType = dStruct ( SaHpiDimiInfoT, SaHpiDimiInfoElements );
+
 // rdr
 
 static cMarshalType SaHpiRdrTypeUnionTypeElements[] =

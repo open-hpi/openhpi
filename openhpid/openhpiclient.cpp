@@ -3697,6 +3697,50 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AnnunciatorModeSet)
 
 
 /*----------------------------------------------------------------------------*/
+/* saHpiAnnunciatorModeSet                                                    */
+/*----------------------------------------------------------------------------*/
+
+SaErrorT SAHPI_API dOpenHpiClientFunction(DimiInfoGet)
+	dOpenHpiClientParam (SAHPI_IN SaHpiSessionIdT   SessionId,
+                             SAHPI_IN SaHpiResourceIdT  ResourceId,
+                             SAHPI_IN SaHpiDimiNumT  	DimiNum,
+                             SAHPI_OUT SaHpiDimiInfoT   *DimiInfo)
+{
+        void *request;
+	char reply[dMaxMessageLength];
+        SaErrorT err;
+	char cmd[] = "saHpiDimiInfoGet";
+        pcstrmsock pinst;
+
+	if (SessionId == 0)
+		return SA_ERR_HPI_INVALID_SESSION;
+        pinst = GetConnx(SessionId);
+	if (pinst == NULL)
+		return SA_ERR_HPI_INVALID_SESSION;
+        if (!DimiInfo)
+                return SA_ERR_HPI_INVALID_PARAMS;
+
+        cHpiMarshal *hm = HpiMarshalFind(eFsaHpiDimiInfoGet);
+        pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiDimiInfoGet, hm->m_request_len);
+        request = malloc(hm->m_request_len);
+
+        pinst->header.m_len = HpiMarshalRequest3(hm, request, &SessionId, &ResourceId, &DimiNum);
+
+        SendRecv(SessionId, cmd);
+
+        int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, DimiInfo);
+
+        if (request)
+                free(request);
+        if (pinst->header.m_type == eMhError)
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (mr < 0)
+                return SA_ERR_HPI_INVALID_PARAMS;
+
+	return err;
+}
+
+/*----------------------------------------------------------------------------*/
 /* saHpiHotSwapPolicyCancel                                                   */
 /*----------------------------------------------------------------------------*/
 
