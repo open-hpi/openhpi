@@ -1127,6 +1127,22 @@ static const cMarshalType *saHpiAnnunciatorModeSetOut[] =
 };
 
 
+static const cMarshalType *saHpiDimiInfoGetIn[] =
+{
+  &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
+  &SaHpiResourceIdType,
+  &SaHpiDimiNumType,
+  0
+};
+
+static const cMarshalType *saHpiDimiInfoGetOut[] =
+{
+  &SaErrorType, // result (SaErrorT)
+  &SaHpiDimiInfoType,
+  0
+};
+
+
 static const cMarshalType *saHpiHotSwapPolicyCancelIn[] =
 {
   &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
@@ -1613,6 +1629,7 @@ static cHpiMarshal hpi_marshal[] =
   dHpiMarshalEntry( saHpiAnnunciatorDelete ),
   dHpiMarshalEntry( saHpiAnnunciatorModeGet ),
   dHpiMarshalEntry( saHpiAnnunciatorModeSet ),
+  dHpiMarshalEntry( saHpiDimiInfoGet ),
   dHpiMarshalEntry( saHpiHotSwapPolicyCancel ),
   dHpiMarshalEntry( saHpiResourceActiveSet ),
   dHpiMarshalEntry( saHpiResourceInactiveSet ),

@@ -104,6 +104,7 @@ typedef enum
   eFsaHpiAnnunciatorDelete,
   eFsaHpiAnnunciatorModeGet,
   eFsaHpiAnnunciatorModeSet,
+  eFsaHpiDimiInfoGet,
   eFsaHpiHotSwapPolicyCancel,
   eFsaHpiResourceActiveSet,
   eFsaHpiResourceInactiveSet,

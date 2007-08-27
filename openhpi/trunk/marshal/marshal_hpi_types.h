@@ -172,6 +172,11 @@ extern cMarshalType SaHpiAnnouncementType;
 #define SaHpiAnnunciatorTypeType SaHpiUint32Type
 extern cMarshalType SaHpiAnnunciatorRecType;
 
+// DIMIs
+#define SaHpiDimiNumType SaHpiUint32Type
+#define SaHpiDimiTotalTestsType SaHpiUint32Type
+extern cMarshalType SaHpiDimiInfoType;
+
 
 // resource data record
 #define SaHpiRdrTypeType SaHpiUint32Type
