@@ -12,7 +12,7 @@
         marks of others.
 -->
 
-<!ENTITY openhpi-rev-0_1 "
+<!ENTITY openhpi-rev-0-1 "
 <revision>
   <revnumber>0.1</revnumber>
   <date>2003-3-18</date>
@@ -20,7 +20,7 @@
   <revremark>Initial outline revision</revremark>
 </revision>
 ">
-<!ENTITY openhpi-rev-0_2 "
+<!ENTITY openhpi-rev-0-2 "
 <revision>
   <revnumber>0.2</revnumber>
   <date>2004-2-18</date>
@@ -30,7 +30,7 @@
 ">
 <!ENTITY openhpi-revisions "
 <revhistory>
-  &openhpi-rev-0_1;
-  &openhpi-rev-0_2;
+  &openhpi-rev-0-1;
+  &openhpi-rev-0-2;
 </revhistory>
 ">
