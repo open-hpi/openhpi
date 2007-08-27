@@ -3958,7 +3958,50 @@ SaErrorT SAHPI_API saHpiDimiInfoGet (
     SAHPI_IN    SaHpiDimiNumT       DimiNum,
     SAHPI_OUT   SaHpiDimiInfoT      *DimiInfo)
 {
-        return SAHPI_FALSE;
+        SaHpiDomainIdT did;
+        struct oh_domain *d = NULL;
+        SaHpiRptEntryT *rpte = NULL;
+        SaHpiRdrT *rdr = NULL;
+        
+	SaErrorT error = SA_OK;
+	struct oh_handler *h = NULL;
+        
+        if (DimiInfo == NULL) {
+        	return SA_ERR_HPI_INVALID_PARAMS;
+        }
+        
+        OH_CHECK_INIT_STATE(SessionId);
+        OH_GET_DID(SessionId, did);
+        OH_GET_DOMAIN(did, d); /* Lock domain */
+        OH_RESOURCE_GET_CHECK(d, ResourceId, rpte);
+        
+        if(!(rpte->ResourceCapabilities & SAHPI_CAPABILITY_DIMI)) {
+                dbg("Resource %d in Domain %d doesn't does not support DIMIs",
+                    ResourceId, did);
+                oh_release_domain(d);
+                return SA_ERR_HPI_CAPABILITY;
+        }
+        
+        rdr = oh_get_rdr_by_type(&(d->rpt),
+                                 ResourceId,
+                                 SAHPI_DIMI_RDR,
+                                 DimiNum);
+
+        if (!rdr) {
+                dbg("No DIMI num %d found for Resource %d in Domain %d",
+                    DimiNum, ResourceId, did);
+                oh_release_domain(d);
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+        
+        OH_HANDLER_GET(d, ResourceId, h);
+        oh_release_domain(d);
+        
+        OH_CALL_ABI(h, get_dimi_info, SA_ERR_HPI_INVALID_CMD, error,
+        	    ResourceId, DimiNum, DimiInfo);
+	oh_release_handler(h);
+        
+        return error;
 }
 
 SaErrorT SAHPI_API saHpiDimiTestInfoGet (
