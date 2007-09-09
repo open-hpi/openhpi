@@ -1848,6 +1848,30 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht,
                         thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &info );
                 }
                 break;
+
+                case eFsaHpiDimiTestInfoGet: {
+                        SaHpiSessionIdT       session_id;
+                        SaHpiResourceIdT      resource_id;
+                        SaHpiDimiNumT         dimi_num;
+                        SaHpiDimiTestNumT     test_num;
+                        SaHpiDimiTestT        test;
+                
+                        PVERBOSE1("%p Processing saHpiDimiTestInfoGet.", thrdid);
+                
+                        if (HpiDemarshalRequest4(request_mFlags & dMhEndianBit,
+                                                 hm, pReq,
+                                                 &session_id, &resource_id,
+                                                 &dimi_num, &test_num) < 0)
+                                return eResultError;
+                
+                        ret = saHpiDimiTestInfoGet(session_id, resource_id,
+                                                   dimi_num, test_num,
+                                                   &test);
+                
+                        thrdinst->header.m_len = HpiMarshalReply1(hm, pReq,
+                                                                  &ret, &test);
+                }
+                break;
                 
                 case eFsaHpiHotSwapPolicyCancel: {
                         SaHpiSessionIdT  session_id;

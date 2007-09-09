@@ -829,6 +829,8 @@ int oh_load_plugin_functions(struct oh_plugin *plugin, struct oh_abi_v2 **abi)
                                                 "oh_set_annunc_mode");
 	(*abi)->get_dimi_info		  = lt_dlsym(plugin->dl_handle,
 						"oh_get_dimi_info");
+        (*abi)->get_dimi_test             = lt_dlsym(plugin->dl_handle,
+                                                "oh_get_dimi_test");
         (*abi)->hotswap_policy_cancel     = lt_dlsym(plugin->dl_handle,
                                                 "oh_hotswap_policy_cancel");
         (*abi)->get_hotswap_state         = lt_dlsym(plugin->dl_handle,

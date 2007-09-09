@@ -174,8 +174,18 @@ extern cMarshalType SaHpiAnnunciatorRecType;
 
 // DIMIs
 #define SaHpiDimiNumType SaHpiUint32Type
+#define SaHpiDimiTestNumType SaHpiUint32Type
 #define SaHpiDimiTotalTestsType SaHpiUint32Type
+#define SaHpiDimiTestServiceImpactType SaHpiUint32Type
+#define SaHpiDimiTestCapabilityType SaHpiUint32Type
+#define SaHpiDimiTestServiceImpactType SaHpiUint32Type
+#define SaHpiDimiTestParamTypeType SaHpiUint32Type
 extern cMarshalType SaHpiDimiInfoType;
+extern cMarshalType SaHpiDimiTestParameterValueUnionType;
+extern cMarshalType SaHpiDimiTestParamValueType;
+extern cMarshalType SaHpiDimiTestParamsDefinitionType;
+extern cMarshalType SaHpiDimiTestAffectedEntityType;
+extern cMarshalType SaHpiDimiTestType;
 
 
 // resource data record
