@@ -3697,7 +3697,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AnnunciatorModeSet)
 
 
 /*----------------------------------------------------------------------------*/
-/* saHpiAnnunciatorModeSet                                                    */
+/* saHpiDimiInfoGet                                                           */
 /*----------------------------------------------------------------------------*/
 
 SaErrorT SAHPI_API dOpenHpiClientFunction(DimiInfoGet)
@@ -3740,6 +3740,227 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(DimiInfoGet)
 	return err;
 }
 
+SaErrorT SAHPI_API saHpiDimiTestInfoGet (
+    SAHPI_IN    SaHpiSessionIdT      SessionId,
+    SAHPI_IN    SaHpiResourceIdT     ResourceId,
+    SAHPI_IN    SaHpiDimiNumT        DimiNum,
+    SAHPI_IN    SaHpiDimiTestNumT    TestNum,
+    SAHPI_OUT   SaHpiDimiTestT       *DimiTest)
+{
+        void *request;
+        char reply[dMaxMessageLength];
+        SaErrorT err;
+        char cmd[] = "saHpiDimiTestInfoGet";
+        pcstrmsock pinst;
+
+        if (SessionId == 0)
+                return SA_ERR_HPI_INVALID_SESSION;
+        pinst = GetConnx(SessionId);
+        if (pinst == NULL )
+                return SA_ERR_HPI_INVALID_SESSION;
+        if (!DimiTest)
+                return SA_ERR_HPI_INVALID_PARAMS;
+
+        cHpiMarshal *hm = HpiMarshalFind(eFsaHpiDimiTestInfoGet);
+        pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiDimiTestInfoGet, hm->m_request_len);
+        request = malloc(hm->m_request_len);
+
+        pinst->header.m_len = HpiMarshalRequest4(hm, request,
+                                &SessionId, &ResourceId, &DimiNum, &TestNum);
+
+        SendRecv(SessionId, cmd);
+
+        int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm,
+                                    reply + sizeof(cMessageHeader),
+                                    &err, DimiTest);
+
+        if (request)
+                free(request);
+        if (pinst->header.m_type == eMhError)
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (mr < 0)
+                return SA_ERR_HPI_INVALID_PARAMS;
+
+        return err;
+}
+
+SaErrorT SAHPI_API saHpiDimiTestReadinessGet (
+    SAHPI_IN    SaHpiSessionIdT      SessionId,
+    SAHPI_IN    SaHpiResourceIdT     ResourceId,
+    SAHPI_IN    SaHpiDimiNumT        DimiNum,
+    SAHPI_IN    SaHpiDimiTestNumT    TestNum,
+    SAHPI_OUT   SaHpiDimiReadyT      *DimiReady)
+{
+        return SAHPI_FALSE;
+}
+
+SaErrorT SAHPI_API saHpiDimiTestStart (
+    SAHPI_IN    SaHpiSessionIdT                SessionId,
+    SAHPI_IN    SaHpiResourceIdT               ResourceId,
+    SAHPI_IN    SaHpiDimiNumT                  DimiNum,
+    SAHPI_IN    SaHpiDimiTestNumT              TestNum,
+    SAHPI_IN    SaHpiUint8T                    NumberOfParams,
+    SAHPI_IN    SaHpiDimiTestVariableParamsT   *ParamsList)
+{
+        return SAHPI_FALSE;
+}
+
+SaErrorT SAHPI_API saHpiDimiTestCancel (
+    SAHPI_IN    SaHpiSessionIdT      SessionId,
+    SAHPI_IN    SaHpiResourceIdT     ResourceId,
+    SAHPI_IN    SaHpiDimiNumT        DimiNum,
+    SAHPI_IN    SaHpiDimiTestNumT    TestNum)
+{
+        return SAHPI_FALSE;
+}
+
+SaErrorT SAHPI_API saHpiDimiTestStatusGet (
+    SAHPI_IN    SaHpiSessionIdT                   SessionId,
+    SAHPI_IN    SaHpiResourceIdT                  ResourceId,
+    SAHPI_IN    SaHpiDimiNumT                     DimiNum,
+    SAHPI_IN    SaHpiDimiTestNumT                 TestNum,
+    SAHPI_OUT   SaHpiDimiTestPercentCompletedT    *PercentCompleted,
+    SAHPI_OUT   SaHpiDimiTestRunStatusT           *RunStatus)
+{
+        return SAHPI_FALSE;
+}
+
+SaErrorT SAHPI_API saHpiDimiTestResultsGet (
+    SAHPI_IN    SaHpiSessionIdT          SessionId,
+    SAHPI_IN    SaHpiResourceIdT         ResourceId,
+    SAHPI_IN    SaHpiDimiNumT            DimiNum,
+    SAHPI_IN    SaHpiDimiTestNumT        TestNum,
+    SAHPI_OUT   SaHpiDimiTestResultsT    *TestResults)
+{
+        return SAHPI_FALSE;
+}
+
+/*******************************************************************************
+ *
+ * FUMI Functions
+ *
+ ******************************************************************************/
+
+SaErrorT SAHPI_API saHpiFumiSourceSet (
+    SAHPI_IN    SaHpiSessionIdT         SessionId,
+    SAHPI_IN    SaHpiResourceIdT        ResourceId,
+    SAHPI_IN    SaHpiFumiNumT           FumiNum,
+    SAHPI_IN    SaHpiBankNumT           BankNum,
+    SAHPI_IN    SaHpiTextBufferT        *SourceUri)
+{
+        return SAHPI_FALSE;
+}
+
+SaErrorT SAHPI_API saHpiFumiSourceInfoValidateStart (
+    SAHPI_IN    SaHpiSessionIdT       SessionId,
+    SAHPI_IN    SaHpiResourceIdT      ResourceId,
+    SAHPI_IN    SaHpiFumiNumT         FumiNum,
+    SAHPI_IN    SaHpiBankNumT         BankNum)
+{
+        return SAHPI_FALSE;
+}
+
+SaErrorT SAHPI_API saHpiFumiSourceInfoGet (
+    SAHPI_IN    SaHpiSessionIdT       SessionId,
+    SAHPI_IN    SaHpiResourceIdT      ResourceId,
+    SAHPI_IN    SaHpiFumiNumT         FumiNum,
+    SAHPI_IN    SaHpiBankNumT         BankNum,
+    SAHPI_OUT   SaHpiFumiSourceInfoT  *SourceInfo)
+{
+        return SAHPI_FALSE;
+}
+
+SaErrorT SAHPI_API saHpiFumiTargetInfoGet (
+    SAHPI_IN    SaHpiSessionIdT       SessionId,
+    SAHPI_IN    SaHpiResourceIdT      ResourceId,
+    SAHPI_IN    SaHpiFumiNumT         FumiNum,
+    SAHPI_IN    SaHpiBankNumT         BankNum,
+    SAHPI_OUT   SaHpiFumiBankInfoT    *BankInfo)
+{
+        return SAHPI_FALSE;
+}
+
+SaErrorT SAHPI_API saHpiFumiBackupStart(
+    SAHPI_IN    SaHpiSessionIdT       SessionId,
+    SAHPI_IN    SaHpiResourceIdT      ResourceId,
+    SAHPI_IN    SaHpiFumiNumT         FumiNum)
+{
+        return SAHPI_FALSE;
+}
+
+SaErrorT SAHPI_API saHpiFumiBankBootOrderSet (
+    SAHPI_IN    SaHpiSessionIdT       SessionId,
+    SAHPI_IN    SaHpiResourceIdT      ResourceId,
+    SAHPI_IN    SaHpiFumiNumT         FumiNum,
+    SAHPI_IN    SaHpiBankNumT         BankNum,
+    SAHPI_IN    SaHpiUint32T          Position)
+{
+        return SAHPI_FALSE;
+}
+
+SaErrorT SAHPI_API saHpiFumiBankCopyStart(
+    SAHPI_IN    SaHpiSessionIdT       SessionId,
+    SAHPI_IN    SaHpiResourceIdT      ResourceId,
+    SAHPI_IN    SaHpiFumiNumT         FumiNum,
+    SAHPI_IN    SaHpiBankNumT         SourceBankNum,
+    SAHPI_IN    SaHpiBankNumT         TargetBankNum)
+{
+        return SAHPI_FALSE;
+}
+
+SaErrorT SAHPI_API saHpiFumiInstallStart (
+    SAHPI_IN    SaHpiSessionIdT       SessionId,
+    SAHPI_IN    SaHpiResourceIdT      ResourceId,
+    SAHPI_IN    SaHpiFumiNumT         FumiNum,
+    SAHPI_IN    SaHpiBankNumT         BankNum)
+{
+        return SAHPI_FALSE;
+}
+
+SaErrorT SAHPI_API saHpiFumiUpgradeStatusGet (
+    SAHPI_IN    SaHpiSessionIdT         SessionId,
+    SAHPI_IN    SaHpiResourceIdT        ResourceId,
+    SAHPI_IN    SaHpiFumiNumT           FumiNum,
+    SAHPI_IN    SaHpiBankNumT           BankNum,
+    SAHPI_OUT   SaHpiFumiUpgradeStatusT *UpgradeStatus)
+{
+        return SAHPI_FALSE;
+}
+
+SaErrorT SAHPI_API saHpiFumiTargetVerifyStart (
+    SAHPI_IN    SaHpiSessionIdT       SessionId,
+    SAHPI_IN    SaHpiResourceIdT      ResourceId,
+    SAHPI_IN    SaHpiFumiNumT         FumiNum,
+    SAHPI_IN    SaHpiBankNumT         BankNum)
+{
+        return SAHPI_FALSE;
+}
+
+SaErrorT SAHPI_API saHpiFumiUpgradeCancel (
+    SAHPI_IN    SaHpiSessionIdT       SessionId,
+    SAHPI_IN    SaHpiResourceIdT      ResourceId,
+    SAHPI_IN    SaHpiFumiNumT         FumiNum,
+    SAHPI_IN    SaHpiBankNumT         BankNum)
+{
+        return SAHPI_FALSE;
+}
+
+SaErrorT SAHPI_API saHpiFumiRollback (
+    SAHPI_IN    SaHpiSessionIdT       SessionId,
+    SAHPI_IN    SaHpiResourceIdT      ResourceId,
+    SAHPI_IN    SaHpiFumiNumT         FumiNum)
+{
+        return SAHPI_FALSE;
+}
+
+SaErrorT SAHPI_API saHpiFumiActivate (
+    SAHPI_IN    SaHpiSessionIdT       SessionId,
+    SAHPI_IN    SaHpiResourceIdT      ResourceId,
+    SAHPI_IN    SaHpiFumiNumT         FumiNum)
+{
+        return SAHPI_FALSE;
+}
+
 /*----------------------------------------------------------------------------*/
 /* saHpiHotSwapPolicyCancel                                                   */
 /*----------------------------------------------------------------------------*/
@@ -3779,7 +4000,6 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(HotSwapPolicyCancel)
 
 	return err;
 }
-
 
 /*----------------------------------------------------------------------------*/
 /* saHpiResourceActiveSet                                                     */

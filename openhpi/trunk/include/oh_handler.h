@@ -574,6 +574,12 @@ struct oh_abi_v2 {
 				  SaHpiDimiNumT num,
 				  SaHpiDimiInfoT *info);
 
+        SaErrorT (*get_dimi_test)(void *hnd,
+                                  SaHpiResourceIdT id,
+                                  SaHpiDimiNumT num,
+                                  SaHpiDimiTestNumT testnum,
+                                  SaHpiDimiTestT *test);
+
 	/***************
 	 * HOTSWAP ABIs
 	 ***************/
