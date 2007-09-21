@@ -2062,7 +2062,7 @@ SaErrorT SAHPI_API saHpiSensorEnableGet (
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
         OH_GET_DOMAIN(did, d); /* Lock domain */
-        OH_RESOURCE_GET(d, ResourceId, res);
+        OH_RESOURCE_GET_CHECK(d, ResourceId, res);
 
         if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)) {
                 dbg("Resource %d doesn't have sensors in Domain %d",
@@ -2117,7 +2117,7 @@ SaErrorT SAHPI_API saHpiSensorEnableSet (
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
         OH_GET_DOMAIN(did, d); /* Lock domain */
-        OH_RESOURCE_GET(d, ResourceId, res);
+        OH_RESOURCE_GET_CHECK(d, ResourceId, res);
 
         if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)) {
                 dbg("Resource %d doesn't have sensors in Domain %d",
@@ -2184,7 +2184,7 @@ SaErrorT SAHPI_API saHpiSensorEventEnableGet (
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
         OH_GET_DOMAIN(did, d); /* Lock domain */
-        OH_RESOURCE_GET(d, ResourceId, res);
+        OH_RESOURCE_GET_CHECK(d, ResourceId, res);
 
         if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)) {
                 dbg("Resource %d doesn't have sensors in Domain %d",
@@ -2240,7 +2240,7 @@ SaErrorT SAHPI_API saHpiSensorEventEnableSet (
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
         OH_GET_DOMAIN(did, d); /* Lock domain */
-        OH_RESOURCE_GET(d, ResourceId, res);
+        OH_RESOURCE_GET_CHECK(d, ResourceId, res);
 
         if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)) {
                 dbg("Resource %d doesn't have sensors in Domain %d",
@@ -2307,7 +2307,7 @@ SaErrorT SAHPI_API saHpiSensorEventMasksGet (
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
         OH_GET_DOMAIN(did, d); /* Lock domain */
-        OH_RESOURCE_GET(d, ResourceId, res);
+        OH_RESOURCE_GET_CHECK(d, ResourceId, res);
 
         if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)) {
                 dbg("Resource %d doesn't have sensors in Domain %d",
@@ -2372,7 +2372,7 @@ SaErrorT SAHPI_API saHpiSensorEventMasksSet (
 
         OH_GET_DID(SessionId, did);
         OH_GET_DOMAIN(did, d); /* Lock domain */
-        OH_RESOURCE_GET(d, ResourceId, res);
+        OH_RESOURCE_GET_CHECK(d, ResourceId, res);
 
         if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)) {
                 dbg("Resource %d doesn't have sensors in Domain %d",
@@ -2732,7 +2732,7 @@ SaErrorT SAHPI_API saHpiIdrAreaHeaderGet(
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
         OH_GET_DOMAIN(did, d); /* Lock domain */
-        OH_RESOURCE_GET(d, ResourceId, res);
+        OH_RESOURCE_GET_CHECK(d, ResourceId, res);
 
         /* Interface and conformance checking */
         if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_INVENTORY_DATA)) {
@@ -2793,7 +2793,7 @@ SaErrorT SAHPI_API saHpiIdrAreaAdd(
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
         OH_GET_DOMAIN(did, d); /* Lock domain */
-        OH_RESOURCE_GET(d, ResourceId, res);
+        OH_RESOURCE_GET_CHECK(d, ResourceId, res);
 
         /* Interface and conformance checking */
         if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_INVENTORY_DATA)) {
@@ -2869,7 +2869,7 @@ SaErrorT SAHPI_API saHpiIdrAreaAddById(
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
         OH_GET_DOMAIN(did, d); /* Lock domain */
-        OH_RESOURCE_GET(d, ResourceId, rpte);
+        OH_RESOURCE_GET_CHECK(d, ResourceId, rpte);
 
         /* Interface and conformance checking */
         if(!(rpte->ResourceCapabilities & SAHPI_CAPABILITY_INVENTORY_DATA)) {                
@@ -2947,7 +2947,7 @@ SaErrorT SAHPI_API saHpiIdrAreaDelete(
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
         OH_GET_DOMAIN(did, d); /* Lock domain */
-        OH_RESOURCE_GET(d, ResourceId, res);
+        OH_RESOURCE_GET_CHECK(d, ResourceId, res);
 
         /* Interface and conformance checking */
         if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_INVENTORY_DATA)) {
@@ -3012,7 +3012,7 @@ SaErrorT SAHPI_API saHpiIdrFieldGet(
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
         OH_GET_DOMAIN(did, d); /* Lock domain */
-        OH_RESOURCE_GET(d, ResourceId, res);
+        OH_RESOURCE_GET_CHECK(d, ResourceId, res);
 
         /* Interface and conformance checking */
         if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_INVENTORY_DATA)) {
@@ -3078,7 +3078,7 @@ SaErrorT SAHPI_API saHpiIdrFieldAdd(
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
         OH_GET_DOMAIN(did, d); /* Lock domain */
-        OH_RESOURCE_GET(d, ResourceId, res);
+        OH_RESOURCE_GET_CHECK(d, ResourceId, res);
 
         /* Interface and conformance checking */
         if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_INVENTORY_DATA)) {
@@ -3163,7 +3163,7 @@ SaErrorT SAHPI_API saHpiIdrFieldAddById(
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
         OH_GET_DOMAIN(did, d); /* Lock domain */
-        OH_RESOURCE_GET(d, ResourceId, rpte);
+        OH_RESOURCE_GET_CHECK(d, ResourceId, rpte);
 
         /* Interface and conformance checking */
         if(!(rpte->ResourceCapabilities & SAHPI_CAPABILITY_INVENTORY_DATA)) {                
@@ -3250,7 +3250,7 @@ SaErrorT SAHPI_API saHpiIdrFieldSet(
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
         OH_GET_DOMAIN(did, d); /* Lock domain */
-        OH_RESOURCE_GET(d, ResourceId, res);
+        OH_RESOURCE_GET_CHECK(d, ResourceId, res);
 
         /* Interface and conformance checking */
         if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_INVENTORY_DATA)) {
@@ -3306,7 +3306,7 @@ SaErrorT SAHPI_API saHpiIdrFieldDelete(
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
         OH_GET_DOMAIN(did, d); /* Lock domain */
-        OH_RESOURCE_GET(d, ResourceId, res);
+        OH_RESOURCE_GET_CHECK(d, ResourceId, res);
 
         /* Interface and conformance checking */
         if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_INVENTORY_DATA)) {
@@ -3511,7 +3511,7 @@ SaErrorT SAHPI_API saHpiAnnunciatorGetNext(
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
         OH_GET_DOMAIN(did, d); /* Lock domain */
-        OH_RESOURCE_GET(d, ResourceId, res);
+        OH_RESOURCE_GET_CHECK(d, ResourceId, res);
 
         if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_ANNUNCIATOR)) {
                 dbg("Resource %d in Domain %d doesn't have annunciators",
@@ -3575,7 +3575,7 @@ SaErrorT SAHPI_API saHpiAnnunciatorGet(
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
         OH_GET_DOMAIN(did, d); /* Lock domain */
-        OH_RESOURCE_GET(d, ResourceId, res);
+        OH_RESOURCE_GET_CHECK(d, ResourceId, res);
 
         if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_ANNUNCIATOR)) {
                 dbg("Resource %d in Domain %d doesn't have annunciators",
@@ -3637,7 +3637,7 @@ SaErrorT SAHPI_API saHpiAnnunciatorAcknowledge(
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
         OH_GET_DOMAIN(did, d); /* Lock domain */
-        OH_RESOURCE_GET(d, ResourceId, res);
+        OH_RESOURCE_GET_CHECK(d, ResourceId, res);
 
         if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_ANNUNCIATOR)) {
                 dbg("Resource %d in Domain %d doesn't have annunciators",
@@ -3852,7 +3852,7 @@ SaErrorT SAHPI_API saHpiAnnunciatorModeGet(
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
         OH_GET_DOMAIN(did, d); /* Lock domain */
-        OH_RESOURCE_GET(d, ResourceId, res);
+        OH_RESOURCE_GET_CHECK(d, ResourceId, res);
 
         if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_ANNUNCIATOR)) {
                 dbg("Resource %d in Domain %d doesn't have annunciators",
@@ -5055,7 +5055,7 @@ SaErrorT SAHPI_API saHpiHotSwapPolicyCancel (
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
         OH_GET_DOMAIN(did, d); /* Lock domain */
-        OH_RESOURCE_GET(d, ResourceId, res);
+        OH_RESOURCE_GET_CHECK(d, ResourceId, res);
 
         if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
                 oh_release_domain(d); /* Unlock domain */
@@ -5321,7 +5321,7 @@ SaErrorT SAHPI_API saHpiAutoExtractTimeoutGet(
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
         OH_GET_DOMAIN(did, d); /* Lock domain */
-        OH_RESOURCE_GET(d, ResourceId, res);
+        OH_RESOURCE_GET_CHECK(d, ResourceId, res);
 
         if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
                 oh_release_domain(d); /* Unlock domain */
@@ -5366,7 +5366,7 @@ SaErrorT SAHPI_API saHpiAutoExtractTimeoutSet(
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
         OH_GET_DOMAIN(did, d); /* Lock domain */
-        OH_RESOURCE_GET(d, ResourceId, res);
+        OH_RESOURCE_GET_CHECK(d, ResourceId, res);
 
         if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
                 oh_release_domain(d); /* Unlock domain */
@@ -5408,7 +5408,7 @@ SaErrorT SAHPI_API saHpiHotSwapStateGet (
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
         OH_GET_DOMAIN(did, d); /* Lock domain */
-        OH_RESOURCE_GET(d, ResourceId, res);
+        OH_RESOURCE_GET_CHECK(d, ResourceId, res);
 
         if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
                 oh_release_domain(d); /* Unlock domain */
