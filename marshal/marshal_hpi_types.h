@@ -52,7 +52,7 @@ extern "C" {
 #define SaHpiFloat32Type Marshal_Float32Type
 #define SaHpiFloat64Type Marshal_Float64Type
 
-#define SaHpiBoolType    SaHpiUint8Type
+#define SaHpiBoolType SaHpiUint8Type
 #define SaHpiManufacturerIdType SaHpiUint32Type
 #define SaHpiVersionType SaHpiUint32Type
 #define SaErrorType SaHpiInt32Type
@@ -180,13 +180,31 @@ extern cMarshalType SaHpiAnnunciatorRecType;
 #define SaHpiDimiTestCapabilityType SaHpiUint32Type
 #define SaHpiDimiTestServiceImpactType SaHpiUint32Type
 #define SaHpiDimiTestParamTypeType SaHpiUint32Type
+#define SaHpiDimiReadyType SaHpiUint32Type
+#define SaHpiDimiTestPercentCompletedType SaHpiUint32Type
+#define SaHpiDimiTestRunStatusType SaHpiUint32Type
+#define SaHpiDimiTestErrCodeType SaHpiUint32Type
 extern cMarshalType SaHpiDimiInfoType;
 extern cMarshalType SaHpiDimiTestParameterValueUnionType;
 extern cMarshalType SaHpiDimiTestParamValueType;
 extern cMarshalType SaHpiDimiTestParamsDefinitionType;
 extern cMarshalType SaHpiDimiTestAffectedEntityType;
 extern cMarshalType SaHpiDimiTestType;
+extern cMarshalType SaHpiDimiTestResultsType;
+typedef struct {
+        SaHpiUint8T NumberOfParams;
+        SaHpiDimiTestVariableParamsT *ParamsList;
+} SaHpiDimiTestVariableParamsListT;
+extern cMarshalType SaHpiDimiTestVariableParamsListType;
 
+// FUMIs
+#define SaHpiFumiNumType SaHpiUint32Type
+#define SaHpiBankNumType SaHpiUint8Type
+#define SaHpiFumiUpgradeStatusType SaHpiUint32Type
+#define SaHpiFumiSourceStatusType SaHpiUint32Type
+#define SaHpiFumiBankStateType SaHpiUint32Type
+extern cMarshalType SaHpiFumiSourceInfoType;
+extern cMarshalType SaHpiFumiBankInfoType;
 
 // resource data record
 #define SaHpiRdrTypeType SaHpiUint32Type
