@@ -24,7 +24,7 @@ static void SDRs_read_done(ipmi_domain_t *domain, int err, void *cb_data)
 {
 	int *flag = cb_data;
 	*flag = 1;
-	dbg("SDRs read done");
+	err("SDRs read done");
 	return;
 }
 
@@ -32,7 +32,7 @@ static void SELs_read_done(ipmi_domain_t *domain, int err, void *cb_data)
 {
 	int *flag = cb_data;
 	*flag = 1;
-	dbg("SELs read done");
+	err("SELs read done");
 	return;
 }
 
@@ -42,13 +42,13 @@ static void bus_scan_done(ipmi_domain_t *domain, int err, void *cb_data)
 		int rv;
 		int *flag = &ipmi_handler->bus_scan_done;
 		*flag = 1;
-		dbg("bus scan done");
+		err("bus scan done");
 		
 		/* we have MCs now, get SEL */
 		rv = ipmi_domain_reread_sels(domain, SELs_read_done, &ipmi_handler->SELs_read_done);
 
 		if (rv)
-			dbg("ipmi_domain_reread_sels returned error: %d\n", rv);
+			err("ipmi_domain_reread_sels returned error: %d\n", rv);
 	
 		return;
 }
@@ -65,7 +65,7 @@ void ohoi_setup_done(ipmi_domain_t	*domain,
 
 	rv = ipmi_domain_enable_events(domain);
 	if (rv) {
-		dbg("ipmi_domain_enable_events return error %d", rv);
+		err("ipmi_domain_enable_events return error %d", rv);
 	}
 
 
@@ -73,21 +73,21 @@ void ohoi_setup_done(ipmi_domain_t	*domain,
 			 			  handler);
 
 	if (rv)
-		dbg("ipmi_bmc_iterate_entities return error");
+		err("ipmi_bmc_iterate_entities return error");
 	
 	rv = ipmi_domain_set_main_SDRs_read_handler(domain, SDRs_read_done,
                                                     &ipmi_handler->SDRs_read_done);
 	if (rv)
-		dbg("ipmi_domain_set_main_SDRs_read_handler return error: %d\n", rv);
+		err("ipmi_domain_set_main_SDRs_read_handler return error: %d\n", rv);
 	
 	rv = ipmi_domain_set_bus_scan_handler(domain, bus_scan_done, ipmi_handler);
 	if (rv) 
-		dbg("ipmi_domain_set_bus_scan_handler return error: %d\n", rv);
+		err("ipmi_domain_set_bus_scan_handler return error: %d\n", rv);
 
 
     rv = ipmi_domain_add_mc_updated_handler(domain, ohoi_mc_event, handler);
     if (rv)
-			dbg("ipmi_domain_register_mc_update_handler return error: %d\n", rv);
+			err("ipmi_domain_register_mc_update_handler return error: %d\n", rv);
 	
 }
 
