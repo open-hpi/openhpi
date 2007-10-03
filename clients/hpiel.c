@@ -20,7 +20,7 @@
 
 #define OH_SVN_REV "$Revision$"
 
-#define dbg(format, ...) \
+#define err(format, ...) \
         do { \
                 if (opts.dbg) { \
                         fprintf(stderr, format "\n", ## __VA_ARGS__); \
@@ -31,7 +31,7 @@
         do { \
                 if (error) { \
 			opts.dbg = 1; \
-                        dbg(msg, oh_lookup_error(error)); \
+                        err(msg, oh_lookup_error(error)); \
                         exit(-1); \
                 } \
         } while(0)
@@ -102,11 +102,11 @@ int main(int argc, char **argv)
                 error = harvest_sels(sid, &dinfo, NULL);
         }
 
-        if (error) dbg("An error happened. Gathering event log entries returned %s",
+        if (error) err("An error happened. Gathering event log entries returned %s",
                        oh_lookup_error(error));
 
         error = saHpiSessionClose(sid);
-        if (error) dbg("saHpiSessionClose() returned %s.",
+        if (error) err("saHpiSessionClose() returned %s.",
                        oh_lookup_error(error));
 
         return error;
@@ -190,14 +190,14 @@ SaErrorT harvest_sels(SaHpiSessionIdT sid, SaHpiDomainInfoT *dinfo, char *ep)
         SaHpiBoolT found_entry = SAHPI_FALSE;
 
         if (!sid || !dinfo) {
-                dbg("Invalid parameters in havest_sels()\n");
+                err("Invalid parameters in havest_sels()\n");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
         if (opts.ep && ep) {
                 error = oh_encode_entitypath(ep, &entitypath);
                 if (error) {
-                        dbg("oh_encode_entitypath() returned %s from %s\n",
+                        err("oh_encode_entitypath() returned %s from %s\n",
                             oh_lookup_error(error), ep);
                         return error;
                 }
@@ -207,7 +207,7 @@ SaErrorT harvest_sels(SaHpiSessionIdT sid, SaHpiDomainInfoT *dinfo, char *ep)
         while (error == SA_OK && entryid != SAHPI_LAST_ENTRY) {
                 error = saHpiRptEntryGet(sid, entryid, &nextentryid, &rptentry);
 
-                dbg("saHpiRptEntryGet() returned %s\n", oh_lookup_error(error));
+                err("saHpiRptEntryGet() returned %s\n", oh_lookup_error(error));
                 if (error == SA_OK) {
                         if (opts.ep && ep) {
                                 if (!oh_cmp_ep(&entitypath, &rptentry.ResourceEntity)) {
@@ -217,14 +217,14 @@ SaErrorT harvest_sels(SaHpiSessionIdT sid, SaHpiDomainInfoT *dinfo, char *ep)
                         }
 
                         if (!(rptentry.ResourceCapabilities & SAHPI_CAPABILITY_EVENT_LOG)) {
-                                dbg("RPT doesn't have SEL\n");
+                                err("RPT doesn't have SEL\n");
                                 entryid = nextentryid;
                                 continue;  /* no SEL here, try next RPT */
                         }
                         found_entry = SAHPI_TRUE;
 
                         rid = rptentry.ResourceId;
-                        dbg("RPT %d capabilities = %x\n",
+                        err("RPT %d capabilities = %x\n",
                             rid, rptentry.ResourceCapabilities);
                         rptentry.ResourceTag.Data[rptentry.ResourceTag.DataLength] = 0;
 
@@ -243,9 +243,9 @@ SaErrorT harvest_sels(SaHpiSessionIdT sid, SaHpiDomainInfoT *dinfo, char *ep)
 
         if (!found_entry) {
                 if (opts.ep && ep) {
-                        dbg("Could not find resource matching %s\n", ep);
+                        err("Could not find resource matching %s\n", ep);
                 } else {
-                        dbg("No resources supporting event logs were found.\n");
+                        err("No resources supporting event logs were found.\n");
                 }
         }
 
@@ -262,13 +262,13 @@ SaErrorT display_el(SaHpiSessionIdT sid, SaHpiResourceIdT rid, SaHpiTextBufferT 
         SaHpiRptEntryT res;
 
         if (!sid || !rid) {
-                dbg("Invalid parameters in display_el()\n");
+                err("Invalid parameters in display_el()\n");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
         error = saHpiEventLogInfoGet(sid, rid, &elinfo);
         if (error) {
-                dbg("saHpiEventLogInfoGet() returned %s. Exiting\n",
+                err("saHpiEventLogInfoGet() returned %s. Exiting\n",
                     oh_lookup_error(error));
                 return error;
         }
@@ -302,7 +302,7 @@ SaErrorT display_el(SaHpiSessionIdT sid, SaHpiResourceIdT rid, SaHpiTextBufferT 
                                               &rdr,
                                               &res);
 
-                dbg("saHpiEventLogEntryGet() returned %s\n", oh_lookup_error(error));
+                err("saHpiEventLogEntryGet() returned %s\n", oh_lookup_error(error));
                 if (error == SA_OK) {
                 	SaHpiEntityPathT *ep = NULL;
                 	/* Get a reference to the entity path for this log entry */

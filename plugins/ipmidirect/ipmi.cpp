@@ -290,11 +290,11 @@ IpmiOpen( GHashTable *handler_config, unsigned int hid, oh_evt_queue *eventq )
   char *tmp;
   int   lp = dIpmiLogPropNone;
 
-  dbg( "IpmiOpen" );
+  err( "IpmiOpen" );
 
   if ( !handler_config )
      {
-       dbg( "No config file provided.....ooops!" );
+       err( "No config file provided.....ooops!" );
        return 0;
      }
 
@@ -338,7 +338,7 @@ IpmiOpen( GHashTable *handler_config, unsigned int hid, oh_evt_queue *eventq )
 
   if ( !handler )
      {
-       dbg("cannot allocate handler");
+       err("cannot allocate handler");
 
        delete ipmi;
 
@@ -351,7 +351,7 @@ IpmiOpen( GHashTable *handler_config, unsigned int hid, oh_evt_queue *eventq )
   handler->rptcache = (RPTable *)g_malloc0( sizeof( RPTable ) );
   if ( !handler->rptcache )
      {
-       dbg("cannot allocate RPT cache");
+       err("cannot allocate RPT cache");
 
        g_free( handler );
 
@@ -393,7 +393,7 @@ IpmiClose( void * ) __attribute__((used));
 static void
 IpmiClose( void *hnd )
 {
-  dbg( "IpmiClose" );
+  err( "IpmiClose" );
 
   cIpmi *ipmi = VerifyIpmi( hnd );
 
@@ -2188,13 +2188,13 @@ cIpmi::IfOpen( GHashTable *handler_config )
 
   if ( !entity_root )
      {
-       dbg( "entity_root is missing in config file" );
+       err( "entity_root is missing in config file" );
        return false;
      }
 
   if ( !m_entity_root.FromString( entity_root ) )
      {
-       dbg( "cannot decode entity path string" );
+       err( "cannot decode entity path string" );
        return false;
      }
 
@@ -2262,7 +2262,7 @@ cIpmi::IfGetEvent( oh_event *event )
 SaErrorT
 cIpmi::IfDiscoverResources()
 {
-  dbg( "ipmidirect discover_resources");
+  err( "ipmidirect discover_resources");
 
   bool loop;
 

@@ -90,8 +90,8 @@ static struct option long_options[] = {
 };
 
 /* verbose macro */
-#define PVERBOSE1(msg, ...) if (verbose_flag) trace(msg, ## __VA_ARGS__)
-#define PVERBOSE2(msg, ...) if (verbose_flag) dbg(msg, ## __VA_ARGS__)
+#define PVERBOSE1(msg, ...) if (verbose_flag) dbg(msg, ## __VA_ARGS__)
+#define PVERBOSE2(msg, ...) if (verbose_flag) err(msg, ## __VA_ARGS__)
 #define PVERBOSE3(msg, ...) if (verbose_flag) printf("CRITICAL: "msg, ## __VA_ARGS__)
 
 /*--------------------------------------------------------------------*/
@@ -192,8 +192,8 @@ int main (int argc, char *argv[])
         }
 
         if (optind < argc) {
-                dbg("Error: Unknown command line option specified .\n");
-                dbg("       Aborting execution.\n\n");
+                err("Error: Unknown command line option specified .\n");
+                err("       Aborting execution.\n\n");
 		display_help();
                 exit(-1);
         }
@@ -208,8 +208,8 @@ int main (int argc, char *argv[])
                         unlink(pid_file);
                 } else {
                         // there is already a server running
-                        dbg("Error: There is already a server running .\n");
-                        dbg("       Aborting execution.\n");
+                        err("Error: There is already a server running .\n");
+                        err("       Aborting execution.\n");
                         exit(1);
                 }
         }
@@ -218,8 +218,8 @@ int main (int argc, char *argv[])
         pfile = open(pid_file, O_WRONLY | O_CREAT, 0640);
         if (pfile == -1) {
                 // there is already a server running
-                dbg("Error: Cannot open PID file .\n");
-                dbg("       Aborting execution.\n\n");
+                err("Error: Cannot open PID file .\n");
+                err("       Aborting execution.\n\n");
                 display_help();
                 exit(1);
         }
@@ -230,14 +230,14 @@ int main (int argc, char *argv[])
         // see if we have a valid configuration file
         char *cfgfile = getenv("OPENHPI_CONF");
         if (cfgfile == NULL) {
-                dbg("Error: Configuration file not specified .\n");
-                dbg("       Aborting execution.\n\n");
+                err("Error: Configuration file not specified .\n");
+                err("       Aborting execution.\n\n");
 		display_help();
                 exit(-1);
         }
         if (!g_file_test(cfgfile, G_FILE_TEST_EXISTS)) {
-                dbg("Error: Configuration file does not exist.\n");
-                dbg("       Aborting execution.\n\n");
+                err("Error: Configuration file does not exist.\n");
+                err("       Aborting execution.\n\n");
 		display_help();
                 exit(-1);
         }
@@ -263,7 +263,7 @@ int main (int argc, char *argv[])
         }
 
 	if (oh_init()) { // Initialize OpenHPI
-		dbg("There was an error initializing OpenHPI");
+		err("There was an error initializing OpenHPI");
 		return 8;
 	}
 
@@ -273,16 +273,16 @@ int main (int argc, char *argv[])
         // create the server socket
 	psstrmsock servinst = new sstrmsock;
 	if (servinst->Create(port)) {
-		dbg("Error creating server socket.\n");
+		err("Error creating server socket.\n");
 		g_thread_pool_free(thrdpool, FALSE, TRUE);
                 delete servinst;
 		return 8;
 	}
 
         // announce ourselves
-        trace("%s started.\n", argv[0]);
-        trace("OPENHPI_CONF = %s\n", configfile);
-        trace("OPENHPI_DAEMON_PORT = %d\n\n", port);
+        dbg("%s started.\n", argv[0]);
+        dbg("OPENHPI_CONF = %s\n", configfile);
+        dbg("OPENHPI_DAEMON_PORT = %d\n\n", port);
 
         // wait for a connection and then service the connection
 	while (TRUE) {

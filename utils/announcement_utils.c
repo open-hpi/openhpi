@@ -180,8 +180,8 @@ SaErrorT oh_announcement_get_next(oh_announcement *ann, SaHpiSeverityT sev,
                 if (annlist)
                         annlist = g_list_next(annlist);
                 else {
-                        trace("Did not find previous entry."
-                              " Searching from first one.");
+                        dbg("Did not find previous entry."
+                            " Searching from first one.");
                         annlist = g_list_first(ann->annentries);
                 }
         }
@@ -192,8 +192,8 @@ SaErrorT oh_announcement_get_next(oh_announcement *ann, SaHpiSeverityT sev,
                 if (annentry && (sev == SAHPI_ALL_SEVERITIES ||
                                  sev == annentry->annentry.Severity) &&
                     (ack ? !annentry->annentry.Acknowledged : 1)) {
-                        trace("Severity searched for is %d."
-                              " Severity found is %d",
+                        dbg("Severity searched for is %d."
+                            " Severity found is %d",
                             sev, annentry->annentry.Severity);
                         *entry = annentry->annentry;
                         return SA_OK;

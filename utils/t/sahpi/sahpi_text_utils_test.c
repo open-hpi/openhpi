@@ -37,7 +37,7 @@
 #define failed(num)                         \
         do {                                \
                 failcount++;                \
-                dbg("Failed Test %d", num); \
+                err("Failed Test %d", num); \
         } while(0)
 
 

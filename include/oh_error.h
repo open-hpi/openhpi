@@ -40,7 +40,7 @@ extern "C" {
 
 #ifdef OH_DBG_MSGS
 #ifndef OH_DAEMON_ENABLED
-#define dbg(format, ...) \
+#define err(format, ...) \
         do { \
                 if (getenv(OH_DBG) && !strcmp("YES", getenv(OH_DBG))) { \
                         fprintf(stderr, " %s:%d:%s: ", __FILE__, __LINE__, __func__); \
@@ -48,7 +48,7 @@ extern "C" {
                 } \
         } while(0)
 #else
-#define dbg(format, ...) \
+#define err(format, ...) \
 	do { \
 		syslog(3, "DEBUG: (%s, %d, "format")", __FILE__, __LINE__,## __VA_ARGS__); \
 		if (getenv(OH_DBG) && !strcmp("YES", getenv(OH_DBG))) { \
@@ -57,11 +57,11 @@ extern "C" {
 	} while(0)
 #endif
 #else
-#define dbg(format, ...)
+#define err(format, ...)
 #endif
 
 #ifdef OH_DBG_MSGS
-#define trace(format, ...) \
+#define dbg(format, ...) \
         do { \
                 if (getenv(OH_TRACE) && !strcmp("YES", getenv(OH_TRACE))) { \
                         fprintf(stderr, " %s:%d:%s: ", __FILE__, __LINE__, __func__); \
@@ -69,7 +69,7 @@ extern "C" {
                 } \
         } while(0)
 #else
-#define trace(format, ...)
+#define dbg(format, ...)
 #endif
 
 #ifdef __cplusplus

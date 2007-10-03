@@ -35,8 +35,8 @@ extern "C"
 #include "marshal_hpi.h"
 #include "openhpiclient.h"
 
-#define cdebug_out(cmd, str) trace("%s: %s\n", cmd, str)
-#define cdebug_err(cmd, str) dbg("%s: %s\n", cmd, str)
+#define cdebug_out(cmd, str) dbg("%s: %s\n", cmd, str)
+#define cdebug_err(cmd, str) err("%s: %s\n", cmd, str)
 
 #define SendRecv(sid, cmd) \
 	if (pinst->WriteMsg(request)) { \

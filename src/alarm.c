@@ -128,7 +128,7 @@ SaHpiAlarmT *oh_add_alarm(struct oh_domain *d, SaHpiAlarmT *alarm, int fromfile)
         struct oh_global_param param = { .type = OPENHPI_DAT_SIZE_LIMIT };
 
         if (!d) {
-                dbg("NULL domain pointer passed.");
+                err("NULL domain pointer passed.");
                 return NULL;
         }
 
@@ -137,7 +137,7 @@ SaHpiAlarmT *oh_add_alarm(struct oh_domain *d, SaHpiAlarmT *alarm, int fromfile)
 
         if (param.u.dat_size_limit != OH_MAX_DAT_SIZE_LIMIT &&
             g_slist_length(d->dat.list) >= param.u.dat_size_limit) {
-                dbg("DAT for domain %d is overflowed", d->id);
+                err("DAT for domain %d is overflowed", d->id);
                 d->dat.overflow = SAHPI_TRUE;
                 return NULL;
         } else if (alarm && alarm->AlarmCond.Type == SAHPI_STATUS_COND_TYPE_USER) {
@@ -149,7 +149,7 @@ SaHpiAlarmT *oh_add_alarm(struct oh_domain *d, SaHpiAlarmT *alarm, int fromfile)
                     __count_alarms(d,
                                    &alarm->AlarmCond.Type,
                                    SAHPI_ALL_SEVERITIES) >= param.u.dat_user_limit) {
-                        dbg("DAT for domain %d has reached its user alarms limit", d->id);
+                        err("DAT for domain %d has reached its user alarms limit", d->id);
                         return NULL;
                 }
         }
@@ -681,13 +681,13 @@ SaErrorT oh_alarms_to_file(struct oh_dat *at, char *filename)
         int file;
 
         if (!at || !filename) {
-                dbg("Invalid Parameters");
+                err("Invalid Parameters");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
         file = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0660 );
         if (file < 0) {
-                dbg("File '%s' could not be opened", filename);
+                err("File '%s' could not be opened", filename);
                 return SA_ERR_HPI_ERROR;
         }
 
@@ -695,14 +695,14 @@ SaErrorT oh_alarms_to_file(struct oh_dat *at, char *filename)
                 int bytes_written = 0;
                 bytes_written = write(file, (void *)alarms->data, sizeof(SaHpiAlarmT));
                 if (bytes_written != sizeof(SaHpiAlarmT)) {
-                        dbg("Couldn't write to file '%s'.", filename);
+                        err("Couldn't write to file '%s'.", filename);
                         close(file);
                         return SA_ERR_HPI_ERROR;
                 }
         }
 
         if (close(file) != 0) {
-                dbg("Couldn't close file '%s'.", filename);
+                err("Couldn't close file '%s'.", filename);
                 return SA_ERR_HPI_ERROR;
         }
 
@@ -724,13 +724,13 @@ SaErrorT oh_alarms_from_file(struct oh_domain *d, char *filename)
         SaHpiAlarmT alarm;
 
         if (!d || !filename) {
-                dbg("Invalid Parameters");
+                err("Invalid Parameters");
                 return SA_ERR_HPI_ERROR;
         }
 
         file = open(filename, O_RDONLY);
         if (file < 0) {
-                dbg("File '%s' could not be opened", filename);
+                err("File '%s' could not be opened", filename);
                 return SA_ERR_HPI_ERROR;
         }
 
@@ -738,13 +738,13 @@ SaErrorT oh_alarms_from_file(struct oh_domain *d, char *filename)
                 SaHpiAlarmT *a = oh_add_alarm(d, &alarm, 1);
                 if (!a) {
                         close(file);
-                        dbg("Error adding alarm read from file.");
+                        err("Error adding alarm read from file.");
                         return SA_ERR_HPI_ERROR;
                 }
         }
 
         if (close(file) != 0) {
-                dbg("Couldn't close file '%s'.", filename);
+                err("Couldn't close file '%s'.", filename);
                 return SA_ERR_HPI_ERROR;
         }
 
