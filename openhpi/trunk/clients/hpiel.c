@@ -17,6 +17,7 @@
 #include <SaHpi.h>
 #include <oHpi.h>
 #include <oh_utils.h>
+#include <oh_clients.h>
 
 #define OH_SVN_REV "$Revision$"
 
@@ -53,27 +54,12 @@ SaErrorT display_el(SaHpiSessionIdT sid, SaHpiResourceIdT rid, SaHpiTextBufferT 
 
 int main(int argc, char **argv)
 {
-        SaHpiUint32T ohpi_major = oHpiVersionGet() >> 48;
-        SaHpiUint32T ohpi_minor = (oHpiVersionGet() << 16) >> 48;
-        SaHpiUint32T ohpi_patch = (oHpiVersionGet() << 32) >> 48;
-        SaHpiVersionT hpiver;
         SaErrorT error = SA_OK;
         SaHpiSessionIdT sid;
         SaHpiDomainInfoT dinfo;
-        char svn_rev[SAHPI_MAX_TEXT_BUFFER_LENGTH];
 
-        /* Generating version strings */
-        memset(svn_rev, 0, sizeof(SAHPI_MAX_TEXT_BUFFER_LENGTH));
-        strncpy(svn_rev, OH_SVN_REV, SAHPI_MAX_TEXT_BUFFER_LENGTH);
-        svn_rev[strlen(OH_SVN_REV)-2] = '\0';
-        printf("%s - This program came with OpenHPI %u.%u.%u (%s)\n",
-                argv[0], ohpi_major, ohpi_minor, ohpi_patch,
-                svn_rev + 11);
-        hpiver = saHpiVersionGet();
-        printf("HPI Version is %x.0%d.0%d\n",
-                (hpiver >> 16) + 9,
-                (hpiver & 0x0000FF00) >> 8,
-                hpiver & 0x000000FF);
+        /* Print version strings */
+	oh_prog_version(argv[0], OH_SVN_REV);
 
         /* Parsing options */
         if (parse_options(argc, &argv, &opts)) {
