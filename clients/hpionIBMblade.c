@@ -69,6 +69,9 @@
 #include <oh_utils.h>
 #include <oh_config.h>
 #include <oHpi.h>
+#include <oh_clients.h>
+
+#define OH_SVN_REV "$Revision: 6412 $"
 
 #define READ_BUF_SIZE	1024
 #define MAX_BYTE_COUNT 128
@@ -135,7 +138,6 @@ int	nrpts = 0;
 long int blade_slot = 0;
 
 int	fdebug = 0;
-char	progver[] = "0.1";
 
 SaHpiSessionIdT		sessionid;
 
@@ -897,7 +899,7 @@ int main(int argc, char **argv)
 	char		buf[READ_BUF_SIZE];
 	char		*S;
 
-	printf("%s  ver %s\n", argv[0], progver);
+	oh_prog_version(argv[0], OH_SVN_REV);
 	while ( (c = getopt( argc, argv,"x?")) != EOF )
 		switch(c)  {
 			case 'x':
