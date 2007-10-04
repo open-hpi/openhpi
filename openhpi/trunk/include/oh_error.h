@@ -31,8 +31,8 @@
 #undef sprintf
 #pragma GCC poison sprintf
 
-#define OH_DBG "OPENHPI_DEBUG"
-#define OH_TRACE "OPENHPI_DEBUG_TRACE"
+#define OH_DBG "OPENHPI_ERROR"
+#define OH_TRACE "OPENHPI_DEBUG"
 
 #ifdef __cplusplus
 extern "C" {
@@ -50,7 +50,7 @@ extern "C" {
 #else
 #define err(format, ...) \
 	do { \
-		syslog(3, "DEBUG: (%s, %d, "format")", __FILE__, __LINE__,## __VA_ARGS__); \
+		syslog(3, "ERROR: (%s, %d, "format")", __FILE__, __LINE__,## __VA_ARGS__); \
 		if (getenv(OH_DBG) && !strcmp("YES", getenv(OH_DBG))) { \
 			fprintf(stderr, "%s:%d ("format")\n", __FILE__, __LINE__, ## __VA_ARGS__); \
 		} \

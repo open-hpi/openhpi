@@ -68,8 +68,8 @@ Commands:
 		Show domain alarm table list.
 
 	debug [on | off]
-		Sets and unsets OPENHPI_DEBUG environment. If a parameter is omitted,
-		a current value OPENHPI_DEBUG is showed.
+		Sets and unsets OPENHPI_ERROR environment. If a parameter is omitted,
+		a current value OPENHPI_ERROR is showed.
 
 	domain [<domainId>]
 		Set current domain by <domainId>. Session is opened for this domain and
