@@ -178,9 +178,9 @@ static ret_code_t debugset(void)
         if (debug_flag) printf("debugset:\n");
         term = get_next_term();
         if (term == NULL) {
-                val = getenv("OPENHPI_DEBUG");
+                val = getenv("OPENHPI_ERROR");
                 if (val == (char *)NULL) val = "NO";
-                printf("OPENHPI_DEBUG=%s\n", val);
+                printf("OPENHPI_ERROR=%s\n", val);
                 return(HPI_SHELL_OK);
         };
         if (strcmp(term->term, "on") == 0)
@@ -189,7 +189,7 @@ static ret_code_t debugset(void)
                 val = "NO";
         else
                 return HPI_SHELL_PARM_ERROR;
-        setenv("OPENHPI_DEBUG", val, 1);
+        setenv("OPENHPI_ERROR", val, 1);
 
         return HPI_SHELL_OK;
 }
@@ -1247,7 +1247,7 @@ const char ctrlhelp[] = "ctrl: control command block\n"
                         "       ctrlId:: <resourceId> <num>\n";
 const char dathelp[] = "dat: domain alarm table list\n"
                         "Usage: dat";
-const char debughelp[] = "debug: set or unset OPENHPI_DEBUG environment\n"
+const char debughelp[] = "debug: set or unset OPENHPI_ERROR environment\n"
                         "Usage: debug [ on | off ]";
 const char domainhelp[] = "domain: show domain list and set current domain\n"
                         "Usage: domain [<domain id>]";
