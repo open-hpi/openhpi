@@ -40,9 +40,6 @@ static const char *known_globals[] = {
         "OPENHPI_DAT_SIZE_LIMIT",
         "OPENHPI_DAT_USER_LIMIT",
         "OPENHPI_DAT_SAVE",
-        //"OPENHPI_DEBUG",
-        //"OPENHPI_DEBUG_TRACE",
-        //"OPENHPI_DEBUG_LOCK",
         "OPENHPI_PATH",
         "OPENHPI_VARPATH",
         "OPENHPI_CONF",
@@ -58,9 +55,6 @@ static struct {
         SaHpiUint32T dat_size_limit;
         SaHpiUint32T dat_user_limit;
         SaHpiBoolT dat_save;
-        //unsigned char dbg;
-        //unsigned char dbg_trace;
-        //unsigned char dbg_lock;
         char path[OH_MAX_TEXT_BUFFER_LENGTH];
         char varpath[OH_MAX_TEXT_BUFFER_LENGTH];
         char conf[OH_MAX_TEXT_BUFFER_LENGTH];
@@ -75,9 +69,6 @@ static struct {
         .dat_size_limit = 0, /* Unlimited size */
         .dat_user_limit = 0, /* Unlimited size */
         .dat_save = SAHPI_FALSE,
-        //.dbg = 0,
-        //.dbg_trace = 0,
-        //.dbg_lock = 0,
         .path = OH_PLUGIN_PATH,
         .varpath = VARPATH,
         .conf = OH_DEFAULT_CONF,
@@ -205,24 +196,6 @@ static void process_global_param(const char *name, char *value)
                 } else {
                         global_params.dat_save = SAHPI_FALSE;
                 }
-        //} else if (!strcmp("OPENHPI_DEBUG", name)) {
-        //        if (!strcmp("YES", value)) {
-        //                global_params.dbg = 1;
-        //       } else {
-        //                global_params.dbg = 0;
-        //        }
-        //} else if (!strcmp("OPENHPI_DEBUG_TRACE", name)) {
-        //        if (!strcmp("YES", value)) {
-        //               global_params.dbg_trace = 1;
-        //        } else {
-        //                global_params.dbg_trace = 0;
-        //        }
-        //} else if (!strcmp("OPENHPI_DEBUG_LOCK", name)) {
-        //        if (!strcmp("YES", value)) {
-        //               global_params.dbg_lock = 1;
-        //        } else {
-        //                global_params.dbg_lock = 0;
-        //        }
         } else if (!strcmp("OPENHPI_PATH", name)) {
                 g_static_rec_mutex_lock(&global_params.lock);
                 memset(global_params.path, 0, OH_MAX_TEXT_BUFFER_LENGTH);
@@ -850,15 +823,6 @@ int oh_get_global_param(struct oh_global_param *param)
                 case OPENHPI_DAT_SAVE:
                         param->u.dat_save = global_params.dat_save;
                         break;
-                //case OPENHPI_DEBUG:
-                //        param->u.dbg = global_params.dbg;
-                //        break;
-                //case OPENHPI_DEBUG_TRACE:
-                //        param->u.dbg_trace = global_params.dbg_trace;
-                //        break;
-                //case OPENHPI_DEBUG_LOCK:
-                //        param->u.dbg_lock = global_params.dbg_lock;
-                //        break;
                 case OPENHPI_PATH:
                         g_static_rec_mutex_lock(&global_params.lock);
                         strncpy(param->u.path,
@@ -930,15 +894,6 @@ int oh_set_global_param(struct oh_global_param *param)
                 case OPENHPI_DAT_SAVE:
                         global_params.dat_save = param->u.dat_save;
                         break;
-                //case OPENHPI_DEBUG:
-                //        global_params.dbg = param->u.dbg;
-                //        break;
-                //case OPENHPI_DEBUG_TRACE:
-                //        global_params.dbg_trace = param->u.dbg_trace;
-                //        break;
-                //case OPENHPI_DEBUG_LOCK:
-                //        global_params.dbg_lock = param->u.dbg_lock;
-                //        break;
                 case OPENHPI_PATH:
                         g_static_rec_mutex_lock(&global_params.lock);
                         memset(global_params.path, 0, OH_MAX_TEXT_BUFFER_LENGTH);
@@ -970,25 +925,3 @@ int oh_set_global_param(struct oh_global_param *param)
 
         return 0;
 }
-
-//unsigned char oh_get_global_bool(oh_global_param_type type)
-//{
-//        if (!type) {
-//                err("ERROR. Invalid parameters");
-//                return 0;
-//        }
-//
-//        read_globals_from_env(0);
-//
-//        switch (type) {
-//                case OPENHPI_DEBUG:
-//                        return global_params.dbg;
-//                case OPENHPI_DEBUG_TRACE:
-//                        return global_params.dbg_trace;
-//                case OPENHPI_DEBUG_LOCK:
-//                        return global_params.dbg_lock;
-//                default:
-//                        err("ERROR. Invalid global parameter type %d!", type);
-//                        return 0;
-//        }
-//}
