@@ -78,7 +78,8 @@ $(REMOTE_SOURCES):
 	fi
 
 install-data-local:
-	install -D -m 0755 openhpid.sh $(DESTDIR)$(sysconfdir)/init.d/openhpid
+	$(mkinstalldirs) $(DESTDIR)$(sysconfdir)/init.d
+	$(INSTALL) -m 0755 openhpid.sh $(DESTDIR)$(sysconfdir)/init.d/openhpid
 
 uninstall-local:
 	rm -f $(DESTDIR)$(sysconfdir)/init.d/openhpid
