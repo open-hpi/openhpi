@@ -598,6 +598,7 @@ int ipmi_discover_resources(void *hnd)
 
         dbg("ipmi discover_resources");
 
+	// Look for IPMI events until we get the ipmi_domain_fully_up callback
         time(&tm0);
         while (ipmi_handler->fully_up == 0) {
                 if (!ipmi_handler->connected) {
@@ -606,7 +607,7 @@ int ipmi_discover_resources(void *hnd)
                 }
                 if ((ipmi_handler->connected == 1) && !was_connected) {
                         // set new time stamp. IPMI is alive
-                         was_connected = 1;
+                        was_connected = 1;
                         time(&tm0);
                 }
 
@@ -626,8 +627,9 @@ int ipmi_discover_resources(void *hnd)
                                 ipmi_handler->mc_count);
                         return SA_ERR_HPI_NO_RESPONSE;
                 }
-        }
+        } // while (! ipmi_handler->fully_up)
 
+	// BJS: Why are we doing this some more?
         while(rv == 1) {
                 rv = sel_select(ipmi_handler->ohoi_sel, NULL, 0 , NULL, NULL);
         }
@@ -642,16 +644,19 @@ int ipmi_discover_resources(void *hnd)
 		return 0;
 	}
 	ipmi_handler->updated = 0;
+	// BJS: Loop over all rpt_entries (doing what?)
         rpt_entry = oh_get_resource_next(handler->rptcache, SAHPI_FIRST_ENTRY);
         while (rpt_entry) {
                 res_info = oh_get_resource_data(handler->rptcache,
                         rpt_entry->ResourceId);
                 trace_ipmi_resources(rpt_entry, res_info);
+		// If this rpt has already been processed, skip it
                 if (res_info->updated == 0) {
                         rpt_entry = oh_get_resource_next(handler->rptcache,
                                 rpt_entry->ResourceId);
                         continue;
                 }
+		// If this rpt has been deleted, skip it
                 if (res_info->deleted) {
 			// We have already sent the event
                         rpt_entry = oh_get_resource_next(handler->rptcache,
@@ -711,10 +716,11 @@ int ipmi_discover_resources(void *hnd)
                 event->hid = handler->hid;
                 oh_evt_queue_push(handler->eventq, event);
 
+		// We're now done with this rpt
                 res_info->updated = 0;
                 rpt_entry = oh_get_resource_next(handler->rptcache,
                         rpt_entry->ResourceId);
-        }
+        } // while (rpt_entry)
         g_static_rec_mutex_unlock(&ipmi_handler->ohoih_lock);
         return 0;
 }
