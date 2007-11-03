@@ -72,6 +72,8 @@ TESTS = \
        marshal_027 \
        marshal_028 \
        marshal_029 \
+       marshal_030 \
+       marshal_031 \
        marshal_hpi_types_000 \
        marshal_hpi_types_001 \
        marshal_hpi_types_002 \
@@ -191,6 +193,10 @@ marshal_028_SOURCES = marshal_028.c
 nodist_marshal_028_SOURCES = $(REMOTE_SOURCES)
 marshal_029_SOURCES = marshal_029.c
 nodist_marshal_029_SOURCES = $(REMOTE_SOURCES)
+marshal_030_SOURCES = marshal_030.c
+nodist_marshal_030_SOURCES = $(REMOTE_SOURCES)
+marshal_031_SOURCES = marshal_031.c
+nodist_marshal_031_SOURCES = $(REMOTE_SOURCES)
 marshal_hpi_types_000_SOURCES = marshal_hpi_types_000.c
 nodist_marshal_hpi_types_000_SOURCES = $(MARSHAL_SOURCES) $(REMOTE_SOURCES)
 marshal_hpi_types_001_SOURCES = marshal_hpi_types_001.c
