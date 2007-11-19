@@ -290,7 +290,7 @@ IpmiOpen( GHashTable *handler_config, unsigned int hid, oh_evt_queue *eventq )
   char *tmp;
   int   lp = dIpmiLogPropNone;
 
-  err( "IpmiOpen" );
+  dbg( "IpmiOpen" );
 
   if ( !handler_config )
      {
@@ -393,7 +393,7 @@ IpmiClose( void * ) __attribute__((used));
 static void
 IpmiClose( void *hnd )
 {
-  err( "IpmiClose" );
+  dbg( "IpmiClose" );
 
   cIpmi *ipmi = VerifyIpmi( hnd );
 
@@ -2262,7 +2262,7 @@ cIpmi::IfGetEvent( oh_event *event )
 SaErrorT
 cIpmi::IfDiscoverResources()
 {
-  err( "ipmidirect discover_resources");
+  dbg( "ipmidirect discover_resources");
 
   bool loop;
 

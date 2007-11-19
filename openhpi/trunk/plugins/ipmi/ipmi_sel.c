@@ -189,7 +189,7 @@ static void set_sel_time_done(ipmi_mc_t	*mc,
 {
         int *flag = cb_data;
         *flag = 1;
-	err("set_sel_time called, err: %d", err);
+	dbg("set_sel_time called, err: %d", err);
 }
 
 struct set_sel_time_cb_data {
@@ -240,7 +240,7 @@ static void mc_clear_sel_done(ipmi_mc_t *mc, int err, void *cb_data)
 	int *flag = cb_data;
 	*flag = 1;
 
-	err("MC sel clear done");
+	dbg("MC sel clear done");
 	return;
 }
 

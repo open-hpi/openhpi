@@ -996,7 +996,7 @@ static void add_sensor_event(ipmi_entity_t	*ent,
 
 	rv = ipmi_sensor_get_num(sensor, &lun, &num);
 	if(rv) {
-		err("Erro getting sensor number");
+		err("Error getting sensor number");
         	rdr.RdrTypeUnion.SensorRec.Num =
 					SA_ERR_HPI_INVALID_DATA;
 	} else {
@@ -1083,7 +1083,7 @@ void ohoi_sensor_event(enum ipmi_update_e op,
 		case IPMI_CHANGED:
 			trace_ipmi_sensors("CHANGED", sid);
 			add_sensor_event(ent, sensor, handler, rpt_entry);
-			err("Sensor Changed");
+			dbg("Sensor Changed");
 			break;
 		case IPMI_DELETED:
 			trace_ipmi_sensors("DELELE", sid);

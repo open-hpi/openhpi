@@ -558,11 +558,11 @@ address_control(ipmi_control_t *control,
 	
 
 	for (i=0; i<length; i++) {
-		//err("Address control: 0x%2.2x", val[i]);
-		err("Address control: %d", val[i]);
+		//dbg("Address control: 0x%2.2x", val[i]);
+		dbg("Address control: %d", val[i]);
 	}
 	*location = val[1];
-	err("Location %d", *location);
+	dbg("Location %d", *location);
 
 }
 
@@ -594,7 +594,7 @@ address_control_get(ipmi_control_t			*control,
 
 				//rpt.ResourceId =
 					//oh_uid_from_entity_path(&rpt.ResourceEntity);
-				//err("Control New ResourceId: %d", rpt.ResourceId);
+				//dbg("Control New ResourceId: %d", rpt.ResourceId);
 	//rv = oh_add_resource(handler->rptcache, *rpt, NULL, 1);
 	//if (rv) {
 	      	//err("oh_add_resource failed for %d = %s\n", rpt->ResourceId, oh_lookup_error(rv));

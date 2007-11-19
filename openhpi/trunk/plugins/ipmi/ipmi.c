@@ -808,7 +808,7 @@ static int ipmi_set_el_time(void               *hnd,
         struct ohoi_resource_info *ohoi_res_info;
         struct timeval tv;
 
-        err("sel_set_time called");
+        dbg("sel_set_time called");
 
         ohoi_res_info = oh_get_resource_data(handler->rptcache, id);
         if (!(ohoi_res_info->type & OHOI_RESOURCE_MC)) {
@@ -1540,7 +1540,7 @@ static int ipmi_get_watchdog_info(void *hnd,
 				reqdata, 0, response, rlen, &rlen);
         if (rv != 0) return(rv);
 
-        err("wdog_get: %02x %02x %02x %02x %02x %02x %02x %02x %02x\n",
+        dbg("wdog_get: %02x %02x %02x %02x %02x %02x %02x %02x %02x\n",
 		response[0],
                 response[1], response[2], response[3], response[4],
                 response[5], response[6], response[7], response[8]);
@@ -1745,7 +1745,7 @@ static int ipmi_set_watchdog_info(void *hnd,
         reqdata[4] = tv & 0x00ff;  // tv % 256;
         reqdata[5] = tv / 256;   // (tv & 0xff00) >> 8;
 
-        err("wdog_set: %02x %02x %02x %02x %02x %02x\n",
+        dbg("wdog_set: %02x %02x %02x %02x %02x %02x\n",
                 reqdata[0], reqdata[1], reqdata[2],
                 reqdata[3], reqdata[4], reqdata[5]);
 
@@ -1828,7 +1828,7 @@ static SaErrorT ipmi_set_res_tag (void                  *hnd,
 
         /* can only be an Entity in the ohoi_resource_info struct */
         if (res_info->type & OHOI_RESOURCE_ENTITY) {
-                err("Setting new Tag: %s for resource: %d", (char *) tag->Data, id);
+                dbg("Setting new Tag: %s for resource: %d", (char *) tag->Data, id);
                 rv = ipmi_entity_pointer_cb(res_info->u.entity.entity_id, ohoi_set_resource_tag,
                                     tag->Data);
                 if (rv)
@@ -1870,13 +1870,13 @@ static SaErrorT ipmi_set_res_sev(void                   *hnd,
                 return  SA_ERR_HPI_NOT_PRESENT;
         }
 
-        err("Current Severity: %d\n", rpt_entry->ResourceSeverity);
-        err("To be set New Severity: %d\n", severity);
+        dbg("Current Severity: %d\n", rpt_entry->ResourceSeverity);
+        dbg("To be set New Severity: %d\n", severity);
 
         memcpy(&rpt_entry->ResourceSeverity, &severity, sizeof(severity));
 
         oh_add_resource(handler->rptcache, rpt_entry, res_info, 1);
-        err("New Severity: %d\n", rpt_entry->ResourceSeverity);
+        dbg("New Severity: %d\n", rpt_entry->ResourceSeverity);
         entity_rpt_set_updated(res_info, ipmi_handler);
         return SA_OK;
 }
