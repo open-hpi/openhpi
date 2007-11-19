@@ -59,7 +59,7 @@ static int get_ipmb0_sensor_num_done(
 	int rv = msg->data[0];
 	
 	
-	err("get ipmb link info(%d) for sensor 0x%x: %02x %02x %02x %02x",
+	dbg("get ipmb link info(%d) for sensor 0x%x: %02x %02x %02x %02x",
 		msg->data_len, info->s_num, msg->data[0], msg->data[1],
 		msg->data[2], msg->data[3]);
 		
@@ -104,7 +104,7 @@ static void get_ipmb0_sensor_num_cb(
 		OHOI_MAP_ERROR(info->rv, rv);
 		return;
 	} else {
-		err("get ipmb link info send(0x%x 0x%x): %02x %02x %02x",
+		dbg("get ipmb link info send(0x%x 0x%x): %02x %02x %02x",
 			sid.lun, sid.mcid.channel, data[0], data[1], data[2]);
 	} 
 	return;
@@ -324,7 +324,7 @@ static void _set_ipmb0_state_control_cb(
 	int rv = msg->data[0];
 	
 	
-	err("set IPMB state response(%d): %02x\n", msg->data_len, rv);
+	dbg("set IPMB state response(%d): %02x\n", msg->data_len, rv);
 		
 	if (mc == NULL) {
 		info->rv = SA_ERR_HPI_ENTITY_NOT_PRESENT;
@@ -354,7 +354,7 @@ static void set_ipmb0_state_control_cb(
 	data[0] = 0;
 	data[1] = info->a;
 	data[2] = info->b;
-	err("set IPMB state to MC (%d, %d) : %02x %02x %02x",
+	dbg("set IPMB state to MC (%d, %d) : %02x %02x %02x",
 		ipmi_mc_get_channel(mc), ipmi_mc_get_address(mc),
 		data[0], data[1], data[2]);
 	rv = ipmicmd_mc_send(mc,
@@ -806,7 +806,7 @@ static void get_fan_speed_properties_done(
 	struct fan_control_s *info = rsp_data;
 	
 	
-	err("get fan speed properties response(%d): %02x %02x %02x "
+	dbg("get fan speed properties response(%d): %02x %02x %02x "
 		"%02x %02x %02x\n",
 		msg->data_len, msg->data[0], msg->data[1], msg->data[2],
 		msg->data[3], msg->data[4], msg->data[5]);
@@ -839,7 +839,7 @@ static void get_fan_speed_properties(ipmi_mc_t *mc, void *cb_data)
 	data[0] = 0;
 	data[1] = (unsigned char)info->device_id;
 
-	err("get fan properties (%d, %d) : %02x %02x",
+	dbg("get fan properties (%d, %d) : %02x %02x",
 		ipmi_mc_get_channel(mc), ipmi_mc_get_address(mc),
 		data[0], data[1]);
 	rv = ipmicmd_mc_send(mc,
@@ -979,7 +979,7 @@ static void get_fan_control_state_done(
 	struct fan_control_s *info = rsp_data;
 	
 	
-	err("get fan level response(%d): %02x %02x %02x %02x\n",
+	dbg("get fan level response(%d): %02x %02x %02x %02x\n",
 		msg->data_len, msg->data[0], msg->data[1], msg->data[2],
 		msg->data[3]);
 		
@@ -1010,7 +1010,7 @@ static void get_fan_control_state_cb(ipmi_mc_t *mc, void *cb_data)
 	data[0] = 0;
 	data[1] = (unsigned char)info->device_id;
 
-	err("get fan level (%d, %d) : %02x %02x",
+	dbg("get fan level (%d, %d) : %02x %02x",
 		ipmi_mc_get_channel(mc), ipmi_mc_get_address(mc),
 		data[0], data[1]);
 	rv = ipmicmd_mc_send(mc,
@@ -1149,7 +1149,7 @@ static void get_ekeying_link_state_sensor_reading_done(
 	unsigned char chns[4] = {0, 0, 0, 0};
 	unsigned char order[4] = {0, 0, 0, 0}; 
 	
-	err("get IPMB state response(%d): %02x\n", msg->data_len, rv);
+	dbg("get IPMB state response(%d): %02x\n", msg->data_len, rv);
 	//printf("get IPMB state response: %02x %02x %02x %02x %02x %02x %02x\n",
 	//data[0], data[1], data[2], data[3], data[4], data[05], data[6]);  
 		
@@ -1345,7 +1345,7 @@ static void get_ekeying_link_state_sensor_reading_cb(ipmi_mc_t *mc,
 
 	data[0] = 0;
 	data[1] = info->channel;
-	err("Get Port State to MC (%d, %d) : %02x %02x",
+	dbg("Get Port State to MC (%d, %d) : %02x %02x",
 		ipmi_mc_get_channel(mc), ipmi_mc_get_address(mc),
 		data[0], data[1]);
 	rv = ipmicmd_mc_send(mc,

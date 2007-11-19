@@ -24,7 +24,7 @@ static void SDRs_read_done(ipmi_domain_t *domain, int err, void *cb_data)
 {
 	int *flag = cb_data;
 	*flag = 1;
-	err("SDRs read done");
+	dbg("SDRs read done");
 	return;
 }
 
@@ -32,7 +32,7 @@ static void SELs_read_done(ipmi_domain_t *domain, int err, void *cb_data)
 {
 	int *flag = cb_data;
 	*flag = 1;
-	err("SELs read done");
+	dbg("SELs read done");
 	return;
 }
 
@@ -42,7 +42,7 @@ static void bus_scan_done(ipmi_domain_t *domain, int err, void *cb_data)
 		int rv;
 		int *flag = &ipmi_handler->bus_scan_done;
 		*flag = 1;
-		err("bus scan done");
+		dbg("bus scan done");
 		
 		/* we have MCs now, get SEL */
 		rv = ipmi_domain_reread_sels(domain, SELs_read_done, &ipmi_handler->SELs_read_done);

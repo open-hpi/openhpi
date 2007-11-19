@@ -1108,14 +1108,14 @@ static void get_custom_field_cb(ipmi_entity_t *ent, void *cbdata)
 		cf->rv = SA_ERR_HPI_NOT_PRESENT;
 		return;
 	}
-	err("custom field %d len = %d", cf->num, len);
+	dbg("custom field %d len = %d", cf->num, len);
 
 	if (len > SAHPI_MAX_TEXT_BUFFER_LENGTH)
 		len = SAHPI_MAX_TEXT_BUFFER_LENGTH;
 
 	rv = cf->get_data(fru, cf->num, (void *)&field->Field.Data[0], &len);
 	if (!rv) {
-		err("custom field len = %d", len);
+		dbg("custom field len = %d", len);
 		field->Field.DataLength = len;
 	} else {
 		err("Error on  get_data: %d", rv);
@@ -1739,7 +1739,7 @@ static  SaHpiEntryIdT get_nextfield(struct ohoi_inventory_info *i_info,
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 	
-	err("area = %x; fieldid = %d; msk = %x; num = %x", area_data->areatype,
+	dbg("area = %x; fieldid = %d; msk = %x; num = %x", area_data->areatype,
 			fieldid, msk, num);
 
 	for (i = 1; fieldid + i <= OHOI_FIELD_LAST_ID(area_data); i++) {
@@ -2286,7 +2286,7 @@ static int try_to_change_area_size(ipmi_fru_t *fru, unsigned int delta,
 	unsigned int off;
 	int rv;
 	
-	err("enter: delta = %u, area = %u",
+	dbg("enter: delta = %u, area = %u",
 			delta, my_a_type);
 	// calculate sum of all area sizes
 	for (i = 0; i < IPMI_FRU_FTR_NUMBER; i++) {
@@ -2302,7 +2302,7 @@ static int try_to_change_area_size(ipmi_fru_t *fru, unsigned int delta,
 
 	// must be multiple 8
 	delta = ((delta + 7) >> 3) << 3;
-	err("fru_len = %u; sum_len = %u; new_delta = %u", fru_len, sum_len, delta);
+	dbg("fru_len = %u; sum_len = %u; new_delta = %u", fru_len, sum_len, delta);
 	if (sum_len + delta > fru_len) {
 		err("not enough space. Do nothing");
 		return 1;
@@ -2311,10 +2311,10 @@ static int try_to_change_area_size(ipmi_fru_t *fru, unsigned int delta,
 		// move all below areas down to free space
 		rv = ipmi_fru_area_get_offset(fru, i, &off);
 		if (rv) {
-			err("no area %u in fru. coontinue", i);
+			dbg("no area %u in fru. coontinue", i);
 			continue;
 		}
-		err("offset of area %u is changing from %u to %u",
+		dbg("offset of area %u is changing from %u to %u",
 						i, off, off + delta);
 		rv = ipmi_fru_area_set_offset(fru, i, off + delta);
 		if (rv) {
@@ -2323,7 +2323,7 @@ static int try_to_change_area_size(ipmi_fru_t *fru, unsigned int delta,
 		}
 	}
 	rv = ipmi_fru_area_set_length(fru, my_a_type, my_len + delta);
-	err("change size of area %d from %u to %u. res = %d",
+	dbg("change size of area %d from %u to %u. res = %d",
 		my_a_type, my_len, my_len + delta, rv);
 	return rv;
 }
@@ -2394,14 +2394,14 @@ static SaErrorT modify_custom_field(SaHpiIdrFieldT *field,
 		}
 		rv = set_func(fru, cn, type, (char *)tb->Data,
 					(unsigned int)tb->DataLength);
-		err("custom field %d len set = %d; rv = %d", cn, tb->DataLength, rv);
+		dbg("custom field %d len set = %d; rv = %d", cn, tb->DataLength, rv);
 		if (rv == ENOSPC) {
 			// try to increase the room for area moving other areas
 			int r;
 			unsigned int f_len;
 			//print_fru_layout(fru);
 			r = len_func(fru, cn, &f_len);
-			err("rv = %d; f_len = %u; new_len = %u", rv, f_len, tb->DataLength);
+			dbg("rv = %d; f_len = %u; new_len = %u", rv, f_len, tb->DataLength);
 			if ((r == 0) && (f_len < (unsigned int)tb->DataLength)
 					&& (try_to_change_area_size(fru,
 					(unsigned int)tb->DataLength - f_len,
@@ -2409,7 +2409,7 @@ static SaErrorT modify_custom_field(SaHpiIdrFieldT *field,
 				//print_fru_layout(fru);
 				rv = set_func(fru, cn, type, (char *)tb->Data,
 					(unsigned int)tb->DataLength);
-				err("custom field %d len set = %d", cn, tb->DataLength);
+				dbg("custom field %d len set = %d", cn, tb->DataLength);
 			}
 		}
 		if (rv) {
@@ -2478,7 +2478,7 @@ static SaErrorT modify_inventory(SaHpiIdrFieldT *field,
 	}
 		
 	f_type = area_data->fields[fieldid - 1].fieldtype;
-	err("modify_inventory: area = 0x%x; fieldtype = %i", a_type, f_type);
+	dbg("modify_inventory: area = 0x%x; fieldtype = %i", a_type, f_type);
 	if (i_info == NULL) {
 		err("Bug: ohoi_res_info->fru == NULL");
 		return SA_ERR_HPI_CAPABILITY;
@@ -2642,7 +2642,7 @@ static SaErrorT modify_inventory(SaHpiIdrFieldT *field,
 			unsigned int f_len;
 			//print_fru_layout(fru);
 			r = len_func(fru, &f_len);
-			err("rv = %d; f_len = %u; new_len = %u", rv, f_len, tb->DataLength);
+			dbg("rv = %d; f_len = %u; new_len = %u", rv, f_len, tb->DataLength);
 			if ((r == 0) && (f_len < (unsigned int)tb->DataLength)
 					&& (try_to_change_area_size(fru,
 					(unsigned int)tb->DataLength - f_len,

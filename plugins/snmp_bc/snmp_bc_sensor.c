@@ -153,12 +153,12 @@ SaErrorT snmp_bc_get_sensor_reading(void *hnd,
 	{       /* Debug section */
 		SaHpiTextBufferT buffer;
 
-		err("Sensor=%s", rdr->IdString.Data);
+		dbg("Sensor=%s", rdr->IdString.Data);
 		oh_decode_sensorreading(working_reading, rdr->RdrTypeUnion.SensorRec.DataFormat, &buffer);
-		err("  Reading: %s.", buffer.Data);
+		dbg("  Reading: %s.", buffer.Data);
 		
 		oh_decode_eventstate(working_state, rdr->RdrTypeUnion.SensorRec.Category, &buffer);
-		err("  Event State: %s\n", buffer.Data);
+		dbg("  Event State: %s\n", buffer.Data);
 	}
 #endif
 

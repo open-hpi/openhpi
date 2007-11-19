@@ -804,7 +804,7 @@ SaErrorT ohoi_set_reset_state(void *hnd, SaHpiResourceIdT id,
 	info.done = 0;
 	info.err = 0;
 	if ((act == SAHPI_COLD_RESET) || (act == SAHPI_WARM_RESET)) {
-	      	err("ResetAction requested: %d", act);
+	      	dbg("ResetAction requested: %d", act);
 	      	info.state = &act;
 	} else {
 	      	err("Currently we only support cold and warm reset");
@@ -919,7 +919,7 @@ SaErrorT ohoi_set_power_state(void *hnd, SaHpiResourceIdT id,
                 	}
 			break;
 		case SAHPI_POWER_CYCLE:
-			err("CYCLE power");
+			dbg("CYCLE power");
 			SaHpiPowerStateT	cy_state = 0;
 			cy_state = SAHPI_POWER_OFF;
 			power_info.state = &cy_state;
@@ -934,10 +934,10 @@ SaErrorT ohoi_set_power_state(void *hnd, SaHpiResourceIdT id,
 				err("ohopi_loop = 0x%x", rv);
 				return rv;
 			}
-			err("CYCLE Stage 1: OK");
+			dbg("CYCLE Stage 1: OK");
 
 			if ((power_info.done) && (power_info.err == SA_OK)) {
-			      err("CYCLE: done = %d , err = %d",
+			      dbg("CYCLE: done = %d , err = %d",
 				  				power_info.done,
 								power_info.err);
 			      	cy_state = SAHPI_POWER_ON;
@@ -1035,7 +1035,7 @@ SaErrorT ohoi_get_power_state (void *hnd,
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 
-	err("waiting for OIPMI to return");
+	dbg("waiting for OIPMI to return");
 	rv = ohoi_loop(&power_state.done, ipmi_handler);
 	if (rv != SA_OK) {
 		return rv;

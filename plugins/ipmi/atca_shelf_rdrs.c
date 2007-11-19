@@ -178,7 +178,7 @@ static int get_atca_chassis_status_control_states_cb(
 	int rv = msg->data[0];
 
 
-	err("get chassis response(%d): %02x %02x %02x %02x %02x\n",
+	dbg("get chassis response(%d): %02x %02x %02x %02x %02x\n",
 		msg->data_len, msg->data[0], msg->data[1], msg->data[2],
 		msg->data[3], msg->data[4]);
 
@@ -465,7 +465,7 @@ static int set_atca_shelf_address_control_states_cb(
 	int rv = msg->data[0];
 
 
-	err("set shelf address response(%d): %02x %02x\n",
+	dbg("set shelf address response(%d): %02x %02x\n",
 		msg->data_len, msg->data[0], msg->data[1]);
 
 	if (domain == NULL) {
@@ -501,7 +501,7 @@ static void set_atca_shelf_address_control_states(
 		info->done = 1;
 		return;
 	}
-	err("set addr control: 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x",
+	dbg("set addr control: 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x",
 		data[0], data[1], data[2], data[3], data[4], data[5]);
 	rv = ipmicmd_send(domain,
 		0x2c, 0x03, 0, IPMI_BMC_CHANNEL, data, 32,
@@ -581,7 +581,7 @@ static int get_atca_shelf_address_control_states_cb(
 	int i;
 
 
-	err("get shelf address response(%d): %02x %02x %02x %02x %02x\n",
+	dbg("get shelf address response(%d): %02x %02x %02x %02x %02x\n",
 		msg->data_len, msg->data[0], msg->data[1], msg->data[2],
 		msg->data[3], msg->data[4]);
 
