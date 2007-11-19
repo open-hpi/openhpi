@@ -583,7 +583,7 @@ SaErrorT snmp_bc_selcache_sync(struct oh_handler_state *handle,
 						sync_log = g_list_prepend(sync_log, this_value);
 				}
 			} else {
-				err("End of BladeCenter log reached.");
+				dbg("End of BladeCenter log reached.");
 				break;
 			}
 		}
