@@ -61,6 +61,28 @@ extern "C" {
 #endif
 
 #ifdef OH_DBG_MSGS
+#ifndef OH_DAEMON_ENABLED
+#define warn(format, ...) \
+        do { \
+                if (getenv(OH_DBG) && !strcmp("YES", getenv(OH_DBG))) { \
+                        fprintf(stderr, " %s:%d:%s: ", __FILE__, __LINE__, __func__); \
+                        fprintf(stderr, format "\n", ## __VA_ARGS__); \
+                } \
+        } while(0)
+#else
+#define warn(format, ...) \
+	do { \
+		syslog(3, "WARNING: (%s, %d, "format")", __FILE__, __LINE__,## __VA_ARGS__); \
+		if (getenv(OH_DBG) && !strcmp("YES", getenv(OH_DBG))) { \
+			fprintf(stderr, "%s:%d ("format")\n", __FILE__, __LINE__, ## __VA_ARGS__); \
+		} \
+	} while(0)
+#endif
+#else
+#define warn(format, ...)
+#endif
+
+#ifdef OH_DBG_MSGS
 #define dbg(format, ...) \
         do { \
                 if (getenv(OH_TRACE) && !strcmp("YES", getenv(OH_TRACE))) { \

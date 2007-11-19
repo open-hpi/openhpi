@@ -498,7 +498,7 @@ static int watchdog_set_watchdog_info(void *hnd, SaHpiResourceIdT id,
 	} else {
 		if (SAHPI_TRUE == w.Running) {
 			/* stop the watchdog device */
-			err("Stop watchdog");
+			warn("Watchdog timer stopped by OpenHPI");
 			if (-1 == write(wdtitems->fd, "V", 1)) {
 				err("Unable to write to watchdog");
 				ret = SA_ERR_HPI_ERROR;
@@ -564,7 +564,7 @@ static int watchdog_reset_watchdog(void *hnd, SaHpiResourceIdT id,
 	if (wdtitems->data.Running == SAHPI_FALSE) {
 		int timeout;
 
-		err("start up the watchdog");
+		warn("Watchdog timer started by OpenHPI");
 		/* calling reset on stopped watchdog will */
 		/* cause the watchdog to start            */
 		wdtitems->fd = open(wdtitems->path, O_RDWR);
