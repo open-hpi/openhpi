@@ -488,7 +488,7 @@ static int watchdog_set_watchdog_info(void *hnd, SaHpiResourceIdT id,
 	
 			/* pat the dog to restart the timer from the initial
  			* countdown value */
-			err("reset the watchdog");
+			dbg("reset the watchdog");
 			if (-1 == write(wdtitems->fd, "1", 1)) {
 				err("could not reset watchdog");
 				ret = SA_ERR_HPI_ERROR;
@@ -594,7 +594,7 @@ static int watchdog_reset_watchdog(void *hnd, SaHpiResourceIdT id,
 
 	/* pat the dog to restart the timer from the initial
 	 * countdown value */
-	err("reset the watchdog");
+	dbg("reset the watchdog");
 	if (-1 == write(wdtitems->fd, "1", 1)) {
 		err("unable to reset the watchdog");
 		return SA_ERR_HPI_ERROR;
