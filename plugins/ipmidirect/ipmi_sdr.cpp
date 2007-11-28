@@ -960,36 +960,39 @@ cIpmiSdrs::CreateFullSensorRecords( cIpmiSdr *sdr )
 
        memcpy( s->m_data + 47, sdr->m_data + 31, len + 1 );
 
-       int base  = 0;
-       int start = 0;
-
-       if (( sdr->m_data[23] & 0x30 ) == 0 )
-          {
-            // numeric
-            base  = 10;
-            start = '0';
-          }
-       else if (( sdr->m_data[23] & 0x30 ) == 0x10 )
-          {
-            // alpha
-            base  = 26;
-            start = 'A';
-          }
-
-       if ( base )
-          {
-            // add id string postfix
-            if ( val / base > 0 )
-               {
-                 s->m_data[48+len] = (val / base) + start;
-                 len++;
-               }
-
-            s->m_data[48+len] = (val % base) + start;
-            len++;
-            s->m_data[48+len] = 0;
-            s->m_data[47] = (sdr->m_data[31] & 0xc0) | len;
-          }
+       if (n > 1)
+       {
+            int base  = 0;
+            int start = 0;
+        
+            if (( sdr->m_data[23] & 0x30 ) == 0 )
+                {
+                    // numeric
+                    base  = 10;
+                    start = '0';
+                }
+            else if (( sdr->m_data[23] & 0x30 ) == 0x10 )
+                {
+                    // alpha
+                    base  = 26;
+                    start = 'A';
+                }
+        
+            if ( base )
+                {
+                    // add id string postfix
+                    if ( val / base > 0 )
+                    {
+                        s->m_data[48+len] = (val / base) + start;
+                        len++;
+                    }
+        
+                    s->m_data[48+len] = (val % base) + start;
+                    len++;
+                    s->m_data[48+len] = 0;
+                    s->m_data[47] = (sdr->m_data[31] & 0xc0) | len;
+                }
+       }
 
        list = g_list_append( list, s );
      }
