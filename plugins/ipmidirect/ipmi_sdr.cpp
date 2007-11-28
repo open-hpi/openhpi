@@ -2,7 +2,7 @@
  * ipmi_sdr.cpp
  *
  * Copyright (c) 2003,2004 by FORCE Computers
- * Copyright (c) 2005 by ESO Technologies.
+ * Copyright (c) 2005-2007 by ESO Technologies.
  *
  * Note that this file is based on parts of OpenIPMI
  * written by Corey Minyard <minyard@mvista.com>
@@ -114,9 +114,9 @@ cIpmiSdr::DumpFullSensor( cIpmiLog &dump ) const
   tIpmiEntityId id = (tIpmiEntityId)m_data[8];
 
   if ( !strcmp( IpmiEntityIdToString( id ), "Invalid" ) )
-       sprintf( str, "0x%02x", id );
+       snprintf( str, sizeof(str), "0x%02x", id );
   else
-       sprintf( str, "%s", IpmiEntityIdToString( id ) );
+       snprintf( str, sizeof(str), "%s", IpmiEntityIdToString( id ) );
 
   dump.Entry( "EntityId" ) << str << ";\n";
   dump.Entry( "EntityInstance" ) << (int)m_data[9] << ";\n";
@@ -143,18 +143,18 @@ cIpmiSdr::DumpFullSensor( cIpmiLog &dump ) const
   tIpmiSensorType sensor_type = (tIpmiSensorType)m_data[12];
 
   if ( !strcmp( IpmiSensorTypeToString( sensor_type ), "Invalid" ) )
-       sprintf( str, "0x%02x", sensor_type );
+       snprintf( str, sizeof(str), "0x%02x", sensor_type );
   else
-       sprintf( str, "%s", IpmiSensorTypeToString( sensor_type ) );
+       snprintf( str, sizeof(str), "%s", IpmiSensorTypeToString( sensor_type ) );
 
   dump.Entry( "SensorType" ) << str << ";\n";
 
   tIpmiEventReadingType reading_type = (tIpmiEventReadingType)m_data[13];
 
   if ( !strcmp( IpmiEventReadingTypeToString( reading_type ), "Invalid" ) )
-       sprintf( str, "0x%02x", reading_type );
+       snprintf( str, sizeof(str), "0x%02x", reading_type );
   else
-       sprintf( str, "%s", IpmiEventReadingTypeToString( reading_type ) );
+       snprintf( str, sizeof(str), "%s", IpmiEventReadingTypeToString( reading_type ) );
 
   dump.Entry( "EventReadingType" ) << str << ";\n";
 
@@ -169,7 +169,7 @@ cIpmiSdr::DumpFullSensor( cIpmiLog &dump ) const
 
        dump.Entry( "AssertionEventMask" ) << str << ";\n";
 
-       sprintf( str, "0x%04x", em >> 12 );
+       snprintf( str, sizeof(str), "0x%04x", em >> 12 );
        dump.Entry( "LowerThresholdReadingMask" ) << str << ";\n";
 
        // deassertion
@@ -181,7 +181,7 @@ cIpmiSdr::DumpFullSensor( cIpmiLog &dump ) const
 
        dump.Entry( "DeassertionEventMask" ) << str << ";\n";
 
-       sprintf( str, "0x%04x", em >> 12 );
+       snprintf( str, sizeof(str), "0x%04x", em >> 12 );
        dump.Entry( "UpperThresholdReadingMask" ) << str << ";\n";
 
        // settable threshold
@@ -311,9 +311,9 @@ cIpmiSdr::DumpFruDeviceLocator( cIpmiLog &dump ) const
   char str[80];
 
   if ( !strcmp( IpmiEntityIdToString( id ), "Invalid" ) )
-       sprintf( str, "0x%02x", id );
+       snprintf( str, sizeof(str), "0x%02x", id );
   else
-       sprintf( str, "%s", IpmiEntityIdToString( id ) );
+       snprintf( str, sizeof(str), "%s", IpmiEntityIdToString( id ) );
 
   dump.Entry( "EntityId" ) << str << ";\n";
   dump.Entry( "EntityInstance" ) << (int)m_data[13] << ";\n";
@@ -352,9 +352,9 @@ cIpmiSdr::DumpMcDeviceLocator( cIpmiLog &dump ) const
   char str[80];
 
   if ( !strcmp( IpmiEntityIdToString( id ), "Invalid" ) )
-       sprintf( str, "0x%02x", id );
+       snprintf( str, sizeof(str), "0x%02x", id );
   else
-       sprintf( str, "%s", IpmiEntityIdToString( id ) );
+       snprintf( str, sizeof(str), "%s", IpmiEntityIdToString( id ) );
 
   dump.Entry( "EntityId" ) << str << ";\n";
   dump.Entry( "EntityInstance" ) << (int)m_data[13] << ";\n";
@@ -372,7 +372,7 @@ void
 cIpmiSdr::Dump( cIpmiLog &dump, const char *name ) const
 {
   char str[80];
-  sprintf( str, "%sRecord", IpmiSdrTypeToName( m_type ) );
+  snprintf( str, sizeof(str), "%sRecord", IpmiSdrTypeToName( m_type ) );
   dump.Begin( str, name );
   dump.Entry( "Type" ) << IpmiSdrTypeToName( m_type ) << "\n";
   dump.Entry( "RecordId" ) << m_record_id << ";\n";
@@ -1094,7 +1094,7 @@ cIpmiSdrs::Dump( cIpmiLog &dump, const char *name ) const
      {
        for( i = 0; i < m_num_sdrs; i++ )
 	  {
-	    sprintf( str, "Sdr%02x_%d", m_mc->GetAddress(), i );
+	    snprintf( str, sizeof(str), "Sdr%02x_%d", m_mc->GetAddress(), i );
 	    m_sdrs[i]->Dump( dump, str );
 	  }
      }
@@ -1132,7 +1132,7 @@ cIpmiSdrs::Dump( cIpmiLog &dump, const char *name ) const
             if ( i != 0 )
                  dump << ", ";
 
-            sprintf( str, "Sdr%02x_%d", m_mc->GetAddress(), i );
+            snprintf( str, sizeof(str), "Sdr%02x_%d", m_mc->GetAddress(), i );
             dump << str;
           }
 
