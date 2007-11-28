@@ -685,7 +685,7 @@ SaErrorT oh_alarms_to_file(struct oh_dat *at, char *filename)
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-        file = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0660 );
+        file = open(filename, O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP);
         if (file < 0) {
                 err("File '%s' could not be opened", filename);
                 return SA_ERR_HPI_ERROR;

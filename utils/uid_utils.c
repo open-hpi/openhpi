@@ -400,7 +400,7 @@ SaErrorT oh_uid_map_to_file(void)
 
         uid_lock(&oh_uid_lock);
 
-        file = open(uid_map_file, O_WRONLY|O_CREAT|O_TRUNC);
+        file = open(uid_map_file, O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR|S_IRGRP);
         if(file < 0) {
                 err("Configuration file '%s' could not be opened", uid_map_file);
                 uid_unlock(&oh_uid_lock);
@@ -467,7 +467,7 @@ static gint uid_map_from_file()
                  err("Configuration file '%s' does not exist, initializing", uid_map_file);
                  file = open(uid_map_file,
                              O_RDWR | O_CREAT | O_TRUNC,
-                             S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH );
+                             S_IRUSR | S_IWUSR | S_IRGRP);
                  if(file < 0) {
                          err("Could not initialize uid map file, %s", uid_map_file );
                                          return -1;
