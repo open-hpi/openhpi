@@ -215,7 +215,7 @@ int main (int argc, char *argv[])
         }
 
         // write the pid file
-        pfile = open(pid_file, O_WRONLY | O_CREAT, 0640);
+        pfile = open(pid_file, O_WRONLY|O_CREAT, S_IRUSR|S_IWUSR|S_IRGRP);
         if (pfile == -1) {
                 // there is already a server running
                 err("Error: Cannot open PID file .\n");
@@ -352,7 +352,7 @@ static bool morph2daemon(void)
 
        	// create the pid file (overwrite of old pid file is ok)
         	unlink(pid_file);
-        	pfile = open(pid_file, O_WRONLY | O_CREAT, 0640);
+        	pfile = open(pid_file, O_WRONLY|O_CREAT, S_IRUSR|S_IWUSR|S_IRGRP);
         	snprintf(pid_buf, sizeof(pid_buf), "%d\n", (int)getpid());
         	write(pfile, pid_buf, strlen(pid_buf));
         	close(pfile);

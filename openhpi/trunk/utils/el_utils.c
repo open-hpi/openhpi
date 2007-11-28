@@ -336,7 +336,7 @@ SaErrorT oh_el_map_to_file(oh_el *el, char *filename)
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-        file = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0660 );
+        file = open(filename, O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR|S_IRGRP);
         if (file < 0) {
                 err("EL file '%s' could not be opened", filename);
                 return SA_ERR_HPI_ERROR;
