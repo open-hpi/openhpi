@@ -28,6 +28,7 @@
 #include <glib.h>
 #include <errno.h>
 #include <getopt.h>
+#include "strmsock.h"
 
 extern "C"
 {
@@ -38,7 +39,6 @@ extern "C"
 #include <oh_init.h>
 }
 
-#include "strmsock.h"
 #include "marshal_hpi.h"
 
 
