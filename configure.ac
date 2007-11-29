@@ -119,9 +119,16 @@ AC_CHECK_LIB([uuid], [uuid_generate], [have_uuid=yes], [
     ])
 
 dnl ssl is used for md2/md5 authentification in ipmidirect
+dnl and for RIBCL communication in ilo2_ribcl
 AC_CHECK_LIB([ssl],[MD5_Init],[SSL_LIB=-lssl],[SSL_LIB=])
 AC_SUBST(SSL_LIB)
-AC_CHECK_HEADERS([openssl/md2.h openssl/md5.h])
+AC_CHECK_HEADERS([openssl/md2.h openssl/md5.h openssl/bio.h openssl/ssl.h openssl/err.h],[have_openssl=yes],[have_openssl=no])
+
+dnl xml is used for RIBCL communication in ilo2_ribcl
+AC_CHECK_LIB([xml2],[xmlParseMemory],[XML2_LIB=-lxml2],[XML2_LIB=])
+AC_CHECK_HEADERS([libxml2/libxml/xmlexports.h],[XML2_INCLUDE="-I/usr/include/libxml2"],[XML2_INCLUDE])
+AC_SUBST(XML2_LIB)
+AC_SUBST(XML2_INCLUDE)
 
 dnl Extra goodies enablement stanzas
 
@@ -336,12 +343,39 @@ AC_ARG_ENABLE([rtas],
     fi],
     [AC_SUBST(WITH_RTAS,0)])
 
+# configure argument for the simulator plugin
 AC_ARG_ENABLE([simulator],
     [  --enable-simulator      build simulator plugin [[default=yes]]],
     [if test "x$enableval" = "xyes"; then
         AC_SUBST(SIMULATOR,simulator)
     fi],
     [AC_SUBST(SIMULATOR,simulator)])
+
+# configure argument for the ilo2_ribcl plugin
+AC_ARG_ENABLE([ilo2_ribcl],
+    [  --enable-ilo2_ribcl     build ilo2_ribcl plugin [[default=no]]],
+    [if test "x$enableval" = "xyes"; then
+        if test "x$have_openssl" = "xyes"; then
+            if test -n "x$XML2_INCLUDE"; then
+                AC_SUBST(ILO2_RIBCL,ilo2_ribcl)
+                AC_SUBST(WITH_ILO2_RIBCL,1)
+            else
+                OH_CHECK_FAIL(xml2-devel,,,Can not build ilo2_ribcl without xml2 headers)
+            fi
+        else
+            OH_CHECK_FAIL(openssl-devel,,,Can not build ilo2_ribcl without openssl headers)
+        fi
+    else
+        AC_SUBST(WITH_ILO2_RIBCL,0)
+    fi],
+    [if test "x$have_openssl" = "xyes" && test -n "x$XML2_INCLUDE"; then
+        AC_SUBST(ILO2_RIBCL,ilo2_ribcl)
+        AC_SUBST(WITH_ILO2_RIBCL,1)
+     else
+        AC_SUBST(WITH_ILO2_RIBCL,0)
+     fi
+    ])
+
 
 dnl enable marshal library when needed
 if test "x$oh_daemon_enabled" = "xyes"; then
@@ -600,6 +634,7 @@ AC_CONFIG_FILES([openhpi.spec
         plugins/simulator/Makefile
         plugins/simulator/t/Makefile
         plugins/rtas/Makefile
+        plugins/ilo2_ribcl/Makefile
         scripts/Makefile
         scripts/test/Makefile
         snmp/Makefile
