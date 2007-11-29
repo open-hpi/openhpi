@@ -11,6 +11,7 @@
 %define with_bladecenter @WITH_SNMP_BC@
 %define with_rtas @WITH_RTAS@
 %define with_sysfs @WITH_SYSFS@
+%define with_ilo2_ribcl @WITH_ILO2_RIBCL@
 
 
 Name: @HPI_PKG@
@@ -94,6 +95,14 @@ Group: System/Monitoring
 Summary: OpenHPI plugin for Linux software watchdog support
 Requires: openhpi = %{version}
 
+%if 0%{?with_ilo2_ribcl}
+%package ilo2_ribcl
+Summary: OpenHPI plugin for HP ProLiant Rack Mount Servers
+Group: System/Monitoring
+BuildRequires: libxml2-devel
+Requires: openhpi = %{version} libxml2 openssl
+%endif
+
 %description 
 An open implementation of the Service Availability Forum (SAF)
 Hardware Platform Interface (HPI). It includes support for multiple types of
@@ -145,6 +154,13 @@ OpenHPI plugin that reads system information from sysfs.
 %description watchdog
 OpenHPI plugin that uses the Linux software watchdog support
 provided by the kernel.
+
+%if 0%{?with_ilo2_ribcl}
+%description ilo2_ribcl
+OpenHPI plugin supporting HP ProLiant Rack Mount Servers. This plug-in connects
+to iLO2 on HP ProLiant Rack Mount Server using a SSL connection and exchanges
+information via Remote Insight Board Command Language (RIBCL). 
+%endif
 
 ###################################################
 %prep
@@ -258,4 +274,9 @@ make DESTDIR=%{buildroot} install
 %defattr(-,root,root)
 %{_libdir}/%{name}/libwatchdog.*
 
+###################################################
+%files ilo2_ribcl
+###################################################
+%defattr(-,root,root)
+%{_libdir}/%{name}/libilo2_ribcl.*
 

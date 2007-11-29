@@ -9,6 +9,7 @@ The following components are supported:
 * SNMP BladeCenter/RSA Plugin
 * IPMI Plugin
 * IMPI Direct Plugin
+* iLO2 RIBCL Plug-in
 * HPI Clients
 
 Feedback, as always, is welcome and encouraged:
@@ -107,6 +108,7 @@ snmp_bc - IBM BladeCenter/RSA plugin (uses snmp)
 watchdog - Linux watchdog device interface
 sysfs - Linux sysfs plugin (LM sensors and I2C devices exported in 
         sysfs requires kernel 2.6 or >= 2.5.72)
+ilo2_ribcl - HP ProLiant Rack Mount Server plug-in
 
 For information on recent changes, see the changelogs at
 http://openhpi.sf.net
