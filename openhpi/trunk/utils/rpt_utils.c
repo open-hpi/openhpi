@@ -45,7 +45,7 @@ static RPTEntry *get_rptentry_by_rid(RPTable *table, SaHpiResourceIdT rid)
         }
 
         if (!(table->rptlist)) {
-                /*err("Info: RPT is empty.");*/
+                /*dbg("Info: RPT is empty.");*/
                 return NULL;
         }
 
@@ -69,7 +69,7 @@ static GSList *get_rptnode_by_rid(RPTable *table, SaHpiResourceIdT rid)
         }
 
         if (!(table->rptlist)) {
-                /*err("Info: RPT is empty.");*/
+                /*dbg("Info: RPT is empty.");*/
                 return NULL;
         }
 
@@ -93,7 +93,7 @@ static RDRecord *get_rdrecord_by_id(RPTEntry *rptentry, SaHpiEntryIdT id)
         }
 
         if (!rptentry->rdrlist) {
-                /*err("Info: RDR repository is empty.");*/
+                /*dbg("Info: RDR repository is empty.");*/
                 return NULL;
         }
 
@@ -117,7 +117,7 @@ static GSList *get_rdrnode_by_id(RPTEntry *rptentry, SaHpiEntryIdT id)
         }
 
         if (!rptentry->rdrlist) {
-                /*err("Info: RPT is empty.");*/
+                /*dbg("Info: RPT is empty.");*/
                 return NULL;
         }
 
@@ -524,7 +524,7 @@ void *oh_get_resource_data(RPTable *table, SaHpiResourceIdT rid)
 
         rptentry = get_rptentry_by_rid(table, rid);
         if (!rptentry) {
-                /*err("Warning: RPT entry not found. Returning NULL.");*/
+                /*dbg("Warning: RPT entry not found. Returning NULL.");*/
                 return NULL;
         }
 
@@ -549,7 +549,7 @@ SaHpiRptEntryT *oh_get_resource_by_id(RPTable *table, SaHpiResourceIdT rid)
 
         rptentry = get_rptentry_by_rid(table, rid);
         if (!rptentry) {
-                /*err("Warning: RPT entry not found. Returning NULL.");*/
+                /*dbg("Warning: RPT entry not found. Returning NULL.");*/
                 return NULL;
         }
 
@@ -595,7 +595,7 @@ SaHpiRptEntryT *oh_get_resource_by_ep(RPTable *table, SaHpiEntityPathT *ep)
         }
 
         if (!rptentry) {
-                /*err("Warning: RPT entry not found. Returning NULL.");*/
+                /*dbg("Warning: RPT entry not found. Returning NULL.");*/
                 return NULL;
         }
 
@@ -791,7 +791,7 @@ void *oh_get_rdr_data(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT rdrid)
 
         rdrecord = get_rdrecord_by_id(rptentry, rdrid);
         if (!rdrecord) {
-                /*err("Warning: RDR not found. Returning NULL.");*/
+                /*dbg("Warning: RDR not found. Returning NULL.");*/
                 return NULL;
         }
 
@@ -826,7 +826,7 @@ SaHpiRdrT *oh_get_rdr_by_id(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT 
 
         rdrecord = get_rdrecord_by_id(rptentry, rdrid);
         if (!rdrecord) {
-                /*err("Warning: RDR not found. Returning NULL.");*/
+                /*dbg("Warning: RDR not found. Returning NULL.");*/
                 return NULL;
         }
 
@@ -865,7 +865,7 @@ SaHpiRdrT *oh_get_rdr_by_type(RPTable *table, SaHpiResourceIdT rid,
         rdr_uid = oh_get_rdr_uid(type, num);
         rdrecord = get_rdrecord_by_id(rptentry, rdr_uid);
         if (!rdrecord) {
-                /*err("Warning: RDR not found. Returning NULL.");*/
+                /*dbg("Warning: RDR not found. Returning NULL.");*/
                 return NULL;
         }
 

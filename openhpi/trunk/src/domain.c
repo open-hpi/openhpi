@@ -495,9 +495,9 @@ SaErrorT oh_create_domain_from_table(GHashTable *table)
         }
 
         if (peer_of && entity_pattern) {
-                err("Warning creating domain %u. Entity pattern will be"
-                    " disregarded since a peer was specified.",
-                    *id);
+                warn("Warning creating domain %u. Entity pattern will be"
+                     " disregarded since a peer was specified.",
+                     *id);
         } else if (!peer_of &&
                    oh_compile_entitypath_pattern(entity_pattern, &epp)) {
                 err("Error creating domain %u. "

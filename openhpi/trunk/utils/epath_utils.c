@@ -465,7 +465,7 @@ SaHpiBoolT oh_cmp_ep(const SaHpiEntityPathT *ep1, const SaHpiEntityPathT *ep2)
         for (i=0; i<j; i++) {
                 if (ep1->Entry[i].EntityType != ep2->Entry[i].EntityType ||
                     ep1->Entry[i].EntityLocation != ep2->Entry[i].EntityLocation) {
-                        /* err("Entity element %d: EP1 {%d,%d} != EP2 {%d,%d}", i, 
+                        /* dbg("Entity element %d: EP1 {%d,%d} != EP2 {%d,%d}", i, 
                             ep1->Entry[i].EntityType,
                             ep1->Entry[i].EntityLocation,
                             ep2->Entry[i].EntityType,

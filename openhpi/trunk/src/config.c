@@ -661,7 +661,7 @@ int oh_load_config (char *filename, struct oh_parsed_config *config)
         while (!done) {
                 guint my_token;
                 my_token = g_scanner_peek_next_token (oh_scanner);
-                /*err("token: %d", my_token);*/
+                /*dbg("token: %d", my_token);*/
                 switch (my_token)
                 {
                 case G_TOKEN_EOF:
