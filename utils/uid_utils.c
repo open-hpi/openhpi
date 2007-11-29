@@ -203,7 +203,7 @@ SaHpiUint32T oh_uid_from_entity_path(SaHpiEntityPathT *ep)
         /* previously assigned uid      */
         ep_xref = (EP_XREF *)g_hash_table_lookup (oh_ep_table, key);
         if (ep_xref) {
-                /*err("Entity Path already assigned uid. Use oh_uid_lookup().");*/
+                /*dbg("Entity Path already assigned uid. Use oh_uid_lookup().");*/
                 uid_unlock(&oh_uid_lock);
                 return ep_xref->resource_id;
         }

@@ -114,16 +114,16 @@ int oh_init(void)
          * all of them failed to load, Then return with an error.
          */
         if (config.handlers_defined > 0 && config.handlers_loaded == 0) {
-                err("Warning: Handlers were defined, but none loaded.");
+                warn("Warning: Handlers were defined, but none loaded.");
         } else if (config.handlers_defined > 0 &&
                    config.handlers_loaded < config.handlers_defined) {
-                err("*Warning*: Not all handlers defined loaded."
-                    " Check previous messages.");
+                warn("*Warning*: Not all handlers defined loaded."
+                     " Check previous messages.");
         }
 
         if (config.domains_defined != config.domains_loaded) {
-                err("*Warning*: Not all domains defined where created."
-                    " Check previous messages.");
+                warn("*Warning*: Not all domains defined where created."
+                     " Check previous messages.");
         }
 
         /* this only does something if the config says to */
@@ -136,9 +136,9 @@ int oh_init(void)
 
         /* Check if there are any handlers loaded */
         if (config.handlers_defined == 0) {
-                err("*Warning*: No handler definitions found in config file."
-                    " Check configuration file %s and previous messages",
-                    config_param.u.conf);
+                warn("*Warning*: No handler definitions found in config file."
+                     " Check configuration file %s and previous messages",
+                     config_param.u.conf);
         }
 
         /*
