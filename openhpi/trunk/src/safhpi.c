@@ -520,7 +520,7 @@ SaErrorT SAHPI_API saHpiGetChildEntityPath (
         SaHpiRptEntryT *rpte = NULL;
         SaHpiBoolT found_match = SAHPI_FALSE;
         SaErrorT error;
-        int i, j = 1;      
+        int i, j;
         
         if (InstanceId == NULL || *InstanceId == SAHPI_LAST_ENTRY ||
             RptUpdateCount == NULL) {
@@ -546,14 +546,13 @@ SaErrorT SAHPI_API saHpiGetChildEntityPath (
         memset(&epp, 0, sizeof(oh_entitypath_pattern));
         epp.epattern[0].etp.is_dot = 1;
         epp.epattern[0].elp.is_dot = 1;
-        for(i = 0; i < SAHPI_MAX_ENTITY_PATH; i++) {
+        for(i = 0, j = 1; i < SAHPI_MAX_ENTITY_PATH; i++) {
                 epp.epattern[j].etp.type =
                         ParentEntityPath.Entry[i].EntityType;
                 epp.epattern[j].elp.location =
                         ParentEntityPath.Entry[i].EntityLocation;
                 j++;
         }
-        epp.epattern[j].etp.type = SAHPI_ENT_ROOT;
         
         /* Find a matching child */
         for (rpte = oh_get_resource_by_id(&d->rpt, *InstanceId);
