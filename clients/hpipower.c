@@ -194,8 +194,7 @@ int main(int argc, char **argv)
                 // Blades will have the first Element of the Entity Path set to SBC_BLADE
                 EntityElement = 0;
                 HPI_POWER_DEBUG_PRINT(".");
-                if (Report.ResourceEntity.Entry[EntityElement].EntityType ==
-                    SAHPI_ENT_SBC_BLADE)
+                if (Report.ResourceCapabilities & SAHPI_CAPABILITY_POWER)
                 {
                         HPI_POWER_DEBUG_PRINT("#");
                         // We have found a Blade
@@ -301,6 +300,11 @@ int main(int argc, char **argv)
                 HPI_POWER_DEBUG_PRINT("5.0 Executing the command\n\r");
                 // obtain the information for this computer
                 ComputerPtr = g_slist_nth_data(ComputerListHead, SelectedSystem);
+                if (ComputerPtr == NULL)
+                {
+                        printf("Error: Selected system %d was not found.\n", SelectedSystem);
+                        return -1;
+                }
 
                 if (Action <= SAHPI_POWER_CYCLE)
                 {
