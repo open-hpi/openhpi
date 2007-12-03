@@ -233,7 +233,11 @@ static int process_hpi_event(struct oh_domain *d, struct oh_event *e)
         /* multiplex event to the appropriate sessions */
         for (i = 0; i < sessions->len; i++) {
                 SaHpiBoolT is_subscribed = SAHPI_FALSE;
+#if defined(__sparc) || defined(__sparc__)
+                sid = ((SaHpiSessionIdT *)((void *)(sessions->data)))[i];
+#else
                 sid = g_array_index(sessions, SaHpiSessionIdT, i);
+#endif
                 oh_get_session_subscription(sid, &is_subscribed);
                 if (is_subscribed) {
                         oh_queue_session_event(sid, e);
@@ -407,7 +411,11 @@ SaErrorT oh_process_events()
                                  * the event's entity path.
                                  */
                                 oh_domain_result dr =
+#if defined(__sparc) || defined(__sparc__)
+                                        ((oh_domain_result *)((void *)(domain_results->data)))[i];
+#else
                                         g_array_index(domain_results, oh_domain_result, i);
+#endif
                                 /* Skip default domain here. Will be processed there later. */
                                 if (dr.id == OH_DEFAULT_DOMAIN_ID) continue;
 

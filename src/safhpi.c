@@ -5264,7 +5264,11 @@ SaErrorT SAHPI_API saHpiAutoInsertTimeoutSet(
                         int found_hid = 0;
                         /* Store id if we don't have it in the list already */
                         for (i = 0; i < hids->len; i++) {
+#if defined(__sparc) || defined(__sparc__)
+                                if (((guint *)((void *)(hids->data)))[i] == *hidp) {
+#else
                                 if (g_array_index(hids, guint, i) == *hidp) {
+#endif
                                         found_hid = 1;
                                         break;
                                 }
@@ -5279,7 +5283,11 @@ SaErrorT SAHPI_API saHpiAutoInsertTimeoutSet(
         /* 2. Use list to push down autoInsertTimeoutSet() to those handlers.
          */
         for (i = 0; i < hids->len; i++) {
+#if defined(__sparc) || defined(__sparc__)
+                guint hid = ((guint *)((void *)(hids->data)))[i];
+#else
                 guint hid = g_array_index(hids, guint, i);
+#endif
                 struct oh_handler *h = oh_get_handler(hid);
                 if (!h || !h->hnd) {
                         err("No such handler %u", hid);
