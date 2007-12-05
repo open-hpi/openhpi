@@ -3,7 +3,7 @@ MOSTLYCLEANFILES     = @TEST_CLEAN@
 
 INCLUDES             = @OPENHPI_INCLUDES@
 
-EXTRA_DIST	     = oh_client.h
+EXTRA_DIST	     = oh_clients.h
 
 COMMONLIBS 	     = @STATIC_PLUGIN_LIBS@ @STATIC_PLUGIN_EXTRA_LIBS@
 
