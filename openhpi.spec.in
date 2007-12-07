@@ -177,7 +177,7 @@ information via Remote Insight Board Command Language (RIBCL).
 ./configure @ac_configure_args@ --sysconfdir=/etc --prefix=/usr --libdir=/usr/lib --with-varpath=/var/lib/%{name}
 %endif
 %{__make}
-make -C docs/hld publish-local
+make -C docs/hld
 
 ###################################################
 %install
@@ -194,10 +194,10 @@ make DESTDIR=%{buildroot} install
 %defattr(-,root,root)
 %{_docdir}/README*
 %{_docdir}/COPYING
-%{_docdir}/*.html
-%dir %{_docdir}/images
-%{_docdir}/images/*.png
-%{_docdir}/images/*.gif
+%{_docdir}/html/*.html
+%dir %{_docdir}/html/images
+%{_docdir}/html/images/*.png
+%{_docdir}/html/images/*.gif
 #%doc README README.daemon COPYING
 #%doc docs/hld/openhpi-manual
 %dir %{_sysconfdir}/%{name}/
