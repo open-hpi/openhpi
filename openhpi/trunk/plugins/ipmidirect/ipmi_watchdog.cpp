@@ -55,7 +55,7 @@ cIpmiWatchdog::CreateRdr( SaHpiRptEntryT &resource, SaHpiRdrT &rdr )
  *               - added 10/10/2006 ARCress
  * 
  */
-const SaHpiWatchdogPretimerInterruptT
+SaHpiWatchdogPretimerInterruptT
 WDPI2Hpi(unsigned char b)
 {
    switch(b) {
@@ -67,7 +67,7 @@ WDPI2Hpi(unsigned char b)
    }
 }
 
-const SaHpiWatchdogTimerUseT
+SaHpiWatchdogTimerUseT
 WDTimerUse2Hpi(unsigned char b)
 {
    switch(b) {
@@ -81,7 +81,7 @@ WDTimerUse2Hpi(unsigned char b)
    }
 }
 
-const SaHpiWatchdogActionT
+SaHpiWatchdogActionT
 WDAction2Hpi(unsigned char b)
 {
    switch(b) {
