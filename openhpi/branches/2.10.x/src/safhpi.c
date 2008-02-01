@@ -2624,6 +2624,7 @@ SaErrorT SAHPI_API saHpiControlSet (
         	     CtrlState->StateUnion.Digital == SAHPI_CTRL_STATE_PULSE_ON) ||
         	    ((cur_state.StateUnion.Digital == SAHPI_CTRL_STATE_PULSE_OFF || cur_state.StateUnion.Digital == SAHPI_CTRL_STATE_OFF) &&
         	     CtrlState->StateUnion.Digital == SAHPI_CTRL_STATE_PULSE_OFF)) {
+        		oh_release_handler(h);
 			return SA_ERR_HPI_INVALID_REQUEST;
         	}
 		
