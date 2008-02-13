@@ -1110,7 +1110,11 @@ static SaErrorT oh_build_resourceinfo(oh_big_textbuffer *buffer, const SaHpiReso
                 memset(empty_guid, 0, sizeof(SaHpiGuidT));
 
                 if (memcmp(empty_guid, ResourceInfo->Guid, sizeof(SaHpiGuidT))) {
+#if defined(__sun) && defined(__SVR4)
+                        uuid_unparse((unsigned char *)ResourceInfo->Guid, tempstr);
+#else
                         uuid_unparse(ResourceInfo->Guid, tempstr);
+#endif
                         oh_append_offset(&working, offsets);
                         snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "GUID: %s\n",
                                         tempstr);
