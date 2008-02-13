@@ -545,6 +545,13 @@ if test -n "`gcc --version | grep ' 3.2'`" ; then
         CXX_WARNINGS=`echo $CC_WARNINGS | sed -e 's/-Wno-strict-aliasing//g'`
 fi
 
+case $host_os in
+    solaris*)
+        CC_WARNINGS=`echo $CC_WARNINGS | sed -e 's/-Wcast-qual//g'`
+        CXX_WARNINGS=`echo $CXX_WARNINGS | sed -e 's/-Wwrite-strings//g'`
+        ;;
+esac
+
 dnl remerge the warnings into the FLAGS
 CXXFLAGS="$CFLAGS $CXX_WARNINGS"
 CFLAGS="$CFLAGS $CC_WARNINGS"
