@@ -38,6 +38,7 @@
 #include "ilo2_ribcl.h"
 
 #define RIBCL_SUCCESS 0
+#define RIBCL_UNSUPPORTED 1	/* Unsupported RIBCL command */
 
 extern int ir_xml_parse_status( char *, char *);
 extern int ir_xml_parse_emhealth( ilo2_ribcl_handler_t *, char *);
@@ -45,6 +46,9 @@ extern int ir_xml_parse_hostdata( ilo2_ribcl_handler_t *, char *);
 extern int ir_xml_parse_host_power_status(char *, int *, char *);
 extern int ir_xml_parse_reset_server(char *, char *);
 extern int ir_xml_parse_set_host_power(char *, char *);
+extern int ir_xml_parse_uid_status(char *, int *, char *);
+extern int ir_xml_parse_power_saver_status(char *, int *, char *);
+extern int ir_xml_parse_auto_power_status(char *, int *, char *);
 extern int ir_xml_parse_discoveryinfo( ilo2_ribcl_handler_t *, char *);
 extern void ir_xml_free_cmdbufs( ilo2_ribcl_handler_t *);
 extern int ir_xml_build_cmdbufs( ilo2_ribcl_handler_t *);

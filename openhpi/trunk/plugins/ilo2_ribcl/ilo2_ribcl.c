@@ -43,6 +43,7 @@
 #include <ilo2_ribcl_ssl.h>
 #include <ilo2_ribcl_xml.h>
 #include <ilo2_ribcl_discover.h>
+#include <ilo2_ribcl_sensor.h>
 
 static SaHpiEntityPathT g_epbase; /* root entity path (from config) */
 
@@ -263,6 +264,9 @@ void *ilo2_ribcl_open(GHashTable *handler_config,
 		free(oh_handler);
 		return(NULL);
 	}
+
+	/* Initialize sensor data */
+	ilo2_ribcl_init_sensor_data( ilo2_ribcl_handler);
 
 	return((void *)oh_handler);
 }

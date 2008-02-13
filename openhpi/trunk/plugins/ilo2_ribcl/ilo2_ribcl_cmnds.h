@@ -54,23 +54,24 @@
  * ilo2_ribcl_xml.c.
  */
 
-#define IR_NUM_COMMANDS	5
+#define IR_NUM_COMMANDS	22
 
 /*
  * GET_SERVER_DATA command.
- * This is a combination of the RIBCL GET_HOST_DATA and GET_EMBEDDED_HEALTH
- * commands. These two commands are sent in one single transation to get
+ * This is a combination of the RIBCL GET_HOST_DATA, GET_EMBEDDED_HEALTH,
+ * and GET_FW_VERSION commands.
+ * These three commands are sent in one single transation to get
  * complete server information including fans, temp sensors, cpus, dimms,
  * power supplies, VRMs, and I/O slots. The following define combines and
- * embedds the GET_HOST_DATA and GET_EMBEDDED_HEALTH commands within a single
- * LOGIN block.
+ * embedds the GET_HOST_DATA, GET_EMBEDDED_HEALTH and GET_FW_VERSION commands
+ * within a single LOGIN block.
  */
 #define IR_CMD_GET_SERVER_DATA 0
-#define ILO2_RIBCL_GET_SERVER_DATA	"<LOCFG version=\"2.21\"/> <RIBCL version=\"2.22\"> <LOGIN USER_LOGIN=\"%s\" PASSWORD=\"%s\"> <SERVER_INFO MODE=\"READ\" > <GET_HOST_DATA /> <GET_EMBEDDED_HEALTH /> </SERVER_INFO> </LOGIN> </RIBCL>\r\n"
+#define ILO2_RIBCL_GET_SERVER_DATA	"<LOCFG version=\"2.21\"/> <RIBCL version=\"2.22\"> <LOGIN USER_LOGIN=\"%s\" PASSWORD=\"%s\"> <SERVER_INFO MODE=\"READ\" > <GET_HOST_DATA /> <GET_EMBEDDED_HEALTH /> </SERVER_INFO> <RIB_INFO MODE=\"read\"> <GET_FW_VERSION/> </RIB_INFO> </LOGIN> </RIBCL>\r\n"
 
 /*
  * GET_HOST_POWER_STATUS command
- */
+*/
 #define IR_CMD_GET_HOST_POWER_STATUS 1
 #define ILO2_RIBCL_GET_HOST_POWER_STATUS	"<LOCFG version=\"2.21\"/> <RIBCL VERSION=\"2.0\"> <LOGIN USER_LOGIN=\"%s\" PASSWORD=\"%s\"> <SERVER_INFO MODE=\"read\"> <GET_HOST_POWER_STATUS/> </SERVER_INFO> </LOGIN> </RIBCL>\r\n"
 
@@ -85,9 +86,81 @@
 
 /*
  * RESET_SERVER command
- */
+*/
 #define IR_CMD_RESET_SERVER 4
 #define ILO2_RIBCL_RESET_SERVER		"<LOCFG version=\"2.21\"/> <RIBCL VERSION=\"2.0\"> <LOGIN USER_LOGIN=\"%s\" PASSWORD=\"%s\"> <SERVER_INFO MODE=\"write\"> <RESET_SERVER/> </SERVER_INFO> </LOGIN> </RIBCL>\r\n"
 
+/*
+ * COLD_BOOT_SERVER command
+*/
+#define IR_CMD_COLD_BOOT_SERVER 5
+#define ILO2_RIBCL_COLD_BOOT_SERVER		"<LOCFG version=\"2.21\"/> <RIBCL VERSION=\"2.0\"> <LOGIN USER_LOGIN=\"%s\" PASSWORD=\"%s\"> <SERVER_INFO MODE=\"write\"> <COLD_BOOT_SERVER/> </SERVER_INFO> </LOGIN> </RIBCL>\r\n"
+
+/*
+ * GET_UID_STATUS command
+*/
+#define IR_CMD_GET_UID_STATUS 6
+#define ILO2_RIBCL_GET_UID_STATUS		"<LOCFG version=\"2.21\"/> <RIBCL VERSION=\"2.0\"> <LOGIN USER_LOGIN=\"%s\" PASSWORD=\"%s\"> <SERVER_INFO MODE=\"read\"> <GET_UID_STATUS/> </SERVER_INFO> </LOGIN> </RIBCL>\r\n"
+
+/*
+ * UID_CONTROL commands	
+*/
+#define IR_CMD_UID_CONTROL_OFF 7
+#define ILO2_RIBCL_UID_CONTROL_OFF		"<LOCFG version=\"2.21\"/> <RIBCL VERSION=\"2.0\"> <LOGIN USER_LOGIN=\"%s\" PASSWORD=\"%s\"> <SERVER_INFO MODE=\"write\"> <UID_CONTROL UID=\"No\"/> </SERVER_INFO> </LOGIN> </RIBCL>\r\n"
+
+#define IR_CMD_UID_CONTROL_ON 8
+#define ILO2_RIBCL_UID_CONTROL_ON		"<LOCFG version=\"2.21\"/> <RIBCL VERSION=\"2.0\"> <LOGIN USER_LOGIN=\"%s\" PASSWORD=\"%s\"> <SERVER_INFO MODE=\"write\"> <UID_CONTROL UID=\"Yes\"/> </SERVER_INFO> </LOGIN> </RIBCL>\r\n"
+
+/*
+ * GET_HOST_POWER_SAVER_STATUS command
+*/
+#define IR_CMD_GET_HOST_POWER_SAVER_STATUS 9
+#define ILO2_RIBCL_GET_HOST_POWER_SAVER_STATUS		"<LOCFG version=\"2.21\"/> <RIBCL VERSION=\"2.0\"> <LOGIN USER_LOGIN=\"%s\" PASSWORD=\"%s\"> <SERVER_INFO MODE=\"read\"> <GET_HOST_POWER_SAVER_STATUS/> </SERVER_INFO> </LOGIN> </RIBCL>\r\n"
+
+/*
+ * SET_HOST_POWER_SAVER commands
+*/
+#define IR_CMD_SET_HOST_POWER_SAVER_1 10
+#define ILO2_RIBCL_SET_HOST_POWER_SAVER_1		"<LOCFG version=\"2.21\"/> <RIBCL VERSION=\"2.0\"> <LOGIN USER_LOGIN=\"%s\" PASSWORD=\"%s\"> <SERVER_INFO MODE=\"write\"> <SET_HOST_POWER_SAVER HOST_POWER_SAVER=\"1\"/> </SERVER_INFO> </LOGIN> </RIBCL>\r\n"
+
+#define IR_CMD_SET_HOST_POWER_SAVER_2 11
+#define ILO2_RIBCL_SET_HOST_POWER_SAVER_2		"<LOCFG version=\"2.21\"/> <RIBCL VERSION=\"2.0\"> <LOGIN USER_LOGIN=\"%s\" PASSWORD=\"%s\"> <SERVER_INFO MODE=\"write\"> <SET_HOST_POWER_SAVER HOST_POWER_SAVER=\"2\"/> </SERVER_INFO> </LOGIN> </RIBCL>\r\n"
+
+#define IR_CMD_SET_HOST_POWER_SAVER_3 12
+#define ILO2_RIBCL_SET_HOST_POWER_SAVER_3		"<LOCFG version=\"2.21\"/> <RIBCL VERSION=\"2.0\"> <LOGIN USER_LOGIN=\"%s\" PASSWORD=\"%s\"> <SERVER_INFO MODE=\"write\"> <SET_HOST_POWER_SAVER HOST_POWER_SAVER=\"3\"/> </SERVER_INFO> </LOGIN> </RIBCL>\r\n"
+
+#define IR_CMD_SET_HOST_POWER_SAVER_4 13
+#define ILO2_RIBCL_SET_HOST_POWER_SAVER_4		"<LOCFG version=\"2.21\"/> <RIBCL VERSION=\"2.0\"> <LOGIN USER_LOGIN=\"%s\" PASSWORD=\"%s\"> <SERVER_INFO MODE=\"write\"> <SET_HOST_POWER_SAVER HOST_POWER_SAVER=\"4\"/> </SERVER_INFO> </LOGIN> </RIBCL>\r\n"
+
+#define IR_CMD_GET_SERVER_AUTO_PWR 14
+#define ILO2_RIBCL_GET_SERVER_AUTO_PWR		"<LOCFG version=\"2.21\"/> <RIBCL VERSION=\"2.0\"> <LOGIN USER_LOGIN=\"%s\" PASSWORD=\"%s\"> <SERVER_INFO MODE=\"read\"> <GET_SERVER_AUTO_PWR/> </SERVER_INFO> </LOGIN> </RIBCL>\r\n"
+
+/* Enable automatic power on with a minimum delay. */
+#define IR_CMD_SERVER_AUTO_PWR_YES 15
+#define ILO2_RIBCL_SERVER_AUTO_PWR_YES		"<LOCFG version=\"2.21\"/> <RIBCL VERSION=\"2.0\"> <LOGIN USER_LOGIN=\"%s\" PASSWORD=\"%s\"> <SERVER_INFO MODE=\"write\"> <SERVER_AUTO_PWR VALUE=\"Yes\"/> </SERVER_INFO> </LOGIN> </RIBCL>\r\n"
+
+/*  Disable automatic power on. */
+#define IR_CMD_SERVER_AUTO_PWR_NO 16
+#define ILO2_RIBCL_SERVER_AUTO_PWR_NO		"<LOCFG version=\"2.21\"/> <RIBCL VERSION=\"2.0\"> <LOGIN USER_LOGIN=\"%s\" PASSWORD=\"%s\"> <SERVER_INFO MODE=\"write\"> <SERVER_AUTO_PWR VALUE=\"No\"/> </SERVER_INFO> </LOGIN> </RIBCL>\r\n"
+
+/* Enable automatic power on with 15 seconds delay. */
+#define IR_CMD_SERVER_AUTO_PWR_15 17
+#define ILO2_RIBCL_SERVER_AUTO_PWR_15		"<LOCFG version=\"2.21\"/> <RIBCL VERSION=\"2.0\"> <LOGIN USER_LOGIN=\"%s\" PASSWORD=\"%s\"> <SERVER_INFO MODE=\"write\"> <SERVER_AUTO_PWR VALUE=\"15\"/> </SERVER_INFO> </LOGIN> </RIBCL>\r\n"
+
+/* Enable automatic power on with 30 seconds delay. */
+#define IR_CMD_SERVER_AUTO_PWR_30 18
+#define ILO2_RIBCL_SERVER_AUTO_PWR_30		"<LOCFG version=\"2.21\"/> <RIBCL VERSION=\"2.0\"> <LOGIN USER_LOGIN=\"%s\" PASSWORD=\"%s\"> <SERVER_INFO MODE=\"write\"> <SERVER_AUTO_PWR VALUE=\"30\"/> </SERVER_INFO> </LOGIN> </RIBCL>\r\n"
+
+/* Enable automatic power on with 45 seconds delay. */
+#define IR_CMD_SERVER_AUTO_PWR_45 19
+#define ILO2_RIBCL_SERVER_AUTO_PWR_45		"<LOCFG version=\"2.21\"/> <RIBCL VERSION=\"2.0\"> <LOGIN USER_LOGIN=\"%s\" PASSWORD=\"%s\"> <SERVER_INFO MODE=\"write\"> <SERVER_AUTO_PWR VALUE=\"45\"/> </SERVER_INFO> </LOGIN> </RIBCL>\r\n"
+
+/* Enable automatic power on with 60 seconds delay. */
+#define IR_CMD_SERVER_AUTO_PWR_60 20
+#define ILO2_RIBCL_SERVER_AUTO_PWR_60		"<LOCFG version=\"2.21\"/> <RIBCL VERSION=\"2.0\"> <LOGIN USER_LOGIN=\"%s\" PASSWORD=\"%s\"> <SERVER_INFO MODE=\"write\"> <SERVER_AUTO_PWR VALUE=\"60\"/> </SERVER_INFO> </LOGIN> </RIBCL>\r\n"
+
+/* Enable automatic power on with random delay up to 60 seconds. */
+#define IR_CMD_SERVER_AUTO_PWR_RANDOM 21
+#define ILO2_RIBCL_SERVER_AUTO_PWR_RANDOM		"<LOCFG version=\"2.21\"/> <RIBCL VERSION=\"2.0\"> <LOGIN USER_LOGIN=\"%s\" PASSWORD=\"%s\"> <SERVER_INFO MODE=\"write\"> <SERVER_AUTO_PWR VALUE=\"Random\"/> </SERVER_INFO> </LOGIN> </RIBCL>\r\n"
 
 #endif /*_INC_ILO2_RIBCL_CMNDS_H_*/

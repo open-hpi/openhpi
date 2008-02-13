@@ -32,28 +32,12 @@
  *     Shuah Khan <shuah.khan@hp.com>
  *     Richard White <richard.white@hp.com>
  */
-#ifndef _INC_ILO2_RIBCL_DISCOVER_H_
-#define _INC_ILO2_RIBCL_DISCOVER_H_
+#ifndef _INC_ILO2_RIBCL_SENSOR_H_
+#define _INC_ILO2_RIBCL_SENSOR_H_
 
-extern void ilo2_ribcl_free_discoverydata( ilo2_ribcl_handler_t *);
 
-/* The size used for the temporary buffer to contain the response
- * of the IR_CMD_GET_SERVER_DATA command. The current return size is
- * a little over 12K, so we use 24K to give us some margin for the
- * future.
- */
-#define ILO2_RIBCL_DISCOVER_RESP_MAX 1024*24
+/* Other support functions exported by ilo2_ribcl_sensor.c */
+extern void ilo2_ribcl_process_sensors( struct oh_handler_state *);
+extern void ilo2_ribcl_init_sensor_data( ilo2_ribcl_handler_t *);
 
-/* This define is the IANA-assigned private enterprise number for 
-   Hewlett-Packard. A complete list of IANA numbers can be found at
-   http://www.iana.org/assignments/enterprise-numbers
-*/
-#define HP_MANUFACTURING_ID 11
-
-/* Prototypes for functions within ilo2_ribcl_discovery.c that can be
- * called from within other modules */
-
-extern void ilo2_ribcl_add_resource_capability( struct oh_handler_state *,
-        struct oh_event *, SaHpiCapabilitiesT); 
-
-#endif /* _INC_ILO2_RIBCL_DISCOVER_H_ */
+#endif /* _INC_ILO2_RIBCL_SENSOR_H_ */

@@ -37,6 +37,8 @@
 #include <ilo2_ribcl_discover.h>
 #include <ilo2_ribcl_ssl.h>
 #include <ilo2_ribcl_xml.h>
+#include <ilo2_ribcl_sensor.h>
+#include <ilo2_ribcl_idr.h>
 
 #ifdef ILO2_RIBCL_SIMULATE_iLO2_RESPONSE
 #include <sys/stat.h>   /* For test routine ilo2_ribcl_getfile() */
@@ -59,12 +61,22 @@ static SaErrorT ilo2_ribcl_discover_vrm( struct oh_handler_state *,
 static SaErrorT ilo2_ribcl_discover_fans( struct oh_handler_state *,
 	SaHpiEntityPathT *);
 static SaErrorT ilo2_ribcl_discovered_fru( struct oh_handler_state *,
-	SaHpiEntityPathT *, enum ir_discoverstate *, int, char *);
+	SaHpiEntityPathT *, enum ir_discoverstate *, int, char *,
+	struct ilo2_ribcl_idr_info *);
 static SaErrorT ilo2_ribcl_resource_set_failstatus( struct oh_handler_state *,
 	 SaHpiEntityPathT *, SaHpiBoolT);
 static SaErrorT ilo2_ribcl_undiscovered_fru( struct oh_handler_state *,
 	SaHpiEntityPathT *, enum ir_discoverstate *, int, char *);
 static void ilo2_ribcl_clear_discoveryflags( ilo2_ribcl_handler_t *);
+static SaErrorT ilo2_ribcl_controls(struct oh_handler_state *, int,
+	struct oh_event *, char *);
+static SaErrorT ilo2_ribcl_add_severity_sensor( struct oh_handler_state *,
+	struct oh_event *, int, SaHpiSensorTypeT, SaHpiEventStateT,
+	struct ilo2_ribcl_sensinfo *, char *);
+static void ilo2_ribcl_discover_chassis_sensors( struct oh_handler_state *, 
+	struct oh_event *);
+void ilo2_ribcl_add_resource_capability( struct oh_handler_state *, 
+	struct oh_event *, SaHpiCapabilitiesT);
 
 #ifdef ILO2_RIBCL_SIMULATE_iLO2_RESPONSE
 static int ilo2_ribcl_getfile( char *, char *, int);
@@ -162,6 +174,13 @@ SaErrorT ilo2_ribcl_discover_resources(void *handler)
 			return( ret);
 		}
 		ilo2_ribcl_handler->first_discovery_done = 1;
+
+	} else {
+		/* Even though the chassis itself is not an FRU, its
+		 * firmware can be updated, which can change its inventory
+		 * data. So, check for inventory updates. */
+
+		ilo2_ribcl_update_chassis_idr( oh_handler, &ep_root);
 	}
 
 	ret = ilo2_ribcl_discover_cpu( oh_handler, &ep_root);
@@ -193,6 +212,12 @@ SaErrorT ilo2_ribcl_discover_resources(void *handler)
 		err("ilo2_ribcl_discover_resources(): fan discovery failed.");
 		return( ret);
 	}
+
+	/* Since we do not have a polling thread for sensors (yet), we process
+	 * any changed sensor values as part of a discovery operation, since
+	 * the openhpid should be regularly calling us.
+	 */
+	ilo2_ribcl_process_sensors( oh_handler);
 
 	return(SA_OK);
 }
@@ -381,7 +406,8 @@ void ilo2_ribcl_clear_discoveryflags( ilo2_ribcl_handler_t *ir_handler){
  *	SA_ERR_HPI_OUT_OF_MEMORY if allocation fails
  *
  **/
-static SaErrorT ilo2_ribcl_discover_chassis( struct oh_handler_state *oh_handler, 
+static SaErrorT ilo2_ribcl_discover_chassis(
+				struct oh_handler_state *oh_handler, 
 				SaHpiEntityPathT *ep_root)
 {
 	struct oh_event *ev = NULL;
@@ -393,21 +419,43 @@ static SaErrorT ilo2_ribcl_discover_chassis( struct oh_handler_state *oh_handler
 
         ir_handler = (ilo2_ribcl_handler_t *) oh_handler->data;
 
-	/* We build the tag from the product name, serial number, and
-	 * EntityLocation. Add 6 additional bytes for "  SN  " notation */
+	if( (ir_handler->DiscoveryData.product_name) &&
+	    (ir_handler->DiscoveryData.serial_number) ){
 
-	tagsize = strlen( ir_handler->DiscoveryData.product_name) +
-		strlen( ir_handler->DiscoveryData.serial_number) +
-		OH_MAX_LOCATION_DIGITS + 6;
-	tmptag = malloc( tagsize);
-	if( tmptag == NULL){
-		err("ilo2_ribcl_discover_chassis(): tag message allocation failed.");
-		return( SA_ERR_HPI_OUT_OF_MEMORY);
-	}
-	snprintf( tmptag, tagsize, "%s SN:%s %d",
-		ir_handler->DiscoveryData.product_name,
-		ir_handler->DiscoveryData.serial_number,   
+		/* We build the tag from the product name, serial number, and
+	 	 * EntityLocation. Add 6 additional bytes for " SN: " notation
+		 */
+
+		tagsize = strlen( ir_handler->DiscoveryData.product_name) +
+			strlen( ir_handler->DiscoveryData.serial_number) +
+			OH_MAX_LOCATION_DIGITS + 8;
+		tmptag = malloc( tagsize);
+		if( tmptag == NULL){
+			err("ilo2_ribcl_discover_chassis(): tag message allocation failed.");
+			return( SA_ERR_HPI_OUT_OF_MEMORY);
+		}
+		snprintf( tmptag, tagsize, "%s SN:%s (%2d)",
+			ir_handler->DiscoveryData.product_name,
+			ir_handler->DiscoveryData.serial_number,   
+			ep_root->Entry[0].EntityLocation);
+	
+	} else {
+		/* If we didn't get a product name and a serial number,
+		 * use the default of "HP Rackmount Server".
+		 */
+		tagsize = OH_MAX_LOCATION_DIGITS + 19 + 3;
+		/* String plus " ()" */ 
+		
+		tmptag = malloc( tagsize);
+		if( tmptag == NULL){
+			err("ilo2_ribcl_discover_chassis(): tag message allocation failed.");
+			return( SA_ERR_HPI_OUT_OF_MEMORY);
+		}
+
+		snprintf( tmptag, tagsize, "%s (%2d)",
+		"HP Rackmount Server",
 		ep_root->Entry[0].EntityLocation);
+	}
 
 	/* Create a resource event for the box itself */
 	ev = oh_new_event();
@@ -424,16 +472,19 @@ static SaErrorT ilo2_ribcl_discover_chassis( struct oh_handler_state *oh_handler
 	ev->resource.ResourceId =
 		oh_uid_from_entity_path(&(ev->resource.ResourceEntity));
 	ev->resource.ResourceInfo.ManufacturerId = HP_MANUFACTURING_ID;
+	ev->resource.ResourceInfo.FirmwareMajorRev = 
+		ir_handler->DiscoveryData.fwdata.FirmwareMajorRev;
+	ev->resource.ResourceInfo.FirmwareMinorRev = 
+		ir_handler->DiscoveryData.fwdata.FirmwareMinorRev;
 	ev->resource.ResourceCapabilities = 
 		(SAHPI_CAPABILITY_RESOURCE | SAHPI_CAPABILITY_RESET 
-			| SAHPI_CAPABILITY_POWER); 
+			| SAHPI_CAPABILITY_POWER | SAHPI_CAPABILITY_RDR); 
 	ev->resource.HotSwapCapabilities = ILO2_RIBCL_MANAGED_HOTSWAP_CAP_FALSE;
 	ev->resource.ResourceSeverity = SAHPI_CRITICAL;
 	ev->resource.ResourceFailed = SAHPI_FALSE;
 
 	oh_init_textbuffer(&(ev->resource.ResourceTag));
 	oh_append_textbuffer( &(ev->resource.ResourceTag), tmptag);
-	free( tmptag);
 
 	/* Allocate and populate iLO2 RIBCL private data area to be added
 	   to the resource rpt cache */
@@ -442,6 +493,7 @@ static SaErrorT ilo2_ribcl_discover_chassis( struct oh_handler_state *oh_handler
 	if(res_info == NULL) {
 		err("ilo2_ribcl_discover_chassis(): out of memory");
 		oh_event_free( ev, 0);
+		free( tmptag);
 		return( SA_ERR_HPI_OUT_OF_MEMORY);
 	}
 	res_info->rid = ev->resource.ResourceId;
@@ -450,15 +502,72 @@ static SaErrorT ilo2_ribcl_discover_chassis( struct oh_handler_state *oh_handler
 	   SAHPI_CAPABILITY_FRU is not set for this resource. */
 	res_info->fru_cur_state = SAHPI_HS_STATE_ACTIVE;
 	res_info->disc_data_idx = ILO2_RIBCL_CHASSIS_INDEX;
-	 
+	res_info->power_cur_state = ILO2_RIBCL_POWER_STATUS_UNKNOWN;
+	
 	/* Add the resource to this instance's rpt cache */
 	ret = oh_add_resource( oh_handler->rptcache, &(ev->resource),
 			res_info, 0);
 	if( ret != SA_OK){
 		err("ilo2_ribcl_discover_chassis(): cannot add resource to rptcache.");
 		oh_event_free( ev, 0);
+		free( tmptag);
 		return( ret);
 	}
+
+	/*
+	 * Add control RDRs. ProLiant Rack Mounts have allow Unit ID (UID) 
+	 * Light on the server to be turned off or on. There are power 
+	 * saver, and Server Auto Power controls avalable as well. Add one
+	 * RDR each for UID, Power Saver conrol, and Auto Power Control.
+	*/
+	if(ilo2_ribcl_controls(oh_handler, ILO2_RIBCL_CTL_UID, ev,
+		"Unit Identification Light (UID) Values: On(1)/Off(0)") == SA_OK) {
+		/* UID control RDR has beeen added successfully. Set RDR
+		   and CONTROL capability flags. Please note that failing
+		   to add control rdr is not treated as a critical error
+		   that requires to fail plug-in initilization */
+
+		ilo2_ribcl_add_resource_capability( oh_handler, ev,
+			     (SAHPI_CAPABILITY_RDR | SAHPI_CAPABILITY_CONTROL));
+		
+	} else {
+		err("iLO2 RIBCL: Failed to setup UID Control RDR. Plug-in will run without this control feature");
+	}
+
+	if(ilo2_ribcl_controls(oh_handler, ILO2_RIBCL_CTL_POWER_SAVER, ev,
+		"Power Regulator Control Power Modes: Disabled(1)/Low(2)/DynamicSavings(3)/High(4)") == SA_OK) {
+		/* Power Saver control RDR has beeen added successfully.
+		   Set RDR and CONTROL capability flags. Please note that
+		   failing to add control rdr is not treated as a critical
+		   error that requires to fail plug-in initilization */
+
+		ilo2_ribcl_add_resource_capability( oh_handler, ev,
+			     (SAHPI_CAPABILITY_RDR | SAHPI_CAPABILITY_CONTROL));
+		
+	} else {
+		err("iLO2 RIBCL: Failed to setup Power Saver Control RDR. Plug-in will run without this control feature");
+	}
+
+	if(ilo2_ribcl_controls(oh_handler, ILO2_RIBCL_CTL_AUTO_POWER, ev,
+		"Auto Power Control Delay:Min.(1)/Disabled(2)/random (3)/15 sec (15)/30 sec (30)/45 sec(45)/60 sec(60)") == SA_OK) {
+		/* Auto Power control RDR has beeen added successfully.
+		   Set RDR and CONTROL capability flags. Please note that
+		   failing to add control rdr is not treated as a critical
+		   error that requires to fail plug-in initilization */
+
+		ilo2_ribcl_add_resource_capability( oh_handler, ev,
+			     (SAHPI_CAPABILITY_RDR | SAHPI_CAPABILITY_CONTROL));
+		
+	} else {
+		err("iLO2 RIBCL: Failed to setup Auto Power Control RDR. Plug-in will run without this control feature");
+	}
+
+	/* Add sensor RDRs. We use three general system health sensors. */
+	ilo2_ribcl_discover_chassis_sensors( oh_handler, ev); 
+
+	/* Add an inventory RDR */
+	ilo2_ribcl_discover_chassis_idr( oh_handler, ev, tmptag);
+	free( tmptag);
 
 	/* Now, fill out the rest of the event structure and push it
 	 * onto the event queue. */
@@ -476,8 +585,6 @@ static SaErrorT ilo2_ribcl_discover_chassis( struct oh_handler_state *oh_handler
 	return( SA_OK);
 
 } /* end ilo2_ribcl_discover_chassis() */
-
-
 
 /**
  * ilo2_ribcl_discover_cpu
@@ -538,8 +645,24 @@ static SaErrorT ilo2_ribcl_discover_cpu( struct oh_handler_state *oh_handler,
 
 		if( cpudata->cpuflags & IR_DISCOVERED ){
 
+			/* Build the cpu IDR from DiscoveryData. 
+			 * Use the temporary ilo2_ribcl_idr_info structure in
+			 * our private handler to collect the IDR information.
+			 * We use this buffer in the handler because it's too
+			 * large to put on the stack as a local valiable, and
+			 * we don't want to be allocating/deallocating it
+			 * frequently. */
+
+			ilo2_ribcl_build_cpu_idr( ir_handler, 
+						     &(ir_handler->tmp_idr));
+
 			ret = ilo2_ribcl_discovered_fru( oh_handler, &cpu_ep,
-				&(cpudata->dstate), 0, cpudata->label);
+					&(cpudata->dstate), 0, cpudata->label,
+					&(ir_handler->tmp_idr));
+
+			/* Update the IDR data if it has changed */
+			ilo2_ribcl_update_fru_idr( oh_handler, &cpu_ep,
+							&(ir_handler->tmp_idr));
 
 		} else { /* We didn't find it on the last iLO2 poll */
 
@@ -619,8 +742,24 @@ static SaErrorT ilo2_ribcl_discover_memory( struct oh_handler_state *oh_handler,
 
 		if( memdata->memflags & IR_DISCOVERED ){
 
+			/* Build the memory IDR from DiscoveryData. 
+			 * Use the temporary ilo2_ribcl_idr_info structure in
+			 * our private handler to collect the IDR information.
+			 * We use this buffer in the handler because it's too
+			 * large to put on the stack as a local valiable, and
+			 * we don't want to be allocating/deallocating it
+			 * frequently. */
+
+			ilo2_ribcl_build_memory_idr( memdata, 
+						     &(ir_handler->tmp_idr));
+
 			ret = ilo2_ribcl_discovered_fru( oh_handler, &mem_ep,
-				&(memdata->dstate), 0, memdata->label); 
+				&(memdata->dstate), 0, memdata->label,
+				&(ir_handler->tmp_idr));
+
+			/* Update the IDR data if it has changed */
+			ilo2_ribcl_update_fru_idr( oh_handler, &mem_ep,
+							&(ir_handler->tmp_idr));
 
 		} else { /* We didn't find it on the last iLO2 poll */
 			
@@ -721,7 +860,7 @@ static SaErrorT ilo2_ribcl_discover_fans( struct oh_handler_state *oh_handler,
 		if( fandata->fanflags & IR_DISCOVERED ){
 
 			ret = ilo2_ribcl_discovered_fru( oh_handler, &fan_ep,
-				&(fandata->dstate), failed, fantag); 
+				&(fandata->dstate), failed, fantag, NULL); 
 
 		} else { /* We didn't find it on the last iLO2 poll */
 			
@@ -810,7 +949,8 @@ static SaErrorT ilo2_ribcl_discover_powersupplies( struct oh_handler_state *oh_h
 		if( psudata->psuflags & IR_DISCOVERED ){
 
 			ret = ilo2_ribcl_discovered_fru( oh_handler, &psu_ep,
-				&(psudata->dstate), failed, psudata->label); 
+				&(psudata->dstate), failed, psudata->label,
+				NULL); 
 
 		} else { /* We didn't find it on the last iLO2 poll */
 			
@@ -897,7 +1037,8 @@ static SaErrorT ilo2_ribcl_discover_vrm( struct oh_handler_state *oh_handler,
 		if( vrmdata->vrmflags & IR_DISCOVERED ){
 
 			ret = ilo2_ribcl_discovered_fru( oh_handler, &vrm_ep,
-				&(vrmdata->dstate), failed, vrmdata->label); 
+				&(vrmdata->dstate), failed, vrmdata->label,
+				NULL); 
 
 		} else { /* We didn't find it on the last iLO2 poll */
 			
@@ -925,6 +1066,8 @@ static SaErrorT ilo2_ribcl_discover_vrm( struct oh_handler_state *oh_handler,
  * @d_state: 	 The current discovery state of the resource.
  * @isfailed:	 Indicates if the resource is currently detected as failed.
  * @tag:	 Characer string used for resource tag if rpt entry is created.
+ * @idr_info:	 Pointer to IDR information if this resource should have an IDR,
+ *		 Null otherwise.
  *
  * This function is called for removable resources whose presence have
  * been detected during a discovery operation. The action taken depends
@@ -943,7 +1086,10 @@ static SaErrorT ilo2_ribcl_discover_vrm( struct oh_handler_state *oh_handler,
  *	  HotSwapCapabilities to 0, ResourceSeverity to SAHPI_CRITICAL,
  *	  and use the tag parameter for the ResourceTag.
  *	- Add the resource to the handler's rpt cache with a call to
- *	  oh_add_resource().  
+ *	  oh_add_resource().
+ *	- If this resource has an Inventory Data Repository, the idr_info
+ *	  parameter will be non-null. In this case, call ilo2_ribcl_add_idr()
+ *	  to add the IDR to this resource.  
  *	- Call oh_evt_queue_push() to send a SAHPI_RESE_RESOURCE_ADDED
  *	  resource event. 
  *	- Set d_state to OK
@@ -984,8 +1130,11 @@ static SaErrorT ilo2_ribcl_discover_vrm( struct oh_handler_state *oh_handler,
  *	SA_ERR_HPI_INTERNAL_ERROR id d_state is unknown.
  **/
 static SaErrorT ilo2_ribcl_discovered_fru( struct oh_handler_state *oh_handler,
-	SaHpiEntityPathT *resource_ep, enum ir_discoverstate *d_state,
-	int isfailed, char *tag )
+			SaHpiEntityPathT *resource_ep,
+ 			enum ir_discoverstate *d_state,
+			int isfailed,
+			char *tag,
+			struct ilo2_ribcl_idr_info *idr_info )
 {
 	struct oh_event *ev;
 	SaHpiRptEntryT *rpt;
@@ -1014,6 +1163,7 @@ static SaErrorT ilo2_ribcl_discovered_fru( struct oh_handler_state *oh_handler,
 		ev->resource.ResourceInfo.ManufacturerId = HP_MANUFACTURING_ID;
 		ev->resource.ResourceCapabilities = 
 			(SAHPI_CAPABILITY_RESOURCE | SAHPI_CAPABILITY_FRU); 
+
 		ev->resource.HotSwapCapabilities = 0;
 		ev->resource.ResourceSeverity = SAHPI_CRITICAL;
 		ev->resource.ResourceFailed = isfailed;
@@ -1040,6 +1190,19 @@ static SaErrorT ilo2_ribcl_discovered_fru( struct oh_handler_state *oh_handler,
 			err("ilo2_ribcl_discovered_fru(): cannot add resource to rptcache.");
 			oh_event_free( ev, 0);
 			return( ret);
+		}
+
+		/* If this this resource has an associated Inventory Data
+		 * Repository, the IDR data will be passed in via the 
+		 * idr_info parameter. */
+
+		if( idr_info != NULL){
+			ret = ilo2_ribcl_add_idr( oh_handler, ev,
+				SAHPI_DEFAULT_INVENTORY_ID, idr_info, tag);
+			if( ret != SA_OK){
+				err("ilo2_ribcl_discovered_fru: could not add IDR to resource id %d.",
+					 ev->resource.ResourceId);
+			}
 		}
 
 		/* Now, fill out the rest of the event structure and push it
@@ -1141,7 +1304,26 @@ static SaErrorT ilo2_ribcl_discovered_fru( struct oh_handler_state *oh_handler,
 			return( SA_ERR_HPI_OUT_OF_MEMORY);
 		}
 
+		/* Copy the rpt information from our handler's rptcache */
 		ev->resource = *rpt;
+
+		/* If this this resource has an associated Inventory Data
+		 * Repository, the IDR data will be passed in via the 
+		 * idr_info parameter. When we sent the
+		 * SAHPI_HS_STATE_NOT_PRESENT event previously for this
+		 * resource, the daemon removed the rpt entry and all of
+		 * its rdrs from the domain table. So, we need to add the
+		 * rdrs back via this event's rdrs list. */
+
+		if( idr_info != NULL){
+			ret = ilo2_ribcl_add_idr( oh_handler, ev,
+				SAHPI_DEFAULT_INVENTORY_ID, idr_info, tag);
+			if( ret != SA_OK){
+				err("ilo2_ribcl_discovered_fru: could not add IDR to resource id %d.",
+					 ev->resource.ResourceId);
+			}
+		}
+
 		ev->hid = oh_handler->hid;
 		ev->event.EventType = SAHPI_ET_HOTSWAP;
 		ev->event.Severity = ev->resource.ResourceSeverity;
@@ -1405,8 +1587,6 @@ static SaErrorT ilo2_ribcl_undiscovered_fru( struct oh_handler_state *oh_handler
 
 } /* end ilo2_ribcl_undiscovered_fru() */
 
-
-
 /**
  * ilo2_ribcl_free_discoverydata
  * @ir_handler: The private handler for this plugin instance.
@@ -1424,11 +1604,19 @@ void ilo2_ribcl_free_discoverydata( ilo2_ribcl_handler_t *ir_handle)
 	ddata = &(ir_handle->DiscoveryData);
 
 	if( ddata->product_name != NULL){
-		free( ir_handle->DiscoveryData.product_name);
+		free( ddata->product_name);
 	}
 
 	if( ddata->serial_number != NULL){
-		free( ir_handle->DiscoveryData.serial_number);
+		free( ddata->serial_number);
+	}
+
+	if( ddata->fwdata.version_string != NULL){
+		free(  ddata->fwdata.version_string);
+	}
+
+	if( ddata->serial_number != NULL){
+		free( ddata->system_cpu_speed);
 	}
 
 	/* Free the CPU data */
@@ -1490,6 +1678,460 @@ void ilo2_ribcl_free_discoverydata( ilo2_ribcl_handler_t *ir_handle)
 	/* Temperature data not yet implemented */
 	
 }
+
+/**
+ * ilo2_ribcl_controls
+ * @oh_handler:  Handler data pointer.
+ * @ctl_type: iLO2 RIBCL control type.
+ * @event: Pointer to event structure. 
+ * @desc
+ *
+ * This function is called from chassis discovery routine to add control
+ * RDR for a given control. This routine validates control type.
+ *
+ * Return values:
+ *	SA_OK if success
+ *	SA_ERR_HPI_INVALID_PARAMS
+ *	SA_ERR_HPI_INTERNAL_ERROR
+ *	SA_ERR_HPI_OUT_OF_MEMORY
+ **/
+static SaErrorT ilo2_ribcl_controls(struct oh_handler_state *oh_handler,
+	int ctl_type, struct oh_event *event, char *desc)
+{
+	SaErrorT err;
+	SaHpiRdrT *rdrptr;
+	ilo2_ribcl_cinfo_t cinfo, *cinfo_ptr = NULL; 
+
+	if(oh_handler == NULL) {
+		err("ilo2_ribcl_controls(): Null handler");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+
+	if(event == NULL) {
+		err("ilo2_ribcl_controls(): Null event");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+
+	if(desc == NULL) {
+		err("ilo2_ribcl_controls(): Null Control Description String");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+
+	if((ctl_type != ILO2_RIBCL_CTL_UID) &&
+		(ctl_type != ILO2_RIBCL_CTL_POWER_SAVER) &&
+		(ctl_type != ILO2_RIBCL_CTL_AUTO_POWER)) {
+		err("ilo2_ribcl_controls(): Invalid iLO2 RIBCL control type");
+		return(SA_ERR_HPI_INTERNAL_ERROR);
+	}
+
+	rdrptr = (SaHpiRdrT *)g_malloc0(sizeof(SaHpiRdrT));
+	if (rdrptr == NULL) {
+		err("ilo2_ribcl_controls(): Out of memory.");
+		return(SA_ERR_HPI_OUT_OF_MEMORY);
+	}
+	rdrptr->RdrType = SAHPI_CTRL_RDR;
+	rdrptr->Entity = event->resource.ResourceEntity;
+
+	switch(ctl_type) {
+		case ILO2_RIBCL_CTL_UID:
+		{
+			rdrptr->RdrTypeUnion.CtrlRec.Num = ILO2_RIBCL_CONTROL_1;
+			rdrptr->RdrTypeUnion.CtrlRec.OutputType = SAHPI_CTRL_LED;
+			rdrptr->RdrTypeUnion.CtrlRec.Type = SAHPI_CTRL_TYPE_DIGITAL;
+			rdrptr->RdrTypeUnion.CtrlRec.TypeUnion.Digital.Default = SAHPI_CTRL_STATE_OFF;
+			rdrptr->RdrTypeUnion.CtrlRec.DefaultMode.Mode = SAHPI_CTRL_MODE_MANUAL;
+			rdrptr->RdrTypeUnion.CtrlRec.DefaultMode.ReadOnly = SAHPI_FALSE;
+			rdrptr->RdrTypeUnion.CtrlRec.WriteOnly = SAHPI_FALSE;
+			rdrptr->RdrTypeUnion.CtrlRec.Oem = 0;
+			cinfo.ctl_type = ctl_type;
+			cinfo.cur_mode = rdrptr->RdrTypeUnion.CtrlRec.DefaultMode.Mode;
+			cinfo.cur_state.Digital = rdrptr->RdrTypeUnion.CtrlRec.TypeUnion.Digital.Default;
+		}
+		break;
+		case ILO2_RIBCL_CTL_POWER_SAVER:
+		{
+		/*
+		   The following outlines the Power Regulator feature:
+		   The values are
+			1 = OS Control Mode (Disabled Mode for iLO)
+			2 = HP Static Low Power Mode
+			3 = HP Dynamic Power Savings Mode
+			4 = HP Static High Performance Mode
+			Note: Value 4 is availble only for iLO 2 firmware
+			version 1.20 and later.
+		*/
+			rdrptr->RdrTypeUnion.CtrlRec.Num = ILO2_RIBCL_CONTROL_2;
+			rdrptr->RdrTypeUnion.CtrlRec.OutputType = SAHPI_CTRL_GENERIC;
+			rdrptr->RdrTypeUnion.CtrlRec.Type = SAHPI_CTRL_TYPE_DISCRETE;
+			rdrptr->RdrTypeUnion.CtrlRec.TypeUnion.Discrete.Default = ILO2_RIBCL_MANUAL_OS_CONTROL_MODE;
+			rdrptr->RdrTypeUnion.CtrlRec.DefaultMode.Mode = SAHPI_CTRL_MODE_MANUAL;
+			rdrptr->RdrTypeUnion.CtrlRec.DefaultMode.ReadOnly = SAHPI_FALSE;
+			rdrptr->RdrTypeUnion.CtrlRec.WriteOnly = SAHPI_FALSE;
+			rdrptr->RdrTypeUnion.CtrlRec.Oem = 0;
+			cinfo.ctl_type = ctl_type;
+			cinfo.cur_mode = rdrptr->RdrTypeUnion.CtrlRec.DefaultMode.Mode;
+			cinfo.cur_state.Discrete = rdrptr->RdrTypeUnion.CtrlRec.TypeUnion.Discrete.Default;
+		}
+		break;
+		case ILO2_RIBCL_CTL_AUTO_POWER:
+		{
+		/*
+		   The following outlines the Auto Power feature:
+		   The Auto Power Control allows user to change the
+		   automatic power on and power on delay settings of the
+		   server. The values are
+			Yes = Enable automatic power on with a minimum delay.
+			No = Disable automatic power on.
+			15 = Enable automatic power on with 15 seconds delay.
+			30 = Enable automatic power on with 30 seconds delay.
+			45 = Enable automatic power on with 45 seconds delay.
+			60 = Enable automatic power on with 60 seconds delay.
+			Random = Enable automatic power on with random delay
+				 up to 60 seconds.
+		*/
+			rdrptr->RdrTypeUnion.CtrlRec.Num = ILO2_RIBCL_CONTROL_3;
+			rdrptr->RdrTypeUnion.CtrlRec.OutputType = SAHPI_CTRL_GENERIC;
+			rdrptr->RdrTypeUnion.CtrlRec.Type = SAHPI_CTRL_TYPE_DISCRETE;
+			rdrptr->RdrTypeUnion.CtrlRec.TypeUnion.Discrete.Default = ILO2_RIBCL_AUTO_POWER_DISABLED;
+			rdrptr->RdrTypeUnion.CtrlRec.DefaultMode.Mode = SAHPI_CTRL_MODE_MANUAL;
+			rdrptr->RdrTypeUnion.CtrlRec.DefaultMode.ReadOnly = SAHPI_FALSE;
+			rdrptr->RdrTypeUnion.CtrlRec.WriteOnly = SAHPI_FALSE;
+			rdrptr->RdrTypeUnion.CtrlRec.Oem = 0;
+			cinfo.ctl_type = ctl_type;
+			cinfo.cur_mode = rdrptr->RdrTypeUnion.CtrlRec.DefaultMode.Mode;
+			cinfo.cur_state.Discrete = rdrptr->RdrTypeUnion.CtrlRec.TypeUnion.Discrete.Default;
+		}
+		break;
+		default:
+		{
+			err("ilo2_ribcl_controls(): Invalid iLO2 RIBCL control type");
+			g_free(rdrptr);
+			return(SA_ERR_HPI_INTERNAL_ERROR);
+		}
+	}
+	oh_init_textbuffer(&(rdrptr->IdString));
+	oh_append_textbuffer(&(rdrptr->IdString), desc);
+
+	/*
+	   Allocate memory to save internal control type in private RDR area
+	   This saved value will be used by the control API to determine the
+	   the type of the control and send appropriate command down to RIBCL
+	 */
+	cinfo_ptr = g_memdup(&cinfo, sizeof(cinfo));
+	if(cinfo_ptr == NULL) {
+		err("ilo2_ribcl_controls(): Out of memory.");
+		g_free(rdrptr);
+		return(SA_ERR_HPI_OUT_OF_MEMORY);
+	}
+	
+	err = oh_add_rdr(oh_handler->rptcache, event->resource.ResourceId,
+		rdrptr, cinfo_ptr, 0);
+	if (err) {
+		err("Could not add RDR. Error=%s.", oh_lookup_error(err));
+		g_free(rdrptr);
+		g_free(cinfo_ptr);
+		return(SA_ERR_HPI_INTERNAL_ERROR);
+	} else {
+		event->rdrs = g_slist_append(event->rdrs, rdrptr);
+	}
+
+	return(SA_OK);
+}
+
+
+
+/**
+ * ilo2_ribcl_add_severity_sensor:
+ * @oh_handler:  Handler data pointer.
+ * @event: Pointer to event structure for sensor parent resource event.
+ * @sens_num: Sensor number for new sensor.
+ * @sens_type: HPI type of new sensor. 
+ * @supported_states: Mask of all the EV states this sensor can support.
+ * @sens_info: Private sensor info associated with RDR.
+ * @description: Character string description of this sensor.
+ *
+ * This routine creates a new sensor of category SAHPI_EC_SEVERITY, using
+ * the data given by the parameters. The new sensor RDR is added to
+ * the parent resource given in the oh_event structure paramenter. 
+ *
+ * The following fields in the SensorRec of the RDR will be set to fixed
+ * values:
+ *	EnableCtrl = SAHPI_TRUE;
+ *	EventCtrl  = SAHPI_SEC_PER_EVENT;
+ *	DataFormat.IsSupported = SAHPI_TRUE 
+ * 	DataFormat.ReadingType = SAHPI_SENSOR_READING_TYPE_UINT64
+ *	DataFormat.BaseUnits   = SAHPI_SU_UNSPECIFIED
+ *	DataFormat.ModifierUse = SAHPI_SMUU_NONE
+ *	DataFormat.Percentage  = SAHPI_FALSE
+ *	ThresholdDefn.IsAccessible = SAHPI_FALSE
+ *
+ * Return values:
+ * SA_ERR_HPI_OUT_OF_MEMORY - memory allocation failed.
+ * SA_ERR_HPI_INTERNAL_ERROR - could not add sensor RDR
+ **/
+static SaErrorT ilo2_ribcl_add_severity_sensor(
+			struct oh_handler_state *oh_handler,
+			struct oh_event *event,
+			int sens_num,
+			SaHpiSensorTypeT sens_type,
+			SaHpiEventStateT supported_states,
+			struct ilo2_ribcl_sensinfo *sens_info,
+			char *description)
+{
+
+	SaErrorT ret = SA_OK;
+	SaHpiRdrT *rdr;
+	SaHpiSensorRecT *sensor_rec;
+	struct ilo2_ribcl_sensinfo *si;
+
+	rdr = (SaHpiRdrT *)g_malloc0(sizeof(SaHpiRdrT));
+	if( rdr == NULL){
+		err("ilo2_ribcl_add_severity_sensor: Memory allocation failed.");
+		return(SA_ERR_HPI_OUT_OF_MEMORY);
+	}
+
+	/* Fill in generic RDR stuff */
+	rdr->RdrType = SAHPI_SENSOR_RDR;
+	rdr->Entity  = event->resource.ResourceEntity;
+	rdr->IsFru   = SAHPI_FALSE;
+
+	/* Fill in sensor specific info */
+	sensor_rec = &(rdr->RdrTypeUnion.SensorRec);
+	sensor_rec->Num = sens_num;
+	sensor_rec->Type = sens_type;
+	sensor_rec->Category = SAHPI_EC_SEVERITY;
+	sensor_rec->EnableCtrl = SAHPI_TRUE;
+	sensor_rec->EventCtrl  = SAHPI_SEC_PER_EVENT;
+	sensor_rec->Events = supported_states;
+
+	sensor_rec->DataFormat.IsSupported = SAHPI_TRUE;
+	sensor_rec->DataFormat.ReadingType = SAHPI_SENSOR_READING_TYPE_UINT64;
+	sensor_rec->DataFormat.BaseUnits   = SAHPI_SU_UNSPECIFIED;
+	sensor_rec->DataFormat.ModifierUse = SAHPI_SMUU_NONE; 
+	sensor_rec->DataFormat.Percentage  = SAHPI_FALSE; 
+	/* Range and AccuracyFactor have been cleared by g_malloc0() */
+
+	sensor_rec->ThresholdDefn.IsAccessible = SAHPI_FALSE; 
+
+	oh_init_textbuffer(&(rdr->IdString));
+	oh_append_textbuffer(&(rdr->IdString), description);
+
+
+	/* Copy the private sensor data initial values into a new allocation
+ 	 * to be associated with this RDR. */
+	si = g_memdup(sens_info, sizeof(struct ilo2_ribcl_sensinfo));
+	if( si == NULL){
+		g_free( rdr);
+		err("ilo2_ribcl_add_severity_sensor: Memory allocation failed.");
+		return(SA_ERR_HPI_OUT_OF_MEMORY);
+	}
+
+	ret = oh_add_rdr(oh_handler->rptcache, event->resource.ResourceId,
+		rdr, si, 0); 
+	if( ret != SA_OK){
+		err("ilo2_ribcl_add_severity_sensor: could not add RDR. Error = %s.",
+			oh_lookup_error(ret));
+		g_free( si);
+		g_free( rdr);
+		return( SA_ERR_HPI_INTERNAL_ERROR);
+	} else {
+		event->rdrs = g_slist_append(event->rdrs, rdr);
+	}
+
+	return( SA_OK);
+
+} /* end ilo2_ribcl_add_severity_sensor() */
+
+
+
+/**
+ * ilo2_ribcl_discover_chassis_sensors:
+ * @oh_handler:  Handler data pointer.
+ * @event: Pointer to event structure for chassis resource event.
+ *
+ * This routine will create RDRs on the chassis rpt entry for the following
+ * three sensors, if they have been detected during a discovery operation.
+ * These sensors correspond to the system's general health, and are created
+ * from information given in the HEALTH_AT_AT_GLANCE stanza returned by the
+ * GET_EMBEDDED_HEALTH RIBCL command.
+ *
+ * Sensor 1: System Fan Health 
+ *	This sensor is of type SAHPI_FAN.
+ * 	This sensor is of class SAHPI_EC_SEVERITY, and supports the severity
+ *	states SAHPI_ES_OK, SAHPI_ES_MAJOR_FROM_LESS, 
+ *	SAHPI_ES_MAJOR_FROM_CRITICAL, and SAHPI_ES_CRITICAL.
+ *	Its reading values (int64) are:
+ *		I2R_SEN_VAL_OK (0)		- RIBCL reports "Ok"
+ *		I2R_SEN_VAL_DEGRADED (1)	- RIBCL reports "Degraded"
+ *		I2R_SEN_VAL_FAILED (2)		- RIBCL reports "Failed"
+ *
+ * Sensor 2: System Temperature Health.
+ *	This sensor is of type SAHPI_TEMPERATURE.
+ * 	This sensor is of class SAHPI_EC_SEVERITY, and supports the severity
+ *	states SAHPI_ES_OK, and  SAHPI_ES_CRITICAL.
+ *	Its reading values (int64) are:
+ *		I2R_SEN_VAL_OK (0)		- RIBCL reports "Ok"
+ *		I2R_SEN_VAL_FAILED (2)		- RIBCL reports "Failed"
+ *
+ * Sensor 3: System Power Supply Health
+ *	This sensor is of type SAHPI_POWER_SUPPLY.
+ * 	This sensor is of class SAHPI_EC_SEVERITY, and supports the severity
+ *	states SAHPI_ES_OK, SAHPI_ES_MAJOR_FROM_LESS, 
+ *	SAHPI_ES_MAJOR_FROM_CRITICAL, and SAHPI_ES_CRITICAL.
+ *	Its reading values (int64) are:
+ *		I2R_SEN_VAL_OK (0)		- RIBCL reports "Ok"
+ *		I2R_SEN_VAL_DEGRADED (1)	- RIBCL reports "Degraded"
+ *		I2R_SEN_VAL_FAILED (2)		- RIBCL reports "Failed"
+ *
+ * Return values:
+ * None
+ **/
+static void ilo2_ribcl_discover_chassis_sensors(
+			struct oh_handler_state *oh_handler, 
+			struct oh_event *event)
+{
+
+	SaErrorT ret = SA_OK;
+	ilo2_ribcl_handler_t *ir_handler = NULL;
+	struct ilo2_ribcl_sensinfo si_initial;
+	I2R_SensorDataT *sensordat;
+
+	ir_handler = (ilo2_ribcl_handler_t *) oh_handler->data;
+
+	/* Look for the system fan health intication from the RIBCL
+	 * HEALTH_AT_A_GLANCE stanza from GET_EMBEDDED_HEALTH */
+
+	sensordat = 
+		&(ir_handler->DiscoveryData.chassis_sensors[I2R_SEN_FANHEALTH]);
+	if( sensordat->reading.intval != I2R_SEN_VAL_UNINITIALIZED){
+
+		si_initial.sens_num = I2R_SEN_FANHEALTH;
+		si_initial.sens_ev_state = SAHPI_ES_OK;
+		si_initial.sens_enabled = SAHPI_TRUE;
+		si_initial.sens_ev_enabled = SAHPI_TRUE;
+		si_initial.sens_assertmask = I2R_SEVERITY_THREESTATE_EV;
+		si_initial.sens_deassertmask = I2R_SEVERITY_THREESTATE_EV;
+		si_initial.sens_value = I2R_SEN_VAL_UNINITIALIZED;
+
+		ret =  ilo2_ribcl_add_severity_sensor( oh_handler, event,
+			I2R_SEN_FANHEALTH, SAHPI_FAN,
+			I2R_SEVERITY_THREESTATE_EV, &si_initial,
+			I2R_SEN_FANHEALTH_DESCRIPTION);
+
+		if( ret == SA_OK){
+			sensordat->state = I2R_INITIAL; 
+			sensordat->rid = event->resource.ResourceId;
+			ilo2_ribcl_add_resource_capability( oh_handler,
+			      event,
+			      (SAHPI_CAPABILITY_RDR | SAHPI_CAPABILITY_SENSOR));
+
+		} else {
+			err("ilo2_ribcl_discover_chassis_sensors: Failed to set up fan health sensor."); 
+		}
+	}
+	
+	/* Look for the system temperature health intication from the RIBCL
+	 * HEALTH_AT_A_GLANCE stanza from GET_EMBEDDED_HEALTH */
+
+	sensordat = 
+	       &(ir_handler->DiscoveryData.chassis_sensors[I2R_SEN_TEMPHEALTH]);
+	if( sensordat->reading.intval != I2R_SEN_VAL_UNINITIALIZED){
+
+		si_initial.sens_num = I2R_SEN_TEMPHEALTH;
+		si_initial.sens_ev_state = SAHPI_ES_OK;
+		si_initial.sens_enabled = SAHPI_TRUE;
+		si_initial.sens_ev_enabled = SAHPI_TRUE;
+		si_initial.sens_assertmask = I2R_SEVERITY_TWOSTATE_EV;
+		si_initial.sens_deassertmask = I2R_SEVERITY_TWOSTATE_EV;
+		si_initial.sens_value = I2R_SEN_VAL_UNINITIALIZED;
+
+		ret =  ilo2_ribcl_add_severity_sensor( oh_handler, event,
+			I2R_SEN_TEMPHEALTH, SAHPI_TEMPERATURE,
+			I2R_SEVERITY_TWOSTATE_EV, &si_initial,
+			I2R_SEN_TEMPHEALTH_DESCRIPTION);
+
+		if( ret == SA_OK){
+			sensordat->state = I2R_INITIAL; 
+			sensordat->rid = event->resource.ResourceId;
+			ilo2_ribcl_add_resource_capability( oh_handler,
+			      event,
+			      (SAHPI_CAPABILITY_RDR | SAHPI_CAPABILITY_SENSOR));
+		} else {
+			err("ilo2_ribcl_discover_chassis_sensors: Failed to set up temperature health sensor."); 
+		}
+	}
+
+	/* Look for the system power supply health intication from the RIBCL
+	 * HEALTH_AT_A_GLANCE stanza from GET_EMBEDDED_HEALTH */
+
+	sensordat = 
+	      &(ir_handler->DiscoveryData.chassis_sensors[I2R_SEN_POWERHEALTH]);
+	if( sensordat->reading.intval != I2R_SEN_VAL_UNINITIALIZED){
+
+		si_initial.sens_num = I2R_SEN_POWERHEALTH;
+		si_initial.sens_ev_state = SAHPI_ES_OK;
+		si_initial.sens_enabled = SAHPI_TRUE;
+		si_initial.sens_ev_enabled = SAHPI_TRUE;
+		si_initial.sens_assertmask = I2R_SEVERITY_THREESTATE_EV;
+		si_initial.sens_deassertmask = I2R_SEVERITY_THREESTATE_EV;
+		si_initial.sens_value = I2R_SEN_VAL_UNINITIALIZED;
+
+		ret =  ilo2_ribcl_add_severity_sensor( oh_handler, event,
+			I2R_SEN_POWERHEALTH, SAHPI_POWER_SUPPLY,
+			I2R_SEVERITY_THREESTATE_EV, &si_initial,
+			I2R_SEN_POWERHEALTH_DESCRIPTION);
+
+		if( ret == SA_OK){
+			sensordat->state = I2R_INITIAL; 
+			sensordat->rid = event->resource.ResourceId;
+			ilo2_ribcl_add_resource_capability( oh_handler,
+			      event,
+			      (SAHPI_CAPABILITY_RDR | SAHPI_CAPABILITY_SENSOR));
+		} else {
+			err("ilo2_ribcl_discover_chassis_sensors: Failed to set up power supply health sensor."); 
+		}
+	}
+
+} /* end ilo2_ribcl_discover_chassis_sensors() */
+
+
+
+/**
+ * ilo2_ribcl_add_resource_capability:
+ * @oh_handler:  Handler data pointer.
+ * @event: 	 Pointer to event structure for the resource event.
+ * @capability:	 Capabilitiy (or capabilities) to add to this resource.
+ *
+ * Add the new resource capability (or capabilities) given in the 'capability'
+ * parameter to the resource in the event structure, which is presumably a
+ * resource event. Also, look up the rpt entry already in our handler's
+ * rptcache, and if it exists, add the resource capability there also.
+ *
+ * Return values:
+ * None
+ **/
+void ilo2_ribcl_add_resource_capability( struct oh_handler_state *oh_handler, 
+			struct oh_event *event,
+			SaHpiCapabilitiesT capability)
+{
+	SaHpiRptEntryT *rpt;
+
+	/* Set the capabilities of the resource in this event structure */
+	event->resource.ResourceCapabilities |= capability;
+
+	/* Now, just in case we've already performed a oh_add_resource()
+	 * call to place this resource into our handler's rptcache, look
+	 * it up using the entity path, and add the capability there, too. */
+
+	rpt = oh_get_resource_by_ep( oh_handler->rptcache,
+				     &(event->resource.ResourceEntity)); 
+
+	if( rpt != NULL){
+		rpt->ResourceCapabilities |= capability;
+	}
+	
+} /* end ilo2_ribcl_add_resource_capability() */
+
 
 
 
