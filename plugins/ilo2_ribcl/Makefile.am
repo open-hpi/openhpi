@@ -46,9 +46,14 @@ libilo2_ribcl_la_SOURCES  =	\
 				ilo2_ribcl.h \
 				ilo2_ribcl_discover.c \
 				ilo2_ribcl_discover.h \
+				ilo2_ribcl_idr.c \
+				ilo2_ribcl_idr.h \
 				ilo2_ribcl_reset.c \
 				ilo2_ribcl_power.c \
+				ilo2_ribcl_control.c \
 				ilo2_ribcl_rpt.c \
+				ilo2_ribcl_sensor.c \
+				ilo2_ribcl_sensor.h \
 				ilo2_ribcl_ssl.c \
 				ilo2_ribcl_ssl.h \
 				ilo2_ribcl_xml.c \

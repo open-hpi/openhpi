@@ -32,28 +32,38 @@
  *     Shuah Khan <shuah.khan@hp.com>
  *     Richard White <richard.white@hp.com>
  */
-#ifndef _INC_ILO2_RIBCL_DISCOVER_H_
-#define _INC_ILO2_RIBCL_DISCOVER_H_
+#ifndef _INC_ILO2_RIBCL_IDR_H_
+#define _INC_ILO2_RIBCL_IDR_H_
 
-extern void ilo2_ribcl_free_discoverydata( ilo2_ribcl_handler_t *);
+/* These are the functions exported by ilo2_ribcl_idr.c for other modules
+ * to use. */
 
-/* The size used for the temporary buffer to contain the response
- * of the IR_CMD_GET_SERVER_DATA command. The current return size is
- * a little over 12K, so we use 24K to give us some margin for the
- * future.
- */
-#define ILO2_RIBCL_DISCOVER_RESP_MAX 1024*24
+extern SaErrorT ilo2_ribcl_add_idr( struct oh_handler_state *,
+                        struct oh_event *,
+                        SaHpiIdrIdT,
+                        struct ilo2_ribcl_idr_info *,
+                        char *);
 
-/* This define is the IANA-assigned private enterprise number for 
-   Hewlett-Packard. A complete list of IANA numbers can be found at
-   http://www.iana.org/assignments/enterprise-numbers
-*/
-#define HP_MANUFACTURING_ID 11
+extern void ilo2_ribcl_discover_chassis_idr( struct oh_handler_state *,
+                        struct oh_event *,
+			char *);
 
-/* Prototypes for functions within ilo2_ribcl_discovery.c that can be
- * called from within other modules */
+extern void ilo2_ribcl_update_fru_idr( struct oh_handler_state *,
+			SaHpiEntityPathT *,
+			struct ilo2_ribcl_idr_info *);
 
-extern void ilo2_ribcl_add_resource_capability( struct oh_handler_state *,
-        struct oh_event *, SaHpiCapabilitiesT); 
 
-#endif /* _INC_ILO2_RIBCL_DISCOVER_H_ */
+extern void ilo2_ribcl_update_chassis_idr( struct oh_handler_state *,
+                                SaHpiEntityPathT *);
+
+extern void ilo2_ribcl_build_chassis_idr( ilo2_ribcl_handler_t *,
+                        struct ilo2_ribcl_idr_info *);
+
+extern void ilo2_ribcl_build_cpu_idr( ilo2_ribcl_handler_t *ir_handler,
+                        struct ilo2_ribcl_idr_info *);
+
+extern void ilo2_ribcl_build_memory_idr( ir_memdata_t *,
+                        struct ilo2_ribcl_idr_info *);
+
+#endif /* _INC_ILO2_RIBCL_IDR_H_ */
+

@@ -74,6 +74,7 @@ SaErrorT ilo2_ribcl_get_power_state(void *hnd,
 	char *response;	/* command response buffer */
 	int ret;
 	int power_status = -1;
+	ilo2_ribcl_resource_info_t *res_info = NULL;
 
 	if (!hnd || !state) {
 		err("ilo2_ribcl_get_power_state(): Invalid parameter.");
@@ -98,6 +99,13 @@ SaErrorT ilo2_ribcl_get_power_state(void *hnd,
 		return(SA_ERR_HPI_CAPABILITY);
 	} 
 	
+	res_info =  (ilo2_ribcl_resource_info_t *)oh_get_resource_data(
+		handle->rptcache, rpt->ResourceId);
+	if (!res_info) {
+		err("ilo2_ribcl_get_power_state(): no resource info.");
+		return(SA_ERR_HPI_INVALID_RESOURCE);
+	}
+
 	/* Allocate a temporary response buffer. */
 
 	response = malloc(ILO2_RIBCL_BUFFER_LEN);
@@ -140,11 +148,11 @@ SaErrorT ilo2_ribcl_get_power_state(void *hnd,
 
 	if(power_status == ILO2_RIBCL_POWER_ON) {
 		*state = SAHPI_POWER_ON;
-	}
-	else if (power_status == ILO2_RIBCL_POWER_OFF) {
+		res_info->power_cur_state = *state;
+	} else if (power_status == ILO2_RIBCL_POWER_OFF) {
 		*state = SAHPI_POWER_OFF;
-	}
-	else {
+		res_info->power_cur_state = *state;
+	} else {
 		return( SA_ERR_HPI_INTERNAL_ERROR);
 	}
 
@@ -184,6 +192,7 @@ SaErrorT ilo2_ribcl_set_power_state(void *hnd,
 	char *sps_cmd;
 	char *response;	/* command response buffer */
 	int ret;
+	ilo2_ribcl_resource_info_t *res_info = NULL;
 
 	if (!hnd || NULL == oh_lookup_powerstate(state)){
 		err("ilo2_ribcl_set_power_state(): Invalid parameter.");
@@ -208,12 +217,25 @@ SaErrorT ilo2_ribcl_set_power_state(void *hnd,
 		return(SA_ERR_HPI_CAPABILITY);
 	}
 
+	res_info =  (ilo2_ribcl_resource_info_t *)oh_get_resource_data(
+		handle->rptcache, rpt->ResourceId);
+	if (!res_info) {
+		err("ilo2_ribcl_get_power_state(): no resource info.");
+		return(SA_ERR_HPI_INVALID_RESOURCE);
+	}
+
 	/* Allocate a temporary response buffer. */
 
 	response = malloc(ILO2_RIBCL_BUFFER_LEN);
 	if( response == NULL){
 		err("ilo2_ribcl_set_power_state: failed to allocate resp buffer.");
 		return( SA_ERR_HPI_OUT_OF_MEMORY);
+	}
+
+	/* if the saved current state is same as the one requested. 
+		just return */
+	if(res_info->power_cur_state == state) {
+        	return(SA_OK);
 	}
 
 	/* Retrieve our customized command buffer */
@@ -261,7 +283,10 @@ SaErrorT ilo2_ribcl_set_power_state(void *hnd,
 	/* If the requested state is SAHPI_POWER_CYCLE, turn the power on */
 	if(state == SAHPI_POWER_CYCLE) {
 		SaHpiPowerStateT temp_state;
-		
+	
+		/* Power is off, update res_info power status */
+		res_info->power_cur_state = SAHPI_POWER_OFF;
+	
 		/* It takes several seconds for the power to be tunred off.
 		   If we send power on right away it will be lost. Query
 		   power status before sending power on
@@ -301,6 +326,11 @@ SaErrorT ilo2_ribcl_set_power_state(void *hnd,
 			err("ilo2_ribcl_set_power_state: iLO2 returned error.");
 			return( SA_ERR_HPI_INTERNAL_ERROR);
 		}
+		/* Power is on, update res_info power status */
+		res_info->power_cur_state = SAHPI_POWER_ON;
+	} else {
+		/* Save current value in res_info */
+		res_info->power_cur_state = state;
 	}
         return(SA_OK);
 }

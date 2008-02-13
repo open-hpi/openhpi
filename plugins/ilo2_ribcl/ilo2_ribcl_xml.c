@@ -49,6 +49,7 @@
 #include <ilo2_ribcl.h>
 #include <ilo2_ribcl_xml.h>
 #include <ilo2_ribcl_cmnds.h>
+#include <ilo2_ribcl_sensor.h>
 
 /* forward declarations */
 static xmlNodePtr ir_xml_find_node( xmlNodePtr, char *);
@@ -60,10 +61,13 @@ static int ir_xml_scan_fans( ilo2_ribcl_handler_t *, xmlNodePtr);
 static int ir_xml_record_fandata( ilo2_ribcl_handler_t *, char *, char *,
 		char *, char *, char *);
 static void ir_xml_scan_temperature( ilo2_ribcl_handler_t *, xmlNodePtr);
+static void ir_xml_scan_firmware_revision(ilo2_ribcl_handler_t *, xmlNodePtr);
 static int ir_xml_scan_vrm( ilo2_ribcl_handler_t *, xmlNodePtr);
 static int ir_xml_record_vrmdata( ilo2_ribcl_handler_t *, char *, char *);
 static int ir_xml_scan_power( ilo2_ribcl_handler_t *, xmlNodePtr);
 static int ir_xml_record_psdata( ilo2_ribcl_handler_t *, char *, char *);
+static int ir_xml_scan_health_at_a_glance( ilo2_ribcl_handler_t *, xmlNodePtr);
+static int ir_xml_stat_to_reading( char *);
 static int ir_xml_scan_smbios_1( ilo2_ribcl_handler_t *, xmlNodePtr);
 static int ir_xml_scan_smbios_4( ilo2_ribcl_handler_t *, xmlNodePtr);
 static int ir_xml_scan_smbios_17( ilo2_ribcl_handler_t *, xmlNodePtr);
@@ -78,17 +82,31 @@ static int ir_xml_replacestr( char **, char *);
 #define IR_NO_PREFIX	-1
 #define IR_NO_INDEX	-2
 
-
 /* array containing all the RIBCL xml command templates */
 char *ir_xml_cmd_templates[] = {
 	[IR_CMD_GET_SERVER_DATA]	ILO2_RIBCL_GET_SERVER_DATA,
 	[IR_CMD_GET_HOST_POWER_STATUS]	ILO2_RIBCL_GET_HOST_POWER_STATUS,
 	[IR_CMD_SET_HOST_POWER_ON]	ILO2_RIBCL_SET_HOST_POWER_ON,
 	[IR_CMD_SET_HOST_POWER_OFF]	ILO2_RIBCL_SET_HOST_POWER_OFF,
-	[IR_CMD_RESET_SERVER]		ILO2_RIBCL_RESET_SERVER 
-				};
-
-
+	[IR_CMD_RESET_SERVER]		ILO2_RIBCL_RESET_SERVER,
+	[IR_CMD_COLD_BOOT_SERVER]	ILO2_RIBCL_COLD_BOOT_SERVER,
+	[IR_CMD_GET_UID_STATUS]		ILO2_RIBCL_GET_UID_STATUS,
+	[IR_CMD_UID_CONTROL_OFF]	ILO2_RIBCL_UID_CONTROL_OFF,
+	[IR_CMD_UID_CONTROL_ON]		ILO2_RIBCL_UID_CONTROL_ON,
+	[IR_CMD_GET_HOST_POWER_SAVER_STATUS]	ILO2_RIBCL_GET_HOST_POWER_SAVER_STATUS,
+	[IR_CMD_SET_HOST_POWER_SAVER_1]	ILO2_RIBCL_SET_HOST_POWER_SAVER_1,	
+	[IR_CMD_SET_HOST_POWER_SAVER_2]	ILO2_RIBCL_SET_HOST_POWER_SAVER_2,	
+	[IR_CMD_SET_HOST_POWER_SAVER_3]	ILO2_RIBCL_SET_HOST_POWER_SAVER_3,	
+	[IR_CMD_SET_HOST_POWER_SAVER_4]	ILO2_RIBCL_SET_HOST_POWER_SAVER_4,
+	[IR_CMD_GET_SERVER_AUTO_PWR]	ILO2_RIBCL_GET_SERVER_AUTO_PWR,
+	[IR_CMD_SERVER_AUTO_PWR_YES]	ILO2_RIBCL_SERVER_AUTO_PWR_YES,
+	[IR_CMD_SERVER_AUTO_PWR_NO]	ILO2_RIBCL_SERVER_AUTO_PWR_NO,
+	[IR_CMD_SERVER_AUTO_PWR_15]	ILO2_RIBCL_SERVER_AUTO_PWR_15,
+	[IR_CMD_SERVER_AUTO_PWR_30]	ILO2_RIBCL_SERVER_AUTO_PWR_30,
+	[IR_CMD_SERVER_AUTO_PWR_45]	ILO2_RIBCL_SERVER_AUTO_PWR_45,
+	[IR_CMD_SERVER_AUTO_PWR_60]	ILO2_RIBCL_SERVER_AUTO_PWR_60,
+	[IR_CMD_SERVER_AUTO_PWR_RANDOM]	ILO2_RIBCL_SERVER_AUTO_PWR_RANDOM
+		};
 
 /**
  * ir_xml_parse_status
@@ -325,20 +343,40 @@ int ir_xml_parse_discoveryinfo( ilo2_ribcl_handler_t *ir_handler,
 		return( -1);
 	}
 	
-	/* extract data for voltage reg modules */
+	/* Extract data for voltage reg modules */
 	if( ir_xml_scan_vrm( ir_handler, h_node) != RIBCL_SUCCESS){
 		xmlFreeDoc( doc);
 		return( -1);
 	}
 
-	/* extract data for power supplies */
+	/* Extract data for power supplies */
 	if( ir_xml_scan_power( ir_handler, h_node) != RIBCL_SUCCESS){
+		xmlFreeDoc( doc);
+		return( -1);
+	}
+
+	/* Extract data for health_at_a_glance sensors */
+	if( ir_xml_scan_health_at_a_glance( ir_handler, h_node)
+							     != RIBCL_SUCCESS){
 		xmlFreeDoc( doc);
 		return( -1);
 	}
 
 	/* Extract data for temp sensors */
 	ir_xml_scan_temperature( ir_handler, h_node);
+
+	/* Extract firmware revision information */
+	/* Now we parse the output from the GET_FW_VERSION RIBCL command */
+
+	h_node = ir_xml_find_node( xmlDocGetRootElement(doc),
+					    "GET_FW_VERSION");
+
+	if( h_node == NULL){
+		err("ir_xml_parse_discoveryinfo(): GET_FW_VERSION element not found."); 
+		xmlFreeDoc( doc);
+		return( -1);
+	}
+	ir_xml_scan_firmware_revision( ir_handler, h_node);
 
 	xmlFreeDoc( doc);
 	return( RIBCL_SUCCESS);
@@ -518,15 +556,256 @@ int ir_xml_parse_host_power_status(char *ribcl_outbuf, int *power_status,
 
 } /* end ir_xml_parse_host_power_status() */
 
+/**
+ * ir_xml_parse_uid_status
+ * @ribcl_outbuf: Ptr to the raw RIBCL output from the GET_UID_STATUS cmd
+ * @uid_status: pointer to int to return the parsed uid status.
+ * @ilostr: String to identify a particular iLO2 in error messages.
+ *
+ * Parses the output of the RIBCL GET_UID_STATUS command, and returns
+ * current UID status.
+ *
+ * Return value: RIBCL_SUCCESS on success, -1 if error.
+ **/
+int ir_xml_parse_uid_status(char *ribcl_outbuf, int *uid_status,
+			char *ilostr)
+{
+	xmlDocPtr doc;
+	xmlNodePtr data_node;
+	xmlChar *status = NULL;
 
+	/* Convert the RIBCL command output into a single XML document,
+	 * and the use the libxml2 parser to create an XML doc tree. */
+
+	doc = ir_xml_doparse( ribcl_outbuf);
+	if( doc == NULL){
+		err("ir_xml_parse_uid_status(): Null doc returned.");
+		return( -1);
+	}
+
+	/* Check all RESULTS sections in the output for a status value
+	 * of zero, which indicates success. */
+
+	if( ir_xml_checkresults_doc( doc, ilostr) != RIBCL_SUCCESS){
+		err("ir_xml_parse_uid_status(): Unsuccessful RIBCL status.");
+		xmlFreeDoc( doc);
+		return( -1);
+	}
+
+	/* Locate the GET_UID_STATUS subtree. It will contain
+	 * the useful results of the command. */
+
+	data_node = ir_xml_find_node( xmlDocGetRootElement(doc),
+					    "GET_UID_STATUS");
+
+	if( data_node == NULL){
+		err("ir_xml_parse_uid_status(): GET_UID_STATUS element not found."); 
+		xmlFreeDoc( doc);
+		return( -1);
+	}
+
+	status =  xmlGetProp( data_node, (const xmlChar *)"UID");
+	if(status == NULL) {
+		err("ir_xml_parse_uid_status(): UID not found.");
+		xmlFreeDoc( doc);
+		return(-1);
+	}
+	if(xmlStrcmp(status, (const xmlChar *)"ON") == 0) {
+		*uid_status = ILO2_RIBCL_UID_ON;
+	}
+	else if(xmlStrcmp(status, (const xmlChar *)"OFF") == 0) {
+		*uid_status = ILO2_RIBCL_UID_OFF;
+	}
+	else {
+		xmlFree( status);
+		xmlFreeDoc( doc);
+		err("ir_xml_parse_uid_status(): Unkown UID status."); 
+		return(-1);
+	}
+
+	xmlFree( status);
+	xmlFreeDoc( doc);
+	return( RIBCL_SUCCESS);
+
+} /* end ir_xml_parse_uid_status() */
+
+/**
+ * ir_xml_parse_power_saver_status
+ * @ribcl_outbuf: Ptr to the raw RIBCL output from the 
+ * GET_HOST_POWER_SAVER_STATUS cmd
+ * @ps_status: pointer to int to return the parsed power saver status.
+ * @ilostr: String to identify a particular iLO2 in error messages.
+ *
+ * Parses the output of the RIBCL GET_HOST_POWER_SAVER_STATUS command,
+ * and returns current power saver status of the server.
+ *
+ * Return value: RIBCL_SUCCESS on success, -1 if error.
+ **/
+int ir_xml_parse_power_saver_status(char *ribcl_outbuf, int *ps_status,
+			char *ilostr)
+{
+	xmlDocPtr doc;
+	xmlNodePtr data_node;
+	xmlChar *status = NULL;
+
+	/* Convert the RIBCL command output into a single XML document,
+	 * and the use the libxml2 parser to create an XML doc tree. */
+
+	doc = ir_xml_doparse( ribcl_outbuf);
+	if( doc == NULL){
+		err("ir_xml_parse_power_saver_status(): Null doc returned.");
+		return( -1);
+	}
+
+	/* Check all RESULTS sections in the output for a status value
+	 * of zero, which indicates success. */
+
+	if( ir_xml_checkresults_doc( doc, ilostr) != RIBCL_SUCCESS){
+		err("ir_xml_parse_power_saver_status(): Unsuccessful RIBCL status.");
+		xmlFreeDoc( doc);
+		return( -1);
+	}
+
+	/* Locate the GET_HOST_POWER_SAVER subtree. It will contain
+	 * the useful results of the command. */
+
+	data_node = ir_xml_find_node( xmlDocGetRootElement(doc),
+					    "GET_HOST_POWER_SAVER");
+
+	if( data_node == NULL){
+		err("ir_xml_parse_power_saver_status(): GET_HOST_POWER_SAVER element not found."); 
+		xmlFreeDoc( doc);
+		return( -1);
+	}
+
+	status =  xmlGetProp( data_node, (const xmlChar *)"HOST_POWER_SAVER");
+	if(status == NULL) {
+		err("ir_xml_parse_power_saver_status(): HOST_POWER_SAVER not found.");
+		xmlFreeDoc( doc);
+		return(-1);
+	}
+	if(xmlStrcmp(status, (const xmlChar *)"MIN") == 0) {
+		*ps_status = ILO2_RIBCL_MANUAL_LOW_POWER_MODE;
+	}
+	else if(xmlStrcmp(status, (const xmlChar *)"OFF") == 0) {
+		*ps_status = ILO2_RIBCL_MANUAL_OS_CONTROL_MODE;
+	}
+	else if(xmlStrcmp(status, (const xmlChar *)"AUTO") == 0) {
+		*ps_status = ILO2_RIBCL_AUTO_POWER_SAVE_MODE;
+	}
+	else if(xmlStrcmp(status, (const xmlChar *)"MAX") == 0) {
+		*ps_status = ILO2_RIBCL_MANUAL_HIGH_PERF_MODE;
+	}
+	else {
+		xmlFree( status);
+		xmlFreeDoc( doc);
+		err("ir_xml_parse_power_saver_status(): Unkown Power Saver status."); 
+		return(-1);
+	}
+
+	xmlFree( status);
+	xmlFreeDoc( doc);
+	return( RIBCL_SUCCESS);
+
+} /* end ir_xml_parse_power_saver_status() */
+
+/**
+ * ir_xml_parse_auto_power_status
+ * @ribcl_outbuf: Ptr to the raw RIBCL output from the 
+ * GET_SERVER_AUTO_PWR cmd
+ * @ps_status: pointer to int to return the parsed power saver status.
+ * @ilostr: String to identify a particular iLO2 in error messages.
+ *
+ * Parses the output of the RIBCL GET_SERVER_AUTO_PWR command, and returns
+ * current Auto Power status of the server.
+ *
+ * Return value: RIBCL_SUCCESS on success, -1 if error.
+ **/
+int ir_xml_parse_auto_power_status(char *ribcl_outbuf, int *ps_status,
+			char *ilostr)
+{
+	xmlDocPtr doc;
+	xmlNodePtr data_node;
+	xmlChar *status = NULL;
+
+	/* Convert the RIBCL command output into a single XML document,
+	 * and the use the libxml2 parser to create an XML doc tree. */
+
+	doc = ir_xml_doparse( ribcl_outbuf);
+	if( doc == NULL){
+		err("ir_xml_parse_auto_power_status(): Null doc returned.");
+		return( -1);
+	}
+
+	/* Check all RESULTS sections in the output for a status value
+	 * of zero, which indicates success. */
+
+	if( ir_xml_checkresults_doc( doc, ilostr) != RIBCL_SUCCESS){
+		err("ir_xml_parse_auto_power_status(): Unsuccessful RIBCL status.");
+		xmlFreeDoc( doc);
+		return( -1);
+	}
+
+	/* Locate the GET_SERVER_AUTO_PWR subtree. It will contain
+	 * the useful results of the command. */
+
+	data_node = ir_xml_find_node( xmlDocGetRootElement(doc),
+					    "SERVER_AUTO_PWR");
+
+	if( data_node == NULL){
+		err("ir_xml_parse_auto_power_status(): SERVER_AUTO_PWR element not found."); 
+		xmlFreeDoc( doc);
+		return( -1);
+	}
+
+	status =  xmlGetProp( data_node, (const xmlChar *)"VALUE");
+	if(status == NULL) {
+		err("ir_xml_parse_auto_power_status(): VALUE not found.");
+		xmlFreeDoc( doc);
+		return(-1);
+	}
+	if(xmlStrcmp(status, (const xmlChar *)"No") == 0) {
+		*ps_status = ILO2_RIBCL_AUTO_POWER_DISABLED;
+	}
+	else if(xmlStrcmp(status, (const xmlChar *)"Yes") == 0) {
+		*ps_status = ILO2_RIBCL_AUTO_POWER_ENABLED;
+	}
+	else if(xmlStrcmp(status, (const xmlChar *)"15") == 0) {
+		*ps_status = ILO2_RIBCL_AUTO_POWER_DELAY_15;
+	}
+	else if(xmlStrcmp(status, (const xmlChar *)"30") == 0) {
+		*ps_status = ILO2_RIBCL_AUTO_POWER_DELAY_30;
+	}
+	else if(xmlStrcmp(status, (const xmlChar *)"45") == 0) {
+		*ps_status = ILO2_RIBCL_AUTO_POWER_DELAY_45;
+	}
+	else if(xmlStrcmp(status, (const xmlChar *)"60") == 0) {
+		*ps_status = ILO2_RIBCL_AUTO_POWER_DELAY_60;
+	}
+	else if(xmlStrcmp(status, (const xmlChar *)"RANDOM") == 0) {
+		*ps_status = ILO2_RIBCL_AUTO_POWER_DELAY_RANDOM;
+	}
+	else {
+		xmlFree( status);
+		xmlFreeDoc( doc);
+		err("ir_xml_parse_auto_power_status(): Unkown Power Saver status."); 
+		return(-1);
+	}
+
+	xmlFree( status);
+	xmlFreeDoc( doc);
+	return( RIBCL_SUCCESS);
+}
 
 /**
  * ir_xml_parse_reset_server
- * @ribcl_outbuf: Ptr to the raw RIBCL output from the GET_HOST_POWER_STATUS
+ * @ribcl_outbuf: Ptr to the raw RIBCL output from the RESET_SERVER or
+ * COLD_BOOT_SERVER command. It just looks for error conditions and nothing
+ * specific about either command output.
  * cmd
  * @ilostr: String to identify a particular iLO2 in error messages.
  *
- * Parses the output of the RIBCL RESET_SERVER command.
+ * Parses the output of the RIBCL RESET_SERVER or COLD_BOOT_SERVER command.
  *
  * Return value: RIBCL_SUCCESS on success, -1 if error.
  **/
@@ -1165,7 +1444,58 @@ static void ir_xml_scan_temperature( ilo2_ribcl_handler_t *ir_handler,
 
 } /* end  ir_xml_scan_temperature() */
 
+/**
+ * ir_xml_firmaware_revision
+ * @ir_handler: Ptr to this instance's custom handler.
+ * @eh_data_node: Points to GET_FW_VERSION subtree in the output xml
+ * This routine parses the firmware information and saves major and minor
+ * revision numbers in the handler DiscoverData structure.
+ * The response for GET_FW_VERSION RIBCL command should look something like:
+ * <GET_FW_VERSION
+ *  FIRMWARE_VERSION = "1.30"
+ *  FIRMWARE_DATE    = "Jun 01 2007"
+ *  MANAGEMENT_PROCESSOR    = "iLO2"
+ *  /> </RIBCL>
+ *
+ * Return value: None
+ **/
+static void ir_xml_scan_firmware_revision( ilo2_ribcl_handler_t *ir_handler,
+			      xmlNodePtr eh_data_node)
+{
+	xmlChar *fw_ver = NULL;
+	char *result = NULL;
+	SaHpiUint8T FirmwareMajorRev = 0;
+        SaHpiUint8T FirmwareMinorRev = 0;
 
+	fw_ver =  xmlGetProp(eh_data_node, (const xmlChar *)"FIRMWARE_VERSION");
+	if(fw_ver == NULL) {
+		err("ir_xml_scan_firmware_revision(): FIRMWARE_VERSION not found.");
+		return;
+	}
+
+	/* Save a copy of the raw version string */
+	ir_xml_replacestr( &(ir_handler->DiscoveryData.fwdata.version_string),
+				 (char *)fw_ver);
+
+	/* extract manjor and minor revision numbers and save them in the
+	   handler discovery data structure */
+	FirmwareMajorRev = atoi((char *) fw_ver);
+	result = strchr((char *)fw_ver, '.');
+	if(result != NULL) {
+		FirmwareMinorRev = atoi(++result);
+	}
+	if(ir_handler->DiscoveryData.fwdata.FirmwareMajorRev != 
+		FirmwareMajorRev) {
+		ir_handler->DiscoveryData.fwdata.FirmwareMajorRev = 
+			FirmwareMajorRev;
+	}
+	if(ir_handler->DiscoveryData.fwdata.FirmwareMinorRev != 
+		FirmwareMinorRev) {
+		ir_handler->DiscoveryData.fwdata.FirmwareMinorRev = 
+			FirmwareMinorRev;
+	}
+	return;
+}
 
 /**
  * ir_xml_scan_vrm
@@ -1307,8 +1637,6 @@ static int ir_xml_record_vrmdata( ilo2_ribcl_handler_t *ir_handler,
 	return( RIBCL_SUCCESS);
 
 } /* end ir_xml_record_vrmdata() */
-
-
 
 
 
@@ -1461,6 +1789,161 @@ static int ir_xml_record_psdata( ilo2_ribcl_handler_t *ir_handler,
 
 
 /**
+ * ir_xml_scan_health_at_a_glance
+ * @ir_handler: Ptr to this instance's custom handler.
+ * @eh_data_node: Points to GET_EMBEDDED_HEALTH subtree in the output xml
+ *
+ * Examines the HEALTH_AT_A_GLANCE subtree within GET_EMBEDDED_HEALTH,
+ * and extracts the status for fans, temperature, and power supply.
+ * The status string values are then parsed into numeric values and
+ * stored in the chassis_sensors[] element within the DiscoveryData element
+ * located within the plugin's private handler.
+ *
+ * The XML data for HEALTH_AT_A_GLANCE should look something like:
+ * <HEALTH_AT_A_GLANCE>
+ *      <FANS STATUS= "Ok"/>
+ *      <FANS REDUNDANCY= "Fully Redundant"/>
+ *      <TEMPERATURE STATUS= "Ok"/>
+ *      <VRM STATUS= "Ok"/>
+ *      <POWER_SUPPLIES STATUS= "Ok"/>
+ *      <POWER_SUPPLIES REDUNDANCY= "Not Redundant"/>
+ *</HEALTH_AT_A_GLANCE>
+ *
+ * Return value: RIBCL_SUCCESS if success, -1 if failure.
+ **/
+static int ir_xml_scan_health_at_a_glance( ilo2_ribcl_handler_t *ir_handler,
+		xmlNodePtr eh_data_node)
+{
+	xmlNodePtr p_node;
+	int sens_reading;
+	xmlChar *ts;
+	xmlChar *fstat = NULL;
+	xmlChar *pstat = NULL;
+	xmlChar *tstat = NULL;
+	ilo2_ribcl_DiscoveryData_t *ddata;
+	I2R_SensorDataT *sens_dat;
+	
+	p_node = ir_xml_find_node( eh_data_node, "HEALTH_AT_A_GLANCE");
+
+	if( p_node == NULL){
+		return( RIBCL_SUCCESS);	/* Not supported */
+	}
+
+	/* Note, we assume the properties that we are looking for can occur
+	 * in any order, and inbetween properties that we are not looking for.
+	 * So, we use the temporary pointer 'ts' to capture them.
+	 */
+	p_node = p_node->xmlChildrenNode;
+	while( p_node != NULL){
+
+		if((!xmlStrcmp( p_node->name, (const xmlChar *)"FANS"))){
+			ts = xmlGetProp( p_node, (const xmlChar *)"STATUS"); 
+			if( ts != NULL){
+				fstat = ts;
+			}
+		}
+
+		if((!xmlStrcmp( p_node->name, (const xmlChar *)"TEMPERATURE"))){
+			ts = xmlGetProp( p_node, (const xmlChar *)"STATUS"); 
+			if( ts != NULL){
+				tstat = ts;
+			}
+		}
+
+		if((!xmlStrcmp( p_node->name,
+					   (const xmlChar *)"POWER_SUPPLIES"))){
+			ts = xmlGetProp( p_node, (const xmlChar *)"STATUS"); 
+			if( ts != NULL){
+				pstat = ts;
+			}
+		}
+
+		p_node = p_node->next;
+	}
+
+	ddata = &(ir_handler->DiscoveryData);
+
+	if( fstat){
+		sens_dat = &(ddata->chassis_sensors[I2R_SEN_FANHEALTH]);
+		sens_reading = ir_xml_stat_to_reading( (char *)fstat);
+
+		if( sens_reading == -1){
+			err("ir_xml_scan_health_at_a_glance: Unrecognized status value \"%s\" for fan health.",
+				fstat);
+		} else {
+			sens_dat->reading.intval = sens_reading;
+		}
+		
+		xmlFree( fstat);
+	}
+
+	if( tstat){
+		sens_dat = &(ddata->chassis_sensors[I2R_SEN_TEMPHEALTH]);
+		sens_reading = ir_xml_stat_to_reading( (char *)tstat);
+
+		if( (sens_reading == -1) ||
+		    (sens_reading == I2R_SEN_VAL_DEGRADED) ){
+			err("ir_xml_scan_health_at_a_glance: Unrecognized status value \"%s\" for temperature health.",
+				tstat);
+		} else {
+			sens_dat->reading.intval = sens_reading;
+		}
+
+		xmlFree( tstat);
+	}
+
+	if( pstat){
+		sens_dat = &(ddata->chassis_sensors[I2R_SEN_POWERHEALTH]);
+		sens_reading = ir_xml_stat_to_reading( (char *)pstat);
+
+		if( sens_reading == -1){
+			err("ir_xml_scan_health_at_a_glance: Unrecognized status value \"%s\" for power supply health.",
+				pstat);
+		} else {
+			sens_dat->reading.intval = sens_reading;
+		}
+
+		xmlFree( pstat);
+	}
+
+	return( RIBCL_SUCCESS);
+
+} /* end ir_xml_scan_health_at_a_glance() */
+
+
+
+/**
+ * ir_xml_stat_to_reading
+ * @statstr: Ptr to a status string
+ *
+ * Performs a case insentive comparison of the input status string
+ * with known possible values, and returns a numeric representation.
+ * The value -1 is returned if there is no match for the string.
+ *
+ * Return values:
+ * I2R_SEN_VAL_OK - status string was "Ok"
+ * I2R_SEN_VAL_DEGRADED - status string was "Degraded"
+ * I2R_SEN_VAL_FAILED - status string was "Failed"
+ * -1 - The string was not recognized.
+ **/
+static int ir_xml_stat_to_reading( char *statstr)
+{
+
+	if( !strcasecmp( statstr, "Ok")){
+		return( I2R_SEN_VAL_OK);
+	} else if( !strcasecmp( statstr, "Degraded")){
+		return( I2R_SEN_VAL_DEGRADED);
+	} else if( !strcasecmp( statstr, "Failed")){
+		return( I2R_SEN_VAL_FAILED);
+	} else {
+		return( -1);
+	}
+
+} /* end ir_xml_stat_to_reading() */
+
+
+
+/**
  * ir_xml_scan_smbios_1
  * @ir_handler:	ptr to the ilo2_ribcl plugin private handler.
  * @b_node: porinter to an SMBIOS_RECORD node of type 1.
@@ -1559,6 +2042,7 @@ static int ir_xml_scan_smbios_4( ilo2_ribcl_handler_t *ir_handler,
 {
 
 	xmlChar *cpu = NULL;
+	xmlChar *cpu_speed = NULL;
 	int ret;
 	int procnum = 0;
 
@@ -1571,6 +2055,8 @@ static int ir_xml_scan_smbios_4( ilo2_ribcl_handler_t *ir_handler,
 	/* Can also get the speed, execution technology, and memory
 	 * technology for the CPU. However, this data is only provided
 	 * for processor 1. */
+
+	cpu_speed = ir_xml_smb_get_value( "Speed", b_node);
 
 	/* Find the index of this processor. The label returned in string
 	 * 'cpu' above should be of the form 'Proc N'.
@@ -1599,11 +2085,26 @@ static int ir_xml_scan_smbios_4( ilo2_ribcl_handler_t *ir_handler,
 	 * DiscoveryData, update DiscoveryData with the latest info */
 
 	ret = ir_xml_replacestr(
-		&(ir_handler->DiscoveryData.cpudata[ procnum].label),
-		(char *)cpu);
+			&(ir_handler->DiscoveryData.cpudata[ procnum].label),
+			(char *)cpu);
+
+	/* Since we only have cpu speed reported for processor one, we make
+	 * the assumption that all processors are of the same rated speed.
+	 * Probably a safe assumption, since we are talking about Symetric
+	 * Multi-Processing here after all. */
+
+	if( (ret == RIBCL_SUCCESS) && ( cpu_speed != NULL)){
+		ret = ir_xml_replacestr( 
+				&(ir_handler->DiscoveryData.system_cpu_speed),
+				(char *)cpu_speed);
+	}
 
 	if( cpu){	
 		xmlFree(cpu);
+	}
+
+	if( cpu_speed){
+		 xmlFree(cpu_speed);
 	}
 
 	return( ret);
@@ -1893,6 +2394,19 @@ static int ir_xml_scan_response( xmlNodePtr RIBCLnode, char *ilostring)
 				errmes = xmlGetProp( resp_node,
 						(const xmlChar *)"MESSAGE");
 				if( errmes){
+					/* this condition indicates the 
+					   requested setting is not supported
+					   on the platform. For example
+					   SET_HOST_POWER_SAVER 
+					   HOST_POWER_SAVER="4" is not a
+					   supported value on a DL385 G2.
+					   Return RIBCL_UNSUPPORTED to the
+					   calling routine. */
+
+					if(xmlStrcmp(errmes,
+						(const xmlChar *)"The value specified is invalid.") == 0) {
+						ret_stat = RIBCL_UNSUPPORTED;
+					}
 					err("Error from iLO2 at %s : %s.",
 						ilostring, (char *)errmes);
 					xmlFree( errmes);
@@ -2168,3 +2682,58 @@ static int ir_xml_replacestr( char **ostring, char *nstring)
 	return( RIBCL_SUCCESS);
 	
 } /* end ir_xml_replacestr() */
+
+
+
+#ifdef ILO2_RIBCL_DEBUG_SENSORS
+static char *ilo2_ribcl_sval2string[] = {
+		"I2R_SEN_VAL_OK",
+		"I2R_SEN_VAL_DEGRADED",
+		"I2R_SEN_VAL_FAILED" };
+
+static char *ilo2_ribcl_sstate2string[] = {
+		"I2R_INITIAL",
+		"I2R_OK",
+		"I2R_DEGRADED_FROM_OK",
+		"I2R_DEGRADED_FROM_FAIL",
+		"I2R_FAILED" };
+
+static char *ilo2_ribcl_snum2string[] = {
+		"INVALID NUMBER",
+		"I2R_SEN_FANHEALTH",
+		"I2R_SEN_TEMPHEALTH",
+		"I2R_SEN_POWERHEALTH" };
+		
+void dump_chassis_sensors( ilo2_ribcl_handler_t *ir_handler)
+{
+	int iter;
+	int val;
+	ilo2_ribcl_DiscoveryData_t *ddata;
+	char *s1;
+	char *s2;
+	char *s3;
+
+	ddata = &(ir_handler->DiscoveryData);
+
+	for( iter = 1; iter < I2R_NUM_CHASSIS_SENSORS; iter++){
+		s1 = ilo2_ribcl_snum2string[ iter];
+
+		val = ddata->chassis_sensors[ iter].state;
+		if( val == 0xFFFF){
+			s2 = "I2R_NO_EXIST";
+		} else {
+			s2 = ilo2_ribcl_sstate2string[ val];
+		}
+
+		val = ddata->chassis_sensors[ iter].reading.intval;
+		if( val == -1){
+			s3 = "I2R_SEN_VAL_UNINITIALIZED";
+		} else {
+			s3 = ilo2_ribcl_sval2string[val];
+		}
+
+		err("Sensor %s state %s value %s.", s1, s2, s3); 
+	}
+
+} /* end dump_chassis_sensors() */ 
+#endif /* ILO2_RIBCL_DEBUG_SENSORS */

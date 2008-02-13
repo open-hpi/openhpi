@@ -116,9 +116,9 @@ SaErrorT ilo2_ribcl_get_reset_state(void *hnd,
  * Sets a resource's reset action state.
  * Retrieves a resource's reset action state. If the resource has
  * SAHPI_CAPABILITY_RESET then sends RESET_SERVER RIBCL command to iLO2
- * to reset the system. Please note that this command doesn't bring
- * the system and OS running on it down gracefully. This routine does a warm
- * reset.
+ * to do a warm reset the system and a COLD_BOOT_SERVER commad to do a
+ * cold reset. Please note that this command doesn't bring the system and
+ * (OS running on it down gracefully.
  *
  * Return values:
  * SA_OK - Normal case.
@@ -149,13 +149,16 @@ SaErrorT ilo2_ribcl_set_reset_state(void *hnd,
 	   that supprt pulsed reset can be held in reset for a specified 
 	   perid of time using SAHPI_RESET_ASSERT followed by a
 	   SAHPI_RESET_DEASSERT.
-	   Currently both SAHPI_COLD_RESET and SAHOI_WARM_RESET will do a
-	   warm hard reset of the server. This is not a graceful shutdown
+	   Both cold and warm reset actions initiare an ungraceful shutdown
 	   and will bring the server down even without notifying the OS.
 	*/
 	if (act == SAHPI_RESET_ASSERT || act == SAHPI_RESET_DEASSERT) {
 		return(SA_ERR_HPI_INVALID_CMD);
 	}	
+
+	if (act != SAHPI_COLD_RESET && act != SAHPI_WARM_RESET) {
+		return(SA_ERR_HPI_INVALID_CMD);
+	}
 
 	handle = (struct oh_handler_state *)hnd;
 	ilo2_ribcl_handler = (ilo2_ribcl_handler_t *)handle->data;
@@ -184,7 +187,14 @@ SaErrorT ilo2_ribcl_set_reset_state(void *hnd,
 	}
 
 	/* Retrieve our customized command buffer */
-	srs_cmd = ilo2_ribcl_handler->ribcl_xml_cmd[IR_CMD_RESET_SERVER];
+	if(act == SAHPI_COLD_RESET) {
+		srs_cmd = ilo2_ribcl_handler->ribcl_xml_cmd[
+			IR_CMD_COLD_BOOT_SERVER];
+	} else {
+		srs_cmd = ilo2_ribcl_handler->ribcl_xml_cmd
+			[IR_CMD_RESET_SERVER];
+	}
+
 	if( srs_cmd == NULL){
 		err("ilo2_ribcl_set_reset_state: null customized command.");
 		free( response);
