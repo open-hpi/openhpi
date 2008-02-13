@@ -191,7 +191,11 @@ cIpmiLog::Start()
 
 	    char b[dDateTimeStringSize+5];
             IpmiDateTimeToString( tv.tv_sec, b );
+#if defined(__sparc) || defined(__sparc__)
+	    snprintf( b + dDateTimeStringSize - 1, 6, ".%03ld ", (long)tv.tv_usec / 1000 );
+#else
 	    snprintf( b + dDateTimeStringSize - 1, 6, ".%03ld ", tv.tv_usec / 1000 );
+#endif
 
 	    Output( b );
 	  }
