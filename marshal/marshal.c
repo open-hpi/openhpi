@@ -19,8 +19,7 @@
 // #include <stdio.h>
 #include <string.h>
 #include <assert.h>
-#include <endian.h>
-#include <byteswap.h>
+#include <glib.h>
 #include "marshal.h"
 
 
@@ -83,7 +82,7 @@ cMarshalType Marshal_Float64Type =
 int
 MarshalByteOrder()
 {
-  if ( __BYTE_ORDER == __LITTLE_ENDIAN )
+  if ( G_BYTE_ORDER == G_LITTLE_ENDIAN )
        return 1;
 
   return 0;
@@ -610,7 +609,7 @@ DemarshalSimpleTypes( int byte_order, tMarshalType type,
               memcpy( &v, buffer, sizeof( tUint16 ) );
 
               if ( MarshalByteOrder() != byte_order )
-                   v = bswap_16( v );
+                   v = GUINT16_SWAP_LE_BE( v );
               
               *(tUint16 *)data = v;
             }            
@@ -624,7 +623,7 @@ DemarshalSimpleTypes( int byte_order, tMarshalType type,
               memcpy( &v, buffer, sizeof( tUint32 ) );
 
               if ( MarshalByteOrder() != byte_order )
-                   v = bswap_32( v );
+                   v = GUINT32_SWAP_LE_BE( v );
 
               *(tUint32 *)data = v;
             }
@@ -638,7 +637,7 @@ DemarshalSimpleTypes( int byte_order, tMarshalType type,
               memcpy( &v, buffer, sizeof( tUint64 ) );
 
               if ( MarshalByteOrder() != byte_order )
-                   v = bswap_64( v );
+                   v = GUINT64_SWAP_LE_BE( v );
 
               *(tUint64 *)data = v;
             }
@@ -652,7 +651,7 @@ DemarshalSimpleTypes( int byte_order, tMarshalType type,
               memcpy( &(v.m_f32), buffer, sizeof( tFloat32 ) );
 
               if ( MarshalByteOrder() != byte_order )
-                   v.m_u32 = bswap_32( v.m_u32 );
+                   v.m_u32 = GUINT32_SWAP_LE_BE( v.m_u32 );
 
               *(tFloat32 *)data = v.m_f32;
             }
@@ -666,7 +665,7 @@ DemarshalSimpleTypes( int byte_order, tMarshalType type,
               memcpy( &(v.m_f64), buffer, sizeof( tFloat64 ) );
 
               if ( MarshalByteOrder() != byte_order )
-                   v.m_u64 = bswap_64( v.m_u64 );
+                   v.m_u64 = GUINT64_SWAP_LE_BE( v.m_u64 );
 
               *(tFloat64 *)data = v.m_f64;
             }
