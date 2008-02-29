@@ -22,5 +22,4 @@ for i in `find . -name '.#*'`; do
     rm $i
 done
 
-rm -fR docs/hld/OpenHPI_HLD/
-rm -fR docs/test_specification/test_specification
+rm -fR docs/hld/openhpi-manual
