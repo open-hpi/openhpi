@@ -33,6 +33,10 @@ elif test -f /lib/lsb/init-functions
 then
    lsbtype="lsb"
    . /lib/lsb/init-functions
+elif test -f /etc/gentoo-release
+then
+   lsbtype="gentoo"
+   . /sbin/functions.sh
 else
    lsbtype="nolsb"
 fi
@@ -59,6 +63,10 @@ print_outcome()
 				log_failure_msg "failed"
    			fi
   			;;
+  		
+  		gentoo)
+  			eend $?
+  			;;
    
 		nolsb)
 			if test "$?" -eq 0
@@ -73,23 +81,31 @@ print_outcome()
    	esac
 }
 
-start() {
-	echo -n $"Starting $prog: "
+start() {	
 	case "${lsbtype}" in
 		
 		rh) 
+			echo -n $"Starting $prog: "
 			daemon @prefix@/sbin/openhpid -c @CONFPATH@/@HPI_PKG@.conf
 			RETVAL=$?
 			;;
 		suse)
+			echo -n $"Starting $prog: "
 			startproc @prefix@/sbin/openhpid -c @CONFPATH@/@HPI_PKG@.conf
 			RETVAL=$?
 			;;
 		lsb)
+			echo -n $"Starting $prog: "
 			start_daemon @prefix@/sbin/openhpid -c @CONFPATH@/@HPI_PKG@.conf
 			RETVAL=$?
 			;;
+		gentoo)
+			ebegin "Starting $prog: "
+			start-stop-daemon --start --quiet --exec @prefix@/sbin/openhpid -- -c @CONFPATH@/@HPI_PKG@.conf
+			RETVAL=$?
+			;;
 		nolsb)
+			echo -n $"Starting $prog: "
 			@prefix@/sbin/openhpid -c @CONFPATH@/@HPI_PKG@.conf
 			RETVAL=$?
 			;;
@@ -100,17 +116,23 @@ start() {
 
 }
 
-stop() {
-	echo -n $"Stopping $prog: "
-	
+stop() {	
 	case "${lsbtype}" in
 		
 		rh | lsb | suse)
+			echo -n $"Stopping $prog: "
 			killproc @prefix@/sbin/openhpid
 			RETVAL=$?
 			;;
 		
+		gentoo)
+			ebegin "Stopping $prog: "
+			start-stop-daemon --stop --quiet --exec @prefix@/sbin/openhpid
+			RETVAL=$?
+			;;
+		
 		nolsb)
+			echo -n $"Stopping $prog: "
 			if test -f /var/run/openhpid.pid && test "`cat /var/run/openhpid.pid`" != ""
          		then
             			kill "`cat /var/run/openhpid.pid`"
@@ -153,7 +175,7 @@ dstatus() {
 				log_success_msg "$prog is not running"	
 			fi	
 			;;
-		nolsb)
+		gentoo | nolsb)
 			if test -f /var/run/openhpid.pid && 
 				test "`cat /var/run/openhpid.pid`" != "" && 
 				kill -0 "`cat /var/run/openhpid.pid`"
