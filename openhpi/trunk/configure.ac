@@ -522,7 +522,7 @@ AC_ARG_ENABLE([debuggable],
     [if test "x$enableval" = "xyes"; then
             CFLAGS=`echo $CFLAGS | sed -e 's/-O\w\?\>[ ]*//g'`
             CFLAGS=`echo $CFLAGS | sed -e 's/^-g\w*[ ]*\| -g\w*//g'`
-            CFLAGS="$CFLAGS -g3"
+            CFLAGS="$CFLAGS -O0 -ggdb3"
     else
             CFLAGS=`echo $CFLAGS | sed -e 's/^-g\w*[ ]*\| -g\w*//g'`
     fi],
