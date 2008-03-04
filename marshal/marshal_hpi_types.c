@@ -521,13 +521,13 @@ static cMarshalType SaHpiDimiTestParameterValueUnionTypeElements[] =
         dUnionElement( SAHPI_DIMITEST_PARAM_TYPE_INT32, SaHpiInt32Type ),
         dUnionElement( SAHPI_DIMITEST_PARAM_TYPE_FLOAT64, SaHpiFloat64Type ),
         /* These two types are disregarded but must be spepcified */
-        dUnionElement( SAHPI_DIMITEST_PARAM_TYPE_BOOLEAN, SaHpiInt32Type ),
-        dUnionElement( SAHPI_DIMITEST_PARAM_TYPE_TEXT, SaHpiInt32Type ),
+        dUnionElement( SAHPI_DIMITEST_PARAM_TYPE_BOOLEAN, SaHpiFloat64Type ),
+        dUnionElement( SAHPI_DIMITEST_PARAM_TYPE_TEXT, SaHpiFloat64Type ),
         dUnionElementEnd()
 };
 cMarshalType SaHpiDimiTestParameterValueUnionType = dUnion( 2, SaHpiDimiTestParameterValueUnionT, SaHpiDimiTestParameterValueUnionTypeElements );
 
-static cMarshalType SaHpiDimiTestParamValueTypeElements[] =
+static cMarshalType SaHpiDimiTestParamValue2TypeElements[] =
 {
         dUnionElement( SAHPI_DIMITEST_PARAM_TYPE_INT32, SaHpiInt32Type ),
         dUnionElement( SAHPI_DIMITEST_PARAM_TYPE_FLOAT64, SaHpiFloat64Type ),
@@ -535,7 +535,16 @@ static cMarshalType SaHpiDimiTestParamValueTypeElements[] =
         dUnionElement( SAHPI_DIMITEST_PARAM_TYPE_TEXT, SaHpiTextBufferType ),
         dUnionElementEnd()
 };
-cMarshalType SaHpiDimiTestParamValueType = dUnion( 2, SaHpiDimiTestParamValueT, SaHpiDimiTestParamValueTypeElements );
+cMarshalType SaHpiDimiTestParamValue2Type = dUnion( 2, SaHpiDimiTestParamValueT, SaHpiDimiTestParamValue2TypeElements );
+static cMarshalType SaHpiDimiTestParamValue1TypeElements[] =
+{
+        dUnionElement( SAHPI_DIMITEST_PARAM_TYPE_INT32, SaHpiInt32Type ),
+        dUnionElement( SAHPI_DIMITEST_PARAM_TYPE_FLOAT64, SaHpiFloat64Type ),
+        dUnionElement( SAHPI_DIMITEST_PARAM_TYPE_BOOLEAN, SaHpiBoolType ),
+        dUnionElement( SAHPI_DIMITEST_PARAM_TYPE_TEXT, SaHpiTextBufferType ),
+        dUnionElementEnd()
+};
+cMarshalType SaHpiDimiTestParamValue1Type = dUnion( 1, SaHpiDimiTestParamValueT, SaHpiDimiTestParamValue1TypeElements );
 
 static cMarshalType ParamNameArray = dArray( SaHpiUint8Type, SAHPI_DIMITEST_PARAM_NAME_LEN );
 static cMarshalType SaHpiDimiTestParamsDefinitionTypeElements[] =
@@ -545,7 +554,7 @@ static cMarshalType SaHpiDimiTestParamsDefinitionTypeElements[] =
         dStructElement( SaHpiDimiTestParamsDefinitionT, ParamType, SaHpiDimiTestParamTypeType ),
         dStructElement( SaHpiDimiTestParamsDefinitionT, MinValue, SaHpiDimiTestParameterValueUnionType ),
         dStructElement( SaHpiDimiTestParamsDefinitionT, MaxValue, SaHpiDimiTestParameterValueUnionType ),
-        dStructElement( SaHpiDimiTestParamsDefinitionT, DefaultParam, SaHpiDimiTestParamValueType ),
+        dStructElement( SaHpiDimiTestParamsDefinitionT, DefaultParam, SaHpiDimiTestParamValue2Type ),
         dStructElementEnd()
 };
 cMarshalType SaHpiDimiTestParamsDefinitionType = dStruct( SaHpiDimiTestParamsDefinitionT, SaHpiDimiTestParamsDefinitionTypeElements );
@@ -590,7 +599,7 @@ static cMarshalType SaHpiDimiTestVariableParamsTypeElements[] =
 {
         dStructElement( SaHpiDimiTestVariableParamsT, ParamName, ParamNameArray ),
         dStructElement( SaHpiDimiTestVariableParamsT, ParamType, SaHpiDimiTestParamTypeType ),
-        dStructElement( SaHpiDimiTestVariableParamsT, Value, SaHpiDimiTestParamValueType ),
+        dStructElement( SaHpiDimiTestVariableParamsT, Value, SaHpiDimiTestParamValue1Type ),
         dStructElementEnd()
 };
 cMarshalType SaHpiDimiTestVariableParamsType = dStruct( SaHpiDimiTestVariableParamsT, SaHpiDimiTestVariableParamsTypeElements );
