@@ -34,7 +34,9 @@ HS_SOURCES		= \
 	sensor.c \
 	session.c \
 	show.c \
-	service.c
+	service.c \
+	dimi.c \
+	fumi.c
 
 hpi_shell_SOURCES = $(HS_SOURCES)
 
