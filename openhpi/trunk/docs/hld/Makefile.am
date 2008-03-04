@@ -57,10 +57,10 @@ ps-am:
 	docbook2ps openhpi-manual.sgml
 
 openhpi-manual/*.html: $(SGML_FILES)
-	-docbook2html -o openhpi-manual openhpi-manual.sgml
+	-docbook2html -o openhpi-manual $(srcdir)/openhpi-manual.sgml
 	-mkdir -p openhpi-manual/images
 	-cp $(DIAGRAMS) openhpi-manual/images
-	-./htmlfilter.pl $(shell echo $(srcdir)/openhpi-manual/*html)
+	-$(srcdir)/htmlfilter.pl $(shell echo $(builddir)/openhpi-manual/*html)
 	-chmod a+x $(shell echo $(srcdir)/openhpi-manual/*html)
 	if test ! -e openhpi-manual/book1.html; then \
 		ln openhpi-manual/index.html openhpi-manual/book1.html; \
