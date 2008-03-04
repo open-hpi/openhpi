@@ -1057,7 +1057,7 @@ SaErrorT show_dat(Domain_t *domain, hpi_ui_print_cb_t proc)
 }
 
 SaErrorT show_inventory(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
-                        SaHpiIdrIdT IdrId, hpi_ui_print_cb_t proc)
+                        SaHpiIdrIdT IdrId, SaHpiEntryIdT areaid, hpi_ui_print_cb_t proc)
 {
         SaHpiIdrInfoT           info;
         SaErrorT                rv;
@@ -1090,6 +1090,10 @@ SaErrorT show_inventory(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
                         proc("ERROR!!! saHpiIdrAreaHeaderGet\n");
                         return(-1);
                 };
+                if ( areaid != SAHPI_LAST_ENTRY && areaid != hdr.AreaId ) {
+                        entryid = nextentryid;
+                        continue;
+                }
                 str = oh_lookup_idrareatype(hdr.Type);
                 if (str == NULL) str = "Unknown";
                 snprintf(buf, SHOW_BUF_SZ,

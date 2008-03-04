@@ -1394,7 +1394,7 @@ const char inv_delfhelp[] = "delfield: delete inventory field\n"
 const char inv_setfhelp[] = "setfield: set inventory field\n"
                         "Usage: setfield";
 const char inv_showhelp[] = "show: show inventory\n"
-                        "Usage: show";
+                        "Usage: show [<area id>]";
 //  control command block
 const char ctrl_setsthelp[] = "setstate: set control state\n"
                         "Usage: setstate <values>";
