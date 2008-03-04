@@ -644,12 +644,12 @@ static cMarshalType SaHpiFumiBankInfoTypeElements[] =
         dStructElement( SaHpiFumiBankInfoT, BankSize, SaHpiUint32Type ),
         dStructElement( SaHpiFumiBankInfoT, Position, SaHpiUint32Type ),
         dStructElement( SaHpiFumiBankInfoT, BankState, SaHpiFumiBankStateType ),
-        dStructElement( SaHpiFumiSourceInfoT, Identifier, SaHpiTextBufferType ),
-        dStructElement( SaHpiFumiSourceInfoT, Description, SaHpiTextBufferType ),
-        dStructElement( SaHpiFumiSourceInfoT, DateTime, SaHpiTextBufferType ),
-        dStructElement( SaHpiFumiSourceInfoT, MajorVersion, SaHpiUint32Type ),
-        dStructElement( SaHpiFumiSourceInfoT, MinorVersion, SaHpiUint32Type ),
-        dStructElement( SaHpiFumiSourceInfoT, AuxVersion, SaHpiUint32Type ),
+        dStructElement( SaHpiFumiBankInfoT, Identifier, SaHpiTextBufferType ),
+        dStructElement( SaHpiFumiBankInfoT, Description, SaHpiTextBufferType ),
+        dStructElement( SaHpiFumiBankInfoT, DateTime, SaHpiTextBufferType ),
+        dStructElement( SaHpiFumiBankInfoT, MajorVersion, SaHpiUint32Type ),
+        dStructElement( SaHpiFumiBankInfoT, MinorVersion, SaHpiUint32Type ),
+        dStructElement( SaHpiFumiBankInfoT, AuxVersion, SaHpiUint32Type ),
         dStructElementEnd()
 };
 cMarshalType SaHpiFumiBankInfoType = dStruct( SaHpiFumiBankInfoT, SaHpiFumiBankInfoTypeElements );
