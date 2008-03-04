@@ -229,6 +229,7 @@ extern cMarshalType SaHpiDomainEventType;
 extern cMarshalType SaHpiSensorEventType;
 #define SaHpiSensorEnableOptDataType SaHpiUint8Type
 extern cMarshalType SaHpiSensorEnableChangeEventType;
+#define SaHpiHsCauseOfStateChangeType SaHpiUint32Type
 extern cMarshalType SaHpiHotSwapEventType;
 extern cMarshalType SaHpiWatchdogEventType;
 #define SaHpiSwEventTypeType SaHpiUint32Type

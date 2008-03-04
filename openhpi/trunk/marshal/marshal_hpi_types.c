@@ -760,6 +760,7 @@ static cMarshalType SaHpiHotSwapEventElements[] =
 {
   dStructElement( SaHpiHotSwapEventT, HotSwapState, SaHpiHsStateType ),
   dStructElement( SaHpiHotSwapEventT, PreviousHotSwapState, SaHpiHsStateType ),
+  dStructElement( SaHpiHotSwapEventT, CauseOfStateChange, SaHpiHsCauseOfStateChangeType ),
   dStructElementEnd()
 };
 
