@@ -202,6 +202,8 @@ extern cMarshalType SaHpiDimiTestVariableParamsListType;
 // FUMIs
 #define SaHpiFumiNumType SaHpiUint32Type
 #define SaHpiBankNumType SaHpiUint8Type
+#define SaHpiFumiProtocolType SaHpiUint32Type
+#define SaHpiFumiCapabilityType SaHpiUint32Type
 #define SaHpiFumiUpgradeStatusType SaHpiUint32Type
 #define SaHpiFumiSourceStatusType SaHpiUint32Type
 #define SaHpiFumiBankStateType SaHpiUint32Type

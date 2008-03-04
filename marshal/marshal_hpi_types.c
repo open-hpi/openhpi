@@ -613,6 +613,15 @@ static cMarshalType SaHpiDimiTestVariableParamsListTypeElements[] =
 };
 cMarshalType SaHpiDimiTestVariableParamsListType = dStruct( SaHpiDimiTestVariableParamsListT, SaHpiDimiTestVariableParamsListTypeElements );
 
+// DIMI rdr
+static cMarshalType SaHpiDimiRecElements[] =
+{
+   dStructElement( SaHpiDimiRecT, DimiNum, SaHpiDimiNumType ),
+   dStructElement( SaHpiDimiRecT, Oem, SaHpiUint32Type ),
+   dStructElementEnd()
+};
+
+cMarshalType SaHpiDimiRecType = dStruct( SaHpiDimiRecT, SaHpiDimiRecElements );
 
 // FUMIs
 static cMarshalType SaHpiFumiSourceInfoTypeElements[] =
@@ -645,6 +654,19 @@ static cMarshalType SaHpiFumiBankInfoTypeElements[] =
 };
 cMarshalType SaHpiFumiBankInfoType = dStruct( SaHpiFumiBankInfoT, SaHpiFumiBankInfoTypeElements );
 
+// FUMI rdr
+static cMarshalType SaHpiFumiRecElements[] =
+{
+   dStructElement( SaHpiFumiRecT, Num, SaHpiFumiNumType ),
+   dStructElement( SaHpiFumiRecT, AccessProt, SaHpiFumiProtocolType ),
+   dStructElement( SaHpiFumiRecT, Capability, SaHpiFumiCapabilityType ),
+   dStructElement( SaHpiFumiRecT, NumBanks, SaHpiUint8Type ),
+   dStructElement( SaHpiFumiRecT, Oem, SaHpiUint32Type ),
+   dStructElementEnd()
+};
+
+cMarshalType SaHpiFumiRecType = dStruct( SaHpiFumiRecT, SaHpiFumiRecElements );
+
 // rdr
 
 static cMarshalType SaHpiRdrTypeUnionTypeElements[] =
@@ -655,6 +677,8 @@ static cMarshalType SaHpiRdrTypeUnionTypeElements[] =
         dUnionElement( SAHPI_INVENTORY_RDR, SaHpiInventoryRecType ),
         dUnionElement( SAHPI_WATCHDOG_RDR, SaHpiWatchdogRecType ),
         dUnionElement( SAHPI_ANNUNCIATOR_RDR, SaHpiAnnunciatorRecType ),
+        dUnionElement( SAHPI_DIMI_RDR, SaHpiDimiRecType ),
+        dUnionElement( SAHPI_FUMI_RDR, SaHpiFumiRecType ),
         dUnionElementEnd()
 };
 
@@ -780,6 +804,35 @@ static cMarshalType SaHpiUserEventElements[] =
 
 cMarshalType SaHpiUserEventType = dStruct( SaHpiUserEventT, SaHpiUserEventElements );
 
+static cMarshalType SaHpiDimiEventElements[] =
+{
+  dStructElement( SaHpiDimiEventT, DimiNum, SaHpiDimiNumType ),
+  dStructElement( SaHpiDimiEventT, TestNum, SaHpiDimiTestNumType ),
+  dStructElement( SaHpiDimiEventT, DimiTestRunStatus, SaHpiDimiTestRunStatusType ),
+  dStructElement( SaHpiDimiEventT, DimiTestPercentCompleted, SaHpiDimiTestPercentCompletedType ),
+  dStructElementEnd()
+};
+
+cMarshalType SaHpiDimiEventType = dStruct( SaHpiDimiEventT, SaHpiDimiEventElements );
+
+
+static cMarshalType SaHpiDimiUpdateEventElements[] =
+{
+  dStructElement( SaHpiDimiUpdateEventT, DimiNum, SaHpiDimiNumType ),
+  dStructElementEnd()
+};
+
+cMarshalType SaHpiDimiUpdateEventType = dStruct( SaHpiDimiUpdateEventT, SaHpiDimiUpdateEventElements );
+
+static cMarshalType SaHpiFumiEventElements[] =
+{
+  dStructElement( SaHpiFumiEventT, FumiNum, SaHpiFumiNumType ),
+  dStructElement( SaHpiFumiEventT, BankNum, SaHpiUint8Type ),
+  dStructElement( SaHpiFumiEventT, UpgradeStatus, SaHpiFumiUpgradeStatusType ),
+  dStructElementEnd()
+};
+
+cMarshalType SaHpiFumiEventType = dStruct( SaHpiFumiEventT, SaHpiFumiEventElements );
 
 static cMarshalType SaHpiEventUnionElements[] =
 {
@@ -792,6 +845,9 @@ static cMarshalType SaHpiEventUnionElements[] =
   dUnionElement( SAHPI_ET_HPI_SW, SaHpiHpiSwEventType ),
   dUnionElement( SAHPI_ET_OEM, SaHpiOemEventType ),
   dUnionElement( SAHPI_ET_USER, SaHpiUserEventType ),
+  dUnionElement( SAHPI_ET_DIMI, SaHpiDimiEventType ),
+  dUnionElement( SAHPI_ET_DIMI_UPDATE, SaHpiDimiUpdateEventType ),
+  dUnionElement( SAHPI_ET_FUMI, SaHpiFumiEventType ),
   dUnionElementEnd()
 };
 
