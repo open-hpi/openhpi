@@ -615,8 +615,8 @@ if test "x$THREAD_SAFE" = "xyes" ; then
 fi
 
 AC_CHECK_PROG([found_docbook2html], [docbook2html], [yes])
-AC_ARG_ENABLE([hld],
-    [  --enable-docs            generate HTML docs [[default=yes if docbook2html exists]]],
+AC_ARG_ENABLE([docs],
+    [  --enable-docs            generate documentation [[default=yes if docbook2html exists]]],
     [if test "x$enableval" = "xyes"; then
         if test "x$found_docbook2html" = "xyes"; then
             AC_SUBST(HLD,hld)
