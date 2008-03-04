@@ -1063,6 +1063,36 @@ static ret_code_t quit(void)
         exit(0);
 }
 
+static ret_code_t reopen_session(void)
+{
+        int              eflag = 0, fflag = 0;
+        term_def_t      *term;
+        SaErrorT         rv;
+   
+        term = get_next_term();
+        while (term != NULL) {
+                if (strcmp(term->term, "force") == 0) {
+                        fflag = 1;
+                } else {
+                        printf("Invalid argument: %s\n", term->term);
+                        return(HPI_SHELL_PARM_ERROR);
+                };
+                term = get_next_term();
+        };
+        do {
+           rv = saHpiSessionClose(Domain->sessionId);
+           sleep( 1 );
+        } while ( fflag == 0 && rv != SA_OK && rv != SA_ERR_HPI_NO_RESPONSE );
+        if (rv != SA_OK) {
+                printf("saHpiSessionClose error %s\n", oh_lookup_error(rv));
+        }
+        if (open_session(eflag) != 0) {
+                printf("Can not open session\n");
+                return(HPI_SHELL_CMD_ERROR);
+        }
+        return(HPI_SHELL_OK);
+}
+
 static ret_code_t run(void)
 {
         term_def_t      *term;
@@ -1303,6 +1333,9 @@ const char quithelp[] = "quit: close session and quit console\n"
                         "Usage: quit";
 const char resethelp[] = "reset: perform specified reset on the entity\n"
                         "Usage: reset <resource id> [cold|warm|assert|deassert]";
+const char reopenhelp[] = "reopen: reopens session\n"
+                        "Usage: reopen [force]\n"
+                          "force flag skips old session closing check";
 const char runhelp[] = "run: execute command file\n"
                         "Usage: run <file name>";
 const char senhelp[] =  "sen: sensor command block\n"
@@ -1477,6 +1510,7 @@ command_def_t commands[] = {
     { "power",          power,          powerhelp,      MAIN_COM },
     { "quit",           quit,           quithelp,       UNDEF_COM },
     { "rdr",            show_rdr,       showrdrhelp,    MAIN_COM },
+    { "reopen",         reopen_session, reopenhelp,     UNDEF_COM },
     { "reset",          reset,          resethelp,      MAIN_COM },
     { "rpt",            show_rpt,       showrpthelp,    MAIN_COM },
     { "run",            run,            runhelp,        MAIN_COM },
