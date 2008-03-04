@@ -1350,17 +1350,17 @@ const char sen_setthhelp[] = "setthres: set sensor thresholds\n"
 const char sen_showhelp[] = "show: show sensor state\n"
                         "Usage: show";
 //  inventory command block
-const char inv_addahelp[] = "addarea: add inventoty area\n"
+const char inv_addahelp[] = "addarea: add inventory area\n"
                         "Usage: addarea";
-const char inv_addfhelp[] = "addfield: add inventoty field\n"
+const char inv_addfhelp[] = "addfield: add inventory field\n"
                         "Usage: addfield";
-const char inv_delahelp[] = "delarea: delete inventoty area\n"
+const char inv_delahelp[] = "delarea: delete inventory area\n"
                         "Usage: delarea";
-const char inv_delfhelp[] = "delfield: delete inventoty field\n"
+const char inv_delfhelp[] = "delfield: delete inventory field\n"
                         "Usage: delfield";
-const char inv_setfhelp[] = "setfield: set inventoty field\n"
+const char inv_setfhelp[] = "setfield: set inventory field\n"
                         "Usage: setfield";
-const char inv_showhelp[] = "show: show inventoty\n"
+const char inv_showhelp[] = "show: show inventory\n"
                         "Usage: show";
 //  control command block
 const char ctrl_setsthelp[] = "setstate: set control state\n"
