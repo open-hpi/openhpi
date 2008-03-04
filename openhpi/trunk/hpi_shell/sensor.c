@@ -551,12 +551,12 @@ static ret_code_t hs_block_getsettime(int get)
 		printf("Auto-extract timeout: %lld\n", timeout);
 		return(HPI_SHELL_OK);
 	};
-	i = get_int_param("Timeout: ", &res);
+	i = get_int_param("Timeout (msec): ", &res);
 	if (i != 1) {
 		printf("Invalid timeout\n");
 		return(HPI_SHELL_PARM_ERROR);
 	};
-	timeout = res;
+	timeout = 1000000LL * res;
 	if (ins) {
 		rv = saHpiAutoInsertTimeoutSet(Domain->sessionId, timeout);
 		if (rv != SA_OK) {
