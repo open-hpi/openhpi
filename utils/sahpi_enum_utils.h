@@ -57,7 +57,7 @@ extern struct oh_entitytype_map {
 char * oh_lookup_entitytype(SaHpiEntityTypeT value);
 SaErrorT oh_encode_entitytype(SaHpiTextBufferT *buffer, SaHpiEntityTypeT *type);
 
-#define OH_MAX_SENSORTYPE 43 
+#define OH_MAX_SENSORTYPE 47 
 extern struct oh_sensortype_map {
   SaHpiSensorTypeT  entity_type;
   char *str;

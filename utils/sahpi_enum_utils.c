@@ -930,10 +930,18 @@ char * oh_lookup_sensortype(SaHpiSensorTypeT value)
                 return "MANAGEMENT_SUBSYSTEM_HEALTH";
         case SAHPI_BATTERY:
                 return "BATTERY";
+        case SAHPI_SESSION_AUDIT:
+                return "SESSION_AUDIT";
+        case SAHPI_VERSION_CHANGE:
+                return "VERSION_CHANGE";
         case SAHPI_OPERATIONAL:
                 return "OPERATIONAL";
         case SAHPI_OEM_SENSOR:
                 return "OEM_SENSOR";
+        case SAHPI_COMM_CHANNEL_LINK_STATE:
+                return "COMM_CHANNEL_LINK_STATE";
+        case SAHPI_MANAGEMENT_BUS_STATE:
+                return "MANAGEMENT_BUS_STATE";
         default:
                 return NULL;
         }
@@ -981,8 +989,12 @@ struct oh_sensortype_map sensortype_strings[] = {
        {SAHPI_LAN, "LAN"},
        {SAHPI_MANAGEMENT_SUBSYSTEM_HEALTH, "MANAGEMENT_SUBSYSTEM_HEALTH"},
        {SAHPI_BATTERY, "BATTERY"},
+       {SAHPI_SESSION_AUDIT, "SESSION_AUDIT"},
+       {SAHPI_VERSION_CHANGE, "VERSION_CHANGE"},
        {SAHPI_OPERATIONAL, "OPERATIONAL"},
        {SAHPI_OEM_SENSOR, "OEM_SENSOR"},
+       {SAHPI_COMM_CHANNEL_LINK_STATE, "COMM_CHANNEL_LINK_STATE"},
+       {SAHPI_MANAGEMENT_BUS_STATE, "MANAGEMENT_BUS_STATE"},
 };
 
 /**
