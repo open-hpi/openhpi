@@ -186,7 +186,8 @@ extern cMarshalType SaHpiAnnunciatorRecType;
 #define SaHpiDimiTestErrCodeType SaHpiUint32Type
 extern cMarshalType SaHpiDimiInfoType;
 extern cMarshalType SaHpiDimiTestParameterValueUnionType;
-extern cMarshalType SaHpiDimiTestParamValueType;
+extern cMarshalType SaHpiDimiTestParamValue1Type;
+extern cMarshalType SaHpiDimiTestParamValue2Type;
 extern cMarshalType SaHpiDimiTestParamsDefinitionType;
 extern cMarshalType SaHpiDimiTestAffectedEntityType;
 extern cMarshalType SaHpiDimiTestType;
@@ -195,6 +196,7 @@ typedef struct {
         SaHpiUint8T NumberOfParams;
         SaHpiDimiTestVariableParamsT *ParamsList;
 } SaHpiDimiTestVariableParamsListT;
+extern cMarshalType SaHpiDimiTestVariableParamsType;
 extern cMarshalType SaHpiDimiTestVariableParamsListType;
 
 // FUMIs

@@ -487,11 +487,13 @@ Marshal( const cMarshalType *type, const void *d, void *b )
 			int array_size = FindArraySize( type, st_type, data );
 
                         // only simple types can be array elements
-                        assert( IsSimpleType( st_type->m_u.m_var_array.m_type->m_type ) );
+                        //assert( IsSimpleType( st_type->m_u.m_var_array.m_type->m_type ) );
 
-                        unsigned char *bb = buffer;
-                        const unsigned char *dd = data + struct_element->m_u.m_struct_element.m_offset;
+                        unsigned char *bb = buffer;                        
+                        const unsigned char *vardata = data + struct_element->m_u.m_struct_element.m_offset;
+                        const unsigned char *dd;
                         tUint32 j;
+                        memcpy(&dd, vardata, sizeof(void *));
 
                         for( j = 0; j < array_size; j++ )
                            {
@@ -757,11 +759,18 @@ Demarshal( int byte_order, const cMarshalType *type,
 			tUint32 array_size = FindArraySize( type, st_type, data );
 
                         // only simple types can be array elements
-                        assert( IsSimpleType( st_type->m_u.m_var_array.m_type->m_type ) );
-
+                        //assert( IsSimpleType( st_type->m_u.m_var_array.m_type->m_type ) );			
+			
                         const unsigned char *bb = buffer;
-                        unsigned char       *dd = data + struct_element->m_u.m_struct_element.m_offset;
+                        const cMarshalType *va_type = st_type->m_u.m_var_array.m_type;
+                        // FIXME: This is a hack! I'm assuming the elements in
+                        // the variable array are structs. That's because this
+                        // is the only instance for which we use var arrays.
+                        unsigned char *dd =
+                        	(unsigned char *)malloc(va_type->m_u.m_struct.m_size*array_size);
+                        unsigned char *vardata = data + struct_element->m_u.m_struct_element.m_offset;
                         tUint32 j;
+                        memcpy(vardata, &dd, sizeof(void *));
 
                         for( j = 0; j < array_size; j++ )
                            {
