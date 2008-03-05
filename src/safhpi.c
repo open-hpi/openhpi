@@ -1747,6 +1747,20 @@ SaErrorT SAHPI_API saHpiRdrGetByInstrumentId (
                         return SA_ERR_HPI_CAPABILITY;
                 }
                 break;
+        case SAHPI_DIMI_RDR:
+                if(!(cap & SAHPI_CAPABILITY_DIMI)) {
+                        dbg("No DIMI for Resource %d in Domain %d",ResourceId,did);
+                        oh_release_domain(d); /* Unlock domain */
+                        return SA_ERR_HPI_CAPABILITY;
+                }
+                break;
+        case SAHPI_FUMI_RDR:
+                if(!(cap & SAHPI_CAPABILITY_FUMI)) {
+                        dbg("No FUMI for Resource %d in Domain %d",ResourceId,did);
+                        oh_release_domain(d); /* Unlock domain */
+                        return SA_ERR_HPI_CAPABILITY;
+                }
+                break;
         default:
                 dbg("Not a valid Rdr Type %d", RdrType);
                 oh_release_domain(d); /* Unlock domain */
@@ -4747,8 +4761,8 @@ SaErrorT SAHPI_API saHpiFumiInstallStart (
         if (error) {
                 oh_release_domain(d);
                 return error;
-        } else if (sourceinfo.SourceStatus == SAHPI_FUMI_SRC_VALID ||
-                   sourceinfo.SourceStatus == SAHPI_FUMI_SRC_VALIDITY_UNKNOWN) {
+        } else if (sourceinfo.SourceStatus != SAHPI_FUMI_SRC_VALID &&
+                   sourceinfo.SourceStatus != SAHPI_FUMI_SRC_VALIDITY_UNKNOWN) {
                 oh_release_domain(d);
                 dbg("Source is not valid: Bank %u, Fumi %u, Resource %u, Domain %u",
                     BankNum, FumiNum, ResourceId, did);
