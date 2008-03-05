@@ -364,6 +364,9 @@ static int process_event(SaHpiDomainIdT did,
         case SAHPI_ET_OEM:
 	case SAHPI_ET_DOMAIN:
 	case SAHPI_ET_USER:
+        case SAHPI_ET_DIMI:
+        case SAHPI_ET_DIMI_UPDATE:
+        case SAHPI_ET_FUMI:
                 process_hpi_event(d, e);
                 break;
         default:

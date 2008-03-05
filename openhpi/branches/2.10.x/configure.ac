@@ -580,6 +580,43 @@ if test "x$THREAD_SAFE" = "xyes" ; then
         LIBS="$LIBS -lpthread"
 fi
 
+AC_CHECK_PROG([found_docbook2html], [docbook2html], [yes])
+AC_ARG_ENABLE([docs],
+    [  --enable-docs            generate documentation [[default=yes if docbook2html exists]]],
+    [if test "x$enableval" = "xyes"; then
+        if test "x$found_docbook2html" = "xyes"; then
+            AC_SUBST(HLD,hld)
+        else
+           OH_CHECK_FAIL(docbook2html,docbook-utils,http://sources.redhat.com/docbook-tools, Can not generate HTML design docs without docbook2html)
+	fi
+    else
+        AC_SUBST(HLD,"")
+    fi],
+    [if test "x$found_docbook2html" = "xyes"; then
+        AC_SUBST(HLD,hld)
+    else
+        AC_SUBST(HLD,"")
+    fi])
+    
+AC_CHECK_PROG([found_pod2man], [pod2man], [yes])
+AC_ARG_ENABLE([man],
+    [  --enable-man            generate man pages [[default=yes if pod2man exists]]],
+    [if test "x$enableval" = "xyes"; then
+        if test "x$found_pod2man" = "xyes"; then
+            AC_SUBST(MAN,man)
+        else
+            OH_CHECK_FAIL(pod2man,perl,http://www.perl.org,
+                          Can not generate man pages without pod2man)
+        fi
+    else
+        AC_SUBST(MAN,"")
+    fi],
+    [if test "x$found_pod2man" = "xyes"; then
+        AC_SUBST(MAN,man)
+    else
+        AC_SUBST(MAN,"")
+    fi])
+
 AC_CONFIG_FILES([openhpi.spec
         openhpi.pc
         rt-env.sh
