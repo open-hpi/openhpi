@@ -31,19 +31,21 @@
 #include <stdlib.h>
 #include <string.h>
 #include <getopt.h>
-#include <SaHpi.h>
-#include <oh_clients.h>
+#include "SaHpi.h"
 
 #define  uchar  unsigned char
-#define OH_SVN_REV "$Revision$"
-
+#ifdef HPI_A
+char *progver  = "1.1 HPI-A";
+#else
+char *progver  = "1.1 HPI-B";
+#endif
+char fdebug = 0;
 #define NUSE  6
 char *usedesc[NUSE] = {"reserved", "BIOS FRB2", "BIOS/POST",
                     "OS Load", "SMS/OS", "OEM" };
 #define NACT  5
 char *actions[NACT] = {"No action", "Hard Reset", "Power down",
 		    "Power cycle", "Reserved" };
-char fdebug = 0;
 
 static void
 show_wdt(SaHpiWatchdogNumT  wdnum, SaHpiWatchdogT *wdt)
@@ -90,7 +92,12 @@ main(int argc, char **argv)
   int c;
   SaErrorT rv;
   SaHpiSessionIdT sessionid;
+#ifdef HPI_A
+  SaHpiVersionT hpiVer;
+  SaHpiRptInfoT rptinfo;
+#else
   SaHpiDomainInfoT domainInfo;
+#endif
   SaHpiRptEntryT rptentry;
   SaHpiEntryIdT rptentryid;
   SaHpiEntryIdT nextrptentryid;
@@ -102,7 +109,7 @@ main(int argc, char **argv)
   char fenable = 0;
   char fdisable = 0;
 
-  oh_prog_version(argv[0], OH_SVN_REV);
+  printf("%s ver %s\n", argv[0],progver);
   while ( (c = getopt( argc, argv,"dert:x?")) != EOF )
      switch(c) {
 	case 'r':       /* reset wdt */
@@ -130,6 +137,26 @@ main(int argc, char **argv)
      }
   if (t == 0) t = 120;
 
+#ifdef HPI_A
+  rv = saHpiInitialize(&hpiVer);
+  if (rv != SA_OK) {
+      printf("saHpiInitialize error %d\n",rv);
+      exit(-1);
+      }
+  rv = saHpiSessionOpen(SAHPI_DEFAULT_DOMAIN_ID,&sessionid,NULL);
+  if (rv != SA_OK) {
+        if (rv == SA_ERR_HPI_ERROR)
+           printf("saHpiSessionOpen: error %d, library not running\n",rv);
+        else printf("saHpiSessionOpen error %d\n",rv);
+	exit(-1);
+	}
+  rv = saHpiResourcesDiscover(sessionid);
+  if (fdebug) printf("saHpiResourcesDiscover rv = %d\n",rv);
+  rv = saHpiRptInfoGet(sessionid,&rptinfo);
+  if (fdebug) printf("saHpiRptInfoGet rv = %d\n",rv);
+  printf("RptInfo: UpdateCount = %x, UpdateTime = %lx\n",
+       rptinfo.UpdateCount, (unsigned long)rptinfo.UpdateTimestamp);
+#else
   rv = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID, &sessionid, NULL);
   if (rv != SA_OK) {
         printf("saHpiSessionOpen error %d\n",rv);
@@ -141,7 +168,8 @@ main(int argc, char **argv)
   if (fdebug) printf("saHpiDomainInfoGet rv = %d\n",rv);
   printf("DomainInfo: UpdateCount = %x, UpdateTime = %lx\n",
        domainInfo.RptUpdateCount, (unsigned long)domainInfo.RptUpdateTimestamp);
-
+#endif
+ 
   /* walk the RPT list */
   rptentryid = SAHPI_FIRST_ENTRY;
   while ((rv == SA_OK) && (rptentryid != SAHPI_LAST_ENTRY))
@@ -212,6 +240,9 @@ main(int argc, char **argv)
  
   rv = saHpiSessionClose(sessionid);
 
+#ifdef HPI_A
+  rv = saHpiFinalize();
+#endif
   exit(0);
 }
  

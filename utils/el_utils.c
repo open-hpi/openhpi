@@ -336,22 +336,22 @@ SaErrorT oh_el_map_to_file(oh_el *el, char *filename)
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-        file = open(filename, O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR|S_IRGRP);
+        file = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0660 );
         if (file < 0) {
-                err("EL file '%s' could not be opened", filename);
+                dbg("EL file '%s' could not be opened", filename);
                 return SA_ERR_HPI_ERROR;
         }
         
 	for (node = el->list; node; node = node->next) {
                 if (write(file, (void *)node->data, sizeof(oh_el_entry)) != sizeof(oh_el_entry)) {
-			err("Couldn't write to file '%s'.", filename);
+			dbg("Couldn't write to file '%s'.", filename);
 			close(file);
                 	return SA_ERR_HPI_ERROR;
 		}
         }
 
         if (close(file) != 0) {
-                err("Couldn't close file '%s'.", filename);
+                dbg("Couldn't close file '%s'.", filename);
                 return SA_ERR_HPI_ERROR;
         }
 
@@ -374,7 +374,7 @@ SaErrorT oh_el_map_from_file(oh_el *el, char *filename)
 
         file = open(filename, O_RDONLY);
         if (file < 0) {
-                err("EL file '%s' could not be opened", filename);
+                dbg("EL file '%s' could not be opened", filename);
                 return SA_ERR_HPI_ERROR;
         }
 
@@ -388,7 +388,7 @@ SaErrorT oh_el_map_from_file(oh_el *el, char *filename)
         }
 
         if (close(file) != 0) {
-                err("Couldn't close file '%s'.", filename);
+                dbg("Couldn't close file '%s'.", filename);
                 return SA_ERR_HPI_ERROR;
         }
 

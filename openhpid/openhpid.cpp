@@ -90,8 +90,8 @@ static struct option long_options[] = {
 };
 
 /* verbose macro */
-#define PVERBOSE1(msg, ...) if (verbose_flag) dbg(msg, ## __VA_ARGS__)
-#define PVERBOSE2(msg, ...) if (verbose_flag) err(msg, ## __VA_ARGS__)
+#define PVERBOSE1(msg, ...) if (verbose_flag) trace(msg, ## __VA_ARGS__)
+#define PVERBOSE2(msg, ...) if (verbose_flag) dbg(msg, ## __VA_ARGS__)
 #define PVERBOSE3(msg, ...) if (verbose_flag) printf("CRITICAL: "msg, ## __VA_ARGS__)
 
 /*--------------------------------------------------------------------*/
@@ -192,8 +192,8 @@ int main (int argc, char *argv[])
         }
 
         if (optind < argc) {
-                err("Error: Unknown command line option specified .\n");
-                err("       Aborting execution.\n\n");
+                dbg("Error: Unknown command line option specified .\n");
+                dbg("       Aborting execution.\n\n");
 		display_help();
                 exit(-1);
         }
@@ -208,18 +208,18 @@ int main (int argc, char *argv[])
                         unlink(pid_file);
                 } else {
                         // there is already a server running
-                        err("Error: There is already a server running .\n");
-                        err("       Aborting execution.\n");
+                        dbg("Error: There is already a server running .\n");
+                        dbg("       Aborting execution.\n");
                         exit(1);
                 }
         }
 
         // write the pid file
-        pfile = open(pid_file, O_WRONLY|O_CREAT, S_IRUSR|S_IWUSR|S_IRGRP);
+        pfile = open(pid_file, O_WRONLY | O_CREAT, 0640);
         if (pfile == -1) {
                 // there is already a server running
-                err("Error: Cannot open PID file .\n");
-                err("       Aborting execution.\n\n");
+                dbg("Error: Cannot open PID file .\n");
+                dbg("       Aborting execution.\n\n");
                 display_help();
                 exit(1);
         }
@@ -230,14 +230,14 @@ int main (int argc, char *argv[])
         // see if we have a valid configuration file
         char *cfgfile = getenv("OPENHPI_CONF");
         if (cfgfile == NULL) {
-                err("Error: Configuration file not specified .\n");
-                err("       Aborting execution.\n\n");
+                dbg("Error: Configuration file not specified .\n");
+                dbg("       Aborting execution.\n\n");
 		display_help();
                 exit(-1);
         }
         if (!g_file_test(cfgfile, G_FILE_TEST_EXISTS)) {
-                err("Error: Configuration file does not exist.\n");
-                err("       Aborting execution.\n\n");
+                dbg("Error: Configuration file does not exist.\n");
+                dbg("       Aborting execution.\n\n");
 		display_help();
                 exit(-1);
         }
@@ -263,7 +263,7 @@ int main (int argc, char *argv[])
         }
 
 	if (oh_init()) { // Initialize OpenHPI
-		err("There was an error initializing OpenHPI");
+		dbg("There was an error initializing OpenHPI");
 		return 8;
 	}
 
@@ -273,16 +273,16 @@ int main (int argc, char *argv[])
         // create the server socket
 	psstrmsock servinst = new sstrmsock;
 	if (servinst->Create(port)) {
-		err("Error creating server socket.\n");
+		dbg("Error creating server socket.\n");
 		g_thread_pool_free(thrdpool, FALSE, TRUE);
                 delete servinst;
 		return 8;
 	}
 
         // announce ourselves
-        dbg("%s started.\n", argv[0]);
-        dbg("OPENHPI_CONF = %s\n", configfile);
-        dbg("OPENHPI_DAEMON_PORT = %d\n\n", port);
+        trace("%s started.\n", argv[0]);
+        trace("OPENHPI_CONF = %s\n", configfile);
+        trace("OPENHPI_DAEMON_PORT = %d\n\n", port);
 
         // wait for a connection and then service the connection
 	while (TRUE) {
@@ -352,7 +352,7 @@ static bool morph2daemon(void)
 
        	// create the pid file (overwrite of old pid file is ok)
         	unlink(pid_file);
-        	pfile = open(pid_file, O_WRONLY|O_CREAT, S_IRUSR|S_IWUSR|S_IRGRP);
+        	pfile = open(pid_file, O_WRONLY | O_CREAT, 0640);
         	snprintf(pid_buf, sizeof(pid_buf), "%d\n", (int)getpid());
         	write(pfile, pid_buf, strlen(pid_buf));
         	close(pfile);

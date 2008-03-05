@@ -27,7 +27,7 @@ SaErrorT sim_get_next_announce(void *hnd,
         struct simAnnunciatorInfo *info;
 
 	if (!hnd || !announcement || oh_lookup_severity(sev) == NULL) {
-		err("Invalid parameter.");
+		dbg("Invalid parameter.");
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
 
@@ -49,7 +49,7 @@ SaErrorT sim_get_next_announce(void *hnd,
         info = (struct simAnnunciatorInfo *)oh_get_rdr_data(state->rptcache, rid,
                                                             rdr->RecordId);
         if (info == NULL) {
-                err("No annunciator data.");
+                dbg("No annunciator data.");
                 return(SA_ERR_HPI_NOT_PRESENT);
         }
 
@@ -69,7 +69,7 @@ SaErrorT sim_get_announce(void *hnd,
          struct simAnnunciatorInfo *info;
 
          if (!hnd || !announcement) {
-                 err("Invalid parameter.");
+                 dbg("Invalid parameter.");
                  return SA_ERR_HPI_INVALID_PARAMS;
          }
 
@@ -91,7 +91,7 @@ SaErrorT sim_get_announce(void *hnd,
          info = (struct simAnnunciatorInfo *)oh_get_rdr_data(state->rptcache, rid,
                                                              rdr->RecordId);
          if (info == NULL) {
-                 err("No annunciator data.");
+                 dbg("No annunciator data.");
                  return(SA_ERR_HPI_NOT_PRESENT);
          }
 
@@ -110,7 +110,7 @@ SaErrorT sim_ack_announce(void *hnd,
         struct simAnnunciatorInfo *info;
 
 	if (!hnd || oh_lookup_severity(sev) == NULL) {
-		err("Invalid parameter.");
+		dbg("Invalid parameter.");
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
 
@@ -132,7 +132,7 @@ SaErrorT sim_ack_announce(void *hnd,
         info = (struct simAnnunciatorInfo *)oh_get_rdr_data(state->rptcache, rid,
                                                             rdr->RecordId);
         if (info == NULL) {
-                err("No annunciator data.");
+                dbg("No annunciator data.");
                 return(SA_ERR_HPI_NOT_PRESENT);
         }
 
@@ -150,7 +150,7 @@ SaErrorT sim_add_announce(void *hnd,
         struct simAnnunciatorInfo *info;
 
 	if (!hnd || !announcement) {
-		err("Invalid parameter.");
+		dbg("Invalid parameter.");
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
 
@@ -172,7 +172,7 @@ SaErrorT sim_add_announce(void *hnd,
         info = (struct simAnnunciatorInfo *)oh_get_rdr_data(state->rptcache, rid,
                                                             rdr->RecordId);
         if (info == NULL) {
-                err("No annunciator data.");
+                dbg("No annunciator data.");
                 return(SA_ERR_HPI_NOT_PRESENT);
         }
 
@@ -191,7 +191,7 @@ SaErrorT sim_del_announce(void *hnd,
         struct simAnnunciatorInfo *info;
 
 	if (!hnd || oh_lookup_severity(sev) == NULL) {
-		err("Invalid parameter.");
+		dbg("Invalid parameter.");
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
 
@@ -213,7 +213,7 @@ SaErrorT sim_del_announce(void *hnd,
         info = (struct simAnnunciatorInfo *)oh_get_rdr_data(state->rptcache, rid,
                                                             rdr->RecordId);
         if (info == NULL) {
-                err("No annunciator data.");
+                dbg("No annunciator data.");
                 return(SA_ERR_HPI_NOT_PRESENT);
         }
 
@@ -231,7 +231,7 @@ SaErrorT sim_get_annunc_mode(void *hnd,
         struct simAnnunciatorInfo *info;
 
 	if (!hnd || !mode) {
-		err("Invalid parameter.");
+		dbg("Invalid parameter.");
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
 
@@ -253,7 +253,7 @@ SaErrorT sim_get_annunc_mode(void *hnd,
         info = (struct simAnnunciatorInfo *)oh_get_rdr_data(state->rptcache, rid,
                                                             rdr->RecordId);
         if (info == NULL) {
-                err("No annunciator data.");
+                dbg("No annunciator data.");
                 return(SA_ERR_HPI_NOT_PRESENT);
         }
         *mode = info->mode;
@@ -271,7 +271,7 @@ SaErrorT sim_set_annunc_mode(void *hnd,
         struct simAnnunciatorInfo *info;
 
 	if (!hnd || oh_lookup_annunciatormode(mode) == NULL) {
-		err("Invalid parameter.");
+		dbg("Invalid parameter.");
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
 
@@ -293,7 +293,7 @@ SaErrorT sim_set_annunc_mode(void *hnd,
         info = (struct simAnnunciatorInfo *)oh_get_rdr_data(state->rptcache, rid,
                                                             rdr->RecordId);
         if (info == NULL) {
-                err("No annunciator data.");
+                dbg("No annunciator data.");
                 return(SA_ERR_HPI_NOT_PRESENT);
         }
 

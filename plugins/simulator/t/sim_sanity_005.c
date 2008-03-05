@@ -47,28 +47,28 @@ int main(int argc, char **argv)
 
         rc = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID, &sid, NULL);
 	if (rc != SA_OK) {
-		err("Failed to open session");
+		dbg("Failed to open session");
                 return -1;
 	}
 
 	rc = saHpiDiscover(sid);
 	if (rc != SA_OK) {
-		err("Failed to run discover");
+		dbg("Failed to run discover");
                 return -1;
 	}
 
         /* get the resource id of the chassis */
         SaHpiResourceIdT resid = get_resid(sid, SAHPI_ENT_SYSTEM_CHASSIS);
         if (resid == 0) {
-		err("Couldn't find the resource id of the chassis");
+		dbg("Couldn't find the resource id of the chassis");
                 return -1;
 	}
 
         /* get sensor thresholds */
         rc = saHpiSensorThresholdsGet(sid, resid, 1, &thresholds);
         if (rc != SA_OK) {
-		err("Couldn't get sensor thresholds");
-		err("Error %s",oh_lookup_error(rc));
+		dbg("Couldn't get sensor thresholds");
+		dbg("Error %s",oh_lookup_error(rc));
                 return -1;
 	}
 
@@ -77,7 +77,7 @@ int main(int argc, char **argv)
         if (rc == SA_OK) {
                 /* all our sensors are read-only so if we can change the
                    sensor it is an error */
-		err("Error: able to write to a read-only sensor");
+		dbg("Error: able to write to a read-only sensor");
                 return -1;
 	}
 

@@ -27,9 +27,6 @@
 
 #include <SaHpi.h>
 #include <oh_utils.h>
-#include <oh_clients.h>
-
-#define OH_SVN_REV "$Revision$"
 
 #define READ_BUF_SIZE	1024
 
@@ -94,6 +91,7 @@ Rpt_t	*Rpts;
 int	nrpts = 0;
 
 int	fdebug = 0;
+char	progver[] = "2.1";
 
 SaHpiSessionIdT		sessionid;
 
@@ -644,7 +642,7 @@ int main(int argc, char **argv)
 	char		buf[READ_BUF_SIZE];
 	char		*S;
 
-	oh_prog_version(argv[0], OH_SVN_REV);
+	printf("%s  ver %s\n", argv[0], progver);
 	while ( (c = getopt( argc, argv,"x?")) != EOF )
 		switch(c)  {
 			case 'x':

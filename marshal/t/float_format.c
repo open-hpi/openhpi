@@ -93,8 +93,7 @@ ReadFile( const char *filename, void *p, int size )
 void 
 WriteFile( const char *filename, void *p, int size )
 {
-  int fd = open(filename, O_CREAT|O_TRUNC|O_WRONLY,
-        S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH);
+  int fd = open( filename, O_CREAT|O_TRUNC|O_WRONLY, 0666 );
 
   if ( fd == -1 )
      {

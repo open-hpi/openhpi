@@ -1,21 +1,17 @@
 MAINTAINERCLEANFILES = Makefile.in
-MOSTLYCLEANFILES     = @TEST_CLEAN@
+MOSTLYCLEANFILES        = @TEST_CLEAN@
 
-INCLUDES             = @OPENHPI_INCLUDES@
+INCLUDES                = @OPENHPI_INCLUDES@
 
-EXTRA_DIST	     = oh_clients.h
-
-COMMONLIBS 	     = @STATIC_PLUGIN_LIBS@ @STATIC_PLUGIN_EXTRA_LIBS@
+COMMONLIBS = @STATIC_PLUGIN_LIBS@ @STATIC_PLUGIN_EXTRA_LIBS@
 
 if OH_DAEMON_ENABLED
-COMMONLIBS	     += $(top_builddir)/openhpid/libopenhpi.la
+COMMONLIBS		+= $(top_builddir)/openhpid/libopenhpi.la
 else
-COMMONLIBS           += $(top_builddir)/src/libopenhpi.la
+COMMONLIBS              += $(top_builddir)/src/libopenhpi.la
 endif
 
-CLIENTS_SRC 	     = clients.c
-
-AM_CFLAGS            = @CFLAGS@
+AM_CFLAGS               = @CFLAGS@
 
 bin_PROGRAMS = \
 	hpievents \
@@ -35,47 +31,61 @@ bin_PROGRAMS = \
 
 include_HEADERS         =
 
-hpialarms_SOURCES   = hpialarms.c $(CLIENTS_SRC)
-hpialarms_LDADD     = $(COMMONLIBS) 
+hpialarms_SOURCES   = hpialarms.c
+hpialarms_LDADD     = $(COMMONLIBS)
+hpialarms_LDFLAGS   =
 
-hpithres_SOURCES        = hpithres.c $(CLIENTS_SRC)
+hpithres_SOURCES        = hpithres.c
 hpithres_LDADD          = $(COMMONLIBS)
+hpithres_LDFLAGS        =
 
-hpifan_SOURCES          = hpifan.c $(CLIENTS_SRC)
+hpifan_SOURCES          = hpifan.c
 hpifan_LDADD            = $(COMMONLIBS)
+hpifan_LDFLAGS          =
 
-hpitop_SOURCES          = hpitop.c $(CLIENTS_SRC)
+hpitop_SOURCES          = hpitop.c
 hpitop_LDADD            = $(COMMONLIBS)
+hpitop_LDFLAGS          =
 
-hpireset_SOURCES        = hpireset.c $(CLIENTS_SRC)
+hpireset_SOURCES        = hpireset.c
 hpireset_LDADD          = $(COMMONLIBS)
+hpireset_LDFLAGS        =
 
-hpiel_SOURCES           = hpiel.c $(CLIENTS_SRC)
+hpiel_SOURCES           = hpiel.c
 hpiel_LDADD             = $(COMMONLIBS)
+hpiel_LDFLAGS           =
 
-hpisensor_SOURCES       = hpisensor.c $(CLIENTS_SRC)
+hpisensor_SOURCES       = hpisensor.c
 hpisensor_LDADD         = $(COMMONLIBS)
+hpisensor_LDFLAGS       =
 
-hpiwdt_SOURCES          = hpiwdt.c $(CLIENTS_SRC)
+hpiwdt_SOURCES          = hpiwdt.c
 hpiwdt_LDADD            = $(COMMONLIBS)
+hpiwdt_LDFLAGS          =
 
-hpiinv_SOURCES          = hpiinv.c $(CLIENTS_SRC)
+hpiinv_SOURCES          = hpiinv.c
 hpiinv_LDADD            = $(COMMONLIBS)
+hpiinv_LDFLAGS          =
 
-hpisettime_SOURCES      = hpisettime.c $(CLIENTS_SRC)
+hpisettime_SOURCES      = hpisettime.c
 hpisettime_LDADD        = $(COMMONLIBS)
+hpisettime_LDFLAGS      =
 
-hpievents_SOURCES      = hpievents.c $(CLIENTS_SRC)
+hpievents_SOURCES      = hpievents.c
 hpievents_LDADD        = $(COMMONLIBS)
+hpievents_LDFLAGS      =
 
-hpipower_SOURCES      = hpipower.c $(CLIENTS_SRC)
+hpipower_SOURCES      = hpipower.c
 hpipower_LDADD        = $(COMMONLIBS)
+hpipower_LDFLAGS      =
 
-hpitree_SOURCES      = hpitree.c $(CLIENTS_SRC)
+hpitree_SOURCES      = hpitree.c
 hpitree_LDADD        = $(COMMONLIBS)
+hpitree_LDFLAGS      =
 
-hpionIBMblade_SOURCES      = hpionIBMblade.c $(CLIENTS_SRC)
+hpionIBMblade_SOURCES      = hpionIBMblade.c
 hpionIBMblade_LDADD        = $(COMMONLIBS)
+hpionIBMblade_LDFLAGS      =
 
 clean-local:
 	rm -f *~ *.o

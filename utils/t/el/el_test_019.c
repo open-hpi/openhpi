@@ -52,14 +52,14 @@ int main(int argc, char **argv)
 
         retc = oh_el_prepend(el, &event, NULL, NULL);
         if (retc == SA_OK) {
-                err("ERROR: oh_el_add failed.");
+                dbg("ERROR: oh_el_add failed.");
                 return 1;
         }   
 
         /* close el */
         retc = oh_el_close(el);
         if (retc != SA_OK) {
-                err("ERROR: oh_el_close on el failed.");
+                dbg("ERROR: oh_el_close on el failed.");
                 return 1;
         }
 

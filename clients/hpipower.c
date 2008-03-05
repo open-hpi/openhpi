@@ -19,10 +19,12 @@
 #include <getopt.h>
 #include <SaHpi.h>
 #include <oh_utils.h>
-#include <oh_clients.h>
 
-#define OH_SVN_REV "$Revision$"
 
+char PrgVer[]="1.0";
+char PrgName[] = "hpipower";
+
+#define  PROGRAM_HEADER (printf("%s ver %s\n", PrgName,PrgVer))
 #define  MAX_MANAGED_SYSTEMS 80
 #define  HPI_POWER_DEBUG_PRINT(a) if(DebugPrints==TRUE)printf(a)
 
@@ -80,11 +82,12 @@ int main(int argc, char **argv)
         SaHpiInt32T         Index, EntityElement;
         SaHpiPowerStateT  PowerState;
         char                PowerStateString[3][7]={"off\0","on\0","cycled\0"};
+        SaHpiVersionT       HpiVersion;
 
         /*
         // Print out the Program name and Version
         */
-        oh_prog_version(argv[0], OH_SVN_REV);
+        PROGRAM_HEADER;
 
         /* Set Program Defaults */
         ComputerNumber = 0;
@@ -97,6 +100,7 @@ int main(int argc, char **argv)
         DebugPrints    = FALSE;
         RptEntry       = SAHPI_FIRST_ENTRY;
 
+        HpiVersion = saHpiVersionGet();
         /* Parse out option instructions */
         while (1)
         {
@@ -150,7 +154,7 @@ int main(int argc, char **argv)
 
         if (PrintUsage == TRUE)
         {
-                UsageMessage(argv[0]);
+                UsageMessage(PrgName);
                 exit(1);   //When we exit here, there is nothing to clean up
         }
 
@@ -302,7 +306,7 @@ int main(int argc, char **argv)
                 ComputerPtr = g_slist_nth_data(ComputerListHead, SelectedSystem);
                 if (ComputerPtr == NULL)
                 {
-                        printf("Error: Selected system %d was not found.\n", SelectedSystem);
+                        printf("Call returned a NULL\n");
                         return -1;
                 }
 
@@ -317,7 +321,7 @@ int main(int argc, char **argv)
                         if (Status == SA_OK)
                         {
                                 printf("\n%s -- %20s has been successfully powered %s\n",
-                                       argv[0],
+                                       PrgName,
                                        ComputerPtr->NameStr,
                                        PowerStateString[Action]);
                         }
@@ -361,7 +365,7 @@ int main(int argc, char **argv)
         if (Status != SA_OK)
         {
                 HPI_POWER_DEBUG_PRINT("7.0 Reporting Bad Status");
-                printf("Program %s returns with Error = %s\n", argv[0], oh_lookup_error(Status));
+                printf("Program %s returns with Error = %s\n", PrgName, oh_lookup_error(Status));
         }
 
         return(Status);

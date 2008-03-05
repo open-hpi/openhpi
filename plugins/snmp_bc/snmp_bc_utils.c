@@ -45,7 +45,7 @@ SaErrorT snmp_bc_get_guid(struct snmp_bc_hnd *custom_handle,
 	tmpstr = NULL;
 
         if ( (custom_handle == NULL) || (e == NULL) || (res_info_ptr == NULL)) {
-                err("Invalid parameter.");
+                dbg("Invalid parameter.");
                 status = SA_ERR_HPI_INVALID_PARAMS;
                 goto CLEANUP2;
         }
@@ -54,7 +54,7 @@ SaErrorT snmp_bc_get_guid(struct snmp_bc_hnd *custom_handle,
 	
 	memset(&guid, 0, sizeof(SaHpiGuidT));  /* default to zero */
 	if (res_info_ptr->mib.OidUuid == NULL) {
-		dbg("NULL UUID OID");
+		trace("NULL UUID OID");
 		status = SA_OK;
 		goto CLEANUP;
 	}
@@ -63,22 +63,22 @@ SaErrorT snmp_bc_get_guid(struct snmp_bc_hnd *custom_handle,
 				      res_info_ptr->mib.OidUuid,            
 				      &get_value, SAHPI_TRUE);
         if(( status != SA_OK) || (get_value.type != ASN_OCTET_STR)) {
-                dbg("Cannot get OID rc=%d; oid=%s type=%d.", 
-                    status, res_info_ptr->mib.OidUuid, get_value.type);
+                trace("Cannot get OID rc=%d; oid=%s type=%d.", 
+                        status, res_info_ptr->mib.OidUuid, get_value.type);
                 if ( status != SA_ERR_HPI_BUSY)  status = SA_ERR_HPI_NO_RESPONSE;
                 goto CLEANUP;
         }
 
-        dbg("UUID=%s.", get_value.string);
+        trace("UUID=%s.", get_value.string);
         /* rid lead+trail blanks */
         BC_UUID = g_strstrip(g_strdup(get_value.string));
         if (BC_UUID == NULL || BC_UUID[0] == '\0') {
-                err("UUID is NULL.");
+                dbg("UUID is NULL.");
                 status = SA_ERR_HPI_ERROR;
                 goto CLEANUP;
         }
         if (g_ascii_strcasecmp( BC_UUID, NA ) == 0) {
-                dbg("UUID is N/A %s, set GUID to zeros.", BC_UUID);
+                trace("UUID is N/A %s, set GUID to zeros.", BC_UUID);
                 for ( i=0; i<16; i++ ) UUID_val[i] = 0;
                 memmove ( guid, &UUID_val, sizeof(uuid_t));
                 status = SA_OK;
@@ -87,10 +87,10 @@ SaErrorT snmp_bc_get_guid(struct snmp_bc_hnd *custom_handle,
         /* separate substrings */
         tmpstr = g_strsplit(BC_UUID, UUID_delimiter1, -1);
         for ( UUID_cnt=0; tmpstr[UUID_cnt] != NULL; UUID_cnt++ );
-        /* dbg("number of UUID substrings = %d, strings =", UUID_cnt); */
-        /* for (i=0; i<UUID_cnt; i++) dbg(" %s", tmpstr[i]); dbg("\n"); */
+        /* trace("number of UUID substrings = %d, strings =", UUID_cnt); */
+        /* for (i=0; i<UUID_cnt; i++) trace(" %s", tmpstr[i]); trace("\n"); */
         if ( UUID_cnt == 0 ) {
-                err("Zero length UUID string.");
+                dbg("Zero length UUID string.");
                 status = SA_ERR_HPI_ERROR;
                 goto CLEANUP;
         }
@@ -99,10 +99,10 @@ SaErrorT snmp_bc_get_guid(struct snmp_bc_hnd *custom_handle,
                 for ( UUID_cnt=0; ; UUID_cnt++ ) {
                         if ( tmpstr[UUID_cnt] == NULL ) break;
                 }
-                /* dbg("Number of UUID substrings = %d, strings =", UUID_cnt); */
-                /* for (i=0; i<UUID_cnt; i++) dbg(" %s", tmpstr[i]); dbg("\n"); */
+                /* trace("Number of UUID substrings = %d, strings =", UUID_cnt); */
+                /* for (i=0; i<UUID_cnt; i++) trace(" %s", tmpstr[i]); trace("\n"); */
                 if ( UUID_cnt == 0 ) {
-                        err("Zero length UUID string.");
+                        dbg("Zero length UUID string.");
                         status = SA_ERR_HPI_ERROR;
                         goto CLEANUP;
                 }
@@ -116,19 +116,19 @@ SaErrorT snmp_bc_get_guid(struct snmp_bc_hnd *custom_handle,
                                     tmpstr[4], UUID_delimiter,           
                                     tmpstr[5], tmpstr[6], tmpstr[7], NULL );
                 if (UUID == NULL) {
-                        err("Bad UUID string.");
+                        dbg("Bad UUID string.");
                         status = SA_ERR_HPI_ERROR;
                         goto CLEANUP;
                 }
-                dbg("UUID string %s", UUID);
+                trace("UUID string %s", UUID);
                 /* convert UUID string to numeric UUID value */
                 if ( (status = uuid_parse(UUID, UUID_val)) ) {
-                        err("Cannot parse UUID string err=%d.", status);
+                        dbg("Cannot parse UUID string err=%d.", status);
                         status = SA_ERR_HPI_ERROR;
                         goto CLEANUP;
                 }       
-                /* dbg("GUID value  "); */
-                /* for (i=0; i<16; i++) { dbg("%02x", UUID_val[i]);} dbg("\n"); */
+                /* trace("GUID value  "); */
+                /* for (i=0; i<16; i++) { trace("%02x", UUID_val[i]);} trace("\n"); */
                 memmove ( guid, &UUID_val, sizeof(uuid_t));
                 status = SA_OK;
         }
@@ -140,24 +140,24 @@ SaErrorT snmp_bc_get_guid(struct snmp_bc_hnd *custom_handle,
                                     tmpstr[3], UUID_delimiter,           
                                     tmpstr[4], NULL );
                 if (UUID == NULL) {
-                        err("Bad UUID string.");
+                        dbg("Bad UUID string.");
                         status = SA_ERR_HPI_ERROR;
                         goto CLEANUP;
                 }
-                dbg("UUID=%s", UUID);
+                trace("UUID=%s", UUID);
                 /* Convert UUID string to numeric UUID value */
                 if ( (status = uuid_parse(UUID, UUID_val)) ) {
-                        err("Cannot parse UUID string. err=%d.", status);
+                        dbg("Cannot parse UUID string. err=%d.", status);
                         status = SA_ERR_HPI_ERROR;
                         goto CLEANUP;
                 }       
-                /* dbg("GUID value  "); */
-                /* for (i=0; i<16; i++) { dbg("%02x", UUID_val[i]);} dbg("\n"); */
+                /* trace("GUID value  "); */
+                /* for (i=0; i<16; i++) { trace("%02x", UUID_val[i]);} trace("\n"); */
                 memmove ( guid, &UUID_val, sizeof(uuid_t));
                 status = SA_OK;
         }
         else {  /* Non standard case unsupported */
-                err("Non standard UUID string.");
+                dbg("Non standard UUID string.");
                 status = SA_ERR_HPI_ERROR;
         }
 
@@ -168,7 +168,7 @@ SaErrorT snmp_bc_get_guid(struct snmp_bc_hnd *custom_handle,
         g_free(BC_UUID);
         g_strfreev(tmpstr);
                                                                                              
-        /* dbg("get_guid exit status %d.", status); */
+        /* trace("get_guid exit status %d.", status); */
         return(status);
 }
 
@@ -189,7 +189,7 @@ SaErrorT snmp_bc_extract_slot_ep(SaHpiEntityPathT *resource_ep, SaHpiEntityPathT
 	guint i,j;
 
 	if (!resource_ep || !slot_ep) {
-		err("Invalid parameter.");
+		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 

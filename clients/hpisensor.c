@@ -26,10 +26,8 @@
 
 #include <SaHpi.h>
 #include <oh_utils.h>
-#include <oh_clients.h>
 
-#define OH_SVN_REV "$Revision$"
-
+char progver[] = "1.1";
 int fdebug = 0;
 int fshowthr = 0;
 int fshowrange = 0;
@@ -210,7 +208,7 @@ int main(int argc, char **argv)
         SaHpiRdrT rdr;
         SaHpiEntityPathT ep_target;
                 
-	oh_prog_version(argv[0], OH_SVN_REV);
+	printf("%s: version %s\n",argv[0],progver); 
         
         while ( (c = getopt( argc, argv,"rtse:x?")) != EOF )
                 switch(c) {
@@ -225,7 +223,7 @@ int main(int argc, char **argv)
 			oh_encode_entitypath(ep_string, &ep_target);
                         break;
                 default:
-                        printf("Usage %s [-t -r -x -e]\n", argv[0]);
+                        printf("Usage %s [-t -r -x -e]\n",argv[0]);
                         printf("where -t = show Thresholds also\n");
                         printf("      -r = show Range values also\n");
                         printf("      -s = show EventState also\n");			

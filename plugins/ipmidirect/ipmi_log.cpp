@@ -1,7 +1,6 @@
 /*
  *
  * Copyright (c) 2003,2004 by FORCE Computers.
- * Copyright (c) 2007 by ESO Technologies.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -12,7 +11,6 @@
  *
  * Authors:
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
- *     Pierre Sangouard  <psangouard@eso-tech.com>
  */
 
 #include <stdio.h>
@@ -88,7 +86,7 @@ cIpmiLog::Open( int properties, const char *filename, int max_log_files )
        // find a new one or the oldes logfile
        for( i = 0; i < max_log_files; i++ )
           {
-            snprintf( tf, sizeof(tf), "%s%02d.log", filename, i );
+            sprintf( tf, "%s%02d.log", filename, i );
 
             if ( file[0] == 0 )
                  strcpy( file, tf );
@@ -192,9 +190,9 @@ cIpmiLog::Start()
 	    char b[dDateTimeStringSize+5];
             IpmiDateTimeToString( tv.tv_sec, b );
 #if defined(__sparc) || defined(__sparc__)
-	    snprintf( b + dDateTimeStringSize - 1, 6, ".%03ld ", (long)tv.tv_usec / 1000 );
+	    sprintf( b + dDateTimeStringSize - 1, ".%03ld ", (long)tv.tv_usec / 1000 );
 #else
-	    snprintf( b + dDateTimeStringSize - 1, 6, ".%03ld ", tv.tv_usec / 1000 );
+	    sprintf( b + dDateTimeStringSize - 1, ".%03ld ", tv.tv_usec / 1000 );
 #endif
 
 	    Output( b );
@@ -220,7 +218,7 @@ cIpmiLog::operator<<( unsigned char c )
   Start();
 
   char b[5];
-  snprintf( b, sizeof(b), "0x%02x", c );
+  sprintf( b, "0x%02x", c );
 
   Output( b );
 
@@ -234,7 +232,7 @@ cIpmiLog::operator<<( int i )
   Start();
 
   char b[20];
-  snprintf( b, sizeof(b), "%d", i );
+  sprintf( b, "%d", i );
   Output( b );
 
   return *this;
@@ -249,9 +247,9 @@ cIpmiLog::operator<<( unsigned int i )
   char b[20];
 
   if ( m_hex )
-       snprintf( b, sizeof(b), "0x%08x", i );
+       sprintf( b, "0x%08x", i );
   else
-       snprintf( b, sizeof(b), "%u", i );
+       sprintf( b, "%u", i );
 
   Output( b );
 
@@ -265,7 +263,7 @@ cIpmiLog::operator<<( double d )
   Start();
   
   char b[20];
-  snprintf( b, sizeof(b), "%f", d );
+  sprintf( b, "%f", d );
   Output( b );
 
   return *this;  
@@ -349,7 +347,7 @@ cIpmiLog::Hex( const unsigned char *data, int size )
 {
   char str[256];
   char *s = str;
-  int i, remaining;
+  int i;
 
   for( i = 0; i < size; i++ )
      {
@@ -358,9 +356,8 @@ cIpmiLog::Hex( const unsigned char *data, int size )
             Log( "%s\n", str );
             s = str;
           }
-       remaining = sizeof(str) - (s - str);
-       if (remaining > 0)
-          s += snprintf( s, remaining, " %02x", *data++ );
+
+       s += sprintf( s, " %02x", *data++ );
      }
 
   if ( s != str )

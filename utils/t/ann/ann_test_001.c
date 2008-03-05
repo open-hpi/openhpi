@@ -39,18 +39,18 @@ int main(int argc, char **argv)
         ann = oh_announcement_create();
 
         if(ann == NULL) {
-                err("ERROR: ann pointer == NULL.");
+                dbg("ERROR: ann pointer == NULL.");
                 return 1;
         }
 
         if(ann->nextId != SAHPI_OLDEST_ENTRY + 1) {
-                err("ERROR: ann->nextId invalid.");
+                dbg("ERROR: ann->nextId invalid.");
                 return 1;
         }
 
 
         if(ann->annentries != NULL) {
-                err("ERROR: ann->annentries invalid.");
+                dbg("ERROR: ann->annentries invalid.");
                 return 1;
         }
 

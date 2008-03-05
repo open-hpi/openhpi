@@ -29,9 +29,6 @@
 #include <getopt.h>
 #include <SaHpi.h> 
 #include <oh_utils.h>
-#include <oh_clients.h>
-
-#define OH_SVN_REV "$Revision$"
 
 /* 
  * Function prototypes
@@ -82,6 +79,8 @@ void show_trailer(char *system);
 /* 
  * Globals for this driver
  */
+char progver[] = "0.2 HPI-B";
+char progname[] = "hpitop";
 int fdebug = 0;
 int f_rpt     = 0;
 int f_inv     = 0;
@@ -100,12 +99,13 @@ main(int argc, char **argv)
 {
 	SaErrorT 	rv = SA_OK;
 	
+	SaHpiVersionT	hpiVer;
 	SaHpiSessionIdT sessionid;
 	SaHpiResourceIdT resourceid = all_resources;
 
 	int c;
 	    
-	oh_prog_version(argv[0], OH_SVN_REV);
+	printf("\n\n%s ver %s\n",argv[0],progver);
 	while ( (c = getopt( argc, argv,"rsicawn:x?")) != EOF ) {
 		switch(c) {
 			case 'r': f_rpt     = 1; break;
@@ -122,7 +122,7 @@ main(int argc, char **argv)
 				break;
 			case 'x': fdebug = 1; break;
 			default:
-				printf("\n\tUsage: %s [-option]\n\n", argv[0]);
+				printf("\n\tUsage: %s [-option]\n\n", progname);
 				printf("\t      (No Option) Display system topology: rpt & rdr headers\n");	
 				printf("\t           -r     Display only rpts\n");
 				printf("\t           -s     Display only sensors\n");
@@ -138,6 +138,14 @@ main(int argc, char **argv)
  
 	if (argc == 1)  f_overview = 1;
 	memset (previous_system, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);
+	/* 
+	 * House keeping:
+	 * 	-- get (check?) hpi implementation version
+	 *      -- open hpi session	
+	 */
+	if (fdebug) printf("saHpiVersionGet\n");
+	hpiVer = saHpiVersionGet();
+	printf("Hpi Version %d Implemented.\n", hpiVer);
 
 	if (fdebug) printf("saHpiSessionOpen\n");
         rv = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID,&sessionid,NULL);

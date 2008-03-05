@@ -205,7 +205,7 @@ SaHpiUint32T oh_uid_from_entity_path(SaHpiEntityPathT *ep)
         /* allocate storage for EP cross reference data structure*/
         ep_xref = (EP_XREF *)g_malloc0(sizeof(EP_XREF));
         if(!ep_xref) {
-                err("malloc failed");
+                dbg("malloc failed");
                 uid_unlock(&oh_uid_lock);
                 return 0;
         }
@@ -237,13 +237,13 @@ SaHpiUint32T oh_uid_from_entity_path(SaHpiEntityPathT *ep)
         if (file >= 0) {
                 lseek(file, 0, SEEK_END);
                 if (write(file,ep_xref, sizeof(EP_XREF)) != sizeof(EP_XREF)) {
-			err("write ep_xref failed");
+			dbg("write ep_xref failed");
 			close(file);
 			return 0;
 		}
                 lseek(file, 0, SEEK_SET);
                 if (write(file, &resource_id, sizeof(resource_id)) != sizeof(resource_id)) {
-			err("write resource_id failed");
+			dbg("write resource_id failed");
 			close(file);
 			return 0;
 		}
@@ -280,7 +280,7 @@ SaErrorT oh_uid_remove(SaHpiUint32T uid)
         uid_lock(&oh_uid_lock);
         ep_xref = (EP_XREF *)g_hash_table_lookup (oh_resource_id_table, key);
         if(!ep_xref) {
-                err("error freeing oh_resource_id_table");
+                dbg("error freeing oh_resource_id_table");
                 uid_unlock(&oh_uid_lock);
                 return SA_ERR_HPI_ERROR;
         }
@@ -289,7 +289,7 @@ SaErrorT oh_uid_remove(SaHpiUint32T uid)
         key = (gpointer)&ep_xref->entity_path;
         ep_xref = (EP_XREF *)g_hash_table_lookup (oh_ep_table, key);
         if(!ep_xref) {
-                err("error freeing oh_resource_id_table");
+                dbg("error freeing oh_resource_id_table");
                 uid_unlock(&oh_uid_lock);
                 return SA_ERR_HPI_ERROR;
         }
@@ -330,7 +330,7 @@ SaHpiUint32T oh_uid_lookup(SaHpiEntityPathT *ep)
         uid_lock(&oh_uid_lock);
         ep_xref = (EP_XREF *)g_hash_table_lookup (oh_ep_table, key);
         if(!ep_xref) {
-                err("error looking up EP to get uid");
+                dbg("error looking up EP to get uid");
                 uid_unlock(&oh_uid_lock);
                 return 0;
         }
@@ -362,7 +362,7 @@ SaErrorT oh_entity_path_lookup(SaHpiUint32T id, SaHpiEntityPathT *ep)
         uid_lock(&oh_uid_lock);
         ep_xref = (EP_XREF *)g_hash_table_lookup (oh_resource_id_table, key);
         if(!ep_xref) {
-                err("error looking up EP to get uid");
+                dbg("error looking up EP to get uid");
                 uid_unlock(&oh_uid_lock);
                 return SA_ERR_HPI_ERROR ;
         }
@@ -394,16 +394,16 @@ SaErrorT oh_uid_map_to_file(void)
 
         uid_lock(&oh_uid_lock);
 
-        file = open(uid_map_file, O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR|S_IRGRP);
+        file = open(uid_map_file, O_WRONLY|O_CREAT|O_TRUNC);
         if(file < 0) {
-                err("Configuration file '%s' could not be opened", uid_map_file);
+                dbg("Configuration file '%s' could not be opened", uid_map_file);
                 uid_unlock(&oh_uid_lock);
                 return SA_ERR_HPI_ERROR;
         }
 
         /* write resource id */
         if (write(file, (void *)&resource_id, sizeof(resource_id)) != sizeof(resource_id)) {
-		err("write resource_id failed");
+		dbg("write resource_id failed");
 		close(file);
 		return SA_ERR_HPI_ERROR;
 	}
@@ -412,7 +412,7 @@ SaErrorT oh_uid_map_to_file(void)
         g_hash_table_foreach(oh_resource_id_table, write_ep_xref, &file);
 
         if(close(file) != 0) {
-                err("Couldn't close file '%s'.", uid_map_file);
+                dbg("Couldn't close file '%s'.", uid_map_file);
                 uid_unlock(&oh_uid_lock);
                 return SA_ERR_HPI_ERROR;
         }
@@ -432,7 +432,7 @@ SaErrorT oh_uid_map_to_file(void)
 static void write_ep_xref(gpointer key, gpointer value, gpointer file)
 {
         if (write(*(int *)file, value, sizeof(EP_XREF)) != sizeof(EP_XREF)) {
-		err("write EP_XREF failed");
+		dbg("write EP_XREF failed");
 	}
 }
 
@@ -458,22 +458,22 @@ static gint uid_map_from_file()
          file = open(uid_map_file, O_RDONLY);
          if(file < 0) {
                  /* create map file with resource id initial value */
-                 err("Configuration file '%s' does not exist, initializing", uid_map_file);
+                 dbg("Configuration file '%s' does not exist, initializing", uid_map_file);
                  file = open(uid_map_file,
                              O_RDWR | O_CREAT | O_TRUNC,
-                             S_IRUSR | S_IWUSR | S_IRGRP);
+                             S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH );
                  if(file < 0) {
-                         err("Could not initialize uid map file, %s", uid_map_file );
+                         dbg("Could not initialize uid map file, %s", uid_map_file );
                                          return -1;
                  }
                  /* write initial uid value */
                  if( write(file,(void *)&resource_id, sizeof(resource_id)) < 0 ) {
-                         err("failed to write uid, on uid map file initialization");
+                         dbg("failed to write uid, on uid map file initialization");
                          close(file);
                          return -1;
                  }
                  if(close(file) != 0) {
-                         err("Couldn't close file '%s'.during uid map file initialization", uid_map_file);
+                         dbg("Couldn't close file '%s'.during uid map file initialization", uid_map_file);
                          return -1;
                  }
                  /* return from successful initialization, from newly created uid map file */
@@ -482,7 +482,7 @@ static gint uid_map_from_file()
 
          /* read uid/resouce_id highest count from uid map file */
          if (read(file,&resource_id, sizeof(resource_id)) != sizeof(resource_id)) {
-                 err("error setting uid from existing uid map file");
+                 dbg("error setting uid from existing uid map file");
                  return -1;
          }
 
@@ -539,7 +539,7 @@ static gint build_uid_map_data(int file)
         /* TODO thought EOF would return -1, its not so check other way */
         /* if (rval != EOF), rval of 0 seems to be EOF */
         if ( (rval > 0)  && (rval < sizeof(EP_XREF)) ) {
-                err("error building ep xref from map file");
+                dbg("error building ep xref from map file");
                 return -1;
         }
         return 0;

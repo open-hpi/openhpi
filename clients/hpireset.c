@@ -18,12 +18,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <getopt.h>
-#include <SaHpi.h>
-#include <oh_clients.h>
-
-#define OH_SVN_REV "$Revision$"
+#include "SaHpi.h"
 
 #define  uchar  unsigned char
+char *progver  = "1.0";
 char fdebug = 0;
 
 static void Usage(char *pname)
@@ -56,7 +54,7 @@ main(int argc, char **argv)
   uchar bopt;
   uchar fshutdown = 0;
  
-  oh_prog_version(argv[0], OH_SVN_REV);
+  printf("%s ver %s\n", argv[0],progver);
   breset = 3; /* hard reset as default */
   bopt = 0;    /* Boot Options default */
   while ( (c = getopt( argc, argv,"rdwconsx?")) != EOF )

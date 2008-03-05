@@ -311,18 +311,8 @@ static ret_code_t sa_show_inv(SaHpiResourceIdT resourceid)
 
 ret_code_t inv_block_show(void)
 {
-    term_def_t      *term;
-    SaHpiEntryIdT areaid;
-
-        term = get_next_term();
-        if (term != NULL) {
-        areaid = strtol( term->term, NULL, 10 );
-    } else {
-        areaid = SAHPI_LAST_ENTRY;
-    }
-
 	return(show_inventory(Domain->sessionId, inv_block_env.rptid,
-		inv_block_env.rdrnum, areaid, ui_print));
+		inv_block_env.rdrnum, ui_print));
 }
 
 ret_code_t inv_block_addarea(void)
@@ -382,7 +372,7 @@ ret_code_t inv_block(void)
 			rptid, type, rdrnum);
 		return(HPI_SHELL_CMD_ERROR);
 	};
-	show_inventory(Domain->sessionId, rptid, rdrnum, SAHPI_LAST_ENTRY, ui_print);
+	show_inventory(Domain->sessionId, rptid, rdrnum, ui_print);
 	for (;;) {
 		block_type = INV_COM;
 		res = get_new_command("inventory block ==> ");

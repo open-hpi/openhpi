@@ -87,7 +87,7 @@ SaErrorT sim_file()
 
         file_in = getenv("OPENHPI_SIMTEST_FILE");
         if (!file_in)  file_in = file_std; 
-        dbg("file to be tested - %s\n", file_in);      
+        trace("file to be tested - %s\n", file_in);      
 	file = fopen( file_in, "r");
 	if ( file == NULL ) {
 		printf("file %s open failed\n", file_in);
@@ -101,24 +101,24 @@ SaErrorT sim_file()
 		rc = -1;
 		goto cleanup;
 	}
-	dbg("---- hash table address %p ----\n", sim_hash);
+	trace("---- hash table address %p ----\n", sim_hash);
 	while ( !feof(file) )  {  // process each line in file
-		dbg("xxx--- hash table size %d ---xxx\n", g_hash_table_size(sim_hash));
+		trace("xxx--- hash table size %d ---xxx\n", g_hash_table_size(sim_hash));
 		//g_hash_table_foreach (sim_hash, print_entry, NULL);
 		if (fgets(str_in, MAX_STR_LEN, file) == NULL)
-			dbg("xxx--- Experience problem, check env OPENHPI_SIMTEST_FILE or ./sim_test_file ---xxx\n");
-		//dbg("%s", str_in);
+			trace("xxx--- Experience problem, check env OPENHPI_SIMTEST_FILE or ./sim_test_file ---xxx\n");
+		//trace("%s", str_in);
 		g_strstrip(str_in);
 		if (str_in[0] == '\0') {
-			//dbg("Skipped a blank line\n");
+			//trace("Skipped a blank line\n");
 			continue;
 		}
 		total++;
 		tokens = g_strsplit(str_in, str_delimiter, STD_TOKEN_CNT);
 		for (token_cnt=0; tokens[token_cnt]; token_cnt++);
-		//dbg("line has %d tokens\n", token_cnt);
+		//trace("line has %d tokens\n", token_cnt);
 		if (token_cnt != STD_TOKEN_CNT) {
-			//dbg("Error: tokens (%d) < then expected\n",token_cnt);
+			//trace("Error: tokens (%d) < then expected\n",token_cnt);
                 	g_strfreev(tokens);
 			invalid++;
 			continue;
@@ -131,7 +131,7 @@ SaErrorT sim_file()
 				tmpstr = strstr(tokens[0], RSA_OID_HDR);
 				if (tmpstr != tokens[0]) {
 					     // not a valid platform, skip this line
-					//dbg("invalid oid %s\n", tokens[0]);
+					//trace("invalid oid %s\n", tokens[0]);
                 			g_strfreev(tokens);
 					invalid++;
 					continue;
@@ -155,10 +155,10 @@ SaErrorT sim_file()
 			}
 		}
 		key = g_strdup(tokens[0]);
-		//dbg("key = %s\n", key);
+		//trace("key = %s\n", key);
 		key_exists = g_hash_table_lookup(sim_hash, key);
                 if (key_exists) {  // key already processed, skip this line
-			dbg("=== oid %s already processed ===\n", key);
+			trace ("=== oid %s already processed ===\n", key);
 			g_free(key);
                 	g_strfreev(tokens);
 			invalid++;
@@ -174,7 +174,7 @@ SaErrorT sim_file()
                         goto cleanup;
                 }
         	if (!g_ascii_strcasecmp(tokens[2], INT_TYPE)) {  // Integer
-        		dbg("=== oid %s got a int type: %d\n", key, atoi(tokens[3]));
+        		trace("=== oid %s got a int type: %d\n", key, atoi(tokens[3]));
 			mibinfo->value.integer = atoi(tokens[3]);
 			mibinfo->type = ASN_INTEGER;
 			g_hash_table_insert(sim_hash, key, mibinfo);
@@ -187,7 +187,7 @@ SaErrorT sim_file()
 			if ( *tmpstr == '\"' ) tmpstr++;
 			ii = strlen( tmpstr );
 			if (tmpstr[ii -1] == '\"')  tmpstr[ii -1] = '\0';
-        		dbg("=== oid %s got a string type: %s\n", key, tmpstr);
+        		trace("=== oid %s got a string type: %s\n", key, tmpstr);
 			strcpy(mibinfo->value.string, tmpstr);
 			mibinfo->type = ASN_OCTET_STR;
 			g_hash_table_insert(sim_hash, key, mibinfo);
@@ -195,14 +195,14 @@ SaErrorT sim_file()
         		valid++;
         	}
         	else {
-        		dbg("not a valid type %s\n", tokens[2]);
+        		trace("not a valid type %s\n", tokens[2]);
 			g_free(key);
                 	g_strfreev(tokens);
 			g_free(mibinfo);
 			invalid++;
         	}
 	}
-	dbg("%d out of %d lines in file %s got processed\n", valid, total, file_in);
+	trace("%d out of %d lines in file %s got processed\n", valid, total, file_in);
 
 	fclose( file );
 	// g_hash_table_foreach (sim_hash, print_entry, NULL);

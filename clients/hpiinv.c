@@ -33,16 +33,15 @@
 #include <unistd.h>
 #include <getopt.h>
 #include <SaHpi.h>
-#include <oh_clients.h>
 #ifdef OPENHPI_USED
 #include <oh_utils.h>
 #endif
 
-#define OH_SVN_REV "$Revision$"
-
 #define NCT 25
 #define MAX_STRSIZE  64
 
+char progver[] = "1.5 HPI-B";
+char progname[] = "hpiinv";
 char *chasstypes[NCT] = {
 	"Not Defined", "Other", "Unknown", "Desktop", "Low Profile Desktop",
 	"Pizza Box", "Mini Tower", "Tower", "Portable", "Laptop",
@@ -470,7 +469,7 @@ main(int argc, char **argv)
   int invfound = 0;
   int nloops = 0;
 
-  oh_prog_version(argv[0], OH_SVN_REV);
+  printf("%s ver %s\n",progname,progver);
   atag.tlen = 0;
 
   while ( (c = getopt( argc, argv,"a:vxz?")) != EOF )
@@ -486,7 +485,7 @@ main(int argc, char **argv)
 	  }
           break;
     default:
-          printf("Usage: %s [-x] [-a asset_tag]\n", argv[0]);
+          printf("Usage: %s [-x] [-a asset_tag]\n", progname);
           printf("   -a  Sets the asset tag\n");
           printf("   -x  Display debug messages\n");
           printf("   -z  Display extra debug messages\n");

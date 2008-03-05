@@ -49,7 +49,7 @@ int main(int argc, char **argv)
         /* save the EL to file */
         retc = oh_el_setgentimestampflag(el, flag);
         if (retc == SA_OK) {
-                err("ERROR: oh_el_setgentimestampflag failed.");
+                dbg("ERROR: oh_el_setgentimestampflag failed.");
                 return 1;
         }
  

@@ -65,7 +65,7 @@ SaErrorT oHpiHandlerCreate(GHashTable *config,
 	SaErrorT error = SA_OK;
 
         if (!config || !id) {
-                err("Invalid parameters.");
+                dbg("Invalid parameters.");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
         
@@ -117,7 +117,7 @@ SaErrorT oHpiHandlerInfo(oHpiHandlerIdT id, oHpiHandlerInfoT *info)
 
         h = oh_get_handler(id);
         if (!h) {
-                err("Handler %d not found.", id);
+                dbg("Handler %d not found.", id);
                 return SA_ERR_HPI_NOT_PRESENT;
         }
 
@@ -149,7 +149,7 @@ SaErrorT oHpiHandlerInfo(oHpiHandlerIdT id, oHpiHandlerInfoT *info)
 SaErrorT oHpiHandlerGetNext(oHpiHandlerIdT id, oHpiHandlerIdT *next_id)
 {
         if (!next_id) {
-                err("Invalid parameters.");
+                dbg("Invalid parameters.");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
         
@@ -195,7 +195,7 @@ SaErrorT oHpiHandlerFind(SaHpiSessionIdT sid,
         hid = (unsigned int *)oh_get_resource_data(&d->rpt, rid);
 
         if (hid == NULL) {
-                err("No such Resource Id %d in Domain %d", rid, did);
+                dbg("No such Resource Id %d in Domain %d", rid, did);
                 oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_INVALID_RESOURCE;
         }
@@ -253,7 +253,7 @@ SaErrorT oHpiGlobalParamGet(oHpiGlobalParamT *param)
         struct oh_global_param p;
 
         if (!param || !param->Type) {
-                err("Invalid parameters. oHpiGlobalParamGet()");
+                dbg("Invalid parameters. oHpiGlobalParamGet()");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
         
@@ -283,7 +283,7 @@ SaErrorT oHpiGlobalParamSet(oHpiGlobalParamT *param)
         struct oh_global_param p;
 
         if (!param || !param->Type) {
-                err("Invalid parameters. oHpiGlobalParamSet()");
+                dbg("Invalid parameters. oHpiGlobalParamSet()");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
         
@@ -331,10 +331,10 @@ SaErrorT oHpiInjectEvent(oHpiHandlerIdT id,
 	SaErrorT error = SA_OK;
 
 	if (!id) {
-		err("Invalid handler id %d passed",id);
+		dbg("Invalid handler id %d passed",id);
 		return SA_ERR_HPI_INVALID_PARAMS;
 	} else if (!event) {
-		err("Invalid NULL event passed");
+		dbg("Invalid NULL event passed");
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
 
@@ -349,7 +349,7 @@ SaErrorT oHpiInjectEvent(oHpiHandlerIdT id,
 
 	error = inject_event(h->hnd, event, rpte, rdr);
         if (error) {
-                err("Event injection into handler %d failed", id);
+                dbg("Event injection into handler %d failed", id);
         }
 
         oh_release_handler(h);

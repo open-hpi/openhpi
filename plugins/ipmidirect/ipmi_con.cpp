@@ -4,7 +4,7 @@
  * Interface code for handling IPMI connections
  *
  * Copyright (c) 2003,2004 by FORCE Computers.
- * Copyright (c) 2005-2007 by ESO Technologies.
+ * Copyright (c) 2005 by ESO Technologies.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -586,42 +586,32 @@ IpmiLogDataMsg( const cIpmiAddr &addr, const cIpmiMsg &msg )
 {
   char str[1024];
   char *s = str;
-  int remaining;
 
   // addr
   switch( addr.m_type )
      {
        case eIpmiAddrTypeIpmb:
-            s += snprintf( s, sizeof(str), "%02x %02x %02x %02x",
-                           eIpmiAddrTypeIpmb, addr.m_channel, addr.m_lun, addr.m_slave_addr );
+            s += sprintf( s, "%02x %02x %02x %02x",
+                          eIpmiAddrTypeIpmb, addr.m_channel, addr.m_lun, addr.m_slave_addr );
             break;
 
        case eIpmiAddrTypeSystemInterface:
-            s += snprintf( s, sizeof(str), "%02x %02x %02x   ",
-                           eIpmiAddrTypeSystemInterface, addr.m_channel, addr.m_lun );
+            s += sprintf( s, "%02x %02x %02x   ",
+                          eIpmiAddrTypeSystemInterface, addr.m_channel, addr.m_lun );
             break;
 
        case eIpmiAddrTypeIpmbBroadcast:
-            s += snprintf( s, sizeof(str), "%02x %02x %02x %02x",
-                           eIpmiAddrTypeIpmbBroadcast, addr.m_channel, addr.m_lun, addr.m_slave_addr );
+            s += sprintf( s, "%02x %02x %02x %02x",
+                          eIpmiAddrTypeIpmbBroadcast, addr.m_channel, addr.m_lun, addr.m_slave_addr );
      }
 
-  remaining = sizeof(str) - (s - str);
-
-  if (remaining > 0)
-     s += snprintf( s, remaining, "  %s (%02d) ",
-                    IpmiCmdToString( (tIpmiNetfn)(msg.m_netfn & 0xfe), msg.m_cmd ), msg.m_data_len );
+  s += sprintf( s, "  %s (%02d) ",
+		IpmiCmdToString( (tIpmiNetfn)(msg.m_netfn & 0xfe), msg.m_cmd ), msg.m_data_len );
 
   const unsigned char *p = msg.m_data;
 
   for( int i = 0; i < msg.m_data_len; i++ )
-  {
-       remaining = sizeof(str) - (s - str);
-       if (remaining > 0)
-            s += snprintf( s, remaining, " %02x", *p++ );
-       else
-            break;
-  }
+       s += sprintf( s, " %02x", *p++ );
 
   stdlog << str;
 }

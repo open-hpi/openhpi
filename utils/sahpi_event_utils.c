@@ -54,7 +54,7 @@ SaErrorT oh_decode_eventstate(SaHpiEventStateT event_state,
 
 	/* Don't check for mutual exclusive events, since we want to see them all */
 	if (!buffer || !oh_valid_eventstate(event_state, event_cat, SAHPI_FALSE)) {
-		err("Invalid parameter.");
+		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
@@ -145,11 +145,11 @@ SaErrorT oh_encode_eventstate(SaHpiTextBufferT *buffer,
 	SaHpiEventCategoryT working_cat=0;
 		
 	if (!buffer || !event_state || !event_cat) {
-		err("Invalid parameter.");
+		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 	if (buffer->Data == NULL || buffer->Data[0] == '\0') {
-		err("Invalid Data buffer parameter.");
+		dbg("Invalid Data buffer parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
@@ -163,14 +163,14 @@ SaErrorT oh_encode_eventstate(SaHpiTextBufferT *buffer,
 	}
 	gstr = g_strstrip(g_strndup((gchar *)buffer->Data, SAHPI_MAX_TEXT_BUFFER_LENGTH));
 	if (gstr == NULL || gstr[0] == '\0') {
-		err("g_strstrip failed");
+		dbg("g_strstrip failed");
 		rtncode = SA_ERR_HPI_INTERNAL_ERROR;
 		goto CLEANUP;
 	}
 
 	eventdefs = g_strsplit(gstr, OH_ENCODE_DELIMITER_CHAR, -1);
 	if (eventdefs == NULL) {
-		err("No event definitions");
+		dbg("No event definitions");
 		rtncode = SA_ERR_HPI_INVALID_PARAMS;
 		goto CLEANUP;
 	}
@@ -203,7 +203,7 @@ SaErrorT oh_encode_eventstate(SaHpiTextBufferT *buffer,
 		}
 
 		if (!found_event && !found_global_event) {
-			err("No events found");
+			dbg("No events found");
 			rtncode = SA_ERR_HPI_INVALID_PARAMS;
 			goto CLEANUP;
 		}
@@ -252,7 +252,7 @@ SaHpiBoolT oh_valid_eventstate(SaHpiEventStateT event_state,
 	case SAHPI_EC_UNSPECIFIED:
 		/* Only SAHPI_ES_UNSPECIFIED valid for this category */
 		if (event_state) {
-			err("Invalid event state.");
+			dbg("Invalid event state.");
 			return(SAHPI_FALSE);
 		}
 		return(SAHPI_TRUE);
@@ -266,7 +266,7 @@ SaHpiBoolT oh_valid_eventstate(SaHpiEventStateT event_state,
   			       SAHPI_ES_UPPER_CRIT;
 
 		if (event_state & (~valid_states)) {
-			err("Invalid event state.");
+			dbg("Invalid event state.");
 			return(SAHPI_FALSE);
 		}
 
@@ -275,25 +275,25 @@ SaHpiBoolT oh_valid_eventstate(SaHpiEventStateT event_state,
 		if (check_mutal_exclusion) {
 			if (event_state & SAHPI_ES_LOWER_CRIT) {
 				if (!(event_state & SAHPI_ES_LOWER_MAJOR)) {
-					err("Critical lower threshold event set; but not major");
+					dbg("Critical lower threshold event set; but not major");
 					return(SAHPI_FALSE);
 				}
 			}
 			if (event_state & SAHPI_ES_LOWER_MAJOR) {
 				if (!(event_state & SAHPI_ES_LOWER_MINOR)) {
-					err("Major lower threshold event set; but not minor");
+					dbg("Major lower threshold event set; but not minor");
 					return(SAHPI_FALSE);
 				}
 			}
 			if (event_state & SAHPI_ES_UPPER_CRIT) {
 				if (!(event_state & SAHPI_ES_UPPER_MAJOR)) {
-					err("Critical upper threshold event set; but not major");
+					dbg("Critical upper threshold event set; but not major");
 					return(SAHPI_FALSE);
 				}
 			}
 			if (event_state & SAHPI_ES_UPPER_MAJOR) {
 				if (!(event_state & SAHPI_ES_UPPER_MINOR)) {
-					err("Major upper threshold event set; but not minor");
+					dbg("Major upper threshold event set; but not minor");
 					return(SAHPI_FALSE);
 				}
 			}
@@ -307,7 +307,7 @@ SaHpiBoolT oh_valid_eventstate(SaHpiEventStateT event_state,
 			       SAHPI_ES_BUSY;
 
 		if (event_state & (~valid_states)) {
-			err("Invalid event state.");
+			dbg("Invalid event state.");
 			return(SAHPI_FALSE);
 		}
 
@@ -320,14 +320,14 @@ SaHpiBoolT oh_valid_eventstate(SaHpiEventStateT event_state,
 			       SAHPI_ES_STATE_ASSERTED;
 		
 		if (event_state & (~valid_states)) {
-			err("Invalid event state.");
+			dbg("Invalid event state.");
 			return(SAHPI_FALSE);
 		}
 
 		if (check_mutal_exclusion) {
 			if ((event_state & SAHPI_ES_STATE_DEASSERTED) &&
 			    (event_state & SAHPI_ES_STATE_ASSERTED)) {
-				err("Mutally exclusive STATE event states defined");
+				dbg("Mutally exclusive STATE event states defined");
 				return(SAHPI_FALSE);
 			}
 		}
@@ -339,14 +339,14 @@ SaHpiBoolT oh_valid_eventstate(SaHpiEventStateT event_state,
 			       SAHPI_ES_PRED_FAILURE_ASSERT;
 
 		if (event_state & (~valid_states)) {
-			err("Invalid event state.");
+			dbg("Invalid event state.");
 			return(SAHPI_FALSE);
 		}
 		
 		if (check_mutal_exclusion) {
 			if ((event_state & SAHPI_ES_PRED_FAILURE_DEASSERT) &&
 			    (event_state & SAHPI_ES_PRED_FAILURE_ASSERT)) {
-				err("Mutally exclusive PRED_FAIL event states defined");
+				dbg("Mutally exclusive PRED_FAIL event states defined");
 				return(SAHPI_FALSE);		
 			}
 		}
@@ -358,14 +358,14 @@ SaHpiBoolT oh_valid_eventstate(SaHpiEventStateT event_state,
 			       SAHPI_ES_LIMIT_EXCEEDED;
 
 		if (event_state & (~valid_states)) {
-			err("Invalid event state.");
+			dbg("Invalid event state.");
 			return(SAHPI_FALSE);
 		}
 		
 		if (check_mutal_exclusion) {
 			if ((event_state & SAHPI_ES_LIMIT_NOT_EXCEEDED) &&
 			    (event_state & SAHPI_ES_LIMIT_EXCEEDED)) {
-				err("Mutally exclusive LIMIT event states defined");
+				dbg("Mutally exclusive LIMIT event states defined");
 				return(SAHPI_FALSE);		
 			}
 		}
@@ -377,14 +377,14 @@ SaHpiBoolT oh_valid_eventstate(SaHpiEventStateT event_state,
 			       SAHPI_ES_PERFORMANCE_LAGS;
 
 		if (event_state & (~valid_states)) {
-			err("Invalid event state.");
+			dbg("Invalid event state.");
 			return(SAHPI_FALSE);
 		}
 		
 		if (check_mutal_exclusion) {
 			if ((event_state & SAHPI_ES_PERFORMANCE_MET) &&
 			    (event_state & SAHPI_ES_PERFORMANCE_LAGS)) {
-				err("Mutally exclusive PERFORMANCE event states defined");
+				dbg("Mutally exclusive PERFORMANCE event states defined");
 				return(SAHPI_FALSE);		
 			}
 		}
@@ -403,7 +403,7 @@ SaHpiBoolT oh_valid_eventstate(SaHpiEventStateT event_state,
                                SAHPI_ES_INFORMATIONAL;
 
 		if (event_state & (~valid_states)) {
-			err("Invalid event state.");
+			dbg("Invalid event state.");
 			return(SAHPI_FALSE);
 		}
 
@@ -416,14 +416,14 @@ SaHpiBoolT oh_valid_eventstate(SaHpiEventStateT event_state,
 			       SAHPI_ES_PRESENT;
 
 		if (event_state & (~valid_states)) {
-			err("Invalid event state.");
+			dbg("Invalid event state.");
 			return(SAHPI_FALSE);
 		}
 		
 		if (check_mutal_exclusion) {
 			if ((event_state & SAHPI_ES_ABSENT) &&
 			    (event_state & SAHPI_ES_PRESENT)) {
-				err("Mutally exclusive PRESENCE event states defined");
+				dbg("Mutally exclusive PRESENCE event states defined");
 				return(SAHPI_FALSE);		
 			}
 		}
@@ -435,14 +435,14 @@ SaHpiBoolT oh_valid_eventstate(SaHpiEventStateT event_state,
 			       SAHPI_ES_ENABLED;
 
 		if (event_state & (~valid_states)) {
-			err("Invalid event state.");
+			dbg("Invalid event state.");
 			return(SAHPI_FALSE);
 		}
 
 		if (check_mutal_exclusion) {
 			if ((event_state & SAHPI_ES_DISABLED) &&
 			    (event_state & SAHPI_ES_ENABLED)) {
-				err("Mutally exclusive ENABLE event states defined");
+				dbg("Mutally exclusive ENABLE event states defined");
 				return(SAHPI_FALSE);		
 			}
 		}
@@ -461,7 +461,7 @@ SaHpiBoolT oh_valid_eventstate(SaHpiEventStateT event_state,
 			       SAHPI_ES_INSTALL_ERROR;
 
 		if (event_state & (~valid_states)) {
-			err("Invalid event state.");
+			dbg("Invalid event state.");
 			return(SAHPI_FALSE);
 		}
 
@@ -480,7 +480,7 @@ SaHpiBoolT oh_valid_eventstate(SaHpiEventStateT event_state,
 			       SAHPI_ES_REDUNDANCY_DEGRADED_FROM_NON;
 
 		if (event_state & (~valid_states)) {
-			err("Invalid event state.");
+			dbg("Invalid event state.");
 			return(SAHPI_FALSE);
 		}
 
@@ -498,7 +498,7 @@ SaHpiBoolT oh_valid_eventstate(SaHpiEventStateT event_state,
 					SAHPI_ES_NON_REDUNDANT_SUFFICIENT_RESOURCES |
 					SAHPI_ES_NON_REDUNDANT_INSUFFICIENT_RESOURCES;
 				if (event_state & (~valid_states)) {
-					err("Mutally exclusive REDUNDANCY_LOST event states defined");
+					dbg("Mutally exclusive REDUNDANCY_LOST event states defined");
 					return(SAHPI_FALSE);
 				}
 			}
@@ -507,19 +507,19 @@ SaHpiBoolT oh_valid_eventstate(SaHpiEventStateT event_state,
 					SAHPI_ES_REDUNDANCY_DEGRADED_FROM_FULL |
 					SAHPI_ES_REDUNDANCY_DEGRADED_FROM_NON;
 				if (event_state & (~valid_states)) {
-					err("Mutally exclusive REDUNDANCY_LOST event states defined");
+					dbg("Mutally exclusive REDUNDANCY_LOST event states defined");
 					return(SAHPI_FALSE);
 				}
 			}
 			if (event_state & SAHPI_ES_REDUNDANCY_DEGRADED_FROM_FULL) {
 				if (event_state & SAHPI_ES_REDUNDANCY_DEGRADED_FROM_NON) {
-					err("Mutally exclusive REDUNDANCY_LOST event states defined");
+					dbg("Mutally exclusive REDUNDANCY_LOST event states defined");
 					return(SAHPI_FALSE);	
 				}
 			}
 			if (event_state & SAHPI_ES_REDUNDANCY_LOST_SUFFICIENT_RESOURCES) {
 				if (event_state & SAHPI_ES_NON_REDUNDANT_SUFFICIENT_RESOURCES) {
-					err("Mutally exclusive REDUNDANCY_LOST event states defined");
+					dbg("Mutally exclusive REDUNDANCY_LOST event states defined");
 					return(SAHPI_FALSE);	
 				}
 			}
@@ -546,7 +546,7 @@ SaHpiBoolT oh_valid_eventstate(SaHpiEventStateT event_state,
 			       SAHPI_ES_STATE_14;
 
 		if (event_state & (~valid_states)) {
-			err("Invalid event state.");
+			dbg("Invalid event state.");
 			return(SAHPI_FALSE);
 		}
 		
@@ -571,7 +571,7 @@ SaHpiBoolT oh_valid_eventstate(SaHpiEventStateT event_state,
 SaErrorT oh_valid_addevent(SaHpiEventT *event)
 {
 	if (!event) {
-		err("Invalid parameter.");
+		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 	
@@ -580,7 +580,7 @@ SaErrorT oh_valid_addevent(SaHpiEventT *event)
 	    NULL == oh_lookup_severity(event->Severity) ||
 	    event->Severity == SAHPI_ALL_SEVERITIES ||
 	    !oh_valid_textbuffer(&(event->EventDataUnion.UserEvent.UserEventData))) {
-		err("Invalid parameter.");
+		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 

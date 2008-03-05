@@ -45,10 +45,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <SaHpi.h>
 #include <oh_utils.h>
-#include <oh_clients.h>
 
-#define OH_SVN_REV "$Revision$"
-
+char progver[] = "1.0";
 int fdebug = 0;
 int findate = 0;
 int fintime = 0;
@@ -83,7 +81,7 @@ int main(int argc, char **argv)
 	SaHpiTimeT readbacktime;
 	SaHpiTextBufferT buffer;
 
-	oh_prog_version(argv[0], OH_SVN_REV);
+	printf("%s: version %s\n",argv[0],progver); 
         
 	while ( (c = getopt( argc, argv,"d:t:x")) != EOF )
 	{

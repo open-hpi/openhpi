@@ -51,7 +51,7 @@ SaErrorT snmp_bc_get_control_state(void *hnd,
         SaHpiRdrT *rdr;
 
 	if (!hnd) {
-		err("Invalid parameter.");
+		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 	
@@ -59,7 +59,7 @@ SaErrorT snmp_bc_get_control_state(void *hnd,
 	custom_handle = (struct snmp_bc_hnd *)handle->data;
 	
 	if (!custom_handle) {
-		err("Invalid parameter.");
+		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
@@ -87,7 +87,7 @@ SaErrorT snmp_bc_get_control_state(void *hnd,
 	
 	cinfo = (struct ControlInfo *)oh_get_rdr_data(handle->rptcache, rid, rdr->RecordId);
  	if (cinfo == NULL) {
-		err("No control data. Control=%s", rdr->IdString.Data);
+		dbg("No control data. Control=%s", rdr->IdString.Data);
 		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INTERNAL_ERROR);
 	}       
@@ -116,7 +116,7 @@ SaErrorT snmp_bc_get_control_state(void *hnd,
 		err = snmp_bc_oid_snmp_get(custom_handle, &(rdr->Entity), cinfo->mib.loc_offset,
 					   cinfo->mib.oid, &get_value, SAHPI_TRUE);
 		if (err  || get_value.type != ASN_INTEGER) {
-			err("Cannot read SNMP OID=%s; Type=%d.", cinfo->mib.oid, get_value.type);
+			dbg("Cannot read SNMP OID=%s; Type=%d.", cinfo->mib.oid, get_value.type);
 			snmp_bc_unlock_handler(custom_handle);
 			return(err);
 		}
@@ -152,12 +152,12 @@ SaErrorT snmp_bc_get_control_state(void *hnd,
 						working_state.StateUnion.Digital = SAHPI_CTRL_STATE_PULSE_ON;
 						break;
 					default:
-						err("HPI Spec change: Add control digital states");
+						dbg("HPI Spec change: Add control digital states");
 						snmp_bc_unlock_handler(custom_handle);
 						return(SA_ERR_HPI_INTERNAL_ERROR);
 					}
 				} else {
-					err("Control's value not defined");
+					dbg("Control's value not defined");
 					snmp_bc_unlock_handler(custom_handle);
 					return(SA_ERR_HPI_INTERNAL_ERROR);
 				}
@@ -168,22 +168,22 @@ SaErrorT snmp_bc_get_control_state(void *hnd,
 			break;
 		case SAHPI_CTRL_TYPE_ANALOG:
 			snmp_bc_unlock_handler(custom_handle);
-			err("Analog controls not supported.");
+			dbg("Analog controls not supported.");
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		case SAHPI_CTRL_TYPE_STREAM:
 			snmp_bc_unlock_handler(custom_handle);
-			err("Stream controls not supported.");
+			dbg("Stream controls not supported.");
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		case SAHPI_CTRL_TYPE_TEXT:
 			snmp_bc_unlock_handler(custom_handle);
-			err("Text controls not supported.");
+			dbg("Text controls not supported.");
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		case SAHPI_CTRL_TYPE_OEM:
 			snmp_bc_unlock_handler(custom_handle);
-			err("Oem controls not supported.");
+			dbg("Oem controls not supported.");
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		default:
-			err("%s has invalid control state=%d.", cinfo->mib.oid, working_state.Type);
+			dbg("%s has invalid control state=%d.", cinfo->mib.oid, working_state.Type);
 			snmp_bc_unlock_handler(custom_handle);
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		}
@@ -232,7 +232,7 @@ SaErrorT snmp_bc_set_control_state(void *hnd,
 	struct snmp_value set_value;
 
 	if (!hnd) {
-		err("Invalid parameter.");
+		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}	
 		
@@ -240,7 +240,7 @@ SaErrorT snmp_bc_set_control_state(void *hnd,
 	custom_handle = (struct snmp_bc_hnd *)handle->data;
 	
 	if (!custom_handle) {
-		err("Invalid parameter.");
+		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
@@ -266,7 +266,7 @@ SaErrorT snmp_bc_set_control_state(void *hnd,
 	
 	cinfo = (struct ControlInfo *)oh_get_rdr_data(handle->rptcache, rid, rdr->RecordId);
  	if (cinfo == NULL) {
-		err("No control data. Control=%s", rdr->IdString.Data);
+		dbg("No control data. Control=%s", rdr->IdString.Data);
 		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INTERNAL_ERROR);
 	}       
@@ -298,13 +298,13 @@ SaErrorT snmp_bc_set_control_state(void *hnd,
 				value = cinfo->mib.digitalwmap[SAHPI_CTRL_STATE_PULSE_ON];
 				break;
 			default:
-				err("HPI Spec change: Add control digital states");
+				dbg("HPI Spec change: Add control digital states");
 				snmp_bc_unlock_handler(custom_handle);
 				return(SA_ERR_HPI_INTERNAL_ERROR);
 			}
 
 			if (value < 0) {
-				err("Invalid hardware control state - %s",
+				dbg("Invalid hardware control state - %s",
 				    oh_lookup_ctrlstatedigital(state->StateUnion.Digital));
 				snmp_bc_unlock_handler(custom_handle);
 				return(SA_ERR_HPI_INVALID_REQUEST);
@@ -317,7 +317,7 @@ SaErrorT snmp_bc_set_control_state(void *hnd,
 			err = snmp_bc_oid_snmp_set(custom_handle, &(rdr->Entity), cinfo->mib.loc_offset,
 						   cinfo->mib.oid, set_value);
 			if (err) {
-				err("Cannot set SNMP OID=%s; Value=%d.", 
+				dbg("Cannot set SNMP OID=%s; Value=%d.", 
 				    cinfo->mib.oid, (int)set_value.integer);
 				snmp_bc_unlock_handler(custom_handle);
 				return(err);
@@ -331,30 +331,30 @@ SaErrorT snmp_bc_set_control_state(void *hnd,
 			err = snmp_bc_oid_snmp_set(custom_handle, &(rdr->Entity), cinfo->mib.loc_offset,
 						   cinfo->mib.oid, set_value);
 			if (err) {
-				err("Cannot set SNMP OID=%s; Value=%d.", 
+				dbg("Cannot set SNMP OID=%s; Value=%d.", 
 				    cinfo->mib.oid, (int)set_value.integer);
 				snmp_bc_unlock_handler(custom_handle);
 				return(err);
 			}
 			break;
 		case SAHPI_CTRL_TYPE_ANALOG:
-			err("Analog controls not supported.");
+			dbg("Analog controls not supported.");
 			snmp_bc_unlock_handler(custom_handle);
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		case SAHPI_CTRL_TYPE_STREAM:
-			err("Stream controls not supported.");
+			dbg("Stream controls not supported.");
 			snmp_bc_unlock_handler(custom_handle);
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		case SAHPI_CTRL_TYPE_TEXT:
-			err("Text controls not supported.");
+			dbg("Text controls not supported.");
 			snmp_bc_unlock_handler(custom_handle);
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		case SAHPI_CTRL_TYPE_OEM:	
-			err("OEM controls not supported.");
+			dbg("OEM controls not supported.");
 			snmp_bc_unlock_handler(custom_handle);
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		default:
-			err("Invalid control state=%d", state->Type);
+			dbg("Invalid control state=%d", state->Type);
 			snmp_bc_unlock_handler(custom_handle);
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		}

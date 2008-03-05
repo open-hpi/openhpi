@@ -18,7 +18,7 @@
 SaErrorT rtas_get_event(void *hnd)
 {
         if (!hnd) {
-                err("Invalid parameter");
+                dbg("Invalid parameter");
                 return(SA_ERR_HPI_INVALID_PARAMS);
         }
 

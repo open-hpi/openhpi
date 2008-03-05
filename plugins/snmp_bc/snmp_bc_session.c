@@ -52,32 +52,32 @@ void *snmp_bc_open(GHashTable *handler_config,
 	SaErrorT rv;
 
 	if (!handler_config) {
-                err("INVALID PARM - NULL handler_config pointer.");
+                dbg("INVALID PARM - NULL handler_config pointer.");
                 return NULL;	
 	} else if (!hid) {
-                err("Bad handler id passed.");
+                dbg("Bad handler id passed.");
                 return NULL;
         } else if (!eventq) {
-                err("No event queue was passed.");
+                dbg("No event queue was passed.");
                 return NULL;
         }
 
         root_tuple = (char *)g_hash_table_lookup(handler_config, "entity_root");
         if (!root_tuple) {
-                err("Cannot find \"entity_root\" configuration parameter.");
+                dbg("Cannot find \"entity_root\" configuration parameter.");
                 return NULL;
         }
 
         hostname = (char *)g_hash_table_lookup(handler_config, "host");
         if (!hostname) {
-                err("Cannot find \"host\" configuration parameter.");
+                dbg("Cannot find \"host\" configuration parameter.");
                 return NULL;
         }
 
         handle = (struct oh_handler_state *)g_malloc0(sizeof(struct oh_handler_state));
         custom_handle = (struct snmp_bc_hnd *)g_malloc0(sizeof(struct snmp_bc_hnd));
         if (!handle || !custom_handle) {
-                err("Out of memory.");
+                dbg("Out of memory.");
                 return NULL;
         }
 
@@ -156,7 +156,7 @@ void *snmp_bc_open(GHashTable *handler_config,
 		custom_handle->session.timeout = 5000000; /* 5000000 in microseconds */  
 		version = (char *)g_hash_table_lookup(handle->config, "version");
 		if (!version) {
-			err("Cannot find \"version\" configuration parameter.");
+			dbg("Cannot find \"version\" configuration parameter.");
 			return NULL;
 		}
 		sec_level = (char *)g_hash_table_lookup(handle->config, "security_level");
@@ -186,7 +186,7 @@ void *snmp_bc_open(GHashTable *handler_config,
 		/* Configure SNMP V3 session */
 		if (!g_ascii_strncasecmp(version, "3", sizeof("3"))) {
 			if (!user) {
-				err("Cannot find \"security_name\" configuration parameter.");
+				dbg("Cannot find \"security_name\" configuration parameter.");
 				return NULL;
 			}
 			custom_handle->session.version = SNMP_VERSION_3;
@@ -196,7 +196,7 @@ void *snmp_bc_open(GHashTable *handler_config,
 			
 			if (!g_ascii_strncasecmp(sec_level, "auth", 4)) { /* If using password */
 				if (!pass) {
-					err("Cannot find \"passphrase\" configuration parameter.");
+					dbg("Cannot find \"passphrase\" configuration parameter.");
 					return NULL;
 				}
 				
@@ -208,7 +208,7 @@ void *snmp_bc_open(GHashTable *handler_config,
 					custom_handle->session.securityAuthProto = usmHMACSHA1AuthProtocol;
 					custom_handle->session.securityAuthProtoLen = USM_AUTH_PROTO_SHA_LEN;
 				} else {
-					err("Unrecognized authenication type=%s.", authtype); 
+					dbg("Unrecognized authenication type=%s.", authtype); 
 					return NULL;
 				}
 				
@@ -221,14 +221,14 @@ void *snmp_bc_open(GHashTable *handler_config,
 					snmp_perror("snmp_bc");
 					snmp_log(LOG_ERR,
 						 "Error generating Ku from authentication passphrase.\n");
-					err("Unable to establish SNMP authnopriv session.");
+					dbg("Unable to establish SNMP authnopriv session.");
 					return NULL;
 				}
 				
 				if (!g_ascii_strncasecmp(sec_level, "authPriv", sizeof("authPriv"))) { /* if using encryption */
 				
 					if (!privacy_passwd) {
-						err("Cannot find \"privacy_passwd\" configuration parameter.");
+						dbg("Cannot find \"privacy_passwd\" configuration parameter.");
 						return NULL;
 					}
 				
@@ -244,7 +244,7 @@ void *snmp_bc_open(GHashTable *handler_config,
 						snmp_perror("snmp_bc");
 						snmp_log(LOG_ERR,
 							 "Error generating Ku from private passphrase.\n");
-						err("Unable to establish SNMP authpriv session.");
+						dbg("Unable to establish SNMP authpriv session.");
 						return NULL;
 					}
 					
@@ -276,14 +276,14 @@ void *snmp_bc_open(GHashTable *handler_config,
                 /* Configure SNMP V1 session */
 		} else if (!g_ascii_strncasecmp(version, "1", sizeof("1"))) { 
 			if (!community) {
-				err("Cannot find \"community\" configuration parameter.");
+				dbg("Cannot find \"community\" configuration parameter.");
 				return NULL;
 			}
 			custom_handle->session.version = SNMP_VERSION_1;
 			custom_handle->session.community = (u_char *)community;
 			custom_handle->session.community_len = strlen(community);
 		} else {
-			err("Unrecognized SNMP version=%s.", version);
+			dbg("Unrecognized SNMP version=%s.", version);
 			return NULL;
 		}
 
@@ -304,7 +304,7 @@ void *snmp_bc_open(GHashTable *handler_config,
 				chassis_type = get_value.integer;
 				err = snmp_bc_snmp_get(custom_handle, SNMP_BC_CHASSIS_SUBTYPE_OID, &get_value, SAHPI_FALSE);
 				if (err) {
-					err("Cannot read model subtype");
+					dbg("Cannot read model subtype");
 					chassis_subtype = SNMP_BC_CHASSIS_SUBTYPE_ORIG;
 				} else {
 					chassis_subtype = get_value.integer;
@@ -313,21 +313,21 @@ void *snmp_bc_open(GHashTable *handler_config,
 
 				if (chassis_type == SNMP_BC_CHASSIS_TYPE_BC &&
 				    chassis_subtype == SNMP_BC_CHASSIS_SUBTYPE_ORIG) {
-					dbg("Found BC");
+					trace("Found BC");
 					custom_handle->platform = SNMP_BC_PLATFORM_BC;
 					break;
 				}
 
 				if (chassis_type == SNMP_BC_CHASSIS_TYPE_BC &&
 				    chassis_subtype == SNMP_BC_CHASSIS_SUBTYPE_H) {
-					dbg("Found BCH");
+					trace("Found BCH");
 					custom_handle->platform = SNMP_BC_PLATFORM_BCH;
 					break;
 				}
 				
 				if (chassis_type == SNMP_BC_CHASSIS_TYPE_BCT &&
 				    chassis_subtype == SNMP_BC_CHASSIS_SUBTYPE_ORIG) {
-					dbg("Found BCT");
+					trace("Found BCT");
 					custom_handle->platform = SNMP_BC_PLATFORM_BCT;
 					break;
 				}
@@ -335,37 +335,37 @@ void *snmp_bc_open(GHashTable *handler_config,
 								
 				if (chassis_type == SNMP_BC_CHASSIS_TYPE_BCT &&
 				    chassis_subtype == SNMP_BC_CHASSIS_SUBTYPE_H) {
-					dbg("Found BCHT");
+					trace("Found BCHT");
 					custom_handle->platform = SNMP_BC_PLATFORM_BCHT;
 					break;
 				}
 				
-				err("Unknown BladeCenter model");
+				dbg("Unknown BladeCenter model");
 				return NULL;
 			}
 			else {  /* Older MM software doesn't support chassis type and subtype OIDs */
 				err = snmp_bc_snmp_get(custom_handle, SNMP_BC_PLATFORM_OID_BCT, &get_value, SAHPI_FALSE);
 				if (err == SA_OK) {
-					dbg("Found BCT");
+					trace("Found BCT");
 					custom_handle->platform = SNMP_BC_PLATFORM_BCT;
 					break;
 				} 
 				
 				err = snmp_bc_snmp_get(custom_handle, SNMP_BC_PLATFORM_OID_BC, &get_value, SAHPI_FALSE);
 				if (err == SA_OK) {
-					dbg("Found BC");
+					trace("Found BC");
 					custom_handle->platform = SNMP_BC_PLATFORM_BC;
 					break;
 				}
 				
 				err = snmp_bc_snmp_get(custom_handle, SNMP_BC_PLATFORM_OID_RSA, &get_value, SAHPI_FALSE);
 				if (err == SA_OK) {
-					dbg("Found RSA");
+					trace("Found RSA");
 					custom_handle->platform = SNMP_BC_PLATFORM_RSA;
 					break;
 				} 
 				
-				err("Unknown BladeCenter model");
+				dbg("Unknown BladeCenter model");
 				return NULL;
 			}
 		} while(0);
@@ -379,7 +379,7 @@ void *snmp_bc_open(GHashTable *handler_config,
 			strncpy(custom_handle->handler_timezone, get_value.string,9);
 		}
 		else {
-			err("Cannot read DST=%s; Error=%d.", oid, get_value.type);
+			dbg("Cannot read DST=%s; Error=%d.", oid, get_value.type);
 			return NULL;
 		}
 	}
@@ -387,7 +387,7 @@ void *snmp_bc_open(GHashTable *handler_config,
 	/* Initialize "String to Event" mapping hash table */
 	if (errlog2event_hash_use_count == 0) {
 		if (errlog2event_hash_init(custom_handle)) {
-			err("Out of memory.");
+			dbg("Out of memory.");
 			return NULL;
 		}
 	}
@@ -395,7 +395,7 @@ void *snmp_bc_open(GHashTable *handler_config,
 	
 	/* Initialize "Event Number to HPI Event" mapping hash table */
 	if (event2hpi_hash_init(handle)) {
-		err("Out of memory.");
+		dbg("Out of memory.");
 		return NULL;
 	}
   
@@ -421,7 +421,7 @@ void snmp_bc_close(void *hnd)
 	struct oh_handler_state *handle;
 	
 	if (!hnd) {
-                err("INVALID PARM - NULL handle pointer.");
+                dbg("INVALID PARM - NULL handle pointer.");
                 return;	
 	}
 	
@@ -515,16 +515,16 @@ SaErrorT snmp_bc_recover_snmp_session(struct snmp_bc_hnd *custom_handle)
 		}
 		
 		if ( strcmp(custom_handle->host, custom_handle->session.peername) == 0 ) {
-			dbg("Attemp recovery with custom_handle->host_alternate %s\n", custom_handle->host_alternate);
+			trace("Attemp recovery with custom_handle->host_alternate %s\n", custom_handle->host_alternate);
 			custom_handle->session.peername = custom_handle->host_alternate;
 		} else {
-			dbg("Attemp recovery with custom_handle->host %s\n", custom_handle->host);		 
+			trace("Attemp recovery with custom_handle->host %s\n", custom_handle->host);		 
 			custom_handle->session.peername = custom_handle->host;
 		}
 		rv = snmp_bc_manage_snmp_open(custom_handle, SAHPI_FALSE);
 		
 	} else {
-		dbg("No host_alternate defined in openhpi.conf. No recovery on host_alternate.\n");
+		trace("No host_alternate defined in openhpi.conf. No recovery on host_alternate.\n");
 		rv = SA_ERR_HPI_NO_RESPONSE;
 	}
 

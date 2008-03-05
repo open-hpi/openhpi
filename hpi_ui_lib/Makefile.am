@@ -1,6 +1,6 @@
 #
-# Copyright (C) 2007-2008, Hewlett-Packard Development Company, LLP
-#                     All rights reserved.
+# Copyright (c) 2003, Intel Corporation
+# All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or
 # without modification, are permitted provided that the following
@@ -12,7 +12,7 @@
 # notice, this list of conditions and the following disclaimer in
 # the documentation and/or other materials provided with the distribution.
 #
-# Neither the name of the Hewlett-Packard Corporation, nor the names
+# Neither the name of Intel Corporation nor the names
 # of its contributors may be used to endorse or promote products
 # derived from this software without specific prior written permission.
 #
@@ -28,38 +28,30 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# Author(s)
-#     Shuah Khan <shuah.khan@hp.com>
-#     Richard White <richard.white@hp.com>
-#
 
-MAINTAINERCLEANFILES 	= Makefile.in
 
-INCLUDES		= @OPENHPI_INCLUDES@ @XML2_INCLUDE@ 
 
-AM_CFLAGS		= @CFLAGS@
+MAINTAINERCLEANFILES    = Makefile.in
+MOSTLYCLEANFILES        = @TEST_CLEAN@
 
-pkglib_LTLIBRARIES	= libilo2_ribcl.la
+EXTRA_DIST              = hpi_ui.sym
 
-libilo2_ribcl_la_SOURCES  =	\
-				ilo2_ribcl.c \
-				ilo2_ribcl.h \
-				ilo2_ribcl_discover.c \
-				ilo2_ribcl_discover.h \
-				ilo2_ribcl_idr.c \
-				ilo2_ribcl_idr.h \
-				ilo2_ribcl_reset.c \
-				ilo2_ribcl_power.c \
-				ilo2_ribcl_control.c \
-				ilo2_ribcl_rpt.c \
-				ilo2_ribcl_sensor.c \
-				ilo2_ribcl_sensor.h \
-				ilo2_ribcl_ssl.c \
-				ilo2_ribcl_ssl.h \
-				ilo2_ribcl_xml.c \
-				ilo2_ribcl_xml.h \
-				ilo2_ribcl_cmnds.h
+INCLUDES                = @OPENHPI_INCLUDES@ 
 
-libilo2_ribcl_la_LIBADD   = @SSL_LIB@ @XML2_LIB@ -luuid $(top_builddir)/utils/libopenhpiutils.la
-libilo2_ribcl_la_LDFLAGS  = -module -version-info @HPI_LIB_VERSION@
+AM_CFLAGS               = @CFLAGS@
+
+lib_LTLIBRARIES         = libopenhpiui.la
+
+libopenhpiui_la_SOURCES   = \
+                           service.c \
+			   show.c
+
+libopenhpiui_la_LIBADD    = @STATIC_PLUGIN_LIBS@ @STATIC_PLUGIN_EXTRA_LIBS@ /
+				$(top_builddir)/utils/libopenhpiutils.la
+libopenhpiui_la_LDFLAGS   = -version-info @HPI_LIB_VERSION@ /
+				-export-symbols $(top_srcdir)/hpi_ui_lib/hpi_ui.sym
+libopenhpiui_la_DEPENDENCIES = @STATIC_PLUGIN_LIBS@ $(top_srcdir)/hpi_ui_lib/hpi_ui.sym
+
+$(top_builddir)/utils/libopenhpiutils.la:
+	make -C $(top_builddir)/utils libopenhpiutils.la
 

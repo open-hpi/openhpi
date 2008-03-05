@@ -57,7 +57,7 @@ int add_event(oh_el *el, int idx) {
         SaHpiEventLogEntryIdT oldId = el->nextid, next, prev;
 
         if (idx >= sizeof(data) / sizeof(char *)) {
-                err("ERROR: idx invalid.");
+                dbg("ERROR: idx invalid.");
                 return 1;
         }
 
@@ -70,107 +70,107 @@ int add_event(oh_el *el, int idx) {
         retc = oh_el_append(el, &event, NULL, NULL);
 
         if (retc != SA_OK) {
-                err("ERROR: oh_el_add failed.");
+                dbg("ERROR: oh_el_add failed.");
                 return 1;
         }
 	
 	entry = (oh_el_entry *)(g_list_last(el->list)->data);
         /* check correct id */
         if (entry->event.EntryId != el->nextid - 1) {
-                err("ERROR: entry.EntryId invalid.");
+                dbg("ERROR: entry.EntryId invalid.");
                 return 1;
         }
 
         if (entry->event.Timestamp == 0) {
-                err("ERROR: entry.Timestamp invalid.");
+                dbg("ERROR: entry.Timestamp invalid.");
                 return 1;
         }
 
         /* inspect oh_el struct values */
         if(el->info.Enabled != TRUE) {
-                err("ERROR: el->info.Enabled invalid.");
+                dbg("ERROR: el->info.Enabled invalid.");
                 return 1;
         }
 
 //      if(el->overflow != FALSE) {
-//              err("ERROR: el->overflow invalid.");
+//              dbg("ERROR: el->overflow invalid.");
 //              return 1;
 //      }
 
         if(el->info.UpdateTimestamp != entry->event.Timestamp) {
-                err("ERROR: el->info.UpdateTimestamp invalid.");
+                dbg("ERROR: el->info.UpdateTimestamp invalid.");
                 return 1;
         }
 
         if(el->basetime != 0) {
-                err("ERROR: el->basetime invalid.");
+                dbg("ERROR: el->basetime invalid.");
                 return 1;
         }
 
         if(el->nextid != oldId + 1) {
-                err("ERROR: el->nextid invalid.");
+                dbg("ERROR: el->nextid invalid.");
                 return 1;
         }
 
         if(el->list == NULL) {
-                err("ERROR: el->list == NULL.");
+                dbg("ERROR: el->list == NULL.");
                 return 1;
         }
 
         /* now fetch the event and compare it */
         retc = oh_el_get(el, entry->event.EntryId, &prev, &next, &fetchentry);
         if (retc != SA_OK) {
-                err("ERROR: oh_el_get failed.");
+                dbg("ERROR: oh_el_get failed.");
                 return 1;
         }
 
         if (entry->event.EntryId != fetchentry->event.EntryId) {
-                err("ERROR: entry->EntryId invalid.");
+                dbg("ERROR: entry->EntryId invalid.");
                 return 1;
         }
 
         if (prev != entry->event.EntryId - 1) {
                 if (prev != SAHPI_NO_MORE_ENTRIES) {
-                        err("ERROR: prev invalid.");
+                        dbg("ERROR: prev invalid.");
                         return 1;
                 }
         }
 
         if (next != entry->event.EntryId + 1) {
                 if (next != SAHPI_NO_MORE_ENTRIES) {
-                        err("ERROR: next invalid.");
+                        dbg("ERROR: next invalid.");
                         return 1;
                 }
         }
 
         if (fetchentry->event.Timestamp == 0) {
-                err("ERROR: fetchentry->Timestamp invalid.");
+                dbg("ERROR: fetchentry->Timestamp invalid.");
                 return 1;
         }
 
         if (fetchentry->event.Event.Source != 1) {
-                err("ERROR: fetchentry->Event.Source invalid.");
+                dbg("ERROR: fetchentry->Event.Source invalid.");
                 return 1;
         }
 
         if (fetchentry->event.Event.EventType != SAHPI_ET_USER) {
-                err("ERROR: fetchentry->Event.EventType invalid.");
+                dbg("ERROR: fetchentry->Event.EventType invalid.");
                 return 1;
         }
 
         if (fetchentry->event.Event.Timestamp != SAHPI_TIME_UNSPECIFIED) {
-                err("ERROR: fetchentry->Event.Timestamp invalid.");
+                dbg("ERROR: fetchentry->Event.Timestamp invalid.");
                 return 1;
         }
 
         if (fetchentry->event.Event.Severity != SAHPI_DEBUG) {
-                err("ERROR: fetchentry->Event.Severity invalid.");
+                dbg("ERROR: fetchentry->Event.Severity invalid.");
                 return 1;
         }
 
         if (strcmp((char *)fetchentry->event.Event.EventDataUnion.UserEvent.UserEventData.Data,
                     data[idx])) {
-                err("ERROR: fetchentry->Event.EventDataUnion.UserEvent.UserEventData invalid.");
+                dbg("ERROR: fetchentry->Event.EventDataUnion.UserEvent.UserEventData invalid.");
                 return 1;
         }
 

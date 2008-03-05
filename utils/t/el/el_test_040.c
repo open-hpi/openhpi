@@ -49,7 +49,7 @@ int main(int argc, char **argv)
 
 	retc = oh_el_timeset(el, timestamp + 20);
 	if (retc == SA_OK){
-		err("ERROR: oh_el_timeset failed");
+		dbg("ERROR: oh_el_timeset failed");
 		return 1;
 	}
 
