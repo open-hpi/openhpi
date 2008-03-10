@@ -356,7 +356,7 @@ AC_ARG_ENABLE([ilo2_ribcl],
     [  --enable-ilo2_ribcl     build ilo2_ribcl plugin [[default=no]]],
     [if test "x$enableval" = "xyes"; then
         if test "x$have_openssl" = "xyes"; then
-            if test -n "x$XML2_INCLUDE"; then
+            if test -n "$XML2_INCLUDE"; then
                 AC_SUBST(ILO2_RIBCL,ilo2_ribcl)
                 AC_SUBST(WITH_ILO2_RIBCL,1)
             else
@@ -368,7 +368,7 @@ AC_ARG_ENABLE([ilo2_ribcl],
     else
         AC_SUBST(WITH_ILO2_RIBCL,0)
     fi],
-    [if test "x$have_openssl" = "xyes" && test -n "x$XML2_INCLUDE"; then
+    [if test "x$have_openssl" = "xyes" && test -n "$XML2_INCLUDE"; then
         AC_SUBST(ILO2_RIBCL,ilo2_ribcl)
         AC_SUBST(WITH_ILO2_RIBCL,1)
      else
