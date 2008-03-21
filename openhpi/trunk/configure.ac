@@ -47,7 +47,7 @@ if test "x$OH_SIZEOF_INT" != "x4"; then
 ])
 fi
 
-dnl Check fo libraries
+dnl Check for libraries
 have_uuid=no
 have_openipmi=no
 have_fam=no
@@ -376,6 +376,31 @@ AC_ARG_ENABLE([ilo2_ribcl],
      fi
     ])
 
+# configure argument for the oa_soap plugin
+AC_ARG_ENABLE([oa_soap],
+    [  --enable-oa_soap        build oa_soap plugin [[default=no]]],
+    [if test "x$enableval" = "xyes"; then
+        if test "x$have_openssl" = "xyes"; then
+	    if test -n "$XML2_INCLUDE"; then
+                AC_SUBST(OA_SOAP,oa_soap)
+                AC_SUBST(WITH_OA_SOAP,1)
+	    else
+	    	OH_CHECK_FAIL(xml2-devel,,,Can not build oa_soap without xml2 headers)
+	    fi
+	else
+	    OH_CHECK_FAIL(openssl-devel,,,Can not build oa_soap without openssl headers)
+	fi
+    else
+        AC_SUBST(WITH_OA_SOAP,0)
+    fi],
+    [if test "x$have_openssl" = "xyes" && test -n "$XML2_INCLUDE"; then
+        AC_SUBST(OA_SOAP,oa_soap)
+        AC_SUBST(WITH_OA_SOAP,1)
+     else
+        AC_SUBST(WITH_OA_SOAP,0)
+     fi
+    ])
+
 
 dnl enable marshal library when needed
 if test "x$oh_daemon_enabled" = "xyes"; then
@@ -556,7 +581,7 @@ CC_WARNINGS="\
         -Wcast-qual \
         -Wcast-align \
         -Wno-strict-aliasing \
-	-Wno-unused-value \
+        -Wno-unused-value \
         -Werror "
 
 CXX_WARNINGS="\
@@ -571,7 +596,7 @@ CXX_WARNINGS="\
         -Wwrite-strings \
         -Wredundant-decls \
         -Wno-strict-aliasing \
-	-Wno-unused-value \
+        -Wno-unused-value \
         -Werror "
 
 if test -n "`gcc --version | grep ' 3.2'`" ; then
@@ -679,6 +704,7 @@ AC_CONFIG_FILES([openhpi.spec
         plugins/simulator/t/Makefile
         plugins/rtas/Makefile
         plugins/ilo2_ribcl/Makefile
+        plugins/oa_soap/Makefile
         scripts/Makefile
         scripts/test/Makefile
         snmp/Makefile

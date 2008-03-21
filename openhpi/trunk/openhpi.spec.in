@@ -13,6 +13,7 @@
 %define with_rtas @WITH_RTAS@
 %define with_sysfs @WITH_SYSFS@
 %define with_ilo2_ribcl @WITH_ILO2_RIBCL@
+%define with_oa_soap @WITH_OA_SOAP@
 
 
 Name: @HPI_PKG@
@@ -106,6 +107,14 @@ BuildRequires: libxml2-devel
 Requires: openhpi = %{version} libxml2 openssl
 %endif
 
+%if 0%{?with_oa_soap}
+%package oa_soap
+Summary: OpenHPI plugin for HP BladeSystem c-Class
+Group: System/Monitoring
+BuildRequires: libxml2-devel
+Requires: openhpi = %{version} libxml2 openssl
+%endif
+
 %description 
 An open implementation of the Service Availability Forum (SAF)
 Hardware Platform Interface (HPI). It includes support for multiple types of
@@ -163,6 +172,13 @@ provided by the kernel.
 OpenHPI plugin supporting HP ProLiant Rack Mount Servers. This plug-in connects
 to iLO2 on HP ProLiant Rack Mount Server using a SSL connection and exchanges
 information via Remote Insight Board Command Language (RIBCL). 
+%endif
+
+%if 0%{?with_oa_soap}
+%description oa_soap
+OpenHPI plug-in supporting HP BladeSystems c-Class. This plug-in connects
+to the OA of a c-Class chassis using an SSL connection and manages the system
+using an XML-encoded SOAP interface.
 %endif
 
 ###################################################
@@ -287,4 +303,12 @@ make DESTDIR=%{buildroot} install
 ###################################################
 %defattr(-,root,root)
 %{_libdir}/%{name}/libilo2_ribcl.*
+
+###################################################
+%if 0%{?with_oa_soap}
+%files oa_soap
+###################################################
+%defattr(-,root,root)
+%{_libdir}/%{name}/liboa_soap.*
+%endif
 
