@@ -167,6 +167,17 @@ handler libsimulator {
 #        ilo2_ribcl_password = "password" # iLO2 password
 #}
 
+## Section for oa_soap plugin for HP BladeSystem c-Class,
+## using SOAP XML over https
+#handler liboa_soap {
+#        entity_root = "{SYSTEM_CHASSIS,8}"
+#        OA_User_Name = "user"   # OA user name with admin privileges (required)
+#        OA_Password = "passwd"  # OA password for above user (required)
+#        ACTIVE_OA = "hostname"  # Active OA hostname or IP address (required)
+#        STANDBY_OA = "hostname" # Standby OA hostname or IP address (optional)
+#}
+
+
 #######
 ## THIRD Section: Domains (Optional).
 ##
