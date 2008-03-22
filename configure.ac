@@ -34,7 +34,6 @@ AC_PROG_CPP
 AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
-AC_PROG_RANLIB
 
 dnl die on int != 32bits.  This is too instrumental to our code right now.
 dnl AC_MSG_CHECKING(int is 4 bytes)
