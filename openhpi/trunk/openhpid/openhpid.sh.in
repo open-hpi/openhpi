@@ -210,7 +210,7 @@ restart() {
 	start
 }	
 
-force-reload() {
+force_reload() {
 	echo -n $"Force-reload not supported."
 	echo
 	return 0
@@ -232,7 +232,7 @@ case "$1" in
   	dstatus
 	;;
   force-reload)
-  	force-reload
+  	force_reload
 	;;
   *)
 	echo $"Usage: $0 {start|stop|restart|status|force-reload}"
