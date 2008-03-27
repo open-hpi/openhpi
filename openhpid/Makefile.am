@@ -15,8 +15,6 @@
 
 .NOTPARALLEL:
 
-#SUBDIRS			= t
-
 MAINTAINERCLEANFILES 	= Makefile.in *~
 
 REMOTE_SOURCES		= \

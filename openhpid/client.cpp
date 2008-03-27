@@ -15,75 +15,7 @@
  *
  */
 
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <sys/types.h>
-#include <stdio.h>
-#include <errno.h>
-#include <pthread.h>
-#include <glib.h>
-#include <config.h>
-#include "strmsock.h"
-extern "C"
-{
-#include <SaHpi.h>
-#include <oHpi.h>
-#include <oh_error.h>
-}
-
-
-#include "marshal_hpi.h"
-
-#define cdebug_out(cmd, str) dbg("%s: %s\n", cmd, str)
-#define cdebug_err(cmd, str) err("%s: %s\n", cmd, str)
-
-#define SendRecv(sid, cmd) \
-	if (pinst->WriteMsg(request)) { \
-		cdebug_err(cmd, "WriteMsg failed\n"); \
-		if(request) \
-			free(request); \
-                if (sid) \
-                        RemoveOneConnx(sid); \
-                else \
-                        DeleteConnx(pinst); \
-		return SA_ERR_HPI_NO_RESPONSE; \
-	} \
-	if (pinst->ReadMsg(reply)) { \
-		cdebug_err(cmd, "Read failed\n"); \
-		if(request) \
-			free(request); \
-                if (sid) \
-                        RemoveOneConnx(sid); \
-                else \
-                        DeleteConnx(pinst); \
-		return SA_ERR_HPI_NO_RESPONSE; \
-	}
-
-#define SendRecvNoReturn(cmd) \
-	if (pinst->WriteMsg(request)) { \
-		cdebug_err(cmd, "WriteMsg failed\n"); \
-		if(request) \
-			free(request); \
-                DeleteConnx(pinst); \
-		return; \
-	} \
-	if (pinst->ReadMsg(reply)) { \
-		cdebug_err(cmd, "Read failed\n"); \
-		if(request) \
-			free(request); \
-                DeleteConnx(pinst); \
-		return; \
-	}
-
-
-/*----------------------------------------------------------------------------*/
-/* Global Vraiables                                                           */
-/*----------------------------------------------------------------------------*/
-
-static GHashTable *sessions = NULL;
-static GStaticRecMutex sessions_sem = G_STATIC_REC_MUTEX_INIT;
-
+include "client.h"
 
 /*----------------------------------------------------------------------------*/
 /* Utility routines                                                           */
@@ -223,12 +155,12 @@ static pcstrmsock CreateConnx(void)
         g_static_rec_mutex_unlock(&sessions_sem);
         
 	if (pinst->Open(host, port)) {
-		cdebug_err("CreateConnx", "Could not open client socket"
+		client_err("CreateConnx", "Could not open client socket"
 			   "\nPossibly, the OpenHPI daemon has not been started.");
                 delete pinst;
 		return NULL;
 	}
-	cdebug_out("CreateConnx", "CreateConnx:Client instance created");
+	client_dbg("CreateConnx", "CreateConnx:Client instance created");
 	return pinst;
 }
 
@@ -242,7 +174,7 @@ static void DeleteConnx(pcstrmsock pinst)
 	if (pinst == NULL)
 		return;
 	pinst->Close();
-	cdebug_out("DeleteConnx", "Connection closed and deleted");
+	client_dbg("DeleteConnx", "Connection closed and deleted");
 	delete pinst;
 }
 
@@ -359,7 +291,7 @@ static pcstrmsock GetConnx(SaHpiSessionIdT SessionId)
                                 		    g_memdup(&thread_id,
                                 		    sizeof(pthread_t)),
                                 		    pinst);
-				cdebug_out("GetConnx",
+				client_dbg("GetConnx",
 					   "we are inserting a new connection"
 					   " in conns table");
                         }
@@ -407,7 +339,7 @@ SaErrorT SAHPI_API saHpiSessionOpen(
 	if (SecurityParams != NULL)
 		return SA_ERR_HPI_INVALID_PARAMS;
         if (pinst == NULL) {
-                cdebug_err(cmd, "Could not create client connection");
+                client_err(cmd, "Could not create client connection");
                 return SA_ERR_HPI_NO_RESPONSE;
         }
 
@@ -2907,7 +2839,7 @@ SaErrorT SAHPI_API saHpiIdrFieldGet(
             AreaId == SAHPI_LAST_ENTRY ||
             FieldId == SAHPI_LAST_ENTRY ||
             !NextId)    {
-                cdebug_err("saHpiIdrFieldGet", "Invalid Parameters");
+                client_err(cmd, "Invalid Parameters");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
@@ -2955,16 +2887,16 @@ SaErrorT SAHPI_API saHpiIdrFieldAdd(
 		return SA_ERR_HPI_INVALID_SESSION;
         
         if (!Field)   {
-        	cdebug_err("saHpiIdrFieldAdd", "Null Field");
+        	client_err(cmd, "Null Field");
                 return SA_ERR_HPI_INVALID_PARAMS;
         } else if (!oh_lookup_idrfieldtype(Field->Type)) {
-        	cdebug_err("saHpiIdrFieldAdd", "Bad Field Type");
+        	client_err(cmd, "Bad Field Type");
                 return SA_ERR_HPI_INVALID_PARAMS;
         } else if (Field->Type == SAHPI_IDR_FIELDTYPE_UNSPECIFIED) {
-        	cdebug_err("saHpiIdrFieldAdd", "Unspecified Field Type");
+        	client_err(cmd, "Unspecified Field Type");
         	return SA_ERR_HPI_INVALID_PARAMS;
         } else if (oh_valid_textbuffer(&Field->Field) != SAHPI_TRUE) {
-        	cdebug_err("saHpiIdrFieldAdd", "Bad Text Buffer in Field");
+        	client_err(cmd, "Bad Text Buffer in Field");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
@@ -3012,16 +2944,16 @@ SaErrorT SAHPI_API saHpiIdrFieldAddById(
                 return SA_ERR_HPI_INVALID_SESSION;
         
         if (!Field)   {
-                cdebug_err("saHpiIdrFieldAdd", "Null Field");
+                client_err(cmd, "Null Field");
                 return SA_ERR_HPI_INVALID_PARAMS;
         } else if (!oh_lookup_idrfieldtype(Field->Type)) {
-                cdebug_err("saHpiIdrFieldAdd", "Bad Field Type");
+                client_err(cmd, "Bad Field Type");
                 return SA_ERR_HPI_INVALID_PARAMS;
         } else if (Field->Type == SAHPI_IDR_FIELDTYPE_UNSPECIFIED) {
-                cdebug_err("saHpiIdrFieldAdd", "Unspecified Field Type");
+                client_err(cmd, "Unspecified Field Type");
                 return SA_ERR_HPI_INVALID_PARAMS;
         } else if (oh_valid_textbuffer(&Field->Field) != SAHPI_TRUE) {
-                cdebug_err("saHpiIdrFieldAdd", "Bad Text Buffer in Field");
+                client_err(cmd, "Bad Text Buffer in Field");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
