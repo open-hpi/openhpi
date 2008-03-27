@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2004-2007
+ * (C) Copyright IBM Corp. 2004-2008
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -24,7 +24,6 @@
 #include <sys/types.h>
 #include <stdio.h>
 #include <errno.h>
-#include <pthread.h>
 #include <glib.h>
 #include <config.h>
 #include "strmsock.h"
@@ -39,18 +38,8 @@ extern "C"
 #include "marshal_hpi.h"
 
 /*----------------------------------------------------------------------------*/
-/* Global Vraiables                                                           */
-/*----------------------------------------------------------------------------*/
-
-static GHashTable *sessions = NULL;
-static GStaticRecMutex sessions_sem = G_STATIC_REC_MUTEX_INIT;
-
-/*----------------------------------------------------------------------------*/
 /* Macros                                                                     */
 /*----------------------------------------------------------------------------*/
-
-#define client_dbg(cmd, str) dbg("%s: %s\n", cmd, str)
-#define client_err(cmd, str) err("%s: %s\n", cmd, str)
 
 #define SendRecv(sid, cmd) \
 	if (pinst->WriteMsg(request)) { \
@@ -58,9 +47,9 @@ static GStaticRecMutex sessions_sem = G_STATIC_REC_MUTEX_INIT;
 		if(request) \
 			free(request); \
                 if (sid) \
-                        RemoveOneConnx(sid); \
+                        oh_remove_connx(sid); \
                 else \
-                        DeleteConnx(pinst); \
+                        oh_delete_connx(pinst); \
 		return SA_ERR_HPI_NO_RESPONSE; \
 	} \
 	if (pinst->ReadMsg(reply)) { \
@@ -68,9 +57,9 @@ static GStaticRecMutex sessions_sem = G_STATIC_REC_MUTEX_INIT;
 		if(request) \
 			free(request); \
                 if (sid) \
-                        RemoveOneConnx(sid); \
+                	oh_remove_connx(sid); \
                 else \
-                        DeleteConnx(pinst); \
+                	oh_delete_connx(pinst); \
 		return SA_ERR_HPI_NO_RESPONSE; \
 	}
 
@@ -79,14 +68,14 @@ static GStaticRecMutex sessions_sem = G_STATIC_REC_MUTEX_INIT;
 		client_err(cmd, "WriteMsg failed\n"); \
 		if(request) \
 			free(request); \
-                DeleteConnx(pinst); \
+		oh_delete_connx(pinst); \
 		return; \
 	} \
 	if (pinst->ReadMsg(reply)) { \
 		client_err(cmd, "Read failed\n"); \
 		if(request) \
 			free(request); \
-                DeleteConnx(pinst); \
+		oh_delete_connx(pinst); \
 		return; \
 	}
 

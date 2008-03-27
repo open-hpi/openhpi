@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2004-2007
+ * (C) Copyright IBM Corp. 2004-2008
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -15,45 +15,15 @@
  *
  */
 
-include "client.h"
+#include "oh_client.h"
+#include "oh_client_connxs.h"
+
+#define client_dbg(cmd, str) dbg("%s: %s\n", cmd, str)
+#define client_err(cmd, str) err("%s: %s\n", cmd, str)
 
 /*----------------------------------------------------------------------------*/
-/* Utility routines                                                           */
+/* Utility functions                                                          */
 /*----------------------------------------------------------------------------*/
-
-static pcstrmsock CreateConnx(void);
-static void DeleteConnx(pcstrmsock);
-static bool InsertConnx(SaHpiSessionIdT, pcstrmsock);
-static bool RemoveConnx(SaHpiSessionIdT);
-static bool RemoveOneConnx(SaHpiSessionIdT);
-static pcstrmsock GetConnx(SaHpiSessionIdT);
-static SaErrorT oHpiHandlerCreateInit(void);
-static void oHpiHandlerCreateAddTEntry(gpointer key, gpointer value, gpointer data);
-
-static void __destroy_table(gpointer data)
-{
-        GHashTable *table = (GHashTable *)data;
-
-        g_hash_table_destroy(table);
-}
-
-static int init(void)
-{
-        // Initialize GLIB thread engine
-	if (!g_thread_supported()) {
-        	g_thread_init(NULL);
-        }
-        
-        // Create session table.
-	if (!sessions) {
-		sessions = g_hash_table_new_full(g_int_hash, 
-                                         	 g_int_equal,
-                                        	 g_free, 
-                                         	 __destroy_table);
-	}
-
-	return 0;
-}
 
 static SaErrorT clean_reading(SaHpiSensorReadingT *read_in,
 				SaHpiSensorReadingT *read_out)
@@ -122,193 +92,74 @@ static SaErrorT clean_thresholds(SaHpiSensorThresholdsT *thrds_in,
 	return err;
 }
 
-/*----------------------------------------------------------------------------*/
-/* CreateConnx                                                                */
-/*----------------------------------------------------------------------------*/
-
-static pcstrmsock CreateConnx(void)
+static SaErrorT oHpiHandlerCreateInit(void)
 {
-	const char      *host, *portstr;
-	int	       	port;
-        pcstrmsock      pinst = NULL;
+        void *request;
+	char reply[dMaxMessageLength];
+        SaErrorT err = 0;
+	char cmd[] = "oHpiHandlerCreateInit";
+        pcstrmsock pinst = oh_create_connx();
 
-        host = getenv("OPENHPI_DAEMON_HOST");
-        if (host == NULL) {
-                host = "localhost";
-        }
-        portstr = getenv("OPENHPI_DAEMON_PORT");
-        if (portstr == NULL) {
-                port =  4743;
-        }
-        else {
-                port =  atoi(portstr);
-        }
-        
-        init(); /* Initialize library - Will run only once */
+        if (pinst == NULL )
+                return SA_ERR_HPI_INVALID_SESSION;
 
-        g_static_rec_mutex_lock(&sessions_sem);
-	pinst = new cstrmsock;
-        if (pinst == NULL) {
-                g_static_rec_mutex_unlock(&sessions_sem);
-                return pinst;
-        }
-        g_static_rec_mutex_unlock(&sessions_sem);
-        
-	if (pinst->Open(host, port)) {
-		client_err("CreateConnx", "Could not open client socket"
-			   "\nPossibly, the OpenHPI daemon has not been started.");
-                delete pinst;
-		return NULL;
-	}
-	client_dbg("CreateConnx", "CreateConnx:Client instance created");
-	return pinst;
+        cHpiMarshal *hm = HpiMarshalFind(eFoHpiHandlerCreateInit);
+        pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiHandlerCreateInit, hm->m_request_len);
+        request = malloc(hm->m_request_len);
+
+        pinst->header.m_len = HpiMarshalRequest1(hm, request, &err);
+
+        SendRecv(0, cmd);
+
+        int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
+
+        oh_delete_connx(pinst);
+        if (request)
+                free(request);
+
+        if (mr < 0)
+                return SA_ERR_HPI_INVALID_PARAMS;
+
+	return err;
 }
 
-
-/*----------------------------------------------------------------------------*/
-/* DeleteConnx                                                                */
-/*----------------------------------------------------------------------------*/
-
-static void DeleteConnx(pcstrmsock pinst)
+static void oHpiHandlerCreateAddTEntry(gpointer key, gpointer value, gpointer data)
 {
-	if (pinst == NULL)
-		return;
-	pinst->Close();
-	client_dbg("DeleteConnx", "Connection closed and deleted");
-	delete pinst;
+        oHpiTextBufferT newkey, newvalue;
+        void *request;
+	char reply[dMaxMessageLength];
+        SaErrorT err = 0;
+	char cmd[] = "oHpiHandlerCreateInit";
+        pcstrmsock pinst = oh_create_connx();
+
+        if (pinst == NULL )
+                return;
+
+        newkey.DataLength = strlen((char *)key);
+        strcpy((char *)newkey.Data, (char *)key);
+        newvalue.DataLength = strlen((char *)value);
+        strcpy((char *)newvalue.Data, (char *)value);
+
+        cHpiMarshal *hm = HpiMarshalFind(eFoHpiHandlerCreateAddTEntry);
+        pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiHandlerCreateAddTEntry, hm->m_request_len);
+        request = malloc(hm->m_request_len);
+
+        pinst->header.m_len = HpiMarshalRequest2(hm, request, &newkey, &newvalue);
+
+	SendRecvNoReturn(cmd);
+
+        HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
+
+        oh_delete_connx(pinst);
+        if (request)
+                free(request);
+
+	return;
 }
 
-
-/*----------------------------------------------------------------------------*/
-/* InsertConnx - with helper functions: __destroy_table, __delete_connx       */
-/*----------------------------------------------------------------------------*/
-static void __delete_connx(gpointer data)
-{
-        pcstrmsock pinst = (pcstrmsock)data;
-
-        DeleteConnx(pinst);
-}
-
-static bool InsertConnx(SaHpiSessionIdT SessionId, pcstrmsock pinst)
-{
-        GHashTable *conns = NULL;
-        pthread_t thread_id;
-        
-        if (SessionId == 0)
-		return TRUE;
-	if (pinst == NULL)
-		return TRUE;
-
-        g_static_rec_mutex_lock(&sessions_sem);
-        // Create connections table for new session.
-        conns = g_hash_table_new_full(g_int_hash, 
-                                      g_int_equal,
-                                      g_free, 
-                                      __delete_connx);
-        // Map connection to thread id
-        thread_id = pthread_self();
-        g_hash_table_insert(conns, g_memdup(&thread_id,
-                                            sizeof(pthread_t)),
-                                   pinst);
-        // Map connecitons table to session id
-        g_hash_table_insert(sessions, g_memdup(&SessionId,
-                                               sizeof(SaHpiSessionIdT)),
-                                      conns);
-        g_static_rec_mutex_unlock(&sessions_sem);
-
-        return FALSE;
-}
-
-
-/*----------------------------------------------------------------------------*/
-/* RemoveConnx                                                                */
-/*----------------------------------------------------------------------------*/
-
-static bool RemoveConnx(SaHpiSessionIdT SessionId)
-{
-	if (SessionId == 0)
-		return TRUE;
-
-        g_static_rec_mutex_lock(&sessions_sem);
-        // Since we used g_hash_table_new_full to create the tables,
-        // this will remove the connection hash table and all of its entries also.
-        g_hash_table_remove(sessions, &SessionId);
-        g_static_rec_mutex_unlock(&sessions_sem);
-
-        return FALSE;
-}
-
-/*----------------------------------------------------------------------------*/
-/* RemoveOneConnx                                                             */
-/*----------------------------------------------------------------------------*/
-
-static bool RemoveOneConnx(SaHpiSessionIdT SessionId)
-{
-        GHashTable *conns = NULL;
-        pthread_t thread_id;
-
-        if (SessionId == 0)
-                return TRUE;
-
-        g_static_rec_mutex_lock(&sessions_sem);
-        thread_id = pthread_self();
-        conns = (GHashTable *)g_hash_table_lookup(sessions, &SessionId);
-        if (conns)
-                g_hash_table_remove(conns, &thread_id);
-
-        g_static_rec_mutex_unlock(&sessions_sem);
-
-        return FALSE;
-}
-
-/*----------------------------------------------------------------------------*/
-/* GetConnx                                                                   */
-/*----------------------------------------------------------------------------*/
-
-static pcstrmsock GetConnx(SaHpiSessionIdT SessionId)
-{
-        pthread_t thread_id;
-        GHashTable *conns = NULL;
-        pcstrmsock pinst = NULL;
-
-	if (SessionId == 0)
-		return FALSE;
-		
-	init(); /* Initialize library - Will run only once */
-
-        // Look up connection table. If it exists, look up connection.
-        // if there is not connection, create one on-the-fly.
-        g_static_rec_mutex_lock(&sessions_sem);
-        thread_id = pthread_self();
-        conns = (GHashTable *)g_hash_table_lookup(sessions, &SessionId);
-        if (conns) {
-                pinst = (pcstrmsock)g_hash_table_lookup(conns, &thread_id);
-
-                if (!pinst) {
-                        pinst = CreateConnx();
-                        if (pinst) {
-                        	g_hash_table_insert(conns, 
-                                		    g_memdup(&thread_id,
-                                		    sizeof(pthread_t)),
-                                		    pinst);
-				client_dbg("GetConnx",
-					   "we are inserting a new connection"
-					   " in conns table");
-                        }
-                }
-
-
-        }
-        g_static_rec_mutex_unlock(&sessions_sem);
-
-        if (pinst) {
-            return pinst;
-        } else {
-            return FALSE;
-        }
-
-}
-
+/******************************************************************************/
+/* HPI Client Layer                                                           */
+/******************************************************************************/
 
 /*----------------------------------------------------------------------------*/
 /* saHpiVersionGet                                                            */
@@ -332,7 +183,7 @@ SaErrorT SAHPI_API saHpiSessionOpen(
 	char reply[dMaxMessageLength];
 	SaErrorT err;
 	char cmd[] = "saHpiSessionOpen";
-        pcstrmsock pinst = CreateConnx();
+        pcstrmsock pinst = oh_create_connx();
 
         if (SessionId == NULL)
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -359,14 +210,14 @@ SaErrorT SAHPI_API saHpiSessionOpen(
 	if (request)
 		free(request);
 	if (err != SA_OK) {
-		DeleteConnx(pinst);
+		oh_delete_connx(pinst);
                 return err;
         }
 	if (mr < 0) {
-                DeleteConnx(pinst);
+                oh_delete_connx(pinst);
 		return SA_ERR_HPI_INVALID_PARAMS;
         }
-        InsertConnx(*SessionId, pinst);
+        oh_add_connx(*SessionId, pinst);
 
 	return err;
 }
@@ -387,7 +238,7 @@ SaErrorT SAHPI_API saHpiSessionClose(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
 
@@ -406,7 +257,7 @@ SaErrorT SAHPI_API saHpiSessionClose(
 	if (request)
 		free(request);
                 
-        RemoveConnx(SessionId);
+        oh_remove_connxs(SessionId);
         
 	if (mr < 0)
 		return SA_ERR_HPI_INVALID_PARAMS;
@@ -431,7 +282,7 @@ SaErrorT SAHPI_API saHpiDiscover(
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
 
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
 
@@ -476,7 +327,7 @@ SaErrorT SAHPI_API saHpiDomainInfoGet(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
         if (DomainInfo == NULL)
@@ -521,7 +372,7 @@ SaErrorT SAHPI_API saHpiDrtEntryGet(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
         if((DrtEntry == NULL) ||
@@ -567,7 +418,7 @@ SaErrorT SAHPI_API saHpiDomainTagSet(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
         if (!DomainTag)
@@ -614,7 +465,7 @@ SaErrorT SAHPI_API saHpiRptEntryGet(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
         if ((NextEntryId == NULL) || (RptEntry == NULL)) {
@@ -662,7 +513,7 @@ SaErrorT SAHPI_API saHpiRptEntryGetByResourceId(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
         if (ResourceId == SAHPI_UNSPECIFIED_RESOURCE_ID ||
@@ -708,7 +559,7 @@ SaErrorT SAHPI_API saHpiResourceSeveritySet(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
         if (ResourceId == SAHPI_UNSPECIFIED_RESOURCE_ID)
@@ -754,7 +605,7 @@ SaErrorT SAHPI_API saHpiResourceTagSet(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
         if (ResourceTag == NULL)
@@ -797,7 +648,7 @@ SaErrorT SAHPI_API saHpiResourceIdGet(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
         if (ResourceId == NULL)
@@ -846,7 +697,7 @@ SaErrorT SAHPI_API saHpiGetIdByEntityPath(
 
         if (SessionId == 0)
                 return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
         if (pinst == NULL )
                 return SA_ERR_HPI_INVALID_SESSION;
         if (ResourceId == NULL || InstanceId == NULL ||
@@ -900,7 +751,7 @@ SaErrorT SAHPI_API saHpiGetChildEntityPath(
 
         if (SessionId == 0)
                 return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
         if (pinst == NULL )
                 return SA_ERR_HPI_INVALID_SESSION;
         if (InstanceId == NULL || *InstanceId == SAHPI_LAST_ENTRY ||
@@ -948,7 +799,7 @@ SaErrorT SAHPI_API saHpiResourceFailedRemove(
 
         if (SessionId == 0)
                 return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
         if (pinst == NULL )
                 return SA_ERR_HPI_INVALID_SESSION;
 
@@ -989,7 +840,7 @@ SaErrorT SAHPI_API saHpiEventLogInfoGet(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
         if (Info == NULL)
@@ -1032,7 +883,7 @@ SaErrorT SAHPI_API saHpiEventLogCapabilitiesGet(
 
         if (SessionId == 0)
                 return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
         if (pinst == NULL )
                 return SA_ERR_HPI_INVALID_SESSION;
         if (EventLogCapabilities == NULL)
@@ -1083,7 +934,7 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
         if (!PrevEntryId || !EventLogEntry || !NextEntryId ||
@@ -1136,7 +987,7 @@ SaErrorT SAHPI_API saHpiEventLogEntryAdd(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
         if (EvtEntry == NULL)
@@ -1186,7 +1037,7 @@ SaErrorT SAHPI_API saHpiEventLogClear(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
 
@@ -1228,7 +1079,7 @@ SaErrorT SAHPI_API saHpiEventLogTimeGet(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
         if (Time == NULL)
@@ -1272,7 +1123,7 @@ SaErrorT SAHPI_API saHpiEventLogTimeSet(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
 
@@ -1314,7 +1165,7 @@ SaErrorT SAHPI_API saHpiEventLogStateGet(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
         if (EnableState == NULL)
@@ -1358,7 +1209,7 @@ SaErrorT SAHPI_API saHpiEventLogStateSet(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
 
@@ -1399,7 +1250,7 @@ SaErrorT SAHPI_API saHpiEventLogOverflowReset(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
 
@@ -1439,7 +1290,7 @@ SaErrorT SAHPI_API saHpiSubscribe(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
 
@@ -1479,7 +1330,7 @@ SaErrorT SAHPI_API saHpiUnsubscribe(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
 
@@ -1527,7 +1378,7 @@ SaErrorT SAHPI_API saHpiEventGet(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
         if (Timeout < SAHPI_TIMEOUT_BLOCK || !Event)
@@ -1580,7 +1431,7 @@ SaErrorT SAHPI_API saHpiEventAdd(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
         
@@ -1626,7 +1477,7 @@ SaErrorT SAHPI_API saHpiAlarmGetNext(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
         if (!Alarm)
@@ -1674,7 +1525,7 @@ SaErrorT SAHPI_API saHpiAlarmGet(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
         if (!Alarm)
@@ -1718,7 +1569,7 @@ SaErrorT SAHPI_API saHpiAlarmAcknowledge(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
         if (AlarmId == SAHPI_ENTRY_UNSPECIFIED &&
@@ -1762,7 +1613,7 @@ SaErrorT SAHPI_API saHpiAlarmAdd(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
         if (!Alarm ||
@@ -1808,7 +1659,7 @@ SaErrorT SAHPI_API saHpiAlarmDelete(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
         if (AlarmId == SAHPI_ENTRY_UNSPECIFIED &&
@@ -1855,7 +1706,7 @@ SaErrorT SAHPI_API saHpiRdrGet(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
         if (EntryId == SAHPI_LAST_ENTRY || !Rdr || !NextEntryId)
@@ -1901,7 +1752,7 @@ SaErrorT SAHPI_API saHpiRdrGetByInstrumentId(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
         if (!oh_lookup_rdrtype(RdrType) ||
@@ -1950,7 +1801,7 @@ SaErrorT SAHPI_API saHpiSensorReadingGet(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
 
@@ -2000,7 +1851,7 @@ SaErrorT SAHPI_API saHpiSensorThresholdsGet(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
         if (!Thresholds)
@@ -2046,7 +1897,7 @@ SaErrorT SAHPI_API saHpiSensorThresholdsSet(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
         if (!Thresholds)
@@ -2095,7 +1946,7 @@ SaErrorT SAHPI_API saHpiSensorTypeGet(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
         if (!Type || !Category)
@@ -2140,7 +1991,7 @@ SaErrorT SAHPI_API saHpiSensorEnableGet(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
         if (!Enabled)
@@ -2185,7 +2036,7 @@ SaErrorT SAHPI_API saHpiSensorEnableSet(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
 
@@ -2228,7 +2079,7 @@ SaErrorT SAHPI_API saHpiSensorEventEnableGet(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
         if (!Enabled)
@@ -2273,7 +2124,7 @@ SaErrorT SAHPI_API saHpiSensorEventEnableSet(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
 
@@ -2318,7 +2169,7 @@ SaErrorT SAHPI_API saHpiSensorEventMasksGet(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
 		
@@ -2367,7 +2218,7 @@ SaErrorT SAHPI_API saHpiSensorEventMasksSet(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
 
@@ -2410,7 +2261,7 @@ SaErrorT SAHPI_API saHpiControlTypeGet(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
         if (!Type)
@@ -2460,7 +2311,7 @@ SaErrorT SAHPI_API saHpiControlGet(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
 
@@ -2522,7 +2373,7 @@ SaErrorT SAHPI_API saHpiControlSet(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
         if (!oh_lookup_ctrlmode(Mode) ||
@@ -2581,7 +2432,7 @@ SaErrorT SAHPI_API saHpiIdrInfoGet(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
         if (Info == NULL)
@@ -2629,7 +2480,7 @@ SaErrorT SAHPI_API saHpiIdrAreaHeaderGet(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
         if ( ((AreaType < SAHPI_IDR_AREATYPE_INTERNAL_USE) ||
@@ -2681,7 +2532,7 @@ SaErrorT SAHPI_API saHpiIdrAreaAdd(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
         
@@ -2732,7 +2583,7 @@ SaErrorT SAHPI_API saHpiIdrAreaAddById(
 
         if (SessionId == 0)
                 return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
         if (pinst == NULL )
                 return SA_ERR_HPI_INVALID_SESSION;
         
@@ -2781,7 +2632,7 @@ SaErrorT SAHPI_API saHpiIdrAreaDelete(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
         if (AreaId == SAHPI_LAST_ENTRY)
@@ -2830,7 +2681,7 @@ SaErrorT SAHPI_API saHpiIdrFieldGet(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
         
@@ -2882,7 +2733,7 @@ SaErrorT SAHPI_API saHpiIdrFieldAdd(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
         
@@ -2939,7 +2790,7 @@ SaErrorT SAHPI_API saHpiIdrFieldAddById(
 
         if (SessionId == 0)
                 return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
         if (pinst == NULL )
                 return SA_ERR_HPI_INVALID_SESSION;
         
@@ -2996,7 +2847,7 @@ SaErrorT SAHPI_API saHpiIdrFieldSet(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
         if (!Field)
@@ -3044,7 +2895,7 @@ SaErrorT SAHPI_API saHpiIdrFieldDelete(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
         if (FieldId == SAHPI_LAST_ENTRY || AreaId == SAHPI_LAST_ENTRY)
@@ -3089,7 +2940,7 @@ SaErrorT SAHPI_API saHpiWatchdogTimerGet(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
         if (!Watchdog)
@@ -3134,7 +2985,7 @@ SaErrorT SAHPI_API saHpiWatchdogTimerSet(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
         
@@ -3187,7 +3038,7 @@ SaErrorT SAHPI_API saHpiWatchdogTimerReset(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
 
@@ -3232,7 +3083,7 @@ SaErrorT SAHPI_API saHpiAnnunciatorGetNext(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
         if (Announcement == NULL)
@@ -3280,7 +3131,7 @@ SaErrorT SAHPI_API saHpiAnnunciatorGet(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
         
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
@@ -3338,7 +3189,7 @@ SaErrorT SAHPI_API saHpiAnnunciatorAcknowledge(
 	        }
 	}
 	
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;        
 
@@ -3382,7 +3233,7 @@ SaErrorT SAHPI_API saHpiAnnunciatorAdd(
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
 
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
 
@@ -3446,7 +3297,7 @@ SaErrorT SAHPI_API saHpiAnnunciatorDelete(
 		}
 	}
 
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;        
 
@@ -3489,7 +3340,7 @@ SaErrorT SAHPI_API saHpiAnnunciatorModeGet(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
         if (Mode == NULL)
@@ -3534,7 +3385,7 @@ SaErrorT SAHPI_API saHpiAnnunciatorModeSet(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
         if (!oh_lookup_annunciatormode(Mode))
@@ -3579,7 +3430,7 @@ SaErrorT SAHPI_API saHpiDimiInfoGet(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL)
 		return SA_ERR_HPI_INVALID_SESSION;
         if (!DimiInfo)
@@ -3620,7 +3471,7 @@ SaErrorT SAHPI_API saHpiDimiTestInfoGet(
 
         if (SessionId == 0)
                 return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
         if (pinst == NULL )
                 return SA_ERR_HPI_INVALID_SESSION;
         if (!DimiTest)
@@ -3664,7 +3515,7 @@ SaErrorT SAHPI_API saHpiDimiTestReadinessGet(
 
         if (SessionId == 0)
                 return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
         if (pinst == NULL )
                 return SA_ERR_HPI_INVALID_SESSION;
         if (!DimiReady)
@@ -3710,7 +3561,7 @@ SaErrorT SAHPI_API saHpiDimiTestStart(
 
         if (SessionId == 0)
                 return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
         if (pinst == NULL )
                 return SA_ERR_HPI_INVALID_SESSION;
         if (ParamsList == NULL && NumberOfParams != 0)
@@ -3757,7 +3608,7 @@ SaErrorT SAHPI_API saHpiDimiTestCancel(
 
         if (SessionId == 0)
                 return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
         if (pinst == NULL )
                 return SA_ERR_HPI_INVALID_SESSION;
 
@@ -3802,7 +3653,7 @@ SaErrorT SAHPI_API saHpiDimiTestStatusGet(
 
         if (SessionId == 0)
                 return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
         if (pinst == NULL )
                 return SA_ERR_HPI_INVALID_SESSION;
         if (RunStatus == NULL)
@@ -3848,7 +3699,7 @@ SaErrorT SAHPI_API saHpiDimiTestResultsGet(
 
         if (SessionId == 0)
                 return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
         if (pinst == NULL )
                 return SA_ERR_HPI_INVALID_SESSION;
         if (TestResults == NULL)
@@ -3898,7 +3749,7 @@ SaErrorT SAHPI_API saHpiFumiSourceSet (
 
         if (SessionId == 0)
                 return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
         if (pinst == NULL )
                 return SA_ERR_HPI_INVALID_SESSION;
         if (SourceUri == NULL || SourceUri->DataType != SAHPI_TL_TYPE_TEXT)
@@ -3942,7 +3793,7 @@ SaErrorT SAHPI_API saHpiFumiSourceInfoValidateStart (
 
         if (SessionId == 0)
                 return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
         if (pinst == NULL )
                 return SA_ERR_HPI_INVALID_SESSION;
 
@@ -3984,7 +3835,7 @@ SaErrorT SAHPI_API saHpiFumiSourceInfoGet (
 
         if (SessionId == 0)
                 return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
         if (pinst == NULL )
                 return SA_ERR_HPI_INVALID_SESSION;
         if (SourceInfo == NULL)
@@ -4028,7 +3879,7 @@ SaErrorT SAHPI_API saHpiFumiTargetInfoGet (
 
         if (SessionId == 0)
                 return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
         if (pinst == NULL )
                 return SA_ERR_HPI_INVALID_SESSION;
         if (BankInfo == NULL)
@@ -4070,7 +3921,7 @@ SaErrorT SAHPI_API saHpiFumiBackupStart(
 
         if (SessionId == 0)
                 return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
         if (pinst == NULL )
                 return SA_ERR_HPI_INVALID_SESSION;
 
@@ -4112,7 +3963,7 @@ SaErrorT SAHPI_API saHpiFumiBankBootOrderSet (
 
         if (SessionId == 0)
                 return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
         if (pinst == NULL )
                 return SA_ERR_HPI_INVALID_SESSION;
 
@@ -4155,7 +4006,7 @@ SaErrorT SAHPI_API saHpiFumiBankCopyStart(
 
         if (SessionId == 0)
                 return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
         if (pinst == NULL )
                 return SA_ERR_HPI_INVALID_SESSION;
 
@@ -4197,7 +4048,7 @@ SaErrorT SAHPI_API saHpiFumiInstallStart (
 
         if (SessionId == 0)
                 return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
         if (pinst == NULL )
                 return SA_ERR_HPI_INVALID_SESSION;
 
@@ -4240,7 +4091,7 @@ SaErrorT SAHPI_API saHpiFumiUpgradeStatusGet (
 
         if (SessionId == 0)
                 return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
         if (pinst == NULL )
                 return SA_ERR_HPI_INVALID_SESSION;
         if (UpgradeStatus == NULL)
@@ -4284,7 +4135,7 @@ SaErrorT SAHPI_API saHpiFumiTargetVerifyStart (
 
         if (SessionId == 0)
                 return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
         if (pinst == NULL )
                 return SA_ERR_HPI_INVALID_SESSION;
 
@@ -4326,7 +4177,7 @@ SaErrorT SAHPI_API saHpiFumiUpgradeCancel (
 
         if (SessionId == 0)
                 return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
         if (pinst == NULL )
                 return SA_ERR_HPI_INVALID_SESSION;
 
@@ -4367,7 +4218,7 @@ SaErrorT SAHPI_API saHpiFumiRollback (
 
         if (SessionId == 0)
                 return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
         if (pinst == NULL )
                 return SA_ERR_HPI_INVALID_SESSION;
 
@@ -4407,7 +4258,7 @@ SaErrorT SAHPI_API saHpiFumiActivate (
 
         if (SessionId == 0)
                 return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
         if (pinst == NULL )
                 return SA_ERR_HPI_INVALID_SESSION;
 
@@ -4450,7 +4301,7 @@ SaErrorT SAHPI_API saHpiHotSwapPolicyCancel(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
 
@@ -4490,7 +4341,7 @@ SaErrorT SAHPI_API saHpiResourceActiveSet(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
 
@@ -4531,7 +4382,7 @@ SaErrorT SAHPI_API saHpiResourceInactiveSet(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
 
@@ -4572,7 +4423,7 @@ SaErrorT SAHPI_API saHpiAutoInsertTimeoutGet(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
         if (Timeout == NULL)
@@ -4615,7 +4466,7 @@ SaErrorT SAHPI_API saHpiAutoInsertTimeoutSet(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
         if (Timeout != SAHPI_TIMEOUT_IMMEDIATE &&
@@ -4661,7 +4512,7 @@ SaErrorT SAHPI_API saHpiAutoExtractTimeoutGet(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
         if (!Timeout)
@@ -4705,7 +4556,7 @@ SaErrorT SAHPI_API saHpiAutoExtractTimeoutSet(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
         if (Timeout != SAHPI_TIMEOUT_IMMEDIATE &&
@@ -4751,7 +4602,7 @@ SaErrorT SAHPI_API saHpiHotSwapStateGet(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
         if (!State)
@@ -4795,7 +4646,7 @@ SaErrorT SAHPI_API saHpiHotSwapActionRequest(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
         if (!oh_lookup_hsaction(Action))
@@ -4839,7 +4690,7 @@ SaErrorT SAHPI_API saHpiHotSwapIndicatorStateGet(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
         if (!State)
@@ -4883,7 +4734,7 @@ SaErrorT SAHPI_API saHpiHotSwapIndicatorStateSet(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
         if (!oh_lookup_hsindicatorstate(State))
@@ -4927,7 +4778,7 @@ SaErrorT SAHPI_API saHpiParmControl(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
         if (!oh_lookup_parmaction(Action))
@@ -4971,7 +4822,7 @@ SaErrorT SAHPI_API saHpiResourceLoadIdGet(
 
         if (SessionId == 0)
                 return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
         if (pinst == NULL)
                 return SA_ERR_HPI_INVALID_SESSION;
 
@@ -5015,7 +4866,7 @@ SaErrorT SAHPI_API saHpiResourceLoadIdSet(
 
         if (SessionId == 0)
                 return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
         if (pinst == NULL)
                 return SA_ERR_HPI_INVALID_SESSION;
         if (LoadId == NULL)
@@ -5061,7 +4912,7 @@ SaErrorT SAHPI_API saHpiResourceResetStateGet(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
         if (!Action)
@@ -5105,7 +4956,7 @@ SaErrorT SAHPI_API saHpiResourceResetStateSet(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
         if (!oh_lookup_resetaction(Action))
@@ -5149,7 +5000,7 @@ SaErrorT SAHPI_API saHpiResourcePowerStateGet(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
         if (!State)
@@ -5193,7 +5044,7 @@ SaErrorT SAHPI_API saHpiResourcePowerStateSet(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = GetConnx(SessionId);
+        pinst = oh_get_connx(SessionId);
 	if (pinst == NULL )
 		return SA_ERR_HPI_INVALID_SESSION;
         if (!oh_lookup_powerstate(State))
@@ -5243,7 +5094,7 @@ SaErrorT oHpiHandlerCreate(GHashTable *config,
         void *request;
 	char reply[dMaxMessageLength];
 	char cmd[] = "oHpiHandlerCreate";
-        pcstrmsock pinst = CreateConnx();
+        pcstrmsock pinst = oh_create_connx();
 
         if (pinst == NULL )
                 return SA_ERR_HPI_INVALID_SESSION;
@@ -5268,7 +5119,7 @@ SaErrorT oHpiHandlerCreate(GHashTable *config,
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, id);
 
-        DeleteConnx(pinst);
+        oh_delete_connx(pinst);
         if (request)
                 free(request);
 
@@ -5289,7 +5140,7 @@ SaErrorT oHpiHandlerDestroy(oHpiHandlerIdT id)
 	char reply[dMaxMessageLength];
         SaErrorT err;
 	char cmd[] = "oHpiHandlerDestroy";
-        pcstrmsock pinst = CreateConnx();
+        pcstrmsock pinst = oh_create_connx();
 
         if (pinst == NULL )
                 return SA_ERR_HPI_INVALID_SESSION;
@@ -5304,7 +5155,7 @@ SaErrorT oHpiHandlerDestroy(oHpiHandlerIdT id)
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
-        DeleteConnx(pinst);
+        oh_delete_connx(pinst);
         if (request)
                 free(request);
 
@@ -5325,7 +5176,7 @@ SaErrorT oHpiHandlerInfo(oHpiHandlerIdT id, oHpiHandlerInfoT *info)
 	char reply[dMaxMessageLength];
         SaErrorT err;
 	char cmd[] = "oHpiHandlerInfo";
-        pcstrmsock pinst = CreateConnx();
+        pcstrmsock pinst = oh_create_connx();
 
         if (pinst == NULL )
                 return SA_ERR_HPI_INVALID_SESSION;
@@ -5340,7 +5191,7 @@ SaErrorT oHpiHandlerInfo(oHpiHandlerIdT id, oHpiHandlerInfoT *info)
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, info);
 
-        DeleteConnx(pinst);
+        oh_delete_connx(pinst);
         if (request)
                 free(request);
 
@@ -5361,7 +5212,7 @@ SaErrorT oHpiHandlerGetNext(oHpiHandlerIdT id, oHpiHandlerIdT *next_id)
 	char reply[dMaxMessageLength];
         SaErrorT err;
 	char cmd[] = "oHpiHandlerGetNext";
-        pcstrmsock pinst = CreateConnx();
+        pcstrmsock pinst = oh_create_connx();
 
         if (pinst == NULL )
                 return SA_ERR_HPI_INVALID_SESSION;
@@ -5376,7 +5227,7 @@ SaErrorT oHpiHandlerGetNext(oHpiHandlerIdT id, oHpiHandlerIdT *next_id)
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, next_id);
 
-        DeleteConnx(pinst);
+        oh_delete_connx(pinst);
         if (request)
                 free(request);
 
@@ -5397,7 +5248,7 @@ SaErrorT oHpiHandlerFind(SaHpiSessionIdT sid,
         char reply[dMaxMessageLength];
         SaErrorT err = SA_OK;
         char cmd[] = "oHpiHandlerFind";  
-        pcstrmsock pinst = CreateConnx();
+        pcstrmsock pinst = oh_create_connx();
 
         if (pinst == NULL )
                 return SA_ERR_HPI_INVALID_SESSION;
@@ -5420,7 +5271,7 @@ SaErrorT oHpiHandlerFind(SaHpiSessionIdT sid,
                                     &err, 
                                     id);
 
-        DeleteConnx(pinst);
+        oh_delete_connx(pinst);
 
         if (request)
                 free(request);
@@ -5440,7 +5291,7 @@ SaErrorT oHpiHandlerRetry(oHpiHandlerIdT id)
         char reply[dMaxMessageLength];
         SaErrorT err = SA_OK;
         char cmd[] = "oHpiHandlerRetry";  
-        pcstrmsock pinst = CreateConnx();
+        pcstrmsock pinst = oh_create_connx();
 
         if (pinst == NULL )
                 return SA_ERR_HPI_INVALID_SESSION;
@@ -5462,7 +5313,7 @@ SaErrorT oHpiHandlerRetry(oHpiHandlerIdT id)
                                     reply + sizeof(cMessageHeader),
                                     &err);
 
-        DeleteConnx(pinst);
+        oh_delete_connx(pinst);
 
         if (request)
                 free(request);
@@ -5484,7 +5335,7 @@ SaErrorT oHpiGlobalParamGet(oHpiGlobalParamT *param)
 	char reply[dMaxMessageLength];
         SaErrorT err;
 	char cmd[] = "oHpiGlobalParamGet";
-        pcstrmsock pinst = CreateConnx();
+        pcstrmsock pinst = oh_create_connx();
 
         if (pinst == NULL )
                 return SA_ERR_HPI_INVALID_SESSION;
@@ -5499,7 +5350,7 @@ SaErrorT oHpiGlobalParamGet(oHpiGlobalParamT *param)
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, param);
 
-        DeleteConnx(pinst);
+        oh_delete_connx(pinst);
         if (request)
                 free(request);
 
@@ -5520,7 +5371,7 @@ SaErrorT oHpiGlobalParamSet(oHpiGlobalParamT *param)
 	char reply[dMaxMessageLength];
         SaErrorT err;
 	char cmd[] = "oHpiGlobalParamSet";
-        pcstrmsock pinst = CreateConnx();
+        pcstrmsock pinst = oh_create_connx();
 
         if (pinst == NULL )
                 return SA_ERR_HPI_INVALID_SESSION;
@@ -5535,7 +5386,7 @@ SaErrorT oHpiGlobalParamSet(oHpiGlobalParamT *param)
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, param);
 
-        DeleteConnx(pinst);
+        oh_delete_connx(pinst);
         if (request)
                 free(request);
 
@@ -5558,7 +5409,7 @@ SaErrorT oHpiInjectEvent(oHpiHandlerIdT id,
         char reply[dMaxMessageLength];
         SaErrorT err = SA_OK;
         char cmd[] = "oHpiInjectEvent";  
-        pcstrmsock pinst = CreateConnx();
+        pcstrmsock pinst = oh_create_connx();
 
         if (pinst == NULL )
                 return SA_ERR_HPI_INVALID_SESSION;
@@ -5586,7 +5437,7 @@ SaErrorT oHpiInjectEvent(oHpiHandlerIdT id,
                                     rpte, 
                                     rdr);
 
-        DeleteConnx(pinst);
+        oh_delete_connx(pinst);
 
         if (request)
                 free(request);
@@ -5595,78 +5446,4 @@ SaErrorT oHpiInjectEvent(oHpiHandlerIdT id,
                 return SA_ERR_HPI_INVALID_PARAMS;
 
         return err;
-}
-
-/*----------------------------------------------------------------------------*/
-/* oHpiHandlerCreateInit                                                      */
-/*----------------------------------------------------------------------------*/
-
-static SaErrorT oHpiHandlerCreateInit(void)
-{
-        void *request;
-	char reply[dMaxMessageLength];
-        SaErrorT err = 0;
-	char cmd[] = "oHpiHandlerCreateInit";
-        pcstrmsock pinst = CreateConnx();
-
-        if (pinst == NULL )
-                return SA_ERR_HPI_INVALID_SESSION;
-
-        cHpiMarshal *hm = HpiMarshalFind(eFoHpiHandlerCreateInit);
-        pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiHandlerCreateInit, hm->m_request_len);
-        request = malloc(hm->m_request_len);
-
-        pinst->header.m_len = HpiMarshalRequest1(hm, request, &err);
-
-        SendRecv(0, cmd);
-
-        int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
-
-        DeleteConnx(pinst);
-        if (request)
-                free(request);
-
-        if (mr < 0)
-                return SA_ERR_HPI_INVALID_PARAMS;
-
-	return err;
-}
-
-
-/*----------------------------------------------------------------------------*/
-/* oHpiHandlerCreateAddTEntry                                                 */
-/*----------------------------------------------------------------------------*/
-
-static void oHpiHandlerCreateAddTEntry(gpointer key, gpointer value, gpointer data)
-{
-        oHpiTextBufferT newkey, newvalue;
-        void *request;
-	char reply[dMaxMessageLength];
-        SaErrorT err = 0;
-	char cmd[] = "oHpiHandlerCreateInit";
-        pcstrmsock pinst = CreateConnx();
-
-        if (pinst == NULL )
-                return;
-
-        newkey.DataLength = strlen((char *)key);
-        strcpy((char *)newkey.Data, (char *)key);
-        newvalue.DataLength = strlen((char *)value);
-        strcpy((char *)newvalue.Data, (char *)value);
-
-        cHpiMarshal *hm = HpiMarshalFind(eFoHpiHandlerCreateAddTEntry);
-        pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiHandlerCreateAddTEntry, hm->m_request_len);
-        request = malloc(hm->m_request_len);
-
-        pinst->header.m_len = HpiMarshalRequest2(hm, request, &newkey, &newvalue);
-
-	SendRecvNoReturn(cmd);
-
-        HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
-
-        DeleteConnx(pinst);
-        if (request)
-                free(request);
-
-	return;
 }
