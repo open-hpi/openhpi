@@ -92,68 +92,19 @@ static SaErrorT clean_thresholds(SaHpiSensorThresholdsT *thrds_in,
 	return err;
 }
 
-static SaErrorT oHpiHandlerCreateInit(void)
+static void __dehash_config(gpointer key, gpointer value, gpointer data)
 {
-        void *request;
-	char reply[dMaxMessageLength];
-        SaErrorT err = 0;
-	char cmd[] = "oHpiHandlerCreateInit";
-        pcstrmsock pinst = oh_create_connx();
+        oHpiHandlerConfigT *handler_config = (oHpiHandlerConfigT *)data;        
+        
+        strncpy((char *)handler_config->Params[handler_config->NumberOfParams].Name,
+        	(const char *)key,
+        	SAHPI_MAX_TEXT_BUFFER_LENGTH);
+        strncpy((char *)handler_config->Params[handler_config->NumberOfParams].Value,
+        	(const char *)value,
+        	SAHPI_MAX_TEXT_BUFFER_LENGTH);
 
-        if (pinst == NULL )
-                return SA_ERR_HPI_INVALID_SESSION;
-
-        cHpiMarshal *hm = HpiMarshalFind(eFoHpiHandlerCreateInit);
-        pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiHandlerCreateInit, hm->m_request_len);
-        request = malloc(hm->m_request_len);
-
-        pinst->header.m_len = HpiMarshalRequest1(hm, request, &err);
-
-        SendRecv(0, cmd);
-
-        int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
-
-        oh_delete_connx(pinst);
-        if (request)
-                free(request);
-
-        if (mr < 0)
-                return SA_ERR_HPI_INVALID_PARAMS;
-
-	return err;
-}
-
-static void oHpiHandlerCreateAddTEntry(gpointer key, gpointer value, gpointer data)
-{
-        oHpiTextBufferT newkey, newvalue;
-        void *request;
-	char reply[dMaxMessageLength];
-        SaErrorT err = 0;
-	char cmd[] = "oHpiHandlerCreateInit";
-        pcstrmsock pinst = oh_create_connx();
-
-        if (pinst == NULL )
-                return;
-
-        newkey.DataLength = strlen((char *)key);
-        strcpy((char *)newkey.Data, (char *)key);
-        newvalue.DataLength = strlen((char *)value);
-        strcpy((char *)newvalue.Data, (char *)value);
-
-        cHpiMarshal *hm = HpiMarshalFind(eFoHpiHandlerCreateAddTEntry);
-        pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiHandlerCreateAddTEntry, hm->m_request_len);
-        request = malloc(hm->m_request_len);
-
-        pinst->header.m_len = HpiMarshalRequest2(hm, request, &newkey, &newvalue);
-
-	SendRecvNoReturn(cmd);
-
-        HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
-
-        oh_delete_connx(pinst);
-        if (request)
-                free(request);
-
+        handler_config->NumberOfParams = handler_config->NumberOfParams + 1;
+        
 	return;
 }
 
@@ -5095,25 +5046,24 @@ SaErrorT oHpiHandlerCreate(GHashTable *config,
 	char reply[dMaxMessageLength];
 	char cmd[] = "oHpiHandlerCreate";
         pcstrmsock pinst = oh_create_connx();
+        oHpiHandlerConfigT handler_config;
 
-        if (pinst == NULL )
+        if (!config || !id)
+        	return SA_ERR_HPI_INVALID_PARAMS;
+        if (pinst == NULL)
                 return SA_ERR_HPI_INVALID_SESSION;
 
-        // initialize the daemon GHashTable
-        err = oHpiHandlerCreateInit();
-        if (err) {
-                return err;
-        }
-
-        // add each hash table entry to the daemon hash table
-        g_hash_table_foreach(config, oHpiHandlerCreateAddTEntry, NULL);
+        handler_config.NumberOfParams = 0;
+        handler_config.Params = (oHpiHandlerConfigParamT *)g_malloc0(sizeof(oHpiHandlerConfigParamT)*g_hash_table_size(config));
+        // add each hash table entry to the marshable handler_config
+        g_hash_table_foreach(config, __dehash_config, &handler_config);
 
         // now create the handler
         cHpiMarshal *hm = HpiMarshalFind(eFoHpiHandlerCreate);
         pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiHandlerCreate, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest1(hm, request, &err);
+        pinst->header.m_len = HpiMarshalRequest1(hm, request, &handler_config);
 
         SendRecv(0, cmd);
 
