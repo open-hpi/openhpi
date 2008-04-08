@@ -36,10 +36,12 @@ static int init(void)
         
         // Create session table.
 	if (!sessions) {
-		sessions = g_hash_table_new_full(g_int_hash, 
-                                         	 g_int_equal,
-                                        	 g_free, 
-                                         	 __destroy_table);
+		sessions = g_hash_table_new_full(
+			g_int_hash, 
+                        g_int_equal,
+                        g_free, 
+                        __destroy_table
+                );
 	}
 
 	return 0;
@@ -135,7 +137,7 @@ bool oh_add_connx(SaHpiSessionIdT SessionId, pcstrmsock pinst)
                                    pinst);
         // Map connecitons table to session id
         g_hash_table_insert(sessions, g_memdup(&SessionId,
-                                               sizeof(SaHpiSessionIdT)),
+                                             sizeof(SaHpiSessionIdT)),
                                       conns);
         g_static_rec_mutex_unlock(&sessions_sem);
 

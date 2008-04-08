@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2004-2005
+ * (C) Copyright IBM Corp. 2004-2008
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -12,6 +12,7 @@
  * Author(s):
  *      W. David Ashley <dashley@us.ibm.com>
  *      David Judkoivcs <djudkovi@us.ibm.com>
+ * 	Renier Morales <renier@openhpi.org>
  *
  */
 
@@ -61,9 +62,9 @@ enum tResult
 static bool morph2daemon(void);
 static void service_thread(gpointer data, gpointer user_data);
 static void HandleInvalidRequest(psstrmsock thrdinst);
-static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht,
-                         SaHpiSessionIdT * sid);
-static void hashtablefreeentry(gpointer key, gpointer value, gpointer data);
+static tResult HandleMsg(psstrmsock thrdinst,
+			 char *data,
+			 SaHpiSessionIdT * sid);
 
 }
 
@@ -379,7 +380,6 @@ static void service_thread(gpointer data, gpointer user_data)
         bool stop = false;
 	char buf[dMaxMessageLength];
         tResult result;
-        GHashTable *thrdhashtable = NULL;
         gpointer thrdid = g_thread_self();
         SaHpiSessionIdT session_id = 0;
 
@@ -402,8 +402,7 @@ static void service_thread(gpointer data, gpointer user_data)
                 else {
                         switch( thrdinst->header.m_type ) {
                         case eMhMsg:
-                                result = HandleMsg(thrdinst, buf,
-                                                   &thrdhashtable, &session_id);
+                                result = HandleMsg(thrdinst, buf, &session_id);
                                 // marshal error ?
                                 if (result == eResultError) {
                                         PVERBOSE3("%p Invalid API found.\n", thrdid);
@@ -454,7 +453,8 @@ void HandleInvalidRequest(psstrmsock thrdinst) {
 /* Function: HandleMsg                                                */
 /*--------------------------------------------------------------------*/
 
-static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht,
+static tResult HandleMsg(psstrmsock thrdinst,
+			 char *data,
                          SaHpiSessionIdT * sid)
 {
         cHpiMarshal *hm;
@@ -2560,69 +2560,28 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht,
                 }
                 break;
 
-                case eFoHpiHandlerCreateInit: {
-                
-                        PVERBOSE1("%p Processing oHpiHandlerCreateInit.", thrdid);
-                
-                        if ( HpiDemarshalRequest1( request_mFlags & dMhEndianBit,
-                                                        hm, pReq, &ret ) < 0 )
-                                return eResultError;
-                
-                        if (*ht) {
-                                // first free the table entries
-                                g_hash_table_foreach(*ht, hashtablefreeentry, NULL);
-                                // now destroy the table
-                                g_hash_table_destroy(*ht);
-                                *ht = NULL;
-                        }
-                        *ht = g_hash_table_new(g_str_hash, g_str_equal);
-                        if (*ht == NULL) {
-                                ret = SA_ERR_HPI_OUT_OF_MEMORY;
-                        }
-                        else {
-                                ret = SA_OK;
-                        }
-                
-                        thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
-                        result = eResultClose;
-                }
-                break;
-                
-                case eFoHpiHandlerCreateAddTEntry: {
-                        oHpiTextBufferT key, value;
-                        char *newkey, *newvalue;
-                
-                        PVERBOSE1("%p Processing oHpiHandlerCreateAddTEntry.", thrdid);
-                
-                        if ( HpiDemarshalRequest2( request_mFlags & dMhEndianBit,
-                                                        hm, pReq, &key, &value ) < 0 )
-                                return eResultError;
-                
-                        newkey = (char *)g_malloc(key.DataLength + 1);
-                        newvalue = (char *)g_malloc(value.DataLength + 1);
-                        if (newkey == NULL || newvalue == NULL) {
-                                ret = SA_ERR_HPI_OUT_OF_MEMORY;
-                        }
-                        else {
-                                g_hash_table_insert(*ht, newkey, newvalue);
-                                ret = SA_OK;
-                        }
-                
-                        thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
-                        result = eResultClose;
-                }
-                break;
-                
                 case eFoHpiHandlerCreate: {
                         oHpiHandlerIdT id;
-                
+                        oHpiHandlerConfigT config;
+                        GHashTable *config_table = g_hash_table_new_full(
+                        	g_str_hash, g_str_equal,
+                        	g_free, g_free
+                        );
+
                         PVERBOSE1("%p Processing oHpiHandlerCreate.", thrdid);
                 
                         if ( HpiDemarshalRequest1( request_mFlags & dMhEndianBit,
-                                                        hm, pReq, &id ) < 0 )
+                                                        hm, pReq, &config ) < 0 )
                                 return eResultError;
                 
-                        ret = oHpiHandlerCreate(*ht, &id);
+                        for (int n = 0; n < config.NumberOfParams; n++) {
+                        	g_hash_table_insert(config_table,
+                        			    g_strdup((const gchar *)config.Params[n].Name),
+                        			    g_strdup((const gchar *)config.Params[n].Value));
+                        }
+                        free(config.Params);
+                        ret = oHpiHandlerCreate(config_table, &id);
+                        g_hash_table_destroy(config_table);
                 
                         thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &id );
                         result = eResultClose;
@@ -2790,9 +2749,4 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht,
        PVERBOSE1("%p Return code = %d", thrdid, ret);
 
        return result;
-}
-
-static void hashtablefreeentry(gpointer key, gpointer value, gpointer data) {
-        g_free(key);
-        g_free(value);
 }
