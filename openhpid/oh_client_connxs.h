@@ -29,10 +29,17 @@ extern "C"
 #include <oh_error.h>
 }
 
+struct oh_client_connx {
+        SaHpiSessionIdT client_sid;
+        SaHpiSessionIdT domain_sid;
+        GHashTable *connx_table;
+};
+
+extern GHashTable *domains;
 extern GHashTable *sessions;
 extern GStaticRecMutex sessions_sem;
 
-pcstrmsock oh_create_connx(void);
+pcstrmsock oh_create_connx(SaHpiDomainIdT did);
 void oh_delete_connx(pcstrmsock);
 bool oh_add_connx(SaHpiSessionIdT, pcstrmsock);
 bool oh_remove_connxs(SaHpiSessionIdT);

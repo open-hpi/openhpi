@@ -16,15 +16,23 @@
  */
 
 #include "oh_client_connxs.h"
+extern "C"
+{
+#include "oh_client_conf.h"
+#include <config.h>
+}
 
+GHashTable *domains = NULL;
 GHashTable *sessions = NULL;
 GStaticRecMutex sessions_sem = G_STATIC_REC_MUTEX_INIT;
+static SaHpiSessionIdT next_client_sid = 1;
 
-static void __destroy_table(gpointer data)
+static void __destroy_client_connx(gpointer data)
 {
-        GHashTable *table = (GHashTable *)data;
+        struct oh_client_connx *client_connx = (struct oh_client_connx *)data;
 
-        g_hash_table_destroy(table);
+        g_hash_table_destroy(client_connx->connx_table);
+        g_free(client_connx);
 }
 
 static int init(void)
@@ -39,24 +47,36 @@ static int init(void)
 		sessions = g_hash_table_new_full(
 			g_int_hash, 
                         g_int_equal,
-                        g_free, 
-                        __destroy_table
+                        NULL, 
+                        __destroy_client_connx
                 );
 	}
 
-	return 0;
+        if (!domains) { // Create domain table
+                domains = g_hash_table_new_full(
+                        g_int_hash, g_int_equal,
+                        NULL, g_free
+                );
+                /* TODO: Check to see if a default domain exists, if not, add it */
+                return oh_load_client_config(OH_CLIENT_DEFAULT_CONF, domains);
+        }
+
+        return 0;
 }
 
 /*----------------------------------------------------------------------------*/
 /* oh_create_connx                                                            */
 /*----------------------------------------------------------------------------*/
 
-pcstrmsock oh_create_connx(void)
+pcstrmsock oh_create_connx(SaHpiDomainIdT did)
 {
 	const char      *host, *portstr;
 	int	       	port;
         pcstrmsock      pinst = NULL;
+        struct oh_domain_conf *domain_conf = NULL;
 
+        /* TODO: Use env vars for overriding default domain in conf file */
+        /*
         host = getenv("OPENHPI_DAEMON_HOST");
         if (host == NULL) {
                 host = "localhost";
@@ -68,18 +88,25 @@ pcstrmsock oh_create_connx(void)
         else {
                 port =  atoi(portstr);
         }
-        
+        */
         init(); /* Initialize library - Will run only once */
 
         g_static_rec_mutex_lock(&sessions_sem);
 	pinst = new cstrmsock;
-        if (pinst == NULL) {
+        if (!pinst) {
                 g_static_rec_mutex_unlock(&sessions_sem);
                 return pinst;
         }
+
+        domain_conf = (struct oh_domain_conf *)g_hash_table_lookup(domains, did);
+        if (!domain_conf) {
+                delete pinst;
+                g_static_rec_mutex_unlock(&sessions_sem);
+                return NULL;
+        }
         g_static_rec_mutex_unlock(&sessions_sem);
         
-	if (pinst->Open(host, port)) {
+	if (pinst->Open(domain_conf->host, domain_conf->port)) {
 		err("oh_create_connx: Could not open client socket"
 			"\nPossibly, the OpenHPI daemon has not been started.");
                 delete pinst;
