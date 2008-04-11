@@ -140,9 +140,7 @@ AC_ARG_ENABLE([thread],
 
 if test "x$THREAD_SAFE" = "xyes"; then
         AC_DEFINE([HAVE_THREAD_SAFE], [1], [Define to 1 if you want thread-safe implementation])
-        LIST_RESOURCES_THREADED=list_resources_threaded
 fi
-AC_SUBST(LIST_RESOURCES_THREADED)
 
 
 dnl Enable the marshal directory only when needed by
