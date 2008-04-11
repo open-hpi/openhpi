@@ -134,7 +134,7 @@ SaErrorT SAHPI_API saHpiSessionOpen(
 	char reply[dMaxMessageLength];
 	SaErrorT err;
 	char cmd[] = "saHpiSessionOpen";
-        pcstrmsock pinst = oh_create_connx();
+        pcstrmsock pinst = oh_create_connx(DomainId);
 
         if (SessionId == NULL)
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -169,7 +169,7 @@ SaErrorT SAHPI_API saHpiSessionOpen(
 		return SA_ERR_HPI_INVALID_PARAMS;
         }
         oh_add_connx(*SessionId, pinst);
-
+/* FIXME: assign client sid, and store domain sid in session table */
 	return err;
 }
 
@@ -5045,7 +5045,8 @@ SaErrorT oHpiHandlerCreate(GHashTable *config,
         void *request;
 	char reply[dMaxMessageLength];
 	char cmd[] = "oHpiHandlerCreate";
-        pcstrmsock pinst = oh_create_connx();
+        /* TODO: Change oHpi apis to send a domain id */
+        pcstrmsock pinst = oh_create_connx(SAHPI_UNSPECIFIED_DOMAIN_ID);
         oHpiHandlerConfigT handler_config;
 
         if (!config || !id)
@@ -5090,7 +5091,7 @@ SaErrorT oHpiHandlerDestroy(oHpiHandlerIdT id)
 	char reply[dMaxMessageLength];
         SaErrorT err;
 	char cmd[] = "oHpiHandlerDestroy";
-        pcstrmsock pinst = oh_create_connx();
+        pcstrmsock pinst = oh_create_connx(SAHPI_UNSPECIFIED_DOMAIN_ID);
 
         if (pinst == NULL )
                 return SA_ERR_HPI_INVALID_SESSION;
@@ -5126,7 +5127,7 @@ SaErrorT oHpiHandlerInfo(oHpiHandlerIdT id, oHpiHandlerInfoT *info)
 	char reply[dMaxMessageLength];
         SaErrorT err;
 	char cmd[] = "oHpiHandlerInfo";
-        pcstrmsock pinst = oh_create_connx();
+        pcstrmsock pinst = oh_create_connx(SAHPI_UNSPECIFIED_DOMAIN_ID);
 
         if (pinst == NULL )
                 return SA_ERR_HPI_INVALID_SESSION;
@@ -5162,7 +5163,7 @@ SaErrorT oHpiHandlerGetNext(oHpiHandlerIdT id, oHpiHandlerIdT *next_id)
 	char reply[dMaxMessageLength];
         SaErrorT err;
 	char cmd[] = "oHpiHandlerGetNext";
-        pcstrmsock pinst = oh_create_connx();
+        pcstrmsock pinst = oh_create_connx(SAHPI_UNSPECIFIED_DOMAIN_ID);
 
         if (pinst == NULL )
                 return SA_ERR_HPI_INVALID_SESSION;
@@ -5198,7 +5199,7 @@ SaErrorT oHpiHandlerFind(SaHpiSessionIdT sid,
         char reply[dMaxMessageLength];
         SaErrorT err = SA_OK;
         char cmd[] = "oHpiHandlerFind";  
-        pcstrmsock pinst = oh_create_connx();
+        pcstrmsock pinst = oh_create_connx(SAHPI_UNSPECIFIED_DOMAIN_ID);
 
         if (pinst == NULL )
                 return SA_ERR_HPI_INVALID_SESSION;
@@ -5241,7 +5242,7 @@ SaErrorT oHpiHandlerRetry(oHpiHandlerIdT id)
         char reply[dMaxMessageLength];
         SaErrorT err = SA_OK;
         char cmd[] = "oHpiHandlerRetry";  
-        pcstrmsock pinst = oh_create_connx();
+        pcstrmsock pinst = oh_create_connx(SAHPI_UNSPECIFIED_DOMAIN_ID);
 
         if (pinst == NULL )
                 return SA_ERR_HPI_INVALID_SESSION;
@@ -5285,7 +5286,7 @@ SaErrorT oHpiGlobalParamGet(oHpiGlobalParamT *param)
 	char reply[dMaxMessageLength];
         SaErrorT err;
 	char cmd[] = "oHpiGlobalParamGet";
-        pcstrmsock pinst = oh_create_connx();
+        pcstrmsock pinst = oh_create_connx(SAHPI_UNSPECIFIED_DOMAIN_ID);
 
         if (pinst == NULL )
                 return SA_ERR_HPI_INVALID_SESSION;
@@ -5321,7 +5322,7 @@ SaErrorT oHpiGlobalParamSet(oHpiGlobalParamT *param)
 	char reply[dMaxMessageLength];
         SaErrorT err;
 	char cmd[] = "oHpiGlobalParamSet";
-        pcstrmsock pinst = oh_create_connx();
+        pcstrmsock pinst = oh_create_connx(SAHPI_UNSPECIFIED_DOMAIN_ID);
 
         if (pinst == NULL )
                 return SA_ERR_HPI_INVALID_SESSION;
@@ -5359,7 +5360,7 @@ SaErrorT oHpiInjectEvent(oHpiHandlerIdT id,
         char reply[dMaxMessageLength];
         SaErrorT err = SA_OK;
         char cmd[] = "oHpiInjectEvent";  
-        pcstrmsock pinst = oh_create_connx();
+        pcstrmsock pinst = oh_create_connx(SAHPI_UNSPECIFIED_DOMAIN_ID);
 
         if (pinst == NULL )
                 return SA_ERR_HPI_INVALID_SESSION;

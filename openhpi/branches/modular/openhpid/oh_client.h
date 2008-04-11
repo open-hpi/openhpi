@@ -18,15 +18,9 @@
 #ifndef __OH_CLIENT_H
 #define __OH_CLIENT_H
 
-#include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
-#include <sys/types.h>
-#include <stdio.h>
-#include <errno.h>
 #include <glib.h>
 #include <config.h>
-#include "strmsock.h"
 
 extern "C"
 {
