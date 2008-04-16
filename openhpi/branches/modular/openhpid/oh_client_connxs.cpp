@@ -29,10 +29,10 @@ static SaHpiSessionIdT next_client_sid = 1;
 
 static void __destroy_client_connx(gpointer data)
 {
-        struct oh_client_connx *client_connx = (struct oh_client_connx *)data;
+        struct oh_client_session *client_session = (struct oh_client_session *)data;
 
-        g_hash_table_destroy(client_connx->connx_table);
-        g_free(client_connx);
+        g_hash_table_destroy(client_session->connxs);
+        g_free(client_session);
 }
 
 static int init(void)
@@ -108,7 +108,7 @@ pcstrmsock oh_create_connx(SaHpiDomainIdT did)
         
 	if (pinst->Open(domain_conf->host, domain_conf->port)) {
 		err("oh_create_connx: Could not open client socket"
-			"\nPossibly, the OpenHPI daemon has not been started.");
+		    "\nPossibly, the OpenHPI daemon has not been started.");
                 delete pinst;
 		return NULL;
 	}
@@ -123,11 +123,11 @@ pcstrmsock oh_create_connx(SaHpiDomainIdT did)
 
 void oh_delete_connx(pcstrmsock pinst)
 {
-	if (pinst == NULL)
-		return;
-	pinst->Close();
-	dbg("oh_delete_connx: Connection closed and deleted");
-	delete pinst;
+	if (pinst) {
+                pinst->Close();
+                dbg("oh_delete_connx: Connection closed and deleted");
+                delete pinst;
+        }
 }
 
 
@@ -141,34 +141,33 @@ static void __delete_connx(gpointer data)
         oh_delete_connx(pinst);
 }
 
-bool oh_add_connx(SaHpiSessionIdT SessionId, pcstrmsock pinst)
+SaHpiSessionIdT oh_add_connx(SaHpiSessionIdT sid, pcstrmsock pinst)
 {
-        GHashTable *conns = NULL;
+        GHashTable *connxs = NULL;
         pthread_t thread_id;
+        struct oh_client_session *client_session;
         
-        if (SessionId == 0)
-		return TRUE;
-	if (pinst == NULL)
-		return TRUE;
+        if (SessionId == 0 || pinst == NULL)
+		return 0;
 
+        client_session = (struct oh_client_session *)g_malloc0(sizeof(struct oh_client_session));
+        
         g_static_rec_mutex_lock(&sessions_sem);
         // Create connections table for new session.
-        conns = g_hash_table_new_full(g_int_hash, 
-                                      g_int_equal,
-                                      g_free, 
-                                      __delete_connx);
+        connxs = g_hash_table_new_full(g_int_hash, g_int_equal,
+                                       g_free, __delete_connx);
         // Map connection to thread id
         thread_id = pthread_self();
-        g_hash_table_insert(conns, g_memdup(&thread_id,
-                                            sizeof(pthread_t)),
-                                   pinst);
+        g_hash_table_insert(connxs, g_memdup(&thread_id, sizeof(pthread_t)),
+                            pinst);
         // Map connecitons table to session id
-        g_hash_table_insert(sessions, g_memdup(&SessionId,
-                                             sizeof(SaHpiSessionIdT)),
-                                      conns);
+        client_session->dsid = sid;
+        client_session->csid = next_client_sid++;
+        client_session->connxs = connxs;
+        g_hash_table_insert(sessions, &client_session->csid, client_session);
         g_static_rec_mutex_unlock(&sessions_sem);
 
-        return FALSE;
+        return client_session->csid;
 }
 
 
@@ -176,41 +175,44 @@ bool oh_add_connx(SaHpiSessionIdT SessionId, pcstrmsock pinst)
 /* oh_remove_connxs                                                           */
 /*----------------------------------------------------------------------------*/
 
-bool oh_remove_connxs(SaHpiSessionIdT SessionId)
-{
-	if (SessionId == 0)
-		return TRUE;
+SaHpiBoolT oh_remove_connxs(SaHpiSessionIdT SessionId)
+{        
+        if (SessionId == 0)
+		return SAHPI_TRUE;
 
         g_static_rec_mutex_lock(&sessions_sem);
         // Since we used g_hash_table_new_full to create the tables,
         // this will remove the connection hash table and all of its entries also.
         g_hash_table_remove(sessions, &SessionId);
-        g_static_rec_mutex_unlock(&sessions_sem);
 
-        return FALSE;
+        return SAHPI_FALSE;
 }
 
 /*----------------------------------------------------------------------------*/
 /* oh_remove_connx                                                            */
 /*----------------------------------------------------------------------------*/
 
-bool oh_remove_connx(SaHpiSessionIdT SessionId)
+SaHpiBoolT oh_remove_connx(SaHpiSessionIdT SessionId)
 {
-        GHashTable *conns = NULL;
-        pthread_t thread_id;
+        pthread_t thread_id = pthread_self();
+        struct oh_client_session *client_session = NULL;
 
         if (SessionId == 0)
-                return TRUE;
+                return SAHPI_TRUE;
 
         g_static_rec_mutex_lock(&sessions_sem);
-        thread_id = pthread_self();
-        conns = (GHashTable *)g_hash_table_lookup(sessions, &SessionId);
-        if (conns)
-                g_hash_table_remove(conns, &thread_id);
+        client_session = (struct oh_client_session *)g_hash_table_lookup(sessions, &SessionId);
+        if (!client_session) {
+                g_static_rec_mutex_unlock(&sessions_sem);
+                err("ERROR: Did not find connx for sid %d", SessionId);
+                return SAHPI_FALSE;
+        }
+        
+        g_hash_table_remove(client_session->connxs, &thread_id);
 
         g_static_rec_mutex_unlock(&sessions_sem);
 
-        return FALSE;
+        return SAHPI_FALSE;
 }
 
 /*----------------------------------------------------------------------------*/
@@ -219,8 +221,8 @@ bool oh_remove_connx(SaHpiSessionIdT SessionId)
 
 pcstrmsock oh_get_connx(SaHpiSessionIdT SessionId)
 {
-        pthread_t thread_id;
-        GHashTable *conns = NULL;
+        pthread_t thread_id = pthread_self();
+        struct oh_client_session *client_session = NULL;
         pcstrmsock pinst = NULL;
 
 	if (SessionId == 0)
@@ -231,21 +233,19 @@ pcstrmsock oh_get_connx(SaHpiSessionIdT SessionId)
         // Look up connection table. If it exists, look up connection.
         // if there is not connection, create one on-the-fly.
         g_static_rec_mutex_lock(&sessions_sem);
-        thread_id = pthread_self();
-        conns = (GHashTable *)g_hash_table_lookup(sessions, &SessionId);
-        if (conns) {
-                pinst = (pcstrmsock)g_hash_table_lookup(conns, &thread_id);
+        client_session = (struct oh_client_session *)g_hash_table_lookup(sessions, &SessionId);
+        if (client_session) {
+                pinst = (pcstrmsock)g_hash_table_lookup(client_session->connxs, &thread_id);
 
                 if (!pinst) {
-                        pinst = oh_create_connx();
+                        pinst = oh_create_connx(/*TODO: put domain id here*/);
                         if (pinst) {
-                        	g_hash_table_insert(conns, 
+                        	g_hash_table_insert(client_session->connxs, 
                                 		    g_memdup(&thread_id,
-                                		    sizeof(pthread_t)),
+                                		     sizeof(pthread_t)),
                                 		    pinst);
-				dbg("oh_get_connx: "
-					"we are inserting a new connection"
-					" in conns table");
+				dbg("We are inserting a new connection"
+				    " in conns table");
                         }
                 }
 
@@ -258,5 +258,4 @@ pcstrmsock oh_get_connx(SaHpiSessionIdT SessionId)
         } else {
             return FALSE;
         }
-
 }

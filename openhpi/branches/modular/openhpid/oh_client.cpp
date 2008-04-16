@@ -133,6 +133,7 @@ SaErrorT SAHPI_API saHpiSessionOpen(
 	void *request;
 	char reply[dMaxMessageLength];
 	SaErrorT err;
+        SaHpiSessionIdT domain_sid = 0;
 	char cmd[] = "saHpiSessionOpen";
         pcstrmsock pinst = oh_create_connx(DomainId);
 
@@ -146,17 +147,15 @@ SaErrorT SAHPI_API saHpiSessionOpen(
         }
 
 	cHpiMarshal *hm = HpiMarshalFind(eFsaHpiSessionOpen);
-
-	pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiSessionOpen,
-				 hm->m_request_len);
+	pinst->MessageHeaderInit(
+                eMhMsg, 0, eFsaHpiSessionOpen, hm->m_request_len);
 	request = malloc(hm->m_request_len);
-
 	pinst->header.m_len = HpiMarshalRequest1(hm, request, &DomainId);
-
         SendRecv(0, cmd);
 
 	int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit,
-				    hm, reply + sizeof(cMessageHeader), &err, SessionId);
+				    hm, reply + sizeof(cMessageHeader),
+                                    &err, &domain_sid);
 
 	if (request)
 		free(request);
@@ -168,8 +167,8 @@ SaErrorT SAHPI_API saHpiSessionOpen(
                 oh_delete_connx(pinst);
 		return SA_ERR_HPI_INVALID_PARAMS;
         }
-        oh_add_connx(*SessionId, pinst);
-/* FIXME: assign client sid, and store domain sid in session table */
+        *SessionId = oh_add_connx(domain_sid, pinst);
+
 	return err;
 }
 
