@@ -32,6 +32,7 @@ REMOTE_SOURCES		= \
         	init.c \
         	safhpi.c \
         	session.c \
+        	ssl_init.c \
         	ohpi.c
 
 AM_CFLAGS		= @CFLAGS@

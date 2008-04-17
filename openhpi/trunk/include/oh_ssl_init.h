@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2007-2008, Hewlett-Packard Development Company, LLP
- *                     All rights reserved.
+ *		       All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or
  * without modification, are permitted provided that the following
@@ -29,25 +29,17 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * Author(s)
- *     Shuah Khan <shuah.khan@hp.com>
- *     Richard White <richard.white@hp.com>
+ *     Bryan Sutula <Bryan.Sutula@hp.com>
+ *
+ * This file defines prototype(s) for SSL initialization functions.
  */
-#ifndef _INC_ILO2_RIBCL_SSL_H_
-#define _INC_ILO2_RIBCL_SSL_H_
 
-#include <ilo2_ribcl.h>
 
-/*
- * This file defines prototypes for the iLO2 RIBCL plug-in iLO2 SSL connection
- * management functions implemented in ilo2_ribcl_ssl.c
- */
-extern void *ilo2_ribcl_ssl_ctx_init(void);
-extern int ilo2_ribcl_ssl_ctx_free(void *);
-extern int ilo2_ribcl_ssl_read(void *, char *, int);
-extern int ilo2_ribcl_ssl_write(void *, char *, int);
-extern void *ilo2_ribcl_ssl_connect(char *, void *);
-extern int ilo2_ribcl_ssl_disconnect(void *);
-extern int ilo2_ribcl_ssl_send_command(ilo2_ribcl_handler_t *, char *,
-	char *, int);
+#ifndef _INC_OH_SSL_INIT_H_
+#define _INC_OH_SSL_INIT_H_
 
-#endif /* _INC_ILO2_RIBCL_SSL_H_ */
+
+extern int oh_ssl_init(void);
+
+
+#endif /* _INC_OH_SSL_INIT_H_ */

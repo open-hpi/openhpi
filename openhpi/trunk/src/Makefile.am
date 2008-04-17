@@ -64,6 +64,7 @@ libopenhpi_la_SOURCES   = \
                            init.c \
                            safhpi.c \
                            session.c \
+                           ssl_init.c \
                            ohpi.c
 nodist_libopenhpi_la_SOURCES = plugin_static.c
 

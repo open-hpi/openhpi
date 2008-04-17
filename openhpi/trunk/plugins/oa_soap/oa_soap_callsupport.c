@@ -488,13 +488,6 @@ SOAP_CON        *soap_open(char *server,
         connection->last_error_string = NULL;
 
 
-        /* Initialize the SSL library */
-        if (oh_ssl_init()) {
-                err("oh_ssl_init() failed");
-                free(connection);
-                return(NULL);
-        }
-
         /* Create and initialize a new SSL_CTX structure */
         if (! (connection->ctx = oh_ssl_ctx_init())) {
                 err("oh_ssl_ctx_init() failed");

@@ -39,7 +39,6 @@
  * and send/receive command/responses from RIBCL over the SSL connection.
  * Uses OpenSSL and supported the following functions:
  *
- * ilo2_ribcl_ssl_init()	- Intializes OpenSSL library.
  * ilo2_ribcl_ssl_ctx_init()	- Creates a new SSL_CTX object as
  *				  framework for  TLS/SSL enabled functions.
  *				  Adds default CA certificate location.
@@ -57,30 +56,6 @@
 #include <openssl/err.h>
 #include <ilo2_ribcl_ssl.h>
 #include <ilo2_ribcl_cmnds.h>
-
-/** * ilo2_ribcl_ssl_init: Intializes OpenSSL library.
- * @none:
- * This function initializes OpenSSL library.
- * Detailed description:
- *	- Call SSL_library_init() to initialize the SSL library.
- *	- Call SSL_load_error_strings();
- *	- Call ERR_load_BIO_strings();
- *
- * Return values:
- * 	0  success.
- * 	-1 failure.
- **/
-int ilo2_ribcl_ssl_init()
-{
- 	/* load error strings to provide readable error messages */
-	SSL_load_error_strings();
- 	/* always returns 1, safe to ignore the return value */
- 	SSL_library_init();
-	/*actions_to_seed_PRNG();*/
-	ERR_load_BIO_strings();
-	
-	return(0);
-}
 
 /**
  * ilo2_ribcl_ssl_ctx_init: Creates a new SSL_CTX object as framework for
