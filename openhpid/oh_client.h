@@ -18,19 +18,6 @@
 #ifndef __OH_CLIENT_H
 #define __OH_CLIENT_H
 
-#include <string.h>
-#include <glib.h>
-#include <config.h>
-
-extern "C"
-{
-#include <SaHpi.h>
-#include <oHpi.h>
-#include <oh_error.h>
-}
-
-#include "marshal_hpi.h"
-
 /*----------------------------------------------------------------------------*/
 /* Macros                                                                     */
 /*----------------------------------------------------------------------------*/
