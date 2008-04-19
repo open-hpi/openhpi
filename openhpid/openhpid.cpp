@@ -36,7 +36,6 @@ extern "C"
 #include <SaHpi.h>
 #include <oHpi.h>
 #include <oh_error.h>
-
 #include <oh_init.h>
 }
 
@@ -109,7 +108,8 @@ void display_help(void)
         printf("                 configuration file.\n");
         printf("   -v            This option causes the daemon to display verbose\n");
         printf("                 messages. This option is optional.\n");
-        printf("   -p port       This overrides the default listening port (4743) of\n");
+        printf("   -p port       This overrides the default listening port (%d) of\n",
+	       OPENHPI_DEFAULT_DAEMON_PORT);
         printf("                 the daemon. This option is optional.\n");
         printf("   -f pidfile    This overrides the default name/location for the daemon.\n");
         printf("                 pid file. This option is optional.\n");
@@ -248,7 +248,7 @@ int main (int argc, char *argv[])
         // get our listening port
         portstr = getenv("OPENHPI_DAEMON_PORT");
         if (portstr == NULL) {
-                port =  4743;
+                port =  OPENHPI_DEFAULT_DAEMON_PORT;
         }
         else {
                 port =  atoi(portstr);

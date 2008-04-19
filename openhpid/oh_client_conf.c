@@ -204,7 +204,7 @@ static int process_domain_token (GScanner *oh_scanner, GHashTable *domains)
         }
 
         g_hash_table_insert(domains, &domain_conf->did, domain_conf);
-        printf("domain %d: %s:%d\n", domain_conf->did, domain_conf->host, domain_conf->port);
+        //printf("domain %d: %s:%d\n", domain_conf->did, domain_conf->host, domain_conf->port);
 
         return 0;
 

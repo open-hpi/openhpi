@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef __OH_CLIENT_CONNXS_H
-#define __OH_CLIENT_CONNXS_H
+#ifndef __OH_CLIENT_SESSION_H
+#define __OH_CLIENT_SESSION_H
 
 #include <pthread.h>
 #include <glib.h>
@@ -30,9 +30,9 @@ extern "C"
 }
 
 struct oh_client_session {
-        SaHpiSessionIdT csid; /* Client Session Id */
-        SaHpiSessionIdT dsid; /* Domain Session Id */
         SaHpiDomainIdT did; /* Domain Id */
+        SaHpiSessionIdT csid; /* Client Session Id */
+        SaHpiSessionIdT dsid; /* Domain Session Id */        
         GHashTable *connxs; /* Connections for this session (per thread) */
 };
 
@@ -40,11 +40,12 @@ extern GHashTable *domains;
 extern GHashTable *sessions;
 extern GStaticRecMutex sessions_sem;
 
-pcstrmsock oh_create_connx(SaHpiDomainIdT);
+SaErrorT oh_create_connx(SaHpiDomainIdT, pcstrmsock *);
 void oh_delete_connx(pcstrmsock);
-SaHpiSessionIdT oh_add_connx(SaHpiSessionIdT, pcstrmsock);
-SaHpiBoolT oh_remove_connxs(SaHpiSessionIdT);
-SaHpiBoolT oh_remove_connx(SaHpiSessionIdT);
-pcstrmsock oh_get_connx(SaHpiSessionIdT);
+SaErrorT oh_close_connx(SaHpiSessionIdT);
+SaErrorT oh_get_connx(SaHpiSessionIdT, SaHpiSessionIdT *, pcstrmsock *);
 
-#endif /* __OH_CLIENT_CONNXS_H */
+SaHpiSessionIdT oh_open_session(SaHpiDomainIdT, SaHpiSessionIdT, pcstrmsock);
+SaErrorT oh_close_session(SaHpiSessionIdT);
+
+#endif /* __OH_CLIENT_SESSION_H */
