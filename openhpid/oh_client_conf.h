@@ -16,8 +16,6 @@
 
 #include <glib.h>
 #include <SaHpi.h>
-#include <string.h>
-#include <oh_error.h>
 
 struct oh_domain_conf {
         SaHpiDomainIdT did;

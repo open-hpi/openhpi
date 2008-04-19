@@ -17,7 +17,10 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <string.h>
 
+#include <oHpi.h>
+#include <oh_error.h>
 #include <oh_client_conf.h>
 #include <config.h>
 
@@ -200,7 +203,7 @@ static int process_domain_token (GScanner *oh_scanner, GHashTable *domains)
                 err("Processing domain: Did not find the host parameter");
                 goto free_and_exit;
         } else if (domain_conf->port == 0) {
-                domain_conf->port = 4743;
+                domain_conf->port = OPENHPI_DEFAULT_DAEMON_PORT;
         }
 
         g_hash_table_insert(domains, &domain_conf->did, domain_conf);
