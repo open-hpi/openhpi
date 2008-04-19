@@ -15,6 +15,18 @@
  *
  */
 
+extern "C"
+{
+#include <string.h>
+#include <glib.h>
+#include <SaHpi.h>
+#include <oHpi.h>
+#include <oh_error.h>
+#include <config.h>
+}
+
+#include <marshal_hpi.h>
+
 #include "oh_client.h"
 #include "oh_client_session.h"
 

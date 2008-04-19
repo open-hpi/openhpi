@@ -18,15 +18,12 @@
 #ifndef __OH_CLIENT_SESSION_H
 #define __OH_CLIENT_SESSION_H
 
-#include <pthread.h>
-#include <glib.h>
-#include <config.h>
 #include "strmsock.h"
 
 extern "C"
 {
+#include <glib.h>
 #include <SaHpi.h>
-#include <oh_error.h>
 }
 
 struct oh_client_session {
