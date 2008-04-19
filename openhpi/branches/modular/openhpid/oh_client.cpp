@@ -16,7 +16,7 @@
  */
 
 #include "oh_client.h"
-#include "oh_client_connxs.h"
+#include "oh_client_session.h"
 
 #define client_dbg(cmd, str) dbg("%s: %s\n", cmd, str)
 #define client_err(cmd, str) err("%s: %s\n", cmd, str)
@@ -132,25 +132,27 @@ SaErrorT SAHPI_API saHpiSessionOpen(
 {
 	void *request;
 	char reply[dMaxMessageLength];
-	SaErrorT err;
+	SaErrorT err = SA_OK;
         SaHpiSessionIdT domain_sid = 0;
 	char cmd[] = "saHpiSessionOpen";
-        pcstrmsock pinst = oh_create_connx(DomainId);
+        pcstrmsock pinst = NULL;
+        SaHpiDomainIdT default_did = SAHPI_UNSPECIFIED_DOMAIN_ID;
 
-        if (SessionId == NULL)
+        if (!SessionId || SecurityParams)
                 return SA_ERR_HPI_INVALID_PARAMS;
-	if (SecurityParams != NULL)
-		return SA_ERR_HPI_INVALID_PARAMS;
-        if (pinst == NULL) {
+        
+        err = oh_create_connx(DomainId, &pinst);
+        if (err) {
                 client_err(cmd, "Could not create client connection");
-                return SA_ERR_HPI_NO_RESPONSE;
+                return err;
         }
 
 	cHpiMarshal *hm = HpiMarshalFind(eFsaHpiSessionOpen);
 	pinst->MessageHeaderInit(
                 eMhMsg, 0, eFsaHpiSessionOpen, hm->m_request_len);
 	request = malloc(hm->m_request_len);
-	pinst->header.m_len = HpiMarshalRequest1(hm, request, &DomainId);
+        /* TODO: Does daemon need domain id param in this call*/
+	pinst->header.m_len = HpiMarshalRequest1(hm, request, &default_did);
         SendRecv(0, cmd);
 
 	int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit,
@@ -167,7 +169,7 @@ SaErrorT SAHPI_API saHpiSessionOpen(
                 oh_delete_connx(pinst);
 		return SA_ERR_HPI_INVALID_PARAMS;
         }
-        *SessionId = oh_add_connx(domain_sid, pinst);
+        *SessionId = oh_open_session(DomainId, domain_sid, pinst);
 
 	return err;
 }
@@ -182,22 +184,22 @@ SaErrorT SAHPI_API saHpiSessionClose(
 {
 	void *request;
 	char reply[dMaxMessageLength];
-	SaErrorT err;
+	SaErrorT err = SA_OK;
 	char cmd[] = "saHpiSessionClose";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
 
 	cHpiMarshal *hm = HpiMarshalFind(eFsaHpiSessionClose);
 	pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiSessionClose,
 				 hm->m_request_len);
 	request = malloc(hm->m_request_len);
 
-	pinst->header.m_len = HpiMarshalRequest1(hm, request, &SessionId);
+	pinst->header.m_len = HpiMarshalRequest1(hm, request, &dsid);
 
 	SendRecv(SessionId, cmd);
 
@@ -207,7 +209,7 @@ SaErrorT SAHPI_API saHpiSessionClose(
 	if (request)
 		free(request);
                 
-        oh_remove_connxs(SessionId);
+        oh_close_session(SessionId);
         
 	if (mr < 0)
 		return SA_ERR_HPI_INVALID_PARAMS;
@@ -225,23 +227,23 @@ SaErrorT SAHPI_API saHpiDiscover(
 {
 	void *request;
 	char reply[dMaxMessageLength];
-	SaErrorT err;
+	SaErrorT err = SA_OK;
 	char cmd[] = "saHpiDiscover";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
 
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
 
 	cHpiMarshal *hm = HpiMarshalFind(eFsaHpiDiscover);
 	pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiDiscover,
 				 hm->m_request_len);
 	request = malloc(hm->m_request_len);
 
-	pinst->header.m_len = HpiMarshalRequest1(hm, request, &SessionId);
+	pinst->header.m_len = HpiMarshalRequest1(hm, request, &dsid);
 
 	SendRecv(SessionId, cmd);
 
@@ -271,15 +273,15 @@ SaErrorT SAHPI_API saHpiDomainInfoGet(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiDomainInfoGet";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
         if (DomainInfo == NULL)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -287,7 +289,7 @@ SaErrorT SAHPI_API saHpiDomainInfoGet(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiDomainInfoGet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest1(hm, request, &SessionId);
+        pinst->header.m_len = HpiMarshalRequest1(hm, request, &dsid);
 
 	SendRecv(SessionId, cmd);
 
@@ -316,15 +318,15 @@ SaErrorT SAHPI_API saHpiDrtEntryGet(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiDrtEntryGet";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
         if((DrtEntry == NULL) ||
            (NextEntryId == NULL) ||
            (EntryId == SAHPI_LAST_ENTRY)) {
@@ -335,7 +337,7 @@ SaErrorT SAHPI_API saHpiDrtEntryGet(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiDrtEntryGet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest2(hm, request, &SessionId, &EntryId);
+        pinst->header.m_len = HpiMarshalRequest2(hm, request, &dsid, &EntryId);
 
 	SendRecv(SessionId, cmd);
 
@@ -362,15 +364,15 @@ SaErrorT SAHPI_API saHpiDomainTagSet(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiDomainTagSet";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
         if (!DomainTag)
                 return SA_ERR_HPI_INVALID_PARAMS;
 	if (!oh_lookup_texttype(DomainTag->DataType))
@@ -380,7 +382,7 @@ SaErrorT SAHPI_API saHpiDomainTagSet(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiDomainTagSet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest2(hm, request, &SessionId, DomainTag);
+        pinst->header.m_len = HpiMarshalRequest2(hm, request, &dsid, DomainTag);
 
 	SendRecv(SessionId, cmd);
 
@@ -409,15 +411,15 @@ SaErrorT SAHPI_API saHpiRptEntryGet(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiRptEntryGet";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
         if ((NextEntryId == NULL) || (RptEntry == NULL)) {
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
@@ -429,7 +431,7 @@ SaErrorT SAHPI_API saHpiRptEntryGet(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiRptEntryGet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest2(hm, request, &SessionId, &EntryId);
+        pinst->header.m_len = HpiMarshalRequest2(hm, request, &dsid, &EntryId);
 
 	SendRecv(SessionId, cmd);
 
@@ -457,15 +459,15 @@ SaErrorT SAHPI_API saHpiRptEntryGetByResourceId(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiRptEntryGetByResourceId";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
         if (ResourceId == SAHPI_UNSPECIFIED_RESOURCE_ID ||
             RptEntry == NULL) {
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -475,7 +477,7 @@ SaErrorT SAHPI_API saHpiRptEntryGetByResourceId(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiRptEntryGetByResourceId, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest2(hm, request, &SessionId, &ResourceId);
+        pinst->header.m_len = HpiMarshalRequest2(hm, request, &dsid, &ResourceId);
 
 	SendRecv(SessionId, cmd);
 
@@ -503,15 +505,15 @@ SaErrorT SAHPI_API saHpiResourceSeveritySet(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiResourceSeveritySet";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
         if (ResourceId == SAHPI_UNSPECIFIED_RESOURCE_ID)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (!oh_lookup_severity(Severity))
@@ -521,7 +523,7 @@ SaErrorT SAHPI_API saHpiResourceSeveritySet(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiResourceSeveritySet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest3(hm, request, &SessionId, &ResourceId, &Severity);
+        pinst->header.m_len = HpiMarshalRequest3(hm, request, &dsid, &ResourceId, &Severity);
 
 	SendRecv(SessionId, cmd);
 
@@ -549,15 +551,15 @@ SaErrorT SAHPI_API saHpiResourceTagSet(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiResourceTagSet";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
         if (ResourceTag == NULL)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -565,7 +567,7 @@ SaErrorT SAHPI_API saHpiResourceTagSet(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiResourceTagSet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest3(hm, request, &SessionId, &ResourceId, ResourceTag);
+        pinst->header.m_len = HpiMarshalRequest3(hm, request, &dsid, &ResourceId, ResourceTag);
 
 	SendRecv(SessionId, cmd);
 
@@ -592,15 +594,15 @@ SaErrorT SAHPI_API saHpiResourceIdGet(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiResourceIdGet";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
         if (ResourceId == NULL)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -608,7 +610,7 @@ SaErrorT SAHPI_API saHpiResourceIdGet(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiResourceIdGet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest1(hm, request, &SessionId);
+        pinst->header.m_len = HpiMarshalRequest1(hm, request, &dsid);
 
 	SendRecv(SessionId, cmd);
 
@@ -640,16 +642,16 @@ SaErrorT SAHPI_API saHpiGetIdByEntityPath(
 {
         void *request;
         char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
         char cmd[] = "saHpiGetIdByEntityPath";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
         SaHpiInstrumentIdT instrument_id;
 
         if (SessionId == 0)
                 return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-        if (pinst == NULL )
-                return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+        if (err) return err;
         if (ResourceId == NULL || InstanceId == NULL ||
             *InstanceId == SAHPI_LAST_ENTRY || RptUpdateCount == NULL ||
             (InstrumentId == NULL && InstrumentType != SAHPI_NO_RECORD))
@@ -661,7 +663,7 @@ SaErrorT SAHPI_API saHpiGetIdByEntityPath(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiGetIdByEntityPath, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest4(hm, request, &SessionId,
+        pinst->header.m_len = HpiMarshalRequest4(hm, request, &dsid,
                                                  &EntityPath, &InstrumentType,
                                                  InstanceId);
 
@@ -695,15 +697,15 @@ SaErrorT SAHPI_API saHpiGetChildEntityPath(
 {
         void *request;
         char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
         char cmd[] = "saHpiGetChildEntityPath";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
         if (SessionId == 0)
                 return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-        if (pinst == NULL )
-                return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+        if (err) return err;
         if (InstanceId == NULL || *InstanceId == SAHPI_LAST_ENTRY ||
             RptUpdateCount == NULL)
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -712,7 +714,7 @@ SaErrorT SAHPI_API saHpiGetChildEntityPath(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiGetChildEntityPath, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest3(hm, request, &SessionId,
+        pinst->header.m_len = HpiMarshalRequest3(hm, request, &dsid,
                                                  &ParentEntityPath,
                                                  InstanceId);
 
@@ -743,21 +745,21 @@ SaErrorT SAHPI_API saHpiResourceFailedRemove(
 {
         void *request;
         char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
         char cmd[] = "saHpiResourceFailedRemove";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
         if (SessionId == 0)
                 return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-        if (pinst == NULL )
-                return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+        if (err) return err;
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiResourceFailedRemove);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiResourceFailedRemove, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest2(hm, request, &SessionId, &ResourceId);
+        pinst->header.m_len = HpiMarshalRequest2(hm, request, &dsid, &ResourceId);
 
         SendRecv(SessionId, cmd);
 
@@ -784,15 +786,15 @@ SaErrorT SAHPI_API saHpiEventLogInfoGet(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiEventLogInfoGet";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
         if (Info == NULL)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -800,7 +802,7 @@ SaErrorT SAHPI_API saHpiEventLogInfoGet(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiEventLogInfoGet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest2(hm, request, &SessionId, &ResourceId);
+        pinst->header.m_len = HpiMarshalRequest2(hm, request, &dsid, &ResourceId);
 
 	SendRecv(SessionId, cmd);
 
@@ -827,15 +829,15 @@ SaErrorT SAHPI_API saHpiEventLogCapabilitiesGet(
 {
         void *request;
         char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
         char cmd[] = "saHpiEventLogCapabilitiesGet";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
         if (SessionId == 0)
                 return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-        if (pinst == NULL )
-                return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+        if (err) return err;
         if (EventLogCapabilities == NULL)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -843,7 +845,7 @@ SaErrorT SAHPI_API saHpiEventLogCapabilitiesGet(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiEventLogCapabilitiesGet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest2(hm, request, &SessionId, &ResourceId);
+        pinst->header.m_len = HpiMarshalRequest2(hm, request, &dsid, &ResourceId);
 
         SendRecv(SessionId, cmd);
 
@@ -876,17 +878,17 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiEventLogEntryGet";
         SaHpiRdrT tmp_rdr;
         SaHpiRptEntryT tmp_rpt;
-        pcstrmsock pinst;	
+        pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;	
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
         if (!PrevEntryId || !EventLogEntry || !NextEntryId ||
             EntryId == SAHPI_NO_MORE_ENTRIES) {
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -896,7 +898,7 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiEventLogEntryGet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest3(hm, request, &SessionId, &ResourceId, &EntryId);
+        pinst->header.m_len = HpiMarshalRequest3(hm, request, &dsid, &ResourceId, &EntryId);
 
 	SendRecv(SessionId, cmd);
 
@@ -931,15 +933,15 @@ SaErrorT SAHPI_API saHpiEventLogEntryAdd(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiEventLogEntryAdd";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
         if (EvtEntry == NULL)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (EvtEntry->EventType != SAHPI_ET_USER ||
@@ -954,7 +956,7 @@ SaErrorT SAHPI_API saHpiEventLogEntryAdd(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiEventLogEntryAdd, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest3(hm, request, &SessionId, &ResourceId, EvtEntry);
+        pinst->header.m_len = HpiMarshalRequest3(hm, request, &dsid, &ResourceId, EvtEntry);
 
 	SendRecv(SessionId, cmd);
 
@@ -981,21 +983,21 @@ SaErrorT SAHPI_API saHpiEventLogClear(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiEventLogClear";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiEventLogClear);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiEventLogClear, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest2(hm, request, &SessionId, &ResourceId);
+        pinst->header.m_len = HpiMarshalRequest2(hm, request, &dsid, &ResourceId);
 
 	SendRecv(SessionId, cmd);
 
@@ -1023,15 +1025,15 @@ SaErrorT SAHPI_API saHpiEventLogTimeGet(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiEventLogTimeGet";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
         if (Time == NULL)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -1039,7 +1041,7 @@ SaErrorT SAHPI_API saHpiEventLogTimeGet(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiEventLogTimeGet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest2(hm, request, &SessionId, &ResourceId);
+        pinst->header.m_len = HpiMarshalRequest2(hm, request, &dsid, &ResourceId);
 
 	SendRecv(SessionId, cmd);
 
@@ -1067,21 +1069,21 @@ SaErrorT SAHPI_API saHpiEventLogTimeSet(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiEventLogTimeSet";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiEventLogTimeSet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiEventLogTimeSet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest3(hm, request, &SessionId, &ResourceId, &Time);
+        pinst->header.m_len = HpiMarshalRequest3(hm, request, &dsid, &ResourceId, &Time);
 
 	SendRecv(SessionId, cmd);
 
@@ -1109,15 +1111,15 @@ SaErrorT SAHPI_API saHpiEventLogStateGet(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiEventLogStateGet";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
         if (EnableState == NULL)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -1125,7 +1127,7 @@ SaErrorT SAHPI_API saHpiEventLogStateGet(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiEventLogStateGet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest2(hm, request, &SessionId, &ResourceId);
+        pinst->header.m_len = HpiMarshalRequest2(hm, request, &dsid, &ResourceId);
 
 	SendRecv(SessionId, cmd);
 
@@ -1153,21 +1155,21 @@ SaErrorT SAHPI_API saHpiEventLogStateSet(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiEventLogStateSet";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiEventLogStateSet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiEventLogStateSet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest3(hm, request, &SessionId, &ResourceId, &EnableState);
+        pinst->header.m_len = HpiMarshalRequest3(hm, request, &dsid, &ResourceId, &EnableState);
 
 	SendRecv(SessionId, cmd);
 
@@ -1194,21 +1196,21 @@ SaErrorT SAHPI_API saHpiEventLogOverflowReset(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiEventLogOverflowReset";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiEventLogOverflowReset);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiEventLogOverflowReset, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest2(hm, request, &SessionId, &ResourceId);
+        pinst->header.m_len = HpiMarshalRequest2(hm, request, &dsid, &ResourceId);
 
 	SendRecv(SessionId, cmd);
 
@@ -1234,21 +1236,21 @@ SaErrorT SAHPI_API saHpiSubscribe(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiSubscribe";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiSubscribe);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiSubscribe, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest1(hm, request, &SessionId);
+        pinst->header.m_len = HpiMarshalRequest1(hm, request, &dsid);
 
 	SendRecv(SessionId, cmd);
 
@@ -1274,21 +1276,21 @@ SaErrorT SAHPI_API saHpiUnsubscribe(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiUnsubscribe";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiUnsubscribe);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiUnsubscribe, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest1(hm, request, &SessionId);
+        pinst->header.m_len = HpiMarshalRequest1(hm, request, &dsid);
 
 	SendRecv(SessionId, cmd);
 
@@ -1319,18 +1321,18 @@ SaErrorT SAHPI_API saHpiEventGet(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiEventGet";
         SaHpiRdrT tmp_rdr;
         SaHpiRptEntryT tmp_rpt;
         SaHpiEvtQueueStatusT tmp_status;
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
         if (Timeout < SAHPI_TIMEOUT_BLOCK || !Event)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -1338,7 +1340,7 @@ SaErrorT SAHPI_API saHpiEventGet(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiEventGet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest2(hm, request, &SessionId, &Timeout);
+        pinst->header.m_len = HpiMarshalRequest2(hm, request, &dsid, &Timeout);
 
 	SendRecv(SessionId, cmd);
 
@@ -1375,15 +1377,15 @@ SaErrorT SAHPI_API saHpiEventAdd(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiEventAdd";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
         
 	err = oh_valid_addevent(Event);
 	if (err != SA_OK) return err;
@@ -1392,7 +1394,7 @@ SaErrorT SAHPI_API saHpiEventAdd(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiEventAdd, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest2(hm, request, &SessionId, Event);
+        pinst->header.m_len = HpiMarshalRequest2(hm, request, &dsid, Event);
 
 	SendRecv(SessionId, cmd);
 
@@ -1421,15 +1423,15 @@ SaErrorT SAHPI_API saHpiAlarmGetNext(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiAlarmGetNext";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
         if (!Alarm)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (!oh_lookup_severity(Severity))
@@ -1441,7 +1443,7 @@ SaErrorT SAHPI_API saHpiAlarmGetNext(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiAlarmGetNext, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest4(hm, request, &SessionId, &Severity, &Unack, Alarm);
+        pinst->header.m_len = HpiMarshalRequest4(hm, request, &dsid, &Severity, &Unack, Alarm);
 
 	SendRecv(SessionId, cmd);
 
@@ -1469,15 +1471,15 @@ SaErrorT SAHPI_API saHpiAlarmGet(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiAlarmGet";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
         if (!Alarm)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -1485,7 +1487,7 @@ SaErrorT SAHPI_API saHpiAlarmGet(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiAlarmGet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest2(hm, request, &SessionId, &AlarmId);
+        pinst->header.m_len = HpiMarshalRequest2(hm, request, &dsid, &AlarmId);
 
 	SendRecv(SessionId, cmd);
 
@@ -1513,15 +1515,15 @@ SaErrorT SAHPI_API saHpiAlarmAcknowledge(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiAlarmAcknowledge";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
         if (AlarmId == SAHPI_ENTRY_UNSPECIFIED &&
             !oh_lookup_severity(Severity))
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -1530,7 +1532,7 @@ SaErrorT SAHPI_API saHpiAlarmAcknowledge(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiAlarmAcknowledge, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest3(hm, request, &SessionId, &AlarmId, &Severity);
+        pinst->header.m_len = HpiMarshalRequest3(hm, request, &dsid, &AlarmId, &Severity);
 
 	SendRecv(SessionId, cmd);
 
@@ -1557,15 +1559,15 @@ SaErrorT SAHPI_API saHpiAlarmAdd(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiAlarmAdd";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
         if (!Alarm ||
             !oh_lookup_severity(Alarm->Severity) ||
             Alarm->AlarmCond.Type != SAHPI_STATUS_COND_TYPE_USER)
@@ -1575,7 +1577,7 @@ SaErrorT SAHPI_API saHpiAlarmAdd(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiAlarmAdd, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest2(hm, request, &SessionId, Alarm);
+        pinst->header.m_len = HpiMarshalRequest2(hm, request, &dsid, Alarm);
 
 	SendRecv(SessionId, cmd);
 
@@ -1603,15 +1605,15 @@ SaErrorT SAHPI_API saHpiAlarmDelete(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiAlarmDelete";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
         if (AlarmId == SAHPI_ENTRY_UNSPECIFIED &&
             !oh_lookup_severity(Severity))
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -1620,7 +1622,7 @@ SaErrorT SAHPI_API saHpiAlarmDelete(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiAlarmDelete, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest3(hm, request, &SessionId, &AlarmId, &Severity);
+        pinst->header.m_len = HpiMarshalRequest3(hm, request, &dsid, &AlarmId, &Severity);
 
         SendRecv(SessionId, cmd);
 
@@ -1650,15 +1652,15 @@ SaErrorT SAHPI_API saHpiRdrGet(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiRdrGet";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
         if (EntryId == SAHPI_LAST_ENTRY || !Rdr || !NextEntryId)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -1666,7 +1668,7 @@ SaErrorT SAHPI_API saHpiRdrGet(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiRdrGet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest3(hm, request, &SessionId, &ResourceId, &EntryId);
+        pinst->header.m_len = HpiMarshalRequest3(hm, request, &dsid, &ResourceId, &EntryId);
 
         SendRecv(SessionId, cmd);
 
@@ -1696,15 +1698,15 @@ SaErrorT SAHPI_API saHpiRdrGetByInstrumentId(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiRdrGetByInstrumentId";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
         if (!oh_lookup_rdrtype(RdrType) ||
             RdrType == SAHPI_NO_RECORD || !Rdr)
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -1713,7 +1715,7 @@ SaErrorT SAHPI_API saHpiRdrGetByInstrumentId(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiRdrGetByInstrumentId, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest4(hm, request, &SessionId, &ResourceId, &RdrType, &InstrumentId);
+        pinst->header.m_len = HpiMarshalRequest4(hm, request, &dsid, &ResourceId, &RdrType, &InstrumentId);
 
         SendRecv(SessionId, cmd);
 
@@ -1743,23 +1745,23 @@ SaErrorT SAHPI_API saHpiSensorReadingGet(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiSensorReadingGet";
         SaHpiSensorReadingT tmp_reading;
         SaHpiEventStateT tmp_state;
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiSensorReadingGet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiSensorReadingGet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest3(hm, request, &SessionId, &ResourceId, &SensorNum);
+        pinst->header.m_len = HpiMarshalRequest3(hm, request, &dsid, &ResourceId, &SensorNum);
 
         SendRecv(SessionId, cmd);
 
@@ -1795,15 +1797,15 @@ SaErrorT SAHPI_API saHpiSensorThresholdsGet(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiSensorThresholdsGet";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
         if (!Thresholds)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -1811,7 +1813,7 @@ SaErrorT SAHPI_API saHpiSensorThresholdsGet(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiSensorThresholdsGet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest3(hm, request, &SessionId, &ResourceId, &SensorNum);
+        pinst->header.m_len = HpiMarshalRequest3(hm, request, &dsid, &ResourceId, &SensorNum);
 
         SendRecv(SessionId, cmd);
 
@@ -1843,13 +1845,13 @@ SaErrorT SAHPI_API saHpiSensorThresholdsSet(
         SaErrorT err = SA_OK;
 	char cmd[] = "saHpiSensorThresholdsSet";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 	SaHpiSensorThresholdsT tmpthrds;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
         if (!Thresholds)
                 return SA_ERR_HPI_INVALID_DATA;
 
@@ -1860,7 +1862,7 @@ SaErrorT SAHPI_API saHpiSensorThresholdsSet(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiSensorThresholdsSet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest4(hm, request, &SessionId, &ResourceId, &SensorNum, &tmpthrds);
+        pinst->header.m_len = HpiMarshalRequest4(hm, request, &dsid, &ResourceId, &SensorNum, &tmpthrds);
 
         SendRecv(SessionId, cmd);
 
@@ -1890,15 +1892,15 @@ SaErrorT SAHPI_API saHpiSensorTypeGet(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiSensorTypeGet";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
         if (!Type || !Category)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -1906,7 +1908,7 @@ SaErrorT SAHPI_API saHpiSensorTypeGet(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiSensorTypeGet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest3(hm, request, &SessionId, &ResourceId, &SensorNum);
+        pinst->header.m_len = HpiMarshalRequest3(hm, request, &dsid, &ResourceId, &SensorNum);
 
         SendRecv(SessionId, cmd);
 
@@ -1935,15 +1937,15 @@ SaErrorT SAHPI_API saHpiSensorEnableGet(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiSensorEnableGet";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
         if (!Enabled)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -1951,7 +1953,7 @@ SaErrorT SAHPI_API saHpiSensorEnableGet(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiSensorEnableGet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest3(hm, request, &SessionId, &ResourceId, &SensorNum);
+        pinst->header.m_len = HpiMarshalRequest3(hm, request, &dsid, &ResourceId, &SensorNum);
 
         SendRecv(SessionId, cmd);
 
@@ -1980,21 +1982,21 @@ SaErrorT SAHPI_API saHpiSensorEnableSet(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiSensorEnableSet";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiSensorEnableSet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiSensorEnableSet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest4(hm, request, &SessionId, &ResourceId, &SensorNum, &Enabled);
+        pinst->header.m_len = HpiMarshalRequest4(hm, request, &dsid, &ResourceId, &SensorNum, &Enabled);
 
         SendRecv(SessionId, cmd);
 
@@ -2023,15 +2025,15 @@ SaErrorT SAHPI_API saHpiSensorEventEnableGet(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiSensorEventEnableGet";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
         if (!Enabled)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -2039,7 +2041,7 @@ SaErrorT SAHPI_API saHpiSensorEventEnableGet(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiSensorEventEnableGet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest3(hm, request, &SessionId, &ResourceId, &SensorNum);
+        pinst->header.m_len = HpiMarshalRequest3(hm, request, &dsid, &ResourceId, &SensorNum);
 
         SendRecv(SessionId, cmd);
 
@@ -2068,21 +2070,21 @@ SaErrorT SAHPI_API saHpiSensorEventEnableSet(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiSensorEventEnableSet";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiSensorEventEnableSet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiSensorEventEnableSet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest4(hm, request, &SessionId, &ResourceId, &SensorNum, &Enabled);
+        pinst->header.m_len = HpiMarshalRequest4(hm, request, &dsid, &ResourceId, &SensorNum, &Enabled);
 
         SendRecv(SessionId, cmd);
 
@@ -2112,16 +2114,16 @@ SaErrorT SAHPI_API saHpiSensorEventMasksGet(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiSensorEventMasksGet";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
         SaHpiEventStateT myassert = 0, mydeassert = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
 		
 	if (!Assert) Assert = &myassert;
 	if (!Deassert) Deassert = &mydeassert;
@@ -2131,7 +2133,7 @@ SaErrorT SAHPI_API saHpiSensorEventMasksGet(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiSensorEventMasksGet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest5(hm, request, &SessionId, &ResourceId, &SensorNum, Assert, Deassert);
+        pinst->header.m_len = HpiMarshalRequest5(hm, request, &dsid, &ResourceId, &SensorNum, Assert, Deassert);
 
         SendRecv(SessionId, cmd);
 
@@ -2162,21 +2164,22 @@ SaErrorT SAHPI_API saHpiSensorEventMasksSet(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiSensorEventMasksSet";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiSensorEventMasksSet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiSensorEventMasksSet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest6(hm, request, &SessionId, &ResourceId, &SensorNum, &Action, &Assert, &Deassert);
+        pinst->header.m_len = HpiMarshalRequest6(hm, request,
+              &dsid, &ResourceId, &SensorNum, &Action, &Assert, &Deassert);
 
         SendRecv(SessionId, cmd);
 
@@ -2205,27 +2208,30 @@ SaErrorT SAHPI_API saHpiControlTypeGet(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiControlTypeGet";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
         if (!Type)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiControlTypeGet);
-        pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiControlTypeGet, hm->m_request_len);
+        pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiControlTypeGet,
+                                 hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest3(hm, request, &SessionId, &ResourceId, &CtrlNum);
+        pinst->header.m_len = HpiMarshalRequest3(hm, request, &dsid,
+                                                 &ResourceId, &CtrlNum);
 
         SendRecv(SessionId, cmd);
 
-        int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, Type);
+        int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm,
+                                    reply + sizeof(cMessageHeader), &err, Type);
 
         if (request)
                 free(request);
@@ -2251,19 +2257,19 @@ SaErrorT SAHPI_API saHpiControlGet(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiControlGet";
         SaHpiCtrlModeT tmp_mode = SAHPI_CTRL_MODE_AUTO;
         SaHpiCtrlStateT tmp_state;
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	memset(&tmp_state, 0, sizeof(SaHpiCtrlStateT));
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
 
         if (State != NULL) {
                 memcpy(&tmp_state, State, sizeof(SaHpiCtrlStateT));
@@ -2279,11 +2285,15 @@ SaErrorT SAHPI_API saHpiControlGet(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiControlGet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest4(hm, request, &SessionId, &ResourceId, &CtrlNum, &tmp_state);
+        pinst->header.m_len = HpiMarshalRequest4(hm, request, &dsid,
+                                                 &ResourceId, &CtrlNum,
+                                                 &tmp_state);
 
         SendRecv(SessionId, cmd);
 
-        int mr = HpiDemarshalReply2(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, &tmp_mode, &tmp_state);
+        int mr = HpiDemarshalReply2(pinst->header.m_flags & dMhEndianBit, hm,
+                                    reply + sizeof(cMessageHeader),
+                                    &err, &tmp_mode, &tmp_state);
 
         if (Mode != NULL) {
                 memcpy(Mode, &tmp_mode, sizeof(SaHpiCtrlModeT));
@@ -2316,16 +2326,16 @@ SaErrorT SAHPI_API saHpiControlSet(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiControlSet";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
         SaHpiCtrlStateT mystate, *pmystate = NULL;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
         if (!oh_lookup_ctrlmode(Mode) ||
             (Mode != SAHPI_CTRL_MODE_AUTO && !State) ||
             (State && State->Type == SAHPI_CTRL_TYPE_DIGITAL &&
@@ -2347,7 +2357,7 @@ SaErrorT SAHPI_API saHpiControlSet(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiControlSet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest5(hm, request, &SessionId, &ResourceId, &CtrlNum, &Mode, pmystate);
+        pinst->header.m_len = HpiMarshalRequest5(hm, request, &dsid, &ResourceId, &CtrlNum, &Mode, pmystate);
 
 	SendRecv(SessionId, cmd);
 
@@ -2376,15 +2386,15 @@ SaErrorT SAHPI_API saHpiIdrInfoGet(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiIdrInfoGet";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
         if (Info == NULL)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -2392,7 +2402,7 @@ SaErrorT SAHPI_API saHpiIdrInfoGet(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiIdrInfoGet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest3(hm, request, &SessionId, &ResourceId, &Idrid);
+        pinst->header.m_len = HpiMarshalRequest3(hm, request, &dsid, &ResourceId, &Idrid);
 
         SendRecv(SessionId, cmd);
 
@@ -2424,15 +2434,15 @@ SaErrorT SAHPI_API saHpiIdrAreaHeaderGet(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiIdrAreaHeaderGet";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
         if ( ((AreaType < SAHPI_IDR_AREATYPE_INTERNAL_USE) ||
              ((AreaType > SAHPI_IDR_AREATYPE_PRODUCT_INFO) &&
              (AreaType != SAHPI_IDR_AREATYPE_UNSPECIFIED)  &&
@@ -2446,7 +2456,7 @@ SaErrorT SAHPI_API saHpiIdrAreaHeaderGet(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiIdrAreaHeaderGet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest5(hm, request, &SessionId, &ResourceId, &Idrid, &AreaType, &AreaId);
+        pinst->header.m_len = HpiMarshalRequest5(hm, request, &dsid, &ResourceId, &Idrid, &AreaType, &AreaId);
 
         SendRecv(SessionId, cmd);
 
@@ -2476,15 +2486,15 @@ SaErrorT SAHPI_API saHpiIdrAreaAdd(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiIdrAreaAdd";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
         
         if (!oh_lookup_idrareatype(AreaType) ||
             AreaId == NULL)   {
@@ -2497,7 +2507,7 @@ SaErrorT SAHPI_API saHpiIdrAreaAdd(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiIdrAreaAdd, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest4(hm, request, &SessionId, &ResourceId, &Idrid, &AreaType);
+        pinst->header.m_len = HpiMarshalRequest4(hm, request, &dsid, &ResourceId, &Idrid, &AreaType);
 
         SendRecv(SessionId, cmd);
 
@@ -2527,15 +2537,15 @@ SaErrorT SAHPI_API saHpiIdrAreaAddById(
 {
         void *request;
         char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
         char cmd[] = "saHpiIdrAreaAddById";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
         if (SessionId == 0)
                 return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-        if (pinst == NULL )
-                return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+        if (err) return err;
         
         if (!oh_lookup_idrareatype(AreaType))   {
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -2547,7 +2557,7 @@ SaErrorT SAHPI_API saHpiIdrAreaAddById(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiIdrAreaAddById, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest5(hm, request, &SessionId, &ResourceId, &Idrid, &AreaType, &AreaId);
+        pinst->header.m_len = HpiMarshalRequest5(hm, request, &dsid, &ResourceId, &Idrid, &AreaType, &AreaId);
 
         SendRecv(SessionId, cmd);
 
@@ -2576,15 +2586,15 @@ SaErrorT SAHPI_API saHpiIdrAreaDelete(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiIdrAreaDelete";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
         if (AreaId == SAHPI_LAST_ENTRY)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -2592,7 +2602,7 @@ SaErrorT SAHPI_API saHpiIdrAreaDelete(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiIdrAreaDelete, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest4(hm, request, &SessionId, &ResourceId, &Idrid, &AreaId);
+        pinst->header.m_len = HpiMarshalRequest4(hm, request, &dsid, &ResourceId, &Idrid, &AreaId);
 
         SendRecv(SessionId, cmd);
 
@@ -2625,15 +2635,15 @@ SaErrorT SAHPI_API saHpiIdrFieldGet(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiIdrFieldGet";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
         
         if (!Field ||
             !oh_lookup_idrfieldtype(FieldType) ||
@@ -2648,7 +2658,7 @@ SaErrorT SAHPI_API saHpiIdrFieldGet(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiIdrFieldGet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest6(hm, request, &SessionId, &ResourceId, &Idrid, &AreaId, &FieldType, &FieldId);
+        pinst->header.m_len = HpiMarshalRequest6(hm, request, &dsid, &ResourceId, &Idrid, &AreaId, &FieldType, &FieldId);
 
         SendRecv(SessionId, cmd);
 
@@ -2677,15 +2687,15 @@ SaErrorT SAHPI_API saHpiIdrFieldAdd(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiIdrFieldAdd";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
         
         if (!Field)   {
         	client_err(cmd, "Null Field");
@@ -2705,7 +2715,7 @@ SaErrorT SAHPI_API saHpiIdrFieldAdd(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiIdrFieldAdd, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest4(hm, request, &SessionId, &ResourceId, &Idrid, Field);
+        pinst->header.m_len = HpiMarshalRequest4(hm, request, &dsid, &ResourceId, &Idrid, Field);
 
         SendRecv(SessionId, cmd);
 
@@ -2734,15 +2744,15 @@ SaErrorT SAHPI_API saHpiIdrFieldAddById(
 {
         void *request;
         char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
         char cmd[] = "saHpiIdrFieldAddById";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
         if (SessionId == 0)
                 return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-        if (pinst == NULL )
-                return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+        if (err) return err;
         
         if (!Field)   {
                 client_err(cmd, "Null Field");
@@ -2762,7 +2772,7 @@ SaErrorT SAHPI_API saHpiIdrFieldAddById(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiIdrFieldAddById, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest4(hm, request, &SessionId, &ResourceId, &Idrid, Field);
+        pinst->header.m_len = HpiMarshalRequest4(hm, request, &dsid, &ResourceId, &Idrid, Field);
 
         SendRecv(SessionId, cmd);
 
@@ -2791,15 +2801,15 @@ SaErrorT SAHPI_API saHpiIdrFieldSet(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiIdrFieldSet";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
         if (!Field)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (Field->Type > SAHPI_IDR_FIELDTYPE_CUSTOM)
@@ -2809,7 +2819,7 @@ SaErrorT SAHPI_API saHpiIdrFieldSet(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiIdrFieldSet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest4(hm, request, &SessionId, &ResourceId, &Idrid, Field);
+        pinst->header.m_len = HpiMarshalRequest4(hm, request, &dsid, &ResourceId, &Idrid, Field);
 
         SendRecv(SessionId, cmd);
 
@@ -2839,15 +2849,15 @@ SaErrorT SAHPI_API saHpiIdrFieldDelete(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiIdrFieldDelete";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
         if (FieldId == SAHPI_LAST_ENTRY || AreaId == SAHPI_LAST_ENTRY)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -2855,7 +2865,7 @@ SaErrorT SAHPI_API saHpiIdrFieldDelete(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiIdrFieldDelete, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest5(hm, request, &SessionId, &ResourceId, &Idrid, &AreaId, &FieldId);
+        pinst->header.m_len = HpiMarshalRequest5(hm, request, &dsid, &ResourceId, &Idrid, &AreaId, &FieldId);
 
         SendRecv(SessionId, cmd);
 
@@ -2884,15 +2894,15 @@ SaErrorT SAHPI_API saHpiWatchdogTimerGet(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiWatchdogTimerGet";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
         if (!Watchdog)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -2900,7 +2910,7 @@ SaErrorT SAHPI_API saHpiWatchdogTimerGet(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiWatchdogTimerGet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest3(hm, request, &SessionId, &ResourceId, &WatchdogNum);
+        pinst->header.m_len = HpiMarshalRequest3(hm, request, &dsid, &ResourceId, &WatchdogNum);
 
         SendRecv(SessionId, cmd);
 
@@ -2929,15 +2939,15 @@ SaErrorT SAHPI_API saHpiWatchdogTimerSet(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiWatchdogTimerSet";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
         
         if (!Watchdog ||
             !oh_lookup_watchdogtimeruse(Watchdog->TimerUse) ||
@@ -2954,7 +2964,7 @@ SaErrorT SAHPI_API saHpiWatchdogTimerSet(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiWatchdogTimerSet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest4(hm, request, &SessionId, &ResourceId, &WatchdogNum, Watchdog);
+        pinst->header.m_len = HpiMarshalRequest4(hm, request, &dsid, &ResourceId, &WatchdogNum, Watchdog);
 
         SendRecv(SessionId, cmd);
 
@@ -2982,21 +2992,21 @@ SaErrorT SAHPI_API saHpiWatchdogTimerReset(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiWatchdogTimerReset";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiWatchdogTimerReset);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiWatchdogTimerReset, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest3(hm, request, &SessionId, &ResourceId, &WatchdogNum);
+        pinst->header.m_len = HpiMarshalRequest3(hm, request, &dsid, &ResourceId, &WatchdogNum);
 
         SendRecv(SessionId, cmd);
 
@@ -3027,15 +3037,15 @@ SaErrorT SAHPI_API saHpiAnnunciatorGetNext(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiAnnunciatorGetNext";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
         if (Announcement == NULL)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (!oh_lookup_severity(Severity))
@@ -3045,7 +3055,7 @@ SaErrorT SAHPI_API saHpiAnnunciatorGetNext(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiAnnunciatorGetNext, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest6(hm, request, &SessionId, &ResourceId, &AnnNum, &Severity, &Unack, Announcement);
+        pinst->header.m_len = HpiMarshalRequest6(hm, request, &dsid, &ResourceId, &AnnNum, &Severity, &Unack, Announcement);
 
         SendRecv(SessionId, cmd);
 
@@ -3075,16 +3085,16 @@ SaErrorT SAHPI_API saHpiAnnunciatorGet(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiAnnunciatorGet";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
+        err = oh_get_connx(SessionId, &dsid, &pinst);
         
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+	if (err) return err;
         
         if (Announcement == NULL)
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -3093,7 +3103,7 @@ SaErrorT SAHPI_API saHpiAnnunciatorGet(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiAnnunciatorGet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest4(hm, request, &SessionId, &ResourceId, &AnnNum, &EntryId);
+        pinst->header.m_len = HpiMarshalRequest4(hm, request, &dsid, &ResourceId, &AnnNum, &EntryId);
 
         SendRecv(SessionId, cmd);
 
@@ -3123,9 +3133,10 @@ SaErrorT SAHPI_API saHpiAnnunciatorAcknowledge(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiAnnunciatorAcknowledge";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
         SaHpiSeverityT mysev = SAHPI_DEBUG;
 
 	if (SessionId == 0)
@@ -3139,15 +3150,14 @@ SaErrorT SAHPI_API saHpiAnnunciatorAcknowledge(
 	        }
 	}
 	
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;        
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;        
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiAnnunciatorAcknowledge);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiAnnunciatorAcknowledge, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest5(hm, request, &SessionId, &ResourceId, &AnnNum, &EntryId, &mysev);
+        pinst->header.m_len = HpiMarshalRequest5(hm, request, &dsid, &ResourceId, &AnnNum, &EntryId, &mysev);
 
 	SendRecv(SessionId, cmd);
 
@@ -3176,16 +3186,16 @@ SaErrorT SAHPI_API saHpiAnnunciatorAdd(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiAnnunciatorAdd";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
 
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
 
         if (Announcement == NULL)
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -3200,7 +3210,7 @@ SaErrorT SAHPI_API saHpiAnnunciatorAdd(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiAnnunciatorAdd, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest4(hm, request, &SessionId, &ResourceId, &AnnNum, Announcement);
+        pinst->header.m_len = HpiMarshalRequest4(hm, request, &dsid, &ResourceId, &AnnNum, Announcement);
 
 	SendRecv(SessionId, cmd);
 
@@ -3230,9 +3240,10 @@ SaErrorT SAHPI_API saHpiAnnunciatorDelete(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiAnnunciatorDelete";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
         SaHpiSeverityT mysev = SAHPI_DEBUG;
 
 	if (SessionId == 0)
@@ -3247,15 +3258,14 @@ SaErrorT SAHPI_API saHpiAnnunciatorDelete(
 		}
 	}
 
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;        
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;        
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiAnnunciatorDelete);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiAnnunciatorDelete, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest5(hm, request, &SessionId, &ResourceId, &AnnNum, &EntryId, &mysev);
+        pinst->header.m_len = HpiMarshalRequest5(hm, request, &dsid, &ResourceId, &AnnNum, &EntryId, &mysev);
 
 	SendRecv(SessionId, cmd);
 
@@ -3284,15 +3294,15 @@ SaErrorT SAHPI_API saHpiAnnunciatorModeGet(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiAnnunciatorModeGet";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
         if (Mode == NULL)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -3300,7 +3310,7 @@ SaErrorT SAHPI_API saHpiAnnunciatorModeGet(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiAnnunciatorModeGet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest3(hm, request, &SessionId, &ResourceId, &AnnNum);
+        pinst->header.m_len = HpiMarshalRequest3(hm, request, &dsid, &ResourceId, &AnnNum);
 
         SendRecv(SessionId, cmd);
 
@@ -3329,15 +3339,15 @@ SaErrorT SAHPI_API saHpiAnnunciatorModeSet(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiAnnunciatorModeSet";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
         if (!oh_lookup_annunciatormode(Mode))
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -3345,7 +3355,7 @@ SaErrorT SAHPI_API saHpiAnnunciatorModeSet(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiAnnunciatorModeSet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest4(hm, request, &SessionId, &ResourceId, &AnnNum, &Mode);
+        pinst->header.m_len = HpiMarshalRequest4(hm, request, &dsid, &ResourceId, &AnnNum, &Mode);
 
         SendRecv(SessionId, cmd);
 
@@ -3374,15 +3384,15 @@ SaErrorT SAHPI_API saHpiDimiInfoGet(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiDimiInfoGet";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL)
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
         if (!DimiInfo)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -3390,7 +3400,7 @@ SaErrorT SAHPI_API saHpiDimiInfoGet(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiDimiInfoGet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest3(hm, request, &SessionId, &ResourceId, &DimiNum);
+        pinst->header.m_len = HpiMarshalRequest3(hm, request, &dsid, &ResourceId, &DimiNum);
 
         SendRecv(SessionId, cmd);
 
@@ -3415,15 +3425,15 @@ SaErrorT SAHPI_API saHpiDimiTestInfoGet(
 {
         void *request;
         char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
         char cmd[] = "saHpiDimiTestInfoGet";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
         if (SessionId == 0)
                 return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-        if (pinst == NULL )
-                return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+        if (err) return err;
         if (!DimiTest)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -3432,7 +3442,7 @@ SaErrorT SAHPI_API saHpiDimiTestInfoGet(
         request = malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest4(hm, request,
-                                &SessionId, &ResourceId, &DimiNum, &TestNum);
+                                &dsid, &ResourceId, &DimiNum, &TestNum);
 
         SendRecv(SessionId, cmd);
 
@@ -3459,15 +3469,15 @@ SaErrorT SAHPI_API saHpiDimiTestReadinessGet(
 {
         void *request;
         char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
         char cmd[] = "saHpiDimiTestReadinessGet";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
         if (SessionId == 0)
                 return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-        if (pinst == NULL )
-                return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+        if (err) return err;
         if (!DimiReady)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -3476,7 +3486,7 @@ SaErrorT SAHPI_API saHpiDimiTestReadinessGet(
         request = malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest4(hm, request,
-                                &SessionId, &ResourceId, &DimiNum, &TestNum);
+                                &dsid, &ResourceId, &DimiNum, &TestNum);
 
         SendRecv(SessionId, cmd);
 
@@ -3504,16 +3514,16 @@ SaErrorT SAHPI_API saHpiDimiTestStart(
 {
         void *request;
         char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
         char cmd[] = "saHpiDimiTestStart";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
         SaHpiDimiTestVariableParamsListT params_list;
 
         if (SessionId == 0)
                 return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-        if (pinst == NULL )
-                return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+        if (err) return err;
         if (ParamsList == NULL && NumberOfParams != 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -3525,7 +3535,7 @@ SaErrorT SAHPI_API saHpiDimiTestStart(
         request = malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest5(hm, request,
-                                &SessionId, &ResourceId, &DimiNum, &TestNum,
+                                &dsid, &ResourceId, &DimiNum, &TestNum,
                                 &params_list);
 
         SendRecv(SessionId, cmd);
@@ -3552,22 +3562,22 @@ SaErrorT SAHPI_API saHpiDimiTestCancel(
 {
         void *request;
         char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
         char cmd[] = "saHpiDimiTestCancel";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
         if (SessionId == 0)
                 return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-        if (pinst == NULL )
-                return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+        if (err) return err;
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiDimiTestCancel);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiDimiTestCancel, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest4(hm, request,
-                                &SessionId, &ResourceId, &DimiNum, &TestNum);
+                                &dsid, &ResourceId, &DimiNum, &TestNum);
 
         SendRecv(SessionId, cmd);
 
@@ -3595,17 +3605,17 @@ SaErrorT SAHPI_API saHpiDimiTestStatusGet(
 {
         void *request;
         char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
         char cmd[] = "saHpiDimiTestStatusGet";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
         SaHpiDimiTestPercentCompletedT percent;
         SaHpiDimiTestPercentCompletedT *ppercent = &percent;
 
         if (SessionId == 0)
                 return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-        if (pinst == NULL )
-                return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+        if (err) return err;
         if (RunStatus == NULL)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (PercentCompleted != NULL)
@@ -3616,7 +3626,7 @@ SaErrorT SAHPI_API saHpiDimiTestStatusGet(
         request = malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest4(hm, request,
-                                &SessionId, &ResourceId, &DimiNum, &TestNum);
+                                &dsid, &ResourceId, &DimiNum, &TestNum);
 
         SendRecv(SessionId, cmd);
 
@@ -3643,15 +3653,15 @@ SaErrorT SAHPI_API saHpiDimiTestResultsGet(
 {
         void *request;
         char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
         char cmd[] = "saHpiDimiTestResultsGet";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
         if (SessionId == 0)
                 return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-        if (pinst == NULL )
-                return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+        if (err) return err;
         if (TestResults == NULL)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -3660,7 +3670,7 @@ SaErrorT SAHPI_API saHpiDimiTestResultsGet(
         request = malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest4(hm, request,
-                                &SessionId, &ResourceId, &DimiNum, &TestNum);
+                                &dsid, &ResourceId, &DimiNum, &TestNum);
 
         SendRecv(SessionId, cmd);
 
@@ -3693,15 +3703,15 @@ SaErrorT SAHPI_API saHpiFumiSourceSet (
 {
         void *request;
         char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
         char cmd[] = "saHpiFumiSourceSet";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
         if (SessionId == 0)
                 return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-        if (pinst == NULL )
-                return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+        if (err) return err;
         if (SourceUri == NULL || SourceUri->DataType != SAHPI_TL_TYPE_TEXT)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -3710,7 +3720,7 @@ SaErrorT SAHPI_API saHpiFumiSourceSet (
         request = malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest5(hm, request,
-                                &SessionId, &ResourceId, &FumiNum, &BankNum,
+                                &dsid, &ResourceId, &FumiNum, &BankNum,
                                 SourceUri);
 
         SendRecv(SessionId, cmd);
@@ -3737,22 +3747,22 @@ SaErrorT SAHPI_API saHpiFumiSourceInfoValidateStart (
 {
         void *request;
         char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
         char cmd[] = "saHpiFumiSourceInfoValidateStart";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
         if (SessionId == 0)
                 return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-        if (pinst == NULL )
-                return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+        if (err) return err;
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiFumiSourceInfoValidateStart);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiFumiSourceInfoValidateStart, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest4(hm, request,
-                                &SessionId, &ResourceId, &FumiNum, &BankNum);
+                                &dsid, &ResourceId, &FumiNum, &BankNum);
 
         SendRecv(SessionId, cmd);
 
@@ -3779,15 +3789,15 @@ SaErrorT SAHPI_API saHpiFumiSourceInfoGet (
 {
         void *request;
         char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
         char cmd[] = "saHpiFumiSourceInfoGet";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
         if (SessionId == 0)
                 return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-        if (pinst == NULL )
-                return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+        if (err) return err;
         if (SourceInfo == NULL)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -3796,7 +3806,7 @@ SaErrorT SAHPI_API saHpiFumiSourceInfoGet (
         request = malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest4(hm, request,
-                                &SessionId, &ResourceId, &FumiNum, &BankNum);
+                                &dsid, &ResourceId, &FumiNum, &BankNum);
 
         SendRecv(SessionId, cmd);
 
@@ -3823,15 +3833,15 @@ SaErrorT SAHPI_API saHpiFumiTargetInfoGet (
 {
         void *request;
         char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
         char cmd[] = "saHpiFumiTargetInfoGet";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
         if (SessionId == 0)
                 return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-        if (pinst == NULL )
-                return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+        if (err) return err;
         if (BankInfo == NULL)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -3840,7 +3850,7 @@ SaErrorT SAHPI_API saHpiFumiTargetInfoGet (
         request = malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest4(hm, request,
-                                &SessionId, &ResourceId, &FumiNum, &BankNum);
+                                &dsid, &ResourceId, &FumiNum, &BankNum);
 
         SendRecv(SessionId, cmd);
 
@@ -3865,22 +3875,22 @@ SaErrorT SAHPI_API saHpiFumiBackupStart(
 {
         void *request;
         char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
         char cmd[] = "saHpiFumiBackupStart";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
         if (SessionId == 0)
                 return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-        if (pinst == NULL )
-                return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+        if (err) return err;
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiFumiBackupStart);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiFumiBackupStart, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request,
-                                &SessionId, &ResourceId, &FumiNum);
+                                &dsid, &ResourceId, &FumiNum);
 
         SendRecv(SessionId, cmd);
 
@@ -3907,22 +3917,22 @@ SaErrorT SAHPI_API saHpiFumiBankBootOrderSet (
 {
         void *request;
         char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
         char cmd[] = "saHpiFumiBankBootOrderSet";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
         if (SessionId == 0)
                 return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-        if (pinst == NULL )
-                return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+        if (err) return err;
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiFumiBankBootOrderSet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiFumiBankBootOrderSet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest5(hm, request,
-                                &SessionId, &ResourceId, &FumiNum,
+                                &dsid, &ResourceId, &FumiNum,
                                 &BankNum, &Position);
 
         SendRecv(SessionId, cmd);
@@ -3950,22 +3960,22 @@ SaErrorT SAHPI_API saHpiFumiBankCopyStart(
 {
         void *request;
         char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
         char cmd[] = "saHpiFumiBankCopyStart";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
         if (SessionId == 0)
                 return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-        if (pinst == NULL )
-                return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+        if (err) return err;
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiFumiBankCopyStart);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiFumiBankCopyStart, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest5(hm, request,
-                                &SessionId, &ResourceId, &FumiNum,
+                                &dsid, &ResourceId, &FumiNum,
                                 &SourceBankNum, &TargetBankNum);
 
         SendRecv(SessionId, cmd);
@@ -3992,22 +4002,22 @@ SaErrorT SAHPI_API saHpiFumiInstallStart (
 {
         void *request;
         char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
         char cmd[] = "saHpiFumiInstallStart";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
         if (SessionId == 0)
                 return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-        if (pinst == NULL )
-                return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+        if (err) return err;
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiFumiInstallStart);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiFumiInstallStart, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest4(hm, request,
-                                &SessionId, &ResourceId, &FumiNum,
+                                &dsid, &ResourceId, &FumiNum,
                                 &BankNum);
 
         SendRecv(SessionId, cmd);
@@ -4035,15 +4045,15 @@ SaErrorT SAHPI_API saHpiFumiUpgradeStatusGet (
 {
         void *request;
         char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
         char cmd[] = "saHpiFumiUpgradeStatusGet";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
         if (SessionId == 0)
                 return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-        if (pinst == NULL )
-                return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+        if (err) return err;
         if (UpgradeStatus == NULL)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -4052,7 +4062,7 @@ SaErrorT SAHPI_API saHpiFumiUpgradeStatusGet (
         request = malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest4(hm, request,
-                                &SessionId, &ResourceId, &FumiNum,
+                                &dsid, &ResourceId, &FumiNum,
                                 &BankNum);
 
         SendRecv(SessionId, cmd);
@@ -4079,22 +4089,22 @@ SaErrorT SAHPI_API saHpiFumiTargetVerifyStart (
 {
         void *request;
         char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
         char cmd[] = "saHpiFumiTargetVerifyStart";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
         if (SessionId == 0)
                 return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-        if (pinst == NULL )
-                return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+        if (err) return err;
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiFumiTargetVerifyStart);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiFumiTargetVerifyStart, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest4(hm, request,
-                                &SessionId, &ResourceId, &FumiNum,
+                                &dsid, &ResourceId, &FumiNum,
                                 &BankNum);
 
         SendRecv(SessionId, cmd);
@@ -4121,22 +4131,22 @@ SaErrorT SAHPI_API saHpiFumiUpgradeCancel (
 {
         void *request;
         char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
         char cmd[] = "saHpiFumiUpgradeCancel";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
         if (SessionId == 0)
                 return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-        if (pinst == NULL )
-                return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+        if (err) return err;
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiFumiUpgradeCancel);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiFumiUpgradeCancel, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest4(hm, request,
-                                &SessionId, &ResourceId, &FumiNum,
+                                &dsid, &ResourceId, &FumiNum,
                                 &BankNum);
 
         SendRecv(SessionId, cmd);
@@ -4162,22 +4172,22 @@ SaErrorT SAHPI_API saHpiFumiRollback (
 {
         void *request;
         char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
         char cmd[] = "saHpiFumiRollback";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
         if (SessionId == 0)
                 return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-        if (pinst == NULL )
-                return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+        if (err) return err;
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiFumiRollback);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiFumiRollback, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request,
-                                &SessionId, &ResourceId, &FumiNum);
+                                &dsid, &ResourceId, &FumiNum);
 
         SendRecv(SessionId, cmd);
 
@@ -4202,22 +4212,22 @@ SaErrorT SAHPI_API saHpiFumiActivate (
 {
         void *request;
         char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
         char cmd[] = "saHpiFumiActivate";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
         if (SessionId == 0)
                 return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-        if (pinst == NULL )
-                return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+        if (err) return err;
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiFumiActivate);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiFumiActivate, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request,
-                                &SessionId, &ResourceId, &FumiNum);
+                                &dsid, &ResourceId, &FumiNum);
 
         SendRecv(SessionId, cmd);
 
@@ -4245,21 +4255,21 @@ SaErrorT SAHPI_API saHpiHotSwapPolicyCancel(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiHotSwapPolicyCancel";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiHotSwapPolicyCancel);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiHotSwapPolicyCancel, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest2(hm, request, &SessionId, &ResourceId);
+        pinst->header.m_len = HpiMarshalRequest2(hm, request, &dsid, &ResourceId);
 
         SendRecv(SessionId, cmd);
 
@@ -4285,21 +4295,21 @@ SaErrorT SAHPI_API saHpiResourceActiveSet(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiResourceActiveSet";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiResourceActiveSet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiResourceActiveSet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest2(hm, request, &SessionId, &ResourceId);
+        pinst->header.m_len = HpiMarshalRequest2(hm, request, &dsid, &ResourceId);
 
         SendRecv(SessionId, cmd);
 
@@ -4326,21 +4336,21 @@ SaErrorT SAHPI_API saHpiResourceInactiveSet(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiResourceInactiveSet";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiResourceInactiveSet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiResourceInactiveSet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest2(hm, request, &SessionId, &ResourceId);
+        pinst->header.m_len = HpiMarshalRequest2(hm, request, &dsid, &ResourceId);
 
         SendRecv(SessionId, cmd);
 
@@ -4367,15 +4377,15 @@ SaErrorT SAHPI_API saHpiAutoInsertTimeoutGet(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiAutoInsertTimeoutGet";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
         if (Timeout == NULL)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -4383,7 +4393,7 @@ SaErrorT SAHPI_API saHpiAutoInsertTimeoutGet(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiAutoInsertTimeoutGet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest1(hm, request, &SessionId);
+        pinst->header.m_len = HpiMarshalRequest1(hm, request, &dsid);
 
         SendRecv(SessionId, cmd);
 
@@ -4410,15 +4420,15 @@ SaErrorT SAHPI_API saHpiAutoInsertTimeoutSet(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiAutoInsertTimeoutSet";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
         if (Timeout != SAHPI_TIMEOUT_IMMEDIATE &&
             Timeout != SAHPI_TIMEOUT_BLOCK &&
             Timeout < 0)
@@ -4428,7 +4438,7 @@ SaErrorT SAHPI_API saHpiAutoInsertTimeoutSet(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiAutoInsertTimeoutSet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest2(hm, request, &SessionId, &Timeout);
+        pinst->header.m_len = HpiMarshalRequest2(hm, request, &dsid, &Timeout);
 
         SendRecv(SessionId, cmd);
 
@@ -4456,15 +4466,15 @@ SaErrorT SAHPI_API saHpiAutoExtractTimeoutGet(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiAutoExtractTimeoutGet";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
         if (!Timeout)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -4472,7 +4482,7 @@ SaErrorT SAHPI_API saHpiAutoExtractTimeoutGet(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiAutoExtractTimeoutGet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest2(hm, request, &SessionId, &ResourceId);
+        pinst->header.m_len = HpiMarshalRequest2(hm, request, &dsid, &ResourceId);
 
         SendRecv(SessionId, cmd);
 
@@ -4500,15 +4510,15 @@ SaErrorT SAHPI_API saHpiAutoExtractTimeoutSet(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiAutoExtractTimeoutSet";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
         if (Timeout != SAHPI_TIMEOUT_IMMEDIATE &&
             Timeout != SAHPI_TIMEOUT_BLOCK &&
             Timeout < 0)
@@ -4518,7 +4528,7 @@ SaErrorT SAHPI_API saHpiAutoExtractTimeoutSet(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiAutoExtractTimeoutSet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest3(hm, request, &SessionId, &ResourceId, &Timeout);
+        pinst->header.m_len = HpiMarshalRequest3(hm, request, &dsid, &ResourceId, &Timeout);
 
         SendRecv(SessionId, cmd);
 
@@ -4546,15 +4556,15 @@ SaErrorT SAHPI_API saHpiHotSwapStateGet(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiHotSwapStateGet";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
         if (!State)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -4562,7 +4572,7 @@ SaErrorT SAHPI_API saHpiHotSwapStateGet(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiHotSwapStateGet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest2(hm, request, &SessionId, &ResourceId);
+        pinst->header.m_len = HpiMarshalRequest2(hm, request, &dsid, &ResourceId);
 
         SendRecv(SessionId, cmd);
 
@@ -4590,15 +4600,15 @@ SaErrorT SAHPI_API saHpiHotSwapActionRequest(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiHotSwapActionRequest";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
         if (!oh_lookup_hsaction(Action))
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -4606,7 +4616,7 @@ SaErrorT SAHPI_API saHpiHotSwapActionRequest(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiHotSwapActionRequest, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest3(hm, request, &SessionId, &ResourceId, &Action);
+        pinst->header.m_len = HpiMarshalRequest3(hm, request, &dsid, &ResourceId, &Action);
 
         SendRecv(SessionId, cmd);
 
@@ -4634,15 +4644,15 @@ SaErrorT SAHPI_API saHpiHotSwapIndicatorStateGet(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiHotSwapIndicatorStateGet";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
         if (!State)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -4650,7 +4660,7 @@ SaErrorT SAHPI_API saHpiHotSwapIndicatorStateGet(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiHotSwapIndicatorStateGet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest2(hm, request, &SessionId, &ResourceId);
+        pinst->header.m_len = HpiMarshalRequest2(hm, request, &dsid, &ResourceId);
 
         SendRecv(SessionId, cmd);
 
@@ -4678,15 +4688,15 @@ SaErrorT SAHPI_API saHpiHotSwapIndicatorStateSet(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiHotSwapIndicatorStateSet";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
         if (!oh_lookup_hsindicatorstate(State))
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -4694,7 +4704,7 @@ SaErrorT SAHPI_API saHpiHotSwapIndicatorStateSet(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiHotSwapIndicatorStateSet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest3(hm, request, &SessionId, &ResourceId, &State);
+        pinst->header.m_len = HpiMarshalRequest3(hm, request, &dsid, &ResourceId, &State);
 
         SendRecv(SessionId, cmd);
 
@@ -4722,15 +4732,15 @@ SaErrorT SAHPI_API saHpiParmControl(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiParmControl";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
         if (!oh_lookup_parmaction(Action))
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -4738,7 +4748,7 @@ SaErrorT SAHPI_API saHpiParmControl(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiParmControl, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest3(hm, request, &SessionId, &ResourceId, &Action);
+        pinst->header.m_len = HpiMarshalRequest3(hm, request, &dsid, &ResourceId, &Action);
 
         SendRecv(SessionId, cmd);
 
@@ -4766,21 +4776,21 @@ SaErrorT SAHPI_API saHpiResourceLoadIdGet(
 {
         void *request;
         char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
         char cmd[] = "saHpiResourceLoadIdGet";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
         if (SessionId == 0)
                 return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-        if (pinst == NULL)
-                return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+        if (err) return err;
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiResourceLoadIdGet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiResourceLoadIdGet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest2(hm, request, &SessionId, &ResourceId);
+        pinst->header.m_len = HpiMarshalRequest2(hm, request, &dsid, &ResourceId);
 
         SendRecv(SessionId, cmd);
 
@@ -4810,15 +4820,15 @@ SaErrorT SAHPI_API saHpiResourceLoadIdSet(
 {
         void *request;
         char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
         char cmd[] = "saHpiResourceLoadIdSet";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
         if (SessionId == 0)
                 return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-        if (pinst == NULL)
-                return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+        if (err) return err;
         if (LoadId == NULL)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -4826,7 +4836,7 @@ SaErrorT SAHPI_API saHpiResourceLoadIdSet(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiResourceLoadIdSet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest3(hm, request, &SessionId, &ResourceId, LoadId);
+        pinst->header.m_len = HpiMarshalRequest3(hm, request, &dsid, &ResourceId, LoadId);
 
         SendRecv(SessionId, cmd);
 
@@ -4856,15 +4866,15 @@ SaErrorT SAHPI_API saHpiResourceResetStateGet(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiResourceResetStateGet";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
         if (!Action)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -4872,7 +4882,7 @@ SaErrorT SAHPI_API saHpiResourceResetStateGet(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiResourceResetStateGet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest2(hm, request, &SessionId, &ResourceId);
+        pinst->header.m_len = HpiMarshalRequest2(hm, request, &dsid, &ResourceId);
 
         SendRecv(SessionId, cmd);
 
@@ -4900,15 +4910,15 @@ SaErrorT SAHPI_API saHpiResourceResetStateSet(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiResourceResetStateSet";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
         if (!oh_lookup_resetaction(Action))
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -4916,7 +4926,7 @@ SaErrorT SAHPI_API saHpiResourceResetStateSet(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiResourceResetStateSet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest3(hm, request, &SessionId, &ResourceId, &Action);
+        pinst->header.m_len = HpiMarshalRequest3(hm, request, &dsid, &ResourceId, &Action);
 
         SendRecv(SessionId, cmd);
 
@@ -4944,15 +4954,15 @@ SaErrorT SAHPI_API saHpiResourcePowerStateGet(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiResourcePowerStateGet";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
         if (!State)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -4960,7 +4970,7 @@ SaErrorT SAHPI_API saHpiResourcePowerStateGet(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiResourcePowerStateGet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest2(hm, request, &SessionId, &ResourceId);
+        pinst->header.m_len = HpiMarshalRequest2(hm, request, &dsid, &ResourceId);
 
         SendRecv(SessionId, cmd);
 
@@ -4988,15 +4998,15 @@ SaErrorT SAHPI_API saHpiResourcePowerStateSet(
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "saHpiResourcePowerStateSet";
         pcstrmsock pinst;
+        SaHpiDomainIdT dsid = 0;
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
-        pinst = oh_get_connx(SessionId);
-	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_get_connx(SessionId, &dsid, &pinst);
+	if (err) return err;
         if (!oh_lookup_powerstate(State))
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -5004,7 +5014,7 @@ SaErrorT SAHPI_API saHpiResourcePowerStateSet(
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiResourcePowerStateSet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest3(hm, request, &SessionId, &ResourceId, &State);
+        pinst->header.m_len = HpiMarshalRequest3(hm, request, &dsid, &ResourceId, &State);
 
         SendRecv(SessionId, cmd);
 
@@ -5040,18 +5050,19 @@ SaHpiUint64T oHpiVersionGet(void)
 SaErrorT oHpiHandlerCreate(GHashTable *config,
                            oHpiHandlerIdT *id)
 {
-        SaErrorT err;
+        SaErrorT err = SA_OK;
         void *request;
 	char reply[dMaxMessageLength];
 	char cmd[] = "oHpiHandlerCreate";
         /* TODO: Change oHpi apis to send a domain id */
-        pcstrmsock pinst = oh_create_connx(SAHPI_UNSPECIFIED_DOMAIN_ID);
+        pcstrmsock pinst = NULL;
         oHpiHandlerConfigT handler_config;
 
         if (!config || !id)
         	return SA_ERR_HPI_INVALID_PARAMS;
-        if (pinst == NULL)
-                return SA_ERR_HPI_INVALID_SESSION;
+        
+        err = oh_create_connx(SAHPI_UNSPECIFIED_DOMAIN_ID, &pinst);
+        if (err) return err;
 
         handler_config.NumberOfParams = 0;
         handler_config.Params = (oHpiHandlerConfigParamT *)g_malloc0(sizeof(oHpiHandlerConfigParamT)*g_hash_table_size(config));
@@ -5088,12 +5099,12 @@ SaErrorT oHpiHandlerDestroy(oHpiHandlerIdT id)
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "oHpiHandlerDestroy";
-        pcstrmsock pinst = oh_create_connx(SAHPI_UNSPECIFIED_DOMAIN_ID);
+        pcstrmsock pinst = NULL;
 
-        if (pinst == NULL )
-                return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_create_connx(SAHPI_UNSPECIFIED_DOMAIN_ID, &pinst);
+        if (err) return err;
 
         cHpiMarshal *hm = HpiMarshalFind(eFoHpiHandlerDestroy);
         pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiHandlerDestroy, hm->m_request_len);
@@ -5124,12 +5135,12 @@ SaErrorT oHpiHandlerInfo(oHpiHandlerIdT id, oHpiHandlerInfoT *info)
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "oHpiHandlerInfo";
-        pcstrmsock pinst = oh_create_connx(SAHPI_UNSPECIFIED_DOMAIN_ID);
+        pcstrmsock pinst = NULL;
 
-        if (pinst == NULL )
-                return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_create_connx(SAHPI_UNSPECIFIED_DOMAIN_ID, &pinst);
+        if (err) return err;
 
         cHpiMarshal *hm = HpiMarshalFind(eFoHpiHandlerInfo);
         pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiHandlerInfo, hm->m_request_len);
@@ -5160,12 +5171,12 @@ SaErrorT oHpiHandlerGetNext(oHpiHandlerIdT id, oHpiHandlerIdT *next_id)
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "oHpiHandlerGetNext";
-        pcstrmsock pinst = oh_create_connx(SAHPI_UNSPECIFIED_DOMAIN_ID);
+        pcstrmsock pinst = NULL;
 
-        if (pinst == NULL )
-                return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_create_connx(SAHPI_UNSPECIFIED_DOMAIN_ID, &pinst);
+        if (err) return err;
 
         cHpiMarshal *hm = HpiMarshalFind(eFoHpiHandlerGetNext);
         pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiHandlerGetNext, hm->m_request_len);
@@ -5198,10 +5209,10 @@ SaErrorT oHpiHandlerFind(SaHpiSessionIdT sid,
         char reply[dMaxMessageLength];
         SaErrorT err = SA_OK;
         char cmd[] = "oHpiHandlerFind";  
-        pcstrmsock pinst = oh_create_connx(SAHPI_UNSPECIFIED_DOMAIN_ID);
+        pcstrmsock pinst = NULL;
 
-        if (pinst == NULL )
-                return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_create_connx(SAHPI_UNSPECIFIED_DOMAIN_ID, &pinst);
+        if (err) return err;
 
         if (!id || !sid || !rid) {
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -5241,10 +5252,10 @@ SaErrorT oHpiHandlerRetry(oHpiHandlerIdT id)
         char reply[dMaxMessageLength];
         SaErrorT err = SA_OK;
         char cmd[] = "oHpiHandlerRetry";  
-        pcstrmsock pinst = oh_create_connx(SAHPI_UNSPECIFIED_DOMAIN_ID);
+        pcstrmsock pinst = NULL;
 
-        if (pinst == NULL )
-                return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_create_connx(SAHPI_UNSPECIFIED_DOMAIN_ID, &pinst);
+        if (err) return err;
 
         if (!id) {
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -5283,12 +5294,12 @@ SaErrorT oHpiGlobalParamGet(oHpiGlobalParamT *param)
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "oHpiGlobalParamGet";
-        pcstrmsock pinst = oh_create_connx(SAHPI_UNSPECIFIED_DOMAIN_ID);
+        pcstrmsock pinst = NULL;
 
-        if (pinst == NULL )
-                return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_create_connx(SAHPI_UNSPECIFIED_DOMAIN_ID, &pinst);
+        if (err) return err;
 
         cHpiMarshal *hm = HpiMarshalFind(eFoHpiGlobalParamGet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiGlobalParamGet, hm->m_request_len);
@@ -5319,12 +5330,12 @@ SaErrorT oHpiGlobalParamSet(oHpiGlobalParamT *param)
 {
         void *request;
 	char reply[dMaxMessageLength];
-        SaErrorT err;
+        SaErrorT err = SA_OK;
 	char cmd[] = "oHpiGlobalParamSet";
-        pcstrmsock pinst = oh_create_connx(SAHPI_UNSPECIFIED_DOMAIN_ID);
+        pcstrmsock pinst = NULL;
 
-        if (pinst == NULL )
-                return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_create_connx(SAHPI_UNSPECIFIED_DOMAIN_ID, &pinst);
+        if (err) return err;
 
         cHpiMarshal *hm = HpiMarshalFind(eFoHpiGlobalParamSet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiGlobalParamSet, hm->m_request_len);
@@ -5359,10 +5370,10 @@ SaErrorT oHpiInjectEvent(oHpiHandlerIdT id,
         char reply[dMaxMessageLength];
         SaErrorT err = SA_OK;
         char cmd[] = "oHpiInjectEvent";  
-        pcstrmsock pinst = oh_create_connx(SAHPI_UNSPECIFIED_DOMAIN_ID);
+        pcstrmsock pinst = NULL;
 
-        if (pinst == NULL )
-                return SA_ERR_HPI_INVALID_SESSION;
+        err = oh_create_connx(SAHPI_UNSPECIFIED_DOMAIN_ID, &pinst);
+        if (err) return err;
 
         if (!id) {
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -5379,13 +5390,8 @@ SaErrorT oHpiInjectEvent(oHpiHandlerIdT id,
         SendRecv(0, cmd);
 
         int mr = HpiDemarshalReply4(pinst->header.m_flags & dMhEndianBit, 
-                                    hm, 
-                                    reply + sizeof(cMessageHeader),
-                                    &err, 
-                                    &id, 
-                                    event, 
-                                    rpte, 
-                                    rdr);
+                                    hm, reply + sizeof(cMessageHeader),
+                                    &err, &id, event, rpte, rdr);
 
         oh_delete_connx(pinst);
 

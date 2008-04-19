@@ -38,37 +38,29 @@ extern "C"
 #define SendRecv(sid, cmd) \
 	if (pinst->WriteMsg(request)) { \
 		client_err(cmd, "WriteMsg failed\n"); \
-		if(request) \
-			free(request); \
-                if (sid) \
-                        oh_remove_connx(sid); \
-                else \
-                        oh_delete_connx(pinst); \
+		g_free(request); \
+                if (sid) oh_close_connx(sid); \
+                else oh_delete_connx(pinst); \
 		return SA_ERR_HPI_NO_RESPONSE; \
 	} \
 	if (pinst->ReadMsg(reply)) { \
 		client_err(cmd, "Read failed\n"); \
-		if(request) \
-			free(request); \
-                if (sid) \
-                	oh_remove_connx(sid); \
-                else \
-                	oh_delete_connx(pinst); \
+		g_free(request); \
+                if (sid) oh_close_connx(sid); \
+                else oh_delete_connx(pinst); \
 		return SA_ERR_HPI_NO_RESPONSE; \
 	}
 
 #define SendRecvNoReturn(cmd) \
 	if (pinst->WriteMsg(request)) { \
 		client_err(cmd, "WriteMsg failed\n"); \
-		if(request) \
-			free(request); \
+		g_free(request); \
 		oh_delete_connx(pinst); \
 		return; \
 	} \
 	if (pinst->ReadMsg(reply)) { \
 		client_err(cmd, "Read failed\n"); \
-		if(request) \
-			free(request); \
+		g_free(request); \
 		oh_delete_connx(pinst); \
 		return; \
 	}
