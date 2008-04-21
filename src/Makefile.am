@@ -41,8 +41,6 @@ INCLUDES                = @OPENHPI_INCLUDES@
 
 SUBDIRS                 = t
 
-AM_CFLAGS               = @CFLAGS@
-
 noinst_LTLIBRARIES =
 lib_LTLIBRARIES =
 

@@ -31,8 +31,6 @@ MAINTAINERCLEANFILES    = Makefile.in
 
 INCLUDES                = @OPENHPI_INCLUDES@ @XML2_INCLUDE@
 
-AM_CFLAGS               = @CFLAGS@
-
 pkglib_LTLIBRARIES      = liboa_soap.la
 
 liboa_soap_la_SOURCES   = oa_soap.h \
