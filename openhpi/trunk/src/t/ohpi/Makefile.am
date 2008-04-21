@@ -15,8 +15,6 @@ EXTRA_DIST              = openhpi.conf
 
 INCLUDES		= @OPENHPI_INCLUDES@
 
-AM_CFLAGS		= @NOCFLAGS@
-
 TDEPLIB                 = $(top_builddir)/src/libopenhpi.la \
 			  $(top_builddir)/utils/libopenhpiutils.la
 

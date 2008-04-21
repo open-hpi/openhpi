@@ -13,12 +13,8 @@ EXTRA_DIST              = openhpi.conf
 
 INCLUDES		= @OPENHPI_INCLUDES@
 
-AM_CFLAGS		= @NOCFLAGS@
-
 MAINTAINERCLEANFILES 	= Makefile.in
 
-# removed until the gcc 3.4 bug is fixed
-# @COV_CFLAGS@
 TDEPLIB			= $(top_builddir)/src/libopenhpi.la \
 			  $(top_builddir)/utils/libopenhpiutils.la
 

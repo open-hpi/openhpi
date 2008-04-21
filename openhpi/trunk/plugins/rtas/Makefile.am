@@ -17,8 +17,6 @@ MAINTAINERCLEANFILES 	= Makefile.in
 
 INCLUDES		= @OPENHPI_INCLUDES@ 
 
-AM_CFLAGS		= @CFLAGS@
-
 pkglib_LTLIBRARIES	= librtas2hpi.la 
 
 librtas2hpi_la_SOURCES	=  rtas.c \

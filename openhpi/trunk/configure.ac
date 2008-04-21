@@ -531,8 +531,8 @@ AC_ARG_ENABLE([testcover],
     [if test "x$enableval" = "xyes"; then
             CFLAGS=`echo $CFLAGS | sed -e 's/-O\w\?\>[ ]*//g'`
             CFLAGS="$CFLAGS -ftest-coverage -fprofile-arcs"
-            COV_CFLAGS = "-ftest-coverage -fprofile-arcs"
-            AC_SUBST(COV_CFLAGS)
+            CXXFLAGS=`echo $CXXFLAGS | sed -e 's/-O\w\?\>[ ]*//g'`
+            CXXFLAGS="$CXXFLAGS -ftest-coverage -fprofile-arcs"
     fi]
     )
 
@@ -545,10 +545,13 @@ AC_ARG_ENABLE([debuggable],
             CFLAGS=`echo $CFLAGS | sed -e 's/-O\w\?\>[ ]*//g'`
             CFLAGS=`echo $CFLAGS | sed -e 's/^-g\w*[ ]*\| -g\w*//g'`
             CFLAGS="$CFLAGS -O0 -ggdb3"
+            CXXFLAGS=`echo $CXXFLAGS | sed -e 's/-O\w\?\>[ ]*//g'`
+            CXXFLAGS=`echo $CXXFLAGS | sed -e 's/^-g\w*[ ]*\| -g\w*//g'`
+            CXXFLAGS="$CXXFLAGS -O0 -ggdb3"
     else
             CFLAGS=`echo $CFLAGS | sed -e 's/^-g\w*[ ]*\| -g\w*//g'`
-    fi],
-    [CFLAGS=`echo $CFLAGS | sed -e 's/^-g\w*[ ]*\| -g\w*//g'`]
+            CXXFLAGS=`echo $CXXFLAGS | sed -e 's/^-g\w*[ ]*\| -g\w*//g'`
+    fi]
     )
 
 dnl This will let the user decide whether he wants
@@ -622,13 +625,6 @@ if test "x$have_openssl" = "xyes" ; then
         CFLAGS="$CFLAGS -DHAVE_OPENSSL"
         CXXFLAGS="$CXXFLAGS -DHAVE_OPENSSL"
 fi
-
-dnl there are certain places we always want to turn off optimization
-dnl this has to come last
-NOCFLAGS=`echo $CFLAGS | sed -e 's/-O\w\?\>[ ]*//g'`
-AC_SUBST(NOCFLAGS)
-NOCXXFLAGS=`echo $CXXFLAGS | sed -e 's/-O\w\?\>[ ]*//g'`
-AC_SUBST(NOCXXFLAGS)
 
 OPENHPI_INCLUDES="-I\$(top_srcdir)/include -I\$(top_srcdir)/utils -I\$(top_builddir)/utils"
 dnl replace common includes here

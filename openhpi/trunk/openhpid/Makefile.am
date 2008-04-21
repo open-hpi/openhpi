@@ -33,7 +33,6 @@ REMOTE_SOURCES		= \
        	ssl_init.c \
        	ohpi.c
 
-AM_CFLAGS		= @CFLAGS@
 INCLUDES 		= @OPENHPI_INCLUDES@  -I$(top_srcdir)/marshal
 
 EXTRA_DIST		= \

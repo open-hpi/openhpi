@@ -49,8 +49,8 @@ INCLUDES = \
 		-I$(SNMPUTILSDIR) \
                 -I$(top_srcdir)/plugins/snmp_bc
 
-AM_CFLAGS = @NOCFLAGS@ @SNMPFLAGS@ @COV_CFLAGS@
-# AM_CFLAGS = @CFLAGS@ -I$(top_srcdir)/include @SNMPFLAGS@ @COV_CFLAGS@
+AM_CFLAGS = @SNMPFLAGS@
+# AM_CFLAGS = @CFLAGS@ -I$(top_srcdir)/include @SNMPFLAGS@
 
 EXTRA_DIST = sim_resources.h openhpi.conf tsetup.h sim_test_file
 

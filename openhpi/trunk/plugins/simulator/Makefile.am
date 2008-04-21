@@ -21,8 +21,6 @@ MAINTAINERCLEANFILES 	= Makefile.in
 
 INCLUDES		= @OPENHPI_INCLUDES@
 
-AM_CFLAGS		= @CFLAGS@
-
 pkglib_LTLIBRARIES	= libsimulator.la
 
 libsimulator_la_LIBADD	= -luuid $(top_builddir)/utils/libopenhpiutils.la

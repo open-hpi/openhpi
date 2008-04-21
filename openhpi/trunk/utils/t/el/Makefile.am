@@ -18,8 +18,6 @@ CLEANFILES           = $(top_builddir)/src/t/el/elTest.data
 
 INCLUDES             = @OPENHPI_INCLUDES@
 
-AM_CFLAGS            = @NOCFLAGS@ @COV_CFLAGS@
-
 $(REMOTE_SOURCES):
 	if test ! -f $@ -a ! -L $@; then \
                 $(LN_S) $(top_srcdir)/utils/$@; \
