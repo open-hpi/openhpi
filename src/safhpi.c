@@ -4881,8 +4881,8 @@ SaErrorT SAHPI_API saHpiFumiTargetVerifyStart (
         if (error) {
                 oh_release_domain(d);
                 return error;
-        } else if (sourceinfo.SourceStatus == SAHPI_FUMI_SRC_VALID ||
-                   sourceinfo.SourceStatus == SAHPI_FUMI_SRC_VALIDITY_UNKNOWN) {
+        } else if (sourceinfo.SourceStatus != SAHPI_FUMI_SRC_VALID &&
+                   sourceinfo.SourceStatus != SAHPI_FUMI_SRC_VALIDITY_UNKNOWN) {
                 oh_release_domain(d);
                 err("Source is not valid: Bank %u, Fumi %u, Resource %u, Domain %u",
                     BankNum, FumiNum, ResourceId, did);
