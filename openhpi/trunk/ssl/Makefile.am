@@ -16,6 +16,6 @@ lib_LTLIBRARIES		= libopenhpi_ssl.la
 
 EXTRA_DIST = oh_ssl.h
 
-libopenhpi_ssl_la_SOURCES = ssl.c
+libopenhpi_ssl_la_SOURCES = oh_ssl.c
 
 libopenhpi_ssl_la_LDFLAGS = -version-info @HPI_LIB_VERSION@
