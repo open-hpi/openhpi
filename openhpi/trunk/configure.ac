@@ -620,13 +620,13 @@ dnl (this could probably happen earlier in this file)
 if test "x$THREAD_SAFE" = "xyes" ; then
         CFLAGS="$CFLAGS -D_GNU_SOURCE -D_REENTRANT -fexceptions"
         CXXFLAGS="$CXXFLAGS -D_GNU_SOURCE -D_REENTRANT -fexceptions"
-	AM_CONDITIONAL(HAVE_OPENSSL, test x$have_openssl = xyes)
 	if test "x$have_openssl" = "xyes"; then
 		SSLDIR=ssl
 		CFLAGS="$CFLAGS -DHAVE_OPENSSL"
 		CXXFLAGS="$CXXFLAGS -DHAVE_OPENSSL"
 	fi
 fi
+AM_CONDITIONAL(HAVE_OPENSSL, test x$have_openssl = xyes && test x$THREAD_SAFE = xyes)
 
 OPENHPI_INCLUDES="-I\$(top_srcdir)/include -I\$(top_srcdir)/utils -I\$(top_builddir)/utils"
 dnl replace common includes here
