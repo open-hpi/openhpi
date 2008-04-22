@@ -37,7 +37,11 @@ MOSTLYCLEANFILES        = @TEST_CLEAN@
 
 EXTRA_DIST              = plugin_static.c.in
 
-INCLUDES                = @OPENHPI_INCLUDES@ -I$(top_srcdir)/@SSLDIR@
+INCLUDES                = @OPENHPI_INCLUDES@
+
+if HAVE_OPENSSL
+INCLUDES		+= -I$(top_srcdir)/$(SSLDIR)
+endif
 
 SUBDIRS                 = t
 
@@ -67,7 +71,7 @@ nodist_libopenhpi_la_SOURCES = plugin_static.c
 
 libopenhpi_la_LIBADD    = @STATIC_PLUGIN_LIBS@ @STATIC_PLUGIN_EXTRA_LIBS@ $(top_builddir)/utils/libopenhpiutils.la
 if HAVE_OPENSSL
-libopenhpi_la_LIBADD += $(top_builddir)/@SSLDIR@/libopenhpi_ssl.la
+libopenhpi_la_LIBADD += $(top_builddir)/$(SSLDIR)/libopenhpi_ssl.la
 endif
 libopenhpi_la_LDFLAGS   = -L$(top_builddir)/utils -version-info @HPI_LIB_VERSION@ -export-dynamic
 libopenhpi_la_DEPENDENCIES = @STATIC_PLUGIN_LIBS@
