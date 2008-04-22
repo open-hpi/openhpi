@@ -43,34 +43,28 @@
 
 
 /* OpenSSL and other header files */
-#include <unistd.h>
-#include <glib.h>
-#include <oh_ssl_init.h>
-#include <oh_error.h>
-
-#ifdef HAVE_OPENSSL
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 #include <openssl/crypto.h>
 #include <openssl/bio.h>
 #include <openssl/rand.h>
-#endif
+
+#include <unistd.h>
+#include <glib.h>
+#include <oh_ssl.h>
+#include <oh_error.h>
 
 
-#if defined(_REENTRANT) && defined(HAVE_OPENSSL)
 /* Data types used by this module */
 struct CRYPTO_dynlock_value {
 	GMutex	*mutex;
 };
-#endif
 
 
 /* Global (static) data for this module */
 static int	oh_ssl_init_done = 0;	/* Will be set true when done */
-#if defined(_REENTRANT) && defined(HAVE_OPENSSL)
 static GMutex **mutexes = NULL;		/* Holds array of SSL mutexes */
 static GStaticMutex ssl_mutexes = G_STATIC_MUTEX_INIT; /* Lock for above */
-#endif
 
 
 /* Local (static) functions, used by this module.  Note that these aren't
@@ -78,8 +72,6 @@ static GStaticMutex ssl_mutexes = G_STATIC_MUTEX_INIT; /* Lock for above */
  * skip them in that case.
  */
 
-
-#if defined(_REENTRANT) && defined(HAVE_OPENSSL)
 
 /**
  * id_function
@@ -277,7 +269,6 @@ static int	thread_cleanup(void)
 	return(0);			/* No errors */
 }
 #endif /* Not used right now */
-#endif /* _REENTRANT && HAVE_OPENSSL */
 
 
 /**
@@ -300,7 +291,6 @@ int		oh_ssl_init(void)
 	if (! oh_ssl_init_done) {	/* Do this only once */
 		oh_ssl_init_done = 1;
 
-#ifdef HAVE_OPENSSL
 		/* Load error strings to provide human-readable error
 		 * messages
 		 */
@@ -318,14 +308,11 @@ int		oh_ssl_init(void)
 		RAND_load_file("/dev/urandom", 1024);
 #endif
 
-#ifdef _REENTRANT
 		/* Set up multi-thread protection functions */
 		if (thread_setup() ) {
 			err("SSL multi-thread protection setup call failed");
 			return(-1);
 		}
-#endif /* _REENTRANT */
-#endif /* HAVE_OPENSSL */
 
 	}
 

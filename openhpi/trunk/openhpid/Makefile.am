@@ -30,10 +30,10 @@ REMOTE_SOURCES		= \
        	init.c \
        	safhpi.c \
        	session.c \
-       	ssl_init.c \
        	ohpi.c
 
-INCLUDES 		= @OPENHPI_INCLUDES@  -I$(top_srcdir)/marshal
+INCLUDES 		= \
+	@OPENHPI_INCLUDES@  -I$(top_srcdir)/marshal -I$(top_srcdir)/$(SSLDIR)
 
 EXTRA_DIST		= \
 	openhpid.sh.in oh_client.h oh_client_conf.h oh_client_session.h
@@ -46,6 +46,9 @@ nodist_openhpid_SOURCES = $(REMOTE_SOURCES)
 
 openhpid_LDADD		= $(top_builddir)/utils/libopenhpiutils.la \
 			  $(top_builddir)/marshal/libohtcpconnx.la
+if HAVE_OPENSSL
+openhpid_LDADD		+= $(top_builddir)/$(SSLDIR)/libopenhpi_ssl.la
+endif
 openhpid_LDFLAGS        = -export-dynamic
 
 # this is defined with ./configure --enable-daemon=static

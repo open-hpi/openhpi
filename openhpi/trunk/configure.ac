@@ -122,6 +122,7 @@ dnl and for SSL-based communication in ilo2_ribcl and oa_soap
 AC_CHECK_LIB([ssl],[MD5_Init],[SSL_LIB=-lssl],[SSL_LIB=])
 AC_SUBST(SSL_LIB)
 AC_CHECK_HEADERS([openssl/md2.h openssl/md5.h openssl/bio.h openssl/ssl.h openssl/err.h],[have_openssl=yes],[have_openssl=no])
+SSLDIR=ssl
 
 dnl xml is used for XML-based communication in ilo2_ribcl and oa_soap
 AC_CHECK_LIB([xml2],[xmlParseMemory],[XML2_LIB=-lxml2],[XML2_LIB=])
@@ -141,7 +142,6 @@ AC_ARG_ENABLE([thread],
 if test "x$THREAD_SAFE" = "xyes"; then
         AC_DEFINE([HAVE_THREAD_SAFE], [1], [Define to 1 if you want thread-safe implementation])
 fi
-
 
 dnl Enable the marshal directory only when needed by
 dnl the deamon
@@ -620,10 +620,12 @@ dnl (this could probably happen earlier in this file)
 if test "x$THREAD_SAFE" = "xyes" ; then
         CFLAGS="$CFLAGS -D_GNU_SOURCE -D_REENTRANT -fexceptions"
         CXXFLAGS="$CXXFLAGS -D_GNU_SOURCE -D_REENTRANT -fexceptions"
-fi
-if test "x$have_openssl" = "xyes" ; then
-        CFLAGS="$CFLAGS -DHAVE_OPENSSL"
-        CXXFLAGS="$CXXFLAGS -DHAVE_OPENSSL"
+	AM_CONDITIONAL(HAVE_OPENSSL, test x$have_openssl = xyes)
+	if test "x$have_openssl" = "xyes"; then
+		AC_SUBST(SSLDIR, $SSLDIR)
+		CFLAGS="$CFLAGS -DHAVE_OPENSSL"
+		CXXFLAGS="$CXXFLAGS -DHAVE_OPENSSL"
+	fi
 fi
 
 OPENHPI_INCLUDES="-I\$(top_srcdir)/include -I\$(top_srcdir)/utils -I\$(top_builddir)/utils"
@@ -705,6 +707,7 @@ AC_CONFIG_FILES([openhpi.spec
         scripts/Makefile
         scripts/test/Makefile
         snmp/Makefile
+	ssl/Makefile
         src/Makefile
         src/plugin_static.c
         src/t/Makefile
