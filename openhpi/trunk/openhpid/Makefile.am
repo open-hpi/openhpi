@@ -32,11 +32,8 @@ REMOTE_SOURCES		= \
        	session.c \
        	ohpi.c
 
-INCLUDES 		= @OPENHPI_INCLUDES@  -I$(top_srcdir)/marshal
-
-if HAVE_OPENSSL
-INCLUDES		+= -I$(top_srcdir)/$(SSLDIR)
-endif
+INCLUDES 		= \
+	@OPENHPI_INCLUDES@  -I$(top_srcdir)/marshal @OH_SSL_INCLUDES@
 
 EXTRA_DIST		= \
 	openhpid.sh.in oh_client.h oh_client_conf.h oh_client_session.h

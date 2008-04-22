@@ -37,11 +37,7 @@ MOSTLYCLEANFILES        = @TEST_CLEAN@
 
 EXTRA_DIST              = plugin_static.c.in
 
-INCLUDES                = @OPENHPI_INCLUDES@
-
-if HAVE_OPENSSL
-INCLUDES		+= -I$(top_srcdir)/$(SSLDIR)
-endif
+INCLUDES                = @OPENHPI_INCLUDES@ @OH_SSL_INCLUDES@
 
 SUBDIRS                 = t
 
