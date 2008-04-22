@@ -122,7 +122,6 @@ dnl and for SSL-based communication in ilo2_ribcl and oa_soap
 AC_CHECK_LIB([ssl],[MD5_Init],[SSL_LIB=-lssl],[SSL_LIB=])
 AC_SUBST(SSL_LIB)
 AC_CHECK_HEADERS([openssl/md2.h openssl/md5.h openssl/bio.h openssl/ssl.h openssl/err.h],[have_openssl=yes],[have_openssl=no])
-SSLDIR=ssl
 
 dnl xml is used for XML-based communication in ilo2_ribcl and oa_soap
 AC_CHECK_LIB([xml2],[xmlParseMemory],[XML2_LIB=-lxml2],[XML2_LIB=])
@@ -431,6 +430,7 @@ dnl setup SNMPFLAGS
 AC_SUBST(SNMPFLAGS)
 AC_SUBST(SNMPLIBS)
 AC_SUBST(SNMPDIR)
+AC_SUBST(SSLDIR)
 
 dnl
 dnl This code was borrowed from linux-ha configure.in file
@@ -622,7 +622,7 @@ if test "x$THREAD_SAFE" = "xyes" ; then
         CXXFLAGS="$CXXFLAGS -D_GNU_SOURCE -D_REENTRANT -fexceptions"
 	AM_CONDITIONAL(HAVE_OPENSSL, test x$have_openssl = xyes)
 	if test "x$have_openssl" = "xyes"; then
-		AC_SUBST(SSLDIR, $SSLDIR)
+		SSLDIR=ssl
 		CFLAGS="$CFLAGS -DHAVE_OPENSSL"
 		CXXFLAGS="$CXXFLAGS -DHAVE_OPENSSL"
 	fi
