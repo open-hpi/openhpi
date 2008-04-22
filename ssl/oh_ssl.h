@@ -35,11 +35,11 @@
  */
 
 
-#ifndef _INC_OH_SSL_INIT_H_
-#define _INC_OH_SSL_INIT_H_
+#ifndef __OH_SSL_H
+#define __OH_SSL_H
 
 
-extern int oh_ssl_init(void);
+int oh_ssl_init(void);
 
 
-#endif /* _INC_OH_SSL_INIT_H_ */
+#endif /* __OH_SSL_H */

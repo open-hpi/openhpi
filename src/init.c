@@ -15,7 +15,7 @@
  */
 
 #include <oh_init.h>
-#include <oh_ssl_init.h>
+#include <oh_ssl.h>
 #include <oh_config.h>
 #include <oh_plugin.h>
 #include <oh_domain.h>
@@ -47,14 +47,14 @@ int oh_init(void)
 
         /* Initialize thread engine */
         oh_threaded_init();
-
-	/* Initialize SSL library (if it's available) */
+#ifdef HAVE_OPENSSL
+	/* Initialize SSL library */
 	if (oh_ssl_init()) {
                 err("SSL library intialization failed.");
                 data_access_unlock();
 		return SA_ERR_HPI_OUT_OF_MEMORY; /* Most likely */
 	}
-
+#endif
         /* Set openhpi configuration file location */
         oh_get_global_param(&config_param);
 
