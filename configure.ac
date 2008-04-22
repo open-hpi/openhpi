@@ -627,6 +627,8 @@ if test "x$THREAD_SAFE" = "xyes" ; then
 	fi
 fi
 AM_CONDITIONAL(HAVE_OPENSSL, test x$have_openssl = xyes && test x$THREAD_SAFE = xyes)
+OH_SSL_INCLUDES="-I\$(top_srcdir)/ssl"
+AC_SUBST(OH_SSL_INCLUDES)
 
 OPENHPI_INCLUDES="-I\$(top_srcdir)/include -I\$(top_srcdir)/utils -I\$(top_builddir)/utils"
 dnl replace common includes here
