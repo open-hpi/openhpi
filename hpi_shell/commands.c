@@ -746,15 +746,15 @@ static ret_code_t show_rdr(void)
         term = get_next_term();
         if (term == NULL) {
                 if (read_file) return(HPI_SHELL_CMD_ERROR);
-                i = get_string_param("RDR Type (s|a|c|w|i|d|f|all) ==> ",
+                i = get_string_param("RDR Type (s|a|c|w|i|d|f) ==> ",
                         buf, 9);
-                if (i != 0) return HPI_SHELL_PARM_ERROR;
+                if (i != 0 || strnlen(buf, 3) > 1)
+			return HPI_SHELL_PARM_ERROR;
         } else {
                 memset(buf, 0, 10);
                 strncpy(buf, term->term, 3);
         };
-        if (strncmp(buf, "all", 3) == 0) t = 'n';
-        else t = *buf;
+        t = *buf;
         if (t == 'c') type = SAHPI_CTRL_RDR;
         else if (t == 's') type = SAHPI_SENSOR_RDR;
         else if (t == 'i') type = SAHPI_INVENTORY_RDR;
@@ -762,15 +762,12 @@ static ret_code_t show_rdr(void)
         else if (t == 'a') type = SAHPI_ANNUNCIATOR_RDR;
         else if (t == 'd') type = SAHPI_DIMI_RDR;
         else if (t == 'f') type = SAHPI_FUMI_RDR;
-        else type = SAHPI_NO_RECORD;
+        else return HPI_SHELL_PARM_ERROR;
         ret = ask_rdr(rptid, type, &rdrnum);
         if (ret != HPI_SHELL_OK) return(ret);
-        if (type == SAHPI_NO_RECORD)
-                rv = find_rdr_by_num(Domain->sessionId, rptid,
-                        rdrnum, type, 0, &rdr_entry);
-        else
-                rv = saHpiRdrGetByInstrumentId(Domain->sessionId,
-                        rptid, type, rdrnum, &rdr_entry);
+
+	rv = saHpiRdrGetByInstrumentId(Domain->sessionId,
+		rptid, type, rdrnum, &rdr_entry);
         if (rv != SA_OK) {
                 printf("ERROR!!! Get rdr: ResourceId=%d RdrType=%d"
                         "RdrNum=%d: %s\n",
@@ -1355,7 +1352,7 @@ const char showrdrhelp[] = "showrdr: show resource data record\n"
                         "Usage: showrdr [<resource id> [type [<rdr num>]]]\n"
                         "   or  rdr [<resource id> [type [<rdr num>]]]\n"
                         "       type =  c - control rdr, s - sensor, i - inventory rdr\n"
-                        "               w - watchdog, a - annunciator, all - all rdr";
+                        "               w - watchdog, a - annunciator";
 const char showrpthelp[] = "showrpt: show resource information\n"
                         "Usage: showrpt [<resource id>]\n"
                         "   or  rpt [<resource id>]";

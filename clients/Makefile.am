@@ -15,8 +15,6 @@ endif
 
 CLIENTS_SRC 	     = clients.c
 
-AM_CFLAGS            = @CFLAGS@
-
 bin_PROGRAMS = \
 	hpievents \
 	hpifan \

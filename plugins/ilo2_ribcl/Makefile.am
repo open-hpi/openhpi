@@ -37,8 +37,6 @@ MAINTAINERCLEANFILES 	= Makefile.in
 
 INCLUDES		= @OPENHPI_INCLUDES@ @XML2_INCLUDE@ 
 
-AM_CFLAGS		= @CFLAGS@
-
 pkglib_LTLIBRARIES	= libilo2_ribcl.la
 
 libilo2_ribcl_la_SOURCES  =	\

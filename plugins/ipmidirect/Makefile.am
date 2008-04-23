@@ -36,8 +36,6 @@ INCLUDES                = @OPENHPI_INCLUDES@
 SUBDIRS                 = t
 DIST_SUBDIRS            = t
 
-AM_CFLAGS               = @CFLAGS@
-
 pkglib_LTLIBRARIES      = libipmidirect.la
 
 libipmidirect_la_SOURCES= \

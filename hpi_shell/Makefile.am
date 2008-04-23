@@ -20,8 +20,6 @@ COMMONLIBS		= $(top_builddir)/src/libopenhpi.la \
 			   @STATIC_PLUGIN_LIBS@ @STATIC_PLUGIN_EXTRA_LIBS@
 endif
 
-AM_CFLAGS 		= @CFLAGS@ -D_REENTRANT
-
 bin_PROGRAMS		= hpi_shell
 
 HS_SOURCES		= \

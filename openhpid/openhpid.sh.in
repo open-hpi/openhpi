@@ -1,4 +1,16 @@
-#! /bin/bash
+#! /bin/sh
+#
+### BEGIN INIT INFO
+# Provides:          openhpid
+# Required-Start:    $network $remote_fs $syslog
+# Required-Stop:     $network $remote_fs $syslog
+# Should-Start:      $named
+# Should-Stop:       $named
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Start OpenHPI daemon at boot time
+# Description:       Enable OpenHPI service which is provided by openhpid.
+### END INIT INFO
 #
 # openhpid.sh    Start/Stop the openhpi daemon.
 #
@@ -198,7 +210,7 @@ restart() {
 	start
 }	
 
-force-reload() {
+force_reload() {
 	echo -n $"Force-reload not supported."
 	echo
 	return 0
@@ -220,7 +232,7 @@ case "$1" in
   	dstatus
 	;;
   force-reload)
-  	force-reload
+  	force_reload
 	;;
   *)
 	echo $"Usage: $0 {start|stop|restart|status|force-reload}"
