@@ -88,7 +88,8 @@ ret_code_t ask_rdr(SaHpiResourceIdT rptid, SaHpiRdrTypeT type, SaHpiInstrumentId
 	char            buf[64];
 
 	strncpy(buf, oh_lookup_rdrtype(type), 64);
-	strncat(buf + strlen(buf), " NUM ==> ", 64-strlen(buf));
+	buf[strlen(buf)-4] = '\0';
+	strncat(buf, " NUM ==> ", 64-strlen(buf));
 	term = get_next_term();
 	if (term == NULL) {
 		if (read_file) return(HPI_SHELL_CMD_ERROR);

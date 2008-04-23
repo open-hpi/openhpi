@@ -253,7 +253,6 @@ void *ilo2_ribcl_open(GHashTable *handler_config,
 #endif /* ILO2_RIBCL_SIMULATE_iLO2_RESPONSE */
 
 	/* initialize SSL */
-	ilo2_ribcl_ssl_init();
 	ilo2_ribcl_handler->ssl_ctx = ilo2_ribcl_ssl_ctx_init();
 	if(ilo2_ribcl_handler->ssl_ctx == NULL) {
 		err("ilo2_ribcl_open(): failed to initialize ssl connection to %s",

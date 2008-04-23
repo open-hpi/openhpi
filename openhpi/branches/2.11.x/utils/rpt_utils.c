@@ -292,16 +292,17 @@ SaErrorT oh_flush_rpt(RPTable *table)
  * the resources and rdrs that are not already in current Or that are not identical
  * to the ones in current.
  *
- * Returns: void.
+ * Returns: SA_ERR_HPI_INVALID_PARAMS if any argument is NULL, otherwise SA_OK.
  **/
-void rpt_diff(RPTable *cur_rpt, RPTable *new_rpt,
-              GSList **res_new, GSList **rdr_new,
-              GSList **res_gone, GSList **rdr_gone) {
+SaErrorT rpt_diff(RPTable *cur_rpt, RPTable *new_rpt,
+                  GSList **res_new, GSList **rdr_new,
+                  GSList **res_gone, GSList **rdr_gone) {
 
         SaHpiRptEntryT *res = NULL;
 
         if (!cur_rpt || !new_rpt ||
-            !res_new || !rdr_new || !res_gone || !rdr_gone) return;
+            !res_new || !rdr_new || !res_gone || !rdr_gone)
+                return SA_ERR_HPI_INVALID_PARAMS;
 
         /* Look for absent resources and rdrs */
         for (res = oh_get_resource_by_id(cur_rpt, SAHPI_FIRST_ENTRY);
@@ -352,6 +353,8 @@ void rpt_diff(RPTable *cur_rpt, RPTable *new_rpt,
 
                 }
         }
+        
+        return SA_OK;
 }
 
 /**

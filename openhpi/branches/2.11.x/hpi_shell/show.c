@@ -575,7 +575,7 @@ Pr_ret_t show_sensor_list(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid
                         snprintf(buf, 256, "Resource Id: %d, Sensor Num: %d",
                                 resourceid, rdr.RdrTypeUnion.SensorRec.Num);
                         if (proc(buf) != 0) return(HPI_UI_END);
-                        if (print_text_buffer_text(" Tag: ", &(rdr.IdString),
+                        if (print_text_buffer_text(", Tag: ", &(rdr.IdString),
                                 NULL, proc) != 0)
                                 return(-1);
                         if (proc("\n") != 0) return(HPI_UI_END);
@@ -596,17 +596,13 @@ int show_rdr_list(Domain_t *domain, SaHpiResourceIdT rptid, SaHpiRdrTypeT passed
         SaHpiRdrTypeT           type;
         char                    ar[256];
         SaHpiSensorRecT         *sensor;
-        SaHpiCtrlRecT           *ctrl;
-        SaHpiInventoryRecT      *inv;
-        SaHpiWatchdogRecT       *wdog;
-        SaHpiAnnunciatorRecT    *ann;
-        SaHpiDimiRecT           *dimi;
-        SaHpiFumiRecT           *fumi;
         SaErrorT                ret;
         int                     res_num = 0;
 
         entryid = SAHPI_FIRST_ENTRY;
         while (entryid !=SAHPI_LAST_ENTRY) {
+		memset(buf, 0, SHOW_BUF_SZ);
+		memset(ar, 0, 256);
                 ret = saHpiRdrGet(domain->sessionId, rptid, entryid,
                         &nextentryid, &rdr);
                 if (ret != SA_OK)
@@ -616,13 +612,14 @@ int show_rdr_list(Domain_t *domain, SaHpiResourceIdT rptid, SaHpiRdrTypeT passed
                         entryid = nextentryid;
                         continue;
                 };
-                snprintf(buf, SHOW_BUF_SZ, "  (%d):%s NUM=", rdr.RecordId,
-                        oh_lookup_rdrtype(type));
+                snprintf(buf, SHOW_BUF_SZ, "(%3.3d): %s ID=%u",
+		         oh_get_rdr_num(rdr.RecordId),
+			 oh_lookup_rdrtype(type), rdr.RecordId);
                 switch (type) {
                         case SAHPI_SENSOR_RDR:
                                 sensor = &(rdr.RdrTypeUnion.SensorRec);
-                                snprintf(ar, 256, "%3.3d Ctrl=%d EvtCtrl=",
-                                        sensor->Num, sensor->EnableCtrl);
+                                snprintf(ar, 256, ", Ctrl=%d, EvtCtrl=",
+                                         sensor->EnableCtrl);
                                 switch (sensor->EventCtrl) {
                                         case SAHPI_SEC_PER_EVENT:
                                                 strcat(ar, "WR"); break;
@@ -633,36 +630,24 @@ int show_rdr_list(Domain_t *domain, SaHpiResourceIdT rptid, SaHpiRdrTypeT passed
                                 };
                                 break;
                         case SAHPI_CTRL_RDR:
-                                ctrl = &(rdr.RdrTypeUnion.CtrlRec);
-                                snprintf(ar, 256, "%3.3d", ctrl->Num);
                                 break;
                         case SAHPI_INVENTORY_RDR:
-                                inv = &(rdr.RdrTypeUnion.InventoryRec);
-                                snprintf(ar, 256, "%3.3d", inv->IdrId);
                                 break;
                         case SAHPI_WATCHDOG_RDR:
-                                wdog = &(rdr.RdrTypeUnion.WatchdogRec);
-                                snprintf(ar, 256, "%3.3d", wdog->WatchdogNum);
                                 break;
                         case SAHPI_ANNUNCIATOR_RDR:
-                                ann = &(rdr.RdrTypeUnion.AnnunciatorRec);
-                                snprintf(ar, 256, "%3.3d", ann->AnnunciatorNum);
                                 break;
                         case SAHPI_DIMI_RDR:
-                                dimi = &(rdr.RdrTypeUnion.DimiRec);
-                                snprintf(ar, 256, "%3.3d", dimi->DimiNum);
                                 break;
                         case SAHPI_FUMI_RDR:
-                                fumi = &(rdr.RdrTypeUnion.FumiRec);
-                                snprintf(ar, 256, "%3.3d", fumi->Num);
                                 break;
                         default:
-                                snprintf(ar, 256, "%c", '?');
+                                snprintf(ar, 256, ", Unrecognized RDR Type");
                 };
                 strcat(buf, ar);
                 res_num++;
                 if (proc(buf) != HPI_UI_OK) return(res_num);
-                if (print_text_buffer_text(" Tag=", &(rdr.IdString),
+                if (print_text_buffer_text(", Tag=", &(rdr.IdString),
                         "\n", proc) != HPI_UI_OK)
                         return(res_num);
                 entryid = nextentryid;
