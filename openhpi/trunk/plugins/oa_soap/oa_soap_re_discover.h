@@ -35,6 +35,9 @@
 #ifndef _OA_SOAP_RE_DISCOVER_H
 #define _OA_SOAP_RE_DISCOVER_H
 
+/* Include files */
+#include "oa_soap_discover.h"
+
 SaErrorT oa_soap_re_discover_resources(struct oh_handler_state *oh_handler,
                                        SOAP_CON *con);
 

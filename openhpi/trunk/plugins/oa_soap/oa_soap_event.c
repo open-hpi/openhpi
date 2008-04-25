@@ -52,7 +52,7 @@
  *                                        different events
  **/
 
-#include <oa_soap_plugin.h>
+#include "oa_soap_event.h"
 
 /**
  * oa_soap_get_event
@@ -123,10 +123,6 @@ gpointer oa_soap_event_thread(gpointer event_handler)
         handler = (struct oh_handler_state *) evt_handler->oh_handler;
         oa = (struct oa_info *) evt_handler->oa;
         oa_handler = (struct oa_soap_handler *) handler->data;
-        if (oa_handler == NULL || oa == NULL) {
-                err("event handler is not proper");
-                g_thread_exit(&ret_code);
-        }
 
         dbg("OA SOAP event thread started for OA %s", oa->server);
 
@@ -218,7 +214,7 @@ gpointer oa_soap_event_thread(gpointer event_handler)
         while (listen_for_events == SAHPI_TRUE) {
                 rv = soap_getAllEvents(oa->event_con, &request, &response);
                 if (rv != SOAP_OK) {
-                        err("OA <%s> may not be accessible", oa->server);
+                        err("OA %s may not be accessible", oa->server);
                         /* Try to recover from the error */
                         oa_soap_error_handling(handler, oa);
                         request.pid = oa->event_pid;
@@ -330,7 +326,7 @@ void oa_soap_error_handling(struct oh_handler_state *oh_handler,
                 }
         }
 
-        err("OA <%s> is accessible", oa->server);
+        err("OA %s is accessible", oa->server);
         return;
 }
 
@@ -1040,7 +1036,7 @@ void process_oa_events(struct oh_handler_state *oh_handler,
                                     "-- Not processed");
                                 break;
                         default:
-                                dbg("EVENT NOT REGISTERED, Event id <%d>",
+                                dbg("EVENT NOT REGISTERED, Event id %d",
                                     event.event);
                 }
                 /* Get the next event from the eventInfoArray */

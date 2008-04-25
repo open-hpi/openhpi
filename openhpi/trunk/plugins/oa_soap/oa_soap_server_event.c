@@ -52,7 +52,7 @@
  *      build_inserted_server_rdr()       - Builds the RDRs for inserted server
  */
 
-#include <oa_soap_plugin.h>
+#include "oa_soap_server_event.h"
 
 /**
  * process_server_power_off_event
@@ -72,7 +72,6 @@
 SaErrorT process_server_power_off_event(struct oh_handler_state *oh_handler,
                                        struct oh_event *event)
 {
-        SaErrorT rv = SA_OK;
         struct oa_soap_hotswap_state *hotswap_state = NULL;
 
         if (oh_handler == NULL || event == NULL) {
@@ -116,7 +115,7 @@ SaErrorT process_server_power_off_event(struct oh_handler_state *oh_handler,
         event->resource.ResourceSeverity = SAHPI_CRITICAL;
         hotswap_state->currentHsState = SAHPI_HS_STATE_INACTIVE;
 
-        return rv;
+        return SA_OK;
 }
 
 /**
@@ -144,6 +143,7 @@ SaErrorT process_server_power_on_event(struct oh_handler_state *oh_handler,
                                        SaHpiInt32T bay_number)
 {
         SaErrorT rv = SA_OK;
+        struct oa_soap_handler *oa_handler;
         struct oa_soap_hotswap_state *hotswap_state = NULL;
         struct getBladeInfo info;
         struct bladeInfo response;
@@ -151,13 +151,13 @@ SaErrorT process_server_power_on_event(struct oh_handler_state *oh_handler,
         struct oa_soap_sensor_info *sensor_info=NULL;
         SaHpiRdrT *rdr = NULL;
         SaHpiIdrIdT sen_rdr_num = OA_SOAP_RES_SEN_TEMP_NUM;
-        SaHpiIdrIdT idr = SAHPI_DEFAULT_INVENTORY_ID;
 
         if (oh_handler == NULL || con == NULL || event == NULL) {
                 err("Invalid parameters");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
+        oa_handler = (struct oa_soap_handler *) oh_handler->data;
         hotswap_state = (struct oa_soap_hotswap_state *)
                 oh_get_resource_data(oh_handler->rptcache,
                                      event->resource.ResourceId);
@@ -194,6 +194,11 @@ SaErrorT process_server_power_on_event(struct oh_handler_state *oh_handler,
                                 return SA_ERR_HPI_INTERNAL_ERROR;
                         }
 
+                        /* Update the serial number array */
+                        strcpy(oa_handler->oa_soap_resources.server.
+                               serial_number[bay_number - 1],
+                               response.serialNumber);
+
                         event->resource.ResourceTag.DataLength =
                                 strlen(response.name) + 1;
                         memset(event->resource.ResourceTag.Data,
@@ -211,7 +216,7 @@ SaErrorT process_server_power_on_event(struct oh_handler_state *oh_handler,
                         rdr = oh_get_rdr_by_type(oh_handler->rptcache,
                                                  event->resource.ResourceId,
                                                  SAHPI_INVENTORY_RDR,
-                                                 idr);
+                                                 SAHPI_DEFAULT_INVENTORY_ID);
 
                         if (rdr == NULL) {
                                 err("INVALID RESOURCE ID");
@@ -246,11 +251,11 @@ SaErrorT process_server_power_on_event(struct oh_handler_state *oh_handler,
                         /* Update the current hotswap state to ACTIVE */
                         hotswap_state->currentHsState = SAHPI_HS_STATE_ACTIVE;
 
-                        event->event.EventDataUnion.HotSwapEvent.HotSwapState =
-                                SAHPI_HS_STATE_ACTIVE;
                         event->event.EventDataUnion.HotSwapEvent.
                                 PreviousHotSwapState =
                                 SAHPI_HS_STATE_INSERTION_PENDING;
+                        event->event.EventDataUnion.HotSwapEvent.HotSwapState =
+                                SAHPI_HS_STATE_ACTIVE;
                         oh_evt_queue_push(oh_handler->eventq,
                                           copy_oa_soap_event(event));
 
@@ -328,7 +333,7 @@ SaErrorT process_server_power_on_event(struct oh_handler_state *oh_handler,
                         return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-        return rv;
+        return SA_OK;
 }
 
 /**
@@ -370,11 +375,6 @@ SaErrorT process_server_power_event(struct oh_handler_state *oh_handler,
 
         bay_number = oa_event->eventData.bladeStatus.bayNumber;
         oa_handler = (struct oa_soap_handler *) oh_handler->data;
-        if (oa_handler == NULL) {
-                err("OA SOAP handler is NULL");
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
-
         entity_root = (char *)g_hash_table_lookup(oh_handler->config,
                                                   "entity_root");
         rv = oh_encode_entitypath(entity_root, &root_entity_path);
@@ -415,6 +415,7 @@ SaErrorT process_server_power_event(struct oh_handler_state *oh_handler,
 
                 /* Currently, OA is not sending the REBOOT event*/
                 case (POWER_REBOOT) :
+                        hotswap_state.currentHsState = SAHPI_HS_STATE_ACTIVE;
                         event.event.EventDataUnion.HotSwapEvent.
                                 PreviousHotSwapState =
                                 SAHPI_HS_STATE_INSERTION_PENDING;
@@ -423,17 +424,13 @@ SaErrorT process_server_power_event(struct oh_handler_state *oh_handler,
                         oh_evt_queue_push(oh_handler->eventq,
                                           copy_oa_soap_event(&event));
 
-                        hotswap_state.currentHsState = SAHPI_HS_STATE_ACTIVE;
-                        if (rv != SA_OK) {
-                                err("Failed to add hot swap state");
-                        }
                         break;
 
                 default :
                         err("Wrong power state");
                         return SA_ERR_HPI_INTERNAL_ERROR;
         }
-        return rv;
+        return SA_OK;
 }
 
 /**
@@ -471,12 +468,8 @@ SaErrorT process_server_insertion_event(struct oh_handler_state *oh_handler,
                 err("Invalid parameters");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
-        oa_handler = (struct oa_soap_handler *) oh_handler->data;
-        if (oa_handler == NULL) {
-                err("OA SOAP handler is NULL");
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
 
+        oa_handler = (struct oa_soap_handler *) oh_handler->data;
         update_hotswap_event(oh_handler, &event);
         bay_number = oa_event->eventData.bladeStatus.bayNumber;
 
@@ -487,9 +480,8 @@ SaErrorT process_server_insertion_event(struct oh_handler_state *oh_handler,
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-        rv = build_inserted_server_rpt(oh_handler, response.name,
-                                       bay_number, &(event.resource));
-
+        rv = build_inserted_server_rpt(oh_handler, &response,
+                                       &(event.resource));
         if (rv != SA_OK) {
                 err("build inserted server rpt failed");
                 return rv;
@@ -516,7 +508,7 @@ SaErrorT process_server_insertion_event(struct oh_handler_state *oh_handler,
 
         oa_handler->oa_soap_resources.server.presence[bay_number - 1] =
                 RES_PRESENT;
-        return rv;
+        return SA_OK;
 }
 
 /**
@@ -538,26 +530,20 @@ SaErrorT process_server_extraction_event(struct oh_handler_state *oh_handler,
                                          struct eventInfo *oa_event)
 {
         SaErrorT rv = SA_OK;
-        SaHpiInt32T bay_number;
-        struct oa_soap_handler *oa_handler = NULL;
 
         if (oh_handler == NULL || oa_event == NULL) {
                 err("Invalid parameters");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-        oa_handler = (struct oa_soap_handler *) oh_handler->data;
-
-        bay_number = oa_event->eventData.bladeStatus.bayNumber;
-        rv = remove_server_blade(oh_handler, bay_number);
+        rv = remove_server_blade(oh_handler,
+                                 oa_event->eventData.bladeStatus.bayNumber);
         if (rv != SA_OK) {
                 err("Removing server blade failed");
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-        oa_handler->oa_soap_resources.server.presence[bay_number - 1] =
-                RES_ABSENT;
-        return rv;
+        return SA_OK;
 }
 
 /**
@@ -751,8 +737,7 @@ SaErrorT process_server_thermal_event(struct oh_handler_state *oh_handler,
 /**
  * build_inserted_server_rpt
  *      @oh_handler: Pointer to openhpi handler
- *      @name:       Pointer to the name of the server blade
- *      @bay_number: Bay number of the server blade
+ *      @response:   Pointer to the bladeInfo structure
  *      @rpt:        Pointer to the rpt entry
  *
  * Purpose:
@@ -769,8 +754,7 @@ SaErrorT process_server_thermal_event(struct oh_handler_state *oh_handler,
  **/
 
 SaErrorT build_inserted_server_rpt(struct oh_handler_state *oh_handler,
-                                   char *name,
-                                   SaHpiInt32T bay_number,
+                                   struct bladeInfo *response,
                                    SaHpiRptEntryT *rpt)
 {
         SaErrorT rv = SA_OK;
@@ -778,7 +762,7 @@ SaErrorT build_inserted_server_rpt(struct oh_handler_state *oh_handler,
         char *entity_root = NULL;
         struct oa_soap_hotswap_state *hotswap_state = NULL;
 
-        if (oh_handler == NULL || name == NULL || rpt == NULL) {
+        if (oh_handler == NULL || response == NULL || rpt == NULL) {
                 err("invalid parameters");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
@@ -803,8 +787,8 @@ SaErrorT build_inserted_server_rpt(struct oh_handler_state *oh_handler,
                                     SAHPI_CAPABILITY_INVENTORY_DATA;
         rpt->ResourceEntity.Entry[1].EntityType = SAHPI_ENT_ROOT;
         rpt->ResourceEntity.Entry[1].EntityLocation = 0;
-        rpt->ResourceEntity.Entry[0].EntityType=SAHPI_ENT_SYSTEM_BLADE;
-        rpt->ResourceEntity.Entry[0].EntityLocation= bay_number;
+        rpt->ResourceEntity.Entry[0].EntityType = SAHPI_ENT_SYSTEM_BLADE;
+        rpt->ResourceEntity.Entry[0].EntityLocation = response->bayNumber;
         rv = oh_concat_ep(&rpt->ResourceEntity, &entity_path);
         if (rv != SA_OK) {
                 err("concat of entity path failed");
@@ -812,17 +796,18 @@ SaErrorT build_inserted_server_rpt(struct oh_handler_state *oh_handler,
         }
 
         rpt->ResourceId = oh_uid_from_entity_path(&rpt->ResourceEntity);
+        rpt->ResourceInfo.ManufacturerId = HP_MANUFACTURING_ID;
+        rpt->ResourceInfo.ProductId = response->productId;
         rpt->ResourceSeverity = SAHPI_OK;
-        rpt->ResourceInfo.ResourceRev = 0;
         rpt->ResourceFailed = SAHPI_FALSE;
         rpt->HotSwapCapabilities = SAHPI_HS_CAPABILITY_AUTOEXTRACT_READ_ONLY;
         rpt->ResourceTag.DataType = SAHPI_TL_TYPE_TEXT;
         rpt->ResourceTag.Language = SAHPI_LANG_ENGLISH;
-        rpt->ResourceTag.DataLength = strlen(name) + 1;
+        rpt->ResourceTag.DataLength = strlen(response->name) + 1;
         memset(rpt->ResourceTag.Data,0,SAHPI_MAX_TEXT_BUFFER_LENGTH);
         snprintf((char *) rpt->ResourceTag.Data,
                   rpt->ResourceTag.DataLength,"%s",
-                  name);
+                  response->name);
 
         hotswap_state = (struct oa_soap_hotswap_state *)
                 g_malloc0(sizeof(struct oa_soap_hotswap_state));
@@ -844,7 +829,7 @@ SaErrorT build_inserted_server_rpt(struct oh_handler_state *oh_handler,
                         g_free(hotswap_state);
                 return rv;
         }
-        return rv;
+        return SA_OK;
 }
 
 /**
@@ -986,5 +971,5 @@ SaErrorT build_inserted_server_rdr(struct oh_handler_state *oh_handler,
         }
         event->rdrs = g_slist_append(event->rdrs, rdr);
 
-        return rv;
+        return SA_OK;
 }

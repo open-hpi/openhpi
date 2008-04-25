@@ -41,7 +41,7 @@
  *
  */
 
-#include <oa_soap_plugin.h>
+#include "oa_soap_ps_event.h"
 
 /**
  * process_ps_insertion_event
@@ -66,27 +66,27 @@ SaErrorT process_ps_insertion_event(struct oh_handler_state *oh_handler,
 {
         struct getPowerSupplyInfo info;
         struct powerSupplyInfo response;
-        struct oa_soap_handler *oa_handler = NULL;
         SaErrorT rv = SA_OK;
-        SaHpiInt32T bay_number;
 
         if (oh_handler == NULL || con == NULL || oa_event == NULL) {
                 err("Invalid parameters");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-        oa_handler = (struct oa_soap_handler *) oh_handler->data;
-        if (oa_handler == NULL) {
-                err("OA SOAP handler is NULL");
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
-
-        bay_number = oa_event->eventData.powerSupplyStatus.bayNumber;
-        info.bayNumber = bay_number;
-
+        info.bayNumber = oa_event->eventData.powerSupplyStatus.bayNumber;
         rv = soap_getPowerSupplyInfo(con, &info, &response);
         if (rv != SOAP_OK) {
                 err("Get power supply info failed");
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
+
+        /* If the power supply unit does not have the power cord plugged in,
+         * then power supply unit will be in faulty condition. In this case,
+         * all the information in the response structure is NULL. Consider the
+         * faulty power supply unit as ABSENT
+         */
+        if(response.serialNumber == NULL) {
+                err("Inserted power supply unit may be faulty");
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
@@ -95,9 +95,7 @@ SaErrorT process_ps_insertion_event(struct oh_handler_state *oh_handler,
                 err("Add power supply unit failed");
         }
 
-        oa_handler->oa_soap_resources.ps_unit.presence[bay_number - 1] =
-                RES_PRESENT;
-        return rv;
+        return SA_OK;
 }
 
 /**
@@ -122,7 +120,7 @@ SaErrorT process_ps_extraction_event(struct oh_handler_state *oh_handler,
 {
         SaErrorT rv = SA_OK;
         SaHpiInt32T bay_number;
-        struct oa_soap_handler *oa_handler = NULL;
+        struct oa_soap_handler *oa_handler;
 
         if (oh_handler == NULL || oa_event == NULL) {
                 err("Invalid parameters");
@@ -131,13 +129,24 @@ SaErrorT process_ps_extraction_event(struct oh_handler_state *oh_handler,
 
         oa_handler = (struct oa_soap_handler *) oh_handler->data;
         bay_number = oa_event->eventData.powerSupplyStatus.bayNumber;
+
+       /* If the power supply unit does not have the power cord
+        * plugged in, then power supply unit will be in faulty
+        * condition. In this case, all the information in the
+        * response structure is NULL. Then the faulty power supply
+        * unit is considered as ABSENT. Ignore the extraction event.
+        */
+        if (oa_handler->oa_soap_resources.ps_unit.presence[bay_number - 1] ==
+            RES_ABSENT) {
+                err("Extracted power supply unit may be in faulty condition");
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
+
         rv = remove_ps_unit(oh_handler, bay_number);
         if (rv != SA_OK) {
                 err("Remove power supply unit failed");
         }
 
-        oa_handler->oa_soap_resources.ps_unit.presence[bay_number - 1] =
-                RES_ABSENT;
-        return rv;
+        return SA_OK;
 }
 

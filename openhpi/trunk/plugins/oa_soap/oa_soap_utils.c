@@ -76,9 +76,32 @@
  *                                        present in the config file
  *
  *      create_event_session()          - Creates a event session with OA
+ *
+ *      delete_all_inventory_info()     - Frees the memory allocated for
+ *                                        inventory areas for all the resources
+ *
+ *      populate_event()                - Populates the event structure
+ *
+ *      push_discovered_resource_events - Creates the event structure.
+ *                                        Pushes the discovered resource events
+ *                                        to OpenHPI infrastructure
+ *
+ *      cleanup_plugin_rptable()        - Frees the memory allocated for
+ *                                        plugin RPTable
+ *
+ *      release_oa_soap_resources()     - Frees the memory allocated for
+ *                                        resources presence matrix and serial
+ *                                        number array
+ *
+ *      update_oa_info()                - Updates the RPT entry with OA
+ *                                        firmware version. Updates the serial
+ *                                        number array with OA serial number.
+ *
+ *      convert_lower_to_upper          - Converts the lower case to upper case
+ *
  **/
 
-#include <oa_soap_plugin.h>
+#include "oa_soap_utils.h"
 
 /**
  * get_oa_soap_info
@@ -145,7 +168,7 @@ SaErrorT get_oa_soap_info(struct oh_handler_state *oh_handler)
         /* Get the OA states and initialize the SOAP_CON structures */
         rv = get_oa_state(oh_handler, server);
         if (rv != SA_OK) {
-                err("Standby OA <%s> may not be accessible", server);
+                err("Standby OA - %s may not be accessible", server);
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
@@ -214,13 +237,13 @@ SaErrorT get_oa_state(struct oh_handler_state *oh_handler,
         /* Estabish the connection with OA */
         hpi_con = soap_open(url, user_name, password, HPI_CALL_TIMEOUT);
         if (hpi_con == NULL) {
-                err("hpi_con intialization for OA <%s> has failed", server);
+                err("hpi_con intialization for OA - %s has failed", server);
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
         event_con = soap_open(url, user_name, password, EVENT_CALL_TIMEOUT);
         if (event_con == NULL) {
-                err("event_con intialization for OA <%s> has failed", server);
+                err("event_con intialization for OA - %s has failed", server);
                 soap_close(hpi_con);
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
@@ -335,7 +358,7 @@ SaErrorT get_oa_state(struct oh_handler_state *oh_handler,
                                 strncpy(standby_fm, firmware, strlen(firmware));
                                 break;
                         default :
-                                err("wrong oa state detected for bay <%d>", i);
+                                err("wrong oa state detected for bay %d", i);
                                 soap_close(hpi_con);
                                 soap_close(event_con);
                                 return SA_ERR_HPI_INTERNAL_ERROR;
@@ -343,17 +366,19 @@ SaErrorT get_oa_state(struct oh_handler_state *oh_handler,
         }
 
         if (active_bay != 0) {
-                dbg("\tActive OA bay number <%d>", active_bay);
-                dbg("\tActive OA ip address <%s>", active_ip);
-                dbg("\tActive OA firmware version <%s>", active_fm);
+                dbg("\tActive OA bay number - %d", active_bay);
+                dbg("\tActive OA ip address - %s", active_ip);
+                dbg("\tActive OA firmware version - %s", active_fm);
         }
         if (standby_bay != 0) {
-                dbg("\tStandby OA bay number <%d>", standby_bay);
-                dbg("\tStandby OA ip address <%s>", standby_ip);
-                dbg("\tStandby OA firmware version <%s>", standby_fm);
+                dbg("\tStandby OA bay number - %d", standby_bay);
+                dbg("\tStandby OA ip address - %s", standby_ip);
+                dbg("\tStandby OA firmware version - %s", standby_fm);
         }
 
-        /* Get the status of the OA to which we are talking to.  */
+        /* Get the status and firmware version of the OA which we are
+         * talking to
+         */
         if (bay == active_bay)
                 this_oa->oa_status = ACTIVE;
         else /* bay == standby_bay */
@@ -402,7 +427,7 @@ SaErrorT get_oa_state(struct oh_handler_state *oh_handler,
                         soap_close(this_oa->event_con);
                         this_oa->hpi_con = NULL;
                         this_oa->event_con = NULL;
-                        err("Active OA <%s> may not be accessible",
+                        err("Active OA - %s may not be accessible",
                             other_oa->server);
                         return SA_ERR_HPI_INTERNAL_ERROR;
                 } else
@@ -423,7 +448,7 @@ SaErrorT get_oa_state(struct oh_handler_state *oh_handler,
                         this_oa->event_con = NULL;
                         soap_close(other_oa->hpi_con);
                         other_oa->hpi_con = NULL;
-                        err("Active OA <%s> may not be accessible",
+                        err("Active OA - %s may not be accessible",
                             other_oa->server);
                         return SA_ERR_HPI_INTERNAL_ERROR;
                 } else {
@@ -501,78 +526,6 @@ struct oh_event *copy_oa_soap_event(struct oh_event *event)
         }
         memcpy(e, event, sizeof(struct oh_event));
         return e;
-}
-
-/**
- * push_event_to_queue
- *      @oh_handler: Pointer to the openhpi handler
- *      @event:      Pointer to the openhpi event structure
- *
- * Purpose:
- *      pushes the events into the infrastructure queue.
- *
- * Detailed Description:
- *      - checks the resource type and determines the event type
- *        (resourece/hotswap)
- *      - Based on the event type, event details like hotswap state is
- *        filled up.
- *      - pushes the event to the openhpi framework.
- *      - This function is called during the [re]discovery.
- *
- * Return values:
- * SA_OK                     - on success.
- * SA_ERR_HPI_INVALID_PARAMS - if wrong parameters passed
- * SA_ERR_HPI_INTERNAL_ERROR - on failure.
- **/
-
-SaErrorT push_event_to_queue(struct oh_handler_state *oh_handler,
-                             struct oh_event *event)
-{
-        struct oa_soap_hotswap_state *hotswap_state = NULL;
-
-        if (oh_handler == NULL || event == NULL) {
-                err("Invalid parameters");
-                return SA_ERR_HPI_INVALID_PARAMS;
-        }
-
-        event->hid = oh_handler->hid;
-        event->event.Severity = event->resource.ResourceSeverity;
-        event->event.Source =   event->resource.ResourceId;
-        if (oh_gettimeofday(&event->event.Timestamp) != SA_OK)
-                event->event.Timestamp = SAHPI_TIME_UNSPECIFIED;
-
-        /* Check whether the resource has hotswap capabilities*/
-        if (event->resource.ResourceCapabilities &
-            SAHPI_CAPABILITY_MANAGED_HOTSWAP) {
-                /* Get the hotswap state and fill the current hotswap state */
-                hotswap_state = (struct oa_soap_hotswap_state *)
-                        oh_get_resource_data(oh_handler->rptcache,
-                                             event->resource.ResourceId);
-                if (hotswap_state == NULL) {
-                        err("Failed to get server hotswap state");
-                        return SA_ERR_HPI_INTERNAL_ERROR;
-                }
-                event->event.EventType = SAHPI_ET_HOTSWAP;
-                event->event.EventDataUnion.HotSwapEvent.HotSwapState =
-                                                hotswap_state->currentHsState;
-        } else if (event->resource.ResourceCapabilities &
-                   SAHPI_CAPABILITY_FRU) {
-                /* The resource is FRU, but does not have hotswap capabilities
-                 * Fill the current hotswap state as ACTIVE.
-                 */
-                event->event.EventType = SAHPI_ET_HOTSWAP;
-                event->event.EventDataUnion.HotSwapEvent.HotSwapState =
-                        SAHPI_HS_STATE_ACTIVE;
-        } else {
-                /* The resource does not have FRU and hotswap capabilities */
-                event->event.EventType = SAHPI_ET_RESOURCE;
-                event->event.EventDataUnion.ResourceEvent.ResourceEventType =
-                        SAHPI_RESE_RESOURCE_ADDED;
-        }
-
-        /* Push the event to openhpi infrastructure */
-        oh_evt_queue_push(oh_handler->eventq, copy_oa_soap_event(event));
-        return SA_OK;
 }
 
 /**
@@ -763,26 +716,26 @@ SaErrorT check_oa_user_permissions(struct oa_soap_handler *oa_handler,
          * We can not have a user name which is disabled and session is created
          */
         if (response.isEnabled != HPOA_TRUE) {
-                err("User <%s> is not enabled for OA %s",
+                err("User - %s is not enabled for OA %s",
                     user_name, con->server);
-                err("Please give full permissions to user <%s>", user_name);
+                err("Please give full permissions to user - %s", user_name);
                 oa_handler->status = PLUGIN_NOT_INITIALIZED;
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
         /* Check for the ADMINISTRATOR rights */
         if (response.acl != ADMINISTRATOR) {
-                err("User <%s> does not have Administrator rights for OA %s",
+                err("User - %s does not have Administrator rights for OA %s",
                      user_name, con->server);
-                err("Please give full permissions to user <%s>", user_name);
+                err("Please give full permissions to user - %s", user_name);
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
         /* Check the permissions for accessing OA */
         if (response.bayPermissions.oaAccess != HPOA_TRUE) {
-                err("User <%s> does not have access rights to OA bay(s) "
+                err("User - %s does not have access rights to OA bay(s) "
                     "for OA %s", user_name, con->server);
-                err("Please give full permissions to user <%s>", user_name);
+                err("Please give full permissions to user - %s", user_name);
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
@@ -791,9 +744,10 @@ SaErrorT check_oa_user_permissions(struct oa_soap_handler *oa_handler,
                 soap_getBayAccess(response.bayPermissions.bladeBays,
                                   &bay_access);
                 if (bay_access.access != HPOA_TRUE) {
-                        err("User <%s> does not have access rights to "
-                            "server bay(s) for OA %s", user_name, con->server);
-                        err("Please give full permissions to user <%s>",
+                        err("User - %s does not have access rights to "
+                            "server bay(s) for OA - %s",
+                            user_name, con->server);
+                        err("Please give full permissions to user - %s",
                             user_name);
                         return SA_ERR_HPI_INTERNAL_ERROR;
                 }
@@ -806,10 +760,10 @@ SaErrorT check_oa_user_permissions(struct oa_soap_handler *oa_handler,
                 soap_getBayAccess(response.bayPermissions.interconnectTrayBays,
                                    &bay_access);
                 if (bay_access.access != HPOA_TRUE) {
-                        err("User <%s> does not have access rights to "
+                        err("User - %s does not have access rights to "
                             "interconnect bay(s) for OA %s",
                             user_name, con->server);
-                        err("Please give full permissions to user <%s>",
+                        err("Please give full permissions to user - %s",
                             user_name);
                         return SA_ERR_HPI_INTERNAL_ERROR;
                 }
@@ -861,7 +815,7 @@ SaErrorT check_discovery_failure(struct oh_handler_state *oh_handler)
                 oa1_rv = check_oa_status(oa_handler, oa_handler->oa_1,
                                          oa_handler->oa_1->hpi_con);
                 if (oa1_rv != SA_OK)
-                        err("check OA status for <%s> has failed",
+                        err("check oa_status has failed for - %s",
                              oa_handler->oa_1->hpi_con->server);
         }
 
@@ -870,7 +824,7 @@ SaErrorT check_discovery_failure(struct oh_handler_state *oh_handler)
                 oa2_rv = check_oa_status(oa_handler, oa_handler->oa_2,
                                          oa_handler->oa_2->hpi_con);
                 if (oa2_rv != SA_OK)
-                        err("check OA status for <%s> has failed",
+                        err("check oa_status has failed for OA - %s",
                              oa_handler->oa_1->hpi_con->server);
         }
 
@@ -958,25 +912,26 @@ SaErrorT check_config_parameters(GHashTable *handler_config)
         /* Check for OA user name entry */
         temp = (char *) g_hash_table_lookup(handler_config, "OA_User_Name");
         if (temp == NULL) {
-                err("Failed to find attribute <OA_User_Name> in openhpi.conf ");
+                err("Failed to find attribute OA_User_Name in openhpi.conf ");
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
         /* Check for OA_Password entry */
         temp = (char *) g_hash_table_lookup(handler_config, "OA_Password");
         if (temp == NULL) {
-                err("Failed to find attribute <OA_Password> in openhpi.conf ");
+                err("Failed to find attribute OA_Password in openhpi.conf ");
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-        /* Check for Active OA hostname/IP address entry */
+        /* Check for Active OA hostname/IP address entry
+         * STANDBY_OA is an optional parameter and hence not checked
+         */
         temp = (char *) g_hash_table_lookup(handler_config, "ACTIVE_OA");
         if (temp == NULL) {
-                err("Failed to find attribute <ACTIVE_OA> in openhpi.conf ");
+                err("Failed to find attribute ACTIVE_OA in openhpi.conf ");
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-        /* STANDBY_OA is an optional parameter and hence not checked */
         return SA_OK;
 }
 
@@ -1118,4 +1073,381 @@ void create_oa_connection(struct oa_info *oa,
                 rv = create_event_session(oa);
 
         return;
+}
+
+/**
+ * delete_all_inventory_info
+ *      @oh_handler: Pointer to the plugin handler
+ *
+ * Purpose:
+ *      Traverses through all resources and extracts the inventory RDR
+ *      Frees up the memory allocated for inventory information
+ *
+ * Detailed Descrption: NA
+ *
+ * Return values:
+ *      SA_OK                     - on success.
+ *      SA_ERR_HPI_INVALID_PARAMS - on wrong parameters
+ **/
+SaErrorT delete_all_inventory_info(struct oh_handler_state *oh_handler)
+{
+        SaErrorT rv = SA_OK;
+        SaHpiRptEntryT  *rpt = NULL;
+
+        if (oh_handler == NULL) {
+                err("Invalid parameter");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        rpt = oh_get_resource_next(oh_handler->rptcache, SAHPI_FIRST_ENTRY);
+        while (rpt) {
+                /* Free the inventory info from inventory RDR */
+                rv = free_inventory_info(oh_handler, rpt->ResourceId);
+                if (rv != SA_OK) {
+                        err("Inventory cleanup failed for resource id %d",
+                            rpt->ResourceId);
+                }
+                rpt = oh_get_resource_next(oh_handler->rptcache,
+                                           rpt->ResourceId);
+        }
+
+        return SA_OK;
+}
+
+/**
+ * populate_event
+ *       @oh_handler:  Pointer to openhpi handler
+ *       @resource_id: Resource Id
+ *       @event:       Pointer to event structure
+ *
+ * Purpose:
+ *      Gets the rpt entry and RDR from plugin RPTable for
+ *      the resource. Creates the hotswap event and pushes
+ *      the event to openhpi infrastructure
+ *
+ * Detailed Description: NA
+ *
+ * Return values:
+ *      SA_OK                     - on success.
+ *      SA_ERR_HPI_OUT_OF_MEMORY  - on out of memory
+ *      SA_ERR_HPI_INVALID_PARAMS - on wrong parameters
+ *      SA_ERR_HPI_INTERNAL_ERROR - on failure.
+ **/
+SaErrorT populate_event(struct oh_handler_state *oh_handler,
+                        SaHpiResourceIdT resource_id,
+                        struct oh_event *event)
+{
+        SaHpiRptEntryT *rpt = NULL;
+        SaHpiRdrT *temp, *rdr = NULL;
+
+        if (oh_handler == NULL || event == NULL) {
+                err("Invalid parameters");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
+
+        memset(event, 0, sizeof(struct oh_event));
+        event->event.Source = rpt->ResourceId;
+        oh_gettimeofday(&event->event.Timestamp);
+        event->event.Severity = rpt->ResourceSeverity;
+        event->resource = *rpt;
+        event->hid = oh_handler->hid;
+
+        /* Add all RDRs of this RPT entry */
+        rdr = oh_get_rdr_next(oh_handler->rptcache, rpt->ResourceId,
+                                    SAHPI_FIRST_ENTRY);
+        while (rdr) {
+                temp = g_memdup(rdr, sizeof(SaHpiRdrT));
+                if (temp == NULL) {
+                        err("Out of memory");
+                        return SA_ERR_HPI_OUT_OF_MEMORY;
+                }
+                event->rdrs = g_slist_append(event->rdrs, temp);
+                rdr = oh_get_rdr_next(oh_handler->rptcache, rpt->ResourceId,
+                                      rdr->RecordId);
+        }
+
+        return SA_OK;
+}
+
+/**
+ * push_discovered_resource_events
+ *       @oh_handler: Pointer to openhpi handler
+ *
+ * Purpose:
+ *      Gets all the rpt entry and RDR from plugin RPTable.
+ *      Creates the resource/hotswap event and pushes
+ *      the events to openhpi infrastructure
+ *
+ * Detailed Description: NA
+ *
+ * Return values:
+ *      SA_OK                     - on success.
+ *      SA_ERR_HPI_OUT_OF_MEMORY  - on out of memory
+ *      SA_ERR_HPI_INVALID_PARAMS - on wrong parameters
+ *      SA_ERR_HPI_INTERNAL_ERROR - on failure.
+ **/
+SaErrorT push_discovered_resource_events(struct oh_handler_state *oh_handler)
+{
+        SaErrorT rv = SA_OK;
+        SaHpiRptEntryT *rpt = NULL;
+        struct oh_event event;
+        struct oa_soap_hotswap_state *hotswap_state = NULL;
+
+        if (oh_handler == NULL) {
+                err("Invalid parameter");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        rpt = oh_get_resource_next(oh_handler->rptcache, SAHPI_FIRST_ENTRY);
+        while (rpt) {
+                rv = populate_event(oh_handler, rpt->ResourceId, &event);
+
+                /* Check whether the resource has hotswap capability */
+                if (event.resource.ResourceCapabilities &
+                        SAHPI_CAPABILITY_MANAGED_HOTSWAP) {
+                        /* Get the hotswap state and fill the current
+                         * hotswap state
+                         */
+                        hotswap_state = (struct oa_soap_hotswap_state *)
+                                oh_get_resource_data(oh_handler->rptcache,
+                                                     event.resource.ResourceId);
+                        if (hotswap_state == NULL) {
+                                err("Failed to get server hotswap state");
+                                return SA_ERR_HPI_INTERNAL_ERROR;
+                        }
+                        event.event.EventType = SAHPI_ET_HOTSWAP;
+                        event.event.EventDataUnion.HotSwapEvent.HotSwapState =
+                                hotswap_state->currentHsState;
+                } else if (event.resource.ResourceCapabilities &
+                                SAHPI_CAPABILITY_FRU) {
+                        /* The resource is FRU, but does not have hotswap
+                         * capability Fill the current hotswap state as ACTIVE.
+                         */
+                        event.event.EventType = SAHPI_ET_HOTSWAP;
+                        event.event.EventDataUnion.HotSwapEvent.HotSwapState =
+                                SAHPI_HS_STATE_ACTIVE;
+                } else {
+                        /* The resource does not have FRU and hotswap
+                         * capabilities. Raise the resrouce event.
+                         */
+                        event.event.EventType = SAHPI_ET_RESOURCE;
+                        event.event.EventDataUnion.ResourceEvent.
+                                ResourceEventType = SAHPI_RESE_RESOURCE_ADDED;
+                }
+                /* Push the event to OpenHPI */
+                oh_evt_queue_push(oh_handler->eventq,
+                                  copy_oa_soap_event(&event));
+
+                rpt = oh_get_resource_next(oh_handler->rptcache,
+                                           rpt->ResourceId);
+        } /* End of while loop */
+
+        return SA_OK;
+}
+
+/**
+ * cleanup_plugin_rptable
+ *      @oh_handler: Pointer to the plugin handler
+ *
+ * Purpose:
+ *      Frees up the memory allocated for RPT and RDR entries
+ *
+ * Detailed Descrption: NA
+ *
+ * Return values:
+ *      NONE
+ **/
+void cleanup_plugin_rptable(struct oh_handler_state *oh_handler)
+{
+        SaErrorT rv = SA_OK;
+
+        if (oh_handler == NULL) {
+                err("Invalid parameter");
+                return;
+        }
+
+        rv = delete_all_inventory_info(oh_handler);
+        if (rv != SA_OK) {
+                err("Deleting all inventory information failed");
+        }
+
+        rv = oh_flush_rpt(oh_handler->rptcache);
+        if (rv != SA_OK) {
+                err("Plugin RPTable flush failed");
+        }
+
+        return;
+}
+
+/**
+ * release_oa_soap_resources
+ *      @oa_handler: Pointer to oa soap handler
+ *
+ * Purpose:
+ *      To free the memory allocated for resource presence and serial number
+ *      for OA, interconnect, server, fan and power supply
+ *
+ * Detailed Description: NA
+ *
+ * Return values:
+ *      None
+ **/
+void release_oa_soap_resources(struct oa_soap_handler *oa_handler)
+{
+        SaHpiInt32T i;
+
+        /* Release memory of blade presence and blade serial number array */
+        if (oa_handler->oa_soap_resources.server.presence != NULL) {
+                g_free(oa_handler->oa_soap_resources.server.presence);
+        }
+        for (i = 0; i < oa_handler->oa_soap_resources.server.max_bays; i++) {
+                if (oa_handler->oa_soap_resources.server.serial_number[i] !=
+                    NULL)
+                        g_free(oa_handler->oa_soap_resources.server.
+                               serial_number[i]);
+        }
+        g_free(oa_handler->oa_soap_resources.server.serial_number);
+
+        /* Release memory of interconnect presence and serial number array */
+        if (oa_handler->oa_soap_resources.interconnect.presence != NULL) {
+                g_free(oa_handler->oa_soap_resources.interconnect.presence);
+        }
+        for (i = 0; i < oa_handler->oa_soap_resources.interconnect.max_bays;
+             i++) {
+                if (oa_handler->oa_soap_resources.interconnect.
+                    serial_number[i] != NULL)
+                        g_free(oa_handler->oa_soap_resources.interconnect.
+                               serial_number[i]);
+        }
+        g_free(oa_handler->oa_soap_resources.interconnect.serial_number);
+
+        /* Release memory of OA presence and serial number array */
+        if (oa_handler->oa_soap_resources.oa.presence != NULL) {
+                g_free(oa_handler->oa_soap_resources.oa.presence);
+        }
+        for (i = 0; i < oa_handler->oa_soap_resources.oa.max_bays; i++) {
+                if (oa_handler->oa_soap_resources.oa.serial_number[i] != NULL)
+                        g_free(oa_handler->oa_soap_resources.oa.
+                               serial_number[i]);
+        }
+        g_free(oa_handler->oa_soap_resources.oa.serial_number);
+
+        /* Release memory of fan presence. Since fans does not have serial
+         * numbers, hence serial numbers array is not created for fans
+         */
+        if (oa_handler->oa_soap_resources.fan.presence != NULL)
+                g_free(oa_handler->oa_soap_resources.fan.presence);
+
+        /* Release memory of power supply presence and serial number array */
+        if (oa_handler->oa_soap_resources.ps_unit.presence !=NULL) {
+                g_free(oa_handler->oa_soap_resources.ps_unit.presence);
+        }
+        for (i = 0; i < oa_handler->oa_soap_resources.ps_unit.max_bays; i++) {
+                if (oa_handler->oa_soap_resources.ps_unit.serial_number[i]
+                    != NULL)
+                        g_free(oa_handler->oa_soap_resources.
+                                ps_unit.serial_number[i]);
+        }
+        g_free(oa_handler->oa_soap_resources.ps_unit.serial_number);
+}
+
+/**
+ * update_oa_info
+ *      @oh_handler:  Pointer to the plugin handler
+ *      @response:    Pointer to the oaInfo structure
+ *      @resource_id: Resource Id
+ *
+ * Purpose:
+ *      Returns the OA firmware version of the active OA
+ *
+ * Detailed Descrption: NA
+ *
+ * Return values:
+ *      SA_HPI_ERR_INAVLID_PARAMS - on invalid parametersfailure
+ *      SA_HPI_ERR_INTERNAL_ERROR - on failure
+ *      SA_OK                     - on success
+ **/
+SaErrorT update_oa_info(struct oh_handler_state *oh_handler,
+                        struct oaInfo *response,
+                        SaHpiResourceIdT resource_id)
+{
+        struct oa_soap_handler *oa_handler;
+        SaHpiRptEntryT *rpt = NULL;
+        SaHpiFloat64T fm_version;
+        SaHpiInt32T major;
+
+        if (oh_handler == NULL || response == NULL) {
+                err("Invalid parameter");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        /* Copy the serial number of the OA to serial_number array */
+        oa_handler = (struct oa_soap_handler *) oh_handler->data;
+        strcpy(oa_handler->oa_soap_resources.oa.
+               serial_number[response->bayNumber - 1],
+               response->serialNumber);
+
+        rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
+        if (rpt == NULL) {
+                err("OA rpt is not present");
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
+
+        if (strlen(response->fwVersion) == 0) {
+                err("Firmware version is null string");
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
+
+        /* Firmware version is in the format of x.yy. 'x' is the major version
+         * 'yy' is the minor version
+         */
+        fm_version = atof(response->fwVersion);
+        rpt->ResourceInfo.FirmwareMajorRev = major = rintf(fm_version);
+        rpt->ResourceInfo.FirmwareMinorRev = rintf((fm_version - major) * 100);
+
+        return SA_OK;
+}
+
+/**
+ * convert_lower_to_upper
+ *      @src:      Pointer to the source string handler
+ *      @src_len:  String length of the source string
+ *      @dest:     Pointer to destination string
+ *      @dest_len: Length of the destination string
+ *
+ * Purpose:
+ *      Converts the lower case characters to upper case
+ *
+ * Detailed Descrption: NA
+ *
+ * Return values:
+ *      SA_HPI_ERR_INAVLID_PARAMS - on invalid parametersfailure
+ *      SA_HPI_ERR_INTERNAL_ERROR - on failure
+ *      SA_OK                     - on success
+ **/
+
+SaErrorT convert_lower_to_upper(char *src,
+                                SaHpiInt32T src_len,
+                                char *dest,
+                                SaHpiInt32T dest_len)
+{
+        SaHpiInt32T i;
+
+        if (src == NULL || dest == NULL) {
+                dbg("Invalid parameters");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        if (dest_len < src_len) {
+                err("Source string is longer than destination string");
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
+
+        memset(dest, 0, dest_len);
+        for (i = 0; i < src_len; i++)
+                dest[i] = toupper(src[i]);
+
+        return SA_OK;
 }
