@@ -36,6 +36,10 @@
 #ifndef _OA_SOAP_HOTSWAP_H
 #define _OA_SOAP_HOTSWAP_H
 
+/* Include files */
+#include "oa_soap_utils.h"
+#include "oa_soap_power.h"
+
 SaErrorT oa_soap_get_hotswap_state(void *oh_handler,
                                    SaHpiResourceIdT resource_id,
                                    SaHpiHsStateT *state);

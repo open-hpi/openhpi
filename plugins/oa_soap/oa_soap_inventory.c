@@ -30,6 +30,7 @@
  *
  * Author(s)
  *      Raghavendra M.S. <raghavendra.ms@hp.com>
+ *      Bhaskara Bhatt <bhaskara.hg@hp.com>
  *
  * This file supports the functions related to HPI Inventory Data repositories.
  * The file covers three general classes of function: IDR ABI functions,
@@ -115,7 +116,7 @@
  *
  */
 
-#include <oa_soap_plugin.h>
+#include "oa_soap_inventory.h"
 
 /**
  * oa_soap_get_idr_info
@@ -192,7 +193,8 @@ SaErrorT oa_soap_get_idr_info(void *oh_handler,
  *      @idr: IDR ID
  *      @area_type: Type of the inventory data area
  *      @area_id: Identifier of the area entry
- *      @next_area: Structure for receiving the next area of the requested type
+ *      @next_area_id: Structure for receiving the next area of the requested
+ *                     type
  *      @header: Structure for receiving idr information
  *
  * Purpose:
@@ -215,7 +217,7 @@ SaErrorT oa_soap_get_idr_area_header(void *oh_handler,
                                      SaHpiIdrIdT idr,
                                      SaHpiIdrAreaTypeT area_type,
                                      SaHpiEntryIdT area_id,
-                                     SaHpiEntryIdT *next_area,
+                                     SaHpiEntryIdT *next_area_id,
                                      SaHpiIdrAreaHeaderT *header)
 {
         SaErrorT rv = SA_OK;
@@ -225,7 +227,7 @@ SaErrorT oa_soap_get_idr_area_header(void *oh_handler,
         struct oa_soap_inventory *inventory = NULL;
         char *type;
 
-        if (oh_handler == NULL || next_area == NULL || header == NULL) {
+        if (oh_handler == NULL || next_area_id == NULL || header == NULL) {
                 err("Invalid parameter.");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
@@ -281,7 +283,7 @@ SaErrorT oa_soap_get_idr_area_header(void *oh_handler,
          * the same area type if existing, else it will be set to NULL
          */
         rv = fetch_idr_area_header(&(inventory->info), area_id, area_type,
-                                   header, next_area);
+                                   header, next_area_id);
         if (rv != SA_OK) {
                 err("IDR Area not present");
                 return SA_ERR_HPI_NOT_PRESENT;
@@ -312,6 +314,7 @@ SaErrorT oa_soap_get_idr_area_header(void *oh_handler,
  *      SA_ERR_HPI_INVALID_RESOURCE - Invalid resource id specified
  *      SA_ERR_HPI_NOT_PRESENT - Requested object not present
  *      SA_ERR_HPI_READ_ONLY - The data to be operated upon is read only
+ *      SA_ERR_HPI_OUT_OF_SPACE - Request failed due to insufficient memory
  **/
 SaErrorT oa_soap_add_idr_area(void *oh_handler,
                               SaHpiResourceIdT resource_id,
@@ -382,7 +385,10 @@ SaErrorT oa_soap_add_idr_area(void *oh_handler,
         /* Create and add the new area to the end of resource IDR area list */
         rv = idr_area_add(&(inventory->info.area_list), area_type, &local_area);
         if (rv != SA_OK) {
-                err("IDR has no space for a new area");
+                err("Addition of IDR area failed");
+                if (rv == SA_ERR_HPI_OUT_OF_MEMORY) {
+                        return SA_ERR_HPI_OUT_OF_SPACE;
+                }
                 return rv;
         }
 
@@ -622,7 +628,7 @@ SaErrorT oa_soap_get_idr_field(void *oh_handler,
  *      SA_ERR_HPI_INVALID_RESOURCE - Invalid resource id specified
  *      SA_ERR_HPI_NOT_PRESENT - Requested object not present
  *      SA_ERR_HPI_READ_ONLY - The data to be operated upon is read only
- *      SA_ERR_HPI_OUT_OF_MEMORY - Request failed due to insufficient memory
+ *      SA_ERR_HPI_OUT_OF_SPACE - Request failed due to insufficient memory
  **/
 SaErrorT oa_soap_add_idr_field(void *oh_handler,
                                SaHpiResourceIdT resource_id,
@@ -678,10 +684,7 @@ SaErrorT oa_soap_add_idr_field(void *oh_handler,
                 err("No inventory data. idr=%s", rdr->IdString.Data);
                 return SA_ERR_HPI_NOT_PRESENT;
         }
-        if (inventory->info.idr_info.ReadOnly == SAHPI_TRUE) {
-                err("IDR is read only");
-                return SA_ERR_HPI_READ_ONLY;
-        }
+
         if (inventory->info.idr_info.NumAreas == 0) {
                 err("No areas in the specified IDR");
                 return SA_ERR_HPI_NOT_PRESENT;
@@ -715,7 +718,11 @@ SaErrorT oa_soap_add_idr_field(void *oh_handler,
         rv = idr_field_add(&(local_area->field_list),
                            field);
         if (rv != SA_OK) {
-                return SA_ERR_HPI_OUT_OF_MEMORY;
+                err("IDR field add failed");
+                if (rv == SA_ERR_HPI_OUT_OF_MEMORY) {
+                        return SA_ERR_HPI_OUT_OF_SPACE;
+                }
+                return rv;
         }
 
         /* Increment the field count in IDR area */
@@ -812,10 +819,7 @@ SaErrorT oa_soap_set_idr_field(void *oh_handler,
                 err("No inventory data. idr=%s", rdr->IdString.Data);
                 return SA_ERR_HPI_NOT_PRESENT;
         }
-        if (inventory->info.idr_info.ReadOnly == SAHPI_TRUE) {
-                err("IDR is read only");
-                return SA_ERR_HPI_READ_ONLY;
-        }
+
         if (inventory->info.idr_info.NumAreas == 0) {
                 err("No areas in the specified IDR");
                 return SA_ERR_HPI_NOT_PRESENT;
@@ -840,15 +844,10 @@ SaErrorT oa_soap_set_idr_field(void *oh_handler,
                 return SA_ERR_HPI_NOT_PRESENT;
         }
 
-         /* Check whether the specified IDR area is read only */
-        if (local_area->idr_area_head.ReadOnly == SAHPI_TRUE) {
-                err("IDR area is read only ");
-                return SA_ERR_HPI_READ_ONLY;
-        }
-
         /* Update the specified field with latest data */
         rv = idr_field_update(local_area->field_list, field);
         if (rv != SA_OK) {
+                err("IDR field update failed");
                 return rv;
         }
 
@@ -930,10 +929,7 @@ SaErrorT oa_soap_del_idr_field(void *oh_handler,
                 err("No inventory data. idr=%s", rdr->IdString.Data);
                 return SA_ERR_HPI_NOT_PRESENT;
         }
-        if (inventory->info.idr_info.ReadOnly == SAHPI_TRUE) {
-                err("IDR is read only");
-                return SA_ERR_HPI_READ_ONLY;
-        }
+
         if (inventory->info.idr_info.NumAreas == 0) {
                 err("No areas in the specified IDR");
                 return SA_ERR_HPI_NOT_PRESENT;
@@ -1070,7 +1066,7 @@ SaErrorT build_enclosure_inv_rdr(struct oh_handler_state *oh_handler,
                               response->manufacturer,
                               &add_success_flag);
         if (rv != SA_OK) {
-                err("OA SOAP out of memory");
+                err("Add product area failed");
                 return rv;
         }
 
@@ -1094,7 +1090,7 @@ SaErrorT build_enclosure_inv_rdr(struct oh_handler_state *oh_handler,
                               response->serialNumber,
                               &add_success_flag);
         if (rv != SA_OK) {
-                err("OA SOAP out of memory");
+                err("Add chassis area failed");
                 return rv;
         }
         if (add_success_flag != SAHPI_FALSE) {
@@ -1115,7 +1111,7 @@ SaErrorT build_enclosure_inv_rdr(struct oh_handler_state *oh_handler,
                                response->interposerSerialNumber,
                                &add_success_flag);
         if (rv != SA_OK) {
-                err("OA SOAP out of memory");
+                err("Add internal area failed");
                 return rv;
         }
         if (add_success_flag != SAHPI_FALSE) {
@@ -1227,7 +1223,7 @@ SaErrorT build_oa_inv_rdr(struct oh_handler_state *oh_handler,
                               response->manufacturer,
                               &add_success_flag);
         if (rv != SA_OK) {
-                err("OA SOAP out of memory");
+                err("Add product area failed");
                 return rv;
         }
 
@@ -1251,7 +1247,7 @@ SaErrorT build_oa_inv_rdr(struct oh_handler_state *oh_handler,
                             response->serialNumber,
                             &add_success_flag);
         if (rv != SA_OK) {
-                err("OA SOAP out of memory");
+                err("Add board area failed");
                 return rv;
         }
         if (add_success_flag != SAHPI_FALSE) {
@@ -1377,7 +1373,7 @@ SaErrorT build_server_inv_rdr(struct oh_handler_state *oh_handler,
                               response.manufacturer,
                               &add_success_flag);
         if (rv != SA_OK) {
-                err("OA SOAP out of memory");
+                err("Add product area failed");
                 return rv;
         }
 
@@ -1401,7 +1397,7 @@ SaErrorT build_server_inv_rdr(struct oh_handler_state *oh_handler,
                             response.serialNumber,
                             &add_success_flag);
         if (rv != SA_OK) {
-                err("OA SOAP out of memory");
+                err("Add board area failed");
                 return rv;
         }
         if (add_success_flag != SAHPI_FALSE) {
@@ -1575,7 +1571,7 @@ SaErrorT build_server_inventory_area(struct bladeInfo *response,
                               response->manufacturer,
                               &add_success_flag);
         if (rv != SA_OK) {
-                err("OA SOAP out of memory");
+                err("Add product area failed");
                 return rv;
         }
 
@@ -1599,7 +1595,7 @@ SaErrorT build_server_inventory_area(struct bladeInfo *response,
                             response->serialNumber,
                             &add_success_flag);
         if (rv != SA_OK) {
-                err("OA SOAP out of memory");
+                err("Add board area failed");
                 return rv;
         }
         if (add_success_flag != SAHPI_FALSE) {
@@ -1724,7 +1720,7 @@ SaErrorT build_interconnect_inv_rdr(struct oh_handler_state *oh_handler,
                               response.manufacturer,
                               &add_success_flag);
         if (rv != SA_OK) {
-                err("OA SOAP out of memory");
+                err("Add product area failed");
                 return rv;
         }
 
@@ -1748,7 +1744,7 @@ SaErrorT build_interconnect_inv_rdr(struct oh_handler_state *oh_handler,
                             response.serialNumber,
                             &add_success_flag);
         if (rv != SA_OK) {
-                err("OA SOAP out of memory");
+                err("Add board area failed");
                 return rv;
         }
         if (add_success_flag != SAHPI_FALSE) {
@@ -1860,7 +1856,7 @@ SaErrorT build_fan_inv_rdr(struct oh_handler_state *oh_handler,
                               NULL,
                               &add_success_flag);
         if (rv != SA_OK) {
-                err("OA SOAP out of memory");
+                err("Add product area failed");
                 return rv;
         }
 
@@ -1884,7 +1880,7 @@ SaErrorT build_fan_inv_rdr(struct oh_handler_state *oh_handler,
                             response->serialNumber,
                             &add_success_flag);
         if (rv != SA_OK) {
-                err("OA SOAP out of memory");
+                err("Add board area failed");
                 return rv;
         }
         if (add_success_flag != SAHPI_FALSE) {
@@ -1998,7 +1994,7 @@ SaErrorT build_power_inv_rdr(struct oh_handler_state *oh_handler,
                             response->serialNumber,
                             &add_success_flag);
         if (rv != SA_OK) {
-                err("OA SOAP out of memory");
+                err("Add board area failed");
                 return rv;
         }
         if (add_success_flag != SAHPI_FALSE) {
@@ -2068,7 +2064,7 @@ SaErrorT add_product_area(struct oa_soap_area **area,
                           SAHPI_IDR_AREATYPE_PRODUCT_INFO,
                           &local_area);
         if (rv != SA_OK) {
-                err("OA SOAP out of memory");
+                err("Add idr area failed");
                 return rv;
         }
         *success_flag = SAHPI_TRUE;
@@ -2085,7 +2081,7 @@ SaErrorT add_product_area(struct oa_soap_area **area,
                 rv = idr_field_add(&(local_area->field_list),
                                    &hpi_field);
                 if (rv != SA_OK) {
-                        err("OA SOAP out of memory");
+                        err("Add idr field failed");
                         return rv;
                 }
                 ++field_count;
@@ -2094,7 +2090,7 @@ SaErrorT add_product_area(struct oa_soap_area **area,
                  * the IDR area, then have field pointer stored as the head
                  * node for field list
                  */
-                if (field_count == 1){
+                if (field_count == 1) {
                         head_field = field = local_area->field_list;
                 }
                 local_area->idr_area_head.NumFields++;
@@ -2110,7 +2106,7 @@ SaErrorT add_product_area(struct oa_soap_area **area,
                 rv = idr_field_add(&(local_area->field_list),
                                    &hpi_field);
                 if (rv != SA_OK) {
-                        err("OA SOAP out of memory");
+                        err("Add idr field failed");
                         return rv;
                 }
                 ++field_count;
@@ -2177,7 +2173,7 @@ SaErrorT add_chassis_area(struct oa_soap_area **area,
                           &local_area);
 
         if (rv != SA_OK) {
-                err("OA SOAP out of memory");
+                err("Add idr area failed");
                 return rv;
         }
         field_count = 0;
@@ -2195,7 +2191,7 @@ SaErrorT add_chassis_area(struct oa_soap_area **area,
                 rv = idr_field_add(&(local_area->field_list),
                                    &hpi_field);
                 if (rv != SA_OK) {
-                        err("OA SOAP out of memory");
+                        err("Add idr field failed");
                         return rv;
                 }
                 ++field_count;
@@ -2214,7 +2210,7 @@ SaErrorT add_chassis_area(struct oa_soap_area **area,
                 rv = idr_field_add(&(local_area->field_list),
                                    &hpi_field);
                 if (rv != SA_OK) {
-                        err("OA SOAP out of memory");
+                        err("Add idr field failed");
                         return rv;
                 }
                 ++field_count;
@@ -2280,7 +2276,7 @@ SaErrorT add_board_area(struct oa_soap_area **area,
                           SAHPI_IDR_AREATYPE_BOARD_INFO,
                           &local_area);
         if (rv != SA_OK) {
-                err("OA SOAP out of memory");
+                err("Add idr area failed");
                 return rv;
         }
         *success_flag = SAHPI_TRUE;
@@ -2299,7 +2295,7 @@ SaErrorT add_board_area(struct oa_soap_area **area,
                 rv = idr_field_add(&(local_area->field_list),
                                    &hpi_field);
                 if (rv != SA_OK) {
-                        err("OA SOAP out of memory");
+                        err("Add idr field failed");
                         return rv;
                 }
                 ++field_count;
@@ -2308,7 +2304,7 @@ SaErrorT add_board_area(struct oa_soap_area **area,
                 }
                 local_area->idr_area_head.NumFields++;
         }
-        if (serial_number != NULL){
+        if (serial_number != NULL) {
                 memset(&hpi_field, 0, sizeof(SaHpiIdrFieldT));
                 hpi_field.AreaId = local_area->idr_area_head.AreaId;
                 hpi_field.Type = SAHPI_IDR_FIELDTYPE_SERIAL_NUMBER;
@@ -2317,7 +2313,7 @@ SaErrorT add_board_area(struct oa_soap_area **area,
                 rv = idr_field_add(&(local_area->field_list),
                                    &hpi_field);
                 if (rv != SA_OK) {
-                        err("OA SOAP out of memory");
+                        err("Add idr field failed");
                         return rv;
                 }
                 ++field_count;
@@ -2389,7 +2385,7 @@ SaErrorT add_internal_area(struct oa_soap_area **area,
                           (SaHpiIdrAreaTypeT)SAHPI_IDR_AREATYPE_INTERNAL_USE,
                           &local_area);
         if (rv != SA_OK) {
-                err("OA SOAP out of memory");
+                err("Add idr area failed");
                 return rv;
         }
         *success_flag = SAHPI_TRUE;
@@ -2398,7 +2394,7 @@ SaErrorT add_internal_area(struct oa_soap_area **area,
 
         /* Add the fields to the newly created internal use area */
         field = local_area->field_list;
-        if (manufacturer != NULL){
+        if (manufacturer != NULL) {
 
                 memset(&hpi_field, 0, sizeof(SaHpiIdrFieldT));
                 hpi_field.AreaId = local_area->idr_area_head.AreaId;
@@ -2408,7 +2404,7 @@ SaErrorT add_internal_area(struct oa_soap_area **area,
                 rv = idr_field_add(&(local_area->field_list),
                                    &hpi_field);
                 if (rv != SA_OK) {
-                        err("OA SOAP out of memory");
+                        err("Add idr field failed");
                         return rv;
                 }
                 ++field_count;
@@ -2418,7 +2414,7 @@ SaErrorT add_internal_area(struct oa_soap_area **area,
                 local_area->idr_area_head.NumFields++;
         }
 
-        if (name != NULL){
+        if (name != NULL) {
 
                 memset(&hpi_field, 0, sizeof(SaHpiIdrFieldT));
                 hpi_field.AreaId = local_area->idr_area_head.AreaId;
@@ -2428,7 +2424,7 @@ SaErrorT add_internal_area(struct oa_soap_area **area,
                 rv = idr_field_add(&(local_area->field_list),
                                    &hpi_field);
                 if (rv != SA_OK) {
-                        err("OA SOAP out of memory");
+                        err("Add idr field failed");
                         return rv;
                 }
                 ++field_count;
@@ -2438,7 +2434,7 @@ SaErrorT add_internal_area(struct oa_soap_area **area,
                 local_area->idr_area_head.NumFields++;
         }
 
-        if (part_number != NULL){
+        if (part_number != NULL) {
 
                 memset(&hpi_field, 0, sizeof(SaHpiIdrFieldT));
                 hpi_field.AreaId = local_area->idr_area_head.AreaId;
@@ -2448,7 +2444,7 @@ SaErrorT add_internal_area(struct oa_soap_area **area,
                 rv = idr_field_add(&(local_area->field_list),
                                    &hpi_field);
                 if (rv != SA_OK) {
-                        err("OA SOAP out of memory");
+                        err("Add idr field failed");
                         return rv;
                 }
                 ++field_count;
@@ -2469,7 +2465,7 @@ SaErrorT add_internal_area(struct oa_soap_area **area,
                 rv = idr_field_add(&(local_area->field_list),
                                    &hpi_field);
                 if (rv != SA_OK) {
-                        err("OA SOAP out of memory");
+                        err("Add idr field failed");
                         return rv;
                 }
                 ++field_count;
@@ -2580,7 +2576,6 @@ SaErrorT idr_area_add(struct oa_soap_area **head_area,
  *      SA_OK - Normal case
  *      SA_ERR_HPI_INVALID_PARAMS - On wrong parameters
  *      SA_ERR_HPI_NOT_PRESENT - Requested object not present
- *      SA_ERR_HPI_OUT_OF_MEMORY - Request failed due to insufficient memory
  **/
 SaErrorT idr_area_delete(struct oa_soap_area **head_area,
                          SaHpiEntryIdT area_id)
@@ -2670,7 +2665,7 @@ SaErrorT idr_area_delete(struct oa_soap_area **head_area,
  *      @area_id: Identifier of the area to be deleted
  *      @area_type: Type of IDR area
  *      @area_header: Structure to receive area header information
- *      @next_area: Next area Id of requested type
+ *      @next_area_id: Next area Id of requested type
  *
  * Purpose:
  *      Gets an Inventory Data Repository(IDR) area header from Inventory data
@@ -2691,13 +2686,12 @@ SaErrorT idr_area_delete(struct oa_soap_area **head_area,
  *      SA_OK - Normal case
  *      SA_ERR_HPI_INVALID_PARAMS - On wrong parameters
  *      SA_ERR_HPI_NOT_PRESENT - Requested object not present
- *      SA_ERR_HPI_OUT_OF_MEMORY - Request failed due to insufficient memory
  **/
 SaErrorT fetch_idr_area_header(struct oa_soap_inventory_info *inventory_info,
                                SaHpiEntryIdT area_id,
                                SaHpiIdrAreaTypeT area_type,
                                SaHpiIdrAreaHeaderT *area_header,
-                               SaHpiEntryIdT *next_area)
+                               SaHpiEntryIdT *next_area_id)
 {
         SaHpiInt32T i;
         struct oa_soap_area *local_area = NULL;
@@ -2708,7 +2702,7 @@ SaErrorT fetch_idr_area_header(struct oa_soap_inventory_info *inventory_info,
                 return SA_ERR_HPI_ERROR;
         }
 
-        if ((area_header == NULL) && (next_area == NULL)) {
+        if ((area_header == NULL) && (next_area_id == NULL)) {
                 err("Invalid parameter.");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
@@ -2731,13 +2725,13 @@ SaErrorT fetch_idr_area_header(struct oa_soap_inventory_info *inventory_info,
                                 memcpy(area_header, &local_area->idr_area_head,
                                        sizeof(SaHpiIdrAreaHeaderT));
                                 local_area = local_area->next_area;
-                                *next_area = SAHPI_LAST_ENTRY;
+                                *next_area_id = SAHPI_LAST_ENTRY;
                                 while (local_area) {
                                         if (area_type ==
                                               SAHPI_IDR_AREATYPE_UNSPECIFIED ||
                                             area_type ==
                                               local_area->idr_area_head.Type) {
-                                                *next_area = local_area->
+                                                *next_area_id = local_area->
                                                         idr_area_head.AreaId;
                                                 found = SAHPI_TRUE;
                                                 break;
@@ -2770,15 +2764,15 @@ SaErrorT fetch_idr_area_header(struct oa_soap_inventory_info *inventory_info,
                                         memcpy(area_header,
                                                &local_area->idr_area_head,
                                                sizeof(SaHpiIdrAreaHeaderT));
-                                        *next_area = SAHPI_LAST_ENTRY;
+                                        *next_area_id = SAHPI_LAST_ENTRY;
                                         while (local_area->next_area != NULL) {
                                                 local_area =
                                                         local_area->next_area;
                                                 if (area_type ==
-                                                      SAHPI_IDR_AREATYPE_UNSPECIFIED ||
+                                                    SAHPI_IDR_AREATYPE_UNSPECIFIED ||
                                                     area_type == local_area->
                                                           idr_area_head.Type) {
-                                                        *next_area =
+                                                        *next_area_id =
                                                                 local_area->
                                                                 idr_area_head.
                                                                 AreaId;
@@ -2861,7 +2855,7 @@ SaErrorT  idr_field_add(struct oa_soap_field **oa_field,
                 }
                 field->next_field = (struct oa_soap_field*)
                         g_malloc0(sizeof(struct oa_soap_field));
-                if (! (field->next_field)) {
+                if (!(field->next_field)) {
                         return SA_ERR_HPI_OUT_OF_MEMORY;
                 }
                 field_id = field->field.FieldId + 1;
@@ -2905,7 +2899,6 @@ SaErrorT  idr_field_add(struct oa_soap_field **oa_field,
  *      SA_OK - Normal case
  *      SA_ERR_HPI_INVALID_PARAMS - On wrong parameters
  *      SA_ERR_HPI_NOT_PRESENT - Requested object not present
- *      SA_ERR_HPI_OUT_OF_MEMORY - Request failed due to insufficient memory
  **/
 SaErrorT idr_field_delete(struct oa_soap_field **oa_field,
                           SaHpiEntryIdT field_id)
@@ -2974,7 +2967,6 @@ SaErrorT idr_field_delete(struct oa_soap_field **oa_field,
  *      SA_OK - Normal case
  *      SA_ERR_HPI_INVALID_PARAMS - On wrong parameters
  *      SA_ERR_HPI_NOT_PRESENT - Requested object not present
- *      SA_ERR_HPI_OUT_OF_MEMORY - Request failed due to insufficient memory
  **/
 SaErrorT idr_field_update(struct oa_soap_field *oa_field,
                           SaHpiIdrFieldT *field)
@@ -3023,7 +3015,7 @@ SaErrorT idr_field_update(struct oa_soap_field *oa_field,
  *      @area_id: Identifier of the area to be deleted
  *      @field_type: Type of IDR field
  *      @field_id: Identifier of the IDR field
- *      @next_field: Identifier of the next IDR field of the requested type
+ *      @next_field_id: Identifier of the next IDR field of the requested type
  *      @field: Pointer to field structure
  *
  * Purpose:
@@ -3045,13 +3037,12 @@ SaErrorT idr_field_update(struct oa_soap_field *oa_field,
  *      SA_OK - Normal case
  *      SA_ERR_HPI_INVALID_PARAMS - On wrong parameters
  *      SA_ERR_HPI_NOT_PRESENT - Requested object not present
- *      SA_ERR_HPI_OUT_OF_MEMORY - Request failed due to insufficient memory
  **/
 SaErrorT fetch_idr_field(struct oa_soap_inventory_info *inventory_info,
                          SaHpiEntryIdT area_id,
                          SaHpiIdrFieldTypeT field_type,
                          SaHpiEntryIdT field_id,
-                         SaHpiEntryIdT *next_field,
+                         SaHpiEntryIdT *next_field_id,
                          SaHpiIdrFieldT *field)
 {
         SaHpiInt32T i;
@@ -3065,7 +3056,7 @@ SaErrorT fetch_idr_field(struct oa_soap_inventory_info *inventory_info,
                 return SA_ERR_HPI_NOT_PRESENT;
         }
 
-        if (field == NULL || next_field == NULL) {
+        if (field == NULL || next_field_id == NULL) {
                 err("Invalid parameter.");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
@@ -3100,14 +3091,14 @@ SaErrorT fetch_idr_field(struct oa_soap_inventory_info *inventory_info,
                                 fieldFound = SAHPI_TRUE;
                                 memcpy(field, &local_field->field,
                                        sizeof(SaHpiIdrFieldT));
-                                *next_field = SAHPI_LAST_ENTRY;
+                                *next_field_id = SAHPI_LAST_ENTRY;
                                 while (local_field->next_field != NULL) {
                                         local_field = local_field->next_field;
                                         if (field_type ==
                                               SAHPI_IDR_FIELDTYPE_UNSPECIFIED ||
                                             field_type ==
                                               local_field->field.Type) {
-                                                *next_field =
+                                                *next_field_id =
                                                         local_field->
                                                         field.FieldId;
                                                 found = SAHPI_TRUE;
@@ -3132,16 +3123,16 @@ SaErrorT fetch_idr_field(struct oa_soap_inventory_info *inventory_info,
                                         fieldFound = SAHPI_TRUE;
                                         memcpy(field, &local_field->field,
                                                sizeof(SaHpiIdrFieldT));
-                                        *next_field = SAHPI_LAST_ENTRY;
+                                        *next_field_id = SAHPI_LAST_ENTRY;
                                         while (local_field->next_field !=
                                                NULL) {
                                                 local_field =
                                                         local_field->next_field;
                                                 if (field_type ==
-                                                      SAHPI_IDR_FIELDTYPE_UNSPECIFIED ||
+                                                    SAHPI_IDR_FIELDTYPE_UNSPECIFIED ||
                                                     field_type ==
                                                       local_field->field.Type) {
-                                                        *next_field =
+                                                        *next_field_id =
                                                                 local_field->
                                                                 field.FieldId;
                                                         found = SAHPI_TRUE;
@@ -3159,6 +3150,67 @@ SaErrorT fetch_idr_field(struct oa_soap_inventory_info *inventory_info,
         if (fieldFound == SAHPI_FALSE) {
                 return SA_ERR_HPI_NOT_PRESENT;
         }
+        return SA_OK;
+}
+
+/*
+ * free_inventory_info
+ *      @handler:     Handler data pointer
+ *      @resource_id: Resource ID
+ *
+ * Purpose:
+ *     To  delete the Areas and Fields present in
+ *     Inventory Data Repository(IDR)
+ *
+ * Detailed Description:
+ *     Get the IDR and traverse through each area and deletes the area.
+ *     If any error occours while deleting appropriate error is returned
+ *
+ * Return values:
+ *      SA_OK                     - Normal case
+ *      SA_ERR_HPI_INVALID_PARAMS - On wrong parameters
+ *      SA_ERR_HPI_NOT_PRESENT    - Requested object not present
+ */
+SaErrorT free_inventory_info(struct oh_handler_state *handler,
+                             SaHpiResourceIdT resource_id)
+{
+        SaErrorT rv = SA_OK;
+        struct oa_soap_inventory *inventory;
+        SaHpiEntryIdT area_id;
+        SaHpiRdrT *rdr = NULL;
+
+        if (handler == NULL) {
+                err("Invalid parameter.");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        /* Get the inventory RDR */
+        rdr = oh_get_rdr_by_type(handler->rptcache, resource_id,
+                                 SAHPI_INVENTORY_RDR,
+                                 SAHPI_DEFAULT_INVENTORY_ID);
+        if (rdr == NULL) {
+                err("Inventory RDR is not found");
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+
+        inventory = (struct oa_soap_inventory *)
+                oh_get_rdr_data(handler->rptcache, resource_id, rdr->RecordId);
+        if (inventory == NULL) {
+                err("No inventory data. IdrId=%s", rdr->IdString.Data);
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+
+        /*Traverse through area list  and delete the area*/
+        while (inventory->info.area_list) {
+                area_id = inventory->info.area_list->idr_area_head.AreaId;
+                rv = idr_area_delete(&(inventory->info.area_list),
+                                     area_id);
+                if (rv != SA_OK) {
+                        err("IDR Area delete failed");
+                        return rv;
+                }
+        }
+
         return SA_OK;
 }
 

@@ -35,7 +35,6 @@ pkglib_LTLIBRARIES      = liboa_soap.la
 
 liboa_soap_la_SOURCES   = oa_soap.h \
                           oa_soap.c \
-                          oa_soap_plugin.h \
                           oa_soap_power.h \
                           oa_soap_power.c \
                           oa_soap_reset.h \
@@ -77,14 +76,9 @@ liboa_soap_la_SOURCES   = oa_soap.h \
                           oa_soap_callsupport.h \
                           oa_soap_callsupport.c \
                           oa_soap_ssl.h \
-                          oa_soap_ssl.c 
+                          oa_soap_ssl.c
 
-# TODO: Are -lcrypto and -lz necessary?  What about -luuid in the ilo2_ribcl?
-liboa_soap_la_LIBADD    = @SSL_LIB@ @XML2_LIB@ -lcrypto -lz \
-			  $(top_builddir)/utils/libopenhpiutils.la
+# TODO: What about -luuid in the ilo2_ribcl?
+liboa_soap_la_LIBADD    = @SSL_LIB@ @XML2_LIB@ \
+                          $(top_builddir)/utils/libopenhpiutils.la
 liboa_soap_la_LDFLAGS   = -module -version-info @HPI_LIB_VERSION@
-
-# TODO: What would -export-dynamic be for?
-#liboa_soap_la_LDFLAGS  = -module -version-info @HPI_LIB_VERSION@ \
-			  -export-dymanic $(srcdir)/oa_soap.sym
-

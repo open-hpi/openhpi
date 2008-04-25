@@ -35,6 +35,9 @@
 #ifndef _OA_SOAP_INVENTORY_H
 #define _OA_SOAP_INVENTORY_H
 
+/* Include files */
+#include "oa_soap.h"
+
 /* cClass resource inventory string */
 #define ENCLOSURE_INVENTORY_STRING "Enclosure Inventory"
 #define OA_INVENTORY_STRING "OA Inventory"
@@ -219,5 +222,8 @@ SaErrorT fetch_idr_field(struct oa_soap_inventory_info *inv_ptr,
                        SaHpiEntryIdT field_id,
                        SaHpiEntryIdT *next_field_id,
                        SaHpiIdrFieldT *field);
+
+SaErrorT free_inventory_info(struct oh_handler_state *handler,
+             SaHpiResourceIdT resource_id);
 
 #endif

@@ -41,7 +41,7 @@
  *                                    chassis components
  **/
 
-#include <oa_soap_plugin.h>
+#include "oa_soap_reset.h"
 
 /**
  * oa_soap_get_reset_state
@@ -66,7 +66,6 @@ SaErrorT oa_soap_get_reset_state(void *oh_handler,
         SaErrorT rv = SA_OK;
         SaHpiPowerStateT state;
         struct oh_handler_state *handler = NULL;
-        struct oa_soap_handler *oa_handler = NULL;
 
         if (oh_handler == NULL || action == NULL) {
                 err("Invalid parameters");
@@ -74,7 +73,6 @@ SaErrorT oa_soap_get_reset_state(void *oh_handler,
         }
 
         handler = (struct oh_handler_state *) oh_handler;
-        oa_handler = (struct oa_soap_handler *) handler->data;
 
         /* Get the current power state of the resource */
         rv = oa_soap_get_power_state(oh_handler, resource_id, &state);
@@ -105,7 +103,7 @@ SaErrorT oa_soap_get_reset_state(void *oh_handler,
                         return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-        return rv;
+        return SA_OK;
 }
 
 /**

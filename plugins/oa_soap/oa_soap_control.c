@@ -46,7 +46,7 @@
  *                                        to the interconnect resource
  */
 
-#include <oa_soap_plugin.h>
+#include "oa_soap_control.h"
 
 /**
  * oa_soap_get_control_state
@@ -92,7 +92,7 @@ SaErrorT oa_soap_get_control_state(void *oh_handler,
         SaHpiPowerStateT power_state;
 
         if (oh_handler == NULL || mode == NULL || state == NULL) {
-                err ("Invalid parameter.");
+                err("Invalid parameter.");
                 return (SA_ERR_HPI_INVALID_PARAMS);
         }
 
@@ -100,18 +100,18 @@ SaErrorT oa_soap_get_control_state(void *oh_handler,
 
         rpt = oh_get_resource_by_id (handler->rptcache, resource_id);
         if (rpt == NULL) {
-                err ("INVALID RESOURCE");
+                err("INVALID RESOURCE");
                 return SA_ERR_HPI_INVALID_RESOURCE;
         }
         if (! (rpt->ResourceCapabilities & SAHPI_CAPABILITY_CONTROL)) {
-                err ("INVALID RESOURCE CAPABILITY");
+                err("INVALID RESOURCE CAPABILITY");
                 return SA_ERR_HPI_CAPABILITY;
         }
 
         rdr = oh_get_rdr_by_type(handler->rptcache, resource_id,
                                  SAHPI_CTRL_RDR, rdr_num);
         if (rdr == NULL) {
-                err ("INVALID RDR NUMBER");
+                err("INVALID RDR NUMBER");
                return (SA_ERR_HPI_NOT_PRESENT);
         }
         ctrl = &(rdr->RdrTypeUnion.CtrlRec);
@@ -128,7 +128,7 @@ SaErrorT oa_soap_get_control_state(void *oh_handler,
 
         rv = oa_soap_get_power_state(handler, resource_id, &power_state);
         if (rv != SA_OK) {
-                err ("Failed to get the power state RDR");
+                err("Failed to get the power state RDR");
                 return rv;
         }
 
@@ -229,46 +229,45 @@ SaErrorT oa_soap_set_control_state(void *oh_handler,
                 err("Control state specified is invalid");
                 return (rv);
         }
+
+        /* Auto mode is not supported */
+        if (mode == SAHPI_CTRL_MODE_AUTO) {
+                err( "AUTO CONTROL MODE is not supported");
+                return SA_ERR_HPI_INVALID_REQUEST;
+        }
+
         /* If control mode is MANUAL and specified state is of digital type,
          * then the control state is updated with specified  state value
          */
-        if (mode == SAHPI_CTRL_MODE_MANUAL && state != NULL) {
-                if (state->Type == SAHPI_CTRL_TYPE_DIGITAL) {
-                        ctrl->TypeUnion.Digital.Default =
-                                state->StateUnion.Digital;
-                        switch (state->StateUnion.Digital) {
-                                case SAHPI_CTRL_STATE_OFF:
-                                        power_state = SAHPI_POWER_OFF;
-                                        rv = oa_soap_set_power_state(handler,
-                                                resource_id, power_state);
-                                        if (rv != SA_OK) {
-                                                err ("Set power state failed");
-                                                return (rv);
-                                        }
-                                        break;
-                                case SAHPI_CTRL_STATE_ON:
-                                       power_state = SAHPI_POWER_ON;
-                                       rv = oa_soap_set_power_state(handler,
-                                                resource_id, power_state);
-                                       if (rv != SA_OK) {
-                                                err ("Set power state failed");
-                                                return (rv);
-                                       }
-                                       break;
-                                default:
-                                        err ("Invalid control state");
-                                        return (SA_ERR_HPI_INTERNAL_ERROR);
-                       }
-                } else {
-                        err("Invalid control state=%d", state->Type);
-                        return (SA_ERR_HPI_INVALID_DATA);
-                }
+        if (state->Type == SAHPI_CTRL_TYPE_DIGITAL) {
+                ctrl->TypeUnion.Digital.Default = state->StateUnion.Digital;
+                switch (state->StateUnion.Digital) {
+                        case SAHPI_CTRL_STATE_OFF:
+                                power_state = SAHPI_POWER_OFF;
+                                rv = oa_soap_set_power_state(handler,
+                                                             resource_id,
+                                                             power_state);
+                                if (rv != SA_OK) {
+                                        err("Set power state failed");
+                                        return (rv);
+                                }
+                                break;
+                        case SAHPI_CTRL_STATE_ON:
+                               power_state = SAHPI_POWER_ON;
+                               rv = oa_soap_set_power_state(handler,
+                                                            resource_id,
+                                                            power_state);
+                               if (rv != SA_OK) {
+                                        err("Set power state failed");
+                                        return (rv);
+                               }
+                               break;
+                        default:
+                                err("Invalid control state");
+                                return (SA_ERR_HPI_INTERNAL_ERROR);
+               }
         }
 
-        if (mode == SAHPI_CTRL_MODE_AUTO) {
-                err( "AUTO CONTROL MODE is not supported by the plugin");
-                return SA_ERR_HPI_INVALID_REQUEST;
-        }
         return rv;
 }
 

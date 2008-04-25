@@ -49,7 +49,7 @@
  *
  **/
 
-#include <oa_soap_plugin.h>
+#include "oa_soap_power.h"
 
 /**
  * oa_soap_get_power_state
@@ -87,10 +87,6 @@ SaErrorT oa_soap_get_power_state(void *oh_handler,
 
         handler = (struct oh_handler_state *) oh_handler;
         oa_handler = (struct oa_soap_handler *) handler->data;
-        if (oa_handler == NULL) {
-                err("OA SOAP handler is NULL");
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
 
         /* Check whether the oa_handler mutex has been locked or not */
         rv = lock_oa_soap_handler(oa_handler);
@@ -112,6 +108,7 @@ SaErrorT oa_soap_get_power_state(void *oh_handler,
         }
 
         bay_number = rpt->ResourceEntity.Entry[0].EntityLocation;
+
         /* Check resource type and query server or interconnect power state*/
         switch (rpt->ResourceEntity.Entry[0].EntityType) {
                 case (SAHPI_ENT_SYSTEM_BLADE) :
@@ -128,7 +125,7 @@ SaErrorT oa_soap_get_power_state(void *oh_handler,
                         err("Invalid Resource Type");
                         rv = SA_ERR_HPI_INTERNAL_ERROR;
         }
-        return rv;
+        return SA_OK;
 }
 
 /**
@@ -164,10 +161,6 @@ SaErrorT oa_soap_set_power_state(void *oh_handler,
 
         handler = (struct oh_handler_state *) oh_handler;
         oa_handler = (struct oa_soap_handler *) handler->data;
-        if (oa_handler == NULL) {
-                err("OA SOAP handler is NULL");
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
 
         /* Check whether the oa_handler mutex has been locked or not */
         rv = lock_oa_soap_handler(oa_handler);
@@ -206,7 +199,7 @@ SaErrorT oa_soap_set_power_state(void *oh_handler,
                         return SA_ERR_HPI_UNKNOWN;
         }
 
-        return rv;
+        return SA_OK;
 }
 
 /**

@@ -59,7 +59,7 @@
  *                                        RDR for newly inserted OA
  */
 
-#include <oa_soap_plugin.h>
+#include "oa_soap_oa_event.h"
 
 /**
  * process_oa_insertion_event
@@ -84,11 +84,10 @@ SaErrorT process_oa_insertion_event(struct oh_handler_state *oh_handler,
                                     struct eventInfo *oa_event)
 {
         SaErrorT rv = SA_OK;
-        struct getOaInfo request;
-        struct oaInfo response;
-        struct oa_soap_handler *oa_handler = NULL;
+        struct oa_soap_handler *oa_handler;
         struct oh_event event;
         SaHpiInt32T bay_number;
+        SaHpiResourceIdT resource_id;
 
         if (oh_handler == NULL || con == NULL || oa_event == NULL) {
                 err("Invalid parameters");
@@ -96,10 +95,6 @@ SaErrorT process_oa_insertion_event(struct oh_handler_state *oh_handler,
         }
 
         oa_handler = (struct oa_soap_handler *) oh_handler->data;
-        if (oa_handler == NULL) {
-                err("OA SOAP handler is NULL");
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
 
         /* The OA is sending the wrong bay_number for the inserted OA
          * Hence if the bay number in the event_info is 1,
@@ -114,38 +109,39 @@ SaErrorT process_oa_insertion_event(struct oh_handler_state *oh_handler,
                         bay_number = 1;
                         break;
                 default:
-                        err("Wrong OA bay number <%d> detected",
+                        err("Wrong OA bay number %d detected",
                              oa_event->eventData.oaStatus.bayNumber);
                         return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-        request.bayNumber = bay_number;
-        rv = soap_getOaInfo(con, &request, &response);
-        if (rv != SOAP_OK) {
-                err("Get OA info failed");
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
-
-
-        memset(&event, 0, sizeof(struct oh_event));
-        update_hotswap_event(oh_handler, &event);
         /* Build the RPT for inserted OA */
-        rv = build_oa_rpt(oh_handler, bay_number, &(event.resource));
+        rv = build_oa_rpt(oh_handler, bay_number, &resource_id);
         if (rv != SA_OK) {
                 err("Failed to build OA RPT");
                return rv;
         }
 
         /* Build the RDR for inserted OA */
-        rv = build_inserted_oa_rdr(oh_handler, con, response.bayNumber, &event);
+        rv = build_inserted_oa_rdr(oh_handler, con, bay_number, resource_id);
         if (rv != SA_OK) {
                 err("Failed to build OA RDR");
-                rv = oh_remove_resource(oh_handler->rptcache,
-                                        event.resource.ResourceId);
+                /* Free the inventory info from inventory RDR */
+                rv = free_inventory_info(oh_handler, resource_id);
+                if (rv != SA_OK) {
+                        err("Inventory cleanup failed for resource id %d",
+                             resource_id);
+                }
+                oh_remove_resource(oh_handler->rptcache, resource_id);
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
+        /* Push the hotswap event to add the resource to OpenHPI rptable */
+        rv = populate_event(oh_handler, resource_id, &event);
+        if (rv != SA_OK) {
+                err("Populating event struct failed");
                 return rv;
         }
 
-        event.event.Source = event.resource.ResourceId;
+        event.event.EventType = SAHPI_ET_HOTSWAP;
         event.event.EventDataUnion.HotSwapEvent.PreviousHotSwapState =
                 SAHPI_HS_STATE_NOT_PRESENT;
         event.event.EventDataUnion.HotSwapEvent.HotSwapState =
@@ -154,6 +150,7 @@ SaErrorT process_oa_insertion_event(struct oh_handler_state *oh_handler,
 
         /* Set the presence state of the OA to PRESENT */
         oa_handler->oa_soap_resources.oa.presence[bay_number - 1] = RES_PRESENT;
+
         return SA_OK;
 }
 
@@ -192,10 +189,6 @@ SaErrorT process_oa_extraction_event(struct oh_handler_state *oh_handler,
         }
 
         oa_handler = (struct oa_soap_handler *) oh_handler->data;
-        if (oa_handler == NULL) {
-                err("OA SOAP handler is NULL");
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
 
         /* The OA is sending the wrong bay_number for the removed OA
          * Hence if the bay number in the oa_event is 1,
@@ -216,13 +209,11 @@ SaErrorT process_oa_extraction_event(struct oh_handler_state *oh_handler,
                         bay_number = 1;
                         break;
                 default:
-                        err("Wrong OA bay number <%d> detected",
+                        err("Wrong OA bay number %d detected",
                              oa_event->eventData.oaStatus.bayNumber);
                         return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-        /* Set the presence state of the OA to ABSENT */
-        oa_handler->oa_soap_resources.oa.presence[bay_number - 1] = RES_ABSENT;
         update_hotswap_event(oh_handler, &event);
 
         /* Build the entity path */
@@ -254,15 +245,18 @@ SaErrorT process_oa_extraction_event(struct oh_handler_state *oh_handler,
         memcpy(&(event.resource), rpt, sizeof(SaHpiRptEntryT));
         event.event.Source = event.resource.ResourceId;
 
-        event.event.EventDataUnion.HotSwapEvent.HotSwapState =
-                SAHPI_HS_STATE_NOT_PRESENT;
         event.event.EventDataUnion.HotSwapEvent.PreviousHotSwapState =
                 SAHPI_HS_STATE_ACTIVE;
-
+        event.event.EventDataUnion.HotSwapEvent.HotSwapState =
+                SAHPI_HS_STATE_NOT_PRESENT;
         oh_evt_queue_push(oh_handler->eventq, copy_oa_soap_event(&event));
+
         /* Remove the resource from RPT and RDR tables */
         rv = oh_remove_resource(oh_handler->rptcache,
                                 event.resource.ResourceId);
+
+        /* Set the presence state of the OA to ABSENT */
+        oa_handler->oa_soap_resources.oa.presence[bay_number - 1] = RES_ABSENT;
 
         return SA_OK;
 }
@@ -364,12 +358,13 @@ SaErrorT process_oa_failover_event(struct oh_handler_state *oh_handler,
                         g_timer_destroy(timer);
 
                         /* May be OA is out of network or
-                         * consecuting switch over has happened
+                         * consecutive switch over has happened
                          * Try to recover from the problem
                          */
                         oa_soap_error_handling(oh_handler, oa);
-                        /* Re-discovery is already in error handling
-                         * hence skip the below code
+
+                        /* Re-discovery is done in error handling
+                         * hence return success
                          */
                         return SA_OK;
                 }
@@ -403,6 +398,7 @@ SaErrorT process_oa_failover_event(struct oh_handler_state *oh_handler,
         /* Get the time (in seconds) since the timer has been started */
         time_elapsed = g_timer_elapsed(timer, &micro_seconds);
         g_timer_destroy(timer);
+
         /* OA requires some time to Stabilize. Wait for max 90 seconds */
         sleep_time = OA_STABILIZE_MAX_TIME - time_elapsed;
         if (sleep_time > 0) {
@@ -414,8 +410,8 @@ SaErrorT process_oa_failover_event(struct oh_handler_state *oh_handler,
         if (rv != SA_OK) {
                 err("Check OA staus failed for OA %s", oa->server);
                 oa_soap_error_handling(oh_handler, oa);
-                /* Re-discovery is handled in error handling hence skip the
-                 * below code
+                /* Re-discovery is done in error handling hence
+                 * return success
                  */
                 return SA_OK;
         }
@@ -431,11 +427,16 @@ SaErrorT process_oa_failover_event(struct oh_handler_state *oh_handler,
         }
         g_mutex_unlock(oa->mutex);
 
+        g_mutex_lock(oa_handler->mutex);
+        g_mutex_lock(oa->mutex);
+        /* Call getAllEvents to flush the OA event queue
+         * Any resource state change will be handled as part of the re-discovery
+         */
+        rv = soap_getAllEvents(oa->event_con, &request, &response);
+
         /* Re-discover the resources as there is a high chances
          * that we might have missed some events
          */
-        g_mutex_lock(oa_handler->mutex);
-        g_mutex_lock(oa->mutex);
         rv = oa_soap_re_discover_resources(oh_handler, oa->event_con);
         g_mutex_unlock(oa->mutex);
         g_mutex_unlock(oa_handler->mutex);
@@ -480,10 +481,13 @@ SaErrorT process_oa_info_event(struct oh_handler_state *oh_handler,
         SaErrorT rv = SA_OK;
         SaHpiInt32T bay_number;
         struct oa_soap_handler *oa_handler = NULL;
+        SaHpiResourceIdT resource_id;
         struct oa_info *temp = NULL;
         struct getOaNetworkInfo request;
         struct oaNetworkInfo response;
         struct getOaStatus status_request;
+        struct getOaInfo info_request;
+        struct oaInfo info_response;
         struct oaStatus status_response;
         char url[MAX_URL_LEN], *user_name = NULL, *password = NULL;
 
@@ -499,21 +503,18 @@ SaErrorT process_oa_info_event(struct oh_handler_state *oh_handler,
          * insertion.  Ignore this event on getting SA_ERR_HPI_INVALID_CMD
          * error code.
          */
-        rv = add_oa_inv_area(oh_handler, &(oa_event->eventData.oaInfo));
+        rv = add_oa_inv_area(oh_handler, &(oa_event->eventData.oaInfo),
+                             &resource_id);
         if (rv == SA_ERR_HPI_INVALID_CMD) {
                 dbg("Ignore the EVENT_OA_INFO event");
                 return SA_OK;
         } else if (rv != SA_OK) {
-                err("Adding OA inventory area for slot <%d> has failed",
+                err("Adding OA inventory area for slot %d has failed",
                     oa_event->eventData.oaInfo.bayNumber);
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
         oa_handler = (struct oa_soap_handler *) oh_handler->data;
-        if (oa_handler == NULL) {
-                err("OA SOAP handler is NULL");
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
 
         bay_number = oa_event->eventData.oaInfo.bayNumber;
         switch (bay_number) {
@@ -578,7 +579,7 @@ SaErrorT process_oa_info_event(struct oh_handler_state *oh_handler,
          */
         temp->hpi_con = soap_open(url, user_name, password, HPI_CALL_TIMEOUT);
         if (temp->hpi_con == NULL) {
-                err("soap_open for OA <%s> has failed", response.ipAddress);
+                err("soap_open for OA %s has failed", response.ipAddress);
                 g_mutex_unlock(temp->mutex);
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
@@ -586,11 +587,27 @@ SaErrorT process_oa_info_event(struct oh_handler_state *oh_handler,
         temp->event_con = soap_open(url, user_name, password,
                                     EVENT_CALL_TIMEOUT);
         if (temp->event_con == NULL) {
-                err("soap_open for OA <%s> has failed", response.ipAddress);
+                err("soap_open for OA %s has failed", response.ipAddress);
                 soap_close(temp->hpi_con);
                 temp->hpi_con = NULL;
                 g_mutex_unlock(temp->mutex);
                 return SA_ERR_HPI_INTERNAL_ERROR;
+        }
+
+        info_request.bayNumber = bay_number;
+        rv = soap_getOaInfo(con, &info_request, &info_response);
+        if (rv != SOAP_OK) {
+                err("Get OA info failed");
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
+
+        /* Copy the serial number of the OA to serial_number array
+         * and update the OA firmware version to RPT entry
+         */
+        rv = update_oa_info(oh_handler, &info_response, resource_id);
+        if (rv != SA_OK) {
+                err("Failed to update OA RPT");
+                return rv;
         }
 
         g_mutex_unlock(temp->mutex);
@@ -600,8 +617,9 @@ SaErrorT process_oa_info_event(struct oh_handler_state *oh_handler,
 
 /**
  * add_oa_inv_area
- *      @oh_handler: Pointer to openhpi handler
- *      @info:       Pointer OA info response structure
+ *      @oh_handler:  Pointer to openhpi handler
+ *      @info:        Pointer OA info response structure
+ *      @resource_id: Pointer to resource id
  *
  * Purpose:
  *      Populate the OA Inventory RDR.
@@ -622,19 +640,19 @@ SaErrorT process_oa_info_event(struct oh_handler_state *oh_handler,
  *      SA_ERR_HPI_INTERNAL_ERROR - on failure.
  **/
 SaErrorT add_oa_inv_area(struct oh_handler_state *oh_handler,
-                         struct oaInfo *info)
+                         struct oaInfo *info,
+                         SaHpiResourceIdT *resource_id)
 {
         SaErrorT rv = SA_OK;
         SaHpiEntityPathT root_entity_path, entity_path;
         SaHpiRptEntryT *rpt = NULL;
         SaHpiRdrT *rdr = NULL;
-        SaHpiIdrIdT idr = SAHPI_DEFAULT_INVENTORY_ID;
         struct oa_soap_inventory *inventory = NULL;
         struct oa_soap_area *head_area = NULL;
         SaHpiInt32T add_success_flag = 0, area_count = 0;
         char *entity_root = NULL;
 
-        if (oh_handler == NULL || info == NULL) {
+        if (oh_handler == NULL || info == NULL || resource_id == NULL) {
                 err("Invalid parameters");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
@@ -660,7 +678,7 @@ SaErrorT add_oa_inv_area(struct oh_handler_state *oh_handler,
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-        /* Get the RPT entry from entity path */
+        /* Get the RPT entry */
         rpt = oh_get_resource_by_ep(oh_handler->rptcache, &entity_path);
         if (rpt == NULL) {
                 err("resource RPT is NULL");
@@ -669,8 +687,8 @@ SaErrorT add_oa_inv_area(struct oh_handler_state *oh_handler,
 
         /* Get the inventory RDR from resource id */
         rdr = oh_get_rdr_by_type(oh_handler->rptcache, rpt->ResourceId,
-                                 SAHPI_INVENTORY_RDR, idr);
-
+                                 SAHPI_INVENTORY_RDR,
+                                 SAHPI_DEFAULT_INVENTORY_ID);
         if (rdr == NULL) {
                 err("INVALID RESOURCE ID");
                 return SA_ERR_HPI_NOT_PRESENT;
@@ -732,20 +750,20 @@ SaErrorT add_oa_inv_area(struct oh_handler_state *oh_handler,
         }
 
         inventory->info.area_list = head_area;
-
+        *resource_id = rpt->ResourceId;
         return SA_OK;
 }
 
 /**
  * build_inserted_oa_rdr
- *      @oh_handler: Pointer to openhpi handler
- *      @con:        Pointer to SOAP_CON
- *      @bay_number: Bay number of the inserted OA
- *      @event:      Pointer to event structure
+ *      @oh_handler:  Pointer to openhpi handler
+ *      @con:         Pointer to SOAP_CON
+ *      @bay_number:  Bay number of the inserted OA
+ *      @resource_id: Resource Id
  *
  * Purpose:
  *      Populate the OA RDR for the inserted OA.
- *      Pushes the RDRs to infrastructure
+ *      Pushes the RDRs to RPTable
  *
  * Detailed Description:
  *      - On inserting a OA, OA takes some times to stabilize.
@@ -764,68 +782,50 @@ SaErrorT add_oa_inv_area(struct oh_handler_state *oh_handler,
 SaErrorT build_inserted_oa_rdr(struct oh_handler_state *oh_handler,
                                SOAP_CON *con,
                                SaHpiInt32T bay_number,
-                               struct oh_event *event)
+                               SaHpiResourceIdT resource_id)
 {
         SaErrorT rv = SA_OK;
-        SaHpiRdrT *rdr = NULL;
+        SaHpiRdrT rdr;
         struct oa_soap_inventory *inventory = NULL;
         struct oa_soap_sensor_info *sensor_info=NULL;
 
-        if (oh_handler == NULL || con == NULL || event == NULL) {
+        if (oh_handler == NULL || con == NULL) {
                 err("Invalid parameters");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-        rdr = (SaHpiRdrT *)g_malloc0(sizeof(SaHpiRdrT));
-        if (rdr == NULL) {
-                err("Out of memory");
-                return SA_ERR_HPI_OUT_OF_MEMORY;
-        }
         /* Build the bare minimum inventory RDR without any inventory
          * information
          */
-        rv = build_inserted_oa_inv_rdr(oh_handler, bay_number, rdr, &inventory);
+        memset(&rdr, 0, sizeof(SaHpiRdrT));
+        rv = build_inserted_oa_inv_rdr(oh_handler, bay_number,
+                                       &rdr, &inventory);
         if (rv != SA_OK) {
                 err("Failed to build OA inventory RDR");
-                g_free(rdr);
                 return rv;
         }
-        rv = oh_add_rdr(oh_handler->rptcache, event->resource.ResourceId,
-                        rdr, inventory, 0);
+        rv = oh_add_rdr(oh_handler->rptcache, resource_id, &rdr, inventory, 0);
         if (rv != SA_OK) {
                 err("Failed to add rdr");
-                g_free(rdr);
                 return rv;
         }
-        event->rdrs = g_slist_append(event->rdrs, rdr);
 
-        rdr = NULL;
-        rdr = (SaHpiRdrT *)g_malloc0(sizeof(SaHpiRdrT));
-        if (rdr == NULL) {
-                err("Out of memory");
-                del_rdr_from_event(event);
-                return SA_ERR_HPI_OUT_OF_MEMORY;
-        }
         /* Build the thermal RDR */
+        memset(&rdr, 0, sizeof(SaHpiRdrT));
         rv = build_oa_thermal_sensor_rdr(oh_handler, con,
-                                         bay_number, rdr, &sensor_info);
+                                         bay_number, &rdr, &sensor_info);
         if (rv != SA_OK) {
                 err("Failed to get sensor rdr for OA");
-                del_rdr_from_event(event);
-                g_free(rdr);
                 return rv;
         }
-        rv = oh_add_rdr(oh_handler->rptcache, event->resource.ResourceId,
-                        rdr, sensor_info, 0);
+        rv = oh_add_rdr(oh_handler->rptcache, resource_id, &rdr,
+                        sensor_info, 0);
         if (rv != SA_OK) {
                 err("Failed to add rdr");
-                del_rdr_from_event(event);
-                g_free(rdr);
                 return rv;
         }
-        event->rdrs = g_slist_append(event->rdrs, rdr);
 
-        return rv;
+        return SA_OK;
 }
 
 /**

@@ -46,30 +46,62 @@
  *      discover_oa_soap_system()       - Discovers all the resources in HP
  *                                        BladeSystem c-Class
  *
+ *      build_enclosure_info()          - Discovers the max bays for all the
+ *                                        resources in enclosure
+ *
+ *      build_enclosure_rpt()           - Builds the enclosure RPT entry
+ *
+ *      build_enclosure_rdr()           - Builds the enclosure RDRs
+ *
  *      discover_enclosure()            - Discovers the enclosure along with
  *                                        its capabilities
+ *
+ *      discover_server_rpt()           - Builds the server RPT entry
+ *
+ *      discover_server_rdr()           - Builds the server RDRs
  *
  *      discover_server()               - Discovers the ProLiant server blades
  *                                        along with its capabilities
  *
+ *      discover_interconnect_rpt()     - Builds the interconnect RPT entry
+ *
+ *      discover_interconnect_rdr()     - Builds the interconnect RDRs
+ *
  *      discover_interconnect()         - Discovers the interconnect blades
  *                                        along with its capabilities
+ *
+ *      discover_fan_rpt()              - Builds the fan RPT entry
+ *
+ *      discover_fan_rdr()              - Builds the fan RDRs
  *
  *      discover_fan()                  - Discovers the fan along with
  *                                        its capabilities
  *
+ *      discover_power_subsystem_rpt()  - Builds the power subsystem RPT entry
+ *
+ *      discover_power_subsystem_rdr()  - Builds the power subsystem RDRs
+ *
  *      discover_power_subsystem()      - Discovers the power subsystem
  *                                        along with its capabilities
+ *
+ *      discover_power_supply_rpt()     - Builds the power supplies RPT entry
+ *
+ *      discover_power_supply_rdr()     - Builds the power supplies RDRs
  *
  *      discover_power_supply()         - Discovers the power supplies
  *                                        along with its capabilities
  *
- *      discover_oa()                  - Discovers the onboard administrator
- *                                       along with its capabilities
+ *      discover_oa_rpt()               - Builds the onboard administrator
+ *                                        RPT entry
+ *
+ *      discover_oa_rdr()               - Builds the onboard administrator RDRs
+ *
+ *      discover_oa()                   - Discovers the onboard administrator
+ *                                        along with its capabilities
  *
  */
 
-#include <oa_soap_plugin.h>
+#include "oa_soap_discover.h"
 
 /**
  * oa_soap_discover_resources
@@ -111,9 +143,9 @@ SaErrorT oa_soap_discover_resources(void *oh_handler)
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-        /* Retrieve the oa soap handler from oh_handler */
         handler = (struct oh_handler_state *) oh_handler;
         oa_handler = (struct oa_soap_handler *) handler->data;
+
         /* Check whether the plugin is initialized or not
          * If not, initialize the plugin
          */
@@ -125,19 +157,13 @@ SaErrorT oa_soap_discover_resources(void *oh_handler)
                 }
         }
 
-        g_mutex_lock(oa_handler->mutex);
         /* Check the status of the plugin */
+        g_mutex_lock(oa_handler->mutex);
         switch (oa_handler->status) {
-                case DISCOVERY_COMPLETED:
-                        /* OpenHPI framework calls the discovery every 3 minutes
-                         * OA SOAP plugin gets the changes to resource as
-                         * part of event handling, hence re-discovery
-                         * is not required. If the discovery is already
-                         * done once, ignore and return success
-                         */
+                case PRE_DISCOVERY:
+                        /* This is the first call for discovery */
                         g_mutex_unlock(oa_handler->mutex);
-                        dbg("Discovery already done");
-                        return SA_OK;
+                        dbg("First discovery");
                         break;
 
                 case PLUGIN_NOT_INITIALIZED:
@@ -149,7 +175,7 @@ SaErrorT oa_soap_discover_resources(void *oh_handler)
                         rv = build_oa_soap_custom_handler(handler);
                         if (rv != SA_OK) {
                                 err("Plugin initialization failed");
-                                return SA_ERR_HPI_INTERNAL_ERROR;
+                                return rv;
                         }
                         break;
 
@@ -168,17 +194,23 @@ SaErrorT oa_soap_discover_resources(void *oh_handler)
                                 err("Discovery failed for OA %s",
                                     oa_handler->active_con->server);
                                 return SA_ERR_HPI_INTERNAL_ERROR;
-                         }
+                        }
                         break;
 
-                case PRE_DISCOVERY:
-                        /* This is the first call for discovery */
+                case DISCOVERY_COMPLETED:
+                        /* OpenHPI framework calls the discovery every 3 minutes
+                         * OA SOAP plugin gets the changes to resource as
+                         * part of event handling, hence re-discovery
+                         * is not required. If the discovery is already
+                         * done once, ignore and return success
+                         */
                         g_mutex_unlock(oa_handler->mutex);
-                        dbg("First discovery");
+                        dbg("Discovery already done");
+                        return SA_OK;
                         break;
 
-                /* This code should never get executed */
                 default:
+                        /* This code should never get executed */
                         g_mutex_unlock(oa_handler->mutex);
                         err("Wrong oa_soap handler state detected");
                         return SA_ERR_HPI_INTERNAL_ERROR;
@@ -186,14 +218,14 @@ SaErrorT oa_soap_discover_resources(void *oh_handler)
 
         /* Create the event thread for the OA
          * If the thread_handler is not NULL, then the event threads are
-         * already created and skip the event thread creation part
+         * already created and skip the event thread creation
          */
         g_mutex_lock(oa_handler->mutex);
         if (oa_handler->oa_1->thread_handler == NULL) {
                 oa1_event_handler.oh_handler = handler;
                 oa1_event_handler.oa = oa_handler->oa_1;
                 /* Subscribe for events, so that we don't lose any changes
-                 * which may happen during discovery
+                 * to resource states which may happen during discovery
                  */
                 rv = create_event_session(oa_handler->oa_1);
                 if (rv != SOAP_OK) {
@@ -215,8 +247,7 @@ SaErrorT oa_soap_discover_resources(void *oh_handler)
                         err("g_thread_create failed");
                         return SA_ERR_HPI_INTERNAL_ERROR;
                }
-        }
-        else
+        } else
                dbg("OA %s event thread is already started",
                     oa_handler->oa_1->server);
 
@@ -239,8 +270,7 @@ SaErrorT oa_soap_discover_resources(void *oh_handler)
                         err("g_thread_create failed");
                         return SA_ERR_HPI_INTERNAL_ERROR;
                }
-        }
-        else
+        } else
                dbg("OA %s event thread is already started",
                    oa_handler->oa_2->server);
 
@@ -253,13 +283,18 @@ SaErrorT oa_soap_discover_resources(void *oh_handler)
                 g_mutex_unlock(oa_handler->mutex);
                 err("Discovery failed for active OA %s",
                     oa_handler->active_con->server);
+
+                /* Cleanup the RPTable which may have partially discovered
+                 * resource information.
+                 */
+                cleanup_plugin_rptable(handler);
                 return rv;
         }
 
         oa_handler->status = DISCOVERY_COMPLETED;
         g_mutex_unlock(oa_handler->mutex);
 
-        err("Discovery completed for active OA %s",
+        dbg("Discovery completed for active OA %s",
             oa_handler->active_con->server);
         return SA_OK;
 }
@@ -338,7 +373,12 @@ SaErrorT discover_oa_soap_system(struct oh_handler_state *oh_handler)
                 return rv;
         }
 
-        dbg("Discovery completed");
+        rv = push_discovered_resource_events(oh_handler);
+        if (rv != SA_OK) {
+                err("Failed to push the resources to openhpi RPTable");
+                return rv;
+        }
+
         return SA_OK;
 }
 
@@ -392,8 +432,32 @@ SaErrorT build_enclosure_info(struct oh_handler_state *oh_handler,
                 err("Out of memory");
                 return SA_ERR_HPI_OUT_OF_MEMORY;
         }
-        for (i = 0; i < oa_handler->oa_soap_resources.server.max_bays; i++)
+        /* Create the placeholder for serial number
+         * If the gets replaced during the switchover or when OA is not
+         * reachable, we can detect this change by comparing the serial
+         * numbers of the old and new blade.
+         */
+        oa_handler->oa_soap_resources.server.serial_number = (char **)
+                g_malloc0(sizeof(char **) *
+                          oa_handler->oa_soap_resources.server.max_bays);
+        if (oa_handler->oa_soap_resources.server.serial_number == NULL) {
+                err("Out of memory");
+                release_oa_soap_resources(oa_handler);
+                return SA_ERR_HPI_OUT_OF_MEMORY;
+        }
+
+        for (i = 0; i < oa_handler->oa_soap_resources.server.max_bays; i++) {
                 oa_handler->oa_soap_resources.server.presence[i] = RES_ABSENT;
+
+                oa_handler->oa_soap_resources.server.serial_number[i] = (char *)
+                        g_malloc0(sizeof(char *) * MAX_SERIAL_NUM_LENGTH);
+                if (oa_handler->oa_soap_resources.server.serial_number[i] ==
+                    NULL) {
+                        err("Out of memory");
+                        release_oa_soap_resources(oa_handler);
+                        return SA_ERR_HPI_OUT_OF_MEMORY;
+                }
+        }
 
         /* Build resource presence matrix for interconnects */
         oa_handler->oa_soap_resources.interconnect.max_bays =
@@ -404,13 +468,34 @@ SaErrorT build_enclosure_info(struct oh_handler_state *oh_handler,
                           oa_handler->oa_soap_resources.interconnect.max_bays);
         if (oa_handler->oa_soap_resources.interconnect.presence == NULL) {
                 err("Out of memory");
+                release_oa_soap_resources(oa_handler);
                 return SA_ERR_HPI_OUT_OF_MEMORY;
         }
+        oa_handler->oa_soap_resources.interconnect.serial_number = (char **)
+                g_malloc0(sizeof(char **) *
+                          oa_handler->oa_soap_resources.interconnect.max_bays);
+        if (oa_handler->oa_soap_resources.interconnect.serial_number == NULL) {
+                err("Out of memory");
+                release_oa_soap_resources(oa_handler);
+                return SA_ERR_HPI_OUT_OF_MEMORY;
+        }
+
         for (i = 0;
              i < oa_handler->oa_soap_resources.interconnect.max_bays;
-             i++)
+             i++) {
                 oa_handler->oa_soap_resources.interconnect.presence[i] =
                         RES_ABSENT;
+
+                oa_handler->oa_soap_resources.interconnect.serial_number[i] =
+                        (char *) g_malloc0(sizeof(char *) *
+                                          MAX_SERIAL_NUM_LENGTH);
+                if (oa_handler->oa_soap_resources.interconnect.serial_number[i]
+                    == NULL) {
+                        err("Out of memory");
+                        release_oa_soap_resources(oa_handler);
+                        return SA_ERR_HPI_OUT_OF_MEMORY;
+                }
+        }
 
         /* Build resource presence matrix for OAs */
         oa_handler->oa_soap_resources.oa.max_bays = info->oaBays;
@@ -420,10 +505,29 @@ SaErrorT build_enclosure_info(struct oh_handler_state *oh_handler,
                           oa_handler->oa_soap_resources.oa.max_bays);
         if (oa_handler->oa_soap_resources.oa.presence == NULL) {
                 err("Out of memory");
+                release_oa_soap_resources(oa_handler);
                 return SA_ERR_HPI_OUT_OF_MEMORY;
         }
-        for (i = 0; i < oa_handler->oa_soap_resources.oa.max_bays; i++)
+        oa_handler->oa_soap_resources.oa.serial_number = (char **)
+                g_malloc0(sizeof(char **) *
+                          oa_handler->oa_soap_resources.oa.max_bays);
+        if (oa_handler->oa_soap_resources.oa.serial_number == NULL) {
+                err("Out of memory");
+                release_oa_soap_resources(oa_handler);
+                return SA_ERR_HPI_OUT_OF_MEMORY;
+        }
+
+        for (i = 0; i < oa_handler->oa_soap_resources.oa.max_bays; i++) {
                 oa_handler->oa_soap_resources.oa.presence[i] = RES_ABSENT;
+
+                oa_handler->oa_soap_resources.oa.serial_number[i] = (char *)
+                        g_malloc0(sizeof(char *) * MAX_SERIAL_NUM_LENGTH);
+                if (oa_handler->oa_soap_resources.oa.serial_number[i] == NULL) {
+                        err("Out of memory");
+                        release_oa_soap_resources(oa_handler);
+                        return SA_ERR_HPI_OUT_OF_MEMORY;
+                }
+        }
 
         /* Build resource presence matrix for fans */
         oa_handler->oa_soap_resources.fan.max_bays = info->fanBays;
@@ -433,8 +537,13 @@ SaErrorT build_enclosure_info(struct oh_handler_state *oh_handler,
                           oa_handler->oa_soap_resources.fan.max_bays);
         if (oa_handler->oa_soap_resources.fan.presence == NULL) {
                 err("Out of memory");
+                release_oa_soap_resources(oa_handler);
                 return SA_ERR_HPI_OUT_OF_MEMORY;
         }
+
+        /* Fans do not have serial number and hence serial number
+         * array is not constructed
+        */
         for (i = 0; i < oa_handler->oa_soap_resources.fan.max_bays; i++)
                 oa_handler->oa_soap_resources.fan.presence[i] = RES_ABSENT;
 
@@ -446,17 +555,38 @@ SaErrorT build_enclosure_info(struct oh_handler_state *oh_handler,
                           oa_handler->oa_soap_resources.ps_unit.max_bays);
         if (oa_handler->oa_soap_resources.ps_unit.presence == NULL) {
                 err("Out of memory");
+                release_oa_soap_resources(oa_handler);
                 return SA_ERR_HPI_OUT_OF_MEMORY;
         }
-        for (i = 0; i < oa_handler->oa_soap_resources.ps_unit.max_bays; i++)
+        oa_handler->oa_soap_resources.ps_unit.serial_number = (char **)
+                 g_malloc0(sizeof(char **) *
+                           oa_handler->oa_soap_resources.ps_unit.max_bays);
+        if (oa_handler->oa_soap_resources.ps_unit.serial_number == NULL) {
+                err("Out of memory");
+                release_oa_soap_resources(oa_handler);
+                return SA_ERR_HPI_OUT_OF_MEMORY;
+        }
+
+        for (i = 0; i < oa_handler->oa_soap_resources.ps_unit.max_bays; i++) {
                 oa_handler->oa_soap_resources.ps_unit.presence[i] = RES_ABSENT;
 
-        dbg("server_bays = <%d>",oa_handler->oa_soap_resources.server.max_bays);
-        dbg("intercennet_bays = <%d>",
+                oa_handler->oa_soap_resources.ps_unit.serial_number[i] =
+                        (char *) g_malloc0(sizeof(char *) *
+                        MAX_SERIAL_NUM_LENGTH);
+                if (oa_handler->oa_soap_resources.ps_unit.serial_number[i] ==
+                    NULL) {
+                        err("Out of memory");
+                        release_oa_soap_resources(oa_handler);
+                        return SA_ERR_HPI_OUT_OF_MEMORY;
+                }
+        }
+
+        dbg("server bays = %d",oa_handler->oa_soap_resources.server.max_bays);
+        dbg("intercennet bays = %d",
             oa_handler->oa_soap_resources.interconnect.max_bays);
-        dbg("oa_bays = <%d>",oa_handler->oa_soap_resources.oa.max_bays);
-        dbg("fan_bays = <%d>",oa_handler->oa_soap_resources.fan.max_bays);
-        dbg("power_supply_bays = <%d>",
+        dbg("OA bays = %d",oa_handler->oa_soap_resources.oa.max_bays);
+        dbg("fan bays = %d",oa_handler->oa_soap_resources.fan.max_bays);
+        dbg("power supply bays = %d",
             oa_handler->oa_soap_resources.ps_unit.max_bays);
 
         return SA_OK;
@@ -464,13 +594,13 @@ SaErrorT build_enclosure_info(struct oh_handler_state *oh_handler,
 
 /**
  * build_enclosure_rpt
- *      @oh_handler: Pointer to openhpi handler
- *      @name:       Pointer to the name of the enclosure
- *      @rpt:        Pointer to the rpt entry
+ *      @oh_handler:  Pointer to openhpi handler
+ *      @name:        Pointer to the name of the enclosure
+ *      @resource_id: Pointer to the resource id
  *
  * Purpose:
  *      Builds the enclosure RPT entry.
- *      Pushes the RPT entry to infrastructure
+ *      Pushes the RPT entry to plugin RPTable
  *
  * Detailed Description: NA
  *
@@ -482,20 +612,21 @@ SaErrorT build_enclosure_info(struct oh_handler_state *oh_handler,
  **/
 SaErrorT build_enclosure_rpt(struct oh_handler_state *oh_handler,
                              char *name,
-                             SaHpiRptEntryT *rpt)
+                             SaHpiResourceIdT *resource_id)
 {
         SaErrorT rv = SA_OK;
         SaHpiEntityPathT entity_path;
         char *entity_root = NULL;
+        SaHpiRptEntryT rpt;
 
-        if (oh_handler == NULL || name == NULL || rpt == NULL) {
+        if (oh_handler == NULL || name == NULL || resource_id == NULL) {
                 err("Invalid parameters");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
         /* Fetch and encode the entity path required for the rpt field */
-        entity_root = (char *)g_hash_table_lookup(oh_handler->config,
-                                                  "entity_root");
+        entity_root = (char *) g_hash_table_lookup(oh_handler->config,
+                                                   "entity_root");
         memset(&entity_path, 0, sizeof(SaHpiEntityPathT));
         rv = oh_encode_entitypath(entity_root, &entity_path);
         if (rv != SA_OK) {
@@ -503,47 +634,54 @@ SaErrorT build_enclosure_rpt(struct oh_handler_state *oh_handler,
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-        memset(rpt, 0, sizeof(SaHpiRptEntryT));
         /* Populate the rpt with the details of the enclosure */
-        rpt->ResourceCapabilities = SAHPI_CAPABILITY_RDR |
-                                    SAHPI_CAPABILITY_RESOURCE |
-                                    SAHPI_CAPABILITY_SENSOR |
-                                    SAHPI_CAPABILITY_INVENTORY_DATA;
-        rpt->ResourceEntity.Entry[0].EntityType = SAHPI_ENT_ROOT;
-        rpt->ResourceEntity.Entry[0].EntityLocation = 0;
-        rv = oh_concat_ep(&rpt->ResourceEntity, &entity_path);
+        memset(&rpt, 0, sizeof(SaHpiRptEntryT));
+        rpt.ResourceCapabilities = SAHPI_CAPABILITY_RDR |
+                                   SAHPI_CAPABILITY_RESOURCE |
+                                   SAHPI_CAPABILITY_SENSOR |
+                                   SAHPI_CAPABILITY_INVENTORY_DATA;
+        rpt.ResourceEntity.Entry[0].EntityType = SAHPI_ENT_ROOT;
+        rpt.ResourceEntity.Entry[0].EntityLocation = 0;
+        rv = oh_concat_ep(&(rpt.ResourceEntity), &entity_path);
         if (rv != SA_OK) {
                 err("concat of entity path failed");
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-        rpt->ResourceSeverity = SAHPI_OK;
-        rpt->ResourceTag.DataType = SAHPI_TL_TYPE_TEXT;
-        rpt->ResourceTag.Language = SAHPI_LANG_ENGLISH;
-        rpt->ResourceTag.DataLength = strlen(name) + 1;
-        memset(rpt->ResourceTag.Data, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);
-        snprintf((char *)rpt->ResourceTag.Data,
-                 strlen(name) + 1,"%s", name);
-        rpt->ResourceId = oh_uid_from_entity_path(&(rpt->ResourceEntity));
+        rpt.ResourceSeverity = SAHPI_OK;
+        rpt.ResourceInfo.ManufacturerId = HP_MANUFACTURING_ID;
+        rpt.ResourceSeverity = SAHPI_OK;
+        rpt.ResourceFailed = SAHPI_FALSE;
+        rpt.HotSwapCapabilities = 0x0;
+        rpt.ResourceTag.DataType = SAHPI_TL_TYPE_TEXT;
+        rpt.ResourceTag.Language = SAHPI_LANG_ENGLISH;
+        rpt.ResourceTag.DataLength = strlen(name) + 1;
+        memset(rpt.ResourceTag.Data, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);
+        snprintf((char *) (rpt.ResourceTag.Data),
+                 strlen(name) + 1, "%s", name);
+        rpt.ResourceId = oh_uid_from_entity_path(&(rpt.ResourceEntity));
 
-        /* Add the enclosure rpt to the plugin rptcache */
-        rv = oh_add_resource(oh_handler->rptcache, rpt, NULL, 0);
+        /* Add the enclosure rpt to the plugin RPTable */
+        rv = oh_add_resource(oh_handler->rptcache, &rpt, NULL, 0);
         if (rv != SA_OK) {
                 err("Failed to Add Enclosure Resource");
+                return rv;
         }
-        return rv;
+
+        *resource_id = rpt.ResourceId;
+        return SA_OK;
 }
 
 /**
  * build_enclosure_rdr
- *      @oh_handler: Pointer to openhpi handler.
- *      @con:        Pointer to the soap client handler.
- *      @response:   Pointer to enclosure info response structure.
- *      @event:      Pointer to event structure.
+ *      @oh_handler:  Pointer to openhpi handler.
+ *      @con:         Pointer to the soap client handler.
+ *      @response:    Pointer to enclosure info response structure.
+ *      @resource_id: Resource id
  *
  * Purpose:
  *      Populate the enclosure RDR.
- *      Pushes the RDR entry to infrastructure
+ *      Pushes the RDR entry to plugin RPTable
  *
  * Detailed Description: NA
  *
@@ -556,74 +694,49 @@ SaErrorT build_enclosure_rpt(struct oh_handler_state *oh_handler,
 SaErrorT build_enclosure_rdr(struct oh_handler_state *oh_handler,
                              SOAP_CON *con,
                              struct enclosureInfo *response,
-                             struct oh_event *event)
+                             SaHpiResourceIdT resource_id)
 {
         SaErrorT rv = SA_OK;
-        SaHpiRdrT *rdr = NULL;
+        SaHpiRdrT rdr;
         struct oa_soap_inventory *inventory = NULL;
         struct oa_soap_sensor_info *sensor_info = NULL;
 
-        if (oh_handler == NULL || event == NULL || con == NULL ||
-           response == NULL) {
+        if (oh_handler == NULL || con == NULL || response == NULL) {
                 err("Invalid parameters");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-        rdr = (SaHpiRdrT *)g_malloc0(sizeof(SaHpiRdrT));
-        if (rdr == NULL) {
-                err("Out of memory");
-                return SA_ERR_HPI_OUT_OF_MEMORY;
-        }
-
         /* Build inventory rdr for the enclosure */
-        rv = build_enclosure_inv_rdr(oh_handler, response, rdr, &inventory);
+        memset(&rdr, 0, sizeof(SaHpiRdrT));
+        rv = build_enclosure_inv_rdr(oh_handler, response, &rdr, &inventory);
         if (rv != SA_OK) {
                 err("Failed to Add enclosure inventory RDR");
-                g_free(rdr);
                 return rv;
         }
 
-        rv = oh_add_rdr(oh_handler->rptcache, event->resource.ResourceId,
-                        rdr, inventory, 0);
+        rv = oh_add_rdr(oh_handler->rptcache, resource_id, &rdr, inventory, 0);
         if (rv != SA_OK) {
                 err("Failed to add rdr");
-                g_free(rdr);
                 return rv;
-        }
-        /* Append the rdr to the rdr list to be updated in framework */
-        event->rdrs = g_slist_append(event->rdrs, rdr);
-
-        rdr = NULL;
-        rdr = (SaHpiRdrT *)g_malloc0(sizeof(SaHpiRdrT));
-        if (rdr == NULL) {
-                err("Out of memory");
-                del_rdr_from_event(event);
-                return SA_ERR_HPI_OUT_OF_MEMORY;
         }
 
         /* Build thermal sensor rdr for the enclosure */
+        memset(&rdr, 0, sizeof(SaHpiRdrT));
         rv = build_enclosure_thermal_sensor_rdr(oh_handler, con,
-                                                1, rdr, &sensor_info);
+                                                1, &rdr, &sensor_info);
         if (rv != SA_OK) {
                 err("Failed to get sensor rdr of enclosure");
-                g_free(rdr);
-                del_rdr_from_event(event);
                 return rv;
         }
 
-        rv = oh_add_rdr(oh_handler->rptcache, event->resource.ResourceId,
-                        rdr, sensor_info, 0);
+        rv = oh_add_rdr(oh_handler->rptcache, resource_id,
+                        &rdr, sensor_info, 0);
         if (rv != SA_OK) {
                 err("Failed to add rdr");
-                g_free(rdr);
-                del_rdr_from_event(event);
                 return rv;
         }
 
-        /* Append the rdr to the rdr list to be updated in framework */
-        event->rdrs = g_slist_append(event->rdrs, rdr);
-
-        return rv;
+        return SA_OK;
 }
 
 /**
@@ -645,7 +758,7 @@ SaErrorT discover_enclosure(struct oh_handler_state *oh_handler)
         SaErrorT rv = SA_OK;
         struct oa_soap_handler *oa_handler = NULL;
         struct enclosureInfo response;
-        struct oh_event event;
+        SaHpiResourceIdT resource_id;
 
         if (oh_handler == NULL) {
                 err("Invalid parameters");
@@ -655,9 +768,7 @@ SaErrorT discover_enclosure(struct oh_handler_state *oh_handler)
         oa_handler = (struct oa_soap_handler *) oh_handler->data;
 
         /* Make a soap call to OA requesting for the enclosure information */
-        rv = soap_getEnclosureInfo(oa_handler->active_con,
-                                   &response);
-
+        rv = soap_getEnclosureInfo(oa_handler->active_con, &response);
         if (rv != SOAP_OK) {
                 err("Get enclosure info failed");
                 return SA_ERR_HPI_INTERNAL_ERROR;
@@ -670,40 +781,31 @@ SaErrorT discover_enclosure(struct oh_handler_state *oh_handler)
                 return rv;
         }
 
-        memset(&event, 0, sizeof(struct oh_event));
-        event.rdrs = NULL;
-        rv = build_enclosure_rpt(oh_handler, response.name,
-                                 &(event.resource));
+        rv = build_enclosure_rpt(oh_handler, response.name, &resource_id);
         if (rv != SA_OK) {
                 err("build enclosure rpt failed");
                 return rv;
         }
 
         rv = build_enclosure_rdr(oh_handler, oa_handler->active_con,
-                                 &response, &event);
+                                 &response, resource_id);
         if (rv != SA_OK) {
                 err("build enclosure rdr failed");
                 return rv;
         }
 
-        /* Push enclosure resource information to OpenHPI
-         * framework through a resource event
-         */
-        push_event_to_queue(oh_handler, &event);
-
-        dbg("Done");
-        return rv;
+        return SA_OK;
 }
 
 /**
  * build_oa_rpt
- *      @oh_handler: Pointer to openhpi handler
- *      @bay_number: Bay number of the OA
- *      @rpt:        Pointer to the rpt entry
+ *      @oh_handler:  Pointer to openhpi handler
+ *      @bay_number:  Bay number of the OA
+ *      @resource_id: Pointer to the resource Id
  *
  * Purpose:
  *      Populate the OA RPT entry.
- *      Pushes the RPT entry to infrastructure
+ *      Pushes the RPT entry to plugin RPTable
  *
  * Detailed Description: NA
  *
@@ -714,73 +816,76 @@ SaErrorT discover_enclosure(struct oh_handler_state *oh_handler)
  **/
 SaErrorT build_oa_rpt(struct oh_handler_state *oh_handler,
                       SaHpiInt32T bay_number,
-                      SaHpiRptEntryT *rpt)
+                      SaHpiResourceIdT *resource_id)
 {
         SaErrorT rv = SA_OK;
         SaHpiEntityPathT entity_path;
         char *entity_root = NULL;
+        SaHpiRptEntryT rpt;
 
-        if (oh_handler == NULL || rpt == NULL) {
+        if (oh_handler == NULL || resource_id == NULL) {
                 err("Invalid parameters");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-        entity_root = (char *)g_hash_table_lookup(oh_handler->config,
-                                                  "entity_root");
+        entity_root = (char *) g_hash_table_lookup(oh_handler->config,
+                                                   "entity_root");
         rv = oh_encode_entitypath(entity_root, &entity_path);
         if (rv != SA_OK) {
                 err("Encoding entity path failed");
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-        memset(rpt, 0, sizeof(SaHpiRptEntryT));
-
         /* Populate the rpt with the details of the enclosure */
-        rpt->ResourceCapabilities = SAHPI_CAPABILITY_RDR |
-                                    SAHPI_CAPABILITY_RESOURCE |
-                                    SAHPI_CAPABILITY_FRU |
-                                    SAHPI_CAPABILITY_SENSOR |
-                                    SAHPI_CAPABILITY_INVENTORY_DATA;
-        rpt->ResourceEntity.Entry[1].EntityType = SAHPI_ENT_ROOT;
-        rpt->ResourceEntity.Entry[1].EntityLocation = 0;
-        rpt->ResourceEntity.Entry[0].EntityType = SAHPI_ENT_SYS_MGMNT_MODULE;
-        rpt->ResourceEntity.Entry[0].EntityLocation = bay_number;
-        rv = oh_concat_ep(&rpt->ResourceEntity, &entity_path);
+        memset(&rpt, 0, sizeof(SaHpiRptEntryT));
+        rpt.ResourceCapabilities = SAHPI_CAPABILITY_RDR |
+                                   SAHPI_CAPABILITY_RESOURCE |
+                                   SAHPI_CAPABILITY_FRU |
+                                   SAHPI_CAPABILITY_SENSOR |
+                                   SAHPI_CAPABILITY_INVENTORY_DATA;
+        rpt.ResourceEntity.Entry[1].EntityType = SAHPI_ENT_ROOT;
+        rpt.ResourceEntity.Entry[1].EntityLocation = 0;
+        rpt.ResourceEntity.Entry[0].EntityType = SAHPI_ENT_SYS_MGMNT_MODULE;
+        rpt.ResourceEntity.Entry[0].EntityLocation = bay_number;
+        rv = oh_concat_ep(&(rpt.ResourceEntity), &entity_path);
         if (rv != SA_OK) {
                 err("concat of entity path failed");
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-        rpt->ResourceId = oh_uid_from_entity_path(&(rpt->ResourceEntity));
-        rpt->ResourceSeverity = SAHPI_OK;
-        rpt->ResourceInfo.ResourceRev = 0;
-        rpt->ResourceFailed = SAHPI_FALSE;
-        rpt->HotSwapCapabilities = 0x0;
-        rpt->ResourceTag.DataType = SAHPI_TL_TYPE_TEXT;
-        rpt->ResourceTag.Language = SAHPI_LANG_ENGLISH;
-        rpt->ResourceTag.DataLength = strlen(OA_NAME) + 1;
-        memset(rpt->ResourceTag.Data,0,SAHPI_MAX_TEXT_BUFFER_LENGTH);
-        snprintf((char *)rpt->ResourceTag.Data,
+        rpt.ResourceId = oh_uid_from_entity_path(&(rpt.ResourceEntity));
+        rpt.ResourceInfo.ManufacturerId = HP_MANUFACTURING_ID;
+        rpt.ResourceSeverity = SAHPI_OK;
+        rpt.ResourceFailed = SAHPI_FALSE;
+        rpt.HotSwapCapabilities = 0x0;
+        rpt.ResourceTag.DataType = SAHPI_TL_TYPE_TEXT;
+        rpt.ResourceTag.Language = SAHPI_LANG_ENGLISH;
+        rpt.ResourceTag.DataLength = strlen(OA_NAME) + 1;
+        memset(rpt.ResourceTag.Data, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);
+        snprintf((char *) (rpt.ResourceTag.Data),
                  strlen(OA_NAME) + 1, OA_NAME);
 
-        /* Add the OA rpt to the plugin rptcache */
-        rv = oh_add_resource(oh_handler->rptcache, rpt, NULL, 0);
+        /* Add the OA rpt to the plugin RPTable */
+        rv = oh_add_resource(oh_handler->rptcache, &rpt, NULL, 0);
         if (rv != SA_OK) {
                 err("Failed to Add OA RPT");
-                return SA_ERR_HPI_INTERNAL_ERROR;
+                return rv;
         }
-        return rv;
+
+        *resource_id = rpt.ResourceId;
+        return SA_OK;
 }
 
 /**
  * build_oa_rdr
- *      @oh_handler: Pointer to openhpi handler.
- *      @con:        Pointer to the soap client handler.
- *      @response:   Pointer OA info response structure.
- *      @event:      Pointer to event structure.
+ *      @oh_handler:  Pointer to openhpi handler.
+ *      @con:         Pointer to the soap client handler.
+ *      @response:    Pointer OA info response structure.
+ *      @resource_id: Resource id
  *
  * Purpose:
- *      Populates the OA RDRs and pushes the RDRs to the infrastructure
+ *      Populates the OA RDRs
+ *      Pushes the RDR entry to plugin RPTable
  *
  * Detailed Description: NA
  *
@@ -793,71 +898,47 @@ SaErrorT build_oa_rpt(struct oh_handler_state *oh_handler,
 SaErrorT build_oa_rdr(struct oh_handler_state *oh_handler,
                       SOAP_CON *con,
                       struct oaInfo *response,
-                      struct oh_event *event)
+                      SaHpiResourceIdT resource_id)
 {
         SaErrorT rv = SA_OK;
-        SaHpiRdrT *rdr = NULL;
+        SaHpiRdrT rdr;
         struct oa_soap_inventory *inventory = NULL;
         struct oa_soap_sensor_info *sensor_info=NULL;
-        SaHpiInt32T bay_number;
 
-        if (oh_handler == NULL || con == NULL || response == NULL ||
-            event == NULL) {
+        if (oh_handler == NULL || con == NULL || response == NULL) {
                 err("Invalid parameters");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-        bay_number = response->bayNumber;
-        rdr = (SaHpiRdrT *)g_malloc0(sizeof(SaHpiRdrT));
-        if (rdr == NULL) {
-                err("Out of memory");
-                return SA_ERR_HPI_OUT_OF_MEMORY;
-        }
-
         /* Build inventory rdr for OA */
-        rv = build_oa_inv_rdr(oh_handler, response, rdr, &inventory);
+        memset(&rdr, 0, sizeof(SaHpiRdrT));
+        rv = build_oa_inv_rdr(oh_handler, response, &rdr, &inventory);
         if (rv != SA_OK) {
                 err("Failed to build OA inventory RDR");
-                g_free(rdr);
                 return rv;
         }
-        rv = oh_add_rdr(oh_handler->rptcache, event->resource.ResourceId,
-                        rdr, inventory, 0);
+        rv = oh_add_rdr(oh_handler->rptcache, resource_id, &rdr, inventory, 0);
         if (rv != SA_OK) {
                 err("Failed to add rdr");
-                g_free(rdr);
                 return rv;
-        }
-        event->rdrs = g_slist_append(event->rdrs, rdr);
-
-        rdr = NULL;
-        rdr = (SaHpiRdrT *)g_malloc0(sizeof(SaHpiRdrT));
-        if (rdr == NULL) {
-                err("Out of memory");
-                del_rdr_from_event(event);
-                return SA_ERR_HPI_OUT_OF_MEMORY;
         }
 
         /* Build thermal sensor rdr for OA */
-        rv = build_oa_thermal_sensor_rdr(oh_handler, con,
-                                         bay_number, rdr, &sensor_info);
+        memset(&rdr, 0, sizeof(SaHpiRdrT));
+        rv = build_oa_thermal_sensor_rdr(oh_handler, con, response->bayNumber,
+                                         &rdr, &sensor_info);
         if (rv != SA_OK) {
                 err("Failed to get sensor rdr for OA");
-                del_rdr_from_event(event);
-                g_free(rdr);
                 return rv;
         }
-        rv = oh_add_rdr(oh_handler->rptcache, event->resource.ResourceId,
-                        rdr, sensor_info, 0);
+        rv = oh_add_rdr(oh_handler->rptcache, resource_id, &rdr,
+                        sensor_info, 0);
         if (rv != SA_OK) {
                 err("Failed to add rdr");
-                del_rdr_from_event(event);
-                g_free(rdr);
                 return rv;
         }
-        event->rdrs = g_slist_append(event->rdrs, rdr);
 
-        return rv;
+        return SA_OK;
 }
 
 /**
@@ -883,7 +964,7 @@ SaErrorT discover_oa(struct oh_handler_state *oh_handler)
         struct getOaStatus status_request;
         struct oaStatus status_response;
         SaHpiInt32T i = 0;
-        struct oh_event event;
+        SaHpiResourceIdT resource_id;
 
         if (oh_handler == NULL) {
                 err("Invalid parameters");
@@ -891,10 +972,6 @@ SaErrorT discover_oa(struct oh_handler_state *oh_handler)
         }
 
         oa_handler = (struct oa_soap_handler *)oh_handler->data;
-        if (oa_handler == NULL) {
-                err("OA SOAP handler is NULL");
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
 
         for (i = 1; i <= oa_handler->oa_soap_resources.oa.max_bays; i++) {
                 status_request.bayNumber = i;
@@ -913,16 +990,25 @@ SaErrorT discover_oa(struct oh_handler_state *oh_handler)
                  * But, if the OA is recently inserted, then oaRedudancy state
                  * will be set to false.  In this scenario, the OA state will
                  * be wrongly considered as ABSENT.  This is a known limitation
-                 * TODO: Remove this workaround once the fix is available in OA
-                 * firmware
                  *
-                 * If resource not present, continue checking for next bay
+                 * TODO: Remove this workaround once the fix is available in OA
+                 *       firmware
                  */
                 if ((status_response.oaRole == OA_ABSENT) ||
                     (status_response.oaRole == STANDBY &&
                      status_response.oaRedundancy == HPOA_FALSE)) {
+                        /* If resource not present, continue checking for
+                         * next bay
+                         */
                         dbg("OA %d is not present", i);
                         continue;
+                }
+
+                /* Build rpt entry for OA */
+                rv = build_oa_rpt(oh_handler, i, &resource_id);
+                if (rv != SA_OK) {
+                        err("Failed to build OA RPT");
+                        return rv;
                 }
 
                 request.bayNumber = i;
@@ -933,46 +1019,40 @@ SaErrorT discover_oa(struct oh_handler_state *oh_handler)
                         return SA_ERR_HPI_INTERNAL_ERROR;
                 }
 
-                memset(&event, 0, sizeof(struct oh_event));
-                event.rdrs = NULL;
-
-                /* Build rpt entry for OA */
-                rv = build_oa_rpt(oh_handler, i, &(event.resource));
+                /* Copy the serial number of the OA to serial_number array
+                 * and update the OA firmware version to RPT entry
+                 */
+                rv = update_oa_info(oh_handler, &response, resource_id);
                 if (rv != SA_OK) {
-                        err("Failed to build OA RPT");
+                        err("Failed to update OA RPT");
                         return rv;
                 }
 
-                /* Build rdr entry for OA */
+                /* Build RDRs for OA */
                 rv = build_oa_rdr(oh_handler, oa_handler->active_con,
-                                  &response, &event);
+                                  &response, resource_id);
                 if (rv != SA_OK) {
                         err("Failed to build OA RDR");
                         return rv;
                 }
 
-                /* Push the hotswap event to OpenHPI framework */
-                push_event_to_queue(oh_handler, &event);
-
                 /* Update the resource presence matrix with PRESENT state */
                 oa_handler->oa_soap_resources.oa.presence[i - 1] = RES_PRESENT;
-        }
+        } /* End of for loop */
 
-        dbg("Done");
         return SA_OK;
 }
 
 /**
  * build_server_rpt
- *      @oh_handler: Pointer to openhpi handler
- *      @con:        Pointer to the soap client handler
- *      @name:       Pointer to the name of the server blade
- *      @bay_number: Bay number of the server blade
- *      @rpt:        Pointer to the rpt entry
+ *      @oh_handler:  Pointer to openhpi handler
+ *      @con:         Pointer to the soap client handler
+ *      @response:    Pointer to the bladeInfo structure
+ *      @resource_id: Pointer to the resource id
  *
  * Purpose:
  *      Populate the server blade RPT.
- *      Pushes the RPT entry to infrastructure
+ *      Pushes the RPT entry to plugin RPTable
  *
  * Detailed Description: NA
  *
@@ -984,68 +1064,69 @@ SaErrorT discover_oa(struct oh_handler_state *oh_handler)
  **/
 SaErrorT build_server_rpt(struct oh_handler_state *oh_handler,
                           SOAP_CON *con,
-                          char *name,
-                          SaHpiInt32T bay_number,
-                          SaHpiRptEntryT *rpt)
+                          struct bladeInfo *response,
+                          SaHpiResourceIdT *resource_id)
 {
         SaErrorT rv = SA_OK;
         SaHpiEntityPathT entity_path;
         SaHpiPowerStateT state;
         char *entity_root = NULL;
         struct oa_soap_hotswap_state *hotswap_state = NULL;
+        SaHpiRptEntryT rpt;
 
-        if (oh_handler == NULL || con == NULL || name == NULL || rpt == NULL) {
+        if (oh_handler == NULL || con == NULL || response == NULL ||
+            resource_id == NULL) {
                 err("Invalid parameters");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-        entity_root = (char *)g_hash_table_lookup(oh_handler->config,
-                                                  "entity_root");
+        entity_root = (char *) g_hash_table_lookup(oh_handler->config,
+                                                   "entity_root");
         rv = oh_encode_entitypath(entity_root, &entity_path);
         if (rv != SA_OK) {
                 err("Encoding entity path failed");
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-        memset(rpt, 0, sizeof(SaHpiRptEntryT));
-
         /* Populate the rpt with the details of the server */
-        rpt->ResourceCapabilities = SAHPI_CAPABILITY_RDR |
-                                    SAHPI_CAPABILITY_RESET |
-                                    SAHPI_CAPABILITY_RESOURCE |
-                                    SAHPI_CAPABILITY_POWER |
-                                    SAHPI_CAPABILITY_FRU |
-                                    SAHPI_CAPABILITY_MANAGED_HOTSWAP |
-                                    SAHPI_CAPABILITY_SENSOR |
-                                    SAHPI_CAPABILITY_CONTROL |
-                                    SAHPI_CAPABILITY_INVENTORY_DATA;
-        rpt->ResourceEntity.Entry[1].EntityType = SAHPI_ENT_ROOT;
-        rpt->ResourceEntity.Entry[1].EntityLocation = 0;
-        rpt->ResourceEntity.Entry[0].EntityType=SAHPI_ENT_SYSTEM_BLADE;
-        rpt->ResourceEntity.Entry[0].EntityLocation= bay_number;
-        rv = oh_concat_ep(&rpt->ResourceEntity, &entity_path);
+        memset(&rpt, 0, sizeof(SaHpiRptEntryT));
+        rpt.ResourceCapabilities = SAHPI_CAPABILITY_RDR |
+                                   SAHPI_CAPABILITY_RESET |
+                                   SAHPI_CAPABILITY_RESOURCE |
+                                   SAHPI_CAPABILITY_POWER |
+                                   SAHPI_CAPABILITY_FRU |
+                                   SAHPI_CAPABILITY_MANAGED_HOTSWAP |
+                                   SAHPI_CAPABILITY_SENSOR |
+                                   SAHPI_CAPABILITY_CONTROL |
+                                   SAHPI_CAPABILITY_INVENTORY_DATA;
+        rpt.ResourceEntity.Entry[1].EntityType = SAHPI_ENT_ROOT;
+        rpt.ResourceEntity.Entry[1].EntityLocation = 0;
+        rpt.ResourceEntity.Entry[0].EntityType=SAHPI_ENT_SYSTEM_BLADE;
+        rpt.ResourceEntity.Entry[0].EntityLocation= response->bayNumber;
+        rv = oh_concat_ep(&rpt.ResourceEntity, &entity_path);
         if (rv != SA_OK) {
                 err("concat of entity path failed");
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-        rpt->ResourceId = oh_uid_from_entity_path(&(rpt->ResourceEntity));
-        rpt->ResourceSeverity = SAHPI_OK;
-        rpt->ResourceInfo.ResourceRev = 0;
-        rpt->ResourceFailed = SAHPI_FALSE;
-        rpt->HotSwapCapabilities = SAHPI_HS_CAPABILITY_AUTOEXTRACT_READ_ONLY;
-        rpt->ResourceTag.DataType = SAHPI_TL_TYPE_TEXT;
-        rpt->ResourceTag.Language = SAHPI_LANG_ENGLISH;
-        rpt->ResourceTag.DataLength = strlen(name) + 1;
-        memset(rpt->ResourceTag.Data,0,SAHPI_MAX_TEXT_BUFFER_LENGTH);
-        snprintf((char *)rpt->ResourceTag.Data,
-                 rpt->ResourceTag.DataLength,"%s", name);
+        rpt.ResourceId = oh_uid_from_entity_path(&(rpt.ResourceEntity));
+        rpt.ResourceInfo.ManufacturerId = HP_MANUFACTURING_ID;
+        rpt.ResourceInfo.ProductId = response->productId;
+        rpt.ResourceSeverity = SAHPI_OK;
+        rpt.ResourceFailed = SAHPI_FALSE;
+        rpt.HotSwapCapabilities = SAHPI_HS_CAPABILITY_AUTOEXTRACT_READ_ONLY;
+        rpt.ResourceTag.DataType = SAHPI_TL_TYPE_TEXT;
+        rpt.ResourceTag.Language = SAHPI_LANG_ENGLISH;
+        rpt.ResourceTag.DataLength = strlen(response->name) + 1;
+        memset(rpt.ResourceTag.Data, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);
+        snprintf((char *) (rpt.ResourceTag.Data),
+                 rpt.ResourceTag.DataLength, "%s", response->name);
 
         /* Get the power state of the server blade to determine the hotswap
-         * state.  Hotswap state of the server shall be maintained in private
+         * state. Hotswap state of the server shall be maintained in private
          * data area of server rpt
          */
-        rv = get_server_power_state(con, bay_number, &state);
+        rv = get_server_power_state(con, response->bayNumber, &state);
         if (rv != SA_OK) {
                 err("Unable to get power status");
                 return SA_ERR_HPI_INTERNAL_ERROR;
@@ -1075,27 +1156,29 @@ SaErrorT build_server_rpt(struct oh_handler_state *oh_handler,
                         return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-        /* Add the server rpt to the plugin rptcache */
-        rv = oh_add_resource(oh_handler->rptcache, rpt, hotswap_state, 0);
+        /* Add the server rpt to the plugin RPTable */
+        rv = oh_add_resource(oh_handler->rptcache, &rpt, hotswap_state, 0);
         if (rv != SA_OK) {
                 err("Failed to add Server rpt");
                 if (hotswap_state != NULL)
                         g_free(hotswap_state);
                 return rv;
         }
-        return rv;
+
+        *resource_id = rpt.ResourceId;
+        return SA_OK;
 }
 
 /**
  * build_server_rdr
- *      @oh_handler: Pointer to openhpi handler
- *      @con:        Pointer to the soap client handler.
- *      @response:   Server blade info response structure
- *      @event:      Pointer to the event structure
+ *      @oh_handler:  Pointer to openhpi handler
+ *      @con:         Pointer to the soap client handler.
+ *      @response:    Server blade info response structure
+ *      @resource_id: Resource id
  *
  * Purpose:
  *      Populate the server blade RDR.
- *      Pushes the RDR entry to infrastructure
+ *      Pushes the RDR entry to plugin RPTable
  *
  * Detailed Description: NA
  *
@@ -1108,125 +1191,80 @@ SaErrorT build_server_rpt(struct oh_handler_state *oh_handler,
 SaErrorT build_server_rdr(struct oh_handler_state *oh_handler,
                           SOAP_CON *con,
                           SaHpiInt32T bay_number,
-                          struct oh_event *event)
+                          SaHpiResourceIdT resource_id)
 {
         SaErrorT rv = SA_OK;
-        SaHpiRdrT *rdr = NULL;
+        SaHpiRdrT rdr;
         struct oa_soap_inventory *inventory = NULL;
         struct oa_soap_sensor_info *sensor_thermal_info = NULL;
         struct oa_soap_sensor_info *sensor_power_info = NULL;
 
-        if (oh_handler == NULL || con == NULL || event == NULL) {
+        if (oh_handler == NULL || con == NULL) {
                 err("Invalid parameter");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-        rdr = (SaHpiRdrT *)g_malloc0(sizeof(SaHpiRdrT));
-        if (rdr == NULL) {
-                err("Out of memory");
-                return SA_ERR_HPI_OUT_OF_MEMORY;
-        }
-
         /* Build inventory rdr for server */
-        rv = build_server_inv_rdr(oh_handler, con, bay_number, rdr, &inventory);
+        memset(&rdr, 0, sizeof(SaHpiRdrT));
+        rv = build_server_inv_rdr(oh_handler, con, bay_number,
+                                  &rdr, &inventory);
         if (rv != SA_OK) {
                 err("Failed to get server inventory RDR");
-                g_free(rdr);
                 return rv;
         }
-        rv = oh_add_rdr(oh_handler->rptcache, event->resource.ResourceId,
-                        rdr, inventory, 0);
+        rv = oh_add_rdr(oh_handler->rptcache, resource_id, &rdr, inventory, 0);
         if (rv != SA_OK) {
                 err("Failed to add rdr");
-                g_free(rdr);
                 return rv;
-        }
-        event->rdrs = g_slist_append(event->rdrs, rdr);
-
-        rdr = NULL;
-        rdr = (SaHpiRdrT *)g_malloc0(sizeof(SaHpiRdrT));
-        if (rdr == NULL) {
-                err("Out of memory");
-                del_rdr_from_event(event);
-                return SA_ERR_HPI_OUT_OF_MEMORY;
         }
 
         /* Build thermal sensor rdr for server */
+        memset(&rdr, 0, sizeof(SaHpiRdrT));
         rv = build_server_thermal_sensor_rdr(oh_handler, con,
-                                             bay_number, rdr,
+                                             bay_number, &rdr,
                                              &sensor_thermal_info);
         if (rv != SA_OK) {
                 err("Failed to get server thermal sensor RDR");
-                g_free(rdr);
-                del_rdr_from_event(event);
                 return rv;
         }
-        rv = oh_add_rdr(oh_handler->rptcache, event->resource.ResourceId, rdr,
+        rv = oh_add_rdr(oh_handler->rptcache, resource_id, &rdr,
                         sensor_thermal_info, 0);
         if (rv != SA_OK) {
                 err("Failed to add rdr");
-                g_free(rdr);
-                del_rdr_from_event(event);
                 return rv;
-        }
-        event->rdrs = g_slist_append(event->rdrs, rdr);
-
-        rdr = NULL;
-        rdr = (SaHpiRdrT *)g_malloc0(sizeof(SaHpiRdrT));
-        if (rdr == NULL) {
-                err("Out of memory");
-                del_rdr_from_event(event);
-                return SA_ERR_HPI_OUT_OF_MEMORY;
         }
 
         /* Build power sensor rdr for server */
+        memset(&rdr, 0, sizeof(SaHpiRdrT));
         rv = build_server_power_sensor_rdr(oh_handler, con,
-                                           bay_number, rdr,
+                                           bay_number, &rdr,
                                            &sensor_power_info);
         if (rv != SA_OK) {
                 err("Failed to get server power sensor RDR");
-                g_free(rdr);
-                del_rdr_from_event(event);
                 return rv;
         }
-        rv = oh_add_rdr(oh_handler->rptcache, event->resource.ResourceId,
-                        rdr, sensor_power_info, 0);
+        rv = oh_add_rdr(oh_handler->rptcache, resource_id, &rdr,
+                        sensor_power_info, 0);
         if (rv != SA_OK) {
                 err("Failed to add rdr");
-                g_free(rdr);
-                del_rdr_from_event(event);
                 return rv;
-        }
-        event->rdrs = g_slist_append(event->rdrs, rdr);
-
-        rdr = NULL;
-        rdr = (SaHpiRdrT *)g_malloc0(sizeof(SaHpiRdrT));
-        if (rdr == NULL) {
-                err("Out of memory");
-                del_rdr_from_event(event);
-                return SA_ERR_HPI_OUT_OF_MEMORY;
         }
 
         /* Build control rdr for server */
+        memset(&rdr, 0, sizeof(SaHpiRdrT));
         rv = build_server_control_rdr(oh_handler,
-                                      bay_number, rdr);
+                                      bay_number, &rdr);
         if (rv != SA_OK) {
                 err("Failed to get server control RDR");
-                g_free(rdr);
-                del_rdr_from_event(event);
                 return rv;
         }
-        rv = oh_add_rdr(oh_handler->rptcache, event->resource.ResourceId,
-                        rdr, NULL, 0);
+        rv = oh_add_rdr(oh_handler->rptcache, resource_id, &rdr, NULL, 0);
         if (rv != SA_OK) {
                 err("Failed to add rdr");
-                g_free(rdr);
-                del_rdr_from_event(event);
                 return rv;
         }
-        event->rdrs = g_slist_append(event->rdrs, rdr);
 
-        return rv;
+        return SA_OK;
 }
 
 /**
@@ -1246,11 +1284,11 @@ SaErrorT build_server_rdr(struct oh_handler_state *oh_handler,
 SaErrorT discover_server(struct oh_handler_state *oh_handler)
 {
         SaErrorT rv = SA_OK;
-        SaHpiInt32T i, bay_number = 0;
+        SaHpiInt32T i;
         struct oa_soap_handler *oa_handler = NULL;
         struct getBladeInfo request;
         struct bladeInfo response;
-        struct oh_event event;
+        SaHpiResourceIdT resource_id;
 
         if (oh_handler == NULL) {
                 err("Invalid parameters");
@@ -1275,51 +1313,55 @@ SaErrorT discover_server(struct oh_handler_state *oh_handler)
                 /* Only ProLiant server blade shall be discovered.
                  * Storage, IO and workstation blades are ignored
                  * and considered as ABSENT
-                 * If resource not present, continue checking for next bay
                  */
                 if (response.presence != PRESENT ||
-                   response.bladeType != BLADE_TYPE_SERVER) {
+                    response.bladeType != BLADE_TYPE_SERVER) {
+                        /* If resource not present, continue checking for
+                         * next bay
+                         */
                         continue;
                 }
 
-                memset(&event, 0, sizeof(struct oh_event));
-                event.rdrs = NULL;
-                bay_number = response.bayNumber;
+                /* Copy the serial number of the server to the serial_number
+                 * array
+                 */
+                strcpy(oa_handler->oa_soap_resources.server.serial_number[i-1],
+                       response.serialNumber);
 
                 /* Build rpt entry for server */
                 rv = build_server_rpt(oh_handler, oa_handler->active_con,
-                                      response.name, bay_number,
-                                      &(event.resource));
+                                      &response, &resource_id);
                 if (rv != SA_OK) {
                         err("Failed to get Server rpt");
                         return SA_ERR_HPI_INTERNAL_ERROR;
                 }
 
                 /* Build rdr entry for server */
-                rv = build_server_rdr(oh_handler, oa_handler->active_con,
-                                      bay_number, &event);
+                rv = build_server_rdr(oh_handler, oa_handler->active_con, i,
+                                      resource_id);
                 if (rv != SA_OK) {
                         err("Failed to add Server rdr");
                         return SA_ERR_HPI_INTERNAL_ERROR;
                 }
-                push_event_to_queue(oh_handler, &event);
+
+                /* Update the resource presence matrix with PRESENT state */
                 oa_handler->oa_soap_resources.server.presence[i - 1] =
                         RES_PRESENT;
-        }
-        dbg("Done");
+        } /* End of for loop */
         return SA_OK;
 }
 
 /**
  * build_interconnect_rpt
- *      @oh_handler: Pointer to openhpi handler
- *      @con:        Pointer to the soap client handler.
- *      @name:       Pointer to the name of the interconnect blade
- *      @bay_number: Bay number of the interconnect blade
- *      @rpt:        Pointer to the rpt entry
+ *      @oh_handler:  Pointer to openhpi handler
+ *      @con:         Pointer to the soap client handler.
+ *      @name:        Pointer to the name of the interconnect blade
+ *      @bay_number:  Bay number of the interconnect blade
+ *      @resource_id: Pointer to the resource id
  *
  * Purpose:
  *      Populate the interconnect RPT.
+ *      Pushes the RPT entry to plugin RPTable
  *
  * Detailed Description: NA
  *
@@ -1333,61 +1375,76 @@ SaErrorT build_interconnect_rpt(struct oh_handler_state *oh_handler,
                                 SOAP_CON *con,
                                 char *name,
                                 SaHpiInt32T bay_number,
-                                SaHpiRptEntryT *rpt)
+                                SaHpiResourceIdT *resource_id)
 {
         SaErrorT rv = SA_OK;
         SaHpiEntityPathT entity_path;
         SaHpiPowerStateT state;
         char *entity_root = NULL;
         struct oa_soap_hotswap_state *hotswap_state = NULL;
+        SaHpiRptEntryT rpt;
+        char temp[MAX_NAME_LEN];
 
         if (oh_handler == NULL || con == NULL || name == NULL ||
-           rpt == NULL) {
+           resource_id == NULL) {
                 err("Invalid parameters");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-        entity_root = (char *)g_hash_table_lookup(oh_handler->config,
-                                                  "entity_root");
+        entity_root = (char *) g_hash_table_lookup(oh_handler->config,
+                                                   "entity_root");
         rv = oh_encode_entitypath(entity_root, &entity_path);
         if (rv != SA_OK) {
                 err("Encoding entity path failed");
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-        memset(rpt, 0, sizeof(SaHpiRptEntryT));
-
         /* Populate the rpt with the details of the interconnect */
-        rpt->ResourceCapabilities = SAHPI_CAPABILITY_RDR |
-                                    SAHPI_CAPABILITY_RESET |
-                                    SAHPI_CAPABILITY_RESOURCE |
-                                    SAHPI_CAPABILITY_POWER |
-                                    SAHPI_CAPABILITY_FRU |
-                                    SAHPI_CAPABILITY_MANAGED_HOTSWAP |
-                                    SAHPI_CAPABILITY_SENSOR |
-                                    SAHPI_CAPABILITY_CONTROL |
-                                    SAHPI_CAPABILITY_INVENTORY_DATA;
-        rpt->ResourceEntity.Entry[1].EntityType = SAHPI_ENT_ROOT;
-        rpt->ResourceEntity.Entry[1].EntityLocation = 0;
-        rpt->ResourceEntity.Entry[0].EntityType= SAHPI_ENT_SWITCH_BLADE;
-        rpt->ResourceEntity.Entry[0].EntityLocation= bay_number;
-        rv = oh_concat_ep(&rpt->ResourceEntity, &entity_path);
+        memset(&rpt, 0, sizeof(SaHpiRptEntryT));
+        rpt.ResourceCapabilities = SAHPI_CAPABILITY_RDR |
+                                   SAHPI_CAPABILITY_RESET |
+                                   SAHPI_CAPABILITY_RESOURCE |
+                                   SAHPI_CAPABILITY_POWER |
+                                   SAHPI_CAPABILITY_FRU |
+                                   SAHPI_CAPABILITY_MANAGED_HOTSWAP |
+                                   SAHPI_CAPABILITY_SENSOR |
+                                   SAHPI_CAPABILITY_CONTROL |
+                                   SAHPI_CAPABILITY_INVENTORY_DATA;
+        rpt.ResourceEntity.Entry[1].EntityType = SAHPI_ENT_ROOT;
+        rpt.ResourceEntity.Entry[1].EntityLocation = 0;
+        rpt.ResourceEntity.Entry[0].EntityType = SAHPI_ENT_SWITCH_BLADE;
+        rpt.ResourceEntity.Entry[0].EntityLocation = bay_number;
+        rv = oh_concat_ep(&(rpt.ResourceEntity), &entity_path);
         if (rv != SA_OK) {
                 err("concat of entity path failed");
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-        rpt->ResourceId = oh_uid_from_entity_path(&(rpt->ResourceEntity));
-        rpt->ResourceSeverity = SAHPI_OK;
-        rpt->ResourceInfo.ResourceRev = 0;
-        rpt->ResourceFailed = SAHPI_FALSE;
-        rpt->HotSwapCapabilities = SAHPI_HS_CAPABILITY_AUTOEXTRACT_READ_ONLY;
-        rpt->ResourceTag.DataType = SAHPI_TL_TYPE_TEXT;
-        rpt->ResourceTag.Language = SAHPI_LANG_ENGLISH;
-        rpt->ResourceTag.DataLength = strlen(name) + 1;
-        memset(rpt->ResourceTag.Data, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);
-        snprintf((char *)rpt->ResourceTag.Data,
-                  rpt->ResourceTag.DataLength, "%s", name);
+        rpt.ResourceId = oh_uid_from_entity_path(&(rpt.ResourceEntity));
+
+        /* Check whether the interconnect blade is from Cisco Systems
+         * TODO: Cisco interconnect blades will have name starting with "Cisco"
+         *       If this format gets changed for any reason,
+         *       then Cisco interconnect blades will have manufacture id as HP
+         *       in ManufacturerId field of rpt entry.
+         *       If the interconnect name format changes,
+         *       please change the logic accordingly.
+         */
+        convert_lower_to_upper(name, strlen(name), temp, MAX_NAME_LEN);
+        if (strstr(temp, CISCO) != NULL)
+                rpt.ResourceInfo.ManufacturerId = CISCO_MANUFACTURING_ID;
+        else
+                rpt.ResourceInfo.ManufacturerId = HP_MANUFACTURING_ID;
+
+        rpt.ResourceSeverity = SAHPI_OK;
+        rpt.ResourceFailed = SAHPI_FALSE;
+        rpt.HotSwapCapabilities = SAHPI_HS_CAPABILITY_AUTOEXTRACT_READ_ONLY;
+        rpt.ResourceTag.DataType = SAHPI_TL_TYPE_TEXT;
+        rpt.ResourceTag.Language = SAHPI_LANG_ENGLISH;
+        rpt.ResourceTag.DataLength = strlen(name) + 1;
+        memset(rpt.ResourceTag.Data, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);
+        snprintf((char *) (rpt.ResourceTag.Data),
+                  rpt.ResourceTag.DataLength, "%s", name);
 
         /* Get the power state of the interconnect blade to determine the
          * hotswap state. Hotswap state of the interconnect shall be maintained
@@ -1396,7 +1453,7 @@ SaErrorT build_interconnect_rpt(struct oh_handler_state *oh_handler,
         rv = get_interconnect_power_state(con, bay_number, &state);
         if (rv != SA_OK) {
                 err("Unable to get power status");
-                return SA_ERR_HPI_INTERNAL_ERROR;
+                return rv;
         }
 
         hotswap_state = (struct oa_soap_hotswap_state *)
@@ -1408,7 +1465,6 @@ SaErrorT build_interconnect_rpt(struct oh_handler_state *oh_handler,
 
         switch (state) {
                 case SAHPI_POWER_ON:
-                case SAHPI_POWER_CYCLE:
                         hotswap_state->currentHsState = SAHPI_HS_STATE_ACTIVE;
                         break;
 
@@ -1416,15 +1472,16 @@ SaErrorT build_interconnect_rpt(struct oh_handler_state *oh_handler,
                         hotswap_state->currentHsState = SAHPI_HS_STATE_INACTIVE;
                         break;
 
+                case SAHPI_POWER_CYCLE:
                 default :
-                        err("unknow power status");
+                        err("Wrong power state detected");
                         if (hotswap_state != NULL)
                                 g_free(hotswap_state);
                         return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-        /* Add the interconnect rpt to the plugin rptcache */
-        rv = oh_add_resource(oh_handler->rptcache, rpt, hotswap_state, 0);
+        /* Add the interconnect rpt to the plugin RPTable */
+        rv = oh_add_resource(oh_handler->rptcache, &rpt, hotswap_state, 0);
         if (rv != SA_OK) {
                 err("Failed to add Interconnect RPT");
                 if (hotswap_state != NULL)
@@ -1432,7 +1489,8 @@ SaErrorT build_interconnect_rpt(struct oh_handler_state *oh_handler,
                 return rv;
         }
 
-        return rv;
+        *resource_id = rpt.ResourceId;
+        return SA_OK;
 }
 
 /**
@@ -1440,11 +1498,11 @@ SaErrorT build_interconnect_rpt(struct oh_handler_state *oh_handler,
  *      @oh_handler:    Pointer to openhpi handler
  *      @con:           Pointer to the soap client handler.
  *      @info_response: Interconnect info response structure
- *      @event:         Pointer to the event structure
+ *      @resource_id:   Resource id
  *
  * Purpose:
  *      Populate the interconnect blade RDR.
- *      Pushes the RDRs to infrastructure
+ *      Pushes the RDRs to plugin RPTable
  *
  * Detailed Description: NA
  *
@@ -1456,95 +1514,61 @@ SaErrorT build_interconnect_rpt(struct oh_handler_state *oh_handler,
 SaErrorT build_interconnect_rdr(struct oh_handler_state *oh_handler,
                                 SOAP_CON* con,
                                 SaHpiInt32T bay_number,
-                                struct oh_event *event)
+                                SaHpiResourceIdT resource_id)
 {
         SaErrorT rv = SA_OK;
         struct oa_soap_inventory *inventory = NULL;
         struct oa_soap_sensor_info *sensor_info = NULL;
-        SaHpiRdrT *rdr = NULL;
+        SaHpiRdrT rdr;
 
-        if (oh_handler == NULL || con == NULL || event == NULL) {
+        if (oh_handler == NULL || con == NULL) {
                 err("Invalid parameters");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-        rdr = (SaHpiRdrT *)g_malloc0(sizeof(SaHpiRdrT));
-        if (rdr == NULL) {
-                err("Out of memory");
-                return SA_ERR_HPI_OUT_OF_MEMORY;
-        }
-
         /* Build inventory rdr for interconnect */
+        memset(&rdr, 0, sizeof(SaHpiRdrT));
         rv = build_interconnect_inv_rdr(oh_handler, con, bay_number,
-                                        rdr, &inventory);
+                                        &rdr, &inventory);
         if (rv != SA_OK) {
                 err("Failed to get interconnect inventory RDR");
-                g_free(rdr);
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
-        rv = oh_add_rdr(oh_handler->rptcache, event->resource.ResourceId,
-                        rdr, inventory, 0);
+        rv = oh_add_rdr(oh_handler->rptcache, resource_id, &rdr, inventory, 0);
         if (rv != SA_OK) {
                 err("Failed to add rdr");
-                g_free(rdr);
                 return rv;
-        }
-        event->rdrs = g_slist_append(event->rdrs, rdr);
-
-        rdr = NULL;
-        rdr = (SaHpiRdrT *)g_malloc0(sizeof(SaHpiRdrT));
-        if (rdr == NULL) {
-                err("Out of memory");
-                del_rdr_from_event(event);
-                return SA_ERR_HPI_OUT_OF_MEMORY;
         }
 
         /* Build thermal sensor rdr for interconnect */
+        memset(&rdr, 0, sizeof(SaHpiRdrT));
         rv = build_interconnect_thermal_sensor_rdr(oh_handler, con, bay_number,
-                                                   rdr, &sensor_info);
+                                                   &rdr, &sensor_info);
         if (rv != SA_OK) {
                 err("Failed to get interconnect thermal sensor RDR");
-                g_free(rdr);
-                del_rdr_from_event(event);
-                return SA_ERR_HPI_INVALID_DATA;
-        }
-        rv = oh_add_rdr(oh_handler->rptcache, event->resource.ResourceId,
-                        rdr, sensor_info, 0);
-        if (rv != SA_OK) {
-                err("Failed to add rdr");
-                g_free(rdr);
-                del_rdr_from_event(event);
                 return rv;
         }
-        event->rdrs = g_slist_append(event->rdrs, rdr);
-
-        rdr = NULL;
-        rdr = (SaHpiRdrT *)g_malloc0(sizeof(SaHpiRdrT));
-        if (rdr == NULL) {
-                err("Out of memory");
-                del_rdr_from_event(event);
-                return SA_ERR_HPI_OUT_OF_MEMORY;
+        rv = oh_add_rdr(oh_handler->rptcache, resource_id, &rdr,
+                        sensor_info, 0);
+        if (rv != SA_OK) {
+                err("Failed to add rdr");
+                return rv;
         }
 
         /* Build control rdr for interconnect */
-        rv = build_interconnect_control_rdr(oh_handler, bay_number, rdr);
+        memset(&rdr, 0, sizeof(SaHpiRdrT));
+        rv = build_interconnect_control_rdr(oh_handler, bay_number, &rdr);
         if (rv != SA_OK) {
                 err("Failed to get interconnect control RDR");
-                g_free(rdr);
-                del_rdr_from_event(event);
-                return SA_ERR_HPI_INVALID_DATA;
-        }
-        rv = oh_add_rdr(oh_handler->rptcache, event->resource.ResourceId,
-                        rdr, NULL, 0);
-        if (rv != SA_OK) {
-                err("Failed to add rdr");
-                g_free(rdr);
-                del_rdr_from_event(event);
                 return rv;
         }
-        event->rdrs = g_slist_append(event->rdrs, rdr);
+        rv = oh_add_rdr(oh_handler->rptcache, resource_id, &rdr, NULL, 0);
+        if (rv != SA_OK) {
+                err("Failed to add rdr");
+                return rv;
+        }
 
-        return rv;
+        return SA_OK;
 }
 
 /**
@@ -1564,13 +1588,13 @@ SaErrorT build_interconnect_rdr(struct oh_handler_state *oh_handler,
 SaErrorT discover_interconnect(struct oh_handler_state *oh_handler)
 {
         SaErrorT rv = SA_OK;
-        SaHpiInt32T bay_number, i;
+        SaHpiInt32T i;
         struct getInterconnectTrayInfo info_request;
         struct interconnectTrayInfo info_response;
         struct getInterconnectTrayStatus status_request;
         struct interconnectTrayStatus status_response;
         struct oa_soap_handler *oa_handler = NULL;
-        struct oh_event event;
+        SaHpiResourceIdT resource_id;
 
         if (oh_handler == NULL) {
                 err("Invalid parameters");
@@ -1591,7 +1615,7 @@ SaErrorT discover_interconnect(struct oh_handler_state *oh_handler)
                         return SA_ERR_HPI_INTERNAL_ERROR;
                 }
 
-                 /* If resource not present, continue checking for next bay */
+                /* If resource not present, continue checking for next bay */
                 if (status_response.presence != PRESENT) {
                         continue;
                 }
@@ -1605,14 +1629,17 @@ SaErrorT discover_interconnect(struct oh_handler_state *oh_handler)
                         return SA_ERR_HPI_INTERNAL_ERROR;
                 }
 
-                memset(&event, 0, sizeof(struct oh_event));
-                event.rdrs = NULL;
-                bay_number = i;
+                /* Copy the serial number of the interconnect to
+                 * serial_number array
+                 */
+                strcpy(oa_handler->oa_soap_resources.interconnect.
+                                           serial_number[i-1],
+                       info_response.serialNumber);
 
                 /* Build rpt entry for interconnect */
                 rv = build_interconnect_rpt(oh_handler, oa_handler->active_con,
-                                       info_response.name, bay_number,
-                                       &(event.resource));
+                                            info_response.name, i,
+                                            &resource_id);
                 if (rv != SA_OK) {
                        err("Failed to get interconnect RPT");
                        return rv;
@@ -1620,29 +1647,29 @@ SaErrorT discover_interconnect(struct oh_handler_state *oh_handler)
 
                 /* Build rdr entry for interconnect */
                 rv = build_interconnect_rdr(oh_handler, oa_handler->active_con,
-                                            bay_number, &event);
+                                            i, resource_id);
                 if (rv != SA_OK) {
                        err("Failed to get interconnect RDR");
                        return rv;
                 }
-                push_event_to_queue(oh_handler, &event);
+
+                /* Update the resource presence matrix with PRESENT state */
                 oa_handler->oa_soap_resources.interconnect.presence[i - 1] =
                         RES_PRESENT;
         }
-        dbg("Done");
-        return rv;
+        return SA_OK;
 }
 
 /**
  * build_fan_rpt
- *      @oh_handler: Pointer to openhpi handler
- *      @name:       Pointer to the name of the Fan
- *      @bay_number: Bay number of the Fan
- *      @rpt:        Pointer to the rpt entry
+ *      @oh_handler:  Pointer to openhpi handler
+ *      @name:        Pointer to the name of the Fan
+ *      @bay_number:  Bay number of the Fan
+ *      @resource_id: Pointer to the resource id
  *
  * Purpose:
  *      Populate the fan RPT.
- *      Pushes the RPT entry to infrastructure
+ *      Pushes the RPT entry to plugin RPTable
  *
  * Detailed Description: NA
  *
@@ -1654,74 +1681,76 @@ SaErrorT discover_interconnect(struct oh_handler_state *oh_handler)
 SaErrorT build_fan_rpt(struct oh_handler_state *oh_handler,
                        char *name,
                        SaHpiInt32T bay_number,
-                       SaHpiRptEntryT *rpt)
+                       SaHpiResourceIdT *resource_id)
 {
         SaErrorT rv = SA_OK;
         SaHpiEntityPathT entity_path;
         char *entity_root = NULL;
+        SaHpiRptEntryT rpt;
 
-        if (oh_handler == NULL || name == NULL || rpt == NULL) {
+        if (oh_handler == NULL || name == NULL || resource_id == NULL) {
                 err("Invalid parameters");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-        entity_root = (char *)g_hash_table_lookup(oh_handler->config,
-                                                  "entity_root");
+        entity_root = (char *) g_hash_table_lookup(oh_handler->config,
+                                                   "entity_root");
         rv = oh_encode_entitypath(entity_root, &entity_path);
         if (rv != SA_OK) {
                 err("Encoding entity path failed");
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-        memset(rpt, 0, sizeof(SaHpiRptEntryT));
-
         /* Populate the rpt with the details of the fan */
-        rpt->ResourceCapabilities = SAHPI_CAPABILITY_RDR |
-                                    SAHPI_CAPABILITY_RESOURCE |
-                                    SAHPI_CAPABILITY_FRU |
-                                    SAHPI_CAPABILITY_SENSOR |
-                                    SAHPI_CAPABILITY_INVENTORY_DATA;
-        rpt->ResourceEntity.Entry[1].EntityType = SAHPI_ENT_ROOT;
-        rpt->ResourceEntity.Entry[1].EntityLocation = 0;
-        rpt->ResourceEntity.Entry[0].EntityType= SAHPI_ENT_COOLING_DEVICE;
-        rpt->ResourceEntity.Entry[0].EntityLocation= bay_number;
-        rv = oh_concat_ep(&rpt->ResourceEntity, &entity_path);
+        memset(&rpt, 0, sizeof(SaHpiRptEntryT));
+        rpt.ResourceCapabilities = SAHPI_CAPABILITY_RDR |
+                                   SAHPI_CAPABILITY_RESOURCE |
+                                   SAHPI_CAPABILITY_FRU |
+                                   SAHPI_CAPABILITY_SENSOR |
+                                   SAHPI_CAPABILITY_INVENTORY_DATA;
+        rpt.ResourceEntity.Entry[1].EntityType = SAHPI_ENT_ROOT;
+        rpt.ResourceEntity.Entry[1].EntityLocation = 0;
+        rpt.ResourceEntity.Entry[0].EntityType= SAHPI_ENT_COOLING_DEVICE;
+        rpt.ResourceEntity.Entry[0].EntityLocation= bay_number;
+        rv = oh_concat_ep(&(rpt.ResourceEntity), &entity_path);
         if (rv != SA_OK) {
                 err("concat of entity path failed");
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-        rpt->ResourceId = oh_uid_from_entity_path(&(rpt->ResourceEntity));
-        rpt->ResourceSeverity = SAHPI_OK;
-        rpt->ResourceInfo.ResourceRev = 0;
-        rpt->ResourceFailed = SAHPI_FALSE;
-        rpt->HotSwapCapabilities = 0x0;
-        rpt->ResourceTag.DataType = SAHPI_TL_TYPE_TEXT;
-        rpt->ResourceTag.Language = SAHPI_LANG_ENGLISH;
-        rpt->ResourceTag.DataLength = strlen(name) + 1;
-        memset(rpt->ResourceTag.Data, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);
-        snprintf((char *) (rpt->ResourceTag.Data),
-                 rpt->ResourceTag.DataLength, "%s", name);
+        rpt.ResourceId = oh_uid_from_entity_path(&(rpt.ResourceEntity));
+        rpt.ResourceInfo.ManufacturerId = HP_MANUFACTURING_ID;
+        rpt.ResourceSeverity = SAHPI_OK;
+        rpt.ResourceFailed = SAHPI_FALSE;
+        rpt.HotSwapCapabilities = 0x0;
+        rpt.ResourceTag.DataType = SAHPI_TL_TYPE_TEXT;
+        rpt.ResourceTag.Language = SAHPI_LANG_ENGLISH;
+        rpt.ResourceTag.DataLength = strlen(name) + 1;
+        memset(rpt.ResourceTag.Data, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);
+        snprintf((char *) (rpt.ResourceTag.Data),
+                 rpt.ResourceTag.DataLength, "%s", name);
 
-        /* Add the fan rpt to the plugin rptcache */
-        rv = oh_add_resource(oh_handler->rptcache, rpt, NULL, 0);
+        /* Add the fan rpt to the plugin RPTable */
+        rv = oh_add_resource(oh_handler->rptcache, &rpt, NULL, 0);
         if (rv != SA_OK) {
                 err("Failed to add Fan RPT ");
                 return rv;
         }
-        return rv;
+
+        *resource_id = rpt.ResourceId;
+        return SA_OK;
 }
 
 /**
  * build_fan_rdr
- *      @oh_handler: Pointer to openhpi handler
- *      @con:        Pointer to the soap client handler.
- *      @response:   Fan info response structure
- *      @event:      Pointer to the event structure
+ *      @oh_handler:  Pointer to openhpi handler
+ *      @con:         Pointer to the soap client handler.
+ *      @response:    Fan info response structure
+ *      @resource_id: Resource id
  *
  * Purpose:
  *      Populate the oa_soap fan RDR.
- *      Pushes the RDR entry to infrastructure
+ *      Pushes the RDR entry to plugin RPTable
  *
  * Detailed Description: NA
  *
@@ -1733,99 +1762,65 @@ SaErrorT build_fan_rpt(struct oh_handler_state *oh_handler,
 SaErrorT build_fan_rdr(struct oh_handler_state *oh_handler,
                        SOAP_CON *con,
                        struct fanInfo *response,
-                       struct oh_event *event)
+                       SaHpiResourceIdT resource_id)
 {
         SaErrorT rv = SA_OK;
-        SaHpiRdrT *rdr = NULL;
+        SaHpiRdrT rdr;
         struct oa_soap_inventory *inventory = NULL;
         struct oa_soap_sensor_info *sensor_speed_info = NULL;
         struct oa_soap_sensor_info *sensor_power_info = NULL;
         SaHpiInt32T bay_number;
 
-        if (oh_handler == NULL || con == NULL || response == NULL ||
-           event == NULL) {
+        if (oh_handler == NULL || con == NULL || response == NULL) {
                 err("Invalid parameters");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-        bay_number = response->bayNumber;
-        rdr = (SaHpiRdrT *)g_malloc0(sizeof(SaHpiRdrT));
-        if (rdr == NULL) {
-                err("Out of memory");
-                return SA_ERR_HPI_OUT_OF_MEMORY;
-        }
-
         /* Build inventory rdr for fan */
-        rv = build_fan_inv_rdr(oh_handler, response, rdr, &inventory);
+        bay_number = response->bayNumber;
+        memset(&rdr, 0, sizeof(SaHpiRdrT));
+        rv = build_fan_inv_rdr(oh_handler, response, &rdr, &inventory);
         if (rv != SA_OK) {
                 err("Failed to get fan inventory RDR");
-                g_free(rdr);
                 return rv;
         }
-        rv = oh_add_rdr(oh_handler->rptcache, event->resource.ResourceId,
-                        rdr, inventory, 0);
+        rv = oh_add_rdr(oh_handler->rptcache, resource_id, &rdr, inventory, 0);
         if (rv != SA_OK) {
                 err("Failed to add rdr");
-                g_free(rdr);
                 return rv;
-        }
-        event->rdrs = g_slist_append(event->rdrs, rdr);
-
-        rdr = NULL;
-        rdr = (SaHpiRdrT *)g_malloc0(sizeof(SaHpiRdrT));
-        if (rdr == NULL) {
-                err("Out of memory");
-                del_rdr_from_event(event);
-                return SA_ERR_HPI_OUT_OF_MEMORY;
         }
 
         /* Build fan speed sensor rdr for fan */
+        memset(&rdr, 0, sizeof(SaHpiRdrT));
         rv = build_fan_speed_sensor_rdr(oh_handler, con,
-                                        bay_number, rdr, &sensor_speed_info);
+                                        bay_number, &rdr, &sensor_speed_info);
         if (rv != SA_OK) {
                 err("Failed to get fan speed sensor RDR");
-                g_free(rdr);
-                del_rdr_from_event(event);
                 return rv;
         }
-        rv = oh_add_rdr(oh_handler->rptcache, event->resource.ResourceId,
-                        rdr, sensor_speed_info, 0);
+        rv = oh_add_rdr(oh_handler->rptcache, resource_id, &rdr,
+                        sensor_speed_info, 0);
         if (rv != SA_OK) {
                 err("Failed to add rdr");
-                g_free(rdr);
-                del_rdr_from_event(event);
                 return rv;
-        }
-        event->rdrs = g_slist_append(event->rdrs, rdr);
-
-        rdr = NULL;
-        rdr = (SaHpiRdrT *)g_malloc0(sizeof(SaHpiRdrT));
-        if (rdr == NULL) {
-                err("Out of memory");
-                del_rdr_from_event(event);
-                return SA_ERR_HPI_OUT_OF_MEMORY;
         }
 
         /* Build power sensor rdr for fan */
+        memset(&rdr, 0, sizeof(SaHpiRdrT));
         rv = build_fan_power_sensor_rdr(oh_handler, con,
-                                        bay_number, rdr, &sensor_power_info);
+                                        bay_number, &rdr, &sensor_power_info);
         if (rv != SA_OK) {
                 err("Failed to get fan power sensor RDR");
-                g_free(rdr);
-                del_rdr_from_event(event);
                 return rv;
         }
-        rv = oh_add_rdr(oh_handler->rptcache, event->resource.ResourceId,
-                        rdr, sensor_power_info, 0);
+        rv = oh_add_rdr(oh_handler->rptcache, resource_id, &rdr,
+                        sensor_power_info, 0);
         if (rv != SA_OK) {
                 err("Failed to add rdr");
-                g_free(rdr);
-                del_rdr_from_event(event);
                 return rv;
         }
-        event->rdrs = g_slist_append(event->rdrs, rdr);
 
-        return rv;
+        return SA_OK;
 }
 
 /**
@@ -1849,7 +1844,7 @@ SaErrorT discover_fan(struct oh_handler_state *oh_handler)
         SaHpiInt32T i;
         struct getFanInfo request;
         struct fanInfo response;
-        struct oh_event event;
+        SaHpiResourceIdT resource_id;
 
         if (oh_handler == NULL) {
                 err("Invalid parameters");
@@ -1867,42 +1862,38 @@ SaErrorT discover_fan(struct oh_handler_state *oh_handler)
                         return SA_ERR_HPI_INTERNAL_ERROR;
                 }
 
-                 /* If resource not present, continue checking for next bay */
+                /* If resource not present, continue checking for next bay */
                 if (response.presence != PRESENT)
                         continue;
 
-                memset(&event, 0, sizeof(struct oh_event));
-                event.rdrs = NULL;
-
                 /* Build rpt entry for fan */
-                rv = build_fan_rpt(oh_handler, response.name,
-                                   i, &(event.resource));
+                rv = build_fan_rpt(oh_handler, response.name, i, &resource_id);
                 if (rv != SA_OK) {
                         err("Failed to populate Fan RPT");
                         return rv;
                 }
                 rv = build_fan_rdr(oh_handler, oa_handler->active_con,
-                                   &response, &event);
+                                   &response, resource_id);
                 if (rv != SA_OK) {
                         err("Failed to populate Fan RDR");
                         return rv;
                 }
-                push_event_to_queue(oh_handler, &event);
+
+                /* Update the resource presence matrix with PRESENT state */
                 oa_handler->oa_soap_resources.fan.presence[i - 1] = RES_PRESENT;
         }
-        dbg("Done");
         return SA_OK;
 }
 
 /**
  * build_power_subsystem_rpt
- *      @oh_handler: Pointer to openhpi handler
- *      @name:       Pointer to the name of the Power subsystem
- *      @rpt:        Pointer to the rpt entry
+ *      @oh_handler:  Pointer to openhpi handler
+ *      @name:        Pointer to the name of the Power subsystem
+ *      @resource_id: Pointer to the resource id
  *
  * Purpose:
  *      Populate the power supply RPT.
- *      Pushes the RPT entry to infrastructure
+ *      Pushes the RPT entry to plugin RPTable
  *
  * Detailed Description: NA
  *
@@ -1913,70 +1904,73 @@ SaErrorT discover_fan(struct oh_handler_state *oh_handler)
  **/
 SaErrorT build_power_subsystem_rpt(struct oh_handler_state *oh_handler,
                                    char *name,
-                                   SaHpiRptEntryT *rpt)
+                                   SaHpiResourceIdT *resource_id)
 {
         SaErrorT rv = SA_OK;
         SaHpiEntityPathT entity_path;
         char *entity_root = NULL;
+        SaHpiRptEntryT rpt;
 
-        if (oh_handler == NULL || name == NULL || rpt == NULL) {
+        if (oh_handler == NULL || name == NULL || resource_id == NULL) {
                 err("Invalid parameters");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
         /* Fetch and encode the entity path required for the rpt field */
-        entity_root = (char *)g_hash_table_lookup(oh_handler->config,
-                                                  "entity_root");
+        entity_root = (char *) g_hash_table_lookup(oh_handler->config,
+                                                   "entity_root");
         rv = oh_encode_entitypath(entity_root, &entity_path);
         if (rv != SA_OK) {
                 err("Encoding entity path failed");
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-        memset(rpt, 0, sizeof(SaHpiRptEntryT));
         /* Populate the rpt with the details of the power subsystem */
-        rpt->ResourceCapabilities = SAHPI_CAPABILITY_RDR |
-                                    SAHPI_CAPABILITY_RESOURCE |
-                                    SAHPI_CAPABILITY_SENSOR;
-        rpt->ResourceEntity.Entry[1].EntityType = SAHPI_ENT_ROOT;
-        rpt->ResourceEntity.Entry[1].EntityLocation = 0;
-        rpt->ResourceEntity.Entry[0].EntityType = SAHPI_ENT_POWER_MGMNT;
-        rpt->ResourceEntity.Entry[0].EntityLocation = 1;
-        rv = oh_concat_ep(&rpt->ResourceEntity, &entity_path);
+        memset(&rpt, 0, sizeof(SaHpiRptEntryT));
+        rpt.ResourceCapabilities = SAHPI_CAPABILITY_RDR |
+                                   SAHPI_CAPABILITY_RESOURCE |
+                                   SAHPI_CAPABILITY_SENSOR;
+        rpt.ResourceEntity.Entry[1].EntityType = SAHPI_ENT_ROOT;
+        rpt.ResourceEntity.Entry[1].EntityLocation = 0;
+        rpt.ResourceEntity.Entry[0].EntityType = SAHPI_ENT_POWER_MGMNT;
+        rpt.ResourceEntity.Entry[0].EntityLocation = 1;
+        rv = oh_concat_ep(&(rpt.ResourceEntity), &entity_path);
         if (rv != SA_OK) {
                 err("concat of entity path failed");
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-        rpt->ResourceId = oh_uid_from_entity_path(&(rpt->ResourceEntity));
-        rpt->ResourceSeverity = SAHPI_OK;
-        rpt->ResourceInfo.ResourceRev = 0;
-        rpt->ResourceFailed = SAHPI_FALSE;
-        rpt->HotSwapCapabilities = 0x0;
-        rpt->ResourceTag.DataType = SAHPI_TL_TYPE_TEXT;
-        rpt->ResourceTag.Language = SAHPI_LANG_ENGLISH;
-        rpt->ResourceTag.DataLength = strlen(name) + 1;
-        memset(rpt->ResourceTag.Data, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);
-        snprintf((char *)rpt->ResourceTag.Data,
-                 rpt->ResourceTag.DataLength, "%s", name);
+        rpt.ResourceId = oh_uid_from_entity_path(&(rpt.ResourceEntity));
+        rpt.ResourceInfo.ManufacturerId = HP_MANUFACTURING_ID;
+        rpt.ResourceSeverity = SAHPI_OK;
+        rpt.ResourceFailed = SAHPI_FALSE;
+        rpt.HotSwapCapabilities = 0x0;
+        rpt.ResourceTag.DataType = SAHPI_TL_TYPE_TEXT;
+        rpt.ResourceTag.Language = SAHPI_LANG_ENGLISH;
+        rpt.ResourceTag.DataLength = strlen(name) + 1;
+        memset(rpt.ResourceTag.Data, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);
+        snprintf((char *) (rpt.ResourceTag.Data),
+                 rpt.ResourceTag.DataLength, "%s", name);
 
-        /* Add the power subsystem rpt to the plugin rptcache */
-        rv = oh_add_resource(oh_handler->rptcache, rpt, NULL, 0);
+        /* Add the power subsystem rpt to the plugin RPTable */
+        rv = oh_add_resource(oh_handler->rptcache, &rpt, NULL, 0);
         if (rv != SA_OK) {
                 err("Failed to add Power Subsystem RPT");
                 return rv;
         }
-        return rv;
+
+        *resource_id = rpt.ResourceId;
+        return SA_OK;
 }
 
 /**
  * build_power_subsystem_rdr
- *      @oh_handler: Pointer to openhpi handler
- *      @event:      Pointer to the event structure
+ *      @oh_handler:  Pointer to openhpi handler
+ *      @resource_id: Resource id
  *
  * Purpose:
  *      Populate the power supply RDR.
- *      Pushes the RDR entry to infrastructure
+ *      Pushes the RDR entry to plugin RPTable
  *
  * Detailed Description: NA
  *
@@ -1986,124 +1980,84 @@ SaErrorT build_power_subsystem_rpt(struct oh_handler_state *oh_handler,
  *      SA_ERR_HPI_INTERNAL_ERROR - on failure.
  **/
 SaErrorT build_power_subsystem_rdr(struct oh_handler_state *oh_handler,
-                                   struct oh_event *event)
+                                   SaHpiResourceIdT resource_id)
 {
         SaErrorT rv = SA_OK;
-        SaHpiRdrT *rdr = NULL;
+        SaHpiRdrT rdr;
         struct oa_soap_sensor_info *sensor_input_power_info = NULL;
         struct oa_soap_sensor_info *sensor_output_power_info = NULL;
         struct oa_soap_sensor_info *sensor_power_consumed_info = NULL;
         struct oa_soap_sensor_info *sensor_power_capacity_info = NULL;
 
-        if (oh_handler == NULL || event == NULL) {
-                err("Invalid parameters");
+        if (oh_handler == NULL) {
+                err("Invalid parameter");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-        rdr = (SaHpiRdrT *)g_malloc0(sizeof(SaHpiRdrT));
-        if (rdr == NULL) {
-                err("Out of memory");
-                return SA_ERR_HPI_OUT_OF_MEMORY;
-        }
         /* Build the input power sensor RDR */
+        memset(&rdr, 0, sizeof(SaHpiRdrT));
         rv = build_ps_subsystem_input_power_sensor_rdr( oh_handler,
-                rdr, &sensor_input_power_info);
+                &rdr, &sensor_input_power_info);
         if (rv != SA_OK) {
                 err("Failed to get input power sensor RDR for power subsystem");
-                g_free(rdr);
                 return rv;
         }
-        rv = oh_add_rdr(oh_handler->rptcache, event->resource.ResourceId,
-                        rdr, sensor_input_power_info, 0);
+        rv = oh_add_rdr(oh_handler->rptcache, resource_id, &rdr,
+                        sensor_input_power_info, 0);
         if (rv != SA_OK) {
                 err("Failed to add rdr");
-                g_free(rdr);
                 return rv;
         }
-        event->rdrs = g_slist_append(event->rdrs, rdr);
 
-        rdr = NULL;
-        rdr = (SaHpiRdrT *)g_malloc0(sizeof(SaHpiRdrT));
-        if (rdr == NULL) {
-                err("Out of memory");
-                del_rdr_from_event(event);
-                return SA_ERR_HPI_OUT_OF_MEMORY;
-        }
         /* Build the ouput power sensor RDR */
+        memset(&rdr, 0, sizeof(SaHpiRdrT));
         rv = build_ps_subsystem_output_power_sensor_rdr(oh_handler,
-                rdr, &sensor_output_power_info);
+                &rdr, &sensor_output_power_info);
         if (rv != SA_OK) {
                 err("Failed to get output power sensor RDR "
                     "for power subsystem");
-                g_free(rdr);
-                del_rdr_from_event(event);
                 return rv;
         }
-        rv = oh_add_rdr(oh_handler->rptcache, event->resource.ResourceId,
-                        rdr, sensor_output_power_info, 0);
+        rv = oh_add_rdr(oh_handler->rptcache, resource_id, &rdr,
+                        sensor_output_power_info, 0);
         if (rv != SA_OK) {
                 err("Failed to add rdr");
-                g_free(rdr);
-                del_rdr_from_event(event);
                 return rv;
         }
-        event->rdrs = g_slist_append(event->rdrs, rdr);
 
-        rdr = NULL;
-        rdr = (SaHpiRdrT *)g_malloc0(sizeof(SaHpiRdrT));
-        if (rdr == NULL) {
-                err("Out of memory");
-                del_rdr_from_event(event);
-                return SA_ERR_HPI_OUT_OF_MEMORY;
-        }
         /* Build the power consumed sensor RDR */
+        memset(&rdr, 0, sizeof(SaHpiRdrT));
         rv = build_ps_subsystem_power_consumed_sensor_rdr(oh_handler,
-                rdr, &sensor_power_consumed_info);
+                &rdr, &sensor_power_consumed_info);
         if (rv != SA_OK) {
                 err("Failed to get power consumed sensor RDR "
                     "for power subsystem");
-                g_free(rdr);
-                del_rdr_from_event(event);
                 return rv;
         }
-        rv = oh_add_rdr(oh_handler->rptcache, event->resource.ResourceId,
-                        rdr, sensor_power_consumed_info, 0);
+        rv = oh_add_rdr(oh_handler->rptcache, resource_id, &rdr,
+                        sensor_power_consumed_info, 0);
         if (rv != SA_OK) {
                 err("Failed to add rdr");
-                g_free(rdr);
-                del_rdr_from_event(event);
                 return rv;
         }
-        event->rdrs = g_slist_append(event->rdrs, rdr);
 
-        rdr = NULL;
-        rdr = (SaHpiRdrT *)g_malloc0(sizeof(SaHpiRdrT));
-        if (rdr == NULL) {
-                err("Out of memory");
-                del_rdr_from_event(event);
-                return SA_ERR_HPI_OUT_OF_MEMORY;
-        }
         /* Build the power capacity sensor RDR */
+        memset(&rdr, 0, sizeof(SaHpiRdrT));
         rv = build_ps_subsystem_power_capacity_sensor_rdr(oh_handler,
-                rdr, &sensor_power_capacity_info);
+                &rdr, &sensor_power_capacity_info);
         if (rv != SA_OK) {
                 err("Failed to get power capacity sensor RDR "
                     "for power subsystem");
-                g_free(rdr);
-                del_rdr_from_event(event);
                 return rv;
         }
-        rv = oh_add_rdr(oh_handler->rptcache, event->resource.ResourceId,
-                        rdr, sensor_power_capacity_info, 0);
+        rv = oh_add_rdr(oh_handler->rptcache, resource_id, &rdr,
+                        sensor_power_capacity_info, 0);
         if (rv != SA_OK) {
                 err("Failed to add rdr");
-                g_free(rdr);
-                del_rdr_from_event(event);
                 return rv;
         }
-        event->rdrs = g_slist_append(event->rdrs, rdr);
 
-        return rv;
+        return SA_OK;
 }
 
 /**
@@ -2125,7 +2079,7 @@ SaErrorT discover_power_subsystem(struct oh_handler_state *oh_handler)
         SaErrorT rv = SA_OK;
         struct oa_soap_handler *oa_handler = NULL;
         char power_subsystem[] = POWER_SUBSYSTEM_NAME;
-        struct oh_event event;
+        SaHpiResourceIdT resource_id;
 
         if (oh_handler == NULL) {
                 err("Invalid parameters");
@@ -2134,40 +2088,34 @@ SaErrorT discover_power_subsystem(struct oh_handler_state *oh_handler)
 
         oa_handler = (struct oa_soap_handler *) oh_handler->data;
 
-        memset(&event, 0, sizeof(struct oh_event));
-        event.rdrs = NULL;
-
         /* Build rpt entry for power sub system */
         rv = build_power_subsystem_rpt(oh_handler, power_subsystem,
-                                       &(event.resource));
+                                       &resource_id);
         if (rv != SA_OK) {
                 err("build power subsystem rpt failed");
                 return rv;
         }
 
         /* Build rdr entry for power sub system*/
-        rv = build_power_subsystem_rdr(oh_handler, &event);
+        rv = build_power_subsystem_rdr(oh_handler, resource_id);
         if (rv != SA_OK) {
                 err("build power subsystem RDR failed");
                 return rv;
         }
 
-        push_event_to_queue(oh_handler, &event);
-
-        dbg("Done");
-        return rv;
+        return SA_OK;
 }
 
 /**
  * build_power_supply_rpt
- *      @oh_handler: Pointer to openhpi handler
- *      @name:       Pointer to the name of the Power supply
- *      @bay_number: Bay number of the Power supply
- *      @rpt:        Pointer to the rpt entry
+ *      @oh_handler:  Pointer to openhpi handler
+ *      @name:        Pointer to the name of the Power supply
+ *      @bay_number:  Bay number of the Power supply
+ *      @resource_id: Pointer to resource id
  *
  * Purpose:
  *      Populate the power supply unit RPT.
- *      Pushes the RPT entry to infrastructure
+ *      Pushes the RPT entry to plugin RPTable
  *
  * Detailed Description: NA
  *
@@ -2179,76 +2127,78 @@ SaErrorT discover_power_subsystem(struct oh_handler_state *oh_handler)
 SaErrorT build_power_supply_rpt(struct oh_handler_state *oh_handler,
                                 char *name,
                                 SaHpiInt32T bay_number,
-                                SaHpiRptEntryT *rpt)
+                                SaHpiResourceIdT *resource_id)
 {
         SaErrorT rv = SA_OK;
         SaHpiEntityPathT entity_path;
         char *entity_root = NULL;
+        SaHpiRptEntryT rpt;
 
-        if (oh_handler == NULL || name == NULL || rpt == NULL) {
+        if (oh_handler == NULL || name == NULL || resource_id == NULL) {
                 err("Invalid parameters");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-        entity_root = (char *)g_hash_table_lookup(oh_handler->config,
-                                                  "entity_root");
+        entity_root = (char *) g_hash_table_lookup(oh_handler->config,
+                                                   "entity_root");
         rv = oh_encode_entitypath(entity_root, &entity_path);
         if (rv != SA_OK) {
                 err("Encoding entity path failed");
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-        memset(rpt, 0, sizeof(SaHpiRptEntryT));
-
         /* Populate the rpt with the details of the power supply */
-        rpt->ResourceCapabilities = SAHPI_CAPABILITY_RDR |
-                                    SAHPI_CAPABILITY_RESOURCE |
-                                    SAHPI_CAPABILITY_FRU |
-                                    SAHPI_CAPABILITY_SENSOR |
-                                    SAHPI_CAPABILITY_INVENTORY_DATA;
-        rpt->ResourceEntity.Entry[2].EntityType = SAHPI_ENT_ROOT;
-        rpt->ResourceEntity.Entry[2].EntityLocation = 0;
-        rpt->ResourceEntity.Entry[1].EntityType = SAHPI_ENT_POWER_MGMNT;
-        rpt->ResourceEntity.Entry[1].EntityLocation = 1;
-        rpt->ResourceEntity.Entry[0].EntityType = SAHPI_ENT_POWER_SUPPLY;
-        rpt->ResourceEntity.Entry[0].EntityLocation = bay_number;
-        rv = oh_concat_ep(&rpt->ResourceEntity, &entity_path);
+        memset(&rpt, 0, sizeof(SaHpiRptEntryT));
+        rpt.ResourceCapabilities = SAHPI_CAPABILITY_RDR |
+                                   SAHPI_CAPABILITY_RESOURCE |
+                                   SAHPI_CAPABILITY_FRU |
+                                   SAHPI_CAPABILITY_SENSOR |
+                                   SAHPI_CAPABILITY_INVENTORY_DATA;
+        rpt.ResourceEntity.Entry[2].EntityType = SAHPI_ENT_ROOT;
+        rpt.ResourceEntity.Entry[2].EntityLocation = 0;
+        rpt.ResourceEntity.Entry[1].EntityType = SAHPI_ENT_POWER_MGMNT;
+        rpt.ResourceEntity.Entry[1].EntityLocation = 1;
+        rpt.ResourceEntity.Entry[0].EntityType = SAHPI_ENT_POWER_SUPPLY;
+        rpt.ResourceEntity.Entry[0].EntityLocation = bay_number;
+        rv = oh_concat_ep(&rpt.ResourceEntity, &entity_path);
         if (rv != SA_OK) {
                 err("concat of entity path failed");
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-        rpt->ResourceId = oh_uid_from_entity_path(&(rpt->ResourceEntity));
-        rpt->ResourceSeverity = SAHPI_OK;
-        rpt->ResourceInfo.ResourceRev = 0;
-        rpt->ResourceFailed = SAHPI_FALSE;
-        rpt->HotSwapCapabilities = 0x0;
-        rpt->ResourceTag.DataType = SAHPI_TL_TYPE_TEXT;
-        rpt->ResourceTag.Language = SAHPI_LANG_ENGLISH;
-        rpt->ResourceTag.DataLength = strlen(name) + 1;
-        memset(rpt->ResourceTag.Data, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);
-        snprintf((char *)rpt->ResourceTag.Data,
-                 rpt->ResourceTag.DataLength, "%s", name);
+        rpt.ResourceId = oh_uid_from_entity_path(&(rpt.ResourceEntity));
+        rpt.ResourceInfo.ManufacturerId = HP_MANUFACTURING_ID;
+        rpt.ResourceSeverity = SAHPI_OK;
+        rpt.ResourceFailed = SAHPI_FALSE;
+        rpt.HotSwapCapabilities = 0x0;
+        rpt.ResourceTag.DataType = SAHPI_TL_TYPE_TEXT;
+        rpt.ResourceTag.Language = SAHPI_LANG_ENGLISH;
+        rpt.ResourceTag.DataLength = strlen(name) + 1;
+        memset(rpt.ResourceTag.Data, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);
+        snprintf((char *) (rpt.ResourceTag.Data),
+                 rpt.ResourceTag.DataLength, "%s", name);
 
-        /* Add the power supply rpt to the plugin rptcache */
-        rv = oh_add_resource(oh_handler->rptcache, rpt, NULL, 0);
+        /* Add the power supply rpt to the plugin RPTable */
+        rv = oh_add_resource(oh_handler->rptcache, &rpt, NULL, 0);
         if (rv != SA_OK) {
                 err("Failed to add power supply unit RPT");
                 return rv;
         }
-        return rv;
+
+        *resource_id = rpt.ResourceId;
+        return SA_OK;
 }
 
 /**
  * build_power_supply_rdr
- *      @oh_handler: Pointer to openhpi handler
- *      @con:        Pointer to the soap client handler.
- *      @response:   Power supply info response structure
- *      @event:      Pointer to the event structure
+ *      @oh_handler:  Pointer to openhpi handler
+ *      @con:         Pointer to the soap client handler.
+ *      @response:    Power supply info response structure
+ *      @resource_id: Resource id
  *
  * Purpose:
  *      Populate the power supply unit RDR.
- *      Pushes the RDR entry to infrastructure
+ *      Pushes the RDR entry to plugin RPTable
  *
  * Detailed Description: NA
  *
@@ -2260,69 +2210,47 @@ SaErrorT build_power_supply_rpt(struct oh_handler_state *oh_handler,
 SaErrorT build_power_supply_rdr(struct oh_handler_state *oh_handler,
                                 SOAP_CON *con,
                                 struct powerSupplyInfo *response,
-                                struct oh_event *event)
+                                SaHpiResourceIdT resource_id)
 {
         SaErrorT rv = SA_OK;
-        SaHpiRdrT *rdr = NULL;
+        SaHpiRdrT rdr;
         struct oa_soap_inventory *inventory = NULL;
         struct oa_soap_sensor_info *sensor_info = NULL;
 
-        if (oh_handler == NULL || con == NULL ||
-            response == NULL || event == NULL) {
+        if (oh_handler == NULL || con == NULL || response == NULL) {
                 err("Invalid parameters");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-        rdr = (SaHpiRdrT *)g_malloc0(sizeof(SaHpiRdrT));
-        if (rdr == NULL) {
-                err("Out of memory");
-                return SA_ERR_HPI_OUT_OF_MEMORY;
-        }
-
         /* Build inventory rdr for power supply */
-        rv = build_power_inv_rdr(oh_handler, response, rdr, &inventory);
+        memset(&rdr, 0, sizeof(SaHpiRdrT));
+        rv = build_power_inv_rdr(oh_handler, response, &rdr, &inventory);
         if (rv != SA_OK) {
                 err("Failed to get power supply unit inventory RDR");
-                g_free(rdr);
                 return rv;
         }
-        rv = oh_add_rdr(oh_handler->rptcache, event->resource.ResourceId,
-                        rdr, inventory, 0);
+        rv = oh_add_rdr(oh_handler->rptcache, resource_id, &rdr, inventory, 0);
         if (rv != SA_OK) {
                 err("Failed to add rdr");
-                g_free(rdr);
                 return rv;
-        }
-        event->rdrs = g_slist_append(event->rdrs, rdr);
-
-        rdr = NULL;
-        rdr = (SaHpiRdrT *)g_malloc0(sizeof(SaHpiRdrT));
-        if (rdr == NULL) {
-                err("Out of memory");
-                del_rdr_from_event(event);
-                return SA_ERR_HPI_OUT_OF_MEMORY;
         }
 
         /* Build power sensor rdr for power supply */
+        memset(&rdr, 0, sizeof(SaHpiRdrT));
         rv = build_ps_power_sensor_rdr(oh_handler, con,
-                                       response->bayNumber, rdr, &sensor_info);
+                                       response->bayNumber, &rdr, &sensor_info);
         if (rv != SA_OK) {
                 err("Failed to get power sensor RDR for power supply unit");
-                g_free(rdr);
-                del_rdr_from_event(event);
                 return rv;
         }
-        rv = oh_add_rdr(oh_handler->rptcache, event->resource.ResourceId,
-                        rdr, sensor_info, 0);
+        rv = oh_add_rdr(oh_handler->rptcache, resource_id, &rdr,
+                        sensor_info, 0);
         if (rv != SA_OK) {
                 err("Failed to add rdr");
-                g_free(rdr);
-                del_rdr_from_event(event);
                 return rv;
         }
-        event->rdrs = g_slist_append(event->rdrs, rdr);
 
-        return rv;
+        return SA_OK;
 }
 
 /**
@@ -2347,7 +2275,7 @@ SaErrorT discover_power_supply(struct oh_handler_state *oh_handler)
         struct getPowerSupplyInfo request;
         struct powerSupplyInfo response;
         char power_supply[] = POWER_SUPPLY_NAME;
-        struct oh_event event;
+        SaHpiResourceIdT resource_id;
 
         if (oh_handler == NULL) {
                 err("Invalid parameters");
@@ -2369,12 +2297,24 @@ SaErrorT discover_power_supply(struct oh_handler_state *oh_handler)
                 if (response.presence != PRESENT)
                         continue;
 
-                memset(&event, 0, sizeof(struct oh_event));
-                event.rdrs = NULL;
+                /* If the power supply unit does not have the power cord
+                 * plugged in, then power supply unit will be in faulty
+                 * condition. In this case, all the information in the
+                 * response structure is NULL. Consider the faulty power supply
+                 *  unit as ABSENT
+                 */
+                if(response.serialNumber == NULL)
+                        continue;
+
+                /* Copy the serial number of the power supply unit to
+                 * serial_number array
+                 */
+                strcpy(oa_handler->oa_soap_resources.ps_unit.serial_number[i-1],
+                       response.serialNumber);
 
                 /* Build the rpt entry for power supply unit */
                 rv = build_power_supply_rpt(oh_handler, power_supply,
-                                            i, &(event.resource));
+                                            i, &resource_id);
                 if (rv != SA_OK) {
                         err("build power supply unit rpt failed");
                         return rv;
@@ -2382,18 +2322,17 @@ SaErrorT discover_power_supply(struct oh_handler_state *oh_handler)
 
                 /* Build the rdr entry for power supply */
                 rv = build_power_supply_rdr(oh_handler, oa_handler->active_con,
-                                            &response, &event);
+                                            &response, resource_id);
                 if (rv != SA_OK) {
                         err("build power supply unit RDR failed");
                         return rv;
                 }
 
-                push_event_to_queue(oh_handler, &event);
+                /* Update the resource presence matrix with PRESENT state */
                 oa_handler->oa_soap_resources.ps_unit.presence[i - 1] =
                         RES_PRESENT;
         }
-        dbg("Done");
-        return rv;
+        return SA_OK;
 }
 
 void * oh_discover_resources (void *)
