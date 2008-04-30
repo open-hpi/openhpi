@@ -59,6 +59,11 @@
 #include "oa_soap.h"
 #include "oa_soap_utils.h"
 
+/* For maintaining the patch versions */
+static char const rcsid[] __attribute__ ((used)) =
+        "$Version: oa_soap plugin for openhpi-2.11.2, patch level 6. "
+        "Created on Apr 28, 2008 $";
+
 /**
  * build_oa_soap_custom_handler:
  *      @oh_handler: Pointer to OpenHPI handler.

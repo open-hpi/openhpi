@@ -146,6 +146,11 @@ SaErrorT process_oa_insertion_event(struct oh_handler_state *oh_handler,
                 SAHPI_HS_STATE_NOT_PRESENT;
         event.event.EventDataUnion.HotSwapEvent.HotSwapState =
                 SAHPI_HS_STATE_ACTIVE;
+        /* ACTIVE to NOT_PRESENT state change happened due to
+         * operator action
+         */
+        event.event.EventDataUnion.HotSwapEvent.CauseOfStateChange =
+                SAHPI_HS_CAUSE_OPERATOR_INIT;
         oh_evt_queue_push(oh_handler->eventq, copy_oa_soap_event(&event));
 
         /* Set the presence state of the OA to PRESENT */
@@ -249,6 +254,9 @@ SaErrorT process_oa_extraction_event(struct oh_handler_state *oh_handler,
                 SAHPI_HS_STATE_ACTIVE;
         event.event.EventDataUnion.HotSwapEvent.HotSwapState =
                 SAHPI_HS_STATE_NOT_PRESENT;
+        /* This state change happened due to surprise extraction */
+        event.event.EventDataUnion.HotSwapEvent.CauseOfStateChange =
+                SAHPI_HS_CAUSE_SURPRISE_EXTRACTION;
         oh_evt_queue_push(oh_handler->eventq, copy_oa_soap_event(&event));
 
         /* Remove the resource from RPT and RDR tables */

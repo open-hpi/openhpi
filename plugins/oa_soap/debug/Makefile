@@ -32,6 +32,7 @@
 #      Raghavendra M.S. <raghavendra.ms@hp.com>
 #      Sudhakar Rao <sudhakara-d-v.rao@hp.com>
 #      Bryan Sutula <Bryan.Sutula@hp.com>
+#      Bhaskara Bhatt <bhaskara.hg@hp.com>
 
 CC=gcc
 LIBS	= -lopenhpi 
@@ -60,9 +61,11 @@ PROGS	= hpi_power_status_get \
 	  hpi_idr_info_get_all \
 	  hpi_idr_area_header_get \
 	  hpi_idr_area_add \
+          hpi_idr_area_add_id \
 	  hpi_idr_area_delete \
 	  hpi_idr_area_add_delete \
 	  hpi_idr_field_add \
+          hpi_idr_field_add_by_id \
 	  hpi_idr_field_get \
 	  hpi_idr_field_set \
 	  hpi_idr_field_delete \
@@ -133,6 +136,9 @@ hpi_idr_area_header_get:	hpi_idr_area_header_get.c
 hpi_idr_area_add:	hpi_idr_area_add.c
 	$(CC) $(CFLAGS) -o $@ hpi_idr_area_add.c hpi_common.c $(LIBS)
 
+hpi_idr_area_add_id:       hpi_idr_area_add_id.c
+	$(CC) $(CFLAGS) -o $@ hpi_idr_area_add_id.c hpi_common.c $(LIBS)
+
 hpi_idr_area_delete:	hpi_idr_area_delete.c
 	$(CC) $(CFLAGS) -o $@ hpi_idr_area_delete.c hpi_common.c $(LIBS)
 
@@ -144,6 +150,9 @@ hpi_idr_field_get:	hpi_idr_field_get.c
 
 hpi_idr_field_add:	hpi_idr_field_add.c
 	$(CC) $(CFLAGS) -o $@ hpi_idr_field_add.c hpi_common.c $(LIBS)
+
+hpi_idr_field_add_by_id:      hpi_idr_field_add_by_id.c
+	$(CC) $(CFLAGS) -o $@ hpi_idr_field_add_by_id.c hpi_common.c $(LIBS)
 
 hpi_idr_field_set:	hpi_idr_field_set.c
 	$(CC) $(CFLAGS) -o $@ hpi_idr_field_set.c hpi_common.c $(LIBS)

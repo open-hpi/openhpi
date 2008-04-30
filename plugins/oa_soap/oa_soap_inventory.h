@@ -96,6 +96,12 @@ SaErrorT oa_soap_add_idr_area(void *oh_handler,
                               SaHpiIdrAreaTypeT area_type,
                               SaHpiEntryIdT *area_id);
 
+SaErrorT oa_soap_add_idr_area_by_id(void *oh_handler,
+                                    SaHpiResourceIdT resource_id,
+                                    SaHpiIdrIdT idr,
+                                    SaHpiIdrAreaTypeT area_type,
+                                    SaHpiEntryIdT area_id);
+
 SaErrorT oa_soap_del_idr_area(void *oh_handler,
                               SaHpiResourceIdT resource_id,
                               SaHpiIdrIdT idr_id,
@@ -114,6 +120,11 @@ SaErrorT oa_soap_add_idr_field(void *oh_handler,
                                SaHpiResourceIdT resource_id,
                                SaHpiIdrIdT idr_id,
                                SaHpiIdrFieldT *field);
+
+SaErrorT oa_soap_add_idr_field_by_id(void *oh_handler,
+                                     SaHpiResourceIdT resource_id,
+                                     SaHpiIdrIdT idr_id,
+                                     SaHpiIdrFieldT *field);
 
 SaErrorT oa_soap_set_idr_field(void *oh_handler,
                                SaHpiResourceIdT resource_id,
@@ -198,6 +209,10 @@ SaErrorT  idr_area_add(struct oa_soap_area **area_ptr,
                        SaHpiIdrAreaTypeT area_type,
                        struct oa_soap_area **return_area);
 
+SaErrorT  idr_area_add_by_id(struct oa_soap_area **head_area,
+                             SaHpiIdrAreaTypeT area_type,
+                             SaHpiEntryIdT area_id);
+
 SaErrorT idr_area_delete(struct oa_soap_area **area_ptr,
                          SaHpiEntryIdT area_id);
 
@@ -209,6 +224,12 @@ SaErrorT fetch_idr_area_header(struct oa_soap_inventory_info *inv_ptr,
 
 SaErrorT  idr_field_add(struct oa_soap_field **field_ptr,
                         SaHpiIdrFieldT *field);
+
+SaErrorT  idr_field_add_by_id(struct oa_soap_field **head_field,
+                              SaHpiEntryIdT area_id,
+                              SaHpiIdrFieldTypeT field_type,
+                              char *field_data,
+                              SaHpiEntryIdT field_id);
 
 SaErrorT idr_field_delete(struct oa_soap_field **field_ptr,
                           SaHpiEntryIdT field_id);

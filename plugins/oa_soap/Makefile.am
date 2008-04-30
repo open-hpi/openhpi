@@ -71,6 +71,12 @@ liboa_soap_la_SOURCES   = oa_soap.h \
                           oa_soap_sel.c \
                           oa_soap_annunciator.h \
                           oa_soap_annunciator.c \
+                          oa_soap_dimi.h \
+                          oa_soap_dimi.c \
+                          oa_soap_fumi.h \
+                          oa_soap_fumi.c \
+                          oa_soap_load_id.h \
+                          oa_soap_load_id.c \
                           oa_soap_calls.h \
                           oa_soap_calls.c \
                           oa_soap_callsupport.h \
