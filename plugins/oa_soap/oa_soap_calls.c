@@ -32,6 +32,7 @@
  *     Bryan Sutula <Bryan.Sutula@hp.com>
  *     Raghavendra PG <raghavendra.pg@hp.com>
  *     Raghavendra MS <raghavendra.ms@hp.com>
+ *     Anand S <S.Anand@hp.com>
  */
 
 
@@ -123,7 +124,7 @@ static void     parse_bladeInfo(xmlNode *node, struct bladeInfo *response)
 
 /* parse_diagnosticChecks - Parses a diagnosticChecks response structure */
 static void     parse_diagnosticChecks(xmlNode *node,
-                                        struct diagnosticChecks *response)
+                                       struct diagnosticChecks *response)
 {
         response->internalDataError =
                 soap_enum(diagnosticStatus_S,
@@ -185,15 +186,23 @@ static void     parse_syslog(xmlNode *node, struct syslog *response)
 
 /* parse_rackTopology - Parses a rackTopology response structure */
 static void     parse_rackTopology(xmlNode *node,
-                                    struct rackTopology *response)
+                                   struct rackTopology *response)
 {
         response->ruid = soap_tree_value(node, "ruid"); /* May be NULL */
         response->enclosures = soap_walk_tree(node, "enclosures:enclosure");
 }
 
+/* parse_rackTopology2 - Parses rackTopology2 response structure */
+static void     parse_rackTopology2(xmlNode *node,
+                                    struct rackTopology2 *response)
+{
+        response->ruid = soap_tree_value(node, "ruid");
+        response->enclosures = soap_walk_tree(node, "enclosures:enclosure");
+}
+
 /* parse_enclosureInfo - Parses a enclosureInfo response structure */
 static void     parse_enclosureInfo(xmlNode *node,
-                                     struct enclosureInfo *response)
+                                    struct enclosureInfo *response)
 {
         response->rackName = soap_tree_value(node, "rackName");
         response->enclosureName = soap_tree_value(node, "enclosureName");
@@ -391,7 +400,7 @@ static void     parse_interconnectTrayInfo(xmlNode *node,
 
 /* parse_powerSupplyInfo - Parses a powerSupplyInfo response structure */
 static void     parse_powerSupplyInfo(xmlNode *node,
-                                       struct powerSupplyInfo *response)
+                                      struct powerSupplyInfo *response)
 {
         response->bayNumber = atoi(soap_tree_value(node, "bayNumber"));
         response->presence =
@@ -405,7 +414,7 @@ static void     parse_powerSupplyInfo(xmlNode *node,
 
 /* parse_powerSupplyStatus - Parses a powerSupplyStatus response structure */
 static void     parse_powerSupplyStatus(xmlNode *node,
-                                         struct powerSupplyStatus *response)
+                                        struct powerSupplyStatus *response)
 {
         response->bayNumber = atoi(soap_tree_value(node, "bayNumber"));
         response->presence =
@@ -425,7 +434,7 @@ static void     parse_powerSupplyStatus(xmlNode *node,
 
 /* parse_powerSubsystemInfo - Parses a powerSubsystemInfo response structure */
 static void     parse_powerSubsystemInfo(xmlNode *node,
-                                          struct powerSubsystemInfo *response)
+                                         struct powerSubsystemInfo *response)
 {
         char    *str;
 
@@ -515,7 +524,7 @@ static void     parse_userInfo(xmlNode *node, struct userInfo *response)
 
 /* parse_oaNetworkInfo - Parses a oaNetworkInfo response structure */
 static void     parse_oaNetworkInfo(xmlNode *node,
-                                     struct oaNetworkInfo *response)
+                                    struct oaNetworkInfo *response)
 {
         response->bayNumber = atoi(soap_tree_value(node, "bayNumber"));
         response->dhcpEnabled =
@@ -534,7 +543,7 @@ static void     parse_oaNetworkInfo(xmlNode *node,
 
 /* parse_getAllEvents - Parses a getAllEventsResponse structure */
 static void     parse_getAllEvents(xmlNode *node,
-                                    struct getAllEventsResponse *response)
+                                   struct getAllEventsResponse *response)
 {
         response->eventInfoArray =
                 soap_walk_tree(node, "eventInfoArray:eventInfo");
@@ -631,6 +640,70 @@ void    soap_getEncLink(xmlNode *data, struct encLink *result)
         result->url = soap_tree_value(data, "url");
         result->local = parse_xsdBoolean(soap_tree_value(data, "local"));
 }
+
+/* soap_getEncLink2 - Gets information from encLink2 nodes, 
+ * providing enclosure information.
+ *
+ * Outputs:
+ *      enclosureNumber        : Which enclosure is this?
+ *      productId              : Product ID
+ *      mfgId                  : Manufacturer ID
+ *      enclosureUuid          : Enclosure Universal Unique ID
+ *      encloseSerialNumber    : Serial number from enclosure
+ *      enclosureName          : Enclosure name
+ *      enclosureProductName   : Enclosure product name including mfg name
+ *      enclosureStatus        : Enclosure status
+ *      enclosureRackIpAddress : Rack IP address
+ *      enclosureUrl           : URL for the enclosure
+ *      rackName               : Rack name assigned by user
+ *      primaryEnclosure       : Flag for identifying primary
+ *      encLinkOaArray         : encLinkOa array structure
+ */
+void    soap_getEncLink2(xmlNode *data, struct encLink2 *result)
+{
+        result->enclosureNumber = 
+                atoi(soap_tree_value(data, "enclosureNumber"));
+        result->productId = atoi(soap_tree_value(data, "productId"));
+        result->mfgId = atoi(soap_tree_value(data, "mfgId"));
+        result->enclosureUuid = soap_tree_value(data, "enclosureUuid");
+        result->enclosureSerialNumber = 
+                soap_tree_value(data, "enclosureSerialNumber");
+        result->enclosureName = soap_tree_value(data, "enclosureName");
+        result->enclosureProductName = 
+                soap_tree_value(data, "enclosureProductName");
+        result->enclosureStatus = 
+                soap_enum(opStatus_S, 
+                          soap_tree_value(data, "enclosureStatus"));
+        result->enclosureRackIpAddress = 
+                soap_tree_value(data, "enclosureRackIpAddress");
+        result->enclosureUrl = soap_tree_value(data, "enclosureUrl");
+        result->rackName = soap_tree_value(data, "rackName");
+        result->primaryEnclosure = 
+                parse_xsdBoolean(soap_tree_value(data, "primaryEnclosure"));
+        result->encLinkOa = soap_walk_tree(data, "encLinkOaArray:encLinkOa");
+}
+
+/* soap_getEncLinkOa - Gets information from encLinkOa nodes, 
+ * providing enclosure information.
+ *
+ * Outputs:
+ *      activeOa    : Active OA flag indicator
+ *      bayNumber   : Bay number of the OA
+ *      oaName      : OA name assigned by the user
+ *      ipAddress   : IP address for OA ENC Link
+ *      macAddress  : MAC address for OA ENC Link
+ *      fwVersion   : OA firmware version
+ */
+void    soap_getEncLinkOa (xmlNode *data, struct encLinkOa *result)
+{
+        result->activeOa = parse_xsdBoolean(soap_tree_value(data, "activeOa"));
+        result->bayNumber = atoi(soap_tree_value(data, "bayNumber"));
+        result->oaName = soap_tree_value(data, "oaName");
+        result->ipAddress = soap_tree_value(data, "ipAddress");
+        result->macAddress = soap_tree_value(data, "macAddress");
+        result->fwVersion = soap_tree_value(data, "fwVersion");
+}
+
 
 /* soap_getPortEnabled - Gets information from portEnabled nodes
  *
@@ -826,7 +899,13 @@ void    soap_getEventInfo(xmlNode *events, struct eventInfo *result)
         /* FANZONE */
         /* EBIPAINFOEX */
         /* CACERTSINFO */
-        /* RACKTOPOLOGY2 */
+
+        if ((node = soap_walk_tree (events, "rackTopology2"))) {
+                result->enum_eventInfo = RACKTOPOLOGY2;
+                parse_rackTopology2(node, &(result->eventData.rackTopology2));
+                return;
+        }
+
         /* USERCERTIFICATEINFO */
         /* SYSLOGSETTINGS */
         /* POWERDELAYSETTINGS */
@@ -1168,6 +1247,20 @@ int soap_getUserInfo(SOAP_CON *con,
 }
 
 
+int soap_getRackTopology2(SOAP_CON *con, struct rackTopology2 *response)
+{
+        SOAP_PARM_CHECK_NRQ
+        if (! (ret = soap_request(con, GET_RACK_TOPOLOGY2))) {
+                parse_rackTopology2(soap_walk_doc(con->doc,
+                                                  "Body:"
+                                                  "getRackTopology2Response:"
+                                                  "rackTopology2"),
+                                    response);
+        }
+        return(ret);
+}
+
+
 int soap_isValidSession(SOAP_CON *con)
 {
         if (con == NULL) {
@@ -1176,3 +1269,4 @@ int soap_isValidSession(SOAP_CON *con)
         }
         return(soap_request(con, IS_VALID_SESSION));
 }
+

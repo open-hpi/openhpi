@@ -63,8 +63,10 @@
 #define	OA_USERNAME	"admin"
 #define	OA_PASSWORD	"hosehead"
 #else
-/* These are for the GDIC cage */
-#define	OA_DEST		"16.138.181.39:443"
+/* These are for the GDIC cage; note that the pair is .38 and .39, and only
+ * the active one will respond.
+ */
+#define	OA_DEST		"16.138.181.38:443"
 #define	OA_USERNAME	"hpi"
 #define	OA_PASSWORD	"hpi123"
 #endif
@@ -89,6 +91,9 @@ int main(int argc, char *argv[])
     struct getAllEventsResponse	getAllEvents_response;
     struct eventInfo		event;
     struct bayAccess		bayAccess;
+    struct rackTopology2        grt2_response;
+    struct encLink2             encLink2_res;
+    struct encLinkOa            encLinkOa_res;
     int				slot;
     int				i;
     int				ret;
@@ -107,6 +112,17 @@ int main(int argc, char *argv[])
 
     /* In order to report errors, we need OPENHPI_ERROR set to YES */
     putenv("OPENHPI_ERROR=YES");
+
+
+    /* The OpenHPI infrastructure does the SSL initialization.  We need to
+     * do that here.
+     */
+    SSL_load_error_strings();
+    ERR_load_BIO_strings();
+    if (! SSL_library_init()) {
+        err("SSL_library_init() failed");
+        return(-1);
+    }
 
 
     /* Open a new OA connection.  There needs to be one of these for each
@@ -238,6 +254,54 @@ int main(int argc, char *argv[])
 	       soap_error_number(con), soap_error_string(con));
     }
 
+   /* Try a getRackTopology2 call */
+    if (soap_getRackTopology2(con,
+                              &grt2_response)) {
+        err("failed soap_getRackTopology2() in soaptest.c");
+    }
+    else {
+        printf("\ngetRackTopology2 responses: \n");
+        printf("  RUID       = %s\n", grt2_response.ruid);
+        printf("  Enclosures:\n");
+
+	/* Process the EncLink2 array */
+        while (grt2_response.enclosures) {
+            soap_getEncLink2(grt2_response.enclosures, &encLink2_res);
+            printf("    Enclosure Number    = %d\n",
+                   encLink2_res.enclosureNumber);
+            printf("    Product ID         = %d\n", encLink2_res.productId);
+            printf("    Manufacturer ID    = %d\n", encLink2_res.mfgId);
+            printf("    Enclosure UUID     = %s\n", encLink2_res.enclosureUuid);
+            printf("    Enclosure SerialNo = %s\n",
+                   encLink2_res.enclosureSerialNumber);
+            printf("    Enclosure Prodcut  = %s\n",
+                   encLink2_res.enclosureProductName);
+            printf("    Enclosure Rack IP  = %s\n",
+                   encLink2_res.enclosureRackIpAddress);
+            printf("    Enclosure URL      = %s\n", encLink2_res.enclosureUrl);
+            printf("    Rack Name          = %s\n", encLink2_res.rackName);
+            printf("    EncLinkOa:\n");
+
+	    /* Process the EncLinkOa array */
+            while (encLink2_res.encLinkOa) {
+                soap_getEncLinkOa(encLink2_res.encLinkOa, &encLinkOa_res);
+                printf("      Bay Number       = %d\n",
+                       encLinkOa_res.bayNumber);
+                printf("      OA Name          = %s\n",
+		       encLinkOa_res.oaName);
+                printf("      IP Address       = %s\n",
+                       encLinkOa_res.ipAddress);
+                printf("      MAC Address      = %s\n",
+                       encLinkOa_res.macAddress);
+                printf("      Firmware Version = %s\n",
+                       encLinkOa_res.fwVersion);
+
+                encLink2_res.encLinkOa = soap_next_node(encLink2_res.encLinkOa);
+            }
+
+            grt2_response.enclosures = soap_next_node(grt2_response.enclosures);
+        }
+    }
 
     /* Try a getOaNetworkInfo call */
     slot = 1;

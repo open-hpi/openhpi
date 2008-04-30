@@ -616,8 +616,11 @@ SaErrorT build_enclosure_rpt(struct oh_handler_state *oh_handler,
 {
         SaErrorT rv = SA_OK;
         SaHpiEntityPathT entity_path;
+        struct oa_soap_handler *oa_handler;
         char *entity_root = NULL;
         SaHpiRptEntryT rpt;
+        struct rackTopology2 response;
+        struct encLink2 enc;
 
         if (oh_handler == NULL || name == NULL || resource_id == NULL) {
                 err("Invalid parameters");
@@ -660,6 +663,22 @@ SaErrorT build_enclosure_rpt(struct oh_handler_state *oh_handler,
         snprintf((char *) (rpt.ResourceTag.Data),
                  strlen(name) + 1, "%s", name);
         rpt.ResourceId = oh_uid_from_entity_path(&(rpt.ResourceEntity));
+
+        /* getRackTopology2 soap call is supported starting with OA firmware
+         * version 2.20
+         */
+        if (get_oa_fw_version(oh_handler) >= OA_2_20) {
+                oa_handler = (struct oa_soap_handler *) oh_handler->data;
+                rv = soap_getRackTopology2(oa_handler->active_con, &response);
+                if (rv != SOAP_OK) {
+                        err("Get rack topology2 call failed");
+                        return SA_ERR_HPI_INTERNAL_ERROR;
+                }
+
+                soap_getEncLink2(response.enclosures, &enc);
+                rpt.ResourceInfo.ProductId = enc.productId;
+
+        }
 
         /* Add the enclosure rpt to the plugin RPTable */
         rv = oh_add_resource(oh_handler->rptcache, &rpt, NULL, 0);
@@ -785,6 +804,15 @@ SaErrorT discover_enclosure(struct oh_handler_state *oh_handler)
         if (rv != SA_OK) {
                 err("build enclosure rpt failed");
                 return rv;
+        }
+
+        /* SOAP call has been made while building the rpt, so the response
+	 * structure is not valid any more.  Get the information again.
+         */
+        rv = soap_getEnclosureInfo(oa_handler->active_con, &response);
+        if (rv != SOAP_OK) {
+                err("Get enclosure info failed");
+                return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
         rv = build_enclosure_rdr(oh_handler, oa_handler->active_con,

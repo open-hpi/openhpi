@@ -81,6 +81,9 @@
 #define ERR_INVALID_PRIVILEGE_LEVEL 8
 #define ERR_STANDBY_MODE 139
 
+/* OA firmware version 2.20 */
+#define OA_2_20 2.20
+
 /* Enum for storing the status of the plugin */
 enum oa_soap_plugin_status {
         PRE_DISCOVERY = 0,
@@ -99,6 +102,7 @@ struct oa_info
         char server[MAX_URL_LEN];
         SOAP_CON *hpi_con;
         SOAP_CON *event_con;
+        SaHpiFloat64T fm_version;
 };
 
 enum resource_presence_status

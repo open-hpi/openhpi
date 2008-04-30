@@ -93,6 +93,8 @@
  *                                        resources presence matrix and serial
  *                                        number array
  *
+ *      get_oa_fw_version()             - Gets the Active OA firmware version
+ *
  *      update_oa_info()                - Updates the RPT entry with OA
  *                                        firmware version. Updates the serial
  *                                        number array with OA serial number.
@@ -379,10 +381,13 @@ SaErrorT get_oa_state(struct oh_handler_state *oh_handler,
         /* Get the status and firmware version of the OA which we are
          * talking to
          */
-        if (bay == active_bay)
+        if (bay == active_bay) {
                 this_oa->oa_status = ACTIVE;
-        else /* bay == standby_bay */
+                this_oa->fm_version = atof(active_fm);
+        } else { /* bay == standby_bay */
                 this_oa->oa_status = STANDBY;
+                this_oa->fm_version = atof(standby_fm);
+        }
 
         /* Initialize the hpi_con and event_con structures */
         this_oa->hpi_con = hpi_con;
@@ -401,11 +406,13 @@ SaErrorT get_oa_state(struct oh_handler_state *oh_handler,
          */
         if (bay == standby_bay) {
                 other_oa->oa_status = ACTIVE;
+                other_oa->fm_version = atof(active_fm);
                 strncpy(other_oa->server, active_ip, strlen(active_ip));
                 snprintf(url, strlen(active_ip) + strlen(PORT) + 1,
                          "%s" PORT, active_ip);
         } else {
                 other_oa->oa_status = STANDBY;
+                other_oa->fm_version = atof(standby_fm);
                 strncpy(other_oa->server, standby_ip, strlen(standby_ip));
                 snprintf(url, strlen(standby_ip) + strlen(PORT) + 1,
                          "%s" PORT, standby_ip);
@@ -1355,6 +1362,38 @@ void release_oa_soap_resources(struct oa_soap_handler *oa_handler)
                                 ps_unit.serial_number[i]);
         }
         g_free(oa_handler->oa_soap_resources.ps_unit.serial_number);
+}
+
+/**
+ * get_oa_fw_version
+ *      @oh_handler: Pointer to the plugin handler
+ *
+ * Purpose:
+ *      Returns the OA firmware version of the active OA
+ *
+ * Detailed Descrption: NA
+ *
+ * Return values:
+ *      Active OA firmware version - on success
+ *      0.0                        - on failure
+ **/
+SaHpiFloat64T get_oa_fw_version(struct oh_handler_state *oh_handler)
+{
+        struct oa_soap_handler *oa_handler;
+
+        if (oh_handler == NULL) {
+                err("Invalid parameter");
+                return 0.0;
+        }
+
+        oa_handler = (struct oa_soap_handler *) oh_handler->data;
+
+        if (oa_handler->active_con == oa_handler->oa_1->hpi_con)
+                return oa_handler->oa_1->fm_version;
+        else if (oa_handler->active_con == oa_handler->oa_2->hpi_con)
+                return oa_handler->oa_2->fm_version;
+        else
+                return 0.0;
 }
 
 /**

@@ -100,6 +100,8 @@ void cleanup_plugin_rptable(struct oh_handler_state *oh_handler);
 
 void release_oa_soap_resources(struct oa_soap_handler * oa_handler);
 
+SaHpiFloat64T get_oa_fw_version(struct oh_handler_state *oh_handler);
+
 SaErrorT update_oa_info(struct oh_handler_state *oh_handler,
                         struct oaInfo *response,
                         SaHpiResourceIdT resource_id);
