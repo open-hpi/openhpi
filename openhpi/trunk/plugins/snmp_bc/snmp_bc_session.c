@@ -153,7 +153,7 @@ void *snmp_bc_open(GHashTable *handler_config,
 		
 		/* Set retries/timeouts - based on testing with BC/BCT MM SNMP V3 agent */
 		custom_handle->session.retries = 3;
-		custom_handle->session.timeout = 5000000; /* 5000000 in microseconds */  
+		custom_handle->session.timeout = 15000000; /* 15000000 in microseconds */  
 		version = (char *)g_hash_table_lookup(handle->config, "version");
 		if (!version) {
 			err("Cannot find \"version\" configuration parameter.");
