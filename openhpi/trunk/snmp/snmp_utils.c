@@ -496,10 +496,12 @@ SaErrorT errstat2hpi(long pdu_errstat)
 		case SNMP_ERR_NOTWRITABLE:
 			hpicode = SA_ERR_HPI_READ_ONLY;
 			break;		
+		case SNMP_ERR_NOSUCHNAME:
+			hpicode = SA_ERR_HPI_NOT_PRESENT;
+			break;
 		case SNMP_ERR_NOACCESS:
 		case SNMP_ERR_AUTHORIZATIONERROR:
 		case SNMP_ERR_INCONSISTENTNAME:
-		case SNMP_ERR_NOSUCHNAME:
 		case SNMP_ERR_NOCREATION:
 			hpicode = SA_ERR_HPI_INVALID_PARAMS;
 			break;
