@@ -416,18 +416,16 @@ SaErrorT add_oa(struct oh_handler_state *oh_handler,
                 temp->hpi_con = soap_open(url, user_name, password,
                                           HPI_CALL_TIMEOUT);
                 if (temp->hpi_con == NULL) {
+                        /* May be the inserted OA is not accessible */
                         err("soap_open for %s has failed", url);
-                        return SA_ERR_HPI_INTERNAL_ERROR;
+                } else {
+                        temp->event_con = soap_open(url, user_name, password,
+                                                    EVENT_CALL_TIMEOUT);
+                        if (temp->event_con == NULL) {
+                                err("soap_open for %s has failed", url);
+                                soap_close(temp->hpi_con);
+                        }
                 }
-
-                temp->event_con = soap_open(url, user_name, password,
-                                            EVENT_CALL_TIMEOUT);
-                if (temp->event_con == NULL) {
-                        err("soap_open for %s has failed", url);
-                        soap_close(temp->hpi_con);
-                        return SA_ERR_HPI_INTERNAL_ERROR;
-                }
-
                 g_mutex_unlock(temp->mutex);
         }
 
