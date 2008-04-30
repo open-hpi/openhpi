@@ -376,44 +376,60 @@ SaErrorT add_oa(struct oh_handler_state *oh_handler,
                         break;
         }
 
-        /* Get the IP address of the newly inserted OA */
-        network_info.bayNumber = bay_number;
-        rv = soap_getOaNetworkInfo(con, &network_info, &network_info_response);
-        if (rv != SOAP_OK) {
-                err("Get OA network info failed");
-                return SA_ERR_HPI_INTERNAL_ERROR;
+        /* If the OA is removed during the first discovery, then
+         * oa_soap_handler will have the information of the removed OA.
+         * But, RPTable will not have the extracted OA information.
+         * If the OA is inserted back and becomes active for any reason,
+         * then we may end up trying to update the same SOAP_CON structure.
+         *
+         * To avoid this situation, check whether the event's SOAP_CON for
+	 * the inserted OA is same as the SOAP_CON passed to this function.
+         * If yes, skip the SOAP_CON updating.
+         */
+
+        if(temp->event_con != con) {
+                /* Get the IP address of the newly inserted OA */
+                network_info.bayNumber = bay_number;
+                rv = soap_getOaNetworkInfo(con, &network_info,
+                                           &network_info_response);
+                if (rv != SOAP_OK) {
+                        err("Get OA network info failed");
+                        return SA_ERR_HPI_INTERNAL_ERROR;
+                }
+
+                /* Get the OA user name and password from conf file */
+                user_name = (char *) g_hash_table_lookup(oh_handler->config,
+                                                         "OA_User_Name");
+                password = (char *) g_hash_table_lookup(oh_handler->config,
+                                                        "OA_Password");
+
+                /* Create the OA URL */
+                memset(url, 0, MAX_URL_LEN);
+                snprintf(url,
+                         strlen(network_info_response.ipAddress)
+                         + strlen(PORT) + 1, "%s" PORT,
+                         network_info_response.ipAddress);
+
+                /* Lock the inserted OA mutex */
+                g_mutex_lock(temp->mutex);
+                /* Create the SOAP_CON for inserted OA */
+                temp->hpi_con = soap_open(url, user_name, password,
+                                          HPI_CALL_TIMEOUT);
+                if (temp->hpi_con == NULL) {
+                        err("soap_open for %s has failed", url);
+                        return SA_ERR_HPI_INTERNAL_ERROR;
+                }
+
+                temp->event_con = soap_open(url, user_name, password,
+                                            EVENT_CALL_TIMEOUT);
+                if (temp->event_con == NULL) {
+                        err("soap_open for %s has failed", url);
+                        soap_close(temp->hpi_con);
+                        return SA_ERR_HPI_INTERNAL_ERROR;
+                }
+
+                g_mutex_unlock(temp->mutex);
         }
-
-        /* Get the OA user name and password from conf file */
-        user_name = (char *) g_hash_table_lookup(oh_handler->config,
-                                                 "OA_User_Name");
-        password = (char *) g_hash_table_lookup(oh_handler->config,
-                                                "OA_Password");
-
-        /* Create the OA URL */
-        memset(url, 0, MAX_URL_LEN);
-        snprintf(url,
-                 strlen(network_info_response.ipAddress) + strlen(PORT) + 1,
-                 "%s" PORT, network_info_response.ipAddress);
-
-        /* Lock the inserted OA mutex */
-        g_mutex_lock(temp->mutex);
-        /* Create the SOAP_CON for inserted OA */
-        temp->hpi_con = soap_open(url, user_name, password, HPI_CALL_TIMEOUT);
-        if (temp->hpi_con == NULL) {
-                err("soap_open for %s has failed", url);
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
-
-        temp->event_con = soap_open(url, user_name, password,
-                                    EVENT_CALL_TIMEOUT);
-        if (temp->event_con == NULL) {
-                err("soap_open for %s has failed", url);
-                soap_close(temp->hpi_con);
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
-
-        g_mutex_unlock(temp->mutex);
 
         /* Build the rpt entry */
         rv = build_oa_rpt(oh_handler, bay_number, &resource_id);
