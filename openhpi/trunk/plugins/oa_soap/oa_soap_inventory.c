@@ -57,6 +57,10 @@
  *      oa_soap_add_idr_area()          - Creates the Inventory Data
  *                                        Repository(IDR) area of requested type
  *
+ *      oa_soap_add_idr_area_by_id()    - Creates the Inventory Data
+ *                                        Repository(IDR) area of requested type
+ *                                        with specified id
+ *
  *      oa_soap_delete_idr_area()       - Deletes the Inventory Data
  *                                        Repository(IDR) area of specified id
  *
@@ -65,6 +69,10 @@
  *
  *      oa_soap_add_idr_field()         - Adds an IDR field to the specified
  *                                        Inventory Data Repository(IDR) Area
+ *
+ *      oa_soap_add_idr_field_by_id()   - Add a field to a specified Inventory
+ *                                        Data Repository(IDR) Area with the
+ *                                        specified field id
  *
  *      oa_soap_set_idr_field()         - Updates the specified Inventory Data
  *                                        Repository(IDR) field
@@ -98,6 +106,9 @@
  *      idr_area_add()                  - Adds an IDR area to Inventory
  *                                        repository
  *
+ *      idr_area_add_by_id()            - Adds an IDR area to Inventory
+ *                                        repository with the specified area id
+ *
  *      fetch_idr_area_header()         - Gets an Inventory Data Repository(IDR)
  *                                        area header from Inventory Data
  *                                        Repository(IDR)
@@ -106,6 +117,9 @@
  *                                        Data Repository(IDR)
  *
  *      idr_field_add()                 - Adds an IDR field to an IDR area
+ *
+ *      idr_field_add_by_id()           - Adds an IDR field to an IDR area with
+ *                                        the specified field id
  *
  *      idr_field_delete()              - Deletes an IDR field from an IDR area
  *
@@ -399,6 +413,130 @@ SaErrorT oa_soap_add_idr_area(void *oh_handler,
         inventory->info.idr_info.UpdateCount++;
 
         *area_id = local_area->idr_area_head.AreaId;
+
+        return SA_OK;
+}
+
+/**
+ * oa_soap_add_idr_area_by_id:
+ *      @oh_handler: Handler data pointer.
+ *      @resource_id: Resource ID.
+ *      @idr: IDR ID.
+ *      @area_type: Type of the inventory data area.
+ *      @area_id: Area id of the newly created area.
+ *
+ * Purpose:
+ *      Creates the Inventory Data Repository(IDR) area of requested type
+ *
+ * Detailed Description:
+ *      - Creates an IDR area of the specified area type and area id and adds
+ *        to area list of the resource IDR
+ *
+ * Return values:
+ *      SA_OK - Normal case
+ *      SA_ERR_HPI_CAPABILITY - Resource don't have SAHPI_CAPABILITY_INVENTORY
+ *      SA_ERR_HPI_INVALID_PARAMS - On wrong parameters
+ *      SA_ERR_HPI_INVALID_RESOURCE - Invalid resource id specified
+ *      SA_ERR_HPI_NOT_PRESENT - Requested object not present
+ *      SA_ERR_HPI_READ_ONLY - The data to be operated upon is read only
+ *      SA_ERR_HPI_DUPLICATE - Area ID already exists
+ *      SA_ERR_HPI_OUT_OF_SPACE - Request failed due to insufficient memory
+ **/
+SaErrorT oa_soap_add_idr_area_by_id (void *oh_handler,
+                                     SaHpiResourceIdT resource_id,
+                                     SaHpiIdrIdT idr,
+                                     SaHpiIdrAreaTypeT area_type,
+                                     SaHpiEntryIdT area_id)
+{
+        SaErrorT rv = SA_OK;
+        struct oh_handler_state *handler;
+        SaHpiRptEntryT *rpt = NULL;
+        SaHpiRdrT *rdr = NULL;
+        struct oa_soap_inventory *inventory = NULL;
+        SaHpiEntryIdT *next_area =  NULL;
+        SaHpiIdrAreaHeaderT *area_header = NULL;
+        char *type;
+
+        if (oh_handler == NULL || area_id == SAHPI_LAST_ENTRY) {
+                err("Invalid parameter.");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        /* Check whether supplied area_type is in list of
+         * valid area types specified by the framework
+         */
+        type = oh_lookup_idrareatype(area_type);
+        if (type == NULL) {
+                err("Invalid area_type.");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        /* It is not valid to create the area of UNSPECIFIED type */
+        if (area_type == SAHPI_IDR_AREATYPE_UNSPECIFIED) {
+                err("Invalid area_type.");
+                return SA_ERR_HPI_INVALID_DATA;
+        }
+
+        handler = (struct oh_handler_state *)oh_handler;
+
+        rpt = oh_get_resource_by_id(handler->rptcache, resource_id);
+        if (!rpt) {
+                err("INVALID RESOURCE");
+                return SA_ERR_HPI_INVALID_RESOURCE;
+        }
+        if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_INVENTORY_DATA)) {
+                err("INVALID RESOURCE CAPABILITY");
+                return SA_ERR_HPI_CAPABILITY;
+        }
+
+        rdr = oh_get_rdr_by_type(handler->rptcache, resource_id,
+                                 SAHPI_INVENTORY_RDR, idr);
+        if (rdr == NULL) {
+                err("INVALID RDR NUMBER");
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+
+        inventory = (struct oa_soap_inventory *)
+                oh_get_rdr_data(handler->rptcache,
+                                resource_id,
+                                rdr->RecordId);
+        if (inventory == NULL) {
+                err("No inventory data. idr=%s", rdr->IdString.Data);
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+
+        /* Check whether the resource IDR is read only */
+        if (inventory->info.idr_info.ReadOnly == SAHPI_TRUE) {
+                err("IDR is read only");
+                return SA_ERR_HPI_READ_ONLY;
+        }
+
+        /* Check if the Area ID already exists */
+        rv = fetch_idr_area_header(&(inventory->info),
+                                   area_id,area_type,
+                                   area_header,
+                                   next_area);
+        if (rv == SA_OK) {
+                err("AreaId already exists in the IDR");
+                return SA_ERR_HPI_DUPLICATE;
+        }
+
+        /* Create and add the new area to the resource IDR area list */
+        rv = idr_area_add_by_id(&(inventory->info.area_list),
+                                area_type, area_id);
+        if (rv != SA_OK) {
+                err("Addition of IDR area failed");
+                if (rv == SA_ERR_HPI_OUT_OF_MEMORY) {
+                        return SA_ERR_HPI_OUT_OF_SPACE;
+                }
+                return rv;
+        }
+
+        /* Increment area count in resource IDR  */
+        inventory->info.idr_info.NumAreas++;
+
+        /* Increment modification count of resource IDR */
+        inventory->info.idr_info.UpdateCount++;
 
         return SA_OK;
 }
@@ -717,6 +855,140 @@ SaErrorT oa_soap_add_idr_field(void *oh_handler,
         /* Create and add the new field to end of filed list in IDR area */
         rv = idr_field_add(&(local_area->field_list),
                            field);
+        if (rv != SA_OK) {
+                err("IDR field add failed");
+                if (rv == SA_ERR_HPI_OUT_OF_MEMORY) {
+                        return SA_ERR_HPI_OUT_OF_SPACE;
+                }
+                return rv;
+        }
+
+        /* Increment the field count in IDR area */
+        local_area->idr_area_head.NumFields++;
+
+        /* Increment the update cound of resource IDR */
+        inventory->info.idr_info.UpdateCount++;
+
+        return SA_OK;
+}
+
+/**
+ * oa_soap_add_idr_field_by_id:
+ *      @oh_handler: Handler data pointer
+ *      @resource_id: Resource ID
+ *      @idr: IDR ID
+ *      @field: structure containing the new field information
+ *
+ * Purpose:
+ *      Add a field to a specified Inventory Data Repository(IDR)
+ *      Area with the specified field id
+ *
+ * Detailed Description:
+ *      - Creates an IDR field of the specified field type and adds to
+ *        field list of the specified IDR area id in resource IDR
+ *
+ * Return values:
+ *      SA_OK - Normal case
+ *      SA_ERR_HPI_CAPABILITY - Resource doesn't have SAHPI_CAPABILITY_INVENTORY
+ *      SA_ERR_HPI_INVALID_PARAMS - On wrong parameters
+ *      SA_ERR_HPI_INVALID_RESOURCE - Invalid resource id specified
+ *      SA_ERR_HPI_NOT_PRESENT - Requested object not present
+ *      SA_ERR_HPI_READ_ONLY - The data to be operated upon is read only
+ *      SA_ERR_HPI_OUT_OF_SPACE - Request failed due to insufficient memory
+ **/
+SaErrorT oa_soap_add_idr_field_by_id(void *oh_handler,
+                                     SaHpiResourceIdT resource_id,
+                                     SaHpiIdrIdT idr_id,
+                                     SaHpiIdrFieldT *field)
+{
+        SaErrorT rv = SA_OK;
+        struct oh_handler_state *handler;
+        SaHpiRptEntryT *rpt = NULL;
+        SaHpiRdrT *rdr = NULL;
+        struct oa_soap_inventory *inventory = NULL;
+        struct oa_soap_area *local_area = NULL;
+        char *type;
+
+        if (oh_handler == NULL || field == NULL ||
+            field->AreaId == SAHPI_LAST_ENTRY ||
+            field->FieldId == SAHPI_LAST_ENTRY) {
+                err("Invalid parameter.");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        type = oh_lookup_idrfieldtype(field->Type);
+        if (type == NULL) {
+                err("Invalid field type.");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        /* It is not valid to create the field of UNSPECIFIED type */
+        if (field->Type == SAHPI_IDR_FIELDTYPE_UNSPECIFIED) {
+                err("Invalid field type.");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+        handler = (struct oh_handler_state *)oh_handler;
+
+        rpt = oh_get_resource_by_id(handler->rptcache, resource_id);
+        if (!rpt) {
+                err("INVALID RESOURCE");
+                return SA_ERR_HPI_INVALID_RESOURCE;
+        }
+        if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_INVENTORY_DATA)) {
+                err("INVALID RESOURCE CAPABILITY");
+                return SA_ERR_HPI_CAPABILITY;
+        }
+
+        rdr = oh_get_rdr_by_type(handler->rptcache, resource_id,
+                                 SAHPI_INVENTORY_RDR, idr_id);
+        if (rdr == NULL) {
+                err("INVALID RDR NUMBER");
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+
+        inventory = (struct oa_soap_inventory *)
+                oh_get_rdr_data(handler->rptcache,
+                                resource_id,
+                                rdr->RecordId);
+        if (inventory == NULL) {
+                err("No inventory data. idr=%s", rdr->IdString.Data);
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+
+        if (inventory->info.idr_info.NumAreas == 0) {
+                err("No areas in the specified IDR");
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+
+        /* Start traversing the area list of resource IDR from the
+         * head node of the area linked list
+         */
+        local_area = inventory->info.area_list;
+        while (local_area != NULL) {
+                if ((field->AreaId == local_area->idr_area_head.AreaId)) {
+                        break;
+                }
+                local_area = local_area->next_area;
+        }
+
+        /* If the area id specified in field structure is existing, then
+         * local_area will point to that area, else it is NULL
+         */
+        if (!local_area) {
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+
+        /* Check whether the specified IDR area is read only */
+        if (local_area->idr_area_head.ReadOnly == SAHPI_TRUE) {
+                err("IDR Area is read only");
+        }
+
+        /* Create and add the new field to  field list in IDR area */
+        rv = idr_field_add_by_id(&(local_area->field_list),
+                                 field->AreaId,
+                                 field->Type,
+                                 (char *)field->Field.Data,
+                                 field->FieldId);
         if (rv != SA_OK) {
                 err("IDR field add failed");
                 if (rv == SA_ERR_HPI_OUT_OF_MEMORY) {
@@ -2558,6 +2830,80 @@ SaErrorT idr_area_add(struct oa_soap_area **head_area,
 }
 
 /**
+ * idr_area_add_by_id:
+ *      @head_area: Pointer to IDR area
+ *      @area_type: Type of IDR area
+ *      @area_id: area id to be added
+ *
+ * Purpose:
+ *      Adds an Inventory Data Repository(IDR) area to Inventory data repository
+ *      with the specified area id
+ *
+ * Detailed Description:
+ *      - Creates an IDR area of a specified type with specified id and adds it
+ *        to Inventory Data Repository(IDR).
+ *        If the area list is empty then the created area will become head node
+ *        (first area) for the area list.
+ *
+ * Return values:
+ *      SA_OK - Normal case
+ *      SA_ERR_HPI_INVALID_PARAMS - Input parameters are not valid
+ *      SA_ERR_HPI_NOT_PRESENT - Requested object not present
+ *      SA_ERR_HPI_OUT_OF_MEMORY - Request failed due to insufficient memory
+ **/
+SaErrorT idr_area_add_by_id(struct oa_soap_area **head_area,
+                            SaHpiIdrAreaTypeT area_type,
+                            SaHpiEntryIdT area_id)
+{
+        struct oa_soap_area *local_area = NULL;
+        struct oa_soap_area *temp_area = NULL;
+
+        if (head_area == NULL || area_id == SAHPI_LAST_ENTRY) {
+                err("Invalid parameter.");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        temp_area = *head_area;
+        local_area = (struct oa_soap_area*)g_malloc0(
+                      sizeof(struct oa_soap_area));
+        if (!local_area) {
+               err("OA SOAP out of memory");
+               return SA_ERR_HPI_OUT_OF_MEMORY;
+        }
+        /* Initialize the area with specified area type and ID */
+        local_area->idr_area_head.AreaId = area_id;
+        local_area->idr_area_head.Type = area_type;
+        local_area->idr_area_head.ReadOnly = SAHPI_FALSE;
+        local_area->idr_area_head.NumFields = 0;
+        local_area->field_list = NULL;
+
+        /* Check whether the area list is empty  or if the new area
+         * is to be inserted before first area
+         */
+        if (*head_area == NULL ||
+            (*head_area)->idr_area_head.AreaId > area_id) {
+                *head_area = local_area;
+                (*head_area)->next_area = temp_area;
+        } else {
+                /* Traverse through the area list and insert the area
+                 * at appropriate place
+                 */
+                while (temp_area != NULL) {
+                        if ((temp_area->idr_area_head.AreaId < area_id) &&
+                                ((temp_area->next_area == NULL) ||
+                                 (temp_area->next_area->idr_area_head.AreaId >
+                                  area_id))) {
+                                local_area->next_area = temp_area->next_area;
+                                temp_area->next_area = local_area;
+                                break;
+                        }
+                        temp_area = temp_area->next_area;
+                }
+        }
+        return SA_OK;
+}
+
+/**
  * idr_area_delete
  *      @head_area: Pointer to IDR area
  *      @area_id: Identifier of the area to be deleted
@@ -2879,6 +3225,86 @@ SaErrorT  idr_field_add(struct oa_soap_field **oa_field,
 
         field->next_field = NULL;
         hpi_field->FieldId = field_id;
+        return SA_OK;
+}
+
+/**
+ * idr_field_add_by_id:
+ *      @oa_field: Pointer to field structure
+ *      @area_id: Identifier of the area to be added
+ *      @field_type: Type of IDR field
+ *      @field_data: pointer to field text content
+ *      @fied_id: field id to be added
+ *
+ * Purpose:
+ *      Adds an Inventory Data Repository(IDR) field with specified id to
+ *      Inventory data repository Area
+ *
+ * Detailed Description:
+ *      - Creates an IDR field of a specified type in an IDR area
+ *        Newly created field will be inserted at the proper position
+ *        If the field list is empty then the created field will become head
+ *        node (first field) for the field list
+ *
+ * Return values:
+ *      SA_OK - Normal case
+ *      SA_ERR_HPI_INVALID_PARAMS - Input parameters are not valid
+ *      SA_ERR_HPI_OUT_OF_MEMORY - Request failed due to insufficient memory
+ **/
+SaErrorT idr_field_add_by_id(struct oa_soap_field **head_field,
+                             SaHpiEntryIdT area_id,
+                             SaHpiIdrFieldTypeT field_type,
+                             char *field_data,
+                             SaHpiEntryIdT field_id)
+{
+        struct oa_soap_field *field = NULL;
+        struct oa_soap_field *temp_field = NULL;
+
+        if (head_field == NULL || field_data == NULL ||
+            area_id == SAHPI_LAST_ENTRY ||
+            field_id == SAHPI_LAST_ENTRY) {
+                err("Invalid parameter.");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        temp_field = *head_field;
+        field = (struct oa_soap_field*)g_malloc0(sizeof(struct oa_soap_field));
+        if (!(field)) {
+                err("OA SOAP out of memory");
+                return SA_ERR_HPI_OUT_OF_MEMORY;
+        }
+
+        /* Initialize the field with specified field type and ID */
+        field->field.AreaId = area_id;
+        field->field.FieldId = field_id;
+        field->field.Type = field_type;
+        field->field.ReadOnly =  SAHPI_FALSE;
+        field->field.Field.DataType = SAHPI_TL_TYPE_TEXT;
+        field->field.Field.Language = SAHPI_LANG_ENGLISH;
+        field->field.Field.DataLength = strlen (field_data) + 1;
+        snprintf((char *)field->field.Field.Data,
+                 field->field.Field.DataLength,
+                 "%s", field_data);
+
+        /* Check whether the field list is empty  or if the new field is
+         * to be inserted before first field
+         */
+        if (*head_field == NULL || (*head_field)->field.FieldId > field_id) {
+                *head_field = field;
+                (*head_field)->next_field = temp_field;
+        } else {
+                while (temp_field != NULL) {
+                        if ((temp_field->field.FieldId < field_id) &&
+                                ((temp_field->next_field == NULL) ||
+                                 (temp_field->next_field->field.FieldId >
+                                        field_id))) {
+                                field->next_field = temp_field->next_field;
+                                temp_field->next_field = field;
+                                break;
+                        }
+                        temp_field = temp_field->next_field;
+               }
+        }
         return SA_OK;
 }
 
@@ -3236,6 +3662,13 @@ void * oh_add_idr_area(void *,
                        SaHpiEntryIdT)
                 __attribute__ ((weak, alias("oa_soap_add_idr_area")));
 
+void * oh_add_idr_area_id(void *,
+                       SaHpiResourceIdT,
+                       SaHpiIdrIdT,
+                       SaHpiIdrAreaTypeT,
+                       SaHpiEntryIdT)
+                __attribute__ ((weak, alias("oa_soap_add_idr_area_by_id")));
+
 void * oh_del_idr_area(void *,
                        SaHpiResourceIdT,
                        SaHpiIdrIdT,
@@ -3257,6 +3690,12 @@ void * oh_add_idr_field(void *,
                         SaHpiIdrIdT,
                         SaHpiIdrFieldT)
                 __attribute__ ((weak, alias("oa_soap_add_idr_field")));
+
+void * oh_add_idr_field_id(void *,
+                        SaHpiResourceIdT,
+                        SaHpiIdrIdT,
+                        SaHpiIdrFieldT)
+                __attribute__ ((weak, alias("oa_soap_add_idr_field_by_id")));
 
 void * oh_set_idr_field(void *,
                         SaHpiResourceIdT,

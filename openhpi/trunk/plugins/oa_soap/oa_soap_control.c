@@ -180,8 +180,8 @@ SaErrorT oa_soap_get_control_state(void *oh_handler,
  *      SA_ERR_HPI_NOT_PRESENT - Control not present
  *      SA_ERR_INTERNAL_ERROR - Internal error encountered
  *      SA_ERR_HPI_INVALID_DATA - Invalid Control Mode/State specified
- *      SA_ERR_HPI_INVALID_REQUEST - Invalid request to set the control mode
- *                                   to AUTO mode
+ *      SA_ERR_HPI_UNSUPPORTED_PARAMS - Setting the control mode
+ *                                      to AUTO mode is not supported
  **/
 SaErrorT oa_soap_set_control_state(void *oh_handler,
                                    SaHpiResourceIdT resource_id,
@@ -233,7 +233,7 @@ SaErrorT oa_soap_set_control_state(void *oh_handler,
         /* Auto mode is not supported */
         if (mode == SAHPI_CTRL_MODE_AUTO) {
                 err( "AUTO CONTROL MODE is not supported");
-                return SA_ERR_HPI_INVALID_REQUEST;
+                return SA_ERR_HPI_UNSUPPORTED_PARAMS;
         }
 
         /* If control mode is MANUAL and specified state is of digital type,

@@ -306,6 +306,9 @@ SaErrorT remove_oa(struct oh_handler_state *oh_handler,
                 SAHPI_HS_STATE_ACTIVE;
         event.event.EventDataUnion.HotSwapEvent.HotSwapState =
                 SAHPI_HS_STATE_NOT_PRESENT;
+        /* This state change happened due to surprise extraction */
+        event.event.EventDataUnion.HotSwapEvent.CauseOfStateChange =
+                SAHPI_HS_CAUSE_SURPRISE_EXTRACTION;
 
         /* Push the hotswap event to remove the resource from OpenHPI RPTable */
         oh_evt_queue_push(oh_handler->eventq, copy_oa_soap_event(&event));
@@ -460,6 +463,11 @@ SaErrorT add_oa(struct oh_handler_state *oh_handler,
                 SAHPI_HS_STATE_NOT_PRESENT;
         event.event.EventDataUnion.HotSwapEvent.HotSwapState =
                 SAHPI_HS_STATE_ACTIVE;
+        /* NOT_PRESENT to ACTIVE state change happened due to
+         * operator action
+         */
+        event.event.EventDataUnion.HotSwapEvent.CauseOfStateChange =
+                SAHPI_HS_CAUSE_OPERATOR_INIT;
 
         /* Push the hotswap event to add the resource to OpenHPI RPTable */
         oh_evt_queue_push(oh_handler->eventq, copy_oa_soap_event(&event));
@@ -679,6 +687,9 @@ SaErrorT update_server_hotswap_state(struct oh_handler_state *oh_handler,
                                 PreviousHotSwapState = SAHPI_HS_STATE_INACTIVE;
                         event.event.EventDataUnion.HotSwapEvent.HotSwapState =
                                 SAHPI_HS_STATE_INSERTION_PENDING;
+                        /* The cause of the state change is unknown */
+                        event.event.EventDataUnion.HotSwapEvent.
+                                CauseOfStateChange = SAHPI_HS_CAUSE_UNKNOWN;
                         oh_evt_queue_push(oh_handler->eventq,
                                           copy_oa_soap_event(&event));
 
@@ -688,6 +699,11 @@ SaErrorT update_server_hotswap_state(struct oh_handler_state *oh_handler,
                                 SAHPI_HS_STATE_INSERTION_PENDING;
                         event.event.EventDataUnion.HotSwapEvent.HotSwapState =
                                                      SAHPI_HS_STATE_ACTIVE;
+                        /* INSERTION_PENDING to ACTIVE state change happened
+                         * due to auto policy of server blade
+                         */
+                        event.event.EventDataUnion.HotSwapEvent.
+                                CauseOfStateChange = SAHPI_HS_CAUSE_AUTO_POLICY;
                         oh_evt_queue_push(oh_handler->eventq,
                                           copy_oa_soap_event(&event));
                         break;
@@ -703,6 +719,13 @@ SaErrorT update_server_hotswap_state(struct oh_handler_state *oh_handler,
                                 PreviousHotSwapState = SAHPI_HS_STATE_ACTIVE;
                         event.event.EventDataUnion.HotSwapEvent.HotSwapState =
                                 SAHPI_HS_STATE_EXTRACTION_PENDING;
+                        /* ACTIVE to EXTRACTION_PENDING state change happened
+                         * due power off event. The deactivation can not be
+                         * stopped.
+                         */
+                        event.event.EventDataUnion.HotSwapEvent.
+                                CauseOfStateChange =
+                                SAHPI_HS_CAUSE_UNEXPECTED_DEACTIVATION;
                         oh_evt_queue_push(oh_handler->eventq,
                                           copy_oa_soap_event(&event));
 
@@ -712,6 +735,11 @@ SaErrorT update_server_hotswap_state(struct oh_handler_state *oh_handler,
                                 SAHPI_HS_STATE_EXTRACTION_PENDING;
                         event.event.EventDataUnion.HotSwapEvent.HotSwapState =
                                                      SAHPI_HS_STATE_INACTIVE;
+                        /* EXTRACTION_PENDING to INACTIVE state change happened
+                         * due to auto policy of server blade
+                         */
+                        event.event.EventDataUnion.HotSwapEvent.
+                                CauseOfStateChange = SAHPI_HS_CAUSE_AUTO_POLICY;
                         oh_evt_queue_push(oh_handler->eventq,
                                           copy_oa_soap_event(&event));
                         break;
@@ -800,6 +828,18 @@ SaErrorT remove_server_blade(struct oh_handler_state *oh_handler,
                 hotswap_state->currentHsState;
         event.event.EventDataUnion.HotSwapEvent.HotSwapState =
                 SAHPI_HS_STATE_NOT_PRESENT;
+
+        if (hotswap_state->currentHsState == SAHPI_HS_STATE_INACTIVE) {
+                /* INACTIVE to NOT_PRESENT state change happened due to
+                 * operator action
+                 */
+                event.event.EventDataUnion.HotSwapEvent.CauseOfStateChange =
+                        SAHPI_HS_CAUSE_OPERATOR_INIT;
+        } else {
+                /* This state change happened due to surprise extraction */
+                event.event.EventDataUnion.HotSwapEvent.CauseOfStateChange =
+                        SAHPI_HS_CAUSE_SURPRISE_EXTRACTION;
+        }
 
         /* Push the hotswap event to remove the resource from OpenHPI RPTable */
         oh_evt_queue_push(oh_handler->eventq, copy_oa_soap_event(&event));
@@ -890,6 +930,11 @@ SaErrorT add_server_blade(struct oh_handler_state *oh_handler,
                 SAHPI_HS_STATE_NOT_PRESENT;
         event.event.EventDataUnion.HotSwapEvent.HotSwapState =
                 SAHPI_HS_STATE_INSERTION_PENDING;
+        /* NOT_PRESENT to INSERTION_PENDING state change happened due
+         * to operator action
+         */
+        event.event.EventDataUnion.HotSwapEvent.CauseOfStateChange =
+                SAHPI_HS_CAUSE_OPERATOR_INIT;
         oh_evt_queue_push(oh_handler->eventq, copy_oa_soap_event(&event));
 
         event.rdrs = NULL;
@@ -897,6 +942,11 @@ SaErrorT add_server_blade(struct oh_handler_state *oh_handler,
                 SAHPI_HS_STATE_INSERTION_PENDING;
         event.event.EventDataUnion.HotSwapEvent.HotSwapState =
                 SAHPI_HS_STATE_ACTIVE;
+        /* INSERTION_PENDING to ACTIVE state change happened
+         * due to auto policy of server blade
+         */
+        event.event.EventDataUnion.HotSwapEvent.CauseOfStateChange =
+                SAHPI_HS_CAUSE_AUTO_POLICY;
         oh_evt_queue_push(oh_handler->eventq, copy_oa_soap_event(&event));
 
         rv = get_server_power_state(con, bay_number, &state);
@@ -920,6 +970,13 @@ SaErrorT add_server_blade(struct oh_handler_state *oh_handler,
                                 PreviousHotSwapState = SAHPI_HS_STATE_ACTIVE;
                         event.event.EventDataUnion.HotSwapEvent.HotSwapState =
                                 SAHPI_HS_STATE_EXTRACTION_PENDING;
+                        /* ACTIVE to EXTRACTION_PENDING state change happened
+                         * due power off event. The deactivation can not be
+                         * stopped.
+                         */
+                        event.event.EventDataUnion.HotSwapEvent.
+                                CauseOfStateChange =
+                                SAHPI_HS_CAUSE_UNEXPECTED_DEACTIVATION;
                         oh_evt_queue_push(oh_handler->eventq,
                                           copy_oa_soap_event(&event));
 
@@ -929,6 +986,11 @@ SaErrorT add_server_blade(struct oh_handler_state *oh_handler,
                                 SAHPI_HS_STATE_EXTRACTION_PENDING;
                         event.event.EventDataUnion.HotSwapEvent.HotSwapState =
                                 SAHPI_HS_STATE_INACTIVE;
+                        /* EXTRACTION_PENDING to INACTIVE state change happened
+                         * due to auto policy of server blade
+                         */
+                        event.event.EventDataUnion.HotSwapEvent.
+                                CauseOfStateChange = SAHPI_HS_CAUSE_AUTO_POLICY;
                         oh_evt_queue_push(oh_handler->eventq,
                                           copy_oa_soap_event(&event));
                         break;
@@ -1174,6 +1236,9 @@ SaErrorT update_interconnect_hotswap_state(struct oh_handler_state *oh_handler,
                                 PreviousHotSwapState = SAHPI_HS_STATE_INACTIVE;
                         event.event.EventDataUnion.HotSwapEvent.HotSwapState =
                                 SAHPI_HS_STATE_INSERTION_PENDING;
+                        /* The cause of the state change is unknown */
+                        event.event.EventDataUnion.HotSwapEvent.
+                                CauseOfStateChange = SAHPI_HS_CAUSE_UNKNOWN;
                         oh_evt_queue_push(oh_handler->eventq,
                                           copy_oa_soap_event(&event));
 
@@ -1183,6 +1248,11 @@ SaErrorT update_interconnect_hotswap_state(struct oh_handler_state *oh_handler,
                                 SAHPI_HS_STATE_INSERTION_PENDING;
                         event.event.EventDataUnion.HotSwapEvent.HotSwapState =
                                 SAHPI_HS_STATE_ACTIVE;
+                        /* INSERTION_PENDING to ACTIVE state change happened
+                         * due to auto policy of server blade
+                         */
+                        event.event.EventDataUnion.HotSwapEvent.
+                                CauseOfStateChange = SAHPI_HS_CAUSE_AUTO_POLICY;
                         oh_evt_queue_push(oh_handler->eventq,
                                           copy_oa_soap_event(&event));
                         break;
@@ -1198,6 +1268,13 @@ SaErrorT update_interconnect_hotswap_state(struct oh_handler_state *oh_handler,
                                 PreviousHotSwapState = SAHPI_HS_STATE_ACTIVE;
                         event.event.EventDataUnion.HotSwapEvent.HotSwapState =
                                 SAHPI_HS_STATE_EXTRACTION_PENDING;
+                        /* ACTIVE to EXTRACTION_PENDING state change happened
+                         * due power off event.
+                         * The deactivation can not be stopped.
+                         */
+                        event.event.EventDataUnion.HotSwapEvent.
+                                CauseOfStateChange =
+                                SAHPI_HS_CAUSE_UNEXPECTED_DEACTIVATION;
                         oh_evt_queue_push(oh_handler->eventq,
                                           copy_oa_soap_event(&event));
 
@@ -1207,6 +1284,11 @@ SaErrorT update_interconnect_hotswap_state(struct oh_handler_state *oh_handler,
                                 SAHPI_HS_STATE_EXTRACTION_PENDING;
                         event.event.EventDataUnion.HotSwapEvent.HotSwapState =
                                 SAHPI_HS_STATE_INACTIVE;
+                        /* EXTRACTION_PENDING to INACTIVE state change happened
+                         * due to auto policy of server blade
+                         */
+                        event.event.EventDataUnion.HotSwapEvent.
+                                CauseOfStateChange = SAHPI_HS_CAUSE_AUTO_POLICY;
                         oh_evt_queue_push(oh_handler->eventq,
                                           copy_oa_soap_event(&event));
                         break;
@@ -1295,6 +1377,18 @@ SaErrorT remove_interconnect(struct oh_handler_state *oh_handler,
 
         event.event.EventDataUnion.HotSwapEvent.HotSwapState =
                 SAHPI_HS_STATE_NOT_PRESENT;
+
+        if (hotswap_state->currentHsState == SAHPI_HS_STATE_INACTIVE) {
+                /* INACTIVE to NOT_PRESENT state change happened due to
+                 * operator action
+                 */
+                event.event.EventDataUnion.HotSwapEvent.CauseOfStateChange =
+                        SAHPI_HS_CAUSE_OPERATOR_INIT;
+        } else {
+                /* This state change happened due to surprise extraction */
+                event.event.EventDataUnion.HotSwapEvent.CauseOfStateChange =
+                        SAHPI_HS_CAUSE_SURPRISE_EXTRACTION;
+        }
 
         /* Push the hotswap event to remove the resource from OpenHPI RPTable */
         oh_evt_queue_push(oh_handler->eventq, copy_oa_soap_event(&event));
@@ -1396,6 +1490,11 @@ SaErrorT add_interconnect(struct oh_handler_state *oh_handler,
                 SAHPI_HS_STATE_NOT_PRESENT;
         event.event.EventDataUnion.HotSwapEvent.HotSwapState =
                 SAHPI_HS_STATE_INSERTION_PENDING;
+        /* NOT_PRESENT to INSERTION_PENDING state change happened due
+         * to operator action
+         */
+        event.event.EventDataUnion.HotSwapEvent.CauseOfStateChange =
+                SAHPI_HS_CAUSE_OPERATOR_INIT;
         oh_evt_queue_push(oh_handler->eventq, copy_oa_soap_event(&event));
 
         event.rdrs = NULL;
@@ -1403,6 +1502,11 @@ SaErrorT add_interconnect(struct oh_handler_state *oh_handler,
                 SAHPI_HS_STATE_INSERTION_PENDING;
         event.event.EventDataUnion.HotSwapEvent.HotSwapState =
                 SAHPI_HS_STATE_ACTIVE;
+        /* INSERTION_PENDING to ACTIVE state change happened
+         * due to auto policy of server blade
+         */
+        event.event.EventDataUnion.HotSwapEvent.CauseOfStateChange =
+                SAHPI_HS_CAUSE_AUTO_POLICY;
         oh_evt_queue_push(oh_handler->eventq, copy_oa_soap_event(&event));
 
         /* Check the power state of the interconnect.  If the power state is
@@ -1425,6 +1529,13 @@ SaErrorT add_interconnect(struct oh_handler_state *oh_handler,
                                 PreviousHotSwapState = SAHPI_HS_STATE_ACTIVE;
                         event.event.EventDataUnion.HotSwapEvent.HotSwapState =
                                 SAHPI_HS_STATE_EXTRACTION_PENDING;
+                        /* ACTIVE to EXTRACTION_PENDING state change happened
+                         * due power off event.
+                         * The deactivation can not be stopped.
+                         */
+                        event.event.EventDataUnion.HotSwapEvent.
+                                CauseOfStateChange =
+                                SAHPI_HS_CAUSE_UNEXPECTED_DEACTIVATION;
                         oh_evt_queue_push(oh_handler->eventq,
                                           copy_oa_soap_event(&event));
 
@@ -1434,6 +1545,11 @@ SaErrorT add_interconnect(struct oh_handler_state *oh_handler,
                                 SAHPI_HS_STATE_EXTRACTION_PENDING;
                         event.event.EventDataUnion.HotSwapEvent.HotSwapState =
                                 SAHPI_HS_STATE_INACTIVE;
+                        /* EXTRACTION_PENDING to INACTIVE state change happened
+                         * due to auto policy of server blade
+                         */
+                        event.event.EventDataUnion.HotSwapEvent.
+                                CauseOfStateChange = SAHPI_HS_CAUSE_AUTO_POLICY;
                         oh_evt_queue_push(oh_handler->eventq,
                                           copy_oa_soap_event(&event));
                         break;
@@ -1602,6 +1718,9 @@ SaErrorT remove_fan(struct oh_handler_state *oh_handler,
                 SAHPI_HS_STATE_ACTIVE;
         event.event.EventDataUnion.HotSwapEvent.HotSwapState =
                 SAHPI_HS_STATE_NOT_PRESENT;
+        /* This state change happened due to surprise extraction */
+        event.event.EventDataUnion.HotSwapEvent.CauseOfStateChange =
+                SAHPI_HS_CAUSE_SURPRISE_EXTRACTION;
 
         /* Push the hotswap event to remove the resource from OpenHPI RPTable */
         oh_evt_queue_push(oh_handler->eventq, copy_oa_soap_event(&event));
@@ -1686,6 +1805,9 @@ SaErrorT add_fan(struct oh_handler_state *oh_handler,
                 SAHPI_HS_STATE_NOT_PRESENT;
         event.event.EventDataUnion.HotSwapEvent.HotSwapState =
                 SAHPI_HS_STATE_ACTIVE;
+        /* NOT_PRESENT to ACTIVE state change happened due to operator action */
+        event.event.EventDataUnion.HotSwapEvent.CauseOfStateChange =
+                SAHPI_HS_CAUSE_OPERATOR_INIT;
         /* Push the hotswap event to add the resource to OpenHPI RPTable */
         oh_evt_queue_push(oh_handler->eventq, copy_oa_soap_event(&event));
 
@@ -1873,6 +1995,9 @@ SaErrorT remove_ps_unit(struct oh_handler_state *oh_handler,
                 SAHPI_HS_STATE_ACTIVE;
         event.event.EventDataUnion.HotSwapEvent.HotSwapState =
                 SAHPI_HS_STATE_NOT_PRESENT;
+        /* This state change happened due to surprise extraction */
+        event.event.EventDataUnion.HotSwapEvent.CauseOfStateChange =
+                SAHPI_HS_CAUSE_SURPRISE_EXTRACTION;
         /* Push the hotswap event to remove the resource from OpenHPI RPTable */
         oh_evt_queue_push(oh_handler->eventq, copy_oa_soap_event(&event));
 
@@ -1960,6 +2085,9 @@ SaErrorT add_ps_unit(struct oh_handler_state *oh_handler,
                 SAHPI_HS_STATE_NOT_PRESENT;
         event.event.EventDataUnion.HotSwapEvent.HotSwapState =
                 SAHPI_HS_STATE_ACTIVE;
+        /* NOT_PRESENT to ACTIVE state change happened due to operator action */
+        event.event.EventDataUnion.HotSwapEvent.CauseOfStateChange =
+                SAHPI_HS_CAUSE_OPERATOR_INIT;
         /* Push the hotswap event to add the resource to OpenHPI RPTable */
         oh_evt_queue_push(oh_handler->eventq, copy_oa_soap_event(&event));
 

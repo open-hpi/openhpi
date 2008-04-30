@@ -1220,6 +1220,8 @@ SaErrorT push_discovered_resource_events(struct oh_handler_state *oh_handler)
                         event.event.EventType = SAHPI_ET_HOTSWAP;
                         event.event.EventDataUnion.HotSwapEvent.HotSwapState =
                                 hotswap_state->currentHsState;
+                        event.event.EventDataUnion.HotSwapEvent.
+                                CauseOfStateChange = SAHPI_HS_CAUSE_UNKNOWN;
                 } else if (event.resource.ResourceCapabilities &
                                 SAHPI_CAPABILITY_FRU) {
                         /* The resource is FRU, but does not have hotswap
@@ -1228,6 +1230,8 @@ SaErrorT push_discovered_resource_events(struct oh_handler_state *oh_handler)
                         event.event.EventType = SAHPI_ET_HOTSWAP;
                         event.event.EventDataUnion.HotSwapEvent.HotSwapState =
                                 SAHPI_HS_STATE_ACTIVE;
+                        event.event.EventDataUnion.HotSwapEvent.
+                                CauseOfStateChange = SAHPI_HS_CAUSE_UNKNOWN;
                 } else {
                         /* The resource does not have FRU and hotswap
                          * capabilities. Raise the resrouce event.
