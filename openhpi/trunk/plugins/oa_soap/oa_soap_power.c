@@ -125,7 +125,7 @@ SaErrorT oa_soap_get_power_state(void *oh_handler,
                         err("Invalid Resource Type");
                         rv = SA_ERR_HPI_INTERNAL_ERROR;
         }
-        return SA_OK;
+        return rv;
 }
 
 /**
@@ -199,7 +199,7 @@ SaErrorT oa_soap_set_power_state(void *oh_handler,
                         return SA_ERR_HPI_UNKNOWN;
         }
 
-        return SA_OK;
+        return rv;
 }
 
 /**

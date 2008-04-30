@@ -61,7 +61,7 @@
 
 /* For maintaining the patch versions */
 static char const rcsid[] __attribute__ ((used)) =
-        "$Version: oa_soap plugin for openhpi-2.11.2, patch level 9. "
+        "$Version: oa_soap plugin for openhpi-2.11.2, patch level 10. "
         "Created on Apr 28, 2008 $";
 
 /**
