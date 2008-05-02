@@ -49,6 +49,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <oh_error.h>
 #include <oa_soap_calls.h>
 #include <oa_soap_callsupport.h>
 #ifdef MCHECK

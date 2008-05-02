@@ -29,7 +29,7 @@
 
 MAINTAINERCLEANFILES    = Makefile.in
 
-INCLUDES                = @OPENHPI_INCLUDES@ @XML2_INCLUDE@
+INCLUDES                = @OPENHPI_INCLUDES@ @XML2_INCLUDE@ @OH_SSL_INCLUDES@
 
 pkglib_LTLIBRARIES      = liboa_soap.la
 
@@ -80,9 +80,7 @@ liboa_soap_la_SOURCES   = oa_soap.h \
                           oa_soap_calls.h \
                           oa_soap_calls.c \
                           oa_soap_callsupport.h \
-                          oa_soap_callsupport.c \
-                          oa_soap_ssl.h \
-                          oa_soap_ssl.c
+                          oa_soap_callsupport.c
 
 # TODO: What about -luuid in the ilo2_ribcl?
 liboa_soap_la_LIBADD    = @SSL_LIB@ @XML2_LIB@ \

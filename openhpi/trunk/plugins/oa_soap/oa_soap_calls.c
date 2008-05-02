@@ -38,6 +38,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <oh_error.h>
 #define OA_SOAP_CALLS_FILE              /* Defines ENUM strings in this file */
 #include <oa_soap_calls.h>
 

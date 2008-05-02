@@ -44,7 +44,7 @@
 /* Include files */
 #include <libxml/parser.h>
 #include <libxml/tree.h>
-#include <oa_soap_ssl.h>
+#include <oh_ssl.h>
 
 
 /* Size limits */

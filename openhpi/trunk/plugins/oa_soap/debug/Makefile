@@ -231,10 +231,11 @@ hpi_set_tag:	hpi_set_tag.c
 	$(CC) $(CFLAGS) -o $@ hpi_set_tag.c hpi_common.c $(LIBS)
 
 soaptest:	soaptest.c ../oa_soap_callsupport.h ../oa_soap_calls.h \
-		../oa_soap_ssl.h
+		../../../ssl/oh_ssl.h
 	$(CC) -Wall -g -O -I.. $(OPENHPI_INCLUDE) -I/usr/include/libxml2 \
+	-I../../../ssl -DHAVE_OPENSSL \
 	-o $@ soaptest.c \
-	../oa_soap_ssl.o ../oa_soap_calls.o ../oa_soap_callsupport.o \
+	../../../ssl/oh_ssl.o ../oa_soap_calls.o ../oa_soap_callsupport.o \
 	-lglib-2.0 -lxml2 -lssl -lpthread
 
 clean: 
