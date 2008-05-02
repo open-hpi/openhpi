@@ -47,6 +47,7 @@
 
 
 /* Include files */
+#include <config.h>
 #ifdef HAVE_OPENSSL
 #include <openssl/bio.h>
 #include <openssl/ssl.h>

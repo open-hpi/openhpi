@@ -622,8 +622,7 @@ if test "x$THREAD_SAFE" = "xyes" ; then
         CXXFLAGS="$CXXFLAGS -D_GNU_SOURCE -D_REENTRANT -fexceptions"
 	if test "x$have_openssl" = "xyes"; then
 		SSLDIR=ssl
-		CFLAGS="$CFLAGS -DHAVE_OPENSSL"
-		CXXFLAGS="$CXXFLAGS -DHAVE_OPENSSL"
+		AC_DEFINE([HAVE_OPENSSL],[1],[openssl library was found])
 	fi
 fi
 AM_CONDITIONAL(HAVE_OPENSSL, test x$have_openssl = xyes && test x$THREAD_SAFE = xyes)
