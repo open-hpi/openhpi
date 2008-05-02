@@ -30,8 +30,15 @@
  *
  * Author(s)
  *     Bryan Sutula <Bryan.Sutula@hp.com>
+ *     Shuah Khan <shuah.khan@hp.com>
+ *     Richard White <richard.white@hp.com>
  *
- * This file defines prototype(s) for SSL initialization functions.
+ * This file defines prototype(s) for SSL initialization and support functions.
+ *
+ * The contents have been #ifdef'd so that it can be included by files
+ * needing potential SSL initialization code, but during builds without
+ * an SSL library.  In other words, it should be safe to include this
+ * file from any OpenHPI source.
  */
 
 
@@ -39,7 +46,38 @@
 #define __OH_SSL_H
 
 
-int oh_ssl_init(void);
+/* Include files */
+#ifdef HAVE_OPENSSL
+#include <openssl/bio.h>
+#include <openssl/ssl.h>
+#include <openssl/err.h>
+#include <openssl/rand.h>
+#include <openssl/x509v3.h>
+#endif
+
+
+/* Data types used while using these routines */
+#ifdef HAVE_OPENSSL
+enum OH_SSL_SHUTDOWN_TYPE {             /* See SSL_shutdown man page */
+        OH_SSL_UNI,                     /* Unidirectional SSL shutdown */
+        OH_SSL_BI                       /* Bidirectional SSL shutdown */
+};
+#endif
+
+
+/*
+ * Prototypes for the SSL connection management functions that are
+ * implemented in oh_ssl.c
+ */
+extern int oh_ssl_init(void);
+#ifdef HAVE_OPENSSL
+extern SSL_CTX *oh_ssl_ctx_init(void);
+extern int oh_ssl_ctx_free(SSL_CTX *ctx);
+extern BIO *oh_ssl_connect(char *hostname, SSL_CTX *ctx, long timeout);
+extern int oh_ssl_disconnect(BIO *bio, enum OH_SSL_SHUTDOWN_TYPE shutdown);
+extern int oh_ssl_read(BIO *bio, char *buf, int size, long timeout);
+extern int oh_ssl_write(BIO *bio, char *buf, int size, long timeout);
+#endif
 
 
 #endif /* __OH_SSL_H */
