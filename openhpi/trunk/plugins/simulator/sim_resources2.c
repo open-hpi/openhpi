@@ -1143,7 +1143,7 @@ struct sim_control sim_chassis_controls[] = {
                         .Num = 1,
                         .OutputType = SAHPI_CTRL_LED,
                         .Type = SAHPI_CTRL_TYPE_DIGITAL,
-                        .TypeUnion.Digital.Default = SAHPI_CTRL_STATE_ON,
+                        .TypeUnion.Digital.Default = SAHPI_CTRL_STATE_ON,   
 			.DefaultMode = {
 				.Mode = SAHPI_CTRL_MODE_AUTO,
 				.ReadOnly = SAHPI_TRUE,
@@ -1868,3 +1868,111 @@ struct sim_inventory sim_fan_inventory[] = {
         {} /* Terminate array with a null element */
 };
 
+struct sim_dimi sim_dimi_info[] = {
+    {
+            .dimirec = {
+                    .DimiNum = 1,
+                    .Oem = 0,
+            },
+            
+            .info = {
+                .NumberOfTests =1,
+                .TestNumUpdateCounter=0,
+            },
+            .test = {
+                    .TestName={
+                        .DataType = SAHPI_TL_TYPE_TEXT,
+                        .Language = SAHPI_LANG_ENGLISH,
+                        .DataLength = 7,
+                        .Data = "unknown"
+                    },
+                    .ServiceImpact=SAHPI_DIMITEST_NONDEGRADING,
+                    .EntitiesImpacted= {
+                        {
+                            .EntityImpacted.Entry= {
+                                {
+                                        .EntityType = SAHPI_ENT_PROCESSOR,
+                                        .EntityLocation = 1
+                                },
+                                {
+                                        .EntityType = SAHPI_ENT_POWER_SUPPLY,
+                                        .EntityLocation = 1
+                                },
+                                {
+                                        .EntityType = SAHPI_ENT_ADD_IN_CARD,
+                                        .EntityLocation = 1
+                                },
+                                {
+                                        .EntityType = SAHPI_ENT_POWER_UNIT,
+                                        .EntityLocation = 1
+                                },
+                                {
+                                        .EntityType = SAHPI_ENT_ROOT,
+                                        .EntityLocation = 0
+                                },
+                            },    
+                            .ServiceImpact=SAHPI_DIMITEST_NONDEGRADING,
+                        }
+                    },
+                    .NeedServiceOS= SAHPI_FALSE,
+                    .ExpectedRunDuration=1000000000,
+                    .TestCapabilities=SAHPI_DIMITEST_CAPABILITY_TESTCANCEL,
+                    .TestParameters = {
+                                {
+                                        .ParamName = "Some Test Param Name",
+                                        .ParamInfo = {
+                                                .DataType = SAHPI_TL_TYPE_TEXT,
+                                                .Language = SAHPI_LANG_ENGLISH,
+                                                .DataLength = 7,
+                                                .Data = "Unknown"
+                                        },
+                                        .ParamType = SAHPI_DIMITEST_PARAM_TYPE_BOOLEAN,
+                                        .DefaultParam.parambool = SAHPI_TRUE
+                                }
+                        }
+            },
+             .comment = "Dimi 1 simulator",
+    },
+};
+
+struct sim_fumi sim_fumi_info[] = {
+    {
+            .fumirec = {
+                    .Num = 1,
+                    .AccessProt = SAHPI_FUMI_PROT_FTP,
+                    .Capability = SAHPI_FUMI_CAP_BANKCOPY,
+                    .NumBanks = 1,
+                    .Oem = 0,
+            },
+            
+            .srcinfo = {
+                    .SourceUri = {
+                        .DataType = SAHPI_TL_TYPE_TEXT,
+                        .Language = SAHPI_LANG_ENGLISH,
+                        .DataLength = 7,
+                        .Data = "unknown"
+                    },
+                    .SourceStatus = SAHPI_FUMI_SRC_VALID,
+                    .Identifier = "abc",
+                    .Description = "xyz",
+                    .DateTime = 0,
+                    .MajorVersion = 0,
+                    .MinorVersion = 0,
+                    .AuxVersion = 0
+            },
+            
+            .binfo = {
+                    .BankId = 0,
+                    .BankSize = 250,
+                    .Position = 1,
+                    .BankState = SAHPI_FUMI_BANK_ACTIVE,
+                    .Identifier = "abcd",
+                    .Description = "wxyz",
+                    .DateTime = 0,
+                    .MajorVersion = 0,
+                    .MinorVersion = 0,
+                    .AuxVersion = 0
+            },
+            .comment = "Fumi 1 simulator",
+    }
+};
