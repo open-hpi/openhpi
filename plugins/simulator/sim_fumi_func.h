@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2007
+ * (C) Copyright IBM Corp. 2008
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -9,16 +9,18 @@
  * the Copying file included with the OpenHPI distribution for
  * full licensing terms.
  *
- * Author(s):
- *        Renier Morales <renier@openhpi.org>
+ *  Authors:
+ *  Suntrupth S Yadav <suntrupth@in.ibm.com>
  */
+ 
+#ifndef __SIM_FUMI_FUNC_H
+#define __SIM_FUMI_FUNC_H
 
-#ifndef __SIM_DIMI_FUNC_H
-#define __SIM_DIMI_FUNC_H
-
-SaErrorT sim_get_dimi_info(void *hnd,
+SaErrorT sim_set_fumi_source(void *hnd,
 	        	   SaHpiResourceIdT rid,
-			   SaHpiDimiNumT num,
-			   SaHpiDimiInfoT *info);
-
+			   SaHpiFumiNumT fnum,
+			   SaHpiBankNumT bnum,
+               SaHpiTextBufferT *sourceuri);
+               
 #endif
+
