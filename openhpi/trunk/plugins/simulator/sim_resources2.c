@@ -1953,9 +1953,24 @@ struct sim_fumi sim_fumi_info[] = {
                         .Data = "unknown"
                     },
                     .SourceStatus = SAHPI_FUMI_SRC_VALID,
-                    .Identifier = "abc",
-                    .Description = "xyz",
-                    .DateTime = 0,
+                    .Identifier = {
+                        .DataType = SAHPI_TL_TYPE_TEXT,
+                        .Language = SAHPI_LANG_ENGLISH,
+                        .DataLength = 3,
+                        .Data = "abc"
+                    },
+                    .Description = {
+                        .DataType = SAHPI_TL_TYPE_TEXT,
+                        .Language = SAHPI_LANG_ENGLISH,
+                        .DataLength = 3,
+                        .Data = "xyz"
+                    },
+                    .DateTime = {
+                        .DataType = SAHPI_TL_TYPE_TEXT,
+                        .Language = SAHPI_LANG_ENGLISH,
+                        .DataLength = 3,
+                        .Data = "09/05/2008"
+                    },
                     .MajorVersion = 0,
                     .MinorVersion = 0,
                     .AuxVersion = 0
@@ -1966,9 +1981,24 @@ struct sim_fumi sim_fumi_info[] = {
                     .BankSize = 250,
                     .Position = 1,
                     .BankState = SAHPI_FUMI_BANK_ACTIVE,
-                    .Identifier = "abcd",
-                    .Description = "wxyz",
-                    .DateTime = 0,
+                    .Identifier = {
+                        .DataType = SAHPI_TL_TYPE_TEXT,
+                        .Language = SAHPI_LANG_ENGLISH,
+                        .DataLength = 3,
+                        .Data = "abc"
+                    },
+                    .Description = {
+                        .DataType = SAHPI_TL_TYPE_TEXT,
+                        .Language = SAHPI_LANG_ENGLISH,
+                        .DataLength = 3,
+                        .Data = "xyz"
+                    },
+                    .DateTime = {
+                        .DataType = SAHPI_TL_TYPE_TEXT,
+                        .Language = SAHPI_LANG_ENGLISH,
+                        .DataLength = 3,
+                        .Data = "09/05/2008"
+                    },
                     .MajorVersion = 0,
                     .MinorVersion = 0,
                     .AuxVersion = 0
