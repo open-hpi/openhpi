@@ -197,7 +197,7 @@ AC_DEFUN([OH_CHECK_RTAS],
 	    #include <librtas.h>
         ],    
         [
-            int main (void) { rtas_activate_firmware(); }
+            rtas_activate_firmware();
         ],
         [
 	    if test -f "/usr/bin/lsvpd"; then
