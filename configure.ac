@@ -119,7 +119,9 @@ AC_CHECK_LIB([uuid], [uuid_generate], [have_uuid=yes], [
 
 dnl ssl is used for md2/md5 authentification in ipmidirect
 dnl and for SSL-based communication in ilo2_ribcl and oa_soap
-AC_CHECK_LIB([ssl],[MD5_Init],[SSL_LIB=-lssl],[SSL_LIB=])
+AC_CHECK_LIB([crypto],[MD5_Init],[CRYPTO_LIB=-lcrypto],[CRYPTO_LIB=])
+AC_SUBST(CRYPTO_LIB)
+AC_CHECK_LIB([ssl],[SSL_library_init],[SSL_LIB=-lssl],[SSL_LIB=])
 AC_SUBST(SSL_LIB)
 AC_CHECK_HEADERS([openssl/md2.h openssl/md5.h openssl/bio.h openssl/ssl.h openssl/err.h],[have_openssl=yes],[have_openssl=no])
 
