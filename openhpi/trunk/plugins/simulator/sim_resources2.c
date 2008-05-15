@@ -1868,7 +1868,7 @@ struct sim_inventory sim_fan_inventory[] = {
         {} /* Terminate array with a null element */
 };
 
-struct sim_dimi sim_dimi_info[] = {
+struct sim_dimi sim_chassis_dimis[] = {
     {
             .dimirec = {
                     .DimiNum = 1,
