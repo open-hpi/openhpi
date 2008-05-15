@@ -17,13 +17,26 @@
 #ifndef __SIM_DIMI_H
 #define __SIM_DIMI_H
 
+struct sim_dimi_info {
+        SaHpiDimiInfoT info;
+};
+
 struct sim_dimi {
+            int index;
         SaHpiDimiRecT dimirec;
         SaHpiDimiInfoT info;
         SaHpiDimiTestT test;
         const char *comment;
 };
 
-extern struct sim_dimi sim_dimi_info[];
+SaErrorT sim_get_dimi_info(void *hnd,
+				  SaHpiResourceIdT id,
+				  SaHpiDimiNumT num,
+				  SaHpiDimiInfoT *info);
+
+extern struct sim_dimi sim_chassis_dimis[];
+    
+SaErrorT sim_discover_chassis_dimis(struct oh_handler_state *state,
+                                       struct oh_event *e);
     
 #endif
