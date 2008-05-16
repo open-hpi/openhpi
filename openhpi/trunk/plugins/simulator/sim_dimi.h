@@ -29,11 +29,6 @@ struct sim_dimi {
         const char *comment;
 };
 
-SaErrorT sim_get_dimi_info(void *hnd,
-				  SaHpiResourceIdT id,
-				  SaHpiDimiNumT num,
-				  SaHpiDimiInfoT *info);
-
 extern struct sim_dimi sim_chassis_dimis[];
     
 SaErrorT sim_discover_chassis_dimis(struct oh_handler_state *state,
