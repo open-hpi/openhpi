@@ -106,7 +106,6 @@ gpointer oa_soap_event_thread(gpointer event_handler)
         int ret_code = SA_ERR_HPI_INVALID_PARAMS;
         struct oa_soap_handler *oa_handler = NULL;
         struct event_handler *evt_handler = NULL;
-        SaHpiBoolT is_oa_accessible = SAHPI_FALSE;
         SaHpiBoolT is_plugin_initialized = SAHPI_FALSE;
         SaHpiBoolT is_discovery_completed = SAHPI_FALSE;
         SaHpiBoolT listen_for_events = SAHPI_TRUE;
@@ -125,20 +124,6 @@ gpointer oa_soap_event_thread(gpointer event_handler)
         oa_handler = (struct oa_soap_handler *) handler->data;
 
         dbg("OA SOAP event thread started for OA %s", oa->server);
-
-        /* Check whether OA Status is ABSENT
-         * If yes, wait till the OA status becomes ACTIVE or STANDBY
-         */
-        while (is_oa_accessible == SAHPI_FALSE) {
-                g_mutex_lock(oa->mutex);
-                if (oa->oa_status != ABSENT) {
-                        g_mutex_unlock(oa->mutex);
-                        is_oa_accessible = SAHPI_TRUE;
-                } else {
-                        g_mutex_unlock(oa->mutex);
-                        sleep(1);
-                }
-        }
 
         /* Check whether the plugin is initialized.
          * If not, wait till plugin gets initialized
@@ -172,6 +157,17 @@ gpointer oa_soap_event_thread(gpointer event_handler)
                 }
         }
 
+        /* Check whether OA Status is ABSENT
+         * If yes, wait till the OA status becomes ACTIVE or STANDBY
+         */
+        g_mutex_lock(oa->mutex);
+        if (oa->oa_status != OA_ABSENT) {
+                g_mutex_unlock(oa->mutex);
+        } else {
+                g_mutex_unlock(oa->mutex);
+	        process_oa_out_of_access(handler, oa);
+        }
+
         /* Get the user_name and password from config file */
         user_name = (char *) g_hash_table_lookup(handler->config,
                                                  "OA_User_Name");
@@ -182,14 +178,19 @@ gpointer oa_soap_event_thread(gpointer event_handler)
          * then SOAP_CON will be NULL, try to create the OA connection
          */
         if (oa->event_con == NULL) {
-                /* This call will not return untill the OA connection is
+                /* This call will not return until the OA connection is
                  * established
                  */
                 create_oa_connection(oa, user_name, password);
+                rv = create_event_session(oa);
+                /* Sleep for a second, let OA stabilize
+                 * TODO: Remove this workaround, when OA has the fix
+                 */
+                sleep(1);
         }
 
         /* Ideally, the soap_open should pass in 1st try.
-         * If not, try untill soap_open succeeds
+         * If not, try until soap_open succeeds
          */
         memset(url, 0, MAX_URL_LEN);
         snprintf(url, strlen(oa->server) + strlen(PORT) + 1,
@@ -218,6 +219,25 @@ gpointer oa_soap_event_thread(gpointer event_handler)
                         /* Try to recover from the error */
                         oa_soap_error_handling(handler, oa);
                         request.pid = oa->event_pid;
+
+                        /* Re-initialize the con */
+                        if (con != NULL) {
+                                soap_close(con);
+                                con = NULL;
+                        }
+                        memset(url, 0, MAX_URL_LEN);
+                        snprintf(url, strlen(oa->server) + strlen(PORT) + 1,
+                                "%s" PORT, oa->server);
+
+                        /* Ideally, the soap_open should pass in 1st try.
+                         * If not, try until soap_open succeeds
+                         */
+                        while (con == NULL) {
+                                con = soap_open(url, user_name, password,
+                                                HPI_CALL_TIMEOUT);
+                                if (con == NULL)
+                                        sleep(2);
+                        }
                         continue;
                 }
 
@@ -275,18 +295,22 @@ void oa_soap_error_handling(struct oh_handler_state *oh_handler,
                                                         "OA_Password");
                 /* Create the OA connection */
                 create_oa_connection(oa, user_name, password);
-        } else
+                /* OA session is established. Set the error_code to SOAP_OK
+                 * to skip the processing for OA out of access
+                 */
+                error_code = SOAP_OK;
+        } else {
+                error_code = soap_error_number(oa->event_con);
                 g_mutex_unlock(oa->mutex);
+        }
 
         /* This loop ends when the OA is accessible */
         while (is_oa_accessible == SAHPI_FALSE) {
-                g_mutex_lock(oa->mutex);
-                error_code = soap_error_number(oa->event_con);
-                g_mutex_unlock(oa->mutex);
                 /* Check whether the failure is not due to OA event session
                  * expiry
                  */
-                if (error_code != ERR_EVENT_PIPE ||
+                if (error_code != SOAP_OK ||
+                    error_code != ERR_EVENT_PIPE ||
                     error_code != ERR_EVENT_DAEMON_KILLED) {
                         /* OA may not be reachable, try to establish the
                          * connection
@@ -296,11 +320,16 @@ void oa_soap_error_handling(struct oh_handler_state *oh_handler,
 
                 /* Create a fresh event session */
                 rv = create_event_session(oa);
-                if (rv != SA_OK)
+                if (rv != SA_OK) {
+                        /* Set the error code to  -1 to make sure
+                         * recovery for OA out of access is recovery is done 
+                         */
+                        error_code = -1;
                         continue;
+                }
 
                 /* Sleep for a second, let OA stabilize
-                 TODO: Remove this workaround, when OA has the fix
+                 * TODO: Remove this workaround, when OA has the fix
                  */
                 sleep(1);
 
@@ -322,6 +351,11 @@ void oa_soap_error_handling(struct oh_handler_state *oh_handler,
                                 is_oa_accessible = SAHPI_FALSE;
                                 err("Re-discovery failed for OA %s",
                                     oa->server);
+                                /* Set the error code to  -1 to make sure
+                                 * recovery for OA out of access is recovery
+                                 * is done 
+                                 */
+                                error_code = -1;
                         }
                 }
         }
@@ -353,6 +387,8 @@ void process_oa_out_of_access(struct oh_handler_state *oh_handler,
         gulong micro_seconds;
         gdouble time_elapsed = 0.0, timeout = 2.0;
         SaHpiBoolT is_oa_reachable = SAHPI_FALSE;
+        SaHpiBoolT is_oa_present = SAHPI_FALSE;
+        SaHpiBoolT oa_was_removed = SAHPI_FALSE;
         char *user_name = NULL, *password = NULL;
 
         if (oh_handler == NULL || oa == NULL) {
@@ -363,71 +399,115 @@ void process_oa_out_of_access(struct oh_handler_state *oh_handler,
         oa_handler = (struct oa_soap_handler *) oh_handler->data;
         /* Start a timer */
         timer = g_timer_new();
-        /* Check the OA accessiblility using the check_oa_status function.
-         * If the OA becomes accessible, OA SOAP client opens the fresh session.
-         *
-         * This loop ends after OA is accessible
-         */
+
+        /* This loop ends after OA is accessible */
         while (is_oa_reachable == SAHPI_FALSE) {
-                g_mutex_lock(oa->mutex);
-                /* If the OA status is not equal to ABSENT, then set
-                 * time_elapsed to MAX TIMEOUT so that check_oa_status call
-                 * will be made.  Else, call check_oa_status after reaching
-                 * 'timeout'.
+                /* Check whether the OA is present.
+                 * If not, wait till the OA is inserted
                  */
-                if (oa->oa_status != ABSENT) {
-                        time_elapsed = MAX_TIMEOUT;
-                } else {
-                        time_elapsed = g_timer_elapsed(timer,
-                                                       &micro_seconds);
+                is_oa_present = SAHPI_FALSE;
+                while (is_oa_present == SAHPI_FALSE) {
+                        g_mutex_lock(oa->mutex);
+                        if (oa->oa_status != OA_ABSENT) {
+                                g_mutex_unlock(oa->mutex);
+                                is_oa_present = SAHPI_TRUE;
+                                time_elapsed = 0.0;
+                        } else {
+                                g_mutex_unlock(oa->mutex);
+                                time_elapsed = g_timer_elapsed(timer,
+                                                               &micro_seconds);
+                                /* Break the loop on reaching timeout value */
+                                if (time_elapsed >= timeout) 
+                                        break;
+
+                                oa_was_removed = SAHPI_TRUE;
+                                /* OA is not present,
+                                 * wait for 5 seconds and check again
+                                 */
+                                sleep(5);
+                        }
                 }
-                g_mutex_unlock(oa->mutex);
 
-                /* Call check_oa_status on reaching timeout value */
-                if (time_elapsed >= timeout) {
-                       /* Check whether OA was present. If not, event_con will
-                        * be NULL
-                        */
-                       g_mutex_lock(oa->mutex);
-                       if (oa->event_con == NULL) {
-                               g_mutex_unlock(oa->mutex);
-                               /* Get the user_name and password from config
-                                * file
-                                */
-                               user_name = (char *)
-                                        g_hash_table_lookup(oh_handler->config,
-                                                            "OA_User_Name");
-                               password = (char *)
-                                        g_hash_table_lookup(oh_handler->config,
-                                                            "OA_Password");
-                               /* Create the OA connection */
-                               create_oa_connection(oa, user_name, password);
-                       } else
-                               g_mutex_unlock(oa->mutex);
+               /* The re-establishing oa connection on timeout for the extracted
+                * OA is done for handling the below scenario
+                *
+                * Say, Active OA is in slot 1 and standby OA is in slot 2.
+                * 1. Remove the active OA (slot 1) which results in
+                * switchover. OA in slot status is set to ABSENT. 
+                * 2. After sometime (atleast 10 mins) current Active OA (slot 2)
+                *    is extracted. At this stage, there is no OA in the
+                *    c-Class enclosure.
+                * 3. OA in slot 1 is inserted back.
+                * This leads to a hang situation as the event thread for slot 1
+                * is not aware of the OA insertion.
+                *
+                * But, if the OA in slot 1 is put into a different enclosure
+                * (with the same IP, user name and password)
+                * then OA SOAP plugin becomes unstable and may lead to crash.
+                */
+               if (time_elapsed >= timeout) {
+                        if (oa->event_con == NULL) {
+                                rv = initialize_oa_con(oa, user_name, password);
+                                if (rv != SA_OK) {
+                                        /* OA is not accessible.
+                                         * Restart the timer
+                                         */
+                                        g_timer_start(timer);
+                                        /* Double the timeout value until it
+                                         * reaches MAX_TIMEOUT
+                                         */
+                                        if (timeout < MAX_TIMEOUT) {
+                                                timeout = timeout * 2;
+                                                if (timeout > MAX_TIMEOUT)
+                                                        timeout = MAX_TIMEOUT;
+                                        }
+                                        continue;
+                                }
+                        }
+                        /* Since the OA connection is re-establised, change the
+                         * state of oa_was_removed to false
+                         */
+                       oa_was_removed = SAHPI_FALSE;
+                }
 
+                /* Check whether OA got removed and inserted back.
+                 * If yes, re-initialize the soap_con structures.
+                 * This creates soap_con structure with the
+                 * inserted OA IP address
+                 */
+                if (oa_was_removed == SAHPI_TRUE) {
+                        /* Get the user_name and password from config file */
+                        user_name = (char *)
+                                    g_hash_table_lookup(oh_handler->config,
+                                                        "OA_User_Name");
+                        password = (char *)
+                                   g_hash_table_lookup(oh_handler->config,
+                                                       "OA_Password");
+                        /* Create the OA connection */
+                        create_oa_connection(oa, user_name, password);
+                        is_oa_reachable = SAHPI_TRUE;
+                } else {
                         rv = check_oa_status(oa_handler, oa, oa->event_con);
                         if (rv == SA_OK) {
                                 is_oa_reachable = SAHPI_TRUE;
-                                continue;
+                        } else {
+                                /* Wait for 2 seconds and try again */
+                                sleep(2);
+                                /* OA is not accessible. Restart the timer */
+                                g_timer_start(timer);
+                                /* Double the timeout value until it reaches
+                                 * MAX_TIMEOUT
+                                 */
+                                if (time_elapsed >= timeout &&
+                                    timeout < MAX_TIMEOUT) {
+                                        timeout = timeout * 2;
+                                        if (timeout > MAX_TIMEOUT)
+                                                timeout = MAX_TIMEOUT;
+                                }
                         }
-
-                        /* OA is not accessible. Restart the timer */
-                        g_timer_start(timer);
-                        /* Double the timeout value untill it reaches
-                         * MAX_TIMEOUT
-                         */
-                        if (timeout < MAX_TIMEOUT) {
-                                timeout = timeout * 2;
-                                 if (timeout > MAX_TIMEOUT)
-                                        timeout = MAX_TIMEOUT;
-                      }
                 }
-                /* Wait for 2 seconds and try again */
-                sleep(2);
         }
 
-        /* Cleanup the timer */
-        g_timer_destroy(timer);
         return;
 }
 
