@@ -1045,19 +1045,31 @@ SaErrorT discover_oa(struct oh_handler_state *oh_handler)
                         continue;
                 }
 
-                /* Build rpt entry for OA */
-                rv = build_oa_rpt(oh_handler, i, &resource_id);
-                if (rv != SA_OK) {
-                        err("Failed to build OA RPT");
-                        return rv;
-                }
-
                 request.bayNumber = i;
                 rv = soap_getOaInfo(oa_handler->active_con, &request,
                                     &response);
                 if (rv != SOAP_OK) {
                         err("Get OA Info failed");
                         return SA_ERR_HPI_INTERNAL_ERROR;
+                }
+
+                /* If the OA is not yet stable, then getOaInfo response
+                 * structure will not have proper information. Abort the
+                 * discovery and let the OA to stabilize. The discovery will be
+                 * called by the openhpi framework after 3 minutes
+                 */
+                if (response.serialNumber == NULL) {
+                        err("OA %d is not yet stabilized", i);
+                        err("Discovery is aborted");
+                        err("Discovery will happen after 3 minutes");
+                        return SA_ERR_HPI_INTERNAL_ERROR;
+                }
+
+                /* Build rpt entry for OA */
+                rv = build_oa_rpt(oh_handler, i, &resource_id);
+                if (rv != SA_OK) {
+                        err("Failed to build OA RPT");
+                        return rv;
                 }
 
                 /* Copy the serial number of the OA to serial_number array
