@@ -77,6 +77,11 @@
  *
  *      create_event_session()          - Creates a event session with OA
  *
+ *      create_oa_connection()          - Create OA connection after closing the
+ *                                        earlier soap_con structures
+ *                                        
+ *      initialize_oa_con()             - Initialize the hpi_con and event_con
+ *      
  *      delete_all_inventory_info()     - Frees the memory allocated for
  *                                        inventory areas for all the resources
  *
@@ -823,7 +828,7 @@ SaErrorT check_discovery_failure(struct oh_handler_state *oh_handler)
                                          oa_handler->oa_1->hpi_con);
                 if (oa1_rv != SA_OK)
                         err("check oa_status has failed for - %s",
-                             oa_handler->oa_1->hpi_con->server);
+                             oa_handler->oa_1->server);
         }
 
         if (oa_handler->oa_2->hpi_con != NULL) {
@@ -832,7 +837,7 @@ SaErrorT check_discovery_failure(struct oh_handler_state *oh_handler)
                                          oa_handler->oa_2->hpi_con);
                 if (oa2_rv != SA_OK)
                         err("check oa_status has failed for OA - %s",
-                             oa_handler->oa_1->hpi_con->server);
+                             oa_handler->oa_2->server);
         }
 
         /* If the OA is reachable (check_oa_status call succeeded)
@@ -994,7 +999,7 @@ SaErrorT create_event_session(struct oa_info *oa)
  *
  * Purpose:
  *      Creates the connection with the OA
- *      This function will not return untill the connection is established
+ *      This function will not return until the connection is established
  *
  * Detailed Descrption: NA
  *
@@ -1005,81 +1010,119 @@ void create_oa_connection(struct oa_info *oa,
                           char *user_name,
                           char *password)
 {
-        SaErrorT rv;
-        SaHpiInt32T len = 0;
+        SaErrorT rv = SA_OK;
         SaHpiBoolT is_oa_present = SAHPI_FALSE;
         SaHpiBoolT is_oa_accessible = SAHPI_FALSE;
-        char url[MAX_URL_LEN];
 
         if (oa == NULL || user_name == NULL || password == NULL) {
                 err("Invalid parameters");
                 return;
         }
 
-        /* Check whether the OA IP address/Hostname is present
-         * If not, the OA is not present and wait till the OA is inserted
-         */
-         while (is_oa_present == SAHPI_FALSE) {
+        while (is_oa_accessible == SAHPI_FALSE) {
+                /* Check whether the OA is present.
+                 * If not, wait till the OA is inserted
+                 */
+                 is_oa_present = SAHPI_FALSE;
+                 while (is_oa_present == SAHPI_FALSE) {
+                        g_mutex_lock(oa->mutex);
+                        if (oa->oa_status != OA_ABSENT) {
+                                g_mutex_unlock(oa->mutex);
+                                is_oa_present = SAHPI_TRUE;
+                        } else {
+                                g_mutex_unlock(oa->mutex);
+                                /* OA is not present,
+                                 * wait for 5 seconds and check again
+                                 */
+                                sleep(5);
+                        }
+                }
+
                 g_mutex_lock(oa->mutex);
-                len = strlen(oa->server);
+                /* Close the soap_con strctures */
+                if (oa->hpi_con != NULL) {
+                        soap_close(oa->hpi_con);
+                        oa->hpi_con = NULL;
+                }
+                if (oa->event_con != NULL) {
+                        soap_close(oa->event_con);
+                        oa->event_con = NULL;
+                }
                 g_mutex_unlock(oa->mutex);
-                if (len > 0) {
-                        is_oa_present = SAHPI_TRUE;
-                } else {
-                        /* OA is not present,
+
+                rv = initialize_oa_con(oa, user_name, password);
+                if (rv != SA_OK) {
+                        /* OA may not be reachable
                          * wait for 2 seconds and check again
                          */
                         sleep(2);
+                        continue;
                 }
+
+                /* hpi_con and event_con successfully created */
+                is_oa_accessible = SAHPI_TRUE;
         }
 
+        return;
+}
+
+/**
+ * initialize_oa_con
+ *      @oa:        Pointer to the oa info structure
+ *      @user_name: Pointer the to the OA user name
+ *      @password:  Pointer the to the OA password
+ *
+ * Purpose:
+ *      Initializes the hpi_con and event_con
+ *
+ * Detailed Descrption: NA
+ *
+ * Return values:
+ *      SA_OK                     - on success.
+ *      SA_ERR_HPI_INVALID_PARAMS - on wrong parameters
+ *      SA_ERR_HPI_INTERNAL_ERROR - on failure
+ *      NONE
+ **/
+SaErrorT initialize_oa_con(struct oa_info *oa,
+                           char *user_name,
+                           char *password)
+{
+        char url[MAX_URL_LEN];
+
+        if (oa == NULL || user_name == NULL || password == NULL) {
+                err("Invalid parameters");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        g_mutex_lock(oa->mutex);
         memset(url, 0, MAX_URL_LEN);
         snprintf(url, strlen(oa->server) + strlen(PORT) + 1,
                  "%s" PORT, oa->server);
-        while (is_oa_accessible == SAHPI_FALSE) {
-                /* Try to create hpi_con connection */
-                g_mutex_lock(oa->mutex);
-                if (oa->hpi_con != NULL) {
-                        /* The SOAP_CON got initialized */
-                        g_mutex_unlock(oa->mutex);
-                        is_oa_accessible = SAHPI_TRUE;
-                        continue;
-                }
 
-                oa->hpi_con = soap_open(url, user_name, password,
-                                        HPI_CALL_TIMEOUT);
-                if (oa->hpi_con == NULL) {
-                        /* OA may not be reachable
-                         * wait for 2 seconds and check again
-                         */
-                        g_mutex_unlock(oa->mutex);
-                        sleep(2);
-                        continue;
-                }
-                /* Try to create event_con connection
-                 * Ideally, this call should not fail
-                 */
-                oa->event_con = soap_open(url, user_name, password,
-                                          EVENT_CALL_TIMEOUT);
-                if (oa->event_con == NULL) {
-                        /* OA may not be reachable
-                         * wait for 2 seconds and check again
-                         */
-                        g_mutex_unlock(oa->mutex);
-                        soap_close(oa->hpi_con);
-                        oa->hpi_con = NULL;
-                        sleep(2);
-                        continue;
-                }
-                /* hpi_con and event_con successfully created */
-                is_oa_accessible = SAHPI_TRUE;
+        oa->hpi_con = soap_open(url, user_name, password,
+                                HPI_CALL_TIMEOUT);
+        if (oa->hpi_con == NULL) {
+                /* OA may not be reachable */
                 g_mutex_unlock(oa->mutex);
+                return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-        if (oa->event_pid == 0)
-                rv = create_event_session(oa);
+        /* Try to create event_con connection
+         * Ideally, this call should not fail
+         */
+        oa->event_con = soap_open(url, user_name, password,
+                                  EVENT_CALL_TIMEOUT);
+        if (oa->event_con == NULL) {
+                /* OA may not be reachable */
+                g_mutex_unlock(oa->mutex);
+                soap_close(oa->hpi_con);
+                oa->hpi_con = NULL;
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
+        g_mutex_unlock(oa->mutex);
 
-        return;
+        return SA_OK;
+
 }
 
 /**

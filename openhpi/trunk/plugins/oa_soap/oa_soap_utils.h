@@ -88,6 +88,10 @@ void create_oa_connection(struct oa_info *oa,
                           char *user_name,
                           char *password);
 
+SaErrorT initialize_oa_con(struct oa_info *oa,
+                           char *user_name,
+                           char *password);
+
 SaErrorT delete_all_inventory_info(struct oh_handler_state *oh_handler);
 
 SaErrorT populate_event(struct oh_handler_state *oh_handler,

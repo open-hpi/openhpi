@@ -807,7 +807,7 @@ SaErrorT discover_enclosure(struct oh_handler_state *oh_handler)
         }
 
         /* SOAP call has been made while building the rpt, so the response
-	 * structure is not valid any more.  Get the information again.
+         * structure is not valid any more.  Get the information again.
          */
         rv = soap_getEnclosureInfo(oa_handler->active_con, &response);
         if (rv != SOAP_OK) {
@@ -1025,6 +1025,19 @@ SaErrorT discover_oa(struct oh_handler_state *oh_handler)
                 if ((status_response.oaRole == OA_ABSENT) ||
                     (status_response.oaRole == STANDBY &&
                      status_response.oaRedundancy == HPOA_FALSE)) {
+                        /* Update the OA status as absent */
+                        switch (i) {
+                                case 1:
+                                        oa_handler->oa_1->oa_status = OA_ABSENT;
+                                        break;
+                                case 2:
+                                        oa_handler->oa_2->oa_status = OA_ABSENT;
+                                        break;
+                                default:
+                                        err("Wrong OA slot number - %d", i);
+                                        return SA_ERR_HPI_INTERNAL_ERROR;
+                        }
+
                         /* If resource not present, continue checking for
                          * next bay
                          */
@@ -2331,7 +2344,7 @@ SaErrorT discover_power_supply(struct oh_handler_state *oh_handler)
                  * response structure is NULL. Consider the faulty power supply
                  *  unit as ABSENT
                  */
-                if(response.serialNumber == NULL)
+                if (response.serialNumber == NULL)
                         continue;
 
                 /* Copy the serial number of the power supply unit to

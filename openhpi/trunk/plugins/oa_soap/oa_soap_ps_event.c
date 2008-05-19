@@ -85,7 +85,7 @@ SaErrorT process_ps_insertion_event(struct oh_handler_state *oh_handler,
          * all the information in the response structure is NULL. Consider the
          * faulty power supply unit as ABSENT
          */
-        if(response.serialNumber == NULL) {
+        if (response.serialNumber == NULL) {
                 err("Inserted power supply unit may be faulty");
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
