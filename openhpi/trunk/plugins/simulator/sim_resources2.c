@@ -1935,7 +1935,7 @@ struct sim_dimi sim_chassis_dimis[] = {
     },
 };
 
-struct sim_fumi sim_fumi_info[] = {
+struct sim_fumi sim_chassis_fumis[] = {
     {
             .fumirec = {
                     .Num = 1,
@@ -1976,7 +1976,7 @@ struct sim_fumi sim_fumi_info[] = {
                     .AuxVersion = 0
             },
             
-            .binfo = {
+            .info = {
                     .BankId = 0,
                     .BankSize = 250,
                     .Position = 1,

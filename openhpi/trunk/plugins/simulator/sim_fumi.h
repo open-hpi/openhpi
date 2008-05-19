@@ -16,13 +16,21 @@
 #ifndef __SIM_FUMI_H
 #define __SIM_FUMI_H
 
+struct sim_fumi_info {
+        SaHpiFumiBankInfoT info;
+};
+
 struct sim_fumi {
+            int index;
         SaHpiFumiRecT fumirec;
         SaHpiFumiSourceInfoT srcinfo;
-        SaHpiFumiBankInfoT binfo;
+        SaHpiFumiBankInfoT info;
         const char *comment;
 };
 
-extern struct sim_fumi sim_fumi_info[];
+extern struct sim_fumi sim_chassis_fumis[];
+
+SaErrorT sim_discover_chassis_fumis(struct oh_handler_state *state,
+                                       struct oh_event *e);
     
 #endif
