@@ -434,18 +434,30 @@ SaErrorT add_oa(struct oh_handler_state *oh_handler,
                 g_mutex_unlock(temp->mutex);
         }
 
-        /* Build the rpt entry */
-        rv = build_oa_rpt(oh_handler, bay_number, &resource_id);
-        if (rv != SA_OK) {
-                err("Failed to build OA RPT");
-                return rv;
-        }
-
         request.bayNumber = bay_number;
         rv = soap_getOaInfo(con, &request, &response);
         if (rv != SOAP_OK) {
                 err("Get OA info failed");
                 return SA_ERR_HPI_INTERNAL_ERROR;
+        }
+
+        /* If the OA is not yet stable, then getOaInfo response
+         * structure will not have proper information. Abort the
+         * re-discovery and let the OA to stabilize. The re-discovery will be
+         * called again after some time which will allow OA to stabilize
+         */
+        if (response.serialNumber == NULL) {
+                err("OA %d is not yet stabilized", bay_number);
+                err("Re-discovery is aborted");
+                err("Re-discovery will happen after sometime");
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
+
+        /* Build the rpt entry */
+        rv = build_oa_rpt(oh_handler, bay_number, &resource_id);
+        if (rv != SA_OK) {
+                err("Failed to build OA RPT");
+                return rv;
         }
 
         /* Copy the serial number of the OA to serial_number array
