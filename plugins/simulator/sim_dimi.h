@@ -19,10 +19,11 @@
 
 struct sim_dimi_info {
         SaHpiDimiInfoT info;
+        SaHpiDimiTestT test;
 };
 
 struct sim_dimi {
-            int index;
+        int index;
         SaHpiDimiRecT dimirec;
         SaHpiDimiInfoT info;
         SaHpiDimiTestT test;
