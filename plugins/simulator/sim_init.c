@@ -119,8 +119,8 @@ SaErrorT sim_discover(void *hnd)
 		sim_discover_chassis_annunciators(inst, e);
 		sim_discover_chassis_watchdogs(inst, e);
 		sim_discover_chassis_inventory(inst, e);
-        sim_discover_chassis_dimis(inst,e); 
-        sim_discover_chassis_fumis(inst,e);
+		sim_discover_chassis_dimis(inst,e); 
+		sim_discover_chassis_fumis(inst,e);
 		sim_inject_event(inst, e);
 		e = NULL;
         } else err("Error discovering chassis");
