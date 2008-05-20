@@ -17,6 +17,7 @@
 #define __SIM_FUMI_H
 
 struct sim_fumi_info {
+        SaHpiFumiSourceInfoT srcinfo;
         SaHpiFumiBankInfoT info;
 };
 

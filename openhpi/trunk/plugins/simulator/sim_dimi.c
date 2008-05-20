@@ -21,7 +21,8 @@ static SaErrorT new_dimi(struct oh_handler_state *state,
                             struct sim_dimi *mydimi) {
         SaHpiRdrT *rdr = NULL;
         struct sim_dimi_info *info;
-	SaErrorT error = SA_OK;
+        SaErrorT error = SA_OK;
+        
         rdr = (SaHpiRdrT *)g_malloc0(sizeof(SaHpiRdrT));
         // Copy information from rdr array to res_rdr
         rdr->RdrType = SAHPI_DIMI_RDR;
@@ -29,6 +30,8 @@ static SaErrorT new_dimi(struct oh_handler_state *state,
                sizeof(SaHpiDimiRecT));
         oh_init_textbuffer(&rdr->IdString);
         oh_append_textbuffer(&rdr->IdString, mydimi->comment);
+        rdr->RecordId =
+                oh_get_rdr_uid(SAHPI_DIMI_RDR, rdr->RdrTypeUnion.DimiRec.DimiNum); 
         
         // get the entity path
         rdr->Entity = e->resource.ResourceEntity;
@@ -36,9 +39,11 @@ static SaErrorT new_dimi(struct oh_handler_state *state,
         //set up our private data
         info = (struct sim_dimi_info *)g_malloc(sizeof(struct sim_dimi_info));
         
+        memcpy(&info->info, &mydimi->info, sizeof(SaHpiDimiInfoT));
+        memcpy(&info->test, &mydimi->test, sizeof(SaHpiDimiTestT)); 
         
          /* everything ready so inject the rdr */
-	error = sim_inject_rdr(state, e, rdr, info);
+        error = sim_inject_rdr(state, e, rdr, info);
         if (error) {
                 g_free(rdr);
                 g_free(info);

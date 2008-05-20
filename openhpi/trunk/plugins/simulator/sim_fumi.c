@@ -21,7 +21,8 @@ static SaErrorT new_fumi(struct oh_handler_state *state,
                             struct sim_fumi *myfumi) {
         SaHpiRdrT *rdr = NULL;
         struct sim_fumi_info *info;
-	SaErrorT error = SA_OK;
+        SaErrorT error = SA_OK;
+        
         rdr = (SaHpiRdrT *)g_malloc0(sizeof(SaHpiRdrT));
         // Copy information from rdr array to res_rdr
         rdr->RdrType = SAHPI_FUMI_RDR;
@@ -29,13 +30,17 @@ static SaErrorT new_fumi(struct oh_handler_state *state,
                sizeof(SaHpiFumiRecT));
         oh_init_textbuffer(&rdr->IdString);
         oh_append_textbuffer(&rdr->IdString, myfumi->comment);
-        
+        rdr->RecordId =
+                oh_get_rdr_uid(SAHPI_FUMI_RDR, rdr->RdrTypeUnion.FumiRec.Num); 
         // get the entity path
         rdr->Entity = e->resource.ResourceEntity;
         
         //set up our private data
         info = (struct sim_fumi_info *)g_malloc(sizeof(struct sim_fumi_info));
-
+        
+        memcpy(&info->srcinfo, &myfumi->srcinfo, sizeof(SaHpiFumiSourceInfoT));
+        memcpy(&info->info, &myfumi->info, sizeof(SaHpiFumiBankInfoT)); 
+        
          /* everything ready so inject the rdr */
 	error = sim_inject_rdr(state, e, rdr, info);
         if (error) {
