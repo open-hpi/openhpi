@@ -42,7 +42,7 @@ static SaErrorT new_fumi(struct oh_handler_state *state,
         memcpy(&info->info, &myfumi->info, sizeof(SaHpiFumiBankInfoT)); 
         
          /* everything ready so inject the rdr */
-	error = sim_inject_rdr(state, e, rdr, info);
+        error = sim_inject_rdr(state, e, rdr, info);
         if (error) {
                 g_free(rdr);
                 g_free(info);
