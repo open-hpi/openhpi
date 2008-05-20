@@ -1929,9 +1929,9 @@ struct sim_dimi sim_chassis_dimis[] = {
                                         .ParamType = SAHPI_DIMITEST_PARAM_TYPE_BOOLEAN,
                                         .DefaultParam.parambool = SAHPI_TRUE
                                 }
-                        }
+                    }
             },
-             .comment = "Dimi 1 simulator",
+            .comment = "Dimi 1 simulator",
     },
 };
 
