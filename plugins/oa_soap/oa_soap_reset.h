@@ -35,6 +35,10 @@
 #ifndef _OA_SOAP_RESET_H
 #define _OA_SOAP_RESET_H
 
+/* Include files */
+#include "oa_soap_utils.h"
+#include "oa_soap_power.h"
+
 SaErrorT oa_soap_get_reset_state(void *oh_handler,
                                  SaHpiResourceIdT resource_id,
                                  SaHpiResetActionT *action);

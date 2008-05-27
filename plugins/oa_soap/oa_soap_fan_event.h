@@ -35,6 +35,9 @@
 #ifndef _OA_SOAP_FAN_EVENT_H
 #define _OA_SOAP_FAN_EVENT_H
 
+/* Include files */
+#include "oa_soap_re_discover.h"
+
 SaErrorT process_fan_insertion_event(struct oh_handler_state *oh_handler,
                                      SOAP_CON *con,
                                       struct eventInfo *oa_event);

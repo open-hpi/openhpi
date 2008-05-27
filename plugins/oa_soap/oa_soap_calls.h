@@ -32,6 +32,7 @@
  *     Bryan Sutula <Bryan.Sutula@hp.com>
  *     Raghavendra PG <raghavendra.pg@hp.com>
  *     Raghavendra MS <raghavendra.ms@hp.com>
+ *     Anand S <S.Anand@hp.com>
  */
 
 #ifndef _INC_OA_SOAP_CALLS_H_
@@ -157,6 +158,9 @@ typedef unsigned char byte;
                         "<hpoa:isValidSession>" \
                         "</hpoa:isValidSession>\n"
 
+#define GET_RACK_TOPOLOGY2 \
+                        "<hpoa:getRackTopology2>" \
+                        "</hpoa:getRackTopology2>\n"
 
 /* Enumerated types used for specific SOAP commands */
 OA_SOAP_ENUM(hpoa_boolean,
@@ -1735,7 +1739,7 @@ struct encLinkOa
 struct encLink2
 {
         int enclosureNumber;
-        char *productId;
+        int productId;
         int mfgId;
         char *enclosureUuid;
         char *enclosureSerialNumber;
@@ -2041,6 +2045,9 @@ int soap_getUserInfo(SOAP_CON *connection,
 
 int soap_isValidSession(SOAP_CON *connection);
 
+int soap_getRackTopology2(SOAP_CON *con,
+                          struct rackTopology2 *response);
+
 
 /* Function prototypes for OA SOAP helper functions */
 void    soap_getBladeCpuInfo(xmlNode *cpus, struct bladeCpuInfo *result);
@@ -2052,5 +2059,7 @@ void    soap_getPortEnabled(xmlNode *data, struct portEnabled *result);
 void    soap_getIpAddress(xmlNode *ips, char **result);
 void    soap_getEventInfo(xmlNode *events, struct eventInfo *result);
 
+void    soap_getEncLinkOa(xmlNode *data, struct encLinkOa *result);
+void    soap_getEncLink2(xmlNode *data, struct encLink2 *result);
 
 #endif  /* _INC_OASOAP_CALLS_H_ */

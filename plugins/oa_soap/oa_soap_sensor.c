@@ -137,7 +137,7 @@
  *
  */
 
-#include <oa_soap_plugin.h>
+#include "oa_soap_sensor.h"
 
 /**
  * oa_soap_get_sensor_reading
@@ -2614,13 +2614,7 @@ SaErrorT update_sensor_rdr(struct oh_handler_state *oh_handler,
         }
 
         handler = (struct oh_handler_state *) oh_handler;
-
         oa_handler = (struct oa_soap_handler *) handler->data;
-        if (oa_handler == NULL) {
-                err("oa_soap handler is NULL");
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
-
         location = rpt->ResourceEntity.Entry[0].EntityLocation;
         thermal_request.bayNumber = server_status_request.bayNumber = location;
         fan_request.bayNumber = power_supply_request.bayNumber = location;
@@ -2753,19 +2747,19 @@ SaErrorT update_sensor_rdr(struct oh_handler_state *oh_handler,
                         sensor_data->data.IsSupported = SAHPI_TRUE;
                         sensor_data->data.Type =
                                 SAHPI_SENSOR_READING_TYPE_FLOAT64;
-                        if (rdr_num == OA_SOAP_RES_SEN_IN_POWER_NUM){
+                        if (rdr_num == OA_SOAP_RES_SEN_IN_POWER_NUM) {
                                 sensor_data->data.Value.SensorFloat64 =
                                         ps_response.inputPowerVa;
                         }
-                        if (rdr_num == OA_SOAP_RES_SEN_OUT_POWER_NUM){
+                        if (rdr_num == OA_SOAP_RES_SEN_OUT_POWER_NUM) {
                                 sensor_data->data.Value.SensorFloat64 =
                                         ps_response.outputPower;
                         }
-                        if (rdr_num == OA_SOAP_RES_SEN_POWER_NUM){
+                        if (rdr_num == OA_SOAP_RES_SEN_POWER_NUM) {
                                 sensor_data->data.Value.SensorFloat64 =
                                         ps_response.powerConsumed;
                         }
-                        if (rdr_num == OA_SOAP_RES_SEN_POWER_CAPACITY_NUM){
+                        if (rdr_num == OA_SOAP_RES_SEN_POWER_CAPACITY_NUM) {
                                 sensor_data->data.Value.SensorFloat64 =
                                         ps_response.capacity;
                         }
@@ -2831,14 +2825,6 @@ SaErrorT update_ps_subsystem_sensor_rdr(struct oh_handler_state *oh_handler,
 
         handler = (struct oh_handler_state *) oh_handler;
         oa_handler = (struct oa_soap_handler *) handler->data;
-        if (oa_handler == NULL) {
-                err("oa_soap handler is NULL");
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
-
-        if (rv != SOAP_OK) {
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
 
         switch (rdr_num) {
                 case OA_SOAP_RES_SEN_IN_POWER_NUM :
@@ -2917,10 +2903,24 @@ SaErrorT generate_sensor_enable_event(void *oh_handler,
                 sensor_info->assert_mask;
         event.event.EventDataUnion.SensorEnableChangeEvent.DeassertEventMask =
                 sensor_info->deassert_mask;
-        event.event.EventDataUnion.SensorEnableChangeEvent.CurrentState =
-                sensor_info->current_state;
         event.rdrs = g_slist_append(event.rdrs,
                                     g_memdup(rdr, sizeof(SaHpiRdrT)));
+
+        event.event.EventDataUnion.SensorEnableChangeEvent.OptionalDataPresent =
+                 SAHPI_SEOD_CURRENT_STATE;
+
+        /* If the current state is SAHPI_ES_UPPER_CRIT then the current
+         * asserted event states are SAHPI_ES_UPPER_CRIT and
+         * SAHPI_ES_UPPER_MAJOR.
+         */
+        if (sensor_info->current_state == SAHPI_ES_UPPER_CRIT) {
+                event.event.EventDataUnion.SensorEnableChangeEvent.
+                        CurrentState = SAHPI_ES_UPPER_CRIT |
+                                       SAHPI_ES_UPPER_MAJOR;
+        } else {
+                event.event.EventDataUnion.SensorEnableChangeEvent.
+                        CurrentState = sensor_info->current_state;
+        }
 
         oh_evt_queue_push(handler->eventq, copy_oa_soap_event(&event));
         return SA_OK;
@@ -3049,8 +3049,17 @@ SaErrorT generate_sensor_assert_thermal_event(void *oh_handler,
          */
         event.event.EventDataUnion.SensorEvent.PreviousState =
                 sensor_info->previous_state;
-        event.event.EventDataUnion.SensorEvent.CurrentState =
-                sensor_info->current_state;
+        /* If the current state is SAHPI_ES_UPPER_CRIT the current asserted
+         * event states are SAHPI_ES_UPPER_CRIT and SAHPI_ES_UPPER_MAJOR
+         */
+        if (sensor_info->current_state == SAHPI_ES_UPPER_CRIT) {
+                event.event.EventDataUnion.SensorEvent.CurrentState =
+                        SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR;
+        } else {
+                event.event.EventDataUnion.SensorEvent.CurrentState =
+                        sensor_info->current_state;
+        }
+
         event.rdrs = g_slist_append(event.rdrs,
                                     g_memdup(rdr, sizeof(SaHpiRdrT)));
 
@@ -3183,12 +3192,20 @@ SaErrorT generate_sensor_deassert_thermal_event(void *oh_handler,
         }
 
         /* Update the event structure with previous and current state after
-         * a threshold has been crossed
+         * a threshold has been crossed.
+         * If the previous state is SAHPI_ES_UPPER_CRIT the previous asserted
+         * event states are SAHPI_ES_UPPER_CRIT and SAHPI_ES_UPPER_MAJOR
          */
-        event.event.EventDataUnion.SensorEvent.PreviousState =
-                sensor_info->previous_state;
+        if (sensor_info->previous_state == SAHPI_ES_UPPER_CRIT) {
+                event.event.EventDataUnion.SensorEvent.PreviousState =
+                        SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR;
+        } else {
+                event.event.EventDataUnion.SensorEvent.PreviousState =
+                        sensor_info->previous_state;
+        }
         event.event.EventDataUnion.SensorEvent.CurrentState =
                 sensor_info->current_state;
+
         event.rdrs = g_slist_append(event.rdrs,
                                     g_memdup(rdr, sizeof(SaHpiRdrT)));
 

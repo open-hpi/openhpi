@@ -29,6 +29,7 @@
 #include <glib.h>
 #include <errno.h>
 #include <getopt.h>
+#include <limits.h>
 #include "strmsock.h"
 
 extern "C"
@@ -321,8 +322,8 @@ int main (int argc, char *argv[])
 
 static bool morph2daemon(void)
 {
-        char pid_buf[256];
-        int pfile;
+        char pid_buf[SA_HPI_MAX_NAME_LENGTH];
+        int pid_fd;
 
 	if (signal(SIGPIPE, SIG_IGN) == SIG_ERR) {
 		return false;
@@ -332,36 +333,41 @@ static bool morph2daemon(void)
 		pid_t pid = fork();
 		if (pid < 0) {
 			return false;
-		}
-                // parent process
-		if (pid != 0) {
+		} else if (pid != 0) { // parent process
 			exit( 0 );
 		}
 
-        // become the session leader
+                // Become the session leader
 		setsid();
-        // second fork to become a real daemon
+                // Second fork to make sure we are detached from any
+                // controlling terminal.
 		pid = fork();
 		if (pid < 0) {
 			return false;
-		}
-
-        // parent process
-		if (pid != 0) {
+		} else if (pid != 0) { // parent process
 			exit(0);
 		}
 
-       	// create the pid file (overwrite of old pid file is ok)
+                // Rreate the pid file (overwrite of old pid file is ok)
         	unlink(pid_file);
-        	pfile = open(pid_file, O_WRONLY|O_CREAT, S_IRUSR|S_IWUSR|S_IRGRP);
-        	snprintf(pid_buf, sizeof(pid_buf), "%d\n", (int)getpid());
-        	write(pfile, pid_buf, strlen(pid_buf));
-        	close(pfile);
+        	pid_fd =
+                        open(pid_file, O_WRONLY|O_CREAT,
+                             S_IRUSR|S_IWUSR|S_IRGRP);
+        	snprintf(pid_buf, SA_HPI_MAX_NAME_LENGTH,
+                         "%d\n", (int)getpid());
+        	write(pid_fd, pid_buf, strlen(pid_buf));
+        	close(pid_fd);
 
-        // housekeeping
 		//chdir("/");
-		umask(0);
-		for(int i = 0; i < 1024; i++) {
+		umask(0); // Reset default file permissions
+                
+                // Close unneeded inherited file descriptors
+                // Keep stdout and stderr open if they already are.
+#ifdef NR_OPEN
+		for (int i = 3; i < NR_OPEN; i++) {
+#else
+                for (int i = 3; i < 1024; i++) {
+#endif
 			close(i);
 		}
 	}

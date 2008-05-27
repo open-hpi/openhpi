@@ -35,6 +35,9 @@
 #ifndef _OA_SOAP_SENSOR_H
 #define _OA_SOAP_SENSOR_H
 
+/* Include files */
+#include "oa_soap_utils.h"
+
 /* String for the sensor RDR */
 #define ENCLOSURE_THERMAL_STRING "Enclosure Temperature"
 #define OA_THERMAL_STRING "OA Temperature"

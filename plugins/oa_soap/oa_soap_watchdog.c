@@ -32,7 +32,7 @@
  *      Raghavendra M.S. <raghavendra.ms@hp.com>
  **/
 
-#include <oa_soap_plugin.h>
+#include "oa_soap_watchdog.h"
 
 /**
  * oa_soap_get_watchdog_info

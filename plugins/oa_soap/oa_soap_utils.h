@@ -36,6 +36,24 @@
 #ifndef _OA_SOAP_UTILS_H
 #define _OA_SOAP_UTILS_H
 
+/* Include files */
+#include <math.h>
+#include <ctype.h>
+
+#include "oa_soap_calls.h"
+#include "oa_soap.h"
+#include "oa_soap_inventory.h"
+
+/* OA takes around 90 seconds to stabilize */
+#define OA_STABILIZE_MAX_TIME 90
+
+/* Max timeout value for checking the availability of OA */
+#define MAX_TIMEOUT 300
+
+/* Error codes returned by OA on event session failure */
+#define ERR_EVENT_PIPE 201
+#define ERR_EVENT_DAEMON_KILLED 204
+
 /* Function prototypes */
 
 SaErrorT get_oa_soap_info(struct oh_handler_state *oh_handler);
@@ -47,9 +65,6 @@ void update_hotswap_event(struct oh_handler_state *oh_handler,
                           struct oh_event *event);
 
 struct oh_event *copy_oa_soap_event(struct oh_event *event);
-
-SaErrorT push_event_to_queue(struct oh_handler_state *oh_handler,
-                             struct oh_event *event);
 
 SaErrorT del_rdr_from_event(struct oh_event *event);
 
@@ -72,5 +87,32 @@ SaErrorT create_event_session(struct oa_info *oa);
 void create_oa_connection(struct oa_info *oa,
                           char *user_name,
                           char *password);
+
+SaErrorT initialize_oa_con(struct oa_info *oa,
+                           char *user_name,
+                           char *password);
+
+SaErrorT delete_all_inventory_info(struct oh_handler_state *oh_handler);
+
+SaErrorT populate_event(struct oh_handler_state *oh_handler,
+                        SaHpiResourceIdT resource_id,
+                        struct oh_event *event);
+
+SaErrorT push_discovered_resource_events(struct oh_handler_state *oh_handler);
+
+void cleanup_plugin_rptable(struct oh_handler_state *oh_handler);
+
+void release_oa_soap_resources(struct oa_soap_handler * oa_handler);
+
+SaHpiFloat64T get_oa_fw_version(struct oh_handler_state *oh_handler);
+
+SaErrorT update_oa_info(struct oh_handler_state *oh_handler,
+                        struct oaInfo *response,
+                        SaHpiResourceIdT resource_id);
+
+SaErrorT convert_lower_to_upper(char *src,
+                                SaHpiInt32T src_len,
+                                char *dest,
+                                SaHpiInt32T dest_len);
 
 #endif

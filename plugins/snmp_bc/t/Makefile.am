@@ -95,7 +95,7 @@ TESTS_ENVIRONMENT  = OPENHPI_CONF=$(srcdir)/openhpi.conf
 TESTS_ENVIRONMENT += OPENHPI_SIMTEST_FILE=$(srcdir)/sim_test_file
 #TESTS_ENVIRONMENT += OPENHPI_ERROR=YES
 #TESTS_ENVIRONMENT += OPENHPI_DEBUG=YES
-TESTS_ENVIRONMENT += LD_LIBRARY_PATH=$(top_srcdir)/src/.libs:$(top_srcdir)/utils/.libs:$(top_srcdir)/plugins/snmp/.libs:$(top_srcdir)/plugins/snmp_bc/t/.libs
+TESTS_ENVIRONMENT += LD_LIBRARY_PATH=$(top_srcdir)/src/.libs:$(top_srcdir)/ssl/.libs:$(top_srcdir)/utils/.libs:$(top_srcdir)/plugins/snmp/.libs:$(top_srcdir)/plugins/snmp_bc/t/.libs
 TESTS_ENVIRONMENT += OPENHPI_UID_MAP=$(shell pwd)/uid_map
 TESTS_ENVIRONMENT += OPENHPI_PATH=$(shell pwd)
 

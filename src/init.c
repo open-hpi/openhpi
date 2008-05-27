@@ -14,6 +14,7 @@
  *
  */
 
+#include <config.h>
 #include <oh_init.h>
 #include <oh_ssl.h>
 #include <oh_config.h>

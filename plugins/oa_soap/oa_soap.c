@@ -56,7 +56,13 @@
  *                                        from OA
  **/
 
-#include <oa_soap_plugin.h>
+#include "oa_soap.h"
+#include "oa_soap_utils.h"
+
+/* For maintaining the patch versions */
+static char const rcsid[] __attribute__ ((used)) =
+        "$Version: oa_soap plugin for openhpi-2.11.2, patch level 12. "
+        "Created on May 16, 2008 $";
 
 /**
  * build_oa_soap_custom_handler:
@@ -237,7 +243,7 @@ void *oa_soap_open(GHashTable *handler_config,
         handler->config = handler_config;
         handler->hid = handler_id;
         handler->eventq = eventq;
-        handler->rptcache = (RPTable *)g_malloc0(sizeof(RPTable));
+        handler->rptcache = (RPTable *) g_malloc0(sizeof(RPTable));
         if (handler->rptcache == NULL) {
                 g_free(handler);
                 err("Out of memory");
@@ -298,12 +304,20 @@ void oa_soap_close(void *oh_handler)
                 return;
         }
 
-        /* TODO: Release memory allocated for inventory structure by OA SOAP
-         * plugin and release the RPT and RDR
-         */
         handler = (struct oh_handler_state *) oh_handler;
         oa_handler = (struct oa_soap_handler *) handler->data;
 
+        /* Check whether oa_handler is initialized or not */
+        if (oa_handler == NULL)
+                return;
+
+        /* Cleanup the RPTable */
+        cleanup_plugin_rptable(oh_handler);
+
+        /* Release the resource presense and serial number array */
+        release_oa_soap_resources(oa_handler);
+
+        /* Release the mutex */
         if (oa_handler->mutex != NULL)
                 g_mutex_free(oa_handler->mutex);
         if (oa_handler->oa_1->mutex != NULL)
@@ -321,10 +335,13 @@ void oa_soap_close(void *oh_handler)
         if (oa_handler->oa_2->event_con != NULL)
                 soap_close(oa_handler->oa_2->hpi_con);
 
+        /* Release the oa info structure */
         if (oa_handler->oa_1 != NULL)
                 g_free(oa_handler->oa_1);
         if (oa_handler->oa_2 != NULL)
                 g_free(oa_handler->oa_2);
+
+        /* Release the oa handler structure */
         if (oa_handler != NULL)
                 g_free(oh_handler);
 
@@ -421,7 +438,7 @@ SaErrorT oa_soap_set_resource_severity(void *oh_handler,
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-        handler = (struct oh_handler_state *)oh_handler;
+        handler = (struct oh_handler_state *) oh_handler;
         rpt = oh_get_resource_by_id(handler->rptcache, resource_id);
         if (rpt == NULL) {
                 err("Not able to find the resource. Invalid resource id");
