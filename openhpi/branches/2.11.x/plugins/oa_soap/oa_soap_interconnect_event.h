@@ -35,6 +35,9 @@
 #ifndef _OA_SOAP_INTERCONNECT_EVENT_H
 #define _OA_SOAP_INTERCONNECT_EVENT_H
 
+/* Include files */
+#include "oa_soap_re_discover.h"
+
 SaErrorT process_interconnect_reset_event(struct oh_handler_state *oh_handler,
                                           struct eventInfo *oa_event);
 
@@ -56,7 +59,7 @@ SaErrorT process_interconnect_status_event(struct oh_handler_state *oh_handler,
 SaErrorT build_inserted_interconnect_rpt(struct oh_handler_state *oh_handler,
                                          char *name,
                                          SaHpiInt32T bay_number,
-                                         SaHpiRptEntryT *rpt);
+                                         SaHpiResourceIdT *resource_id);
 
 SaErrorT process_interconnect_thermal_event(struct oh_handler_state *oh_handler,
                                             struct eventInfo *oa_event);

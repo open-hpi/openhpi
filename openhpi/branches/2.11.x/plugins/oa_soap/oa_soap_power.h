@@ -35,6 +35,9 @@
 #ifndef _OA_SOAP_POWER_H
 #define _OA_SOAP_POWER_H
 
+/* Include files */
+#include "oa_soap_utils.h"
+
 #define HALF_SECOND 500000
 #define TIMEOUT 60
 #define SERVER_POWER_OFF_WAIT_PERIOD 5

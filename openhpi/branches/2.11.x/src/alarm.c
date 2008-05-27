@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2004-2006
+ * (C) Copyright IBM Corp. 2004-2008
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -335,7 +335,7 @@ SaHpiUint32T oh_count_alarms(struct oh_domain *d, SaHpiSeverityT sev)
 
 static void oh_detect_oem_event_alarm(struct oh_domain *d, SaHpiEventT *event)
 {
-        SaHpiAlarmT *a = NULL;
+        SaHpiAlarmT a;
         SaHpiStatusCondTypeT type = SAHPI_STATUS_COND_TYPE_OEM;
 
         if (!d || !event) return;
@@ -349,24 +349,24 @@ static void oh_detect_oem_event_alarm(struct oh_domain *d, SaHpiEventT *event)
         }
 
         /* Severity is "alarming". Add/Create OEM alarm */
-        a = oh_add_alarm(d, NULL, 0);
-        if (!a) goto done;
-        a->Severity = event->Severity;
-        a->AlarmCond.Type = SAHPI_STATUS_COND_TYPE_OEM;
-        oh_entity_path_lookup(event->Source, &a->AlarmCond.Entity);
-        a->AlarmCond.ResourceId = event->Source;
-        a->AlarmCond.Mid = event->EventDataUnion.OemEvent.MId;
-        memcpy(&a->AlarmCond.Data,
+        a.Severity = event->Severity;
+        a.AlarmCond.Type = type;
+        oh_entity_path_lookup(event->Source, &a.AlarmCond.Entity);
+        a.AlarmCond.ResourceId = event->Source;
+        a.AlarmCond.Mid = event->EventDataUnion.OemEvent.MId;
+        memcpy(&a.AlarmCond.Data,
                &event->EventDataUnion.OemEvent.OemEventData,
                sizeof(SaHpiTextBufferT));
-done:
-        return;
+        
+	oh_add_alarm(d, &a, 0);
+        
+	return;
 }
 
 static void oh_detect_resource_event_alarm(struct oh_domain *d, SaHpiEventT *event)
 {
         SaHpiStatusCondTypeT type = SAHPI_STATUS_COND_TYPE_RESOURCE;
-        SaHpiAlarmT *a = NULL;
+        SaHpiAlarmT a;
 
         if (!d || !event) return;
 
@@ -384,21 +384,20 @@ static void oh_detect_resource_event_alarm(struct oh_domain *d, SaHpiEventT *eve
         /* Failed resource.
            Add/Create resource alarm if severity is "alarming" */
         if (event->Severity <= SAHPI_MINOR) {
-                a = oh_add_alarm(d, NULL, 0);
-                if (!a) goto done;
-                a->Severity = event->Severity;
-                a->AlarmCond.Type = SAHPI_STATUS_COND_TYPE_RESOURCE;
-                oh_entity_path_lookup(event->Source, &a->AlarmCond.Entity);
-                a->AlarmCond.ResourceId = event->Source;
+                a.Severity = event->Severity;
+                a.AlarmCond.Type = type;
+                oh_entity_path_lookup(event->Source, &a.AlarmCond.Entity);
+                a.AlarmCond.ResourceId = event->Source;
+                oh_add_alarm(d, &a, 0);
         }
-done:
-        return;
+        
+	return;
 }
 
 static void oh_detect_sensor_event_alarm(struct oh_domain *d, SaHpiEventT *event)
 {
         SaHpiStatusCondTypeT type = SAHPI_STATUS_COND_TYPE_SENSOR;
-        SaHpiAlarmT *a = NULL;
+        SaHpiAlarmT a;
 
         if (!d || !event) return;
 
@@ -413,17 +412,16 @@ static void oh_detect_sensor_event_alarm(struct oh_domain *d, SaHpiEventT *event
                    event->EventDataUnion.SensorEvent.Assertion) {
                 /* Add sensor alarm to dat, since event is severe
                    enough and is asserted. */
-                a = oh_add_alarm(d, NULL, 0);
-                if (!a) goto done;
-                a->Severity = event->Severity;
-                a->AlarmCond.Type = SAHPI_STATUS_COND_TYPE_SENSOR;
-                oh_entity_path_lookup(event->Source, &a->AlarmCond.Entity);
-                a->AlarmCond.ResourceId = event->Source;
-                a->AlarmCond.SensorNum = event->EventDataUnion.SensorEvent.SensorNum;
-                a->AlarmCond.EventState = event->EventDataUnion.SensorEvent.EventState;
+                a.Severity = event->Severity;
+                a.AlarmCond.Type = type;
+                oh_entity_path_lookup(event->Source, &a.AlarmCond.Entity);
+                a.AlarmCond.ResourceId = event->Source;
+                a.AlarmCond.SensorNum = event->EventDataUnion.SensorEvent.SensorNum;
+                a.AlarmCond.EventState = event->EventDataUnion.SensorEvent.EventState;
+                oh_add_alarm(d, &a, 0);
         }
-done:
-        return;
+        
+	return;
 }
 
 static void oh_detect_sensor_enable_change_alarm(struct oh_domain *d,
@@ -487,7 +485,7 @@ static void oh_detect_hpi_alarm(struct oh_domain *d, SaHpiEventT *event)
 
 static void oh_detect_resource_alarm(struct oh_domain *d, SaHpiRptEntryT *res)
 {
-        SaHpiAlarmT *a = NULL;
+        SaHpiAlarmT a;
         SaHpiStatusCondTypeT type = SAHPI_STATUS_COND_TYPE_SENSOR;
 
         if (!d || !res) return;
@@ -498,17 +496,16 @@ static void oh_detect_resource_alarm(struct oh_domain *d, SaHpiRptEntryT *res)
                                 NULL, NULL, NULL, 1);
         } else if (res->ResourceSeverity <= SAHPI_MINOR && res->ResourceFailed) {
                 /* Otherwise, if sev is "alarming" and resource failed, create alarm. */
-                a = oh_add_alarm(d, NULL, 0);
-                if (!a) goto done;
-                a->Severity = res->ResourceSeverity;
-                a->AlarmCond.Type = SAHPI_STATUS_COND_TYPE_RESOURCE;
-                oh_entity_path_lookup(res->ResourceId, &a->AlarmCond.Entity);
-                a->AlarmCond.ResourceId = res->ResourceId;
-                a->AlarmCond.Mid = res->ResourceInfo.ManufacturerId;
-                memcpy(&a->AlarmCond.Data, &res->ResourceTag, sizeof(SaHpiTextBufferT));
+                a.Severity = res->ResourceSeverity;
+                a.AlarmCond.Type = SAHPI_STATUS_COND_TYPE_RESOURCE;
+                oh_entity_path_lookup(res->ResourceId, &a.AlarmCond.Entity);
+                a.AlarmCond.ResourceId = res->ResourceId;
+                a.AlarmCond.Mid = res->ResourceInfo.ManufacturerId;
+                memcpy(&a.AlarmCond.Data, &res->ResourceTag, sizeof(SaHpiTextBufferT));
+                oh_add_alarm(d, &a, 0);
         }
-done:
-        return;
+        
+	return;
 }
 
 /**
@@ -586,13 +583,13 @@ SaErrorT oh_detect_res_sev_alarm(SaHpiDomainIdT did,
 
 
 /**
- * oh_detect_sensor_alarm
+ * oh_detect_sensor_enable_alarm
  * @did: domain id
  * @rid: resource id
  * @num: sensor number
  * @enable: sensor enable flag
  *
- * This will detect if a sensor related alarm needs to be removed,
+ * This will detect if a sensor-enable related alarm needs to be removed,
  * and if so, will remove it accordingly.
  *
  * Return value: SA_OK on success

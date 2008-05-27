@@ -35,6 +35,10 @@
 #ifndef _OA_SOAP_SEL_H
 #define _OA_SOAP_SEL_H
 
+/* Include files */
+#include <SaHpi.h>
+#include <oh_error.h>
+
 SaErrorT oa_soap_get_sel_info(void *oh_handler,
                              SaHpiResourceIdT resource_id,
                              SaHpiEventLogInfoT *info);

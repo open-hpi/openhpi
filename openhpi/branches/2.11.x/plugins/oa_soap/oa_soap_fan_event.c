@@ -39,7 +39,7 @@
  *
  */
 
-#include <oa_soap_plugin.h>
+#include "oa_soap_fan_event.h"
 
 /**
  * process_fan_insertion_event
@@ -62,26 +62,19 @@ SaErrorT process_fan_insertion_event(struct oh_handler_state *oh_handler,
                                      struct eventInfo *oa_event)
 {
         SaErrorT rv = SA_OK;
-        SaHpiInt32T bay_number;
-        struct oa_soap_handler *oa_handler = NULL;
 
         if (oh_handler == NULL || con == NULL || oa_event == NULL) {
                 err("Invalid parameters");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-        oa_handler = (struct oa_soap_handler *) oh_handler->data;
-
-        bay_number = oa_event->eventData.fanInfo.bayNumber;
         rv = add_fan(oh_handler, con, &(oa_event->eventData.fanInfo));
         if (rv != SA_OK) {
                 err("Add fan failed");
                 return rv;
         }
 
-        oa_handler->oa_soap_resources.fan.presence[bay_number - 1] =
-                RES_PRESENT;
-        return rv;
+        return SA_OK;
 }
 
 /**
@@ -104,23 +97,17 @@ SaErrorT process_fan_extraction_event(struct oh_handler_state *oh_handler,
                                       struct eventInfo *oa_event)
 {
         SaErrorT rv = SA_OK;
-        SaHpiInt32T bay_number;
-        struct oa_soap_handler *oa_handler = NULL;
 
         if (oh_handler == NULL || oa_event == NULL) {
                 err("Invalid parameters");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-        oa_handler = (struct oa_soap_handler *) oh_handler->data;
-
-        bay_number = oa_event->eventData.fanInfo.bayNumber;
-        rv = remove_fan(oh_handler, bay_number);
+        rv = remove_fan(oh_handler, oa_event->eventData.fanInfo.bayNumber);
         if (rv != SA_OK) {
                 err("Remove fan failed");
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-        oa_handler->oa_soap_resources.fan.presence[bay_number - 1] = RES_ABSENT;
-        return rv;
+        return SA_OK;
 }

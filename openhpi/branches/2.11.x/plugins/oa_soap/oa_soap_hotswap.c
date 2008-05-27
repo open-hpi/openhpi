@@ -63,7 +63,7 @@
  *                                                Timeout period
  **/
 
-#include <oa_soap_plugin.h>
+#include "oa_soap_hotswap.h"
 
 /**
  * oa_soap_get_hotswap_state
@@ -104,7 +104,7 @@ SaErrorT oa_soap_get_hotswap_state(void *oh_handler,
         }
 
         if (! (rpt->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
-                err("Resource does not have SAHPI_CAPABILITY_MANAGED_HOTSWAP");
+                err("Resource does not have MANAGED_HOTSWAP capability");
                 return SA_ERR_HPI_CAPABILITY;
         }
 
@@ -263,7 +263,7 @@ SaErrorT oa_soap_request_hotswap_action(void *oh_handler,
 
         /* Check whether the resource has managed hotswap capability */
         if (! (rpt->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
-                err("Resource does not have SAHPI_CAPABILITY_MANAGED_HOTSWAP");
+                err("Resource does not have MANAGED_HOTSWAP capability");
                 return SA_ERR_HPI_CAPABILITY;
         }
 
@@ -320,7 +320,7 @@ SaErrorT oa_soap_request_hotswap_action(void *oh_handler,
                         err("Invalid parameter");
                         rv = SA_ERR_HPI_INVALID_PARAMS;
         }
-        return rv;
+        return SA_OK;
 }
 
 /**

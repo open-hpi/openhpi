@@ -46,6 +46,8 @@ if test "x$OH_SIZEOF_INT" != "x4"; then
 ])
 fi
 
+AM_CONDITIONAL(CROSS_COMPILATION, test x$cross_compiling = xyes)
+
 dnl Check for libraries
 have_uuid=no
 have_openipmi=no
@@ -119,7 +121,9 @@ AC_CHECK_LIB([uuid], [uuid_generate], [have_uuid=yes], [
 
 dnl ssl is used for md2/md5 authentification in ipmidirect
 dnl and for SSL-based communication in ilo2_ribcl and oa_soap
-AC_CHECK_LIB([ssl],[MD5_Init],[SSL_LIB=-lssl],[SSL_LIB=])
+AC_CHECK_LIB([crypto],[MD5_Init],[CRYPTO_LIB=-lcrypto],[CRYPTO_LIB=])
+AC_SUBST(CRYPTO_LIB)
+AC_CHECK_LIB([ssl],[SSL_library_init],[SSL_LIB=-lssl],[SSL_LIB=])
 AC_SUBST(SSL_LIB)
 AC_CHECK_HEADERS([openssl/md2.h openssl/md5.h openssl/bio.h openssl/ssl.h openssl/err.h],[have_openssl=yes],[have_openssl=no])
 
@@ -128,19 +132,6 @@ AC_CHECK_LIB([xml2],[xmlParseMemory],[XML2_LIB=-lxml2],[XML2_LIB=])
 AC_CHECK_HEADERS([libxml2/libxml/xmlexports.h],[XML2_INCLUDE="-I/usr/include/libxml2"],[XML2_INCLUDE])
 AC_SUBST(XML2_LIB)
 AC_SUBST(XML2_INCLUDE)
-
-dnl Extra goodies enablement stanzas
-
-AC_ARG_ENABLE([thread],
-    [  --enable-thread         make implementation thread-safe [[default=yes]]],
-    [if test "x$enableval" = "xyes"; then
-        THREAD_SAFE="yes"
-    fi],
-    [THREAD_SAFE="yes"])
-
-if test "x$THREAD_SAFE" = "xyes"; then
-        AC_DEFINE([HAVE_THREAD_SAFE], [1], [Define to 1 if you want thread-safe implementation])
-fi
 
 dnl Enable the marshal directory only when needed by
 dnl the deamon
@@ -312,14 +303,6 @@ AC_ARG_ENABLE([ipmidirect],
     [AC_SUBST(IPMIDIRECT,ipmidirect)])
 
 dnl    [AC_SUBST(IPMIDIRECT,ipmidirect)])
-
-dnl ipmidirect needs posix threads
-if test "x$IPMIDIRECT" = "xipmidirect"; then
-        if test "x$THREAD_SAFE" != "xyes" ; then
-                AC_MSG_ERROR("ipmidirect plugin needs thread support (--enable-thread) !")
-        fi
-fi
-
 
 OH_CHECK_RTAS
 
@@ -617,16 +600,13 @@ CFLAGS="$CFLAGS $CC_WARNINGS"
 
 dnl lastly, we add things if we are thread safe and have the openssl library
 dnl (this could probably happen earlier in this file)
-if test "x$THREAD_SAFE" = "xyes" ; then
-        CFLAGS="$CFLAGS -D_GNU_SOURCE -D_REENTRANT -fexceptions"
-        CXXFLAGS="$CXXFLAGS -D_GNU_SOURCE -D_REENTRANT -fexceptions"
-	if test "x$have_openssl" = "xyes"; then
-		SSLDIR=ssl
-		CFLAGS="$CFLAGS -DHAVE_OPENSSL"
-		CXXFLAGS="$CXXFLAGS -DHAVE_OPENSSL"
-	fi
+CFLAGS="$CFLAGS -D_GNU_SOURCE -D_REENTRANT -fexceptions"
+CXXFLAGS="$CXXFLAGS -D_GNU_SOURCE -D_REENTRANT -fexceptions"
+if test "x$have_openssl" = "xyes"; then
+	SSLDIR=ssl
+	AC_DEFINE([HAVE_OPENSSL],[1],[openssl library was found])
 fi
-AM_CONDITIONAL(HAVE_OPENSSL, test x$have_openssl = xyes && test x$THREAD_SAFE = xyes)
+AM_CONDITIONAL(HAVE_OPENSSL, test x$have_openssl = xyes)
 OH_SSL_INCLUDES="-I\$(top_srcdir)/ssl"
 AC_SUBST(OH_SSL_INCLUDES)
 
@@ -635,10 +615,7 @@ dnl replace common includes here
 AC_SUBST(OPENHPI_INCLUDES)
 
 dnl Set up libs that will be linked to
-LIBS="$LIBS $SSL_LIB $GLIB_LIBS -lm"
-if test "x$THREAD_SAFE" = "xyes" ; then
-        LIBS="$LIBS -lpthread"
-fi
+LIBS="$LIBS $SSL_LIB $GLIB_LIBS -lm -lpthread"
 
 AC_CHECK_PROG([found_docbook2html], [docbook2html], [yes])
 AC_ARG_ENABLE([docs],

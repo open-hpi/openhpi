@@ -32,65 +32,20 @@
  *      Raghavendra P.G. <raghavendra.pg@hp.com>
  */
 
-#ifndef _OA_SOAP_PLUGIN_H
-#define _OA_SOAP_PLUGIN_H
+#ifndef _OA_SOAP_LOAD_ID_H
+#define _OA_SOAP_LOAD_ID_H
 
-/* TODO: Check and remove the unneccessary system .h files */
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/time.h>
-#include <uuid/uuid.h>
-#include <signal.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <sys/select.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <errno.h>
-
-/* TODO: Check and remove the unneccessary SSL libs */
-#include <zlib.h>
-#include <openssl/opensslconf.h>
-#include <openssl/lhash.h>
-#include <openssl/crypto.h>
-#include <openssl/buffer.h>
-#include <openssl/e_os2.h>
-#include <openssl/ssl.h>
-#include <openssl/evp.h>
-#include <openssl/blowfish.h>
-#include <openssl/err.h>
-
+/* Include files */
 #include <SaHpi.h>
-#include <oh_handler.h>
-#include <oh_domain.h>
-#include <oh_utils.h>
 #include <oh_error.h>
 
-#include <oa_soap_calls.h>
-#include <oa_soap_callsupport.h>
-#include <oa_soap_ssl.h>
-#include <oa_soap.h>
-#include <oa_soap_power.h>
-#include <oa_soap_reset.h>
-#include <oa_soap_hotswap.h>
-#include <oa_soap_utils.h>
-#include <oa_soap_control.h>
-#include <oa_soap_inventory.h>
-#include <oa_soap_sensor.h>
-#include <oa_soap_discover.h>
-#include <oa_soap_re_discover.h>
-#include <oa_soap_oa_event.h>
-#include <oa_soap_ps_event.h>
-#include <oa_soap_fan_event.h>
-#include <oa_soap_server_event.h>
-#include <oa_soap_interconnect_event.h>
-#include <oa_soap_event.h>
-#include <oa_soap_sel.h>
-#include <oa_soap_watchdog.h>
-#include <oa_soap_annunciator.h>
+SaErrorT oa_soap_load_id_get(void *oh_handler,
+                             SaHpiResourceIdT resource_id,
+                             SaHpiLoadIdT load_id);
+
+SaErrorT oa_soap_load_id_set(void *oh_handler,
+                             SaHpiResourceIdT resource_id,
+                             SaHpiLoadIdT *load_id);
+
 
 #endif

@@ -35,6 +35,9 @@
 #ifndef _OA_SOAP_SERVER_EVENT_H
 #define _OA_SOAP_SERVER_EVENT_H
 
+/* Include files */
+#include "oa_soap_re_discover.h"
+
 SaErrorT process_server_power_off_event(struct oh_handler_state *oh_handler,
                                         struct oh_event *event);
 
@@ -58,8 +61,7 @@ SaErrorT process_server_thermal_event(struct oh_handler_state *oh_handler,
                                       struct eventInfo *oa_event);
 
 SaErrorT build_inserted_server_rpt(struct oh_handler_state *oh_handler,
-                                   char *name,
-                                   SaHpiInt32T bay_number,
+                                   struct bladeInfo *response,
                                    SaHpiRptEntryT *rpt);
 
 SaErrorT build_inserted_server_rdr(struct oh_handler_state *oh_handler,

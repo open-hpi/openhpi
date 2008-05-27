@@ -30,39 +30,62 @@
  *
  * Author(s)
  *      Raghavendra P.G. <raghavendra.pg@hp.com>
- */
+ **/
 
-#ifndef _OA_SOAP_OA_EVENT_H
-#define _OA_SOAP_OA_EVENT_H
+#include "oa_soap_load_id.h"
 
-/* Include files */
-#include "oa_soap_re_discover.h"
+/**
+ * oa_soap_load_id_get
+ *      @oh_handler:  Handler data pointer
+ *      @resource_id: Resource ID
+ *      @load_id:     Load Id
+ *
+ * Purpose:
+ *      Retrieves the load id
+ *
+ * Detailed Description: NA
+ *
+ * Return values:
+ *      SA_ERR_HPI_UNSUPPORTED_API - current oa_soap implementation does not
+ *                                   support this API
+ **/
+SaErrorT oa_soap_load_id_get(void *oh_handler,
+                             SaHpiResourceIdT resource_id,
+                             SaHpiLoadIdT load_id)
+{
+        err("oa_soap_load_id_get not implemented");
+        return SA_ERR_HPI_UNSUPPORTED_API;
+}
 
-SaErrorT process_oa_insertion_event(struct oh_handler_state *oh_handler,
-                                    SOAP_CON *con,
-                                    struct eventInfo *oa_event);
+/**
+ * oa_soap_load_id_set
+ *      @oh_handler:  Handler data pointer
+ *      @resource_id: Resource ID
+ *      @load_id:     Load Id
+ *
+ * Purpose:
+ *      Sets Load Id
+ *
+ * Detailed Description: NA
+ *
+ * Return values:
+ *      SA_ERR_HPI_UNSUPPORTED_API - current oa_soap implementation does not
+ *                                   support this API
+ **/
+SaErrorT oa_soap_load_id_set(void *oh_handler,
+                             SaHpiResourceIdT resource_id,
+                             SaHpiLoadIdT *load_id)
+{
+        err("oa_soap_load_id_set not implemented");
+        return SA_ERR_HPI_UNSUPPORTED_API;
+}
 
-SaErrorT process_oa_extraction_event(struct oh_handler_state *oh_handler,
-                                     struct eventInfo *oa_event);
+void * oh_load_id_get (void *,
+                       SaHpiResourceIdT,
+                       SaHpiLoadIdT)
+                __attribute__ ((weak, alias("oa_soap_load_id_get")));
 
-SaErrorT process_oa_failover_event(struct oh_handler_state *oh_handler,
-                                   struct oa_info *oa);
-
-SaErrorT process_oa_info_event(struct oh_handler_state *oh_handler,
-                               SOAP_CON *con,
-                               struct eventInfo *oa_event);
-
-SaErrorT add_oa_inv_area(struct oh_handler_state *oh_handler,
-                         struct oaInfo *info,
-                         SaHpiResourceIdT *resource_id);
-
-SaErrorT build_inserted_oa_rdr(struct oh_handler_state *oh_handler,
-                               SOAP_CON *con,
-                               SaHpiInt32T bay_number,
-                               SaHpiResourceIdT resource_id);
-
-SaErrorT build_inserted_oa_inv_rdr(struct oh_handler_state *oh_handler,
-                                   SaHpiInt32T bay_number,
-                                   SaHpiRdrT *rdr,
-                                   struct oa_soap_inventory **inventory);
-#endif
+void * oh_load_id_set (void *,
+                       SaHpiResourceIdT,
+                       SaHpiLoadIdT *)
+                __attribute__ ((weak, alias("oa_soap_load_id_set")));

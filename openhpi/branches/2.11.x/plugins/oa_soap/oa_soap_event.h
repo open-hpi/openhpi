@@ -35,18 +35,12 @@
 #ifndef _OA_SOAP_EVENT_H
 #define _OA_SOAP_EVENT_H
 
-/* OA takes around 90 seconds to stabilize */
-#define OA_STABILIZE_MAX_TIME 90
-
-/* Max timeout value for checking the availability of OA */
-#define MAX_TIMEOUT 300
-
-/* Error codes returned by OA on event session failure */
-#define ERR_EVENT_PIPE 201
-#define ERR_EVENT_DAEMON_KILLED 204
-
-#include <libxml/parser.h>
-#include <libxml/tree.h>
+/* Include files */
+#include "oa_soap_oa_event.h"
+#include "oa_soap_server_event.h"
+#include "oa_soap_interconnect_event.h"
+#include "oa_soap_fan_event.h"
+#include "oa_soap_ps_event.h"
 
 int oa_soap_get_event(void *oh_handler);
 

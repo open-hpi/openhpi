@@ -35,6 +35,10 @@
 #ifndef _OA_SOAP_CONTROL_H
 #define _OA_SOAP_CONTROL_H
 
+/* Include files */
+#include "oa_soap.h"
+#include "oa_soap_power.h"
+
 /* Tag for the control rdr */
 #define SERVER_CONTROL_STRING "Server Power Control"
 #define INTERCONNECT_CONTROL_STRING "Interconnect Power Control"

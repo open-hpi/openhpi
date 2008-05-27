@@ -38,6 +38,15 @@
 #ifndef _OA_SOAP_H
 #define _OA_SOAP_H
 
+/* Include files */
+#include <unistd.h>
+
+#include <SaHpi.h>
+#include <oh_handler.h>
+#include <oh_error.h>
+
+#include "oa_soap_calls.h"
+
 /* Definitions for the different RDR instrument ids */
 #define OA_SOAP_RES_INV_NUM                (SaHpiIdrIdT)     0x000
 #define OA_SOAP_RES_CNTRL_NUM              (SaHpiCtrlNumT)   0x001
@@ -72,6 +81,9 @@
 #define ERR_INVALID_PRIVILEGE_LEVEL 8
 #define ERR_STANDBY_MODE 139
 
+/* OA firmware version 2.20 */
+#define OA_2_20 2.20
+
 /* Enum for storing the status of the plugin */
 enum oa_soap_plugin_status {
         PRE_DISCOVERY = 0,
@@ -90,6 +102,7 @@ struct oa_info
         char server[MAX_URL_LEN];
         SOAP_CON *hpi_con;
         SOAP_CON *event_con;
+        SaHpiFloat64T fm_version;
 };
 
 enum resource_presence_status
@@ -103,6 +116,7 @@ struct resource_status
 {
         SaHpiInt32T max_bays;
         enum resource_presence_status *presence;
+        char **serial_number;
 };
 
 /* Resource presence matrix for all FRUs in HP BladeSystem c-Class */
@@ -137,6 +151,17 @@ struct event_handler
 struct oa_soap_hotswap_state {
         SaHpiHsStateT currentHsState;
 };
+
+/* This define is the IANA-assigned private enterprise number for
+ * Hewlett-Packard. A complete list of IANA numbers can be found at
+ * http://www.iana.org/assignments/enterprise-numbers
+ */
+#define HP_MANUFACTURING_ID 11
+
+/* This define is the IANA-assigned private enterprise number for Cisco Systems.
+ * The HP BladeSystem c-Class can have interconnect blades from Cisco Systems
+ */
+#define CISCO_MANUFACTURING_ID 9
 
 /* Function prototypes */
 
