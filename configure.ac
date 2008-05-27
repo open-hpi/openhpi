@@ -46,6 +46,8 @@ if test "x$OH_SIZEOF_INT" != "x4"; then
 ])
 fi
 
+AM_CONDITIONAL(CROSS_COMPILATION, test x$cross_compiling = xyes)
+
 dnl Check for libraries
 have_uuid=no
 have_openipmi=no
