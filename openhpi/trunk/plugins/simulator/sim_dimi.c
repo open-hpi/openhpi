@@ -58,7 +58,7 @@ SaErrorT sim_discover_chassis_dimis(struct oh_handler_state *state,
         int i = 0;
         int j = 0;
 
-        while (sim_chassis_dimis[i].index != 0) {
+        while (sim_chassis_dimis[i].dimirec.DimiNum != 0) {
                 rc = new_dimi(state, e, &sim_chassis_dimis[i]);
                 if (rc) {
                         err("Error %d returned when adding chassis dimi", rc);

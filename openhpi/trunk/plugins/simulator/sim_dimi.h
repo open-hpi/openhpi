@@ -23,7 +23,6 @@ struct sim_dimi_info {
 };
 
 struct sim_dimi {
-        int index;
         SaHpiDimiRecT dimirec;
         SaHpiDimiInfoT info;
         SaHpiDimiTestT test;
