@@ -21,8 +21,7 @@ struct sim_fumi_info {
         SaHpiFumiBankInfoT info;
 };
 
-struct sim_fumi {
-        int index;
+struct sim_fumi {  
         SaHpiFumiRecT fumirec;
         SaHpiFumiSourceInfoT srcinfo;
         SaHpiFumiBankInfoT info;
