@@ -54,7 +54,9 @@ struct sim_rpt sim_rpt_array[] = {
                                                 SAHPI_CAPABILITY_POWER |
                                                 SAHPI_CAPABILITY_RESET |
                                                 SAHPI_CAPABILITY_WATCHDOG |
-                                                SAHPI_CAPABILITY_CONTROL,
+                                                SAHPI_CAPABILITY_CONTROL |
+                                                SAHPI_CAPABILITY_DIMI |
+                                                SAHPI_CAPABILITY_FUMI,
                         .ResourceSeverity = SAHPI_CRITICAL,
 			.ResourceFailed = SAHPI_FALSE,
                 },
@@ -1933,6 +1935,8 @@ struct sim_dimi sim_chassis_dimis[] = {
             },
             .comment = "Dimi 1 simulator",
     },
+    
+    {} /* Terminate array with a null element */
 };
 
 struct sim_fumi sim_chassis_fumis[] = {
@@ -2004,5 +2008,7 @@ struct sim_fumi sim_chassis_fumis[] = {
                     .AuxVersion = 0
             },
             .comment = "Fumi 1 simulator",
-    }
+    },
+    
+    {} /* Terminate array with a null element */
 };
