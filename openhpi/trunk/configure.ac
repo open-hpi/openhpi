@@ -5,7 +5,7 @@ dnl   various hacks by Sean Dague <http://dague.net/sean> 4/23/03
 
 
 AC_PREREQ(2.57)
-AC_INIT(openhpi, 2.11.3)
+AC_INIT(openhpi, 2.11.4)
 AC_CONFIG_SRCDIR(openhpi.spec.in)
 AM_INIT_AUTOMAKE([1.8])
 
@@ -14,7 +14,16 @@ AH_TOP([#ifndef __OPENHPI_CONFIG_H
 #define __OPENHPI_CONFIG_H])
 AH_BOTTOM([#endif /* __OPENHPI_CONFIG_H */])
 
-HPI_LIB_VERSION=13:3:11
+#
+# (major version) = (first number) - (third number) 
+# (minor version) = (third number)
+# (patch version) = (second number)
+# example HPI_LIB_VERSION=13:4:11
+# major version: 2  = 13 - 11
+# minor version: 11 = 11
+# patch version: 4  = 4
+#
+HPI_LIB_VERSION=13:4:11
 HPI_PKG=$PACKAGE_NAME
 HPI_UTIL_PKG=${PACKAGE_NAME}utils
 HPI_CLIENT_PKG=${PACKAGE_NAME}client
