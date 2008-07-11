@@ -37,7 +37,7 @@
 
 /***************
  * This header file contains all of the iLO2 RIBCL internal data structure
- * defnitions. This file inteded to be included in all of the iLO2 RIBCL
+ * definitions. This file is intended to be included in all of the iLO2 RIBCL
  * source files.
 ***************/
 #include <sys/time.h>
@@ -49,6 +49,7 @@
 #include <oh_utils.h>
 #include <oh_error.h>
 #include <oh_handler.h>
+#include <oh_ssl.h>
 
 #include "ilo2_ribcl_cmnds.h"
 
@@ -376,9 +377,9 @@ typedef struct ilo2_ribcl_handler {
 #endif /* ILO2_RIBCL_SIMULATE_iLO2_RESPONSE */
 
 	/* SSL connection status */
-	void *ssl_ctx;
+	SSL_CTX *ssl_ctx;
 	/* SSL connection handler pointer */
-	void *ssl_handler;
+	BIO *ssl_handler;
 
 	/* Commands customized with the login and password for this system */
 	char *ribcl_xml_cmd[ IR_NUM_COMMANDS];
