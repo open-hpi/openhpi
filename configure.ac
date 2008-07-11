@@ -573,6 +573,7 @@ CC_WARNINGS="\
         -Wcast-qual \
         -Wcast-align \
         -Wno-strict-aliasing \
+	-fno-strict-aliasing \
         -Wno-unused-value \
         -Werror "
 
@@ -588,6 +589,7 @@ CXX_WARNINGS="\
         -Wwrite-strings \
         -Wredundant-decls \
         -Wno-strict-aliasing \
+	-fno-strict-aliasing \
         -Wno-unused-value \
         -Werror "
 
@@ -632,16 +634,20 @@ AC_ARG_ENABLE([docs],
     [if test "x$enableval" = "xyes"; then
         if test "x$found_docbook2html" = "xyes"; then
             AC_SUBST(HLD,hld)
+            AC_SUBST(WITH_DOCBOOK2HTML,1)
         else
            OH_CHECK_FAIL(docbook2html,docbook-utils,http://sources.redhat.com/docbook-tools, Can not generate HTML design docs without docbook2html)
 	fi
     else
         AC_SUBST(HLD,"")
+        AC_SUBST(WITH_DOCBOOK2HTML,0)
     fi],
     [if test "x$found_docbook2html" = "xyes"; then
-        AC_SUBST(HLD,hld)
+        AC_SUBST(HLD,hld)  
+        AC_SUBST(WITH_DOCBOOK2HTML,1)
     else
         AC_SUBST(HLD,"")
+        AC_SUBST(WITH_DOCBOOK2HTML,0)
     fi])
     
 AC_CHECK_PROG([found_pod2man], [pod2man], [yes])
