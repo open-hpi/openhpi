@@ -41,12 +41,6 @@
  * This file defines prototypes for the iLO2 RIBCL plug-in iLO2 SSL connection
  * management functions implemented in ilo2_ribcl_ssl.c
  */
-extern void *ilo2_ribcl_ssl_ctx_init(void);
-extern int ilo2_ribcl_ssl_ctx_free(void *);
-extern int ilo2_ribcl_ssl_read(void *, char *, int);
-extern int ilo2_ribcl_ssl_write(void *, char *, int);
-extern void *ilo2_ribcl_ssl_connect(char *, void *);
-extern int ilo2_ribcl_ssl_disconnect(void *);
 extern int ilo2_ribcl_ssl_send_command(ilo2_ribcl_handler_t *, char *,
 	char *, int);
 

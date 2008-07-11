@@ -40,6 +40,7 @@
 ***************/
 
 #include <ilo2_ribcl.h>
+#include <oh_ssl.h>
 #include <ilo2_ribcl_ssl.h>
 #include <ilo2_ribcl_xml.h>
 #include <ilo2_ribcl_discover.h>
@@ -253,7 +254,7 @@ void *ilo2_ribcl_open(GHashTable *handler_config,
 #endif /* ILO2_RIBCL_SIMULATE_iLO2_RESPONSE */
 
 	/* initialize SSL */
-	ilo2_ribcl_handler->ssl_ctx = ilo2_ribcl_ssl_ctx_init();
+	ilo2_ribcl_handler->ssl_ctx = oh_ssl_ctx_init();
 	if(ilo2_ribcl_handler->ssl_ctx == NULL) {
 		err("ilo2_ribcl_open(): failed to initialize ssl connection to %s",
 			ilo2_ribcl_handler->ilo2_hostport);
@@ -301,7 +302,7 @@ void ilo2_ribcl_close(void *handler)
 	}
 
 	/* Free SSL infrastructure */
-	ilo2_ribcl_ssl_ctx_free(ilo2_ribcl_handler->ssl_ctx);
+	oh_ssl_ctx_free(ilo2_ribcl_handler->ssl_ctx);
 
 	/* Free the RIBCL command strings in the ilo2_ribcl_handler */
 	ir_xml_free_cmdbufs( ilo2_ribcl_handler);
