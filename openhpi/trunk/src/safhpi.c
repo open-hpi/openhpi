@@ -2633,15 +2633,16 @@ SaErrorT SAHPI_API saHpiControlSet (
 	    
 		OH_CALL_ABI(h, get_control_state, SA_ERR_HPI_INVALID_CMD, rv,
         	    	    ResourceId, CtrlNum, &cur_mode, &cur_state);
-        	
-        	if (((cur_state.StateUnion.Digital == SAHPI_CTRL_STATE_PULSE_ON || cur_state.StateUnion.Digital == SAHPI_CTRL_STATE_ON) &&
+
+		if (CtrlMode != SAHPI_CTRL_MODE_AUTO) {		
+        		if (((cur_state.StateUnion.Digital == SAHPI_CTRL_STATE_PULSE_ON || cur_state.StateUnion.Digital == SAHPI_CTRL_STATE_ON) &&
         	     CtrlState->StateUnion.Digital == SAHPI_CTRL_STATE_PULSE_ON) ||
         	    ((cur_state.StateUnion.Digital == SAHPI_CTRL_STATE_PULSE_OFF || cur_state.StateUnion.Digital == SAHPI_CTRL_STATE_OFF) &&
         	     CtrlState->StateUnion.Digital == SAHPI_CTRL_STATE_PULSE_OFF)) {
-        		oh_release_handler(h);
-			return SA_ERR_HPI_INVALID_REQUEST;
-        	}
-		
+        			oh_release_handler(h);
+				return SA_ERR_HPI_INVALID_REQUEST;
+        		}
+		}
 	}
 	
         OH_CALL_ABI(h, set_control_state, SA_ERR_HPI_INVALID_CMD, rv,
