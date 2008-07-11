@@ -14,11 +14,11 @@
 %define with_sysfs @WITH_SYSFS@
 %define with_ilo2_ribcl @WITH_ILO2_RIBCL@
 %define with_oa_soap @WITH_OA_SOAP@
-
+%define with_docbook2html @WITH_DOCBOOK2HTML@
 
 Name: @HPI_PKG@
 Version: @VERSION@
-Release: 2
+Release: 1
 #
 Summary: Open implementation of the SAF Hardware Platform Interface
 #
@@ -37,6 +37,9 @@ BuildRequires: pkgconfig glib2-devel automake autoconf libtool net-snmp-devel gc
 BuildRequires: tcpd-devel
 %else
 BuildRequires: tcp_wrappers
+%endif
+%if 0%{?with_docbook2html}
+BuildRequires: docbook-utils
 %endif
 Requires: e2fsprogs-devel openssl-devel libstdc++-devel glib2-devel
 
@@ -189,13 +192,9 @@ using an XML-encoded SOAP interface.
 ###################################################
 %build
 ###################################################
-%ifarch ia64 x86_64
-./configure @ac_configure_args@ --sysconfdir=/etc --prefix=/usr --libdir=/usr/lib64 --with-varpath=/var/lib/%{name}
-%else
-./configure @ac_configure_args@ --sysconfdir=/etc --prefix=/usr --libdir=/usr/lib --with-varpath=/var/lib/%{name}
-%endif
+%configure @ac_configure_args@ --prefix=/usr --with-varpath=/var/lib/%{name}
+find . -type f -name "Makefile" | xargs -n1 sed -i -e 's/-D_FORTIFY_SOURCE=2//g;'
 %{__make}
-make -C docs/hld
 
 ###################################################
 %install
@@ -212,12 +211,12 @@ make DESTDIR=%{buildroot} install
 %defattr(-,root,root)
 %{_docdir}/README*
 %{_docdir}/COPYING
+%if 0%{?with_docbook2html}
 %{_docdir}/html/*.html
 %dir %{_docdir}/html/images
 %{_docdir}/html/images/*.png
 %{_docdir}/html/images/*.gif
-#%doc README README.daemon COPYING
-#%doc docs/hld/openhpi-manual
+%endif
 %dir %{_sysconfdir}/%{name}/
 %config(noreplace) %attr(0640,root,root) %{_sysconfdir}/%{name}/%{name}.conf
 %dir %{_libdir}/%{name}
