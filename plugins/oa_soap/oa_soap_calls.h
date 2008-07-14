@@ -162,6 +162,11 @@ typedef unsigned char byte;
                         "<hpoa:getRackTopology2>" \
                         "</hpoa:getRackTopology2>\n"
 
+#define GET_BLADE_MP_INFO \
+                        "<hpoa:getBladeMpInfo>" \
+                        "<hpoa:bayNumber>%d</hpoa:bayNumber>" \
+                        "</hpoa:getBladeMpInfo>\n"
+
 /* Enumerated types used for specific SOAP commands */
 OA_SOAP_ENUM(hpoa_boolean,
         HPOA_FALSE,
@@ -1005,6 +1010,11 @@ struct oaInfo
 };
 
 struct getOaInfo
+{
+        int bayNumber;
+};
+
+struct getBladeMpInfo
 {
         int bayNumber;
 };
@@ -1987,6 +1997,10 @@ int soap_getAllEvents(SOAP_CON *connection,
 int soap_getBladeInfo(SOAP_CON *connection,
                       struct getBladeInfo *request,
                       struct bladeInfo *response);
+
+int soap_getBladeMpInfo(SOAP_CON *connection,
+                        struct getBladeMpInfo *request,
+                        struct bladeMpInfo *response);
 
 int soap_getEnclosureInfo(SOAP_CON *connection,
                           struct enclosureInfo *response);

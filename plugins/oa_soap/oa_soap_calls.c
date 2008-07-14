@@ -123,6 +123,23 @@ static void     parse_bladeInfo(xmlNode *node, struct bladeInfo *response)
         response->productId = atoi(soap_tree_value(node, "productId"));
 }
 
+/* parse_bladeMpInfo - Parses a bladeMpInfo response structure */
+static void     parse_bladeMpInfo(xmlNode *node, struct bladeMpInfo *response)
+{
+        response->bayNumber = atoi(soap_tree_value(node, "bayNumber"));
+        response->ipAddress = soap_tree_value(node, "ipAddress");
+        response->macAddress = soap_tree_value(node, "macAddress");
+        response->dnsName = soap_tree_value(node, "dnsName");
+        response->modelName = soap_tree_value(node, "modelName");
+        response->fwVersion = soap_tree_value(node, "fwVersion");
+        response->remoteConsoleUrl = soap_tree_value(node, "remoteConsoleUrl");
+        response->webUrl = soap_tree_value(node, "webUrl");
+        response->ircUrl = soap_tree_value(node, "ircUrl");
+        response->loginUrl = soap_tree_value(node, "loginUrl");
+        response->ircFullUrl = soap_tree_value(node, "ircFullUrl");
+        response->remoteSerialUrl = soap_tree_value(node, "remoteSerialUrl");
+}
+
 /* parse_diagnosticChecks - Parses a diagnosticChecks response structure */
 static void     parse_diagnosticChecks(xmlNode *node,
                                        struct diagnosticChecks *response)
@@ -801,7 +818,11 @@ void    soap_getEventInfo(xmlNode *events, struct eventInfo *result)
                 return;
         }
 
-        /* BLADEMPINFO */
+        if ((node = soap_walk_tree(events, "bladeMpInfo"))) {
+                result->enum_eventInfo = BLADEMPINFO;
+                parse_bladeMpInfo(node, &(result->eventData.bladeMpInfo));
+                return;
+        }
 
         if ((node = soap_walk_tree(events, "bladeStatus"))) {
                 result->enum_eventInfo = BLADESTATUS;
@@ -1000,6 +1021,21 @@ int             soap_getBladeInfo(SOAP_CON *con,
         return(ret);
 }
 
+
+int             soap_getBladeMpInfo(SOAP_CON *con,
+                                    struct getBladeMpInfo *request,
+                                    struct bladeMpInfo *response)
+{
+        SOAP_PARM_CHECK
+        if (! (ret = soap_request(con, GET_BLADE_MP_INFO, request->bayNumber))) {
+                parse_bladeMpInfo(soap_walk_doc(con->doc,
+                                                "Body:"
+                                                "getBladeMpInfoResponse:"
+                                                "bladeMpInfo"),
+                                  response);
+        }
+        return(ret);
+}
 
 int soap_getEnclosureInfo(SOAP_CON *con,
                           struct enclosureInfo *response)
