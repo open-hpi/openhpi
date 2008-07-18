@@ -174,6 +174,7 @@ SaErrorT oh_get_connx(SaHpiSessionIdT csid, SaHpiSessionIdT *dsid, pcstrmsock *p
         pthread_t thread_id = pthread_self();
         struct oh_client_session *client_session = NULL;
         pcstrmsock connx = NULL;
+        SaErrorT ret = SA_OK;
 
 	if (!csid || !dsid || !pinst)
 		return SA_ERR_HPI_INVALID_PARAMS;
@@ -191,7 +192,7 @@ SaErrorT oh_get_connx(SaHpiSessionIdT csid, SaHpiSessionIdT *dsid, pcstrmsock *p
                                                         &thread_id);
 
                 if (!connx) {
-                        oh_create_connx(client_session->did, &connx);
+                        ret = oh_create_connx(client_session->did, &connx);
                         if (connx) {
                         	g_hash_table_insert(client_session->connxs, 
                                 		    g_memdup(&thread_id,
@@ -201,14 +202,19 @@ SaErrorT oh_get_connx(SaHpiSessionIdT csid, SaHpiSessionIdT *dsid, pcstrmsock *p
 				    " in conns table");
                         }
                 }
-
-
+                *dsid = client_session->dsid;
+                *pinst = connx;
         }
-        *pinst = connx;
-        *dsid = client_session->dsid;
         g_static_rec_mutex_unlock(&sessions_sem);        
 
-        return SA_OK;
+	if (client_session) {
+                if (connx)
+                        return SA_OK;
+                else 
+                        return ret;
+	}
+	else
+		return SA_ERR_HPI_INVALID_SESSION;
 }
 
 static void __delete_connx(gpointer data)
