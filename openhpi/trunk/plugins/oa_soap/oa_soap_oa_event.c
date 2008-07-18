@@ -564,9 +564,11 @@ SaErrorT add_oa_inv_area(struct oh_handler_state *oh_handler,
         SaHpiEntityPathT root_entity_path, entity_path;
         SaHpiRptEntryT *rpt = NULL;
         SaHpiRdrT *rdr = NULL;
+        SaHpiIdrFieldT hpi_field;
         struct oa_soap_inventory *inventory = NULL;
         struct oa_soap_area *head_area = NULL;
         SaHpiInt32T add_success_flag = 0, area_count = 0;
+        SaHpiInt32T product_area_success_flag = 0;
         char *entity_root = NULL;
 
         if (oh_handler == NULL || info == NULL || resource_id == NULL) {
@@ -639,6 +641,7 @@ SaErrorT add_oa_inv_area(struct oh_handler_state *oh_handler,
                 return rv;
         }
         if (add_success_flag != SAHPI_FALSE) {
+                product_area_success_flag = SAHPI_TRUE;
                 (inventory->info.idr_info.NumAreas)++;
                 if (area_count == 0) {
                         head_area = inventory->info.area_list;
@@ -665,6 +668,36 @@ SaErrorT add_oa_inv_area(struct oh_handler_state *oh_handler,
 
         inventory->info.area_list = head_area;
         *resource_id = rpt->ResourceId;
+
+        /* Adding the product version in IDR product area.  It is added at
+         * the end of the field list.
+         */
+         if (product_area_success_flag == SAHPI_TRUE) {
+                /* Add the product version field if the firmware info
+                 * is available
+                 */
+                if (info->fwVersion != NULL) {
+                        memset(&hpi_field, 0, sizeof(SaHpiIdrFieldT));
+                        hpi_field.AreaId = inventory->info.area_list->
+                                           idr_area_head.AreaId;
+                        hpi_field.Type = SAHPI_IDR_FIELDTYPE_PRODUCT_VERSION;
+                        strcpy ((char *)hpi_field.Field.Data,
+                                info->fwVersion);
+
+                        rv = idr_field_add(&(inventory->info.area_list
+                                           ->field_list),
+                                           &hpi_field);
+                        if (rv != SA_OK) {
+                                err("Add idr field failed");
+                                return rv;
+                        }
+
+                        /* Increment the field counter */
+                        inventory->info.area_list->idr_area_head.
+                        NumFields++;
+                }
+        }
+        
         return SA_OK;
 }
 
@@ -743,7 +776,7 @@ SaErrorT build_inserted_oa_rdr(struct oh_handler_state *oh_handler,
 }
 
 /**
- * build_oa_inv_rdr:
+ * build_inserted_oa_inv_rdr:
  *      @oh_handler: Handler data pointer.
  *      @bay_number: Bay number of the inserted OA.
  *      @rdr:        Rdr Structure for inventory data.

@@ -179,7 +179,8 @@ SaErrorT build_power_inv_rdr(struct oh_handler_state *oh_handler,
                              SaHpiRdrT *rdr,
                              struct oa_soap_inventory **pinv);
 
-SaErrorT build_server_inventory_area(struct bladeInfo *response,
+SaErrorT build_server_inventory_area(SOAP_CON *con,
+                                     struct bladeInfo *response,
                                      SaHpiRdrT *rdr,
                                      struct oa_soap_inventory **inventory);
 
