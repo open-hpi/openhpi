@@ -137,21 +137,24 @@ SaErrorT oa_soap_get_hotswap_state(void *oh_handler,
  * Purpose:
  *      Sets the hotswap state of the resource
  *
- * Detailed Description: NA
+ * Detailed Description:
+ *      Currently, the OA plug-in does not stay in the InsertionPending or
+ *      ExtractionPending states.  Because of this, the ActiveSet() and
+ *      InactiveSet() will always be an invalid request, as per the HPI
+ *      specification.
  *
- * Return values:
- *      SA_OK                       - on success.
- *      SA_ERR_HPI_INVALID_PARAMS   - on wrong parameters
- *      SA_ERR_HPI_INVALID_RESOURCE - on invalid resource id
- *      SA_ERR_HPI_CAPABILITY       - on not having hotswap capability
- *      SA_ERR_HPI_INTERNAL_ERROR   - on failure.
+ *      As it turns out, the current infrastructure code does not even call
+ *      this plug-in routine.  However, if it's ever called, we need to be
+ *      returning the correct values.
+ *
+ * Return value:
+ *      SA_ERR_HPI_INVALID_REQUEST  - We're not in one of the pending states
  **/
 SaErrorT oa_soap_set_hotswap_state(void *oh_handler,
                                    SaHpiResourceIdT resource_id,
                                    SaHpiHsStateT state)
 {
-        err("oa_soap_set_hotswap_state not supported");
-        return SA_ERR_HPI_UNSUPPORTED_API;
+        return SA_ERR_HPI_INVALID_REQUEST;
 }
 
 
@@ -332,21 +335,23 @@ SaErrorT oa_soap_request_hotswap_action(void *oh_handler,
  * Purpose:
  *      Requests hotswap policy cancel
  *
- * Detailed Description: NA
+ * Detailed Description:
+ *      Currently, the OA plug-in does not stay in the InsertionPending or
+ *      ExtractionPending states.  Because of this, the policy_cancel request
+ *      will always be an invalid request, as per the HPI specification.
  *
- * Return values:
- *      SA_OK                       - on success.
- *      SA_ERR_HPI_INVALID_PARAMS   - on wrong parameters
- *      SA_ERR_HPI_INVALID_RESOURCE - on invalid resource id
- *      SA_ERR_HPI_CAPABILITY       - on not having hotswap capability
- *      SA_ERR_HPI_INTERNAL_ERROR   - on failure.
+ *      As it turns out, the current infrastructure code does not even call
+ *      this plug-in routine.  However, if it's ever called, we need to be
+ *      returning the correct values.
+ *
+ * Return value:
+ *      SA_ERR_HPI_INVALID_REQUEST  - We're not in one of the pending states
  **/
 SaErrorT oa_soap_hotswap_policy_cancel(void *oh_handler,
                                        SaHpiResourceIdT resource_id,
                                        SaHpiTimeoutT timeout)
 {
-        err("oa_soap_hotswap_policy_cancel is not supported");
-        return SA_ERR_HPI_UNSUPPORTED_API;
+        return SA_ERR_HPI_INVALID_REQUEST;
 }
 
 /**
