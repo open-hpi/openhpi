@@ -226,7 +226,7 @@ int main (int argc, char *argv[])
                 exit(1);
         }
         snprintf(pid_buf, sizeof(pid_buf), "%d\n", (int)getpid());
-        write(pfile, pid_buf, strlen(pid_buf));
+        len = write(pfile, pid_buf, strlen(pid_buf));
         close(pfile);
 
         // see if we have a valid configuration file
@@ -324,6 +324,7 @@ static bool morph2daemon(void)
 {
         char pid_buf[SA_HPI_MAX_NAME_LENGTH];
         int pid_fd;
+	int ret;
 
 	if (signal(SIGPIPE, SIG_IGN) == SIG_ERR) {
 		return false;
@@ -355,7 +356,7 @@ static bool morph2daemon(void)
                              S_IRUSR|S_IWUSR|S_IRGRP);
         	snprintf(pid_buf, SA_HPI_MAX_NAME_LENGTH,
                          "%d\n", (int)getpid());
-        	write(pid_fd, pid_buf, strlen(pid_buf));
+        	ret = write(pid_fd, pid_buf, strlen(pid_buf));
         	close(pid_fd);
 
 		//chdir("/");
