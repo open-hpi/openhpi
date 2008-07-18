@@ -1271,11 +1271,13 @@ SaErrorT build_enclosure_inv_rdr(struct oh_handler_state *oh_handler,
 {
         SaErrorT rv = SA_OK;
         SaHpiEntityPathT entity_path;
+        SaHpiIdrFieldT hpi_field;
         char *entity_root = NULL;
         char enclosure_inv_str[] = ENCLOSURE_INVENTORY_STRING;
         struct oa_soap_inventory *local_inventory = NULL;
         struct oa_soap_area *head_area = NULL;
         SaHpiInt32T add_success_flag = 0;
+        SaHpiInt32T product_area_success_flag = 0;
         SaHpiInt32T area_count = 0;
 
         if (oh_handler == NULL || response == NULL || rdr == NULL ||
@@ -1347,6 +1349,7 @@ SaErrorT build_enclosure_inv_rdr(struct oh_handler_state *oh_handler,
          * area pointer stored as the head node for area list
          */
         if (add_success_flag != SAHPI_FALSE) {
+                product_area_success_flag = SAHPI_TRUE;
                 (local_inventory->info.idr_info.NumAreas)++;
                 if (area_count == 0) {
                         head_area = local_inventory->info.area_list;
@@ -1395,6 +1398,35 @@ SaErrorT build_enclosure_inv_rdr(struct oh_handler_state *oh_handler,
         }
         local_inventory->info.area_list = head_area;
         *inventory = local_inventory;
+
+        /* Adding the product version in IDR product area.  It is added at
+         * the end of the field list.
+         */
+         if (product_area_success_flag == SAHPI_TRUE) {
+                /* Add the product version field if the enclosure hardware info
+                 * is available 
+                 */
+                if (response->hwVersion != NULL) {
+                        memset(&hpi_field, 0, sizeof(SaHpiIdrFieldT));
+                        hpi_field.AreaId = local_inventory->info.area_list->
+                                           idr_area_head.AreaId;
+                        hpi_field.Type = SAHPI_IDR_FIELDTYPE_PRODUCT_VERSION;
+                        strcpy ((char *)hpi_field.Field.Data, 
+                                response->hwVersion);
+
+                        rv = idr_field_add(&(local_inventory->info.area_list
+                                           ->field_list),
+                                           &hpi_field);
+                        if (rv != SA_OK) {
+                                err("Add idr field failed");
+                                return rv;
+                        }
+
+                        /* Increment the field counter */
+                        local_inventory->info.area_list->idr_area_head.
+                        NumFields++;
+                }
+        }
         return SA_OK;
 }
 
@@ -1427,11 +1459,13 @@ SaErrorT build_oa_inv_rdr(struct oh_handler_state *oh_handler,
 {
         SaErrorT rv = SA_OK;
         SaHpiEntityPathT entity_path;
+        SaHpiIdrFieldT hpi_field;
         char *entity_root = NULL;
         char oa_inv_str[] = OA_INVENTORY_STRING;
         struct oa_soap_inventory *local_inventory = NULL;
         struct oa_soap_area *head_area = NULL;
         SaHpiInt32T add_success_flag = 0;
+        SaHpiInt32T product_area_success_flag = 0;
         SaHpiInt32T area_count = 0;
 
         if (oh_handler == NULL || response == NULL || rdr == NULL ||
@@ -1504,6 +1538,7 @@ SaErrorT build_oa_inv_rdr(struct oh_handler_state *oh_handler,
          * area pointer stored as the head node for area list
          */
         if (add_success_flag != SAHPI_FALSE) {
+                product_area_success_flag = SAHPI_TRUE;
                 (local_inventory->info.idr_info.NumAreas)++;
                 if (area_count == 0) {
                         head_area = local_inventory->info.area_list;
@@ -1532,6 +1567,35 @@ SaErrorT build_oa_inv_rdr(struct oh_handler_state *oh_handler,
 
         local_inventory->info.area_list = head_area;
         *inventory = local_inventory;
+
+        /* Adding the product version in IDR product area.  It is added at
+         * the end of the field list.
+         */
+         if (product_area_success_flag == SAHPI_TRUE) {
+                /* Add the product version field if the firmware info 
+                 * is available 
+                 */
+                if (response->fwVersion != NULL) {
+                        memset(&hpi_field, 0, sizeof(SaHpiIdrFieldT));
+                        hpi_field.AreaId = local_inventory->info.area_list->
+                                           idr_area_head.AreaId;
+                        hpi_field.Type = SAHPI_IDR_FIELDTYPE_PRODUCT_VERSION;
+                        strcpy ((char *)hpi_field.Field.Data, 
+                                response->fwVersion);
+
+                        rv = idr_field_add(&(local_inventory->info.area_list
+                                           ->field_list),
+                                           &hpi_field);
+                        if (rv != SA_OK) {
+                                err("Add idr field failed");
+                                return rv;
+                        }
+
+                        /* Increment the field counter */
+                        local_inventory->info.area_list->idr_area_head.
+                        NumFields++;
+                }
+        }
         return SA_OK;
 }
 
@@ -1834,6 +1898,7 @@ SaErrorT build_inserted_server_inv_rdr(struct oh_handler_state *oh_handler,
 
 /**
  * build_server_inventory_area
+ *      @con: Pointer to the SOAP_CON
  *      @response: Handler data pointer
  *      @rdr: Rdr Structure for inventory data
  *      @inventory: Rdr private data structure
@@ -1864,15 +1929,20 @@ SaErrorT build_inserted_server_inv_rdr(struct oh_handler_state *oh_handler,
  *                                  error
  *      SA_ERR_HPI_OUT_OF_MEMORY - Request failed due to insufficient memory
  **/
-SaErrorT build_server_inventory_area(struct bladeInfo *response,
+SaErrorT build_server_inventory_area(SOAP_CON *con,
+                                     struct bladeInfo *response,
                                      SaHpiRdrT *rdr,
                                      struct oa_soap_inventory **inventory)
 {
         SaErrorT rv = SA_OK;
+        SaHpiIdrFieldT hpi_field;
         struct oa_soap_inventory *local_inventory = *inventory;
         struct oa_soap_area *head_area = NULL;
+        SaHpiInt32T product_area_success_flag = 0;
         SaHpiInt32T add_success_flag = 0;
         SaHpiInt32T area_count = 0;
+        struct getBladeMpInfo blade_mp_request;
+        struct bladeMpInfo blade_mp_response;
 
         if (response == NULL || rdr == NULL || inventory == NULL) {
                 err("Invalid parameter.");
@@ -1896,6 +1966,7 @@ SaErrorT build_server_inventory_area(struct bladeInfo *response,
          * area pointer stored as the head node for area list
          */
         if (add_success_flag != SAHPI_FALSE) {
+                product_area_success_flag = SAHPI_TRUE;
                 (local_inventory->info.idr_info.NumAreas)++;
                 if (area_count == 0) {
                         head_area = local_inventory->info.area_list;
@@ -1924,6 +1995,46 @@ SaErrorT build_server_inventory_area(struct bladeInfo *response,
 
         local_inventory->info.area_list = head_area;
         *inventory = local_inventory;
+
+        /* Adding the product version in IDR product area.  It is added at
+         * the end of the field list.
+         */
+         if (product_area_success_flag == SAHPI_TRUE) {
+                /* Making getBladeMpInfo soap call for getting the
+                 * product version
+                 */
+                blade_mp_request.bayNumber = response->bayNumber;
+                rv = soap_getBladeMpInfo(con,
+                               &blade_mp_request, &blade_mp_response);
+                if (rv != SOAP_OK) {
+                        err("Get blade mp info failed");
+                        return rv;
+                }
+               
+                /* Add the product version field if the firmware info 
+                 * is available 
+                 */
+                if (blade_mp_response.fwVersion != NULL) {
+                        memset(&hpi_field, 0, sizeof(SaHpiIdrFieldT));
+                        hpi_field.AreaId = local_inventory->info.area_list->
+                                           idr_area_head.AreaId;
+                        hpi_field.Type = SAHPI_IDR_FIELDTYPE_PRODUCT_VERSION;
+                        strcpy ((char *)hpi_field.Field.Data, 
+                                blade_mp_response.fwVersion);
+
+                        rv = idr_field_add(&(local_inventory->info.area_list
+                                           ->field_list),
+                                           &hpi_field);
+                        if (rv != SA_OK) {
+                                err("Add idr field failed");
+                                return rv;
+                        }
+
+                        /* Increment the field counter */
+                        local_inventory->info.area_list->idr_area_head.
+                        NumFields++;
+                }
+        }
         return SA_OK;
 }
 

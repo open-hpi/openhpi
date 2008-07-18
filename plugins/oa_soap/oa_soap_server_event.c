@@ -244,7 +244,7 @@ SaErrorT process_server_power_on_event(struct oh_handler_state *oh_handler,
                         }
 
                         /* Build the complete inventory information */
-                        rv = build_server_inventory_area (&response, rdr,
+                        rv = build_server_inventory_area (con, &response, rdr,
                                                           &inventory);
                         if (rv != SA_OK) {
                                 err("Failed to add IDR inventory to server");
