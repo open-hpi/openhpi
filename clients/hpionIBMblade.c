@@ -441,9 +441,10 @@ static void show_sens(char *S)
 static int get_number(char *mes, int *res)
 {
 	char	buf[READ_BUF_SIZE];
+	char    *ret;
 
 	printf("%s", mes);
-	fgets(buf, READ_BUF_SIZE, stdin);
+	ret = fgets(buf, READ_BUF_SIZE, stdin);
 	return (sscanf(buf, "%d", res));
 }
 
@@ -507,8 +508,7 @@ static void mod_sen(void)
 		Rdr->is_value = 1;
 	};
 	printf("threshold type (lc, la, li, uc, ua, ui, ph, nh): ");
-	fgets(buf, READ_BUF_SIZE, stdin);
-	S = buf;
+	S = fgets(buf, READ_BUF_SIZE, stdin);
 	while (*S == ' ') S++;
 	if (strlen(S) < 2) {
 		printf("ERROR: invalid threshold type: %s\n", S);
@@ -530,7 +530,7 @@ static void mod_sen(void)
 	};
 	
 	printf("new value: ");
-	fgets(buf, READ_BUF_SIZE, stdin);
+	S = fgets(buf, READ_BUF_SIZE, stdin);
 	i = sscanf(buf, "%f", &f);
 	if (i == 0) {
 		printf("ERROR: no value\n");
@@ -567,8 +567,7 @@ static void mod_sen(void)
 	printf("\n  Nem threshold:\n");
 	ShowThres(&thres);
 	printf("Is it correct (yes, no)?:");
-	fgets(buf, READ_BUF_SIZE, stdin);
-	S = buf;
+	S = fgets(buf, READ_BUF_SIZE, stdin);
 	while (*S == ' ') S++;
 	if (strncmp(S, "yes", 3) != 0)
 		return;
