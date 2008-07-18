@@ -261,6 +261,7 @@ SaErrorT oh_announcement_del(oh_announcement *ann, SaHpiEntryIdT srchid,
                 while (annlist != NULL) {
                         myentry = (oh_ann_entry *) annlist->data;
                         if (srchid == myentry->annentry.EntryId) {
+                                free(annlist->data);
                                 ann->annentries =
                                         g_list_remove(ann->annentries, myentry);
                                 return SA_OK;
@@ -278,6 +279,7 @@ SaErrorT oh_announcement_del(oh_announcement *ann, SaHpiEntryIdT srchid,
                 myentry = (oh_ann_entry *) annlist->data;
                 if (sev == SAHPI_ALL_SEVERITIES ||
                     sev == myentry->annentry.Severity) {
+                        free(annlist->data);
                         ann->annentries = g_list_remove(ann->annentries, myentry);
                         annlist = g_list_first(ann->annentries);
                 } else {

@@ -543,7 +543,6 @@ static struct oh_handler *new_handler(GHashTable *handler_config)
         struct oh_handler *handler = NULL;
 	char *plugin_name = NULL;
         static unsigned int handler_id = 1;
-        unsigned int *hidp;
 
         if (!handler_config) {
                 err("ERROR creating new handler. Invalid parameter.");
@@ -557,7 +556,6 @@ static struct oh_handler *new_handler(GHashTable *handler_config)
 	}
 
         handler = (struct oh_handler *)g_malloc0(sizeof(struct oh_handler));
-        hidp = (unsigned int *)g_malloc0(sizeof(unsigned int));
 
         plugin = oh_get_plugin(plugin_name);
         if(!plugin) { /* Attempt to load plugin here once */
@@ -583,7 +581,6 @@ static struct oh_handler *new_handler(GHashTable *handler_config)
         g_static_rec_mutex_lock(&oh_handlers.lock);
         handler->id = handler_id++;
         g_static_rec_mutex_unlock(&oh_handlers.lock);
-        *hidp = handler->id;
         handler->plugin_name = (char *)g_hash_table_lookup(handler_config, "plugin");
         handler->config = handler_config;
         handler->refcount = 0;
@@ -592,7 +589,6 @@ static struct oh_handler *new_handler(GHashTable *handler_config)
 
         return handler;
 cleanexit:
-        g_free(hidp);
         g_free(handler);
         return NULL;
 }
