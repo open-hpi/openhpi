@@ -5,7 +5,7 @@ dnl   various hacks by Sean Dague <http://dague.net/sean> 4/23/03
 
 
 AC_PREREQ(2.57)
-AC_INIT(openhpi, 2.11.4)
+AC_INIT(openhpi, 2.12.0)
 AC_CONFIG_SRCDIR(openhpi.spec.in)
 AM_INIT_AUTOMAKE([1.8])
 
@@ -23,7 +23,7 @@ AH_BOTTOM([#endif /* __OPENHPI_CONFIG_H */])
 # minor version: 11 = 11
 # patch version: 4  = 4
 #
-HPI_LIB_VERSION=13:4:11
+HPI_LIB_VERSION=14:0:12
 HPI_PKG=$PACKAGE_NAME
 HPI_UTIL_PKG=${PACKAGE_NAME}utils
 HPI_CLIENT_PKG=${PACKAGE_NAME}client
@@ -203,14 +203,23 @@ dnl list of static plugins
 STATIC_PLUGIN_LIST=
 STATIC_PLUGIN_EXTRA_LIBS=
 
+AC_CHECK_HEADER([linux/watchdog.h], [have_linux_watchdog_h=yes], [], [#include <linux/types.h>])
 AC_ARG_ENABLE([watchdog],
-    [  --enable-watchdog       build watchdog plugin [[default=yes]]],
+    [  --enable-watchdog       build watchdog plugin [[default=yes if linux/watchdog.h exists]]],
     [if test "x$enableval" = "xyes"; then
-        AC_SUBST(WATCHDOG,watchdog)
+        if test "x$have_linux_watchdog_h" = "xyes"; then
+            AC_SUBST(WATCHDOG,watchdog)
+        else
+            AC_MSG_ERROR("Can not build the watchdog plugin without linux/watchdog.h.")
+        fi
     else
         AC_SUBST(WATCHDOG,"")
     fi],
-    [AC_SUBST(WATCHDOG,watchdog)])
+    [if test "x$have_linux_watchdog_h" = "xyes"; then
+        AC_SUBST(WATCHDOG,watchdog)
+    else
+        AC_SUBST(WATCHDOG,"")
+    fi])
 
 dnl
 dnl We really need to make ipmi enablement be contigent on OpenIPMI
