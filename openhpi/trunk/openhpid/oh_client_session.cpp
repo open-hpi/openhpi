@@ -103,7 +103,7 @@ SaErrorT oh_create_connx(SaHpiDomainIdT did, pcstrmsock *pinst)
         struct oh_domain_conf *domain_conf = NULL;
         pcstrmsock connx = NULL;
         
-        if (!did || !pinst) {
+        if (!pinst) {
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
         
@@ -232,7 +232,7 @@ SaHpiSessionIdT oh_open_session(SaHpiDomainIdT did,
         pthread_t thread_id;
         struct oh_client_session *client_session;
         
-        if (!did || !sid || !pinst)
+        if (!sid || !pinst)
 		return 0;
 
         client_session = g_new0(struct oh_client_session, 1);
