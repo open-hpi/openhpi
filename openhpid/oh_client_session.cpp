@@ -22,6 +22,7 @@ extern "C"
 #include <oHpi.h>
 #include <oh_error.h>
 #include <config.h>
+#include <oh_domain.h>
 #include "oh_client_conf.h"
 }
 
@@ -58,8 +59,9 @@ int oh_client_init(void)
 
         if (!domains) { // Create domain table
                 struct oh_domain_conf *domain_conf = NULL;
-                SaHpiDomainIdT default_did = SAHPI_UNSPECIFIED_DOMAIN_ID;
-                
+                // SaHpiDomainIdT default_did = SAHPI_UNSPECIFIED_DOMAIN_ID;
+		SaHpiDomainIdT default_did = OH_DEFAULT_DOMAIN_ID;
+		
                 domains = g_hash_table_new_full(
                         g_int_hash, g_int_equal,
                         NULL, g_free
