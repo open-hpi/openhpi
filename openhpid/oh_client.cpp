@@ -153,9 +153,10 @@ SaErrorT SAHPI_API saHpiSessionOpen(
 
         if (!SessionId || SecurityParams)
                 return SA_ERR_HPI_INVALID_PARAMS;
-
-        if (DomainId == SAHPI_UNSPECIFIED_DOMAIN_ID) (DomainId = OH_DEFAULT_DOMAIN_ID);
-
+		
+        // if (DomainId == OH_DEFAULT_DOMAIN_ID) (DomainId = SAHPI_UNSPECIFIED_DOMAIN_ID);
+	if (DomainId == SAHPI_UNSPECIFIED_DOMAIN_ID) (DomainId = OH_DEFAULT_DOMAIN_ID);
+	
         err = oh_create_connx(DomainId, &pinst);
         if (err) {
                 client_err(cmd, "Could not create client connection");
