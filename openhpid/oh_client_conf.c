@@ -21,6 +21,7 @@
 
 #include <oHpi.h>
 #include <oh_error.h>
+#include <oh_domain.h>
 #include <oh_client_conf.h>
 #include <config.h>
 
@@ -140,7 +141,8 @@ static int process_domain_token (GScanner *oh_scanner, GHashTable *domains)
         if (next_token == HPI_CLIENT_CONF_TOKEN_DEFAULT) {
                 // Default domain
                 domain_conf = g_malloc0(sizeof(struct oh_domain_conf));
-                domain_conf->did = SAHPI_UNSPECIFIED_DOMAIN_ID;
+                // domain_conf->did = SAHPI_UNSPECIFIED_DOMAIN_ID;
+		domain_conf->did = OH_DEFAULT_DOMAIN_ID;
                 dbg("Processing domain: Found default domain definition");
         } else if (next_token == G_TOKEN_INT) {
                 if (oh_scanner->value.v_int == 0) { // Domain Id of 0 is invalid
