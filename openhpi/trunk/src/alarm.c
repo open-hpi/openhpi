@@ -563,7 +563,7 @@ SaErrorT oh_detect_res_sev_alarm(SaHpiDomainIdT did,
         struct oh_domain *d = NULL;
         SaHpiRptEntryT *res = NULL;
 
-        if (!did || !rid) return SA_ERR_HPI_INVALID_PARAMS;
+        if (!rid) return SA_ERR_HPI_INVALID_PARAMS;
 
         d = oh_get_domain(did);
         if (!d) return SA_ERR_HPI_INVALID_DOMAIN;
@@ -603,7 +603,7 @@ SaErrorT oh_detect_sensor_enable_alarm(SaHpiDomainIdT did,
         SaHpiStatusCondTypeT type = SAHPI_STATUS_COND_TYPE_SENSOR;
         SaErrorT error = SA_OK;
 
-        if (!did || !rid) return SA_ERR_HPI_INVALID_PARAMS;
+        if (!rid) return SA_ERR_HPI_INVALID_PARAMS;
 
         /* Only need to scan alarm table if enable is false */
         if (enable) return SA_OK;
@@ -642,7 +642,7 @@ SaErrorT oh_detect_sensor_mask_alarm(SaHpiDomainIdT did,
         SaHpiStatusCondTypeT type = SAHPI_STATUS_COND_TYPE_SENSOR;
         SaErrorT error = SA_OK;
 
-        if (!did || !rid) return SA_ERR_HPI_INVALID_PARAMS;
+        if (!rid) return SA_ERR_HPI_INVALID_PARAMS;
 
         if (action == SAHPI_SENS_ADD_EVENTS_TO_MASKS)
                 return SA_OK;
