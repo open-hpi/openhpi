@@ -22,6 +22,7 @@ extern "C"
 #include <SaHpi.h>
 #include <oHpi.h>
 #include <oh_error.h>
+#include <oh_domain.h>
 #include <config.h>
 }
 
@@ -152,7 +153,9 @@ SaErrorT SAHPI_API saHpiSessionOpen(
 
         if (!SessionId || SecurityParams)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        
+
+        if (DomainId == SAHPI_UNSPECIFIED_DOMAIN_ID) (DomainId = OH_DEFAULT_DOMAIN_ID);
+
         err = oh_create_connx(DomainId, &pinst);
         if (err) {
                 client_err(cmd, "Could not create client connection");
