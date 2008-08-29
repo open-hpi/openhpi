@@ -165,7 +165,7 @@ gpointer oa_soap_event_thread(gpointer event_handler)
                 g_mutex_unlock(oa->mutex);
         } else {
                 g_mutex_unlock(oa->mutex);
-	        process_oa_out_of_access(handler, oa);
+                process_oa_out_of_access(handler, oa);
         }
 
         /* Get the user_name and password from config file */
@@ -711,10 +711,7 @@ void process_oa_events(struct oh_handler_state *oh_handler,
                                 break;
 
                         case EVENT_BLADE_INSERTED :
-                                dbg("EVENT_BLADE_INSERTED");
-                                rv = process_server_insertion_event(oh_handler,
-                                                                    con,
-                                                                    &event);
+                                dbg("EVENT_BLADE_INSERTED -- Not processed");
                                 break;
 
                         case EVENT_BLADE_REMOVED :
@@ -840,9 +837,7 @@ void process_oa_events(struct oh_handler_state *oh_handler,
                                 break;
 
                         case EVENT_OA_INSERTED :
-                                dbg("EVENT_OA_INSERTED");
-                                rv = process_oa_insertion_event(oh_handler,
-                                                                con, &event);
+                                dbg("EVENT_OA_INSERTED -- Not processed");
                                 break;
 
                         case EVENT_OA_REMOVED :
@@ -1108,8 +1103,10 @@ void process_oa_events(struct oh_handler_state *oh_handler,
                                 dbg("EVENT_FACTORY_RESET -- Not processed");
                                 break;
                         case EVENT_BLADE_INSERT_COMPLETED :
-                                dbg("EVENT_BLADE_INSERT_COMPLETED "
-                                    "-- Not processed");
+                                dbg("EVENT_BLADE_INSERT_COMPLETED");
+                                rv = process_server_insertion_event(oh_handler,
+                                                                    con,
+                                                                    &event);
                                 break;
                         case EVENT_EBIPA_INFO_CHANGED_EX :
                                 dbg("EVENT_EBIPA_INFO_CHANGED_EX "
