@@ -31,6 +31,7 @@
  * Author(s)
  *      Raghavendra M.S. <raghavendra.ms@hp.com>
  *      Bhaskara Bhatt <bhaskara.hg@hp.com>
+ *      Shuah Khan <shuah.khan@hp.com>    IO and Storage blade support
  *
  * This file supports the functions related to HPI Inventory Data repositories.
  * The file covers three general classes of function: IDR ABI functions,
@@ -1604,6 +1605,7 @@ SaErrorT build_oa_inv_rdr(struct oh_handler_state *oh_handler,
  *      @oh_handler: Handler data pointer
  *      @con: Pointer to the SOAP_CON
  *      @bay_number: Bay number of the server
+ *	@resource_id: Resource Id
  *      @rdr: Rdr Structure for inventory data
  *      @inventory: Rdr private data structure
  *
@@ -1625,6 +1627,7 @@ SaErrorT build_oa_inv_rdr(struct oh_handler_state *oh_handler,
 SaErrorT build_server_inv_rdr(struct oh_handler_state *oh_handler,
                               SOAP_CON *con,
                               SaHpiInt32T bay_number,
+			      SaHpiResourceIdT resource_id,
                               SaHpiRdrT *rdr,
                               struct oa_soap_inventory **inventory)
 {
@@ -1642,12 +1645,19 @@ SaErrorT build_server_inv_rdr(struct oh_handler_state *oh_handler,
         struct bladeInfo response;
         struct getBladeMpInfo blade_mp_request;
         struct bladeMpInfo blade_mp_response;
+	SaHpiRptEntryT *rpt;
 
         if (oh_handler == NULL || con == NULL || rdr == NULL ||
             inventory == NULL) {
                 err("Invalid parameter.");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
+
+	rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
+	if (!rpt) {
+                err("Could not find blade resource rpt");
+		return(SA_ERR_HPI_INTERNAL_ERROR);
+	}
 
         request.bayNumber = bay_number;
         rv = soap_getBladeInfo(con,
@@ -1668,7 +1678,8 @@ SaErrorT build_server_inv_rdr(struct oh_handler_state *oh_handler,
         /* Populating the inventory rdr with default values and resource name */
         rdr->Entity.Entry[1].EntityType = SAHPI_ENT_ROOT;
         rdr->Entity.Entry[1].EntityLocation = 0;
-        rdr->Entity.Entry[0].EntityType = SAHPI_ENT_SYSTEM_BLADE;
+        rdr->Entity.Entry[0].EntityType = 
+		rpt->ResourceEntity.Entry[0].EntityType;
         rdr->Entity.Entry[0].EntityLocation = response.bayNumber;
         rv = oh_concat_ep(&rdr->Entity, &entity_path);
         if (rv != SA_OK) {
@@ -1797,6 +1808,7 @@ SaErrorT build_server_inv_rdr(struct oh_handler_state *oh_handler,
  * build_inserted_server_inv_rdr
  *      @oh_handler: Handler data pointer
  *      @bay_number: Bay number of the inserted server
+ *	@resource_id: Resource Id
  *      @rdr: Rdr Structure for inventory data
  *      @inventory: Rdr private data structure
  *
@@ -1828,6 +1840,7 @@ SaErrorT build_server_inv_rdr(struct oh_handler_state *oh_handler,
  **/
 SaErrorT build_inserted_server_inv_rdr(struct oh_handler_state *oh_handler,
                                        SaHpiInt32T bay_number,
+                                       SaHpiResourceIdT resource_id,
                                        SaHpiRdrT *rdr,
                                        struct oa_soap_inventory **inventory)
 {
@@ -1836,11 +1849,18 @@ SaErrorT build_inserted_server_inv_rdr(struct oh_handler_state *oh_handler,
         char server_inv_str[] = SERVER_INVENTORY_STRING;
         char *entity_root = NULL;
         struct oa_soap_inventory *local_inventory = NULL;
+	SaHpiRptEntryT *rpt;
 
         if (oh_handler == NULL || rdr == NULL || inventory == NULL) {
                 err("Invalid parameter.");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
+
+	rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
+	if (!rpt) {
+                err("Could not find blade resource rpt");
+		return(SA_ERR_HPI_INTERNAL_ERROR);
+	}
 
         entity_root = (char *)g_hash_table_lookup(oh_handler->config,
                                                   "entity_root");
@@ -1853,7 +1873,8 @@ SaErrorT build_inserted_server_inv_rdr(struct oh_handler_state *oh_handler,
         /* Populating the inventory rdr with default values and resource name */
         rdr->Entity.Entry[1].EntityType = SAHPI_ENT_ROOT;
         rdr->Entity.Entry[1].EntityLocation = 0;
-        rdr->Entity.Entry[0].EntityType = SAHPI_ENT_SYSTEM_BLADE;
+        rdr->Entity.Entry[0].EntityType = 
+		rpt->ResourceEntity.Entry[0].EntityType;
         rdr->Entity.Entry[0].EntityLocation = bay_number;
         rv = oh_concat_ep(&rdr->Entity, &entity_path);
         if (rv != SA_OK) {

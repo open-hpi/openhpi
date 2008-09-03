@@ -143,6 +143,7 @@ SaErrorT build_oa_thermal_sensor_rdr(struct oh_handler_state *oh_handler,
 SaErrorT build_server_thermal_sensor_rdr(struct oh_handler_state *oh_handler,
                                          SOAP_CON *con,
                                          SaHpiInt32T bay_number,
+			                 SaHpiResourceIdT resource_id,
                                          SaHpiRdrT *rdr,
                                          struct oa_soap_sensor_info
                                                  **sensor_info);
@@ -158,6 +159,7 @@ SaErrorT build_inserted_server_thermal_sensor_rdr(struct oh_handler_state
 SaErrorT build_server_power_sensor_rdr(struct oh_handler_state *oh_handler,
                                        SOAP_CON *con,
                                        SaHpiInt32T bay_number,
+			               SaHpiResourceIdT resource_id,
                                        SaHpiRdrT *rdr,
                                        struct oa_soap_sensor_info
                                                **sensor_info);
@@ -166,6 +168,7 @@ SaErrorT build_interconnect_thermal_sensor_rdr(struct oh_handler_state
                                                        *oh_handler,
                                                SOAP_CON *con,
                                                SaHpiInt32T bay_number,
+			                       SaHpiResourceIdT resource_id,
                                                SaHpiRdrT *rdr,
                                                struct oa_soap_sensor_info
                                                        **sensor_info);

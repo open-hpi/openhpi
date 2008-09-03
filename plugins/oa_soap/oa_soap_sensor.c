@@ -30,6 +30,7 @@
  *
  * Author(s)
  *      Raghavendra M.S. <raghavendra.ms@hp.com>
+ *      Shuah Khan <shuah.khan@hp.com>    IO and Storage blade support
  *
  * This file supports the functions related to HPI Sensor.
  * The file covers three general classes of function: Sensor ABI functions,
@@ -1242,6 +1243,7 @@ SaErrorT build_oa_thermal_sensor_rdr(struct oh_handler_state *oh_handler,
  *      @oh_handler: Handler data pointer
  *      @con: Pointer to the soap client handler
  *      @bay_number: Server bay number
+ *	@resource_id: Resource Id
  *      @rdr: Rdr Structure for sensor tempature
  *      @sensor_info: Pointer to the sensor information structure
  *
@@ -1268,6 +1270,7 @@ SaErrorT build_oa_thermal_sensor_rdr(struct oh_handler_state *oh_handler,
 SaErrorT build_server_thermal_sensor_rdr(struct oh_handler_state *oh_handler,
                                          SOAP_CON *con,
                                          SaHpiInt32T bay_number,
+			                 SaHpiResourceIdT resource_id,
                                          SaHpiRdrT *rdr,
                                          struct oa_soap_sensor_info
                                                 **sensor_info)
@@ -1279,11 +1282,18 @@ SaErrorT build_server_thermal_sensor_rdr(struct oh_handler_state *oh_handler,
         struct getThermalInfo request;
         struct thermalInfo response;
         SaHpiBoolT event_support = SAHPI_FALSE;
+	SaHpiRptEntryT *rpt;
 
         if (oh_handler == NULL || rdr == NULL || sensor_info == NULL) {
                 err("Invalid parameter.");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
+
+	rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
+	if (!rpt) {
+                err("Could not find blade resource rpt");
+		return(SA_ERR_HPI_INTERNAL_ERROR);
+	}
 
         /* Set sensor type in request to enclosure to retrieve
          * thermal information of enclosure
@@ -1308,7 +1318,8 @@ SaErrorT build_server_thermal_sensor_rdr(struct oh_handler_state *oh_handler,
         }
         rdr->Entity.Entry[1].EntityType = SAHPI_ENT_ROOT;
         rdr->Entity.Entry[1].EntityLocation = 0;
-        rdr->Entity.Entry[0].EntityType = SAHPI_ENT_SYSTEM_BLADE;
+        rdr->Entity.Entry[0].EntityType = 
+		rpt->ResourceEntity.Entry[0].EntityType;
         rdr->Entity.Entry[0].EntityLocation = bay_number;
         rv = oh_concat_ep(&rdr->Entity, &entity_path);
         if (rv != SA_OK) {
@@ -1379,6 +1390,7 @@ SaErrorT build_server_thermal_sensor_rdr(struct oh_handler_state *oh_handler,
  *      @oh_handler: Handler data pointer
  *      @con: Pointer to the soap client handler
  *      @bay_number: Server bay number
+ *	@resource_id: Resource Id
  *      @rdr: Rdr Structure for sensor power
  *      @sensor_info: Pointer to the sensor information structure
  *
@@ -1402,6 +1414,7 @@ SaErrorT build_server_thermal_sensor_rdr(struct oh_handler_state *oh_handler,
 SaErrorT build_server_power_sensor_rdr(struct oh_handler_state *oh_handler,
                                        SOAP_CON *con,
                                        SaHpiInt32T bay_number,
+			               SaHpiResourceIdT resource_id,
                                        SaHpiRdrT *rdr,
                                        struct oa_soap_sensor_info **sensor_info)
 {
@@ -1409,11 +1422,18 @@ SaErrorT build_server_power_sensor_rdr(struct oh_handler_state *oh_handler,
         SaHpiEntityPathT entity_path;
         char *entity_root = NULL;
         char server_power_str[] = SERVER_POWER_STRING;
+	SaHpiRptEntryT *rpt;
 
         if (oh_handler == NULL || rdr == NULL || sensor_info == NULL) {
                 err("Invalid parameter.");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
+
+	rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
+	if (!rpt) {
+                err("Could not find blade resource rpt");
+		return(SA_ERR_HPI_INTERNAL_ERROR);
+	}
 
         entity_root = (char *)g_hash_table_lookup(oh_handler->config,
                                                   "entity_root");
@@ -1424,7 +1444,8 @@ SaErrorT build_server_power_sensor_rdr(struct oh_handler_state *oh_handler,
         }
         rdr->Entity.Entry[1].EntityType = SAHPI_ENT_ROOT;
         rdr->Entity.Entry[1].EntityLocation = 0;
-        rdr->Entity.Entry[0].EntityType = SAHPI_ENT_SYSTEM_BLADE;
+        rdr->Entity.Entry[0].EntityType = 
+		rpt->ResourceEntity.Entry[0].EntityType;
         rdr->Entity.Entry[0].EntityLocation = bay_number;
         rv = oh_concat_ep(&rdr->Entity, &entity_path);
         if (rv != SA_OK) {
@@ -1478,6 +1499,7 @@ SaErrorT build_server_power_sensor_rdr(struct oh_handler_state *oh_handler,
  *      @oh_handler: Handler data pointer
  *      @con: Pointer to the soap client handler
  *      @bay_number: Interconnect bay number
+ *	@resource_id: Resource Id
  *      @rdr: Rdr Structure for sensor tempature
  *      @sensor_info: Pointer to the sensor information structure
  *
@@ -1507,6 +1529,7 @@ SaErrorT build_interconnect_thermal_sensor_rdr(struct oh_handler_state
                                                        *oh_handler,
                                                SOAP_CON *con,
                                                SaHpiInt32T bay_number,
+			                       SaHpiResourceIdT resource_id,
                                                SaHpiRdrT *rdr,
                                                struct oa_soap_sensor_info
                                                        **sensor_info)
@@ -1518,11 +1541,18 @@ SaErrorT build_interconnect_thermal_sensor_rdr(struct oh_handler_state
         struct getThermalInfo request;
         struct thermalInfo response;
         SaHpiBoolT event_support = SAHPI_FALSE;
+	SaHpiRptEntryT *rpt;
 
         if (oh_handler == NULL || rdr == NULL || sensor_info == NULL) {
                 err("Invalid parameter.");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
+
+	rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
+	if (!rpt) {
+                err("Could not find blade resource rpt");
+		return(SA_ERR_HPI_INTERNAL_ERROR);
+	}
 
         /* Set sensor type in request to interconnect to retrieve
          * thermal information of enclosure
@@ -1551,7 +1581,8 @@ SaErrorT build_interconnect_thermal_sensor_rdr(struct oh_handler_state
          */
         rdr->Entity.Entry[1].EntityType = SAHPI_ENT_ROOT;
         rdr->Entity.Entry[1].EntityLocation = 0;
-        rdr->Entity.Entry[0].EntityType = SAHPI_ENT_SWITCH_BLADE;
+        rdr->Entity.Entry[0].EntityType = 
+		rpt->ResourceEntity.Entry[0].EntityType;
         rdr->Entity.Entry[0].EntityLocation = bay_number;
         rv = oh_concat_ep(&rdr->Entity, &entity_path);
         if (rv != SA_OK) {
@@ -2624,6 +2655,8 @@ SaErrorT update_sensor_rdr(struct oh_handler_state *oh_handler,
          */
         switch (rpt->ResourceEntity.Entry[0].EntityType) {
                 case (SAHPI_ENT_SYSTEM_BLADE) :
+                case (SAHPI_ENT_IO_BLADE) :
+                case (SAHPI_ENT_DISK_BLADE) :
                         if (rdr_num == OA_SOAP_RES_SEN_TEMP_NUM) {
                                 thermal_request.sensorType = SENSOR_TYPE_BLADE;
 

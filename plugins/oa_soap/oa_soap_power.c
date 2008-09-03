@@ -31,6 +31,7 @@
  * Author(s)
  *      Raghavendra P.G. <raghavendra.pg@hp.com>
  *      Raghavendra M.S. <raghavendra.ms@hp.com>
+ *      Shuah Khan <shuah.khan@hp.com>    IO and Storage blade support
  *
  * This file handles all the power related queries
  *
@@ -112,6 +113,8 @@ SaErrorT oa_soap_get_power_state(void *oh_handler,
         /* Check resource type and query server or interconnect power state*/
         switch (rpt->ResourceEntity.Entry[0].EntityType) {
                 case (SAHPI_ENT_SYSTEM_BLADE) :
+                case (SAHPI_ENT_IO_BLADE) :
+                case (SAHPI_ENT_DISK_BLADE) :
                         rv = get_server_power_state(oa_handler->active_con,
                                                     bay_number, state);
                         break;
@@ -189,12 +192,16 @@ SaErrorT oa_soap_set_power_state(void *oh_handler,
                                                     bay_number, state);
                         break;
 
-                  case (SAHPI_ENT_SWITCH_BLADE) :
+                 case (SAHPI_ENT_IO_BLADE) :
+                 case (SAHPI_ENT_DISK_BLADE) :
+			return(SA_ERR_HPI_UNSUPPORTED_API);
+
+                 case (SAHPI_ENT_SWITCH_BLADE) :
                         rv = set_interconnect_power_state(
                                 oa_handler->active_con, bay_number, state);
                         break;
 
-                  default :
+                 default :
                         err("Invalid Resource Type");
                         return SA_ERR_HPI_UNKNOWN;
         }

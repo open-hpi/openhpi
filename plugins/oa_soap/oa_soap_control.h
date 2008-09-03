@@ -57,10 +57,12 @@ SaErrorT oa_soap_set_control_state(void *oh_handler,
                                    SaHpiCtrlStateT *state);
 
 SaErrorT build_server_control_rdr(struct oh_handler_state *oh_handler,
+                                  SaHpiResourceIdT resource_id,
                                   SaHpiInt32T rdr_num,
                                   SaHpiRdrT *rdr);
 
 SaErrorT build_interconnect_control_rdr(struct oh_handler_state *oh_handler,
+                                        SaHpiResourceIdT resource_id,
                                         SaHpiInt32T rdr_num,
                                         SaHpiRdrT *rdr);
 #endif
