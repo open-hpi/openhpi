@@ -50,10 +50,6 @@
 /* Max timeout value for checking the availability of OA */
 #define MAX_TIMEOUT 300
 
-/* Error codes returned by OA on event session failure */
-#define ERR_EVENT_PIPE 201
-#define ERR_EVENT_DAEMON_KILLED 204
-
 /* Function prototypes */
 
 SaErrorT get_oa_soap_info(struct oh_handler_state *oh_handler);

@@ -146,6 +146,9 @@
 #define soap_error_string(connection) \
         (connection->last_error_string)
 
+/* Error codes returned by OA on event session failure */
+#define ERR_EVENT_PIPE 201
+#define ERR_EVENT_DAEMON_KILLED 204
 
 /* Define the enum strings only in the oa_soap_calls.c file */
 #ifdef OA_SOAP_CALLS_FILE

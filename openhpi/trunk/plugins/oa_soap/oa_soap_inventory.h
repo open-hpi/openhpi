@@ -150,11 +150,13 @@ SaErrorT build_oa_inv_rdr(struct oh_handler_state *oh_handler,
 SaErrorT build_server_inv_rdr(struct oh_handler_state *oh_handler,
                               SOAP_CON *con,
                               SaHpiInt32T bay_number,
+			      SaHpiResourceIdT resource_id,
                               SaHpiRdrT *rdr,
                               struct oa_soap_inventory **pinv);
 
 SaErrorT build_inserted_server_inv_rdr(struct oh_handler_state *oh_handler,
                                        SaHpiInt32T bay_number,
+			               SaHpiResourceIdT resource_id,
                                        SaHpiRdrT *rdr,
                                        struct oa_soap_inventory **inventory);
 

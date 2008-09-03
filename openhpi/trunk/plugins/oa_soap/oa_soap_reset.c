@@ -30,6 +30,7 @@
  *
  * Author(s)
  *      Raghavendra P.G. <raghavendra.pg@hp.com>
+ *      Shuah Khan <shuah.khan@hp.com>    IO and Storage blade support
  *
  *
  * This file handles all the resource reset states related apis.
@@ -228,6 +229,11 @@ SaErrorT oa_soap_set_reset_state(void *oh_handler,
                                         }
                                         return SA_OK;
                                         break;
+
+                                case SAHPI_ENT_IO_BLADE:
+                                case SAHPI_ENT_DISK_BLADE:
+					return(SA_ERR_HPI_UNSUPPORTED_API);
+
                                 case SAHPI_ENT_SWITCH_BLADE:
                                         /* Resource type is interconnect blade.
                                          * Reset the interconnect blade

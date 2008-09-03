@@ -30,6 +30,7 @@
  *
  * Author(s)
  *      Raghavendra M.S. <raghavendra.ms@hp.com>
+ *      Shuah Khan <shuah.khan@hp.com>    IO and Storage blade support
  *
  *  This file handles all the control functionality related apis.
  *
@@ -276,6 +277,7 @@ SaErrorT oa_soap_set_control_state(void *oh_handler,
  *      @oh_handler: Handler data pointer
  *      @resource_id: Resource ID
  *      @rdr_num: Control rdr number
+ *	@rdr: RDR pointer
  *
  * Purpose:
  *      Creates and adds the control rdr to server resource
@@ -292,6 +294,7 @@ SaErrorT oa_soap_set_control_state(void *oh_handler,
  *      SA_ERR_HPI_INTERNAL_ERROR - oa_soap plugin has encountered an OA error
  **/
 SaErrorT build_server_control_rdr(struct oh_handler_state *oh_handler,
+                                  SaHpiResourceIdT resource_id,
                                   SaHpiInt32T rdr_num,
                                   SaHpiRdrT *rdr)
 {
@@ -299,11 +302,18 @@ SaErrorT build_server_control_rdr(struct oh_handler_state *oh_handler,
         SaHpiEntityPathT entity_path;
         char *entity_root = NULL;
         char *server_ctrl_str = SERVER_CONTROL_STRING;
+	SaHpiRptEntryT *rpt;
 
         if (oh_handler == NULL ||  rdr == NULL) {
                 err("Invalid parameters");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
+
+	rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
+	if (!rpt) {
+                err("Could not find blade resource rpt");
+		return(SA_ERR_HPI_INTERNAL_ERROR);
+	}
 
         entity_root = (char *)
                 g_hash_table_lookup(oh_handler->config,"entity_root");
@@ -316,7 +326,8 @@ SaErrorT build_server_control_rdr(struct oh_handler_state *oh_handler,
         /* Set the control rdr with default values */
         rdr->Entity.Entry[1].EntityType = SAHPI_ENT_ROOT;
         rdr->Entity.Entry[1].EntityLocation = 0;
-        rdr->Entity.Entry[0].EntityType = SAHPI_ENT_SYSTEM_BLADE;
+        rdr->Entity.Entry[0].EntityType = 
+		rpt->ResourceEntity.Entry[0].EntityType;
         rdr->Entity.Entry[0].EntityLocation = rdr_num;
         rv = oh_concat_ep(&rdr->Entity, &entity_path);
         if (rv != SA_OK) {
@@ -347,6 +358,7 @@ SaErrorT build_server_control_rdr(struct oh_handler_state *oh_handler,
  *      @oh_handler: Handler data pointer
  *      @resource_id: Resource ID
  *      @rdr_num: Control rdr number
+ *      @rdr: Control rdr pointer
  *
  * Purpose:
  *      Creates and adds control rdr to interconnect resource
@@ -363,6 +375,7 @@ SaErrorT build_server_control_rdr(struct oh_handler_state *oh_handler,
  *      SA_ERR_HPI_INTERNAL_ERROR - oa_soap plugin has encountered an OA error
  **/
 SaErrorT build_interconnect_control_rdr(struct oh_handler_state *oh_handler,
+			                SaHpiResourceIdT resource_id,
                                         SaHpiInt32T rdr_num,
                                         SaHpiRdrT *rdr)
 {
@@ -370,11 +383,18 @@ SaErrorT build_interconnect_control_rdr(struct oh_handler_state *oh_handler,
         SaHpiEntityPathT entity_path;
         char *entity_root = NULL;
         char *interconnect_ctrl_str = INTERCONNECT_CONTROL_STRING;
+	SaHpiRptEntryT *rpt;
 
         if (oh_handler == NULL || rdr == NULL) {
                 err("Invalid parameters");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
+
+	rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
+	if (!rpt) {
+                err("Could not find blade resource rpt");
+		return(SA_ERR_HPI_INTERNAL_ERROR);
+	}
 
         entity_root = (char *)g_hash_table_lookup(oh_handler->config,
                                                   "entity_root");
@@ -387,7 +407,8 @@ SaErrorT build_interconnect_control_rdr(struct oh_handler_state *oh_handler,
         /* Set the control rdr with default values */
         rdr->Entity.Entry[1].EntityType = SAHPI_ENT_ROOT;
         rdr->Entity.Entry[1].EntityLocation = 0;
-        rdr->Entity.Entry[0].EntityType = SAHPI_ENT_SWITCH_BLADE;
+        rdr->Entity.Entry[0].EntityType = 
+		rpt->ResourceEntity.Entry[0].EntityType;
         rdr->Entity.Entry[0].EntityLocation = rdr_num;
         rv = oh_concat_ep(&rdr->Entity, &entity_path);
         if (rv != SA_OK) {

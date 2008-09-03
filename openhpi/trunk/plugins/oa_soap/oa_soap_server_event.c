@@ -30,6 +30,7 @@
  *
  * Author(s)
  *      Raghavendra P.G. <raghavendra.pg@hp.com>
+ *      Shuah Khan <shuah.khan@hp.com>    IO and Storage blade support
  *
  * This file has the server blade related events handling
  *
@@ -49,10 +50,10 @@
  *      build_inserted_server_rpt()       - Builds the rpt entry for inserted
  *                                          server
  *
- *      build_inserted_server_rdr()       - Builds the RDRs for inserted server
  */
 
-#include "oa_soap_server_event.h"
+#include <oa_soap_server_event.h>
+#include <oa_soap_discover.h>	/* for build_server_rpt() prototype */
 
 /**
  * process_server_power_off_event
@@ -319,10 +320,18 @@ SaErrorT process_server_power_event(struct oh_handler_state *oh_handler,
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
+        /* Get the rpt entry of the server */
+        rpt = oh_get_resource_by_ep(oh_handler->rptcache, &entity_path);
+        if (rpt == NULL) {
+                err("resource RPT is NULL");
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
+
         memset(&entity_path, 0, sizeof(SaHpiEntityPathT));
         entity_path.Entry[1].EntityType = SAHPI_ENT_ROOT;
         entity_path.Entry[1].EntityLocation = 0;
-        entity_path.Entry[0].EntityType = SAHPI_ENT_SYSTEM_BLADE;
+        entity_path.Entry[0].EntityType = 
+		rpt->ResourceEntity.Entry[0].EntityType;
         entity_path.Entry[0].EntityLocation = bay_number;
         rv = oh_concat_ep(&entity_path, &root_entity_path);
         if (rv != SA_OK) {
@@ -330,12 +339,6 @@ SaErrorT process_server_power_event(struct oh_handler_state *oh_handler,
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-        /* Get the rpt entry of the server */
-        rpt = oh_get_resource_by_ep(oh_handler->rptcache, &entity_path);
-        if (rpt == NULL) {
-                err("resource RPT is NULL");
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
         memcpy(&(event.resource), rpt, sizeof(SaHpiRptEntryT));
         event.event.Source = event.resource.ResourceId;
 
@@ -549,22 +552,23 @@ SaErrorT process_server_thermal_event(struct oh_handler_state *oh_handler,
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
+        rpt = oh_get_resource_by_ep(oh_handler->rptcache, &entity_path);
+        if (rpt == NULL) {
+                err("resource rpt is NULL");
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
+
         memset(&entity_path, 0, sizeof(SaHpiEntityPathT));
         entity_path.Entry[1].EntityType = SAHPI_ENT_ROOT;
         entity_path.Entry[1].EntityLocation = 0;
-        entity_path.Entry[0].EntityType=SAHPI_ENT_SYSTEM_BLADE;
+        entity_path.Entry[0].EntityType =
+		rpt->ResourceEntity.Entry[0].EntityType;
         entity_path.Entry[0].EntityLocation=
                 oa_event->eventData.thermalInfo.bayNumber;
 
         rv = oh_concat_ep(&entity_path, &root_entity_path);
         if (rv != SA_OK) {
                 err("Encoding entity path failed");
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
-
-        rpt = oh_get_resource_by_ep(oh_handler->rptcache, &entity_path);
-        if (rpt == NULL) {
-                err("resource rpt is NULL");
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
@@ -703,7 +707,8 @@ SaErrorT process_server_thermal_event(struct oh_handler_state *oh_handler,
  *      @rpt:        Pointer to the rpt entry
  *
  * Purpose:
- *      Populate the server blade RPT.
+ *	Populate the server blade RPT with aid of build_server_rpt() and add
+ *      hotswap state information to the returned rpt.
  *      Pushes the RPT entry to infrastructure
  *
  * Detailed Description: NA
@@ -720,8 +725,6 @@ SaErrorT build_inserted_server_rpt(struct oh_handler_state *oh_handler,
                                    SaHpiRptEntryT *rpt)
 {
         SaErrorT rv = SA_OK;
-        SaHpiEntityPathT entity_path;
-        char *entity_root = NULL;
         struct oa_soap_hotswap_state *hotswap_state = NULL;
 
         if (oh_handler == NULL || response == NULL || rpt == NULL) {
@@ -729,60 +732,26 @@ SaErrorT build_inserted_server_rpt(struct oh_handler_state *oh_handler,
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-        entity_root = (char *)g_hash_table_lookup(oh_handler->config,
-                                                  "entity_root");
-        rv = oh_encode_entitypath(entity_root, &entity_path);
-        if (rv != SA_OK) {
-                err("Encoding entity path failed");
+        if(build_server_rpt(oh_handler, response, rpt) != SA_OK) {
+                err("Building Server Rpt failed for an inserted blade");
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-        memset(rpt, 0, sizeof(SaHpiRptEntryT));
-        rpt->ResourceCapabilities = SAHPI_CAPABILITY_RDR |
-                                    SAHPI_CAPABILITY_RESET |
-                                    SAHPI_CAPABILITY_RESOURCE |
-                                    SAHPI_CAPABILITY_POWER |
-                                    SAHPI_CAPABILITY_FRU |
-                                    SAHPI_CAPABILITY_MANAGED_HOTSWAP |
-                                    SAHPI_CAPABILITY_SENSOR |
-                                    SAHPI_CAPABILITY_CONTROL |
-                                    SAHPI_CAPABILITY_INVENTORY_DATA;
-        rpt->ResourceEntity.Entry[1].EntityType = SAHPI_ENT_ROOT;
-        rpt->ResourceEntity.Entry[1].EntityLocation = 0;
-        rpt->ResourceEntity.Entry[0].EntityType = SAHPI_ENT_SYSTEM_BLADE;
-        rpt->ResourceEntity.Entry[0].EntityLocation = response->bayNumber;
-        rv = oh_concat_ep(&rpt->ResourceEntity, &entity_path);
-        if (rv != SA_OK) {
-                err("concat of entity path failed");
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
-
-        rpt->ResourceId = oh_uid_from_entity_path(&rpt->ResourceEntity);
-        rpt->ResourceInfo.ManufacturerId = HP_MANUFACTURING_ID;
-        rpt->ResourceInfo.ProductId = response->productId;
-        rpt->ResourceSeverity = SAHPI_OK;
-        rpt->ResourceFailed = SAHPI_FALSE;
-        rpt->HotSwapCapabilities = SAHPI_HS_CAPABILITY_AUTOEXTRACT_READ_ONLY;
-        rpt->ResourceTag.DataType = SAHPI_TL_TYPE_TEXT;
-        rpt->ResourceTag.Language = SAHPI_LANG_ENGLISH;
-        rpt->ResourceTag.DataLength = strlen(response->name) + 1;
-        memset(rpt->ResourceTag.Data,0,SAHPI_MAX_TEXT_BUFFER_LENGTH);
-        snprintf((char *) rpt->ResourceTag.Data,
-                  rpt->ResourceTag.DataLength,"%s",
-                  response->name);
-
-        hotswap_state = (struct oa_soap_hotswap_state *)
-                g_malloc0(sizeof(struct oa_soap_hotswap_state));
-        if (hotswap_state == NULL) {
-                err("Out of memory");
-                return SA_ERR_HPI_OUT_OF_MEMORY;
-        }
-        /* Inserted server needs some time to stabilize
-         * Put the server hotswap state to INSERTION_PENDING
-         * Once the server stabilizes, put the hotswap state to
-         * ACTIVE (handled in power on event)
-         */
-        hotswap_state->currentHsState = SAHPI_HS_STATE_INSERTION_PENDING;
+	if (rpt->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP) {
+		hotswap_state = (struct oa_soap_hotswap_state *)
+			g_malloc0(sizeof(struct oa_soap_hotswap_state));
+		if (hotswap_state == NULL) {
+			err("Out of memory");
+			return SA_ERR_HPI_OUT_OF_MEMORY;
+		}
+		/* Inserted server needs some time to stabilize
+		 * Put the server hotswap state to INSERTION_PENDING
+		 * Once the server stabilizes, put the hotswap state to
+		 * ACTIVE (handled in power on event)
+		 */
+		hotswap_state->currentHsState = 
+			SAHPI_HS_STATE_INSERTION_PENDING;
+	}
 
         rv = oh_add_resource(oh_handler->rptcache, rpt, hotswap_state, 0);
         if (rv != SA_OK) {
@@ -791,5 +760,6 @@ SaErrorT build_inserted_server_rpt(struct oh_handler_state *oh_handler,
                         g_free(hotswap_state);
                 return rv;
         }
+
         return SA_OK;
 }
