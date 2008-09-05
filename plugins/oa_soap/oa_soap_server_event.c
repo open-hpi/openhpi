@@ -138,8 +138,8 @@ SaErrorT process_server_power_off_event(struct oh_handler_state *oh_handler,
  *
  * Purpose:
  *      Creates the server power on hotswap event.  If the sever blade
- *      was powered on after insertion, then the RDR and server name in
- *      the RPT entry are updated.
+ *      was powered on after insertion, then the INSERTION_PENDING to
+ *      ACTIVE hot swap event is generated.
  *
  * Detailed Description: NA
  *
