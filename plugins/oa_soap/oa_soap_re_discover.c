@@ -575,12 +575,14 @@ SaErrorT re_discover_blade(struct oh_handler_state *oh_handler,
                                 /* Check and update the hotswap state
                                  * of the server blade
                                  */
-                                rv = update_server_hotswap_state(oh_handler,
-                                                                 con, i);
-                                if (rv != SA_OK) {
+                                if(response.bladeType == BLADE_TYPE_SERVER) {
+                                    rv = update_server_hotswap_state(
+                                             oh_handler, con, i);
+                                    if (rv != SA_OK) {
                                         err("Update server hot swap"
                                             " state failed");
                                         return rv;
+                                    }
                                 }
                                 continue;
                         }
@@ -592,7 +594,8 @@ SaErrorT re_discover_blade(struct oh_handler_state *oh_handler,
                          * matrix, but server is removed.  Remove the server
                          * resource from RPTable.
                          */
-                        rv = remove_server_blade(oh_handler, i);
+                        rv = remove_server_blade(oh_handler, i,
+				response.bladeType);
                         if (rv != SA_OK) {
                                 err("Server blade %d removal failed", i);
                                 return rv;
@@ -660,23 +663,10 @@ SaErrorT update_server_hotswap_state(struct oh_handler_state *oh_handler,
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-        rpt = oh_get_resource_by_ep(oh_handler->rptcache, &entity_path);
-        if (rpt == NULL) {
-                err("resource RPT is NULL");
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
-
-	/* If blade is not hot-swappable, there is no need to set hotswap
-           states. return ok */
-	if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
-                return SA_OK;
-	}
-
         memset(&entity_path, 0, sizeof(SaHpiEntityPathT));
         entity_path.Entry[1].EntityType = SAHPI_ENT_ROOT;
         entity_path.Entry[1].EntityLocation = 0;
-        entity_path.Entry[0].EntityType = 
-		rpt->ResourceEntity.Entry[0].EntityType;
+        entity_path.Entry[0].EntityType = SAHPI_ENT_SYSTEM_BLADE; 
         entity_path.Entry[0].EntityLocation = bay_number;
         rv = oh_concat_ep(&entity_path, &root_entity_path);
         if (rv != SA_OK) {
@@ -684,6 +674,11 @@ SaErrorT update_server_hotswap_state(struct oh_handler_state *oh_handler,
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
+        rpt = oh_get_resource_by_ep(oh_handler->rptcache, &entity_path);
+        if (rpt == NULL) {
+                err("resource RPT is NULL");
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
 
         hotswap_state = (struct oa_soap_hotswap_state *)
                 oh_get_resource_data(oh_handler->rptcache, rpt->ResourceId);
@@ -795,7 +790,7 @@ SaErrorT update_server_hotswap_state(struct oh_handler_state *oh_handler,
  * remove_server_blade
  *      @oh_handler: Pointer to openhpi handler
  *      @bay_number: Bay number of the removed blade
- *
+ *	@blade_type: Type of the blade
  * Purpose:
  *      Remove the Server Blade from the RPTable
  *
@@ -807,7 +802,7 @@ SaErrorT update_server_hotswap_state(struct oh_handler_state *oh_handler,
  *      SA_ERR_HPI_INTERNAL_ERROR - on failure.
  **/
 SaErrorT remove_server_blade(struct oh_handler_state *oh_handler,
-                             SaHpiInt32T bay_number)
+                             SaHpiInt32T bay_number, enum bladeType blade_type)
 {
         SaErrorT rv = SA_OK;
         struct oa_soap_handler *oa_handler;
@@ -834,17 +829,24 @@ SaErrorT remove_server_blade(struct oh_handler_state *oh_handler,
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-        rpt = oh_get_resource_by_ep(oh_handler->rptcache, &entity_path);
-        if (rpt == NULL) {
-                err("resource rpt is NULL");
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
-
         memset(&entity_path, 0, sizeof(SaHpiEntityPathT));
         entity_path.Entry[1].EntityType = SAHPI_ENT_ROOT;
         entity_path.Entry[1].EntityLocation = 0;
-        entity_path.Entry[0].EntityType = 
-		rpt->ResourceEntity.Entry[0].EntityType;
+        /* switch(blade_type) {
+           case BLADE_TYPE_SERVER:
+		 entity_path.Entry[0].EntityType = SAHPI_ENT_SYSTEM_BLADE;
+           break;
+           case BLADE_TYPE_IO:
+		 entity_path.Entry[0].EntityType = SAHPI_ENT_IO_BLADE;
+           break;
+           case BLADE_TYPE_STORAGE:
+		 entity_path.Entry[0].EntityType = SAHPI_ENT_DISK_BLADE;
+           break;
+           default:
+		 err("Invalid blade type: expecting server/storage/IO blade");
+                 return SA_ERR_HPI_INTERNAL_ERROR;
+        } */
+	entity_path.Entry[0].EntityType = SAHPI_ENT_SYSTEM_BLADE;
         entity_path.Entry[0].EntityLocation= bay_number;
         rv = oh_concat_ep(&entity_path, &root_entity_path);
         if (rv != SA_OK) {
@@ -852,6 +854,11 @@ SaErrorT remove_server_blade(struct oh_handler_state *oh_handler,
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
+        rpt = oh_get_resource_by_ep(oh_handler->rptcache, &entity_path);
+        if (rpt == NULL) {
+                err("resource rpt is NULL");
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
 
         memcpy(&(event.resource), rpt, sizeof(SaHpiRptEntryT));
         event.event.Source = event.resource.ResourceId;
@@ -1257,17 +1264,11 @@ SaErrorT update_interconnect_hotswap_state(struct oh_handler_state *oh_handler,
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-        rpt = oh_get_resource_by_ep(oh_handler->rptcache, &entity_path);
-        if (rpt == NULL) {
-                err("resource RPT is NULL");
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
 
         memset(&entity_path, 0, sizeof(SaHpiEntityPathT));
         entity_path.Entry[1].EntityType = SAHPI_ENT_ROOT;
         entity_path.Entry[1].EntityLocation = 0;
-        entity_path.Entry[0].EntityType = 
-		rpt->ResourceEntity.Entry[0].EntityType;
+        entity_path.Entry[0].EntityType = SAHPI_ENT_SWITCH_BLADE;
         entity_path.Entry[0].EntityLocation = bay_number;
         rv = oh_concat_ep(&entity_path, &root_entity_path);
         if (rv != SA_OK) {
@@ -1275,6 +1276,11 @@ SaErrorT update_interconnect_hotswap_state(struct oh_handler_state *oh_handler,
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
+        rpt = oh_get_resource_by_ep(oh_handler->rptcache, &entity_path);
+        if (rpt == NULL) {
+                err("resource RPT is NULL");
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
 
         hotswap_state = (struct oa_soap_hotswap_state *)
                 oh_get_resource_data(oh_handler->rptcache, rpt->ResourceId);
@@ -1422,21 +1428,20 @@ SaErrorT remove_interconnect(struct oh_handler_state *oh_handler,
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-        rpt = oh_get_resource_by_ep(oh_handler->rptcache, &entity_path);
-        if (rpt == NULL) {
-                err("resource rpt is NULL");
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
-
         memset(&entity_path, 0, sizeof(SaHpiEntityPathT));
         entity_path.Entry[1].EntityType = SAHPI_ENT_ROOT;
         entity_path.Entry[1].EntityLocation = 0;
-        entity_path.Entry[0].EntityType = 
-		rpt->ResourceEntity.Entry[0].EntityType;
+        entity_path.Entry[0].EntityType = SAHPI_ENT_SWITCH_BLADE;
         entity_path.Entry[0].EntityLocation = bay_number;
         rv = oh_concat_ep(&entity_path, &root_entity_path);
         if (rv != SA_OK) {
                 err("concat of entity path failed");
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
+
+        rpt = oh_get_resource_by_ep(oh_handler->rptcache, &entity_path);
+        if (rpt == NULL) {
+                err("resource rpt is NULL");
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
