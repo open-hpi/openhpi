@@ -81,8 +81,14 @@
 #define ERR_INVALID_PRIVILEGE_LEVEL 8
 #define ERR_STANDBY_MODE 139
 
-/* OA firmware version 2.20 */
+/* OA firmware versions */
 #define OA_2_20 2.20
+#define OA_2_21 2.21
+
+/* OA switchover re-try wait period */
+#define WAIT_ON_SWITCHOVER 1
+/* OA switchover max re-try */
+#define MAX_RETRY_ON_SWITCHOVER 1
 
 /* Enum for storing the status of the plugin */
 enum oa_soap_plugin_status {

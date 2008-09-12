@@ -104,6 +104,7 @@ gpointer oa_soap_event_thread(gpointer event_handler)
         struct oh_handler_state *handler = NULL;
         struct oa_info *oa = NULL;
         int ret_code = SA_ERR_HPI_INVALID_PARAMS;
+        int retry_on_switchover = 0;
         struct oa_soap_handler *oa_handler = NULL;
         struct event_handler *evt_handler = NULL;
         SaHpiBoolT is_plugin_initialized = SAHPI_FALSE;
@@ -214,41 +215,60 @@ gpointer oa_soap_event_thread(gpointer event_handler)
          */
         while (listen_for_events == SAHPI_TRUE) {
                 rv = soap_getAllEvents(oa->event_con, &request, &response);
-                if (rv != SOAP_OK) {
-                        err("OA %s may not be accessible", oa->server);
-                        /* Try to recover from the error */
-                        oa_soap_error_handling(handler, oa);
-                        request.pid = oa->event_pid;
-
-                        /* Re-initialize the con */
-                        if (con != NULL) {
-                                soap_close(con);
-                                con = NULL;
-                        }
-                        memset(url, 0, MAX_URL_LEN);
-                        snprintf(url, strlen(oa->server) + strlen(PORT) + 1,
-                                "%s" PORT, oa->server);
-
-                        /* Ideally, the soap_open should pass in 1st try.
-                         * If not, try until soap_open succeeds
+                if (rv == SOAP_OK) {
+                        retry_on_switchover = 0;
+                        /* OA returns empty event response payload for LCD
+                         * status change events. Ignore empty event response.
                          */
-                        while (con == NULL) {
-                                con = soap_open(url, user_name, password,
-                                                HPI_CALL_TIMEOUT);
-                                if (con == NULL)
-                                        sleep(2);
-                        }
-                        continue;
-                }
+                        if (response.eventInfoArray == NULL) {
+                                dbg("Ignoring empty event response");
+                        } else
+                                process_oa_events(handler, oa, con, &response);
+                } else {
+                        /* On switchover, the standby-turned-active OA stops
+                         * responding to SOAP calls to avoid the network loop.
+                         * This change is applicable from OA firmware version
+                         * 2.21. Re-try the getAllEvents SOAP XML call skipping
+                         * the error handling.
+                         */
+                        if (oa->oa_status == STANDBY && 
+                            get_oa_fw_version(handler) >= OA_2_21 &&
+                            retry_on_switchover < MAX_RETRY_ON_SWITCHOVER) {
+                                sleep(WAIT_ON_SWITCHOVER);
+                                dbg("getAllEvents call failed, may be due to "
+                                    "OA switchover");
+                                dbg("Re-try the getAllEvents SOAP call");
+                                retry_on_switchover++;
+                        } else {
+                                /* Try to recover from the error */
+                                err("OA %s may not be accessible", oa->server);
+                                oa_soap_error_handling(handler, oa);
+                                request.pid = oa->event_pid;
 
-                /* OA returns empty event response payload for LCD status
-                 * change events.  Ignore empty event response.
-                 */
-                if (response.eventInfoArray == NULL) {
-                        dbg("Ignoring empty event response");
-                } else
-                        process_oa_events(handler, oa, con, &response);
-        }
+                                /* Re-initialize the con */
+                                if (con != NULL) {
+                                        soap_close(con);
+                                        con = NULL;
+                                }
+                                memset(url, 0, MAX_URL_LEN);
+                                snprintf(url, strlen(oa->server) +
+                                         strlen(PORT) + 1,
+                                        "%s" PORT, oa->server);
+
+                                /* Ideally, the soap_open should pass in
+                                 * 1st try. If not, try until soap_open succeeds
+                                 */
+                                while (con == NULL) {
+                                        con = soap_open(url, user_name,
+                                                        password,
+                                                        HPI_CALL_TIMEOUT);
+                                        if (con == NULL)
+                                                sleep(2);
+                                }
+                        } /* end of else (non-switchover error handling) */
+                } /* end of else (SOAP call failure handling) */
+        } /* end of 'while(listen_for_events == SAHPI_TRUE)' loop */
+
         return (gpointer *) SA_OK;
 }
 
