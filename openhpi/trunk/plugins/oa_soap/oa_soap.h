@@ -33,6 +33,8 @@
  *      Raghavendra M.S. <raghavendra.ms@hp.com>
  *      Raja Kumar Thatte <raja-kumar.thatte@hp.com>
  *      Vivek Kumar <vivek.kumar2@hp.com>
+ *      Shuah Khan <shuah.khan@hp.com> Infrastructure changes to add support
+ *                                     for new types of blades and events
  */
 
 #ifndef _OA_SOAP_H
@@ -111,23 +113,26 @@ struct oa_info
         SaHpiFloat64T fm_version;
 };
 
-enum resource_presence_status
+typedef enum resource_presence_status
 {
         RES_ABSENT = 0,
         RES_PRESENT= 1
-};
+} resource_presence_status_t;
 
 /* Resource presence matrix per resource type */
-struct resource_status
+typedef struct resource_status
 {
         SaHpiInt32T max_bays;
         enum resource_presence_status *presence;
         char **serial_number;
-};
+        SaHpiResourceIdT *resource_id;
+} resource_status_t;
 
 /* Resource presence matrix for all FRUs in HP BladeSystem c-Class */
 struct oa_soap_resource_status
 {
+        SaHpiResourceIdT enclosure_rid;
+        SaHpiResourceIdT power_subsystem_rid;
         struct resource_status oa;
         struct resource_status server;
         struct resource_status interconnect;

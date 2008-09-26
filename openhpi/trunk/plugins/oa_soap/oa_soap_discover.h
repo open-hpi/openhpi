@@ -30,6 +30,8 @@
  *
  * Author(s)
  *      Raghavendra P.G. <raghavendra.pg@hp.com>
+ *      Shuah Khan <shuah.khan@hp.com> Infrastructure changes to add support
+ *                                     for new types of blades and events
  */
 
 #ifndef _OA_SOAP_DISCOVER_H
@@ -46,8 +48,9 @@
 #define POWER_SUPPLY_NAME "Power Supply Unit"
 #define POWER_SUBSYSTEM_NAME "Power Subsystem"
 #define OA_NAME "Onboard Administrator"
-#define MAX_SERIAL_NUM_LENGTH 32
 #define MAX_NAME_LEN 64
+/* Maximum length of the serial number */
+#define MAX_SERIAL_NUM_LENGTH 32
 
 #define CISCO "CISCO"                   /* Identifies the Cisco interconnects */
 
@@ -102,7 +105,8 @@ SaErrorT build_interconnect_rpt(struct oh_handler_state *oh_handler,
                                 SOAP_CON *con,
                                 char *name,
                                 SaHpiInt32T bay_number,
-                                SaHpiResourceIdT *resource_id);
+                                SaHpiResourceIdT *resource_id,
+                                int inserted);
 
 SaErrorT build_interconnect_rdr(struct oh_handler_state *oh_handler,
                                 SOAP_CON *con,

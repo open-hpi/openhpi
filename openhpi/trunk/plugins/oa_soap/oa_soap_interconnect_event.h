@@ -30,6 +30,8 @@
  *
  * Author(s)
  *      Raghavendra P.G. <raghavendra.pg@hp.com>
+ *      Shuah Khan <shuah.khan@hp.com> Infrastructure changes to add support
+ *                                     for new types of blades and events
  */
 
 #ifndef _OA_SOAP_INTERCONNECT_EVENT_H
@@ -55,11 +57,6 @@ SaErrorT process_interconnect_extraction_event(struct oh_handler_state
 
 SaErrorT process_interconnect_status_event(struct oh_handler_state *oh_handler,
                                            struct eventInfo *oa_event);
-
-SaErrorT build_inserted_interconnect_rpt(struct oh_handler_state *oh_handler,
-                                         char *name,
-                                         SaHpiInt32T bay_number,
-                                         SaHpiResourceIdT *resource_id);
 
 SaErrorT process_interconnect_thermal_event(struct oh_handler_state *oh_handler,
                                             struct eventInfo *oa_event);
