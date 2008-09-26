@@ -31,6 +31,8 @@
  * Author(s)
  *      Raghavendra P.G. <raghavendra.pg@hp.com>
  *      Shuah Khan <shuah.khan@hp.com>    IO and Storage blade support
+ *      Shuah Khan <shuah.khan@hp.com> Infrastructure changes to add support
+ *                                     for new types of blades and events
  *
  * This file has the server blade related events handling
  *
@@ -294,14 +296,12 @@ SaErrorT process_server_power_event(struct oh_handler_state *oh_handler,
                                     struct eventInfo *oa_event)
 {
         SaErrorT rv = SA_OK;
-        SaHpiEntityPathT entity_path;
-        SaHpiEntityPathT root_entity_path;
         SaHpiRptEntryT *rpt = NULL;
         struct oa_soap_handler *oa_handler = NULL;
         struct oa_soap_hotswap_state hotswap_state;
-        char* entity_root = NULL;
         SaHpiInt32T bay_number;
         struct oh_event event;
+        SaHpiResourceIdT resource_id;
 
         if (oh_handler == NULL || con == NULL || oa_event == NULL) {
                 err("Invalid parameters");
@@ -312,29 +312,10 @@ SaErrorT process_server_power_event(struct oh_handler_state *oh_handler,
 
         bay_number = oa_event->eventData.bladeStatus.bayNumber;
         oa_handler = (struct oa_soap_handler *) oh_handler->data;
-        entity_root = (char *)g_hash_table_lookup(oh_handler->config,
-                                                  "entity_root");
-        rv = oh_encode_entitypath(entity_root, &root_entity_path);
-        if (rv != SA_OK) {
-                err("Encoding entity path failed");
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
-
-        memset(&entity_path, 0, sizeof(SaHpiEntityPathT));
-        entity_path.Entry[1].EntityType = SAHPI_ENT_ROOT;
-        entity_path.Entry[1].EntityLocation = 0;
-        entity_path.Entry[0].EntityType = SAHPI_ENT_SYSTEM_BLADE; 
-       /* entity_path.Entry[0].EntityType = 
-		rpt->ResourceEntity.Entry[0].EntityType; */
-        entity_path.Entry[0].EntityLocation = bay_number;
-        rv = oh_concat_ep(&entity_path, &root_entity_path);
-        if (rv != SA_OK) {
-                err("concat of entity path failed");
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
-
-        /* Get the rpt entry of the server */
-        rpt = oh_get_resource_by_ep(oh_handler->rptcache, &entity_path);
+        resource_id = 
+           oa_handler->oa_soap_resources.server.resource_id[bay_number - 1];
+        /* Get the rpt entry of the resource */
+        rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
         if (rpt == NULL) {
                 err("resource RPT is NULL");
                 return SA_ERR_HPI_INTERNAL_ERROR;
@@ -426,16 +407,18 @@ SaErrorT process_server_insertion_event(struct oh_handler_state *oh_handler,
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-        /* Update the serial number array */
-        strcpy(oa_handler->oa_soap_resources.server.
-               serial_number[bay_number - 1], response.serialNumber);
-
         /* Build the server RPT entry */
         rv = build_inserted_server_rpt(oh_handler, &response, &rpt);
         if (rv != SA_OK) {
                 err("build inserted server rpt failed");
                 return rv;
         }
+
+        /* update resource_status structure with resource_id,
+                   serial_number, and presence status */
+        oa_soap_update_resource_status(
+                      &oa_handler->oa_soap_resources.server, bay_number,
+                      response.serialNumber, rpt.ResourceId, RES_PRESENT);
 
         /* Build the server RDR */
         rv = build_server_rdr(oh_handler, con, bay_number, rpt.ResourceId);
@@ -448,6 +431,10 @@ SaErrorT process_server_insertion_event(struct oh_handler_state *oh_handler,
                              rpt.ResourceId);
                 }
                 oh_remove_resource(oh_handler->rptcache, rpt.ResourceId);
+                /* reset resource_status structure to default values */
+                oa_soap_update_resource_status(
+                              &oa_handler->oa_soap_resources.server, bay_number,
+                              "", SAHPI_UNSPECIFIED_RESOURCE_ID, RES_ABSENT);
                 return rv;
         }
 
@@ -469,10 +456,6 @@ SaErrorT process_server_insertion_event(struct oh_handler_state *oh_handler,
         event.event.EventDataUnion.HotSwapEvent.CauseOfStateChange =
                 SAHPI_HS_CAUSE_OPERATOR_INIT;
         oh_evt_queue_push(oh_handler->eventq, copy_oa_soap_event(&event));
-
-        /* Update the presence status */
-        oa_handler->oa_soap_resources.server.presence[bay_number - 1] =
-                RES_PRESENT;
 
         return SA_OK;
 }
@@ -543,46 +526,28 @@ SaErrorT process_server_thermal_event(struct oh_handler_state *oh_handler,
                                       struct eventInfo *oa_event)
 {
         SaErrorT rv = SA_OK;
-        char *entity_root = NULL;
-        SaHpiEntityPathT entity_path;
-        SaHpiEntityPathT root_entity_path;
         SaHpiRptEntryT *rpt = NULL;
         SaHpiRdrT *rdr = NULL;
         struct oa_soap_sensor_info *sensor_info=NULL;
         SaHpiSensorReadingT current_reading;
         SaHpiSeverityT event_severity = SAHPI_OK;
+        SaHpiResourceIdT resource_id;
+        struct oa_soap_handler *oa_handler = NULL;
+        SaHpiInt32T bay_number;
 
         if (oh_handler == NULL || oa_event == NULL) {
                 err("Invalid parameters");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-        entity_root = (char *)g_hash_table_lookup(oh_handler->config,
-                                                  "entity_root");
-        rv = oh_encode_entitypath(entity_root, &root_entity_path);
-        if (rv != SA_OK) {
-                err("Encoding entity path failed");
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
-
-        memset(&entity_path, 0, sizeof(SaHpiEntityPathT));
-        entity_path.Entry[1].EntityType = SAHPI_ENT_ROOT;
-        entity_path.Entry[1].EntityLocation = 0;
-        entity_path.Entry[0].EntityType = SAHPI_ENT_SYSTEM_BLADE; 
-        /* entity_path.Entry[0].EntityType =
-		rpt->ResourceEntity.Entry[0].EntityType; */
-        entity_path.Entry[0].EntityLocation=
-                oa_event->eventData.thermalInfo.bayNumber;
-
-        rv = oh_concat_ep(&entity_path, &root_entity_path);
-        if (rv != SA_OK) {
-                err("Encoding entity path failed");
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
-
-        rpt = oh_get_resource_by_ep(oh_handler->rptcache, &entity_path);
+        oa_handler = (struct oa_soap_handler *) oh_handler->data;
+        bay_number = oa_event->eventData.bladeStatus.bayNumber;
+        resource_id = 
+           oa_handler->oa_soap_resources.server.resource_id[bay_number - 1];
+        /* Get the rpt entry of the resource */
+        rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
         if (rpt == NULL) {
-                err("resource rpt is NULL");
+                err("resource RPT is NULL");
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 

@@ -30,6 +30,8 @@
  *
  * Author(s)
  *      Raghavendra M.S. <raghavendra.ms@hp.com>
+ *      Shuah Khan <shuah.khan@hp.com> Infrastructure changes to add support
+ *                                     for new types of blades and events
  */
 
 #ifndef _OA_SOAP_CONTROL_H
@@ -57,12 +59,10 @@ SaErrorT oa_soap_set_control_state(void *oh_handler,
                                    SaHpiCtrlStateT *state);
 
 SaErrorT build_server_control_rdr(struct oh_handler_state *oh_handler,
-                                  SaHpiResourceIdT resource_id,
                                   SaHpiInt32T rdr_num,
                                   SaHpiRdrT *rdr);
 
 SaErrorT build_interconnect_control_rdr(struct oh_handler_state *oh_handler,
-                                        SaHpiResourceIdT resource_id,
                                         SaHpiInt32T rdr_num,
                                         SaHpiRdrT *rdr);
 #endif

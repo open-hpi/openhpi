@@ -31,6 +31,8 @@
  * Author(s)
  *      Raghavendra M.S. <raghavendra.ms@hp.com>
  *      Shuah Khan <shuah.khan@hp.com>    IO and Storage blade support
+ *      Shuah Khan <shuah.khan@hp.com> Infrastructure changes to add support
+ *                                     for new types of blades and events
  *
  * This file supports the functions related to HPI Sensor.
  * The file covers three general classes of function: Sensor ABI functions,
@@ -1004,12 +1006,13 @@ SaErrorT build_enclosure_thermal_sensor_rdr(struct oh_handler_state *oh_handler,
                                                 **sensor_info)
 {
         SaErrorT rv = SA_OK;
-        SaHpiEntityPathT entity_path;
-        char *entity_root = NULL;
         char enclosure_temp_str[] = ENCLOSURE_THERMAL_STRING;
         struct getThermalInfo request;
         struct thermalInfo response;
         SaHpiBoolT event_support = SAHPI_FALSE;
+        struct oa_soap_handler *oa_handler = NULL;
+        SaHpiResourceIdT resource_id;
+        SaHpiRptEntryT *rpt = NULL;
 
         if (oh_handler == NULL || rdr == NULL || sensor_info == NULL) {
                 err("Invalid parameter.");
@@ -1031,21 +1034,15 @@ SaErrorT build_enclosure_thermal_sensor_rdr(struct oh_handler_state *oh_handler,
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-        entity_root = (char *)g_hash_table_lookup(oh_handler->config,
-                                                  "entity_root");
-        rv = oh_encode_entitypath(entity_root, &entity_path);
-        if (rv != SA_OK) {
-                err("Encoding entity path failed");
+        oa_handler = (struct oa_soap_handler *) oh_handler->data;
+        resource_id = oa_handler->oa_soap_resources.enclosure_rid;
+        /* Get the rpt entry of the resource */
+        rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
+        if (rpt == NULL) {
+                err("resource RPT is NULL");
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
-
-        rdr->Entity.Entry[0].EntityType = SAHPI_ENT_ROOT;
-        rdr->Entity.Entry[0].EntityLocation = 0;
-        rv = oh_concat_ep(&rdr->Entity, &entity_path);
-        if (rv != SA_OK) {
-                err("concat of entity path failed");
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
+        rdr->Entity = rpt->ResourceEntity;
 
         /* Populate the sensor rdr with default value and threshold values
          */
@@ -1138,12 +1135,13 @@ SaErrorT build_oa_thermal_sensor_rdr(struct oh_handler_state *oh_handler,
                                      struct oa_soap_sensor_info **sensor_info)
 {
         SaErrorT rv = SA_OK;
-        SaHpiEntityPathT entity_path;
-        char *entity_root = NULL;
         char oa_temp_str[] = OA_THERMAL_STRING;
         struct getThermalInfo request;
         struct thermalInfo response;
         SaHpiBoolT event_support = SAHPI_FALSE;
+        struct oa_soap_handler *oa_handler = NULL;
+        SaHpiResourceIdT resource_id;
+        SaHpiRptEntryT *rpt = NULL;
 
         if (oh_handler == NULL || rdr == NULL || sensor_info == NULL) {
                 err("Invalid parameter.");
@@ -1163,22 +1161,16 @@ SaErrorT build_oa_thermal_sensor_rdr(struct oh_handler_state *oh_handler,
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-        entity_root = (char *)g_hash_table_lookup(oh_handler->config,
-                                                  "entity_root");
-        rv = oh_encode_entitypath(entity_root, &entity_path);
-        if (rv != SA_OK) {
-                err("Encoding entity path failed");
+        oa_handler = (struct oa_soap_handler *) oh_handler->data;
+        resource_id = 
+           oa_handler->oa_soap_resources.oa.resource_id[bay_number - 1];
+        /* Get the rpt entry of the resource */
+        rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
+        if (rpt == NULL) {
+                err("resource RPT is NULL");
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
-        rdr->Entity.Entry[1].EntityType = SAHPI_ENT_ROOT;
-        rdr->Entity.Entry[1].EntityLocation = 0;
-        rdr->Entity.Entry[0].EntityType = SAHPI_ENT_SYS_MGMNT_MODULE;
-        rdr->Entity.Entry[0].EntityLocation = bay_number;
-        rv = oh_concat_ep(&rdr->Entity, &entity_path);
-        if (rv != SA_OK) {
-                err("concat of entity path failed");
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
+        rdr->Entity = rpt->ResourceEntity;
 
         /* Populate the sensor rdr with default value and threshold values
          */
@@ -1270,30 +1262,23 @@ SaErrorT build_oa_thermal_sensor_rdr(struct oh_handler_state *oh_handler,
 SaErrorT build_server_thermal_sensor_rdr(struct oh_handler_state *oh_handler,
                                          SOAP_CON *con,
                                          SaHpiInt32T bay_number,
-			                 SaHpiResourceIdT resource_id,
                                          SaHpiRdrT *rdr,
                                          struct oa_soap_sensor_info
                                                 **sensor_info)
 {
         SaErrorT rv = SA_OK;
-        SaHpiEntityPathT entity_path;
-        char *entity_root = NULL;
         char server_temp_str[] = SERVER_THERMAL_STRING;
         struct getThermalInfo request;
         struct thermalInfo response;
         SaHpiBoolT event_support = SAHPI_FALSE;
-	SaHpiRptEntryT *rpt;
+        struct oa_soap_handler *oa_handler = NULL;
+        SaHpiResourceIdT resource_id;
+        SaHpiRptEntryT *rpt = NULL;
 
         if (oh_handler == NULL || rdr == NULL || sensor_info == NULL) {
                 err("Invalid parameter.");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
-
-	rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
-	if (!rpt) {
-                err("Could not find blade resource rpt");
-		return(SA_ERR_HPI_INTERNAL_ERROR);
-	}
 
         /* Set sensor type in request to enclosure to retrieve
          * thermal information of enclosure
@@ -1309,23 +1294,16 @@ SaErrorT build_server_thermal_sensor_rdr(struct oh_handler_state *oh_handler,
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-        entity_root = (char *)g_hash_table_lookup(oh_handler->config,
-                                                  "entity_root");
-        rv = oh_encode_entitypath(entity_root, &entity_path);
-        if (rv != SA_OK) {
-                err("Encoding entity path failed");
+        oa_handler = (struct oa_soap_handler *) oh_handler->data;
+        resource_id = 
+           oa_handler->oa_soap_resources.server.resource_id[bay_number - 1];
+        /* Get the rpt entry of the resource */
+        rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
+        if (rpt == NULL) {
+                err("resource RPT is NULL");
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
-        rdr->Entity.Entry[1].EntityType = SAHPI_ENT_ROOT;
-        rdr->Entity.Entry[1].EntityLocation = 0;
-        rdr->Entity.Entry[0].EntityType = 
-		rpt->ResourceEntity.Entry[0].EntityType;
-        rdr->Entity.Entry[0].EntityLocation = bay_number;
-        rv = oh_concat_ep(&rdr->Entity, &entity_path);
-        if (rv != SA_OK) {
-                err("concat of entity path failed");
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
+        rdr->Entity = rpt->ResourceEntity;
 
         /* Populate the sensor rdr with default value and threshold values
          */
@@ -1414,44 +1392,30 @@ SaErrorT build_server_thermal_sensor_rdr(struct oh_handler_state *oh_handler,
 SaErrorT build_server_power_sensor_rdr(struct oh_handler_state *oh_handler,
                                        SOAP_CON *con,
                                        SaHpiInt32T bay_number,
-			               SaHpiResourceIdT resource_id,
                                        SaHpiRdrT *rdr,
                                        struct oa_soap_sensor_info **sensor_info)
 {
         SaErrorT rv = SA_OK;
-        SaHpiEntityPathT entity_path;
-        char *entity_root = NULL;
         char server_power_str[] = SERVER_POWER_STRING;
-	SaHpiRptEntryT *rpt;
+        struct oa_soap_handler *oa_handler = NULL;
+        SaHpiResourceIdT resource_id;
+        SaHpiRptEntryT *rpt = NULL;
 
         if (oh_handler == NULL || rdr == NULL || sensor_info == NULL) {
                 err("Invalid parameter.");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-	rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
-	if (!rpt) {
-                err("Could not find blade resource rpt");
-		return(SA_ERR_HPI_INTERNAL_ERROR);
-	}
-
-        entity_root = (char *)g_hash_table_lookup(oh_handler->config,
-                                                  "entity_root");
-        rv = oh_encode_entitypath(entity_root, &entity_path);
-        if (rv != SA_OK) {
-                err("Encoding entity path failed");
+        oa_handler = (struct oa_soap_handler *) oh_handler->data;
+        resource_id = 
+           oa_handler->oa_soap_resources.server.resource_id[bay_number - 1];
+        /* Get the rpt entry of the resource */
+        rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
+        if (rpt == NULL) {
+                err("resource RPT is NULL");
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
-        rdr->Entity.Entry[1].EntityType = SAHPI_ENT_ROOT;
-        rdr->Entity.Entry[1].EntityLocation = 0;
-        rdr->Entity.Entry[0].EntityType = 
-		rpt->ResourceEntity.Entry[0].EntityType;
-        rdr->Entity.Entry[0].EntityLocation = bay_number;
-        rv = oh_concat_ep(&rdr->Entity, &entity_path);
-        if (rv != SA_OK) {
-                err("concat of entity path failed");
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
+        rdr->Entity = rpt->ResourceEntity;
 
         /* Populate the sensor rdr with default values.
          */
@@ -1529,30 +1493,23 @@ SaErrorT build_interconnect_thermal_sensor_rdr(struct oh_handler_state
                                                        *oh_handler,
                                                SOAP_CON *con,
                                                SaHpiInt32T bay_number,
-			                       SaHpiResourceIdT resource_id,
                                                SaHpiRdrT *rdr,
                                                struct oa_soap_sensor_info
                                                        **sensor_info)
 {
         SaErrorT rv = SA_OK;
-        SaHpiEntityPathT entity_path;
-        char *entity_root = NULL;
         char interconnect_temp_str[] = INTERCONNECT_THERMAL_STRING;
         struct getThermalInfo request;
         struct thermalInfo response;
         SaHpiBoolT event_support = SAHPI_FALSE;
-	SaHpiRptEntryT *rpt;
+        struct oa_soap_handler *oa_handler = NULL;
+        SaHpiResourceIdT resource_id;
+        SaHpiRptEntryT *rpt = NULL;
 
         if (oh_handler == NULL || rdr == NULL || sensor_info == NULL) {
                 err("Invalid parameter.");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
-
-	rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
-	if (!rpt) {
-                err("Could not find blade resource rpt");
-		return(SA_ERR_HPI_INTERNAL_ERROR);
-	}
 
         /* Set sensor type in request to interconnect to retrieve
          * thermal information of enclosure
@@ -1569,27 +1526,17 @@ SaErrorT build_interconnect_thermal_sensor_rdr(struct oh_handler_state
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-        entity_root = (char *)g_hash_table_lookup(oh_handler->config,
-                                                  "entity_root");
-        rv = oh_encode_entitypath(entity_root, &entity_path);
-        if (rv != SA_OK) {
-                err("Encoding entity path failed");
+        oa_handler = (struct oa_soap_handler *) oh_handler->data;
+        resource_id = 
+           oa_handler->oa_soap_resources.interconnect.resource_id[bay_number - 1];
+        /* Get the rpt entry of the resource */
+        rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
+        if (rpt == NULL) {
+                err("resource RPT is NULL");
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-        /* Populate the sensor rdr with default value and threshold values
-         */
-        rdr->Entity.Entry[1].EntityType = SAHPI_ENT_ROOT;
-        rdr->Entity.Entry[1].EntityLocation = 0;
-        rdr->Entity.Entry[0].EntityType = 
-		rpt->ResourceEntity.Entry[0].EntityType;
-        rdr->Entity.Entry[0].EntityLocation = bay_number;
-        rv = oh_concat_ep(&rdr->Entity, &entity_path);
-        if (rv != SA_OK) {
-                err("concat of entity path failed");
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
-
+        rdr->Entity = rpt->ResourceEntity;
         rdr->RdrType = SAHPI_SENSOR_RDR;
         rdr->RdrTypeUnion.SensorRec.Num = OA_SOAP_RES_SEN_TEMP_NUM;
         rdr->RdrTypeUnion.SensorRec.Type = SAHPI_TEMPERATURE;
@@ -1678,11 +1625,12 @@ SaErrorT build_fan_speed_sensor_rdr(struct oh_handler_state *oh_handler,
                                     struct oa_soap_sensor_info **sensor_info)
 {
         SaErrorT rv = SA_OK;
-        SaHpiEntityPathT entity_path;
-        char *entity_root = NULL;
         char fan_speed_str[] = FAN_SPEED_STRING;
         struct getFanInfo request;
         struct fanInfo response;
+        struct oa_soap_handler *oa_handler = NULL;
+        SaHpiResourceIdT resource_id;
+        SaHpiRptEntryT *rpt = NULL;
 
         if (oh_handler == NULL || rdr == NULL || sensor_info == NULL) {
                 err("Invalid parameter.");
@@ -1698,22 +1646,16 @@ SaErrorT build_fan_speed_sensor_rdr(struct oh_handler_state *oh_handler,
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-        entity_root = (char *)g_hash_table_lookup(oh_handler->config,
-                                                  "entity_root");
-        rv = oh_encode_entitypath(entity_root, &entity_path);
-        if (rv != SA_OK) {
-                err("Encoding entity path failed");
+        oa_handler = (struct oa_soap_handler *) oh_handler->data;
+        resource_id = 
+           oa_handler->oa_soap_resources.fan.resource_id[bay_number - 1];
+        /* Get the rpt entry of the resource */
+        rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
+        if (rpt == NULL) {
+                err("resource RPT is NULL");
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
-        rdr->Entity.Entry[1].EntityType = SAHPI_ENT_ROOT;
-        rdr->Entity.Entry[1].EntityLocation = 0;
-        rdr->Entity.Entry[0].EntityType = SAHPI_ENT_COOLING_DEVICE;
-        rdr->Entity.Entry[0].EntityLocation = bay_number;
-        rv = oh_concat_ep(&rdr->Entity, &entity_path);
-        if (rv != SA_OK) {
-                err("concat of entity path failed");
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
+        rdr->Entity = rpt->ResourceEntity;
 
         /* Populate the sensor rdr with default values and the fan speed
          * thresholds
@@ -1804,31 +1746,26 @@ SaErrorT build_fan_power_sensor_rdr(struct oh_handler_state *oh_handler,
                                     struct oa_soap_sensor_info **sensor_info)
 {
         SaErrorT rv = 0;
-        SaHpiEntityPathT entity_path;
-        char *entity_root = NULL;
         char fan_power_str[] = FAN_POWER_STRING;
+        struct oa_soap_handler *oa_handler = NULL;
+        SaHpiResourceIdT resource_id;
+        SaHpiRptEntryT *rpt = NULL;
 
         if (oh_handler == NULL || rdr == NULL || sensor_info == NULL) {
                 err("Invalid parameter.");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-        entity_root = (char *)g_hash_table_lookup(oh_handler->config,
-                                                  "entity_root");
-        rv = oh_encode_entitypath(entity_root, &entity_path);
-        if (rv != SA_OK) {
-                err("Encoding entity path failed");
+        oa_handler = (struct oa_soap_handler *) oh_handler->data;
+        resource_id = 
+           oa_handler->oa_soap_resources.fan.resource_id[bay_number - 1];
+        /* Get the rpt entry of the resource */
+        rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
+        if (rpt == NULL) {
+                err("resource RPT is NULL");
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
-        rdr->Entity.Entry[1].EntityType = SAHPI_ENT_ROOT;
-        rdr->Entity.Entry[1].EntityLocation = 0;
-        rdr->Entity.Entry[0].EntityType = SAHPI_ENT_COOLING_DEVICE;
-        rdr->Entity.Entry[0].EntityLocation = bay_number;
-        rv = oh_concat_ep(&rdr->Entity, &entity_path);
-        if (rv != SA_OK) {
-                err("concat of entity path failed");
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
+        rdr->Entity = rpt->ResourceEntity;
 
         /* Populate the sensor rdr with default values */
         rdr->RdrType = SAHPI_SENSOR_RDR;
@@ -1903,11 +1840,12 @@ SaErrorT build_ps_power_sensor_rdr(struct oh_handler_state *oh_handler,
                                    struct oa_soap_sensor_info **sensor_info)
 {
         SaErrorT rv = SA_OK;
-        SaHpiEntityPathT entity_path;
-        char *entity_root = NULL;
         char ps_power_str[] = POWER_SUPPLY_POWER_STRING;
         struct getPowerSupplyInfo request;
         struct powerSupplyInfo response;
+        struct oa_soap_handler *oa_handler = NULL;
+        SaHpiResourceIdT resource_id;
+        SaHpiRptEntryT *rpt = NULL;
 
         if (oh_handler == NULL || rdr == NULL || sensor_info == NULL) {
                 err("Invalid parameter.");
@@ -1922,24 +1860,16 @@ SaErrorT build_ps_power_sensor_rdr(struct oh_handler_state *oh_handler,
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-        entity_root = (char *)g_hash_table_lookup(oh_handler->config,
-                                                  "entity_root");
-        rv = oh_encode_entitypath(entity_root, &entity_path);
-        if (rv != SA_OK) {
-                err("Encoding entity path failed");
+        oa_handler = (struct oa_soap_handler *) oh_handler->data;
+        resource_id = 
+           oa_handler->oa_soap_resources.ps_unit.resource_id[bay_number - 1];
+        /* Get the rpt entry of the resource */
+        rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
+        if (rpt == NULL) {
+                err("resource RPT is NULL");
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
-        rdr->Entity.Entry[2].EntityType = SAHPI_ENT_ROOT;
-        rdr->Entity.Entry[2].EntityLocation = 0;
-        rdr->Entity.Entry[1].EntityType = SAHPI_ENT_POWER_MGMNT;
-        rdr->Entity.Entry[1].EntityLocation = 1;
-        rdr->Entity.Entry[0].EntityType = SAHPI_ENT_POWER_SUPPLY;
-        rdr->Entity.Entry[0].EntityLocation = bay_number;
-        rv = oh_concat_ep(&rdr->Entity, &entity_path);
-        if (rv != SA_OK) {
-                err("concat of entity path failed");
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
+        rdr->Entity = rpt->ResourceEntity;
 
         /* Populate the sensor rdr with default values and the
          * power capacity threshold.
@@ -2023,31 +1953,24 @@ SaErrorT build_ps_subsystem_input_power_sensor_rdr(struct oh_handler_state
 {
         SaErrorT rv = SA_OK;
         char sensor_name[] = POWER_SUBSYSTEM_IN_POWER;
-        SaHpiEntityPathT entity_path;
-        char *entity_root = NULL;
+        struct oa_soap_handler *oa_handler = NULL;
+        SaHpiResourceIdT resource_id;
+        SaHpiRptEntryT *rpt = NULL;
 
         if (oh_handler == NULL || rdr == NULL || sensor_info == NULL) {
                 err("Invalid parameters");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-        entity_root = (char *)g_hash_table_lookup(oh_handler->config,
-                                                  "entity_root");
-        rv = oh_encode_entitypath(entity_root, &entity_path);
-        if (rv != SA_OK) {
-                err("Encoding entity path failed");
+        oa_handler = (struct oa_soap_handler *) oh_handler->data;
+        resource_id = oa_handler->oa_soap_resources.power_subsystem_rid;
+        /* Get the rpt entry of the resource */
+        rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
+        if (rpt == NULL) {
+                err("resource RPT is NULL");
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
-
-        rdr->Entity.Entry[1].EntityType = SAHPI_ENT_ROOT;
-        rdr->Entity.Entry[1].EntityLocation = 0;
-        rdr->Entity.Entry[0].EntityType = SAHPI_ENT_POWER_MGMNT;
-        rdr->Entity.Entry[0].EntityLocation = 1;
-        rv = oh_concat_ep(&rdr->Entity, &entity_path);
-        if (rv != SA_OK) {
-                err("concat of entity path failed");
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
+        rdr->Entity = rpt->ResourceEntity;
 
         /* Populate the sensor rdr with default values
          */
@@ -2119,31 +2042,24 @@ SaErrorT build_ps_subsystem_output_power_sensor_rdr(struct oh_handler_state
 {
         SaErrorT rv = SA_OK;
         char sensor_name[] = POWER_SUBSYSTEM_OUT_POWER;
-        SaHpiEntityPathT entity_path;
-        char *entity_root = NULL;
+        struct oa_soap_handler *oa_handler = NULL;
+        SaHpiResourceIdT resource_id;
+        SaHpiRptEntryT *rpt = NULL;
 
         if (oh_handler == NULL || rdr == NULL || sensor_info == NULL) {
                 err("Invalid parameters");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-        entity_root = (char *)g_hash_table_lookup(oh_handler->config,
-                                                  "entity_root");
-        rv = oh_encode_entitypath(entity_root, &entity_path);
-        if (rv != SA_OK) {
-                err("Encoding entity path failed");
+        oa_handler = (struct oa_soap_handler *) oh_handler->data;
+        resource_id = oa_handler->oa_soap_resources.power_subsystem_rid;
+        /* Get the rpt entry of the resource */
+        rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
+        if (rpt == NULL) {
+                err("resource RPT is NULL");
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
-
-        rdr->Entity.Entry[1].EntityType = SAHPI_ENT_ROOT;
-        rdr->Entity.Entry[1].EntityLocation = 0;
-        rdr->Entity.Entry[0].EntityType = SAHPI_ENT_POWER_MGMNT;
-        rdr->Entity.Entry[0].EntityLocation = 1;
-        rv = oh_concat_ep(&rdr->Entity, &entity_path);
-        if (rv != SA_OK) {
-                err("concat of entity path failed");
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
+        rdr->Entity = rpt->ResourceEntity;
 
         /* Populate the sensor rdr with default values
          */
@@ -2215,31 +2131,24 @@ SaErrorT build_ps_subsystem_power_consumed_sensor_rdr(struct oh_handler_state
 {
         SaErrorT rv = SA_OK;
         char sensor_name[] = POWER_SUBSYSTEM_POWER_CONSUMED;
-        SaHpiEntityPathT entity_path;
-        char *entity_root = NULL;
+        struct oa_soap_handler *oa_handler = NULL;
+        SaHpiResourceIdT resource_id;
+        SaHpiRptEntryT *rpt = NULL;
 
         if (oh_handler == NULL || rdr == NULL || sensor_info == NULL) {
                 err("Invalid parameters");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-        entity_root = (char *)g_hash_table_lookup(oh_handler->config,
-                                                  "entity_root");
-        rv = oh_encode_entitypath(entity_root, &entity_path);
-        if (rv != SA_OK) {
-                err("Encoding entity path failed");
+        oa_handler = (struct oa_soap_handler *) oh_handler->data;
+        resource_id = oa_handler->oa_soap_resources.power_subsystem_rid;
+        /* Get the rpt entry of the resource */
+        rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
+        if (rpt == NULL) {
+                err("resource RPT is NULL");
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
-
-        rdr->Entity.Entry[1].EntityType = SAHPI_ENT_ROOT;
-        rdr->Entity.Entry[1].EntityLocation = 0;
-        rdr->Entity.Entry[0].EntityType = SAHPI_ENT_POWER_MGMNT;
-        rdr->Entity.Entry[0].EntityLocation = 1;
-        rv = oh_concat_ep(&rdr->Entity, &entity_path);
-        if (rv != SA_OK) {
-                err("concat of entity path failed");
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
+        rdr->Entity = rpt->ResourceEntity;
 
         /* Populate the sensor rdr with default values
          */
@@ -2311,31 +2220,24 @@ SaErrorT build_ps_subsystem_power_capacity_sensor_rdr(struct oh_handler_state
 {
         SaErrorT rv = SA_OK;
         char sensor_name[] = POWER_SUBSYSTEM_POWER_CAPACITY;
-        SaHpiEntityPathT entity_path;
-        char *entity_root = NULL;
+        struct oa_soap_handler *oa_handler = NULL;
+        SaHpiResourceIdT resource_id;
+        SaHpiRptEntryT *rpt = NULL;
 
         if (oh_handler == NULL || rdr == NULL || sensor_info == NULL) {
                 err("Invalid parameters");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-        entity_root = (char *)g_hash_table_lookup(oh_handler->config,
-                                                  "entity_root");
-        rv = oh_encode_entitypath(entity_root, &entity_path);
-        if (rv != SA_OK) {
-                err("Encoding entity path failed");
+        oa_handler = (struct oa_soap_handler *) oh_handler->data;
+        resource_id = oa_handler->oa_soap_resources.power_subsystem_rid;
+        /* Get the rpt entry of the resource */
+        rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
+        if (rpt == NULL) {
+                err("resource RPT is NULL");
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
-
-        rdr->Entity.Entry[1].EntityType = SAHPI_ENT_ROOT;
-        rdr->Entity.Entry[1].EntityLocation = 0;
-        rdr->Entity.Entry[0].EntityType = SAHPI_ENT_POWER_MGMNT;
-        rdr->Entity.Entry[0].EntityLocation = 1;
-        rv = oh_concat_ep(&rdr->Entity, &entity_path);
-        if (rv != SA_OK) {
-                err("concat of entity path failed");
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
+        rdr->Entity = rpt->ResourceEntity;
 
         /* Populate the sensor rdr with default values
          */
