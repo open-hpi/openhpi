@@ -32,7 +32,7 @@
 
 enum {
         HPI_CLIENT_CONF_TOKEN_DOMAIN = G_TOKEN_LAST,
-        HPI_CLIENT_CONF_TOKEN_DEFAULT,
+        HPI_CLIENT_CONF_TOKEN_DEFAULT,	
         HPI_CLIENT_CONF_TOKEN_HOST,
         HPI_CLIENT_CONF_TOKEN_PORT
 } hpiClientConfType;
@@ -51,6 +51,7 @@ static struct tokens oh_client_conf_tokens[] = {
                 .name = "default",
                 .token = HPI_CLIENT_CONF_TOKEN_DEFAULT
         },
+	
         {
                 .name = "host",
                 .token = HPI_CLIENT_CONF_TOKEN_HOST

@@ -150,6 +150,7 @@ SaErrorT SAHPI_API saHpiSessionOpen(
 	char cmd[] = "saHpiSessionOpen";
         pcstrmsock pinst = NULL;
         SaHpiDomainIdT default_did = SAHPI_UNSPECIFIED_DOMAIN_ID;
+	
 
         if (!SessionId || SecurityParams)
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -184,6 +185,7 @@ SaErrorT SAHPI_API saHpiSessionOpen(
                 oh_delete_connx(pinst);
 		return SA_ERR_HPI_INVALID_PARAMS;
         }
+	
         *SessionId = oh_open_session(DomainId, domain_sid, pinst);
 
 	return err;
