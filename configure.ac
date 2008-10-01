@@ -142,30 +142,17 @@ AC_CHECK_HEADERS([libxml2/libxml/xmlexports.h],[XML2_INCLUDE="-I/usr/include/lib
 AC_SUBST(XML2_LIB)
 AC_SUBST(XML2_INCLUDE)
 
-dnl Enable the marshal directory only when needed by
-dnl the deamon
+dnl Build daemon statically or dynamically.
 openhpid_static="no"
-oh_daemon_enabled="no"
 
+ENABLED_DIRS="$ENABLED_DIRS openhpid"
 AC_ARG_ENABLE([daemon],
-    [  --enable-daemon         build HPI daemon and client library [[default=yes]]],
-    [if test "x$enableval" = "xyes"; then
-        ENABLED_DIRS="$ENABLED_DIRS openhpid"
-	AC_DEFINE([OH_DAEMON_ENABLED],[1],[Build daemon and client libs])
-	oh_daemon_enabled="yes"
-     elif test "x$enableval" = "xstatic"; then
-        ENABLED_DIRS="$ENABLED_DIRS openhpid"
+	[  --enable-dynamic-daemon   build HPI daemon and client library non-statically[[default=yes]]],
+        [if test "x$enableval" = "xno"; then   
         openhpid_static="yes"
-	AC_DEFINE([OH_DAEMON_ENABLED],[1],[Build daemon and client libs])
-	oh_daemon_enabled="yes"
     fi],
-    [
-    ENABLED_DIRS="$ENABLED_DIRS openhpid"
-    AC_DEFINE([OH_DAEMON_ENABLED],[1],[Build daemon and client libs])
-    oh_daemon_enabled="yes"
-    openhpid_dinamic="yes"])
+    [openhpid_static="no"])
 
-AM_CONDITIONAL(OH_DAEMON_ENABLED, test x$oh_daemon_enabled = xyes)
 AM_CONDITIONAL(OPENHPID_STATIC, test x$openhpid_static = xyes)
 
 
@@ -398,12 +385,8 @@ AC_ARG_ENABLE([oa_soap],
      fi
     ])
 
-
-dnl enable marshal library when needed
-if test "x$oh_daemon_enabled" = "xyes"; then
-        AC_SUBST(MARSHALDIR,marshal)
-fi
-
+dnl enable marshal library
+AC_SUBST(MARSHALDIR,marshal)
 
 dnl
 dnl create static plugin config

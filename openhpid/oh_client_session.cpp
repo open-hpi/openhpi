@@ -41,6 +41,7 @@ static void __destroy_client_connx(gpointer data)
 
 int oh_client_init(void)
 {
+	char *tmp_env_str = NULL;
         // Initialize GLIB thread engine
 	if (!g_thread_supported()) {
         	g_thread_init(NULL);
@@ -69,7 +70,13 @@ int oh_client_init(void)
                         NULL, g_free
                 );                
                 /* TODO: Have a default openhpiclient.conf file in /etc */
-                oh_load_client_config(OH_CLIENT_DEFAULT_CONF, domains);
+                if ((tmp_env_str = getenv("OPENHPICLIENT_CONF")) != NULL) {
+			oh_load_client_config(tmp_env_str, domains);
+                } else {
+			oh_load_client_config(OH_CLIENT_DEFAULT_CONF, domains);	
+		}
+		
+                
                 
                 /* Check to see if a default domain exists, if not, add it */
                 domain_conf =
@@ -238,7 +245,7 @@ SaHpiSessionIdT oh_open_session(SaHpiDomainIdT did,
         
         if (!sid || !pinst)
 		return 0;
-
+	
         client_session = g_new0(struct oh_client_session, 1);
         
         g_static_rec_mutex_lock(&sessions_sem);
