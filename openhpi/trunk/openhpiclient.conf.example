@@ -1,0 +1,22 @@
+### OpenHPI client library configuration example file ###
+
+#######
+## Section: Domains
+##
+## Example domain declarations:
+#
+#domain 1 {
+#	host = "my_domain1_host"   # String value. Double quotes required.
+#	port = my_domain1_port     # Interger value 
+#}
+
+#domain 2 {
+#	host = "my_domain2_host"   # String value. Double quotes required.
+#	port = my_domain2_port     # Interger value
+#}
+
+#domain 3 {
+#	host = "my_domain3_host"   # String value. Double quotes required.
+#	port = my_domain3_port     # Interger value
+#}
+
