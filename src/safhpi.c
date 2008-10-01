@@ -125,7 +125,7 @@ SaErrorT SAHPI_API saHpiDomainInfoGet (
         /* General */
         DomainInfo->DomainId = d->id;
         DomainInfo->DomainCapabilities = d->capabilities;
-        DomainInfo->IsPeer = d->state & OH_DOMAIN_PEER;
+        DomainInfo->IsPeer = 0;
         /* DRT */
         DomainInfo->DrtUpdateCount = d->drt.update_count;
         DomainInfo->DrtUpdateTimestamp = d->drt.update_timestamp;
