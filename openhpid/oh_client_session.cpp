@@ -90,7 +90,7 @@ int oh_client_init(void)
                         host = getenv("OPENHPI_DAEMON_HOST");
                         if (!host) host = "localhost";
                         
-                        portstr = getenv("OPENHI_DAEMON_PORT");
+                        portstr = getenv("OPENHPI_DAEMON_PORT");
                         if (!portstr) port = OPENHPI_DEFAULT_DAEMON_PORT;
                         else port = atoi(portstr);
                         
