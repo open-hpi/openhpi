@@ -31,7 +31,8 @@
  * Author(s)
  *      Raghavendra P.G. <raghavendra.pg@hp.com>
  *      Vivek Kumar <vivek.kumar2@hp.com>
- *      Shuah Khan <shuah.khan@hp.com>
+ *      Shuah Khan <shuah.khan@hp.com> Infrastructure changes to add support
+ *                                     for new types of blades and events
  */
 
 #ifndef _OA_SOAP_UTILS_H
@@ -112,9 +113,11 @@ SaErrorT convert_lower_to_upper(char *src,
                                 char *dest,
                                 SaHpiInt32T dest_len);
 
-void oa_soap_update_resource_status(resource_status_t *res_status,
-                                    SaHpiInt32T index,
-                                    char *serial_number,
-                                    SaHpiResourceIdT resource_id,
-                                    resource_presence_status_t presence);
+extern void oa_soap_update_resource_status(
+        resource_status_t *,
+	SaHpiInt32T,
+	char *, 
+	SaHpiResourceIdT,
+	resource_presence_status_t);
+
 #endif

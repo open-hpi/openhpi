@@ -30,7 +30,8 @@
  *
  * Author(s)
  *      Raghavendra P.G. <raghavendra.pg@hp.com>
- *      Shuah Khan <shuah.khan@hp.com>
+ *      Shuah Khan <shuah.khan@hp.com> Infrastructure changes to add support
+ *                                     for new types of blades and events
  */
 
 #ifndef _OA_SOAP_INTERCONNECT_EVENT_H
