@@ -32,7 +32,9 @@
  *      Raghavendra P.G. <raghavendra.pg@hp.com>
  *      Vivek Kumar <vivek.kumar2@hp.com>
  *      Raghavendra M.S. <raghavendra.ms@hp.com>
- *      Shuah Khan <shuah.khan@hp.com>
+ *      Shuah Khan <shuah.khan@hp.com>    IO and Storage blade support
+ *      Shuah Khan <shuah.khan@hp.com> Infrastructure changes to add support
+ *                                     for new types of blades and events
  *
  * This file implements the re-discovery functionality. The resources of the
  * HP BladeSystem c-Class are re-discovered, whenever the connection to the
@@ -290,7 +292,7 @@ SaErrorT remove_oa(struct oh_handler_state *oh_handler,
         }
 
         update_hotswap_event(oh_handler, &event);
-        resource_id =
+        resource_id = 
            oa_handler->oa_soap_resources.oa.resource_id[bay_number - 1];
         /* Get the rpt entry of the resource */
         rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
@@ -323,11 +325,9 @@ SaErrorT remove_oa(struct oh_handler_state *oh_handler,
         rv = oh_remove_resource(oh_handler->rptcache,
                                 event.resource.ResourceId);
 
-        /* Reset resource_status structure to default values */
-        oa_soap_update_resource_status(&oa_handler->oa_soap_resources.oa,
-                                       bay_number, "",
-                                       SAHPI_UNSPECIFIED_RESOURCE_ID,
-                                       RES_ABSENT);
+        /* reset resource_status structure to default values */
+        oa_soap_update_resource_status( &oa_handler->oa_soap_resources.oa, 
+             bay_number, "", SAHPI_UNSPECIFIED_RESOURCE_ID, RES_ABSENT);
 
         return SA_OK;
 }
@@ -404,7 +404,7 @@ SaErrorT add_oa(struct oh_handler_state *oh_handler,
                 g_mutex_lock(temp->mutex);
                 temp->oa_status = status_response.oaRole;
                 g_mutex_unlock(temp->mutex);
-
+ 
                 /* Get the IP address of the newly inserted OA */
                 network_info.bayNumber = bay_number;
                 rv = soap_getOaNetworkInfo(con, &network_info,
@@ -448,14 +448,13 @@ SaErrorT add_oa(struct oh_handler_state *oh_handler,
                 return rv;
         }
 
-        /* Update resource_status structure with resource_id, serial_number,
-         * and presence status
-         */
+        /* update resource_status structure with resource_id,
+                   serial_number, and presence status */
         oa_soap_update_resource_status(
                       &oa_handler->oa_soap_resources.oa, bay_number,
                       response.serialNumber, resource_id, RES_PRESENT);
 
-        /* Update the OA firmware version to RPT entry */
+         /* Update the OA firmware version to RPT entry */
         rv = update_oa_info(oh_handler, &response, resource_id);
         if (rv != SA_OK) {
                 err("Failed to update OA RPT");
@@ -546,8 +545,8 @@ SaErrorT re_discover_blade(struct oh_handler_state *oh_handler,
                 }
 
                 if (response.presence != PRESENT ) {
-                        /* The blade is absent.  Is the blade absent in
-                         * the presence matrix?
+                        /* The server blade is absent.  Is the server absent
+                         * in the presence matrix?
                          */
                         if (oa_handler->oa_soap_resources.server.presence[i - 1]
                             == RES_ABSENT)
@@ -591,7 +590,7 @@ SaErrorT re_discover_blade(struct oh_handler_state *oh_handler,
                          * resource from RPTable.
                          */
                         rv = remove_server_blade(oh_handler, i,
-                                response.bladeType);
+				response.bladeType);
                         if (rv != SA_OK) {
                                 err("Server blade %d removal failed", i);
                                 return rv;
@@ -651,7 +650,7 @@ SaErrorT update_server_hotswap_state(struct oh_handler_state *oh_handler,
         }
 
         oa_handler = (struct oa_soap_handler *) oh_handler->data;
-        resource_id =
+        resource_id = 
            oa_handler->oa_soap_resources.server.resource_id[bay_number - 1];
         /* Get the rpt entry of the resource */
         rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
@@ -758,7 +757,7 @@ SaErrorT update_server_hotswap_state(struct oh_handler_state *oh_handler,
                                           copy_oa_soap_event(&event));
                         break;
 
-                default:
+                default :
                         err("unknown power status");
                         return SA_ERR_HPI_INTERNAL_ERROR;
         }
@@ -770,7 +769,7 @@ SaErrorT update_server_hotswap_state(struct oh_handler_state *oh_handler,
  * remove_server_blade
  *      @oh_handler: Pointer to openhpi handler
  *      @bay_number: Bay number of the removed blade
- *      @blade_type: Type of the blade
+ *	@blade_type: Type of the blade
  * Purpose:
  *      Remove the Server Blade from the RPTable
  *
@@ -799,7 +798,7 @@ SaErrorT remove_server_blade(struct oh_handler_state *oh_handler,
         oa_handler = (struct oa_soap_handler *) oh_handler->data;
         update_hotswap_event(oh_handler, &event);
 
-        resource_id =
+        resource_id = 
            oa_handler->oa_soap_resources.server.resource_id[bay_number - 1];
         /* Get the rpt entry of the resource */
         rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
@@ -811,47 +810,43 @@ SaErrorT remove_server_blade(struct oh_handler_state *oh_handler,
         memcpy(&(event.resource), rpt, sizeof(SaHpiRptEntryT));
         event.event.Source = event.resource.ResourceId;
 
-        if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
-                /* Simple hotswap */
-                event.event.EventDataUnion.HotSwapEvent.PreviousHotSwapState =
-                        SAHPI_HS_STATE_ACTIVE;
-                event.event.EventDataUnion.HotSwapEvent.HotSwapState =
-                        SAHPI_HS_STATE_NOT_PRESENT;
+	/* Simple hotswap */
+	if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
+		event.event.EventDataUnion.HotSwapEvent.PreviousHotSwapState =
+			SAHPI_HS_STATE_ACTIVE;
+		event.event.EventDataUnion.HotSwapEvent.HotSwapState =
+			SAHPI_HS_STATE_NOT_PRESENT;
                 event.event.EventDataUnion.HotSwapEvent.CauseOfStateChange =
                         SAHPI_HS_CAUSE_OPERATOR_INIT;
-        }
-        else {
-                /* Managed hotswap */
-                hotswap_state = (struct oa_soap_hotswap_state *)
-                        oh_get_resource_data(oh_handler->rptcache,
-                                             event.resource.ResourceId);
-                if (hotswap_state == NULL) {
-                        err("Failed to get hotswap state of server blade");
-                        event.event.EventDataUnion.HotSwapEvent.
-                                PreviousHotSwapState = SAHPI_HS_STATE_INACTIVE;
-                }
+	}
+	else {	/* managed hotswap */
 
-                event.event.EventDataUnion.HotSwapEvent.PreviousHotSwapState =
-                        hotswap_state->currentHsState;
-                event.event.EventDataUnion.HotSwapEvent.HotSwapState =
-                        SAHPI_HS_STATE_NOT_PRESENT;
+		hotswap_state = (struct oa_soap_hotswap_state *)
+			oh_get_resource_data(oh_handler->rptcache,
+					     event.resource.ResourceId);
+		if (hotswap_state == NULL) {
+			err("Failed to get hotswap state of server blade");
+			event.event.EventDataUnion.HotSwapEvent.PreviousHotSwapState =
+				SAHPI_HS_STATE_INACTIVE;
+		}
 
-                if (hotswap_state->currentHsState == SAHPI_HS_STATE_INACTIVE) {
-                        /* INACTIVE to NOT_PRESENT state change happened due to
-                         * operator action
-                         */
-                        event.event.EventDataUnion.HotSwapEvent.
-                                CauseOfStateChange =
-                                SAHPI_HS_CAUSE_OPERATOR_INIT;
-                } else {
-                        /* This state change happened due to a surprise
-                         * extraction
-                         */
-                        event.event.EventDataUnion.HotSwapEvent.
-                                CauseOfStateChange =
-                                SAHPI_HS_CAUSE_SURPRISE_EXTRACTION;
-                }
-        } /* End of hotswap type if conditional */
+		event.event.EventDataUnion.HotSwapEvent.PreviousHotSwapState =
+			hotswap_state->currentHsState;
+		event.event.EventDataUnion.HotSwapEvent.HotSwapState =
+			SAHPI_HS_STATE_NOT_PRESENT;
+
+		if (hotswap_state->currentHsState == SAHPI_HS_STATE_INACTIVE) {
+			/* INACTIVE to NOT_PRESENT state change happened due to
+			 * operator action
+			 */
+			event.event.EventDataUnion.HotSwapEvent.CauseOfStateChange =
+				SAHPI_HS_CAUSE_OPERATOR_INIT;
+		} else {
+			/* This state change happened due to surprise extraction */
+			event.event.EventDataUnion.HotSwapEvent.CauseOfStateChange =
+				SAHPI_HS_CAUSE_SURPRISE_EXTRACTION;
+		}
+	}	/* end of hotswap type if conditional */
 
         /* Push the hotswap event to remove the resource from OpenHPI RPTable */
         oh_evt_queue_push(oh_handler->eventq, copy_oa_soap_event(&event));
@@ -928,9 +923,8 @@ SaErrorT add_server_blade(struct oh_handler_state *oh_handler,
                 return rv;
         }
 
-        /* Update resource_status structure with resource_id, serial_number,
-         * and presence status
-         */
+        /* update resource_status structure with resource_id,
+                   serial_number, and presence status */
         oa_soap_update_resource_status(
                       &oa_handler->oa_soap_resources.server, bay_number,
                       response.serialNumber, resource_id, RES_PRESENT);
@@ -965,27 +959,27 @@ SaErrorT add_server_blade(struct oh_handler_state *oh_handler,
                 return SA_ERR_HPI_INVALID_RESOURCE;
         }
 
-        /* For blades that don't support  managed hotswap, send simple
-           hotswap event  */
-        if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
-                event.event.EventType = SAHPI_ET_HOTSWAP;
-                event.event.EventDataUnion.HotSwapEvent.PreviousHotSwapState =
-                        SAHPI_HS_STATE_NOT_PRESENT;
-                event.event.EventDataUnion.HotSwapEvent.HotSwapState =
-                        SAHPI_HS_STATE_ACTIVE;
-                event.event.EventDataUnion.HotSwapEvent.CauseOfStateChange =
-                        SAHPI_HS_CAUSE_OPERATOR_INIT;
-                oh_evt_queue_push(oh_handler->eventq,
-                        copy_oa_soap_event(&event));
-                return(SA_OK);
-        }
+	/* For blades that don't support  managed hotswap, send simple
+	   hotswap event  */
+	if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
+        	event.event.EventType = SAHPI_ET_HOTSWAP;
+        	event.event.EventDataUnion.HotSwapEvent.PreviousHotSwapState =
+			SAHPI_HS_STATE_NOT_PRESENT;
+		event.event.EventDataUnion.HotSwapEvent.HotSwapState =
+			SAHPI_HS_STATE_ACTIVE;
+        	event.event.EventDataUnion.HotSwapEvent.CauseOfStateChange =
+                	SAHPI_HS_CAUSE_OPERATOR_INIT;
+        	oh_evt_queue_push(oh_handler->eventq,
+			copy_oa_soap_event(&event));
+		return(SA_OK);
+	}
 
         /* Raise the hotswap event for the inserted server blade */
         event.event.EventType = SAHPI_ET_HOTSWAP;
         event.event.EventDataUnion.HotSwapEvent.PreviousHotSwapState =
                 SAHPI_HS_STATE_NOT_PRESENT;
         event.event.EventDataUnion.HotSwapEvent.HotSwapState =
-                SAHPI_HS_STATE_INSERTION_PENDING;
+		SAHPI_HS_STATE_INSERTION_PENDING;
         /* NOT_PRESENT to INSERTION_PENDING state change happened due
          * to operator action
          */
@@ -1051,7 +1045,7 @@ SaErrorT add_server_blade(struct oh_handler_state *oh_handler,
                                           copy_oa_soap_event(&event));
                         break;
 
-                default:
+                default :
                         err("unknown power status");
                         return SA_ERR_HPI_INTERNAL_ERROR;
         }
@@ -1216,8 +1210,8 @@ SaErrorT update_interconnect_hotswap_state(struct oh_handler_state *oh_handler,
         }
 
         oa_handler = (struct oa_soap_handler *) oh_handler->data;
-        resource_id = oa_handler->
-                oa_soap_resources.interconnect.resource_id[bay_number - 1];
+        resource_id = 
+           oa_handler->oa_soap_resources.interconnect.resource_id[bay_number - 1];
         /* Get the rpt entry of the resource */
         rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
         if (rpt == NULL) {
@@ -1320,7 +1314,7 @@ SaErrorT update_interconnect_hotswap_state(struct oh_handler_state *oh_handler,
                                           copy_oa_soap_event(&event));
                         break;
 
-                default:
+                default :
                         err("unknown power status");
                         return SA_ERR_HPI_INTERNAL_ERROR;
         }
@@ -1361,8 +1355,8 @@ SaErrorT remove_interconnect(struct oh_handler_state *oh_handler,
         oa_handler = (struct oa_soap_handler *) oh_handler->data;
         update_hotswap_event(oh_handler, &event);
 
-        resource_id = oa_handler->
-                oa_soap_resources.interconnect.resource_id[bay_number - 1];
+        resource_id = 
+           oa_handler->oa_soap_resources.interconnect.resource_id[bay_number - 1];
         /* Get the rpt entry of the resource */
         rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
         if (rpt == NULL) {
@@ -1471,9 +1465,8 @@ SaErrorT add_interconnect(struct oh_handler_state *oh_handler,
                 return rv;
         }
 
-        /* Update resource_status structure with resource_id, serial_number,
-         * and presence status
-         */
+        /* update resource_status structure with resource_id,
+                   serial_number, and presence status */
         oa_soap_update_resource_status(
                       &oa_handler->oa_soap_resources.interconnect, bay_number,
                       response.serialNumber, resource_id, RES_PRESENT);
@@ -1574,7 +1567,7 @@ SaErrorT add_interconnect(struct oh_handler_state *oh_handler,
                                           copy_oa_soap_event(&event));
                         break;
 
-                default:
+                default :
                         err("unknown power status");
                         return SA_ERR_HPI_INTERNAL_ERROR;
         }
@@ -1701,7 +1694,7 @@ SaErrorT remove_fan(struct oh_handler_state *oh_handler,
         oa_handler = (struct oa_soap_handler *) oh_handler->data;
         update_hotswap_event(oh_handler, &event);
 
-        resource_id =
+        resource_id = 
            oa_handler->oa_soap_resources.fan.resource_id[bay_number - 1];
         /* Get the rpt entry of the resource */
         rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
@@ -1782,10 +1775,9 @@ SaErrorT add_fan(struct oh_handler_state *oh_handler,
                 return rv;
         }
 
-        /* Update resource_status structure with resource_id, serial_number,
-         * and presence status.  Fan doesn't have serial number, so pass in
-         * a null string.
-         */
+        /* update resource_status structure with resource_id,
+           serial_number, and presence status  - 
+           fan doesn't have serial number - pass in a null string */
         oa_soap_update_resource_status(
                       &oa_handler->oa_soap_resources.fan, info->bayNumber,
                       NULL, resource_id, RES_PRESENT);
@@ -1803,7 +1795,7 @@ SaErrorT add_fan(struct oh_handler_state *oh_handler,
                 oh_remove_resource(oh_handler->rptcache, resource_id);
                 /* reset resource_status structure to default values */
                 oa_soap_update_resource_status(
-                              &oa_handler->oa_soap_resources.fan,
+                              &oa_handler->oa_soap_resources.fan, 
                               info->bayNumber,
                               NULL, SAHPI_UNSPECIFIED_RESOURCE_ID, RES_ABSENT);
                 return SA_ERR_HPI_INTERNAL_ERROR;
@@ -1973,7 +1965,7 @@ SaErrorT remove_ps_unit(struct oh_handler_state *oh_handler,
         oa_handler = (struct oa_soap_handler *) oh_handler->data;
         update_hotswap_event(oh_handler, &event);
 
-        resource_id =
+        resource_id = 
            oa_handler->oa_soap_resources.ps_unit.resource_id[bay_number - 1];
         /* Get the rpt entry of the resource */
         rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
@@ -2065,9 +2057,8 @@ SaErrorT add_ps_unit(struct oh_handler_state *oh_handler,
                 return rv;
         }
 
-        /* Update resource_status structure with resource_id, serial_number,
-         * and presence status
-         */
+        /* update resource_status structure with resource_id,
+                   serial_number, and presence status */
         oa_soap_update_resource_status(
                       &oa_handler->oa_soap_resources.ps_unit, info->bayNumber,
                       response.serialNumber, resource_id, RES_PRESENT);

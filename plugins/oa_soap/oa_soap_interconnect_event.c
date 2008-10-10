@@ -30,7 +30,8 @@
  *
  * Author(s)
  *      Raghavendra P.G. <raghavendra.pg@hp.com>
- *      Shuah Khan <shuah.khan@hp.com>
+ *      Shuah Khan <shuah.khan@hp.com> Infrastructure changes to add support
+ *                                     for new types of blades and events
  *
  * This file has the interconnect blade related events handling
  *
@@ -90,8 +91,8 @@ SaErrorT process_interconnect_reset_event(struct oh_handler_state *oh_handler,
 
         oa_handler = (struct oa_soap_handler *) oh_handler->data;
         bay_number = oa_event->eventData.interconnectTrayStatus.bayNumber;
-        resource_id = oa_handler->
-                oa_soap_resources.interconnect.resource_id[bay_number - 1];
+        resource_id = 
+           oa_handler->oa_soap_resources.interconnect.resource_id[bay_number - 1];
         /* Get the rpt entry of the resource */
         rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
         if (rpt == NULL) {
@@ -204,8 +205,8 @@ SaErrorT process_interconnect_power_event(struct oh_handler_state *oh_handler,
 
         oa_handler = (struct oa_soap_handler *) oh_handler->data;
         bay_number = oa_event->eventData.interconnectTrayStatus.bayNumber;
-        resource_id = oa_handler->
-                oa_soap_resources.interconnect.resource_id[bay_number - 1];
+        resource_id = 
+           oa_handler->oa_soap_resources.interconnect.resource_id[bay_number - 1];
         /* Get the rpt entry of the server */
         rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
         if (rpt == NULL) {
@@ -224,7 +225,7 @@ SaErrorT process_interconnect_power_event(struct oh_handler_state *oh_handler,
         }
 
         switch (oa_event->eventData.interconnectTrayStatus.powered) {
-                case (POWER_OFF):
+                case (POWER_OFF) :
                         event.resource.ResourceSeverity = SAHPI_CRITICAL;
                         /* Update the current hotswap state to INACTIVE */
                         hotswap_state->currentHsState = SAHPI_HS_STATE_INACTIVE;
@@ -264,7 +265,7 @@ SaErrorT process_interconnect_power_event(struct oh_handler_state *oh_handler,
                                           copy_oa_soap_event(&event));
                         break;
 
-                case (POWER_ON):
+                case (POWER_ON) :
                         event.resource.ResourceSeverity = SAHPI_OK;
                         /* Update the current hot swap state to ACTIVE */
                         hotswap_state->currentHsState = SAHPI_HS_STATE_ACTIVE;
@@ -335,7 +336,7 @@ SaErrorT process_interconnect_power_event(struct oh_handler_state *oh_handler,
                                           copy_oa_soap_event(&event));
                         break;
 
-                default:
+                default :
                         err("Wrong power state %d",
                             oa_event->eventData.bladeStatus.powered);
                         return SA_ERR_HPI_INTERNAL_ERROR;
@@ -389,16 +390,16 @@ SaErrorT process_interconnect_insertion_event(struct oh_handler_state
         }
 
         /* Build the inserted interconnect RPT entry */
-        rv = build_interconnect_rpt(oh_handler, con, response.name,
-                                    bay_number, &resource_id, TRUE);
+        rv = build_interconnect_rpt(oh_handler, con,
+                                             response.name,
+                                             bay_number, &resource_id, TRUE);
         if (rv != SA_OK) {
                 err("Failed to build the interconnect RPT");
                 return rv;
         }
 
-        /* Update resource_status structure with resource_id,
-         * serial_number, and presence status
-         */
+        /* update resource_status structure with resource_id,
+                   serial_number, and presence status */
         oa_soap_update_resource_status(
                  &oa_handler->oa_soap_resources.interconnect, bay_number,
                  response.serialNumber, resource_id, RES_PRESENT);
@@ -516,8 +517,8 @@ SaErrorT process_interconnect_status_event(struct oh_handler_state *oh_handler,
                 return SA_OK;
         }
 
-        resource_id = oa_handler->
-                oa_soap_resources.interconnect.resource_id[bay_number - 1];
+        resource_id = 
+           oa_handler->oa_soap_resources.interconnect.resource_id[bay_number - 1];
         /* Get the rpt entry of the server */
         rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
         if (rpt == NULL) {
@@ -594,8 +595,8 @@ SaErrorT process_interconnect_thermal_event(struct oh_handler_state *oh_handler,
 
         oa_handler = (struct oa_soap_handler *) oh_handler->data;
         bay_number = oa_event->eventData.interconnectTrayStatus.bayNumber;
-        resource_id = oa_handler->
-                oa_soap_resources.interconnect.resource_id[bay_number - 1];
+        resource_id = 
+           oa_handler->oa_soap_resources.interconnect.resource_id[bay_number - 1];
         /* Get the rpt entry of the server */
         rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
         if (rpt == NULL) {
