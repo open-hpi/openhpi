@@ -60,7 +60,7 @@
 /* Configuration values, to set this up for your c-class cage */
 #if 1
 /* These are for the OSLO cage */
-#define	OA_DEST		"ccc2-ilo.telco:443"
+#define	OA_DEST		"ccc2-oa-1.hpi.telco:443"
 #define	OA_USERNAME	"admin"
 #define	OA_PASSWORD	"hosehead"
 #else
@@ -186,6 +186,22 @@ int main(int argc, char *argv[])
     /* Try the getBladeInfo() call.  In this loop, you can print information
      * for lots of blades.  As shipped, it is only looking at the blade in
      * slot 1.
+     *
+     * Warning, warning, warning!!!  This code is not correct!!!
+     *
+     * The interface rules for the OA SOAP library specify that the data
+     * returned by the calls is valid only until the next OA SOAP call.  Once
+     * the next call is made, the data which is referenced by any pointers
+     * becomes invalid.
+     *
+     * In the code below, it "happens" to work, probably because the first
+     * call allocates a lot of data, and the subsequent calls (CpuInfo and
+     * NicInfo) only overwrite a little (the beginning) of the previously
+     * allocated data.  But to be strictly correct, you MUST copy the data
+     * from any pointers (e.g. strings, arrays) that you want BEFORE making
+     * another OA SOAP call.
+     *
+     * BJS: Fix in this example code.
      */
     for (slot = 1; slot <= 1; slot++) {
     	bladeInfo_request.bayNumber = slot;
