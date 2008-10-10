@@ -31,9 +31,7 @@
  * Author(s)
  *      Raghavendra M.S. <raghavendra.ms@hp.com>
  *      Bhaskara Bhatt <bhaskara.hg@hp.com>
- *      Shuah Khan <shuah.khan@hp.com>    IO and Storage blade support
- *      Shuah Khan <shuah.khan@hp.com> Infrastructure changes to add support
- *                                     for new types of blades and events
+ *      Shuah Khan <shuah.khan@hp.com>
  *
  * This file supports the functions related to HPI Inventory Data repositories.
  * The file covers three general classes of function: IDR ABI functions,
@@ -1291,8 +1289,7 @@ SaErrorT build_enclosure_inv_rdr(struct oh_handler_state *oh_handler,
         }
 
         oa_handler = (struct oa_soap_handler *) oh_handler->data;
-        resource_id = 
-           oa_handler->oa_soap_resources.enclosure_rid;
+        resource_id = oa_handler->oa_soap_resources.enclosure_rid;
         /* Get the rpt entry of the resource */
         rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
         if (rpt == NULL) {
@@ -1403,14 +1400,14 @@ SaErrorT build_enclosure_inv_rdr(struct oh_handler_state *oh_handler,
          */
          if (product_area_success_flag == SAHPI_TRUE) {
                 /* Add the product version field if the enclosure hardware info
-                 * is available 
+                 * is available
                  */
                 if (response->hwVersion != NULL) {
                         memset(&hpi_field, 0, sizeof(SaHpiIdrFieldT));
                         hpi_field.AreaId = local_inventory->info.area_list->
                                            idr_area_head.AreaId;
                         hpi_field.Type = SAHPI_IDR_FIELDTYPE_PRODUCT_VERSION;
-                        strcpy ((char *)hpi_field.Field.Data, 
+                        strcpy ((char *)hpi_field.Field.Data,
                                 response->hwVersion);
 
                         rv = idr_field_add(&(local_inventory->info.area_list
@@ -1475,8 +1472,8 @@ SaErrorT build_oa_inv_rdr(struct oh_handler_state *oh_handler,
         }
 
         oa_handler = (struct oa_soap_handler *) oh_handler->data;
-        resource_id = 
-           oa_handler->oa_soap_resources.oa.resource_id[response->bayNumber - 1];
+        resource_id = oa_handler->
+                oa_soap_resources.oa.resource_id[response->bayNumber - 1];
         /* Get the rpt entry of the resource */
         rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
         if (rpt == NULL) {
@@ -1565,15 +1562,15 @@ SaErrorT build_oa_inv_rdr(struct oh_handler_state *oh_handler,
          * the end of the field list.
          */
          if (product_area_success_flag == SAHPI_TRUE) {
-                /* Add the product version field if the firmware info 
-                 * is available 
+                /* Add the product version field if the firmware info
+                 * is available
                  */
                 if (response->fwVersion != NULL) {
                         memset(&hpi_field, 0, sizeof(SaHpiIdrFieldT));
                         hpi_field.AreaId = local_inventory->info.area_list->
                                            idr_area_head.AreaId;
                         hpi_field.Type = SAHPI_IDR_FIELDTYPE_PRODUCT_VERSION;
-                        strcpy ((char *)hpi_field.Field.Data, 
+                        strcpy ((char *)hpi_field.Field.Data,
                                 response->fwVersion);
 
                         rv = idr_field_add(&(local_inventory->info.area_list
@@ -1644,13 +1641,13 @@ SaErrorT build_server_inv_rdr(struct oh_handler_state *oh_handler,
         }
 
         oa_handler = (struct oa_soap_handler *) oh_handler->data;
-        resource_id = 
+        resource_id =
            oa_handler->oa_soap_resources.server.resource_id[bay_number - 1];
-	rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
-	if (!rpt) {
+        rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
+        if (!rpt) {
                 err("Could not find blade resource rpt");
-		return(SA_ERR_HPI_INTERNAL_ERROR);
-	}
+                return(SA_ERR_HPI_INTERNAL_ERROR);
+        }
         rdr->Entity = rpt->ResourceEntity;
 
         request.bayNumber = bay_number;
@@ -1690,7 +1687,7 @@ SaErrorT build_server_inv_rdr(struct oh_handler_state *oh_handler,
                 (char *)g_malloc0(strlen(server_inv_str) + 1);
         snprintf(local_inventory->comment, strlen(server_inv_str) + 1,
                  "%s", server_inv_str);
-        
+
         /* Create and add product area if resource name and/or manufacturer
          * information exist
          */
@@ -1751,16 +1748,16 @@ SaErrorT build_server_inv_rdr(struct oh_handler_state *oh_handler,
                         err("Get blade mp info failed");
                         return rv;
                 }
-               
-                /* Add the product version field if the firmware info 
-                 * is available 
+
+                /* Add the product version field if the firmware info
+                 * is available
                  */
                 if (blade_mp_response.fwVersion != NULL) {
                         memset(&hpi_field, 0, sizeof(SaHpiIdrFieldT));
                         hpi_field.AreaId = local_inventory->info.area_list->
                                            idr_area_head.AreaId;
                         hpi_field.Type = SAHPI_IDR_FIELDTYPE_PRODUCT_VERSION;
-                        strcpy ((char *)hpi_field.Field.Data, 
+                        strcpy ((char *)hpi_field.Field.Data,
                                 blade_mp_response.fwVersion);
 
                         rv = idr_field_add(&(local_inventory->info.area_list
@@ -1829,13 +1826,13 @@ SaErrorT build_inserted_server_inv_rdr(struct oh_handler_state *oh_handler,
         }
 
         oa_handler = (struct oa_soap_handler *) oh_handler->data;
-        resource_id = 
+        resource_id =
            oa_handler->oa_soap_resources.server.resource_id[bay_number - 1];
-	rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
-	if (!rpt) {
+        rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
+        if (!rpt) {
                 err("Could not find blade resource rpt");
-		return(SA_ERR_HPI_INTERNAL_ERROR);
-	}
+                return(SA_ERR_HPI_INTERNAL_ERROR);
+        }
         rdr->Entity = rpt->ResourceEntity;
 
         /* Populating the inventory rdr with default values and resource name */
@@ -1988,16 +1985,16 @@ SaErrorT build_server_inventory_area(SOAP_CON *con,
                         err("Get blade mp info failed");
                         return rv;
                 }
-               
-                /* Add the product version field if the firmware info 
-                 * is available 
+
+                /* Add the product version field if the firmware info
+                 * is available
                  */
                 if (blade_mp_response.fwVersion != NULL) {
                         memset(&hpi_field, 0, sizeof(SaHpiIdrFieldT));
                         hpi_field.AreaId = local_inventory->info.area_list->
                                            idr_area_head.AreaId;
                         hpi_field.Type = SAHPI_IDR_FIELDTYPE_PRODUCT_VERSION;
-                        strcpy ((char *)hpi_field.Field.Data, 
+                        strcpy ((char *)hpi_field.Field.Data,
                                 blade_mp_response.fwVersion);
 
                         rv = idr_field_add(&(local_inventory->info.area_list
@@ -2064,8 +2061,8 @@ SaErrorT build_interconnect_inv_rdr(struct oh_handler_state *oh_handler,
         }
 
         oa_handler = (struct oa_soap_handler *) oh_handler->data;
-        resource_id = 
-           oa_handler->oa_soap_resources.interconnect.resource_id[bay_number - 1];
+        resource_id = oa_handler->
+                oa_soap_resources.interconnect.resource_id[bay_number - 1];
         /* Get the rpt entry of the resource */
         rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
         if (rpt == NULL) {
@@ -2203,8 +2200,8 @@ SaErrorT build_fan_inv_rdr(struct oh_handler_state *oh_handler,
         }
 
         oa_handler = (struct oa_soap_handler *) oh_handler->data;
-        resource_id = 
-           oa_handler->oa_soap_resources.fan.resource_id[response->bayNumber - 1];
+        resource_id = oa_handler->
+                oa_soap_resources.fan.resource_id[response->bayNumber - 1];
         /* Get the rpt entry of the resource */
         rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
         if (rpt == NULL) {
@@ -2334,7 +2331,7 @@ SaErrorT build_power_inv_rdr(struct oh_handler_state *oh_handler,
         }
 
         oa_handler = (struct oa_soap_handler *) oh_handler->data;
-        resource_id = 
+        resource_id =
            oa_handler->oa_soap_resources.ps_unit.resource_id[response->bayNumber - 1];
         /* Get the rpt entry of the resource */
         rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);

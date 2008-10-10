@@ -32,12 +32,10 @@
  *      Raghavendra P.G. <raghavendra.pg@hp.com>
  *      Vivek Kumar <vivek.kumar2@hp.com>
  *      Raghavendra M.S. <raghavendra.ms@hp.com>
- *      Shuah Khan <shuah.khan@hp.com>    IO and Storage blade support
- *      Shuah Khan <shuah.khan@hp.com> Infrastructure changes to add support
- *                                     for new types of blades and events
+ *      Shuah Khan <shuah.khan@hp.com>
  *
  * This file implements the discovery functionality. The resources of the
- * HP BladeSystem c-Class are discovered. 
+ * HP BladeSystem c-Class are discovered.
  *
  *      oa_soap_discover_resources()    - Checks the plugin initialization
  *                                        completion.  Starts the event threads
@@ -57,13 +55,14 @@
  *      discover_enclosure()            - Discovers the enclosure along with
  *                                        its capabilities
  *
- *      build_server_rpt()           -    Builds the server RPT entry
- *      build_discovered_server_rpt()-    Builds the server RPT entry
+ *      build_server_rpt()              - Builds the server RPT entry
  *
- *      build_server_rdr()           - Builds the server RDRs
+ *      build_discovered_server_rpt()   - Builds the server RPT entry
  *
- *      discover_server()               - Discovers the server, IO, and 
- *                                        Storage blades and their 
+ *      build_server_rdr()              - Builds the server RDRs
+ *
+ *      discover_server()               - Discovers the server, IO, and
+ *                                        storage blades, and their
  *                                        capabilities
  *
  *      discover_interconnect_rpt()     - Builds the interconnect RPT entry
@@ -71,7 +70,7 @@
  *      discover_interconnect_rdr()     - Builds the interconnect RDRs
  *
  *      discover_interconnect()         - Discovers the interconnect blades
- *                                        along with its capabilities
+ *                                        along with their capabilities
  *
  *      discover_fan_rpt()              - Builds the fan RPT entry
  *
@@ -423,9 +422,9 @@ SaErrorT build_enclosure_info(struct oh_handler_state *oh_handler,
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-        oa_handler->oa_soap_resources.enclosure_rid = 
+        oa_handler->oa_soap_resources.enclosure_rid =
             SAHPI_UNSPECIFIED_RESOURCE_ID;
-        oa_handler->oa_soap_resources.power_subsystem_rid = 
+        oa_handler->oa_soap_resources.power_subsystem_rid =
             SAHPI_UNSPECIFIED_RESOURCE_ID;
 
         /* Create the resource presence matrix for
@@ -469,7 +468,7 @@ SaErrorT build_enclosure_info(struct oh_handler_state *oh_handler,
         for (i = 0; i < oa_handler->oa_soap_resources.server.max_bays; i++) {
                 oa_handler->oa_soap_resources.server.presence[i] = RES_ABSENT;
                 oa_handler->oa_soap_resources.server.resource_id[i] =
-			SAHPI_UNSPECIFIED_RESOURCE_ID;
+                        SAHPI_UNSPECIFIED_RESOURCE_ID;
                 oa_handler->oa_soap_resources.server.serial_number[i] = (char *)
                         g_malloc0(sizeof(char *) * MAX_SERIAL_NUM_LENGTH);
                 if (oa_handler->oa_soap_resources.server.serial_number[i] ==
@@ -516,7 +515,7 @@ SaErrorT build_enclosure_info(struct oh_handler_state *oh_handler,
                 oa_handler->oa_soap_resources.interconnect.presence[i] =
                         RES_ABSENT;
                 oa_handler->oa_soap_resources.interconnect.resource_id[i] =
-			SAHPI_UNSPECIFIED_RESOURCE_ID;
+                        SAHPI_UNSPECIFIED_RESOURCE_ID;
 
                 oa_handler->oa_soap_resources.interconnect.serial_number[i] =
                         (char *) g_malloc0(sizeof(char *) *
@@ -548,7 +547,7 @@ SaErrorT build_enclosure_info(struct oh_handler_state *oh_handler,
                 release_oa_soap_resources(oa_handler);
                 return SA_ERR_HPI_OUT_OF_MEMORY;
         }
-        /* allocate memory for resource_id matrix oas */
+        /* allocate memory for OAs resource_id array */
         oa_handler->oa_soap_resources.oa.resource_id =
                 (SaHpiResourceIdT *)
                 g_malloc0((sizeof(SaHpiResourceIdT ) *
@@ -561,7 +560,7 @@ SaErrorT build_enclosure_info(struct oh_handler_state *oh_handler,
         for (i = 0; i < oa_handler->oa_soap_resources.oa.max_bays; i++) {
                 oa_handler->oa_soap_resources.oa.presence[i] = RES_ABSENT;
                 oa_handler->oa_soap_resources.oa.resource_id[i] =
-			SAHPI_UNSPECIFIED_RESOURCE_ID;
+                        SAHPI_UNSPECIFIED_RESOURCE_ID;
 
                 oa_handler->oa_soap_resources.oa.serial_number[i] = (char *)
                         g_malloc0(sizeof(char *) * MAX_SERIAL_NUM_LENGTH);
@@ -583,7 +582,7 @@ SaErrorT build_enclosure_info(struct oh_handler_state *oh_handler,
                 release_oa_soap_resources(oa_handler);
                 return SA_ERR_HPI_OUT_OF_MEMORY;
         }
-        /* allocate memory for resource_id matrix fans */
+        /* allocate memory for fans resource_id array */
         oa_handler->oa_soap_resources.fan.resource_id =
                 (SaHpiResourceIdT *)
                 g_malloc0((sizeof(SaHpiResourceIdT ) *
@@ -593,13 +592,13 @@ SaErrorT build_enclosure_info(struct oh_handler_state *oh_handler,
                 return SA_ERR_HPI_OUT_OF_MEMORY;
         }
 
-        /* Fans do not have serial number and hence serial number
-         * array is not constructed
+        /* Fans do not have serial number.  Therefore, the serial number
+         * array is not constructed.
         */
         for (i = 0; i < oa_handler->oa_soap_resources.fan.max_bays; i++) {
                 oa_handler->oa_soap_resources.fan.presence[i] = RES_ABSENT;
                 oa_handler->oa_soap_resources.fan.resource_id[i] =
-			SAHPI_UNSPECIFIED_RESOURCE_ID;
+                        SAHPI_UNSPECIFIED_RESOURCE_ID;
         }
 
         /* Build resource presence matrix for power supply units */
@@ -613,7 +612,7 @@ SaErrorT build_enclosure_info(struct oh_handler_state *oh_handler,
                 release_oa_soap_resources(oa_handler);
                 return SA_ERR_HPI_OUT_OF_MEMORY;
         }
-        /* allocate memory for resource_id matrix power supplies */
+        /* allocate memory for power supplies resource_id array */
         oa_handler->oa_soap_resources.ps_unit.resource_id =
                 (SaHpiResourceIdT *)
                 g_malloc0((sizeof(SaHpiResourceIdT ) *
@@ -634,7 +633,7 @@ SaErrorT build_enclosure_info(struct oh_handler_state *oh_handler,
         for (i = 0; i < oa_handler->oa_soap_resources.ps_unit.max_bays; i++) {
                 oa_handler->oa_soap_resources.ps_unit.presence[i] = RES_ABSENT;
                 oa_handler->oa_soap_resources.ps_unit.resource_id[i] =
-			SAHPI_UNSPECIFIED_RESOURCE_ID;
+                        SAHPI_UNSPECIFIED_RESOURCE_ID;
 
                 oa_handler->oa_soap_resources.ps_unit.serial_number[i] =
                         (char *) g_malloc0(sizeof(char *) *
@@ -1153,19 +1152,18 @@ SaErrorT discover_oa(struct oh_handler_state *oh_handler)
                         return rv;
                 }
 
-                /* update resource_status structure with resource_id,
+                /* Update resource_status structure with resource_id,
                    serial_number, and presence status */
                 oa_soap_update_resource_status(
                       &oa_handler->oa_soap_resources.oa, i,
                       response.serialNumber, resource_id, RES_PRESENT);
-                       
+
                 /* Build RDRs for OA */
                 rv = build_oa_rdr(oh_handler, oa_handler->active_con,
                                   &response, resource_id);
                 if (rv != SA_OK) {
                         err("Failed to build OA RDR");
-                        /* reset resource_status structure to default
-                           values */
+                        /* Reset resource_status structure to default values */
                         oa_soap_update_resource_status(
                               &oa_handler->oa_soap_resources.oa, i,
                               "", SAHPI_UNSPECIFIED_RESOURCE_ID, RES_ABSENT);
@@ -1186,7 +1184,7 @@ SaErrorT discover_oa(struct oh_handler_state *oh_handler)
  *
  * Purpose:
  *      Populate the server blade RPT with aid of build_server_rpt() and add
- *	hotswap state information to the returned rpt. 
+ *      hotswap state information to the returned rpt.
  *      Pushes the RPT entry to plugin RPTable
  *
  * Detailed Description: NA
@@ -1198,9 +1196,8 @@ SaErrorT discover_oa(struct oh_handler_state *oh_handler)
  *      SA_ERR_HPI_INTERNAL_ERROR - on failure.
  **/
 SaErrorT build_discovered_server_rpt(struct oh_handler_state *oh_handler,
-                          SOAP_CON *con,
-                          struct bladeInfo *response,
-                          SaHpiResourceIdT *resource_id)
+                                     SOAP_CON *con, struct bladeInfo *response,
+                                     SaHpiResourceIdT *resource_id)
 {
         SaErrorT rv = SA_OK;
         SaHpiPowerStateT state;
@@ -1213,50 +1210,52 @@ SaErrorT build_discovered_server_rpt(struct oh_handler_state *oh_handler,
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-	if(build_server_rpt(oh_handler, response, &rpt) != SA_OK) {
+        if(build_server_rpt(oh_handler, response, &rpt) != SA_OK) {
                 err("Building Server Rpt failed during discovery");
                 return SA_ERR_HPI_INTERNAL_ERROR;
-	}
+        }
 
-	/* Get the power state of the server blade to determine the 
-	   hotswap state. Hotswap state of the server shall be 
-	   maintained in private data area of server rpt
-	 */
-	if (rpt.ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP) {
-		rv = get_server_power_state(con, response->bayNumber, &state);
-		if (rv != SA_OK) {
-			err("Unable to get power status");
-			return SA_ERR_HPI_INTERNAL_ERROR;
-		}
+        /* Get the power state of the server blade to determine the
+         * hotswap state.  The hotswap state of the server will be
+         * maintained in the private data area of the server RPT.
+         */
+        if (rpt.ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP) {
+                rv = get_server_power_state(con, response->bayNumber, &state);
+                if (rv != SA_OK) {
+                        err("Unable to get power status");
+                        return SA_ERR_HPI_INTERNAL_ERROR;
+                }
 
-		hotswap_state = (struct oa_soap_hotswap_state *)
-			g_malloc0(sizeof(struct oa_soap_hotswap_state));
-		if (hotswap_state == NULL) {
-			err("Out of memory");
-			return SA_ERR_HPI_OUT_OF_MEMORY;
-		}
+                hotswap_state = (struct oa_soap_hotswap_state *)
+                        g_malloc0(sizeof(struct oa_soap_hotswap_state));
+                if (hotswap_state == NULL) {
+                        err("Out of memory");
+                        return SA_ERR_HPI_OUT_OF_MEMORY;
+                }
 
-		switch (state) {
-			case SAHPI_POWER_ON:
-			case SAHPI_POWER_CYCLE:
-				hotswap_state->currentHsState = SAHPI_HS_STATE_ACTIVE;
-				break;
+                switch (state) {
+                        case SAHPI_POWER_ON:
+                        case SAHPI_POWER_CYCLE:
+                                hotswap_state->currentHsState =
+                                        SAHPI_HS_STATE_ACTIVE;
+                                break;
 
-			case SAHPI_POWER_OFF:
-				hotswap_state->currentHsState = SAHPI_HS_STATE_INACTIVE;
-				break;
+                        case SAHPI_POWER_OFF:
+                                hotswap_state->currentHsState =
+                                        SAHPI_HS_STATE_INACTIVE;
+                                break;
 
-			default :
-				err("unknown power status");
-				if (hotswap_state != NULL)
-					g_free(hotswap_state);
-				return SA_ERR_HPI_INTERNAL_ERROR;
-		}
+                        default:
+                                err("unknown power status");
+                                if (hotswap_state != NULL)
+                                        g_free(hotswap_state);
+                                return SA_ERR_HPI_INTERNAL_ERROR;
+                }
 
-	}
+        }
 
-	/* Add the server rpt to the plugin RPTable */
-	rv = oh_add_resource(oh_handler->rptcache, &rpt, hotswap_state, 0);
+        /* Add the server rpt to the plugin RPTable */
+        rv = oh_add_resource(oh_handler->rptcache, &rpt, hotswap_state, 0);
         if (rv != SA_OK) {
                 err("Failed to add Server rpt");
                 if (hotswap_state != NULL)
@@ -1272,24 +1271,24 @@ SaErrorT build_discovered_server_rpt(struct oh_handler_state *oh_handler,
  * build_server_rpt
  *      @oh_handler:  Pointer to openhpi handler
  *      @response:    Pointer to the bladeInfo structure
- *      @rpt: Pointer to rpt to be filled. 
+ *      @rpt:         Pointer to rpt to be filled
  *
  * Purpose:
- *      This routine should be called to during discover/re-discovery phase
- *	and when a new blade gets inserted, to populate the server blade RPT
- *	information common to discovered andinsterted blades and returns to
- *	caller. Caller will fill in the information specific to discovered or
- *	inserted blade. For example hotswap state could be different in the
- *	case of discovered vs. inserted. Inserted blade goes through pending
- *	state, where as discovered one doesn't.
+ *      This routine should be called to during discovery/re-discovery phase
+ *      and when a new blade gets inserted.  It populates the server blade RPT
+ *      information common to discovered and insterted blades.  The caller will
+ *      fill in the information specific to the manner in which the blade was
+ *      found.  For example, the hotswap state could be different in the case
+ *      of discovered vs. inserted blades, because an inserted blade goes
+ *      through the pending state, while a discovered blade doesn't.
  *
  * Detailed Description: NA
  *
  * Return values:
- *      SA_OK                     - on success.
+ *      SA_OK                     - on success
  *      SA_ERR_HPI_INVALID_PARAMS - on wrong parameters
  *      SA_ERR_HPI_OUT_OF_MEMORY  - on malloc failure
- *      SA_ERR_HPI_INTERNAL_ERROR - on failure.
+ *      SA_ERR_HPI_INTERNAL_ERROR - on failure
  **/
 SaErrorT build_server_rpt(struct oh_handler_state *oh_handler,
                           struct bladeInfo *response,
@@ -1315,48 +1314,49 @@ SaErrorT build_server_rpt(struct oh_handler_state *oh_handler,
         /* Populate the rpt with the details of the server */
         memset(rpt, 0, sizeof(SaHpiRptEntryT));
         rpt->ResourceCapabilities = SAHPI_CAPABILITY_RDR |
-                                   SAHPI_CAPABILITY_RESET |
-                                   SAHPI_CAPABILITY_RESOURCE |
-                                   SAHPI_CAPABILITY_POWER |
-                                   SAHPI_CAPABILITY_FRU |
-                                   SAHPI_CAPABILITY_MANAGED_HOTSWAP |
-                                   SAHPI_CAPABILITY_SENSOR |
-                                   SAHPI_CAPABILITY_CONTROL |
-                                   SAHPI_CAPABILITY_INVENTORY_DATA;
+                                        SAHPI_CAPABILITY_RESET |
+                                        SAHPI_CAPABILITY_RESOURCE |
+                                        SAHPI_CAPABILITY_POWER |
+                                        SAHPI_CAPABILITY_FRU |
+                                        SAHPI_CAPABILITY_MANAGED_HOTSWAP |
+                                        SAHPI_CAPABILITY_SENSOR |
+                                        SAHPI_CAPABILITY_CONTROL |
+                                        SAHPI_CAPABILITY_INVENTORY_DATA;
         rpt->ResourceEntity.Entry[1].EntityType = SAHPI_ENT_ROOT;
         rpt->ResourceEntity.Entry[1].EntityLocation = 0;
         switch(response->bladeType) {
-		case	BLADE_TYPE_SERVER:
-        		rpt->ResourceEntity.Entry[0].EntityType =
-				SAHPI_ENT_SYSTEM_BLADE;
-		break;
-		case	BLADE_TYPE_IO:
-        		rpt->ResourceEntity.Entry[0].EntityType =
-				SAHPI_ENT_IO_BLADE;
-        		rpt->ResourceCapabilities &= 
+                case    BLADE_TYPE_SERVER:
+                        rpt->ResourceEntity.Entry[0].EntityType =
+                                SAHPI_ENT_SYSTEM_BLADE;
+                break;
+                case    BLADE_TYPE_IO:
+                        rpt->ResourceEntity.Entry[0].EntityType =
+                                SAHPI_ENT_IO_BLADE;
+                        rpt->ResourceCapabilities &=
                                    ~(SAHPI_CAPABILITY_RESET |
                                      SAHPI_CAPABILITY_POWER |
                                      SAHPI_CAPABILITY_CONTROL |
-				     SAHPI_CAPABILITY_MANAGED_HOTSWAP);
-		break;
-		case	BLADE_TYPE_STORAGE:
-        		rpt->ResourceEntity.Entry[0].EntityType =
-				SAHPI_ENT_DISK_BLADE;
-        		rpt->ResourceCapabilities &= 
+                                     SAHPI_CAPABILITY_MANAGED_HOTSWAP);
+                break;
+                case    BLADE_TYPE_STORAGE:
+                        rpt->ResourceEntity.Entry[0].EntityType =
+                                SAHPI_ENT_DISK_BLADE;
+                        rpt->ResourceCapabilities &=
                                    ~(SAHPI_CAPABILITY_RESET |
                                      SAHPI_CAPABILITY_POWER |
                                      SAHPI_CAPABILITY_CONTROL |
-				     SAHPI_CAPABILITY_MANAGED_HOTSWAP);
-		break;
-		default:
-			err("Invalid blade type: expecting server/storage/IO blade");
-			return SA_ERR_HPI_INTERNAL_ERROR;
-	}
+                                     SAHPI_CAPABILITY_MANAGED_HOTSWAP);
+                break;
+                default:
+                        err("Invalid blade type: "
+                            "expecting server/storage/IO blade");
+                        return SA_ERR_HPI_INTERNAL_ERROR;
+        }
 
         rpt->ResourceEntity.Entry[0].EntityLocation= response->bayNumber;
         rv = oh_concat_ep(&rpt->ResourceEntity, &entity_path);
         if (rv != SA_OK) {
-                err("concat of entity path failed");
+                err("internal error (oh_concat_ep call)");
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
@@ -1372,13 +1372,13 @@ SaErrorT build_server_rpt(struct oh_handler_state *oh_handler,
         snprintf((char *) (rpt->ResourceTag.Data),
                  rpt->ResourceTag.DataLength, "%s", response->name);
 
-	/* set default hotswap capability */
-	if (rpt->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP) {
-        	rpt->HotSwapCapabilities = 
-			SAHPI_HS_CAPABILITY_AUTOEXTRACT_READ_ONLY;
-	} else {
-        	rpt->HotSwapCapabilities = 0;
-	}
+        /* set default hotswap capability */
+        if (rpt->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP) {
+                rpt->HotSwapCapabilities =
+                        SAHPI_HS_CAPABILITY_AUTOEXTRACT_READ_ONLY;
+        } else {
+                rpt->HotSwapCapabilities = 0;
+        }
         return SA_OK;
 }
 
@@ -1470,14 +1470,14 @@ SaErrorT build_server_rdr(struct oh_handler_state *oh_handler,
                 return rv;
         }
 
-        /* Create control RDR if capability is set for this blade. 
-	   IO and Storage blades don't support power management. */
+        /* Create control RDR if capability is set for this blade.
+           IO and Storage blades don't support power management. */
         if (rpt->ResourceCapabilities & SAHPI_CAPABILITY_CONTROL) {
 
             /* Build control rdr for server */
             memset(&rdr, 0, sizeof(SaHpiRdrT));
             rv = build_server_control_rdr(oh_handler, bay_number,
-		&rdr);
+                &rdr);
             if (rv != SA_OK) {
                 err("Failed to get server control RDR");
                 return rv;
@@ -1487,7 +1487,7 @@ SaErrorT build_server_rdr(struct oh_handler_state *oh_handler,
                 err("Failed to add rdr");
                 return rv;
             }
-	}
+        }
 
         return SA_OK;
 }
@@ -1550,8 +1550,9 @@ SaErrorT discover_server(struct oh_handler_state *oh_handler)
                         return SA_ERR_HPI_INTERNAL_ERROR;
                 }
 
-                /* update resource_status structure with resource_id,
-                   serial_number, and presence status */
+                /* Update resource_status structure with resource_id,
+                 * serial_number, and presence status
+                 */
                 oa_soap_update_resource_status(
                       &oa_handler->oa_soap_resources.server, i,
                       response.serialNumber, resource_id, RES_PRESENT);
@@ -1561,8 +1562,7 @@ SaErrorT discover_server(struct oh_handler_state *oh_handler)
                                       resource_id);
                 if (rv != SA_OK) {
                         err("Failed to add Server rdr");
-                        /* reset resource_status structure to default
-                           values */
+                        /* Reset resource_status structure to default values */
                         oa_soap_update_resource_status(
                               &oa_handler->oa_soap_resources.server, i,
                               "", SAHPI_UNSPECIFIED_RESOURCE_ID, RES_ABSENT);
@@ -1586,8 +1586,8 @@ SaErrorT discover_server(struct oh_handler_state *oh_handler)
  *
  * Purpose:
  *      Populate the interconnect RPT. This routine gets called when a switch
- *      blade is discovered as well as inserted. Hotswap information is 
- *      initialized differently for these two cases. 
+ *      blade is discovered as well as inserted. Hotswap information is
+ *      initialized differently for these two cases.
  *      Pushes the RPT entry to plugin RPTable
  *
  * Detailed Description: NA
@@ -1682,48 +1682,51 @@ SaErrorT build_interconnect_rpt(struct oh_handler_state *oh_handler,
                   rpt.ResourceTag.DataLength, "%s", name);
 
         hotswap_state = (struct oa_soap_hotswap_state *)
-            g_malloc0(sizeof(struct oa_soap_hotswap_state));
+                g_malloc0(sizeof(struct oa_soap_hotswap_state));
         if (hotswap_state == NULL) {
                 err("Out of memory");
                 return SA_ERR_HPI_OUT_OF_MEMORY;
         }
 
-        if(inserted == TRUE) {
-            /* The interconnect takes nearly 3 seconds to power on after
-             * insertion. Intialize the current hotswap state as 
-             * INSERTION_PENDING. The INSERTION_PENDING to ACTIVE state
-             * change is handled as part of interconnect status events
-            */
-            hotswap_state->currentHsState = SAHPI_HS_STATE_INSERTION_PENDING;
+        if (inserted == TRUE) {
+                /* The interconnect takes nearly 3 seconds to power on after
+                 * insertion.  Intialize the current hotswap state as
+                 * change is handled as part of interconnect status events.
+                 */
+                hotswap_state->currentHsState =
+                        SAHPI_HS_STATE_INSERTION_PENDING;
 
         } else {
-            /* Get the power state of the interconnect blade to determine the
-             * hotswap state. Hotswap state of the interconnect shall be 
-             * maintained in private data area of interconnect rpt
-             */
-            rv = get_interconnect_power_state(con, bay_number, &state);
-            if (rv != SA_OK) {
-                err("Unable to get power status");
-                return rv;
-            }
+                /* Get the power state of the interconnect blade to determine
+                 * the hotswap state.  The hotswap state of the interconnect
+                 * shall be maintained in a private data area of the
+                 * interconnect RPT.
+                 */
+                rv = get_interconnect_power_state(con, bay_number, &state);
+                if (rv != SA_OK) {
+                        err("Unable to get power status");
+                        return rv;
+                }
 
 
-            switch (state) {
-                case SAHPI_POWER_ON:
-                        hotswap_state->currentHsState = SAHPI_HS_STATE_ACTIVE;
-                        break;
+                switch (state) {
+                        case SAHPI_POWER_ON:
+                                hotswap_state->currentHsState =
+                                        SAHPI_HS_STATE_ACTIVE;
+                                break;
 
-                case SAHPI_POWER_OFF:
-                        hotswap_state->currentHsState = SAHPI_HS_STATE_INACTIVE;
-                        break;
+                        case SAHPI_POWER_OFF:
+                                hotswap_state->currentHsState =
+                                        SAHPI_HS_STATE_INACTIVE;
+                                break;
 
-                case SAHPI_POWER_CYCLE:
-                default :
-                        err("Wrong power state detected");
-                        if (hotswap_state != NULL)
-                                g_free(hotswap_state);
-                        return SA_ERR_HPI_INTERNAL_ERROR;
-            }
+                        case SAHPI_POWER_CYCLE:
+                        default:
+                                err("Wrong power state detected");
+                                if (hotswap_state != NULL)
+                                        g_free(hotswap_state);
+                                return SA_ERR_HPI_INTERNAL_ERROR;
+                }
         }
 
         /* Add the interconnect rpt to the plugin RPTable */
@@ -1884,8 +1887,9 @@ SaErrorT discover_interconnect(struct oh_handler_state *oh_handler)
                        return rv;
                 }
 
-                /* update resource_status structure with resource_id,
-                   serial_number, and presence status */
+                /* Update resource_status structure with resource_id,
+                 * serial_number, and presence status
+                 */
                 oa_soap_update_resource_status(
                       &oa_handler->oa_soap_resources.interconnect, i,
                       info_response.serialNumber, resource_id, RES_PRESENT);
@@ -1894,8 +1898,7 @@ SaErrorT discover_interconnect(struct oh_handler_state *oh_handler)
                                             i, resource_id);
                 if (rv != SA_OK) {
                        err("Failed to get interconnect RDR");
-                        /* reset resource_status structure to default
-                           values */
+                        /* Reset resource_status structure to default values */
                         oa_soap_update_resource_status(
                               &oa_handler->oa_soap_resources.interconnect, i,
                               "", SAHPI_UNSPECIFIED_RESOURCE_ID, RES_ABSENT);
@@ -2125,9 +2128,10 @@ SaErrorT discover_fan(struct oh_handler_state *oh_handler)
                         err("Failed to populate Fan RPT");
                         return rv;
                 }
-                /* update resource_status structure with resource_id,
-                   serial_number, and presence status - fan doesn't have
-                   serial number, pass in a null string */
+                /* Update resource_status structure with resource_id,
+                 * serial_number, and presence status.  Fan doesn't have a
+                 * serial number, so pass in a null string.
+                 */
                 oa_soap_update_resource_status(
                       &oa_handler->oa_soap_resources.fan, i,
                       NULL, resource_id, RES_PRESENT);
@@ -2136,8 +2140,7 @@ SaErrorT discover_fan(struct oh_handler_state *oh_handler)
                                    &response, resource_id);
                 if (rv != SA_OK) {
                         err("Failed to populate Fan RDR");
-                        /* reset resource_status structure to default
-                           values */
+                        /* Reset resource_status structure to default values */
                         oa_soap_update_resource_status(
                               &oa_handler->oa_soap_resources.fan, i,
                               NULL, SAHPI_UNSPECIFIED_RESOURCE_ID, RES_ABSENT);
@@ -2579,8 +2582,9 @@ SaErrorT discover_power_supply(struct oh_handler_state *oh_handler)
                         return rv;
                 }
 
-                /* update resource_status structure with resource_id,
-                   serial_number, and presence status */
+                /* Update resource_status structure with resource_id,
+                 * serial_number, and presence status
+                 */
                 oa_soap_update_resource_status(
                       &oa_handler->oa_soap_resources.ps_unit, i,
                       response.serialNumber, resource_id, RES_PRESENT);
@@ -2590,8 +2594,7 @@ SaErrorT discover_power_supply(struct oh_handler_state *oh_handler)
                                             &response, resource_id);
                 if (rv != SA_OK) {
                         err("build power supply unit RDR failed");
-                        /* reset resource_status structure to default
-                           values */
+                        /* Reset resource_status structure to default values */
                         oa_soap_update_resource_status(
                               &oa_handler->oa_soap_resources.ps_unit, i,
                               "", SAHPI_UNSPECIFIED_RESOURCE_ID, RES_ABSENT);

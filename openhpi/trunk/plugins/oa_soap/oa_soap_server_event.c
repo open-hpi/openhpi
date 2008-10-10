@@ -30,9 +30,7 @@
  *
  * Author(s)
  *      Raghavendra P.G. <raghavendra.pg@hp.com>
- *      Shuah Khan <shuah.khan@hp.com>    IO and Storage blade support
- *      Shuah Khan <shuah.khan@hp.com> Infrastructure changes to add support
- *                                     for new types of blades and events
+ *      Shuah Khan <shuah.khan@hp.com>
  *
  * This file has the server blade related events handling
  *
@@ -54,8 +52,8 @@
  *
  */
 
-#include <oa_soap_server_event.h>
-#include <oa_soap_discover.h>	/* for build_server_rpt() prototype */
+#include "oa_soap_server_event.h"
+#include "oa_soap_discover.h"           /* for build_server_rpt() prototype */
 
 /**
  * process_server_power_off_event
@@ -180,7 +178,7 @@ SaErrorT process_server_power_on_event(struct oh_handler_state *oh_handler,
                                 hotswap_state->currentHsState;
         /* Check whether blade is inserted and then powered on */
         switch (hotswap_state->currentHsState) {
-                case (SAHPI_HS_STATE_INSERTION_PENDING) :
+                case (SAHPI_HS_STATE_INSERTION_PENDING):
                         hotswap_state->currentHsState = SAHPI_HS_STATE_ACTIVE;
                         event->event.EventDataUnion.HotSwapEvent.HotSwapState =
                                 SAHPI_HS_STATE_ACTIVE;
@@ -193,7 +191,7 @@ SaErrorT process_server_power_on_event(struct oh_handler_state *oh_handler,
                                           copy_oa_soap_event(event));
                         break;
 
-                case (SAHPI_HS_STATE_INACTIVE) :
+                case (SAHPI_HS_STATE_INACTIVE):
                         event->resource.ResourceSeverity = SAHPI_OK;
                         /* The previous state of the server was power off
                          * Update the current hotswap state to ACTIVE
@@ -267,7 +265,7 @@ SaErrorT process_server_power_on_event(struct oh_handler_state *oh_handler,
                                           copy_oa_soap_event(event));
                         break;
 
-                default :
+                default:
                         err("wrong state detected");
                         return SA_ERR_HPI_INTERNAL_ERROR;
         }
@@ -312,7 +310,7 @@ SaErrorT process_server_power_event(struct oh_handler_state *oh_handler,
 
         bay_number = oa_event->eventData.bladeStatus.bayNumber;
         oa_handler = (struct oa_soap_handler *) oh_handler->data;
-        resource_id = 
+        resource_id =
            oa_handler->oa_soap_resources.server.resource_id[bay_number - 1];
         /* Get the rpt entry of the resource */
         rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
@@ -325,17 +323,17 @@ SaErrorT process_server_power_event(struct oh_handler_state *oh_handler,
         event.event.Source = event.resource.ResourceId;
 
         switch (oa_event->eventData.bladeStatus.powered) {
-                case (POWER_OFF) :
+                case (POWER_OFF):
                         rv = process_server_power_off_event(oh_handler, &event);
                         break;
 
-                case (POWER_ON) :
+                case (POWER_ON):
                         rv = process_server_power_on_event(oh_handler, con,
                                                            &event, bay_number);
                         break;
 
                 /* Currently, OA is not sending the REBOOT event*/
-                case (POWER_REBOOT) :
+                case (POWER_REBOOT):
                         hotswap_state.currentHsState = SAHPI_HS_STATE_ACTIVE;
                         event.event.EventDataUnion.HotSwapEvent.
                                 PreviousHotSwapState =
@@ -352,7 +350,7 @@ SaErrorT process_server_power_event(struct oh_handler_state *oh_handler,
 
                         break;
 
-                default :
+                default:
                         err("Wrong power state");
                         return SA_ERR_HPI_INTERNAL_ERROR;
         }
@@ -414,8 +412,9 @@ SaErrorT process_server_insertion_event(struct oh_handler_state *oh_handler,
                 return rv;
         }
 
-        /* update resource_status structure with resource_id,
-                   serial_number, and presence status */
+        /* Update resource_status structure with resource_id, serial_number,
+         * and presence status
+         */
         oa_soap_update_resource_status(
                       &oa_handler->oa_soap_resources.server, bay_number,
                       response.serialNumber, rpt.ResourceId, RES_PRESENT);
@@ -542,7 +541,7 @@ SaErrorT process_server_thermal_event(struct oh_handler_state *oh_handler,
 
         oa_handler = (struct oa_soap_handler *) oh_handler->data;
         bay_number = oa_event->eventData.bladeStatus.bayNumber;
-        resource_id = 
+        resource_id =
            oa_handler->oa_soap_resources.server.resource_id[bay_number - 1];
         /* Get the rpt entry of the resource */
         rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
@@ -686,17 +685,17 @@ SaErrorT process_server_thermal_event(struct oh_handler_state *oh_handler,
  *      @rpt:        Pointer to the rpt entry
  *
  * Purpose:
- *	Populate the server blade RPT with aid of build_server_rpt() and add
+ *      Populate the server blade RPT with aid of build_server_rpt() and add
  *      hotswap state information to the returned rpt.
- *      Pushes the RPT entry to infrastructure
+ *      Pushes the RPT entry to infrastructure.
  *
  * Detailed Description: NA
  *
  * Return values:
- *      SA_OK                     - on success.
+ *      SA_OK                     - on success
  *      SA_ERR_HPI_INVALID_PARAMS - on wrong parameters
  *      SA_ERR_HPI_OUT_OF_MEMORY  - on malloc failure
- *      SA_ERR_HPI_INTERNAL_ERROR - on failure.
+ *      SA_ERR_HPI_INTERNAL_ERROR - on failure
  **/
 
 SaErrorT build_inserted_server_rpt(struct oh_handler_state *oh_handler,
@@ -711,26 +710,26 @@ SaErrorT build_inserted_server_rpt(struct oh_handler_state *oh_handler,
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-        if(build_server_rpt(oh_handler, response, rpt) != SA_OK) {
-                err("Building Server Rpt failed for an inserted blade");
+        if (build_server_rpt(oh_handler, response, rpt) != SA_OK) {
+                err("Building Server RPT failed for an inserted blade");
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-	if (rpt->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP) {
-		hotswap_state = (struct oa_soap_hotswap_state *)
-			g_malloc0(sizeof(struct oa_soap_hotswap_state));
-		if (hotswap_state == NULL) {
-			err("Out of memory");
-			return SA_ERR_HPI_OUT_OF_MEMORY;
-		}
-		/* Inserted server needs some time to stabilize
-		 * Put the server hotswap state to INSERTION_PENDING
-		 * Once the server stabilizes, put the hotswap state to
-		 * ACTIVE (handled in power on event)
-		 */
-		hotswap_state->currentHsState = 
-			SAHPI_HS_STATE_INSERTION_PENDING;
-	}
+        if (rpt->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP) {
+                hotswap_state = (struct oa_soap_hotswap_state *)
+                        g_malloc0(sizeof(struct oa_soap_hotswap_state));
+                if (hotswap_state == NULL) {
+                        err("Out of memory");
+                        return SA_ERR_HPI_OUT_OF_MEMORY;
+                }
+                /* Inserted server needs some time to stabilize.  Put the
+                 * server hotswap state to INSERTION_PENDING.  Once the
+                 * server stabilizes, put the hotswap state to ACTIVE
+                 * (handled in power on event).
+                 */
+                hotswap_state->currentHsState =
+                        SAHPI_HS_STATE_INSERTION_PENDING;
+        }
 
         rv = oh_add_resource(oh_handler->rptcache, rpt, hotswap_state, 0);
         if (rv != SA_OK) {

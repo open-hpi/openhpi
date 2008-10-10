@@ -40,7 +40,7 @@
 #include <string.h>
 #include <oh_error.h>
 #define OA_SOAP_CALLS_FILE              /* Defines ENUM strings in this file */
-#include <oa_soap_calls.h>
+#include "oa_soap_calls.h"
 
 
 /* Macros used in this file, to simplify common code */
@@ -659,7 +659,7 @@ void    soap_getEncLink(xmlNode *data, struct encLink *result)
         result->local = parse_xsdBoolean(soap_tree_value(data, "local"));
 }
 
-/* soap_getEncLink2 - Gets information from encLink2 nodes, 
+/* soap_getEncLink2 - Gets information from encLink2 nodes,
  * providing enclosure information.
  *
  * Outputs:
@@ -679,29 +679,29 @@ void    soap_getEncLink(xmlNode *data, struct encLink *result)
  */
 void    soap_getEncLink2(xmlNode *data, struct encLink2 *result)
 {
-        result->enclosureNumber = 
+        result->enclosureNumber =
                 atoi(soap_tree_value(data, "enclosureNumber"));
         result->productId = atoi(soap_tree_value(data, "productId"));
         result->mfgId = atoi(soap_tree_value(data, "mfgId"));
         result->enclosureUuid = soap_tree_value(data, "enclosureUuid");
-        result->enclosureSerialNumber = 
+        result->enclosureSerialNumber =
                 soap_tree_value(data, "enclosureSerialNumber");
         result->enclosureName = soap_tree_value(data, "enclosureName");
-        result->enclosureProductName = 
+        result->enclosureProductName =
                 soap_tree_value(data, "enclosureProductName");
-        result->enclosureStatus = 
-                soap_enum(opStatus_S, 
+        result->enclosureStatus =
+                soap_enum(opStatus_S,
                           soap_tree_value(data, "enclosureStatus"));
-        result->enclosureRackIpAddress = 
+        result->enclosureRackIpAddress =
                 soap_tree_value(data, "enclosureRackIpAddress");
         result->enclosureUrl = soap_tree_value(data, "enclosureUrl");
         result->rackName = soap_tree_value(data, "rackName");
-        result->primaryEnclosure = 
+        result->primaryEnclosure =
                 parse_xsdBoolean(soap_tree_value(data, "primaryEnclosure"));
         result->encLinkOa = soap_walk_tree(data, "encLinkOaArray:encLinkOa");
 }
 
-/* soap_getEncLinkOa - Gets information from encLinkOa nodes, 
+/* soap_getEncLinkOa - Gets information from encLinkOa nodes,
  * providing enclosure information.
  *
  * Outputs:
