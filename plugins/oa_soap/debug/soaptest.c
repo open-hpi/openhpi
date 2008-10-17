@@ -78,6 +78,9 @@ int main(int argc, char *argv[])
     SOAP_CON			*con;
     struct getBladeInfo		bladeInfo_request;
     struct bladeInfo		bladeInfo_response;
+    struct getBladeStatus	bladeStatus_request;
+    struct bladeStatus		bladeStatus_response;
+    struct extraDataInfo	extraDataInfo_response;
     struct bladeCpuInfo		bladeCpuInfo;
     struct bladeNicInfo		bladeNicInfo;
     struct eventPid		subscribeForEvents_response;
@@ -261,6 +264,17 @@ int main(int argc, char *argv[])
 	    printf("  mmDepth      = %d\n", bladeInfo_response.mmDepth);
 	    printf("  deviceId     = %d\n", bladeInfo_response.deviceId);
 	    printf("  productId    = %d\n", bladeInfo_response.productId);
+	    /* The extra data is a list of values...print each */
+	    printf("  extraData Values:\n");
+	    while (bladeInfo_response.extraData) {
+		soap_getExtraData(bladeInfo_response.extraData,
+				  & extraDataInfo_response);
+		printf("    %s: %s\n",
+		       extraDataInfo_response.name,
+		       extraDataInfo_response.value);
+		bladeInfo_response.extraData =
+			soap_next_node(bladeInfo_response.extraData);
+	    }
 	}
     }
 
@@ -269,6 +283,68 @@ int main(int argc, char *argv[])
     if (soap_error_number(con)) {
 	printf("\nPrevious call had error %d: %s\n",
 	       soap_error_number(con), soap_error_string(con));
+    }
+
+
+    /* Try the getBladeStatus() call on blade 1.  */
+    slot = 1;				/* Doing BladeStatus on this slot */
+    bladeStatus_request.bayNumber = slot;
+    if (soap_getBladeStatus(con, &bladeStatus_request, &bladeStatus_response)) {
+	err("failed soap_getBladeStatus() in main()");
+	/* Falling through here to (eventually) close the connection */
+    }
+    else {
+	/* Successful call...print response parameters */
+	printf("\ngetBladeStatus response values for slot %d:\n", slot);
+	printf("  bayNumber     = %d\n", bladeStatus_response.bayNumber);
+	printf("  presence      = %d\n", bladeStatus_response.presence);
+	printf("  op status     = %d\n",
+	       bladeStatus_response.operationalStatus);
+	printf("  thermal       = %d\n", bladeStatus_response.thermal);
+	printf("  powered       = %d\n", bladeStatus_response.powered);
+	printf("  powerState    = %d\n", bladeStatus_response.powerState);
+	printf("  shutdown      = %d\n", bladeStatus_response.shutdown);
+	printf("  uid           = %d\n", bladeStatus_response.uid);
+	printf("  powerConsumed = %d\n", bladeStatus_response.powerConsumed);
+	/* DiagnosticChecks structure */
+	printf("  Diagnostic Checks:\n");
+	printf("    internalDataError        = %d\n",
+	       bladeStatus_response.diagnosticChecks.internalDataError);
+	printf("    managementProcessorError = %d\n",
+	       bladeStatus_response.diagnosticChecks.managementProcessorError);
+	printf("    thermalWarning           = %d\n",
+	       bladeStatus_response.diagnosticChecks.thermalWarning);
+	printf("    thermalDanger            = %d\n",
+	       bladeStatus_response.diagnosticChecks.thermalDanger);
+	printf("    ioConfigurationError     = %d\n",
+	       bladeStatus_response.diagnosticChecks.ioConfigurationError);
+	printf("    devicePowerRequestError  = %d\n",
+	       bladeStatus_response.diagnosticChecks.devicePowerRequestError);
+	printf("    insufficientCooling      = %d\n",
+	       bladeStatus_response.diagnosticChecks.insufficientCooling);
+	printf("    deviceLocationError      = %d\n",
+	       bladeStatus_response.diagnosticChecks.deviceLocationError);
+	printf("    deviceFailure            = %d\n",
+	       bladeStatus_response.diagnosticChecks.deviceFailure);
+	printf("    deviceDegraded           = %d\n",
+	       bladeStatus_response.diagnosticChecks.deviceDegraded);
+	printf("    acFailure                = %d\n",
+	       bladeStatus_response.diagnosticChecks.acFailure);
+	printf("    i2cBuses                 = %d\n",
+	       bladeStatus_response.diagnosticChecks.i2cBuses);
+	printf("    redundancy               = %d\n",
+	       bladeStatus_response.diagnosticChecks.redundancy);
+	/* The extra data is a list of values...print each */
+	printf("  extraData Values:\n");
+	while (bladeStatus_response.extraData) {
+		soap_getExtraData(bladeStatus_response.extraData,
+				  & extraDataInfo_response);
+		printf("    %s: %s\n",
+		       extraDataInfo_response.name,
+		       extraDataInfo_response.value);
+		bladeStatus_response.extraData =
+			soap_next_node(bladeStatus_response.extraData);
+	}
     }
 
    /* Try a getRackTopology2 call */
@@ -375,6 +451,17 @@ int main(int argc, char *argv[])
 	       getThermalInfo_response.cautionThreshold);
 	printf("  criticalThresh = %d\n",
 	       getThermalInfo_response.criticalThreshold);
+	/* The extra data is a list of values...print each */
+	printf("  extraData Values:\n");
+	while (getThermalInfo_response.extraData) {
+		soap_getExtraData(getThermalInfo_response.extraData,
+				  & extraDataInfo_response);
+		printf("    %s: %s\n",
+		       extraDataInfo_response.name,
+		       extraDataInfo_response.value);
+		getThermalInfo_response.extraData =
+			soap_next_node(getThermalInfo_response.extraData);
+	}
     }
 
 
@@ -419,6 +506,7 @@ int main(int argc, char *argv[])
     }
 
 
+#if 1					/* Sometimes, we want to skip events */
     /* Try to subscribe for events */
     if (soap_subscribeForEvents(con, &subscribeForEvents_response)) {
 	err("failed soap_subscribeForEvents() in main()");
@@ -637,6 +725,7 @@ int main(int argc, char *argv[])
     else {
 	printf("\nunSubscribeForEvents call succeeded\n");
     }
+#endif /* If we're skipping all event stuff */
 
 
 #if 0					/* Print buffer usage number.  Only

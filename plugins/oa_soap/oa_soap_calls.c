@@ -121,6 +121,7 @@ static void     parse_bladeInfo(xmlNode *node, struct bladeInfo *response)
         response->mmDepth = atoi(soap_tree_value(node, "mmDepth"));
         response->deviceId = atoi(soap_tree_value(node, "deviceId"));
         response->productId = atoi(soap_tree_value(node, "productId"));
+        response->extraData = soap_walk_tree(node, "extraData");
 }
 
 /* parse_bladeMpInfo - Parses a bladeMpInfo response structure */
@@ -138,6 +139,7 @@ static void     parse_bladeMpInfo(xmlNode *node, struct bladeMpInfo *response)
         response->loginUrl = soap_tree_value(node, "loginUrl");
         response->ircFullUrl = soap_tree_value(node, "ircFullUrl");
         response->remoteSerialUrl = soap_tree_value(node, "remoteSerialUrl");
+        response->extraData = soap_walk_tree(node, "extraData");
 }
 
 /* parse_diagnosticChecks - Parses a diagnosticChecks response structure */
@@ -200,6 +202,7 @@ static void     parse_syslog(xmlNode *node, struct syslog *response)
         response->logContents = soap_tree_value(node, "logContents"); /* May be
                                                                        * NULL
                                                                        */
+        response->extraData = soap_walk_tree(node, "extraData");
 }
 
 /* parse_rackTopology - Parses a rackTopology response structure */
@@ -208,6 +211,7 @@ static void     parse_rackTopology(xmlNode *node,
 {
         response->ruid = soap_tree_value(node, "ruid"); /* May be NULL */
         response->enclosures = soap_walk_tree(node, "enclosures:enclosure");
+        response->extraData = soap_walk_tree(node, "extraData");
 }
 
 /* parse_rackTopology2 - Parses rackTopology2 response structure */
@@ -216,6 +220,7 @@ static void     parse_rackTopology2(xmlNode *node,
 {
         response->ruid = soap_tree_value(node, "ruid");
         response->enclosures = soap_walk_tree(node, "enclosures:enclosure");
+        response->extraData = soap_walk_tree(node, "extraData");
 }
 
 /* parse_enclosureInfo - Parses a enclosureInfo response structure */
@@ -256,6 +261,7 @@ static void     parse_enclosureInfo(xmlNode *node,
         response->pduPartNumber = soap_tree_value(node, "pduPartNumber");
         response->pduSparePartNumber =
                 soap_tree_value(node, "pduSparePartNumber");
+        response->extraData = soap_walk_tree(node, "extraData");
 }
 
 /* parse_oaStatus - Parses an oaStatus response structure */
@@ -277,6 +283,7 @@ static void     parse_oaStatus(xmlNode *node, struct oaStatus *response)
         response->diagnosticChecksEx =
                 soap_walk_tree(node, "diagnosticChecksEx");
 #endif
+        response->extraData = soap_walk_tree(node, "extraData");
 }
 
 /* parse_oaInfo - Parses an oaInfo response structure */
@@ -297,6 +304,7 @@ static void     parse_oaInfo(xmlNode *node, struct oaInfo *response)
         response->mmHeight = atoi(soap_tree_value(node, "mmHeight"));
         response->mmWidth = atoi(soap_tree_value(node, "mmWidth"));
         response->mmDepth = atoi(soap_tree_value(node, "mmDepth"));
+        response->extraData = soap_walk_tree(node, "extraData");
 }
 
 /* parse_bladeStatus - Parses a bladeStatus response structure */
@@ -324,6 +332,7 @@ static void     parse_bladeStatus(xmlNode *node, struct bladeStatus *response)
         response->diagnosticChecksEx =
                 soap_walk_tree(node, "diagnosticChecksEx");
 #endif
+        response->extraData = soap_walk_tree(node, "extraData");
 }
 
 /* parse_fanInfo - Parses a fanInfo response structure */
@@ -350,6 +359,7 @@ static void     parse_fanInfo(xmlNode *node, struct fanInfo *response)
         response->diagnosticChecksEx =
                 soap_walk_tree(node, "diagnosticChecksEx");
 #endif
+        response->extraData = soap_walk_tree(node, "extraData");
 }
 
 /* parse_interconnectTrayStatus - Parses an interconnectTrayStatus
@@ -380,6 +390,7 @@ static void     parse_interconnectTrayStatus(xmlNode *node,
         response->diagnosticChecksEx =
                 soap_walk_tree(node, "diagnosticChecksEx");
 #endif
+        response->extraData = soap_walk_tree(node, "extraData");
 }
 
 /* parse_interconnectTrayInfo - Parses an interconnectTrayInfo
@@ -414,6 +425,7 @@ static void     parse_interconnectTrayInfo(xmlNode *node,
         response->urlToMgmt = soap_tree_value(node, "urlToMgmt");
         response->powerOnWatts = atoi(soap_tree_value(node, "powerOnWatts"));
         response->powerOffWatts = atoi(soap_tree_value(node, "powerOffWatts"));
+        response->extraData = soap_walk_tree(node, "extraData");
 }
 
 /* parse_powerSupplyInfo - Parses a powerSupplyInfo response structure */
@@ -428,6 +440,7 @@ static void     parse_powerSupplyInfo(xmlNode *node,
         response->serialNumber = soap_tree_value(node, "serialNumber");
         response->capacity = atoi(soap_tree_value(node, "capacity"));
         response->actualOutput = atoi(soap_tree_value(node, "actualOutput"));
+        response->extraData = soap_walk_tree(node, "extraData");
 }
 
 /* parse_powerSupplyStatus - Parses a powerSupplyStatus response structure */
@@ -448,6 +461,7 @@ static void     parse_powerSupplyStatus(xmlNode *node,
         response->diagnosticChecksEx =
                 soap_walk_tree(node, "diagnosticChecksEx");
 #endif
+        response->extraData = soap_walk_tree(node, "extraData");
 }
 
 /* parse_powerSubsystemInfo - Parses a powerSubsystemInfo response structure */
@@ -489,6 +503,7 @@ static void     parse_powerSubsystemInfo(xmlNode *node,
                 atoi(soap_tree_value(node, "wantedPowerSupplies"));
         response->neededPowerSupplies =
                 atoi(soap_tree_value(node, "neededPowerSupplies"));
+        response->extraData = soap_walk_tree(node, "extraData");
 }
 
 /* parse_thermalInfo - Parses a thermalInfo response structure */
@@ -508,6 +523,7 @@ static void     parse_thermalInfo(xmlNode *node, struct thermalInfo *response)
                 atoi(soap_tree_value(node, "cautionThreshold"));
         response->criticalThreshold =
                 atoi(soap_tree_value(node, "criticalThreshold"));
+        response->extraData = soap_walk_tree(node, "extraData");
 }
 
 /* parse_enclosureBaysSelection - Parses an enclosureBaysSelection response
@@ -525,6 +541,7 @@ static void     parse_enclosureBaysSelection(xmlNode *node,
         response->bladeBays = soap_walk_tree(node, "bladeBays:blade");
         response->interconnectTrayBays =
                 soap_walk_tree(node, "interconnectTrayBays:interconnectTray");
+        response->extraData = soap_walk_tree(node, "extraData");
 }
 
 /* parse_userInfo - Parses a userInfo response structure */
@@ -538,6 +555,7 @@ static void     parse_userInfo(xmlNode *node, struct userInfo *response)
         response->acl = soap_enum(userAcl_S, soap_tree_value(node, "acl"));
         parse_enclosureBaysSelection(soap_walk_tree(node, "bayPermissions"),
                                      &(response->bayPermissions));
+        response->extraData = soap_walk_tree(node, "extraData");
 }
 
 /* parse_oaNetworkInfo - Parses a oaNetworkInfo response structure */
@@ -557,6 +575,7 @@ static void     parse_oaNetworkInfo(xmlNode *node,
         response->elinkIpAddress = soap_tree_value(node, "elinkIpAddress");
         response->linkActive =
                 parse_xsdBoolean(soap_tree_value(node, "linkActive"));
+        response->extraData = soap_walk_tree(node, "extraData");
 }
 
 /* parse_getAllEvents - Parses a getAllEventsResponse structure */
@@ -575,6 +594,26 @@ static void     parse_getAllEvents(xmlNode *node,
  * file which contains structure definitions, and to the OA SOAP interface
  * documentation (HP Onboard Administrator SOAP Interface Guide).
  */
+
+/* soap_getExtraData - Walks list of extraData nodes, providing the name and
+ *      value for each.  Used after any SOAP call that returns an extraData
+ *      xmlNode pointer.
+ *
+ * Outputs:
+ *      name:           String containing the extra data name
+ *      value:          String containing the value for this name
+ */
+void    soap_getExtraData(xmlNode *extraData, struct extraDataInfo *result)
+{
+        if ((extraData) &&
+            (extraData->properties) &&
+            (extraData->properties->children))
+                result->name =
+                        (char *)(extraData->properties->children->content);
+        else
+                result->name = NULL;
+        result->value = soap_value(extraData);
+}
 
 /* soap_getBladeCpuInfo - Walks list of bladeCpuInfo nodes, providing details
  *      on each CPU.  Used after calling soap_getBladeInfo().
@@ -657,6 +696,7 @@ void    soap_getEncLink(xmlNode *data, struct encLink *result)
                 soap_tree_value(data, "enclosureName"); /* May be NULL */
         result->url = soap_tree_value(data, "url");
         result->local = parse_xsdBoolean(soap_tree_value(data, "local"));
+        result->extraData = soap_walk_tree(data, "extraData");
 }
 
 /* soap_getEncLink2 - Gets information from encLink2 nodes,
@@ -699,6 +739,7 @@ void    soap_getEncLink2(xmlNode *data, struct encLink2 *result)
         result->primaryEnclosure =
                 parse_xsdBoolean(soap_tree_value(data, "primaryEnclosure"));
         result->encLinkOa = soap_walk_tree(data, "encLinkOaArray:encLinkOa");
+        result->extraData = soap_walk_tree(data, "extraData");
 }
 
 /* soap_getEncLinkOa - Gets information from encLinkOa nodes,
@@ -720,6 +761,7 @@ void    soap_getEncLinkOa (xmlNode *data, struct encLinkOa *result)
         result->ipAddress = soap_tree_value(data, "ipAddress");
         result->macAddress = soap_tree_value(data, "macAddress");
         result->fwVersion = soap_tree_value(data, "fwVersion");
+        result->extraData = soap_walk_tree(data, "extraData");
 }
 
 
@@ -767,6 +809,7 @@ void    soap_getEventInfo(xmlNode *events, struct eventInfo *result)
                 result->queueSize = atoi(str);
         else
                 result->queueSize = -1;
+        result->extraData = soap_walk_tree(events, "extraData");
 
         /* The remainder depends on what sort of data is returned by the OA.
          * The current documentation says that only one of these can be
