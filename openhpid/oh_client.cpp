@@ -1870,7 +1870,7 @@ SaErrorT SAHPI_API saHpiSensorThresholdsSet(
         err = oh_get_connx(SessionId, &dsid, &pinst);
 	if (err) return err;
         if (!Thresholds)
-                return SA_ERR_HPI_INVALID_DATA;
+                return SA_ERR_HPI_INVALID_PARAMS;
 
 	err = clean_thresholds(Thresholds, &tmpthrds);
 	if (err) return err;
