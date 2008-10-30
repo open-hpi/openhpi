@@ -57,7 +57,7 @@ install-data-local:
 	$(mkinstalldirs) $(DESTDIR)$(sysconfdir)/init.d
 	$(INSTALL) -m 0755 openhpid.sh $(DESTDIR)$(sysconfdir)/init.d/openhpid
 
-uninstall-data-local:
+uninstall-local:
 	rm -f $(DESTDIR)$(sysconfdir)/init.d/openhpid
 	
 clean-local:
