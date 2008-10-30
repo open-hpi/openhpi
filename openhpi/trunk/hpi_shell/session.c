@@ -264,7 +264,8 @@ int close_session()
 {
 	SaErrorT rv;
 
-	pthread_kill(ge_thread, SIGKILL);
+	/* Bug 2171901, replace pthread_kill(ge_thread, SIGKILL); */
+	pthread_cancel(ge_thread);
 	
 	rv = saHpiSessionClose(Domain->sessionId);
 	if (rv != SA_OK) {
