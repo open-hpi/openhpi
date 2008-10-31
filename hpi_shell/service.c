@@ -1115,7 +1115,11 @@ void get_text_buffer_text(char *mes, SaHpiTextBufferT *buf, char *meslast,
 			break;
 		case SAHPI_TL_TYPE_TEXT:
 			/* Ensure NULL terminated string */
-			buf->Data[buf->DataLength] = '\0';
+			if ( buf->DataLength < SAHPI_MAX_TEXT_BUFFER_LENGTH ) {
+			     buf->Data[buf->DataLength] = '\0';
+			} else {
+			     buf->Data[SAHPI_MAX_TEXT_BUFFER_LENGTH - 1] = '\0';
+			}
 			strcat(outbuf, (char *)(buf->Data));
 			break;
 		case SAHPI_TL_TYPE_BINARY:
