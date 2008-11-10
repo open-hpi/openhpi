@@ -297,6 +297,8 @@ SaErrorT SAHPI_API saHpiDomainInfoGet(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
+	
+	/* oh_get_connx() places the real Domain Id to dsid */
         err = oh_get_connx(SessionId, &dsid, &pinst);
 	if (err) return err;
         if (DomainInfo == NULL)
@@ -312,6 +314,8 @@ SaErrorT SAHPI_API saHpiDomainInfoGet(
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, DomainInfo);
 
+	/* Set Domain Id to real Domain Id */
+	DomainInfo->DomainId = dsid;
         if (request)
                 free(request);
         if (pinst->header.m_type == eMhError)
@@ -342,6 +346,8 @@ SaErrorT SAHPI_API saHpiDrtEntryGet(
 
 	if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
+	
+	/* oh_get_connx() places the real Domain Id to dsid */
         err = oh_get_connx(SessionId, &dsid, &pinst);
 	if (err) return err;
         if((DrtEntry == NULL) ||
@@ -360,6 +366,9 @@ SaErrorT SAHPI_API saHpiDrtEntryGet(
 
         int mr = HpiDemarshalReply2(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, NextEntryId, DrtEntry);
 
+	/* Set Domain Id to real Domain Id */
+	DrtEntry->DomainId = dsid;
+	
         if (request)
                 free(request);
         if (pinst->header.m_type == eMhError)
@@ -928,6 +937,11 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet(
                 memcpy(RptEntry, &tmp_rpt, sizeof(SaHpiRptEntryT));
         }
 
+	/* If this event is Domain Event, then adjust DomainId */
+	if (ResourceId == SAHPI_UNSPECIFIED_RESOURCE_ID) {
+		EventLogEntry->Event.EventDataUnion.DomainEvent.DomainId = dsid;
+	}
+	
         if (request)
                 free(request);
         if (pinst->header.m_type == eMhError)
