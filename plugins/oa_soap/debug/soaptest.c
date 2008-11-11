@@ -61,13 +61,13 @@
 #if 1
 /* These are for the OSLO cage */
 #define	OA_DEST		"ccc2-oa-1.hpi.telco:443"
-#define	OA_USERNAME	"admin"
+#define	OA_USERNAME	"root"
 #define	OA_PASSWORD	"hosehead"
 #else
 /* These are for the GDIC cage; note that the pair is .38 and .39, and only
  * the active one will respond.
  */
-#define	OA_DEST		"16.138.181.38:443"
+#define	OA_DEST		"16.138.181.57:443"
 #define	OA_USERNAME	"hpi"
 #define	OA_PASSWORD	"hpi123"
 #endif
@@ -98,6 +98,17 @@ int main(int argc, char *argv[])
     struct rackTopology2        grt2_response;
     struct encLink2             encLink2_res;
     struct encLinkOa            encLinkOa_res;
+    struct enclosureStatus	enclosureStatus_response;
+    struct lcdStatus		lcdStatus_response;
+    struct lcdInfo		lcdInfo_response;
+    struct getPowerSupplyStatus powerSupplyStatus_request;
+    struct powerSupplyStatus	powerSupplyStatus_response;
+    struct thermalSubsystemInfo thermalSubsystemInfo_response;
+    struct getFanZoneArray	fanZoneArray_request;
+    struct getFanZoneArrayResponse fanZoneArray_response;
+    struct fanZone		fanZone;
+    struct fanInfo		fanInfo;
+    byte			bay;
     int				slot;
     int				i;
     int				ret;
@@ -347,6 +358,7 @@ int main(int argc, char *argv[])
 	}
     }
 
+
    /* Try a getRackTopology2 call */
     if (soap_getRackTopology2(con,
                               &grt2_response)) {
@@ -395,6 +407,7 @@ int main(int argc, char *argv[])
             grt2_response.enclosures = soap_next_node(grt2_response.enclosures);
         }
     }
+
 
     /* Try a getOaNetworkInfo call */
     slot = 1;
@@ -506,6 +519,278 @@ int main(int argc, char *argv[])
     }
 
 
+    /* Try getEnclosureStatus call. */
+    if (soap_getEnclosureStatus(con, &enclosureStatus_response)) {
+    	    err("failed soap_getEnclosureStatus() in main()");
+    } else {
+	    /* Successful call...print response parameters */
+	    printf("\ngetEnclosure response values \n");
+	    printf("  operationalStatus    = %d\n",
+                    enclosureStatus_response.operationalStatus);
+	    printf("  uid    = %d\n", enclosureStatus_response.uid);
+	    printf("  wizardStatus    = %d\n",
+                   enclosureStatus_response.wizardStatus);
+            printf("  Diagnostic Checks:\n");
+            printf("    internalDataError:        %d\n",
+                   enclosureStatus_response.diagnosticChecks.internalDataError);
+            printf("    managementProcessorError: %d\n",
+                   enclosureStatus_response.
+                       diagnosticChecks.managementProcessorError);
+            printf("    thermalWarning:           %d\n",
+                   enclosureStatus_response.diagnosticChecks.thermalWarning);
+            printf("    thermalDanger:            %d\n",
+                   enclosureStatus_response.diagnosticChecks.thermalDanger);
+            printf("    ioConfigurationError:     %d\n",
+                   enclosureStatus_response.
+                       diagnosticChecks.ioConfigurationError);
+            printf("    devicePowerRequestError:  %d\n",
+                   enclosureStatus_response.
+                       diagnosticChecks.devicePowerRequestError);
+            printf("    insufficientCooling:      %d\n",
+                   enclosureStatus_response.
+                       diagnosticChecks.insufficientCooling);
+            printf("    deviceLocationError:      %d\n",
+                   enclosureStatus_response.
+                       diagnosticChecks.deviceLocationError);
+            printf("    deviceFailure:            %d\n",
+                   enclosureStatus_response.diagnosticChecks.deviceFailure);
+            printf("    deviceDegraded:           %d\n",
+                   enclosureStatus_response.diagnosticChecks.deviceDegraded);
+            printf("    acFailure:                %d\n",
+                   enclosureStatus_response.diagnosticChecks.acFailure);
+            printf("    i2cBuses:                 %d\n",
+                   enclosureStatus_response.diagnosticChecks.i2cBuses);
+            printf("    redundancy:               %d\n",
+                   enclosureStatus_response.diagnosticChecks.redundancy);
+#if 0                                   /* TODO: Doesn't work yet */
+            if (enclosureStatus_response.diagnosticChecksEx) 
+                printf("      There are Diagnostic Checks Ex\n");
+#endif
+    }
+
+
+    /* Try getThermalSubsystemInfo call. */
+    if ( soap_getThermalSubsystemInfo(con, &thermalSubsystemInfo_response)) {
+    	    err("failed  soap_getThermalSubsystemInfo() in main()");
+    } else {
+	    /* Successful call...print response parameters */
+	    printf("\n soap_getThermalSubsystemInfo response values \n");
+	    printf("  operationalStatus    = %d\n",
+                    thermalSubsystemInfo_response.operationalStatus);
+	    printf("  redundancy    = %d\n",
+                   thermalSubsystemInfo_response.redundancy);
+	    printf("  goodFans    = %d\n",
+                   thermalSubsystemInfo_response.goodFans);
+	    printf("  wantedFans    = %d\n",
+                   thermalSubsystemInfo_response.wantedFans);
+	    printf("  neededFans    = %d\n",
+                   thermalSubsystemInfo_response.neededFans);
+    }
+
+
+    /* Try getLcdStatus call. */
+    if ( soap_getLcdStatus(con, &lcdStatus_response)) {
+            err("failed  soap_getLcdStatus() in main()");
+    } else {
+            /* Successful call...print response parameters */
+            printf("\n soap_getLcdStatus response values \n");
+            printf("  status    = %d\n", lcdStatus_response.status);
+            printf("  display    = %d\n", lcdStatus_response.display);
+            printf("  lcdPin    = %d\n", lcdStatus_response.lcdPin);
+            printf("  buttonLock    = %d\n", lcdStatus_response.buttonLock);
+            printf("  lcdSetupHealth    = %d\n",
+                   lcdStatus_response.lcdSetupHealth);
+            printf("  Diagnostic Checks:\n");
+            printf("    internalDataError:        %d\n",
+                   lcdStatus_response.diagnosticChecks.internalDataError);
+            printf("    managementProcessorError: %d\n",
+                   lcdStatus_response.
+                       diagnosticChecks.managementProcessorError);
+            printf("    thermalWarning:           %d\n",
+                   lcdStatus_response.diagnosticChecks.thermalWarning);
+            printf("    thermalDanger:            %d\n",
+                   lcdStatus_response.diagnosticChecks.thermalDanger);
+            printf("    ioConfigurationError:     %d\n",
+                   lcdStatus_response.diagnosticChecks.ioConfigurationError);
+            printf("    devicePowerRequestError:  %d\n",
+                   lcdStatus_response.diagnosticChecks.devicePowerRequestError);
+            printf("    insufficientCooling:      %d\n",
+                   lcdStatus_response.diagnosticChecks.insufficientCooling);
+            printf("    deviceLocationError:      %d\n",
+                   lcdStatus_response.diagnosticChecks.deviceLocationError);
+            printf("    deviceFailure:            %d\n",
+                   lcdStatus_response.diagnosticChecks.deviceFailure);
+            printf("    deviceDegraded:           %d\n",
+                   lcdStatus_response.diagnosticChecks.deviceDegraded);
+            printf("    acFailure:                %d\n",
+                   lcdStatus_response.diagnosticChecks.acFailure);
+            printf("    i2cBuses:                 %d\n",
+                   lcdStatus_response.diagnosticChecks.i2cBuses);
+            printf("    redundancy:               %d\n",
+                   lcdStatus_response.diagnosticChecks.redundancy);
+#if 0                                   /* TODO: Doesn't work yet */
+            if (lcdStatus_response.diagnosticChecksEx) 
+                printf("      There are Diagnostic Checks Ex\n");
+#endif
+    }
+   
+
+    /* Try getLcdInfo call. */
+    if ( soap_getLcdInfo(con, &lcdInfo_response)) {
+            err("failed  soap_getLcdInfo() in main()");
+    } else {
+            /* Successful call...print response parameters */
+            printf("\n soap_getLcdInfo response values \n");
+            printf("  name    = %s\n", lcdInfo_response.name);
+            printf("  partNumber    = %s\n", lcdInfo_response.partNumber);
+            printf("  manufacturer    = %s\n", lcdInfo_response.manufacturer);
+            printf("  fwVersion    = %s\n", lcdInfo_response.fwVersion);
+    }
+
+
+    /* Try getPowerSupplyStatus call */
+    powerSupplyStatus_request.bayNumber = 1;
+    if ( soap_getPowerSupplyStatus(con,  &powerSupplyStatus_request,
+                                   &powerSupplyStatus_response)) {
+            err("failed  soap_getPowerSupplyStatus() in main()");
+    } else {
+            /* Successful call...print response parameters */
+            printf("\n soap_getPowerSupplyStatus response values \n");
+            printf("  bayNumber    = %d\n",
+                   powerSupplyStatus_response.bayNumber);
+            printf("  presence    = %d\n", powerSupplyStatus_response.presence);
+            printf("  operationalStatus    = %d\n",
+                   powerSupplyStatus_response.operationalStatus);
+            printf("  inputStatus    = %d\n",
+                   powerSupplyStatus_response.inputStatus);
+            printf("  Diagnostic Checks:\n");
+            printf("    internalDataError:        %d\n",
+                   powerSupplyStatus_response.
+                        diagnosticChecks.internalDataError);
+            printf("    managementProcessorError: %d\n",
+                   powerSupplyStatus_response.
+                       diagnosticChecks.managementProcessorError);
+            printf("    thermalWarning:           %d\n",
+                   powerSupplyStatus_response.diagnosticChecks.thermalWarning);
+            printf("    thermalDanger:            %d\n",
+                   powerSupplyStatus_response.diagnosticChecks.thermalDanger);
+            printf("    ioConfigurationError:     %d\n",
+                   powerSupplyStatus_response.
+                        diagnosticChecks.ioConfigurationError);
+            printf("    devicePowerRequestError:  %d\n",
+                   powerSupplyStatus_response.
+                        diagnosticChecks.devicePowerRequestError);
+            printf("    insufficientCooling:      %d\n",
+                   powerSupplyStatus_response.
+                        diagnosticChecks.insufficientCooling);
+            printf("    deviceLocationError:      %d\n",
+                   powerSupplyStatus_response.
+                        diagnosticChecks.deviceLocationError);
+            printf("    deviceFailure:            %d\n",
+                   powerSupplyStatus_response.diagnosticChecks.deviceFailure);
+            printf("    deviceDegraded:           %d\n",
+                   powerSupplyStatus_response.diagnosticChecks.deviceDegraded);
+            printf("    acFailure:                %d\n",
+                   powerSupplyStatus_response.diagnosticChecks.acFailure);
+            printf("    i2cBuses:                 %d\n",
+                   powerSupplyStatus_response.diagnosticChecks.i2cBuses);
+            printf("    redundancy:               %d\n",
+                   powerSupplyStatus_response.diagnosticChecks.redundancy);
+#if 0                                   /* TODO: Doesn't work yet */
+            if (powerSupplyStatus_response.diagnosticChecksEx) 
+                printf("      There are Diagnostic Checks Ex\n");
+#endif
+    }
+
+
+    /* Try fanZoneArray call */
+    byte zones[] = {1, 4};		/* Zones 1 and 4, for example */
+    struct bayArray requestedZones = {
+    		.size = 2,		/* Number of requested zones */
+		.array = zones		/* The array of zones */
+    };
+    fanZoneArray_request.bayArray = requestedZones;
+    if ( soap_getFanZoneArray(con, &fanZoneArray_request,
+                              &fanZoneArray_response)) {
+            err("failed  soap_getFanZoneArray() in main()");
+    } else {
+            /* Successful call...print response parameters */
+            printf("\n soap_getFanZoneArray response values \n");
+            while (fanZoneArray_response.fanZoneArray) {
+                soap_fanZone(fanZoneArray_response.fanZoneArray, &fanZone);
+                printf("  zoneNumber    = %d\n", fanZone.zoneNumber);
+                printf("  redundant    = %d\n", fanZone.redundant);
+                printf("  operationalStatus    = %d\n",
+                       fanZone.operationalStatus);
+                printf("  targetRpm    = %d\n", fanZone.targetRpm);
+                printf("  targetPwm    = %d\n", fanZone.targetPwm);
+                printf("  deviceBayArray values \n");
+                while (fanZone.deviceBayArray) {
+                     soap_deviceBayArray(fanZone.deviceBayArray, &bay);
+                     printf("    bay    = %d\n", bay);
+                     fanZone.deviceBayArray =
+			soap_next_node(fanZone.deviceBayArray); 
+                }
+                printf("  fanInfoArray values \n");
+                while (fanZone.fanInfoArray) {
+                     soap_fanInfo(fanZone.fanInfoArray, &fanInfo);
+                     printf("    fanInfo values \n");
+                     printf("      bayNumber    = %d\n", fanInfo.bayNumber);
+                     printf("      presence    = %d\n", fanInfo.presence);
+                     printf("      name    = %s\n", fanInfo.name);
+                     printf("      partNumber    = %s\n", fanInfo.partNumber);
+                     printf("      sparePartNumber    = %s\n",
+                            fanInfo.sparePartNumber);
+                     printf("      serialNumber    = %s\n",
+                            fanInfo.serialNumber);
+                     printf("      powerConsumed    = %d\n",
+                            fanInfo.powerConsumed);
+                     printf("      fanSpeed    = %d\n", fanInfo.fanSpeed);
+                     printf("      maxFanSpeed    = %d\n", fanInfo.maxFanSpeed);
+                     printf("      lowLimitFanSpeed    = %d\n",
+                            fanInfo.lowLimitFanSpeed);
+                     printf("      operationalStatus    = %d\n",
+                            fanInfo.operationalStatus);
+                     printf("      Diagnostic Checks:\n");
+                     printf("        internalDataError:        %d\n",
+                            fanInfo.diagnosticChecks.internalDataError);
+                     printf("        managementProcessorError: %d\n",
+                            fanInfo.diagnosticChecks.managementProcessorError);
+                     printf("        thermalWarning:           %d\n",
+                            fanInfo.diagnosticChecks.thermalWarning);
+                     printf("        thermalDanger:            %d\n",
+                            fanInfo.diagnosticChecks.thermalDanger);
+                     printf("        ioConfigurationError:     %d\n",
+                            fanInfo.diagnosticChecks.ioConfigurationError);
+                     printf("        devicePowerRequestError:  %d\n",
+                            fanInfo.diagnosticChecks.devicePowerRequestError);
+                     printf("        insufficientCooling:      %d\n",
+                            fanInfo.diagnosticChecks.insufficientCooling);
+                     printf("        deviceLocationError:      %d\n",
+                            fanInfo.diagnosticChecks.deviceLocationError);
+                     printf("        deviceFailure:            %d\n",
+                            fanInfo.diagnosticChecks.deviceFailure);
+                     printf("        deviceDegraded:           %d\n",
+                            fanInfo.diagnosticChecks.deviceDegraded);
+                     printf("        acFailure:                %d\n",
+                            fanInfo.diagnosticChecks.acFailure);
+                     printf("        i2cBuses:                 %d\n",
+                            fanInfo.diagnosticChecks.i2cBuses);
+                     printf("        redundancy:               %d\n",
+                            fanInfo.diagnosticChecks.redundancy);
+#if 0                                   /* TODO: Doesn't work yet */
+                     if (fanInfo.diagnosticChecksEx) 
+                         printf("      There are Diagnostic Checks Ex\n");
+#endif
+                     fanZone.fanInfoArray =
+			soap_next_node(fanZone.fanInfoArray); 
+                }
+                fanZoneArray_response.fanZoneArray =
+		     soap_next_node(fanZoneArray_response.fanZoneArray); 
+            }
+    }
+
+
 #if 1					/* Sometimes, we want to skip events */
     /* Try to subscribe for events */
     if (soap_subscribeForEvents(con, &subscribeForEvents_response)) {
@@ -574,6 +859,7 @@ int main(int argc, char *argv[])
     }
     soap_timeout(con) = old_timeout;
 #endif
+
 
 #if 0					/* This is specific debug code to help
 					 * isolate an issue with an 8000
