@@ -167,6 +167,34 @@ typedef unsigned char byte;
                         "<hpoa:bayNumber>%d</hpoa:bayNumber>" \
                         "</hpoa:getBladeMpInfo>\n"
 
+#define GET_THERMAL_SUBSYSTEM_INFO \
+                        "<hpoa:getThermalSubsystemInfo>" \
+                        "</hpoa:getThermalSubsystemInfo>\n"
+
+#define GET_FAN_ZONE_ARRAY \
+                        "<hpoa:getFanZoneArray>" \
+                        "<hpoa:bayArray>%s</hpoa:bayArray>" \
+                        "</hpoa:getFanZoneArray>\n"
+
+#define BAY             "<hpoa:bay>%d</hpoa:bay>"
+
+#define GET_ENCLOSURE_STATUS \
+                        "<hpoa:getEnclosureStatus>" \
+                        "</hpoa:getEnclosureStatus>\n"
+
+#define GET_POWER_SUPPLY_STATUS \
+                        "<hpoa:getPowerSupplyStatus>" \
+                        "<hpoa:bayNumber>%d</hpoa:bayNumber>" \
+                        "</hpoa:getPowerSupplyStatus>\n"
+
+#define GET_LCD_INFO \
+                        "<hpoa:getLcdInfo>" \
+                        "</hpoa:getLcdInfo>\n"
+
+#define GET_LCD_STATUS \
+                        "<hpoa:getLcdStatus>" \
+                        "</hpoa:getLcdStatus>\n"
+
 /* Enumerated types used for specific SOAP commands */
 OA_SOAP_ENUM(hpoa_boolean,
         HPOA_FALSE,
@@ -1199,6 +1227,11 @@ struct getPowerSupplyInfo
         int bayNumber;
 };
 
+struct getPowerSupplyStatus
+{
+        int bayNumber;
+};
+
 struct powerSupplyStatus
 {
         byte bayNumber;
@@ -1551,9 +1584,17 @@ struct fanZone
         enum opStatus operationalStatus;
         int targetRpm;
         int targetPwm;
-        xmlNode *deviceBayArray;                /* Items are short bay */
+        xmlNode *deviceBayArray;                /* Items are byte bay */
         xmlNode *fanInfoArray;                  /* Items are struct fanInfo */
         xmlNode *extraData;
+};
+
+struct deviceBayArray {
+        xmlNode *bay;                           /* Items are byte (bay) */
+};
+
+struct fanInfoArray{
+        xmlNode *fanInfo;                       /* Items are struct fanInfo */
 };
 
 struct ebipaBay
@@ -1698,6 +1739,22 @@ struct powerdelaySettings
         xmlNode *extraData;
 };
 
+struct getFanZoneArrayResponse
+{
+        xmlNode *fanZoneArray;          /* Items are struct fanZone */
+};
+
+struct bayArray
+{
+        int     size;                   /* Size of array */
+        byte    *array;                 /* Actual array */
+};
+
+struct getFanZoneArray
+{
+        struct bayArray bayArray;
+};
+
 struct getEvent
 {
         int pid;
@@ -1809,77 +1866,77 @@ int soap_subscribeForEvents(SOAP_CON *connection,
                             struct eventPid *response);
 
 int soap_unSubscribeForEvents(SOAP_CON *connection,
-                              struct unSubscribeForEvents *request);
+                              const struct unSubscribeForEvents *request);
 
 int soap_getEvent(SOAP_CON *connection,
-                  struct getEvent *request,
+                  const struct getEvent *request,
                   struct eventInfo *response);
 
 int soap_getAllEvents(SOAP_CON *connection,
-                      struct getAllEvents *request,
+                      const struct getAllEvents *request,
                       struct getAllEventsResponse *response);
 
 int soap_getBladeInfo(SOAP_CON *connection,
-                      struct getBladeInfo *request,
+                      const struct getBladeInfo *request,
                       struct bladeInfo *response);
 
 int soap_getBladeMpInfo(SOAP_CON *connection,
-                        struct getBladeMpInfo *request,
+                        const struct getBladeMpInfo *request,
                         struct bladeMpInfo *response);
 
 int soap_getEnclosureInfo(SOAP_CON *connection,
                           struct enclosureInfo *response);
 
 int soap_getOaStatus(SOAP_CON *connection,
-                     struct getOaStatus *request,
+                     const struct getOaStatus *request,
                      struct oaStatus *response);
 
 int soap_getOaInfo(SOAP_CON *connection,
-                   struct getOaInfo *request,
+                   const struct getOaInfo *request,
                    struct oaInfo *response);
 
 int soap_getInterconnectTrayStatus(SOAP_CON *connection,
-                                   struct getInterconnectTrayStatus *request,
-                                   struct interconnectTrayStatus *response);
+                const struct getInterconnectTrayStatus *request,
+                struct interconnectTrayStatus *response);
 
 int soap_getInterconnectTrayInfo(SOAP_CON *connection,
-                                 struct getInterconnectTrayInfo *request,
+                                 const struct getInterconnectTrayInfo *request,
                                  struct interconnectTrayInfo *response);
 
 int soap_getFanInfo(SOAP_CON *connection,
-                    struct getFanInfo *request,
+                    const struct getFanInfo *request,
                     struct fanInfo *response);
 
 int soap_getPowerSubsystemInfo(SOAP_CON *connection,
                                struct powerSubsystemInfo *response);
 
 int soap_getPowerSupplyInfo(SOAP_CON *connection,
-                            struct getPowerSupplyInfo *request,
+                            const struct getPowerSupplyInfo *request,
                             struct powerSupplyInfo *response);
 
 int soap_getOaNetworkInfo(SOAP_CON *connection,
-                          struct getOaNetworkInfo *request,
+                          const struct getOaNetworkInfo *request,
                           struct oaNetworkInfo *response);
 
 int soap_getBladeStatus(SOAP_CON *connection,
-                        struct getBladeStatus *request,
+                        const struct getBladeStatus *request,
                         struct bladeStatus *response);
 
 int soap_setBladePower(SOAP_CON *connection,
-                       struct setBladePower *request);
+                       const struct setBladePower *request);
 
 int soap_setInterconnectTrayPower(SOAP_CON *connection,
-                                  struct setInterconnectTrayPower *request);
+                const struct setInterconnectTrayPower *request);
 
 int soap_resetInterconnectTray(SOAP_CON *connection,
-                               struct resetInterconnectTray *request);
+                               const struct resetInterconnectTray *request);
 
 int soap_getThermalInfo(SOAP_CON *connection,
-                        struct getThermalInfo *request,
+                        const struct getThermalInfo *request,
                         struct thermalInfo *response);
 
 int soap_getUserInfo(SOAP_CON *connection,
-                     struct getUserInfo *request,
+                     const struct getUserInfo *request,
                      struct userInfo *response);
 
 int soap_isValidSession(SOAP_CON *connection);
@@ -1887,6 +1944,25 @@ int soap_isValidSession(SOAP_CON *connection);
 int soap_getRackTopology2(SOAP_CON *con,
                           struct rackTopology2 *response);
 
+int soap_getThermalSubsystemInfo(SOAP_CON *con,
+                                 struct thermalSubsystemInfo *response);
+
+int soap_getFanZoneArray(SOAP_CON *con,
+                         const struct getFanZoneArray *request,
+                         struct getFanZoneArrayResponse *response);
+
+int soap_getEnclosureStatus(SOAP_CON *con,
+                            struct enclosureStatus *response);
+
+int soap_getLcdInfo(SOAP_CON *con,
+                    struct lcdInfo *response);
+
+int soap_getLcdStatus(SOAP_CON *con,
+                      struct lcdStatus *response);
+
+int soap_getPowerSupplyStatus(SOAP_CON *con,
+                              const struct getPowerSupplyStatus *request,
+                              struct powerSupplyStatus *response);
 
 /* Function prototypes for OA SOAP helper functions */
 void    soap_getExtraData(xmlNode *extraData, struct extraDataInfo *result);
@@ -1901,5 +1977,8 @@ void    soap_getEventInfo(xmlNode *events, struct eventInfo *result);
 
 void    soap_getEncLinkOa(xmlNode *data, struct encLinkOa *result);
 void    soap_getEncLink2(xmlNode *data, struct encLink2 *result);
+void    soap_fanZone(xmlNode *fanZone, struct fanZone *result);
+void    soap_fanInfo(xmlNode *fanZone, struct fanInfo *result);
+void    soap_deviceBayArray(xmlNode *node, byte *bay);
 
 #endif  /* _INC_OASOAP_CALLS_H_ */
