@@ -791,6 +791,77 @@ int main(int argc, char *argv[])
     }
 
 
+    /* Try setEnclosureUid() */
+    {
+	struct setEnclosureUid setEnclosureUid;
+
+	printf("\nTrying to turn enclosure UID on and off\n");
+	setEnclosureUid.uid = UID_CMD_ON;
+        if (soap_setEnclosureUid(con, &setEnclosureUid)) {
+	    err("failed soap_setEnclosureUid() in main()");
+	    /* Falling through here to (eventually) close the connection */
+        }
+	setEnclosureUid.uid = UID_CMD_OFF; /* Leave it off */
+        if (soap_setEnclosureUid(con, &setEnclosureUid)) {
+	    err("failed soap_setEnclosureUid() in main()");
+        }
+    }
+
+
+    /* Try setOaUid() */
+    {
+        struct setOaUid setOaUid;
+
+	printf("\nTrying to turn OA UID on and off\n");
+        setOaUid.bayNumber = 1;
+	setOaUid.uid = UID_CMD_ON;
+        if (soap_setOaUid(con, &setOaUid)) {
+	    err("failed soap_setOaUid() in main()");
+	    /* Falling through here to (eventually) close the connection */
+        }
+	setOaUid.uid = UID_CMD_OFF;	/* Leave it off */
+        if (soap_setOaUid(con, &setOaUid)) {
+	    err("failed soap_setOaUid() in main()");
+        }
+    }
+
+
+    /* Try setBladeUid() */
+    {
+        struct setBladeUid setBladeUid;
+
+	printf("\nTrying to turn blade UID on and off\n");
+        setBladeUid.bayNumber = 1;
+	setBladeUid.uid = UID_CMD_ON;
+        if (soap_setBladeUid(con, &setBladeUid)) {
+	    err("failed soap_setBladeUid() in main()");
+	    /* Falling through here to (eventually) close the connection */
+        }
+	setBladeUid.uid = UID_CMD_OFF;	/* Leave it off */
+        if (soap_setBladeUid(con, &setBladeUid)) {
+	    err("failed soap_setBladeUid() in main()");
+        }
+    }
+
+
+    /* Try setInterconnectTrayUid() */
+    {
+        struct setInterconnectTrayUid setInterconnectTrayUid;
+
+	printf("\nTrying to turn interconnect tray UID on and off\n");
+        setInterconnectTrayUid.bayNumber = 1;
+	setInterconnectTrayUid.uid = UID_CMD_ON;
+        if (soap_setInterconnectTrayUid(con, &setInterconnectTrayUid)) {
+	    err("failed soap_setInterconnectTrayUid() in main()");
+	    /* Falling through here to (eventually) close the connection */
+        }
+	setInterconnectTrayUid.uid = UID_CMD_OFF; /* Leave it off */
+        if (soap_setInterconnectTrayUid(con, &setInterconnectTrayUid)) {
+	    err("failed soap_setInterconnectTrayUid() in main()");
+        }
+    }
+
+
 #if 1					/* Sometimes, we want to skip events */
     /* Try to subscribe for events */
     if (soap_subscribeForEvents(con, &subscribeForEvents_response)) {

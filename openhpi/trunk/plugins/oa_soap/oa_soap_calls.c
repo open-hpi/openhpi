@@ -1100,7 +1100,14 @@ void    soap_getEventInfo(xmlNode *events, struct eventInfo *result)
         }
 
         /* HPSIMINFO */
-        /* THERMALSUBSYSTEMINFO */
+
+        if ((node = soap_walk_tree(events, "thermalSubsystemInfo"))) {
+                result->enum_eventInfo = THERMALSUBSYSTEMINFO;
+                parse_thermalSubsystemInfo(node,
+                        &(result->eventData.thermalSubsystemInfo));
+                return;
+        }
+
         /* BLADEBOOTINFO */
         /* OAVCMMODE */
         /* POWERREDUCTIONSTATUS */
@@ -1154,14 +1161,12 @@ int soap_subscribeForEvents(SOAP_CON *con, struct eventPid *response)
         return(ret);
 }
 
-
 int soap_unSubscribeForEvents(SOAP_CON *con,
                               const struct unSubscribeForEvents *request)
 {
         SOAP_PARM_CHECK_NRS
         return(soap_request(con, UN_SUBSCRIBE_FOR_EVENTS, request->pid));
 }
-
 
 int soap_getEvent(SOAP_CON *con,
                   const struct getEvent *request,
@@ -1181,7 +1186,6 @@ int soap_getEvent(SOAP_CON *con,
         return(ret);
 }
 
-
 int soap_getAllEvents(SOAP_CON *con,
                       const struct getAllEvents *request,
                       struct getAllEventsResponse *response)
@@ -1199,7 +1203,6 @@ int soap_getAllEvents(SOAP_CON *con,
         return(ret);
 }
 
-
 int             soap_getBladeInfo(SOAP_CON *con,
                                   const struct getBladeInfo *request,
                                   struct bladeInfo *response)
@@ -1214,7 +1217,6 @@ int             soap_getBladeInfo(SOAP_CON *con,
         }
         return(ret);
 }
-
 
 int             soap_getBladeMpInfo(SOAP_CON *con,
                                     const struct getBladeMpInfo *request,
@@ -1246,7 +1248,6 @@ int soap_getEnclosureInfo(SOAP_CON *con,
         return(ret);
 }
 
-
 int soap_getOaStatus(SOAP_CON *con,
                      const struct getOaStatus *request,
                      struct oaStatus *response)
@@ -1262,7 +1263,6 @@ int soap_getOaStatus(SOAP_CON *con,
         return(ret);
 }
 
-
 int soap_getOaInfo(SOAP_CON *con,
                    const struct getOaInfo *request,
                    struct oaInfo *response)
@@ -1277,7 +1277,6 @@ int soap_getOaInfo(SOAP_CON *con,
         }
         return(ret);
 }
-
 
 int soap_getInterconnectTrayStatus(SOAP_CON *con,
                 const struct getInterconnectTrayStatus *request,
@@ -1297,7 +1296,6 @@ int soap_getInterconnectTrayStatus(SOAP_CON *con,
         return(ret);
 }
 
-
 int soap_getInterconnectTrayInfo(SOAP_CON *con,
                                  const struct getInterconnectTrayInfo *request,
                                  struct interconnectTrayInfo *response)
@@ -1316,7 +1314,6 @@ int soap_getInterconnectTrayInfo(SOAP_CON *con,
         return(ret);
 }
 
-
 int soap_getFanInfo(SOAP_CON *con,
                     const struct getFanInfo *request,
                     struct fanInfo *response)
@@ -1332,7 +1329,6 @@ int soap_getFanInfo(SOAP_CON *con,
         return(ret);
 }
 
-
 int soap_getPowerSubsystemInfo(SOAP_CON *con,
                                struct powerSubsystemInfo *response)
 {
@@ -1347,7 +1343,6 @@ int soap_getPowerSubsystemInfo(SOAP_CON *con,
         }
         return(ret);
 }
-
 
 int soap_getPowerSupplyInfo(SOAP_CON *con,
                             const struct getPowerSupplyInfo *request,
@@ -1367,7 +1362,6 @@ int soap_getPowerSupplyInfo(SOAP_CON *con,
         return(ret);
 }
 
-
 int soap_getOaNetworkInfo(SOAP_CON *con,
                           const struct getOaNetworkInfo *request,
                           struct oaNetworkInfo *response)
@@ -1386,7 +1380,6 @@ int soap_getOaNetworkInfo(SOAP_CON *con,
         return(ret);
 }
 
-
 int soap_getBladeStatus(SOAP_CON *con,
                         const struct getBladeStatus *request,
                         struct bladeStatus *response)
@@ -1402,7 +1395,6 @@ int soap_getBladeStatus(SOAP_CON *con,
         return(ret);
 }
 
-
 int soap_setBladePower(SOAP_CON *con,
                        const struct setBladePower *request)
 {
@@ -1416,7 +1408,6 @@ int soap_setBladePower(SOAP_CON *con,
         return(soap_request(con, SET_BLADE_POWER, request->bayNumber, power));
 }
 
-
 int soap_setInterconnectTrayPower(SOAP_CON *con,
                 const struct setInterconnectTrayPower *request)
 {
@@ -1425,14 +1416,12 @@ int soap_setInterconnectTrayPower(SOAP_CON *con,
                             request->bayNumber, request->on));
 }
 
-
 int soap_resetInterconnectTray(SOAP_CON *con,
                                const struct resetInterconnectTray *request)
 {
         SOAP_PARM_CHECK_NRS
         return(soap_request(con, RESET_INTERCONNECT_TRAY, request->bayNumber));
 }
-
 
 int soap_getThermalInfo(SOAP_CON *con,
                         const struct getThermalInfo *request,
@@ -1456,7 +1445,6 @@ int soap_getThermalInfo(SOAP_CON *con,
         return(ret);
 }
 
-
 int soap_getUserInfo(SOAP_CON *con,
                      const struct getUserInfo *request,
                      struct userInfo *response)
@@ -1478,7 +1466,6 @@ int soap_getUserInfo(SOAP_CON *con,
         return(ret);
 }
 
-
 int soap_getRackTopology2(SOAP_CON *con, struct rackTopology2 *response)
 {
         SOAP_PARM_CHECK_NRQ
@@ -1491,7 +1478,6 @@ int soap_getRackTopology2(SOAP_CON *con, struct rackTopology2 *response)
         }
         return(ret);
 }
-
 
 int soap_isValidSession(SOAP_CON *con)
 {
@@ -1596,4 +1582,57 @@ int soap_getPowerSupplyStatus(SOAP_CON *con,
                                         response);
         }
         return(ret);
+}
+
+int soap_setEnclosureUid(SOAP_CON *con,
+                         const struct setEnclosureUid *request)
+{
+        char    uid[UID_CONTROL_LENGTH];
+
+        SOAP_PARM_CHECK_NRS
+        if (soap_inv_enum(uid, uidControl_S, request->uid)) {
+                err("invalid UID parameter");
+                return(-1);
+        }
+        return(soap_request(con, SET_ENCLOSURE_UID, uid));
+}
+
+int soap_setOaUid(SOAP_CON *con,
+                  const struct setOaUid *request)
+{
+        char    uid[UID_CONTROL_LENGTH];
+
+        SOAP_PARM_CHECK_NRS
+        if (soap_inv_enum(uid, uidControl_S, request->uid)) {
+                err("invalid UID parameter");
+                return(-1);
+        }
+        return(soap_request(con, SET_OA_UID, request->bayNumber, uid));
+}
+
+int soap_setBladeUid(SOAP_CON *con,
+                     const struct setBladeUid *request)
+{
+        char    uid[UID_CONTROL_LENGTH];
+
+        SOAP_PARM_CHECK_NRS
+        if (soap_inv_enum(uid, uidControl_S, request->uid)) {
+                err("invalid UID parameter");
+                return(-1);
+        }
+        return(soap_request(con, SET_BLADE_UID, request->bayNumber, uid));
+}
+
+int soap_setInterconnectTrayUid(SOAP_CON *con,
+                                const struct setInterconnectTrayUid *request)
+{
+        char    uid[UID_CONTROL_LENGTH];
+
+        SOAP_PARM_CHECK_NRS
+        if (soap_inv_enum(uid, uidControl_S, request->uid)) {
+                err("invalid UID parameter");
+                return(-1);
+        }
+        return(soap_request(con, SET_INTERCONNECT_TRAY_UID, request->bayNumber,
+                            uid));
 }
