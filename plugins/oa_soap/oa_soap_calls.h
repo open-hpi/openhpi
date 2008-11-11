@@ -195,6 +195,30 @@ typedef unsigned char byte;
                         "<hpoa:getLcdStatus>" \
                         "</hpoa:getLcdStatus>\n"
 
+#define SET_ENCLOSURE_UID \
+                        "<hpoa:setEnclosureUid>" \
+                        "<hpoa:uid>%s</hpoa:uid>" \
+                        "</hpoa:setEnclosureUid>\n"
+
+#define SET_OA_UID \
+                        "<hpoa:setOaUid>" \
+                        "<hpoa:bayNumber>%d</hpoa:bayNumber>" \
+                        "<hpoa:uid>%s</hpoa:uid>" \
+                        "</hpoa:setOaUid>\n"
+
+#define SET_BLADE_UID \
+                        "<hpoa:setBladeUid>" \
+                        "<hpoa:bayNumber>%d</hpoa:bayNumber>" \
+                        "<hpoa:uid>%s</hpoa:uid>" \
+                        "</hpoa:setBladeUid>\n"
+
+#define SET_INTERCONNECT_TRAY_UID \
+                        "<hpoa:setInterconnectTrayUid>" \
+                        "<hpoa:bayNumber>%d</hpoa:bayNumber>" \
+                        "<hpoa:uid>%s</hpoa:uid>" \
+                        "</hpoa:setInterconnectTrayUid>\n"
+
+
 /* Enumerated types used for specific SOAP commands */
 OA_SOAP_ENUM(hpoa_boolean,
         HPOA_FALSE,
@@ -531,6 +555,13 @@ OA_SOAP_ENUM(powerControl,
         PRESS_AND_HOLD,
         COLD_BOOT,
         RESET)
+
+#define UID_CONTROL_LENGTH    15      /* Max length of these enums + 1 */
+OA_SOAP_ENUM(uidControl,
+        UID_CMD_TOGGLE,
+        UID_CMD_ON,
+        UID_CMD_OFF,
+        UID_CMD_BLINK)
 
 OA_SOAP_ENUM(eventType,
         EVENT_HEARTBEAT,
@@ -1860,6 +1891,29 @@ struct resetInterconnectTray
         int bayNumber;
 };
 
+struct setEnclosureUid
+{
+        enum uidControl uid;
+};
+
+struct setOaUid
+{
+        int bayNumber;
+        enum uidControl uid;
+};
+
+struct setBladeUid
+{
+        int bayNumber;
+        enum uidControl uid;
+};
+
+struct setInterconnectTrayUid
+{
+        int bayNumber;
+        enum uidControl uid;
+};
+
 
 /* Main OA SOAP Function prototypes */
 int soap_subscribeForEvents(SOAP_CON *connection,
@@ -1964,6 +2018,19 @@ int soap_getPowerSupplyStatus(SOAP_CON *con,
                               const struct getPowerSupplyStatus *request,
                               struct powerSupplyStatus *response);
 
+int soap_setEnclosureUid(SOAP_CON *con,
+                         const struct setEnclosureUid *request);
+
+int soap_setOaUid(SOAP_CON *con,
+                  const struct setOaUid *request);
+
+int soap_setBladeUid(SOAP_CON *connection,
+                     const struct setBladeUid *request);
+
+int soap_setInterconnectTrayUid(SOAP_CON *con,
+                                const struct setInterconnectTrayUid *request);
+
+
 /* Function prototypes for OA SOAP helper functions */
 void    soap_getExtraData(xmlNode *extraData, struct extraDataInfo *result);
 void    soap_getBladeCpuInfo(xmlNode *cpus, struct bladeCpuInfo *result);
@@ -1974,7 +2041,6 @@ void    soap_getEncLink(xmlNode *data, struct encLink *result);
 void    soap_getPortEnabled(xmlNode *data, struct portEnabled *result);
 void    soap_getIpAddress(xmlNode *ips, char **result);
 void    soap_getEventInfo(xmlNode *events, struct eventInfo *result);
-
 void    soap_getEncLinkOa(xmlNode *data, struct encLinkOa *result);
 void    soap_getEncLink2(xmlNode *data, struct encLink2 *result);
 void    soap_fanZone(xmlNode *fanZone, struct fanZone *result);
