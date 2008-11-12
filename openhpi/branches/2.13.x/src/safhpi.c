@@ -632,16 +632,19 @@ SaErrorT SAHPI_API saHpiResourceFailedRemove (
         saved_res = *rpte;
         OH_HANDLER_GET(d, ResourceId, h);        
         oh_release_domain(d);
-        get_hotswap_state = h ? h->abi->get_hotswap_state : NULL;
-        if (!get_hotswap_state) {
-                oh_release_handler(h);
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
-        
-        error = get_hotswap_state(h->hnd, ResourceId, &hsstate);
         hid = h->id;
-        oh_release_handler(h);
-        if (error) return error;
+        if (rpte->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP) {
+        	get_hotswap_state = h ? h->abi->get_hotswap_state : NULL;
+	        if (!get_hotswap_state) {
+        	        oh_release_handler(h);
+                	return SA_ERR_HPI_INTERNAL_ERROR;
+        	}
+        
+	        error = get_hotswap_state(h->hnd, ResourceId, &hsstate);
+        	oh_release_handler(h);
+	        if (error) return error;
+	} else 
+		hsstate = SAHPI_HS_STATE_ACTIVE;
         
         e = g_malloc0(sizeof(struct oh_event));
         e->hid = hid;

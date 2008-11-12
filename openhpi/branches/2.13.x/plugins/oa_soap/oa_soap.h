@@ -33,8 +33,7 @@
  *      Raghavendra M.S. <raghavendra.ms@hp.com>
  *      Raja Kumar Thatte <raja-kumar.thatte@hp.com>
  *      Vivek Kumar <vivek.kumar2@hp.com>
- *      Shuah Khan <shuah.khan@hp.com> Infrastructure changes to add support
- *                                     for new types of blades and events
+ *      Shuah Khan <shuah.khan@hp.com>
  */
 
 #ifndef _OA_SOAP_H

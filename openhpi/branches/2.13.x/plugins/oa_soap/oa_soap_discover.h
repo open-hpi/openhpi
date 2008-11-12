@@ -30,8 +30,7 @@
  *
  * Author(s)
  *      Raghavendra P.G. <raghavendra.pg@hp.com>
- *      Shuah Khan <shuah.khan@hp.com> Infrastructure changes to add support
- *                                     for new types of blades and events
+ *      Shuah Khan <shuah.khan@hp.com>
  */
 
 #ifndef _OA_SOAP_DISCOVER_H
@@ -86,9 +85,8 @@ SaErrorT build_oa_rdr(struct oh_handler_state *oh_handler,
 SaErrorT discover_oa(struct oh_handler_state *oh_handler);
 
 SaErrorT build_discovered_server_rpt(struct oh_handler_state *oh_handler,
-                          SOAP_CON *con,
-                          struct bladeInfo *response,
-                          SaHpiResourceIdT *resource_id);
+                                     SOAP_CON *con, struct bladeInfo *response,
+                                     SaHpiResourceIdT *resource_id);
 
 SaErrorT build_server_rpt(struct oh_handler_state *oh_handler,
                           struct bladeInfo *response,

@@ -31,8 +31,7 @@
  * Author(s)
  *      Raghavendra P.G. <raghavendra.pg@hp.com>
  *      Vivek Kumar <vivek.kumar2@hp.com>
- *      Shuah Khan <shuah.khan@hp.com> Infrastructure changes to add support
- *                                     for new types of blades and events
+ *      Shuah Khan <shuah.khan@hp.com>
  *
  * This file implements all the utility functions which will be useful of oa
  * soap functioning. Majority of the functions are helper functions for
@@ -81,9 +80,9 @@
  *
  *      create_oa_connection()          - Create OA connection after closing the
  *                                        earlier soap_con structures
- *                                        
+ *
  *      initialize_oa_con()             - Initialize the hpi_con and event_con
- *      
+ *
  *      delete_all_inventory_info()     - Frees the memory allocated for
  *                                        inventory areas for all the resources
  *
@@ -344,7 +343,7 @@ SaErrorT get_oa_state(struct oh_handler_state *oh_handler,
                 /* Find the active and standby bay number, IP address
                  * and firmware version */
                 switch (oa_role) {
-                        case ACTIVE :
+                        case ACTIVE:
                                 active_bay = i;
                                 memset(active_ip, 0, MAX_URL_LEN);
                                 strncpy(active_ip,
@@ -355,7 +354,7 @@ SaErrorT get_oa_state(struct oh_handler_state *oh_handler,
                                 memset(active_fm, 0, MAX_BUF_SIZE);
                                 strncpy(active_fm, firmware, strlen(firmware));
                                 break;
-                        case STANDBY :
+                        case STANDBY:
                                 standby_bay = i;
                                 memset(standby_ip, 0, MAX_URL_LEN);
                                 strncpy(standby_ip,
@@ -366,7 +365,7 @@ SaErrorT get_oa_state(struct oh_handler_state *oh_handler,
                                 memset(standby_fm, 0, MAX_BUF_SIZE);
                                 strncpy(standby_fm, firmware, strlen(firmware));
                                 break;
-                        default :
+                        default:
                                 err("wrong oa state detected for bay %d", i);
                                 soap_close(hpi_con);
                                 soap_close(event_con);
@@ -1363,8 +1362,9 @@ void release_oa_soap_resources(struct oa_soap_handler *oa_handler)
 {
         SaHpiInt32T i;
 
-        /* Release memory of blade presence, resource id and blade 
-           serial number arrays */
+        /* Release memory of blade presence, resource id and blade
+         * serial number arrays
+         */
         if (oa_handler->oa_soap_resources.server.presence != NULL) {
                 g_free(oa_handler->oa_soap_resources.server.presence);
         }
@@ -1409,8 +1409,8 @@ void release_oa_soap_resources(struct oa_soap_handler *oa_handler)
         }
         g_free(oa_handler->oa_soap_resources.oa.serial_number);
 
-        /* Release memory of fan presence. Since fans does not have serial
-         * numbers, hence serial numbers array is not created for fans
+        /* Release memory of fan presence.  Since fans do not have serial
+         * numbers, a serial numbers array does not need to be released.
          */
         if (oa_handler->oa_soap_resources.fan.presence != NULL) {
                 g_free(oa_handler->oa_soap_resources.fan.presence);
@@ -1561,42 +1561,41 @@ SaErrorT convert_lower_to_upper(char *src,
 
 /**
  * update_reseource_status()
- *	@res_status 	pointer to resource_status_t
- *	@index 		index into the reseource info fields in res_status
- *	@serial_number 	serial_number string to be copied into res_status
- *	@resource_id	reseource id to be updated to res_status 
- *	@presence	presence status
+ *      @res_status     pointer to resource_status_t
+ *      @index          index into the resource info fields in res_status
+ *      @serial_number  serial_number string to be copied into res_status
+ *      @resource_id    resource id to be updated to res_status
+ *      @presence       presence status
  *
- *	Description:
- *	This routine updates the resource status entry with passed in
- *	serial_number, resource_id, and presence. This routien should be
- *	called to set and reset the resource statud fields that change
- *	when a a resource gets added and removed. 
+ *      Description:
+ *      This routine updates the resource status entry with passed in
+ *      serial_number, resource_id, and presence.  This routine should be
+ *      called to set and reset the resource status fields that change
+ *      when a a resource gets added and removed.
  *
- *	Return value: none
+ *      Return value: none
 **/
-void oa_soap_update_resource_status(
-	resource_status_t *res_status,
-	SaHpiInt32T index,
-	char *serial_number, 
-	SaHpiResourceIdT resource_id,
-	resource_presence_status_t presence)
+void oa_soap_update_resource_status(resource_status_t *res_status,
+                                    SaHpiInt32T index,
+                                    char *serial_number,
+                                    SaHpiResourceIdT resource_id,
+                                    resource_presence_status_t presence)
 {
-	if(index <= 0) {
-		err("Invalid index value %d - returning without update \n",
-			index);
-		return;
-	}
-	if(serial_number != NULL) {
-		size_t len;
+        if (index <= 0) {
+                err("Invalid index value %d - returning without update\n",
+                    index);
+                return;
+        }
+        if (serial_number != NULL) {
+                size_t len;
 
-		len = strlen(serial_number);
-		strncpy(res_status->serial_number[index-1], serial_number, len);
-		res_status->serial_number[index-1][len] = '\0';
-	}
-	res_status->resource_id[index-1] = resource_id;
-	res_status->presence[index-1] = presence;
+                len = strlen(serial_number);
+                strncpy(res_status->serial_number[index-1], serial_number, len);
+                res_status->serial_number[index-1][len] = '\0';
+        }
+        res_status->resource_id[index-1] = resource_id;
+        res_status->presence[index-1] = presence;
 
-	return;
+        return;
 }
 
