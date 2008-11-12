@@ -30,9 +30,7 @@
  *
  * Author(s)
  *      Raghavendra M.S. <raghavendra.ms@hp.com>
- *      Shuah Khan <shuah.khan@hp.com>    IO and Storage blade support
- *      Shuah Khan <shuah.khan@hp.com> Infrastructure changes to add support
- *                                     for new types of blades and events
+ *      Shuah Khan <shuah.khan@hp.com>
  *
  *  This file handles all the control functionality related apis.
  *
@@ -278,7 +276,7 @@ SaErrorT oa_soap_set_control_state(void *oh_handler,
  * build_server_control_rdr
  *      @oh_handler: Handler data pointer
  *      @rdr_num: Control rdr number
- *	@rdr: RDR pointer
+ *      @rdr: RDR pointer
  *
  * Purpose:
  *      Creates and adds the control rdr to server resource
@@ -309,13 +307,13 @@ SaErrorT build_server_control_rdr(struct oh_handler_state *oh_handler,
         }
 
         oa_handler = (struct oa_soap_handler *) oh_handler->data;
-        resource_id = 
+        resource_id =
            oa_handler->oa_soap_resources.server.resource_id[rdr_num - 1];
-	rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
-	if (!rpt) {
+        rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
+        if (!rpt) {
                 err("Could not find blade resource rpt");
-		return(SA_ERR_HPI_INTERNAL_ERROR);
-	}
+                return(SA_ERR_HPI_INTERNAL_ERROR);
+        }
 
         /* Set the control rdr with default values */
         rdr->Entity = rpt->ResourceEntity;
@@ -372,13 +370,13 @@ SaErrorT build_interconnect_control_rdr(struct oh_handler_state *oh_handler,
         }
 
         oa_handler = (struct oa_soap_handler *) oh_handler->data;
-        resource_id = 
+        resource_id =
            oa_handler->oa_soap_resources.interconnect.resource_id[rdr_num - 1];
-	rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
-	if (!rpt) {
+        rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
+        if (!rpt) {
                 err("Could not find blade resource rpt");
-		return(SA_ERR_HPI_INTERNAL_ERROR);
-	}
+                return(SA_ERR_HPI_INTERNAL_ERROR);
+        }
 
         /* Set the control rdr with default values */
         rdr->Entity = rpt->ResourceEntity;

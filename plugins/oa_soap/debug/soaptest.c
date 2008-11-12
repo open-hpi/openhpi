@@ -60,14 +60,14 @@
 /* Configuration values, to set this up for your c-class cage */
 #if 1
 /* These are for the OSLO cage */
-#define	OA_DEST		"ccc2-ilo.telco:443"
-#define	OA_USERNAME	"admin"
+#define	OA_DEST		"ccc2-oa-1.hpi.telco:443"
+#define	OA_USERNAME	"root"
 #define	OA_PASSWORD	"hosehead"
 #else
 /* These are for the GDIC cage; note that the pair is .38 and .39, and only
  * the active one will respond.
  */
-#define	OA_DEST		"16.138.181.38:443"
+#define	OA_DEST		"16.138.181.57:443"
 #define	OA_USERNAME	"hpi"
 #define	OA_PASSWORD	"hpi123"
 #endif
@@ -78,6 +78,9 @@ int main(int argc, char *argv[])
     SOAP_CON			*con;
     struct getBladeInfo		bladeInfo_request;
     struct bladeInfo		bladeInfo_response;
+    struct getBladeStatus	bladeStatus_request;
+    struct bladeStatus		bladeStatus_response;
+    struct extraDataInfo	extraDataInfo_response;
     struct bladeCpuInfo		bladeCpuInfo;
     struct bladeNicInfo		bladeNicInfo;
     struct eventPid		subscribeForEvents_response;
@@ -95,6 +98,17 @@ int main(int argc, char *argv[])
     struct rackTopology2        grt2_response;
     struct encLink2             encLink2_res;
     struct encLinkOa            encLinkOa_res;
+    struct enclosureStatus	enclosureStatus_response;
+    struct lcdStatus		lcdStatus_response;
+    struct lcdInfo		lcdInfo_response;
+    struct getPowerSupplyStatus powerSupplyStatus_request;
+    struct powerSupplyStatus	powerSupplyStatus_response;
+    struct thermalSubsystemInfo thermalSubsystemInfo_response;
+    struct getFanZoneArray	fanZoneArray_request;
+    struct getFanZoneArrayResponse fanZoneArray_response;
+    struct fanZone		fanZone;
+    struct fanInfo		fanInfo;
+    byte			bay;
     int				slot;
     int				i;
     int				ret;
@@ -186,6 +200,22 @@ int main(int argc, char *argv[])
     /* Try the getBladeInfo() call.  In this loop, you can print information
      * for lots of blades.  As shipped, it is only looking at the blade in
      * slot 1.
+     *
+     * Warning, warning, warning!!!  This code is not correct!!!
+     *
+     * The interface rules for the OA SOAP library specify that the data
+     * returned by the calls is valid only until the next OA SOAP call.  Once
+     * the next call is made, the data which is referenced by any pointers
+     * becomes invalid.
+     *
+     * In the code below, it "happens" to work, probably because the first
+     * call allocates a lot of data, and the subsequent calls (CpuInfo and
+     * NicInfo) only overwrite a little (the beginning) of the previously
+     * allocated data.  But to be strictly correct, you MUST copy the data
+     * from any pointers (e.g. strings, arrays) that you want BEFORE making
+     * another OA SOAP call.
+     *
+     * BJS: Fix in this example code.
      */
     for (slot = 1; slot <= 1; slot++) {
     	bladeInfo_request.bayNumber = slot;
@@ -245,6 +275,17 @@ int main(int argc, char *argv[])
 	    printf("  mmDepth      = %d\n", bladeInfo_response.mmDepth);
 	    printf("  deviceId     = %d\n", bladeInfo_response.deviceId);
 	    printf("  productId    = %d\n", bladeInfo_response.productId);
+	    /* The extra data is a list of values...print each */
+	    printf("  extraData Values:\n");
+	    while (bladeInfo_response.extraData) {
+		soap_getExtraData(bladeInfo_response.extraData,
+				  & extraDataInfo_response);
+		printf("    %s: %s\n",
+		       extraDataInfo_response.name,
+		       extraDataInfo_response.value);
+		bladeInfo_response.extraData =
+			soap_next_node(bladeInfo_response.extraData);
+	    }
 	}
     }
 
@@ -254,6 +295,69 @@ int main(int argc, char *argv[])
 	printf("\nPrevious call had error %d: %s\n",
 	       soap_error_number(con), soap_error_string(con));
     }
+
+
+    /* Try the getBladeStatus() call on blade 1.  */
+    slot = 1;				/* Doing BladeStatus on this slot */
+    bladeStatus_request.bayNumber = slot;
+    if (soap_getBladeStatus(con, &bladeStatus_request, &bladeStatus_response)) {
+	err("failed soap_getBladeStatus() in main()");
+	/* Falling through here to (eventually) close the connection */
+    }
+    else {
+	/* Successful call...print response parameters */
+	printf("\ngetBladeStatus response values for slot %d:\n", slot);
+	printf("  bayNumber     = %d\n", bladeStatus_response.bayNumber);
+	printf("  presence      = %d\n", bladeStatus_response.presence);
+	printf("  op status     = %d\n",
+	       bladeStatus_response.operationalStatus);
+	printf("  thermal       = %d\n", bladeStatus_response.thermal);
+	printf("  powered       = %d\n", bladeStatus_response.powered);
+	printf("  powerState    = %d\n", bladeStatus_response.powerState);
+	printf("  shutdown      = %d\n", bladeStatus_response.shutdown);
+	printf("  uid           = %d\n", bladeStatus_response.uid);
+	printf("  powerConsumed = %d\n", bladeStatus_response.powerConsumed);
+	/* DiagnosticChecks structure */
+	printf("  Diagnostic Checks:\n");
+	printf("    internalDataError        = %d\n",
+	       bladeStatus_response.diagnosticChecks.internalDataError);
+	printf("    managementProcessorError = %d\n",
+	       bladeStatus_response.diagnosticChecks.managementProcessorError);
+	printf("    thermalWarning           = %d\n",
+	       bladeStatus_response.diagnosticChecks.thermalWarning);
+	printf("    thermalDanger            = %d\n",
+	       bladeStatus_response.diagnosticChecks.thermalDanger);
+	printf("    ioConfigurationError     = %d\n",
+	       bladeStatus_response.diagnosticChecks.ioConfigurationError);
+	printf("    devicePowerRequestError  = %d\n",
+	       bladeStatus_response.diagnosticChecks.devicePowerRequestError);
+	printf("    insufficientCooling      = %d\n",
+	       bladeStatus_response.diagnosticChecks.insufficientCooling);
+	printf("    deviceLocationError      = %d\n",
+	       bladeStatus_response.diagnosticChecks.deviceLocationError);
+	printf("    deviceFailure            = %d\n",
+	       bladeStatus_response.diagnosticChecks.deviceFailure);
+	printf("    deviceDegraded           = %d\n",
+	       bladeStatus_response.diagnosticChecks.deviceDegraded);
+	printf("    acFailure                = %d\n",
+	       bladeStatus_response.diagnosticChecks.acFailure);
+	printf("    i2cBuses                 = %d\n",
+	       bladeStatus_response.diagnosticChecks.i2cBuses);
+	printf("    redundancy               = %d\n",
+	       bladeStatus_response.diagnosticChecks.redundancy);
+	/* The extra data is a list of values...print each */
+	printf("  extraData Values:\n");
+	while (bladeStatus_response.extraData) {
+		soap_getExtraData(bladeStatus_response.extraData,
+				  & extraDataInfo_response);
+		printf("    %s: %s\n",
+		       extraDataInfo_response.name,
+		       extraDataInfo_response.value);
+		bladeStatus_response.extraData =
+			soap_next_node(bladeStatus_response.extraData);
+	}
+    }
+
 
    /* Try a getRackTopology2 call */
     if (soap_getRackTopology2(con,
@@ -303,6 +407,7 @@ int main(int argc, char *argv[])
             grt2_response.enclosures = soap_next_node(grt2_response.enclosures);
         }
     }
+
 
     /* Try a getOaNetworkInfo call */
     slot = 1;
@@ -359,6 +464,17 @@ int main(int argc, char *argv[])
 	       getThermalInfo_response.cautionThreshold);
 	printf("  criticalThresh = %d\n",
 	       getThermalInfo_response.criticalThreshold);
+	/* The extra data is a list of values...print each */
+	printf("  extraData Values:\n");
+	while (getThermalInfo_response.extraData) {
+		soap_getExtraData(getThermalInfo_response.extraData,
+				  & extraDataInfo_response);
+		printf("    %s: %s\n",
+		       extraDataInfo_response.name,
+		       extraDataInfo_response.value);
+		getThermalInfo_response.extraData =
+			soap_next_node(getThermalInfo_response.extraData);
+	}
     }
 
 
@@ -403,6 +519,350 @@ int main(int argc, char *argv[])
     }
 
 
+    /* Try getEnclosureStatus call. */
+    if (soap_getEnclosureStatus(con, &enclosureStatus_response)) {
+    	    err("failed soap_getEnclosureStatus() in main()");
+    } else {
+	    /* Successful call...print response parameters */
+	    printf("\ngetEnclosure response values \n");
+	    printf("  operationalStatus    = %d\n",
+                    enclosureStatus_response.operationalStatus);
+	    printf("  uid    = %d\n", enclosureStatus_response.uid);
+	    printf("  wizardStatus    = %d\n",
+                   enclosureStatus_response.wizardStatus);
+            printf("  Diagnostic Checks:\n");
+            printf("    internalDataError:        %d\n",
+                   enclosureStatus_response.diagnosticChecks.internalDataError);
+            printf("    managementProcessorError: %d\n",
+                   enclosureStatus_response.
+                       diagnosticChecks.managementProcessorError);
+            printf("    thermalWarning:           %d\n",
+                   enclosureStatus_response.diagnosticChecks.thermalWarning);
+            printf("    thermalDanger:            %d\n",
+                   enclosureStatus_response.diagnosticChecks.thermalDanger);
+            printf("    ioConfigurationError:     %d\n",
+                   enclosureStatus_response.
+                       diagnosticChecks.ioConfigurationError);
+            printf("    devicePowerRequestError:  %d\n",
+                   enclosureStatus_response.
+                       diagnosticChecks.devicePowerRequestError);
+            printf("    insufficientCooling:      %d\n",
+                   enclosureStatus_response.
+                       diagnosticChecks.insufficientCooling);
+            printf("    deviceLocationError:      %d\n",
+                   enclosureStatus_response.
+                       diagnosticChecks.deviceLocationError);
+            printf("    deviceFailure:            %d\n",
+                   enclosureStatus_response.diagnosticChecks.deviceFailure);
+            printf("    deviceDegraded:           %d\n",
+                   enclosureStatus_response.diagnosticChecks.deviceDegraded);
+            printf("    acFailure:                %d\n",
+                   enclosureStatus_response.diagnosticChecks.acFailure);
+            printf("    i2cBuses:                 %d\n",
+                   enclosureStatus_response.diagnosticChecks.i2cBuses);
+            printf("    redundancy:               %d\n",
+                   enclosureStatus_response.diagnosticChecks.redundancy);
+#if 0                                   /* TODO: Doesn't work yet */
+            if (enclosureStatus_response.diagnosticChecksEx) 
+                printf("      There are Diagnostic Checks Ex\n");
+#endif
+    }
+
+
+    /* Try getThermalSubsystemInfo call. */
+    if ( soap_getThermalSubsystemInfo(con, &thermalSubsystemInfo_response)) {
+    	    err("failed  soap_getThermalSubsystemInfo() in main()");
+    } else {
+	    /* Successful call...print response parameters */
+	    printf("\n soap_getThermalSubsystemInfo response values \n");
+	    printf("  operationalStatus    = %d\n",
+                    thermalSubsystemInfo_response.operationalStatus);
+	    printf("  redundancy    = %d\n",
+                   thermalSubsystemInfo_response.redundancy);
+	    printf("  goodFans    = %d\n",
+                   thermalSubsystemInfo_response.goodFans);
+	    printf("  wantedFans    = %d\n",
+                   thermalSubsystemInfo_response.wantedFans);
+	    printf("  neededFans    = %d\n",
+                   thermalSubsystemInfo_response.neededFans);
+    }
+
+
+    /* Try getLcdStatus call. */
+    if ( soap_getLcdStatus(con, &lcdStatus_response)) {
+            err("failed  soap_getLcdStatus() in main()");
+    } else {
+            /* Successful call...print response parameters */
+            printf("\n soap_getLcdStatus response values \n");
+            printf("  status    = %d\n", lcdStatus_response.status);
+            printf("  display    = %d\n", lcdStatus_response.display);
+            printf("  lcdPin    = %d\n", lcdStatus_response.lcdPin);
+            printf("  buttonLock    = %d\n", lcdStatus_response.buttonLock);
+            printf("  lcdSetupHealth    = %d\n",
+                   lcdStatus_response.lcdSetupHealth);
+            printf("  Diagnostic Checks:\n");
+            printf("    internalDataError:        %d\n",
+                   lcdStatus_response.diagnosticChecks.internalDataError);
+            printf("    managementProcessorError: %d\n",
+                   lcdStatus_response.
+                       diagnosticChecks.managementProcessorError);
+            printf("    thermalWarning:           %d\n",
+                   lcdStatus_response.diagnosticChecks.thermalWarning);
+            printf("    thermalDanger:            %d\n",
+                   lcdStatus_response.diagnosticChecks.thermalDanger);
+            printf("    ioConfigurationError:     %d\n",
+                   lcdStatus_response.diagnosticChecks.ioConfigurationError);
+            printf("    devicePowerRequestError:  %d\n",
+                   lcdStatus_response.diagnosticChecks.devicePowerRequestError);
+            printf("    insufficientCooling:      %d\n",
+                   lcdStatus_response.diagnosticChecks.insufficientCooling);
+            printf("    deviceLocationError:      %d\n",
+                   lcdStatus_response.diagnosticChecks.deviceLocationError);
+            printf("    deviceFailure:            %d\n",
+                   lcdStatus_response.diagnosticChecks.deviceFailure);
+            printf("    deviceDegraded:           %d\n",
+                   lcdStatus_response.diagnosticChecks.deviceDegraded);
+            printf("    acFailure:                %d\n",
+                   lcdStatus_response.diagnosticChecks.acFailure);
+            printf("    i2cBuses:                 %d\n",
+                   lcdStatus_response.diagnosticChecks.i2cBuses);
+            printf("    redundancy:               %d\n",
+                   lcdStatus_response.diagnosticChecks.redundancy);
+#if 0                                   /* TODO: Doesn't work yet */
+            if (lcdStatus_response.diagnosticChecksEx) 
+                printf("      There are Diagnostic Checks Ex\n");
+#endif
+    }
+   
+
+    /* Try getLcdInfo call. */
+    if ( soap_getLcdInfo(con, &lcdInfo_response)) {
+            err("failed  soap_getLcdInfo() in main()");
+    } else {
+            /* Successful call...print response parameters */
+            printf("\n soap_getLcdInfo response values \n");
+            printf("  name    = %s\n", lcdInfo_response.name);
+            printf("  partNumber    = %s\n", lcdInfo_response.partNumber);
+            printf("  manufacturer    = %s\n", lcdInfo_response.manufacturer);
+            printf("  fwVersion    = %s\n", lcdInfo_response.fwVersion);
+    }
+
+
+    /* Try getPowerSupplyStatus call */
+    powerSupplyStatus_request.bayNumber = 1;
+    if ( soap_getPowerSupplyStatus(con,  &powerSupplyStatus_request,
+                                   &powerSupplyStatus_response)) {
+            err("failed  soap_getPowerSupplyStatus() in main()");
+    } else {
+            /* Successful call...print response parameters */
+            printf("\n soap_getPowerSupplyStatus response values \n");
+            printf("  bayNumber    = %d\n",
+                   powerSupplyStatus_response.bayNumber);
+            printf("  presence    = %d\n", powerSupplyStatus_response.presence);
+            printf("  operationalStatus    = %d\n",
+                   powerSupplyStatus_response.operationalStatus);
+            printf("  inputStatus    = %d\n",
+                   powerSupplyStatus_response.inputStatus);
+            printf("  Diagnostic Checks:\n");
+            printf("    internalDataError:        %d\n",
+                   powerSupplyStatus_response.
+                        diagnosticChecks.internalDataError);
+            printf("    managementProcessorError: %d\n",
+                   powerSupplyStatus_response.
+                       diagnosticChecks.managementProcessorError);
+            printf("    thermalWarning:           %d\n",
+                   powerSupplyStatus_response.diagnosticChecks.thermalWarning);
+            printf("    thermalDanger:            %d\n",
+                   powerSupplyStatus_response.diagnosticChecks.thermalDanger);
+            printf("    ioConfigurationError:     %d\n",
+                   powerSupplyStatus_response.
+                        diagnosticChecks.ioConfigurationError);
+            printf("    devicePowerRequestError:  %d\n",
+                   powerSupplyStatus_response.
+                        diagnosticChecks.devicePowerRequestError);
+            printf("    insufficientCooling:      %d\n",
+                   powerSupplyStatus_response.
+                        diagnosticChecks.insufficientCooling);
+            printf("    deviceLocationError:      %d\n",
+                   powerSupplyStatus_response.
+                        diagnosticChecks.deviceLocationError);
+            printf("    deviceFailure:            %d\n",
+                   powerSupplyStatus_response.diagnosticChecks.deviceFailure);
+            printf("    deviceDegraded:           %d\n",
+                   powerSupplyStatus_response.diagnosticChecks.deviceDegraded);
+            printf("    acFailure:                %d\n",
+                   powerSupplyStatus_response.diagnosticChecks.acFailure);
+            printf("    i2cBuses:                 %d\n",
+                   powerSupplyStatus_response.diagnosticChecks.i2cBuses);
+            printf("    redundancy:               %d\n",
+                   powerSupplyStatus_response.diagnosticChecks.redundancy);
+#if 0                                   /* TODO: Doesn't work yet */
+            if (powerSupplyStatus_response.diagnosticChecksEx) 
+                printf("      There are Diagnostic Checks Ex\n");
+#endif
+    }
+
+
+    /* Try fanZoneArray call */
+    byte zones[] = {1, 4};		/* Zones 1 and 4, for example */
+    struct bayArray requestedZones = {
+    		.size = 2,		/* Number of requested zones */
+		.array = zones		/* The array of zones */
+    };
+    fanZoneArray_request.bayArray = requestedZones;
+    if ( soap_getFanZoneArray(con, &fanZoneArray_request,
+                              &fanZoneArray_response)) {
+            err("failed  soap_getFanZoneArray() in main()");
+    } else {
+            /* Successful call...print response parameters */
+            printf("\n soap_getFanZoneArray response values \n");
+            while (fanZoneArray_response.fanZoneArray) {
+                soap_fanZone(fanZoneArray_response.fanZoneArray, &fanZone);
+                printf("  zoneNumber    = %d\n", fanZone.zoneNumber);
+                printf("  redundant    = %d\n", fanZone.redundant);
+                printf("  operationalStatus    = %d\n",
+                       fanZone.operationalStatus);
+                printf("  targetRpm    = %d\n", fanZone.targetRpm);
+                printf("  targetPwm    = %d\n", fanZone.targetPwm);
+                printf("  deviceBayArray values \n");
+                while (fanZone.deviceBayArray) {
+                     soap_deviceBayArray(fanZone.deviceBayArray, &bay);
+                     printf("    bay    = %d\n", bay);
+                     fanZone.deviceBayArray =
+			soap_next_node(fanZone.deviceBayArray); 
+                }
+                printf("  fanInfoArray values \n");
+                while (fanZone.fanInfoArray) {
+                     soap_fanInfo(fanZone.fanInfoArray, &fanInfo);
+                     printf("    fanInfo values \n");
+                     printf("      bayNumber    = %d\n", fanInfo.bayNumber);
+                     printf("      presence    = %d\n", fanInfo.presence);
+                     printf("      name    = %s\n", fanInfo.name);
+                     printf("      partNumber    = %s\n", fanInfo.partNumber);
+                     printf("      sparePartNumber    = %s\n",
+                            fanInfo.sparePartNumber);
+                     printf("      serialNumber    = %s\n",
+                            fanInfo.serialNumber);
+                     printf("      powerConsumed    = %d\n",
+                            fanInfo.powerConsumed);
+                     printf("      fanSpeed    = %d\n", fanInfo.fanSpeed);
+                     printf("      maxFanSpeed    = %d\n", fanInfo.maxFanSpeed);
+                     printf("      lowLimitFanSpeed    = %d\n",
+                            fanInfo.lowLimitFanSpeed);
+                     printf("      operationalStatus    = %d\n",
+                            fanInfo.operationalStatus);
+                     printf("      Diagnostic Checks:\n");
+                     printf("        internalDataError:        %d\n",
+                            fanInfo.diagnosticChecks.internalDataError);
+                     printf("        managementProcessorError: %d\n",
+                            fanInfo.diagnosticChecks.managementProcessorError);
+                     printf("        thermalWarning:           %d\n",
+                            fanInfo.diagnosticChecks.thermalWarning);
+                     printf("        thermalDanger:            %d\n",
+                            fanInfo.diagnosticChecks.thermalDanger);
+                     printf("        ioConfigurationError:     %d\n",
+                            fanInfo.diagnosticChecks.ioConfigurationError);
+                     printf("        devicePowerRequestError:  %d\n",
+                            fanInfo.diagnosticChecks.devicePowerRequestError);
+                     printf("        insufficientCooling:      %d\n",
+                            fanInfo.diagnosticChecks.insufficientCooling);
+                     printf("        deviceLocationError:      %d\n",
+                            fanInfo.diagnosticChecks.deviceLocationError);
+                     printf("        deviceFailure:            %d\n",
+                            fanInfo.diagnosticChecks.deviceFailure);
+                     printf("        deviceDegraded:           %d\n",
+                            fanInfo.diagnosticChecks.deviceDegraded);
+                     printf("        acFailure:                %d\n",
+                            fanInfo.diagnosticChecks.acFailure);
+                     printf("        i2cBuses:                 %d\n",
+                            fanInfo.diagnosticChecks.i2cBuses);
+                     printf("        redundancy:               %d\n",
+                            fanInfo.diagnosticChecks.redundancy);
+#if 0                                   /* TODO: Doesn't work yet */
+                     if (fanInfo.diagnosticChecksEx) 
+                         printf("      There are Diagnostic Checks Ex\n");
+#endif
+                     fanZone.fanInfoArray =
+			soap_next_node(fanZone.fanInfoArray); 
+                }
+                fanZoneArray_response.fanZoneArray =
+		     soap_next_node(fanZoneArray_response.fanZoneArray); 
+            }
+    }
+
+
+    /* Try setEnclosureUid() */
+    {
+	struct setEnclosureUid setEnclosureUid;
+
+	printf("\nTrying to turn enclosure UID on and off\n");
+	setEnclosureUid.uid = UID_CMD_ON;
+        if (soap_setEnclosureUid(con, &setEnclosureUid)) {
+	    err("failed soap_setEnclosureUid() in main()");
+	    /* Falling through here to (eventually) close the connection */
+        }
+	setEnclosureUid.uid = UID_CMD_OFF; /* Leave it off */
+        if (soap_setEnclosureUid(con, &setEnclosureUid)) {
+	    err("failed soap_setEnclosureUid() in main()");
+        }
+    }
+
+
+    /* Try setOaUid() */
+    {
+        struct setOaUid setOaUid;
+
+	printf("\nTrying to turn OA UID on and off\n");
+        setOaUid.bayNumber = 1;
+	setOaUid.uid = UID_CMD_ON;
+        if (soap_setOaUid(con, &setOaUid)) {
+	    err("failed soap_setOaUid() in main()");
+	    /* Falling through here to (eventually) close the connection */
+        }
+	setOaUid.uid = UID_CMD_OFF;	/* Leave it off */
+        if (soap_setOaUid(con, &setOaUid)) {
+	    err("failed soap_setOaUid() in main()");
+        }
+    }
+
+
+    /* Try setBladeUid() */
+    {
+        struct setBladeUid setBladeUid;
+
+	printf("\nTrying to turn blade UID on and off\n");
+        setBladeUid.bayNumber = 1;
+	setBladeUid.uid = UID_CMD_ON;
+        if (soap_setBladeUid(con, &setBladeUid)) {
+	    err("failed soap_setBladeUid() in main()");
+	    /* Falling through here to (eventually) close the connection */
+        }
+	setBladeUid.uid = UID_CMD_OFF;	/* Leave it off */
+        if (soap_setBladeUid(con, &setBladeUid)) {
+	    err("failed soap_setBladeUid() in main()");
+        }
+    }
+
+
+    /* Try setInterconnectTrayUid() */
+    {
+        struct setInterconnectTrayUid setInterconnectTrayUid;
+
+	printf("\nTrying to turn interconnect tray UID on and off\n");
+        setInterconnectTrayUid.bayNumber = 1;
+	setInterconnectTrayUid.uid = UID_CMD_ON;
+        if (soap_setInterconnectTrayUid(con, &setInterconnectTrayUid)) {
+	    err("failed soap_setInterconnectTrayUid() in main()");
+	    /* Falling through here to (eventually) close the connection */
+        }
+	setInterconnectTrayUid.uid = UID_CMD_OFF; /* Leave it off */
+        if (soap_setInterconnectTrayUid(con, &setInterconnectTrayUid)) {
+	    err("failed soap_setInterconnectTrayUid() in main()");
+        }
+    }
+
+
+#if 1					/* Sometimes, we want to skip events */
     /* Try to subscribe for events */
     if (soap_subscribeForEvents(con, &subscribeForEvents_response)) {
 	err("failed soap_subscribeForEvents() in main()");
@@ -470,6 +930,7 @@ int main(int argc, char *argv[])
     }
     soap_timeout(con) = old_timeout;
 #endif
+
 
 #if 0					/* This is specific debug code to help
 					 * isolate an issue with an 8000
@@ -621,6 +1082,7 @@ int main(int argc, char *argv[])
     else {
 	printf("\nunSubscribeForEvents call succeeded\n");
     }
+#endif /* If we're skipping all event stuff */
 
 
 #if 0					/* Print buffer usage number.  Only
