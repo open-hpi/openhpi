@@ -1480,6 +1480,8 @@ SaErrorT SAHPI_API saHpiAlarmGetNext(
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, Alarm);
 
+        /* Set Alarm DomainId to actual DomainID since openhpi core lib has DEFAULT_DOMAIN_ID */
+        Alarm->AlarmCond.DomainId = dsid;
         if (request)
                 free(request);
         if (pinst->header.m_type == eMhError)
