@@ -180,14 +180,14 @@ SaErrorT oh_close_connx(SaHpiSessionIdT SessionId)
         return SA_OK;
 }
 
-SaErrorT oh_get_connx(SaHpiSessionIdT csid, SaHpiSessionIdT *dsid, pcstrmsock *pinst)
+SaErrorT oh_get_connx(SaHpiSessionIdT csid, SaHpiSessionIdT *dsid, pcstrmsock *pinst, SaHpiDomainIdT *did)
 {
         pthread_t thread_id = pthread_self();
         struct oh_client_session *client_session = NULL;
         pcstrmsock connx = NULL;
         SaErrorT ret = SA_OK;
 
-	if (!csid || !dsid || !pinst)
+	if (!csid || !dsid || !pinst || !did)
 		return SA_ERR_HPI_INVALID_PARAMS;
 		
 	oh_client_init(); /* Initialize library - Will run only once */
@@ -214,6 +214,7 @@ SaErrorT oh_get_connx(SaHpiSessionIdT csid, SaHpiSessionIdT *dsid, pcstrmsock *p
                         }
                 }
                 *dsid = client_session->dsid;
+				*did  = client_session->did;
                 *pinst = connx;
         }
         g_static_rec_mutex_unlock(&sessions_sem);        
