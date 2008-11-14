@@ -323,8 +323,14 @@ int             soap_enum(const char *enums, char *value)
 {
         char            *found;
         int             n = 0;
-        int             len = strlen(value);
+        int             len;
 
+        if (! value) {                  /* Can't proceed without a string */
+                err("could not find enum (NULL value) in \"%s\"", enums);
+                return(-1);
+        }
+
+        len = strlen(value);
         found = strstr(enums, value);
         if ((found) && ((*(found + len) == ',') || (*(found + len) == '\0'))) {
                 while (--found >= enums) {
