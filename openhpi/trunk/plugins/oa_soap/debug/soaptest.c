@@ -81,6 +81,7 @@ int main(int argc, char *argv[])
     struct getBladeStatus	bladeStatus_request;
     struct bladeStatus		bladeStatus_response;
     struct extraDataInfo	extraDataInfo_response;
+    struct diagnosticData	diagnosticChecksEx_response;
     struct bladeCpuInfo		bladeCpuInfo;
     struct bladeNicInfo		bladeNicInfo;
     struct eventPid		subscribeForEvents_response;
@@ -356,12 +357,24 @@ int main(int argc, char *argv[])
 		bladeStatus_response.extraData =
 			soap_next_node(bladeStatus_response.extraData);
 	}
+        if (bladeStatus_response.diagnosticChecksEx) {
+            printf("  There are Diagnostic Checks Ex\n");
+	    while (bladeStatus_response.diagnosticChecksEx) {
+		soap_getDiagnosticChecksEx(
+			bladeStatus_response.diagnosticChecksEx,
+			& diagnosticChecksEx_response);
+		printf("    %s: %d\n",
+		       diagnosticChecksEx_response.name,
+		       diagnosticChecksEx_response.value);
+		bladeStatus_response.diagnosticChecksEx =
+			soap_next_node(bladeStatus_response.diagnosticChecksEx);
+	    }
+	}
     }
 
 
-   /* Try a getRackTopology2 call */
-    if (soap_getRackTopology2(con,
-                              &grt2_response)) {
+    /* Try a getRackTopology2 call */
+    if (soap_getRackTopology2(con, &grt2_response)) {
         err("failed soap_getRackTopology2() in soaptest.c");
     }
     else {
@@ -524,7 +537,7 @@ int main(int argc, char *argv[])
     	    err("failed soap_getEnclosureStatus() in main()");
     } else {
 	    /* Successful call...print response parameters */
-	    printf("\ngetEnclosure response values \n");
+	    printf("\ngetEnclosureStatus response values \n");
 	    printf("  operationalStatus    = %d\n",
                     enclosureStatus_response.operationalStatus);
 	    printf("  uid    = %d\n", enclosureStatus_response.uid);
@@ -562,10 +575,8 @@ int main(int argc, char *argv[])
                    enclosureStatus_response.diagnosticChecks.i2cBuses);
             printf("    redundancy:               %d\n",
                    enclosureStatus_response.diagnosticChecks.redundancy);
-#if 0                                   /* TODO: Doesn't work yet */
             if (enclosureStatus_response.diagnosticChecksEx) 
-                printf("      There are Diagnostic Checks Ex\n");
-#endif
+                printf("  There are Diagnostic Checks Ex\n");
     }
 
 
@@ -628,10 +639,8 @@ int main(int argc, char *argv[])
                    lcdStatus_response.diagnosticChecks.i2cBuses);
             printf("    redundancy:               %d\n",
                    lcdStatus_response.diagnosticChecks.redundancy);
-#if 0                                   /* TODO: Doesn't work yet */
             if (lcdStatus_response.diagnosticChecksEx) 
-                printf("      There are Diagnostic Checks Ex\n");
-#endif
+                printf("  There are Diagnostic Checks Ex\n");
     }
    
 
@@ -696,10 +705,8 @@ int main(int argc, char *argv[])
                    powerSupplyStatus_response.diagnosticChecks.i2cBuses);
             printf("    redundancy:               %d\n",
                    powerSupplyStatus_response.diagnosticChecks.redundancy);
-#if 0                                   /* TODO: Doesn't work yet */
             if (powerSupplyStatus_response.diagnosticChecksEx) 
-                printf("      There are Diagnostic Checks Ex\n");
-#endif
+                printf("  There are Diagnostic Checks Ex\n");
     }
 
 
@@ -733,55 +740,64 @@ int main(int argc, char *argv[])
                 }
                 printf("  fanInfoArray values \n");
                 while (fanZone.fanInfoArray) {
-                     soap_fanInfo(fanZone.fanInfoArray, &fanInfo);
-                     printf("    fanInfo values \n");
-                     printf("      bayNumber    = %d\n", fanInfo.bayNumber);
-                     printf("      presence    = %d\n", fanInfo.presence);
-                     printf("      name    = %s\n", fanInfo.name);
-                     printf("      partNumber    = %s\n", fanInfo.partNumber);
-                     printf("      sparePartNumber    = %s\n",
-                            fanInfo.sparePartNumber);
-                     printf("      serialNumber    = %s\n",
-                            fanInfo.serialNumber);
-                     printf("      powerConsumed    = %d\n",
-                            fanInfo.powerConsumed);
-                     printf("      fanSpeed    = %d\n", fanInfo.fanSpeed);
-                     printf("      maxFanSpeed    = %d\n", fanInfo.maxFanSpeed);
-                     printf("      lowLimitFanSpeed    = %d\n",
-                            fanInfo.lowLimitFanSpeed);
-                     printf("      operationalStatus    = %d\n",
-                            fanInfo.operationalStatus);
-                     printf("      Diagnostic Checks:\n");
-                     printf("        internalDataError:        %d\n",
-                            fanInfo.diagnosticChecks.internalDataError);
-                     printf("        managementProcessorError: %d\n",
-                            fanInfo.diagnosticChecks.managementProcessorError);
-                     printf("        thermalWarning:           %d\n",
-                            fanInfo.diagnosticChecks.thermalWarning);
-                     printf("        thermalDanger:            %d\n",
-                            fanInfo.diagnosticChecks.thermalDanger);
-                     printf("        ioConfigurationError:     %d\n",
-                            fanInfo.diagnosticChecks.ioConfigurationError);
-                     printf("        devicePowerRequestError:  %d\n",
-                            fanInfo.diagnosticChecks.devicePowerRequestError);
-                     printf("        insufficientCooling:      %d\n",
-                            fanInfo.diagnosticChecks.insufficientCooling);
-                     printf("        deviceLocationError:      %d\n",
-                            fanInfo.diagnosticChecks.deviceLocationError);
-                     printf("        deviceFailure:            %d\n",
-                            fanInfo.diagnosticChecks.deviceFailure);
-                     printf("        deviceDegraded:           %d\n",
-                            fanInfo.diagnosticChecks.deviceDegraded);
-                     printf("        acFailure:                %d\n",
-                            fanInfo.diagnosticChecks.acFailure);
-                     printf("        i2cBuses:                 %d\n",
-                            fanInfo.diagnosticChecks.i2cBuses);
-                     printf("        redundancy:               %d\n",
-                            fanInfo.diagnosticChecks.redundancy);
-#if 0                                   /* TODO: Doesn't work yet */
-                     if (fanInfo.diagnosticChecksEx) 
-                         printf("      There are Diagnostic Checks Ex\n");
-#endif
+                    soap_fanInfo(fanZone.fanInfoArray, &fanInfo);
+                    printf("    fanInfo values \n");
+                    printf("      bayNumber    = %d\n", fanInfo.bayNumber);
+                    printf("      presence    = %d\n", fanInfo.presence);
+                    printf("      name    = %s\n", fanInfo.name);
+                    printf("      partNumber    = %s\n", fanInfo.partNumber);
+                    printf("      sparePartNumber    = %s\n",
+                           fanInfo.sparePartNumber);
+                    printf("      serialNumber    = %s\n",
+                           fanInfo.serialNumber);
+                    printf("      powerConsumed    = %d\n",
+                           fanInfo.powerConsumed);
+                    printf("      fanSpeed    = %d\n", fanInfo.fanSpeed);
+                    printf("      maxFanSpeed    = %d\n", fanInfo.maxFanSpeed);
+                    printf("      lowLimitFanSpeed    = %d\n",
+                           fanInfo.lowLimitFanSpeed);
+                    printf("      operationalStatus    = %d\n",
+                           fanInfo.operationalStatus);
+                    printf("      Diagnostic Checks:\n");
+                    printf("        internalDataError:        %d\n",
+                           fanInfo.diagnosticChecks.internalDataError);
+                    printf("        managementProcessorError: %d\n",
+                           fanInfo.diagnosticChecks.managementProcessorError);
+                    printf("        thermalWarning:           %d\n",
+                           fanInfo.diagnosticChecks.thermalWarning);
+                    printf("        thermalDanger:            %d\n",
+                           fanInfo.diagnosticChecks.thermalDanger);
+                    printf("        ioConfigurationError:     %d\n",
+                           fanInfo.diagnosticChecks.ioConfigurationError);
+                    printf("        devicePowerRequestError:  %d\n",
+                           fanInfo.diagnosticChecks.devicePowerRequestError);
+                    printf("        insufficientCooling:      %d\n",
+                           fanInfo.diagnosticChecks.insufficientCooling);
+                    printf("        deviceLocationError:      %d\n",
+                           fanInfo.diagnosticChecks.deviceLocationError);
+                    printf("        deviceFailure:            %d\n",
+                           fanInfo.diagnosticChecks.deviceFailure);
+                    printf("        deviceDegraded:           %d\n",
+                           fanInfo.diagnosticChecks.deviceDegraded);
+                    printf("        acFailure:                %d\n",
+                           fanInfo.diagnosticChecks.acFailure);
+                    printf("        i2cBuses:                 %d\n",
+                           fanInfo.diagnosticChecks.i2cBuses);
+                    printf("        redundancy:               %d\n",
+                           fanInfo.diagnosticChecks.redundancy);
+                    if (fanInfo.diagnosticChecksEx) {
+                        printf("      There are Diagnostic Checks Ex\n");
+	    		while (fanInfo.diagnosticChecksEx) {
+			    soap_getDiagnosticChecksEx(
+			    		fanInfo.diagnosticChecksEx,
+					& diagnosticChecksEx_response);
+			    printf("        %s: %d\n",
+		       		   diagnosticChecksEx_response.name,
+				   diagnosticChecksEx_response.value);
+			    fanInfo.diagnosticChecksEx =
+				    soap_next_node(fanInfo.diagnosticChecksEx);
+			}
+		     }
                      fanZone.fanInfoArray =
 			soap_next_node(fanZone.fanInfoArray); 
                 }
@@ -1049,14 +1065,12 @@ int main(int argc, char *argv[])
 			printf("        redundancy:               %d\n",
 			       event.eventData.bladeStatus.
 				   diagnosticChecks.redundancy);
-#if 0					/* TODO: Doesn't work yet */
 			if (event.eventData.bladeStatus.diagnosticChecksEx) {
-			    printf("      There are Diagnostic Checks Ex\n");
+			    printf("  There are Diagnostic Checks Ex\n");
 			}
 			else {
-			    printf("      No Diagnostic Checks Ex\n");
+			    printf("  No Diagnostic Checks Ex\n");
 			}
-#endif
 			break;
 		    default:
 		    	printf("      type: other\n");
