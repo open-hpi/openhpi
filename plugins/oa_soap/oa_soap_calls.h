@@ -879,7 +879,7 @@ struct bladeInfo
         short mmDepth;
         int deviceId;
         int productId;
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+        xmlNode *extraData;
 };
 
 /* Structures that supply information to OA SOAP calls */
@@ -907,7 +907,7 @@ struct diagnosticChecks
 
 struct diagnosticData
 {
-        enum diagnosticStatus value;
+        enum diagnosticStatus item;
         char *name;
 };
 
@@ -923,8 +923,10 @@ struct bladeStatus
         enum uidStatus uid;
         int powerConsumed;
         struct diagnosticChecks diagnosticChecks;
+#if 0
         xmlNode *diagnosticChecksEx;    /* Items are struct diagnosticData */
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+#endif
+        xmlNode *extraData;
 };
 
 struct getBladeStatus
@@ -937,7 +939,7 @@ struct syslog
         byte bayNumber;
         int syslogStrlen;
         char *logContents;
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+        xmlNode *extraData;
 };
 
 struct encLink
@@ -949,14 +951,14 @@ struct encLink
         char *enclosureName;
         char *url;
         enum hpoa_boolean local;
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+        xmlNode *extraData;
 };
 
 struct rackTopology
 {
         char *ruid;
         xmlNode *enclosures;            /* Items are struct encLink */
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+        xmlNode *extraData;
 };
 
 struct enclosureStatus
@@ -965,8 +967,10 @@ struct enclosureStatus
         enum uidStatus uid;
         enum wizardStatus wizardStatus;
         struct diagnosticChecks diagnosticChecks;
+#if 0
         xmlNode *diagnosticChecksEx;    /* Items are struct diagnosticData */
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+#endif
+        xmlNode *extraData;
 };
 
 struct enclosureInfo
@@ -997,7 +1001,7 @@ struct enclosureInfo
         short mmDepth;
         char *pduPartNumber;
         char *pduSparePartNumber;
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+        xmlNode *extraData;
 };
 
 struct oaStatus
@@ -1010,8 +1014,10 @@ struct oaStatus
         byte restartCause;
         enum hpoa_boolean oaRedundancy;
         struct diagnosticChecks diagnosticChecks;
+#if 0
         xmlNode *diagnosticChecksEx;    /* Items are struct diagnosticData */
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+#endif
+        xmlNode *extraData;
 };
 
 struct getOaStatus
@@ -1035,7 +1041,7 @@ struct oaInfo
         short mmHeight;
         short mmWidth;
         short mmDepth;
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+        xmlNode *extraData;
 };
 
 struct getOaInfo
@@ -1062,7 +1068,7 @@ struct bladeMpInfo
         char *loginUrl;
         char *ircFullUrl;
         char *remoteSerialUrl;
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+        xmlNode *extraData;
 };
 
 struct bladeMezzSlotPort
@@ -1070,7 +1076,7 @@ struct bladeMezzSlotPort
         byte slotNumber;
         byte interconnectTrayBayNumber;
         byte interconnectTrayPortNumber;
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+        xmlNode *extraData;
 };
 
 struct bladeMezzSlotInfo
@@ -1078,7 +1084,7 @@ struct bladeMezzSlotInfo
         enum bladeMezzSlotType type;
         int sizeslot;
         struct bladeMezzSlotPort slot;
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+        xmlNode *extraData;
 };
 
 struct bladeMezzDevPort
@@ -1087,7 +1093,7 @@ struct bladeMezzDevPort
         char *wwpn;
         enum fabricType fabric;
         enum fabricStatus status;
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+        xmlNode *extraData;
 };
 
 struct bladeMezzDevInfo
@@ -1097,7 +1103,7 @@ struct bladeMezzDevInfo
         enum bladeMezzDevStatus status;
         int sizeport;
         struct bladeMezzDevPort port;
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+        xmlNode *extraData;
 };
 
 struct bladeMezzInfo
@@ -1105,7 +1111,7 @@ struct bladeMezzInfo
         byte mezzNumber;
         struct bladeMezzSlotInfo mezzSlots;
         struct bladeMezzDevInfo mezzDevices;
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+        xmlNode *extraData;
 };
 
 struct bladePortMap
@@ -1116,7 +1122,7 @@ struct bladePortMap
         byte numberOfMezzes;
         int sizemezz;
         struct bladeMezzInfo mezz;
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+        xmlNode *extraData;
 };
 
 struct fanInfo
@@ -1133,8 +1139,10 @@ struct fanInfo
         int lowLimitFanSpeed;
         enum opStatus operationalStatus;
         struct diagnosticChecks diagnosticChecks;
+#if 0
         xmlNode *diagnosticChecksEx;    /* Items are struct diagnosticData */
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+#endif
+        xmlNode *extraData;
 };
 
 struct getFanInfo
@@ -1160,8 +1168,10 @@ struct interconnectTrayStatus
         enum power powered;
         xmlNode *ports;                 /* Items are struct portEnabled */
         struct diagnosticChecks diagnosticChecks;
+#if 0
         xmlNode *diagnosticChecksEx;    /* Items are struct diagnosticData */
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+#endif
+        xmlNode *extraData;
 };
 
 struct getInterconnectTrayStatus
@@ -1189,7 +1199,7 @@ struct interconnectTrayInfo
         char *urlToMgmt;
         int powerOnWatts;
         int powerOffWatts;
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+        xmlNode *extraData;
 };
 
 struct getInterconnectTrayInfo
@@ -1207,7 +1217,7 @@ struct interconnectTrayPortInfo
         enum interconnectTrayPortEnabled portEnabled;
         enum interconnectTrayPortUidStatus portUidStatus;
         enum interconnectTrayPortLinkLedStatus portLinkLedStatus;
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+        xmlNode *extraData;
 };
 
 struct interconnectTraySlotInfo
@@ -1216,7 +1226,7 @@ struct interconnectTraySlotInfo
         enum interconnectTrayType type;
         int sizeport;
         struct interconnectTrayPortInfo port;
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+        xmlNode *extraData;
 };
 
 struct interconnectTrayPortMap
@@ -1228,7 +1238,7 @@ struct interconnectTrayPortMap
         byte numberOfSlots;
         int sizeslot;
         struct interconnectTraySlotInfo slot;
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+        xmlNode *extraData;
 };
 
 struct powerSupplyInfo
@@ -1240,7 +1250,7 @@ struct powerSupplyInfo
         char *serialNumber;
         int capacity;
         int actualOutput;
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+        xmlNode *extraData;
 };
 
 struct getPowerSupplyInfo
@@ -1260,8 +1270,10 @@ struct powerSupplyStatus
         enum opStatus operationalStatus;
         enum opStatus inputStatus;
         struct diagnosticChecks diagnosticChecks;
+#if 0
         xmlNode *diagnosticChecksEx;    /* Items are struct diagnosticData */
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+#endif
+        xmlNode *extraData;
 };
 
 struct powerSubsystemInfo
@@ -1281,7 +1293,7 @@ struct powerSubsystemInfo
         byte goodPowerSupplies;
         byte wantedPowerSupplies;
         byte neededPowerSupplies;
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+        xmlNode *extraData;
 };
 
 struct powerConfigInfo
@@ -1289,7 +1301,7 @@ struct powerConfigInfo
         int powerCeiling;
         enum powerRedundancy redundancyMode;
         enum hpoa_boolean dynamicPowerSaverEnabled;
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+        xmlNode *extraData;
 };
 
 struct thermalInfo
@@ -1301,7 +1313,7 @@ struct thermalInfo
         byte temperatureC;
         byte cautionThreshold;
         byte criticalThreshold;
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+        xmlNode *extraData;
 };
 
 struct getThermalInfo
@@ -1321,7 +1333,7 @@ struct enclosureBaysSelection
         enum hpoa_boolean oaAccess;
         xmlNode *bladeBays;             /* Items are struct bayAccess */
         xmlNode *interconnectTrayBays;  /* Items are struct bayAccess */
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+        xmlNode *extraData;
 };
 
 struct userInfo
@@ -1332,7 +1344,7 @@ struct userInfo
         enum hpoa_boolean isEnabled;
         enum userAcl acl;
         struct enclosureBaysSelection bayPermissions;
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+        xmlNode *extraData;
 };
 
 struct getUserInfo
@@ -1355,7 +1367,7 @@ struct x509CertificateInfo
         int extensionCount;
         char *md5Fingerprint;
         char *sha1Fingerprint;
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+        xmlNode *extraData;
 };
 
 struct certificates
@@ -1363,7 +1375,7 @@ struct certificates
         int numberOfCertificates;
         int sizecertificate;
         xmlNode *certificate;   /* Items are struct x509CertificateInfo */
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+        xmlNode *extraData;
 };
 
 struct ldapInfo
@@ -1377,7 +1389,7 @@ struct ldapInfo
         char *searchContext3;
         enum hpoa_boolean userNtAccountNameMapping;
         struct certificates certificates;
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+        xmlNode *extraData;
 };
 
 struct ldapGroupInfo
@@ -1386,14 +1398,14 @@ struct ldapGroupInfo
         char *description;
         enum userAcl acl;
         struct enclosureBaysSelection bayPermissions;
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+        xmlNode *extraData;
 };
 
 struct trapInfo
 {
         char *ipAddress;
         char *community;
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+        xmlNode *extraData;
 };
 
 struct snmpInfo
@@ -1405,7 +1417,7 @@ struct snmpInfo
         char *rwCommunity;
         int numTraps;
         xmlNode *traps;                 /* Items are struct trapInfo */
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+        xmlNode *extraData;
 };
 
 struct enclosureNetworkInfo
@@ -1423,7 +1435,7 @@ struct enclosureNetworkInfo
         enum hpoa_boolean ebipaSvbEnabled;
         enum hpoa_boolean ebipaSwmEnabled;
         enum hpoa_boolean xmlReplyEnabled;
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+        xmlNode *extraData;
 };
 
 struct oaNetworkInfo
@@ -1438,7 +1450,7 @@ struct oaNetworkInfo
         xmlNode *dns;                   /* Items are char *ipAddress */
         char *elinkIpAddress;
         enum hpoa_boolean linkActive;
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+        xmlNode *extraData;
 };
 
 struct getOaNetworkInfo
@@ -1451,7 +1463,7 @@ struct enclosureTime
         time_t dateTime;
         char *timeZone;
         time_t universalDateTime;
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+        xmlNode *extraData;
 };
 
 struct alertmailInfo
@@ -1459,7 +1471,7 @@ struct alertmailInfo
         char *server;
         char *receiver;
         char *domain;
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+        xmlNode *extraData;
 };
 
 struct ebipaInfo
@@ -1478,7 +1490,7 @@ struct ebipaInfo
         xmlNode *swmNtpServer;          /* Items are char *ipAddress */
         enum hpoa_boolean isConfiguredSvb;
         enum hpoa_boolean isConfiguredSwm;
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+        xmlNode *extraData;
 };
 
 struct lcdChatMessage
@@ -1489,7 +1501,7 @@ struct lcdChatMessage
         char *answerChoiceList;
         char *selectedAnswerText;
         char *customAnswerText;
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+        xmlNode *extraData;
 };
 
 struct lcdUserNotes
@@ -1500,14 +1512,14 @@ struct lcdUserNotes
         char *lcdUserNotesLine4;
         char *lcdUserNotesLine5;
         char *lcdUserNotesLine6;
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+        xmlNode *extraData;
 };
 
 struct lcdButtonEvent
 {
         enum lcdButton button;
         enum lcdButtonState buttonState;
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+        xmlNode *extraData;
 };
 
 struct lcdStatus
@@ -1518,8 +1530,10 @@ struct lcdStatus
         enum hpoa_boolean buttonLock;
         enum lcdSetupHealth lcdSetupHealth;
         struct diagnosticChecks diagnosticChecks;
+#if 0
         xmlNode *diagnosticChecksEx;    /* Items are struct diagnosticData */
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+#endif
+        xmlNode *extraData;
 };
 
 struct lcdInfo
@@ -1528,7 +1542,7 @@ struct lcdInfo
         char *partNumber;
         char *manufacturer;
         char *fwVersion;
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+        xmlNode *extraData;
 };
 
 struct hpSimInfo
@@ -1536,7 +1550,7 @@ struct hpSimInfo
         enum hpSimTrustMode trustMode;
         struct certificates certificates;
         xmlNode *xeNameList;            /* Items are char *xeName */
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+        xmlNode *extraData;
 };
 
 struct thermalSubsystemInfo
@@ -1546,7 +1560,7 @@ struct thermalSubsystemInfo
         byte goodFans;
         byte wantedFans;
         byte neededFans;
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+        xmlNode *extraData;
 };
 
 struct bladeIpl
@@ -1563,7 +1577,7 @@ struct bladeBootInfo
         enum oneTimeBootDevice oneTimeBootDevice;
         enum oneTimeBootAgent oneTimeBootAgent;
         enum hpoa_boolean oneTimeBypassF1F2Messages;
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+        xmlNode *extraData;
 };
 
 struct oaVcmMode
@@ -1572,7 +1586,7 @@ struct oaVcmMode
         char *vcmUrl;
         char *vcmDomainId;
         char *vcmDomainName;
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+        xmlNode *extraData;
 };
 
 struct powerReductionStatus
@@ -1580,7 +1594,7 @@ struct powerReductionStatus
         enum powerReductionState powerReductionState;
         enum powerReductionArmedState powerReductionArmedState;
         enum powerReductionState powerReductionFiredState;
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+        xmlNode *extraData;
 };
 
 struct virtualMediaStatus
@@ -1591,7 +1605,7 @@ struct virtualMediaStatus
         char *cdromUrl;
         enum virtualMediaDeviceStatus floppyStatus;
         char *floppyUrl;
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+        xmlNode *extraData;
 };
 
 struct fanZone
@@ -1601,17 +1615,17 @@ struct fanZone
         enum opStatus operationalStatus;
         int targetRpm;
         int targetPwm;
-        xmlNode *deviceBayArray;        /* Items are byte bay */
-        xmlNode *fanInfoArray;          /* Items are struct fanInfo */
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+        xmlNode *deviceBayArray;                /* Items are byte bay */
+        xmlNode *fanInfoArray;                  /* Items are struct fanInfo */
+        xmlNode *extraData;
 };
 
 struct deviceBayArray {
-        xmlNode *bay;                   /* Items are byte (bay) */
+        xmlNode *bay;                           /* Items are byte (bay) */
 };
 
 struct fanInfoArray{
-        xmlNode *fanInfo;               /* Items are struct fanInfo */
+        xmlNode *fanInfo;                       /* Items are struct fanInfo */
 };
 
 struct ebipaBay
@@ -1653,7 +1667,7 @@ struct encLinkOa
         char *ipAddress;
         char *macAddress;
         char *fwVersion;
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+        xmlNode *extraData;
 };
 
 struct encLink2
@@ -1670,15 +1684,15 @@ struct encLink2
         char *enclosureUrl;
         char *rackName;
         enum hpoa_boolean primaryEnclosure;
-        xmlNode *encLinkOa;             /* Items are struct encLinkOa */
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+        xmlNode *encLinkOa;                     /* Items are struct encLinkOa */
+        xmlNode *extraData;
 };
 
 struct rackTopology2
 {
         char *ruid;
-        xmlNode *enclosures;            /* Items are struct encLink2 */
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+        xmlNode *enclosures;                    /* Items are struct encLink2 */
+        xmlNode *extraData;
 };
 
 struct passwordSettings
@@ -1695,7 +1709,7 @@ struct oaMediaDevice
         enum presence devicePresence;
         enum presence mediaPresence;
         char *volumeLabel;
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+        xmlNode *extraData;
 };
 
 struct firmwareImage
@@ -1707,7 +1721,7 @@ struct firmwareImage
 struct usbMediaFirmwareImages
 {
         xmlNode *image;                 /* Items are struct firmwareImage */
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+        xmlNode *extraData;
 };
 
 struct usbMediaConfigScript
@@ -1717,10 +1731,10 @@ struct usbMediaConfigScript
 
 struct usbMediaConfigScripts
 {
-        xmlNode *usbMediaConfigScript;  /* Items are
-                                         * struct usbMediaConfigScript
-                                         */
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+        xmlNode *usbMediaConfigScript;          /* Items are struct
+                                                 * usbMediaConfigScript
+                                                 */
+        xmlNode *extraData;
 };
 
 struct tfaSettings
@@ -1728,7 +1742,7 @@ struct tfaSettings
         enum hpoa_boolean enableTwoFactor;
         enum hpoa_boolean enableCrl;
         enum hpoa_boolean subjectAltName;
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+        xmlNode *extraData;
 };
 
 struct userCertificateInfo
@@ -1745,7 +1759,7 @@ struct powerdelayBay
 {
         int bayNumber;
         int delay;
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+        xmlNode *extraData;
 };
 
 struct powerdelaySettings
@@ -1753,7 +1767,7 @@ struct powerdelaySettings
         enum hpoa_boolean isPowerdelayInProgress;
         xmlNode *interconnects;         /* Items are struct powerdelayBay */
         xmlNode *servers;               /* Items are struct powerdelayBay */
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+        xmlNode *extraData;
 };
 
 struct getFanZoneArrayResponse
@@ -1852,7 +1866,7 @@ struct eventInfo
         int queueSize;
         union _hpoa__data eventData;
         enum enum_eventInfo enum_eventInfo;
-        xmlNode *extraData;             /* Items are struct extraDataInfo */
+        xmlNode *extraData;
 };
 
 struct getAllEventsResponse
@@ -2019,8 +2033,6 @@ int soap_setInterconnectTrayUid(SOAP_CON *con,
 
 /* Function prototypes for OA SOAP helper functions */
 void    soap_getExtraData(xmlNode *extraData, struct extraDataInfo *result);
-void    soap_getDiagnosticChecksEx(xmlNode *diag,
-                                   struct diagnosticData *result);
 void    soap_getBladeCpuInfo(xmlNode *cpus, struct bladeCpuInfo *result);
 void    soap_getBladeNicInfo(xmlNode *nics, struct bladeNicInfo *result);
 void    soap_getDiagnosticData(xmlNode *data, struct diagnosticData *result);
