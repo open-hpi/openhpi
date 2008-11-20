@@ -746,7 +746,7 @@ int oh_load_plugin_functions(struct oh_plugin *plugin, struct oh_abi_v2 **abi)
         (*abi)->set_resource_severity     = lt_dlsym(plugin->dl_handle,
                                                 "oh_set_resource_severity");
         (*abi)->resource_failed_remove    = lt_dlsym(plugin->dl_handle,
-                                                "oh_set_resource_failed_remove");
+                                                "oh_resource_failed_remove");
         (*abi)->get_el_info               = lt_dlsym(plugin->dl_handle,
                                                 "oh_get_el_info");
         (*abi)->get_el_caps               = lt_dlsym(plugin->dl_handle,
