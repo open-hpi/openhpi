@@ -1853,6 +1853,19 @@ SaErrorT SAHPI_API saHpiSensorReadingGet (
         }
 
         rv = get_func(h->hnd, ResourceId, SensorNum, Reading, EventState);
+
+	/* If the Reading->IsSupported is set to False, then Reading->Type and
+	 * Reading->Value fields are not valid. Hence, these two fields may not
+	 * be modified by the plugin. But the marshalling code expects all
+	 * the fields of return structure to have proper values.
+	 * 
+	 * The below code is added to overcome the marshalling limitation.
+	 */
+	if (rv == SA_OK && Reading->IsSupported == SAHPI_FALSE) {
+		Reading->Type = 0;
+		memset(&(Reading->Value), 0, sizeof(SaHpiSensorReadingUnionT));
+	}
+
         oh_release_handler(h);
 
         return rv;
