@@ -218,6 +218,10 @@ typedef unsigned char byte;
                         "<hpoa:uid>%s</hpoa:uid>" \
                         "</hpoa:setInterconnectTrayUid>\n"
 
+#define SET_LCD_BUTTON_LOCK \
+			"<hpoa:setLcdButtonLock>" \
+			"<hpoa:buttonLock>%d</hpoa:buttonLock>" \
+			"</hpoa:setLcdButtonLock>\n"
 
 /* Enumerated types used for specific SOAP commands */
 OA_SOAP_ENUM(hpoa_boolean,
@@ -2016,6 +2020,8 @@ int soap_setBladeUid(SOAP_CON *connection,
 int soap_setInterconnectTrayUid(SOAP_CON *con,
                                 const struct setInterconnectTrayUid *request);
 
+int soap_setLcdButtonLock(SOAP_CON *con,
+                          enum hpoa_boolean buttonLock);
 
 /* Function prototypes for OA SOAP helper functions */
 void    soap_getExtraData(xmlNode *extraData, struct extraDataInfo *result);

@@ -1659,3 +1659,9 @@ int soap_setInterconnectTrayUid(SOAP_CON *con,
         return(soap_request(con, SET_INTERCONNECT_TRAY_UID, request->bayNumber,
                             uid));
 }
+
+int soap_setLcdButtonLock(SOAP_CON *con,
+			  enum hpoa_boolean buttonLock)
+{
+        return(soap_request(con, SET_LCD_BUTTON_LOCK, buttonLock));
+}
