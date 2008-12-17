@@ -416,6 +416,13 @@ void process_oa_out_of_access(struct oh_handler_state *oh_handler,
                 return;
         }
 
+	/* Get the user_name and password from config file */
+	user_name =
+		(char *) g_hash_table_lookup(oh_handler->config,
+					     "OA_User_Name");
+	password =
+		(char *) g_hash_table_lookup(oh_handler->config, "OA_Password");
+
         oa_handler = (struct oa_soap_handler *) oh_handler->data;
         /* Start a timer */
         timer = g_timer_new();
@@ -496,13 +503,6 @@ void process_oa_out_of_access(struct oh_handler_state *oh_handler,
                  * inserted OA IP address
                  */
                 if (oa_was_removed == SAHPI_TRUE) {
-                        /* Get the user_name and password from config file */
-                        user_name = (char *)
-                                    g_hash_table_lookup(oh_handler->config,
-                                                        "OA_User_Name");
-                        password = (char *)
-                                   g_hash_table_lookup(oh_handler->config,
-                                                       "OA_Password");
                         /* Create the OA connection */
                         create_oa_connection(oa, user_name, password);
                         is_oa_reachable = SAHPI_TRUE;
