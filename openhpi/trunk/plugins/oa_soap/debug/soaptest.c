@@ -877,6 +877,17 @@ int main(int argc, char *argv[])
         }
     }
 
+    /* Try setLcdButtonLock call */
+    printf("\nSetting LCD button lock to on and off\n");
+    if (soap_setLcdButtonLock(con, HPOA_TRUE)) {
+	err("failed soap_setLcdButtonLock() wth TRUE in main");
+    } else {
+	/* Revert back the LCD button lock */
+	if (soap_setLcdButtonLock(con, HPOA_FALSE)) {
+	    err("failed soap_setLcdButtonLock() with FALSE in main");
+	}
+   }
+	
 
 #if 1					/* Sometimes, we want to skip events */
     /* Try to subscribe for events */

@@ -45,11 +45,10 @@
  *      process_server_extraction_event() - Processes the server extraction
  *                                          event
  *
- *      process_server_thermal_event()    - Processes the server thermal event
- *
  *      build_inserted_server_rpt()       - Builds the rpt entry for inserted
  *                                          server
  *
+ *	oa_soap_proc_server_status() -	    Processes the server status event
  */
 
 #include "oa_soap_server_event.h"
@@ -158,7 +157,7 @@ SaErrorT process_server_power_on_event(struct oh_handler_state *oh_handler,
         struct oa_soap_hotswap_state *hotswap_state = NULL;
         struct oa_soap_sensor_info *sensor_info=NULL;
         SaHpiRdrT *rdr = NULL;
-        SaHpiIdrIdT sen_rdr_num = OA_SOAP_RES_SEN_TEMP_NUM;
+        SaHpiIdrIdT sen_rdr_num = OA_SOAP_SEN_TEMP_STATUS;
 
         if (oh_handler == NULL || con == NULL || event == NULL) {
                 err("Invalid parameters");
@@ -222,19 +221,7 @@ SaErrorT process_server_power_on_event(struct oh_handler_state *oh_handler,
                                 return SA_ERR_HPI_INTERNAL_ERROR;
                         }
 
-                        /* Check for any thermal sensor state
-                         * and raise the deassert events
-                         */
-                        rv = check_and_deassert_event(
-                                oh_handler, event->resource.ResourceId,
-                                rdr, sensor_info);
-
-                        if (rv != SA_OK) {
-                                err("Deassert of sensor events failed");
-                        }
-
-                        /* Since the server got powered off, there will not be
-                         * any active thermal events
+                        /* Since the server got powered off
                          * Clear the thermal sensor states
                          */
                         sensor_info->current_state = SAHPI_ES_UNSPECIFIED;
@@ -388,6 +375,7 @@ SaErrorT process_server_insertion_event(struct oh_handler_state *oh_handler,
         SaHpiInt32T bay_number;
         struct oh_event event;
         SaHpiRptEntryT rpt;
+	GSList *asserted_sensors = NULL;
 
         if (oh_handler == NULL || con == NULL || oa_event == NULL) {
                 err("Invalid parameters");
@@ -437,7 +425,8 @@ SaErrorT process_server_insertion_event(struct oh_handler_state *oh_handler,
                 return rv;
         }
 
-        rv = populate_event(oh_handler, rpt.ResourceId, &event);
+        rv = oa_soap_populate_event(oh_handler, rpt.ResourceId, &event,
+				   &asserted_sensors);
         if (rv != SA_OK) {
                 err("Populating event struct failed");
                 return SA_ERR_HPI_INTERNAL_ERROR;
@@ -455,6 +444,10 @@ SaErrorT process_server_insertion_event(struct oh_handler_state *oh_handler,
         event.event.EventDataUnion.HotSwapEvent.CauseOfStateChange =
                 SAHPI_HS_CAUSE_OPERATOR_INIT;
         oh_evt_queue_push(oh_handler->eventq, copy_oa_soap_event(&event));
+
+	/* Raise the assert sensor events */
+	if (asserted_sensors)
+		oa_soap_assert_sen_evt(oh_handler, &rpt, asserted_sensors);
 
         return SA_OK;
 }
@@ -503,178 +496,6 @@ SaErrorT process_server_extraction_event(struct oh_handler_state *oh_handler,
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-        return SA_OK;
-}
-
-/**
- * process_server_thermal_event
- *      @oh_handler: Pointer to openhpi handler structure
- *      @oa_event:   Pointer to the OA event structure
- *
- * Purpose:
- *      Processes and creates server sensor thermal events
- *
- * Detailed Description: NA
- *
- * Return values:
- *      SA_OK                     - success.
- *      SA_ERR_HPI_INVALID_PARAMS - on wrong parameters.
- *      SA_ERR_HPI_INTERNAL_ERROR - on failure
- **/
-SaErrorT process_server_thermal_event(struct oh_handler_state *oh_handler,
-                                      struct eventInfo *oa_event)
-{
-        SaErrorT rv = SA_OK;
-        SaHpiRptEntryT *rpt = NULL;
-        SaHpiRdrT *rdr = NULL;
-        struct oa_soap_sensor_info *sensor_info=NULL;
-        SaHpiSensorReadingT current_reading;
-        SaHpiSeverityT event_severity = SAHPI_OK;
-        SaHpiResourceIdT resource_id;
-        struct oa_soap_handler *oa_handler = NULL;
-        SaHpiInt32T bay_number;
-
-        if (oh_handler == NULL || oa_event == NULL) {
-                err("Invalid parameters");
-                return SA_ERR_HPI_INVALID_PARAMS;
-        }
-
-        oa_handler = (struct oa_soap_handler *) oh_handler->data;
-        bay_number = oa_event->eventData.bladeStatus.bayNumber;
-        resource_id =
-           oa_handler->oa_soap_resources.server.resource_id[bay_number - 1];
-        /* Get the rpt entry of the resource */
-        rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
-        if (rpt == NULL) {
-                err("resource RPT is NULL");
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
-
-        rdr = oh_get_rdr_by_type(oh_handler->rptcache,
-                                 rpt->ResourceId,
-                                 SAHPI_SENSOR_RDR,
-                                 OA_SOAP_RES_SEN_TEMP_NUM);
-        if (rdr == NULL) {
-                err("RDR not present");
-                return SA_ERR_HPI_NOT_PRESENT;
-        }
-
-        /* Get the thermal sensor information */
-        sensor_info = (struct oa_soap_sensor_info*)
-                oh_get_rdr_data(oh_handler->rptcache, rpt->ResourceId,
-                                rdr->RecordId);
-        if (sensor_info == NULL) {
-                err("No sensor data. Sensor=%s", rdr->IdString.Data);
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
-
-        /* If the thermal sensor is enabled and sensor event is enabled
-         * Then, raise the thermal sensor events can be raised,
-         * Else, ignore the thermal event from OA
-         */
-        if (sensor_info->sensor_enable == SAHPI_FALSE) {
-                dbg("Sensor not enabled for reading");
-                return SA_OK;
-        }
-
-        if (sensor_info->event_enable == SAHPI_FALSE) {
-                dbg("Sensor not enabled for raising events");
-                return SA_OK;
-        }
-
-        current_reading.IsSupported = SAHPI_TRUE;
-        current_reading.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64;
-        /* Put the current thermal temperature into current reading*/
-        current_reading.Value.SensorFloat64 =
-                oa_event->eventData.thermalInfo.temperatureC;
-
-        /* Check the current state of the sensor */
-        switch (oa_event->eventData.thermalInfo.sensorStatus) {
-                case  SENSOR_STATUS_OK:
-                        /* Sensor has changed the state from Major to OK
-                         * Update the sensor structure
-                         */
-                        sensor_info->previous_state = SAHPI_ES_UPPER_MAJOR;
-                        sensor_info->current_state = SAHPI_ES_UNSPECIFIED;
-                        event_severity = SAHPI_MAJOR;
-
-                        /* Raise the thermal sensor deassert event */
-                        rv = generate_sensor_deassert_thermal_event(oh_handler,
-                                                      OA_SOAP_RES_SEN_TEMP_NUM,
-                                                      rpt,
-                                                      rdr,
-                                                      current_reading,
-                                                      event_severity,
-                                                      sensor_info);
-                        if (rv != SA_OK) {
-                                err("Raising deassert thermal event failed");
-                                return rv;
-                        }
-                        break;
-                case SENSOR_STATUS_CAUTION:
-                        /* Sensor has changed the state to Caution from
-                         * Major or OK.  Update the sensor structure.
-                         */
-                        sensor_info->previous_state =
-                                sensor_info->current_state;
-                        sensor_info->current_state = SAHPI_ES_UPPER_MAJOR;
-
-                        if (sensor_info->previous_state ==
-                            SAHPI_ES_UNSPECIFIED) {
-                                event_severity = SAHPI_MAJOR;
-                                /* The previous sensor state is OK
-                                 * Raise the thermal sensor assert event
-                                 */
-                                rv = generate_sensor_assert_thermal_event(
-                                        oh_handler, OA_SOAP_RES_SEN_TEMP_NUM,
-                                        rpt, rdr, current_reading,
-                                        event_severity, sensor_info);
-                                if (rv != SA_OK) {
-                                        err("Raising assert thermal "
-                                            "event failed");
-                                        return rv;
-                                }
-                        } else {
-                                event_severity = SAHPI_CRITICAL;
-                                /* The previous sensor state is Major
-                                 * Raise the thermal sensor deassert event
-                                 */
-                                rv = generate_sensor_deassert_thermal_event(
-                                        oh_handler, OA_SOAP_RES_SEN_TEMP_NUM,
-                                        rpt, rdr, current_reading,
-                                        event_severity, sensor_info);
-                                if (rv != SA_OK) {
-                                        err("Raising assert thermal "
-                                            "event failed");
-                                        return rv;
-                                }
-                        }
-                        break;
-                case SENSOR_STATUS_CRITICAL:
-                        /* Sensor has changed the state from Caution to
-                         * Critical.  Update the sensor structure.
-                         */
-                        sensor_info->previous_state = SAHPI_ES_UPPER_MAJOR;
-                        sensor_info->current_state = SAHPI_ES_UPPER_CRIT;
-                        event_severity = SAHPI_CRITICAL;
-
-                        /* Raise the thermal sensor assert event */
-                        rv = generate_sensor_assert_thermal_event(oh_handler,
-                                                    OA_SOAP_RES_SEN_TEMP_NUM,
-                                                    rpt,
-                                                    rdr,
-                                                    current_reading,
-                                                    event_severity,
-                                                    sensor_info);
-                        if (rv != SA_OK) {
-                                err("Raising assert thermal event failed");
-                                return rv;
-                        }
-                        break;
-                default:
-                        err("sensor status not handled");
-                        return SA_OK;
-        }
         return SA_OK;
 }
 
@@ -740,4 +561,159 @@ SaErrorT build_inserted_server_rpt(struct oh_handler_state *oh_handler,
         }
 
         return SA_OK;
+}
+
+/**
+ * oa_soap_proc_server_status
+ *      @oh_handler	: Pointer to openhpi handler structure
+ *      @status		: Pointer to blade status structure
+ *
+ * Purpose:
+ *      Processes the server status event
+ *
+ * Detailed Description: NA
+ *
+ * Return values:
+ *	NONE
+ **/
+void oa_soap_proc_server_status(struct oh_handler_state *oh_handler,
+				struct bladeStatus *status)
+{
+	SaErrorT rv = SA_OK;
+	SaHpiRptEntryT *rpt = NULL;
+	struct oa_soap_handler *oa_handler = NULL;
+	SaHpiResourceIdT resource_id;
+	enum diagnosticStatus diag_ex_status[OA_SOAP_MAX_DIAG_EX];
+
+	if (oh_handler == NULL || status == NULL) {
+		err("Invalid parameters");
+		return;
+	}
+
+
+	oa_handler = (struct oa_soap_handler *) oh_handler->data;
+	resource_id = oa_handler->oa_soap_resources.server.
+			resource_id[status->bayNumber - 1];
+	/* Get the rpt entry of the resource */
+	rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
+	if (rpt == NULL) {
+		err("resource RPT is NULL");
+		return;
+	}
+
+	/* Process operational status sensor */
+	OA_SOAP_PROCESS_SENSOR_EVENT(OA_SOAP_SEN_OPER_STATUS,
+				     status->operationalStatus, 0, 0)
+
+	/* Process predictive failure sensor */
+	OA_SOAP_PROCESS_SENSOR_EVENT(OA_SOAP_SEN_PRED_FAIL,
+				     status->operationalStatus, 0, 0)
+
+	/* Process internal data error sensor */
+	OA_SOAP_PROCESS_SENSOR_EVENT(OA_SOAP_SEN_INT_DATA_ERR,
+				     status->diagnosticChecks.internalDataError,
+				     0, 0)
+
+	/* Process management processor error sensor */
+	OA_SOAP_PROCESS_SENSOR_EVENT(OA_SOAP_SEN_MP_ERR,
+				     status->diagnosticChecks.
+					managementProcessorError, 0, 0)
+
+	/* Process thermal waring sensor */
+	OA_SOAP_PROCESS_SENSOR_EVENT(OA_SOAP_SEN_THERM_WARN,
+				     status->diagnosticChecks.thermalWarning,
+				     0, 0)
+
+	/* Process thermal danger sensor */
+	OA_SOAP_PROCESS_SENSOR_EVENT(OA_SOAP_SEN_THERM_DANGER,
+				     status->diagnosticChecks.thermalDanger,
+				     0, 0)
+
+	/* Process IO configuration error sensor */
+	OA_SOAP_PROCESS_SENSOR_EVENT(OA_SOAP_SEN_IO_CONFIG_ERR,
+				     status->diagnosticChecks.
+					ioConfigurationError, 0, 0)
+
+	/* Process device power request error sensor */
+	OA_SOAP_PROCESS_SENSOR_EVENT(OA_SOAP_SEN_DEV_PWR_REQ,
+				     status->diagnosticChecks.
+					devicePowerRequestError, 0, 0)
+
+	/* Process insufficient coolling sensor */
+	OA_SOAP_PROCESS_SENSOR_EVENT(OA_SOAP_SEN_INSUF_COOL,
+				     status->diagnosticChecks.
+					insufficientCooling, 0, 0)
+
+	/* Process device location error sensor */
+	OA_SOAP_PROCESS_SENSOR_EVENT(OA_SOAP_SEN_DEV_LOC_ERR,
+				     status->diagnosticChecks.
+					deviceLocationError, 0, 0)
+
+	/* Process device failure error sensor */
+	OA_SOAP_PROCESS_SENSOR_EVENT(OA_SOAP_SEN_DEV_FAIL,
+				     status->diagnosticChecks.deviceFailure,
+				     0, 0)
+
+	/* Process device degraded error sensor */
+	OA_SOAP_PROCESS_SENSOR_EVENT(OA_SOAP_SEN_DEV_DEGRAD,
+				     status->diagnosticChecks.deviceDegraded,
+				     0, 0)
+
+	oa_soap_parse_diag_ex(status->diagnosticChecksEx, diag_ex_status);
+
+	/* Process device missing sensor */
+	OA_SOAP_PROCESS_SENSOR_EVENT(OA_SOAP_SEN_DEV_MISS,
+				     diag_ex_status[DIAG_EX_DEV_MISS], 0, 0)
+
+	/* Process device bonding sensor */
+	OA_SOAP_PROCESS_SENSOR_EVENT(OA_SOAP_SEN_DEV_BOND,
+				     diag_ex_status[DIAG_EX_DEV_BOND], 0, 0)
+
+	/* Process device power sequence sensor */
+	OA_SOAP_PROCESS_SENSOR_EVENT(OA_SOAP_SEN_DEV_PWR_SEQ,
+				     diag_ex_status[DIAG_EX_DEV_PWR_SEQ], 0, 0)
+
+	/* Process network configuration sensor */
+	OA_SOAP_PROCESS_SENSOR_EVENT(OA_SOAP_SEN_NET_CONFIG,
+				     diag_ex_status[DIAG_EX_NET_CONFIG], 0, 0)
+
+	/* Process profile unassigned error sensor */
+	OA_SOAP_PROCESS_SENSOR_EVENT(OA_SOAP_SEN_PROF_UNASSIGN_ERR,
+				     diag_ex_status[DIAG_EX_PROF_UNASSIGN_ERR],
+				     0, 0)
+
+	/* Process Device not supported sensor */
+	OA_SOAP_PROCESS_SENSOR_EVENT(OA_SOAP_SEN_DEV_NOT_SUPPORT,
+				     diag_ex_status[DIAG_EX_DEV_NOT_SUPPORT],
+				     0, 0)
+
+	/* Process Too low power request sensor */
+	OA_SOAP_PROCESS_SENSOR_EVENT(OA_SOAP_SEN_TOO_LOW_PWR_REQ,
+				     diag_ex_status[DIAG_EX_TOO_LOW_PWR_REQ],
+				     0, 0)
+
+	/* Process Call HP sensor */
+	OA_SOAP_PROCESS_SENSOR_EVENT(OA_SOAP_SEN_CALL_HP,
+				     diag_ex_status[DIAG_EX_CALL_HP], 0, 0)
+
+	/* Process Storage device missing sensor */
+	OA_SOAP_PROCESS_SENSOR_EVENT(OA_SOAP_SEN_STORAGE_DEV_MISS,
+				     diag_ex_status[DIAG_EX_STORAGE_DEV_MISS],
+				     0, 0)
+
+	/* Process Power capping error sensor */
+	OA_SOAP_PROCESS_SENSOR_EVENT(OA_SOAP_SEN_GRPCAP_ERR,
+				     diag_ex_status[DIAG_EX_GRPCAP_ERR],
+				     0, 0)
+
+	/* Process IML recorded errors sensor */
+	OA_SOAP_PROCESS_SENSOR_EVENT(OA_SOAP_SEN_IML_ERR,
+				     diag_ex_status[DIAG_EX_IML_ERR], 0, 0)
+
+	/* Process Duplicate management IP address sensor */
+	OA_SOAP_PROCESS_SENSOR_EVENT(OA_SOAP_SEN_DUP_MGMT_IP_ADDR,
+				     diag_ex_status[DIAG_EX_DUP_MGMT_IP_ADDR],
+				     0, 0)
+
+	return;
 }

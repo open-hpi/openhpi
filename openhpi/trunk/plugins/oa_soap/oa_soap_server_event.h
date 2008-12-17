@@ -57,11 +57,11 @@ SaErrorT process_server_insertion_event(struct oh_handler_state *oh_handler,
 SaErrorT process_server_extraction_event(struct oh_handler_state *oh_handler,
                                          struct eventInfo *oa_event);
 
-SaErrorT process_server_thermal_event(struct oh_handler_state *oh_handler,
-                                      struct eventInfo *oa_event);
-
 SaErrorT build_inserted_server_rpt(struct oh_handler_state *oh_handler,
                                    struct bladeInfo *response,
                                    SaHpiRptEntryT *rpt);
+
+void oa_soap_proc_server_status(struct oh_handler_state *oh_handler,
+				struct bladeStatus *status);
 
 #endif
