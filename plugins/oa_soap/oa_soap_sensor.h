@@ -70,6 +70,7 @@
 #define OA_SOAP_BOOL_RVRS_CLASS		11
 #define OA_SOAP_HEALTH_OPER_CLASS	12
 #define OA_SOAP_HEALTH_PRED_FAIL_CLASS	13
+#define OA_SOAP_BLADE_THERMAL_CLASS	14
 
 /* Sensor assert states of OA SOAP plugin
  *
@@ -190,6 +191,49 @@ enum oa_soap_diag_ex {
 	DIAG_EX_DUP_MGMT_IP_ADDR
 };
 
+/* Maximum number of possible sensor strings provided 
+ * by getBladeThermalInfoArray soap call 
+ */
+#define OA_SOAP_MAX_THRM_SEN	9
+
+/* Enum values for the sensor description strings provide by 
+ * getBladeThermalInfoArray soap call
+ */
+enum oa_soap_thermal_sen {
+	SYSTEM_ZONE,
+	CPU_ZONE,
+	CPU_1,
+	CPU_2,
+	CPU_3,
+	CPU_4,
+	DISK_ZONE,
+	MEMORY_ZONE,
+	AMBIENT_ZONE
+};
+
+/* Define the sensor number range for blade extra thermal sensors */
+
+#define OA_SOAP_BLD_THRM_SEN_START	0x02e
+#define OA_SOAP_BLD_THRM_SEN_END	0x04d
+
+/* Structure required for building thermal sensor when server blade is off */
+struct oa_soap_static_thermal_sensor_info {
+	SaHpiSensorNumT base_sen_num; /* Base sensor number for sensor type */
+	enum oa_soap_thermal_sen sensor; /* thermal sensor type */
+	SaHpiInt32T sensor_count; /* Number of sensor to be created of 
+				   * above thermal sensor type 
+				   */
+};
+
+/* Structure containing thermal sensor information data*/
+struct oa_soap_thrm_sen_data {
+	SaHpiRdrT rdr_num;
+	SaHpiSensorNumT sen_delta; /* Delta difference of the sensor rdr number
+				    * from the base sensor number of particular
+				    * sensor type
+				    */
+};
+	
 /* Structure for sensor reading */
 struct oa_soap_sensor_reading_data {
         SaHpiSensorReadingT data;
@@ -322,5 +366,10 @@ SaErrorT oa_soap_map_thresh_resp(SaHpiRdrT *rdr,
 SaErrorT oa_soap_assert_sen_evt(struct oh_handler_state *oh_handler,
 				SaHpiRptEntryT *rpt,
 				GSList *assert_sensor_list);
+
+SaErrorT oa_soap_get_bld_thrm_sen_data(SaHpiSensorNumT sen_num,
+				       struct bladeThermalInfoArrayResponse
+							response,
+				       struct bladeThermalInfo *bld_thrm_info);
 
 #endif

@@ -90,6 +90,11 @@
  * 					  HPI sensor states
  *
  * 	oa_soap_assert_sen_evt()	- Generates the assert sensor event
+ *
+ *	oa_soap_get_bld_thrm_sen_data	- Retrieves the matching 
+ * 					  bladeThermalInfo structure instance
+ *					  from bladeThermalInfoArrayResponse
+ *					  response
  */
 
 #include "oa_soap_sensor.h"
@@ -497,6 +502,25 @@ SaErrorT oa_soap_set_sensor_enable(void *oh_handler,
                         err("No sensor data. Sensor=%s", rdr->IdString.Data);
                         return SA_ERR_HPI_INTERNAL_ERROR;
                 }
+
+		/* The thermal sensors of the blade resource should not be 
+		 * enabled if the resource is in power off/degraded state.
+		 * TODO: Since the "EnableCtrl" field in rdr cannot be changed
+		 * after the discovery of the blade, provided below is
+		 * workaround logic until OpenHPI migrates to HPI-B.03.01 
+		 * specification
+		 */
+		if ((rdr_num == OA_SOAP_SEN_TEMP_STATUS) ||
+		    ((rdr_num >= OA_SOAP_BLD_THRM_SEN_START) && 
+		     (rdr_num <= OA_SOAP_BLD_THRM_SEN_END))) {
+			if (oa_soap_bay_pwr_status[rpt->ResourceEntity.Entry[0].
+					EntityLocation -1] != SAHPI_POWER_ON) {
+					err("Sensor enable operation cannot"
+					    " be performed");
+					return SA_ERR_HPI_READ_ONLY;
+				}
+			}
+
                 if (sensor_info->sensor_enable != enable) {
                         /* Update the sensor enable status with new value and
                          * report the change to the framework through the
@@ -983,6 +1007,9 @@ SaErrorT update_sensor_rdr(struct oh_handler_state *oh_handler,
 
         struct getThermalInfo thermal_request;
         struct thermalInfo thermal_response;
+	struct getBladeThermalInfoArray blade_thermal_request;
+	struct bladeThermalInfoArrayResponse blade_thermal_response;
+	struct bladeThermalInfo blade_thermal_info;
         struct getBladeStatus server_status_request;
         struct bladeStatus server_status_response;
         struct getFanInfo fan_request;
@@ -1000,8 +1027,11 @@ SaErrorT update_sensor_rdr(struct oh_handler_state *oh_handler,
         handler = (struct oh_handler_state *) oh_handler;
         oa_handler = (struct oa_soap_handler *) handler->data;
         location = rpt->ResourceEntity.Entry[0].EntityLocation;
-        thermal_request.bayNumber = server_status_request.bayNumber = location;
-        fan_request.bayNumber = power_supply_request.bayNumber = location;
+        thermal_request.bayNumber = 
+	server_status_request.bayNumber = 
+        fan_request.bayNumber = 
+	power_supply_request.bayNumber = 
+	blade_thermal_request.bayNumber = location;
 
         /* Getting the current reading of the sensor directly from resource
          * using a soap call
@@ -1010,23 +1040,41 @@ SaErrorT update_sensor_rdr(struct oh_handler_state *oh_handler,
                 case (SAHPI_ENT_SYSTEM_BLADE):
                 case (SAHPI_ENT_IO_BLADE):
                 case (SAHPI_ENT_DISK_BLADE):
-                        if (rdr_num == OA_SOAP_SEN_TEMP_STATUS) {
-                                thermal_request.sensorType = SENSOR_TYPE_BLADE;
-
+                        if ((rdr_num == OA_SOAP_SEN_TEMP_STATUS) || 
+			    ((rdr_num >= OA_SOAP_BLD_THRM_SEN_START) &&
+			     (rdr_num <= OA_SOAP_BLD_THRM_SEN_END))){
                                 /* Fetching current thermal reading of the
                                  * server blade in the specified bay number
+				 * NOTE: If the blade is in POWER OFF state or
+				 * in unstable state, the control should not 
+				 * reach this place
                                  */
-                                rv = soap_getThermalInfo(oa_handler->active_con,
-                                                         &thermal_request,
-                                                         &thermal_response);
+				rv = soap_getBladeThermalInfoArray(
+							oa_handler->active_con, 
+							&blade_thermal_request, 
+						       &blade_thermal_response);
                                 if (rv != SOAP_OK) {
+					err("Get blade's thermal info failed");
                                         return SA_ERR_HPI_INTERNAL_ERROR;
                                 }
+				
+				/* Traverse the soap response and fetch the
+				 * current sensor reading
+				 */
+				rv = oa_soap_get_bld_thrm_sen_data(rdr_num,
+							blade_thermal_response,
+							&blade_thermal_info);
+				if (rv != SA_OK) {
+					err("Could not find the matching"
+					    " sensors info from blade");
+					return rv;
+				}
+
                                 sensor_data->data.IsSupported = SAHPI_TRUE;
                                 sensor_data->data.Type =
                                         SAHPI_SENSOR_READING_TYPE_FLOAT64;
                                 sensor_data->data.Value.SensorFloat64 =
-                                        thermal_response.temperatureC;
+                                        blade_thermal_info.temperatureC;
                         }
                         else if (rdr_num == OA_SOAP_SEN_PWR_STATUS) {
 
@@ -2111,6 +2159,7 @@ SaErrorT oa_soap_map_thresh_resp(SaHpiRdrT *rdr,
 	SaHpiUint32T current_reading = 0;
 	SaHpiInt32T sensor_class;
 	struct thermalInfo *thermal_response;
+	struct bladeThermalInfo *blade_thermal_response;
 	struct fanInfo *fan_info;
 
 	if (rdr == NULL || sensor_info == NULL) {
@@ -2123,27 +2172,74 @@ SaErrorT oa_soap_map_thresh_resp(SaHpiRdrT *rdr,
 
 	switch (sensor_class) {
 		case OA_SOAP_TEMP_CLASS:
-			/* Cast the response structure to thermal info response
+		case OA_SOAP_BLADE_THERMAL_CLASS:
+			/* Ambient Zone thermal sensor is present for most of
+			 * resource. Ambient Zone threshold info for Blade is
+			 * available from bladeThermalInfo response, where as
+			 * for other resources it is available it is available
+			 * from thermalInfo response.
+			 * Hence for Blade Ambient zone threshold info
+			 * set sensor class as OA_SOAP_BLADE_THERMAL_CLASS to
+			 * retrieve threshold values from correct response.
 			 */
-			thermal_response = (struct thermalInfo *)response;
 
-			/* Get a pointer to Sensor event array of sensor
-			 * Updating the rdr with actual upper critical threshold
-			 * value provided by OA
-			 */
-			sensor->DataFormat.Range.Max.Value.SensorFloat64 =
-			sensor_info->threshold.UpCritical.Value.SensorFloat64 =
-				thermal_response->criticalThreshold;
+			if ((rdr->Entity.Entry[0].EntityType != 
+						SAHPI_ENT_SYSTEM_BLADE) ||
+			    (rdr->Entity.Entry[0].EntityType !=
+						SAHPI_ENT_IO_BLADE) ||
+			    (rdr->Entity.Entry[0].EntityType !=
+						SAHPI_ENT_DISK_BLADE)) {
+				sensor_class = OA_SOAP_BLADE_THERMAL_CLASS;
+			}
+			
+			if (sensor_class == OA_SOAP_TEMP_CLASS) {
+				/* Cast the response structure to thermal info
+				 * response
+				 */
+				thermal_response = 
+					(struct thermalInfo *)response;
+				/* Updating the rdr with actual upper critical
+				 * threshold value provided by OA
+				 */
+				sensor->DataFormat.Range.Max.Value.
+								SensorFloat64 =
+				sensor_info->threshold.UpCritical.Value.
+								SensorFloat64 =
+					thermal_response->criticalThreshold;
 
-			/* Updating the rdr with actual caution threshold
-			 * value provided by OA
-			 */
-			sensor->DataFormat.Range.NormalMax.Value.SensorFloat64 =
-			sensor_info->threshold.UpMajor.Value.SensorFloat64 =
-				thermal_response->cautionThreshold;
+				sensor->DataFormat.Range.NormalMax.Value.
+								SensorFloat64 =
+				sensor_info->threshold.UpMajor.Value.
+								SensorFloat64 =
+					thermal_response->cautionThreshold;
+				current_reading = 
+				(SaHpiUint32T)thermal_response->temperatureC;
+			} else if (sensor_class == 
+						OA_SOAP_BLADE_THERMAL_CLASS) {
+				/* Cast the response structure to blade thermal
+				 * info response
+				 */
+				blade_thermal_response = 
+					(struct bladeThermalInfo *)response;
+				/* Updating the rdr with actual upper critical
+				 * threshold value provided by OA
+				 */
+				sensor->DataFormat.Range.Max.Value.
+								SensorFloat64 =
+				sensor_info->threshold.UpCritical.Value.
+								SensorFloat64 =
+				blade_thermal_response->criticalThreshold;
 
-			current_reading =
-				(SaHpiUint32T) thermal_response->temperatureC;
+				sensor->DataFormat.Range.NormalMax.Value.
+								SensorFloat64 =
+				sensor_info->threshold.UpMajor.Value.
+								SensorFloat64 =
+				blade_thermal_response->cautionThreshold;
+				current_reading = 
+				(SaHpiUint32T)blade_thermal_response->
+								temperatureC;
+
+			}
 
 			/* Update the sensor info with current reading, this
 			 * reading will be utilized sensor event assetion post
@@ -2285,6 +2381,25 @@ SaErrorT oa_soap_assert_sen_evt(struct oh_handler_state *oh_handler,
 				trigger_reading = 0;
 				trigger_threshold = 0;
 				assert_state = OA_SOAP_SEN_ASSERT_TRUE;
+
+				/* If the blade type is IO_BLADE or DISK BLADE
+				 * and if predictive failure sensor is 
+				 * asserted, then change the power state of 
+				 * partner blade in oa_soap_bay_pwr_status
+				 * to SAHPI_POWER_OFF
+				 */
+				if ((rpt->ResourceEntity.Entry[0].EntityType == 
+				     SAHPI_ENT_IO_BLADE) || 
+				    (rpt->ResourceEntity.Entry[0].EntityType == 
+				     SAHPI_ENT_DISK_BLADE)) {
+					if (sensor_num ==
+					    OA_SOAP_SEN_PRED_FAIL) {
+						oa_soap_bay_pwr_status[rpt->
+							ResourceEntity.Entry[0].
+							EntityLocation -1] =
+								SAHPI_POWER_OFF;
+					}
+				}
 				break;
 			case OA_SOAP_TEMP_CLASS:
 				trigger_reading =
@@ -2334,6 +2449,99 @@ SaErrorT oa_soap_assert_sen_evt(struct oh_handler_state *oh_handler,
 	/* Release the assert_sensor_list */
 	g_slist_free(assert_sensor_list);
 
+	return SA_OK;
+}
+
+/**
+ * oa_soap_get_bld_thrm_sen_data
+ *      @oh_handler	: Pointer to openhpi handler
+ *      @response	: bladeThermalInfoArrayResponse response
+ *      @bld_thrm_info	: pointer to the bladeThermalInfo
+ *
+ * Purpose:
+ *	Retrieve the correct instance of bladeThermalInfo structure instance 
+ *      from bladeThermalInfoArrayResponse response
+ *
+ * Detailed Description:
+ *       NA
+ *
+ * Return values:
+ *      SA_OK - Normal case.
+ *      SA_ERR_HPI_INVALID_PARAMS - On wrong parameters.
+ **/
+SaErrorT oa_soap_get_bld_thrm_sen_data(SaHpiSensorNumT sen_num,
+				       struct bladeThermalInfoArrayResponse 
+								response,
+				       struct bladeThermalInfo *bld_thrm_info)
+{
+	SaHpiInt32T sen_delta_num = 0;
+	struct bladeThermalInfo blade_thermal_info;
+	SaHpiInt32T index = -1, i;
+
+	if (bld_thrm_info == NULL) {
+		err("Invalid parameters");
+		return SA_ERR_HPI_INVALID_PARAMS;
+	}
+
+	/* "getBladeThermalInfoArray" response contains multiple instances
+	 * of bladeThermalInfo. It is required to map the correct instance
+	 * of the getBladeThermalInfo structure to the sensor number whose 
+	 * reading is requested. 
+	 * This mapping is achieved as follows:
+	 * Based on the sensor number, sensor base number and difference of the
+	 * sensor number w.r.t. sensor base number is determined(sen_delta_num).
+	 * This sen_delta_num helps determine the location of bladeThermalInfo
+	 * structure instance in the response required for sensor data.
+	 */
+	if (sen_num != OA_SOAP_SEN_TEMP_STATUS) {
+		sen_delta_num = sen_num - oa_soap_bld_thrm_sen_base_arr
+					[sen_num - OA_SOAP_BLD_THRM_SEN_START];
+	}
+
+	/* As per discovery, mapping between the bladeThermalInfo response and 
+	 * the sensor number can be be achieved based on the description string
+	 * in response and comment field in the sensor rdr.
+	 * Sometimes the comment field in sensor rdr may not have matching 
+	 * substring in soap response. 
+	 * Hence map the sensor rdr comment field to the standard string listed
+	 * in oa_soap_thermal_sensor_string array. as it is assumed that the 
+	 * strings list in this array will match the description in response
+	 * For example:
+	 * The comment field of the system zone sensor
+	 * is "System Zone thermal status" and if the description field of 
+	 * bladeThermalInfo structure is "System Zone", then it is possible to 
+	 * achieve mapping between the response and sensor rdr.
+	 * But if the description field of bladeThermalInfo contains 
+	 * "System Chassis", then it is difficult to achieve the mapping
+	 * between bladeThermalInfo structure instance to any particular sensor.
+	 */
+	for (i = 0; i <OA_SOAP_MAX_THRM_SEN; i++) {
+		if ((strstr(oa_soap_sen_arr[sen_num].comment,
+			    oa_soap_thermal_sensor_string[i]))) {
+			index = i;
+			break;
+		}
+	}
+
+	while (response.bladeThermalInfoArray) {
+		soap_bladeThermalInfo(response.bladeThermalInfoArray,
+				      &blade_thermal_info);
+		if (strstr(blade_thermal_info.description,
+			   oa_soap_thermal_sensor_string[index])) {
+			/* Return the matching bladeThermalInfo structure
+			 * instance
+			 */
+			if (sen_delta_num == 0) {
+				memcpy(bld_thrm_info, &blade_thermal_info,
+				       sizeof(struct bladeThermalInfo));
+				break;
+			}
+			sen_delta_num--;
+		}
+		response.bladeThermalInfoArray = soap_next_node(
+							response.
+							bladeThermalInfoArray);
+	}
 	return SA_OK;
 }
 

@@ -109,6 +109,9 @@ int main(int argc, char *argv[])
     struct getFanZoneArrayResponse fanZoneArray_response;
     struct fanZone		fanZone;
     struct fanInfo		fanInfo;
+    struct getBladeThermalInfoArray getBladeThermalInfoArray_request;
+    struct bladeThermalInfoArrayResponse getBladeThermalInfoArray_response;
+    struct bladeThermalInfo     bladeThermalInfo;
     byte			bay;
     int				slot;
     int				i;
@@ -887,7 +890,46 @@ int main(int argc, char *argv[])
 	    err("failed soap_setLcdButtonLock() with FALSE in main");
 	}
    }
-	
+
+   for (slot = 1; slot <= 2; slot++) {
+	getBladeThermalInfoArray_request.bayNumber = slot;
+	if (soap_getBladeThermalInfoArray(con,
+				&getBladeThermalInfoArray_request,
+				&getBladeThermalInfoArray_response)) {
+		err("failed soap_getBladeThermalInfoArray in main");
+		continue;
+	}
+	while (getBladeThermalInfoArray_response.bladeThermalInfoArray) {
+		 soap_bladeThermalInfo(
+		      getBladeThermalInfoArray_response.bladeThermalInfoArray,
+		      &bladeThermalInfo);
+		
+		printf("sensorNumber =%d\n", bladeThermalInfo.sensorNumber);
+		printf("sensorType =%d\n", bladeThermalInfo.sensorType);
+		printf("entityId =%d\n", bladeThermalInfo.entityId);
+		printf("entityInstance =%d\n", bladeThermalInfo.entityInstance);
+		printf("criticalThreshold =%d\n", bladeThermalInfo.
+							criticalThreshold);
+		printf("cautionThreshold =%d\n", bladeThermalInfo.
+							cautionThreshold);
+		printf("temperatureC =%d\n", bladeThermalInfo.
+							temperatureC);
+		printf("oem =%d\n", bladeThermalInfo.oem);
+		printf("description=%s\n", bladeThermalInfo.description);
+		if (bladeThermalInfo.extraData) {
+			soap_getExtraData(bladeThermalInfo.extraData,
+						&extraDataInfo_response);
+			printf("%s:%s\n", extraDataInfo_response.name,
+					extraDataInfo_response.value);
+		}
+
+		getBladeThermalInfoArray_response.bladeThermalInfoArray =
+			soap_next_node(getBladeThermalInfoArray_response.
+							bladeThermalInfoArray);
+	}
+   }
+		
+		
 
 #if 1					/* Sometimes, we want to skip events */
     /* Try to subscribe for events */

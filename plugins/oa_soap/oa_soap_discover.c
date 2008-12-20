@@ -131,6 +131,9 @@
  *	oa_soap_push_disc_res()		- Pushes the discovered resources
  *					  information to openhpi framework
  *
+ *	oa_soap_build_blade_thermal_rdr() - Builds or Enables the thermal 
+ * 					    sensors of blade resource 
+ *
  */
 
 #include "oa_soap_discover.h"
@@ -1463,6 +1466,9 @@ SaErrorT build_discovered_server_rpt(struct oh_handler_state *oh_handler,
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
+	/* Set power status of discovered blade resource initially as POWER ON*/
+	oa_soap_bay_pwr_status[response->bayNumber -1] = SAHPI_POWER_ON;
+
         /* Get the power state of the server blade to determine the
          * hotswap state.  The hotswap state of the server will be
          * maintained in the private data area of the server RPT.
@@ -1491,6 +1497,12 @@ SaErrorT build_discovered_server_rpt(struct oh_handler_state *oh_handler,
                         case SAHPI_POWER_OFF:
                                 hotswap_state->currentHsState =
                                         SAHPI_HS_STATE_INACTIVE;
+
+				/* Change the power state to POWER OFF for 
+				 * blade entry in oa_soap_bay_pwr_status array
+				 */
+				oa_soap_bay_pwr_status[response->bayNumber -1] =
+								 SAHPI_POWER_OFF;
                                 break;
 
                         default:
@@ -1634,6 +1646,7 @@ SaErrorT build_server_rpt(struct oh_handler_state *oh_handler,
  *      @con:         Pointer to the soap client handler.
  *      @response:    Server blade info response structure
  *      @resource_id: Resource id
+ *      @name: Blade resource name
  *
  * Purpose:
  *      Populate the server blade RDR.
@@ -1661,16 +1674,16 @@ SaErrorT build_server_rpt(struct oh_handler_state *oh_handler,
 SaErrorT build_server_rdr(struct oh_handler_state *oh_handler,
                           SOAP_CON *con,
                           SaHpiInt32T bay_number,
-                          SaHpiResourceIdT resource_id)
+                          SaHpiResourceIdT resource_id,
+			  char *name)
 {
         SaErrorT rv = SA_OK;
         SaHpiRdrT rdr;
         SaHpiRptEntryT *rpt = NULL;
         struct oa_soap_inventory *inventory = NULL;
         struct oa_soap_sensor_info *sensor_info = NULL;
-        struct getThermalInfo thermal_request;
-        struct thermalInfo thermal_response;
-	SaHpiBoolT event_support = SAHPI_FALSE;
+        struct getBladeThermalInfoArray thermal_request;
+        struct bladeThermalInfoArrayResponse thermal_response;
 	struct getBladeStatus status_request;
 	struct bladeStatus status_response;
 	SaHpiInt32T sensor_status;
@@ -1702,18 +1715,22 @@ SaErrorT build_server_rdr(struct oh_handler_state *oh_handler,
         }
 
 	/* Make a soap call to OA requesting for the server thermal status */
-	thermal_request.sensorType = SENSOR_TYPE_BLADE;
 	thermal_request.bayNumber = bay_number;
 
-	rv = soap_getThermalInfo(con, &thermal_request, &thermal_response);
+	rv = soap_getBladeThermalInfoArray(con, &thermal_request,
+					   &thermal_response);
 	if (rv != SOAP_OK) {
-		err("Get thermalInfo failed for enclosure");
+		err("getBladeThermalInfo failed for blade");
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 
-        /* Build thermal sensor rdr for the enclosure */
-	OA_SOAP_BUILD_THRESHOLD_SENSOR_RDR(OA_SOAP_SEN_TEMP_STATUS,
-					thermal_response)
+	/* Build the thermal sensors based on the blade name*/
+	rv = oa_soap_build_blade_thermal_rdr(oh_handler, thermal_response, rpt,
+					     name);
+	if (rv != SA_OK) {
+		err("Failed to build thermal rdr");
+		return SA_ERR_HPI_INTERNAL_ERROR;
+	}
 
         /* Build power sensor rdr for server */
 	OA_SOAP_BUILD_SENSOR_RDR(OA_SOAP_SEN_PWR_STATUS)
@@ -1870,6 +1887,7 @@ SaErrorT discover_server(struct oh_handler_state *oh_handler)
         struct getBladeInfo request;
         struct bladeInfo response;
         SaHpiResourceIdT resource_id;
+	char blade_name[MAX_NAME_LEN];
 
         if (oh_handler == NULL) {
                 err("Invalid parameters");
@@ -1898,6 +1916,10 @@ SaErrorT discover_server(struct oh_handler_state *oh_handler)
                         continue;
                 }
 
+		/* Copy the blade name from response for future processing */
+        	convert_lower_to_upper(response.name, strlen(response.name),
+				       blade_name, MAX_NAME_LEN);
+
                 /* Build rpt entry for server */
                 rv = build_discovered_server_rpt(oh_handler,
                           oa_handler->active_con, &response, &resource_id);
@@ -1915,7 +1937,7 @@ SaErrorT discover_server(struct oh_handler_state *oh_handler)
 
                 /* Build rdr entry for server */
                 rv = build_server_rdr(oh_handler, oa_handler->active_con, i,
-                                      resource_id);
+                                      resource_id, blade_name);
                 if (rv != SA_OK) {
                         err("Failed to add Server rdr");
                         /* Reset resource_status structure to default values */
@@ -3872,6 +3894,181 @@ static void oa_soap_push_disc_res(struct oh_handler_state *oh_handler)
 
         return;
 }
+
+/**
+ * oa_soap_build_blade_thermal_rdr:
+ *      @oh_handler		: Pointer to openhpi handler
+ *      @thermal_response	: bladeThermalInfoArrayResponse response 
+ *				  structure
+ *	@rpt			: Pointer to rpt structure
+ *	@name			: Blade name
+ *
+ * Purpose: Builds the thermal sensors of blade resource
+ *	
+ * Detailed Description: 
+ *	- Parses the bladethermalInfoArray responses
+ *	- For a particular blade type, then thermal sensor rdrs are built
+ *	  based on static information available in 
+ *	  "oa_soap_static_thermal_sensor_config" array for the blade type.
+ *	- While the sensors are being built, if the soap response is NULL then
+ *	  the sensor is left in the disable state, else the response is verified
+ *	  to check whether the sensor can be enabled for monitoring and is 
+ *	  enabled if monitoring is supported.
+ *	- The response contains thermal info for different components, zones
+ *	  inside the blade.
+ *	- In addition, the bladeThermalInfo sensor of same type in response can
+ *	  repeat (Like multiple system zones, cpu_zones, cpu information).
+ *	  When there is such multiple instance of the bladeThermalInfo structure
+ *	  in the response, sensor numbers are generated as follows:
+ *		For each sensor type, a base sensor number is defined
+ *		First occurrence of this sensor type in the response structure 
+ *		is modeled with 
+ *			sensor number = base sensor number
+ *		Any later occurrences of the same sensor type in response is
+ *		modeled with 
+ *			sensor number = sensor number of previous instance of
+ *					the same sensor type + 1 
+ *	- Currently plugin considers maximum 4 occurrences of thermal info of 
+ *	  same sensor type for thermal sensor modeling(For example only 4
+ *	  system zone thermal sensors will be modeled even if the blade is able
+ *	  to provide more than 4 thermal sensors of system zone type)
+ * 	- Finally the bladeThermalInfo structure instance does not contain
+ *	  any field identifier to unique distinguish itself into a particular
+ *	  sensor type, hence the description field in the bladeThermalInfo 
+ *	  structure is used as the key to distinguish into particular sensor
+ *	  type category.
+ *	- If this module is called during the discovery, then thermal sensors
+ * 	  rdr are built for sensors supported by blade
+ *
+ * Return values:
+ *      SA_OK                     - on success
+ *      SA_ERR_HPI_INTERNAL_ERROR - on failure
+ **/
+SaErrorT oa_soap_build_blade_thermal_rdr(struct oh_handler_state *oh_handler,
+					 struct bladeThermalInfoArrayResponse 
+						response,
+					 SaHpiRptEntryT *rpt,
+					 char *name)
+{
+	SaErrorT rv = SA_OK;
+	SaHpiBoolT bld_stable = SAHPI_FALSE;
+	SaHpiInt32T i, j, sen_num, sen_count;
+	enum oa_soap_blade_type bld_index = OTHER_BLADE_TYPE;
+	SaHpiRdrT rdr;
+	struct oa_soap_sensor_info *sensor_info = NULL;
+	struct bladeThermalInfoArrayResponse temp_response;
+	struct bladeThermalInfo bld_thrm_info;
+	struct extraDataInfo extra_data_info;
+	SaHpiSensorRecT *sensor = NULL;
+
+	if (response.bladeThermalInfoArray != NULL)
+		bld_stable = SAHPI_TRUE;
+
+	/* Resolve the blade name to blade type enum .
+	 * If the blade name did not match any of the existing blade type
+	 * string, then it is considered OTHER_BLADE_TYPE
+	 */
+	for (i=0; i< OA_SOAP_MAX_BLD_TYPE -1 ; i++) {
+		if (strstr(name, oa_soap_bld_type_str[i])) {
+			bld_index = i;
+			break;
+		}
+	}
+
+	/* Fetch the thermal sensor information from static thermal sensor
+	 * meant for blade type under discovery 
+	 */
+	for (i = 0; i < OA_SOAP_MAX_THRM_SEN; i++) {
+		sen_count = oa_soap_static_thrm_sen_config[bld_index]
+						[i].sensor_count;
+		/* Do not add any sensor rdr if the sensor count is zero */
+		if (sen_count == 0) 
+			continue;
+
+		for (j = 0; j< sen_count; j++) {
+			memset(&rdr, 0, sizeof(SaHpiRdrT));	
+			sen_num =
+				oa_soap_static_thrm_sen_config[bld_index][i].
+					base_sen_num + j;
+			rv = oa_soap_build_sen_rdr(oh_handler, rpt->ResourceId,
+						   &rdr, &sensor_info, sen_num);
+			if (rv != SA_OK) {
+				err("Failed to create rdr for sensor %x",
+				     sen_num);
+				return rv;
+			}
+			
+			/* Initialize the sensor enable state as disabled */	
+			sensor_info->sensor_enable = SAHPI_FALSE;
+			if (bld_stable == SAHPI_FALSE) {
+				dbg("Blade not in stable state, leaving sensor"
+				    " in disable state");
+			} else {
+				/* Call the following function to retrieve 
+				 * the correct instance of bladeThermalInfo 
+				 * response.
+				 */
+				temp_response = response;
+				rv = oa_soap_get_bld_thrm_sen_data(sen_num,
+								temp_response,
+								&bld_thrm_info);
+								
+				if (rv != SA_OK) {
+					err("Could not find the matching"
+					    " sensors info from blade");	
+					return SA_ERR_HPI_INTERNAL_ERROR;
+				}
+
+				/* Check for the "SensorPresent" value in 
+				 * bladeThermalInfo structure. 
+				 * If the value is true, then enable the sensor
+				 * built statically in previous step 
+				 */
+				soap_getExtraData(bld_thrm_info.extraData, 
+							&extra_data_info);
+
+				if ((extra_data_info.value != NULL) &&
+				    (!(strcasecmp(extra_data_info.value, 
+							"true")))) {
+					sensor_info->sensor_enable = SAHPI_TRUE;
+
+					sensor = &(rdr.RdrTypeUnion.SensorRec);
+					/* Updating the rdr with actual upper 
+					 * critical threshold value provided by
+					 * OA
+					 */
+					sensor->DataFormat.Range.Max.Value.
+								SensorFloat64 =
+					sensor_info->threshold.UpCritical.Value.
+								SensorFloat64 =
+						bld_thrm_info.criticalThreshold;
+			
+					/* Updating the rdr with actual upper 
+					 * caution threshold value provided by
+					 * OA
+					 */
+					sensor->DataFormat.Range.NormalMax.Value.
+								SensorFloat64 =
+					sensor_info->threshold.UpMajor.Value.
+								SensorFloat64 =
+					bld_thrm_info.cautionThreshold;
+				} else {
+					dbg("Sensor %s not enabled for blade",
+					    bld_thrm_info.description);
+				}
+			}
+			
+			rv = oh_add_rdr(oh_handler->rptcache, rpt->ResourceId,
+					&rdr, sensor_info, 0);
+			if (rv != SA_OK) {
+				err("Failed to add rdr");
+				return rv;
+			}
+		}
+	}
+	return SA_OK;
+}
+
 
 void * oh_discover_resources (void *)
                 __attribute__ ((weak, alias("oa_soap_discover_resources")));
