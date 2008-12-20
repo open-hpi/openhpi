@@ -698,8 +698,7 @@ SaErrorT re_discover_blade(struct oh_handler_state *oh_handler,
                          * matrix, but server is removed.  Remove the server
                          * resource from RPTable.
                          */
-                        rv = remove_server_blade(oh_handler, i,
-                                response.bladeType);
+                        rv = remove_server_blade(oh_handler, i);
                         if (rv != SA_OK) {
                                 err("Server blade %d removal failed", i);
                                 return rv;
@@ -878,7 +877,6 @@ SaErrorT update_server_hotswap_state(struct oh_handler_state *oh_handler,
  * remove_server_blade
  *      @oh_handler: Pointer to openhpi handler
  *      @bay_number: Bay number of the removed blade
- *      @blade_type: Type of the blade
  * Purpose:
  *      Remove the Server Blade from the RPTable
  *
@@ -890,7 +888,7 @@ SaErrorT update_server_hotswap_state(struct oh_handler_state *oh_handler,
  *      SA_ERR_HPI_INTERNAL_ERROR - on failure.
  **/
 SaErrorT remove_server_blade(struct oh_handler_state *oh_handler,
-                             SaHpiInt32T bay_number, enum bladeType blade_type)
+                             SaHpiInt32T bay_number)
 {
         SaErrorT rv = SA_OK;
         struct oa_soap_handler *oa_handler;
@@ -923,12 +921,7 @@ SaErrorT remove_server_blade(struct oh_handler_state *oh_handler,
                 /* Simple hotswap */
                 event.event.EventDataUnion.HotSwapEvent.PreviousHotSwapState =
                         SAHPI_HS_STATE_ACTIVE;
-                event.event.EventDataUnion.HotSwapEvent.HotSwapState =
-                        SAHPI_HS_STATE_NOT_PRESENT;
-                event.event.EventDataUnion.HotSwapEvent.CauseOfStateChange =
-                        SAHPI_HS_CAUSE_OPERATOR_INIT;
-        }
-        else {
+        } else {
                 /* Managed hotswap */
                 hotswap_state = (struct oa_soap_hotswap_state *)
                         oh_get_resource_data(oh_handler->rptcache,
@@ -937,29 +930,27 @@ SaErrorT remove_server_blade(struct oh_handler_state *oh_handler,
                         err("Failed to get hotswap state of server blade");
                         event.event.EventDataUnion.HotSwapEvent.
                                 PreviousHotSwapState = SAHPI_HS_STATE_INACTIVE;
-                }
-
-                event.event.EventDataUnion.HotSwapEvent.PreviousHotSwapState =
-                        hotswap_state->currentHsState;
-                event.event.EventDataUnion.HotSwapEvent.HotSwapState =
-                        SAHPI_HS_STATE_NOT_PRESENT;
-
-                if (hotswap_state->currentHsState == SAHPI_HS_STATE_INACTIVE) {
-                        /* INACTIVE to NOT_PRESENT state change happened due to
-                         * operator action
-                         */
-                        event.event.EventDataUnion.HotSwapEvent.
-                                CauseOfStateChange =
-                                SAHPI_HS_CAUSE_OPERATOR_INIT;
                 } else {
-                        /* This state change happened due to a surprise
-                         * extraction
-                         */
-                        event.event.EventDataUnion.HotSwapEvent.
-                                CauseOfStateChange =
-                                SAHPI_HS_CAUSE_SURPRISE_EXTRACTION;
-                }
-        } /* End of hotswap type if conditional */
+                	event.event.EventDataUnion.HotSwapEvent.
+				PreviousHotSwapState =
+					hotswap_state->currentHsState;
+		}
+	}
+        event.event.EventDataUnion.HotSwapEvent.HotSwapState =
+                SAHPI_HS_STATE_NOT_PRESENT;
+
+        if (event.event.EventDataUnion.HotSwapEvent.PreviousHotSwapState ==
+            SAHPI_HS_STATE_INACTIVE) {
+                /* INACTIVE to NOT_PRESENT state change happened due to
+                 * operator action
+                 */
+                event.event.EventDataUnion.HotSwapEvent.CauseOfStateChange =
+                        SAHPI_HS_CAUSE_OPERATOR_INIT;
+        } else {
+                /* This state change happened due to a surprise extraction */
+                event.event.EventDataUnion.HotSwapEvent.CauseOfStateChange =
+                        SAHPI_HS_CAUSE_SURPRISE_EXTRACTION;
+        }
 
         /* Push the hotswap event to remove the resource from OpenHPI RPTable */
         oh_evt_queue_push(oh_handler->eventq, copy_oa_soap_event(&event));
