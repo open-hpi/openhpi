@@ -195,6 +195,11 @@ typedef unsigned char byte;
                         "<hpoa:getLcdStatus>" \
                         "</hpoa:getLcdStatus>\n"
 
+#define GET_BLADE_THERMAL_INFO_ARRAY \
+                        "<hpoa:getBladeThermalInfoArray>" \
+                        "<hpoa:bayNumber>%d</hpoa:bayNumber>" \
+                        "</hpoa:getBladeThermalInfoArray>\n"
+
 #define SET_ENCLOSURE_UID \
                         "<hpoa:setEnclosureUid>" \
                         "<hpoa:uid>%s</hpoa:uid>" \
@@ -1854,6 +1859,7 @@ struct eventInfo
         enum eventType event;
         time_t eventTimeStamp;
         int queueSize;
+        int numValue;
         union _hpoa__data eventData;
         enum enum_eventInfo enum_eventInfo;
         xmlNode *extraData;             /* Items are struct extraDataInfo */
@@ -1863,6 +1869,30 @@ struct getAllEventsResponse
 {
         xmlNode *eventInfoArray;
 };
+
+struct getBladeThermalInfoArray
+{
+	int bayNumber;
+};
+
+struct bladeThermalInfoArrayResponse
+{
+	xmlNode *bladeThermalInfoArray; /* Items are struct bladeThermalInfo */
+};
+
+struct bladeThermalInfo
+{
+	byte sensorNumber;
+	byte sensorType;
+	byte entityId;
+	byte entityInstance;
+	byte criticalThreshold;
+	byte cautionThreshold;
+	byte temperatureC;
+	byte oem;
+	char *description;
+	xmlNode *extraData;             /* Items are struct extraDataInfo */
+};	
 
 struct setBladePower
 {
@@ -1903,7 +1933,6 @@ struct setInterconnectTrayUid
         int bayNumber;
         enum uidControl uid;
 };
-
 
 /* Main OA SOAP Function prototypes */
 int soap_subscribeForEvents(SOAP_CON *connection,
@@ -2023,6 +2052,11 @@ int soap_setInterconnectTrayUid(SOAP_CON *con,
 int soap_setLcdButtonLock(SOAP_CON *con,
                           enum hpoa_boolean buttonLock);
 
+int soap_getBladeThermalInfoArray(SOAP_CON *con, 
+				  struct getBladeThermalInfoArray *request,
+				  struct bladeThermalInfoArrayResponse 
+								*response);
+
 /* Function prototypes for OA SOAP helper functions */
 void    soap_getExtraData(xmlNode *extraData, struct extraDataInfo *result);
 void    soap_getDiagnosticChecksEx(xmlNode *diag,
@@ -2040,5 +2074,6 @@ void    soap_getEncLink2(xmlNode *data, struct encLink2 *result);
 void    soap_fanZone(xmlNode *fanZone, struct fanZone *result);
 void    soap_fanInfo(xmlNode *fanZone, struct fanInfo *result);
 void    soap_deviceBayArray(xmlNode *node, byte *bay);
+void	soap_bladeThermalInfo(xmlNode *node, struct bladeThermalInfo *result);
 
 #endif  /* _INC_OASOAP_CALLS_H_ */

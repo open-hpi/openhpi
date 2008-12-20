@@ -1012,6 +1012,7 @@ SaErrorT add_server_blade(struct oh_handler_state *oh_handler,
         SaHpiResourceIdT resource_id;
         SaHpiRptEntryT *rpt;
 	GSList *asserted_sensors = NULL;
+	char blade_name[MAX_NAME_LEN];
 
         if (oh_handler == NULL || info == NULL || con == NULL) {
                 err("Invalid parameters");
@@ -1030,6 +1031,10 @@ SaErrorT add_server_blade(struct oh_handler_state *oh_handler,
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
+	/* Copy the blade name from response for future processing */
+	convert_lower_to_upper(response.name, strlen(response.name),
+			       blade_name, MAX_NAME_LEN);
+
         /* Build the server RPR entry */
         rv = build_discovered_server_rpt(oh_handler, con, info, &resource_id);
         if (rv != SA_OK) {
@@ -1045,7 +1050,8 @@ SaErrorT add_server_blade(struct oh_handler_state *oh_handler,
                       response.serialNumber, resource_id, RES_PRESENT);
 
         /* Build the server RDR */
-        rv = build_server_rdr(oh_handler, con, bay_number, resource_id);
+        rv = build_server_rdr(oh_handler, con, bay_number, resource_id, 
+			      blade_name);
         if (rv != SA_OK) {
                 err("build inserted server RDR failed");
                 /* Free the inventory info from inventory RDR */
@@ -2372,7 +2378,7 @@ static SaErrorT oa_soap_re_disc_server_sen(struct oh_handler_state *oh_handler,
 	}
 
 	/* Check the server sensor states */
-	oa_soap_proc_server_status(oh_handler, &response);
+	oa_soap_proc_server_status(oh_handler, con, &response);
 
 	return SA_OK;
 }

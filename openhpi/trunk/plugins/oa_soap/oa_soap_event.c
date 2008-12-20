@@ -748,7 +748,7 @@ void process_oa_events(struct oh_handler_state *oh_handler,
                                 break;
                         case EVENT_BLADE_STATUS:
 				dbg("EVENT_BLADE_STATUS");
-				oa_soap_proc_server_status(oh_handler,
+				oa_soap_proc_server_status(oh_handler, con,
 						&(event.eventData.bladeStatus));
                                 break;
 
@@ -776,12 +776,12 @@ void process_oa_events(struct oh_handler_state *oh_handler,
                                 break;
                         case EVENT_BLADE_SHUTDOWN:
 				dbg("EVENT_BLADE_SHUTDOWN");
-				oa_soap_proc_server_status(oh_handler,
+				oa_soap_proc_server_status(oh_handler, con,
 						&(event.eventData.bladeStatus));
                                 break;
                         case EVENT_BLADE_FAULT:
 				dbg("EVENT_BLADE_FAULT");
-				oa_soap_proc_server_status(oh_handler,
+				oa_soap_proc_server_status(oh_handler, con,
 						&(event.eventData.bladeStatus));
                                 break;
                         case EVENT_BLADE_INFO:
@@ -818,7 +818,7 @@ void process_oa_events(struct oh_handler_state *oh_handler,
                                 break;
                         case EVENT_ILO_DEAD:
 				dbg("EVENT_ILO_DEAD");
-				oa_soap_proc_server_status(oh_handler,
+				oa_soap_proc_server_status(oh_handler, con,
 						&(event.eventData.bladeStatus));
                                 break;
                         case EVENT_RACK_SERVICE_STARTED:
@@ -831,7 +831,7 @@ void process_oa_events(struct oh_handler_state *oh_handler,
                                 break;
                         case EVENT_ILO_ALIVE:
 				dbg("EVENT_ILO_ALIVE");
-				oa_soap_proc_server_status(oh_handler,
+				oa_soap_proc_server_status(oh_handler, con,
 						&(event.eventData.bladeStatus));
                                 break;
                         case EVENT_PERSONALITY_CHECK:
@@ -839,8 +839,9 @@ void process_oa_events(struct oh_handler_state *oh_handler,
                                 break;
 
                         case EVENT_BLADE_POST_COMPLETE:
-                                dbg("EVENT_BLADE_POST_COMPLETE "
-                                    "-- Not processed");
+                                dbg("EVENT_BLADE_POST_COMPLETE");
+				oa_soap_serv_post_comp(oh_handler, con, 
+						       event.numValue);
                                 break;
 
                         case EVENT_BLADE_SIGNATURE_CHANGED:

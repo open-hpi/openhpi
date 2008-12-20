@@ -81,6 +81,28 @@ struct oa_soap_control {
 	const char *comment;
 };
 
+#define OA_SOAP_MAX_BLD_TYPE 16
+
+/* Enum for possible cclass blade types */
+enum oa_soap_blade_type {
+	BL260C,
+	BL2x220C,
+	BL460C,
+	BL465C,
+	BL480C,
+	BL495C,
+	BL680C,
+	BL685C,
+	BL860C,
+	BL870C,
+	NB50000C,
+	AMC,
+	STORAGE,
+	TAPE,
+	SAN,
+	OTHER_BLADE_TYPE,
+};
+
 extern const SaHpiInt32T oa_soap_sen_val_map_arr[OA_SOAP_MAX_SEN_CLASS]
 						[OA_SOAP_MAX_ENUM];
 extern const SaHpiInt32T oa_soap_sen_assert_map_arr[OA_SOAP_MAX_SEN_CLASS]
@@ -92,5 +114,12 @@ extern const struct oa_soap_inv_rdr oa_soap_inv_arr[];
 extern const struct oa_soap_fz_map oa_soap_fz_map_arr[][OA_SOAP_MAX_FAN];
 extern const char *oa_soap_health_arr[];
 extern const char *oa_soap_diag_ex_arr[];
+extern const char *oa_soap_thermal_sensor_string[];
+extern const struct oa_soap_static_thermal_sensor_info
+		oa_soap_static_thrm_sen_config[OA_SOAP_MAX_BLD_TYPE]
+						[OA_SOAP_MAX_THRM_SEN];
+extern const char *oa_soap_bld_type_str[];
+extern const SaHpiInt32T oa_soap_bld_thrm_sen_base_arr[];
+extern SaHpiPowerStateT oa_soap_bay_pwr_status[OA_SOAP_C7000_MAX_BLADE];
 
 #endif

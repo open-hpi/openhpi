@@ -192,7 +192,8 @@ SaErrorT build_server_rpt(struct oh_handler_state *oh_handler,
 SaErrorT build_server_rdr(struct oh_handler_state *oh_handler,
                           SOAP_CON *con,
                           SaHpiInt32T bay_number,
-                          SaHpiResourceIdT resource_id);
+                          SaHpiResourceIdT resource_id,
+			  char *name);
 
 SaErrorT discover_server(struct oh_handler_state *oh_handler);
 
@@ -271,5 +272,11 @@ SaErrorT oa_soap_populate_event(struct oh_handler_state *oh_handler,
 				SaHpiResourceIdT resource_id,
 				struct oh_event *event,
 				GSList **assert_sensors);
+
+SaErrorT oa_soap_build_blade_thermal_rdr(
+			struct oh_handler_state *oh_handler,
+			struct bladeThermalInfoArrayResponse thermal_response,
+			SaHpiRptEntryT *rpt,
+			char *name);
 
 #endif

@@ -80,9 +80,9 @@
 /* Thermal warning sensor */
 #define OA_SOAP_SEN_THERM_WARN			(SaHpiSensorNumT) 0x00b
 /* Thermal danger sensor */
-#define OA_SOAP_SEN_THERM_DANGER			(SaHpiSensorNumT) 0x00c
+#define OA_SOAP_SEN_THERM_DANGER		(SaHpiSensorNumT) 0x00c
 /* IO configuration error sensor */
-#define OA_SOAP_SEN_IO_CONFIG_ERR			(SaHpiSensorNumT) 0x00d
+#define OA_SOAP_SEN_IO_CONFIG_ERR		(SaHpiSensorNumT) 0x00d
 /* Device power request error sensor */
 #define OA_SOAP_SEN_DEV_PWR_REQ			(SaHpiSensorNumT) 0x00e
 /* Insufficient cooling error sensor */
@@ -147,6 +147,70 @@
 #define OA_SOAP_SEN_IML_ERR			(SaHpiSensorNumT) 0x02c
 /* Duplicate management IP address sensor */
 #define OA_SOAP_SEN_DUP_MGMT_IP_ADDR		(SaHpiSensorNumT) 0x02d
+/* Server Blade System zone1 */
+#define OA_SOAP_SEN_BLADE_SYSTEM_ZONE1		(SaHpiSensorNumT) 0x02e
+/* Server Blade System zone2 */
+#define OA_SOAP_SEN_BLADE_SYSTEM_ZONE2		(SaHpiSensorNumT) 0x02f
+/* Server Blade System zone3 */
+#define OA_SOAP_SEN_BLADE_SYSTEM_ZONE3		(SaHpiSensorNumT) 0x030
+/* Server Blade System zone4 */
+#define OA_SOAP_SEN_BLADE_SYSTEM_ZONE4		(SaHpiSensorNumT) 0x031
+/* Server Blade CPU zone1 */
+#define OA_SOAP_SEN_BLADE_CPU_ZONE1		(SaHpiSensorNumT) 0x032
+/* Server Blade CPU zone2 */
+#define OA_SOAP_SEN_BLADE_CPU_ZONE2		(SaHpiSensorNumT) 0x033
+/* Server Blade CPU zone3 */
+#define OA_SOAP_SEN_BLADE_CPU_ZONE3		(SaHpiSensorNumT) 0x034
+/* Server Blade CPU zone4 */
+#define OA_SOAP_SEN_BLADE_CPU_ZONE4		(SaHpiSensorNumT) 0x035
+/* Server Blade Memory zone1 */
+#define OA_SOAP_SEN_BLADE_MEM_ZONE1		(SaHpiSensorNumT) 0x036
+/* Server Blade Memory zone2 */
+#define OA_SOAP_SEN_BLADE_MEM_ZONE2		(SaHpiSensorNumT) 0x037
+/* Server Blade Memory zone3 */
+#define OA_SOAP_SEN_BLADE_MEM_ZONE3		(SaHpiSensorNumT) 0x038
+/* Server Blade Memory zone4 */
+#define OA_SOAP_SEN_BLADE_MEM_ZONE4		(SaHpiSensorNumT) 0x039
+/* Storage Blade Disk zone1 */
+#define OA_SOAP_SEN_BLADE_DISK_ZONE1		(SaHpiSensorNumT) 0x03a
+/* Storage Blade Disk zone2 */
+#define OA_SOAP_SEN_BLADE_DISK_ZONE2		(SaHpiSensorNumT) 0x03b
+/* Storage Blade Disk zone3 */
+#define OA_SOAP_SEN_BLADE_DISK_ZONE3		(SaHpiSensorNumT) 0x03c
+/* Storage Blade Disk zone4 */
+#define OA_SOAP_SEN_BLADE_DISK_ZONE4		(SaHpiSensorNumT) 0x03d
+/* Server Blade CPU1 */
+#define OA_SOAP_SEN_BLADE_CPU1_1		(SaHpiSensorNumT) 0x03e
+/* Server Blade CPU1 */
+#define OA_SOAP_SEN_BLADE_CPU1_2		(SaHpiSensorNumT) 0x03f
+/* Server Blade CPU1 */
+#define OA_SOAP_SEN_BLADE_CPU1_3		(SaHpiSensorNumT) 0x040
+/* Server Blade CPU1 */
+#define OA_SOAP_SEN_BLADE_CPU1_4		(SaHpiSensorNumT) 0x041
+/* Server Blade CPU2 */
+#define OA_SOAP_SEN_BLADE_CPU2_1		(SaHpiSensorNumT) 0x042
+/* Server Blade CPU2 */
+#define OA_SOAP_SEN_BLADE_CPU2_2		(SaHpiSensorNumT) 0x043
+/* Server Blade CPU2 */
+#define OA_SOAP_SEN_BLADE_CPU2_3		(SaHpiSensorNumT) 0x044
+/* Server Blade CPU2 */
+#define OA_SOAP_SEN_BLADE_CPU2_4		(SaHpiSensorNumT) 0x045
+/* Server Blade CPU3 */
+#define OA_SOAP_SEN_BLADE_CPU3_1		(SaHpiSensorNumT) 0x046
+/* Server Blade CPU3 */
+#define OA_SOAP_SEN_BLADE_CPU3_2		(SaHpiSensorNumT) 0x047
+/* Server Blade CPU3 */
+#define OA_SOAP_SEN_BLADE_CPU3_3		(SaHpiSensorNumT) 0x048
+/* Server Blade CPU3 */
+#define OA_SOAP_SEN_BLADE_CPU3_4		(SaHpiSensorNumT) 0x049
+/* Server Blade CPU4 */
+#define OA_SOAP_SEN_BLADE_CPU4_1		(SaHpiSensorNumT) 0x04a
+/* Server Blade CPU4 */
+#define OA_SOAP_SEN_BLADE_CPU4_2		(SaHpiSensorNumT) 0x04b
+/* Server Blade CPU4 */
+#define OA_SOAP_SEN_BLADE_CPU4_3		(SaHpiSensorNumT) 0x04c
+/* Server Blade CPU4 */
+#define OA_SOAP_SEN_BLADE_CPU4_4		(SaHpiSensorNumT) 0x04d
 
 /* Control numbers used in OA SOAP plugin 
  * On adding new control, control array in in plugin/oa_soap/oa_soap_resources.c

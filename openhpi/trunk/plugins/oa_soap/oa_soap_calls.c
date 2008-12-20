@@ -633,6 +633,17 @@ static void     parse_lcdStatus(xmlNode *node, struct lcdStatus *response)
         response->extraData = soap_walk_tree(node, "extraData");
 }
 
+/* parse_getBladeThermalInfoArray - Parses a bladeThermalInfoArrayResponse 
+ * structure */
+static void parse_getBladeThermalInfoArray(xmlNode *node, 
+				struct bladeThermalInfoArrayResponse *response)
+{
+	response->bladeThermalInfoArray =
+		soap_walk_tree(node, 
+			       "bladeThermalInfoArray:bladeThermalInfo");
+
+}
+
 /* parse_getAllEvents - Parses a getAllEventsResponse structure */
 static void     parse_getAllEvents(xmlNode *node,
                                    struct getAllEventsResponse *response)
@@ -939,6 +950,22 @@ void    soap_fanInfo(xmlNode *node, struct fanInfo *result)
         result->extraData = soap_walk_tree(node, "extraData");
 }
 
+void	soap_bladeThermalInfo(xmlNode *node, struct bladeThermalInfo * result)
+{
+	result->sensorNumber = atoi(soap_tree_value(node, "sensorNumber"));
+	result->sensorType = atoi(soap_tree_value(node, "sensorType"));
+	result->entityId = atoi(soap_tree_value(node, "entityId"));
+	result->entityInstance = atoi(soap_tree_value(node, "entityInstance"));
+	result->criticalThreshold = 
+				atoi(soap_tree_value(node, "criticalThreshold"));
+	result->cautionThreshold = 
+				atoi(soap_tree_value(node, "cautionThreshold"));
+	result->temperatureC = atoi(soap_tree_value(node, "temperatureC"));
+	result->oem = atoi(soap_tree_value(node, "oem"));
+	result->description = soap_tree_value(node, "description");
+	result->extraData = soap_walk_tree(node, "extraData");
+}
+
 /* soap_getEventInfo - Walks list of eventInfo nodes, providing details
  *      on each event.  Used after calling soap_getAllEvents().
  *
@@ -961,6 +988,9 @@ void    soap_getEventInfo(xmlNode *events, struct eventInfo *result)
                 result->queueSize = atoi(str);
         else
                 result->queueSize = -1;
+	if ((str = soap_tree_value(events, "numValue"))) {
+		result->numValue = atoi(str);
+	}
         result->extraData = soap_walk_tree(events, "extraData");
 
         /* The remainder depends on what sort of data is returned by the OA.
@@ -1664,4 +1694,19 @@ int soap_setLcdButtonLock(SOAP_CON *con,
 			  enum hpoa_boolean buttonLock)
 {
         return(soap_request(con, SET_LCD_BUTTON_LOCK, buttonLock));
+}
+
+int soap_getBladeThermalInfoArray(SOAP_CON *con,
+				  struct getBladeThermalInfoArray *request,
+				struct bladeThermalInfoArrayResponse *response)
+{
+	SOAP_PARM_CHECK
+	if (! (ret = soap_request(con, GET_BLADE_THERMAL_INFO_ARRAY,
+				  request->bayNumber))) {
+		parse_getBladeThermalInfoArray(soap_walk_doc(con->doc,
+					     "Body:"
+					     "getBladeThermalInfoArrayResponse"),
+					     response);
+	}
+	return(ret);
 }
