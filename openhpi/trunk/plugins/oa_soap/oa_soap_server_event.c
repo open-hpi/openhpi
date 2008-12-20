@@ -313,13 +313,9 @@ SaErrorT process_server_power_event(struct oh_handler_state *oh_handler,
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-	/* Partner blade like IO_BLADE and DISK_BLADE are not expected to 
-	 * receive the events related to power state change. Hence ignore
-	 * this event from partner blades.
-	 */
-	if ((rpt->ResourceEntity.Entry[0].EntityType == SAHPI_ENT_IO_BLADE) ||
-	    (rpt->ResourceEntity.Entry[0].EntityType == SAHPI_ENT_DISK_BLADE)) {
-		dbg("Ignore the power state events from DISK_BLADE/IO_BLADE");
+        /* For blades that do not support managed hotswap, ignore power event */
+        if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
+		dbg("Ignoring the power event");
 		return SA_OK;
 	}
 
@@ -471,17 +467,25 @@ SaErrorT process_server_insertion_event(struct oh_handler_state *oh_handler,
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-        /* Raise the hotswap event for the inserted server blade */
         event.event.EventType = SAHPI_ET_HOTSWAP;
         event.event.EventDataUnion.HotSwapEvent.PreviousHotSwapState =
                 SAHPI_HS_STATE_NOT_PRESENT;
-        event.event.EventDataUnion.HotSwapEvent.HotSwapState =
-                SAHPI_HS_STATE_INSERTION_PENDING;
-        /* NOT_PRESENT to INSERTION_PENDING state change happened due
-         * to operator action
+        /* For blades that do not support managed hotswap, current hotswap state
+	 * is ACTIVE
+	 */
+        if (!(rpt.ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
+        	event.event.EventDataUnion.HotSwapEvent.HotSwapState =
+                	SAHPI_HS_STATE_ACTIVE;
+	} else {
+        	event.event.EventDataUnion.HotSwapEvent.HotSwapState =
+                	SAHPI_HS_STATE_INSERTION_PENDING;
+	}
+        /* NOT_PRESENT to INSERTION_PENDING/ACTIVE state change happened due
+         * to operator action of blade insertion
          */
         event.event.EventDataUnion.HotSwapEvent.CauseOfStateChange =
                 SAHPI_HS_CAUSE_OPERATOR_INIT;
+        /* Raise the hotswap event for the inserted server blade */
         oh_evt_queue_push(oh_handler->eventq, copy_oa_soap_event(&event));
 
 	/* Raise the assert sensor events */
@@ -510,26 +514,14 @@ SaErrorT process_server_extraction_event(struct oh_handler_state *oh_handler,
                                          struct eventInfo *oa_event)
 {
         SaErrorT rv = SA_OK;
-        struct getBladeInfo request;
-        struct bladeInfo response;
-        struct oa_soap_handler *oa_handler = NULL;
 
         if (oh_handler == NULL || oa_event == NULL) {
                 err("Invalid parameters");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-        oa_handler = (struct oa_soap_handler *) oh_handler->data;
-        request.bayNumber = oa_event->eventData.bladeStatus.bayNumber;
-        rv = soap_getBladeInfo(oa_handler->active_con, &request, &response);
-        if (rv != SOAP_OK) {
-            err("Get blade info failed");
-            return SA_ERR_HPI_INTERNAL_ERROR;
-        }
-
         rv = remove_server_blade(oh_handler,
-                                 oa_event->eventData.bladeStatus.bayNumber,
-                                 response.bladeType);
+                                 oa_event->eventData.bladeStatus.bayNumber);
         if (rv != SA_OK) {
                 err("Removing server blade failed");
                 return SA_ERR_HPI_INTERNAL_ERROR;
