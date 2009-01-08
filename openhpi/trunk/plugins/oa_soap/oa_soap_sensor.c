@@ -451,7 +451,7 @@ SaErrorT oa_soap_get_sensor_enable(void *oh_handler,
  *      SA_ERR_HPI_NOT_PRESENT - RDR is not present
  *      SA_ERR_HPI_INTERNAL_ERROR - oa_soap plugin has encountered an internal
  *                                  error
- *      SA_ERR_HPI_READ_ONLY - The data to be operated upon is read only
+ *      SA_ERR_HPI_INVALID_STATE - The blade is in invalid state
  **/
 SaErrorT oa_soap_set_sensor_enable(void *oh_handler,
                                   SaHpiResourceIdT resource_id,
@@ -510,16 +510,25 @@ SaErrorT oa_soap_set_sensor_enable(void *oh_handler,
 		 * workaround logic until OpenHPI migrates to HPI-B.03.01 
 		 * specification
 		 */
-		if ((rdr_num == OA_SOAP_SEN_TEMP_STATUS) ||
-		    ((rdr_num >= OA_SOAP_BLD_THRM_SEN_START) && 
-		     (rdr_num <= OA_SOAP_BLD_THRM_SEN_END))) {
-			if (oa_soap_bay_pwr_status[rpt->ResourceEntity.Entry[0].
-					EntityLocation -1] != SAHPI_POWER_ON) {
+		if ((rdr->Entity.Entry[0].EntityType == 
+						SAHPI_ENT_SYSTEM_BLADE) ||
+		    (rdr->Entity.Entry[0].EntityType ==
+						SAHPI_ENT_IO_BLADE) ||
+		    (rdr->Entity.Entry[0].EntityType ==
+						SAHPI_ENT_DISK_BLADE)) {
+			if ((rdr_num == OA_SOAP_SEN_TEMP_STATUS) || 
+			    ((rdr_num >= OA_SOAP_BLD_THRM_SEN_START) && 
+			    (rdr_num <= OA_SOAP_BLD_THRM_SEN_END))) {
+				if (oa_soap_bay_pwr_status[
+					rpt->ResourceEntity.Entry[0].
+						EntityLocation -1] != 
+							SAHPI_POWER_ON) {
 					err("Sensor enable operation cannot"
 					    " be performed");
-					return SA_ERR_HPI_READ_ONLY;
+					return SA_ERR_HPI_INVALID_STATE;
 				}
 			}
+		}
 
                 if (sensor_info->sensor_enable != enable) {
                         /* Update the sensor enable status with new value and
@@ -2183,11 +2192,11 @@ SaErrorT oa_soap_map_thresh_resp(SaHpiRdrT *rdr,
 			 * retrieve threshold values from correct response.
 			 */
 
-			if ((rdr->Entity.Entry[0].EntityType != 
+			if ((rdr->Entity.Entry[0].EntityType == 
 						SAHPI_ENT_SYSTEM_BLADE) ||
-			    (rdr->Entity.Entry[0].EntityType !=
+			    (rdr->Entity.Entry[0].EntityType ==
 						SAHPI_ENT_IO_BLADE) ||
-			    (rdr->Entity.Entry[0].EntityType !=
+			    (rdr->Entity.Entry[0].EntityType ==
 						SAHPI_ENT_DISK_BLADE)) {
 				sensor_class = OA_SOAP_BLADE_THERMAL_CLASS;
 			}

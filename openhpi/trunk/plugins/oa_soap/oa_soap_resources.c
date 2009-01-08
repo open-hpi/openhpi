@@ -1062,6 +1062,22 @@ const struct oa_soap_sensor oa_soap_sen_arr[] = {
 			.event_enable = SAHPI_FALSE,
 			.assert_mask = OA_SOAP_STM_UNSPECIFED,
 			.deassert_mask = OA_SOAP_STM_UNSPECIFED,
+			.threshold = {
+				.UpCritical.IsSupported = SAHPI_TRUE,
+				.UpCritical.Type =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with critical threshold
+				 * reading
+				 */
+				.UpCritical.Value.SensorFloat64 = 18000,
+				.LowCritical.IsSupported = SAHPI_TRUE,
+				.LowCritical.Type =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with major threshold
+				 * reading
+				 */
+				.LowCritical.Value.SensorFloat64 = 10,
+			},
 		},
 		.sensor_class = OA_SOAP_FAN_SPEED_CLASS,
 		.comment = "Fan speed",
