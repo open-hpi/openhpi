@@ -4185,12 +4185,12 @@ SaErrorT oa_soap_build_fan_inv(struct oh_handler_state *oh_handler,
 	/* Construct the fan zone number field data */
 	memset(field_data, 0, OA_SOAP_MAX_FZ_INV_SIZE);
 	if (oa_soap_fz_map_arr[oa_handler->enc_type][slot].secondary_zone) {
-		snprintf(field_data, 12, "Fan Zone=%d,%d",
+		snprintf(field_data, 13, "Fan Zone=%d,%d",
 		 	oa_soap_fz_map_arr[oa_handler->enc_type][slot].zone,
 			oa_soap_fz_map_arr[oa_handler->enc_type][slot].
 				secondary_zone);
 	} else {
-		snprintf(field_data, 10, "Fan Zone=%d",
+		snprintf(field_data, 11, "Fan Zone=%d",
 		 	oa_soap_fz_map_arr[oa_handler->enc_type][slot].zone);
 	}
 
