@@ -28,6 +28,7 @@
 #include <unistd.h>
 #include <config.h>
 #include <oh_config.h>
+#include <oHpi.h>
 #include <hpi_ui.h>
 #include "hpi_cmd.h"
 
@@ -782,6 +783,17 @@ static ret_code_t show_rdr(void)
         return HPI_SHELL_OK;
 }
 
+static ret_code_t show_ver(void)
+{
+   SaHpiVersionT ver = saHpiVersionGet();
+
+   printf("\nPackage version: %s\n", PACKAGE_VERSION);
+   printf("HPI specification version: SAI_HPI-%c.%02d.%02d\n\n",
+   	  ('A' + (ver >> 16) -1), (ver >> 8) & 0xFF, (ver) & 0xFF);
+
+   return(HPI_SHELL_OK);
+}
+
 static ret_code_t wtd_get(void)
 {
         SaHpiResourceIdT        rptid;
@@ -1358,6 +1370,8 @@ const char showrdrhelp[] = "showrdr: show resource data record\n"
 const char showrpthelp[] = "showrpt: show resource information\n"
                         "Usage: showrpt [<resource id>]\n"
                         "   or  rpt [<resource id>]";
+const char versionhelp[] = "ver: show HPI specification, package versions\n"
+                        "Usage: ver";
 const char wtdgethelp[] = "wtdget: show watchdog timer\n"
                         "Usage: wtdget <resource id> <watchdogNum>";
 const char wtdresethelp[] = "wtdreset: reset watchdog timer\n"
@@ -1521,6 +1535,7 @@ command_def_t commands[] = {
     { "showinv",        show_inv,       showinvhelp,    MAIN_COM },
     { "showrdr",        show_rdr,       showrdrhelp,    MAIN_COM },
     { "showrpt",        show_rpt,       showrpthelp,    MAIN_COM },
+    { "ver",            show_ver,       versionhelp,    UNDEF_COM },
     { "wtdget",         wtd_get,        wtdgethelp,     MAIN_COM },
     { "wtdreset",       wtd_reset,      wtdresethelp,   MAIN_COM },
     { "wtdset",         wtd_set,        wtdsethelp,     MAIN_COM },
