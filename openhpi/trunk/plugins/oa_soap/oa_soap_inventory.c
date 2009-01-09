@@ -157,7 +157,7 @@ static void oa_soap_inv_set_field(struct oa_soap_area *area_list,
 				  SaHpiIdrFieldTypeT field_type,
 				  const char *data);
 static void oa_soap_add_inv_fields(struct oa_soap_area *area,
-				   struct oa_soap_field *field_list);
+				   const struct oa_soap_field *field_list);
 static void oa_soap_add_inv_areas(struct oa_soap_inventory *inventory,
 				  SaHpiInt32T resource_type);
 static SaErrorT oa_soap_build_inv(struct oh_handler_state *oh_handler,
@@ -3863,7 +3863,7 @@ static void oa_soap_inv_set_field(struct oa_soap_area *area_list,
  *	NONE 
  */
 static void oa_soap_add_inv_fields(struct oa_soap_area *area,
-				   struct oa_soap_field field_array[])
+				   const struct oa_soap_field field_array[])
 {
 	struct oa_soap_field **field;
 	SaHpiInt32T i;
