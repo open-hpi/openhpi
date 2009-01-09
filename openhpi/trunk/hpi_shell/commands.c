@@ -751,7 +751,7 @@ static ret_code_t show_rdr(void)
                 if (read_file) return(HPI_SHELL_CMD_ERROR);
                 i = get_string_param("RDR Type (s|a|c|w|i|d|f) ==> ",
                         buf, 9);
-                if (i != 0 || strnlen(buf, 3) > 1)
+                if (i != 0 || (buf + 1) != 0)
 			return HPI_SHELL_PARM_ERROR;
         } else {
                 memset(buf, 0, 10);
