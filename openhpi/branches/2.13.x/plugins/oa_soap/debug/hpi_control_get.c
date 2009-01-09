@@ -67,6 +67,12 @@ int main(int argc, char **argv)
         printf("\nPlease enter the resource id: ");
         scanf("%d", &resourceid);
 
+	printf("\nSupported controls on the resource are:");
+	printf("\nUID LED control(Press 0)");
+	printf("\nPower control(Press 1)");
+	printf("\nEnter your option:");
+	scanf("%d", &controlNumber);
+
         rv = saHpiControlGet(sessionid, resourceid, controlNumber,
                              &controlMode, &controlState);
         if (rv != SA_OK) {
