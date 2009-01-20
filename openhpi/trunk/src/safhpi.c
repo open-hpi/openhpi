@@ -1861,7 +1861,7 @@ SaErrorT SAHPI_API saHpiSensorReadingGet (
 	 * 
 	 * The below code is added to overcome the marshalling limitation.
 	 */
-	if (rv == SA_OK && Reading->IsSupported == SAHPI_FALSE) {
+	if (rv == SA_OK && Reading && Reading->IsSupported == SAHPI_FALSE) {
 		Reading->Type = 0;
 		memset(&(Reading->Value), 0, sizeof(SaHpiSensorReadingUnionT));
 	}
