@@ -869,6 +869,15 @@ void oa_soap_serv_post_comp(struct oh_handler_state
 		return;
 	}
 
+	/* Check whether the thermal response is NULL,
+	 * blade resource might have transitioned to POWER-OFF state
+	 * during the processing of this event hence resulting in 
+	 * a NULL response
+	 */
+	if (thermal_response.bladeThermalInfoArray == NULL) {
+		dbg("Blade not in stable state to provide sensor info");
+		return;
+	}
 	/* Walk through the rdr list of the resource and enable only those 
 	 * sensor which have the "SensorPresent" value as "true" in 
 	 * getBladeThermalInfoArray response. Rest of the statically modeled
@@ -888,7 +897,7 @@ void oa_soap_serv_post_comp(struct oh_handler_state
  * oa_soap_set_thermal_sensor
  *      @oh_handler	: Pointer to openhpi handler structure
  *      @rpt		: Pointer to rpt structure
- *      @response	: Pointer to bladeThermalInfoArray response structure
+ *      @thermal_response: Pointer to bladeThermalInfoArray response structure
  *	@enable_flag	: Sensor Enable Flag
  *
  * Purpose:
@@ -921,7 +930,7 @@ SaErrorT oa_soap_set_thermal_sensor(struct oh_handler_state *oh_handler,
 	struct bladeThermalInfo bld_thrm_info;
 	struct extraDataInfo extra_data;
 
-	if (oh_handler == NULL || rpt == NULL) {
+	if (oh_handler == NULL || rpt == NULL || thermal_response == NULL) {
 		err("Invalid parameters");
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
