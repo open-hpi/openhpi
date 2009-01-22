@@ -391,6 +391,7 @@ SaErrorT remove_oa(struct oh_handler_state *oh_handler,
 
         memcpy(&(event.resource), rpt, sizeof(SaHpiRptEntryT));
         event.event.Source = event.resource.ResourceId;
+	event.event.Severity = event.resource.ResourceSeverity;
 
         event.event.EventDataUnion.HotSwapEvent.PreviousHotSwapState =
                 SAHPI_HS_STATE_ACTIVE;
@@ -916,6 +917,7 @@ SaErrorT remove_server_blade(struct oh_handler_state *oh_handler,
 
         memcpy(&(event.resource), rpt, sizeof(SaHpiRptEntryT));
         event.event.Source = event.resource.ResourceId;
+	event.event.Severity = event.resource.ResourceSeverity;
 
         if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
                 /* Simple hotswap */
@@ -1497,6 +1499,7 @@ SaErrorT remove_interconnect(struct oh_handler_state *oh_handler,
 
         memcpy(&(event.resource), rpt, sizeof(SaHpiRptEntryT));
         event.event.Source = event.resource.ResourceId;
+	event.event.Severity = event.resource.ResourceSeverity;
 
         hotswap_state = (struct oa_soap_hotswap_state *)
                 oh_get_resource_data(oh_handler->rptcache,
@@ -1849,6 +1852,7 @@ SaErrorT remove_fan(struct oh_handler_state *oh_handler,
         memcpy(&(event.resource), rpt, sizeof(SaHpiRptEntryT));
         event.rdrs = NULL;
         event.event.Source = event.resource.ResourceId;
+	event.event.Severity = event.resource.ResourceSeverity;
         event.event.EventDataUnion.HotSwapEvent.PreviousHotSwapState =
                 SAHPI_HS_STATE_ACTIVE;
         event.event.EventDataUnion.HotSwapEvent.HotSwapState =
@@ -2139,6 +2143,7 @@ SaErrorT remove_ps_unit(struct oh_handler_state *oh_handler,
 
         memcpy(&(event.resource), rpt, sizeof(SaHpiRptEntryT));
         event.event.Source = event.resource.ResourceId;
+	event.event.Severity = event.resource.ResourceSeverity;
 
         event.event.EventDataUnion.HotSwapEvent.PreviousHotSwapState =
                 SAHPI_HS_STATE_ACTIVE;
