@@ -203,9 +203,39 @@ SaErrorT sim_get_event(void *hnd)
 SaErrorT sim_close(void *hnd)
 {
         struct oh_handler_state *state = hnd;
+        SaHpiRdrT *tmp_rdr;
+        SaHpiRptEntryT *tmp_entry;
+        struct simAnnunciatorInfo *info = NULL;
+        SaHpiResourceIdT rid = SAHPI_FIRST_ENTRY;
+        SaHpiEntryIdT rdrid = SAHPI_FIRST_ENTRY;
 
-        /* TODO: we may need to do more here than just this! */
-//      g_free(state->rptcache);
+        /* Release the Annuciators */
+        tmp_entry = oh_get_resource_by_id(state->rptcache, rid);
+        while (tmp_entry != NULL) {
+                rid = tmp_entry->ResourceId;
+                /* Travers all RDRs for the ANNUNCIATOR RDR */
+                rdrid = SAHPI_FIRST_ENTRY;
+                tmp_rdr = oh_get_rdr_by_id(state->rptcache, rid, rdrid);
+                while (tmp_rdr != NULL) {
+                        rdrid = tmp_rdr->RecordId;
+                        if (tmp_rdr->RdrType == SAHPI_ANNUNCIATOR_RDR) {
+                                /* Get the annunciators */
+                                info = (struct simAnnunciatorInfo *)
+                                           oh_get_rdr_data(state->rptcache,
+                                                           rid, rdrid);
+                                /* Release all the annunciators */
+                                oh_announcement_close(info->announs); 
+                        }
+                        tmp_rdr = oh_get_rdr_next(state->rptcache, rid, rdrid);
+                }
+                tmp_entry = oh_get_resource_next(state->rptcache, rid);
+        }
+
+        /* Release the RPT and RDR table */
+        oh_flush_rpt(state->rptcache);
+
+        g_free(state->rptcache);
+        g_free(state->elcache);
         g_free(state);
         return 0;
 }

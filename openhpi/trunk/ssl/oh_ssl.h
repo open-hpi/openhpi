@@ -54,6 +54,7 @@
 #include <openssl/err.h>
 #include <openssl/rand.h>
 #include <openssl/x509v3.h>
+#include <openssl/engine.h>
 #endif
 
 
@@ -71,6 +72,8 @@ enum OH_SSL_SHUTDOWN_TYPE {             /* See SSL_shutdown man page */
  * implemented in oh_ssl.c
  */
 extern int oh_ssl_init(void);
+extern void oh_ssl_finalize(void);
+
 #ifdef HAVE_OPENSSL
 extern SSL_CTX *oh_ssl_ctx_init(void);
 extern int oh_ssl_ctx_free(SSL_CTX *ctx);

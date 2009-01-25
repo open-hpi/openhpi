@@ -82,7 +82,7 @@ void oh_close_handlers()
  *
  * Returns: 0 on Success.
  **/
-static int oh_exit_ltdl(void)
+int oh_exit_ltdl(void)
 {
         int rv;
 
@@ -218,7 +218,7 @@ void oh_release_plugin(struct oh_plugin *plugin)
         }
 
         __dec_plugin_refcount(plugin);
-        if (plugin->refcount < 0)
+        if (plugin->refcount < 1)
                 __delete_plugin(plugin);
         else
                 g_static_rec_mutex_unlock(&plugin->lock);
@@ -306,7 +306,7 @@ int oh_load_plugin(char *plugin_name)
 
         plugin = oh_get_plugin(plugin_name);
         if (plugin) {
-                oh_release_plugin(plugin);
+                __dec_plugin_refcount(plugin);
                 dbg("Plugin %s already loaded. Not loading twice.",
                     plugin_name);
                 return 0;
@@ -389,7 +389,7 @@ int oh_unload_plugin(char *plugin_name)
         }
 
         if (plugin->handler_count > 0) {
-                oh_release_plugin(plugin);
+                __dec_plugin_refcount(plugin);
                 err("ERROR unloading plugin. Handlers are still referencing it.");
                 return -3;
         }
@@ -437,9 +437,9 @@ static void __delete_handler(struct oh_handler *h)
         }
 
         /* Free the oh_handler members first, then the handler. */
-        /* FIXME: Where/When should the handler config table be freed? */
         g_static_rec_mutex_free(&h->lock);
         g_static_rec_mutex_free(&h->refcount_lock);
+        g_hash_table_destroy(h->config);
         g_free(h);
 }
 
@@ -577,7 +577,7 @@ static struct oh_handler *new_handler(GHashTable *handler_config)
         /* Initialize handler */
         handler->abi = plugin->abi;
         plugin->handler_count++; /* Increment # of handlers using the plugin */
-        oh_release_plugin(plugin);
+        __dec_plugin_refcount(plugin);
         g_static_rec_mutex_lock(&oh_handlers.lock);
         handler->id = handler_id++;
         g_static_rec_mutex_unlock(&oh_handlers.lock);
