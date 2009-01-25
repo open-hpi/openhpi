@@ -14,6 +14,9 @@
  *
  */
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <unistd.h>
 #include <config.h>
 #include <oh_init.h>
 #include <oh_ssl.h>
@@ -25,7 +28,19 @@
 #include <oh_error.h>
 #include <oh_lock.h>
 #include <oh_utils.h>
+#include <oh_event.h>
 
+extern SaHpiBoolT stop_oh_threads;
+extern GThread *oh_evtpop_thread;
+extern GThread *oh_discovery_thread;
+extern GThread *oh_evtget_thread;
+extern oh_evt_queue oh_process_q;
+extern GStaticMutex oh_wake_discovery_mutex;
+extern GMutex *oh_discovery_thread_mutex;
+extern GCond *oh_discovery_thread_wait;
+extern GMutex *oh_evtget_thread_mutex;
+extern GStaticMutex oh_wake_evtget_mutex;
+extern GCond *oh_evtget_thread_wait;
 
 /**
  * oh_init
@@ -157,12 +172,90 @@ int oh_init(void)
  **/
 int oh_finit(void)
 {
+//        unsigned int hid = 0, next_hid, i;
+        unsigned int hid = 0, next_hid;
+/*        GArray *domain_results = NULL;
+        oh_domain_result dr; */
+
         data_access_lock();
 
-        oh_close_handlers();
+        /* Set the stop_oh_threads to TRUE to stop the
+         *  discovery and event threads 
+         */
+        stop_oh_threads = SAHPI_TRUE;
+
+        /* Wake up the discovery thread, if it is waiting */
+        g_static_mutex_lock(&oh_wake_discovery_mutex);
+        if (g_mutex_trylock(oh_discovery_thread_mutex)) {
+                g_cond_broadcast(oh_discovery_thread_wait);
+                g_mutex_unlock(oh_discovery_thread_mutex);
+        } else {
+                g_mutex_lock(oh_discovery_thread_mutex);
+                g_cond_broadcast(oh_discovery_thread_wait);
+                g_mutex_unlock(oh_discovery_thread_mutex);
+        }
+        g_static_mutex_unlock(&oh_wake_discovery_mutex);
+
+        /* Wait for the discovery thread to exit */
+        g_thread_join(oh_discovery_thread);
+        dbg("discovery thread stopped");
+
+        /* Wake up the get event thread, if it is waiting */
+        g_static_mutex_lock(&oh_wake_evtget_mutex);
+        if (g_mutex_trylock(oh_evtget_thread_mutex)) {
+                g_cond_broadcast(oh_evtget_thread_wait);
+                g_mutex_unlock(oh_evtget_thread_mutex);
+        } else {
+                g_mutex_lock(oh_evtget_thread_mutex);
+                g_cond_broadcast(oh_evtget_thread_wait);
+                g_mutex_unlock(oh_evtget_thread_mutex);
+        }
+        g_static_mutex_unlock(&oh_wake_evtget_mutex);
+
+        /* Wait for the event get thread to exit */
+        g_thread_join(oh_evtget_thread);
+        dbg("event get thread stopped");
+
+        /* Wait for the event pop thread to exit */
+        g_thread_join(oh_evtpop_thread);
+        dbg("event pop thread stopped");
+
+        /* Cleanup the instantiated plugins */
+        oh_getnext_handler_id(hid, &next_hid);
+        while (next_hid) {
+                hid = next_hid;
+                oh_destroy_handler(hid);
+                oh_getnext_handler_id(hid, &next_hid);
+        }
+        dbg("all the instantiated plugins closed");
+
+        /* Release the event queue */
+        oh_event_queue_free();
+        dbg("event queue released");
+
+        /* Cleanup the thread related variables */
+        oh_threaded_final();
+        dbg("global variables released");
+
+        /* Cleanup the SSL library */
+        oh_ssl_finalize();
+        dbg("ssl library cleaned");
+
+        /* close the ltdl structures */
+        oh_exit_ltdl();
+        dbg("ltdl library cleaned");
+
+        /* Destroy the sessions */
+        oh_destroy_domain_sessions(OH_DEFAULT_DOMAIN_ID);
+        /* Destroy the domain */
+        oh_destroy_domain(OH_DEFAULT_DOMAIN_ID);
+        dbg("default domain is destroyed");
+
+        g_hash_table_destroy(oh_domains.table);
+        dbg("domain table released");
+        g_hash_table_destroy(oh_sessions.table);
+        dbg("sessions table released");
 
         data_access_unlock();
-
         return 0;
 }
-
