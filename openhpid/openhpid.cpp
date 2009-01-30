@@ -13,6 +13,7 @@
  *      W. David Ashley <dashley@us.ibm.com>
  *      David Judkoivcs <djudkovi@us.ibm.com>
  * 	Renier Morales <renier@openhpi.org>
+ *      Anton Pak <anton.pak@pigeonpoint.com>
  *
  */
 
@@ -684,6 +685,22 @@ static tResult HandleMsg(psstrmsock thrdinst,
                         thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
                 }
                 break;
+
+                case eFsaHpiMyEntityPathGet: {
+                        SaHpiSessionIdT session_id;
+                        SaHpiEntityPathT entity_path;
+
+                        PVERBOSE1("%p Processing saHpiMyEntityPathGet.", thrdid);
+
+                        if ( HpiDemarshalRequest1( request_mFlags & dMhEndianBit,
+                                                        hm, pReq, &session_id ) < 0 )
+                                return eResultError;
+
+                        ret = saHpiMyEntityPathGet( session_id, &entity_path );
+
+                        thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &entity_path );
+                }
+                break;
                 
                 case eFsaHpiResourceIdGet: {
                         SaHpiSessionIdT session_id;
@@ -1162,6 +1179,23 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 }
                 break;
                 
+                case eFsaHpiRdrUpdateCountGet: {
+                        SaHpiSessionIdT    session_id;
+                        SaHpiResourceIdT   resource_id;
+                        SaHpiUint32T       rdr_update_count;
+
+                        PVERBOSE1("%p Processing saHpiRdrUpdateCountGet.", thrdid);
+
+                        if ( HpiDemarshalRequest2( request_mFlags & dMhEndianBit,
+                                                   hm, pReq, &session_id, &resource_id ) < 0 )
+                                return eResultError;
+
+                        ret = saHpiRdrUpdateCountGet( session_id, resource_id, &rdr_update_count );
+
+                        thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &rdr_update_count );
+                }
+                break;
+
                 case eFsaHpiSensorReadingGet: {
                         SaHpiSessionIdT     session_id;
                         SaHpiResourceIdT    resource_id;
@@ -2017,6 +2051,44 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 }
                 break;
 
+                case eFsaHpiFumiSpecInfoGet: {
+                        SaHpiSessionIdT session_id;
+                        SaHpiResourceIdT resource_id;
+                        SaHpiFumiNumT fumi_num;
+                        SaHpiFumiSpecInfoT spec_info;
+
+                        PVERBOSE1("%p Processing saHpiFumiSpecInfoGet.", thrdid);
+                        if (HpiDemarshalRequest3(request_mFlags & dMhEndianBit,
+                                        hm, pReq,
+                                        &session_id, &resource_id, &fumi_num) < 0)
+                                return eResultError;
+
+                        ret = saHpiFumiSpecInfoGet(session_id, resource_id,
+                                fumi_num, &spec_info );
+
+                        thrdinst->header.m_len = HpiMarshalReply1(hm, pReq, &ret, &spec_info);
+                }
+                break;
+
+                case eFsaHpiFumiServiceImpactGet: {
+                        SaHpiSessionIdT session_id;
+                        SaHpiResourceIdT resource_id;
+                        SaHpiFumiNumT fumi_num;
+                        SaHpiFumiServiceImpactDataT service_impact;
+
+                        PVERBOSE1("%p Processing saHpiFumiServiceImpactGet.", thrdid);
+                        if (HpiDemarshalRequest3(request_mFlags & dMhEndianBit,
+                                        hm, pReq,
+                                        &session_id, &resource_id, &fumi_num) < 0)
+                                return eResultError;
+
+                        ret = saHpiFumiServiceImpactGet(session_id, resource_id,
+                                fumi_num, &service_impact );
+
+                        thrdinst->header.m_len = HpiMarshalReply1(hm, pReq, &ret, &service_impact);
+                }
+                break;
+
                 case eFsaHpiFumiSourceSet: {
                         SaHpiSessionIdT session_id;
                         SaHpiResourceIdT resource_id;
@@ -2080,6 +2152,32 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 }
                 break;
 
+                case eFsaHpiFumiSourceComponentInfoGet: {
+                        SaHpiSessionIdT session_id;
+                        SaHpiResourceIdT resource_id;
+                        SaHpiFumiNumT fumi_num;
+                        SaHpiBankNumT bank_num;
+                        SaHpiEntryIdT entry_id;
+                        SaHpiEntryIdT next_entry_id = 0;
+                        SaHpiFumiComponentInfoT component_info;
+
+                        PVERBOSE1("%p Processing saHpiFumiSourceComponentInfoGet.", thrdid);
+                        if (HpiDemarshalRequest5(request_mFlags & dMhEndianBit,
+                                        hm, pReq,
+                                        &session_id, &resource_id,
+                                        &fumi_num, &bank_num,
+                                        &entry_id ) < 0)
+                                return eResultError;
+
+                        ret = saHpiFumiSourceComponentInfoGet(session_id, resource_id,
+                                fumi_num, bank_num, entry_id, &next_entry_id,
+                                &component_info );
+
+                        thrdinst->header.m_len = HpiMarshalReply2(hm, pReq, &ret,
+                            &next_entry_id, &component_info);
+                }
+                break;
+
                 case eFsaHpiFumiTargetInfoGet: {
                         SaHpiSessionIdT session_id;
                         SaHpiResourceIdT resource_id;
@@ -2099,6 +2197,77 @@ static tResult HandleMsg(psstrmsock thrdinst,
 
                         thrdinst->header.m_len = HpiMarshalReply1(hm, pReq, &ret,
 				&bank_info);
+                }
+                break;
+
+                case eFsaHpiFumiTargetComponentInfoGet: {
+                        SaHpiSessionIdT session_id;
+                        SaHpiResourceIdT resource_id;
+                        SaHpiFumiNumT fumi_num;
+                        SaHpiBankNumT bank_num;
+                        SaHpiEntryIdT entry_id;
+                        SaHpiEntryIdT next_entry_id = 0;
+                        SaHpiFumiComponentInfoT component_info;
+
+                        PVERBOSE1("%p Processing saHpiFumiTargetComponentInfoGet.", thrdid);
+                        if (HpiDemarshalRequest5(request_mFlags & dMhEndianBit,
+                                        hm, pReq,
+                                        &session_id, &resource_id,
+                                        &fumi_num, &bank_num,
+                                        &entry_id ) < 0)
+                                return eResultError;
+
+                        ret = saHpiFumiTargetComponentInfoGet(session_id, resource_id,
+                                fumi_num, bank_num, entry_id, &next_entry_id,
+                                &component_info );
+
+                        thrdinst->header.m_len = HpiMarshalReply2(hm, pReq, &ret,
+                            &next_entry_id, &component_info);
+                }
+                break;
+
+                case eFsaHpiFumiLogicalTargetInfoGet: {
+                        SaHpiSessionIdT session_id;
+                        SaHpiResourceIdT resource_id;
+                        SaHpiFumiNumT fumi_num;
+                        SaHpiFumiLogicalBankInfoT bank_info;
+
+                        PVERBOSE1("%p Processing saHpiFumiLogicalTargetInfoGet.", thrdid);
+                        if (HpiDemarshalRequest3(request_mFlags & dMhEndianBit,
+                                        hm, pReq,
+                                        &session_id, &resource_id,
+                                        &fumi_num) < 0)
+                                return eResultError;
+
+                        ret = saHpiFumiLogicalTargetInfoGet(session_id, resource_id,
+                                fumi_num, &bank_info);
+
+                        thrdinst->header.m_len = HpiMarshalReply1(hm, pReq, &ret,
+                            &bank_info);
+                }
+                break;
+
+                case eFsaHpiFumiLogicalTargetComponentInfoGet: {
+                        SaHpiSessionIdT session_id;
+                        SaHpiResourceIdT resource_id;
+                        SaHpiFumiNumT fumi_num;
+                        SaHpiEntryIdT entry_id;
+                        SaHpiEntryIdT next_entry_id = 0;
+                        SaHpiFumiLogicalComponentInfoT component_info;
+
+                        PVERBOSE1("%p Processing saHpiFumiLogicalTargetComponentInfoGet.", thrdid);
+                        if (HpiDemarshalRequest4(request_mFlags & dMhEndianBit,
+                                        hm, pReq,
+                                        &session_id, &resource_id,
+                                        &fumi_num, &entry_id ) < 0)
+                                return eResultError;
+
+                        ret = saHpiFumiLogicalTargetComponentInfoGet(session_id, resource_id,
+                                fumi_num, entry_id, &next_entry_id,
+                                &component_info );
+
+                        thrdinst->header.m_len = HpiMarshalReply2(hm, pReq, &ret,
+                            &next_entry_id, &component_info);
                 }
                 break;
 
@@ -2225,6 +2394,25 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 }
                 break;
 
+                case eFsaHpiFumiTargetVerifyMainStart: {
+                        SaHpiSessionIdT session_id;
+                        SaHpiResourceIdT resource_id;
+                        SaHpiFumiNumT fumi_num;
+
+                        PVERBOSE1("%p Processing saHpiFumiTargetVerifyMainStart.", thrdid);
+                        if (HpiDemarshalRequest3(request_mFlags & dMhEndianBit,
+                                        hm, pReq,
+                                        &session_id, &resource_id,
+                                        &fumi_num) < 0)
+                                return eResultError;
+
+                        ret = saHpiFumiTargetVerifyMainStart(session_id, resource_id,
+                                fumi_num);
+
+                        thrdinst->header.m_len = HpiMarshalReply0(hm, pReq, &ret);
+                }
+                break;
+
                 case eFsaHpiFumiUpgradeCancel: {
                         SaHpiSessionIdT session_id;
                         SaHpiResourceIdT resource_id;
@@ -2242,6 +2430,47 @@ static tResult HandleMsg(psstrmsock thrdinst,
                                 fumi_num, bank_num);
 
                         thrdinst->header.m_len = HpiMarshalReply0(hm, pReq, &ret);
+                }
+                break;
+
+                case eFsaHpiFumiAutoRollbackDisableGet: {
+                        SaHpiSessionIdT session_id;
+                        SaHpiResourceIdT resource_id;
+                        SaHpiFumiNumT fumi_num;
+                        SaHpiBoolT disable = SAHPI_FALSE;
+
+                        PVERBOSE1("%p Processing saHpiFumiAutoRollbackDisableGet.", thrdid);
+                        if (HpiDemarshalRequest3(request_mFlags & dMhEndianBit,
+                                        hm, pReq,
+                                        &session_id, &resource_id,
+                                        &fumi_num) < 0)
+                                return eResultError;
+
+                        ret = saHpiFumiAutoRollbackDisableGet(session_id, resource_id,
+                                fumi_num, &disable);
+
+                        thrdinst->header.m_len = HpiMarshalReply1(hm, pReq, &ret,
+                            &disable);
+                }
+                break;
+
+                case eFsaHpiFumiAutoRollbackDisableSet: {
+                        SaHpiSessionIdT session_id;
+                        SaHpiResourceIdT resource_id;
+                        SaHpiFumiNumT fumi_num;
+                        SaHpiBoolT disable;
+
+                        PVERBOSE1("%p Processing saHpiFumiAutoRollbackDisableSet.", thrdid);
+                        if (HpiDemarshalRequest4(request_mFlags & dMhEndianBit,
+                                        hm, pReq,
+                                        &session_id, &resource_id,
+                                        &fumi_num, &disable) < 0)
+                                return eResultError;
+
+                        ret = saHpiFumiAutoRollbackDisableSet(session_id, resource_id,
+                                fumi_num, disable);
+
+                        thrdinst->header.m_len = HpiMarshalReply0(hm, pReq, &ret );
                 }
                 break;
 
@@ -2278,6 +2507,46 @@ static tResult HandleMsg(psstrmsock thrdinst,
 
                         ret = saHpiFumiActivate(session_id, resource_id,
                                 fumi_num);
+
+                        thrdinst->header.m_len = HpiMarshalReply0(hm, pReq, &ret);
+                }
+                break;
+
+                case eFsaHpiFumiActivateStart: {
+                        SaHpiSessionIdT session_id;
+                        SaHpiResourceIdT resource_id;
+                        SaHpiFumiNumT fumi_num;
+                        SaHpiBoolT logical;
+
+                        PVERBOSE1("%p Processing saHpiFumiActivateStart.", thrdid);
+                        if (HpiDemarshalRequest4(request_mFlags & dMhEndianBit,
+                                        hm, pReq,
+                                        &session_id, &resource_id,
+                                        &fumi_num, &logical) < 0)
+                                return eResultError;
+
+                        ret = saHpiFumiActivateStart(session_id, resource_id,
+                                fumi_num, logical);
+
+                        thrdinst->header.m_len = HpiMarshalReply0(hm, pReq, &ret);
+                }
+                break;
+
+                case eFsaHpiFumiCleanup: {
+                        SaHpiSessionIdT session_id;
+                        SaHpiResourceIdT resource_id;
+                        SaHpiFumiNumT fumi_num;
+                        SaHpiBankNumT bank_num;
+
+                        PVERBOSE1("%p Processing saHpiFumiCleanup.", thrdid);
+                        if (HpiDemarshalRequest4(request_mFlags & dMhEndianBit,
+                                        hm, pReq,
+                                        &session_id, &resource_id,
+                                        &fumi_num, &bank_num) < 0)
+                                return eResultError;
+
+                        ret = saHpiFumiCleanup(session_id, resource_id,
+                                fumi_num, bank_num);
 
                         thrdinst->header.m_len = HpiMarshalReply0(hm, pReq, &ret);
                 }
