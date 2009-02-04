@@ -2516,10 +2516,10 @@ SaErrorT SAHPI_API saHpiSensorEventMasksSet (
         		return SA_ERR_HPI_INVALID_DATA;        		
         	}
         	
-        	if ((!res->ResourceCapabilities & SAHPI_CAPABILITY_EVT_DEASSERTS) &&
-        	    DeassertEventMask != SAHPI_ALL_EVENT_STATES &&
-        	    (rdr_cur->RdrTypeUnion.SensorRec.Events | DeassertEventMask) !=
-        	    rdr_cur->RdrTypeUnion.SensorRec.Events) {
+        	if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_EVT_DEASSERTS) &&
+        	    (DeassertEventMask != SAHPI_ALL_EVENT_STATES) &&
+        	    ((rdr_cur->RdrTypeUnion.SensorRec.Events | DeassertEventMask) !=
+        	    rdr_cur->RdrTypeUnion.SensorRec.Events)) {
         		oh_release_domain(d);
         		return SA_ERR_HPI_INVALID_DATA;
         	}
