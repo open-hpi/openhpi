@@ -124,71 +124,99 @@ static SaErrorT oa_soap_re_disc_therm_subsys_sen(struct oh_handler_state
  *      SA_ERR_HPI_INTERNAL_ERROR - on failure.
  **/
 SaErrorT oa_soap_re_discover_resources(struct oh_handler_state *oh_handler,
-                                       SOAP_CON *con)
+                                       struct oa_info *oa)
 {
         SaErrorT rv = SA_OK;
+        struct oa_soap_handler *oa_handler = NULL;
 
-        if (oh_handler == NULL || con == NULL) {
+        oa_handler = (struct oa_soap_handler *) oh_handler->data;
+
+        if (oh_handler == NULL || oa == NULL) {
                 err("Invalid parameters");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
         err("Re-discovery started");
-        rv = re_discover_blade(oh_handler, con);
+
+	/* Re-discovery is called by locking the OA handler mutex and oa_info
+	 * mutex. Hence on getting request to shutdown, pass the locked mutexes
+	 * for unlocking
+	 */
+	OA_SOAP_CHEK_SHUTDOWN_REQ(oa_handler, oa_handler->mutex, oa->mutex,
+				  NULL);
+        rv = re_discover_blade(oh_handler, oa->event_con);
         if (rv != SA_OK) {
                 err("Re-discovery of server blade failed");
                 return rv;
         }
 
-        rv = re_discover_interconnect(oh_handler, con);
+	OA_SOAP_CHEK_SHUTDOWN_REQ(oa_handler, oa_handler->mutex, oa->mutex,
+				  NULL);
+        rv = re_discover_interconnect(oh_handler, oa->event_con);
         if (rv != SA_OK) {
                 err("Re-discovery of interconnect failed");
                 return rv;
         }
 
-        rv = re_discover_fan(oh_handler, con);
+	OA_SOAP_CHEK_SHUTDOWN_REQ(oa_handler, oa_handler->mutex, oa->mutex,
+				  NULL);
+        rv = re_discover_fan(oh_handler, oa->event_con);
         if (rv != SA_OK) {
                 err("Re-discovery of fan failed");
                 return rv;
         }
 
-        rv = re_discover_ps_unit(oh_handler, con);
+	OA_SOAP_CHEK_SHUTDOWN_REQ(oa_handler, oa_handler->mutex, oa->mutex,
+				  NULL);
+        rv = re_discover_ps_unit(oh_handler, oa->event_con);
         if (rv != SA_OK) {
                 err("Re-discovery of power supply unit failed");
                 return rv;
         }
 
-        rv = re_discover_oa(oh_handler, con);
+	OA_SOAP_CHEK_SHUTDOWN_REQ(oa_handler, oa_handler->mutex, oa->mutex,
+				  NULL);
+        rv = re_discover_oa(oh_handler, oa->event_con);
         if (rv != SA_OK) {
                 err("Re-discovery of OA failed");
                 return rv;
         }
 
-	rv = oa_soap_re_disc_enc_sen(oh_handler, con);
+	OA_SOAP_CHEK_SHUTDOWN_REQ(oa_handler, oa_handler->mutex, oa->mutex,
+				  NULL);
+	rv = oa_soap_re_disc_enc_sen(oh_handler, oa->event_con);
         if (rv != SA_OK) {
                 err("Re-discovery of enclosure failed");
                 return rv;
         }
 
-	rv = oa_soap_re_disc_ps_subsys_sen(oh_handler, con);
+	OA_SOAP_CHEK_SHUTDOWN_REQ(oa_handler, oa_handler->mutex, oa->mutex,
+				  NULL);
+	rv = oa_soap_re_disc_ps_subsys_sen(oh_handler, oa->event_con);
         if (rv != SA_OK) {
                 err("Re-discovery of power subsystem failed");
                 return rv;
         }
 
-	rv = oa_soap_re_disc_lcd_sen(oh_handler, con);
+	OA_SOAP_CHEK_SHUTDOWN_REQ(oa_handler, oa_handler->mutex, oa->mutex,
+				  NULL);
+	rv = oa_soap_re_disc_lcd_sen(oh_handler, oa->event_con);
         if (rv != SA_OK) {
                 err("Re-discovery of LCD failed");
                 return rv;
         }
 
-	rv = oa_soap_re_disc_fz_sen(oh_handler, con);
+	OA_SOAP_CHEK_SHUTDOWN_REQ(oa_handler, oa_handler->mutex, oa->mutex,
+				  NULL);
+	rv = oa_soap_re_disc_fz_sen(oh_handler, oa->event_con);
         if (rv != SA_OK) {
                 err("Re-discovery of fan zone failed");
                 return rv;
         }
 
-	rv = oa_soap_re_disc_therm_subsys_sen(oh_handler, con);
+	OA_SOAP_CHEK_SHUTDOWN_REQ(oa_handler, oa_handler->mutex, oa->mutex,
+				  NULL);
+	rv = oa_soap_re_disc_therm_subsys_sen(oh_handler, oa->event_con);
         if (rv != SA_OK) {
                 err("Re-discovery of thermal subsystem failed");
                 return rv;
