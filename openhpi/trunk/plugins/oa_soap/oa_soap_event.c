@@ -110,7 +110,6 @@ gpointer oa_soap_event_thread(gpointer event_handler)
         SaHpiBoolT is_plugin_initialized = SAHPI_FALSE;
         SaHpiBoolT is_discovery_completed = SAHPI_FALSE;
         SaHpiBoolT listen_for_events = SAHPI_TRUE;
-        SOAP_CON *con = NULL;
         char *user_name, *password, url[MAX_URL_LEN];
 
         if (event_handler == NULL) {
@@ -130,6 +129,7 @@ gpointer oa_soap_event_thread(gpointer event_handler)
          * If not, wait till plugin gets initialized
          */
         while (is_plugin_initialized == SAHPI_FALSE) {
+        	OA_SOAP_CHEK_SHUTDOWN_REQ(oa_handler, NULL, NULL, NULL);
                 g_mutex_lock(oa_handler->mutex);
                 if (oa_handler->status == PRE_DISCOVERY ||
                     oa_handler->status == DISCOVERY_COMPLETED) {
@@ -147,6 +147,7 @@ gpointer oa_soap_event_thread(gpointer event_handler)
          * If not, wait till discovery gets completed
          */
         while (is_discovery_completed == SAHPI_FALSE) {
+        	OA_SOAP_CHEK_SHUTDOWN_REQ(oa_handler, NULL, NULL, NULL);
                 g_mutex_lock(oa_handler->mutex);
                 if (oa_handler->status == DISCOVERY_COMPLETED) {
                         g_mutex_unlock(oa_handler->mutex);
@@ -182,7 +183,7 @@ gpointer oa_soap_event_thread(gpointer event_handler)
                 /* This call will not return until the OA connection is
                  * established
                  */
-                create_oa_connection(oa, user_name, password);
+                create_oa_connection(oa_handler, oa, user_name, password);
                 rv = create_event_session(oa);
                 /* Sleep for a second, let OA stabilize
                  * TODO: Remove this workaround, when OA has the fix
@@ -196,9 +197,11 @@ gpointer oa_soap_event_thread(gpointer event_handler)
         memset(url, 0, MAX_URL_LEN);
         snprintf(url, strlen(oa->server) + strlen(PORT) + 1,
                  "%s" PORT, oa->server);
-        while (con == NULL) {
-                con = soap_open(url, user_name, password, HPI_CALL_TIMEOUT);
-                if (con == NULL)
+        while (oa->event_con2 == NULL) {
+        	OA_SOAP_CHEK_SHUTDOWN_REQ(oa_handler, NULL, NULL, NULL);
+                oa->event_con2 = soap_open(url, user_name, password,
+                                           HPI_CALL_TIMEOUT);
+                if (oa->event_con2 == NULL)
                         sleep(2);
         }
 
@@ -207,13 +210,9 @@ gpointer oa_soap_event_thread(gpointer event_handler)
         request.waitTilEventHappens = HPOA_TRUE;
         request.lcdEvents = HPOA_FALSE;
 
-        /* Listen for the events from OA
-         *
-         * Since graceful shutdown is not implemented in openhpi framework,
-         * this while loop is a infinite loop
-         * TODO: Do normal exit on implementation of graceful shutdown
-         */
+        /* Listen for the events from OA */
         while (listen_for_events == SAHPI_TRUE) {
+        	OA_SOAP_CHEK_SHUTDOWN_REQ(oa_handler, NULL, NULL, NULL);
                 rv = soap_getAllEvents(oa->event_con, &request, &response);
                 if (rv == SOAP_OK) {
                         retry_on_switchover = 0;
@@ -223,7 +222,7 @@ gpointer oa_soap_event_thread(gpointer event_handler)
                         if (response.eventInfoArray == NULL) {
                                 dbg("Ignoring empty event response");
                         } else
-                                process_oa_events(handler, oa, con, &response);
+                                process_oa_events(handler, oa, &response);
                 } else {
                         /* On switchover, the standby-turned-active OA stops
                          * responding to SOAP calls to avoid the network loop.
@@ -246,9 +245,9 @@ gpointer oa_soap_event_thread(gpointer event_handler)
                                 request.pid = oa->event_pid;
 
                                 /* Re-initialize the con */
-                                if (con != NULL) {
-                                        soap_close(con);
-                                        con = NULL;
+                                if (oa->event_con2 != NULL) {
+                                        soap_close(oa->event_con2);
+                                        oa->event_con2 = NULL;
                                 }
                                 memset(url, 0, MAX_URL_LEN);
                                 snprintf(url, strlen(oa->server) +
@@ -258,11 +257,15 @@ gpointer oa_soap_event_thread(gpointer event_handler)
                                 /* Ideally, the soap_open should pass in
                                  * 1st try. If not, try until soap_open succeeds
                                  */
-                                while (con == NULL) {
-                                        con = soap_open(url, user_name,
-                                                        password,
-                                                        HPI_CALL_TIMEOUT);
-                                        if (con == NULL)
+                                while (oa->event_con2 == NULL) {
+        				OA_SOAP_CHEK_SHUTDOWN_REQ(oa_handler,
+								  NULL, NULL,
+								  NULL);
+					oa->event_con2 =
+						soap_open(url, user_name,
+							  password,
+							  HPI_CALL_TIMEOUT);
+                                        if (oa->event_con2 == NULL)
                                                 sleep(2);
                                 }
                         } /* end of else (non-switchover error handling) */
@@ -314,7 +317,7 @@ void oa_soap_error_handling(struct oh_handler_state *oh_handler,
                 password = (char *) g_hash_table_lookup(oh_handler->config,
                                                         "OA_Password");
                 /* Create the OA connection */
-                create_oa_connection(oa, user_name, password);
+                create_oa_connection(oa_handler, oa, user_name, password);
                 /* OA session is established. Set the error_code to SOAP_OK
                  * to skip the processing for OA out of access
                  */
@@ -326,6 +329,7 @@ void oa_soap_error_handling(struct oh_handler_state *oh_handler,
 
         /* This loop ends when the OA is accessible */
         while (is_oa_accessible == SAHPI_FALSE) {
+                OA_SOAP_CHEK_SHUTDOWN_REQ(oa_handler, NULL, NULL, NULL);
                 /* Check whether the failure is not due to OA event session
                  * expiry
                  */
@@ -363,8 +367,9 @@ void oa_soap_error_handling(struct oh_handler_state *oh_handler,
                         /* Re-discover the resources as there is a high chances
                          * that we might have missed some events
                          */
-                        rv = oa_soap_re_discover_resources(oh_handler,
-                                                           oa->event_con);
+                	OA_SOAP_CHEK_SHUTDOWN_REQ(oa_handler, oa_handler->mutex,
+						  oa->mutex, NULL);
+                        rv = oa_soap_re_discover_resources(oh_handler, oa);
                         g_mutex_unlock(oa->mutex);
                         g_mutex_unlock(oa_handler->mutex);
                         if (rv != SA_OK) {
@@ -429,11 +434,14 @@ void process_oa_out_of_access(struct oh_handler_state *oh_handler,
 
         /* This loop ends after OA is accessible */
         while (is_oa_reachable == SAHPI_FALSE) {
+                OA_SOAP_CHEK_SHUTDOWN_REQ(oa_handler, NULL, NULL, timer);
                 /* Check whether the OA is present.
                  * If not, wait till the OA is inserted
                  */
                 is_oa_present = SAHPI_FALSE;
                 while (is_oa_present == SAHPI_FALSE) {
+                	OA_SOAP_CHEK_SHUTDOWN_REQ(oa_handler, NULL, NULL,
+						  timer);
                         g_mutex_lock(oa->mutex);
                         if (oa->oa_status != OA_ABSENT) {
                                 g_mutex_unlock(oa->mutex);
@@ -504,7 +512,8 @@ void process_oa_out_of_access(struct oh_handler_state *oh_handler,
                  */
                 if (oa_was_removed == SAHPI_TRUE) {
                         /* Create the OA connection */
-                        create_oa_connection(oa, user_name, password);
+                        create_oa_connection(oa_handler, oa, user_name,
+                                             password);
                         is_oa_reachable = SAHPI_TRUE;
                 } else {
                         rv = check_oa_status(oa_handler, oa, oa->event_con);
@@ -549,20 +558,22 @@ void process_oa_out_of_access(struct oh_handler_state *oh_handler,
 
 void process_oa_events(struct oh_handler_state *oh_handler,
                        struct oa_info *oa,
-                       SOAP_CON *con,
                        struct getAllEventsResponse *response)
 {
         SaErrorT rv;
         struct eventInfo event;
+        struct oa_soap_handler *oa_handler = NULL;
 
-        if (response == NULL || oa == NULL ||
-            con == NULL || oh_handler == NULL) {
+        if (response == NULL || oa == NULL || oh_handler == NULL) {
                 err("Invalid parameter");
                 return;
         }
 
+        oa_handler = (struct oa_soap_handler *) oh_handler->data;
+
         /* Extract the events from eventInfoArray */
         while (response->eventInfoArray) {
+        	OA_SOAP_CHEK_SHUTDOWN_REQ(oa_handler, NULL, NULL, NULL);
                 /* Get the event from eventInfoArray */
                 soap_getEventInfo(response->eventInfoArray, &event);
                 switch (event.event) {
@@ -612,7 +623,8 @@ void process_oa_events(struct oh_handler_state *oh_handler,
                         case EVENT_FAN_INSERTED:
                                 dbg("EVENT_FAN_INSERTED");
                                 rv = process_fan_insertion_event(oh_handler,
-                                                                 con, &event);
+                                                                 oa->event_con2,
+                                                                 &event);
                                 break;
 
                         case EVENT_FAN_REMOVED:
@@ -645,7 +657,8 @@ void process_oa_events(struct oh_handler_state *oh_handler,
                         case EVENT_PS_INSERTED:
                                 dbg("EVENT_PS_INSERTED");
                                 rv = process_ps_insertion_event(oh_handler,
-                                                                con, &event);
+                                                                oa->event_con2,
+                                                                &event);
                                 break;
 
                         case EVENT_PS_REMOVED:
@@ -696,7 +709,7 @@ void process_oa_events(struct oh_handler_state *oh_handler,
                         case EVENT_INTERCONNECT_INSERTED:
                                 dbg("EVENT_INTERCONNECT_INSERTED");
                                 rv = process_interconnect_insertion_event(
-                                        oh_handler, con, &event);
+                                        oh_handler, oa->event_con2, &event);
                                 break;
 
                         case EVENT_INTERCONNECT_REMOVED:
@@ -715,7 +728,7 @@ void process_oa_events(struct oh_handler_state *oh_handler,
                         case EVENT_INTERCONNECT_THERMAL:
                                 dbg("EVENT_INTERCONNECT_THERMAL");
                                 oa_soap_proc_interconnect_thermal(oh_handler,
-					con, &(event.eventData.
+					oa->event_con2, &(event.eventData.
 						interconnectTrayStatus));
                                 break;
                         case EVENT_INTERCONNECT_CPUFAULT:
@@ -748,7 +761,8 @@ void process_oa_events(struct oh_handler_state *oh_handler,
                                 break;
                         case EVENT_BLADE_STATUS:
 				dbg("EVENT_BLADE_STATUS");
-				oa_soap_proc_server_status(oh_handler, con,
+				oa_soap_proc_server_status(oh_handler,
+						oa->event_con2,
 						&(event.eventData.bladeStatus));
                                 break;
 
@@ -765,7 +779,8 @@ void process_oa_events(struct oh_handler_state *oh_handler,
                         case EVENT_BLADE_POWER_STATE:
 				dbg("EVENT_BLADE_POWER_STATE");
                                 process_server_power_event(oh_handler,
-                                                                con, &event);
+							   oa->event_con2,
+							   &event);
                                 break;
 
                         case EVENT_BLADE_POWER_MGMT:
@@ -776,12 +791,14 @@ void process_oa_events(struct oh_handler_state *oh_handler,
                                 break;
                         case EVENT_BLADE_SHUTDOWN:
 				dbg("EVENT_BLADE_SHUTDOWN");
-				oa_soap_proc_server_status(oh_handler, con,
+				oa_soap_proc_server_status(oh_handler,
+						oa->event_con2,
 						&(event.eventData.bladeStatus));
                                 break;
                         case EVENT_BLADE_FAULT:
 				dbg("EVENT_BLADE_FAULT");
-				oa_soap_proc_server_status(oh_handler, con,
+				oa_soap_proc_server_status(oh_handler,
+						oa->event_con2,
 						&(event.eventData.bladeStatus));
                                 break;
                         case EVENT_BLADE_INFO:
@@ -818,7 +835,8 @@ void process_oa_events(struct oh_handler_state *oh_handler,
                                 break;
                         case EVENT_ILO_DEAD:
 				dbg("EVENT_ILO_DEAD");
-				oa_soap_proc_server_status(oh_handler, con,
+				oa_soap_proc_server_status(oh_handler,
+						oa->event_con2,
 						&(event.eventData.bladeStatus));
                                 break;
                         case EVENT_RACK_SERVICE_STARTED:
@@ -831,7 +849,8 @@ void process_oa_events(struct oh_handler_state *oh_handler,
                                 break;
                         case EVENT_ILO_ALIVE:
 				dbg("EVENT_ILO_ALIVE");
-				oa_soap_proc_server_status(oh_handler, con,
+				oa_soap_proc_server_status(oh_handler,
+						oa->event_con2,
 						&(event.eventData.bladeStatus));
                                 break;
                         case EVENT_PERSONALITY_CHECK:
@@ -840,7 +859,8 @@ void process_oa_events(struct oh_handler_state *oh_handler,
 
                         case EVENT_BLADE_POST_COMPLETE:
                                 dbg("EVENT_BLADE_POST_COMPLETE");
-				oa_soap_serv_post_comp(oh_handler, con, 
+				oa_soap_serv_post_comp(oh_handler,
+						       oa->event_con2, 
 						       event.numValue);
                                 break;
 
@@ -899,7 +919,8 @@ void process_oa_events(struct oh_handler_state *oh_handler,
                         case EVENT_OA_INFO:
                                 dbg("EVENT_OA_INFO");
                                 rv = process_oa_info_event(oh_handler,
-                                                           con, &event);
+                                                           oa->event_con2,
+							   &event);
                                 break;
                         case EVENT_OA_FAILOVER:
                                 dbg("EVENT_OA_FAILOVER");
@@ -1156,8 +1177,8 @@ void process_oa_events(struct oh_handler_state *oh_handler,
                         case EVENT_BLADE_INSERT_COMPLETED:
                                 dbg("EVENT_BLADE_INSERT_COMPLETED");
                                 rv = process_server_insertion_event(oh_handler,
-                                                                    con,
-                                                                    &event);
+                                                                 oa->event_con2,
+                                                                 &event);
                                 break;
                         case EVENT_EBIPA_INFO_CHANGED_EX:
                                 dbg("EVENT_EBIPA_INFO_CHANGED_EX "

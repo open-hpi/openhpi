@@ -56,7 +56,6 @@ void process_oa_out_of_access(struct oh_handler_state *oh_handler,
 
 void process_oa_events(struct oh_handler_state *oh_handler,
                        struct oa_info *oa,
-                       SOAP_CON *con,
                        struct getAllEventsResponse *oa_event);
 
 #endif
