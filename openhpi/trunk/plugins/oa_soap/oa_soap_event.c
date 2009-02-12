@@ -82,7 +82,7 @@ int oa_soap_get_event(void *oh_handler)
 
 /**
  * event_thread
- *      @oh_handler: Pointer to the openhpi handler structure
+ *      @oa_pointer: Pointer to the oa_info structure for this thread.
  *
  * Purpose:
  *      Gets the event from the OA.
@@ -96,7 +96,7 @@ int oa_soap_get_event(void *oh_handler)
  *      (gpointer *) SA_ERR_HPI_INTERNAL_ERROR - on failure.
  **/
 
-gpointer oa_soap_event_thread(gpointer event_handler)
+gpointer oa_soap_event_thread(gpointer oa_pointer)
 {
         SaErrorT rv = SA_OK;
         struct getAllEvents request;
@@ -106,22 +106,20 @@ gpointer oa_soap_event_thread(gpointer event_handler)
         int ret_code = SA_ERR_HPI_INVALID_PARAMS;
         int retry_on_switchover = 0;
         struct oa_soap_handler *oa_handler = NULL;
-        struct event_handler *evt_handler = NULL;
         SaHpiBoolT is_plugin_initialized = SAHPI_FALSE;
         SaHpiBoolT is_discovery_completed = SAHPI_FALSE;
         SaHpiBoolT listen_for_events = SAHPI_TRUE;
         char *user_name, *password, url[MAX_URL_LEN];
 
-        if (event_handler == NULL) {
+        if (oa_pointer == NULL) {
                 err("Invalid parameter");
                 g_thread_exit(&ret_code);
         }
 
-        /* Extract the oh_handler and oa_info structure from event_handler */
-        evt_handler = (struct event_handler *) event_handler;
-        handler = (struct oh_handler_state *) evt_handler->oh_handler;
-        oa = (struct oa_info *) evt_handler->oa;
-        oa_handler = (struct oa_soap_handler *) handler->data;
+        /* Extract the oh_handler and oa_info structure from oa_pointer */
+	oa = (struct oa_info *)oa_pointer;
+	handler = oa->oh_handler;
+	oa_handler = handler->data;
 
         dbg("OA SOAP event thread started for OA %s", oa->server);
 

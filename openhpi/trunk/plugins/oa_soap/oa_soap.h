@@ -158,6 +158,7 @@ struct oa_info
         SOAP_CON *event_con;
         SOAP_CON *event_con2;
         SaHpiFloat64T fm_version;
+	struct oh_handler_state *oh_handler;
 };
 
 typedef enum resource_presence_status
@@ -202,13 +203,6 @@ struct oa_soap_handler
 	SaHpiInt32T enc_type; 
 	SaHpiBoolT shutdown_event_thread;
         GMutex *mutex;
-};
-
-/* Structure for passing the parameters for Event threads */
-struct event_handler
-{
-        struct oh_handler_state *oh_handler;
-        struct oa_info *oa;
 };
 
 /* Structure for storing the current hotswap state of the resource */

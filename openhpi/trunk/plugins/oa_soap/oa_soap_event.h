@@ -46,7 +46,7 @@
 
 int oa_soap_get_event(void *oh_handler);
 
-gpointer oa_soap_event_thread(gpointer oh_handler);
+gpointer oa_soap_event_thread(gpointer oa_pointer);
 
 void oa_soap_error_handling(struct oh_handler_state *oh_handler,
                                 struct oa_info *oa);
