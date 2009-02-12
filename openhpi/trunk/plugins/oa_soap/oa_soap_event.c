@@ -511,10 +511,15 @@ void process_oa_out_of_access(struct oh_handler_state *oh_handler,
                  * inserted OA IP address
                  */
                 if (oa_was_removed == SAHPI_TRUE) {
+ 			/* Cleanup the timer */
+ 			g_timer_destroy(timer);
                         /* Create the OA connection */
                         create_oa_connection(oa_handler, oa, user_name,
                                              password);
-                        is_oa_reachable = SAHPI_TRUE;
+			/* OA connection is established. Hence break the loop
+			 * and return to the calling function 
+ 			 */
+			return;
                 } else {
                         rv = check_oa_status(oa_handler, oa, oa->event_con);
                         if (rv == SA_OK) {
@@ -537,6 +542,8 @@ void process_oa_out_of_access(struct oh_handler_state *oh_handler,
                 }
         }
 
+	/* Cleanup the timer */
+	g_timer_destroy(timer);
         return;
 }
 
