@@ -3895,37 +3895,42 @@ if (thds->thdname.IsSupported) { \
         case SAHPI_SENSOR_READING_TYPE_INT64: \
                 if (thdmask == SAHPI_STM_UP_HYSTERESIS || thdmask == SAHPI_STM_LOW_HYSTERESIS) { \
                         if (thds->thdname.Value.SensorInt64 < 0) return(SA_ERR_HPI_INVALID_DATA); \
-                } \
-                if (format.Range.Flags & SAHPI_SRF_MAX) { \
-                        if (thds->thdname.Value.SensorInt64 > format.Range.Max.Value.SensorInt64) \
-                                return(SA_ERR_HPI_INVALID_CMD); \
-                } \
-                if (format.Range.Flags & SAHPI_SRF_MIN) { \
-                        if (thds->thdname.Value.SensorInt64 < format.Range.Min.Value.SensorInt64) \
-                                return(SA_ERR_HPI_INVALID_CMD); \
+                } else { \
+                        if (format.Range.Flags & SAHPI_SRF_MAX) { \
+                                if (thds->thdname.Value.SensorInt64 > format.Range.Max.Value.SensorInt64) \
+                                        return(SA_ERR_HPI_INVALID_CMD); \
+                        } \
+                        if (format.Range.Flags & SAHPI_SRF_MIN) { \
+                                if (thds->thdname.Value.SensorInt64 < format.Range.Min.Value.SensorInt64) \
+                                        return(SA_ERR_HPI_INVALID_CMD); \
+                        } \
                 } \
                 break; \
         case SAHPI_SENSOR_READING_TYPE_FLOAT64: \
                 if (thdmask == SAHPI_STM_UP_HYSTERESIS || thdmask == SAHPI_STM_LOW_HYSTERESIS) { \
                         if (thds->thdname.Value.SensorFloat64 < 0) return(SA_ERR_HPI_INVALID_DATA); \
-                } \
-                if (format.Range.Flags & SAHPI_SRF_MAX) { \
-                        if (thds->thdname.Value.SensorFloat64 > format.Range.Max.Value.SensorFloat64) \
-                                return(SA_ERR_HPI_INVALID_CMD); \
-                } \
-                if (format.Range.Flags & SAHPI_SRF_MIN) { \
-                        if (thds->thdname.Value.SensorFloat64 < format.Range.Min.Value.SensorFloat64) \
-                                return(SA_ERR_HPI_INVALID_CMD); \
+                } else { \
+                        if (format.Range.Flags & SAHPI_SRF_MAX) { \
+                                if (thds->thdname.Value.SensorFloat64 > format.Range.Max.Value.SensorFloat64) \
+                                        return(SA_ERR_HPI_INVALID_CMD); \
+                        } \
+                        if (format.Range.Flags & SAHPI_SRF_MIN) { \
+                                if (thds->thdname.Value.SensorFloat64 < format.Range.Min.Value.SensorFloat64) \
+                                        return(SA_ERR_HPI_INVALID_CMD); \
+                        } \
                 } \
                 break; \
         case SAHPI_SENSOR_READING_TYPE_UINT64: \
-                if (format.Range.Flags & SAHPI_SRF_MAX) { \
-                        if (thds->thdname.Value.SensorUint64 > format.Range.Max.Value.SensorUint64) \
-                                return(SA_ERR_HPI_INVALID_CMD); \
-                } \
-                if (format.Range.Flags & SAHPI_SRF_MIN) { \
-                        if (thds->thdname.Value.SensorUint64 < format.Range.Min.Value.SensorUint64) \
-                                return(SA_ERR_HPI_INVALID_CMD); \
+                if (thdmask == SAHPI_STM_UP_HYSTERESIS || thdmask == SAHPI_STM_LOW_HYSTERESIS) { \
+                } else { \
+                        if (format.Range.Flags & SAHPI_SRF_MAX) { \
+                                if (thds->thdname.Value.SensorUint64 > format.Range.Max.Value.SensorUint64) \
+                                        return(SA_ERR_HPI_INVALID_CMD); \
+                        } \
+                        if (format.Range.Flags & SAHPI_SRF_MIN) { \
+                                if (thds->thdname.Value.SensorUint64 < format.Range.Min.Value.SensorUint64) \
+                                        return(SA_ERR_HPI_INVALID_CMD); \
+                        } \
                 } \
                 break; \
         case SAHPI_SENSOR_READING_TYPE_BUFFER: \
