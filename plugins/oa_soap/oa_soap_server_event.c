@@ -782,8 +782,16 @@ void oa_soap_proc_server_status(struct oh_handler_state *oh_handler,
 			rv = soap_getBladeThermalInfoArray(con, 
 						&thermal_request, 
 						&thermal_response);
-			if (rv != SA_OK) {
-				err("getBladeThermalInfo failed for blade");
+
+			/* In addition to verifying return value from the soap
+			 * call, check whether the thermal response is NULL,
+			 * partner blade resource might have transitioned to 
+			 * degraded state
+			 */
+			if ((rv != SA_OK) ||
+			    (thermal_response.bladeThermalInfoArray == NULL)) {
+				err("getBladeThermalInfo failed for blade or"
+				    "the blade is not in stable state");
 				return;
 			}
 
@@ -864,8 +872,16 @@ void oa_soap_serv_post_comp(struct oh_handler_state
 	thermal_request.bayNumber = bay_number;
 	rv = soap_getBladeThermalInfoArray(con, &thermal_request,
 					   &thermal_response);
-	if (rv != SA_OK) {
-		err("getBladeThermalInfo failed for blade");
+
+	/* In addition to verifying return value from the soap call, 
+	 * Check whether the thermal response is NULL,
+	 * blade resource might have transitioned to POWER-OFF state
+	 * during the processing of this event hence resulting in 
+	 * a NULL response
+	 */
+	if ((rv != SA_OK) || (thermal_response.bladeThermalInfoArray == NULL)) {
+		err("getBladeThermalInfo failed for blade or"
+		    "the blade is not in stable state");
 		return;
 	}
 
@@ -888,7 +904,7 @@ void oa_soap_serv_post_comp(struct oh_handler_state
  * oa_soap_set_thermal_sensor
  *      @oh_handler	: Pointer to openhpi handler structure
  *      @rpt		: Pointer to rpt structure
- *      @response	: Pointer to bladeThermalInfoArray response structure
+ *      @thermal_response: Pointer to bladeThermalInfoArray response structure
  *	@enable_flag	: Sensor Enable Flag
  *
  * Purpose:

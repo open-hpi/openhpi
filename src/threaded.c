@@ -39,6 +39,8 @@ GMutex *oh_discovery_thread_mutex = NULL;
 GCond *oh_discovery_thread_wait = NULL;
 GStaticMutex oh_wake_discovery_mutex = G_STATIC_MUTEX_INIT;
 
+SaHpiBoolT stop_oh_threads = SAHPI_FALSE;
+
 static int oh_discovery_init(void)
 {
         /* Nothing to do here...for now */
@@ -70,6 +72,10 @@ static gpointer oh_discovery_thread_loop(gpointer data)
 
         g_mutex_lock(oh_discovery_thread_mutex);
         while (1) {
+                /* Check for the signal to stop the thread */
+                if (stop_oh_threads == SAHPI_TRUE)
+                        break;
+
                 dbg("Doing threaded discovery on all handlers");
                 error = oh_discovery();
                 if (error) {
@@ -99,11 +105,12 @@ static gpointer oh_evtpop_thread_loop(gpointer data)
         SaErrorT error = SA_OK;
 
         g_mutex_lock(oh_evtpop_thread_mutex);
-        while(1) {
-                dbg("Thread processing events");
-                error = oh_process_events();
-                if (error != SA_OK) err("Error on processing of events.");
-        }
+
+        dbg("Thread processing events");
+        error = oh_process_events();
+        if (error != SA_OK) 
+                err("Error on processing of events.");
+
         g_mutex_unlock(oh_evtpop_thread_mutex);
         g_thread_exit(0);
 
@@ -118,6 +125,10 @@ static gpointer oh_evtget_thread_loop(gpointer data)
 
         g_mutex_lock(oh_evtget_thread_mutex);
         while (1) {
+                /* Check for the signal to stop the thread */
+                if (stop_oh_threads == SAHPI_TRUE)
+                        break;
+
                 /* Give the discovery time to start first -> FIXME */
                 if (first_loop) {
                         struct timespec sleepytime =
@@ -170,17 +181,18 @@ int oh_threaded_start()
         oh_discovery_thread_wait = g_cond_new();
         oh_discovery_thread_mutex = g_mutex_new();
         oh_discovery_thread = g_thread_create(oh_discovery_thread_loop,
-                                NULL, FALSE,
+                                NULL, TRUE,
                                 &oh_discovery_thread_error);
 
         dbg("Starting event threads");
         oh_evtget_thread_wait = g_cond_new();
         oh_evtget_thread_mutex = g_mutex_new();
         oh_evtget_thread = g_thread_create(oh_evtget_thread_loop,
-                                NULL, FALSE, &oh_evtget_thread_error);
+                                NULL, TRUE, &oh_evtget_thread_error);
         oh_evtpop_thread_mutex = g_mutex_new();
+        /* Make the event pop thread joinable */
         oh_evtpop_thread = g_thread_create(oh_evtpop_thread_loop,
-                                NULL, FALSE, &oh_evtpop_thread_error);
+                                NULL, TRUE, &oh_evtpop_thread_error);
 
         return 0;
 }
