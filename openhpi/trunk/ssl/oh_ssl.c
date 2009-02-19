@@ -250,6 +250,7 @@ static int	thread_setup(void)
 }
 
 
+#if 0					/* Not used right now */
 /**
  * thread_cleanup
  *
@@ -286,6 +287,7 @@ static int	thread_cleanup(void)
 
 	return(0);			/* No errors */
 }
+#endif /* Not used right now */
 
 
 /**
@@ -336,38 +338,6 @@ int		oh_ssl_init(void)
 	return(0);			/* Successful return */
 }
 
-
-/**
- * oh_ssl_finalize
- *
- * Finalizes the OpenSSL library. The calls used in this routine releases global
- * data created/initialized by the OpenSSL library.
- *
- * Note that it is the responisbility of the caller of this function to make
- * sure that no other threads are making the OpenSSL library calls. The openhpid
- * should close all the threads and call this function from the main (single)
- * thread.
- *
- * Return value: Noe
- **/
-void oh_ssl_finalize(void)
-{
-        /* TODO: Check whether any other SSL library cleanup should be called */
-        thread_cleanup();
-        ENGINE_cleanup();
-        CONF_modules_unload(0);
-        ERR_free_strings();
-        EVP_cleanup();
-        CRYPTO_cleanup_all_ex_data();
-        /* The valgrind is showing possible memory leak by
-         * SSL_COMP_get_compression_methods() call.
-         *
-         * Call to SSL_free_comp_methods() may resolve the memory leak.
-         * But not able to find this call in the openssl 0.9.8e
-         * TODO: Find whether its a real problem or not
-         */
-
-}
 
 /**
  * oh_ssl_ctx_init
