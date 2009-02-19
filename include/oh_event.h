@@ -112,7 +112,6 @@ void oh_evt_queue_push(oh_evt_queue *equeue, gpointer data);
 SaErrorT oh_harvest_events(void);
 SaErrorT oh_process_events(void);
 void oh_event_free(struct oh_event *e, int only_rdrs);
-void oh_event_queue_free(void);
 struct oh_event *oh_dup_event(struct oh_event *old_event);
 
 #ifdef __cplusplus
