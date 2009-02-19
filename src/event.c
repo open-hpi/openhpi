@@ -30,15 +30,12 @@
 #include <oh_utils.h>
 #include <oh_error.h>
 
-#define OH_EVTPOP_THREAD_SLEEP_TIME 3 * G_USEC_PER_SEC
-
 struct _oh_evt_queue {
         GAsyncQueue *q;
 };
 oh_evt_queue oh_process_q = { .q = NULL };
 
 extern GMutex *oh_event_thread_mutex;
-extern SaHpiBoolT stop_oh_threads;
 
 /*
  *  The following is required to set up the thread state for
@@ -76,30 +73,6 @@ void oh_event_free(struct oh_event *e, int only_rdrs)
 		}
 		if (!only_rdrs) g_free(e);
 	}
-}
-
-/* This function will be called to free up the event queue */
-void oh_event_queue_free(void)
-{
-        gint len;
-        int i;
-        struct oh_event *e = NULL;
-
-        /* Get the number of pending events in event queue */
-        len = g_async_queue_length(oh_process_q.q);
-        if (len > 0) {
-                for(i = 0; i < len; i++) {
-                        /* Extract the pending events in event queue */
-                        e = g_async_queue_try_pop(oh_process_q.q);
-                        if (e == NULL) {
-                              err("Error in releasing the events");
-                              break;
-                        }
-                        oh_event_free(e, 0);
-                }
-        }
-        /* Release the event queue */
-        g_async_queue_unref(oh_process_q.q);
 }
 
 struct oh_event *oh_dup_event(struct oh_event *old_event)
@@ -407,25 +380,14 @@ static int process_event(SaHpiDomainIdT did,
 
 SaErrorT oh_process_events()
 {
-        struct oh_event *e = NULL;
+        struct oh_event *e;
         // GArray *domain_results = NULL;
         SaHpiDomainIdT tmp_did;
         char *et;
-	GTimeVal time;
 
         // domain_results = oh_query_domains();
 
-	/* Pop the events from the event queue. Come out of the loop on graceful
-	 * shutdown request
-	 */
-        while (stop_oh_threads == SAHPI_FALSE) {
-		g_get_current_time(&time);
-		g_time_val_add(&time, OH_EVTPOP_THREAD_SLEEP_TIME);
-		e = g_async_queue_timed_pop(oh_process_q.q, &time);
-		/* On timeout, loop again */
-		if (e == NULL) 
-			continue;
-
+        while ((e = g_async_queue_pop(oh_process_q.q)) != NULL) {
                 et = oh_lookup_eventtype(e->event.EventType);
                 dbg("Event Type = %s", (et) ? et : "<Unknown>");
                 
@@ -447,10 +409,9 @@ SaErrorT oh_process_events()
                 
 free_event:
                 oh_event_free(e, FALSE);
-		e = NULL;
 	}
-
+        /* Should never get here */
         // g_array_free(domain_results, TRUE);
-	return SA_OK;
+	return SA_ERR_HPI_INTERNAL_ERROR;
 }
 

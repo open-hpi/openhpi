@@ -166,44 +166,6 @@ stop() {
 
 }	
 
-shutdown() {	
-	case "${lsbtype}" in
-		
-		rh | lsb | suse)
-			echo -n $"Shutting down $prog: "
-			killproc -s SIGUSR1 @prefix@/sbin/openhpid
-			RETVAL=$?
-			;;
-		
-		gentoo)
-			ebegin "Shutting down $prog: "
-			start-stop-daemon --stop --signal SIGUSR1 --quiet --exec @prefix@/sbin/openhpid
-			RETVAL=$?
-			;;
-		
-		nolsb)
-			echo -n $"Shutting down $prog: "
-			if test -f /var/run/openhpid.pid && test "`cat /var/run/openhpid.pid`" != ""
-         		then
-            			kill -s SIGUSR1 "`cat /var/run/openhpid.pid`"
-				RETVAL=$?  
-			else
-				RETVAL=0
-			fi	          
-			;;
-		
-	esac
-	
-	print_outcome
-	
-	if test "$RETVAL" -eq 0 && test -f /var/run/openhpid.pid
-	then
-		rm -f /var/lock/openhpid
-		rm -f /var/run/openhpid.pid
-	fi	
-
-}	
-
 dstatus() {
 	echo $"Checking for $prog daemon: "
 	
@@ -263,9 +225,6 @@ case "$1" in
   stop)
   	stop
 	;;
-  shutdown)
-  	shutdown
-	;;
   restart)
   	restart
 	;;
@@ -276,6 +235,6 @@ case "$1" in
   	force_reload
 	;;
   *)
-	echo $"Usage: $0 {start|stop|shutdown|restart|status|force-reload}"
+	echo $"Usage: $0 {start|stop|restart|status|force-reload}"
 	exit 1
 esac
