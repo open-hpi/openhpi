@@ -36,8 +36,6 @@
 #define INADDR_NONE  0xffffffff
 #endif
 
-// server socket timeout
-#define SERVER_SOCK_TIMEOUT 2
 
 /*--------------------------------------------------------------------*/
 /* Stream Sockets base class methods                   */
@@ -153,13 +151,7 @@ bool strmsock::ReadMsg(char *data)
 
 	if (len < 0) {
                 errcode = errno;
-		/* EWOULDBLOCK error code means there is no data to read
-		 * and not an error condition
-		 */
-		if (errcode != EWOULDBLOCK) {
-			printf("Reading from socket returned and error: %d\n",
-			        errcode); // Debug
-		}
+                printf("Reading from socket returned and error: %d\n", errcode); // Debug
 		return true;
 	} else if (len == 0) {	//connection has been aborted by the peer
 		Close();
@@ -354,7 +346,6 @@ bool sstrmsock::Create(
 {
 	int    Rc;				// return code
 	int    so_reuseaddr = TRUE;	// socket reuse flag
-        struct timeval tv;
 
         // get a server socket
 	ss = socket(domain, type, protocol);
@@ -365,11 +356,6 @@ bool sstrmsock::Create(
         // set the socket option to reuse the address
 	setsockopt(ss, SOL_SOCKET, SO_REUSEADDR, &so_reuseaddr,
 							sizeof(so_reuseaddr));
-        tv.tv_sec = SERVER_SOCK_TIMEOUT;
-        tv.tv_usec = 0;
-        // set the socket option to timeout
-	setsockopt(ss, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
-
         // bind the server socket to a port
 	memset(&addr, 0, sizeof (addr));
 	addr.sin_family = domain;

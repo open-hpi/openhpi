@@ -74,7 +74,6 @@ extern struct oh_handlers oh_handlers;
 
 /* Finalization of plugins and handlers. */
 void oh_close_handlers(void);
-int oh_exit_ltdl(void);
 
 /* Plugin interface functions  */
 struct oh_plugin *oh_get_plugin(char *plugin_name);

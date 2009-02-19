@@ -70,7 +70,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
 
 }
 
-#define CLIENT_TIMEOUT 2  /* Set to 2 second timeout */
+#define CLIENT_TIMEOUT 0  // Unlimited
 #define PID_FILE "/var/run/openhpid.pid"
 
 static bool stop_server = FALSE;
@@ -96,17 +96,6 @@ static struct option long_options[] = {
 #define PVERBOSE1(msg, ...) if (verbose_flag) dbg(msg, ## __VA_ARGS__)
 #define PVERBOSE2(msg, ...) if (verbose_flag) err(msg, ## __VA_ARGS__)
 #define PVERBOSE3(msg, ...) if (verbose_flag) printf("CRITICAL: "msg, ## __VA_ARGS__)
-
-/*--------------------------------------------------------------------*/
-/* Function: shutdown_signal                                          */
-/*--------------------------------------------------------------------*/
-
-void shutdown_signal(int sig)
-{
-        dbg("Recieved the signal for shutdown");
-        stop_server = TRUE;
-        return;
-}
 
 /*--------------------------------------------------------------------*/
 /* Function: display_help                                             */
@@ -150,9 +139,6 @@ int main (int argc, char *argv[])
         char * configfile = NULL;
         char pid_buf[256];
         int pfile, len, pid = 0;
-
-        /* Catch the termination signal */
-        signal(SIGUSR1, shutdown_signal);
 
         /* get the command line options */
         while (1) {
@@ -304,23 +290,21 @@ int main (int argc, char *argv[])
 
         // wait for a connection and then service the connection
 	while (TRUE) {
+
 		if (stop_server) {
 			break;
 		}
 
 		if (servinst->Accept()) {
-                        if (servinst->GetErrcode() == EWOULDBLOCK) {
-                                PVERBOSE3("%p Timeout accepting server socket.\n", servinst);
-                                continue;
-                        }
 			PVERBOSE1("Error accepting server socket.");
-                        stop_server = TRUE;
 			break;
 		}
 
 		PVERBOSE1("### Spawning thread to handle connection. ###");
 		psstrmsock thrdinst = new sstrmsock(*servinst);
 		g_thread_pool_push(thrdpool, (gpointer)thrdinst, NULL);
+
+        
 	}
 
 	servinst->CloseSrv();
@@ -328,15 +312,8 @@ int main (int argc, char *argv[])
 
         // ensure all threads are complete
 	g_thread_pool_free(thrdpool, FALSE, TRUE);
+
 	delete servinst;
-
-        /* Do a graceful shutdown */
-        oh_finit();
-
-        /* Release the pid_file and configfile */
-        if (pid_file)
-                g_free(pid_file);
-        g_free(configfile);
 	return 0;
 }
 
@@ -428,8 +405,8 @@ static void service_thread(gpointer data, gpointer user_data)
                                 PVERBOSE3("%p Timeout reading socket.\n", thrdid);
                         } else {
                                 PVERBOSE3("%p Error reading socket.\n", thrdid);
-                                stop = true;
                         }
+                        goto thrd_cleanup;
                 }
                 else {
                         switch( thrdinst->header.m_type ) {
@@ -451,11 +428,9 @@ static void service_thread(gpointer data, gpointer user_data)
                                 break;
                         }
                 }
-                /* Check for the shutdown signal */
-                if(stop_server)
-                        stop = true;
 	}
 
+        thrd_cleanup:
         // if necessary, clean up HPI lib data
         if (session_id != 0) {
                 saHpiSessionClose( session_id );
