@@ -701,7 +701,7 @@ SaErrorT oh_fprint_text(FILE *stream, const SaHpiTextBufferT *buffer)
         SaErrorT err;
 
         if (buffer->DataType == SAHPI_TL_TYPE_TEXT) {
-                err = fprintf(stream, "%s\n", buffer->Data);
+                err = fwrite( buffer->Data, buffer->DataLength, 1, stream);
                 if (err < 0) {
                         err("Invalid parameter.");
                         return(SA_ERR_HPI_INVALID_PARAMS);
