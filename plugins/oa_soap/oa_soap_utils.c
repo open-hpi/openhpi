@@ -495,7 +495,7 @@ void update_hotswap_event(struct oh_handler_state *oh_handler,
         event->event.EventType = SAHPI_ET_HOTSWAP;
         /* TODO: map the timestamp of the OA generated event */
         oh_gettimeofday(&(event->event.Timestamp));
-        event->event.Severity = SAHPI_INFORMATIONAL;
+        event->event.Severity = SAHPI_CRITICAL;
 }
 
 /**

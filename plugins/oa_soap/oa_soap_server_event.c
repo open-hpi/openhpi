@@ -315,7 +315,7 @@ SaErrorT process_server_power_event(struct oh_handler_state *oh_handler,
 
         /* For blades that do not support managed hotswap, ignore power event */
         if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
-		dbg("Ignoring the power event");
+		dbg("Ignoring the power event for blade %d", bay_number);
 		return SA_OK;
 	}
 
@@ -337,6 +337,7 @@ SaErrorT process_server_power_event(struct oh_handler_state *oh_handler,
 							 SAHPI_FALSE);
 			if (rv != SA_OK) {
 				err("Failure in disabling thermal sensors");
+				oa_soap_bay_pwr_status[bay_number -1] = SAHPI_POWER_OFF;
 				return rv;
 			}
 			oa_soap_bay_pwr_status[bay_number -1] = SAHPI_POWER_OFF;
@@ -769,7 +770,8 @@ void oa_soap_proc_server_status(struct oh_handler_state *oh_handler,
 							EntityLocation -1] == 
 							SAHPI_POWER_ON) {
 			dbg("Ignore the blade status event from the partner"
-			    " blade which is POWER ON state");
+			    " blade %d which is in POWER ON state",
+			    status->bayNumber);
 			return;
 		}
 				
@@ -791,7 +793,8 @@ void oa_soap_proc_server_status(struct oh_handler_state *oh_handler,
 			if ((rv != SA_OK) ||
 			    (thermal_response.bladeThermalInfoArray == NULL)) {
 				err("getBladeThermalInfo failed for blade or"
-				    "the blade is not in stable state");
+				    "the blade %d is not in stable state",
+				    status->bayNumber);
 				return;
 			}
 
