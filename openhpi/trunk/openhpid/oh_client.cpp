@@ -1040,7 +1040,8 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet(
         }
 
 	/* If this event is Domain Event, then adjust DomainId */
-	if (ResourceId == SAHPI_UNSPECIFIED_RESOURCE_ID) {
+	if ((ResourceId == SAHPI_UNSPECIFIED_RESOURCE_ID) && 
+		(EventLogEntry->Event.EventType == SAHPI_ET_DOMAIN)) {
 		EventLogEntry->Event.EventDataUnion.DomainEvent.DomainId = did;
 	}
 	
