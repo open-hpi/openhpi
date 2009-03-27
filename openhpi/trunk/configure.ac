@@ -566,8 +566,7 @@ CC_WARNINGS="\
         -Wcast-align \
         -Wno-strict-aliasing \
 	-fno-strict-aliasing \
-        -Wno-unused-value \
-        -Werror "
+        -Wno-unused-value "
 
 CXX_WARNINGS="\
         -Wall \
@@ -582,8 +581,7 @@ CXX_WARNINGS="\
         -Wredundant-decls \
         -Wno-strict-aliasing \
 	-fno-strict-aliasing \
-        -Wno-unused-value \
-        -Werror "
+        -Wno-unused-value "
 
 if test -n "`gcc --version | grep ' 3.2'`" ; then
         CC_WARNINGS=`echo $CC_WARNINGS | sed -e 's/-Wno-strict-aliasing//g'`
