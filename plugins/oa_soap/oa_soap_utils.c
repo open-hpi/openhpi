@@ -1233,13 +1233,17 @@ void release_oa_soap_resources(struct oa_soap_handler *oa_handler)
         if (oa_handler->oa_soap_resources.server.resource_id != NULL) {
                 g_free(oa_handler->oa_soap_resources.server.resource_id);
         }
-        for (i = 0; i < oa_handler->oa_soap_resources.server.max_bays; i++) {
-                if (oa_handler->oa_soap_resources.server.serial_number[i] !=
-                    NULL)
+	if(oa_handler->oa_soap_resources.server.serial_number != NULL) {
+	    for (i = 0; i < oa_handler->oa_soap_resources.server.max_bays; i++)
+	    {
+		if (oa_handler->oa_soap_resources.server.serial_number[i] !=
+                    NULL) {
                         g_free(oa_handler->oa_soap_resources.server.
                                serial_number[i]);
-        }
-        g_free(oa_handler->oa_soap_resources.server.serial_number);
+		}
+            }
+            g_free(oa_handler->oa_soap_resources.server.serial_number);
+	}
 
         /* Release memory of interconnect presence and serial number array */
         if (oa_handler->oa_soap_resources.interconnect.presence != NULL) {
@@ -1248,14 +1252,17 @@ void release_oa_soap_resources(struct oa_soap_handler *oa_handler)
         if (oa_handler->oa_soap_resources.interconnect.resource_id != NULL) {
                 g_free(oa_handler->oa_soap_resources.interconnect.resource_id);
         }
-        for (i = 0; i < oa_handler->oa_soap_resources.interconnect.max_bays;
+	if(oa_handler->oa_soap_resources.interconnect.serial_number != NULL) {
+            for (i = 0; i < oa_handler->oa_soap_resources.interconnect.max_bays;
              i++) {
                 if (oa_handler->oa_soap_resources.interconnect.
-                    serial_number[i] != NULL)
+                    serial_number[i] != NULL) {
                         g_free(oa_handler->oa_soap_resources.interconnect.
                                serial_number[i]);
-        }
-        g_free(oa_handler->oa_soap_resources.interconnect.serial_number);
+		}
+            }
+            g_free(oa_handler->oa_soap_resources.interconnect.serial_number);
+	}
 
         /* Release memory of OA presence and serial number array */
         if (oa_handler->oa_soap_resources.oa.presence != NULL) {
@@ -1264,12 +1271,15 @@ void release_oa_soap_resources(struct oa_soap_handler *oa_handler)
         if (oa_handler->oa_soap_resources.oa.resource_id != NULL) {
                 g_free(oa_handler->oa_soap_resources.oa.resource_id);
         }
-        for (i = 0; i < oa_handler->oa_soap_resources.oa.max_bays; i++) {
-                if (oa_handler->oa_soap_resources.oa.serial_number[i] != NULL)
+	if(oa_handler->oa_soap_resources.oa.serial_number != NULL) {
+            for (i = 0; i < oa_handler->oa_soap_resources.oa.max_bays; i++) {
+                if (oa_handler->oa_soap_resources.oa.serial_number[i] != NULL) {
                         g_free(oa_handler->oa_soap_resources.oa.
                                serial_number[i]);
-        }
-        g_free(oa_handler->oa_soap_resources.oa.serial_number);
+		}
+            }
+            g_free(oa_handler->oa_soap_resources.oa.serial_number);
+	}
 
         /* Release memory of fan presence.  Since fans do not have serial
          * numbers, a serial numbers array does not need to be released.
@@ -1293,13 +1303,17 @@ void release_oa_soap_resources(struct oa_soap_handler *oa_handler)
         if (oa_handler->oa_soap_resources.ps_unit.resource_id !=NULL) {
                 g_free(oa_handler->oa_soap_resources.ps_unit.resource_id);
         }
-        for (i = 0; i < oa_handler->oa_soap_resources.ps_unit.max_bays; i++) {
+	if(oa_handler->oa_soap_resources.ps_unit.serial_number != NULL) {
+            for (i = 0; i < oa_handler->oa_soap_resources.ps_unit.max_bays; i++)
+	    {
                 if (oa_handler->oa_soap_resources.ps_unit.serial_number[i]
-                    != NULL)
+                    != NULL) {
                         g_free(oa_handler->oa_soap_resources.
                                 ps_unit.serial_number[i]);
-        }
-        g_free(oa_handler->oa_soap_resources.ps_unit.serial_number);
+		}
+            }
+            g_free(oa_handler->oa_soap_resources.ps_unit.serial_number);
+	}
 }
 
 /**
