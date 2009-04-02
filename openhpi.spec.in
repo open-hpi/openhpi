@@ -9,9 +9,12 @@
 %define _docdir %{_datadir}/doc/%{name}-%{version}
 
 %define with_ipmi @WITH_IPMI@
+%define with_ipmidirect @IPMIDIRECT@
 %define with_bladecenter @WITH_SNMP_BC@
+%define with_simulator @SIMULATOR@
 %define with_rtas @WITH_RTAS@
 %define with_sysfs @WITH_SYSFS@
+%define with_watchdog @WATCHDOG@
 %define with_ilo2_ribcl @WITH_ILO2_RIBCL@
 %define with_oa_soap @WITH_OA_SOAP@
 %define with_docbook2html @WITH_DOCBOOK2HTML@
@@ -64,10 +67,12 @@ BuildRequires: OpenIPMI-devel
 Requires: openhpi = %{version} OpenIPMI
 %endif
 
+%if 0%{?with_ipmidirect}
 %package ipmidirect
 Summary: OpenHPI plugin for IPMI-enabled systems
 Group: System/Monitoring
 Requires: openhpi = %{version}
+%endif
 
 %if 0%{?with_rtas}
 %package rtas
@@ -77,10 +82,12 @@ BuildRequires: librtas-devel
 Requires: openhpi = %{version} librtas
 %endif
 
+%if 0%{?with_simulator}
 %package simulator
 Summary: OpenHPI plugin for testing the core library
 Group: System/Monitoring
 Requires: openhpi = %{version}
+%endif
 
 %if 0%{?with_bladecenter}
 %package bladecenter
@@ -97,10 +104,12 @@ Group: System/Monitoring
 Requires: openhpi = %{version} libsysfs
 %endif
 
+%if 0%{?with_watchdog}
 %package watchdog
 Group: System/Monitoring
 Summary: OpenHPI plugin for Linux software watchdog support
 Requires: openhpi = %{version}
+%endif
 
 %if 0%{?with_ilo2_ribcl}
 %package ilo2_ribcl
@@ -258,10 +267,12 @@ make DESTDIR=%{buildroot} install
 %endif
 
 ###################################################
+%if 0%{?with_ipmidirect}
 %files ipmidirect
 ###################################################
 %defattr(-,root,root)
 %{_libdir}/%{name}/libipmidirect.*
+%endif
 
 ###################################################
 %if 0%{?with_rtas}
@@ -272,10 +283,12 @@ make DESTDIR=%{buildroot} install
 %endif
 
 ###################################################
+%if 0%{?with_simulator}
 %files simulator
 ###################################################
 %defattr(-,root,root)
 %{_libdir}/%{name}/libsimulator.*
+%endif
 
 ###################################################
 %if 0%{?with_bladecenter}
@@ -294,16 +307,20 @@ make DESTDIR=%{buildroot} install
 %endif
 
 ###################################################
+%if 0%{?with_watchdog}
 %files watchdog
 ###################################################
 %defattr(-,root,root)
 %{_libdir}/%{name}/libwatchdog.*
+%endif
 
 ###################################################
+%if 0%{?with_ilo2_ribcl}
 %files ilo2_ribcl
 ###################################################
 %defattr(-,root,root)
 %{_libdir}/%{name}/libilo2_ribcl.*
+%endif
 
 ###################################################
 %if 0%{?with_oa_soap}
