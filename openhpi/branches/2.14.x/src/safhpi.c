@@ -2043,6 +2043,7 @@ SaErrorT SAHPI_API saHpiSensorThresholdsSet (
         }
 
 
+        /* Merging thresholds*/
         SaHpiSensorThresholdsT tmp;
 
         rv = saHpiSensorThresholdsGet( SessionId, ResourceId, SensorNum, &tmp );
@@ -2054,31 +2055,23 @@ SaErrorT SAHPI_API saHpiSensorThresholdsSet (
             return rv;
         }
 
-        /* Merging thresholds*/
-        if (SensorThresholds->UpCritical.IsSupported == SAHPI_TRUE) {
-                tmp.UpCritical = SensorThresholds->UpCritical;
-        }
-        if (SensorThresholds->UpMajor.IsSupported == SAHPI_TRUE) {
-                tmp.UpMajor = SensorThresholds->UpMajor;
-        }
-        if (SensorThresholds->UpMinor.IsSupported == SAHPI_TRUE) {
-                tmp.UpMinor = SensorThresholds->UpMinor;
-        }
-        if (SensorThresholds->LowCritical.IsSupported == SAHPI_TRUE) {
-                tmp.LowCritical = SensorThresholds->LowCritical;
-        }
-        if (SensorThresholds->LowMajor.IsSupported == SAHPI_TRUE) {
-                tmp.LowMajor = SensorThresholds->LowMajor;
-        }
-        if (SensorThresholds->LowMinor.IsSupported == SAHPI_TRUE) {
-                tmp.LowMinor = SensorThresholds->LowMinor;
-        }
-        if (SensorThresholds->PosThdHysteresis.IsSupported == SAHPI_TRUE) {
-                tmp.PosThdHysteresis = SensorThresholds->PosThdHysteresis;
-        }
-        if (SensorThresholds->NegThdHysteresis.IsSupported == SAHPI_TRUE) {
-                tmp.NegThdHysteresis = SensorThresholds->NegThdHysteresis;
-        }
+        SaHpiSensorThdMaskT wmask = rdr->RdrTypeUnion.SensorRec.ThresholdDefn.WriteThold;
+
+#define COPY_TH( TH, MASK ) \
+{ \
+    if ( ( SensorThresholds->TH.IsSupported == SAHPI_TRUE ) && ( ( wmask & MASK ) != 0 ) ) { \
+        tmp.TH = SensorThresholds->TH; \
+    } \
+}
+        COPY_TH( UpCritical, SAHPI_STM_UP_CRIT );
+        COPY_TH( UpMajor, SAHPI_STM_UP_MAJOR );
+        COPY_TH( UpMinor, SAHPI_STM_UP_MINOR );
+        COPY_TH( LowCritical, SAHPI_STM_LOW_CRIT );
+        COPY_TH( LowMajor, SAHPI_STM_LOW_MAJOR );
+        COPY_TH( LowMinor, SAHPI_STM_LOW_MINOR );
+        COPY_TH( PosThdHysteresis, SAHPI_STM_UP_HYSTERESIS );
+        COPY_TH( NegThdHysteresis, SAHPI_STM_LOW_HYSTERESIS );
+#undef COPY_TH
 
         rv = oh_valid_thresholds(&tmp, rdr);
         if (rv != SA_OK) { /* Invalid sensor threshold */
