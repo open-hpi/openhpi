@@ -24,7 +24,7 @@
 %define with_sysfs @WITH_SYSFS@
 
 %if "x@WATCHDOG@" == "xwatchdog"
-%define watchdog 1
+%define with_watchdog 1
 %endif
 
 %define with_ilo2_ribcl @WITH_ILO2_RIBCL@
