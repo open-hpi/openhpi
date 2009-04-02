@@ -9,12 +9,24 @@
 %define _docdir %{_datadir}/doc/%{name}-%{version}
 
 %define with_ipmi @WITH_IPMI@
-%define with_ipmidirect @IPMIDIRECT@
+
+%if "x@IPMIDIRECT@" == "xipmidirect"
+%define with_ipmidirect 1
+%endif
+
 %define with_bladecenter @WITH_SNMP_BC@
-%define with_simulator @SIMULATOR@
+
+%if "x@SIMULATOR@" == "xsimulator"
+%define with_simulator 1
+%endif
+
 %define with_rtas @WITH_RTAS@
 %define with_sysfs @WITH_SYSFS@
-%define with_watchdog @WATCHDOG@
+
+%if "x@WATCHDOG@" == "xwatchdog"
+%define watchdog 1
+%endif
+
 %define with_ilo2_ribcl @WITH_ILO2_RIBCL@
 %define with_oa_soap @WITH_OA_SOAP@
 %define with_docbook2html @WITH_DOCBOOK2HTML@
@@ -149,9 +161,11 @@ locally or over the network. Its focus is wide, created to support
 any generic hardware topology that uses IPMI.
 %endif
 
+%if 0%{?with_ipmidirect}
 %description ipmidirect
 This OpenHPI plugin connects directly to IPMI-enabled hardware
 locally or over the network. Its focus is to support ATCA-type chassis.
+%endif
 
 %if 0%{?with_rtas}
 %description rtas
@@ -159,9 +173,11 @@ OpenHPI plugin for reading sensor and vpd information
 from IBM PPC systems.
 %endif
 
+%if 0%{?with_simulator}
 %description simulator
 OpenHPI plugin that reports fakes hardware used for
 testing the core library.
+%endif
 
 %if 0%{?with_bladecenter}
 %description bladecenter
@@ -175,9 +191,11 @@ This plugin uses snmp to connect to and gather information from all systems.
 OpenHPI plugin that reads system information from sysfs.
 %endif
 
+%if 0%{?with_watchdog}
 %description watchdog
 OpenHPI plugin that uses the Linux software watchdog support
 provided by the kernel.
+%endif
 
 %if 0%{?with_ilo2_ribcl}
 %description ilo2_ribcl
