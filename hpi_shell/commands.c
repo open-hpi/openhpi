@@ -1173,7 +1173,7 @@ static ret_code_t domain_info(void)
         time2str(info.DatUpdateTimestamp, date, 30);
         printf("    DAT update count: %d   DAT Timestamp : %s\n",
                 info.DatUpdateCount, date);
-        printf("        ActiveAlarms: %d   CriticalAlarms: %d   Major: %d"
+        printf("        ActiveAlarms: %d   CriticalAlarms: %d   Major: %d "
                 "Minor: %d   Limit: %d\n",
                 info.ActiveAlarms, info.CriticalAlarms, info.MajorAlarms,
                 info.MinorAlarms, info.DatUserAlarmLimit);
