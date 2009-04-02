@@ -2489,11 +2489,11 @@ SaErrorT SAHPI_API saHpiControlGet(
         if (State != NULL) {
                 memcpy(&tmp_state, State, sizeof(SaHpiCtrlStateT));
                 if (oh_lookup_ctrltype(tmp_state.Type) == NULL) {
-                        tmp_state.Type = SAHPI_CTRL_TYPE_OEM;
+                        tmp_state.Type = SAHPI_CTRL_TYPE_TEXT;
                 }
         }
         else {
-                tmp_state.Type = SAHPI_CTRL_TYPE_OEM;
+                tmp_state.Type = SAHPI_CTRL_TYPE_TEXT;
         }
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiControlGet);
