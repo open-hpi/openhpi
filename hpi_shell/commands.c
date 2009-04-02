@@ -204,7 +204,7 @@ static ret_code_t moreset(void)
 
         term = get_next_term();
         if (term == NULL) {
-                 if (is_more) val = "NO";
+                 if (is_more) val = "ON";
 		 else val = "OFF";
                 printf("more = %s\n", val);
                 return(HPI_SHELL_OK);
