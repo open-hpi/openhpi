@@ -4208,6 +4208,8 @@ int oh_compare_sensorreading(SaHpiSensorReadingTypeT type,
                              SaHpiSensorReadingT *reading1,
                              SaHpiSensorReadingT *reading2)
 {
+        int res;
+        
         switch(type) {
         case SAHPI_SENSOR_READING_TYPE_INT64:
                 if (reading1->Value.SensorInt64 < reading2->Value.SensorInt64) { return -1; }
@@ -4231,8 +4233,12 @@ int oh_compare_sensorreading(SaHpiSensorReadingTypeT type,
                 }
                 break;
         case SAHPI_SENSOR_READING_TYPE_BUFFER:
-                return(memcmp(reading1->Value.SensorBuffer, reading2->Value.SensorBuffer,
-                              SAHPI_SENSOR_BUFFER_LENGTH));
+                res = memcmp(reading1->Value.SensorBuffer, reading2->Value.SensorBuffer,
+                              SAHPI_SENSOR_BUFFER_LENGTH);
+
+                if (res < 0) { return -1; }
+                else if (res > 0) { return 1; }
+                else { return 0; }
                 break;
         default:
                 err("Invalid sensor reading type.");
