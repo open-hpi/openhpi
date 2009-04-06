@@ -4232,7 +4232,7 @@ int oh_compare_sensorreading(SaHpiSensorReadingTypeT type,
                 break;
         case SAHPI_SENSOR_READING_TYPE_BUFFER:
                 return(memcmp(reading1->Value.SensorBuffer, reading2->Value.SensorBuffer,
-                              sizeof(SAHPI_SENSOR_BUFFER_LENGTH)));
+                              SAHPI_SENSOR_BUFFER_LENGTH));
                 break;
         default:
                 err("Invalid sensor reading type.");
