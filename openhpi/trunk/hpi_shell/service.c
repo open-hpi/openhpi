@@ -1199,9 +1199,7 @@ Pr_ret_t print_text_buffer(char *mes, SaHpiTextBufferT *buf, char *meslast,
 	if (mes != (char *)NULL) {
 		if (proc(mes) == HPI_UI_END) return(HPI_UI_END);
 	};
-	if ((buf->DataLength == 0) && (buf->DataType != SAHPI_TL_TYPE_BINARY)) {
-		return(HPI_UI_OK);
-	}
+	if ((buf->DataLength > 0) || (buf->DataType == SAHPI_TL_TYPE_BINARY)) {
 	if (print_text_buffer_type(NULL, buf, ": ", proc) != HPI_UI_OK)
 		return(HPI_UI_END);
 	if (print_text_buffer_lang(NULL, buf, ": ", proc) != HPI_UI_OK)
@@ -1210,6 +1208,7 @@ Pr_ret_t print_text_buffer(char *mes, SaHpiTextBufferT *buf, char *meslast,
 		return(HPI_UI_END);
 	if (print_text_buffer_length(" (len=", buf, ")", proc) != HPI_UI_OK)
 		return(HPI_UI_END);
+	}
 	if (meslast != (char *)NULL) {
 		if (proc(meslast) == HPI_UI_END) return(HPI_UI_END);
 	};
