@@ -135,6 +135,15 @@ int show_threshold(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
         };
         if (categ != SAHPI_EC_THRESHOLD)
                 return(SA_OK);
+        if (sendef->IsAccessible == SAHPI_FALSE) {
+                proc("Thresholds are not accessible.\n");
+                return(SA_OK);
+        }
+        if (sendef->ReadThold == 0) {
+                proc("Thresholds are not readable.\n");
+                return(SA_OK);
+        }
+
         memset(&senstbuff, 0, sizeof(SaHpiSensorThresholdsT));
         rv = saHpiSensorThresholdsGet(sessionid, resourceid, sensornum, &senstbuff);
         if (rv != SA_OK) {
@@ -142,10 +151,6 @@ int show_threshold(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
                         "ERROR: saHpiSensorThresholdsGet error = %s\n",
                         oh_lookup_error(rv));
                 proc(buf);
-                return -1;
-        };
-        if (sendef->IsAccessible == 0) {
-                proc("Thresholds are not accessible.\n");
                 return -1;
         };
         res = print_thres_value(&(senstbuff.LowMinor), "Lower Minor Threshold",
