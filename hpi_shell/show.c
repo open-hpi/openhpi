@@ -1012,12 +1012,14 @@ SaErrorT show_dat(Domain_t *domain, hpi_ui_print_cb_t proc)
         char            buf[SHOW_BUF_SZ];
         char            time[256];
         int             ind;
+        int             first = 1;
 
         alarm.AlarmId = SAHPI_FIRST_ENTRY;
         while (rv == SA_OK) {
                 rv = saHpiAlarmGetNext(domain->sessionId, SAHPI_ALL_SEVERITIES, FALSE,
                         &alarm);
                 if (rv != SA_OK) break;
+                first = 0;
                 snprintf(buf, SHOW_BUF_SZ, "(%d) ", alarm.AlarmId);
                 time2str(alarm.Timestamp, time, 256);
                 strcat(buf, time);
@@ -1040,7 +1042,7 @@ SaErrorT show_dat(Domain_t *domain, hpi_ui_print_cb_t proc)
                 if (proc(buf) != 0)
                         return(-1);
         };
-        if (rv == SA_ERR_HPI_NOT_PRESENT) {
+        if ( (rv == SA_ERR_HPI_NOT_PRESENT) && (first == 1) ) {
                 proc("No alarms in DAT.\n");
                 return(SA_OK);
         };
