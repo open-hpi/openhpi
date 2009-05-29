@@ -21,6 +21,7 @@
 
 #define SHOW_BUF_SZ     1024
 
+#define HPIBOOL2STR( x ) ( ( x == SAHPI_TRUE ) ? "TRUE" : "FALSE" )
 
 extern char     *lookup_proc(int num, int val);
 extern SaErrorT decode_proc(int num, void *val, char *buf, int bufsize);
@@ -1063,8 +1064,8 @@ SaErrorT show_inventory(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
         };
         num = info.NumAreas;
         snprintf(buf, SHOW_BUF_SZ,
-                "Inventory: %d   Update count: %d   Read only: %d   Areas: %d\n",
-                info.IdrId, info.UpdateCount, info.ReadOnly, num);
+                "Inventory: %d   Update count: %d   Read Only: %s   Areas: %d\n",
+                info.IdrId, info.UpdateCount, HPIBOOL2STR( info.ReadOnly ), num);
         if (proc(buf) != 0) return(SA_OK);
         entryid = SAHPI_FIRST_ENTRY;
         while ((entryid != SAHPI_LAST_ENTRY) && (num > 0)) {
@@ -1082,8 +1083,8 @@ SaErrorT show_inventory(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
                 str = oh_lookup_idrareatype(hdr.Type);
                 if (str == NULL) str = "Unknown";
                 snprintf(buf, SHOW_BUF_SZ,
-                        "    Area: %d   Type: %s   Read Only: %d   Fields: %d\n",
-                        hdr.AreaId, str, hdr.ReadOnly, hdr.NumFields);
+                        "    Area: %d   Type: %s   Read Only: %s   Fields: %d\n",
+                        hdr.AreaId, str, HPIBOOL2STR( hdr.ReadOnly ), hdr.NumFields);
                 if (proc(buf) != 0) return(SA_OK);
                 fentryid = SAHPI_FIRST_ENTRY;
                 entryid = nextentryid;
@@ -1098,8 +1099,8 @@ SaErrorT show_inventory(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
                         str = oh_lookup_idrfieldtype(field.Type);
                         if (str == NULL) str = "Unknown";
                         snprintf(buf, SHOW_BUF_SZ,
-                                "        Field: %d  Type: %s Read Only: %d (",
-                                field.FieldId, str, field.ReadOnly);
+                                "        Field: %d  Type: %s Read Only: %s (",
+                                field.FieldId, str, HPIBOOL2STR( field.ReadOnly ));
                         if (proc(buf) != 0) return(SA_OK);
                         if (print_text_buffer(NULL, &(field.Field), NULL, proc) != 0)
                                 return(SA_OK);
@@ -1123,8 +1124,7 @@ void show_inv_area_header(SaHpiIdrAreaHeaderT *Header, int del, hpi_ui_print_cb_
         if (proc(buf) != 0) return;
         snprintf(str, len, "AreaType: %s\n", oh_lookup_idrareatype(Header->Type));
         if (proc(buf) != 0) return;
-        snprintf(str, len, "ReadOnly: %s\n",
-                (Header->ReadOnly == SAHPI_TRUE) ? "TRUE" : "FALSE" );
+        snprintf(str, len, "ReadOnly: %s\n", HPIBOOL2STR( Header->ReadOnly ));
         if (proc(buf) != 0) return;
         snprintf(str, len, "NumFields: %d\n", Header->NumFields);
         proc(buf);
@@ -1143,8 +1143,7 @@ void show_inv_field(SaHpiIdrFieldT *Field, int del, hpi_ui_print_cb_t proc)
         if (proc(buf) != 0) return;
         snprintf(str, len, "Field Type: %s\n", oh_lookup_idrfieldtype(Field->Type));
         if (proc(buf) != 0) return;
-        snprintf(str, len, "ReadOnly: %s\n",
-                (Field->ReadOnly == SAHPI_TRUE) ? "TRUE" : "FALSE" );
+        snprintf(str, len, "ReadOnly: %s\n", HPIBOOL2STR( Field->ReadOnly ));
         if (proc(buf) != 0) return;
         *str = 0;
         proc(buf);
