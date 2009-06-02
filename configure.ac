@@ -94,6 +94,15 @@ exact_version=`pkg-config --modversion $GLIB`;
 GLIB_CFLAGS=`pkg-config --cflags $GLIB gthread-2.0`
 GLIB_LIBS=`pkg-config --libs $GLIB gthread-2.0`
 
+# On some versions of Solaris the pkg-config file for gthread-2.0 contains a
+# compiler option, '-mt', that is incompatible with gcc
+case $host_os in
+    solaris2.10)
+        GLIB_CFLAGS=`echo $GLIB_CFLAGS | sed -e 's/-mt/-D_REENTRANT/g'`
+        GLIB_LIBS=`echo $GLIB_LIBS | sed -e 's/-mt//g'`
+        ;;
+esac
+
 AC_MSG_CHECKING(for GLIB - version >= $GLIB_REQUIRED_VERSION)
 AC_MSG_RESULT(yes (version $exact_version))
 
