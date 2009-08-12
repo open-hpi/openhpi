@@ -545,7 +545,7 @@ main(int argc, char **argv)
 	while ((rv_rdr == SA_OK) && (entryid != SAHPI_LAST_ENTRY))
 	{
           rv_rdr = saHpiRdrGet(sessionid,resourceid, entryid,&nextentryid, &rdr);
-  	  if (fdebug) printf("saHpiRdrGet[%x] rv = %d\n",entryid,rv);
+  	  if (fdebug) printf("saHpiRdrGet[%x] rv = %d\n",entryid,rv_rdr);
 	  if (rv_rdr == SA_OK)
 	  {
   	    if (fdebug) printf("Rdr[%x] type = %d tag = %s\n",entryid,
