@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2008, Hewlett-Packard Development Company, LLP
+ * Copyright (C) 2007-2009, Hewlett-Packard Development Company, LLP
  *                     All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or
@@ -30,6 +30,7 @@
  *
  * Author(s)
  *      Raghavendra P.G. <raghavendra.pg@hp.com>
+ *      Mohan Devarajulu <mohan@fc.hp.com>
  *
  * This file is having the code for handling the events which
  * are coming from OA.
@@ -566,6 +567,7 @@ void process_oa_events(struct oh_handler_state *oh_handler,
                        struct getAllEventsResponse *response)
 {
         SaErrorT rv;
+        SaHpiInt32T loc=0;
         struct eventInfo event;
         struct oa_soap_handler *oa_handler = NULL;
 
@@ -1183,7 +1185,7 @@ void process_oa_events(struct oh_handler_state *oh_handler,
                                 dbg("EVENT_BLADE_INSERT_COMPLETED");
                                 rv = process_server_insertion_event(oh_handler,
                                                                  oa->event_con2,
-                                                                 &event);
+                                                                 &event, loc);
                                 break;
                         case EVENT_EBIPA_INFO_CHANGED_EX:
                                 dbg("EVENT_EBIPA_INFO_CHANGED_EX "
