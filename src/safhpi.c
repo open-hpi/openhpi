@@ -518,7 +518,7 @@ SaErrorT SAHPI_API saHpiGetIdByEntityPath (
                 rdr = oh_get_rdr_by_type_first(&d->rpt, rid, InstrumentType);
         } else {
                 rdr = oh_get_rdr_by_type(&d->rpt, rid,
-                                         InstrumentType, *InstanceId);
+                                         InstrumentType, oh_get_rdr_num(*InstanceId));
         }
         
         if (rdr == NULL) {
@@ -532,7 +532,7 @@ SaErrorT SAHPI_API saHpiGetIdByEntityPath (
         if (rdr == NULL) {
                 *InstanceId = SAHPI_LAST_ENTRY;
         } else {
-                *InstanceId == oh_get_rdr_num(rdr->RecordId);
+                *InstanceId = oh_get_rdr_uid(rdr->RdrType, oh_get_rdr_num(rdr->RecordId) );
         }                
         
         oh_release_domain(d);
