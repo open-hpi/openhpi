@@ -532,8 +532,8 @@ int oh_getnext_handler_id(unsigned int hid, unsigned int *next_hid)
                         g_static_rec_mutex_unlock(&oh_handlers.lock);
                         return 0;
                 }
+                g_static_rec_mutex_unlock(&oh_handlers.lock);
         }
-        g_static_rec_mutex_unlock(&oh_handlers.lock);
 
         return -1;
 }
