@@ -195,7 +195,7 @@ SaErrorT show_control(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
         SaHpiCtrlRecStreamT     *stream;
         SaHpiCtrlRecTextT       *text;
         SaHpiCtrlRecOemT        *oem;
-        int                     i;
+        int                     i, i0;
 
         rv = saHpiRdrGetByInstrumentId(sessionid, resourceid, SAHPI_CTRL_RDR,
                 num, &rdr);
@@ -279,8 +279,9 @@ SaErrorT show_control(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
                         if (proc(buf) != HPI_UI_OK) return(SA_OK);
                         sprintf(buf, "Default: MId = %d  Body = ", oem->MId);
                         str = (char *)(oem->Default.Body);
+                        i0 = strlen( buf );
                         for (i = 0; i < oem->Default.BodyLength; i++)
-                                sprintf(buf + i * 3, "%2.2X ", (unsigned char)(str[i]));
+                                sprintf(buf + i0 + i * 3, "%2.2X ", (unsigned char)(str[i]));
                         strcat(buf, "\n");
                         break;
                 default: strcpy(buf, "Unknown control type\n");
