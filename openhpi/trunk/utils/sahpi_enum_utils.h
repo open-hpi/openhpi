@@ -48,7 +48,7 @@ extern struct oh_texttype_map {
 char * oh_lookup_texttype(SaHpiTextTypeT value);
 SaErrorT oh_encode_texttype(SaHpiTextBufferT *buffer, SaHpiTextTypeT *type);
 
-#define OH_MAX_ENTITYTYPE 67 
+#define OH_MAX_ENTITYTYPE 104 
 extern struct oh_entitytype_map {
   SaHpiEntityTypeT  entity_type;
   char *str;
@@ -57,7 +57,7 @@ extern struct oh_entitytype_map {
 char * oh_lookup_entitytype(SaHpiEntityTypeT value);
 SaErrorT oh_encode_entitytype(SaHpiTextBufferT *buffer, SaHpiEntityTypeT *type);
 
-#define OH_MAX_SENSORTYPE 47 
+#define OH_MAX_SENSORTYPE 50 
 extern struct oh_sensortype_map {
   SaHpiSensorTypeT  entity_type;
   char *str;
@@ -138,7 +138,7 @@ extern struct oh_ctrlmode_map {
 char * oh_lookup_ctrlmode(SaHpiCtrlModeT value);
 SaErrorT oh_encode_ctrlmode(SaHpiTextBufferT *buffer, SaHpiCtrlModeT *type);
 
-#define OH_MAX_CTRLOUTPUTTYPE 11 
+#define OH_MAX_CTRLOUTPUTTYPE 17 
 extern struct oh_ctrloutputtype_map {
   SaHpiCtrlOutputTypeT  entity_type;
   char *str;
@@ -201,6 +201,105 @@ extern struct oh_watchdogtimeruse_map {
 char * oh_lookup_watchdogtimeruse(SaHpiWatchdogTimerUseT value);
 SaErrorT oh_encode_watchdogtimeruse(SaHpiTextBufferT *buffer, SaHpiWatchdogTimerUseT *type);
 
+#define OH_MAX_DIMITESTSERVICEIMPACT 3 
+extern struct oh_dimitestserviceimpact_map {
+  SaHpiDimiTestServiceImpactT  entity_type;
+  char *str;
+} dimitestserviceimpact_strings[OH_MAX_DIMITESTSERVICEIMPACT];
+
+char * oh_lookup_dimitestserviceimpact(SaHpiDimiTestServiceImpactT value);
+SaErrorT oh_encode_dimitestserviceimpact(SaHpiTextBufferT *buffer, SaHpiDimiTestServiceImpactT *type);
+
+#define OH_MAX_DIMITESTRUNSTATUS 5 
+extern struct oh_dimitestrunstatus_map {
+  SaHpiDimiTestRunStatusT  entity_type;
+  char *str;
+} dimitestrunstatus_strings[OH_MAX_DIMITESTRUNSTATUS];
+
+char * oh_lookup_dimitestrunstatus(SaHpiDimiTestRunStatusT value);
+SaErrorT oh_encode_dimitestrunstatus(SaHpiTextBufferT *buffer, SaHpiDimiTestRunStatusT *type);
+
+#define OH_MAX_DIMITESTERRCODE 3 
+extern struct oh_dimitesterrcode_map {
+  SaHpiDimiTestErrCodeT  entity_type;
+  char *str;
+} dimitesterrcode_strings[OH_MAX_DIMITESTERRCODE];
+
+char * oh_lookup_dimitesterrcode(SaHpiDimiTestErrCodeT value);
+SaErrorT oh_encode_dimitesterrcode(SaHpiTextBufferT *buffer, SaHpiDimiTestErrCodeT *type);
+
+#define OH_MAX_DIMITESTPARAMTYPE 4 
+extern struct oh_dimitestparamtype_map {
+  SaHpiDimiTestParamTypeT  entity_type;
+  char *str;
+} dimitestparamtype_strings[OH_MAX_DIMITESTPARAMTYPE];
+
+char * oh_lookup_dimitestparamtype(SaHpiDimiTestParamTypeT value);
+SaErrorT oh_encode_dimitestparamtype(SaHpiTextBufferT *buffer, SaHpiDimiTestParamTypeT *type);
+
+#define OH_MAX_DIMIREADY 3 
+extern struct oh_dimiready_map {
+  SaHpiDimiReadyT  entity_type;
+  char *str;
+} dimiready_strings[OH_MAX_DIMIREADY];
+
+char * oh_lookup_dimiready(SaHpiDimiReadyT value);
+SaErrorT oh_encode_dimiready(SaHpiTextBufferT *buffer, SaHpiDimiReadyT *type);
+
+#define OH_MAX_FUMISPECINFOTYPE 3 
+extern struct oh_fumispecinfotype_map {
+  SaHpiFumiSpecInfoTypeT  entity_type;
+  char *str;
+} fumispecinfotype_strings[OH_MAX_FUMISPECINFOTYPE];
+
+char * oh_lookup_fumispecinfotype(SaHpiFumiSpecInfoTypeT value);
+SaErrorT oh_encode_fumispecinfotype(SaHpiTextBufferT *buffer, SaHpiFumiSpecInfoTypeT *type);
+
+#define OH_MAX_FUMISAFDEFINEDSPECID 1 
+extern struct oh_fumisafdefinedspecid_map {
+  SaHpiFumiSafDefinedSpecIdT  entity_type;
+  char *str;
+} fumisafdefinedspecid_strings[OH_MAX_FUMISAFDEFINEDSPECID];
+
+char * oh_lookup_fumisafdefinedspecid(SaHpiFumiSafDefinedSpecIdT value);
+SaErrorT oh_encode_fumisafdefinedspecid(SaHpiTextBufferT *buffer, SaHpiFumiSafDefinedSpecIdT *type);
+
+#define OH_MAX_FUMISERVICEIMPACT 3 
+extern struct oh_fumiserviceimpact_map {
+  SaHpiFumiServiceImpactT  entity_type;
+  char *str;
+} fumiserviceimpact_strings[OH_MAX_FUMISERVICEIMPACT];
+
+char * oh_lookup_fumiserviceimpact(SaHpiFumiServiceImpactT value);
+SaErrorT oh_encode_fumiserviceimpact(SaHpiTextBufferT *buffer, SaHpiFumiServiceImpactT *type);
+
+#define OH_MAX_FUMISOURCESTATUS 9 
+extern struct oh_fumisourcestatus_map {
+  SaHpiFumiSourceStatusT  entity_type;
+  char *str;
+} fumisourcestatus_strings[OH_MAX_FUMISOURCESTATUS];
+
+char * oh_lookup_fumisourcestatus(SaHpiFumiSourceStatusT value);
+SaErrorT oh_encode_fumisourcestatus(SaHpiTextBufferT *buffer, SaHpiFumiSourceStatusT *type);
+
+#define OH_MAX_FUMIBANKSTATE 6 
+extern struct oh_fumibankstate_map {
+  SaHpiFumiBankStateT  entity_type;
+  char *str;
+} fumibankstate_strings[OH_MAX_FUMIBANKSTATE];
+
+char * oh_lookup_fumibankstate(SaHpiFumiBankStateT value);
+SaErrorT oh_encode_fumibankstate(SaHpiTextBufferT *buffer, SaHpiFumiBankStateT *type);
+
+#define OH_MAX_FUMIUPGRADESTATUS 33 
+extern struct oh_fumiupgradestatus_map {
+  SaHpiFumiUpgradeStatusT  entity_type;
+  char *str;
+} fumiupgradestatus_strings[OH_MAX_FUMIUPGRADESTATUS];
+
+char * oh_lookup_fumiupgradestatus(SaHpiFumiUpgradeStatusT value);
+SaErrorT oh_encode_fumiupgradestatus(SaHpiTextBufferT *buffer, SaHpiFumiUpgradeStatusT *type);
+
 #define OH_MAX_HSINDICATORSTATE 2 
 extern struct oh_hsindicatorstate_map {
   SaHpiHsIndicatorStateT  entity_type;
@@ -227,6 +326,15 @@ extern struct oh_hsstate_map {
 
 char * oh_lookup_hsstate(SaHpiHsStateT value);
 SaErrorT oh_encode_hsstate(SaHpiTextBufferT *buffer, SaHpiHsStateT *type);
+
+#define OH_MAX_HSCAUSEOFSTATECHANGE 10 
+extern struct oh_hscauseofstatechange_map {
+  SaHpiHsCauseOfStateChangeT  entity_type;
+  char *str;
+} hscauseofstatechange_strings[OH_MAX_HSCAUSEOFSTATECHANGE];
+
+char * oh_lookup_hscauseofstatechange(SaHpiHsCauseOfStateChangeT value);
+SaErrorT oh_encode_hscauseofstatechange(SaHpiTextBufferT *buffer, SaHpiHsCauseOfStateChangeT *type);
 
 #define OH_MAX_SEVERITY 7 
 extern struct oh_severity_map {
@@ -300,51 +408,6 @@ extern struct oh_annunciatortype_map {
 char * oh_lookup_annunciatortype(SaHpiAnnunciatorTypeT value);
 SaErrorT oh_encode_annunciatortype(SaHpiTextBufferT *buffer, SaHpiAnnunciatorTypeT *type);
 
-#define OH_MAX_DIMITESTSERVICEIMPACT 3
-extern struct oh_dimitestserviceimpact_map {
-  SaHpiDimiTestServiceImpactT entity_type;
-  char *str;
-} dimitestserviceimpact_strings[OH_MAX_DIMITESTSERVICEIMPACT];
-
-char* oh_lookup_dimitestserviceimpact(SaHpiDimiTestServiceImpactT value);
-SaErrorT oh_encode_dimitestserviceimpact(SaHpiTextBufferT *buffer, SaHpiDimiTestServiceImpactT *type);
-
-#define OH_MAX_DIMITESTRUNSTATUS 5 
-extern struct oh_dimitestrunstatus_map {
-  SaHpiDimiTestRunStatusT  entity_type;
-  char *str;
-} dimitestrunstatus_strings[OH_MAX_DIMITESTRUNSTATUS];
-
-char * oh_lookup_dimitestrunstatus(SaHpiDimiTestRunStatusT value);
-SaErrorT oh_encode_dimitestrunstatus(SaHpiTextBufferT *buffer, SaHpiDimiTestRunStatusT *type);
-
-#define OH_MAX_FUMISOURCESTATUS 9 
-extern struct oh_fumisourcestatus_map {
-  SaHpiFumiSourceStatusT  entity_type;
-  char *str;
-} fumisourcestatus_strings[OH_MAX_FUMISOURCESTATUS];
-
-char * oh_lookup_fumisourcestatus(SaHpiFumiSourceStatusT value);
-SaErrorT oh_encode_fumisourcestatus(SaHpiTextBufferT *buffer, SaHpiFumiSourceStatusT *type);
-
-#define OH_MAX_FUMIBANKSTATE 6 
-extern struct oh_fumibankstate_map {
-  SaHpiFumiBankStateT entity_type;
-  char *str;
-} fumibankstate_strings[OH_MAX_FUMIBANKSTATE];
-
-char * oh_lookup_fumibankstate(SaHpiFumiBankStateT value);
-SaErrorT oh_encode_fumibankstate(SaHpiTextBufferT *buffer, SaHpiFumiBankStateT *type);
-
-#define OH_MAX_FUMIUPGRADESTATUS 27 
-extern struct oh_fumiupgradestatus_map {
-  SaHpiFumiUpgradeStatusT  entity_type;
-  char *str;
-} fumiupgradestatus_strings[OH_MAX_FUMIUPGRADESTATUS];
-
-char * oh_lookup_fumiupgradestatus(SaHpiFumiUpgradeStatusT value);
-SaErrorT oh_encode_fumiupgradestatus(SaHpiTextBufferT *buffer, SaHpiFumiUpgradeStatusT *type);
-
 #define OH_MAX_RDRTYPE 8 
 extern struct oh_rdrtype_map {
   SaHpiRdrTypeT  entity_type;
@@ -390,7 +453,7 @@ extern struct oh_eventlogoverflowaction_map {
 char * oh_lookup_eventlogoverflowaction(SaHpiEventLogOverflowActionT value);
 SaErrorT oh_encode_eventlogoverflowaction(SaHpiTextBufferT *buffer, SaHpiEventLogOverflowActionT *type);
 
-#define OH_MAX_ERROR 22 
+#define OH_MAX_ERROR 24 
 extern struct oh_error_map {
   SaErrorT  entity_type;
   char *str;

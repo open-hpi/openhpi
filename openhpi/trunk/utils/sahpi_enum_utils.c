@@ -668,6 +668,34 @@ char * oh_lookup_entitytype(SaHpiEntityTypeT value)
                 return "EXTERNAL_ENVIRONMENT";
         case SAHPI_ENT_BATTERY:
                 return "BATTERY";
+        case SAHPI_ENT_RESERVED_1:
+                return "RESERVED_1";
+        case SAHPI_ENT_RESERVED_2:
+                return "RESERVED_2";
+        case SAHPI_ENT_RESERVED_3:
+                return "RESERVED_3";
+        case SAHPI_ENT_RESERVED_4:
+                return "RESERVED_4";
+        case SAHPI_ENT_RESERVED_5:
+                return "RESERVED_5";
+        case SAHPI_ENT_MC_FIRMWARE:
+                return "MC_FIRMWARE";
+        case SAHPI_ENT_IPMI_CHANNEL:
+                return "IPMI_CHANNEL";
+        case SAHPI_ENT_PCI_BUS:
+                return "PCI_BUS";
+        case SAHPI_ENT_PCI_EXPRESS_BUS:
+                return "PCI_EXPRESS_BUS";
+        case SAHPI_ENT_SCSI_BUS:
+                return "SCSI_BUS";
+        case SAHPI_ENT_SATA_BUS:
+                return "SATA_BUS";
+        case SAHPI_ENT_PROC_FSB:
+                return "PROC_FSB";
+        case SAHPI_ENT_CLOCK:
+                return "CLOCK";
+        case SAHPI_ENT_SYSTEM_FIRMWARE:
+                return "SYSTEM_FIRMWARE";
         case SAHPI_ENT_CHASSIS_SPECIFIC:
                 return "CHASSIS_SPECIFIC";
         case SAHPI_ENT_BOARD_SET_SPECIFIC:
@@ -720,6 +748,52 @@ char * oh_lookup_entitytype(SaHpiEntityTypeT value)
                 return "SUBBOARD_CARRIER_BLADE";
         case SAHPI_ENT_PHYSICAL_SLOT:
                 return "PHYSICAL_SLOT";
+        case SAHPI_ENT_PICMG_FRONT_BLADE:
+                return "PICMG_FRONT_BLADE";
+        case SAHPI_ENT_SYSTEM_INVENTORY_DEVICE:
+                return "SYSTEM_INVENTORY_DEVICE";
+        case SAHPI_ENT_FILTRATION_UNIT:
+                return "FILTRATION_UNIT";
+        case SAHPI_ENT_AMC:
+                return "AMC";
+        case SAHPI_ENT_BMC:
+                return "BMC";
+        case SAHPI_ENT_IPMC:
+                return "IPMC";
+        case SAHPI_ENT_MMC:
+                return "MMC";
+        case SAHPI_ENT_SHMC:
+                return "SHMC";
+        case SAHPI_ENT_CPLD:
+                return "CPLD";
+        case SAHPI_ENT_EPLD:
+                return "EPLD";
+        case SAHPI_ENT_FPGA:
+                return "FPGA";
+        case SAHPI_ENT_DASD:
+                return "DASD";
+        case SAHPI_ENT_NIC:
+                return "NIC";
+        case SAHPI_ENT_DSP:
+                return "DSP";
+        case SAHPI_ENT_UCODE:
+                return "UCODE";
+        case SAHPI_ENT_NPU:
+                return "NPU";
+        case SAHPI_ENT_OEM:
+                return "OEM";
+        case SAHPI_ENT_INTERFACE:
+                return "INTERFACE";
+        case SAHPI_ENT_MICROTCA_CHASSIS:
+                return "MICROTCA_CHASSIS";
+        case SAHPI_ENT_CARRIER:
+                return "CARRIER";
+        case SAHPI_ENT_CARRIER_MANAGER:
+                return "CARRIER_MANAGER";
+        case SAHPI_ENT_CONFIG_DATA:
+                return "CONFIG_DATA";
+        case SAHPI_ENT_INDICATOR:
+                return "INDICATOR";
         default:
                 return oh_lookup_atcahpientitytype(value);
         }
@@ -767,6 +841,20 @@ struct oh_entitytype_map entitytype_strings[] = {
        {SAHPI_ENT_REMOTE, "REMOTE"},
        {SAHPI_ENT_EXTERNAL_ENVIRONMENT, "EXTERNAL_ENVIRONMENT"},
        {SAHPI_ENT_BATTERY, "BATTERY"},
+       {SAHPI_ENT_RESERVED_1, "RESERVED_1"},
+       {SAHPI_ENT_RESERVED_2, "RESERVED_2"},
+       {SAHPI_ENT_RESERVED_3, "RESERVED_3"},
+       {SAHPI_ENT_RESERVED_4, "RESERVED_4"},
+       {SAHPI_ENT_RESERVED_5, "RESERVED_5"},
+       {SAHPI_ENT_MC_FIRMWARE, "MC_FIRMWARE"},
+       {SAHPI_ENT_IPMI_CHANNEL, "IPMI_CHANNEL"},
+       {SAHPI_ENT_PCI_BUS, "PCI_BUS"},
+       {SAHPI_ENT_PCI_EXPRESS_BUS, "PCI_EXPRESS_BUS"},
+       {SAHPI_ENT_SCSI_BUS, "SCSI_BUS"},
+       {SAHPI_ENT_SATA_BUS, "SATA_BUS"},
+       {SAHPI_ENT_PROC_FSB, "PROC_FSB"},
+       {SAHPI_ENT_CLOCK, "CLOCK"},
+       {SAHPI_ENT_SYSTEM_FIRMWARE, "SYSTEM_FIRMWARE"},
        {SAHPI_ENT_CHASSIS_SPECIFIC, "CHASSIS_SPECIFIC"},
        {SAHPI_ENT_BOARD_SET_SPECIFIC, "BOARD_SET_SPECIFIC"},
        {SAHPI_ENT_OEM_SYSINT_SPECIFIC, "OEM_SYSINT_SPECIFIC"},
@@ -793,6 +881,29 @@ struct oh_entitytype_map entitytype_strings[] = {
        {SAHPI_ENT_DISPLAY_PANEL, "DISPLAY_PANEL"},
        {SAHPI_ENT_SUBBOARD_CARRIER_BLADE, "SUBBOARD_CARRIER_BLADE"},
        {SAHPI_ENT_PHYSICAL_SLOT, "PHYSICAL_SLOT"},
+       {SAHPI_ENT_PICMG_FRONT_BLADE, "PICMG_FRONT_BLADE"},
+       {SAHPI_ENT_SYSTEM_INVENTORY_DEVICE, "SYSTEM_INVENTORY_DEVICE"},
+       {SAHPI_ENT_FILTRATION_UNIT, "FILTRATION_UNIT"},
+       {SAHPI_ENT_AMC, "AMC"},
+       {SAHPI_ENT_BMC, "BMC"},
+       {SAHPI_ENT_IPMC, "IPMC"},
+       {SAHPI_ENT_MMC, "MMC"},
+       {SAHPI_ENT_SHMC, "SHMC"},
+       {SAHPI_ENT_CPLD, "CPLD"},
+       {SAHPI_ENT_EPLD, "EPLD"},
+       {SAHPI_ENT_FPGA, "FPGA"},
+       {SAHPI_ENT_DASD, "DASD"},
+       {SAHPI_ENT_NIC, "NIC"},
+       {SAHPI_ENT_DSP, "DSP"},
+       {SAHPI_ENT_UCODE, "UCODE"},
+       {SAHPI_ENT_NPU, "NPU"},
+       {SAHPI_ENT_OEM, "OEM"},
+       {SAHPI_ENT_INTERFACE, "INTERFACE"},
+       {SAHPI_ENT_MICROTCA_CHASSIS, "MICROTCA_CHASSIS"},
+       {SAHPI_ENT_CARRIER, "CARRIER"},
+       {SAHPI_ENT_CARRIER_MANAGER, "CARRIER_MANAGER"},
+       {SAHPI_ENT_CONFIG_DATA, "CONFIG_DATA"},
+       {SAHPI_ENT_INDICATOR, "INDICATOR"},
 };
 
 /**
@@ -942,6 +1053,12 @@ char * oh_lookup_sensortype(SaHpiSensorTypeT value)
                 return "COMM_CHANNEL_LINK_STATE";
         case SAHPI_MANAGEMENT_BUS_STATE:
                 return "MANAGEMENT_BUS_STATE";
+        case SAHPI_COMM_CHANNEL_BUS_STATE:
+                return "COMM_CHANNEL_BUS_STATE";
+        case SAHPI_CONFIG_DATA:
+                return "CONFIG_DATA";
+        case SAHPI_POWER_BUDGET:
+                return "POWER_BUDGET";
         default:
                 return NULL;
         }
@@ -995,6 +1112,9 @@ struct oh_sensortype_map sensortype_strings[] = {
        {SAHPI_OEM_SENSOR, "OEM_SENSOR"},
        {SAHPI_COMM_CHANNEL_LINK_STATE, "COMM_CHANNEL_LINK_STATE"},
        {SAHPI_MANAGEMENT_BUS_STATE, "MANAGEMENT_BUS_STATE"},
+       {SAHPI_COMM_CHANNEL_BUS_STATE, "COMM_CHANNEL_BUS_STATE"},
+       {SAHPI_CONFIG_DATA, "CONFIG_DATA"},
+       {SAHPI_POWER_BUDGET, "POWER_BUDGET"},
 };
 
 /**
@@ -1905,6 +2025,18 @@ char * oh_lookup_ctrloutputtype(SaHpiCtrlOutputTypeT value)
                 return "LCD_DISPLAY";
         case SAHPI_CTRL_OEM:
                 return "OEM";
+        case SAHPI_CTRL_GENERIC_ADDRESS:
+                return "GENERIC_ADDRESS";
+        case SAHPI_CTRL_IP_ADDRESS:
+                return "IP_ADDRESS";
+        case SAHPI_CTRL_RESOURCE_ID:
+                return "RESOURCE_ID";
+        case SAHPI_CTRL_POWER_BUDGET:
+                return "POWER_BUDGET";
+        case SAHPI_CTRL_ACTIVATE:
+                return "ACTIVATE";
+        case SAHPI_CTRL_RESET:
+                return "RESET";
         default:
                 return NULL;
         }
@@ -1922,6 +2054,12 @@ struct oh_ctrloutputtype_map ctrloutputtype_strings[] = {
        {SAHPI_CTRL_POWER_STATE, "POWER_STATE"},
        {SAHPI_CTRL_LCD_DISPLAY, "LCD_DISPLAY"},
        {SAHPI_CTRL_OEM, "OEM"},
+       {SAHPI_CTRL_GENERIC_ADDRESS, "GENERIC_ADDRESS"},
+       {SAHPI_CTRL_IP_ADDRESS, "IP_ADDRESS"},
+       {SAHPI_CTRL_RESOURCE_ID, "RESOURCE_ID"},
+       {SAHPI_CTRL_POWER_BUDGET, "POWER_BUDGET"},
+       {SAHPI_CTRL_ACTIVATE, "ACTIVATE"},
+       {SAHPI_CTRL_RESET, "RESET"},
 };
 
 /**
@@ -2444,6 +2582,896 @@ SaErrorT oh_encode_watchdogtimeruse(SaHpiTextBufferT *buffer, SaHpiWatchdogTimer
 }
 
 /**
+ * oh_lookup_dimitestserviceimpact:
+ * @value: enum value of type SaHpiDimiTestServiceImpactT.
+ *
+ * Converts @value into a string based on @value's HPI enum definition.
+ * 
+ * Returns:
+ * string - normal operation.
+ * NULL - if @value not a valid SaHpiDimiTestServiceImpactT.
+ **/
+
+char * oh_lookup_dimitestserviceimpact(SaHpiDimiTestServiceImpactT value)
+{
+        switch (value) {
+        case SAHPI_DIMITEST_NONDEGRADING:
+                return "NONDEGRADING";
+        case SAHPI_DIMITEST_DEGRADING:
+                return "DEGRADING";
+        case SAHPI_DIMITEST_VENDOR_DEFINED_LEVEL:
+                return "VENDOR_DEFINED_LEVEL";
+        default:
+                return NULL;
+        }
+}
+
+struct oh_dimitestserviceimpact_map dimitestserviceimpact_strings[] = {
+       {SAHPI_DIMITEST_NONDEGRADING, "NONDEGRADING"},
+       {SAHPI_DIMITEST_DEGRADING, "DEGRADING"},
+       {SAHPI_DIMITEST_VENDOR_DEFINED_LEVEL, "VENDOR_DEFINED_LEVEL"},
+};
+
+/**
+ * oh_encode_dimitestserviceimpact:
+ * @buffer: Pointer to SaHpiTextBufferT that contains enum's string representation.
+ * @type: Location (of SaHpiDimiTestServiceImpactT) to place encoded result.
+ * 
+ * Converts a @buffer->Data string, generated by oh_lookup_dimitestserviceimpact(), back 
+ * into an SaHpiDimiTestServiceImpactT type. 
+ *
+ * Returns:
+ * SaHpiDimiTestServiceImpactT value - normal operation.
+ * SA_ERR_HPI_INVALID_PARAMS - if @buffer or @type is NULL or @buffer->Data empty.
+ * SA_ERR_HPI_INVALID_DATA - if @buffer->Data is invalid.
+ **/
+SaErrorT oh_encode_dimitestserviceimpact(SaHpiTextBufferT *buffer, SaHpiDimiTestServiceImpactT *type)
+{
+	int i, found;
+
+	if (!buffer || !type || buffer->Data == NULL || buffer->Data[0] == '\0') {
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+	
+	found = 0;
+	for (i=0; i<OH_MAX_DIMITESTSERVICEIMPACT; i++) {
+		if (strcasecmp((char *)buffer->Data, dimitestserviceimpact_strings[i].str) == 0) {
+			found++;
+			break;
+		}
+	}
+
+	if (found) {
+		*type = dimitestserviceimpact_strings[i].entity_type;
+	}
+	else {
+		return(SA_ERR_HPI_INVALID_DATA);
+	}
+	
+	return(SA_OK);
+}
+
+/**
+ * oh_lookup_dimitestrunstatus:
+ * @value: enum value of type SaHpiDimiTestRunStatusT.
+ *
+ * Converts @value into a string based on @value's HPI enum definition.
+ * 
+ * Returns:
+ * string - normal operation.
+ * NULL - if @value not a valid SaHpiDimiTestRunStatusT.
+ **/
+
+char * oh_lookup_dimitestrunstatus(SaHpiDimiTestRunStatusT value)
+{
+        switch (value) {
+        case SAHPI_DIMITEST_STATUS_NOT_RUN:
+                return "STATUS_NOT_RUN";
+        case SAHPI_DIMITEST_STATUS_FINISHED_NO_ERRORS:
+                return "STATUS_FINISHED_NO_ERRORS";
+        case SAHPI_DIMITEST_STATUS_FINISHED_ERRORS:
+                return "STATUS_FINISHED_ERRORS";
+        case SAHPI_DIMITEST_STATUS_CANCELED:
+                return "STATUS_CANCELED";
+        case SAHPI_DIMITEST_STATUS_RUNNING:
+                return "STATUS_RUNNING";
+        default:
+                return NULL;
+        }
+}
+
+struct oh_dimitestrunstatus_map dimitestrunstatus_strings[] = {
+       {SAHPI_DIMITEST_STATUS_NOT_RUN, "STATUS_NOT_RUN"},
+       {SAHPI_DIMITEST_STATUS_FINISHED_NO_ERRORS, "STATUS_FINISHED_NO_ERRORS"},
+       {SAHPI_DIMITEST_STATUS_FINISHED_ERRORS, "STATUS_FINISHED_ERRORS"},
+       {SAHPI_DIMITEST_STATUS_CANCELED, "STATUS_CANCELED"},
+       {SAHPI_DIMITEST_STATUS_RUNNING, "STATUS_RUNNING"},
+};
+
+/**
+ * oh_encode_dimitestrunstatus:
+ * @buffer: Pointer to SaHpiTextBufferT that contains enum's string representation.
+ * @type: Location (of SaHpiDimiTestRunStatusT) to place encoded result.
+ * 
+ * Converts a @buffer->Data string, generated by oh_lookup_dimitestrunstatus(), back 
+ * into an SaHpiDimiTestRunStatusT type. 
+ *
+ * Returns:
+ * SaHpiDimiTestRunStatusT value - normal operation.
+ * SA_ERR_HPI_INVALID_PARAMS - if @buffer or @type is NULL or @buffer->Data empty.
+ * SA_ERR_HPI_INVALID_DATA - if @buffer->Data is invalid.
+ **/
+SaErrorT oh_encode_dimitestrunstatus(SaHpiTextBufferT *buffer, SaHpiDimiTestRunStatusT *type)
+{
+	int i, found;
+
+	if (!buffer || !type || buffer->Data == NULL || buffer->Data[0] == '\0') {
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+	
+	found = 0;
+	for (i=0; i<OH_MAX_DIMITESTRUNSTATUS; i++) {
+		if (strcasecmp((char *)buffer->Data, dimitestrunstatus_strings[i].str) == 0) {
+			found++;
+			break;
+		}
+	}
+
+	if (found) {
+		*type = dimitestrunstatus_strings[i].entity_type;
+	}
+	else {
+		return(SA_ERR_HPI_INVALID_DATA);
+	}
+	
+	return(SA_OK);
+}
+
+/**
+ * oh_lookup_dimitesterrcode:
+ * @value: enum value of type SaHpiDimiTestErrCodeT.
+ *
+ * Converts @value into a string based on @value's HPI enum definition.
+ * 
+ * Returns:
+ * string - normal operation.
+ * NULL - if @value not a valid SaHpiDimiTestErrCodeT.
+ **/
+
+char * oh_lookup_dimitesterrcode(SaHpiDimiTestErrCodeT value)
+{
+        switch (value) {
+        case SAHPI_DIMITEST_STATUSERR_NOERR:
+                return "STATUSERR_NOERR";
+        case SAHPI_DIMITEST_STATUSERR_RUNERR:
+                return "STATUSERR_RUNERR";
+        case SAHPI_DIMITEST_STATUSERR_UNDEF:
+                return "STATUSERR_UNDEF";
+        default:
+                return NULL;
+        }
+}
+
+struct oh_dimitesterrcode_map dimitesterrcode_strings[] = {
+       {SAHPI_DIMITEST_STATUSERR_NOERR, "STATUSERR_NOERR"},
+       {SAHPI_DIMITEST_STATUSERR_RUNERR, "STATUSERR_RUNERR"},
+       {SAHPI_DIMITEST_STATUSERR_UNDEF, "STATUSERR_UNDEF"},
+};
+
+/**
+ * oh_encode_dimitesterrcode:
+ * @buffer: Pointer to SaHpiTextBufferT that contains enum's string representation.
+ * @type: Location (of SaHpiDimiTestErrCodeT) to place encoded result.
+ * 
+ * Converts a @buffer->Data string, generated by oh_lookup_dimitesterrcode(), back 
+ * into an SaHpiDimiTestErrCodeT type. 
+ *
+ * Returns:
+ * SaHpiDimiTestErrCodeT value - normal operation.
+ * SA_ERR_HPI_INVALID_PARAMS - if @buffer or @type is NULL or @buffer->Data empty.
+ * SA_ERR_HPI_INVALID_DATA - if @buffer->Data is invalid.
+ **/
+SaErrorT oh_encode_dimitesterrcode(SaHpiTextBufferT *buffer, SaHpiDimiTestErrCodeT *type)
+{
+	int i, found;
+
+	if (!buffer || !type || buffer->Data == NULL || buffer->Data[0] == '\0') {
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+	
+	found = 0;
+	for (i=0; i<OH_MAX_DIMITESTERRCODE; i++) {
+		if (strcasecmp((char *)buffer->Data, dimitesterrcode_strings[i].str) == 0) {
+			found++;
+			break;
+		}
+	}
+
+	if (found) {
+		*type = dimitesterrcode_strings[i].entity_type;
+	}
+	else {
+		return(SA_ERR_HPI_INVALID_DATA);
+	}
+	
+	return(SA_OK);
+}
+
+/**
+ * oh_lookup_dimitestparamtype:
+ * @value: enum value of type SaHpiDimiTestParamTypeT.
+ *
+ * Converts @value into a string based on @value's HPI enum definition.
+ * 
+ * Returns:
+ * string - normal operation.
+ * NULL - if @value not a valid SaHpiDimiTestParamTypeT.
+ **/
+
+char * oh_lookup_dimitestparamtype(SaHpiDimiTestParamTypeT value)
+{
+        switch (value) {
+        case SAHPI_DIMITEST_PARAM_TYPE_BOOLEAN:
+                return "PARAM_TYPE_BOOLEAN";
+        case SAHPI_DIMITEST_PARAM_TYPE_INT32:
+                return "PARAM_TYPE_INT32";
+        case SAHPI_DIMITEST_PARAM_TYPE_FLOAT64:
+                return "PARAM_TYPE_FLOAT64";
+        case SAHPI_DIMITEST_PARAM_TYPE_TEXT:
+                return "PARAM_TYPE_TEXT";
+        default:
+                return NULL;
+        }
+}
+
+struct oh_dimitestparamtype_map dimitestparamtype_strings[] = {
+       {SAHPI_DIMITEST_PARAM_TYPE_BOOLEAN, "PARAM_TYPE_BOOLEAN"},
+       {SAHPI_DIMITEST_PARAM_TYPE_INT32, "PARAM_TYPE_INT32"},
+       {SAHPI_DIMITEST_PARAM_TYPE_FLOAT64, "PARAM_TYPE_FLOAT64"},
+       {SAHPI_DIMITEST_PARAM_TYPE_TEXT, "PARAM_TYPE_TEXT"},
+};
+
+/**
+ * oh_encode_dimitestparamtype:
+ * @buffer: Pointer to SaHpiTextBufferT that contains enum's string representation.
+ * @type: Location (of SaHpiDimiTestParamTypeT) to place encoded result.
+ * 
+ * Converts a @buffer->Data string, generated by oh_lookup_dimitestparamtype(), back 
+ * into an SaHpiDimiTestParamTypeT type. 
+ *
+ * Returns:
+ * SaHpiDimiTestParamTypeT value - normal operation.
+ * SA_ERR_HPI_INVALID_PARAMS - if @buffer or @type is NULL or @buffer->Data empty.
+ * SA_ERR_HPI_INVALID_DATA - if @buffer->Data is invalid.
+ **/
+SaErrorT oh_encode_dimitestparamtype(SaHpiTextBufferT *buffer, SaHpiDimiTestParamTypeT *type)
+{
+	int i, found;
+
+	if (!buffer || !type || buffer->Data == NULL || buffer->Data[0] == '\0') {
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+	
+	found = 0;
+	for (i=0; i<OH_MAX_DIMITESTPARAMTYPE; i++) {
+		if (strcasecmp((char *)buffer->Data, dimitestparamtype_strings[i].str) == 0) {
+			found++;
+			break;
+		}
+	}
+
+	if (found) {
+		*type = dimitestparamtype_strings[i].entity_type;
+	}
+	else {
+		return(SA_ERR_HPI_INVALID_DATA);
+	}
+	
+	return(SA_OK);
+}
+
+/**
+ * oh_lookup_dimiready:
+ * @value: enum value of type SaHpiDimiReadyT.
+ *
+ * Converts @value into a string based on @value's HPI enum definition.
+ * 
+ * Returns:
+ * string - normal operation.
+ * NULL - if @value not a valid SaHpiDimiReadyT.
+ **/
+
+char * oh_lookup_dimiready(SaHpiDimiReadyT value)
+{
+        switch (value) {
+        case SAHPI_DIMI_READY:
+                return "READY";
+        case SAHPI_DIMI_WRONG_STATE:
+                return "WRONG_STATE";
+        case SAHPI_DIMI_BUSY:
+                return "BUSY";
+        default:
+                return NULL;
+        }
+}
+
+struct oh_dimiready_map dimiready_strings[] = {
+       {SAHPI_DIMI_READY, "READY"},
+       {SAHPI_DIMI_WRONG_STATE, "WRONG_STATE"},
+       {SAHPI_DIMI_BUSY, "BUSY"},
+};
+
+/**
+ * oh_encode_dimiready:
+ * @buffer: Pointer to SaHpiTextBufferT that contains enum's string representation.
+ * @type: Location (of SaHpiDimiReadyT) to place encoded result.
+ * 
+ * Converts a @buffer->Data string, generated by oh_lookup_dimiready(), back 
+ * into an SaHpiDimiReadyT type. 
+ *
+ * Returns:
+ * SaHpiDimiReadyT value - normal operation.
+ * SA_ERR_HPI_INVALID_PARAMS - if @buffer or @type is NULL or @buffer->Data empty.
+ * SA_ERR_HPI_INVALID_DATA - if @buffer->Data is invalid.
+ **/
+SaErrorT oh_encode_dimiready(SaHpiTextBufferT *buffer, SaHpiDimiReadyT *type)
+{
+	int i, found;
+
+	if (!buffer || !type || buffer->Data == NULL || buffer->Data[0] == '\0') {
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+	
+	found = 0;
+	for (i=0; i<OH_MAX_DIMIREADY; i++) {
+		if (strcasecmp((char *)buffer->Data, dimiready_strings[i].str) == 0) {
+			found++;
+			break;
+		}
+	}
+
+	if (found) {
+		*type = dimiready_strings[i].entity_type;
+	}
+	else {
+		return(SA_ERR_HPI_INVALID_DATA);
+	}
+	
+	return(SA_OK);
+}
+
+/**
+ * oh_lookup_fumispecinfotype:
+ * @value: enum value of type SaHpiFumiSpecInfoTypeT.
+ *
+ * Converts @value into a string based on @value's HPI enum definition.
+ * 
+ * Returns:
+ * string - normal operation.
+ * NULL - if @value not a valid SaHpiFumiSpecInfoTypeT.
+ **/
+
+char * oh_lookup_fumispecinfotype(SaHpiFumiSpecInfoTypeT value)
+{
+        switch (value) {
+        case SAHPI_FUMI_SPEC_INFO_NONE:
+                return "SPEC_INFO_NONE";
+        case SAHPI_FUMI_SPEC_INFO_SAF_DEFINED:
+                return "SPEC_INFO_SAF_DEFINED";
+        case SAHPI_FUMI_SPEC_INFO_OEM_DEFINED:
+                return "SPEC_INFO_OEM_DEFINED";
+        default:
+                return NULL;
+        }
+}
+
+struct oh_fumispecinfotype_map fumispecinfotype_strings[] = {
+       {SAHPI_FUMI_SPEC_INFO_NONE, "SPEC_INFO_NONE"},
+       {SAHPI_FUMI_SPEC_INFO_SAF_DEFINED, "SPEC_INFO_SAF_DEFINED"},
+       {SAHPI_FUMI_SPEC_INFO_OEM_DEFINED, "SPEC_INFO_OEM_DEFINED"},
+};
+
+/**
+ * oh_encode_fumispecinfotype:
+ * @buffer: Pointer to SaHpiTextBufferT that contains enum's string representation.
+ * @type: Location (of SaHpiFumiSpecInfoTypeT) to place encoded result.
+ * 
+ * Converts a @buffer->Data string, generated by oh_lookup_fumispecinfotype(), back 
+ * into an SaHpiFumiSpecInfoTypeT type. 
+ *
+ * Returns:
+ * SaHpiFumiSpecInfoTypeT value - normal operation.
+ * SA_ERR_HPI_INVALID_PARAMS - if @buffer or @type is NULL or @buffer->Data empty.
+ * SA_ERR_HPI_INVALID_DATA - if @buffer->Data is invalid.
+ **/
+SaErrorT oh_encode_fumispecinfotype(SaHpiTextBufferT *buffer, SaHpiFumiSpecInfoTypeT *type)
+{
+	int i, found;
+
+	if (!buffer || !type || buffer->Data == NULL || buffer->Data[0] == '\0') {
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+	
+	found = 0;
+	for (i=0; i<OH_MAX_FUMISPECINFOTYPE; i++) {
+		if (strcasecmp((char *)buffer->Data, fumispecinfotype_strings[i].str) == 0) {
+			found++;
+			break;
+		}
+	}
+
+	if (found) {
+		*type = fumispecinfotype_strings[i].entity_type;
+	}
+	else {
+		return(SA_ERR_HPI_INVALID_DATA);
+	}
+	
+	return(SA_OK);
+}
+
+/**
+ * oh_lookup_fumisafdefinedspecid:
+ * @value: enum value of type SaHpiFumiSafDefinedSpecIdT.
+ *
+ * Converts @value into a string based on @value's HPI enum definition.
+ * 
+ * Returns:
+ * string - normal operation.
+ * NULL - if @value not a valid SaHpiFumiSafDefinedSpecIdT.
+ **/
+
+char * oh_lookup_fumisafdefinedspecid(SaHpiFumiSafDefinedSpecIdT value)
+{
+        switch (value) {
+        case SAHPI_FUMI_SPEC_HPM1:
+                return "SPEC_HPM1";
+        default:
+                return NULL;
+        }
+}
+
+struct oh_fumisafdefinedspecid_map fumisafdefinedspecid_strings[] = {
+       {SAHPI_FUMI_SPEC_HPM1, "SPEC_HPM1"},
+};
+
+/**
+ * oh_encode_fumisafdefinedspecid:
+ * @buffer: Pointer to SaHpiTextBufferT that contains enum's string representation.
+ * @type: Location (of SaHpiFumiSafDefinedSpecIdT) to place encoded result.
+ * 
+ * Converts a @buffer->Data string, generated by oh_lookup_fumisafdefinedspecid(), back 
+ * into an SaHpiFumiSafDefinedSpecIdT type. 
+ *
+ * Returns:
+ * SaHpiFumiSafDefinedSpecIdT value - normal operation.
+ * SA_ERR_HPI_INVALID_PARAMS - if @buffer or @type is NULL or @buffer->Data empty.
+ * SA_ERR_HPI_INVALID_DATA - if @buffer->Data is invalid.
+ **/
+SaErrorT oh_encode_fumisafdefinedspecid(SaHpiTextBufferT *buffer, SaHpiFumiSafDefinedSpecIdT *type)
+{
+	int i, found;
+
+	if (!buffer || !type || buffer->Data == NULL || buffer->Data[0] == '\0') {
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+	
+	found = 0;
+	for (i=0; i<OH_MAX_FUMISAFDEFINEDSPECID; i++) {
+		if (strcasecmp((char *)buffer->Data, fumisafdefinedspecid_strings[i].str) == 0) {
+			found++;
+			break;
+		}
+	}
+
+	if (found) {
+		*type = fumisafdefinedspecid_strings[i].entity_type;
+	}
+	else {
+		return(SA_ERR_HPI_INVALID_DATA);
+	}
+	
+	return(SA_OK);
+}
+
+/**
+ * oh_lookup_fumiserviceimpact:
+ * @value: enum value of type SaHpiFumiServiceImpactT.
+ *
+ * Converts @value into a string based on @value's HPI enum definition.
+ * 
+ * Returns:
+ * string - normal operation.
+ * NULL - if @value not a valid SaHpiFumiServiceImpactT.
+ **/
+
+char * oh_lookup_fumiserviceimpact(SaHpiFumiServiceImpactT value)
+{
+        switch (value) {
+        case SAHPI_FUMI_PROCESS_NONDEGRADING:
+                return "PROCESS_NONDEGRADING";
+        case SAHPI_FUMI_PROCESS_DEGRADING:
+                return "PROCESS_DEGRADING";
+        case SAHPI_FUMI_PROCESS_VENDOR_DEFINED_IMPACT_LEVEL:
+                return "PROCESS_VENDOR_DEFINED_IMPACT_LEVEL";
+        default:
+                return NULL;
+        }
+}
+
+struct oh_fumiserviceimpact_map fumiserviceimpact_strings[] = {
+       {SAHPI_FUMI_PROCESS_NONDEGRADING, "PROCESS_NONDEGRADING"},
+       {SAHPI_FUMI_PROCESS_DEGRADING, "PROCESS_DEGRADING"},
+       {SAHPI_FUMI_PROCESS_VENDOR_DEFINED_IMPACT_LEVEL, "PROCESS_VENDOR_DEFINED_IMPACT_LEVEL"},
+};
+
+/**
+ * oh_encode_fumiserviceimpact:
+ * @buffer: Pointer to SaHpiTextBufferT that contains enum's string representation.
+ * @type: Location (of SaHpiFumiServiceImpactT) to place encoded result.
+ * 
+ * Converts a @buffer->Data string, generated by oh_lookup_fumiserviceimpact(), back 
+ * into an SaHpiFumiServiceImpactT type. 
+ *
+ * Returns:
+ * SaHpiFumiServiceImpactT value - normal operation.
+ * SA_ERR_HPI_INVALID_PARAMS - if @buffer or @type is NULL or @buffer->Data empty.
+ * SA_ERR_HPI_INVALID_DATA - if @buffer->Data is invalid.
+ **/
+SaErrorT oh_encode_fumiserviceimpact(SaHpiTextBufferT *buffer, SaHpiFumiServiceImpactT *type)
+{
+	int i, found;
+
+	if (!buffer || !type || buffer->Data == NULL || buffer->Data[0] == '\0') {
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+	
+	found = 0;
+	for (i=0; i<OH_MAX_FUMISERVICEIMPACT; i++) {
+		if (strcasecmp((char *)buffer->Data, fumiserviceimpact_strings[i].str) == 0) {
+			found++;
+			break;
+		}
+	}
+
+	if (found) {
+		*type = fumiserviceimpact_strings[i].entity_type;
+	}
+	else {
+		return(SA_ERR_HPI_INVALID_DATA);
+	}
+	
+	return(SA_OK);
+}
+
+/**
+ * oh_lookup_fumisourcestatus:
+ * @value: enum value of type SaHpiFumiSourceStatusT.
+ *
+ * Converts @value into a string based on @value's HPI enum definition.
+ * 
+ * Returns:
+ * string - normal operation.
+ * NULL - if @value not a valid SaHpiFumiSourceStatusT.
+ **/
+
+char * oh_lookup_fumisourcestatus(SaHpiFumiSourceStatusT value)
+{
+        switch (value) {
+        case SAHPI_FUMI_SRC_VALID:
+                return "SRC_VALID";
+        case SAHPI_FUMI_SRC_PROTOCOL_NOT_SUPPORTED:
+                return "SRC_PROTOCOL_NOT_SUPPORTED";
+        case SAHPI_FUMI_SRC_UNREACHABLE:
+                return "SRC_UNREACHABLE";
+        case SAHPI_FUMI_SRC_VALIDATION_NOT_STARTED:
+                return "SRC_VALIDATION_NOT_STARTED";
+        case SAHPI_FUMI_SRC_VALIDATION_INITIATED:
+                return "SRC_VALIDATION_INITIATED";
+        case SAHPI_FUMI_SRC_VALIDATION_FAIL:
+                return "SRC_VALIDATION_FAIL";
+        case SAHPI_FUMI_SRC_TYPE_MISMATCH:
+                return "SRC_TYPE_MISMATCH";
+        case SAHPI_FUMI_SRC_INVALID:
+                return "SRC_INVALID";
+        case SAHPI_FUMI_SRC_VALIDITY_UNKNOWN:
+                return "SRC_VALIDITY_UNKNOWN";
+        default:
+                return NULL;
+        }
+}
+
+struct oh_fumisourcestatus_map fumisourcestatus_strings[] = {
+       {SAHPI_FUMI_SRC_VALID, "SRC_VALID"},
+       {SAHPI_FUMI_SRC_PROTOCOL_NOT_SUPPORTED, "SRC_PROTOCOL_NOT_SUPPORTED"},
+       {SAHPI_FUMI_SRC_UNREACHABLE, "SRC_UNREACHABLE"},
+       {SAHPI_FUMI_SRC_VALIDATION_NOT_STARTED, "SRC_VALIDATION_NOT_STARTED"},
+       {SAHPI_FUMI_SRC_VALIDATION_INITIATED, "SRC_VALIDATION_INITIATED"},
+       {SAHPI_FUMI_SRC_VALIDATION_FAIL, "SRC_VALIDATION_FAIL"},
+       {SAHPI_FUMI_SRC_TYPE_MISMATCH, "SRC_TYPE_MISMATCH"},
+       {SAHPI_FUMI_SRC_INVALID, "SRC_INVALID"},
+       {SAHPI_FUMI_SRC_VALIDITY_UNKNOWN, "SRC_VALIDITY_UNKNOWN"},
+};
+
+/**
+ * oh_encode_fumisourcestatus:
+ * @buffer: Pointer to SaHpiTextBufferT that contains enum's string representation.
+ * @type: Location (of SaHpiFumiSourceStatusT) to place encoded result.
+ * 
+ * Converts a @buffer->Data string, generated by oh_lookup_fumisourcestatus(), back 
+ * into an SaHpiFumiSourceStatusT type. 
+ *
+ * Returns:
+ * SaHpiFumiSourceStatusT value - normal operation.
+ * SA_ERR_HPI_INVALID_PARAMS - if @buffer or @type is NULL or @buffer->Data empty.
+ * SA_ERR_HPI_INVALID_DATA - if @buffer->Data is invalid.
+ **/
+SaErrorT oh_encode_fumisourcestatus(SaHpiTextBufferT *buffer, SaHpiFumiSourceStatusT *type)
+{
+	int i, found;
+
+	if (!buffer || !type || buffer->Data == NULL || buffer->Data[0] == '\0') {
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+	
+	found = 0;
+	for (i=0; i<OH_MAX_FUMISOURCESTATUS; i++) {
+		if (strcasecmp((char *)buffer->Data, fumisourcestatus_strings[i].str) == 0) {
+			found++;
+			break;
+		}
+	}
+
+	if (found) {
+		*type = fumisourcestatus_strings[i].entity_type;
+	}
+	else {
+		return(SA_ERR_HPI_INVALID_DATA);
+	}
+	
+	return(SA_OK);
+}
+
+/**
+ * oh_lookup_fumibankstate:
+ * @value: enum value of type SaHpiFumiBankStateT.
+ *
+ * Converts @value into a string based on @value's HPI enum definition.
+ * 
+ * Returns:
+ * string - normal operation.
+ * NULL - if @value not a valid SaHpiFumiBankStateT.
+ **/
+
+char * oh_lookup_fumibankstate(SaHpiFumiBankStateT value)
+{
+        switch (value) {
+        case SAHPI_FUMI_BANK_VALID:
+                return "BANK_VALID";
+        case SAHPI_FUMI_BANK_UPGRADE_IN_PROGRESS:
+                return "BANK_UPGRADE_IN_PROGRESS";
+        case SAHPI_FUMI_BANK_CORRUPTED:
+                return "BANK_CORRUPTED";
+        case SAHPI_FUMI_BANK_ACTIVE:
+                return "BANK_ACTIVE";
+        case SAHPI_FUMI_BANK_BUSY:
+                return "BANK_BUSY";
+        case SAHPI_FUMI_BANK_UNKNOWN:
+                return "BANK_UNKNOWN";
+        default:
+                return NULL;
+        }
+}
+
+struct oh_fumibankstate_map fumibankstate_strings[] = {
+       {SAHPI_FUMI_BANK_VALID, "BANK_VALID"},
+       {SAHPI_FUMI_BANK_UPGRADE_IN_PROGRESS, "BANK_UPGRADE_IN_PROGRESS"},
+       {SAHPI_FUMI_BANK_CORRUPTED, "BANK_CORRUPTED"},
+       {SAHPI_FUMI_BANK_ACTIVE, "BANK_ACTIVE"},
+       {SAHPI_FUMI_BANK_BUSY, "BANK_BUSY"},
+       {SAHPI_FUMI_BANK_UNKNOWN, "BANK_UNKNOWN"},
+};
+
+/**
+ * oh_encode_fumibankstate:
+ * @buffer: Pointer to SaHpiTextBufferT that contains enum's string representation.
+ * @type: Location (of SaHpiFumiBankStateT) to place encoded result.
+ * 
+ * Converts a @buffer->Data string, generated by oh_lookup_fumibankstate(), back 
+ * into an SaHpiFumiBankStateT type. 
+ *
+ * Returns:
+ * SaHpiFumiBankStateT value - normal operation.
+ * SA_ERR_HPI_INVALID_PARAMS - if @buffer or @type is NULL or @buffer->Data empty.
+ * SA_ERR_HPI_INVALID_DATA - if @buffer->Data is invalid.
+ **/
+SaErrorT oh_encode_fumibankstate(SaHpiTextBufferT *buffer, SaHpiFumiBankStateT *type)
+{
+	int i, found;
+
+	if (!buffer || !type || buffer->Data == NULL || buffer->Data[0] == '\0') {
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+	
+	found = 0;
+	for (i=0; i<OH_MAX_FUMIBANKSTATE; i++) {
+		if (strcasecmp((char *)buffer->Data, fumibankstate_strings[i].str) == 0) {
+			found++;
+			break;
+		}
+	}
+
+	if (found) {
+		*type = fumibankstate_strings[i].entity_type;
+	}
+	else {
+		return(SA_ERR_HPI_INVALID_DATA);
+	}
+	
+	return(SA_OK);
+}
+
+/**
+ * oh_lookup_fumiupgradestatus:
+ * @value: enum value of type SaHpiFumiUpgradeStatusT.
+ *
+ * Converts @value into a string based on @value's HPI enum definition.
+ * 
+ * Returns:
+ * string - normal operation.
+ * NULL - if @value not a valid SaHpiFumiUpgradeStatusT.
+ **/
+
+char * oh_lookup_fumiupgradestatus(SaHpiFumiUpgradeStatusT value)
+{
+        switch (value) {
+        case SAHPI_FUMI_OPERATION_NOTSTARTED:
+                return "OPERATION_NOTSTARTED";
+        case SAHPI_FUMI_SOURCE_VALIDATION_INITIATED:
+                return "SOURCE_VALIDATION_INITIATED";
+        case SAHPI_FUMI_SOURCE_VALIDATION_FAILED:
+                return "SOURCE_VALIDATION_FAILED";
+        case SAHPI_FUMI_SOURCE_VALIDATION_DONE:
+                return "SOURCE_VALIDATION_DONE";
+        case SAHPI_FUMI_SOURCE_VALIDATION_CANCELLED:
+                return "SOURCE_VALIDATION_CANCELLED";
+        case SAHPI_FUMI_INSTALL_INITIATED:
+                return "INSTALL_INITIATED";
+        case SAHPI_FUMI_INSTALL_FAILED_ROLLBACK_NEEDED:
+                return "INSTALL_FAILED_ROLLBACK_NEEDED";
+        case SAHPI_FUMI_INSTALL_FAILED_ROLLBACK_INITIATED:
+                return "INSTALL_FAILED_ROLLBACK_INITIATED";
+        case SAHPI_FUMI_INSTALL_FAILED_ROLLBACK_NOT_POSSIBLE:
+                return "INSTALL_FAILED_ROLLBACK_NOT_POSSIBLE";
+        case SAHPI_FUMI_INSTALL_DONE:
+                return "INSTALL_DONE";
+        case SAHPI_FUMI_INSTALL_CANCELLED:
+                return "INSTALL_CANCELLED";
+        case SAHPI_FUMI_ROLLBACK_INITIATED:
+                return "ROLLBACK_INITIATED";
+        case SAHPI_FUMI_ROLLBACK_FAILED:
+                return "ROLLBACK_FAILED";
+        case SAHPI_FUMI_ROLLBACK_DONE:
+                return "ROLLBACK_DONE";
+        case SAHPI_FUMI_ROLLBACK_CANCELLED:
+                return "ROLLBACK_CANCELLED";
+        case SAHPI_FUMI_BACKUP_INITIATED:
+                return "BACKUP_INITIATED";
+        case SAHPI_FUMI_BACKUP_FAILED:
+                return "BACKUP_FAILED";
+        case SAHPI_FUMI_BACKUP_DONE:
+                return "BACKUP_DONE";
+        case SAHPI_FUMI_BACKUP_CANCELLED:
+                return "BACKUP_CANCELLED";
+        case SAHPI_FUMI_BANK_COPY_INITIATED:
+                return "BANK_COPY_INITIATED";
+        case SAHPI_FUMI_BANK_COPY_FAILED:
+                return "BANK_COPY_FAILED";
+        case SAHPI_FUMI_BANK_COPY_DONE:
+                return "BANK_COPY_DONE";
+        case SAHPI_FUMI_BANK_COPY_CANCELLED:
+                return "BANK_COPY_CANCELLED";
+        case SAHPI_FUMI_TARGET_VERIFY_INITIATED:
+                return "TARGET_VERIFY_INITIATED";
+        case SAHPI_FUMI_TARGET_VERIFY_FAILED:
+                return "TARGET_VERIFY_FAILED";
+        case SAHPI_FUMI_TARGET_VERIFY_DONE:
+                return "TARGET_VERIFY_DONE";
+        case SAHPI_FUMI_TARGET_VERIFY_CANCELLED:
+                return "TARGET_VERIFY_CANCELLED";
+        case SAHPI_FUMI_ACTIVATE_INITIATED:
+                return "ACTIVATE_INITIATED";
+        case SAHPI_FUMI_ACTIVATE_FAILED_ROLLBACK_NEEDED:
+                return "ACTIVATE_FAILED_ROLLBACK_NEEDED";
+        case SAHPI_FUMI_ACTIVATE_FAILED_ROLLBACK_INITIATED:
+                return "ACTIVATE_FAILED_ROLLBACK_INITIATED";
+        case SAHPI_FUMI_ACTIVATE_FAILED_ROLLBACK_NOT_POSSIBLE:
+                return "ACTIVATE_FAILED_ROLLBACK_NOT_POSSIBLE";
+        case SAHPI_FUMI_ACTIVATE_DONE:
+                return "ACTIVATE_DONE";
+        case SAHPI_FUMI_ACTIVATE_CANCELLED:
+                return "ACTIVATE_CANCELLED";
+        default:
+                return NULL;
+        }
+}
+
+struct oh_fumiupgradestatus_map fumiupgradestatus_strings[] = {
+       {SAHPI_FUMI_OPERATION_NOTSTARTED, "OPERATION_NOTSTARTED"},
+       {SAHPI_FUMI_SOURCE_VALIDATION_INITIATED, "SOURCE_VALIDATION_INITIATED"},
+       {SAHPI_FUMI_SOURCE_VALIDATION_FAILED, "SOURCE_VALIDATION_FAILED"},
+       {SAHPI_FUMI_SOURCE_VALIDATION_DONE, "SOURCE_VALIDATION_DONE"},
+       {SAHPI_FUMI_SOURCE_VALIDATION_CANCELLED, "SOURCE_VALIDATION_CANCELLED"},
+       {SAHPI_FUMI_INSTALL_INITIATED, "INSTALL_INITIATED"},
+       {SAHPI_FUMI_INSTALL_FAILED_ROLLBACK_NEEDED, "INSTALL_FAILED_ROLLBACK_NEEDED"},
+       {SAHPI_FUMI_INSTALL_FAILED_ROLLBACK_INITIATED, "INSTALL_FAILED_ROLLBACK_INITIATED"},
+       {SAHPI_FUMI_INSTALL_FAILED_ROLLBACK_NOT_POSSIBLE, "INSTALL_FAILED_ROLLBACK_NOT_POSSIBLE"},
+       {SAHPI_FUMI_INSTALL_DONE, "INSTALL_DONE"},
+       {SAHPI_FUMI_INSTALL_CANCELLED, "INSTALL_CANCELLED"},
+       {SAHPI_FUMI_ROLLBACK_INITIATED, "ROLLBACK_INITIATED"},
+       {SAHPI_FUMI_ROLLBACK_FAILED, "ROLLBACK_FAILED"},
+       {SAHPI_FUMI_ROLLBACK_DONE, "ROLLBACK_DONE"},
+       {SAHPI_FUMI_ROLLBACK_CANCELLED, "ROLLBACK_CANCELLED"},
+       {SAHPI_FUMI_BACKUP_INITIATED, "BACKUP_INITIATED"},
+       {SAHPI_FUMI_BACKUP_FAILED, "BACKUP_FAILED"},
+       {SAHPI_FUMI_BACKUP_DONE, "BACKUP_DONE"},
+       {SAHPI_FUMI_BACKUP_CANCELLED, "BACKUP_CANCELLED"},
+       {SAHPI_FUMI_BANK_COPY_INITIATED, "BANK_COPY_INITIATED"},
+       {SAHPI_FUMI_BANK_COPY_FAILED, "BANK_COPY_FAILED"},
+       {SAHPI_FUMI_BANK_COPY_DONE, "BANK_COPY_DONE"},
+       {SAHPI_FUMI_BANK_COPY_CANCELLED, "BANK_COPY_CANCELLED"},
+       {SAHPI_FUMI_TARGET_VERIFY_INITIATED, "TARGET_VERIFY_INITIATED"},
+       {SAHPI_FUMI_TARGET_VERIFY_FAILED, "TARGET_VERIFY_FAILED"},
+       {SAHPI_FUMI_TARGET_VERIFY_DONE, "TARGET_VERIFY_DONE"},
+       {SAHPI_FUMI_TARGET_VERIFY_CANCELLED, "TARGET_VERIFY_CANCELLED"},
+       {SAHPI_FUMI_ACTIVATE_INITIATED, "ACTIVATE_INITIATED"},
+       {SAHPI_FUMI_ACTIVATE_FAILED_ROLLBACK_NEEDED, "ACTIVATE_FAILED_ROLLBACK_NEEDED"},
+       {SAHPI_FUMI_ACTIVATE_FAILED_ROLLBACK_INITIATED, "ACTIVATE_FAILED_ROLLBACK_INITIATED"},
+       {SAHPI_FUMI_ACTIVATE_FAILED_ROLLBACK_NOT_POSSIBLE, "ACTIVATE_FAILED_ROLLBACK_NOT_POSSIBLE"},
+       {SAHPI_FUMI_ACTIVATE_DONE, "ACTIVATE_DONE"},
+       {SAHPI_FUMI_ACTIVATE_CANCELLED, "ACTIVATE_CANCELLED"},
+};
+
+/**
+ * oh_encode_fumiupgradestatus:
+ * @buffer: Pointer to SaHpiTextBufferT that contains enum's string representation.
+ * @type: Location (of SaHpiFumiUpgradeStatusT) to place encoded result.
+ * 
+ * Converts a @buffer->Data string, generated by oh_lookup_fumiupgradestatus(), back 
+ * into an SaHpiFumiUpgradeStatusT type. 
+ *
+ * Returns:
+ * SaHpiFumiUpgradeStatusT value - normal operation.
+ * SA_ERR_HPI_INVALID_PARAMS - if @buffer or @type is NULL or @buffer->Data empty.
+ * SA_ERR_HPI_INVALID_DATA - if @buffer->Data is invalid.
+ **/
+SaErrorT oh_encode_fumiupgradestatus(SaHpiTextBufferT *buffer, SaHpiFumiUpgradeStatusT *type)
+{
+	int i, found;
+
+	if (!buffer || !type || buffer->Data == NULL || buffer->Data[0] == '\0') {
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+	
+	found = 0;
+	for (i=0; i<OH_MAX_FUMIUPGRADESTATUS; i++) {
+		if (strcasecmp((char *)buffer->Data, fumiupgradestatus_strings[i].str) == 0) {
+			found++;
+			break;
+		}
+	}
+
+	if (found) {
+		*type = fumiupgradestatus_strings[i].entity_type;
+	}
+	else {
+		return(SA_ERR_HPI_INVALID_DATA);
+	}
+	
+	return(SA_OK);
+}
+
+/**
  * oh_lookup_hsindicatorstate:
  * @value: enum value of type SaHpiHsIndicatorStateT.
  *
@@ -2645,6 +3673,97 @@ SaErrorT oh_encode_hsstate(SaHpiTextBufferT *buffer, SaHpiHsStateT *type)
 
 	if (found) {
 		*type = hsstate_strings[i].entity_type;
+	}
+	else {
+		return(SA_ERR_HPI_INVALID_DATA);
+	}
+	
+	return(SA_OK);
+}
+
+/**
+ * oh_lookup_hscauseofstatechange:
+ * @value: enum value of type SaHpiHsCauseOfStateChangeT.
+ *
+ * Converts @value into a string based on @value's HPI enum definition.
+ * 
+ * Returns:
+ * string - normal operation.
+ * NULL - if @value not a valid SaHpiHsCauseOfStateChangeT.
+ **/
+
+char * oh_lookup_hscauseofstatechange(SaHpiHsCauseOfStateChangeT value)
+{
+        switch (value) {
+        case SAHPI_HS_CAUSE_AUTO_POLICY:
+                return "CAUSE_AUTO_POLICY";
+        case SAHPI_HS_CAUSE_EXT_SOFTWARE:
+                return "CAUSE_EXT_SOFTWARE";
+        case SAHPI_HS_CAUSE_OPERATOR_INIT:
+                return "CAUSE_OPERATOR_INIT";
+        case SAHPI_HS_CAUSE_USER_UPDATE:
+                return "CAUSE_USER_UPDATE";
+        case SAHPI_HS_CAUSE_UNEXPECTED_DEACTIVATION:
+                return "CAUSE_UNEXPECTED_DEACTIVATION";
+        case SAHPI_HS_CAUSE_SURPRISE_EXTRACTION:
+                return "CAUSE_SURPRISE_EXTRACTION";
+        case SAHPI_HS_CAUSE_EXTRACTION_UPDATE:
+                return "CAUSE_EXTRACTION_UPDATE";
+        case SAHPI_HS_CAUSE_HARDWARE_FAULT:
+                return "CAUSE_HARDWARE_FAULT";
+        case SAHPI_HS_CAUSE_CONTAINING_FRU:
+                return "CAUSE_CONTAINING_FRU";
+        case SAHPI_HS_CAUSE_UNKNOWN:
+                return "CAUSE_UNKNOWN";
+        default:
+                return NULL;
+        }
+}
+
+struct oh_hscauseofstatechange_map hscauseofstatechange_strings[] = {
+       {SAHPI_HS_CAUSE_AUTO_POLICY, "CAUSE_AUTO_POLICY"},
+       {SAHPI_HS_CAUSE_EXT_SOFTWARE, "CAUSE_EXT_SOFTWARE"},
+       {SAHPI_HS_CAUSE_OPERATOR_INIT, "CAUSE_OPERATOR_INIT"},
+       {SAHPI_HS_CAUSE_USER_UPDATE, "CAUSE_USER_UPDATE"},
+       {SAHPI_HS_CAUSE_UNEXPECTED_DEACTIVATION, "CAUSE_UNEXPECTED_DEACTIVATION"},
+       {SAHPI_HS_CAUSE_SURPRISE_EXTRACTION, "CAUSE_SURPRISE_EXTRACTION"},
+       {SAHPI_HS_CAUSE_EXTRACTION_UPDATE, "CAUSE_EXTRACTION_UPDATE"},
+       {SAHPI_HS_CAUSE_HARDWARE_FAULT, "CAUSE_HARDWARE_FAULT"},
+       {SAHPI_HS_CAUSE_CONTAINING_FRU, "CAUSE_CONTAINING_FRU"},
+       {SAHPI_HS_CAUSE_UNKNOWN, "CAUSE_UNKNOWN"},
+};
+
+/**
+ * oh_encode_hscauseofstatechange:
+ * @buffer: Pointer to SaHpiTextBufferT that contains enum's string representation.
+ * @type: Location (of SaHpiHsCauseOfStateChangeT) to place encoded result.
+ * 
+ * Converts a @buffer->Data string, generated by oh_lookup_hscauseofstatechange(), back 
+ * into an SaHpiHsCauseOfStateChangeT type. 
+ *
+ * Returns:
+ * SaHpiHsCauseOfStateChangeT value - normal operation.
+ * SA_ERR_HPI_INVALID_PARAMS - if @buffer or @type is NULL or @buffer->Data empty.
+ * SA_ERR_HPI_INVALID_DATA - if @buffer->Data is invalid.
+ **/
+SaErrorT oh_encode_hscauseofstatechange(SaHpiTextBufferT *buffer, SaHpiHsCauseOfStateChangeT *type)
+{
+	int i, found;
+
+	if (!buffer || !type || buffer->Data == NULL || buffer->Data[0] == '\0') {
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+	
+	found = 0;
+	for (i=0; i<OH_MAX_HSCAUSEOFSTATECHANGE; i++) {
+		if (strcasecmp((char *)buffer->Data, hscauseofstatechange_strings[i].str) == 0) {
+			found++;
+			break;
+		}
+	}
+
+	if (found) {
+		*type = hscauseofstatechange_strings[i].entity_type;
 	}
 	else {
 		return(SA_ERR_HPI_INVALID_DATA);
@@ -3004,9 +4123,9 @@ struct oh_eventtype_map eventtype_strings[] = {
        {SAHPI_ET_HPI_SW, "HPI_SW"},
        {SAHPI_ET_OEM, "OEM"},
        {SAHPI_ET_USER, "USER"},
-       {SAHPI_ET_DIMI, "DIMI" },
-       {SAHPI_ET_DIMI_UPDATE, "DIMI_UPDATE" },
-       {SAHPI_ET_FUMI, "FUMI" },
+       {SAHPI_ET_DIMI, "DIMI"},
+       {SAHPI_ET_DIMI_UPDATE, "DIMI_UPDATE"},
+       {SAHPI_ET_FUMI, "FUMI"},
 };
 
 /**
@@ -3274,457 +4393,6 @@ SaErrorT oh_encode_annunciatortype(SaHpiTextBufferT *buffer, SaHpiAnnunciatorTyp
 }
 
 /**
- * oh_lookup_dimitestserviceimpact:
- * @value: enum value of type SaHpiDimiTestServiceImpactT.
- *
- * Converts @value into a string based on @value's HPI enum definition.
- * 
- * Returns:
- * string - normal operation.
- * NULL - if @value not a valid SaHpiDimiTestServiceImpactT.
- **/
-char* oh_lookup_dimitestserviceimpact(SaHpiDimiTestServiceImpactT value)
-{
-        switch (value) {
-        case SAHPI_DIMITEST_NONDEGRADING: 
-                return "NONDEGRADING";
-        case SAHPI_DIMITEST_DEGRADING: 
-                return "DEGRADING";
-        case SAHPI_DIMITEST_VENDOR_DEFINED_LEVEL: 
-                return "VENDOR_DEFINED_LEVEL";
-        default:
-                return NULL;
-        }
-}
-
-struct oh_dimitestserviceimpact_map dimitestserviceimpact_strings[] = {
-       {SAHPI_DIMITEST_NONDEGRADING, "NONDEGRADING"},
-       {SAHPI_DIMITEST_DEGRADING, "DEGRADING"},
-       {SAHPI_DIMITEST_VENDOR_DEFINED_LEVEL, "VENDOR_DEFINED_LEVEL"},
-};
-
-/**
- * oh_encode_dimitestserviceimpact:
- * @buffer: Pointer to SaHpiTextBufferT that contains enum's string representation.
- * @type: Location (of SaHpiDimiTestServiceImpactT) to place encoded result.
- * 
- * Converts a @buffer->Data string, generated by oh_lookup_dimitestserviceimpact(), back 
- * into an SaHpiDimiTestServiceImpactT type. 
- *
- * Returns:
- * SaHpiDimiTestServiceImpactT value - normal operation.
- * SA_ERR_HPI_INVALID_PARAMS - if @buffer or @type is NULL or @buffer->Data empty.
- * SA_ERR_HPI_INVALID_DATA - if @buffer->Data is invalid.
- **/
-SaErrorT oh_encode_dimitestserviceimpact(SaHpiTextBufferT *buffer, SaHpiDimiTestServiceImpactT *type)
-{
-	int i, found;
-
-	if (!buffer || !type || buffer->Data == NULL || buffer->Data[0] == '\0') {
-		return(SA_ERR_HPI_INVALID_PARAMS);
-	}
-	
-	found = 0;
-	for (i=0; i<OH_MAX_DIMITESTSERVICEIMPACT; i++) {
-		if (strcasecmp((char *)buffer->Data, dimitestserviceimpact_strings[i].str) == 0) {
-			found++;
-			break;
-		}
-	}
-
-	if (found) {
-		*type = dimitestserviceimpact_strings[i].entity_type;
-	}
-	else {
-		return(SA_ERR_HPI_INVALID_DATA);
-	}
-	
-	return(SA_OK);
-}
-
-/**
- * oh_lookup_dimitestrunstatus:
- * @value: enum value of type SaHpiDimiTestRunStatusT.
- *
- * Converts @value into a string based on @value's HPI enum definition.
- * 
- * Returns:
- * string - normal operation.
- * NULL - if @value not a valid SaHpiDimiTestRunStatusT.
- **/
-char * oh_lookup_dimitestrunstatus(SaHpiDimiTestRunStatusT value)
-{
-        switch (value) {
-        case SAHPI_DIMITEST_STATUS_NOT_RUN:
-                return "NOT_RUN";
-        case SAHPI_DIMITEST_STATUS_FINISHED_NO_ERRORS:
-                return "FINISHED_NO_ERRORS";
-        case SAHPI_DIMITEST_STATUS_FINISHED_ERRORS:
-                return "FINISHED_ERRORS";
-        case SAHPI_DIMITEST_STATUS_CANCELED:
-                return "CANCELED";
-        case SAHPI_DIMITEST_STATUS_RUNNING:
-                return "RUNNING";
-        default:
-                return NULL;
-        }
-}
-
-struct oh_dimitestrunstatus_map dimitestrunstatus_strings[] = {
-       {SAHPI_DIMITEST_STATUS_NOT_RUN, "NOT_RUN"},
-       {SAHPI_DIMITEST_STATUS_FINISHED_NO_ERRORS, "FINISHED_NO_ERRORS"},
-       {SAHPI_DIMITEST_STATUS_FINISHED_ERRORS, "FINISHED_ERRORS"},
-       {SAHPI_DIMITEST_STATUS_CANCELED, "CANCELED"},
-       {SAHPI_DIMITEST_STATUS_RUNNING, "RUNNING"},
-};
-
-/**
- * oh_encode_dimitestrunstatus:
- * @buffer: Pointer to SaHpiTextBufferT that contains enum's string representation.
- * @type: Location (of SaHpiDimiTestRunStatusT) to place encoded result.
- * 
- * Converts a @buffer->Data string, generated by oh_lookup_dimitestrunstatus(), back 
- * into an SaHpiDimiTestRunStatusT type. 
- *
- * Returns:
- * SaHpiDimiTestRunStatusT value - normal operation.
- * SA_ERR_HPI_INVALID_PARAMS - if @buffer or @type is NULL or @buffer->Data empty.
- * SA_ERR_HPI_INVALID_DATA - if @buffer->Data is invalid.
- **/
-SaErrorT oh_encode_dimitestrunstatus(SaHpiTextBufferT *buffer, SaHpiDimiTestRunStatusT *type)
-{
-	int i, found;
-
-	if (!buffer || !type || buffer->Data == NULL || buffer->Data[0] == '\0') {
-		return(SA_ERR_HPI_INVALID_PARAMS);
-	}
-	
-	found = 0;
-	for (i=0; i<OH_MAX_DIMITESTRUNSTATUS; i++) {
-		if (strcasecmp((char *)buffer->Data, dimitestrunstatus_strings[i].str) == 0) {
-			found++;
-			break;
-		}
-	}
-
-	if (found) {
-		*type = dimitestrunstatus_strings[i].entity_type;
-	}
-	else {
-		return(SA_ERR_HPI_INVALID_DATA);
-	}
-	
-	return(SA_OK);
-}
-
-/**
- * oh_lookup_fumisourcestatus:
- * @value: enum value of type SaHpiFumiSourceStatusT.
- *
- * Converts @value into a string based on @value's HPI enum definition.
- * 
- * Returns:
- * string - normal operation.
- * NULL - if @value not a valid SaHpiFumiSourceStatusT.
- **/
-char * oh_lookup_fumisourcestatus(SaHpiFumiSourceStatusT value)
-{
-        switch (value) {
-        case SAHPI_FUMI_SRC_VALID:
-                return "VALID";
-        case SAHPI_FUMI_SRC_PROTOCOL_NOT_SUPPORTED:
-                return "PROTOCOL_NOT_SUPPORTED";
-        case SAHPI_FUMI_SRC_UNREACHABLE:
-                return "UNREACHABLE";
-        case SAHPI_FUMI_SRC_VALIDATION_NOT_STARTED:
-                return "VALIDATION_NOT_STARTED";
-        case SAHPI_FUMI_SRC_VALIDATION_INITIATED:
-                return "VALIDATION_INITIATED";
-        case SAHPI_FUMI_SRC_VALIDATION_FAIL:
-                return "VALIDATION_FAIL";
-        case SAHPI_FUMI_SRC_TYPE_MISMATCH:
-                return "SRC_TYPE_MISMATCH";
-        case SAHPI_FUMI_SRC_INVALID:
-                return "INVALID";
-        case SAHPI_FUMI_SRC_VALIDITY_UNKNOWN:
-                return "VALIDITY_UNKNOWN";
-        default:
-                return NULL;
-        }
-}
-
-struct oh_fumisourcestatus_map fumisourcestatus_strings[] = {
-       {SAHPI_FUMI_SRC_VALID, "VALID"},
-       {SAHPI_FUMI_SRC_PROTOCOL_NOT_SUPPORTED, "SUPPORTED"},
-       {SAHPI_FUMI_SRC_UNREACHABLE, "UNREACHABLE"},
-       {SAHPI_FUMI_SRC_VALIDATION_NOT_STARTED, "VALIDATION_NOT_STARTED"},
-       {SAHPI_FUMI_SRC_VALIDATION_INITIATED, "VALIDATION_INITIATED"},
-       {SAHPI_FUMI_SRC_VALIDATION_FAIL, "VALIDATION_FAIL"},
-       {SAHPI_FUMI_SRC_TYPE_MISMATCH, "TYPE_MISMATCH"},
-       {SAHPI_FUMI_SRC_INVALID, "INVALID"},
-       {SAHPI_FUMI_SRC_VALIDITY_UNKNOWN, "VALIDITY_UNKNOWN"},
-};
-
-/**
- * oh_encode_fumisourcestatus:
- * @buffer: Pointer to SaHpiTextBufferT that contains enum's string representation.
- * @type: Location (of SaHpiFumiSourceStatusT) to place encoded result.
- * 
- * Converts a @buffer->Data string, generated by oh_lookup_fumisourcestatus(), back 
- * into an SaHpiFumiSourceStatusT type. 
- *
- * Returns:
- * SaHpiFumiSourceStatusT value - normal operation.
- * SA_ERR_HPI_INVALID_PARAMS - if @buffer or @type is NULL or @buffer->Data empty.
- * SA_ERR_HPI_INVALID_DATA - if @buffer->Data is invalid.
- **/
-SaErrorT oh_encode_fumisourcestatus(SaHpiTextBufferT *buffer, SaHpiFumiSourceStatusT *type)
-{
-	int i, found;
-
-	if (!buffer || !type || buffer->Data == NULL || buffer->Data[0] == '\0') {
-		return(SA_ERR_HPI_INVALID_PARAMS);
-	}
-	
-	found = 0;
-	for (i=0; i<OH_MAX_FUMISOURCESTATUS; i++) {
-		if (strcasecmp((char *)buffer->Data, fumisourcestatus_strings[i].str) == 0) {
-			found++;
-			break;
-		}
-	}
-
-	if (found) {
-		*type = fumisourcestatus_strings[i].entity_type;
-	}
-	else {
-		return(SA_ERR_HPI_INVALID_DATA);
-	}
-	
-	return(SA_OK);
-}
-
-/**
- * oh_lookup_fumibankstate:
- * @value: enum value of type SaHpiFumiBankStateT.
- *
- * Converts @value into a string based on @value's HPI enum definition.
- * 
- * Returns:
- * string - normal operation.
- * NULL - if @value not a valid SaHpiFumiBankStateT.
- **/
-char * oh_lookup_fumibankstate(SaHpiFumiBankStateT value)
-{
-        switch (value) {
-        case SAHPI_FUMI_BANK_VALID:
-                return "VALID";
-        case SAHPI_FUMI_BANK_UPGRADE_IN_PROGRESS:
-                return "UPGRADE_IN_PROGRESS";
-        case SAHPI_FUMI_BANK_CORRUPTED:
-                return "CORRUPTED";
-        case SAHPI_FUMI_BANK_ACTIVE:
-                return "ACTIVE";
-        case SAHPI_FUMI_BANK_BUSY:
-                return "BUSY";
-        case SAHPI_FUMI_BANK_UNKNOWN:
-                return "UNKNOWN";
-        default:
-                return NULL;
-        }
-}
-
-struct oh_fumibankstate_map fumibankstate_strings[] = {
-       {SAHPI_FUMI_BANK_VALID, "VALID"},
-       {SAHPI_FUMI_BANK_UPGRADE_IN_PROGRESS, "UPGRADE_IN_PROGRESS"},
-       {SAHPI_FUMI_BANK_CORRUPTED, "CORRUPTED"},
-       {SAHPI_FUMI_BANK_ACTIVE, "ACTIVE"},
-       {SAHPI_FUMI_BANK_BUSY, "BUSY"},
-       {SAHPI_FUMI_BANK_UNKNOWN, "UNKNOWN"},
-};
-
-/**
- * oh_encode_fumibankstate:
- * @buffer: Pointer to SaHpiTextBufferT that contains enum's string representation.
- * @type: Location (of SaHpiFumiBankStateT) to place encoded result.
- * 
- * Converts a @buffer->Data string, generated by oh_lookup_fumibankstate(), back 
- * into an SaHpiFumiBankStateT type. 
- *
- * Returns:
- * SaHpiFumiBankStateT value - normal operation.
- * SA_ERR_HPI_INVALID_PARAMS - if @buffer or @type is NULL or @buffer->Data empty.
- * SA_ERR_HPI_INVALID_DATA - if @buffer->Data is invalid.
- **/
-SaErrorT oh_encode_fumibankstate(SaHpiTextBufferT *buffer, SaHpiFumiBankStateT *type)
-{
-	int i, found;
-
-	if (!buffer || !type || buffer->Data == NULL || buffer->Data[0] == '\0') {
-		return(SA_ERR_HPI_INVALID_PARAMS);
-	}
-	
-	found = 0;
-	for (i=0; i<OH_MAX_FUMIBANKSTATE; i++) {
-		if (strcasecmp((char *)buffer->Data, fumibankstate_strings[i].str) == 0) {
-			found++;
-			break;
-		}
-	}
-
-	if (found) {
-		*type = fumibankstate_strings[i].entity_type;
-	}
-	else {
-		return(SA_ERR_HPI_INVALID_DATA);
-	}
-	
-	return(SA_OK);
-}
-
-/**
- * oh_lookup_fumiupgradestatus:
- * @value: enum value of type SaHpiFumiUpgradeStatusT.
- *
- * Converts @value into a string based on @value's HPI enum definition.
- * 
- * Returns:
- * string - normal operation.
- * NULL - if @value not a valid SaHpiFumiUpgradeStatusT.
- **/
-
-char * oh_lookup_fumiupgradestatus(SaHpiFumiUpgradeStatusT value)
-{
-        switch (value) {
-        case SAHPI_FUMI_OPERATION_NOTSTARTED:
-                return "OPERATION_NOTSTARTED";
-        case SAHPI_FUMI_SOURCE_VALIDATION_INITIATED:
-                return "SOURCE_VALIDATION_INITIATED";
-        case SAHPI_FUMI_SOURCE_VALIDATION_FAILED:
-                return "SOURCE_VALIDATION_FAILED";
-        case SAHPI_FUMI_SOURCE_VALIDATION_DONE:
-                return "SOURCE_VALIDATION_DONE";
-        case SAHPI_FUMI_SOURCE_VALIDATION_CANCELLED:
-                return "SOURCE_VALIDATION_CANCELLED";
-        case SAHPI_FUMI_INSTALL_INITIATED:
-                return "INSTALL_INITIATED";
-        case SAHPI_FUMI_INSTALL_FAILED_ROLLBACK_NEEDED:
-                return "INSTALL_FAILED_ROLLBACK_NEEDED";
-        case SAHPI_FUMI_INSTALL_FAILED_ROLLBACK_INITIATED:
-                return "INSTALL_FAILED_ROLLBACK_INITIATED";
-        case SAHPI_FUMI_INSTALL_FAILED_ROLLBACK_NOT_POSSIBLE:
-                return "INSTALL_FAILED_ROLLBACK_NOT_POSSIBLE";
-        case SAHPI_FUMI_INSTALL_DONE:
-                return "INSTALL_DONE";
-        case SAHPI_FUMI_INSTALL_CANCELLED:
-                return "INSTALL_CANCELLED";
-        case SAHPI_FUMI_ROLLBACK_INITIATED:
-                return "ROLLBACK_INITIATED";
-        case SAHPI_FUMI_ROLLBACK_FAILED:
-                return "ROLLBACK_FAILED";
-        case SAHPI_FUMI_ROLLBACK_DONE:
-                return "ROLLBACK_DONE";
-        case SAHPI_FUMI_ROLLBACK_CANCELLED:
-                return "ROLLBACK_CANCELLED";
-        case SAHPI_FUMI_BACKUP_INITIATED:
-                return "BACKUP_INITIATED";
-        case SAHPI_FUMI_BACKUP_FAILED:
-                return "BACKUP_FAILED";
-        case SAHPI_FUMI_BACKUP_DONE:
-                return "BACKUP_DONE";
-        case SAHPI_FUMI_BACKUP_CANCELLED:
-                return "BACKUP_CANCELLED";
-        case SAHPI_FUMI_BANK_COPY_INITIATED:
-                return "BANK_COPY_INITIATED";
-        case SAHPI_FUMI_BANK_COPY_FAILED:
-                return "BANK_COPY_FAILED";
-        case SAHPI_FUMI_BANK_COPY_DONE:
-                return "BANK_COPY_DONE";
-        case SAHPI_FUMI_BANK_COPY_CANCELLED:
-                return "BANK_COPY_CANCELLED";
-        case SAHPI_FUMI_TARGET_VERIFY_INITIATED:
-                return "TARGET_VERIFY_INITIATED";
-        case SAHPI_FUMI_TARGET_VERIFY_FAILED:
-                return "TARGET_VERIFY_FAILED";
-        case SAHPI_FUMI_TARGET_VERIFY_DONE:
-                return "TARGET_VERIFY_DONE";
-        case SAHPI_FUMI_TARGET_VERIFY_CANCELLED:
-                return "TARGET_VERIFY_CANCELLED";
-        default:
-                return NULL;
-        }
-}
-
-struct oh_fumiupgradestatus_map fumiupgradestatus_strings[] = {
-       {SAHPI_FUMI_OPERATION_NOTSTARTED, "OPERATION_NOTSTARTED"},
-       {SAHPI_FUMI_SOURCE_VALIDATION_INITIATED, "SOURCE_VALIDATION_INITIATED"},
-       {SAHPI_FUMI_SOURCE_VALIDATION_FAILED, "SOURCE_VALIDATION_FAILED"},
-       {SAHPI_FUMI_SOURCE_VALIDATION_DONE, "SOURCE_VALIDATION_DONE"},
-       {SAHPI_FUMI_SOURCE_VALIDATION_CANCELLED, "SOURCE_VALIDATION_CANCELLED"},
-       {SAHPI_FUMI_INSTALL_INITIATED, "INSTALL_INITIATED"},
-       {SAHPI_FUMI_INSTALL_FAILED_ROLLBACK_NEEDED, "INSTALL_FAILED_ROLLBACK_NEEDED"},
-       {SAHPI_FUMI_INSTALL_FAILED_ROLLBACK_INITIATED, "INSTALL_FAILED_ROLLBACK_INITIATED"},
-       {SAHPI_FUMI_INSTALL_FAILED_ROLLBACK_NOT_POSSIBLE, "INSTALL_FAILED_ROLLBACK_NOT_POSSIBLE"},
-       {SAHPI_FUMI_INSTALL_DONE, "INSTALL_DONE"},
-       {SAHPI_FUMI_INSTALL_CANCELLED, "INSTALL_CANCELLED"},
-       {SAHPI_FUMI_ROLLBACK_INITIATED, "ROLLBACK_INITIATED"},
-       {SAHPI_FUMI_ROLLBACK_FAILED, "ROLLBACK_FAILED"},
-       {SAHPI_FUMI_ROLLBACK_DONE, "ROLLBACK_DONE"},
-       {SAHPI_FUMI_ROLLBACK_CANCELLED, "ROLLBACK_CANCELLED"},
-       {SAHPI_FUMI_BACKUP_INITIATED, "BACKUP_INITIATED"},
-       {SAHPI_FUMI_BACKUP_FAILED, "BACKUP_FAILED"},
-       {SAHPI_FUMI_BACKUP_DONE, "BACKUP_DONE"},
-       {SAHPI_FUMI_BACKUP_CANCELLED, "BACKUP_CANCELLED"},
-       {SAHPI_FUMI_BANK_COPY_INITIATED, "BANK_COPY_INITIATED"},
-       {SAHPI_FUMI_BANK_COPY_FAILED, "BANK_COPY_FAILED"},
-       {SAHPI_FUMI_BANK_COPY_DONE, "BANK_COPY_DONE"},
-       {SAHPI_FUMI_BANK_COPY_CANCELLED, "BANK_COPY_CANCELLED"},
-       {SAHPI_FUMI_TARGET_VERIFY_INITIATED, "TARGET_VERIFY_INITIATED"},
-       {SAHPI_FUMI_TARGET_VERIFY_FAILED, "TARGET_VERIFY_FAILED"},
-       {SAHPI_FUMI_TARGET_VERIFY_DONE, "TARGET_VERIFY_DONE"},
-       {SAHPI_FUMI_TARGET_VERIFY_CANCELLED, "TARGET_VERIFY_CANCELLED"},
-};
-
-/**
- * oh_encode_fumiupgradestatus:
- * @buffer: Pointer to SaHpiTextBufferT that contains enum's string representation.
- * @type: Location (of SaHpiFumiUpgradeStatusT) to place encoded result.
- * 
- * Converts a @buffer->Data string, generated by oh_lookup_fumiupgradestatus(), back 
- * into an SaHpiFumiUpgradeStatusT type. 
- *
- * Returns:
- * SaHpiFumiUpgradeStatusT value - normal operation.
- * SA_ERR_HPI_INVALID_PARAMS - if @buffer or @type is NULL or @buffer->Data empty.
- * SA_ERR_HPI_INVALID_DATA - if @buffer->Data is invalid.
- **/
-SaErrorT oh_encode_fumiupgradestatus(SaHpiTextBufferT *buffer, SaHpiFumiUpgradeStatusT *type)
-{
-	int i, found;
-
-	if (!buffer || !type || buffer->Data == NULL || buffer->Data[0] == '\0') {
-		return(SA_ERR_HPI_INVALID_PARAMS);
-	}
-	
-	found = 0;
-	for (i=0; i<OH_MAX_FUMIUPGRADESTATUS; i++) {
-		if (strcasecmp((char *)buffer->Data, fumiupgradestatus_strings[i].str) == 0) {
-			found++;
-			break;
-		}
-	}
-
-	if (found) {
-		*type = fumiupgradestatus_strings[i].entity_type;
-	}
-	else {
-		return(SA_ERR_HPI_INVALID_DATA);
-	}
-	
-	return(SA_OK);
-}
-
-/**
  * oh_lookup_rdrtype:
  * @value: enum value of type SaHpiRdrTypeT.
  *
@@ -3734,6 +4402,7 @@ SaErrorT oh_encode_fumiupgradestatus(SaHpiTextBufferT *buffer, SaHpiFumiUpgradeS
  * string - normal operation.
  * NULL - if @value not a valid SaHpiRdrTypeT.
  **/
+
 char * oh_lookup_rdrtype(SaHpiRdrTypeT value)
 {
         switch (value) {
@@ -4146,6 +4815,10 @@ char * oh_lookup_error(SaErrorT value)
                 return "CAPABILITY";
         case SA_ERR_HPI_UNKNOWN:
                 return "UNKNOWN";
+        case SA_ERR_HPI_INVALID_STATE:
+                return "INVALID_STATE";
+        case SA_ERR_HPI_UNSUPPORTED_PARAMS:
+                return "UNSUPPORTED_PARAMS";
         default:
                 return NULL;
         }
@@ -4174,6 +4847,8 @@ struct oh_error_map error_strings[] = {
        {SA_ERR_HPI_READ_ONLY, "READ_ONLY"},
        {SA_ERR_HPI_CAPABILITY, "CAPABILITY"},
        {SA_ERR_HPI_UNKNOWN, "UNKNOWN"},
+       {SA_ERR_HPI_INVALID_STATE, "INVALID_STATE"},
+       {SA_ERR_HPI_UNSUPPORTED_PARAMS, "UNSUPPORTED_PARAMS"},
 };
 
 /**
