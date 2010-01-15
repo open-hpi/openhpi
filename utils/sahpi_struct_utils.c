@@ -1817,6 +1817,11 @@ SaErrorT oh_decode_hscapabilities(SaHpiHsCapabilitiesT HsCapabilities,
                 err = oh_append_textbuffer(&working, "INDICATOR_SUPPORTED | ");
                 if (err) { return(err); }
         }
+        if (HsCapabilities & SAHPI_HS_CAPABILITY_AUTOINSERT_IMMEDIATE) {
+                found++;
+                err = oh_append_textbuffer(&working, "AUTOINSERT_IMMEDIATE | ");
+                if (err) { return(err); }
+        }
 
         if (found) {
                 working.DataLength -= OH_ENCODE_DELIMITER_LENGTH;
